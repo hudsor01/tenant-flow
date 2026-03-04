@@ -12,8 +12,8 @@ import type {
 	TenantStats,
 	UnitStats,
 	LeaseStats
-} from '../types/stats.js'
-import type { SystemUptime } from '../types/core.js'
+} from '../types/stats'
+import type { SystemUptime } from '../types/core'
 
 /** Empty property statistics */
 export const EMPTY_PROPERTY_STATS: PropertyStats = {

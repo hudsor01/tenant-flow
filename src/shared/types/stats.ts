@@ -4,7 +4,7 @@
  */
 
 // Import analytics types for internal use (NO re-export per CLAUDE.md rules)
-import type { MetricTrend } from './analytics.js'
+import type { MetricTrend } from './analytics'
 
 // Property statistics
 export interface PropertyStats {

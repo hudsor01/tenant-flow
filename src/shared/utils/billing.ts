@@ -7,7 +7,7 @@ import {
 	BILLING_PLANS,
 	type PlanType,
 	type BillingPlan
-} from '../constants/billing.js'
+} from '../constants/billing'
 
 export function getPlanById(planId: string): BillingPlan | undefined {
 	return BILLING_PLANS[planId as PlanType]

@@ -1,4 +1,4 @@
-import type { LeaseStatus } from '../types/core.js'
+import type { LeaseStatus } from '../types/core'
 /**
  * Lease utilities
  * Helper functions for lease status display and management

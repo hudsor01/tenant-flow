@@ -1,5 +1,5 @@
-import type { MaintenancePriority } from '../types/core.js'
-import type { RequestStatus } from '../constants/status-types.js'
+import type { MaintenancePriority } from '../types/core'
+import type { RequestStatus } from '../constants/status-types'
 /**
  * Maintenance utilities
  * Helper functions for maintenance priority and status display

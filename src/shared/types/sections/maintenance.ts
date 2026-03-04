@@ -1,7 +1,7 @@
 // Maintenance Section Types
 import type { ReactElement } from 'react'
 
-import type { MaintenanceRequest, MaintenanceStatus, MaintenancePriority } from '../core.js'
+import type { MaintenanceRequest, MaintenanceStatus, MaintenancePriority } from '../core'
 
 export interface MaintenanceProps {
 	// Request list

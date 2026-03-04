@@ -3,8 +3,8 @@
  * Extended entity types with proper relations to avoid circular imports
  */
 
-import type { PropertyType } from '../constants/status-types.js'
-import type { Database } from './supabase.js'
+import type { PropertyType } from '../constants/status-types'
+import type { Database } from './supabase'
 import type { User } from '@supabase/supabase-js'
 
 // Define types properly from Database schema
@@ -18,7 +18,7 @@ type InvitationStatus = 'pending' | 'accepted' | 'expired' | 'CANCELLED'
 
 // Document type from database
 type Document = Database['public']['Tables']['documents']['Row']
-import type { NotificationData } from './notifications.js'
+import type { NotificationData } from './notifications'
 
 // Property relations
 export interface PropertyWithDetails extends Property {

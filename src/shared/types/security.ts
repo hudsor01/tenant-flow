@@ -2,7 +2,7 @@
  * Security-related types shared between frontend and backend
  */
 
-import { USER_user_type as USER_user_typeValue } from '../constants/auth.js'
+import { USER_user_type as USER_user_typeValue } from '../constants/auth'
 
 export const USER_user_type = USER_user_typeValue
 

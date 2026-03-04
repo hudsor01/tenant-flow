@@ -1,6 +1,6 @@
 // Payments Section Types
-import type { PaymentStatus } from '../core.js'
-import type { DateRange } from './dashboard.js'
+import type { PaymentStatus } from '../core'
+import type { DateRange } from './dashboard'
 
 export interface PaymentsProps {
 	// Payment list

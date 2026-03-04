@@ -3,7 +3,7 @@ import type {
 	LeaseStatus,
 	PaymentStatus,
 	MaintenancePriority
-} from '../core.js'
+} from '../core'
 
 export interface TenantPortalProps {
 	// Current tenant

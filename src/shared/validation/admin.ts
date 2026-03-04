@@ -6,7 +6,7 @@
  */
 
 import { z } from 'zod'
-import { userTypeSchema, userStatusSchema } from './users.js'
+import { userTypeSchema, userStatusSchema } from './users'
 
 /**
  * Schema for admin updating a user's role and/or status.

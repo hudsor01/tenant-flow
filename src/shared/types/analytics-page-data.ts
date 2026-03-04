@@ -11,7 +11,7 @@ import type {
 	MaintenanceAnalyticsPageResponse,
 	OccupancyAnalyticsPageResponse,
 	PropertyPerformancePageResponse
-} from './analytics.js'
+} from './analytics'
 
 // ============================================================================
 // Response Time Analytics Types

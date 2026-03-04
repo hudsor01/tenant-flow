@@ -18,7 +18,7 @@ import {
 	nonEmptyStringSchema,
 	positiveNumberSchema,
 	nonNegativeNumberSchema
-} from './common.js'
+} from './common'
 import { VALIDATION_LIMITS } from '#shared/constants/billing'
 
 // Property status enum validation

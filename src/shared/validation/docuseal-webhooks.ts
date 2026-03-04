@@ -6,7 +6,7 @@
  */
 
 import { z } from 'zod'
-import { emailSchema } from './common.js'
+import { emailSchema } from './common'
 
 /**
  * Metadata can contain lease_id and other arbitrary string values

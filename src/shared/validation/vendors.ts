@@ -11,7 +11,7 @@
  */
 
 import { z } from 'zod'
-import { uuidSchema, nonEmptyStringSchema, positiveNumberSchema } from './common.js'
+import { uuidSchema, nonEmptyStringSchema, positiveNumberSchema } from './common'
 
 // Valid contractor trade specializations
 export const vendorTradeSchema = z.enum([

@@ -11,13 +11,13 @@
  */
 
 // Import directly from supabase.ts (source of truth)
-import type { Tables, TablesInsert, TablesUpdate } from './supabase.js'
+import type { Tables, TablesInsert, TablesUpdate } from './supabase'
 
 // Note: Base row types (Property, Tenant, Lease, etc.) are in core.ts
 // Import them directly from '#shared/types/core' - no re-exports per CLAUDE.md rules
 
 // Import Zod-inferred types (Single Source of Truth)
-import type { TenantCreate, TenantUpdate } from '../validation/tenants.js'
+import type { TenantCreate, TenantUpdate } from '../validation/tenants'
 
 // =============================================================================
 // USER PROFILE TYPES

@@ -4,7 +4,7 @@
  * Helper functions for financial statement calculations and formatting
  */
 
-import type { TaxDocumentsData } from '../types/financial-statements.js'
+import type { TaxDocumentsData } from '../types/financial-statements'
 
 /**
  * Safely converts a value to a number, returning 0 for invalid values

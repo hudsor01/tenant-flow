@@ -1,5 +1,5 @@
-import type { UnitStatus } from '../types/core.js'
-import type { PropertyType } from '../constants/status-types.js'
+import type { UnitStatus } from '../types/core'
+import type { PropertyType } from '../constants/status-types'
 /**
  * Property utilities
  * Helper functions for property and unit display

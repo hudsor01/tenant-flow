@@ -4,7 +4,7 @@
  * Centralized validation for enum types used across the application.
  * Eliminates duplicate validation logic in controllers and services.
  */
-import type { LeaseStatus, UnitStatus } from '../types/core.js'
+import type { LeaseStatus, UnitStatus } from '../types/core'
 
 // Lease Status Validation
 
