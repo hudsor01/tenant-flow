@@ -20,11 +20,21 @@ describe('TermsStep', () => {
 
 	function renderTermsStep(
 		data: Partial<TermsStepData> = defaultData,
-		onChange = vi.fn()
+		onChange = vi.fn(),
+		selectedDuration: Parameters<typeof TermsStep>[0]['selectedDuration'] = null,
+		onDurationChange = vi.fn()
 	) {
 		return {
-			...render(<TermsStep data={data} onChange={onChange} />),
-			onChange
+			...render(
+				<TermsStep
+					data={data}
+					onChange={onChange}
+					selectedDuration={selectedDuration}
+					onDurationChange={onDurationChange}
+				/>
+			),
+			onChange,
+			onDurationChange
 		}
 	}
 
@@ -169,6 +179,42 @@ describe('TermsStep', () => {
 				'type',
 				'text'
 			)
+		})
+	})
+
+	describe('Duration Presets', () => {
+		it('should render preset buttons', () => {
+			renderTermsStep()
+
+			expect(screen.getByRole('button', { name: /month-to-month/i })).toBeInTheDocument()
+			expect(screen.getByRole('button', { name: /6 months/i })).toBeInTheDocument()
+			expect(screen.getByRole('button', { name: /12 months/i })).toBeInTheDocument()
+			expect(screen.getByRole('button', { name: /24 months/i })).toBeInTheDocument()
+		})
+
+		it('should calculate end date when preset clicked with start date', async () => {
+			const user = userEvent.setup()
+			const onChange = vi.fn()
+			const onDurationChange = vi.fn()
+			renderTermsStep(
+				{ start_date: '2026-01-01' },
+				onChange,
+				null,
+				onDurationChange
+			)
+
+			await user.click(screen.getByRole('button', { name: /12 months/i }))
+
+			expect(onDurationChange).toHaveBeenCalledWith(12)
+			expect(onChange).toHaveBeenCalledWith(
+				expect.objectContaining({ end_date: '2026-12-31' })
+			)
+		})
+
+		it('should show auto-calculated hint when preset active', () => {
+			renderTermsStep({}, vi.fn(), 12)
+
+			expect(screen.getByText(/auto-calculated from preset/i)).toBeInTheDocument()
 		})
 	})
 
