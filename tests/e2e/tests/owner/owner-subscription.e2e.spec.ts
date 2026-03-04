@@ -124,10 +124,10 @@ test.describe('Owner Subscription Flow', () => {
 				await navigationPromise
 
 				// Should redirect to Stripe hosted checkout
-				const currentUrl = page.url()
+				const parsedUrl = new URL(page.url())
 				expect(
-					currentUrl.includes('checkout.stripe.com') ||
-						currentUrl.includes('/pricing')
+					parsedUrl.hostname === 'checkout.stripe.com' ||
+						parsedUrl.pathname.includes('/pricing')
 				).toBeTruthy()
 			}
 		})
@@ -151,10 +151,10 @@ test.describe('Owner Subscription Flow', () => {
 				await growthButton.click()
 				await navigationPromise
 
-				const currentUrl = page.url()
+				const parsedUrl = new URL(page.url())
 				expect(
-					currentUrl.includes('checkout.stripe.com') ||
-						currentUrl.includes('/pricing')
+					parsedUrl.hostname === 'checkout.stripe.com' ||
+						parsedUrl.pathname.includes('/pricing')
 				).toBeTruthy()
 			}
 		})
@@ -352,13 +352,14 @@ test.describe('Owner Subscription Flow', () => {
 				await page.waitForTimeout(3000)
 
 				// Either opens new tab or redirects to Stripe
-				const currentUrl = page.url()
+				const portalUrl = new URL(page.url())
 				const isStripePortal =
-					currentUrl.includes('stripe.com') ||
-					currentUrl.includes('billing.stripe.com')
+					portalUrl.hostname === 'stripe.com' ||
+					portalUrl.hostname === 'billing.stripe.com' ||
+					portalUrl.hostname.endsWith('.stripe.com')
 
 				// If not redirected, might be in a new tab or modal
-				expect(isStripePortal || currentUrl.includes('/settings')).toBeTruthy()
+				expect(isStripePortal || portalUrl.pathname.includes('/settings')).toBeTruthy()
 			}
 		})
 	})
@@ -488,7 +489,8 @@ test.describe('Owner Subscription Flow', () => {
 				// Track where we get redirected to
 				let redirectUrl = ''
 				page.on('request', request => {
-					if (request.url().includes('stripe.com')) {
+					const reqUrl = new URL(request.url())
+					if (reqUrl.hostname === 'checkout.stripe.com' || reqUrl.hostname.endsWith('.stripe.com')) {
 						redirectUrl = request.url()
 					}
 				})

@@ -9,12 +9,12 @@ Requirements for Testing Strategy Consolidation milestone. Each maps to roadmap 
 
 ### Infrastructure Consolidation (INFRA)
 
-- [ ] **INFRA-01**: Vitest config uses `projects` with three named projects: unit (jsdom), component (jsdom), integration (node)
-- [ ] **INFRA-02**: All 7 RLS integration tests run under Vitest node project instead of Jest
-- [ ] **INFRA-03**: Jest, ts-jest, and @types/jest are removed from dependencies
-- [ ] **INFRA-04**: Orphaned `tests/unit/` directory is deleted; `pricing-premium.spec.ts` relocated to `src/`
-- [ ] **INFRA-05**: Orphaned `src/__tests__/` files relocated to co-located `__tests__/` directories
-- [ ] **INFRA-06**: Package.json test scripts updated for Vitest projects (`test:unit`, `test:integration`, `test:component`)
+- [x] **INFRA-01**: Vitest config uses `projects` with three named projects: unit (jsdom), component (jsdom), integration (node)
+- [x] **INFRA-02**: All 7 RLS integration tests run under Vitest node project instead of Jest
+- [x] **INFRA-03**: Jest, ts-jest, and @types/jest are removed from dependencies
+- [x] **INFRA-04**: Orphaned `tests/unit/` directory is deleted; `pricing-premium.spec.ts` relocated to `src/`
+- [x] **INFRA-05**: Orphaned `src/__tests__/` files relocated to co-located `__tests__/` directories
+- [x] **INFRA-06**: Package.json test scripts updated for Vitest projects (`test:unit`, `test:integration`, `test:component`)
 
 ### Test Data (DATA)
 
@@ -72,12 +72,12 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| INFRA-01 | Phase 05 | Pending |
-| INFRA-02 | Phase 05 | Pending |
-| INFRA-03 | Phase 05 | Pending |
-| INFRA-04 | Phase 05 | Pending |
-| INFRA-05 | Phase 05 | Pending |
-| INFRA-06 | Phase 05 | Pending |
+| INFRA-01 | Phase 05 | Complete |
+| INFRA-02 | Phase 05 | Complete |
+| INFRA-03 | Phase 05 | Complete |
+| INFRA-04 | Phase 05 | Complete |
+| INFRA-05 | Phase 05 | Complete |
+| INFRA-06 | Phase 05 | Complete |
 | DATA-01 | Phase 06 | Pending |
 | DATA-02 | Phase 06 | Pending |
 | DATA-03 | Phase 06 | Pending |
