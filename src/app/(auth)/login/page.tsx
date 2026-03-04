@@ -225,9 +225,9 @@ function LoginPageContent() {
 
 								<div className="grid grid-cols-3 gap-6 pt-6">
 									{[
-										{ value: '$2.4K+', label: 'Saved Per\nProperty' },
-										{ value: '98.7%', label: 'Customer\nSuccess' },
-										{ value: '90 sec', label: 'Support\nResponse' }
+										{ value: '$2.4K+', lines: ['Saved Per', 'Property'] },
+										{ value: '98.7%', lines: ['Customer', 'Success'] },
+										{ value: '90 sec', lines: ['Support', 'Response'] }
 									].map(stat => (
 										<div key={stat.value} className="text-center">
 											<div className="text-foreground font-bold mb-1 text-base">
@@ -235,10 +235,14 @@ function LoginPageContent() {
 											</div>
 											<div
 												className="text-muted-foreground text-xs font-medium"
-												dangerouslySetInnerHTML={{
-													__html: stat.label.replace('\n', '<br />')
-												}}
-											/>
+											>
+												{stat.lines.map((line, i, arr) => (
+													<span key={line}>
+														{line}
+														{i < arr.length - 1 && <br />}
+													</span>
+												))}
+											</div>
 										</div>
 									))}
 								</div>

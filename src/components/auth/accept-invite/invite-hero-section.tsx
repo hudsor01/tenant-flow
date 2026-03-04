@@ -40,20 +40,24 @@ export function InviteHeroSection() {
 
 						<div className="grid grid-cols-3 gap-6 pt-6">
 							{[
-								{ icon: CheckCircle2, label: 'Pay Rent\nOnline' },
-								{ icon: Home, label: 'Submit\nRequests' },
-								{ icon: Lock, label: 'Secure\nPortal' }
+								{ icon: CheckCircle2, lines: ['Pay Rent', 'Online'] },
+								{ icon: Home, lines: ['Submit', 'Requests'] },
+								{ icon: Lock, lines: ['Secure', 'Portal'] }
 							].map(item => (
-								<div key={item.label} className="text-center">
+								<div key={item.lines[0]} className="text-center">
 									<div className="size-10 mx-auto mb-2 bg-primary/10 rounded-lg flex-center">
 										<item.icon className="size-5 text-primary" />
 									</div>
 									<div
 										className="text-muted-foreground text-xs font-medium"
-										dangerouslySetInnerHTML={{
-											__html: item.label.replace('\n', '<br />')
-										}}
-									/>
+									>
+										{item.lines.map((line, i, arr) => (
+											<span key={line}>
+												{line}
+												{i < arr.length - 1 && <br />}
+											</span>
+										))}
+									</div>
 								</div>
 							))}
 						</div>
