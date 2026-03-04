@@ -48,6 +48,7 @@ pnpm validate:quick               # types + lint + unit tests
 - RLS on all tables — see `.claude/rules/rls-policies.md`
 - `supabase.ts` is generated — never edit manually
 - Valid `rent_payments.status`: `pending | processing | succeeded | failed | canceled`
+- Error monitoring RPCs are admin-only (`user_type = 'ADMIN'`)
 
 ## Data Access Patterns
 All data access goes through Supabase PostgREST and RPC. There is no custom backend API server.
@@ -89,7 +90,9 @@ RLS (Row Level Security) is the only access-control layer. No middleware auth, n
 - Helper functions: `get_current_owner_user_id()`, `get_current_tenant_id()`, `get_tenant_unit_ids()`
 - Policy rules: see `.claude/rules/rls-policies.md`
 - One policy per operation per role — never `FOR ALL` on authenticated tables
-- Integration tests: `tests/integration/rls/` — 60 tests across 7 domains
+- All SECURITY DEFINER RPCs validate `auth.uid()` — caller cannot request another user's data
+- Error monitoring RPCs are admin-only (`user_type = 'ADMIN'` via `is_admin()`)
+- Integration tests: `tests/integration/rls/` — 70 tests across 10 domains
 
 ## Naming
 | Thing | Convention |

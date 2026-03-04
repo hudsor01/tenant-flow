@@ -70,4 +70,8 @@ analyze email_suppressions;
 -- additional tables not in original plan but also missing ANALYZE
 analyze vendors;
 analyze property_images;
-analyze autopay_enrollments;
+DO $$ BEGIN
+  IF to_regclass('public.autopay_enrollments') IS NOT NULL THEN
+    ANALYZE autopay_enrollments;
+  END IF;
+END $$;
