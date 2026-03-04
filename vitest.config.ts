@@ -1,15 +1,9 @@
-/**
- * @todo TEST-002: Restore deleted frontend test coverage.
- *       70+ test files were removed without replacement.
- *       Priority: financial RLS tests, critical service tests.
- *       See TODO.md for details.
- */
-
 import { defineConfig } from 'vitest/config'
 import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 import react from '@vitejs/plugin-react'
 import tsconfigPaths from 'vite-tsconfig-paths'
+import type { PluginOption } from 'vite'
 
 const loadEnvFile = (fileName: string) => {
 	const path = resolve(__dirname, fileName)
@@ -44,56 +38,80 @@ export default defineConfig({
 		}
 	},
 	plugins: [
-		(tsconfigPaths({
-			ignoreConfigErrors: true
-		}) as unknown as any),
-		(react() as unknown as any)
+		tsconfigPaths({ ignoreConfigErrors: true }) as PluginOption,
+		react() as PluginOption
 	],
 	test: {
-		name: 'frontend',
-		environment: 'jsdom',
-		watch: process.env.CI ? false : true,
-		globals: true,
-		setupFiles: ['./src/test/unit-setup.ts'],
-		pool: 'vmThreads',
-		// poolOptions removed to match InlineConfig types for current Vitest version
-		coverage: {
-			provider: 'v8',
-			reporter: ['text', 'json', 'html', 'lcov'],
-			exclude: [
-				'node_modules/',
-				'src/test/',
-				'**/*.d.ts',
-				'**/*.config.{ts,js}',
-				'**/generated/**',
-				'**/__mocks__/**',
-				'src/types/**',
-				'tests/**' // Exclude integration tests from coverage
-			],
-			thresholds: {
-				lines: 80,
-				functions: 80,
-				branches: 80,
-				statements: 80
+		projects: [
+			{
+				extends: true,
+				test: {
+					name: 'unit',
+					environment: 'jsdom',
+					pool: 'vmThreads',
+					globals: true,
+					setupFiles: ['./src/test/unit-setup.ts'],
+					include: ['src/**/*.{test,spec}.{ts,tsx}'],
+					exclude: [
+						'node_modules',
+						'dist',
+						'.next',
+						'out',
+						'build',
+						'coverage',
+						'tests/**',
+						'e2e/**',
+						'src/**/*.component.test.tsx'
+					],
+					coverage: {
+						provider: 'v8',
+						reporter: ['text', 'json', 'html', 'lcov'],
+						exclude: [
+							'node_modules/',
+							'src/test/',
+							'**/*.d.ts',
+							'**/*.config.{ts,js}',
+							'**/generated/**',
+							'**/__mocks__/**',
+							'src/types/**',
+							'tests/**'
+						],
+						thresholds: {
+							lines: 80,
+							functions: 80,
+							branches: 80,
+							statements: 80
+						}
+					},
+					testTimeout: 10000,
+					hookTimeout: 10000
+				}
+			},
+			{
+				extends: true,
+				test: {
+					name: 'component',
+					environment: 'jsdom',
+					pool: 'vmThreads',
+					globals: true,
+					setupFiles: ['./src/test/unit-setup.ts'],
+					include: ['src/**/*.component.test.{ts,tsx}'],
+					testTimeout: 10000,
+					hookTimeout: 10000
+				}
+			},
+			{
+				test: {
+					name: 'integration',
+					environment: 'node',
+					pool: 'forks',
+					fileParallelism: false,
+					globals: true,
+					testTimeout: 30000,
+					include: ['tests/integration/**/*.test.ts'],
+					setupFiles: ['./tests/integration/setup/env-loader.ts']
+				}
 			}
-		},
-		include: [
-			'src/**/*.{test,spec}.{ts,tsx}',
-			'__tests__/**/*.{test,spec}.{ts,tsx}'
-		],
-		exclude: [
-			'node_modules',
-			'dist',
-			'.next',
-			'out',
-			'build',
-			'coverage',
-			'tests/**', // Exclude integration tests from unit test runs
-			'e2e/**',
-			'playwright/**',
-			'tests/tanstack/tanstack-test-results/**' // Exclude test result HTML files
-		],
-		testTimeout: 10000,
-		hookTimeout: 10000
+		]
 	}
 })
