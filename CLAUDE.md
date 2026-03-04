@@ -26,9 +26,11 @@ TenantFlow — multi-tenant property management SaaS.
 ```bash
 pnpm dev                          # Next.js dev server on port 3050
 pnpm typecheck && pnpm lint       # quality checks
-pnpm test:unit                    # Vitest unit tests
+pnpm test:unit                    # Vitest unit tests (--project unit)
 pnpm test:unit -- --run src/path/to/test.ts  # single test file
-pnpm test:rls                     # RLS integration tests (requires Supabase credentials)
+pnpm test:component               # Vitest component tests (--project component)
+pnpm test:integration             # RLS integration tests (Vitest --project integration)
+pnpm test:rls                     # (alias: pnpm test:integration)
 pnpm test:e2e                     # Playwright E2E tests
 pnpm db:types                     # regenerate types from live DB
 pnpm validate:quick               # types + lint + unit tests
