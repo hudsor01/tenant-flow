@@ -17,7 +17,7 @@ pre-commit:
     unit-tests:
       run: CI=true pnpm test:unit
     rls-tests:
-      run: pnpm test:rls
+      run: pnpm test:integration
 
 pre-push:
   commands:
