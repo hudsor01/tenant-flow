@@ -62,28 +62,28 @@ All 131 findings from the review, plus CLAUDE.md maintenance.
 
 ### Payments — Financial Fixes
 
-- [ ] **PAY-01**: Consistent cents/dollars convention documented and enforced — `rent_due.amount` semantics clarified, `* 100` verified
-- [ ] **PAY-02**: `rent_due.status` updated to `'paid'` in webhook after successful payment
-- [ ] **PAY-03**: Tenant can enable/disable autopay — RLS policy for tenant lease UPDATE on autopay columns
+- [x] **PAY-01**: Consistent cents/dollars convention documented and enforced — `rent_due.amount` semantics clarified, `* 100` verified
+- [x] **PAY-02**: `rent_due.status` updated to `'paid'` in webhook after successful payment
+- [x] **PAY-03**: Tenant can enable/disable autopay — RLS policy for tenant lease UPDATE on autopay columns
 - [ ] **PAY-04**: `stripe-checkout-status` Edge Function created or hooks corrected to use `stripe-checkout-session`
 - [ ] **PAY-05**: Payment display uses correct amount units — no double-division in `formatCents()`
-- [ ] **PAY-06**: `rent_payments.amount` column changed to `numeric(10,2)` to preserve cents
+- [x] **PAY-06**: `rent_payments.amount` column changed to `numeric(10,2)` to preserve cents
 - [ ] **PAY-07**: Payment method deletion calls `stripe.paymentMethods.detach()` before DB row deletion
-- [ ] **PAY-08**: Idempotency key on autopay `paymentIntents.create`
-- [ ] **PAY-09**: Platform subscription webhook handling (`invoice.payment_failed`, status tracking on `users` table)
+- [x] **PAY-08**: Idempotency key on autopay `paymentIntents.create`
+- [x] **PAY-09**: Platform subscription webhook handling (`invoice.payment_failed`, status tracking on `users` table)
 - [ ] **PAY-10**: Webhook `rent_payments` insert validates `tenant_id`/`lease_id` metadata (no empty string fallback)
 - [ ] **PAY-11**: `onboarding_completed_at` preserved when already set — not wiped on non-completed `account.updated`
 - [ ] **PAY-12**: Plan limit enforcement (`get_user_plan_limits`, `check_user_feature_access`) called from frontend before create operations
-- [ ] **PAY-13**: Autopay retry mechanism for failed charges (re-attempt on subsequent days, not just `due_date = current_date`)
-- [ ] **PAY-14**: Autopay handles shared leases correctly (one charge per rent_due, not per tenant)
-- [ ] **PAY-15**: Webhook failure does not delete idempotency record — partial processing handled safely
-- [ ] **PAY-16**: `setDefaultPaymentMethod` uses transaction (not clear-then-set race condition)
+- [x] **PAY-13**: Autopay retry mechanism for failed charges (re-attempt on subsequent days, not just `due_date = current_date`)
+- [x] **PAY-14**: Autopay handles shared leases correctly (one charge per rent_due, not per tenant)
+- [x] **PAY-15**: Webhook failure does not delete idempotency record — partial processing handled safely
+- [x] **PAY-16**: `setDefaultPaymentMethod` uses transaction (not clear-then-set race condition)
 - [ ] **PAY-17**: Stripe API version consistent between Edge Functions and Next.js API route
 - [ ] **PAY-18**: Owner payment receipt email includes fee breakdown (platform fee, Stripe fee, net amount)
-- [ ] **PAY-19**: `useSubscriptionStatus` checks actual subscription status, not just `stripe_customer_id` existence
-- [ ] **PAY-20**: Billing hooks (`useInvoices`, `useSubscriptionBillingHistory`, `useFailedPaymentAttempts`) implemented or UI disabled
+- [x] **PAY-19**: `useSubscriptionStatus` checks actual subscription status, not just `stripe_customer_id` existence
+- [x] **PAY-20**: Billing hooks (`useInvoices`, `useSubscriptionBillingHistory`, `useFailedPaymentAttempts`) implemented or UI disabled
 - [ ] **PAY-21**: Success/cancel redirect URLs include `rent_due_id` or `session_id` for verification
-- [ ] **PAY-22**: `rent_due` table verified to have service_role write policies (may have been dropped in migration simplification)
+- [x] **PAY-22**: `rent_due` table verified to have service_role write policies (may have been dropped in migration simplification)
 
 ### Code Quality — Type Safety & Correctness
 
@@ -234,28 +234,28 @@ All 131 findings from the review, plus CLAUDE.md maintenance.
 | SEC-10 | Phase 1 | Complete |
 | SEC-11 | Phase 1 | Complete |
 | SEC-12 | Phase 1 | Complete |
-| PAY-01 | Phase 2 | Pending |
-| PAY-02 | Phase 2 | Pending |
-| PAY-03 | Phase 2 | Pending |
+| PAY-01 | Phase 2 | Complete |
+| PAY-02 | Phase 2 | Complete |
+| PAY-03 | Phase 2 | Complete |
 | PAY-04 | Phase 2 | Pending |
 | PAY-05 | Phase 2 | Pending |
-| PAY-06 | Phase 2 | Pending |
+| PAY-06 | Phase 2 | Complete |
 | PAY-07 | Phase 2 | Pending |
-| PAY-08 | Phase 2 | Pending |
-| PAY-09 | Phase 2 | Pending |
+| PAY-08 | Phase 2 | Complete |
+| PAY-09 | Phase 2 | Complete |
 | PAY-10 | Phase 2 | Pending |
 | PAY-11 | Phase 2 | Pending |
 | PAY-12 | Phase 2 | Pending |
-| PAY-13 | Phase 2 | Pending |
-| PAY-14 | Phase 2 | Pending |
-| PAY-15 | Phase 2 | Pending |
-| PAY-16 | Phase 2 | Pending |
+| PAY-13 | Phase 2 | Complete |
+| PAY-14 | Phase 2 | Complete |
+| PAY-15 | Phase 2 | Complete |
+| PAY-16 | Phase 2 | Complete |
 | PAY-17 | Phase 2 | Pending |
 | PAY-18 | Phase 2 | Pending |
-| PAY-19 | Phase 2 | Pending |
-| PAY-20 | Phase 2 | Pending |
+| PAY-19 | Phase 2 | Complete |
+| PAY-20 | Phase 2 | Complete |
 | PAY-21 | Phase 2 | Pending |
-| PAY-22 | Phase 2 | Pending |
+| PAY-22 | Phase 2 | Complete |
 | AUTH-01 | Phase 3 | Pending |
 | AUTH-02 | Phase 3 | Pending |
 | AUTH-03 | Phase 3 | Pending |

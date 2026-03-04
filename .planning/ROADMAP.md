@@ -49,14 +49,15 @@ Plans:
   3. A tenant can toggle autopay on/off from their portal, and autopay charges exactly one payment per `rent_due` regardless of shared lease
   4. Stripe webhook processing is idempotent — replayed webhooks do not create duplicate payments or corrupt state
   5. Platform subscription failures are tracked and surfaced to the owner
-**Plans**: 5 plans
+**Plans**: 6 plans
 
 Plans:
 - [ ] 02-01-PLAN.md — Database schema changes (numeric amounts, retry columns, constraints) and atomic RPCs (record_rent_payment, set_default_payment_method, toggle_autopay)
-- [ ] 02-02-PLAN.md — Stripe SDK upgrade to v20 + webhook handler fixes (idempotency, metadata validation, onboarding preservation, fee receipts)
-- [ ] 02-03-PLAN.md — Rent checkout and autopay Edge Functions (per-tenant portions, idempotency keys, redirect URLs, pg_cron retry logic)
-- [ ] 02-04-PLAN.md — Frontend payment hooks (atomic default swap, Stripe detach, billing hooks, subscription status, currency formatting, plan limits)
-- [ ] 02-05-PLAN.md — Onboarding backfill migration, subscription banner, and CLAUDE.md update with Phase 2 conventions
+- [ ] 02-02-PLAN.md — Stripe SDK upgrade to v20 + webhook handler fixes (idempotency, metadata validation, onboarding preservation, fee receipts, invoice.payment_failed)
+- [ ] 02-03-PLAN.md — Rent checkout and autopay Edge Functions (per-tenant portions, idempotency keys, redirect URLs, pg_cron retry logic, autopay failure notifications)
+- [ ] 02-04-PLAN.md — Frontend payment hooks (atomic default swap, Stripe detach Edge Function, billing hooks, subscription status + banner, currency formatting, plan limits, tenant portal per-tenant display)
+- [ ] 02-05-PLAN.md — Onboarding backfill migration and CLAUDE.md update with Phase 2 conventions
+- [ ] 02-06-PLAN.md — Diagnose and fix stale Stripe sync engine (down since 2025-12-11), backfill missing data
 
 ### Phase 3: Auth & Middleware
 **Goal**: Every route is protected by role-appropriate access control with server-validated sessions
@@ -182,7 +183,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8 -> 9
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
 | 1. RPC & Database Security | v1.0 | 2/2 | Complete | 2026-03-04 |
-| 2. Financial Fixes | v1.0 | 0/5 | Not started | - |
+| 2. Financial Fixes | v1.0 | 0/6 | Not started | - |
 | 3. Auth & Middleware | v1.0 | 0/2 | Not started | - |
 | 4. Edge Function Hardening | v1.0 | 0/2 | Not started | - |
 | 5. Code Quality & Type Safety | v1.0 | 0/3 | Not started | - |

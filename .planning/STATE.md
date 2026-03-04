@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: Production Hardening
 status: completed
-stopped_at: Completed 01-02-PLAN.md
-last_updated: "2026-03-04T19:23:43.612Z"
-last_activity: 2026-03-04 — Completed plan 01-02 (lease auth, error RPCs, FOR ALL cleanup)
+stopped_at: Completed 02-06-PLAN.md
+last_updated: "2026-03-04T22:22:30.138Z"
+last_activity: 2026-03-04 — Diagnosed Stripe sync engine, created monitoring RPC
 progress:
   total_phases: 9
   completed_phases: 1
-  total_plans: 2
-  completed_plans: 2
-  percent: 9
+  total_plans: 8
+  completed_plans: 4
+  percent: 11
 ---
 
 # Project State: TenantFlow
@@ -21,29 +21,31 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-04)
 
 **Core value:** A landlord can add a property, invite a tenant, collect rent, and see their financials — without touching a spreadsheet or calling anyone.
-**Current focus:** v1.0 Production Hardening — Phase 1 complete (2 of 2 plans)
+**Current focus:** v1.0 Production Hardening — Phase 2 execution in progress
 
 ## Current Position
 
-Phase: 1 of 9 (RPC & Database Security)
-Plan: 2 of 2 in current phase (COMPLETE)
-Status: Phase 1 complete, ready for Phase 2
-Last activity: 2026-03-04 — Completed plan 01-02 (lease auth, error RPCs, FOR ALL cleanup)
+Phase: 2 of 9 (Financial Fixes)
+Plan: 6 of 6 in current phase (complete)
+Status: Completed 02-06 (Stripe sync diagnosis)
+Last activity: 2026-03-04 — Diagnosed Stripe sync engine, created monitoring RPC
 
-Progress: [#░░░░░░░░░] 9%
+Progress: [#░░░░░░░░░] 11%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 2
-- Average duration: ~16 min
-- Total execution time: ~0.5 hours
+- Total plans completed: 3
+- Average duration: ~12 min
+- Total execution time: ~0.6 hours
 
 **By Phase:**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
 | 01-rpc-database-security | 2/2 | ~32 min | ~16 min |
+| 02-financial-fixes | 1/6 | ~4 min | ~4 min |
+| Phase 02 P01 | 4min | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -59,6 +61,11 @@ Progress: [#░░░░░░░░░] 9%
 - 01-02: Used is_admin() JWT check for admin gates (faster than DB lookup, equally secure)
 - 01-02: Error RPCs changed from LANGUAGE sql to plpgsql for admin guard support
 - 01-02: Rate limit: 10 errors/min/user on log_user_error to prevent alert flooding
+- 02-06: Stripe sync uses Supabase Stripe Sync Engine (external service), not FDW or cron
+- 02-06: Fix requires Supabase Dashboard re-enablement, not SQL migration
+- 02-06: Created check_stripe_sync_status() monitoring RPC for ongoing health checks
+- [Phase 02]: rent_payments has FORCE RLS — re-created dropped service_role policy for webhook writes
+- [Phase 02]: record_rent_payment RPC skips auth.uid() (called by service_role from webhook handler)
 
 ### Pending Todos
 
@@ -74,5 +81,5 @@ None.
 ## Session Continuity
 
 Last session: 2026-03-04
-Stopped at: Completed 01-02-PLAN.md
+Stopped at: Completed 02-06-PLAN.md
 Resume file: None
