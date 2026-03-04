@@ -121,7 +121,13 @@ export async function GET(request: NextRequest) {
 	const code = searchParams.get('code')
 	const tokenHash = searchParams.get('token_hash')
 	const type = searchParams.get('type')
-	const next = searchParams.get('next') ?? '/dashboard'
+	const nextParam = searchParams.get('next')
+	// Validate that `next` is a relative path to prevent open redirect attacks.
+	// Must start with "/" but not "//" (which browsers interpret as protocol-relative URLs).
+	const next =
+		nextParam && nextParam.startsWith('/') && !nextParam.startsWith('//')
+			? nextParam
+			: '/dashboard'
 
 	const cookieStore = await cookies()
 

@@ -278,7 +278,7 @@ export const safeDocumentElement = {
 
 		// Validate attribute names
 		const sanitizedName = name.replace(/[^a-zA-Z0-9-_]/g, '')
-		if (!sanitizedName || /^on|javascript:/i.test(name)) {
+		if (!sanitizedName || /^(on|javascript:)/i.test(name)) {
 			domLogger.warn('Rejected unsafe document element attribute', {
 				metadata: { attribute: name }
 			})
