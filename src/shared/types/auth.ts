@@ -3,7 +3,7 @@
  * Minimal set - only types actually used in the codebase
  */
 
-import type { USER_user_type } from '../constants/auth.js'
+import type { USER_user_type } from '../constants/auth'
 import type {
 	Session as SupabaseSession,
 	User as SupabaseAuthUserType

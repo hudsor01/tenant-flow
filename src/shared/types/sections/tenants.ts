@@ -1,5 +1,5 @@
 // Tenants Section Types
-import type { LeaseStatus, PaymentStatus, InvitationType } from '../core.js'
+import type { LeaseStatus, PaymentStatus, InvitationType } from '../core'
 
 export interface TenantsProps {
 	// Tenant list

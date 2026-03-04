@@ -4,7 +4,7 @@
  * Replaces duplicate pricing configurations with single source of truth
  */
 
-import type { BillingPeriod, PlanType } from '../types/stripe.js'
+import type { BillingPeriod, PlanType } from '../types/stripe'
 
 /**
  * Stripe price IDs from live account (verified via MCP)

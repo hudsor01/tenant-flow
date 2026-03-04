@@ -22,7 +22,7 @@ import {
 	nonEmptyStringSchema,
 	urlSchema,
 	phoneSchema
-} from './common.js'
+} from './common'
 import { VALIDATION_LIMITS } from '#shared/constants/billing'
 
 // User status enum validation

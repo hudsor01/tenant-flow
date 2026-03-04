@@ -3,13 +3,13 @@
  * Only exports types that are actually used across the codebase.
  */
 
-import type { DashboardActivity } from './activity.js'
+import type { DashboardActivity } from './activity'
 import type {
 	Tables,
 	TablesInsert,
 	TablesUpdate,
 	Database
-} from './supabase.js'
+} from './supabase'
 
 // ============================================================================
 // DB STATUS TYPE EXPORTS - String literal unions matching CHECK constraints
@@ -90,7 +90,7 @@ import type {
 	ActivityEntityType as ActivityEntityTypeFromConstants,
 	MaintenanceCategory as MaintenanceCategoryFromConstants,
 	PropertyType as PropertyTypeFromConstants
-} from '../constants/status-types.js'
+} from '../constants/status-types'
 
 export interface StripeSessionStatusResponse {
 	status: string
@@ -224,7 +224,7 @@ export type UnitRowWithRelations =
 		lastUpdated?: string
 	}
 
-// NOTE: Import Tables, TablesInsert, TablesUpdate, Enums directly from './supabase.js'
+// NOTE: Import Tables, TablesInsert, TablesUpdate, Enums directly from './supabase'
 // Do NOT re-export here to avoid circular dependencies
 
 export type HttpMethod =

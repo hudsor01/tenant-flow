@@ -3,9 +3,9 @@
  * NATIVE: Direct Stripe integration following CLAUDE.md principles
  */
 
-import { BILLING_PLANS } from '../constants/billing.js'
-import { SHARED_ERROR_MESSAGES } from '../constants/error-messages.js'
-import type { BillingPeriod, PlanType } from '../types/stripe.js'
+import { BILLING_PLANS } from '../constants/billing'
+import { SHARED_ERROR_MESSAGES } from '../constants/error-messages'
+import type { BillingPeriod, PlanType } from '../types/stripe'
 
 /**
  * Get Stripe price ID for a given plan and billing period

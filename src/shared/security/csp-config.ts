@@ -4,8 +4,8 @@
  * Follows DRY/KISS/Native principles - consolidates 3 separate CSP definitions
  */
 
-import type { CSPDirectives } from '../types/security.js'
-import { APP_DOMAINS } from './cors-config.js'
+import type { CSPDirectives } from '../types/security'
+import { APP_DOMAINS } from './cors-config'
 
 // Environment-based CSP domains
 export const CSP_DOMAINS = {

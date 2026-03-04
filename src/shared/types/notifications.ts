@@ -1,4 +1,4 @@
-import type { MaintenancePriority } from './core.js'
+import type { MaintenancePriority } from './core'
 // Notification types for TenantFlow application
 
 type Priority = MaintenancePriority

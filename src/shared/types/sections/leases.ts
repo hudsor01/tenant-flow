@@ -1,5 +1,5 @@
 // Leases Section Types
-import type { LeaseStatus, PaymentStatus } from '../core.js'
+import type { LeaseStatus, PaymentStatus } from '../core'
 
 export interface LeasesProps {
 	// Lease list

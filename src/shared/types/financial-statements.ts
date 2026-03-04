@@ -2,7 +2,7 @@
  * Financial Statements and Tax Documents Type Definitions
  */
 
-import type { Database } from './supabase.js'
+import type { Database } from './supabase'
 
 /**
  * Generic line item for financial statements (balance sheet, cash flow, income)

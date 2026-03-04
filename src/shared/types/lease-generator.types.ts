@@ -5,8 +5,8 @@
 import type {
 	LeaseTemplateContext,
 	LeaseTemplateSelections
-} from '../templates/lease-template.js'
-import type { PropertyType } from '../constants/status-types.js'
+} from '../templates/lease-template'
+import type { PropertyType } from '../constants/status-types'
 /**
  * US States with specific lease requirements
  */

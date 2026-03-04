@@ -3,7 +3,7 @@
  * Helper functions for user user_type display and management
  */
 
-import type { USER_user_type } from '../constants/auth.js'
+import type { USER_user_type } from '../constants/auth'
 
 type UserType = (typeof USER_user_type)[keyof typeof USER_user_type]
 

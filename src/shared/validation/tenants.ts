@@ -12,7 +12,7 @@
  */
 
 import { z } from 'zod'
-import { uuidSchema, requiredString, phoneSchema } from './common.js'
+import { uuidSchema, requiredString, phoneSchema } from './common'
 import { VALIDATION_LIMITS } from '#shared/constants/billing'
 
 // Tenant status enum validation

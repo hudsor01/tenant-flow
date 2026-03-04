@@ -8,7 +8,7 @@
  * instead of creating duplicate definitions.
  */
 
-import type { ConnectedAccount } from './core.js'
+import type { ConnectedAccount } from './core'
 
 /**
  * TenantFlow plan type enumeration
@@ -155,7 +155,7 @@ export interface AttachPaymentMethodParams {
 // STRIPE IDENTITY VERIFICATION TYPES
 // ============================================================================
 
-import type { Json } from './supabase.js'
+import type { Json } from './supabase'
 
 /**
  * Enumerates Stripe Identity verification session states we care about.

@@ -116,7 +116,7 @@ export interface StorageUploadResult {
 	bucket: string
 }
 
-// NOTE: Import FileUploadOptions directly from './file-upload.js' - not re-exported here
+// NOTE: Import FileUploadOptions directly from './file-upload' - not re-exported here
 
 export type StorageEntityType =
 	| 'properties'
@@ -176,5 +176,5 @@ export type StripeWebhookEventTypes =
 	| 'invoice.payment_succeeded'
 	| 'invoice.payment_failed'
 
-// NOTE: Import WebhookNotification directly from './stripe.js' - not re-exported here
-// NOTE: Import SecurityEvent directly from './security.js' - not re-exported here
+// NOTE: Import WebhookNotification directly from './stripe' - not re-exported here
+// NOTE: Import SecurityEvent directly from './security' - not re-exported here

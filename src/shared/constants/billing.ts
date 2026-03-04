@@ -5,7 +5,7 @@
  * This file is a single source of truth for both frontend and backend.
  */
 
-import { SHARED_ERROR_MESSAGES } from './error-messages.js'
+import { SHARED_ERROR_MESSAGES } from './error-messages'
 
 export const PLAN_TYPE = {
 	FREETRIAL: 'FREETRIAL',
