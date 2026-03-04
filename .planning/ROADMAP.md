@@ -134,7 +134,7 @@ Plans:
   2. All 7 RLS integration test files pass under the Vitest node project with the same assertions and Supabase connection as before; no Jest runner remains
   3. `jest`, `ts-jest`, and `@types/jest` do not appear in `package.json` dependencies or devDependencies; no `jest.config.*` files exist in the repo
   4. The `tests/unit/` directory no longer exists; `pricing-premium.spec.ts` lives next to its source code in `src/`; all orphaned `src/__tests__/` files are in co-located `__tests__/` directories adjacent to their source modules
-**Plans:** 2 plans
+**Plans:** 1/2 plans executed
 Plans:
 - [ ] 05-01-PLAN.md — Vitest projects config + Jest removal + RLS migration + script/CI updates
 - [ ] 05-02-PLAN.md — Orphaned file relocation + directory cleanup
@@ -188,7 +188,7 @@ Phases execute in numeric order: 05 → 06 → 07 → 08
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
 | 01-04. Hardening + Payments | v8.0 | - | Complete | 2026-02-27 |
-| 05. Vitest Unification + File Consolidation | v9.0 | 0/2 | Not started | - |
+| 05. Vitest Unification + File Consolidation | 1/2 | In Progress|  | - |
 | 06. Test Data Factories | v9.0 | 0/? | Not started | - |
 | 07. MSW + Component Test Layer | v9.0 | 0/? | Not started | - |
 | 08. E2E Optimization + CI Pipeline | v9.0 | 0/? | Not started | - |
