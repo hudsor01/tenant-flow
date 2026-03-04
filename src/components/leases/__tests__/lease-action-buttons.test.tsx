@@ -243,7 +243,7 @@ describe('LeaseActionButtons', () => {
 			})
 		})
 
-		test('shows active lease actions (Pay Rent, Renew, Terminate) for active leases', async () => {
+		test('shows active lease actions (Renew, Terminate) for active leases', async () => {
 			const user = userEvent.setup()
 			render(
 				<LeaseActionButtons
@@ -259,9 +259,6 @@ describe('LeaseActionButtons', () => {
 			await user.click(dropdownTrigger)
 
 			await waitFor(() => {
-				expect(
-					screen.getByRole('menuitem', { name: /pay rent/i })
-				).toBeInTheDocument()
 				expect(
 					screen.getByRole('menuitem', { name: /renew lease/i })
 				).toBeInTheDocument()
@@ -435,26 +432,6 @@ describe('LeaseActionButtons', () => {
 	})
 
 	describe('Active Lease Actions', () => {
-		test('Pay Rent opens dialog', async () => {
-			const user = userEvent.setup()
-			const lease = createMockLease({ lease_status: 'active' })
-			render(<LeaseActionButtons lease={lease} />)
-
-			const buttons = screen.getAllByRole('button')
-			await user.click(buttons[1]!)
-			await waitFor(() => {
-				expect(
-					screen.getByRole('menuitem', { name: /pay rent/i })
-				).toBeInTheDocument()
-			})
-			await user.click(screen.getByRole('menuitem', { name: /pay rent/i }))
-
-			// Pay rent dialog should open
-			await waitFor(() => {
-				expect(screen.getByRole('dialog')).toBeInTheDocument()
-			})
-		})
-
 		test('Renew Lease opens dialog', async () => {
 			const user = userEvent.setup()
 			const lease = createMockLease({ lease_status: 'active' })

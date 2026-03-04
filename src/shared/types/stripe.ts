@@ -151,56 +151,6 @@ export interface AttachPaymentMethodParams {
 	setAsDefault?: boolean
 }
 
-/**
- * Parameters for setting up autopay (recurring rent subscription) for a Tenant
- */
-export interface SetupTenantAutopayParams {
-	tenant_id: string
-	lease_id: string
-	paymentMethodId?: string
-}
-
-/**
- * Parameters for canceling autopay for a Tenant
- */
-export interface CancelTenantAutopayParams {
-	tenant_id: string
-	lease_id: string
-}
-
-/**
- * Parameters for getting autopay status for a Tenant
- */
-export interface GetAutopayStatusParams {
-	tenant_id: string
-	lease_id: string
-}
-
-/**
- * Response from autopay status query
- */
-export interface TenantAutopayStatusResponse {
-	enabled: boolean
-	subscriptionId: string | null
-	status: string | null
-	nextPaymentDate: string | null
-}
-
-/**
- * Response from setting up autopay
- */
-export interface SetupTenantAutopayResponse {
-	subscriptionId: string
-	status: string
-}
-
-/**
- * Response from canceling autopay
- */
-export interface CancelTenantAutopayResponse {
-	success: boolean
-}
-
 // ============================================================================
 // STRIPE IDENTITY VERIFICATION TYPES
 // ============================================================================

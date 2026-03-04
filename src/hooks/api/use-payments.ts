@@ -10,9 +10,8 @@
  *
  * Includes:
  * - Rent collection (analytics, upcoming/overdue, manual payments, CSV export)
- * - Rent payments (creation stub, status, history)
- * - Payment methods (list, set default, delete) — PostgREST direct
- * - Payment verification (Stripe session stubs — Phase 54-04)
+ * - Rent payments (status, history)
+ * - Payment verification (Stripe Checkout session status)
  *
  * React 19 + TanStack Query v5 patterns
  */
@@ -22,7 +21,6 @@ import {
 	useQuery,
 	useMutation,
 	useQueryClient,
-	usePrefetchQuery,
 	type QueryKey
 } from '@tanstack/react-query'
 import { createClient } from '#lib/supabase/client'
@@ -31,7 +29,6 @@ import { handlePostgrestError } from '#lib/postgrest-error-handler'
 import { handleMutationError } from '#lib/mutation-error-handler'
 import { QUERY_CACHE_TIMES } from '#lib/constants/query-config'
 import { mutationKeys } from './mutation-keys'
-import type { RentPayment } from '#shared/types/core'
 import type { StripeSessionStatusResponse } from '#shared/types/core'
 import type {
 	TenantPaymentStatusResponse,
@@ -255,24 +252,6 @@ export const tenantPaymentQueries = {
 		})
 }
 
-/**
- * Payment verification query factory
- * NOTE: Session verification requires stripe-checkout Edge Function — see Phase 54-04
- */
-export const paymentVerificationQueries = {
-	sessionStatus: (sessionId: string) =>
-		queryOptions({
-			queryKey: paymentVerificationKeys.sessionStatus(sessionId),
-			queryFn: (): Promise<StripeSessionStatusResponse> => {
-				// TODO(phase-54-04): wire to stripe-checkout Edge Function
-				throw new Error(
-					'Session verification requires stripe-checkout Edge Function — see Phase 54-04'
-				)
-			},
-			...QUERY_CACHE_TIMES.STATS,
-			enabled: !!sessionId
-		})
-}
 
 // ============================================================================
 // UTILITY FUNCTIONS
@@ -433,91 +412,6 @@ export function useExportPaymentsMutation() {
 // RENT PAYMENT HOOKS
 // ============================================================================
 
-/**
- * Create a one-time rent payment
- * NOTE: Stripe payment processing requires Edge Function setup — coming in Phase 54-02
- */
-export function useCreateRentPaymentMutation() {
-	const queryClient = useQueryClient()
-
-	return useMutation({
-		mutationKey: mutationKeys.rentPayments.process,
-		mutationFn: async (_params: {
-			tenant_id: string
-			lease_id: string
-			amount: number
-			paymentMethodId: string
-		}): Promise<{
-			success: boolean
-			payment: {
-				id: string
-				amount: number
-				status: string
-				stripePaymentIntentId: string
-			}
-			paymentIntent: {
-				id: string
-				status: string
-				receiptUrl?: string
-			}
-		}> => {
-			// TODO(phase-54-02): this will call the stripe-connect Edge Function once implemented
-			throw new Error(
-				'Stripe payment processing requires Edge Function setup — coming in Phase 54 plan 02'
-			)
-		},
-		onMutate: async newPayment => {
-			await queryClient.cancelQueries({ queryKey: rentPaymentKeys.list() })
-
-			const previousList = queryClient.getQueryData<RentPayment[] | undefined>(
-				rentPaymentKeys.list()
-			)
-
-			const tempId = `temp-${Date.now()}`
-			const today = new Date().toISOString().split('T')[0] ?? ''
-			const optimisticPayment: RentPayment = {
-				id: tempId,
-				amount: newPayment.amount,
-				status: 'pending',
-				tenant_id: newPayment.tenant_id,
-				lease_id: newPayment.lease_id,
-				stripe_payment_intent_id: '',
-				application_fee_amount: 0,
-				late_fee_amount: null,
-				payment_method_type: 'stripe',
-				period_start: today,
-				period_end: today,
-				due_date: today,
-				paid_date: null,
-				currency: 'USD',
-				notes: null,
-				created_at: new Date().toISOString(),
-				updated_at: null,
-				gross_amount: null,
-				platform_fee_amount: null,
-				stripe_fee_amount: null,
-				net_amount: null,
-				rent_due_id: null,
-				checkout_session_id: null
-			}
-
-			queryClient.setQueryData<RentPayment[] | undefined>(
-				rentPaymentKeys.list(),
-				old => (old ? [optimisticPayment, ...old] : [optimisticPayment])
-			)
-
-			return { previousList, tempId }
-		},
-		onError: (_err, _variables, context) => {
-			if (context?.previousList) {
-				queryClient.setQueryData(rentPaymentKeys.list(), context.previousList)
-			}
-		},
-		onSettled: () => {
-			queryClient.invalidateQueries({ queryKey: rentPaymentKeys.list() })
-		}
-	})
-}
 
 /**
  * Get current payment status for a tenant — PostgREST
@@ -686,13 +580,6 @@ export function useSessionStatus(
 		refetchOnMount: false,
 		throwOnError: options.throwOnError ?? false
 	})
-}
-
-/**
- * Declarative prefetch hook for session status
- */
-export function usePrefetchSessionStatus(sessionId: string) {
-	usePrefetchQuery(paymentVerificationQueries.sessionStatus(sessionId))
 }
 
 // Legacy key exports for backwards compatibility

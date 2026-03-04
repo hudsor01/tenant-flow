@@ -33,7 +33,7 @@ doppler.env
 .env.local
 .env*.local
 *.local
-.env.example
+!.env.example
 .env.keys
 */.env.keys
 **/.env.keys

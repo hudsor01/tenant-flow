@@ -182,20 +182,20 @@ Frontend (Next.js/Vercel) → supabase-js → Supabase PostgREST (RLS enforced)
 | DB Webhooks + n8n for workflows | n8n already self-hosted, flexible workflow authoring | — Pending |
 | Delete NestJS entirely | No partial migration — clean break prevents split-brain bugs | — Pending |
 
-## Current Milestone: v8.0 Post-Migration Hardening + Payment Infrastructure
+## Current Milestone: v9.0 Testing Strategy Consolidation
 
-**Goal:** Complete the payment revenue engine (Stripe Connect fee split, receipt emails) and auth flow gaps, while resolving critical security and code quality findings from the v7.0 post-merge review.
+**Goal:** Unify the fragmented test infrastructure (Vitest + Jest + scattered directories) into a single-runner Testing Trophy architecture with MSW for component tests, faker factories for test data, and a trimmed E2E suite.
 
 **Target features:**
-- Stripe rent payment checkout with destination charge fee split (new `stripe-rent-checkout` Edge Function)
-- Automated receipt emails via Resend (fire-and-forget on payment success)
-- Auth flow completion (password reset page, email confirmation page, Google OAuth polish)
-- Critical security fixes (DocuSeal fail-open, IDOR, Stripe webhook constraint)
-- RLS write-path isolation test coverage
-- CLAUDE.md NestJS cleanup + new PostgREST/Edge Function patterns
-- Code quality consolidation (duplicate hooks, error handling, auth guards)
-- Performance improvements (auth fan-out, batch N+1, serial lookups)
-- CI/CD hardening (E2E in pipeline, RLS tests on PR, dedicated integration project)
+- Unify Vitest + Jest under single Vitest `projects` config (unit/component/integration)
+- Add MSW 2.x for network-level API mocking in component tests
+- Create `@faker-js/faker` factory functions replacing static DEFAULT_* objects
+- Consolidate orphaned test directories (`src/__tests__/`, `tests/unit/`)
+- Migrate 7 RLS integration tests from Jest to Vitest node project
+- Formalize component test layer with `.component.test.tsx` naming convention
+- Trim E2E to 15-20 critical user journeys
+- Update CI pipeline for unified runner
+- Remove Jest, ts-jest, @types/jest dependencies
 
 ---
-*Last updated: 2026-02-27 after Phase 59 Stripe Rent Checkout — end-to-end rent payment with destination charges*
+*Last updated: 2026-03-03 after v9.0 Testing Strategy Consolidation milestone started*
