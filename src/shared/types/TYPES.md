@@ -346,12 +346,6 @@ For Stripe-specific types shared between backend and frontend.
 | `StripeProductWithPricing` | `@repo/shared/types/stripe` |
 | `CreateTenantCustomerParams` | `@repo/shared/types/stripe` |
 | `AttachPaymentMethodParams` | `@repo/shared/types/stripe` |
-| `SetupTenantAutopayParams` | `@repo/shared/types/stripe` |
-| `CancelTenantAutopayParams` | `@repo/shared/types/stripe` |
-| `GetAutopayStatusParams` | `@repo/shared/types/stripe` |
-| `TenantAutopayStatusResponse` | `@repo/shared/types/stripe` |
-| `SetupTenantAutopayResponse` | `@repo/shared/types/stripe` |
-| `CancelTenantAutopayResponse` | `@repo/shared/types/stripe` |
 | `IdentityVerificationStatus` | `@repo/shared/types/stripe` |
 | `IdentityVerificationRecord` | `@repo/shared/types/stripe` |
 | `IdentityVerificationSessionPayload` | `@repo/shared/types/stripe` |

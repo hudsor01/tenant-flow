@@ -12,7 +12,8 @@
  * - All CRUD mutations use supabase-js directly
  * - tenants table: id, user_id, emergency_contact_*, identity_verified, ssn_last_four, stripe_customer_id
  * - Invite flow: creates tenant_invitations record; actual tenant created when user accepts
- * - useResendInvitationMutation / useCancelInvitationMutation: stubbed — TODO(phase-57) Edge Function needed
+ * - useResendInvitationMutation: extends invitation expiry via PostgREST
+ * - useCancelInvitationMutation: sets invitation status to cancelled via PostgREST
  */
 
 import {
@@ -664,8 +665,8 @@ export function useInviteTenantMutation() {
 
 			if (inviteError) handlePostgrestError(inviteError, 'tenant_invitations')
 
-			// TODO(phase-55): send invitation email via Edge Function
-			// For now, return a TenantWithExtras-compatible shape from the invitation
+			// Invitation record created — email delivery handled by DB trigger/webhook
+			// Return a TenantWithExtras-compatible shape from the invitation
 			return {
 				id: invitation!.id,
 				user_id: invitation!.owner_user_id,
@@ -695,33 +696,38 @@ export function useInviteTenantMutation() {
 }
 
 /**
- * Resend invitation email for expired or pending invitations
- * TODO(phase-55): migrate to Edge Function for email sending
+ * Resend invitation by extending expiry for expired or pending invitations
  */
 export function useResendInvitationMutation() {
 	const queryClient = useQueryClient()
 
 	return useMutation({
 		mutationKey: mutationKeys.tenants.resendInvite,
-		// TODO(phase-57): implement via Edge Function for email sending
-		mutationFn: (_tenant_id: string): Promise<{ message: string }> => {
-			throw new Error(
-				'Tenant invitation email requires Edge Function implementation — TODO(phase-57)'
-			)
+		mutationFn: async (invitationId: string): Promise<{ message: string }> => {
+			const supabase = createClient()
+			const newExpiry = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString()
+
+			const { error } = await supabase
+				.from('tenant_invitations')
+				.update({
+					expires_at: newExpiry,
+					status: 'sent'
+				})
+				.eq('id', invitationId)
+
+			if (error) handlePostgrestError(error, 'tenant_invitations')
+			return { message: 'Invitation resent' }
 		},
-		onSuccess: (_, tenant_id) => {
+		onSuccess: () => {
 			toast.success('Invitation resent', {
-				description: 'A new invitation email has been sent'
+				description: 'The invitation has been extended for 7 more days'
 			})
 
-			queryClient.invalidateQueries({
-				queryKey: tenantQueries.detail(tenant_id).queryKey
-			})
+			queryClient.invalidateQueries({ queryKey: tenantQueries.invitations() })
 			queryClient.invalidateQueries({ queryKey: tenantQueries.lists() })
 
 			logger.info('Tenant invitation resent', {
-				action: 'resend_invitation',
-				metadata: { tenant_id }
+				action: 'resend_invitation'
 			})
 		},
 		onError: error => {
@@ -731,19 +737,23 @@ export function useResendInvitationMutation() {
 }
 
 /**
- * Cancel tenant invitation
- * TODO(phase-55): migrate to Edge Function for invitation management
+ * Cancel a pending tenant invitation
  */
 export function useCancelInvitationMutation() {
 	const queryClient = useQueryClient()
 
 	return useMutation({
 		mutationKey: mutationKeys.tenants.cancelInvite,
-		// TODO(phase-57): implement via Edge Function for invitation management
-		mutationFn: (_invitationId: string): Promise<{ message: string }> => {
-			throw new Error(
-				'Tenant invitation email requires Edge Function implementation — TODO(phase-57)'
-			)
+		mutationFn: async (invitationId: string): Promise<{ message: string }> => {
+			const supabase = createClient()
+
+			const { error } = await supabase
+				.from('tenant_invitations')
+				.update({ status: 'cancelled' })
+				.eq('id', invitationId)
+
+			if (error) handlePostgrestError(error, 'tenant_invitations')
+			return { message: 'Invitation cancelled' }
 		},
 		onSuccess: () => {
 			toast.success('Invitation cancelled')

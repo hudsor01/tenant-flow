@@ -62,7 +62,7 @@ vi.mock('@sentry/nextjs', () => ({
 	captureException: vi.fn()
 }))
 
-// Note: useResendInvitationMutation and useCancelInvitationMutation now throw stubs
+// Note: useResendInvitationMutation and useCancelInvitationMutation update tenant_invitations via PostgREST
 
 // Build a chainable Supabase query mock
 function makeQueryChain(result: { data?: unknown; error?: unknown; count?: number | null }) {
@@ -427,6 +427,7 @@ describe('Mutation Hooks', () => {
 							})
 						})
 					}),
+					update: supabaseUpdateMock,
 					select: vi.fn().mockReturnValue({
 						order: vi.fn().mockResolvedValue({ data: [], error: null, count: 0 })
 					})
@@ -510,28 +511,32 @@ describe('Mutation Hooks', () => {
 	})
 
 	describe('useResendInvitationMutation', () => {
-		it('should throw stub error (Edge Function not yet implemented)', async () => {
+		it('should update tenant_invitations via PostgREST (reset expiry and status)', async () => {
 			const { result } = renderHook(() => useResendInvitationMutation(), {
 				wrapper: createWrapper()
 			})
 
-			// Note: .rejects.toThrow('string') is broken in Vitest 4.x + chai 6.x
-			// (thrown.message undefined in compatibleMessage). Use toMatchObject instead.
-			await expect(result.current.mutateAsync('tenant-123')).rejects.toMatchObject({
-				message: expect.stringContaining('Tenant invitation email requires Edge Function implementation')
-			})
+			await result.current.mutateAsync('invitation-123')
+
+			expect(supabaseFromMock).toHaveBeenCalledWith('tenant_invitations')
+			expect(supabaseUpdateMock).toHaveBeenCalledWith(
+				expect.objectContaining({ status: 'sent' })
+			)
 		})
 	})
 
 	describe('useCancelInvitationMutation', () => {
-		it('should throw stub error (Edge Function not yet implemented)', async () => {
+		it('should update tenant_invitations status to cancelled via PostgREST', async () => {
 			const { result } = renderHook(() => useCancelInvitationMutation(), {
 				wrapper: createWrapper()
 			})
 
-			await expect(result.current.mutateAsync('invitation-123')).rejects.toMatchObject({
-				message: expect.stringContaining('Tenant invitation email requires Edge Function implementation')
-			})
+			await result.current.mutateAsync('invitation-123')
+
+			expect(supabaseFromMock).toHaveBeenCalledWith('tenant_invitations')
+			expect(supabaseUpdateMock).toHaveBeenCalledWith(
+				expect.objectContaining({ status: 'cancelled' })
+			)
 		})
 	})
 })

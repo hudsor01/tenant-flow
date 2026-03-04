@@ -28,6 +28,8 @@ pnpm dev                          # Next.js dev server on port 3050
 pnpm typecheck && pnpm lint       # quality checks
 pnpm test:unit                    # Vitest unit tests
 pnpm test:unit -- --run src/path/to/test.ts  # single test file
+pnpm test:rls                     # RLS integration tests (requires Supabase credentials)
+pnpm test:e2e                     # Playwright E2E tests
 pnpm db:types                     # regenerate types from live DB
 pnpm validate:quick               # types + lint + unit tests
 ```

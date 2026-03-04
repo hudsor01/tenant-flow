@@ -225,7 +225,7 @@ export const STRIPE_CONNECT_TRIGGER_CARDS = {
 
 export const STRIPE_WEBHOOK_TEST = {
 	// Use Stripe CLI for local webhook testing:
-	// stripe listen --forward-to localhost:4600/api/v1/stripe/webhook
+	// stripe listen --forward-to localhost:54321/functions/v1/stripe-webhooks
 	CLI_SECRET_PREFIX: 'whsec_',
 
 	// Core payment events

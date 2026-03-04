@@ -16,11 +16,6 @@ test.describe('Tenant Invitation Flow', () => {
 		process.env.PLAYWRIGHT_BASE_URL ||
 		process.env.BASE_URL ||
 		'https://tenantflow.app'
-	const API_URL =
-		process.env.NEXT_PUBLIC_API_BASE_URL ||
-		process.env.API_URL ||
-		'https://api.tenantflow.app'
-
 	// Test data
 	const testTenant = {
 		email: `test-tenant-${Date.now()}@example.com`,

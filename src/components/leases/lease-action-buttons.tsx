@@ -33,11 +33,8 @@ import { Input } from '#components/ui/input'
 import { Label } from '#components/ui/label'
 import { RenewLeaseDialog } from '#components/leases/dialogs/renew-lease-dialog'
 import { TerminateLeaseDialog } from '#components/leases/dialogs/terminate-lease-dialog'
-import { PayRentDialog } from '#components/leases/pay-rent-dialog'
 import { SendForSignatureButton } from '#components/leases/send-for-signature-button'
-import type { LeaseWithExtras } from '#shared/types/core'
 import {
-	CreditCard,
 	Eye,
 	MoreVertical,
 	PenLine,
@@ -56,7 +53,6 @@ export function LeaseActionButtons({ lease }: LeaseActionButtonsProps) {
 	const signAsOwner = useSignLeaseAsOwnerMutation()
 	const [showDeleteDialog, setShowDeleteDialog] = useState(false)
 	const [showViewDialog, setShowViewDialog] = useState(false)
-	const [showPayRentDialog, setShowPayRentDialog] = useState(false)
 	const [showRenewDialog, setShowRenewDialog] = useState(false)
 	const [showTerminateDialog, setShowTerminateDialog] = useState(false)
 	const deleteLease = useDeleteLeaseOptimisticMutation({
@@ -149,16 +145,6 @@ export function LeaseActionButtons({ lease }: LeaseActionButtonsProps) {
 					{lease.lease_status === 'active' && (
 						<>
 							<DropdownMenuItem
-								onClick={() => setShowPayRentDialog(true)}
-								className="gap-2"
-							>
-								<CreditCard className="size-4" />
-								Pay Rent
-							</DropdownMenuItem>
-
-							<DropdownMenuSeparator />
-
-							<DropdownMenuItem
 								onClick={() => setShowRenewDialog(true)}
 								className="gap-2"
 							>
@@ -242,16 +228,6 @@ export function LeaseActionButtons({ lease }: LeaseActionButtonsProps) {
 					</DialogBody>
 				</DialogContent>
 			</Dialog>
-
-			{/* Pay Rent Dialog */}
-			{showPayRentDialog && lease.lease_status === 'active' && (
-				<PayRentDialog
-					open={showPayRentDialog}
-					onOpenChange={setShowPayRentDialog}
-					lease={lease as LeaseWithExtras}
-					onSuccess={() => setShowPayRentDialog(false)}
-				/>
-			)}
 
 			{/* Renew Lease Dialog */}
 			{showRenewDialog && lease.lease_status === 'active' && (

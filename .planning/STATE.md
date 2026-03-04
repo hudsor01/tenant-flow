@@ -1,56 +1,50 @@
 ---
 gsd_state_version: 1.0
-milestone: v3.0
-milestone_name: Post-Migration Hardening + Payment Infrastructure
-status: executing
-last_updated: "2026-02-27T17:00:00.000Z"
+milestone: v9.0
+milestone_name: Testing Strategy Consolidation
+status: ready_to_plan
+last_updated: "2026-03-03T00:00:00.000Z"
 progress:
-  total_phases: 50
-  completed_phases: 39
-  total_plans: 94
-  completed_plans: 94
+  total_phases: 4
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
 ---
 
 # Project State: TenantFlow
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-02-27)
+See: .planning/PROJECT.md (updated 2026-03-03)
 
 **Core value:** A landlord can add a property, invite a tenant, collect rent, and see their financials — without touching a spreadsheet or calling anyone.
-**Current focus:** v8.0 milestone complete -- all 7 phases shipped
+**Current focus:** v9.0 Testing Strategy Consolidation — Phase 05
 
 ## Current Position
 
-Phase: 64 of 64 (Autopay) -- COMPLETE
-Plan: 2 of 2 in current phase (64-02 complete)
-Status: Phase 64 Complete -- v8.0 Milestone Complete
-Last activity: 2026-02-27 -- Completed Phase 64 Autopay (pg_cron + Edge Function, frontend toggle, failure emails)
+Phase: 05 of 08 (Vitest Unification + File Consolidation)
+Plan: 0 of ? in current phase
+Status: Ready to plan
+Last activity: 2026-03-03 — Roadmap created for v9.0
 
-Progress: [████████████████████] 94/94 plans (100%)
+Progress: [░░░░░░░░░░] 0%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 8 (v8.0)
-- Average duration: 19min
-- Total execution time: 147min
+- Total plans completed: 0
+- Average duration: -
+- Total execution time: 0 hours
 
 **By Phase:**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
-| 58-security-hardening | 4 | 103min | 26min |
-| 59-stripe-rent-checkout | 2 | 30min | 15min |
-| 60-receipt-emails | 2 | 14min | 7min |
-| 61-auth-flow-completion | 3 | ~80min | ~27min |
-| 62-code-quality-performance | 3 | ~60min | ~20min |
-| 63-testing-ci-cd-documentation | 3 | ~45min | ~15min |
-| 64-autopay | 2 | ~40min | ~20min |
+| - | - | - | - |
 
 **Recent Trend:**
-- Last 5 plans: 8min, 6min, 20min, 15min, 10min
-- Trend: steady
+- Last 5 plans: -
+- Trend: -
 
 *Updated after each plan completion*
 
@@ -58,50 +52,14 @@ Progress: [████████████████████] 94/94 p
 
 ### Decisions
 
-Decisions are logged in PROJECT.md Key Decisions table.
-Recent decisions affecting current work:
-
-- v7.0: NestJS eliminated; frontend uses PostgREST + Edge Functions directly
-- v7.0: pg_cron for scheduled jobs; DB Webhooks to n8n for background workflows
-- v8.0: Security fixes ship before new payment features (Phase 58 before 59)
-- v8.0: Autopay (PAY-06) depends on rent checkout (PAY-01/02) being complete
-- v8.0: Edge Functions use shared CORS helper (_shared/cors.ts) with FRONTEND_URL origin matching; webhook functions have zero CORS
-- v8.0: All Edge Function imports pinned via deno.json import map (@supabase/supabase-js@2.49.4, stripe@14.25.0)
-- v8.0: requireOwnerUserId guard pattern for all frontend create mutations -- fail-fast with Sentry warning before Supabase call
-- v8.0: sanitizeSearchInput strips PostgREST-dangerous chars before all .ilike()/.textSearch() calls, preserves % for ILIKE
-- v8.0: All form submit buttons use useCurrentUser isAuthLoading + animate-pulse shimmer pattern
-- v8.0: DocuSeal webhook uses fail-closed HMAC-SHA256 via Web Crypto API with timingSafeEqual
-- v8.0: All Edge Function lease actions verify owner_user_id === user.id; return generic 403 (never 404) for access-denied
-- v8.0: sign-tenant action allows both owner and primary tenant via tenants table lookup
-- v8.0: Owner absorbs all fees (Stripe + platform) -- tenant pays exact rent amount; platform fee from owner's default_platform_fee_percent (default 5%)
-- v8.0: Duplicate payment prevention at DB level (unique partial index) and application level (pre-checkout query)
-- v8.0: PaymentIntent metadata carries 8 fields for downstream webhook processing without extra DB queries
-- v8.0: No pre-checkout confirmation dialog -- tenant Pay Rent goes directly to Edge Function -> Stripe Checkout redirect
-- v8.0: Webhook fee breakdown via balance_transaction expansion is best-effort -- non-fatal failure defaults fees to 0
-- v8.0: Checkout return URL handling uses useSearchParams + useRef(toastShown) + replaceState for one-time toast
-- v8.0: Receipt emails via Resend REST API fetch() from stripe-webhooks Edge Function -- fire-and-forget, never affects webhook response
-- v8.0: React Email templates in Deno via npm:react@18.3.1 + npm:@react-email/components@0.0.22
-- v8.0: Resend auto-checks suppression list on every send -- no manual pre-check needed
-- v8.0: notification_settings.email preference checked before sending; absence = opt-in (default send)
-- v8.0: Shared _shared/resend.ts helper never throws -- returns { success, id?, error? } result object
-- v8.0: Google OAuth users get PENDING user_type via ensure_public_user_for_auth trigger; email signups default to OWNER
-- v8.0: Middleware redirects PENDING users to /auth/select-role; blocks access to /dashboard and /tenant
-- v8.0: Auth callback auto-links pending tenant invitations for Google OAuth users by email match
-- v8.0: Password reset expired link detection via Supabase URL hash params (error=access_denied)
-- v8.0: Email confirmation resend has 60-second cooldown with countdown display
-- v8.0: handlePostgrestError is throw-only + Sentry capture; no toast inside -- prevents double-toast structurally
-- v8.0: Canonical payment method hook is use-payment-methods.ts; duplicate hooks in use-payments.ts deleted
-- v8.0: getCachedUser() reads TanStack Query ['auth','session'] cache first, falls back to getUser() on miss
-- v8.0: All 13 runtime-throw TODO stubs replaced with real implementations -- zero remaining in codebase
-- v8.0: CSV export capped at 10,000 rows; batch tenant operations use .in() grouped queries
-- v8.0: 60 RLS write-path tests (INSERT/UPDATE/DELETE x 7 domains) run against existing Supabase project
-- v8.0: CI pipeline gates PRs with rls-security job; E2E runs pre-commit (not CI)
-- v8.0: CLAUDE.md fully modernized -- zero NestJS, new Data Access + Edge Functions + Security Model sections
-- v8.0: 12 E2E files rewritten from NestJS /api/v1/ routes to Supabase PostgREST/Edge Function endpoints
-- v8.0: Autopay uses pg_cron + Edge Function (NOT Stripe Subscriptions) — Subscriptions can't do per-landlord destination charges
-- v8.0: pg_cron fires daily at 07:00 UTC; stripe-autopay-charge creates off-session PaymentIntent with same fee split as manual checkout
-- v8.0: Stripe built-in retry/dunning handles failed autopay charges; failure notification email sent via Resend
-- v8.0: Checkout sessions use setup_future_usage: 'off_session' to save card for autopay; Stripe Customer created if absent
+- v9.0: Testing Trophy philosophy (Kent C. Dodds) — mostly integration tests, lean E2E
+- v9.0: Single Vitest runner with `projects` config replaces Vitest + Jest split
+- v9.0: MSW 2.x for network-level API mocking (intercepts Supabase PostgREST)
+- v9.0: `@faker-js/faker` factory functions replace static DEFAULT_* test objects
+- v9.0: Component tests named `.component.test.tsx`, run as separate Vitest project
+- v9.0: Three test locations only: `src/test/` (infra), co-located `__tests__/` (unit/component), `tests/` (integration+e2e)
+- v9.0: E2E trimmed to 15-20 critical user journeys; Sentry covers runtime monitoring
+- v9.0: Design doc at `docs/plans/2026-03-03-testing-strategy-design.md`
 
 ### Pending Todos
 
@@ -109,12 +67,12 @@ None yet.
 
 ### Blockers/Concerns
 
-- Verify `RESEND_API_KEY` is set in Supabase Edge Function secrets before deploying Phase 60
-- Verify tenantflow.app domain is verified in Resend dashboard before deploying Phase 60
-- Phase 61 replaced handle_new_user with ensure_public_user_for_auth trigger — sets PENDING for Google OAuth, OWNER for email
+- Vitest 4.x + chai 6.x `.rejects.toThrow('string')` bug — use `.rejects.toMatchObject()` workaround
+- RLS tests need Supabase secrets in CI — ensure env vars available for Vitest integration project
+- Playwright config still references old `apps/frontend` path — needs fixing (addressed in Phase 08)
 
 ## Session Continuity
 
-Last session: 2026-02-27
-Stopped at: Phase 64 complete, all plans committed on feat/61-auth-flow-completion branch. v8.0 milestone fully shipped.
+Last session: 2026-03-03
+Stopped at: Roadmap created for v9.0 (Phases 05-08, 21 requirements mapped)
 Resume file: None
