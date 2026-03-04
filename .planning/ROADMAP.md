@@ -5,190 +5,186 @@
 TenantFlow is a multi-tenant property management SaaS platform for property owners and managers. The roadmap follows milestone-grouped phases with continuous numbering across all versions.
 
 ## Milestones
+- 🚧 **v1.0 Production Hardening** - Phases 1-9 (in progress)
 
-- ✅ **v3.0 Backend Architecture Excellence** - Phases 18-25 (shipped 2026-01-20) — [archive](milestones/v3.0-ROADMAP.md)
-- ✅ **v4.0 Production-Parity Testing & Observability** - Phases 26-32 (shipped 2026-01-21) — [archive](milestones/v4.0-ROADMAP.md)
-- ✅ **v5.0 Production Hardening & Revenue Completion** - Phases 33-37 (shipped 2026-02-19)
-- ✅ **v6.0 Production Grade Completion** - Phases 38-49 (shipped 2026-02-20)
-- ✅ **v7.0 Backend Elimination** - Phases 50-57 (shipped 2026-02-24)
-- ✅ **v8.0 Post-Migration Hardening + Payment Infrastructure** - Phases 58-64 (shipped 2026-02-27)
+### v1.0 Production Hardening (Phases 1-9)
 
-## Phases
+**Milestone Goal:** Fix all 131 findings from the comprehensive 8-agent review (22 P0, 35 P1, 46 P2, 28 P3). Phases ordered by exploitability and harm: RPC data exfiltration first, financial bugs second, remaining security third, then code quality, database, UX, performance, and testing. DOC-01 (CLAUDE.md rewrite) is a recurring task executed at the end of every phase.
 
-<details>
-<summary>✅ v3.0 Backend Architecture Excellence (Phases 18-25) — SHIPPED 2026-01-20</summary>
-
-See [milestones/v3.0-ROADMAP.md](milestones/v3.0-ROADMAP.md)
-
-</details>
-
-<details>
-<summary>✅ v4.0 Production-Parity Testing & Observability (Phases 26-32) — SHIPPED 2026-01-21</summary>
-
-**Key accomplishments:**
-- Docker Compose infrastructure mirroring production
-- Three-tier seed data system (smoke/dev/perf) with multi-tenant isolation
-- Real Stripe test mode integration in integration tests
-- Sentry backend/frontend integration with tenant context
-- Synthetic monitoring and post-deploy smoke tests
-- 48 new frontend tests with real QueryClient
-
-</details>
-
-<details>
-<summary>✅ v5.0 Production Hardening & Revenue Completion (Phases 33-37) — SHIPPED 2026-02-19</summary>
-
-**Milestone Goal:** Close the gap between what exists in the codebase and what customers can actually use. Verify every critical flow works end-to-end, wire up Stripe Connect so owners can receive rent payments, enforce subscription plan limits, complete the tenant onboarding flow, and confirm financial pages show real data.
-
-#### Phase 33: Full Smoke Test
-Plans:
-- [x] 33-01: Run automated E2E test suite + write SMOKE-TEST-RESULTS.md
-- [x] 33-02: Manual flow verification (owner + tenant) + create ISSUES.md
-
-#### Phase 34: Stripe Connect End-to-End
-Plans:
-- [x] 34-01: Verify and fix Stripe Connect onboarding CTA, dialog, backend, and webhook
-
-#### Phase 35: Subscription Enforcement
-Plans:
-- [x] 35-01: Audit plan limits, implement property/tenant count enforcement, add upgrade prompts
-
-#### Phase 36: Tenant Onboarding Flow
-Plans:
-- [x] 36-01: Verify invitation → accept → activate → tenant portal → pay rent flow
-
-#### Phase 37: Financial Page Wiring
-Plans:
-- [x] 37-01: Replace tax-documents placeholder, verify all financial pages, fix empty states
-
-</details>
-
-<details>
-<summary>✅ v6.0 Production Grade Completion (Phases 38-49) — SHIPPED 2026-02-20</summary>
-
-**Milestone Goal:** Complete every remaining gap — security, performance, test coverage, CI/CD, features, and code quality — so TenantFlow is genuinely production-grade and ready to monetize.
-
-- Phase 38: Code Quality — Database Query Hygiene + Compression
-- Phase 39: Legal Compliance — GDPR/CCPA Data Rights
-- Phase 40: Security — Rate Limiting + Auth Endpoint Hardening
-- Phase 41: Test Coverage — Financial + Billing Services
-- Phase 42: Test Coverage — Infrastructure + Remaining Services
-- Phase 43: CI/CD — Backend Sentry Source Maps + RLS Integration Tests
-- Phase 44: DocuSeal E-Signature Integration
-- Phase 45: Maintenance Vendor Management
-- Phase 46: Financial Reporting — Year-End + Tax Documents
-- Phase 47: Component Size Refactoring — Frontend Debt
-- Phase 48: Move-In/Move-Out Inspection — Database-Backed Implementation
-- Phase 49: Landlord Onboarding Wizard
-
-</details>
-
-<details>
-<summary>✅ v7.0 Backend Elimination: NestJS → Supabase Direct (Phases 50-57) — SHIPPED 2026-02-24</summary>
-
-**Milestone Goal:** Eliminate the NestJS/Railway backend entirely. Migrate all frontend hooks from apiRequest() to Supabase PostgREST direct, Edge Functions, pg_cron, and DB Webhooks.
-
-- Phase 50: Infrastructure & Auth Foundation + User/Profile CRUD (5/5 plans)
-- Phase 51: Core CRUD Migration — Properties, Units, Tenants, Leases (5/5 plans)
-- Phase 52: Operations CRUD Migration — Maintenance, Vendors, Inspections (3/3 plans)
-- Phase 53: Analytics, Reports & Tenant Portal — RPCs + pg_graphql (5/5 plans)
-- Phase 54: Payments & Billing — PostgREST + Stripe Edge Functions (5/5 plans)
-- Phase 55: External Services Edge Functions — StirlingPDF & DocuSeal (4/4 plans)
-- Phase 56: Scheduled Jobs & DB Webhooks — pg_cron + n8n (4/4 plans)
-- Phase 57: Cleanup & Deletion — Remove NestJS Entirely (5/5 plans)
-
-</details>
-
-<details>
-<summary>✅ v8.0 Post-Migration Hardening + Payment Infrastructure (Phases 58-64) — SHIPPED 2026-02-27</summary>
-
-**Milestone Goal:** Complete the payment revenue engine (Stripe Connect destination charge fee split, receipt emails, autopay) and auth flow gaps, while resolving critical security vulnerabilities, code quality debt, and CI/CD gaps from the v7.0 post-merge review.
-
-- [x] Phase 58: Security Hardening (3/3 plans)
-- [x] Phase 59: Stripe Rent Checkout (2/2 plans)
-- [x] Phase 60: Receipt Emails (2/2 plans)
-- [x] Phase 61: Auth Flow Completion (3/3 plans)
-- [x] Phase 62: Code Quality + Performance (3/3 plans)
-- [x] Phase 63: Testing, CI/CD + Documentation (3/3 plans)
-- [x] Phase 64: Autopay (2/2 plans)
-
-</details>
-
-### v9.0 Testing Strategy Consolidation (Phases 05-08)
-
-**Milestone Goal:** Unify the fragmented test infrastructure (Vitest + Jest + scattered directories) into a single-runner Testing Trophy architecture with MSW for component tests, faker factories for test data, and a trimmed E2E suite. Design doc: `docs/plans/2026-03-03-testing-strategy-design.md`.
-
-- [x] **Phase 05: Vitest Unification + File Consolidation** - Single Vitest runner with projects config, Jest removal, orphaned file cleanup (completed 2026-03-04)
-- [ ] **Phase 06: Test Data Factories** - Faker-based factory functions for all core entities, replacing static DEFAULT_* objects
-- [ ] **Phase 07: MSW + Component Test Layer** - Network-level API mocking with MSW 2.x and component test pattern with RTL
-- [ ] **Phase 08: E2E Optimization + CI Pipeline** - Playwright cleanup, critical path tagging, unified CI workflow
+- [ ] **Phase 1: RPC & Database Security** - Close 12+ SECURITY DEFINER data exfiltration vectors and fix database-level auth
+- [ ] **Phase 2: Financial Fixes** - Fix cents/dollars bugs, rent_due status, autopay RLS, and all payment processing issues
+- [ ] **Phase 3: Auth & Middleware** - Register middleware, enforce role-based routing, fix session validation and auth flows
+- [ ] **Phase 4: Edge Function Hardening** - Add env validation, rate limiting, input escaping, CSP, and version alignment
+- [ ] **Phase 5: Code Quality & Type Safety** - Remove type assertions, fix query keys, consolidate duplicates, split oversized files
+- [ ] **Phase 6: Database Schema & Migrations** - Fix constraints, RLS gaps, cron jobs, and schema inconsistencies
+- [ ] **Phase 7: UX & Accessibility** - Fix text-muted visibility, add aria-labels, error boundaries, and responsive fixes
+- [ ] **Phase 8: Performance Optimization** - Parallelize waterfalls, code-split charts, consolidate redundant queries
+- [ ] **Phase 9: Testing & CI Pipeline** - Add next build to CI, coverage enforcement, Edge Function tests, RLS test gaps
 
 ## Phase Details
 
-### Phase 05: Vitest Unification + File Consolidation
-**Goal**: All tests run under a single Vitest runner with named projects (unit, component, integration), Jest is fully removed, and orphaned test files are relocated to their correct co-located directories.
-**Depends on**: v8.0 complete (Phase 04)
-**Requirements**: INFRA-01, INFRA-02, INFRA-03, INFRA-04, INFRA-05, INFRA-06
+### Phase 1: RPC & Database Security
+**Goal**: No RPC function can be called to access another user's data
+**Depends on**: Nothing (first phase — actively exploitable in production)
+**Requirements**: SEC-01, SEC-02, SEC-03, SEC-04, SEC-05, SEC-06, SEC-07, SEC-08, SEC-09, SEC-10, SEC-11, SEC-12, DOC-01
 **Success Criteria** (what must be TRUE):
-  1. Running `pnpm test:unit` executes the Vitest "unit" project; running `pnpm test:integration` executes the Vitest "integration" project; running `pnpm test:component` executes the Vitest "component" project -- all from a single `vitest.config.ts`
-  2. All 7 RLS integration test files pass under the Vitest node project with the same assertions and Supabase connection as before; no Jest runner remains
-  3. `jest`, `ts-jest`, and `@types/jest` do not appear in `package.json` dependencies or devDependencies; no `jest.config.*` files exist in the repo
-  4. The `tests/unit/` directory no longer exists; `pricing-premium.spec.ts` lives next to its source code in `src/`; all orphaned `src/__tests__/` files are in co-located `__tests__/` directories adjacent to their source modules
-**Plans:** 2/2 plans complete
+  1. Calling any SECURITY DEFINER RPC with a `p_user_id` different from the caller's `auth.uid()` returns an error or empty result
+  2. Error monitoring RPCs return only the calling user's error data, not all users
+  3. `activate_lease_with_pending_subscription` and `sign_lease_and_check_activation` reject callers who are not the lease owner or valid signer
+  4. All SECURITY DEFINER functions have `SET search_path TO 'public'` and no dynamic SQL injection vectors
+  5. `FOR ALL` policies on authenticated tables are replaced with per-operation policies
+**Plans**: 2 plans
+
 Plans:
-- [ ] 05-01-PLAN.md — Vitest projects config + Jest removal + RLS migration + script/CI updates
-- [ ] 05-02-PLAN.md — Orphaned file relocation + directory cleanup
+- [ ] 01-01-PLAN.md — Add auth.uid() guards to all 25 SECURITY DEFINER RPCs + search_path fixes + health_check INVOKER
+- [ ] 01-02-PLAN.md — Lease RPC auth, error monitoring restrictions, FOR ALL cleanup, trigger fixes, CLAUDE.md update
 
----
-
-### Phase 06: Test Data Factories
-**Goal**: Every test that needs domain entity data can call a `build*()` factory function that returns a realistic, randomized object -- eliminating brittle static `DEFAULT_*` constants.
-**Depends on**: Phase 05 (Vitest projects config must exist so factories are importable from both unit and component test projects)
-**Requirements**: DATA-01, DATA-02, DATA-03
+### Phase 2: Financial Fixes
+**Goal**: All payment flows charge correct amounts, update correct statuses, and handle edge cases safely
+**Depends on**: Phase 1
+**Requirements**: PAY-01, PAY-02, PAY-03, PAY-04, PAY-05, PAY-06, PAY-07, PAY-08, PAY-09, PAY-10, PAY-11, PAY-12, PAY-13, PAY-14, PAY-15, PAY-16, PAY-17, PAY-18, PAY-19, PAY-20, PAY-21, PAY-22, DOC-01
 **Success Criteria** (what must be TRUE):
-  1. Factory functions exist for property, tenant, lease, unit, maintenance request, and user entities in `src/test/factories/` with one file per entity
-  2. Calling `buildProperty()` returns a complete `Property` object with faker-generated data; calling `buildProperty({ name: 'Custom' })` returns an object with the override applied and all other fields randomized
-  3. No test file imports `DEFAULT_PROPERTY`, `DEFAULT_TENANT`, `DEFAULT_LEASE`, or any other `DEFAULT_*` constant from `test-data.ts`; all have been migrated to factory calls
+  1. A tenant paying rent is charged the exact dollar amount shown on screen — no 100x overcharge or double-division
+  2. After successful payment, `rent_due.status` is `paid` and `rent_payments` record has correct `amount` in consistent units
+  3. A tenant can toggle autopay on/off from their portal, and autopay charges exactly one payment per `rent_due` regardless of shared lease
+  4. Stripe webhook processing is idempotent — replayed webhooks do not create duplicate payments or corrupt state
+  5. Platform subscription failures are tracked and surfaced to the owner
 **Plans**: TBD
 
----
+Plans:
+- [ ] 02-01: TBD
+- [ ] 02-02: TBD
+- [ ] 02-03: TBD
 
-### Phase 07: MSW + Component Test Layer
-**Goal**: Developers can write component tests that render real React component trees with TanStack Query, hitting MSW-intercepted network requests that return realistic mock data -- exercising the full component stack without a running backend.
-**Depends on**: Phase 06 (factory functions provide the response data that MSW handlers return)
-**Requirements**: MOCK-01, MOCK-02, MOCK-03, COMP-01, COMP-02, COMP-03
+### Phase 3: Auth & Middleware
+**Goal**: Every route is protected by role-appropriate access control with server-validated sessions
+**Depends on**: Phase 1
+**Requirements**: AUTH-01, AUTH-02, AUTH-03, AUTH-04, AUTH-05, AUTH-06, AUTH-07, AUTH-08, AUTH-09, AUTH-10, AUTH-11, AUTH-12, AUTH-13, AUTH-14, AUTH-15, AUTH-16, AUTH-17, DOC-01
 **Success Criteria** (what must be TRUE):
-  1. MSW 2.x server starts before component tests and intercepts all `fetch` calls; unhandled requests produce a warning (not a silent pass or hard failure)
-  2. Default MSW handlers exist for Supabase PostgREST endpoints (properties, tenants, leases) and at least one RPC (dashboard stats), returning factory-built data
-  3. At least 3 `.component.test.tsx` files demonstrate the full pattern: render a component inside QueryClientProvider, trigger a user interaction with `userEvent`, assert on screen content populated by MSW-mocked API responses
-  4. Component tests run as a separate Vitest project (`pnpm test:component`) and do not execute when running `pnpm test:unit`
-  5. All component tests follow RTL best practices: `getByRole` query priority, `userEvent.setup()` before render, `screen.*` accessors, `findBy*` for async content
+  1. Middleware executes on every request — tenant users accessing `/owner/*` routes are redirected to tenant portal, and vice versa
+  2. Session validation uses `getUser()` (server-verified) throughout — no `getSession()` for auth decisions
+  3. Tenant invitation acceptance requires a valid JWT — unauthenticated callers cannot accept invitations
+  4. OAuth callback verifies email ownership before auto-accepting invitations
+  5. Login redirect parameter, signout method, and OTP type are all validated against injection and CSRF
 **Plans**: TBD
 
----
+Plans:
+- [ ] 03-01: TBD
+- [ ] 03-02: TBD
 
-### Phase 08: E2E Optimization + CI Pipeline
-**Goal**: Playwright tests target real critical user journeys without stale monorepo paths, and the CI pipeline runs the unified Vitest suite on PRs with E2E reserved for merge-to-main.
-**Depends on**: Phase 07 (CI workflow must reference the finalized Vitest project names)
-**Requirements**: E2E-01, E2E-02, E2E-03, CI-01, CI-02, CI-03
+### Phase 4: Edge Function Hardening
+**Goal**: All Edge Functions fail-fast on missing config, reject abuse, and never leak internal errors
+**Depends on**: Phase 2, Phase 3
+**Requirements**: EDGE-01, EDGE-02, EDGE-03, EDGE-04, EDGE-05, EDGE-06, EDGE-07, EDGE-08, EDGE-09, EDGE-10, EDGE-11, EDGE-12, EDGE-13, EDGE-14, DOC-01
 **Success Criteria** (what must be TRUE):
-  1. Playwright config contains no references to `apps/frontend`, `apps/e2e-tests`, or any stale monorepo paths; `pnpm test:e2e` runs successfully from the repo root
-  2. Critical-path E2E tests are tagged and cover: auth login/signup, property CRUD, rent payment checkout, and tenant portal access; non-critical tests are documented as candidates for migration to component tests
-  3. GitHub Actions PR workflow runs `vitest --project unit --project component` and `vitest --project integration` in parallel, replacing the previous separate unit + Jest RLS workflows
-  4. Vitest CI output uses `--reporter=github-actions` so test failures appear as inline PR annotations on the failing lines
-  5. E2E tests run only on merge to main (not on every PR push); the PR workflow completes without waiting for Playwright
+  1. Every Edge Function validates required env vars on startup — missing vars cause immediate failure with clear error, not silent empty-string behavior
+  2. Unauthenticated Edge Functions (`tenant-invitation-accept`, `tenant-invitation-validate`, `stripe-checkout-session`) enforce rate limits
+  3. All user-provided values interpolated into HTML (DocuSeal, PDF) are escaped — no XSS in generated documents
+  4. `Content-Security-Policy` header is served on all pages via `vercel.json`
+  5. Error responses return generic messages — no `dbError.message` or stack traces exposed to clients
+**Plans**: TBD
 
----
+Plans:
+- [ ] 04-01: TBD
+- [ ] 04-02: TBD
+
+### Phase 5: Code Quality & Type Safety
+**Goal**: Codebase has zero type escape hatches, consistent query cache behavior, and all files under size limits
+**Depends on**: Phase 2
+**Requirements**: CODE-01, CODE-02, CODE-03, CODE-04, CODE-05, CODE-06, CODE-07, CODE-08, CODE-09, CODE-10, CODE-11, CODE-12, CODE-13, CODE-14, CODE-15, CODE-16, CODE-17, CODE-18, CODE-19, CODE-20, CODE-21, CODE-22, DOC-01
+**Success Criteria** (what must be TRUE):
+  1. Zero `as unknown as` type assertions remain in API hooks — all Supabase queries use proper Database types
+  2. All mutation `onSuccess` handlers use canonical query key factories and invalidate dashboard keys on entity changes
+  3. No hook file exceeds 300 lines — oversized files (`use-tenant-portal.ts` 1351, `use-reports.ts` 923, etc.) split into focused modules
+  4. Stub hooks either return real data or their UI routes show "coming soon" instead of fake zeros
+  5. `pnpm typecheck && pnpm lint` passes with zero `eslint-disable @tanstack/query/exhaustive-deps` suppressions
+**Plans**: TBD
+
+Plans:
+- [ ] 05-01: TBD
+- [ ] 05-02: TBD
+- [ ] 05-03: TBD
+
+### Phase 6: Database Schema & Migrations
+**Goal**: All tables have correct constraints, FK relationships, and operational maintenance jobs
+**Depends on**: Phase 1
+**Requirements**: DB-01, DB-02, DB-03, DB-04, DB-05, DB-06, DB-07, DB-08, DB-09, DB-10, DB-11, DB-12, DOC-01
+**Success Criteria** (what must be TRUE):
+  1. `activity.user_id` is NOT NULL with FK constraint — `documents` table has `owner_user_id` column with authenticated RLS policies
+  2. `leases` table has a single owner column (not dual `property_owner_id` + `owner_user_id`)
+  3. `expire-leases` cron uses a named function with `FOR UPDATE SKIP LOCKED` and error handling
+  4. Cleanup cron jobs are scheduled for `security_events`, `errors`, and `stripe_webhook_events`
+  5. All cron jobs have Sentry monitoring for failure detection
+**Plans**: TBD
+
+Plans:
+- [ ] 06-01: TBD
+- [ ] 06-02: TBD
+
+### Phase 7: UX & Accessibility
+**Goal**: All text is readable, all interactive elements are accessible, and error states are handled gracefully
+**Depends on**: Phase 5
+**Requirements**: UX-01, UX-02, UX-03, UX-04, UX-05, UX-06, UX-07, UX-08, UX-09, UX-10, UX-11, UX-12, UX-13, UX-14, UX-15, UX-16, UX-17, UX-18, UX-19, UX-20, UX-21, UX-22, UX-23, UX-24, UX-25, UX-26, DOC-01
+**Success Criteria** (what must be TRUE):
+  1. All muted text is visible — zero instances of `text-muted` (replaced with `text-muted-foreground`) and no invalid Tailwind classes
+  2. Screen reader users can navigate via skip-to-content link, aria-labels on all icon buttons, and labeled breadcrumb nav
+  3. Navigating to a nonexistent lease/tenant/maintenance/inspection/unit ID shows a styled 404 page, not an unhandled error
+  4. Tenant delete actually removes the tenant (with confirmation dialog), not a console.log stub
+  5. Mobile users can use kanban boards, see breadcrumbs, and dismiss sidebar overlay with keyboard
+**Plans**: TBD
+
+Plans:
+- [ ] 07-01: TBD
+- [ ] 07-02: TBD
+- [ ] 07-03: TBD
+
+### Phase 8: Performance Optimization
+**Goal**: Page loads are fast with no unnecessary waterfalls, oversized bundles, or redundant queries
+**Depends on**: Phase 5
+**Requirements**: PERF-01, PERF-02, PERF-03, PERF-04, PERF-05, PERF-06, PERF-07, PERF-08, PERF-09, PERF-10, PERF-11, PERF-12, PERF-13, PERF-14, PERF-15, PERF-16, PERF-17, PERF-18, PERF-19, PERF-20, PERF-21, PERF-22, PERF-23, PERF-24, DOC-01
+**Success Criteria** (what must be TRUE):
+  1. Tenant portal loads amount due in a single parallel fetch — no 5-step waterfall, no 8x redundant tenant ID resolution
+  2. Recharts and react-markdown are dynamically imported — initial JS bundle does not include chart libraries on non-chart pages
+  3. Maintenance stats (7 queries) and lease stats (6 queries) each consolidate to a single RPC call
+  4. All list queries have `.limit()` or pagination — no unbounded `select('*')` on growing tables
+  5. Edge Functions parallelize independent DB queries — no sequential lookups where `Promise.all()` applies
+**Plans**: TBD
+
+Plans:
+- [ ] 08-01: TBD
+- [ ] 08-02: TBD
+- [ ] 08-03: TBD
+
+### Phase 9: Testing & CI Pipeline
+**Goal**: CI catches build failures, coverage regressions, and security issues before merge
+**Depends on**: Phase 5, Phase 6
+**Requirements**: TEST-01, TEST-02, TEST-03, TEST-04, TEST-05, TEST-06, TEST-07, TEST-08, TEST-09, TEST-10, TEST-11, TEST-12, TEST-13, TEST-14, TEST-15, TEST-16, TEST-17, TEST-18, TEST-19, TEST-20, TEST-21, DOC-01
+**Success Criteria** (what must be TRUE):
+  1. CI pipeline runs `next build` and fails the PR if build errors exist
+  2. Coverage threshold (80%) is enforced — PRs that drop coverage below threshold are blocked
+  3. Critical Edge Functions (stripe-webhooks, stripe-rent-checkout, stripe-autopay-charge, tenant-invitation-accept) have unit tests
+  4. RLS integration tests cover `rent_payments`, `payment_methods`, `documents`, `notifications` and run on every PR (not just weekly)
+  5. Security scanning (gitleaks, trivy) runs in CI and blocks PRs with detected secrets or critical vulnerabilities
+**Plans**: TBD
+
+Plans:
+- [ ] 09-01: TBD
+- [ ] 09-02: TBD
+- [ ] 09-03: TBD
 
 ## Progress
 
 **Execution Order:**
-Phases execute in numeric order: 05 → 06 → 07 → 08
+Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8 -> 9
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
-| 01-04. Hardening + Payments | v8.0 | - | Complete | 2026-02-27 |
-| 05. Vitest Unification + File Consolidation | 2/2 | Complete    | 2026-03-04 | - |
-| 06. Test Data Factories | v9.0 | 0/? | Not started | - |
-| 07. MSW + Component Test Layer | v9.0 | 0/? | Not started | - |
-| 08. E2E Optimization + CI Pipeline | v9.0 | 0/? | Not started | - |
+| 1. RPC & Database Security | v1.0 | 0/2 | Planned | - |
+| 2. Financial Fixes | v1.0 | 0/3 | Not started | - |
+| 3. Auth & Middleware | v1.0 | 0/2 | Not started | - |
+| 4. Edge Function Hardening | v1.0 | 0/2 | Not started | - |
+| 5. Code Quality & Type Safety | v1.0 | 0/3 | Not started | - |
+| 6. Database Schema & Migrations | v1.0 | 0/2 | Not started | - |
+| 7. UX & Accessibility | v1.0 | 0/3 | Not started | - |
+| 8. Performance Optimization | v1.0 | 0/3 | Not started | - |
+| 9. Testing & CI Pipeline | v1.0 | 0/3 | Not started | - |

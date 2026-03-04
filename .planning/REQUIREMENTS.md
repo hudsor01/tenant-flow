@@ -1,104 +1,404 @@
-# Requirements: TenantFlow
+# Requirements: TenantFlow v1.0 Production Hardening
 
-**Defined:** 2026-03-03
+**Defined:** 2026-03-04
 **Core Value:** A landlord can add a property, invite a tenant, collect rent, and see their financials — without touching a spreadsheet or calling anyone.
+**Source:** Comprehensive 8-agent review — `.planning/REVIEW-2026-03-04.md`
 
-## v9.0 Requirements
+## v1.0 Requirements
 
-Requirements for Testing Strategy Consolidation milestone. Each maps to roadmap phases.
+All 131 findings from the review, plus CLAUDE.md maintenance.
 
-### Infrastructure Consolidation (INFRA)
+### Security — RPC & Database Auth
 
-- [x] **INFRA-01**: Vitest config uses `projects` with three named projects: unit (jsdom), component (jsdom), integration (node)
-- [x] **INFRA-02**: All 7 RLS integration tests run under Vitest node project instead of Jest
-- [x] **INFRA-03**: Jest, ts-jest, and @types/jest are removed from dependencies
-- [x] **INFRA-04**: Orphaned `tests/unit/` directory is deleted; `pricing-premium.spec.ts` relocated to `src/`
-- [x] **INFRA-05**: Orphaned `src/__tests__/` files relocated to co-located `__tests__/` directories
-- [x] **INFRA-06**: Package.json test scripts updated for Vitest projects (`test:unit`, `test:integration`, `test:component`)
+- [ ] **SEC-01**: All 12+ SECURITY DEFINER RPC functions validate `p_user_id = auth.uid()` before executing (`get_dashboard_stats`, `get_dashboard_data_v2`, `get_billing_insights`, `get_maintenance_analytics`, `get_metric_trend`, `get_property_performance_cached`, `get_property_performance_trends`, `get_occupancy_trends_optimized`, `get_revenue_trends_optimized`, `get_dashboard_time_series`, `get_user_dashboard_activities`, `get_user_profile`)
+- [x] **SEC-02**: Error monitoring RPCs (`get_error_summary`, `get_common_errors`, `get_error_prone_users`) restricted to own-user data only
+- [x] **SEC-03**: `activate_lease_with_pending_subscription` verifies caller is lease owner via `auth.uid()`
+- [x] **SEC-04**: `sign_lease_and_check_activation` verifies caller identity matches signer_type
+- [ ] **SEC-05**: All SECURITY DEFINER functions have `SET search_path TO 'public'`
+- [x] **SEC-06**: `FOR ALL` policies on authenticated tables replaced with per-operation policies (`storage.objects`, `user_tour_progress`, `users`, `tenants` service_role)
+- [ ] **SEC-07**: `security_events` ENUMs replaced with text + CHECK constraints
+- [ ] **SEC-08**: `get_current_owner_user_id()` rewritten with static SQL (no dynamic `EXECUTE format()`)
+- [ ] **SEC-09**: `health_check()` changed from SECURITY DEFINER to SECURITY INVOKER
+- [ ] **SEC-10**: `cleanup_old_security_events` and `cleanup_old_errors` add `SET search_path`
+- [x] **SEC-11**: `notify_critical_error` trigger fixed to detect system-wide spikes (not per-user only)
+- [x] **SEC-12**: `log_user_error` rate-limited to prevent fake alert flooding via `pg_notify`
 
-### Test Data (DATA)
+### Security — Auth & Middleware
 
-- [ ] **DATA-01**: Factory functions exist for all 6 core entities (property, tenant, lease, unit, maintenance, user) using `@faker-js/faker`
-- [ ] **DATA-02**: Factory functions live in `src/test/factories/` with one file per entity
-- [ ] **DATA-03**: Existing tests that use DEFAULT_* objects are migrated to factory functions
+- [ ] **AUTH-01**: Middleware correctly registered (`middleware.ts` exporting `middleware`) and verified executing
+- [ ] **AUTH-02**: Role-based route enforcement — tenants redirected from owner routes, owners from tenant routes
+- [ ] **AUTH-03**: `AuthProvider` uses `getUser()` instead of `getSession()` for session initialization
+- [ ] **AUTH-04**: `tenant-invitation-accept` requires JWT — `authuser_id` derived from verified token
+- [ ] **AUTH-05**: `stripe-checkout-session` requires authentication or returns minimal data only
+- [ ] **AUTH-06**: Module-level Supabase client in `use-auth.ts` moved inside mutation functions
+- [ ] **AUTH-07**: `getCachedUser()` validates session server-side, not just local cache
+- [ ] **AUTH-08**: OAuth callback verifies `email_confirmed_at` before auto-accepting invitations
+- [ ] **AUTH-09**: `accept-invite` page sends Authorization header when calling edge function
+- [ ] **AUTH-10**: `post-checkout` page does not send magic link based on unauthenticated edge function response
+- [ ] **AUTH-11**: Signout requires POST (not triggerable via GET/img tag)
+- [ ] **AUTH-12**: Login `redirect` parameter validated via `new URL()` hostname check (not just startsWith)
+- [ ] **AUTH-13**: `x-forwarded-host` header sanitized or ignored in OAuth callback redirect URL construction
+- [ ] **AUTH-14**: `select-role` page UPDATE restricted to users with current `user_type = 'PENDING'` via RLS
+- [ ] **AUTH-15**: `verifyOtp` type parameter validated against known types before cast
+- [ ] **AUTH-16**: Dual auth query key systems (`authQueryKeys` vs `authKeys`) unified — `clearAuthData()` clears all namespaces
+- [ ] **AUTH-17**: `confirm-email` page uses `getUser()` instead of `getSession()` for email extraction
 
-### API Mocking (MOCK)
+### Security — Edge Functions & Headers
 
-- [ ] **MOCK-01**: MSW 2.x is installed and configured with Vitest setup lifecycle (listen/reset/close)
-- [ ] **MOCK-02**: Default Supabase PostgREST mock handlers exist for properties, tenants, leases, dashboard RPC
-- [ ] **MOCK-03**: MSW handlers organized in `src/test/mocks/handlers/` with one file per domain
+- [ ] **EDGE-01**: All 13 Edge Functions validate required env vars on startup (fail-fast, not empty string)
+- [ ] **EDGE-02**: Rate limiting on unauthenticated Edge Functions (`tenant-invitation-accept`, `tenant-invitation-validate`, `stripe-checkout-session`)
+- [ ] **EDGE-03**: HTML-escape all interpolated values in DocuSeal and generate-pdf templates
+- [ ] **EDGE-04**: Content-Security-Policy header added to `vercel.json`
+- [ ] **EDGE-05**: Stripe SDK version aligned — single version across Edge Functions and Next.js
+- [ ] **EDGE-06**: Edge Functions use user JWT client for reads where possible (not service_role everywhere)
+- [ ] **EDGE-07**: Error responses return generic messages, not `dbError.message` or `err.message`
+- [ ] **EDGE-08**: `stripe-connect` `limit` parameter capped to maximum (e.g., 100)
+- [ ] **EDGE-09**: Invitation code moved from URL query parameter to fragment or exchange token
+- [ ] **EDGE-10**: CORS returns restrictive headers when `FRONTEND_URL` not set (fail-closed, not fail-open)
+- [ ] **EDGE-11**: Sentry tunnel `/monitoring` endpoint rate-limited
+- [ ] **EDGE-12**: Supabase SDK version aligned between Deno import map (2.49.4) and Next.js (2.97.0)
+- [ ] **EDGE-13**: Stripe API version updated from `2024-06-20` to current, tested
+- [ ] **EDGE-14**: `Vary: Authorization, Cookie` on public property pages reviewed for CDN safety
 
-### Component Tests (COMP)
+### Payments — Financial Fixes
 
-- [ ] **COMP-01**: Component tests use `.component.test.tsx` naming convention and run as separate Vitest project
-- [ ] **COMP-02**: At least 3 example component tests demonstrate the pattern (render + MSW + TanStack Query)
-- [ ] **COMP-03**: RTL best practices enforced (getByRole priority, userEvent.setup(), screen.*, findBy for async)
+- [ ] **PAY-01**: Consistent cents/dollars convention documented and enforced — `rent_due.amount` semantics clarified, `* 100` verified
+- [ ] **PAY-02**: `rent_due.status` updated to `'paid'` in webhook after successful payment
+- [ ] **PAY-03**: Tenant can enable/disable autopay — RLS policy for tenant lease UPDATE on autopay columns
+- [ ] **PAY-04**: `stripe-checkout-status` Edge Function created or hooks corrected to use `stripe-checkout-session`
+- [ ] **PAY-05**: Payment display uses correct amount units — no double-division in `formatCents()`
+- [ ] **PAY-06**: `rent_payments.amount` column changed to `numeric(10,2)` to preserve cents
+- [ ] **PAY-07**: Payment method deletion calls `stripe.paymentMethods.detach()` before DB row deletion
+- [ ] **PAY-08**: Idempotency key on autopay `paymentIntents.create`
+- [ ] **PAY-09**: Platform subscription webhook handling (`invoice.payment_failed`, status tracking on `users` table)
+- [ ] **PAY-10**: Webhook `rent_payments` insert validates `tenant_id`/`lease_id` metadata (no empty string fallback)
+- [ ] **PAY-11**: `onboarding_completed_at` preserved when already set — not wiped on non-completed `account.updated`
+- [ ] **PAY-12**: Plan limit enforcement (`get_user_plan_limits`, `check_user_feature_access`) called from frontend before create operations
+- [ ] **PAY-13**: Autopay retry mechanism for failed charges (re-attempt on subsequent days, not just `due_date = current_date`)
+- [ ] **PAY-14**: Autopay handles shared leases correctly (one charge per rent_due, not per tenant)
+- [ ] **PAY-15**: Webhook failure does not delete idempotency record — partial processing handled safely
+- [ ] **PAY-16**: `setDefaultPaymentMethod` uses transaction (not clear-then-set race condition)
+- [ ] **PAY-17**: Stripe API version consistent between Edge Functions and Next.js API route
+- [ ] **PAY-18**: Owner payment receipt email includes fee breakdown (platform fee, Stripe fee, net amount)
+- [ ] **PAY-19**: `useSubscriptionStatus` checks actual subscription status, not just `stripe_customer_id` existence
+- [ ] **PAY-20**: Billing hooks (`useInvoices`, `useSubscriptionBillingHistory`, `useFailedPaymentAttempts`) implemented or UI disabled
+- [ ] **PAY-21**: Success/cancel redirect URLs include `rent_due_id` or `session_id` for verification
+- [ ] **PAY-22**: `rent_due` table verified to have service_role write policies (may have been dropped in migration simplification)
 
-### E2E Optimization (E2E)
+### Code Quality — Type Safety & Correctness
 
-- [ ] **E2E-01**: Playwright config fixed (no stale monorepo references)
-- [ ] **E2E-02**: Critical path tests identified and tagged (auth, property CRUD, rent payment, tenant portal)
-- [ ] **E2E-03**: Non-critical E2E tests documented as candidates for migration to component tests
+- [ ] **CODE-01**: Fake table cast `from('reports' as 'properties')` removed
+- [ ] **CODE-02**: 50+ `as unknown as` type assertions replaced with proper Supabase Database types or mapper functions
+- [ ] **CODE-03**: All mutation `onSuccess` handlers use canonical query key factories (not string literals)
+- [ ] **CODE-04**: All property/tenant/lease delete mutations invalidate `ownerDashboardKeys.all`
+- [ ] **CODE-05**: Duplicate local types consolidated with `src/shared/types/` canonical types
+- [ ] **CODE-06**: Stub hooks (10+ in `use-reports.ts`, `use-financials.ts`) implemented or UI routes disabled
+- [ ] **CODE-07**: Duplicate `GeneralSettings` component deleted — single source of truth
+- [ ] **CODE-08**: `useLeaseList` select function is pure (no `queryClient.setQueryData` side effects)
+- [ ] **CODE-09**: `tenantPortalQueries.payments()` column references fixed (`amount_cents` -> `amount`, `paid_at` -> `paid_date`)
+- [ ] **CODE-10**: `isSuccessfulPaymentStatus` uses correct status values per DB schema (`pending | processing | succeeded | failed | canceled`)
+- [ ] **CODE-11**: Hook files split to stay under 300 lines (`use-tenant-portal.ts` 1351, `use-reports.ts` 923, `use-tenant.ts` 838, `use-lease.ts` 660, `use-financials.ts` 565, `use-payments.ts` 586, `use-owner-dashboard.ts` 562, `use-inspections.ts` 482, `use-billing.ts` 403)
+- [ ] **CODE-12**: `tour.tsx` (1732 lines) split into separate subcomponents
+- [ ] **CODE-13**: `stripe-webhooks/index.ts` (691 lines) split into handler modules
+- [ ] **CODE-14**: Page components exceeding 300 lines refactored (`dashboard/page.tsx` 373, `properties/page.tsx` 393, `tenants/page.tsx` 378, `reports/generate/page.tsx` 400)
+- [ ] **CODE-15**: 63 `'use client'` page files audited — push directive down to leaf components where possible
+- [ ] **CODE-16**: 8 `eslint-disable @tanstack/query/exhaustive-deps` suppressions resolved or rule configured globally
+- [ ] **CODE-17**: Duplicate `get_revenue_trends_optimized` RPC calls deduplicated (3 hooks calling same RPC -> shared query)
+- [ ] **CODE-18**: `owner_user_id` access in `use-tenant-portal.ts:365` uses proper `.select()` column (not double-cast)
+- [ ] **CODE-19**: `@radix-ui/react-icons` removed — project uses `lucide-react`
+- [ ] **CODE-20**: Dead `SseProvider` removed from provider tree
+- [ ] **CODE-21**: 25+ TODO comments referencing "phase-57" converted to tracked issues or removed
+- [ ] **CODE-22**: `console.log` for unhandled webhook event types replaced with structured logging or removed
 
-### CI Pipeline (CI)
+### Database — Schema & Migrations
 
-- [ ] **CI-01**: GitHub Actions workflows updated: single Vitest run replaces separate unit + Jest RLS workflows
-- [ ] **CI-02**: Vitest uses `--reporter=github-actions` for inline PR annotations
-- [ ] **CI-03**: E2E runs only on merge to main (not on every PR); Sentry covers runtime monitoring
+- [ ] **DB-01**: `activity` table `user_id` gets NOT NULL + FK constraint
+- [ ] **DB-02**: `documents` table gets `owner_user_id` column + authenticated RLS policies
+- [ ] **DB-03**: `leases` table dual-column (`property_owner_id` + `owner_user_id`) cleaned up — single column
+- [ ] **DB-04**: GDPR soft-delete on `users` enforced on related tables (properties, leases, etc.)
+- [ ] **DB-05**: `expire-leases` cron rewritten as named function with `FOR UPDATE SKIP LOCKED` and error handling
+- [ ] **DB-06**: `cleanup_old_security_events` cron job scheduled
+- [ ] **DB-07**: `cleanup_old_errors` cron job scheduled
+- [ ] **DB-08**: Cron job Sentry monitoring added for `calculate_late_fees`, `queue_lease_reminders`, `expire-leases`
+- [ ] **DB-09**: `stripe_webhook_events.data` retention policy (cleanup old events)
+- [ ] **DB-10**: `inspection_photos` gets `updated_at` column + trigger for consistency
+- [ ] **DB-11**: `blogs` table gets author/user_id column for audit trail
+- [ ] **DB-12**: `update_updated_at_column` duplicate function consolidated with `set_updated_at`
 
-## Future Requirements
+### UX — Visibility & Accessibility
 
-### Test Coverage Expansion (v10.0+)
+- [ ] **UX-01**: `text-muted` replaced with `text-muted-foreground` across all 69 files (150 occurrences)
+- [ ] **UX-02**: `text-muted/600` invalid class fixed in `stripe-connect-status.tsx`
+- [ ] **UX-03**: Tenant delete functionality implemented (real mutation, not log-only handler)
+- [ ] **UX-04**: Confirmation dialog added for tenant deletion (matching property delete pattern)
+- [ ] **UX-05**: Skip-to-content link added to app shell and tenant shell
+- [ ] **UX-06**: `aria-label` on hamburger menu buttons (both shells)
+- [ ] **UX-07**: `aria-label` on notification bell link
+- [ ] **UX-08**: `aria-label` on reports scheduled list toggle button
+- [ ] **UX-09**: `aria-label` on dropzone remove-file button
+- [ ] **UX-10**: `aria-label` on tenant grid action buttons (replace `title` with `aria-label`)
+- [ ] **UX-11**: Breadcrumb `<nav>` gets `aria-label="Breadcrumb"`
+- [ ] **UX-12**: Hardcoded `bg-white` replaced with `bg-background` (preview-panel, QR code, slider, notification toggles)
+- [ ] **UX-13**: Custom toggle switches replaced with shadcn Switch component
+- [ ] **UX-14**: `not-found.tsx` added for dynamic routes (leases/[id], tenants/[id], maintenance/[id], inspections/[id], units/[id])
+- [ ] **UX-15**: `error.tsx` added for `(auth)`, `auth/`, `blog/`, `pricing/` route groups
+- [ ] **UX-16**: Page metadata/titles exported from all owner and tenant pages
+- [ ] **UX-17**: Unsaved form data protection (`beforeunload` on multi-step forms)
+- [ ] **UX-18**: Kanban board responsive columns (not fixed 300px/220px requiring 1500px+ viewport)
+- [ ] **UX-19**: Breadcrumbs visible on mobile (not `hidden sm:flex`)
+- [ ] **UX-20**: Mobile sidebar overlay keyboard-accessible (Escape key handler, focus management)
+- [ ] **UX-21**: `autoFocus` on primary form inputs (login email, property name, etc.)
+- [ ] **UX-22**: Login page Suspense fallback styled (not plain "Loading..." text)
+- [ ] **UX-23**: `pb-24` bottom padding on owner shell conditional to mobile only (not desktop)
+- [ ] **UX-24**: Consistent empty state component usage across all list pages
+- [ ] **UX-25**: Property detail loading state uses skeleton pattern (not plain text animate-pulse)
+- [ ] **UX-26**: Raw color classes in `property-details.client.tsx` replaced with semantic design tokens
 
-- **COV-01**: Component test coverage reaches 100+ tests across all major pages
-- **COV-02**: Visual regression testing with Playwright `toHaveScreenshot()`
-- **COV-03**: Property-based testing with fast-check for financial calculations
-- **COV-04**: Accessibility testing integrated into component test layer
-- **COV-05**: Contract tests validating Supabase schema against TypeScript types
+### Performance — Data Fetching & Rendering
+
+- [ ] **PERF-01**: Tenant portal `amountDue` 5-step waterfall parallelized
+- [ ] **PERF-02**: Shared tenant ID resolution — single cached query reused across all 8 tenant portal hooks
+- [ ] **PERF-03**: Recharts code-split via `next/dynamic` in all 17 statically-importing files
+- [ ] **PERF-04**: `react-markdown` + rehype/remark dynamically imported on blog pages
+- [ ] **PERF-05**: `refetchOnWindowFocus` default changed from `'always'` to `true`
+- [ ] **PERF-06**: `@tanstack/react-virtual` used for property, tenant, lease, maintenance lists
+- [ ] **PERF-07**: Maintenance stats consolidated from 7 HEAD queries to single grouped RPC
+- [ ] **PERF-08**: Lease stats consolidated from 6 queries to single RPC
+- [ ] **PERF-09**: `optimizePackageImports` added to `next.config.ts`
+- [ ] **PERF-10**: `stripe-webhooks` email rendering optimized (pre-built HTML or background queue)
+- [ ] **PERF-11**: `stripe-webhooks` sequential charge retrieval + late_fee query parallelized
+- [ ] **PERF-12**: `stripe-autopay-charge` 3 sequential DB lookups parallelized with `Promise.all()`
+- [ ] **PERF-13**: `stripe-rent-checkout` sequential DB queries parallelized where independent
+- [ ] **PERF-14**: Blog queries add pagination and column filtering (not `select('*')` unbounded)
+- [ ] **PERF-15**: Maintenance `urgent()` and `overdue()` queries add `.limit()`
+- [ ] **PERF-16**: Tenant portal maintenance counts computed via DB (not fetch-all-then-count-in-JS)
+- [ ] **PERF-17**: `select('*')` on join queries replaced with specific column selections
+- [ ] **PERF-18**: Notifications query selects specific columns (not `select('*')`)
+- [ ] **PERF-19**: Duplicate `get_occupancy_trends_optimized` calls deduplicated (dashboard + property analytics)
+- [ ] **PERF-20**: Expiring leases query adds `.limit()`
+- [ ] **PERF-21**: Raw `<img>` in file-upload-item replaced with `next/image`
+- [ ] **PERF-22**: Stale CSS `@source` paths in `globals.css` removed
+- [ ] **PERF-23**: Edge Function `tenant-invitation-validate` response gets short cache headers
+- [ ] **PERF-24**: `493 'use client'` files audited — remove directive from non-interactive leaf components
+
+### Testing & CI Pipeline
+
+- [ ] **TEST-01**: `next build` added as CI pipeline step
+- [ ] **TEST-02**: `--coverage` flag added to CI — 80% threshold enforced
+- [ ] **TEST-03**: E2E `playwright.config.ts` webServer path fixed (remove `apps/frontend`)
+- [ ] **TEST-04**: Tests for critical Edge Functions (stripe-webhooks, stripe-rent-checkout, stripe-autopay-charge, tenant-invitation-accept)
+- [ ] **TEST-05**: Tests for shared validation schemas (`src/shared/validation/` — payment-transactions, auth, leases minimum)
+- [ ] **TEST-06**: Tests for shared utility functions (`src/shared/utils/` — billing, payment-dates, financial)
+- [ ] **TEST-07**: RLS integration tests for `rent_payments`, `payment_methods`, `payment_transactions`
+- [ ] **TEST-08**: RLS integration tests for `documents`, `notifications`, `notification_settings`, `subscriptions`, `tenant_invitations`
+- [ ] **TEST-09**: Tenant-role RLS isolation tests (not just cross-owner)
+- [ ] **TEST-10**: Security scanning (gitleaks, trivy) wired into CI
+- [ ] **TEST-11**: RLS tests added to PR CI pipeline (not just weekly)
+- [ ] **TEST-12**: E2E tests added to CI (at least on merge to main)
+- [ ] **TEST-13**: Tests for Next.js API route (`attach-payment-method`)
+- [ ] **TEST-14**: Tests for Supabase client utilities (`get-cached-user.ts`, `server.ts`)
+- [ ] **TEST-15**: Skipped tests in `bulk-import-upload-step.test.tsx` resolved or tracked as issues
+- [ ] **TEST-16**: `noUnusedLocals` and `noUnusedParameters` enabled in tsconfig
+- [ ] **TEST-17**: `isolatedModules: true` set in tsconfig
+- [ ] **TEST-18**: Lefthook pre-commit changed to not run RLS integration tests (move to pre-push)
+- [ ] **TEST-19**: `checkJs: true` set in tsconfig for `.js`/`.cjs` files
+- [ ] **TEST-20**: Stale monorepo references removed from `playwright.config.prod.ts`, E2E READMEs
+- [ ] **TEST-21**: `.env.test` template created for E2E test configuration
+
+### Documentation
+
+- [x] **DOC-01**: CLAUDE.md rewritten to reflect current codebase state after each phase completes
 
 ## Out of Scope
 
 | Feature | Reason |
 |---------|--------|
-| Storybook | Over-engineering for current stage; component tests provide sufficient UI coverage |
-| fishery library | Factory functions with faker are sufficient; no complex association wiring needed |
-| Playwright component tests | Experimental API; Vitest + RTL + MSW is more mature and documented |
-| Supabase local (Docker) for tests | RLS tests work against live Supabase; Docker adds complexity without clear benefit |
-| Test coverage enforcement in CI | 80% thresholds already in Vitest config; no additional enforcement needed |
+| Mobile app | Web-first |
+| GraphQL | PostgREST sufficient |
+| MSW component test layer | Not blocking production — future milestone |
+| Test data factories | Not blocking production — future milestone |
 
 ## Traceability
 
-Which phases cover which requirements. Updated during roadmap creation.
-
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| INFRA-01 | Phase 05 | Complete |
-| INFRA-02 | Phase 05 | Complete |
-| INFRA-03 | Phase 05 | Complete |
-| INFRA-04 | Phase 05 | Complete |
-| INFRA-05 | Phase 05 | Complete |
-| INFRA-06 | Phase 05 | Complete |
-| DATA-01 | Phase 06 | Pending |
-| DATA-02 | Phase 06 | Pending |
-| DATA-03 | Phase 06 | Pending |
-| MOCK-01 | Phase 07 | Pending |
-| MOCK-02 | Phase 07 | Pending |
-| MOCK-03 | Phase 07 | Pending |
-| COMP-01 | Phase 07 | Pending |
-| COMP-02 | Phase 07 | Pending |
-| COMP-03 | Phase 07 | Pending |
-| E2E-01 | Phase 08 | Pending |
-| E2E-02 | Phase 08 | Pending |
-| E2E-03 | Phase 08 | Pending |
-| CI-01 | Phase 08 | Pending |
-| CI-02 | Phase 08 | Pending |
-| CI-03 | Phase 08 | Pending |
+| SEC-01 | Phase 1 | Pending |
+| SEC-02 | Phase 1 | Complete |
+| SEC-03 | Phase 1 | Complete |
+| SEC-04 | Phase 1 | Complete |
+| SEC-05 | Phase 1 | Pending |
+| SEC-06 | Phase 1 | Complete |
+| SEC-07 | Phase 1 | Pending |
+| SEC-08 | Phase 1 | Pending |
+| SEC-09 | Phase 1 | Pending |
+| SEC-10 | Phase 1 | Pending |
+| SEC-11 | Phase 1 | Complete |
+| SEC-12 | Phase 1 | Complete |
+| PAY-01 | Phase 2 | Pending |
+| PAY-02 | Phase 2 | Pending |
+| PAY-03 | Phase 2 | Pending |
+| PAY-04 | Phase 2 | Pending |
+| PAY-05 | Phase 2 | Pending |
+| PAY-06 | Phase 2 | Pending |
+| PAY-07 | Phase 2 | Pending |
+| PAY-08 | Phase 2 | Pending |
+| PAY-09 | Phase 2 | Pending |
+| PAY-10 | Phase 2 | Pending |
+| PAY-11 | Phase 2 | Pending |
+| PAY-12 | Phase 2 | Pending |
+| PAY-13 | Phase 2 | Pending |
+| PAY-14 | Phase 2 | Pending |
+| PAY-15 | Phase 2 | Pending |
+| PAY-16 | Phase 2 | Pending |
+| PAY-17 | Phase 2 | Pending |
+| PAY-18 | Phase 2 | Pending |
+| PAY-19 | Phase 2 | Pending |
+| PAY-20 | Phase 2 | Pending |
+| PAY-21 | Phase 2 | Pending |
+| PAY-22 | Phase 2 | Pending |
+| AUTH-01 | Phase 3 | Pending |
+| AUTH-02 | Phase 3 | Pending |
+| AUTH-03 | Phase 3 | Pending |
+| AUTH-04 | Phase 3 | Pending |
+| AUTH-05 | Phase 3 | Pending |
+| AUTH-06 | Phase 3 | Pending |
+| AUTH-07 | Phase 3 | Pending |
+| AUTH-08 | Phase 3 | Pending |
+| AUTH-09 | Phase 3 | Pending |
+| AUTH-10 | Phase 3 | Pending |
+| AUTH-11 | Phase 3 | Pending |
+| AUTH-12 | Phase 3 | Pending |
+| AUTH-13 | Phase 3 | Pending |
+| AUTH-14 | Phase 3 | Pending |
+| AUTH-15 | Phase 3 | Pending |
+| AUTH-16 | Phase 3 | Pending |
+| AUTH-17 | Phase 3 | Pending |
+| EDGE-01 | Phase 4 | Pending |
+| EDGE-02 | Phase 4 | Pending |
+| EDGE-03 | Phase 4 | Pending |
+| EDGE-04 | Phase 4 | Pending |
+| EDGE-05 | Phase 4 | Pending |
+| EDGE-06 | Phase 4 | Pending |
+| EDGE-07 | Phase 4 | Pending |
+| EDGE-08 | Phase 4 | Pending |
+| EDGE-09 | Phase 4 | Pending |
+| EDGE-10 | Phase 4 | Pending |
+| EDGE-11 | Phase 4 | Pending |
+| EDGE-12 | Phase 4 | Pending |
+| EDGE-13 | Phase 4 | Pending |
+| EDGE-14 | Phase 4 | Pending |
+| CODE-01 | Phase 5 | Pending |
+| CODE-02 | Phase 5 | Pending |
+| CODE-03 | Phase 5 | Pending |
+| CODE-04 | Phase 5 | Pending |
+| CODE-05 | Phase 5 | Pending |
+| CODE-06 | Phase 5 | Pending |
+| CODE-07 | Phase 5 | Pending |
+| CODE-08 | Phase 5 | Pending |
+| CODE-09 | Phase 5 | Pending |
+| CODE-10 | Phase 5 | Pending |
+| CODE-11 | Phase 5 | Pending |
+| CODE-12 | Phase 5 | Pending |
+| CODE-13 | Phase 5 | Pending |
+| CODE-14 | Phase 5 | Pending |
+| CODE-15 | Phase 5 | Pending |
+| CODE-16 | Phase 5 | Pending |
+| CODE-17 | Phase 5 | Pending |
+| CODE-18 | Phase 5 | Pending |
+| CODE-19 | Phase 5 | Pending |
+| CODE-20 | Phase 5 | Pending |
+| CODE-21 | Phase 5 | Pending |
+| CODE-22 | Phase 5 | Pending |
+| DB-01 | Phase 6 | Pending |
+| DB-02 | Phase 6 | Pending |
+| DB-03 | Phase 6 | Pending |
+| DB-04 | Phase 6 | Pending |
+| DB-05 | Phase 6 | Pending |
+| DB-06 | Phase 6 | Pending |
+| DB-07 | Phase 6 | Pending |
+| DB-08 | Phase 6 | Pending |
+| DB-09 | Phase 6 | Pending |
+| DB-10 | Phase 6 | Pending |
+| DB-11 | Phase 6 | Pending |
+| DB-12 | Phase 6 | Pending |
+| UX-01 | Phase 7 | Pending |
+| UX-02 | Phase 7 | Pending |
+| UX-03 | Phase 7 | Pending |
+| UX-04 | Phase 7 | Pending |
+| UX-05 | Phase 7 | Pending |
+| UX-06 | Phase 7 | Pending |
+| UX-07 | Phase 7 | Pending |
+| UX-08 | Phase 7 | Pending |
+| UX-09 | Phase 7 | Pending |
+| UX-10 | Phase 7 | Pending |
+| UX-11 | Phase 7 | Pending |
+| UX-12 | Phase 7 | Pending |
+| UX-13 | Phase 7 | Pending |
+| UX-14 | Phase 7 | Pending |
+| UX-15 | Phase 7 | Pending |
+| UX-16 | Phase 7 | Pending |
+| UX-17 | Phase 7 | Pending |
+| UX-18 | Phase 7 | Pending |
+| UX-19 | Phase 7 | Pending |
+| UX-20 | Phase 7 | Pending |
+| UX-21 | Phase 7 | Pending |
+| UX-22 | Phase 7 | Pending |
+| UX-23 | Phase 7 | Pending |
+| UX-24 | Phase 7 | Pending |
+| UX-25 | Phase 7 | Pending |
+| UX-26 | Phase 7 | Pending |
+| PERF-01 | Phase 8 | Pending |
+| PERF-02 | Phase 8 | Pending |
+| PERF-03 | Phase 8 | Pending |
+| PERF-04 | Phase 8 | Pending |
+| PERF-05 | Phase 8 | Pending |
+| PERF-06 | Phase 8 | Pending |
+| PERF-07 | Phase 8 | Pending |
+| PERF-08 | Phase 8 | Pending |
+| PERF-09 | Phase 8 | Pending |
+| PERF-10 | Phase 8 | Pending |
+| PERF-11 | Phase 8 | Pending |
+| PERF-12 | Phase 8 | Pending |
+| PERF-13 | Phase 8 | Pending |
+| PERF-14 | Phase 8 | Pending |
+| PERF-15 | Phase 8 | Pending |
+| PERF-16 | Phase 8 | Pending |
+| PERF-17 | Phase 8 | Pending |
+| PERF-18 | Phase 8 | Pending |
+| PERF-19 | Phase 8 | Pending |
+| PERF-20 | Phase 8 | Pending |
+| PERF-21 | Phase 8 | Pending |
+| PERF-22 | Phase 8 | Pending |
+| PERF-23 | Phase 8 | Pending |
+| PERF-24 | Phase 8 | Pending |
+| TEST-01 | Phase 9 | Pending |
+| TEST-02 | Phase 9 | Pending |
+| TEST-03 | Phase 9 | Pending |
+| TEST-04 | Phase 9 | Pending |
+| TEST-05 | Phase 9 | Pending |
+| TEST-06 | Phase 9 | Pending |
+| TEST-07 | Phase 9 | Pending |
+| TEST-08 | Phase 9 | Pending |
+| TEST-09 | Phase 9 | Pending |
+| TEST-10 | Phase 9 | Pending |
+| TEST-11 | Phase 9 | Pending |
+| TEST-12 | Phase 9 | Pending |
+| TEST-13 | Phase 9 | Pending |
+| TEST-14 | Phase 9 | Pending |
+| TEST-15 | Phase 9 | Pending |
+| TEST-16 | Phase 9 | Pending |
+| TEST-17 | Phase 9 | Pending |
+| TEST-18 | Phase 9 | Pending |
+| TEST-19 | Phase 9 | Pending |
+| TEST-20 | Phase 9 | Pending |
+| TEST-21 | Phase 9 | Pending |
+| DOC-01 | All Phases | Complete |
 
 **Coverage:**
-- v9.0 requirements: 21 total
-- Mapped to phases: 21
+- v1.0 requirements: 171 total (12 SEC + 17 AUTH + 14 EDGE + 22 PAY + 22 CODE + 12 DB + 26 UX + 24 PERF + 21 TEST + 1 DOC)
+- Mapped to phases: 171
 - Unmapped: 0
 
 ---
-*Requirements defined: 2026-03-03*
-*Last updated: 2026-03-03 after roadmap creation*
+*Requirements defined: 2026-03-04*
+*Last updated: 2026-03-04 — traceability populated during roadmap creation*

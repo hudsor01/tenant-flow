@@ -1,88 +1,75 @@
 ---
 gsd_state_version: 1.0
-milestone: v9.0
-milestone_name: Testing Strategy Consolidation
+milestone: v1.0
+milestone_name: Production Hardening
 status: executing
-stopped_at: Completed 05-02-PLAN.md (Orphaned test file relocation)
-last_updated: "2026-03-04T06:13:03.515Z"
-last_activity: 2026-03-04 — Completed 05-02 (Orphaned test file relocation)
+stopped_at: "Completed 01-02-PLAN.md"
+last_updated: "2026-03-04"
+last_activity: 2026-03-04 — Completed plan 01-02 (lease auth, error RPCs, FOR ALL cleanup)
 progress:
   total_phases: 9
-  completed_phases: 1
-  total_plans: 2
+  completed_phases: 0
+  total_plans: 23
   completed_plans: 2
-  percent: 25
+  percent: 9
 ---
 
 # Project State: TenantFlow
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-03-03)
+See: .planning/PROJECT.md (updated 2026-03-04)
 
 **Core value:** A landlord can add a property, invite a tenant, collect rent, and see their financials — without touching a spreadsheet or calling anyone.
-**Current focus:** v9.0 Testing Strategy Consolidation — Phase 05
+**Current focus:** v1.0 Production Hardening — Phase 1 complete (2 of 2 plans)
 
 ## Current Position
 
-Phase: 05 of 08 (Vitest Unification + File Consolidation)
-Plan: 2 of 2 in current phase (phase complete)
-Status: Executing
-Last activity: 2026-03-04 — Completed 05-02 (Orphaned test file relocation)
+Phase: 1 of 9 (RPC & Database Security)
+Plan: 2 of 2 in current phase (COMPLETE)
+Status: Phase 1 complete, ready for Phase 2
+Last activity: 2026-03-04 — Completed plan 01-02 (lease auth, error RPCs, FOR ALL cleanup)
 
-Progress: [███░░░░░░░] 25%
+Progress: [#░░░░░░░░░] 9%
 
 ## Performance Metrics
 
 **Velocity:**
 - Total plans completed: 2
-- Average duration: 7min
-- Total execution time: 0.22 hours
+- Average duration: ~16 min
+- Total execution time: ~0.5 hours
 
 **By Phase:**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
-| 05    | 2     | 13min | 7min     |
-
-**Recent Trend:**
-- Last 5 plans: 05-01 (9min), 05-02 (4min)
-- Trend: accelerating
-
-*Updated after each plan completion*
+| 01-rpc-database-security | 2/2 | ~32 min | ~16 min |
 
 ## Accumulated Context
 
 ### Decisions
 
-- v9.0: Testing Trophy philosophy (Kent C. Dodds) — mostly integration tests, lean E2E
-- v9.0: Single Vitest runner with `projects` config replaces Vitest + Jest split
-- v9.0: MSW 2.x for network-level API mocking (intercepts Supabase PostgREST)
-- v9.0: `@faker-js/faker` factory functions replace static DEFAULT_* test objects
-- v9.0: Component tests named `.component.test.tsx`, run as separate Vitest project
-- v9.0: Three test locations only: `src/test/` (infra), co-located `__tests__/` (unit/component), `tests/` (integration+e2e)
-- v9.0: E2E trimmed to 15-20 critical user journeys; Sentry covers runtime monitoring
-- v9.0: Design doc at `docs/plans/2026-03-03-testing-strategy-design.md`
-
-- 05-01: Used fileParallelism: false for sequential integration test execution (Vitest 4.x)
-- 05-01: Created env-loader.ts setup file for integration env loading (Vitest lacks envFile option)
-- 05-01: Used `as PluginOption` cast to eliminate `any` types in vitest.config.ts
-- 05-01: Added --passWithNoTests to test:component (empty project exits 0)
-- [Phase 05-02]: Foundation infrastructure tests (CSS tokens, breakpoints) placed in src/test/__tests__/ (no src/design-system/ exists)
-- [Phase 05-02]: Auth-redirect test placed in src/lib/__tests__/ (tests middleware auth behavior)
+- v1.0: Based on comprehensive 8-agent review finding 131 issues (22 P0, 35 P1, 46 P2, 28 P3)
+- v1.0: Security-first phase ordering — RPC auth (Phase 1), financials (Phase 2), then remaining
+- v1.0: DOC-01 (CLAUDE.md rewrite) is recurring in every phase, not a standalone phase
+- v1.0: Clean slate — all prior milestone artifacts removed, fresh numbering from Phase 01
+- 01-02: Used is_admin() JWT check for admin gates (faster than DB lookup, equally secure)
+- 01-02: Error RPCs changed from LANGUAGE sql to plpgsql for admin guard support
+- 01-02: Rate limit: 10 errors/min/user on log_user_error to prevent alert flooding
 
 ### Pending Todos
 
-None yet.
+None.
 
 ### Blockers/Concerns
 
+- ~~12+ SECURITY DEFINER RPCs are exploitable NOW in production~~ RESOLVED: Phase 01 complete
+- Middleware may not be executing at all (registration issue)
 - Vitest 4.x + chai 6.x `.rejects.toThrow('string')` bug — use `.rejects.toMatchObject()` workaround
-- RLS tests need Supabase secrets in CI — ensure env vars available for Vitest integration project
-- Playwright config still references old `apps/frontend` path — needs fixing (addressed in Phase 08)
+- Lease RPC tests skip when no test leases exist (owners have 0 leases in test DB)
 
 ## Session Continuity
 
-Last session: 2026-03-04T06:06:09.909Z
-Stopped at: Completed 05-02-PLAN.md (Orphaned test file relocation)
+Last session: 2026-03-04
+Stopped at: Completed 01-02-PLAN.md
 Resume file: None
