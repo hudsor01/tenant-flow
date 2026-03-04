@@ -1,17 +1,16 @@
 # CLAUDE.md
 
 ## Zero Tolerance Rules
-1. **No `any` types** — use `unknown` with type guards
+1. **No `any` types**
 2. **No barrel files / re-exports** — never create `index.ts` that re-exports; import directly from the defining file
-3. **No duplicate types** — search `packages/shared/src/types/` before creating any type
+3. **No duplicate types** — search `packages/shared/src/types/` before creating types
 4. **No commented-out code** — delete it
 5. **No inline styles** — Tailwind utilities or design tokens only
 6. **No PostgreSQL ENUMs** — use `text` columns with `CHECK` constraints
 7. **No emojis in code** — Lucide Icons for UI
 
 ## Type Lookup Order (mandatory before defining any type)
-1. `packages/shared/src/types/TYPES.md` — master lookup
-2. `supabase.ts` → `core.ts` → `relations.ts` → `api-contracts.ts` → `sections/<domain>.ts`
+`supabase.ts` → `core.ts` → `relations.ts` → `api-contracts.ts` → `sections/<domain>.ts`
 
 If a shared type exists, use it. Creating a local duplicate is a blocking violation.
 
@@ -21,17 +20,6 @@ TenantFlow — multi-tenant property management SaaS.
 - **Backend**: Supabase + Stripe (Edge Functions in `supabase/functions/`)
 - **Shared types**: `packages/shared/src/types/`
 - **Package manager**: pnpm 10 workspaces
-
-## Key Commands
-```bash
-pnpm dev                          # all services
-pnpm typecheck && pnpm lint       # quality checks
-pnpm test:unit                    # Vitest unit tests
-pnpm --filter @repo/frontend test:unit -- --run src/path/to/test.ts
-pnpm db:types                     # regenerate types from live DB (runs pre-commit)
-pnpm build:shared                 # required after shared type changes
-pnpm validate:quick               # types + lint + unit tests
-```
 
 ## Architecture Rules
 - Server Components by default; `'use client'` only when required
@@ -48,21 +36,6 @@ pnpm validate:quick               # types + lint + unit tests
 
 ## Data Access Patterns
 All data access goes through Supabase PostgREST and RPC. There is no custom backend API server.
-
-```typescript
-// PostgREST queries via supabase-js
-const { data, error, count } = await supabase
-  .from('properties')
-  .select('*', { count: 'exact' })
-  .neq('status', 'inactive')      // soft-delete filter — required on properties
-  .order('created_at', { ascending: false })
-  .range(from, to)
-
-// RPC for complex operations (dashboard stats, reports, etc.)
-const { data } = await supabase.rpc('get_dashboard_stats', {
-  p_owner_user_id: userId
-})
-```
 
 - Always use `{ count: 'exact' }` for pagination — never `data.length`
 - Soft-deleted tables (properties): always filter `.neq('status', 'inactive')`
@@ -89,8 +62,6 @@ RLS (Row Level Security) is the only access-control layer. No middleware auth, n
 - Integration tests: `apps/integration-tests/src/rls/` — 60 tests across 7 domains
 
 ## Naming
-| Thing | Convention |
-|-------|------------|
 | Types/Interfaces | PascalCase |
 | Functions/Components | camelCase / PascalCase |
 | Constants | UPPER_SNAKE_CASE |
@@ -100,4 +71,4 @@ RLS (Row Level Security) is the only access-control layer. No middleware auth, n
 - Run `pnpm build:shared` if frontend can't find shared types
 - Supabase auth: always `getAll`/`setAll` cookie methods (never `get`/`set`/`remove`)
 - Pagination: use `count` from Supabase response, never `data.length`
-- MCP servers: supabase, sentry, shadcn, context7, serena configured in project
+- MCP servers: supabase, sentry, shadcn, context7, serena, stripe, n8n configured in project

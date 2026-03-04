@@ -48,7 +48,7 @@ overrides:
   tmp: '>=0.2.5'
   qs: '>=6.15.0'
   lodash: '>=4.17.23'
-  lodash-es: '>=4.17.23'
+  l5.90.20s: '>=4.17.23'
   tar: '>=7.5.9'
   '@commitlint/config-validator>ajv': '>=8.18.0'
   '@vercel/static-config>ajv': '>=8.18.0'
@@ -56,7 +56,7 @@ overrides:
   axios: '>=1.13.5'
   hono: '>=4.12.2'
   basic-ftp: '>=5.2.0'
-  serialize-javascript: '>=7.0.3'
+  serialize-javascript: '>=7.0.4'
   rollup: '>=4.59.0'
   '@isaacs/brace-expansion': '>=5.0.1'
 
@@ -8498,8 +8498,8 @@ packages:
     resolution: {integrity: sha512-1gnZf7DFcoIcajTjTwjwuDjzuz4PPcY2StKPlsGAQ1+YH20IRVrBaXSWmdjowTJ6u8Rc01PoYOGHXfP1mYcZNQ==}
     engines: {node: '>= 18'}
 
-  serialize-javascript@7.0.3:
-    resolution: {integrity: sha512-h+cZ/XXarqDgCjo+YSyQU/ulDEESGGf8AMK9pPNmhNSl/FzPl6L8pMp1leca5z6NuG6tvV/auC8/43tmovowww==}
+  serialize-javascript@7.0.4:
+    resolution: {integrity: sha512-DuGdB+Po43Q5Jxwpzt1lhyFSYKryqoNjQSA9M92tyw0lyHIOur+XCalOUe0KTJpyqzT8+fQ5A0Jf7vCx/NKmIg==}
     engines: {node: '>=20.0.0'}
 
   serve-static@1.16.3:
@@ -18599,7 +18599,7 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  serialize-javascript@7.0.3: {}
+  serialize-javascript@7.0.4: {}
 
   serve-static@1.16.3:
     dependencies:
@@ -19087,7 +19087,7 @@ snapshots:
       '@jridgewell/trace-mapping': 0.3.31
       jest-worker: 27.5.1
       schema-utils: 4.3.3
-      serialize-javascript: 7.0.3
+      serialize-javascript: 7.0.4
       terser: 5.46.0
       webpack: 5.104.1
 
