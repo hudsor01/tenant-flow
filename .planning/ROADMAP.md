@@ -188,7 +188,7 @@ Phases execute in numeric order: 05 → 06 → 07 → 08
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
 | 01-04. Hardening + Payments | v8.0 | - | Complete | 2026-02-27 |
-| 05. Vitest Unification + File Consolidation | 2/2 | Complete   | 2026-03-04 | - |
+| 05. Vitest Unification + File Consolidation | 2/2 | Complete    | 2026-03-04 | - |
 | 06. Test Data Factories | v9.0 | 0/? | Not started | - |
 | 07. MSW + Component Test Layer | v9.0 | 0/? | Not started | - |
 | 08. E2E Optimization + CI Pipeline | v9.0 | 0/? | Not started | - |
