@@ -10,16 +10,16 @@ All 131 findings from the review, plus CLAUDE.md maintenance.
 
 ### Security — RPC & Database Auth
 
-- [ ] **SEC-01**: All 12+ SECURITY DEFINER RPC functions validate `p_user_id = auth.uid()` before executing (`get_dashboard_stats`, `get_dashboard_data_v2`, `get_billing_insights`, `get_maintenance_analytics`, `get_metric_trend`, `get_property_performance_cached`, `get_property_performance_trends`, `get_occupancy_trends_optimized`, `get_revenue_trends_optimized`, `get_dashboard_time_series`, `get_user_dashboard_activities`, `get_user_profile`)
+- [x] **SEC-01**: All 12+ SECURITY DEFINER RPC functions validate `p_user_id = auth.uid()` before executing (`get_dashboard_stats`, `get_dashboard_data_v2`, `get_billing_insights`, `get_maintenance_analytics`, `get_metric_trend`, `get_property_performance_cached`, `get_property_performance_trends`, `get_occupancy_trends_optimized`, `get_revenue_trends_optimized`, `get_dashboard_time_series`, `get_user_dashboard_activities`, `get_user_profile`)
 - [x] **SEC-02**: Error monitoring RPCs (`get_error_summary`, `get_common_errors`, `get_error_prone_users`) restricted to own-user data only
 - [x] **SEC-03**: `activate_lease_with_pending_subscription` verifies caller is lease owner via `auth.uid()`
 - [x] **SEC-04**: `sign_lease_and_check_activation` verifies caller identity matches signer_type
-- [ ] **SEC-05**: All SECURITY DEFINER functions have `SET search_path TO 'public'`
+- [x] **SEC-05**: All SECURITY DEFINER functions have `SET search_path TO 'public'`
 - [x] **SEC-06**: `FOR ALL` policies on authenticated tables replaced with per-operation policies (`storage.objects`, `user_tour_progress`, `users`, `tenants` service_role)
-- [ ] **SEC-07**: `security_events` ENUMs replaced with text + CHECK constraints
-- [ ] **SEC-08**: `get_current_owner_user_id()` rewritten with static SQL (no dynamic `EXECUTE format()`)
-- [ ] **SEC-09**: `health_check()` changed from SECURITY DEFINER to SECURITY INVOKER
-- [ ] **SEC-10**: `cleanup_old_security_events` and `cleanup_old_errors` add `SET search_path`
+- [x] **SEC-07**: `security_events` ENUMs replaced with text + CHECK constraints
+- [x] **SEC-08**: `get_current_owner_user_id()` rewritten with static SQL (no dynamic `EXECUTE format()`)
+- [x] **SEC-09**: `health_check()` changed from SECURITY DEFINER to SECURITY INVOKER
+- [x] **SEC-10**: `cleanup_old_security_events` and `cleanup_old_errors` add `SET search_path`
 - [x] **SEC-11**: `notify_critical_error` trigger fixed to detect system-wide spikes (not per-user only)
 - [x] **SEC-12**: `log_user_error` rate-limited to prevent fake alert flooding via `pg_notify`
 
@@ -222,16 +222,16 @@ All 131 findings from the review, plus CLAUDE.md maintenance.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| SEC-01 | Phase 1 | Pending |
+| SEC-01 | Phase 1 | Complete |
 | SEC-02 | Phase 1 | Complete |
 | SEC-03 | Phase 1 | Complete |
 | SEC-04 | Phase 1 | Complete |
-| SEC-05 | Phase 1 | Pending |
+| SEC-05 | Phase 1 | Complete |
 | SEC-06 | Phase 1 | Complete |
-| SEC-07 | Phase 1 | Pending |
-| SEC-08 | Phase 1 | Pending |
-| SEC-09 | Phase 1 | Pending |
-| SEC-10 | Phase 1 | Pending |
+| SEC-07 | Phase 1 | Complete |
+| SEC-08 | Phase 1 | Complete |
+| SEC-09 | Phase 1 | Complete |
+| SEC-10 | Phase 1 | Complete |
 | SEC-11 | Phase 1 | Complete |
 | SEC-12 | Phase 1 | Complete |
 | PAY-01 | Phase 2 | Pending |

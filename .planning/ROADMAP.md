@@ -11,7 +11,7 @@ TenantFlow is a multi-tenant property management SaaS platform for property owne
 
 **Milestone Goal:** Fix all 131 findings from the comprehensive 8-agent review (22 P0, 35 P1, 46 P2, 28 P3). Phases ordered by exploitability and harm: RPC data exfiltration first, financial bugs second, remaining security third, then code quality, database, UX, performance, and testing. DOC-01 (CLAUDE.md rewrite) is a recurring task executed at the end of every phase.
 
-- [ ] **Phase 1: RPC & Database Security** - Close 12+ SECURITY DEFINER data exfiltration vectors and fix database-level auth
+- [x] **Phase 1: RPC & Database Security** - Close 12+ SECURITY DEFINER data exfiltration vectors and fix database-level auth
 - [ ] **Phase 2: Financial Fixes** - Fix cents/dollars bugs, rent_due status, autopay RLS, and all payment processing issues
 - [ ] **Phase 3: Auth & Middleware** - Register middleware, enforce role-based routing, fix session validation and auth flows
 - [ ] **Phase 4: Edge Function Hardening** - Add env validation, rate limiting, input escaping, CSP, and version alignment
@@ -36,8 +36,8 @@ TenantFlow is a multi-tenant property management SaaS platform for property owne
 **Plans**: 2 plans
 
 Plans:
-- [ ] 01-01-PLAN.md — Add auth.uid() guards to all 25 SECURITY DEFINER RPCs + search_path fixes + health_check INVOKER
-- [ ] 01-02-PLAN.md — Lease RPC auth, error monitoring restrictions, FOR ALL cleanup, trigger fixes, CLAUDE.md update
+- [x] 01-01-PLAN.md — Add auth.uid() guards to all 25 SECURITY DEFINER RPCs + search_path fixes + health_check INVOKER
+- [x] 01-02-PLAN.md — Lease RPC auth, error monitoring restrictions, FOR ALL cleanup, trigger fixes, CLAUDE.md update
 
 ### Phase 2: Financial Fixes
 **Goal**: All payment flows charge correct amounts, update correct statuses, and handle edge cases safely
@@ -179,7 +179,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8 -> 9
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
-| 1. RPC & Database Security | v1.0 | 0/2 | Planned | - |
+| 1. RPC & Database Security | v1.0 | 2/2 | Complete | 2026-03-04 |
 | 2. Financial Fixes | v1.0 | 0/3 | Not started | - |
 | 3. Auth & Middleware | v1.0 | 0/2 | Not started | - |
 | 4. Edge Function Hardening | v1.0 | 0/2 | Not started | - |

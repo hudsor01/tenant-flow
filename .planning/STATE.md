@@ -53,6 +53,9 @@ Progress: [#░░░░░░░░░] 9%
 - v1.0: Security-first phase ordering — RPC auth (Phase 1), financials (Phase 2), then remaining
 - v1.0: DOC-01 (CLAUDE.md rewrite) is recurring in every phase, not a standalone phase
 - v1.0: Clean slate — all prior milestone artifacts removed, fresh numbering from Phase 01
+- 01-01: Combined TDD RED+GREEN into single commit (pre-commit hook blocks intentionally-failing tests)
+- 01-01: 26 RAISE EXCEPTION guards (25 user-ID RPCs + 1 session ownership in revoke_user_session)
+- 01-01: SEC-05 sweep DO block ensures future SECURITY DEFINER functions without search_path get auto-fixed
 - 01-02: Used is_admin() JWT check for admin gates (faster than DB lookup, equally secure)
 - 01-02: Error RPCs changed from LANGUAGE sql to plpgsql for admin guard support
 - 01-02: Rate limit: 10 errors/min/user on log_user_error to prevent alert flooding
