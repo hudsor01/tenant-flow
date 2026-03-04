@@ -21,13 +21,14 @@ overrides:
   tmp: '>=0.2.5'
   qs: '>=6.15.0'
   lodash: '>=4.17.23'
-  lodash-es: '>=4.17.23'
+  l5.90.20s: '>=4.17.23'
   tar: '>=7.5.9'
   minimatch: '>=10.2.2'
   hono: '>=4.11.9'
   basic-ftp: '>=5.2.0'
   serialize-javascript: '>=7.0.4'
   rollup: '>=4.59.0'
+  '@isaacs/brace-expansion': '>=5.0.1'
 
 importers:
 
@@ -15718,7 +15719,7 @@ snapshots:
 
   babel-plugin-react-compiler@1.0.0:
     dependencies:
-      '@babel/types': 7.28.6
+      '@babel/types': 7.29.0
     optional: true
 
   babel-preset-current-node-syntax@1.2.0(@babel/core@7.28.6):
@@ -21609,7 +21610,7 @@ snapshots:
       acorn-import-phases: 1.0.4(acorn@8.16.0)
       browserslist: 4.28.1
       chrome-trace-event: 1.0.4
-      enhanced-resolve: 5.18.4
+      enhanced-resolve: 5.20.0
       es-module-lexer: 2.0.0
       eslint-scope: 5.1.1
       events: 3.3.0

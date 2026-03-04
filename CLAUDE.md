@@ -100,4 +100,4 @@ RLS (Row Level Security) is the only access-control layer. No middleware auth, n
 ## Common Gotchas
 - Supabase auth: always `getAll`/`setAll` cookie methods (never `get`/`set`/`remove`)
 - Pagination: use `count` from Supabase response, never `data.length`
-- MCP servers: supabase, sentry, shadcn, context7, serena configured in project
+- MCP servers: supabase, sentry, shadcn, context7, stripe, n8n configured in project
