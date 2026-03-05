@@ -21,7 +21,7 @@ Deno.serve(async (req: Request) => {
   const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? ''
   const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
 
-  const stripe = new Stripe(stripeKey, { apiVersion: '2024-06-20' })
+  const stripe = new Stripe(stripeKey, { apiVersion: '2026-02-25.clover' as Stripe.LatestApiVersion })
   const supabase = createClient(supabaseUrl, supabaseServiceKey)
 
   // Verify Stripe signature
