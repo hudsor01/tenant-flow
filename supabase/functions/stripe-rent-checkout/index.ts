@@ -162,10 +162,10 @@ Deno.serve(async (req: Request) => {
       )
     }
 
-    // Verify tenant is on this lease via lease_tenants junction table
+    // Verify tenant is on this lease and get their responsibility percentage
     const { data: leaseTenant, error: leaseTenantsError } = await supabase
       .from('lease_tenants')
-      .select('id')
+      .select('id, responsibility_percentage')
       .eq('lease_id', lease.id)
       .eq('tenant_id', tenant.id)
       .maybeSingle()
@@ -184,6 +184,10 @@ Deno.serve(async (req: Request) => {
         { status: 403, headers: jsonHeaders }
       )
     }
+
+    // PAY-14: Compute per-tenant portion from responsibility_percentage
+    const responsibilityPercentage = (leaseTenant as Record<string, unknown>).responsibility_percentage as number ?? 100
+    const tenantAmount = Number((rentDue.amount * responsibilityPercentage / 100).toFixed(2))
 
     // -------------------------------------------------------------------------
     // 6. Resolve connected account for the property owner
@@ -220,9 +224,9 @@ Deno.serve(async (req: Request) => {
     }
 
     // -------------------------------------------------------------------------
-    // 8. Calculate fees — owner absorbs all fees, tenant pays exact rent
+    // 8. Calculate fees — owner absorbs all fees, tenant pays their portion
     // -------------------------------------------------------------------------
-    const amountCents = Math.round(rentDue.amount * 100)
+    const amountCents = Math.round(tenantAmount * 100)
     const platformFeePercent = connectedAccount.default_platform_fee_percent ?? 5
     const applicationFeeCents = Math.round(amountCents * platformFeePercent / 100)
 
@@ -260,7 +264,7 @@ Deno.serve(async (req: Request) => {
     // 11. Resolve or create Stripe Customer for the tenant
     //     Required for setup_future_usage to save the payment method for autopay.
     // -------------------------------------------------------------------------
-    const stripe = new Stripe(stripeKey, { apiVersion: '2024-06-20' })
+    const stripe = new Stripe(stripeKey, { apiVersion: '2026-02-25.clover' as Stripe.LatestApiVersion })
 
     let stripeCustomerId = (tenant as Record<string, unknown>).stripe_customer_id as string | null
 
@@ -299,7 +303,7 @@ Deno.serve(async (req: Request) => {
           currency: 'usd',
           product_data: {
             name: 'Rent Payment',
-            description: `Rent for ${periodMonth}/${periodYear}`,
+            description: `Rent for ${periodMonth}/${periodYear}${responsibilityPercentage < 100 ? ` (${responsibilityPercentage}% portion)` : ''}`,
           },
           unit_amount: amountCents,
         },
@@ -317,7 +321,9 @@ Deno.serve(async (req: Request) => {
           property_id: propertyId,
           unit_id: lease.unit_id,
           rent_due_id: rentDueId,
-          amount: String(rentDue.amount),
+          amount: String(tenantAmount),
+          full_rent_amount: String(rentDue.amount),
+          responsibility_percentage: String(responsibilityPercentage),
           period_month: periodMonth,
           period_year: periodYear,
           due_date: rentDue.due_date,
@@ -325,8 +331,8 @@ Deno.serve(async (req: Request) => {
           period_end: periodEnd,
         },
       },
-      success_url: `${frontendUrl}/tenant?checkout=success`,
-      cancel_url: `${frontendUrl}/tenant?checkout=cancelled`,
+      success_url: `${frontendUrl}/tenant/payments/success?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${frontendUrl}/tenant/payments`,
       expires_at: Math.floor(Date.now() / 1000) + 1800, // 30-minute expiry
     })
 
