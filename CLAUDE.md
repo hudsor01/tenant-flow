@@ -8,6 +8,9 @@
 5. **No inline styles** — Tailwind utilities or design tokens only
 6. **No PostgreSQL ENUMs** — use `text` columns with `CHECK` constraints
 7. **No emojis in code** — Lucide Icons for UI
+8. **No `as unknown as` type assertions** — use typed mapper functions at RPC/PostgREST boundaries
+9. **No string literal query keys** — always use `queryOptions()` factories from `src/hooks/api/query-keys/`
+10. **No `@radix-ui/react-icons`** — `lucide-react` is the sole icon library
 
 ## Type Lookup Order (mandatory before defining any type)
 1. `src/shared/types/TYPES.md` — master lookup
@@ -37,11 +40,63 @@ pnpm validate:quick               # types + lint + unit tests
 ```
 
 ## Architecture Rules
-- Server Components by default; `'use client'` only when required
+- Server Components by default; `'use client'` only when required (hooks, event handlers, browser APIs)
 - Max 300 lines per component, 50 lines per function
 - State: TanStack Query for server state, Zustand for UI, TanStack Form for forms, nuqs for URL
-- Mutations must invalidate related query keys including dashboard keys
+- Mutations must invalidate related query keys including `ownerDashboardKeys.all` in addition to their own domain keys
 - Soft-delete: properties use `status: 'inactive'`, filter with `.neq('status', 'inactive')`
+
+## Query Key Factories
+All query keys use `queryOptions()` factories in `src/hooks/api/query-keys/`. Never use string literal arrays like `['blogs']`.
+
+**Factory files:**
+- `analytics-keys.ts` — analytics/revenue trends (shared across dashboard + analytics pages)
+- `billing-keys.ts` — billing, subscriptions, invoices
+- `dashboard-keys.ts` — owner dashboard stats, portfolio data
+- `lease-keys.ts` — leases, lease templates
+- `maintenance-keys.ts` — maintenance requests, vendors
+- `payment-keys.ts` — payments, rent collection, autopay
+- `property-keys.ts` — properties, units
+- `report-keys.ts` — reports, report runs (parallel `Promise.all` for multi-RPC queries)
+- `tenant-keys.ts` — tenants, tenant invitations
+
+**Pattern:**
+```typescript
+import { queryOptions } from '@tanstack/react-query'
+export const propertyQueries = {
+  all: () => queryOptions({ queryKey: ['properties'], queryFn: ... }),
+  detail: (id: string) => queryOptions({ queryKey: ['properties', id], queryFn: ... }),
+}
+```
+
+## Hook Organization
+- Flat domain naming: `use-tenant-payments.ts` (not `use-tenant-portal-payments.ts`)
+- Max 300 lines per hook file — split by domain if exceeded
+- No module-level Supabase client — create `createClient()` inside each mutation/query function
+- Expense CRUD hooks kept inline in `use-financials.ts` (from() queries, not rpc())
+
+## RPC Return Typing
+Use typed mapper functions at RPC boundaries. Never use `as unknown as` to cast PostgREST responses.
+
+```typescript
+// Correct: mapper function
+function mapDashboardStats(raw: Record<string, unknown>): DashboardStats {
+  return { revenue: Number(raw.revenue), ... }
+}
+const { data } = await supabase.rpc('get_dashboard_stats', params)
+return data ? mapDashboardStats(data) : null
+
+// Wrong: type assertion
+const data = result.data as unknown as DashboardStats
+```
+
+Exception: 24 structurally required `as unknown as` assertions for PostgREST string vs domain union literals are documented and acceptable.
+
+## Stripe Webhooks
+Webhook processing uses a handler module pattern in `supabase/functions/stripe-webhooks/`:
+- `index.ts` — entry point, signature verification, event routing
+- Handler modules per event type for separation of concerns
+- All handlers use `errorResponse()` from `_shared/errors.ts`
 
 ## Database
 - Migrations: `supabase/migrations/YYYYMMDDHHmmss_description.sql`
@@ -131,8 +186,11 @@ RLS (Row Level Security) is the primary access-control layer. Proxy middleware e
 - Auth decisions: always use `getUser()` (server-validated), never `getSession()` for security decisions. `getSession()` only acceptable for reading the access_token string to pass as Bearer header.
 - No module-level Supabase client in hooks — create `createClient()` inside each mutation/query function
 - Single auth query key factory: `authKeys` from `src/hooks/api/use-auth.ts`. No other key definitions allowed.
+- Query keys: always use factory from `src/hooks/api/query-keys/` — never string literals like `['blogs']`
 - Pagination: use `count` from Supabase response, never `data.length`
 - MCP servers: supabase, sentry, shadcn, context7, stripe, n8n configured in project
 - Amount units: `rent_due.amount` is dollars (numeric). Multiply by 100 only in Edge Functions when calling Stripe API. `formatCurrency(amountInDollars)` is the only currency formatter.
 - Stripe schema: `stripe.*` tables (subscriptions, invoices, etc.) are queryable via PostgREST with existing RLS. Use for billing display — do not call Stripe API for read operations.
 - Subscription status: Query `stripe.subscriptions` for real status (`active`, `past_due`, `canceled`, `unpaid`). Do NOT check `users.stripe_customer_id` existence.
+- Report hooks: report hooks query real `reports` and `report_runs` tables, and aggregate data via existing RPCs (not stub data).
+- Vendored UI components: `src/components/ui/tour.tsx` (1,732 lines) is a vendored Dice UI upstream copy — exempt from 300-line rule. eslint-disable suppressions for `useAsRef` pattern are legitimate upstream conventions.
