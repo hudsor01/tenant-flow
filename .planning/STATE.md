@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: Production Hardening
 status: in-progress
-stopped_at: Completed 04-01 (shared utilities and config hardening)
-last_updated: "2026-03-05T07:13:00Z"
-last_activity: 2026-03-05 — Shared Edge Function utilities, CSP, SDK alignment, Stripe apiVersion
+stopped_at: Completed 04-02 (rate limiting, limit cap, env validation, error sanitization)
+last_updated: "2026-03-05T07:19:21Z"
+last_activity: 2026-03-05 — Rate limiting, stripe-connect limit cap, env/error hardening for 4 Edge Functions
 progress:
   total_phases: 9
   completed_phases: 4
   total_plans: 23
-  completed_plans: 18
-  percent: 26
+  completed_plans: 19
+  percent: 30
 ---
 
 # Project State: TenantFlow
@@ -26,11 +26,11 @@ See: .planning/PROJECT.md (updated 2026-03-04)
 ## Current Position
 
 Phase: 4 of 9 (Edge Function Hardening)
-Plan: 1 of 4 in current phase (04-01 complete)
-Status: Completed 04-01 (shared utilities and config hardening)
-Last activity: 2026-03-05 — Shared Edge Function utilities, CSP, SDK alignment, Stripe apiVersion
+Plan: 2 of 4 in current phase (04-02 complete)
+Status: Completed 04-02 (rate limiting, limit cap, env validation, error sanitization)
+Last activity: 2026-03-05 — Rate limiting, stripe-connect limit cap, env/error hardening for 4 Edge Functions
 
-Progress: [##░░░░░░░░] 26%
+Progress: [##░░░░░░░░] 30%
 
 ## Performance Metrics
 
@@ -57,6 +57,7 @@ Progress: [##░░░░░░░░] 26%
 | Phase 03 P01 | 22min | 2 tasks | 4 files |
 | Phase 02 P07 | 2min | 3 tasks | 4 files |
 | Phase 04 P01 | 4min | 2 tasks | 11 files |
+| Phase 04 P02 | 3min | 2 tasks | 6 files |
 
 ## Accumulated Context
 
@@ -106,6 +107,10 @@ Progress: [##░░░░░░░░] 26%
 - [Phase 04]: CSP enforced mode (not report-only) with self + inline scripts/styles + Supabase/Sentry/Stripe connect-src
 - [Phase 04]: Vary header on /properties confirmed correct (Authorization + Cookie for CDN differentiation)
 - [Phase 04]: Supabase SDK 2.97.0 aligns deno.json with Next.js package.json version
+- [Phase 04]: Rate limiter fails open on Upstash errors (availability over strict enforcement)
+- [Phase 04]: Sentry tunnel uses in-memory Map in proxy.ts (persistent process, no Redis needed)
+- [Phase 04]: stripe-connect limit capped at 100 for payouts and transfers actions
+- [Phase 04]: Unknown action error sanitized (no longer echoes user input)
 
 ### Pending Todos
 
@@ -120,6 +125,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-05T07:13:00Z
-Stopped at: Completed 04-01 (shared utilities and config hardening)
-Resume file: .planning/phases/04-edge-function-hardening/04-02-PLAN.md
+Last session: 2026-03-05T07:19:21Z
+Stopped at: Completed 04-02 (rate limiting, limit cap, env validation, error sanitization)
+Resume file: .planning/phases/04-edge-function-hardening/04-03-PLAN.md
