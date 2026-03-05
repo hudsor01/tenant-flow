@@ -26,9 +26,9 @@ See: .planning/PROJECT.md (updated 2026-03-04)
 ## Current Position
 
 Phase: 3 of 9 (Auth & Middleware)
-Plan: 3 of 6 in current phase
-Status: Completed 03-03 (Auth callback & login security hardening)
-Last activity: 2026-03-04 — Hardened auth callback (x-forwarded-host, OTP validation) and login redirect
+Plan: 6 of 6 in current phase
+Status: Completed 03-06 (Auth email templates via Resend)
+Last activity: 2026-03-04 — Created branded auth email templates and auth-email-send Edge Function
 
 Progress: [##░░░░░░░░] 22%
 
@@ -51,6 +51,7 @@ Progress: [##░░░░░░░░] 22%
 | Phase 02 P04 | 9min | 4 tasks | 9 files |
 | Phase 02 P05 | 3min | 2 tasks | 2 files |
 | Phase 03 P03 | 6min | 2 tasks | 3 files |
+| Phase 03 P06 | 8min | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -84,6 +85,9 @@ Progress: [##░░░░░░░░] 22%
 - [Phase 03]: AUTH-13: x-forwarded-host ignored in buildRedirectUrl, uses NEXT_PUBLIC_APP_URL or origin
 - [Phase 03]: AUTH-15: OTP type validated against 5-type allowlist before calling Supabase verifyOtp
 - [Phase 03]: AUTH-12: Login redirect uses URL constructor hostname check instead of startsWith
+- [Phase 03]: AUTH-18: Inline CSS only for auth email templates (email client compatibility)
+- [Phase 03]: AUTH-18: Hook secret verification optional (graceful degradation when not set)
+- [Phase 03]: AUTH-18: Callback URL uses NEXT_PUBLIC_APP_URL + /auth/callback?token_hash&type
 
 ### Pending Todos
 
@@ -98,6 +102,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-05T04:41:01.059Z
-Stopped at: Completed 03-03-PLAN.md
+Last session: 2026-03-05T04:41:54Z
+Stopped at: Completed 03-06-PLAN.md
 Resume file: None
