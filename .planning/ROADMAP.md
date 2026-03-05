@@ -90,11 +90,13 @@ Plans:
   3. All user-provided values interpolated into HTML (DocuSeal, PDF) are escaped — no XSS in generated documents
   4. `Content-Security-Policy` header is served on all pages via `vercel.json`
   5. Error responses return generic messages — no `dbError.message` or stack traces exposed to clients
-**Plans**: TBD
+**Plans**: 4 plans
 
 Plans:
-- [ ] 04-01: TBD
-- [ ] 04-02: TBD
+- [ ] 04-01-PLAN.md — Shared utilities (errors, env, escape-html), CORS fail-closed, CSP header, SDK version alignment
+- [ ] 04-02-PLAN.md — Rate limiting (Upstash Redis), Sentry tunnel rate limit, stripe-connect cap, env/error hardening for 4 functions
+- [ ] 04-03-PLAN.md — Env validation + error sanitization sweep for 7 Stripe/payment/report Edge Functions
+- [ ] 04-04-PLAN.md — XSS escaping + env/error hardening for docuseal, generate-pdf, auth-email-send + CLAUDE.md update
 
 ### Phase 5: Code Quality & Type Safety
 **Goal**: Codebase has zero type escape hatches, consistent query cache behavior, and all files under size limits
@@ -190,7 +192,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8 -> 9
 | 1. RPC & Database Security | v1.0 | 2/2 | Complete | 2026-03-04 |
 | 2. Financial Fixes | v1.0 | 7/7 | Complete | 2026-03-05 |
 | 3. Auth & Middleware | v1.0 | 6/6 | Complete | 2026-03-05 |
-| 4. Edge Function Hardening | v1.0 | 0/2 | Not started | - |
+| 4. Edge Function Hardening | v1.0 | 0/4 | Not started | - |
 | 5. Code Quality & Type Safety | v1.0 | 0/3 | Not started | - |
 | 6. Database Schema & Migrations | v1.0 | 0/2 | Not started | - |
 | 7. UX & Accessibility | v1.0 | 0/3 | Not started | - |
