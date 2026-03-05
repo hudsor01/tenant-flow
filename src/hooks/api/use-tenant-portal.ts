@@ -289,7 +289,7 @@ export const tenantPortalQueries = {
 				const { data, error } = await supabase
 					.from('leases')
 					.select(
-						'id, start_date, end_date, rent_amount, lease_status, units!inner(unit_number, property_id, properties!inner(name, address_line1, city, state, postal_code)), lease_tenants!inner(tenant_id)'
+						'id, start_date, end_date, rent_amount, lease_status, units!inner(unit_number, property_id, properties!inner(name, address_line1, city, state, postal_code)), lease_tenants!inner(tenant_id, responsibility_percentage)'
 					)
 					.eq('lease_tenants.tenant_id', tenantRecord.id)
 					.eq('lease_status', 'active')
@@ -340,15 +340,26 @@ export const tenantPortalQueries = {
 
 				if (!tenantRecord) return defaultResponse
 
-				// Step 2: Get active lease to resolve leaseId, rent_amount, and owner_user_id
+				// Step 2: Get active lease to resolve leaseId, rent_amount, owner_user_id
+				// Include responsibility_percentage for per-tenant portion (PAY-14)
 				const { data: lease } = await supabase
 					.from('leases')
-					.select('id, rent_amount, owner_user_id, lease_tenants!inner(tenant_id)')
+					.select('id, rent_amount, owner_user_id, lease_tenants!inner(tenant_id, responsibility_percentage)')
 					.eq('lease_tenants.tenant_id', tenantRecord.id)
 					.eq('lease_status', 'active')
 					.single()
 
-				const baseRentCents = lease ? (lease.rent_amount ?? 0) * 100 : 0
+				// Compute per-tenant portion using responsibility_percentage (PAY-14)
+				const leaseRaw = lease as unknown as {
+					id: string
+					rent_amount: number | null
+					owner_user_id: string
+					lease_tenants: Array<{ tenant_id: string; responsibility_percentage: number | null }>
+				} | null
+				const responsibilityPct = leaseRaw?.lease_tenants?.[0]?.responsibility_percentage ?? 100
+				const fullRent = lease ? (lease.rent_amount ?? 0) : 0
+				const tenantPortion = fullRent * responsibilityPct / 100
+				const baseRentCents = Math.round(tenantPortion * 100)
 
 				if (!lease) {
 					return {
@@ -1224,89 +1235,158 @@ export function useUpdateTenantNotificationPreferences() {
 // ============================================================================
 
 /**
- * Enable autopay for tenant's lease.
- * Sets auto_pay_enabled=true and autopay_payment_method_id on the lease.
+ * Toggle autopay via toggle_autopay RPC (PAY-03).
+ * Replaces the old two-mutation approach (setup/cancel) with a single atomic RPC.
+ * When enabling, requires a payment_method_id. When disabling, pass null.
  */
-export function useTenantPortalSetupAutopayMutation() {
+export function useToggleAutopay() {
 	const queryClient = useQueryClient()
 
 	return useMutation({
 		mutationKey: mutationKeys.tenantAutopay.setup,
 		mutationFn: async (params: {
-			tenant_id: string
 			lease_id: string
-			paymentMethodId?: string
+			enabled: boolean
+			payment_method_id?: string | null
 		}) => {
 			const supabase = createClient()
 
-			// Resolve the Stripe payment method ID from the selected payment_methods record
-			let stripePmId: string | null = null
-			if (params.paymentMethodId) {
-				const { data: pm } = await supabase
-					.from('payment_methods')
-					.select('stripe_payment_method_id')
-					.eq('id', params.paymentMethodId)
-					.single()
-				stripePmId = pm?.stripe_payment_method_id ?? null
-			}
+			const { error } = await supabase.rpc('toggle_autopay', {
+				p_lease_id: params.lease_id,
+				p_enabled: params.enabled,
+				p_payment_method_id: params.payment_method_id ?? null
+			})
 
-			if (!stripePmId) {
-				throw new Error('Please select a valid payment method')
-			}
-
-			const { error } = await supabase
-				.from('leases')
-				.update({
-					auto_pay_enabled: true,
-					autopay_payment_method_id: stripePmId,
-				})
-				.eq('id', params.lease_id)
-
-			if (error) handlePostgrestError(error, 'leases')
+			if (error) handlePostgrestError(error, 'toggle_autopay')
 			return { success: true }
 		},
-		onSuccess: () => {
+		onSuccess: (_data, params) => {
 			queryClient.invalidateQueries({
 				queryKey: tenantPortalKeys.autopay.status()
 			})
-			handleMutationSuccess('Enable autopay', 'Autopay has been enabled')
+			queryClient.invalidateQueries({
+				queryKey: tenantPortalKeys.leases.all()
+			})
+			const message = params.enabled
+				? 'Autopay has been enabled'
+				: 'Autopay has been disabled'
+			handleMutationSuccess(
+				params.enabled ? 'Enable autopay' : 'Disable autopay',
+				message
+			)
 		},
-		onError: (error) => handleMutationError(error, 'Enable autopay')
+		onError: (error) => handleMutationError(error, 'Toggle autopay')
 	})
 }
 
 /**
- * Disable autopay for tenant's lease.
- * Sets auto_pay_enabled=false and clears autopay_payment_method_id.
+ * Enable autopay for tenant's lease via toggle_autopay RPC.
+ * Wrapper around useToggleAutopay for backward compatibility.
+ */
+export function useTenantPortalSetupAutopayMutation() {
+	const toggleAutopay = useToggleAutopay()
+
+	return {
+		...toggleAutopay,
+		mutate: (params: {
+			tenant_id: string
+			lease_id: string
+			paymentMethodId?: string
+		}, options?: Parameters<typeof toggleAutopay.mutate>[1]) => {
+			toggleAutopay.mutate({
+				lease_id: params.lease_id,
+				enabled: true,
+				payment_method_id: params.paymentMethodId ?? null
+			}, options)
+		},
+		mutateAsync: async (params: {
+			tenant_id: string
+			lease_id: string
+			paymentMethodId?: string
+		}) => {
+			return toggleAutopay.mutateAsync({
+				lease_id: params.lease_id,
+				enabled: true,
+				payment_method_id: params.paymentMethodId ?? null
+			})
+		}
+	}
+}
+
+/**
+ * Disable autopay for tenant's lease via toggle_autopay RPC.
+ * Wrapper around useToggleAutopay for backward compatibility.
  */
 export function useTenantPortalCancelAutopayMutation() {
-	const queryClient = useQueryClient()
+	const toggleAutopay = useToggleAutopay()
 
-	return useMutation({
-		mutationKey: mutationKeys.tenantAutopay.cancel,
-		mutationFn: async (params: {
+	return {
+		...toggleAutopay,
+		mutate: (params: {
+			tenant_id: string
+			lease_id: string
+		}, options?: Parameters<typeof toggleAutopay.mutate>[1]) => {
+			toggleAutopay.mutate({
+				lease_id: params.lease_id,
+				enabled: false,
+				payment_method_id: null
+			}, options)
+		},
+		mutateAsync: async (params: {
 			tenant_id: string
 			lease_id: string
 		}) => {
-			const supabase = createClient()
-			const { error } = await supabase
-				.from('leases')
-				.update({
-					auto_pay_enabled: false,
-					autopay_payment_method_id: null,
-				})
-				.eq('id', params.lease_id)
-
-			if (error) handlePostgrestError(error, 'leases')
-			return { success: true }
-		},
-		onSuccess: () => {
-			queryClient.invalidateQueries({
-				queryKey: tenantPortalKeys.autopay.status()
+			return toggleAutopay.mutateAsync({
+				lease_id: params.lease_id,
+				enabled: false,
+				payment_method_id: null
 			})
-			handleMutationSuccess('Disable autopay', 'Autopay has been disabled')
-		},
-		onError: (error) => handleMutationError(error, 'Disable autopay')
+		}
+	}
+}
+
+// ============================================================================
+// PLAN LIMIT ENFORCEMENT (PAY-12)
+// ============================================================================
+
+/**
+ * Check if a user has access to create a resource based on plan limits.
+ * Frontend guard only -- RLS/RPC is the real enforcement.
+ * Fail-open: if the RPC doesn't exist or returns unexpected data, allow the operation.
+ */
+export function useCheckPlanAccess() {
+	return useMutation({
+		mutationKey: ['mutations', 'planAccess', 'check'] as const,
+		mutationFn: async (params: { feature: string }): Promise<{ allowed: boolean }> => {
+			const supabase = createClient()
+			const user = await getCachedUser()
+			if (!user) throw new Error('Not authenticated')
+
+			try {
+				const { data, error } = await supabase.rpc('check_user_feature_access', {
+					p_user_id: user.id,
+					p_feature: params.feature
+				})
+
+				if (error) {
+					// Fail-open: RPC may not exist yet
+					logger.warn('check_user_feature_access RPC failed, allowing operation', {
+						action: 'plan_limit_check',
+						metadata: { feature: params.feature, error: error.message }
+					})
+					return { allowed: true }
+				}
+
+				return { allowed: data as boolean }
+			} catch {
+				// Fail-open for any unexpected errors
+				logger.warn('Plan limit check failed unexpectedly, allowing operation', {
+					action: 'plan_limit_check',
+					metadata: { feature: params.feature }
+				})
+				return { allowed: true }
+			}
+		}
 	})
 }
 
