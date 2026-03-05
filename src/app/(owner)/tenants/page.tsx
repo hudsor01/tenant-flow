@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { tenantQueries } from '#hooks/api/query-keys/tenant-keys'
+import { ownerDashboardKeys } from '#hooks/api/use-owner-dashboard'
 import { tenantPaymentQueries } from '#hooks/api/use-payments'
 import {
 	useCancelInvitationMutation,
@@ -109,7 +110,8 @@ export default function TenantsPage() {
 		},
 		onSuccess: () => {
 			toast.success('Tenant deleted')
-			queryClient.invalidateQueries({ queryKey: ['tenants'] })
+			queryClient.invalidateQueries({ queryKey: tenantQueries.all() })
+			queryClient.invalidateQueries({ queryKey: ownerDashboardKeys.all })
 		},
 		onError: () => {
 			toast.error('Failed to delete tenant')

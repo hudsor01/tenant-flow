@@ -39,7 +39,8 @@ import type {
  */
 export const profileKeys = {
 	all: ['profile'] as const,
-	detail: () => [...profileKeys.all, 'detail'] as const
+	detail: () => [...profileKeys.all, 'detail'] as const,
+	company: () => [...profileKeys.all, 'company'] as const
 }
 
 // ============================================================================

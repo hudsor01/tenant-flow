@@ -57,6 +57,7 @@ export const authKeys = {
 	all: ['auth'] as const,
 	session: () => [...authKeys.all, 'session'] as const,
 	user: () => [...authKeys.all, 'user'] as const,
+	signoutCheck: ['auth', 'signout-check'] as const,
 	// User with Stripe data from database
 	me: () => ['user', 'me'] as const,
 	// Supabase auth-specific keys
@@ -168,7 +169,7 @@ export function useAuthCacheUtils() {
 	return {
 		// Invalidate all auth-related queries
 		invalidateAuth: () => {
-			queryClient.invalidateQueries({ queryKey: ['auth'] })
+			queryClient.invalidateQueries({ queryKey: authKeys.all })
 		},
 
 		// Invalidate specific auth query types

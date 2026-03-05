@@ -27,6 +27,7 @@ import { createClient } from '#lib/supabase/client'
 import { getCachedUser } from '#lib/supabase/get-cached-user'
 
 import { mutationKeys } from '#hooks/api/mutation-keys'
+import { propertyQueries } from '#hooks/api/query-keys/property-keys'
 import { leaseQueries } from '#hooks/api/query-keys/lease-keys'
 import { tenantQueries } from '#hooks/api/query-keys/tenant-keys'
 import { unitQueries } from '#hooks/api/query-keys/unit-keys'
@@ -105,7 +106,7 @@ export function LeaseCreationWizard({ onSuccess }: LeaseCreationWizardProps) {
 
 	// Fetch property/unit/tenant names for review step via Supabase PostgREST
 	const { data: propertyData } = useQuery({
-		queryKey: ['properties', selectionData.property_id],
+		queryKey: [...propertyQueries.all(), selectionData.property_id],
 		queryFn: async () => {
 			const supabase = createClient()
 			const { data, error } = await supabase
@@ -120,7 +121,7 @@ export function LeaseCreationWizard({ onSuccess }: LeaseCreationWizardProps) {
 	})
 
 	const { data: unitData } = useQuery({
-		queryKey: ['units', selectionData.unit_id],
+		queryKey: [...unitQueries.all(), selectionData.unit_id],
 		queryFn: async () => {
 			const supabase = createClient()
 			const { data, error } = await supabase
@@ -135,7 +136,7 @@ export function LeaseCreationWizard({ onSuccess }: LeaseCreationWizardProps) {
 	})
 
 	const { data: tenantData } = useQuery({
-		queryKey: ['tenants', selectionData.primary_tenant_id],
+		queryKey: [...tenantQueries.all(), selectionData.primary_tenant_id],
 		queryFn: async () => {
 			const supabase = createClient()
 			const { data, error } = await supabase

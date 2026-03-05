@@ -635,7 +635,7 @@ export function useResendSignatureRequestMutation() {
  */
 export function useSignedDocumentUrl(leaseId: string, enabled = true) {
 	return useQuery({
-		queryKey: ['lease', leaseId, 'signed-document'],
+		queryKey: [...leaseQueries.all(), leaseId, 'signed-document'],
 		queryFn: async (): Promise<{ document_url: string | null }> => {
 			const supabase = createClient()
 			const { data, error } = await supabase

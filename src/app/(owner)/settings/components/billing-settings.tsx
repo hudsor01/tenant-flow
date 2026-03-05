@@ -6,6 +6,7 @@ import { BorderBeam } from '#components/ui/border-beam'
 import { Skeleton } from '#components/ui/skeleton'
 import { useSubscriptionStatus, useBillingHistory, useBillingPortalMutation } from '#hooks/api/use-billing'
 import { useQuery } from '@tanstack/react-query'
+import { paymentMethodsKeys } from '#hooks/api/use-payment-methods'
 import { createClient } from '#lib/supabase/client'
 
 export function BillingSettings() {
@@ -17,7 +18,7 @@ export function BillingSettings() {
 
 	// Fetch payment methods
 	const { data: paymentMethods, isLoading: methodsLoading } = useQuery({
-		queryKey: ['payment-methods'],
+		queryKey: paymentMethodsKeys.all,
 		queryFn: async () => {
 			const { data, error } = await supabase
 				.from('payment_methods')

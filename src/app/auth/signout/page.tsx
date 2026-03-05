@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { useSignOutMutation } from '#hooks/api/use-auth'
+import { useSignOutMutation, authKeys } from '#hooks/api/use-auth'
 import { createClient } from '#lib/supabase/client'
 import { useQuery } from '@tanstack/react-query'
 import { Button } from '#components/ui/button'
@@ -23,7 +23,7 @@ export default function SignOutPage() {
 
 	// Check if user has an active session
 	const { data: session, isLoading } = useQuery({
-		queryKey: ['auth', 'signout-check'],
+		queryKey: authKeys.signoutCheck,
 		queryFn: async () => {
 			const supabase = createClient()
 			const { data } = await supabase.auth.getSession()

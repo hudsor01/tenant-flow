@@ -274,7 +274,7 @@ export const maintenanceQueries = {
 
 	tenantPortal: () =>
 		queryOptions({
-			queryKey: ['tenant-portal', 'maintenance'],
+			queryKey: [...maintenanceQueries.all(), 'tenant-portal'],
 			queryFn: async (): Promise<{
 				requests: MaintenanceRequest[]
 				total: number

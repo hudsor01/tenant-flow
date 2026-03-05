@@ -9,12 +9,19 @@ import type { Database } from '#shared/types/supabase'
 
 type Blog = Database['public']['Tables']['blogs']['Row']
 
+export const blogKeys = {
+	all: ['blogs'] as const,
+	detail: (slug: string) => [...blogKeys.all, slug] as const,
+	category: (category: string) => [...blogKeys.all, 'category', category] as const,
+	featured: (limit: number) => [...blogKeys.all, 'featured', limit] as const
+}
+
 /**
  * Fetch all published blogs, sorted by published_at descending
  */
 export function useBlogs() {
 	return useQuery({
-		queryKey: ['blogs'],
+		queryKey: blogKeys.all,
 		queryFn: async (): Promise<Blog[]> => {
 			const supabase = createClient()
 
@@ -39,7 +46,7 @@ export function useBlogs() {
  */
 export function useBlogBySlug(slug: string) {
 	return useQuery({
-		queryKey: ['blog', slug],
+		queryKey: blogKeys.detail(slug),
 		queryFn: async (): Promise<Blog | null> => {
 			const supabase = createClient()
 
@@ -70,7 +77,7 @@ export function useBlogBySlug(slug: string) {
  */
 export function useBlogsByCategory(category: string) {
 	return useQuery({
-		queryKey: ['blogs', 'category', category],
+		queryKey: blogKeys.category(category),
 		queryFn: async (): Promise<Blog[]> => {
 			const supabase = createClient()
 
@@ -97,7 +104,7 @@ export function useBlogsByCategory(category: string) {
  */
 export function useFeaturedBlogs(limit: number = 3) {
 	return useQuery({
-		queryKey: ['blogs', 'featured', limit],
+		queryKey: blogKeys.featured(limit),
 		queryFn: async (): Promise<Blog[]> => {
 			const supabase = createClient()
 

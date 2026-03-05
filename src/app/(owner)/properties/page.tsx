@@ -12,6 +12,7 @@ import {
 import { toast } from 'sonner'
 import { propertyQueries } from '#hooks/api/query-keys/property-keys'
 import { unitQueries } from '#hooks/api/query-keys/unit-keys'
+import { ownerDashboardKeys } from '#hooks/api/use-owner-dashboard'
 import { createClient } from '#lib/supabase/client'
 import type { Unit } from '#shared/types/core'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '#components/ui/tabs'
@@ -135,7 +136,8 @@ export default function PropertiesPage() {
 		},
 		onSuccess: () => {
 			toast.success('Property deleted')
-			queryClient.invalidateQueries({ queryKey: ['properties'] })
+			queryClient.invalidateQueries({ queryKey: propertyQueries.all() })
+			queryClient.invalidateQueries({ queryKey: ownerDashboardKeys.all })
 		},
 		onError: () => {
 			toast.error('Failed to delete property')

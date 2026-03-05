@@ -57,7 +57,7 @@ export const AuthStoreProvider = ({ children }: { children: ReactNode }) => {
 				if (event === 'SIGNED_OUT') {
 					queryClient.setQueryData(authKeys.session(), null)
 					queryClient.setQueryData(authKeys.user(), null)
-					queryClient.removeQueries({ queryKey: ['auth'] })
+					queryClient.removeQueries({ queryKey: authKeys.all })
 				} else if (session) {
 					queryClient.setQueryData(authKeys.session(), session)
 					queryClient.setQueryData(authKeys.user(), session.user)
