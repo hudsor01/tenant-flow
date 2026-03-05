@@ -71,15 +71,15 @@ All 131 findings from the review, plus CLAUDE.md maintenance.
 - [ ] **PAY-07**: Payment method deletion calls `stripe.paymentMethods.detach()` before DB row deletion
 - [x] **PAY-08**: Idempotency key on autopay `paymentIntents.create`
 - [x] **PAY-09**: Platform subscription webhook handling (`invoice.payment_failed`, status tracking on `users` table)
-- [ ] **PAY-10**: Webhook `rent_payments` insert validates `tenant_id`/`lease_id` metadata (no empty string fallback)
-- [ ] **PAY-11**: `onboarding_completed_at` preserved when already set — not wiped on non-completed `account.updated`
+- [x] **PAY-10**: Webhook `rent_payments` insert validates `tenant_id`/`lease_id` metadata (no empty string fallback)
+- [x] **PAY-11**: `onboarding_completed_at` preserved when already set — not wiped on non-completed `account.updated`
 - [ ] **PAY-12**: Plan limit enforcement (`get_user_plan_limits`, `check_user_feature_access`) called from frontend before create operations
 - [x] **PAY-13**: Autopay retry mechanism for failed charges (re-attempt on subsequent days, not just `due_date = current_date`)
 - [x] **PAY-14**: Autopay handles shared leases correctly (one charge per rent_due, not per tenant)
 - [x] **PAY-15**: Webhook failure does not delete idempotency record — partial processing handled safely
 - [x] **PAY-16**: `setDefaultPaymentMethod` uses transaction (not clear-then-set race condition)
-- [ ] **PAY-17**: Stripe API version consistent between Edge Functions and Next.js API route
-- [ ] **PAY-18**: Owner payment receipt email includes fee breakdown (platform fee, Stripe fee, net amount)
+- [x] **PAY-17**: Stripe API version consistent between Edge Functions and Next.js API route
+- [x] **PAY-18**: Owner payment receipt email includes fee breakdown (platform fee, Stripe fee, net amount)
 - [x] **PAY-19**: `useSubscriptionStatus` checks actual subscription status, not just `stripe_customer_id` existence
 - [x] **PAY-20**: Billing hooks (`useInvoices`, `useSubscriptionBillingHistory`, `useFailedPaymentAttempts`) implemented or UI disabled
 - [ ] **PAY-21**: Success/cancel redirect URLs include `rent_due_id` or `session_id` for verification
@@ -243,15 +243,15 @@ All 131 findings from the review, plus CLAUDE.md maintenance.
 | PAY-07 | Phase 2 | Pending |
 | PAY-08 | Phase 2 | Complete |
 | PAY-09 | Phase 2 | Complete |
-| PAY-10 | Phase 2 | Pending |
-| PAY-11 | Phase 2 | Pending |
+| PAY-10 | Phase 2 | Complete |
+| PAY-11 | Phase 2 | Complete |
 | PAY-12 | Phase 2 | Pending |
 | PAY-13 | Phase 2 | Complete |
 | PAY-14 | Phase 2 | Complete |
 | PAY-15 | Phase 2 | Complete |
 | PAY-16 | Phase 2 | Complete |
-| PAY-17 | Phase 2 | Pending |
-| PAY-18 | Phase 2 | Pending |
+| PAY-17 | Phase 2 | Complete |
+| PAY-18 | Phase 2 | Complete |
 | PAY-19 | Phase 2 | Complete |
 | PAY-20 | Phase 2 | Complete |
 | PAY-21 | Phase 2 | Pending |
