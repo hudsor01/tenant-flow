@@ -1,4 +1,4 @@
-import { ArrowRightIcon } from '@radix-ui/react-icons'
+import { ArrowRight } from 'lucide-react'
 import type { ElementType, ReactNode } from 'react'
 import Link from 'next/link'
 import { Button } from '#components/ui/button'
@@ -80,7 +80,7 @@ const BentoCard = ({
 			<Button variant="default" size="sm" asChild className="w-fit">
 				<Link href={href}>
 					{cta}
-					<ArrowRightIcon className="ml-2 size-4" />
+					<ArrowRight className="ml-2 size-4" />
 				</Link>
 			</Button>
 		</div>
