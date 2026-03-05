@@ -28,7 +28,7 @@ import { useSupabaseUpdateProfileMutation } from '#hooks/api/use-auth'
 import {
 	useTenantNotificationPreferences,
 	useUpdateTenantNotificationPreferences
-} from '#hooks/api/use-tenant-portal'
+} from '#hooks/api/use-tenant-settings'
 import {
 	useEmergencyContact,
 	useUpdateEmergencyContact,

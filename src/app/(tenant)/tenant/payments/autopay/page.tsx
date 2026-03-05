@@ -29,10 +29,10 @@ import { Switch } from '#components/ui/switch'
 
 import {
 	useTenantAutopayStatus,
-	useTenantLease,
 	useTenantPortalSetupAutopayMutation,
 	useTenantPortalCancelAutopayMutation
-} from '#hooks/api/use-tenant-portal'
+} from '#hooks/api/use-tenant-autopay'
+import { useTenantLease } from '#hooks/api/use-tenant-lease'
 import { usePaymentMethods } from '#hooks/api/use-payment-methods'
 import { formatCents } from '#shared/lib/format'
 

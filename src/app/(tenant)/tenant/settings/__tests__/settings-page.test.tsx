@@ -45,7 +45,7 @@ vi.mock('#hooks/api/use-stripe-connect', () => ({
 	})
 }))
 
-vi.mock('#hooks/api/use-tenant-portal', () => ({
+vi.mock('#hooks/api/use-tenant-settings', () => ({
 	useTenantSettings: () => ({
 		data: {
 			profile: {

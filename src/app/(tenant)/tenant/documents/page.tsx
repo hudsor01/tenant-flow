@@ -12,7 +12,7 @@
  * - Important notices
  */
 
-import { useTenantLeaseDocuments } from '#hooks/api/use-tenant-portal'
+import { useTenantLeaseDocuments } from '#hooks/api/use-tenant-lease'
 import { Badge } from '#components/ui/badge'
 import { Button } from '#components/ui/button'
 import { CardLayout } from '#components/ui/card-layout'

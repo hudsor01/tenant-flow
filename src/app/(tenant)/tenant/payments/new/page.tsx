@@ -15,10 +15,7 @@ import { Separator } from '#components/ui/separator'
 import { Skeleton } from '#components/ui/skeleton'
 import { AlertTriangle, CheckCircle2, CreditCard, Loader2 } from 'lucide-react'
 import { formatCents } from '#shared/lib/format'
-import {
-	tenantPortalQueries,
-	useRentCheckoutMutation
-} from '#hooks/api/use-tenant-portal'
+import { tenantPaymentQueries, useRentCheckoutMutation } from '#hooks/api/use-tenant-payments'
 
 export default function PayRentPage() {
 	const router = useRouter()
@@ -29,7 +26,7 @@ export default function PayRentPage() {
 		data: amountDue,
 		isLoading: isLoadingAmount,
 		error: amountError
-	} = useQuery(tenantPortalQueries.amountDue())
+	} = useQuery(tenantPaymentQueries.amountDue())
 
 	// Loading state
 	if (isLoadingAmount) {
