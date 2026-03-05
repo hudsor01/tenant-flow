@@ -25,6 +25,21 @@ import { Suspense, useEffect, useState } from 'react'
 
 const logger = createLogger({ component: 'LoginPage' })
 
+/**
+ * AUTH-12: Validate redirect parameter using URL constructor hostname check.
+ * Prevents open redirect attacks including protocol-relative URLs (//evil.com).
+ */
+function isValidRedirect(redirect: string): boolean {
+	if (!redirect.startsWith('/')) return false
+	if (redirect.startsWith('//')) return false
+	try {
+		const url = new URL(redirect, window.location.origin)
+		return url.hostname === window.location.hostname
+	} catch {
+		return false
+	}
+}
+
 function LoginPageContent() {
 	const [showPassword, setShowPassword] = useState(false)
 	const [authError, setAuthError] = useState<string | null>(null)
@@ -96,7 +111,7 @@ function LoginPageContent() {
 								? '/auth/select-role'
 								: '/dashboard'
 
-					if (redirectTo?.startsWith('/') && !redirectTo.startsWith('//')) {
+					if (redirectTo && isValidRedirect(redirectTo)) {
 						destination = redirectTo
 					}
 
