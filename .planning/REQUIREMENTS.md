@@ -25,8 +25,8 @@ All 131 findings from the review, plus CLAUDE.md maintenance.
 
 ### Security — Auth & Middleware
 
-- [ ] **AUTH-01**: Middleware correctly registered (`middleware.ts` exporting `middleware`) and verified executing
-- [ ] **AUTH-02**: Role-based route enforcement — tenants redirected from owner routes, owners from tenant routes
+- [x] **AUTH-01**: Middleware correctly registered (`middleware.ts` exporting `middleware`) and verified executing
+- [x] **AUTH-02**: Role-based route enforcement — tenants redirected from owner routes, owners from tenant routes
 - [x] **AUTH-03**: `AuthProvider` uses `getUser()` instead of `getSession()` for session initialization
 - [x] **AUTH-04**: `tenant-invitation-accept` requires JWT — `authuser_id` derived from verified token
 - [x] **AUTH-05**: `stripe-checkout-session` requires authentication or returns minimal data only
@@ -256,8 +256,8 @@ All 131 findings from the review, plus CLAUDE.md maintenance.
 | PAY-20 | Phase 2 | Complete |
 | PAY-21 | Phase 2 | Complete |
 | PAY-22 | Phase 2 | Complete |
-| AUTH-01 | Phase 3 | Pending |
-| AUTH-02 | Phase 3 | Pending |
+| AUTH-01 | Phase 3 | Complete |
+| AUTH-02 | Phase 3 | Complete |
 | AUTH-03 | Phase 3 | Complete |
 | AUTH-04 | Phase 3 | Complete |
 | AUTH-05 | Phase 3 | Complete |
