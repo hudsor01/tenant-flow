@@ -29,7 +29,7 @@ type ReportType =
 	| 'maintenance-operations'
 	| 'tax-preparation'
 
-// TODO(phase-57): Report generation requires StirlingPDF Edge Function implementation
+// Report generation stub — calls generate-pdf Edge Function when implemented
 const reportsClient = {
 	generateReport: async (
 		_reportType: ReportType,

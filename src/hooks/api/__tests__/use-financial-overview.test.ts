@@ -2,7 +2,7 @@
  * Financial Overview Hooks Tests
  *
  * Validates useFinancialOverview, useMonthlyMetrics, useExpenseSummary
- * using Supabase RPC mocks (migrated from NestJS apiRequest in Phase 53).
+ * using Supabase RPC mocks. Financial queries use real RPCs via financial-keys.ts.
  */
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
@@ -17,18 +17,22 @@ import {
 } from '../use-financials'
 
 // Mock Supabase client using vi.hoisted() to avoid initialization errors
-const { mockRpc, mockGetUser } = vi.hoisted(() => ({
+const { mockRpc, mockGetCachedUser } = vi.hoisted(() => ({
 	mockRpc: vi.fn(),
-	mockGetUser: vi.fn()
+	mockGetCachedUser: vi.fn()
 }))
 
 vi.mock('#lib/supabase/client', () => ({
 	createClient: () => ({
 		rpc: mockRpc,
 		auth: {
-			getUser: mockGetUser
+			getUser: vi.fn().mockResolvedValue({ data: { user: null } })
 		}
 	})
+}))
+
+vi.mock('#lib/supabase/get-cached-user', () => ({
+	getCachedUser: mockGetCachedUser
 }))
 
 function createWrapper() {
@@ -48,7 +52,7 @@ function createWrapper() {
 describe('useFinancialOverview', () => {
 	beforeEach(() => {
 		vi.clearAllMocks()
-		mockGetUser.mockResolvedValue({ data: { user: { id: 'user-1' } } })
+		mockGetCachedUser.mockResolvedValue({ id: 'user-1' })
 	})
 
 	afterEach(() => {
@@ -56,15 +60,21 @@ describe('useFinancialOverview', () => {
 	})
 
 	it('fetches financial overview data successfully', async () => {
-		mockRpc.mockResolvedValueOnce({
-			data: [
-				{
-					revenue: { yearly: 500000, monthly: 41667 },
-					units: { occupancy_rate: 94 }
-				}
-			],
-			error: null
-		})
+		// overview() calls get_dashboard_stats + get_expense_summary in parallel
+		mockRpc
+			.mockResolvedValueOnce({
+				data: [
+					{
+						revenue: { yearly: 500000, monthly: 41667 },
+						units: { occupancy_rate: 94 }
+					}
+				],
+				error: null
+			})
+			.mockResolvedValueOnce({
+				data: { total_amount: 120000 },
+				error: null
+			})
 
 		const { result } = renderHook(() => useFinancialOverview(), {
 			wrapper: createWrapper()
@@ -75,9 +85,12 @@ describe('useFinancialOverview', () => {
 		})
 
 		expect(result.current.data?.overview?.total_revenue).toBe(500000)
+		expect(result.current.data?.overview?.total_expenses).toBe(120000)
+		expect(result.current.data?.overview?.net_income).toBe(380000)
 		expect(result.current.data?.overview?.accounts_receivable).toBe(41667)
 		expect(result.current.data?.highlights?.length).toBe(3)
 		expect(mockRpc).toHaveBeenCalledWith('get_dashboard_stats', { p_user_id: 'user-1' })
+		expect(mockRpc).toHaveBeenCalledWith('get_expense_summary', { p_user_id: 'user-1' })
 	})
 
 	it('handles error state', async () => {
@@ -98,15 +111,15 @@ describe('useFinancialOverview', () => {
 describe('useMonthlyMetrics', () => {
 	beforeEach(() => {
 		vi.clearAllMocks()
-		mockGetUser.mockResolvedValue({ data: { user: { id: 'user-1' } } })
+		mockGetCachedUser.mockResolvedValue({ id: 'user-1' })
 	})
 
 	it('fetches monthly metrics data successfully', async () => {
 		mockRpc.mockResolvedValueOnce({
 			data: [
-				{ timeframe: '2024-01', total_revenue: 40000, total_expenses: 10000, net_income: 30000 },
-				{ timeframe: '2024-02', total_revenue: 42000, total_expenses: 11000, net_income: 31000 },
-				{ timeframe: '2024-03', total_revenue: 43000, total_expenses: 10500, net_income: 32500 }
+				{ month: '2024-01', total_revenue: 40000, total_expenses: 10000, net_income: 30000 },
+				{ month: '2024-02', total_revenue: 42000, total_expenses: 11000, net_income: 31000 },
+				{ month: '2024-03', total_revenue: 43000, total_expenses: 10500, net_income: 32500 }
 			],
 			error: null
 		})
@@ -143,7 +156,7 @@ describe('useMonthlyMetrics', () => {
 describe('useExpenseSummary', () => {
 	beforeEach(() => {
 		vi.clearAllMocks()
-		mockGetUser.mockResolvedValue({ data: { user: { id: 'user-1' } } })
+		mockGetCachedUser.mockResolvedValue({ id: 'user-1' })
 	})
 
 	it('fetches expense summary with category breakdown', async () => {

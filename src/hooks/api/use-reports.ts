@@ -1,23 +1,15 @@
 /**
- * Reports Hooks & Query Options
- * TanStack Query hooks for reports data using Supabase RPC calls.
+ * Reports Hooks
+ * TanStack Query hooks for reports data using Supabase tables and RPC calls.
  *
- * Phase 53: Analytics, Reports & Tenant Portal — RPCs
- * All data queries use supabase.rpc() or supabase.from() — zero apiRequest calls.
- * Download mutations generate client-side CSV or call Edge Function (Plan 05 wires full Edge Function).
+ * All data queries use real tables (reports, report_runs) and existing RPCs.
+ * Query options are defined in query-keys/report-keys.ts.
  *
  * React 19 + TanStack Query v5 patterns
  */
 
 import { createClient } from '#lib/supabase/client'
-import { getCachedUser } from '#lib/supabase/get-cached-user'
-import { handlePostgrestError } from '#lib/postgrest-error-handler'
-import {
-	queryOptions,
-	useMutation,
-	useQuery,
-	useQueryClient
-} from '@tanstack/react-query'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useState } from 'react'
 import { toast } from 'sonner'
 import {
@@ -25,20 +17,15 @@ import {
 	handleMutationSuccess
 } from '#lib/mutation-error-handler'
 import { mutationKeys } from './mutation-keys'
+import { reportKeys, reportQueries } from './query-keys/report-keys'
 import type { UseMutationResult } from '@tanstack/react-query'
 import type {
 	ListReportsResponse,
-	Report as ReportType,
-	RevenueData,
-	ReportPaymentAnalytics,
-	OccupancyMetrics,
-	FinancialReport,
-	PropertyReport,
-	TenantReport,
-	MaintenanceReport,
-	YearEndSummary,
-	Year1099Summary
+	Report as ReportType
 } from '#shared/types/reports'
+
+// Re-export keys and queries for backwards compatibility and tests
+export { reportKeys as reportsKeys, reportQueries as reportsQueries }
 
 // ============================================================================
 // TYPES
@@ -67,357 +54,6 @@ const isTest = process.env.NODE_ENV === 'test'
 const deleteReportTimers = new Map<string, number>()
 
 // ============================================================================
-// QUERY KEYS
-// ============================================================================
-
-/**
- * Query keys for reports
- */
-export const reportsKeys = {
-	all: ['reports'] as const,
-	lists: () => [...reportsKeys.all, 'list'] as const,
-	list: (offset: number, limit: number) =>
-		[...reportsKeys.lists(), offset, limit] as const,
-	revenue: (months: number) =>
-		[...reportsKeys.all, 'revenue', 'monthly', months] as const,
-	paymentAnalytics: (start_date?: string, end_date?: string) =>
-		[
-			...reportsKeys.all,
-			'analytics',
-			'payments',
-			start_date,
-			end_date
-		] as const,
-	occupancyMetrics: () =>
-		[...reportsKeys.all, 'analytics', 'occupancy'] as const,
-	financial: (start_date?: string, end_date?: string) =>
-		[...reportsKeys.all, 'financial', start_date, end_date] as const,
-	properties: (start_date?: string, end_date?: string) =>
-		[...reportsKeys.all, 'properties', start_date, end_date] as const,
-	tenants: (start_date?: string, end_date?: string) =>
-		[...reportsKeys.all, 'tenants', start_date, end_date] as const,
-	maintenance: (start_date?: string, end_date?: string) =>
-		[...reportsKeys.all, 'maintenance', start_date, end_date] as const,
-	yearEnd: (year: number) =>
-		[...reportsKeys.all, 'year-end', year] as const,
-	report1099: (year: number) =>
-		[...reportsKeys.all, '1099', year] as const
-}
-
-// ============================================================================
-// QUERY OPTIONS (for direct use in pages with useQueries/prefetch)
-// ============================================================================
-
-/**
- * Reports query options factory
- */
-export const reportsQueries = {
-	/**
-	 * Base key for all reports queries
-	 */
-	all: () => ['reports'] as const,
-
-	list: (offset: number, limit: number = 20) =>
-		queryOptions({
-			queryKey: reportsKeys.list(offset, limit),
-			queryFn: async (): Promise<ListReportsResponse> => {
-				const supabase = createClient()
-				// TODO(phase-57): reports table does not exist yet — return empty stub
-				// When a reports table is created, replace with:
-				// supabase.from('reports').select('id, name, report_type, created_at, file_url', { count: 'exact' })
-				//   .order('created_at', { ascending: false }).range(offset, offset + limit - 1)
-				const { data, error } = await supabase
-					.from('reports' as 'properties') // cast to bypass missing table type
-					.select('*', { count: 'exact' })
-					.order('created_at', { ascending: false })
-					.range(offset, offset + limit - 1)
-
-				if (error) {
-					// reports table does not exist — return empty stub
-					return {
-						success: true,
-						data: [],
-						pagination: { total: 0, limit, offset, hasMore: false }
-					}
-				}
-
-				return {
-					success: true,
-					data: (data ?? []) as unknown as ReportType[],
-					pagination: { total: 0, limit, offset, hasMore: false }
-				}
-			},
-			staleTime: 2 * 60 * 1000,
-			gcTime: 10 * 60 * 1000
-		}),
-
-	monthlyRevenue: (months: number = 12) =>
-		queryOptions({
-			queryKey: reportsKeys.revenue(months),
-			queryFn: async (): Promise<RevenueData[]> => {
-				const supabase = createClient()
-				const user = await getCachedUser()
-				const userId = user?.id
-				if (!userId) return []
-
-				// TODO(phase-57): replace with supabase.rpc('get_revenue_trends_optimized', { p_user_id: userId, p_months: months })
-				const { data, error } = await supabase.rpc('get_property_performance_analytics', {
-					p_user_id: userId
-				})
-
-				if (error) handlePostgrestError(error, 'monthly revenue')
-
-				const rows = (data ?? []) as Array<{
-					property_id: string; property_name: string; total_revenue: number
-					total_expenses: number; net_income: number; occupancy_rate: number; timeframe: string
-				}>
-
-				return rows.map((row): RevenueData => ({
-					month: row.timeframe ?? '',
-					revenue: row.total_revenue ?? 0,
-					expenses: row.total_expenses ?? 0,
-					profit: row.net_income ?? 0,
-					propertyCount: 1,
-					unitCount: 0,
-					occupiedUnits: 0
-				}))
-			},
-			staleTime: 2 * 60 * 1000,
-			gcTime: 10 * 60 * 1000
-		}),
-
-	paymentAnalytics: (start_date?: string, end_date?: string) =>
-		queryOptions({
-			queryKey: reportsKeys.paymentAnalytics(start_date, end_date),
-			queryFn: async (): Promise<ReportPaymentAnalytics> => {
-				const supabase = createClient()
-				const user = await getCachedUser()
-				const userId = user?.id
-				if (!userId) {
-					return {
-						totalPayments: 0, successfulPayments: 0, failedPayments: 0,
-						totalRevenue: 0, averagePayment: 0,
-						paymentsByMethod: { card: 0, ach: 0 },
-						paymentsByStatus: { completed: 0, pending: 0, failed: 0 }
-					}
-				}
-
-				// TODO(phase-57): replace with supabase.rpc('get_billing_insights', { owner_id_param: userId })
-				const { data: dashStats } = await supabase.rpc('get_dashboard_stats', { p_user_id: userId })
-				const stats = dashStats?.[0]
-				const monthlyRevenue = stats?.revenue?.monthly ?? 0
-
-				return {
-					totalPayments: 0, successfulPayments: 0, failedPayments: 0,
-					totalRevenue: monthlyRevenue, averagePayment: 0,
-					paymentsByMethod: { card: 0, ach: 0 },
-					paymentsByStatus: { completed: 0, pending: 0, failed: 0 }
-				}
-			},
-			staleTime: 2 * 60 * 1000,
-			gcTime: 10 * 60 * 1000
-		}),
-
-	occupancyMetrics: () =>
-		queryOptions({
-			queryKey: reportsKeys.occupancyMetrics(),
-			queryFn: async (): Promise<OccupancyMetrics> => {
-				const supabase = createClient()
-				const user = await getCachedUser()
-				const userId = user?.id
-				if (!userId) {
-					return { totalUnits: 0, occupiedUnits: 0, vacantUnits: 0, occupancyRate: 0, byProperty: [] }
-				}
-
-				// TODO(phase-57): replace with supabase.rpc('get_occupancy_trends_optimized', { p_user_id: userId, p_months: 12 })
-				const { data: propPerf, error } = await supabase.rpc('get_property_performance_analytics', {
-					p_user_id: userId
-				})
-
-				if (error) handlePostgrestError(error, 'occupancy metrics')
-
-				const rows = (propPerf ?? []) as Array<{
-					property_id: string; property_name: string; occupancy_rate: number
-					total_revenue: number; total_expenses: number; net_income: number; timeframe: string
-				}>
-
-				const totalOccupancy = rows.length > 0
-					? rows.reduce((acc, r) => acc + (r.occupancy_rate ?? 0), 0) / rows.length : 0
-
-				return {
-					totalUnits: 0, occupiedUnits: 0, vacantUnits: 0,
-					occupancyRate: totalOccupancy,
-					byProperty: rows.map(r => ({
-						property_id: r.property_id,
-						propertyName: r.property_name,
-						totalUnits: 0, occupiedUnits: 0,
-						occupancyRate: r.occupancy_rate ?? 0
-					}))
-				}
-			},
-			staleTime: 2 * 60 * 1000,
-			gcTime: 10 * 60 * 1000
-		}),
-
-	financial: (start_date?: string, end_date?: string) =>
-		queryOptions({
-			queryKey: reportsKeys.financial(start_date, end_date),
-			queryFn: async (): Promise<FinancialReport> => {
-				const supabase = createClient()
-				const user = await getCachedUser()
-				const userId = user?.id
-				if (!userId) {
-					return {
-						summary: { totalIncome: 0, totalExpenses: 0, netIncome: 0, cashFlow: 0, rentRollOccupancyRate: 0 },
-						monthly: [], expenseBreakdown: [], rentRoll: []
-					}
-				}
-
-				// supabase.rpc('get_financial_overview', { p_user_id: userId }) —
-				// TODO(phase-57): dedicated financial overview RPC; using dashboard stats as proxy
-				const { data: dashStats } = await supabase.rpc('get_dashboard_stats', { p_user_id: userId })
-				const stats = dashStats?.[0]
-
-				return {
-					summary: {
-						totalIncome: stats?.revenue?.yearly ?? 0,
-						totalExpenses: 0,
-						netIncome: stats?.revenue?.yearly ?? 0,
-						cashFlow: stats?.revenue?.monthly ?? 0,
-						rentRollOccupancyRate: stats?.units?.occupancy_rate ?? 0
-					},
-					monthly: [], expenseBreakdown: [], rentRoll: []
-				}
-			},
-			staleTime: 2 * 60 * 1000,
-			gcTime: 10 * 60 * 1000
-		}),
-
-	properties: (start_date?: string, end_date?: string) =>
-		queryOptions({
-			queryKey: reportsKeys.properties(start_date, end_date),
-			queryFn: async (): Promise<PropertyReport> => {
-				const supabase = createClient()
-				const user = await getCachedUser()
-				const userId = user?.id
-				if (!userId) {
-					return {
-						summary: { totalProperties: 0, totalUnits: 0, occupiedUnits: 0, occupancyRate: 0 },
-						byProperty: [], occupancyTrend: [], vacancyTrend: []
-					}
-				}
-
-				const { data, error } = await supabase.rpc('get_property_performance_analytics', {
-					p_user_id: userId
-				})
-
-				if (error) handlePostgrestError(error, 'property report')
-
-				const rows = (data ?? []) as Array<{
-					property_id: string; property_name: string; occupancy_rate: number
-					total_revenue: number; total_expenses: number; net_income: number; timeframe: string
-				}>
-
-				return {
-					summary: {
-						totalProperties: rows.length, totalUnits: 0, occupiedUnits: 0,
-						occupancyRate: rows.length > 0
-							? rows.reduce((acc, r) => acc + (r.occupancy_rate ?? 0), 0) / rows.length : 0
-					},
-					byProperty: rows.map(r => ({
-						propertyId: r.property_id, propertyName: r.property_name,
-						occupancyRate: r.occupancy_rate ?? 0, vacantUnits: 0,
-						revenue: r.total_revenue ?? 0, expenses: r.total_expenses ?? 0,
-						netOperatingIncome: r.net_income ?? 0
-					})),
-					occupancyTrend: [], vacancyTrend: []
-				}
-			},
-			staleTime: 2 * 60 * 1000,
-			gcTime: 10 * 60 * 1000
-		}),
-
-	tenants: (start_date?: string, end_date?: string) =>
-		queryOptions({
-			queryKey: reportsKeys.tenants(start_date, end_date),
-			queryFn: async (): Promise<TenantReport> => {
-				const supabase = createClient()
-				const user = await getCachedUser()
-				const userId = user?.id
-				if (!userId) {
-					return {
-						summary: { totalTenants: 0, activeLeases: 0, leasesExpiringNext90: 0, turnoverRate: 0, onTimePaymentRate: 0 },
-						paymentHistory: [], leaseExpirations: [], turnover: []
-					}
-				}
-
-				// TODO(phase-57): replace with supabase.rpc('get_occupancy_trends_optimized', { p_user_id: userId, p_months: 12 })
-				const { data: dashStats } = await supabase.rpc('get_dashboard_stats', { p_user_id: userId })
-				const stats = dashStats?.[0]
-
-				return {
-					summary: {
-						totalTenants: stats?.tenants?.total ?? 0,
-						activeLeases: stats?.leases?.active ?? 0,
-						leasesExpiringNext90: stats?.leases?.expiring_soon ?? 0,
-						turnoverRate: 0, onTimePaymentRate: 0
-					},
-					paymentHistory: [], leaseExpirations: [], turnover: []
-				}
-			},
-			staleTime: 2 * 60 * 1000,
-			gcTime: 10 * 60 * 1000
-		}),
-
-	maintenance: (start_date?: string, end_date?: string) =>
-		queryOptions({
-			queryKey: reportsKeys.maintenance(start_date, end_date),
-			queryFn: async (): Promise<MaintenanceReport> => {
-				const supabase = createClient()
-				const user = await getCachedUser()
-				const userId = user?.id
-				if (!userId) {
-					return {
-						summary: { totalRequests: 0, openRequests: 0, avgResolutionHours: 0, totalCost: 0, averageCost: 0 },
-						byStatus: [], byPriority: [], monthlyCost: [], vendorPerformance: []
-					}
-				}
-
-				const { data, error } = await supabase.rpc('get_maintenance_analytics', { user_id: userId })
-
-				if (error) handlePostgrestError(error, 'maintenance report')
-
-				const analytics = data as unknown as {
-					total_requests?: number; open_requests?: number; avg_resolution_hours?: number
-					total_cost?: number; average_cost?: number
-					by_status?: Array<{ status: string; count: number }>
-					by_priority?: Array<{ priority: string; count: number }>
-					monthly_cost?: Array<{ month: string; cost: number }>
-					vendor_performance?: Array<{ vendor_name: string; total_spend: number; jobs: number }>
-				} | null
-
-				return {
-					summary: {
-						totalRequests: analytics?.total_requests ?? 0,
-						openRequests: analytics?.open_requests ?? 0,
-						avgResolutionHours: analytics?.avg_resolution_hours ?? 0,
-						totalCost: analytics?.total_cost ?? 0,
-						averageCost: analytics?.average_cost ?? 0
-					},
-					byStatus: (analytics?.by_status ?? []).map(s => ({ status: s.status, count: s.count })),
-					byPriority: (analytics?.by_priority ?? []).map(p => ({ priority: p.priority, count: p.count })),
-					monthlyCost: (analytics?.monthly_cost ?? []).map(m => ({ month: m.month, cost: m.cost })),
-					vendorPerformance: (analytics?.vendor_performance ?? []).map(v => ({
-						vendorName: v.vendor_name, totalSpend: v.total_spend, jobs: v.jobs
-					}))
-				}
-			},
-			staleTime: 2 * 60 * 1000,
-			gcTime: 10 * 60 * 1000
-		})
-}
-
-// ============================================================================
 // QUERY HOOKS
 // ============================================================================
 
@@ -429,7 +65,7 @@ export function useReports({
 	limit?: number
 }): UseReportsResult {
 	const queryClient = useQueryClient()
-	const queryKey = reportsKeys.list(offset, limit)
+	const queryKey = reportKeys.list(offset, limit)
 
 	// Keep track of per-id pending operations so the UI can show per-row spinners
 	const [downloadingIds, setDownloadingIds] = useState<Set<string>>(new Set())
@@ -439,7 +75,7 @@ export function useReports({
 		data: listResponse,
 		isLoading,
 		isFetching
-	} = useQuery(reportsQueries.list(offset, limit))
+	} = useQuery(reportQueries.list(offset, limit))
 
 	const reports = listResponse?.data ?? []
 	const total = listResponse?.pagination?.total ?? 0
@@ -448,15 +84,11 @@ export function useReports({
 		mutationKey: mutationKeys.reports.delete,
 		mutationFn: async (reportId: string): Promise<void> => {
 			const supabase = createClient()
-			// reports table does not exist yet — treat as success (no-op)
 			const { error } = await supabase
-				.from('reports' as 'properties')
+				.from('reports')
 				.delete()
 				.eq('id', reportId)
-			if (error) {
-				// Table doesn't exist or other error — treat as success to avoid breaking UI
-				return
-			}
+			if (error) throw new Error(error.message)
 		},
 		onMutate: async (reportId: string) => {
 			// mark this id as deleting so callers can show row-level loading
@@ -492,18 +124,16 @@ export function useReports({
 			// remove deleting flag and refresh top-level reports list
 			setDeletingIds(prev => {
 				const s = new Set(prev)
-				// we don't know which id triggered settled here; remove all pending that
-				// aren't present in the cache (simple conservative cleanup)
+				// conservative cleanup — settled resets all
 				return s
 			})
-			queryClient.invalidateQueries({ queryKey: reportsKeys.all })
+			queryClient.invalidateQueries({ queryKey: reportKeys.all })
 		}
 	})
 
 	const downloadMutation = useMutation({
 		mutationKey: mutationKeys.reports.download,
 		mutationFn: async (reportId: string): Promise<void> => {
-			// reports table does not exist yet — show info toast until reports CRUD is implemented
 			toast.info(`Report ${reportId} download will be available soon`)
 		},
 		onSuccess: () => handleMutationSuccess('Download report'),
@@ -628,128 +258,68 @@ export function useReports({
  * Hook for fetching monthly revenue data
  */
 export function useMonthlyRevenue(months: number = 12) {
-	return useQuery(reportsQueries.monthlyRevenue(months))
+	return useQuery(reportQueries.monthlyRevenue(months))
 }
 
 /**
  * Hook for fetching payment analytics
  */
 export function usePaymentAnalytics(start_date?: string, end_date?: string) {
-	return useQuery(reportsQueries.paymentAnalytics(start_date, end_date))
+	return useQuery(reportQueries.paymentAnalytics(start_date, end_date))
 }
 
 /**
  * Hook for fetching occupancy metrics
  */
 export function useOccupancyMetrics() {
-	return useQuery(reportsQueries.occupancyMetrics())
+	return useQuery(reportQueries.occupancyMetrics())
 }
 
 /**
  * Hook for fetching financial report data
  */
 export function useFinancialReport(start_date?: string, end_date?: string) {
-	return useQuery(reportsQueries.financial(start_date, end_date))
+	return useQuery(reportQueries.financial(start_date, end_date))
 }
 
 /**
  * Hook for fetching property report data
  */
 export function usePropertyReport(start_date?: string, end_date?: string) {
-	return useQuery(reportsQueries.properties(start_date, end_date))
+	return useQuery(reportQueries.properties(start_date, end_date))
 }
 
 /**
  * Hook for fetching tenant report data
  */
 export function useTenantReport(start_date?: string, end_date?: string) {
-	return useQuery(reportsQueries.tenants(start_date, end_date))
+	return useQuery(reportQueries.tenants(start_date, end_date))
 }
 
 /**
  * Hook for fetching maintenance report data
  */
 export function useMaintenanceReport(start_date?: string, end_date?: string) {
-	return useQuery(reportsQueries.maintenance(start_date, end_date))
+	return useQuery(reportQueries.maintenance(start_date, end_date))
 }
 
 /**
  * Hook for fetching year-end tax summary
  */
 export function useYearEndSummary(year: number) {
-	return useQuery(
-		queryOptions({
-			queryKey: reportsKeys.yearEnd(year),
-			queryFn: async (): Promise<YearEndSummary> => {
-				const supabase = createClient()
-				const user = await getCachedUser()
-				const userId = user?.id
-				if (!userId) {
-					return { year, grossRentalIncome: 0, operatingExpenses: 0, netIncome: 0, byProperty: [], expenseByCategory: [] }
-				}
-
-				// supabase.rpc('get_financial_overview', { p_user_id: userId }) —
-				// TODO(phase-57): replace with dedicated year-end summary RPC when NestJS is deleted
-				const { data: dashStats } = await supabase.rpc('get_dashboard_stats', { p_user_id: userId })
-				const stats = dashStats?.[0]
-
-				return {
-					year,
-					grossRentalIncome: stats?.revenue?.yearly ?? 0,
-					operatingExpenses: 0,
-					netIncome: stats?.revenue?.yearly ?? 0,
-					byProperty: [],
-					expenseByCategory: []
-				}
-			},
-			staleTime: 2 * 60 * 1000,
-			gcTime: 10 * 60 * 1000
-		})
-	)
+	return useQuery(reportQueries.yearEnd(year))
 }
 
 /**
  * Hook for fetching 1099-NEC vendor data
  */
 export function use1099Summary(year: number) {
-	return useQuery(
-		queryOptions({
-			queryKey: reportsKeys.report1099(year),
-			queryFn: async (): Promise<Year1099Summary> => {
-				const supabase = createClient()
-				const user = await getCachedUser()
-				const userId = user?.id
-				if (!userId) {
-					return { year, threshold: 600, recipients: [], totalReported: 0 }
-				}
-
-				// TODO(phase-57): replace with supabase.rpc('get_billing_insights', { owner_id_param: userId })
-				// when that RPC exists; using expense_summary as proxy for vendor payment data
-				const { data, error } = await supabase.rpc('get_expense_summary', { p_user_id: userId })
-				if (error) handlePostgrestError(error, '1099 summary')
-
-				const summary = data as unknown as {
-					vendor_payments?: Array<{ vendor_name: string; total_paid: number; job_count: number }>
-				} | null
-
-				const recipients = (summary?.vendor_payments ?? []).map(v => ({
-					vendorName: v.vendor_name,
-					totalPaid: v.total_paid,
-					jobCount: v.job_count
-				}))
-
-				return {
-					year,
-					threshold: 600,
-					recipients,
-					totalReported: recipients.reduce((acc, r) => acc + r.totalPaid, 0)
-				}
-			},
-			staleTime: 2 * 60 * 1000,
-			gcTime: 10 * 60 * 1000
-		})
-	)
+	return useQuery(reportQueries.report1099(year))
 }
+
+// ============================================================================
+// EDGE FUNCTION HELPERS
+// ============================================================================
 
 /**
  * Helper: call the export-report Edge Function and trigger browser download.
@@ -794,7 +364,7 @@ async function callExportEdgeFunction(
 
 /**
  * Call the generate-pdf Edge Function with structured report data.
- * HTML rendering is handled server-side in the Edge Function — no HTML in the frontend.
+ * HTML rendering is handled server-side in the Edge Function.
  */
 async function callGeneratePdfEdgeFunction(reportType: string, year: number): Promise<void> {
 	const supabase = createClient()
@@ -830,7 +400,7 @@ async function callGeneratePdfEdgeFunction(reportType: string, year: number): Pr
 
 /**
  * Call the generate-pdf Edge Function with pre-built HTML content.
- * Use this when the component already has the data — avoids a redundant DB fetch in the EF.
+ * Use this when the component already has the data.
  * Triggers a browser file download on success.
  */
 export async function callGeneratePdfFromHtml(html: string, filename: string): Promise<void> {
@@ -864,6 +434,10 @@ export async function callGeneratePdfFromHtml(html: string, filename: string): P
 	setTimeout(() => window.URL.revokeObjectURL(blobUrl), 100)
 }
 
+// ============================================================================
+// DOWNLOAD MUTATION HOOKS
+// ============================================================================
+
 /**
  * Mutation hook to download year-end summary as CSV
  */
@@ -893,8 +467,8 @@ export function useDownload1099Csv() {
 }
 
 /**
- * Mutation hook to download year-end summary as a PDF file.
- * Calls generate-pdf Edge Function directly (StirlingPDF on k3s).
+ * Mutation hook to download year-end summary as PDF.
+ * Calls generate-pdf Edge Function.
  */
 export function useDownloadYearEndPdf() {
 	return useMutation({
@@ -908,8 +482,8 @@ export function useDownloadYearEndPdf() {
 }
 
 /**
- * Mutation hook to download tax documents as a PDF file.
- * Calls generate-pdf Edge Function directly (StirlingPDF on k3s).
+ * Mutation hook to download tax documents as PDF.
+ * Calls generate-pdf Edge Function.
  */
 export function useDownloadTaxDocumentPdf() {
 	return useMutation({

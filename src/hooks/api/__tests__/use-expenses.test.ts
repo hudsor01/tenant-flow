@@ -3,7 +3,7 @@
  *
  * Tests expense hooks using Supabase mock (migrated from NestJS apiRequest in Phase 53).
  * Note: useExpensesByProperty does not filter by property_id server-side because
- * the expenses table doesn't have that column (TODO: phase-57).
+ * the expenses table doesn't have a property_id column.
  */
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'

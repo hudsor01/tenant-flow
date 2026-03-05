@@ -29,6 +29,7 @@ import type {
 	UpdateProfileInput,
 	UserProfile
 } from '#shared/types/api-contracts'
+
 // ============================================================================
 // QUERY KEYS
 // ============================================================================
@@ -39,6 +40,46 @@ import type {
 export const profileKeys = {
 	all: ['profile'] as const,
 	detail: () => [...profileKeys.all, 'detail'] as const
+}
+
+// ============================================================================
+// MAPPER
+// ============================================================================
+
+const PROFILE_SELECT =
+	'id, email, first_name, last_name, full_name, phone, avatar_url, user_type, status, created_at, updated_at, stripe_customer_id'
+
+/**
+ * Maps a PostgREST users row to UserProfile.
+ * Handles user_type union literal that PostgREST returns as plain string.
+ */
+function mapUserProfile(row: {
+	id: string
+	email: string
+	first_name: string | null
+	last_name: string | null
+	full_name: string | null
+	phone: string | null
+	avatar_url: string | null
+	user_type: string | null
+	status: string | null
+	created_at: string
+	updated_at: string
+	stripe_customer_id: string | null
+}): UserProfile {
+	return {
+		id: row.id,
+		email: row.email,
+		first_name: row.first_name,
+		last_name: row.last_name,
+		full_name: row.full_name ?? '',
+		phone: row.phone,
+		avatar_url: row.avatar_url,
+		user_type: row.user_type as UserProfile['user_type'],
+		status: row.status ?? 'active',
+		created_at: row.created_at,
+		updated_at: row.updated_at
+	} satisfies UserProfile
 }
 
 // ============================================================================
@@ -64,12 +105,10 @@ export const profileQueries = {
 				const supabase = createClient()
 				const { data, error } = await supabase
 					.from('users')
-					.select(
-						'id, email, first_name, last_name, full_name, phone, avatar_url, user_type, status, created_at, updated_at, stripe_customer_id'
-					)
+					.select(PROFILE_SELECT)
 					.single()
 				if (error) throw error
-				return data as unknown as UserProfile
+				return mapUserProfile(data!)
 			},
 			...QUERY_CACHE_TIMES.DETAIL
 		})
@@ -117,12 +156,10 @@ export function useUpdateProfileMutation() {
 					updated_at: new Date().toISOString()
 				})
 				.eq('id', user.id)
-				.select(
-					'id, email, first_name, last_name, full_name, phone, avatar_url, user_type, status, created_at, updated_at, stripe_customer_id'
-				)
+				.select(PROFILE_SELECT)
 				.single()
 			if (error) throw error
-			return data as unknown as UserProfile
+			return mapUserProfile(data!)
 		},
 
 		onMutate: async newData => {
@@ -539,4 +576,3 @@ export function useRemoveProfileEmergencyContactMutation() {
 		}
 	})
 }
-
