@@ -10,7 +10,7 @@ import { tenantPaymentQueries } from '#hooks/api/use-payments'
 import {
 	useCancelInvitationMutation,
 	useResendInvitationMutation
-} from '#hooks/api/use-tenant-mutations'
+} from '#hooks/api/use-tenant-invite-mutations'
 import { createClient } from '#lib/supabase/client'
 import {
 	AlertDialog,

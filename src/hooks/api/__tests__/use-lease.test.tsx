@@ -34,12 +34,14 @@ import {
 	useUpdateLeaseMutation,
 	useDeleteLeaseMutation,
 	useTerminateLeaseMutation,
-	useRenewLeaseMutation,
+	useRenewLeaseMutation
+} from '../use-lease-mutations'
+import {
 	useSendLeaseForSignatureMutation,
 	useSignLeaseAsOwnerMutation,
 	useSignLeaseAsTenantMutation,
 	useCancelSignatureRequestMutation
-} from '../use-lease-mutations'
+} from '../use-lease-signature-mutations'
 
 // Mock logger
 vi.mock('#shared/lib/frontend-logger', () => ({

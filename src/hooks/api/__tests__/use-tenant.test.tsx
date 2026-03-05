@@ -29,11 +29,13 @@ import {
 import {
 	useCreateTenantMutation,
 	useUpdateTenantMutation,
-	useDeleteTenantMutation,
+	useDeleteTenantMutation
+} from '../use-tenant-mutations'
+import {
 	useInviteTenantMutation,
 	useResendInvitationMutation,
 	useCancelInvitationMutation
-} from '../use-tenant-mutations'
+} from '../use-tenant-invite-mutations'
 
 // Mock logger
 vi.mock('#shared/lib/frontend-logger', () => ({

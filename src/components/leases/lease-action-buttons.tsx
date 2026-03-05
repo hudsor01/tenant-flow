@@ -42,7 +42,8 @@ import {
 	Trash2,
 	X
 } from 'lucide-react'
-import { useDeleteLeaseOptimisticMutation, useSignLeaseAsOwnerMutation } from '#hooks/api/use-lease-mutations'
+import { useDeleteLeaseOptimisticMutation } from '#hooks/api/use-lease-mutations'
+import { useSignLeaseAsOwnerMutation } from '#hooks/api/use-lease-signature-mutations'
 import { toast } from 'sonner'
 
 interface LeaseActionButtonsProps {
