@@ -118,18 +118,28 @@ export const billingQueries = {
 				const user = await getCachedUser()
 				if (!user) throw new Error('Not authenticated')
 
-				// Get user's stripe_customer_id
-				const { data: userData, error: userError } = await supabase
-					.from('users')
-					.select('stripe_customer_id')
-					.eq('id', user.id)
-					.single()
+				// Try get_user_invoices RPC (queries stripe.invoices via SECURITY DEFINER)
+				const { data: rpcData, error: rpcError } = await supabase
+					.rpc('get_user_invoices', { p_limit: 50 })
 
-				if (userError) handlePostgrestError(userError, 'users')
-				if (!userData?.stripe_customer_id) return []
+				if (!rpcError && rpcData && Array.isArray(rpcData) && rpcData.length > 0) {
+					return rpcData.map((row: Record<string, unknown>) => ({
+						id: row.invoice_id as string,
+						date: row.created_at as string,
+						amount: String(row.amount_due),
+						status: row.status as string,
+						invoicePdf: (row.invoice_pdf as string) ?? null,
+						hostedUrl: (row.hosted_invoice_url as string) ?? null
+					}))
+				}
 
-				// Query stripe.invoices via RPC (stripe schema not directly accessible via PostgREST)
-				// Fall back to rent_payments as invoice proxy if stripe schema is unavailable
+				if (rpcError) {
+					logger.debug('get_user_invoices RPC not available, falling back to rent_payments', {
+						error: rpcError.message
+					})
+				}
+
+				// Fall back to rent_payments as invoice proxy
 				const { data, error } = await supabase
 					.from('rent_payments')
 					.select('id, amount, status, due_date, paid_date, created_at')

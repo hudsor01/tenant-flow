@@ -107,7 +107,7 @@ Deno.serve(async (req: Request) => {
     }
 
     // 3. Detach from Stripe API -- MANDATORY, no fallback
-    const stripe = new Stripe(stripeKey, { apiVersion: '2025-02-24.acacia' })
+    const stripe = new Stripe(stripeKey, { apiVersion: '2026-02-25.clover' })
     const stripePmId = paymentMethod.stripe_payment_method_id as string
 
     await stripe.paymentMethods.detach(stripePmId)
