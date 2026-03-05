@@ -12,8 +12,8 @@ TenantFlow is a multi-tenant property management SaaS platform for property owne
 **Milestone Goal:** Fix all 131 findings from the comprehensive 8-agent review (22 P0, 35 P1, 46 P2, 28 P3). Phases ordered by exploitability and harm: RPC data exfiltration first, financial bugs second, remaining security third, then code quality, database, UX, performance, and testing. DOC-01 (CLAUDE.md rewrite) is a recurring task executed at the end of every phase.
 
 - [x] **Phase 1: RPC & Database Security** - Close 12+ SECURITY DEFINER data exfiltration vectors and fix database-level auth
-- [ ] **Phase 2: Financial Fixes** - Fix cents/dollars bugs, rent_due status, autopay RLS, and all payment processing issues
-- [ ] **Phase 3: Auth & Middleware** - Register middleware, enforce role-based routing, fix session validation and auth flows
+- [x] **Phase 2: Financial Fixes** - Fix cents/dollars bugs, rent_due status, autopay RLS, and all payment processing issues
+- [x] **Phase 3: Auth & Middleware** - Register middleware, enforce role-based routing, fix session validation and auth flows
 - [ ] **Phase 4: Edge Function Hardening** - Add env validation, rate limiting, input escaping, CSP, and version alignment
 - [ ] **Phase 5: Code Quality & Type Safety** - Remove type assertions, fix query keys, consolidate duplicates, split oversized files
 - [ ] **Phase 6: Database Schema & Migrations** - Fix constraints, RLS gaps, cron jobs, and schema inconsistencies
@@ -188,8 +188,8 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8 -> 9
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
 | 1. RPC & Database Security | v1.0 | 2/2 | Complete | 2026-03-04 |
-| 2. Financial Fixes | 4/6 | In Progress|  | - |
-| 3. Auth & Middleware | 3/6 | In Progress|  | - |
+| 2. Financial Fixes | v1.0 | 7/7 | Complete | 2026-03-05 |
+| 3. Auth & Middleware | v1.0 | 6/6 | Complete | 2026-03-05 |
 | 4. Edge Function Hardening | v1.0 | 0/2 | Not started | - |
 | 5. Code Quality & Type Safety | v1.0 | 0/3 | Not started | - |
 | 6. Database Schema & Migrations | v1.0 | 0/2 | Not started | - |

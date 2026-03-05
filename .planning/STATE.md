@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: Production Hardening
 status: completed
-stopped_at: Completed 03-01-PLAN.md
-last_updated: "2026-03-05T05:12:18.870Z"
+stopped_at: Completed 02-07-PLAN.md (gap closure)
+last_updated: "2026-03-05T06:10:18.302Z"
 last_activity: 2026-03-04 — Root middleware with Supabase auth refresh and role-based routing
 progress:
   total_phases: 9
-  completed_phases: 2
+  completed_phases: 4
   total_plans: 23
-  completed_plans: 15
+  completed_plans: 17
   percent: 22
 ---
 
@@ -55,6 +55,7 @@ Progress: [##░░░░░░░░] 22%
 | Phase 03 P06 | 8min | 2 tasks | 2 files |
 | Phase 03 P02 | 18min | 2 tasks | 7 files |
 | Phase 03 P01 | 22min | 2 tasks | 4 files |
+| Phase 02 P07 | 2min | 3 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -99,6 +100,7 @@ Progress: [##░░░░░░░░] 22%
 - [Phase 03]: AUTH-03: AuthProvider uses getUser() for server-validated session init (not getSession())
 - [Phase 03]: AUTH-06: Module-level Supabase client removed; per-mutation client creation pattern
 - [Phase 03]: AUTH-16: Single authKeys factory in use-auth.ts; authQueryKeys removed from auth-provider.tsx
+- [Phase 02]: get_user_invoices uses SECURITY DEFINER with stripe.customers join for user scoping, rent_payments fallback
 
 ### Pending Todos
 
@@ -113,6 +115,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-05T05:12:18.868Z
-Stopped at: Completed 03-01-PLAN.md
+Last session: 2026-03-05T06:10:18.300Z
+Stopped at: Completed 02-07-PLAN.md (gap closure)
 Resume file: None
