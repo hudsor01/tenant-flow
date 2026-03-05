@@ -111,7 +111,7 @@ Plans:
 **Plans**: 6 plans
 
 Plans:
-- [ ] 05-01-PLAN.md — Rewrite stub report/financial hooks with real Supabase queries, remove dead code (SseProvider, duplicate GeneralSettings, radix icons, TODO(phase-57))
+- [x] 05-01-PLAN.md — Rewrite stub report/financial hooks with real Supabase queries, remove dead code (SseProvider, duplicate GeneralSettings, radix icons, TODO(phase-57))
 - [ ] 05-02-PLAN.md — Replace 48 type assertions with typed mapper functions, fix column references, payment status, select purity, webhook logging
 - [ ] 05-03-PLAN.md — Consolidate query keys to queryOptions() factories, fix string literals, add dashboard invalidation, resolve eslint suppressions
 - [ ] 05-04-PLAN.md — Split all oversized hook files (9 files, 6593 lines) into domain-focused modules
@@ -195,7 +195,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8 -> 9
 | 2. Financial Fixes | v1.0 | 7/7 | Complete | 2026-03-05 |
 | 3. Auth & Middleware | v1.0 | 6/6 | Complete | 2026-03-05 |
 | 4. Edge Function Hardening | v1.0 | 4/4 | Complete | 2026-03-05 |
-| 5. Code Quality & Type Safety | v1.0 | 1/6 | In progress | - |
+| 5. Code Quality & Type Safety | v1.0 | 2/6 | In progress | - |
 | 6. Database Schema & Migrations | v1.0 | 0/2 | Not started | - |
 | 7. UX & Accessibility | v1.0 | 0/3 | Not started | - |
 | 8. Performance Optimization | v1.0 | 0/3 | Not started | - |

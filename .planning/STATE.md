@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: Production Hardening
 status: completed
-stopped_at: Phase 5 context gathered
-last_updated: "2026-03-05T17:03:07.077Z"
-last_activity: 2026-03-05 — Consolidated query keys to factories, eliminated eslint suppressions, deduplicated RPC
+stopped_at: Completed 05-01-PLAN.md
+last_updated: "2026-03-05T18:35:00.000Z"
+last_activity: 2026-03-05 — Eliminated all stub hooks, created query key factories, removed dead code
 progress:
   total_phases: 9
   completed_phases: 4
-  total_plans: 19
-  completed_plans: 19
-  percent: 95
+  total_plans: 20
+  completed_plans: 20
+  percent: 96
 ---
 
 # Project State: TenantFlow
@@ -26,9 +26,9 @@ See: .planning/PROJECT.md (updated 2026-03-04)
 ## Current Position
 
 Phase: 5 of 9 (Code Quality & Type Safety)
-Plan: 3 of 6 in current phase (05-03 complete)
-Status: Completed 05-03 (Query key consolidation and cache invalidation)
-Last activity: 2026-03-05 — Consolidated query keys to factories, eliminated eslint suppressions, deduplicated RPC calls
+Plan: 4 of 6 in current phase (05-01 complete)
+Status: Completed 05-01 (Stub hook elimination and dead code removal)
+Last activity: 2026-03-05 — Eliminated all stub hooks, created query key factories, removed dead code
 
 Progress: [██████████] 95%
 
@@ -60,6 +60,7 @@ Progress: [██████████] 95%
 | Phase 04 P02 | 3min | 2 tasks | 6 files |
 | Phase 04 P03 | 5min | 2 tasks | 1 files |
 | Phase 05 P03 | 15min | 2 tasks | 20 files |
+| Phase 05 P01 | 6min | 3 tasks | 14 files |
 
 ## Accumulated Context
 
@@ -117,6 +118,9 @@ Progress: [██████████] 95%
 - [Phase 05]: select pattern on parent query eliminates queryClient closure (no eslint-disable needed)
 - [Phase 05]: analytics-keys.ts shared factory for get_revenue_trends_optimized (dedup across 4 call sites)
 - [Phase 05]: tour.tsx eslint-disable suppressions are legitimate upstream Dice UI patterns
+- [Phase 05]: report-keys.ts uses parallel Promise.all for multi-RPC queries (dashboard_stats + expense_summary)
+- [Phase 05]: Expense CRUD hooks kept inline in use-financials.ts (from() queries, not rpc())
+- [Phase 05]: @radix-ui/react-icons fully removed, lucide-react is sole icon library
 
 ### Pending Todos
 
@@ -131,6 +135,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-05T18:15:00.000Z
-Stopped at: Completed 05-03-PLAN.md
-Resume file: .planning/phases/05-code-quality-type-safety/05-04-PLAN.md
+Last session: 2026-03-05T18:35:00.000Z
+Stopped at: Completed 05-01-PLAN.md
+Resume file: .planning/phases/05-code-quality-type-safety/05-02-PLAN.md
