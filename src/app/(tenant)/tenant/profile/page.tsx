@@ -24,7 +24,7 @@ import {
 	AlertDialogHeader,
 	AlertDialogTitle
 } from '#components/ui/dialog'
-import { useSupabaseUpdateProfileMutation } from '#hooks/api/use-auth'
+import { useSupabaseUpdateProfileMutation } from '#hooks/api/use-auth-mutations'
 import {
 	useTenantNotificationPreferences,
 	useUpdateTenantNotificationPreferences

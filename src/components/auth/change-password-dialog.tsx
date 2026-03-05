@@ -13,7 +13,7 @@ import {
 	DialogTitle
 } from '#components/ui/dialog'
 import { Field, FieldLabel } from '#components/ui/field'
-import { useChangePasswordMutation } from '#hooks/api/use-auth'
+import { useChangePasswordMutation } from '#hooks/api/use-auth-mutations'
 import { logger } from '#shared/lib/frontend-logger'
 import { Eye, EyeOff, Lock } from 'lucide-react'
 import { useState } from 'react'

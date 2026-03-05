@@ -14,7 +14,7 @@ import {
 import { Input } from '#components/ui/input'
 import { Label } from '#components/ui/label'
 import { Spinner } from '#components/ui/loading-spinner'
-import { useSupabasePasswordResetMutation } from '#hooks/api/use-auth'
+import { useSupabasePasswordResetMutation } from '#hooks/api/use-auth-mutations'
 import { CheckCircle2, Info, Mail } from 'lucide-react'
 import { useState } from 'react'
 

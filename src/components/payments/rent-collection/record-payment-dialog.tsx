@@ -23,7 +23,7 @@ import {
 	DialogTitle,
 	DialogTrigger
 } from '#components/ui/dialog'
-import { useRecordManualPaymentMutation } from '#hooks/api/use-payments'
+import { useRecordManualPaymentMutation } from '#hooks/api/use-payment-mutations'
 import { toast } from 'sonner'
 
 export function RecordPaymentDialog() {

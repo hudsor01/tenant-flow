@@ -2,7 +2,8 @@
 
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { useSignOutMutation, authKeys } from '#hooks/api/use-auth'
+import { authKeys } from '#hooks/api/use-auth'
+import { useSignOutMutation } from '#hooks/api/use-auth-mutations'
 import { createClient } from '#lib/supabase/client'
 import { useQuery } from '@tanstack/react-query'
 import { Button } from '#components/ui/button'

@@ -8,7 +8,8 @@ import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { TenantNav } from './tenant-nav'
 import { generateBreadcrumbs } from '#lib/breadcrumbs'
-import { useSupabaseUser, useSignOutMutation } from '#hooks/api/use-auth'
+import { useSupabaseUser } from '#hooks/api/use-auth'
+import { useSignOutMutation } from '#hooks/api/use-auth-mutations'
 import { UserProfileMenu } from './user-profile-menu'
 
 export interface TenantShellProps {
