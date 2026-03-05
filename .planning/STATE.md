@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: Production Hardening
 status: completed
-stopped_at: Completed 05-01-PLAN.md
-last_updated: "2026-03-05T18:35:00.000Z"
+stopped_at: Completed 05-02-PLAN.md
+last_updated: "2026-03-05T18:36:22.201Z"
 last_activity: 2026-03-05 — Eliminated all stub hooks, created query key factories, removed dead code
 progress:
-  total_phases: 9
-  completed_phases: 4
-  total_plans: 20
-  completed_plans: 20
-  percent: 96
+  total_phases: 10
+  completed_phases: 5
+  total_plans: 33
+  completed_plans: 24
+  percent: 73
 ---
 
 # Project State: TenantFlow
@@ -21,16 +21,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-04)
 
 **Core value:** A landlord can add a property, invite a tenant, collect rent, and see their financials — without touching a spreadsheet or calling anyone.
-**Current focus:** v1.0 Production Hardening — Phase 4 execution in progress
+**Current focus:** v1.0 Production Hardening — Phase 5 execution in progress
 
 ## Current Position
 
 Phase: 5 of 9 (Code Quality & Type Safety)
-Plan: 4 of 6 in current phase (05-01 complete)
-Status: Completed 05-01 (Stub hook elimination and dead code removal)
-Last activity: 2026-03-05 — Eliminated all stub hooks, created query key factories, removed dead code
+Plan: 3 of 6 in current phase (05-02 complete)
+Status: Completed 05-02 (Type assertion elimination and column bug fixes)
+Last activity: 2026-03-05 — Eliminated 16 type assertions, fixed tenant-portal column bugs, corrected payment status
 
-Progress: [██████████] 95%
+Progress: [███████░░░] 73%
 
 ## Performance Metrics
 
@@ -61,6 +61,7 @@ Progress: [██████████] 95%
 | Phase 04 P03 | 5min | 2 tasks | 1 files |
 | Phase 05 P03 | 15min | 2 tasks | 20 files |
 | Phase 05 P01 | 6min | 3 tasks | 14 files |
+| Phase 05 P02 | 18min | 2 tasks | 6 files |
 
 ## Accumulated Context
 
@@ -121,6 +122,8 @@ Progress: [██████████] 95%
 - [Phase 05]: report-keys.ts uses parallel Promise.all for multi-RPC queries (dashboard_stats + expense_summary)
 - [Phase 05]: Expense CRUD hooks kept inline in use-financials.ts (from() queries, not rpc())
 - [Phase 05]: @radix-ui/react-icons fully removed, lucide-react is sole icon library
+- [Phase 05]: 24 structurally required as unknown as assertions kept (PostgREST string vs domain union literals)
+- [Phase 05]: isSuccessfulPaymentStatus simplified to exact match status === 'succeeded' per DB schema
 
 ### Pending Todos
 
@@ -135,6 +138,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-05T18:35:00.000Z
-Stopped at: Completed 05-01-PLAN.md
-Resume file: .planning/phases/05-code-quality-type-safety/05-02-PLAN.md
+Last session: 2026-03-05T18:36:22.198Z
+Stopped at: Completed 05-02-PLAN.md
+Resume file: None

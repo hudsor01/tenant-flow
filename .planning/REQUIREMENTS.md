@@ -88,15 +88,15 @@ All 131 findings from the review, plus CLAUDE.md maintenance.
 ### Code Quality — Type Safety & Correctness
 
 - [x] **CODE-01**: Fake table cast `from('reports' as 'properties')` removed
-- [ ] **CODE-02**: 50+ `as unknown as` type assertions replaced with proper Supabase Database types or mapper functions
+- [x] **CODE-02**: 50+ `as unknown as` type assertions replaced with proper Supabase Database types or mapper functions
 - [x] **CODE-03**: All mutation `onSuccess` handlers use canonical query key factories (not string literals)
 - [x] **CODE-04**: All property/tenant/lease delete mutations invalidate `ownerDashboardKeys.all`
-- [ ] **CODE-05**: Duplicate local types consolidated with `src/shared/types/` canonical types
+- [x] **CODE-05**: Duplicate local types consolidated with `src/shared/types/` canonical types
 - [x] **CODE-06**: Stub hooks (10+ in `use-reports.ts`, `use-financials.ts`) implemented or UI routes disabled
 - [x] **CODE-07**: Duplicate `GeneralSettings` component deleted — single source of truth
-- [ ] **CODE-08**: `useLeaseList` select function is pure (no `queryClient.setQueryData` side effects)
-- [ ] **CODE-09**: `tenantPortalQueries.payments()` column references fixed (`amount_cents` -> `amount`, `paid_at` -> `paid_date`)
-- [ ] **CODE-10**: `isSuccessfulPaymentStatus` uses correct status values per DB schema (`pending | processing | succeeded | failed | canceled`)
+- [x] **CODE-08**: `useLeaseList` select function is pure (no `queryClient.setQueryData` side effects)
+- [x] **CODE-09**: `tenantPortalQueries.payments()` column references fixed (`amount_cents` -> `amount`, `paid_at` -> `paid_date`)
+- [x] **CODE-10**: `isSuccessfulPaymentStatus` uses correct status values per DB schema (`pending | processing | succeeded | failed | canceled`)
 - [ ] **CODE-11**: Hook files split to stay under 300 lines (`use-tenant-portal.ts` 1351, `use-reports.ts` 923, `use-tenant.ts` 838, `use-lease.ts` 660, `use-financials.ts` 565, `use-payments.ts` 586, `use-owner-dashboard.ts` 562, `use-inspections.ts` 482, `use-billing.ts` 403)
 - [ ] **CODE-12**: `tour.tsx` (1732 lines) split into separate subcomponents
 - [ ] **CODE-13**: `stripe-webhooks/index.ts` (691 lines) split into handler modules
@@ -104,11 +104,11 @@ All 131 findings from the review, plus CLAUDE.md maintenance.
 - [ ] **CODE-15**: 63 `'use client'` page files audited — push directive down to leaf components where possible
 - [x] **CODE-16**: 8 `eslint-disable @tanstack/query/exhaustive-deps` suppressions resolved or rule configured globally
 - [x] **CODE-17**: Duplicate `get_revenue_trends_optimized` RPC calls deduplicated (3 hooks calling same RPC -> shared query)
-- [ ] **CODE-18**: `owner_user_id` access in `use-tenant-portal.ts:365` uses proper `.select()` column (not double-cast)
+- [x] **CODE-18**: `owner_user_id` access in `use-tenant-portal.ts:365` uses proper `.select()` column (not double-cast)
 - [x] **CODE-19**: `@radix-ui/react-icons` removed — project uses `lucide-react`
 - [x] **CODE-20**: Dead `SseProvider` removed from provider tree
 - [x] **CODE-21**: 25+ TODO comments referencing "phase-57" converted to tracked issues or removed
-- [ ] **CODE-22**: `console.log` for unhandled webhook event types replaced with structured logging or removed
+- [x] **CODE-22**: `console.log` for unhandled webhook event types replaced with structured logging or removed
 
 ### Database — Schema & Migrations
 
@@ -288,15 +288,15 @@ All 131 findings from the review, plus CLAUDE.md maintenance.
 | EDGE-13 | Phase 4 | Complete |
 | EDGE-14 | Phase 4 | Complete |
 | CODE-01 | Phase 5 | Complete |
-| CODE-02 | Phase 5 | Pending |
+| CODE-02 | Phase 5 | Complete |
 | CODE-03 | Phase 5 | Complete |
 | CODE-04 | Phase 5 | Complete |
-| CODE-05 | Phase 5 | Pending |
+| CODE-05 | Phase 5 | Complete |
 | CODE-06 | Phase 5 | Complete |
 | CODE-07 | Phase 5 | Complete |
-| CODE-08 | Phase 5 | Pending |
-| CODE-09 | Phase 5 | Pending |
-| CODE-10 | Phase 5 | Pending |
+| CODE-08 | Phase 5 | Complete |
+| CODE-09 | Phase 5 | Complete |
+| CODE-10 | Phase 5 | Complete |
 | CODE-11 | Phase 5 | Pending |
 | CODE-12 | Phase 5 | Pending |
 | CODE-13 | Phase 5 | Pending |
@@ -304,11 +304,11 @@ All 131 findings from the review, plus CLAUDE.md maintenance.
 | CODE-15 | Phase 5 | Pending |
 | CODE-16 | Phase 5 | Complete |
 | CODE-17 | Phase 5 | Complete |
-| CODE-18 | Phase 5 | Pending |
+| CODE-18 | Phase 5 | Complete |
 | CODE-19 | Phase 5 | Complete |
 | CODE-20 | Phase 5 | Complete |
 | CODE-21 | Phase 5 | Complete |
-| CODE-22 | Phase 5 | Pending |
+| CODE-22 | Phase 5 | Complete |
 | DB-01 | Phase 6 | Pending |
 | DB-02 | Phase 6 | Pending |
 | DB-03 | Phase 6 | Pending |
