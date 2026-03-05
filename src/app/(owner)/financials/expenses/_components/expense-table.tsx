@@ -27,7 +27,7 @@ import {
 } from '#components/ui/table'
 import { BlurFade } from '#components/ui/blur-fade'
 import { formatCents } from '#lib/formatters/currency'
-import type { Expense } from '#hooks/api/use-financials'
+import type { Expense } from '#hooks/api/use-expense-mutations'
 import { getCategoryBadge, EXPENSE_CATEGORIES } from './expense-category-badge'
 
 interface ExpenseTableProps {

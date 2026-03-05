@@ -8,7 +8,7 @@ import { PropertyBulkImportDialog } from './bulk-import-dialog'
 import {
 	useDeletePropertyMutation,
 	useUpdatePropertyMutation
-} from '#hooks/api/use-properties'
+} from '#hooks/api/use-property-mutations'
 
 import { PropertyCard } from './property-select-card'
 import { PropertyTable } from './property-table'

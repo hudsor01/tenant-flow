@@ -18,10 +18,9 @@ import {
 	useIncomeStatement,
 	useCashFlow,
 	useBalanceSheet,
-	useTaxDocuments,
-	financialKeys,
-	expenseKeys
+	financialKeys
 } from '../use-financials'
+import { useTaxDocuments, expenseKeys } from '../use-expense-mutations'
 
 // Mock Supabase client using vi.hoisted() to avoid initialization errors
 const { mockRpc, mockGetCachedUser } = vi.hoisted(() => ({

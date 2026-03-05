@@ -23,10 +23,12 @@ import {
 	usePropertyOccupancyAnalytics,
 	usePropertyFinancialAnalytics,
 	usePropertyMaintenanceAnalytics,
-	useMarkPropertySoldMutation,
-	usePrefetchPropertyDetail,
 	usePropertyImages
 } from '../use-properties'
+import {
+	useMarkPropertySoldMutation,
+	usePrefetchPropertyDetail
+} from '../use-property-mutations'
 
 // Mock logger
 vi.mock('#shared/lib/frontend-logger', () => ({

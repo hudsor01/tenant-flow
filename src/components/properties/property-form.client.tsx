@@ -8,7 +8,7 @@ import { createClient } from '#lib/supabase/client'
 import {
 	useCreatePropertyMutation,
 	useUpdatePropertyMutation
-} from '#hooks/api/use-properties'
+} from '#hooks/api/use-property-mutations'
 import { propertyQueries } from '#hooks/api/query-keys/property-keys'
 import { useSupabaseUser } from '#hooks/api/use-auth'
 import { useCurrentUser } from '#hooks/use-current-user'

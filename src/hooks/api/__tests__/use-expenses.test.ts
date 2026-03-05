@@ -18,7 +18,7 @@ import {
 	useCreateExpenseMutation,
 	useDeleteExpenseMutation,
 	expenseKeys
-} from '../use-financials'
+} from '../use-expense-mutations'
 
 // Supabase mock using vi.hoisted() to avoid initialization errors
 const {

@@ -3,10 +3,8 @@
 import { useCallback, useState } from 'react'
 import Image from 'next/image'
 import { createLogger } from '#shared/lib/frontend-logger'
-import {
-	usePropertyImages,
-	useDeletePropertyImageMutation
-} from '#hooks/api/use-properties'
+import { usePropertyImages } from '#hooks/api/use-properties'
+import { useDeletePropertyImageMutation } from '#hooks/api/use-property-mutations'
 import { useLightboxState } from '#hooks/use-lightbox-state'
 import { ImageLightbox } from './image-lightbox'
 import {
