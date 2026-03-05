@@ -108,7 +108,7 @@ Plans:
   3. No hook file exceeds 300 lines — oversized files (`use-tenant-portal.ts` 1351, `use-reports.ts` 923, etc.) split into focused modules
   4. Stub hooks either return real data or their UI routes show "coming soon" instead of fake zeros
   5. `pnpm typecheck && pnpm lint` passes with zero `eslint-disable @tanstack/query/exhaustive-deps` suppressions
-**Plans**: 9 plans
+**Plans**: 10 plans
 
 Plans:
 - [x] 05-01-PLAN.md — Rewrite stub report/financial hooks with real Supabase queries, remove dead code (SseProvider, duplicate GeneralSettings, radix icons, TODO(phase-57))
@@ -120,6 +120,7 @@ Plans:
 - [x] 05-07-PLAN.md — [GAP] Replace remaining string literal query keys, add dashboard invalidation to page deletes, wire revenue trends dedup
 - [x] 05-08-PLAN.md — [GAP] Split 6 largest oversized hook files (tenant, lease, billing, payments, profile, auth) into query/mutation pairs
 - [x] 05-09-PLAN.md — [GAP] Split remaining 5 oversized hook files (reports, dashboard, inspections, properties, financials)
+- [ ] 05-10-PLAN.md — [GAP] Split 4 oversized mutation files (tenant, lease, profile, inspection) into domain sub-modules
 
 ### Phase 6: Database Schema & Migrations
 **Goal**: All tables have correct constraints, FK relationships, and operational maintenance jobs
@@ -199,7 +200,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8 -> 9
 | 2. Financial Fixes | v1.0 | 7/7 | Complete | 2026-03-05 |
 | 3. Auth & Middleware | v1.0 | 6/6 | Complete | 2026-03-05 |
 | 4. Edge Function Hardening | v1.0 | 4/4 | Complete | 2026-03-05 |
-| 5. Code Quality & Type Safety | v1.0 | 8/9 | In Progress | - |
+| 5. Code Quality & Type Safety | v1.0 | 9/10 | In Progress | - |
 | 6. Database Schema & Migrations | v1.0 | 0/2 | Not started | - |
 | 7. UX & Accessibility | v1.0 | 0/3 | Not started | - |
 | 8. Performance Optimization | v1.0 | 0/3 | Not started | - |
