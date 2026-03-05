@@ -1,0 +1,190 @@
+// Detach Payment Method Edge Function
+// Detaches a payment method from Stripe API, then deletes from DB.
+// Stripe API detach is MANDATORY per Decision #20 -- no DB-only fallback.
+//
+// POST { payment_method_id: string } (UUID from payment_methods table)
+// Auth: Bearer token required (tenant must own the payment method)
+//
+// Flow:
+// 1. Authenticate caller
+// 2. Look up payment_methods row, verify ownership via tenant join
+// 3. stripe.paymentMethods.detach(stripe_pm_id) -- MANDATORY
+// 4. Delete from payment_methods table
+// 5. If deleted method was default, promote next most recent
+// 6. If deleted method was used for autopay and no others remain, disable autopay
+
+import Stripe from 'stripe'
+import { createClient } from '@supabase/supabase-js'
+import { getCorsHeaders, handleCorsOptions } from '../_shared/cors.ts'
+
+Deno.serve(async (req: Request) => {
+  const optionsResponse = handleCorsOptions(req)
+  if (optionsResponse) return optionsResponse
+
+  if (req.method !== 'POST') {
+    return new Response('Method Not Allowed', {
+      status: 405,
+      headers: getCorsHeaders(req),
+    })
+  }
+
+  const corsHeaders = getCorsHeaders(req)
+  const jsonHeaders = { ...corsHeaders, 'Content-Type': 'application/json' }
+
+  try {
+    // 1. Authenticate
+    const authHeader = req.headers.get('authorization')
+    if (!authHeader?.startsWith('Bearer ')) {
+      return new Response(
+        JSON.stringify({ error: 'Missing authorization header' }),
+        { status: 401, headers: jsonHeaders }
+      )
+    }
+    const token = authHeader.replace('Bearer ', '')
+
+    const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? ''
+    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+    const stripeKey = Deno.env.get('STRIPE_SECRET_KEY') ?? ''
+
+    // Create user-scoped client for auth verification
+    const supabaseAuth = createClient(supabaseUrl, supabaseServiceKey, {
+      global: { headers: { Authorization: `Bearer ${token}` } },
+    })
+
+    const {
+      data: { user },
+      error: userError,
+    } = await supabaseAuth.auth.getUser(token)
+
+    if (userError || !user) {
+      return new Response(
+        JSON.stringify({ error: 'Not authenticated' }),
+        { status: 401, headers: jsonHeaders }
+      )
+    }
+
+    // Parse request body
+    const body = await req.json()
+    const paymentMethodId: string | undefined = body.payment_method_id
+
+    if (!paymentMethodId) {
+      return new Response(
+        JSON.stringify({ error: 'payment_method_id is required' }),
+        { status: 400, headers: jsonHeaders }
+      )
+    }
+
+    // Use service role client for DB operations
+    const supabase = createClient(supabaseUrl, supabaseServiceKey)
+
+    // 2. Look up payment method and verify ownership
+    const { data: paymentMethod, error: pmError } = await supabase
+      .from('payment_methods')
+      .select('id, stripe_payment_method_id, tenant_id, is_default')
+      .eq('id', paymentMethodId)
+      .single()
+
+    if (pmError || !paymentMethod) {
+      return new Response(
+        JSON.stringify({ error: 'Payment method not found' }),
+        { status: 404, headers: jsonHeaders }
+      )
+    }
+
+    // Verify the payment method belongs to the caller's tenant
+    const { data: tenant, error: tenantError } = await supabase
+      .from('tenants')
+      .select('id')
+      .eq('id', paymentMethod.tenant_id)
+      .eq('user_id', user.id)
+      .single()
+
+    if (tenantError || !tenant) {
+      return new Response(
+        JSON.stringify({ error: 'Forbidden: payment method does not belong to you' }),
+        { status: 403, headers: jsonHeaders }
+      )
+    }
+
+    // 3. Detach from Stripe API -- MANDATORY, no fallback
+    const stripe = new Stripe(stripeKey, { apiVersion: '2025-02-24.acacia' })
+    const stripePmId = paymentMethod.stripe_payment_method_id as string
+
+    await stripe.paymentMethods.detach(stripePmId)
+
+    // 4. Delete from DB
+    const wasDefault = paymentMethod.is_default as boolean
+
+    const { error: deleteError } = await supabase
+      .from('payment_methods')
+      .delete()
+      .eq('id', paymentMethodId)
+
+    if (deleteError) {
+      console.error('Failed to delete payment method from DB after Stripe detach', deleteError)
+      return new Response(
+        JSON.stringify({ error: 'Stripe detach succeeded but DB deletion failed' }),
+        { status: 500, headers: jsonHeaders }
+      )
+    }
+
+    // 5. If deleted method was default, promote next most recent
+    if (wasDefault) {
+      const { data: nextMethod } = await supabase
+        .from('payment_methods')
+        .select('id')
+        .eq('tenant_id', tenant.id)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle()
+
+      if (nextMethod) {
+        await supabase
+          .from('payment_methods')
+          .update({ is_default: true })
+          .eq('id', nextMethod.id)
+      }
+    }
+
+    // 6. Check if deleted method was used for autopay
+    // Find leases where this tenant has autopay enabled with the detached payment method
+    const { data: leases } = await supabase
+      .from('leases')
+      .select('id, autopay_payment_method_id, lease_tenants!inner(tenant_id)')
+      .eq('lease_tenants.tenant_id', tenant.id)
+      .eq('auto_pay_enabled', true)
+      .eq('autopay_payment_method_id', stripePmId)
+
+    if (leases && leases.length > 0) {
+      // Check if tenant has any remaining payment methods
+      const { count } = await supabase
+        .from('payment_methods')
+        .select('id', { count: 'exact', head: true })
+        .eq('tenant_id', tenant.id)
+
+      if ((count ?? 0) === 0) {
+        // No payment methods left -- disable autopay on affected leases
+        for (const lease of leases) {
+          await supabase.rpc('toggle_autopay', {
+            p_lease_id: lease.id,
+            p_enabled: false,
+            p_payment_method_id: null,
+          })
+        }
+      }
+    }
+
+    return new Response(
+      JSON.stringify({ success: true }),
+      { status: 200, headers: jsonHeaders }
+    )
+  } catch (err) {
+    console.error('detach-payment-method error:', err)
+    return new Response(
+      JSON.stringify({
+        error: err instanceof Error ? err.message : 'Internal server error',
+      }),
+      { status: 500, headers: jsonHeaders }
+    )
+  }
+})

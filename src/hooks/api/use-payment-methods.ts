@@ -110,11 +110,39 @@ export function useDeletePaymentMethod() {
 			paymentMethodId: string
 		): Promise<{ success: boolean }> => {
 			const supabase = createClient()
-			const { error } = await supabase
+			const user = await getCachedUser()
+			if (!user) throw new Error('Not authenticated')
+
+			// Resolve tenant to check count
+			const { data: tenant, error: tenantError } = await supabase
+				.from('tenants')
+				.select('id')
+				.eq('user_id', user.id)
+				.single()
+			if (tenantError) handlePostgrestError(tenantError, 'tenants')
+			if (!tenant) throw new Error('Tenant record not found')
+
+			// Last-method guard: prevent deleting the only payment method
+			const { count, error: countError } = await supabase
 				.from('payment_methods')
-				.delete()
-				.eq('id', paymentMethodId)
-			if (error) handlePostgrestError(error, 'payment_methods')
+				.select('id', { count: 'exact', head: true })
+				.eq('tenant_id', tenant.id)
+			if (countError) handlePostgrestError(countError, 'payment_methods')
+
+			if ((count ?? 0) <= 1) {
+				throw new Error('Add another payment method before removing this one')
+			}
+
+			// Call detach-payment-method Edge Function (Stripe detach is mandatory)
+			const { data, error } = await supabase.functions.invoke(
+				'detach-payment-method',
+				{ body: { payment_method_id: paymentMethodId } }
+			)
+			if (error) throw new Error(error.message ?? 'Failed to detach payment method')
+
+			const result = data as { success?: boolean; error?: string } | null
+			if (result?.error) throw new Error(result.error)
+
 			return { success: true }
 		},
 		onSuccess: (_data, paymentMethodId) => {
@@ -140,28 +168,12 @@ export function useSetDefaultPaymentMethod() {
 			paymentMethodId: string
 		): Promise<{ success: boolean }> => {
 			const supabase = createClient()
-			const user = await getCachedUser()
-			if (!user) throw new Error('Not authenticated')
 
-			const { data: tenant, error: tenantError } = await supabase
-				.from('tenants')
-				.select('id')
-				.eq('user_id', user.id)
-				.single()
-			if (tenantError) handlePostgrestError(tenantError, 'tenants')
-			if (!tenant) throw new Error('Tenant record not found')
-
-			const { error: clearError } = await supabase
-				.from('payment_methods')
-				.update({ is_default: false })
-				.eq('tenant_id', tenant.id)
-			if (clearError) handlePostgrestError(clearError, 'payment_methods')
-
-			const { error } = await supabase
-				.from('payment_methods')
-				.update({ is_default: true })
-				.eq('id', paymentMethodId)
-			if (error) handlePostgrestError(error, 'payment_methods')
+			// Atomic RPC call replaces the two-step clear-all/set-one pattern
+			const { error } = await supabase.rpc('set_default_payment_method', {
+				p_payment_method_id: paymentMethodId
+			})
+			if (error) handlePostgrestError(error, 'set_default_payment_method')
 
 			return { success: true }
 		},
