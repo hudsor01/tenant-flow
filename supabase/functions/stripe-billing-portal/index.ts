@@ -30,7 +30,7 @@ Deno.serve(async (req: Request) => {
   }
 
   try {
-    const stripe = new Stripe(stripeKey, { apiVersion: '2024-06-20' })
+    const stripe = new Stripe(stripeKey, { apiVersion: '2026-02-25.clover' as Stripe.LatestApiVersion })
 
     // Get Stripe customer ID for this user
     const { data: userData } = await supabase

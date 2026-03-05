@@ -23,7 +23,7 @@ Deno.serve(async (req: Request) => {
     const supabase = createClient(supabaseUrl, supabaseKey)
 
     const stripeKey = Deno.env.get('STRIPE_SECRET_KEY') ?? ''
-    const stripe = new Stripe(stripeKey, { apiVersion: '2024-06-20' })
+    const stripe = new Stripe(stripeKey, { apiVersion: '2026-02-25.clover' as Stripe.LatestApiVersion })
 
     const returnUrl = Deno.env.get('FRONTEND_URL') ?? 'http://localhost:3050'
 

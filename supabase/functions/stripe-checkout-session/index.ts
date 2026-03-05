@@ -32,7 +32,7 @@ Deno.serve(async (req: Request) => {
       )
     }
 
-    const stripe = new Stripe(stripeKey, { apiVersion: '2024-06-20' })
+    const stripe = new Stripe(stripeKey, { apiVersion: '2026-02-25.clover' as Stripe.LatestApiVersion })
 
     const session = await stripe.checkout.sessions.retrieve(sessionId)
 
