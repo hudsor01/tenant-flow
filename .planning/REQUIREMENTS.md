@@ -82,7 +82,7 @@ All 131 findings from the review, plus CLAUDE.md maintenance.
 - [x] **PAY-18**: Owner payment receipt email includes fee breakdown (platform fee, Stripe fee, net amount)
 - [x] **PAY-19**: `useSubscriptionStatus` checks actual subscription status, not just `stripe_customer_id` existence
 - [x] **PAY-20**: Billing hooks (`useInvoices`, `useSubscriptionBillingHistory`, `useFailedPaymentAttempts`) implemented or UI disabled
-- [ ] **PAY-21**: Success/cancel redirect URLs include `rent_due_id` or `session_id` for verification
+- [x] **PAY-21**: Success/cancel redirect URLs include `rent_due_id` or `session_id` for verification
 - [x] **PAY-22**: `rent_due` table verified to have service_role write policies (may have been dropped in migration simplification)
 
 ### Code Quality — Type Safety & Correctness
@@ -254,7 +254,7 @@ All 131 findings from the review, plus CLAUDE.md maintenance.
 | PAY-18 | Phase 2 | Complete |
 | PAY-19 | Phase 2 | Complete |
 | PAY-20 | Phase 2 | Complete |
-| PAY-21 | Phase 2 | Pending |
+| PAY-21 | Phase 2 | Complete |
 | PAY-22 | Phase 2 | Complete |
 | AUTH-01 | Phase 3 | Pending |
 | AUTH-02 | Phase 3 | Pending |

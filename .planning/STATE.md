@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: Production Hardening
 status: completed
-stopped_at: Completed 02-02-PLAN.md
-last_updated: "2026-03-05T00:44:30.453Z"
+stopped_at: Completed 02-03-PLAN.md
+last_updated: "2026-03-05T00:52:49.521Z"
 last_activity: 2026-03-04 — Diagnosed Stripe sync engine, created monitoring RPC
 progress:
   total_phases: 9
   completed_phases: 1
   total_plans: 8
-  completed_plans: 5
+  completed_plans: 6
   percent: 11
 ---
 
@@ -47,6 +47,7 @@ Progress: [#░░░░░░░░░] 11%
 | 02-financial-fixes | 1/6 | ~4 min | ~4 min |
 | Phase 02 P01 | 4min | 2 tasks | 2 files |
 | Phase 02 P02 | 5min | 2 tasks | 3 files |
+| Phase 02 P03 | 5min | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -69,6 +70,9 @@ Progress: [#░░░░░░░░░] 11%
 - [Phase 02]: record_rent_payment RPC skips auth.uid() (called by service_role from webhook handler)
 - [Phase 02]: Sentry with console.error fallback when SENTRY_DSN not set — structured JSON logging as bridge
 - [Phase 02]: invoice.payment_failed skips subscription_status update — stripe.subscriptions is source of truth
+- [Phase 02]: Autopay idempotency key: rent_due_id + tenant_id scoped per-tenant for shared leases
+- [Phase 02]: Edge Function independently verifies tenant portion as safety net against pg_cron bugs
+- [Phase 02]: Autopay retry: day 1 initial, day 3 retry 1, day 7 retry 2 — Edge Function computes next_retry_at
 
 ### Pending Todos
 
@@ -83,6 +87,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-05T00:44:30.451Z
-Stopped at: Completed 02-02-PLAN.md
+Last session: 2026-03-05T00:52:49.520Z
+Stopped at: Completed 02-03-PLAN.md
 Resume file: None
