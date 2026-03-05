@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: Production Hardening
 status: completed
-stopped_at: Completed 03-04-PLAN.md
-last_updated: "2026-03-05T04:48:17.609Z"
+stopped_at: Completed 03-02-PLAN.md
+last_updated: "2026-03-05T04:55:23.557Z"
 last_activity: 2026-03-04 — Created branded auth email templates and auth-email-send Edge Function
 progress:
   total_phases: 9
   completed_phases: 2
   total_plans: 23
-  completed_plans: 13
+  completed_plans: 14
   percent: 22
 ---
 
@@ -53,6 +53,7 @@ Progress: [##░░░░░░░░] 22%
 | Phase 03 P03 | 6min | 2 tasks | 3 files |
 | Phase 03 P04 | 13min | 2 tasks | 6 files |
 | Phase 03 P06 | 8min | 2 tasks | 2 files |
+| Phase 03 P02 | 18min | 2 tasks | 7 files |
 
 ## Accumulated Context
 
@@ -92,6 +93,9 @@ Progress: [##░░░░░░░░] 22%
 - [Phase 03]: AUTH-14: BEFORE UPDATE trigger for user_type restriction (not RLS WITH CHECK which would block profile updates)
 - [Phase 03]: AUTH-05: Checkout session stays unauthenticated but returns minimal data (customer_email only)
 - [Phase 03]: AUTH-10: Post-checkout requires explicit Resend button click for magic link (no auto-send)
+- [Phase 03]: AUTH-03: AuthProvider uses getUser() for server-validated session init (not getSession())
+- [Phase 03]: AUTH-06: Module-level Supabase client removed; per-mutation client creation pattern
+- [Phase 03]: AUTH-16: Single authKeys factory in use-auth.ts; authQueryKeys removed from auth-provider.tsx
 
 ### Pending Todos
 
@@ -106,6 +110,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-05T04:48:17.606Z
-Stopped at: Completed 03-04-PLAN.md
+Last session: 2026-03-05T04:55:23.554Z
+Stopped at: Completed 03-02-PLAN.md
 Resume file: None

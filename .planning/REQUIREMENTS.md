@@ -27,11 +27,11 @@ All 131 findings from the review, plus CLAUDE.md maintenance.
 
 - [ ] **AUTH-01**: Middleware correctly registered (`middleware.ts` exporting `middleware`) and verified executing
 - [ ] **AUTH-02**: Role-based route enforcement — tenants redirected from owner routes, owners from tenant routes
-- [ ] **AUTH-03**: `AuthProvider` uses `getUser()` instead of `getSession()` for session initialization
+- [x] **AUTH-03**: `AuthProvider` uses `getUser()` instead of `getSession()` for session initialization
 - [x] **AUTH-04**: `tenant-invitation-accept` requires JWT — `authuser_id` derived from verified token
 - [x] **AUTH-05**: `stripe-checkout-session` requires authentication or returns minimal data only
-- [ ] **AUTH-06**: Module-level Supabase client in `use-auth.ts` moved inside mutation functions
-- [ ] **AUTH-07**: `getCachedUser()` validates session server-side, not just local cache
+- [x] **AUTH-06**: Module-level Supabase client in `use-auth.ts` moved inside mutation functions
+- [x] **AUTH-07**: `getCachedUser()` validates session server-side, not just local cache
 - [x] **AUTH-08**: OAuth callback verifies `email_confirmed_at` before auto-accepting invitations
 - [x] **AUTH-09**: `accept-invite` page sends Authorization header when calling edge function
 - [x] **AUTH-10**: `post-checkout` page does not send magic link based on unauthenticated edge function response
@@ -40,8 +40,8 @@ All 131 findings from the review, plus CLAUDE.md maintenance.
 - [x] **AUTH-13**: `x-forwarded-host` header sanitized or ignored in OAuth callback redirect URL construction
 - [x] **AUTH-14**: `select-role` page UPDATE restricted to users with current `user_type = 'PENDING'` via RLS
 - [x] **AUTH-15**: `verifyOtp` type parameter validated against known types before cast
-- [ ] **AUTH-16**: Dual auth query key systems (`authQueryKeys` vs `authKeys`) unified — `clearAuthData()` clears all namespaces
-- [ ] **AUTH-17**: `confirm-email` page uses `getUser()` instead of `getSession()` for email extraction
+- [x] **AUTH-16**: Dual auth query key systems (`authQueryKeys` vs `authKeys`) unified — `clearAuthData()` clears all namespaces
+- [x] **AUTH-17**: `confirm-email` page uses `getUser()` instead of `getSession()` for email extraction
 
 ### Security — Edge Functions & Headers
 
@@ -258,11 +258,11 @@ All 131 findings from the review, plus CLAUDE.md maintenance.
 | PAY-22 | Phase 2 | Complete |
 | AUTH-01 | Phase 3 | Pending |
 | AUTH-02 | Phase 3 | Pending |
-| AUTH-03 | Phase 3 | Pending |
+| AUTH-03 | Phase 3 | Complete |
 | AUTH-04 | Phase 3 | Complete |
 | AUTH-05 | Phase 3 | Complete |
-| AUTH-06 | Phase 3 | Pending |
-| AUTH-07 | Phase 3 | Pending |
+| AUTH-06 | Phase 3 | Complete |
+| AUTH-07 | Phase 3 | Complete |
 | AUTH-08 | Phase 3 | Complete |
 | AUTH-09 | Phase 3 | Complete |
 | AUTH-10 | Phase 3 | Complete |
@@ -271,8 +271,8 @@ All 131 findings from the review, plus CLAUDE.md maintenance.
 | AUTH-13 | Phase 3 | Complete |
 | AUTH-14 | Phase 3 | Complete |
 | AUTH-15 | Phase 3 | Complete |
-| AUTH-16 | Phase 3 | Pending |
-| AUTH-17 | Phase 3 | Pending |
+| AUTH-16 | Phase 3 | Complete |
+| AUTH-17 | Phase 3 | Complete |
 | EDGE-01 | Phase 4 | Pending |
 | EDGE-02 | Phase 4 | Pending |
 | EDGE-03 | Phase 4 | Pending |
