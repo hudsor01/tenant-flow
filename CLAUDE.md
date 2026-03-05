@@ -49,6 +49,10 @@ pnpm validate:quick               # types + lint + unit tests
 - `supabase.ts` is generated — never edit manually
 - Valid `rent_payments.status`: `pending | processing | succeeded | failed | canceled`
 - Error monitoring RPCs are admin-only (`user_type = 'ADMIN'`)
+- Amount convention: All `amount` columns (`rent_due.amount`, `rent_payments.amount`, etc.) store **dollars** as `numeric(10,2)`. Convert to cents (`Math.round(amount * 100)`) ONLY at the Stripe API boundary in Edge Functions. Never divide by 100 in display code.
+- Autopay retry: `rent_due` has `autopay_attempts`, `autopay_last_attempt_at`, `autopay_next_retry_at` columns for pg_cron retry scheduling (3 attempts over 7 days).
+- Webhook idempotency: `stripe_webhook_events.status` tracks `processing` / `succeeded` / `failed`. Never delete records on failure.
+- Shared leases: Per-tenant portions computed dynamically from `lease_tenants.responsibility_percentage`. Each tenant pays `rent_due.amount * percentage / 100`.
 
 ## Data Access Patterns
 All data access goes through Supabase PostgREST and RPC. There is no custom backend API server.
@@ -71,6 +75,7 @@ const { data } = await supabase.rpc('get_dashboard_stats', {
 - Always use `{ count: 'exact' }` for pagination — never `data.length`
 - Soft-deleted tables (properties): always filter `.neq('status', 'inactive')`
 - Use `.single()` for exactly-one results, `.limit(1)` + `[0]` when zero-or-one
+- Atomic multi-table writes use SECURITY DEFINER RPCs: `record_rent_payment` (upserts payment + updates rent_due status), `set_default_payment_method` (atomic default swap), `toggle_autopay` (tenant-validated autopay toggle).
 
 ## Edge Functions
 Server-side logic runs as Supabase Edge Functions (Deno runtime).
@@ -81,6 +86,9 @@ Server-side logic runs as Supabase Edge Functions (Deno runtime).
 - Auth pattern: extract Bearer token, then `supabase.auth.getUser(token)` to verify
 - CORS: use `getCorsHeaders(req)` and early-return `handleCorsOptions(req)` for preflight
 - Deploy: `supabase functions deploy <function-name>`
+- Stripe SDK: All Edge Functions use `stripe@20` with `apiVersion: '2026-02-25.clover'` (Deno import map in `supabase/functions/deno.json`).
+- Payment metadata: Always validate `tenant_id`, `lease_id`, `rent_due_id` from Stripe metadata. Never use empty string fallbacks.
+- Payment method deletion: Must call `detach-payment-method` Edge Function which detaches from Stripe API before DB deletion. No DB-only deletion allowed.
 
 ## Security Model
 RLS (Row Level Security) is the only access-control layer. No middleware auth, no backend guards.
@@ -106,3 +114,6 @@ RLS (Row Level Security) is the only access-control layer. No middleware auth, n
 - Supabase auth: always `getAll`/`setAll` cookie methods (never `get`/`set`/`remove`)
 - Pagination: use `count` from Supabase response, never `data.length`
 - MCP servers: supabase, sentry, shadcn, context7, stripe, n8n configured in project
+- Amount units: `rent_due.amount` is dollars (numeric). Multiply by 100 only in Edge Functions when calling Stripe API. `formatCurrency(amountInDollars)` is the only currency formatter.
+- Stripe schema: `stripe.*` tables (subscriptions, invoices, etc.) are queryable via PostgREST with existing RLS. Use for billing display — do not call Stripe API for read operations.
+- Subscription status: Query `stripe.subscriptions` for real status (`active`, `past_due`, `canceled`, `unpaid`). Do NOT check `users.stripe_customer_id` existence.
