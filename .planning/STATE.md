@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: Production Hardening
 status: completed
-stopped_at: Completed 02-04-PLAN.md
-last_updated: "2026-03-05T01:05:15.163Z"
+stopped_at: Completed 02-05-PLAN.md
+last_updated: "2026-03-05T01:09:48.856Z"
 last_activity: 2026-03-04 — Diagnosed Stripe sync engine, created monitoring RPC
 progress:
   total_phases: 9
-  completed_phases: 1
+  completed_phases: 2
   total_plans: 8
-  completed_plans: 7
+  completed_plans: 8
   percent: 11
 ---
 
@@ -49,6 +49,7 @@ Progress: [#░░░░░░░░░] 11%
 | Phase 02 P02 | 5min | 2 tasks | 3 files |
 | Phase 02 P03 | 5min | 2 tasks | 3 files |
 | Phase 02 P04 | 9min | 4 tasks | 9 files |
+| Phase 02 P05 | 3min | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -77,6 +78,7 @@ Progress: [#░░░░░░░░░] 11%
 - [Phase 02]: Subscription status falls back to leases.stripe_subscription_status if RPC unavailable
 - [Phase 02]: formatCents consolidation deferred (96 occurrences in 27 files) -- not a bug, just convenience wrapper
 - [Phase 02]: Plan limit checks fail-open on frontend (RLS is real enforcement)
+- [Phase 02]: Used property_owners.charges_enabled directly instead of stripe.accounts lookup for onboarding backfill
 
 ### Pending Todos
 
@@ -91,6 +93,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-05T01:05:15.161Z
-Stopped at: Completed 02-04-PLAN.md
+Last session: 2026-03-05T01:09:48.854Z
+Stopped at: Completed 02-05-PLAN.md
 Resume file: None
