@@ -37,7 +37,10 @@ const mockUser = {
 const mockSignOutMutation = { mutate: vi.fn() }
 
 vi.mock('#hooks/api/use-auth', () => ({
-	useSupabaseUser: () => ({ data: mockUser }),
+	useSupabaseUser: () => ({ data: mockUser })
+}))
+
+vi.mock('#hooks/api/use-auth-mutations', () => ({
 	useSignOutMutation: () => mockSignOutMutation
 }))
 

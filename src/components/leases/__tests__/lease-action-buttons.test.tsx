@@ -67,7 +67,7 @@ const mockRenewLease = {
 	isPending: false
 }
 
-vi.mock('#hooks/api/use-lease', () => ({
+vi.mock('#hooks/api/use-lease-mutations', () => ({
 	useSendLeaseForSignatureMutation: () => mockSendForSignature,
 	useResendSignatureRequestMutation: () => mockResendSignature,
 	useSignLeaseAsOwnerMutation: () => mockSignAsOwner,

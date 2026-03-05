@@ -90,7 +90,10 @@ vi.mock('#hooks/api/use-profile', () => ({
 		data: mockProfileData,
 		isLoading: false,
 		error: null
-	}),
+	})
+}))
+
+vi.mock('#hooks/api/use-profile-mutations', () => ({
 	useUpdateProfileMutation: () => ({
 		mutateAsync: mockUpdateProfile,
 		isPending: false
@@ -120,20 +123,16 @@ vi.mock('#hooks/api/use-profile', () => ({
 // Mock use-auth hooks
 const mockSignOut = vi.fn()
 const mockChangePassword = vi.fn()
-vi.mock('#hooks/api/use-auth', async (importOriginal) => {
-	const actual = await importOriginal() as Record<string, unknown>
-	return {
-		...actual,
-		useSignOutMutation: () => ({
-			mutateAsync: mockSignOut,
-			isPending: false
-		}),
-		useChangePasswordMutation: () => ({
-			mutateAsync: mockChangePassword,
-			isPending: false
-		})
-	}
-})
+vi.mock('#hooks/api/use-auth-mutations', () => ({
+	useSignOutMutation: () => ({
+		mutateAsync: mockSignOut,
+		isPending: false
+	}),
+	useChangePasswordMutation: () => ({
+		mutateAsync: mockChangePassword,
+		isPending: false
+	})
+}))
 
 // Mock sonner
 vi.mock('sonner', () => ({
