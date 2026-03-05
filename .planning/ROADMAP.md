@@ -69,11 +69,14 @@ Plans:
   3. Tenant invitation acceptance requires a valid JWT — unauthenticated callers cannot accept invitations
   4. OAuth callback verifies email ownership before auto-accepting invitations
   5. Login redirect parameter, signout method, and OTP type are all validated against injection and CSRF
-**Plans**: TBD
+**Plans**: 5 plans
 
 Plans:
-- [ ] 03-01: TBD
-- [ ] 03-02: TBD
+- [ ] 03-01-PLAN.md — Create Next.js middleware with Supabase auth + role-based route enforcement
+- [ ] 03-02-PLAN.md — Harden session validation: getUser() over getSession(), unify auth query keys, fix module-level client
+- [ ] 03-03-PLAN.md — Fix auth callback security: x-forwarded-host injection, OTP type validation, login redirect validation
+- [ ] 03-04-PLAN.md — Secure invitation JWT auth, checkout minimal data, signout CSRF, select-role restriction
+- [ ] 03-05-PLAN.md — Update CLAUDE.md with Phase 3 auth conventions
 
 ### Phase 4: Edge Function Hardening
 **Goal**: All Edge Functions fail-fast on missing config, reject abuse, and never leak internal errors
@@ -184,7 +187,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8 -> 9
 |-------|-----------|----------------|--------|-----------|
 | 1. RPC & Database Security | v1.0 | 2/2 | Complete | 2026-03-04 |
 | 2. Financial Fixes | 4/6 | In Progress|  | - |
-| 3. Auth & Middleware | v1.0 | 0/2 | Not started | - |
+| 3. Auth & Middleware | v1.0 | 0/5 | Not started | - |
 | 4. Edge Function Hardening | v1.0 | 0/2 | Not started | - |
 | 5. Code Quality & Type Safety | v1.0 | 0/3 | Not started | - |
 | 6. Database Schema & Migrations | v1.0 | 0/2 | Not started | - |
