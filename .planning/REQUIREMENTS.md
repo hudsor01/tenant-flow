@@ -97,7 +97,7 @@ All 131 findings from the review, plus CLAUDE.md maintenance.
 - [x] **CODE-08**: `useLeaseList` select function is pure (no `queryClient.setQueryData` side effects)
 - [x] **CODE-09**: `tenantPortalQueries.payments()` column references fixed (`amount_cents` -> `amount`, `paid_at` -> `paid_date`)
 - [x] **CODE-10**: `isSuccessfulPaymentStatus` uses correct status values per DB schema (`pending | processing | succeeded | failed | canceled`)
-- [ ] **CODE-11**: Hook files split to stay under 300 lines (`use-tenant-portal.ts` 1351, `use-reports.ts` 923, `use-tenant.ts` 838, `use-lease.ts` 660, `use-financials.ts` 565, `use-payments.ts` 586, `use-owner-dashboard.ts` 562, `use-inspections.ts` 482, `use-billing.ts` 403)
+- [x] **CODE-11**: Hook files split to stay under 300 lines (`use-tenant-portal.ts` 1351, `use-reports.ts` 923, `use-tenant.ts` 838, `use-lease.ts` 660, `use-financials.ts` 565, `use-payments.ts` 586, `use-owner-dashboard.ts` 562, `use-inspections.ts` 482, `use-billing.ts` 403)
 - [x] **CODE-12**: `tour.tsx` (1732 lines) split into separate subcomponents
 - [x] **CODE-13**: `stripe-webhooks/index.ts` (691 lines) split into handler modules
 - [x] **CODE-14**: Page components exceeding 300 lines refactored (`dashboard/page.tsx` 373, `properties/page.tsx` 393, `tenants/page.tsx` 378, `reports/generate/page.tsx` 400)
@@ -297,7 +297,7 @@ All 131 findings from the review, plus CLAUDE.md maintenance.
 | CODE-08 | Phase 5 | Complete |
 | CODE-09 | Phase 5 | Complete |
 | CODE-10 | Phase 5 | Complete |
-| CODE-11 | Phase 5 | Pending |
+| CODE-11 | Phase 5 | Complete |
 | CODE-12 | Phase 5 | Complete |
 | CODE-13 | Phase 5 | Complete |
 | CODE-14 | Phase 5 | Complete |

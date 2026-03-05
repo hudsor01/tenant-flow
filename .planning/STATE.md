@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: Production Hardening
-status: completed
-stopped_at: Completed 05-07-PLAN.md
-last_updated: "2026-03-05T20:42:00Z"
-last_activity: 2026-03-05 — Replaced all string literal query keys, added dashboard invalidation, shared fetchRevenueTrends
+status: executing
+stopped_at: Completed 05-09-PLAN.md
+last_updated: "2026-03-05T20:57:00Z"
+last_activity: 2026-03-05 — Split use-properties and use-financials, all 11 hook files under 300 lines
 progress:
   total_phases: 10
   completed_phases: 5
   total_plans: 33
-  completed_plans: 27
-  percent: 82
+  completed_plans: 29
+  percent: 88
 ---
 
 # Project State: TenantFlow
@@ -26,11 +26,11 @@ See: .planning/PROJECT.md (updated 2026-03-04)
 ## Current Position
 
 Phase: 5 of 9 (Code Quality & Type Safety)
-Plan: 7 of 9 in current phase (05-07 complete)
-Status: Completed 05-07 (Query key factory migration, dashboard invalidation, revenue trends dedup)
-Last activity: 2026-03-05 — Replaced all string literal query keys, added dashboard invalidation on deletes, shared fetchRevenueTrends
+Plan: 9 of 9 in current phase (05-09 complete)
+Status: Completed 05-09 (Hook file splits batch 2 -- properties, financials)
+Last activity: 2026-03-05 — Split use-properties and use-financials, all 11 hook files under 300 lines
 
-Progress: [████████░░] 82%
+Progress: [█████████░] 88%
 
 ## Performance Metrics
 
@@ -65,6 +65,7 @@ Progress: [████████░░] 82%
 | Phase 05 P05 | 8min | 2 tasks | 15 files |
 | Phase 05 P06 | 18min | 2 tasks | 95 files |
 | Phase 05 P07 | 9min | 2 tasks | 19 files |
+| Phase 05 P09 | 11min | 2 tasks | 16 files |
 
 ## Accumulated Context
 
@@ -135,6 +136,8 @@ Progress: [████████░░] 82%
 - [Phase 05]: fetchRevenueTrends as standalone function (not queryOptions spread) to avoid TanStack Query generic type conflicts
 - [Phase 05]: general-settings.tsx uses useProfile() hook instead of inline user-profile query with different cache key
 - [Phase 05]: blogKeys factory inline in use-blogs.ts (simple public queries, no cross-domain sharing needed)
+- [Phase 05]: Expense queries co-located with expense mutations in use-expense-mutations.ts (domain cohesion over strict query/mutation separation)
+- [Phase 05]: No re-exports from trimmed hook files -- all consumers updated to import directly from defining file
 
 ### Pending Todos
 
@@ -149,6 +152,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-05T20:42:00Z
-Stopped at: Completed 05-07-PLAN.md
+Last session: 2026-03-05T20:57:00Z
+Stopped at: Completed 05-09-PLAN.md
 Resume file: None
