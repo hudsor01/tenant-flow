@@ -23,23 +23,27 @@ import type { Database } from '#shared/types/supabase'
 import { env } from '#env'
 
 /**
- * Build the redirect URL respecting proxy headers and environment
+ * Valid OTP types for Supabase auth verification.
+ * AUTH-15: Validated before calling verifyOtp to prevent unnecessary network calls.
+ */
+export const VALID_OTP_TYPES = ['signup', 'email', 'recovery', 'magiclink', 'invite'] as const
+type ValidOtpType = typeof VALID_OTP_TYPES[number]
+
+export function isValidOtpType(type: string | null): type is ValidOtpType {
+	return type !== null && type !== '' && (VALID_OTP_TYPES as readonly string[]).includes(type)
+}
+
+/**
+ * Build the redirect URL using NEXT_PUBLIC_APP_URL or request origin.
+ * AUTH-13: x-forwarded-host is intentionally ignored to prevent host header injection attacks.
  */
 function buildRedirectUrl(
-	request: NextRequest,
+	_request: NextRequest,
 	origin: string,
 	path: string
 ): string {
-	const forwardedHost = request.headers.get('x-forwarded-host')
-	const isLocalEnv = env.NODE_ENV === 'development'
-
-	if (isLocalEnv) {
-		return `${origin}${path}`
-	}
-	if (forwardedHost) {
-		return `https://${forwardedHost}${path}`
-	}
-	return `${origin}${path}`
+	const siteUrl = process.env.NEXT_PUBLIC_APP_URL || origin
+	return `${siteUrl}${path}`
 }
 
 /**
@@ -156,16 +160,19 @@ export async function GET(request: NextRequest) {
 
 	// Handle email confirmation via token_hash
 	if (tokenHash && type) {
-		const verifyType = type as 'signup' | 'email' | 'recovery'
+		// AUTH-15: Validate OTP type against allowlist before calling Supabase
+		if (!isValidOtpType(type)) {
+			return NextResponse.redirect(buildRedirectUrl(request, origin, '/auth/callback?error=invalid_type'))
+		}
 
 		const { data, error } = await supabase.auth.verifyOtp({
 			token_hash: tokenHash,
-			type: verifyType
+			type
 		})
 
 		if (!error && data?.session) {
 			// For signup confirmation: route to dashboard based on user_type
-			if (verifyType === 'signup' || verifyType === 'email') {
+			if (type === 'signup' || type === 'email') {
 				const userType = data.session.user.app_metadata?.user_type as
 					| string
 					| undefined
@@ -176,7 +183,7 @@ export async function GET(request: NextRequest) {
 			}
 
 			// For password recovery: route to update-password page
-			if (verifyType === 'recovery') {
+			if (type === 'recovery') {
 				return NextResponse.redirect(
 					buildRedirectUrl(request, origin, '/auth/update-password')
 				)
@@ -184,7 +191,7 @@ export async function GET(request: NextRequest) {
 		}
 
 		// Verification failed - redirect to confirm-email with error
-		if (verifyType === 'signup' || verifyType === 'email') {
+		if (type === 'signup' || type === 'email') {
 			return NextResponse.redirect(
 				buildRedirectUrl(
 					request,
@@ -209,6 +216,8 @@ export async function GET(request: NextRequest) {
 		const { data, error } = await supabase.auth.exchangeCodeForSession(code)
 
 		if (!error && data?.session) {
+			// AUTH-08: OAuth provider (Google) is trusted for email verification.
+			// No additional email_confirmed_at check required per user decision.
 			const userType = data.session.user.app_metadata?.user_type as
 				| string
 				| undefined
