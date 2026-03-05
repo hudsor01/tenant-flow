@@ -117,9 +117,9 @@ Plans:
 - [ ] 05-04-PLAN.md — Split all oversized hook files (9 files, 6593 lines) into domain-focused modules
 - [x] 05-05-PLAN.md — Split stripe-webhooks into handler modules and refactor 4 oversized page components
 - [x] 05-06-PLAN.md — Verify tour.tsx against Dice UI upstream, audit all 494 use client files, update CLAUDE.md
-- [ ] 05-07-PLAN.md — [GAP] Replace remaining string literal query keys, add dashboard invalidation to page deletes, wire revenue trends dedup
-- [ ] 05-08-PLAN.md — [GAP] Split 6 largest oversized hook files (tenant, lease, billing, payments, profile, auth) into query/mutation pairs
-- [ ] 05-09-PLAN.md — [GAP] Split remaining 5 oversized hook files (reports, dashboard, inspections, properties, financials)
+- [x] 05-07-PLAN.md — [GAP] Replace remaining string literal query keys, add dashboard invalidation to page deletes, wire revenue trends dedup
+- [x] 05-08-PLAN.md — [GAP] Split 6 largest oversized hook files (tenant, lease, billing, payments, profile, auth) into query/mutation pairs
+- [x] 05-09-PLAN.md — [GAP] Split remaining 5 oversized hook files (reports, dashboard, inspections, properties, financials)
 
 ### Phase 6: Database Schema & Migrations
 **Goal**: All tables have correct constraints, FK relationships, and operational maintenance jobs
@@ -199,7 +199,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8 -> 9
 | 2. Financial Fixes | v1.0 | 7/7 | Complete | 2026-03-05 |
 | 3. Auth & Middleware | v1.0 | 6/6 | Complete | 2026-03-05 |
 | 4. Edge Function Hardening | v1.0 | 4/4 | Complete | 2026-03-05 |
-| 5. Code Quality & Type Safety | 7/9 | In Progress|  | - |
+| 5. Code Quality & Type Safety | v1.0 | 8/9 | In Progress | - |
 | 6. Database Schema & Migrations | v1.0 | 0/2 | Not started | - |
 | 7. UX & Accessibility | v1.0 | 0/3 | Not started | - |
 | 8. Performance Optimization | v1.0 | 0/3 | Not started | - |

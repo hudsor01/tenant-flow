@@ -65,6 +65,7 @@ Progress: [█████████░] 88%
 | Phase 05 P05 | 8min | 2 tasks | 15 files |
 | Phase 05 P06 | 18min | 2 tasks | 95 files |
 | Phase 05 P07 | 9min | 2 tasks | 19 files |
+| Phase 05 P08 | 14min | 2 tasks | 26 files |
 | Phase 05 P09 | 11min | 2 tasks | 16 files |
 
 ## Accumulated Context
@@ -138,6 +139,13 @@ Progress: [█████████░] 88%
 - [Phase 05]: blogKeys factory inline in use-blogs.ts (simple public queries, no cross-domain sharing needed)
 - [Phase 05]: Expense queries co-located with expense mutations in use-expense-mutations.ts (domain cohesion over strict query/mutation separation)
 - [Phase 05]: No re-exports from trimmed hook files -- all consumers updated to import directly from defining file
+- [Phase 05]: authKeys stays in use-auth.ts per CLAUDE.md rule (single auth query key factory)
+- [Phase 05]: billingKeys/billingQueries extracted to query-keys/billing-keys.ts following established convention
+- [Phase 05]: payment keys/queries extracted to query-keys/payment-keys.ts for consistency
+- [Phase 05]: PROFILE_SELECT and mapUserProfile exported from use-profile.ts for reuse by mutations file
+- [Phase 05]: use-billing.ts re-exports billingKeys and billingQueries for backward-compatible import paths
+- [Phase 05]: callDocuSealEdgeFunction moved to use-lease-mutations.ts (only used by mutations)
+- [Phase 05]: callBillingEdgeFunction duplicated in use-billing-mutations.ts (mutations need it, not queries)
 
 ### Pending Todos
 
