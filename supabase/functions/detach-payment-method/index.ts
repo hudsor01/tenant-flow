@@ -16,6 +16,8 @@
 import Stripe from 'stripe'
 import { createClient } from '@supabase/supabase-js'
 import { getCorsHeaders, handleCorsOptions } from '../_shared/cors.ts'
+import { validateEnv } from '../_shared/env.ts'
+import { errorResponse } from '../_shared/errors.ts'
 
 Deno.serve(async (req: Request) => {
   const optionsResponse = handleCorsOptions(req)
@@ -31,6 +33,15 @@ Deno.serve(async (req: Request) => {
   const corsHeaders = getCorsHeaders(req)
   const jsonHeaders = { ...corsHeaders, 'Content-Type': 'application/json' }
 
+  let env: Record<string, string>
+  try {
+    env = validateEnv({
+      required: ['SUPABASE_URL', 'SUPABASE_SERVICE_ROLE_KEY', 'STRIPE_SECRET_KEY'],
+    })
+  } catch (err) {
+    return errorResponse(req, 500, err, { action: 'env_validation' })
+  }
+
   try {
     // 1. Authenticate
     const authHeader = req.headers.get('authorization')
@@ -42,9 +53,9 @@ Deno.serve(async (req: Request) => {
     }
     const token = authHeader.replace('Bearer ', '')
 
-    const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? ''
-    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
-    const stripeKey = Deno.env.get('STRIPE_SECRET_KEY') ?? ''
+    const supabaseUrl = env.SUPABASE_URL
+    const supabaseServiceKey = env.SUPABASE_SERVICE_ROLE_KEY
+    const stripeKey = env.STRIPE_SECRET_KEY
 
     // Create user-scoped client for auth verification
     const supabaseAuth = createClient(supabaseUrl, supabaseServiceKey, {
@@ -179,12 +190,6 @@ Deno.serve(async (req: Request) => {
       { status: 200, headers: jsonHeaders }
     )
   } catch (err) {
-    console.error('detach-payment-method error:', err)
-    return new Response(
-      JSON.stringify({
-        error: err instanceof Error ? err.message : 'Internal server error',
-      }),
-      { status: 500, headers: jsonHeaders }
-    )
+    return errorResponse(req, 500, err, { action: 'detach_payment_method' })
   }
 })

@@ -7,6 +7,8 @@
 import Stripe from 'stripe'
 import { createClient } from '@supabase/supabase-js'
 import { getCorsHeaders, handleCorsOptions } from '../_shared/cors.ts'
+import { validateEnv } from '../_shared/env.ts'
+import { errorResponse } from '../_shared/errors.ts'
 
 Deno.serve(async (req: Request) => {
   const optionsResponse = handleCorsOptions(req)
@@ -18,10 +20,20 @@ Deno.serve(async (req: Request) => {
   // ---------------------------------------------------------------------------
   // Environment variables
   // ---------------------------------------------------------------------------
-  const stripeKey = Deno.env.get('STRIPE_SECRET_KEY') ?? ''
-  const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? ''
-  const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
-  const frontendUrl = Deno.env.get('FRONTEND_URL') ?? 'http://localhost:3050'
+  let env: Record<string, string>
+  try {
+    env = validateEnv({
+      required: ['SUPABASE_URL', 'SUPABASE_SERVICE_ROLE_KEY', 'STRIPE_SECRET_KEY'],
+      optional: ['FRONTEND_URL'],
+    })
+  } catch (err) {
+    return errorResponse(req, 500, err, { action: 'env_validation' })
+  }
+
+  const stripeKey = env.STRIPE_SECRET_KEY
+  const supabaseUrl = env.SUPABASE_URL
+  const supabaseServiceKey = env.SUPABASE_SERVICE_ROLE_KEY
+  const frontendUrl = env.FRONTEND_URL ?? 'http://localhost:3050'
 
   // ---------------------------------------------------------------------------
   // 1. Authenticate tenant via JWT
@@ -358,17 +370,9 @@ Deno.serve(async (req: Request) => {
       String(errorObj.type).startsWith('Stripe')
 
     if (isStripeError) {
-      console.error('Stripe error:', (err as Error).message)
-      return new Response(
-        JSON.stringify({ error: 'Payment service unavailable. Please try again.' }),
-        { status: 502, headers: jsonHeaders }
-      )
+      return errorResponse(req, 502, err, { action: 'stripe_rent_checkout' })
     }
 
-    console.error('Unexpected error:', err instanceof Error ? err.message : String(err))
-    return new Response(
-      JSON.stringify({ error: 'Internal server error' }),
-      { status: 500, headers: jsonHeaders }
-    )
+    return errorResponse(req, 500, err, { action: 'stripe_rent_checkout' })
   }
 })

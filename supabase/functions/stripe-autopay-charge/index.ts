@@ -13,6 +13,8 @@
 import Stripe from 'stripe'
 import { createClient } from '@supabase/supabase-js'
 import { sendEmail } from '../_shared/resend.ts'
+import { validateEnv } from '../_shared/env.ts'
+import { errorResponse } from '../_shared/errors.ts'
 
 interface AutopayRequest {
   tenant_id: string
@@ -31,10 +33,20 @@ Deno.serve(async (req: Request) => {
   // ---------------------------------------------------------------------------
   // Environment variables
   // ---------------------------------------------------------------------------
-  const stripeKey = Deno.env.get('STRIPE_SECRET_KEY') ?? ''
-  const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? ''
-  const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
-  const frontendUrl = Deno.env.get('FRONTEND_URL') ?? 'http://localhost:3050'
+  let env: Record<string, string>
+  try {
+    env = validateEnv({
+      required: ['SUPABASE_URL', 'SUPABASE_SERVICE_ROLE_KEY', 'STRIPE_SECRET_KEY'],
+      optional: ['FRONTEND_URL', 'RESEND_API_KEY'],
+    })
+  } catch (err) {
+    return errorResponse(req, 500, err, { action: 'env_validation' })
+  }
+
+  const stripeKey = env.STRIPE_SECRET_KEY
+  const supabaseUrl = env.SUPABASE_URL
+  const supabaseServiceKey = env.SUPABASE_SERVICE_ROLE_KEY
+  const frontendUrl = env.FRONTEND_URL ?? 'http://localhost:3050'
 
   // ---------------------------------------------------------------------------
   // 1. Authenticate via service role key (pg_net sends it in Authorization header)
@@ -342,11 +354,7 @@ Deno.serve(async (req: Request) => {
       )
     }
 
-    console.error('[AUTOPAY] Unexpected error:', err instanceof Error ? err.message : String(err))
-    return new Response(
-      JSON.stringify({ error: 'Internal server error' }),
-      { status: 500, headers: jsonHeaders }
-    )
+    return errorResponse(req, 500, err, { action: 'autopay_charge', rent_due_id, tenant_id })
   }
 })
 

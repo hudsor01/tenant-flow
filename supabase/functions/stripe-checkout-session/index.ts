@@ -1,15 +1,19 @@
 // Stripe Checkout Session Retrieval Edge Function
-// AUTH-05: Returns minimal data only (customer_email). Rate limiting deferred to Phase 4 (EDGE-02).
+// AUTH-05: Returns minimal data only (customer_email). Rate limited at 10 req/min per IP.
 // Unauthenticated by design — users completing checkout may not have an account yet.
 // The Stripe session_id is the secret (Stripe-issued opaque token).
 //
 // POST { sessionId: string }
 // -> 200 { customer_email: string }
 // -> 400 { error: 'sessionId is required' | 'Checkout session is not complete' }
-// -> 500 { error: '...' }
+// -> 429 { error: 'Too many requests' }
+// -> 500 { error: 'An error occurred' }
 
 import Stripe from 'stripe'
 import { getCorsHeaders, handleCorsOptions } from '../_shared/cors.ts'
+import { validateEnv } from '../_shared/env.ts'
+import { errorResponse } from '../_shared/errors.ts'
+import { rateLimit } from '../_shared/rate-limit.ts'
 
 Deno.serve(async (req: Request) => {
   const optionsResponse = handleCorsOptions(req)
@@ -19,9 +23,16 @@ Deno.serve(async (req: Request) => {
     return new Response('Method Not Allowed', { status: 405, headers: getCorsHeaders(req) })
   }
 
-  const stripeKey = Deno.env.get('STRIPE_SECRET_KEY') ?? ''
+  // Rate limit: 10 req/min per IP
+  const rateLimited = await rateLimit(req, { maxRequests: 10, windowMs: 60_000, prefix: 'checkout-session' })
+  if (rateLimited) return rateLimited
 
   try {
+    const env = validateEnv({
+      required: ['STRIPE_SECRET_KEY'],
+      optional: ['FRONTEND_URL'],
+    })
+
     const body = await req.json()
     const sessionId: string = body.sessionId
 
@@ -32,7 +43,7 @@ Deno.serve(async (req: Request) => {
       )
     }
 
-    const stripe = new Stripe(stripeKey, { apiVersion: '2026-02-25.clover' as Stripe.LatestApiVersion })
+    const stripe = new Stripe(env['STRIPE_SECRET_KEY'], { apiVersion: '2026-02-25.clover' as Stripe.LatestApiVersion })
 
     const session = await stripe.checkout.sessions.retrieve(sessionId)
 
@@ -52,9 +63,6 @@ Deno.serve(async (req: Request) => {
       { status: 200, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
     )
   } catch (err) {
-    return new Response(
-      JSON.stringify({ error: err instanceof Error ? err.message : 'Failed to retrieve session' }),
-      { status: 500, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
-    )
+    return errorResponse(req, 500, err, { action: 'checkout_session_retrieve' })
   }
 })

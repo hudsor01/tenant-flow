@@ -6,26 +6,28 @@
 import { createClient } from '@supabase/supabase-js'
 import Stripe from 'stripe'
 import { getCorsHeaders, handleCorsOptions } from '../_shared/cors.ts'
+import { validateEnv } from '../_shared/env.ts'
+import { errorResponse } from '../_shared/errors.ts'
 
 Deno.serve(async (req: Request) => {
   const optionsResponse = handleCorsOptions(req)
   if (optionsResponse) return optionsResponse
 
   try {
+    const env = validateEnv({
+      required: ['SUPABASE_URL', 'SUPABASE_SERVICE_ROLE_KEY', 'STRIPE_SECRET_KEY'],
+      optional: ['FRONTEND_URL'],
+    })
+
     // Authenticate via Bearer token
     const authHeader = req.headers.get('Authorization')
     if (!authHeader) {
       return new Response('Unauthorized', { status: 401, headers: getCorsHeaders(req) })
     }
 
-    const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? ''
-    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
-    const supabase = createClient(supabaseUrl, supabaseKey)
-
-    const stripeKey = Deno.env.get('STRIPE_SECRET_KEY') ?? ''
-    const stripe = new Stripe(stripeKey, { apiVersion: '2026-02-25.clover' as Stripe.LatestApiVersion })
-
-    const returnUrl = Deno.env.get('FRONTEND_URL') ?? 'http://localhost:3050'
+    const supabase = createClient(env['SUPABASE_URL'], env['SUPABASE_SERVICE_ROLE_KEY'])
+    const stripe = new Stripe(env['STRIPE_SECRET_KEY'], { apiVersion: '2026-02-25.clover' as Stripe.LatestApiVersion })
+    const returnUrl = env['FRONTEND_URL'] ?? 'http://localhost:3050'
 
     // Verify user JWT
     const token = authHeader.replace('Bearer ', '')
@@ -49,10 +51,7 @@ Deno.serve(async (req: Request) => {
         .maybeSingle()
 
       if (dbError) {
-        return new Response(
-          JSON.stringify({ error: dbError.message }),
-          { status: 500, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
-        )
+        return errorResponse(req, 500, dbError, { action: 'stripe_connect_account_fetch' })
       }
 
       if (!row) {
@@ -204,7 +203,8 @@ Deno.serve(async (req: Request) => {
     // action: 'payouts' — list payouts for connected account
     // -----------------------------------------------------------------------
     if (action === 'payouts') {
-      const limit = (body.limit as number | undefined) ?? 10
+      // EDGE-08: Cap limit parameter at 100 to prevent abuse
+      const limit = Math.min(Number(body.limit) || 10, 100)
       const starting_after = body.starting_after as string | undefined
 
       const { data: row, error: dbError } = await supabase
@@ -237,7 +237,8 @@ Deno.serve(async (req: Request) => {
     // action: 'transfers' — list transfers to connected account
     // -----------------------------------------------------------------------
     if (action === 'transfers') {
-      const limit = (body.limit as number | undefined) ?? 10
+      // EDGE-08: Cap limit parameter at 100 to prevent abuse
+      const limit = Math.min(Number(body.limit) || 10, 100)
       const starting_after = body.starting_after as string | undefined
 
       const { data: row, error: dbError } = await supabase
@@ -269,13 +270,10 @@ Deno.serve(async (req: Request) => {
 
     // Unknown action
     return new Response(
-      JSON.stringify({ error: `Unknown action: ${action}` }),
+      JSON.stringify({ error: 'Unknown action' }),
       { status: 400, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
     )
   } catch (err) {
-    return new Response(
-      JSON.stringify({ error: err instanceof Error ? err.message : 'Internal error' }),
-      { status: 500, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
-    )
+    return errorResponse(req, 500, err, { action: 'stripe_connect' })
   }
 })

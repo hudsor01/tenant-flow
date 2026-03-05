@@ -11,6 +11,8 @@ import * as Sentry from 'npm:@sentry/deno@9'
 import React from 'npm:react@18.3.1'
 import { renderAsync } from 'npm:@react-email/components@0.0.22'
 import { sendEmail } from '../_shared/resend.ts'
+import { validateEnv } from '../_shared/env.ts'
+import { errorResponse } from '../_shared/errors.ts'
 import { PaymentReceipt } from './_templates/payment-receipt.tsx'
 import { OwnerNotification } from './_templates/owner-notification.tsx'
 import { AutopayFailed } from './_templates/autopay-failed.tsx'
@@ -38,10 +40,20 @@ function captureError(error: Error, extra: Record<string, unknown>): void {
 
 Deno.serve(async (req: Request) => {
 
-  const stripeKey = Deno.env.get('STRIPE_SECRET_KEY') ?? ''
-  const webhookSecret = Deno.env.get('STRIPE_WEBHOOK_SECRET') ?? ''
-  const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? ''
-  const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+  let env: Record<string, string>
+  try {
+    env = validateEnv({
+      required: ['SUPABASE_URL', 'SUPABASE_SERVICE_ROLE_KEY', 'STRIPE_SECRET_KEY', 'STRIPE_WEBHOOK_SECRET'],
+      optional: ['SENTRY_DSN', 'FRONTEND_URL', 'RESEND_API_KEY'],
+    })
+  } catch (err) {
+    return errorResponse(req, 500, err, { action: 'env_validation' })
+  }
+
+  const stripeKey = env.STRIPE_SECRET_KEY
+  const webhookSecret = env.STRIPE_WEBHOOK_SECRET
+  const supabaseUrl = env.SUPABASE_URL
+  const supabaseServiceKey = env.SUPABASE_SERVICE_ROLE_KEY
 
   const stripe = new Stripe(stripeKey, { apiVersion: '2026-02-25.clover' as Stripe.LatestApiVersion })
   const supabase = createClient(supabaseUrl, supabaseServiceKey)
@@ -130,10 +142,7 @@ Deno.serve(async (req: Request) => {
         error_message: err instanceof Error ? err.message : 'Unknown error',
       })
       .eq('id', event.id)
-    return new Response(
-      JSON.stringify({ error: err instanceof Error ? err.message : 'Processing failed' }),
-      { status: 500, headers: { 'Content-Type': 'application/json' } }
-    )
+    return errorResponse(req, 500, err, { action: 'process_webhook_event', event_id: event.id })
   }
 })
 
