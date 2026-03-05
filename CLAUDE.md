@@ -81,16 +81,22 @@ const { data } = await supabase.rpc('get_dashboard_stats', {
 Server-side logic runs as Supabase Edge Functions (Deno runtime).
 
 - Location: `supabase/functions/<function-name>/index.ts`
-- Shared utilities: `supabase/functions/_shared/` (cors.ts, resend.ts)
+- Shared utilities: `supabase/functions/_shared/` (cors.ts, resend.ts, errors.ts, env.ts, escape-html.ts, rate-limit.ts)
 - Import map: `supabase/functions/deno.json`
 - Auth pattern: extract Bearer token, then `supabase.auth.getUser(token)` to verify — derive user identity from JWT, never from request body params
-- CORS: use `getCorsHeaders(req)` and early-return `handleCorsOptions(req)` for preflight
+- CORS: use `getCorsHeaders(req)` and early-return `handleCorsOptions(req)` for preflight. CORS is fail-closed -- no CORS headers returned when `FRONTEND_URL` is not set.
 - Deploy: `supabase functions deploy <function-name>`
 - Stripe SDK: All Edge Functions use `stripe@20` with `apiVersion: '2026-02-25.clover'` (Deno import map in `supabase/functions/deno.json`).
 - Payment metadata: Always validate `tenant_id`, `lease_id`, `rent_due_id` from Stripe metadata. Never use empty string fallbacks.
 - Payment method deletion: Must call `detach-payment-method` Edge Function which detaches from Stripe API before DB deletion. No DB-only deletion allowed.
 - Auth emails: sent via Resend through `supabase/functions/auth-email-send/index.ts` — configured as Supabase Auth Hook (Authentication > Hooks > Send Email)
 - Email templates: `supabase/functions/_shared/auth-email-templates.ts` — 5 branded templates (signup, recovery, invite, magiclink, email_change) with inline CSS and XSS-safe escaping
+- Error responses: All Edge Functions use `errorResponse()` from `_shared/errors.ts` -- never expose `err.message`, `dbError.message`, or stack traces to clients. Generic `{ error: 'An error occurred' }` with Sentry + console.error logging.
+- Env validation: All Edge Functions call `validateEnv({ required: [...], optional: [...] })` from `_shared/env.ts` inside `Deno.serve` handler (not at module level). Missing required vars return 500 immediately.
+- Rate limiting: Unauthenticated Edge Functions (`tenant-invitation-accept`, `tenant-invitation-validate`, `stripe-checkout-session`) use `rateLimit()` from `_shared/rate-limit.ts` (Upstash Redis sliding window, 10 req/min per IP). Rate limiter fails open on errors. Sentry tunnel `/monitoring` rate-limited at 60 req/min in proxy.ts.
+- XSS escaping: All user-provided values in HTML templates (docuseal, generate-pdf) are wrapped with `escapeHtml()` from `_shared/escape-html.ts`.
+- CSP: Content-Security-Policy enforced via vercel.json on all pages.
+- Env secrets for rate limiting: `UPSTASH_REDIS_REST_URL` and `UPSTASH_REDIS_REST_TOKEN` must be set in Supabase Edge Function secrets for rate limiting to function.
 
 ## Security Model
 RLS (Row Level Security) is the primary access-control layer. Proxy middleware enforces route-level auth.

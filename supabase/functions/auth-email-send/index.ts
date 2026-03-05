@@ -9,6 +9,8 @@
 // its built-in email templates. We render branded HTML via Resend.
 
 import { getCorsHeaders, handleCorsOptions } from '../_shared/cors.ts'
+import { errorResponse } from '../_shared/errors.ts'
+import { validateEnv } from '../_shared/env.ts'
 import { sendEmail } from '../_shared/resend.ts'
 import {
   signupConfirmationEmail,
@@ -53,32 +55,37 @@ Deno.serve(async (req: Request) => {
     )
   }
 
-  // Verify the request comes from Supabase via the hook secret
-  const hookSecret = Deno.env.get('SUPABASE_AUTH_HOOK_SECRET')
-  if (hookSecret) {
-    const authHeader = req.headers.get('authorization') ?? ''
-    const token = authHeader.replace(/^Bearer\s+/i, '')
-    if (token !== hookSecret) {
-      console.error('[AUTH_EMAIL] Unauthorized: invalid hook secret')
-      return new Response(
-        JSON.stringify({ error: 'Unauthorized' }),
-        { status: 401, headers: jsonHeaders },
-      )
-    }
-  }
-
   try {
+    const env = validateEnv({
+      required: ['RESEND_API_KEY'],
+      optional: ['SUPABASE_AUTH_HOOK_SECRET', 'NEXT_PUBLIC_APP_URL'],
+    })
+
+    // Verify the request comes from Supabase via the hook secret
+    const hookSecret = env['SUPABASE_AUTH_HOOK_SECRET'] ?? Deno.env.get('SUPABASE_AUTH_HOOK_SECRET')
+    if (hookSecret) {
+      const authHeader = req.headers.get('authorization') ?? ''
+      const token = authHeader.replace(/^Bearer\s+/i, '')
+      if (token !== hookSecret) {
+        console.error('[AUTH_EMAIL] Unauthorized: invalid hook secret')
+        return new Response(
+          JSON.stringify({ error: 'Unauthorized' }),
+          { status: 401, headers: jsonHeaders },
+        )
+      }
+    }
+
     const payload = (await req.json()) as AuthEmailHookPayload
     const { user, email_data } = payload
 
     if (!user?.email || !email_data?.email_action_type) {
       return new Response(
-        JSON.stringify({ error: 'Invalid payload: missing user.email or email_data.email_action_type' }),
+        JSON.stringify({ error: 'Invalid payload' }),
         { status: 400, headers: jsonHeaders },
       )
     }
 
-    const appUrl = Deno.env.get('NEXT_PUBLIC_APP_URL') ?? 'http://localhost:3050'
+    const appUrl = env['NEXT_PUBLIC_APP_URL'] ?? Deno.env.get('NEXT_PUBLIC_APP_URL') ?? 'http://localhost:3050'
     const otpType = OTP_TYPE_MAP[email_data.email_action_type]
     const callbackUrl = `${appUrl}/auth/callback?token_hash=${encodeURIComponent(email_data.token_hash)}&type=${encodeURIComponent(otpType)}`
 
@@ -130,7 +137,7 @@ Deno.serve(async (req: Request) => {
         const unknownType = email_data.email_action_type as string
         console.error(`[AUTH_EMAIL] Unknown email_action_type: ${unknownType}`)
         return new Response(
-          JSON.stringify({ error: `Unsupported email action type: ${unknownType}` }),
+          JSON.stringify({ error: 'Unsupported email action type' }),
           { status: 400, headers: jsonHeaders },
         )
       }
@@ -160,11 +167,6 @@ Deno.serve(async (req: Request) => {
       { status: 200, headers: jsonHeaders },
     )
   } catch (err) {
-    const message = err instanceof Error ? err.message : String(err)
-    console.error(`[AUTH_EMAIL] Unexpected error: ${message}`)
-    return new Response(
-      JSON.stringify({ error: 'Internal server error' }),
-      { status: 500, headers: jsonHeaders },
-    )
+    return errorResponse(req, 500, err, { action: 'auth_email_send' })
   }
 })

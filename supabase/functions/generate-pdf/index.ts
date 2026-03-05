@@ -9,6 +9,9 @@
 
 import { createClient } from '@supabase/supabase-js'
 import { getCorsHeaders, handleCorsOptions } from '../_shared/cors.ts'
+import { errorResponse } from '../_shared/errors.ts'
+import { escapeHtml } from '../_shared/escape-html.ts'
+import { validateEnv } from '../_shared/env.ts'
 
 type ReportRow = Record<string, string | number | null | undefined>
 
@@ -21,9 +24,9 @@ function buildReportHtml(reportType: string, year: number, rows: ReportRow[]): s
   const title = `${reportType.replace(/-/g, ' ').toUpperCase()} REPORT — ${year}`
   const headers = rows.length > 0 ? Object.keys(rows[0]) : []
 
-  const headerCells = headers.map(h => `<th class="th">${h}</th>`).join('')
+  const headerCells = headers.map(h => `<th class="th">${escapeHtml(h)}</th>`).join('')
   const tableRows = rows
-    .map(row => `<tr>${headers.map(h => `<td class="td">${row[h] ?? ''}</td>`).join('')}</tr>`)
+    .map(row => `<tr>${headers.map(h => `<td class="td">${escapeHtml(String(row[h] ?? ''))}</td>`).join('')}</tr>`)
     .join('')
 
   const tableMarkup =
@@ -35,7 +38,7 @@ function buildReportHtml(reportType: string, year: number, rows: ReportRow[]): s
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>${title}</title>
+  <title>${escapeHtml(title)}</title>
   <style>
     body { font-family: Arial, sans-serif; margin: 32px; color: #222; }
     h1 { font-size: 20px; margin-bottom: 4px; }
@@ -47,8 +50,8 @@ function buildReportHtml(reportType: string, year: number, rows: ReportRow[]): s
   </style>
 </head>
 <body>
-  <h1>${title}</h1>
-  <p class="meta">Generated: ${new Date().toLocaleDateString()}</p>
+  <h1>${escapeHtml(title)}</h1>
+  <p class="meta">Generated: ${escapeHtml(new Date().toLocaleDateString())}</p>
   ${tableMarkup}
 </body>
 </html>`
@@ -114,23 +117,32 @@ async function buildLeasePreviewHtml(
 <head>
   <meta charset="UTF-8">
   <title>Lease Preview</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 32px; color: #222; }
+    h1 { font-size: 20px; margin-bottom: 4px; }
+    .meta { color: #666; font-size: 13px; margin-bottom: 16px; }
+    table { border-collapse: collapse; width: 100%; font-size: 13px; margin-bottom: 16px; }
+    .label { border: 1px solid #ccc; padding: 6px 10px; font-weight: 500; background: #f8f8f8; width: 40%; }
+    .value { border: 1px solid #ccc; padding: 6px 10px; }
+    .note { color: #888; font-size: 11px; }
+  </style>
 </head>
-<body style="font-family:Arial,sans-serif;margin:32px;color:#222">
-  <h1 style="font-size:20px;margin-bottom:4px">Lease Agreement Preview</h1>
-  <p style="color:#666;font-size:13px;margin-bottom:16px">Generated: ${new Date().toLocaleDateString()}</p>
-  <table style="border-collapse:collapse;width:100%;font-size:13px;margin-bottom:16px">
+<body>
+  <h1>Lease Agreement Preview</h1>
+  <p class="meta">Generated: ${escapeHtml(new Date().toLocaleDateString())}</p>
+  <table>
     <tbody>
-      <tr><td style="border:1px solid #ccc;padding:6px 10px;font-weight:500;background:#f8f8f8;width:40%">Property</td><td style="border:1px solid #ccc;padding:6px 10px">${propertyName}</td></tr>
-      <tr><td style="border:1px solid #ccc;padding:6px 10px;font-weight:500;background:#f8f8f8">Address</td><td style="border:1px solid #ccc;padding:6px 10px">${propertyAddress}</td></tr>
-      ${unitNumber ? `<tr><td style="border:1px solid #ccc;padding:6px 10px;font-weight:500;background:#f8f8f8">Unit</td><td style="border:1px solid #ccc;padding:6px 10px">${unitNumber}</td></tr>` : ''}
-      <tr><td style="border:1px solid #ccc;padding:6px 10px;font-weight:500;background:#f8f8f8">Start Date</td><td style="border:1px solid #ccc;padding:6px 10px">${startDate}</td></tr>
-      <tr><td style="border:1px solid #ccc;padding:6px 10px;font-weight:500;background:#f8f8f8">End Date</td><td style="border:1px solid #ccc;padding:6px 10px">${endDate}</td></tr>
-      <tr><td style="border:1px solid #ccc;padding:6px 10px;font-weight:500;background:#f8f8f8">Monthly Rent</td><td style="border:1px solid #ccc;padding:6px 10px">${rentAmount}</td></tr>
-      <tr><td style="border:1px solid #ccc;padding:6px 10px;font-weight:500;background:#f8f8f8">Security Deposit</td><td style="border:1px solid #ccc;padding:6px 10px">${deposit}</td></tr>
-      <tr><td style="border:1px solid #ccc;padding:6px 10px;font-weight:500;background:#f8f8f8">Status</td><td style="border:1px solid #ccc;padding:6px 10px">${status}</td></tr>
+      <tr><td class="label">Property</td><td class="value">${escapeHtml(propertyName)}</td></tr>
+      <tr><td class="label">Address</td><td class="value">${escapeHtml(propertyAddress)}</td></tr>
+      ${unitNumber ? `<tr><td class="label">Unit</td><td class="value">${escapeHtml(unitNumber)}</td></tr>` : ''}
+      <tr><td class="label">Start Date</td><td class="value">${escapeHtml(startDate)}</td></tr>
+      <tr><td class="label">End Date</td><td class="value">${escapeHtml(endDate)}</td></tr>
+      <tr><td class="label">Monthly Rent</td><td class="value">${escapeHtml(rentAmount)}</td></tr>
+      <tr><td class="label">Security Deposit</td><td class="value">${escapeHtml(deposit)}</td></tr>
+      <tr><td class="label">Status</td><td class="value">${escapeHtml(status)}</td></tr>
     </tbody>
   </table>
-  <p style="color:#888;font-size:11px">This is a preview document. The final signed lease agreement may differ.</p>
+  <p class="note">This is a preview document. The final signed lease agreement may differ.</p>
 </body>
 </html>`
 }
@@ -140,6 +152,10 @@ Deno.serve(async (req: Request) => {
   if (optionsResponse) return optionsResponse
 
   try {
+    const env = validateEnv({
+      required: ['SUPABASE_URL', 'SUPABASE_SERVICE_ROLE_KEY', 'STIRLING_PDF_URL'],
+    })
+
     const authHeader = req.headers.get('Authorization')
     if (!authHeader) {
       return new Response(
@@ -148,18 +164,7 @@ Deno.serve(async (req: Request) => {
       )
     }
 
-    const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? ''
-    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
-    const stirlingPdfUrl = Deno.env.get('STIRLING_PDF_URL')
-
-    if (!stirlingPdfUrl) {
-      return new Response(
-        JSON.stringify({ error: 'STIRLING_PDF_URL environment variable is not configured' }),
-        { status: 500, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } },
-      )
-    }
-
-    const supabase = createClient(supabaseUrl, supabaseServiceKey)
+    const supabase = createClient(env['SUPABASE_URL'], env['SUPABASE_SERVICE_ROLE_KEY'])
     const token = authHeader.replace('Bearer ', '')
     const { data: { user }, error: authError } = await supabase.auth.getUser(token)
     if (authError || !user) {
@@ -222,6 +227,7 @@ Deno.serve(async (req: Request) => {
     const formData = new FormData()
     formData.append('htmlContent', html)
 
+    const stirlingPdfUrl = env['STIRLING_PDF_URL']
     const pdfResponse = await fetch(`${stirlingPdfUrl}/api/v1/misc/html-to-pdf`, {
       method: 'POST',
       body: formData,
@@ -230,10 +236,8 @@ Deno.serve(async (req: Request) => {
 
     if (!pdfResponse.ok) {
       const errorText = await pdfResponse.text().catch(() => pdfResponse.statusText)
-      return new Response(
-        JSON.stringify({ error: `StirlingPDF returned ${pdfResponse.status}: ${errorText}` }),
-        { status: 502, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } },
-      )
+      console.error(`StirlingPDF returned ${pdfResponse.status}: ${errorText}`)
+      return errorResponse(req, 502, new Error('PDF generation failed'), { action: 'generate_pdf' })
     }
 
     const pdfBlob = await pdfResponse.arrayBuffer()
@@ -246,14 +250,14 @@ Deno.serve(async (req: Request) => {
       },
     })
   } catch (err) {
-    const message = err instanceof Error ? err.message : 'Internal error'
+    const message = err instanceof Error ? err.message : String(err)
     const isTimeout = message.includes('timed out') || message.includes('TimeoutError')
-    return new Response(
-      JSON.stringify({ error: isTimeout ? 'StirlingPDF request timed out (30s)' : message }),
-      {
-        status: isTimeout ? 504 : 500,
-        headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' },
-      },
-    )
+    if (isTimeout) {
+      return new Response(
+        JSON.stringify({ error: 'PDF generation timed out' }),
+        { status: 504, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } },
+      )
+    }
+    return errorResponse(req, 500, err, { action: 'generate_pdf' })
   }
 })
