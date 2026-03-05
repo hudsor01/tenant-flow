@@ -535,7 +535,7 @@ export function usePaymentVerification(
 			if (!sessionId) return { subscription: null }
 			const supabase = createClient()
 			const { data, error } = await supabase.functions.invoke(
-				'stripe-checkout-status',
+				'stripe-checkout-session',
 				{ body: { session_id: sessionId } }
 			)
 			if (error) throw new Error(error.message ?? 'Session verification failed')
@@ -567,7 +567,7 @@ export function useSessionStatus(
 			}
 			const supabase = createClient()
 			const { data, error } = await supabase.functions.invoke(
-				'stripe-checkout-status',
+				'stripe-checkout-session',
 				{ body: { session_id: sessionId } }
 			)
 			if (error) throw new Error(error.message ?? 'Session status check failed')
