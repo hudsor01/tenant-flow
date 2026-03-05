@@ -13,14 +13,18 @@ import { screen } from '@testing-library/react'
 import { render } from '#test/utils/test-render'
 import { describe, expect, it, vi, beforeEach } from 'vitest'
 import { OwnerDashboard } from '../owner-dashboard'
-import * as ownerDashboardHooks from '#hooks/api/use-owner-dashboard'
+import * as ownerDashboardHooks from '#hooks/api/use-dashboard-hooks'
 
-// Mock the dashboard hooks
-vi.mock('#hooks/api/use-owner-dashboard', () => ({
+// Mock the dashboard hooks (derived select hooks now in use-dashboard-hooks.ts)
+vi.mock('#hooks/api/use-dashboard-hooks', () => ({
 	useDashboardStats: vi.fn(),
 	useDashboardCharts: vi.fn(),
 	useDashboardActivity: vi.fn(),
-	usePropertyPerformance: vi.fn(),
+	usePropertyPerformance: vi.fn()
+}))
+
+// Mock the base dashboard module for keys
+vi.mock('#hooks/api/use-owner-dashboard', () => ({
 	ownerDashboardKeys: {
 		all: ['owner-dashboard'],
 		analytics: {
@@ -31,7 +35,8 @@ vi.mock('#hooks/api/use-owner-dashboard', () => ({
 		properties: {
 			performance: () => ['owner-dashboard', 'properties', 'performance']
 		}
-	}
+	},
+	DASHBOARD_BASE_QUERY_OPTIONS: {}
 }))
 
 // Mock the lease hooks

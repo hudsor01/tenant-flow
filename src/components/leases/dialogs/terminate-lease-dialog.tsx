@@ -10,7 +10,7 @@ import {
 	AlertDialogHeader,
 	AlertDialogTitle
 } from '#components/ui/dialog'
-import { useTerminateLeaseMutation } from '#hooks/api/use-lease'
+import { useTerminateLeaseMutation } from '#hooks/api/use-lease-mutations'
 import { handleMutationError } from '#lib/mutation-error-handler'
 import type { Lease } from '#shared/types/core'
 import { AlertTriangle } from 'lucide-react'

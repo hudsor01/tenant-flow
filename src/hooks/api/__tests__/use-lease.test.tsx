@@ -27,6 +27,9 @@ import {
 	useCurrentLease,
 	useLeaseSignatureStatus,
 	useSignedDocumentUrl,
+	usePrefetchLeaseDetail
+} from '../use-lease'
+import {
 	useCreateLeaseMutation,
 	useUpdateLeaseMutation,
 	useDeleteLeaseMutation,
@@ -35,9 +38,8 @@ import {
 	useSendLeaseForSignatureMutation,
 	useSignLeaseAsOwnerMutation,
 	useSignLeaseAsTenantMutation,
-	useCancelSignatureRequestMutation,
-	usePrefetchLeaseDetail
-} from '../use-lease'
+	useCancelSignatureRequestMutation
+} from '../use-lease-mutations'
 
 // Mock logger
 vi.mock('#shared/lib/frontend-logger', () => ({

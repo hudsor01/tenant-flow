@@ -2,7 +2,7 @@
 
 import { AlertTriangle, Loader2 } from 'lucide-react'
 import { BlurFade } from '#components/ui/blur-fade'
-import { useBillingPortalMutation } from '#hooks/api/use-billing'
+import { useBillingPortalMutation } from '#hooks/api/use-billing-mutations'
 
 export function SubscriptionCancelSection() {
 	const createPortalSession = useBillingPortalMutation()

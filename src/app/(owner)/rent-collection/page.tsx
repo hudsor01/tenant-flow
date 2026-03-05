@@ -10,15 +10,15 @@ import type { PaymentMethodResponse } from '#shared/types/core'
 
 import {
 	useFailedPaymentAttempts,
-	useBillingHistory
+	useBillingHistory,
+	useSubscriptions
 } from '#hooks/api/use-billing'
 import { usePaymentMethods } from '#hooks/api/use-payment-methods'
 import {
 	useCancelSubscriptionMutation,
 	usePauseSubscriptionMutation,
-	useResumeSubscriptionMutation,
-	useSubscriptions
-} from '#hooks/api/use-billing'
+	useResumeSubscriptionMutation
+} from '#hooks/api/use-billing-mutations'
 import {
 	usePaymentAnalytics,
 	useUpcomingPayments,

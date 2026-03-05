@@ -5,7 +5,7 @@ import { useDropzone } from 'react-dropzone'
 import { Upload, X, CheckCircle } from 'lucide-react'
 import { Button } from '#components/ui/button'
 import { createClient } from '#lib/supabase/client'
-import { useRecordInspectionPhoto } from '#hooks/api/use-inspections'
+import { useRecordInspectionPhoto } from '#hooks/api/use-inspection-mutations'
 import { toast } from 'sonner'
 
 interface InspectionPhotoUploadProps {

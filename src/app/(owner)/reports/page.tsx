@@ -5,9 +5,9 @@ import {
 	useFinancialReport,
 	useMaintenanceReport,
 	usePropertyReport,
-	useTenantReport,
-	callGeneratePdfFromHtml
+	useTenantReport
 } from '#hooks/api/use-reports'
+import { callGeneratePdfFromHtml } from '#hooks/api/use-report-mutations'
 import { BarChart3, FileText, Calendar } from 'lucide-react'
 import Link from 'next/link'
 import { useMemo, useState } from 'react'

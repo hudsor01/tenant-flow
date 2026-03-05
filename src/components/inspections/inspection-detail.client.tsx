@@ -22,13 +22,13 @@ import {
 	SelectValue
 } from '#components/ui/select'
 import { Skeleton } from '#components/ui/skeleton'
+import { useInspection } from '#hooks/api/use-inspections'
 import {
-	useInspection,
 	useUpdateInspection,
 	useCompleteInspection,
 	useSubmitForTenantReview,
 	useCreateInspectionRoom
-} from '#hooks/api/use-inspections'
+} from '#hooks/api/use-inspection-mutations'
 import { InspectionRoomCard } from './inspection-room-card'
 import { formatDate } from '#lib/formatters/date'
 

@@ -23,7 +23,7 @@ import {
 	SelectValue
 } from '#components/ui/select'
 import { useTaxDocuments } from '#hooks/api/use-financials'
-import { useDownloadTaxDocumentPdf } from '#hooks/api/use-reports'
+import { useDownloadTaxDocumentPdf } from '#hooks/api/use-report-mutations'
 import { formatCents } from '#shared/lib/format'
 
 const logger = createLogger({ component: 'TaxDocumentsPage' })

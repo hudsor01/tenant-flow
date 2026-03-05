@@ -21,7 +21,7 @@ import {
 	SelectValue
 } from '#components/ui/select'
 import { Textarea } from '#components/ui/textarea'
-import { useMarkTenantAsMovedOutMutation } from '#hooks/api/use-tenant'
+import { useMarkTenantAsMovedOutMutation } from '#hooks/api/use-tenant-mutations'
 import { tenantQueries } from '#hooks/api/query-keys/tenant-keys'
 import { handleMutationError } from '#lib/mutation-error-handler'
 import { formatDate } from '#lib/formatters/date'

@@ -8,7 +8,7 @@ import {
 	InputGroupAddon,
 	InputGroupInput
 } from '#components/ui/input-group'
-import { useUpdateTenantMutation } from '#hooks/api/use-tenant'
+import { useUpdateTenantMutation } from '#hooks/api/use-tenant-mutations'
 import { tenantQueries } from '#hooks/api/query-keys/tenant-keys'
 import { handleMutationError } from '#lib/mutation-error-handler'
 import { tenantUpdateSchema } from '#shared/validation/tenants'

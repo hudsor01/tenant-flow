@@ -7,7 +7,7 @@ import { Button } from '#components/ui/button'
 import {
 	useCreateLeaseMutation,
 	useUpdateLeaseMutation
-} from '#hooks/api/use-lease'
+} from '#hooks/api/use-lease-mutations'
 import { propertyQueries } from '#hooks/api/query-keys/property-keys'
 import { unitQueries } from '#hooks/api/query-keys/unit-keys'
 import { tenantQueries } from '#hooks/api/query-keys/tenant-keys'

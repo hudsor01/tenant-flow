@@ -11,7 +11,8 @@
 
 import { useEffect, useMemo, Suspense } from 'react'
 import { Plus } from 'lucide-react'
-import { useLeaseList, useDeleteLeaseMutation } from '#hooks/api/use-lease'
+import { useLeaseList } from '#hooks/api/use-lease'
+import { useDeleteLeaseMutation } from '#hooks/api/use-lease-mutations'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '#components/ui/tabs'

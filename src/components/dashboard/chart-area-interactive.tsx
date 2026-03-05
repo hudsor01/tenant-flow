@@ -29,7 +29,7 @@ import { ToggleGroup, ToggleGroupItem } from '#components/ui/toggle-group'
 import {
 	useFinancialChartData,
 	type FinancialTimeRange
-} from '#hooks/api/use-owner-dashboard'
+} from '#hooks/api/use-dashboard-hooks'
 import { useMediaQuery } from '#hooks/use-media-query'
 import { cn } from '#lib/utils'
 

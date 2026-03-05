@@ -13,7 +13,7 @@ import {
 	useDashboardStats,
 	useDashboardCharts,
 	usePropertyPerformance
-} from '#hooks/api/use-owner-dashboard'
+} from '#hooks/api/use-dashboard-hooks'
 import {
 	useConnectedAccount,
 	useCreateConnectedAccountMutation

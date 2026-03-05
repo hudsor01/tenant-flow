@@ -24,14 +24,16 @@ import {
 	useTenantWithLease,
 	useNotificationPreferences,
 	useInvitations,
+	usePrefetchTenantDetail
+} from '../use-tenant'
+import {
 	useCreateTenantMutation,
 	useUpdateTenantMutation,
 	useDeleteTenantMutation,
 	useInviteTenantMutation,
 	useResendInvitationMutation,
-	useCancelInvitationMutation,
-	usePrefetchTenantDetail
-} from '../use-tenant'
+	useCancelInvitationMutation
+} from '../use-tenant-mutations'
 
 // Mock logger
 vi.mock('#shared/lib/frontend-logger', () => ({
