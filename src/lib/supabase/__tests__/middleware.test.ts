@@ -83,7 +83,7 @@ describe('updateSession', () => {
       ) => {
         // Capture the cookie handlers for assertion
         ;(
-          mockCreateServerClient as Record<string, unknown>
+          mockCreateServerClient as unknown as Record<string, unknown>
         )._lastCookieHandlers = options.cookies
         return {
           auth: { getUser: mockGetUser },
@@ -136,7 +136,7 @@ describe('updateSession', () => {
     await updateSession(request)
 
     // Invoke setAll to simulate Supabase refreshing tokens
-    const handlers = (mockCreateServerClient as Record<string, unknown>)
+    const handlers = (mockCreateServerClient as unknown as Record<string, unknown>)
       ._lastCookieHandlers as {
       setAll: (
         cookies: {

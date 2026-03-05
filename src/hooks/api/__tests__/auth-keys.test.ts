@@ -15,9 +15,10 @@ describe('authKeys structure', () => {
 	})
 
 	it('authKeys.me is a function returning an array', () => {
-		const meFn = authKeys.me
-		expect(typeof meFn).toBe('function')
-		expect(meFn()).toEqual(['user', 'me'])
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
+		const me = authKeys.me as any as () => readonly string[]
+		expect(typeof me).toBe('function')
+		expect(me()).toEqual(['user', 'me'])
 	})
 
 	it('authKeys.supabase.all equals ["supabase-auth"]', () => {

@@ -1,12 +1,12 @@
 // Stripe Checkout Session Retrieval Edge Function
-// Retrieves a completed Stripe Checkout Session to extract customer email.
-// Used by the post-checkout page to send a magic link to the new subscriber.
-// Unauthenticated — the Stripe session_id is the secret (Stripe-issued opaque token).
+// AUTH-05: Returns minimal data only (customer_email). Rate limiting deferred to Phase 4 (EDGE-02).
+// Unauthenticated by design — users completing checkout may not have an account yet.
+// The Stripe session_id is the secret (Stripe-issued opaque token).
 //
 // POST { sessionId: string }
-// → 200 { customer_email: string, customer_details: { email: string, name: string | null } }
-// → 400 { error: 'sessionId is required' }
-// → 500 { error: '...' }
+// -> 200 { customer_email: string }
+// -> 400 { error: 'sessionId is required' | 'Checkout session is not complete' }
+// -> 500 { error: '...' }
 
 import Stripe from 'stripe'
 import { getCorsHeaders, handleCorsOptions } from '../_shared/cors.ts'
@@ -34,20 +34,21 @@ Deno.serve(async (req: Request) => {
 
     const stripe = new Stripe(stripeKey, { apiVersion: '2024-06-20' })
 
-    const session = await stripe.checkout.sessions.retrieve(sessionId, {
-      expand: ['customer_details'],
-    })
+    const session = await stripe.checkout.sessions.retrieve(sessionId)
 
-    const customerEmail =
-      session.customer_email ??
-      session.customer_details?.email ??
-      null
+    // AUTH-05: Validate session is complete before returning any data
+    if (session.status !== 'complete') {
+      return new Response(
+        JSON.stringify({ error: 'Checkout session is not complete' }),
+        { status: 400, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
+      )
+    }
+
+    // AUTH-05: Return ONLY customer_email — no other session data, metadata, or payment info
+    const customerEmail = session.customer_details?.email ?? session.customer_email ?? null
 
     return new Response(
-      JSON.stringify({
-        customer_email: customerEmail,
-        customer_details: session.customer_details ?? null,
-      }),
+      JSON.stringify({ customer_email: customerEmail }),
       { status: 200, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
     )
   } catch (err) {
