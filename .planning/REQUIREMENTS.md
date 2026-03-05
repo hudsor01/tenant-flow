@@ -65,15 +65,15 @@ All 131 findings from the review, plus CLAUDE.md maintenance.
 - [x] **PAY-01**: Consistent cents/dollars convention documented and enforced — `rent_due.amount` semantics clarified, `* 100` verified
 - [x] **PAY-02**: `rent_due.status` updated to `'paid'` in webhook after successful payment
 - [x] **PAY-03**: Tenant can enable/disable autopay — RLS policy for tenant lease UPDATE on autopay columns
-- [ ] **PAY-04**: `stripe-checkout-status` Edge Function created or hooks corrected to use `stripe-checkout-session`
-- [ ] **PAY-05**: Payment display uses correct amount units — no double-division in `formatCents()`
+- [x] **PAY-04**: `stripe-checkout-status` Edge Function created or hooks corrected to use `stripe-checkout-session`
+- [x] **PAY-05**: Payment display uses correct amount units — no double-division in `formatCents()`
 - [x] **PAY-06**: `rent_payments.amount` column changed to `numeric(10,2)` to preserve cents
-- [ ] **PAY-07**: Payment method deletion calls `stripe.paymentMethods.detach()` before DB row deletion
+- [x] **PAY-07**: Payment method deletion calls `stripe.paymentMethods.detach()` before DB row deletion
 - [x] **PAY-08**: Idempotency key on autopay `paymentIntents.create`
 - [x] **PAY-09**: Platform subscription webhook handling (`invoice.payment_failed`, status tracking on `users` table)
 - [x] **PAY-10**: Webhook `rent_payments` insert validates `tenant_id`/`lease_id` metadata (no empty string fallback)
 - [x] **PAY-11**: `onboarding_completed_at` preserved when already set — not wiped on non-completed `account.updated`
-- [ ] **PAY-12**: Plan limit enforcement (`get_user_plan_limits`, `check_user_feature_access`) called from frontend before create operations
+- [x] **PAY-12**: Plan limit enforcement (`get_user_plan_limits`, `check_user_feature_access`) called from frontend before create operations
 - [x] **PAY-13**: Autopay retry mechanism for failed charges (re-attempt on subsequent days, not just `due_date = current_date`)
 - [x] **PAY-14**: Autopay handles shared leases correctly (one charge per rent_due, not per tenant)
 - [x] **PAY-15**: Webhook failure does not delete idempotency record — partial processing handled safely
@@ -237,15 +237,15 @@ All 131 findings from the review, plus CLAUDE.md maintenance.
 | PAY-01 | Phase 2 | Complete |
 | PAY-02 | Phase 2 | Complete |
 | PAY-03 | Phase 2 | Complete |
-| PAY-04 | Phase 2 | Pending |
-| PAY-05 | Phase 2 | Pending |
+| PAY-04 | Phase 2 | Complete |
+| PAY-05 | Phase 2 | Complete |
 | PAY-06 | Phase 2 | Complete |
-| PAY-07 | Phase 2 | Pending |
+| PAY-07 | Phase 2 | Complete |
 | PAY-08 | Phase 2 | Complete |
 | PAY-09 | Phase 2 | Complete |
 | PAY-10 | Phase 2 | Complete |
 | PAY-11 | Phase 2 | Complete |
-| PAY-12 | Phase 2 | Pending |
+| PAY-12 | Phase 2 | Complete |
 | PAY-13 | Phase 2 | Complete |
 | PAY-14 | Phase 2 | Complete |
 | PAY-15 | Phase 2 | Complete |
