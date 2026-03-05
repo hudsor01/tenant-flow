@@ -4,7 +4,7 @@
  *
  * Financial data uses existing RPCs:
  * - get_dashboard_stats for overview
- * - get_revenue_trends_optimized for monthly metrics
+ * - revenueTrendsQuery (shared from analytics-keys) for monthly metrics
  * - get_expense_summary for expense data
  * - get_billing_insights for billing/balance data
  */
@@ -13,6 +13,7 @@ import { queryOptions } from '@tanstack/react-query'
 import { createClient } from '#lib/supabase/client'
 import { getCachedUser } from '#lib/supabase/get-cached-user'
 import { handlePostgrestError } from '#lib/postgrest-error-handler'
+import { fetchRevenueTrends } from './analytics-keys'
 import type {
 	IncomeStatementData,
 	CashFlowData,
@@ -138,19 +139,10 @@ export const financialQueries = {
 		queryOptions({
 			queryKey: financialKeys.monthly(),
 			queryFn: async (): Promise<MonthlyMetric[]> => {
-				const supabase = createClient()
 				const user = await getCachedUser()
-				const userId = user?.id
-				if (!userId) return []
-
-				const { data, error } = await supabase.rpc('get_revenue_trends_optimized', {
-					p_user_id: userId,
-					p_months: 12
-				})
-				if (error) handlePostgrestError(error, 'monthly metrics')
-
-				const rows = (data ?? []) as Array<Record<string, unknown>>
-
+				if (!user) return []
+				const raw = await fetchRevenueTrends(12)
+				const rows = (Array.isArray(raw) ? raw : []) as Array<Record<string, unknown>>
 				return rows.map((row): MonthlyMetric => ({
 					month: String(row.month ?? row.timeframe ?? ''),
 					revenue: Number(row.revenue ?? row.total_revenue ?? 0),

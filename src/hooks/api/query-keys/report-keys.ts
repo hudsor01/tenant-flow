@@ -10,6 +10,7 @@ import { queryOptions } from '@tanstack/react-query'
 import { createClient } from '#lib/supabase/client'
 import { getCachedUser } from '#lib/supabase/get-cached-user'
 import { handlePostgrestError } from '#lib/postgrest-error-handler'
+import { fetchRevenueTrends } from './analytics-keys'
 import type {
 	ListReportsResponse,
 	Report as ReportType,
@@ -137,19 +138,10 @@ export const reportQueries = {
 		queryOptions({
 			queryKey: reportKeys.revenue(months),
 			queryFn: async (): Promise<RevenueData[]> => {
-				const supabase = createClient()
 				const user = await getCachedUser()
 				if (!user) return []
-
-				const { data, error } = await supabase.rpc('get_revenue_trends_optimized', {
-					p_user_id: user.id,
-					p_months: months
-				})
-
-				if (error) handlePostgrestError(error, 'monthly revenue')
-
-				const rows = (data ?? []) as Array<Record<string, unknown>>
-
+				const raw = await fetchRevenueTrends(months)
+				const rows = (Array.isArray(raw) ? raw : []) as Array<Record<string, unknown>>
 				return rows.map((row): RevenueData => ({
 					month: String(row.month ?? ''),
 					revenue: Number(row.revenue ?? 0),

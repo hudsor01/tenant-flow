@@ -26,6 +26,23 @@ export const analyticsKeys = {
 // ============================================================================
 
 /**
+ * Shared RPC call for get_revenue_trends_optimized.
+ * Single source of truth -- all consumers call this function.
+ * Returns raw RPC data (array of row objects).
+ */
+export async function fetchRevenueTrends(months: number): Promise<Record<string, unknown>> {
+	const supabase = createClient()
+	const user = await getCachedUser()
+	if (!user) throw new Error('Not authenticated')
+	const { data, error } = await supabase.rpc(
+		'get_revenue_trends_optimized',
+		{ p_user_id: user.id, p_months: months }
+	)
+	if (error) handlePostgrestError(error, 'analytics')
+	return (data ?? {}) as Record<string, unknown>
+}
+
+/**
  * Shared revenue trends queryOptions factory.
  * Single source of truth for get_revenue_trends_optimized RPC.
  * Used by owner dashboard financial charts, lease analytics, and reports.
@@ -34,17 +51,7 @@ export const revenueTrendsQuery = (params?: { months?: number }) => {
 	const months = params?.months ?? 12
 	return queryOptions({
 		queryKey: analyticsKeys.revenueTrends(months),
-		queryFn: async (): Promise<Record<string, unknown>> => {
-			const supabase = createClient()
-			const user = await getCachedUser()
-			if (!user) throw new Error('Not authenticated')
-			const { data, error } = await supabase.rpc(
-				'get_revenue_trends_optimized',
-				{ p_user_id: user.id, p_months: months }
-			)
-			if (error) handlePostgrestError(error, 'analytics')
-			return (data ?? {}) as Record<string, unknown>
-		},
+		queryFn: async (): Promise<Record<string, unknown>> => fetchRevenueTrends(months),
 		staleTime: 2 * 60 * 1000,
 		gcTime: 10 * 60 * 1000
 	})
