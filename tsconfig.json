@@ -46,6 +46,7 @@
 		"plugins": [{ "name": "next" }],
 		"types": ["next/types/global", "node", "vitest/globals"],
 		"paths": {
+			"#middleware": ["./middleware.ts"],
 			"#env": ["./src/env.ts"],
 			"#app/*": ["./src/app/*"],
 			"#components/*": ["./src/components/*"],
@@ -64,6 +65,7 @@
 	},
 	"include": [
 		"next-env.d.ts",
+		"middleware.ts",
 		"src/**/*.ts",
 		"src/**/*.tsx",
 		"src/**/*.d.ts",
