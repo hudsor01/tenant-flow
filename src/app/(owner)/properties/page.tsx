@@ -13,8 +13,7 @@ import { toast } from 'sonner'
 import { propertyQueries } from '#hooks/api/query-keys/property-keys'
 import { unitQueries } from '#hooks/api/query-keys/unit-keys'
 import { createClient } from '#lib/supabase/client'
-import type { Property as ApiProperty, Unit } from '#shared/types/core'
-import { Skeleton } from '#components/ui/skeleton'
+import type { Unit } from '#shared/types/core'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '#components/ui/tabs'
 import {
 	AlertDialog,
@@ -27,149 +26,12 @@ import {
 	AlertDialogTitle
 } from '#components/ui/alert-dialog'
 import { Properties } from '#components/properties/properties'
-import type {
-	PropertyItem,
-	PropertySummary,
-	PropertyType as DesignPropertyType
-} from '#components/properties/types'
 import {
 	PropertyInsightsSection,
 	PropertyInsightsSkeleton
 } from '#components/analytics/property-insights-section'
-
-// ============================================================================
-// DATA TRANSFORMATION
-// ============================================================================
-
-/**
- * Map API property type to design-os PropertyType
- */
-function mapPropertyType(
-	apiType: string | null | undefined
-): DesignPropertyType {
-	const typeMap: Record<string, DesignPropertyType> = {
-		single_family: 'single_family',
-		multi_family: 'multi_family',
-		multi_unit: 'multi_family',
-		apartment: 'apartment',
-		condo: 'condo',
-		townhouse: 'townhouse',
-		duplex: 'duplex'
-	}
-	return typeMap[apiType?.toLowerCase() ?? ''] ?? 'single_family'
-}
-
-/**
- * Transform API property to design-os PropertyItem format
- */
-function transformToPropertyItem(
-	property: ApiProperty,
-	units: Unit[] | undefined,
-	imageUrl: string | undefined
-): PropertyItem {
-	const safeUnits = Array.isArray(units) ? units : []
-	const totalUnits = safeUnits.length || 1
-	const occupiedUnits = safeUnits.filter(u => u.status === 'occupied').length
-	const availableUnits = safeUnits.filter(u => u.status === 'available').length
-	const maintenanceUnits = safeUnits.filter(
-		u => u.status === 'maintenance'
-	).length
-	const occupancyRate = totalUnits > 0 ? (occupiedUnits / totalUnits) * 100 : 0
-	const monthlyRevenue = safeUnits
-		.filter(u => u.status === 'occupied')
-		.reduce((sum, u) => sum + (u.rent_amount ?? 0) * 100, 0) // Convert to cents
-
-	return {
-		id: property.id,
-		name: property.name,
-		addressLine1: property.address_line1,
-		addressLine2: property.address_line2 ?? null,
-		city: property.city,
-		state: property.state,
-		postalCode: property.postal_code,
-		propertyType: mapPropertyType(property.property_type),
-		status:
-			property.status === 'active'
-				? 'active'
-				: property.status === 'inactive'
-					? 'inactive'
-					: 'active',
-		imageUrl,
-		totalUnits,
-		occupiedUnits,
-		availableUnits,
-		maintenanceUnits,
-		occupancyRate,
-		monthlyRevenue
-	}
-}
-
-/**
- * Calculate portfolio summary from properties
- */
-function calculateSummary(properties: PropertyItem[]): PropertySummary {
-	const totalProperties = properties.length
-	const totalUnits = properties.reduce((sum, p) => sum + p.totalUnits, 0)
-	const occupiedUnits = properties.reduce((sum, p) => sum + p.occupiedUnits, 0)
-	const availableUnits = properties.reduce(
-		(sum, p) => sum + p.availableUnits,
-		0
-	)
-	const maintenanceUnits = properties.reduce(
-		(sum, p) => sum + p.maintenanceUnits,
-		0
-	)
-	const overallOccupancyRate =
-		totalUnits > 0 ? Math.round((occupiedUnits / totalUnits) * 100) : 0
-	const totalMonthlyRevenue = properties.reduce(
-		(sum, p) => sum + p.monthlyRevenue,
-		0
-	)
-
-	return {
-		totalProperties,
-		totalUnits,
-		occupiedUnits,
-		availableUnits,
-		maintenanceUnits,
-		overallOccupancyRate,
-		totalMonthlyRevenue
-	}
-}
-
-// ============================================================================
-// LOADING SKELETON
-// ============================================================================
-
-function PropertiesLoadingSkeleton() {
-	return (
-		<div className="p-6 lg:p-8 bg-background min-h-full space-y-6">
-			{/* Header skeleton */}
-			<div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-				<div>
-					<Skeleton className="h-8 w-32 mb-2" />
-					<Skeleton className="h-5 w-64" />
-				</div>
-				<div className="flex gap-2">
-					<Skeleton className="h-10 w-28" />
-					<Skeleton className="h-10 w-32" />
-				</div>
-			</div>
-			{/* Stats skeleton */}
-			<div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-				{[1, 2, 3, 4].map(i => (
-					<Skeleton key={i} className="h-28 rounded-lg" />
-				))}
-			</div>
-			{/* Portfolio skeleton */}
-			<Skeleton className="h-96 rounded-lg" />
-		</div>
-	)
-}
-
-// ============================================================================
-// MAIN PAGE COMPONENT
-// ============================================================================
+import { transformToPropertyItem, calculateSummary } from './components/property-transforms'
+import { PropertiesLoadingSkeleton } from './components/properties-loading-skeleton'
 
 export default function PropertiesPage() {
 	const router = useRouter()
@@ -261,7 +123,7 @@ export default function PropertiesPage() {
 		[properties, propertiesResponse?.total]
 	)
 
-	// Delete mutation — soft-delete: set status to 'inactive'
+	// Delete mutation -- soft-delete: set status to 'inactive'
 	const { mutate: deleteProperty } = useMutation({
 		mutationFn: async (propertyId: string) => {
 			const supabase = createClient()

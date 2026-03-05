@@ -7,16 +7,8 @@ import { ErrorBoundary } from '#components/error-boundary/error-boundary'
 import { Dashboard } from '#components/dashboard/dashboard'
 import { OwnerOnboardingTour } from '#components/tours/owner-onboarding-tour'
 import { OnboardingWizard } from '#components/onboarding/onboarding-wizard'
-import { Skeleton } from '#components/ui/skeleton'
 import { Alert, AlertDescription } from '#components/ui/alert'
 import { Button } from '#components/ui/button'
-import {
-	Empty,
-	EmptyMedia,
-	EmptyTitle,
-	EmptyDescription,
-	EmptyContent
-} from '#components/ui/empty'
 import {
 	useDashboardStats,
 	useDashboardCharts,
@@ -26,110 +18,10 @@ import {
 	useConnectedAccount,
 	useCreateConnectedAccountMutation
 } from '#hooks/api/use-stripe-connect'
-import { Home, X } from 'lucide-react'
-import Link from 'next/link'
+import { X } from 'lucide-react'
+import { DashboardLoadingSkeleton } from './components/dashboard-loading-skeleton'
+import { DashboardEmptyState } from './components/dashboard-empty-state'
 import '../dashboard.css'
-
-/**
- * Dashboard Loading Skeleton
- * Tour target included so tour can initialize while content loads
- */
-function DashboardLoadingSkeleton() {
-	return (
-		<div data-testid="dashboard-stats" className="flex flex-1 flex-col gap-6 p-6">
-			{/* Header skeleton */}
-			<div>
-				<Skeleton className="h-8 w-48" />
-				<Skeleton className="h-4 w-72 mt-2" />
-			</div>
-
-			{/* Main content skeleton */}
-			<div className="grid gap-6 lg:grid-cols-4">
-				{/* Chart skeleton - 75% */}
-				<div className="lg:col-span-3 border rounded-lg p-6">
-					<Skeleton className="h-6 w-48 mb-2" />
-					<Skeleton className="h-4 w-64 mb-4" />
-					<Skeleton className="h-[400px] w-full" />
-				</div>
-
-				{/* Quick actions skeleton - 25% */}
-				<div className="border rounded-lg p-6">
-					<Skeleton className="h-6 w-32 mb-2" />
-					<Skeleton className="h-4 w-24 mb-4" />
-					<div className="space-y-3">
-						{Array.from({ length: 5 }).map((_, i) => (
-							<div
-								key={i}
-								className="flex items-center gap-3 p-3 border rounded-lg"
-							>
-								<Skeleton className="h-9 w-9 rounded-md" />
-								<div className="flex-1">
-									<Skeleton className="h-4 w-24" />
-									<Skeleton className="h-3 w-36 mt-1" />
-								</div>
-							</div>
-						))}
-					</div>
-				</div>
-			</div>
-
-			{/* Portfolio table skeleton */}
-			<div className="border rounded-lg overflow-hidden">
-				<div className="px-4 py-3 border-b flex items-center gap-3">
-					<Skeleton className="h-9 w-64" />
-					<div className="flex items-center gap-3 ml-auto">
-						<Skeleton className="h-9 w-[140px]" />
-						<Skeleton className="h-9 w-[140px]" />
-					</div>
-				</div>
-				<div className="p-4">
-					{Array.from({ length: 5 }).map((_, i) => (
-						<div
-							key={i}
-							className="flex items-center gap-4 py-3 border-b last:border-0"
-						>
-							<Skeleton className="h-5 flex-1" />
-							<Skeleton className="h-5 w-20" />
-							<Skeleton className="h-5 w-24" />
-							<Skeleton className="h-5 w-20" />
-							<Skeleton className="h-5 w-20" />
-						</div>
-					))}
-				</div>
-			</div>
-		</div>
-	)
-}
-
-/**
- * Dashboard Empty State
- * Tour targets are included so onboarding tour works for new users
- */
-function DashboardEmptyState() {
-	return (
-		<div data-testid="dashboard-stats" data-tour="quick-actions">
-			<Empty>
-				<EmptyMedia variant="icon">
-					<Home className="w-8 h-8" />
-				</EmptyMedia>
-				<EmptyTitle>Welcome to TenantFlow</EmptyTitle>
-				<EmptyDescription>
-					Get started by adding your first property, then invite tenants and
-					create leases to begin tracking your portfolio.
-				</EmptyDescription>
-				<EmptyContent>
-					<Link
-						href="/properties/new"
-						className="inline-flex items-center gap-2 px-6 py-3 bg-primary hover:bg-primary/90 text-primary-foreground font-medium rounded-lg transition-colors"
-					>
-						<Home className="w-5 h-5" />
-						Add Your First Property
-					</Link>
-				</EmptyContent>
-			</Empty>
-		</div>
-	)
-}
 
 /**
  * Dashboard Content - Wires API hooks to Dashboard UI component
@@ -147,7 +39,6 @@ function DashboardContent() {
 	useEffect(() => {
 		if (searchParams.get('stripe_connect') === 'success') {
 			toast.success('Stripe account connected — verification pending')
-			// Clean the URL param without navigating away
 			const url = new URL(window.location.href)
 			url.searchParams.delete('stripe_connect')
 			window.history.replaceState({}, '', url.toString())
