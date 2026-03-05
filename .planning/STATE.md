@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: Production Hardening
 status: completed
-stopped_at: Completed 05-06-PLAN.md
-last_updated: "2026-03-05T19:21:00Z"
-last_activity: 2026-03-05 — Removed 91 use client directives, refactored tenants/reports pages, updated CLAUDE.md with Phase 5 conventions
+stopped_at: Completed 05-07-PLAN.md
+last_updated: "2026-03-05T20:42:00Z"
+last_activity: 2026-03-05 — Replaced all string literal query keys, added dashboard invalidation, shared fetchRevenueTrends
 progress:
   total_phases: 10
   completed_phases: 5
   total_plans: 33
-  completed_plans: 26
-  percent: 79
+  completed_plans: 27
+  percent: 82
 ---
 
 # Project State: TenantFlow
@@ -26,11 +26,11 @@ See: .planning/PROJECT.md (updated 2026-03-04)
 ## Current Position
 
 Phase: 5 of 9 (Code Quality & Type Safety)
-Plan: 6 of 6 in current phase (05-06 complete — Phase 5 DONE)
-Status: Completed 05-06 (Tour verification, page refactoring, use client audit, CLAUDE.md update)
-Last activity: 2026-03-05 — Removed 91 use client directives, refactored tenants/reports pages, updated CLAUDE.md
+Plan: 7 of 9 in current phase (05-07 complete)
+Status: Completed 05-07 (Query key factory migration, dashboard invalidation, revenue trends dedup)
+Last activity: 2026-03-05 — Replaced all string literal query keys, added dashboard invalidation on deletes, shared fetchRevenueTrends
 
-Progress: [████████░░] 79%
+Progress: [████████░░] 82%
 
 ## Performance Metrics
 
@@ -64,6 +64,7 @@ Progress: [████████░░] 79%
 | Phase 05 P02 | 18min | 2 tasks | 6 files |
 | Phase 05 P05 | 8min | 2 tasks | 15 files |
 | Phase 05 P06 | 18min | 2 tasks | 95 files |
+| Phase 05 P07 | 9min | 2 tasks | 19 files |
 
 ## Accumulated Context
 
@@ -131,6 +132,9 @@ Progress: [████████░░] 79%
 - [Phase 05]: CLAUDE.md updated with 3 new Zero Tolerance rules, query key factories, mapper patterns, hook conventions
 - [Phase 05]: Webhook handler files named by Stripe event type for discoverability (payment-intent-succeeded.ts)
 - [Phase 05]: captureError kept local to payment-intent-succeeded handler (avoids cross-handler Sentry coupling)
+- [Phase 05]: fetchRevenueTrends as standalone function (not queryOptions spread) to avoid TanStack Query generic type conflicts
+- [Phase 05]: general-settings.tsx uses useProfile() hook instead of inline user-profile query with different cache key
+- [Phase 05]: blogKeys factory inline in use-blogs.ts (simple public queries, no cross-domain sharing needed)
 
 ### Pending Todos
 
@@ -145,6 +149,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-05T19:21:00Z
-Stopped at: Completed 05-06-PLAN.md (Phase 5 complete)
+Last session: 2026-03-05T20:42:00Z
+Stopped at: Completed 05-07-PLAN.md
 Resume file: None
