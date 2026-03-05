@@ -1,6 +1,7 @@
 {
   "imports": {
     "@supabase/supabase-js": "https://esm.sh/@supabase/supabase-js@2.49.4",
+    "@sentry/deno": "npm:@sentry/deno@9",
     "stripe": "npm:stripe@20"
   }
 }

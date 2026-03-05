@@ -7,12 +7,34 @@
 
 import Stripe from 'stripe'
 import { createClient } from '@supabase/supabase-js'
+import * as Sentry from 'npm:@sentry/deno@9'
 import React from 'npm:react@18.3.1'
 import { renderAsync } from 'npm:@react-email/components@0.0.22'
 import { sendEmail } from '../_shared/resend.ts'
 import { PaymentReceipt } from './_templates/payment-receipt.tsx'
 import { OwnerNotification } from './_templates/owner-notification.tsx'
 import { AutopayFailed } from './_templates/autopay-failed.tsx'
+
+// Initialize Sentry for error monitoring (Decision #15: Sentry is MANDATORY for metadata validation)
+const sentryDsn = Deno.env.get('SENTRY_DSN')
+if (sentryDsn) {
+  Sentry.init({ dsn: sentryDsn })
+} else {
+  console.warn('[SENTRY] SENTRY_DSN not set — falling back to structured console.error logging')
+}
+
+/**
+ * Capture an error to Sentry if configured, otherwise log structured JSON.
+ * Per Decision #15, Sentry.captureException is required — console.error is only
+ * a fallback when SENTRY_DSN is not configured.
+ */
+function captureError(error: Error, extra: Record<string, unknown>): void {
+  if (sentryDsn) {
+    Sentry.captureException(error, { extra })
+  } else {
+    console.error(JSON.stringify({ level: 'error', sentry: true, message: error.message, ...extra }))
+  }
+}
 
 Deno.serve(async (req: Request) => {
 
@@ -41,8 +63,11 @@ Deno.serve(async (req: Request) => {
     )
   }
 
-  // Idempotency check — attempt to insert event ID
-  // ON CONFLICT (PK violation) means already processed — return 200
+  // PAY-15: Idempotency with status tracking
+  // Insert with 'processing' status. On duplicate key:
+  //   - If previous attempt 'failed': update to 'processing' and retry
+  //   - If 'succeeded' or 'processing': return 200 (already handled)
+  // On success: update to 'succeeded'. On failure: mark 'failed' with error_message (never delete).
   const { error: idempotencyError } = await supabase
     .from('stripe_webhook_events')
     .insert({
@@ -50,33 +75,61 @@ Deno.serve(async (req: Request) => {
       event_type: event.type,
       livemode: event.livemode,
       data: event.data as unknown as Record<string, unknown>,
+      status: 'processing',
     })
 
   if (idempotencyError) {
     if (idempotencyError.code === '23505') {
-      // Duplicate key — already processed
-      return new Response(JSON.stringify({ received: true, duplicate: true }), {
-        status: 200,
-        headers: { 'Content-Type': 'application/json' },
-      })
+      // Duplicate key — check if previous attempt failed (allow retry)
+      const { data: existing } = await supabase
+        .from('stripe_webhook_events')
+        .select('status')
+        .eq('id', event.id)
+        .single()
+
+      if (existing?.status === 'failed') {
+        // Previous attempt failed — update to processing and retry
+        await supabase
+          .from('stripe_webhook_events')
+          .update({ status: 'processing', error_message: null })
+          .eq('id', event.id)
+      } else {
+        // Already succeeded or currently processing
+        return new Response(JSON.stringify({ received: true, duplicate: true }), {
+          status: 200,
+          headers: { 'Content-Type': 'application/json' },
+        })
+      }
+    } else {
+      // Other DB errors — return 500 so Stripe retries
+      return new Response(
+        JSON.stringify({ error: 'Failed to record event' }),
+        { status: 500, headers: { 'Content-Type': 'application/json' } }
+      )
     }
-    // Other DB errors — return 500 so Stripe retries
-    return new Response(
-      JSON.stringify({ error: 'Failed to record event' }),
-      { status: 500, headers: { 'Content-Type': 'application/json' } }
-    )
   }
 
   // Process the event
   try {
     await processEvent(supabase, stripe, event)
+    // Mark as succeeded
+    await supabase
+      .from('stripe_webhook_events')
+      .update({ status: 'succeeded' })
+      .eq('id', event.id)
     return new Response(JSON.stringify({ received: true }), {
       status: 200,
       headers: { 'Content-Type': 'application/json' },
     })
   } catch (err) {
-    // Processing failed — delete the idempotency record so Stripe retry can re-process
-    await supabase.from('stripe_webhook_events').delete().eq('id', event.id)
+    // Mark as failed — do NOT delete the record
+    await supabase
+      .from('stripe_webhook_events')
+      .update({
+        status: 'failed',
+        error_message: err instanceof Error ? err.message : 'Unknown error',
+      })
+      .eq('id', event.id)
     return new Response(
       JSON.stringify({ error: err instanceof Error ? err.message : 'Processing failed' }),
       { status: 500, headers: { 'Content-Type': 'application/json' } }
@@ -126,10 +179,10 @@ async function processEvent(
     case 'account.updated': {
       const account = event.data.object as Stripe.Account
 
-      // Fetch previous state to detect charges_enabled flip for notification
+      // Fetch previous state to detect charges_enabled flip and preserve onboarding_completed_at
       const { data: existing } = await supabase
         .from('stripe_connected_accounts')
-        .select('charges_enabled, user_id')
+        .select('charges_enabled, user_id, onboarding_completed_at')
         .eq('stripe_account_id', account.id)
         .single()
 
@@ -147,16 +200,29 @@ async function processEvent(
         ...(account.requirements?.eventually_due ?? []),
       ]
 
+      // PAY-11: Only set onboarding_completed_at when (a) status is completed,
+      // (b) charges_enabled is true, AND (c) it is not already set.
+      // Once set, never overwrite — preserves the original onboarding date.
+      const existingCompletedAt = existing?.onboarding_completed_at as string | null
+      const shouldSetCompletedAt = onboardingStatus === 'completed'
+        && account.charges_enabled
+        && !existingCompletedAt
+
+      const updatePayload: Record<string, unknown> = {
+        charges_enabled: account.charges_enabled,
+        payouts_enabled: account.payouts_enabled,
+        requirements_due: requirementsDue,
+        onboarding_status: onboardingStatus,
+        updated_at: new Date().toISOString(),
+      }
+
+      if (shouldSetCompletedAt) {
+        updatePayload.onboarding_completed_at = new Date().toISOString()
+      }
+
       const { error } = await supabase
         .from('stripe_connected_accounts')
-        .update({
-          charges_enabled: account.charges_enabled,
-          payouts_enabled: account.payouts_enabled,
-          requirements_due: requirementsDue,
-          onboarding_status: onboardingStatus,
-          onboarding_completed_at: onboardingStatus === 'completed' ? new Date().toISOString() : null,
-          updated_at: new Date().toISOString(),
-        })
+        .update(updatePayload)
         .eq('stripe_account_id', account.id)
       if (error) throw error
 
@@ -177,11 +243,31 @@ async function processEvent(
     case 'payment_intent.succeeded': {
       const pi = event.data.object as Stripe.PaymentIntent
       const metadata = pi.metadata ?? {}
+
+      // PAY-10: Validate required metadata — reject empty strings (Decision #15: Sentry required)
+      const tenantId = metadata['tenant_id']
+      const leaseId = metadata['lease_id']
       const rentDueId = metadata['rent_due_id'] || null
+      const unitId = metadata['unit_id']
+
+      if (!tenantId || !leaseId) {
+        captureError(
+          new Error('Missing required payment metadata'),
+          { event_id: event.id, pi_id: pi.id, metadata: pi.metadata }
+        )
+        console.error('[WEBHOOK] Missing required metadata — skipping payment_intent.succeeded', {
+          event_id: event.id,
+          pi_id: pi.id,
+          tenant_id: tenantId ?? 'MISSING',
+          lease_id: leaseId ?? 'MISSING',
+        })
+        break
+      }
+
       const grossAmount = pi.amount / 100 // Stripe stores in cents
       const platformFeeAmount = (pi.application_fee_amount ?? 0) / 100
 
-      // Get the charge to access balance_transaction for Stripe processing fee
+      // PAY-18: Get the charge to access balance_transaction for fee breakdown in owner email
       let stripeFeeAmount = 0
       const chargeId = typeof pi.latest_charge === 'string' ? pi.latest_charge : (pi.latest_charge as Stripe.Charge | null)?.id
       if (chargeId) {
@@ -189,7 +275,6 @@ async function processEvent(
           const charge = await stripe.charges.retrieve(chargeId, { expand: ['balance_transaction'] })
           const bt = charge.balance_transaction
           if (bt && typeof bt !== 'string') {
-            // balance_transaction.fee is in cents and includes Stripe processing fee
             stripeFeeAmount = bt.fee / 100
           }
         } catch (feeErr) {
@@ -200,57 +285,29 @@ async function processEvent(
 
       const netAmount = grossAmount - platformFeeAmount - stripeFeeAmount
 
-      // Upsert rent_payment record — update status if exists, create if not
-      const { data: existingPayment } = await supabase
-        .from('rent_payments')
-        .select('id')
-        .eq('stripe_payment_intent_id', pi.id)
-        .single()
-
-      if (existingPayment) {
-        const { error } = await supabase
-          .from('rent_payments')
-          .update({
-            status: 'succeeded',
-            paid_date: new Date().toISOString().split('T')[0],
-            gross_amount: grossAmount,
-            platform_fee_amount: platformFeeAmount,
-            stripe_fee_amount: stripeFeeAmount,
-            net_amount: netAmount,
-          })
-          .eq('stripe_payment_intent_id', pi.id)
-        if (error) throw error
-      } else {
-        // New payment_intent with no existing record — create from metadata
-        const { error } = await supabase
-          .from('rent_payments')
-          .insert({
-            stripe_payment_intent_id: pi.id,
-            amount: grossAmount,
-            gross_amount: grossAmount,
-            platform_fee_amount: platformFeeAmount,
-            stripe_fee_amount: stripeFeeAmount,
-            net_amount: netAmount,
-            currency: pi.currency.toUpperCase(),
-            status: 'succeeded',
-            tenant_id: metadata['tenant_id'] ?? '',
-            lease_id: metadata['lease_id'] ?? '',
-            application_fee_amount: platformFeeAmount,
-            payment_method_type: 'stripe',
-            period_start: metadata['period_start'] ?? new Date().toISOString().split('T')[0],
-            period_end: metadata['period_end'] ?? new Date().toISOString().split('T')[0],
-            due_date: metadata['due_date'] ?? new Date().toISOString().split('T')[0],
-            paid_date: new Date().toISOString().split('T')[0],
-            rent_due_id: rentDueId,
-            checkout_session_id: metadata['checkout_session_id'] ?? null,
-          })
-        if (error) throw error
-      }
+      // PAY-02: Use record_rent_payment RPC for atomic payment recording + rent_due status update
+      const { error: rpcError } = await supabase.rpc('record_rent_payment', {
+        p_stripe_payment_intent_id: pi.id,
+        p_rent_due_id: rentDueId,
+        p_tenant_id: tenantId,
+        p_lease_id: leaseId,
+        p_amount: grossAmount,
+        p_gross_amount: grossAmount,
+        p_platform_fee_amount: platformFeeAmount,
+        p_stripe_fee_amount: stripeFeeAmount,
+        p_net_amount: netAmount,
+        p_currency: pi.currency.toUpperCase(),
+        p_period_start: metadata['period_start'] ?? new Date().toISOString().split('T')[0],
+        p_period_end: metadata['period_end'] ?? new Date().toISOString().split('T')[0],
+        p_due_date: metadata['due_date'] ?? new Date().toISOString().split('T')[0],
+        p_checkout_session_id: metadata['checkout_session_id'] ?? null,
+      })
+      if (rpcError) throw rpcError
 
       // Fire-and-forget receipt emails — errors logged, never thrown
       // This MUST NOT affect the webhook response (always 200 after DB write succeeds)
       try {
-        await sendReceiptEmails(supabase, stripe, pi, grossAmount)
+        await sendReceiptEmails(supabase, stripe, pi, grossAmount, stripeFeeAmount, platformFeeAmount, netAmount)
       } catch (emailErr) {
         console.error('[RESEND_ERROR] sendReceiptEmails unexpected error:', emailErr)
       }
@@ -331,6 +388,46 @@ async function processEvent(
           console.error('[AUTOPAY] Failed to save checkout payment method:', saveErr)
         }
       }
+      break
+    }
+
+    // PAY-09: Platform subscription payment failure — notify owner and track status
+    case 'invoice.payment_failed': {
+      const invoice = event.data.object as Stripe.Invoice
+      const customerId = typeof invoice.customer === 'string'
+        ? invoice.customer
+        : (invoice.customer as { id: string } | null)?.id
+
+      if (!customerId) {
+        console.error('[WEBHOOK] invoice.payment_failed: no customer ID on invoice', invoice.id)
+        break
+      }
+
+      // Look up owner by stripe_customer_id
+      const { data: owner } = await supabase
+        .from('users')
+        .select('id, email, first_name, stripe_customer_id')
+        .eq('stripe_customer_id', customerId)
+        .single()
+
+      if (!owner) {
+        console.error(`[WEBHOOK] invoice.payment_failed: no user found for customer ${customerId}`)
+        break
+      }
+
+      // Send owner notification email about subscription payment failure
+      const frontendUrl = Deno.env.get('FRONTEND_URL') ?? 'https://app.tenantflow.app'
+      await sendEmail({
+        to: [owner.email as string],
+        subject: 'Action Required: Subscription Payment Failed',
+        html: `<p>Hi ${(owner.first_name as string) || 'there'},</p>
+          <p>Your TenantFlow subscription payment failed. Please update your payment method to avoid service interruption.</p>
+          <p>You have a 7-day grace period before premium features are restricted.</p>
+          <p><a href="${frontendUrl}/owner/billing">Update Payment Method</a></p>`,
+        tags: [{ name: 'category', value: 'subscription_failure' }],
+      })
+
+      console.log(`[WEBHOOK] invoice.payment_failed processed for user ${owner.id}`)
       break
     }
 
@@ -418,7 +515,10 @@ async function sendReceiptEmails(
   supabase: ReturnType<typeof createClient>,
   stripe: Stripe,
   pi: Stripe.PaymentIntent,
-  grossAmount: number
+  grossAmount: number,
+  stripeFeeAmount: number = 0,
+  platformFeeAmount: number = 0,
+  netAmount: number = 0
 ): Promise<void> {
   const metadata = pi.metadata ?? {}
   const tenantId = metadata['tenant_id']
@@ -557,6 +657,14 @@ async function sendReceiptEmails(
     const ownerName = (ownerUserResult.data.full_name as string) || 'Property Owner'
     const tenantName = (tenantUserResult.data?.full_name as string) || 'Tenant'
 
+    // PAY-18: Include fee breakdown in owner notification
+    const formatUSD = (v: number) => v.toLocaleString('en-US', { style: 'currency', currency: 'USD' })
+    const ownerFeeProps = stripeFeeAmount > 0 || platformFeeAmount > 0 ? {
+      platformFee: platformFeeAmount > 0 ? formatUSD(platformFeeAmount) : null,
+      stripeFee: stripeFeeAmount > 0 ? formatUSD(stripeFeeAmount) : null,
+      netAmount: formatUSD(netAmount),
+    } : {}
+
     emailPromises.push((async () => {
       const html = await renderAsync(
         React.createElement(OwnerNotification, {
@@ -566,6 +674,7 @@ async function sendReceiptEmails(
           propertyAddress,
           unitNumber,
           paymentDate,
+          ...ownerFeeProps,
         })
       )
       const result = await sendEmail({
