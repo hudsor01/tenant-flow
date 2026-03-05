@@ -5,10 +5,21 @@
 
 import { createClient } from '@supabase/supabase-js'
 import { getCorsHeaders, handleCorsOptions } from '../_shared/cors.ts'
+import { validateEnv } from '../_shared/env.ts'
+import { errorResponse } from '../_shared/errors.ts'
 
 Deno.serve(async (req: Request) => {
   const optionsResponse = handleCorsOptions(req)
   if (optionsResponse) return optionsResponse
+
+  let env: Record<string, string>
+  try {
+    env = validateEnv({
+      required: ['SUPABASE_URL', 'SUPABASE_SERVICE_ROLE_KEY'],
+    })
+  } catch (err) {
+    return errorResponse(req, 500, err, { action: 'env_validation' })
+  }
 
   try {
     // Authenticate
@@ -17,8 +28,8 @@ Deno.serve(async (req: Request) => {
       return new Response('Unauthorized', { status: 401, headers: getCorsHeaders(req) })
     }
 
-    const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? ''
-    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+    const supabaseUrl = env.SUPABASE_URL
+    const supabaseKey = env.SUPABASE_SERVICE_ROLE_KEY
     const supabase = createClient(supabaseUrl, supabaseKey)
 
     // Verify user JWT
@@ -74,10 +85,8 @@ Deno.serve(async (req: Request) => {
 
       if (!pdfResponse.ok) {
         const errText = await pdfResponse.text().catch(() => pdfResponse.statusText)
-        return new Response(
-          JSON.stringify({ error: `PDF generation failed: ${errText}` }),
-          { status: 502, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
-        )
+        console.error('[export-report] PDF generation failed:', errText)
+        return errorResponse(req, 502, new Error('PDF generation failed'), { action: 'export_report_pdf' })
       }
 
       const pdfBlob = await pdfResponse.arrayBuffer()
@@ -114,10 +123,7 @@ Deno.serve(async (req: Request) => {
       }
     })
   } catch (err) {
-    return new Response(
-      JSON.stringify({ error: err instanceof Error ? err.message : 'Internal error' }),
-      { status: 500, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
-    )
+    return errorResponse(req, 500, err, { action: 'export_report' })
   }
 })
 
