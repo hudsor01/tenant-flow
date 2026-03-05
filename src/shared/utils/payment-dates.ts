@@ -34,8 +34,7 @@ export function getCanonicalPaymentDate(
  * @returns true if the payment is considered successful
  */
 export function isSuccessfulPaymentStatus(status: string): boolean {
-	const successfulStatuses = ['SUCCEEDED', 'paid', 'COMPLETED']
-	return successfulStatuses.includes(status.toUpperCase())
+	return status === 'succeeded'
 }
 
 /**
