@@ -107,7 +107,10 @@ async function findAndAcceptPendingInvitation(
 			}
 		)
 
-		if (!response.ok) return false
+		if (!response.ok) {
+			console.error('[auth/callback] Invitation accept failed:', response.status, await response.text().catch(() => ''))
+			return false
+		}
 
 		// Update user_type to TENANT in public.users
 		// The sync trigger will propagate to auth.users.raw_app_meta_data
@@ -117,8 +120,8 @@ async function findAndAcceptPendingInvitation(
 			.eq('id', userId)
 
 		return true
-	} catch {
-		// Non-fatal: if invitation check fails, user goes to role selection
+	} catch (err) {
+		console.error('[auth/callback] Invitation auto-link error:', err)
 		return false
 	}
 }

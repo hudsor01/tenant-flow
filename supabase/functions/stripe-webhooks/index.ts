@@ -743,7 +743,7 @@ async function resolveAutopayFailureData(
   const pmId = typeof pi.payment_method === 'string' ? pi.payment_method : null
   if (pmId) {
     try { paymentMethodLast4 = (await stripe.paymentMethods.retrieve(pmId)).card?.last4 ?? null }
-    catch { /* non-critical */ }
+    catch (err) { console.warn('[stripe-webhooks] PM retrieval failed:', pmId, err) }
   }
 
   const lastError = pi.last_payment_error

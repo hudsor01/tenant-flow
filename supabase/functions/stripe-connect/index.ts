@@ -76,8 +76,8 @@ Deno.serve(async (req: Request) => {
           JSON.stringify({ account, hasAccount: true }),
           { status: 200, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
         )
-      } catch (_stripeErr) {
-        // Return DB data only if Stripe is unreachable
+      } catch (stripeErr) {
+        console.warn('[stripe-connect] Stripe API unreachable, returning DB data:', stripeErr)
         return new Response(
           JSON.stringify({ account: row, hasAccount: true }),
           { status: 200, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
