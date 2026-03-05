@@ -89,8 +89,8 @@ All 131 findings from the review, plus CLAUDE.md maintenance.
 
 - [ ] **CODE-01**: Fake table cast `from('reports' as 'properties')` removed
 - [ ] **CODE-02**: 50+ `as unknown as` type assertions replaced with proper Supabase Database types or mapper functions
-- [ ] **CODE-03**: All mutation `onSuccess` handlers use canonical query key factories (not string literals)
-- [ ] **CODE-04**: All property/tenant/lease delete mutations invalidate `ownerDashboardKeys.all`
+- [x] **CODE-03**: All mutation `onSuccess` handlers use canonical query key factories (not string literals)
+- [x] **CODE-04**: All property/tenant/lease delete mutations invalidate `ownerDashboardKeys.all`
 - [ ] **CODE-05**: Duplicate local types consolidated with `src/shared/types/` canonical types
 - [ ] **CODE-06**: Stub hooks (10+ in `use-reports.ts`, `use-financials.ts`) implemented or UI routes disabled
 - [ ] **CODE-07**: Duplicate `GeneralSettings` component deleted — single source of truth
@@ -102,8 +102,8 @@ All 131 findings from the review, plus CLAUDE.md maintenance.
 - [ ] **CODE-13**: `stripe-webhooks/index.ts` (691 lines) split into handler modules
 - [ ] **CODE-14**: Page components exceeding 300 lines refactored (`dashboard/page.tsx` 373, `properties/page.tsx` 393, `tenants/page.tsx` 378, `reports/generate/page.tsx` 400)
 - [ ] **CODE-15**: 63 `'use client'` page files audited — push directive down to leaf components where possible
-- [ ] **CODE-16**: 8 `eslint-disable @tanstack/query/exhaustive-deps` suppressions resolved or rule configured globally
-- [ ] **CODE-17**: Duplicate `get_revenue_trends_optimized` RPC calls deduplicated (3 hooks calling same RPC -> shared query)
+- [x] **CODE-16**: 8 `eslint-disable @tanstack/query/exhaustive-deps` suppressions resolved or rule configured globally
+- [x] **CODE-17**: Duplicate `get_revenue_trends_optimized` RPC calls deduplicated (3 hooks calling same RPC -> shared query)
 - [ ] **CODE-18**: `owner_user_id` access in `use-tenant-portal.ts:365` uses proper `.select()` column (not double-cast)
 - [ ] **CODE-19**: `@radix-ui/react-icons` removed — project uses `lucide-react`
 - [ ] **CODE-20**: Dead `SseProvider` removed from provider tree
@@ -289,8 +289,8 @@ All 131 findings from the review, plus CLAUDE.md maintenance.
 | EDGE-14 | Phase 4 | Complete |
 | CODE-01 | Phase 5 | Pending |
 | CODE-02 | Phase 5 | Pending |
-| CODE-03 | Phase 5 | Pending |
-| CODE-04 | Phase 5 | Pending |
+| CODE-03 | Phase 5 | Complete |
+| CODE-04 | Phase 5 | Complete |
 | CODE-05 | Phase 5 | Pending |
 | CODE-06 | Phase 5 | Pending |
 | CODE-07 | Phase 5 | Pending |
@@ -302,8 +302,8 @@ All 131 findings from the review, plus CLAUDE.md maintenance.
 | CODE-13 | Phase 5 | Pending |
 | CODE-14 | Phase 5 | Pending |
 | CODE-15 | Phase 5 | Pending |
-| CODE-16 | Phase 5 | Pending |
-| CODE-17 | Phase 5 | Pending |
+| CODE-16 | Phase 5 | Complete |
+| CODE-17 | Phase 5 | Complete |
 | CODE-18 | Phase 5 | Pending |
 | CODE-19 | Phase 5 | Pending |
 | CODE-20 | Phase 5 | Pending |
