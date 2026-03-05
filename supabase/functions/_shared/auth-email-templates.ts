@@ -2,19 +2,11 @@
 // Used by the auth-email-send Edge Function (Supabase Auth Hook).
 // All templates use inline CSS for email client compatibility.
 
+import { escapeHtml } from './escape-html.ts'
+
 const BRAND_COLOR = '#2563eb'
 const BRAND_NAME = 'TenantFlow'
 const TAGLINE = 'Property Management Made Simple'
-
-/** Escape HTML special characters to prevent XSS in email HTML. */
-function escapeHtml(str: string): string {
-  return str
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#39;')
-}
 
 /** Wrap email body content in the shared layout (header, footer, responsive container). */
 function wrapInLayout(bodyContent: string): string {

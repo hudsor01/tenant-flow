@@ -4,14 +4,14 @@
 
 /**
  * Returns CORS headers if the request origin matches the configured FRONTEND_URL.
- * If FRONTEND_URL is not set, logs a warning and returns empty headers (fail-open).
+ * If FRONTEND_URL is not set, logs an error and returns empty headers (fail-closed).
  * If origin does not match, returns empty headers (no CORS).
  */
 export function getCorsHeaders(req: Request): Record<string, string> {
   const frontendUrl = Deno.env.get('FRONTEND_URL')
 
   if (!frontendUrl) {
-    console.warn('FRONTEND_URL is not set -- CORS headers will not be returned')
+    console.error('FRONTEND_URL is not set -- CORS headers will not be returned (fail-closed)')
     return {}
   }
 
