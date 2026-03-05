@@ -11,7 +11,7 @@ import {
 	InputGroupInput
 } from '#components/ui/input-group'
 import { getFieldErrorMessage } from '#lib/utils/form'
-import { authQueryKeys } from '#providers/auth-provider'
+import { authKeys } from '#hooks/api/use-auth'
 import { createLogger } from '#shared/lib/frontend-logger'
 import { createClient } from '#lib/supabase/client'
 import { loginZodSchema } from '#shared/validation/auth'
@@ -95,8 +95,8 @@ function LoginPageContent() {
 
 					// CRITICAL: Update query cache BEFORE navigating to prevent race condition
 					// where the target page's auth guards see stale "no session" data
-					queryClient.setQueryData(authQueryKeys.session, data.session)
-					queryClient.setQueryData(authQueryKeys.user, data.session.user)
+					queryClient.setQueryData(authKeys.session(), data.session)
+					queryClient.setQueryData(authKeys.user(), data.session.user)
 
 					// Read user_type directly from login response to avoid race condition
 					// with useUserRole hook not having updated session yet

@@ -2348,6 +2348,15 @@ export type Database = {
         Args: { p_primary_tenant_id: string; p_unit_id: string }
         Returns: boolean
       }
+      audit_for_all_policies: {
+        Args: { p_role: string }
+        Returns: {
+          policyname: string
+          roles: string[]
+          schemaname: string
+          tablename: string
+        }[]
+      }
       calculate_late_fees: { Args: never; Returns: undefined }
       calculate_maintenance_metrics: {
         Args: {
@@ -2548,6 +2557,7 @@ export type Database = {
           unit_limit: number
         }[]
       }
+      get_user_profile: { Args: { p_user_id: string }; Returns: Json }
       get_user_sessions: {
         Args: { p_user_id: string }
         Returns: {
@@ -2614,20 +2624,35 @@ export type Database = {
           state: string
         }[]
       }
-      sign_lease_and_check_activation: {
-        Args: {
-          p_lease_id: string
-          p_signature_ip: string
-          p_signature_method?: string
-          p_signed_at: string
-          p_signer_type: string
-        }
-        Returns: {
-          both_signed: boolean
-          error_message: string
-          success: boolean
-        }[]
-      }
+      sign_lease_and_check_activation:
+        | {
+            Args: {
+              p_lease_id: string
+              p_signature_ip: string
+              p_signature_method?: Database["public"]["Enums"]["signature_method"]
+              p_signed_at: string
+              p_signer_type: string
+            }
+            Returns: {
+              both_signed: boolean
+              error_message: string
+              success: boolean
+            }[]
+          }
+        | {
+            Args: {
+              p_lease_id: string
+              p_signature_ip: string
+              p_signature_method?: string
+              p_signed_at: string
+              p_signer_type: string
+            }
+            Returns: {
+              both_signed: boolean
+              error_message: string
+              success: boolean
+            }[]
+          }
       upsert_rent_payment: {
         Args: {
           p_amount: number
@@ -2651,7 +2676,7 @@ export type Database = {
       user_is_tenant: { Args: never; Returns: boolean }
     }
     Enums: {
-      [_ in never]: never
+      signature_method: "in_app" | "docuseal"
     }
     CompositeTypes: {
       lease_stats_type: {
@@ -2835,6 +2860,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      signature_method: ["in_app", "docuseal"],
+    },
   },
 } as const

@@ -38,7 +38,7 @@ function isPublicRoute(pathname: string): boolean {
 
 /**
  * Helper: copy all Supabase cookies from supabaseResponse to a redirect
- * response. Prevents session loss on middleware redirects.
+ * response. Prevents session loss on proxy redirects.
  */
 function redirectWithCookies(
   url: URL,
@@ -51,8 +51,8 @@ function redirectWithCookies(
   return redirectResponse
 }
 
-// eslint-disable-next-line @typescript-eslint/naming-convention
-export async function middleware(
+// Next.js 16: proxy.ts replaces deprecated middleware.ts
+export async function proxy(
   request: NextRequest
 ): Promise<NextResponse> {
   const { user, supabaseResponse } = await updateSession(request)
@@ -106,9 +106,6 @@ export async function middleware(
 
   return supabaseResponse
 }
-
-// Alias for test imports (VS Code renames #middleware -> #proxy automatically)
-export { middleware as proxy }
 
 export const config = {
   matcher: [

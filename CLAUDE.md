@@ -83,15 +83,17 @@ Server-side logic runs as Supabase Edge Functions (Deno runtime).
 - Location: `supabase/functions/<function-name>/index.ts`
 - Shared utilities: `supabase/functions/_shared/` (cors.ts, resend.ts)
 - Import map: `supabase/functions/deno.json`
-- Auth pattern: extract Bearer token, then `supabase.auth.getUser(token)` to verify
+- Auth pattern: extract Bearer token, then `supabase.auth.getUser(token)` to verify — derive user identity from JWT, never from request body params
 - CORS: use `getCorsHeaders(req)` and early-return `handleCorsOptions(req)` for preflight
 - Deploy: `supabase functions deploy <function-name>`
 - Stripe SDK: All Edge Functions use `stripe@20` with `apiVersion: '2026-02-25.clover'` (Deno import map in `supabase/functions/deno.json`).
 - Payment metadata: Always validate `tenant_id`, `lease_id`, `rent_due_id` from Stripe metadata. Never use empty string fallbacks.
 - Payment method deletion: Must call `detach-payment-method` Edge Function which detaches from Stripe API before DB deletion. No DB-only deletion allowed.
+- Auth emails: sent via Resend through `supabase/functions/auth-email-send/index.ts` — configured as Supabase Auth Hook (Authentication > Hooks > Send Email)
+- Email templates: `supabase/functions/_shared/auth-email-templates.ts` — 5 branded templates (signup, recovery, invite, magiclink, email_change) with inline CSS and XSS-safe escaping
 
 ## Security Model
-RLS (Row Level Security) is the only access-control layer. No middleware auth, no backend guards.
+RLS (Row Level Security) is the primary access-control layer. Proxy middleware enforces route-level auth.
 
 - RLS enforced on every table — frontend never uses service role key
 - Wrap `auth.uid()` in subselect for performance: `(select auth.uid())`
@@ -101,6 +103,14 @@ RLS (Row Level Security) is the only access-control layer. No middleware auth, n
 - All SECURITY DEFINER RPCs validate `auth.uid()` — caller cannot request another user's data
 - Error monitoring RPCs are admin-only (`user_type = 'ADMIN'` via `is_admin()`)
 - Integration tests: `tests/integration/rls/` — 70 tests across 10 domains
+- `user_type` is immutable after initial selection — BEFORE UPDATE trigger on `users` table prevents changes once set beyond `PENDING`
+
+## Proxy Middleware (Route Protection)
+- `proxy.ts` at project root — executes on all non-static, non-API requests
+- `updateSession` utility in `src/lib/supabase/middleware.ts` handles Supabase token refresh with `getAll`/`setAll` cookie pattern
+- Public routes skip auth: `/`, `/auth/*`, `/pricing`, `/features`, etc. (see `proxy.ts` for full list)
+- Role-based enforcement: TENANT -> `/tenant/*`, OWNER/ADMIN -> `/dashboard/*`, PENDING -> `/auth/select-role`
+- `redirectWithCookies` helper preserves session cookies on all redirects (prevents session loss)
 
 ## Naming
 | Thing | Convention |
@@ -112,6 +122,9 @@ RLS (Row Level Security) is the only access-control layer. No middleware auth, n
 
 ## Common Gotchas
 - Supabase auth: always `getAll`/`setAll` cookie methods (never `get`/`set`/`remove`)
+- Auth decisions: always use `getUser()` (server-validated), never `getSession()` for security decisions. `getSession()` only acceptable for reading the access_token string to pass as Bearer header.
+- No module-level Supabase client in hooks — create `createClient()` inside each mutation/query function
+- Single auth query key factory: `authKeys` from `src/hooks/api/use-auth.ts`. No other key definitions allowed.
 - Pagination: use `count` from Supabase response, never `data.length`
 - MCP servers: supabase, sentry, shadcn, context7, stripe, n8n configured in project
 - Amount units: `rent_due.amount` is dollars (numeric). Multiply by 100 only in Edge Functions when calling Stripe API. `formatCurrency(amountInDollars)` is the only currency formatter.

@@ -37,10 +37,7 @@ export default defineConfig({
 			)
 		}
 	},
-	plugins: [
-		tsconfigPaths({ ignoreConfigErrors: true }) as PluginOption,
-		react() as PluginOption
-	],
+	plugins: [tsconfigPaths(), react()],
 	test: {
 		projects: [
 			{

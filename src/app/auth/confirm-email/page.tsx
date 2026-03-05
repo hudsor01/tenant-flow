@@ -62,12 +62,12 @@ function ConfirmEmailContent() {
 
 		try {
 			const supabase = createClient()
-			// Get the current session to extract the email
+			// Get the current user to extract the email (AUTH-17: getUser() not getSession())
 			const {
-				data: { session }
-			} = await supabase.auth.getSession()
+				data: { user }
+			} = await supabase.auth.getUser()
 
-			if (!session?.user?.email) {
+			if (!user?.email) {
 				toast.error('Unable to resend email', {
 					description: 'Please sign up again or contact support.'
 				})
@@ -77,7 +77,7 @@ function ConfirmEmailContent() {
 			// Resend the confirmation email
 			const { error } = await supabase.auth.resend({
 				type: 'signup',
-				email: session.user.email
+				email: user.email
 			})
 
 			if (error) throw error

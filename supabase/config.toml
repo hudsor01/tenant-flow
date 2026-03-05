@@ -327,6 +327,10 @@ authorization_url_path = "/oauth/consent"
 # Allow dynamic client registration
 allow_dynamic_registration = false
 
+# Stripe Sync Engine — public webhook endpoint (Stripe signature auth, not JWT)
+[functions.stripe-sync]
+verify_jwt = false
+
 [edge_runtime]
 enabled = true
 # Supported request policies: `oneshot`, `per_worker`.
