@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: Production Hardening
 status: completed
-stopped_at: Completed 05-02-PLAN.md
-last_updated: "2026-03-05T18:36:22.201Z"
-last_activity: 2026-03-05 — Eliminated all stub hooks, created query key factories, removed dead code
+stopped_at: Completed 05-06-PLAN.md
+last_updated: "2026-03-05T19:21:00Z"
+last_activity: 2026-03-05 — Removed 91 use client directives, refactored tenants/reports pages, updated CLAUDE.md with Phase 5 conventions
 progress:
   total_phases: 10
   completed_phases: 5
   total_plans: 33
-  completed_plans: 24
-  percent: 73
+  completed_plans: 26
+  percent: 79
 ---
 
 # Project State: TenantFlow
@@ -26,11 +26,11 @@ See: .planning/PROJECT.md (updated 2026-03-04)
 ## Current Position
 
 Phase: 5 of 9 (Code Quality & Type Safety)
-Plan: 3 of 6 in current phase (05-02 complete)
-Status: Completed 05-02 (Type assertion elimination and column bug fixes)
-Last activity: 2026-03-05 — Eliminated 16 type assertions, fixed tenant-portal column bugs, corrected payment status
+Plan: 6 of 6 in current phase (05-06 complete — Phase 5 DONE)
+Status: Completed 05-06 (Tour verification, page refactoring, use client audit, CLAUDE.md update)
+Last activity: 2026-03-05 — Removed 91 use client directives, refactored tenants/reports pages, updated CLAUDE.md
 
-Progress: [███████░░░] 73%
+Progress: [████████░░] 79%
 
 ## Performance Metrics
 
@@ -62,6 +62,8 @@ Progress: [███████░░░] 73%
 | Phase 05 P03 | 15min | 2 tasks | 20 files |
 | Phase 05 P01 | 6min | 3 tasks | 14 files |
 | Phase 05 P02 | 18min | 2 tasks | 6 files |
+| Phase 05 P05 | 8min | 2 tasks | 15 files |
+| Phase 05 P06 | 18min | 2 tasks | 95 files |
 
 ## Accumulated Context
 
@@ -124,6 +126,11 @@ Progress: [███████░░░] 73%
 - [Phase 05]: @radix-ui/react-icons fully removed, lucide-react is sole icon library
 - [Phase 05]: 24 structurally required as unknown as assertions kept (PostgREST string vs domain union literals)
 - [Phase 05]: isSuccessfulPaymentStatus simplified to exact match status === 'succeeded' per DB schema
+- [Phase 05]: tour.tsx (1,732 lines) verified as vendored Dice UI upstream copy — kept as-is, exempt from 300-line rule
+- [Phase 05]: 91 presentational components had 'use client' removed — no hooks, event handlers, or browser APIs required
+- [Phase 05]: CLAUDE.md updated with 3 new Zero Tolerance rules, query key factories, mapper patterns, hook conventions
+- [Phase 05]: Webhook handler files named by Stripe event type for discoverability (payment-intent-succeeded.ts)
+- [Phase 05]: captureError kept local to payment-intent-succeeded handler (avoids cross-handler Sentry coupling)
 
 ### Pending Todos
 
@@ -138,6 +145,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-05T18:36:22.198Z
-Stopped at: Completed 05-02-PLAN.md
+Last session: 2026-03-05T19:21:00Z
+Stopped at: Completed 05-06-PLAN.md (Phase 5 complete)
 Resume file: None
