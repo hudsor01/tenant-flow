@@ -171,7 +171,19 @@ export const billingQueries = {
 					.order('created_at', { ascending: false })
 					.limit(50)
 				if (error) handlePostgrestError(error, 'rent_payments')
-				return (data ?? []) as unknown as BillingHistoryItem[]
+				return (data ?? []).map((row): BillingHistoryItem => ({
+					id: row.id,
+					subscriptionId: '',
+					tenant_id: row.tenant_id,
+					amount: row.amount,
+					currency: row.currency ?? 'USD',
+					status: row.status as BillingHistoryItem['status'],
+					created_at: row.created_at,
+					updated_at: row.created_at,
+					formattedAmount: `$${row.amount.toFixed(2)}`,
+					formattedDate: new Date(row.created_at).toLocaleDateString(),
+					isSuccessful: row.status === 'succeeded'
+				}))
 			},
 			staleTime: 60 * 1000
 		}),
@@ -199,7 +211,19 @@ export const billingQueries = {
 					.limit(50)
 
 				if (error) handlePostgrestError(error, 'rent_payments')
-				return (data ?? []) as unknown as BillingHistoryItem[]
+				return (data ?? []).map((row): BillingHistoryItem => ({
+					id: row.id,
+					subscriptionId,
+					tenant_id: row.tenant_id,
+					amount: row.amount,
+					currency: row.currency ?? 'USD',
+					status: row.status as BillingHistoryItem['status'],
+					created_at: row.created_at,
+					updated_at: row.created_at,
+					formattedAmount: `$${row.amount.toFixed(2)}`,
+					formattedDate: new Date(row.created_at).toLocaleDateString(),
+					isSuccessful: row.status === 'succeeded'
+				}))
 			},
 			enabled: !!subscriptionId,
 			staleTime: 60 * 1000
@@ -405,7 +429,21 @@ export function useSubscriptions() {
 				.not('stripe_subscription_id', 'is', null)
 				.order('created_at', { ascending: false })
 			if (error) handlePostgrestError(error, 'leases')
-			return (data ?? []) as unknown as RentSubscriptionResponse[]
+			return (data ?? []).map((row): RentSubscriptionResponse => ({
+				id: row.id,
+				leaseId: row.id,
+				tenantId: row.primary_tenant_id ?? '',
+				ownerId: '',
+				stripeSubscriptionId: row.stripe_subscription_id ?? '',
+				stripeCustomerId: '',
+				amount: row.rent_amount ?? undefined,
+				currency: row.rent_currency ?? 'USD',
+				billingDayOfMonth: 1,
+				status: row.stripe_subscription_status ?? 'unknown',
+				platformFeePercentage: 0,
+				createdAt: '',
+				updatedAt: ''
+			}))
 		},
 		staleTime: 30 * 1000
 	})
@@ -422,7 +460,22 @@ export function useSubscription(id: string) {
 				.eq('id', id)
 				.single()
 			if (error) handlePostgrestError(error, 'leases')
-			return data as unknown as RentSubscriptionResponse
+			const row = data!
+			return {
+				id: row.id,
+				leaseId: row.id,
+				tenantId: row.primary_tenant_id ?? '',
+				ownerId: '',
+				stripeSubscriptionId: row.stripe_subscription_id ?? '',
+				stripeCustomerId: '',
+				amount: row.rent_amount ?? undefined,
+				currency: row.rent_currency ?? 'USD',
+				billingDayOfMonth: 1,
+				status: row.stripe_subscription_status ?? 'unknown',
+				platformFeePercentage: 0,
+				createdAt: '',
+				updatedAt: ''
+			} satisfies RentSubscriptionResponse
 		},
 		enabled: !!id
 	})
@@ -441,7 +494,7 @@ export function useCreateSubscriptionMutation() {
 			// Full-page redirect to Stripe Checkout (Radar fraud detection enabled)
 			window.location.href = result.url
 			// Return stub — page will navigate away before this resolves
-			return { id: data.leaseId, status: 'redirecting' } as unknown as RentSubscriptionResponse
+			return { id: data.leaseId, status: 'redirecting' } as RentSubscriptionResponse
 		},
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: subscriptionsKeys.list() })

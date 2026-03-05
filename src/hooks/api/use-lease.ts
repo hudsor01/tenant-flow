@@ -9,6 +9,7 @@
  * Query keys are in a separate file to avoid circular dependencies.
  */
 
+import { useEffect } from 'react'
 import { useMutation, usePrefetchQuery, useQuery, useQueryClient } from '@tanstack/react-query'
 import { logger } from '#shared/lib/frontend-logger'
 import type { Lease } from '#shared/types/core'
@@ -92,17 +93,20 @@ export function useLeaseList(params?: {
 		offset
 	})
 
-	return useQuery({
+	const query = useQuery({
 		...listQuery,
-		select: response => {
-			response?.data?.forEach?.(lease => {
-				queryClient.setQueryData(leaseQueries.detail(lease.id).queryKey, lease)
-			})
-
-			return response
-		},
 		structuralSharing: true
 	})
+
+	useEffect(() => {
+		if (query.data?.data) {
+			for (const lease of query.data.data) {
+				queryClient.setQueryData(leaseQueries.detail(lease.id).queryKey, lease)
+			}
+		}
+	}, [query.data, queryClient])
+
+	return query
 }
 
 /**

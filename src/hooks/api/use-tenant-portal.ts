@@ -350,7 +350,7 @@ export const tenantPortalQueries = {
 					.single()
 
 				// Compute per-tenant portion using responsibility_percentage (PAY-14)
-				const leaseRaw = lease as unknown as {
+				const leaseRaw = lease as {
 					id: string
 					rent_amount: number | null
 					owner_user_id: string
@@ -373,7 +373,7 @@ export const tenantPortalQueries = {
 				}
 
 				// Step 3: Resolve owner's connected account charges_enabled status
-				const leaseOwnerUserId = (lease as unknown as Record<string, unknown>).owner_user_id as string
+				const leaseOwnerUserId = leaseRaw!.owner_user_id
 				const { data: connectedAccount } = await supabase
 					.from('stripe_connected_accounts')
 					.select('charges_enabled')
@@ -484,7 +484,7 @@ export const tenantPortalQueries = {
 				// Step 3: Get payments for this lease
 				const { data, error } = await supabase
 					.from('rent_payments')
-					.select('id, amount_cents, status, paid_at, due_date, created_at, lease_id')
+					.select('id, amount, status, paid_date, due_date, created_at, lease_id')
 					.eq('lease_id', lease.id)
 					.order('due_date', { ascending: false })
 					.limit(50)
@@ -493,15 +493,15 @@ export const tenantPortalQueries = {
 
 				const payments: TenantPayment[] = (data ?? []).map(row => ({
 					id: row.id,
-					amount: row.amount_cents / 100,
+					amount: row.amount,
 					status: row.status,
-					paidAt: row.paid_at,
+					paidAt: row.paid_date,
 					dueDate: row.due_date,
 					created_at: row.created_at,
 					lease_id: row.lease_id,
 					tenant_id: tenantRecord.id,
 					stripePaymentIntentId: null,
-					ownerReceives: row.amount_cents / 100,
+					ownerReceives: row.amount,
 					receiptUrl: null
 				}))
 
@@ -701,7 +701,7 @@ export const tenantPortalQueries = {
 				if (!data) return null
 
 				// Supabase join returns relations as arrays even with !inner
-				const raw = data as unknown as {
+				const raw = data as {
 					id: string
 					start_date: string
 					end_date: string

@@ -443,7 +443,7 @@ async function processEvent(
     default:
       // Return 200 for unhandled events (acknowledge receipt)
       // No error for common non-critical events — Stripe should not retry
-      console.log(`Unhandled event type: ${event.type}`)
+      console.warn('[WEBHOOK] Unhandled event type:', event.type)
       break
   }
 }
