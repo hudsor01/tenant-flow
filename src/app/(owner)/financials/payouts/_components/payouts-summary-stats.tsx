@@ -1,5 +1,3 @@
-'use client'
-
 import { DollarSign, Wallet, Clock, ArrowDownRight } from 'lucide-react'
 import { BlurFade } from '#components/ui/blur-fade'
 import { BorderBeam } from '#components/ui/border-beam'

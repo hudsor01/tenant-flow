@@ -1,5 +1,3 @@
-'use client'
-
 /**
  * Lease Creation Wizard - Step 4: Review
  * Summary of all entered data before submission

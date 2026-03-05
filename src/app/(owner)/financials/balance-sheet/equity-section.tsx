@@ -1,5 +1,3 @@
-'use client'
-
 import { Wallet } from 'lucide-react'
 import { formatCents } from '#lib/formatters/currency'
 import type { FinancialLineItem } from '#shared/types/financial-statements'

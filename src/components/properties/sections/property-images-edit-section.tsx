@@ -1,5 +1,3 @@
-'use client'
-
 import { PropertyImageGallery } from '../property-image-gallery'
 import { PropertyImageDropzone } from '../property-image-dropzone'
 

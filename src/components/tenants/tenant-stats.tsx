@@ -1,5 +1,3 @@
-'use client'
-
 import { Users, Check, Clock, AlertCircle } from 'lucide-react'
 import {
 	Stat,

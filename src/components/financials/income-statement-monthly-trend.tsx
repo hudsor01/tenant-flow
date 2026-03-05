@@ -1,5 +1,3 @@
-'use client'
-
 import { BlurFade } from '#components/ui/blur-fade'
 import type { MonthlyData } from '#shared/types/financial-statements'
 

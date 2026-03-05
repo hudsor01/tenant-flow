@@ -1,5 +1,3 @@
-'use client'
-
 import { AlertTriangle, Clock, Percent, TrendingUp } from 'lucide-react'
 import { BlurFade } from '#components/ui/blur-fade'
 import { NumberTicker } from '#components/ui/number-ticker'

@@ -1,5 +1,3 @@
-'use client'
-
 import { RenewLeaseDialog } from './renew-lease-dialog'
 import { TerminateLeaseDialog } from './terminate-lease-dialog'
 import { ConfirmDialog } from '#components/ui/confirm-dialog'

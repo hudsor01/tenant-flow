@@ -1,5 +1,3 @@
-'use client'
-
 import Image from 'next/image'
 import { Building2, CheckCircle2, Home, Lock } from 'lucide-react'
 

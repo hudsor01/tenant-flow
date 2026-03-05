@@ -1,5 +1,3 @@
-'use client'
-
 import { BlurFade } from '#components/ui/blur-fade'
 import { Button } from '#components/ui/button'
 import { GlowingEffect } from '#components/ui/glowing-effect'

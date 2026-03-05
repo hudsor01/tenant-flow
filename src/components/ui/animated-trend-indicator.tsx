@@ -1,5 +1,3 @@
-'use client'
-
 import { cn } from '#lib/utils'
 import { ArrowDownRight, ArrowUpRight, Minus } from 'lucide-react'
 

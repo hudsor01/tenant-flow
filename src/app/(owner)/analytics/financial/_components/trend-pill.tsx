@@ -1,5 +1,3 @@
-'use client'
-
 import { ArrowDownRight, ArrowUpRight } from 'lucide-react'
 import { Badge } from '#components/ui/badge'
 import { formatPercentage } from '#lib/formatters/currency'

@@ -1,5 +1,3 @@
-'use client'
-
 import type { ComponentProps, ReactNode, Ref } from 'react'
 
 import { ANIMATION_DURATIONS } from '#shared/constants/design-system'

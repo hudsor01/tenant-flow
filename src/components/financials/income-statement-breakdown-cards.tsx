@@ -1,5 +1,3 @@
-'use client'
-
 import { ArrowUpRight, ArrowDownRight } from 'lucide-react'
 import { BlurFade } from '#components/ui/blur-fade'
 

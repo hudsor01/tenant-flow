@@ -1,5 +1,3 @@
-'use client'
-
 import { Wrench } from 'lucide-react'
 import { BlurFade } from '#components/ui/blur-fade'
 import type { MaintenanceTrend } from '../analytics-types'

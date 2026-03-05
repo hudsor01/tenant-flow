@@ -1,5 +1,3 @@
-'use client'
-
 import { cn } from '#lib/utils'
 import { BlurFade } from '#components/ui/blur-fade'
 import { Button } from '#components/ui/button'

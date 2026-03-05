@@ -1,5 +1,3 @@
-'use client'
-
 import { Plus, FileText, Wrench, DollarSign, Bell, type LucideIcon } from 'lucide-react'
 import Link from 'next/link'
 

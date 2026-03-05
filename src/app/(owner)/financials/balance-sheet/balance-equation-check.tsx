@@ -1,5 +1,3 @@
-'use client'
-
 import { Check, X } from 'lucide-react'
 import { formatCents } from '#lib/formatters/currency'
 

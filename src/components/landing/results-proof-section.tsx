@@ -1,5 +1,3 @@
-'use client'
-
 import { BlurFade } from '#components/ui/blur-fade'
 import { LazySection } from '#components/ui/lazy-section'
 import { SectionSkeleton } from '#components/ui/section-skeleton'

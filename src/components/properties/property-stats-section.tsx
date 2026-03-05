@@ -1,5 +1,3 @@
-'use client'
-
 import { Building2, Users, DollarSign, Home } from 'lucide-react'
 import type { PropertiesSummary } from './types'
 

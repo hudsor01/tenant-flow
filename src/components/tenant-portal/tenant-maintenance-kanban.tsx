@@ -1,5 +1,3 @@
-'use client'
-
 /**
  * Tenant Maintenance Kanban — Read-Only
  *

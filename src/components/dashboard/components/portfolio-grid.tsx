@@ -1,5 +1,3 @@
-'use client'
-
 import type { PortfolioRow } from '../dashboard-types'
 import { formatDashboardCurrency } from '../dashboard-types'
 

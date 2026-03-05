@@ -1,5 +1,3 @@
-'use client'
-
 import type { CSSProperties } from 'react'
 
 import { Card, CardContent, CardHeader } from '#components/ui/card'

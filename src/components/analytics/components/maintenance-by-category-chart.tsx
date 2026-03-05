@@ -1,5 +1,3 @@
-'use client'
-
 import { PieChart } from 'lucide-react'
 import { BlurFade } from '#components/ui/blur-fade'
 import type { MaintenanceCategory } from '../analytics-types'
