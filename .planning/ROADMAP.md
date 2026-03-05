@@ -108,15 +108,15 @@ Plans:
   3. No hook file exceeds 300 lines — oversized files (`use-tenant-portal.ts` 1351, `use-reports.ts` 923, etc.) split into focused modules
   4. Stub hooks either return real data or their UI routes show "coming soon" instead of fake zeros
   5. `pnpm typecheck && pnpm lint` passes with zero `eslint-disable @tanstack/query/exhaustive-deps` suppressions
-**Plans**: 5 plans
+**Plans**: 6 plans
 
 Plans:
 - [ ] 05-01-PLAN.md — Rewrite stub report/financial hooks with real Supabase queries, remove dead code (SseProvider, duplicate GeneralSettings, radix icons, TODO(phase-57))
 - [ ] 05-02-PLAN.md — Replace 48 type assertions with typed mapper functions, fix column references, payment status, select purity, webhook logging
 - [ ] 05-03-PLAN.md — Consolidate query keys to queryOptions() factories, fix string literals, add dashboard invalidation, resolve eslint suppressions
-- [ ] 05-04-PLAN.md — Split all oversized hook files (9 files, 6593 lines), stripe-webhooks into handler modules, and 4 page components
-- [ ] 05-05-PLAN.md — Verify tour.tsx against Dice UI upstream, audit 'use client' pages, update CLAUDE.md
-
+- [ ] 05-04-PLAN.md — Split all oversized hook files (9 files, 6593 lines) into domain-focused modules
+- [ ] 05-05-PLAN.md — Split stripe-webhooks into handler modules and refactor 4 oversized page components
+- [ ] 05-06-PLAN.md — Verify tour.tsx against Dice UI upstream, audit all 494 use client files, update CLAUDE.md
 ### Phase 6: Database Schema & Migrations
 **Goal**: All tables have correct constraints, FK relationships, and operational maintenance jobs
 **Depends on**: Phase 1
@@ -195,7 +195,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8 -> 9
 | 2. Financial Fixes | v1.0 | 7/7 | Complete | 2026-03-05 |
 | 3. Auth & Middleware | v1.0 | 6/6 | Complete | 2026-03-05 |
 | 4. Edge Function Hardening | v1.0 | 4/4 | Complete | 2026-03-05 |
-| 5. Code Quality & Type Safety | v1.0 | 0/5 | Not started | - |
+| 5. Code Quality & Type Safety | v1.0 | 0/6 | Not started | - |
 | 6. Database Schema & Migrations | v1.0 | 0/2 | Not started | - |
 | 7. UX & Accessibility | v1.0 | 0/3 | Not started | - |
 | 8. Performance Optimization | v1.0 | 0/3 | Not started | - |
