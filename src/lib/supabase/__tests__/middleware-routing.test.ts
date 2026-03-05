@@ -54,7 +54,7 @@ vi.mock('next/server', () => {
 })
 
 // Import must be after mocks
-import { middleware } from '#middleware'
+import { proxy } from '#proxy'
 import { NextResponse } from 'next/server'
 
 // Helper: build a minimal NextRequest-like object
@@ -108,7 +108,7 @@ function makeSupabaseResponse() {
 
 // ── Routing tests ──────────────────────────────────────────
 
-describe('middleware routing', () => {
+describe('proxy routing', () => {
   beforeEach(() => {
     vi.clearAllMocks()
   })
@@ -123,7 +123,7 @@ describe('middleware routing', () => {
           supabaseResponse,
         })
 
-        const result = await middleware(buildRequest(route))
+        const result = await proxy(buildRequest(route))
 
         // Should return supabaseResponse directly (no redirect)
         expect(result).toBe(supabaseResponse)
@@ -139,7 +139,7 @@ describe('middleware routing', () => {
         supabaseResponse: makeSupabaseResponse(),
       })
 
-      const _result = await middleware(buildRequest('/dashboard'))
+      await proxy(buildRequest('/dashboard'))
 
       expect(NextResponse.redirect).toHaveBeenCalledOnce()
       const calls = (NextResponse.redirect as ReturnType<typeof vi.fn>).mock.calls
@@ -156,7 +156,7 @@ describe('middleware routing', () => {
         supabaseResponse: makeSupabaseResponse(),
       })
 
-      await middleware(buildRequest('/dashboard'))
+      await proxy(buildRequest('/dashboard'))
 
       expect(NextResponse.redirect).toHaveBeenCalledOnce()
       const redirectUrl = (NextResponse.redirect as ReturnType<typeof vi.fn>)
@@ -170,7 +170,7 @@ describe('middleware routing', () => {
         supabaseResponse: makeSupabaseResponse(),
       })
 
-      await middleware(buildRequest('/tenant'))
+      await proxy(buildRequest('/tenant'))
 
       expect(NextResponse.redirect).toHaveBeenCalledOnce()
       const redirectUrl = (NextResponse.redirect as ReturnType<typeof vi.fn>)
@@ -184,7 +184,7 @@ describe('middleware routing', () => {
         supabaseResponse: makeSupabaseResponse(),
       })
 
-      await middleware(buildRequest('/dashboard'))
+      await proxy(buildRequest('/dashboard'))
 
       expect(NextResponse.redirect).toHaveBeenCalledOnce()
       const redirectUrl = (NextResponse.redirect as ReturnType<typeof vi.fn>)
@@ -199,7 +199,7 @@ describe('middleware routing', () => {
         supabaseResponse,
       })
 
-      const result = await middleware(buildRequest('/dashboard'))
+      const result = await proxy(buildRequest('/dashboard'))
 
       expect(NextResponse.redirect).not.toHaveBeenCalled()
       expect(result).toBe(supabaseResponse)
@@ -212,7 +212,7 @@ describe('middleware routing', () => {
         supabaseResponse,
       })
 
-      const result = await middleware(buildRequest('/dashboard'))
+      const result = await proxy(buildRequest('/dashboard'))
 
       expect(NextResponse.redirect).not.toHaveBeenCalled()
       expect(result).toBe(supabaseResponse)
@@ -225,7 +225,7 @@ describe('middleware routing', () => {
         supabaseResponse,
       })
 
-      const result = await middleware(buildRequest('/tenant'))
+      const result = await proxy(buildRequest('/tenant'))
 
       expect(NextResponse.redirect).not.toHaveBeenCalled()
       expect(result).toBe(supabaseResponse)
@@ -242,11 +242,11 @@ describe('middleware routing', () => {
         supabaseResponse,
       })
 
-      await middleware(buildRequest('/dashboard'))
+      await proxy(buildRequest('/dashboard'))
 
       expect(NextResponse.redirect).toHaveBeenCalledOnce()
 
-      // The middleware should copy cookies from supabaseResponse to redirect response
+      // The proxy should copy cookies from supabaseResponse to redirect response
       const redirectResponse = (
         NextResponse.redirect as ReturnType<typeof vi.fn>
       ).mock.results[0]!.value

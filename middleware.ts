@@ -38,7 +38,7 @@ function isPublicRoute(pathname: string): boolean {
 
 /**
  * Helper: copy all Supabase cookies from supabaseResponse to a redirect
- * response. Prevents session loss on middleware redirects (Pitfall 2).
+ * response. Prevents session loss on middleware redirects.
  */
 function redirectWithCookies(
   url: URL,
@@ -51,6 +51,7 @@ function redirectWithCookies(
   return redirectResponse
 }
 
+// eslint-disable-next-line @typescript-eslint/naming-convention
 export async function middleware(
   request: NextRequest
 ): Promise<NextResponse> {
@@ -105,6 +106,9 @@ export async function middleware(
 
   return supabaseResponse
 }
+
+// Alias for test imports (VS Code renames #middleware -> #proxy automatically)
+export { middleware as proxy }
 
 export const config = {
   matcher: [

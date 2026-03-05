@@ -3,9 +3,9 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: Production Hardening
 status: completed
-stopped_at: Completed 03-02-PLAN.md
-last_updated: "2026-03-05T04:55:23.557Z"
-last_activity: 2026-03-04 — Created branded auth email templates and auth-email-send Edge Function
+stopped_at: Completed 03-01-PLAN.md
+last_updated: "2026-03-05T04:56:00Z"
+last_activity: 2026-03-04 — Root middleware with Supabase auth refresh and role-based routing
 progress:
   total_phases: 9
   completed_phases: 2
@@ -27,8 +27,8 @@ See: .planning/PROJECT.md (updated 2026-03-04)
 
 Phase: 3 of 9 (Auth & Middleware)
 Plan: 6 of 6 in current phase
-Status: Completed 03-06 (Auth email templates via Resend)
-Last activity: 2026-03-04 — Created branded auth email templates and auth-email-send Edge Function
+Status: Completed 03-01 (Auth middleware with role-based routing)
+Last activity: 2026-03-04 — Root middleware with Supabase auth refresh and role-based routing
 
 Progress: [##░░░░░░░░] 22%
 
@@ -54,6 +54,7 @@ Progress: [##░░░░░░░░] 22%
 | Phase 03 P04 | 13min | 2 tasks | 6 files |
 | Phase 03 P06 | 8min | 2 tasks | 2 files |
 | Phase 03 P02 | 18min | 2 tasks | 7 files |
+| Phase 03 P01 | 22min | 2 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -93,6 +94,8 @@ Progress: [##░░░░░░░░] 22%
 - [Phase 03]: AUTH-14: BEFORE UPDATE trigger for user_type restriction (not RLS WITH CHECK which would block profile updates)
 - [Phase 03]: AUTH-05: Checkout session stays unauthenticated but returns minimal data (customer_email only)
 - [Phase 03]: AUTH-10: Post-checkout requires explicit Resend button click for magic link (no auto-send)
+- [Phase 03]: AUTH-01: Root middleware.ts with updateSession pattern, cookie-preserving redirects
+- [Phase 03]: AUTH-02: ADMIN treated as OWNER for routing (dashboard access, blocked from /tenant)
 - [Phase 03]: AUTH-03: AuthProvider uses getUser() for server-validated session init (not getSession())
 - [Phase 03]: AUTH-06: Module-level Supabase client removed; per-mutation client creation pattern
 - [Phase 03]: AUTH-16: Single authKeys factory in use-auth.ts; authQueryKeys removed from auth-provider.tsx
