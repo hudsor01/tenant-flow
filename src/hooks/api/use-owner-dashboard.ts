@@ -15,8 +15,7 @@
 import {
 	queryOptions,
 	useQuery,
-	useSuspenseQuery,
-	useQueryClient
+	useSuspenseQuery
 } from '@tanstack/react-query'
 import { createClient } from '#lib/supabase/client'
 import { getCachedUser } from '#lib/supabase/get-cached-user'
@@ -29,6 +28,7 @@ import type {
 import type { DashboardStats } from '#shared/types/stats'
 import type { MetricTrend, TimeSeriesDataPoint } from '#shared/types/analytics'
 import { dashboardGraphQLQueries } from './query-keys/dashboard-graphql-keys'
+import { revenueTrendsQuery } from './query-keys/analytics-keys'
 
 // ============================================================================
 // QUERY KEYS
@@ -136,29 +136,10 @@ export const ownerDashboardQueries = {
 			}),
 
 		/**
-		 * Revenue trends over time
+		 * Revenue trends over time — delegates to shared revenueTrendsQuery factory
 		 */
-		revenueTrends: (year: number = new Date().getFullYear()) =>
-			queryOptions({
-				queryKey: ownerDashboardKeys.financial.revenueTrends(year),
-				queryFn: async () => {
-					const supabase = createClient()
-					const user = await getCachedUser()
-					if (!user) throw new Error('Not authenticated')
-					const { data, error } = await supabase.rpc(
-						'get_revenue_trends_optimized',
-						{
-							p_user_id: user.id,
-							p_months: 12
-						}
-					)
-					if (error) handlePostgrestError(error, 'analytics')
-					return (data ?? []) as FinancialMetrics[]
-				},
-				staleTime: 2 * 60 * 1000,
-				gcTime: 10 * 60 * 1000,
-				refetchOnWindowFocus: false
-			})
+		revenueTrends: (_year: number = new Date().getFullYear()) =>
+			revenueTrendsQuery({ months: 12 })
 	},
 
 	/**
@@ -338,10 +319,6 @@ const DASHBOARD_BASE_QUERY_OPTIONS = {
 	structuralSharing: true
 } as const
 
-// Ensure unified data exists in cache and return it
-const ensureDashboardData = (queryClient: ReturnType<typeof useQueryClient>) =>
-	queryClient.ensureQueryData<OwnerDashboardData>(DASHBOARD_BASE_QUERY_OPTIONS)
-
 // ============================================================================
 // QUERY HOOKS
 // ============================================================================
@@ -351,93 +328,65 @@ export function useOwnerDashboardData() {
 	return useQuery<OwnerDashboardData>(DASHBOARD_BASE_QUERY_OPTIONS)
 }
 
-// Stats hooks (derive from unified payload)
+// Stable select functions — defined outside components for referential equality
+const selectStats = (data: OwnerDashboardData): DashboardStatsData => ({
+	stats: data.stats,
+	metricTrends: data.metricTrends
+})
+
+const selectCharts = (data: OwnerDashboardData): DashboardChartsData => ({
+	timeSeries: data.timeSeries
+})
+
+const selectActivity = (data: OwnerDashboardData): DashboardActivityData => ({
+	activities: data.activity
+})
+
+const selectPropertyPerformance = (data: OwnerDashboardData): PropertyPerformance[] =>
+	data.propertyPerformance
+
+// Stats hooks (derive from unified payload via select)
 export function useDashboardStatsSuspense() {
-	const queryClient = useQueryClient()
 	return useSuspenseQuery({
-		// eslint-disable-next-line @tanstack/query/exhaustive-deps -- queryClient is stable
-		queryKey: ownerDashboardKeys.analytics.stats(),
-		queryFn: async (): Promise<DashboardStatsData> => {
-			const data = await ensureDashboardData(queryClient)
-			return { stats: data.stats, metricTrends: data.metricTrends }
-		},
-		staleTime: 2 * 60 * 1000,
-		gcTime: 10 * 60 * 1000
+		...DASHBOARD_BASE_QUERY_OPTIONS,
+		select: selectStats
 	})
 }
 
 export function useDashboardStats() {
-	const queryClient = useQueryClient()
 	return useQuery({
-		// eslint-disable-next-line @tanstack/query/exhaustive-deps -- queryClient is stable
-		queryKey: ownerDashboardKeys.analytics.stats(),
-		queryFn: async (): Promise<DashboardStatsData> => {
-			const data = await ensureDashboardData(queryClient)
-			return { stats: data.stats, metricTrends: data.metricTrends }
-		},
-		staleTime: 2 * 60 * 1000,
-		gcTime: 10 * 60 * 1000,
-		refetchOnWindowFocus: false
+		...DASHBOARD_BASE_QUERY_OPTIONS,
+		select: selectStats
 	})
 }
 
-// Charts hooks (deferred)
+// Charts hooks (derive from unified payload via select)
 export function useDashboardChartsSuspense() {
-	const queryClient = useQueryClient()
 	return useSuspenseQuery({
-		// eslint-disable-next-line @tanstack/query/exhaustive-deps -- queryClient is stable
-		queryKey: [...ownerDashboardKeys.analytics.all(), 'charts'],
-		queryFn: async (): Promise<DashboardChartsData> => {
-			const data = await ensureDashboardData(queryClient)
-			return { timeSeries: data.timeSeries }
-		},
-		staleTime: 2 * 60 * 1000,
-		gcTime: 10 * 60 * 1000
+		...DASHBOARD_BASE_QUERY_OPTIONS,
+		select: selectCharts
 	})
 }
 
 export function useDashboardCharts() {
-	const queryClient = useQueryClient()
 	return useQuery({
-		// eslint-disable-next-line @tanstack/query/exhaustive-deps -- queryClient is stable
-		queryKey: [...ownerDashboardKeys.analytics.all(), 'charts'],
-		queryFn: async (): Promise<DashboardChartsData> => {
-			const data = await ensureDashboardData(queryClient)
-			return { timeSeries: data.timeSeries }
-		},
-		staleTime: 2 * 60 * 1000,
-		gcTime: 10 * 60 * 1000,
-		refetchOnWindowFocus: false
+		...DASHBOARD_BASE_QUERY_OPTIONS,
+		select: selectCharts
 	})
 }
 
-// Activity hooks (deferred)
+// Activity hooks (derive from unified payload via select)
 export function useDashboardActivitySuspense() {
-	const queryClient = useQueryClient()
 	return useSuspenseQuery({
-		// eslint-disable-next-line @tanstack/query/exhaustive-deps -- queryClient is stable
-		queryKey: ownerDashboardKeys.analytics.activity(),
-		queryFn: async (): Promise<DashboardActivityData> => {
-			const data = await ensureDashboardData(queryClient)
-			return { activities: data.activity }
-		},
-		staleTime: 2 * 60 * 1000,
-		gcTime: 10 * 60 * 1000
+		...DASHBOARD_BASE_QUERY_OPTIONS,
+		select: selectActivity
 	})
 }
 
 export function useDashboardActivity() {
-	const queryClient = useQueryClient()
 	return useQuery({
-		// eslint-disable-next-line @tanstack/query/exhaustive-deps -- queryClient is stable
-		queryKey: ownerDashboardKeys.analytics.activity(),
-		queryFn: async (): Promise<DashboardActivityData> => {
-			const data = await ensureDashboardData(queryClient)
-			return { activities: data.activity }
-		},
-		staleTime: 2 * 60 * 1000,
-		gcTime: 10 * 60 * 1000,
-		refetchOnWindowFocus: false
+		...DASHBOARD_BASE_QUERY_OPTIONS,
+		select: selectActivity
 	})
 }
 
@@ -446,37 +395,22 @@ export function useDashboardActivity() {
 // ============================================================================
 
 /**
- * Property performance — derives from unified dashboard cache
+ * Property performance — derives from unified dashboard cache via select
  */
 export function usePropertyPerformanceSuspense() {
-	const queryClient = useQueryClient()
 	return useSuspenseQuery({
-		// eslint-disable-next-line @tanstack/query/exhaustive-deps -- queryClient is stable
-		queryKey: ownerDashboardKeys.properties.performance(),
-		queryFn: async (): Promise<PropertyPerformance[]> => {
-			const data = await ensureDashboardData(queryClient)
-			return data.propertyPerformance
-		},
-		staleTime: 2 * 60 * 1000,
-		gcTime: 10 * 60 * 1000
+		...DASHBOARD_BASE_QUERY_OPTIONS,
+		select: selectPropertyPerformance
 	})
 }
 
 /**
- * Property performance — derives from unified dashboard cache
+ * Property performance — derives from unified dashboard cache via select
  */
 export function usePropertyPerformance() {
-	const queryClient = useQueryClient()
 	return useQuery({
-		// eslint-disable-next-line @tanstack/query/exhaustive-deps -- queryClient is stable
-		queryKey: ownerDashboardKeys.properties.performance(),
-		queryFn: async (): Promise<PropertyPerformance[]> => {
-			const data = await ensureDashboardData(queryClient)
-			return data.propertyPerformance
-		},
-		staleTime: 2 * 60 * 1000,
-		gcTime: 10 * 60 * 1000,
-		refetchOnWindowFocus: false
+		...DASHBOARD_BASE_QUERY_OPTIONS,
+		select: selectPropertyPerformance
 	})
 }
 
@@ -509,23 +443,20 @@ export function useFinancialChartData(timeRange: FinancialTimeRange = '6m') {
 	const months = timeRangeToMonths[timeRange] ?? 6
 	const currentYear = new Date().getFullYear()
 
-	return useQuery<FinancialChartDatum[]>({
+	return useQuery({
 		queryKey: [
 			...ownerDashboardKeys.financial.revenueTrends(currentYear),
 			timeRange,
 			months
 		] as const,
-		queryFn: async () => {
+		queryFn: async (): Promise<FinancialChartDatum[]> => {
 			const supabase = createClient()
 			const user = await getCachedUser()
 			if (!user) throw new Error('Not authenticated')
 
 			const { data, error } = await supabase.rpc(
 				'get_revenue_trends_optimized',
-				{
-					p_user_id: user.id,
-					p_months: 12
-				}
+				{ p_user_id: user.id, p_months: 12 }
 			)
 			if (error) handlePostgrestError(error, 'analytics')
 

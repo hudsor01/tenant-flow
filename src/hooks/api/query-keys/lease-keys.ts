@@ -16,6 +16,7 @@ import type { Lease } from '#shared/types/core'
 import type { LeaseStatsResponse } from '#shared/types/core'
 import type { PaginatedResponse } from '#shared/types/api-contracts'
 import { QUERY_CACHE_TIMES } from '#lib/constants/query-config'
+import { revenueTrendsQuery } from './analytics-keys'
 
 // ============================================================================
 // TYPES
@@ -126,7 +127,7 @@ export const leaseQueries = {
 				if (error) handlePostgrestError(error, 'leases')
 
 				return {
-					data: (data as unknown as Lease[]) ?? [],
+					data: (data as Lease[]) ?? [],
 					total: count ?? 0,
 					pagination: {
 						page: Math.floor(offset / limit) + 1,
@@ -154,7 +155,7 @@ export const leaseQueries = {
 
 				if (error) handlePostgrestError(error, 'leases')
 
-				return data as unknown as Lease
+				return data as Lease
 			},
 			...QUERY_CACHE_TIMES.DETAIL,
 			enabled: !!id
@@ -176,7 +177,7 @@ export const leaseQueries = {
 				if (!data) return null
 
 				// Map PostgREST join shape (units/tenants plural) to expected singular shape
-				const row = data as unknown as Lease & {
+				const row = data as Lease & {
 					units: TenantPortalLease['unit']
 					tenants: TenantPortalLease['tenant']
 				}
@@ -209,7 +210,7 @@ export const leaseQueries = {
 
 				if (error) handlePostgrestError(error, 'leases')
 
-				return (data as unknown as Lease[]) ?? []
+				return (data as Lease[]) ?? []
 			},
 			...QUERY_CACHE_TIMES.DETAIL
 		}),
@@ -334,56 +335,11 @@ export const leaseQueries = {
 				staleTime: 2 * 60 * 1000,
 				gcTime: 10 * 60 * 1000
 			}),
-		duration: () =>
-			queryOptions({
-				queryKey: [...leaseQueries.all(), 'analytics', 'duration'],
-				queryFn: async (): Promise<Record<string, unknown>> => {
-					const supabase = createClient()
-					const user = await getCachedUser()
-					if (!user) throw new Error('Not authenticated')
-					const { data, error } = await supabase.rpc(
-						'get_revenue_trends_optimized',
-						{ p_user_id: user.id, p_months: 12 }
-					)
-					if (error) handlePostgrestError(error, 'leases')
-					return (data ?? {}) as Record<string, unknown>
-				},
-				staleTime: 2 * 60 * 1000,
-				gcTime: 10 * 60 * 1000
-			}),
-		turnover: () =>
-			queryOptions({
-				queryKey: [...leaseQueries.all(), 'analytics', 'turnover'],
-				queryFn: async (): Promise<Record<string, unknown>> => {
-					const supabase = createClient()
-					const user = await getCachedUser()
-					if (!user) throw new Error('Not authenticated')
-					const { data, error } = await supabase.rpc(
-						'get_revenue_trends_optimized',
-						{ p_user_id: user.id, p_months: 12 }
-					)
-					if (error) handlePostgrestError(error, 'leases')
-					return (data ?? {}) as Record<string, unknown>
-				},
-				staleTime: 2 * 60 * 1000,
-				gcTime: 10 * 60 * 1000
-			}),
-		revenue: () =>
-			queryOptions({
-				queryKey: [...leaseQueries.all(), 'analytics', 'revenue'],
-				queryFn: async (): Promise<Record<string, unknown>> => {
-					const supabase = createClient()
-					const user = await getCachedUser()
-					if (!user) throw new Error('Not authenticated')
-					const { data, error } = await supabase.rpc(
-						'get_revenue_trends_optimized',
-						{ p_user_id: user.id, p_months: 12 }
-					)
-					if (error) handlePostgrestError(error, 'leases')
-					return (data ?? {}) as Record<string, unknown>
-				},
-				staleTime: 2 * 60 * 1000,
-				gcTime: 10 * 60 * 1000
-			})
+		/** Lease duration analytics — uses shared revenue trends query */
+		duration: () => revenueTrendsQuery({ months: 12 }),
+		/** Tenant turnover analytics — uses shared revenue trends query */
+		turnover: () => revenueTrendsQuery({ months: 12 }),
+		/** Revenue analytics — uses shared revenue trends query */
+		revenue: () => revenueTrendsQuery({ months: 12 })
 	}
 }
