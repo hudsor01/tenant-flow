@@ -464,9 +464,11 @@ export interface BillingHistoryItem {
  * Subscription status response from Stripe API
  */
 export interface SubscriptionStatusResponse {
-	subscriptionStatus: 'active' | 'trialing' | 'cancelled' | 'past_due' | null
+	subscriptionStatus: 'active' | 'trialing' | 'cancelled' | 'canceled' | 'past_due' | 'unpaid' | 'incomplete' | 'incomplete_expired' | 'paused' | null
 	stripeCustomerId: string | null
 	stripePriceId: string | null
+	currentPeriodEnd: string | null
+	cancelAtPeriodEnd: boolean
 }
 
 /**

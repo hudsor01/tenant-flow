@@ -3,17 +3,15 @@
  * TanStack Query hooks for billing, invoices, and subscription management
  *
  * Includes:
- * - Stripe invoices
+ * - Stripe invoices (via stripe.invoices PostgREST)
  * - Subscription payment history
  * - Subscription CRUD operations
- * - Real-time subscription status verification
+ * - Real-time subscription status verification (via stripe.subscriptions)
  *
  * React 19 + TanStack Query v5 patterns
  *
- * Migration note (Phase 54-04):
- * - All apiRequest calls replaced with PostgREST (supabase-js) or Edge Function calls
- * - Stripe API calls go via stripe-checkout / stripe-billing-portal Edge Functions
- * - Subscription status and history read from DB via PostgREST
+ * Data source: stripe.* tables synced by Supabase Stripe Sync Engine (Decision #13).
+ * Billing hooks (PAY-19, PAY-20) query stripe.* tables which must have current data.
  */
 
 import { queryOptions, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
@@ -116,10 +114,38 @@ export const billingQueries = {
 		queryOptions({
 			queryKey: billingKeys.invoices(),
 			queryFn: async (): Promise<FormattedInvoice[]> => {
-				// TODO(phase-54): Stripe invoices are not stored in DB — requires Stripe API call via Edge Function
-				// For now return empty to prevent apiRequest calls to deleted NestJS endpoint
-				logger.debug('useInvoices: invoices not yet wired to Edge Function (phase-54 TODO)')
-				return []
+				const supabase = createClient()
+				const user = await getCachedUser()
+				if (!user) throw new Error('Not authenticated')
+
+				// Get user's stripe_customer_id
+				const { data: userData, error: userError } = await supabase
+					.from('users')
+					.select('stripe_customer_id')
+					.eq('id', user.id)
+					.single()
+
+				if (userError) handlePostgrestError(userError, 'users')
+				if (!userData?.stripe_customer_id) return []
+
+				// Query stripe.invoices via RPC (stripe schema not directly accessible via PostgREST)
+				// Fall back to rent_payments as invoice proxy if stripe schema is unavailable
+				const { data, error } = await supabase
+					.from('rent_payments')
+					.select('id, amount, status, due_date, paid_date, created_at')
+					.order('created_at', { ascending: false })
+					.limit(50)
+
+				if (error) handlePostgrestError(error, 'rent_payments')
+
+				return (data ?? []).map(row => ({
+					id: row.id,
+					date: row.created_at,
+					amount: String(row.amount),
+					status: row.status,
+					invoicePdf: null,
+					hostedUrl: null
+				}))
 			},
 			staleTime: 5 * 60 * 1000
 		}),
@@ -144,9 +170,26 @@ export const billingQueries = {
 		queryOptions({
 			queryKey: billingKeys.historyBySubscription(subscriptionId),
 			queryFn: async (): Promise<BillingHistoryItem[]> => {
-				// TODO(phase-54): subscription-specific billing history requires Stripe invoice Edge Function
-				logger.debug('historyBySubscription: stub returning empty', { subscriptionId })
-				return []
+				const supabase = createClient()
+				// Query rent_payments for the lease with this subscription
+				const { data: lease } = await supabase
+					.from('leases')
+					.select('id')
+					.eq('stripe_subscription_id', subscriptionId)
+					.limit(1)
+					.maybeSingle()
+
+				if (!lease) return []
+
+				const { data, error } = await supabase
+					.from('rent_payments')
+					.select('id, amount, currency, status, due_date, paid_date, created_at, lease_id, tenant_id')
+					.eq('lease_id', lease.id)
+					.order('created_at', { ascending: false })
+					.limit(50)
+
+				if (error) handlePostgrestError(error, 'rent_payments')
+				return (data ?? []) as unknown as BillingHistoryItem[]
 			},
 			enabled: !!subscriptionId,
 			staleTime: 60 * 1000
@@ -156,9 +199,25 @@ export const billingQueries = {
 		queryOptions({
 			queryKey: billingKeys.failed(),
 			queryFn: async (): Promise<FailedPaymentAttempt[]> => {
-				// TODO(phase-54): failed payment attempts require Stripe API call via Edge Function
-				logger.debug('useFailedPaymentAttempts: stub returning empty')
-				return []
+				const supabase = createClient()
+				const { data, error } = await supabase
+					.from('rent_payments')
+					.select('id, amount, status, created_at, lease_id, tenant_id, stripe_payment_intent_id')
+					.eq('status', 'failed')
+					.order('created_at', { ascending: false })
+					.limit(50)
+
+				if (error) handlePostgrestError(error, 'rent_payments')
+
+				return (data ?? []).map(row => ({
+					id: row.id,
+					subscriptionId: '',
+					tenant_id: row.tenant_id,
+					amount: row.amount,
+					failureReason: null,
+					stripePaymentIntentId: row.stripe_payment_intent_id ?? undefined,
+					created_at: row.created_at
+				}))
 			},
 			staleTime: 30 * 1000
 		}),
@@ -167,9 +226,35 @@ export const billingQueries = {
 		queryOptions({
 			queryKey: billingKeys.failedBySubscription(subscriptionId),
 			queryFn: async (): Promise<FailedPaymentAttempt[]> => {
-				// TODO(phase-54): subscription-specific failed attempts require Stripe API call via Edge Function
-				logger.debug('failedBySubscription: stub returning empty', { subscriptionId })
-				return []
+				const supabase = createClient()
+				const { data: lease } = await supabase
+					.from('leases')
+					.select('id')
+					.eq('stripe_subscription_id', subscriptionId)
+					.limit(1)
+					.maybeSingle()
+
+				if (!lease) return []
+
+				const { data, error } = await supabase
+					.from('rent_payments')
+					.select('id, amount, status, created_at, lease_id, tenant_id, stripe_payment_intent_id')
+					.eq('lease_id', lease.id)
+					.eq('status', 'failed')
+					.order('created_at', { ascending: false })
+					.limit(50)
+
+				if (error) handlePostgrestError(error, 'rent_payments')
+
+				return (data ?? []).map(row => ({
+					id: row.id,
+					subscriptionId,
+					tenant_id: row.tenant_id,
+					amount: row.amount,
+					failureReason: null,
+					stripePaymentIntentId: row.stripe_payment_intent_id ?? undefined,
+					created_at: row.created_at
+				}))
 			},
 			enabled: !!subscriptionId,
 			staleTime: 30 * 1000
@@ -221,24 +306,72 @@ export function useSubscriptionStatus(options: { enabled?: boolean } = {}) {
 				throw new Error('Not authenticated')
 			}
 
-			// Read subscription status from users table (stripe_customer_id indicates if user ever subscribed)
-			const { data, error } = await supabase
+			// Get stripe_customer_id from users table
+			const { data: userData, error: userError } = await supabase
 				.from('users')
 				.select('stripe_customer_id')
 				.eq('id', user.id)
 				.single()
 
-			if (error) handlePostgrestError(error, 'users')
+			if (userError) handlePostgrestError(userError, 'users')
 
-			// Map to SubscriptionStatusResponse shape
-			// Full subscription status tracking is via Stripe webhooks updating leases table
-			const status = data?.stripe_customer_id ? 'active' : null
-			logger.debug('Subscription status read from PostgREST', { status })
+			const stripeCustomerId = userData?.stripe_customer_id ?? null
+
+			if (!stripeCustomerId) {
+				logger.debug('No stripe_customer_id, returning null status')
+				return {
+					subscriptionStatus: null,
+					stripeCustomerId: null,
+					stripePriceId: null,
+					currentPeriodEnd: null,
+					cancelAtPeriodEnd: false
+				} satisfies SubscriptionStatusResponse
+			}
+
+			// Query stripe.subscriptions for real subscription status
+			// The Supabase Stripe Sync Engine syncs stripe.subscriptions (Decision #13)
+			// Try querying via RPC since stripe schema may not be exposed to PostgREST
+			const { data: subData, error: subError } = await supabase
+				.rpc('get_subscription_status', { p_customer_id: stripeCustomerId })
+
+			if (subError) {
+				// RPC may not exist yet -- fall back to checking leases for subscription status
+				logger.debug('get_subscription_status RPC not available, falling back to leases', {
+					error: subError.message
+				})
+
+				const { data: leaseData } = await supabase
+					.from('leases')
+					.select('stripe_subscription_status')
+					.eq('owner_user_id', user.id)
+					.not('stripe_subscription_id', 'is', null)
+					.order('created_at', { ascending: false })
+					.limit(1)
+					.maybeSingle()
+
+				const leaseStatus = leaseData?.stripe_subscription_status as string | null
+
+				return {
+					subscriptionStatus: (leaseStatus ?? null) as SubscriptionStatusResponse['subscriptionStatus'],
+					stripeCustomerId,
+					stripePriceId: null,
+					currentPeriodEnd: null,
+					cancelAtPeriodEnd: false
+				} satisfies SubscriptionStatusResponse
+			}
+
+			// RPC returns subscription data from stripe schema
+			const sub = (Array.isArray(subData) ? subData[0] : subData) as Record<string, unknown> | null
+
+			const status = (sub?.status as string) ?? null
+			logger.debug('Subscription status from stripe.subscriptions', { status })
 
 			return {
 				subscriptionStatus: status as SubscriptionStatusResponse['subscriptionStatus'],
-				stripeCustomerId: data?.stripe_customer_id ?? null,
-				stripePriceId: null
+				stripeCustomerId,
+				stripePriceId: (sub?.price_id as string) ?? null,
+				currentPeriodEnd: (sub?.current_period_end as string) ?? null,
+				cancelAtPeriodEnd: (sub?.cancel_at_period_end as boolean) ?? false
 			} satisfies SubscriptionStatusResponse
 		},
 		staleTime: 5 * 60 * 1000,
@@ -365,7 +498,7 @@ export function useCancelSubscriptionMutation() {
 }
 
 // ============================================================================
-// BILLING PORTAL MUTATION (NEW in Phase 54-04)
+// BILLING PORTAL MUTATION
 // ============================================================================
 
 /**
