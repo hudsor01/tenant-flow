@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: Production Hardening
-status: completed
-stopped_at: Completed 02-07-PLAN.md (gap closure)
-last_updated: "2026-03-05T06:10:18.302Z"
-last_activity: 2026-03-04 — Root middleware with Supabase auth refresh and role-based routing
+status: in-progress
+stopped_at: Completed 04-01 (shared utilities and config hardening)
+last_updated: "2026-03-05T07:13:00Z"
+last_activity: 2026-03-05 — Shared Edge Function utilities, CSP, SDK alignment, Stripe apiVersion
 progress:
   total_phases: 9
   completed_phases: 4
   total_plans: 23
-  completed_plans: 17
-  percent: 22
+  completed_plans: 18
+  percent: 26
 ---
 
 # Project State: TenantFlow
@@ -21,16 +21,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-04)
 
 **Core value:** A landlord can add a property, invite a tenant, collect rent, and see their financials — without touching a spreadsheet or calling anyone.
-**Current focus:** v1.0 Production Hardening — Phase 2 execution in progress
+**Current focus:** v1.0 Production Hardening — Phase 4 execution in progress
 
 ## Current Position
 
-Phase: 3 of 9 (Auth & Middleware)
-Plan: 6 of 6 in current phase
-Status: Completed 03-01 (Auth middleware with role-based routing)
-Last activity: 2026-03-04 — Root middleware with Supabase auth refresh and role-based routing
+Phase: 4 of 9 (Edge Function Hardening)
+Plan: 1 of 4 in current phase (04-01 complete)
+Status: Completed 04-01 (shared utilities and config hardening)
+Last activity: 2026-03-05 — Shared Edge Function utilities, CSP, SDK alignment, Stripe apiVersion
 
-Progress: [##░░░░░░░░] 22%
+Progress: [##░░░░░░░░] 26%
 
 ## Performance Metrics
 
@@ -56,6 +56,7 @@ Progress: [##░░░░░░░░] 22%
 | Phase 03 P02 | 18min | 2 tasks | 7 files |
 | Phase 03 P01 | 22min | 2 tasks | 4 files |
 | Phase 02 P07 | 2min | 3 tasks | 4 files |
+| Phase 04 P01 | 4min | 2 tasks | 11 files |
 
 ## Accumulated Context
 
@@ -101,6 +102,10 @@ Progress: [##░░░░░░░░] 22%
 - [Phase 03]: AUTH-06: Module-level Supabase client removed; per-mutation client creation pattern
 - [Phase 03]: AUTH-16: Single authKeys factory in use-auth.ts; authQueryKeys removed from auth-provider.tsx
 - [Phase 02]: get_user_invoices uses SECURITY DEFINER with stripe.customers join for user scoping, rent_payments fallback
+- [Phase 04]: CORS fail-closed: console.error + empty headers when FRONTEND_URL unset (browser blocks by default)
+- [Phase 04]: CSP enforced mode (not report-only) with self + inline scripts/styles + Supabase/Sentry/Stripe connect-src
+- [Phase 04]: Vary header on /properties confirmed correct (Authorization + Cookie for CDN differentiation)
+- [Phase 04]: Supabase SDK 2.97.0 aligns deno.json with Next.js package.json version
 
 ### Pending Todos
 
@@ -115,6 +120,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-05T06:10:18.300Z
-Stopped at: Completed 02-07-PLAN.md (gap closure)
-Resume file: None
+Last session: 2026-03-05T07:13:00Z
+Stopped at: Completed 04-01 (shared utilities and config hardening)
+Resume file: .planning/phases/04-edge-function-hardening/04-02-PLAN.md

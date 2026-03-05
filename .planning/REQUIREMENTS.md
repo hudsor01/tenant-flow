@@ -48,17 +48,17 @@ All 131 findings from the review, plus CLAUDE.md maintenance.
 - [ ] **EDGE-01**: All 13 Edge Functions validate required env vars on startup (fail-fast, not empty string)
 - [ ] **EDGE-02**: Rate limiting on unauthenticated Edge Functions (`tenant-invitation-accept`, `tenant-invitation-validate`, `stripe-checkout-session`)
 - [ ] **EDGE-03**: HTML-escape all interpolated values in DocuSeal and generate-pdf templates
-- [ ] **EDGE-04**: Content-Security-Policy header added to `vercel.json`
-- [ ] **EDGE-05**: Stripe SDK version aligned — single version across Edge Functions and Next.js
+- [x] **EDGE-04**: Content-Security-Policy header added to `vercel.json`
+- [x] **EDGE-05**: Stripe SDK version aligned — single version across Edge Functions and Next.js
 - [ ] **EDGE-06**: Edge Functions use user JWT client for reads where possible (not service_role everywhere)
 - [ ] **EDGE-07**: Error responses return generic messages, not `dbError.message` or `err.message`
 - [ ] **EDGE-08**: `stripe-connect` `limit` parameter capped to maximum (e.g., 100)
 - [ ] **EDGE-09**: Invitation code moved from URL query parameter to fragment or exchange token
-- [ ] **EDGE-10**: CORS returns restrictive headers when `FRONTEND_URL` not set (fail-closed, not fail-open)
+- [x] **EDGE-10**: CORS returns restrictive headers when `FRONTEND_URL` not set (fail-closed, not fail-open)
 - [ ] **EDGE-11**: Sentry tunnel `/monitoring` endpoint rate-limited
-- [ ] **EDGE-12**: Supabase SDK version aligned between Deno import map (2.49.4) and Next.js (2.97.0)
-- [ ] **EDGE-13**: Stripe API version updated from `2024-06-20` to current, tested
-- [ ] **EDGE-14**: `Vary: Authorization, Cookie` on public property pages reviewed for CDN safety
+- [x] **EDGE-12**: Supabase SDK version aligned between Deno import map (2.49.4) and Next.js (2.97.0)
+- [x] **EDGE-13**: Stripe API version updated from `2024-06-20` to current, tested
+- [x] **EDGE-14**: `Vary: Authorization, Cookie` on public property pages reviewed for CDN safety
 
 ### Payments — Financial Fixes
 
@@ -276,17 +276,17 @@ All 131 findings from the review, plus CLAUDE.md maintenance.
 | EDGE-01 | Phase 4 | Pending |
 | EDGE-02 | Phase 4 | Pending |
 | EDGE-03 | Phase 4 | Pending |
-| EDGE-04 | Phase 4 | Pending |
-| EDGE-05 | Phase 4 | Pending |
+| EDGE-04 | Phase 4 | Complete |
+| EDGE-05 | Phase 4 | Complete |
 | EDGE-06 | Phase 4 | Pending |
 | EDGE-07 | Phase 4 | Pending |
 | EDGE-08 | Phase 4 | Pending |
 | EDGE-09 | Phase 4 | Pending |
-| EDGE-10 | Phase 4 | Pending |
+| EDGE-10 | Phase 4 | Complete |
 | EDGE-11 | Phase 4 | Pending |
-| EDGE-12 | Phase 4 | Pending |
-| EDGE-13 | Phase 4 | Pending |
-| EDGE-14 | Phase 4 | Pending |
+| EDGE-12 | Phase 4 | Complete |
+| EDGE-13 | Phase 4 | Complete |
+| EDGE-14 | Phase 4 | Complete |
 | CODE-01 | Phase 5 | Pending |
 | CODE-02 | Phase 5 | Pending |
 | CODE-03 | Phase 5 | Pending |
