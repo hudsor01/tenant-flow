@@ -28,8 +28,8 @@ import {
 } from '#lib/mutation-error-handler'
 import { mutationKeys } from './mutation-keys'
 
-// Create browser client for authentication
-const supabase = createClient()
+// NOTE: No module-level Supabase client — each mutation/query creates its own
+// to avoid persisting a single client across requests (AUTH-06)
 
 // ============================================================================
 // TYPES
@@ -58,7 +58,7 @@ export const authKeys = {
 	session: () => [...authKeys.all, 'session'] as const,
 	user: () => [...authKeys.all, 'user'] as const,
 	// User with Stripe data from database
-	me: ['user', 'me'] as const,
+	me: () => ['user', 'me'] as const,
 	// Supabase auth-specific keys
 	supabase: {
 		all: ['supabase-auth'] as const,
@@ -103,7 +103,7 @@ export const authQueries = {
 	 */
 	user: () =>
 		queryOptions({
-			queryKey: authKeys.me,
+			queryKey: authKeys.me(),
 			queryFn: async (): Promise<UserWithStripe> => {
 				const supabase = createClient()
 				const user = await getCachedUser()
@@ -187,12 +187,15 @@ export function useAuthCacheUtils() {
 				authKeys.user()
 			)?.id
 
-			// Set auth data to null
+			// Set auth data to null across all namespaces
 			queryClient.setQueryData(authKeys.session(), null)
 			queryClient.setQueryData(authKeys.user(), null)
+			queryClient.setQueryData(authKeys.me(), null)
 
-			// Invalidate all auth-related queries
-			queryClient.invalidateQueries({ queryKey: ['auth'] })
+			// Invalidate all auth-related queries (covers authKeys.all namespace)
+			queryClient.invalidateQueries({ queryKey: authKeys.all })
+			// Also invalidate supabase-auth namespace
+			queryClient.invalidateQueries({ queryKey: authKeys.supabase.all })
 
 			// Invalidate all user-scoped queries (those containing the userId in their key)
 			// This prevents cross-user data leakage without indiscriminately clearing public data
@@ -297,6 +300,7 @@ export function useSignOutMutation() {
 	return useMutation({
 		mutationKey: mutationKeys.auth.logout,
 		mutationFn: async () => {
+			const supabase = createClient()
 			const { error } = await supabase.auth.signOut()
 			if (error) throw error
 		},
@@ -328,6 +332,7 @@ export function useSupabaseLoginMutation() {
 	return useMutation({
 		mutationKey: mutationKeys.auth.login,
 		mutationFn: async (credentials: LoginCredentials) => {
+			const supabase = createClient()
 			const { data, error } = await supabase.auth.signInWithPassword({
 				email: credentials.email,
 				password: credentials.password
@@ -360,6 +365,7 @@ export function useSupabaseSignupMutation() {
 	return useMutation({
 		mutationKey: mutationKeys.auth.signup,
 		mutationFn: async (data: SignupFormData) => {
+			const supabase = createClient()
 			const { email, password, firstName, lastName, company } = data
 
 			const { data: authData, error } = await supabase.auth.signUp({
@@ -404,6 +410,7 @@ export function useSupabasePasswordResetMutation() {
 	return useMutation({
 		mutationKey: mutationKeys.auth.resetPassword,
 		mutationFn: async (email: string) => {
+			const supabase = createClient()
 			const { error } = await supabase.auth.resetPasswordForEmail(email, {
 				redirectTo: `${window.location.origin}/auth/update-password`
 			})
@@ -432,6 +439,7 @@ export function useSupabaseUpdateProfileMutation() {
 			phone?: string
 			company?: string
 		}) => {
+			const supabase = createClient()
 			const { data, error } = await supabase.auth.updateUser({
 				data: updates
 			})
@@ -459,6 +467,7 @@ export function useChangePasswordMutation() {
 			currentPassword: string
 			newPassword: string
 		}) => {
+			const supabase = createClient()
 			// First verify current password by attempting to sign in
 			const user = await getCachedUser()
 			if (!user?.email) {

@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: Production Hardening
 status: completed
-stopped_at: Phase 3 context gathered
-last_updated: "2026-03-05T03:57:25.740Z"
-last_activity: 2026-03-04 — Diagnosed Stripe sync engine, created monitoring RPC
+stopped_at: Completed 03-03-PLAN.md
+last_updated: "2026-03-05T04:41:01.062Z"
+last_activity: 2026-03-04 — Hardened auth callback (x-forwarded-host, OTP validation) and login redirect
 progress:
   total_phases: 9
-  completed_phases: 1
-  total_plans: 9
-  completed_plans: 8
-  percent: 11
+  completed_phases: 2
+  total_plans: 23
+  completed_plans: 11
+  percent: 22
 ---
 
 # Project State: TenantFlow
@@ -25,12 +25,12 @@ See: .planning/PROJECT.md (updated 2026-03-04)
 
 ## Current Position
 
-Phase: 2 of 9 (Financial Fixes)
-Plan: 6 of 6 in current phase (complete)
-Status: Completed 02-06 (Stripe sync diagnosis)
-Last activity: 2026-03-04 — Diagnosed Stripe sync engine, created monitoring RPC
+Phase: 3 of 9 (Auth & Middleware)
+Plan: 3 of 6 in current phase
+Status: Completed 03-03 (Auth callback & login security hardening)
+Last activity: 2026-03-04 — Hardened auth callback (x-forwarded-host, OTP validation) and login redirect
 
-Progress: [#░░░░░░░░░] 11%
+Progress: [##░░░░░░░░] 22%
 
 ## Performance Metrics
 
@@ -50,6 +50,7 @@ Progress: [#░░░░░░░░░] 11%
 | Phase 02 P03 | 5min | 2 tasks | 3 files |
 | Phase 02 P04 | 9min | 4 tasks | 9 files |
 | Phase 02 P05 | 3min | 2 tasks | 2 files |
+| Phase 03 P03 | 6min | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -79,6 +80,10 @@ Progress: [#░░░░░░░░░] 11%
 - [Phase 02]: formatCents consolidation deferred (96 occurrences in 27 files) -- not a bug, just convenience wrapper
 - [Phase 02]: Plan limit checks fail-open on frontend (RLS is real enforcement)
 - [Phase 02]: Used property_owners.charges_enabled directly instead of stripe.accounts lookup for onboarding backfill
+- [Phase 03]: AUTH-08: OAuth provider (Google) trusted for email verification — no extra email_confirmed_at check
+- [Phase 03]: AUTH-13: x-forwarded-host ignored in buildRedirectUrl, uses NEXT_PUBLIC_APP_URL or origin
+- [Phase 03]: AUTH-15: OTP type validated against 5-type allowlist before calling Supabase verifyOtp
+- [Phase 03]: AUTH-12: Login redirect uses URL constructor hostname check instead of startsWith
 
 ### Pending Todos
 
@@ -93,6 +98,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-05T03:57:25.737Z
-Stopped at: Phase 3 context gathered
-Resume file: .planning/phases/03-auth-middleware/03-CONTEXT.md
+Last session: 2026-03-05T04:41:01.059Z
+Stopped at: Completed 03-03-PLAN.md
+Resume file: None

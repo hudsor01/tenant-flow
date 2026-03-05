@@ -32,14 +32,14 @@ All 131 findings from the review, plus CLAUDE.md maintenance.
 - [ ] **AUTH-05**: `stripe-checkout-session` requires authentication or returns minimal data only
 - [ ] **AUTH-06**: Module-level Supabase client in `use-auth.ts` moved inside mutation functions
 - [ ] **AUTH-07**: `getCachedUser()` validates session server-side, not just local cache
-- [ ] **AUTH-08**: OAuth callback verifies `email_confirmed_at` before auto-accepting invitations
+- [x] **AUTH-08**: OAuth callback verifies `email_confirmed_at` before auto-accepting invitations
 - [ ] **AUTH-09**: `accept-invite` page sends Authorization header when calling edge function
 - [ ] **AUTH-10**: `post-checkout` page does not send magic link based on unauthenticated edge function response
 - [ ] **AUTH-11**: Signout requires POST (not triggerable via GET/img tag)
-- [ ] **AUTH-12**: Login `redirect` parameter validated via `new URL()` hostname check (not just startsWith)
-- [ ] **AUTH-13**: `x-forwarded-host` header sanitized or ignored in OAuth callback redirect URL construction
+- [x] **AUTH-12**: Login `redirect` parameter validated via `new URL()` hostname check (not just startsWith)
+- [x] **AUTH-13**: `x-forwarded-host` header sanitized or ignored in OAuth callback redirect URL construction
 - [ ] **AUTH-14**: `select-role` page UPDATE restricted to users with current `user_type = 'PENDING'` via RLS
-- [ ] **AUTH-15**: `verifyOtp` type parameter validated against known types before cast
+- [x] **AUTH-15**: `verifyOtp` type parameter validated against known types before cast
 - [ ] **AUTH-16**: Dual auth query key systems (`authQueryKeys` vs `authKeys`) unified — `clearAuthData()` clears all namespaces
 - [ ] **AUTH-17**: `confirm-email` page uses `getUser()` instead of `getSession()` for email extraction
 
@@ -263,14 +263,14 @@ All 131 findings from the review, plus CLAUDE.md maintenance.
 | AUTH-05 | Phase 3 | Pending |
 | AUTH-06 | Phase 3 | Pending |
 | AUTH-07 | Phase 3 | Pending |
-| AUTH-08 | Phase 3 | Pending |
+| AUTH-08 | Phase 3 | Complete |
 | AUTH-09 | Phase 3 | Pending |
 | AUTH-10 | Phase 3 | Pending |
 | AUTH-11 | Phase 3 | Pending |
-| AUTH-12 | Phase 3 | Pending |
-| AUTH-13 | Phase 3 | Pending |
+| AUTH-12 | Phase 3 | Complete |
+| AUTH-13 | Phase 3 | Complete |
 | AUTH-14 | Phase 3 | Pending |
-| AUTH-15 | Phase 3 | Pending |
+| AUTH-15 | Phase 3 | Complete |
 | AUTH-16 | Phase 3 | Pending |
 | AUTH-17 | Phase 3 | Pending |
 | EDGE-01 | Phase 4 | Pending |
