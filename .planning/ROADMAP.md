@@ -62,14 +62,15 @@ Plans:
 ### Phase 3: Auth & Middleware
 **Goal**: Every route is protected by role-appropriate access control with server-validated sessions
 **Depends on**: Phase 1
-**Requirements**: AUTH-01, AUTH-02, AUTH-03, AUTH-04, AUTH-05, AUTH-06, AUTH-07, AUTH-08, AUTH-09, AUTH-10, AUTH-11, AUTH-12, AUTH-13, AUTH-14, AUTH-15, AUTH-16, AUTH-17, DOC-01
+**Requirements**: AUTH-01, AUTH-02, AUTH-03, AUTH-04, AUTH-05, AUTH-06, AUTH-07, AUTH-08, AUTH-09, AUTH-10, AUTH-11, AUTH-12, AUTH-13, AUTH-14, AUTH-15, AUTH-16, AUTH-17, AUTH-18, DOC-01
 **Success Criteria** (what must be TRUE):
   1. Middleware executes on every request — tenant users accessing `/owner/*` routes are redirected to tenant portal, and vice versa
   2. Session validation uses `getUser()` (server-verified) throughout — no `getSession()` for auth decisions
   3. Tenant invitation acceptance requires a valid JWT — unauthenticated callers cannot accept invitations
   4. OAuth callback verifies email ownership before auto-accepting invitations
   5. Login redirect parameter, signout method, and OTP type are all validated against injection and CSRF
-**Plans**: 5 plans
+  6. Auth-related emails (confirmation, password reset, invitation) sent via Resend with branded templates
+**Plans**: 6 plans
 
 Plans:
 - [ ] 03-01-PLAN.md — Create Next.js middleware with Supabase auth + role-based route enforcement
@@ -77,6 +78,7 @@ Plans:
 - [ ] 03-03-PLAN.md — Fix auth callback security: x-forwarded-host injection, OTP type validation, login redirect validation
 - [ ] 03-04-PLAN.md — Secure invitation JWT auth, checkout minimal data, signout CSRF, select-role restriction
 - [ ] 03-05-PLAN.md — Update CLAUDE.md with Phase 3 auth conventions
+- [ ] 03-06-PLAN.md — Resend auth email integration: branded templates for confirmation, reset, invitation emails
 
 ### Phase 4: Edge Function Hardening
 **Goal**: All Edge Functions fail-fast on missing config, reject abuse, and never leak internal errors
@@ -187,7 +189,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8 -> 9
 |-------|-----------|----------------|--------|-----------|
 | 1. RPC & Database Security | v1.0 | 2/2 | Complete | 2026-03-04 |
 | 2. Financial Fixes | 4/6 | In Progress|  | - |
-| 3. Auth & Middleware | v1.0 | 0/5 | Not started | - |
+| 3. Auth & Middleware | v1.0 | 0/6 | Not started | - |
 | 4. Edge Function Hardening | v1.0 | 0/2 | Not started | - |
 | 5. Code Quality & Type Safety | v1.0 | 0/3 | Not started | - |
 | 6. Database Schema & Migrations | v1.0 | 0/2 | Not started | - |
