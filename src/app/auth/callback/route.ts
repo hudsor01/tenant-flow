@@ -63,7 +63,8 @@ function getDashboardRoute(userType: string | undefined): string {
  */
 async function findAndAcceptPendingInvitation(
 	userId: string,
-	email: string
+	email: string,
+	accessToken: string
 ): Promise<boolean> {
 	try {
 		const serviceRoleKey = env.SUPABASE_SERVICE_ROLE_KEY
@@ -96,10 +97,12 @@ async function findAndAcceptPendingInvitation(
 			`${supabaseUrl}/functions/v1/tenant-invitation-accept`,
 			{
 				method: 'POST',
-				headers: { 'Content-Type': 'application/json' },
+				headers: {
+					'Content-Type': 'application/json',
+					'Authorization': `Bearer ${accessToken}`
+				},
 				body: JSON.stringify({
-					code: invitation.invitation_code,
-					authuser_id: userId
+					code: invitation.invitation_code
 				})
 			}
 		)
@@ -223,6 +226,7 @@ export async function GET(request: NextRequest) {
 				| undefined
 			const userEmail = data.session.user.email
 			const userId = data.session.user.id
+			const accessToken = data.session.access_token
 
 			// For PENDING or unset user_type: check for pending invitations
 			if (
@@ -231,7 +235,8 @@ export async function GET(request: NextRequest) {
 			) {
 				const invitationAccepted = await findAndAcceptPendingInvitation(
 					userId,
-					userEmail
+					userEmail,
+					accessToken
 				)
 
 				if (invitationAccepted) {
