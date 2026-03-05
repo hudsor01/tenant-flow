@@ -98,6 +98,13 @@ vi.mock('#hooks/api/use-profile-mutations', () => ({
 		mutateAsync: mockUpdateProfile,
 		isPending: false
 	}),
+	useUpdatePhoneMutation: () => ({
+		mutateAsync: mockUpdatePhone,
+		isPending: false
+	})
+}))
+
+vi.mock('#hooks/api/use-profile-avatar-mutations', () => ({
 	useUploadAvatarMutation: () => ({
 		mutateAsync: mockUploadAvatar,
 		isPending: false
@@ -105,11 +112,10 @@ vi.mock('#hooks/api/use-profile-mutations', () => ({
 	useRemoveAvatarMutation: () => ({
 		mutateAsync: mockRemoveAvatar,
 		isPending: false
-	}),
-	useUpdatePhoneMutation: () => ({
-		mutateAsync: mockUpdatePhone,
-		isPending: false
-	}),
+	})
+}))
+
+vi.mock('#hooks/api/use-profile-emergency-mutations', () => ({
 	useUpdateProfileEmergencyContactMutation: () => ({
 		mutateAsync: vi.fn(),
 		isPending: false

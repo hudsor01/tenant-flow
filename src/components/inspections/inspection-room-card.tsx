@@ -16,7 +16,7 @@ import { Badge } from '#components/ui/badge'
 import {
 	useUpdateInspectionRoom,
 	useDeleteInspectionRoom
-} from '#hooks/api/use-inspection-mutations'
+} from '#hooks/api/use-inspection-room-mutations'
 import { InspectionPhotoUpload } from './inspection-photo-upload'
 import type { InspectionRoom } from '#shared/types/sections/inspections'
 

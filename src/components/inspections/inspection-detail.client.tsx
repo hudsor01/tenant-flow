@@ -26,9 +26,9 @@ import { useInspection } from '#hooks/api/use-inspections'
 import {
 	useUpdateInspection,
 	useCompleteInspection,
-	useSubmitForTenantReview,
-	useCreateInspectionRoom
+	useSubmitForTenantReview
 } from '#hooks/api/use-inspection-mutations'
+import { useCreateInspectionRoom } from '#hooks/api/use-inspection-room-mutations'
 import { InspectionRoomCard } from './inspection-room-card'
 import { formatDate } from '#lib/formatters/date'
 

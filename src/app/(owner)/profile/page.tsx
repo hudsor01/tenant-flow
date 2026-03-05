@@ -17,10 +17,12 @@ import { ChangePasswordDialog } from '#components/auth/change-password-dialog'
 import { useProfile } from '#hooks/api/use-profile'
 import {
 	useUpdateProfileMutation,
-	useUploadAvatarMutation,
-	useRemoveAvatarMutation,
 	useUpdatePhoneMutation
 } from '#hooks/api/use-profile-mutations'
+import {
+	useUploadAvatarMutation,
+	useRemoveAvatarMutation
+} from '#hooks/api/use-profile-avatar-mutations'
 import { useSignOutMutation } from '#hooks/api/use-auth-mutations'
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
