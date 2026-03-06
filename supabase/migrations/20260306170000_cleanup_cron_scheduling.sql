@@ -81,6 +81,9 @@ comment on table public.stripe_webhook_events_archive is
 -- DB-06: Rewrite cleanup_old_security_events() with archive pattern
 -- Original: tiered delete by severity (30d debug/info, 90d warning, 1y error/critical)
 -- New: same tiered retention but archive before delete, batched
+-- Drop first: return type changes from void to integer (CREATE OR REPLACE cannot change return type)
+drop function if exists public.cleanup_old_security_events();
+
 create or replace function public.cleanup_old_security_events()
 returns integer
 language plpgsql
@@ -172,6 +175,9 @@ comment on function public.cleanup_old_security_events() is
 -- DB-07: Rewrite cleanup_old_errors() with archive pattern
 -- Original: deletes resolved errors older than 30 days
 -- New: archive before delete, extend to all errors older than 90 days (resolved or not)
+-- Drop first: return type changes from void to integer (CREATE OR REPLACE cannot change return type)
+drop function if exists public.cleanup_old_errors();
+
 create or replace function public.cleanup_old_errors()
 returns integer
 language plpgsql
