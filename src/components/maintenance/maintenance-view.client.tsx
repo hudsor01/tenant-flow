@@ -373,10 +373,12 @@ export function MaintenanceViewClient() {
 						{currentView === 'kanban' ? (
 							<MaintenanceKanban initialRequests={filteredRequests} />
 						) : (
-							<MaintenanceTableClient
-								columns={columns}
-								initialRequests={filteredRequests}
-							/>
+							<div className="overflow-auto max-h-[calc(100vh-420px)]">
+								<MaintenanceTableClient
+									columns={columns}
+									initialRequests={filteredRequests}
+								/>
+							</div>
 						)}
 					</BlurFade>
 				</TabsContent>

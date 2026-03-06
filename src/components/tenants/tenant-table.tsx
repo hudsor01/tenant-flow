@@ -1,6 +1,7 @@
 'use client'
 
-import { useMemo, useState } from 'react'
+import { useRef, useMemo, useState } from 'react'
+import { useVirtualizer } from '@tanstack/react-virtual'
 import { Checkbox } from '#components/ui/checkbox'
 import { Button } from '#components/ui/button'
 import type { TenantItem } from '#shared/types/sections/tenants'
@@ -115,11 +116,19 @@ export function TenantTable({
 		onSelectChange(Array.from(newIds))
 	}
 
+	const tableScrollRef = useRef<HTMLDivElement>(null)
+	const rowVirtualizer = useVirtualizer({
+		count: paginatedTenants.length,
+		getScrollElement: () => tableScrollRef.current,
+		estimateSize: () => 56,
+		overscan: 5,
+	})
+
 	return (
 		<div className="w-full">
-			<div className="overflow-x-auto">
+			<div ref={tableScrollRef} className="overflow-auto max-h-[calc(100vh-400px)]">
 				<table className="w-full">
-					<thead className="border-b border-border bg-muted/50">
+					<thead className="border-b border-border bg-muted/50 sticky top-0 z-10">
 						<tr>
 							<th className="w-10 px-4 py-3">
 								<Checkbox
@@ -175,19 +184,22 @@ export function TenantTable({
 							<th className="w-20 px-4 py-3"></th>
 						</tr>
 					</thead>
-					<tbody className="divide-y divide-border">
-						{paginatedTenants.map(tenant => (
-							<TenantTableRow
-								key={tenant.id}
-								tenant={tenant}
-								isSelected={selectedIds.has(tenant.id)}
-								onSelect={handleSelectOne}
-								onView={onView}
-								onEdit={onEdit}
-								onDelete={onDelete}
-								onViewLease={onViewLease}
-							/>
-						))}
+					<tbody className="divide-y divide-border" style={{ height: `${rowVirtualizer.getTotalSize()}px`, position: 'relative' }}>
+						{rowVirtualizer.getVirtualItems().map(virtualRow => {
+							const tenant = paginatedTenants[virtualRow.index]!
+							return (
+								<TenantTableRow
+									key={tenant.id}
+									tenant={tenant}
+									isSelected={selectedIds.has(tenant.id)}
+									onSelect={handleSelectOne}
+									onView={onView}
+									onEdit={onEdit}
+									onDelete={onDelete}
+									onViewLease={onViewLease}
+								/>
+							)
+						})}
 					</tbody>
 				</table>
 			</div>

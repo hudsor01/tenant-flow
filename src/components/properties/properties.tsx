@@ -258,7 +258,7 @@ export function Properties({
 
 				{/* Grid View */}
 				{viewMode === 'grid' && (
-					<div className="p-5 animate-in fade-in slide-in-from-bottom-2 duration-300">
+					<div className="p-5 animate-in fade-in slide-in-from-bottom-2 duration-300 overflow-auto max-h-[calc(100vh-340px)]">
 						<div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
 							{filteredProperties.map(property => (
 								<PropertyCard
