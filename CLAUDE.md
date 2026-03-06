@@ -109,6 +109,59 @@ Webhook processing uses a handler module pattern in `supabase/functions/stripe-w
 - Webhook idempotency: `stripe_webhook_events.status` tracks `processing` / `succeeded` / `failed`. Never delete records on failure.
 - Shared leases: Per-tenant portions computed dynamically from `lease_tenants.responsibility_percentage`. Each tenant pays `rent_due.amount * percentage / 100`.
 
+### Schema Conventions
+- `owner_user_id` is the canonical owner column on all tables (properties, leases, maintenance_requests, documents) — references `users.id` directly
+- `set_updated_at()` is the only trigger function for `updated_at` columns — never create duplicates (legacy `update_updated_at_column()` was consolidated)
+- `property_owners` table stores Stripe Connect data only (`stripe_account_id`, `charges_enabled`, `onboarding_completed_at`) — not used for ownership lookups
+- `leases` has single owner column `owner_user_id` (legacy `property_owner_id` dropped in Phase 6)
+- `documents` has direct `owner_user_id` column for fast RLS checks (backfilled from parent entities)
+- `blogs.author_user_id` tracks content authorship (FK to `users.id`, ON DELETE SET NULL)
+- `activity.user_id` is NOT NULL with ON DELETE CASCADE (activity records follow user lifecycle)
+- `inspection_photos` has `updated_at` column with `set_updated_at()` trigger
+
+### Cron Jobs (pg_cron)
+All pg_cron jobs use named SECURITY DEFINER functions with `SET search_path = public`. Never use inline SQL in `cron.schedule()`.
+
+**Scheduled jobs (3 AM UTC window):**
+
+| Job Name | Schedule | Function | Purpose |
+|----------|----------|----------|---------|
+| `expire-leases` | `0 23 * * *` | `expire_leases()` | Expire active leases past end_date, notify owner |
+| `calculate_late_fees` | (existing) | `calculate_late_fees()` | Calculate late fees on overdue rent |
+| `queue_lease_reminders` | (existing) | `queue_lease_reminders()` | Send upcoming rent reminders |
+| `process-autopay-charges` | (existing) | via Edge Function | Process autopay for due rent |
+| `cleanup-security-events` | `0 3 * * *` | `cleanup_old_security_events()` | Archive + delete events > 90 days |
+| `cleanup-errors` | `15 3 * * *` | `cleanup_old_errors()` | Archive + delete errors > 90 days |
+| `cleanup-webhook-events` | `30 3 * * *` | `cleanup_old_webhook_events()` | Archive webhooks (90d succeeded / 180d failed) |
+| `check-cron-health` | `0 * * * *` | `check_cron_health()` | Monitor job failures hourly via `cron.job_run_details` |
+| `process-account-deletions` | `45 3 * * *` | `process_account_deletions()` | GDPR: anonymize users past 30-day grace period |
+
+**Conventions:**
+- Cleanup jobs run at 3 AM UTC window (3:00, 3:15, 3:30, 3:45)
+- Archive-then-delete pattern for all data retention (never hard delete without archiving)
+- `check_cron_health` monitors all jobs hourly via `cron.job_run_details`, logs failures to `user_errors` for Sentry pickup
+- Use `FOR UPDATE SKIP LOCKED` for concurrent-safe row processing
+
+### GDPR Patterns
+- Account deletion uses 30-day grace period (`deletion_requested_at` on users table)
+- Anonymization replaces PII with `[deleted]` / `[deleted user]` placeholders — never deletes financial records (rent_payments, rent_due preserved intact)
+- Owner deletion blocked if active leases or pending payments exist
+- Functions: `request_account_deletion()` (user-callable), `cancel_account_deletion()` (user-callable), `anonymize_deleted_user(uuid)` (cron-only)
+- `process_account_deletions()` cron runs daily, handles each user independently (one failure does not block others)
+- Does NOT delete from `auth.users` — that is handled by Supabase Auth separately
+
+### Data Retention
+| Table | Retention | Archive Table | Policy |
+|-------|-----------|---------------|--------|
+| `security_events` | 90 days | `security_events_archive` | Archive then delete |
+| `user_errors` | 90 days | `user_errors_archive` | Archive then delete |
+| `stripe_webhook_events` (succeeded) | 90 days | `stripe_webhook_events_archive` | Archive then delete |
+| `stripe_webhook_events` (failed) | 180 days | `stripe_webhook_events_archive` | Longer retention for forensics |
+
+- Archive tables use `*_archive` suffix with identical schema
+- Archive tables are service_role-only access (no authenticated user policies)
+- Cleanup cron jobs process in batches with `LIMIT 10000` and `FOR UPDATE SKIP LOCKED`
+
 ## Data Access Patterns
 All data access goes through Supabase PostgREST and RPC. There is no custom backend API server.
 
