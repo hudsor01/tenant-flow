@@ -116,11 +116,11 @@ All 131 findings from the review, plus CLAUDE.md maintenance.
 - [x] **DB-02**: `documents` table gets `owner_user_id` column + authenticated RLS policies
 - [x] **DB-03**: `leases` table dual-column (`property_owner_id` + `owner_user_id`) cleaned up — single column
 - [x] **DB-04**: GDPR soft-delete on `users` enforced on related tables (properties, leases, etc.)
-- [ ] **DB-05**: `expire-leases` cron rewritten as named function with `FOR UPDATE SKIP LOCKED` and error handling
-- [ ] **DB-06**: `cleanup_old_security_events` cron job scheduled
-- [ ] **DB-07**: `cleanup_old_errors` cron job scheduled
-- [ ] **DB-08**: Cron job Sentry monitoring added for `calculate_late_fees`, `queue_lease_reminders`, `expire-leases`
-- [ ] **DB-09**: `stripe_webhook_events.data` retention policy (cleanup old events)
+- [x] **DB-05**: `expire-leases` cron rewritten as named function with `FOR UPDATE SKIP LOCKED` and error handling
+- [x] **DB-06**: `cleanup_old_security_events` cron job scheduled
+- [x] **DB-07**: `cleanup_old_errors` cron job scheduled
+- [x] **DB-08**: Cron job Sentry monitoring added for `calculate_late_fees`, `queue_lease_reminders`, `expire-leases`
+- [x] **DB-09**: `stripe_webhook_events.data` retention policy (cleanup old events)
 - [x] **DB-10**: `inspection_photos` gets `updated_at` column + trigger for consistency
 - [x] **DB-11**: `blogs` table gets author/user_id column for audit trail
 - [x] **DB-12**: `update_updated_at_column` duplicate function consolidated with `set_updated_at`
@@ -313,11 +313,11 @@ All 131 findings from the review, plus CLAUDE.md maintenance.
 | DB-02 | Phase 6 | Complete |
 | DB-03 | Phase 6 | Complete |
 | DB-04 | Phase 6 | Complete |
-| DB-05 | Phase 6 | Pending |
-| DB-06 | Phase 6 | Pending |
-| DB-07 | Phase 6 | Pending |
-| DB-08 | Phase 6 | Pending |
-| DB-09 | Phase 6 | Pending |
+| DB-05 | Phase 6 | Complete |
+| DB-06 | Phase 6 | Complete |
+| DB-07 | Phase 6 | Complete |
+| DB-08 | Phase 6 | Complete |
+| DB-09 | Phase 6 | Complete |
 | DB-10 | Phase 6 | Complete |
 | DB-11 | Phase 6 | Complete |
 | DB-12 | Phase 6 | Complete |
