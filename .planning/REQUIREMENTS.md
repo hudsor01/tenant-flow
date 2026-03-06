@@ -189,14 +189,14 @@ All 131 findings from the review, plus CLAUDE.md maintenance.
 - [x] **TEST-04**: Tests for critical Edge Functions (stripe-webhooks, stripe-rent-checkout, stripe-autopay-charge, tenant-invitation-accept)
 - [ ] **TEST-05**: Tests for shared validation schemas (`src/shared/validation/` — payment-transactions, auth, leases minimum)
 - [ ] **TEST-06**: Tests for shared utility functions (`src/shared/utils/` — billing, payment-dates, financial)
-- [ ] **TEST-07**: RLS integration tests for `rent_payments`, `payment_methods`, `payment_transactions`
-- [ ] **TEST-08**: RLS integration tests for `documents`, `notifications`, `notification_settings`, `subscriptions`, `tenant_invitations`
-- [ ] **TEST-09**: Tenant-role RLS isolation tests (not just cross-owner)
+- [x] **TEST-07**: RLS integration tests for `rent_payments`, `payment_methods`, `payment_transactions`
+- [x] **TEST-08**: RLS integration tests for `documents`, `notifications`, `notification_settings`, `subscriptions`, `tenant_invitations`
+- [x] **TEST-09**: Tenant-role RLS isolation tests (not just cross-owner)
 - [x] **TEST-10**: Security scanning (gitleaks, trivy) wired into CI
 - [x] **TEST-11**: RLS tests added to PR CI pipeline (not just weekly)
 - [x] **TEST-12**: E2E tests added to CI (at least on merge to main)
-- [ ] **TEST-13**: Tests for Next.js API route (`attach-payment-method`)
-- [ ] **TEST-14**: Tests for Supabase client utilities (`get-cached-user.ts`, `server.ts`)
+- [x] **TEST-13**: Tests for Next.js API route (`attach-payment-method`)
+- [x] **TEST-14**: Tests for Supabase client utilities (`get-cached-user.ts`, `server.ts`)
 - [ ] **TEST-15**: Skipped tests in `bulk-import-upload-step.test.tsx` resolved or tracked as issues
 - [x] **TEST-16**: `noUnusedLocals` and `noUnusedParameters` enabled in tsconfig
 - [x] **TEST-17**: `isolatedModules: true` set in tsconfig
@@ -377,14 +377,14 @@ All 131 findings from the review, plus CLAUDE.md maintenance.
 | TEST-04 | Phase 9 | Complete |
 | TEST-05 | Phase 9 | Pending |
 | TEST-06 | Phase 9 | Pending |
-| TEST-07 | Phase 9 | Pending |
-| TEST-08 | Phase 9 | Pending |
-| TEST-09 | Phase 9 | Pending |
+| TEST-07 | Phase 9 | Complete |
+| TEST-08 | Phase 9 | Complete |
+| TEST-09 | Phase 9 | Complete |
 | TEST-10 | Phase 9 | Complete |
 | TEST-11 | Phase 9 | Complete |
 | TEST-12 | Phase 9 | Complete |
-| TEST-13 | Phase 9 | Pending |
-| TEST-14 | Phase 9 | Pending |
+| TEST-13 | Phase 9 | Complete |
+| TEST-14 | Phase 9 | Complete |
 | TEST-15 | Phase 9 | Pending |
 | TEST-16 | Phase 9 | Complete |
 | TEST-17 | Phase 9 | Complete |
