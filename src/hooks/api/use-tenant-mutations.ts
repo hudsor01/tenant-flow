@@ -112,11 +112,9 @@ export function useUpdateTenantMutation() {
 
 /**
  * Delete tenant mutation
- * Soft-delete: removes the tenant from the system by deleting their record.
- * Hard delete is allowed here since tenants are linked via user_id (no FK cascade issue).
- * We soft-delete by removing the lease association instead, keeping the tenant record.
- * Per 7-year retention policy, actual deletion requires manual review.
- * For now: update lease_tenants to remove association (tenant record kept).
+ * Checks for active leases before allowing deletion.
+ * Soft-delete: sets tenant status to 'inactive' (consistent with property soft-delete pattern).
+ * Per 7-year retention policy, tenant record is kept for legal compliance.
  */
 export function useDeleteTenantMutation() {
 	const queryClient = useQueryClient()
@@ -125,11 +123,27 @@ export function useDeleteTenantMutation() {
 		mutationKey: mutationKeys.tenants.delete,
 		mutationFn: async (id: string): Promise<void> => {
 			const supabase = createClient()
-			// Remove all lease_tenants associations for this tenant (soft-remove)
-			const { error } = await supabase
+
+			// Check for active leases before allowing deletion
+			const { data: activeLeases, error: leaseError } = await supabase
 				.from('lease_tenants')
-				.delete()
+				.select('lease_id, leases!inner(id, lease_status)')
 				.eq('tenant_id', id)
+				.eq('leases.lease_status', 'active')
+
+			if (leaseError) handlePostgrestError(leaseError, 'lease_tenants')
+
+			if (activeLeases && activeLeases.length > 0) {
+				throw new Error(
+					'Cannot delete tenant with active lease. End or transfer the lease before removing them.'
+				)
+			}
+
+			// Soft-delete: mark tenant as inactive
+			const { error } = await supabase
+				.from('tenants')
+				.update({ status: 'inactive' })
+				.eq('id', id)
 
 			if (error) handlePostgrestError(error, 'tenants')
 		},

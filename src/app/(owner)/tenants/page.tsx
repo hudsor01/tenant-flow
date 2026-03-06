@@ -2,16 +2,15 @@
 
 import { useCallback, useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { useQuery } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { tenantQueries } from '#hooks/api/query-keys/tenant-keys'
-import { ownerDashboardKeys } from '#hooks/api/use-owner-dashboard'
 import { tenantPaymentQueries } from '#hooks/api/use-payments'
 import {
 	useCancelInvitationMutation,
 	useResendInvitationMutation
 } from '#hooks/api/use-tenant-invite-mutations'
-import { createClient } from '#lib/supabase/client'
+import { useDeleteTenantMutation } from '#hooks/api/use-tenant-mutations'
 import {
 	AlertDialog,
 	AlertDialogAction,
@@ -32,7 +31,6 @@ import { TenantsLoadingSkeleton } from './components/tenants-loading-skeleton'
 
 export default function TenantsPage() {
 	const router = useRouter()
-	const queryClient = useQueryClient()
 	const [selectedTenantId, setSelectedTenantId] = useState<string | null>(
 		null
 	)
@@ -98,25 +96,8 @@ export default function TenantsPage() {
 		selectedTenantPaymentHistory
 	])
 
-	// Delete mutation — soft-delete: set status to 'inactive'
-	const { mutate: deleteTenant } = useMutation({
-		mutationFn: async (tenantId: string) => {
-			const supabase = createClient()
-			const { error } = await supabase
-				.from('tenants')
-				.update({ status: 'inactive' })
-				.eq('id', tenantId)
-			if (error) throw error
-		},
-		onSuccess: () => {
-			toast.success('Tenant deleted')
-			queryClient.invalidateQueries({ queryKey: tenantQueries.all() })
-			queryClient.invalidateQueries({ queryKey: ownerDashboardKeys.all })
-		},
-		onError: () => {
-			toast.error('Failed to delete tenant')
-		}
-	})
+	// Delete mutation — consolidated hook with active-lease guard
+	const { mutate: deleteTenant } = useDeleteTenantMutation()
 
 	const { mutate: resendInvitation } = useResendInvitationMutation()
 	const { mutate: cancelInvitation } = useCancelInvitationMutation()
