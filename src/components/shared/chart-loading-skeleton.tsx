@@ -1,5 +1,3 @@
-'use client'
-
 /**
  * CSS-only rising bars animation for chart loading states.
  * Used as the fallback for dynamically imported chart components.

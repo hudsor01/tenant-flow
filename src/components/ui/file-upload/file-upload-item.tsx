@@ -36,7 +36,7 @@ export function FileUploadItemPreview(props: FileUploadItemPreviewProps) {
 				}
 
 				return (
-					// biome-ignore lint/performance/noImgElement: dynamic file URLs from user uploads don't work well with Next.js Image optimization
+					// biome-ignore lint/performance/noImgElement: blob: URLs from URL.createObjectURL() are not supported by next/image (protocol restriction). Raw <img> is the only option for local file previews.
 					<img src={url} alt={file.name} className="size-full object-cover" />
 				)
 			}

@@ -1,5 +1,3 @@
-'use client'
-
 /**
  * CSS-only text-reveal animation for blog/markdown loading states.
  * Lines appear sequentially mimicking writing flow with a left-to-right reveal.
