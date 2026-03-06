@@ -132,14 +132,16 @@ Plans:
   3. `expire-leases` cron uses a named function with `FOR UPDATE SKIP LOCKED` and error handling
   4. Cleanup cron jobs are scheduled for `security_events`, `errors`, and `stripe_webhook_events`
   5. All cron jobs have Sentry monitoring for failure detection
-**Plans**: 5 plans
+**Plans**: 7 plans
 
 Plans:
-- [ ] 06-00-PLAN.md — Wave 0 test stubs for activity, documents, and GDPR RLS tests
-- [ ] 06-01-PLAN.md — Consolidate trigger functions + schema constraints (activity NOT NULL, inspection_photos updated_at, blogs author)
-- [ ] 06-02-PLAN.md — Documents owner_user_id with RLS rewrite + leases property_owner_id column drop with RPC rewrites
-- [ ] 06-03-PLAN.md — Expire-leases named function + cleanup cron scheduling with archive-then-delete + cron monitoring
-- [ ] 06-04-PLAN.md — GDPR anonymization cascade function + CLAUDE.md update
+- [x] 06-00-PLAN.md — Wave 0 test stubs for activity, documents, and GDPR RLS tests
+- [x] 06-01-PLAN.md — Consolidate trigger functions + schema constraints (activity NOT NULL, inspection_photos updated_at, blogs author)
+- [x] 06-02-PLAN.md — Documents owner_user_id with RLS rewrite + leases property_owner_id column drop with RPC rewrites
+- [x] 06-03-PLAN.md — Expire-leases named function + cleanup cron scheduling with archive-then-delete + cron monitoring
+- [x] 06-04-PLAN.md — GDPR anonymization cascade function + CLAUDE.md update
+- [ ] 06-05-PLAN.md — [GAP] Implement activity + documents RLS integration tests (replace 8 it.todo stubs)
+- [ ] 06-06-PLAN.md — [GAP] Implement GDPR anonymization integration tests (replace 5 it.todo stubs)
 
 ### Phase 7: UX & Accessibility
 **Goal**: All text is readable, all interactive elements are accessible, and error states are handled gracefully
@@ -204,7 +206,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8 -> 9
 | 3. Auth & Middleware | v1.0 | 6/6 | Complete | 2026-03-05 |
 | 4. Edge Function Hardening | v1.0 | 4/4 | Complete | 2026-03-05 |
 | 5. Code Quality & Type Safety | 9/10 | In Progress|  | - |
-| 6. Database Schema & Migrations | 5/5 | Complete   | 2026-03-06 | - |
+| 6. Database Schema & Migrations | 5/7 | In Progress | - | - |
 | 7. UX & Accessibility | v1.0 | 0/3 | Not started | - |
 | 8. Performance Optimization | v1.0 | 0/3 | Not started | - |
 | 9. Testing & CI Pipeline | v1.0 | 0/3 | Not started | - |
