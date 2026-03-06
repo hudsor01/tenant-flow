@@ -9,6 +9,7 @@ import { queryOptions, useQuery } from '@tanstack/react-query'
 import { createClient } from '#lib/supabase/client'
 import { getCachedUser } from '#lib/supabase/get-cached-user'
 import { handlePostgrestError } from '#lib/postgrest-error-handler'
+import { fetchOccupancyTrends } from './query-keys/analytics-keys'
 import type {
 	FinancialAnalyticsPageData,
 	LeaseAnalyticsPageData,
@@ -59,17 +60,7 @@ export const analyticsQueries = {
 		queryOptions({
 			queryKey: analyticsQueries.lease(),
 			queryFn: async (): Promise<LeaseAnalyticsPageData> => {
-				const supabase = createClient()
-				const user = await getCachedUser()
-				if (!user) throw new Error('Not authenticated')
-				const { data, error } = await supabase.rpc(
-					'get_occupancy_trends_optimized',
-					{
-						p_user_id: user.id,
-						p_months: 12
-					}
-				)
-				if (error) handlePostgrestError(error, 'analytics')
+				const data = await fetchOccupancyTrends(12)
 				return (data ?? {}) as unknown as LeaseAnalyticsPageData
 			},
 			staleTime: 2 * 60 * 1000,
@@ -100,17 +91,7 @@ export const analyticsQueries = {
 		queryOptions({
 			queryKey: analyticsQueries.occupancy(),
 			queryFn: async (): Promise<OccupancyAnalyticsPageData> => {
-				const supabase = createClient()
-				const user = await getCachedUser()
-				if (!user) throw new Error('Not authenticated')
-				const { data, error } = await supabase.rpc(
-					'get_occupancy_trends_optimized',
-					{
-						p_user_id: user.id,
-						p_months: 12
-					}
-				)
-				if (error) handlePostgrestError(error, 'analytics')
+				const data = await fetchOccupancyTrends(12)
 				const raw = (data ?? {}) as Partial<OccupancyAnalyticsPageData>
 
 				// Ensure all required fields have defaults
@@ -144,28 +125,23 @@ export const analyticsQueries = {
 				if (!user) throw new Error('Not authenticated')
 				const userId = user.id
 
-				const [financialResult, maintenanceResult, occupancyResult] =
+				const [financialResult, maintenanceResult, occupancyData] =
 					await Promise.all([
 						supabase.rpc('get_financial_overview', { p_user_id: userId }),
 						supabase.rpc('get_maintenance_analytics', { user_id: userId }),
-						supabase.rpc('get_occupancy_trends_optimized', {
-							p_user_id: userId,
-							p_months: 12
-						})
+						fetchOccupancyTrends(12)
 					])
 
 				if (financialResult.error)
 					handlePostgrestError(financialResult.error, 'analytics')
 				if (maintenanceResult.error)
 					handlePostgrestError(maintenanceResult.error, 'analytics')
-				if (occupancyResult.error)
-					handlePostgrestError(occupancyResult.error, 'analytics')
 
 				return {
 					financial: financialResult.data as FinancialAnalyticsPageData,
 					maintenance:
 						maintenanceResult.data as MaintenanceInsightsPageData,
-					lease: (occupancyResult.data ?? {}) as unknown as LeaseAnalyticsPageData
+					lease: (occupancyData ?? {}) as unknown as LeaseAnalyticsPageData
 				}
 			},
 			staleTime: 2 * 60 * 1000,

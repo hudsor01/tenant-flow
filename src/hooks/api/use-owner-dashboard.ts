@@ -13,7 +13,7 @@ import type { ActivityItem } from '#shared/types/activity'
 import type { PropertyPerformance } from '#shared/types/core'
 import type { DashboardStats } from '#shared/types/stats'
 import type { MetricTrend, TimeSeriesDataPoint } from '#shared/types/analytics'
-import { revenueTrendsQuery } from './query-keys/analytics-keys'
+import { revenueTrendsQuery, occupancyTrendsQuery } from './query-keys/analytics-keys'
 
 /** Hierarchical query keys for owner dashboard — enables targeted cache invalidation */
 export const ownerDashboardKeys = {
@@ -132,32 +132,7 @@ export const ownerDashboardQueries = {
 	},
 
 	tenants: {
-		occupancyTrends: () =>
-			queryOptions({
-				queryKey: ownerDashboardKeys.tenants.occupancyTrends(),
-				queryFn: async () => {
-					const supabase = createClient()
-					const user = await getCachedUser()
-					if (!user) throw new Error('Not authenticated')
-					const { data, error } = await supabase.rpc(
-						'get_occupancy_trends_optimized',
-						{
-							p_user_id: user.id,
-							p_months: 12
-						}
-					)
-					if (error) handlePostgrestError(error, 'analytics')
-					return data as {
-						totalTenants: number
-						activeTenants: number
-						occupancyRate: number
-						averageLeaseLength: number
-						expiringLeases: number
-					}
-				},
-				staleTime: 2 * 60 * 1000,
-				gcTime: 10 * 60 * 1000
-			})
+		occupancyTrends: () => occupancyTrendsQuery({ months: 12 })
 	}
 }
 

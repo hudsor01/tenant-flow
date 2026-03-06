@@ -10,7 +10,7 @@ import { queryOptions } from '@tanstack/react-query'
 import { createClient } from '#lib/supabase/client'
 import { getCachedUser } from '#lib/supabase/get-cached-user'
 import { handlePostgrestError } from '#lib/postgrest-error-handler'
-import { fetchRevenueTrends } from './analytics-keys'
+import { fetchRevenueTrends, fetchOccupancyTrends } from './analytics-keys'
 import type {
 	ListReportsResponse,
 	Report as ReportType,
@@ -206,18 +206,12 @@ export const reportQueries = {
 		queryOptions({
 			queryKey: reportKeys.occupancyMetrics(),
 			queryFn: async (): Promise<OccupancyMetrics> => {
-				const supabase = createClient()
 				const user = await getCachedUser()
 				if (!user) {
 					return { totalUnits: 0, occupiedUnits: 0, vacantUnits: 0, occupancyRate: 0, byProperty: [] }
 				}
 
-				const { data, error } = await supabase.rpc('get_occupancy_trends_optimized', {
-					p_owner_id: user.id,
-					p_months: 12
-				})
-
-				if (error) handlePostgrestError(error, 'occupancy metrics')
+				const data = await fetchOccupancyTrends(12)
 
 				const result = data as Record<string, unknown> | null
 				const byProperty = (result?.by_property ?? []) as Array<Record<string, unknown>>
@@ -347,9 +341,9 @@ export const reportQueries = {
 					}
 				}
 
-				const [dashResult, occupancyResult] = await Promise.all([
+				const [dashResult, occupancyData] = await Promise.all([
 					supabase.rpc('get_dashboard_stats', { p_user_id: user.id }),
-					supabase.rpc('get_occupancy_trends_optimized', { p_owner_id: user.id, p_months: 12 })
+					fetchOccupancyTrends(12)
 				])
 
 				if (dashResult.error) handlePostgrestError(dashResult.error, 'tenant report')
@@ -357,7 +351,7 @@ export const reportQueries = {
 				const stats = (dashResult.data as Array<Record<string, unknown>> | null)?.[0]
 				const tenants = stats?.tenants as Record<string, unknown> | undefined
 				const leases = stats?.leases as Record<string, unknown> | undefined
-				const occupancy = occupancyResult.data as Record<string, unknown> | null
+				const occupancy = occupancyData as Record<string, unknown> | null
 
 				return {
 					summary: {

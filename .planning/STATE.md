@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: Production Hardening
 status: completed
-stopped_at: Completed 08-01-PLAN.md
-last_updated: "2026-03-06T17:54:07.406Z"
-last_activity: 2026-03-06 — Edge Function query parallelization, duplicate charge elimination, invitation cache headers
+stopped_at: Completed 08-05-PLAN.md
+last_updated: "2026-03-06T18:16:32.546Z"
+last_activity: 2026-03-06 — Shared tenantIdQuery, resolveTenantId(), amountDue Promise.all parallelization
 progress:
   total_phases: 13
   completed_phases: 8
   total_plans: 57
-  completed_plans: 47
+  completed_plans: 48
   percent: 90
 ---
 
@@ -26,9 +26,9 @@ See: .planning/PROJECT.md (updated 2026-03-04)
 ## Current Position
 
 Phase: 8 of 9 (Performance Optimization) -- IN PROGRESS
-Plan: 3 of 7 in current phase (08-03 complete)
-Status: Completed 08-03 (Edge Function parallelization, charge reuse, cache headers)
-Last activity: 2026-03-06 — Edge Function query parallelization, duplicate charge elimination, invitation cache headers
+Plan: 5 of 7 in current phase (08-05 complete)
+Status: Completed 08-05 (Tenant portal waterfall elimination, shared tenant ID resolution)
+Last activity: 2026-03-06 — Shared tenantIdQuery, resolveTenantId(), amountDue Promise.all parallelization
 
 Progress: [█████████░] 90%
 
@@ -83,6 +83,7 @@ Progress: [█████████░] 90%
 | Phase 08 P02 | 3min | 2 tasks | 14 files |
 | Phase 08 P03 | 3min | 2 tasks | 3 files |
 | Phase 08 P01 | 4min | 2 tasks | 12 files |
+| Phase 08 P05 | 17min | 2 tasks | 6 files |
 
 ## Accumulated Context
 
@@ -200,6 +201,9 @@ Progress: [█████████░] 90%
 - [Phase 08]: Global refetchOnWindowFocus: true (not 'always') -- queries only refetch on focus when stale
 - [Phase 08]: Tenant payment queries override refetchOnWindowFocus to 'always' (time-sensitive financial data)
 - [Phase 08]: Auth provider retains refetchOnWindowFocus: false (auth state must not refetch on focus)
+- [Phase 08]: tenantIdQuery uses 10-min staleTime (tenant ID immutable within session)
+- [Phase 08]: resolveTenantId() as standalone function for use in queryFns (not hook-level)
+- [Phase 08]: amountDue parallelizes connected_account + rent_due after lease fetch via Promise.all
 
 ### Pending Todos
 
@@ -214,6 +218,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-06T17:54:07.403Z
-Stopped at: Completed 08-01-PLAN.md
+Last session: 2026-03-06T18:14:06Z
+Stopped at: Completed 08-05-PLAN.md
 Resume file: None

@@ -14,6 +14,7 @@ import { getCachedUser } from '#lib/supabase/get-cached-user'
 import { handlePostgrestError } from '#lib/postgrest-error-handler'
 import { sanitizeSearchInput } from '#lib/sanitize-search'
 import { QUERY_CACHE_TIMES } from '#lib/constants/query-config'
+import { occupancyTrendsQuery } from './analytics-keys'
 import type { PaginatedResponse } from '#shared/types/api-contracts'
 import type {
 	Property,
@@ -367,23 +368,7 @@ export const propertyQueries = {
 		}),
 
 	analytics: {
-		occupancy: () =>
-			queryOptions({
-				queryKey: [...propertyQueries.all(), 'analytics', 'occupancy'] as const,
-				queryFn: async (): Promise<unknown> => {
-					const supabase = createClient()
-					const user = await getCachedUser()
-					if (!user) throw new Error('Not authenticated')
-					const { data, error } = await supabase.rpc(
-						'get_occupancy_trends_optimized',
-						{ p_user_id: user.id, p_months: 12 }
-					)
-					if (error) handlePostgrestError(error, 'properties')
-					return data ?? {}
-				},
-				staleTime: 2 * 60 * 1000,
-				gcTime: 10 * 60 * 1000
-			}),
+		occupancy: () => occupancyTrendsQuery({ months: 12 }),
 		financial: () =>
 			queryOptions({
 				queryKey: [...propertyQueries.all(), 'analytics', 'financial'] as const,

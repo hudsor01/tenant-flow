@@ -156,8 +156,8 @@ All 131 findings from the review, plus CLAUDE.md maintenance.
 
 ### Performance — Data Fetching & Rendering
 
-- [ ] **PERF-01**: Tenant portal `amountDue` 5-step waterfall parallelized
-- [ ] **PERF-02**: Shared tenant ID resolution — single cached query reused across all 8 tenant portal hooks
+- [x] **PERF-01**: Tenant portal `amountDue` 5-step waterfall parallelized
+- [x] **PERF-02**: Shared tenant ID resolution — single cached query reused across all 8 tenant portal hooks
 - [x] **PERF-03**: Recharts code-split via `next/dynamic` in all 17 statically-importing files
 - [x] **PERF-04**: `react-markdown` + rehype/remark dynamically imported on blog pages
 - [x] **PERF-05**: `refetchOnWindowFocus` default changed from `'always'` to `true`
@@ -347,8 +347,8 @@ All 131 findings from the review, plus CLAUDE.md maintenance.
 | UX-24 | Phase 7 | Complete |
 | UX-25 | Phase 7 | Complete |
 | UX-26 | Phase 7 | Complete |
-| PERF-01 | Phase 8 | Pending |
-| PERF-02 | Phase 8 | Pending |
+| PERF-01 | Phase 8 | Complete |
+| PERF-02 | Phase 8 | Complete |
 | PERF-03 | Phase 8 | Complete |
 | PERF-04 | Phase 8 | Complete |
 | PERF-05 | Phase 8 | Complete |
