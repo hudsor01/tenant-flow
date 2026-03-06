@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: Production Hardening
 status: completed
-stopped_at: Completed 06-02-PLAN.md
-last_updated: "2026-03-06T01:28:47.074Z"
+stopped_at: Completed 06-05-PLAN.md
+last_updated: "2026-03-06T02:30:23.003Z"
 last_activity: 2026-03-06 — Added documents.owner_user_id, rewrote RLS + 3 broken RPCs
 progress:
   total_phases: 11
   completed_phases: 5
-  total_plans: 42
-  completed_plans: 34
-  percent: 79
+  total_plans: 44
+  completed_plans: 36
+  percent: 82
 ---
 
 # Project State: TenantFlow
@@ -26,11 +26,11 @@ See: .planning/PROJECT.md (updated 2026-03-04)
 ## Current Position
 
 Phase: 6 of 9 (Database Schema & Migrations)
-Plan: 3 of 5 in current phase (06-02 complete)
-Status: Completed 06-02 (Documents owner column + leases column cleanup)
-Last activity: 2026-03-06 — Added documents.owner_user_id, rewrote RLS + 3 broken RPCs
+Plan: 6 of 7 in current phase (06-05 complete)
+Status: Completed 06-05 (RLS test stub gap closure for activity + documents)
+Last activity: 2026-03-06 — Replaced 8 it.todo() stubs with real DB assertions for activity and documents RLS
 
-Progress: [████████░░] 79%
+Progress: [████████░░] 82%
 
 ## Performance Metrics
 
@@ -71,6 +71,7 @@ Progress: [████████░░] 79%
 | Phase 06 P00 | 4min | 1 tasks | 3 files |
 | Phase 06 P01 | 6min | 2 tasks | 3 files |
 | Phase 06 P02 | 8min | 2 tasks | 3 files |
+| Phase 06 P05 | 3min | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -159,6 +160,7 @@ Progress: [████████░░] 79%
 - [Phase 06]: Tenant document access limited to lease-type documents only
 - [Phase 06]: get_current_property_owner_id() dropped (no remaining references)
 - [Phase 06]: 3 RPCs use p_user_id directly (no property_owners table lookup)
+- [Phase 06]: DB-01/DB-02: RLS test stubs replaced with 7 real DB assertions + 1 conditional skip for tenant access
 
 ### Pending Todos
 
@@ -173,6 +175,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-06T01:12:52.543Z
-Stopped at: Completed 06-02-PLAN.md
+Last session: 2026-03-06T02:30:23.000Z
+Stopped at: Completed 06-05-PLAN.md
 Resume file: None
