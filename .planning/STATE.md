@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: Production Hardening
-status: in-progress
-stopped_at: Completed 06-00-PLAN.md
-last_updated: "2026-03-06T01:09:31.992Z"
-last_activity: 2026-03-06 — Created Wave 0 RLS test stubs for activity, documents, GDPR
+status: completed
+stopped_at: Completed 06-01-PLAN.md
+last_updated: "2026-03-06T01:11:42.428Z"
+last_activity: 2026-03-06 — Consolidated trigger functions, added NOT NULL/FK/column constraints
 progress:
   total_phases: 11
   completed_phases: 5
   total_plans: 42
-  completed_plans: 31
-  percent: 74
+  completed_plans: 32
+  percent: 76
 ---
 
 # Project State: TenantFlow
@@ -26,11 +26,11 @@ See: .planning/PROJECT.md (updated 2026-03-04)
 ## Current Position
 
 Phase: 6 of 9 (Database Schema & Migrations)
-Plan: 1 of 5 in current phase (06-00 complete)
-Status: Completed 06-00 (Wave 0 RLS test stubs)
-Last activity: 2026-03-06 — Created Wave 0 RLS test stubs for activity, documents, GDPR
+Plan: 2 of 5 in current phase (06-01 complete)
+Status: Completed 06-01 (Trigger consolidation + schema constraints)
+Last activity: 2026-03-06 — Consolidated trigger functions, added NOT NULL/FK/column constraints
 
-Progress: [███████░░░] 74%
+Progress: [████████░░] 76%
 
 ## Performance Metrics
 
@@ -69,6 +69,7 @@ Progress: [███████░░░] 74%
 | Phase 05 P09 | 11min | 2 tasks | 16 files |
 | Phase 05 P10 | 7min | 2 tasks | 22 files |
 | Phase 06 P00 | 4min | 1 tasks | 3 files |
+| Phase 06 P01 | 6min | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -149,6 +150,10 @@ Progress: [███████░░░] 74%
 - [Phase 05]: callDocuSealEdgeFunction moved to use-lease-mutations.ts (only used by mutations)
 - [Phase 05]: callBillingEdgeFunction duplicated in use-billing-mutations.ts (mutations need it, not queries)
 - [Phase 06]: Followed established test pattern from leases.rls.test.ts for Wave 0 stubs
+- [Phase 06]: DB-12: Dynamic DO block for trigger reassignment (query pg_trigger/pg_proc, avoid hardcoded tables)
+- [Phase 06]: DB-01: ON DELETE CASCADE for activity.user_id (activity meaningless without user, GDPR handles cleanup)
+- [Phase 06]: DB-11: ON DELETE SET NULL for blogs.author_user_id (blog content survives author deletion)
+- [Phase 06]: Moved rls-tests from pre-commit to pre-push (Supabase auth rate limiting prevention)
 
 ### Pending Todos
 
@@ -163,6 +168,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-06T01:09:31.990Z
-Stopped at: Completed 06-00-PLAN.md
+Last session: 2026-03-06T01:11:42.426Z
+Stopped at: Completed 06-01-PLAN.md
 Resume file: None

@@ -121,9 +121,9 @@ All 131 findings from the review, plus CLAUDE.md maintenance.
 - [ ] **DB-07**: `cleanup_old_errors` cron job scheduled
 - [ ] **DB-08**: Cron job Sentry monitoring added for `calculate_late_fees`, `queue_lease_reminders`, `expire-leases`
 - [ ] **DB-09**: `stripe_webhook_events.data` retention policy (cleanup old events)
-- [ ] **DB-10**: `inspection_photos` gets `updated_at` column + trigger for consistency
-- [ ] **DB-11**: `blogs` table gets author/user_id column for audit trail
-- [ ] **DB-12**: `update_updated_at_column` duplicate function consolidated with `set_updated_at`
+- [x] **DB-10**: `inspection_photos` gets `updated_at` column + trigger for consistency
+- [x] **DB-11**: `blogs` table gets author/user_id column for audit trail
+- [x] **DB-12**: `update_updated_at_column` duplicate function consolidated with `set_updated_at`
 
 ### UX — Visibility & Accessibility
 
@@ -318,9 +318,9 @@ All 131 findings from the review, plus CLAUDE.md maintenance.
 | DB-07 | Phase 6 | Pending |
 | DB-08 | Phase 6 | Pending |
 | DB-09 | Phase 6 | Pending |
-| DB-10 | Phase 6 | Pending |
-| DB-11 | Phase 6 | Pending |
-| DB-12 | Phase 6 | Pending |
+| DB-10 | Phase 6 | Complete |
+| DB-11 | Phase 6 | Complete |
+| DB-12 | Phase 6 | Complete |
 | UX-01 | Phase 7 | Pending |
 | UX-02 | Phase 7 | Pending |
 | UX-03 | Phase 7 | Pending |
