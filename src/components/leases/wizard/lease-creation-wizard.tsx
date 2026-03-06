@@ -6,6 +6,7 @@
  */
 import { useState, useCallback, useMemo, useRef } from 'react'
 import { useRouter } from 'next/navigation'
+import { useUnsavedChangesWarning } from '#hooks/use-unsaved-changes'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { Button } from '#components/ui/button'
@@ -69,6 +70,9 @@ export function LeaseCreationWizard({ onSuccess }: LeaseCreationWizardProps) {
 	const router = useRouter()
 	const queryClient = useQueryClient()
 	const [currentStep, setCurrentStep] = useState<WizardStep>('selection')
+
+	// Warn before navigating away with unsaved wizard progress
+	useUnsavedChangesWarning(currentStep !== 'selection')
 
 	// Form state for each step
 	const [selectionData, setSelectionData] = useState<

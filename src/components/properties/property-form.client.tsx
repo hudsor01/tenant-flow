@@ -3,6 +3,7 @@
 import { useRouter } from 'next/navigation'
 import { useEffect, useRef, useState } from 'react'
 import { toast } from 'sonner'
+import { useUnsavedChangesWarning } from '#hooks/use-unsaved-changes'
 
 import { createClient } from '#lib/supabase/client'
 import {
@@ -166,6 +167,9 @@ export function PropertyForm({
 			}
 		}
 	})
+
+	// Warn before navigating away with unsaved form changes
+	useUnsavedChangesWarning(form.state.isDirty)
 
 	async function handleCreateSubmit(
 		value: typeof form.state.values
