@@ -18,6 +18,7 @@ import {
 	StatIndicator,
 	StatDescription
 } from '#components/ui/stat'
+import { formatCurrency } from '#lib/formatters/currency'
 import type {
 	CashFlowCategory,
 	MonthlyCashFlow
@@ -31,14 +32,6 @@ interface CashFlowProps {
 	closingBalance: number
 	byMonth: MonthlyCashFlow[]
 	onExport?: () => void
-}
-
-function formatCurrency(amount: number): string {
-	return new Intl.NumberFormat('en-US', {
-		style: 'currency',
-		currency: 'USD',
-		minimumFractionDigits: 0
-	}).format(amount / 100)
 }
 
 export function CashFlow({

@@ -7,7 +7,7 @@ import { Badge } from '#components/ui/badge'
 import { TenantPaymentRecord } from '#shared/types/api-contracts'
 import { useTenantPaymentsHistory } from '#hooks/api/use-payments'
 import { useTenantAutopayStatus } from '#hooks/api/use-tenant-autopay'
-import { formatCents } from '#shared/lib/format'
+import { formatCents } from '#lib/formatters/currency'
 import { CheckCircle2, XCircle } from 'lucide-react'
 import Link from 'next/link'
 

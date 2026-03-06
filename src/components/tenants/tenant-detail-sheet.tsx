@@ -14,6 +14,8 @@ import {
 	ChevronRight
 } from 'lucide-react'
 import { Button } from '#components/ui/button'
+import { formatCurrency } from '#lib/formatters/currency'
+import { formatDate } from '#lib/formatters/date'
 import type {
 	TenantSectionDetail,
 	TenantPaymentHistoryItem
@@ -31,25 +33,6 @@ interface TenantDetailSheetProps {
 	onContact: (tenantId: string, method: 'email' | 'phone') => void
 	onViewLease: (leaseId: string) => void
 	onViewPaymentHistory: (tenantId: string) => void
-}
-
-// ============================================================================
-// HELPER FUNCTIONS
-// ============================================================================
-
-function formatCurrency(cents: number): string {
-	return new Intl.NumberFormat('en-US', {
-		style: 'currency',
-		currency: 'USD'
-	}).format(cents / 100)
-}
-
-function formatDate(dateString: string): string {
-	return new Date(dateString).toLocaleDateString('en-US', {
-		month: 'short',
-		day: 'numeric',
-		year: 'numeric'
-	})
 }
 
 // ============================================================================

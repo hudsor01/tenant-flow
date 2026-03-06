@@ -7,6 +7,7 @@ import { BorderBeam } from '#components/ui/border-beam'
 import { NumberTicker } from '#components/ui/number-ticker'
 import { Stat, StatValue, StatDescription } from '#components/ui/stat'
 import { Avatar, AvatarFallback, AvatarImage } from '#components/ui/avatar'
+import { getInitials } from '#lib/formatters/text'
 
 interface OwnerProfile {
 	properties_count: number
@@ -49,20 +50,15 @@ export function ProfileCard({
 	onRemoveAvatar,
 	onSignOut
 }: ProfileCardProps) {
-	const getInitials = () => {
+	const initials = (() => {
 		if (profile.first_name && profile.last_name) {
 			return `${profile.first_name[0]}${profile.last_name[0]}`.toUpperCase()
 		}
 		if (profile.full_name) {
-			return profile.full_name
-				.split(' ')
-				.map(n => n[0])
-				.join('')
-				.toUpperCase()
-				.slice(0, 2)
+			return getInitials(profile.full_name)
 		}
 		return 'U'
-	}
+	})()
 
 	return (
 		<BlurFade delay={0.15} inView>
@@ -83,7 +79,7 @@ export function ProfileCard({
 									alt={profile.full_name}
 								/>
 								<AvatarFallback className="text-2xl bg-primary/10 text-primary">
-									{getInitials()}
+									{initials}
 								</AvatarFallback>
 							</Avatar>
 							<button

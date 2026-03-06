@@ -23,6 +23,8 @@ import {
 	StatIndicator,
 	StatDescription
 } from '#components/ui/stat'
+import { formatCurrency } from '#lib/formatters/currency'
+import { formatDate } from '#lib/formatters/date'
 import type { FinancialLineItem } from '#shared/types/financial-statements'
 
 interface Assets {
@@ -52,22 +54,6 @@ interface BalanceSheetProps {
 	liabilities: Liabilities
 	equity: Equity
 	onExport?: () => void
-}
-
-function formatCurrency(amount: number): string {
-	return new Intl.NumberFormat('en-US', {
-		style: 'currency',
-		currency: 'USD',
-		minimumFractionDigits: 0
-	}).format(amount / 100)
-}
-
-function formatDate(dateString: string): string {
-	return new Date(dateString).toLocaleDateString('en-US', {
-		year: 'numeric',
-		month: 'long',
-		day: 'numeric'
-	})
 }
 
 function BalanceSection({
@@ -177,7 +163,7 @@ export function BalanceSheet({
 							Balance Sheet
 						</h1>
 						<p className="text-muted-foreground">
-							As of {formatDate(asOfDate)}
+							As of {formatDate(asOfDate, { style: 'long' })}
 						</p>
 					</div>
 					<button

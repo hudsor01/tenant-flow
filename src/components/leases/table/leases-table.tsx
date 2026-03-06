@@ -14,8 +14,8 @@ import {
 	XCircle
 } from 'lucide-react'
 import { BlurFade } from '#components/ui/blur-fade'
+import { formatDate } from '#lib/formatters/date'
 import {
-	formatDate,
 	getStatusConfig,
 	type LeaseDisplay,
 	type SortField,
@@ -223,8 +223,8 @@ export function LeasesTable({
 											{lease.tenantName}
 										</button>
 										<p className="text-xs text-muted-foreground">
-											{formatDate(lease.startDate)} -{' '}
-											{formatDate(lease.endDate)}
+											{formatDate(lease.startDate, { fallback: 'N/A' })} -{' '}
+											{formatDate(lease.endDate, { fallback: 'N/A' })}
 										</p>
 										<p className="text-sm text-muted-foreground lg:hidden">
 											{lease.propertyName}

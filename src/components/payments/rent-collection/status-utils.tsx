@@ -1,13 +1,8 @@
 import { CheckCircle, Clock, Pause, XCircle } from 'lucide-react'
 
-export type SubscriptionStatus = 'active' | 'paused' | 'cancelled'
+import type { PaymentStatus } from '#shared/types/core'
 
-export type PaymentStatusType =
-	| 'succeeded'
-	| 'pending'
-	| 'processing'
-	| 'failed'
-	| 'cancelled'
+export type SubscriptionStatus = 'active' | 'paused' | 'cancelled'
 
 export function getStatusBadge(status: SubscriptionStatus) {
 	const styles: Record<SubscriptionStatus, string> = {
@@ -36,14 +31,14 @@ export function getStatusBadge(status: SubscriptionStatus) {
 }
 
 export function getPaymentStatusConfig(status: string) {
-	const statusMap: Record<
-		PaymentStatusType,
+	const statusMap: Partial<Record<
+		PaymentStatus,
 		{
 			className: string
 			label: string
 			Icon: typeof CheckCircle
 		}
-	> = {
+	>> = {
 		succeeded: {
 			className:
 				'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400',
@@ -80,7 +75,7 @@ export function getPaymentStatusConfig(status: string) {
 		label: 'Pending',
 		Icon: Clock
 	}
-	return statusMap[status as PaymentStatusType] ?? defaultConfig
+	return statusMap[status as PaymentStatus] ?? defaultConfig
 }
 
 export function getPaymentStatusBadge(status: string) {

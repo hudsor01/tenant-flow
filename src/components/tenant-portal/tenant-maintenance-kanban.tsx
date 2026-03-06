@@ -10,6 +10,7 @@
  */
 
 import { Badge } from '#components/ui/badge'
+import { formatDate } from '#lib/formatters/date'
 import type { MaintenanceRequest } from '#shared/types/core'
 
 const TENANT_KANBAN_COLUMNS = [
@@ -39,11 +40,6 @@ function getPriorityBadgeVariant(priority: string): 'default' | 'secondary' | 'd
 		default:
 			return 'secondary'
 	}
-}
-
-function formatDate(dateString: string): string {
-	const date = new Date(dateString)
-	return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
 }
 
 interface TenantKanbanCardProps {

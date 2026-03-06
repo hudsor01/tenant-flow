@@ -18,20 +18,13 @@ import {
 	StatIndicator,
 	StatDescription
 } from '#components/ui/stat'
+import { formatDate } from '#lib/formatters/date'
 import { useBalanceSheet } from '#hooks/api/use-financials'
 import { BalanceSection } from './balance-section'
 import { EquitySection } from './equity-section'
 import { BalanceEquationCheck } from './balance-equation-check'
 import { BalanceSheetSkeleton } from './balance-sheet-skeleton'
 import { BalanceSheetError } from './balance-sheet-error'
-
-function formatDate(dateStr: string) {
-	return new Date(dateStr).toLocaleDateString('en-US', {
-		year: 'numeric',
-		month: 'long',
-		day: 'numeric'
-	})
-}
 
 export default function BalanceSheetPage() {
 	const [year, setYear] = useState('2024')
@@ -160,7 +153,7 @@ export default function BalanceSheetPage() {
 					<div>
 						<h1 className="typography-h1">Balance Sheet</h1>
 						<p className="text-muted-foreground">
-							As of {formatDate(asOfDate)}
+							As of {formatDate(asOfDate, { style: 'long' })}
 						</p>
 					</div>
 					<div className="flex gap-2">

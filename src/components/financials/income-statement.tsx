@@ -7,6 +7,7 @@ import { IncomeStatementSummaryStats } from '#components/financials/income-state
 import { IncomeStatementBreakdownCards } from '#components/financials/income-statement-breakdown-cards'
 import { IncomeStatementMonthlyTrend } from '#components/financials/income-statement-monthly-trend'
 import { IncomeStatementPropertyTable } from '#components/financials/income-statement-property-table'
+import { formatCurrency } from '#lib/formatters/currency'
 import type {
 	IncomeStatementRevenueBreakdown,
 	IncomeStatementExpenseBreakdown,
@@ -21,14 +22,6 @@ interface IncomeStatementProps {
 	byProperty: PropertyPL[]
 	byMonth: MonthlyData[]
 	onExport?: () => void
-}
-
-function formatCurrency(amount: number): string {
-	return new Intl.NumberFormat('en-US', {
-		style: 'currency',
-		currency: 'USD',
-		minimumFractionDigits: 0
-	}).format(amount / 100)
 }
 
 export function IncomeStatement({

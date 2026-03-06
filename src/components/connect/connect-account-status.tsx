@@ -28,6 +28,7 @@ import {
 	useConnectedAccountBalance,
 	useRefreshOnboardingMutation
 } from '#hooks/api/use-stripe-connect'
+import { formatCurrency, type CurrencyCode } from '#lib/formatters/currency'
 import { cn } from '#lib/utils'
 
 interface ConnectAccountStatusProps {
@@ -60,13 +61,6 @@ export function ConnectAccountStatus({
 		} finally {
 			setIsOpeningDashboard(false)
 		}
-	}
-
-	const formatCurrency = (amount: number, currency: string) => {
-		return new Intl.NumberFormat('en-US', {
-			style: 'currency',
-			currency: currency.toUpperCase()
-		}).format(amount / 100)
 	}
 
 	const getStatusBadge = () => {
@@ -267,7 +261,7 @@ export function ConnectAccountStatus({
 									{balance.available?.[0]
 										? formatCurrency(
 												balance.available[0].amount,
-												balance.available[0].currency
+												{ currency: balance.available[0].currency as CurrencyCode }
 											)
 										: '$0.00'}
 								</p>
@@ -278,7 +272,7 @@ export function ConnectAccountStatus({
 									{balance.pending?.[0]
 										? formatCurrency(
 												balance.pending[0].amount,
-												balance.pending[0].currency
+												{ currency: balance.pending[0].currency as CurrencyCode }
 											)
 										: '$0.00'}
 								</p>

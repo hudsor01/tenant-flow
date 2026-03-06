@@ -6,12 +6,12 @@ import {
 	CardDescription
 } from '#components/ui/card'
 import { cn } from '#lib/utils'
+import { formatDate } from '#lib/formatters/date'
 import {
 	type TimelineEvent,
 	getTimelineIcon,
 	getTimelineColor,
-	formatRelativeTime,
-	formatDate
+	formatRelativeTime
 } from './lease-detail-utils'
 
 interface LeaseTimelineTabProps {

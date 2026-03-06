@@ -46,11 +46,22 @@ pnpm validate:quick               # types + lint + unit tests
 - Mutations must invalidate related query keys including `ownerDashboardKeys.all` in addition to their own domain keys
 - Soft-delete: properties use `status: 'inactive'`, filter with `.neq('status', 'inactive')`
 
+## Performance Conventions
+- Dynamic import heavy libraries (`recharts`, `react-markdown`) via `next/dynamic` with `ssr: false` and custom loading animations
+- Chart loading: `ChartLoadingSkeleton` from `#components/shared/chart-loading-skeleton` (CSS-only rising bars animation)
+- Blog loading: `BlogLoadingSkeleton` from `#components/shared/blog-loading-skeleton` (CSS-only text-reveal animation)
+- List views use `VirtualizedList` from `#components/shared/virtualized-list` with fixed row heights and overscan of 5
+- Stats queries use consolidated RPCs: `get_maintenance_stats()`, `get_lease_stats()` (not multiple HEAD queries)
+- Tenant portal hooks use `resolveTenantId()` from `use-tenant-portal-keys.ts` (shared cached resolution)
+- Tenant payment queries use `refetchOnWindowFocus: 'always'` (time-sensitive data exception)
+- All other queries inherit global `refetchOnWindowFocus: true` (only refetch when stale)
+- `optimizePackageImports` in `next.config.ts` for `date-fns`, `@tanstack/*`
+
 ## Query Key Factories
 All query keys use `queryOptions()` factories in `src/hooks/api/query-keys/`. Never use string literal arrays like `['blogs']`.
 
 **Factory files:**
-- `analytics-keys.ts` — analytics/revenue trends (shared across dashboard + analytics pages)
+- `analytics-keys.ts` — analytics/revenue trends AND occupancy trends (shared across dashboard + analytics + reports)
 - `billing-keys.ts` — billing, subscriptions, invoices
 - `dashboard-keys.ts` — owner dashboard stats, portfolio data
 - `lease-keys.ts` — leases, lease templates
@@ -74,6 +85,7 @@ export const propertyQueries = {
 - Max 300 lines per hook file — split by domain if exceeded
 - No module-level Supabase client — create `createClient()` inside each mutation/query function
 - Expense CRUD hooks kept inline in `use-financials.ts` (from() queries, not rpc())
+- Tenant portal hooks use shared `resolveTenantId()` -- never resolve tenant ID inline
 
 ## RPC Return Typing
 Use typed mapper functions at RPC boundaries. Never use `as unknown as` to cast PostgREST responses.
@@ -184,6 +196,9 @@ const { data } = await supabase.rpc('get_dashboard_stats', {
 - Soft-deleted tables (properties): always filter `.neq('status', 'inactive')`
 - Use `.single()` for exactly-one results, `.limit(1)` + `[0]` when zero-or-one
 - Atomic multi-table writes use SECURITY DEFINER RPCs: `record_rent_payment` (upserts payment + updates rent_due status), `set_default_payment_method` (atomic default swap), `toggle_autopay` (tenant-validated autopay toggle).
+- All list queries MUST have `.limit()` or pagination `.range()` -- no unbounded `select('*')` on growing tables
+- Prefer specific column `.select('col1, col2')` over `.select('*')` for list queries
+- Use `.select('*')` only for detail (single record) queries where all columns are needed
 
 ## Edge Functions
 Server-side logic runs as Supabase Edge Functions (Deno runtime).
@@ -205,6 +220,8 @@ Server-side logic runs as Supabase Edge Functions (Deno runtime).
 - XSS escaping: All user-provided values in HTML templates (docuseal, generate-pdf) are wrapped with `escapeHtml()` from `_shared/escape-html.ts`.
 - CSP: Content-Security-Policy enforced via vercel.json on all pages.
 - Env secrets for rate limiting: `UPSTASH_REDIS_REST_URL` and `UPSTASH_REDIS_REST_TOKEN` must be set in Supabase Edge Function secrets for rate limiting to function.
+- Parallelize independent DB queries with `Promise.all()` -- never sequential queries where results are independent
+- Use `Promise.all` (not `Promise.allSettled`) when any failure should abort the operation
 
 ## Security Model
 RLS (Row Level Security) is the primary access-control layer. Proxy middleware enforces route-level auth.
@@ -247,6 +264,8 @@ RLS (Row Level Security) is the primary access-control layer. Proxy middleware e
 - Subscription status: Query `stripe.subscriptions` for real status (`active`, `past_due`, `canceled`, `unpaid`). Do NOT check `users.stripe_customer_id` existence.
 - Report hooks: report hooks query real `reports` and `report_runs` tables, and aggregate data via existing RPCs (not stub data).
 - Vendored UI components: `src/components/ui/tour.tsx` (1,732 lines) is a vendored Dice UI upstream copy — exempt from 300-line rule. eslint-disable suppressions for `useAsRef` pattern are legitimate upstream conventions.
+- `next/image` does NOT support blob: URLs -- use `<img>` for `URL.createObjectURL()` previews (file-upload-item.tsx)
+- VirtualizedList scroll container needs explicit height (`h-[calc(100vh-Xpx)]`) -- without height, all items render
 
 ## Accessibility Rules
 - All icon buttons must have `aria-label` (not just `title`)

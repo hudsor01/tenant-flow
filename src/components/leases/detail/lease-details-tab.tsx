@@ -1,7 +1,8 @@
 import { Card, CardContent } from '#components/ui/card'
 import { Calendar, User, Building } from 'lucide-react'
 import { cn } from '#lib/utils'
-import { formatDate, getDaysUntilExpiry } from './lease-detail-utils'
+import { formatDate } from '#lib/formatters/date'
+import { getDaysUntilExpiry } from './lease-detail-utils'
 import type { Lease } from '#shared/types/core'
 
 interface TenantInfo {

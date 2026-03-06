@@ -36,15 +36,6 @@ export interface PropertyTableProps {
 	onDelete: ((id: string) => void) | undefined
 }
 
-export function formatCurrency(amountInCents: number): string {
-	return new Intl.NumberFormat('en-US', {
-		style: 'currency',
-		currency: 'USD',
-		minimumFractionDigits: 0,
-		maximumFractionDigits: 0
-	}).format(amountInCents / 100)
-}
-
 export function formatPropertyType(type: string): string {
 	return type
 		.split('_')

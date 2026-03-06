@@ -3,24 +3,9 @@
 import Image from 'next/image'
 import { Building2, MapPin, Home, DollarSign, Eye } from 'lucide-react'
 import { Checkbox } from '#components/ui/checkbox'
+import { formatCompactCurrency } from '#lib/formatters/currency'
 import { cn } from '#lib/utils'
 import type { PropertyItem } from './types'
-
-/**
- * Format currency amount from cents to display string
- */
-function formatCurrencyCompact(amountInCents: number): string {
-	const amount = amountInCents / 100
-	if (amount >= 1000) {
-		return `$${Math.round(amount / 1000)}K`
-	}
-	return new Intl.NumberFormat('en-US', {
-		style: 'currency',
-		currency: 'USD',
-		minimumFractionDigits: 0,
-		maximumFractionDigits: 0
-	}).format(amount)
-}
 
 export interface PropertyCardProps {
 	property: PropertyItem
@@ -119,7 +104,7 @@ export function PropertyCard({
 						<div className="flex items-center justify-center gap-1">
 							<DollarSign className="w-3.5 h-3.5 text-emerald-600" />
 							<span className="font-semibold text-foreground">
-								{formatCurrencyCompact(property.monthlyRevenue)}
+								{formatCompactCurrency(property.monthlyRevenue)}
 							</span>
 						</div>
 					</div>
