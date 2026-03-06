@@ -22,8 +22,11 @@ import type { Database } from '#shared/types/supabase'
 
 type NotificationItem = Database['public']['Tables']['notifications']['Row']
 
+/** Subset of notification columns for list views. */
+type NotificationListItem = Pick<NotificationItem, 'id' | 'user_id' | 'notification_type' | 'title' | 'message' | 'is_read' | 'entity_type' | 'entity_id' | 'action_url' | 'read_at' | 'created_at'>
+
 interface PaginatedNotifications {
-	data: NotificationItem[]
+	data: NotificationListItem[]
 	total: number
 	page: number
 	limit: number
@@ -60,7 +63,7 @@ export function useNotifications(params?: {
 			const supabase = createClient()
 			let query = supabase
 				.from('notifications')
-				.select('*', { count: 'exact' })
+				.select('id, user_id, notification_type, title, message, is_read, entity_type, entity_id, action_url, read_at, created_at', { count: 'exact' })
 
 			if (unreadOnly) {
 				query = query.eq('is_read', false)

@@ -50,6 +50,9 @@ export interface SignatureStatus {
 	both_signed: boolean
 }
 
+/** Subset of Lease columns for list/summary views (expiring leases, etc.) */
+export type LeaseListItem = Pick<Lease, 'id' | 'unit_id' | 'primary_tenant_id' | 'owner_user_id' | 'rent_amount' | 'lease_status' | 'start_date' | 'end_date' | 'created_at' | 'updated_at'>
+
 /**
  * Tenant Portal Lease type
  * Uses singular relation names to match page component expectations.
@@ -149,7 +152,7 @@ export const leaseQueries = {
 				const supabase = createClient()
 				const { data, error } = await supabase
 					.from('leases')
-					.select('*, tenants:primary_tenant_id(*), units(*, properties(*))')
+					.select('*, tenants:primary_tenant_id(id, user_id, full_name, email, phone), units(id, unit_number, bedrooms, bathrooms, square_feet, property_id, properties(id, name, address_line1, city, state, postal_code))')
 					.eq('id', id)
 					.single()
 
@@ -195,22 +198,23 @@ export const leaseQueries = {
 	expiring: (days: number = 30) =>
 		queryOptions({
 			queryKey: [...leaseQueries.all(), 'expiring', days],
-			queryFn: async (): Promise<Lease[]> => {
+			queryFn: async (): Promise<LeaseListItem[]> => {
 				const supabase = createClient()
 				const now = new Date()
 				const future = new Date(Date.now() + days * 24 * 60 * 60 * 1000)
 
 				const { data, error } = await supabase
 					.from('leases')
-					.select('*')
+					.select('id, unit_id, primary_tenant_id, owner_user_id, rent_amount, lease_status, start_date, end_date, created_at, updated_at')
 					.eq('lease_status', 'active')
 					.lte('end_date', future.toISOString())
 					.gte('end_date', now.toISOString())
 					.order('end_date', { ascending: true })
+					.limit(50)
 
 				if (error) handlePostgrestError(error, 'leases')
 
-				return (data as Lease[]) ?? []
+				return data ?? []
 			},
 			...QUERY_CACHE_TIMES.DETAIL
 		}),

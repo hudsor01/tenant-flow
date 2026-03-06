@@ -244,6 +244,7 @@ export const maintenanceQueries = {
 					.in('priority', ['high', 'urgent'])
 					.not('status', 'in', '("completed","cancelled")')
 					.order('created_at', { ascending: false })
+					.limit(50)
 
 				if (error) handlePostgrestError(error, 'maintenance_requests')
 
@@ -300,20 +301,40 @@ export const maintenanceQueries = {
 					return { requests: [], total: 0, open: 0, inProgress: 0, completed: 0 }
 				}
 
-				// Step 3: Fetch maintenance requests for this tenant
-				const { data, error, count } = await supabase
-					.from('maintenance_requests')
-					.select(MAINTENANCE_SELECT_COLUMNS, { count: 'exact' })
-					.eq('tenant_id', tenantRecord.id)
-					.order('created_at', { ascending: false })
+				// Step 3: Parallel queries for paginated list + DB-level counts
+				const [requestsResult, openResult, inProgressResult, completedResult] =
+					await Promise.all([
+						supabase
+							.from('maintenance_requests')
+							.select(MAINTENANCE_SELECT_COLUMNS, { count: 'exact' })
+							.eq('tenant_id', tenantRecord.id)
+							.order('created_at', { ascending: false })
+							.limit(50),
+						supabase
+							.from('maintenance_requests')
+							.select('id', { count: 'exact', head: true })
+							.eq('tenant_id', tenantRecord.id)
+							.eq('status', 'open'),
+						supabase
+							.from('maintenance_requests')
+							.select('id', { count: 'exact', head: true })
+							.eq('tenant_id', tenantRecord.id)
+							.eq('status', 'in_progress'),
+						supabase
+							.from('maintenance_requests')
+							.select('id', { count: 'exact', head: true })
+							.eq('tenant_id', tenantRecord.id)
+							.eq('status', 'completed')
+					])
 
-				if (error) handlePostgrestError(error, 'maintenance_requests')
+				if (requestsResult.error)
+					handlePostgrestError(requestsResult.error, 'maintenance_requests')
 
-				const requests = (data as MaintenanceRequest[]) ?? []
-				const total = count ?? 0
-				const open = requests.filter(r => r.status === 'open').length
-				const inProgress = requests.filter(r => r.status === 'in_progress').length
-				const completed = requests.filter(r => r.status === 'completed').length
+				const requests = (requestsResult.data as MaintenanceRequest[]) ?? []
+				const total = requestsResult.count ?? 0
+				const open = openResult.count ?? 0
+				const inProgress = inProgressResult.count ?? 0
+				const completed = completedResult.count ?? 0
 
 				return { requests, total, open, inProgress, completed }
 			},

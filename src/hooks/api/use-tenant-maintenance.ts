@@ -97,18 +97,39 @@ export const tenantMaintenanceQueries = {
 					}
 				}
 
-				const { data, error, count } = await supabase
-					.from('maintenance_requests')
-					.select(
-						'id, title, description, priority, status, created_at, updated_at, completed_at, unit_id, requested_by',
-						{ count: 'exact' }
-					)
-					.eq('tenant_id', tenantRecord.id)
-					.order('created_at', { ascending: false })
+				// Parallel queries: paginated list + DB-level counts (no JS filtering)
+				const [requestsResult, openResult, inProgressResult, completedResult] =
+					await Promise.all([
+						supabase
+							.from('maintenance_requests')
+							.select(
+								'id, title, description, priority, status, created_at, updated_at, completed_at, unit_id, requested_by',
+								{ count: 'exact' }
+							)
+							.eq('tenant_id', tenantRecord.id)
+							.order('created_at', { ascending: false })
+							.limit(50),
+						supabase
+							.from('maintenance_requests')
+							.select('id', { count: 'exact', head: true })
+							.eq('tenant_id', tenantRecord.id)
+							.in('status', ['open', 'assigned']),
+						supabase
+							.from('maintenance_requests')
+							.select('id', { count: 'exact', head: true })
+							.eq('tenant_id', tenantRecord.id)
+							.in('status', ['in_progress', 'needs_reassignment']),
+						supabase
+							.from('maintenance_requests')
+							.select('id', { count: 'exact', head: true })
+							.eq('tenant_id', tenantRecord.id)
+							.eq('status', 'completed')
+					])
 
-				if (error) handlePostgrestError(error, 'maintenance_requests')
+				if (requestsResult.error)
+					handlePostgrestError(requestsResult.error, 'maintenance_requests')
 
-				const rows = data ?? []
+				const rows = requestsResult.data ?? []
 				const requests: TenantMaintenanceRequest[] = rows.map(row => ({
 					id: row.id,
 					title: row.title,
@@ -123,15 +144,10 @@ export const tenantMaintenanceQueries = {
 					unit_id: row.unit_id
 				}))
 
-				const total = count ?? 0
-				const open = requests.filter(
-					r => r.status === 'open' || r.status === 'assigned'
-				).length
-				const inProgress = requests.filter(
-					r =>
-						r.status === 'in_progress' || r.status === 'needs_reassignment'
-				).length
-				const completed = requests.filter(r => r.status === 'completed').length
+				const total = requestsResult.count ?? 0
+				const open = openResult.count ?? 0
+				const inProgress = inProgressResult.count ?? 0
+				const completed = completedResult.count ?? 0
 
 				return { requests, summary: { total, open, inProgress, completed } }
 			},
