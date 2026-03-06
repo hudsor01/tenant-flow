@@ -31,13 +31,39 @@ pnpm dev                          # Next.js dev server on port 3050
 pnpm typecheck && pnpm lint       # quality checks
 pnpm test:unit                    # Vitest unit tests (--project unit)
 pnpm test:unit -- --run src/path/to/test.ts  # single test file
+pnpm test:unit -- --coverage      # unit tests with coverage (enforced via lefthook pre-commit)
 pnpm test:component               # Vitest component tests (--project component)
 pnpm test:integration             # RLS integration tests (Vitest --project integration)
 pnpm test:rls                     # (alias: pnpm test:integration)
 pnpm test:e2e                     # Playwright E2E tests
 pnpm db:types                     # regenerate types from live DB
 pnpm validate:quick               # types + lint + unit tests
+cd supabase/functions && deno test --allow-all --no-check tests/  # Edge Function tests (Deno)
 ```
+
+## TypeScript Strictness
+- `noUnusedLocals`, `noUnusedParameters`, `isolatedModules`, `checkJs` all enabled in tsconfig.json
+- Unused callback parameters: prefix with underscore (`_param`) or remove entirely
+- Prefetch-only `useQuery()` calls: call without variable assignment when only cache warming is needed
+
+## Testing Conventions
+- **Unit tests:** Vitest 4.0 with jsdom, `src/**/*.test.ts` pattern
+- **RLS integration tests:** `tests/integration/rls/`, dual-client pattern (ownerA/ownerB), sequential execution
+- **Edge Function tests:** Deno test runner in `supabase/functions/tests/`, integration-style via `functions.invoke()` or raw `fetch` for header control
+- **E2E tests:** Playwright with auth setup projects, 17 critical journey tests in `tests/e2e/tests/`
+- **Archived E2E tests:** `tests/e2e/tests/_archived/` (preserved but not run, recoverable)
+- **Coverage threshold:** 80% lines/functions/branches/statements (enforced locally via lefthook pre-commit)
+- **Skipped tests:** investigate and fix rather than leaving `.skip` permanently
+- **Tenant RLS tests:** use `describe.skipIf(!credentials)` with `getTenantTestCredentials()` returning null when env vars missing
+- **Vitest mocking:** use `vi.hoisted()` for any mock variable referenced inside `vi.mock()` factory functions
+
+## CI Pipeline
+- **PRs:** lint + typecheck + `next build` (clean, no cache, `SKIP_ENV_VALIDATION=true`)
+- **Push to main:** additionally runs E2E smoke tests (critical-paths + minimal, informational via `continue-on-error`)
+- **RLS security tests:** run on every PR to main (no path filter -- catches policy drift regardless of changed files)
+- **Coverage and unit tests:** local only via lefthook pre-commit (CI trusts local hooks)
+- **Edge Function tests:** local only (manual or pre-push, requires `supabase functions serve`)
+- **Secret scanning:** gitleaks in pre-commit only (secrets caught before reaching repo)
 
 ## Architecture Rules
 - Server Components by default; `'use client'` only when required (hooks, event handlers, browser APIs)
@@ -233,7 +259,7 @@ RLS (Row Level Security) is the primary access-control layer. Proxy middleware e
 - One policy per operation per role — never `FOR ALL` on authenticated tables
 - All SECURITY DEFINER RPCs validate `auth.uid()` — caller cannot request another user's data
 - Error monitoring RPCs are admin-only (`user_type = 'ADMIN'` via `is_admin()`)
-- Integration tests: `tests/integration/rls/` — 70 tests across 10 domains
+- Integration tests: `tests/integration/rls/` — 21 test files covering owner isolation, tenant isolation, and cross-role boundaries
 - `user_type` is immutable after initial selection — BEFORE UPDATE trigger on `users` table prevents changes once set beyond `PENDING`
 
 ## Proxy Middleware (Route Protection)
@@ -266,6 +292,10 @@ RLS (Row Level Security) is the primary access-control layer. Proxy middleware e
 - Vendored UI components: `src/components/ui/tour.tsx` (1,732 lines) is a vendored Dice UI upstream copy — exempt from 300-line rule. eslint-disable suppressions for `useAsRef` pattern are legitimate upstream conventions.
 - `next/image` does NOT support blob: URLs -- use `<img>` for `URL.createObjectURL()` previews (file-upload-item.tsx)
 - VirtualizedList scroll container needs explicit height (`h-[calc(100vh-Xpx)]`) -- without height, all items render
+- `gitleaks protect --staged` runs in pre-commit -- secrets caught before reaching repo
+- Edge Function tests need `supabase functions serve` (or `supabase start`) running locally
+- Tenant RLS integration tests need `E2E_TENANT_EMAIL` and `E2E_TENANT_PASSWORD` env vars (tests skip gracefully without them)
+- `SKIP_ENV_VALIDATION=true` required for `next build` in CI (no runtime env vars available)
 
 ## Accessibility Rules
 - All icon buttons must have `aria-label` (not just `title`)
