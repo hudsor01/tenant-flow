@@ -3,9 +3,21 @@ name: CI
 on:
   push:
     branches: [main]
+    paths-ignore:
+      - "**.md"
+      - ".planning/**"
+      - ".vscode/**"
+      - "docs/**"
+      - "LICENSE"
   pull_request:
     branches: [main]
     types: [opened, synchronize, reopened]
+    paths-ignore:
+      - "**.md"
+      - ".planning/**"
+      - ".vscode/**"
+      - "docs/**"
+      - "LICENSE"
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -15,11 +27,29 @@ permissions:
   contents: read
 
 jobs:
-  lint:
-    uses: ./.github/workflows/lint.yml
+  checks:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      CI: true
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 1
 
-  typecheck:
-    uses: ./.github/workflows/typecheck.yml
+      - uses: pnpm/action-setup@v4
+        with:
+          version: "10.29.3"
+          run_install: false
 
-  tests:
-    uses: ./.github/workflows/tests.yml
+      - uses: actions/setup-node@v6
+        with:
+          node-version: "24"
+          cache: pnpm
+          cache-dependency-path: pnpm-lock.yaml
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile --prefer-offline
+
+      - name: Lint & Typecheck
+        run: pnpm lint & pnpm typecheck & wait
