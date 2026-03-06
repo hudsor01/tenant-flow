@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: Production Hardening
-status: verifying
-stopped_at: Completed 07-01-PLAN.md
-last_updated: "2026-03-06T16:07:14.167Z"
-last_activity: 2026-03-06 — Verified all text-muted/bg-white/raw color fixes already applied across 70+ files
+status: completed
+stopped_at: Completed 07-02-PLAN.md
+last_updated: "2026-03-06T16:32:09.070Z"
+last_activity: 2026-03-06 — Active-lease guard on tenant delete, shared EmptyState, branded login fallback, property skeleton
 progress:
   total_phases: 12
   completed_phases: 7
   total_plans: 50
-  completed_plans: 39
+  completed_plans: 42
   percent: 78
 ---
 
@@ -26,9 +26,9 @@ See: .planning/PROJECT.md (updated 2026-03-04)
 ## Current Position
 
 Phase: 7 of 9 (UX & Accessibility)
-Plan: 1 of 6 in current phase (07-01 complete)
-Status: Completed 07-01 (CSS class visibility and design token verification)
-Last activity: 2026-03-06 — Verified all text-muted/bg-white/raw color fixes already applied across 70+ files
+Plan: 5 of 6 in current phase (07-05 complete)
+Status: Completed 07-05 (UX polish: tenant delete guard, EmptyState, login fallback, skeleton)
+Last activity: 2026-03-06 — Active-lease guard on tenant delete, shared EmptyState, branded login fallback, property skeleton
 
 Progress: [████████░░] 78%
 
@@ -75,6 +75,8 @@ Progress: [████████░░] 78%
 | Phase 06 P06 | 4min | 2 tasks | 2 files |
 | Phase 05 P04 | 2min | 2 tasks | 0 files |
 | Phase 07 P01 | 2min | 2 tasks | 0 files |
+| Phase 07 P05 | 14min | 2 tasks | 6 files |
+| Phase 07 P02 | 14min | 2 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -168,6 +170,11 @@ Progress: [████████░░] 78%
 - [Phase 06]: Fixed migration 20260306170000: DROP FUNCTION before return type change (void->integer requires drop first in PostgreSQL)
 - [Phase 05]: No code changes required for Plan 04 -- all 9 hook file splits completed by Plans 05-08/09/10
 - [Phase 07]: 07-01: All text-muted/bg-white/raw color fixes already resolved by prior phases -- plan verified as complete, zero code changes needed
+- [Phase 07]: Tenant delete checks lease_tenants joined with leases for active status before soft-delete
+- [Phase 07]: EmptyState uses shadcn Empty compound with variant=icon for icon presentation
+- [Phase 07]: Property detail skeleton in page.tsx where loading state lives, not client component
+- [Phase 07]: Non-null assertions for breadcrumbs array indexing inside length guards (safe pattern)
+- [Phase 07]: Sidebar role conditionally set to dialog when open (preserves native aside semantics when closed)
 
 ### Pending Todos
 
@@ -182,6 +189,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-06T16:07:14.163Z
-Stopped at: Completed 07-01-PLAN.md
+Last session: 2026-03-06T16:32:09.067Z
+Stopped at: Completed 07-02-PLAN.md
 Resume file: None

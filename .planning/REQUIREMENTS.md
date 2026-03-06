@@ -129,15 +129,15 @@ All 131 findings from the review, plus CLAUDE.md maintenance.
 
 - [x] **UX-01**: `text-muted` replaced with `text-muted-foreground` across all 69 files (150 occurrences)
 - [x] **UX-02**: `text-muted/600` invalid class fixed in `stripe-connect-status.tsx`
-- [ ] **UX-03**: Tenant delete functionality implemented (real mutation, not log-only handler)
-- [ ] **UX-04**: Confirmation dialog added for tenant deletion (matching property delete pattern)
-- [ ] **UX-05**: Skip-to-content link added to app shell and tenant shell
-- [ ] **UX-06**: `aria-label` on hamburger menu buttons (both shells)
-- [ ] **UX-07**: `aria-label` on notification bell link
+- [x] **UX-03**: Tenant delete functionality implemented (real mutation, not log-only handler)
+- [x] **UX-04**: Confirmation dialog added for tenant deletion (matching property delete pattern)
+- [x] **UX-05**: Skip-to-content link added to app shell and tenant shell
+- [x] **UX-06**: `aria-label` on hamburger menu buttons (both shells)
+- [x] **UX-07**: `aria-label` on notification bell link
 - [ ] **UX-08**: `aria-label` on reports scheduled list toggle button
 - [ ] **UX-09**: `aria-label` on dropzone remove-file button
 - [ ] **UX-10**: `aria-label` on tenant grid action buttons (replace `title` with `aria-label`)
-- [ ] **UX-11**: Breadcrumb `<nav>` gets `aria-label="Breadcrumb"`
+- [x] **UX-11**: Breadcrumb `<nav>` gets `aria-label="Breadcrumb"`
 - [x] **UX-12**: Hardcoded `bg-white` replaced with `bg-background` (preview-panel, QR code, slider, notification toggles)
 - [ ] **UX-13**: Custom toggle switches replaced with shadcn Switch component
 - [ ] **UX-14**: `not-found.tsx` added for dynamic routes (leases/[id], tenants/[id], maintenance/[id], inspections/[id], units/[id])
@@ -145,13 +145,13 @@ All 131 findings from the review, plus CLAUDE.md maintenance.
 - [ ] **UX-16**: Page metadata/titles exported from all owner and tenant pages
 - [ ] **UX-17**: Unsaved form data protection (`beforeunload` on multi-step forms)
 - [ ] **UX-18**: Kanban board responsive columns (not fixed 300px/220px requiring 1500px+ viewport)
-- [ ] **UX-19**: Breadcrumbs visible on mobile (not `hidden sm:flex`)
-- [ ] **UX-20**: Mobile sidebar overlay keyboard-accessible (Escape key handler, focus management)
+- [x] **UX-19**: Breadcrumbs visible on mobile (not `hidden sm:flex`)
+- [x] **UX-20**: Mobile sidebar overlay keyboard-accessible (Escape key handler, focus management)
 - [ ] **UX-21**: `autoFocus` on primary form inputs (login email, property name, etc.)
-- [ ] **UX-22**: Login page Suspense fallback styled (not plain "Loading..." text)
-- [ ] **UX-23**: `pb-24` bottom padding on owner shell conditional to mobile only (not desktop)
-- [ ] **UX-24**: Consistent empty state component usage across all list pages
-- [ ] **UX-25**: Property detail loading state uses skeleton pattern (not plain text animate-pulse)
+- [x] **UX-22**: Login page Suspense fallback styled (not plain "Loading..." text)
+- [x] **UX-23**: `pb-24` bottom padding on owner shell conditional to mobile only (not desktop)
+- [x] **UX-24**: Consistent empty state component usage across all list pages
+- [x] **UX-25**: Property detail loading state uses skeleton pattern (not plain text animate-pulse)
 - [x] **UX-26**: Raw color classes in `property-details.client.tsx` replaced with semantic design tokens
 
 ### Performance — Data Fetching & Rendering
@@ -323,15 +323,15 @@ All 131 findings from the review, plus CLAUDE.md maintenance.
 | DB-12 | Phase 6 | Complete |
 | UX-01 | Phase 7 | Complete |
 | UX-02 | Phase 7 | Complete |
-| UX-03 | Phase 7 | Pending |
-| UX-04 | Phase 7 | Pending |
-| UX-05 | Phase 7 | Pending |
-| UX-06 | Phase 7 | Pending |
-| UX-07 | Phase 7 | Pending |
+| UX-03 | Phase 7 | Complete |
+| UX-04 | Phase 7 | Complete |
+| UX-05 | Phase 7 | Complete |
+| UX-06 | Phase 7 | Complete |
+| UX-07 | Phase 7 | Complete |
 | UX-08 | Phase 7 | Pending |
 | UX-09 | Phase 7 | Pending |
 | UX-10 | Phase 7 | Pending |
-| UX-11 | Phase 7 | Pending |
+| UX-11 | Phase 7 | Complete |
 | UX-12 | Phase 7 | Complete |
 | UX-13 | Phase 7 | Pending |
 | UX-14 | Phase 7 | Pending |
@@ -339,13 +339,13 @@ All 131 findings from the review, plus CLAUDE.md maintenance.
 | UX-16 | Phase 7 | Pending |
 | UX-17 | Phase 7 | Pending |
 | UX-18 | Phase 7 | Pending |
-| UX-19 | Phase 7 | Pending |
-| UX-20 | Phase 7 | Pending |
+| UX-19 | Phase 7 | Complete |
+| UX-20 | Phase 7 | Complete |
 | UX-21 | Phase 7 | Pending |
-| UX-22 | Phase 7 | Pending |
-| UX-23 | Phase 7 | Pending |
-| UX-24 | Phase 7 | Pending |
-| UX-25 | Phase 7 | Pending |
+| UX-22 | Phase 7 | Complete |
+| UX-23 | Phase 7 | Complete |
+| UX-24 | Phase 7 | Complete |
+| UX-25 | Phase 7 | Complete |
 | UX-26 | Phase 7 | Complete |
 | PERF-01 | Phase 8 | Pending |
 | PERF-02 | Phase 8 | Pending |
