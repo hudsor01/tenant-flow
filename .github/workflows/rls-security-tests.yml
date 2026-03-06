@@ -1,12 +1,10 @@
 name: RLS Security Tests
 
-# Primary gate: run on PRs that touch migrations (catches RLS drift at review time).
+# Primary gate: run on every PR to main (catches RLS drift regardless of changed files).
 # Weekly cron is the backup safety net for policy drift between PRs.
 on:
   pull_request:
     branches: [main]
-    paths:
-      - 'supabase/migrations/**'
   schedule:
     - cron: '0 9 * * 1' # Every Monday 09:00 UTC
   workflow_dispatch:

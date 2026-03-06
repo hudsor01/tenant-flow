@@ -13,7 +13,6 @@ import {
 } from '@tanstack/react-query'
 import type { Persister } from '@tanstack/react-query-persist-client'
 import { PersistQueryClientProvider } from '@tanstack/react-query-persist-client'
-import dynamic from 'next/dynamic'
 import type { ReactNode } from 'react'
 import { useEffect, useMemo, useState } from 'react'
 import type { PostgrestError } from '@supabase/supabase-js'
@@ -36,17 +35,6 @@ import { buildPersistOptions, createIdbPersister } from './query-persistence'
 
 const logger = createLogger({ component: 'QueryProvider' })
 const queryErrorHandlers = createQueryErrorHandlers(logger)
-
-// Dynamically import DevTools for development only (unused but kept for future use)
-const _ReactQueryDevtools = dynamic(
-	() =>
-		import('@tanstack/react-query-devtools').then(
-			mod => mod.ReactQueryDevtools
-		),
-	{
-		ssr: false
-	}
-)
 
 interface QueryProviderProps {
 	children: ReactNode

@@ -50,8 +50,8 @@ export default function TenantDashboardPage() {
 	const { data: amountDue, isLoading: isLoadingAmountDue } = useQuery(
 		tenantPaymentQueries.amountDue()
 	)
-	// Autopay status query - data available for future use if needed
-	const _autopayQuery = useQuery(tenantAutopayQueries.autopay())
+	// Prefetch autopay status into cache for child components
+	useQuery(tenantAutopayQueries.autopay())
 
 	// Handle checkout success/cancel return from Stripe
 	useEffect(() => {

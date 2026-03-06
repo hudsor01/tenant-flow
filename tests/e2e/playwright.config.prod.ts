@@ -3,7 +3,7 @@ import { defineConfig, devices } from '@playwright/test'
 /**
  * Playwright configuration for production monitoring tests
  *
- * Usage: pnpm --filter @repo/e2e-tests test --config playwright.config.prod.ts
+ * Usage: npx playwright test --config tests/e2e/playwright.config.prod.ts
  *
  * Runs health checks and monitoring tests against production
  * Does NOT start local servers - expects production URLs
