@@ -348,6 +348,7 @@ function LoginPageContent() {
 												type="email"
 												placeholder="Enter your email"
 												autoComplete="email"
+												autoFocus
 												value={field.state.value}
 												onChange={e => field.handleChange(e.target.value)}
 												onBlur={field.handleBlur}

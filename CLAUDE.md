@@ -247,3 +247,23 @@ RLS (Row Level Security) is the primary access-control layer. Proxy middleware e
 - Subscription status: Query `stripe.subscriptions` for real status (`active`, `past_due`, `canceled`, `unpaid`). Do NOT check `users.stripe_customer_id` existence.
 - Report hooks: report hooks query real `reports` and `report_runs` tables, and aggregate data via existing RPCs (not stub data).
 - Vendored UI components: `src/components/ui/tour.tsx` (1,732 lines) is a vendored Dice UI upstream copy — exempt from 300-line rule. eslint-disable suppressions for `useAsRef` pattern are legitimate upstream conventions.
+
+## Accessibility Rules
+- All icon buttons must have `aria-label` (not just `title`)
+- Use `text-muted-foreground` for muted text, never bare `text-muted`
+- Use `bg-background` instead of `bg-white` for dark-mode safety
+- Skip-to-content link required in app shell components
+- Breadcrumb `<nav>` requires `aria-label="Breadcrumb"`
+- Mobile sidebar overlay requires Escape key handler and focus management
+
+## Component Conventions
+- Use shadcn `Switch` for toggles — never custom CSS toggle divs
+- Use `NotFoundPage` from `#components/shared/not-found-page` for all 404 pages (generic message, not entity-specific)
+- Use `ErrorPage` from `#components/shared/error-page` for all error boundaries (retry + dashboard link)
+- Use `EmptyState` from `#components/shared/empty-state` for list page empty states
+- Tenant delete is soft-delete (status: 'inactive') with active-lease blocking guard
+- Kanban boards use scroll-snap on mobile, grid on desktop
+
+## Form Conventions
+- Multi-step forms should use `useUnsavedChangesWarning(isDirty)` from `#hooks/use-unsaved-changes`
+- Add `autoFocus` to primary input on key forms (login email, property name, etc.)

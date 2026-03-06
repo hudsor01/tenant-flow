@@ -239,7 +239,7 @@ export function SelectionStep({ data, onChange, onUnitSelected }: SelectionStepP
 							onValueChange={handlePropertyChange}
 						>
 							<ComboboxAnchor id="property">
-								<ComboboxInput placeholder="Search properties..." />
+								<ComboboxInput placeholder="Search properties..." autoFocus />
 								<ComboboxTrigger />
 							</ComboboxAnchor>
 							<ComboboxContent>

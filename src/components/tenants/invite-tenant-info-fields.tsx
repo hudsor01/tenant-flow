@@ -99,6 +99,7 @@ export function InviteTenantInfoFields({ form }: InviteTenantInfoFieldsProps) {
 							<InputGroupInput
 								id="email"
 								type="email"
+								autoFocus
 								value={field.state.value}
 								onChange={(e: ChangeEvent<HTMLInputElement>) =>
 									field.handleChange(e.target.value)
