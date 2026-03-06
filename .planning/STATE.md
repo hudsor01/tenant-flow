@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: Production Hardening
 status: completed
-stopped_at: Completed 09-05-PLAN.md
-last_updated: "2026-03-06T22:43:32.318Z"
+stopped_at: Completed 09-04-PLAN.md
+last_updated: "2026-03-06T22:54:47.145Z"
 last_activity: 2026-03-06 — Added 7 RLS test files covering financial, notification, subscription, invitation tables + tenant isolation
 progress:
   total_phases: 14
   completed_phases: 9
   total_plans: 66
-  completed_plans: 58
+  completed_plans: 59
   percent: 79
 ---
 
@@ -94,6 +94,7 @@ Progress: [████████░░] 79%
 | Phase 09 P07 | 15min | 2 tasks | 1 files |
 | Phase 09 P06 | 15min | 2 tasks | 8 files |
 | Phase 09 P05 | 18min | 2 tasks | 3 files |
+| Phase 09 P04 | 15min | 2 tasks | 9 files |
 
 ## Accumulated Context
 
@@ -242,6 +243,8 @@ Progress: [████████░░] 79%
 - [Phase 09]: vi.hoisted() for Vitest 4.x mock factory variable references
 - [Phase 09]: Stripe constructor mock uses vi.fn with function body for new Stripe() compatibility
 - [Phase 09]: getCachedUser tests enforce getUser() over getSession() as security requirement
+- [Phase 09]: authResponseZodSchema and userProfileResponseZodSchema identified as dead code (not imported anywhere) -- noted for cleanup, not tested
+- [Phase 09]: Used userEvent.upload on hidden file input instead of fireEvent.drop to work around jsdom read-only FileList
 
 ### Pending Todos
 
@@ -256,6 +259,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-06T22:43:32.311Z
-Stopped at: Completed 09-05-PLAN.md
+Last session: 2026-03-06T22:54:47.142Z
+Stopped at: Completed 09-04-PLAN.md
 Resume file: None

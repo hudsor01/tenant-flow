@@ -187,8 +187,8 @@ All 131 findings from the review, plus CLAUDE.md maintenance.
 - [x] **TEST-02**: `--coverage` flag added to CI — 80% threshold enforced
 - [x] **TEST-03**: E2E `playwright.config.ts` webServer path fixed (remove `apps/frontend`)
 - [x] **TEST-04**: Tests for critical Edge Functions (stripe-webhooks, stripe-rent-checkout, stripe-autopay-charge, tenant-invitation-accept)
-- [ ] **TEST-05**: Tests for shared validation schemas (`src/shared/validation/` — payment-transactions, auth, leases minimum)
-- [ ] **TEST-06**: Tests for shared utility functions (`src/shared/utils/` — billing, payment-dates, financial)
+- [x] **TEST-05**: Tests for shared validation schemas (`src/shared/validation/` — payment-transactions, auth, leases minimum)
+- [x] **TEST-06**: Tests for shared utility functions (`src/shared/utils/` — billing, payment-dates, financial)
 - [x] **TEST-07**: RLS integration tests for `rent_payments`, `payment_methods`, `payment_transactions`
 - [x] **TEST-08**: RLS integration tests for `documents`, `notifications`, `notification_settings`, `subscriptions`, `tenant_invitations`
 - [x] **TEST-09**: Tenant-role RLS isolation tests (not just cross-owner)
@@ -197,7 +197,7 @@ All 131 findings from the review, plus CLAUDE.md maintenance.
 - [x] **TEST-12**: E2E tests added to CI (at least on merge to main)
 - [x] **TEST-13**: Tests for Next.js API route (`attach-payment-method`)
 - [x] **TEST-14**: Tests for Supabase client utilities (`get-cached-user.ts`, `server.ts`)
-- [ ] **TEST-15**: Skipped tests in `bulk-import-upload-step.test.tsx` resolved or tracked as issues
+- [x] **TEST-15**: Skipped tests in `bulk-import-upload-step.test.tsx` resolved or tracked as issues
 - [x] **TEST-16**: `noUnusedLocals` and `noUnusedParameters` enabled in tsconfig
 - [x] **TEST-17**: `isolatedModules: true` set in tsconfig
 - [x] **TEST-18**: Lefthook pre-commit changed to not run RLS integration tests (move to pre-push)
@@ -375,8 +375,8 @@ All 131 findings from the review, plus CLAUDE.md maintenance.
 | TEST-02 | Phase 9 | Complete |
 | TEST-03 | Phase 9 | Complete |
 | TEST-04 | Phase 9 | Complete |
-| TEST-05 | Phase 9 | Pending |
-| TEST-06 | Phase 9 | Pending |
+| TEST-05 | Phase 9 | Complete |
+| TEST-06 | Phase 9 | Complete |
 | TEST-07 | Phase 9 | Complete |
 | TEST-08 | Phase 9 | Complete |
 | TEST-09 | Phase 9 | Complete |
@@ -385,7 +385,7 @@ All 131 findings from the review, plus CLAUDE.md maintenance.
 | TEST-12 | Phase 9 | Complete |
 | TEST-13 | Phase 9 | Complete |
 | TEST-14 | Phase 9 | Complete |
-| TEST-15 | Phase 9 | Pending |
+| TEST-15 | Phase 9 | Complete |
 | TEST-16 | Phase 9 | Complete |
 | TEST-17 | Phase 9 | Complete |
 | TEST-18 | Phase 9 | Complete |
