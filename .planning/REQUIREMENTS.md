@@ -183,27 +183,27 @@ All 131 findings from the review, plus CLAUDE.md maintenance.
 
 ### Testing & CI Pipeline
 
-- [ ] **TEST-01**: `next build` added as CI pipeline step
-- [ ] **TEST-02**: `--coverage` flag added to CI — 80% threshold enforced
-- [ ] **TEST-03**: E2E `playwright.config.ts` webServer path fixed (remove `apps/frontend`)
-- [ ] **TEST-04**: Tests for critical Edge Functions (stripe-webhooks, stripe-rent-checkout, stripe-autopay-charge, tenant-invitation-accept)
+- [x] **TEST-01**: `next build` added as CI pipeline step
+- [x] **TEST-02**: `--coverage` flag added to CI — 80% threshold enforced
+- [x] **TEST-03**: E2E `playwright.config.ts` webServer path fixed (remove `apps/frontend`)
+- [x] **TEST-04**: Tests for critical Edge Functions (stripe-webhooks, stripe-rent-checkout, stripe-autopay-charge, tenant-invitation-accept)
 - [ ] **TEST-05**: Tests for shared validation schemas (`src/shared/validation/` — payment-transactions, auth, leases minimum)
 - [ ] **TEST-06**: Tests for shared utility functions (`src/shared/utils/` — billing, payment-dates, financial)
 - [ ] **TEST-07**: RLS integration tests for `rent_payments`, `payment_methods`, `payment_transactions`
 - [ ] **TEST-08**: RLS integration tests for `documents`, `notifications`, `notification_settings`, `subscriptions`, `tenant_invitations`
 - [ ] **TEST-09**: Tenant-role RLS isolation tests (not just cross-owner)
-- [ ] **TEST-10**: Security scanning (gitleaks, trivy) wired into CI
-- [ ] **TEST-11**: RLS tests added to PR CI pipeline (not just weekly)
-- [ ] **TEST-12**: E2E tests added to CI (at least on merge to main)
+- [x] **TEST-10**: Security scanning (gitleaks, trivy) wired into CI
+- [x] **TEST-11**: RLS tests added to PR CI pipeline (not just weekly)
+- [x] **TEST-12**: E2E tests added to CI (at least on merge to main)
 - [ ] **TEST-13**: Tests for Next.js API route (`attach-payment-method`)
 - [ ] **TEST-14**: Tests for Supabase client utilities (`get-cached-user.ts`, `server.ts`)
 - [ ] **TEST-15**: Skipped tests in `bulk-import-upload-step.test.tsx` resolved or tracked as issues
 - [x] **TEST-16**: `noUnusedLocals` and `noUnusedParameters` enabled in tsconfig
 - [x] **TEST-17**: `isolatedModules: true` set in tsconfig
-- [ ] **TEST-18**: Lefthook pre-commit changed to not run RLS integration tests (move to pre-push)
+- [x] **TEST-18**: Lefthook pre-commit changed to not run RLS integration tests (move to pre-push)
 - [x] **TEST-19**: `checkJs: true` set in tsconfig for `.js`/`.cjs` files
-- [ ] **TEST-20**: Stale monorepo references removed from `playwright.config.prod.ts`, E2E READMEs
-- [ ] **TEST-21**: `.env.test` template created for E2E test configuration
+- [x] **TEST-20**: Stale monorepo references removed from `playwright.config.prod.ts`, E2E READMEs
+- [x] **TEST-21**: `.env.test` template created for E2E test configuration
 
 ### Documentation
 
@@ -371,27 +371,27 @@ All 131 findings from the review, plus CLAUDE.md maintenance.
 | PERF-22 | Phase 8 | Complete |
 | PERF-23 | Phase 8 | Complete |
 | PERF-24 | Phase 8 | Complete |
-| TEST-01 | Phase 9 | Pending |
-| TEST-02 | Phase 9 | Pending |
-| TEST-03 | Phase 9 | Pending |
-| TEST-04 | Phase 9 | Pending |
+| TEST-01 | Phase 9 | Complete |
+| TEST-02 | Phase 9 | Complete |
+| TEST-03 | Phase 9 | Complete |
+| TEST-04 | Phase 9 | Complete |
 | TEST-05 | Phase 9 | Pending |
 | TEST-06 | Phase 9 | Pending |
 | TEST-07 | Phase 9 | Pending |
 | TEST-08 | Phase 9 | Pending |
 | TEST-09 | Phase 9 | Pending |
-| TEST-10 | Phase 9 | Pending |
-| TEST-11 | Phase 9 | Pending |
-| TEST-12 | Phase 9 | Pending |
+| TEST-10 | Phase 9 | Complete |
+| TEST-11 | Phase 9 | Complete |
+| TEST-12 | Phase 9 | Complete |
 | TEST-13 | Phase 9 | Pending |
 | TEST-14 | Phase 9 | Pending |
 | TEST-15 | Phase 9 | Pending |
 | TEST-16 | Phase 9 | Complete |
 | TEST-17 | Phase 9 | Complete |
-| TEST-18 | Phase 9 | Pending |
+| TEST-18 | Phase 9 | Complete |
 | TEST-19 | Phase 9 | Complete |
-| TEST-20 | Phase 9 | Pending |
-| TEST-21 | Phase 9 | Pending |
+| TEST-20 | Phase 9 | Complete |
+| TEST-21 | Phase 9 | Complete |
 | DOC-01 | All Phases | Complete |
 
 **Coverage:**

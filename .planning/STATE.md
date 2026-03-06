@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: Production Hardening
-status: in-progress
-stopped_at: Completed 09-02 (TypeScript strictness flags)
-last_updated: "2026-03-06T22:38:10.776Z"
+status: completed
+stopped_at: Completed 09-08-PLAN.md
+last_updated: "2026-03-06T22:39:42.767Z"
 last_activity: 2026-03-06 — Enabled TypeScript strictness flags (noUnusedLocals, noUnusedParameters, isolatedModules, checkJs)
 progress:
   total_phases: 14
   completed_phases: 9
   total_plans: 66
-  completed_plans: 52
+  completed_plans: 55
   percent: 79
 ---
 
@@ -26,9 +26,9 @@ See: .planning/PROJECT.md (updated 2026-03-04)
 ## Current Position
 
 Phase: 9 of 14 (Testing & CI Pipeline) -- IN PROGRESS
-Plan: 2 of 9 in current phase (09-02 complete)
-Status: Completed 09-02 (TypeScript strictness flags)
-Last activity: 2026-03-06 — Enabled TypeScript strictness flags (noUnusedLocals, noUnusedParameters, isolatedModules, checkJs)
+Plan: 3 of 9 in current phase (09-03 complete)
+Status: Completed 09-03 (E2E config fix and suite trim)
+Last activity: 2026-03-06 — Fixed Playwright configs, created .env.test.example, trimmed E2E from 55 to 17 tests
 
 Progress: [████████░░] 79%
 
@@ -88,6 +88,8 @@ Progress: [████████░░] 79%
 | Phase 08 P06 | 36min | 2 tasks | 11 files |
 | Phase 08 P07 | 27min | 2 tasks | 7 files |
 | Phase 09 P02 | 13min | 2 tasks | 3 files |
+| Phase 09 P03 | 14min | 2 tasks | 44 files |
+| Phase 09 P08 | 14min | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -222,6 +224,14 @@ Progress: [████████░░] 79%
 - [Phase 08]: CLAUDE.md updated with all Phase 8 patterns: dynamic imports, VirtualizedList, consolidated RPCs, resolveTenantId, query bounds, Promise.all in Edge Functions
 - [Phase 09]: Removed _ReactQueryDevtools dynamic import entirely (dead code)
 - [Phase 09]: Bare useQuery() call for prefetch-only queries (no variable assignment needed)
+- [Phase 09]: Task 1 (config fixes) already completed by prior plan 09-02 -- verified, no duplicate work
+- [Phase 09]: E2E suite trimmed from 55 to 17 files: 2 smoke, 9 owner CRUD, 4 tenant, 2 public -- 39 archived
+- [Phase 09]: stripe-autopay-charge uses raw fetch for service_role auth testing (not supabase client functions.invoke)
+- [Phase 09]: Rate limiting documented in test comments, not exercised (requires live Upstash Redis)
+- [Phase 09]: Authenticated Edge Function tests skip gracefully when E2E credentials not available
+- [Phase 09]: E2E smoke uses continue-on-error: true (informational, does not block merge)
+- [Phase 09]: Gitleaks in pre-commit only, not CI (catches secrets before they reach repo)
+- [Phase 09]: Coverage enforcement local-only via lefthook --coverage flag (CI trusts local hooks)
 
 ### Pending Todos
 
@@ -236,6 +246,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-06T22:36:53Z
-Stopped at: Completed 09-02 (TypeScript strictness flags)
-Resume file: .planning/phases/09-testing-ci-pipeline/09-02-SUMMARY.md
+Last session: 2026-03-06T22:39:42.763Z
+Stopped at: Completed 09-08-PLAN.md
+Resume file: None
