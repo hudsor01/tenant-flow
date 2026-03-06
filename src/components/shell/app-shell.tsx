@@ -174,6 +174,14 @@ export function AppShell({ children, showQuickActionsDock = true }: AppShellProp
 
 	return (
 		<div className="min-h-screen bg-background">
+			{/* Skip to content */}
+			<a
+				href="#main-content"
+				className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-[100] focus:rounded-md focus:bg-primary focus:px-4 focus:py-2 focus:text-primary-foreground focus:outline-none"
+			>
+				Skip to content
+			</a>
+
 			{/* Mobile sidebar overlay */}
 			{sidebarOpen && (
 				<div
@@ -206,7 +214,7 @@ export function AppShell({ children, showQuickActionsDock = true }: AppShellProp
 					<button
 						className="ml-auto lg:hidden min-h-11 min-w-11 flex items-center justify-center rounded-md hover:bg-muted"
 						onClick={() => setSidebarOpen(false)}
-						aria-label="Close sidebar"
+						aria-label="Close navigation menu"
 					>
 						<X className="w-4 h-4 text-muted-foreground" />
 					</button>
@@ -239,34 +247,84 @@ export function AppShell({ children, showQuickActionsDock = true }: AppShellProp
 						<button
 							className="p-2 rounded-md hover:bg-muted lg:hidden"
 							onClick={() => setSidebarOpen(true)}
+							aria-label="Open navigation menu"
 						>
 							<Menu className="w-5 h-5 text-muted-foreground" />
 						</button>
 
 						{/* Breadcrumbs */}
-						{breadcrumbs.length > 0 && (
-							<nav className="hidden sm:flex items-center gap-1 text-sm">
-								{breadcrumbs.map((crumb, index) => (
-									<div key={index} className="flex items-center gap-1">
-										{index > 0 && (
-											<ChevronRight className="w-4 h-4 text-muted-foreground" />
-										)}
-										{crumb.href ? (
+						{breadcrumbs.length > 0 && (() => {
+							const firstCrumb = breadcrumbs[0]!
+							const lastCrumb = breadcrumbs[breadcrumbs.length - 1]!
+							return (
+							<nav aria-label="Breadcrumb" className="flex items-center gap-1 text-sm">
+								{/* First crumb always visible */}
+								<div className="flex items-center gap-1">
+									{firstCrumb.href ? (
+										<Link
+											href={firstCrumb.href}
+											className="text-muted-foreground hover:text-foreground transition-colors"
+										>
+											{firstCrumb.label}
+										</Link>
+									) : (
+										<span className="text-foreground font-medium">
+											{firstCrumb.label}
+										</span>
+									)}
+								</div>
+
+								{/* Middle crumbs: hidden on mobile, visible on sm+ */}
+								{breadcrumbs.length > 2 && (
+									<>
+										<span className="hidden sm:contents">
+											{breadcrumbs.slice(1, -1).map((crumb, index) => (
+												<div key={index + 1} className="flex items-center gap-1">
+													<ChevronRight className="w-3.5 h-3.5 text-muted-foreground" />
+													{crumb.href ? (
+														<Link
+															href={crumb.href}
+															className="text-muted-foreground hover:text-foreground transition-colors"
+														>
+															{crumb.label}
+														</Link>
+													) : (
+														<span className="text-foreground font-medium">
+															{crumb.label}
+														</span>
+													)}
+												</div>
+											))}
+										</span>
+										{/* Collapsed indicator: visible on mobile only */}
+										<span className="flex items-center gap-1 sm:hidden">
+											<ChevronRight className="size-3.5 text-muted-foreground" />
+											<span className="text-muted-foreground">...</span>
+										</span>
+									</>
+								)}
+
+								{/* Last crumb (when more than 1) */}
+								{breadcrumbs.length > 1 && lastCrumb && (
+									<div className="flex items-center gap-1">
+										<ChevronRight className="w-3.5 h-3.5 text-muted-foreground" />
+										{lastCrumb.href ? (
 											<Link
-												href={crumb.href}
+												href={lastCrumb.href}
 												className="text-muted-foreground hover:text-foreground transition-colors"
 											>
-												{crumb.label}
+												{lastCrumb.label}
 											</Link>
 										) : (
-											<span className="text-foreground font-medium">
-												{crumb.label}
+											<span className="text-foreground font-medium truncate max-w-[150px] sm:max-w-none">
+												{lastCrumb.label}
 											</span>
 										)}
 									</div>
-								))}
+								)}
 							</nav>
-						)}
+							)
+						})()}
 					</div>
 
 					{/* Right side - sync status, notifications, user */}
@@ -275,6 +333,7 @@ export function AppShell({ children, showQuickActionsDock = true }: AppShellProp
 						<Link
 							href="/settings?tab=notifications"
 							className="p-2 rounded-md hover:bg-muted transition-colors"
+							aria-label="View notifications"
 						>
 							<Bell className="w-5 h-5 text-muted-foreground" />
 						</Link>
@@ -294,7 +353,7 @@ export function AppShell({ children, showQuickActionsDock = true }: AppShellProp
 				</header>
 
 				{/* Page content */}
-				<main className="flex-1 bg-muted/30 pb-24">
+				<main id="main-content" className="flex-1 bg-muted/30 pb-24 sm:pb-6">
 					<div className="p-4 lg:p-6">{children}</div>
 				</main>
 			</div>

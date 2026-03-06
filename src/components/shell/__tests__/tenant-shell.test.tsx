@@ -185,7 +185,7 @@ describe('TenantShell', () => {
 			await user.click(menuButton as HTMLElement)
 
 			// Find close button (X icon) in the sidebar by its class
-			const closeButton = screen.getByRole('button', { name: /close sidebar/i })
+			const closeButton = screen.getByRole('button', { name: /close navigation menu/i })
 			await user.click(closeButton)
 
 			// Sidebar should be hidden again
@@ -293,7 +293,7 @@ describe('TenantShell', () => {
 		it('should render notifications link', () => {
 			render(<TenantShell>Content</TenantShell>)
 
-			const notificationsLink = screen.getByRole('link', { name: '' })
+			const notificationsLink = screen.getByRole('link', { name: /view notifications/i })
 			expect(notificationsLink).toHaveAttribute(
 				'href',
 				'/tenant/settings?tab=notifications'
@@ -304,15 +304,15 @@ describe('TenantShell', () => {
 	describe('breadcrumbs', () => {
 		it('should render breadcrumbs for nested paths', () => {
 			mockPathname.mockReturnValue('/tenant/payments/history')
-			const { container } = render(<TenantShell>Content</TenantShell>)
+			render(<TenantShell>Content</TenantShell>)
 
-			// Breadcrumbs are hidden on mobile (hidden sm:flex), but still in DOM
-			const breadcrumbNav = container.querySelector('nav.hidden.sm\\:flex')
+			// Breadcrumbs now always visible (aria-label="Breadcrumb")
+			const breadcrumbNav = screen.getByRole('navigation', { name: 'Breadcrumb' })
 			expect(breadcrumbNav).toBeInTheDocument()
 
 			// Check for breadcrumb labels within the breadcrumb nav
-			expect(within(breadcrumbNav as HTMLElement).getByText('Tenant Portal')).toBeInTheDocument()
-			expect(within(breadcrumbNav as HTMLElement).getByText('Payments')).toBeInTheDocument()
+			expect(within(breadcrumbNav).getByText('Tenant Portal')).toBeInTheDocument()
+			expect(within(breadcrumbNav).getByText('Payments')).toBeInTheDocument()
 		})
 	})
 })
