@@ -198,10 +198,10 @@ All 131 findings from the review, plus CLAUDE.md maintenance.
 - [ ] **TEST-13**: Tests for Next.js API route (`attach-payment-method`)
 - [ ] **TEST-14**: Tests for Supabase client utilities (`get-cached-user.ts`, `server.ts`)
 - [ ] **TEST-15**: Skipped tests in `bulk-import-upload-step.test.tsx` resolved or tracked as issues
-- [ ] **TEST-16**: `noUnusedLocals` and `noUnusedParameters` enabled in tsconfig
-- [ ] **TEST-17**: `isolatedModules: true` set in tsconfig
+- [x] **TEST-16**: `noUnusedLocals` and `noUnusedParameters` enabled in tsconfig
+- [x] **TEST-17**: `isolatedModules: true` set in tsconfig
 - [ ] **TEST-18**: Lefthook pre-commit changed to not run RLS integration tests (move to pre-push)
-- [ ] **TEST-19**: `checkJs: true` set in tsconfig for `.js`/`.cjs` files
+- [x] **TEST-19**: `checkJs: true` set in tsconfig for `.js`/`.cjs` files
 - [ ] **TEST-20**: Stale monorepo references removed from `playwright.config.prod.ts`, E2E READMEs
 - [ ] **TEST-21**: `.env.test` template created for E2E test configuration
 
@@ -386,10 +386,10 @@ All 131 findings from the review, plus CLAUDE.md maintenance.
 | TEST-13 | Phase 9 | Pending |
 | TEST-14 | Phase 9 | Pending |
 | TEST-15 | Phase 9 | Pending |
-| TEST-16 | Phase 9 | Pending |
-| TEST-17 | Phase 9 | Pending |
+| TEST-16 | Phase 9 | Complete |
+| TEST-17 | Phase 9 | Complete |
 | TEST-18 | Phase 9 | Pending |
-| TEST-19 | Phase 9 | Pending |
+| TEST-19 | Phase 9 | Complete |
 | TEST-20 | Phase 9 | Pending |
 | TEST-21 | Phase 9 | Pending |
 | DOC-01 | All Phases | Complete |

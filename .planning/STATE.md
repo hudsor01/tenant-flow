@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: Production Hardening
-status: completed
-stopped_at: Phase 9 context gathered
-last_updated: "2026-03-06T21:52:05.398Z"
-last_activity: 2026-03-06 — Audited 'use client' directives, updated CLAUDE.md with Phase 8 conventions
+status: in-progress
+stopped_at: Completed 09-02 (TypeScript strictness flags)
+last_updated: "2026-03-06T22:38:10.776Z"
+last_activity: 2026-03-06 — Enabled TypeScript strictness flags (noUnusedLocals, noUnusedParameters, isolatedModules, checkJs)
 progress:
   total_phases: 14
   completed_phases: 9
-  total_plans: 57
-  completed_plans: 51
-  percent: 89
+  total_plans: 66
+  completed_plans: 52
+  percent: 79
 ---
 
 # Project State: TenantFlow
@@ -21,16 +21,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-04)
 
 **Core value:** A landlord can add a property, invite a tenant, collect rent, and see their financials — without touching a spreadsheet or calling anyone.
-**Current focus:** v1.0 Production Hardening — Phase 8 complete, ready for Phase 9
+**Current focus:** v1.0 Production Hardening — Phase 9 in progress
 
 ## Current Position
 
-Phase: 8 of 9 (Performance Optimization) -- COMPLETE
-Plan: 7 of 7 in current phase (08-07 complete)
-Status: Completed 08-07 (Use client audit, CLAUDE.md conventions)
-Last activity: 2026-03-06 — Audited 'use client' directives, updated CLAUDE.md with Phase 8 conventions
+Phase: 9 of 14 (Testing & CI Pipeline) -- IN PROGRESS
+Plan: 2 of 9 in current phase (09-02 complete)
+Status: Completed 09-02 (TypeScript strictness flags)
+Last activity: 2026-03-06 — Enabled TypeScript strictness flags (noUnusedLocals, noUnusedParameters, isolatedModules, checkJs)
 
-Progress: [█████████░] 89%
+Progress: [████████░░] 79%
 
 ## Performance Metrics
 
@@ -87,6 +87,7 @@ Progress: [█████████░] 89%
 | Phase 08 P05 | 17min | 2 tasks | 6 files |
 | Phase 08 P06 | 36min | 2 tasks | 11 files |
 | Phase 08 P07 | 27min | 2 tasks | 7 files |
+| Phase 09 P02 | 13min | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -219,6 +220,8 @@ Progress: [█████████░] 89%
 - [Phase 08]: file-upload-item keeps raw <img> for blob URLs -- next/image protocol restriction documented
 - [Phase 08]: 5 more 'use client' removals (412->407): loading skeletons, pricing wrappers, stripe-connect-tab
 - [Phase 08]: CLAUDE.md updated with all Phase 8 patterns: dynamic imports, VirtualizedList, consolidated RPCs, resolveTenantId, query bounds, Promise.all in Edge Functions
+- [Phase 09]: Removed _ReactQueryDevtools dynamic import entirely (dead code)
+- [Phase 09]: Bare useQuery() call for prefetch-only queries (no variable assignment needed)
 
 ### Pending Todos
 
@@ -233,6 +236,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-06T21:52:05.394Z
-Stopped at: Phase 9 context gathered
-Resume file: .planning/phases/09-testing-ci-pipeline/09-CONTEXT.md
+Last session: 2026-03-06T22:36:53Z
+Stopped at: Completed 09-02 (TypeScript strictness flags)
+Resume file: .planning/phases/09-testing-ci-pipeline/09-02-SUMMARY.md
