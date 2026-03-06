@@ -78,7 +78,7 @@ export function QueryProvider({
 						retryDelay: queryErrorHandlers.retryDelay,
 
 						// Smart refetch behavior
-						refetchOnWindowFocus: 'always',
+						refetchOnWindowFocus: true,
 						refetchOnReconnect: 'always',
 						refetchOnMount: true,
 

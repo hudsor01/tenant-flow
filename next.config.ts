@@ -12,6 +12,10 @@ import type { NextConfig } from 'next'
 import './src/env'
 
 const nextConfig: NextConfig = {
+	experimental: {
+		optimizePackageImports: ['date-fns', '@tanstack/react-query', '@tanstack/react-form', '@tanstack/react-virtual'],
+	},
+
 // External images
 	images: {
 		// Cache optimized images for 7 days before re-fetching from origin
