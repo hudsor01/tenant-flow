@@ -105,17 +105,36 @@ Deno.serve(async (req: Request) => {
   try {
 
     // -------------------------------------------------------------------------
-    // 3. Duplicate payment check — prevent double-charging same rent_due
+    // 3-6. Parallel lookups — all 5 depend only on validated body fields
     // -------------------------------------------------------------------------
-    const { data: existingPayment } = await supabase
-      .from('rent_payments')
-      .select('id')
-      .eq('rent_due_id', rent_due_id)
-      .eq('tenant_id', tenant_id)
-      .in('status', ['succeeded', 'processing'])
-      .maybeSingle()
+    const [
+      existingPaymentResult,
+      leaseTenantsResult,
+      rentDueResult,
+      connectedAccountResult,
+      unitResult,
+    ] = await Promise.all([
+      // Step 3: Duplicate payment check
+      supabase.from('rent_payments').select('id')
+        .eq('rent_due_id', rent_due_id).eq('tenant_id', tenant_id)
+        .in('status', ['succeeded', 'processing']).maybeSingle(),
+      // Step 3b: Lease tenant responsibility percentage
+      supabase.from('lease_tenants').select('responsibility_percentage')
+        .eq('lease_id', lease_id).eq('tenant_id', tenant_id).maybeSingle(),
+      // rent_due: amount, due_date, attempts
+      supabase.from('rent_due').select('amount, due_date, autopay_attempts')
+        .eq('id', rent_due_id).single(),
+      // Step 4: Connected account
+      supabase.from('stripe_connected_accounts')
+        .select('stripe_account_id, default_platform_fee_percent, charges_enabled')
+        .eq('user_id', owner_user_id).maybeSingle(),
+      // Step 6: Unit -> property_id
+      supabase.from('units').select('property_id')
+        .eq('id', unit_id).maybeSingle(),
+    ])
 
-    if (existingPayment) {
+    // Handle duplicate payment check
+    if (existingPaymentResult.data) {
       console.log(`[AUTOPAY] Skipping rent_due ${rent_due_id} tenant ${tenant_id} — payment already exists`)
       return new Response(
         JSON.stringify({ skipped: true, reason: 'Payment already exists' }),
@@ -123,15 +142,8 @@ Deno.serve(async (req: Request) => {
       )
     }
 
-    // -------------------------------------------------------------------------
-    // 3b. PAY-14: Verify per-tenant portion from lease_tenants
-    // -------------------------------------------------------------------------
-    const { data: leaseTenant, error: leaseTenantsError } = await supabase
-      .from('lease_tenants')
-      .select('responsibility_percentage')
-      .eq('lease_id', lease_id)
-      .eq('tenant_id', tenant_id)
-      .maybeSingle()
+    // Handle lease_tenants result
+    const { data: leaseTenant, error: leaseTenantsError } = leaseTenantsResult
 
     if (leaseTenantsError) {
       console.error('[AUTOPAY] Error fetching lease_tenants:', leaseTenantsError.message)
@@ -149,12 +161,8 @@ Deno.serve(async (req: Request) => {
       )
     }
 
-    // Fetch rent_due record for full amount and due date
-    const { data: rentDue } = await supabase
-      .from('rent_due')
-      .select('amount, due_date, autopay_attempts')
-      .eq('id', rent_due_id)
-      .single()
+    // Handle rent_due result
+    const rentDue = rentDueResult.data
 
     if (!rentDue) {
       console.error(`[AUTOPAY] rent_due ${rent_due_id} not found`)
@@ -175,14 +183,8 @@ Deno.serve(async (req: Request) => {
     const tenantAmount = computedAmount
     computedTenantAmount = tenantAmount
 
-    // -------------------------------------------------------------------------
-    // 4. Resolve connected account for the property owner
-    // -------------------------------------------------------------------------
-    const { data: connectedAccount, error: connectedError } = await supabase
-      .from('stripe_connected_accounts')
-      .select('stripe_account_id, default_platform_fee_percent, charges_enabled')
-      .eq('user_id', owner_user_id)
-      .maybeSingle()
+    // Handle connected account result
+    const { data: connectedAccount, error: connectedError } = connectedAccountResult
 
     if (connectedError) {
       console.error('[AUTOPAY] Error fetching connected account:', connectedError.message)
@@ -215,16 +217,8 @@ Deno.serve(async (req: Request) => {
     const platformFeePercent = connectedAccount.default_platform_fee_percent ?? 5
     const applicationFeeCents = Math.round(amountCents * platformFeePercent / 100)
 
-    // -------------------------------------------------------------------------
-    // 6. Resolve property_id from unit
-    // -------------------------------------------------------------------------
-    const { data: unitData } = await supabase
-      .from('units')
-      .select('property_id')
-      .eq('id', unit_id)
-      .maybeSingle()
-
-    const propertyId = unitData?.property_id ?? ''
+    // Handle unit result
+    const propertyId = unitResult.data?.property_id ?? ''
 
     // -------------------------------------------------------------------------
     // 7. Derive period dates from rent_due date

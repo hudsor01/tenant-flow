@@ -48,6 +48,18 @@ vi.mock('#hooks/api/use-lease', () => ({
 	}))
 }))
 
+// Mock next/dynamic to synchronously resolve loaded components in tests
+vi.mock('next/dynamic', () => ({
+	default: (
+		_loader: () => Promise<Record<string, unknown>>,
+		opts?: { loading?: () => React.ReactNode }
+	) => {
+		// Return the loading fallback if provided, otherwise null
+		// This ensures tests see the loading state (ChartLoadingSkeleton)
+		return opts?.loading ?? (() => null)
+	}
+}))
+
 // Mock next/navigation
 vi.mock('next/navigation', () => ({
 	useRouter: vi.fn(() => ({
