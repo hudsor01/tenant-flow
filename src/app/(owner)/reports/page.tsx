@@ -12,11 +12,41 @@ import { BarChart3, FileText, Calendar } from 'lucide-react'
 import Link from 'next/link'
 import { useMemo, useState } from 'react'
 import { toast } from 'sonner'
+import dynamic from 'next/dynamic'
 import { DateRangeSelector } from '#components/reports/sections/date-range-selector'
-import { FinancialReportSection } from '#components/reports/sections/financial-report-section'
-import { MaintenanceReportSection } from '#components/reports/sections/maintenance-report-section'
-import { PropertyReportSection } from '#components/reports/sections/property-report-section'
-import { TenantReportSection } from '#components/reports/sections/tenant-report-section'
+import { ChartLoadingSkeleton } from '#components/shared/chart-loading-skeleton'
+
+const FinancialReportSection = dynamic(
+	() =>
+		import('#components/reports/sections/financial-report-section').then(
+			mod => mod.FinancialReportSection
+		),
+	{ ssr: false, loading: () => <ChartLoadingSkeleton /> }
+)
+
+const MaintenanceReportSection = dynamic(
+	() =>
+		import('#components/reports/sections/maintenance-report-section').then(
+			mod => mod.MaintenanceReportSection
+		),
+	{ ssr: false, loading: () => <ChartLoadingSkeleton /> }
+)
+
+const PropertyReportSection = dynamic(
+	() =>
+		import('#components/reports/sections/property-report-section').then(
+			mod => mod.PropertyReportSection
+		),
+	{ ssr: false, loading: () => <ChartLoadingSkeleton /> }
+)
+
+const TenantReportSection = dynamic(
+	() =>
+		import('#components/reports/sections/tenant-report-section').then(
+			mod => mod.TenantReportSection
+		),
+	{ ssr: false, loading: () => <ChartLoadingSkeleton /> }
+)
 import {
 	Empty,
 	EmptyDescription,

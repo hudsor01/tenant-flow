@@ -456,12 +456,11 @@ describe('OwnerDashboard', () => {
 			).toBeInTheDocument()
 		})
 
-		it('renders Revenue Overview chart section', () => {
+		it('renders chart loading skeleton while Revenue Overview chart loads', () => {
 			render(<OwnerDashboard />)
 
-			expect(screen.getByText('Revenue Overview')).toBeInTheDocument()
 			expect(
-				screen.getByText('Monthly revenue for the past 6 months')
+				screen.getByLabelText('Loading chart')
 			).toBeInTheDocument()
 		})
 

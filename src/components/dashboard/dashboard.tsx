@@ -5,6 +5,7 @@
  * See stores/dashboard-store.ts for state structure.
  */
 
+import dynamic from 'next/dynamic'
 import type { DashboardProps } from '#shared/types/sections/dashboard'
 import {
 	formatDashboardCurrency,
@@ -12,7 +13,15 @@ import {
 	type PortfolioRow,
 	type QuickActionType
 } from './dashboard-types'
-import { RevenueOverviewChart } from './components/revenue-overview-chart'
+import { ChartLoadingSkeleton } from '#components/shared/chart-loading-skeleton'
+
+const RevenueOverviewChart = dynamic(
+	() =>
+		import('./components/revenue-overview-chart').then(
+			mod => mod.RevenueOverviewChart
+		),
+	{ ssr: false, loading: () => <ChartLoadingSkeleton /> }
+)
 import {
 	Card,
 	CardContent,

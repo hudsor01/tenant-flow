@@ -28,10 +28,20 @@ import type {
 	UnitStatisticEntry,
 	VisitorAnalyticsResponse
 } from '#shared/types/analytics'
-import {
-	PropertyOccupancyChart,
-	VisitorAnalyticsChart
-} from './property-charts'
+import dynamic from 'next/dynamic'
+import { ChartLoadingSkeleton } from '#components/shared/chart-loading-skeleton'
+
+const PropertyOccupancyChart = dynamic(
+	() =>
+		import('./property-charts').then(mod => mod.PropertyOccupancyChart),
+	{ ssr: false, loading: () => <ChartLoadingSkeleton /> }
+)
+
+const VisitorAnalyticsChart = dynamic(
+	() =>
+		import('./property-charts').then(mod => mod.VisitorAnalyticsChart),
+	{ ssr: false, loading: () => <ChartLoadingSkeleton /> }
+)
 import { TopPropertiesTable } from './top-properties-table'
 import { ActiveUnitsTable } from './active-units-table'
 import { PropertyPerformanceSkeleton } from './property-performance-skeleton'

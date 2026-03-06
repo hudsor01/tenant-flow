@@ -10,8 +10,21 @@ import { useDataTable } from '#hooks/use-data-table'
 import type { ColumnDef } from '@tanstack/react-table'
 import { TrendingUp, DollarSign, Wrench } from 'lucide-react'
 import { useMemo } from 'react'
+import dynamic from 'next/dynamic'
 import type { MaintenanceCategoryBreakdown } from '#shared/types/analytics'
-import { MaintenanceTrendChart, MaintenanceCostChart } from './maintenance-charts'
+import { ChartLoadingSkeleton } from '#components/shared/chart-loading-skeleton'
+
+const MaintenanceTrendChart = dynamic(
+	() =>
+		import('./maintenance-charts').then(mod => mod.MaintenanceTrendChart),
+	{ ssr: false, loading: () => <ChartLoadingSkeleton /> }
+)
+
+const MaintenanceCostChart = dynamic(
+	() =>
+		import('./maintenance-charts').then(mod => mod.MaintenanceCostChart),
+	{ ssr: false, loading: () => <ChartLoadingSkeleton /> }
+)
 
 export function MaintenanceInsightsSkeleton() {
 	return (
