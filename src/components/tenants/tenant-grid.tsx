@@ -183,6 +183,7 @@ function TenantCard({
 					<button
 						onClick={onView}
 						className="p-2 rounded-lg hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
+						aria-label="View tenant details"
 						title="View"
 					>
 						<Eye className="w-4 h-4" />
@@ -190,6 +191,7 @@ function TenantCard({
 					<button
 						onClick={onEdit}
 						className="p-2 rounded-lg hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
+						aria-label="Edit tenant"
 						title="Edit"
 					>
 						<Pencil className="w-4 h-4" />
@@ -197,6 +199,7 @@ function TenantCard({
 					<button
 						onClick={onDelete}
 						className="p-2 rounded-lg hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors"
+						aria-label="Delete tenant"
 						title="Delete"
 					>
 						<Trash2 className="w-4 h-4" />
