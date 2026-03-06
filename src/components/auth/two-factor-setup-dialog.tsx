@@ -133,6 +133,7 @@ export function TwoFactorSetupDialog({
 							) : enrollmentData?.qrCode ? (
 								<>
 									<div className="flex-center">
+										{/* bg-white intentional: QR codes require white background for scanning */}
 										<div className="rounded-lg border bg-white p-4">
 											<img
 												src={enrollmentData.qrCode}

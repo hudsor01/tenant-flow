@@ -23,7 +23,7 @@ export type Database = {
           entity_type: string | null
           id: string
           title: string
-          user_id: string | null
+          user_id: string
         }
         Insert: {
           activity_type: string
@@ -33,7 +33,7 @@ export type Database = {
           entity_type?: string | null
           id?: string
           title: string
-          user_id?: string | null
+          user_id: string
         }
         Update: {
           activity_type?: string
@@ -43,20 +43,13 @@ export type Database = {
           entity_type?: string | null
           id?: string
           title?: string
-          user_id?: string | null
+          user_id?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "activity_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       blogs: {
         Row: {
+          author_user_id: string | null
           category: string | null
           content: string
           created_at: string | null
@@ -75,6 +68,7 @@ export type Database = {
           word_count: number | null
         }
         Insert: {
+          author_user_id?: string | null
           category?: string | null
           content: string
           created_at?: string | null
@@ -93,6 +87,7 @@ export type Database = {
           word_count?: number | null
         }
         Update: {
+          author_user_id?: string | null
           category?: string | null
           content?: string
           created_at?: string | null
@@ -121,6 +116,7 @@ export type Database = {
           file_path: string
           file_size: number | null
           id: string
+          owner_user_id: string | null
           storage_url: string
         }
         Insert: {
@@ -131,6 +127,7 @@ export type Database = {
           file_path: string
           file_size?: number | null
           id?: string
+          owner_user_id?: string | null
           storage_url: string
         }
         Update: {
@@ -141,6 +138,7 @@ export type Database = {
           file_path?: string
           file_size?: number | null
           id?: string
+          owner_user_id?: string | null
           storage_url?: string
         }
         Relationships: []
@@ -215,6 +213,7 @@ export type Database = {
           inspection_room_id: string
           mime_type: string
           storage_path: string
+          updated_at: string
           uploaded_by: string | null
         }
         Insert: {
@@ -227,6 +226,7 @@ export type Database = {
           inspection_room_id: string
           mime_type?: string
           storage_path: string
+          updated_at?: string
           uploaded_by?: string | null
         }
         Update: {
@@ -239,6 +239,7 @@ export type Database = {
           inspection_room_id?: string
           mime_type?: string
           storage_path?: string
+          updated_at?: string
           uploaded_by?: string | null
         }
         Relationships: [
@@ -1273,6 +1274,9 @@ export type Database = {
       rent_due: {
         Row: {
           amount: number
+          autopay_attempts: number | null
+          autopay_last_attempt_at: string | null
+          autopay_next_retry_at: string | null
           created_at: string | null
           due_date: string
           id: string
@@ -1283,6 +1287,9 @@ export type Database = {
         }
         Insert: {
           amount: number
+          autopay_attempts?: number | null
+          autopay_last_attempt_at?: string | null
+          autopay_next_retry_at?: string | null
           created_at?: string | null
           due_date: string
           id?: string
@@ -1293,6 +1300,9 @@ export type Database = {
         }
         Update: {
           amount?: number
+          autopay_attempts?: number | null
+          autopay_last_attempt_at?: string | null
+          autopay_next_retry_at?: string | null
           created_at?: string | null
           due_date?: string
           id?: string
@@ -1597,6 +1607,60 @@ export type Database = {
         }
         Relationships: []
       }
+      security_events_archive: {
+        Row: {
+          created_at: string
+          event_type: string
+          id: string
+          ip_address: unknown
+          message: string
+          metadata: Json | null
+          request_id: string | null
+          resource_id: string | null
+          resource_type: string | null
+          severity: string
+          tags: string[] | null
+          user_agent: string | null
+          user_email: string | null
+          user_id: string | null
+          user_type: string | null
+        }
+        Insert: {
+          created_at?: string
+          event_type: string
+          id?: string
+          ip_address?: unknown
+          message: string
+          metadata?: Json | null
+          request_id?: string | null
+          resource_id?: string | null
+          resource_type?: string | null
+          severity?: string
+          tags?: string[] | null
+          user_agent?: string | null
+          user_email?: string | null
+          user_id?: string | null
+          user_type?: string | null
+        }
+        Update: {
+          created_at?: string
+          event_type?: string
+          id?: string
+          ip_address?: unknown
+          message?: string
+          metadata?: Json | null
+          request_id?: string | null
+          resource_id?: string | null
+          resource_type?: string | null
+          severity?: string
+          tags?: string[] | null
+          user_agent?: string | null
+          user_email?: string | null
+          user_id?: string | null
+          user_type?: string | null
+        }
+        Relationships: []
+      }
       stripe_connected_accounts: {
         Row: {
           business_name: string | null
@@ -1668,24 +1732,60 @@ export type Database = {
       stripe_webhook_events: {
         Row: {
           data: Json | null
+          error_message: string | null
           event_type: string
           id: string
           livemode: boolean | null
           processed_at: string
+          status: string | null
         }
         Insert: {
           data?: Json | null
+          error_message?: string | null
           event_type: string
           id: string
           livemode?: boolean | null
           processed_at?: string
+          status?: string | null
         }
         Update: {
           data?: Json | null
+          error_message?: string | null
           event_type?: string
           id?: string
           livemode?: boolean | null
           processed_at?: string
+          status?: string | null
+        }
+        Relationships: []
+      }
+      stripe_webhook_events_archive: {
+        Row: {
+          data: Json | null
+          error_message: string | null
+          event_type: string
+          id: string
+          livemode: boolean | null
+          processed_at: string
+          status: string | null
+        }
+        Insert: {
+          data?: Json | null
+          error_message?: string | null
+          event_type: string
+          id: string
+          livemode?: boolean | null
+          processed_at?: string
+          status?: string | null
+        }
+        Update: {
+          data?: Json | null
+          error_message?: string | null
+          event_type?: string
+          id?: string
+          livemode?: boolean | null
+          processed_at?: string
+          status?: string | null
         }
         Relationships: []
       }
@@ -1975,6 +2075,51 @@ export type Database = {
         }
         Relationships: []
       }
+      user_errors_archive: {
+        Row: {
+          context: Json | null
+          created_at: string | null
+          error_code: string | null
+          error_message: string
+          error_stack: string | null
+          error_type: string
+          id: string
+          ip_address: unknown
+          resolution_notes: string | null
+          resolved_at: string | null
+          user_agent: string | null
+          user_id: string | null
+        }
+        Insert: {
+          context?: Json | null
+          created_at?: string | null
+          error_code?: string | null
+          error_message: string
+          error_stack?: string | null
+          error_type: string
+          id?: string
+          ip_address?: unknown
+          resolution_notes?: string | null
+          resolved_at?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          context?: Json | null
+          created_at?: string | null
+          error_code?: string | null
+          error_message?: string
+          error_stack?: string | null
+          error_type?: string
+          id?: string
+          ip_address?: unknown
+          resolution_notes?: string | null
+          resolved_at?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       user_feature_access: {
         Row: {
           access_level: string | null
@@ -2102,6 +2247,7 @@ export type Database = {
         Row: {
           avatar_url: string | null
           created_at: string | null
+          deletion_requested_at: string | null
           email: string
           first_name: string | null
           full_name: string
@@ -2123,6 +2269,7 @@ export type Database = {
         Insert: {
           avatar_url?: string | null
           created_at?: string | null
+          deletion_requested_at?: string | null
           email: string
           first_name?: string | null
           full_name: string
@@ -2144,6 +2291,7 @@ export type Database = {
         Update: {
           avatar_url?: string | null
           created_at?: string | null
+          deletion_requested_at?: string | null
           email?: string
           first_name?: string | null
           full_name?: string
@@ -2344,6 +2492,10 @@ export type Database = {
           success: boolean
         }[]
       }
+      anonymize_deleted_user: {
+        Args: { p_user_id: string }
+        Returns: undefined
+      }
       assert_can_create_lease: {
         Args: { p_primary_tenant_id: string; p_unit_id: string }
         Returns: boolean
@@ -2380,6 +2532,18 @@ export type Database = {
         }[]
       }
       calculate_monthly_metrics: { Args: { p_user_id: string }; Returns: Json }
+      cancel_account_deletion: { Args: never; Returns: undefined }
+      check_cron_health: { Args: never; Returns: undefined }
+      check_stripe_sync_status: {
+        Args: never
+        Returns: {
+          latest_created_at: string
+          latest_synced_at: string
+          row_count: number
+          staleness_hours: number
+          table_name: string
+        }[]
+      }
       check_user_feature_access: {
         Args: { p_feature: string; p_user_id: string }
         Returns: boolean
@@ -2389,12 +2553,14 @@ export type Database = {
         Args: { days_to_keep?: number }
         Returns: number
       }
-      cleanup_old_security_events: { Args: never; Returns: undefined }
+      cleanup_old_security_events: { Args: never; Returns: number }
+      cleanup_old_webhook_events: { Args: never; Returns: number }
       confirm_lease_subscription: {
         Args: { p_lease_id: string; p_subscription_id: string }
         Returns: undefined
       }
       custom_access_token_hook: { Args: { event: Json }; Returns: Json }
+      expire_leases: { Args: never; Returns: undefined }
       get_billing_insights: {
         Args: {
           end_date_param?: string
@@ -2414,7 +2580,6 @@ export type Database = {
         }[]
       }
       get_current_owner_user_id: { Args: never; Returns: string }
-      get_current_property_owner_id: { Args: never; Returns: string }
       get_current_tenant_id: { Args: never; Returns: string }
       get_current_user_type: { Args: never; Returns: string }
       get_dashboard_data_v2: { Args: { p_user_id: string }; Returns: Json }
@@ -2545,6 +2710,19 @@ export type Database = {
         Args: { p_stripe_customer_id: string }
         Returns: string
       }
+      get_user_invoices: {
+        Args: { p_limit?: number }
+        Returns: {
+          amount_due: number
+          amount_paid: number
+          created_at: string
+          customer_email: string
+          hosted_invoice_url: string
+          invoice_id: string
+          invoice_pdf: string
+          status: string
+        }[]
+      }
       get_user_plan_limits: {
         Args: { p_user_id: string }
         Returns: {
@@ -2588,6 +2766,7 @@ export type Database = {
         }
         Returns: string
       }
+      process_account_deletions: { Args: never; Returns: undefined }
       process_autopay_charges: { Args: never; Returns: undefined }
       process_payment_intent_failed: {
         Args: {
@@ -2608,6 +2787,26 @@ export type Database = {
       }
       queue_lease_reminders: { Args: never; Returns: undefined }
       queue_payment_reminders: { Args: never; Returns: undefined }
+      record_rent_payment: {
+        Args: {
+          p_amount: number
+          p_checkout_session_id?: string
+          p_currency: string
+          p_due_date: string
+          p_gross_amount: number
+          p_lease_id: string
+          p_net_amount: number
+          p_period_end: string
+          p_period_start: string
+          p_platform_fee_amount: number
+          p_rent_due_id: string
+          p_stripe_fee_amount: number
+          p_stripe_payment_intent_id: string
+          p_tenant_id: string
+        }
+        Returns: undefined
+      }
+      request_account_deletion: { Args: never; Returns: undefined }
       require_stripe_schema: { Args: never; Returns: boolean }
       revoke_user_session: {
         Args: { p_session_id: string; p_user_id: string }
@@ -2623,6 +2822,10 @@ export type Database = {
           rank: number
           state: string
         }[]
+      }
+      set_default_payment_method: {
+        Args: { p_payment_method_id: string }
+        Returns: undefined
       }
       sign_lease_and_check_activation:
         | {
@@ -2653,6 +2856,14 @@ export type Database = {
               success: boolean
             }[]
           }
+      toggle_autopay: {
+        Args: {
+          p_enabled: boolean
+          p_lease_id: string
+          p_payment_method_id?: string
+        }
+        Returns: undefined
+      }
       upsert_rent_payment: {
         Args: {
           p_amount: number

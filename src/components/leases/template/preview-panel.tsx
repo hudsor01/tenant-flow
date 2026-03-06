@@ -64,7 +64,7 @@ export function PreviewPanel({ html }: PreviewPanelProps) {
 			</CardHeader>
 			<CardContent>
 				<div
-					className="prose max-w-none rounded-lg border bg-white p-6 text-sm shadow-inner"
+					className="prose max-w-none rounded-lg border bg-background p-6 text-sm shadow-inner"
 					dangerouslySetInnerHTML={{ __html: sanitizedHtml }}
 				/>
 			</CardContent>

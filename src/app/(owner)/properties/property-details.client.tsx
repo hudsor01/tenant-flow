@@ -55,13 +55,13 @@ export function PropertyDetails({ property }: PropertyDetailsProps) {
 	const getStatusBadgeClass = (status: string | null) => {
 		switch (status?.toLowerCase()) {
 			case 'active':
-				return 'bg-green-100 text-green-700 dark:bg-green-500/20 dark:text-green-400'
+				return 'bg-success/10 text-success'
 			case 'inactive':
-				return 'bg-gray-100 text-gray-700 dark:bg-gray-500/20 dark:text-gray-400'
+				return 'bg-muted text-muted-foreground'
 			case 'sold':
-				return 'bg-blue-100 text-blue-700 dark:bg-blue-500/20 dark:text-blue-400'
+				return 'bg-info/10 text-info'
 			default:
-				return 'bg-green-100 text-green-700 dark:bg-green-500/20 dark:text-green-400'
+				return 'bg-success/10 text-success'
 		}
 	}
 

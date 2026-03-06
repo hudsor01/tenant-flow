@@ -69,7 +69,8 @@ export const DEFAULT_USER: User = {
 	identity_verification_data: null,
 	identity_verification_error: null,
 	onboarding_completed_at: null,
-	onboarding_status: 'not_started'
+	onboarding_status: 'not_started',
+	deletion_requested_at: null
 }
 
 /**
