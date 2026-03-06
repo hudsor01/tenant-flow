@@ -71,13 +71,22 @@ Deno.serve(async (req: Request) => {
     }
 
     // -------------------------------------------------------------------------
-    // 2. Resolve tenant record from authenticated user
+    // 2-4. Parallel: tenant, rent_due, and duplicate check are independent
     // -------------------------------------------------------------------------
-    const { data: tenant, error: tenantError } = await supabase
-      .from('tenants')
-      .select('id, stripe_customer_id')
-      .eq('user_id', user.id)
-      .maybeSingle()
+    const [tenantResult, rentDueResult, duplicateResult] = await Promise.all([
+      // Step 2: Resolve tenant from authenticated user
+      supabase.from('tenants').select('id, stripe_customer_id')
+        .eq('user_id', user.id).maybeSingle(),
+      // Step 3: Validate rent_due record
+      supabase.from('rent_due').select('id, amount, due_date, lease_id, unit_id, status')
+        .eq('id', rentDueId).maybeSingle(),
+      // Step 4: Duplicate payment check
+      supabase.from('rent_payments').select('id')
+        .eq('rent_due_id', rentDueId).eq('status', 'succeeded').maybeSingle(),
+    ])
+
+    // Handle tenant result
+    const { data: tenant, error: tenantError } = tenantResult
 
     if (tenantError) {
       console.error('Error resolving tenant:', tenantError.message)
@@ -94,14 +103,8 @@ Deno.serve(async (req: Request) => {
       )
     }
 
-    // -------------------------------------------------------------------------
-    // 3. Validate rent_due record
-    // -------------------------------------------------------------------------
-    const { data: rentDue, error: rentDueError } = await supabase
-      .from('rent_due')
-      .select('id, amount, due_date, lease_id, unit_id, status')
-      .eq('id', rentDueId)
-      .maybeSingle()
+    // Handle rent_due result
+    const { data: rentDue, error: rentDueError } = rentDueResult
 
     if (rentDueError) {
       console.error('Error fetching rent_due:', rentDueError.message)
@@ -125,15 +128,8 @@ Deno.serve(async (req: Request) => {
       )
     }
 
-    // -------------------------------------------------------------------------
-    // 4. Duplicate payment check — prevent paying same rent_due twice
-    // -------------------------------------------------------------------------
-    const { data: existingPayment, error: dupError } = await supabase
-      .from('rent_payments')
-      .select('id')
-      .eq('rent_due_id', rentDueId)
-      .eq('status', 'succeeded')
-      .maybeSingle()
+    // Handle duplicate check result
+    const { data: existingPayment, error: dupError } = duplicateResult
 
     if (dupError) {
       console.error('Error checking duplicate payment:', dupError.message)
@@ -202,13 +198,20 @@ Deno.serve(async (req: Request) => {
     const tenantAmount = Number((rentDue.amount * responsibilityPercentage / 100).toFixed(2))
 
     // -------------------------------------------------------------------------
-    // 6. Resolve connected account for the property owner
+    // 6+9. Parallel: connected account and unit lookup both depend on lease
     // -------------------------------------------------------------------------
-    const { data: connectedAccount, error: connectedError } = await supabase
-      .from('stripe_connected_accounts')
-      .select('stripe_account_id, default_platform_fee_percent, charges_enabled')
-      .eq('user_id', lease.owner_user_id)
-      .maybeSingle()
+    const [connectedAccountResult, unitResult] = await Promise.all([
+      // Step 6: Connected account for the property owner
+      supabase.from('stripe_connected_accounts')
+        .select('stripe_account_id, default_platform_fee_percent, charges_enabled')
+        .eq('user_id', lease.owner_user_id).maybeSingle(),
+      // Step 9: Unit -> property_id
+      supabase.from('units').select('property_id')
+        .eq('id', lease.unit_id).maybeSingle(),
+    ])
+
+    // Handle connected account result
+    const { data: connectedAccount, error: connectedError } = connectedAccountResult
 
     if (connectedError) {
       console.error('Error fetching connected account:', connectedError.message)
@@ -242,14 +245,8 @@ Deno.serve(async (req: Request) => {
     const platformFeePercent = connectedAccount.default_platform_fee_percent ?? 5
     const applicationFeeCents = Math.round(amountCents * platformFeePercent / 100)
 
-    // -------------------------------------------------------------------------
-    // 9. Resolve property_id from unit
-    // -------------------------------------------------------------------------
-    const { data: unit, error: unitError } = await supabase
-      .from('units')
-      .select('property_id')
-      .eq('id', lease.unit_id)
-      .maybeSingle()
+    // Handle unit result
+    const { data: unit, error: unitError } = unitResult
 
     if (unitError) {
       console.error('Error fetching unit:', unitError.message)
