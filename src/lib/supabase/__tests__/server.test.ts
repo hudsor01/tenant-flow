@@ -1,0 +1,167 @@
+import { describe, it, expect, vi, beforeEach } from 'vitest'
+
+// ── Hoisted mocks ──────────────────────────────────────────
+
+const { mockCreateServerClient } = vi.hoisted(() => ({
+	mockCreateServerClient: vi.fn(() => ({
+		auth: { getUser: vi.fn() },
+		from: vi.fn(),
+	})),
+}))
+
+const { mockCookieStore } = vi.hoisted(() => ({
+	mockCookieStore: {
+		getAll: vi.fn(() => [
+			{ name: 'sb-token', value: 'test-cookie-value' },
+		]),
+		set: vi.fn(),
+	},
+}))
+
+// ── Module mocks ───────────────────────────────────────────
+
+vi.mock('@supabase/ssr', () => ({
+	createServerClient: mockCreateServerClient,
+}))
+
+vi.mock('next/headers', () => ({
+	cookies: vi.fn(() => Promise.resolve(mockCookieStore)),
+}))
+
+vi.mock('#env', () => ({
+	env: {
+		NEXT_PUBLIC_SUPABASE_URL: 'http://localhost:54321',
+		NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: 'mock-anon-key',
+	},
+}))
+
+import { createClient } from '../server'
+
+// ── Tests ──────────────────────────────────────────────────
+
+describe('createClient (server)', () => {
+	beforeEach(() => {
+		vi.clearAllMocks()
+	})
+
+	it('creates a Supabase client with correct URL and key', async () => {
+		await createClient()
+
+		expect(mockCreateServerClient).toHaveBeenCalledOnce()
+		const [url, key] = mockCreateServerClient.mock.calls[0] as [
+			string,
+			string,
+			Record<string, unknown>,
+		]
+		expect(url).toBe('http://localhost:54321')
+		expect(key).toBe('mock-anon-key')
+	})
+
+	it('returns a Supabase client object', async () => {
+		const client = await createClient()
+
+		expect(client).toBeDefined()
+		expect(client.auth).toBeDefined()
+	})
+
+	it('provides cookie adapter with getAll method', async () => {
+		await createClient()
+
+		const options = mockCreateServerClient.mock.calls[0]![2] as {
+			cookies: Record<string, unknown>
+		}
+		expect(options.cookies.getAll).toBeTypeOf('function')
+	})
+
+	it('provides cookie adapter with setAll method', async () => {
+		await createClient()
+
+		const options = mockCreateServerClient.mock.calls[0]![2] as {
+			cookies: Record<string, unknown>
+		}
+		expect(options.cookies.setAll).toBeTypeOf('function')
+	})
+
+	it('does NOT provide get/set/remove cookie methods (CLAUDE.md: getAll/setAll only)', async () => {
+		await createClient()
+
+		const options = mockCreateServerClient.mock.calls[0]![2] as {
+			cookies: Record<string, unknown>
+		}
+		// Per CLAUDE.md: "Use getAll/setAll cookie methods only. Never get/set/remove."
+		expect(options.cookies.get).toBeUndefined()
+		expect(options.cookies.set).toBeUndefined()
+		expect(options.cookies.remove).toBeUndefined()
+	})
+
+	it('getAll returns cookies from next/headers cookie store', async () => {
+		await createClient()
+
+		const options = mockCreateServerClient.mock.calls[0]![2] as {
+			cookies: { getAll: () => Array<{ name: string; value: string }> }
+		}
+		const cookies = options.cookies.getAll()
+
+		expect(cookies).toEqual([
+			{ name: 'sb-token', value: 'test-cookie-value' },
+		])
+		expect(mockCookieStore.getAll).toHaveBeenCalled()
+	})
+
+	it('setAll writes cookies to the cookie store without throwing', async () => {
+		await createClient()
+
+		const options = mockCreateServerClient.mock.calls[0]![2] as {
+			cookies: {
+				setAll: (
+					cookies: Array<{
+						name: string
+						value: string
+						options?: Record<string, unknown>
+					}>
+				) => void
+			}
+		}
+
+		// setAll should not throw even in Server Component context
+		expect(() =>
+			options.cookies.setAll([
+				{ name: 'sb-token', value: 'new-value', options: { path: '/' } },
+			])
+		).not.toThrow()
+
+		expect(mockCookieStore.set).toHaveBeenCalledWith(
+			'sb-token',
+			'new-value',
+			{ path: '/' }
+		)
+	})
+
+	it('setAll silently catches errors from Server Component context', async () => {
+		// Simulate Server Component context where cookies.set throws
+		mockCookieStore.set.mockImplementation(() => {
+			throw new Error('Cookies can only be modified in a Server Action or Route Handler')
+		})
+
+		await createClient()
+
+		const options = mockCreateServerClient.mock.calls[0]![2] as {
+			cookies: {
+				setAll: (
+					cookies: Array<{
+						name: string
+						value: string
+						options?: Record<string, unknown>
+					}>
+				) => void
+			}
+		}
+
+		// Should NOT throw -- the implementation catches this error
+		expect(() =>
+			options.cookies.setAll([
+				{ name: 'sb-token', value: 'new-value', options: { path: '/' } },
+			])
+		).not.toThrow()
+	})
+})

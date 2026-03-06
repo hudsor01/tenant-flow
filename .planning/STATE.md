@@ -26,9 +26,9 @@ See: .planning/PROJECT.md (updated 2026-03-04)
 ## Current Position
 
 Phase: 9 of 14 (Testing & CI Pipeline) -- IN PROGRESS
-Plan: 3 of 9 in current phase (09-03 complete)
-Status: Completed 09-03 (E2E config fix and suite trim)
-Last activity: 2026-03-06 — Fixed Playwright configs, created .env.test.example, trimmed E2E from 55 to 17 tests
+Plan: 6 of 9 in current phase (09-06 complete)
+Status: Completed 09-06 (RLS integration test gap fill)
+Last activity: 2026-03-06 — Added 7 RLS test files covering financial, notification, subscription, invitation tables + tenant isolation
 
 Progress: [████████░░] 79%
 
@@ -92,6 +92,7 @@ Progress: [████████░░] 79%
 | Phase 09 P08 | 14min | 2 tasks | 2 files |
 | Phase 09 P01 | 14min | 2 tasks | 3 files |
 | Phase 09 P07 | 15min | 2 tasks | 1 files |
+| Phase 09 P06 | 15min | 2 tasks | 8 files |
 
 ## Accumulated Context
 
@@ -234,6 +235,9 @@ Progress: [████████░░] 79%
 - [Phase 09]: E2E smoke uses continue-on-error: true (informational, does not block merge)
 - [Phase 09]: Gitleaks in pre-commit only, not CI (catches secrets before they reach repo)
 - [Phase 09]: Coverage enforcement local-only via lefthook --coverage flag (CI trusts local hooks)
+- [Phase 09]: getTenantTestCredentials returns null (not throwing) for graceful describe.skipIf pattern
+- [Phase 09]: Stripe schema subscriptions tested via .schema('stripe') with graceful error handling
+- [Phase 09]: payment_methods RLS uses tenant_id -- owner clients return empty results (valid behavior)
 
 ### Pending Todos
 
@@ -248,6 +252,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-06T22:40:43.114Z
-Stopped at: Completed 09-07-PLAN.md
-Resume file: None
+Last session: 2026-03-06T22:40:20Z
+Stopped at: Completed 09-06-PLAN.md
+Resume file: .planning/phases/09-testing-ci-pipeline/09-06-SUMMARY.md
