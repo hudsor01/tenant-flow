@@ -32,10 +32,12 @@ import {
 import {
 	useCreateLeaseMutation,
 	useUpdateLeaseMutation,
-	useDeleteLeaseMutation,
+	useDeleteLeaseMutation
+} from '../use-lease-mutations'
+import {
 	useTerminateLeaseMutation,
 	useRenewLeaseMutation
-} from '../use-lease-mutations'
+} from '../use-lease-lifecycle-mutations'
 import {
 	useSendLeaseForSignatureMutation,
 	useSignLeaseAsOwnerMutation,

@@ -67,12 +67,18 @@ const mockRenewLease = {
 	isPending: false
 }
 
-vi.mock('#hooks/api/use-lease-mutations', () => ({
+vi.mock('#hooks/api/use-lease-lifecycle-mutations', () => ({
+	useTerminateLeaseMutation: () => mockTerminateLease,
+	useRenewLeaseMutation: () => mockRenewLease,
+}))
+
+vi.mock('#hooks/api/use-lease-signature-mutations', () => ({
 	useSendLeaseForSignatureMutation: () => mockSendForSignature,
 	useResendSignatureRequestMutation: () => mockResendSignature,
 	useSignLeaseAsOwnerMutation: () => mockSignAsOwner,
-	useTerminateLeaseMutation: () => mockTerminateLease,
-	useRenewLeaseMutation: () => mockRenewLease,
+}))
+
+vi.mock('#hooks/api/use-lease-mutations', () => ({
 	useDeleteLeaseOptimisticMutation: (options?: {
 		onSuccess?: () => void
 		onError?: (error: Error) => void
