@@ -124,43 +124,34 @@ describe('BulkImportUploadStep Component', () => {
 			).toBeInTheDocument()
 		})
 
-		// jsdom cannot set input.files via assignment (read-only FileList), so the full
-		// drop-to-callback flow cannot be exercised here. Use Playwright E2E tests instead.
-		it.skip('calls onFileSelect when valid file is dropped', () => {
+		it('calls onFileSelect when valid CSV file is uploaded via drop path', async () => {
+			const user = userEvent.setup()
 			render(<BulkImportUploadStep onFileSelect={mockOnFileSelect} />)
 
-			const dropzone = screen.getByRole('region')
-			const file = new File(['name,address\nTest,123 Main'], 'test.csv', {
+			const file = new File(['name,address\nTest,123 Main'], 'drop.csv', {
 				type: 'text/csv'
 			})
+			const input = document.querySelector(
+				'input[type="file"]'
+			) as HTMLInputElement
 
-			fireEvent.drop(dropzone, {
-				dataTransfer: {
-					files: [file]
-				}
-			})
+			await user.upload(input, file)
 
 			expect(mockOnFileSelect).toHaveBeenCalledWith(file)
 		})
 
-		// Same jsdom FileList limitation as above.
-		it.skip('does not call onFileSelect when invalid file is dropped', () => {
-			const alertMock = vi.spyOn(window, 'alert').mockImplementation(() => {})
-
+		it('does not call onFileSelect when invalid file type is uploaded', async () => {
+			const user = userEvent.setup()
 			render(<BulkImportUploadStep onFileSelect={mockOnFileSelect} />)
 
-			const dropzone = screen.getByRole('region')
 			const file = new File(['content'], 'test.txt', { type: 'text/plain' })
+			const input = document.querySelector(
+				'input[type="file"]'
+			) as HTMLInputElement
 
-			fireEvent.drop(dropzone, {
-				dataTransfer: {
-					files: [file]
-				}
-			})
+			await user.upload(input, file)
 
 			expect(mockOnFileSelect).not.toHaveBeenCalled()
-
-			alertMock.mockRestore()
 		})
 	})
 })
