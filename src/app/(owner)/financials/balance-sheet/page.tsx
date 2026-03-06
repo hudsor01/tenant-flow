@@ -148,7 +148,7 @@ export default function BalanceSheetPage() {
 
 	if (error) {
 		return (
-			<BalanceSheetError error={error} onRetry={() => void refetch()} />
+			<BalanceSheetError error={error} onRetryAction={() => void refetch()} />
 		)
 	}
 

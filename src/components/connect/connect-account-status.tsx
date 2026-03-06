@@ -54,7 +54,7 @@ export function ConnectAccountStatus({
 	const handleOpenDashboard = async () => {
 		setIsOpeningDashboard(true)
 		try {
-			// TODO(phase-55): Replace with stripe-connect Edge Function dashboard-link action
+			// TODO: Replace with stripe-connect Edge Function dashboard-link action
 			// Stripe dashboard login link requires an Edge Function — pending Phase 55
 			toast.info('Stripe Dashboard access is coming soon.')
 		} finally {

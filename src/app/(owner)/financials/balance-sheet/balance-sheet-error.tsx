@@ -4,10 +4,10 @@ import { CreditCard } from 'lucide-react'
 
 export function BalanceSheetError({
 	error,
-	onRetry
+	onRetryAction
 }: {
 	error: unknown
-	onRetry: () => void
+	onRetryAction: () => void
 }) {
 	return (
 		<div className="p-6 lg:p-8 bg-background min-h-full">
@@ -22,7 +22,7 @@ export function BalanceSheetError({
 					{error instanceof Error ? error.message : 'An error occurred'}
 				</p>
 				<button
-					onClick={onRetry}
+					onClick={onRetryAction}
 					className="inline-flex items-center gap-2 px-6 py-3 bg-primary hover:bg-primary/90 text-primary-foreground font-medium rounded-md transition-colors"
 				>
 					Try Again
