@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: Production Hardening
 status: completed
-stopped_at: Completed 06-01-PLAN.md
-last_updated: "2026-03-06T01:11:42.428Z"
-last_activity: 2026-03-06 — Consolidated trigger functions, added NOT NULL/FK/column constraints
+stopped_at: Completed 06-02-PLAN.md
+last_updated: "2026-03-06T01:12:52.545Z"
+last_activity: 2026-03-06 — Added documents.owner_user_id, rewrote RLS + 3 broken RPCs
 progress:
   total_phases: 11
   completed_phases: 5
   total_plans: 42
-  completed_plans: 32
-  percent: 76
+  completed_plans: 33
+  percent: 79
 ---
 
 # Project State: TenantFlow
@@ -26,11 +26,11 @@ See: .planning/PROJECT.md (updated 2026-03-04)
 ## Current Position
 
 Phase: 6 of 9 (Database Schema & Migrations)
-Plan: 2 of 5 in current phase (06-01 complete)
-Status: Completed 06-01 (Trigger consolidation + schema constraints)
-Last activity: 2026-03-06 — Consolidated trigger functions, added NOT NULL/FK/column constraints
+Plan: 3 of 5 in current phase (06-02 complete)
+Status: Completed 06-02 (Documents owner column + leases column cleanup)
+Last activity: 2026-03-06 — Added documents.owner_user_id, rewrote RLS + 3 broken RPCs
 
-Progress: [████████░░] 76%
+Progress: [████████░░] 79%
 
 ## Performance Metrics
 
@@ -70,6 +70,7 @@ Progress: [████████░░] 76%
 | Phase 05 P10 | 7min | 2 tasks | 22 files |
 | Phase 06 P00 | 4min | 1 tasks | 3 files |
 | Phase 06 P01 | 6min | 2 tasks | 3 files |
+| Phase 06 P02 | 8min | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -154,6 +155,10 @@ Progress: [████████░░] 76%
 - [Phase 06]: DB-01: ON DELETE CASCADE for activity.user_id (activity meaningless without user, GDPR handles cleanup)
 - [Phase 06]: DB-11: ON DELETE SET NULL for blogs.author_user_id (blog content survives author deletion)
 - [Phase 06]: Moved rls-tests from pre-commit to pre-push (Supabase auth rate limiting prevention)
+- [Phase 06]: documents.owner_user_id ON DELETE SET NULL (GDPR handles cleanup)
+- [Phase 06]: Tenant document access limited to lease-type documents only
+- [Phase 06]: get_current_property_owner_id() dropped (no remaining references)
+- [Phase 06]: 3 RPCs use p_user_id directly (no property_owners table lookup)
 
 ### Pending Todos
 
@@ -168,6 +173,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-06T01:11:42.426Z
-Stopped at: Completed 06-01-PLAN.md
+Last session: 2026-03-06T01:12:52.543Z
+Stopped at: Completed 06-02-PLAN.md
 Resume file: None

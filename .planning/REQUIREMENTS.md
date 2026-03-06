@@ -114,7 +114,7 @@ All 131 findings from the review, plus CLAUDE.md maintenance.
 
 - [x] **DB-01**: `activity` table `user_id` gets NOT NULL + FK constraint
 - [x] **DB-02**: `documents` table gets `owner_user_id` column + authenticated RLS policies
-- [ ] **DB-03**: `leases` table dual-column (`property_owner_id` + `owner_user_id`) cleaned up — single column
+- [x] **DB-03**: `leases` table dual-column (`property_owner_id` + `owner_user_id`) cleaned up — single column
 - [x] **DB-04**: GDPR soft-delete on `users` enforced on related tables (properties, leases, etc.)
 - [ ] **DB-05**: `expire-leases` cron rewritten as named function with `FOR UPDATE SKIP LOCKED` and error handling
 - [ ] **DB-06**: `cleanup_old_security_events` cron job scheduled
@@ -311,7 +311,7 @@ All 131 findings from the review, plus CLAUDE.md maintenance.
 | CODE-22 | Phase 5 | Complete |
 | DB-01 | Phase 6 | Complete |
 | DB-02 | Phase 6 | Complete |
-| DB-03 | Phase 6 | Pending |
+| DB-03 | Phase 6 | Complete |
 | DB-04 | Phase 6 | Complete |
 | DB-05 | Phase 6 | Pending |
 | DB-06 | Phase 6 | Pending |
