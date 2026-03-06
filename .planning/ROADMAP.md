@@ -16,7 +16,7 @@ TenantFlow is a multi-tenant property management SaaS platform for property owne
 - [x] **Phase 3: Auth & Middleware** - Register middleware, enforce role-based routing, fix session validation and auth flows
 - [ ] **Phase 4: Edge Function Hardening** - Add env validation, rate limiting, input escaping, CSP, and version alignment
 - [ ] **Phase 5: Code Quality & Type Safety** - Remove type assertions, fix query keys, consolidate duplicates, split oversized files
-- [ ] **Phase 6: Database Schema & Migrations** - Fix constraints, RLS gaps, cron jobs, and schema inconsistencies
+- [x] **Phase 6: Database Schema & Migrations** - Fix constraints, RLS gaps, cron jobs, and schema inconsistencies (completed 2026-03-06)
 - [ ] **Phase 7: UX & Accessibility** - Fix text-muted visibility, add aria-labels, error boundaries, and responsive fixes
 - [ ] **Phase 8: Performance Optimization** - Parallelize waterfalls, code-split charts, consolidate redundant queries
 - [ ] **Phase 9: Testing & CI Pipeline** - Add next build to CI, coverage enforcement, Edge Function tests, RLS test gaps
@@ -204,7 +204,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8 -> 9
 | 3. Auth & Middleware | v1.0 | 6/6 | Complete | 2026-03-05 |
 | 4. Edge Function Hardening | v1.0 | 4/4 | Complete | 2026-03-05 |
 | 5. Code Quality & Type Safety | 9/10 | In Progress|  | - |
-| 6. Database Schema & Migrations | 4/5 | In Progress|  | - |
+| 6. Database Schema & Migrations | 5/5 | Complete   | 2026-03-06 | - |
 | 7. UX & Accessibility | v1.0 | 0/3 | Not started | - |
 | 8. Performance Optimization | v1.0 | 0/3 | Not started | - |
 | 9. Testing & CI Pipeline | v1.0 | 0/3 | Not started | - |
