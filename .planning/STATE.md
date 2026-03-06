@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: Production Hardening
-status: completed
-stopped_at: Phase 6 context gathered
-last_updated: "2026-03-06T00:36:44.349Z"
-last_activity: 2026-03-05 — Split 4 oversized mutation files into 10 domain-focused modules
+status: in-progress
+stopped_at: Completed 06-00-PLAN.md
+last_updated: "2026-03-06T01:09:31.992Z"
+last_activity: 2026-03-06 — Created Wave 0 RLS test stubs for activity, documents, GDPR
 progress:
   total_phases: 11
   completed_phases: 5
-  total_plans: 37
-  completed_plans: 30
-  percent: 91
+  total_plans: 42
+  completed_plans: 31
+  percent: 74
 ---
 
 # Project State: TenantFlow
@@ -21,16 +21,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-04)
 
 **Core value:** A landlord can add a property, invite a tenant, collect rent, and see their financials — without touching a spreadsheet or calling anyone.
-**Current focus:** v1.0 Production Hardening — Phase 5 execution in progress
+**Current focus:** v1.0 Production Hardening — Phase 6 execution in progress
 
 ## Current Position
 
-Phase: 5 of 9 (Code Quality & Type Safety)
-Plan: 10 of 10 in current phase (05-10 complete)
-Status: Completed 05-10 (Final mutation file splits -- CODE-11 fully satisfied)
-Last activity: 2026-03-05 — Split 4 oversized mutation files into 10 domain-focused modules
+Phase: 6 of 9 (Database Schema & Migrations)
+Plan: 1 of 5 in current phase (06-00 complete)
+Status: Completed 06-00 (Wave 0 RLS test stubs)
+Last activity: 2026-03-06 — Created Wave 0 RLS test stubs for activity, documents, GDPR
 
-Progress: [█████████░] 91%
+Progress: [███████░░░] 74%
 
 ## Performance Metrics
 
@@ -68,6 +68,7 @@ Progress: [█████████░] 91%
 | Phase 05 P08 | 14min | 2 tasks | 26 files |
 | Phase 05 P09 | 11min | 2 tasks | 16 files |
 | Phase 05 P10 | 7min | 2 tasks | 22 files |
+| Phase 06 P00 | 4min | 1 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -147,6 +148,7 @@ Progress: [█████████░] 91%
 - [Phase 05]: use-billing.ts re-exports billingKeys and billingQueries for backward-compatible import paths
 - [Phase 05]: callDocuSealEdgeFunction moved to use-lease-mutations.ts (only used by mutations)
 - [Phase 05]: callBillingEdgeFunction duplicated in use-billing-mutations.ts (mutations need it, not queries)
+- [Phase 06]: Followed established test pattern from leases.rls.test.ts for Wave 0 stubs
 
 ### Pending Todos
 
@@ -161,6 +163,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-06T00:36:44.346Z
-Stopped at: Phase 6 context gathered
-Resume file: .planning/phases/06-database-schema-migrations/06-CONTEXT.md
+Last session: 2026-03-06T01:09:31.990Z
+Stopped at: Completed 06-00-PLAN.md
+Resume file: None
