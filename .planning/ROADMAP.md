@@ -194,12 +194,18 @@ Plans:
   3. Critical Edge Functions (stripe-webhooks, stripe-rent-checkout, stripe-autopay-charge, tenant-invitation-accept) have unit tests
   4. RLS integration tests cover `rent_payments`, `payment_methods`, `documents`, `notifications` and run on every PR (not just weekly)
   5. Security scanning (gitleaks, trivy) runs in CI and blocks PRs with detected secrets or critical vulnerabilities
-**Plans**: TBD
+**Plans**: 9 plans
 
 Plans:
-- [ ] 09-01: TBD
-- [ ] 09-02: TBD
-- [ ] 09-03: TBD
+- [ ] 09-01-PLAN.md — CI pipeline: add next build, E2E smoke on main, RLS on every PR, gitleaks pre-commit, coverage enforcement
+- [ ] 09-02-PLAN.md — TypeScript strictness: enable noUnusedLocals, noUnusedParameters, isolatedModules, checkJs + fix all errors
+- [ ] 09-03-PLAN.md — E2E cleanup: fix stale Playwright configs, trim suite to 15-20 tests, create .env.test template
+- [ ] 09-04-PLAN.md — Shared validation & utility unit tests (auth, common, properties, tenants, maintenance, currency, api-error, optimistic-locking) + fix skipped tests
+- [ ] 09-05-PLAN.md — API route and Supabase client utility unit tests (attach-payment-method, getCachedUser, server.ts)
+- [ ] 09-06-PLAN.md — RLS integration tests for 7 table domains (rent_payments, payment_methods, notifications, notification_settings, subscriptions, tenant_invitations) + tenant-role isolation
+- [ ] 09-07-PLAN.md — Edge Function tests: stripe-webhooks + stripe-rent-checkout (Deno test runner)
+- [ ] 09-08-PLAN.md — Edge Function tests: stripe-autopay-charge + tenant-invitation-accept (Deno test runner)
+- [ ] 09-09-PLAN.md — CLAUDE.md update with Phase 9 testing and CI conventions
 
 ## Progress
 
@@ -215,5 +221,5 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8 -> 9
 | 5. Code Quality & Type Safety | v1.0 | 10/10 | Complete | 2026-03-06 |
 | 6. Database Schema & Migrations | v1.0 | 7/7 | Complete | 2026-03-06 |
 | 7. UX & Accessibility | v1.0 | 6/6 | Complete | 2026-03-06 |
-| 8. Performance Optimization | v1.0 | 5/7 | In Progress | - |
-| 9. Testing & CI Pipeline | v1.0 | 0/3 | Not started | - |
+| 8. Performance Optimization | v1.0 | 7/7 | Complete | 2026-03-06 |
+| 9. Testing & CI Pipeline | v1.0 | 0/9 | Not started | - |
