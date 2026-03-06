@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: Production Hardening
 status: completed
-stopped_at: Completed 06-05-PLAN.md
-last_updated: "2026-03-06T02:30:23.003Z"
-last_activity: 2026-03-06 — Added documents.owner_user_id, rewrote RLS + 3 broken RPCs
+stopped_at: Completed 06-06-PLAN.md
+last_updated: "2026-03-06T02:33:03.210Z"
+last_activity: 2026-03-06 — Replaced 5 GDPR it.todo() stubs with real integration tests against live DB
 progress:
   total_phases: 11
-  completed_phases: 5
+  completed_phases: 6
   total_plans: 44
-  completed_plans: 36
-  percent: 82
+  completed_plans: 37
+  percent: 84
 ---
 
 # Project State: TenantFlow
@@ -26,11 +26,11 @@ See: .planning/PROJECT.md (updated 2026-03-04)
 ## Current Position
 
 Phase: 6 of 9 (Database Schema & Migrations)
-Plan: 6 of 7 in current phase (06-05 complete)
-Status: Completed 06-05 (RLS test stub gap closure for activity + documents)
-Last activity: 2026-03-06 — Replaced 8 it.todo() stubs with real DB assertions for activity and documents RLS
+Plan: 7 of 7 in current phase (06-06 complete)
+Status: Completed 06-06 (GDPR anonymization integration tests)
+Last activity: 2026-03-06 — Replaced 5 GDPR it.todo() stubs with real integration tests against live DB
 
-Progress: [████████░░] 82%
+Progress: [████████░░] 84%
 
 ## Performance Metrics
 
@@ -72,6 +72,7 @@ Progress: [████████░░] 82%
 | Phase 06 P01 | 6min | 2 tasks | 3 files |
 | Phase 06 P02 | 8min | 2 tasks | 3 files |
 | Phase 06 P05 | 3min | 2 tasks | 2 files |
+| Phase 06 P06 | 4min | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -161,6 +162,8 @@ Progress: [████████░░] 82%
 - [Phase 06]: get_current_property_owner_id() dropped (no remaining references)
 - [Phase 06]: 3 RPCs use p_user_id directly (no property_owners table lookup)
 - [Phase 06]: DB-01/DB-02: RLS test stubs replaced with 7 real DB assertions + 1 conditional skip for tenant access
+- [Phase 06]: DB-04: Active-lease block test gracefully skips when ownerA has no active leases (cannot safely test without destroying test account)
+- [Phase 06]: Fixed migration 20260306170000: DROP FUNCTION before return type change (void->integer requires drop first in PostgreSQL)
 
 ### Pending Todos
 
@@ -175,6 +178,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-06T02:30:23.000Z
-Stopped at: Completed 06-05-PLAN.md
+Last session: 2026-03-06T02:31:17Z
+Stopped at: Completed 06-06-PLAN.md
 Resume file: None
