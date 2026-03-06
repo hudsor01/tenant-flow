@@ -10,8 +10,8 @@
 
 import { queryOptions } from '@tanstack/react-query'
 import { createClient } from '#lib/supabase/client'
-import { getCachedUser } from '#lib/supabase/get-cached-user'
 import { handlePostgrestError } from '#lib/postgrest-error-handler'
+import { resolveTenantId } from '../use-tenant-portal-keys'
 import { QUERY_CACHE_TIMES } from '#lib/constants/query-config'
 import type { PaginatedResponse } from '#shared/types/api-contracts'
 import type { MaintenanceRequest } from '#shared/types/core'
@@ -285,45 +285,35 @@ export const maintenanceQueries = {
 			}> => {
 				const supabase = createClient()
 
-				// Step 1: Get authenticated user
-				const user = await getCachedUser()
-				if (!user) throw new Error('Not authenticated')
-
-				// Step 2: Resolve tenant record — maintenance_requests.tenant_id
-				// references tenants.id (not auth.uid())
-				const { data: tenantRecord, error: tenantError } = await supabase
-					.from('tenants')
-					.select('id')
-					.eq('user_id', user.id)
-					.single()
-
-				if (tenantError || !tenantRecord) {
+				// Use shared tenant ID resolution
+				const tenantId = await resolveTenantId()
+				if (!tenantId) {
 					return { requests: [], total: 0, open: 0, inProgress: 0, completed: 0 }
 				}
 
-				// Step 3: Parallel queries for paginated list + DB-level counts
+				// Parallel queries for paginated list + DB-level counts
 				const [requestsResult, openResult, inProgressResult, completedResult] =
 					await Promise.all([
 						supabase
 							.from('maintenance_requests')
 							.select(MAINTENANCE_SELECT_COLUMNS, { count: 'exact' })
-							.eq('tenant_id', tenantRecord.id)
+							.eq('tenant_id', tenantId)
 							.order('created_at', { ascending: false })
 							.limit(50),
 						supabase
 							.from('maintenance_requests')
 							.select('id', { count: 'exact', head: true })
-							.eq('tenant_id', tenantRecord.id)
+							.eq('tenant_id', tenantId)
 							.eq('status', 'open'),
 						supabase
 							.from('maintenance_requests')
 							.select('id', { count: 'exact', head: true })
-							.eq('tenant_id', tenantRecord.id)
+							.eq('tenant_id', tenantId)
 							.eq('status', 'in_progress'),
 						supabase
 							.from('maintenance_requests')
 							.select('id', { count: 'exact', head: true })
-							.eq('tenant_id', tenantRecord.id)
+							.eq('tenant_id', tenantId)
 							.eq('status', 'completed')
 					])
 

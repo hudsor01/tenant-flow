@@ -14,7 +14,6 @@ import {
 	useQueryClient
 } from '@tanstack/react-query'
 import { createClient } from '#lib/supabase/client'
-import { getCachedUser } from '#lib/supabase/get-cached-user'
 import { handlePostgrestError } from '#lib/postgrest-error-handler'
 import { requireOwnerUserId } from '#lib/require-owner-user-id'
 import { mutationKeys } from './mutation-keys'
@@ -28,7 +27,7 @@ import type {
 	MaintenanceCategory,
 	MaintenancePriority
 } from '#shared/types/core'
-import { tenantPortalKeys } from './use-tenant-portal-keys'
+import { tenantPortalKeys, resolveTenantId } from './use-tenant-portal-keys'
 
 // ============================================================================
 // TYPES
@@ -77,25 +76,14 @@ export const tenantMaintenanceQueries = {
 				summary: TenantMaintenanceStats
 			}> => {
 				const supabase = createClient()
-				const user = await getCachedUser()
-				if (!user)
+
+				// Use shared tenant ID resolution
+				const tenantId = await resolveTenantId()
+				if (!tenantId)
 					return {
 						requests: [],
 						summary: { total: 0, open: 0, inProgress: 0, completed: 0 }
 					}
-
-				const { data: tenantRecord } = await supabase
-					.from('tenants')
-					.select('id')
-					.eq('user_id', user.id)
-					.single()
-
-				if (!tenantRecord) {
-					return {
-						requests: [],
-						summary: { total: 0, open: 0, inProgress: 0, completed: 0 }
-					}
-				}
 
 				// Parallel queries: paginated list + DB-level counts (no JS filtering)
 				const [requestsResult, openResult, inProgressResult, completedResult] =
@@ -106,23 +94,23 @@ export const tenantMaintenanceQueries = {
 								'id, title, description, priority, status, created_at, updated_at, completed_at, unit_id, requested_by',
 								{ count: 'exact' }
 							)
-							.eq('tenant_id', tenantRecord.id)
+							.eq('tenant_id', tenantId)
 							.order('created_at', { ascending: false })
 							.limit(50),
 						supabase
 							.from('maintenance_requests')
 							.select('id', { count: 'exact', head: true })
-							.eq('tenant_id', tenantRecord.id)
+							.eq('tenant_id', tenantId)
 							.in('status', ['open', 'assigned']),
 						supabase
 							.from('maintenance_requests')
 							.select('id', { count: 'exact', head: true })
-							.eq('tenant_id', tenantRecord.id)
+							.eq('tenant_id', tenantId)
 							.in('status', ['in_progress', 'needs_reassignment']),
 						supabase
 							.from('maintenance_requests')
 							.select('id', { count: 'exact', head: true })
-							.eq('tenant_id', tenantRecord.id)
+							.eq('tenant_id', tenantId)
 							.eq('status', 'completed')
 					])
 
@@ -175,24 +163,17 @@ export function useMaintenanceRequestCreateMutation() {
 		mutationKey: mutationKeys.tenantPortal.createMaintenanceRequest,
 		mutationFn: async (request: MaintenanceRequestCreate) => {
 			const supabase = createClient()
-			const user = await getCachedUser()
-			if (!user) throw new Error('Not authenticated')
 
-			const { data: tenantRecord, error: tenantError } = await supabase
-				.from('tenants')
-				.select('id')
-				.eq('user_id', user.id)
-				.single()
-
-			if (tenantError || !tenantRecord)
-				throw new Error('Tenant record not found')
+			// Use shared tenant ID resolution
+			const tenantId = await resolveTenantId()
+			if (!tenantId) throw new Error('Tenant record not found')
 
 			const { data: lease, error: leaseError } = await supabase
 				.from('leases')
 				.select(
 					'id, unit_id, owner_user_id, lease_tenants!inner(tenant_id)'
 				)
-				.eq('lease_tenants.tenant_id', tenantRecord.id)
+				.eq('lease_tenants.tenant_id', tenantId)
 				.eq('lease_status', 'active')
 				.single()
 
@@ -207,7 +188,7 @@ export function useMaintenanceRequestCreateMutation() {
 					description: request.description,
 					priority: request.priority,
 					status: 'open',
-					tenant_id: tenantRecord.id,
+					tenant_id: tenantId,
 					unit_id: leaseData.unit_id as string,
 					owner_user_id: requireOwnerUserId(leaseData.owner_user_id as string | undefined)
 				})

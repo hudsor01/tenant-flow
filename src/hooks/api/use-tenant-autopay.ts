@@ -14,13 +14,12 @@ import {
 	useQueryClient
 } from '@tanstack/react-query'
 import { createClient } from '#lib/supabase/client'
-import { getCachedUser } from '#lib/supabase/get-cached-user'
 import { handlePostgrestError } from '#lib/postgrest-error-handler'
 import { handleMutationError, handleMutationSuccess } from '#lib/mutation-error-handler'
 import { mutationKeys } from './mutation-keys'
 import { QUERY_CACHE_TIMES } from '#lib/constants/query-config'
 import { DEFAULT_RETRY_ATTEMPTS } from '#shared/types/api-contracts'
-import { tenantPortalKeys } from './use-tenant-portal-keys'
+import { tenantPortalKeys, resolveTenantId } from './use-tenant-portal-keys'
 
 // ============================================================================
 // TYPES
@@ -50,23 +49,17 @@ export const tenantAutopayQueries = {
 			queryKey: tenantPortalKeys.autopay.all(),
 			queryFn: async (): Promise<TenantAutopayStatus> => {
 				const supabase = createClient()
-				const user = await getCachedUser()
-				if (!user) throw new Error('Not authenticated')
 
-				const { data: tenantRecord } = await supabase
-					.from('tenants')
-					.select('id')
-					.eq('user_id', user.id)
-					.single()
-
-				if (!tenantRecord) {
+				// Use shared tenant ID resolution
+				const tenantId = await resolveTenantId()
+				if (!tenantId) {
 					return { autopayEnabled: false, subscriptionId: null }
 				}
 
 				const { data: lease } = await supabase
 					.from('leases')
 					.select('id, auto_pay_enabled, autopay_payment_method_id, stripe_subscription_id, rent_amount, payment_day, lease_tenants!inner(tenant_id)')
-					.eq('lease_tenants.tenant_id', tenantRecord.id)
+					.eq('lease_tenants.tenant_id', tenantId)
 					.eq('lease_status', 'active')
 					.single()
 
@@ -101,7 +94,7 @@ export const tenantAutopayQueries = {
 					autopayEnabled: !!lease.auto_pay_enabled,
 					subscriptionId: lease.stripe_subscription_id,
 					lease_id: lease.id,
-					tenant_id: tenantRecord.id,
+					tenant_id: tenantId,
 					rent_amount: lease.rent_amount,
 					nextPaymentDate,
 					paymentMethodId: pmId,

@@ -12,11 +12,10 @@ import {
 	useQuery
 } from '@tanstack/react-query'
 import { createClient } from '#lib/supabase/client'
-import { getCachedUser } from '#lib/supabase/get-cached-user'
 import { handlePostgrestError } from '#lib/postgrest-error-handler'
 import { QUERY_CACHE_TIMES } from '#lib/constants/query-config'
 import { DEFAULT_RETRY_ATTEMPTS } from '#shared/types/api-contracts'
-import { tenantPortalKeys } from './use-tenant-portal-keys'
+import { tenantPortalKeys, resolveTenantId } from './use-tenant-portal-keys'
 
 // ============================================================================
 // TYPES
@@ -73,23 +72,17 @@ export const tenantLeaseQueries = {
 			queryKey: tenantPortalKeys.dashboard(),
 			queryFn: async () => {
 				const supabase = createClient()
-				const user = await getCachedUser()
-				if (!user) throw new Error('Not authenticated')
 
-				const { data: tenantRecord } = await supabase
-					.from('tenants')
-					.select('id')
-					.eq('user_id', user.id)
-					.single()
-
-				if (!tenantRecord) return { lease: null, stats: {} }
+				// Use shared tenant ID resolution
+				const tenantId = await resolveTenantId()
+				if (!tenantId) return { lease: null, stats: {} }
 
 				const { data, error } = await supabase
 					.from('leases')
 					.select(
 						'id, start_date, end_date, rent_amount, lease_status, units!inner(unit_number, property_id, properties!inner(name, address_line1, city, state, postal_code)), lease_tenants!inner(tenant_id, responsibility_percentage)'
 					)
-					.eq('lease_tenants.tenant_id', tenantRecord.id)
+					.eq('lease_tenants.tenant_id', tenantId)
 					.eq('lease_status', 'active')
 					.single()
 
@@ -106,23 +99,17 @@ export const tenantLeaseQueries = {
 			queryKey: tenantPortalKeys.leases.all(),
 			queryFn: async (): Promise<TenantLease | null> => {
 				const supabase = createClient()
-				const user = await getCachedUser()
-				if (!user) throw new Error('Not authenticated')
 
-				const { data: tenantRecord } = await supabase
-					.from('tenants')
-					.select('id')
-					.eq('user_id', user.id)
-					.single()
-
-				if (!tenantRecord) return null
+				// Use shared tenant ID resolution
+				const tenantId = await resolveTenantId()
+				if (!tenantId) return null
 
 				const { data, error } = await supabase
 					.from('leases')
 					.select(
 						'id, start_date, end_date, rent_amount, security_deposit, lease_status, stripe_subscription_id, lease_document_url, created_at, owner_signed_at, tenant_signed_at, sent_for_signature_at, units!inner(id, unit_number, bedrooms, bathrooms, properties!inner(id, name, address_line1, city, state, postal_code)), lease_tenants!inner(tenant_id)'
 					)
-					.eq('lease_tenants.tenant_id', tenantRecord.id)
+					.eq('lease_tenants.tenant_id', tenantId)
 					.eq('lease_status', 'active')
 					.single()
 
@@ -211,21 +198,15 @@ export const tenantLeaseQueries = {
 			queryKey: tenantPortalKeys.documents.all(),
 			queryFn: async (): Promise<{ documents: TenantDocument[] }> => {
 				const supabase = createClient()
-				const user = await getCachedUser()
-				if (!user) throw new Error('Not authenticated')
 
-				const { data: tenantRecord } = await supabase
-					.from('tenants')
-					.select('id')
-					.eq('user_id', user.id)
-					.single()
-
-				if (!tenantRecord) return { documents: [] }
+				// Use shared tenant ID resolution
+				const tenantId = await resolveTenantId()
+				if (!tenantId) return { documents: [] }
 
 				const { data, error } = await supabase
 					.from('leases')
 					.select('id, lease_document_url, created_at, lease_tenants!inner(tenant_id)')
-					.eq('lease_tenants.tenant_id', tenantRecord.id)
+					.eq('lease_tenants.tenant_id', tenantId)
 					.eq('lease_status', 'active')
 					.single()
 
