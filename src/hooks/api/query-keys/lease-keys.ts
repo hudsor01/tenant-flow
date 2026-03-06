@@ -224,58 +224,25 @@ export const leaseQueries = {
 			queryKey: [...leaseQueries.all(), 'stats'],
 			queryFn: async (): Promise<LeaseStatsResponse> => {
 				const supabase = createClient()
+				const user = await getCachedUser()
+				if (!user) throw new Error('Not authenticated')
 
-				const [totalResult, activeResult, expiredResult, terminatedResult, rentResult, expiringResult] =
-					await Promise.all([
-						supabase
-							.from('leases')
-							.select('id', { count: 'exact', head: true })
-							.neq('lease_status', 'inactive'),
-						supabase
-							.from('leases')
-							.select('id', { count: 'exact', head: true })
-							.eq('lease_status', 'active'),
-						supabase
-							.from('leases')
-							.select('id', { count: 'exact', head: true })
-							.eq('lease_status', 'ended'),
-						supabase
-							.from('leases')
-							.select('id', { count: 'exact', head: true })
-							.eq('lease_status', 'terminated'),
-						supabase
-							.from('leases')
-							.select('rent_amount, security_deposit')
-							.eq('lease_status', 'active'),
-						supabase
-							.from('leases')
-							.select('id', { count: 'exact', head: true })
-							.eq('lease_status', 'active')
-							.lte('end_date', new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString())
-							.gte('end_date', new Date().toISOString())
-					])
+				const { data, error } = await supabase.rpc('get_lease_stats', {
+					p_user_id: user.id,
+				})
 
-				if (totalResult.error) handlePostgrestError(totalResult.error, 'leases')
-				if (activeResult.error) handlePostgrestError(activeResult.error, 'leases')
-				if (expiredResult.error) handlePostgrestError(expiredResult.error, 'leases')
-				if (terminatedResult.error) handlePostgrestError(terminatedResult.error, 'leases')
-				if (rentResult.error) handlePostgrestError(rentResult.error, 'leases')
-				if (expiringResult.error) handlePostgrestError(expiringResult.error, 'leases')
+				if (error) handlePostgrestError(error, 'leases')
 
-				const activeLeases = rentResult.data as Array<{ rent_amount: number; security_deposit: number }> ?? []
-				const totalMonthlyRent = activeLeases.reduce((sum, l) => sum + (l.rent_amount ?? 0), 0)
-				const totalSecurityDeposits = activeLeases.reduce((sum, l) => sum + (l.security_deposit ?? 0), 0)
-				const averageRent = activeLeases.length > 0 ? totalMonthlyRent / activeLeases.length : 0
-
+				const stats = data as Record<string, number>
 				return {
-					totalLeases: totalResult.count ?? 0,
-					activeLeases: activeResult.count ?? 0,
-					expiredLeases: expiredResult.count ?? 0,
-					terminatedLeases: terminatedResult.count ?? 0,
-					totalMonthlyRent,
-					averageRent,
-					total_security_deposits: totalSecurityDeposits,
-					expiringLeases: expiringResult.count ?? 0
+					totalLeases: stats.totalLeases ?? 0,
+					activeLeases: stats.activeLeases ?? 0,
+					expiredLeases: stats.expiredLeases ?? 0,
+					terminatedLeases: stats.terminatedLeases ?? 0,
+					totalMonthlyRent: stats.totalMonthlyRent ?? 0,
+					averageRent: stats.averageRent ?? 0,
+					total_security_deposits: stats.total_security_deposits ?? 0,
+					expiringLeases: stats.expiringLeases ?? 0,
 				}
 			},
 			...QUERY_CACHE_TIMES.STATS
