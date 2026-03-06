@@ -142,12 +142,12 @@ All 131 findings from the review, plus CLAUDE.md maintenance.
 - [x] **UX-13**: Custom toggle switches replaced with shadcn Switch component
 - [x] **UX-14**: `not-found.tsx` added for dynamic routes (leases/[id], tenants/[id], maintenance/[id], inspections/[id], units/[id])
 - [x] **UX-15**: `error.tsx` added for `(auth)`, `auth/`, `blog/`, `pricing/` route groups
-- [ ] **UX-16**: Page metadata/titles exported from all owner and tenant pages
-- [ ] **UX-17**: Unsaved form data protection (`beforeunload` on multi-step forms)
+- [x] **UX-16**: Page metadata/titles exported from all owner and tenant pages
+- [x] **UX-17**: Unsaved form data protection (`beforeunload` on multi-step forms)
 - [x] **UX-18**: Kanban board responsive columns (not fixed 300px/220px requiring 1500px+ viewport)
 - [x] **UX-19**: Breadcrumbs visible on mobile (not `hidden sm:flex`)
 - [x] **UX-20**: Mobile sidebar overlay keyboard-accessible (Escape key handler, focus management)
-- [ ] **UX-21**: `autoFocus` on primary form inputs (login email, property name, etc.)
+- [x] **UX-21**: `autoFocus` on primary form inputs (login email, property name, etc.)
 - [x] **UX-22**: Login page Suspense fallback styled (not plain "Loading..." text)
 - [x] **UX-23**: `pb-24` bottom padding on owner shell conditional to mobile only (not desktop)
 - [x] **UX-24**: Consistent empty state component usage across all list pages
@@ -336,12 +336,12 @@ All 131 findings from the review, plus CLAUDE.md maintenance.
 | UX-13 | Phase 7 | Complete |
 | UX-14 | Phase 7 | Complete |
 | UX-15 | Phase 7 | Complete |
-| UX-16 | Phase 7 | Pending |
-| UX-17 | Phase 7 | Pending |
+| UX-16 | Phase 7 | Complete |
+| UX-17 | Phase 7 | Complete |
 | UX-18 | Phase 7 | Complete |
 | UX-19 | Phase 7 | Complete |
 | UX-20 | Phase 7 | Complete |
-| UX-21 | Phase 7 | Pending |
+| UX-21 | Phase 7 | Complete |
 | UX-22 | Phase 7 | Complete |
 | UX-23 | Phase 7 | Complete |
 | UX-24 | Phase 7 | Complete |
