@@ -23,7 +23,7 @@ export function PortalFeatureGrid() {
 					</div>
 					<div>
 						<h5 className="font-bold text-foreground">Payment Management</h5>
-						<p className="text-muted">Update cards & billing info</p>
+						<p className="text-muted-foreground">Update cards & billing info</p>
 					</div>
 				</div>
 				<div className="flex-between">
@@ -41,7 +41,7 @@ export function PortalFeatureGrid() {
 					</div>
 					<div>
 						<h5 className="font-bold text-foreground">Invoices & Receipts</h5>
-						<p className="text-muted">Download & track payments</p>
+						<p className="text-muted-foreground">Download & track payments</p>
 					</div>
 				</div>
 				<div className="flex-between">
@@ -59,7 +59,7 @@ export function PortalFeatureGrid() {
 					</div>
 					<div>
 						<h5 className="font-bold text-foreground">Usage Reports</h5>
-						<p className="text-muted">Analytics & insights</p>
+						<p className="text-muted-foreground">Analytics & insights</p>
 					</div>
 				</div>
 				<div className="flex-between">
@@ -77,7 +77,7 @@ export function PortalFeatureGrid() {
 					</div>
 					<div>
 						<h5 className="font-bold text-foreground">Plan Management</h5>
-						<p className="text-muted">Upgrade, downgrade or cancel</p>
+						<p className="text-muted-foreground">Upgrade, downgrade or cancel</p>
 					</div>
 				</div>
 				<div className="flex-between">

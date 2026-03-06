@@ -100,7 +100,7 @@ export function StatsShowcase({ className }: StatsShowcaseProps) {
 										</div>
 
 										{/* Enhanced description */}
-										<div className="text-muted group-hover:text-foreground/80 transition-colors duration-300">
+										<div className="text-muted-foreground group-hover:text-foreground/80 transition-colors duration-300">
 											{stat.description}
 										</div>
 									</div>

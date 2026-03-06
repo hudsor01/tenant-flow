@@ -36,7 +36,7 @@ function CancelContent() {
 				</div>
 
 				<div className="mt-8 pt-6 border-t border-border">
-					<div className="flex-center space-x-2 text-muted">
+					<div className="flex-center space-x-2 text-muted-foreground">
 						<MessageCircle className="size-4" />
 						<span>Need help? Contact our support team</span>
 					</div>

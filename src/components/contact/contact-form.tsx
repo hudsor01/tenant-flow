@@ -253,7 +253,7 @@ export function ContactForm({ className = '' }: ContactFormProps) {
 					{/* Progress indicator */}
 					{!isHydrated && (
 						<div className="mb-4 p-3 bg-muted rounded-md">
-							<p className="text-muted">Restoring your progress...</p>
+							<p className="text-muted-foreground">Restoring your progress...</p>
 						</div>
 					)}
 
@@ -441,7 +441,7 @@ export function ContactForm({ className = '' }: ContactFormProps) {
 							{isSubmitting ? 'Sending...' : 'Send Message'}
 						</Button>
 
-						<p className="text-center text-muted">
+						<p className="text-center text-muted-foreground">
 							We typically respond within 4 hours during business hours
 						</p>
 					</form>

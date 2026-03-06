@@ -94,7 +94,7 @@ export default function TenantMaintenancePage() {
 					{!isLoading && !error && activeRequests.length === 0 && (
 						<div className="text-center section-spacing-compact bg-muted/30 rounded-lg border-2 border-dashed border-border/50">
 							<Wrench className="size-12 text-muted-foreground mx-auto mb-3" />
-							<p className="text-muted">No active maintenance requests</p>
+							<p className="text-muted-foreground">No active maintenance requests</p>
 							<p className="text-caption mt-1">
 								Submit a request if you need help with something
 							</p>
@@ -117,7 +117,7 @@ export default function TenantMaintenancePage() {
 								className="overflow-x-auto"
 							>
 								<div className="min-w-[720px] space-y-1">
-									<div className="grid grid-cols-5 gap-4 p-4 text-muted font-medium border-b">
+									<div className="grid grid-cols-5 gap-4 p-4 text-muted-foreground font-medium border-b">
 										<div>Description</div>
 										<div>Priority</div>
 										<div>Status</div>
@@ -175,7 +175,7 @@ export default function TenantMaintenancePage() {
 
 					{!isLoading && !error && completedRequests.length === 0 && (
 						<div className="text-center section-spacing-compact bg-muted/30 rounded-lg border-2 border-dashed border-border/50">
-							<p className="text-muted">No request history yet</p>
+							<p className="text-muted-foreground">No request history yet</p>
 						</div>
 					)}
 
@@ -195,7 +195,7 @@ export default function TenantMaintenancePage() {
 								className="overflow-x-auto"
 							>
 								<div className="min-w-[720px] space-y-1">
-									<div className="grid grid-cols-5 gap-4 p-4 text-muted font-medium border-b">
+									<div className="grid grid-cols-5 gap-4 p-4 text-muted-foreground font-medium border-b">
 										<div>Description</div>
 										<div>Priority</div>
 										<div>Status</div>

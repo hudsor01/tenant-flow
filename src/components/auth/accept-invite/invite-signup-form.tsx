@@ -226,7 +226,7 @@ export function InviteSignupForm({
 				</Button>
 
 				{/* Already have account */}
-				<p className="text-center text-muted">
+				<p className="text-center text-muted-foreground">
 					Already have an account?{' '}
 					<Link
 						href="/login"

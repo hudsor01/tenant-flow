@@ -203,7 +203,7 @@ function AutopayStatusCard({ isEnabled, isMutating, lease, autopayStatus, onTogg
 function InfoRow({ label, value }: { label: string; value: string }) {
 	return (
 		<div className="flex justify-between">
-			<span className="text-muted">{label}</span>
+			<span className="text-muted-foreground">{label}</span>
 			<span className="font-semibold">{value}</span>
 		</div>
 	)
@@ -291,7 +291,7 @@ function HowItWorksCard() {
 						</div>
 						<div>
 							<p className="font-medium">{step.title}</p>
-							<p className="text-muted">{step.desc}</p>
+							<p className="text-muted-foreground">{step.desc}</p>
 						</div>
 					</div>
 				))}

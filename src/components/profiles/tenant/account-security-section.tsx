@@ -24,7 +24,7 @@ export function AccountSecuritySection({
 						<Shield className="size-5 text-accent-main" />
 						<div>
 							<p className="font-medium">Password</p>
-							<p className="text-muted">
+							<p className="text-muted-foreground">
 								Last changed:{' '}
 								{lastSignInAt
 									? new Date(lastSignInAt).toLocaleDateString()

@@ -289,7 +289,7 @@ function ConfirmEmailContent() {
 									<p className="text-foreground font-medium">
 										Check your email inbox
 									</p>
-									<p className="text-muted">
+									<p className="text-muted-foreground">
 										Don&apos;t forget to check your spam folder
 									</p>
 								</div>
@@ -302,7 +302,7 @@ function ConfirmEmailContent() {
 									<p className="text-foreground font-medium">
 										Click the confirmation link
 									</p>
-									<p className="text-muted">The link expires in 24 hours</p>
+									<p className="text-muted-foreground">The link expires in 24 hours</p>
 								</div>
 							</li>
 							<li className="flex items-start gap-3">
@@ -313,7 +313,7 @@ function ConfirmEmailContent() {
 									<p className="text-foreground font-medium">
 										Start managing properties
 									</p>
-									<p className="text-muted">
+									<p className="text-muted-foreground">
 										You&apos;ll be redirected to your dashboard
 									</p>
 								</div>
@@ -323,7 +323,7 @@ function ConfirmEmailContent() {
 
 					{/* Actions */}
 					<div className="space-y-4">
-						<p className="text-muted text-center">
+						<p className="text-muted-foreground text-center">
 							Didn&apos;t receive the email?
 						</p>
 
@@ -356,7 +356,7 @@ function ConfirmEmailContent() {
 
 					{/* Support */}
 					<div className="pt-6 border-t border-border">
-						<p className="text-muted text-center">
+						<p className="text-muted-foreground text-center">
 							Need help?{' '}
 							<Link
 								href="mailto:support@tenantflow.app"

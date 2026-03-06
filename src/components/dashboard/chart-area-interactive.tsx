@@ -156,19 +156,19 @@ export function ChartAreaInteractive({
 			{/* Summary metrics */}
 			<div className="grid grid-cols-2 gap-4 p-6 pb-0 lg:grid-cols-4">
 				<div className="space-y-1">
-					<p className="text-muted">Total Revenue</p>
+					<p className="text-muted-foreground">Total Revenue</p>
 					<p className="typography-large text-success">
 						${totalRevenue.toLocaleString()}
 					</p>
 				</div>
 				<div className="space-y-1">
-					<p className="text-muted">Total Expenses</p>
+					<p className="text-muted-foreground">Total Expenses</p>
 					<p className="typography-large text-warning">
 						${totalExpenses.toLocaleString()}
 					</p>
 				</div>
 				<div className="space-y-1">
-					<p className="text-muted">Net Profit</p>
+					<p className="text-muted-foreground">Net Profit</p>
 					<p
 						className={cn(
 							'flex items-center gap-1 typography-large',
@@ -184,7 +184,7 @@ export function ChartAreaInteractive({
 					</p>
 				</div>
 				<div className="space-y-1">
-					<p className="text-muted">Profit Margin</p>
+					<p className="text-muted-foreground">Profit Margin</p>
 					<p
 						className={cn(
 							'typography-large',

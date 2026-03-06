@@ -11,7 +11,7 @@ export function PropertyImagesEditSection({
 	return (
 		<div className="space-y-4 border rounded-lg p-6">
 			<h3 className="typography-large">Property Images</h3>
-			<p className="text-muted">
+			<p className="text-muted-foreground">
 				Manage your property photos. First uploaded image appears on property
 				card.
 			</p>

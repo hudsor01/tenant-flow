@@ -79,7 +79,7 @@ export function PersonalInformationSection({
 						disabled
 						required
 					/>
-					<p className="text-muted mt-1">
+					<p className="text-muted-foreground mt-1">
 						Email cannot be changed. Contact support if needed.
 					</p>
 				</Field>

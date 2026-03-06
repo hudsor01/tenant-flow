@@ -132,7 +132,7 @@ export function PaymentMethodsTab() {
 					) : !hasPaymentMethods ? (
 						<div className="text-center py-8">
 							<CreditCard className="mx-auto size-12 text-muted-foreground mb-4" />
-							<p className="text-muted mb-4">No payment methods saved yet</p>
+							<p className="text-muted-foreground mb-4">No payment methods saved yet</p>
 							<Button
 								onClick={() => setShowAddDialog(true)}
 								variant="outline"
@@ -167,7 +167,7 @@ export function PaymentMethodsTab() {
 													)}
 												</div>
 												{display.details && (
-													<p className="text-muted">{display.details}</p>
+													<p className="text-muted-foreground">{display.details}</p>
 												)}
 											</div>
 										</div>

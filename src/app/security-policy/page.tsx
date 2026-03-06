@@ -12,7 +12,7 @@ export default function SecurityPolicyPage() {
 		<PageLayout>
 			<div className="mx-auto min-h-screen max-w-4xl px-6 section-spacing page-offset-navbar">
 				<h1 className="mb-8 typography-h1">Security Policy</h1>
-				<p className="mb-6 text-muted">Last Updated: February 27, 2026</p>
+				<p className="mb-6 text-muted-foreground">Last Updated: February 27, 2026</p>
 
 				<div className="prose prose-gray dark:prose-invert max-w-none">
 					<section className="mb-8">

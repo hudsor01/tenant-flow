@@ -162,7 +162,7 @@ export default function PostCheckoutPage() {
 						</AlertDescription>
 					</Alert>
 
-					<div className="space-y-3 text-muted">
+					<div className="space-y-3 text-muted-foreground">
 						<p>Click the link in your email to sign in to your dashboard.</p>
 						<p>The link will expire in 1 hour for security.</p>
 					</div>

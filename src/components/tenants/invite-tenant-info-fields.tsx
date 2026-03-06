@@ -107,7 +107,7 @@ export function InviteTenantInfoFields({ form }: InviteTenantInfoFieldsProps) {
 								placeholder="john.smith@example.com"
 							/>
 						</InputGroup>
-						<p className="text-muted">
+						<p className="text-muted-foreground">
 							Tenant will receive an invitation to access their portal
 						</p>
 						<FieldError errors={field.state.meta.errors} />

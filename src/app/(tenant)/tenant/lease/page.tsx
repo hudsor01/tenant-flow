@@ -115,7 +115,7 @@ export default function TenantLeasePage() {
 						<div className="flex items-center gap-3">
 							<Calendar className="size-5 text-accent-main" />
 							<div>
-								<p className="text-muted">Start Date</p>
+								<p className="text-muted-foreground">Start Date</p>
 								{isLoading || !lease ? (
 									<Skeleton className="h-5 w-28" />
 								) : (
@@ -128,7 +128,7 @@ export default function TenantLeasePage() {
 						<div className="flex items-center gap-3">
 							<Calendar className="size-5 text-accent-main" />
 							<div>
-								<p className="text-muted">End Date</p>
+								<p className="text-muted-foreground">End Date</p>
 								{isLoading || !lease ? (
 									<Skeleton className="h-5 w-28" />
 								) : (
@@ -151,7 +151,7 @@ export default function TenantLeasePage() {
 						<div className="flex items-center gap-3">
 							<DollarSign className="size-5 text-accent-main" />
 							<div>
-								<p className="text-muted">Monthly Rent</p>
+								<p className="text-muted-foreground">Monthly Rent</p>
 								{isLoading || !lease ? (
 									<Skeleton className="h-7 w-24" />
 								) : (
@@ -164,7 +164,7 @@ export default function TenantLeasePage() {
 						<div className="flex items-center gap-3">
 							<DollarSign className="size-5 text-accent-main" />
 							<div>
-								<p className="text-muted">Security Deposit</p>
+								<p className="text-muted-foreground">Security Deposit</p>
 								{isLoading || !lease ? (
 									<Skeleton className="h-5 w-24" />
 								) : (
@@ -188,7 +188,7 @@ export default function TenantLeasePage() {
 							<FileText className="size-5 text-accent-main" />
 							<div>
 								<p className="font-medium">Lease Agreement</p>
-								<p className="text-muted">
+								<p className="text-muted-foreground">
 								{lease?.start_date
 									? `Signed on ${formatDate(lease.start_date)}`
 									: 'Not yet signed'}
@@ -199,7 +199,7 @@ export default function TenantLeasePage() {
 							Download
 						</Button>
 					</div>
-					<p className="text-muted text-center py-4">
+					<p className="text-muted-foreground text-center py-4">
 						No documents available yet
 					</p>
 				</div>

@@ -169,7 +169,7 @@ export function SetupFormInner({
 			{isLoading && (
 				<div className="flex-center py-4">
 					<Spinner className="size-5 animate-spin" />
-					<span className="ml-2 text-muted">Loading payment form...</span>
+					<span className="ml-2 text-muted-foreground">Loading payment form...</span>
 				</div>
 			)}
 

@@ -58,7 +58,7 @@ export function LeaseFormPropertyUnitFields({
 									<LoadingSpinner size="sm" />
 								</div>
 							) : properties.length === 0 ? (
-								<div className="flex-center p-4 text-muted">
+								<div className="flex-center p-4 text-muted-foreground">
 									No properties available
 								</div>
 							) : (

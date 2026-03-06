@@ -78,7 +78,7 @@ export default function TenantPaymentHistoryPage() {
 							) : (
 								<p className="typography-h3">{formatCurrency(totalPaid)}</p>
 							)}
-							<p className="text-muted mt-1">All time</p>
+							<p className="text-muted-foreground mt-1">All time</p>
 						</div>
 					</div>
 				</CardLayout>
@@ -94,7 +94,7 @@ export default function TenantPaymentHistoryPage() {
 							) : (
 								<p className="text-muted-foreground">No payments yet</p>
 							)}
-							<p className="text-muted mt-1">Date</p>
+							<p className="text-muted-foreground mt-1">Date</p>
 						</div>
 					</div>
 				</CardLayout>
@@ -104,7 +104,7 @@ export default function TenantPaymentHistoryPage() {
 						<Calendar className="size-8 text-accent-main" />
 						<div>
 							<Skeleton className="h-8 w-24" />
-							<p className="text-muted mt-1">Due date</p>
+							<p className="text-muted-foreground mt-1">Due date</p>
 						</div>
 					</div>
 				</CardLayout>
@@ -142,7 +142,7 @@ export default function TenantPaymentHistoryPage() {
 							className="overflow-x-auto"
 						>
 							<div className="min-w-[720px] space-y-1">
-								<div className="grid grid-cols-5 gap-4 p-4 text-muted font-medium border-b">
+								<div className="grid grid-cols-5 gap-4 p-4 text-muted-foreground font-medium border-b">
 									<div>Date</div>
 									<div>Amount</div>
 									<div>Method</div>
@@ -158,7 +158,7 @@ export default function TenantPaymentHistoryPage() {
 									>
 										<div className="space-y-1">
 											<p className="font-medium">{payment.formattedDate}</p>
-											<p className="text-muted">
+											<p className="text-muted-foreground">
 												{payment.description || 'Monthly Rent'}
 											</p>
 										</div>
@@ -239,7 +239,7 @@ export default function TenantPaymentHistoryPage() {
 										<p className="font-medium">
 											{method.brand || 'Card'} •••• {method.last4}
 										</p>
-										<p className="text-muted capitalize">
+										<p className="text-muted-foreground capitalize">
 											{method.type.replace('_', ' ')}
 										</p>
 									</div>
@@ -250,7 +250,7 @@ export default function TenantPaymentHistoryPage() {
 
 					{/* Empty State */}
 					{!methodsLoading && paymentMethods.length === 0 && (
-						<p className="text-muted text-center py-4">
+						<p className="text-muted-foreground text-center py-4">
 							No saved payment methods yet
 						</p>
 					)}

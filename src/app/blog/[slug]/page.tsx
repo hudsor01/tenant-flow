@@ -91,7 +91,7 @@ export default function BlogArticlePage() {
 						{post.excerpt}
 					</p>
 
-					<div className="flex items-center gap-6 text-muted border-t border-b border-border py-4">
+					<div className="flex items-center gap-6 text-muted-foreground border-t border-b border-border py-4">
 						<div className="flex items-center gap-2">
 							<User className="size-4" />
 							<span>TenantFlow Team</span>

@@ -39,7 +39,7 @@ export function PaymentHistoryCard({
 					<p className="font-semibold leading-tight break-words">
 						{payment.formattedDate}
 					</p>
-					<p className="text-muted text-sm break-words">
+					<p className="text-muted-foreground text-sm break-words">
 						{payment.description || 'Monthly Rent'}
 					</p>
 				</div>
@@ -55,7 +55,7 @@ export function PaymentHistoryCard({
 					<CreditCard className="size-4" aria-hidden />
 					<span className="capitalize">Credit Card</span>
 					{payment.stripePaymentIntentId && (
-						<span className="text-xs text-muted">
+						<span className="text-xs text-muted-foreground">
 							{payment.stripePaymentIntentId}
 						</span>
 					)}

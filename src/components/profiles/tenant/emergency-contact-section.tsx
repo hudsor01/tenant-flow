@@ -92,7 +92,7 @@ export function EmergencyContactSection({
 				</Field>
 
 				{!hasExistingContact && !isEditing && (
-					<p className="text-muted text-center py-4">
+					<p className="text-muted-foreground text-center py-4">
 						No emergency contact on file
 					</p>
 				)}

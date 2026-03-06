@@ -129,7 +129,7 @@ export default function BlogCategoryPage() {
 										className="bg-card rounded-xl p-8 border border-border/50 shadow-md transition-all duration-300 group hover:-translate-y-1"
 									>
 										<div className="flex-between mb-4">
-											<div className="text-muted">
+											<div className="text-muted-foreground">
 												{post.reading_time} min read
 											</div>
 										</div>
@@ -146,7 +146,7 @@ export default function BlogCategoryPage() {
 											<div className="text-sm font-semibold text-primary">
 												Read Article
 											</div>
-											<div className="text-muted">
+											<div className="text-muted-foreground">
 												{post.published_at
 													? new Date(post.published_at).toLocaleDateString(
 															'en-US',

@@ -32,7 +32,7 @@ export default function DashboardError({
 				<AlertCircle className="size-12 text-destructive" />
 				<div className="space-y-2">
 					<h2 className="typography-h4">Something went wrong</h2>
-					<p className="text-muted">
+					<p className="text-muted-foreground">
 						{error.message || 'An unexpected error occurred. Please try again.'}
 					</p>
 				</div>

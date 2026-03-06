@@ -216,7 +216,7 @@ export default function UnitsPage() {
 					<h2 className="typography-large text-destructive">
 						Error Loading Units
 					</h2>
-					<p className="text-muted">
+					<p className="text-muted-foreground">
 						{error instanceof Error ? error.message : 'Failed to load units'}
 					</p>
 				</div>

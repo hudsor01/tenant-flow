@@ -53,7 +53,7 @@ export function MobilePropertyForm({
 							{formProps.mode === 'create' ? 'Add Property' : 'Edit Property'}
 						</CardTitle>
 					</div>
-					<p className="text-muted">
+					<p className="text-muted-foreground">
 						Mobile-first form with offline awareness and accessible touch
 						targets.
 					</p>

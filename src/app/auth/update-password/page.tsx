@@ -240,7 +240,7 @@ export default function UpdatePasswordPage() {
 
 					{/* Footer */}
 					<div className="text-center pt-4">
-						<p className="text-muted">
+						<p className="text-muted-foreground">
 							Remember your password?{' '}
 							<Link
 								href="/login"

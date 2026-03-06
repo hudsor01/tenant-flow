@@ -82,7 +82,7 @@ export function HeroSection({
 							</div>
 
 							{trustSignals && (
-								<p className="text-muted font-medium">{trustSignals}</p>
+								<p className="text-muted-foreground font-medium">{trustSignals}</p>
 							)}
 						</div>
 

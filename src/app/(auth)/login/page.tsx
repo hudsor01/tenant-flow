@@ -427,7 +427,7 @@ function LoginPageContent() {
 							/>
 
 							{/* Footer Links */}
-							<div className="flex-between text-muted">
+							<div className="flex-between text-muted-foreground">
 								<button
 									type="button"
 									onClick={() => setForgotPasswordOpen(true)}

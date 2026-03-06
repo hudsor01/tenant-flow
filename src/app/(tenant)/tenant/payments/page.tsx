@@ -88,7 +88,7 @@ export default function TenantPaymentsPage() {
 									)
 								)
 							) : (
-								<div className="text-muted">No payments recorded yet.</div>
+								<div className="text-muted-foreground">No payments recorded yet.</div>
 							)}
 						</div>
 					)}

@@ -43,7 +43,7 @@ export default function TenantDocumentsPage() {
 				)}
 				<div className="flex-1">
 					<p className="font-medium">{doc.name}</p>
-					<div className="flex items-center gap-4 text-muted mt-1">
+					<div className="flex items-center gap-4 text-muted-foreground mt-1">
 						{doc.created_at && (
 							<div className="flex items-center gap-1">
 								<Calendar className="size-3" />
@@ -171,7 +171,7 @@ export default function TenantDocumentsPage() {
 											Signed
 										</Badge>
 									</div>
-									<div className="flex items-center gap-4 text-muted mt-1">
+									<div className="flex items-center gap-4 text-muted-foreground mt-1">
 										<div className="flex items-center gap-1">
 											<Calendar className="size-3" />
 											<span>Signed on</span>
@@ -206,7 +206,7 @@ export default function TenantDocumentsPage() {
 											Signed
 										</Badge>
 									</div>
-									<div className="flex items-center gap-4 text-muted mt-1">
+									<div className="flex items-center gap-4 text-muted-foreground mt-1">
 										<div className="flex items-center gap-1">
 											<Calendar className="size-3" />
 											<span>Signed on</span>
@@ -231,7 +231,7 @@ export default function TenantDocumentsPage() {
 				) : leaseDocs.length > 0 ? (
 					<div className="space-y-3">{leaseDocs.map(renderDocumentRow)}</div>
 				) : (
-					<p className="text-muted text-center py-8">
+					<p className="text-muted-foreground text-center py-8">
 						No lease documents available yet
 					</p>
 				)}
@@ -248,7 +248,7 @@ export default function TenantDocumentsPage() {
 							<FileText className="size-6 text-accent-main" />
 							<div className="flex-1">
 								<p className="font-medium">Move-In Checklist</p>
-								<div className="flex items-center gap-4 text-muted mt-1">
+								<div className="flex items-center gap-4 text-muted-foreground mt-1">
 									<div className="flex items-center gap-1">
 										<Calendar className="size-3" />
 										<span>Completed on</span>
@@ -270,7 +270,7 @@ export default function TenantDocumentsPage() {
 						</div>
 					</div>
 
-					<p className="text-muted text-center py-8">
+					<p className="text-muted-foreground text-center py-8">
 						No move-in documents available yet
 					</p>
 				</div>
@@ -287,7 +287,7 @@ export default function TenantDocumentsPage() {
 							<FolderOpen className="size-6 text-accent-main" />
 							<div className="flex-1">
 								<p className="font-medium">Community Rules</p>
-								<p className="text-muted mt-1">
+								<p className="text-muted-foreground mt-1">
 									Property guidelines and community standards
 								</p>
 							</div>
@@ -308,7 +308,7 @@ export default function TenantDocumentsPage() {
 							<FolderOpen className="size-6 text-accent-main" />
 							<div className="flex-1">
 								<p className="font-medium">Emergency Procedures</p>
-								<p className="text-muted mt-1">
+								<p className="text-muted-foreground mt-1">
 									What to do in case of emergency
 								</p>
 							</div>
@@ -324,7 +324,7 @@ export default function TenantDocumentsPage() {
 						</div>
 					</div>
 
-					<p className="text-muted text-center py-8">
+					<p className="text-muted-foreground text-center py-8">
 						No property documents available yet
 					</p>
 				</div>
@@ -336,7 +336,7 @@ export default function TenantDocumentsPage() {
 				description="Important notices from your property manager"
 			>
 				<div className="space-y-3">
-					<p className="text-muted text-center py-8">No notices at this time</p>
+					<p className="text-muted-foreground text-center py-8">No notices at this time</p>
 				</div>
 			</CardLayout>
 		</div>

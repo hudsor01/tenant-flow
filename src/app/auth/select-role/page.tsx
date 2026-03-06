@@ -314,7 +314,7 @@ export default function SelectRolePage() {
 
 					{/* Footer */}
 					<div className="text-center pt-4">
-						<p className="text-muted text-sm">
+						<p className="text-muted-foreground text-sm">
 							You can change your role later in your profile settings.
 						</p>
 					</div>

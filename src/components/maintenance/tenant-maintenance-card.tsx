@@ -54,7 +54,7 @@ export function TenantMaintenanceCard({
 							{request.priority}
 						</span>
 					</div>
-					<p className="text-muted text-sm leading-snug line-clamp-3 md:line-clamp-2">
+					<p className="text-muted-foreground text-sm leading-snug line-clamp-3 md:line-clamp-2">
 						{request.description}
 					</p>
 					<div className="flex flex-wrap items-center gap-2 text-caption text-muted-foreground">

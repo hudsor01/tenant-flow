@@ -91,7 +91,7 @@ function EmptyState({ message }: { message: string }) {
 			<Badge variant="outline" className="mb-2">
 				No data
 			</Badge>
-			<CardDescription className="text-center text-muted">
+			<CardDescription className="text-center text-muted-foreground">
 				{message}
 			</CardDescription>
 		</div>

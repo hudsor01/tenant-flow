@@ -133,7 +133,7 @@ export function TenantDetailSheet({
 					<h2 className="text-balance font-semibold text-fg text-lg/6 sm:text-base/6">
 						{tenant.fullName}
 					</h2>
-					<p className="text-pretty text-base/6 text-muted-fg sm:text-sm/6">
+					<p className="text-pretty text-base/6 text-muted-foreground sm:text-sm/6">
 						Tenant Profile
 					</p>
 					<button

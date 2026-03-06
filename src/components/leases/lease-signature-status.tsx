@@ -159,7 +159,7 @@ function FullSignatureStatus({
 			</CardHeader>
 			<CardContent className="space-y-4">
 				<div className="flex-between">
-					<span className="text-muted">Overall Status</span>
+					<span className="text-muted-foreground">Overall Status</span>
 					<Badge
 						variant={status.both_signed ? 'default' : 'secondary'}
 						className={cn(status.both_signed && 'bg-success hover:bg-success')}
@@ -247,7 +247,7 @@ function SignatureRow({
 				) : (
 					<>
 						<Clock className="h-4 w-4 text-warning" />
-						<span className="text-muted">Pending</span>
+						<span className="text-muted-foreground">Pending</span>
 					</>
 				)}
 			</div>

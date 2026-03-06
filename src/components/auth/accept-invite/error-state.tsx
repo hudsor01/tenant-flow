@@ -34,7 +34,7 @@ export function ErrorState({ state, message }: ErrorStateProps) {
 					<Button asChild className="w-full">
 						<Link href="/login">Go to Login</Link>
 					</Button>
-					<p className="text-muted">
+					<p className="text-muted-foreground">
 						Need help?{' '}
 						<Link href="/contact" className="text-primary hover:underline">
 							Contact Support
