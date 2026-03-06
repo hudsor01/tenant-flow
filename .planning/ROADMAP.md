@@ -132,11 +132,13 @@ Plans:
   3. `expire-leases` cron uses a named function with `FOR UPDATE SKIP LOCKED` and error handling
   4. Cleanup cron jobs are scheduled for `security_events`, `errors`, and `stripe_webhook_events`
   5. All cron jobs have Sentry monitoring for failure detection
-**Plans**: TBD
+**Plans**: 4 plans
 
 Plans:
-- [ ] 06-01: TBD
-- [ ] 06-02: TBD
+- [ ] 06-01-PLAN.md — Consolidate trigger functions + schema constraints (activity NOT NULL, inspection_photos updated_at, blogs author)
+- [ ] 06-02-PLAN.md — Documents owner_user_id with RLS rewrite + leases property_owner_id column drop with RPC rewrites
+- [ ] 06-03-PLAN.md — Expire-leases named function + cleanup cron scheduling with archive-then-delete + cron monitoring
+- [ ] 06-04-PLAN.md — GDPR anonymization cascade function + CLAUDE.md update
 
 ### Phase 7: UX & Accessibility
 **Goal**: All text is readable, all interactive elements are accessible, and error states are handled gracefully
@@ -201,7 +203,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8 -> 9
 | 3. Auth & Middleware | v1.0 | 6/6 | Complete | 2026-03-05 |
 | 4. Edge Function Hardening | v1.0 | 4/4 | Complete | 2026-03-05 |
 | 5. Code Quality & Type Safety | 9/10 | In Progress|  | - |
-| 6. Database Schema & Migrations | v1.0 | 0/2 | Not started | - |
+| 6. Database Schema & Migrations | v1.0 | 0/4 | Not started | - |
 | 7. UX & Accessibility | v1.0 | 0/3 | Not started | - |
 | 8. Performance Optimization | v1.0 | 0/3 | Not started | - |
 | 9. Testing & CI Pipeline | v1.0 | 0/3 | Not started | - |
