@@ -160,11 +160,11 @@ All 131 findings from the review, plus CLAUDE.md maintenance.
 - [ ] **PERF-02**: Shared tenant ID resolution — single cached query reused across all 8 tenant portal hooks
 - [x] **PERF-03**: Recharts code-split via `next/dynamic` in all 17 statically-importing files
 - [x] **PERF-04**: `react-markdown` + rehype/remark dynamically imported on blog pages
-- [ ] **PERF-05**: `refetchOnWindowFocus` default changed from `'always'` to `true`
+- [x] **PERF-05**: `refetchOnWindowFocus` default changed from `'always'` to `true`
 - [ ] **PERF-06**: `@tanstack/react-virtual` used for property, tenant, lease, maintenance lists
 - [ ] **PERF-07**: Maintenance stats consolidated from 7 HEAD queries to single grouped RPC
 - [ ] **PERF-08**: Lease stats consolidated from 6 queries to single RPC
-- [ ] **PERF-09**: `optimizePackageImports` added to `next.config.ts`
+- [x] **PERF-09**: `optimizePackageImports` added to `next.config.ts`
 - [x] **PERF-10**: `stripe-webhooks` email rendering optimized (pre-built HTML or background queue)
 - [x] **PERF-11**: `stripe-webhooks` sequential charge retrieval + late_fee query parallelized
 - [x] **PERF-12**: `stripe-autopay-charge` 3 sequential DB lookups parallelized with `Promise.all()`
@@ -177,7 +177,7 @@ All 131 findings from the review, plus CLAUDE.md maintenance.
 - [ ] **PERF-19**: Duplicate `get_occupancy_trends_optimized` calls deduplicated (dashboard + property analytics)
 - [ ] **PERF-20**: Expiring leases query adds `.limit()`
 - [ ] **PERF-21**: Raw `<img>` in file-upload-item replaced with `next/image`
-- [ ] **PERF-22**: Stale CSS `@source` paths in `globals.css` removed
+- [x] **PERF-22**: Stale CSS `@source` paths in `globals.css` removed
 - [x] **PERF-23**: Edge Function `tenant-invitation-validate` response gets short cache headers
 - [ ] **PERF-24**: `493 'use client'` files audited — remove directive from non-interactive leaf components
 
@@ -351,11 +351,11 @@ All 131 findings from the review, plus CLAUDE.md maintenance.
 | PERF-02 | Phase 8 | Pending |
 | PERF-03 | Phase 8 | Complete |
 | PERF-04 | Phase 8 | Complete |
-| PERF-05 | Phase 8 | Pending |
+| PERF-05 | Phase 8 | Complete |
 | PERF-06 | Phase 8 | Pending |
 | PERF-07 | Phase 8 | Pending |
 | PERF-08 | Phase 8 | Pending |
-| PERF-09 | Phase 8 | Pending |
+| PERF-09 | Phase 8 | Complete |
 | PERF-10 | Phase 8 | Complete |
 | PERF-11 | Phase 8 | Complete |
 | PERF-12 | Phase 8 | Complete |
@@ -368,7 +368,7 @@ All 131 findings from the review, plus CLAUDE.md maintenance.
 | PERF-19 | Phase 8 | Pending |
 | PERF-20 | Phase 8 | Pending |
 | PERF-21 | Phase 8 | Pending |
-| PERF-22 | Phase 8 | Pending |
+| PERF-22 | Phase 8 | Complete |
 | PERF-23 | Phase 8 | Complete |
 | PERF-24 | Phase 8 | Pending |
 | TEST-01 | Phase 9 | Pending |
