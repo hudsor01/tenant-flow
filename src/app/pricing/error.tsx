@@ -2,12 +2,12 @@
 
 import { ErrorPage } from '#components/shared/error-page'
 
-export default function PortalError({
+export default function PricingError({
 	error,
 	reset
 }: {
 	error: Error & { digest?: string }
 	reset: () => void
 }) {
-	return <ErrorPage error={error} resetAction={reset} dashboardHref="/tenant" />
+	return <ErrorPage error={error} resetAction={reset} dashboardHref="/" />
 }

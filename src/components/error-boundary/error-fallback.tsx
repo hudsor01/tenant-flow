@@ -1,6 +1,9 @@
 'use client'
 
+import { Button } from '#components/ui/button'
 import * as Sentry from '@sentry/nextjs'
+import { Home, RefreshCw } from 'lucide-react'
+import Link from 'next/link'
 import { useEffect } from 'react'
 
 interface ErrorFallbackProps {
@@ -15,17 +18,22 @@ export function ErrorFallback({ error, reset }: ErrorFallbackProps) {
 
 	return (
 		<div className="min-h-screen flex flex-col items-center justify-center gap-4 p-8">
-			<h2 className="text-xl font-semibold mb-4">Something went wrong!</h2>
-			<p className="text-sm text-muted-foreground mb-4">
+			<h2 className="text-xl font-semibold">Something went wrong!</h2>
+			<p className="text-sm text-muted-foreground">
 				We have been notified and are working to fix the issue.
 			</p>
-			<button
-				type="button"
-				onClick={() => reset()}
-				className="min-h-11 px-6 py-3 bg-primary hover:bg-primary/90 text-primary-foreground font-medium rounded-lg transition-colors"
-			>
-				Try again
-			</button>
+			<div className="flex gap-3">
+				<Button onClick={() => reset()} variant="outline" size="sm">
+					<RefreshCw className="size-4 mr-2" />
+					Try again
+				</Button>
+				<Button asChild variant="outline" size="sm">
+					<Link href="/">
+						<Home className="size-4 mr-2" />
+						Go to Dashboard
+					</Link>
+				</Button>
+			</div>
 		</div>
 	)
 }
