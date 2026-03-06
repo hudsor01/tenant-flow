@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: Production Hardening
-status: completed
-stopped_at: Completed 07-06-PLAN.md
-last_updated: "2026-03-06T16:49:12.073Z"
-last_activity: 2026-03-06 — Page metadata for 20 pages, useUnsavedChangesWarning hook, autoFocus on 4 forms
+status: in_progress
+stopped_at: Completed 08-03-PLAN.md
+last_updated: "2026-03-06T17:51:35.000Z"
+last_activity: 2026-03-06 — Edge Function query parallelization, duplicate charge elimination, invitation cache headers
 progress:
   total_phases: 12
   completed_phases: 8
   total_plans: 50
-  completed_plans: 44
-  percent: 88
+  completed_plans: 45
+  percent: 90
 ---
 
 # Project State: TenantFlow
@@ -21,16 +21,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-04)
 
 **Core value:** A landlord can add a property, invite a tenant, collect rent, and see their financials — without touching a spreadsheet or calling anyone.
-**Current focus:** v1.0 Production Hardening — Phase 7 execution in progress
+**Current focus:** v1.0 Production Hardening — Phase 8 execution in progress
 
 ## Current Position
 
-Phase: 7 of 9 (UX & Accessibility) -- COMPLETE
-Plan: 6 of 6 in current phase (07-06 complete)
-Status: Completed 07-06 (page metadata, unsaved changes, autoFocus, CLAUDE.md)
-Last activity: 2026-03-06 — Page metadata for 20 pages, useUnsavedChangesWarning hook, autoFocus on 4 forms
+Phase: 8 of 9 (Performance Optimization) -- IN PROGRESS
+Plan: 3 of 7 in current phase (08-03 complete)
+Status: Completed 08-03 (Edge Function parallelization, charge reuse, cache headers)
+Last activity: 2026-03-06 — Edge Function query parallelization, duplicate charge elimination, invitation cache headers
 
-Progress: [█████████░] 88%
+Progress: [█████████░] 90%
 
 ## Performance Metrics
 
@@ -80,6 +80,7 @@ Progress: [█████████░] 88%
 | Phase 07 P03 | 13min | 2 tasks | 7 files |
 | Phase 07 P04 | 16min | 2 tasks | 20 files |
 | Phase 07 P06 | 7min | 2 tasks | 30 files |
+| Phase 08 P03 | 3min | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -188,6 +189,9 @@ Progress: [█████████░] 88%
 - [Phase 07]: 07-06: Title template '%s | TenantFlow' in root metadata; layout files for client component metadata
 - [Phase 07]: 07-06: useUnsavedChangesWarning uses currentStep for wizard, form.state.isDirty for TanStack forms
 - [Phase 07]: 07-06: autoFocus on ComboboxInput in lease wizard (first interactive element in Step 1)
+- [Phase 08]: stripe-autopay-charge already parallelized from prior phase -- verified, no changes needed
+- [Phase 08]: Stripe charge object passed from handler to sendReceiptEmails to eliminate duplicate API call
+- [Phase 08]: Cache-Control: private, max-age=300 on invitation validate (private due to user-specific data)
 
 ### Pending Todos
 
@@ -202,6 +206,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-06T16:43:57.256Z
-Stopped at: Completed 07-06-PLAN.md
+Last session: 2026-03-06T17:51:35.000Z
+Stopped at: Completed 08-03-PLAN.md
 Resume file: None
