@@ -6,7 +6,6 @@
 
 import { queryOptions, useQuery, useMutation } from '@tanstack/react-query'
 import { createClient } from '#lib/supabase/client'
-import { getCachedUser } from '#lib/supabase/get-cached-user'
 import { handlePostgrestError } from '#lib/postgrest-error-handler'
 import { handleMutationError } from '#lib/mutation-error-handler'
 import { mutationKeys } from './mutation-keys'
@@ -16,7 +15,7 @@ import type {
 	CreateRentCheckoutResponse,
 	RentCheckoutError
 } from '#shared/types/api-contracts'
-import { tenantPortalKeys } from './use-tenant-portal-keys'
+import { tenantPortalKeys, resolveTenantId } from './use-tenant-portal-keys'
 
 export interface TenantPayment {
 	id: string
@@ -66,8 +65,6 @@ export const tenantPaymentQueries = {
 			queryKey: tenantPortalKeys.amountDue(),
 			queryFn: async (): Promise<AmountDueResponse> => {
 				const supabase = createClient()
-				const user = await getCachedUser()
-				if (!user) throw new Error('Not authenticated')
 
 				const defaultResponse: AmountDueResponse = {
 					base_rent_cents: 0,
@@ -82,18 +79,15 @@ export const tenantPaymentQueries = {
 					breakdown: []
 				}
 
-				const { data: tenantRecord } = await supabase
-					.from('tenants')
-					.select('id')
-					.eq('user_id', user.id)
-					.single()
+				// Step 1: Resolve tenant ID (shared across all tenant portal hooks)
+				const tenantId = await resolveTenantId()
+				if (!tenantId) return defaultResponse
 
-				if (!tenantRecord) return defaultResponse
-
+				// Step 2: Fetch active lease
 				const { data: lease } = await supabase
 					.from('leases')
 					.select('id, rent_amount, owner_user_id, lease_tenants!inner(tenant_id, responsibility_percentage)')
-					.eq('lease_tenants.tenant_id', tenantRecord.id)
+					.eq('lease_tenants.tenant_id', tenantId)
 					.eq('lease_status', 'active')
 					.single()
 
@@ -119,25 +113,28 @@ export const tenantPaymentQueries = {
 					}
 				}
 
-				const leaseOwnerUserId = leaseRaw!.owner_user_id
-				const { data: connectedAccount } = await supabase
-					.from('stripe_connected_accounts')
-					.select('charges_enabled')
-					.eq('user_id', leaseOwnerUserId)
-					.maybeSingle()
-
-				const chargesEnabled = connectedAccount?.charges_enabled ?? false
-
+				// Step 3: Parallelize connected_account + rent_due (both depend only on lease data)
 				const today = new Date().toISOString().split('T')[0]!
-				const { data: rentDueRecord } = await supabase
-					.from('rent_due')
-					.select('id, amount, due_date, status')
-					.eq('lease_id', lease.id)
-					.gte('due_date', today)
-					.order('due_date')
-					.limit(1)
-					.maybeSingle()
+				const [connectedAccountResult, rentDueResult] = await Promise.all([
+					supabase
+						.from('stripe_connected_accounts')
+						.select('charges_enabled')
+						.eq('user_id', leaseRaw!.owner_user_id)
+						.maybeSingle(),
+					supabase
+						.from('rent_due')
+						.select('id, amount, due_date, status')
+						.eq('lease_id', lease.id)
+						.gte('due_date', today)
+						.order('due_date')
+						.limit(1)
+						.maybeSingle(),
+				])
 
+				const chargesEnabled = connectedAccountResult.data?.charges_enabled ?? false
+				const rentDueRecord = rentDueResult.data
+
+				// Step 4: Check existing payment (depends on rent_due.id from step 3)
 				let alreadyPaid = false
 				if (rentDueRecord) {
 					const { data: existingPayment } = await supabase
@@ -199,21 +196,15 @@ export const tenantPaymentQueries = {
 			queryKey: tenantPortalKeys.payments.all(),
 			queryFn: async (): Promise<{ payments: TenantPayment[] }> => {
 				const supabase = createClient()
-				const user = await getCachedUser()
-				if (!user) throw new Error('Not authenticated')
 
-				const { data: tenantRecord } = await supabase
-					.from('tenants')
-					.select('id')
-					.eq('user_id', user.id)
-					.single()
-
-				if (!tenantRecord) return { payments: [] }
+				// Use shared tenant ID resolution
+				const tenantId = await resolveTenantId()
+				if (!tenantId) return { payments: [] }
 
 				const { data: lease } = await supabase
 					.from('leases')
 					.select('id, lease_tenants!inner(tenant_id)')
-					.eq('lease_tenants.tenant_id', tenantRecord.id)
+					.eq('lease_tenants.tenant_id', tenantId)
 					.eq('lease_status', 'active')
 					.single()
 
@@ -236,7 +227,7 @@ export const tenantPaymentQueries = {
 					dueDate: row.due_date,
 					created_at: row.created_at,
 					lease_id: row.lease_id,
-					tenant_id: tenantRecord.id,
+					tenant_id: tenantId,
 					stripePaymentIntentId: null,
 					ownerReceives: row.amount,
 					receiptUrl: null
