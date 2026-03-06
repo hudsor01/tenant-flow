@@ -158,8 +158,8 @@ All 131 findings from the review, plus CLAUDE.md maintenance.
 
 - [ ] **PERF-01**: Tenant portal `amountDue` 5-step waterfall parallelized
 - [ ] **PERF-02**: Shared tenant ID resolution — single cached query reused across all 8 tenant portal hooks
-- [ ] **PERF-03**: Recharts code-split via `next/dynamic` in all 17 statically-importing files
-- [ ] **PERF-04**: `react-markdown` + rehype/remark dynamically imported on blog pages
+- [x] **PERF-03**: Recharts code-split via `next/dynamic` in all 17 statically-importing files
+- [x] **PERF-04**: `react-markdown` + rehype/remark dynamically imported on blog pages
 - [ ] **PERF-05**: `refetchOnWindowFocus` default changed from `'always'` to `true`
 - [ ] **PERF-06**: `@tanstack/react-virtual` used for property, tenant, lease, maintenance lists
 - [ ] **PERF-07**: Maintenance stats consolidated from 7 HEAD queries to single grouped RPC
@@ -349,8 +349,8 @@ All 131 findings from the review, plus CLAUDE.md maintenance.
 | UX-26 | Phase 7 | Complete |
 | PERF-01 | Phase 8 | Pending |
 | PERF-02 | Phase 8 | Pending |
-| PERF-03 | Phase 8 | Pending |
-| PERF-04 | Phase 8 | Pending |
+| PERF-03 | Phase 8 | Complete |
+| PERF-04 | Phase 8 | Complete |
 | PERF-05 | Phase 8 | Pending |
 | PERF-06 | Phase 8 | Pending |
 | PERF-07 | Phase 8 | Pending |

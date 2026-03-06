@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: Production Hardening
 status: in_progress
-stopped_at: Completed 08-03-PLAN.md
-last_updated: "2026-03-06T17:51:35.000Z"
+stopped_at: Completed 08-02-PLAN.md (SUMMARY retroactive)
+last_updated: "2026-03-06T17:53:16.813Z"
 last_activity: 2026-03-06 — Edge Function query parallelization, duplicate charge elimination, invitation cache headers
 progress:
-  total_phases: 12
+  total_phases: 13
   completed_phases: 8
-  total_plans: 50
-  completed_plans: 45
+  total_plans: 57
+  completed_plans: 46
   percent: 90
 ---
 
@@ -80,6 +80,7 @@ Progress: [█████████░] 90%
 | Phase 07 P03 | 13min | 2 tasks | 7 files |
 | Phase 07 P04 | 16min | 2 tasks | 20 files |
 | Phase 07 P06 | 7min | 2 tasks | 30 files |
+| Phase 08 P02 | 3min | 2 tasks | 14 files |
 | Phase 08 P03 | 3min | 2 tasks | 3 files |
 
 ## Accumulated Context
@@ -189,6 +190,9 @@ Progress: [█████████░] 90%
 - [Phase 07]: 07-06: Title template '%s | TenantFlow' in root metadata; layout files for client component metadata
 - [Phase 07]: 07-06: useUnsavedChangesWarning uses currentStep for wizard, form.state.isDirty for TanStack forms
 - [Phase 07]: 07-06: autoFocus on ComboboxInput in lease wizard (first interactive element in Step 1)
+- [Phase 08]: CSS-only animations for loading skeletons (no JS animation libraries per user decision)
+- [Phase 08]: next/dynamic with ssr: false for chart and markdown components (client-only rendering)
+- [Phase 08]: Leaf chart components keep static recharts imports; dynamic() applied at consumer level
 - [Phase 08]: stripe-autopay-charge already parallelized from prior phase -- verified, no changes needed
 - [Phase 08]: Stripe charge object passed from handler to sendReceiptEmails to eliminate duplicate API call
 - [Phase 08]: Cache-Control: private, max-age=300 on invitation validate (private due to user-specific data)
@@ -206,6 +210,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-06T17:51:35.000Z
-Stopped at: Completed 08-03-PLAN.md
+Last session: 2026-03-06T17:53:16.809Z
+Stopped at: Completed 08-02-PLAN.md (SUMMARY retroactive)
 Resume file: None
