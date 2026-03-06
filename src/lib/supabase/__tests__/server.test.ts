@@ -37,6 +37,20 @@ vi.mock('#env', () => ({
 
 import { createClient } from '../server'
 
+// ── Type-safe mock call extraction ─────────────────────────
+
+type MockCallArgs = [string, string, { cookies: Record<string, unknown> }]
+
+function getCallArgs(): MockCallArgs {
+	const call = mockCreateServerClient.mock.calls[0]
+	if (!call || call.length < 3) throw new Error('Expected 3 arguments in mock call')
+	return call as unknown as MockCallArgs
+}
+
+function getCallOptions(): { cookies: Record<string, unknown> } {
+	return getCallArgs()[2]
+}
+
 // ── Tests ──────────────────────────────────────────────────
 
 describe('createClient (server)', () => {
@@ -48,11 +62,7 @@ describe('createClient (server)', () => {
 		await createClient()
 
 		expect(mockCreateServerClient).toHaveBeenCalledOnce()
-		const [url, key] = mockCreateServerClient.mock.calls[0] as [
-			string,
-			string,
-			Record<string, unknown>,
-		]
+		const [url, key] = getCallArgs()
 		expect(url).toBe('http://localhost:54321')
 		expect(key).toBe('mock-anon-key')
 	})
@@ -67,40 +77,33 @@ describe('createClient (server)', () => {
 	it('provides cookie adapter with getAll method', async () => {
 		await createClient()
 
-		const options = mockCreateServerClient.mock.calls[0]![2] as {
-			cookies: Record<string, unknown>
-		}
+		const options = getCallOptions()
 		expect(options.cookies.getAll).toBeTypeOf('function')
 	})
 
 	it('provides cookie adapter with setAll method', async () => {
 		await createClient()
 
-		const options = mockCreateServerClient.mock.calls[0]![2] as {
-			cookies: Record<string, unknown>
-		}
+		const options = getCallOptions()
 		expect(options.cookies.setAll).toBeTypeOf('function')
 	})
 
 	it('does NOT provide get/set/remove cookie methods (CLAUDE.md: getAll/setAll only)', async () => {
 		await createClient()
 
-		const options = mockCreateServerClient.mock.calls[0]![2] as {
-			cookies: Record<string, unknown>
-		}
+		const options = getCallOptions()
 		// Per CLAUDE.md: "Use getAll/setAll cookie methods only. Never get/set/remove."
-		expect(options.cookies.get).toBeUndefined()
-		expect(options.cookies.set).toBeUndefined()
-		expect(options.cookies.remove).toBeUndefined()
+		expect(options.cookies['get']).toBeUndefined()
+		expect(options.cookies['set']).toBeUndefined()
+		expect(options.cookies['remove']).toBeUndefined()
 	})
 
 	it('getAll returns cookies from next/headers cookie store', async () => {
 		await createClient()
 
-		const options = mockCreateServerClient.mock.calls[0]![2] as {
-			cookies: { getAll: () => Array<{ name: string; value: string }> }
-		}
-		const cookies = options.cookies.getAll()
+		const options = getCallOptions()
+		const getAllFn = options.cookies.getAll as () => Array<{ name: string; value: string }>
+		const cookies = getAllFn()
 
 		expect(cookies).toEqual([
 			{ name: 'sb-token', value: 'test-cookie-value' },
@@ -111,21 +114,14 @@ describe('createClient (server)', () => {
 	it('setAll writes cookies to the cookie store without throwing', async () => {
 		await createClient()
 
-		const options = mockCreateServerClient.mock.calls[0]![2] as {
-			cookies: {
-				setAll: (
-					cookies: Array<{
-						name: string
-						value: string
-						options?: Record<string, unknown>
-					}>
-				) => void
-			}
-		}
+		const options = getCallOptions()
+		const setAllFn = options.cookies.setAll as (
+			cookies: Array<{ name: string; value: string; options?: Record<string, unknown> }>
+		) => void
 
 		// setAll should not throw even in Server Component context
 		expect(() =>
-			options.cookies.setAll([
+			setAllFn([
 				{ name: 'sb-token', value: 'new-value', options: { path: '/' } },
 			])
 		).not.toThrow()
@@ -145,21 +141,14 @@ describe('createClient (server)', () => {
 
 		await createClient()
 
-		const options = mockCreateServerClient.mock.calls[0]![2] as {
-			cookies: {
-				setAll: (
-					cookies: Array<{
-						name: string
-						value: string
-						options?: Record<string, unknown>
-					}>
-				) => void
-			}
-		}
+		const options = getCallOptions()
+		const setAllFn = options.cookies.setAll as (
+			cookies: Array<{ name: string; value: string; options?: Record<string, unknown> }>
+		) => void
 
 		// Should NOT throw -- the implementation catches this error
 		expect(() =>
-			options.cookies.setAll([
+			setAllFn([
 				{ name: 'sb-token', value: 'new-value', options: { path: '/' } },
 			])
 		).not.toThrow()
