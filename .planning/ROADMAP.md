@@ -173,12 +173,16 @@ Plans:
   3. Maintenance stats (7 queries) and lease stats (6 queries) each consolidate to a single RPC call
   4. All list queries have `.limit()` or pagination — no unbounded `select('*')` on growing tables
   5. Edge Functions parallelize independent DB queries — no sequential lookups where `Promise.all()` applies
-**Plans**: TBD
+**Plans**: 7 plans
 
 Plans:
-- [ ] 08-01: TBD
-- [ ] 08-02: TBD
-- [ ] 08-03: TBD
+- [ ] 08-01-PLAN.md — Global query defaults (refetchOnWindowFocus: true), optimizePackageImports, stale CSS cleanup
+- [ ] 08-02-PLAN.md — Dynamic import Recharts (17 files) and react-markdown with custom loading animations
+- [ ] 08-03-PLAN.md — Edge Function parallelization (autopay, checkout, webhooks) and invitation validate cache headers
+- [ ] 08-04-PLAN.md — Bound unbounded queries, replace select('*'), deduplicate occupancy trends
+- [ ] 08-05-PLAN.md — Shared tenant ID resolution and amountDue waterfall elimination
+- [ ] 08-06-PLAN.md — Stats consolidation RPCs (maintenance 7->1, lease 6->1) and list virtualization
+- [ ] 08-07-PLAN.md — 'use client' audit, file-upload-item image optimization, CLAUDE.md update
 
 ### Phase 9: Testing & CI Pipeline
 **Goal**: CI catches build failures, coverage regressions, and security issues before merge
@@ -210,6 +214,6 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8 -> 9
 | 4. Edge Function Hardening | v1.0 | 4/4 | Complete | 2026-03-05 |
 | 5. Code Quality & Type Safety | v1.0 | 10/10 | Complete | 2026-03-06 |
 | 6. Database Schema & Migrations | v1.0 | 7/7 | Complete | 2026-03-06 |
-| 7. UX & Accessibility | v1.0 | 1/6 | In Progress | - |
-| 8. Performance Optimization | v1.0 | 0/3 | Not started | - |
+| 7. UX & Accessibility | v1.0 | 6/6 | Complete | 2026-03-06 |
+| 8. Performance Optimization | v1.0 | 0/7 | Not started | - |
 | 9. Testing & CI Pipeline | v1.0 | 0/3 | Not started | - |
