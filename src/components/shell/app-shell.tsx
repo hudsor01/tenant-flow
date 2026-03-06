@@ -1,7 +1,7 @@
 'use client'
 
 import type { ReactNode } from 'react'
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
 import {
 	Menu,
@@ -54,6 +54,8 @@ export interface AppShellProps {
 export function AppShell({ children, showQuickActionsDock = true }: AppShellProps) {
 	const [sidebarOpen, setSidebarOpen] = useState(false)
 	const [commandOpen, setCommandOpen] = useState(false)
+	const triggerRef = useRef<HTMLButtonElement>(null)
+	const sidebarRef = useRef<HTMLElement>(null)
 	const pathname = usePathname()
 	const breadcrumbs = generateBreadcrumbs(pathname)
 	const { data: user } = useSupabaseUser()
@@ -167,6 +169,40 @@ export function AppShell({ children, showQuickActionsDock = true }: AppShellProp
 		return () => window.removeEventListener('keydown', onKeyDown)
 	}, [])
 
+	const closeSidebar = useCallback(() => {
+		setSidebarOpen(false)
+		triggerRef.current?.focus()
+	}, [])
+
+	// Escape key handler + focus trap for mobile sidebar
+	useEffect(() => {
+		if (!sidebarOpen) return
+		const handleKeyDown = (e: KeyboardEvent) => {
+			if (e.key === 'Escape') {
+				closeSidebar()
+				return
+			}
+			// Focus trap within sidebar dialog
+			if (e.key === 'Tab' && sidebarRef.current) {
+				const focusable = sidebarRef.current.querySelectorAll<HTMLElement>(
+					'a[href], button:not([disabled]), input:not([disabled]), [tabindex]:not([tabindex="-1"])'
+				)
+				if (focusable.length === 0) return
+				const first = focusable[0]!
+				const last = focusable[focusable.length - 1]!
+				if (e.shiftKey && document.activeElement === first) {
+					e.preventDefault()
+					last.focus()
+				} else if (!e.shiftKey && document.activeElement === last) {
+					e.preventDefault()
+					first.focus()
+				}
+			}
+		}
+		window.addEventListener('keydown', handleKeyDown)
+		return () => window.removeEventListener('keydown', handleKeyDown)
+	}, [sidebarOpen, closeSidebar])
+
 	const handleCommandSelect = (href: string) => {
 		setCommandOpen(false)
 		router.push(href)
@@ -186,12 +222,15 @@ export function AppShell({ children, showQuickActionsDock = true }: AppShellProp
 			{sidebarOpen && (
 				<div
 					className="fixed inset-0 z-40 bg-foreground/20 lg:hidden"
-					onClick={() => setSidebarOpen(false)}
+					onClick={closeSidebar}
 				/>
 			)}
 
 			{/* Sidebar */}
 			<aside
+				ref={sidebarRef}
+				role={sidebarOpen ? 'dialog' : undefined}
+				aria-modal={sidebarOpen ? true : undefined}
 				data-tour="sidebar-nav"
 				className={`
 					fixed inset-y-0 left-0 z-50 w-56 bg-card
@@ -213,7 +252,7 @@ export function AppShell({ children, showQuickActionsDock = true }: AppShellProp
 					</Link>
 					<button
 						className="ml-auto lg:hidden min-h-11 min-w-11 flex items-center justify-center rounded-md hover:bg-muted"
-						onClick={() => setSidebarOpen(false)}
+						onClick={closeSidebar}
 						aria-label="Close navigation menu"
 					>
 						<X className="w-4 h-4 text-muted-foreground" />
@@ -235,7 +274,7 @@ export function AppShell({ children, showQuickActionsDock = true }: AppShellProp
 				</div>
 
 				{/* Navigation */}
-				<MainNav onNavigate={() => setSidebarOpen(false)} />
+				<MainNav onNavigate={closeSidebar} />
 			</aside>
 
 			{/* Main content area */}
@@ -245,6 +284,7 @@ export function AppShell({ children, showQuickActionsDock = true }: AppShellProp
 					{/* Left side - mobile menu + breadcrumbs */}
 					<div className="flex items-center gap-3">
 						<button
+							ref={triggerRef}
 							className="p-2 rounded-md hover:bg-muted lg:hidden"
 							onClick={() => setSidebarOpen(true)}
 							aria-label="Open navigation menu"

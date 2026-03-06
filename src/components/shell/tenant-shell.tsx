@@ -1,7 +1,7 @@
 'use client'
 
 import type { ReactNode } from 'react'
-import { useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 
 import { Menu, X, Bell, ChevronRight, Sparkles, Home, CreditCard, Wrench, Settings, ChevronLeft } from 'lucide-react'
 import Link from 'next/link'
@@ -26,6 +26,8 @@ const mobileNavItems = [
 
 export function TenantShell({ children }: TenantShellProps) {
 	const [sidebarOpen, setSidebarOpen] = useState(false)
+	const triggerRef = useRef<HTMLButtonElement>(null)
+	const sidebarRef = useRef<HTMLElement>(null)
 	const pathname = usePathname()
 	const router = useRouter()
 	const breadcrumbs = generateBreadcrumbs(pathname)
@@ -51,6 +53,40 @@ export function TenantShell({ children }: TenantShellProps) {
 		return pathname.startsWith(href)
 	}
 
+	const closeSidebar = useCallback(() => {
+		setSidebarOpen(false)
+		triggerRef.current?.focus()
+	}, [])
+
+	// Escape key handler + focus trap for mobile sidebar
+	useEffect(() => {
+		if (!sidebarOpen) return
+		const handleKeyDown = (e: KeyboardEvent) => {
+			if (e.key === 'Escape') {
+				closeSidebar()
+				return
+			}
+			// Focus trap within sidebar dialog
+			if (e.key === 'Tab' && sidebarRef.current) {
+				const focusable = sidebarRef.current.querySelectorAll<HTMLElement>(
+					'a[href], button:not([disabled]), input:not([disabled]), [tabindex]:not([tabindex="-1"])'
+				)
+				if (focusable.length === 0) return
+				const first = focusable[0]!
+				const last = focusable[focusable.length - 1]!
+				if (e.shiftKey && document.activeElement === first) {
+					e.preventDefault()
+					last.focus()
+				} else if (!e.shiftKey && document.activeElement === last) {
+					e.preventDefault()
+					first.focus()
+				}
+			}
+		}
+		window.addEventListener('keydown', handleKeyDown)
+		return () => window.removeEventListener('keydown', handleKeyDown)
+	}, [sidebarOpen, closeSidebar])
+
 	return (
 		<div className="min-h-screen bg-background">
 			{/* Skip to content */}
@@ -65,12 +101,15 @@ export function TenantShell({ children }: TenantShellProps) {
 			{sidebarOpen && (
 				<div
 					className="fixed inset-0 z-40 bg-foreground/20 lg:hidden"
-					onClick={() => setSidebarOpen(false)}
+					onClick={closeSidebar}
 				/>
 			)}
 
 			{/* Sidebar */}
 			<aside
+				ref={sidebarRef}
+				role={sidebarOpen ? 'dialog' : undefined}
+				aria-modal={sidebarOpen ? true : undefined}
 				className={`
 					fixed inset-y-0 left-0 z-50 w-56 bg-card
 					border-r border-border
@@ -91,7 +130,7 @@ export function TenantShell({ children }: TenantShellProps) {
 					</Link>
 					<button
 						className="ml-auto lg:hidden min-h-11 min-w-11 flex items-center justify-center rounded-md hover:bg-muted"
-						onClick={() => setSidebarOpen(false)}
+						onClick={closeSidebar}
 						aria-label="Close navigation menu"
 					>
 						<X className="w-4 h-4 text-muted-foreground" />
@@ -99,7 +138,7 @@ export function TenantShell({ children }: TenantShellProps) {
 				</div>
 
 				{/* Navigation */}
-				<TenantNav onNavigate={() => setSidebarOpen(false)} />
+				<TenantNav onNavigate={closeSidebar} />
 			</aside>
 
 			{/* Main content area */}
@@ -109,6 +148,7 @@ export function TenantShell({ children }: TenantShellProps) {
 					{/* Left side - mobile menu + breadcrumbs */}
 					<div className="flex items-center gap-3">
 						<button
+							ref={triggerRef}
 							className="p-2 rounded-md hover:bg-muted lg:hidden"
 							onClick={() => setSidebarOpen(true)}
 							aria-label="Open navigation menu"

@@ -17,7 +17,16 @@ import { createClient } from '#lib/supabase/client'
 import { loginZodSchema } from '#shared/validation/auth'
 import { useForm } from '@tanstack/react-form'
 import { useQueryClient } from '@tanstack/react-query'
-import { Eye, EyeOff, Home, Lock, Mail, Smartphone, Zap } from 'lucide-react'
+import {
+	Building2,
+	Eye,
+	EyeOff,
+	Home,
+	Lock,
+	Mail,
+	Smartphone,
+	Zap
+} from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
@@ -496,9 +505,24 @@ function LoginPageContent() {
 	)
 }
 
+function LoginFallback() {
+	return (
+		<div className="flex min-h-screen items-center justify-center bg-background">
+			<div className="flex flex-col items-center gap-4">
+				<div className="flex items-center justify-center w-12 h-12 rounded-xl bg-primary animate-pulse">
+					<Building2 className="w-6 h-6 text-primary-foreground" />
+				</div>
+				<span className="text-sm text-muted-foreground animate-pulse">
+					Loading...
+				</span>
+			</div>
+		</div>
+	)
+}
+
 export default function LoginPage() {
 	return (
-		<Suspense fallback={<div>Loading...</div>}>
+		<Suspense fallback={<LoginFallback />}>
 			<LoginPageContent />
 		</Suspense>
 	)

@@ -171,8 +171,8 @@ describe('TenantShell', () => {
 
 			await user.click(menuButton as HTMLElement)
 
-			// Sidebar should be visible (translate-x-0)
-			const sidebar = screen.getByRole('complementary')
+			// Sidebar should be visible (role switches to dialog when open)
+			const sidebar = screen.getByRole('dialog')
 			expect(sidebar.className).toContain('translate-x-0')
 		})
 
