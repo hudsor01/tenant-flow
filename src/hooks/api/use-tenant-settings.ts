@@ -79,7 +79,6 @@ export const tenantSettingsQueries = {
 				}
 			},
 			...QUERY_CACHE_TIMES.DETAIL,
-			refetchOnWindowFocus: false,
 			retry: DEFAULT_RETRY_ATTEMPTS
 		}),
 

@@ -110,7 +110,6 @@ export const tenantAutopayQueries = {
 				}
 			},
 			...QUERY_CACHE_TIMES.DETAIL,
-			refetchOnWindowFocus: false,
 			retry: DEFAULT_RETRY_ATTEMPTS
 		})
 }

@@ -153,7 +153,6 @@ export function usePaymentVerification(
 		},
 		enabled: !!sessionId,
 		...QUERY_CACHE_TIMES.SECURITY,
-		refetchOnWindowFocus: false,
 		refetchOnReconnect: false,
 		refetchOnMount: false,
 		throwOnError: options.throwOnError ?? false
@@ -185,7 +184,6 @@ export function useSessionStatus(
 		},
 		enabled: !!sessionId,
 		...QUERY_CACHE_TIMES.STATS,
-		refetchOnWindowFocus: false,
 		refetchOnReconnect: false,
 		refetchOnMount: false,
 		throwOnError: options.throwOnError ?? false

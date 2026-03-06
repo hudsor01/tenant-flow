@@ -101,7 +101,7 @@ Deno.serve(async (req: Request) => {
         property_name: (property as { name?: string } | null)?.name ?? undefined,
         unit_number: (unit as { unit_number?: string } | null)?.unit_number ?? undefined,
       }),
-      { status: 200, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
+      { status: 200, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json', 'Cache-Control': 'private, max-age=300' } }
     )
   } catch (err) {
     return errorResponse(req, 500, err, { action: 'invitation_validate' })

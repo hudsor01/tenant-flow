@@ -136,7 +136,6 @@ export const tenantMaintenanceQueries = {
 				return { requests, summary: { total, open, inProgress, completed } }
 			},
 			...QUERY_CACHE_TIMES.LIST,
-			refetchOnWindowFocus: false,
 			retry: DEFAULT_RETRY_ATTEMPTS
 		})
 }

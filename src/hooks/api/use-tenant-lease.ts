@@ -98,8 +98,7 @@ export const tenantLeaseQueries = {
 
 				return { lease: data, stats: {} }
 			},
-			...QUERY_CACHE_TIMES.DETAIL,
-			refetchOnWindowFocus: false
+			...QUERY_CACHE_TIMES.DETAIL
 		}),
 
 	lease: () =>
@@ -204,7 +203,6 @@ export const tenantLeaseQueries = {
 				}
 			},
 			...QUERY_CACHE_TIMES.DETAIL,
-			refetchOnWindowFocus: false,
 			retry: DEFAULT_RETRY_ATTEMPTS
 		}),
 
@@ -251,7 +249,6 @@ export const tenantLeaseQueries = {
 				return { documents }
 			},
 			...QUERY_CACHE_TIMES.DETAIL,
-			refetchOnWindowFocus: false,
 			retry: DEFAULT_RETRY_ATTEMPTS
 		})
 }

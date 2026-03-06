@@ -191,7 +191,7 @@ export const tenantPaymentQueries = {
 			...QUERY_CACHE_TIMES.STATS,
 			refetchInterval: 2 * 60 * 1000,
 			refetchIntervalInBackground: false,
-			refetchOnWindowFocus: true
+			refetchOnWindowFocus: 'always'
 		}),
 
 	payments: () =>
@@ -245,7 +245,7 @@ export const tenantPaymentQueries = {
 				return { payments }
 			},
 			...QUERY_CACHE_TIMES.LIST,
-			refetchOnWindowFocus: true,
+			refetchOnWindowFocus: 'always',
 			retry: DEFAULT_RETRY_ATTEMPTS
 		})
 }

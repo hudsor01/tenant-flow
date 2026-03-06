@@ -69,8 +69,7 @@ export const ownerDashboardQueries = {
 				queryKey: ownerDashboardKeys.analytics.pageData(),
 				queryFn: fetchOwnerDashboardData,
 				staleTime: 2 * 60 * 1000,
-				gcTime: 10 * 60 * 1000,
-				refetchOnWindowFocus: false
+				gcTime: 10 * 60 * 1000
 			})
 	},
 
@@ -96,8 +95,7 @@ export const ownerDashboardQueries = {
 					}
 				},
 				staleTime: 2 * 60 * 1000,
-				gcTime: 10 * 60 * 1000,
-				refetchOnWindowFocus: false
+				gcTime: 10 * 60 * 1000
 			}),
 
 		revenueTrends: (_year: number = new Date().getFullYear()) =>
@@ -129,8 +127,7 @@ export const ownerDashboardQueries = {
 					}
 				},
 				staleTime: 2 * 60 * 1000,
-				gcTime: 10 * 60 * 1000,
-				refetchOnWindowFocus: false
+				gcTime: 10 * 60 * 1000
 			})
 	},
 
@@ -159,8 +156,7 @@ export const ownerDashboardQueries = {
 					}
 				},
 				staleTime: 2 * 60 * 1000,
-				gcTime: 10 * 60 * 1000,
-				refetchOnWindowFocus: false
+				gcTime: 10 * 60 * 1000
 			})
 	}
 }
@@ -258,7 +254,6 @@ export const DASHBOARD_BASE_QUERY_OPTIONS = {
 	staleTime: 2 * 60 * 1000,
 	gcTime: 10 * 60 * 1000,
 	refetchIntervalInBackground: false,
-	refetchOnWindowFocus: false,
 	structuralSharing: true
 } as const
 

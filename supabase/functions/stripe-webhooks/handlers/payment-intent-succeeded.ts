@@ -56,11 +56,13 @@ export async function handlePaymentIntentSucceeded(
   const platformFeeAmount = (pi.application_fee_amount ?? 0) / 100
 
   // PAY-18: Get the charge to access balance_transaction for fee breakdown
+  // Charge is reused in sendReceiptEmails for last4 — fetched once here, passed down
   let stripeFeeAmount = 0
+  let charge: Stripe.Charge | null = null
   const chargeId = typeof pi.latest_charge === 'string' ? pi.latest_charge : (pi.latest_charge as Stripe.Charge | null)?.id
   if (chargeId) {
     try {
-      const charge = await stripe.charges.retrieve(chargeId, { expand: ['balance_transaction'] })
+      charge = await stripe.charges.retrieve(chargeId, { expand: ['balance_transaction'] })
       const bt = charge.balance_transaction
       if (bt && typeof bt !== 'string') {
         stripeFeeAmount = bt.fee / 100
@@ -94,7 +96,7 @@ export async function handlePaymentIntentSucceeded(
 
   // Fire-and-forget receipt emails — errors logged, never thrown
   try {
-    await sendReceiptEmails(supabase, stripe, pi, grossAmount, stripeFeeAmount, platformFeeAmount, netAmount)
+    await sendReceiptEmails(supabase, stripe, pi, grossAmount, stripeFeeAmount, platformFeeAmount, netAmount, charge)
   } catch (emailErr) {
     console.error('[RESEND_ERROR] sendReceiptEmails unexpected error:', emailErr)
   }
@@ -111,7 +113,8 @@ async function sendReceiptEmails(
   grossAmount: number,
   stripeFeeAmount: number = 0,
   platformFeeAmount: number = 0,
-  netAmount: number = 0
+  netAmount: number = 0,
+  existingCharge: Stripe.Charge | null = null,
 ): Promise<void> {
   const metadata = pi.metadata ?? {}
   const tenantId = metadata['tenant_id']
@@ -163,20 +166,8 @@ async function sendReceiptEmails(
   const tenantEmailEnabled = tenantSettingsResult.data?.email !== false
   const ownerEmailEnabled = ownerSettingsResult.data?.email !== false
 
-  // 3. Resolve payment method last4 from the charge (best-effort)
-  let paymentMethodLast4: string | null = null
-  try {
-    const chargeId = typeof pi.latest_charge === 'string'
-      ? pi.latest_charge
-      : (pi.latest_charge as Stripe.Charge | null)?.id
-    if (chargeId) {
-      const charge = await stripe.charges.retrieve(chargeId)
-      paymentMethodLast4 = (charge.payment_method_details?.card?.last4) ?? null
-    }
-  } catch (cardErr) {
-    // Non-critical — receipt will omit payment method info
-    console.error('[RESEND_ERROR] Failed to retrieve card last4:', cardErr)
-  }
+  // 3. Resolve payment method last4 from the charge (reused from caller — no extra API call)
+  const paymentMethodLast4 = existingCharge?.payment_method_details?.card?.last4 ?? null
 
   // 4. Format data for templates
   const propertyAddress = `${prop.address_line1}, ${prop.city}, ${prop.state} ${prop.postal_code}`
