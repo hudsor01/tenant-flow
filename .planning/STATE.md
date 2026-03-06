@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: Production Hardening
 status: completed
-stopped_at: Completed 08-05-PLAN.md
-last_updated: "2026-03-06T18:16:32.546Z"
-last_activity: 2026-03-06 — Shared tenantIdQuery, resolveTenantId(), amountDue Promise.all parallelization
+stopped_at: Completed 08-04-PLAN.md
+last_updated: "2026-03-06T19:25:00Z"
+last_activity: 2026-03-06 — Bounded unbounded queries, specific column selections, occupancy trends deduplication
 progress:
   total_phases: 13
   completed_phases: 8
   total_plans: 57
-  completed_plans: 48
-  percent: 90
+  completed_plans: 49
+  percent: 91
 ---
 
 # Project State: TenantFlow
@@ -26,11 +26,11 @@ See: .planning/PROJECT.md (updated 2026-03-04)
 ## Current Position
 
 Phase: 8 of 9 (Performance Optimization) -- IN PROGRESS
-Plan: 5 of 7 in current phase (08-05 complete)
-Status: Completed 08-05 (Tenant portal waterfall elimination, shared tenant ID resolution)
-Last activity: 2026-03-06 — Shared tenantIdQuery, resolveTenantId(), amountDue Promise.all parallelization
+Plan: 5 of 7 in current phase (08-04 and 08-05 complete)
+Status: Completed 08-04 (Query bounds, column selections, occupancy trends dedup)
+Last activity: 2026-03-06 — Bounded unbounded queries, specific column selections, occupancy trends deduplication
 
-Progress: [█████████░] 90%
+Progress: [█████████░] 91%
 
 ## Performance Metrics
 
@@ -83,6 +83,7 @@ Progress: [█████████░] 90%
 | Phase 08 P02 | 3min | 2 tasks | 14 files |
 | Phase 08 P03 | 3min | 2 tasks | 3 files |
 | Phase 08 P01 | 4min | 2 tasks | 12 files |
+| Phase 08 P04 | 25min | 2 tasks | 10 files |
 | Phase 08 P05 | 17min | 2 tasks | 6 files |
 
 ## Accumulated Context
@@ -204,6 +205,11 @@ Progress: [█████████░] 90%
 - [Phase 08]: tenantIdQuery uses 10-min staleTime (tenant ID immutable within session)
 - [Phase 08]: resolveTenantId() as standalone function for use in queryFns (not hook-level)
 - [Phase 08]: amountDue parallelizes connected_account + rent_due after lease fetch via Promise.all
+- [Phase 08]: property_images and report_runs select('*') kept (small tables scoped by FK filter)
+- [Phase 08]: Lease detail keeps select('*') for base columns, specifies only join relation columns
+- [Phase 08]: LeaseListItem uses Pick<Lease, ...> for expiring query return type narrowing
+- [Phase 08]: occupancyTrendsQuery staleTime 5min (occupancy changes infrequently)
+- [Phase 08]: Fixed p_user_id to p_owner_id on all occupancy trends RPC calls (latent parameter name bug)
 
 ### Pending Todos
 
@@ -218,6 +224,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-06T18:14:06Z
-Stopped at: Completed 08-05-PLAN.md
+Last session: 2026-03-06T19:25:00Z
+Stopped at: Completed 08-04-PLAN.md
 Resume file: None

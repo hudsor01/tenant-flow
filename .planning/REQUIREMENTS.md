@@ -169,13 +169,13 @@ All 131 findings from the review, plus CLAUDE.md maintenance.
 - [x] **PERF-11**: `stripe-webhooks` sequential charge retrieval + late_fee query parallelized
 - [x] **PERF-12**: `stripe-autopay-charge` 3 sequential DB lookups parallelized with `Promise.all()`
 - [x] **PERF-13**: `stripe-rent-checkout` sequential DB queries parallelized where independent
-- [ ] **PERF-14**: Blog queries add pagination and column filtering (not `select('*')` unbounded)
-- [ ] **PERF-15**: Maintenance `urgent()` and `overdue()` queries add `.limit()`
-- [ ] **PERF-16**: Tenant portal maintenance counts computed via DB (not fetch-all-then-count-in-JS)
-- [ ] **PERF-17**: `select('*')` on join queries replaced with specific column selections
-- [ ] **PERF-18**: Notifications query selects specific columns (not `select('*')`)
-- [ ] **PERF-19**: Duplicate `get_occupancy_trends_optimized` calls deduplicated (dashboard + property analytics)
-- [ ] **PERF-20**: Expiring leases query adds `.limit()`
+- [x] **PERF-14**: Blog queries add pagination and column filtering (not `select('*')` unbounded)
+- [x] **PERF-15**: Maintenance `urgent()` and `overdue()` queries add `.limit()`
+- [x] **PERF-16**: Tenant portal maintenance counts computed via DB (not fetch-all-then-count-in-JS)
+- [x] **PERF-17**: `select('*')` on join queries replaced with specific column selections
+- [x] **PERF-18**: Notifications query selects specific columns (not `select('*')`)
+- [x] **PERF-19**: Duplicate `get_occupancy_trends_optimized` calls deduplicated (dashboard + property analytics)
+- [x] **PERF-20**: Expiring leases query adds `.limit()`
 - [ ] **PERF-21**: Raw `<img>` in file-upload-item replaced with `next/image`
 - [x] **PERF-22**: Stale CSS `@source` paths in `globals.css` removed
 - [x] **PERF-23**: Edge Function `tenant-invitation-validate` response gets short cache headers
@@ -360,13 +360,13 @@ All 131 findings from the review, plus CLAUDE.md maintenance.
 | PERF-11 | Phase 8 | Complete |
 | PERF-12 | Phase 8 | Complete |
 | PERF-13 | Phase 8 | Complete |
-| PERF-14 | Phase 8 | Pending |
-| PERF-15 | Phase 8 | Pending |
-| PERF-16 | Phase 8 | Pending |
-| PERF-17 | Phase 8 | Pending |
-| PERF-18 | Phase 8 | Pending |
-| PERF-19 | Phase 8 | Pending |
-| PERF-20 | Phase 8 | Pending |
+| PERF-14 | Phase 8 | Complete |
+| PERF-15 | Phase 8 | Complete |
+| PERF-16 | Phase 8 | Complete |
+| PERF-17 | Phase 8 | Complete |
+| PERF-18 | Phase 8 | Complete |
+| PERF-19 | Phase 8 | Complete |
+| PERF-20 | Phase 8 | Complete |
 | PERF-21 | Phase 8 | Pending |
 | PERF-22 | Phase 8 | Complete |
 | PERF-23 | Phase 8 | Complete |
