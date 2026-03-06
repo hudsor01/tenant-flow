@@ -134,17 +134,17 @@ All 131 findings from the review, plus CLAUDE.md maintenance.
 - [x] **UX-05**: Skip-to-content link added to app shell and tenant shell
 - [x] **UX-06**: `aria-label` on hamburger menu buttons (both shells)
 - [x] **UX-07**: `aria-label` on notification bell link
-- [ ] **UX-08**: `aria-label` on reports scheduled list toggle button
-- [ ] **UX-09**: `aria-label` on dropzone remove-file button
-- [ ] **UX-10**: `aria-label` on tenant grid action buttons (replace `title` with `aria-label`)
+- [x] **UX-08**: `aria-label` on reports scheduled list toggle button
+- [x] **UX-09**: `aria-label` on dropzone remove-file button
+- [x] **UX-10**: `aria-label` on tenant grid action buttons (replace `title` with `aria-label`)
 - [x] **UX-11**: Breadcrumb `<nav>` gets `aria-label="Breadcrumb"`
 - [x] **UX-12**: Hardcoded `bg-white` replaced with `bg-background` (preview-panel, QR code, slider, notification toggles)
-- [ ] **UX-13**: Custom toggle switches replaced with shadcn Switch component
-- [ ] **UX-14**: `not-found.tsx` added for dynamic routes (leases/[id], tenants/[id], maintenance/[id], inspections/[id], units/[id])
-- [ ] **UX-15**: `error.tsx` added for `(auth)`, `auth/`, `blog/`, `pricing/` route groups
+- [x] **UX-13**: Custom toggle switches replaced with shadcn Switch component
+- [x] **UX-14**: `not-found.tsx` added for dynamic routes (leases/[id], tenants/[id], maintenance/[id], inspections/[id], units/[id])
+- [x] **UX-15**: `error.tsx` added for `(auth)`, `auth/`, `blog/`, `pricing/` route groups
 - [ ] **UX-16**: Page metadata/titles exported from all owner and tenant pages
 - [ ] **UX-17**: Unsaved form data protection (`beforeunload` on multi-step forms)
-- [ ] **UX-18**: Kanban board responsive columns (not fixed 300px/220px requiring 1500px+ viewport)
+- [x] **UX-18**: Kanban board responsive columns (not fixed 300px/220px requiring 1500px+ viewport)
 - [x] **UX-19**: Breadcrumbs visible on mobile (not `hidden sm:flex`)
 - [x] **UX-20**: Mobile sidebar overlay keyboard-accessible (Escape key handler, focus management)
 - [ ] **UX-21**: `autoFocus` on primary form inputs (login email, property name, etc.)
@@ -328,17 +328,17 @@ All 131 findings from the review, plus CLAUDE.md maintenance.
 | UX-05 | Phase 7 | Complete |
 | UX-06 | Phase 7 | Complete |
 | UX-07 | Phase 7 | Complete |
-| UX-08 | Phase 7 | Pending |
-| UX-09 | Phase 7 | Pending |
-| UX-10 | Phase 7 | Pending |
+| UX-08 | Phase 7 | Complete |
+| UX-09 | Phase 7 | Complete |
+| UX-10 | Phase 7 | Complete |
 | UX-11 | Phase 7 | Complete |
 | UX-12 | Phase 7 | Complete |
-| UX-13 | Phase 7 | Pending |
-| UX-14 | Phase 7 | Pending |
-| UX-15 | Phase 7 | Pending |
+| UX-13 | Phase 7 | Complete |
+| UX-14 | Phase 7 | Complete |
+| UX-15 | Phase 7 | Complete |
 | UX-16 | Phase 7 | Pending |
 | UX-17 | Phase 7 | Pending |
-| UX-18 | Phase 7 | Pending |
+| UX-18 | Phase 7 | Complete |
 | UX-19 | Phase 7 | Complete |
 | UX-20 | Phase 7 | Complete |
 | UX-21 | Phase 7 | Pending |

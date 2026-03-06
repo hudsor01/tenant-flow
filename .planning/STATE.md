@@ -26,11 +26,11 @@ See: .planning/PROJECT.md (updated 2026-03-04)
 ## Current Position
 
 Phase: 7 of 9 (UX & Accessibility)
-Plan: 5 of 6 in current phase (07-05 complete)
-Status: Completed 07-05 (UX polish: tenant delete guard, EmptyState, login fallback, skeleton)
-Last activity: 2026-03-06 — Active-lease guard on tenant delete, shared EmptyState, branded login fallback, property skeleton
+Plan: 5 of 6 in current phase (07-04 complete)
+Status: Completed 07-04 (404 pages and error boundaries)
+Last activity: 2026-03-06 — Shared NotFoundPage and ErrorPage components, 10 not-found.tsx + 7 error.tsx files
 
-Progress: [████████░░] 78%
+Progress: [████████░░] 86%
 
 ## Performance Metrics
 
@@ -77,6 +77,8 @@ Progress: [████████░░] 78%
 | Phase 07 P01 | 2min | 2 tasks | 0 files |
 | Phase 07 P05 | 14min | 2 tasks | 6 files |
 | Phase 07 P02 | 14min | 2 tasks | 4 files |
+| Phase 07 P03 | 13min | 2 tasks | 7 files |
+| Phase 07 P04 | 16min | 2 tasks | 20 files |
 
 ## Accumulated Context
 
@@ -173,8 +175,15 @@ Progress: [████████░░] 78%
 - [Phase 07]: Tenant delete checks lease_tenants joined with leases for active status before soft-delete
 - [Phase 07]: EmptyState uses shadcn Empty compound with variant=icon for icon presentation
 - [Phase 07]: Property detail skeleton in page.tsx where loading state lives, not client component
+- [Phase 07]: 07-03: Keep title attribute alongside aria-label on tenant grid buttons (tooltip + screen reader)
+- [Phase 07]: 07-03: Use base Switch from #components/ui/switch (not ToggleSwitch wrapper) since label context already exists
+- [Phase 07]: 07-03: Tenant notification-preferences-section already uses ToggleSwitch wrapper -- no changes needed
 - [Phase 07]: Non-null assertions for breadcrumbs array indexing inside length guards (safe pattern)
 - [Phase 07]: Sidebar role conditionally set to dialog when open (preserves native aside semantics when closed)
+- [Phase 07]: 07-04: Generic "Page not found" message for all not-found pages (no entity-specific messages)
+- [Phase 07]: 07-04: ErrorPage uses Sentry.captureException, does not expose error.message to users
+- [Phase 07]: 07-04: Two escape actions on all error boundaries: Try Again + Go to Dashboard
+- [Phase 07]: 07-04: NotFoundPage dashboardHref: /dashboard (owner), /tenant (tenant), / (public)
 
 ### Pending Todos
 
@@ -189,6 +198,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-06T16:32:09.067Z
-Stopped at: Completed 07-02-PLAN.md
+Last session: 2026-03-06T16:31:47.000Z
+Stopped at: Completed 07-04-PLAN.md
 Resume file: None

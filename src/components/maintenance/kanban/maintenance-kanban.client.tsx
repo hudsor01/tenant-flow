@@ -98,7 +98,7 @@ function KanbanColumn({
 
 	return (
 		<BlurFade delay={0.3 + columnIndex * 0.1} inView>
-			<div className="flex flex-col min-w-[300px] w-[300px] bg-muted/30 rounded-lg">
+			<div className="flex flex-col min-w-[280px] sm:min-w-0 snap-start flex-shrink-0 sm:flex-shrink bg-muted/30 rounded-lg">
 				{/* Column Header */}
 				<div className="flex items-center gap-3 p-4 border-b border-border">
 					<div
@@ -262,7 +262,7 @@ export function MaintenanceKanban({ initialRequests }: MaintenanceKanbanProps) {
 			onDragEnd={handleDragEnd}
 			modifiers={[snapToGrid, restrictToWindowEdges]}
 		>
-			<div className="flex gap-4 overflow-x-auto pb-4 -mx-6 px-6 lg:-mx-8 lg:px-8">
+			<div className="flex gap-4 overflow-x-auto snap-x snap-mandatory pb-4 -mx-4 px-4 sm:mx-0 sm:px-0 sm:grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
 				{visibleColumns.map((column, idx) => (
 					<KanbanColumn
 						key={column.id}
