@@ -161,9 +161,9 @@ All 131 findings from the review, plus CLAUDE.md maintenance.
 - [x] **PERF-03**: Recharts code-split via `next/dynamic` in all 17 statically-importing files
 - [x] **PERF-04**: `react-markdown` + rehype/remark dynamically imported on blog pages
 - [x] **PERF-05**: `refetchOnWindowFocus` default changed from `'always'` to `true`
-- [ ] **PERF-06**: `@tanstack/react-virtual` used for property, tenant, lease, maintenance lists
-- [ ] **PERF-07**: Maintenance stats consolidated from 7 HEAD queries to single grouped RPC
-- [ ] **PERF-08**: Lease stats consolidated from 6 queries to single RPC
+- [x] **PERF-06**: `@tanstack/react-virtual` used for property, tenant, lease, maintenance lists
+- [x] **PERF-07**: Maintenance stats consolidated from 7 HEAD queries to single grouped RPC
+- [x] **PERF-08**: Lease stats consolidated from 6 queries to single RPC
 - [x] **PERF-09**: `optimizePackageImports` added to `next.config.ts`
 - [x] **PERF-10**: `stripe-webhooks` email rendering optimized (pre-built HTML or background queue)
 - [x] **PERF-11**: `stripe-webhooks` sequential charge retrieval + late_fee query parallelized
@@ -352,9 +352,9 @@ All 131 findings from the review, plus CLAUDE.md maintenance.
 | PERF-03 | Phase 8 | Complete |
 | PERF-04 | Phase 8 | Complete |
 | PERF-05 | Phase 8 | Complete |
-| PERF-06 | Phase 8 | Pending |
-| PERF-07 | Phase 8 | Pending |
-| PERF-08 | Phase 8 | Pending |
+| PERF-06 | Phase 8 | Complete |
+| PERF-07 | Phase 8 | Complete |
+| PERF-08 | Phase 8 | Complete |
 | PERF-09 | Phase 8 | Complete |
 | PERF-10 | Phase 8 | Complete |
 | PERF-11 | Phase 8 | Complete |

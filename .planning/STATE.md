@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: Production Hardening
 status: completed
-stopped_at: Completed 08-04-PLAN.md
-last_updated: "2026-03-06T19:25:00Z"
-last_activity: 2026-03-06 — Bounded unbounded queries, specific column selections, occupancy trends deduplication
+stopped_at: Completed 08-06-PLAN.md
+last_updated: "2026-03-06T19:30:00Z"
+last_activity: 2026-03-06 — Consolidated stats RPCs, added list virtualization to 4 pages
 progress:
   total_phases: 13
   completed_phases: 8
   total_plans: 57
-  completed_plans: 49
-  percent: 91
+  completed_plans: 50
+  percent: 92
 ---
 
 # Project State: TenantFlow
@@ -26,9 +26,9 @@ See: .planning/PROJECT.md (updated 2026-03-04)
 ## Current Position
 
 Phase: 8 of 9 (Performance Optimization) -- IN PROGRESS
-Plan: 5 of 7 in current phase (08-04 and 08-05 complete)
-Status: Completed 08-04 (Query bounds, column selections, occupancy trends dedup)
-Last activity: 2026-03-06 — Bounded unbounded queries, specific column selections, occupancy trends deduplication
+Plan: 7 of 7 in current phase (08-06 complete)
+Status: Completed 08-06 (Stats RPC consolidation, list virtualization)
+Last activity: 2026-03-06 — Consolidated stats RPCs, added list virtualization to 4 pages
 
 Progress: [█████████░] 91%
 
@@ -85,6 +85,7 @@ Progress: [█████████░] 91%
 | Phase 08 P01 | 4min | 2 tasks | 12 files |
 | Phase 08 P04 | 25min | 2 tasks | 10 files |
 | Phase 08 P05 | 17min | 2 tasks | 6 files |
+| Phase 08 P06 | 36min | 2 tasks | 11 files |
 
 ## Accumulated Context
 
@@ -210,6 +211,10 @@ Progress: [█████████░] 91%
 - [Phase 08]: LeaseListItem uses Pick<Lease, ...> for expiring query return type narrowing
 - [Phase 08]: occupancyTrendsQuery staleTime 5min (occupancy changes infrequently)
 - [Phase 08]: Fixed p_user_id to p_owner_id on all occupancy trends RPC calls (latent parameter name bug)
+- [Phase 08]: FILTER aggregates in SECURITY DEFINER RPCs reduce 13 HTTP round-trips to 2 for stats
+- [Phase 08]: useVirtualizer applied directly to table tbody rows (not VirtualizedList wrapper) for table views
+- [Phase 08]: Grid views use scroll-constrained containers (responsive column count makes row-grouped virtualization fragile)
+- [Phase 08]: Maintenance table scroll containment at view level (shared DataTable component unchanged)
 
 ### Pending Todos
 
@@ -224,6 +229,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-06T19:25:00Z
-Stopped at: Completed 08-04-PLAN.md
+Last session: 2026-03-06T19:30:00Z
+Stopped at: Completed 08-06-PLAN.md
 Resume file: None
