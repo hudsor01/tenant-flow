@@ -176,10 +176,10 @@ All 131 findings from the review, plus CLAUDE.md maintenance.
 - [x] **PERF-18**: Notifications query selects specific columns (not `select('*')`)
 - [x] **PERF-19**: Duplicate `get_occupancy_trends_optimized` calls deduplicated (dashboard + property analytics)
 - [x] **PERF-20**: Expiring leases query adds `.limit()`
-- [ ] **PERF-21**: Raw `<img>` in file-upload-item replaced with `next/image`
+- [x] **PERF-21**: Raw `<img>` in file-upload-item replaced with `next/image`
 - [x] **PERF-22**: Stale CSS `@source` paths in `globals.css` removed
 - [x] **PERF-23**: Edge Function `tenant-invitation-validate` response gets short cache headers
-- [ ] **PERF-24**: `493 'use client'` files audited — remove directive from non-interactive leaf components
+- [x] **PERF-24**: `493 'use client'` files audited — remove directive from non-interactive leaf components
 
 ### Testing & CI Pipeline
 
@@ -367,10 +367,10 @@ All 131 findings from the review, plus CLAUDE.md maintenance.
 | PERF-18 | Phase 8 | Complete |
 | PERF-19 | Phase 8 | Complete |
 | PERF-20 | Phase 8 | Complete |
-| PERF-21 | Phase 8 | Pending |
+| PERF-21 | Phase 8 | Complete |
 | PERF-22 | Phase 8 | Complete |
 | PERF-23 | Phase 8 | Complete |
-| PERF-24 | Phase 8 | Pending |
+| PERF-24 | Phase 8 | Complete |
 | TEST-01 | Phase 9 | Pending |
 | TEST-02 | Phase 9 | Pending |
 | TEST-03 | Phase 9 | Pending |

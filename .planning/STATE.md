@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: Production Hardening
 status: completed
-stopped_at: Completed 08-06-PLAN.md
-last_updated: "2026-03-06T19:30:00Z"
-last_activity: 2026-03-06 — Consolidated stats RPCs, added list virtualization to 4 pages
+stopped_at: Completed 08-07-PLAN.md (Phase 8 complete)
+last_updated: "2026-03-06T20:05:27.441Z"
+last_activity: 2026-03-06 — Audited 'use client' directives, updated CLAUDE.md with Phase 8 conventions
 progress:
   total_phases: 13
-  completed_phases: 8
+  completed_phases: 9
   total_plans: 57
-  completed_plans: 50
-  percent: 92
+  completed_plans: 51
+  percent: 91
 ---
 
 # Project State: TenantFlow
@@ -21,16 +21,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-04)
 
 **Core value:** A landlord can add a property, invite a tenant, collect rent, and see their financials — without touching a spreadsheet or calling anyone.
-**Current focus:** v1.0 Production Hardening — Phase 8 execution in progress
+**Current focus:** v1.0 Production Hardening — Phase 8 complete, ready for Phase 9
 
 ## Current Position
 
-Phase: 8 of 9 (Performance Optimization) -- IN PROGRESS
-Plan: 7 of 7 in current phase (08-06 complete)
-Status: Completed 08-06 (Stats RPC consolidation, list virtualization)
-Last activity: 2026-03-06 — Consolidated stats RPCs, added list virtualization to 4 pages
+Phase: 8 of 9 (Performance Optimization) -- COMPLETE
+Plan: 7 of 7 in current phase (08-07 complete)
+Status: Completed 08-07 (Use client audit, CLAUDE.md conventions)
+Last activity: 2026-03-06 — Audited 'use client' directives, updated CLAUDE.md with Phase 8 conventions
 
-Progress: [█████████░] 91%
+Progress: [█████████░] 89%
 
 ## Performance Metrics
 
@@ -86,6 +86,7 @@ Progress: [█████████░] 91%
 | Phase 08 P04 | 25min | 2 tasks | 10 files |
 | Phase 08 P05 | 17min | 2 tasks | 6 files |
 | Phase 08 P06 | 36min | 2 tasks | 11 files |
+| Phase 08 P07 | 27min | 2 tasks | 7 files |
 
 ## Accumulated Context
 
@@ -215,6 +216,9 @@ Progress: [█████████░] 91%
 - [Phase 08]: useVirtualizer applied directly to table tbody rows (not VirtualizedList wrapper) for table views
 - [Phase 08]: Grid views use scroll-constrained containers (responsive column count makes row-grouped virtualization fragile)
 - [Phase 08]: Maintenance table scroll containment at view level (shared DataTable component unchanged)
+- [Phase 08]: file-upload-item keeps raw <img> for blob URLs -- next/image protocol restriction documented
+- [Phase 08]: 5 more 'use client' removals (412->407): loading skeletons, pricing wrappers, stripe-connect-tab
+- [Phase 08]: CLAUDE.md updated with all Phase 8 patterns: dynamic imports, VirtualizedList, consolidated RPCs, resolveTenantId, query bounds, Promise.all in Edge Functions
 
 ### Pending Todos
 
@@ -229,6 +233,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-06T19:30:00Z
-Stopped at: Completed 08-06-PLAN.md
+Last session: 2026-03-06T20:05:27.437Z
+Stopped at: Completed 08-07-PLAN.md (Phase 8 complete)
 Resume file: None
