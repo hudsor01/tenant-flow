@@ -1,8 +1,6 @@
 import { PropertyForm } from '#components/properties/property-form.client'
 import { MobilePropertyForm } from '#components/properties/property-form.mobile'
 
-export const dynamic = 'force-dynamic'
-
 /**
  * New Property Page - Server Component
 
