@@ -32,7 +32,7 @@ TenantFlow is a multi-tenant property management SaaS platform for property owne
 **Milestone Goal:** Transform MVP blog into a production content-marketing platform with split content zones, pagination, category navigation, working newsletter subscription, and CI workflow optimization.
 
 - [x] **Phase 11: Blog Data Layer** - RPC migration, query key factory, paginated hooks, type regeneration (completed 2026-03-07)
-- [ ] **Phase 12: Blog Components & CSS** - BlogCard, BlogPagination, NewsletterSignup, EmptyState, CSS utilities
+- [x] **Phase 12: Blog Components & CSS** - BlogCard, BlogPagination, NewsletterSignup, EmptyState, CSS utilities (completed 2026-03-07)
 - [ ] **Phase 13: Newsletter Backend** - newsletter-subscribe Edge Function with Resend Contacts API and rate limiting
 - [ ] **Phase 14: Blog Pages** - Hub with split zones, detail with related posts, category with pagination
 - [ ] **Phase 15: CI Optimization** - Gate checks to PR-only, e2e-smoke independent on push
@@ -65,7 +65,7 @@ Plans:
   3. NewsletterSignup shows input, submit button, and displays success or error toast after submission
   4. `prose` class renders styled typography on blog content (plugin activated)
   5. EmptyState shared component renders on any list page with zero results
-**Plans:** 1/2 plans executed
+**Plans:** 2/2 plans complete
 
 Plans:
 - [ ] 12-01-PLAN.md -- CSS infrastructure (typography plugin, scrollbar-hide), BlogCard, BlogPagination
@@ -121,7 +121,7 @@ Phases 11-14 execute sequentially (data layer -> components -> pages). Phase 13 
 | 9. Testing & CI Pipeline | v1.0 | 9/9 | Complete | 2026-03-06 |
 | 10. Audit Cleanup | v1.0 | 2/2 | Complete | 2026-03-07 |
 | 11. Blog Data Layer | v1.1 | 2/2 | Complete | 2026-03-07 |
-| 12. Blog Components & CSS | 1/2 | In Progress|  | - |
+| 12. Blog Components & CSS | 2/2 | Complete   | 2026-03-07 | - |
 | 13. Newsletter Backend | v1.1 | 0/? | Not started | - |
 | 14. Blog Pages | v1.1 | 0/? | Not started | - |
 | 15. CI Optimization | v1.1 | 0/? | Not started | - |
