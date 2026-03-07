@@ -72,32 +72,32 @@ Requirements for v1.1 Blog Redesign & CI. Each maps to roadmap phases.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| BLOG-01 | — | Pending |
-| BLOG-02 | — | Pending |
-| BLOG-03 | — | Pending |
-| BLOG-04 | — | Pending |
-| BLOG-05 | — | Pending |
-| COMP-01 | — | Pending |
-| COMP-02 | — | Pending |
-| COMP-03 | — | Pending |
-| PAGE-01 | — | Pending |
-| PAGE-02 | — | Pending |
-| PAGE-03 | — | Pending |
-| PAGE-04 | — | Pending |
-| PAGE-05 | — | Pending |
-| NEWS-01 | — | Pending |
-| NEWS-02 | — | Pending |
-| NEWS-03 | — | Pending |
-| INFRA-01 | — | Pending |
-| INFRA-02 | — | Pending |
-| INFRA-03 | — | Pending |
-| INFRA-04 | — | Pending |
+| BLOG-01 | Phase 11 | Pending |
+| BLOG-02 | Phase 11 | Pending |
+| BLOG-03 | Phase 11 | Pending |
+| BLOG-04 | Phase 11 | Pending |
+| BLOG-05 | Phase 11 | Pending |
+| COMP-01 | Phase 12 | Pending |
+| COMP-02 | Phase 12 | Pending |
+| COMP-03 | Phase 12 | Pending |
+| PAGE-01 | Phase 14 | Pending |
+| PAGE-02 | Phase 14 | Pending |
+| PAGE-03 | Phase 14 | Pending |
+| PAGE-04 | Phase 14 | Pending |
+| PAGE-05 | Phase 14 | Pending |
+| NEWS-01 | Phase 13 | Pending |
+| NEWS-02 | Phase 13 | Pending |
+| NEWS-03 | Phase 14 | Pending |
+| INFRA-01 | Phase 12 | Pending |
+| INFRA-02 | Phase 12 | Pending |
+| INFRA-03 | Phase 12 | Pending |
+| INFRA-04 | Phase 15 | Pending |
 
 **Coverage:**
 - v1.1 requirements: 20 total
-- Mapped to phases: 0
-- Unmapped: 20
+- Mapped to phases: 20
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-03-07*
-*Last updated: 2026-03-07 after initial definition*
+*Last updated: 2026-03-07 after roadmap creation (all 20 requirements mapped to phases 11-15)*
