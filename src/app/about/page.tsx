@@ -246,7 +246,7 @@ export default function AboutPage() {
 										<div className="typography-h2 text-primary mb-2">
 											{stat.number}
 										</div>
-										<div className="text-muted">{stat.label}</div>
+										<div className="text-muted-foreground">{stat.label}</div>
 									</div>
 								</BlurFade>
 							))}
@@ -298,7 +298,7 @@ export default function AboutPage() {
 										<p className="text-primary font-medium mb-4">
 											{member.user_type}
 										</p>
-										<p className="text-muted leading-relaxed">{member.bio}</p>
+										<p className="text-muted-foreground leading-relaxed">{member.bio}</p>
 									</div>
 								</BlurFade>
 							))}
@@ -335,7 +335,7 @@ export default function AboutPage() {
 									<Link href="/contact">Talk to Sales</Link>
 								</Button>
 							</div>
-							<p className="text-muted">
+							<p className="text-muted-foreground">
 								No setup fees • Enterprise security • 99.9% uptime SLA • Cancel
 								anytime
 							</p>

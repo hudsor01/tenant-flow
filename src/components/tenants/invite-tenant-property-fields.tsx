@@ -1,5 +1,3 @@
-'use client'
-
 import { Field, FieldError, FieldLabel } from '#components/ui/field'
 import {
 	Select,
@@ -29,7 +27,7 @@ export function InviteTenantPropertyFields({
 }: InviteTenantPropertyFieldsProps) {
 	if (properties.length === 0) {
 		return (
-			<div className="rounded-lg border border-dashed p-4 text-center text-muted">
+			<div className="rounded-lg border border-dashed p-4 text-center text-muted-foreground">
 				<Building2 className="size-8 mx-auto mb-2 opacity-50" />
 				<p className="text-sm">
 					No properties configured yet. You can still invite tenants and assign
@@ -45,7 +43,7 @@ export function InviteTenantPropertyFields({
 				<Building2 className="size-5" />
 				Property Assignment (Optional)
 			</div>
-			<p className="text-muted text-sm">
+			<p className="text-muted-foreground text-sm">
 				Assign tenant to a property now, or skip and assign later when creating
 				a lease.
 			</p>
@@ -110,7 +108,7 @@ export function InviteTenantPropertyFields({
 
 			{/* Show message for single-family homes */}
 			{selectedPropertyId && availableUnits.length <= 1 && (
-				<p className="text-muted text-sm">
+				<p className="text-muted-foreground text-sm">
 					{availableUnits.length === 0
 						? 'This property has no units configured.'
 						: 'Single-unit property - unit will be assigned automatically.'}

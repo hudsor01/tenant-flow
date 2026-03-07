@@ -2,7 +2,7 @@
 
 import type { Ref } from 'react'
 
-import { useSignOutMutation } from '#hooks/api/use-auth'
+import { useSignOutMutation } from '#hooks/api/use-auth-mutations'
 import { useNavigation } from '#hooks/use-navigation'
 import { cn } from '#lib/utils'
 import { useAuth } from '#providers/auth-provider'

@@ -1,5 +1,3 @@
-'use client'
-
 import { BarChart3 } from 'lucide-react'
 import { BlurFade } from '#components/ui/blur-fade'
 import type { RevenueTrend } from '../analytics-types'

@@ -10,6 +10,7 @@ import {
 	Search
 } from 'lucide-react'
 import { BlurFade } from '#components/ui/blur-fade'
+import { formatDate } from '#lib/formatters/date'
 
 interface TaxDocument {
 	id: string
@@ -23,14 +24,6 @@ interface TaxDocument {
 interface TaxDocumentsProps {
 	documents: TaxDocument[]
 	onDownload?: (documentId: string) => void
-}
-
-function formatDate(dateString: string): string {
-	return new Date(dateString).toLocaleDateString('en-US', {
-		year: 'numeric',
-		month: 'short',
-		day: 'numeric'
-	})
 }
 
 export function TaxDocuments({ documents, onDownload }: TaxDocumentsProps) {

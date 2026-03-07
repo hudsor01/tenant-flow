@@ -14,14 +14,16 @@ import { useState, useRef, type ChangeEvent } from 'react'
 import { Button } from '#components/ui/button'
 import { BlurFade } from '#components/ui/blur-fade'
 import { ChangePasswordDialog } from '#components/auth/change-password-dialog'
+import { useProfile } from '#hooks/api/use-profile'
 import {
-	useProfile,
 	useUpdateProfileMutation,
-	useUploadAvatarMutation,
-	useRemoveAvatarMutation,
 	useUpdatePhoneMutation
-} from '#hooks/api/use-profile'
-import { useSignOutMutation } from '#hooks/api/use-auth'
+} from '#hooks/api/use-profile-mutations'
+import {
+	useUploadAvatarMutation,
+	useRemoveAvatarMutation
+} from '#hooks/api/use-profile-avatar-mutations'
+import { useSignOutMutation } from '#hooks/api/use-auth-mutations'
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
 

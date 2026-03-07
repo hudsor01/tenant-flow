@@ -3,10 +3,8 @@
 import { useCallback, useState } from 'react'
 import Image from 'next/image'
 import { createLogger } from '#shared/lib/frontend-logger'
-import {
-	usePropertyImages,
-	useDeletePropertyImageMutation
-} from '#hooks/api/use-properties'
+import { usePropertyImages } from '#hooks/api/use-properties'
+import { useDeletePropertyImageMutation } from '#hooks/api/use-property-mutations'
 import { useLightboxState } from '#hooks/use-lightbox-state'
 import { ImageLightbox } from './image-lightbox'
 import {
@@ -183,7 +181,7 @@ export function PropertyImageGallery({
 
 			{/* Image count info */}
 			{images.length > 4 && (
-				<p className="text-muted">
+				<p className="text-muted-foreground">
 					Showing 4 of {images.length} images
 					{editable && '. Click image to view full gallery.'}
 				</p>

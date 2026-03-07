@@ -110,11 +110,11 @@ export default function CheckoutSuccessPage() {
 								</div>
 
 								<div className="pt-6 border-t">
-									<p className="text-muted mb-4">
+									<p className="text-muted-foreground mb-4">
 										A confirmation email has been sent to your email address
 										with your receipt and subscription details.
 									</p>
-									<p className="text-muted">
+									<p className="text-muted-foreground">
 										Need help?{' '}
 										<Link
 											href="/contact"

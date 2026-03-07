@@ -1,5 +1,3 @@
-'use client'
-
 import { Button } from '#components/ui/button'
 import {
 	Card,
@@ -37,7 +35,7 @@ export default function DocumentsClient() {
 						</CardDescription>
 					</CardHeader>
 					<CardContent className="space-y-4">
-						<div className="space-y-2 text-muted">
+						<div className="space-y-2 text-muted-foreground">
 							<p>Comprehensive lease template including:</p>
 							<ul className="list-disc space-y-1 pl-4">
 								<li>State-specific requirements</li>
@@ -75,7 +73,7 @@ export default function DocumentsClient() {
 						</CardDescription>
 					</CardHeader>
 					<CardContent className="space-y-4">
-						<div className="space-y-2 text-muted">
+						<div className="space-y-2 text-muted-foreground">
 							<p>Include every room, fixture, and appliance with photo proof:</p>
 							<ul className="list-disc space-y-1 pl-4">
 								<li>Move-in/move-out checklist builder</li>
@@ -113,7 +111,7 @@ export default function DocumentsClient() {
 						</CardDescription>
 					</CardHeader>
 					<CardContent className="space-y-4">
-						<div className="space-y-2 text-muted">
+						<div className="space-y-2 text-muted-foreground">
 							<p>Collect applicant data and authorize screenings:</p>
 							<ul className="list-disc space-y-1 pl-4">
 								<li>Employment and income verification</li>
@@ -151,7 +149,7 @@ export default function DocumentsClient() {
 						</CardDescription>
 					</CardHeader>
 					<CardContent className="space-y-4">
-						<div className="space-y-2 text-muted">
+						<div className="space-y-2 text-muted-foreground">
 							<p>Automate compliant communication with residents:</p>
 							<ul className="list-disc space-y-1 pl-4">
 								<li>Late rent notices with cure dates</li>
@@ -189,7 +187,7 @@ export default function DocumentsClient() {
 						</CardDescription>
 					</CardHeader>
 					<CardContent className="space-y-4">
-						<div className="space-y-2 text-muted">
+						<div className="space-y-2 text-muted-foreground">
 							<p>Standardize maintenance workflows and approvals:</p>
 							<ul className="list-disc space-y-1 pl-4">
 								<li>Priority and scheduling fields</li>

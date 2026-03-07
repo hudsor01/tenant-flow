@@ -1,5 +1,3 @@
-'use client'
-
 import { format } from 'date-fns'
 import { ChevronDown, XCircle } from 'lucide-react'
 import { BlurFade } from '#components/ui/blur-fade'

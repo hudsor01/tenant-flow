@@ -21,7 +21,7 @@ import {
 	SelectValue
 } from '#components/ui/select'
 import { Textarea } from '#components/ui/textarea'
-import { useMarkTenantAsMovedOutMutation } from '#hooks/api/use-tenant'
+import { useMarkTenantAsMovedOutMutation } from '#hooks/api/use-tenant-mutations'
 import { tenantQueries } from '#hooks/api/query-keys/tenant-keys'
 import { handleMutationError } from '#lib/mutation-error-handler'
 import { formatDate } from '#lib/formatters/date'
@@ -152,7 +152,7 @@ export function TenantDetails({ id }: TenantDetailsProps) {
 				>
 					<div className="grid grid-cols-2 gap-4">
 						<div className="space-y-1">
-							<div className="text-muted flex items-center gap-2">
+							<div className="text-muted-foreground flex items-center gap-2">
 								<Mail className="size-4" />
 								Email
 							</div>
@@ -162,7 +162,7 @@ export function TenantDetails({ id }: TenantDetailsProps) {
 						</div>
 
 						<div className="space-y-1">
-							<div className="text-muted flex items-center gap-2">
+							<div className="text-muted-foreground flex items-center gap-2">
 								<Phone className="size-4" />
 								Phone
 							</div>
@@ -174,7 +174,7 @@ export function TenantDetails({ id }: TenantDetailsProps) {
 
 					{tenant.emergency_contact_name && (
 						<div className="pt-4 border-t">
-							<div className="text-muted mb-2">Emergency Contact</div>
+							<div className="text-muted-foreground mb-2">Emergency Contact</div>
 							<div className="font-medium whitespace-pre-wrap">
 								{tenant.emergency_contact_name}
 								{tenant.emergency_contact_phone && (
@@ -242,7 +242,7 @@ export function TenantDetails({ id }: TenantDetailsProps) {
 										<div className="font-medium">
 											{lease.property?.address_line1 || 'Unknown Property'}
 										</div>
-										<div className="text-muted flex items-center gap-4">
+										<div className="text-muted-foreground flex items-center gap-4">
 											<span className="flex items-center gap-1">
 												<Calendar className="size-3" />
 												{formatDate(lease.start_date)} -{' '}

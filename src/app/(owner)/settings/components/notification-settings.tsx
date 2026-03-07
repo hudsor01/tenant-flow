@@ -3,6 +3,7 @@
 import { Bell, Globe, Mail, MessageSquare } from 'lucide-react'
 import { BlurFade } from '#components/ui/blur-fade'
 import { Skeleton } from '#components/ui/skeleton'
+import { Switch } from '#components/ui/switch'
 import {
 	useOwnerNotificationSettings,
 	useUpdateOwnerNotificationSettingsMutation
@@ -59,16 +60,11 @@ export function NotificationSettings() {
 								Receive notifications across all channels
 							</p>
 						</div>
-						<label className="relative inline-flex items-center cursor-pointer">
-							<input
-								type="checkbox"
-								checked={settings?.email ?? true}
-								onChange={e => handleChannelToggle('email', e.target.checked)}
-								disabled={updateSettings.isPending}
-								className="sr-only peer"
-							/>
-							<div className="w-11 h-6 bg-muted rounded-full peer peer-checked:after:translate-x-full peer-checked:bg-primary after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all" />
-						</label>
+						<Switch
+							checked={settings?.email ?? true}
+							onCheckedChange={value => handleChannelToggle('email', value)}
+							disabled={updateSettings.isPending}
+						/>
 					</div>
 				</section>
 			</BlurFade>
@@ -91,16 +87,11 @@ export function NotificationSettings() {
 									</p>
 								</div>
 							</div>
-							<label className="relative inline-flex items-center cursor-pointer">
-								<input
-									type="checkbox"
-									checked={settings?.email ?? true}
-									onChange={e => handleChannelToggle('email', e.target.checked)}
-									disabled={updateSettings.isPending}
-									className="sr-only peer"
-								/>
-								<div className="w-11 h-6 bg-muted rounded-full peer peer-checked:after:translate-x-full peer-checked:bg-primary after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all" />
-							</label>
+							<Switch
+								checked={settings?.email ?? true}
+								onCheckedChange={value => handleChannelToggle('email', value)}
+								disabled={updateSettings.isPending}
+							/>
 						</div>
 
 						<div className="flex items-center justify-between">
@@ -113,16 +104,11 @@ export function NotificationSettings() {
 									</p>
 								</div>
 							</div>
-							<label className="relative inline-flex items-center cursor-pointer">
-								<input
-									type="checkbox"
-									checked={settings?.sms ?? false}
-									onChange={e => handleChannelToggle('sms', e.target.checked)}
-									disabled={updateSettings.isPending}
-									className="sr-only peer"
-								/>
-								<div className="w-11 h-6 bg-muted rounded-full peer peer-checked:after:translate-x-full peer-checked:bg-primary after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all" />
-							</label>
+							<Switch
+								checked={settings?.sms ?? false}
+								onCheckedChange={value => handleChannelToggle('sms', value)}
+								disabled={updateSettings.isPending}
+							/>
 						</div>
 
 						<div className="flex items-center justify-between">
@@ -135,16 +121,11 @@ export function NotificationSettings() {
 									</p>
 								</div>
 							</div>
-							<label className="relative inline-flex items-center cursor-pointer">
-								<input
-									type="checkbox"
-									checked={settings?.push ?? true}
-									onChange={e => handleChannelToggle('push', e.target.checked)}
-									disabled={updateSettings.isPending}
-									className="sr-only peer"
-								/>
-								<div className="w-11 h-6 bg-muted rounded-full peer peer-checked:after:translate-x-full peer-checked:bg-primary after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all" />
-							</label>
+							<Switch
+								checked={settings?.push ?? true}
+								onCheckedChange={value => handleChannelToggle('push', value)}
+								disabled={updateSettings.isPending}
+							/>
 						</div>
 
 						<div className="flex items-center justify-between">
@@ -157,16 +138,11 @@ export function NotificationSettings() {
 									</p>
 								</div>
 							</div>
-							<label className="relative inline-flex items-center cursor-pointer">
-								<input
-									type="checkbox"
-									checked={settings?.inApp ?? true}
-									onChange={e => handleChannelToggle('inApp', e.target.checked)}
-									disabled={updateSettings.isPending}
-									className="sr-only peer"
-								/>
-								<div className="w-11 h-6 bg-muted rounded-full peer peer-checked:after:translate-x-full peer-checked:bg-primary after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all" />
-							</label>
+							<Switch
+								checked={settings?.inApp ?? true}
+								onCheckedChange={value => handleChannelToggle('inApp', value)}
+								disabled={updateSettings.isPending}
+							/>
 						</div>
 					</div>
 				</section>
@@ -187,18 +163,11 @@ export function NotificationSettings() {
 									When tenants submit new maintenance requests
 								</p>
 							</div>
-							<label className="relative inline-flex items-center cursor-pointer">
-								<input
-									type="checkbox"
-									checked={settings?.categories?.maintenance ?? true}
-									onChange={e =>
-										handleCategoryToggle('maintenance', e.target.checked)
-									}
-									disabled={updateSettings.isPending}
-									className="sr-only peer"
-								/>
-								<div className="w-11 h-6 bg-muted rounded-full peer peer-checked:after:translate-x-full peer-checked:bg-primary after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all" />
-							</label>
+							<Switch
+								checked={settings?.categories?.maintenance ?? true}
+								onCheckedChange={value => handleCategoryToggle('maintenance', value)}
+								disabled={updateSettings.isPending}
+							/>
 						</div>
 
 						<div className="flex items-center justify-between py-2 hover:bg-muted/30 rounded-lg px-2 -mx-2 transition-colors">
@@ -208,18 +177,11 @@ export function NotificationSettings() {
 									Lease expirations, renewals, and signatures
 								</p>
 							</div>
-							<label className="relative inline-flex items-center cursor-pointer">
-								<input
-									type="checkbox"
-									checked={settings?.categories?.leases ?? true}
-									onChange={e =>
-										handleCategoryToggle('leases', e.target.checked)
-									}
-									disabled={updateSettings.isPending}
-									className="sr-only peer"
-								/>
-								<div className="w-11 h-6 bg-muted rounded-full peer peer-checked:after:translate-x-full peer-checked:bg-primary after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all" />
-							</label>
+							<Switch
+								checked={settings?.categories?.leases ?? true}
+								onCheckedChange={value => handleCategoryToggle('leases', value)}
+								disabled={updateSettings.isPending}
+							/>
 						</div>
 
 						<div className="flex items-center justify-between py-2 hover:bg-muted/30 rounded-lg px-2 -mx-2 transition-colors">
@@ -229,18 +191,11 @@ export function NotificationSettings() {
 									System updates and announcements
 								</p>
 							</div>
-							<label className="relative inline-flex items-center cursor-pointer">
-								<input
-									type="checkbox"
-									checked={settings?.categories?.general ?? true}
-									onChange={e =>
-										handleCategoryToggle('general', e.target.checked)
-									}
-									disabled={updateSettings.isPending}
-									className="sr-only peer"
-								/>
-								<div className="w-11 h-6 bg-muted rounded-full peer peer-checked:after:translate-x-full peer-checked:bg-primary after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all" />
-							</label>
+							<Switch
+								checked={settings?.categories?.general ?? true}
+								onCheckedChange={value => handleCategoryToggle('general', value)}
+								disabled={updateSettings.isPending}
+							/>
 						</div>
 					</div>
 				</section>

@@ -21,7 +21,7 @@ vi.mock('#hooks/api/use-payments', () => ({
 	useTenantPaymentsHistory: () => mockUseTenantPaymentsHistory()
 }))
 
-vi.mock('#hooks/api/use-tenant-portal', () => ({
+vi.mock('#hooks/api/use-tenant-autopay', () => ({
 	useTenantAutopayStatus: () => mockUseTenantAutopayStatus()
 }))
 

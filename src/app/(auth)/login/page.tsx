@@ -11,19 +11,43 @@ import {
 	InputGroupInput
 } from '#components/ui/input-group'
 import { getFieldErrorMessage } from '#lib/utils/form'
-import { authQueryKeys } from '#providers/auth-provider'
+import { authKeys } from '#hooks/api/use-auth'
 import { createLogger } from '#shared/lib/frontend-logger'
 import { createClient } from '#lib/supabase/client'
 import { loginZodSchema } from '#shared/validation/auth'
 import { useForm } from '@tanstack/react-form'
 import { useQueryClient } from '@tanstack/react-query'
-import { Eye, EyeOff, Home, Lock, Mail, Smartphone, Zap } from 'lucide-react'
+import {
+	Building2,
+	Eye,
+	EyeOff,
+	Home,
+	Lock,
+	Mail,
+	Smartphone,
+	Zap
+} from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Suspense, useEffect, useState } from 'react'
 
 const logger = createLogger({ component: 'LoginPage' })
+
+/**
+ * AUTH-12: Validate redirect parameter using URL constructor hostname check.
+ * Prevents open redirect attacks including protocol-relative URLs (//evil.com).
+ */
+function isValidRedirect(redirect: string): boolean {
+	if (!redirect.startsWith('/')) return false
+	if (redirect.startsWith('//')) return false
+	try {
+		const url = new URL(redirect, window.location.origin)
+		return url.hostname === window.location.hostname
+	} catch {
+		return false
+	}
+}
 
 function LoginPageContent() {
 	const [showPassword, setShowPassword] = useState(false)
@@ -80,8 +104,8 @@ function LoginPageContent() {
 
 					// CRITICAL: Update query cache BEFORE navigating to prevent race condition
 					// where the target page's auth guards see stale "no session" data
-					queryClient.setQueryData(authQueryKeys.session, data.session)
-					queryClient.setQueryData(authQueryKeys.user, data.session.user)
+					queryClient.setQueryData(authKeys.session(), data.session)
+					queryClient.setQueryData(authKeys.user(), data.session.user)
 
 					// Read user_type directly from login response to avoid race condition
 					// with useUserRole hook not having updated session yet
@@ -96,7 +120,7 @@ function LoginPageContent() {
 								? '/auth/select-role'
 								: '/dashboard'
 
-					if (redirectTo?.startsWith('/') && !redirectTo.startsWith('//')) {
+					if (redirectTo && isValidRedirect(redirectTo)) {
 						destination = redirectTo
 					}
 
@@ -324,6 +348,7 @@ function LoginPageContent() {
 												type="email"
 												placeholder="Enter your email"
 												autoComplete="email"
+												autoFocus
 												value={field.state.value}
 												onChange={e => field.handleChange(e.target.value)}
 												onBlur={field.handleBlur}
@@ -412,7 +437,7 @@ function LoginPageContent() {
 							/>
 
 							{/* Footer Links */}
-							<div className="flex-between text-muted">
+							<div className="flex-between text-muted-foreground">
 								<button
 									type="button"
 									onClick={() => setForgotPasswordOpen(true)}
@@ -481,9 +506,24 @@ function LoginPageContent() {
 	)
 }
 
+function LoginFallback() {
+	return (
+		<div className="flex min-h-screen items-center justify-center bg-background">
+			<div className="flex flex-col items-center gap-4">
+				<div className="flex items-center justify-center w-12 h-12 rounded-xl bg-primary animate-pulse">
+					<Building2 className="w-6 h-6 text-primary-foreground" />
+				</div>
+				<span className="text-sm text-muted-foreground animate-pulse">
+					Loading...
+				</span>
+			</div>
+		</div>
+	)
+}
+
 export default function LoginPage() {
 	return (
-		<Suspense fallback={<div>Loading...</div>}>
+		<Suspense fallback={<LoginFallback />}>
 			<LoginPageContent />
 		</Suspense>
 	)

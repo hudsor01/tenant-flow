@@ -13,10 +13,11 @@ import { Button } from '#components/ui/button'
 import { BlurFade } from '#components/ui/blur-fade'
 import {
 	useTenantPortalDashboard,
-	useTenantLeaseDocuments,
 	tenantPortalKeys
-} from '#hooks/api/use-tenant-portal'
-import { tenantPortalQueries } from '#hooks/api/use-tenant-portal'
+} from '#hooks/api/use-tenant-dashboard'
+import { useTenantLeaseDocuments } from '#hooks/api/use-tenant-lease'
+import { tenantPaymentQueries } from '#hooks/api/use-tenant-payments'
+import { tenantAutopayQueries } from '#hooks/api/use-tenant-autopay'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { PenLine } from 'lucide-react'
@@ -47,10 +48,10 @@ export default function TenantDashboardPage() {
 	const { data: documentsData, isLoading: isLoadingDocuments } =
 		useTenantLeaseDocuments()
 	const { data: amountDue, isLoading: isLoadingAmountDue } = useQuery(
-		tenantPortalQueries.amountDue()
+		tenantPaymentQueries.amountDue()
 	)
-	// Autopay status query - data available for future use if needed
-	const _autopayQuery = useQuery(tenantPortalQueries.autopay())
+	// Prefetch autopay status into cache for child components
+	useQuery(tenantAutopayQueries.autopay())
 
 	// Handle checkout success/cancel return from Stripe
 	useEffect(() => {

@@ -3,7 +3,6 @@
  * Minimal set - only types actually used in the codebase
  */
 
-import type { USER_user_type } from '../constants/auth'
 import type {
 	Session as SupabaseSession,
 	User as SupabaseAuthUserType
@@ -12,9 +11,6 @@ import type {
 // Supabase Auth user - this is what we get from supabase.auth.getUser()
 export type SupabaseAuthUser = SupabaseAuthUserType
 export type AuthUser = SupabaseAuthUser
-
-// User role from database constants
-export type UserRole = (typeof USER_user_type)[keyof typeof USER_user_type]
 
 // Session from Supabase Auth
 export type AuthSession = SupabaseSession

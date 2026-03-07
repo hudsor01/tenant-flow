@@ -1,5 +1,3 @@
-'use client'
-
 import type { ElementType } from 'react'
 import { Receipt, Wrench, Building2, DollarSign } from 'lucide-react'
 

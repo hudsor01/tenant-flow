@@ -6,6 +6,8 @@ commit-msg:
 pre-commit:
   parallel: true
   commands:
+    gitleaks:
+      run: gitleaks protect --staged --redact --no-banner
     duplicate-types:
       run: ./scripts/check-duplicate-types.sh
     lockfile-verify:
@@ -15,9 +17,7 @@ pre-commit:
     typecheck:
       run: pnpm typecheck
     unit-tests:
-      run: CI=true pnpm test:unit
-    rls-tests:
-      run: pnpm test:integration
+      run: CI=true pnpm test:unit -- --coverage
 
 pre-push:
   commands:

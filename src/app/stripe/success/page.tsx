@@ -36,7 +36,7 @@ function SuccessContent() {
 				</div>
 
 				<div className="mt-8 pt-6 border-t border-border">
-					<p className="text-muted">
+					<p className="text-muted-foreground">
 						A confirmation email has been sent to your inbox with your receipt
 						and account details.
 					</p>

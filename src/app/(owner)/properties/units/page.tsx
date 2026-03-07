@@ -97,7 +97,7 @@ export default function UnitsPage() {
 			<div className="grid grid-cols-1 gap-4 px-4 lg:px-6 md:grid-cols-4">
 				<div className="p-4 rounded-lg border bg-card shadow-sm">
 					<div className="flex-between mb-2">
-						<h3 className="text-muted font-medium">Total Units</h3>
+						<h3 className="text-muted-foreground font-medium">Total Units</h3>
 						<div className="size-2 rounded-full bg-chart-4" />
 					</div>
 					<div className="typography-h3">{totalUnits}</div>
@@ -106,7 +106,7 @@ export default function UnitsPage() {
 
 				<div className="p-4 rounded-lg border bg-card shadow-sm">
 					<div className="flex-between mb-2">
-						<h3 className="text-muted font-medium">Occupied</h3>
+						<h3 className="text-muted-foreground font-medium">Occupied</h3>
 						<div className="size-2 rounded-full bg-chart-1" />
 					</div>
 					<div className="typography-h3">{occupiedCount}</div>
@@ -117,7 +117,7 @@ export default function UnitsPage() {
 
 				<div className="p-4 rounded-lg border bg-card shadow-sm">
 					<div className="flex-between mb-2">
-						<h3 className="text-muted font-medium">Vacant</h3>
+						<h3 className="text-muted-foreground font-medium">Vacant</h3>
 						<div className="size-2 rounded-full bg-chart-7" />
 					</div>
 					<div className="typography-h3">{vacantCount}</div>
@@ -126,7 +126,7 @@ export default function UnitsPage() {
 
 				<div className="p-4 rounded-lg border bg-card shadow-sm">
 					<div className="flex-between mb-2">
-						<h3 className="text-muted font-medium">Maintenance</h3>
+						<h3 className="text-muted-foreground font-medium">Maintenance</h3>
 						<div className="size-2 rounded-full bg-chart-5" />
 					</div>
 					<div className="typography-h3">{maintenanceCount}</div>

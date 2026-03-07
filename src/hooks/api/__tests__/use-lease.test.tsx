@@ -27,17 +27,23 @@ import {
 	useCurrentLease,
 	useLeaseSignatureStatus,
 	useSignedDocumentUrl,
+	usePrefetchLeaseDetail
+} from '../use-lease'
+import {
 	useCreateLeaseMutation,
 	useUpdateLeaseMutation,
-	useDeleteLeaseMutation,
+	useDeleteLeaseMutation
+} from '../use-lease-mutations'
+import {
 	useTerminateLeaseMutation,
-	useRenewLeaseMutation,
+	useRenewLeaseMutation
+} from '../use-lease-lifecycle-mutations'
+import {
 	useSendLeaseForSignatureMutation,
 	useSignLeaseAsOwnerMutation,
 	useSignLeaseAsTenantMutation,
-	useCancelSignatureRequestMutation,
-	usePrefetchLeaseDetail
-} from '../use-lease'
+	useCancelSignatureRequestMutation
+} from '../use-lease-signature-mutations'
 
 // Mock logger
 vi.mock('#shared/lib/frontend-logger', () => ({
@@ -108,17 +114,26 @@ function makeQueryChain(result: { data?: unknown; error?: unknown; count?: numbe
 
 // Supabase mock with configurable from() responses
 const supabaseFromMock = vi.fn()
+const supabaseRpcMock = vi.fn()
 const supabaseAuthGetUserMock = vi.fn()
 const supabaseAuthGetSessionMock = vi.fn()
 
 vi.mock('#lib/supabase/client', () => ({
 	createClient: () => ({
 		from: supabaseFromMock,
+		rpc: supabaseRpcMock,
 		auth: {
 			getUser: supabaseAuthGetUserMock,
 			getSession: supabaseAuthGetSessionMock
 		}
 	})
+}))
+
+// Mock getCachedUser for RPC-based stats queries
+vi.mock('#lib/supabase/get-cached-user', () => ({
+	getCachedUser: vi.fn(() =>
+		Promise.resolve({ id: 'user-123', email: 'owner@example.com' })
+	)
 }))
 
 // Mock global fetch for Edge Function calls
@@ -321,12 +336,19 @@ describe('Query Hooks', () => {
 	})
 
 	describe('useLeaseStats', () => {
-		it('should aggregate lease counts from leases table', async () => {
-			supabaseFromMock.mockImplementation((table: string) => {
-				if (table === 'leases') {
-					return makeQueryChain({ data: null, count: 10 })
-				}
-				return makeQueryChain({ data: null, count: 0 })
+		it('should call get_lease_stats RPC for aggregated counts', async () => {
+			supabaseRpcMock.mockResolvedValue({
+				data: {
+					totalLeases: 10,
+					activeLeases: 5,
+					expiredLeases: 2,
+					terminatedLeases: 1,
+					expiringLeases: 1,
+					totalMonthlyRent: 5000,
+					averageRent: 1000,
+					total_security_deposits: 2500
+				},
+				error: null
 			})
 
 			const { result } = renderHook(() => useLeaseStats(), {
@@ -337,7 +359,9 @@ describe('Query Hooks', () => {
 				expect(result.current.isSuccess || result.current.isError).toBe(true)
 			})
 
-			expect(supabaseFromMock).toHaveBeenCalledWith('leases')
+			expect(supabaseRpcMock).toHaveBeenCalledWith('get_lease_stats', {
+				p_user_id: 'user-123'
+			})
 		})
 	})
 

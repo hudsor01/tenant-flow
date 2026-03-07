@@ -1,5 +1,3 @@
-'use client'
-
 import { BlurFade } from '#components/ui/blur-fade'
 import { BorderBeam } from '#components/ui/border-beam'
 import { NumberTicker } from '#components/ui/number-ticker'
@@ -102,7 +100,7 @@ export function StatsShowcase({ className }: StatsShowcaseProps) {
 										</div>
 
 										{/* Enhanced description */}
-										<div className="text-muted group-hover:text-foreground/80 transition-colors duration-300">
+										<div className="text-muted-foreground group-hover:text-foreground/80 transition-colors duration-300">
 											{stat.description}
 										</div>
 									</div>

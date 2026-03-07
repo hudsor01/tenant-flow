@@ -17,7 +17,7 @@ import { useSupabaseUpload } from '#hooks/use-supabase-upload'
 import { Button } from '#components/ui/button'
 import { CardLayout } from '#components/ui/card-layout'
 import { Field, FieldLabel } from '#components/ui/field'
-import { useMaintenanceRequestCreateMutation } from '#hooks/api/use-tenant-portal'
+import { useMaintenanceRequestCreateMutation } from '#hooks/api/use-tenant-maintenance'
 import { handleMutationError } from '#lib/mutation-error-handler'
 import { ArrowLeft } from 'lucide-react'
 import Link from 'next/link'
@@ -250,7 +250,7 @@ export default function NewMaintenanceRequestPage() {
 								Allow maintenance team to enter unit if I&apos;m not home
 							</FieldLabel>
 						</div>
-						<p className="text-muted mt-1">
+						<p className="text-muted-foreground mt-1">
 							Check this box if maintenance can access your unit without you
 							being present
 						</p>

@@ -10,7 +10,7 @@ import {
 	AlertDialogHeader,
 	AlertDialogTitle
 } from '#components/ui/dialog'
-import { useTerminateLeaseMutation } from '#hooks/api/use-lease'
+import { useTerminateLeaseMutation } from '#hooks/api/use-lease-lifecycle-mutations'
 import { handleMutationError } from '#lib/mutation-error-handler'
 import type { Lease } from '#shared/types/core'
 import { AlertTriangle } from 'lucide-react'
@@ -61,7 +61,7 @@ export function TerminateLeaseDialog({
 								<p className="typography-small text-destructive">
 									Early Termination Warning
 								</p>
-								<p className="text-muted">
+								<p className="text-muted-foreground">
 									This lease will be marked as terminated immediately. Ensure
 									all financial settlements are complete before proceeding.
 								</p>

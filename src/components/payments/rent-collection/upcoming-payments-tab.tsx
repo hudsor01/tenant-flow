@@ -1,5 +1,3 @@
-'use client'
-
 import { format } from 'date-fns'
 import { Calendar, Zap } from 'lucide-react'
 import {

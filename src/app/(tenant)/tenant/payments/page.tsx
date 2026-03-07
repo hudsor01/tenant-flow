@@ -6,8 +6,8 @@ import { Button } from '#components/ui/button'
 import { Badge } from '#components/ui/badge'
 import { TenantPaymentRecord } from '#shared/types/api-contracts'
 import { useTenantPaymentsHistory } from '#hooks/api/use-payments'
-import { useTenantAutopayStatus } from '#hooks/api/use-tenant-portal'
-import { formatCents } from '#shared/lib/format'
+import { useTenantAutopayStatus } from '#hooks/api/use-tenant-autopay'
+import { formatCents } from '#lib/formatters/currency'
 import { CheckCircle2, XCircle } from 'lucide-react'
 import Link from 'next/link'
 
@@ -88,7 +88,7 @@ export default function TenantPaymentsPage() {
 									)
 								)
 							) : (
-								<div className="text-muted">No payments recorded yet.</div>
+								<div className="text-muted-foreground">No payments recorded yet.</div>
 							)}
 						</div>
 					)}

@@ -17,7 +17,7 @@ import {
 } from '#components/ui/dialog'
 import { Checkbox } from '#components/ui/checkbox'
 import { Label } from '#components/ui/label'
-import { useSignLeaseAsOwnerMutation, useSignLeaseAsTenantMutation } from '#hooks/api/use-lease'
+import { useSignLeaseAsOwnerMutation, useSignLeaseAsTenantMutation } from '#hooks/api/use-lease-signature-mutations'
 import { cn } from '#lib/utils'
 
 type SignerRole = 'owner' | 'tenant'

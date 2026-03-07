@@ -35,7 +35,7 @@ export function ToggleSwitch({
 					<Label htmlFor={id} className="font-medium cursor-pointer">
 						{label}
 					</Label>
-					<p className="text-muted">{description}</p>
+					<p className="text-muted-foreground">{description}</p>
 				</div>
 			</div>
 			<Switch

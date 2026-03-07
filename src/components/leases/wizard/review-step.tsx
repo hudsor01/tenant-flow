@@ -1,5 +1,3 @@
-'use client'
-
 /**
  * Lease Creation Wizard - Step 4: Review
  * Summary of all entered data before submission
@@ -7,6 +5,7 @@
 import { Badge } from '#components/ui/badge'
 import { Separator } from '#components/ui/separator'
 import { formatCents } from '#lib/formatters/currency'
+import { formatDate, getOrdinalSuffix } from '#lib/formatters/date'
 import {
 	CheckCircle2,
 	Home,
@@ -36,14 +35,8 @@ export function ReviewStep({
 	unitNumber,
 	tenantName
 }: ReviewStepProps) {
-	const formatDate = (dateStr: string | undefined) => {
-		if (!dateStr) return '-'
-		return new Date(dateStr + 'T00:00:00').toLocaleDateString('en-US', {
-			year: 'numeric',
-			month: 'long',
-			day: 'numeric'
-		})
-	}
+	const formatLeaseDate = (dateStr: string | undefined) =>
+		dateStr ? formatDate(dateStr, { style: 'long' }) || '-' : '-'
 
 	return (
 		<div className="space-y-6">
@@ -91,11 +84,11 @@ export function ReviewStep({
 				<div className="grid grid-cols-2 gap-4 pl-6">
 					<div>
 						<p className="text-sm text-muted-foreground">Start Date</p>
-						<p className="font-medium">{formatDate(data.start_date)}</p>
+						<p className="font-medium">{formatLeaseDate(data.start_date)}</p>
 					</div>
 					<div>
 						<p className="text-sm text-muted-foreground">End Date</p>
-						<p className="font-medium">{formatDate(data.end_date)}</p>
+						<p className="font-medium">{formatLeaseDate(data.end_date)}</p>
 					</div>
 				</div>
 			</div>
@@ -278,10 +271,4 @@ export function ReviewStep({
 			)}
 		</div>
 	)
-}
-
-function getOrdinalSuffix(n: number): string {
-	const s = ['th', 'st', 'nd', 'rd'] as const
-	const v = n % 100
-	return s[(v - 20) % 10] ?? s[v] ?? s[0] ?? 'th'
 }

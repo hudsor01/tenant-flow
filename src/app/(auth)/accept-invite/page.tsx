@@ -42,15 +42,25 @@ function AcceptInviteContent() {
 		error
 	} = useQuery(tenantQueries.validateInvitation(code))
 
-	async function acceptInvitation(authUserId: string) {
+	async function acceptInvitation() {
 		const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
 		const supabase = createClient()
+
+		// AUTH-09: Get session access token for Bearer auth
+		const { data: { session } } = await supabase.auth.getSession()
+		if (!session?.access_token) {
+			throw new Error('You must be logged in to accept an invitation')
+		}
+
 		const response = await fetch(
 			`${supabaseUrl}/functions/v1/tenant-invitation-accept`,
 			{
 				method: 'POST',
-				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({ code, authuser_id: authUserId })
+				headers: {
+					'Content-Type': 'application/json',
+					'Authorization': `Bearer ${session.access_token}`
+				},
+				body: JSON.stringify({ code })
 			}
 		)
 
@@ -111,7 +121,7 @@ function AcceptInviteContent() {
 						throw new Error('Failed to sign in')
 					}
 
-					await acceptInvitation(signInData.user.id)
+					await acceptInvitation()
 					return
 				}
 
@@ -122,7 +132,7 @@ function AcceptInviteContent() {
 				throw new Error('Failed to create account')
 			}
 
-			await acceptInvitation(authData.user.id)
+			await acceptInvitation()
 		} catch (error) {
 			const message =
 				error instanceof Error

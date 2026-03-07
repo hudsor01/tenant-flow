@@ -184,7 +184,7 @@ export default function ResourcesPage() {
 								<h3 className="font-semibold text-foreground mb-2 group-hover:text-primary transition-colors">
 									{link.title}
 								</h3>
-								<p className="text-muted">{link.description}</p>
+								<p className="text-muted-foreground">{link.description}</p>
 							</Link>
 						))}
 					</div>
@@ -311,7 +311,7 @@ export default function ResourcesPage() {
 						</div>
 
 						{/* Trust Indicators */}
-						<div className="flex flex-wrap items-center justify-center gap-8 pt-8 text-muted">
+						<div className="flex flex-wrap items-center justify-center gap-8 pt-8 text-muted-foreground">
 							<div className="flex items-center gap-2">
 								<Clock className="size-4" />
 								<span>24-48h response time</span>

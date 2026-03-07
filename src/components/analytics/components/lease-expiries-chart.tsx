@@ -1,5 +1,3 @@
-'use client'
-
 import { FileText } from 'lucide-react'
 import { BlurFade } from '#components/ui/blur-fade'
 import type { LeaseExpiry } from '../analytics-types'

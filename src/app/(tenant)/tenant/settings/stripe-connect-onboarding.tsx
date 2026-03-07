@@ -153,12 +153,12 @@ export function ConnectOnboardingDialog({
 								<SelectItem value="CA">Canada</SelectItem>
 							</SelectContent>
 						</Select>
-						<p className="text-muted mt-1">
+						<p className="text-muted-foreground mt-1">
 							Currently limited to US and Canada only
 						</p>
 					</Field>
 					<div className="rounded-lg border p-4 bg-muted/50">
-						<p className="text-muted">
+						<p className="text-muted-foreground">
 							After creating your account, you&apos;ll be redirected to Stripe
 							to complete onboarding. This includes verifying your identity and
 							bank account details.

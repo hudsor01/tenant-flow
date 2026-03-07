@@ -1,5 +1,3 @@
-'use client'
-
 import { Card, CardContent, CardHeader, CardTitle } from '#components/ui/card'
 import { Calendar, CheckCircle, Clock } from 'lucide-react'
 import type { TimelineEvent } from './maintenance-utils'

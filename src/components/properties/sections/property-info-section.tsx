@@ -28,6 +28,7 @@ export function PropertyInfoSection({ form }: PropertyInfoSectionProps) {
 							id="name"
 							name="name"
 							autoComplete="organization"
+							autoFocus
 							placeholder="e.g. Sunset Apartments"
 							value={field.state.value}
 							onChange={(e: ChangeEvent<HTMLInputElement>) =>

@@ -1,19 +1,9 @@
-'use client'
-
 import { Building2, Users, DollarSign, Home } from 'lucide-react'
+import { formatCurrency } from '#lib/formatters/currency'
 import type { PropertiesSummary } from './types'
 
 interface PropertyStatsSectionProps {
 	summary: PropertiesSummary
-}
-
-function formatCurrency(amountInCents: number): string {
-	return new Intl.NumberFormat('en-US', {
-		style: 'currency',
-		currency: 'USD',
-		minimumFractionDigits: 0,
-		maximumFractionDigits: 0
-	}).format(amountInCents / 100)
 }
 
 export function PropertyStatsSection({ summary }: PropertyStatsSectionProps) {

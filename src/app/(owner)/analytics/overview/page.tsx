@@ -1,8 +1,17 @@
 'use client'
 
+import dynamic from 'next/dynamic'
 import { useQuery } from '@tanstack/react-query'
 import { analyticsQueries } from '#hooks/api/use-analytics'
-import { ChartAreaInteractive } from '#components/dashboard/chart-area-interactive'
+import { ChartLoadingSkeleton } from '#components/shared/chart-loading-skeleton'
+
+const ChartAreaInteractive = dynamic(
+	() =>
+		import('#components/dashboard/chart-area-interactive').then(
+			mod => mod.ChartAreaInteractive
+		),
+	{ ssr: false, loading: () => <ChartLoadingSkeleton /> }
+)
 import { Badge } from '#components/ui/badge'
 import { Button } from '#components/ui/button'
 import { Skeleton } from '#components/ui/skeleton'

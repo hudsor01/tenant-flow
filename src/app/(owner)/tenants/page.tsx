@@ -2,17 +2,15 @@
 
 import { useCallback, useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { useQuery } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { tenantQueries } from '#hooks/api/query-keys/tenant-keys'
 import { tenantPaymentQueries } from '#hooks/api/use-payments'
 import {
 	useCancelInvitationMutation,
 	useResendInvitationMutation
-} from '#hooks/api/use-tenant'
-import { createClient } from '#lib/supabase/client'
-import type { TenantWithLeaseInfo } from '#shared/types/core'
-import { Skeleton } from '#components/ui/skeleton'
+} from '#hooks/api/use-tenant-invite-mutations'
+import { useDeleteTenantMutation } from '#hooks/api/use-tenant-mutations'
 import {
 	AlertDialog,
 	AlertDialogAction,
@@ -24,147 +22,15 @@ import {
 	AlertDialogTitle
 } from '#components/ui/alert-dialog'
 import { Tenants } from '#components/tenants/tenants'
-import type {
-	TenantItem,
-	TenantSectionDetail
-} from '#shared/types/sections/tenants'
-import type { LeaseStatus } from '#shared/types/core'
-
-// ============================================================================
-// DATA TRANSFORMATION
-// ============================================================================
-
-type TenantPaymentStatus = NonNullable<
-	TenantSectionDetail['paymentHistory']
->[number]['status']
-
-function normalizePaymentStatus(status: string | null | undefined): TenantPaymentStatus {
-	const normalized = status?.toLowerCase()
-	if (
-		normalized === 'pending' ||
-		normalized === 'processing' ||
-		normalized === 'succeeded' ||
-		normalized === 'failed' ||
-		normalized === 'cancelled'
-	) {
-		return normalized
-	}
-	return 'processing'
-}
-
-/**
- * Transform API tenant data to design-os TenantItem format
- */
-function transformToTenantItem(
-	tenant: TenantWithLeaseInfo,
-	totalPaidByTenant?: Map<string, number>
-): TenantItem {
-	const displayName =
-		tenant.name ||
-		(tenant.first_name && tenant.last_name
-			? `${tenant.first_name} ${tenant.last_name}`.trim()
-			: tenant.first_name || tenant.last_name || 'Unknown')
-
-	// Map API status to design-os LeaseStatus
-	let leaseStatus: LeaseStatus | undefined
-	if (tenant.lease_status) {
-		const status = String(tenant.lease_status).toLowerCase()
-		if (status === 'active') leaseStatus = 'active'
-		else if (status === 'pending' || status === 'pending_signature')
-			leaseStatus = 'pending_signature'
-		else if (status === 'expired' || status === 'ended') leaseStatus = 'ended'
-		else if (status === 'terminated') leaseStatus = 'terminated'
-		else if (status === 'draft') leaseStatus = 'draft'
-	}
-
-	return {
-		id: tenant.id,
-		fullName: displayName,
-		email: tenant.email ?? '',
-		...(tenant.phone ? { phone: tenant.phone } : {}),
-		...(tenant.property?.name ? { currentProperty: tenant.property.name } : {}),
-		...(tenant.unit?.unit_number ? { currentUnit: tenant.unit.unit_number } : {}),
-		...(leaseStatus ? { leaseStatus } : {}),
-		...(tenant.currentLease?.id ? { leaseId: tenant.currentLease.id } : {}),
-		totalPaid: totalPaidByTenant?.get(tenant.id) ?? 0
-	}
-}
-
-/**
- * Transform API tenant to design-os TenantSectionDetail format
- */
-function transformToTenantSectionDetail(
-	tenant: TenantWithLeaseInfo,
-	totalPaidByTenant?: Map<string, number>,
-	paymentHistory?: TenantSectionDetail['paymentHistory']
-): TenantSectionDetail {
-	const base = transformToTenantItem(tenant, totalPaidByTenant)
-
-	return {
-		...base,
-		...(tenant.emergency_contact_name ? { emergencyContactName: tenant.emergency_contact_name } : {}),
-		...(tenant.emergency_contact_phone ? { emergencyContactPhone: tenant.emergency_contact_phone } : {}),
-		...(tenant.emergency_contact_relationship ? { emergencyContactRelationship: tenant.emergency_contact_relationship } : {}),
-		identityVerified: tenant.identity_verified ?? false,
-		createdAt: tenant.created_at ?? new Date().toISOString(),
-		updatedAt: tenant.updated_at ?? new Date().toISOString(),
-		...(paymentHistory ? { paymentHistory } : {}),
-		...(tenant.currentLease
-			? {
-					currentLease: {
-						id: tenant.currentLease.id,
-						propertyName: tenant.property?.name ?? '',
-						unitNumber: tenant.unit?.unit_number ?? '',
-						startDate: tenant.currentLease.start_date,
-						endDate: tenant.currentLease.end_date,
-						rentAmount: (tenant.currentLease.rent_amount ?? 0) * 100, // Convert to cents
-						autopayEnabled: tenant.currentLease.auto_pay_enabled ?? false
-					}
-				}
-			: {})
-	}
-}
-
-// ============================================================================
-// LOADING SKELETON
-// ============================================================================
-
-function TenantsLoadingSkeleton() {
-	return (
-		<div className="p-6 lg:p-8 bg-background min-h-full space-y-6">
-			{/* Header skeleton */}
-			<div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-				<div>
-					<Skeleton className="h-8 w-32 mb-2" />
-					<Skeleton className="h-5 w-64" />
-				</div>
-				<Skeleton className="h-10 w-32" />
-			</div>
-			{/* Stats skeleton */}
-			<div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-				{[1, 2, 3, 4].map(i => (
-					<Skeleton key={i} className="h-28 rounded-lg" />
-				))}
-			</div>
-			{/* Quick actions skeleton */}
-			<div className="flex gap-3">
-				{[1, 2, 3, 4].map(i => (
-					<Skeleton key={i} className="h-16 w-40 rounded-lg" />
-				))}
-			</div>
-			{/* Table skeleton */}
-			<Skeleton className="h-96 rounded-lg" />
-		</div>
-	)
-}
-
-// ============================================================================
-// MAIN PAGE COMPONENT
-// ============================================================================
+import {
+	normalizePaymentStatus,
+	transformToTenantItem,
+	transformToTenantSectionDetail
+} from './components/tenant-transforms'
+import { TenantsLoadingSkeleton } from './components/tenants-loading-skeleton'
 
 export default function TenantsPage() {
 	const router = useRouter()
-	const queryClient = useQueryClient()
 	const [selectedTenantId, setSelectedTenantId] = useState<string | null>(
 		null
 	)
@@ -230,24 +96,8 @@ export default function TenantsPage() {
 		selectedTenantPaymentHistory
 	])
 
-	// Delete mutation — soft-delete: set status to 'inactive'
-	const { mutate: deleteTenant } = useMutation({
-		mutationFn: async (tenantId: string) => {
-			const supabase = createClient()
-			const { error } = await supabase
-				.from('tenants')
-				.update({ status: 'inactive' })
-				.eq('id', tenantId)
-			if (error) throw error
-		},
-		onSuccess: () => {
-			toast.success('Tenant deleted')
-			queryClient.invalidateQueries({ queryKey: ['tenants'] })
-		},
-		onError: () => {
-			toast.error('Failed to delete tenant')
-		}
-	})
+	// Delete mutation — consolidated hook with active-lease guard
+	const { mutate: deleteTenant } = useDeleteTenantMutation()
 
 	const { mutate: resendInvitation } = useResendInvitationMutation()
 	const { mutate: cancelInvitation } = useCancelInvitationMutation()
@@ -267,7 +117,6 @@ export default function TenantsPage() {
 		},
 		[router]
 	)
-
 
 	const confirmDeleteTenant = useCallback(() => {
 		if (tenantToDelete) {

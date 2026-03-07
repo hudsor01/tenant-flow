@@ -24,11 +24,11 @@ import {
 	AlertDialogHeader,
 	AlertDialogTitle
 } from '#components/ui/dialog'
-import { useSupabaseUpdateProfileMutation } from '#hooks/api/use-auth'
+import { useSupabaseUpdateProfileMutation } from '#hooks/api/use-auth-mutations'
 import {
 	useTenantNotificationPreferences,
 	useUpdateTenantNotificationPreferences
-} from '#hooks/api/use-tenant-portal'
+} from '#hooks/api/use-tenant-settings'
 import {
 	useEmergencyContact,
 	useUpdateEmergencyContact,

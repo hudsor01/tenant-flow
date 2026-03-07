@@ -27,8 +27,10 @@ function createDefaultMetadata(): Metadata {
 	const SITE_URL = getSiteUrl()
 	return {
 		metadataBase: new URL(SITE_URL),
-		title:
-			'TenantFlow - Simplify Property Management | Professional Property Management Software',
+		title: {
+			template: '%s | TenantFlow',
+			default: 'TenantFlow - Simplify Property Management | Professional Property Management Software'
+		},
 		description:
 			"Professional property management software trusted by thousands. Streamline operations, automate workflows, and scale your business with TenantFlow's enterprise platform.",
 		keywords:

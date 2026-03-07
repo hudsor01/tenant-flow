@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic'
+
 import { OwnerDashboardLayout } from './owner-dashboard-layout'
 import ModalLayout from '#components/layout/modal-layout'
 import type { ReactNode } from 'react'

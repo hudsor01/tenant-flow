@@ -14,7 +14,7 @@ import { render, screen } from '@testing-library/react'
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 
 // Mocks for data/query hooks (colocated pattern)
-vi.mock('#hooks/api/use-tenant-portal', () => ({
+vi.mock('#hooks/api/use-tenant-dashboard', () => ({
 	useTenantPortalDashboard: vi.fn(() => ({
 		data: {
 			lease: {
@@ -52,26 +52,31 @@ vi.mock('#hooks/api/use-tenant-portal', () => ({
 	}
 }))
 
-vi.mock('@tanstack/react-query', () => ({
-	useQuery: vi.fn(() => ({
-		data: {
-			charges_enabled: true,
-			rent_due_id: 'test-rent-due-id',
-			base_rent_cents: 150000,
-			late_fee_cents: 0,
-			total_due_cents: 150000,
-			due_date: '2024-02-01',
-			days_late: 0,
-			grace_period_days: 5,
-			already_paid: false,
-			breakdown: [{ description: 'Base rent', amount_cents: 150000 }]
-		},
-		isLoading: false
-	})),
-	useQueryClient: vi.fn(() => ({
-		invalidateQueries: vi.fn()
-	}))
-}))
+vi.mock('@tanstack/react-query', async (importOriginal) => {
+	const actual = await importOriginal<typeof import('@tanstack/react-query')>()
+	return {
+		...actual,
+		useQuery: vi.fn(() => ({
+			data: {
+				charges_enabled: true,
+				rent_due_id: 'test-rent-due-id',
+				base_rent_cents: 150000,
+				late_fee_cents: 0,
+				total_due_cents: 150000,
+				due_date: '2024-02-01',
+				days_late: 0,
+				grace_period_days: 5,
+				already_paid: false,
+				breakdown: [{ description: 'Base rent', amount_cents: 150000 }]
+			},
+			isLoading: false
+		})),
+		useQueryClient: vi.fn(() => ({
+			invalidateQueries: vi.fn()
+		})),
+		useMutation: vi.fn(() => ({ mutate: vi.fn(), isPending: false })),
+	}
+})
 
 vi.mock('next/navigation', () => ({
 	useRouter: vi.fn(() => ({ push: vi.fn() })),

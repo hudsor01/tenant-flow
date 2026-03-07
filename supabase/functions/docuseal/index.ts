@@ -12,12 +12,20 @@
 
 import { createClient } from '@supabase/supabase-js'
 import { getCorsHeaders, handleCorsOptions } from '../_shared/cors.ts'
+import { errorResponse } from '../_shared/errors.ts'
+import { escapeHtml } from '../_shared/escape-html.ts'
+import { validateEnv } from '../_shared/env.ts'
 
 Deno.serve(async (req: Request) => {
   const optionsResponse = handleCorsOptions(req)
   if (optionsResponse) return optionsResponse
 
   try {
+    const env = validateEnv({
+      required: ['SUPABASE_URL', 'SUPABASE_SERVICE_ROLE_KEY', 'DOCUSEAL_URL', 'DOCUSEAL_API_KEY'],
+      optional: ['FRONTEND_URL'],
+    })
+
     // Authenticate via Bearer token
     const authHeader = req.headers.get('Authorization')
     if (!authHeader) {
@@ -27,17 +35,10 @@ Deno.serve(async (req: Request) => {
       )
     }
 
-    const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? ''
-    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
-    const docusealUrl = Deno.env.get('DOCUSEAL_URL')
-    const docusealApiKey = Deno.env.get('DOCUSEAL_API_KEY')
-
-    if (!docusealUrl || !docusealApiKey) {
-      return new Response(
-        JSON.stringify({ error: 'DOCUSEAL_URL or DOCUSEAL_API_KEY environment variable is not configured' }),
-        { status: 500, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
-      )
-    }
+    const supabaseUrl = env['SUPABASE_URL']
+    const supabaseServiceKey = env['SUPABASE_SERVICE_ROLE_KEY']
+    const docusealUrl = env['DOCUSEAL_URL']
+    const docusealApiKey = env['DOCUSEAL_API_KEY']
 
     // Use service role client for all DB operations
     const supabase = createClient(supabaseUrl, supabaseServiceKey)
@@ -166,33 +167,33 @@ Deno.serve(async (req: Request) => {
   <h1>RESIDENTIAL LEASE AGREEMENT</h1>
   <h2>Property Details</h2>
   <table>
-    <tr><td>Property Address</td><td>${propertyAddress}</td></tr>
-    ${unitNumber ? `<tr><td>Unit Number</td><td>${unitNumber}</td></tr>` : ''}
+    <tr><td>Property Address</td><td>${escapeHtml(propertyAddress)}</td></tr>
+    ${unitNumber ? `<tr><td>Unit Number</td><td>${escapeHtml(unitNumber)}</td></tr>` : ''}
   </table>
   <h2>Lease Terms</h2>
   <table>
-    <tr><td>Lease Start Date</td><td>${startDate}</td></tr>
-    <tr><td>Lease End Date</td><td>${endDate}</td></tr>
-    <tr><td>Monthly Rent Amount</td><td>${rentAmount}</td></tr>
+    <tr><td>Lease Start Date</td><td>${escapeHtml(startDate)}</td></tr>
+    <tr><td>Lease End Date</td><td>${escapeHtml(endDate)}</td></tr>
+    <tr><td>Monthly Rent Amount</td><td>${escapeHtml(rentAmount)}</td></tr>
   </table>
   <h2>Parties</h2>
   <table>
-    <tr><td>Property Owner / Landlord</td><td>${ownerName}</td></tr>
-    <tr><td>Tenant</td><td>${tenantName}</td></tr>
+    <tr><td>Property Owner / Landlord</td><td>${escapeHtml(ownerName)}</td></tr>
+    <tr><td>Tenant</td><td>${escapeHtml(tenantName)}</td></tr>
   </table>
   ${missingFields ? `
   <h2>Additional Terms</h2>
   <table>
-    ${missingFields.landlord_notice_address ? `<tr><td>Landlord Notice Address</td><td>${missingFields.landlord_notice_address}</td></tr>` : ''}
-    ${missingFields.immediate_family_members ? `<tr><td>Immediate Family Members</td><td>${missingFields.immediate_family_members}</td></tr>` : ''}
+    ${missingFields.landlord_notice_address ? `<tr><td>Landlord Notice Address</td><td>${escapeHtml(missingFields.landlord_notice_address)}</td></tr>` : ''}
+    ${missingFields.immediate_family_members ? `<tr><td>Immediate Family Members</td><td>${escapeHtml(missingFields.immediate_family_members)}</td></tr>` : ''}
   </table>` : ''}
   <h2>Signatures</h2>
   <div class="signature-block">
     <div class="sig">
-      <div class="sig-line">Property Owner: ${ownerName}</div>
+      <div class="sig-line">Property Owner: ${escapeHtml(ownerName)}</div>
     </div>
     <div class="sig">
-      <div class="sig-line">Tenant: ${tenantName}</div>
+      <div class="sig-line">Tenant: ${escapeHtml(tenantName)}</div>
     </div>
   </div>
 </body>
@@ -213,10 +214,8 @@ Deno.serve(async (req: Request) => {
 
       if (!pdfResponse.ok) {
         const errText = await pdfResponse.text().catch(() => pdfResponse.statusText)
-        return new Response(
-          JSON.stringify({ error: `PDF generation failed: ${errText}` }),
-          { status: 502, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
-        )
+        console.error(`PDF generation failed: ${errText}`)
+        return errorResponse(req, 502, new Error('PDF generation failed'), { action: 'send-for-signature' })
       }
 
       // 7. Base64-encode the PDF (chunked to avoid call stack limits on large files)
@@ -275,10 +274,8 @@ Deno.serve(async (req: Request) => {
 
       if (!submissionResponse.ok) {
         const errBody = await submissionResponse.text().catch(() => submissionResponse.statusText)
-        return new Response(
-          JSON.stringify({ error: `DocuSeal submission failed: ${errBody}` }),
-          { status: 502, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
-        )
+        console.error(`DocuSeal submission failed: ${errBody}`)
+        return errorResponse(req, 502, new Error('DocuSeal submission failed'), { action: 'send-for-signature' })
       }
 
       const submission = await submissionResponse.json() as { id: number }
@@ -293,10 +290,7 @@ Deno.serve(async (req: Request) => {
         .eq('id', leaseId)
 
       if (updateError) {
-        return new Response(
-          JSON.stringify({ error: `Failed to update lease: ${updateError.message}` }),
-          { status: 500, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
-        )
+        return errorResponse(req, 500, updateError, { action: 'update_lease_submission' })
       }
 
       return new Response(
@@ -356,10 +350,7 @@ Deno.serve(async (req: Request) => {
         .eq('id', leaseId)
 
       if (updateError) {
-        return new Response(
-          JSON.stringify({ error: `Failed to update lease: ${updateError.message}` }),
-          { status: 500, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
-        )
+        return errorResponse(req, 500, updateError, { action: 'sign_owner' })
       }
 
       return new Response(
@@ -429,10 +420,7 @@ Deno.serve(async (req: Request) => {
         .eq('id', leaseId)
 
       if (updateError) {
-        return new Response(
-          JSON.stringify({ error: `Failed to update lease: ${updateError.message}` }),
-          { status: 500, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
-        )
+        return errorResponse(req, 500, updateError, { action: 'sign_tenant' })
       }
 
       return new Response(
@@ -493,10 +481,8 @@ Deno.serve(async (req: Request) => {
 
         if (!archiveResponse.ok) {
           const errBody = await archiveResponse.text().catch(() => archiveResponse.statusText)
-          return new Response(
-            JSON.stringify({ error: `DocuSeal archive failed: ${errBody}` }),
-            { status: 502, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
-          )
+          console.error(`DocuSeal archive failed: ${errBody}`)
+          return errorResponse(req, 502, new Error('DocuSeal archive failed'), { action: 'cancel' })
         }
       }
 
@@ -511,10 +497,7 @@ Deno.serve(async (req: Request) => {
         .eq('id', leaseId)
 
       if (updateError) {
-        return new Response(
-          JSON.stringify({ error: `Failed to update lease: ${updateError.message}` }),
-          { status: 500, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
-        )
+        return errorResponse(req, 500, updateError, { action: 'cancel_lease_reset' })
       }
 
       return new Response(
@@ -559,11 +542,11 @@ Deno.serve(async (req: Request) => {
         )
       }
 
-      const submissionId = lease.docuseal_submission_id as string
+      const dsSubmissionId = lease.docuseal_submission_id as string
 
       // Fetch submitters to find pending ones
       const submittersResponse = await fetch(
-        `${docusealUrl}/api/submitters?submission_id=${submissionId}`,
+        `${docusealUrl}/api/submitters?submission_id=${dsSubmissionId}`,
         {
           method: 'GET',
           headers: {
@@ -575,10 +558,8 @@ Deno.serve(async (req: Request) => {
 
       if (!submittersResponse.ok) {
         const errBody = await submittersResponse.text().catch(() => submittersResponse.statusText)
-        return new Response(
-          JSON.stringify({ error: `Failed to fetch submitters: ${errBody}` }),
-          { status: 502, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
-        )
+        console.error(`Failed to fetch submitters: ${errBody}`)
+        return errorResponse(req, 502, new Error('Failed to fetch submitters'), { action: 'resend' })
       }
 
       const submittersData = await submittersResponse.json() as {
@@ -608,19 +589,15 @@ Deno.serve(async (req: Request) => {
             }
           )
           if (!response.ok) {
-            const errBody = await response.text().catch(() => response.statusText)
-            return { ok: false, id: submitter.id, error: errBody }
+            return { ok: false, id: submitter.id }
           }
           return { ok: true, id: submitter.id }
         })
       )
 
       const failed = resendResults.find(r => !r.ok)
-      if (failed && 'error' in failed) {
-        return new Response(
-          JSON.stringify({ error: `Failed to resend to submitter ${failed.id}: ${failed.error}` }),
-          { status: 502, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
-        )
+      if (failed) {
+        return errorResponse(req, 502, new Error('Failed to resend signature request'), { action: 'resend', submitterId: failed.id })
       }
 
       return new Response(
@@ -629,15 +606,12 @@ Deno.serve(async (req: Request) => {
       )
     }
 
-    // Unknown action
+    // Unknown action — sanitized (don't echo user input)
     return new Response(
-      JSON.stringify({ error: `Unknown action: ${action}` }),
+      JSON.stringify({ error: 'Unknown action' }),
       { status: 400, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
     )
   } catch (err) {
-    return new Response(
-      JSON.stringify({ error: err instanceof Error ? err.message : 'Internal error' }),
-      { status: 500, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
-    )
+    return errorResponse(req, 500, err, { action: 'docuseal' })
   }
 })

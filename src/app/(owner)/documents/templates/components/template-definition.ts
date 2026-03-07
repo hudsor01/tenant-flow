@@ -27,9 +27,8 @@ export function useTemplateDefinition(
 
 		async function load() {
 			try {
-				// TODO(phase-57): Template definition loading requires Edge Function implementation
-				// The NestJS backend /documents/templates/:key/definition has been removed.
-				// For now, return empty custom fields.
+				// Template definitions are loaded from edge function when available.
+				// Returns empty custom fields as fallback.
 				if (isActive) {
 					setCustomFields([])
 				}

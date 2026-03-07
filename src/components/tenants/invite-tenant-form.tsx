@@ -10,6 +10,7 @@ import { Mail } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
+import { useUnsavedChangesWarning } from '#hooks/use-unsaved-changes'
 import { tenantQueries } from '#hooks/api/query-keys/tenant-keys'
 import { createClient } from '#lib/supabase/client'
 import { getCachedUser } from '#lib/supabase/get-cached-user'
@@ -139,6 +140,9 @@ export function InviteTenantForm({
 			}
 		}
 	})
+
+	// Warn before navigating away with unsaved form data
+	useUnsavedChangesWarning(form.state.isDirty)
 
 	// Filter units based on selected property
 	const availableUnits = units.filter(

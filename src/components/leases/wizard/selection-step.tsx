@@ -37,6 +37,8 @@ import {
 } from '#components/ui/empty'
 import { Button } from '#components/ui/button'
 import { AlertCircle, Loader2, Mail, UserPlus } from 'lucide-react'
+import { propertyQueries } from '#hooks/api/query-keys/property-keys'
+import { unitQueries } from '#hooks/api/query-keys/unit-keys'
 import { tenantQueries } from '#hooks/api/query-keys/tenant-keys'
 import type { SelectionStepData } from '#shared/validation/lease-wizard.schemas'
 import type {
@@ -81,7 +83,7 @@ export function SelectionStep({ data, onChange, onUnitSelected }: SelectionStepP
 		isLoading: propertiesLoading,
 		error: propertiesError
 	} = useQuery({
-		queryKey: ['properties', 'list'],
+		queryKey: [...propertyQueries.all(), 'list'],
 		queryFn: async () => {
 			const supabase = createClient()
 			const { data: rows, error } = await supabase
@@ -100,7 +102,7 @@ export function SelectionStep({ data, onChange, onUnitSelected }: SelectionStepP
 		isLoading: unitsLoading,
 		error: unitsError
 	} = useQuery({
-		queryKey: ['units', 'by-property', data.property_id, 'available'],
+		queryKey: [...unitQueries.all(), 'by-property', data.property_id, 'available'],
 		queryFn: async () => {
 			const supabase = createClient()
 			const { data: rows, error } = await supabase
@@ -121,7 +123,7 @@ export function SelectionStep({ data, onChange, onUnitSelected }: SelectionStepP
 		isLoading: tenantsLoading,
 		error: tenantsError
 	} = useQuery({
-		queryKey: ['tenants', 'list', data.property_id],
+		queryKey: [...tenantQueries.all(), 'list', data.property_id],
 		queryFn: async () => {
 			const supabase = createClient()
 			let query = supabase
@@ -237,7 +239,7 @@ export function SelectionStep({ data, onChange, onUnitSelected }: SelectionStepP
 							onValueChange={handlePropertyChange}
 						>
 							<ComboboxAnchor id="property">
-								<ComboboxInput placeholder="Search properties..." />
+								<ComboboxInput placeholder="Search properties..." autoFocus />
 								<ComboboxTrigger />
 							</ComboboxAnchor>
 							<ComboboxContent>

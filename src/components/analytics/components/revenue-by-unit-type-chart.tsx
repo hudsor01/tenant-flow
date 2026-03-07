@@ -1,5 +1,3 @@
-'use client'
-
 import { Home } from 'lucide-react'
 import { BlurFade } from '#components/ui/blur-fade'
 import type { RevenueByUnitType } from '../analytics-types'

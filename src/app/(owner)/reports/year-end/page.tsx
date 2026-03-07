@@ -1,7 +1,8 @@
 'use client'
 
 import { useState } from 'react'
-import { useYearEndSummary, use1099Summary, useDownloadYearEndPdf } from '#hooks/api/use-reports'
+import { useYearEndSummary, use1099Summary } from '#hooks/api/use-reports'
+import { useDownloadYearEndPdf } from '#hooks/api/use-report-mutations'
 import { YearEndReportSection } from '#components/reports/sections/year-end-report-section'
 import {
 	Select,

@@ -2,7 +2,8 @@
 
 import { CheckCircle, Loader2 } from 'lucide-react'
 import { BlurFade } from '#components/ui/blur-fade'
-import { useBillingHistory, useBillingPortalMutation } from '#hooks/api/use-billing'
+import { useBillingHistory } from '#hooks/api/use-billing'
+import { useBillingPortalMutation } from '#hooks/api/use-billing-mutations'
 
 export function BillingHistorySection() {
 	const { data: paymentHistory } = useBillingHistory()

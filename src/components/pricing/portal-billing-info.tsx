@@ -1,6 +1,7 @@
 import { Badge } from '#components/ui/badge'
 import { cardVariants } from '#components/ui/card'
 import { Calendar, CheckCircle2, CreditCard, Lock } from 'lucide-react'
+import { formatDate } from '#lib/formatters/date'
 import { TYPOGRAPHY_SCALE } from '#shared/constants/design-system'
 
 export interface BillingInfoData {
@@ -14,13 +15,6 @@ interface PortalBillingInfoProps {
 }
 
 export function PortalBillingInfo({ billingInfo }: PortalBillingInfoProps) {
-	const formatDate = (dateString: string) =>
-		new Date(dateString).toLocaleDateString('en-US', {
-			month: 'short',
-			day: 'numeric',
-			year: 'numeric'
-		})
-
 	return (
 		<div className="bg-accent/8 rounded-2xl p-6 border border-accent/20">
 			<div className="flex-between mb-6">

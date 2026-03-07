@@ -62,12 +62,12 @@ function ConfirmEmailContent() {
 
 		try {
 			const supabase = createClient()
-			// Get the current session to extract the email
+			// Get the current user to extract the email (AUTH-17: getUser() not getSession())
 			const {
-				data: { session }
-			} = await supabase.auth.getSession()
+				data: { user }
+			} = await supabase.auth.getUser()
 
-			if (!session?.user?.email) {
+			if (!user?.email) {
 				toast.error('Unable to resend email', {
 					description: 'Please sign up again or contact support.'
 				})
@@ -77,7 +77,7 @@ function ConfirmEmailContent() {
 			// Resend the confirmation email
 			const { error } = await supabase.auth.resend({
 				type: 'signup',
-				email: session.user.email
+				email: user.email
 			})
 
 			if (error) throw error
@@ -289,7 +289,7 @@ function ConfirmEmailContent() {
 									<p className="text-foreground font-medium">
 										Check your email inbox
 									</p>
-									<p className="text-muted">
+									<p className="text-muted-foreground">
 										Don&apos;t forget to check your spam folder
 									</p>
 								</div>
@@ -302,7 +302,7 @@ function ConfirmEmailContent() {
 									<p className="text-foreground font-medium">
 										Click the confirmation link
 									</p>
-									<p className="text-muted">The link expires in 24 hours</p>
+									<p className="text-muted-foreground">The link expires in 24 hours</p>
 								</div>
 							</li>
 							<li className="flex items-start gap-3">
@@ -313,7 +313,7 @@ function ConfirmEmailContent() {
 									<p className="text-foreground font-medium">
 										Start managing properties
 									</p>
-									<p className="text-muted">
+									<p className="text-muted-foreground">
 										You&apos;ll be redirected to your dashboard
 									</p>
 								</div>
@@ -323,7 +323,7 @@ function ConfirmEmailContent() {
 
 					{/* Actions */}
 					<div className="space-y-4">
-						<p className="text-muted text-center">
+						<p className="text-muted-foreground text-center">
 							Didn&apos;t receive the email?
 						</p>
 
@@ -356,7 +356,7 @@ function ConfirmEmailContent() {
 
 					{/* Support */}
 					<div className="pt-6 border-t border-border">
-						<p className="text-muted text-center">
+						<p className="text-muted-foreground text-center">
 							Need help?{' '}
 							<Link
 								href="mailto:support@tenantflow.app"

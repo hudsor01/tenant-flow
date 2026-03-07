@@ -1,6 +1,5 @@
 'use client'
 
-import { Button } from '#components/ui/button'
 import {
 	Card,
 	CardContent,
@@ -19,110 +18,17 @@ import {
 import { handleMutationError } from '#lib/mutation-error-handler'
 import { useAuth } from '#providers/auth-provider'
 
-// Report types (previously from #lib/api/reports-client, deleted in phase-57)
-type ReportFormat = 'pdf' | 'excel'
-type ReportType =
-	| 'executive-monthly'
-	| 'financial-performance'
-	| 'property-portfolio'
-	| 'lease-portfolio'
-	| 'maintenance-operations'
-	| 'tax-preparation'
-
-// TODO(phase-57): Report generation requires StirlingPDF Edge Function implementation
-const reportsClient = {
-	generateReport: async (
-		_reportType: ReportType,
-		_params: {
-			user_id: string
-			start_date: string
-			end_date: string
-			format: ReportFormat
-		}
-	): Promise<void> => {
-		throw new Error(
-			'Report generation requires StirlingPDF Edge Function implementation'
-		)
-	}
-}
 import { format, subMonths } from 'date-fns'
-import {
-	Building2,
-	Calendar,
-	Download,
-	FileSpreadsheet,
-	FileText,
-	TrendingUp,
-	Wrench
-} from 'lucide-react'
+import { Calendar } from 'lucide-react'
 import { useState } from 'react'
 import { toast } from 'sonner'
-
-interface ReportCard {
-	id: ReportType
-	title: string
-	description: string
-	icon: typeof FileText
-	formats: ReportFormat[]
-	category: 'executive' | 'financial' | 'operations'
-}
-
-const reportCards: ReportCard[] = [
-	{
-		id: 'executive-monthly',
-		title: 'Executive Monthly Report',
-		description:
-			'Comprehensive monthly summary for leadership with key metrics and trends',
-		icon: FileText,
-		formats: ['pdf', 'excel'],
-		category: 'executive'
-	},
-	{
-		id: 'financial-performance',
-		title: 'Financial Performance',
-		description:
-			'Detailed P&L, NOI by property, and expense breakdown with monthly trends',
-		icon: TrendingUp,
-		formats: ['pdf', 'excel'],
-		category: 'financial'
-	},
-	{
-		id: 'property-portfolio',
-		title: 'Property Portfolio',
-		description:
-			'Portfolio analysis with property rankings, occupancy metrics, and vacancy analysis',
-		icon: Building2,
-		formats: ['pdf', 'excel'],
-		category: 'operations'
-	},
-	{
-		id: 'lease-portfolio',
-		title: 'Lease Portfolio',
-		description:
-			'Lease analytics including profitability scores, lifecycle trends, and status breakdown',
-		icon: FileText,
-		formats: ['pdf', 'excel'],
-		category: 'financial'
-	},
-	{
-		id: 'maintenance-operations',
-		title: 'Maintenance Operations',
-		description:
-			'Operations metrics with response times, cost breakdown, and urgency analysis',
-		icon: Wrench,
-		formats: ['pdf', 'excel'],
-		category: 'operations'
-	},
-	{
-		id: 'tax-preparation',
-		title: 'Tax Preparation',
-		description:
-			'Tax-ready report with Schedule E codes and depreciation calculations (Excel only)',
-		icon: FileSpreadsheet,
-		formats: ['excel'],
-		category: 'financial'
-	}
-]
+import { ReportCardGrid } from './components/report-card-grid'
+import {
+	reportCards,
+	reportsClient,
+	type ReportFormat,
+	type ReportType
+} from './components/report-types'
 
 export default function GenerateReportsPage() {
 	const { user } = useAuth()
@@ -162,9 +68,9 @@ export default function GenerateReportsPage() {
 
 	const handleGenerateReport = async (
 		reportId: ReportType,
-		format: ReportFormat
+		reportFormat: ReportFormat
 	) => {
-		const reportKey = `${reportId}-${format}`
+		const reportKey = `${reportId}-${reportFormat}`
 		setGeneratingReports(prev => ({ ...prev, [reportKey]: true }))
 
 		try {
@@ -180,7 +86,7 @@ export default function GenerateReportsPage() {
 				user_id,
 				start_date,
 				end_date,
-				format
+				format: reportFormat
 			})
 
 			toast.success('Report generated successfully')
@@ -190,6 +96,10 @@ export default function GenerateReportsPage() {
 			setGeneratingReports(prev => ({ ...prev, [reportKey]: false }))
 		}
 	}
+
+	const executiveReports = reportCards.filter(r => r.category === 'executive')
+	const financialReports = reportCards.filter(r => r.category === 'financial')
+	const operationsReports = reportCards.filter(r => r.category === 'operations')
 
 	return (
 		<div className="p-6 lg:p-8 bg-background min-h-full">
@@ -234,166 +144,31 @@ export default function GenerateReportsPage() {
 				</CardContent>
 			</Card>
 
-			{/* Executive Reports */}
-			<div className="flex flex-col gap-4 mb-8">
-				<div>
-					<h2 className="font-medium text-foreground">Executive Reports</h2>
-					<p className="text-sm text-muted-foreground">
-						High-level summaries for leadership and stakeholders
-					</p>
-				</div>
-				<div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-					{reportCards
-						.filter(report => report.category === 'executive')
-						.map(report => {
-							const Icon = report.icon
-							return (
-								<Card key={report.id} className="flex flex-col">
-									<CardHeader>
-										<CardTitle className="flex items-center gap-2">
-											<Icon className="size-5" />
-											{report.title}
-										</CardTitle>
-										<CardDescription>{report.description}</CardDescription>
-									</CardHeader>
-									<CardContent className="flex-1 flex flex-col gap-3">
-										<div className="flex-1" />
-										<div className="flex gap-2">
-											{report.formats.map(format => {
-												const reportKey = `${report.id}-${format}`
-												const isGenerating = generatingReports[reportKey]
-												return (
-													<Button
-														key={format}
-														variant={format === 'pdf' ? 'default' : 'outline'}
-														size="sm"
-														onClick={() =>
-															handleGenerateReport(report.id, format)
-														}
-														disabled={isGenerating}
-														className="flex-1"
-													>
-														<Download className="mr-2 size-4" />
-														{isGenerating
-															? 'Generating...'
-															: format.toUpperCase()}
-													</Button>
-												)
-											})}
-										</div>
-									</CardContent>
-								</Card>
-							)
-						})}
-				</div>
-			</div>
+			{/* Report Sections */}
+			<div className="space-y-8">
+				<ReportCardGrid
+					title="Executive Reports"
+					description="High-level summaries for leadership and stakeholders"
+					reports={executiveReports}
+					generatingReports={generatingReports}
+					onGenerate={handleGenerateReport}
+				/>
 
-			{/* Financial Reports */}
-			<div className="flex flex-col gap-4 mb-8">
-				<div>
-					<h2 className="font-medium text-foreground">Financial Reports</h2>
-					<p className="text-sm text-muted-foreground">
-						Detailed financial analysis and performance metrics
-					</p>
-				</div>
-				<div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-					{reportCards
-						.filter(report => report.category === 'financial')
-						.map(report => {
-							const Icon = report.icon
-							return (
-								<Card key={report.id} className="flex flex-col">
-									<CardHeader>
-										<CardTitle className="flex items-center gap-2">
-											<Icon className="size-5" />
-											{report.title}
-										</CardTitle>
-										<CardDescription>{report.description}</CardDescription>
-									</CardHeader>
-									<CardContent className="flex-1 flex flex-col gap-3">
-										<div className="flex-1" />
-										<div className="flex gap-2">
-											{report.formats.map(format => {
-												const reportKey = `${report.id}-${format}`
-												const isGenerating = generatingReports[reportKey]
-												return (
-													<Button
-														key={format}
-														variant={format === 'pdf' ? 'default' : 'outline'}
-														size="sm"
-														onClick={() =>
-															handleGenerateReport(report.id, format)
-														}
-														disabled={isGenerating}
-														className="flex-1"
-													>
-														<Download className="mr-2 size-4" />
-														{isGenerating
-															? 'Generating...'
-															: format.toUpperCase()}
-													</Button>
-												)
-											})}
-										</div>
-									</CardContent>
-								</Card>
-							)
-						})}
-				</div>
-			</div>
+				<ReportCardGrid
+					title="Financial Reports"
+					description="Detailed financial analysis and performance metrics"
+					reports={financialReports}
+					generatingReports={generatingReports}
+					onGenerate={handleGenerateReport}
+				/>
 
-			{/* Operations Reports */}
-			<div className="flex flex-col gap-4">
-				<div>
-					<h2 className="font-medium text-foreground">Operations Reports</h2>
-					<p className="text-sm text-muted-foreground">
-						Property and maintenance operations insights
-					</p>
-				</div>
-				<div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-					{reportCards
-						.filter(report => report.category === 'operations')
-						.map(report => {
-							const Icon = report.icon
-							return (
-								<Card key={report.id} className="flex flex-col">
-									<CardHeader>
-										<CardTitle className="flex items-center gap-2">
-											<Icon className="size-5" />
-											{report.title}
-										</CardTitle>
-										<CardDescription>{report.description}</CardDescription>
-									</CardHeader>
-									<CardContent className="flex-1 flex flex-col gap-3">
-										<div className="flex-1" />
-										<div className="flex gap-2">
-											{report.formats.map(format => {
-												const reportKey = `${report.id}-${format}`
-												const isGenerating = generatingReports[reportKey]
-												return (
-													<Button
-														key={format}
-														variant={format === 'pdf' ? 'default' : 'outline'}
-														size="sm"
-														onClick={() =>
-															handleGenerateReport(report.id, format)
-														}
-														disabled={isGenerating}
-														className="flex-1"
-													>
-														<Download className="mr-2 size-4" />
-														{isGenerating
-															? 'Generating...'
-															: format.toUpperCase()}
-													</Button>
-												)
-											})}
-										</div>
-									</CardContent>
-								</Card>
-							)
-						})}
-				</div>
+				<ReportCardGrid
+					title="Operations Reports"
+					description="Property and maintenance operations insights"
+					reports={operationsReports}
+					generatingReports={generatingReports}
+					onGenerate={handleGenerateReport}
+				/>
 			</div>
 		</div>
 	)

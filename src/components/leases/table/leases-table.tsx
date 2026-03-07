@@ -1,6 +1,7 @@
 'use client'
 
-import type { ReactNode } from 'react'
+import { useRef, type ReactNode } from 'react'
+import { useVirtualizer } from '@tanstack/react-virtual'
 
 import {
 	Search,
@@ -13,8 +14,8 @@ import {
 	XCircle
 } from 'lucide-react'
 import { BlurFade } from '#components/ui/blur-fade'
+import { formatDate } from '#lib/formatters/date'
 import {
-	formatDate,
 	getStatusConfig,
 	type LeaseDisplay,
 	type SortField,
@@ -112,6 +113,14 @@ export function LeasesTable({
 		onStatusFilterChange('all')
 	}
 
+	const tableScrollRef = useRef<HTMLDivElement>(null)
+	const rowVirtualizer = useVirtualizer({
+		count: paginatedLeases.length,
+		getScrollElement: () => tableScrollRef.current,
+		estimateSize: () => 72,
+		overscan: 5,
+	})
+
 	return (
 		<BlurFade delay={0.6} inView>
 			<div className="bg-card border border-border rounded-sm overflow-hidden">
@@ -143,9 +152,9 @@ export function LeasesTable({
 				)}
 
 				{/* Table */}
-				<div className="overflow-x-auto">
+				<div ref={tableScrollRef} className="overflow-auto max-h-[calc(100vh-420px)]">
 					<table className="w-full">
-						<thead>
+						<thead className="sticky top-0 z-10">
 							<tr className="border-b border-border bg-muted/30">
 								<th className="w-12 px-4 py-3">
 									<input
@@ -190,8 +199,10 @@ export function LeasesTable({
 								<th className="w-20 px-4 py-3"></th>
 							</tr>
 						</thead>
-						<tbody className="divide-y divide-border">
-							{paginatedLeases.map(lease => (
+						<tbody className="divide-y divide-border" style={{ height: `${rowVirtualizer.getTotalSize()}px`, position: 'relative' }}>
+							{rowVirtualizer.getVirtualItems().map(virtualRow => {
+								const lease = paginatedLeases[virtualRow.index]!
+								return (
 								<tr
 									key={lease.id}
 									className={`hover:bg-muted/50 transition-colors ${selectedRows.has(lease.id) ? 'bg-primary/5' : ''}`}
@@ -212,8 +223,8 @@ export function LeasesTable({
 											{lease.tenantName}
 										</button>
 										<p className="text-xs text-muted-foreground">
-											{formatDate(lease.startDate)} -{' '}
-											{formatDate(lease.endDate)}
+											{formatDate(lease.startDate, { fallback: 'N/A' })} -{' '}
+											{formatDate(lease.endDate, { fallback: 'N/A' })}
 										</p>
 										<p className="text-sm text-muted-foreground lg:hidden">
 											{lease.propertyName}
@@ -267,7 +278,8 @@ export function LeasesTable({
 										</div>
 									</td>
 								</tr>
-							))}
+								)
+							})}
 						</tbody>
 					</table>
 				</div>

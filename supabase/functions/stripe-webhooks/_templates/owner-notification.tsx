@@ -17,6 +17,9 @@ export interface OwnerNotificationProps {
   propertyAddress: string
   unitNumber: string | null
   paymentDate: string
+  platformFee?: string | null
+  stripeFee?: string | null
+  netAmount?: string | null
 }
 
 export const OwnerNotification = ({
@@ -26,6 +29,9 @@ export const OwnerNotification = ({
   propertyAddress,
   unitNumber,
   paymentDate,
+  platformFee,
+  stripeFee,
+  netAmount,
 }: OwnerNotificationProps) => {
   const locationText = unitNumber
     ? `${propertyAddress} - ${unitNumber}`
@@ -58,6 +64,34 @@ export const OwnerNotification = ({
           <span style={detailValue}>{paymentDate}</span>
         </Text>
       </Section>
+
+      {(platformFee || stripeFee || netAmount) && (
+        <Section style={detailsBox}>
+          <Text style={feeHeading}>Fee Breakdown</Text>
+          <Text style={detailRow}>
+            <span style={detailLabel}>Gross Amount:</span>{' '}
+            <span style={detailValue}>{amount}</span>
+          </Text>
+          {platformFee && (
+            <Text style={detailRow}>
+              <span style={detailLabel}>Platform Fee:</span>{' '}
+              <span style={feeValue}>-{platformFee}</span>
+            </Text>
+          )}
+          {stripeFee && (
+            <Text style={detailRow}>
+              <span style={detailLabel}>Stripe Fee:</span>{' '}
+              <span style={feeValue}>-{stripeFee}</span>
+            </Text>
+          )}
+          {netAmount && (
+            <Text style={detailRow}>
+              <span style={detailLabel}>Net Payout:</span>{' '}
+              <span style={amountValue}>{netAmount}</span>
+            </Text>
+          )}
+        </Section>
+      )}
 
       <Text style={closingText}>
         This is a payment confirmation. No action is required.
@@ -115,6 +149,20 @@ const amountValue: React.CSSProperties = {
   color: '#1e3a5f',
   fontWeight: '700',
   fontSize: '16px',
+}
+
+const feeHeading: React.CSSProperties = {
+  color: '#6b7280',
+  fontSize: '13px',
+  fontWeight: '600',
+  textTransform: 'uppercase',
+  letterSpacing: '0.5px',
+  margin: '0 0 8px 0',
+}
+
+const feeValue: React.CSSProperties = {
+  color: '#dc2626',
+  fontWeight: '500',
 }
 
 const closingText: React.CSSProperties = {

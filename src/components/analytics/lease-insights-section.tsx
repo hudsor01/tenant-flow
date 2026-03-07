@@ -11,8 +11,19 @@ import type { ColumnDef } from '@tanstack/react-table'
 import { formatCurrency, formatNumber } from '#lib/formatters/currency'
 import { Calendar, DollarSign, BarChart3 } from 'lucide-react'
 import { useMemo } from 'react'
+import dynamic from 'next/dynamic'
 import type { LeaseFinancialInsight } from '#shared/types/analytics'
-import { LeaseLifecycleChart, LeaseStatusChart } from './lease-charts'
+import { ChartLoadingSkeleton } from '#components/shared/chart-loading-skeleton'
+
+const LeaseLifecycleChart = dynamic(
+	() => import('./lease-charts').then(mod => mod.LeaseLifecycleChart),
+	{ ssr: false, loading: () => <ChartLoadingSkeleton /> }
+)
+
+const LeaseStatusChart = dynamic(
+	() => import('./lease-charts').then(mod => mod.LeaseStatusChart),
+	{ ssr: false, loading: () => <ChartLoadingSkeleton /> }
+)
 
 export function LeaseInsightsSkeleton() {
 	return (

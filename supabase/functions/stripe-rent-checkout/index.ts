@@ -7,6 +7,8 @@
 import Stripe from 'stripe'
 import { createClient } from '@supabase/supabase-js'
 import { getCorsHeaders, handleCorsOptions } from '../_shared/cors.ts'
+import { validateEnv } from '../_shared/env.ts'
+import { errorResponse } from '../_shared/errors.ts'
 
 Deno.serve(async (req: Request) => {
   const optionsResponse = handleCorsOptions(req)
@@ -18,10 +20,20 @@ Deno.serve(async (req: Request) => {
   // ---------------------------------------------------------------------------
   // Environment variables
   // ---------------------------------------------------------------------------
-  const stripeKey = Deno.env.get('STRIPE_SECRET_KEY') ?? ''
-  const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? ''
-  const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
-  const frontendUrl = Deno.env.get('FRONTEND_URL') ?? 'http://localhost:3050'
+  let env: Record<string, string>
+  try {
+    env = validateEnv({
+      required: ['SUPABASE_URL', 'SUPABASE_SERVICE_ROLE_KEY', 'STRIPE_SECRET_KEY'],
+      optional: ['FRONTEND_URL'],
+    })
+  } catch (err) {
+    return errorResponse(req, 500, err, { action: 'env_validation' })
+  }
+
+  const stripeKey = env.STRIPE_SECRET_KEY
+  const supabaseUrl = env.SUPABASE_URL
+  const supabaseServiceKey = env.SUPABASE_SERVICE_ROLE_KEY
+  const frontendUrl = env.FRONTEND_URL ?? 'http://localhost:3050'
 
   // ---------------------------------------------------------------------------
   // 1. Authenticate tenant via JWT
@@ -59,13 +71,22 @@ Deno.serve(async (req: Request) => {
     }
 
     // -------------------------------------------------------------------------
-    // 2. Resolve tenant record from authenticated user
+    // 2-4. Parallel: tenant, rent_due, and duplicate check are independent
     // -------------------------------------------------------------------------
-    const { data: tenant, error: tenantError } = await supabase
-      .from('tenants')
-      .select('id, stripe_customer_id')
-      .eq('user_id', user.id)
-      .maybeSingle()
+    const [tenantResult, rentDueResult, duplicateResult] = await Promise.all([
+      // Step 2: Resolve tenant from authenticated user
+      supabase.from('tenants').select('id, stripe_customer_id')
+        .eq('user_id', user.id).maybeSingle(),
+      // Step 3: Validate rent_due record
+      supabase.from('rent_due').select('id, amount, due_date, lease_id, unit_id, status')
+        .eq('id', rentDueId).maybeSingle(),
+      // Step 4: Duplicate payment check
+      supabase.from('rent_payments').select('id')
+        .eq('rent_due_id', rentDueId).eq('status', 'succeeded').maybeSingle(),
+    ])
+
+    // Handle tenant result
+    const { data: tenant, error: tenantError } = tenantResult
 
     if (tenantError) {
       console.error('Error resolving tenant:', tenantError.message)
@@ -82,14 +103,8 @@ Deno.serve(async (req: Request) => {
       )
     }
 
-    // -------------------------------------------------------------------------
-    // 3. Validate rent_due record
-    // -------------------------------------------------------------------------
-    const { data: rentDue, error: rentDueError } = await supabase
-      .from('rent_due')
-      .select('id, amount, due_date, lease_id, unit_id, status')
-      .eq('id', rentDueId)
-      .maybeSingle()
+    // Handle rent_due result
+    const { data: rentDue, error: rentDueError } = rentDueResult
 
     if (rentDueError) {
       console.error('Error fetching rent_due:', rentDueError.message)
@@ -113,15 +128,8 @@ Deno.serve(async (req: Request) => {
       )
     }
 
-    // -------------------------------------------------------------------------
-    // 4. Duplicate payment check — prevent paying same rent_due twice
-    // -------------------------------------------------------------------------
-    const { data: existingPayment, error: dupError } = await supabase
-      .from('rent_payments')
-      .select('id')
-      .eq('rent_due_id', rentDueId)
-      .eq('status', 'succeeded')
-      .maybeSingle()
+    // Handle duplicate check result
+    const { data: existingPayment, error: dupError } = duplicateResult
 
     if (dupError) {
       console.error('Error checking duplicate payment:', dupError.message)
@@ -162,10 +170,10 @@ Deno.serve(async (req: Request) => {
       )
     }
 
-    // Verify tenant is on this lease via lease_tenants junction table
+    // Verify tenant is on this lease and get their responsibility percentage
     const { data: leaseTenant, error: leaseTenantsError } = await supabase
       .from('lease_tenants')
-      .select('id')
+      .select('id, responsibility_percentage')
       .eq('lease_id', lease.id)
       .eq('tenant_id', tenant.id)
       .maybeSingle()
@@ -185,14 +193,25 @@ Deno.serve(async (req: Request) => {
       )
     }
 
+    // PAY-14: Compute per-tenant portion from responsibility_percentage
+    const responsibilityPercentage = (leaseTenant as Record<string, unknown>).responsibility_percentage as number ?? 100
+    const tenantAmount = Number((rentDue.amount * responsibilityPercentage / 100).toFixed(2))
+
     // -------------------------------------------------------------------------
-    // 6. Resolve connected account for the property owner
+    // 6+9. Parallel: connected account and unit lookup both depend on lease
     // -------------------------------------------------------------------------
-    const { data: connectedAccount, error: connectedError } = await supabase
-      .from('stripe_connected_accounts')
-      .select('stripe_account_id, default_platform_fee_percent, charges_enabled')
-      .eq('user_id', lease.owner_user_id)
-      .maybeSingle()
+    const [connectedAccountResult, unitResult] = await Promise.all([
+      // Step 6: Connected account for the property owner
+      supabase.from('stripe_connected_accounts')
+        .select('stripe_account_id, default_platform_fee_percent, charges_enabled')
+        .eq('user_id', lease.owner_user_id).maybeSingle(),
+      // Step 9: Unit -> property_id
+      supabase.from('units').select('property_id')
+        .eq('id', lease.unit_id).maybeSingle(),
+    ])
+
+    // Handle connected account result
+    const { data: connectedAccount, error: connectedError } = connectedAccountResult
 
     if (connectedError) {
       console.error('Error fetching connected account:', connectedError.message)
@@ -220,20 +239,14 @@ Deno.serve(async (req: Request) => {
     }
 
     // -------------------------------------------------------------------------
-    // 8. Calculate fees — owner absorbs all fees, tenant pays exact rent
+    // 8. Calculate fees — owner absorbs all fees, tenant pays their portion
     // -------------------------------------------------------------------------
-    const amountCents = Math.round(rentDue.amount * 100)
+    const amountCents = Math.round(tenantAmount * 100)
     const platformFeePercent = connectedAccount.default_platform_fee_percent ?? 5
     const applicationFeeCents = Math.round(amountCents * platformFeePercent / 100)
 
-    // -------------------------------------------------------------------------
-    // 9. Resolve property_id from unit
-    // -------------------------------------------------------------------------
-    const { data: unit, error: unitError } = await supabase
-      .from('units')
-      .select('property_id')
-      .eq('id', lease.unit_id)
-      .maybeSingle()
+    // Handle unit result
+    const { data: unit, error: unitError } = unitResult
 
     if (unitError) {
       console.error('Error fetching unit:', unitError.message)
@@ -260,7 +273,7 @@ Deno.serve(async (req: Request) => {
     // 11. Resolve or create Stripe Customer for the tenant
     //     Required for setup_future_usage to save the payment method for autopay.
     // -------------------------------------------------------------------------
-    const stripe = new Stripe(stripeKey, { apiVersion: '2024-06-20' })
+    const stripe = new Stripe(stripeKey, { apiVersion: '2026-02-25.clover' as Stripe.LatestApiVersion })
 
     let stripeCustomerId = (tenant as Record<string, unknown>).stripe_customer_id as string | null
 
@@ -299,7 +312,7 @@ Deno.serve(async (req: Request) => {
           currency: 'usd',
           product_data: {
             name: 'Rent Payment',
-            description: `Rent for ${periodMonth}/${periodYear}`,
+            description: `Rent for ${periodMonth}/${periodYear}${responsibilityPercentage < 100 ? ` (${responsibilityPercentage}% portion)` : ''}`,
           },
           unit_amount: amountCents,
         },
@@ -317,7 +330,9 @@ Deno.serve(async (req: Request) => {
           property_id: propertyId,
           unit_id: lease.unit_id,
           rent_due_id: rentDueId,
-          amount: String(rentDue.amount),
+          amount: String(tenantAmount),
+          full_rent_amount: String(rentDue.amount),
+          responsibility_percentage: String(responsibilityPercentage),
           period_month: periodMonth,
           period_year: periodYear,
           due_date: rentDue.due_date,
@@ -325,8 +340,8 @@ Deno.serve(async (req: Request) => {
           period_end: periodEnd,
         },
       },
-      success_url: `${frontendUrl}/tenant?checkout=success`,
-      cancel_url: `${frontendUrl}/tenant?checkout=cancelled`,
+      success_url: `${frontendUrl}/tenant/payments/success?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${frontendUrl}/tenant/payments`,
       expires_at: Math.floor(Date.now() / 1000) + 1800, // 30-minute expiry
     })
 
@@ -352,17 +367,9 @@ Deno.serve(async (req: Request) => {
       String(errorObj.type).startsWith('Stripe')
 
     if (isStripeError) {
-      console.error('Stripe error:', (err as Error).message)
-      return new Response(
-        JSON.stringify({ error: 'Payment service unavailable. Please try again.' }),
-        { status: 502, headers: jsonHeaders }
-      )
+      return errorResponse(req, 502, err, { action: 'stripe_rent_checkout' })
     }
 
-    console.error('Unexpected error:', err instanceof Error ? err.message : String(err))
-    return new Response(
-      JSON.stringify({ error: 'Internal server error' }),
-      { status: 500, headers: jsonHeaders }
-    )
+    return errorResponse(req, 500, err, { action: 'stripe_rent_checkout' })
   }
 })

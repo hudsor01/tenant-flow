@@ -1,13 +1,13 @@
 'use client'
 
-import { ErrorFallback } from '#components/error-boundary/error-fallback'
+import { ErrorPage } from '#components/shared/error-page'
 
-export default function Error({
+export default function RootError({
 	error,
 	reset
 }: {
 	error: Error & { digest?: string }
 	reset: () => void
 }) {
-	return <ErrorFallback error={error} reset={reset} />
+	return <ErrorPage error={error} resetAction={reset} dashboardHref="/" />
 }

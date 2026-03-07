@@ -1,5 +1,3 @@
-'use client'
-
 import { StripeConnectStatus } from './stripe-connect-status'
 
 export function StripeConnectTab() {
@@ -12,7 +10,7 @@ export function StripeConnectTab() {
 			<div className="max-w-3xl space-y-4 mt-6">
 				<div className="rounded-lg border p-4 bg-muted/20">
 					<h3 className="font-semibold mb-2">How Stripe Connect Works</h3>
-					<ul className="text-muted space-y-2 ml-4 list-disc">
+					<ul className="text-muted-foreground space-y-2 ml-4 list-disc">
 						<li>
 							Connect your Stripe account to enable online rent collection
 						</li>
@@ -25,7 +23,7 @@ export function StripeConnectTab() {
 
 				<div className="rounded-lg border p-4 bg-muted/20">
 					<h3 className="font-semibold mb-2">Payment Processing Fees</h3>
-					<p className="text-muted">
+					<p className="text-muted-foreground">
 						Stripe charges 2.9% + $0.30 per successful card charge. ACH bank
 						transfers are 0.8% capped at $5. These fees are deducted from the
 						payment amount.
@@ -34,7 +32,7 @@ export function StripeConnectTab() {
 
 				<div className="rounded-lg border p-4 bg-muted/20">
 					<h3 className="font-semibold mb-2">Onboarding Requirements</h3>
-					<ul className="text-muted space-y-2 ml-4 list-disc">
+					<ul className="text-muted-foreground space-y-2 ml-4 list-disc">
 						<li>Business or individual tax identification number</li>
 						<li>Bank account details for payouts</li>
 						<li>Identity verification (driver&apos;s license or passport)</li>

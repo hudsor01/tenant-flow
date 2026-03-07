@@ -1,10 +1,6 @@
 'use client'
 
-import { useEffect } from 'react'
-import { Button } from '#components/ui/button'
-import { createLogger } from '#shared/lib/frontend-logger'
-
-const logger = createLogger({ component: 'PortalError' })
+import { ErrorPage } from '#components/shared/error-page'
 
 export default function PortalError({
 	error,
@@ -13,21 +9,5 @@ export default function PortalError({
 	error: Error & { digest?: string }
 	reset: () => void
 }) {
-	useEffect(() => {
-		logger.error(
-			'Portal error occurred',
-			{ metadata: { digest: error.digest } },
-			error
-		)
-	}, [error])
-
-	return (
-		<div className="flex flex-col items-center justify-center min-h-screen gap-4">
-			<h2 className="typography-h3">Something went wrong!</h2>
-			<p className="text-muted-foreground">
-				{error.message || 'An error occurred in the portal'}
-			</p>
-			<Button onClick={reset}>Try again</Button>
-		</div>
-	)
+	return <ErrorPage error={error} resetAction={reset} dashboardHref="/tenant" />
 }

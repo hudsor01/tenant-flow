@@ -29,12 +29,12 @@ import { Switch } from '#components/ui/switch'
 
 import {
 	useTenantAutopayStatus,
-	useTenantLease,
 	useTenantPortalSetupAutopayMutation,
 	useTenantPortalCancelAutopayMutation
-} from '#hooks/api/use-tenant-portal'
+} from '#hooks/api/use-tenant-autopay'
+import { useTenantLease } from '#hooks/api/use-tenant-lease'
 import { usePaymentMethods } from '#hooks/api/use-payment-methods'
-import { formatCents } from '#shared/lib/format'
+import { formatCents } from '#lib/formatters/currency'
 
 export default function TenantAutopayPage() {
 	const { data: autopayStatus, isLoading: isLoadingAutopay } =
@@ -203,7 +203,7 @@ function AutopayStatusCard({ isEnabled, isMutating, lease, autopayStatus, onTogg
 function InfoRow({ label, value }: { label: string; value: string }) {
 	return (
 		<div className="flex justify-between">
-			<span className="text-muted">{label}</span>
+			<span className="text-muted-foreground">{label}</span>
 			<span className="font-semibold">{value}</span>
 		</div>
 	)
@@ -291,7 +291,7 @@ function HowItWorksCard() {
 						</div>
 						<div>
 							<p className="font-medium">{step.title}</p>
-							<p className="text-muted">{step.desc}</p>
+							<p className="text-muted-foreground">{step.desc}</p>
 						</div>
 					</div>
 				))}

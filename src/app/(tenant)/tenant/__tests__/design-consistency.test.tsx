@@ -15,7 +15,7 @@ import { render, screen } from '@testing-library/react'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 
 // Mock the hooks (colocated pattern)
-vi.mock('#hooks/api/use-tenant-portal', () => ({
+vi.mock('#hooks/api/use-tenant-dashboard', () => ({
 	useTenantPortalDashboard: vi.fn(() => ({
 		data: {
 			lease: {
@@ -57,12 +57,17 @@ vi.mock('#hooks/api/use-tenant-portal', () => ({
 	}
 }))
 
-vi.mock('@tanstack/react-query', () => ({
-	useQuery: vi.fn(() => ({ data: null, isLoading: false })),
-	useQueryClient: vi.fn(() => ({
-		invalidateQueries: vi.fn()
-	}))
-}))
+vi.mock('@tanstack/react-query', async (importOriginal) => {
+	const actual = await importOriginal<typeof import('@tanstack/react-query')>()
+	return {
+		...actual,
+		useQuery: vi.fn(() => ({ data: null, isLoading: false })),
+		useQueryClient: vi.fn(() => ({
+			invalidateQueries: vi.fn()
+		})),
+		useMutation: vi.fn(() => ({ mutate: vi.fn(), isPending: false })),
+	}
+})
 
 vi.mock('next/navigation', () => ({
 	useRouter: vi.fn(() => ({ push: vi.fn() })),

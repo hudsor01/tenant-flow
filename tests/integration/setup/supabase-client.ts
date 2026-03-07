@@ -40,3 +40,20 @@ export function getTestCredentials(): {
     ownerB: { email: ownerBEmail, password: ownerBPassword },
   }
 }
+
+/**
+ * Returns tenant test credentials from env vars.
+ * Returns null if credentials are not configured (tests should skip gracefully).
+ */
+export function getTenantTestCredentials(): {
+  tenantA: { email: string; password: string }
+} | null {
+  const tenantAEmail = process.env['E2E_TENANT_EMAIL']
+  const tenantAPassword = process.env['E2E_TENANT_PASSWORD']
+
+  if (!tenantAEmail || !tenantAPassword) {
+    return null
+  }
+
+  return { tenantA: { email: tenantAEmail, password: tenantAPassword } }
+}

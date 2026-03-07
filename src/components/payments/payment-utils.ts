@@ -7,22 +7,6 @@ import {
 } from 'lucide-react'
 import type { PaymentStatus } from '#shared/types/core'
 
-export function formatCurrency(amount: number): string {
-	return new Intl.NumberFormat('en-US', {
-		style: 'currency',
-		currency: 'USD',
-		minimumFractionDigits: 2
-	}).format(amount)
-}
-
-export function formatDate(dateString: string): string {
-	return new Date(dateString).toLocaleDateString('en-US', {
-		month: 'short',
-		day: 'numeric',
-		year: 'numeric'
-	})
-}
-
 export interface StatusConfig {
 	className: string
 	icon: LucideIcon
@@ -84,11 +68,3 @@ export function getStatusConfig(status: PaymentStatus): StatusConfig {
 	)
 }
 
-export function getInitials(name: string): string {
-	return name
-		.split(' ')
-		.map(n => n[0])
-		.join('')
-		.toUpperCase()
-		.slice(0, 2)
-}

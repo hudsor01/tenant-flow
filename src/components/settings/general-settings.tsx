@@ -12,6 +12,7 @@ import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { createClient } from '#lib/supabase/client'
 import { getCachedUser } from '#lib/supabase/get-cached-user'
+import { profileKeys, useProfile } from '#hooks/api/use-profile'
 import type { ThemeMode } from '#shared/types/domain'
 import type { DataDensity } from '#stores/preferences-store'
 
@@ -21,28 +22,12 @@ export function GeneralSettings() {
 	const { dataDensity, setDataDensity } = useDataDensity()
 	const supabase = createClient()
 
-	// Fetch current user profile
-	const { data: profile, isLoading: profileLoading } = useQuery({
-		queryKey: ['user-profile'],
-		queryFn: async () => {
-			const user = await getCachedUser()
-			if (!user) throw new Error('Not authenticated')
-
-			const { data, error } = await supabase
-				.from('users')
-				.select('first_name, last_name, email, phone')
-				.eq('id', user.id)
-				.single()
-
-			if (error) throw error
-			return data
-		},
-		staleTime: 5 * 60 * 1000
-	})
+	// Fetch current user profile via shared hook
+	const { data: profile, isLoading: profileLoading } = useProfile()
 
 	// Fetch company profile from stripe_connected_accounts
 	const { data: companyProfile, isLoading: companyLoading } = useQuery({
-		queryKey: ['company-profile'],
+		queryKey: profileKeys.company(),
 		queryFn: async () => {
 			const user = await getCachedUser()
 			if (!user) throw new Error('Not authenticated')
@@ -92,7 +77,7 @@ export function GeneralSettings() {
 			if (error) throw error
 		},
 		onSuccess: () => {
-			queryClient.invalidateQueries({ queryKey: ['user-profile'] })
+			queryClient.invalidateQueries({ queryKey: profileKeys.all })
 			toast.success('Profile updated successfully')
 		},
 		onError: error => {

@@ -14,41 +14,130 @@ import { getCachedUser } from '#lib/supabase/get-cached-user'
 import { handlePostgrestError } from '#lib/postgrest-error-handler'
 import { sanitizeSearchInput } from '#lib/sanitize-search'
 import { QUERY_CACHE_TIMES } from '#lib/constants/query-config'
+import { occupancyTrendsQuery } from './analytics-keys'
 import type { PaginatedResponse } from '#shared/types/api-contracts'
 import type {
 	Property,
-	PropertyPerformance
+	PropertyPerformance,
+	PropertyStatus,
+	PropertyType
 } from '#shared/types/core'
 import type { PropertyStats } from '#shared/types/stats'
-import type { Tables } from '#shared/types/supabase'
+import type { Database, Tables } from '#shared/types/supabase'
+
+/**
+ * Extract RPC return type from generated Database types
+ */
+type PerformanceWithTrendsRow =
+	Database['public']['Functions']['get_property_performance_with_trends']['Returns'][number]
 
 // ============================================================================
 // TYPES
 // ============================================================================
 
 /**
- * Property query filters
+ * Property query filters for list queries
  */
 export interface PropertyFilters {
-	status?: 'active' | 'sold' | 'inactive'
-	property_type?:
-		| 'SINGLE_FAMILY'
-		| 'MULTI_FAMILY'
-		| 'APARTMENT'
-		| 'CONDO'
-		| 'TOWNHOUSE'
-		| 'COMMERCIAL'
+	status?: PropertyStatus
+	property_type?: PropertyType
 	search?: string
 	limit?: number
 	offset?: number
 }
 
+/**
+ * Property details from join query (for performance enrichment)
+ */
+interface PropertyDetails {
+	address: string
+	propertyType: string
+	units: Array<{ id: string; status: string }>
+}
+
+// ============================================================================
+// CONSTANTS
+// ============================================================================
+
 const PROPERTY_SELECT_COLUMNS =
 	'id, owner_user_id, name, address_line1, address_line2, city, state, postal_code, country, property_type, status, stripe_connected_account_id, date_sold, sale_price, created_at, updated_at'
 
 // ============================================================================
-// QUERY OPTIONS
+// MAPPER FUNCTIONS
 // ============================================================================
+
+/**
+ * Maps RPC return shape + property details to PropertyPerformance
+ * Uses typed inputs — no `as unknown as` assertions
+ */
+function mapPerformanceRow(
+	row: PerformanceWithTrendsRow,
+	propertyMap: Map<string, PropertyDetails>
+): PropertyPerformance {
+	const details = propertyMap.get(row.property_id)
+	const units = details?.units ?? []
+	const totalUnits = units.length
+	const occupiedUnits = units.filter(u => u.status === 'occupied').length
+	const vacantUnits = totalUnits - occupiedUnits
+
+	// Derive status from unit occupancy
+	let status: PropertyPerformance['status']
+	if (totalUnits === 0) {
+		status = 'NO_UNITS'
+	} else if (occupiedUnits === 0) {
+		status = 'vacant'
+	} else if (occupiedUnits === totalUnits) {
+		status = 'FULL'
+	} else {
+		status = 'PARTIAL'
+	}
+
+	// Derive trend direction from percentage
+	let trend: PropertyPerformance['trend']
+	if (row.trend_percentage > 0) {
+		trend = 'up'
+	} else if (row.trend_percentage < 0) {
+		trend = 'down'
+	} else {
+		trend = 'stable'
+	}
+
+	// Revenue is in dollars (DB convention), monthly approximation from timeframe
+	const monthlyRevenue = row.total_revenue / (getTimeframeDays(row.timeframe) / 30)
+
+	return {
+		property: row.property_name,
+		property_id: row.property_id,
+		totalUnits,
+		occupiedUnits,
+		vacantUnits,
+		occupancyRate: Number(row.occupancy_rate) || 0,
+		revenue: row.total_revenue,
+		monthlyRevenue: Math.round(monthlyRevenue),
+		potentialRevenue: 0, // Would need rent_amount data to calculate
+		address_line1: details?.address ?? '',
+		property_type: details?.propertyType ?? 'SINGLE_FAMILY',
+		status,
+		trend,
+		trendPercentage: Number(row.trend_percentage) || 0
+	}
+}
+
+/**
+ * Converts timeframe string to number of days
+ */
+function getTimeframeDays(timeframe: string): number {
+	const map: Record<string, number> = {
+		'7d': 7,
+		'30d': 30,
+		'90d': 90,
+		'180d': 180,
+		'365d': 365
+	}
+	return map[timeframe] ?? 30
+}
+
+
 
 /**
  * Property query factory
@@ -221,37 +310,65 @@ export const propertyQueries = {
 
 	/**
 	 * Property performance metrics
-	 * Uses get_property_performance_with_trends RPC
+	 * Uses get_property_performance_with_trends RPC enriched with property details
 	 */
-	performance: () =>
+	performance: (timeframe: '7d' | '30d' | '90d' | '180d' | '365d' = '30d') =>
 		queryOptions({
-			queryKey: [...propertyQueries.all(), 'performance'],
+			queryKey: [...propertyQueries.all(), 'performance', timeframe],
 			queryFn: async (): Promise<PropertyPerformance[]> => {
-				// TODO: Map RPC return shape to PropertyPerformance once RPC args are confirmed
-				// The RPC requires p_user_id — returning empty array until user context is wired
-				return [] as PropertyPerformance[]
+				const supabase = createClient()
+				const user = await getCachedUser()
+				if (!user) return []
+
+				// Parallel fetch: RPC trends + property details with unit counts
+				const [trendsResult, propertiesResult] = await Promise.all([
+					supabase.rpc('get_property_performance_with_trends', {
+						p_user_id: user.id,
+						p_timeframe: timeframe,
+						p_limit: 100
+					}),
+					supabase
+						.from('properties')
+						.select(
+							`
+							id,
+							name,
+							address_line1,
+							property_type,
+							units(id, status)
+						`
+						)
+						.eq('owner_user_id', user.id)
+						.neq('status', 'inactive')
+				])
+
+				if (trendsResult.error)
+					handlePostgrestError(trendsResult.error, 'property performance')
+				if (propertiesResult.error)
+					handlePostgrestError(propertiesResult.error, 'properties')
+
+				const trends: PerformanceWithTrendsRow[] = trendsResult.data ?? []
+				const properties = propertiesResult.data ?? []
+
+				// Build lookup map for property details
+				const propertyMap = new Map(
+					properties.map(p => [
+						p.id,
+						{
+							address: p.address_line1 ?? '',
+							propertyType: p.property_type ?? 'SINGLE_FAMILY',
+							units: Array.isArray(p.units) ? p.units : []
+						}
+					])
+				)
+
+				return trends.map(row => mapPerformanceRow(row, propertyMap))
 			},
 			...QUERY_CACHE_TIMES.DETAIL
 		}),
 
 	analytics: {
-		occupancy: () =>
-			queryOptions({
-				queryKey: [...propertyQueries.all(), 'analytics', 'occupancy'] as const,
-				queryFn: async (): Promise<unknown> => {
-					const supabase = createClient()
-					const user = await getCachedUser()
-					if (!user) throw new Error('Not authenticated')
-					const { data, error } = await supabase.rpc(
-						'get_occupancy_trends_optimized',
-						{ p_user_id: user.id, p_months: 12 }
-					)
-					if (error) handlePostgrestError(error, 'properties')
-					return data ?? {}
-				},
-				staleTime: 2 * 60 * 1000,
-				gcTime: 10 * 60 * 1000
-			}),
+		occupancy: () => occupancyTrendsQuery({ months: 12 }),
 		financial: () =>
 			queryOptions({
 				queryKey: [...propertyQueries.all(), 'analytics', 'financial'] as const,

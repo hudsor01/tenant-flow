@@ -1,5 +1,3 @@
-'use client'
-
 import { Badge } from '#components/ui/badge'
 import { formatNumber, formatPercentage } from '#lib/formatters/currency'
 import type { UnitStatisticEntry } from '#shared/types/analytics'

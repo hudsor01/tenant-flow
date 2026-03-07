@@ -9,6 +9,8 @@
 //   submission.completed — all parties signed (flips lease_status to active + inserts notification)
 
 import { createClient } from '@supabase/supabase-js'
+import { errorResponse } from '../_shared/errors.ts'
+import { validateEnv } from '../_shared/env.ts'
 
 // -----------------------------------------------------------------------
 // Types
@@ -215,85 +217,79 @@ async function handleSubmissionCompleted(
 // -----------------------------------------------------------------------
 
 Deno.serve(async (req: Request) => {
-  // Fail-closed: reject immediately if webhook secret is not configured
-  const webhookSecret = Deno.env.get('DOCUSEAL_WEBHOOK_SECRET')
-  if (!webhookSecret) {
-    console.error('DOCUSEAL_WEBHOOK_SECRET not configured')
-    return new Response(
-      JSON.stringify({ error: 'Unauthorized' }),
-      { status: 401, headers: { 'Content-Type': 'application/json' } }
-    )
-  }
-
-  // Require X-DocuSeal-Signature header
-  const signature = req.headers.get('x-docuseal-signature')
-  if (!signature) {
-    return new Response(
-      JSON.stringify({ error: 'Unauthorized' }),
-      { status: 401, headers: { 'Content-Type': 'application/json' } }
-    )
-  }
-
-  // Read raw body for HMAC verification (must read as text before JSON parse)
-  let rawBody: string
   try {
-    rawBody = await req.text()
-  } catch {
-    return new Response(
-      JSON.stringify({ error: 'Unauthorized' }),
-      { status: 401, headers: { 'Content-Type': 'application/json' } }
+    const env = validateEnv({
+      required: ['SUPABASE_URL', 'SUPABASE_SERVICE_ROLE_KEY', 'DOCUSEAL_WEBHOOK_SECRET'],
+    })
+
+    const webhookSecret = env['DOCUSEAL_WEBHOOK_SECRET']
+
+    // Require X-DocuSeal-Signature header
+    const signature = req.headers.get('x-docuseal-signature')
+    if (!signature) {
+      return new Response(
+        JSON.stringify({ error: 'Unauthorized' }),
+        { status: 401, headers: { 'Content-Type': 'application/json' } }
+      )
+    }
+
+    // Read raw body for HMAC verification (must read as text before JSON parse)
+    let rawBody: string
+    try {
+      rawBody = await req.text()
+    } catch {
+      return new Response(
+        JSON.stringify({ error: 'Unauthorized' }),
+        { status: 401, headers: { 'Content-Type': 'application/json' } }
+      )
+    }
+
+    // HMAC-SHA256 verification using Web Crypto API
+    const encoder = new TextEncoder()
+    const key = await crypto.subtle.importKey(
+      'raw',
+      encoder.encode(webhookSecret),
+      { name: 'HMAC', hash: 'SHA-256' },
+      false,
+      ['sign']
     )
-  }
+    const sig = await crypto.subtle.sign('HMAC', key, encoder.encode(rawBody))
+    const expectedSignature = Array.from(new Uint8Array(sig))
+      .map(b => b.toString(16).padStart(2, '0'))
+      .join('')
 
-  // HMAC-SHA256 verification using Web Crypto API
-  const encoder = new TextEncoder()
-  const key = await crypto.subtle.importKey(
-    'raw',
-    encoder.encode(webhookSecret),
-    { name: 'HMAC', hash: 'SHA-256' },
-    false,
-    ['sign']
-  )
-  const sig = await crypto.subtle.sign('HMAC', key, encoder.encode(rawBody))
-  const expectedSignature = Array.from(new Uint8Array(sig))
-    .map(b => b.toString(16).padStart(2, '0'))
-    .join('')
+    // Constant-time comparison to prevent timing attacks
+    const sigBytes = encoder.encode(signature)
+    const expectedBytes = encoder.encode(expectedSignature)
+    if (sigBytes.byteLength !== expectedBytes.byteLength) {
+      return new Response(
+        JSON.stringify({ error: 'Unauthorized' }),
+        { status: 401, headers: { 'Content-Type': 'application/json' } }
+      )
+    }
+    const match = crypto.subtle.timingSafeEqual(sigBytes, expectedBytes)
+    if (!match) {
+      return new Response(
+        JSON.stringify({ error: 'Unauthorized' }),
+        { status: 401, headers: { 'Content-Type': 'application/json' } }
+      )
+    }
 
-  // Constant-time comparison to prevent timing attacks
-  const sigBytes = encoder.encode(signature)
-  const expectedBytes = encoder.encode(expectedSignature)
-  if (sigBytes.byteLength !== expectedBytes.byteLength) {
-    return new Response(
-      JSON.stringify({ error: 'Unauthorized' }),
-      { status: 401, headers: { 'Content-Type': 'application/json' } }
-    )
-  }
-  const match = crypto.subtle.timingSafeEqual(sigBytes, expectedBytes)
-  if (!match) {
-    return new Response(
-      JSON.stringify({ error: 'Unauthorized' }),
-      { status: 401, headers: { 'Content-Type': 'application/json' } }
-    )
-  }
+    const supabase = createClient(env['SUPABASE_URL'], env['SUPABASE_SERVICE_ROLE_KEY'])
 
-  const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? ''
-  const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
-  const supabase = createClient(supabaseUrl, supabaseServiceKey)
+    // Parse the verified body (already consumed by req.text())
+    let body: Record<string, unknown>
+    try {
+      body = JSON.parse(rawBody) as Record<string, unknown>
+    } catch {
+      return new Response(
+        JSON.stringify({ error: 'Invalid JSON body' }),
+        { status: 400, headers: { 'Content-Type': 'application/json' } }
+      )
+    }
 
-  // Parse the verified body (already consumed by req.text())
-  let body: Record<string, unknown>
-  try {
-    body = JSON.parse(rawBody) as Record<string, unknown>
-  } catch {
-    return new Response(
-      JSON.stringify({ error: 'Invalid JSON body' }),
-      { status: 400, headers: { 'Content-Type': 'application/json' } }
-    )
-  }
+    const eventType = body.event_type as string
 
-  const eventType = body.event_type as string
-
-  try {
     if (eventType === 'form.completed') {
       await handleFormCompleted(supabase, body as unknown as FormCompletedPayload)
     } else if (eventType === 'submission.completed') {
@@ -308,9 +304,7 @@ Deno.serve(async (req: Request) => {
     )
   } catch (err) {
     // Return 500 so DocuSeal retries the webhook delivery
-    return new Response(
-      JSON.stringify({ error: err instanceof Error ? err.message : 'Processing failed' }),
-      { status: 500, headers: { 'Content-Type': 'application/json' } }
-    )
+    // errorResponse logs to Sentry + console.error but returns generic message
+    return errorResponse(req, 500, err, { action: 'docuseal_webhook' })
   }
 })

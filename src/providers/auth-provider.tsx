@@ -2,6 +2,7 @@
 
 import * as Sentry from '@sentry/nextjs'
 import { createClient } from '#lib/supabase/client'
+import { authKeys } from '#hooks/api/use-auth'
 import { setQueryClientRef } from '#lib/supabase/get-cached-user'
 import { createLogger } from '#shared/lib/frontend-logger'
 import type { AuthChangeEvent, Session, SupabaseClient } from '@supabase/supabase-js'
@@ -18,11 +19,6 @@ function getSupabaseClient(): SupabaseClient {
 		supabaseClient = createClient()
 	}
 	return supabaseClient
-}
-
-export const authQueryKeys = {
-	session: ['auth', 'session'] as const,
-	user: ['auth', 'user'] as const
 }
 
 // Auth context for derived state access
@@ -59,12 +55,12 @@ export const AuthStoreProvider = ({ children }: { children: ReactNode }) => {
 			(event: AuthChangeEvent, session: Session | null) => {
 				// Official Supabase pattern: handle auth state changes
 				if (event === 'SIGNED_OUT') {
-					queryClient.setQueryData(authQueryKeys.session, null)
-					queryClient.setQueryData(authQueryKeys.user, null)
-					queryClient.removeQueries({ queryKey: ['auth'] })
+					queryClient.setQueryData(authKeys.session(), null)
+					queryClient.setQueryData(authKeys.user(), null)
+					queryClient.removeQueries({ queryKey: authKeys.all })
 				} else if (session) {
-					queryClient.setQueryData(authQueryKeys.session, session)
-					queryClient.setQueryData(authQueryKeys.user, session.user)
+					queryClient.setQueryData(authKeys.session(), session)
+					queryClient.setQueryData(authKeys.user(), session.user)
 				}
 			}
 		)
@@ -75,30 +71,24 @@ export const AuthStoreProvider = ({ children }: { children: ReactNode }) => {
 		}
 	}, [queryClient])
 
-	// Single round-trip: fetch session once and derive user from it
-	const { data: session, isLoading: isSessionLoading } = useQuery({
-		queryKey: authQueryKeys.session,
+	// Server-validated user fetch (AUTH-03: getUser() instead of getSession())
+	const { data: user, isLoading: isUserLoading } = useQuery({
+		queryKey: authKeys.user(),
 		queryFn: async () => {
 			const {
-				data: { session },
+				data: { user },
 				error
-			} = await getSupabaseClient().auth.getSession()
+			} = await getSupabaseClient().auth.getUser()
 			if (error) {
-				logger.error('Failed to get auth session', { error: error.message })
+				logger.error('Failed to get auth user', { error: error.message })
 				return null
 			}
-			return session
+			return user
 		},
 		staleTime: 5 * 60 * 1000,
 		refetchOnWindowFocus: false,
 		retry: 1
 	})
-
-	// Keep derived user in sync with session without issuing another network call
-	const user = session?.user ?? null
-	useEffect(() => {
-		queryClient.setQueryData(authQueryKeys.user, user)
-	}, [queryClient, user])
 
 	// Set Sentry user context for error tracking
 	useEffect(() => {
@@ -118,16 +108,16 @@ export const AuthStoreProvider = ({ children }: { children: ReactNode }) => {
 		}
 	}, [user])
 
-	const isLoading = isSessionLoading
+	const isLoading = isUserLoading
 
 	const authState: AuthContextType = useMemo(
 		() => ({
-			session,
+			session: undefined,
 			isAuthenticated: !!user,
 			isLoading,
 			user
 		}),
-		[session, user, isLoading]
+		[user, isLoading]
 	)
 
 	return (

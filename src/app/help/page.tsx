@@ -69,7 +69,7 @@ export default function HelpPage() {
 								</ItemDescription>
 								<div className="mt-2 space-y-2">
 									{/* Online Now */}
-									<p className="text-muted">Average response: 90 seconds</p>
+									<p className="text-muted-foreground">Average response: 90 seconds</p>
 								</div>
 							</ItemContent>
 							<ItemActions>
@@ -89,7 +89,7 @@ export default function HelpPage() {
 									Free 30-minute call with automation expert
 								</ItemDescription>
 								<div className="mt-2">
-									<p className="text-muted">
+									<p className="text-muted-foreground">
 										Get custom ROI projection for your portfolio
 									</p>
 								</div>
@@ -113,7 +113,7 @@ export default function HelpPage() {
 									Step-by-step guides to maximize your results
 								</ItemDescription>
 								<div className="mt-2">
-									<p className="text-muted">
+									<p className="text-muted-foreground">
 										Learn proven strategies from top property managers
 									</p>
 								</div>
@@ -137,7 +137,7 @@ export default function HelpPage() {
 									Detailed help via email within 4 hours
 								</ItemDescription>
 								<div className="mt-2">
-									<p className="text-muted">support@tenantflow.app</p>
+									<p className="text-muted-foreground">support@tenantflow.app</p>
 								</div>
 							</ItemContent>
 							<ItemActions>
@@ -173,7 +173,7 @@ export default function HelpPage() {
 								<TrendingUp className="size-8 text-primary mr-3" />
 								<div>
 									<h3 className="font-semibold">Sarah M.</h3>
-									<p className="text-muted">Portfolio Manager</p>
+									<p className="text-muted-foreground">Portfolio Manager</p>
 								</div>
 							</div>
 							<p className="text-muted-foreground mb-4">
@@ -195,7 +195,7 @@ export default function HelpPage() {
 								<Clock className="size-8 text-accent mr-3" />
 								<div>
 									<h3 className="font-semibold">Michael R.</h3>
-									<p className="text-muted">Real Estate Investor</p>
+									<p className="text-muted-foreground">Real Estate Investor</p>
 								</div>
 							</div>
 							<p className="text-muted-foreground mb-4">
@@ -217,7 +217,7 @@ export default function HelpPage() {
 								<Users className="size-8 text-primary mr-3" />
 								<div>
 									<h3 className="font-semibold">David L.</h3>
-									<p className="text-muted">Property Management Company</p>
+									<p className="text-muted-foreground">Property Management Company</p>
 								</div>
 							</div>
 							<p className="text-muted-foreground mb-4">

@@ -223,6 +223,16 @@ export function TenantPaymentMethods() {
 				id: 'actions',
 				cell: ({ row }) => {
 					const method = row.original
+					const isLastMethod = sortedMethods.length <= 1
+
+					if (isLastMethod) {
+						return (
+							<span className="text-xs text-muted-foreground">
+								Add another method before removing
+							</span>
+						)
+					}
+
 					return (
 						<div className="flex items-center justify-end gap-1">
 							<AlertDialog>
@@ -240,7 +250,8 @@ export function TenantPaymentMethods() {
 									<AlertDialogHeader>
 										<AlertDialogTitle>Remove payment method</AlertDialogTitle>
 										<AlertDialogDescription>
-											This will remove the payment method from your account.
+											This will remove the payment method from your account
+											and detach it from Stripe.
 										</AlertDialogDescription>
 									</AlertDialogHeader>
 									<AlertDialogFooter>
@@ -250,8 +261,12 @@ export function TenantPaymentMethods() {
 												deleteMethod.mutate(method.id, {
 													onSuccess: () =>
 														toast.success('Payment method removed'),
-													onError: () =>
-														toast.error('Failed to remove payment method')
+													onError: (err) =>
+														toast.error(
+															err instanceof Error
+																? err.message
+																: 'Failed to remove payment method'
+														)
 												})
 											}
 											className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
@@ -266,7 +281,7 @@ export function TenantPaymentMethods() {
 				}
 			}
 		],
-		[setDefault, deleteMethod]
+		[setDefault, deleteMethod, sortedMethods.length]
 	)
 
 	const { table } = useDataTable({

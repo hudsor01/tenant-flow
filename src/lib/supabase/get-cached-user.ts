@@ -10,7 +10,7 @@
  */
 
 import type { QueryClient } from '@tanstack/react-query'
-import type { Session, User } from '@supabase/supabase-js'
+import type { User } from '@supabase/supabase-js'
 import { createClient } from './client'
 
 let queryClientRef: QueryClient | null = null
@@ -26,17 +26,17 @@ export function setQueryClientRef(qc: QueryClient) {
 /**
  * Get the current authenticated user, preferring the TanStack Query cache.
  *
- * 1. If the QueryClient ref is set, reads ['auth', 'session'] from cache
- * 2. If cache hit with valid session, returns session.user (zero network calls)
- * 3. If cache miss, falls back to supabase.auth.getUser() (one network call)
+ * 1. If the QueryClient ref is set, reads ['auth', 'user'] from cache
+ * 2. If cache hit with valid user, returns it directly (zero network calls)
+ * 3. If cache miss, falls back to supabase.auth.getUser() (one network call, server-validated)
  */
 export async function getCachedUser(): Promise<User | null> {
 	if (queryClientRef) {
-		const session = queryClientRef.getQueryData<Session | null>([
+		const user = queryClientRef.getQueryData<User | null>([
 			'auth',
-			'session'
+			'user'
 		])
-		if (session?.user) return session.user
+		if (user) return user
 	}
 
 	const supabase = createClient()

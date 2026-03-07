@@ -59,7 +59,7 @@ export function PdfPreviewPanel({
 						/>
 					</div>
 				) : (
-					<p className="text-muted">
+					<p className="text-muted-foreground">
 						Generate a preview to view the PDF in-line. You can download it
 						directly from the preview frame.
 					</p>

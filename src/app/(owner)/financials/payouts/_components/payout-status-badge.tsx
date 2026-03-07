@@ -1,5 +1,3 @@
-'use client'
-
 import { CheckCircle, Clock, ArrowDownRight, XCircle } from 'lucide-react'
 
 export function getPayoutStatusBadge(status: string) {

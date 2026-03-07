@@ -1,12 +1,13 @@
 name: RLS Security Tests
 
-# Weekly safety net for Supabase-side policy drift between PRs.
-# Pre-commit hook is the primary gate (runs with local env vars).
-# This workflow provides scheduled + manual-dispatch coverage.
+# Primary gate: run on every PR to main (catches RLS drift regardless of changed files).
+# Weekly cron is the backup safety net for policy drift between PRs.
 on:
+  pull_request:
+    branches: [main]
   schedule:
     - cron: '0 9 * * 1' # Every Monday 09:00 UTC
-  workflow_dispatch: # Allow manual trigger
+  workflow_dispatch:
 
 concurrency:
   group: rls-security-${{ github.ref }}

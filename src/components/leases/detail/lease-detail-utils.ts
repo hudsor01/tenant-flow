@@ -201,24 +201,6 @@ export function getStatusConfig(status: string): StatusConfig {
 	)
 }
 
-/** Format currency */
-export function formatCurrency(amount: number | null): string {
-	return new Intl.NumberFormat('en-US', {
-		style: 'currency',
-		currency: 'USD'
-	}).format(amount ?? 0)
-}
-
-/** Format date */
-export function formatDate(dateString: string | null): string {
-	if (!dateString) return 'N/A'
-	return new Date(dateString).toLocaleDateString('en-US', {
-		month: 'short',
-		day: 'numeric',
-		year: 'numeric'
-	})
-}
-
 /** Format relative time */
 export function formatRelativeTime(dateString: string): string {
 	const date = new Date(dateString)
@@ -241,11 +223,4 @@ export function getDaysUntilExpiry(endDate: string | null): number | null {
 	const now = new Date()
 	const diffMs = end.getTime() - now.getTime()
 	return Math.ceil(diffMs / (1000 * 60 * 60 * 24))
-}
-
-/** Get ordinal suffix for numbers (1st, 2nd, 3rd, etc.) */
-export function getOrdinalSuffix(n: number): string {
-	const s = ['th', 'st', 'nd', 'rd']
-	const v = n % 100
-	return s[(v - 20) % 10] || s[v] || s[0] || 'th'
 }

@@ -19,7 +19,7 @@ import { createClient } from '#lib/supabase/client'
 import {
 	useSendLeaseForSignatureMutation,
 	useResendSignatureRequestMutation
-} from '#hooks/api/use-lease'
+} from '#hooks/api/use-lease-signature-mutations'
 import { cn } from '#lib/utils'
 
 interface SendForSignatureButtonProps {

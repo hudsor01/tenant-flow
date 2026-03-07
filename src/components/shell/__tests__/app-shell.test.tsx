@@ -37,7 +37,10 @@ const mockUser = {
 const mockSignOutMutation = { mutate: vi.fn() }
 
 vi.mock('#hooks/api/use-auth', () => ({
-	useSupabaseUser: () => ({ data: mockUser }),
+	useSupabaseUser: () => ({ data: mockUser })
+}))
+
+vi.mock('#hooks/api/use-auth-mutations', () => ({
 	useSignOutMutation: () => mockSignOutMutation
 }))
 
@@ -153,8 +156,8 @@ describe('AppShell', () => {
 
 			await user.click(menuButton as HTMLElement)
 
-			// Sidebar should be visible (translate-x-0)
-			const sidebar = screen.getByRole('complementary')
+			// Sidebar should be visible (role switches to dialog when open)
+			const sidebar = screen.getByRole('dialog')
 			expect(sidebar.className).toContain('translate-x-0')
 		})
 
@@ -167,7 +170,7 @@ describe('AppShell', () => {
 			await user.click(menuButton as HTMLElement)
 
 			// Find close button (X icon) in the sidebar by its class
-			const closeButton = screen.getByRole('button', { name: /close sidebar/i })
+			const closeButton = screen.getByRole('button', { name: /close navigation menu/i })
 			await user.click(closeButton)
 
 			// Sidebar should be hidden again
@@ -282,23 +285,23 @@ describe('AppShell', () => {
 	describe('breadcrumbs', () => {
 		it('should render breadcrumbs for nested paths', () => {
 			mockPathname.mockReturnValue('/properties/123')
-			const { container } = render(<AppShell>Content</AppShell>)
+			render(<AppShell>Content</AppShell>)
 
-			// Breadcrumbs are hidden on mobile (hidden sm:flex), but still in DOM
-			const breadcrumbNav = container.querySelector('nav.hidden.sm\\:flex')
+			// Breadcrumbs now always visible (aria-label="Breadcrumb")
+			const breadcrumbNav = screen.getByRole('navigation', { name: 'Breadcrumb' })
 			expect(breadcrumbNav).toBeInTheDocument()
 
 			// Check for breadcrumb labels within the breadcrumb nav
 			// The breadcrumb utility generates "Properties > 123" for /properties/123
-			expect(within(breadcrumbNav as HTMLElement).getByText('Properties')).toBeInTheDocument()
+			expect(within(breadcrumbNav).getByText('Properties')).toBeInTheDocument()
 		})
 
 		it('should render breadcrumb links for parent paths', () => {
 			mockPathname.mockReturnValue('/properties/123')
-			const { container } = render(<AppShell>Content</AppShell>)
+			render(<AppShell>Content</AppShell>)
 
-			const breadcrumbNav = container.querySelector('nav.hidden.sm\\:flex')
-			const propertiesLink = within(breadcrumbNav as HTMLElement).getByRole('link', {
+			const breadcrumbNav = screen.getByRole('navigation', { name: 'Breadcrumb' })
+			const propertiesLink = within(breadcrumbNav).getByRole('link', {
 				name: 'Properties'
 			})
 			expect(propertiesLink).toHaveAttribute('href', '/properties')

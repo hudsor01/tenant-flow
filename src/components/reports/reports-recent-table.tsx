@@ -2,6 +2,7 @@
 
 import { FileText, Download, MoreHorizontal, Loader2 } from 'lucide-react'
 import { BlurFade } from '#components/ui/blur-fade'
+import { formatDate } from '#lib/formatters/date'
 import type { RecentReport } from './types'
 
 function formatFileSize(bytes: number): string {
@@ -10,15 +11,17 @@ function formatFileSize(bytes: number): string {
 	return `${(bytes / (1024 * 1024)).toFixed(1)} MB`
 }
 
-function formatDate(dateString: string): string {
-	return new Date(dateString).toLocaleDateString('en-US', {
-		month: 'short',
-		day: 'numeric',
-		year: 'numeric',
-		hour: '2-digit',
-		minute: '2-digit'
+const formatReportDate = (dateString: string) =>
+	formatDate(dateString, {
+		formatOptions: {
+			month: 'short',
+			day: 'numeric',
+			year: 'numeric',
+			hour: '2-digit',
+			minute: '2-digit',
+			timeZone: 'UTC'
+		}
 	})
-}
 
 interface ReportsRecentTableProps {
 	recentReports: RecentReport[]
@@ -66,7 +69,7 @@ export function ReportsRecentTable({
 									<div>
 										<p className="font-medium text-foreground">{report.name}</p>
 										<p className="text-sm text-muted-foreground">
-											{formatDate(report.generatedAt)} •{' '}
+											{formatReportDate(report.generatedAt)} •{' '}
 											{formatFileSize(report.size)}
 										</p>
 									</div>

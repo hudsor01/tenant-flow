@@ -1,5 +1,3 @@
-'use client'
-
 /**
  * Tenant Maintenance Kanban — Read-Only
  *
@@ -12,6 +10,7 @@
  */
 
 import { Badge } from '#components/ui/badge'
+import { formatDate } from '#lib/formatters/date'
 import type { MaintenanceRequest } from '#shared/types/core'
 
 const TENANT_KANBAN_COLUMNS = [
@@ -41,11 +40,6 @@ function getPriorityBadgeVariant(priority: string): 'default' | 'secondary' | 'd
 		default:
 			return 'secondary'
 	}
-}
-
-function formatDate(dateString: string): string {
-	const date = new Date(dateString)
-	return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
 }
 
 interface TenantKanbanCardProps {
@@ -80,7 +74,7 @@ interface KanbanColumnProps {
 
 function KanbanColumn({ label, description, requests }: KanbanColumnProps) {
 	return (
-		<div className="flex flex-col min-w-[220px] w-[220px] bg-muted/30 rounded-lg">
+		<div className="flex flex-col min-w-[280px] sm:min-w-0 snap-start flex-shrink-0 sm:flex-shrink bg-muted/30 rounded-lg">
 			{/* Column Header */}
 			<div className="flex items-center gap-2 px-3 py-2.5 border-b border-border">
 				<div className="flex-1 min-w-0">
@@ -141,8 +135,8 @@ export function TenantMaintenanceKanban({ requests }: TenantMaintenanceKanbanPro
 	}
 
 	return (
-		<div className="overflow-x-auto pb-4 -mx-6 px-6">
-			<div className="flex gap-3 min-w-max">
+		<div className="overflow-x-auto snap-x snap-mandatory pb-4 -mx-4 px-4 sm:mx-0 sm:px-0">
+			<div className="flex gap-3 sm:grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
 				{visibleColumns.map(col => (
 					<KanbanColumn
 						key={col.id}

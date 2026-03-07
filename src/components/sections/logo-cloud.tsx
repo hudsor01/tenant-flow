@@ -1,4 +1,3 @@
-'use client'
 /* eslint-disable color-tokens/no-hex-colors -- Brand colors for third-party logos */
 
 import { cn } from '#lib/utils'

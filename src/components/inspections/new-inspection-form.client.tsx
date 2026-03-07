@@ -12,7 +12,7 @@ import {
 	SelectTrigger,
 	SelectValue
 } from '#components/ui/select'
-import { useCreateInspection } from '#hooks/api/use-inspections'
+import { useCreateInspection } from '#hooks/api/use-inspection-mutations'
 import { useCurrentUser } from '#hooks/use-current-user'
 import { cn } from '#lib/utils'
 import { useLeaseList } from '#hooks/api/use-lease'

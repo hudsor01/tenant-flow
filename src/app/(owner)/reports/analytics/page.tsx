@@ -18,11 +18,34 @@ import {
 	usePaymentAnalytics
 } from '#hooks/api/use-reports'
 import { useState } from 'react'
+import dynamic from 'next/dynamic'
+import { ChartLoadingSkeleton } from '#components/shared/chart-loading-skeleton'
 import { AnalyticsStatsRow } from './analytics-stats-row'
-import { AnalyticsRevenueChart } from './analytics-revenue-chart'
-import { AnalyticsPaymentMethodsChart } from './analytics-payment-methods-chart'
-import { AnalyticsOccupancyChart } from './analytics-occupancy-chart'
 import { AnalyticsPropertyTable } from './analytics-property-table'
+
+const AnalyticsRevenueChart = dynamic(
+	() =>
+		import('./analytics-revenue-chart').then(
+			mod => mod.AnalyticsRevenueChart
+		),
+	{ ssr: false, loading: () => <ChartLoadingSkeleton /> }
+)
+
+const AnalyticsPaymentMethodsChart = dynamic(
+	() =>
+		import('./analytics-payment-methods-chart').then(
+			mod => mod.AnalyticsPaymentMethodsChart
+		),
+	{ ssr: false, loading: () => <ChartLoadingSkeleton /> }
+)
+
+const AnalyticsOccupancyChart = dynamic(
+	() =>
+		import('./analytics-occupancy-chart').then(
+			mod => mod.AnalyticsOccupancyChart
+		),
+	{ ssr: false, loading: () => <ChartLoadingSkeleton /> }
+)
 
 export default function AnalyticsPage() {
 	const [timeRange, setTimeRange] = useState('12')

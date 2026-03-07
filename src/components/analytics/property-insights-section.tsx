@@ -4,8 +4,19 @@ import { useQuery } from '@tanstack/react-query'
 import { analyticsQueries } from '#hooks/api/use-analytics'
 import { Skeleton } from '#components/ui/skeleton'
 import { BlurFade } from '#components/ui/blur-fade'
+import dynamic from 'next/dynamic'
 import { TrendingUp, Building2 } from 'lucide-react'
-import { OccupancyTrendChart, VacancySummaryList } from './property-charts'
+import { ChartLoadingSkeleton } from '#components/shared/chart-loading-skeleton'
+
+const OccupancyTrendChart = dynamic(
+	() => import('./property-charts').then(mod => mod.OccupancyTrendChart),
+	{ ssr: false, loading: () => <ChartLoadingSkeleton /> }
+)
+
+const VacancySummaryList = dynamic(
+	() => import('./property-charts').then(mod => mod.VacancySummaryList),
+	{ ssr: false, loading: () => <ChartLoadingSkeleton /> }
+)
 
 export function PropertyInsightsSkeleton() {
 	return (

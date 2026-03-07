@@ -41,7 +41,7 @@ export function MaintenanceDetails({ id }: MaintenanceDetailsProps) {
 	const { data: unitsResponse } = useQuery(unitQueries.list())
 
 	const { data: expensesData } = useQuery({
-		queryKey: ['maintenance', id, 'expenses'],
+		queryKey: [...maintenanceQueries.all(), id, 'expenses'],
 		queryFn: async () => {
 			const supabase = createClient()
 			const { data, error } = await supabase
@@ -65,7 +65,7 @@ export function MaintenanceDetails({ id }: MaintenanceDetailsProps) {
 		queryClient.invalidateQueries({
 			queryKey: maintenanceQueries.detail(id).queryKey
 		})
-		queryClient.invalidateQueries({ queryKey: ['maintenance', id, 'expenses'] })
+		queryClient.invalidateQueries({ queryKey: [...maintenanceQueries.all(), id, 'expenses'] })
 	}
 
 	const handleExport = () => {

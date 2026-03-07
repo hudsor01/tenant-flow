@@ -16,6 +16,7 @@ import type { Lease } from '#shared/types/core'
 import type { LeaseStatsResponse } from '#shared/types/core'
 import type { PaginatedResponse } from '#shared/types/api-contracts'
 import { QUERY_CACHE_TIMES } from '#lib/constants/query-config'
+import { revenueTrendsQuery } from './analytics-keys'
 
 // ============================================================================
 // TYPES
@@ -48,6 +49,9 @@ export interface SignatureStatus {
 	sent_for_signature_at: string | null
 	both_signed: boolean
 }
+
+/** Subset of Lease columns for list/summary views (expiring leases, etc.) */
+export type LeaseListItem = Pick<Lease, 'id' | 'unit_id' | 'primary_tenant_id' | 'owner_user_id' | 'rent_amount' | 'lease_status' | 'start_date' | 'end_date' | 'created_at' | 'updated_at'>
 
 /**
  * Tenant Portal Lease type
@@ -126,7 +130,7 @@ export const leaseQueries = {
 				if (error) handlePostgrestError(error, 'leases')
 
 				return {
-					data: (data as unknown as Lease[]) ?? [],
+					data: (data as Lease[]) ?? [],
 					total: count ?? 0,
 					pagination: {
 						page: Math.floor(offset / limit) + 1,
@@ -148,13 +152,13 @@ export const leaseQueries = {
 				const supabase = createClient()
 				const { data, error } = await supabase
 					.from('leases')
-					.select('*, tenants:primary_tenant_id(*), units(*, properties(*))')
+					.select('*, tenants:primary_tenant_id(id, user_id, full_name, email, phone), units(id, unit_number, bedrooms, bathrooms, square_feet, property_id, properties(id, name, address_line1, city, state, postal_code))')
 					.eq('id', id)
 					.single()
 
 				if (error) handlePostgrestError(error, 'leases')
 
-				return data as unknown as Lease
+				return data as Lease
 			},
 			...QUERY_CACHE_TIMES.DETAIL,
 			enabled: !!id
@@ -176,7 +180,7 @@ export const leaseQueries = {
 				if (!data) return null
 
 				// Map PostgREST join shape (units/tenants plural) to expected singular shape
-				const row = data as unknown as Lease & {
+				const row = data as Lease & {
 					units: TenantPortalLease['unit']
 					tenants: TenantPortalLease['tenant']
 				}
@@ -194,22 +198,23 @@ export const leaseQueries = {
 	expiring: (days: number = 30) =>
 		queryOptions({
 			queryKey: [...leaseQueries.all(), 'expiring', days],
-			queryFn: async (): Promise<Lease[]> => {
+			queryFn: async (): Promise<LeaseListItem[]> => {
 				const supabase = createClient()
 				const now = new Date()
 				const future = new Date(Date.now() + days * 24 * 60 * 60 * 1000)
 
 				const { data, error } = await supabase
 					.from('leases')
-					.select('*')
+					.select('id, unit_id, primary_tenant_id, owner_user_id, rent_amount, lease_status, start_date, end_date, created_at, updated_at')
 					.eq('lease_status', 'active')
 					.lte('end_date', future.toISOString())
 					.gte('end_date', now.toISOString())
 					.order('end_date', { ascending: true })
+					.limit(50)
 
 				if (error) handlePostgrestError(error, 'leases')
 
-				return (data as unknown as Lease[]) ?? []
+				return data ?? []
 			},
 			...QUERY_CACHE_TIMES.DETAIL
 		}),
@@ -219,58 +224,25 @@ export const leaseQueries = {
 			queryKey: [...leaseQueries.all(), 'stats'],
 			queryFn: async (): Promise<LeaseStatsResponse> => {
 				const supabase = createClient()
+				const user = await getCachedUser()
+				if (!user) throw new Error('Not authenticated')
 
-				const [totalResult, activeResult, expiredResult, terminatedResult, rentResult, expiringResult] =
-					await Promise.all([
-						supabase
-							.from('leases')
-							.select('id', { count: 'exact', head: true })
-							.neq('lease_status', 'inactive'),
-						supabase
-							.from('leases')
-							.select('id', { count: 'exact', head: true })
-							.eq('lease_status', 'active'),
-						supabase
-							.from('leases')
-							.select('id', { count: 'exact', head: true })
-							.eq('lease_status', 'ended'),
-						supabase
-							.from('leases')
-							.select('id', { count: 'exact', head: true })
-							.eq('lease_status', 'terminated'),
-						supabase
-							.from('leases')
-							.select('rent_amount, security_deposit')
-							.eq('lease_status', 'active'),
-						supabase
-							.from('leases')
-							.select('id', { count: 'exact', head: true })
-							.eq('lease_status', 'active')
-							.lte('end_date', new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString())
-							.gte('end_date', new Date().toISOString())
-					])
+				const { data, error } = await supabase.rpc('get_lease_stats', {
+					p_user_id: user.id,
+				})
 
-				if (totalResult.error) handlePostgrestError(totalResult.error, 'leases')
-				if (activeResult.error) handlePostgrestError(activeResult.error, 'leases')
-				if (expiredResult.error) handlePostgrestError(expiredResult.error, 'leases')
-				if (terminatedResult.error) handlePostgrestError(terminatedResult.error, 'leases')
-				if (rentResult.error) handlePostgrestError(rentResult.error, 'leases')
-				if (expiringResult.error) handlePostgrestError(expiringResult.error, 'leases')
+				if (error) handlePostgrestError(error, 'leases')
 
-				const activeLeases = rentResult.data as Array<{ rent_amount: number; security_deposit: number }> ?? []
-				const totalMonthlyRent = activeLeases.reduce((sum, l) => sum + (l.rent_amount ?? 0), 0)
-				const totalSecurityDeposits = activeLeases.reduce((sum, l) => sum + (l.security_deposit ?? 0), 0)
-				const averageRent = activeLeases.length > 0 ? totalMonthlyRent / activeLeases.length : 0
-
+				const stats = data as Record<string, number>
 				return {
-					totalLeases: totalResult.count ?? 0,
-					activeLeases: activeResult.count ?? 0,
-					expiredLeases: expiredResult.count ?? 0,
-					terminatedLeases: terminatedResult.count ?? 0,
-					totalMonthlyRent,
-					averageRent,
-					total_security_deposits: totalSecurityDeposits,
-					expiringLeases: expiringResult.count ?? 0
+					totalLeases: stats.totalLeases ?? 0,
+					activeLeases: stats.activeLeases ?? 0,
+					expiredLeases: stats.expiredLeases ?? 0,
+					terminatedLeases: stats.terminatedLeases ?? 0,
+					totalMonthlyRent: stats.totalMonthlyRent ?? 0,
+					averageRent: stats.averageRent ?? 0,
+					total_security_deposits: stats.total_security_deposits ?? 0,
+					expiringLeases: stats.expiringLeases ?? 0,
 				}
 			},
 			...QUERY_CACHE_TIMES.STATS
@@ -334,56 +306,11 @@ export const leaseQueries = {
 				staleTime: 2 * 60 * 1000,
 				gcTime: 10 * 60 * 1000
 			}),
-		duration: () =>
-			queryOptions({
-				queryKey: [...leaseQueries.all(), 'analytics', 'duration'],
-				queryFn: async (): Promise<Record<string, unknown>> => {
-					const supabase = createClient()
-					const user = await getCachedUser()
-					if (!user) throw new Error('Not authenticated')
-					const { data, error } = await supabase.rpc(
-						'get_revenue_trends_optimized',
-						{ p_user_id: user.id, p_months: 12 }
-					)
-					if (error) handlePostgrestError(error, 'leases')
-					return (data ?? {}) as Record<string, unknown>
-				},
-				staleTime: 2 * 60 * 1000,
-				gcTime: 10 * 60 * 1000
-			}),
-		turnover: () =>
-			queryOptions({
-				queryKey: [...leaseQueries.all(), 'analytics', 'turnover'],
-				queryFn: async (): Promise<Record<string, unknown>> => {
-					const supabase = createClient()
-					const user = await getCachedUser()
-					if (!user) throw new Error('Not authenticated')
-					const { data, error } = await supabase.rpc(
-						'get_revenue_trends_optimized',
-						{ p_user_id: user.id, p_months: 12 }
-					)
-					if (error) handlePostgrestError(error, 'leases')
-					return (data ?? {}) as Record<string, unknown>
-				},
-				staleTime: 2 * 60 * 1000,
-				gcTime: 10 * 60 * 1000
-			}),
-		revenue: () =>
-			queryOptions({
-				queryKey: [...leaseQueries.all(), 'analytics', 'revenue'],
-				queryFn: async (): Promise<Record<string, unknown>> => {
-					const supabase = createClient()
-					const user = await getCachedUser()
-					if (!user) throw new Error('Not authenticated')
-					const { data, error } = await supabase.rpc(
-						'get_revenue_trends_optimized',
-						{ p_user_id: user.id, p_months: 12 }
-					)
-					if (error) handlePostgrestError(error, 'leases')
-					return (data ?? {}) as Record<string, unknown>
-				},
-				staleTime: 2 * 60 * 1000,
-				gcTime: 10 * 60 * 1000
-			})
+		/** Lease duration analytics — uses shared revenue trends query */
+		duration: () => revenueTrendsQuery({ months: 12 }),
+		/** Tenant turnover analytics — uses shared revenue trends query */
+		turnover: () => revenueTrendsQuery({ months: 12 }),
+		/** Revenue analytics — uses shared revenue trends query */
+		revenue: () => revenueTrendsQuery({ months: 12 })
 	}
 }

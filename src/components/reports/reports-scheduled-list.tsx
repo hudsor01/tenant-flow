@@ -75,6 +75,7 @@ export function ReportsScheduledList({
 										onClick={() =>
 											onToggleSchedule?.(schedule.id, !schedule.enabled)
 										}
+										aria-label={schedule.enabled ? 'Pause schedule' : 'Resume schedule'}
 										className={`p-2 rounded-lg transition-colors ${
 											schedule.enabled
 												? 'bg-emerald-100 dark:bg-emerald-900/30'
@@ -89,6 +90,7 @@ export function ReportsScheduledList({
 									</button>
 									<button
 										onClick={() => onEditSchedule?.(schedule.id)}
+										aria-label="Edit schedule settings"
 										className="p-2 hover:bg-muted rounded-lg transition-colors"
 									>
 										<Settings className="w-4 h-4 text-muted-foreground" />

@@ -53,11 +53,11 @@ export default function BlogPage() {
 								<div className="flex items-center gap-6 mb-6">
 									<div className="flex items-center gap-2">
 										<Clock className="size-4 text-accent" />
-										<span className="text-muted">15 min to implement</span>
+										<span className="text-muted-foreground">15 min to implement</span>
 									</div>
 									<div className="flex items-center gap-2">
 										<Users className="size-4 text-primary" />
-										<span className="text-muted">$2.4M+ saved by readers</span>
+										<span className="text-muted-foreground">$2.4M+ saved by readers</span>
 									</div>
 								</div>
 								<Button size="lg" className="px-8">
@@ -68,7 +68,7 @@ export default function BlogPage() {
 							<div className="bg-card rounded-xl p-8 border border-border/50 shadow-md">
 								<div className="text-center">
 									<div className="typography-h1 text-primary mb-2">40%</div>
-									<p className="text-muted mb-4">Average NOI Increase</p>
+									<p className="text-muted-foreground mb-4">Average NOI Increase</p>
 
 									<div className="grid grid-cols-2 gap-4 text-sm">
 										<div>
@@ -195,7 +195,7 @@ export default function BlogPage() {
 									className="bg-card rounded-xl p-8 border border-border/50 shadow-md transition-all duration-300 group hover:-translate-y-1"
 								>
 									<div className="flex-between mb-4">
-										<div className="text-muted">
+										<div className="text-muted-foreground">
 											{post.reading_time} min read
 										</div>
 									</div>
@@ -212,7 +212,7 @@ export default function BlogPage() {
 										<div className="text-sm font-semibold text-primary">
 											Read Article
 										</div>
-										<div className="text-muted">
+										<div className="text-muted-foreground">
 											{post.published_at
 												? new Date(post.published_at).toLocaleDateString(
 														'en-US',

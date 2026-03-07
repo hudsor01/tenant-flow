@@ -1,5 +1,3 @@
-'use client'
-
 import { TrendingUp } from 'lucide-react'
 import { BlurFade } from '#components/ui/blur-fade'
 import type { OccupancyTrend } from '../analytics-types'

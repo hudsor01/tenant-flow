@@ -24,14 +24,18 @@ import {
 	useTenantWithLease,
 	useNotificationPreferences,
 	useInvitations,
-	useCreateTenantMutation,
-	useUpdateTenantMutation,
-	useDeleteTenantMutation,
-	useInviteTenantMutation,
-	useResendInvitationMutation,
-	useCancelInvitationMutation,
 	usePrefetchTenantDetail
 } from '../use-tenant'
+import {
+	useCreateTenantMutation,
+	useUpdateTenantMutation,
+	useDeleteTenantMutation
+} from '../use-tenant-mutations'
+import {
+	useInviteTenantMutation,
+	useResendInvitationMutation,
+	useCancelInvitationMutation
+} from '../use-tenant-invite-mutations'
 
 // Mock logger
 vi.mock('#shared/lib/frontend-logger', () => ({
@@ -435,6 +439,11 @@ describe('Mutation Hooks', () => {
 			}
 			if (table === 'lease_tenants') {
 				return {
+					select: vi.fn().mockReturnValue({
+						eq: vi.fn().mockReturnValue({
+							eq: vi.fn().mockResolvedValue({ data: [], error: null })
+						})
+					}),
 					delete: vi.fn().mockReturnValue({
 						eq: vi.fn().mockResolvedValue({ data: null, error: null })
 					})
@@ -480,14 +489,47 @@ describe('Mutation Hooks', () => {
 	})
 
 	describe('useDeleteTenantMutation', () => {
-		it('should soft-delete by removing lease associations via PostgREST', async () => {
+		it('should check active leases then soft-delete tenant by setting status inactive', async () => {
 			const { result } = renderHook(() => useDeleteTenantMutation(), {
 				wrapper: createWrapper()
 			})
 
 			await result.current.mutateAsync('tenant-123')
 
+			// Should check lease_tenants for active leases first
 			expect(supabaseFromMock).toHaveBeenCalledWith('lease_tenants')
+			// Should then soft-delete tenant
+			expect(supabaseFromMock).toHaveBeenCalledWith('tenants')
+			expect(supabaseUpdateMock).toHaveBeenCalledWith(
+				expect.objectContaining({ status: 'inactive' })
+			)
+		})
+
+		it('should block deletion when tenant has active lease', async () => {
+			// Override lease_tenants mock to return an active lease
+			supabaseFromMock.mockImplementation((table: string) => {
+				if (table === 'lease_tenants') {
+					return {
+						select: vi.fn().mockReturnValue({
+							eq: vi.fn().mockReturnValue({
+								eq: vi.fn().mockResolvedValue({
+									data: [{ lease_id: 'lease-active', leases: { id: 'lease-active', lease_status: 'active' } }],
+									error: null
+								})
+							})
+						})
+					}
+				}
+				return makeQueryChain({ data: null })
+			})
+
+			const { result } = renderHook(() => useDeleteTenantMutation(), {
+				wrapper: createWrapper()
+			})
+
+			await expect(result.current.mutateAsync('tenant-123')).rejects.toMatchObject({
+				message: expect.stringContaining('Cannot delete tenant with active lease')
+			})
 		})
 	})
 

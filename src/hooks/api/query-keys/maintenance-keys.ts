@@ -12,6 +12,7 @@ import { queryOptions } from '@tanstack/react-query'
 import { createClient } from '#lib/supabase/client'
 import { getCachedUser } from '#lib/supabase/get-cached-user'
 import { handlePostgrestError } from '#lib/postgrest-error-handler'
+import { resolveTenantId } from '../use-tenant-portal-keys'
 import { QUERY_CACHE_TIMES } from '#lib/constants/query-config'
 import type { PaginatedResponse } from '#shared/types/api-contracts'
 import type { MaintenanceRequest } from '#shared/types/core'
@@ -146,88 +147,25 @@ export const maintenanceQueries = {
 			queryKey: [...maintenanceQueries.all(), 'stats'],
 			queryFn: async () => {
 				const supabase = createClient()
-				// Run parallel HEAD queries for each status — no data transfer, just counts
-				const [
-					openResult,
-					assignedResult,
-					inProgressResult,
-					needsReassignmentResult,
-					completedResult,
-					cancelledResult,
-					onHoldResult
-				] = await Promise.all([
-					supabase
-						.from('maintenance_requests')
-						.select('id', { count: 'exact', head: true })
-						.eq('status', 'open'),
-					supabase
-						.from('maintenance_requests')
-						.select('id', { count: 'exact', head: true })
-						.eq('status', 'assigned'),
-					supabase
-						.from('maintenance_requests')
-						.select('id', { count: 'exact', head: true })
-						.eq('status', 'in_progress'),
-					supabase
-						.from('maintenance_requests')
-						.select('id', { count: 'exact', head: true })
-						.eq('status', 'needs_reassignment'),
-					supabase
-						.from('maintenance_requests')
-						.select('id', { count: 'exact', head: true })
-						.eq('status', 'completed'),
-					supabase
-						.from('maintenance_requests')
-						.select('id', { count: 'exact', head: true })
-						.eq('status', 'cancelled'),
-					supabase
-						.from('maintenance_requests')
-						.select('id', { count: 'exact', head: true })
-						.eq('status', 'on_hold')
-				])
+				const user = await getCachedUser()
+				if (!user) throw new Error('Not authenticated')
 
-				if (openResult.error)
-					handlePostgrestError(openResult.error, 'maintenance_requests')
-				if (assignedResult.error)
-					handlePostgrestError(assignedResult.error, 'maintenance_requests')
-				if (inProgressResult.error)
-					handlePostgrestError(inProgressResult.error, 'maintenance_requests')
-				if (needsReassignmentResult.error)
-					handlePostgrestError(
-						needsReassignmentResult.error,
-						'maintenance_requests'
-					)
-				if (completedResult.error)
-					handlePostgrestError(completedResult.error, 'maintenance_requests')
-				if (cancelledResult.error)
-					handlePostgrestError(cancelledResult.error, 'maintenance_requests')
-				if (onHoldResult.error)
-					handlePostgrestError(onHoldResult.error, 'maintenance_requests')
+				const { data, error } = await supabase.rpc('get_maintenance_stats', {
+					p_user_id: user.id,
+				})
 
-				const open = openResult.count ?? 0
-				const assigned = assignedResult.count ?? 0
-				const in_progress = inProgressResult.count ?? 0
-				const needs_reassignment = needsReassignmentResult.count ?? 0
-				const completed = completedResult.count ?? 0
-				const cancelled = cancelledResult.count ?? 0
-				const on_hold = onHoldResult.count ?? 0
+				if (error) handlePostgrestError(error, 'maintenance_requests')
 
+				const stats = data as Record<string, number>
 				return {
-					open,
-					assigned,
-					in_progress,
-					needs_reassignment,
-					completed,
-					cancelled,
-					on_hold,
-					total:
-						open +
-						assigned +
-						in_progress +
-						needs_reassignment +
-						completed +
-						cancelled +
-						on_hold
+					open: stats.open ?? 0,
+					assigned: stats.assigned ?? 0,
+					in_progress: stats.in_progress ?? 0,
+					needs_reassignment: stats.needs_reassignment ?? 0,
+					completed: stats.completed ?? 0,
+					cancelled: stats.cancelled ?? 0,
+					on_hold: stats.on_hold ?? 0,
+					total: stats.total ?? 0,
 				}
 			},
 			...QUERY_CACHE_TIMES.STATS
@@ -244,6 +182,7 @@ export const maintenanceQueries = {
 					.in('priority', ['high', 'urgent'])
 					.not('status', 'in', '("completed","cancelled")')
 					.order('created_at', { ascending: false })
+					.limit(50)
 
 				if (error) handlePostgrestError(error, 'maintenance_requests')
 
@@ -274,7 +213,7 @@ export const maintenanceQueries = {
 
 	tenantPortal: () =>
 		queryOptions({
-			queryKey: ['tenant-portal', 'maintenance'],
+			queryKey: [...maintenanceQueries.all(), 'tenant-portal'],
 			queryFn: async (): Promise<{
 				requests: MaintenanceRequest[]
 				total: number
@@ -284,36 +223,46 @@ export const maintenanceQueries = {
 			}> => {
 				const supabase = createClient()
 
-				// Step 1: Get authenticated user
-				const user = await getCachedUser()
-				if (!user) throw new Error('Not authenticated')
-
-				// Step 2: Resolve tenant record — maintenance_requests.tenant_id
-				// references tenants.id (not auth.uid())
-				const { data: tenantRecord, error: tenantError } = await supabase
-					.from('tenants')
-					.select('id')
-					.eq('user_id', user.id)
-					.single()
-
-				if (tenantError || !tenantRecord) {
+				// Use shared tenant ID resolution
+				const tenantId = await resolveTenantId()
+				if (!tenantId) {
 					return { requests: [], total: 0, open: 0, inProgress: 0, completed: 0 }
 				}
 
-				// Step 3: Fetch maintenance requests for this tenant
-				const { data, error, count } = await supabase
-					.from('maintenance_requests')
-					.select(MAINTENANCE_SELECT_COLUMNS, { count: 'exact' })
-					.eq('tenant_id', tenantRecord.id)
-					.order('created_at', { ascending: false })
+				// Parallel queries for paginated list + DB-level counts
+				const [requestsResult, openResult, inProgressResult, completedResult] =
+					await Promise.all([
+						supabase
+							.from('maintenance_requests')
+							.select(MAINTENANCE_SELECT_COLUMNS, { count: 'exact' })
+							.eq('tenant_id', tenantId)
+							.order('created_at', { ascending: false })
+							.limit(50),
+						supabase
+							.from('maintenance_requests')
+							.select('id', { count: 'exact', head: true })
+							.eq('tenant_id', tenantId)
+							.eq('status', 'open'),
+						supabase
+							.from('maintenance_requests')
+							.select('id', { count: 'exact', head: true })
+							.eq('tenant_id', tenantId)
+							.eq('status', 'in_progress'),
+						supabase
+							.from('maintenance_requests')
+							.select('id', { count: 'exact', head: true })
+							.eq('tenant_id', tenantId)
+							.eq('status', 'completed')
+					])
 
-				if (error) handlePostgrestError(error, 'maintenance_requests')
+				if (requestsResult.error)
+					handlePostgrestError(requestsResult.error, 'maintenance_requests')
 
-				const requests = (data as MaintenanceRequest[]) ?? []
-				const total = count ?? 0
-				const open = requests.filter(r => r.status === 'open').length
-				const inProgress = requests.filter(r => r.status === 'in_progress').length
-				const completed = requests.filter(r => r.status === 'completed').length
+				const requests = (requestsResult.data as MaintenanceRequest[]) ?? []
+				const total = requestsResult.count ?? 0
+				const open = openResult.count ?? 0
+				const inProgress = inProgressResult.count ?? 0
+				const completed = completedResult.count ?? 0
 
 				return { requests, total, open, inProgress, completed }
 			},

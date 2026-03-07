@@ -1,15 +1,18 @@
 'use client'
 
+import dynamic from 'next/dynamic'
 import { PageLayout } from '#components/layout/page-layout'
 import { Button } from '#components/ui/button'
+import { BlogLoadingSkeleton } from '#components/shared/blog-loading-skeleton'
 import { useBlogBySlug } from '#hooks/api/use-blogs'
 import { ArrowLeft, ArrowRight, Clock, User } from 'lucide-react'
 import Link from 'next/link'
 import { useParams } from 'next/navigation'
-import ReactMarkdown from 'react-markdown'
-import remarkGfm from 'remark-gfm'
-import rehypeRaw from 'rehype-raw'
-import rehypeSanitize from 'rehype-sanitize'
+
+const MarkdownContent = dynamic(() => import('./markdown-content'), {
+	ssr: false,
+	loading: () => <BlogLoadingSkeleton />
+})
 
 export default function BlogArticlePage() {
 	const params = useParams()
@@ -91,7 +94,7 @@ export default function BlogArticlePage() {
 						{post.excerpt}
 					</p>
 
-					<div className="flex items-center gap-6 text-muted border-t border-b border-border py-4">
+					<div className="flex items-center gap-6 text-muted-foreground border-t border-b border-border py-4">
 						<div className="flex items-center gap-2">
 							<User className="size-4" />
 							<span>TenantFlow Team</span>
@@ -128,12 +131,7 @@ export default function BlogArticlePage() {
 						[&>a]:text-primary [&>a]:underline [&>a]:hover:text-primary/80
 						[&>img]:rounded-lg [&>img]:my-8 [&>img]:shadow-lg"
 				>
-					<ReactMarkdown
-						remarkPlugins={[remarkGfm]}
-						rehypePlugins={[rehypeRaw, rehypeSanitize]}
-					>
-						{markdownContent}
-					</ReactMarkdown>
+					<MarkdownContent content={markdownContent} />
 				</div>
 
 				{/* CTA Section */}

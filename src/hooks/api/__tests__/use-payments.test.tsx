@@ -9,10 +9,12 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import {
 	usePaymentAnalytics,
 	useUpcomingPayments,
-	useOverduePayments,
+	useOverduePayments
+} from '../use-payments'
+import {
 	useRecordManualPaymentMutation,
 	useExportPaymentsMutation
-} from '../use-payments'
+} from '../use-payment-mutations'
 import type { ReactNode } from 'react'
 
 // Mock supabase client

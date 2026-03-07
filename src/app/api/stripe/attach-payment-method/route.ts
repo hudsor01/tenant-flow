@@ -3,10 +3,9 @@ import { NextResponse } from 'next/server'
 import Stripe from 'stripe'
 import { env } from '#env'
 
-const stripe = new Stripe(env.STRIPE_SECRET_KEY)
-
 export async function POST(request: Request) {
 	try {
+		const stripe = new Stripe(env.STRIPE_SECRET_KEY)
 		const supabase = await createClient()
 		const { data: { user }, error: authError } = await supabase.auth.getUser()
 

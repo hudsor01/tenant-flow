@@ -103,7 +103,7 @@ export default function TenantOnboardingPage() {
 					<h1 className="typography-h3 tracking-tight">
 						Setting Up Your Account
 					</h1>
-					<p className="mt-2 text-muted">
+					<p className="mt-2 text-muted-foreground">
 						{status === 'loading' && 'Verifying your invitation...'}
 						{status === 'activating' && 'Activating your account...'}
 						{status === 'success' &&
@@ -137,14 +137,14 @@ export default function TenantOnboardingPage() {
 						<div className="rounded-md bg-destructive/10 p-4">
 							<p className="text-sm text-destructive">{errorMessage}</p>
 						</div>
-						<div className="text-center text-muted">
+						<div className="text-center text-muted-foreground">
 							<p>Need help? Contact your property manager.</p>
 						</div>
 					</div>
 				)}
 
 				{(status === 'loading' || status === 'activating') && (
-					<div className="space-y-2 text-center text-muted">
+					<div className="space-y-2 text-center text-muted-foreground">
 						<p>Please wait while we set up your account...</p>
 						<p className="text-xs">This usually takes just a few seconds.</p>
 					</div>

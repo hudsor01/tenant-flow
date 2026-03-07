@@ -1,5 +1,3 @@
-'use client'
-
 import { BlurFade } from '#components/ui/blur-fade'
 import { formatCents } from '#lib/formatters/currency'
 import { getCategoryBadge } from './expense-category-badge'

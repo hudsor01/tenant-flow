@@ -1,5 +1,3 @@
-'use client'
-
 import Link from 'next/link'
 import { formatCurrency } from '#lib/formatters/currency'
 import type { FinancialBreakdownRow } from '#shared/types/analytics'

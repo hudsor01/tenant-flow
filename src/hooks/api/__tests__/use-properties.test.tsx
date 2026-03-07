@@ -23,10 +23,12 @@ import {
 	usePropertyOccupancyAnalytics,
 	usePropertyFinancialAnalytics,
 	usePropertyMaintenanceAnalytics,
-	useMarkPropertySoldMutation,
-	usePrefetchPropertyDetail,
 	usePropertyImages
 } from '../use-properties'
+import {
+	useMarkPropertySoldMutation,
+	usePrefetchPropertyDetail
+} from '../use-property-mutations'
 
 // Mock logger
 vi.mock('#shared/lib/frontend-logger', () => ({
@@ -300,6 +302,17 @@ describe('Query Hooks', () => {
 
 	describe('Analytics Hooks', () => {
 		it('usePropertyPerformanceAnalytics should return empty array (TODO: RPC wiring)', async () => {
+			// performance() queryFn calls both supabase.rpc() and supabase.from('properties').select().eq().neq()
+			const chain: Record<string, ReturnType<typeof vi.fn>> = {}
+			chain.select = mockSelect
+			chain.eq = mockEq
+			chain.neq = mockNeq
+
+			mockSelect.mockReturnValue(chain)
+			mockEq.mockReturnValue(chain)
+			mockNeq.mockResolvedValue({ data: [], error: null })
+			mockFrom.mockReturnValue({ select: mockSelect })
+
 			const { result } = renderHook(() => usePropertyPerformanceAnalytics(), {
 				wrapper: createWrapper()
 			})

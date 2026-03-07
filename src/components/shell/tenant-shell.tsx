@@ -1,14 +1,15 @@
 'use client'
 
 import type { ReactNode } from 'react'
-import { useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 
 import { Menu, X, Bell, ChevronRight, Sparkles, Home, CreditCard, Wrench, Settings, ChevronLeft } from 'lucide-react'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { TenantNav } from './tenant-nav'
 import { generateBreadcrumbs } from '#lib/breadcrumbs'
-import { useSupabaseUser, useSignOutMutation } from '#hooks/api/use-auth'
+import { useSupabaseUser } from '#hooks/api/use-auth'
+import { useSignOutMutation } from '#hooks/api/use-auth-mutations'
 import { UserProfileMenu } from './user-profile-menu'
 
 export interface TenantShellProps {
@@ -25,6 +26,8 @@ const mobileNavItems = [
 
 export function TenantShell({ children }: TenantShellProps) {
 	const [sidebarOpen, setSidebarOpen] = useState(false)
+	const triggerRef = useRef<HTMLButtonElement>(null)
+	const sidebarRef = useRef<HTMLElement>(null)
 	const pathname = usePathname()
 	const router = useRouter()
 	const breadcrumbs = generateBreadcrumbs(pathname)
@@ -50,18 +53,63 @@ export function TenantShell({ children }: TenantShellProps) {
 		return pathname.startsWith(href)
 	}
 
+	const closeSidebar = useCallback(() => {
+		setSidebarOpen(false)
+		triggerRef.current?.focus()
+	}, [])
+
+	// Escape key handler + focus trap for mobile sidebar
+	useEffect(() => {
+		if (!sidebarOpen) return
+		const handleKeyDown = (e: KeyboardEvent) => {
+			if (e.key === 'Escape') {
+				closeSidebar()
+				return
+			}
+			// Focus trap within sidebar dialog
+			if (e.key === 'Tab' && sidebarRef.current) {
+				const focusable = sidebarRef.current.querySelectorAll<HTMLElement>(
+					'a[href], button:not([disabled]), input:not([disabled]), [tabindex]:not([tabindex="-1"])'
+				)
+				if (focusable.length === 0) return
+				const first = focusable[0]!
+				const last = focusable[focusable.length - 1]!
+				if (e.shiftKey && document.activeElement === first) {
+					e.preventDefault()
+					last.focus()
+				} else if (!e.shiftKey && document.activeElement === last) {
+					e.preventDefault()
+					first.focus()
+				}
+			}
+		}
+		window.addEventListener('keydown', handleKeyDown)
+		return () => window.removeEventListener('keydown', handleKeyDown)
+	}, [sidebarOpen, closeSidebar])
+
 	return (
 		<div className="min-h-screen bg-background">
+			{/* Skip to content */}
+			<a
+				href="#main-content"
+				className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-[100] focus:rounded-md focus:bg-primary focus:px-4 focus:py-2 focus:text-primary-foreground focus:outline-none"
+			>
+				Skip to content
+			</a>
+
 			{/* Mobile sidebar overlay */}
 			{sidebarOpen && (
 				<div
 					className="fixed inset-0 z-40 bg-foreground/20 lg:hidden"
-					onClick={() => setSidebarOpen(false)}
+					onClick={closeSidebar}
 				/>
 			)}
 
 			{/* Sidebar */}
 			<aside
+				ref={sidebarRef}
+				role={sidebarOpen ? 'dialog' : undefined}
+				aria-modal={sidebarOpen ? true : undefined}
 				className={`
 					fixed inset-y-0 left-0 z-50 w-56 bg-card
 					border-r border-border
@@ -82,15 +130,15 @@ export function TenantShell({ children }: TenantShellProps) {
 					</Link>
 					<button
 						className="ml-auto lg:hidden min-h-11 min-w-11 flex items-center justify-center rounded-md hover:bg-muted"
-						onClick={() => setSidebarOpen(false)}
-						aria-label="Close sidebar"
+						onClick={closeSidebar}
+						aria-label="Close navigation menu"
 					>
 						<X className="w-4 h-4 text-muted-foreground" />
 					</button>
 				</div>
 
 				{/* Navigation */}
-				<TenantNav onNavigate={() => setSidebarOpen(false)} />
+				<TenantNav onNavigate={closeSidebar} />
 			</aside>
 
 			{/* Main content area */}
@@ -100,36 +148,86 @@ export function TenantShell({ children }: TenantShellProps) {
 					{/* Left side - mobile menu + breadcrumbs */}
 					<div className="flex items-center gap-3">
 						<button
+							ref={triggerRef}
 							className="p-2 rounded-md hover:bg-muted lg:hidden"
 							onClick={() => setSidebarOpen(true)}
+							aria-label="Open navigation menu"
 						>
 							<Menu className="w-5 h-5 text-muted-foreground" />
 						</button>
 
 						{/* Breadcrumbs */}
-						{breadcrumbs.length > 0 && (
-							<nav className="hidden sm:flex items-center gap-1 text-sm">
-								{breadcrumbs.map((crumb, index) => (
-									<div key={index} className="flex items-center gap-1">
-										{index > 0 && (
-											<ChevronRight className="w-4 h-4 text-muted-foreground" />
-										)}
-										{crumb.href ? (
+						{breadcrumbs.length > 0 && (() => {
+							const firstCrumb = breadcrumbs[0]!
+							const lastCrumb = breadcrumbs[breadcrumbs.length - 1]!
+							return (
+							<nav aria-label="Breadcrumb" className="flex items-center gap-1 text-sm">
+								{/* First crumb always visible */}
+								<div className="flex items-center gap-1">
+									{firstCrumb.href ? (
+										<Link
+											href={firstCrumb.href}
+											className="text-muted-foreground hover:text-foreground transition-colors"
+										>
+											{firstCrumb.label}
+										</Link>
+									) : (
+										<span className="text-foreground font-medium">
+											{firstCrumb.label}
+										</span>
+									)}
+								</div>
+
+								{/* Middle crumbs: hidden on mobile, visible on sm+ */}
+								{breadcrumbs.length > 2 && (
+									<>
+										<span className="hidden sm:contents">
+											{breadcrumbs.slice(1, -1).map((crumb, index) => (
+												<div key={index + 1} className="flex items-center gap-1">
+													<ChevronRight className="w-3.5 h-3.5 text-muted-foreground" />
+													{crumb.href ? (
+														<Link
+															href={crumb.href}
+															className="text-muted-foreground hover:text-foreground transition-colors"
+														>
+															{crumb.label}
+														</Link>
+													) : (
+														<span className="text-foreground font-medium">
+															{crumb.label}
+														</span>
+													)}
+												</div>
+											))}
+										</span>
+										{/* Collapsed indicator: visible on mobile only */}
+										<span className="flex items-center gap-1 sm:hidden">
+											<ChevronRight className="size-3.5 text-muted-foreground" />
+											<span className="text-muted-foreground">...</span>
+										</span>
+									</>
+								)}
+
+								{/* Last crumb (when more than 1) */}
+								{breadcrumbs.length > 1 && (
+									<div className="flex items-center gap-1">
+										<ChevronRight className="w-3.5 h-3.5 text-muted-foreground" />
+										{lastCrumb.href ? (
 											<Link
-												href={crumb.href}
+												href={lastCrumb.href}
 												className="text-muted-foreground hover:text-foreground transition-colors"
 											>
-												{crumb.label}
+												{lastCrumb.label}
 											</Link>
 										) : (
-											<span className="text-foreground font-medium">
-												{crumb.label}
+											<span className="text-foreground font-medium truncate max-w-[150px] sm:max-w-none">
+												{lastCrumb.label}
 											</span>
 										)}
 									</div>
-								))}
+								)}
 							</nav>
-						)}
+						)})()}
 					</div>
 
 					{/* Right side - notifications, user */}
@@ -137,6 +235,7 @@ export function TenantShell({ children }: TenantShellProps) {
 						<Link
 							href="/tenant/settings?tab=notifications"
 							className="p-2 rounded-md hover:bg-muted transition-colors"
+							aria-label="View notifications"
 						>
 							<Bell className="w-5 h-5 text-muted-foreground" />
 						</Link>
@@ -156,7 +255,7 @@ export function TenantShell({ children }: TenantShellProps) {
 				</header>
 
 				{/* Page content */}
-				<main className="flex-1 bg-muted/30">
+				<main id="main-content" className="flex-1 bg-muted/30">
 					<div className="p-4 lg:p-6">{children}</div>
 				</main>
 			</div>

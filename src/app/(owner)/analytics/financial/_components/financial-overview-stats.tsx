@@ -1,5 +1,3 @@
-'use client'
-
 import { DollarSign, TrendingUp, BarChart3 } from 'lucide-react'
 import { BlurFade } from '#components/ui/blur-fade'
 import { BorderBeam } from '#components/ui/border-beam'

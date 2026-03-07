@@ -1,6 +1,7 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useRef, useState, useMemo } from 'react'
+import { useVirtualizer } from '@tanstack/react-virtual'
 import { ArrowUpDown } from 'lucide-react'
 import { Checkbox } from '#components/ui/checkbox'
 import { cn } from '#lib/utils'
@@ -111,6 +112,14 @@ export function PropertyTable({
 		</button>
 	)
 
+	const tableScrollRef = useRef<HTMLDivElement>(null)
+	const rowVirtualizer = useVirtualizer({
+		count: sortedProperties.length,
+		getScrollElement: () => tableScrollRef.current,
+		estimateSize: () => 64,
+		overscan: 5,
+	})
+
 	return (
 		<div className="bg-card border border-border rounded-sm overflow-hidden">
 			{/* Table Toolbar */}
@@ -124,9 +133,9 @@ export function PropertyTable({
 			/>
 
 			{/* Table */}
-			<div className="overflow-x-auto">
+			<div ref={tableScrollRef} className="overflow-auto max-h-[calc(100vh-340px)]">
 				<table className="w-full">
-					<thead>
+					<thead className="sticky top-0 z-10">
 						<tr className="border-b border-border bg-muted/30">
 							<th className="w-12 px-4 py-3">
 								<Checkbox
@@ -172,19 +181,22 @@ export function PropertyTable({
 							</th>
 						</tr>
 					</thead>
-					<tbody className="divide-y divide-border">
-						{sortedProperties.map(property => (
-							<PropertyTableRow
-								key={property.id}
-								property={property}
-								isSelected={selectedRows.has(property.id)}
-								visibleColumns={visibleColumns}
-								onSelectRow={onSelectRow}
-								onView={onView}
-								onEdit={onEdit}
-								onDelete={onDelete}
-							/>
-						))}
+					<tbody className="divide-y divide-border" style={{ height: `${rowVirtualizer.getTotalSize()}px`, position: 'relative' }}>
+						{rowVirtualizer.getVirtualItems().map(virtualRow => {
+							const property = sortedProperties[virtualRow.index]!
+							return (
+								<PropertyTableRow
+									key={property.id}
+									property={property}
+									isSelected={selectedRows.has(property.id)}
+									visibleColumns={visibleColumns}
+									onSelectRow={onSelectRow}
+									onView={onView}
+									onEdit={onEdit}
+									onDelete={onDelete}
+								/>
+							)
+						})}
 					</tbody>
 				</table>
 			</div>

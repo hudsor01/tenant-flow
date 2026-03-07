@@ -15,7 +15,7 @@ import {
 	useDashboardStats,
 	useDashboardCharts,
 	usePropertyPerformance
-} from '#hooks/api/use-owner-dashboard'
+} from '#hooks/api/use-dashboard-hooks'
 import { Home } from 'lucide-react'
 import Link from 'next/link'
 

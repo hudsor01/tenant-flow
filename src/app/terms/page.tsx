@@ -12,7 +12,7 @@ export default function TermsPage() {
 		<PageLayout>
 			<div className="mx-auto min-h-screen max-w-4xl px-6 section-spacing page-offset-navbar">
 				<h1 className="mb-8 typography-h1">Terms of Service</h1>
-				<p className="mb-6 text-muted">Last Updated: October 5, 2025</p>
+				<p className="mb-6 text-muted-foreground">Last Updated: October 5, 2025</p>
 
 				<div className="prose prose-gray dark:prose-invert max-w-none">
 					<section className="mb-8">
@@ -507,7 +507,7 @@ export default function TermsPage() {
 						</div>
 					</section>
 
-					<div className="mt-12 border-t pt-8 text-muted">
+					<div className="mt-12 border-t pt-8 text-muted-foreground">
 						<p>
 							By using TenantFlow, you acknowledge that you have read,
 							understood, and agree to be bound by these Terms of Service.

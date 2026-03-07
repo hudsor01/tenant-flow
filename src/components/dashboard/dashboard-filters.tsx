@@ -21,7 +21,7 @@ import {
 } from '#components/ui/dropdown-menu'
 import { Popover, PopoverContent, PopoverTrigger } from '#components/ui/popover'
 import { toast } from 'sonner'
-import { callGeneratePdfFromHtml } from '#hooks/api/use-reports'
+import { callGeneratePdfFromHtml } from '#hooks/api/use-report-mutations'
 import type { DateRangePreset, DashboardFiltersProps } from './dashboard-filters-utils'
 import {
 	getDateRangeFromPreset,

@@ -72,7 +72,7 @@ export function StripeConnectStatus() {
 			case 'pending':
 				return 'text-warning dark:text-warning'
 			default:
-				return 'text-muted/600 dark:text-muted/400'
+				return 'text-muted-foreground dark:text-muted-foreground'
 		}
 	}
 
@@ -83,7 +83,7 @@ export function StripeConnectStatus() {
 			case 'pending':
 				return <Spinner className="size-5 text-warning animate-spin" />
 			default:
-				return <XCircle className="size-5 text-muted/600" />
+				return <XCircle className="size-5 text-muted-foreground" />
 		}
 	}
 
@@ -117,7 +117,7 @@ export function StripeConnectStatus() {
 									{account.identityVerification?.status || 'incomplete'}
 								</span>
 							</div>
-							<p className="text-muted">
+							<p className="text-muted-foreground">
 								Stripe Account ID: {account.stripe_account_id || 'N/A'}
 							</p>
 						</div>
@@ -126,21 +126,21 @@ export function StripeConnectStatus() {
 					<div className="grid grid-cols-2 gap-4 rounded-lg border p-4">
 						<div className="space-y-1">
 							<p className="typography-small">Charges</p>
-							<p className="text-muted">
+							<p className="text-muted-foreground">
 								{account.charges_enabled ? (
 									<span className="text-success">Enabled</span>
 								) : (
-									<span className="text-muted/600">Disabled</span>
+									<span className="text-muted-foreground">Disabled</span>
 								)}
 							</p>
 						</div>
 						<div className="space-y-1">
 							<p className="typography-small">Payouts</p>
-							<p className="text-muted">
+							<p className="text-muted-foreground">
 								{account.payouts_enabled ? (
 									<span className="text-success">Enabled</span>
 								) : (
-									<span className="text-muted/600">Disabled</span>
+									<span className="text-muted-foreground">Disabled</span>
 								)}
 							</p>
 						</div>

@@ -138,7 +138,7 @@ export function IdentityVerificationCard() {
 					<Icon className={`size-6 ${iconColor}`} />
 					<div>
 						<p className="font-medium text-sm">{info.title}</p>
-						<p className="text-muted">{info.description}</p>
+						<p className="text-muted-foreground">{info.description}</p>
 					</div>
 				</div>
 				<Button

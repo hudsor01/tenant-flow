@@ -1,5 +1,3 @@
-'use client'
-
 import { BlurFade } from '#components/ui/blur-fade'
 import { Badge } from '#components/ui/badge'
 import { formatCurrency } from '#lib/formatters/currency'

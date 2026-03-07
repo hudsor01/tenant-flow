@@ -4,9 +4,11 @@ import { Loader2 } from 'lucide-react'
 import { BlurFade } from '#components/ui/blur-fade'
 import { BorderBeam } from '#components/ui/border-beam'
 import { Skeleton } from '#components/ui/skeleton'
-import { useSubscriptionStatus, useBillingPortalMutation } from '#hooks/api/use-billing'
+import { useSubscriptionStatus } from '#hooks/api/use-billing'
+import { useBillingPortalMutation } from '#hooks/api/use-billing-mutations'
 import { useConnectedAccount } from '#hooks/api/use-stripe-connect'
 import { useQuery } from '@tanstack/react-query'
+import { paymentMethodsKeys } from '#hooks/api/use-payment-methods'
 import { createClient } from '#lib/supabase/client'
 import { ConnectAccountSection } from '#components/settings/sections/connect-account-section'
 import { SubscriptionCancelSection } from '#components/settings/sections/subscription-cancel-section'
@@ -54,7 +56,7 @@ export function BillingSettings() {
 	const { isLoading: connectLoading } = useConnectedAccount()
 
 	const { data: paymentMethods, isLoading: methodsLoading } = useQuery({
-		queryKey: ['payment-methods'],
+		queryKey: paymentMethodsKeys.all,
 		queryFn: async () => {
 			const { data, error } = await supabase
 				.from('payment_methods')

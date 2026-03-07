@@ -1,5 +1,3 @@
-'use client'
-
 import { BlurFade } from '#components/ui/blur-fade'
 import { Button } from '#components/ui/button'
 import { GlowingEffect } from '#components/ui/glowing-effect'
@@ -96,7 +94,7 @@ export function PremiumCta({ className }: PremiumCtaProps) {
 									<div className="typography-large text-foreground mb-1">
 										No Setup Fees
 									</div>
-									<div className="text-muted">
+									<div className="text-muted-foreground">
 										Start immediately with zero upfront costs
 									</div>
 								</div>
@@ -108,7 +106,7 @@ export function PremiumCta({ className }: PremiumCtaProps) {
 									<div className="typography-large text-foreground mb-1">
 										ROI in 30 Days
 									</div>
-									<div className="text-muted">
+									<div className="text-muted-foreground">
 										See measurable results within first month
 									</div>
 								</div>

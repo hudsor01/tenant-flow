@@ -1,5 +1,3 @@
-'use client'
-
 import { AlertTriangle, ChevronDown, DollarSign, MoreVertical, Send, X } from 'lucide-react'
 import { BlurFade } from '#components/ui/blur-fade'
 import { Button } from '#components/ui/button'

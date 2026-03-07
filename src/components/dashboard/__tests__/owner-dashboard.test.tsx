@@ -13,14 +13,18 @@ import { screen } from '@testing-library/react'
 import { render } from '#test/utils/test-render'
 import { describe, expect, it, vi, beforeEach } from 'vitest'
 import { OwnerDashboard } from '../owner-dashboard'
-import * as ownerDashboardHooks from '#hooks/api/use-owner-dashboard'
+import * as ownerDashboardHooks from '#hooks/api/use-dashboard-hooks'
 
-// Mock the dashboard hooks
-vi.mock('#hooks/api/use-owner-dashboard', () => ({
+// Mock the dashboard hooks (derived select hooks now in use-dashboard-hooks.ts)
+vi.mock('#hooks/api/use-dashboard-hooks', () => ({
 	useDashboardStats: vi.fn(),
 	useDashboardCharts: vi.fn(),
 	useDashboardActivity: vi.fn(),
-	usePropertyPerformance: vi.fn(),
+	usePropertyPerformance: vi.fn()
+}))
+
+// Mock the base dashboard module for keys
+vi.mock('#hooks/api/use-owner-dashboard', () => ({
 	ownerDashboardKeys: {
 		all: ['owner-dashboard'],
 		analytics: {
@@ -31,7 +35,8 @@ vi.mock('#hooks/api/use-owner-dashboard', () => ({
 		properties: {
 			performance: () => ['owner-dashboard', 'properties', 'performance']
 		}
-	}
+	},
+	DASHBOARD_BASE_QUERY_OPTIONS: {}
 }))
 
 // Mock the lease hooks
@@ -41,6 +46,18 @@ vi.mock('#hooks/api/use-lease', () => ({
 		isLoading: false,
 		error: null
 	}))
+}))
+
+// Mock next/dynamic to synchronously resolve loaded components in tests
+vi.mock('next/dynamic', () => ({
+	default: (
+		_loader: () => Promise<Record<string, unknown>>,
+		opts?: { loading?: () => React.ReactNode }
+	) => {
+		// Return the loading fallback if provided, otherwise null
+		// This ensures tests see the loading state (ChartLoadingSkeleton)
+		return opts?.loading ?? (() => null)
+	}
 }))
 
 // Mock next/navigation
@@ -451,12 +468,11 @@ describe('OwnerDashboard', () => {
 			).toBeInTheDocument()
 		})
 
-		it('renders Revenue Overview chart section', () => {
+		it('renders chart loading skeleton while Revenue Overview chart loads', () => {
 			render(<OwnerDashboard />)
 
-			expect(screen.getByText('Revenue Overview')).toBeInTheDocument()
 			expect(
-				screen.getByText('Monthly revenue for the past 6 months')
+				screen.getByLabelText('Loading chart')
 			).toBeInTheDocument()
 		})
 

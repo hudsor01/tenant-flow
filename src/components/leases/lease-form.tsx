@@ -7,7 +7,7 @@ import { Button } from '#components/ui/button'
 import {
 	useCreateLeaseMutation,
 	useUpdateLeaseMutation
-} from '#hooks/api/use-lease'
+} from '#hooks/api/use-lease-mutations'
 import { propertyQueries } from '#hooks/api/query-keys/property-keys'
 import { unitQueries } from '#hooks/api/query-keys/unit-keys'
 import { tenantQueries } from '#hooks/api/query-keys/tenant-keys'
@@ -97,9 +97,9 @@ export function LeaseForm({ mode, lease, onSuccess }: LeaseFormProps) {
 						tenant_ids: [value.primary_tenant_id]
 					})
 					await Promise.all([
-						queryClient.invalidateQueries({ queryKey: ['leases'] }),
-						queryClient.invalidateQueries({ queryKey: ['units'] }),
-						queryClient.invalidateQueries({ queryKey: ['tenants'] })
+						queryClient.invalidateQueries({ queryKey: leaseQueries.all() }),
+						queryClient.invalidateQueries({ queryKey: unitQueries.all() }),
+						queryClient.invalidateQueries({ queryKey: tenantQueries.all() })
 					])
 					toast.success('Lease created successfully')
 					router.push('/leases')

@@ -12,7 +12,7 @@ import {
 	SelectTrigger,
 	SelectValue
 } from '#components/ui/select'
-import { useCreatePropertyMutation } from '#hooks/api/use-properties'
+import { useCreatePropertyMutation } from '#hooks/api/use-property-mutations'
 import type { PropertyCreate } from '#shared/validation/properties'
 
 interface OnboardingStepPropertyProps {

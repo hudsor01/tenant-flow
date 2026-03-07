@@ -3,36 +3,40 @@
 import { Spinner } from '#components/ui/loading-spinner'
 import { useMutation } from '@tanstack/react-query'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 
 import { Alert, AlertDescription } from '#components/ui/alert'
 import { Button } from '#components/ui/button'
 import { CardLayout } from '#components/ui/card-layout'
 
 import { createClient } from '#lib/supabase/client'
-import { Mail } from 'lucide-react'
+import { Mail, RefreshCw } from 'lucide-react'
 
 /**
- * Post-Checkout Page - Magic Link Flow
+ * Post-Checkout Page
+ *
+ * AUTH-10: Does NOT auto-send magic link from unauthenticated Edge Function response.
  *
  * Flow:
- * 1. User completes Stripe Checkout → redirected here with session_id
- * 2. We send magic link to their email (via Supabase OTP)
- * 3. User clicks link → auto-logged in → redirected to /dashboard
- *
- * This implements passwordless authentication after payment.
- * Official Supabase pattern: signInWithOtp({ email, options: { emailRedirectTo } })
+ * 1. User completes Stripe Checkout -> redirected here with session_id
+ * 2. We retrieve the customer email from the checkout session (minimal data)
+ * 3. User sees "Check your email" message
+ * 4. User can explicitly click "Resend" to trigger a magic link if needed
  */
 export default function PostCheckoutPage() {
 	const searchParams = useSearchParams()
 	const router = useRouter()
 	const [email, setEmail] = useState<string>('')
-	const mutateRef = useRef<((sessionId: string) => void) | null>(null)
+	const fetchRef = useRef(false)
 
-	// TanStack Query mutation for sending magic link
-	const sendMagicLinkMutation = useMutation({
+	// Fetch customer email from checkout session (no magic link auto-send)
+	const {
+		mutate: fetchEmail,
+		isPending: isFetchingEmail,
+		isError: isFetchError,
+		error: fetchError
+	} = useMutation({
 		mutationFn: async (sessionId: string) => {
-			// Call stripe-checkout Edge Function to retrieve session customer email
 			const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
 			const response = await fetch(
 				`${supabaseUrl}/functions/v1/stripe-checkout-session`,
@@ -47,18 +51,42 @@ export default function PostCheckoutPage() {
 				throw new Error('Failed to retrieve checkout session')
 			}
 
-			const session = await response.json()
-			const customerEmail =
-				session.customer_email || session.customer_details?.email
+			const session = (await response.json()) as {
+				customer_email: string | null
+			}
+			const customerEmail = session.customer_email
 
 			if (!customerEmail) {
 				throw new Error('No email found in checkout session')
 			}
 
-			// Send magic link via Supabase OTP
+			return customerEmail
+		},
+		onSuccess: (customerEmail: string) => {
+			setEmail(customerEmail)
+		}
+	})
+
+	// Fetch email once on mount
+	useEffect(() => {
+		const sessionId = searchParams.get('session_id')
+		if (sessionId && !fetchRef.current) {
+			fetchRef.current = true
+			fetchEmail(sessionId)
+		}
+	}, [searchParams, fetchEmail])
+
+	// AUTH-10: Resend magic link only on explicit user action (not auto-send)
+	const {
+		mutate: resendMagicLink,
+		isPending: isResending,
+		isSuccess: resendSuccess,
+		isError: isResendError
+	} = useMutation({
+		mutationFn: async (targetEmail: string) => {
 			const supabase = createClient()
 			const { error } = await supabase.auth.signInWithOtp({
-				email: customerEmail,
+				email: targetEmail,
 				options: {
 					emailRedirectTo: `${window.location.origin}/dashboard`
 				}
@@ -67,35 +95,16 @@ export default function PostCheckoutPage() {
 			if (error) {
 				throw error
 			}
-
-			return customerEmail
-		},
-		onSuccess: customerEmail => {
-			setEmail(customerEmail)
 		}
 	})
 
-	// Store mutate function in ref for stable reference
-	mutateRef.current = sendMagicLinkMutation.mutate
-
-	// Trigger mutation once on mount with session_id
-	useEffect(() => {
-		const sessionId = searchParams.get('session_id')
-		if (
-			sessionId &&
-			!sendMagicLinkMutation.isSuccess &&
-			!sendMagicLinkMutation.isPending &&
-			mutateRef.current
-		) {
-			mutateRef.current(sessionId)
+	const handleResend = useCallback(() => {
+		if (email) {
+			resendMagicLink(email)
 		}
-	}, [
-		searchParams,
-		sendMagicLinkMutation.isSuccess,
-		sendMagicLinkMutation.isPending
-	])
+	}, [email, resendMagicLink])
 
-	if (sendMagicLinkMutation.isPending) {
+	if (isFetchingEmail) {
 		return (
 			<div className="flex min-h-screen items-center justify-center p-4">
 				<CardLayout
@@ -111,13 +120,13 @@ export default function PostCheckoutPage() {
 		)
 	}
 
-	if (sendMagicLinkMutation.isError || !searchParams.get('session_id')) {
+	if (isFetchError || !searchParams.get('session_id')) {
 		const errorMessage =
-			sendMagicLinkMutation.error instanceof Error
-				? sendMagicLinkMutation.error.message
+			fetchError instanceof Error
+				? fetchError.message
 				: !searchParams.get('session_id')
 					? 'Invalid checkout session'
-					: 'Failed to send login link'
+					: 'Failed to retrieve checkout details'
 
 		return (
 			<div className="flex min-h-screen items-center justify-center p-4">
@@ -139,32 +148,56 @@ export default function PostCheckoutPage() {
 		)
 	}
 
-	// Success state
 	return (
 		<div className="flex min-h-screen items-center justify-center p-4">
 			<CardLayout
 				title="Check Your Email"
-				description="We sent you a magic login link"
+				description="Your subscription is confirmed"
 			>
 				<div className="space-y-4">
 					<Alert className="border-success/20 bg-success/5 dark:border-success/30 dark:bg-success/10">
 						<Mail className="size-4 text-success" />
 						<AlertDescription className="text-success dark:text-success">
-							We sent a login link to <strong>{email}</strong>
+							A login link has been sent to <strong>{email}</strong>
 						</AlertDescription>
 					</Alert>
 
-					<div className="space-y-3 text-muted">
+					<div className="space-y-3 text-muted-foreground">
 						<p>Click the link in your email to sign in to your dashboard.</p>
 						<p>The link will expire in 1 hour for security.</p>
-						<p className="text-xs">
-							Didn&apos;t receive it? Check your spam folder or contact support.
-						</p>
 					</div>
 
-					<div className="pt-4 border-t">
+					<div className="flex flex-col gap-2 pt-4 border-t">
 						<Button
 							variant="outline"
+							className="w-full"
+							onClick={handleResend}
+							disabled={isResending}
+						>
+							{isResending ? (
+								<>
+									<RefreshCw className="mr-2 size-4 animate-spin" />
+									Sending...
+								</>
+							) : (
+								<>
+									<Mail className="mr-2 size-4" />
+									Resend Login Link
+								</>
+							)}
+						</Button>
+						{resendSuccess && (
+							<p className="text-xs text-success text-center">
+								Login link sent! Check your inbox.
+							</p>
+						)}
+						{isResendError && (
+							<p className="text-xs text-destructive text-center">
+								Failed to send link. Please try again.
+							</p>
+						)}
+						<Button
+							variant="ghost"
 							className="w-full"
 							onClick={() => router.push('/')}
 						>
