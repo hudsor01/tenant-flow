@@ -54,7 +54,14 @@ A landlord can add a property, invite a tenant, collect rent, and see their fina
 
 ### Active
 
-(None -- next milestone not yet planned)
+- [ ] Blog hub redesign with split zones (Software Comparisons vs Insights & Guides)
+- [ ] BlogCard, BlogPagination, NewsletterSignup shared components
+- [ ] Paginated blog queries with real DB categories
+- [ ] get_blog_categories RPC
+- [ ] newsletter-subscribe Edge Function (Resend Audiences API)
+- [ ] Blog detail page with featured images and related posts
+- [ ] Category page with dynamic names and pagination
+- [ ] CI workflow dedup (gate checks to PR-only, e2e-smoke on push independently)
 
 ### Out of Scope
 
@@ -127,4 +134,4 @@ Frontend (Next.js 16 / Vercel) -> supabase-js -> Supabase PostgREST (RLS enforce
 | Gitleaks in pre-commit only | Catches secrets before they reach repo | Good |
 
 ---
-*Last updated: 2026-03-07 after v1.0 Production Hardening milestone*
+*Last updated: 2026-03-07 after v1.1 Blog Redesign & CI milestone started*
