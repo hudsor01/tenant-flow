@@ -1,0 +1,103 @@
+# Requirements: TenantFlow v1.1
+
+**Defined:** 2026-03-07
+**Core Value:** A landlord can add a property, invite a tenant, collect rent, and see their financials -- without touching a spreadsheet or calling anyone.
+
+## v1.1 Requirements
+
+Requirements for v1.1 Blog Redesign & CI. Each maps to roadmap phases.
+
+### Blog Data Layer
+
+- [ ] **BLOG-01**: Paginated blog queries with `.range()` and `{ count: 'exact' }`
+- [ ] **BLOG-02**: `get_blog_categories` RPC returns distinct categories with post counts
+- [ ] **BLOG-03**: Related posts query (same category, exclude current, limit 3)
+- [ ] **BLOG-04**: Featured comparisons query (Software Comparisons category)
+- [ ] **BLOG-05**: Blog query key factory (`blog-keys.ts`) using `queryOptions()` pattern
+
+### Blog Components
+
+- [ ] **COMP-01**: Reusable `BlogCard` component with featured image, category label, reading time
+- [ ] **COMP-02**: `BlogPagination` component with nuqs URL state
+- [ ] **COMP-03**: `NewsletterSignup` component with mutation, toast feedback, success state
+
+### Blog Pages
+
+- [ ] **PAGE-01**: Hub page with split zones (Software Comparisons vs Insights & Guides)
+- [ ] **PAGE-02**: Hub page shows category pills from DB with counts
+- [ ] **PAGE-03**: Detail page with featured image, BlurFade, and related posts section
+- [ ] **PAGE-04**: Category page with dynamic name resolution and paginated grid
+- [ ] **PAGE-05**: EmptyState shown on category pages with no posts
+
+### Newsletter
+
+- [ ] **NEWS-01**: `newsletter-subscribe` Edge Function using Resend Contacts API (not deprecated Audiences)
+- [ ] **NEWS-02**: Rate limiting (5 req/min per IP) and email validation on Edge Function
+- [ ] **NEWS-03**: Newsletter form calls Edge Function and shows success/error states
+
+### Infrastructure
+
+- [ ] **INFRA-01**: Activate `@tailwindcss/typography` plugin in `globals.css`
+- [ ] **INFRA-02**: Add `scrollbar-hide` CSS utility for horizontal scroll zones
+- [ ] **INFRA-03**: Create `EmptyState` shared component
+- [ ] **INFRA-04**: CI workflow: gate `checks` job to PR-only, `e2e-smoke` runs independently on push
+
+## Future Requirements
+
+### Blog Enhancements
+
+- **BLOG-F01**: Blog search with full-text search
+- **BLOG-F02**: Blog tags filtering (in addition to categories)
+- **BLOG-F03**: Blog RSS feed
+- **BLOG-F04**: Blog sitemap with ISR regeneration
+- **BLOG-F05**: Blog SEO metadata (og:image, structured data)
+
+### Newsletter Enhancements
+
+- **NEWS-F01**: Double opt-in confirmation email
+- **NEWS-F02**: Unsubscribe link in newsletter emails
+- **NEWS-F03**: Newsletter analytics (open rate, click rate)
+
+## Out of Scope
+
+| Feature | Reason |
+|---------|--------|
+| Blog CMS / admin panel | Content managed directly in Supabase; admin UI is a separate milestone |
+| SSR/SSG for blog pages | Current client-side rendering is sufficient; SEO milestone later |
+| Blog comments | High complexity, moderation burden, not core to content marketing |
+| A/B testing on blog layouts | Premature optimization; ship and iterate |
+| Email drip campaigns | Beyond newsletter signup; requires dedicated email marketing tool |
+
+## Traceability
+
+| Requirement | Phase | Status |
+|-------------|-------|--------|
+| BLOG-01 | — | Pending |
+| BLOG-02 | — | Pending |
+| BLOG-03 | — | Pending |
+| BLOG-04 | — | Pending |
+| BLOG-05 | — | Pending |
+| COMP-01 | — | Pending |
+| COMP-02 | — | Pending |
+| COMP-03 | — | Pending |
+| PAGE-01 | — | Pending |
+| PAGE-02 | — | Pending |
+| PAGE-03 | — | Pending |
+| PAGE-04 | — | Pending |
+| PAGE-05 | — | Pending |
+| NEWS-01 | — | Pending |
+| NEWS-02 | — | Pending |
+| NEWS-03 | — | Pending |
+| INFRA-01 | — | Pending |
+| INFRA-02 | — | Pending |
+| INFRA-03 | — | Pending |
+| INFRA-04 | — | Pending |
+
+**Coverage:**
+- v1.1 requirements: 20 total
+- Mapped to phases: 0
+- Unmapped: 20
+
+---
+*Requirements defined: 2026-03-07*
+*Last updated: 2026-03-07 after initial definition*
