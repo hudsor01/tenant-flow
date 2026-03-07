@@ -1,0 +1,81 @@
+name: RLS Security Tests
+
+# Primary gate: run on every PR to main (catches RLS drift regardless of changed files).
+# Weekly cron is the backup safety net for policy drift between PRs.
+on:
+  pull_request:
+    branches: [main]
+  schedule:
+    - cron: '0 9 * * 1' # Every Monday 09:00 UTC
+  workflow_dispatch:
+
+concurrency:
+  group: rls-security-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  rls-security:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Check required secrets
+        id: check-secrets
+        run: |
+          missing=()
+          [ -z "$SUPABASE_URL" ]           && missing+=(NEXT_PUBLIC_SUPABASE_URL)
+          [ -z "$SUPABASE_PUBLISHABLE_KEY" ] && missing+=(NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY)
+          [ -z "$OWNER_A_EMAIL" ]           && missing+=(E2E_OWNER_EMAIL)
+          [ -z "$OWNER_A_PASS" ]            && missing+=(E2E_OWNER_PASSWORD)
+          [ -z "$OWNER_B_EMAIL" ]           && missing+=(E2E_OWNER_B_EMAIL)
+          [ -z "$OWNER_B_PASS" ]            && missing+=(E2E_OWNER_B_PASSWORD)
+          if [ ${#missing[@]} -gt 0 ]; then
+            echo "::warning::Skipping RLS tests — missing secrets: ${missing[*]}"
+            echo "has_secrets=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "All required secrets present"
+            echo "has_secrets=true" >> "$GITHUB_OUTPUT"
+          fi
+        env:
+          SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          SUPABASE_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY }}
+          OWNER_A_EMAIL: ${{ secrets.E2E_OWNER_EMAIL }}
+          OWNER_A_PASS: ${{ secrets.E2E_OWNER_PASSWORD }}
+          OWNER_B_EMAIL: ${{ secrets.E2E_OWNER_B_EMAIL }}
+          OWNER_B_PASS: ${{ secrets.E2E_OWNER_B_PASSWORD }}
+
+      - name: Setup pnpm
+        if: steps.check-secrets.outputs.has_secrets == 'true'
+        uses: pnpm/action-setup@v4
+        with:
+          version: '10.29.3'
+          run_install: false
+
+      - name: Setup Node.js
+        if: steps.check-secrets.outputs.has_secrets == 'true'
+        uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+          cache: pnpm
+          cache-dependency-path: pnpm-lock.yaml
+
+      - name: Install dependencies
+        if: steps.check-secrets.outputs.has_secrets == 'true'
+        run: pnpm install --frozen-lockfile --prefer-offline
+
+      - name: Run RLS security tests
+        if: steps.check-secrets.outputs.has_secrets == 'true'
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY }}
+          E2E_OWNER_EMAIL: ${{ secrets.E2E_OWNER_EMAIL }}
+          E2E_OWNER_PASSWORD: ${{ secrets.E2E_OWNER_PASSWORD }}
+          E2E_OWNER_B_EMAIL: ${{ secrets.E2E_OWNER_B_EMAIL }}
+          E2E_OWNER_B_PASSWORD: ${{ secrets.E2E_OWNER_B_PASSWORD }}
+        run: pnpm test:integration
