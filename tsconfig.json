@@ -40,7 +40,7 @@
 		"sourceMap": true,
 		"baseUrl": ".",
 		"noEmit": true,
-		"jsx": "preserve",
+		"jsx": "react-jsx",
 		"composite": false,
 		"declaration": false,
 		"plugins": [{ "name": "next" }],
