@@ -14,11 +14,11 @@ TenantFlow is a multi-tenant property management SaaS platform for property owne
 - [x] **Phase 1: RPC & Database Security** - Close 12+ SECURITY DEFINER data exfiltration vectors and fix database-level auth
 - [x] **Phase 2: Financial Fixes** - Fix cents/dollars bugs, rent_due status, autopay RLS, and all payment processing issues
 - [x] **Phase 3: Auth & Middleware** - Register middleware, enforce role-based routing, fix session validation and auth flows
-- [ ] **Phase 4: Edge Function Hardening** - Add env validation, rate limiting, input escaping, CSP, and version alignment
-- [ ] **Phase 5: Code Quality & Type Safety** - Remove type assertions, fix query keys, consolidate duplicates, split oversized files
+- [x] **Phase 4: Edge Function Hardening** - Add env validation, rate limiting, input escaping, CSP, and version alignment
+- [x] **Phase 5: Code Quality & Type Safety** - Remove type assertions, fix query keys, consolidate duplicates, split oversized files
 - [x] **Phase 6: Database Schema & Migrations** - Fix constraints, RLS gaps, cron jobs, and schema inconsistencies (completed 2026-03-06)
-- [ ] **Phase 7: UX & Accessibility** - Fix text-muted visibility, add aria-labels, error boundaries, and responsive fixes
-- [ ] **Phase 8: Performance Optimization** - Parallelize waterfalls, code-split charts, consolidate redundant queries
+- [x] **Phase 7: UX & Accessibility** - Fix text-muted visibility, add aria-labels, error boundaries, and responsive fixes
+- [x] **Phase 8: Performance Optimization** - Parallelize waterfalls, code-split charts, consolidate redundant queries
 - [x] **Phase 9: Testing & CI Pipeline** - Add next build to CI, coverage enforcement, Edge Function tests, RLS test gaps (completed 2026-03-06)
 
 ## Phase Details
@@ -52,12 +52,12 @@ Plans:
 **Plans**: 6 plans
 
 Plans:
-- [ ] 02-01-PLAN.md — Database schema changes (numeric amounts, retry columns, constraints) and atomic RPCs (record_rent_payment, set_default_payment_method, toggle_autopay)
-- [ ] 02-02-PLAN.md — Stripe SDK upgrade to v20 + webhook handler fixes (idempotency, metadata validation, onboarding preservation, fee receipts, invoice.payment_failed)
-- [ ] 02-03-PLAN.md — Rent checkout and autopay Edge Functions (per-tenant portions, idempotency keys, redirect URLs, pg_cron retry logic, autopay failure notifications)
-- [ ] 02-04-PLAN.md — Frontend payment hooks (atomic default swap, Stripe detach Edge Function, billing hooks, subscription status + banner, currency formatting, plan limits, tenant portal per-tenant display)
-- [ ] 02-05-PLAN.md — Onboarding backfill migration and CLAUDE.md update with Phase 2 conventions
-- [ ] 02-06-PLAN.md — Diagnose and fix stale Stripe sync engine (down since 2025-12-11), backfill missing data
+- [x] 02-01-PLAN.md — Database schema changes (numeric amounts, retry columns, constraints) and atomic RPCs (record_rent_payment, set_default_payment_method, toggle_autopay)
+- [x] 02-02-PLAN.md — Stripe SDK upgrade to v20 + webhook handler fixes (idempotency, metadata validation, onboarding preservation, fee receipts, invoice.payment_failed)
+- [x] 02-03-PLAN.md — Rent checkout and autopay Edge Functions (per-tenant portions, idempotency keys, redirect URLs, pg_cron retry logic, autopay failure notifications)
+- [x] 02-04-PLAN.md — Frontend payment hooks (atomic default swap, Stripe detach Edge Function, billing hooks, subscription status + banner, currency formatting, plan limits, tenant portal per-tenant display)
+- [x] 02-05-PLAN.md — Onboarding backfill migration and CLAUDE.md update with Phase 2 conventions
+- [x] 02-06-PLAN.md — Diagnose and fix stale Stripe sync engine (down since 2025-12-11), backfill missing data
 
 ### Phase 3: Auth & Middleware
 **Goal**: Every route is protected by role-appropriate access control with server-validated sessions
@@ -73,12 +73,12 @@ Plans:
 **Plans**: 6 plans
 
 Plans:
-- [ ] 03-01-PLAN.md — Create Next.js middleware with Supabase auth + role-based route enforcement
-- [ ] 03-02-PLAN.md — Harden session validation: getUser() over getSession(), unify auth query keys, fix module-level client
-- [ ] 03-03-PLAN.md — Fix auth callback security: x-forwarded-host injection, OTP type validation, login redirect validation
-- [ ] 03-04-PLAN.md — Secure invitation JWT auth, checkout minimal data, signout CSRF, select-role restriction
-- [ ] 03-05-PLAN.md — Update CLAUDE.md with Phase 3 auth conventions
-- [ ] 03-06-PLAN.md — Resend auth email integration: branded templates for confirmation, reset, invitation emails
+- [x] 03-01-PLAN.md — Create Next.js middleware with Supabase auth + role-based route enforcement
+- [x] 03-02-PLAN.md — Harden session validation: getUser() over getSession(), unify auth query keys, fix module-level client
+- [x] 03-03-PLAN.md — Fix auth callback security: x-forwarded-host injection, OTP type validation, login redirect validation
+- [x] 03-04-PLAN.md — Secure invitation JWT auth, checkout minimal data, signout CSRF, select-role restriction
+- [x] 03-05-PLAN.md — Update CLAUDE.md with Phase 3 auth conventions
+- [x] 03-06-PLAN.md — Resend auth email integration: branded templates for confirmation, reset, invitation emails
 
 ### Phase 4: Edge Function Hardening
 **Goal**: All Edge Functions fail-fast on missing config, reject abuse, and never leak internal errors
@@ -114,13 +114,13 @@ Plans:
 - [x] 05-01-PLAN.md — Rewrite stub report/financial hooks with real Supabase queries, remove dead code (SseProvider, duplicate GeneralSettings, radix icons, TODO(phase-57))
 - [x] 05-02-PLAN.md — Replace 48 type assertions with typed mapper functions, fix column references, payment status, select purity, webhook logging
 - [x] 05-03-PLAN.md — Consolidate query keys to queryOptions() factories, fix string literals, add dashboard invalidation, resolve eslint suppressions
-- [ ] 05-04-PLAN.md — Split all oversized hook files (9 files, 6593 lines) into domain-focused modules
+- [x] 05-04-PLAN.md — Split all oversized hook files (9 files, 6593 lines) into domain-focused modules
 - [x] 05-05-PLAN.md — Split stripe-webhooks into handler modules and refactor 4 oversized page components
 - [x] 05-06-PLAN.md — Verify tour.tsx against Dice UI upstream, audit all 494 use client files, update CLAUDE.md
 - [x] 05-07-PLAN.md — [GAP] Replace remaining string literal query keys, add dashboard invalidation to page deletes, wire revenue trends dedup
 - [x] 05-08-PLAN.md — [GAP] Split 6 largest oversized hook files (tenant, lease, billing, payments, profile, auth) into query/mutation pairs
 - [x] 05-09-PLAN.md — [GAP] Split remaining 5 oversized hook files (reports, dashboard, inspections, properties, financials)
-- [ ] 05-10-PLAN.md — [GAP] Split 4 oversized mutation files (tenant, lease, profile, inspection) into domain sub-modules
+- [x] 05-10-PLAN.md — [GAP] Split 4 oversized mutation files (tenant, lease, profile, inspection) into domain sub-modules
 
 ### Phase 6: Database Schema & Migrations
 **Goal**: All tables have correct constraints, FK relationships, and operational maintenance jobs
@@ -140,8 +140,8 @@ Plans:
 - [x] 06-02-PLAN.md — Documents owner_user_id with RLS rewrite + leases property_owner_id column drop with RPC rewrites
 - [x] 06-03-PLAN.md — Expire-leases named function + cleanup cron scheduling with archive-then-delete + cron monitoring
 - [x] 06-04-PLAN.md — GDPR anonymization cascade function + CLAUDE.md update
-- [ ] 06-05-PLAN.md — [GAP] Implement activity + documents RLS integration tests (replace 8 it.todo stubs)
-- [ ] 06-06-PLAN.md — [GAP] Implement GDPR anonymization integration tests (replace 5 it.todo stubs)
+- [x] 06-05-PLAN.md — [GAP] Implement activity + documents RLS integration tests (replace 8 it.todo stubs)
+- [x] 06-06-PLAN.md — [GAP] Implement GDPR anonymization integration tests (replace 5 it.todo stubs)
 
 ### Phase 7: UX & Accessibility
 **Goal**: All text is readable, all interactive elements are accessible, and error states are handled gracefully
@@ -156,12 +156,12 @@ Plans:
 **Plans**: 6 plans
 
 Plans:
-- [ ] 07-01-PLAN.md — Replace text-muted with text-muted-foreground across all files, fix bg-white and raw color classes
-- [ ] 07-02-PLAN.md — Add skip-to-content, aria-labels, breadcrumb a11y, mobile sidebar keyboard access to both shells
-- [ ] 07-03-PLAN.md — Add aria-labels to remaining icon buttons, replace custom toggles with shadcn Switch, fix kanban mobile
-- [ ] 07-04-PLAN.md — Create shared NotFound and Error components, add not-found.tsx and error.tsx to all routes
-- [ ] 07-05-PLAN.md — Harden tenant delete with active-lease guard, create EmptyState component, style login fallback, property skeleton
-- [ ] 07-06-PLAN.md — Add page metadata to all pages, unsaved form protection hook, autoFocus on forms, CLAUDE.md update
+- [x] 07-01-PLAN.md — Replace text-muted with text-muted-foreground across all files, fix bg-white and raw color classes
+- [x] 07-02-PLAN.md — Add skip-to-content, aria-labels, breadcrumb a11y, mobile sidebar keyboard access to both shells
+- [x] 07-03-PLAN.md — Add aria-labels to remaining icon buttons, replace custom toggles with shadcn Switch, fix kanban mobile
+- [x] 07-04-PLAN.md — Create shared NotFound and Error components, add not-found.tsx and error.tsx to all routes
+- [x] 07-05-PLAN.md — Harden tenant delete with active-lease guard, create EmptyState component, style login fallback, property skeleton
+- [x] 07-06-PLAN.md — Add page metadata to all pages, unsaved form protection hook, autoFocus on forms, CLAUDE.md update
 
 ### Phase 8: Performance Optimization
 **Goal**: Page loads are fast with no unnecessary waterfalls, oversized bundles, or redundant queries
@@ -176,13 +176,13 @@ Plans:
 **Plans**: 7 plans
 
 Plans:
-- [ ] 08-01-PLAN.md — Global query defaults (refetchOnWindowFocus: true), optimizePackageImports, stale CSS cleanup
-- [ ] 08-02-PLAN.md — Dynamic import Recharts (17 files) and react-markdown with custom loading animations
-- [ ] 08-03-PLAN.md — Edge Function parallelization (autopay, checkout, webhooks) and invitation validate cache headers
-- [ ] 08-04-PLAN.md — Bound unbounded queries, replace select('*'), deduplicate occupancy trends
-- [ ] 08-05-PLAN.md — Shared tenant ID resolution and amountDue waterfall elimination
-- [ ] 08-06-PLAN.md — Stats consolidation RPCs (maintenance 7->1, lease 6->1) and list virtualization
-- [ ] 08-07-PLAN.md — 'use client' audit, file-upload-item image optimization, CLAUDE.md update
+- [x] 08-01-PLAN.md — Global query defaults (refetchOnWindowFocus: true), optimizePackageImports, stale CSS cleanup
+- [x] 08-02-PLAN.md — Dynamic import Recharts (17 files) and react-markdown with custom loading animations
+- [x] 08-03-PLAN.md — Edge Function parallelization (autopay, checkout, webhooks) and invitation validate cache headers
+- [x] 08-04-PLAN.md — Bound unbounded queries, replace select('*'), deduplicate occupancy trends
+- [x] 08-05-PLAN.md — Shared tenant ID resolution and amountDue waterfall elimination
+- [x] 08-06-PLAN.md — Stats consolidation RPCs (maintenance 7->1, lease 6->1) and list virtualization
+- [x] 08-07-PLAN.md — 'use client' audit, file-upload-item image optimization, CLAUDE.md update
 
 ### Phase 9: Testing & CI Pipeline
 **Goal**: CI catches build failures, coverage regressions, and security issues before merge
