@@ -13,7 +13,7 @@ import './src/env'
 
 const nextConfig: NextConfig = {
 	experimental: {
-		optimizePackageImports: ['date-fns', '@tanstack/react-query', '@tanstack/react-form', '@tanstack/react-virtual'],
+		optimizePackageImports: ['@tanstack/react-query', '@tanstack/react-form', '@tanstack/react-virtual'],
 	},
 
 // External images

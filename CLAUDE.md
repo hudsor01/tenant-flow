@@ -81,7 +81,7 @@ cd supabase/functions && deno test --allow-all --no-check tests/  # Edge Functio
 - Tenant portal hooks use `resolveTenantId()` from `use-tenant-portal-keys.ts` (shared cached resolution)
 - Tenant payment queries use `refetchOnWindowFocus: 'always'` (time-sensitive data exception)
 - All other queries inherit global `refetchOnWindowFocus: true` (only refetch when stale)
-- `optimizePackageImports` in `next.config.ts` for `date-fns`, `@tanstack/*`
+- `optimizePackageImports` in `next.config.ts` for `@tanstack/*`
 
 ## Query Key Factories
 All query keys use `queryOptions()` factories in `src/hooks/api/query-keys/`. Never use string literal arrays like `['blogs']`.
