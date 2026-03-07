@@ -31,8 +31,8 @@ Requirements for v1.1 Blog Redesign & CI. Each maps to roadmap phases.
 
 ### Newsletter
 
-- [ ] **NEWS-01**: `newsletter-subscribe` Edge Function using Resend Contacts API (not deprecated Audiences)
-- [ ] **NEWS-02**: Rate limiting (5 req/min per IP) and email validation on Edge Function
+- [x] **NEWS-01**: `newsletter-subscribe` Edge Function using Resend Contacts API (not deprecated Audiences)
+- [x] **NEWS-02**: Rate limiting (5 req/min per IP) and email validation on Edge Function
 - [ ] **NEWS-03**: Newsletter form calls Edge Function and shows success/error states
 
 ### Infrastructure
@@ -85,8 +85,8 @@ Requirements for v1.1 Blog Redesign & CI. Each maps to roadmap phases.
 | PAGE-03 | Phase 14 | Pending |
 | PAGE-04 | Phase 14 | Pending |
 | PAGE-05 | Phase 14 | Pending |
-| NEWS-01 | Phase 13 | Pending |
-| NEWS-02 | Phase 13 | Pending |
+| NEWS-01 | Phase 13 | Complete |
+| NEWS-02 | Phase 13 | Complete |
 | NEWS-03 | Phase 14 | Pending |
 | INFRA-01 | Phase 12 | Complete |
 | INFRA-02 | Phase 12 | Complete |

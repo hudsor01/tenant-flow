@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Blog Redesign & CI
 status: executing
-stopped_at: Completed 12-01-PLAN.md (Phase 12 complete)
-last_updated: "2026-03-07T19:56:44.494Z"
-last_activity: 2026-03-07 -- Phase 12 complete (typography plugin, scrollbar-hide, BlogCard, BlogPagination)
+stopped_at: Completed 13-01-PLAN.md (Phase 13 complete)
+last_updated: "2026-03-07T23:35:37.713Z"
+last_activity: 2026-03-07 -- Phase 13 complete (newsletter-subscribe Edge Function, Resend Contacts API)
 progress:
   total_phases: 5
-  completed_phases: 2
-  total_plans: 4
-  completed_plans: 4
-  percent: 100
+  completed_phases: 3
+  total_plans: 5
+  completed_plans: 5
+  percent: 92
 ---
 
 # Project State: TenantFlow
@@ -21,24 +21,24 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-07)
 
 **Core value:** A landlord can add a property, invite a tenant, collect rent, and see their financials -- without touching a spreadsheet or calling anyone.
-**Current focus:** v1.1 Blog Redesign & CI -- Phase 12 complete, Phase 13 next
+**Current focus:** v1.1 Blog Redesign & CI -- Phase 13 complete, Phase 14 next
 
 ## Current Position
 
 Milestone: v1.1 Blog Redesign & CI
-Phase: 12 of 15 (Blog Components & CSS) -- COMPLETE
-Plan: 2 of 2 in current phase
+Phase: 13 of 15 (Newsletter Backend) -- COMPLETE
+Plan: 1 of 1 in current phase
 Status: Executing
-Last activity: 2026-03-07 -- Phase 12 complete (typography plugin, scrollbar-hide, BlogCard, BlogPagination)
+Last activity: 2026-03-07 -- Phase 13 complete (newsletter-subscribe Edge Function, Resend Contacts API)
 
-Progress: [██████████] 100% (Phase 12)
+Progress: [█████████░] 92%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 4 (v1.1)
+- Total plans completed: 5 (v1.1)
 - Average duration: 5min
-- Total execution time: 22min
+- Total execution time: 25min
 
 *Updated after each plan completion*
 
@@ -63,6 +63,12 @@ Progress: [██████████] 100% (Phase 12)
 - Category/reading time as plain inline text spans, not pills/badges (locked decision)
 - BlogPagination clears URL param (setPage(null)) when navigating to page 1 for clean URLs
 - scrollbar-hide uses TailwindCSS v4 @utility directive pattern
+- Always return 200 success regardless of Resend API response (locked decision, duplicates silent)
+- Raw fetch to Resend REST API (no SDK, Deno runtime requires fetch)
+- Segment ID cached in module-level variable (isolate cache pattern from rate-limit.ts)
+- Race condition on segment creation handled via list-create-relist pattern
+- Email domain logged for observability, full email never logged
+- [Phase 13-newsletter-backend]: Always return 200 success regardless of Resend API response (locked decision, duplicates silent)
 
 ### Pending Todos
 
@@ -70,12 +76,12 @@ None.
 
 ### Blockers/Concerns
 
-- Resend Contacts API duplicate behavior needs empirical validation during Phase 13
+- Resend Contacts API duplicate behavior needs empirical validation during Phase 13 -- RESOLVED (always return success)
 - `@tailwindcss/typography` plugin directive added to globals.css -- RESOLVED (12-01)
 - BlogEmptyState delivered in 12-02 (src/components/shared/blog-empty-state.tsx) -- RESOLVED
 
 ## Session Continuity
 
-Last session: 2026-03-07T19:51:00.000Z
-Stopped at: Completed 12-01-PLAN.md (Phase 12 complete)
+Last session: 2026-03-07T23:35:34.243Z
+Stopped at: Completed 13-01-PLAN.md (Phase 13 complete)
 Resume file: None
