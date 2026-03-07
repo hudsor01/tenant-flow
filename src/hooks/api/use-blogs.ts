@@ -1,137 +1,84 @@
 /**
  * Blog API Hooks
- * Fetches blog posts from Supabase database
+ *
+ * Thin hook wrappers consuming blogQueries factory from blog-keys.ts.
+ * keepPreviousData applied here (not in factory) for paginated hooks.
+ * Blogs are public content -- no auth dependency.
  */
 
-import { useQuery } from '@tanstack/react-query'
-import { createClient } from '#lib/supabase/client'
-import type { Database } from '#shared/types/supabase'
+import { keepPreviousData, useQuery } from '@tanstack/react-query'
+import { blogQueries } from './query-keys/blog-keys'
 
-type Blog = Database['public']['Tables']['blogs']['Row']
-
-/** Subset of Blog columns fetched for list views (no content, no heavy fields). */
-type BlogListItem = Pick<Blog, 'id' | 'title' | 'slug' | 'excerpt' | 'published_at' | 'category' | 'reading_time' | 'featured_image' | 'author_user_id' | 'status' | 'tags'>
-
-/** Subset of Blog columns fetched for detail view (no quality_score, word_count). */
-type BlogDetail = Pick<Blog, 'id' | 'title' | 'slug' | 'excerpt' | 'content' | 'published_at' | 'category' | 'reading_time' | 'featured_image' | 'author_user_id' | 'status' | 'meta_description' | 'tags' | 'created_at' | 'updated_at'>
-
-export const blogKeys = {
-	all: ['blogs'] as const,
-	detail: (slug: string) => [...blogKeys.all, slug] as const,
-	category: (category: string) => [...blogKeys.all, 'category', category] as const,
-	featured: (limit: number) => [...blogKeys.all, 'featured', limit] as const
-}
-
-const BLOG_LIST_COLUMNS =
-	'id, title, slug, excerpt, published_at, category, reading_time, featured_image, author_user_id, status, tags'
+export type { BlogListItem, BlogDetail, BlogFilters, BlogCategory } from './query-keys/blog-keys'
 
 /**
- * Fetch all published blogs, sorted by published_at descending
+ * Fetch paginated published blogs
+ * Returns PaginatedResponse with page math and keepPreviousData for flash-free pagination
  */
-export function useBlogs() {
+export function useBlogs(page: number = 1, limit: number = 9) {
+	const offset = (page - 1) * limit
 	return useQuery({
-		queryKey: blogKeys.all,
-		queryFn: async (): Promise<BlogListItem[]> => {
-			const supabase = createClient()
-
-			const { data, error } = await supabase
-				.from('blogs')
-				.select(BLOG_LIST_COLUMNS)
-				.eq('status', 'published')
-				.order('published_at', { ascending: false })
-				.limit(20)
-
-			if (error) {
-				throw new Error(`Failed to fetch blogs: ${error.message}`)
-			}
-
-			return data || []
-		},
-		staleTime: 5 * 60 * 1000 // 5 minutes - blogs don't change frequently
+		...blogQueries.list({ limit, offset }),
+		placeholderData: keepPreviousData
 	})
 }
 
 /**
  * Fetch a single blog by slug
+ * Returns BlogDetail or null (PGRST116 handling preserved in factory)
  */
 export function useBlogBySlug(slug: string) {
 	return useQuery({
-		queryKey: blogKeys.detail(slug),
-		queryFn: async (): Promise<BlogDetail | null> => {
-			const supabase = createClient()
-
-			const { data, error } = await supabase
-				.from('blogs')
-				.select('id, title, slug, excerpt, content, published_at, category, reading_time, featured_image, author_user_id, status, meta_description, tags, created_at, updated_at')
-				.eq('slug', slug)
-				.eq('status', 'published')
-				.single()
-
-			if (error) {
-				if (error.code === 'PGRST116') {
-					// No rows returned
-					return null
-				}
-				throw new Error(`Failed to fetch blog: ${error.message}`)
-			}
-
-			return data
-		},
-		staleTime: 5 * 60 * 1000, // 5 minutes
-		enabled: !!slug // Only run query if slug is provided
+		...blogQueries.detail(slug)
 	})
 }
 
 /**
- * Fetch blogs by category
+ * Fetch paginated blogs by category
+ * Returns PaginatedResponse with keepPreviousData for flash-free pagination
  */
-export function useBlogsByCategory(category: string) {
+export function useBlogsByCategory(
+	category: string,
+	page: number = 1,
+	limit: number = 9
+) {
+	const offset = (page - 1) * limit
 	return useQuery({
-		queryKey: blogKeys.category(category),
-		queryFn: async (): Promise<BlogListItem[]> => {
-			const supabase = createClient()
-
-			const { data, error } = await supabase
-				.from('blogs')
-				.select(BLOG_LIST_COLUMNS)
-				.eq('category', category)
-				.eq('status', 'published')
-				.order('published_at', { ascending: false })
-				.limit(20)
-
-			if (error) {
-				throw new Error(`Failed to fetch blogs by category: ${error.message}`)
-			}
-
-			return data || []
-		},
-		staleTime: 5 * 60 * 1000,
-		enabled: !!category
+		...blogQueries.list({ category, limit, offset }),
+		placeholderData: keepPreviousData
 	})
 }
 
 /**
- * Fetch featured/recent blogs for homepage (limited)
+ * Fetch blog categories from RPC
+ * Returns array of { name, slug, post_count }
  */
-export function useFeaturedBlogs(limit: number = 3) {
+export function useBlogCategories() {
 	return useQuery({
-		queryKey: blogKeys.featured(limit),
-		queryFn: async (): Promise<BlogListItem[]> => {
-			const supabase = createClient()
+		...blogQueries.categories()
+	})
+}
 
-			const { data, error } = await supabase
-				.from('blogs')
-				.select(BLOG_LIST_COLUMNS)
-				.eq('status', 'published')
-				.order('published_at', { ascending: false })
-				.limit(limit)
+/**
+ * Fetch related posts (same category, excludes current post)
+ * Returns up to `limit` BlogListItem posts
+ */
+export function useRelatedPosts(
+	category: string,
+	excludeSlug: string,
+	limit: number = 3
+) {
+	return useQuery({
+		...blogQueries.related({ category, excludeSlug, limit })
+	})
+}
 
-			if (error) {
-				throw new Error(`Failed to fetch featured blogs: ${error.message}`)
-			}
-
-			return data || []
-		},
-		staleTime: 5 * 60 * 1000
+/**
+ * Fetch comparison posts filtered by tag
+ * Uses .contains() on the tags array column
+ */
+export function useComparisonPosts(tag: string = 'comparison', limit: number = 6) {
+	return useQuery({
+		...blogQueries.comparisons({ tag, limit })
 	})
 }

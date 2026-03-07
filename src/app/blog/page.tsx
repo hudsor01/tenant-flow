@@ -16,7 +16,8 @@ import {
 import Link from 'next/link'
 
 export default function BlogPage() {
-	const { data: blogPosts = [], isLoading } = useBlogs()
+	const { data: blogData, isLoading } = useBlogs()
+	const blogPosts = blogData?.data ?? []
 	return (
 		<PageLayout>
 			{/* Hero Section */}

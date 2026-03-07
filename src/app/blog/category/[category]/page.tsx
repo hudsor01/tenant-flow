@@ -49,7 +49,8 @@ export default function BlogCategoryPage() {
 	}
 
 	// The database stores category as the display name (e.g., "ROI Maximization")
-	const { data: blogPosts = [], isLoading } = useBlogsByCategory(config.name)
+	const { data: blogData, isLoading } = useBlogsByCategory(config.name)
+	const blogPosts = blogData?.data ?? []
 
 	const CategoryIcon = config.icon
 
