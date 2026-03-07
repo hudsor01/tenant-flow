@@ -19,7 +19,7 @@ Requirements for v1.1 Blog Redesign & CI. Each maps to roadmap phases.
 
 - [ ] **COMP-01**: Reusable `BlogCard` component with featured image, category label, reading time
 - [ ] **COMP-02**: `BlogPagination` component with nuqs URL state
-- [ ] **COMP-03**: `NewsletterSignup` component with mutation, toast feedback, success state
+- [x] **COMP-03**: `NewsletterSignup` component with mutation, toast feedback, success state
 
 ### Blog Pages
 
@@ -39,7 +39,7 @@ Requirements for v1.1 Blog Redesign & CI. Each maps to roadmap phases.
 
 - [ ] **INFRA-01**: Activate `@tailwindcss/typography` plugin in `globals.css`
 - [ ] **INFRA-02**: Add `scrollbar-hide` CSS utility for horizontal scroll zones
-- [ ] **INFRA-03**: Create `EmptyState` shared component
+- [x] **INFRA-03**: Create `EmptyState` shared component
 - [ ] **INFRA-04**: CI workflow: gate `checks` job to PR-only, `e2e-smoke` runs independently on push
 
 ## Future Requirements
@@ -79,7 +79,7 @@ Requirements for v1.1 Blog Redesign & CI. Each maps to roadmap phases.
 | BLOG-05 | Phase 11 | Complete |
 | COMP-01 | Phase 12 | Pending |
 | COMP-02 | Phase 12 | Pending |
-| COMP-03 | Phase 12 | Pending |
+| COMP-03 | Phase 12 | Complete |
 | PAGE-01 | Phase 14 | Pending |
 | PAGE-02 | Phase 14 | Pending |
 | PAGE-03 | Phase 14 | Pending |
@@ -90,7 +90,7 @@ Requirements for v1.1 Blog Redesign & CI. Each maps to roadmap phases.
 | NEWS-03 | Phase 14 | Pending |
 | INFRA-01 | Phase 12 | Pending |
 | INFRA-02 | Phase 12 | Pending |
-| INFRA-03 | Phase 12 | Pending |
+| INFRA-03 | Phase 12 | Complete |
 | INFRA-04 | Phase 15 | Pending |
 
 **Coverage:**

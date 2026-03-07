@@ -52,8 +52,8 @@ TenantFlow is a multi-tenant property management SaaS platform for property owne
 **Plans:** 2/2 plans complete
 
 Plans:
-- [ ] 11-01-PLAN.md -- RPC migration, type regeneration, blog cache tier
-- [ ] 11-02-PLAN.md -- Blog query key factory, hook rewrite, unit tests
+- [x] 11-01-PLAN.md -- RPC migration, type regeneration, blog cache tier
+- [x] 11-02-PLAN.md -- Blog query key factory, hook rewrite, unit tests
 
 ### Phase 12: Blog Components & CSS
 **Goal**: Reusable blog presentation components and CSS utilities are ready for page composition
@@ -65,7 +65,11 @@ Plans:
   3. NewsletterSignup shows input, submit button, and displays success or error toast after submission
   4. `prose` class renders styled typography on blog content (plugin activated)
   5. EmptyState shared component renders on any list page with zero results
-**Plans**: TBD
+**Plans:** 1/2 plans executed
+
+Plans:
+- [ ] 12-01-PLAN.md -- CSS infrastructure (typography plugin, scrollbar-hide), BlogCard, BlogPagination
+- [ ] 12-02-PLAN.md -- NewsletterSignup, BlogEmptyState
 
 ### Phase 13: Newsletter Backend
 **Goal**: Newsletter subscription works end-to-end from Edge Function to Resend contact list
@@ -116,8 +120,8 @@ Phases 11-14 execute sequentially (data layer -> components -> pages). Phase 13 
 | 8. Performance Optimization | v1.0 | 7/7 | Complete | 2026-03-06 |
 | 9. Testing & CI Pipeline | v1.0 | 9/9 | Complete | 2026-03-06 |
 | 10. Audit Cleanup | v1.0 | 2/2 | Complete | 2026-03-07 |
-| 11. Blog Data Layer | 2/2 | Complete    | 2026-03-07 | - |
-| 12. Blog Components & CSS | v1.1 | 0/? | Not started | - |
+| 11. Blog Data Layer | v1.1 | 2/2 | Complete | 2026-03-07 |
+| 12. Blog Components & CSS | 1/2 | In Progress|  | - |
 | 13. Newsletter Backend | v1.1 | 0/? | Not started | - |
 | 14. Blog Pages | v1.1 | 0/? | Not started | - |
 | 15. CI Optimization | v1.1 | 0/? | Not started | - |
