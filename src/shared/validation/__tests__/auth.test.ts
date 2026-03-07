@@ -80,4 +80,3 @@ describe('signupFormSchema', () => {
 		expect(signupFormSchema.safeParse({ ...validData, email: 'not-valid' }).success).toBe(false)
 	})
 })
-// Note: authResponseZodSchema and userProfileResponseZodSchema are dead code -- never imported anywhere.

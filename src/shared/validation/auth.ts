@@ -64,38 +64,5 @@ export const signupFormSchema = z
 		path: ['confirmPassword']
 	})
 
-// Auth response validation schema (moved from generated schemas)
-export const authResponseZodSchema = z.object({
-	user: z.object({
-		id: z.uuid(),
-		email: z.email(),
-		name: z.string(),
-		company: z.string().optional(),
-		emailVerified: z.boolean(),
-		created_at: z.string().datetime({ offset: true }),
-		updated_at: z.string().datetime({ offset: true })
-	}),
-	tokens: z.object({
-		accessToken: z.string(),
-		refreshToken: z.string(),
-		expiresIn: z.number(),
-		tokenType: z.literal('Bearer')
-	})
-})
-
-// User profile response validation schema (moved from generated schemas)
-export const userProfileResponseZodSchema = z.object({
-	id: z.uuid(),
-	email: z.email(),
-	name: z.string(),
-	company: z.string().optional(),
-	phone: z.string().optional(),
-	bio: z.string().optional(),
-	avatarUrl: z.url().optional(),
-	emailVerified: z.boolean(),
-	created_at: z.string().datetime({ offset: true }),
-	updated_at: z.string().datetime({ offset: true })
-})
-
 // NOTE: Contact form validation is in contact.ts (contactFormSchema)
 // Do not duplicate here - import from '#shared/validation/contact' instead

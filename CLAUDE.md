@@ -76,7 +76,7 @@ cd supabase/functions && deno test --allow-all --no-check tests/  # Edge Functio
 - Dynamic import heavy libraries (`recharts`, `react-markdown`) via `next/dynamic` with `ssr: false` and custom loading animations
 - Chart loading: `ChartLoadingSkeleton` from `#components/shared/chart-loading-skeleton` (CSS-only rising bars animation)
 - Blog loading: `BlogLoadingSkeleton` from `#components/shared/blog-loading-skeleton` (CSS-only text-reveal animation)
-- List views use `VirtualizedList` from `#components/shared/virtualized-list` with fixed row heights and overscan of 5
+- Table list views use `useVirtualizer` from `@tanstack/react-virtual` directly on tbody rows
 - Stats queries use consolidated RPCs: `get_maintenance_stats()`, `get_lease_stats()` (not multiple HEAD queries)
 - Tenant portal hooks use `resolveTenantId()` from `use-tenant-portal-keys.ts` (shared cached resolution)
 - Tenant payment queries use `refetchOnWindowFocus: 'always'` (time-sensitive data exception)
@@ -89,7 +89,6 @@ All query keys use `queryOptions()` factories in `src/hooks/api/query-keys/`. Ne
 **Factory files:**
 - `analytics-keys.ts` — analytics/revenue trends AND occupancy trends (shared across dashboard + analytics + reports)
 - `billing-keys.ts` — billing, subscriptions, invoices
-- `dashboard-keys.ts` — owner dashboard stats, portfolio data
 - `lease-keys.ts` — leases, lease templates
 - `maintenance-keys.ts` — maintenance requests, vendors
 - `payment-keys.ts` — payments, rent collection, autopay
@@ -291,7 +290,6 @@ RLS (Row Level Security) is the primary access-control layer. Proxy middleware e
 - Report hooks: report hooks query real `reports` and `report_runs` tables, and aggregate data via existing RPCs (not stub data).
 - Vendored UI components: `src/components/ui/tour.tsx` (1,732 lines) is a vendored Dice UI upstream copy — exempt from 300-line rule. eslint-disable suppressions for `useAsRef` pattern are legitimate upstream conventions.
 - `next/image` does NOT support blob: URLs -- use `<img>` for `URL.createObjectURL()` previews (file-upload-item.tsx)
-- VirtualizedList scroll container needs explicit height (`h-[calc(100vh-Xpx)]`) -- without height, all items render
 - `gitleaks protect --staged` runs in pre-commit -- secrets caught before reaching repo
 - Edge Function tests need `supabase functions serve` (or `supabase start`) running locally
 - Tenant RLS integration tests need `E2E_TENANT_EMAIL` and `E2E_TENANT_PASSWORD` env vars (tests skip gracefully without them)
@@ -309,7 +307,7 @@ RLS (Row Level Security) is the primary access-control layer. Proxy middleware e
 - Use shadcn `Switch` for toggles — never custom CSS toggle divs
 - Use `NotFoundPage` from `#components/shared/not-found-page` for all 404 pages (generic message, not entity-specific)
 - Use `ErrorPage` from `#components/shared/error-page` for all error boundaries (retry + dashboard link)
-- Use `EmptyState` from `#components/shared/empty-state` for list page empty states
+- Use `Empty` compound component from `#components/ui/empty` for list page empty states
 - Tenant delete is soft-delete (status: 'inactive') with active-lease blocking guard
 - Kanban boards use scroll-snap on mobile, grid on desktop
 
