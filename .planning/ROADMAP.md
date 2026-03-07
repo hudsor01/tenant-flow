@@ -31,7 +31,7 @@ TenantFlow is a multi-tenant property management SaaS platform for property owne
 
 **Milestone Goal:** Transform MVP blog into a production content-marketing platform with split content zones, pagination, category navigation, working newsletter subscription, and CI workflow optimization.
 
-- [ ] **Phase 11: Blog Data Layer** - RPC migration, query key factory, paginated hooks, type regeneration
+- [x] **Phase 11: Blog Data Layer** - RPC migration, query key factory, paginated hooks, type regeneration (completed 2026-03-07)
 - [ ] **Phase 12: Blog Components & CSS** - BlogCard, BlogPagination, NewsletterSignup, EmptyState, CSS utilities
 - [ ] **Phase 13: Newsletter Backend** - newsletter-subscribe Edge Function with Resend Contacts API and rate limiting
 - [ ] **Phase 14: Blog Pages** - Hub with split zones, detail with related posts, category with pagination
@@ -49,7 +49,7 @@ TenantFlow is a multi-tenant property management SaaS platform for property owne
   3. Related posts query returns up to 3 same-category posts excluding the current post
   4. All blog queries use `queryOptions()` factories from `blog-keys.ts` -- no string literal query keys
   5. `pnpm typecheck` passes clean after RPC migration and type regeneration
-**Plans:** 1/2 plans executed
+**Plans:** 2/2 plans complete
 
 Plans:
 - [ ] 11-01-PLAN.md -- RPC migration, type regeneration, blog cache tier
@@ -116,7 +116,7 @@ Phases 11-14 execute sequentially (data layer -> components -> pages). Phase 13 
 | 8. Performance Optimization | v1.0 | 7/7 | Complete | 2026-03-06 |
 | 9. Testing & CI Pipeline | v1.0 | 9/9 | Complete | 2026-03-06 |
 | 10. Audit Cleanup | v1.0 | 2/2 | Complete | 2026-03-07 |
-| 11. Blog Data Layer | 1/2 | In Progress|  | - |
+| 11. Blog Data Layer | 2/2 | Complete   | 2026-03-07 | - |
 | 12. Blog Components & CSS | v1.1 | 0/? | Not started | - |
 | 13. Newsletter Backend | v1.1 | 0/? | Not started | - |
 | 14. Blog Pages | v1.1 | 0/? | Not started | - |
