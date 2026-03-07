@@ -10,7 +10,7 @@ Requirements for v1.1 Blog Redesign & CI. Each maps to roadmap phases.
 ### Blog Data Layer
 
 - [ ] **BLOG-01**: Paginated blog queries with `.range()` and `{ count: 'exact' }`
-- [ ] **BLOG-02**: `get_blog_categories` RPC returns distinct categories with post counts
+- [x] **BLOG-02**: `get_blog_categories` RPC returns distinct categories with post counts
 - [ ] **BLOG-03**: Related posts query (same category, exclude current, limit 3)
 - [ ] **BLOG-04**: Featured comparisons query (Software Comparisons category)
 - [ ] **BLOG-05**: Blog query key factory (`blog-keys.ts`) using `queryOptions()` pattern
@@ -73,7 +73,7 @@ Requirements for v1.1 Blog Redesign & CI. Each maps to roadmap phases.
 | Requirement | Phase | Status |
 |-------------|-------|--------|
 | BLOG-01 | Phase 11 | Pending |
-| BLOG-02 | Phase 11 | Pending |
+| BLOG-02 | Phase 11 | Complete |
 | BLOG-03 | Phase 11 | Pending |
 | BLOG-04 | Phase 11 | Pending |
 | BLOG-05 | Phase 11 | Pending |

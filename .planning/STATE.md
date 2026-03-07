@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Blog Redesign & CI
-status: context_gathered
-stopped_at: Phase 11 context gathered, ready to plan
-last_updated: "2026-03-07T04:00:00Z"
-last_activity: 2026-03-07 -- Phase 11 context gathered (4 decision areas)
+status: executing
+stopped_at: Completed 11-01-PLAN.md
+last_updated: "2026-03-07T06:50:19.586Z"
+last_activity: 2026-03-07 -- Phase 11 Plan 01 complete (get_blog_categories RPC + BLOG cache tier)
 progress:
   total_phases: 5
   completed_phases: 0
-  total_plans: 0
-  completed_plans: 0
-  percent: 0
+  total_plans: 2
+  completed_plans: 1
+  percent: 50
 ---
 
 # Project State: TenantFlow
@@ -21,24 +21,24 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-07)
 
 **Core value:** A landlord can add a property, invite a tenant, collect rent, and see their financials -- without touching a spreadsheet or calling anyone.
-**Current focus:** v1.1 Blog Redesign & CI -- Phase 11 (Blog Data Layer) context gathered, ready to plan
+**Current focus:** v1.1 Blog Redesign & CI -- Phase 11 Plan 01 complete, Plan 02 next
 
 ## Current Position
 
 Milestone: v1.1 Blog Redesign & CI
 Phase: 11 of 15 (Blog Data Layer)
-Plan: 0 of ? in current phase
-Status: Context gathered
-Last activity: 2026-03-07 -- Phase 11 context gathered (4 decision areas)
+Plan: 1 of 2 in current phase
+Status: Executing
+Last activity: 2026-03-07 -- Phase 11 Plan 01 complete (get_blog_categories RPC + BLOG cache tier)
 
-Progress: [░░░░░░░░░░] 0%
+Progress: [█████░░░░░] 50%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 0 (v1.1)
-- Average duration: --
-- Total execution time: --
+- Total plans completed: 1 (v1.1)
+- Average duration: 2min
+- Total execution time: 2min
 
 *Updated after each plan completion*
 
@@ -50,6 +50,8 @@ Progress: [░░░░░░░░░░] 0%
 - CI dedup: gate checks to PR-only, e2e-smoke runs independently on push to main
 - Data layer is critical path: RPC migration + type regeneration must complete before components or pages
 - Phase 13 (Newsletter) and Phase 15 (CI) are independent -- can execute in parallel with other phases
+- get_blog_categories RPC uses SECURITY INVOKER with grants to anon + authenticated (public content)
+- BLOG cache tier: 2min staleTime, 10min gcTime (shorter than DETAIL to reflect hourly n8n publish cadence)
 
 ### Pending Todos
 
@@ -63,6 +65,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-07
-Stopped at: Phase 11 context gathered, ready to plan
-Resume file: .planning/phases/11-blog-data-layer/11-CONTEXT.md
+Last session: 2026-03-07T06:50:19.584Z
+Stopped at: Completed 11-01-PLAN.md
+Resume file: None
