@@ -65,5 +65,14 @@ export const QUERY_CACHE_TIMES = {
 	SECURITY: {
 		staleTime: 2 * 60 * 1000, // 2 minutes
 		gcTime: 5 * 60 * 1000 // 5 minutes
+	},
+
+	/**
+	 * Blog content queries (public marketing content)
+	 * Shorter staleTime because n8n publishes new posts every hour
+	 */
+	BLOG: {
+		staleTime: 2 * 60 * 1000, // 2 minutes
+		gcTime: 10 * 60 * 1000 // 10 minutes
 	}
 } as const
