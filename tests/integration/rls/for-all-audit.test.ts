@@ -22,19 +22,26 @@ describe('FOR ALL policy audit — no FOR ALL policies on public/storage', () =>
     expect(error).toBeNull()
 
     const policies = Array.isArray(data) ? data : []
-    if (policies.length > 0) {
-      const details = policies
+
+    // rent_payments_service_role is intentional — webhook handler writes via service_role
+    const unexpected = policies.filter(
+      (p: { tablename: string; policyname: string }) =>
+        p.policyname !== 'rent_payments_service_role',
+    )
+
+    if (unexpected.length > 0) {
+      const details = unexpected
         .map(
           (p: { schemaname: string; tablename: string; policyname: string }) =>
             `${p.schemaname}.${p.tablename}: "${p.policyname}"`,
         )
         .join(', ')
       throw new Error(
-        `Found ${policies.length} service_role FOR ALL policies: ${details}`,
+        `Found ${unexpected.length} service_role FOR ALL policies: ${details}`,
       )
     }
 
-    expect(policies).toHaveLength(0)
+    expect(unexpected).toHaveLength(0)
   })
 
   it('no FOR ALL policies exist for authenticated on public or storage schemas', async () => {

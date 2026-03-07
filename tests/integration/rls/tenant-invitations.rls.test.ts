@@ -17,36 +17,36 @@ describe('Tenant Invitations RLS — cross-owner isolation', () => {
   })
 
   // ---------------------------------------------------------------------------
-  // SELECT isolation — tenant_invitations scoped by property_owner_id
-  // via get_current_property_owner_id()
+  // SELECT isolation — tenant_invitations scoped by owner_user_id
+  // via get_current_owner_user_id()
   // ---------------------------------------------------------------------------
 
   it('owner A can only read their own tenant_invitations', async () => {
     const { data, error } = await clientA
       .from('tenant_invitations')
-      .select('id, property_owner_id')
+      .select('id, owner_user_id')
 
     expect(error).toBeNull()
     expect(data).not.toBeNull()
 
     if (!data || data.length === 0) return
 
-    // All returned rows should have the same property_owner_id
-    const ownerIds = new Set(data.map((r) => r.property_owner_id as string))
+    // All returned rows should have the same owner_user_id
+    const ownerIds = new Set(data.map((r) => r.owner_user_id as string))
     expect(ownerIds.size).toBeLessThanOrEqual(1)
   })
 
   it('owner B can only read their own tenant_invitations', async () => {
     const { data, error } = await clientB
       .from('tenant_invitations')
-      .select('id, property_owner_id')
+      .select('id, owner_user_id')
 
     expect(error).toBeNull()
     expect(data).not.toBeNull()
 
     if (!data || data.length === 0) return
 
-    const ownerIds = new Set(data.map((r) => r.property_owner_id as string))
+    const ownerIds = new Set(data.map((r) => r.owner_user_id as string))
     expect(ownerIds.size).toBeLessThanOrEqual(1)
   })
 
