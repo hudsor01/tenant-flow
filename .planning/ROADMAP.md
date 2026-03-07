@@ -221,8 +221,8 @@ Plans:
 **Plans**: 2 plans
 
 Plans:
-- [ ] 10-01-PLAN.md — Remove dead code (monitoring rate limiter, Zod schemas) and orphaned components (EmptyState, VirtualizedList)
-- [ ] 10-02-PLAN.md — Fix CLAUDE.md inaccuracies and create retroactive Phase 4 VERIFICATION.md
+- [x] 10-01-PLAN.md — Remove dead code (monitoring rate limiter, Zod schemas) and orphaned components (EmptyState, VirtualizedList)
+- [x] 10-02-PLAN.md — Fix CLAUDE.md inaccuracies and create retroactive Phase 4 VERIFICATION.md
 
 ## Progress
 

@@ -250,6 +250,8 @@ Progress: [█████████░] 91%
 - [Phase 09]: Used userEvent.upload on hidden file input instead of fireEvent.drop to work around jsdom read-only FileList
 - [Phase 09]: CLAUDE.md updated with 3 new sections (TypeScript Strictness, Testing Conventions, CI Pipeline) consolidating all Phase 9 patterns
 - [Phase 10]: Task 1 dead code removal already completed by prior commit bf52b34a7 -- verified diff matched plan, reused commit
+- [Phase 10]: 04-VERIFICATION.md uses double hyphens (--) per plan spec, not em dashes
+- [Phase 10]: 04-VERIFICATION.md committed by concurrent 10-01 agent (aa5f86782) during staging race -- content correct
 
 ### Pending Todos
 
