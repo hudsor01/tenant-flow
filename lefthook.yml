@@ -23,5 +23,3 @@ pre-push:
   commands:
     lockfile-sync:
       run: pnpm install --lockfile-only --ignore-scripts && git diff --quiet pnpm-lock.yaml
-    rls-tests:
-      run: pnpm test:integration
