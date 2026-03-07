@@ -68,8 +68,8 @@ Plans:
 **Plans:** 2/2 plans complete
 
 Plans:
-- [ ] 12-01-PLAN.md -- CSS infrastructure (typography plugin, scrollbar-hide), BlogCard, BlogPagination
-- [ ] 12-02-PLAN.md -- NewsletterSignup, BlogEmptyState
+- [x] 12-01-PLAN.md -- CSS infrastructure (typography plugin, scrollbar-hide), BlogCard, BlogPagination
+- [x] 12-02-PLAN.md -- NewsletterSignup, BlogEmptyState
 
 ### Phase 13: Newsletter Backend
 **Goal**: Newsletter subscription works end-to-end from Edge Function to Resend contact list
@@ -79,7 +79,10 @@ Plans:
   1. `newsletter-subscribe` Edge Function creates a contact in Resend via the Contacts API (not deprecated Audiences API)
   2. Submitting the same email twice returns success (duplicate handled gracefully, not errored)
   3. More than 5 requests per minute from the same IP are rate-limited with a 429 response
-**Plans**: TBD
+**Plans:** 1 plan
+
+Plans:
+- [ ] 13-01-PLAN.md -- newsletter-subscribe Edge Function and integration tests
 
 ### Phase 14: Blog Pages
 **Goal**: Users can browse, read, and navigate blog content through a redesigned hub, detail pages, and category pages
@@ -122,6 +125,6 @@ Phases 11-14 execute sequentially (data layer -> components -> pages). Phase 13 
 | 10. Audit Cleanup | v1.0 | 2/2 | Complete | 2026-03-07 |
 | 11. Blog Data Layer | v1.1 | 2/2 | Complete | 2026-03-07 |
 | 12. Blog Components & CSS | 2/2 | Complete    | 2026-03-07 | - |
-| 13. Newsletter Backend | v1.1 | 0/? | Not started | - |
+| 13. Newsletter Backend | v1.1 | 0/1 | Not started | - |
 | 14. Blog Pages | v1.1 | 0/? | Not started | - |
 | 15. CI Optimization | v1.1 | 0/? | Not started | - |
