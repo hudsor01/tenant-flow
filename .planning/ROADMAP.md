@@ -5,9 +5,9 @@
 TenantFlow is a multi-tenant property management SaaS platform for property owners and managers. The roadmap follows milestone-grouped phases with continuous numbering across all versions.
 
 ## Milestones
-- 🚧 **v1.0 Production Hardening** - Phases 1-9 (in progress)
+- 🚧 **v1.0 Production Hardening** - Phases 1-10 (in progress)
 
-### v1.0 Production Hardening (Phases 1-9)
+### v1.0 Production Hardening (Phases 1-10)
 
 **Milestone Goal:** Fix all 131 findings from the comprehensive 8-agent review (22 P0, 35 P1, 46 P2, 28 P3). Phases ordered by exploitability and harm: RPC data exfiltration first, financial bugs second, remaining security third, then code quality, database, UX, performance, and testing. DOC-01 (CLAUDE.md rewrite) is a recurring task executed at the end of every phase.
 
@@ -20,6 +20,7 @@ TenantFlow is a multi-tenant property management SaaS platform for property owne
 - [x] **Phase 7: UX & Accessibility** - Fix text-muted visibility, add aria-labels, error boundaries, and responsive fixes
 - [x] **Phase 8: Performance Optimization** - Parallelize waterfalls, code-split charts, consolidate redundant queries
 - [x] **Phase 9: Testing & CI Pipeline** - Add next build to CI, coverage enforcement, Edge Function tests, RLS test gaps (completed 2026-03-06)
+- [ ] **Phase 10: Audit Cleanup** - Remove dead code, resolve orphaned components, fix CLAUDE.md inaccuracies, retroactive Phase 4 verification
 
 ## Phase Details
 
@@ -207,6 +208,22 @@ Plans:
 - [x] 09-08-PLAN.md — Edge Function tests: stripe-autopay-charge + tenant-invitation-accept (Deno test runner)
 - [x] 09-09-PLAN.md — CLAUDE.md update with Phase 9 testing and CI conventions
 
+### Phase 10: Audit Cleanup
+**Goal**: Close all code-actionable tech debt and integration findings from milestone audit
+**Depends on**: Phase 9
+**Requirements**: None (all 171/171 satisfied — this phase addresses tech debt only)
+**Gap Closure:** Closes integration findings from v1.0 milestone audit
+**Success Criteria** (what must be TRUE):
+  1. Zero dead code: monitoring rate limiter removed from proxy.ts, dead Zod schemas removed from auth.ts
+  2. Zero orphaned components: EmptyState and VirtualizedList removed (superseded by direct usage of underlying primitives)
+  3. CLAUDE.md is accurate: dashboard-keys.ts reference fixed, orphaned component conventions removed
+  4. Phase 4 has retroactive VERIFICATION.md documenting all 14 EDGE requirements + DOC-01
+**Plans**: 2 plans
+
+Plans:
+- [ ] 10-01-PLAN.md — Remove dead code (monitoring rate limiter, Zod schemas) and orphaned components (EmptyState, VirtualizedList)
+- [ ] 10-02-PLAN.md — Fix CLAUDE.md inaccuracies and create retroactive Phase 4 VERIFICATION.md
+
 ## Progress
 
 **Execution Order:**
@@ -223,3 +240,4 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8 -> 9
 | 7. UX & Accessibility | v1.0 | 6/6 | Complete | 2026-03-06 |
 | 8. Performance Optimization | v1.0 | 7/7 | Complete | 2026-03-06 |
 | 9. Testing & CI Pipeline | v1.0 | 9/9 | Complete | 2026-03-06 |
+| 10. Audit Cleanup | v1.0 | 0/2 | Ready | - |
