@@ -121,7 +121,7 @@ Phases 11-14 execute sequentially (data layer -> components -> pages). Phase 13 
 | 9. Testing & CI Pipeline | v1.0 | 9/9 | Complete | 2026-03-06 |
 | 10. Audit Cleanup | v1.0 | 2/2 | Complete | 2026-03-07 |
 | 11. Blog Data Layer | v1.1 | 2/2 | Complete | 2026-03-07 |
-| 12. Blog Components & CSS | 2/2 | Complete   | 2026-03-07 | - |
+| 12. Blog Components & CSS | 2/2 | Complete    | 2026-03-07 | - |
 | 13. Newsletter Backend | v1.1 | 0/? | Not started | - |
 | 14. Blog Pages | v1.1 | 0/? | Not started | - |
 | 15. CI Optimization | v1.1 | 0/? | Not started | - |
