@@ -6,12 +6,10 @@
  */
 
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import type {
-	CreateInspectionRoomInput,
-	UpdateInspectionRoomInput
-} from '#lib/validation/inspections'
+import type { UpdateInspectionRoomInput } from '#lib/validation/inspections'
 
 import { inspectionQueries } from './query-keys/inspection-keys'
+import { inspectionMutations } from './query-keys/inspection-mutation-options'
 import { createClient } from '#lib/supabase/client'
 import { handlePostgrestError } from '#lib/postgrest-error-handler'
 import { handleMutationError, handleMutationSuccess } from '#lib/mutation-error-handler'
@@ -23,18 +21,7 @@ export function useCreateInspectionRoom() {
 	const queryClient = useQueryClient()
 
 	return useMutation({
-		mutationFn: async (dto: CreateInspectionRoomInput) => {
-			const supabase = createClient()
-			const { data: created, error } = await supabase
-				.from('inspection_rooms')
-				.insert(dto)
-				.select()
-				.single()
-
-			if (error) handlePostgrestError(error, 'inspection_rooms')
-
-			return created
-		},
+		...inspectionMutations.createRoom(),
 		onSuccess: (_, variables) => {
 			queryClient.invalidateQueries({
 				queryKey: inspectionQueries.detailQuery(variables.inspection_id).queryKey
@@ -47,7 +34,9 @@ export function useCreateInspectionRoom() {
 }
 
 /**
- * Update a room within an inspection
+ * Update a room within an inspection.
+ * Note: Uses inline mutationFn because the factory's updateRoom(roomId) requires
+ * roomId at creation time, but this hook receives { roomId, dto } as variables.
  */
 export function useUpdateInspectionRoom(inspectionId: string) {
 	const queryClient = useQueryClient()
@@ -88,33 +77,7 @@ export function useDeleteInspectionRoom(inspectionId: string) {
 	const queryClient = useQueryClient()
 
 	return useMutation({
-		mutationFn: async (roomId: string): Promise<void> => {
-			const supabase = createClient()
-
-			// Fetch photos for the room to clean up storage
-			const { data: photos } = await supabase
-				.from('inspection_photos')
-				.select('storage_path')
-				.eq('inspection_room_id', roomId)
-
-			// Delete the room (FK cascade deletes inspection_photos if configured)
-			const { error } = await supabase
-				.from('inspection_rooms')
-				.delete()
-				.eq('id', roomId)
-
-			if (error) handlePostgrestError(error, 'inspection_rooms')
-
-			// Attempt storage cleanup for each photo (non-blocking)
-			if (photos && photos.length > 0) {
-				const storagePaths = photos.map(p => p.storage_path)
-				try {
-					await supabase.storage.from('inspection-photos').remove(storagePaths)
-				} catch {
-					// Log warning but don't fail — DB cleanup is complete
-				}
-			}
-		},
+		...inspectionMutations.deleteRoom(),
 		onSuccess: () => {
 			queryClient.invalidateQueries({
 				queryKey: inspectionQueries.detailQuery(inspectionId).queryKey

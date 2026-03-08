@@ -1,4 +1,4 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useMutation, useQuery, useQueryClient, mutationOptions } from '@tanstack/react-query'
 
 import { createClient } from '#lib/supabase/client'
 import { mutationKeys } from './mutation-keys'
@@ -22,6 +22,42 @@ export interface UserSession {
 }
 
 const sessionsKey = ['user', 'sessions'] as const
+
+// ============================================================================
+// MUTATION OPTIONS FACTORY
+// ============================================================================
+
+const sessionMutationFactories = {
+	revoke: () =>
+		mutationOptions({
+			mutationKey: mutationKeys.sessions.revoke,
+			mutationFn: async (sessionId: string) => {
+				const supabase = createClient()
+				const {
+					data: { session }
+				} = await supabase.auth.getSession()
+
+				const isCurrentSession =
+					session?.access_token === sessionId || sessionId === 'current'
+
+				if (isCurrentSession) {
+					const { error } = await supabase.auth.signOut()
+					if (error) throw error
+					return { success: true, message: 'Session terminated' }
+				}
+
+				// Revoking non-current sessions requires the Admin API (service_role key),
+				// which cannot be used in the browser client. NestJS backend has been removed.
+				throw new Error(
+					'Revoking non-current sessions requires admin access — not available in this version'
+				)
+			}
+		})
+}
+
+// ============================================================================
+// QUERY HOOKS
+// ============================================================================
 
 export function useUserSessions() {
 	return useQuery({
@@ -63,28 +99,7 @@ export function useRevokeSessionMutation() {
 	const queryClient = useQueryClient()
 
 	return useMutation({
-		mutationKey: mutationKeys.sessions.revoke,
-		mutationFn: async (sessionId: string) => {
-			const supabase = createClient()
-			const {
-				data: { session }
-			} = await supabase.auth.getSession()
-
-			const isCurrentSession =
-				session?.access_token === sessionId || sessionId === 'current'
-
-			if (isCurrentSession) {
-				const { error } = await supabase.auth.signOut()
-				if (error) throw error
-				return { success: true, message: 'Session terminated' }
-			}
-
-			// Revoking non-current sessions requires the Admin API (service_role key),
-			// which cannot be used in the browser client. NestJS backend has been removed.
-			throw new Error(
-				'Revoking non-current sessions requires admin access — not available in this version'
-			)
-		},
+		...sessionMutationFactories.revoke(),
 		onMutate: async sessionId => {
 			await queryClient.cancelQueries({ queryKey: sessionsKey })
 

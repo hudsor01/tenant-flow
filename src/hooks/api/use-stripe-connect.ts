@@ -2,7 +2,7 @@
  * TanStack Query hooks for Stripe Connect API
  * Calls the stripe-connect Supabase Edge Function directly (no NestJS).
  */
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useMutation, useQuery, useQueryClient, mutationOptions } from '@tanstack/react-query'
 import { QUERY_CACHE_TIMES } from '#lib/constants/query-config'
 import { handleMutationError } from '#lib/mutation-error-handler'
 import { createClient } from '#lib/supabase/client'
@@ -114,13 +114,43 @@ async function callStripeConnectFunction<T>(
 }
 
 // ============================================================================
+// Mutation Options Factories
+// ============================================================================
+
+const stripeConnectMutationFactories = {
+	createAccount: () =>
+		mutationOptions({
+			mutationKey: mutationKeys.stripeConnect.createAccount,
+			mutationFn: async (request: CreateConnectAccountRequest) => {
+				const result = await callStripeConnectFunction<{
+					onboardingUrl: string
+					accountId: string
+				}>('onboard', {
+					displayName: request.displayName,
+					businessName: request.businessName,
+					country: request.country,
+					entityType: request.entityType,
+				})
+				window.location.href = result.onboardingUrl
+				return result
+			}
+		}),
+
+	refreshLink: () =>
+		mutationOptions<{ onboardingUrl: string }, unknown, void>({
+			mutationKey: mutationKeys.stripeConnect.refreshLink,
+			mutationFn: async () => {
+				const result = await callStripeConnectFunction<{ onboardingUrl: string }>('refresh-link')
+				window.location.href = result.onboardingUrl
+				return result
+			}
+		})
+}
+
+// ============================================================================
 // Hooks
 // ============================================================================
 
-/**
- * Hook to fetch owner's connected account details.
- * Returns null when no account exists yet.
- */
 export function useConnectedAccount() {
 	return useQuery({
 		queryKey: stripeConnectKeys.account(),
@@ -132,7 +162,6 @@ export function useConnectedAccount() {
 				}>('account')
 				return result.account
 			} catch {
-				// Account status should not crash the dashboard — return null on error
 				return null
 			}
 		},
@@ -141,68 +170,37 @@ export function useConnectedAccount() {
 	})
 }
 
-/**
- * Hook to create a new Stripe Connect account and start onboarding.
- * Performs a full-page redirect to the Stripe onboarding URL.
- */
 export function useCreateConnectedAccountMutation() {
 	const queryClient = useQueryClient()
 
 	return useMutation({
-		mutationKey: mutationKeys.stripeConnect.createAccount,
-		mutationFn: async (request: CreateConnectAccountRequest) => {
-			const result = await callStripeConnectFunction<{
-				onboardingUrl: string
-				accountId: string
-			}>('onboard', {
-				displayName: request.displayName,
-				businessName: request.businessName,
-				country: request.country,
-				entityType: request.entityType,
-			})
-			// Full-page redirect per user decision (avoids popup blockers)
-			window.location.href = result.onboardingUrl
-			return result
-		},
+		...stripeConnectMutationFactories.createAccount(),
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: stripeConnectKeys.account() })
 		},
-		onError: (error: unknown) => {
+		onError: (error) => {
 			handleMutationError(
 				error,
 				'Connect Stripe account',
-				'Unable to connect to Stripe — try again'
+				'Unable to connect to Stripe -- try again'
 			)
 		},
 	})
 }
 
-/**
- * Hook to refresh an expired onboarding link.
- * Performs a full-page redirect to the refreshed Stripe onboarding URL.
- */
 export function useRefreshOnboardingMutation() {
 	return useMutation({
-		mutationKey: mutationKeys.stripeConnect.refreshLink,
-		mutationFn: async () => {
-			const result = await callStripeConnectFunction<{ onboardingUrl: string }>('refresh-link')
-			// Full-page redirect per user decision
-			window.location.href = result.onboardingUrl
-			return result
-		},
-		onError: (error: unknown) => {
+		...stripeConnectMutationFactories.refreshLink(),
+		onError: (error) => {
 			handleMutationError(
 				error,
 				'Refresh onboarding link',
-				'Unable to connect to Stripe — try again'
+				'Unable to connect to Stripe -- try again'
 			)
 		},
 	})
 }
 
-/**
- * Hook to fetch connected account balance
- */
 export function useConnectedAccountBalance() {
 	return useQuery({
 		queryKey: stripePayoutKeys.balance(),
@@ -214,9 +212,6 @@ export function useConnectedAccountBalance() {
 	})
 }
 
-/**
- * Hook to list payouts for connected account
- */
 export function useConnectedAccountPayouts(params?: {
 	limit?: number
 	starting_after?: string
@@ -231,9 +226,6 @@ export function useConnectedAccountPayouts(params?: {
 	})
 }
 
-/**
- * Hook to list transfers (rent payments received) for connected account
- */
 export function useConnectedAccountTransfers(params?: {
 	limit?: number
 	starting_after?: string

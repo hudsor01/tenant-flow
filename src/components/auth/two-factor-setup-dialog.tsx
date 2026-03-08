@@ -226,7 +226,7 @@ export function TwoFactorSetupDialog({
 								</InputOTP>
 							</div>
 
-							{verifyMfa.error && (
+							{verifyMfa.error !== null && (
 								<div className="rounded-lg border border-destructive/50 bg-destructive/10 p-3 text-center">
 									<p className="text-sm text-destructive">
 										Invalid code. Please try again.

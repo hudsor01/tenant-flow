@@ -8,8 +8,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 
 import { inspectionQueries } from './query-keys/inspection-keys'
-import { createClient } from '#lib/supabase/client'
-import { handlePostgrestError } from '#lib/postgrest-error-handler'
+import { inspectionMutations } from './query-keys/inspection-mutation-options'
 import { handleMutationError, handleMutationSuccess } from '#lib/mutation-error-handler'
 
 /**
@@ -22,34 +21,7 @@ export function useRecordInspectionPhoto(inspectionId: string) {
 	const queryClient = useQueryClient()
 
 	return useMutation({
-		mutationFn: async (dto: {
-			inspection_room_id: string
-			inspection_id: string
-			storage_path: string
-			file_name: string
-			file_size?: number
-			mime_type: string
-			caption?: string
-		}) => {
-			const supabase = createClient()
-			const { data: photo, error } = await supabase
-				.from('inspection_photos')
-				.insert(dto)
-				.select()
-				.single()
-
-			if (error) {
-				// DB insert failed after Storage upload succeeded — attempt cleanup
-				try {
-					await supabase.storage.from('inspection-photos').remove([dto.storage_path])
-				} catch {
-					// Non-blocking — log warning on failure
-				}
-				handlePostgrestError(error, 'inspection_photos')
-			}
-
-			return photo
-		},
+		...inspectionMutations.recordPhoto(),
 		onSuccess: () => {
 			queryClient.invalidateQueries({
 				queryKey: inspectionQueries.detailQuery(inspectionId).queryKey
@@ -70,33 +42,7 @@ export function useDeleteInspectionPhoto(inspectionId: string) {
 	const queryClient = useQueryClient()
 
 	return useMutation({
-		mutationFn: async (photoId: string): Promise<void> => {
-			const supabase = createClient()
-
-			// Fetch the storage_path before deleting
-			const { data: photo } = await supabase
-				.from('inspection_photos')
-				.select('storage_path')
-				.eq('id', photoId)
-				.single()
-
-			// Delete from database (RLS verifies ownership via inspection)
-			const { error: dbError } = await supabase
-				.from('inspection_photos')
-				.delete()
-				.eq('id', photoId)
-
-			if (dbError) handlePostgrestError(dbError, 'inspection_photos')
-
-			// Delete from storage (non-blocking)
-			if (photo?.storage_path) {
-				try {
-					await supabase.storage.from('inspection-photos').remove([photo.storage_path])
-				} catch {
-					// Log warning but don't fail — DB cleanup is complete
-				}
-			}
-		},
+		...inspectionMutations.deletePhoto(),
 		onSuccess: () => {
 			queryClient.invalidateQueries({
 				queryKey: inspectionQueries.detailQuery(inspectionId).queryKey

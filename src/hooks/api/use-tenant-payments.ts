@@ -4,7 +4,7 @@
  * Tenant Payment Hooks — payment queries, amount due, rent checkout
  */
 
-import { queryOptions, useQuery, useMutation } from '@tanstack/react-query'
+import { queryOptions, useQuery, useMutation, mutationOptions } from '@tanstack/react-query'
 import { createClient } from '#lib/supabase/client'
 import { handlePostgrestError } from '#lib/postgrest-error-handler'
 import { handleMutationError } from '#lib/mutation-error-handler'
@@ -250,34 +250,45 @@ export function useTenantPayments() {
 }
 
 // ============================================================================
+// MUTATION OPTIONS FACTORY
+// ============================================================================
+
+const tenantPaymentMutationFactories = {
+	rentCheckout: () =>
+		mutationOptions({
+			mutationKey: mutationKeys.tenantPortal.payRent,
+			mutationFn: async (rentDueId: string): Promise<CreateRentCheckoutResponse> => {
+				const supabase = createClient()
+				const { data: { session } } = await supabase.auth.getSession()
+				if (!session?.access_token) throw new Error('Not authenticated')
+
+				const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+				const response = await fetch(`${supabaseUrl}/functions/v1/stripe-rent-checkout`, {
+					method: 'POST',
+					headers: {
+						Authorization: `Bearer ${session.access_token}`,
+						'Content-Type': 'application/json',
+					},
+					body: JSON.stringify({ rent_due_id: rentDueId }),
+				})
+
+				if (!response.ok) {
+					const errorData = await response.json().catch(() => ({ error: 'Payment service unavailable' }))
+					throw new Error((errorData as RentCheckoutError).error ?? 'Failed to start checkout')
+				}
+
+				return response.json() as Promise<CreateRentCheckoutResponse>
+			}
+		})
+}
+
+// ============================================================================
 // MUTATION HOOKS
 // ============================================================================
 
 export function useRentCheckoutMutation() {
 	return useMutation({
-		mutationKey: mutationKeys.tenantPortal.payRent,
-		mutationFn: async (rentDueId: string): Promise<CreateRentCheckoutResponse> => {
-			const supabase = createClient()
-			const { data: { session } } = await supabase.auth.getSession()
-			if (!session?.access_token) throw new Error('Not authenticated')
-
-			const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-			const response = await fetch(`${supabaseUrl}/functions/v1/stripe-rent-checkout`, {
-				method: 'POST',
-				headers: {
-					Authorization: `Bearer ${session.access_token}`,
-					'Content-Type': 'application/json',
-				},
-				body: JSON.stringify({ rent_due_id: rentDueId }),
-			})
-
-			if (!response.ok) {
-				const errorData = await response.json().catch(() => ({ error: 'Payment service unavailable' }))
-				throw new Error((errorData as RentCheckoutError).error ?? 'Failed to start checkout')
-			}
-
-			return response.json() as Promise<CreateRentCheckoutResponse>
-		},
+		...tenantPaymentMutationFactories.rentCheckout(),
 		onSuccess: (data) => {
 			if (data.url) {
 				window.location.href = data.url

@@ -8,37 +8,12 @@ import { createClient } from '#lib/supabase/client'
 import { getCachedUser } from '#lib/supabase/get-cached-user'
 import { handlePostgrestError } from '#lib/postgrest-error-handler'
 import { handleMutationError } from '#lib/mutation-error-handler'
-import { mutationKeys } from './mutation-keys'
+import { financialMutations } from './query-keys/financial-mutation-options'
+import type { Expense } from './query-keys/financial-mutation-options'
 import type { TaxDocumentsData } from '#types/financial-statements'
 
-// ============================================================================
-// TYPES
-// ============================================================================
-
-/**
- * Expense list item API response
- * Extended view with joined property and maintenance request data.
- */
-export interface Expense {
-	id: string
-	description?: string
-	category?: string
-	amount?: number
-	property_name?: string
-	property_id?: string
-	expense_date?: string
-	vendor_name?: string
-	maintenance_request_id?: string
-	created_at?: string
-}
-
-/** Create expense mutation input */
-export interface CreateExpenseInput {
-	amount: number
-	expense_date: string
-	maintenance_request_id: string
-	vendor_name?: string
-}
+// Re-export types from factory for backward compatibility
+export type { Expense, CreateExpenseInput } from './query-keys/financial-mutation-options'
 
 // ============================================================================
 // QUERY KEYS
@@ -138,26 +113,11 @@ export function useCreateExpenseMutation() {
 	const queryClient = useQueryClient()
 
 	return useMutation({
-		mutationKey: mutationKeys.expenses.create,
-		mutationFn: async (input: CreateExpenseInput): Promise<Expense> => {
-			const supabase = createClient()
-			const { data, error } = await supabase
-				.from('expenses')
-				.insert({
-					amount: input.amount,
-					expense_date: input.expense_date,
-					maintenance_request_id: input.maintenance_request_id,
-					vendor_name: input.vendor_name
-				})
-				.select('id, amount, expense_date, vendor_name, maintenance_request_id, created_at')
-				.single()
-			if (error) handlePostgrestError(error, 'create expense')
-			return data as Expense
-		},
+		...financialMutations.createExpense(),
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: expenseKeys.all })
 		},
-		onError: (error: unknown) => handleMutationError(error, 'Create expense')
+		onError: (error) => handleMutationError(error, 'Create expense')
 	})
 }
 
@@ -165,19 +125,11 @@ export function useDeleteExpenseMutation() {
 	const queryClient = useQueryClient()
 
 	return useMutation({
-		mutationKey: mutationKeys.expenses.delete,
-		mutationFn: async (expenseId: string): Promise<void> => {
-			const supabase = createClient()
-			const { error } = await supabase
-				.from('expenses')
-				.delete()
-				.eq('id', expenseId)
-			if (error) handlePostgrestError(error, 'delete expense')
-		},
+		...financialMutations.deleteExpense(),
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: expenseKeys.all })
 		},
-		onError: (error: unknown) => handleMutationError(error, 'Delete expense')
+		onError: (error) => handleMutationError(error, 'Delete expense')
 	})
 }
 

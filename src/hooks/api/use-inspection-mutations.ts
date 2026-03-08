@@ -9,18 +9,9 @@
  */
 
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import type {
-	CreateInspectionInput,
-	UpdateInspectionInput,
-	TenantReviewInput
-} from '#lib/validation/inspections'
-import type { Inspection } from '#types/sections/inspections'
 
 import { inspectionQueries } from './query-keys/inspection-keys'
-import { createClient } from '#lib/supabase/client'
-import { getCachedUser } from '#lib/supabase/get-cached-user'
-import { handlePostgrestError } from '#lib/postgrest-error-handler'
-import { requireOwnerUserId } from '#lib/require-owner-user-id'
+import { inspectionMutations } from './query-keys/inspection-mutation-options'
 import { handleMutationError, handleMutationSuccess } from '#lib/mutation-error-handler'
 
 // ============================================================================
@@ -34,21 +25,7 @@ export function useCreateInspection() {
 	const queryClient = useQueryClient()
 
 	return useMutation({
-		mutationFn: async (dto: CreateInspectionInput): Promise<Inspection> => {
-			const supabase = createClient()
-			const user = await getCachedUser()
-			const ownerId = requireOwnerUserId(user?.id)
-
-			const { data: created, error } = await supabase
-				.from('inspections')
-				.insert({ ...dto, owner_user_id: ownerId })
-				.select()
-				.single()
-
-			if (error) handlePostgrestError(error, 'inspections')
-
-			return created as unknown as Inspection
-		},
+		...inspectionMutations.create(),
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: inspectionQueries.lists() })
 			handleMutationSuccess('Create inspection', 'Inspection created successfully')
@@ -66,19 +43,7 @@ export function useUpdateInspection(id: string) {
 	const queryClient = useQueryClient()
 
 	return useMutation({
-		mutationFn: async (dto: UpdateInspectionInput): Promise<Inspection> => {
-			const supabase = createClient()
-			const { data: updated, error } = await supabase
-				.from('inspections')
-				.update(dto)
-				.eq('id', id)
-				.select()
-				.single()
-
-			if (error) handlePostgrestError(error, 'inspections')
-
-			return updated as unknown as Inspection
-		},
+		...inspectionMutations.update(id),
 		onSuccess: (updated) => {
 			queryClient.setQueryData(inspectionQueries.detailQuery(id).queryKey, updated)
 			queryClient.invalidateQueries({ queryKey: inspectionQueries.lists() })
@@ -98,35 +63,7 @@ export function useCompleteInspection(id: string) {
 	const queryClient = useQueryClient()
 
 	return useMutation({
-		mutationFn: async (): Promise<Inspection> => {
-			const supabase = createClient()
-
-			// Validate all rooms have been assessed before marking complete
-			const { data: rooms, error: roomsError } = await supabase
-				.from('inspection_rooms')
-				.select('id, condition_rating')
-				.eq('inspection_id', id)
-
-			if (roomsError) handlePostgrestError(roomsError, 'inspection_rooms')
-
-			const unassessed = (rooms ?? []).filter(r => !r.condition_rating)
-			if (unassessed.length > 0) {
-				throw new Error(
-					`All rooms must be assessed before completing. ${unassessed.length} room(s) have no condition rating.`
-				)
-			}
-
-			const { data: updated, error } = await supabase
-				.from('inspections')
-				.update({ status: 'completed', completed_at: new Date().toISOString() })
-				.eq('id', id)
-				.select()
-				.single()
-
-			if (error) handlePostgrestError(error, 'inspections')
-
-			return updated as unknown as Inspection
-		},
+		...inspectionMutations.complete(id),
 		onSuccess: () => {
 			queryClient.invalidateQueries({
 				queryKey: inspectionQueries.detailQuery(id).queryKey
@@ -142,25 +79,13 @@ export function useCompleteInspection(id: string) {
 
 /**
  * Submit an inspection for tenant review.
- * Pure DB status update — email notification handled by n8n/DB webhook in Phase 56.
+ * Pure DB status update -- email notification handled by n8n/DB webhook in Phase 56.
  */
 export function useSubmitForTenantReview(id: string) {
 	const queryClient = useQueryClient()
 
 	return useMutation({
-		mutationFn: async (): Promise<Inspection> => {
-			const supabase = createClient()
-			const { data: updated, error } = await supabase
-				.from('inspections')
-				.update({ status: 'tenant_reviewing' })
-				.eq('id', id)
-				.select()
-				.single()
-
-			if (error) handlePostgrestError(error, 'inspections')
-
-			return updated as unknown as Inspection
-		},
+		...inspectionMutations.submitForReview(id),
 		onSuccess: () => {
 			queryClient.invalidateQueries({
 				queryKey: inspectionQueries.detailQuery(id).queryKey
@@ -176,30 +101,14 @@ export function useSubmitForTenantReview(id: string) {
 
 /**
  * Tenant submits their review and signature.
- * Pure DB operation — stores tenant_notes and tenant_signature_data, sets status to 'finalized'.
+ * Pure DB operation -- stores tenant_notes and tenant_signature_data, sets status to 'finalized'.
  * DocuSeal is used for leases (Phase 55), not inspection reviews.
  */
 export function useTenantReview(id: string) {
 	const queryClient = useQueryClient()
 
 	return useMutation({
-		mutationFn: async (dto: TenantReviewInput): Promise<Inspection> => {
-			const supabase = createClient()
-			const { data: updated, error } = await supabase
-				.from('inspections')
-				.update({
-					...dto,
-					status: 'finalized',
-					tenant_reviewed_at: new Date().toISOString()
-				})
-				.eq('id', id)
-				.select()
-				.single()
-
-			if (error) handlePostgrestError(error, 'inspections')
-
-			return updated as unknown as Inspection
-		},
+		...inspectionMutations.tenantReview(id),
 		onSuccess: () => {
 			queryClient.invalidateQueries({
 				queryKey: inspectionQueries.detailQuery(id).queryKey
@@ -220,15 +129,7 @@ export function useDeleteInspection() {
 	const queryClient = useQueryClient()
 
 	return useMutation({
-		mutationFn: async (id: string): Promise<void> => {
-			const supabase = createClient()
-			const { error } = await supabase
-				.from('inspections')
-				.delete()
-				.eq('id', id)
-
-			if (error) handlePostgrestError(error, 'inspections')
-		},
+		...inspectionMutations.delete(),
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: inspectionQueries.lists() })
 			handleMutationSuccess('Delete inspection', 'Inspection deleted')

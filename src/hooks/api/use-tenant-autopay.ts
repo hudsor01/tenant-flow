@@ -11,7 +11,8 @@ import {
 	queryOptions,
 	useQuery,
 	useMutation,
-	useQueryClient
+	useQueryClient,
+	mutationOptions
 } from '@tanstack/react-query'
 import { createClient } from '#lib/supabase/client'
 import { handlePostgrestError } from '#lib/postgrest-error-handler'
@@ -116,6 +117,33 @@ export function useTenantAutopayStatus() {
 }
 
 // ============================================================================
+// MUTATION OPTIONS FACTORY
+// ============================================================================
+
+const tenantAutopayMutationFactories = {
+	toggle: () =>
+		mutationOptions({
+			mutationKey: mutationKeys.tenantAutopay.setup,
+			mutationFn: async (params: {
+				lease_id: string
+				enabled: boolean
+				payment_method_id?: string | null
+			}) => {
+				const supabase = createClient()
+
+				const { error } = await supabase.rpc('toggle_autopay', {
+					p_lease_id: params.lease_id,
+					p_enabled: params.enabled,
+					p_payment_method_id: params.payment_method_id ?? null
+				})
+
+				if (error) handlePostgrestError(error, 'toggle_autopay')
+				return { success: true }
+			}
+		})
+}
+
+// ============================================================================
 // MUTATION HOOKS
 // ============================================================================
 
@@ -126,23 +154,7 @@ export function useToggleAutopay() {
 	const queryClient = useQueryClient()
 
 	return useMutation({
-		mutationKey: mutationKeys.tenantAutopay.setup,
-		mutationFn: async (params: {
-			lease_id: string
-			enabled: boolean
-			payment_method_id?: string | null
-		}) => {
-			const supabase = createClient()
-
-			const { error } = await supabase.rpc('toggle_autopay', {
-				p_lease_id: params.lease_id,
-				p_enabled: params.enabled,
-				p_payment_method_id: params.payment_method_id ?? null
-			})
-
-			if (error) handlePostgrestError(error, 'toggle_autopay')
-			return { success: true }
-		},
+		...tenantAutopayMutationFactories.toggle(),
 		onSuccess: (_data, params) => {
 			queryClient.invalidateQueries({
 				queryKey: tenantPortalKeys.autopay.status()

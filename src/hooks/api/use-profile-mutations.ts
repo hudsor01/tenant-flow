@@ -6,7 +6,7 @@
  * Query hooks remain in use-profile.ts.
  */
 
-import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { useMutation, useQueryClient, mutationOptions } from '@tanstack/react-query'
 import { mutationKeys } from './mutation-keys'
 import { logger } from '#lib/frontend-logger.js'
 import {
@@ -24,6 +24,56 @@ import type {
 import { profileKeys, PROFILE_SELECT, mapUserProfile } from './use-profile'
 
 // ============================================================================
+// MUTATION OPTIONS FACTORIES
+// ============================================================================
+
+const profileMutationFactories = {
+	update: () =>
+		mutationOptions({
+			mutationKey: mutationKeys.profile.update,
+			mutationFn: async (input: UpdateProfileInput): Promise<UserProfile> => {
+				const supabase = createClient()
+				const user = await getCachedUser()
+				if (!user) throw new Error('Not authenticated')
+				const { data, error } = await supabase
+					.from('users')
+					.update({
+						first_name: input.first_name,
+						last_name: input.last_name,
+						full_name: `${input.first_name} ${input.last_name}`,
+						phone: input.phone ?? null,
+						updated_at: new Date().toISOString()
+					})
+					.eq('id', user.id)
+					.select(PROFILE_SELECT)
+					.single()
+				if (error) throw error
+				return mapUserProfile(data!)
+			}
+		}),
+
+	updatePhone: () =>
+		mutationOptions({
+			mutationKey: mutationKeys.profile.updatePhone,
+			mutationFn: async (
+				input: UpdatePhoneInput
+			): Promise<{ phone: string | null }> => {
+				const supabase = createClient()
+				const user = await getCachedUser()
+				if (!user) throw new Error('Not authenticated')
+				const { data, error } = await supabase
+					.from('users')
+					.update({ phone: input.phone })
+					.eq('id', user.id)
+					.select('phone')
+					.single()
+				if (error) throw error
+				return data as { phone: string | null }
+			}
+		})
+}
+
+// ============================================================================
 // MUTATION HOOKS
 // ============================================================================
 
@@ -34,37 +84,15 @@ export function useUpdateProfileMutation() {
 	const queryClient = useQueryClient()
 
 	return useMutation({
-		mutationKey: mutationKeys.profile.update,
-		mutationFn: async (input: UpdateProfileInput): Promise<UserProfile> => {
-			const supabase = createClient()
-			const user = await getCachedUser()
-			if (!user) throw new Error('Not authenticated')
-			const { data, error } = await supabase
-				.from('users')
-				.update({
-					first_name: input.first_name,
-					last_name: input.last_name,
-					full_name: `${input.first_name} ${input.last_name}`,
-					phone: input.phone ?? null,
-					updated_at: new Date().toISOString()
-				})
-				.eq('id', user.id)
-				.select(PROFILE_SELECT)
-				.single()
-			if (error) throw error
-			return mapUserProfile(data!)
-		},
+		...profileMutationFactories.update(),
 
 		onMutate: async newData => {
-			// Cancel outgoing refetches
 			await queryClient.cancelQueries({ queryKey: profileKeys.detail() })
 
-			// Snapshot previous value
 			const previousProfile = queryClient.getQueryData<UserProfile>(
 				profileKeys.detail()
 			)
 
-			// Optimistically update
 			if (previousProfile) {
 				queryClient.setQueryData(profileKeys.detail(), {
 					...previousProfile,
@@ -80,7 +108,6 @@ export function useUpdateProfileMutation() {
 		},
 
 		onError: (err, _variables, context) => {
-			// Rollback on error
 			if (context?.previousProfile) {
 				queryClient.setQueryData(profileKeys.detail(), context.previousProfile)
 			}
@@ -109,22 +136,7 @@ export function useUpdatePhoneMutation() {
 	const queryClient = useQueryClient()
 
 	return useMutation({
-		mutationKey: mutationKeys.profile.updatePhone,
-		mutationFn: async (
-			input: UpdatePhoneInput
-		): Promise<{ phone: string | null }> => {
-			const supabase = createClient()
-			const user = await getCachedUser()
-			if (!user) throw new Error('Not authenticated')
-			const { data, error } = await supabase
-				.from('users')
-				.update({ phone: input.phone })
-				.eq('id', user.id)
-				.select('phone')
-				.single()
-			if (error) throw error
-			return data as { phone: string | null }
-		},
+		...profileMutationFactories.updatePhone(),
 
 		onMutate: async newData => {
 			await queryClient.cancelQueries({ queryKey: profileKeys.detail() })
