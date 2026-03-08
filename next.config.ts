@@ -12,6 +12,8 @@ import type { NextConfig } from 'next'
 import './src/env'
 
 const nextConfig: NextConfig = {
+	reactCompiler: true,
+
 	experimental: {
 		optimizePackageImports: ['@tanstack/react-query', '@tanstack/react-form', '@tanstack/react-virtual'],
 	},
