@@ -42,7 +42,7 @@ TenantFlow is a multi-tenant property management SaaS platform for property owne
 ### v1.2 Production Polish & Code Consolidation (In Progress)
 
 - [x] **Phase 16: Shared Cleanup & Dead Code** - Flatten src/shared/ into top-level directories, delete design-system.ts, run Knip audit, delete TYPES.md, update CLAUDE.md
-- [ ] **Phase 17: Hooks Consolidation** - Deduplicate and modernize API hooks, expand useSuspenseQuery, split oversized hook files, migrate react-hook-form to TanStack Form, add mutationOptions() factories
+- [x] **Phase 17: Hooks Consolidation** - Deduplicate and modernize API hooks, expand useSuspenseQuery, split oversized hook files, migrate react-hook-form to TanStack Form, add mutationOptions() factories
 - [ ] **Phase 18: Components Consolidation** - Split oversized components, enable React Compiler, remove manual memoization
 - [ ] **Phase 19: UI Polish** - Redesign marketing navbar, enforce button/card/layout consistency across all page groups
 - [ ] **Phase 20: Browser Audit** - Systematic browser automation verification of all pages at desktop and mobile viewports
@@ -68,14 +68,14 @@ Plans:
 **Goal**: API hooks are deduplicated, modernized for TanStack Query v5 patterns, all oversized hook files are split under the 300-line limit, all forms migrated to TanStack Form, and mutationOptions() factories added
 **Depends on**: Phase 16
 **Requirements**: MOD-02, MOD-04, MOD-05
-**Plans:** 5/6 plans executed
+**Plans:** 6/6 plans executed
 Plans:
 - [x] 17-01-PLAN.md -- Split 7 oversized hook/query-key files under 300 lines and remove react-hook-form
 - [x] 17-02-PLAN.md -- Create mutationOptions() factories for core owner domains (properties, tenants, leases, maintenance, units, vendors)
 - [x] 17-03-PLAN.md -- Create mutationOptions() factories for secondary domains in query-key files
 - [x] 17-04-PLAN.md -- Convert Suspense-wrapped components from useQuery to useSuspenseQuery
 - [x] 17-05-PLAN.md -- Refactor 25 secondary mutation hooks to spread mutationOptions factories
-- [ ] 17-06-PLAN.md -- Audit and delete dead hooks, resolve overlapping hook functionality
+- [x] 17-06-PLAN.md -- Audit and delete dead hooks, resolve overlapping hook functionality
 **Success Criteria** (what must be TRUE):
   1. All components inside Suspense boundaries use useSuspenseQuery with typed data (never undefined) instead of useQuery
   2. No duplicate or overlapping hook functionality exists across the 85 hook files
@@ -88,11 +88,11 @@ Plans:
 **Goal**: All oversized components are split under 300 lines, dead components are removed, and React Compiler auto-memoizes in place of manual useMemo/useCallback
 **Depends on**: Phase 17
 **Requirements**: CLEAN-02, MOD-01
-**Plans:** 2/6 plans executed
+**Plans:** 4/6 plans executed
 Plans:
-- [ ] 18-01-PLAN.md -- Split 6 oversized UI primitive files (stepper group, chart, file-upload, dialog)
-- [ ] 18-02-PLAN.md -- Split 9 large feature components (app-shell, contact-form, wizard, forms, dialogs)
-- [ ] 18-03-PLAN.md -- Split 8 medium feature components and clean up 11 borderline files
+- [x] 18-01-PLAN.md -- Split 6 oversized UI primitive files (stepper group, chart, file-upload, dialog)
+- [x] 18-02-PLAN.md -- Split 9 large feature components (app-shell, contact-form, wizard, forms, dialogs)
+- [x] 18-03-PLAN.md -- Split 8 medium feature components and clean up 11 borderline files
 - [ ] 18-04-PLAN.md -- Split 18 oversized page files (login mandatory, dashboard, tenant pages)
 - [ ] 18-05-PLAN.md -- Enable React Compiler via babel-plugin-react-compiler
 - [ ] 18-06-PLAN.md -- Remove all manual useMemo/useCallback/React.memo from 88 source files
@@ -128,7 +128,7 @@ Plans:
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 16. Shared Cleanup & Dead Code | 3/3 | Complete | 2026-03-08 |
-| 17. Hooks Consolidation | 5/6 | In Progress|  |
-| 18. Components Consolidation | 2/6 | In Progress|  |
+| 17. Hooks Consolidation | 6/6 | Complete | 2026-03-08 |
+| 18. Components Consolidation | 4/6 | In Progress|  |
 | 19. UI Polish | 0/TBD | Not started | - |
 | 20. Browser Audit | 0/TBD | Not started | - |

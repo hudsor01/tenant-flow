@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.2
 milestone_name: Production Polish & Code Consolidation
 status: executing
-stopped_at: Completed 18-02-PLAN.md
-last_updated: "2026-03-08T21:17:00Z"
-last_activity: 2026-03-08 -- Phase 18 Plan 02 complete
+stopped_at: Completed 18-03-PLAN.md
+last_updated: "2026-03-08T23:00:00Z"
+last_activity: 2026-03-08 -- Phase 18 Plan 03 complete (medium splits + borderline cleanup)
 progress:
   total_phases: 5
   completed_phases: 2
-  total_plans: 11
-  completed_plans: 11
-  percent: 100
+  total_plans: 15
+  completed_plans: 13
+  percent: 87
 ---
 
 # Project State: TenantFlow
@@ -27,18 +27,18 @@ See: .planning/PROJECT.md (updated 2026-03-08)
 
 Milestone: v1.2 Production Polish & Code Consolidation
 Phase: 18 of 20 (Components Consolidation)
-Plan: 2 of 2 (all done)
-Status: Phase 18 plans complete
-Last activity: 2026-03-08 -- Completed Plan 02: split 9 large feature components under 300 lines
+Plan: 4 of 6
+Status: executing
+Last activity: 2026-03-08 -- Completed Plan 03: split 8 medium components and cleaned 11 borderline files
 
-Progress: [██████████] 100% (Phase 18)
+Progress: [████████--] 87% (13/15 plans)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 11
-- Average duration: 27min
-- Total execution time: 290min
+- Total plans completed: 13
+- Average duration: 28min
+- Total execution time: 370min
 
 | Phase | Plan | Duration | Tasks | Files |
 |-------|------|----------|-------|-------|
@@ -48,8 +48,9 @@ Progress: [██████████] 100% (Phase 18)
 | 17-hooks-consolidation | 04 | 45min | 2 | 7 |
 | 17-hooks-consolidation | 05 | 50min | 2 | 24 |
 | 17-hooks-consolidation | 06 | 45min | 2 | 18 |
-| 18-components-consolidation | 01 | 20min | 2 | 22 |
+| 18-components-consolidation | 01 | 35min | 2 | 41 |
 | 18-components-consolidation | 02 | 20min | 2 | 20 |
+| 18-components-consolidation | 03 | 45min | 2 | 27 |
 
 ## Shipped Milestones
 
@@ -74,6 +75,14 @@ Progress: [██████████] 100% (Phase 18)
 - 34 dead hook exports removed; all overlap candidates are intentional owner/tenant domain separation
 - TanStack Form type extraction uses `{ Field: React.ComponentType<any> }` pattern for extracted components (full generic signature too complex)
 - Component splitting pattern: self-contained sub-components in sibling files, parent keeps orchestration/state
+- Stepper re-exports all sub-components from stepper.tsx for consumer backward compatibility
+- Chart uses re-export from chart.tsx so 12 consumers need zero import changes
+- AlertDialog duplicate removed from dialog.tsx -- 19 consumers updated to import from alert-dialog.tsx
+- File-upload validation extracted as pure functions for testability
+- Cleanup-first strategy for borderline files: all 11 files (301-329 lines) resolved via cleanup alone without needing splits
+- FlowList helper extracted in cash-flow.tsx to deduplicate identical inflows/outflows rendering
+- Data-driven JSX pattern: config array + .map() replacing repetitive blocks (bulk-import-stepper)
+- Lookup objects replacing switch statements for brand/type mapping (payment-methods-list)
 
 ### Blockers/Concerns
 
@@ -81,6 +90,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-08T21:17:00Z
-Stopped at: Completed 18-02-PLAN.md
-Resume file: .planning/phases/18-components-consolidation/18-02-SUMMARY.md
+Last session: 2026-03-08T23:00:00Z
+Stopped at: Completed 18-03-PLAN.md
+Resume file: .planning/phases/18-components-consolidation/18-03-SUMMARY.md
