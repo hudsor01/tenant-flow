@@ -35,7 +35,7 @@ TenantFlow is a multi-tenant property management SaaS platform for property owne
 - [x] **Phase 12: Blog Components & CSS** - BlogCard, BlogPagination, NewsletterSignup, EmptyState, CSS utilities (completed 2026-03-07)
 - [x] **Phase 13: Newsletter Backend** - newsletter-subscribe Edge Function with Resend Contacts API and rate limiting (completed 2026-03-07)
 - [x] **Phase 14: Blog Pages** - Hub with split zones, detail with related posts, category with pagination (completed 2026-03-08)
-- [ ] **Phase 15: CI Optimization** - Gate checks to PR-only, e2e-smoke independent on push
+- [x] **Phase 15: CI Optimization** - Gate checks to PR-only, e2e-smoke independent on push (completed 2026-03-08)
 
 ## Phase Details
 
@@ -107,8 +107,10 @@ Plans:
 **Success Criteria** (what must be TRUE):
   1. The `checks` job runs only on pull request events (not on push to main)
   2. The `e2e-smoke` job runs independently on push to main without requiring `checks` to pass first
+**Plans:** 1/1 plans complete
 
-**Plans**: TBD
+Plans:
+- [ ] 15-01-PLAN.md -- Restructure CI workflow with per-job conditionals and concurrency groups
 
 ## Progress
 
@@ -130,5 +132,5 @@ Phases 11-14 execute sequentially (data layer -> components -> pages). Phase 13 
 | 11. Blog Data Layer | v1.1 | 2/2 | Complete | 2026-03-07 |
 | 12. Blog Components & CSS | 2/2 | Complete    | 2026-03-07 | - |
 | 13. Newsletter Backend | 1/1 | Complete    | 2026-03-07 | - |
-| 14. Blog Pages | 2/2 | Complete   | 2026-03-08 | - |
-| 15. CI Optimization | v1.1 | 0/? | Not started | - |
+| 14. Blog Pages | 2/2 | Complete    | 2026-03-08 | - |
+| 15. CI Optimization | 1/1 | Complete   | 2026-03-08 | - |

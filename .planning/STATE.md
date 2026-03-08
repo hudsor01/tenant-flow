@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Blog Redesign & CI
 status: executing
-stopped_at: Completed 14-02-PLAN.md
-last_updated: "2026-03-08T00:44:33.677Z"
-last_activity: 2026-03-08 -- Phase 14 complete (detail page with featured image/related posts, category page with DB resolution)
+stopped_at: Completed 15-01-PLAN.md
+last_updated: "2026-03-08T01:17:11.999Z"
+last_activity: "2026-03-08 -- Phase 15 complete (CI workflow restructured: checks PR-only, e2e-smoke independent)"
 progress:
   total_phases: 5
-  completed_phases: 4
-  total_plans: 7
-  completed_plans: 7
-  percent: 95
+  completed_phases: 5
+  total_plans: 8
+  completed_plans: 8
+  percent: 100
 ---
 
 # Project State: TenantFlow
@@ -21,24 +21,24 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-07)
 
 **Core value:** A landlord can add a property, invite a tenant, collect rent, and see their financials -- without touching a spreadsheet or calling anyone.
-**Current focus:** v1.1 Blog Redesign & CI -- Phase 14 complete, Phase 15 next
+**Current focus:** v1.1 Blog Redesign & CI -- Phase 15 complete, milestone complete
 
 ## Current Position
 
 Milestone: v1.1 Blog Redesign & CI
-Phase: 14 of 15 (Blog Pages) -- COMPLETE
-Plan: 2 of 2 in current phase -- COMPLETE
+Phase: 15 of 15 (CI Optimization) -- COMPLETE
+Plan: 1 of 1 in current phase -- COMPLETE
 Status: Executing
-Last activity: 2026-03-08 -- Phase 14 complete (detail page with featured image/related posts, category page with DB resolution)
+Last activity: 2026-03-08 -- Phase 15 complete (CI workflow restructured: checks PR-only, e2e-smoke independent)
 
-Progress: [█████████▌] 95%
+Progress: [██████████] 100%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 7 (v1.1)
+- Total plans completed: 8 (v1.1)
 - Average duration: 5min
-- Total execution time: 38min
+- Total execution time: 39min
 
 *Updated after each plan completion*
 
@@ -76,6 +76,7 @@ Progress: [█████████▌] 95%
 - [Phase 14-02]: Category slug resolved from useBlogCategories DB query with simple slugification fallback
 - [Phase 14-02]: Category page uses useEffect redirect for unknown slugs (only after categories finish loading)
 - [Phase 14]: Simplified prose to prose prose-lg dark:prose-invert (dropped 20+ selector overrides)
+- [Phase 15]: [Phase 15-01]: Per-job concurrency groups replace workflow-level concurrency; checks gated to PR-only; e2e-smoke runs independently on push to main
 
 ### Pending Todos
 
@@ -89,6 +90,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-08T00:44:27.866Z
-Stopped at: Completed 14-02-PLAN.md
+Last session: 2026-03-08T01:17:11.996Z
+Stopped at: Completed 15-01-PLAN.md
 Resume file: None

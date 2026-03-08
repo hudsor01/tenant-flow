@@ -40,7 +40,7 @@ Requirements for v1.1 Blog Redesign & CI. Each maps to roadmap phases.
 - [x] **INFRA-01**: Activate `@tailwindcss/typography` plugin in `globals.css`
 - [x] **INFRA-02**: Add `scrollbar-hide` CSS utility for horizontal scroll zones
 - [x] **INFRA-03**: Create `EmptyState` shared component
-- [ ] **INFRA-04**: CI workflow: gate `checks` job to PR-only, `e2e-smoke` runs independently on push
+- [x] **INFRA-04**: CI workflow: gate `checks` job to PR-only, `e2e-smoke` runs independently on push
 
 ## Future Requirements
 
@@ -91,7 +91,7 @@ Requirements for v1.1 Blog Redesign & CI. Each maps to roadmap phases.
 | INFRA-01 | Phase 12 | Complete |
 | INFRA-02 | Phase 12 | Complete |
 | INFRA-03 | Phase 12 | Complete |
-| INFRA-04 | Phase 15 | Pending |
+| INFRA-04 | Phase 15 | Complete |
 
 **Coverage:**
 - v1.1 requirements: 20 total
