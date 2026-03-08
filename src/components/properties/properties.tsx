@@ -1,35 +1,28 @@
 'use client'
 
 import { useMemo, useCallback } from 'react'
-import { Plus } from 'lucide-react'
 
-import { Button } from '#components/ui/button'
-import { PropertyBulkImportDialog } from './bulk-import-dialog'
 import {
 	useDeletePropertyMutation,
 	useUpdatePropertyMutation
 } from '#hooks/api/use-property-mutations'
-
 import { PropertyCard } from './property-select-card'
 import { PropertyTable } from './property-table'
 import { PropertyActionBar } from './property-action-bar'
 import { PropertyStatsSection } from './property-stats-section'
 import { PropertyToolbar } from './property-toolbar'
 import { PropertyBulkEditDialog } from './property-bulk-edit-dialog'
-import {
-	Empty,
-	EmptyDescription,
-	EmptyHeader,
-	EmptyMedia,
-	EmptyTitle
-} from '#components/ui/empty'
-import { Building2, Search } from 'lucide-react'
-
 import type { PropertiesProps, PropertyType } from './types'
 import {
 	usePropertiesStore,
 	type PropertyStatusFilter
 } from '#stores/properties-store'
+import {
+	EmptyProperties,
+	PropertiesHeader,
+	NoResultsFilter,
+	useBulkHandlers
+} from './properties-filters'
 
 const PROPERTY_TYPE_TO_API: Record<PropertyType, string> = {
 	single_family: 'SINGLE_FAMILY',
@@ -43,15 +36,7 @@ const PROPERTY_TYPE_TO_API: Record<PropertyType, string> = {
 /**
  * Properties - Main component for managing property portfolio
  *
- * Features:
- * - Grid and Table view modes
- * - Search and filtering
- * - Bulk selection and actions
- * - Summary statistics
- * - Empty state handling
- *
  * Uses Zustand store for state management (usePropertiesStore).
- * See stores/properties-store.ts for state structure.
  */
 export function Properties({
 	properties,
@@ -64,81 +49,34 @@ export function Properties({
 	onAddProperty,
 	onFilterChange
 }: PropertiesProps) {
-	// Get state and actions from Zustand store
 	const {
-		viewMode,
-		setViewMode,
-		searchQuery,
-		setSearchQuery,
-		statusFilter,
-		setStatusFilter,
-		typeFilter,
-		setTypeFilter,
-		clearFilters,
-		selectedRows,
-		toggleSelect,
-		selectAll,
-		clearSelection,
-		isBulkEditOpen,
-		bulkEditStatus,
-		bulkEditType,
-		applyBulkStatus,
-		applyBulkType,
-		isBulkSaving,
-		openBulkEdit,
-		closeBulkEdit,
-		setBulkEditStatus,
-		setBulkEditType,
-		setApplyBulkStatus,
-		setApplyBulkType,
-		setIsBulkSaving
+		viewMode, setViewMode, searchQuery, setSearchQuery,
+		statusFilter, setStatusFilter, typeFilter, setTypeFilter,
+		clearFilters, selectedRows, toggleSelect, selectAll, clearSelection,
+		isBulkEditOpen, bulkEditStatus, bulkEditType,
+		applyBulkStatus, applyBulkType, isBulkSaving,
+		openBulkEdit, closeBulkEdit, setBulkEditStatus, setBulkEditType,
+		setApplyBulkStatus, setApplyBulkType, setIsBulkSaving
 	} = usePropertiesStore()
 
 	const deletePropertyMutation = useDeletePropertyMutation()
 	const updatePropertyMutation = useUpdatePropertyMutation()
 
-	const handleBulkEditOpen = useCallback(() => {
-		if (selectedRows.size === 0) return
-		const firstSelected = properties.find(p => selectedRows.has(p.id))
-		if (firstSelected) {
-			openBulkEdit(firstSelected.status, firstSelected.propertyType)
-		}
-	}, [properties, selectedRows, openBulkEdit])
-
-	const handleBulkDelete = useCallback(async () => {
-		if (selectedRows.size === 0) return
-		const ids = Array.from(selectedRows)
-		const label = ids.length === 1 ? 'property' : 'properties'
-		const confirmed =
-			typeof window === 'undefined'
-				? true
-				: window.confirm(
-						`Delete ${ids.length} ${label}? This will mark the ${label} as inactive.`
-					)
-		if (!confirmed) return
-		clearSelection()
-		await Promise.allSettled(
-			ids.map(id => deletePropertyMutation.mutateAsync(id))
-		)
-	}, [selectedRows, deletePropertyMutation, clearSelection])
+	const { handleBulkEditOpen, handleBulkDelete } = useBulkHandlers(
+		selectedRows, properties, openBulkEdit, deletePropertyMutation, clearSelection
+	)
 
 	const handleBulkEditSubmit = useCallback(async () => {
 		if (selectedRows.size === 0) return
 		if (!applyBulkStatus && !applyBulkType) return
 		const ids = Array.from(selectedRows)
 		const updateData: Record<string, string> = {}
-		if (applyBulkStatus) {
-			updateData.status = bulkEditStatus
-		}
-		if (applyBulkType) {
-			updateData.property_type = PROPERTY_TYPE_TO_API[bulkEditType] as string
-		}
+		if (applyBulkStatus) updateData.status = bulkEditStatus
+		if (applyBulkType) updateData.property_type = PROPERTY_TYPE_TO_API[bulkEditType] as string
 		setIsBulkSaving(true)
 		try {
 			await Promise.allSettled(
-				ids.map(id =>
-					updatePropertyMutation.mutateAsync({ id, data: updateData })
-				)
+				ids.map(id => updatePropertyMutation.mutateAsync({ id, data: updateData }))
 			)
 			clearSelection()
 			closeBulkEdit()
@@ -146,15 +84,8 @@ export function Properties({
 			setIsBulkSaving(false)
 		}
 	}, [
-		applyBulkStatus,
-		applyBulkType,
-		bulkEditStatus,
-		bulkEditType,
-		clearSelection,
-		closeBulkEdit,
-		selectedRows,
-		setIsBulkSaving,
-		updatePropertyMutation
+		applyBulkStatus, applyBulkType, bulkEditStatus, bulkEditType,
+		clearSelection, closeBulkEdit, selectedRows, setIsBulkSaving, updatePropertyMutation
 	])
 
 	const filteredProperties = useMemo(() => {
@@ -165,14 +96,11 @@ export function Properties({
 					!(p.name ?? '').toLowerCase().includes(query) &&
 					!(p.addressLine1 ?? '').toLowerCase().includes(query) &&
 					!(p.city ?? '').toLowerCase().includes(query)
-				) {
-					return false
-				}
+				) return false
 			}
 			if (statusFilter === 'occupied' && p.availableUnits > 0) return false
 			if (statusFilter === 'available' && p.availableUnits === 0) return false
-			if (statusFilter === 'maintenance' && p.maintenanceUnits === 0)
-				return false
+			if (statusFilter === 'maintenance' && p.maintenanceUnits === 0) return false
 			if (typeFilter !== 'all' && p.propertyType !== typeFilter) return false
 			return true
 		})
@@ -191,58 +119,13 @@ export function Properties({
 	)
 
 	if (properties.length === 0 && !isLoading) {
-		return (
-			<Empty>
-				<EmptyMedia className="bg-primary/10 text-primary size-16 rounded-sm mb-6 [&_svg]:size-8">
-					<Building2 />
-				</EmptyMedia>
-				<EmptyHeader>
-					<EmptyTitle>No properties yet</EmptyTitle>
-					<EmptyDescription>
-						Add your first property to start managing your portfolio.
-					</EmptyDescription>
-				</EmptyHeader>
-				<div className="flex items-center gap-3 mt-2">
-					<PropertyBulkImportDialog />
-					<Button
-						onClick={onAddProperty}
-						className="gap-2"
-						aria-label="Add your first property to the portfolio"
-					>
-						<Plus className="size-5" />
-						Add Your First Property
-					</Button>
-				</div>
-			</Empty>
-		)
+		return <EmptyProperties onAddProperty={onAddProperty} />
 	}
 
 	return (
 		<div className="p-6 lg:p-8 min-h-full bg-background">
-			{/* Page Header */}
-			<div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
-				<div>
-					<h1 className="text-2xl font-bold text-foreground">Properties</h1>
-					<p className="text-sm text-muted-foreground mt-1">
-						Manage your property portfolio
-					</p>
-				</div>
-				<div className="flex items-center gap-2">
-					<PropertyBulkImportDialog />
-					<Button
-						onClick={onAddProperty}
-						className="gap-2 min-h-11"
-						aria-label="Add a new property"
-					>
-						<Plus className="w-4 h-4" />
-						Add Property
-					</Button>
-				</div>
-			</div>
-
+			<PropertiesHeader onAddProperty={onAddProperty} />
 			<PropertyStatsSection summary={summary} />
-
-			{/* Portfolio Section */}
 			<section className="bg-card border border-border rounded-sm overflow-hidden">
 				<PropertyToolbar
 					searchQuery={searchQuery}
@@ -255,8 +138,6 @@ export function Properties({
 					onTypeFilterChange={setTypeFilter}
 					onViewModeChange={setViewMode}
 				/>
-
-				{/* Grid View */}
 				{viewMode === 'grid' && (
 					<div className="p-5 animate-in fade-in slide-in-from-bottom-2 duration-300 overflow-auto max-h-[calc(100vh-340px)]">
 						<div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
@@ -272,8 +153,6 @@ export function Properties({
 						</div>
 					</div>
 				)}
-
-				{/* Table View */}
 				{viewMode === 'table' && (
 					<div className="animate-in fade-in slide-in-from-bottom-2 duration-300">
 						<PropertyTable
@@ -287,30 +166,10 @@ export function Properties({
 						/>
 					</div>
 				)}
-
-				{/* No results */}
 				{filteredProperties.length === 0 && properties.length > 0 && (
-					<Empty className="flex-none gap-3 py-12 border-0">
-						<EmptyMedia className="text-muted-foreground/40 mb-3 [&_svg]:size-10">
-							<Search />
-						</EmptyMedia>
-						<EmptyHeader>
-							<EmptyDescription>No properties match your filters</EmptyDescription>
-						</EmptyHeader>
-						<div className="flex items-center gap-3 mt-2">
-							<Button
-								variant="link"
-								onClick={clearFilters}
-								aria-label="Clear all filters"
-							>
-								Clear filters
-							</Button>
-						</div>
-					</Empty>
+					<NoResultsFilter onClearFilters={clearFilters} />
 				)}
 			</section>
-
-			{/* Floating Action Bar */}
 			<PropertyActionBar
 				selectedCount={selectedRows.size}
 				totalCount={filteredProperties.length}
@@ -318,7 +177,6 @@ export function Properties({
 				onBulkEdit={handleBulkEditOpen}
 				onBulkDelete={handleBulkDelete}
 			/>
-
 			<PropertyBulkEditDialog
 				open={isBulkEditOpen}
 				selectedCount={selectedRows.size}
@@ -327,9 +185,7 @@ export function Properties({
 				applyBulkStatus={applyBulkStatus}
 				applyBulkType={applyBulkType}
 				isSaving={isBulkSaving}
-				onOpenChange={open => {
-				if (!open) closeBulkEdit()
-			}}
+				onOpenChange={open => { if (!open) closeBulkEdit() }}
 				onStatusChange={setBulkEditStatus}
 				onTypeChange={setBulkEditType}
 				onApplyStatusChange={setApplyBulkStatus}
