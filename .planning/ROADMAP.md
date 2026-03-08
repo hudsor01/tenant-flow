@@ -67,7 +67,15 @@ Plans:
 ### Phase 17: Hooks Consolidation
 **Goal**: API hooks are deduplicated, modernized for TanStack Query v5 patterns, all oversized hook files are split under the 300-line limit, all forms migrated to TanStack Form, and mutationOptions() factories added
 **Depends on**: Phase 16
-**Requirements**: MOD-02
+**Requirements**: MOD-02, MOD-04, MOD-05
+**Plans:** 6 plans
+Plans:
+- [ ] 17-01-PLAN.md -- Split 7 oversized hook/query-key files under 300 lines and remove react-hook-form
+- [ ] 17-02-PLAN.md -- Create mutationOptions() factories for core owner domains (properties, tenants, leases, maintenance, units, vendors)
+- [ ] 17-03-PLAN.md -- Create mutationOptions() factories for secondary domains in query-key files
+- [ ] 17-04-PLAN.md -- Convert Suspense-wrapped components from useQuery to useSuspenseQuery
+- [ ] 17-05-PLAN.md -- Refactor 25 secondary mutation hooks to spread mutationOptions factories
+- [ ] 17-06-PLAN.md -- Audit and delete dead hooks, resolve overlapping hook functionality
 **Success Criteria** (what must be TRUE):
   1. All components inside Suspense boundaries use useSuspenseQuery with typed data (never undefined) instead of useQuery
   2. No duplicate or overlapping hook functionality exists across the 85 hook files
@@ -75,7 +83,6 @@ Plans:
   4. ownerDashboardKeys cross-domain invalidation graph (8 files, 22 call sites) is intact and correct after any restructuring
   5. All 17 react-hook-form files migrated to TanStack Form; react-hook-form removed from dependencies
   6. mutationOptions() factories exist for all mutation hooks, mirroring queryOptions() pattern
-**Plans**: TBD
 
 ### Phase 18: Components Consolidation
 **Goal**: All oversized components are split under 300 lines, dead components are removed, and React Compiler auto-memoizes in place of manual useMemo/useCallback
@@ -114,7 +121,7 @@ Plans:
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 16. Shared Cleanup & Dead Code | 3/3 | Complete | 2026-03-08 |
-| 17. Hooks Consolidation | 0/TBD | Not started | - |
+| 17. Hooks Consolidation | 0/6 | Not started | - |
 | 18. Components Consolidation | 0/TBD | Not started | - |
 | 19. UI Polish | 0/TBD | Not started | - |
 | 20. Browser Audit | 0/TBD | Not started | - |
