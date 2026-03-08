@@ -88,12 +88,19 @@ Plans:
 **Goal**: All oversized components are split under 300 lines, dead components are removed, and React Compiler auto-memoizes in place of manual useMemo/useCallback
 **Depends on**: Phase 17
 **Requirements**: CLEAN-02, MOD-01
+**Plans:** 6 plans
+Plans:
+- [ ] 18-01-PLAN.md -- Split 6 oversized UI primitive files (stepper group, chart, file-upload, dialog)
+- [ ] 18-02-PLAN.md -- Split 9 large feature components (app-shell, contact-form, wizard, forms, dialogs)
+- [ ] 18-03-PLAN.md -- Split 8 medium feature components and clean up 11 borderline files
+- [ ] 18-04-PLAN.md -- Split 18 oversized page files (login mandatory, dashboard, tenant pages)
+- [ ] 18-05-PLAN.md -- Enable React Compiler via babel-plugin-react-compiler
+- [ ] 18-06-PLAN.md -- Remove all manual useMemo/useCallback/React.memo from 88 source files
 **Success Criteria** (what must be TRUE):
   1. Zero component files exceed the 300-line limit (20+ files split, excluding vendored tour.tsx)
   2. React Compiler is enabled via babel-plugin-react-compiler and all existing unit/component tests pass
   3. Manual useMemo and useCallback calls are removed from components where React Compiler handles memoization (progressive removal, verified per-component)
   4. pnpm typecheck and pnpm lint pass clean after all file splits and moves
-**Plans**: TBD
 
 ### Phase 19: UI Polish
 **Goal**: The public-facing UI has a consistent, polished look across marketing, auth, blog, dashboard, tenant portal, and billing pages
@@ -122,6 +129,6 @@ Plans:
 |-------|----------------|--------|-----------|
 | 16. Shared Cleanup & Dead Code | 3/3 | Complete | 2026-03-08 |
 | 17. Hooks Consolidation | 5/6 | In Progress|  |
-| 18. Components Consolidation | 0/TBD | Not started | - |
+| 18. Components Consolidation | 0/6 | Not started | - |
 | 19. UI Polish | 0/TBD | Not started | - |
 | 20. Browser Audit | 0/TBD | Not started | - |
