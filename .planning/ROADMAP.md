@@ -41,7 +41,7 @@ TenantFlow is a multi-tenant property management SaaS platform for property owne
 
 ### v1.2 Production Polish & Code Consolidation (In Progress)
 
-- [ ] **Phase 16: Shared Cleanup & Dead Code** - Remove dead code via Knip, clean shared directories, reconcile design tokens, update TYPES.md
+- [ ] **Phase 16: Shared Cleanup & Dead Code** - Flatten src/shared/ into top-level directories, delete design-system.ts, run Knip audit, delete TYPES.md, update CLAUDE.md
 - [ ] **Phase 17: Hooks Consolidation** - Deduplicate and modernize API hooks, expand useSuspenseQuery, split oversized hook files
 - [ ] **Phase 18: Components Consolidation** - Split oversized components, enable React Compiler, remove manual memoization
 - [ ] **Phase 19: UI Polish** - Redesign marketing navbar, enforce button/card/layout consistency across all page groups
@@ -53,12 +53,16 @@ TenantFlow is a multi-tenant property management SaaS platform for property owne
 **Goal**: The codebase has zero dead exports, zero unused dependencies, and a single source of truth for shared types and design tokens
 **Depends on**: Nothing (first phase of v1.2)
 **Requirements**: CLEAN-01, CLEAN-03, CLEAN-04, CLEAN-05, MOD-03
+**Plans:** 3 plans
+Plans:
+- [ ] 16-01-PLAN.md -- Migrate design-system.ts consumers to Tailwind/CSS and delete design-system.ts
+- [ ] 16-02-PLAN.md -- Flatten src/shared/ into top-level directories, rewrite all imports
+- [ ] 16-03-PLAN.md -- Knip dead code audit, delete TYPES.md, update CLAUDE.md
 **Success Criteria** (what must be TRUE):
   1. Knip runs clean with zero findings on the entire codebase (src/ and supabase/)
-  2. TYPES.md master lookup accurately reflects all type file locations and exports after cleanup
-  3. Every file in src/shared/, src/lib/, src/types/, and src/components/shared/ has a clear ownership boundary with no redundant or misplaced files across directories
-  4. globals.css is the sole source of truth for design tokens; design-system.ts contains only values needed for non-CSS contexts (OG images, emails)
-**Plans**: TBD
+  2. TYPES.md is deleted; src/types/ directory is self-documenting
+  3. src/shared/ directory does not exist; all contents merged into src/types/, src/lib/, src/config/
+  4. globals.css is the sole source of truth for design tokens; design-system.ts is deleted entirely
 
 ### Phase 17: Hooks Consolidation
 **Goal**: API hooks are deduplicated, modernized for TanStack Query v5 patterns, and all oversized hook files are split under the 300-line limit
@@ -107,7 +111,7 @@ TenantFlow is a multi-tenant property management SaaS platform for property owne
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 16. Shared Cleanup & Dead Code | 0/TBD | Not started | - |
+| 16. Shared Cleanup & Dead Code | 0/3 | Not started | - |
 | 17. Hooks Consolidation | 0/TBD | Not started | - |
 | 18. Components Consolidation | 0/TBD | Not started | - |
 | 19. UI Polish | 0/TBD | Not started | - |
