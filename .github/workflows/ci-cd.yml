@@ -19,16 +19,16 @@ on:
       - "docs/**"
       - "LICENSE"
 
-concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
-
 permissions:
   contents: read
 
 jobs:
   checks:
+    if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
+    concurrency:
+      group: checks-${{ github.ref }}
+      cancel-in-progress: true
     timeout-minutes: 10
     env:
       CI: true
@@ -65,8 +65,10 @@ jobs:
 
   e2e-smoke:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-    needs: [checks]
     runs-on: ubuntu-latest
+    concurrency:
+      group: e2e-${{ github.ref }}
+      cancel-in-progress: true
     timeout-minutes: 15
     env:
       CI: true
