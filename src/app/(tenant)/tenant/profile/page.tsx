@@ -221,19 +221,11 @@ export default function TenantProfilePage() {
 	}
 
 	const handleCancelEmergencyContactEdit = () => {
-		if (emergency_contact) {
-			setEmergencyContactForm({
-				name: emergency_contact.name || '',
-				relationship: emergency_contact.relationship || '',
-				phone: emergency_contact.phone || ''
-			})
-		} else {
-			setEmergencyContactForm({
-				name: '',
-				relationship: '',
-				phone: ''
-			})
-		}
+		setEmergencyContactForm(
+			emergency_contact
+				? { name: emergency_contact.name || '', relationship: emergency_contact.relationship || '', phone: emergency_contact.phone || '' }
+				: { name: '', relationship: '', phone: '' }
+		)
 		setEmergencyContactEditing(false)
 	}
 
@@ -241,9 +233,7 @@ export default function TenantProfilePage() {
 		<div className="max-w-4xl mx-auto space-y-8">
 			<div>
 				<h1 className="typography-h1">My Profile</h1>
-				<p className="text-muted-foreground">
-					Manage your contact information and account settings
-				</p>
+				<p className="text-muted-foreground">Manage your contact information and account settings</p>
 			</div>
 
 			<PersonalInformationSection

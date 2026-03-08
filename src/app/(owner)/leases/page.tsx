@@ -35,8 +35,9 @@ import {
 	EmptyMedia,
 	EmptyTitle
 } from '#components/ui/empty'
-import { FileText, Check, AlertTriangle, Clock } from 'lucide-react'
+import { FileText } from 'lucide-react'
 import { LeasesTable } from '#components/leases/table/leases-table'
+import { LeasesStatCards } from './leases-stat-cards'
 import { LeasesDialogs } from '#components/leases/dialogs/leases-dialogs'
 import { useLeasesStore } from '#stores/leases-store'
 
@@ -82,22 +83,12 @@ export default function LeasesPage() {
 	const handleTabChange = (value: string) => {
 		setActiveTab(value)
 		const params = new URLSearchParams(searchParams.toString())
-		if (value === 'overview') {
-			params.delete('tab')
-		} else {
-			params.set('tab', value)
-		}
-		router.replace(
-			`/leases${params.toString() ? `?${params.toString()}` : ''}`,
-			{ scroll: false }
-		)
+		if (value === 'overview') params.delete('tab')
+		else params.set('tab', value)
+		router.replace(`/leases${params.toString() ? `?${params.toString()}` : ''}`, { scroll: false })
 	}
 
-	const {
-		data: leasesResponse,
-		isLoading,
-		error
-	} = useLeaseList({ limit: 50, offset: 0 })
+	const { data: leasesResponse, isLoading, error } = useLeaseList({ limit: 50, offset: 0 })
 	const deleteLeaseMutation = useDeleteLeaseMutation()
 
 	const rawLeases = useMemo(
@@ -118,60 +109,29 @@ export default function LeasesPage() {
 		l => l.status === 'pending_signature'
 	).length
 
-	const filteredLeases = useMemo(() => {
-		return leases.filter(l => {
-			if (searchQuery) {
-				const query = searchQuery.toLowerCase()
-				const tenantName = l.tenantName ?? ''
-				const propertyName = l.propertyName ?? ''
-				if (
-					!tenantName.toLowerCase().includes(query) &&
-					!propertyName.toLowerCase().includes(query)
-				) {
-					return false
-				}
-			}
-			if (statusFilter !== 'all' && l.status !== statusFilter) {
-				return false
-			}
-			return true
-		})
-	}, [leases, searchQuery, statusFilter])
+	const filteredLeases = useMemo(() => leases.filter(l => {
+		if (searchQuery) {
+			const query = searchQuery.toLowerCase()
+			if (!(l.tenantName ?? '').toLowerCase().includes(query) && !(l.propertyName ?? '').toLowerCase().includes(query)) return false
+		}
+		if (statusFilter !== 'all' && l.status !== statusFilter) return false
+		return true
+	}), [leases, searchQuery, statusFilter])
 
-	const sortedLeases = useMemo(() => {
-		return [...filteredLeases].sort((a, b) => {
-			let comparison = 0
-			switch (sortField) {
-				case 'tenant':
-					comparison = a.tenantName.localeCompare(b.tenantName)
-					break
-				case 'property':
-					comparison = a.propertyName.localeCompare(b.propertyName)
-					break
-				case 'startDate':
-					comparison =
-						new Date(a.startDate).getTime() - new Date(b.startDate).getTime()
-					break
-				case 'endDate':
-					comparison =
-						new Date(a.endDate).getTime() - new Date(b.endDate).getTime()
-					break
-				case 'rent':
-					comparison = a.rentAmount - b.rentAmount
-					break
-				case 'status':
-					comparison = a.status.localeCompare(b.status)
-					break
-			}
-			return sortDirection === 'asc' ? comparison : -comparison
-		})
-	}, [filteredLeases, sortField, sortDirection])
+	const sortedLeases = useMemo(() => [...filteredLeases].sort((a, b) => {
+		const cmp: Record<string, number> = {
+			tenant: a.tenantName.localeCompare(b.tenantName),
+			property: a.propertyName.localeCompare(b.propertyName),
+			startDate: new Date(a.startDate).getTime() - new Date(b.startDate).getTime(),
+			endDate: new Date(a.endDate).getTime() - new Date(b.endDate).getTime(),
+			rent: a.rentAmount - b.rentAmount,
+			status: a.status.localeCompare(b.status)
+		}
+		return sortDirection === 'asc' ? (cmp[sortField] ?? 0) : -(cmp[sortField] ?? 0)
+	}), [filteredLeases, sortField, sortDirection])
 
 	const totalPages = Math.ceil(sortedLeases.length / itemsPerPage)
-	const paginatedLeases = sortedLeases.slice(
-		(currentPage - 1) * itemsPerPage,
-		currentPage * itemsPerPage
-	)
+	const paginatedLeases = sortedLeases.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
 
 	const handleView = (id: string) => router.push(`/leases/${id}`)
 	const handleEdit = (id: string) => router.push(`/leases/${id}/edit`)
@@ -247,53 +207,12 @@ export default function LeasesPage() {
 				</div>
 			</BlurFade>
 
-			{/* Stats Cards */}
-			<div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-				<div className="bg-card border border-border rounded-sm p-4 hover:border-primary/30 hover:shadow-md transition-all group">
-					<div className="flex items-center justify-between mb-2">
-						<p className="text-sm text-muted-foreground">Total Leases</p>
-					</div>
-					<div className="flex items-end justify-between">
-						<p className="text-2xl font-bold text-foreground">{totalLeases}</p>
-						<div className="w-9 h-9 rounded-sm bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
-							<FileText className="w-4 h-4 text-primary" />
-						</div>
-					</div>
-				</div>
-				<div className="bg-card border border-border rounded-sm p-4 hover:border-primary/30 hover:shadow-md transition-all group">
-					<div className="flex items-center justify-between mb-2">
-						<p className="text-sm text-muted-foreground">Active</p>
-					</div>
-					<div className="flex items-end justify-between">
-						<p className="text-2xl font-bold text-foreground">{activeLeases}</p>
-						<div className="w-9 h-9 rounded-sm bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
-							<Check className="w-4 h-4 text-primary" />
-						</div>
-					</div>
-				</div>
-				<div className="bg-card border border-border rounded-sm p-4 hover:border-primary/30 hover:shadow-md transition-all group">
-					<div className="flex items-center justify-between mb-2">
-						<p className="text-sm text-muted-foreground">Expiring Soon</p>
-					</div>
-					<div className="flex items-end justify-between">
-						<p className="text-2xl font-bold text-foreground">{expiringLeases}</p>
-						<div className="w-9 h-9 rounded-sm bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
-							<AlertTriangle className="w-4 h-4 text-primary" />
-						</div>
-					</div>
-				</div>
-				<div className="bg-card border border-border rounded-sm p-4 hover:border-primary/30 hover:shadow-md transition-all group">
-					<div className="flex items-center justify-between mb-2">
-						<p className="text-sm text-muted-foreground">Pending</p>
-					</div>
-					<div className="flex items-end justify-between">
-						<p className="text-2xl font-bold text-foreground">{pendingLeases}</p>
-						<div className="w-9 h-9 rounded-sm bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
-							<Clock className="w-4 h-4 text-primary" />
-						</div>
-					</div>
-				</div>
-			</div>
+			<LeasesStatCards
+				totalLeases={totalLeases}
+				activeLeases={activeLeases}
+				expiringLeases={expiringLeases}
+				pendingLeases={pendingLeases}
+			/>
 
 			<Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
 				<TabsList className="mb-4">

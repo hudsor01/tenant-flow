@@ -3,25 +3,8 @@
 import { Badge } from '#components/ui/badge'
 import { Button } from '#components/ui/button'
 import { CardLayout } from '#components/ui/card-layout'
-import {
-	Dialog,
-	DialogContent,
-	DialogDescription,
-	DialogFooter,
-	DialogHeader,
-	DialogTitle
-} from '#components/ui/dialog'
-import { Input } from '#components/ui/input'
-import { Label } from '#components/ui/label'
-import {
-	Select,
-	SelectContent,
-	SelectItem,
-	SelectTrigger,
-	SelectValue
-} from '#components/ui/select'
-import { Textarea } from '#components/ui/textarea'
 import { useMarkTenantAsMovedOutMutation } from '#hooks/api/use-tenant-mutations'
+import { MoveOutDialog } from './move-out-dialog'
 import { tenantQueries } from '#hooks/api/query-keys/tenant-keys'
 import { handleMutationError } from '#lib/mutation-error-handler'
 import { formatDate } from '#lib/formatters/date'
@@ -251,81 +234,18 @@ export function TenantDetails({ id }: TenantDetailsProps) {
 				</Button>
 			</div>
 
-			{/* Move-out dialog using existing Dialog component */}
-			<Dialog open={moveOutDialogOpen} onOpenChange={setMoveOutDialogOpen}>
-				<DialogContent>
-					<DialogHeader>
-						<DialogTitle>Mark Tenant as Moved Out</DialogTitle>
-						<DialogDescription>
-							This will mark the tenant as moved out and remove them from active
-							listings. All data will be retained for legal compliance.
-						</DialogDescription>
-					</DialogHeader>
-
-					<div className="space-y-4 py-4">
-						<div className="space-y-2">
-							<Label htmlFor="moveOutDate">Move Out Date *</Label>
-							<Input
-								id="moveOutDate"
-								type="date"
-								value={moveOutDate}
-								onChange={e => setMoveOutDate(e.target.value)}
-								required
-							/>
-						</div>
-
-						<div className="space-y-2">
-							<Label htmlFor="moveOutReason">Reason *</Label>
-							<Select value={moveOutReason} onValueChange={setMoveOutReason}>
-								<SelectTrigger id="moveOutReason">
-									<SelectValue placeholder="Select reason" />
-								</SelectTrigger>
-								<SelectContent>
-									<SelectItem value="lease_expired">Lease Expired</SelectItem>
-									<SelectItem value="early_termination">
-										Early Termination
-									</SelectItem>
-									<SelectItem value="eviction">Eviction</SelectItem>
-									<SelectItem value="purchase">Purchased Property</SelectItem>
-									<SelectItem value="relocation">Relocation</SelectItem>
-									<SelectItem value="other">Other</SelectItem>
-								</SelectContent>
-							</Select>
-						</div>
-
-						<div className="space-y-2">
-							<Label htmlFor="additionalNotes">
-								Additional Notes (Optional)
-							</Label>
-							<Textarea
-								id="additionalNotes"
-								value={additionalNotes}
-								onChange={e => setAdditionalNotes(e.target.value)}
-								placeholder="Any additional details..."
-								rows={3}
-							/>
-						</div>
-					</div>
-
-					<DialogFooter>
-						<Button
-							variant="outline"
-							onClick={() => setMoveOutDialogOpen(false)}
-							disabled={markAsMovedOut.isPending}
-						>
-							Cancel
-						</Button>
-						<Button
-							onClick={handleMarkAsMovedOut}
-							disabled={
-								markAsMovedOut.isPending || !moveOutDate || !moveOutReason
-							}
-						>
-							{markAsMovedOut.isPending ? 'Processing...' : 'Mark as Moved Out'}
-						</Button>
-					</DialogFooter>
-				</DialogContent>
-			</Dialog>
+			<MoveOutDialog
+				open={moveOutDialogOpen}
+				onOpenChange={setMoveOutDialogOpen}
+				moveOutDate={moveOutDate}
+				onMoveOutDateChange={setMoveOutDate}
+				moveOutReason={moveOutReason}
+				onMoveOutReasonChange={setMoveOutReason}
+				additionalNotes={additionalNotes}
+				onAdditionalNotesChange={setAdditionalNotes}
+				isPending={markAsMovedOut.isPending}
+				onSubmit={handleMarkAsMovedOut}
+			/>
 		</>
 	)
 }

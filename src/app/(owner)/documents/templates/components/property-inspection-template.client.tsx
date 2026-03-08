@@ -3,9 +3,7 @@
 import { useCallback, useMemo, useState } from 'react'
 import type { ChangeEvent } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '#components/ui/card'
-import { Button } from '#components/ui/button'
 import { Badge } from '#components/ui/badge'
-import { Input } from '#components/ui/input'
 import { BrandingEditor } from './branding-editor'
 import { CustomFieldsEditor } from './custom-fields-editor'
 import { ClausesEditor } from './clauses-editor'
@@ -15,6 +13,7 @@ import { DynamicForm, type DynamicField } from './dynamic-form'
 import { FormBuilderPanel } from './form-builder-panel'
 import { useTemplateDefinition } from './template-definition'
 import type { BrandingInfo, ClauseItem, CustomField } from './template-types'
+import { PhotoEvidenceCard } from './photo-evidence-card'
 import { useForm } from '@tanstack/react-form'
 import { z } from 'zod'
 import { propertyInspectionSchema } from './template-schemas'
@@ -231,50 +230,7 @@ export function PropertyInspectionTemplate() {
 					</CardContent>
 				</Card>
 
-				<Card>
-					<CardHeader>
-						<CardTitle>Photo evidence</CardTitle>
-					</CardHeader>
-					<CardContent className="space-y-4">
-						<Input
-							type="file"
-							multiple
-							accept="image/*"
-							onChange={handlePhotoUpload}
-						/>
-						{photos.length > 0 ? (
-							<div className="grid gap-3 sm:grid-cols-2">
-								{photos.map((photo, index) => (
-									<div
-										key={`${photo.name}-${index}`}
-										className="rounded border p-2"
-									>
-										<img
-											src={photo.url}
-											alt={photo.name}
-											className="h-32 w-full rounded object-cover"
-										/>
-										<div className="mt-2 flex items-center justify-between text-sm">
-											<span className="truncate">{photo.name}</span>
-											<Button
-												type="button"
-												variant="ghost"
-												size="sm"
-												onClick={() => removePhoto(index)}
-											>
-												Remove
-											</Button>
-										</div>
-									</div>
-								))}
-							</div>
-						) : (
-							<p className="text-sm text-muted-foreground">
-								Upload photos to attach to the inspection report.
-							</p>
-						)}
-					</CardContent>
-				</Card>
+				<PhotoEvidenceCard photos={photos} onUpload={handlePhotoUpload} onRemove={removePhoto} />
 
 				<CustomFieldsEditor fields={customFields} onChange={setCustomFields} />
 				<ClausesEditor clauses={clauses} onChange={setClauses} />
