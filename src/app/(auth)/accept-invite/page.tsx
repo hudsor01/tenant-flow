@@ -23,8 +23,8 @@ import { SuccessState } from '#components/auth/accept-invite/success-state'
 import type { AcceptInviteFormValues } from '#components/auth/accept-invite/accept-invite-form-types'
 import {
 	InvalidInviteError,
-	tenantQueries
-} from '#hooks/api/query-keys/tenant-keys'
+	tenantInvitationQueries
+} from '#hooks/api/query-keys/tenant-invitation-keys'
 
 const logger = createLogger({ component: 'AcceptInvitePage' })
 
@@ -40,7 +40,7 @@ function AcceptInviteContent() {
 		data: invitation,
 		isLoading,
 		error
-	} = useQuery(tenantQueries.validateInvitation(code))
+	} = useQuery(tenantInvitationQueries.validate(code))
 
 	async function acceptInvitation() {
 		const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL

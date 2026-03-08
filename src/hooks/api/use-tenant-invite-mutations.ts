@@ -14,6 +14,7 @@ import { logger } from '#lib/frontend-logger.js'
 import type { TenantWithExtras } from '#types/core'
 
 import { tenantQueries } from './query-keys/tenant-keys'
+import { tenantInvitationQueries } from './query-keys/tenant-invitation-keys'
 import { leaseQueries } from './query-keys/lease-keys'
 import { mutationKeys } from './mutation-keys'
 
@@ -89,7 +90,7 @@ export function useInviteTenantMutation() {
 			})
 
 			queryClient.invalidateQueries({ queryKey: tenantQueries.lists() })
-			queryClient.invalidateQueries({ queryKey: tenantQueries.invitations() })
+			queryClient.invalidateQueries({ queryKey: tenantInvitationQueries.invitations() })
 			queryClient.invalidateQueries({ queryKey: leaseQueries.lists() })
 
 			logger.info('Tenant invitation sent', {
@@ -131,7 +132,7 @@ export function useResendInvitationMutation() {
 				description: 'The invitation has been extended for 7 more days'
 			})
 
-			queryClient.invalidateQueries({ queryKey: tenantQueries.invitations() })
+			queryClient.invalidateQueries({ queryKey: tenantInvitationQueries.invitations() })
 			queryClient.invalidateQueries({ queryKey: tenantQueries.lists() })
 
 			logger.info('Tenant invitation resent', {
@@ -166,7 +167,7 @@ export function useCancelInvitationMutation() {
 		onSuccess: () => {
 			toast.success('Invitation cancelled')
 
-			queryClient.invalidateQueries({ queryKey: tenantQueries.invitations() })
+			queryClient.invalidateQueries({ queryKey: tenantInvitationQueries.invitations() })
 			queryClient.invalidateQueries({ queryKey: tenantQueries.lists() })
 
 			logger.info('Tenant invitation cancelled', {

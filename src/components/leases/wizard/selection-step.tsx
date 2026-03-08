@@ -40,6 +40,7 @@ import { AlertCircle, Loader2, Mail, UserPlus } from 'lucide-react'
 import { propertyQueries } from '#hooks/api/query-keys/property-keys'
 import { unitQueries } from '#hooks/api/query-keys/unit-keys'
 import { tenantQueries } from '#hooks/api/query-keys/tenant-keys'
+import { tenantInvitationQueries } from '#hooks/api/query-keys/tenant-invitation-keys'
 import type { SelectionStepData } from '#lib/validation/lease-wizard.schemas'
 import type {
 	Property as SharedProperty,
@@ -179,7 +180,7 @@ export function SelectionStep({ data, onChange, onUnitSelected }: SelectionStepP
 			setInviteMode(false)
 			setInviteForm({ first_name: '', last_name: '', email: '', phone: '' })
 			queryClient.invalidateQueries({ queryKey: tenantQueries.lists() })
-			queryClient.invalidateQueries({ queryKey: tenantQueries.invitations() })
+			queryClient.invalidateQueries({ queryKey: tenantInvitationQueries.invitations() })
 		},
 		onError: (error: Error) => {
 			toast.error(error.message)

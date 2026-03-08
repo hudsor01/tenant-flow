@@ -2,6 +2,8 @@
  * Property Query Keys & Options
  * Extracted to avoid circular dependencies and enable reuse across files
  *
+ * Stats/performance/analytics queries split to property-stats-keys.ts.
+ *
  * TanStack Query v5 patterns:
  * - queryOptions() for type-safe query configuration
  * - Query key factory for consistent cache management
@@ -10,26 +12,12 @@
 
 import { queryOptions } from '@tanstack/react-query'
 import { createClient } from '#lib/supabase/client'
-import { getCachedUser } from '#lib/supabase/get-cached-user'
 import { handlePostgrestError } from '#lib/postgrest-error-handler'
 import { sanitizeSearchInput } from '#lib/sanitize-search'
 import { QUERY_CACHE_TIMES } from '#lib/constants/query-config'
-import { occupancyTrendsQuery } from './analytics-keys'
 import type { PaginatedResponse } from '#types/api-contracts'
-import type {
-	Property,
-	PropertyPerformance,
-	PropertyStatus,
-	PropertyType
-} from '#types/core'
-import type { PropertyStats } from '#types/stats'
-import type { Database, Tables } from '#types/supabase'
-
-/**
- * Extract RPC return type from generated Database types
- */
-type PerformanceWithTrendsRow =
-	Database['public']['Functions']['get_property_performance_with_trends']['Returns'][number]
+import type { Property, PropertyStatus, PropertyType } from '#types/core'
+import type { Tables } from '#types/supabase'
 
 // ============================================================================
 // TYPES
@@ -46,15 +34,6 @@ export interface PropertyFilters {
 	offset?: number
 }
 
-/**
- * Property details from join query (for performance enrichment)
- */
-interface PropertyDetails {
-	address: string
-	propertyType: string
-	units: Array<{ id: string; status: string }>
-}
-
 // ============================================================================
 // CONSTANTS
 // ============================================================================
@@ -63,81 +42,8 @@ const PROPERTY_SELECT_COLUMNS =
 	'id, owner_user_id, name, address_line1, address_line2, city, state, postal_code, country, property_type, status, stripe_connected_account_id, date_sold, sale_price, created_at, updated_at'
 
 // ============================================================================
-// MAPPER FUNCTIONS
+// QUERY OPTIONS
 // ============================================================================
-
-/**
- * Maps RPC return shape + property details to PropertyPerformance
- * Uses typed inputs — no `as unknown as` assertions
- */
-function mapPerformanceRow(
-	row: PerformanceWithTrendsRow,
-	propertyMap: Map<string, PropertyDetails>
-): PropertyPerformance {
-	const details = propertyMap.get(row.property_id)
-	const units = details?.units ?? []
-	const totalUnits = units.length
-	const occupiedUnits = units.filter(u => u.status === 'occupied').length
-	const vacantUnits = totalUnits - occupiedUnits
-
-	// Derive status from unit occupancy
-	let status: PropertyPerformance['status']
-	if (totalUnits === 0) {
-		status = 'NO_UNITS'
-	} else if (occupiedUnits === 0) {
-		status = 'vacant'
-	} else if (occupiedUnits === totalUnits) {
-		status = 'FULL'
-	} else {
-		status = 'PARTIAL'
-	}
-
-	// Derive trend direction from percentage
-	let trend: PropertyPerformance['trend']
-	if (row.trend_percentage > 0) {
-		trend = 'up'
-	} else if (row.trend_percentage < 0) {
-		trend = 'down'
-	} else {
-		trend = 'stable'
-	}
-
-	// Revenue is in dollars (DB convention), monthly approximation from timeframe
-	const monthlyRevenue = row.total_revenue / (getTimeframeDays(row.timeframe) / 30)
-
-	return {
-		property: row.property_name,
-		property_id: row.property_id,
-		totalUnits,
-		occupiedUnits,
-		vacantUnits,
-		occupancyRate: Number(row.occupancy_rate) || 0,
-		revenue: row.total_revenue,
-		monthlyRevenue: Math.round(monthlyRevenue),
-		potentialRevenue: 0, // Would need rent_amount data to calculate
-		address_line1: details?.address ?? '',
-		property_type: details?.propertyType ?? 'SINGLE_FAMILY',
-		status,
-		trend,
-		trendPercentage: Number(row.trend_percentage) || 0
-	}
-}
-
-/**
- * Converts timeframe string to number of days
- */
-function getTimeframeDays(timeframe: string): number {
-	const map: Record<string, number> = {
-		'7d': 7,
-		'30d': 30,
-		'90d': 90,
-		'180d': 180,
-		'365d': 365
-	}
-	return map[timeframe] ?? 30
-}
-
-
 
 /**
  * Property query factory
@@ -171,7 +77,6 @@ export const propertyQueries = {
 					.select(PROPERTY_SELECT_COLUMNS, { count: 'exact' })
 					.order('created_at', { ascending: false })
 
-				// Filter inactive by default unless a specific status is requested
 				if (filters?.status) {
 					q = q.eq('status', filters.status)
 				} else {
@@ -185,9 +90,7 @@ export const propertyQueries = {
 				if (filters?.search) {
 					const safe = sanitizeSearchInput(filters.search)
 					if (safe) {
-						q = q.or(
-							`name.ilike.%${safe}%,city.ilike.%${safe}%`
-						)
+						q = q.or(`name.ilike.%${safe}%,city.ilike.%${safe}%`)
 					}
 				}
 
@@ -263,158 +166,11 @@ export const propertyQueries = {
 		}),
 
 	/**
-	 * Property statistics
-	 * Aggregates active, total counts directly via PostgREST
-	 */
-	stats: () =>
-		queryOptions({
-			queryKey: [...propertyQueries.all(), 'stats'],
-			queryFn: async (): Promise<PropertyStats> => {
-				const supabase = createClient()
-				const [activeResult, totalResult, occupiedResult] = await Promise.all([
-					supabase
-						.from('properties')
-						.select('id', { count: 'exact', head: true })
-						.eq('status', 'active'),
-					supabase
-						.from('properties')
-						.select('id', { count: 'exact', head: true })
-						.neq('status', 'inactive'),
-					supabase
-						.from('units')
-						.select('id', { count: 'exact', head: true })
-						.eq('status', 'occupied')
-				])
-
-				if (activeResult.error) handlePostgrestError(activeResult.error, 'properties')
-				if (totalResult.error) handlePostgrestError(totalResult.error, 'properties')
-				if (occupiedResult.error) handlePostgrestError(occupiedResult.error, 'properties')
-
-				const total = totalResult.count ?? 0
-				const occupied = occupiedResult.count ?? 0
-				const vacant = total - occupied
-				const occupancyRate = total > 0 ? Math.round((occupied / total) * 100) : 0
-
-				return {
-					total,
-					occupied,
-					vacant,
-					occupancyRate,
-					totalMonthlyRent: 0,
-					averageRent: 0
-				}
-			},
-			...QUERY_CACHE_TIMES.DETAIL,
-			gcTime: 30 * 60 * 1000 // Keep 30 minutes for stats
-		}),
-
-	/**
-	 * Property performance metrics
-	 * Uses get_property_performance_with_trends RPC enriched with property details
-	 */
-	performance: (timeframe: '7d' | '30d' | '90d' | '180d' | '365d' = '30d') =>
-		queryOptions({
-			queryKey: [...propertyQueries.all(), 'performance', timeframe],
-			queryFn: async (): Promise<PropertyPerformance[]> => {
-				const supabase = createClient()
-				const user = await getCachedUser()
-				if (!user) return []
-
-				// Parallel fetch: RPC trends + property details with unit counts
-				const [trendsResult, propertiesResult] = await Promise.all([
-					supabase.rpc('get_property_performance_with_trends', {
-						p_user_id: user.id,
-						p_timeframe: timeframe,
-						p_limit: 100
-					}),
-					supabase
-						.from('properties')
-						.select(
-							`
-							id,
-							name,
-							address_line1,
-							property_type,
-							units(id, status)
-						`
-						)
-						.eq('owner_user_id', user.id)
-						.neq('status', 'inactive')
-				])
-
-				if (trendsResult.error)
-					handlePostgrestError(trendsResult.error, 'property performance')
-				if (propertiesResult.error)
-					handlePostgrestError(propertiesResult.error, 'properties')
-
-				const trends: PerformanceWithTrendsRow[] = trendsResult.data ?? []
-				const properties = propertiesResult.data ?? []
-
-				// Build lookup map for property details
-				const propertyMap = new Map(
-					properties.map(p => [
-						p.id,
-						{
-							address: p.address_line1 ?? '',
-							propertyType: p.property_type ?? 'SINGLE_FAMILY',
-							units: Array.isArray(p.units) ? p.units : []
-						}
-					])
-				)
-
-				return trends.map(row => mapPerformanceRow(row, propertyMap))
-			},
-			...QUERY_CACHE_TIMES.DETAIL
-		}),
-
-	analytics: {
-		occupancy: () => occupancyTrendsQuery({ months: 12 }),
-		financial: () =>
-			queryOptions({
-				queryKey: [...propertyQueries.all(), 'analytics', 'financial'] as const,
-				queryFn: async (): Promise<unknown> => {
-					const supabase = createClient()
-					const user = await getCachedUser()
-					if (!user) throw new Error('Not authenticated')
-					const { data, error } = await supabase.rpc('get_financial_overview', {
-						p_user_id: user.id
-					})
-					if (error) handlePostgrestError(error, 'properties')
-					return data ?? {}
-				},
-				staleTime: 2 * 60 * 1000,
-				gcTime: 10 * 60 * 1000
-			}),
-		maintenance: () =>
-			queryOptions({
-				queryKey: [
-					...propertyQueries.all(),
-					'analytics',
-					'maintenance'
-				] as const,
-				queryFn: async (): Promise<unknown> => {
-					const supabase = createClient()
-					const user = await getCachedUser()
-					if (!user) throw new Error('Not authenticated')
-					const { data, error } = await supabase.rpc(
-						'get_maintenance_analytics',
-						{ user_id: user.id }
-					)
-					if (error) handlePostgrestError(error, 'properties')
-					return data ?? {}
-				},
-				staleTime: 2 * 60 * 1000,
-				gcTime: 10 * 60 * 1000
-			})
-	},
-
-	/**
 	 * Property images for a specific property
 	 * Uses Supabase client directly with RLS
 	 *
 	 * Note: image_url stores relative path (e.g., "{property_id}/{filename}")
 	 * This query transforms it to full public URL using Supabase storage API
-	 * Note: Supabase JS client doesn't support AbortController directly
 	 */
 	images: (property_id: string) =>
 		queryOptions({
@@ -429,13 +185,11 @@ export const propertyQueries = {
 
 				if (error) throw new Error(error.message)
 
-				// Transform relative paths to full public URLs
 				return (data as Tables<'property_images'>[]).map(image => {
 					const isFullUrl = image.image_url.startsWith('http')
 					if (isFullUrl) {
 						return image
 					}
-					// Construct full URL from relative path
 					const {
 						data: { publicUrl }
 					} = supabase.storage

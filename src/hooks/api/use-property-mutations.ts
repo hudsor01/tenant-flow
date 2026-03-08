@@ -20,6 +20,7 @@ import type {
 } from '#lib/validation/properties'
 
 import { propertyQueries } from './query-keys/property-keys'
+import { propertyStatsQueries } from './query-keys/property-stats-keys'
 import { unitQueries } from './query-keys/unit-keys'
 import { mutationKeys } from './mutation-keys'
 import { ownerDashboardKeys } from './use-owner-dashboard'
@@ -117,7 +118,7 @@ export function useMarkPropertySoldMutation() {
 		onSettled: () => {
 			queryClient.invalidateQueries({ queryKey: propertyQueries.lists() })
 			queryClient.invalidateQueries({
-				queryKey: propertyQueries.stats().queryKey
+				queryKey: propertyStatsQueries.stats().queryKey
 			})
 			queryClient.invalidateQueries({ queryKey: ownerDashboardKeys.all })
 		}
