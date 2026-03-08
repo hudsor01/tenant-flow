@@ -315,6 +315,19 @@ Also in `core.ts` (dashboard response shapes):
 
 ---
 
+## Blog Query Types (`query-keys/blog-keys.ts`)
+
+Pick/derived types for blog queries. Live in the query-keys layer (not shared types).
+
+| Type | Purpose | Import Path |
+|------|---------|-------------|
+| `BlogListItem` | Blog list item (Pick from blogs table) | `src/hooks/api/query-keys/blog-keys` |
+| `BlogDetail` | Full blog post detail | `src/hooks/api/query-keys/blog-keys` |
+| `BlogFilters` | Blog query filter params | `src/hooks/api/query-keys/blog-keys` |
+| `BlogCategory` | RPC return row (name, slug, post_count) | `src/hooks/api/query-keys/blog-keys` |
+
+---
+
 ## RPC Return Types (`database-rpc.ts`)
 
 For Supabase RPC function response shapes.

@@ -17,6 +17,10 @@ key_files:
   modified:
     - src/app/blog/[slug]/page.tsx
     - src/app/blog/category/[category]/page.tsx
+requirements-completed:
+  - PAGE-03
+  - PAGE-04
+  - PAGE-05
 decisions:
   - Simplified prose to prose prose-lg dark:prose-invert with minimal overrides (dropped 20+ arbitrary selectors)
   - Category slug resolution from useBlogCategories DB query, fallback to simple slugification
