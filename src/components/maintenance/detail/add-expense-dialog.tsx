@@ -15,7 +15,7 @@ import {
 	DialogTrigger
 } from '#components/ui/dialog'
 import { Field, FieldLabel } from '#components/ui/field'
-import { createLogger } from '#shared/lib/frontend-logger'
+import { createLogger } from '#lib/frontend-logger.js'
 import { createClient } from '#lib/supabase/client'
 import { DollarSign, Plus } from 'lucide-react'
 import { toast } from 'sonner'

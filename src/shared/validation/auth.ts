@@ -9,7 +9,7 @@
  */
 
 import { z } from 'zod'
-import { VALIDATION_LIMITS } from '#shared/constants/billing'
+import { VALIDATION_LIMITS } from '#lib/constants/billing.js'
 
 // AUTH FORM VALIDATION SCHEMAS
 

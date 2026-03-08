@@ -8,7 +8,7 @@ import { BlurFade } from '#components/ui/blur-fade'
 import { BarChart3, FileDown, PieChart } from 'lucide-react'
 import { OwnerPaymentSummary } from '#components/analytics/owner-payment-summary'
 import dynamic from 'next/dynamic'
-import { EMPTY_PAYMENT_SUMMARY } from '#shared/types/api-contracts'
+import { EMPTY_PAYMENT_SUMMARY } from '#types/api-contracts'
 import { ChartLoadingSkeleton } from '#components/shared/chart-loading-skeleton'
 
 const RevenueExpenseChart = dynamic(

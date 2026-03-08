@@ -41,8 +41,8 @@ import { useDeleteUnitMutation } from '#hooks/api/use-unit'
 import { cn } from '#lib/utils'
 import { buttonVariants } from '#components/ui/button'
 import { cardVariants } from '#components/ui/card'
-import { createLogger } from '#shared/lib/frontend-logger'
-import type { UnitRowWithRelations as UnitRow, UnitStatus } from '#shared/types/core'
+import { createLogger } from '#lib/frontend-logger.js'
+import type { UnitRowWithRelations as UnitRow, UnitStatus } from '#types/core'
 import {
 	AlertTriangle,
 	BedDouble,

@@ -14,8 +14,8 @@ import {
 	handleMutationSuccess
 } from '#lib/mutation-error-handler'
 import { toast } from 'sonner'
-import { logger } from '#shared/lib/frontend-logger'
-import { incrementVersion } from '#shared/utils/optimistic-locking'
+import { logger } from '#lib/frontend-logger.js'
+import { incrementVersion } from '#lib/utils/optimistic-locking.js'
 import type {
 	TenantCreate,
 	TenantUpdate
@@ -24,7 +24,7 @@ import type {
 	Tenant,
 	TenantWithLeaseInfo,
 	TenantWithLeaseInfoWithVersion
-} from '#shared/types/core'
+} from '#types/core'
 
 import { tenantQueries } from './query-keys/tenant-keys'
 import { leaseQueries } from './query-keys/lease-keys'
@@ -310,5 +310,3 @@ export function useMarkTenantAsMovedOutMutation() {
 		}
 	})
 }
-
-

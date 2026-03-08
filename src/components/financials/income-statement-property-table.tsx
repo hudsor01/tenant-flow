@@ -1,6 +1,6 @@
 import { Building2 } from 'lucide-react'
 import { BlurFade } from '#components/ui/blur-fade'
-import type { PropertyPL } from '#shared/types/financial-statements'
+import type { PropertyPL } from '#types/financial-statements'
 
 interface IncomeStatementPropertyTableProps {
 	byProperty: PropertyPL[]

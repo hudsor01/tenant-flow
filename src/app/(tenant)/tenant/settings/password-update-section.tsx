@@ -11,8 +11,6 @@ import {
 	InputGroupInput
 } from '#components/ui/input-group'
 import { LoadingSpinner } from '#components/ui/loading-spinner'
-import { cn } from '#lib/utils'
-import { TYPOGRAPHY_SCALE } from '#shared/constants/design-system'
 import { createClient } from '#lib/supabase/client'
 import { useMutation } from '@tanstack/react-query'
 import { AlertTriangle, CheckCircle2, Eye, EyeOff, Shield } from 'lucide-react'
@@ -220,10 +218,7 @@ export function PasswordUpdateSection() {
 					)}
 				</Button>
 
-				<p
-					className={cn('text-muted-foreground mt-4')}
-					style={TYPOGRAPHY_SCALE['ui-caption']}
-				>
+				<p className="text-xs leading-[1.25] text-muted-foreground mt-4">
 					Make sure to use a strong, unique password that you don&apos;t use for
 					other accounts.
 				</p>

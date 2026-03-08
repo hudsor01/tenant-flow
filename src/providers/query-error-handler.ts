@@ -11,7 +11,7 @@
  */
 
 import type { PostgrestError } from '@supabase/supabase-js'
-import type { createLogger } from '#shared/lib/frontend-logger'
+import type { createLogger } from '#lib/frontend-logger.js'
 
 type Logger = ReturnType<typeof createLogger>
 

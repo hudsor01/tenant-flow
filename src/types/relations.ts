@@ -3,7 +3,7 @@
  * Extended entity types with proper relations to avoid circular imports
  */
 
-import type { PropertyType } from '../constants/status-types'
+import type { PropertyType } from '../../src/lib/constants/status-types'
 import type { Database } from './supabase'
 import type { User } from '@supabase/supabase-js'
 

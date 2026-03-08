@@ -3,7 +3,7 @@
 import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import { MaintenanceCard } from './maintenance-card'
-import type { MaintenanceDisplayRequest } from '#shared/types/sections/maintenance'
+import type { MaintenanceDisplayRequest } from '#types/sections/maintenance'
 
 interface MaintenanceSortableCardProps {
 	request: MaintenanceDisplayRequest

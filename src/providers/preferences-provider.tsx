@@ -8,7 +8,7 @@ import {
 	persistThemeMode,
 	updateThemeMode
 } from '#lib/theme-utils'
-import type { ThemeMode } from '#shared/types/domain'
+import type { ThemeMode } from '#types/domain'
 import type { PreferencesState } from '#stores/preferences-store'
 import {
 	createPreferencesStore,

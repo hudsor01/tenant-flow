@@ -14,8 +14,8 @@ import { getCachedUser } from '#lib/supabase/get-cached-user'
 import { handlePostgrestError } from '#lib/postgrest-error-handler'
 import { resolveTenantId } from '../use-tenant-portal-keys'
 import { QUERY_CACHE_TIMES } from '#lib/constants/query-config'
-import type { PaginatedResponse } from '#shared/types/api-contracts'
-import type { MaintenanceRequest } from '#shared/types/core'
+import type { PaginatedResponse } from '#types/api-contracts'
+import type { MaintenanceRequest } from '#types/core'
 
 // ============================================================================
 // TYPES

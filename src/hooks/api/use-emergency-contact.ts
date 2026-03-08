@@ -12,7 +12,7 @@ import { getCachedUser } from '#lib/supabase/get-cached-user'
 import { mutationKeys } from './mutation-keys'
 import { QUERY_CACHE_TIMES } from '#lib/constants/query-config'
 import { toast } from 'sonner'
-import { logger } from '#shared/lib/frontend-logger'
+import { logger } from '#lib/frontend-logger.js'
 import { handleMutationError } from '#lib/mutation-error-handler'
 
 // ============================================================================

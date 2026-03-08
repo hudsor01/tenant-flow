@@ -8,7 +8,7 @@
 
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { mutationKeys } from './mutation-keys'
-import { logger } from '#shared/lib/frontend-logger'
+import { logger } from '#lib/frontend-logger.js'
 import {
 	handleMutationError,
 	handleMutationSuccess
@@ -19,7 +19,7 @@ import type {
 	UpdatePhoneInput,
 	UpdateProfileInput,
 	UserProfile
-} from '#shared/types/api-contracts'
+} from '#types/api-contracts'
 
 import { profileKeys, PROFILE_SELECT, mapUserProfile } from './use-profile'
 
@@ -167,4 +167,3 @@ export function useUpdatePhoneMutation() {
 		}
 	})
 }
-

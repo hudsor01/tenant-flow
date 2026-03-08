@@ -8,7 +8,6 @@ import {
 	Users,
 	Zap
 } from 'lucide-react'
-import { TYPOGRAPHY_SCALE } from '#shared/constants/design-system'
 
 export interface UsageStatsData {
 	properties: number
@@ -26,10 +25,7 @@ export function PortalUsageStats({ stats }: PortalUsageStatsProps) {
 	return (
 		<div className="bg-muted/10 rounded-2xl p-6 border-2 border-muted/20">
 			<div className="flex-between mb-6">
-				<h4
-					className="text-foreground flex items-center gap-3"
-					style={TYPOGRAPHY_SCALE['heading-md']}
-				>
+				<h4 className="text-[1.0625rem] font-bold leading-[1.29] text-foreground flex items-center gap-3">
 					<div className="p-2 bg-primary/10 rounded-lg">
 						<Activity className="size-5 text-primary" />
 					</div>

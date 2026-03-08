@@ -12,11 +12,11 @@ import { queryOptions } from '@tanstack/react-query'
 import { createClient } from '#lib/supabase/client'
 import { getCachedUser } from '#lib/supabase/get-cached-user'
 import { handlePostgrestError } from '#lib/postgrest-error-handler'
-import { createLogger } from '#shared/lib/frontend-logger'
+import { createLogger } from '#lib/frontend-logger.js'
 import type {
 	BillingHistoryItem,
 	FailedPaymentAttempt
-} from '#shared/types/api-contracts'
+} from '#types/api-contracts'
 
 const logger = createLogger({ component: 'BillingKeys' })
 

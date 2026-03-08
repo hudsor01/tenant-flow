@@ -23,7 +23,7 @@ import type {
 	MaintenanceReport,
 	YearEndSummary,
 	Year1099Summary
-} from '#shared/types/reports'
+} from '#types/reports'
 
 // ============================================================================
 // QUERY KEYS

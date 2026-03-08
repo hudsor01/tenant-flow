@@ -15,15 +15,15 @@ import { handlePostgrestError } from '#lib/postgrest-error-handler'
 import { sanitizeSearchInput } from '#lib/sanitize-search'
 import { QUERY_CACHE_TIMES } from '#lib/constants/query-config'
 import { occupancyTrendsQuery } from './analytics-keys'
-import type { PaginatedResponse } from '#shared/types/api-contracts'
+import type { PaginatedResponse } from '#types/api-contracts'
 import type {
 	Property,
 	PropertyPerformance,
 	PropertyStatus,
 	PropertyType
-} from '#shared/types/core'
-import type { PropertyStats } from '#shared/types/stats'
-import type { Database, Tables } from '#shared/types/supabase'
+} from '#types/core'
+import type { PropertyStats } from '#types/stats'
+import type { Database, Tables } from '#types/supabase'
 
 /**
  * Extract RPC return type from generated Database types

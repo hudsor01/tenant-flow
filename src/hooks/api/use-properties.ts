@@ -6,8 +6,8 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 
 import { QUERY_CACHE_TIMES } from '#lib/constants/query-config'
-import type { PaginatedResponse } from '#shared/types/api-contracts'
-import type { Property } from '#shared/types/core'
+import type { PaginatedResponse } from '#types/api-contracts'
+import type { Property } from '#types/core'
 import { propertyQueries, type PropertyFilters } from './query-keys/property-keys'
 
 /** Stable select function for TanStack Query optimization */

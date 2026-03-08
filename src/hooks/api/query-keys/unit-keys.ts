@@ -13,9 +13,9 @@ import { createClient } from '#lib/supabase/client'
 import { handlePostgrestError } from '#lib/postgrest-error-handler'
 import { sanitizeSearchInput } from '#lib/sanitize-search'
 import { QUERY_CACHE_TIMES } from '#lib/constants/query-config'
-import type { PaginatedResponse } from '#shared/types/api-contracts'
-import type { Unit } from '#shared/types/core'
-import type { UnitStats } from '#shared/types/stats'
+import type { PaginatedResponse } from '#types/api-contracts'
+import type { Unit } from '#types/core'
+import type { UnitStats } from '#types/stats'
 
 // ============================================================================
 // TYPES

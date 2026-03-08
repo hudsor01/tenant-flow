@@ -1,5 +1,5 @@
 import { DEFAULT_THEME_MODE } from '#lib/theme-utils'
-import type { ThemeMode } from '#shared/types/domain'
+import type { ThemeMode } from '#types/domain'
 import { createStore } from 'zustand/vanilla'
 
 /**

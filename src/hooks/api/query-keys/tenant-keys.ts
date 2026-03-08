@@ -18,13 +18,13 @@ import { queryOptions } from '@tanstack/react-query'
 import { createClient } from '#lib/supabase/client'
 import { handlePostgrestError } from '#lib/postgrest-error-handler'
 import { sanitizeSearchInput } from '#lib/sanitize-search'
-import type { Tenant, TenantWithLeaseInfo } from '#shared/types/core'
-import type { TenantStats } from '#shared/types/stats'
+import type { Tenant, TenantWithLeaseInfo } from '#types/core'
+import type { TenantStats } from '#types/stats'
 import type {
 	PaginatedResponse,
 	TenantFilters,
 	TenantInvitation
-} from '#shared/types/api-contracts'
+} from '#types/api-contracts'
 import { QUERY_CACHE_TIMES } from '#lib/constants/query-config'
 import type {
 	InvitationData,

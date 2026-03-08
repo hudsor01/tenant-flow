@@ -18,7 +18,7 @@ import {
 	handleMutationError,
 	handleMutationSuccess
 } from '#lib/mutation-error-handler'
-import type { Database } from '#shared/types/supabase'
+import type { Database } from '#types/supabase'
 
 type NotificationItem = Database['public']['Tables']['notifications']['Row']
 

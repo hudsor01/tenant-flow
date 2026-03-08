@@ -7,7 +7,7 @@ import { PricingComparisonTable } from './pricing-comparison-table'
 import { Switch } from '#components/ui/switch'
 import { Label } from '#components/ui/label'
 import { Badge } from '#components/ui/badge'
-import { getAllPricingPlans, PLAN_FEATURES } from '#shared/config/pricing'
+import { getAllPricingPlans, PLAN_FEATURES } from '#config/pricing'
 import { Building2, Users, Shield } from 'lucide-react'
 
 interface BentoPricingSectionProps {

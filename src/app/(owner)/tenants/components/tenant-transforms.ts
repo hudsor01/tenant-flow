@@ -1,15 +1,17 @@
-import type { TenantWithLeaseInfo } from '#shared/types/core'
-import type { LeaseStatus } from '#shared/types/core'
+import type { TenantWithLeaseInfo } from '#types/core'
+import type { LeaseStatus } from '#types/core'
 import type {
 	TenantItem,
 	TenantSectionDetail
-} from '#shared/types/sections/tenants'
+} from '#types/sections/tenants'
 
 type TenantPaymentStatus = NonNullable<
 	TenantSectionDetail['paymentHistory']
 >[number]['status']
 
-export function normalizePaymentStatus(status: string | null | undefined): TenantPaymentStatus {
+export function normalizePaymentStatus(
+	status: string | null | undefined
+): TenantPaymentStatus {
 	const normalized = status?.toLowerCase()
 	if (
 		normalized === 'pending' ||
@@ -54,7 +56,9 @@ export function transformToTenantItem(
 		email: tenant.email ?? '',
 		...(tenant.phone ? { phone: tenant.phone } : {}),
 		...(tenant.property?.name ? { currentProperty: tenant.property.name } : {}),
-		...(tenant.unit?.unit_number ? { currentUnit: tenant.unit.unit_number } : {}),
+		...(tenant.unit?.unit_number
+			? { currentUnit: tenant.unit.unit_number }
+			: {}),
 		...(leaseStatus ? { leaseStatus } : {}),
 		...(tenant.currentLease?.id ? { leaseId: tenant.currentLease.id } : {}),
 		totalPaid: totalPaidByTenant?.get(tenant.id) ?? 0
@@ -73,9 +77,15 @@ export function transformToTenantSectionDetail(
 
 	return {
 		...base,
-		...(tenant.emergency_contact_name ? { emergencyContactName: tenant.emergency_contact_name } : {}),
-		...(tenant.emergency_contact_phone ? { emergencyContactPhone: tenant.emergency_contact_phone } : {}),
-		...(tenant.emergency_contact_relationship ? { emergencyContactRelationship: tenant.emergency_contact_relationship } : {}),
+		...(tenant.emergency_contact_name
+			? { emergencyContactName: tenant.emergency_contact_name }
+			: {}),
+		...(tenant.emergency_contact_phone
+			? { emergencyContactPhone: tenant.emergency_contact_phone }
+			: {}),
+		...(tenant.emergency_contact_relationship
+			? { emergencyContactRelationship: tenant.emergency_contact_relationship }
+			: {}),
 		identityVerified: tenant.identity_verified ?? false,
 		createdAt: tenant.created_at ?? new Date().toISOString(),
 		updatedAt: tenant.updated_at ?? new Date().toISOString(),

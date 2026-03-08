@@ -1,4 +1,4 @@
-import type { UnitStatus } from '#shared/types/core'
+import type { UnitStatus } from '#types/core'
 import { Home, User, Wrench } from 'lucide-react'
 
 // Status badge configuration matching spec

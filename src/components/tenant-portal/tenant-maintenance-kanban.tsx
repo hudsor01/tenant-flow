@@ -11,7 +11,7 @@
 
 import { Badge } from '#components/ui/badge'
 import { formatDate } from '#lib/formatters/date'
-import type { MaintenanceRequest } from '#shared/types/core'
+import type { MaintenanceRequest } from '#types/core'
 
 const TENANT_KANBAN_COLUMNS = [
 	{ id: 'open', label: 'Open', description: 'Awaiting review' },

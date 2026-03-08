@@ -6,7 +6,7 @@
  * Extracted from tenant-keys.ts for maintainability.
  */
 
-import type { TenantWithLeaseInfo } from '#shared/types/core'
+import type { TenantWithLeaseInfo } from '#types/core'
 
 export interface TenantPostgrestRow {
 	id: string

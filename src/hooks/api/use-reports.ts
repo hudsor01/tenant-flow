@@ -17,7 +17,7 @@ import type { UseMutationResult } from '@tanstack/react-query'
 import type {
 	ListReportsResponse,
 	Report as ReportType
-} from '#shared/types/reports'
+} from '#types/reports'
 
 // Re-export keys and queries for backwards compatibility and tests
 export { reportKeys as reportsKeys, reportQueries as reportsQueries }

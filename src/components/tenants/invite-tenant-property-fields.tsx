@@ -6,7 +6,7 @@ import {
 	SelectTrigger,
 	SelectValue
 } from '#components/ui/select'
-import type { Property, Unit } from '#shared/types/core'
+import type { Property, Unit } from '#types/core'
 import { Building2, Home } from 'lucide-react'
 import type { InviteTenantFormApi } from './invite-tenant-form-types'
 

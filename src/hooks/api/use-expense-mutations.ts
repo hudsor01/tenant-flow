@@ -9,7 +9,7 @@ import { getCachedUser } from '#lib/supabase/get-cached-user'
 import { handlePostgrestError } from '#lib/postgrest-error-handler'
 import { handleMutationError } from '#lib/mutation-error-handler'
 import { mutationKeys } from './mutation-keys'
-import type { TaxDocumentsData } from '#shared/types/financial-statements'
+import type { TaxDocumentsData } from '#types/financial-statements'
 
 // ============================================================================
 // TYPES

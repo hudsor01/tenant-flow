@@ -1,5 +1,8 @@
-import type { LeaseFormData, USState } from '../types/lease-generator.types'
-import { formatCurrency } from '../utils/currency'
+import type {
+	LeaseFormData,
+	USState
+} from '#types/lease-generator.types'
+import { formatCurrency } from '../../lib/utils/currency'
 import { formatDate } from '#lib/formatters/date'
 
 export interface LeaseTemplateClause {

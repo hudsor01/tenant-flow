@@ -32,7 +32,7 @@ import type { TransitionStartFunction } from 'react'
 
 import { useDebouncedCallback } from '#hooks/use-debounced-callback'
 import { getSortingStateParser } from '#lib/parsers'
-import type { ExtendedColumnSort, QueryKeys } from '#types/data-table'
+import type { ExtendedColumnSort, QueryKeys } from '#types/data-table.js'
 
 const PAGE_KEY = 'page'
 const PER_PAGE_KEY = 'perPage'

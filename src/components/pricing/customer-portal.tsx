@@ -7,7 +7,6 @@ import { useUser } from '#hooks/api/use-auth'
 import { useBillingPortalMutation } from '#hooks/api/use-billing-mutations'
 import { cn } from '#lib/utils'
 import { cardVariants } from '#components/ui/card'
-import { TYPOGRAPHY_SCALE } from '#shared/constants/design-system'
 import {
 	ArrowRight,
 	Award,
@@ -179,10 +178,7 @@ export function CustomerPortalCard({
 							<h3 className="font-bold tracking-tight text-foreground text-xl leading-tight">
 								Account Management
 							</h3>
-							<p
-								className="text-muted-foreground"
-								style={TYPOGRAPHY_SCALE['ui-caption']}
-							>
+							<p className="text-xs leading-[1.25] text-muted-foreground">
 								Manage your subscription and billing preferences
 							</p>
 						</div>

@@ -12,8 +12,8 @@ import {
 	useQuery,
 	useQueryClient
 } from '@tanstack/react-query'
-import type { MaintenanceRequest } from '#shared/types/core'
-import type { PaginatedResponse } from '#shared/types/api-contracts'
+import type { MaintenanceRequest } from '#types/core'
+import type { PaginatedResponse } from '#types/api-contracts'
 import type {
 	MaintenanceRequestCreate,
 	MaintenanceRequestUpdate

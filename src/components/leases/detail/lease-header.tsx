@@ -21,7 +21,7 @@ import { SignLeaseButton } from '#components/leases/sign-lease-button'
 import { DownloadSignedLeaseButton } from '#components/leases/download-signed-lease-button'
 import { toast } from 'sonner'
 import { cn } from '#lib/utils'
-import type { Lease } from '#shared/types/core'
+import type { Lease } from '#types/core'
 import { getStatusConfig, getDaysUntilExpiry } from './lease-detail-utils'
 
 interface TenantInfo {

@@ -15,7 +15,7 @@ import { useQuery, useSuspenseQuery } from '@tanstack/react-query'
 import { createClient } from '#lib/supabase/client'
 import { getCachedUser } from '#lib/supabase/get-cached-user'
 import { handlePostgrestError } from '#lib/postgrest-error-handler'
-import type { FinancialMetrics } from '#shared/types/core'
+import type { FinancialMetrics } from '#types/core'
 import {
 	ownerDashboardKeys,
 	DASHBOARD_BASE_QUERY_OPTIONS,
@@ -24,7 +24,7 @@ import {
 	type DashboardActivityData,
 	type OwnerDashboardData
 } from './use-owner-dashboard'
-import type { PropertyPerformance } from '#shared/types/core'
+import type { PropertyPerformance } from '#types/core'
 import { dashboardGraphQLQueries } from './query-keys/dashboard-graphql-keys'
 
 // ============================================================================

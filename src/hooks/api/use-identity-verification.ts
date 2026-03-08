@@ -7,7 +7,7 @@ import { mutationKeys } from './mutation-keys'
 import type {
 	IdentityVerificationRecord,
 	IdentityVerificationSessionPayload
-} from '#shared/types/stripe'
+} from '#types/stripe'
 import { stripeConnectKeys } from './use-stripe-connect'
 
 export const identityVerificationKeys = {

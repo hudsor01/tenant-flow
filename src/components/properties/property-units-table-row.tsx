@@ -14,7 +14,7 @@ import {
 	DropdownMenuSeparator,
 	DropdownMenuTrigger
 } from '#components/ui/dropdown-menu'
-import type { Unit, UnitStatus } from '#shared/types/core'
+import type { Unit, UnitStatus } from '#types/core'
 import { Bath, Bed, DollarSign, MoreHorizontal, Pencil, Ruler, Trash2 } from 'lucide-react'
 import { cn } from '#lib/utils'
 import { statusConfig, formatUnitCurrency } from './property-units-table-config'

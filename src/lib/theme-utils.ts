@@ -1,8 +1,8 @@
-import type { ThemeMode } from '#shared/types/domain'
+import type { ThemeMode } from '#types/domain'
 import type {
 	TailwindColorName,
 	TailwindRadiusValue
-} from '#shared/types/frontend'
+} from '#types/frontend'
 import { secureCookie } from './dom-utils'
 
 export function getSavedThemeColor(): TailwindColorName {

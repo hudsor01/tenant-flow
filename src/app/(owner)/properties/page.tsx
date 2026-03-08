@@ -14,7 +14,7 @@ import { propertyQueries } from '#hooks/api/query-keys/property-keys'
 import { unitQueries } from '#hooks/api/query-keys/unit-keys'
 import { ownerDashboardKeys } from '#hooks/api/use-owner-dashboard'
 import { createClient } from '#lib/supabase/client'
-import type { Unit } from '#shared/types/core'
+import type { Unit } from '#types/core'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '#components/ui/tabs'
 import {
 	AlertDialog,

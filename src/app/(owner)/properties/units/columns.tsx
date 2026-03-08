@@ -1,6 +1,6 @@
 /**
  * Unit Columns - Data Table Column Definitions
- * 
+ *
  * This file defines the column structure for the units data table.
  * Component implementations are extracted into ./components/ for maintainability.
  */
@@ -9,7 +9,7 @@ import { DataTableColumnHeader } from '#components/data-table/data-table-column-
 import type {
 	UnitRowWithRelations,
 	UnitStatus
-} from '#shared/types/core'
+} from '#types/core'
 
 export type UnitRow = UnitRowWithRelations
 import type { ColumnDef } from '@tanstack/react-table'

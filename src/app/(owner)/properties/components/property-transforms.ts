@@ -1,4 +1,4 @@
-import type { Property as ApiProperty, Unit } from '#shared/types/core'
+import type { Property as ApiProperty, Unit } from '#types/core'
 import type {
 	PropertyItem,
 	PropertySummary,

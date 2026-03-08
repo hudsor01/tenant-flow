@@ -296,7 +296,7 @@ export default defineConfig([
 	{
 		name: 'frontend/design-system-color-tokens',
 		files: ['src/**/*.{ts,tsx}'],
-		ignores: ['**/design-system/**', '**/shared/**'],
+		ignores: ['**/design-system/**', '**/shared/**', '**/opengraph-image.*'],
 		plugins: {
 			'color-tokens': colorTokensPlugin
 		},

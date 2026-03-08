@@ -17,7 +17,7 @@ import {
 	InputOTPSeparator
 } from '#components/ui/input-otp'
 import { useMfaEnrollMutation, useMfaVerifyMutation, useMfaUnenrollMutation } from '#hooks/api/use-mfa'
-import { logger } from '#shared/lib/frontend-logger'
+import { logger } from '#lib/frontend-logger.js'
 import { CheckCircle2, Copy, Loader2, Shield, ShieldOff } from 'lucide-react'
 import { useState, useEffect } from 'react'
 import { toast } from 'sonner'

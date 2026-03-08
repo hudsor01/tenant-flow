@@ -11,7 +11,7 @@ import type { ColumnDef } from '@tanstack/react-table'
 import { TrendingUp, DollarSign, Wrench } from 'lucide-react'
 import { useMemo } from 'react'
 import dynamic from 'next/dynamic'
-import type { MaintenanceCategoryBreakdown } from '#shared/types/analytics'
+import type { MaintenanceCategoryBreakdown } from '#types/analytics'
 import { ChartLoadingSkeleton } from '#components/shared/chart-loading-skeleton'
 
 const MaintenanceTrendChart = dynamic(

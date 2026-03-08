@@ -13,11 +13,11 @@ import { useQuery } from '@tanstack/react-query'
 import { createClient } from '#lib/supabase/client'
 import { getCachedUser } from '#lib/supabase/get-cached-user'
 import { handlePostgrestError } from '#lib/postgrest-error-handler'
-import { createLogger } from '#shared/lib/frontend-logger'
+import { createLogger } from '#lib/frontend-logger.js'
 import type {
 	RentSubscriptionResponse,
 	SubscriptionStatusResponse
-} from '#shared/types/api-contracts'
+} from '#types/api-contracts'
 
 import {
 	billingKeys,

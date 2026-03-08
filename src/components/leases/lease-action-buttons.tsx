@@ -28,7 +28,7 @@ import {
 	DialogDescription,
 	DialogBody
 } from '#components/ui/dialog'
-import type { Lease } from '#shared/types/core'
+import type { Lease } from '#types/core'
 import { Input } from '#components/ui/input'
 import { Label } from '#components/ui/label'
 import { RenewLeaseDialog } from '#components/leases/dialogs/renew-lease-dialog'

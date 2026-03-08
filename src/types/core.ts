@@ -90,7 +90,7 @@ import type {
 	ActivityEntityType as ActivityEntityTypeFromConstants,
 	MaintenanceCategory as MaintenanceCategoryFromConstants,
 	PropertyType as PropertyTypeFromConstants
-} from '../constants/status-types'
+} from '../../src/lib/constants/status-types'
 
 export interface StripeSessionStatusResponse {
 	status: string

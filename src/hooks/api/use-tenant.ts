@@ -18,9 +18,7 @@ import {
 	useQuery,
 	useQueryClient
 } from '@tanstack/react-query'
-import type {
-	TenantWithLeaseInfo
-} from '#shared/types/core'
+import type { TenantWithLeaseInfo } from '#types/core'
 
 // Import query keys from separate file to avoid circular dependency
 import { tenantQueries } from './query-keys/tenant-keys'

@@ -1,8 +1,8 @@
 'use client'
 
 import { Button } from '#components/ui/button'
-import { createLogger } from '#shared/lib/frontend-logger'
-import type { Property, Unit } from '#shared/types/core'
+import { createLogger } from '#lib/frontend-logger.js'
+import type { Property, Unit } from '#types/core'
 import type { InviteTenantRequest } from '#shared/validation/tenants'
 import { useForm } from '@tanstack/react-form'
 import { useMutation, useQueryClient } from '@tanstack/react-query'

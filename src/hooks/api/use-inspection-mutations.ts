@@ -14,7 +14,7 @@ import type {
 	UpdateInspectionInput,
 	TenantReviewInput
 } from '#shared/validation/inspections'
-import type { Inspection } from '#shared/types/sections/inspections'
+import type { Inspection } from '#types/sections/inspections'
 
 import { inspectionQueries } from './query-keys/inspection-keys'
 import { createClient } from '#lib/supabase/client'
@@ -238,4 +238,3 @@ export function useDeleteInspection() {
 		}
 	})
 }
-

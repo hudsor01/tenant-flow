@@ -9,7 +9,7 @@
 
 import { useEffect } from 'react'
 import { usePrefetchQuery, useQuery, useQueryClient } from '@tanstack/react-query'
-import type { Lease } from '#shared/types/core'
+import type { Lease } from '#types/core'
 import { handlePostgrestError } from '#lib/postgrest-error-handler'
 import { createClient } from '#lib/supabase/client'
 import { maintenanceQueries } from './query-keys/maintenance-keys'

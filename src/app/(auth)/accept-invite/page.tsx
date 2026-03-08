@@ -13,7 +13,7 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import { Suspense, useState } from 'react'
 
 import { createClient } from '#lib/supabase/client'
-import { createLogger } from '#shared/lib/frontend-logger'
+import { createLogger } from '#lib/frontend-logger.js'
 
 import { ErrorState } from '#components/auth/accept-invite/error-state'
 import { InviteHeroSection } from '#components/auth/accept-invite/invite-hero-section'

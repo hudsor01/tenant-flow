@@ -19,7 +19,7 @@ import { formatDate } from '#lib/formatters/date'
 import type {
 	TenantSectionDetail,
 	TenantPaymentHistoryItem
-} from '#shared/types/sections/tenants'
+} from '#types/sections/tenants'
 
 // ============================================================================
 // TYPES

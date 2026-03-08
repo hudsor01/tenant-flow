@@ -6,7 +6,7 @@ import type {
 	ExtendedColumnFilter,
 	FilterOperator,
 	FilterVariant
-} from '#types/data-table'
+} from '#types/data-table.js'
 
 /**
  * Generates CSS styles for pinned table columns

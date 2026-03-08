@@ -9,7 +9,7 @@ import {
 	SelectTrigger,
 	SelectValue
 } from '#components/ui/select'
-import type { TenantWithLeaseInfo } from '#shared/types/core'
+import type { TenantWithLeaseInfo } from '#types/core'
 import type { LeaseFormApi } from './lease-form-types'
 
 interface LeaseFormTenantDateFieldsProps {

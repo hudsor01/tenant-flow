@@ -13,7 +13,7 @@ import type {
 	CreateRentSubscriptionRequest,
 	RentSubscriptionResponse,
 	UpdateSubscriptionRequest
-} from '#shared/types/api-contracts'
+} from '#types/api-contracts'
 import { subscriptionsKeys } from './query-keys/billing-keys'
 import { mutationKeys } from './mutation-keys'
 

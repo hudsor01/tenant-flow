@@ -1,6 +1,6 @@
 import type { ComponentType } from 'react'
 
-import type { UnitStatus } from '#shared/types/core'
+import type { UnitStatus } from '#types/core'
 import {
 	AlertTriangle,
 	Calendar,

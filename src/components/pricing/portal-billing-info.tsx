@@ -2,7 +2,7 @@ import { Badge } from '#components/ui/badge'
 import { cardVariants } from '#components/ui/card'
 import { Calendar, CheckCircle2, CreditCard, Lock } from 'lucide-react'
 import { formatDate } from '#lib/formatters/date'
-import { TYPOGRAPHY_SCALE } from '#shared/constants/design-system'
+
 
 export interface BillingInfoData {
 	nextBillingDate: string
@@ -18,10 +18,7 @@ export function PortalBillingInfo({ billingInfo }: PortalBillingInfoProps) {
 	return (
 		<div className="bg-accent/8 rounded-2xl p-6 border border-accent/20">
 			<div className="flex-between mb-6">
-				<h4
-					className="text-foreground flex items-center gap-3"
-					style={TYPOGRAPHY_SCALE['heading-md']}
-				>
+				<h4 className="text-[1.0625rem] font-bold leading-[1.29] text-foreground flex items-center gap-3">
 					<div className="p-2 bg-accent/10 rounded-lg">
 						<CreditCard className="size-5 text-accent" />
 					</div>

@@ -20,11 +20,11 @@ import {
 import type {
 	SendPaymentReminderRequest,
 	SendPaymentReminderResponse
-} from '#shared/types/api-contracts'
+} from '#types/api-contracts'
 import type {
 	PaymentFilters,
 	ManualPaymentInput
-} from '#shared/types/sections/payments'
+} from '#types/sections/payments'
 import { createClient } from '#lib/supabase/client'
 import { handlePostgrestError } from '#lib/postgrest-error-handler'
 

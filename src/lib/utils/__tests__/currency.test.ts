@@ -55,7 +55,9 @@ describe('formatPrice', () => {
 		expect(formatPrice(299, { interval: 'annual' })).toBe('$299/yr')
 	})
 	it('omits interval when showInterval is false', () => {
-		expect(formatPrice(29, { interval: 'monthly', showInterval: false })).toBe('$29')
+		expect(formatPrice(29, { interval: 'monthly', showInterval: false })).toBe(
+			'$29'
+		)
 	})
 	it('converts from cents when fromCents is true', () => {
 		expect(formatPrice(2900, { fromCents: true })).toBe('$29')
@@ -66,10 +68,18 @@ describe('formatPrice', () => {
 })
 
 describe('getIntervalSuffix', () => {
-	it('returns /mo for monthly', () => { expect(getIntervalSuffix('monthly')).toBe('/mo') })
-	it('returns /mo for month', () => { expect(getIntervalSuffix('month')).toBe('/mo') })
-	it('returns /yr for annual', () => { expect(getIntervalSuffix('annual')).toBe('/yr') })
-	it('returns /yr for year', () => { expect(getIntervalSuffix('year')).toBe('/yr') })
+	it('returns /mo for monthly', () => {
+		expect(getIntervalSuffix('monthly')).toBe('/mo')
+	})
+	it('returns /mo for month', () => {
+		expect(getIntervalSuffix('month')).toBe('/mo')
+	})
+	it('returns /yr for annual', () => {
+		expect(getIntervalSuffix('annual')).toBe('/yr')
+	})
+	it('returns /yr for year', () => {
+		expect(getIntervalSuffix('year')).toBe('/yr')
+	})
 })
 
 describe('formatCompactCurrency', () => {
@@ -113,7 +123,12 @@ describe('formatNumber', () => {
 		expect(result).toMatch(/1\.5K|2K/i)
 	})
 	it('formats with decimal places', () => {
-		expect(formatNumber(42.567, { minimumFractionDigits: 2, maximumFractionDigits: 2 })).toBe('42.57')
+		expect(
+			formatNumber(42.567, {
+				minimumFractionDigits: 2,
+				maximumFractionDigits: 2
+			})
+		).toBe('42.57')
 	})
 })
 

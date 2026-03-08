@@ -21,8 +21,8 @@ import {
 	handleMutationError,
 	handleMutationSuccess
 } from '#lib/mutation-error-handler'
-import { DEFAULT_RETRY_ATTEMPTS } from '#shared/types/api-contracts'
-import { logger } from '#shared/lib/frontend-logger'
+import { DEFAULT_RETRY_ATTEMPTS } from '#types/api-contracts'
+import { logger } from '#lib/frontend-logger.js'
 import { tenantPortalKeys } from './use-tenant-portal-keys'
 
 // ============================================================================

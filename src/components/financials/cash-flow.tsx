@@ -22,7 +22,7 @@ import { formatCurrency } from '#lib/formatters/currency'
 import type {
 	CashFlowCategory,
 	MonthlyCashFlow
-} from '#shared/types/financial-statements'
+} from '#types/financial-statements'
 
 interface CashFlowProps {
 	inflows: CashFlowCategory[]

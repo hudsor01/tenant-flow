@@ -1,6 +1,6 @@
 /**
  * Lease Template Builder - Dynamic Lease Agreement Generator
- * 
+ *
  * This client component provides an interactive lease template builder
  * with clause selection, state-specific rules, and PDF generation.
  */
@@ -18,7 +18,7 @@ import {
 	type CustomClause,
 	stateNames
 } from '#shared/templates/lease-template'
-import type { USState } from '#shared/types/lease-generator.types'
+import type { USState } from '#types/lease-generator.types'
 import {
 	Card,
 	CardContent,

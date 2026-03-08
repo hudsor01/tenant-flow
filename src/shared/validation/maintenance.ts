@@ -19,7 +19,7 @@ import {
 	positiveNumberSchema,
 	nonNegativeNumberSchema
 } from './common'
-import { VALIDATION_LIMITS } from '#shared/constants/billing'
+import { VALIDATION_LIMITS } from '#lib/constants/billing.js'
 
 // Maintenance priority enum validation
 // DB enum values: 'low' | 'normal' | 'medium' | 'high' | 'urgent'

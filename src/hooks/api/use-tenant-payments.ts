@@ -10,11 +10,11 @@ import { handlePostgrestError } from '#lib/postgrest-error-handler'
 import { handleMutationError } from '#lib/mutation-error-handler'
 import { mutationKeys } from './mutation-keys'
 import { QUERY_CACHE_TIMES } from '#lib/constants/query-config'
-import { DEFAULT_RETRY_ATTEMPTS } from '#shared/types/api-contracts'
+import { DEFAULT_RETRY_ATTEMPTS } from '#types/api-contracts'
 import type {
 	CreateRentCheckoutResponse,
 	RentCheckoutError
-} from '#shared/types/api-contracts'
+} from '#types/api-contracts'
 import { tenantPortalKeys, resolveTenantId } from './use-tenant-portal-keys'
 
 export interface TenantPayment {

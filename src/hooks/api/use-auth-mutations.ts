@@ -14,8 +14,8 @@ import { toast } from 'sonner'
 
 import { createClient } from '#lib/supabase/client'
 import { getCachedUser } from '#lib/supabase/get-cached-user'
-import { logger } from '#shared/lib/frontend-logger'
-import type { LoginCredentials, SignupFormData } from '#shared/types/auth'
+import { logger } from '#lib/frontend-logger.js'
+import type { LoginCredentials, SignupFormData } from '#types/auth'
 import {
 	handleMutationError,
 	handleMutationSuccess

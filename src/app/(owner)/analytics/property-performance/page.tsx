@@ -27,7 +27,7 @@ import type {
 	PropertyUnitDetail,
 	UnitStatisticEntry,
 	VisitorAnalyticsResponse
-} from '#shared/types/analytics'
+} from '#types/analytics'
 import dynamic from 'next/dynamic'
 import { ChartLoadingSkeleton } from '#components/shared/chart-loading-skeleton'
 

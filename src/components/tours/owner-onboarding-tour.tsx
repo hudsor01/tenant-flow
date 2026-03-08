@@ -17,7 +17,7 @@ import {
 	TourClose,
 	TourArrow
 } from '#components/ui/tour'
-import { createLogger } from '#shared/lib/frontend-logger'
+import { createLogger } from '#lib/frontend-logger.js'
 import { HelpCircle } from 'lucide-react'
 import { Button } from '#components/ui/button'
 import {

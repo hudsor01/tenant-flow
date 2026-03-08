@@ -10,7 +10,12 @@ vi.mock('#shared/lib/frontend-logger', () => ({
 	})
 }))
 
-import { isConflictError, handleConflictError, withVersion, incrementVersion } from '../optimistic-locking'
+import {
+	isConflictError,
+	handleConflictError,
+	withVersion,
+	incrementVersion
+} from '../optimistic-locking'
 import { ApiError, ApiErrorCode } from '../api-error'
 
 describe('isConflictError', () => {
@@ -46,7 +51,9 @@ describe('handleConflictError (message overload)', () => {
 	it('returns conflict message for 409 error', () => {
 		const err = new ApiError('Conflict', ApiErrorCode.UNKNOWN_ERROR, 409)
 		const msg = handleConflictError(err)
-		expect(msg).toBe('This item was modified by another user. Please refresh and try again.')
+		expect(msg).toBe(
+			'This item was modified by another user. Please refresh and try again.'
+		)
 	})
 	it('returns error message for non-conflict Error', () => {
 		const err = new Error('Something broke')
@@ -62,14 +69,20 @@ describe('handleConflictError (message overload)', () => {
 describe('handleConflictError (cache invalidation overload)', () => {
 	it('invalidates queries for each query key', () => {
 		const mockInvalidateQueries = vi.fn()
-		const queryClient = { invalidateQueries: mockInvalidateQueries } as unknown as import('@tanstack/react-query').QueryClient
+		const queryClient = {
+			invalidateQueries: mockInvalidateQueries
+		} as unknown as import('@tanstack/react-query').QueryClient
 		const queryKeys = [['properties'], ['dashboard']]
 
 		handleConflictError('Property', '123', queryClient, queryKeys)
 
 		expect(mockInvalidateQueries).toHaveBeenCalledTimes(2)
-		expect(mockInvalidateQueries).toHaveBeenCalledWith({ queryKey: ['properties'] })
-		expect(mockInvalidateQueries).toHaveBeenCalledWith({ queryKey: ['dashboard'] })
+		expect(mockInvalidateQueries).toHaveBeenCalledWith({
+			queryKey: ['properties']
+		})
+		expect(mockInvalidateQueries).toHaveBeenCalledWith({
+			queryKey: ['dashboard']
+		})
 	})
 })
 
@@ -110,7 +123,10 @@ describe('incrementVersion', () => {
 		expect(result.name).toBe('test')
 	})
 	it('defaults to version 1 when object has no version', () => {
-		const obj: { id: string; name: string; version?: number } = { id: '1', name: 'test' }
+		const obj: { id: string; name: string; version?: number } = {
+			id: '1',
+			name: 'test'
+		}
 		const result = incrementVersion(obj)
 		expect(result.version).toBe(1)
 	})
@@ -122,7 +138,10 @@ describe('incrementVersion', () => {
 		expect(result.id).toBe('1')
 	})
 	it('merges new data defaulting version to 1 when missing', () => {
-		const obj: { id: string; name: string; version?: number } = { id: '1', name: 'old' }
+		const obj: { id: string; name: string; version?: number } = {
+			id: '1',
+			name: 'old'
+		}
 		const result = incrementVersion(obj, { name: 'new' })
 		expect(result.name).toBe('new')
 		expect(result.version).toBe(1)

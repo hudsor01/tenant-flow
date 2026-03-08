@@ -15,15 +15,13 @@ import { createClient } from '#lib/supabase/client'
 import { getCachedUser } from '#lib/supabase/get-cached-user'
 import { handlePostgrestError } from '#lib/postgrest-error-handler'
 import { QUERY_CACHE_TIMES } from '#lib/constants/query-config'
-import type {
-	TenantPaymentHistoryResponse
-} from '#shared/types/api-contracts'
+import type { TenantPaymentHistoryResponse } from '#types/api-contracts'
 import type {
 	PaymentCollectionAnalytics,
 	UpcomingPayment,
 	OverduePayment,
 	PaymentFilters
-} from '#shared/types/sections/payments'
+} from '#types/sections/payments'
 
 // ============================================================================
 // TYPES

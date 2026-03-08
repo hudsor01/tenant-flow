@@ -10,7 +10,7 @@ import {
 	formatNumber,
 	formatPercentage
 } from '#lib/formatters/currency'
-import type { PropertyPerformanceEntry } from '#shared/types/analytics'
+import type { PropertyPerformanceEntry } from '#types/analytics'
 
 export function TopPropertiesTable({
 	properties

@@ -7,7 +7,7 @@ import {
 	SelectTrigger,
 	SelectValue
 } from '#components/ui/select'
-import type { Property, Unit } from '#shared/types/core'
+import type { Property, Unit } from '#types/core'
 import type { LeaseFormApi } from './lease-form-types'
 
 interface LeaseFormPropertyUnitFieldsProps {

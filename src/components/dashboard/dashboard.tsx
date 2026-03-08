@@ -6,7 +6,7 @@
  */
 
 import dynamic from 'next/dynamic'
-import type { DashboardProps } from '#shared/types/sections/dashboard'
+import type { DashboardProps } from '#types/sections/dashboard'
 import {
 	formatDashboardCurrency,
 	quickActions,

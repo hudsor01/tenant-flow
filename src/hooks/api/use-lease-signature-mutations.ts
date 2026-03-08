@@ -9,7 +9,7 @@
  */
 
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { logger } from '#shared/lib/frontend-logger'
+import { logger } from '#lib/frontend-logger.js'
 import { handleMutationError } from '#lib/mutation-error-handler'
 import { createClient } from '#lib/supabase/client'
 

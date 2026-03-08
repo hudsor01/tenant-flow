@@ -1,10 +1,4 @@
-import type {
-	Lease,
-	Tenant,
-	Unit,
-	Property,
-	User
-} from '#shared/types/core'
+import type { Lease, Tenant, Unit, Property, User } from '#types/core'
 
 /** Extended user type that may include computed fields from API response */
 export interface UserWithExtras extends User {

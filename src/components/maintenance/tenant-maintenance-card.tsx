@@ -1,6 +1,6 @@
 import { Badge } from '#components/ui/badge'
 import { Separator } from '#components/ui/separator'
-import type { MaintenanceRequest } from '#shared/types/core'
+import type { MaintenanceRequest } from '#types/core'
 import { Calendar, Wrench } from 'lucide-react'
 import { formatDate } from '#lib/formatters/date'
 import { cn } from '#lib/utils'

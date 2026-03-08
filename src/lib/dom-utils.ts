@@ -8,7 +8,7 @@
 
 // This file centralizes safe DOM utilities to avoid direct document access elsewhere.
 
-import { createLogger } from '#shared/lib/frontend-logger'
+import { createLogger } from '#lib/frontend-logger.js'
 
 const domLogger = createLogger({ component: 'DomUtils' })
 

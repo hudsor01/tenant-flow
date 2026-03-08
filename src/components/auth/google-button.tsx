@@ -1,7 +1,5 @@
 import type { ComponentProps, ReactNode, Ref } from 'react'
 
-import { ANIMATION_DURATIONS } from '#shared/constants/design-system'
-
 import { Button } from '#components/ui/button'
 import { ButtonLoader } from '#components/ui/loading-spinner'
 import { cn } from '#lib/utils'
@@ -40,7 +38,7 @@ export function GoogleButton({
 				className={cn(
 					'border border-input bg-background hover:bg-accent hover:text-accent-foreground h-11 rounded-md px-8',
 					'w-full relative overflow-hidden group',
-					`transition-all duration-[${ANIMATION_DURATIONS.default}] ease-out`,
+					'transition-all duration-200 ease-out',
 					'hover:bg-linear-to-r hover:from-primary/5 hover:to-accent/5 dark:hover:from-primary/10 dark:hover:to-accent/10',
 					'hover:shadow-lg hover:shadow-primary/10 hover:scale-[1.02]',
 					'active:scale-[0.98] active:shadow-md',
@@ -65,7 +63,7 @@ export function GoogleButton({
 						<span
 							className={cn(
 								'font-semibold text-foreground group-hover:text-foreground',
-								`transition-colors duration-[${ANIMATION_DURATIONS.fast}]`,
+								'transition-colors duration-150',
 								'text-base leading-normal'
 							)}
 						>
@@ -86,7 +84,7 @@ export function GoogleButton({
 					className={cn(
 						'absolute inset-0 bg-linear-to-r from-primary/5 via-accent/5 to-primary/5',
 						'opacity-0 group-hover:opacity-100',
-						`transition-opacity duration-[${ANIMATION_DURATIONS.default}]`
+						'transition-opacity duration-200'
 					)}
 				/>
 			</Button>

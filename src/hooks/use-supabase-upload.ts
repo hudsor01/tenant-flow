@@ -9,7 +9,7 @@ interface FileWithPreview extends File {
 	errors: readonly FileError[]
 }
 
-import { UseSupabaseUploadOptions } from '#shared/types/file-upload'
+import { UseSupabaseUploadOptions } from '#types/file-upload'
 
 type UseSupabaseUploadReturn = ReturnType<typeof useSupabaseUpload>
 

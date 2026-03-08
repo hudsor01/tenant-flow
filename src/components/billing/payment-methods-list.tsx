@@ -35,7 +35,7 @@ import {
 	useDeletePaymentMethod,
 	useSetDefaultPaymentMethod
 } from '#hooks/api/use-payment-methods'
-import type { PaymentMethodResponse } from '#shared/types/core'
+import type { PaymentMethodResponse } from '#types/core'
 import { cn } from '#lib/utils'
 
 interface PaymentMethodsListProps {

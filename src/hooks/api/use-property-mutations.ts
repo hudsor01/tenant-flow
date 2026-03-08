@@ -12,8 +12,8 @@ import { requireOwnerUserId } from '#lib/require-owner-user-id'
 import { createClient } from '#lib/supabase/client'
 import { getCachedUser } from '#lib/supabase/get-cached-user'
 
-import { createLogger, logger } from '#shared/lib/frontend-logger'
-import type { Property } from '#shared/types/core'
+import { createLogger, logger } from '#lib/frontend-logger.js'
+import type { Property } from '#types/core'
 import type {
 	PropertyCreate,
 	PropertyUpdate

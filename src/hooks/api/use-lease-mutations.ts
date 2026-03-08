@@ -10,8 +10,8 @@
  */
 
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { logger } from '#shared/lib/frontend-logger'
-import type { Lease } from '#shared/types/core'
+import { logger } from '#lib/frontend-logger.js'
+import type { Lease } from '#types/core'
 import type { LeaseCreate, LeaseUpdate } from '#shared/validation/leases'
 import { handleMutationError } from '#lib/mutation-error-handler'
 import { handlePostgrestError } from '#lib/postgrest-error-handler'
@@ -247,4 +247,3 @@ export function useDeleteLeaseMutation() {
 		}
 	})
 }
-

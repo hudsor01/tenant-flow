@@ -17,7 +17,7 @@ import type { Tables, TablesInsert, TablesUpdate } from './supabase'
 // Import them directly from '#shared/types/core' - no re-exports per CLAUDE.md rules
 
 // Import Zod-inferred types (Single Source of Truth)
-import type { TenantCreate, TenantUpdate } from '../validation/tenants'
+import type { TenantCreate, TenantUpdate } from '../../src/shared/validation/tenants'
 
 // =============================================================================
 // USER PROFILE TYPES

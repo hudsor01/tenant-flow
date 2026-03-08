@@ -8,7 +8,7 @@ import type {
 	IncomeStatementExpenseBreakdown,
 	CashFlowCategory,
 	MonthlyCashFlow
-} from '#shared/types/financial-statements'
+} from '#types/financial-statements'
 
 export interface FinancialsProps {
 	// Overview metrics

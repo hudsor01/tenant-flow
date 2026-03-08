@@ -22,11 +22,11 @@ import {
 	handleMutationError,
 	handleMutationSuccess
 } from '#lib/mutation-error-handler'
-import { DEFAULT_RETRY_ATTEMPTS } from '#shared/types/api-contracts'
+import { DEFAULT_RETRY_ATTEMPTS } from '#types/api-contracts'
 import type {
 	MaintenanceCategory,
 	MaintenancePriority
-} from '#shared/types/core'
+} from '#types/core'
 import { tenantPortalKeys, resolveTenantId } from './use-tenant-portal-keys'
 
 // ============================================================================

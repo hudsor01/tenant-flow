@@ -8,7 +8,7 @@
  */
 
 import { create } from 'zustand'
-import { createLogger } from '#shared/lib/frontend-logger'
+import { createLogger } from '#lib/frontend-logger.js'
 
 const logger = createLogger({ component: 'NavigationStore' })
 

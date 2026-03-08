@@ -12,7 +12,7 @@ import { formatCurrency, formatNumber } from '#lib/formatters/currency'
 import { Calendar, DollarSign, BarChart3 } from 'lucide-react'
 import { useMemo } from 'react'
 import dynamic from 'next/dynamic'
-import type { LeaseFinancialInsight } from '#shared/types/analytics'
+import type { LeaseFinancialInsight } from '#types/analytics'
 import { ChartLoadingSkeleton } from '#components/shared/chart-loading-skeleton'
 
 const LeaseLifecycleChart = dynamic(

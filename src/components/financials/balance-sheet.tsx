@@ -25,7 +25,7 @@ import {
 } from '#components/ui/stat'
 import { formatCurrency } from '#lib/formatters/currency'
 import { formatDate } from '#lib/formatters/date'
-import type { FinancialLineItem } from '#shared/types/financial-statements'
+import type { FinancialLineItem } from '#types/financial-statements'
 
 interface Assets {
 	current: FinancialLineItem[]

@@ -10,11 +10,11 @@ import type { ReactNode } from 'react'
 
 import { render, screen, within } from '@testing-library/react'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import type { BillingHistoryItem } from '#shared/types/api-contracts'
+import type { BillingHistoryItem } from '#types/api-contracts'
 import type {
 	PaymentMethodResponse,
 	MaintenanceRequest
-} from '#shared/types/core'
+} from '#types/core'
 import TenantPaymentHistoryPage from '../payments/history/page'
 import TenantMaintenancePage from '../maintenance/page'
 

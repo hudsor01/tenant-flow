@@ -1,7 +1,7 @@
 import { RouteModal } from '#components/ui/route-modal'
 import { TenantEditForm } from '#app/(tenant)/tenant/tenant-edit-form.client'
 import { notFound } from 'next/navigation'
-import { createLogger } from '#shared/lib/frontend-logger'
+import { createLogger } from '#lib/frontend-logger.js'
 
 const logger = createLogger({ component: 'EditTenantModal' })
 

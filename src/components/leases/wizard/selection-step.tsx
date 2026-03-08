@@ -44,7 +44,7 @@ import type { SelectionStepData } from '#shared/validation/lease-wizard.schemas'
 import type {
 	Property as SharedProperty,
 	Unit as SharedUnit
-} from '#shared/types/core'
+} from '#types/core'
 
 interface SelectionStepProps {
 	data: Partial<SelectionStepData>

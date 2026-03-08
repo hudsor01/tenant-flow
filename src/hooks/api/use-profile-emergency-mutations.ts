@@ -6,7 +6,7 @@
  */
 
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { logger } from '#shared/lib/frontend-logger'
+import { logger } from '#lib/frontend-logger.js'
 import {
 	handleMutationError,
 	handleMutationSuccess
@@ -16,7 +16,7 @@ import { getCachedUser } from '#lib/supabase/get-cached-user'
 import type {
 	SetEmergencyContactInput,
 	UserProfile
-} from '#shared/types/api-contracts'
+} from '#types/api-contracts'
 
 import { mutationKeys } from './mutation-keys'
 import { profileKeys } from './use-profile'

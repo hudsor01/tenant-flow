@@ -3,9 +3,9 @@
 import type { ChangeEvent, FormEvent } from 'react'
 import { useState } from 'react'
 import { X, UserPlus, Mail, User, Loader2 } from 'lucide-react'
-import { createLogger } from '#shared/lib/frontend-logger'
-import type { InviteTenantData } from '#shared/types/sections/tenants'
-import type { InvitationType } from '#shared/types/core'
+import { createLogger } from '#lib/frontend-logger.js'
+import type { InviteTenantData } from '#types/sections/tenants'
+import type { InvitationType } from '#types/core'
 
 // ============================================================================
 // TYPES

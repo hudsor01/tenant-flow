@@ -2,7 +2,7 @@
 // Data Types
 // =============================================================================
 // Import database enums from shared types (single source of truth)
-import type { PropertyStatus, UnitStatus } from '#shared/types/core'
+import type { PropertyStatus, UnitStatus } from '#types/core'
 
 // App-specific property type (not a database enum)
 export type PropertyType =

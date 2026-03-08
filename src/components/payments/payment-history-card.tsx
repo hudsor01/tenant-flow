@@ -1,7 +1,7 @@
 import { Badge } from '#components/ui/badge'
 import { Button } from '#components/ui/button'
 import { Separator } from '#components/ui/separator'
-import type { BillingHistoryItem } from '#shared/types/api-contracts'
+import type { BillingHistoryItem } from '#types/api-contracts'
 import { cn } from '#lib/utils'
 import { CreditCard, Download } from 'lucide-react'
 

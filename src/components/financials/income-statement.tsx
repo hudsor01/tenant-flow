@@ -13,7 +13,7 @@ import type {
 	IncomeStatementExpenseBreakdown,
 	PropertyPL,
 	MonthlyData
-} from '#shared/types/financial-statements'
+} from '#types/financial-statements'
 
 interface IncomeStatementProps {
 	revenue: IncomeStatementRevenueBreakdown

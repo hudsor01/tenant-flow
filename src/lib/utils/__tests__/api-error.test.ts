@@ -10,7 +10,13 @@ vi.mock('#shared/lib/frontend-logger', () => ({
 	})
 }))
 
-import { ApiErrorCode, ApiError, createApiErrorFromResponse, isApiError, logErrorInDev } from '../api-error'
+import {
+	ApiErrorCode,
+	ApiError,
+	createApiErrorFromResponse,
+	isApiError,
+	logErrorInDev
+} from '../api-error'
 
 describe('ApiErrorCode', () => {
 	it('has auth error codes', () => {
@@ -50,7 +56,12 @@ describe('ApiError', () => {
 	})
 	it('stores optional details', () => {
 		const details = { field: 'email', issue: 'invalid' }
-		const err = new ApiError('Bad input', ApiErrorCode.API_BAD_REQUEST, 400, details)
+		const err = new ApiError(
+			'Bad input',
+			ApiErrorCode.API_BAD_REQUEST,
+			400,
+			details
+		)
 		expect(err.details).toEqual(details)
 	})
 	it('has a stack trace', () => {
@@ -61,39 +72,67 @@ describe('ApiError', () => {
 	describe('getUserMessage', () => {
 		it('returns auth message for auth codes', () => {
 			const msg = 'Authentication required. Please sign in and try again.'
-			expect(new ApiError('x', ApiErrorCode.AUTH_TOKEN_MISSING).getUserMessage()).toBe(msg)
-			expect(new ApiError('x', ApiErrorCode.AUTH_TOKEN_INVALID).getUserMessage()).toBe(msg)
-			expect(new ApiError('x', ApiErrorCode.AUTH_SESSION_EXPIRED).getUserMessage()).toBe(msg)
-			expect(new ApiError('x', ApiErrorCode.AUTH_UNAUTHORIZED).getUserMessage()).toBe(msg)
+			expect(
+				new ApiError('x', ApiErrorCode.AUTH_TOKEN_MISSING).getUserMessage()
+			).toBe(msg)
+			expect(
+				new ApiError('x', ApiErrorCode.AUTH_TOKEN_INVALID).getUserMessage()
+			).toBe(msg)
+			expect(
+				new ApiError('x', ApiErrorCode.AUTH_SESSION_EXPIRED).getUserMessage()
+			).toBe(msg)
+			expect(
+				new ApiError('x', ApiErrorCode.AUTH_UNAUTHORIZED).getUserMessage()
+			).toBe(msg)
 		})
 		it('returns network message for network codes', () => {
 			const msg = 'Network error. Please check your connection and try again.'
-			expect(new ApiError('x', ApiErrorCode.NETWORK_ERROR).getUserMessage()).toBe(msg)
-			expect(new ApiError('x', ApiErrorCode.NETWORK_TIMEOUT).getUserMessage()).toBe(msg)
-			expect(new ApiError('x', ApiErrorCode.NETWORK_OFFLINE).getUserMessage()).toBe(msg)
+			expect(
+				new ApiError('x', ApiErrorCode.NETWORK_ERROR).getUserMessage()
+			).toBe(msg)
+			expect(
+				new ApiError('x', ApiErrorCode.NETWORK_TIMEOUT).getUserMessage()
+			).toBe(msg)
+			expect(
+				new ApiError('x', ApiErrorCode.NETWORK_OFFLINE).getUserMessage()
+			).toBe(msg)
 		})
 		it('returns not found message', () => {
-			expect(new ApiError('x', ApiErrorCode.API_NOT_FOUND).getUserMessage()).toBe('The requested resource was not found.')
+			expect(
+				new ApiError('x', ApiErrorCode.API_NOT_FOUND).getUserMessage()
+			).toBe('The requested resource was not found.')
 		})
 		it('returns bad request message', () => {
-			expect(new ApiError('x', ApiErrorCode.API_BAD_REQUEST).getUserMessage()).toBe('Invalid request. Please check your input and try again.')
+			expect(
+				new ApiError('x', ApiErrorCode.API_BAD_REQUEST).getUserMessage()
+			).toBe('Invalid request. Please check your input and try again.')
 		})
 		it('returns server error message', () => {
 			const msg = 'Server error. Please try again later.'
-			expect(new ApiError('x', ApiErrorCode.API_SERVER_ERROR).getUserMessage()).toBe(msg)
-			expect(new ApiError('x', ApiErrorCode.API_SERVICE_UNAVAILABLE).getUserMessage()).toBe(msg)
+			expect(
+				new ApiError('x', ApiErrorCode.API_SERVER_ERROR).getUserMessage()
+			).toBe(msg)
+			expect(
+				new ApiError('x', ApiErrorCode.API_SERVICE_UNAVAILABLE).getUserMessage()
+			).toBe(msg)
 		})
 		it('returns rate limit message', () => {
-			expect(new ApiError('x', ApiErrorCode.API_RATE_LIMITED).getUserMessage()).toBe('Too many requests. Please wait a moment and try again.')
+			expect(
+				new ApiError('x', ApiErrorCode.API_RATE_LIMITED).getUserMessage()
+			).toBe('Too many requests. Please wait a moment and try again.')
 		})
 		it('returns default message for unknown codes', () => {
-			expect(new ApiError('x', ApiErrorCode.UNKNOWN_ERROR).getUserMessage()).toBe('An unexpected error occurred. Please try again.')
+			expect(
+				new ApiError('x', ApiErrorCode.UNKNOWN_ERROR).getUserMessage()
+			).toBe('An unexpected error occurred. Please try again.')
 		})
 	})
 
 	describe('toJSON', () => {
 		it('serializes error fields', () => {
-			const err = new ApiError('Test error', ApiErrorCode.API_NOT_FOUND, 404, { key: 'val' })
+			const err = new ApiError('Test error', ApiErrorCode.API_NOT_FOUND, 404, {
+				key: 'val'
+			})
 			const json = err.toJSON()
 			expect(json.name).toBe('ApiError')
 			expect(json.message).toBe('Test error')
@@ -107,7 +146,7 @@ describe('ApiError', () => {
 
 describe('createApiErrorFromResponse', () => {
 	const makeResponse = (status: number, statusText: string) =>
-		({ status, statusText } as Response)
+		({ status, statusText }) as Response
 
 	it('maps 401 to AUTH_UNAUTHORIZED', () => {
 		const err = createApiErrorFromResponse(makeResponse(401, 'Unauthorized'))
@@ -123,15 +162,21 @@ describe('createApiErrorFromResponse', () => {
 		expect(err.code).toBe(ApiErrorCode.API_BAD_REQUEST)
 	})
 	it('maps 429 to API_RATE_LIMITED', () => {
-		const err = createApiErrorFromResponse(makeResponse(429, 'Too Many Requests'))
+		const err = createApiErrorFromResponse(
+			makeResponse(429, 'Too Many Requests')
+		)
 		expect(err.code).toBe(ApiErrorCode.API_RATE_LIMITED)
 	})
 	it('maps 500 to API_SERVER_ERROR', () => {
-		const err = createApiErrorFromResponse(makeResponse(500, 'Internal Server Error'))
+		const err = createApiErrorFromResponse(
+			makeResponse(500, 'Internal Server Error')
+		)
 		expect(err.code).toBe(ApiErrorCode.API_SERVER_ERROR)
 	})
 	it('maps 503 to API_SERVICE_UNAVAILABLE', () => {
-		const err = createApiErrorFromResponse(makeResponse(503, 'Service Unavailable'))
+		const err = createApiErrorFromResponse(
+			makeResponse(503, 'Service Unavailable')
+		)
 		expect(err.code).toBe(ApiErrorCode.API_SERVICE_UNAVAILABLE)
 	})
 	it('uses default code for unmapped status', () => {
@@ -139,7 +184,10 @@ describe('createApiErrorFromResponse', () => {
 		expect(err.code).toBe(ApiErrorCode.UNKNOWN_ERROR)
 	})
 	it('uses custom default code', () => {
-		const err = createApiErrorFromResponse(makeResponse(418, 'Teapot'), ApiErrorCode.NETWORK_ERROR)
+		const err = createApiErrorFromResponse(
+			makeResponse(418, 'Teapot'),
+			ApiErrorCode.NETWORK_ERROR
+		)
 		expect(err.code).toBe(ApiErrorCode.NETWORK_ERROR)
 	})
 	it('includes statusText in message', () => {
@@ -150,7 +198,9 @@ describe('createApiErrorFromResponse', () => {
 
 describe('isApiError', () => {
 	it('returns true for ApiError instance', () => {
-		expect(isApiError(new ApiError('test', ApiErrorCode.UNKNOWN_ERROR))).toBe(true)
+		expect(isApiError(new ApiError('test', ApiErrorCode.UNKNOWN_ERROR))).toBe(
+			true
+		)
 	})
 	it('returns false for plain Error', () => {
 		expect(isApiError(new Error('test'))).toBe(false)
@@ -172,7 +222,9 @@ describe('logErrorInDev', () => {
 	})
 
 	it('does not throw for ApiError in dev', () => {
-		expect(() => logErrorInDev(new ApiError('test', ApiErrorCode.UNKNOWN_ERROR))).not.toThrow()
+		expect(() =>
+			logErrorInDev(new ApiError('test', ApiErrorCode.UNKNOWN_ERROR))
+		).not.toThrow()
 	})
 	it('does not throw for plain Error in dev', () => {
 		expect(() => logErrorInDev(new Error('test'))).not.toThrow()

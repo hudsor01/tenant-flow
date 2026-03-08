@@ -12,7 +12,7 @@ import {
 } from '#components/ui/input-group'
 import { getFieldErrorMessage } from '#lib/utils/form'
 import { authKeys } from '#hooks/api/use-auth'
-import { createLogger } from '#shared/lib/frontend-logger'
+import { createLogger } from '#lib/frontend-logger.js'
 import { createClient } from '#lib/supabase/client'
 import { loginZodSchema } from '#shared/validation/auth'
 import { useForm } from '@tanstack/react-form'

@@ -13,7 +13,7 @@ import {
 } from '@tanstack/react-query'
 import { createClient } from '#lib/supabase/client'
 import { getCachedUser } from '#lib/supabase/get-cached-user'
-import { logger } from '#shared/lib/frontend-logger'
+import { logger } from '#lib/frontend-logger.js'
 import { tenantPortalKeys } from './use-tenant-portal-keys'
 import { useTenantLease } from './use-tenant-lease'
 import { useTenantPayments } from './use-tenant-payments'

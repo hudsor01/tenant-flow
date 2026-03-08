@@ -4,7 +4,6 @@ import type { SVGProps } from 'react'
 import { useId, useMemo } from 'react'
 
 import { cn } from '#lib/utils'
-import { ANIMATION_DURATIONS } from '#shared/constants/design-system'
 
 interface GridPatternProps extends SVGProps<SVGSVGElement> {
 	width?: number
@@ -70,7 +69,7 @@ export function GridPattern({
 			style={{
 				opacity: finalOpacity,
 				animationDuration: animated
-					? `${ANIMATION_DURATIONS.slow}ms`
+					? '500ms'
 					: undefined
 			}}
 			{...props}
@@ -116,7 +115,7 @@ export function GridPattern({
 							style={{
 								animationDelay: animated ? `${(x + y) * 100}ms` : undefined,
 								animationDuration: animated
-									? `${ANIMATION_DURATIONS.default}ms`
+									? '200ms'
 									: undefined
 							}}
 						/>

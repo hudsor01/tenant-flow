@@ -19,9 +19,9 @@ import type {
 	CashFlowData,
 	BalanceSheetData,
 	TaxDocumentsData
-} from '#shared/types/financial-statements'
-import type { ApiResponse } from '#shared/types/api-contracts'
-import type { ExpenseCategorySummary } from '#shared/types/analytics'
+} from '#types/financial-statements'
+import type { ApiResponse } from '#types/api-contracts'
+import type { ExpenseCategorySummary } from '#types/analytics'
 
 // ============================================================================
 // API RESPONSE TYPES

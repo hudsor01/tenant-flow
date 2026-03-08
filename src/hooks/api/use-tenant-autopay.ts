@@ -18,7 +18,7 @@ import { handlePostgrestError } from '#lib/postgrest-error-handler'
 import { handleMutationError, handleMutationSuccess } from '#lib/mutation-error-handler'
 import { mutationKeys } from './mutation-keys'
 import { QUERY_CACHE_TIMES } from '#lib/constants/query-config'
-import { DEFAULT_RETRY_ATTEMPTS } from '#shared/types/api-contracts'
+import { DEFAULT_RETRY_ATTEMPTS } from '#types/api-contracts'
 import { tenantPortalKeys, resolveTenantId } from './use-tenant-portal-keys'
 
 // ============================================================================
