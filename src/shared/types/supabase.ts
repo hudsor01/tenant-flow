@@ -2569,6 +2569,14 @@ export type Database = {
         }
         Returns: Json
       }
+      get_blog_categories: {
+        Args: never
+        Returns: {
+          name: string
+          post_count: number
+          slug: string
+        }[]
+      }
       get_common_errors: {
         Args: { hours_back?: number; limit_count?: number }
         Returns: {
@@ -2620,7 +2628,9 @@ export type Database = {
           total_pre_1978_leases: number
         }[]
       }
+      get_lease_stats: { Args: { p_user_id: string }; Returns: Json }
       get_maintenance_analytics: { Args: { user_id: string }; Returns: Json }
+      get_maintenance_stats: { Args: { p_user_id: string }; Returns: Json }
       get_metric_trend: {
         Args: { p_metric_name: string; p_period?: string; p_user_id: string }
         Returns: Json

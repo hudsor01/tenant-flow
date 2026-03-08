@@ -1,190 +1,189 @@
 # Project Research Summary
 
-**Project:** TenantFlow v8.0 — Payment Infrastructure + Auth Flow Completion
-**Domain:** Property management SaaS — Stripe Connect rent payments, transactional email, auth polish
-**Researched:** 2026-02-25
+**Project:** TenantFlow v1.1 -- Blog Redesign + Newsletter + CI Optimization
+**Domain:** Content marketing infrastructure for existing property management SaaS
+**Researched:** 2026-03-06
 **Confidence:** HIGH
 
 ## Executive Summary
 
-TenantFlow's v8.0 milestone is a focused extension of an already-deployed, production SaaS platform — not a greenfield build. The core infrastructure (Supabase, Stripe Connect Express onboarding, Edge Functions, frontend auth pages) is fully operational. The milestone ships three tightly scoped deliverables: (1) a new `stripe-rent-checkout` Edge Function implementing Stripe Connect destination charges so tenants can pay rent through the platform, (2) Resend receipt emails triggered by the existing `stripe-webhooks` webhook handler, and (3) two auth flow fixes — a missing `/auth/reset-password` page and an `exchangeCodeForSession` gap in the password reset flow.
+This milestone transforms an MVP blog (3 pages, flat queries, dummy forms) into a production content-marketing platform with split content zones, pagination, category navigation, a working newsletter subscription, and CI workflow optimization. The critical finding is that **zero new npm dependencies are needed** -- every library is already installed and current. The work is purely additive: new components in `src/components/blog/`, a rewritten data layer in `use-blogs.ts` with a new `queryOptions()` factory in `query-keys/blog-keys.ts`, one SQL migration for a categories RPC, one new Edge Function for newsletter subscription, and a CI YAML restructure. Total estimated effort is 8-10 hours.
 
-The recommended implementation approach follows the established architectural pattern: all Stripe work lives in Deno Edge Functions using `npm:stripe@14` (consistent with all five existing functions), receipt emails use raw `fetch` against the Resend HTTP API (fire-and-forget, never blocking webhook 200 responses), and auth fixes are minimal surgical changes. No new npm packages are required, no schema migrations are needed, and no third-party integrations are new — every external service used in this milestone already exists in production. The three workstreams are fully independent and can be built in parallel.
+The recommended approach follows a strict dependency chain: data layer first (hooks + RPC + type regeneration), then shared components (BlogCard, BlogPagination, NewsletterSignup), then page rewrites (hub, detail, category), with CI optimization as an independent parallel track. The architecture is well-understood because it extends existing codebase patterns -- Supabase PostgREST pagination, nuqs URL state, TanStack Query factories, rate-limited Edge Functions -- rather than introducing anything novel. All 14 integration points were verified against the live codebase and none require modifications to existing code.
 
-The primary risks are business-model correctness (Stripe processes fees from the platform's `application_fee_amount`, so gross fee revenue is not net revenue), operational gaps (the owner's Stripe connected account must have `charges_enabled = true` before checkout can succeed), and an auth PKCE gap (the current `UpdatePasswordForm` page calls `updateUser` without first exchanging the PKCE code for a session, which will cause `AuthSessionMissingError` for users arriving from reset email links). All three risks have clear, low-cost mitigations documented in the research.
+The primary risks are: (1) the Resend Audiences API has been deprecated in favor of a new Contacts + Segments model, requiring an endpoint update from `POST /audiences/{id}/contacts` to `POST /contacts`; (2) category slug-to-name conversion breaks on acronyms (ROI, SaaS, HVAC) unless resolved via RPC lookup instead of naive deslugification; and (3) the plan's query key pattern violates the project's `queryOptions()` factory convention that all 12 other domains follow. All three are preventable with the mitigations documented below.
 
 ## Key Findings
 
 ### Recommended Stack
 
-No new packages are needed. All required libraries are already installed. The new `stripe-rent-checkout` Edge Function uses `npm:stripe@14` (matching the five existing Edge Functions) and raw `fetch` to Resend's HTTP API. The frontend payment page uses `@stripe/react-stripe-js` and `@stripe/stripe-js` (already installed) for the Payment Element. The Stripe SDK version mismatch between Edge Functions (`stripe@14`) and the Next.js frontend (`stripe@20.3.1`) is a known P2 issue that must not be widened — the new Edge Function must use `stripe@14`.
+No new packages. Every dependency is already installed at a current version. The milestone uses Next.js 16.1.6, React 19, TailwindCSS 4.2.1, TanStack Query 5.90.21, nuqs 2.8.8, and react-markdown 10.1.0 -- all unchanged. The sole external integration is the Resend Contacts API, authenticated via the existing `RESEND_API_KEY` secret.
 
-**Core technologies:**
-- `npm:stripe@14` (Deno): Destination charge PaymentIntent creation in `stripe-rent-checkout` Edge Function — must match existing Edge Functions
-- `fetch` to Resend HTTP API: Receipt emails from `stripe-webhooks`; avoid npm SDK in Edge Functions for faster cold start
-- `@supabase/ssr@0.8.0`: Auth PKCE session exchange for password reset flow — `getAll`/`setAll` pattern already in place
-- `@stripe/react-stripe-js@5.4.1` + `@stripe/stripe-js@8.6.3`: Frontend Payment Element — already installed, no changes needed
-- `zod@4.3.5`: Request body validation in new Edge Function — already in shared package
+**Core technologies (all pre-installed):**
+- `nuqs` 2.8.8: URL-driven pagination state (`?page=N`) -- already used in data tables with identical `parseAsInteger.withDefault(1)` pattern
+- `react-markdown` 10.1.0 + rehype/remark plugins: Blog content rendering -- already dynamically imported in the existing detail page
+- `@tailwindcss/typography` 0.5.19: Prose styling for blog content -- installed as devDep but missing `@plugin` directive in `globals.css` (must be added)
+- `BlurFade` component: CSS-only staggered animations -- exists at `src/components/ui/blur-fade.tsx`, no animation library needed
+- `LazySection` / `SectionSkeleton`: Intersection-based lazy loading -- exist and are used on landing pages
+
+**One setup requirement:** Add `@plugin "@tailwindcss/typography"` to `globals.css`. Without it, `prose` classes are no-ops in Tailwind 4. Also add a `@utility scrollbar-hide` (3 lines of CSS) for the comparisons carousel.
 
 ### Expected Features
 
-The `/tenant/payments/new` page already has UI but throws unconditionally in its mutation — the primary deliverable is implementing the Edge Function it calls and wiring the redirect. Auth pages are similarly built but broken at the URL routing level.
-
 **Must have (table stakes):**
-- Tenant can pay rent via Stripe Checkout — core product value; mutation stub at `/tenant/payments/new` must be wired to `stripe-rent-checkout` Edge Function
-- Platform fee split on each payment — business model; `application_fee_amount` set in PaymentIntent creation
-- Owner receives rent minus fee — Stripe Connect destination charge routes funds automatically
-- Receipt email to tenant on payment success — users expect email confirmation for financial transactions
-- Receipt email to owner on payment success — owner income tracking
-- Password reset completes successfully — auth table stakes; one-line `redirectTo` URL mismatch plus PKCE code exchange gap
-- Google OAuth sets correct `user_type` — new owners via Google must land on the correct dashboard
+- Paginated post lists with URL state via nuqs -- current blog hard-caps at 20 rows with no pagination UI
+- Featured images on cards and detail pages -- `featured_image` column exists in schema but is unused
+- Dynamic categories from DB via `get_blog_categories` RPC -- current hub hardcodes 4 fake categories with fake counts
+- Category pages with real data and pagination -- current page uses a brittle `categoryConfig` map that breaks for any new category
+- Loading skeletons and empty states -- extend existing animation patterns
+- Working back navigation -- already exists, preserve it
 
-**Should have (competitive):**
-- Branded HTML receipt email — professional landlord/tenant experience
-- Receipt shows fee breakdown (rent + late fee as separate line items) — reduces payment disputes
-- Payment confirmation page post-checkout — `/auth/post-checkout` page exists; connect to `success_url`
-- Email suppression check before every Resend send — deliverability protection
+**Should have (differentiators):**
+- Split hub with content zones: "Software Comparisons" (horizontal scroll, bottom-of-funnel) separated from "Insights & Guides" (paginated grid, educational)
+- Category filter pills on the hub linking to `/blog/category/[slug]`
+- Related posts (3 same-category articles) on the detail page for engagement
+- Functional newsletter signup via Resend Contacts API (replacing dead form that currently does nothing)
+- BlurFade animations and LazySection for below-fold content deferral
+- CI workflow deduplication saving ~20 min of runner time per merge
+- CTA on detail page linking to `/pricing` instead of `/login` (correct conversion path for blog readers)
 
 **Defer (v2+):**
-- Autopay (off-session PaymentIntent via pg_cron) — requires `setup_intent` from Stripe Checkout `setup_future_usage`
-- Tenant payment receipt PDF attachment — StirlingPDF available; out of scope for v8.0
-- Branded email template editor — requires owner settings + storage
-- Stripe SDK version consolidation (stripe@14 → stripe@20 across all Edge Functions) — separate hardening task
+- Full-text blog search (insufficient content volume, under 100 posts)
+- RSS feed (negligible traffic driver for a SaaS blog)
+- SSR/ISR for blog pages (future SEO-focused milestone)
+- Blog admin CMS (manage via Supabase Dashboard directly)
+- Custom newsletter email templates (establish content cadence first)
+- Tag-based filtering (categories are sufficient at current scale)
+- Newsletter double opt-in (single opt-in is standard for product newsletters)
 
 ### Architecture Approach
 
-The architecture is additive to the existing system. Two new files are created (`stripe-rent-checkout/index.ts` Edge Function and `/auth/reset-password/page.tsx`), and two existing files are modified (`stripe-webhooks/index.ts` to add Resend call, `/tenant/payments/new/page.tsx` to replace throw stub). No schema migrations are needed. The three workstreams are independent and can be built in parallel. The authoritative payment confirmation path is the Stripe webhook — never the frontend `success_url` redirect.
+The redesign adds three layers: (1) a `src/components/blog/` directory with BlogCard, BlogPagination, and NewsletterSignup; (2) a rewritten `use-blogs.ts` with paginated queries backed by a `blog-keys.ts` factory file in `src/hooks/api/query-keys/`; and (3) a `newsletter-subscribe` Edge Function following the existing unauthenticated/rate-limited pattern identical to `tenant-invitation-validate`. No existing shared utilities, middleware, RLS policies, or Deno imports need modification.
 
 **Major components:**
-1. `stripe-rent-checkout` Edge Function (NEW) — JWT auth, reads `tenants → leases → stripe_connected_accounts → users`, creates Stripe Checkout Session with destination charge, returns `{ url }`
-2. `stripe-webhooks/index.ts` (MODIFY) — add Resend receipt call after existing `rent_payments` upsert in `payment_intent.succeeded` handler; fire-and-forget with email suppression check
-3. `/tenant/payments/new/page.tsx` (MODIFY) — replace unconditional `throw` stub with fetch to `stripe-rent-checkout`, redirect to returned Stripe Checkout URL
-4. `/auth/reset-password/page.tsx` (NEW) — thin shell around existing `UpdatePasswordForm`; must add `exchangeCodeForSession(code)` call before form renders
-5. Google OAuth (NO CODE CHANGE) — code is complete; ops verification only (Supabase Dashboard + Google Cloud Console redirect URI registration)
+1. `blog-keys.ts` (queryOptions factory) -- All blog query keys and functions, matching the `property-keys.ts` pattern used by every other domain
+2. `use-blogs.ts` (thin hook layer) -- `useBlogs(page)`, `useBlogBySlug(slug)`, `useBlogsByCategory(name, page)`, `useFeaturedComparisons(limit)`, `useRelatedPosts(category, slug)`, `useCategories()`
+3. `BlogCard` -- Shared presentational component (image, title, excerpt, metadata) used across all three pages
+4. `BlogPagination` -- URL-driven page controls via nuqs with `clearOnDefault: true`
+5. `NewsletterSignup` -- Client component with TanStack Query mutation calling the newsletter Edge Function
+6. `newsletter-subscribe` Edge Function -- Unauthenticated, rate-limited (5 req/min), uses Resend Contacts API
+7. `get_blog_categories` RPC -- SECURITY INVOKER, SQL language, STABLE, returns `{category, count}[]`
+
+**Integration points verified as requiring NO changes:**
+- `proxy.ts`: `/blog` already in PUBLIC_ROUTES (all sub-routes covered)
+- `NuqsAdapter`: already in provider tree at `src/components/providers.tsx`
+- RLS: `blogs_select_published` policy covers all new queries (anon + authenticated)
+- Deno import map: `@sentry/deno`, `@upstash/ratelimit`, `@upstash/redis` all present
+- Edge Function `_shared/` utilities: consumed, not modified
+- `PageLayout`: all blog pages already wrapped, no changes needed
 
 ### Critical Pitfalls
 
-1. **`application_fee_amount` is gross, not net platform revenue** — Stripe deducts its 2.9%+$0.30 processing fee from the platform's application fee, not from the owner's payout. At a 3% platform fee on $1,500 rent, the platform nets $36 - $35.10 = $0.90. Calculate net revenue as `application_fee_amount - stripe_fee`. Never label the stored gross value as platform profit in financial reports.
+1. **Query keys must use `queryOptions()` factories** -- The plan copies the old raw `blogKeys` object pattern. All 12 other domains use factories in `src/hooks/api/query-keys/`. Create `blog-keys.ts` with the standard pattern; hooks become one-liners like `useQuery(blogQueries.list(page))`. Address in the data layer task before any pages are written.
 
-2. **`charges_enabled` not checked before PaymentIntent creation** — If the owner's Stripe connected account has `charges_enabled = false`, the Stripe API returns `account_invalid` and the tenant sees an opaque error. The `stripe_connected_accounts` table already tracks this flag (kept current via `account.updated` webhooks). Query it before creating the PaymentIntent and return HTTP 422 with a user-readable message if not enabled.
+2. **Pagination needs `placeholderData: keepPreviousData`** -- Without it, page transitions flash empty (skeleton shimmer) while new data loads. The project already uses this in 6 other hooks. Add `keepPreviousData` to all paginated blog queries and use `isPlaceholderData` for opacity-reduced loading state instead of full skeleton replacement.
 
-3. **`UpdatePasswordForm` calls `updateUser` without PKCE code exchange** — With `@supabase/ssr` PKCE flow, the password reset email link contains a `code` URL param that must be exchanged for a session via `exchangeCodeForSession(code)` before `updateUser` works. The current page renders the form unconditionally. Users arriving from email links will get `AuthSessionMissingError`.
+3. **Category slug roundtrip breaks on acronyms** -- `slugify("ROI Maximization")` produces `"roi-maximization"` but `deslugify("roi-maximization")` produces `"Roi Maximization"`, which does not match the DB value. Fix: on the category page, call `useCategories()` and match by slug to get the actual DB name instead of naive deslugification.
 
-4. **Receipt email blocks webhook or fires without suppression check** — If the Resend call throws and propagates, Stripe retries the webhook for 72 hours, causing duplicate receipt emails when Resend recovers. Always wrap in `try/catch`, return 200 regardless of email outcome, and check `email_suppressions` before every Resend call.
+4. **Resend API endpoint has changed** -- `POST /audiences/{id}/contacts` is deprecated (November 2025). Use `POST https://api.resend.com/contacts` with optional `segments` array. Rename env var from `RESEND_AUDIENCE_ID` to `RESEND_NEWSLETTER_SEGMENT_ID`. Old endpoint still works but will be removed.
 
-5. **Stripe SDK version mismatch widened** — All Edge Functions use `npm:stripe@14`. The frontend has `stripe@20.3.1`. The new Edge Function must use `stripe@14`. Copying patterns from frontend Stripe code risks importing type assumptions from stripe@20 that do not match runtime behavior.
+5. **Type regeneration is a hard gate** -- After the `get_blog_categories` migration, `pnpm db:types` must run before any hook calling the RPC will typecheck. Commit the migration and regenerated `supabase.ts` together. Do not proceed to component tasks until `pnpm typecheck` passes clean.
 
 ## Implications for Roadmap
 
-Three independent workstreams map cleanly to three implementation phases. All dependencies have been resolved by prior architecture work.
+Based on research, the milestone decomposes into 5 phases following a strict dependency chain.
 
-### Phase 1: Stripe Rent Checkout (Core Payment Path)
+### Phase 1: Data Layer Foundation
+**Rationale:** All UI components and pages depend on hooks and types. The RPC migration must be applied and types regenerated before anything downstream compiles.
+**Delivers:** `blog-keys.ts` queryOptions factory, rewritten `use-blogs.ts` with all 6 hooks, `get_blog_categories` SQL migration, regenerated `supabase.ts`
+**Addresses:** Paginated post lists (table stakes), dynamic categories (table stakes), all hook dependencies for downstream phases
+**Avoids:** Pitfall 1 (query key convention -- use factories from day one), Pitfall 2 (keepPreviousData -- wire into factory), Pitfall 4 (type regeneration -- commit migration + types together)
 
-**Rationale:** This is the primary revenue-generating deliverable and has the most implementation complexity. All other payment work (receipt emails) depends on a working PaymentIntent with correct metadata. The frontend page stub has existed since initial build and is the most visible gap.
+### Phase 2: Shared Components
+**Rationale:** BlogCard, BlogPagination, and NewsletterSignup are consumed by all three page rewrites. Building them as isolated components before page integration ensures clean composition.
+**Delivers:** `src/components/blog/blog-card.tsx`, `src/components/blog/blog-pagination.tsx`, `src/components/blog/newsletter-signup.tsx`, CSS utilities (`scrollbar-hide`, `@plugin typography`)
+**Addresses:** Featured images on cards (table stakes), URL pagination controls (table stakes), newsletter capture UI (differentiator)
+**Avoids:** Pitfall 7 (nuqs clearOnDefault -- configure in BlogPagination), Pitfall 10 (BlurFade delay capping on card grids)
 
-**Delivers:** End-to-end rent payment — tenant clicks "Pay Rent," gets redirected to Stripe Checkout, payment succeeds, `rent_payments` record created with `status = succeeded`.
+### Phase 3: Newsletter Edge Function
+**Rationale:** The Edge Function must be deployed and secrets configured before NewsletterSignup works in production. It is independent of UI components but must be operational before page rewrites integrate the signup form.
+**Delivers:** `supabase/functions/newsletter-subscribe/index.ts` deployed with Resend Contacts API, rate limiting, CORS, error handling
+**Addresses:** Functional newsletter signup (differentiator)
+**Avoids:** Pitfall 4 (Resend endpoint change -- use `POST /contacts`), Pitfall 5 (secrets not deployed -- verify before testing), Pitfall 6 (duplicate contact handling -- treat duplicates as success)
 
-**Addresses:** Tenant rent payment (table stakes), platform fee split, owner fund routing, owner `charges_enabled` guard (critical), payment confirmation page redirect.
+### Phase 4: Page Rewrites
+**Rationale:** All dependencies (hooks, components, Edge Function) are in place. Pages are the composition layer. Build in order of complexity: hub (most complex, two zones), detail (adds related posts + featured image), category (simplest, dynamic name + pagination).
+**Delivers:** Fully rewritten `/blog` hub with split zones and category pills, `/blog/[slug]` detail with featured image + related posts + fixed CTA, `/blog/category/[category]` with dynamic naming and pagination
+**Addresses:** Split content hub (differentiator), related posts (differentiator), category navigation (table stakes), CTA to /pricing (differentiator)
+**Avoids:** Pitfall 3 (category slug roundtrip -- use RPC lookup on category page), Pitfall 10 (BlurFade cascade -- cap delay at 6 items)
 
-**Stack:** `stripe-rent-checkout/index.ts` with `npm:stripe@14`, Stripe Checkout Sessions API (destination charges), `payment_intent_data.application_fee_amount` + `transfer_data.destination`, frontend mutation replaces throw stub.
-
-**Avoids:**
-- `charges_enabled` guard missing (Pitfall 2) — check before PaymentIntent creation
-- `application_fee_amount` net vs. gross confusion (Pitfall 1) — document and calculate correctly from day one
-- Stripe SDK version mismatch (Pitfall 5) — use `npm:stripe@14` matching existing functions
-- Store `tenant_email` + `property_name` in PaymentIntent metadata to avoid DB joins in webhook handler
-
-**Research flag:** Standard pattern — destination charges are well-documented in Stripe official docs. No additional research-phase needed.
-
-### Phase 2: Receipt Emails (Webhook Extension)
-
-**Rationale:** Depends on Phase 1 because the `payment_intent.succeeded` webhook must receive PaymentIntents with `tenant_email` in metadata (set by the new `stripe-rent-checkout` function). Can be built in parallel with Phase 1 but requires Phase 1 deployed to test end-to-end.
-
-**Delivers:** Automated receipt email to tenant and owner notification email on every successful Stripe rent payment. Email suppression respected. Webhook 200 response never blocked by email outcome.
-
-**Addresses:** Tenant receipt email (table stakes), owner receipt email (table stakes), email suppression check (should have), fire-and-forget pattern (critical for webhook reliability).
-
-**Stack:** Raw `fetch` to `https://api.resend.com/emails` inside `stripe-webhooks/index.ts`; no new imports. `RESEND_API_KEY` already confirmed in Edge Function secrets.
-
-**Avoids:**
-- Receipt email never wired (Pitfall 3) — add `console.log` marker for verification
-- `email_suppressions` not checked (Pitfall 4) — shared `isEmailSuppressed()` helper
-- Blocking webhook on Resend failure (integration gotcha) — always fire-and-forget with `.catch()`
-- Triggering receipts from frontend success_url redirect (anti-pattern) — webhook is authoritative
-
-**Research flag:** Standard pattern — Resend fetch approach is identical to official Supabase guide. No additional research-phase needed.
-
-### Phase 3: Auth Flow Completion
-
-**Rationale:** Fully independent of Phases 1 and 2. Password reset has been broken (404 page) since the auth UI was built. Google OAuth code is complete but needs operational verification. Both fixes are low-effort and high user-impact.
-
-**Delivers:** Working password reset flow (user clicks email link, lands on correct page, can set new password), verified Google OAuth in production (tenant and owner sign-in via Google routes to correct dashboard).
-
-**Addresses:** Password reset completes successfully (table stakes), Google OAuth `user_type` routing (table stakes), email confirmation post-verify redirect (should have).
-
-**Stack:** `@supabase/ssr` PKCE pattern — `exchangeCodeForSession(code)` in the reset page before form renders; no new packages.
-
-**Avoids:**
-- `UpdatePasswordForm` missing code exchange (Pitfall 6) — add code exchange on page mount
-- Google OAuth redirect URI not registered in production (Pitfall 7) — verify Google Cloud Console and Supabase Dashboard before marking done
-
-**Research flag:** Auth PKCE code exchange needs careful implementation. The `/auth/callback/route.ts` handles OAuth but not password recovery — the reset page must handle its own code exchange. Confirm the implementation pattern against current `@supabase/ssr` docs (not legacy `token_hash` guides).
+### Phase 5: CI Optimization
+**Rationale:** Completely independent of all blog work. Can be done in parallel with any phase. Low risk, saves ~20 min runner time per merge.
+**Delivers:** Deduplicated CI workflow -- checks on PR events only, e2e-smoke independent on push-to-main events
+**Addresses:** CI deduplication (differentiator)
+**Avoids:** Pitfall 8 (unprotected main -- either keep both triggers with `concurrency.cancel-in-progress: true`, or verify branch protection rules require checks status before merge)
 
 ### Phase Ordering Rationale
 
-- Phase 1 is the critical path — without working rent checkout, Phases 2 has nothing to test against
-- Phases 2 and 3 can be built in parallel with Phase 1 (they share no code dependencies)
-- All three phases can be deployed independently and in any order since they touch different files
-- Auth fixes (Phase 3) are high-user-impact quick wins that could ship before Phase 1 if needed
+- Phase 1 before all else: hooks and types are imported by every subsequent file. Nothing compiles without them.
+- Phase 2 before Phase 4: page components import BlogCard, BlogPagination, NewsletterSignup. Build errors if components do not exist.
+- Phase 3 before Phase 4: Edge Function must be deployed for newsletter to work in production. The component itself can be built in Phase 2 and tested with mock responses.
+- Phase 4 pages in order hub/detail/category: hub is most complex and exercises all components; if any component has issues, they surface here first.
+- Phase 5 is independent: can run as a parallel PR at any time. Logically groups as a final cleanup.
 
 ### Research Flags
 
-Phases likely needing deeper research during planning:
-- **Phase 3 (Auth):** PKCE `exchangeCodeForSession` implementation for password reset — the `/auth/callback/route.ts` provides the pattern but the reset page needs a client-side variant. Verify against current `@supabase/ssr` docs to confirm whether a Server Component route handler or client-side `useEffect` is the correct approach.
+**Phases needing attention during implementation (not deeper research -- patterns are known):**
+- **Phase 1:** The `queryOptions()` factory pattern MUST be followed, not the plan's raw `blogKeys` approach. This is a convention enforcement issue, not a technical uncertainty.
+- **Phase 3:** Verify Resend Contacts API behavior for duplicate emails (send same email twice, observe response code). Handle 409 or equivalent as success. Also verify `RESEND_NEWSLETTER_SEGMENT_ID` setup in Resend dashboard before deploy.
+- **Phase 4 (category page):** Test slug roundtrip with acronym categories (ROI, SaaS). Validate that `useCategories()` lookup approach resolves the mismatch.
+- **Phase 5:** Check GitHub branch protection settings before modifying CI triggers. If protection is not enforced, keep both triggers with concurrency cancellation.
 
-Phases with standard patterns (skip research-phase):
-- **Phase 1 (Stripe):** Destination charges are comprehensively documented in official Stripe docs; STACK.md has the exact implementation pattern with all required parameters.
-- **Phase 2 (Resend):** Fire-and-forget receipt email via raw `fetch` is the official Supabase-recommended pattern; ARCHITECTURE.md has the complete implementation including the email suppression guard.
+**Phases with well-documented, established patterns (no additional research needed):**
+- **Phase 1 (Data Layer):** PostgREST pagination with `.range()` + `{ count: 'exact' }`, nuqs `parseAsInteger`, queryOptions factories -- all patterns used across 12+ domains
+- **Phase 2 (Components):** Presentational components consuming design system tokens, `next/image` with `fill` -- straightforward composition of existing patterns
+- **Phase 5 (CI):** GitHub Actions event conditionals -- one `if` condition change, well-documented
 
 ## Confidence Assessment
 
 | Area | Confidence | Notes |
 |------|------------|-------|
-| Stack | HIGH | All technologies already in production. Stripe version pinning, Resend fetch pattern, and auth libraries all verified against official docs and live codebase. No new dependencies introduced. |
-| Features | HIGH | Feature boundaries verified by direct codebase inspection. What's built vs. stubbed vs. missing is confirmed against live files, not assumptions. |
-| Architecture | HIGH | All architectural claims verified against live codebase files. Build order derived from actual dependency graph, not theoretical design. No schema changes needed confirmed by migration inspection. |
-| Pitfalls | HIGH | Critical pitfalls verified against official Stripe and Supabase PKCE docs. The PKCE password reset pitfall is particularly important — it has been confirmed by inspecting the current `UpdatePasswordForm` implementation. |
+| Stack | HIGH | Zero new dependencies. All versions verified against `package.json` and `deno.json`. Resend API change confirmed via official docs and migration guide. |
+| Features | HIGH | Feature landscape well-mapped with clear table stakes / differentiator / anti-feature boundaries. Complexity assessment: 8-10 hours total, only newsletter Edge Function at medium risk. |
+| Architecture | HIGH | All 14 integration points verified against live codebase. No changes to proxy, PageLayout, NuqsAdapter, RLS, Deno imports, or shared Edge Function utilities. Data flow diagrams match existing patterns exactly. |
+| Pitfalls | HIGH | 12 pitfalls identified across critical/moderate/minor tiers. All have prevention strategies with LOW recovery cost. Top 5 critical pitfalls are directly actionable during implementation with specific detection methods documented. |
 
 **Overall confidence:** HIGH
 
 ### Gaps to Address
 
-- **`handle_new_user` Postgres trigger for Google OAuth** (MEDIUM confidence): The trigger is expected to set `user_type: 'OWNER'` in `app_metadata` on OAuth signup, but this was not verified by reading the trigger code. Verify during Phase 3 implementation that the trigger fires for OAuth users (who may not have `raw_user_meta_data.user_type` set). If not, the callback route's user type routing silently fails.
-
-- **Fee business model** (out of scope for code, needs business decision): At typical fee percentages (0.2%–1%), the platform application fee may be less than Stripe's processing fee, resulting in net negative revenue per transaction. The implementation should correctly calculate and display net vs. gross platform revenue, but the fee percentage decision is a business decision outside this milestone's scope.
-
-- **`RESEND_API_KEY` production secret confirmation**: The research notes the key "is confirmed" based on an `email_suppressions` migration comment, but the actual Supabase Edge Function secrets dashboard was not directly verified. Confirm the secret is set before deploying Phase 2.
-
-- **Stripe webhook registration for `payment_intent.succeeded`**: The existing `stripe-webhooks` function handles this event, but confirm the Stripe Dashboard webhook endpoint is registered to receive `payment_intent.succeeded` events (not just `checkout.session.completed`). The new rent checkout flow creates PaymentIntents directly, which fire `payment_intent.succeeded` — this is distinct from the `checkout.session.completed` event fired by platform subscription checkout.
+- **Resend duplicate contact behavior:** Not explicitly documented in Resend API reference. Must test empirically during Phase 3 by sending the same email twice and observing the response. Regardless of API behavior, always return success to the frontend for duplicate submissions.
+- **`@tailwindcss/typography` plugin activation:** Package is installed (0.5.19) but `@plugin "@tailwindcss/typography"` directive is missing from `globals.css`. Must be added before `prose` classes render correctly in Tailwind 4. Trivial fix but will cause invisible styling failures if missed.
+- **`scrollbar-hide` utility:** Referenced in plan for comparisons carousel but does not exist in `globals.css`. Add as a 3-line `@utility` block.
+- **`text-responsive-display-xl` utility:** Referenced in plan but does not exist. Use existing `text-responsive-display-lg` or `typography-hero` instead.
+- **EmptyState shared component:** CLAUDE.md documents `EmptyState` from `#components/shared/empty-state` but the file does not exist on the filesystem. The plan imports it in the category page. Resolution needed before Phase 4: either create the shared component or inline the empty state. Recommend creating it since the convention is already documented and other domains could benefit.
 
 ## Sources
 
 ### Primary (HIGH confidence)
-- [Stripe Connect Destination Charges](https://docs.stripe.com/connect/destination-charges) — `application_fee_amount`, `transfer_data[destination]`, `on_behalf_of` parameters
-- [Stripe Accept Payment with Destination Charges](https://docs.stripe.com/connect/marketplace/tasks/accept-payment/destination-charges) — Payment Element + PaymentIntent creation pattern
-- [Resend with Supabase Edge Functions](https://resend.com/docs/send-with-supabase-edge-functions) — `fetch` pattern for Resend HTTP API from Deno
-- [Supabase Auth — PKCE Flow](https://supabase.com/docs/guides/auth/sessions/pkce-flow) — code exchange requirement for password reset
-- [Supabase Auth — Google OAuth](https://supabase.com/docs/guides/auth/social-login/auth-google) — `signInWithOAuth` + PKCE callback pattern
-- Live codebase inspection (2026-02-25) — confirmed stub locations, missing pages, existing patterns
+- Codebase verification: `package.json`, `deno.json`, `globals.css`, `use-blogs.ts`, `ci-cd.yml`, `proxy.ts`, `providers.tsx`, blog migration files -- all read directly from filesystem
+- [Resend Create Contact API](https://resend.com/docs/api-reference/contacts/create-contact) -- current endpoint documentation
+- [Resend Migrating from Audiences to Segments](https://resend.com/docs/dashboard/segments/migrating-from-audiences-to-segments) -- deprecation details and migration path
+- [TanStack Query v5 Paginated Queries](https://tanstack.com/query/v5/docs/react/guides/paginated-queries) -- keepPreviousData pattern
+- [nuqs Documentation](https://nuqs.dev/) -- clearOnDefault, parseAsInteger, adapter requirements
+- [PostgREST Pagination and Count](https://postgrest.org/en/stable/references/api/pagination_count.html) -- range() with count: 'exact'
+- [GitHub Actions Workflow Syntax](https://docs.github.com/actions/using-workflows/workflow-syntax-for-github-actions) -- event conditionals
+- [Supabase Database Functions](https://supabase.com/docs/guides/database/functions) -- SECURITY INVOKER vs DEFINER
 
 ### Secondary (MEDIUM confidence)
-- [Stripe Connect Webhooks](https://docs.stripe.com/connect/webhooks) — platform vs. connected account event routing
-- [stripe-node releases](https://github.com/stripe/stripe-node/releases) — v20.4.0 latest stable; v14 pinned for Deno compatibility
+- [Resend New Contacts Experience (Nov 2025)](https://resend.com/blog/new-contacts-experience) -- API change announcement
+- [GitHub Actions Avoid Double Runs](https://adamj.eu/tech/2025/05/14/github-actions-avoid-simple-on/) -- CI dedup patterns
+- [SaaS Blog Design Examples](https://www.webstacks.com/blog/saas-blog-design-examples) -- split content hub pattern validation
+- [Content Hub Strategy](https://www.saffronedge.com/blog/content-hub/) -- hub and spoke content model
 
-### Tertiary (LOW confidence / needs validation)
-- `handle_new_user` trigger behavior on OAuth signup — assumed to set `user_type: OWNER` but not directly verified against migration source
-- `RESEND_API_KEY` in production Edge Function secrets — inferred from `email_suppressions` migration comment, not directly confirmed in dashboard
+### Tertiary (LOW confidence)
+- Resend duplicate contact response behavior -- not explicitly documented, needs empirical validation during Phase 3 implementation
 
 ---
-*Research completed: 2026-02-25*
+*Research completed: 2026-03-06*
 *Ready for roadmap: yes*

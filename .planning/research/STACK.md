@@ -1,329 +1,308 @@
-# Stack Research: Payment Infrastructure + Auth Flow Completion
+# Technology Stack: Blog Redesign + Newsletter + CI Optimization
 
-**Domain:** Property management SaaS — Stripe Connect rent payment checkout, transactional email receipts, auth flow polish
-**Researched:** 2026-02-25
-**Confidence:** HIGH (Stripe: official docs; Resend: official Supabase guide; Auth: existing working code verified)
+**Project:** TenantFlow v1.1 Milestone
+**Researched:** 2026-03-06
+**Overall confidence:** HIGH
+
+---
+
+## Executive Summary
+
+This milestone requires **zero new npm dependencies**. Every library needed is already installed at a current version. The work is purely additive: new components, one new Edge Function, one SQL migration, and CI workflow restructuring. The only external API integration is the Resend Contacts API (already authenticated via existing `RESEND_API_KEY`).
+
+The one noteworthy finding: Resend has deprecated the Audiences API (November 2025) in favor of a global Contacts + Segments model. The implementation plan references `POST /audiences/{id}/contacts` -- this must be updated to `POST /contacts` with optional `segments` array. The old endpoint still works but will be removed.
 
 ---
 
 ## Recommended Stack
 
-### Core Technologies (New Capabilities)
+### Core Framework (No Changes)
 
-| Technology | Version | Purpose | Why Recommended |
-|------------|---------|---------|-----------------|
-| `stripe` (npm) | `20.4.0` | Stripe Node SDK in Next.js route | Already at 20.3.1 in frontend — bump to latest stable. API version `2026-02-25.clover` |
-| `stripe` (npm, Deno) | `14.x` pinned | Stripe SDK in Edge Functions | Existing functions use `npm:stripe@14`. `stripe@14` supports `constructEventAsync()` and destination charges. Upgrade deferred — no breaking change needed for destination charges |
-| `resend` (npm, Deno) | `4.0.0` | Transactional email from Edge Functions | Official Supabase guide pins `npm:resend@4.0.0`. Deno npm specifier works. Fetch fallback also viable — use SDK for type safety |
-| `@stripe/react-stripe-js` | `5.4.1` | Stripe Elements on frontend | Already installed. Payment Element supports destination charges transparently — no extra config needed on client |
-| `@stripe/stripe-js` | `8.6.3` | Stripe.js browser bundle | Already installed. Used to initialize Stripe instance with publishable key for Elements |
+| Technology | Installed Version | Purpose | Status |
+|------------|-------------------|---------|--------|
+| Next.js | 16.1.6 | App framework | No change |
+| React | 19.2.4 | UI library | No change |
+| TailwindCSS | 4.2.1 | Styling | No change |
+| TanStack Query | 5.90.21 | Server state | No change |
+| nuqs | 2.8.8 | URL state (pagination) | No change -- already used for data tables |
+| Supabase JS | 2.97.0 | DB queries + auth | No change |
 
-### Supporting Libraries (No New Installs Required)
+### Libraries Already Installed and Used by This Milestone
 
-| Library | Version | Purpose | When to Use |
-|---------|---------|---------|-------------|
-| `@supabase/ssr` | `0.8.0` | Server-side auth in Next.js | Already installed. `getAll`/`setAll` pattern already in place for callback route |
-| `@supabase/supabase-js` | catalog (2.x) | Auth + DB client | Already installed everywhere. `auth.updateUser({ password })` for password reset completion |
-| `@tanstack/react-query` | `5.90.21` | Server state + mutation lifecycle | Already installed. Use for new payment mutation and receipt status hooks |
-| `@tanstack/react-form` | `1.27.7` | Payment checkout form | Already installed. Use for payment amount confirmation form |
-| `zod` | `4.3.5` | Input validation on Edge Function request bodies | Already installed in shared package. Use for rent checkout request schema |
-| `sonner` | `2.0.7` | Toast feedback for payment and auth flows | Already installed |
+| Library | Version | Purpose in This Milestone | Why No Change |
+|---------|---------|---------------------------|---------------|
+| `nuqs` | 2.8.8 | Blog pagination URL state (`?page=1`) | Already used in `use-data-table.ts` with identical `parseAsInteger.withDefault(1)` pattern. Proven in production. |
+| `@tanstack/react-query` | 5.90.21 | `useQuery` for paginated blog lists, `useMutation` for newsletter subscribe | Already powers all data fetching. Blog hooks extend existing patterns. |
+| `react-markdown` | 10.1.0 | Blog detail page content rendering | Already dynamically imported in blog detail page. No version change needed. |
+| `rehype-raw` + `rehype-sanitize` + `remark-gfm` | 7.0.0 / 6.0.0 / 4.0.1 | Markdown processing pipeline | Already installed for existing blog detail page. |
+| `lucide-react` | 0.575.0 | Icons (Clock, Mail, ChevronLeft, ChevronRight, ArrowRight, etc.) | Already the sole icon library. All icons needed exist in this version. |
+| `sonner` | 2.0.7 | Toast feedback for newsletter errors | Already used across the app. |
+| `next/image` | (bundled with Next.js 16) | Blog card featured images | Already configured with Unsplash and Supabase remote patterns. |
+| `next/dynamic` | (bundled with Next.js 16) | Dynamic import for MarkdownContent | Already used for blog detail page. |
+| `@sentry/deno` | 9.x | Error tracking in newsletter Edge Function | Already in `deno.json` import map. |
+| `@upstash/ratelimit` + `@upstash/redis` | (latest via npm) | Rate limiting for newsletter Edge Function | Already in `deno.json` import map and `_shared/rate-limit.ts`. |
 
-### Development Tools (No Changes)
+### Existing Design System Components Used
 
-| Tool | Purpose | Notes |
-|------|---------|-------|
-| Supabase CLI | Deploy Edge Functions | `supabase functions deploy stripe-rent-checkout` |
-| Stripe CLI | Local webhook testing | `stripe listen --forward-to localhost:54321/functions/v1/stripe-webhooks` |
+| Component | Location | Purpose |
+|-----------|----------|---------|
+| `BlurFade` | `src/components/ui/blur-fade.tsx` | CSS-only fade-in animations (no `motion` library, uses IntersectionObserver) |
+| `Button` | `src/components/ui/button.tsx` | Pagination buttons, CTAs |
+| `LazySection` | `src/components/ui/lazy-section.tsx` | Intersection-based lazy loading for below-fold sections |
+| `SectionSkeleton` | `src/components/ui/section-skeleton.tsx` | Loading placeholder for lazy sections |
+| `PageLayout` | `src/components/layout/page-layout.tsx` | Page wrapper with nav/footer |
+| `EmptyState` | `src/components/shared/empty-state.tsx` | Empty category page state |
+
+### Database (SQL Migration Only)
+
+| Technology | What | Purpose | Notes |
+|------------|------|---------|-------|
+| PostgreSQL RPC | `get_blog_categories()` | Distinct categories with counts | SECURITY INVOKER, SQL language, STABLE. No new extensions. |
+| Supabase PostgREST | `.range()` + `{ count: 'exact' }` | Paginated blog queries | Pattern already used in all data tables. |
+
+### Edge Function (New)
+
+| Function | Runtime | Dependencies | Pattern |
+|----------|---------|--------------|---------|
+| `newsletter-subscribe` | Deno (Supabase Edge) | `@sentry/deno`, `@upstash/ratelimit`, `@upstash/redis` (all already in import map) | Identical to `tenant-invitation-accept`: unauthenticated, rate-limited, CORS-enabled, `errorResponse()` |
+
+### CI (Workflow YAML Only)
+
+| Change | Technology | What |
+|--------|-----------|------|
+| Workflow restructure | GitHub Actions | Split `checks` trigger: lint/typecheck/build on PR only, e2e-smoke on push to main independently |
+
+---
+
+## External API: Resend Contacts (Updated from Audiences)
+
+**Confidence:** HIGH (verified via official Resend docs, November 2025 announcement)
+
+### What Changed
+
+Resend deprecated the Audiences API in November 2025. Key changes:
+
+| Before (Deprecated) | After (Current) |
+|---------------------|-----------------|
+| `POST /audiences/{id}/contacts` | `POST /contacts` |
+| Contacts scoped to one audience | Contacts are global entities |
+| `audience_id` required | `audience_id` not needed |
+| Audiences for grouping | Segments for grouping (renamed) |
+
+### Correct API for Newsletter Subscribe
+
+```
+POST https://api.resend.com/contacts
+Authorization: Bearer {RESEND_API_KEY}
+Content-Type: application/json
+
+{
+  "email": "user@example.com",
+  "segments": ["{RESEND_NEWSLETTER_SEGMENT_ID}"]   // optional
+}
+
+Response: { "object": "contact", "id": "uuid" }
+```
+
+### Implementation Impact
+
+The plan's Edge Function references `POST /audiences/${env.RESEND_AUDIENCE_ID}/contacts`. This must be updated to:
+
+```typescript
+// CORRECT (current API)
+const res = await fetch('https://api.resend.com/contacts', {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json',
+    Authorization: `Bearer ${env.RESEND_API_KEY}`,
+  },
+  body: JSON.stringify({
+    email,
+    segments: env.RESEND_NEWSLETTER_SEGMENT_ID
+      ? [env.RESEND_NEWSLETTER_SEGMENT_ID]
+      : undefined,
+  }),
+})
+```
+
+### Environment Variables
+
+| Variable | Required | Purpose |
+|----------|----------|---------|
+| `RESEND_API_KEY` | Yes | Already set in Edge Function secrets (used by auth-email-send) |
+| `RESEND_NEWSLETTER_SEGMENT_ID` | No (optional) | Segment ID to group newsletter subscribers. Create in Resend dashboard. If omitted, contact is created globally. |
+
+The `RESEND_AUDIENCE_ID` variable from the plan should be renamed to `RESEND_NEWSLETTER_SEGMENT_ID` to match current Resend terminology.
+
+---
+
+## What NOT to Add
+
+| Temptation | Why Not |
+|------------|---------|
+| `resend` npm package in Edge Function | Raw `fetch` to `api.resend.com/contacts` is a single POST. No SDK needed for one endpoint. Existing Edge Functions (auth-email-send) already use the SDK pattern but that ships the full email template API. Newsletter subscribe only needs one HTTP call. |
+| `@tailwindcss/typography` plugin import | Already installed as devDependency. The blog detail page uses inline `prose` overrides via Tailwind arbitrary selectors (`[&>h1]:text-4xl`). The `@plugin` directive is NOT imported in `globals.css`. Two options: (a) add `@plugin "@tailwindcss/typography"` to globals.css for proper prose support, or (b) keep the inline overrides. Recommend (a) since the plugin is already installed. |
+| Animation libraries (framer-motion, GSAP) | `BlurFade` component already handles all needed animations with CSS transitions + IntersectionObserver. No JS animation library needed. The project already has `motion` (12.34.0) installed but `BlurFade` deliberately avoids it for lighter bundle. |
+| Pagination library | `nuqs` + manual page math is sufficient. No need for a pagination library. |
+| `tailwind-scrollbar-hide` package | The plan uses `scrollbar-hide` class for the comparisons carousel. This is not a built-in Tailwind utility. Add a `@utility scrollbar-hide` in `globals.css` instead of installing a package. 3 lines of CSS. |
+| Email template library for newsletter | No confirmation email is sent. The Edge Function only adds a contact to Resend. Resend handles any welcome/confirmation emails via their Broadcasts feature in the dashboard. |
+| RSS feed library | Not in scope for this milestone. |
+| MDX tooling | Blog content is stored in DB as markdown, rendered by `react-markdown`. No MDX compilation needed. |
+
+---
+
+## CSS Utilities Needed (Not Library Installs)
+
+Two utilities referenced in the plan do not exist in `globals.css`:
+
+### 1. `scrollbar-hide` (used in comparisons carousel)
+
+```css
+@utility scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+```
+
+### 2. `text-responsive-display-xl` (referenced in hub hero)
+
+This class does not exist. Existing responsive display utilities are:
+- `text-responsive-display-lg` (maps to `--text-display-lg`)
+- `text-responsive-display` (maps to `--text-display`)
+
+The plan should use `text-responsive-display-lg` or the existing `typography-hero` utility instead. No new utility needed.
+
+### 3. `page-content` (referenced in detail/category pages)
+
+This class does not exist. The detail page should use standard padding (`pt-24` or similar) to clear the fixed nav. This may already work via `PageLayout`.
+
+### 4. `@plugin "@tailwindcss/typography"` (prose classes)
+
+The blog detail page uses `prose prose-lg prose-slate dark:prose-invert`. The `@tailwindcss/typography` package is installed (`0.5.19`) but the `@plugin` directive is missing from `globals.css`. Add it:
+
+```css
+@import 'tailwindcss';
+@import 'tw-animate-css';
+@plugin "@tailwindcss/typography";
+```
+
+Without this, the `prose` classes render as no-ops in Tailwind 4.
+
+---
+
+## CI Workflow Changes (No New Actions)
+
+### Current State
+
+| Workflow | File | Trigger | Jobs |
+|----------|------|---------|------|
+| CI | `ci-cd.yml` | push to main + PR to main | `checks` (lint/typecheck/build), `e2e-smoke` (push to main only, depends on checks) |
+| RLS Security | `rls-security-tests.yml` | PR to main + weekly cron | `rls-security` |
+| Claude Code | `claude.yml` | Issue/PR comments with @claude | `claude` |
+| Dependabot | `dependabot-auto-merge.yml` | Dependabot PRs | auto-merge |
+
+### Problem
+
+The `ci-cd.yml` workflow triggers on both `push` and `pull_request`. When a PR is merged:
+1. The PR `pull_request` event fires (checks run)
+2. The `push` to main event fires (checks run AGAIN, then e2e-smoke)
+
+This means `checks` runs twice on every merge. The `e2e-smoke` job already correctly gates to push-only with `if: github.event_name == 'push'`, but it depends on `checks`, forcing the duplicate.
+
+### Fix (Workflow YAML Only)
+
+Split into two independent triggers or use conditional job execution:
+- `checks` job: PR only (`if: github.event_name == 'pull_request'`)
+- `e2e-smoke` job: push to main only, runs its own install (no `needs: [checks]` dependency)
+
+This uses only existing GitHub Actions (`actions/checkout@v6`, `pnpm/action-setup@v4`, `actions/setup-node@v6`). No new actions.
+
+---
+
+## Supabase Edge Function Secrets Needed
+
+| Secret | Exists | Notes |
+|--------|--------|-------|
+| `RESEND_API_KEY` | Yes | Already set for `auth-email-send` function |
+| `SENTRY_DSN` | Yes | Already set for all Edge Functions |
+| `FRONTEND_URL` | Yes | Already set for CORS |
+| `UPSTASH_REDIS_REST_URL` | Yes | Already set for rate limiting |
+| `UPSTASH_REDIS_REST_TOKEN` | Yes | Already set for rate limiting |
+| `RESEND_NEWSLETTER_SEGMENT_ID` | **No -- new** | Optional. Create a "Newsletter" segment in Resend dashboard, copy the ID |
+
+---
+
+## Version Verification
+
+All versions verified against `package.json` (read directly from codebase):
+
+| Package | In package.json | Latest Known | Action |
+|---------|----------------|--------------|--------|
+| `nuqs` | 2.8.8 | 2.x stable | No update needed |
+| `@tanstack/react-query` | 5.90.21 | 5.90.x | No update needed |
+| `react-markdown` | 10.1.0 | 10.x | No update needed |
+| `next` | 16.1.6 | 16.x | No update needed |
+| `@tailwindcss/typography` | 0.5.19 (devDep) | 0.5.x | No update, just add `@plugin` import |
+| `@sentry/deno` | 9.x (import map) | 9.x | No update needed |
+| `tailwindcss` | 4.2.1 | 4.x | No update needed |
 
 ---
 
 ## Installation
 
-No new npm packages required in `apps/frontend`. All frontend dependencies already installed.
-
-For Edge Functions, import via Deno specifiers — no `package.json` involved:
-
-```typescript
-// In stripe-rent-checkout Edge Function
-import Stripe from 'npm:stripe@14'
-import { Resend } from 'npm:resend@4.0.0'
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.45.0'
-```
-
-For `apps/frontend`, upgrade stripe:
-
 ```bash
-pnpm --filter @repo/frontend update stripe@20.4.0
+# No new packages to install.
+# Zero npm installs required for this milestone.
 ```
 
 ---
 
-## Stripe Connect Destination Charges — Implementation Pattern
+## Integration Points
 
-### What Destination Charges Are
+### Data Flow: Newsletter Subscribe
 
-The platform (TenantFlow) creates a PaymentIntent. Stripe charges the tenant's card, transfers the full amount to the owner's connected account, then pulls back the platform fee. The owner sees only the net amount; Stripe fees are deducted from TenantFlow's platform balance.
-
-**Correct parameters:**
-
-```typescript
-const paymentIntent = await stripe.paymentIntents.create({
-  amount: rentAmountCents,            // e.g. 150000 for $1,500.00
-  currency: 'usd',
-  automatic_payment_methods: { enabled: true },
-  application_fee_amount: platformFeeCents, // e.g. 300 for $3.00 (0.2%)
-  transfer_data: {
-    destination: ownerStripeAccountId, // from stripe_connected_accounts table
-  },
-  on_behalf_of: ownerStripeAccountId,  // required when platform != connected account region
-  metadata: {
-    tenant_id: tenantId,
-    lease_id: leaseId,
-    period_start: periodStart,
-    period_end: periodEnd,
-    due_date: dueDate,
-  },
-})
-// Return paymentIntent.client_secret to frontend
+```
+User (blog page)
+  -> NewsletterSignup component (client)
+  -> fetch() to Edge Function URL
+  -> newsletter-subscribe Edge Function (Deno)
+  -> Rate limit check (Upstash Redis)
+  -> POST https://api.resend.com/contacts
+  -> Response to client
+  -> Toast or success state
 ```
 
-**Critical:** `on_behalf_of` must equal `transfer_data.destination`. Setting them to different values causes a Stripe API error. For US-only deployments it can be omitted, but include it for correctness and future multi-region support.
+### Data Flow: Paginated Blog Queries
 
-### Fund Flow (Example: $1,500 rent, $3.00 platform fee, ~$43.80 Stripe fee)
-
-1. Tenant charged $1,500.00
-2. $1,500.00 → owner connected account pending balance
-3. $3.00 application fee → TenantFlow platform balance
-4. ~$43.80 Stripe fee → deducted from TenantFlow platform balance
-5. Net to TenantFlow: $3.00 - $43.80 = negative unless platform fee > Stripe fee
-
-**Design note:** At 0.2% fee on $1,500 = $3.00 fee vs ~$43.80 Stripe fee, TenantFlow loses money. Minimum viable fee to break even: ~3% ($45.00). Fee strategy is a business decision outside stack scope.
-
-### Edge Function: `stripe-rent-checkout`
-
-New Edge Function following existing patterns from `stripe-checkout/index.ts`:
-
-```typescript
-// supabase/functions/stripe-rent-checkout/index.ts
-import Stripe from 'npm:stripe@14'
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.45.0'
-
-Deno.serve(async (req: Request) => {
-  // 1. JWT auth (use supabase.auth.getUser(token) — existing pattern)
-  // 2. Validate body: { lease_id, amount_cents, period_start, period_end }
-  // 3. Verify tenant owns this lease (RLS check via user client, not service role)
-  // 4. Fetch owner stripe_account_id from stripe_connected_accounts via lease.owner_user_id
-  // 5. Create PaymentIntent with application_fee_amount + transfer_data
-  // 6. Return { client_secret } — frontend mounts Payment Element
-})
+```
+User navigates/clicks pagination
+  -> nuqs updates ?page=N in URL
+  -> useBlogs(page) re-fires with new queryKey
+  -> Supabase PostgREST .range(from, to) + { count: 'exact' }
+  -> Response with posts[] + total count
+  -> BlogPagination renders based on total
 ```
 
-### Frontend: Payment Element Integration
+### Data Flow: Blog Categories
 
-`@stripe/react-stripe-js` + `@stripe/stripe-js` already installed. Pattern:
-
-```typescript
-// 1. Call stripe-rent-checkout Edge Function → get clientSecret
-// 2. Initialize Elements with clientSecret
-const stripe = await loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!)
-const elements = stripe.elements({ clientSecret })
-// 3. Mount <PaymentElement /> component
-// 4. On submit: stripe.confirmPayment({ elements, confirmParams: { return_url } })
-// 5. stripe-webhooks handles payment_intent.succeeded → updates rent_payments table
 ```
-
-**No Stripe Elements changes needed** — destination charges are fully server-side. The Payment Element works identically for direct and destination charges from the frontend perspective.
-
----
-
-## Resend Transactional Email — Implementation Pattern
-
-### Approach: Direct `fetch` vs Resend SDK
-
-**Use direct `fetch` in Edge Functions.** Reasons:
-- Resend's official Supabase guide demonstrates the `fetch` approach
-- Avoids npm dependency in Deno (faster cold start)
-- Less surface area for version drift
-- Resend's HTTP API is stable and simple
-
-**Use Resend SDK (`npm:resend@4.0.0`) only if** React Email templates are needed (HTML composition). For simple receipt emails, fetch is sufficient.
-
-### Receipt Email Pattern (fire-and-forget in stripe-webhooks)
-
-Add to `payment_intent.succeeded` handler in `stripe-webhooks/index.ts`:
-
-```typescript
-// Fire-and-forget — never throw, never block webhook acknowledgement
-async function sendReceiptEmail(
-  tenantEmail: string,
-  tenantName: string,
-  amount: number,
-  periodStart: string,
-  propertyAddress: string
-): Promise<void> {
-  const RESEND_API_KEY = Deno.env.get('RESEND_API_KEY')
-  if (!RESEND_API_KEY) {
-    console.warn('RESEND_API_KEY not set — skipping receipt email')
-    return
-  }
-
-  try {
-    await fetch('https://api.resend.com/emails', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${RESEND_API_KEY}`,
-      },
-      body: JSON.stringify({
-        from: 'TenantFlow <receipts@tenantflow.app>',
-        to: [tenantEmail],
-        subject: `Rent payment receipt — ${propertyAddress}`,
-        html: `<p>Hi ${tenantName},</p><p>Your rent payment of $${amount.toFixed(2)} for ${periodStart} has been received.</p>`,
-      }),
-    })
-  } catch (err) {
-    console.error('Receipt email failed:', err)
-    // Do NOT rethrow — stripe-webhooks must return 200 to prevent Stripe retry
-  }
-}
+Blog hub loads
+  -> useCategories() fires
+  -> Supabase RPC get_blog_categories()
+  -> Returns [{category, count}]
+  -> Rendered as pills linking to /blog/category/{slug}
 ```
-
-### Environment Variables Required
-
-| Variable | Where Set | Notes |
-|----------|-----------|-------|
-| `RESEND_API_KEY` | Supabase Edge Function secrets | Dashboard → Settings → Edge Functions |
-| `STRIPE_SECRET_KEY` | Already set | Used in stripe-rent-checkout |
-| `STRIPE_WEBHOOK_SECRET` | Already set | Used in stripe-webhooks |
-
-**Domain verification:** `receipts@tenantflow.app` requires DNS verification in Resend dashboard before emails will send to real recipients (not `resend.dev` test domain).
-
----
-
-## Auth Flow Completion — What Already Exists vs What's Missing
-
-### Existing (verified by reading code)
-
-| Feature | Status | Files |
-|---------|--------|-------|
-| Password reset request | DONE | `forgot-password-modal.tsx`, `use-auth.ts:useSupabasePasswordResetMutation` |
-| Password reset landing page | DONE | `app/auth/update-password/page.tsx` + `update-password-form.tsx` |
-| Email confirmation page | DONE | `app/auth/confirm-email/page.tsx` |
-| OAuth callback route | DONE | `app/auth/callback/route.ts` — exchanges code, redirects by user_type |
-| Google button UI | DONE | `google-button.tsx` |
-
-### Missing (gap in password reset flow)
-
-The `resetPasswordForEmail` in `use-auth.ts` redirects to `/auth/reset-password` (line 415):
-
-```typescript
-redirectTo: `${window.location.origin}/auth/reset-password`
-```
-
-But the actual update-password page lives at `/auth/update-password`. This URL mismatch means Supabase sends the user to a 404. **Fix: change redirect URL to `/auth/update-password`** or add a redirect at `/auth/reset-password`.
-
-### Missing: Google OAuth `signInWithOAuth` call
-
-The `GoogleButton` component is a pure UI button with no behavior wired up. There is no hook calling `supabase.auth.signInWithOAuth({ provider: 'google', options: { redirectTo } })`. The OAuth callback route (`/auth/callback`) is ready, but the initiating call is missing.
-
-**Pattern to add:**
-
-```typescript
-// In login page or a useGoogleAuthMutation hook
-const handleGoogleSignIn = async () => {
-  const supabase = createClient()
-  await supabase.auth.signInWithOAuth({
-    provider: 'google',
-    options: {
-      redirectTo: `${window.location.origin}/auth/callback`,
-    },
-  })
-  // signInWithOAuth redirects browser — no return value to handle
-}
-```
-
-**Supabase Dashboard config required:**
-- Authentication → Providers → Google: enable, add Client ID + Secret
-- Authentication → URL Configuration → Redirect URLs: add `https://tenantflow.app/auth/callback` and `http://localhost:3050/auth/callback`
-
-No new libraries needed — `@supabase/ssr` and `supabase-js` already handle PKCE flow automatically.
-
-### Missing: Password reset PKCE code exchange route
-
-When Supabase sends the password reset email, it uses PKCE: the link contains a `code` parameter, not a session token. The browser must exchange the code before `updateUser({ password })` will work.
-
-The `/auth/update-password` page currently calls `updateUser` directly via `UpdatePasswordForm` without first calling `exchangeCodeForSession`. This works if Supabase handles implicit token exchange on page load — but may fail in some environments.
-
-**Robust pattern:** Add a server-side route handler at `/auth/callback` (already exists) that detects `type=recovery` in query params and redirects to `/auth/update-password` after code exchange. The existing `callback/route.ts` already calls `exchangeCodeForSession(code)` — ensure Supabase password reset email's redirect URL points to `/auth/callback?next=/auth/update-password`.
-
----
-
-## Alternatives Considered
-
-| Recommended | Alternative | When to Use Alternative |
-|-------------|-------------|-------------------------|
-| Destination charges (platform → connected account) | Separate charges + transfers | Use when platform needs more control over fund routing (multi-leg payouts) — unnecessary complexity for TenantFlow's direct owner payout model |
-| `fetch` for Resend API | `npm:resend@4.0.0` SDK | Use SDK if adding React Email HTML templates (significant HTML composition benefit) |
-| `npm:resend@4.0.0` | `npm:resend@6.x` (latest) | Supabase's official guide pins @4.0.0; don't jump to @6.x without verifying Deno compatibility |
-| Stripe Payment Element | Stripe Checkout Session | Payment Element gives in-page UX; Checkout redirects off-site. Tenant portal UX benefits from staying in-app |
-| Supabase PKCE for Google OAuth | NextAuth.js | No reason to add NextAuth — Supabase handles PKCE flow, callback route already exists |
-
----
-
-## What NOT to Use
-
-| Avoid | Why | Use Instead |
-|-------|-----|-------------|
-| `stripe@14` → `stripe@20` upgrade in Edge Functions | Breaking change risk for production webhooks; `constructEventAsync()` is stable at @14 | Stay on @14 for Edge Functions; update only if new Stripe features require it |
-| Stripe Direct Charges (charging on connected account) | Requires passing `Stripe-Account` header from browser — exposes connected account ID | Use destination charges — platform is the merchant of record, cleaner liability model |
-| `transfer_data.destination` without `on_behalf_of` | Cross-region charges require `on_behalf_of`; value must equal `transfer_data.destination` | Always set both to the same connected account ID |
-| Resend SDK for webhook email (stripe-webhooks) | SDK adds cold start time to webhook function; webhook must return 200 fast | Use raw `fetch` to Resend HTTP API — simpler, faster, fire-and-forget |
-| New Next.js API routes for Stripe payments | Mixes two Stripe SDK versions (Next.js uses stripe@20, Edge Functions use stripe@14) — already flagged as P2 issue | Keep rent checkout in an Edge Function (consistent with all other Stripe operations) |
-
----
-
-## Version Compatibility
-
-| Package | Version in Use | Compatible With | Notes |
-|---------|---------------|-----------------|-------|
-| `npm:stripe@14` (Deno) | Edge Functions | Stripe API `2024-06-20` (pinned in existing code) | `constructEventAsync`, `paymentIntents.create` with destination charges all work at @14 |
-| `stripe@20.3.1` (Node) | Next.js frontend | Stripe API `2026-02-25.clover` | Frontend only references types; no server calls. OK to stay at 20.3.1 |
-| `npm:resend@4.0.0` (Deno) | New Edge Function | Resend API (stable) | Confirmed working in official Supabase guide. Latest is @6.9.2 but @4.0.0 verified for Deno |
-| `@stripe/react-stripe-js@5.4.1` | Frontend Elements | `@stripe/stripe-js@8.6.3` | Already installed as compatible pair |
-| `@supabase/ssr@0.8.0` | Next.js auth | `@supabase/supabase-js` catalog (2.x) | Already compatible; `getAll`/`setAll` in place |
-
----
-
-## Stripe SDK Version Mismatch (Known P2 Issue)
-
-Edge Functions use `npm:stripe@14` (API: `2024-06-20`).
-Next.js frontend has `stripe@20.3.1` (API: `2026-02-25.clover`).
-
-**Impact for this milestone:** None. The new `stripe-rent-checkout` Edge Function uses `npm:stripe@14` for consistency with existing Edge Functions. The frontend uses Stripe Elements (client-side JS) which connects to Stripe's servers directly — the npm package version only matters for server-side API calls.
-
-**Resolution strategy (post-v8.0):** Upgrade all Edge Functions to `npm:stripe@20` after pinning via `deno.json`. No breaking changes expected for `paymentIntents.create` or `webhooks.constructEventAsync`.
 
 ---
 
 ## Sources
 
-- [Stripe Connect destination charges](https://docs.stripe.com/connect/destination-charges) — `application_fee_amount`, `transfer_data[destination]`, `on_behalf_of` parameters (HIGH confidence, official Stripe docs)
-- [Stripe Accept payment with destination charges](https://docs.stripe.com/connect/marketplace/tasks/accept-payment/destination-charges) — Payment Element + server-side PaymentIntent creation pattern (HIGH confidence, official Stripe docs)
-- [stripe-node releases](https://github.com/stripe/stripe-node/releases) — v20.4.0 is latest stable as of 2026-02-25 (HIGH confidence, official GitHub)
-- [Send emails with Supabase Edge Functions - Resend](https://resend.com/docs/send-with-supabase-edge-functions) — `fetch` pattern for Resend HTTP API from Deno (HIGH confidence, official Resend docs)
-- [Custom Auth Emails with React Email and Resend - Supabase](https://supabase.com/docs/guides/functions/examples/auth-send-email-hook-react-email-resend) — `npm:resend@4.0.0` import pattern confirmed for Deno (HIGH confidence, official Supabase docs)
-- [Supabase Google OAuth](https://supabase.com/docs/guides/auth/social-login/auth-google) — `signInWithOAuth` with PKCE, callback route pattern (HIGH confidence, official Supabase docs)
-- [Supabase resetPasswordForEmail](https://supabase.com/docs/reference/javascript/auth-resetpasswordforemail) — password reset flow, `redirectTo` parameter (HIGH confidence, official Supabase docs)
-- Existing codebase audit (2026-02-25) — verified what auth pages/components already exist vs what is missing (HIGH confidence, first-hand)
-
----
-
-## Previous Stack Research
-
-The file previously contained v8.0 post-migration hardening patterns (Deno security, CORS, RLS test infrastructure, dependency pinning, TanStack Query auth caching). Those patterns remain valid and were not removed — they inform the Edge Function security approach used in `stripe-rent-checkout`.
-
----
-
-*Stack research for: TenantFlow v8.0 payment infrastructure + auth flow completion*
-*Researched: 2026-02-25*
+- [Resend: Migrating from Audiences to Segments](https://resend.com/docs/dashboard/segments/migrating-from-audiences-to-segments) -- HIGH confidence
+- [Resend: New Contacts Experience (Nov 2025)](https://resend.com/blog/new-contacts-experience) -- HIGH confidence
+- [Resend: Create Contact API](https://resend.com/docs/api-reference/contacts/create-contact) -- HIGH confidence
+- [Tailwind CSS Typography in v4](https://github.com/tailwindlabs/tailwindcss-typography) -- HIGH confidence (requires `@plugin` directive)
+- [nuqs documentation](https://nuqs.dev/) -- HIGH confidence (verified against existing codebase usage)
+- Codebase verification: `package.json`, `deno.json`, `globals.css`, `use-blogs.ts`, `ci-cd.yml` -- all read directly

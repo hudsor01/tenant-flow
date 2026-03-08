@@ -1,264 +1,132 @@
 'use client'
 
+import { BlogCard } from '#components/blog/blog-card'
+import { BlogPagination } from '#components/blog/blog-pagination'
+import { NewsletterSignup } from '#components/blog/newsletter-signup'
 import { PageLayout } from '#components/layout/page-layout'
-import { HeroSection } from '#components/sections/hero-section'
-import { Button } from '#components/ui/button'
-import { useBlogs } from '#hooks/api/use-blogs'
+import { BlogEmptyState } from '#components/shared/blog-empty-state'
+import { BlogLoadingSkeleton } from '#components/shared/blog-loading-skeleton'
 import {
-	ArrowRight,
-	BarChart3,
-	Building2,
-	Clock,
-	TrendingUp,
-	Users,
-	Zap
-} from 'lucide-react'
+	useBlogs,
+	useBlogCategories,
+	useComparisonPosts,
+} from '#hooks/api/use-blogs'
+import { parseAsInteger, useQueryState } from 'nuqs'
 import Link from 'next/link'
 
 export default function BlogPage() {
-	const { data: blogPosts = [], isLoading } = useBlogs()
+	const [page] = useQueryState('page', parseAsInteger.withDefault(1))
+	const { data: categories, isLoading: categoriesLoading } =
+		useBlogCategories()
+	const { data: comparisons, isLoading: comparisonsLoading } =
+		useComparisonPosts()
+	const { data: blogData, isLoading: blogsLoading } = useBlogs(page)
+
 	return (
 		<PageLayout>
-			{/* Hero Section */}
-			<HeroSection
-				title="Free guides to save"
-				titleHighlight="$30,000+ annually"
-				subtitle="Proven playbooks used by 10,000+ property managers to increase NOI by 40%, cut costs by 32%, and reclaim 20+ hours weekly. No fluff, just results."
-				primaryCta={{
-					label: 'Get Instant Access to All Guides',
-					href: '/pricing'
-				}}
-				secondaryCta={{ label: 'Calculate Your Savings', href: '/pricing' }}
-				trustSignals="50,000+ downloads • 40% NOI increase • 32% cost reduction"
-				image={{
-					src: 'https://images.unsplash.com/photo-1499750310107-5fef28a66643?q=80&w=2070&auto=format&fit=crop',
-					alt: 'Content creation workspace for property management resources'
-				}}
-			/>
-
-			{/* Featured Article - High-Converting Content */}
+			{/* Hero -- simplified title + subtitle */}
 			<section className="section-spacing">
-				<div className="max-w-6xl mx-auto px-6 lg:px-8">
-					<div className="bg-card rounded-2xl p-8 md:p-12 border border-border/50 shadow-lg">
-						<div className="grid md:grid-cols-2 gap-8 items-center">
-							<div>
-								<h2 className="typography-h1 mb-4">
-									The $30,000 Property Management Savings Playbook
-								</h2>
-								<p className="text-muted-foreground mb-6 text-lg">
-									The exact 90-day blueprint our top 1% of users follow to save
-									$2,400+ per property annually. Includes templates,
-									calculators, and step-by-step automation workflows.
-								</p>
-								<div className="flex items-center gap-6 mb-6">
-									<div className="flex items-center gap-2">
-										<Clock className="size-4 text-accent" />
-										<span className="text-muted-foreground">15 min to implement</span>
-									</div>
-									<div className="flex items-center gap-2">
-										<Users className="size-4 text-primary" />
-										<span className="text-muted-foreground">$2.4M+ saved by readers</span>
-									</div>
-								</div>
-								<Button size="lg" className="px-8">
-									Read Complete Guide
-									<ArrowRight className="size-5 ml-2" />
-								</Button>
-							</div>
-							<div className="bg-card rounded-xl p-8 border border-border/50 shadow-md">
-								<div className="text-center">
-									<div className="typography-h1 text-primary mb-2">40%</div>
-									<p className="text-muted-foreground mb-4">Average NOI Increase</p>
-
-									<div className="grid grid-cols-2 gap-4 text-sm">
-										<div>
-											<div className="typography-h3 text-accent mb-1">65%</div>
-											<p className="text-muted-foreground">
-												Faster Vacancy Filling
-											</p>
-										</div>
-										<div>
-											<div className="typography-h3 text-primary mb-1">32%</div>
-											<p className="text-muted-foreground">Cost Reduction</p>
-										</div>
-									</div>
-								</div>
-							</div>
-						</div>
-					</div>
+				<div className="mx-auto max-w-4xl px-6 text-center lg:px-8">
+					<h1 className="text-responsive-display-xl font-bold tracking-tight">
+						TenantFlow Blog
+					</h1>
+					<p className="mt-4 text-lg text-muted-foreground">
+						Property management insights, software comparisons, and
+						actionable guides to help you run a better business.
+					</p>
 				</div>
 			</section>
 
-			{/* Results-Focused Categories */}
-			<section className="section-spacing bg-muted/20">
-				<div className="max-w-6xl mx-auto px-6 lg:px-8">
-					<div className="text-center mb-16">
-						<h2 className="typography-h1 mb-4">Learn what works</h2>
-						<p className="text-xl text-muted-foreground">
-							Browse strategies proven to deliver results for property managers
-						</p>
-					</div>
-
-					<div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
-						{[
-							{
-								name: 'ROI Maximization',
-								count: 15,
-								icon: TrendingUp,
-								description: 'Strategies to increase NOI by 40%+',
-								color: 'bg-primary/10 text-primary'
-							},
-							{
-								name: 'Task Automation',
-								count: 22,
-								icon: Zap,
-								description: 'Automate 80% of daily operations',
-								color: 'bg-accent/10 text-accent'
-							},
-							{
-								name: 'Cost Reduction',
-								count: 18,
-								icon: BarChart3,
-								description: 'Cut operational costs by 32%',
-								color: 'bg-primary/10 text-primary'
-							},
-							{
-								name: 'Success Stories',
-								count: 12,
-								icon: Building2,
-								description: 'Real results from property managers',
-								color: 'bg-accent/10 text-accent'
-							}
-						].map(category => (
-							<Link
-								key={category.name}
-								href={`/blog/category/${category.name.toLowerCase().replace(' ', '-')}`}
-								className="bg-card p-8 rounded-lg border border-border/50 shadow-md transition-all duration-300 text-center group hover:-translate-y-1"
-							>
-								<div
-									className={`size-16 rounded-2xl flex-center mx-auto mb-4 ${category.color.replace('text-primary', 'bg-primary/10').replace('text-accent', 'bg-accent/10')}`}
-								>
-									<category.icon
-										className={`size-8 ${category.color.split(' ')[1]}`}
+			{/* Category pills */}
+			<section className="pb-8">
+				<div className="mx-auto max-w-6xl px-6 lg:px-8">
+					<div className="flex flex-wrap items-center gap-2">
+						{categoriesLoading ? (
+							<>
+								{[1, 2, 3].map(i => (
+									<div
+										key={i}
+										className="h-8 w-32 animate-pulse rounded-full bg-muted"
 									/>
-								</div>
-								<h3 className="typography-h4 mb-2 group-hover:text-primary transition-colors">
-									{category.name}
-								</h3>
-								<p className="text-muted-foreground text-sm mb-4">
-									{category.description}
-								</p>
-							</Link>
-						))}
-					</div>
-				</div>
-			</section>
-
-			{/* High-Converting Articles */}
-			<section className="section-spacing">
-				<div className="max-w-6xl mx-auto px-6 lg:px-8">
-					<div className="text-center mb-16">
-						<h2 className="typography-h1 mb-4">Latest strategies that work</h2>
-						<p className="text-xl text-muted-foreground">
-							Proven techniques being used by successful property managers today
-						</p>
-					</div>
-
-					{isLoading ? (
-						<div className="grid md:grid-cols-3 gap-8">
-							{[1, 2, 3].map(i => (
-								<div
-									key={i}
-									className="bg-card rounded-xl p-8 border border-border/50 shadow-md"
-								>
-									<div className="h-4 bg-muted rounded w-20 mb-4 animate-pulse" />
-									<div className="h-6 bg-muted rounded w-full mb-3 animate-pulse" />
-									<div className="h-4 bg-muted rounded w-full mb-2 animate-pulse" />
-									<div className="h-4 bg-muted rounded w-3/4 mb-4 animate-pulse" />
-									<div className="flex-between">
-										<div className="h-4 bg-muted rounded w-24 animate-pulse" />
-										<div className="h-4 bg-muted rounded w-20 animate-pulse" />
-									</div>
-								</div>
-							))}
-						</div>
-					) : blogPosts.length === 0 ? (
-						<div className="text-center text-muted-foreground">
-							<p>No blog posts available yet. Check back soon!</p>
-						</div>
-					) : (
-						<div className="grid md:grid-cols-3 gap-8">
-							{blogPosts.map(post => (
+								))}
+							</>
+						) : (
+							categories?.map(cat => (
 								<Link
-									key={post.id}
-									href={`/blog/${post.slug}`}
-									className="bg-card rounded-xl p-8 border border-border/50 shadow-md transition-all duration-300 group hover:-translate-y-1"
+									key={cat.slug}
+									href={`/blog/category/${cat.slug}`}
+									className="inline-flex items-center gap-1.5 rounded-full border border-border bg-background px-4 py-1.5 text-sm transition-colors hover:bg-accent hover:text-accent-foreground"
 								>
-									<div className="flex-between mb-4">
-										<div className="text-muted-foreground">
-											{post.reading_time} min read
-										</div>
-									</div>
-
-									<h3 className="text-xl font-bold mb-3 group-hover:text-primary transition-colors leading-tight">
-										{post.title}
-									</h3>
-
-									<p className="text-muted-foreground mb-4 leading-relaxed">
-										{post.excerpt}
-									</p>
-
-									<div className="flex-between">
-										<div className="text-sm font-semibold text-primary">
-											Read Article
-										</div>
-										<div className="text-muted-foreground">
-											{post.published_at
-												? new Date(post.published_at).toLocaleDateString(
-														'en-US',
-														{ month: 'short', day: 'numeric', year: 'numeric' }
-													)
-												: ''}
-										</div>
-									</div>
+									{cat.name}
+									<span className="text-muted-foreground">
+										({cat.post_count})
+									</span>
 								</Link>
-							))}
-						</div>
-					)}
-
-					<div className="text-center mt-16">
-						<Button size="lg" variant="outline" className="px-8">
-							View All Success Strategies
-							<ArrowRight className="size-5 ml-2" />
-						</Button>
+							))
+						)}
 					</div>
 				</div>
 			</section>
 
-			{/* Newsletter with Strong Value Prop */}
-			<section className="section-spacing bg-primary">
-				<div className="max-w-4xl mx-auto px-6 lg:px-8 text-center">
-					<h2 className="typography-h1 text-primary-foreground mb-4">
-						Get the strategies that increase NOI by 40%
-					</h2>
-					<p className="text-xl text-primary-foreground/90 mb-8">
-						Join 10,000+ property managers who get our weekly insights on
-						automation, cost reduction, and revenue optimization delivered to
-						their inbox.
-					</p>
-					<div className="flex flex-col sm:flex-row gap-4 max-w-md mx-auto">
-						<input
-							type="email"
-							placeholder="Enter your email address"
-							className="flex-1 px-4 py-3 border-0 rounded-lg text-foreground placeholder:text-muted-foreground"
-						/>
-						<Button size="lg" variant="secondary" className="px-6">
-							Get Free Insights
-						</Button>
+			{/* Software Comparisons zone -- horizontal scroll */}
+			{comparisonsLoading ? (
+				<section className="section-spacing">
+					<div className="mx-auto max-w-6xl px-6 lg:px-8">
+						<h2 className="mb-6 text-2xl font-bold">
+							Software Comparisons
+						</h2>
+						<BlogLoadingSkeleton />
 					</div>
-					<p className="text-sm text-primary-foreground/80 mt-4">
-						Free weekly insights • Unsubscribe anytime • 10,000+ subscribers
-					</p>
+				</section>
+			) : comparisons && comparisons.length > 0 ? (
+				<section className="section-spacing">
+					<div className="mx-auto max-w-6xl px-6 lg:px-8">
+						<h2 className="mb-6 text-2xl font-bold">
+							Software Comparisons
+						</h2>
+						<div className="flex gap-4 overflow-x-auto pb-4 scrollbar-hide snap-x snap-mandatory">
+							{comparisons.map(post => (
+								<BlogCard
+									key={post.id}
+									post={post}
+									className="min-w-[280px] flex-shrink-0 snap-start md:min-w-[320px]"
+								/>
+							))}
+						</div>
+					</div>
+				</section>
+			) : null}
+
+			{/* Insights & Guides zone -- paginated grid */}
+			<section className="section-spacing">
+				<div className="mx-auto max-w-6xl px-6 lg:px-8">
+					<h2 className="mb-6 text-2xl font-bold">
+						Insights & Guides
+					</h2>
+					{blogsLoading ? (
+						<BlogLoadingSkeleton />
+					) : !blogData || blogData.data.length === 0 ? (
+						<BlogEmptyState message="No articles yet. Check back soon." />
+					) : (
+						<>
+							<div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+								{blogData.data.map(post => (
+									<BlogCard key={post.id} post={post} />
+								))}
+							</div>
+							<BlogPagination
+								totalPages={blogData.pagination.totalPages}
+								className="mt-8"
+							/>
+						</>
+					)}
+				</div>
+			</section>
+
+			{/* Newsletter signup -- pre-footer */}
+			<section className="section-spacing">
+				<div className="mx-auto max-w-2xl px-6 lg:px-8">
+					<NewsletterSignup className="shadow-sm" />
 				</div>
 			</section>
 		</PageLayout>

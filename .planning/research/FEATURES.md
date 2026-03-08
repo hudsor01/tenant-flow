@@ -1,568 +1,164 @@
-# Features Research: Post-Migration Hardening Approaches
-
-**Research date:** 2026-02-23
-**Milestone:** v8.0 Post-Migration Hardening
-
----
-
-## 1. IDOR Prevention in Edge Functions
-
-### Table Stakes (Must-Do)
-
-**Three-zone pattern** — every Edge Function must follow this structure:
-
-```typescript
-// Zone 1: Auth — extract and verify JWT
-const authHeader = req.headers.get('Authorization')
-const token = authHeader?.replace('Bearer ', '')
-const { data: { user }, error: authError } = await supabase.auth.getUser(token)
-if (authError || !user) return errorResponse('Unauthorized', 401)
-
-// Zone 2: Ownership — verify caller owns the resource
-const { data: lease } = await supabase
-  .from('leases')
-  .select('id, owner_user_id')
-  .eq('id', leaseId)
-  .single()
-if (!lease || lease.owner_user_id !== user.id) return errorResponse('Forbidden', 403)
-
-// Zone 3: Action — only now proceed with service-role operations
-const { error } = await serviceRoleClient.from('leases').update({ ... }).eq('id', leaseId)
-```
-
-**Applies to:**
-- `docuseal` — all 5 actions: verify `lease.owner_user_id === user.id`
-- `generate-pdf` (lease mode) — verify `lease.owner_user_id === user.id` before PDF generation
-- `export-report` — already scoped by RPC user_id param (safe, but add explicit check)
-- `stripe-connect` — verify `stripe_connected_accounts.user_id === user.id`
-
-**Testing:** Call each Edge Function with User A's JWT + User B's resource ID → expect 403.
-
-### Differentiators
-
-- Audit log IDOR failures to Sentry (attack pattern detection)
-- Rate-limit per-user failed ownership checks (5 failures → temporary block)
-
----
-
-## 2. PostgREST Search Sanitization
-
-### Table Stakes (Must-Do)
-
-PostgREST parses `.or()` strings as full filter expressions. Special characters that must be stripped:
-- `,` — OR operator separator (most dangerous: injects additional filters)
-- `;` — AND separator
-- `(` `)` — logical grouping
-- `.` — column path separator
-- `'` `"` — string delimiters
-
-```typescript
-// lib/sanitize-postgrest.ts
-export function sanitizePostgrestSearch(input: string): string {
-  return input
-    .replace(/[,.()"';]/g, '')  // Strip injection chars
-    .trim()
-    .substring(0, 200)           // Enforce max length
-}
-
-// Usage in query-key files
-if (filters?.search) {
-  const safe = sanitizePostgrestSearch(filters.search)
-  if (safe.length > 0) {
-    q = q.or(`name.ilike.%${safe}%,city.ilike.%${safe}%`)
-  }
-}
-```
-
-**Files requiring sanitization:**
-1. `property-keys.ts` — name, city search
-2. `tenant-keys.ts` — full_name, email search
-3. `unit-keys.ts` — unit number search
-4. `use-vendor.ts` — vendor name search
-
-**Testing:** `search = "admin,owner_user_id.eq.other-uuid"` → verify injected clause is stripped.
-
-### Differentiators
-
-- Full-text search via `tsvector` + RPC (eliminates injection risk entirely)
-- Zod schema validation of search term before PostgREST call
-
----
-
-## 3. RLS Write-Path Isolation Testing
-
-### Table Stakes (Must-Do)
-
-```typescript
-// Pattern: Two clients, two authenticated users, cross-ownership attempts
-const ownerA = createClient(URL, ANON_KEY, { auth: { persistSession: false } })
-const ownerB = createClient(URL, ANON_KEY, { auth: { persistSession: false } })
-
-await ownerA.auth.signInWithPassword({ email: OWNER_A_EMAIL, password: OWNER_A_PASS })
-await ownerB.auth.signInWithPassword({ email: OWNER_B_EMAIL, password: OWNER_B_PASS })
-
-// INSERT isolation — User B cannot INSERT claiming User A's identity
-test('Owner B cannot INSERT with Owner A owner_user_id', async () => {
-  const { error } = await ownerB.from('properties').insert({
-    name: 'Forged', owner_user_id: OWNER_A_ID, address_line1: '1 Main St'
-  })
-  expect(error).not.toBeNull()  // RLS WITH CHECK blocks it
-})
-
-// UPDATE isolation — User B cannot UPDATE User A's records
-test('Owner B cannot UPDATE Owner A property', async () => {
-  const { data } = await ownerB.from('properties')
-    .update({ name: 'Hijacked' }).eq('id', OWNER_A_PROPERTY_ID).select()
-  expect(data).toEqual([])  // Zero rows updated
-})
-
-// DELETE isolation
-test('Owner B cannot DELETE Owner A property', async () => {
-  const { data } = await ownerB.from('properties')
-    .delete().eq('id', OWNER_A_PROPERTY_ID).select()
-  expect(data).toEqual([])  // Zero rows deleted
-})
-```
-
-**Coverage matrix** — for all 7 domains: properties, units, tenants, leases, maintenance_requests, vendors, inspections:
-- INSERT with forged `owner_user_id` → expect blocked
-- UPDATE on other user's record → expect 0 rows affected
-- DELETE on other user's record → expect 0 rows affected
-
-**CI/CD:** Requires dedicated integration Supabase project (not production). Add `pull_request` trigger.
-
----
-
-## 4. Auth Token Caching in TanStack Query
-
-### Table Stakes (Must-Do)
-
-Replace 86 per-query `getUser()` calls with a single cached query:
-
-```typescript
-// hooks/api/use-cached-user.ts (NEW)
-export const authQueryKeys = {
-  user: () => ['auth', 'user'] as const,
-}
-
-export function useCachedUser() {
-  return useQuery(queryOptions({
-    queryKey: authQueryKeys.user(),
-    queryFn: async () => {
-      const supabase = createClient()
-      const { data: { user }, error } = await supabase.auth.getUser()
-      if (error || !user) throw new Error('Not authenticated')
-      return user
-    },
-    staleTime: 10 * 60 * 1000,      // 10 minutes
-    gcTime: 30 * 60 * 1000,          // 30 minutes
-    refetchOnWindowFocus: false,      // Prevent excessive calls
-    retry: false,
-  }))
-}
-```
-
-**Migration pattern:**
-```typescript
-// Before: getUser() in queryFn (every execution)
-queryFn: async () => {
-  const { data: { user } } = await supabase.auth.getUser()  // Network call!
-  return supabase.rpc('get_dashboard', { p_user_id: user?.id })
-}
-
-// After: userId passed as parameter, resolved at component level
-queryFn: async () => supabase.rpc('get_dashboard', { p_user_id: userId })
-
-// Component:
-const { data: user } = useCachedUser()
-const { data } = useQuery(dashboardQueries.stats(user?.id!))
-```
-
-**Impact:** ~80% reduction in auth network calls. Dashboard mount: 5 parallel queries × 0 auth calls = 0 auth round-trips (vs. 5 currently).
-
----
-
-## 5. Edge Function Error Response Standardization
-
-### Table Stakes (Must-Do)
-
-```typescript
-// supabase/functions/_shared/responses.ts (NEW)
-export const corsHeaders = (frontendUrl: string) => ({
-  'Access-Control-Allow-Origin': frontendUrl,
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-})
-
-export function errorResponse(message: string, status: number, code?: string): Response {
-  return new Response(
-    JSON.stringify({ error: message, ...(code ? { code } : {}) }),
-    { status, headers: { 'Content-Type': 'application/json' } }
-  )
-}
-
-export function successResponse(data: unknown, status = 200): Response {
-  return new Response(
-    JSON.stringify(data),
-    { status, headers: { 'Content-Type': 'application/json' } }
-  )
-}
-```
-
-**Status code mapping:**
-
-| Situation | Status | Body |
-|-----------|--------|------|
-| Missing/invalid JWT | 401 | `{ error: 'Unauthorized' }` |
-| Ownership check failed | 403 | `{ error: 'Forbidden' }` |
-| Invalid params | 400 | `{ error: 'Bad request' }` |
-| Third-party service failure | 502 | `{ error: 'Service unavailable' }` |
-| Missing env var | 503 | `{ error: 'Not configured' }` |
-| Unhandled exception | 500 | `{ error: 'Internal error' }` |
-
-**Current inconsistencies:**
-- Stripe-checkout 401: returns plain text `'Unauthorized'` (should be JSON)
-- DocuSeal-webhook 400: returns plain text `'Invalid signature'` (should be JSON)
-- All functions: `Content-Type` sometimes omitted
-
----
-
-## 6. Non-Atomic Transaction Workarounds
-
-### Table Stakes (Must-Do)
-
-**Pattern: RPC functions for multi-table operations**
-
-```sql
--- Example: atomic set_default_payment_method
-CREATE OR REPLACE FUNCTION set_default_payment_method(
-  p_user_id UUID,
-  p_payment_method_id UUID
-) RETURNS void AS $$
-BEGIN
-  -- Single atomic UPDATE: set one default, clear all others
-  UPDATE payment_methods
-  SET is_default = (id = p_payment_method_id)
-  WHERE user_id = p_user_id;
-END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
-```
-
-**Workflows requiring atomicity:**
-1. `set_default_payment_method` — clear old default + set new (current: 2 sequential calls)
-2. `mark_tenant_moved_out` — update lease status + update unit status
-3. `cancel_lease_atomically` — update lease + notify + clear unit
-
-**Edge Function pattern** (external calls + DB update):
-1. Call external service first (DocuSeal, Stripe)
-2. If success → update DB
-3. If DB update fails → compensating call to external service to undo
-4. Never partially succeed: return 500 if any step fails so client can retry
-
----
-
-## 7. CSV Export Safety
-
-### Table Stakes (Must-Do)
-
-```typescript
-// lib/csv-utils.ts
-export function escapeCsvValue(value: unknown): string {
-  const str = String(value ?? '').trim()
-  // Formula injection: prefix with single quote
-  if (/^[=+\-@\t]/.test(str)) return `'${str}`
-  // Wrap in quotes if contains special chars
-  if (str.includes(',') || str.includes('"') || str.includes('\n')) {
-    return `"${str.replace(/"/g, '""')}"`
-  }
-  return str
-}
-
-// Query limit
-const EXPORT_LIMIT = 10_000
-const { data } = await supabase.from('...').select().limit(EXPORT_LIMIT)
-if (data.length === EXPORT_LIMIT) {
-  toast.warning(`Export limited to ${EXPORT_LIMIT.toLocaleString()} rows. Apply filters to narrow results.`)
-}
-```
-
-**Files requiring limit + formula injection fix:**
-- `use-payments.ts` — `exportPaymentsCSV()`
-- `export-report` Edge Function — `rowsToCsv()`
-- Any other client-side CSV generation
-
----
-
-## Implementation Order
-
-| Priority | Category | Effort | Risk |
-|----------|----------|--------|------|
-| P0 | IDOR Prevention (DocuSeal, generate-pdf) | 2d | Critical security |
-| P0 | Search Sanitization | 1d | Critical security |
-| P1 | RLS Write Tests | 3d | Primary security validation |
-| P1 | Error Standardization | 2d | Developer experience |
-| P2 | Auth Token Caching | 3d | Performance |
-| P2 | Non-Atomic Transactions | 3d | Data integrity |
-| P2 | CSV Export Safety | 1d | Data safety |
-
----
-
-# Feature Research: Payment Infrastructure + Auth Flow Completion
-
-**Domain:** Stripe Connect Destination Charges + Resend Transactional Email + Supabase Auth Flow Completion
-**Researched:** 2026-02-25
-**Confidence:** HIGH (Stripe docs verified, Resend pattern confirmed, auth state from live codebase)
-
----
-
-## Context: What Already Exists
-
-These features are ALREADY BUILT and must not be re-built:
-
-- `stripe-connect` Edge Function: Express account onboarding, balance, payouts, transfers
-- `stripe-checkout` Edge Function: Platform subscription checkout sessions
-- `stripe-webhooks` Edge Function: Handles `payment_intent.succeeded/failed`, `checkout.session.completed`, `account.updated`
-- `stripe-billing-portal` Edge Function: Customer billing portal URL generation
-- `rent_payments` table: `amount`, `status`, `application_fee_amount`, `stripe_payment_intent_id`, `tenant_id`, `lease_id`, `period_start`, `period_end`
-- `late_fees` table with pg_cron daily calculation
-- `lease_reminders` (pg_cron queue) and `email_suppressions` table
-- `/auth/update-password` page with `UpdatePasswordForm` component (functional)
-- `/auth/confirm-email` page with resend logic (functional)
-- `/auth/callback` route for Google OAuth code exchange (functional)
-- `ForgotPasswordModal` component (functional, calls `resetPasswordForEmail`)
-- `/tenant/payments/new` page: UI exists but `payMutation` throws `Error('Rent payment requires Edge Function implementation')`
-
----
-
-## Feature Landscape
-
-### Table Stakes (Users Expect These)
-
-Features that tenants and owners assume will work. Missing these = rent collection is broken.
-
-| Feature | Why Expected | Complexity | Notes |
-|---------|--------------|------------|-------|
-| Tenant can pay rent via Stripe Checkout | Core product value — digital rent collection | MEDIUM | Requires `stripe-rent-checkout` Edge Function with destination charge; UI at `/tenant/payments/new` is already built but stubs out mutation |
-| Platform fee split on each payment | Business model requirement — platform monetization | LOW | `application_fee_amount` in PaymentIntent creation; fee percentage stored in env var (e.g., 1%) |
-| Owner receives rent minus fee | Owner expectation — they get paid via Stripe Connect Express | LOW | `transfer_data.destination` = owner's `stripe_account_id` from `stripe_connected_accounts` |
-| Receipt email to tenant on payment success | Tenants expect email confirmation for financial transactions | MEDIUM | Resend fetch call from webhook handler on `payment_intent.succeeded`; no Deno SDK — raw fetch to `https://api.resend.com/emails` |
-| Receipt email to owner on payment success | Owners track income; professional expectation | LOW | Same webhook path; second Resend call for owner notification email |
-| Password reset completes successfully | Auth table stakes — users forget passwords | LOW | Page exists at `/auth/update-password`; `redirectTo` in `resetPasswordForEmail` currently points to `/auth/reset-password` (non-existent path) — must point to `/auth/update-password` |
-| Google OAuth sets correct user_type | New owners via Google must get `user_type: OWNER` in `app_metadata` | LOW | Supabase `handle_new_user` trigger sets this; OAuth users bypass email confirm — must verify trigger fires on OAuth signup |
-| Email confirmation page handles post-verify redirect | After clicking email link, user lands on `/auth/confirm-email` — must auto-redirect to dashboard | MEDIUM | Current confirm-email page is static "check your inbox" — needs to handle the case where token is already verified (user clicked link) |
-
-### Differentiators (Competitive Advantage)
-
-Features that make TenantFlow stand out in rent payment UX.
-
-| Feature | Value Proposition | Complexity | Notes |
-|---------|-------------------|------------|-------|
-| Branded HTML receipt email | Professional landlord/tenant experience; plain-text receipts feel low-quality | MEDIUM | React Email components render to HTML; Resend accepts HTML string; Edge Functions are Deno — use plain HTML template string (React Email requires JSX runtime, complex in Deno) |
-| Receipt shows fee breakdown (rent + late fee separate line items) | Tenant transparency — reduces payment disputes | LOW | `rent_payments` already tracks `late_fee_amount`; include in email template |
-| Payment confirmation page post-checkout | After Stripe Checkout redirects back, show success state at `/auth/post-checkout` | LOW | Page already exists at `/auth/post-checkout`; connect it to rent checkout success_url |
-| Owner payment notification distinguishes rent vs late fee | Owner reporting accuracy | LOW | Include `late_fee_amount` in owner notification email body |
-
-### Anti-Features (Commonly Requested, Often Problematic)
-
-| Feature | Why Requested | Why Problematic | Alternative |
-|---------|---------------|-----------------|-------------|
-| Stripe Elements inline payment form (instead of Checkout) | "Keep users on our site" | Requires PCI SAQ A-EP compliance, Stripe.js, complex error handling, card field UI — significant scope increase | Use Stripe Checkout (hosted) — PCI SAQ A, Stripe handles all card UI and 3DS |
-| Save card for autopay during rent checkout | Tenant convenience | Stripe Checkout supports `setup_future_usage: 'off_session'` but autopay scheduling requires pg_cron job + off-session PaymentIntent — out of scope for this milestone | Defer to autopay milestone; tenant payment method save already partially built at `/tenant/payments/methods` |
-| Custom email template editor | Allow owners to customize receipt branding | High complexity, requires storage + preview + sanitization | Ship fixed professional template; add customization in future milestone |
-| Multi-recipient CC on receipts (e.g., roommates) | Shared apartments | Edge case; complex data model change needed | Single tenant email; owner email; done |
-| Real-time payment status via WebSockets | Show payment processing live | Stripe Checkout webhook is async (seconds); overkill for this flow | Redirect to success/failure page via `success_url`/`cancel_url` on Checkout session |
-
----
+# Feature Landscape
+
+**Domain:** Blog redesign with split content zones, newsletter subscription, and CI workflow optimization for an existing property management SaaS
+**Researched:** 2026-03-06
+**Scope:** Additive features on an existing blog (3 pages, 4 hooks, markdown rendering, Supabase `blogs` table)
+
+## Table Stakes
+
+Features users expect from a SaaS blog. Missing = the blog feels like an MVP prototype.
+
+| Feature | Why Expected | Complexity | Dependencies | Notes |
+|---------|--------------|------------|--------------|-------|
+| Paginated post lists | Blogs with 20+ posts become unnavigable without pagination. Current `useBlogs()` hard-caps at 20 rows with no pagination UI. | Low | `use-blogs.ts` rewrite, `BlogPagination` component, `nuqs` (already in project) | Use Supabase `.range()` with `{ count: 'exact' }`. Project already uses `nuqs` for data tables -- same `parseAsInteger.withDefault(1)` pattern. 12 posts per page is standard for 3-column grids (4 rows). |
+| Featured images on blog cards | Every SaaS blog shows card-level images. Current cards are text-only boxes despite `featured_image` existing in the schema. | Low | `BlogCard` shared component, `next/image` | `featured_image` column already exists on `blogs` table. Card component wraps `next/image` with `fill` + `object-cover` for responsive sizing. |
+| Featured image on detail page | Article pages without a hero image feel generic. Schema already stores `featured_image`. | Low | `[slug]/page.tsx` rewrite | Priority loading with `next/image` `priority` prop. `sizes` attribute matters for LCP. |
+| Dynamic categories from DB | Current hub hardcodes 4 fake categories ("ROI Maximization", "Task Automation", etc.) with fake counts. Categories that do not match actual content destroy trust. | Medium | New `get_blog_categories` RPC, `useCategories()` hook, migration file, `pnpm db:types` regen | RPC returns `SELECT category, count(*) FROM blogs WHERE status='published' GROUP BY category`. SECURITY INVOKER is correct (public content, no auth needed). Must regenerate `supabase.ts` types after applying migration. |
+| Category page with real data | Current category page uses hardcoded `categoryConfig` map with icons/descriptions per slug. Breaks for any category not in the map. | Low | `useBlogsByCategory` with pagination, `deslugify()` utility | Replace hardcoded config with dynamic slug-to-name conversion. Use the same `BlogCard` + `BlogPagination` pattern as the hub. |
+| Empty states | Category pages with zero posts show nothing useful. A blog with no content needs a clear "nothing here yet" message. | Low | Inline empty state or new `EmptyState` shared component | CLAUDE.md references `EmptyState` from `#components/shared/empty-state` but this component does NOT exist yet (verified via filesystem search). Either create it before the category page task, or use inline empty state UI. The plan imports it -- component must be created first or the import will fail. |
+| Loading skeletons | Users need visual feedback during data fetches. Current skeletons exist but are simple pulse divs. | Low | Existing `animate-pulse` pattern | Already in place on current pages. New pages should maintain same skeleton shapes matching final card dimensions. |
+| Back navigation | Detail and category pages need "Back to Blog" links. | Low | Already exists | Current pages already have this. Preserve it. |
+
+## Differentiators
+
+Features that elevate the blog beyond basic. Not strictly expected but meaningfully improve engagement and conversion.
+
+| Feature | Value Proposition | Complexity | Dependencies | Notes |
+|---------|-------------------|------------|--------------|-------|
+| Split hub with content zones | Separating "Software Comparisons" (high-intent, bottom-of-funnel) from "Insights & Guides" (educational) creates two clear paths. Comparison content targets buyers actively evaluating their options and converts significantly better than general blog posts. | Medium | `useFeaturedComparisons()` hook, hub page rewrite, horizontal scroll for Zone 1 | Zone 1 = horizontal scrollable comparison cards (6 max, `snap-x`). Zone 2 = paginated grid of everything else, with category pills. The split requires `useBlogs` to filter `.neq('category', 'Software Comparisons')` so comparisons are not duplicated across zones. |
+| Category filter pills on hub | Let users browse by topic without leaving the hub. Shows available categories with counts. | Low | `useCategories()` hook (same as table stakes), hub page UI | Pills link to `/blog/category/[slug]` rather than filtering in-place. This avoids complex client-side filter state and gives each category a shareable URL. Filter out "Software Comparisons" from pills since Zone 1 handles it. |
+| Related posts on detail page | When a reader finishes an article, showing 3 same-category posts keeps them engaged. Increases pages-per-session and dwell time. Industry standard for content-heavy SaaS blogs. | Low | `useRelatedPosts(category, excludeSlug, limit)` hook, 3-column grid below article | Query: same category, exclude current slug, order by `published_at` desc, limit 3. Use `enabled: !!category && !!excludeSlug` to avoid unnecessary fetches during loading. |
+| Functional newsletter signup | Current newsletter form is a dead `<input>` with no backend. A working newsletter is a primary content-marketing conversion mechanism for SaaS blogs. | Medium | `newsletter-subscribe` Edge Function, `NewsletterSignup` client component, Resend Contacts API, rate limiting | **CRITICAL FINDING:** Resend has deprecated Audiences in favor of Segments and a new Contacts API. The plan's endpoint `POST /audiences/{id}/contacts` is deprecated. The current endpoint is `POST https://api.resend.com/contacts` with optional `segments` array parameter. The Edge Function must use the new Contacts API. Required env vars: `RESEND_API_KEY` (already used for auth emails). New env var needed: segment ID(s) for the newsletter segment, or use the deprecated `RESEND_AUDIENCE_ID` which still works but will be removed. |
+| BlurFade animations on content | Staggered reveal animations as content enters viewport. Already used extensively on landing pages. Gives the blog a polished, cohesive feel consistent with the marketing site. | Low | `BlurFade` component (already exists at `src/components/ui/blur-fade.tsx`) | Wrap BlogCards, section headers, and detail page header in `<BlurFade delay={N} inView>`. Use incremental delays for grid items (e.g., `0.05 + i * 0.03`). |
+| LazySection for below-fold content | The "Insights & Guides" zone (Zone 2) on the hub is below-fold. Lazy loading it defers rendering and Supabase queries until visible. | Low | `LazySection` (exists at `src/components/ui/lazy-section.tsx`), `SectionSkeleton` (exists at `src/components/ui/section-skeleton.tsx`) | Wrapping Zone 2 in `<LazySection>` means the `useBlogs()` call only fires when the user scrolls down. Combined with `staleTime: 5min`, this avoids unnecessary API calls on quick visits. |
+| CI workflow deduplication | Current CI runs lint+typecheck+build on both `push` and `pull_request` to `main`. When a PR merge triggers both events, the same checks run twice, wasting ~20 minutes of runner time per merge. | Low | `.github/workflows/ci-cd.yml` modification | Gate `checks` job to PR-only with `if: github.event_name == 'pull_request'`. Make `e2e-smoke` independent on push-to-main (remove `needs: [checks]` dependency since it runs on a different event). The `e2e-smoke` job already has the correct push conditional (`if: github.event_name == 'push' && github.ref == 'refs/heads/main'`). |
+| CTA linking to /pricing (not /login) | Current detail page CTA links to `/login`. For a blog reader who is not yet a customer, `/pricing` is the correct conversion path (see plans, compare tiers, then sign up). | Low | `[slug]/page.tsx` href change | One-line change but impacts conversion. |
+
+## Anti-Features
+
+Features to explicitly NOT build in this milestone.
+
+| Anti-Feature | Why Avoid | What to Do Instead |
+|--------------|-----------|-------------------|
+| Client-side category filtering on the hub | Adding filter state to the hub (show only "Property Management" posts in Zone 2 without navigation) introduces complex state management, breaks URL sharing, and creates a second way to browse categories alongside the category pages. | Link category pills to `/blog/category/[slug]`. Each category gets a shareable URL and its own paginated page. |
+| Full-text blog search | Search requires a search index (pg_trgm or full-text search), debounced input, result highlighting, and a new UI pattern. Overkill for a blog with fewer than 100 posts. | Rely on categories and related posts for discoverability. Revisit search if post count exceeds 200. |
+| RSS feed | Technically useful for power users but negligible traffic driver for a SaaS blog. Adds a route and XML rendering with no conversion benefit. | Defer. Can be added as a simple Next.js API route later if needed. |
+| Newsletter double opt-in flow | Double opt-in (confirm email via link) requires a confirmation email template, a token table, a verification endpoint, and redirect handling. For a product newsletter (not marketing spam), single opt-in via Resend Contacts API is standard. | Use Resend's built-in contact management. Resend handles unsubscribe links in broadcasts. |
+| Blog admin/CMS dashboard | Building a blog editor UI (create/edit posts, upload images, preview markdown) is a large feature with no revenue impact. | Manage blog content directly in Supabase Dashboard or via SQL. Blog posts are admin-authored, not user-generated. |
+| Server Components for blog pages | The plan uses `'use client'` for all three blog pages. While blog content is mostly static and SSR-friendly, the project architecture relies on client-side TanStack Query for data fetching. Mixing server/client rendering for blog pages while the rest of the app is client-rendered creates inconsistency and complicates data flow. | Keep blog pages as client components with TanStack Query. The `staleTime: 5min` setting and `next/dynamic` for markdown already handle performance. Consider SSR/ISR for blog pages in a future SEO-focused milestone. |
+| Infinite scroll instead of pagination | Infinite scroll harms SEO (no distinct page URLs), makes it hard to reach footer content, and loses user position on back-navigation. | Use URL-based pagination via `nuqs`. Each page is a shareable URL (`/blog?page=2`). |
+| Custom email templates for newsletter | Building branded newsletter email templates before having newsletter content to send is premature optimization. | Use Resend Broadcasts with their default template. Invest in custom templates when regular newsletter cadence is established. |
+| Tag-based filtering | The `blogs` table has a `tags` column (string array) but no UI or queries use it. Building tag filtering adds another navigation axis on top of categories. | Ignore tags for now. Categories are sufficient for the current content volume. Tags can layer on when category counts exceed 50 posts each. |
 
 ## Feature Dependencies
 
 ```
-[stripe-rent-checkout Edge Function]
-    └──requires──> [stripe_connected_accounts.stripe_account_id] (EXISTING)
-    └──requires──> [rent_payments table] (EXISTING)
-    └──requires──> [Stripe Connect Express onboarding completed for owner] (EXISTING)
-    └──requires──> [Tenant has active lease with owner_user_id] (EXISTING)
+get_blog_categories RPC (migration)
+  --> pnpm db:types (regenerate supabase.ts)
+    --> useCategories() hook compiles
+      --> Category pills on hub page
+      --> Category page dynamic names
 
-[Receipt email — tenant]
-    └──requires──> [stripe-rent-checkout creates PaymentIntent with tenant metadata]
-    └──requires──> [stripe-webhooks payment_intent.succeeded handler] (EXISTING — needs email call added)
-    └──requires──> [RESEND_API_KEY env var in Edge Function secrets]
-    └──requires──> [verified sending domain in Resend dashboard]
+BlogCard component (new shared component)
+  --> Hub page Zone 1 (comparisons)
+  --> Hub page Zone 2 (insights grid)
+  --> Category page post grid
+  --> Related posts on detail page
 
-[Receipt email — owner]
-    └──requires──> [same as tenant receipt email]
-    └──requires──> [owner email lookup via leases.owner_user_id → users.email]
+BlogPagination component (new shared component)
+  --> Hub page Zone 2
+  --> Category page
 
-[Password reset complete]
-    └──requires──> [ForgotPasswordModal sends resetPasswordForEmail] (EXISTING)
-    └──requires──> [redirectTo fixed to point to /auth/update-password]
-    └──requires──> [/auth/update-password page] (EXISTING — already functional)
+useBlogs(page) rewrite (adds pagination)
+  --> Hub page Zone 2
 
-[Google OAuth user_type]
-    └──requires──> [/auth/callback route] (EXISTING — functional)
-    └──requires──> [handle_new_user Postgres trigger sets user_type in app_metadata]
+useFeaturedComparisons(limit) hook (new)
+  --> Hub page Zone 1
 
-[Email confirmation post-verify redirect]
-    └──requires──> [Supabase auth email confirm link exchange — handled by Supabase]
-    └──requires──> [/auth/confirm-email page] (EXISTING — needs redirect logic for verified state)
+useRelatedPosts(category, slug) hook (new)
+  --> Detail page related posts section
+
+newsletter-subscribe Edge Function (new)
+  --> NewsletterSignup component
+    --> Hub page (bottom)
+    --> Category page (bottom)
+
+EmptyState component (MUST BE CREATED -- does not exist despite CLAUDE.md reference)
+  --> Category page zero-results state
+
+CI workflow changes (fully independent -- no code dependencies)
 ```
 
-### Dependency Notes
+**Critical path:** The `get_blog_categories` RPC migration must be applied and types regenerated before `useCategories()` will typecheck. All three page rewrites depend on `BlogCard` and `BlogPagination` being created first. The `newsletter-subscribe` Edge Function must be deployed before `NewsletterSignup` can work in production (though the component can be built and tested with mock responses before deployment).
 
-- **Rent checkout requires owner Stripe account**: If owner has not completed Connect Express onboarding (`charges_enabled = false`), checkout must fail gracefully with a user-readable error — not a 500.
-- **Receipt emails require existing webhook**: The `stripe-webhooks` Edge Function already handles `payment_intent.succeeded` and upserts `rent_payments`. Receipt email is an additive call inside the existing `case 'payment_intent.succeeded'` block — no new webhook endpoint needed.
-- **Password reset redirectTo bug**: `useSupabasePasswordResetMutation` in `apps/frontend/src/hooks/api/use-auth.ts` line 415 currently uses `redirectTo: '/auth/reset-password'` (path does not exist). Must be changed to `/auth/update-password`. This is a one-line fix that unblocks the entire password reset flow.
-- **Google OAuth user_type**: New users via Google OAuth land at `/auth/callback` which exchanges code for session. The `handle_new_user` Postgres trigger should set `user_type: 'OWNER'` in `app_metadata` via `auth.users`. If it doesn't fire on OAuth, owners can't access the dashboard (redirect logic reads `app_metadata.user_type`).
+## MVP Recommendation
 
----
+Prioritize in this order:
 
-## MVP Definition
+1. **Data layer first** -- `use-blogs.ts` rewrite with pagination + categories + related hooks, plus `get_blog_categories` RPC migration and type regeneration. These unblock everything else.
+2. **Shared components** -- `BlogCard`, `BlogPagination`, `NewsletterSignup`, and the missing `EmptyState`. These are reused across all three pages.
+3. **Newsletter Edge Function** -- `newsletter-subscribe` with Resend Contacts API (not the deprecated Audiences endpoint) and rate limiting. Uses existing Edge Function patterns (`validateEnv`, `rateLimit`, `errorResponse`, `getCorsHeaders`).
+4. **Page rewrites** -- Hub, detail, category pages in that order. All depend on steps 1-3.
+5. **CI optimization** -- Independent, can be done in parallel with any other task. Lowest risk change.
 
-This is a subsequent milestone on an existing product. "MVP" here means the minimum needed to ship rent payment as a revenue-generating feature.
+**Defer to a future milestone:**
+- Blog search (insufficient content volume)
+- RSS feed (negligible ROI)
+- SSR/ISR for blog pages (SEO optimization milestone)
+- Blog admin CMS (manage via Supabase Dashboard)
+- Custom newsletter email templates (build content cadence first)
+- Tag-based filtering (categories are sufficient at current scale)
 
-### Launch With (v8.0 payment milestone)
+## Complexity Assessment
 
-- [ ] `stripe-rent-checkout` Edge Function — creates Stripe Checkout session with `application_fee_amount` + `transfer_data.destination` — wires to `/tenant/payments/new` mutation stub
-- [ ] Receipt email (tenant) on `payment_intent.succeeded` — via Resend fetch in `stripe-webhooks` handler
-- [ ] Receipt email (owner) on `payment_intent.succeeded` — second Resend call in same handler
-- [ ] Fix `redirectTo` in `resetPasswordForEmail` — one-line fix, unblocks password reset
-- [ ] Verify `handle_new_user` trigger fires for Google OAuth users — sets `user_type: OWNER`
+| Feature | Estimated Effort | Risk | Notes |
+|---------|------------------|------|-------|
+| `use-blogs.ts` rewrite | 1-2 hours | Low | Straightforward Supabase queries with `.range()`. Pattern matches existing pagination hooks. |
+| `get_blog_categories` RPC | 30 min | Low | Simple GROUP BY, but requires migration apply + type regen cycle. |
+| `BlogCard` component | 30 min | Low | Presentational component, no state. Uses `next/image` with `fill`. |
+| `BlogPagination` component | 30 min | Low | `nuqs` pattern already used in project data tables. |
+| `EmptyState` shared component | 30 min | Low | Must be created -- referenced in CLAUDE.md but does not exist on filesystem. |
+| `newsletter-subscribe` Edge Function | 1-2 hours | **Medium** | Resend API has changed (Audiences deprecated). Must use `POST /contacts` with `segments` parameter. Rate limiting pattern is established. |
+| `NewsletterSignup` component | 30 min | Low | TanStack Query mutation, form with toast, success state. |
+| Hub page rewrite | 1-2 hours | Low | Largest single file. Composition of existing components. Two zones + category pills. |
+| Detail page rewrite | 1 hour | Low | Adds featured image + related posts to existing structure. Preserves `MarkdownContent` dynamic import. |
+| Category page rewrite | 30 min | Low | Simplest page. Removes hardcoded `categoryConfig`, adds pagination + empty state. |
+| CI workflow dedup | 15 min | Low | One `if` conditional + removing one `needs` dependency in YAML. |
+| **Total** | **~8-10 hours** | **Overall: Low-Medium** | The only medium-risk item is the Resend API change in the newsletter Edge Function. |
 
-### Add After Validation (v8.x)
+## Key Research Findings
 
-- [ ] Confirmation page polish at `/auth/post-checkout` — link `success_url` from rent checkout to this page
-- [ ] Email suppression check before Resend send — `email_suppressions` table already exists; check it before firing Resend
-- [ ] Autopay (off-session PaymentIntent via pg_cron) — depends on tenant saving `setup_intent` during checkout
+### Resend API Change (MEDIUM confidence -- verified via official docs)
+The implementation plan uses `POST /audiences/{audience_id}/contacts` to add newsletter subscribers. Resend has deprecated Audiences in favor of Segments and a new Contacts API. The current endpoint is `POST https://api.resend.com/contacts` with `email` (required) and optional `segments` array. The old audience-based endpoint still works but will be removed in the future. The Edge Function should use the new Contacts API for longevity. Environment variable should change from `RESEND_AUDIENCE_ID` to a segment-based approach, though audience IDs still function.
 
-### Future Consideration (v9+)
+### nuqs Pagination (HIGH confidence -- already used in project)
+The project already uses `nuqs` for URL state management in data tables. The `parseAsInteger.withDefault(1)` pattern for page numbers is the documented best practice. The library is only 6 kB gzipped and actively maintained. No new dependency needed -- `nuqs` is already installed.
 
-- [ ] Branded email templates with owner logo — requires owner settings + storage
-- [ ] Tenant payment receipt PDF — StirlingPDF already available; add PDF attachment to Resend call
-- [ ] Stripe Checkout saved card + autopay scheduling
+### Supabase Pagination (HIGH confidence -- project convention)
+`.range(from, to)` with `{ count: 'exact' }` is the project's established pagination pattern (used in properties, tenants, maintenance list views). Blog queries should follow the same approach. `count: 'exact'` scans the full result set but is appropriate for blog tables which will have hundreds, not millions, of rows.
 
----
+### CI Dedup Pattern (HIGH confidence -- GitHub Actions documentation)
+The cleanest approach is event-type conditionals: `if: github.event_name == 'pull_request'` for the `checks` job, keeping `if: github.event_name == 'push'` for `e2e-smoke`. The `e2e-smoke` job already uses the correct push conditional. The `checks` job needs the PR conditional added, and `e2e-smoke` needs `needs: [checks]` removed since it would run on a different event than `checks` and the dependency would never resolve. Alternative approaches (skip-duplicate-actions marketplace action, concurrency groups) are more complex than needed for this simple case.
 
-## Feature Prioritization Matrix
+### EmptyState Component Gap (HIGH confidence -- verified via filesystem search)
+CLAUDE.md documents `EmptyState` from `#components/shared/empty-state` as a convention for list page empty states. This file does not exist on the filesystem. Only domain-specific empty states exist (e.g., `lease-template-empty-state.tsx`). The implementation plan imports `EmptyState` in the category page rewrite. This component must be created before the category page task, or the build will fail. Since the convention is already documented, creating a generic `EmptyState` is the right call.
 
-| Feature | User Value | Implementation Cost | Priority |
-|---------|------------|---------------------|----------|
-| stripe-rent-checkout Edge Function | HIGH | MEDIUM | P1 |
-| Tenant receipt email | HIGH | LOW | P1 |
-| Owner receipt email | HIGH | LOW | P1 |
-| Fix password reset redirectTo | HIGH | LOW (1 line) | P1 |
-| Verify handle_new_user trigger for OAuth | HIGH | LOW | P1 |
-| Email confirmation redirect (post-verify) | MEDIUM | LOW | P2 |
-| Post-checkout success page | MEDIUM | LOW | P2 |
-| Email suppression check | MEDIUM | LOW | P2 |
-| Autopay scheduling | HIGH | HIGH | P3 |
-| PDF receipt attachment | LOW | MEDIUM | P3 |
-
-**Priority key:**
-- P1: Must have — required to ship rent payment as a working feature
-- P2: Should have — improves quality / fixes minor broken flows
-- P3: Nice to have — defer to next milestone
-
----
-
-## Technical Implementation Notes
-
-### Stripe Destination Charges (HIGH confidence — Stripe docs verified)
-
-The correct charge type for TenantFlow is **destination charges**, not direct charges or separate charges/transfers.
-
-```
-Tenant → Platform (TenantFlow) → Owner (Stripe Express account)
-         charge created here      via transfer_data.destination
-         application_fee_amount   deducted from transfer
-```
-
-Key parameters for `stripe.checkout.sessions.create()`:
-```typescript
-{
-  mode: 'payment',
-  payment_intent_data: {
-    application_fee_amount: Math.round(totalAmountCents * FEE_RATE), // e.g., 1% of rent in cents
-    transfer_data: {
-      destination: owner_stripe_account_id, // from stripe_connected_accounts
-    },
-    metadata: {
-      tenant_id: '...',
-      lease_id: '...',
-      period_start: '2026-03-01',
-      period_end: '2026-03-31',
-      due_date: '2026-03-01',
-      payment_type: 'rent',
-    }
-  },
-  line_items: [{
-    price_data: {
-      currency: 'usd',
-      unit_amount: rent_amount_cents,
-      product_data: { name: 'March 2026 Rent — 123 Main St Unit 2B' }
-    },
-    quantity: 1
-  }]
-}
-```
-
-`application_fee_amount` creates explicit `Application Fee` objects visible in Stripe Dashboard — prefer this over `transfer_data.amount` for clean reporting. Owner sees full charge amount and fee amount; platform retains fee.
-
-### Resend Email (HIGH confidence — official docs verified)
-
-No Deno SDK exists for Resend. Use raw fetch in Edge Functions:
-
-```typescript
-await fetch('https://api.resend.com/emails', {
-  method: 'POST',
-  headers: {
-    'Content-Type': 'application/json',
-    Authorization: `Bearer ${Deno.env.get('RESEND_API_KEY')}`,
-  },
-  body: JSON.stringify({
-    from: 'TenantFlow <payments@mail.tenantflow.app>',
-    to: [tenant_email],
-    subject: `Payment Confirmed: $${amount} for ${property_address}`,
-    html: receiptHtml,
-  }),
-}).catch(err => console.error('Resend failed:', err))
-// Fire-and-forget — do not await; do not let email failure block webhook 200 response
-```
-
-Required setup:
-- `RESEND_API_KEY` env var in Supabase Edge Function secrets
-- Verified sending domain (`mail.tenantflow.app` or similar) in Resend dashboard
-
-### Password Reset Flow (HIGH confidence — codebase verified)
-
-The fix is one line in `apps/frontend/src/hooks/api/use-auth.ts` line 415:
-
-```typescript
-// Current (broken — path does not exist):
-redirectTo: `${window.location.origin}/auth/reset-password`
-
-// Fixed:
-redirectTo: `${window.location.origin}/auth/update-password`
-```
-
-The `/auth/update-password` page is already built and functional. `UpdatePasswordForm` correctly calls `supabase.auth.updateUser({ password })` which works once the user has a recovery session (established when Supabase verifies the token hash from the reset email link).
-
-### Google OAuth user_type (MEDIUM confidence — pattern known, trigger state needs verification)
-
-When a new user signs up via Google OAuth, Supabase fires the `handle_new_user` DB trigger on `auth.users INSERT`. This trigger must set `app_metadata.user_type = 'OWNER'`. The `/auth/callback` route reads `data.session.user.app_metadata?.user_type` to determine redirect destination. If the trigger doesn't set this, OAuth users get redirected to `/dashboard` but without `user_type` set, other auth guards may break.
-
-Verification needed: check `handle_new_user` function in Supabase migrations to confirm it handles OAuth users (who may not have `raw_user_meta_data.user_type` set at signup time since Google OAuth does not pass a `user_type` param).
-
----
+### Split Content Hub Pattern (MEDIUM confidence -- SaaS blog design patterns)
+The "content hub" model with distinct zones for different content types is an established SaaS blog pattern. Hotjar, HubSpot, and other SaaS companies segment their blogs by use case and content type. Separating comparison/bottom-of-funnel content from educational content aligns with standard content marketing strategy where comparison posts target high-intent buyers. Horizontal scroll for the comparisons zone is a common pattern for featured/promoted content that should be visually distinct from the main grid.
 
 ## Sources
 
-- [Stripe Connect destination charges](https://docs.stripe.com/connect/destination-charges) — HIGH confidence
-- [Stripe collect application fees](https://docs.stripe.com/connect/marketplace/tasks/app-fees) — HIGH confidence
-- [Resend with Supabase Edge Functions](https://resend.com/docs/send-with-supabase-edge-functions) — HIGH confidence
-- [Supabase password-based auth](https://supabase.com/docs/guides/auth/passwords) — HIGH confidence
-- [Supabase Google OAuth login](https://supabase.com/docs/guides/auth/social-login/auth-google) — HIGH confidence
-- Live codebase: `stripe-webhooks/index.ts`, `stripe-connect/index.ts`, `use-auth.ts`, `/auth/*` pages — HIGH confidence
-
----
-
-*Feature research for: TenantFlow v8.0 payment infrastructure + auth completion*
-*Researched: 2026-02-25*
+- [Resend Audiences Introduction](https://resend.com/docs/dashboard/audiences/introduction) -- Audiences overview (deprecated)
+- [Resend Audiences to Segments Migration](https://resend.com/docs/dashboard/segments/migrating-from-audiences-to-segments) -- Migration guide
+- [Resend Create Contact API](https://resend.com/docs/api-reference/contacts/create-contact) -- Current endpoint: POST /contacts
+- [Resend New Contacts Experience](https://resend.com/blog/new-contacts-experience) -- Contacts API changes
+- [nuqs Documentation](https://nuqs.dev/) -- Type-safe URL state management
+- [nuqs GitHub](https://github.com/47ng/nuqs) -- Source, testing, changelog
+- [GitHub Actions Duplicate Workflow Discussion](https://github.com/orgs/community/discussions/26940) -- Push + PR duplicate builds
+- [GitHub Actions Prevent Duplicate Discussion](https://github.com/orgs/community/discussions/57827) -- Dedup patterns
+- [GitHub Actions Workflow Conditions](https://oneuptime.com/blog/post/2026-01-25-workflow-conditions-github-actions/view) -- Event conditionals
+- [Supabase Pagination Guide](https://makerkit.dev/blog/tutorials/pagination-supabase-react) -- .range() with count: 'exact'
+- [PostgREST Pagination and Count](https://postgrest.org/en/stable/references/api/pagination_count.html) -- Official count options documentation
+- [SaaS Blog Design Examples](https://www.webstacks.com/blog/saas-blog-design-examples) -- Category segmentation patterns
+- [Blog Layout Best Practices 2025](https://crazyvendor.io/blog/10-blog-layout-best-practices-for-2025/) -- Related posts, reading time, scannable design
+- [Content Hub Strategy](https://www.saffronedge.com/blog/content-hub/) -- Hub and spoke content model

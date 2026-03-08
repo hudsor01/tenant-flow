@@ -1,13 +1,17 @@
 'use client'
 
+import { useState } from 'react'
 import dynamic from 'next/dynamic'
-import { PageLayout } from '#components/layout/page-layout'
-import { Button } from '#components/ui/button'
-import { BlogLoadingSkeleton } from '#components/shared/blog-loading-skeleton'
-import { useBlogBySlug } from '#hooks/api/use-blogs'
-import { ArrowLeft, ArrowRight, Clock, User } from 'lucide-react'
+import Image from 'next/image'
 import Link from 'next/link'
 import { useParams } from 'next/navigation'
+import { ArrowLeft, ArrowRight, Clock, User } from 'lucide-react'
+import { cn } from '#lib/utils'
+import { PageLayout } from '#components/layout/page-layout'
+import { Button } from '#components/ui/button'
+import { BlogCard } from '#components/blog/blog-card'
+import { BlogLoadingSkeleton } from '#components/shared/blog-loading-skeleton'
+import { useBlogBySlug, useBlogCategories, useRelatedPosts } from '#hooks/api/use-blogs'
 
 const MarkdownContent = dynamic(() => import('./markdown-content'), {
 	ssr: false,
@@ -17,7 +21,15 @@ const MarkdownContent = dynamic(() => import('./markdown-content'), {
 export default function BlogArticlePage() {
 	const params = useParams()
 	const slug = params.slug as string
+	const [imageLoaded, setImageLoaded] = useState(false)
+
 	const { data: post, isLoading } = useBlogBySlug(slug)
+	const { data: categories } = useBlogCategories()
+	const { data: relatedPosts } = useRelatedPosts(
+		post?.category ?? '',
+		slug,
+		3
+	)
 
 	if (isLoading) {
 		return (
@@ -70,6 +82,11 @@ export default function BlogArticlePage() {
 
 	const markdownContent = post.content.trim()
 
+	// Resolve category slug from database categories
+	const postCategory = post.category ?? ''
+	const categoryMatch = categories?.find(c => c.name === postCategory)
+	const categorySlug = categoryMatch?.slug ?? postCategory.toLowerCase().replace(/\s+/g, '-')
+
 	return (
 		<PageLayout>
 			{/* Back to Blog */}
@@ -83,7 +100,25 @@ export default function BlogArticlePage() {
 				</Link>
 			</div>
 
-			{/* Article Header */}
+			{/* Featured Image */}
+			{post.featured_image && (
+				<div className="relative aspect-video max-w-4xl mx-auto overflow-hidden rounded-lg mb-8">
+					<Image
+						src={post.featured_image}
+						alt={post.title}
+						fill
+						sizes="(max-width: 768px) 100vw, 896px"
+						priority
+						className={cn(
+							'object-cover transition-all duration-700 ease-out',
+							imageLoaded ? 'blur-0 opacity-100 scale-100' : 'blur-sm opacity-0 scale-105'
+						)}
+						onLoad={() => setImageLoaded(true)}
+					/>
+				</div>
+			)}
+
+			{/* Article */}
 			<article className="container mx-auto px-6 pb-16 max-w-4xl">
 				<header className="mb-12">
 					<h1 className="text-5xl lg:text-6xl font-bold text-foreground mb-6 leading-tight">
@@ -94,7 +129,7 @@ export default function BlogArticlePage() {
 						{post.excerpt}
 					</p>
 
-					<div className="flex items-center gap-6 text-muted-foreground border-t border-b border-border py-4">
+					<div className="flex flex-wrap items-center gap-6 text-muted-foreground border-t border-b border-border py-4">
 						<div className="flex items-center gap-2">
 							<User className="size-4" />
 							<span>TenantFlow Team</span>
@@ -112,25 +147,19 @@ export default function BlogArticlePage() {
 									})
 								: ''}
 						</div>
+						{postCategory && (
+							<Link
+								href={`/blog/category/${categorySlug}`}
+								className="text-primary hover:text-primary/80 transition-colors"
+							>
+								{postCategory}
+							</Link>
+						)}
 					</div>
 				</header>
 
-				{/* Article Content */}
-				<div
-					className="prose prose-lg prose-slate dark:prose-invert max-w-none
-						[&>h1]:text-4xl [&>h1]:font-bold [&>h1]:mt-12 [&>h1]:mb-6 [&>h1]:text-foreground
-						[&>h2]:text-3xl [&>h2]:font-bold [&>h2]:mt-10 [&>h2]:mb-5 [&>h2]:text-foreground
-						[&>h3]:text-2xl [&>h3]:font-semibold [&>h3]:mt-8 [&>h3]:mb-4 [&>h3]:text-foreground
-						[&>p]:text-lg [&>p]:text-muted-foreground [&>p]:leading-relaxed [&>p]:mb-6
-						[&>ul]:text-lg [&>ul]:text-muted-foreground [&>ul]:mb-6 [&>ul]:ml-6
-						[&>ol]:text-lg [&>ol]:text-muted-foreground [&>ol]:mb-6 [&>ol]:ml-6
-						[&>li]:mb-2
-						[&>blockquote]:border-l-4 [&>blockquote]:border-primary [&>blockquote]:pl-6 [&>blockquote]:py-4 [&>blockquote]:my-8 [&>blockquote]:italic [&>blockquote]:text-foreground [&>blockquote]:bg-primary/5 [&>blockquote]:rounded-r-lg
-						[&>pre]:bg-muted [&>pre]:p-6 [&>pre]:rounded-lg [&>pre]:overflow-x-auto [&>pre]:my-8
-						[&>code]:bg-muted [&>code]:px-2 [&>code]:py-1 [&>code]:rounded [&>code]:text-sm [&>code]:text-foreground
-						[&>a]:text-primary [&>a]:underline [&>a]:hover:text-primary/80
-						[&>img]:rounded-lg [&>img]:my-8 [&>img]:shadow-lg"
-				>
+				{/* Article Content -- simplified prose */}
+				<div className="prose prose-lg dark:prose-invert max-w-none prose-blockquote:border-primary">
 					<MarkdownContent content={markdownContent} />
 				</div>
 
@@ -149,6 +178,18 @@ export default function BlogArticlePage() {
 						</Link>
 					</Button>
 				</div>
+
+				{/* Related Articles */}
+				{relatedPosts && relatedPosts.length > 0 && (
+					<section className="mt-16">
+						<h2 className="text-2xl font-bold mb-6">Related Articles</h2>
+						<div className="grid md:grid-cols-3 gap-6">
+							{relatedPosts.map(rp => (
+								<BlogCard key={rp.id} post={rp} />
+							))}
+						</div>
+					</section>
+				)}
 			</article>
 		</PageLayout>
 	)

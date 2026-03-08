@@ -1,52 +1,45 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.0
-milestone_name: Production Hardening
-status: complete
-stopped_at: Milestone complete, archived
-last_updated: "2026-03-07T01:30:00Z"
-last_activity: 2026-03-07 -- v1.0 milestone completed and archived
+milestone: none
+milestone_name: none
+status: idle
+stopped_at: v1.1 milestone completed and archived
+last_updated: "2026-03-08"
+last_activity: "2026-03-08 -- v1.1 Blog Redesign & CI milestone completed and archived"
 progress:
-  total_phases: 10
-  completed_phases: 10
-  total_plans: 60
-  completed_plans: 60
-  percent: 100
+  total_phases: 0
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
+  percent: 0
 ---
 
 # Project State: TenantFlow
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-03-07)
+See: .planning/PROJECT.md (updated 2026-03-08)
 
 **Core value:** A landlord can add a property, invite a tenant, collect rent, and see their financials -- without touching a spreadsheet or calling anyone.
-**Current focus:** Planning next milestone
+**Current focus:** No active milestone -- next step is `/gsd:new-milestone`
 
 ## Current Position
 
-Milestone: v1.0 Production Hardening -- COMPLETE
-Status: Shipped 2026-03-07
-Tag: v1.0
+Milestone: None (v1.1 completed 2026-03-08)
+Phase: N/A
+Plan: N/A
+Status: Idle
+Last activity: 2026-03-08 -- v1.1 Blog Redesign & CI milestone completed and archived
 
-Progress: [##########] 100%
+## Shipped Milestones
 
-## Accumulated Context
-
-### Decisions
-
-Archived to .planning/milestones/v1.0-ROADMAP.md
-
-### Pending Todos
-
-None.
-
-### Blockers/Concerns
-
-None -- all v1.0 blockers resolved.
+| Version | Name | Phases | Plans | Shipped |
+|---------|------|--------|-------|---------|
+| v1.0 | Production Hardening | 10 | 60 | 2026-03-07 |
+| v1.1 | Blog Redesign & CI | 5 | 8 | 2026-03-08 |
 
 ## Session Continuity
 
-Last session: 2026-03-07
-Stopped at: v1.0 milestone complete
+Last session: 2026-03-08
+Stopped at: v1.1 milestone completed and archived
 Resume file: None
