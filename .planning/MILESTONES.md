@@ -1,5 +1,33 @@
 # Project Milestones: TenantFlow
 
+## v1.1 Blog Redesign & CI (Shipped: 2026-03-08)
+
+**Delivered:** Transformed MVP blog into a production content-marketing platform with split content zones, pagination, category navigation, working newsletter subscription, and CI workflow optimization.
+
+**Phases completed:** 5 phases, 8 plans
+
+**Key accomplishments:**
+
+- Built blog data layer with paginated queries, `get_blog_categories` RPC, related posts, and `queryOptions()` factory
+- Created reusable blog components (BlogCard, BlogPagination, NewsletterSignup, BlogEmptyState) with unit tests
+- Shipped `newsletter-subscribe` Edge Function using Resend Contacts API with 5 req/min rate limiting and segment auto-creation
+- Rewrote blog pages: hub with split zones (Software Comparisons + Insights & Guides), detail with blur-fade + related posts, category with DB name resolution + pagination
+- Optimized CI workflow: checks gated to PR-only, e2e-smoke runs independently on push, per-job concurrency groups
+
+**Stats:**
+
+- 5 phases, 8 plans, 43 commits
+- 85 files changed, +8,096 / -14,662 lines
+- Timeline: 2 days (2026-03-07 to 2026-03-08)
+- Requirements: 20/20 satisfied (5 BLOG + 3 COMP + 5 PAGE + 3 NEWS + 4 INFRA)
+- Unit tests: 1,319 -> 1,415 (+96 new tests)
+
+**Git tag:** `v1.1`
+
+**Archives:** [v1.1-ROADMAP.md](milestones/v1.1-ROADMAP.md) | [v1.1-REQUIREMENTS.md](milestones/v1.1-REQUIREMENTS.md) | [v1.1-MILESTONE-AUDIT.md](milestones/v1.1-MILESTONE-AUDIT.md)
+
+---
+
 ## v1.0 Production Hardening (Shipped: 2026-03-07)
 
 **Delivered:** Closed all 131 findings from comprehensive 8-agent security/quality review across 10 phases, hardening every layer from database RPCs to Edge Functions to frontend accessibility.
@@ -63,4 +91,4 @@ See: [v3.0-ROADMAP.md](milestones/v3.0-ROADMAP.md)
 
 ---
 
-*Last updated: 2026-03-07*
+*Last updated: 2026-03-08*

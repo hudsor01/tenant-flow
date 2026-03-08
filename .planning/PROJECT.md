@@ -52,16 +52,15 @@ A landlord can add a property, invite a tenant, collect rent, and see their fina
 - v1.0: 1,319 unit tests, 16 RLS integration files, 4 Edge Function test suites, 17 E2E journeys
 - v1.0: CI pipeline with next build, coverage enforcement, gitleaks, RLS on every PR
 
+- v1.1: Blog data layer (paginated queries, get_blog_categories RPC, related posts, comparison posts, queryOptions factory)
+- v1.1: Blog components (BlogCard, BlogPagination, NewsletterSignup, BlogEmptyState with unit tests)
+- v1.1: Newsletter Edge Function (Resend Contacts API, 5 req/min rate limiting, segment auto-creation)
+- v1.1: Blog pages rewritten (hub split zones, detail blur-fade + related posts, category DB names + pagination)
+- v1.1: CI optimization (checks PR-only, e2e-smoke independent on push, per-job concurrency)
+
 ### Active
 
-- [ ] Blog hub redesign with split zones (Software Comparisons vs Insights & Guides)
-- [ ] BlogCard, BlogPagination, NewsletterSignup shared components
-- [ ] Paginated blog queries with real DB categories
-- [ ] get_blog_categories RPC
-- [ ] newsletter-subscribe Edge Function (Resend Audiences API)
-- [ ] Blog detail page with featured images and related posts
-- [ ] Category page with dynamic names and pagination
-- [ ] CI workflow dedup (gate checks to PR-only, e2e-smoke on push independently)
+(None -- next milestone not yet defined)
 
 ### Out of Scope
 
@@ -102,7 +101,8 @@ Frontend (Next.js 16 / Vercel) -> supabase-js -> Supabase PostgREST (RLS enforce
 ### Codebase
 
 - 749 files changed in v1.0 hardening (+54,581 / -16,719 lines)
-- 1,319 unit tests, 16 RLS integration test files, 4 Edge Function test suites, 17 E2E tests
+- 85 files changed in v1.1 blog redesign (+8,096 / -14,662 lines)
+- 1,415 unit tests, 16 RLS integration test files, 5 Edge Function test suites, 17 E2E tests
 - TypeScript strict mode (noUnusedLocals, noUnusedParameters, isolatedModules, checkJs)
 - Zero eslint errors, zero typecheck errors
 
@@ -132,6 +132,9 @@ Frontend (Next.js 16 / Vercel) -> supabase-js -> Supabase PostgREST (RLS enforce
 | CSS-only loading animations | No JS animation libraries, lighter bundle | Good |
 | useVirtualizer directly on tables | More control than wrapper component | Good |
 | Gitleaks in pre-commit only | Catches secrets before they reach repo | Good |
+| Blog queries via anon RLS | Public content, no auth required, simpler cache | Good |
+| Per-job CI concurrency groups | Checks and e2e-smoke run independently | Good |
+| Resend Contacts API (not Audiences) | Audiences deprecated, Contacts is current API | Good |
 
 ---
-*Last updated: 2026-03-07 after v1.1 Blog Redesign & CI milestone started*
+*Last updated: 2026-03-08 after v1.1 Blog Redesign & CI milestone completed*
