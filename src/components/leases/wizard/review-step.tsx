@@ -16,7 +16,7 @@ import {
 	Zap,
 	FileText
 } from 'lucide-react'
-import type { LeaseWizardData } from '#shared/validation/lease-wizard.schemas'
+import type { LeaseWizardData } from '#lib/validation/lease-wizard.schemas'
 
 // Format cents to currency, returning '-' for null/undefined
 const formatCentsOrDash = (cents?: number | null) =>

@@ -16,7 +16,7 @@ import { useCurrentUser } from '#hooks/use-current-user'
 
 import { createLogger } from '#lib/frontend-logger.js'
 import type { Property, PropertyType } from '#types/core'
-import { propertyFormSchema } from '#shared/validation/properties'
+import { propertyFormSchema } from '#lib/validation/properties'
 import { useForm } from '@tanstack/react-form'
 import { useQueryClient } from '@tanstack/react-query'
 import { z } from 'zod'

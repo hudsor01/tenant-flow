@@ -17,7 +17,7 @@ import type { Property } from '#types/core'
 import type {
 	PropertyCreate,
 	PropertyUpdate
-} from '#shared/validation/properties'
+} from '#lib/validation/properties'
 
 import { propertyQueries } from './query-keys/property-keys'
 import { unitQueries } from './query-keys/unit-keys'

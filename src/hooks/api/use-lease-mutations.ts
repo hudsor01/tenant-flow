@@ -12,7 +12,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { logger } from '#lib/frontend-logger.js'
 import type { Lease } from '#types/core'
-import type { LeaseCreate, LeaseUpdate } from '#shared/validation/leases'
+import type { LeaseCreate, LeaseUpdate } from '#lib/validation/leases'
 import { handleMutationError } from '#lib/mutation-error-handler'
 import { handlePostgrestError } from '#lib/postgrest-error-handler'
 import { requireOwnerUserId } from '#lib/require-owner-user-id'

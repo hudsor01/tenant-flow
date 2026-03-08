@@ -40,7 +40,7 @@ import { AlertCircle, Loader2, Mail, UserPlus } from 'lucide-react'
 import { propertyQueries } from '#hooks/api/query-keys/property-keys'
 import { unitQueries } from '#hooks/api/query-keys/unit-keys'
 import { tenantQueries } from '#hooks/api/query-keys/tenant-keys'
-import type { SelectionStepData } from '#shared/validation/lease-wizard.schemas'
+import type { SelectionStepData } from '#lib/validation/lease-wizard.schemas'
 import type {
 	Property as SharedProperty,
 	Unit as SharedUnit

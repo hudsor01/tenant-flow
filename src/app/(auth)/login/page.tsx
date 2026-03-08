@@ -14,7 +14,7 @@ import { getFieldErrorMessage } from '#lib/utils/form'
 import { authKeys } from '#hooks/api/use-auth'
 import { createLogger } from '#lib/frontend-logger.js'
 import { createClient } from '#lib/supabase/client'
-import { loginZodSchema } from '#shared/validation/auth'
+import { loginZodSchema } from '#lib/validation/auth'
 import { useForm } from '@tanstack/react-form'
 import { useQueryClient } from '@tanstack/react-query'
 import {

@@ -17,7 +17,7 @@ import {
 	SelectValue
 } from '#components/ui/select'
 import { AlertTriangle } from 'lucide-react'
-import type { LeaseDetailsStepData } from '#shared/validation/lease-wizard.schemas'
+import type { LeaseDetailsStepData } from '#lib/validation/lease-wizard.schemas'
 
 interface DetailsStepProps {
 	data: Partial<LeaseDetailsStepData>

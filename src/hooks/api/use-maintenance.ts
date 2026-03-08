@@ -17,7 +17,7 @@ import type { PaginatedResponse } from '#types/api-contracts'
 import type {
 	MaintenanceRequestCreate,
 	MaintenanceRequestUpdate
-} from '#shared/validation/maintenance'
+} from '#lib/validation/maintenance'
 
 // Import query keys from separate file to avoid circular dependency
 import { maintenanceQueries, type MaintenanceFilters } from './query-keys/maintenance-keys'

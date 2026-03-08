@@ -9,7 +9,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query'
 import type {
 	CreateInspectionRoomInput,
 	UpdateInspectionRoomInput
-} from '#shared/validation/inspections'
+} from '#lib/validation/inspections'
 
 import { inspectionQueries } from './query-keys/inspection-keys'
 import { createClient } from '#lib/supabase/client'

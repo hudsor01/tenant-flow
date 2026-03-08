@@ -13,7 +13,7 @@ import type {
 	CreateInspectionInput,
 	UpdateInspectionInput,
 	TenantReviewInput
-} from '#shared/validation/inspections'
+} from '#lib/validation/inspections'
 import type { Inspection } from '#types/sections/inspections'
 
 import { inspectionQueries } from './query-keys/inspection-keys'

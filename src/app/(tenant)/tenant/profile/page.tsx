@@ -36,7 +36,7 @@ import {
 } from '#hooks/api/use-emergency-contact'
 import { useCurrentUser } from '#hooks/use-current-user'
 import { handleMutationError } from '#lib/mutation-error-handler'
-import { emailSchema } from '#shared/validation/common'
+import { emailSchema } from '#lib/validation/common'
 import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
 import { PersonalInformationSection } from '#components/profiles/tenant/personal-information-section'

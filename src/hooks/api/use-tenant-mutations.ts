@@ -19,7 +19,7 @@ import { incrementVersion } from '#lib/utils/optimistic-locking.js'
 import type {
 	TenantCreate,
 	TenantUpdate
-} from '#shared/validation/tenants'
+} from '#lib/validation/tenants'
 import type {
 	Tenant,
 	TenantWithLeaseInfo,

@@ -65,4 +65,4 @@ export const signupFormSchema = z
 	})
 
 // NOTE: Contact form validation is in contact.ts (contactFormSchema)
-// Do not duplicate here - import from '#shared/validation/contact' instead
+// Do not duplicate here - import from '#lib/validation/contact' instead

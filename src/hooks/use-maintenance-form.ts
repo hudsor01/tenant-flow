@@ -4,7 +4,7 @@ import type { UseMutationResult } from '@tanstack/react-query'
 import type {
 	MaintenanceRequestCreate,
 	MaintenanceRequestUpdate
-} from '#shared/validation/maintenance'
+} from '#lib/validation/maintenance'
 import type {
 	MaintenanceRequest,
 	MaintenancePriority

@@ -3,9 +3,9 @@
 ## Zero Tolerance Rules
 1. **No `any` types** — use `unknown` with type guards
 2. **No barrel files / re-exports** — never create `index.ts` that re-exports; import directly from the defining file
-3. **No duplicate types** — search `src/shared/types/` before creating any type
+3. **No duplicate types** — search `src/types/` before creating any type
 4. **No commented-out code** — delete it
-5. **No inline styles** — Tailwind utilities or design tokens only
+5. **No inline styles** — Tailwind utilities or `globals.css` custom properties only
 6. **No PostgreSQL ENUMs** — use `text` columns with `CHECK` constraints
 7. **No emojis in code** — Lucide Icons for UI
 8. **No `as unknown as` type assertions** — use typed mapper functions at RPC/PostgREST boundaries
@@ -13,16 +13,17 @@
 10. **No `@radix-ui/react-icons`** — `lucide-react` is the sole icon library
 
 ## Type Lookup Order (mandatory before defining any type)
-1. `src/shared/types/TYPES.md` — master lookup
+1. `src/types/` — browse directory for existing types
 2. `supabase.ts` → `core.ts` → `relations.ts` → `api-contracts.ts` → `sections/<domain>.ts`
 
-If a shared type exists, use it. Creating a local duplicate is a blocking violation.
+If a type exists in `src/types/`, use it. Creating a local duplicate is a blocking violation.
 
 ## Project
 TenantFlow — multi-tenant property management SaaS.
 - **Frontend**: Next.js 16 + React 19 + TailwindCSS 4 + TanStack Query/Form + Zustand (`localhost:3050`)
 - **Backend**: Supabase + Stripe (Edge Functions in `supabase/functions/`)
-- **Shared types**: `src/shared/types/`
+- **Types**: `src/types/`
+- **Validation schemas**: `src/lib/validation/`
 - **Package manager**: pnpm 10 (standard Next.js layout, no workspaces)
 
 ## Key Commands

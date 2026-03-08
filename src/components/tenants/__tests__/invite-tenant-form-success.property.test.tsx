@@ -23,7 +23,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import * as fc from 'fast-check'
 import { toast } from 'sonner'
 import { renderHook, waitFor } from '@testing-library/react'
-import type { InviteTenantRequest } from '#shared/validation/tenants'
+import type { InviteTenantRequest } from '#lib/validation/tenants'
 
 // Mock dependencies
 vi.mock('sonner', () => ({

@@ -44,12 +44,12 @@ import type {
 	TermsStepData,
 	LeaseDetailsStepData,
 	WizardStep
-} from '#shared/validation/lease-wizard.schemas'
+} from '#lib/validation/lease-wizard.schemas'
 import {
 	selectionStepSchema,
 	termsStepSchema,
 	leaseDetailsStepSchema
-} from '#shared/validation/lease-wizard.schemas'
+} from '#lib/validation/lease-wizard.schemas'
 
 const WIZARD_STEPS: {
 	value: WizardStep
