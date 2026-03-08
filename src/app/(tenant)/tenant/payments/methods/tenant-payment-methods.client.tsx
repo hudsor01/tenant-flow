@@ -37,9 +37,10 @@ import { useDataTable } from '#hooks/use-data-table'
 import type { ColumnDef } from '@tanstack/react-table'
 import {
 	useDeletePaymentMethod,
-	usePaymentMethods,
-	useSetDefaultPaymentMethod
+	useSetDefaultPaymentMethod,
+	paymentMethodsQueries
 } from '#hooks/api/use-payment-methods'
+import { useSuspenseQuery } from '@tanstack/react-query'
 import type { PaymentMethodResponse } from '#types/core'
 
 function formatMethodLabel(type: string) {
@@ -147,7 +148,7 @@ function PaymentMethodDisplay({ method }: { method: PaymentMethodResponse }) {
 }
 
 export function TenantPaymentMethods() {
-	const { data: paymentMethods = [], isLoading, isError } = usePaymentMethods()
+	const { data: paymentMethods = [] } = useSuspenseQuery(paymentMethodsQueries.list())
 	const setDefault = useSetDefaultPaymentMethod()
 	const deleteMethod = useDeletePaymentMethod()
 
@@ -296,33 +297,6 @@ export function TenantPaymentMethods() {
 			}
 		}
 	})
-
-	if (isLoading) {
-		return (
-			<div className="animate-pulse text-muted-foreground">
-				Loading payment methods...
-			</div>
-		)
-	}
-
-	if (isError) {
-		return (
-			<Card>
-				<CardHeader>
-					<CardTitle>Your payment methods</CardTitle>
-					<CardDescription>
-						Securely manage saved cards and bank accounts.
-					</CardDescription>
-				</CardHeader>
-				<CardContent>
-					<div className="rounded-lg border border-destructive/30 bg-destructive/10 p-4 text-sm text-destructive">
-						We couldn&rsquo;t load your payment methods. Please try again
-						shortly.
-					</div>
-				</CardContent>
-			</Card>
-		)
-	}
 
 	if (!sortedMethods.length) {
 		return (

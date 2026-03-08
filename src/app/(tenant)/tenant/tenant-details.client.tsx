@@ -29,9 +29,8 @@ import { Calendar, Edit, Mail, Phone } from 'lucide-react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
-import { useQuery } from '@tanstack/react-query'
+import { useSuspenseQuery } from '@tanstack/react-query'
 import { toast } from 'sonner'
-import { TenantSkeleton } from './tenant-skeleton'
 
 interface TenantDetailsProps {
 	id: string
@@ -57,11 +56,7 @@ const validateMoveOutDate = (dateString: string): void => {
 }
 
 export function TenantDetails({ id }: TenantDetailsProps) {
-	const {
-		data: tenant,
-		isLoading,
-		isError
-	} = useQuery(tenantQueries.withLease(id))
+	const { data: tenant } = useSuspenseQuery(tenantQueries.withLease(id))
 	const router = useRouter()
 	const markAsMovedOut = useMarkTenantAsMovedOutMutation()
 
@@ -101,24 +96,6 @@ export function TenantDetails({ id }: TenantDetailsProps) {
 		} catch (error) {
 			handleMutationError(error, 'Mark tenant as moved out')
 		}
-	}
-
-	if (isLoading) {
-		return <TenantSkeleton />
-	}
-
-	if (isError || !tenant) {
-		return (
-			<CardLayout
-				title="Tenant Not Found"
-				description="The tenant you're looking for doesn't exist."
-			>
-				<div className="rounded-lg border-destructive/40 bg-destructive/10 p-6 text-destructive">
-					The tenant you&apos;re looking for doesn&apos;t exist or there was a
-					problem loading the data.
-				</div>
-			</CardLayout>
-		)
 	}
 
 	// Header with Actions

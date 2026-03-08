@@ -1,7 +1,6 @@
 'use client'
 
 import { useState } from 'react'
-import { useRouter } from 'next/navigation'
 import {
 	ArrowLeft,
 	Plus,
@@ -21,8 +20,8 @@ import {
 	SelectTrigger,
 	SelectValue
 } from '#components/ui/select'
-import { Skeleton } from '#components/ui/skeleton'
-import { useInspection } from '#hooks/api/use-inspections'
+import { useSuspenseQuery } from '@tanstack/react-query'
+import { inspectionQueries } from '#hooks/api/query-keys/inspection-keys'
 import {
 	useUpdateInspection,
 	useCompleteInspection,
@@ -170,8 +169,7 @@ function AddRoomForm({ inspectionId, onCancel }: AddRoomFormProps) {
 }
 
 export function InspectionDetailClient({ id }: { id: string }) {
-	const router = useRouter()
-	const { data: inspection, isLoading, error } = useInspection(id)
+	const { data: inspection } = useSuspenseQuery(inspectionQueries.detailQuery(id))
 	const updateInspection = useUpdateInspection(id)
 	const completeInspection = useCompleteInspection(id)
 	const submitForReview = useSubmitForTenantReview(id)
@@ -200,34 +198,6 @@ export function InspectionDetailClient({ id }: { id: string }) {
 				overall_condition: overallCondition || null
 			})
 		}
-	}
-
-	if (isLoading) {
-		return (
-			<div className="space-y-6">
-				<Skeleton className="h-8 w-64" />
-				<Skeleton className="h-48 w-full" />
-				<Skeleton className="h-32 w-full" />
-			</div>
-		)
-	}
-
-	if (error || !inspection) {
-		return (
-			<div className="text-center py-12">
-				<p className="text-sm text-destructive">
-					Failed to load inspection. Please try again.
-				</p>
-				<Button
-					variant="outline"
-					size="sm"
-					onClick={() => router.back()}
-					className="mt-4"
-				>
-					Go Back
-				</Button>
-			</div>
-		)
 	}
 
 	const rooms = inspection.rooms ?? []

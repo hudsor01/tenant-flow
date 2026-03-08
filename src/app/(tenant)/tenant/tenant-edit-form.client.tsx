@@ -13,7 +13,7 @@ import { tenantQueries } from '#hooks/api/query-keys/tenant-keys'
 import { handleMutationError } from '#lib/mutation-error-handler'
 import { tenantUpdateSchema } from '#lib/validation/tenants'
 import { useForm } from '@tanstack/react-form'
-import { useQuery } from '@tanstack/react-query'
+import { useSuspenseQuery } from '@tanstack/react-query'
 import { Phone, Save, User } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import type { ChangeEvent, FormEvent } from 'react'
@@ -25,11 +25,7 @@ export interface TenantEditFormProps {
 }
 
 export function TenantEditForm({ id }: TenantEditFormProps) {
-	const {
-		data: tenant,
-		isLoading,
-		isError
-	} = useQuery(tenantQueries.detail(id))
+	const { data: tenant } = useSuspenseQuery(tenantQueries.detail(id))
 	const router = useRouter()
 	const updateMutation = useUpdateTenantMutation()
 
@@ -90,8 +86,6 @@ export function TenantEditForm({ id }: TenantEditFormProps) {
 		<CardLayout
 			title="Edit Tenant Information"
 			description="Update emergency contact information"
-			isLoading={isLoading}
-			error={isError ? 'Failed to load tenant data' : null}
 			footer={footer}
 		>
 			<form onSubmit={handleSubmit} className="space-y-6">
