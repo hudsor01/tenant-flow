@@ -1,6 +1,6 @@
 'use client'
 
-import { useQuery } from '@tanstack/react-query'
+import { useSuspenseQuery } from '@tanstack/react-query'
 import { analyticsQueries } from '#hooks/api/use-analytics'
 import { Skeleton } from '#components/ui/skeleton'
 import { BlurFade } from '#components/ui/blur-fade'
@@ -165,13 +165,9 @@ function ProfitabilityTable({ leases }: { leases: LeaseFinancialInsight[] }) {
 }
 
 export function LeaseInsightsSection() {
-	const { data, isLoading } = useQuery(analyticsQueries.leasePageData())
+	const { data } = useSuspenseQuery(analyticsQueries.leasePageData())
 
-	if (isLoading) {
-		return <LeaseInsightsSkeleton />
-	}
-
-	const { profitability = [], lifecycle = [], statusBreakdown = [] } = data || {}
+	const { profitability = [], lifecycle = [], statusBreakdown = [] } = data
 
 	return (
 		<div className="space-y-6">

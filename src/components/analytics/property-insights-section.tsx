@@ -1,6 +1,6 @@
 'use client'
 
-import { useQuery } from '@tanstack/react-query'
+import { useSuspenseQuery } from '@tanstack/react-query'
 import { analyticsQueries } from '#hooks/api/use-analytics'
 import { Skeleton } from '#components/ui/skeleton'
 import { BlurFade } from '#components/ui/blur-fade'
@@ -42,13 +42,9 @@ export function PropertyInsightsSkeleton() {
 }
 
 export function PropertyInsightsSection() {
-	const { data, isLoading } = useQuery(analyticsQueries.occupancyPageData())
+	const { data } = useSuspenseQuery(analyticsQueries.occupancyPageData())
 
-	if (isLoading) {
-		return <PropertyInsightsSkeleton />
-	}
-
-	const { trends = [], vacancyAnalysis = [] } = data || {}
+	const { trends = [], vacancyAnalysis = [] } = data
 
 	return (
 		<div className="space-y-6">

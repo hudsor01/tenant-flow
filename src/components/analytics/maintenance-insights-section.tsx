@@ -1,6 +1,6 @@
 'use client'
 
-import { useQuery } from '@tanstack/react-query'
+import { useSuspenseQuery } from '@tanstack/react-query'
 import { analyticsQueries } from '#hooks/api/use-analytics'
 import { Skeleton } from '#components/ui/skeleton'
 import { BlurFade } from '#components/ui/blur-fade'
@@ -115,13 +115,9 @@ function CategoryBreakdownTable({
 }
 
 export function MaintenanceInsightsSection() {
-	const { data, isLoading } = useQuery(analyticsQueries.maintenancePageData())
+	const { data } = useSuspenseQuery(analyticsQueries.maintenancePageData())
 
-	if (isLoading) {
-		return <MaintenanceInsightsSkeleton />
-	}
-
-	const { trends = [], costBreakdown = [], categoryBreakdown = [] } = data || {}
+	const { trends = [], costBreakdown = [], categoryBreakdown = [] } = data
 
 	return (
 		<div className="space-y-6">
