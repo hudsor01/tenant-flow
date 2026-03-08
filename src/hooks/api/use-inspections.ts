@@ -23,13 +23,6 @@ export function useInspections() {
 }
 
 /**
- * Hook to fetch inspections for a specific lease
- */
-export function useInspectionsByLease(leaseId: string) {
-	return useQuery(inspectionQueries.byLeaseQuery(leaseId))
-}
-
-/**
  * Hook to fetch a single inspection with rooms and photos
  */
 export function useInspection(id: string) {

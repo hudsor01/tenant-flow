@@ -30,7 +30,7 @@ interface FormProgressState {
  * React 19 form progress persistence hook
  * Local persistence with automatic progress management
  */
-export function useFormProgress(formType: FormType) {
+function useFormProgress(formType: FormType) {
 	const [state, setState] = useState<FormProgressState>({
 		data: null,
 		isLoading: true,

@@ -47,16 +47,8 @@ export function useBillingHistory() {
 	return useQuery(billingQueries.history())
 }
 
-export function useSubscriptionBillingHistory(subscriptionId: string) {
-	return useQuery(billingQueries.historyBySubscription(subscriptionId))
-}
-
 export function useFailedPaymentAttempts() {
 	return useQuery(billingQueries.failed())
-}
-
-export function useSubscriptionFailedAttempts(subscriptionId: string) {
-	return useQuery(billingQueries.failedBySubscription(subscriptionId))
 }
 
 // ============================================================================
@@ -213,19 +205,3 @@ export function useSubscription(id: string) {
 	})
 }
 
-// ============================================================================
-// COMPUTED HELPERS
-// ============================================================================
-
-export function useActiveSubscriptions(): RentSubscriptionResponse[] {
-	const { data: subscriptions } = useSubscriptions()
-	return subscriptions?.filter(s => s.status === 'active') || []
-}
-
-export function useHasActiveSubscription(lease_id?: string): boolean {
-	const { data: subscriptions } = useSubscriptions()
-	if (!lease_id || !subscriptions) return false
-	return subscriptions.some(
-		s => s.leaseId === lease_id && s.status === 'active'
-	)
-}

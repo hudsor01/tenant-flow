@@ -30,7 +30,6 @@ export {
 	rentCollectionKeys,
 	rentPaymentKeys,
 	paymentVerificationKeys,
-	paymentQueryKeys,
 	rentCollectionQueries,
 	tenantPaymentQueries
 } from './query-keys/payment-keys'

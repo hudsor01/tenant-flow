@@ -7,14 +7,6 @@
  * Split from use-tenant-portal.ts for 300-line compliance
  */
 
-import {
-	useMutation,
-	useQueryClient
-} from '@tanstack/react-query'
-import { createClient } from '#lib/supabase/client'
-import { getCachedUser } from '#lib/supabase/get-cached-user'
-import { logger } from '#lib/frontend-logger.js'
-import { tenantPortalKeys } from './use-tenant-portal-keys'
 import { useTenantLease } from './use-tenant-lease'
 import { useTenantPayments } from './use-tenant-payments'
 import { useTenantMaintenance } from './use-tenant-maintenance'
@@ -63,85 +55,3 @@ export function useTenantPortalDashboard() {
 	}
 }
 
-// ============================================================================
-// PLAN LIMIT ENFORCEMENT (PAY-12)
-// ============================================================================
-
-/**
- * Check if a user has access to create a resource based on plan limits.
- * Frontend guard only -- RLS/RPC is the real enforcement.
- * Fail-open: if the RPC doesn't exist or returns unexpected data, allow the operation.
- */
-export function useCheckPlanAccess() {
-	return useMutation({
-		mutationKey: ['mutations', 'planAccess', 'check'] as const,
-		mutationFn: async (params: { feature: string }): Promise<{ allowed: boolean }> => {
-			const supabase = createClient()
-			const user = await getCachedUser()
-			if (!user) throw new Error('Not authenticated')
-
-			try {
-				const { data, error } = await supabase.rpc('check_user_feature_access', {
-					p_user_id: user.id,
-					p_feature: params.feature
-				})
-
-				if (error) {
-					logger.warn('check_user_feature_access RPC failed, allowing operation', {
-						action: 'plan_limit_check',
-						metadata: { feature: params.feature, error: error.message }
-					})
-					return { allowed: true }
-				}
-
-				return { allowed: data as boolean }
-			} catch {
-				logger.warn('Plan limit check failed unexpectedly, allowing operation', {
-					action: 'plan_limit_check',
-					metadata: { feature: params.feature }
-				})
-				return { allowed: true }
-			}
-		}
-	})
-}
-
-// ============================================================================
-// CACHE UTILITIES
-// ============================================================================
-
-/**
- * Invalidate specific tenant portal sections
- */
-export function useTenantPortalCacheUtils() {
-	const queryClient = useQueryClient()
-
-	return {
-		invalidatePayments: () => {
-			queryClient.invalidateQueries({
-				queryKey: tenantPortalKeys.payments.all()
-			})
-		},
-		invalidateAutopay: () => {
-			queryClient.invalidateQueries({
-				queryKey: tenantPortalKeys.autopay.all()
-			})
-		},
-		invalidateMaintenance: () => {
-			queryClient.invalidateQueries({
-				queryKey: tenantPortalKeys.maintenance.all()
-			})
-		},
-		invalidateLeases: () => {
-			queryClient.invalidateQueries({ queryKey: tenantPortalKeys.leases.all() })
-		},
-		invalidateSettings: () => {
-			queryClient.invalidateQueries({
-				queryKey: tenantPortalKeys.settings.all()
-			})
-		},
-		invalidateAll: () => {
-			queryClient.invalidateQueries({ queryKey: tenantPortalKeys.all })
-		}
-	}
-}

@@ -5,7 +5,7 @@
  * Derived hooks in use-dashboard-hooks.ts.
  */
 
-import { queryOptions, useQuery } from '@tanstack/react-query'
+import { queryOptions } from '@tanstack/react-query'
 import { createClient } from '#lib/supabase/client'
 import { getCachedUser } from '#lib/supabase/get-cached-user'
 import { handlePostgrestError } from '#lib/postgrest-error-handler'
@@ -232,6 +232,3 @@ export const DASHBOARD_BASE_QUERY_OPTIONS = {
 	structuralSharing: true
 } as const
 
-export function useOwnerDashboardData() {
-	return useQuery<OwnerDashboardData>(DASHBOARD_BASE_QUERY_OPTIONS)
-}

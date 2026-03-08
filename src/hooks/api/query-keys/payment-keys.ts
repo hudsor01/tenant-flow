@@ -230,5 +230,3 @@ export const tenantPaymentQueries = {
 		})
 }
 
-// Legacy key exports for backwards compatibility
-export const paymentQueryKeys = paymentVerificationKeys

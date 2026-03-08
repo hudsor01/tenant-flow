@@ -12,8 +12,6 @@ import { usePrefetchQuery, useQuery, useQueryClient } from '@tanstack/react-quer
 import type { Lease } from '#types/core'
 import { handlePostgrestError } from '#lib/postgrest-error-handler'
 import { createClient } from '#lib/supabase/client'
-import { maintenanceQueries } from './query-keys/maintenance-keys'
-
 // Import query keys from separate file to avoid circular dependency
 import { leaseQueries } from './query-keys/lease-keys'
 
@@ -52,14 +50,6 @@ export function useLease(id: string) {
  */
 export function useCurrentLease() {
 	return useQuery(leaseQueries.tenantPortalActive())
-}
-
-/**
- * Hook to fetch maintenance requests for the current tenant's lease
- * Filters maintenance requests by the tenant's unit from their active lease
- */
-export function useTenantMaintenanceRequests() {
-	return useQuery(maintenanceQueries.tenantPortal())
 }
 
 /**

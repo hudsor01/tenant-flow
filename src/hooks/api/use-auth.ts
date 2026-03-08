@@ -59,8 +59,6 @@ export const authKeys = {
 	}
 }
 
-export const supabaseAuthKeys = authKeys.supabase
-
 // ============================================================================
 // QUERY OPTIONS (for direct use in pages with useQueries/prefetch)
 // ============================================================================
