@@ -1,189 +1,207 @@
 # Project Research Summary
 
-**Project:** TenantFlow v1.1 -- Blog Redesign + Newsletter + CI Optimization
-**Domain:** Content marketing infrastructure for existing property management SaaS
-**Researched:** 2026-03-06
+**Project:** TenantFlow v1.2 Production Polish & Code Consolidation
+**Domain:** Code consolidation, hook/component audit, and design system enforcement for production SaaS
+**Researched:** 2026-03-08
 **Confidence:** HIGH
 
 ## Executive Summary
 
-This milestone transforms an MVP blog (3 pages, flat queries, dummy forms) into a production content-marketing platform with split content zones, pagination, category navigation, a working newsletter subscription, and CI workflow optimization. The critical finding is that **zero new npm dependencies are needed** -- every library is already installed and current. The work is purely additive: new components in `src/components/blog/`, a rewritten data layer in `use-blogs.ts` with a new `queryOptions()` factory in `query-keys/blog-keys.ts`, one SQL migration for a categories RPC, one new Edge Function for newsletter subscription, and a CI YAML restructure. Total estimated effort is 8-10 hours.
+TenantFlow v1.2 is a pure consolidation milestone. No new features, no new runtime dependencies, no architecture changes. The codebase has grown to 450+ component files, 85 API hooks, and 25 shared type files across 10 development phases and two milestones (v1.0, v1.1). The result is the expected accumulation of dead code, oversized files (20+ exceeding the 300-line project rule), inconsistent design system usage, and organizational debt in the hooks layer. Research confirms the recommended approach: bottom-up cleanup (shared types first, hooks second, components third), followed by design system enforcement, capped by a full-app visual audit.
 
-The recommended approach follows a strict dependency chain: data layer first (hooks + RPC + type regeneration), then shared components (BlogCard, BlogPagination, NewsletterSignup), then page rewrites (hub, detail, category), with CI optimization as an independent parallel track. The architecture is well-understood because it extends existing codebase patterns -- Supabase PostgREST pagination, nuqs URL state, TanStack Query factories, rate-limited Edge Functions -- rather than introducing anything novel. All 14 integration points were verified against the live codebase and none require modifications to existing code.
+The stack requires one new dev dependency (`babel-plugin-react-compiler`) and zero runtime changes. The primary code-level improvements are adopting `mutationOptions()` factories to match the established `queryOptions()` pattern (54 mutation hooks), enabling the React Compiler to eliminate 353 manual `useMemo`/`useCallback` calls, and running a dead code sweep with Knip. The design system already exists in `globals.css` (1,702 lines of CSS custom properties and semantic utilities) but is inconsistently applied -- components use raw Tailwind utilities where semantic utilities are defined. A parallel `design-system.ts` (548 lines) duplicates tokens for OG images and emails. The reconciliation is straightforward: `globals.css` is the source of truth, `design-system.ts` is reduced to non-CSS contexts only.
 
-The primary risks are: (1) the Resend Audiences API has been deprecated in favor of a new Contacts + Segments model, requiring an endpoint update from `POST /audiences/{id}/contacts` to `POST /contacts`; (2) category slug-to-name conversion breaks on acronyms (ROI, SaaS, HVAC) unless resolved via RPC lookup instead of naive deslugification; and (3) the plan's query key pattern violates the project's `queryOptions()` factory convention that all 12 other domains follow. All three are preventable with the mitigations documented below.
+The primary risks are in the hooks layer, not the UI. Moving `ownerDashboardKeys` (imported by 8 hook files with 22 cache invalidation call sites) or merging the tenant portal key file (which exists specifically to prevent circular dependencies among 6 files) can break runtime behavior without any test failure -- cache invalidation is not covered by unit tests. Every hook rename also risks breaking 27 test files that use hardcoded `vi.mock()` path strings. The mitigation is consistent: grep before renaming, update all consumers in the same commit, verify with `pnpm test:unit` before staging.
 
 ## Key Findings
 
 ### Recommended Stack
 
-No new packages. Every dependency is already installed at a current version. The milestone uses Next.js 16.1.6, React 19, TailwindCSS 4.2.1, TanStack Query 5.90.21, nuqs 2.8.8, and react-markdown 10.1.0 -- all unchanged. The sole external integration is the Resend Contacts API, authenticated via the existing `RESEND_API_KEY` secret.
+No framework or library changes. The codebase is already on Next.js 16.1.6, React 19.2.4, TailwindCSS 4.2.1, and TanStack Query 5.90.21 -- all current. The work is about using existing APIs that the codebase has not yet adopted.
 
-**Core technologies (all pre-installed):**
-- `nuqs` 2.8.8: URL-driven pagination state (`?page=N`) -- already used in data tables with identical `parseAsInteger.withDefault(1)` pattern
-- `react-markdown` 10.1.0 + rehype/remark plugins: Blog content rendering -- already dynamically imported in the existing detail page
-- `@tailwindcss/typography` 0.5.19: Prose styling for blog content -- installed as devDep but missing `@plugin` directive in `globals.css` (must be added)
-- `BlurFade` component: CSS-only staggered animations -- exists at `src/components/ui/blur-fade.tsx`, no animation library needed
-- `LazySection` / `SectionSkeleton`: Intersection-based lazy loading -- exist and are used on landing pages
+**Core changes:**
 
-**One setup requirement:** Add `@plugin "@tailwindcss/typography"` to `globals.css`. Without it, `prose` classes are no-ops in Tailwind 4. Also add a `@utility scrollbar-hide` (3 lines of CSS) for the comparisons carousel.
+- `babel-plugin-react-compiler` (new dev dep): Enables React Compiler in Next.js 16, auto-memoizes components, allows progressive removal of 353 manual `useMemo`/`useCallback` calls across 90 files
+- `mutationOptions()` (already available in TQ 5.90.21): Factory pattern for mutations to mirror the `queryOptions()` pattern already used for all 15 query-key files -- applies to 54 mutation hooks
+- `useSuspenseQuery` expansion (already available): Currently used in 5 dashboard calls only, can expand to any component inside a Suspense boundary for typed `data: T` (never undefined)
+- Knip (new dev dep): Dead code detection for unused exports, orphaned files, and stale dependencies -- drives the cleanup phase
+
+**Explicitly not adopted:** RSC prefetching (architecture change too large), Storybook (setup cost unjustified for one-time audit), `use cache` directive (experimental, not relevant), TanStack Router (already on Next.js App Router), Zod schema sharing between client and Deno Edge Functions (runtime mismatch not worth bridging).
 
 ### Expected Features
 
 **Must have (table stakes):**
-- Paginated post lists with URL state via nuqs -- current blog hard-caps at 20 rows with no pagination UI
-- Featured images on cards and detail pages -- `featured_image` column exists in schema but is unused
-- Dynamic categories from DB via `get_blog_categories` RPC -- current hub hardcodes 4 fake categories with fake counts
-- Category pages with real data and pagination -- current page uses a brittle `categoryConfig` map that breaks for any new category
-- Loading skeletons and empty states -- extend existing animation patterns
-- Working back navigation -- already exists, preserve it
+
+- Dead code detection and removal (highest ROI single activity)
+- Hook deduplication audit (53 API hooks, likely overlaps)
+- Oversized file remediation (20+ files exceeding 300-line rule)
+- Design token consolidation (two conflicting sources of truth)
+- Shared type cleanup (verify TYPES.md, remove unused exports)
+- Consistent loading/error states across all 6 page groups
+- Status badge normalization across 5 status domains
+- Cross-page UI consistency audit (6 page groups built across 10 phases)
+- Unused dependency removal
+- Query key factory completeness check
 
 **Should have (differentiators):**
-- Split hub with content zones: "Software Comparisons" (horizontal scroll, bottom-of-funnel) separated from "Insights & Guides" (paginated grid, educational)
-- Category filter pills on the hub linking to `/blog/category/[slug]`
-- Related posts (3 same-category articles) on the detail page for engagement
-- Functional newsletter signup via Resend Contacts API (replacing dead form that currently does nothing)
-- BlurFade animations and LazySection for below-fold content deferral
-- CI workflow deduplication saving ~20 min of runner time per merge
-- CTA on detail page linking to `/pricing` instead of `/login` (correct conversion path for blog readers)
 
-**Defer (v2+):**
-- Full-text blog search (insufficient content volume, under 100 posts)
-- RSS feed (negligible traffic driver for a SaaS blog)
-- SSR/ISR for blog pages (future SEO-focused milestone)
-- Blog admin CMS (manage via Supabase Dashboard directly)
-- Custom newsletter email templates (establish content cadence first)
-- Tag-based filtering (categories are sufficient at current scale)
-- Newsletter double opt-in (single opt-in is standard for product newsletters)
+- Knip CI integration (prevents future dead code accumulation permanently)
+- Mutation invalidation audit (stale dashboard counters from missing invalidation)
+- `design-system.ts` scope reduction (eliminate dual source of truth)
+- Accessibility regression check on v1.1 blog additions
+- Button/CTA consistency pass across marketing, dashboard, and auth pages
+
+**Defer (future milestones):**
+
+- Full typography normalization (350+ file surface area -- better done incrementally)
+- Full mobile responsiveness audit (merits its own focused milestone)
+- Dark mode implementation (requires reviewing every color usage)
+- Storybook / visual regression CI
+- MSW component test layer
+- Test data factories
 
 ### Architecture Approach
 
-The redesign adds three layers: (1) a `src/components/blog/` directory with BlogCard, BlogPagination, and NewsletterSignup; (2) a rewritten `use-blogs.ts` with paginated queries backed by a `blog-keys.ts` factory file in `src/hooks/api/query-keys/`; and (3) a `newsletter-subscribe` Edge Function following the existing unauthenticated/rate-limited pattern identical to `tenant-invitation-validate`. No existing shared utilities, middleware, RLS policies, or Deno imports need modification.
+The architecture does not change. This is a refactoring milestone operating within the existing component boundary model. The dependency direction is clear: shared types at the bottom, hooks in the middle, components at the top. Cleanup must proceed bottom-up to avoid double-rework.
 
-**Major components:**
-1. `blog-keys.ts` (queryOptions factory) -- All blog query keys and functions, matching the `property-keys.ts` pattern used by every other domain
-2. `use-blogs.ts` (thin hook layer) -- `useBlogs(page)`, `useBlogBySlug(slug)`, `useBlogsByCategory(name, page)`, `useFeaturedComparisons(limit)`, `useRelatedPosts(category, slug)`, `useCategories()`
-3. `BlogCard` -- Shared presentational component (image, title, excerpt, metadata) used across all three pages
-4. `BlogPagination` -- URL-driven page controls via nuqs with `clearOnDefault: true`
-5. `NewsletterSignup` -- Client component with TanStack Query mutation calling the newsletter Edge Function
-6. `newsletter-subscribe` Edge Function -- Unauthenticated, rate-limited (5 req/min), uses Resend Contacts API
-7. `get_blog_categories` RPC -- SECURITY INVOKER, SQL language, STABLE, returns `{category, count}[]`
+**Major layers being consolidated:**
 
-**Integration points verified as requiring NO changes:**
-- `proxy.ts`: `/blog` already in PUBLIC_ROUTES (all sub-routes covered)
-- `NuqsAdapter`: already in provider tree at `src/components/providers.tsx`
-- RLS: `blogs_select_published` policy covers all new queries (anon + authenticated)
-- Deno import map: `@sentry/deno`, `@upstash/ratelimit`, `@upstash/redis` all present
-- Edge Function `_shared/` utilities: consumed, not modified
-- `PageLayout`: all blog pages already wrapped, no changes needed
+1. `src/shared/` (50 files) -- types, validation, constants, utils. Foundation layer, cleaned first. TYPES.md must be updated.
+2. `src/hooks/api/` (85 files) -- 15 query-key factories (all `queryOptions()`), 1 mutation-keys file (key-only, upgrade to `mutationOptions()`), 40+ domain hooks. Cleaned second.
+3. `src/components/` (450 files across 69 dirs) -- 85 shadcn/ui primitives, 6 shared components, 60+ domain component directories. Cleaned third.
+4. Design system (`globals.css` + `design-system.ts`) -- enforced after structural cleanup is complete.
+
+**Key patterns to preserve (not refactor):**
+
+- `queryOptions()` factory pattern in all 15 key files
+- Tenant portal key separation (`use-tenant-portal-keys.ts` exists to prevent circular deps among 6 files)
+- `ownerDashboardKeys` cross-domain invalidation graph (8 hook files, 22 call sites)
+- Domain-based component directory structure
+- `.client.tsx` suffix convention for client components (26 files)
+- Vendored `tour.tsx` (1,732 lines, exempt from 300-line rule)
 
 ### Critical Pitfalls
 
-1. **Query keys must use `queryOptions()` factories** -- The plan copies the old raw `blogKeys` object pattern. All 12 other domains use factories in `src/hooks/api/query-keys/`. Create `blog-keys.ts` with the standard pattern; hooks become one-liners like `useQuery(blogQueries.list(page))`. Address in the data layer task before any pages are written.
+1. **Hook renames break vi.mock() paths in 27 test files** -- mock path strings are untyped; a single rename can cascade-fail 5-10 test files with cryptic "Cannot read properties of undefined" errors. Prevention: grep for all mock paths before renaming, update in the same commit, run full test suite before staging.
 
-2. **Pagination needs `placeholderData: keepPreviousData`** -- Without it, page transitions flash empty (skeleton shimmer) while new data loads. The project already uses this in 6 other hooks. Add `keepPreviousData` to all paginated blog queries and use `isPlaceholderData` for opacity-reduced loading state instead of full skeleton replacement.
+2. **Moving ownerDashboardKeys breaks cache invalidation silently** -- 8 hook files import this for cross-domain invalidation. No test covers this behavior. A stale dashboard after mutations is invisible to automated tests. Prevention: if moving to a query-keys file, keep a re-export in the original file for backward compatibility. Manual test: create entity, verify dashboard updates.
 
-3. **Category slug roundtrip breaks on acronyms** -- `slugify("ROI Maximization")` produces `"roi-maximization"` but `deslugify("roi-maximization")` produces `"Roi Maximization"`, which does not match the DB value. Fix: on the category page, call `useCategories()` and match by slug to get the actual DB name instead of naive deslugification.
+3. **Tenant portal key merge reintroduces circular dependency** -- 6 files form a deliberate acyclic dependency tree. Merging `use-tenant-portal-keys.ts` back into `use-tenant-dashboard.ts` causes "cannot access before initialization" build crashes. Prevention: mark as "intentionally separate -- do not merge" in audit.
 
-4. **Resend API endpoint has changed** -- `POST /audiences/{id}/contacts` is deprecated (November 2025). Use `POST https://api.resend.com/contacts` with optional `segments` array. Rename env var from `RESEND_AUDIENCE_ID` to `RESEND_NEWSLETTER_SEGMENT_ID`. Old endpoint still works but will be removed.
+4. **CVA variant changes cascade through 19 components and 50 test files** -- button.tsx alone has 7 custom variants and 5 custom sizes. Removing or renaming variants triggers test failures and visual regressions. Prevention: inventory all variant consumers before modifying, never remove a variant with non-zero usages.
 
-5. **Type regeneration is a hard gate** -- After the `get_blog_categories` migration, `pnpm db:types` must run before any hook calling the RPC will typecheck. Commit the migration and regenerated `supabase.ts` together. Do not proceed to component tasks until `pnpm typecheck` passes clean.
+5. **Shared type removal breaks Edge Functions** -- `pnpm typecheck` only covers the Next.js project, not the Deno Edge Functions. A type that appears "unused" in `src/` may be imported by `supabase/functions/`. Prevention: grep both `src/` and `supabase/` before removing any type export.
 
 ## Implications for Roadmap
 
-Based on research, the milestone decomposes into 5 phases following a strict dependency chain.
+Based on research, the milestone should have 5 phases following the dependency chain identified in ARCHITECTURE.md. The ordering is driven by the bottom-up dependency direction (shared -> hooks -> components -> design system -> visual audit) and the risk analysis from PITFALLS.md.
 
-### Phase 1: Data Layer Foundation
-**Rationale:** All UI components and pages depend on hooks and types. The RPC migration must be applied and types regenerated before anything downstream compiles.
-**Delivers:** `blog-keys.ts` queryOptions factory, rewritten `use-blogs.ts` with all 6 hooks, `get_blog_categories` SQL migration, regenerated `supabase.ts`
-**Addresses:** Paginated post lists (table stakes), dynamic categories (table stakes), all hook dependencies for downstream phases
-**Avoids:** Pitfall 1 (query key convention -- use factories from day one), Pitfall 2 (keepPreviousData -- wire into factory), Pitfall 4 (type regeneration -- commit migration + types together)
+### Phase 1: Automated Cleanup & Shared Foundation
 
-### Phase 2: Shared Components
-**Rationale:** BlogCard, BlogPagination, and NewsletterSignup are consumed by all three page rewrites. Building them as isolated components before page integration ensures clean composition.
-**Delivers:** `src/components/blog/blog-card.tsx`, `src/components/blog/blog-pagination.tsx`, `src/components/blog/newsletter-signup.tsx`, CSS utilities (`scrollbar-hide`, `@plugin typography`)
-**Addresses:** Featured images on cards (table stakes), URL pagination controls (table stakes), newsletter capture UI (differentiator)
-**Avoids:** Pitfall 7 (nuqs clearOnDefault -- configure in BlogPagination), Pitfall 10 (BlurFade delay capping on card grids)
+**Rationale:** Everything depends on `src/shared/`. Dead code removal via Knip must happen first because it provides a clean baseline for all subsequent audits. Shared type cleanup must precede hook cleanup because hooks import from shared types -- you need to know which types are alive before judging which hooks are dead.
+**Delivers:** Clean shared directory, dead code removed, unused dependencies eliminated, TYPES.md updated, `design-system.ts` scoped to non-CSS contexts only.
+**Addresses:** Dead code detection, unused dependency removal, shared type cleanup, `design-system.ts` scope reduction, query key completeness check.
+**Avoids:** Pitfall 9 (shared type removal breaking Edge Functions -- grep both `src/` and `supabase/`), Pitfall 12 (removing future-extensible queryOptions exports -- conservative removal policy).
 
-### Phase 3: Newsletter Edge Function
-**Rationale:** The Edge Function must be deployed and secrets configured before NewsletterSignup works in production. It is independent of UI components but must be operational before page rewrites integrate the signup form.
-**Delivers:** `supabase/functions/newsletter-subscribe/index.ts` deployed with Resend Contacts API, rate limiting, CORS, error handling
-**Addresses:** Functional newsletter signup (differentiator)
-**Avoids:** Pitfall 4 (Resend endpoint change -- use `POST /contacts`), Pitfall 5 (secrets not deployed -- verify before testing), Pitfall 6 (duplicate contact handling -- treat duplicates as success)
+### Phase 2: Hook Consolidation
 
-### Phase 4: Page Rewrites
-**Rationale:** All dependencies (hooks, components, Edge Function) are in place. Pages are the composition layer. Build in order of complexity: hub (most complex, two zones), detail (adds related posts + featured image), category (simplest, dynamic name + pagination).
-**Delivers:** Fully rewritten `/blog` hub with split zones and category pills, `/blog/[slug]` detail with featured image + related posts + fixed CTA, `/blog/category/[category]` with dynamic naming and pagination
-**Addresses:** Split content hub (differentiator), related posts (differentiator), category navigation (table stakes), CTA to /pricing (differentiator)
-**Avoids:** Pitfall 3 (category slug roundtrip -- use RPC lookup on category page), Pitfall 10 (BlurFade cascade -- cap delay at 6 items)
+**Rationale:** Hooks sit between shared types and components in the dependency tree. They must be cleaned after shared is stable but before components, because component refactoring may require hook API changes. This is the highest-risk phase due to the ownerDashboardKeys and tenantPortalKeys pitfalls.
+**Delivers:** Deduplicated hooks, oversized hooks split (`use-tenant-mutations.ts` at 314 lines), dead hooks removed, `mutationOptions()` factories created alongside existing `queryOptions()` factories, mutation invalidation audit complete.
+**Addresses:** Hook deduplication, oversized file remediation (hooks), mutation invalidation audit, `mutationOptions()` adoption.
+**Avoids:** Pitfall 1 (vi.mock paths -- grep before rename), Pitfall 2 (ownerDashboardKeys -- extract with re-export), Pitfall 3 (tenantPortalKeys -- do not merge), Pitfall 6 (key structure changes -- keep key arrays identical), Pitfall 7 (backward-compat re-exports -- verify consumers before removing).
 
-### Phase 5: CI Optimization
-**Rationale:** Completely independent of all blog work. Can be done in parallel with any phase. Low risk, saves ~20 min runner time per merge.
-**Delivers:** Deduplicated CI workflow -- checks on PR events only, e2e-smoke independent on push-to-main events
-**Addresses:** CI deduplication (differentiator)
-**Avoids:** Pitfall 8 (unprotected main -- either keep both triggers with `concurrency.cancel-in-progress: true`, or verify branch protection rules require checks status before merge)
+### Phase 3: Component Consolidation & React Compiler
+
+**Rationale:** Components are at the top of the dependency tree. Clean them after hooks are stable. React Compiler enablement belongs here because it directly reduces component boilerplate (353 `useMemo`/`useCallback` calls). Splitting oversized components is the main structural work.
+**Delivers:** 20+ oversized components split to under 300 lines, dead components removed, React Compiler enabled, manual memoization progressively removed, shared component patterns extracted (status badges, loading states).
+**Addresses:** Oversized file remediation (components), consistent loading/error states, status badge normalization, React Compiler adoption.
+**Avoids:** Pitfall 4 (CVA variant changes -- inventory consumers first), Pitfall 10 (import path changes -- batch renames, IDE refactoring), Pitfall 13 (tour.tsx -- mark as VENDORED, do not split).
+
+### Phase 4: Design System Enforcement
+
+**Rationale:** CSS class changes are cosmetic and must happen after structural work. Modifying classes on files that are about to be split or deleted is wasted effort. This phase converts raw Tailwind utilities to semantic design system utilities across all 6 page groups.
+**Delivers:** Consistent typography, spacing, card styles, and button variants across marketing, auth, blog, owner dashboard, tenant portal, and billing pages. `globals.css` tokens enforced as the single source of truth.
+**Addresses:** Design token consolidation, button/CTA consistency, cross-page UI consistency.
+**Avoids:** Pitfall 5 (globals.css cascading changes -- test at 375px/768px/1440px), Pitfall 8 (mobile responsive breakage -- check every change at mobile viewport), Pitfall 11 (design-system.ts divergence -- verify hex values match after any color change).
+
+### Phase 5: Full-App Visual Audit & Regression Lock-In
+
+**Rationale:** The visual audit is the quality gate. It must run after all structural and CSS changes are in place. Knip CI integration locks in the dead code prevention permanently. Accessibility regression check validates that v1.1 blog additions follow established patterns.
+**Delivers:** Visual verification of all user-facing pages, Knip integrated into CI to prevent future dead code accumulation, accessibility regressions caught and fixed.
+**Addresses:** Cross-page UI consistency audit, Knip CI integration, accessibility regression check, mobile responsiveness spot check.
+**Avoids:** Pitfall 8 (mobile layout breakage -- systematic viewport testing catches issues the prior phase may have introduced).
 
 ### Phase Ordering Rationale
 
-- Phase 1 before all else: hooks and types are imported by every subsequent file. Nothing compiles without them.
-- Phase 2 before Phase 4: page components import BlogCard, BlogPagination, NewsletterSignup. Build errors if components do not exist.
-- Phase 3 before Phase 4: Edge Function must be deployed for newsletter to work in production. The component itself can be built in Phase 2 and tested with mock responses.
-- Phase 4 pages in order hub/detail/category: hub is most complex and exercises all components; if any component has issues, they surface here first.
-- Phase 5 is independent: can run as a parallel PR at any time. Logically groups as a final cleanup.
+- **Bottom-up dependency direction** is mandatory: shared -> hooks -> components. Cleaning in the wrong order means double-rework when upstream changes cascade down.
+- **Structural before cosmetic**: splitting files and removing dead code before applying CSS changes avoids wasted effort on files that will be deleted or restructured.
+- **Highest-risk phase (hooks) runs second**, not first, because it benefits from a clean shared layer as input. But it runs before components because components depend on hook APIs.
+- **Visual audit is last** because it validates the cumulative result of all prior phases.
+- **Knip CI integration is last** because it depends on Knip being fully configured and tested during Phase 1.
 
 ### Research Flags
 
-**Phases needing attention during implementation (not deeper research -- patterns are known):**
-- **Phase 1:** The `queryOptions()` factory pattern MUST be followed, not the plan's raw `blogKeys` approach. This is a convention enforcement issue, not a technical uncertainty.
-- **Phase 3:** Verify Resend Contacts API behavior for duplicate emails (send same email twice, observe response code). Handle 409 or equivalent as success. Also verify `RESEND_NEWSLETTER_SEGMENT_ID` setup in Resend dashboard before deploy.
-- **Phase 4 (category page):** Test slug roundtrip with acronym categories (ROI, SaaS). Validate that `useCategories()` lookup approach resolves the mismatch.
-- **Phase 5:** Check GitHub branch protection settings before modifying CI triggers. If protection is not enforced, keep both triggers with concurrency cancellation.
+Phases likely needing deeper research during planning:
 
-**Phases with well-documented, established patterns (no additional research needed):**
-- **Phase 1 (Data Layer):** PostgREST pagination with `.range()` + `{ count: 'exact' }`, nuqs `parseAsInteger`, queryOptions factories -- all patterns used across 12+ domains
-- **Phase 2 (Components):** Presentational components consuming design system tokens, `next/image` with `fill` -- straightforward composition of existing patterns
-- **Phase 5 (CI):** GitHub Actions event conditionals -- one `if` condition change, well-documented
+- **Phase 2 (Hook Consolidation):** The ownerDashboardKeys dependency graph (8 files, 22 invalidation calls) and tenantPortalKeys circular dependency prevention need careful mapping before any plan is written. The `mutationOptions()` adoption pattern needs per-domain decisions about what goes in the factory vs what stays in the hook. Recommend `/gsd:research-phase`.
+- **Phase 4 (Design System Enforcement):** The reconciliation between `globals.css` (oklch colors, clamp typography) and `design-system.ts` (hex colors, fixed pixel sizes) needs a concrete mapping. Research should audit which components actually import from `design-system.ts` to determine the reduction scope. Recommend `/gsd:research-phase`.
+
+Phases with standard patterns (skip research):
+
+- **Phase 1 (Automated Cleanup):** Knip setup is well-documented, shared type audit is a grep exercise. Standard patterns.
+- **Phase 3 (Component Consolidation):** Component splitting follows established patterns from v1.0. React Compiler enablement is a single config change with documented Next.js 16 support.
+- **Phase 5 (Visual Audit):** Browser-driven verification, no technical unknowns.
 
 ## Confidence Assessment
 
 | Area | Confidence | Notes |
 |------|------------|-------|
-| Stack | HIGH | Zero new dependencies. All versions verified against `package.json` and `deno.json`. Resend API change confirmed via official docs and migration guide. |
-| Features | HIGH | Feature landscape well-mapped with clear table stakes / differentiator / anti-feature boundaries. Complexity assessment: 8-10 hours total, only newsletter Edge Function at medium risk. |
-| Architecture | HIGH | All 14 integration points verified against live codebase. No changes to proxy, PageLayout, NuqsAdapter, RLS, Deno imports, or shared Edge Function utilities. Data flow diagrams match existing patterns exactly. |
-| Pitfalls | HIGH | 12 pitfalls identified across critical/moderate/minor tiers. All have prevention strategies with LOW recovery cost. Top 5 critical pitfalls are directly actionable during implementation with specific detection methods documented. |
+| Stack | HIGH | Zero new runtime deps. React Compiler stable in Next.js 16. TQ v5 APIs verified in installed version (5.90.21). |
+| Features | HIGH | Feature list derived from direct codebase metrics (file counts, line counts, rule violations). No speculative features. |
+| Architecture | HIGH | All integration points verified against live codebase. Dependency direction confirmed by actual import graph analysis. |
+| Pitfalls | HIGH | 27 test mock files counted. 22 invalidation sites mapped. Dual design system verified. All sourced from codebase analysis. |
 
 **Overall confidence:** HIGH
 
 ### Gaps to Address
 
-- **Resend duplicate contact behavior:** Not explicitly documented in Resend API reference. Must test empirically during Phase 3 by sending the same email twice and observing the response. Regardless of API behavior, always return success to the frontend for duplicate submissions.
-- **`@tailwindcss/typography` plugin activation:** Package is installed (0.5.19) but `@plugin "@tailwindcss/typography"` directive is missing from `globals.css`. Must be added before `prose` classes render correctly in Tailwind 4. Trivial fix but will cause invisible styling failures if missed.
-- **`scrollbar-hide` utility:** Referenced in plan for comparisons carousel but does not exist in `globals.css`. Add as a 3-line `@utility` block.
-- **`text-responsive-display-xl` utility:** Referenced in plan but does not exist. Use existing `text-responsive-display-lg` or `typography-hero` instead.
-- **EmptyState shared component:** CLAUDE.md documents `EmptyState` from `#components/shared/empty-state` but the file does not exist on the filesystem. The plan imports it in the category page. Resolution needed before Phase 4: either create the shared component or inline the empty state. Recommend creating it since the convention is already documented and other domains could benefit.
+- **Knip configuration scope:** STACK.md deferred Knip but FEATURES.md correctly identifies it as the primary dead code detection tool. The configuration (entry points, plugins, dynamic import handling) needs to be resolved during Phase 1 planning.
+- **`design-system.ts` actual consumers:** Research identifies the file as 548 lines with overlap against `globals.css`, but the exact list of importers needs verification during Phase 4 planning. If only OG images and emails import it, most exports are dead code.
+- **`useSuspenseQuery` expansion candidates:** STACK.md rates this MEDIUM confidence because each component needs individual evaluation of Suspense compatibility (no `enabled` option, no `placeholderData`). This is a per-component decision during Phase 2.
+- **React Compiler edge cases:** The 353 `useMemo`/`useCallback` calls include some that pass stable references to third-party libraries. Each removal needs case-by-case verification during Phase 3 execution.
 
 ## Sources
 
 ### Primary (HIGH confidence)
-- Codebase verification: `package.json`, `deno.json`, `globals.css`, `use-blogs.ts`, `ci-cd.yml`, `proxy.ts`, `providers.tsx`, blog migration files -- all read directly from filesystem
-- [Resend Create Contact API](https://resend.com/docs/api-reference/contacts/create-contact) -- current endpoint documentation
-- [Resend Migrating from Audiences to Segments](https://resend.com/docs/dashboard/segments/migrating-from-audiences-to-segments) -- deprecation details and migration path
-- [TanStack Query v5 Paginated Queries](https://tanstack.com/query/v5/docs/react/guides/paginated-queries) -- keepPreviousData pattern
-- [nuqs Documentation](https://nuqs.dev/) -- clearOnDefault, parseAsInteger, adapter requirements
-- [PostgREST Pagination and Count](https://postgrest.org/en/stable/references/api/pagination_count.html) -- range() with count: 'exact'
-- [GitHub Actions Workflow Syntax](https://docs.github.com/actions/using-workflows/workflow-syntax-for-github-actions) -- event conditionals
-- [Supabase Database Functions](https://supabase.com/docs/guides/database/functions) -- SECURITY INVOKER vs DEFINER
+
+- [TanStack Query mutationOptions reference](https://tanstack.com/query/v5/docs/framework/react/reference/mutationOptions)
+- [TanStack Query useSuspenseQuery reference](https://tanstack.com/query/v5/docs/react/reference/useSuspenseQuery)
+- [TanStack Query ESLint Plugin](https://tanstack.com/query/v5/docs/eslint/eslint-plugin-query)
+- [TanStack Query Advanced SSR / Prefetching](https://tanstack.com/query/v5/docs/react/guides/advanced-ssr)
+- [Next.js 16 reactCompiler config](https://nextjs.org/docs/app/api-reference/config/next-config-js/reactCompiler)
+- [React Compiler installation](https://react.dev/learn/react-compiler/installation)
+- [Knip - Dead code detection for JS/TS](https://knip.dev/)
 
 ### Secondary (MEDIUM confidence)
-- [Resend New Contacts Experience (Nov 2025)](https://resend.com/blog/new-contacts-experience) -- API change announcement
-- [GitHub Actions Avoid Double Runs](https://adamj.eu/tech/2025/05/14/github-actions-avoid-simple-on/) -- CI dedup patterns
-- [SaaS Blog Design Examples](https://www.webstacks.com/blog/saas-blog-design-examples) -- split content hub pattern validation
-- [Content Hub Strategy](https://www.saffronedge.com/blog/content-hub/) -- hub and spoke content model
 
-### Tertiary (LOW confidence)
-- Resend duplicate contact response behavior -- not explicitly documented, needs empirical validation during Phase 3 implementation
+- [Effective TypeScript - Knip recommendation](https://effectivetypescript.com/2023/07/29/knip/)
+- [SaaS Design System Guide - F1Studioz](https://f1studioz.com/blog/saas-design-system-guide/)
+- [UI Audit Guide - DevSquad](https://devsquad.com/blog/ui-audit)
+- [Vercel - React Best Practices](https://vercel.com/blog/introducing-react-best-practices)
+- [shadcn/ui Documentation](https://ui.shadcn.com/)
+
+### Codebase Analysis (HIGH confidence)
+
+- `src/hooks/api/` -- 85 files, 15 query-key factories, 1 mutation-keys file, 40+ domain hooks
+- `src/components/` -- 450 files across 69 directories, 20+ exceeding 300-line rule
+- `src/shared/types/` -- 25 files, TYPES.md lookup table
+- `globals.css` -- 1,702 lines (CSS custom properties, @utility definitions, oklch color system)
+- `design-system.ts` -- 548 lines (parallel TypeScript token system)
+- `vi.mock()` usage -- 27 test files with hardcoded hook module paths
+- `ownerDashboardKeys` -- imported by 8 hook files, 22 invalidation call sites
+- `tenantPortalKeys` -- consumed by 6 hook files in acyclic dependency tree
+- CVA-customized components -- 19 out of 65 UI components
 
 ---
-*Research completed: 2026-03-06*
+*Research completed: 2026-03-08*
 *Ready for roadmap: yes*

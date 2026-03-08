@@ -1,147 +1,180 @@
 # Domain Pitfalls
 
-**Domain:** Blog redesign (pagination, categories RPC, newsletter Edge Function) + CI workflow optimization
-**Researched:** 2026-03-06
-**Confidence:** HIGH (verified against codebase patterns, official docs, and existing conventions)
+**Domain:** Production code consolidation and UI polish (hooks, components, shared directory, design system)
+**Researched:** 2026-03-07
+**Confidence:** HIGH (verified against actual codebase dependency graph, test patterns, and existing conventions)
 
 ---
 
 ## Critical Pitfalls
 
-Mistakes that cause broken features, data layer inconsistencies, or convention violations requiring rework.
+Mistakes that cause test cascade failures, runtime regressions, or data loss requiring multi-file rework.
 
-### Pitfall 1: Blog Query Keys Violate Project Convention (No queryOptions() Factory)
+### Pitfall 1: Hook Consolidation Breaks vi.mock() Module Paths in 27 Test Files
 
-**What goes wrong:** The plan rewrites `use-blogs.ts` with a `blogKeys` object that uses raw `as const` arrays, while every other domain in the codebase uses `queryOptions()` factories in `src/hooks/api/query-keys/`. The CLAUDE.md rule "No string literal query keys -- always use queryOptions() factories from src/hooks/api/query-keys/" is directly violated. The blog hooks file stays in `src/hooks/api/use-blogs.ts` with inline `queryKey` arrays instead of being split into a `query-keys/blog-keys.ts` factory.
+**What goes wrong:** Renaming or merging hook files (e.g., consolidating `use-properties.ts` + `use-property-mutations.ts` or renaming `use-vendor.ts` to `use-vendors.ts`) breaks every test that mocks that module path. There are 27 test files that mock hook modules via `vi.mock('#hooks/api/use-...')`. Each mock uses the exact module specifier string. When the file moves, every mock string must be updated simultaneously -- TypeScript will not catch stale `vi.mock()` paths because mock paths are untyped strings.
 
-**Why it happens:** The existing `use-blogs.ts` already uses the old pattern (raw `blogKeys` object without `queryOptions()`). The plan copies this pattern forward rather than aligning with the post-v1.0 convention. It is easy to miss because the old code "works" -- TanStack Query does not care about the pattern, only the project conventions do.
-
-**Consequences:**
-- Breaks the established codebase convention that every other domain follows (property, tenant, lease, maintenance, payment, billing, report, analytics, inspection, unit, financial -- 12 domains)
-- Cannot share `queryOptions()` across hooks, making prefetching or `useQueries` harder later
-- Inconsistent invalidation: other domains invalidate via factory keys, blog invalidation must use raw arrays
-- PR review friction and linting concerns
-
-**Prevention:**
-1. Create `src/hooks/api/query-keys/blog-keys.ts` using `queryOptions()` factory pattern matching `property-keys.ts`
-2. Move query functions out of `use-blogs.ts` into the factory -- each key (list, detail, category, comparisons, related, categories) gets a `queryOptions()` entry with `queryKey` and `queryFn`
-3. Thin hooks in `use-blogs.ts` become `useQuery(blogQueries.list(page))` one-liners
-4. Register blog keys in CLAUDE.md's "Factory files" section
-
-**Detection:** Grep for `blogKeys` -- if found outside a `query-keys/` file, convention is violated. Grep for `queryKey:` inside `use-blogs.ts` -- should be zero occurrences (all delegated to factory).
-
-**Phase to address:** Task 1 (data layer rewrite). Must be done before any page component is written since pages import from hooks.
-
----
-
-### Pitfall 2: Pagination Flash -- Missing placeholderData: keepPreviousData
-
-**What goes wrong:** When the user clicks "Next page" on the blog, the UI flashes empty while page 2 loads. The grid of blog cards disappears, skeleton loaders appear, then cards reappear. This creates a jarring experience especially on slow connections.
-
-**Why it happens:** TanStack Query clears old data when the query key changes (page 1 key differs from page 2 key). The plan's `useBlogs(page)` hook does not include `placeholderData: keepPreviousData`, even though the project already uses this pattern in 6 other hooks (`use-tenant.ts`, `use-notifications.ts`, and the global query provider). The deviation is a copy-paste from the old non-paginated hook which did not need this feature.
+**Why it happens:** Vitest `vi.mock()` takes a string module path, not a typed import. Renaming `use-properties.ts` to `use-property-queries.ts` causes no TypeScript error in test files, but the mock silently stops working. The real module gets imported instead, which either fails (no Supabase client in test) or returns `undefined`, causing cryptic "Cannot read properties of undefined" errors deep in component render.
 
 **Consequences:**
-- Content flash on every page change -- skeleton shimmer instead of smooth data swap
-- `isPlaceholderData` is unavailable, so buttons cannot show a subtle loading indicator while keeping old content visible
-- Inconsistent with how paginated data tables (using `use-data-table.ts` + nuqs) already behave in the dashboard
+- Test failures surface as runtime errors inside components ("cannot call mutateAsync of undefined"), not as import errors
+- A single rename can break 5-10 test files simultaneously
+- Pre-commit hook runs all 1,415 tests -- a cascade failure blocks commits until all mock paths are fixed
+- If the developer fixes some mocks but misses others, CI catches the rest but the commit is already in progress
 
 **Prevention:**
-Add to every paginated blog query:
+1. Before renaming any hook file, run `grep -r "vi.mock.*<old-filename>" src/` to find every test that mocks it
+2. Rename the file AND update all mock paths in the same commit
+3. Run `pnpm test:unit -- --run` before staging to verify all tests pass
+4. Never rename and restructure in the same PR -- rename first (pure path change, no logic change), verify tests pass, then restructure the contents in a follow-up commit
+5. Consider adding a test helper that validates mock paths resolve to real modules:
 ```typescript
-import { keepPreviousData } from '@tanstack/react-query'
-
-// In queryOptions for list, category, comparisons:
-placeholderData: keepPreviousData,
+// In test setup, warn on mocks that resolve to non-existent modules
+afterEach(() => {
+  // vitest does not provide this natively -- manual grep is the safety net
+})
 ```
 
-Then in the page component, use `isPlaceholderData` to show a subtle opacity reduction or spinner overlay rather than full skeleton replacement:
-```typescript
-const { data, isPlaceholderData } = useQuery(blogQueries.list(page))
-// ...
-<div className={isPlaceholderData ? 'opacity-60 pointer-events-none' : ''}>
-  {/* grid */}
-</div>
+**Detection:** `pnpm test:unit` fails with "Cannot read properties of undefined (reading 'mutateAsync')" or similar -- means a mock path no longer matches a real module.
+
+**Phase to address:** Every hook consolidation task. Establish the grep-before-rename rule before the first rename.
+
+---
+
+### Pitfall 2: Moving ownerDashboardKeys Breaks Cross-Domain Cache Invalidation
+
+**What goes wrong:** `ownerDashboardKeys` is exported from `use-owner-dashboard.ts` and imported by 8 other hook files for cross-domain invalidation (property mutations, lease mutations, tenant mutations, maintenance mutations, unit mutations, vendor mutations, lease lifecycle mutations, and analytics-keys). Moving this export to a query-keys file or renaming it breaks every mutation's `onSuccess` handler, causing stale dashboard data after CRUD operations. The dashboard stops refreshing when users create/edit/delete entities.
+
+**Why it happens:** The `ownerDashboardKeys` object is the central hub of the invalidation graph. Every mutation that affects dashboard data does `queryClient.invalidateQueries({ queryKey: ownerDashboardKeys.all })`. This is by design -- it ensures the dashboard stats, activity feed, and charts refresh after any mutation across properties, leases, tenants, maintenance, units, and vendors. Moving the export changes the import path in 8+ files. Missing even one causes that domain's mutations to stop refreshing the dashboard.
+
+**Specific dependency graph:**
+```
+use-owner-dashboard.ts (defines ownerDashboardKeys)
+  <- use-property-mutations.ts (4 invalidation calls)
+  <- use-lease-mutations.ts (4 invalidation calls)
+  <- use-tenant-mutations.ts (3 invalidation calls)
+  <- use-maintenance.ts (3 invalidation calls)
+  <- use-unit.ts (3 invalidation calls)
+  <- use-vendor.ts (3 invalidation calls)
+  <- use-lease-lifecycle-mutations.ts (2 invalidation calls)
+  <- use-dashboard-hooks.ts (reference for query)
+  <- analytics-keys.ts (reference for nested keys)
 ```
 
-**Detection:** Search `use-blogs.ts` or `blog-keys.ts` for `keepPreviousData` or `placeholderData` -- must be present on paginated queries.
+**Consequences:**
+- Dashboard shows stale data after mutations (user creates a property, dashboard count does not update)
+- No test failure -- cache invalidation is a runtime behavior that unit tests do not cover (they mock mutations)
+- Bug surfaces only in manual testing or E2E tests
+- Users see incorrect stats, making the product feel broken
 
-**Phase to address:** Task 1 (data layer). Must be wired before the page component uses the hooks.
+**Prevention:**
+1. If consolidating `ownerDashboardKeys` into a separate query-keys file (which is architecturally correct), use the pattern from `tenantPortalKeys`: extract to a dedicated file (`owner-dashboard-keys.ts` in `query-keys/`), then re-export from `use-owner-dashboard.ts` for backward compatibility
+2. Run a full import verification: `grep -r "ownerDashboardKeys" src/ | grep "from" | sort` -- every file must be updated
+3. After moving, verify all 22 `invalidateQueries` calls still reference the correct key object
+4. Add an E2E smoke test: create a property, verify dashboard count increments
+
+**Detection:** Manual test: create a property in the owner dashboard, navigate to dashboard home. If stats do not update, invalidation chain is broken. Also: `grep -r "ownerDashboardKeys" src/ | grep "from" | sort` should show exactly one source file (the definition) and all others importing from it.
+
+**Phase to address:** Hook consolidation phase. This is the single highest-risk refactor in the hooks audit.
 
 ---
 
-### Pitfall 3: Category Slug-to-Name Roundtrip Breaks on Multi-Word Names
+### Pitfall 3: tenantPortalKeys Extraction Breaks Circular-Dependency-Free Architecture
 
-**What goes wrong:** The category page uses `deslugify("software-comparisons")` which produces "Software Comparisons" -- correct. But `deslugify("roi-maximization")` produces "Roi Maximization" (lowercase "oi" gets a capital "R" but the slug is already case-normalized). The hub page uses `slugify("Software Comparisons")` producing "software-comparisons" -- correct. However, if a blog category in the DB is "ROI Maximization" (uppercase "ROI"), the roundtrip fails: `slugify("ROI Maximization")` produces `"roi-maximization"`, but `deslugify("roi-maximization")` produces `"Roi Maximization"` which does NOT match the DB value `"ROI Maximization"`. The `useBlogsByCategory("Roi Maximization")` query returns zero results.
+**What goes wrong:** The tenant portal hooks were previously split specifically to avoid circular dependencies. `use-tenant-portal-keys.ts` exists because `use-tenant-dashboard.ts` imports from `use-tenant-lease.ts`, `use-tenant-payments.ts`, `use-tenant-maintenance.ts`, and `use-tenant-autopay.ts` -- all of which need `tenantPortalKeys` and `resolveTenantId()`. If any of those files imported from `use-tenant-dashboard.ts` (which composes them), a circular dependency would form. Reconsolidating these files "for simplicity" reintroduces the circular dependency.
 
-**Why it happens:** The `deslugify` function naively capitalizes the first letter of each word. Acronyms (ROI, SaaS, HVAC) and proper nouns lose their original casing. The DB is the source of truth for category names, but the URL slug is a lossy encoding that cannot be reversed for acronyms.
+**Why it happens:** Six files form a deliberate dependency tree:
+```
+use-tenant-portal-keys.ts  (keys + resolveTenantId)
+  <- use-tenant-lease.ts
+  <- use-tenant-payments.ts
+  <- use-tenant-maintenance.ts
+  <- use-tenant-autopay.ts
+  <- use-tenant-settings.ts
+  <- use-tenant-dashboard.ts (ALSO imports the 4 hooks above)
+```
+Merging `use-tenant-portal-keys.ts` back into `use-tenant-dashboard.ts` creates:
+```
+use-tenant-dashboard.ts (keys + composed hooks)
+  imports from use-tenant-lease.ts
+    which would need to import from use-tenant-dashboard.ts  // CIRCULAR
+```
 
 **Consequences:**
-- Category pages for acronym-containing categories show "No articles yet" even when posts exist
-- The hub's category pills link to URLs that produce zero results when clicked
-- Users bookmark or share category URLs that silently break
+- Module resolution fails at build time or produces undefined exports
+- Next.js build crashes with cryptic "cannot access before initialization" error
+- Every tenant portal page breaks simultaneously
 
 **Prevention:**
-Two options, both work:
-1. **Server lookup (recommended):** On the category page, fetch categories via the RPC and match by slug instead of deslugifying. Add a `slugify` helper that normalizes consistently. When the page loads, call `useCategories()` and find the category whose `slugify(cat.category) === categorySlug`. Use the DB category name for the query, not the deslugified slug.
-2. **Slug column in DB:** Add a `category_slug` computed column or store slugs in the blogs table. Overkill for this milestone.
+1. Document the dependency tree in a comment at the top of `use-tenant-portal-keys.ts` explaining why it is separate
+2. During hook consolidation audit, mark `use-tenant-portal-keys.ts` as "intentionally separate -- do not merge"
+3. If cleaning up file names, rename is safe; merging is not
+4. Similar rule applies to `use-auth.ts` exporting `authKeys` and `useAuthCacheUtils` -- consumed by `use-auth-mutations.ts`
 
-The first option requires the `useCategories()` hook to be called on the category page (it already is in the plan for the hub, so the hook exists).
+**Detection:** `pnpm typecheck` or `next build` crashes with circular dependency errors. In dev mode, undefined imports manifest as "useX is not a function" errors.
 
-**Detection:** Create a blog post with category "ROI Maximization" or "SaaS Comparison". Navigate to `/blog/category/roi-maximization`. If zero results, the roundtrip is broken.
-
-**Phase to address:** Task 9 (category page rewrite). Must resolve before marking the category page complete.
+**Phase to address:** Hook consolidation phase. Document in the consolidation audit which files are intentionally separate.
 
 ---
 
-### Pitfall 4: get_blog_categories RPC Missing from Supabase Types Until Regenerated
+### Pitfall 4: Changing shadcn CVA Variants Breaks 19 Components and 50 Test Files
 
-**What goes wrong:** Task 1 writes hooks that call `supabase.rpc('get_blog_categories')`. Task 2 creates the migration. Between Task 1 and Task 2, `pnpm typecheck` fails because the RPC does not exist in `src/shared/types/supabase.ts`. The plan acknowledges this ("May fail on get_blog_categories RPC -- that's OK"), but if a developer runs `pnpm validate:quick` as a habit between commits, the failure blocks work.
+**What goes wrong:** The project has 19 UI components using CVA (class-variance-authority) with customized variants beyond shadcn defaults. The button component alone has 7 custom variants (`premium`, `masculine`, `navbar`, `navbarGhost`, `lightboxNav`) and 5 custom sizes (`icon-sm`, `icon-lg`, `mobile-full`, `touch-friendly`, `navbar`). Changing CVA variant names, removing unused variants, or updating the base classes breaks every component and test that references them.
 
-More critically: after applying the migration, `pnpm db:types` must be run to regenerate types. If forgotten, the RPC call compiles but TypeScript still flags it. If the migration is applied to production but types are not regenerated and committed, the CI build fails on type checking.
+**Why it happens:** During UI polish, developers naturally want to "clean up" button variants -- removing `masculine` if unused, renaming `navbarGhost` to `ghost-navbar`, or standardizing sizes. Each change cascades through every component that uses that variant. Tests that assert on rendered class names (`expect(button).toHaveClass('bg-gradient-to-r')`) fail when classes change.
 
-**Why it happens:** Supabase type generation is a manual step (`pnpm db:types`) that must happen after every migration that adds or changes RPCs, tables, or columns. It is easy to apply the migration, confirm it works in SQL, and forget to regenerate types.
+**Components with custom CVA variants (not vanilla shadcn):**
+- `button.tsx` (7 custom variants, 5 custom sizes -- **highest risk**)
+- `badge.tsx`, `alert.tsx`, `card.tsx`, `input.tsx` (custom variants)
+- `stat.tsx`, `empty.tsx`, `field.tsx`, `item.tsx` (project-specific components)
+- `loading-spinner.tsx`, `section-skeleton.tsx`, `skeleton.tsx` (custom sizes)
+- Plus 6 more with minor customizations
 
 **Consequences:**
-- TypeScript errors on the `rpc('get_blog_categories')` call until types are regenerated
-- CI build fails if `supabase.ts` is stale
-- If types are regenerated against a different DB state (e.g., local vs production), the generated file may differ
+- Class name assertions in tests fail (50 test files reference UI components)
+- Visual regression: buttons/badges/cards render differently in production
+- If the change is deployed without full visual review, users see broken layouts
 
 **Prevention:**
-1. Apply migration to the target DB first
-2. Immediately run `pnpm db:types`
-3. Verify `supabase.ts` now includes `get_blog_categories` in the Functions section
-4. Commit both the migration AND the updated `supabase.ts` in the same commit (Task 2 plan already does this -- enforce it)
-5. Run `pnpm typecheck` after regeneration to confirm clean
+1. Before modifying any CVA variant, run `grep -r "variant=\"<name>\"" src/` to find every usage
+2. Never remove a variant without confirming zero usages (unused variants are harmless -- removing them is cosmetic)
+3. If renaming a variant, do search-and-replace across ALL `.tsx` files in one commit
+4. For test failures: update tests to assert on behavior (button click, disabled state), not on specific class strings
+5. Create a UI component inventory before starting polish: for each customized component, list variant names and their consumers
 
-**Detection:** `pnpm typecheck` fails with "Argument of type '"get_blog_categories"' is not assignable to parameter of type..." -- means types were not regenerated.
+**Detection:** `pnpm test:unit` fails with class name assertion mismatches. Visual regression requires manual or Playwright screenshot comparison.
 
-**Phase to address:** Task 2 (RPC creation). Hard gate: do not proceed to component tasks until typecheck passes clean.
+**Phase to address:** UI polish phase. Inventory first, modify second.
 
 ---
 
-### Pitfall 5: newsletter-subscribe Edge Function Secrets Not Deployed
+### Pitfall 5: globals.css Design Token Changes Cascade to 1,702 Lines of Theme State
 
-**What goes wrong:** The Edge Function code is correct and deployed via `supabase functions deploy newsletter-subscribe`. But `RESEND_API_KEY` and `RESEND_AUDIENCE_ID` are not set in Supabase Edge Function secrets. The function boots, passes `validateEnv` only when called (not on deploy), and returns 500 with `{ error: "An error occurred" }` on first real request. The generic error message gives no hint about what is wrong.
+**What goes wrong:** The `globals.css` file is 1,702 lines with a comprehensive design token system: fluid typography scales (`clamp()` values), custom color palettes (`oklch()` values), semantic color mappings, animation durations, and dark mode overrides. Changing a single CSS custom property (e.g., `--text-title-2` from `clamp(1.25rem, 2.5vw, 1.5rem)` to a fixed `1.5rem`) affects every element using that token. There is no test coverage for CSS variable resolution.
 
-**Why it happens:** Supabase Edge Function secrets are managed separately from the code deploy. The `RESEND_API_KEY` may already exist (used by `auth-email-send`), but `RESEND_AUDIENCE_ID` is brand new. It must be created in the Resend Dashboard first (Audiences section), then the audience ID copied to Supabase secrets. This two-service choreography is easy to miss.
+**Why it happens:** The design system has three layers that can conflict:
+1. **globals.css `@theme` block** -- defines CSS custom properties (canonical source)
+2. **`design-system.ts` constants** -- TypeScript constants referencing `var(--color-*)` (used in non-Tailwind contexts like Satori OG images)
+3. **Component-level Tailwind classes** -- some reference tokens directly, others use hardcoded values
 
-Additionally, `UPSTASH_REDIS_REST_URL` and `UPSTASH_REDIS_REST_TOKEN` must be set for rate limiting. These likely already exist for other Edge Functions, but verify.
+During polish, a developer might update `--color-primary` in `globals.css` but forget to update `BRAND_COLORS_HEX.primary` in `design-system.ts`. OG images, email templates, and external integrations use the TypeScript constants, not the CSS variables. They diverge.
 
 **Consequences:**
-- Newsletter form submits, shows spinner, then shows "Something went wrong" toast
-- No error details visible to the user or developer without checking Edge Function logs
-- If `RESEND_API_KEY` exists but `RESEND_AUDIENCE_ID` is missing, the env validation fails on the audience ID specifically
+- Brand color inconsistency between web app (correct) and OG images/emails (stale hex values)
+- Dark mode breaks if a color token is changed without updating the `.dark` variant
+- Fluid typography changes affect responsive behavior at all breakpoints simultaneously
+- No test catches CSS-level regressions
 
 **Prevention:**
-Before deploying the function:
-1. Create an Audience in Resend Dashboard (Audiences tab) -- note the audience ID
-2. Set secrets: `supabase secrets set RESEND_AUDIENCE_ID=aud_xxxxx`
-3. Verify existing secrets: `supabase secrets list` should show `RESEND_API_KEY`, `UPSTASH_REDIS_REST_URL`, `UPSTASH_REDIS_REST_TOKEN`, `FRONTEND_URL`, `SENTRY_DSN`
-4. After deploy, test with `curl` against the function URL to verify 200 response
+1. Treat `globals.css` `@theme` block as the single source of truth
+2. After any color change in `globals.css`, verify `design-system.ts` BRAND_COLORS_HEX matches
+3. After any typography change, test at mobile (375px), tablet (768px), and desktop (1440px) widths
+4. Never change `clamp()` values without testing the min and max viewport sizes
+5. For dark mode: every `:root` color token must have a corresponding `.dark` override -- check the count matches
 
-**Detection:** Submit the newsletter form. If toast shows error, check Edge Function logs in Supabase Dashboard for "Missing required environment variables: RESEND_AUDIENCE_ID".
+**Detection:** Visual inspection at multiple viewport sizes. OG image mismatch: share a page URL in Slack/Discord, check the preview card colors against the live site.
 
-**Phase to address:** Task 5 (Edge Function creation). Gate: test the deployed function with curl before proceeding to the frontend component.
+**Phase to address:** UI polish phase. Audit `design-system.ts` BRAND_COLORS_HEX against `globals.css` before any token changes.
 
 ---
 
@@ -149,158 +182,186 @@ Before deploying the function:
 
 Mistakes that cause bugs, degraded UX, or unnecessary rework but are recoverable.
 
-### Pitfall 6: Resend Audiences API Duplicate Contact Behavior Unknown
+### Pitfall 6: Query Key Factory Consolidation Changes Key Structure, Invalidating User Caches
 
-**What goes wrong:** A user subscribes, then subscribes again with the same email. The plan does not handle the Resend API response for duplicate contacts. If Resend returns a 4xx error for duplicates, the frontend shows "Something went wrong" even though the user is already subscribed. If Resend silently accepts duplicates, no issue -- but neither behavior is documented clearly.
+**What goes wrong:** Moving query functions between key factory files (e.g., moving a property performance query from `property-keys.ts` to `analytics-keys.ts`) changes the query key array structure. Active users with cached data see stale results because their existing cache entries have the old key shape, and the new key shape creates a new cache entry. The old data sits in memory but is never invalidated; the new query fetches fresh data but the component may still be reading from the old cache entry if it was prefetched.
 
-**Why it happens:** The Resend Audiences API docs do not explicitly document what happens when creating a contact with an email that already exists. The plan's Edge Function forwards the raw Resend response status to the error handler without distinguishing "already exists" from "server error."
+**Why it happens:** `queryOptions()` factories embed the key structure: `['properties', id, 'performance']` vs `['analytics', 'property-performance', id]`. Moving a query between factories changes this key. TanStack Query uses key identity for cache lookup. The old key persists in the query cache until garbage collected (default: 5 minutes after last observer unmounts).
+
+**Consequences:**
+- Brief window where users see stale data (old cache hit) then fresh data (new query settles)
+- Cross-module invalidation breaks: code doing `queryClient.invalidateQueries({ queryKey: ['properties'] })` no longer catches a query that moved to `['analytics', ...]`
+- Mutations that invalidated the old key pattern stop working for the moved query
 
 **Prevention:**
-1. Test the endpoint manually: `curl -X POST https://api.resend.com/audiences/{id}/contacts -H "Authorization: Bearer re_xxx" -H "Content-Type: application/json" -d '{"email":"test@test.com"}'` -- send twice, observe second response
-2. If Resend returns 409 Conflict or similar for duplicates, handle it as success in the Edge Function:
-```typescript
-if (!res.ok && res.status !== 409) {
-  // Only error on non-duplicate failures
-}
-```
-3. Regardless of API behavior, always return success to the frontend for duplicate submissions -- the user's intent ("subscribe me") is already fulfilled
+1. When moving queries between factories, keep the exact same `queryKey` array structure -- only change which file the `queryOptions()` lives in, not the key itself
+2. If the key MUST change, grep for every `invalidateQueries` call that references the old key prefix and update them
+3. Avoid moving queries between factories unless there is a clear organizational benefit -- the cost is high, the benefit is cosmetic
+4. Prefer adding cross-references (importing keys from adjacent factories) over moving code
 
-**Detection:** Subscribe with the same email twice. If second attempt shows error toast, duplicate handling is missing.
+**Detection:** After consolidation, verify: `grep -r "invalidateQueries.*\['<old-prefix>'\]" src/` returns zero results for the moved query's old prefix. Manual test: trigger a mutation, verify the related query refetches.
 
-**Phase to address:** Task 5 (Edge Function). Test immediately after first deploy.
+**Phase to address:** Hook consolidation phase. Prefer "don't move keys" over "organize keys perfectly."
 
 ---
 
-### Pitfall 7: nuqs Page State Starts at 1 But URL Has No ?page= on First Load
+### Pitfall 7: Removing "Backward Compatibility" Re-exports Breaks Consumers
 
-**What goes wrong:** On initial load, the URL is `/blog` (no `?page=` param). `parseAsInteger.withDefault(1)` correctly returns 1. User clicks page 2, URL becomes `/blog?page=2`. User clicks "Previous" back to page 1 -- URL becomes `/blog?page=1` instead of removing the param. Now the "clean" URL `/blog` and `/blog?page=1` are different URLs pointing to the same content. This creates duplicate content for SEO and inconsistent browser history entries.
+**What goes wrong:** Several hook files have explicit re-export lines marked "for backward compatibility" (e.g., `use-tenant-dashboard.ts` line 24: `export { tenantPortalKeys } from './use-tenant-portal-keys'`). During consolidation, these look like dead code or unnecessary indirection. Removing them breaks every consumer that imports from the re-exporting file instead of the source file. There are also wrapper functions marked "backward compatibility" in `use-tenant-autopay.ts` (lines 167, 201).
 
-**Why it happens:** `setPage(1)` sets `?page=1` in the URL. nuqs does not automatically remove params when they equal the default value unless configured to do so.
+**Why it happens:** When hooks were previously split for the 300-line rule, re-exports were added so existing consumers did not need import path changes. The re-export file became the canonical import for some consumers. Removing the re-export forces every consumer to update their import path.
+
+**Specific instances:**
+- `use-tenant-dashboard.ts` re-exports `tenantPortalKeys` -- 4 components import from dashboard, not from portal-keys
+- `use-tenant-autopay.ts` has wrapper functions for `useSetupAutopay` and `useCancelAutopay` -- consumers may call either the wrapper or the underlying function
 
 **Consequences:**
-- SEO: `/blog` and `/blog?page=1` are duplicate content (minor but avoidable)
-- Browser back button creates confusing history: `/blog` -> `/blog?page=2` -> `/blog?page=1` (three entries for two logical pages)
-- Shared links look inconsistent
+- TypeScript import errors on build
+- If the re-export was used in test mocks (`vi.mock('#hooks/api/use-tenant-dashboard', ...)`), the mock may not cover the actual import path used in production
 
 **Prevention:**
-Use `clearOnDefault: true` in the nuqs parser:
-```typescript
-const [page, setPage] = useQueryState(
-  'page',
-  parseAsInteger.withDefault(1).withOptions({ clearOnDefault: true })
-)
-```
-This removes `?page=` from the URL when the value equals the default (1).
+1. Before removing any re-export, run `grep -r "from.*<re-exporting-file>" src/` to find all consumers
+2. If consumers exist, update their imports to point to the source file first, verify tests pass, then remove the re-export
+3. For backward-compat wrapper functions: verify no component calls the wrapper by name before removing
+4. Never remove re-exports and change source logic in the same commit
 
-Alternatively, use `shallow: false` if you want the page change to trigger a full navigation (though for client-side TanStack Query, shallow is correct).
+**Detection:** `pnpm typecheck` fails with "Module has no exported member" errors.
 
-**Detection:** Navigate to page 2, then back to page 1. Check the URL bar -- should be `/blog` not `/blog?page=1`.
-
-**Phase to address:** Task 4 (BlogPagination component). Simple config fix.
+**Phase to address:** Hook consolidation phase. Audit re-exports before removing.
 
 ---
 
-### Pitfall 8: CI Workflow Dedup Creates Unprotected Main Branch
+### Pitfall 8: UI Polish Changes Break Mobile Responsive Layouts
 
-**What goes wrong:** The plan restructures CI to run checks on `pull_request` only and e2e-smoke on `push` to main independently. If checks are removed from the `push` trigger, pushing directly to main (bypassing PR) skips lint, typecheck, and build verification entirely. The current workflow runs checks on both push and PR -- removing the push trigger removes the safety net for direct pushes.
+**What goes wrong:** The app has extensive responsive design with `useMediaQuery` in 2 components, and mobile-specific patterns throughout (scroll-snap kanban boards, `mobile-full` button sizes, touch-friendly hit targets with `min-h-11`). UI polish that changes spacing, padding, or container widths on desktop can break mobile layouts. A common mistake: increasing card padding from `p-4` to `p-6` looks better on desktop but causes horizontal overflow on mobile (375px width).
 
-**Why it happens:** The goal is to avoid double runs: when a PR is merged, GitHub fires both a `push` event (merge commit on main) and completes the PR. The current workflow runs checks twice. The fix seems simple: only run on PR. But this assumes branch protection rules prevent direct pushes to main. If branch protection is misconfigured or an admin force-pushes, the checks never run.
+**Why it happens:** Desktop-first development is the default mental model. The developer tests at their monitor resolution, sees the improvement, and commits. Mobile viewports are only checked when someone opens their phone or uses Chrome DevTools' responsive mode. The min-height constraint (`min-h-11` = 44px on all interactive elements for WCAG 2.5.8) means size changes have floor constraints.
+
+**Specific risk areas:**
+- `button.tsx` sizes all enforce `min-h-11` -- adding padding increases height beyond the floor, which is fine, but changing `min-h` or removing it breaks touch accessibility
+- Kanban columns use `scroll-snap-type: x mandatory` on mobile, grid on desktop -- changing the container breakpoint switches the layout mode
+- Data tables have 4-layer responsive adaptation (full table -> card view -> simplified card -> stacked) -- changing column widths or padding can break intermediate breakpoints
+- The sidebar uses `data-collapsible="icon"` on mobile -- changing sidebar width tokens affects the icon-only collapsed state
 
 **Consequences:**
-- Direct pushes to main deploy without typecheck/lint/build verification
-- If branch protection is bypassed (admin, emergency fix), broken code reaches production
-- e2e-smoke running independently on push without the checks job as dependency means e2e can run against potentially broken code
+- Horizontal scrolling on mobile (content wider than viewport)
+- Touch targets smaller than 44px (WCAG 2.5.8 violation)
+- Kanban board loses snap scrolling
+- Sidebar covers content or leaves gap
 
 **Prevention:**
-Keep checks on both triggers but use the concurrency group to cancel the redundant run:
-```yaml
-concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
-```
-This is already in the workflow. The first run (from push) gets cancelled by the second (from PR merge) or vice versa. The cost is a brief cancelled workflow run, not a double execution.
+1. Test every UI change at 375px (iPhone SE), 768px (iPad), and 1440px (desktop) minimum
+2. Never change `min-h-11` on interactive elements without understanding the accessibility requirement
+3. Use Tailwind responsive prefixes (`sm:`, `md:`, `lg:`) for any spacing change -- never change base (mobile-first) values without checking
+4. For Kanban changes: test the scroll-snap behavior on actual mobile or Chrome DevTools touch simulation
+5. Add a Playwright screenshot test at 375px width for critical layouts (or use the browser automation audit phase to catch these)
 
-Alternatively, if dedup is truly needed, add a branch protection rule requiring the `checks` job to pass before merge, AND keep checks on push as a fallback. The dedup then only affects the merge commit run (which is redundant if PR checks passed).
+**Detection:** Chrome DevTools responsive mode at 375px width. Horizontal scrollbar visible = overflow issue. Lighthouse accessibility audit flags touch targets under 44px.
 
-For e2e-smoke independence: remove `needs: [checks]` but add a separate condition to only run after a successful build artifact exists.
-
-**Detection:** Check `.github/workflows/ci-cd.yml` -- if `checks` job has no `push` trigger, direct pushes are unverified. Verify branch protection rules in GitHub Settings -> Branches -> main -> Require status checks.
-
-**Phase to address:** CI workflow restructuring task. Review branch protection settings before modifying triggers.
+**Phase to address:** UI polish phase. Mandate mobile viewport check for every visual change.
 
 ---
 
-### Pitfall 9: BlogCard Server Component Renders as Client Component
+### Pitfall 9: Shared Directory Cleanup Removes Types Still Used by Edge Functions
 
-**What goes wrong:** `BlogCard` is designed as a server component (no `'use client'` directive). But it is used inside `blog/page.tsx` which IS a client component. In Next.js, server components imported into client components become client components automatically. The BlogCard renders correctly, but it ships its full JavaScript to the browser unnecessarily.
+**What goes wrong:** The shared types directory (`src/shared/types/`) has 22 type files. During cleanup, types that appear "unused" in the frontend might actually be used by Supabase Edge Functions (which import from a different path resolution). Removing a type from `api-contracts.ts` that is used in `supabase/functions/_shared/` breaks the Deno build without any TypeScript error in the Next.js project.
 
-**Why it happens:** The plan correctly omits `'use client'` from BlogCard, but all three pages that use it are client components. Since the parent is a client boundary, all children are client-rendered regardless of their own directives.
+**Why it happens:** Edge Functions use Deno, not Node.js. They have a separate `deno.json` import map and resolve types differently. The `src/shared/types/` directory is the canonical type source for the frontend. Edge Functions may import types by copying or referencing these files directly. A "dead export" in the frontend codebase may have a consumer in `supabase/functions/`.
+
+**Additionally:** The `backend-domain.ts` file in shared types may look like dead code from a previous NestJS era, but types within it could still be referenced by mapper functions, RPC contracts, or Edge Function handlers.
 
 **Consequences:**
-- No actual server-side rendering benefit for BlogCard
-- Minor: slightly larger client bundle (BlogCard JS is included)
-- The component works correctly -- this is a performance oversight, not a bug
+- Edge Function deploy fails with type errors
+- Not caught by `pnpm typecheck` (which only covers the Next.js project)
+- Deno test suite fails, but those tests only run locally
 
 **Prevention:**
-This is acceptable for this milestone. BlogCard is small (no heavy imports, no hooks) so the client bundle impact is negligible. The real fix would be converting blog pages to server components with client islands for interactive parts (pagination, newsletter form), but that is a larger architectural change beyond this milestone's scope.
+1. Before removing any export from `src/shared/types/`, search BOTH `src/` AND `supabase/` directories: `grep -r "TypeName" src/ supabase/`
+2. Run `cd supabase/functions && deno check` after any type removal to verify Edge Functions still compile
+3. Mark clearly dead files (like `health.ts` if no health endpoint exists) but verify with grep first
+4. The `TYPES.md` lookup table lists every type and its location -- update it after removing types
 
-Document in the task that BlogCard is intentionally a "shared component" (no `'use client'`), not a "server component." The distinction matters for future refactoring.
+**Detection:** `deno test` in `supabase/functions/tests/` fails with type import errors. `supabase functions deploy` fails on type resolution.
 
-**Detection:** Not detectable in functionality. Only matters for bundle analysis. Low priority.
-
-**Phase to address:** Future optimization milestone. Not blocking for this milestone.
+**Phase to address:** Shared directory cleanup phase. Always grep both source trees.
 
 ---
 
-### Pitfall 10: BlurFade on Blog Card Grid Causes Layout Shift
+### Pitfall 10: Component Consolidation Changes Import Paths Used by 36 Direct Hook Consumers
 
-**What goes wrong:** Each `BlogCard` in the grid is wrapped in `<BlurFade delay={0.05 + i * 0.03} inView>`. BlurFade starts with `opacity-0` and `translate-y-[6px]`. Before the IntersectionObserver fires, cards are invisible and shifted. When they animate in, the grid content shifts by 6px. For a 12-card grid, all cards appear at slightly different times creating a "waterfall" that takes 0.05 + 11 * 0.03 = 0.38 seconds to complete.
+**What goes wrong:** 76 component files import from `#hooks/api/`. Reorganizing hook files (even just renaming) requires updating every import in every consuming component. With 36 components directly using TanStack Query hooks (useQuery, useMutation), plus 76 importing any hook via the `#hooks` path alias, a single rename can require changes in 20+ files.
 
-For long pages, cards below the fold animate when scrolled into view (good). But cards above the fold animate on initial page load with staggered delays, meaning the top of the page content is invisible for up to 380ms.
+**Why it happens:** The `#hooks` path alias resolves to `src/hooks/`. Components import hooks by exact file name: `import { useProperties } from '#hooks/api/use-properties'`. There is no barrel file (correctly, per project rules -- no barrel files or re-exports). This means every consumer must know the exact file name.
 
-**Why it happens:** BlurFade with `inView` uses IntersectionObserver which fires after the component mounts and the element enters the viewport. On initial page load, above-the-fold elements have a brief invisible period. The staggered `delay` multiplied by many items extends this.
+**The cascade math:** Renaming `use-properties.ts` to `use-property-queries.ts` requires:
+- Updating 12+ component imports
+- Updating 3+ page-level imports
+- Updating 2+ test file imports
+- Updating 4+ other hook file imports (cross-references)
+- Total: ~21 files for a single rename
 
 **Consequences:**
-- First Contentful Paint shows empty grid area for ~200-400ms
-- Cumulative Layout Shift (CLS) score impacted by the 6px translate
-- On fast connections, the stagger is perceivable but brief; on slow connections or re-renders, it is jarring
+- Massive diff for a cosmetic change (rename)
+- High chance of missing one import (TypeScript catches it, but the fix iteration is slow)
+- Git blame becomes less useful -- every file in the diff shows the rename as the last change
 
 **Prevention:**
-1. Cap the maximum delay: `delay={0.05 + Math.min(i, 5) * 0.03}` -- stagger only the first 6 cards, rest appear simultaneously
-2. Use `yOffset={4}` instead of the default 6 to minimize layout shift
-3. Consider removing BlurFade from above-the-fold content (hero section, first row of cards) and only using it for below-the-fold sections
-4. The existing landing page uses BlurFade similarly -- follow its delay pattern for consistency
+1. Only rename hook files when the current name is actively misleading or violates a convention
+2. Use IDE "rename symbol" / "move file" refactoring that updates all imports automatically
+3. Verify with `pnpm typecheck` after every rename before committing
+4. Batch renames: if renaming multiple files, do them all in one commit to keep the diff contained
+5. Prefer adding new exports to existing files over splitting into new files (when under the 300-line limit)
 
-**Detection:** Load `/blog` and watch the grid area. If cards appear one-by-one in a visible cascade, delay is too aggressive. Use Chrome DevTools Performance tab to measure CLS.
+**Detection:** `pnpm typecheck` shows "Cannot find module" errors for every stale import path.
 
-**Phase to address:** Task 7 (hub page). Tuning exercise during visual review.
+**Phase to address:** Hook consolidation phase. Minimize renames; prefer internal restructuring over file-level reorganization.
 
 ---
 
 ## Minor Pitfalls
 
-### Pitfall 11: SECURITY INVOKER on get_blog_categories Exposes All Categories
+### Pitfall 11: design-system.ts Constants Diverge from Tailwind Theme
 
-**What goes wrong:** The RPC uses `SECURITY INVOKER`, which means it runs with the calling user's permissions. Blog data is public (no RLS policy restricts reading published blogs), so this works correctly. However, if RLS policies are later added to restrict certain categories (e.g., admin-only draft categories), the INVOKER function would return different results for different users -- potentially confusing.
+**What goes wrong:** The `design-system.ts` file defines TypeScript constants for typography, spacing, colors, border radius, shadows, and animations. These constants parallel (but do not drive) the Tailwind `@theme` block in `globals.css`. During polish, a developer updates the Tailwind theme but not the TypeScript constants, or vice versa. The constants are used for OG images (Satori), email templates, and component presets that do not use Tailwind classes.
 
-**Prevention:** This is actually correct for the current use case. `SECURITY INVOKER` is the right choice because:
-- Blog categories are public data (published posts only, filtered by `WHERE status = 'published'`)
-- No auth.uid() dependency needed
-- SECURITY DEFINER would be overkill and a security risk (bypasses future RLS)
+**Prevention:**
+1. After any `globals.css` `@theme` change, check `design-system.ts` for the same token
+2. Consider adding a unit test that validates `BRAND_COLORS_HEX.primary` matches the CSS custom property value (extractable from the CSS file via regex)
+3. Document which constants are "source of truth" vs "derived" at the top of `design-system.ts`
 
-No action needed. Document the rationale in the migration comment.
+**Detection:** Compare hex values in `design-system.ts` with CSS `oklch()` values in `globals.css` using a color converter. If they represent different colors, the constants have diverged.
 
-**Phase to address:** Task 2 (RPC creation). Already correctly handled in the plan.
+**Phase to address:** UI polish phase. Low risk -- only affects OG images and emails.
 
 ---
 
-### Pitfall 12: BlogCard Missing alt="" for Decorative Images
+### Pitfall 12: Removing Unused Hook Exports Breaks Future Consumption
 
-**What goes wrong:** If `post.featured_image` is present but the image is purely decorative (the card title already describes the content), the `alt={post.title}` creates redundant screen reader announcements. The screen reader says both the image alt text and the heading text, which are identical.
+**What goes wrong:** A hook file exports both a query hook and its underlying query key factory. The factory might not be consumed today but is available for prefetching, cache warming, or use in other hooks later. Removing "unused" exports based on current import count eliminates future extensibility.
 
-**Prevention:** Minor accessibility concern. The current approach (alt = title) is acceptable per WCAG. If images are truly decorative, use `alt=""` with `role="presentation"`. For blog cards, `alt={post.title}` is standard practice. No change needed.
+**Prevention:**
+1. Never remove a `queryOptions()` factory export that follows the established naming pattern -- it is the API surface for that domain
+2. Only remove exports that are clearly duplicates or misspellings
+3. TypeScript's `noUnusedLocals` catches unused local variables but NOT unused exports -- exports have no lint warning by default
 
-**Phase to address:** Not blocking. Standard pattern.
+**Detection:** A future developer tries to `import { leaseQueries } from '#hooks/api/query-keys/lease-keys'` and finds the export missing.
+
+**Phase to address:** Hook consolidation phase. Conservative removal policy.
+
+---
+
+### Pitfall 13: Vendored tour.tsx (1,732 lines) Gets "Cleaned Up"
+
+**What goes wrong:** The `tour.tsx` component is a vendored copy from Dice UI upstream, explicitly exempt from the 300-line rule per CLAUDE.md. During component consolidation, a developer sees the 1,732-line file, notes it violates the 300-line rule, and attempts to split it. This breaks the ability to update from upstream (diff becomes unmergeable) and may break the eslint-disable suppressions that are legitimate upstream patterns.
+
+**Prevention:**
+1. Mark `tour.tsx` clearly in any consolidation audit as "VENDORED -- DO NOT SPLIT OR MODIFY"
+2. If updates are needed, pull from upstream Dice UI and replace the file wholesale
+3. The existing `eslint-disable` comments are intentional upstream patterns, not cleanup targets
+
+**Detection:** `tour.tsx` gets split into multiple files or has eslint-disable comments removed -- tour functionality breaks or lint errors appear.
+
+**Phase to address:** Component audit phase. Mark as skip in the audit.
 
 ---
 
@@ -308,15 +369,18 @@ No action needed. Document the rationale in the migration comment.
 
 | Phase Topic | Likely Pitfall | Mitigation |
 |-------------|---------------|------------|
-| Task 1: Data layer rewrite | Query keys not using `queryOptions()` factories | Create `blog-keys.ts` in `query-keys/` directory, match `property-keys.ts` pattern |
-| Task 1: Data layer rewrite | Missing `placeholderData: keepPreviousData` on paginated queries | Add to list, category, comparisons queries -- project already imports `keepPreviousData` |
-| Task 2: RPC creation | Types not regenerated after migration | Run `pnpm db:types` immediately after migration, commit `supabase.ts` with migration |
-| Task 4: BlogPagination | `?page=1` persists in URL when navigating back to first page | Use `clearOnDefault: true` in nuqs parser options |
-| Task 5: Edge Function | `RESEND_AUDIENCE_ID` secret not set | Create audience in Resend first, set secret before deploy, test with curl |
-| Task 5: Edge Function | Duplicate email submission returns error | Handle 409/duplicate as success; test with same email twice |
-| Task 7: Hub page | Category slug roundtrip breaks acronyms (ROI, SaaS) | Look up category name from RPC data by matching slug, not by deslugifying |
-| Task 9: Category page | Same slug-to-name issue | Use categories RPC to resolve actual DB name from slug |
-| CI restructuring | Removing push trigger leaves direct pushes unverified | Keep both triggers with concurrency cancellation, or verify branch protection |
+| Hook file renames | 27 test files have hardcoded `vi.mock()` paths | Grep for all mock paths before renaming; update in same commit |
+| ownerDashboardKeys movement | 8 hook files + 22 invalidation calls break | Extract to `query-keys/` file, keep re-export in original file |
+| tenantPortalKeys consolidation | Circular dependency between 6 tenant hook files | Mark `use-tenant-portal-keys.ts` as intentionally separate |
+| CVA variant changes | 19 UI components + 50 test files reference variant names | Grep for variant usage before changing; inventory variants first |
+| globals.css token changes | 1,702 lines, no test coverage for CSS variables | Test at 375px/768px/1440px; verify dark mode parity |
+| Query key restructuring | Cache invalidation chains break silently | Keep key arrays identical when moving between files |
+| Re-export removal | Consumers importing from re-exporting file break | Grep for all imports from the re-exporting file first |
+| Mobile-first spacing changes | Horizontal overflow at 375px, touch target violations | Check every change at mobile viewport; never remove `min-h-11` |
+| Shared type removal | Edge Functions in Deno import separately | Grep both `src/` and `supabase/` before removing any type |
+| Component import path changes | 76 component files reference `#hooks/api/` paths | Batch renames; use IDE refactoring; verify with typecheck |
+| UI polish border-radius/shadow | Changes affect all instances of a design token | Scope changes to specific components with Tailwind utility classes, not global tokens |
+| tour.tsx cleanup | Vendored 1,732-line file gets split | Mark as VENDORED -- DO NOT MODIFY in audit |
 
 ---
 
@@ -324,15 +388,16 @@ No action needed. Document the rationale in the migration comment.
 
 | Integration | Common Mistake | Correct Approach |
 |-------------|----------------|------------------|
-| nuqs + TanStack Query | Using `useQueryState` without `clearOnDefault` | Add `clearOnDefault: true` to avoid `?page=1` in URL |
-| nuqs + TanStack Query | Not including page in query key | Ensure query key includes page param: `['blogs', 'list', page, limit]` |
-| TanStack Query pagination | No `placeholderData` causing content flash | Use `keepPreviousData` from `@tanstack/react-query` |
-| Supabase `.range()` + `{ count: 'exact' }` | Using `data.length` for total instead of `count` | Always use `count` from response -- CLAUDE.md rule |
-| Resend Audiences API | Assuming `RESEND_API_KEY` is sufficient | Also need `RESEND_AUDIENCE_ID` -- separate secret |
-| Edge Function CORS | Newsletter is unauthenticated but CORS requires `FRONTEND_URL` | Verify `FRONTEND_URL` is set in Edge Function secrets (shared with other functions) |
-| Blog slug/category URLs | Case-insensitive slug conversion loses acronyms | Resolve names from DB via RPC, never reconstruct from URL slug |
-| BlurFade + grid | Staggered delay on many items causes long animation cascade | Cap `i` in delay calculation; remove from above-fold content |
-| GitHub Actions push + PR | Removing push trigger to "dedup" | Keep both with `concurrency.cancel-in-progress: true` |
+| vi.mock() + file renames | Mock path strings are not type-checked | Grep `vi.mock.*<filename>` before any rename |
+| queryOptions() + file moves | Key array structure changes when file moves | Keep identical `queryKey` arrays; only change which file contains the factory |
+| invalidateQueries() + key changes | Mutation onSuccess handlers reference old key prefix | Grep every `invalidateQueries` call for the moved key's prefix |
+| CVA variants + Tailwind v4 | v4 uses `@theme` instead of `tailwind.config.ts` | Variant classes must reference CSS custom properties, not config values |
+| shadcn updates + customizations | `npx shadcn@latest add <component>` overwrites customizations | Never run shadcn add on customized components; diff upstream changes manually |
+| globals.css + design-system.ts | Two sources for the same design tokens | `globals.css` is authoritative; `design-system.ts` is a derived mirror for non-CSS contexts |
+| useMediaQuery + responsive polish | Changing breakpoint values in CSS without updating JS hook | `BREAKPOINTS` in `design-system.ts` must match `@theme` breakpoints |
+| Pre-commit hooks + large refactors | All 1,415 tests run on every commit | Batch related changes; avoid committing partial renames |
+| Deno Edge Functions + shared types | Frontend type removal does not trigger Deno typecheck | Run `deno check` in supabase/functions after type changes |
+| Next.js 16 + 'use client' boundaries | Moving a server component into a client component tree silently makes it client | Verify `'use client'` directives when restructuring component hierarchy |
 
 ---
 
@@ -340,25 +405,29 @@ No action needed. Document the rationale in the migration comment.
 
 | Shortcut | Immediate Benefit | Long-term Cost | When Acceptable |
 |----------|-------------------|----------------|-----------------|
-| Keep `blogKeys` as raw object (not `queryOptions()`) | Faster implementation, no new file | Inconsistent with 12 other domain factories, harder to prefetch/share | Never -- convention exists, follow it |
-| Skip `keepPreviousData` on pagination | Simpler hook code | Flash of empty content on page change | Never -- project already uses this pattern |
-| Hardcode `deslugify` for category names | No RPC dependency on category page | Breaks on acronyms, multi-word names with special casing | Only if all categories are simple two-word lowercase |
-| Skip Resend duplicate handling | Less Edge Function code | User sees error on re-subscribe | Never for public-facing forms |
-| Remove CI push trigger entirely | No duplicate workflow runs | Direct pushes to main are unverified | Only with confirmed branch protection rules |
+| Rename hook files for aesthetics | Cleaner directory listing | 20+ file import updates per rename | Only when name is genuinely misleading |
+| Remove all backward-compat re-exports | Cleaner code, fewer indirect imports | Breaking change for every consumer | Only after updating all consumers first |
+| Merge tenant portal hooks into one file | Fewer files in `hooks/api/` | Reintroduces circular dependency | Never -- the split exists for a structural reason |
+| Global CSS token changes for polish | Consistent design across app | Breaks OG images, emails, dark mode if mirrors not updated | Only with full audit of token consumers |
+| Remove "unused" query key exports | Smaller API surface | Blocks future prefetching, SSR cache warming | Never remove queryOptions factories |
+| Split vendored tour.tsx | Follows 300-line rule | Breaks upstream merge capability | Never -- exemption is documented |
+| Change button variant names | Cleaner CVA definitions | Every consumer and test must update | Only for variants with zero usage |
 
 ---
 
 ## "Looks Done But Isn't" Checklist
 
-- [ ] **Query key pattern:** `blog-keys.ts` exists in `src/hooks/api/query-keys/` and uses `queryOptions()` -- not raw key arrays in `use-blogs.ts`
-- [ ] **Pagination smoothness:** `keepPreviousData` is wired; page transitions show old data with opacity reduction, not skeleton flash
-- [ ] **Category roundtrip:** Navigate to `/blog/category/roi-maximization` (or any acronym category) -- posts actually appear, not "No articles yet"
-- [ ] **Type regeneration:** `pnpm typecheck` passes clean after RPC migration -- `supabase.ts` includes `get_blog_categories`
-- [ ] **Edge Function secrets:** `RESEND_AUDIENCE_ID` is set in Supabase; `curl -X POST` to the function URL returns 200 (or 400 for bad email, not 500)
-- [ ] **Duplicate subscribe:** Submit same email twice; second attempt shows success or "already subscribed", never an error toast
-- [ ] **URL cleanliness:** Navigate to page 2 then back to page 1; URL is `/blog` not `/blog?page=1`
-- [ ] **CI safety:** After workflow changes, verify `checks` job runs on both `push` and `pull_request` (or branch protection requires it)
-- [ ] **BlurFade timing:** Blog hub loads without visible 400ms+ animation cascade on above-fold content
+- [ ] **vi.mock paths:** After any hook rename, `pnpm test:unit` passes (all 1,415 tests, not just the renamed file's tests)
+- [ ] **Dashboard invalidation:** After ownerDashboardKeys changes, manually test: create a property -> dashboard stats update immediately
+- [ ] **Tenant portal:** After any tenant hook changes, tenant dashboard loads without errors (lease + payments + maintenance + autopay all resolve)
+- [ ] **Mobile responsiveness:** After any spacing/padding changes, check 375px viewport for horizontal overflow
+- [ ] **Touch targets:** After any button/input size changes, all interactive elements still have `min-h-11` (44px minimum)
+- [ ] **Dark mode:** After any color token changes, toggle dark mode -- no white backgrounds on dark, no invisible text
+- [ ] **OG images:** After brand color changes, share a page URL and verify the preview card uses correct colors
+- [ ] **Edge Functions:** After removing any shared type, run `cd supabase/functions && deno test --allow-all --no-check tests/`
+- [ ] **Accessibility:** After any structural changes, verify skip-to-content link works, breadcrumb has `aria-label`, icon buttons have `aria-label`
+- [ ] **Pre-commit:** Commit passes pre-commit hooks (typecheck + lint + unit tests + coverage + gitleaks + duplicate-types)
+- [ ] **Query keys:** After any key factory file changes, verify cache invalidation works for the affected domain
 
 ---
 
@@ -366,27 +435,31 @@ No action needed. Document the rationale in the migration comment.
 
 | Pitfall | Recovery Cost | Recovery Steps |
 |---------|---------------|----------------|
-| Wrong query key pattern (no factory) | LOW | Create `blog-keys.ts`, move queryFn into it, update imports in `use-blogs.ts` -- 30 min refactor |
-| Missing `keepPreviousData` | LOW | Add one line to each paginated query option -- 5 min fix |
-| Category slug roundtrip broken | MEDIUM | Change category page to look up name from RPC results instead of deslugifying -- requires calling `useCategories()` on category page |
-| Types not regenerated | LOW | Run `pnpm db:types`, commit, push -- 2 min fix but blocks CI until done |
-| Edge Function secrets missing | LOW | Set secrets via CLI, no code change needed -- 2 min fix |
-| CI push trigger removed | LOW | Re-add push trigger to workflow -- 1 min fix, but any direct pushes during the gap were unverified |
-| BlurFade animation too aggressive | LOW | Adjust delay constants, rebuild -- 5 min tuning |
+| Broken vi.mock paths (27 test files) | MEDIUM | Grep for stale paths, update strings, run full test suite -- 30-60 min depending on how many tests broke |
+| Dashboard invalidation broken | LOW-MEDIUM | Add back the invalidation import, verify with manual test -- 10 min per affected mutation file |
+| Circular dependency in tenant hooks | HIGH | Revert the merge, re-extract the shared keys file -- may require reverting entire commit if interleaved with other changes |
+| CVA variant rename cascade | MEDIUM | Search-and-replace across all .tsx files, update tests -- 30-60 min for thorough grep |
+| CSS token regression | MEDIUM | Compare git diff of globals.css, identify the changed token, test at all viewports -- 30 min |
+| Query key structure changed | HIGH | Map old keys to new keys, update all invalidation calls, clear user caches (or wait 5 min for GC) -- 1-2 hours |
+| Removed shared type used by Edge Functions | LOW | Re-add the export, run deno check -- 5 min |
+| Mobile layout broken by spacing change | LOW | Revert the Tailwind class change, use responsive prefix instead -- 10 min |
+| Vendored tour.tsx split | HIGH | Restore from upstream Dice UI, re-apply any project-specific modifications -- 1-2 hours |
 
 ---
 
 ## Sources
 
-- [TanStack Query v5 Paginated Queries -- placeholderData with keepPreviousData](https://tanstack.com/query/v5/docs/react/guides/paginated-queries)
-- [TanStack Query v5 Migration -- keepPreviousData removal](https://tanstack.com/query/latest/docs/framework/react/guides/migrating-to-v5)
-- [nuqs GitHub Issues -- Next.js 16 Adapter Detection](https://github.com/47ng/nuqs/issues/1263)
-- [Resend Create Contact API Reference](https://resend.com/docs/api-reference/contacts/create-contact)
-- [GitHub Actions Avoid Double Runs](https://adamj.eu/tech/2025/05/14/github-actions-avoid-simple-on/)
-- [GitHub Community -- Duplicate PR/Push Checks](https://github.com/orgs/community/discussions/26940)
-- [Supabase Database Functions -- SECURITY INVOKER vs DEFINER](https://supabase.com/docs/guides/database/functions)
-- Existing codebase: `src/hooks/api/query-keys/property-keys.ts` (canonical `queryOptions()` factory pattern), `src/providers/query-provider.tsx` (global `keepPreviousData`), `supabase/functions/_shared/rate-limit.ts`, `supabase/functions/_shared/env.ts`, `proxy.ts` (public route matching), `.github/workflows/ci-cd.yml`
+- Codebase analysis: `src/hooks/api/` dependency graph (85 hook files, 16 query key factories, 170 invalidation calls across 32 files)
+- Codebase analysis: `src/components/ui/` (19 CVA-customized components out of 65 total UI components)
+- Codebase analysis: `vi.mock()` usage across 27 test files targeting hook modules
+- Codebase analysis: `ownerDashboardKeys` imported by 8 hook files with 22 invalidation call sites
+- Codebase analysis: `tenantPortalKeys` consumed by 6 hook files in an acyclic dependency tree
+- Codebase analysis: `globals.css` (1,702 lines with `@theme` tokens, no dark mode test coverage)
+- Codebase analysis: `design-system.ts` (548 lines of TypeScript token mirrors)
+- Codebase analysis: `lefthook.yml` (parallel pre-commit: gitleaks + duplicate-types + lockfile + lint + typecheck + unit-tests with coverage)
+- Codebase analysis: `components.json` (shadcn new-york style, 10 registered UI component registries)
+- Project rule: CLAUDE.md "No barrel files / re-exports" and "Max 300 lines per component" with tour.tsx exemption
 
 ---
-*Pitfalls research for: TenantFlow blog redesign + newsletter + CI optimization milestone*
-*Researched: 2026-03-06*
+*Pitfalls research for: TenantFlow v1.2 Production Polish & Code Consolidation milestone*
+*Researched: 2026-03-07*
