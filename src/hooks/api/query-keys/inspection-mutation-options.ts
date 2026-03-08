@@ -17,8 +17,8 @@ import type {
 	TenantReviewInput,
 	CreateInspectionRoomInput,
 	UpdateInspectionRoomInput
-} from '#shared/validation/inspections'
-import type { Inspection } from '#shared/types/sections/inspections'
+} from '#lib/validation/inspections'
+import type { Inspection } from '#types/sections/inspections'
 
 // ============================================================================
 // TYPES

@@ -12,12 +12,12 @@ import { createClient } from '#lib/supabase/client'
 import { getCachedUser } from '#lib/supabase/get-cached-user'
 import { handlePostgrestError } from '#lib/postgrest-error-handler'
 import { requireOwnerUserId } from '#lib/require-owner-user-id'
-import { createLogger, logger } from '#shared/lib/frontend-logger'
-import type { Property } from '#shared/types/core'
+import { createLogger, logger } from '#lib/frontend-logger'
+import type { Property } from '#types/core'
 import type {
 	PropertyCreate,
 	PropertyUpdate
-} from '#shared/validation/properties'
+} from '#lib/validation/properties'
 import { mutationKeys } from '../mutation-keys'
 
 // ============================================================================
@@ -26,7 +26,7 @@ import { mutationKeys } from '../mutation-keys'
 
 export const propertyMutations = {
 	create: () =>
-		mutationOptions({
+		mutationOptions<Property, unknown, PropertyCreate>({
 			mutationKey: mutationKeys.properties.create,
 			mutationFn: async (data: PropertyCreate): Promise<Property> => {
 				const supabase = createClient()
@@ -46,16 +46,12 @@ export const propertyMutations = {
 		}),
 
 	update: () =>
-		mutationOptions({
+		mutationOptions<Property, unknown, { id: string; data: PropertyUpdate; version?: number }>({
 			mutationKey: mutationKeys.properties.update,
 			mutationFn: async ({
 				id,
 				data,
 				version
-			}: {
-				id: string
-				data: PropertyUpdate
-				version?: number
 			}): Promise<Property> => {
 				const supabase = createClient()
 				const updatePayload = version ? { ...data, version } : { ...data }
@@ -73,7 +69,7 @@ export const propertyMutations = {
 		}),
 
 	delete: () =>
-		mutationOptions({
+		mutationOptions<void, unknown, string>({
 			mutationKey: mutationKeys.properties.delete,
 			mutationFn: async (id: string): Promise<void> => {
 				const supabase = createClient()
@@ -87,16 +83,12 @@ export const propertyMutations = {
 		}),
 
 	markSold: () =>
-		mutationOptions({
+		mutationOptions<{ success: boolean; message: string }, unknown, { id: string; dateSold: Date; salePrice: number }>({
 			mutationKey: mutationKeys.properties.markSold,
 			mutationFn: async ({
 				id,
 				dateSold,
 				salePrice
-			}: {
-				id: string
-				dateSold: Date
-				salePrice: number
 			}): Promise<{ success: boolean; message: string }> => {
 				const supabase = createClient()
 				const { data: updated, error } = await supabase
@@ -118,15 +110,11 @@ export const propertyMutations = {
 		}),
 
 	deleteImage: () =>
-		mutationOptions({
+		mutationOptions<{ success: boolean }, unknown, { imageId: string; property_id: string; imagePath?: string }>({
 			mutationKey: mutationKeys.properties.deleteImage,
 			mutationFn: async ({
 				imageId,
 				imagePath
-			}: {
-				imageId: string
-				property_id: string
-				imagePath?: string
 			}) => {
 				const supabase = createClient()
 				const mutationLogger = createLogger({ component: 'PropertyMutations' })

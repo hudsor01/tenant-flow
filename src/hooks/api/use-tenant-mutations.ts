@@ -2,21 +2,20 @@
  * Tenant Mutation Hooks
  * TanStack Query mutation hooks for tenant management.
  * Split from use-tenant.ts for the 300-line file size rule.
+ *
+ * mutationFn logic lives in tenantMutations factories (query-keys/tenant-mutation-options.ts).
+ * This file spreads factories and adds onSuccess/onError/onSettled callbacks.
  */
 
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { createClient } from '#lib/supabase/client'
-import { handlePostgrestError } from '#lib/postgrest-error-handler'
 import { handleMutationError, handleMutationSuccess } from '#lib/mutation-error-handler'
 import { toast } from 'sonner'
-import { logger } from '#lib/frontend-logger.js'
 import { incrementVersion } from '#lib/utils/optimistic-locking.js'
-import type { TenantCreate, TenantUpdate } from '#lib/validation/tenants'
 import type { Tenant, TenantWithLeaseInfo, TenantWithLeaseInfoWithVersion } from '#types/core'
 
 import { tenantQueries } from './query-keys/tenant-keys'
+import { tenantMutations } from './query-keys/tenant-mutation-options'
 import { leaseQueries } from './query-keys/lease-keys'
-import { mutationKeys } from './mutation-keys'
 import { ownerDashboardKeys } from './use-owner-dashboard'
 
 /**
@@ -26,13 +25,7 @@ import { ownerDashboardKeys } from './use-owner-dashboard'
 export function useCreateTenantMutation() {
 	const queryClient = useQueryClient()
 	return useMutation({
-		mutationKey: mutationKeys.tenants.create,
-		mutationFn: async (data: TenantCreate): Promise<Tenant> => {
-			const supabase = createClient()
-			const { data: created, error } = await supabase.from('tenants').insert(data).select().single()
-			if (error) handlePostgrestError(error, 'tenants')
-			return created as Tenant
-		},
+		...tenantMutations.create(),
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: tenantQueries.lists() })
 			queryClient.invalidateQueries({ queryKey: ownerDashboardKeys.all })
@@ -46,13 +39,7 @@ export function useCreateTenantMutation() {
 export function useUpdateTenantMutation() {
 	const queryClient = useQueryClient()
 	return useMutation({
-		mutationKey: mutationKeys.tenants.update,
-		mutationFn: async ({ id, data }: { id: string; data: TenantUpdate }): Promise<Tenant> => {
-			const supabase = createClient()
-			const { data: updated, error } = await supabase.from('tenants').update(data).eq('id', id).select().single()
-			if (error) handlePostgrestError(error, 'tenants')
-			return updated as Tenant
-		},
+		...tenantMutations.update(),
 		onSuccess: updatedTenant => {
 			queryClient.setQueryData(tenantQueries.detail(updatedTenant.id).queryKey, updatedTenant)
 			queryClient.invalidateQueries({ queryKey: tenantQueries.lists() })
@@ -70,21 +57,7 @@ export function useUpdateTenantMutation() {
 export function useDeleteTenantMutation() {
 	const queryClient = useQueryClient()
 	return useMutation({
-		mutationKey: mutationKeys.tenants.delete,
-		mutationFn: async (id: string): Promise<void> => {
-			const supabase = createClient()
-			const { data: activeLeases, error: leaseError } = await supabase
-				.from('lease_tenants')
-				.select('lease_id, leases!inner(id, lease_status)')
-				.eq('tenant_id', id)
-				.eq('leases.lease_status', 'active')
-			if (leaseError) handlePostgrestError(leaseError, 'lease_tenants')
-			if (activeLeases && activeLeases.length > 0) {
-				throw new Error('Cannot delete tenant with active lease. End or transfer the lease before removing them.')
-			}
-			const { error } = await supabase.from('tenants').update({ status: 'inactive' }).eq('id', id)
-			if (error) handlePostgrestError(error, 'tenants')
-		},
+		...tenantMutations.delete(),
 		onSuccess: (_result, deletedId) => {
 			queryClient.removeQueries({ queryKey: tenantQueries.detail(deletedId).queryKey })
 			queryClient.invalidateQueries({ queryKey: tenantQueries.lists() })
@@ -104,22 +77,7 @@ export function useMarkTenantAsMovedOutMutation() {
 	const queryClient = useQueryClient()
 
 	return useMutation({
-		mutationKey: mutationKeys.tenants.markMovedOut,
-		mutationFn: async ({ id, data }: { id: string; data: { moveOutDate: string; moveOutReason: string } }): Promise<TenantWithLeaseInfo> => {
-			const supabase = createClient()
-			const { data: tenant, error: tenantError } = await supabase.from('tenants').select('user_id').eq('id', id).single()
-			if (tenantError) handlePostgrestError(tenantError, 'tenants')
-			const { error: userError } = await supabase.from('users').update({ status: 'inactive', updated_at: new Date().toISOString() }).eq('id', tenant!.user_id)
-			if (userError) handlePostgrestError(userError, 'users')
-			const { data: updated, error: fetchError } = await supabase
-				.from('tenants')
-				.select('*, users!tenants_user_id_fkey(id, email, first_name, last_name, full_name, phone, status), lease_tenants(lease_id, is_primary, leases(id, lease_status, start_date, end_date, rent_amount, security_deposit, unit_id, auto_pay_enabled, primary_tenant_id, owner_user_id, units(id, unit_number, bedrooms, bathrooms, square_feet, rent_amount, property_id, properties(id, name, address_line1, address_line2, city, state, postal_code))))')
-				.eq('id', id)
-				.single()
-			if (fetchError) handlePostgrestError(fetchError, 'tenants')
-			logger.info('Tenant marked as moved out', { action: 'mark_moved_out', metadata: { tenant_id: id, move_out_date: data.moveOutDate, move_out_reason: data.moveOutReason } })
-			return updated as unknown as TenantWithLeaseInfo
-		},
+		...tenantMutations.markMovedOut(),
 		onMutate: async ({ id }) => {
 			await queryClient.cancelQueries({ queryKey: tenantQueries.detail(id).queryKey })
 			await queryClient.cancelQueries({ queryKey: tenantQueries.withLease(id).queryKey })

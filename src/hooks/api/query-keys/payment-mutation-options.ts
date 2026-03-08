@@ -15,12 +15,12 @@ import { mutationKeys } from '../mutation-keys'
 import type {
 	SendPaymentReminderRequest,
 	SendPaymentReminderResponse
-} from '#shared/types/api-contracts'
+} from '#types/api-contracts'
 import type {
 	PaymentFilters,
 	ManualPaymentInput
-} from '#shared/types/sections/payments'
-import type { PaymentMethodResponse } from '#shared/types/core'
+} from '#types/sections/payments'
+import type { PaymentMethodResponse } from '#types/core'
 import type { QueryKey } from '@tanstack/react-query'
 
 // ============================================================================

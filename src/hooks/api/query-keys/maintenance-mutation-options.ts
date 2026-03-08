@@ -11,11 +11,11 @@ import { createClient } from '#lib/supabase/client'
 import { getCachedUser } from '#lib/supabase/get-cached-user'
 import { handlePostgrestError } from '#lib/postgrest-error-handler'
 import { requireOwnerUserId } from '#lib/require-owner-user-id'
-import type { MaintenanceRequest } from '#shared/types/core'
+import type { MaintenanceRequest } from '#types/core'
 import type {
 	MaintenanceRequestCreate,
 	MaintenanceRequestUpdate
-} from '#shared/validation/maintenance'
+} from '#lib/validation/maintenance'
 import { mutationKeys } from '../mutation-keys'
 
 /** Variables for update mutation including optional optimistic locking version */

@@ -13,7 +13,7 @@ import type {
 	CreateRentSubscriptionRequest,
 	RentSubscriptionResponse,
 	UpdateSubscriptionRequest
-} from '#shared/types/api-contracts'
+} from '#types/api-contracts'
 
 // ============================================================================
 // EDGE FUNCTION HELPER

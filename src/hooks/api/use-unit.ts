@@ -6,6 +6,9 @@
  * Query keys are in a separate file to avoid circular dependencies.
  * - Placeholder data from cache
  * - Proper error handling
+ *
+ * mutationFn logic lives in unitMutations factories (query-keys/unit-mutation-options.ts).
+ * This file spreads factories and adds onSuccess/onError/onSettled callbacks.
  */
 
 import {
@@ -16,20 +19,15 @@ import {
 } from '@tanstack/react-query'
 import type { Unit } from '#types/core'
 import type { PaginatedResponse } from '#types/api-contracts'
-import type { UnitInput, UnitUpdate } from '#lib/validation/units'
 import { QUERY_CACHE_TIMES } from '#lib/constants/query-config'
-import { createClient } from '#lib/supabase/client'
-import { getCachedUser } from '#lib/supabase/get-cached-user'
-import { handlePostgrestError } from '#lib/postgrest-error-handler'
-import { requireOwnerUserId } from '#lib/require-owner-user-id'
 import { handleMutationError } from '#lib/mutation-error-handler'
 import { toast } from 'sonner'
 
 // Import query keys from separate file to avoid circular dependency
 import { unitQueries } from './query-keys/unit-keys'
+import { unitMutations } from './query-keys/unit-mutation-options'
 import { propertyQueries } from './query-keys/property-keys'
 import { leaseQueries } from './query-keys/lease-keys'
-import { mutationKeys } from './mutation-keys'
 import { ownerDashboardKeys } from './use-owner-dashboard'
 
 /**
@@ -154,22 +152,7 @@ export function useCreateUnitMutation() {
 	const queryClient = useQueryClient()
 
 	return useMutation({
-		mutationKey: mutationKeys.units.create,
-		mutationFn: async (data: UnitInput): Promise<Unit> => {
-			const supabase = createClient()
-			const user = await getCachedUser()
-			const ownerId = requireOwnerUserId(user?.id)
-
-			const { data: created, error } = await supabase
-				.from('units')
-				.insert({ ...data, owner_user_id: ownerId })
-				.select()
-				.single()
-
-			if (error) handlePostgrestError(error, 'units')
-
-			return created as Unit
-		},
+		...unitMutations.create(),
 		onSuccess: _newUnit => {
 			queryClient.invalidateQueries({ queryKey: unitQueries.lists() })
 			queryClient.invalidateQueries({ queryKey: propertyQueries.lists() })
@@ -189,29 +172,7 @@ export function useUpdateUnitMutation() {
 	const queryClient = useQueryClient()
 
 	return useMutation({
-		mutationKey: mutationKeys.units.update,
-		mutationFn: async ({
-			id,
-			data,
-			version
-		}: {
-			id: string
-			data: UnitUpdate
-			version?: number
-		}): Promise<Unit> => {
-			const supabase = createClient()
-			const updatePayload = version ? { ...data, version } : { ...data }
-			const { data: updated, error } = await supabase
-				.from('units')
-				.update(updatePayload)
-				.eq('id', id)
-				.select()
-				.single()
-
-			if (error) handlePostgrestError(error, 'units')
-
-			return updated as Unit
-		},
+		...unitMutations.update(),
 		onSuccess: updatedUnit => {
 			queryClient.setQueryData(
 				unitQueries.detail(updatedUnit.id).queryKey,
@@ -236,16 +197,7 @@ export function useDeleteUnitMutation() {
 	const queryClient = useQueryClient()
 
 	return useMutation({
-		mutationKey: mutationKeys.units.delete,
-		mutationFn: async (id: string): Promise<void> => {
-			const supabase = createClient()
-			const { error } = await supabase
-				.from('units')
-				.update({ status: 'inactive' })
-				.eq('id', id)
-
-			if (error) handlePostgrestError(error, 'units')
-		},
+		...unitMutations.delete(),
 		onSuccess: (_result, deletedId) => {
 			queryClient.removeQueries({
 				queryKey: unitQueries.detail(deletedId).queryKey

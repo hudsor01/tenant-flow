@@ -14,8 +14,8 @@ import { handlePostgrestError } from '#lib/postgrest-error-handler'
 import { requireOwnerUserId } from '#lib/require-owner-user-id'
 import { createClient } from '#lib/supabase/client'
 import { getCachedUser } from '#lib/supabase/get-cached-user'
-import type { Lease } from '#shared/types/core'
-import type { LeaseCreate, LeaseUpdate } from '#shared/validation/leases'
+import type { Lease } from '#types/core'
+import type { LeaseCreate, LeaseUpdate } from '#lib/validation/leases'
 import { mutationKeys } from '../mutation-keys'
 
 // ============================================================================

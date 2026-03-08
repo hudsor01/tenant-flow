@@ -5,25 +5,20 @@
  * Split from use-lease.ts for the 300-line file size rule.
  * Query hooks remain in use-lease.ts.
  *
- * CRUD mutations use PostgREST direct via supabase-js.
+ * mutationFn logic lives in leaseMutations factories (query-keys/lease-mutation-options.ts).
  * Signature mutations are in use-lease-signature-mutations.ts.
  */
 
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { logger } from '#lib/frontend-logger.js'
 import type { Lease } from '#types/core'
-import type { LeaseCreate, LeaseUpdate } from '#lib/validation/leases'
 import { handleMutationError } from '#lib/mutation-error-handler'
-import { handlePostgrestError } from '#lib/postgrest-error-handler'
-import { requireOwnerUserId } from '#lib/require-owner-user-id'
-import { createClient } from '#lib/supabase/client'
-import { getCachedUser } from '#lib/supabase/get-cached-user'
 import { tenantQueries } from './query-keys/tenant-keys'
 import { unitQueries } from './query-keys/unit-keys'
 import { toast } from 'sonner'
 
 import { leaseQueries } from './query-keys/lease-keys'
-import { mutationKeys } from './mutation-keys'
+import { leaseMutations } from './query-keys/lease-mutation-options'
 import { ownerDashboardKeys } from './use-owner-dashboard'
 
 // ============================================================================
@@ -40,18 +35,7 @@ export function useDeleteLeaseOptimisticMutation(options?: {
 	const queryClient = useQueryClient()
 
 	return useMutation({
-		mutationKey: mutationKeys.leases.delete,
-		mutationFn: async (id: string): Promise<string> => {
-			const supabase = createClient()
-			// Soft-delete: set lease_status to inactive (financial record retention)
-			const { error } = await supabase
-				.from('leases')
-				.update({ lease_status: 'inactive' })
-				.eq('id', id)
-
-			if (error) handlePostgrestError(error, 'leases')
-			return id
-		},
+		...leaseMutations.deleteOptimistic(),
 		onMutate: async (id: string) => {
 			// Cancel outgoing queries
 			await queryClient.cancelQueries({
@@ -130,25 +114,7 @@ export function useCreateLeaseMutation() {
 	const queryClient = useQueryClient()
 
 	return useMutation({
-		mutationKey: mutationKeys.leases.create,
-		mutationFn: async (data: LeaseCreate): Promise<Lease> => {
-			const supabase = createClient()
-			const user = await getCachedUser()
-			const ownerId = requireOwnerUserId(user?.id)
-
-			// Omit tenant_ids (form-only field) before inserting into DB
-			const { tenant_ids: _tenant_ids, ...leaseData } = data
-
-			const { data: created, error } = await supabase
-				.from('leases')
-				.insert({ ...leaseData, owner_user_id: ownerId })
-				.select()
-				.single()
-
-			if (error) handlePostgrestError(error, 'leases')
-
-			return created as unknown as Lease
-		},
+		...leaseMutations.create(),
 		onSuccess: _newLease => {
 			// Invalidate lease, tenant, and unit lists
 			queryClient.invalidateQueries({ queryKey: leaseQueries.lists() })
@@ -170,29 +136,7 @@ export function useUpdateLeaseMutation() {
 	const queryClient = useQueryClient()
 
 	return useMutation({
-		mutationKey: mutationKeys.leases.update,
-		mutationFn: async ({
-			id,
-			data,
-			version
-		}: {
-			id: string
-			data: LeaseUpdate
-			version?: number
-		}): Promise<Lease> => {
-			const supabase = createClient()
-			const payload = version ? { ...data, version } : { ...data }
-			const { data: updated, error } = await supabase
-				.from('leases')
-				.update(payload)
-				.eq('id', id)
-				.select()
-				.single()
-
-			if (error) handlePostgrestError(error, 'leases')
-
-			return updated as unknown as Lease
-		},
+		...leaseMutations.update(),
 		onSuccess: updatedLease => {
 			// Update the specific lease in cache
 			queryClient.setQueryData(
@@ -220,17 +164,7 @@ export function useDeleteLeaseMutation() {
 	const queryClient = useQueryClient()
 
 	return useMutation({
-		mutationKey: mutationKeys.leases.delete,
-		mutationFn: async (id: string): Promise<void> => {
-			const supabase = createClient()
-			// Soft-delete: set lease_status to inactive (financial record retention)
-			const { error } = await supabase
-				.from('leases')
-				.update({ lease_status: 'inactive' })
-				.eq('id', id)
-
-			if (error) handlePostgrestError(error, 'leases')
-		},
+		...leaseMutations.delete(),
 		onSuccess: (_result, deletedId) => {
 			// Remove from cache
 			queryClient.removeQueries({

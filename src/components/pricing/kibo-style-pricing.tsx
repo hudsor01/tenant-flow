@@ -205,7 +205,7 @@ export function KiboStylePricing({
 
 	return (
 		<>
-			<div className="mx-auto flex w-full max-w-6xl flex-col gap-8 px-(--spacing-4) sm:px-[var(--spacing-6)] lg:px-[var(--spacing-0)]">
+			<div className="mx-auto flex w-full max-w-6xl flex-col gap-8 px-(--spacing-4) sm:px-(--spacing-6) lg:px-(--spacing-0)">
 				<div className="mt-10 grid w-full gap-6 sm:grid-cols-2 xl:grid-cols-3">
 					{pricingPlans.map(plan => (
 						<Card

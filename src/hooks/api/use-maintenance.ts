@@ -4,6 +4,9 @@
  * React 19 + TanStack Query v5 patterns with Suspense support
  *
  * Query keys are in a separate file to avoid circular dependencies.
+ *
+ * mutationFn logic lives in maintenanceMutations factories (query-keys/maintenance-mutation-options.ts).
+ * This file spreads factories and adds onSuccess/onError/onSettled callbacks.
  */
 
 import {
@@ -14,19 +17,11 @@ import {
 } from '@tanstack/react-query'
 import type { MaintenanceRequest } from '#types/core'
 import type { PaginatedResponse } from '#types/api-contracts'
-import type {
-	MaintenanceRequestCreate,
-	MaintenanceRequestUpdate
-} from '#lib/validation/maintenance'
 
 // Import query keys from separate file to avoid circular dependency
 import { maintenanceQueries, type MaintenanceFilters } from './query-keys/maintenance-keys'
-import { createClient } from '#lib/supabase/client'
-import { getCachedUser } from '#lib/supabase/get-cached-user'
-import { handlePostgrestError } from '#lib/postgrest-error-handler'
-import { requireOwnerUserId } from '#lib/require-owner-user-id'
+import { maintenanceMutations } from './query-keys/maintenance-mutation-options'
 import { handleMutationError } from '#lib/mutation-error-handler'
-import { mutationKeys } from './mutation-keys'
 import { ownerDashboardKeys } from './use-owner-dashboard'
 import { toast } from 'sonner'
 
@@ -37,11 +32,7 @@ import { toast } from 'sonner'
 const selectPaginatedData = <T>(response: PaginatedResponse<T>): T[] => response.data
 
 /** Variables for update mutation including optional optimistic locking version */
-export interface MaintenanceUpdateMutationVariables {
-	id: string
-	data: MaintenanceRequestUpdate
-	version?: number
-}
+export type { MaintenanceUpdateMutationVariables } from './query-keys/maintenance-mutation-options'
 
 // ============================================================================
 // QUERY HOOKS
@@ -148,22 +139,7 @@ export function useMaintenanceRequestCreateMutation() {
 	const queryClient = useQueryClient()
 
 	return useMutation({
-		mutationKey: mutationKeys.maintenance.create,
-		mutationFn: async (data: MaintenanceRequestCreate): Promise<MaintenanceRequest> => {
-			const supabase = createClient()
-			const user = await getCachedUser()
-			const ownerId = requireOwnerUserId(user?.id)
-
-			const { data: created, error } = await supabase
-				.from('maintenance_requests')
-				.insert({ ...data, owner_user_id: ownerId })
-				.select()
-				.single()
-
-			if (error) handlePostgrestError(error, 'maintenance_requests')
-
-			return created as MaintenanceRequest
-		},
+		...maintenanceMutations.create(),
 		onSuccess: _newRequest => {
 			// Invalidate and refetch maintenance lists
 			queryClient.invalidateQueries({ queryKey: maintenanceQueries.lists() })
@@ -184,16 +160,7 @@ export function useDeleteMaintenanceRequest() {
 	const queryClient = useQueryClient()
 
 	return useMutation({
-		mutationKey: mutationKeys.maintenance.delete,
-		mutationFn: async (id: string): Promise<void> => {
-			const supabase = createClient()
-			const { error } = await supabase
-				.from('maintenance_requests')
-				.delete()
-				.eq('id', id)
-
-			if (error) handlePostgrestError(error, 'maintenance_requests')
-		},
+		...maintenanceMutations.delete(),
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: maintenanceQueries.lists() })
 			queryClient.invalidateQueries({ queryKey: ownerDashboardKeys.all })
@@ -211,24 +178,7 @@ export function useMaintenanceRequestUpdateMutation() {
 	const queryClient = useQueryClient()
 
 	return useMutation({
-		mutationKey: mutationKeys.maintenance.update,
-		mutationFn: async ({ id, data, version: _version }: MaintenanceUpdateMutationVariables): Promise<MaintenanceRequest> => {
-			// Note: version is intentionally unused — optimistic locking via version
-			// is not implemented in the DB schema. The parameter is kept in the
-			// interface for future compatibility.
-			const supabase = createClient()
-
-			const { data: updated, error } = await supabase
-				.from('maintenance_requests')
-				.update(data)
-				.eq('id', id)
-				.select()
-				.single()
-
-			if (error) handlePostgrestError(error, 'maintenance_requests')
-
-			return updated as MaintenanceRequest
-		},
+		...maintenanceMutations.update(),
 		onSuccess: updatedRequest => {
 			// Update the specific maintenance request in cache
 			queryClient.setQueryData(

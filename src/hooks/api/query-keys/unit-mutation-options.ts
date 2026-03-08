@@ -11,8 +11,8 @@ import { createClient } from '#lib/supabase/client'
 import { getCachedUser } from '#lib/supabase/get-cached-user'
 import { handlePostgrestError } from '#lib/postgrest-error-handler'
 import { requireOwnerUserId } from '#lib/require-owner-user-id'
-import type { Unit } from '#shared/types/core'
-import type { UnitInput, UnitUpdate } from '#shared/validation/units'
+import type { Unit } from '#types/core'
+import type { UnitInput, UnitUpdate } from '#lib/validation/units'
 import { mutationKeys } from '../mutation-keys'
 
 // ============================================================================

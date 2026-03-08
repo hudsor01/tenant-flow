@@ -11,12 +11,12 @@
 import { mutationOptions } from '@tanstack/react-query'
 import { createClient } from '#lib/supabase/client'
 import { handlePostgrestError } from '#lib/postgrest-error-handler'
-import { logger } from '#shared/lib/frontend-logger'
-import type { Tenant, TenantWithLeaseInfo } from '#shared/types/core'
+import { logger } from '#lib/frontend-logger'
+import type { Tenant, TenantWithLeaseInfo } from '#types/core'
 import type {
 	TenantCreate,
 	TenantUpdate
-} from '#shared/validation/tenants'
+} from '#lib/validation/tenants'
 import { mutationKeys } from '../mutation-keys'
 
 // ============================================================================

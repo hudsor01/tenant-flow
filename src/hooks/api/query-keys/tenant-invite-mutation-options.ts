@@ -9,7 +9,7 @@
 import { mutationOptions } from '@tanstack/react-query'
 import { createClient } from '#lib/supabase/client'
 import { handlePostgrestError } from '#lib/postgrest-error-handler'
-import type { TenantWithExtras } from '#shared/types/core'
+import type { TenantWithExtras } from '#types/core'
 import { mutationKeys } from '../mutation-keys'
 
 // ============================================================================
