@@ -68,13 +68,13 @@ Plans:
 **Goal**: API hooks are deduplicated, modernized for TanStack Query v5 patterns, all oversized hook files are split under the 300-line limit, all forms migrated to TanStack Form, and mutationOptions() factories added
 **Depends on**: Phase 16
 **Requirements**: MOD-02, MOD-04, MOD-05
-**Plans:** 1/6 plans executed
+**Plans:** 5/6 plans executed
 Plans:
-- [ ] 17-01-PLAN.md -- Split 7 oversized hook/query-key files under 300 lines and remove react-hook-form
-- [ ] 17-02-PLAN.md -- Create mutationOptions() factories for core owner domains (properties, tenants, leases, maintenance, units, vendors)
-- [ ] 17-03-PLAN.md -- Create mutationOptions() factories for secondary domains in query-key files
-- [ ] 17-04-PLAN.md -- Convert Suspense-wrapped components from useQuery to useSuspenseQuery
-- [ ] 17-05-PLAN.md -- Refactor 25 secondary mutation hooks to spread mutationOptions factories
+- [x] 17-01-PLAN.md -- Split 7 oversized hook/query-key files under 300 lines and remove react-hook-form
+- [x] 17-02-PLAN.md -- Create mutationOptions() factories for core owner domains (properties, tenants, leases, maintenance, units, vendors)
+- [x] 17-03-PLAN.md -- Create mutationOptions() factories for secondary domains in query-key files
+- [x] 17-04-PLAN.md -- Convert Suspense-wrapped components from useQuery to useSuspenseQuery
+- [x] 17-05-PLAN.md -- Refactor 25 secondary mutation hooks to spread mutationOptions factories
 - [ ] 17-06-PLAN.md -- Audit and delete dead hooks, resolve overlapping hook functionality
 **Success Criteria** (what must be TRUE):
   1. All components inside Suspense boundaries use useSuspenseQuery with typed data (never undefined) instead of useQuery
@@ -121,7 +121,7 @@ Plans:
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 16. Shared Cleanup & Dead Code | 3/3 | Complete | 2026-03-08 |
-| 17. Hooks Consolidation | 1/6 | In Progress|  |
+| 17. Hooks Consolidation | 5/6 | In Progress|  |
 | 18. Components Consolidation | 0/TBD | Not started | - |
 | 19. UI Polish | 0/TBD | Not started | - |
 | 20. Browser Audit | 0/TBD | Not started | - |

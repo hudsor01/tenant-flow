@@ -21,7 +21,7 @@ Requirements for Production Polish & Code Consolidation. Each maps to roadmap ph
 - [ ] **MOD-02**: Expand `useSuspenseQuery` usage to components inside Suspense boundaries beyond current 5 dashboard calls
 - [ ] **MOD-03**: Reconcile design tokens — `globals.css` is the sole source of truth, reduce `design-system.ts` to non-CSS contexts only (OG images, emails)
 - [x] **MOD-04**: Migrate all react-hook-form usage (17 files) to TanStack Form and remove react-hook-form dependency
-- [ ] **MOD-05**: Add mutationOptions() factories for all mutation hooks, mirroring queryOptions() pattern
+- [x] **MOD-05**: Add mutationOptions() factories for all mutation hooks, mirroring queryOptions() pattern
 
 ### UI Polish
 
@@ -74,7 +74,7 @@ Requirements for Production Polish & Code Consolidation. Each maps to roadmap ph
 | MOD-02 | Phase 17 | Pending |
 | MOD-03 | Phase 16 | Pending |
 | MOD-04 | Phase 17 | Complete |
-| MOD-05 | Phase 17 | Pending |
+| MOD-05 | Phase 17 | Complete |
 | UI-01 | Phase 19 | Pending |
 | UI-02 | Phase 19 | Pending |
 | UI-03 | Phase 19 | Pending |
