@@ -57,14 +57,14 @@ Requirements for Production Polish & Code Consolidation. Each maps to roadmap ph
 | `use cache` directive | Experimental, not relevant to dynamic data app |
 | TanStack Router migration | Already on Next.js App Router |
 | Full mobile responsiveness milestone | Spot-check and fix, not comprehensive redesign |
-| mutationOptions() factories | Deferred — queryOptions() pattern is working well, mutations don't need factory parity yet |
+| mutationOptions() factories | Deferred -- queryOptions() pattern is working well, mutations don't need factory parity yet |
 
 ## Traceability
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
 | CLEAN-01 | Phase 16 | Pending |
-| CLEAN-02 | Phase 16 | Pending |
+| CLEAN-02 | Phase 18 | Pending |
 | CLEAN-03 | Phase 16 | Pending |
 | CLEAN-04 | Phase 16 | Pending |
 | CLEAN-05 | Phase 16 | Pending |
@@ -85,4 +85,4 @@ Requirements for Production Polish & Code Consolidation. Each maps to roadmap ph
 
 ---
 *Requirements defined: 2026-03-08*
-*Last updated: 2026-03-08 after initial definition*
+*Last updated: 2026-03-08 after roadmap creation*
