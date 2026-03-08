@@ -42,7 +42,7 @@ TenantFlow is a multi-tenant property management SaaS platform for property owne
 ### v1.2 Production Polish & Code Consolidation (In Progress)
 
 - [x] **Phase 16: Shared Cleanup & Dead Code** - Flatten src/shared/ into top-level directories, delete design-system.ts, run Knip audit, delete TYPES.md, update CLAUDE.md
-- [ ] **Phase 17: Hooks Consolidation** - Deduplicate and modernize API hooks, expand useSuspenseQuery, split oversized hook files
+- [ ] **Phase 17: Hooks Consolidation** - Deduplicate and modernize API hooks, expand useSuspenseQuery, split oversized hook files, migrate react-hook-form to TanStack Form, add mutationOptions() factories
 - [ ] **Phase 18: Components Consolidation** - Split oversized components, enable React Compiler, remove manual memoization
 - [ ] **Phase 19: UI Polish** - Redesign marketing navbar, enforce button/card/layout consistency across all page groups
 - [ ] **Phase 20: Browser Audit** - Systematic browser automation verification of all pages at desktop and mobile viewports
@@ -65,7 +65,7 @@ Plans:
   4. globals.css is the sole source of truth for design tokens; design-system.ts is deleted entirely
 
 ### Phase 17: Hooks Consolidation
-**Goal**: API hooks are deduplicated, modernized for TanStack Query v5 patterns, and all oversized hook files are split under the 300-line limit
+**Goal**: API hooks are deduplicated, modernized for TanStack Query v5 patterns, all oversized hook files are split under the 300-line limit, all forms migrated to TanStack Form, and mutationOptions() factories added
 **Depends on**: Phase 16
 **Requirements**: MOD-02
 **Success Criteria** (what must be TRUE):
@@ -73,6 +73,8 @@ Plans:
   2. No duplicate or overlapping hook functionality exists across the 85 hook files
   3. All hook files are under 300 lines (the 2+ oversized hooks identified in CLEAN-02 are split as part of this consolidation)
   4. ownerDashboardKeys cross-domain invalidation graph (8 files, 22 call sites) is intact and correct after any restructuring
+  5. All 17 react-hook-form files migrated to TanStack Form; react-hook-form removed from dependencies
+  6. mutationOptions() factories exist for all mutation hooks, mirroring queryOptions() pattern
 **Plans**: TBD
 
 ### Phase 18: Components Consolidation

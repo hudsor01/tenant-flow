@@ -20,6 +20,8 @@ Requirements for Production Polish & Code Consolidation. Each maps to roadmap ph
 - [ ] **MOD-01**: Enable React Compiler via `babel-plugin-react-compiler` to auto-memoize components and eliminate manual `useMemo`/`useCallback`
 - [ ] **MOD-02**: Expand `useSuspenseQuery` usage to components inside Suspense boundaries beyond current 5 dashboard calls
 - [ ] **MOD-03**: Reconcile design tokens — `globals.css` is the sole source of truth, reduce `design-system.ts` to non-CSS contexts only (OG images, emails)
+- [ ] **MOD-04**: Migrate all react-hook-form usage (17 files) to TanStack Form and remove react-hook-form dependency
+- [ ] **MOD-05**: Add mutationOptions() factories for all mutation hooks, mirroring queryOptions() pattern
 
 ### UI Polish
 
@@ -57,7 +59,7 @@ Requirements for Production Polish & Code Consolidation. Each maps to roadmap ph
 | `use cache` directive | Experimental, not relevant to dynamic data app |
 | TanStack Router migration | Already on Next.js App Router |
 | Full mobile responsiveness milestone | Spot-check and fix, not comprehensive redesign |
-| mutationOptions() factories | Deferred -- queryOptions() pattern is working well, mutations don't need factory parity yet |
+| ~~mutationOptions() factories~~ | Moved to Phase 17 (MOD-05) |
 
 ## Traceability
 
@@ -71,6 +73,8 @@ Requirements for Production Polish & Code Consolidation. Each maps to roadmap ph
 | MOD-01 | Phase 18 | Pending |
 | MOD-02 | Phase 17 | Pending |
 | MOD-03 | Phase 16 | Pending |
+| MOD-04 | Phase 17 | Pending |
+| MOD-05 | Phase 17 | Pending |
 | UI-01 | Phase 19 | Pending |
 | UI-02 | Phase 19 | Pending |
 | UI-03 | Phase 19 | Pending |
@@ -79,8 +83,8 @@ Requirements for Production Polish & Code Consolidation. Each maps to roadmap ph
 | VER-02 | Phase 20 | Pending |
 
 **Coverage:**
-- v1.2 requirements: 14 total
-- Mapped to phases: 14
+- v1.2 requirements: 16 total
+- Mapped to phases: 16
 - Unmapped: 0
 
 ---

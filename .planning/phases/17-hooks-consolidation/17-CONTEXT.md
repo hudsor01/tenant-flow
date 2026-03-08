@@ -6,7 +6,7 @@
 <domain>
 ## Phase Boundary
 
-Deduplicate and modernize 85 hook files for TanStack Query v5 patterns. Expand useSuspenseQuery to all components inside Suspense boundaries. Split all oversized hook files under the 300-line limit. Preserve ownerDashboardKeys cross-domain invalidation graph (8 files, 22 call sites) intact and correct.
+Deduplicate and modernize 85 hook files for TanStack Query v5 patterns. Expand useSuspenseQuery to all components inside Suspense boundaries. Split all oversized hook files under the 300-line limit. Preserve ownerDashboardKeys cross-domain invalidation graph (8 files, 22 call sites) intact and correct. Migrate all 17 react-hook-form files to TanStack Form. Add mutationOptions() factories alongside existing queryOptions() pattern.
 
 </domain>
 
@@ -31,12 +31,25 @@ Deduplicate and modernize 85 hook files for TanStack Query v5 patterns. Expand u
 - Owner vs tenant domain separation is generally intentional -- don't blindly merge across domains
 - Confirmed dead hooks (zero imports in src/ and tests/) should be deleted entirely
 
+### react-hook-form to TanStack Form migration
+- All 17 files currently using react-hook-form must be migrated to TanStack Form
+- TanStack Form is the project standard (already a dependency, used alongside react-hook-form)
+- After migration, remove react-hook-form from package.json dependencies
+- Update CLAUDE.md form conventions to reflect TanStack Form as the sole form library
+
+### mutationOptions() factories
+- Add mutationOptions() factories alongside existing queryOptions() pattern in query-keys/
+- Mirrors the queryOptions() pattern: centralized, type-safe mutation definitions
+- Each domain key file gets corresponding mutation options (e.g., property-keys.ts gets property mutation options)
+- Claude decides organization: co-locate in existing key files or separate mutation-keys/ directory
+
 ### Claude's Discretion
 - Exact split points for each oversized file
 - Which Suspense boundaries to add (beyond existing ones)
 - How to restructure overlapping hooks (merge, extract shared logic, or keep separate)
 - Whether to consolidate small related hook files that could logically be one file
 - Query key factory internal organization
+- mutationOptions() file organization (co-locate vs separate directory)
 
 </decisions>
 
@@ -76,8 +89,7 @@ Deduplicate and modernize 85 hook files for TanStack Query v5 patterns. Expand u
 <deferred>
 ## Deferred Ideas
 
-- react-hook-form to TanStack Form migration (17 files) -- future milestone
-- mutationOptions() factories -- explicitly Out of Scope for v1.2
+None -- discussion stayed within phase scope
 
 </deferred>
 
