@@ -25,9 +25,9 @@ Requirements for v1.1 Blog Redesign & CI. Each maps to roadmap phases.
 
 - [x] **PAGE-01**: Hub page with split zones (Software Comparisons vs Insights & Guides)
 - [x] **PAGE-02**: Hub page shows category pills from DB with counts
-- [ ] **PAGE-03**: Detail page with featured image, BlurFade, and related posts section
-- [ ] **PAGE-04**: Category page with dynamic name resolution and paginated grid
-- [ ] **PAGE-05**: EmptyState shown on category pages with no posts
+- [x] **PAGE-03**: Detail page with featured image, BlurFade, and related posts section
+- [x] **PAGE-04**: Category page with dynamic name resolution and paginated grid
+- [x] **PAGE-05**: EmptyState shown on category pages with no posts
 
 ### Newsletter
 
@@ -82,9 +82,9 @@ Requirements for v1.1 Blog Redesign & CI. Each maps to roadmap phases.
 | COMP-03 | Phase 12 | Complete |
 | PAGE-01 | Phase 14 | Complete |
 | PAGE-02 | Phase 14 | Complete |
-| PAGE-03 | Phase 14 | Pending |
-| PAGE-04 | Phase 14 | Pending |
-| PAGE-05 | Phase 14 | Pending |
+| PAGE-03 | Phase 14 | Complete |
+| PAGE-04 | Phase 14 | Complete |
+| PAGE-05 | Phase 14 | Complete |
 | NEWS-01 | Phase 13 | Complete |
 | NEWS-02 | Phase 13 | Complete |
 | NEWS-03 | Phase 14 | Complete |

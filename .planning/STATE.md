@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Blog Redesign & CI
 status: executing
-stopped_at: Completed 14-01-PLAN.md
-last_updated: "2026-03-08T00:37:11.718Z"
-last_activity: 2026-03-08 -- Phase 14 plan 01 complete (hub page rewrite with split zones, category pills, newsletter)
+stopped_at: Completed 14-02-PLAN.md
+last_updated: "2026-03-08T00:44:33.677Z"
+last_activity: 2026-03-08 -- Phase 14 complete (detail page with featured image/related posts, category page with DB resolution)
 progress:
   total_phases: 5
-  completed_phases: 3
+  completed_phases: 4
   total_plans: 7
-  completed_plans: 6
-  percent: 91
+  completed_plans: 7
+  percent: 95
 ---
 
 # Project State: TenantFlow
@@ -21,24 +21,24 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-07)
 
 **Core value:** A landlord can add a property, invite a tenant, collect rent, and see their financials -- without touching a spreadsheet or calling anyone.
-**Current focus:** v1.1 Blog Redesign & CI -- Phase 14 plan 01 complete, plan 02 next
+**Current focus:** v1.1 Blog Redesign & CI -- Phase 14 complete, Phase 15 next
 
 ## Current Position
 
 Milestone: v1.1 Blog Redesign & CI
-Phase: 14 of 15 (Blog Pages)
-Plan: 1 of 2 in current phase -- COMPLETE
+Phase: 14 of 15 (Blog Pages) -- COMPLETE
+Plan: 2 of 2 in current phase -- COMPLETE
 Status: Executing
-Last activity: 2026-03-08 -- Phase 14 plan 01 complete (hub page rewrite with split zones, category pills, newsletter)
+Last activity: 2026-03-08 -- Phase 14 complete (detail page with featured image/related posts, category page with DB resolution)
 
-Progress: [█████████░] 91%
+Progress: [█████████▌] 95%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 6 (v1.1)
+- Total plans completed: 7 (v1.1)
 - Average duration: 5min
-- Total execution time: 28min
+- Total execution time: 38min
 
 *Updated after each plan completion*
 
@@ -72,6 +72,10 @@ Progress: [█████████░] 91%
 - [Phase 14-01]: Simplified hero (plain h1 + subtitle), no HeroSection component or stats card
 - [Phase 14-01]: Category pills as inline-flex rounded-full buttons with post counts from useBlogCategories
 - [Phase 14-01]: BlogEmptyState shown when Insights & Guides zone has zero posts
+- [Phase 14-02]: Simplified prose to prose prose-lg dark:prose-invert (dropped 20+ selector overrides)
+- [Phase 14-02]: Category slug resolved from useBlogCategories DB query with simple slugification fallback
+- [Phase 14-02]: Category page uses useEffect redirect for unknown slugs (only after categories finish loading)
+- [Phase 14]: Simplified prose to prose prose-lg dark:prose-invert (dropped 20+ selector overrides)
 
 ### Pending Todos
 
@@ -85,6 +89,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-08T00:37:11.716Z
-Stopped at: Completed 14-01-PLAN.md
+Last session: 2026-03-08T00:44:27.866Z
+Stopped at: Completed 14-02-PLAN.md
 Resume file: None
