@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Blog Redesign & CI
 status: executing
-stopped_at: Completed 13-01-PLAN.md (Phase 13 complete)
-last_updated: "2026-03-07T23:35:37.713Z"
-last_activity: 2026-03-07 -- Phase 13 complete (newsletter-subscribe Edge Function, Resend Contacts API)
+stopped_at: Completed 14-01-PLAN.md
+last_updated: "2026-03-08T00:37:11.718Z"
+last_activity: 2026-03-08 -- Phase 14 plan 01 complete (hub page rewrite with split zones, category pills, newsletter)
 progress:
   total_phases: 5
   completed_phases: 3
-  total_plans: 5
-  completed_plans: 5
-  percent: 92
+  total_plans: 7
+  completed_plans: 6
+  percent: 91
 ---
 
 # Project State: TenantFlow
@@ -21,24 +21,24 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-07)
 
 **Core value:** A landlord can add a property, invite a tenant, collect rent, and see their financials -- without touching a spreadsheet or calling anyone.
-**Current focus:** v1.1 Blog Redesign & CI -- Phase 13 complete, Phase 14 next
+**Current focus:** v1.1 Blog Redesign & CI -- Phase 14 plan 01 complete, plan 02 next
 
 ## Current Position
 
 Milestone: v1.1 Blog Redesign & CI
-Phase: 13 of 15 (Newsletter Backend) -- COMPLETE
-Plan: 1 of 1 in current phase
+Phase: 14 of 15 (Blog Pages)
+Plan: 1 of 2 in current phase -- COMPLETE
 Status: Executing
-Last activity: 2026-03-07 -- Phase 13 complete (newsletter-subscribe Edge Function, Resend Contacts API)
+Last activity: 2026-03-08 -- Phase 14 plan 01 complete (hub page rewrite with split zones, category pills, newsletter)
 
-Progress: [█████████░] 92%
+Progress: [█████████░] 91%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 5 (v1.1)
+- Total plans completed: 6 (v1.1)
 - Average duration: 5min
-- Total execution time: 25min
+- Total execution time: 28min
 
 *Updated after each plan completion*
 
@@ -69,6 +69,9 @@ Progress: [█████████░] 92%
 - Race condition on segment creation handled via list-create-relist pattern
 - Email domain logged for observability, full email never logged
 - [Phase 13-newsletter-backend]: Always return 200 success regardless of Resend API response (locked decision, duplicates silent)
+- [Phase 14-01]: Simplified hero (plain h1 + subtitle), no HeroSection component or stats card
+- [Phase 14-01]: Category pills as inline-flex rounded-full buttons with post counts from useBlogCategories
+- [Phase 14-01]: BlogEmptyState shown when Insights & Guides zone has zero posts
 
 ### Pending Todos
 
@@ -82,6 +85,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-07T23:35:34.243Z
-Stopped at: Completed 13-01-PLAN.md (Phase 13 complete)
+Last session: 2026-03-08T00:37:11.716Z
+Stopped at: Completed 14-01-PLAN.md
 Resume file: None

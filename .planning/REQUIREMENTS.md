@@ -23,8 +23,8 @@ Requirements for v1.1 Blog Redesign & CI. Each maps to roadmap phases.
 
 ### Blog Pages
 
-- [ ] **PAGE-01**: Hub page with split zones (Software Comparisons vs Insights & Guides)
-- [ ] **PAGE-02**: Hub page shows category pills from DB with counts
+- [x] **PAGE-01**: Hub page with split zones (Software Comparisons vs Insights & Guides)
+- [x] **PAGE-02**: Hub page shows category pills from DB with counts
 - [ ] **PAGE-03**: Detail page with featured image, BlurFade, and related posts section
 - [ ] **PAGE-04**: Category page with dynamic name resolution and paginated grid
 - [ ] **PAGE-05**: EmptyState shown on category pages with no posts
@@ -33,7 +33,7 @@ Requirements for v1.1 Blog Redesign & CI. Each maps to roadmap phases.
 
 - [x] **NEWS-01**: `newsletter-subscribe` Edge Function using Resend Contacts API (not deprecated Audiences)
 - [x] **NEWS-02**: Rate limiting (5 req/min per IP) and email validation on Edge Function
-- [ ] **NEWS-03**: Newsletter form calls Edge Function and shows success/error states
+- [x] **NEWS-03**: Newsletter form calls Edge Function and shows success/error states
 
 ### Infrastructure
 
@@ -80,14 +80,14 @@ Requirements for v1.1 Blog Redesign & CI. Each maps to roadmap phases.
 | COMP-01 | Phase 12 | Complete |
 | COMP-02 | Phase 12 | Complete |
 | COMP-03 | Phase 12 | Complete |
-| PAGE-01 | Phase 14 | Pending |
-| PAGE-02 | Phase 14 | Pending |
+| PAGE-01 | Phase 14 | Complete |
+| PAGE-02 | Phase 14 | Complete |
 | PAGE-03 | Phase 14 | Pending |
 | PAGE-04 | Phase 14 | Pending |
 | PAGE-05 | Phase 14 | Pending |
 | NEWS-01 | Phase 13 | Complete |
 | NEWS-02 | Phase 13 | Complete |
-| NEWS-03 | Phase 14 | Pending |
+| NEWS-03 | Phase 14 | Complete |
 | INFRA-01 | Phase 12 | Complete |
 | INFRA-02 | Phase 12 | Complete |
 | INFRA-03 | Phase 12 | Complete |
