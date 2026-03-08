@@ -41,7 +41,7 @@ TenantFlow is a multi-tenant property management SaaS platform for property owne
 
 ### v1.2 Production Polish & Code Consolidation (In Progress)
 
-- [ ] **Phase 16: Shared Cleanup & Dead Code** - Flatten src/shared/ into top-level directories, delete design-system.ts, run Knip audit, delete TYPES.md, update CLAUDE.md
+- [x] **Phase 16: Shared Cleanup & Dead Code** - Flatten src/shared/ into top-level directories, delete design-system.ts, run Knip audit, delete TYPES.md, update CLAUDE.md
 - [ ] **Phase 17: Hooks Consolidation** - Deduplicate and modernize API hooks, expand useSuspenseQuery, split oversized hook files
 - [ ] **Phase 18: Components Consolidation** - Split oversized components, enable React Compiler, remove manual memoization
 - [ ] **Phase 19: UI Polish** - Redesign marketing navbar, enforce button/card/layout consistency across all page groups
@@ -55,9 +55,9 @@ TenantFlow is a multi-tenant property management SaaS platform for property owne
 **Requirements**: CLEAN-01, CLEAN-03, CLEAN-04, CLEAN-05, MOD-03
 **Plans:** 3 plans
 Plans:
-- [ ] 16-01-PLAN.md -- Migrate design-system.ts consumers to Tailwind/CSS and delete design-system.ts
-- [ ] 16-02-PLAN.md -- Flatten src/shared/ into top-level directories, rewrite all imports
-- [ ] 16-03-PLAN.md -- Knip dead code audit, delete TYPES.md, update CLAUDE.md
+- [x] 16-01-PLAN.md -- Migrate design-system.ts consumers to Tailwind/CSS and delete design-system.ts
+- [x] 16-02-PLAN.md -- Flatten src/shared/ into top-level directories, rewrite all imports
+- [x] 16-03-PLAN.md -- Knip dead code audit, delete TYPES.md, update CLAUDE.md
 **Success Criteria** (what must be TRUE):
   1. Knip runs clean with zero findings on the entire codebase (src/ and supabase/)
   2. TYPES.md is deleted; src/types/ directory is self-documenting
@@ -111,7 +111,7 @@ Plans:
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 16. Shared Cleanup & Dead Code | 0/3 | Not started | - |
+| 16. Shared Cleanup & Dead Code | 3/3 | Complete | 2026-03-08 |
 | 17. Hooks Consolidation | 0/TBD | Not started | - |
 | 18. Components Consolidation | 0/TBD | Not started | - |
 | 19. UI Polish | 0/TBD | Not started | - |
