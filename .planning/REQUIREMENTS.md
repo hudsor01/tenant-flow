@@ -10,7 +10,7 @@ Requirements for Production Polish & Code Consolidation. Each maps to roadmap ph
 ### Cleanup & Dead Code
 
 - [ ] **CLEAN-01**: Run Knip audit to identify and remove unused files, exports, and dependencies across the entire codebase
-- [ ] **CLEAN-02**: Split all files exceeding 300-line rule (20+ components, 2+ hooks) into focused sub-files
+- [x] **CLEAN-02**: Split all files exceeding 300-line rule (20+ components, 2+ hooks) into focused sub-files
 - [ ] **CLEAN-03**: Update TYPES.md master lookup with accurate type locations after cleanup
 - [ ] **CLEAN-04**: Cross-directory audit of `src/shared/`, `src/lib/`, `src/types/`, `src/shared/types/`, and `src/components/shared/` for redundancy, misplacement, and duplication
 - [ ] **CLEAN-05**: Reconcile or eliminate organizational overlap between `src/shared/` and `src/lib/` with clear ownership boundaries
@@ -66,7 +66,7 @@ Requirements for Production Polish & Code Consolidation. Each maps to roadmap ph
 | Requirement | Phase | Status |
 |-------------|-------|--------|
 | CLEAN-01 | Phase 16 | Pending |
-| CLEAN-02 | Phase 18 | Pending |
+| CLEAN-02 | Phase 18 | Complete |
 | CLEAN-03 | Phase 16 | Pending |
 | CLEAN-04 | Phase 16 | Pending |
 | CLEAN-05 | Phase 16 | Pending |

@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.2
 milestone_name: Production Polish & Code Consolidation
 status: executing
-stopped_at: Phase 18 context gathered
-last_updated: "2026-03-08T14:10:00Z"
-last_activity: 2026-03-08 -- Phase 18 context gathered, ready for planning
+stopped_at: Completed 18-02-PLAN.md
+last_updated: "2026-03-08T21:17:00Z"
+last_activity: 2026-03-08 -- Phase 18 Plan 02 complete
 progress:
   total_phases: 5
-  completed_phases: 1
-  total_plans: 9
-  completed_plans: 9
+  completed_phases: 2
+  total_plans: 11
+  completed_plans: 11
   percent: 100
 ---
 
@@ -21,24 +21,24 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-08)
 
 **Core value:** A landlord can add a property, invite a tenant, collect rent, and see their financials -- without touching a spreadsheet or calling anyone.
-**Current focus:** v1.2 Production Polish & Code Consolidation -- Phase 17 complete, ready for Phase 18
+**Current focus:** v1.2 Production Polish & Code Consolidation -- Phase 18 in progress
 
 ## Current Position
 
 Milestone: v1.2 Production Polish & Code Consolidation
-Phase: 17 of 20 (Hooks Consolidation) -- COMPLETE
-Plan: 6 of 6 (all done)
-Status: Phase complete
-Last activity: 2026-03-08 -- Completed Phase 17: all 6 plans across 3 waves
+Phase: 18 of 20 (Components Consolidation)
+Plan: 2 of 2 (all done)
+Status: Phase 18 plans complete
+Last activity: 2026-03-08 -- Completed Plan 02: split 9 large feature components under 300 lines
 
-Progress: [██████████] 100% (Phase 17)
+Progress: [██████████] 100% (Phase 18)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 9
-- Average duration: 28min
-- Total execution time: 250min
+- Total plans completed: 11
+- Average duration: 27min
+- Total execution time: 290min
 
 | Phase | Plan | Duration | Tasks | Files |
 |-------|------|----------|-------|-------|
@@ -48,6 +48,8 @@ Progress: [██████████] 100% (Phase 17)
 | 17-hooks-consolidation | 04 | 45min | 2 | 7 |
 | 17-hooks-consolidation | 05 | 50min | 2 | 24 |
 | 17-hooks-consolidation | 06 | 45min | 2 | 18 |
+| 18-components-consolidation | 01 | 20min | 2 | 22 |
+| 18-components-consolidation | 02 | 20min | 2 | 20 |
 
 ## Shipped Milestones
 
@@ -70,6 +72,8 @@ Progress: [██████████] 100% (Phase 17)
 - TError=unknown generic required in mutationOptions() factories for exactOptionalPropertyTypes compatibility
 - useSuspenseQuery only for components inside Suspense boundaries; components with conditional queries keep useQuery
 - 34 dead hook exports removed; all overlap candidates are intentional owner/tenant domain separation
+- TanStack Form type extraction uses `{ Field: React.ComponentType<any> }` pattern for extracted components (full generic signature too complex)
+- Component splitting pattern: self-contained sub-components in sibling files, parent keeps orchestration/state
 
 ### Blockers/Concerns
 
@@ -77,6 +81,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-08T14:10:00Z
-Stopped at: Phase 18 context gathered
-Resume file: .planning/phases/18-components-consolidation/18-CONTEXT.md
+Last session: 2026-03-08T21:17:00Z
+Stopped at: Completed 18-02-PLAN.md
+Resume file: .planning/phases/18-components-consolidation/18-02-SUMMARY.md

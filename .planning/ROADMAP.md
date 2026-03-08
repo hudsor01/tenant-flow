@@ -88,7 +88,7 @@ Plans:
 **Goal**: All oversized components are split under 300 lines, dead components are removed, and React Compiler auto-memoizes in place of manual useMemo/useCallback
 **Depends on**: Phase 17
 **Requirements**: CLEAN-02, MOD-01
-**Plans:** 6 plans
+**Plans:** 2/6 plans executed
 Plans:
 - [ ] 18-01-PLAN.md -- Split 6 oversized UI primitive files (stepper group, chart, file-upload, dialog)
 - [ ] 18-02-PLAN.md -- Split 9 large feature components (app-shell, contact-form, wizard, forms, dialogs)
@@ -129,6 +129,6 @@ Plans:
 |-------|----------------|--------|-----------|
 | 16. Shared Cleanup & Dead Code | 3/3 | Complete | 2026-03-08 |
 | 17. Hooks Consolidation | 5/6 | In Progress|  |
-| 18. Components Consolidation | 0/6 | Not started | - |
+| 18. Components Consolidation | 2/6 | In Progress|  |
 | 19. UI Polish | 0/TBD | Not started | - |
 | 20. Browser Audit | 0/TBD | Not started | - |
