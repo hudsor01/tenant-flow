@@ -94,7 +94,11 @@ Plans:
   3. Detail page shows featured image, rendered markdown content, and a related posts section with up to 3 posts
   4. Category page resolves the display name from the database (not slug deslugification) and shows paginated posts
   5. Category page with no posts shows the EmptyState component
-**Plans**: TBD
+**Plans:** 2 plans
+
+Plans:
+- [ ] 14-01-PLAN.md -- Hub page with split zones, category pills, and newsletter
+- [ ] 14-02-PLAN.md -- Detail page with featured image and related posts, category page with DB resolution
 
 ### Phase 15: CI Optimization
 **Goal**: CI workflows run only where needed -- checks on PRs, e2e-smoke on push to main
@@ -125,6 +129,6 @@ Phases 11-14 execute sequentially (data layer -> components -> pages). Phase 13 
 | 10. Audit Cleanup | v1.0 | 2/2 | Complete | 2026-03-07 |
 | 11. Blog Data Layer | v1.1 | 2/2 | Complete | 2026-03-07 |
 | 12. Blog Components & CSS | 2/2 | Complete    | 2026-03-07 | - |
-| 13. Newsletter Backend | 1/1 | Complete   | 2026-03-07 | - |
-| 14. Blog Pages | v1.1 | 0/? | Not started | - |
+| 13. Newsletter Backend | 1/1 | Complete    | 2026-03-07 | - |
+| 14. Blog Pages | v1.1 | 0/2 | Not started | - |
 | 15. CI Optimization | v1.1 | 0/? | Not started | - |
