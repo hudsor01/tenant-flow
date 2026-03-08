@@ -1,11 +1,11 @@
 ---
 gsd_state_version: 1.0
-milestone: none
-milestone_name: none
-status: idle
-stopped_at: v1.1 milestone completed and archived
+milestone: v1.2
+milestone_name: Production Polish & Code Consolidation
+status: defining_requirements
+stopped_at: Defining requirements
 last_updated: "2026-03-08"
-last_activity: "2026-03-08 -- v1.1 Blog Redesign & CI milestone completed and archived"
+last_activity: "2026-03-08 -- Milestone v1.2 started"
 progress:
   total_phases: 0
   completed_phases: 0
@@ -21,15 +21,15 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-08)
 
 **Core value:** A landlord can add a property, invite a tenant, collect rent, and see their financials -- without touching a spreadsheet or calling anyone.
-**Current focus:** No active milestone -- next step is `/gsd:new-milestone`
+**Current focus:** v1.2 Production Polish & Code Consolidation -- defining requirements
 
 ## Current Position
 
-Milestone: None (v1.1 completed 2026-03-08)
-Phase: N/A
-Plan: N/A
-Status: Idle
-Last activity: 2026-03-08 -- v1.1 Blog Redesign & CI milestone completed and archived
+Milestone: v1.2 Production Polish & Code Consolidation
+Phase: Not started (defining requirements)
+Plan: --
+Status: Defining requirements
+Last activity: 2026-03-08 -- Milestone v1.2 started
 
 ## Shipped Milestones
 
@@ -41,5 +41,5 @@ Last activity: 2026-03-08 -- v1.1 Blog Redesign & CI milestone completed and arc
 ## Session Continuity
 
 Last session: 2026-03-08
-Stopped at: v1.1 milestone completed and archived
+Stopped at: Defining requirements
 Resume file: None
