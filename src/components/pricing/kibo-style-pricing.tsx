@@ -121,7 +121,6 @@ export function KiboStylePricing({
 		}
 	})
 
-	// Use static pricing config - instant render, no API calls
 	const pricingPlans = useMemo<PricingPlan[]>(() => {
 		const plans = getAllPricingPlans()
 			.filter(plan => plan.planId !== 'trial')
@@ -157,7 +156,6 @@ export function KiboStylePricing({
 				}
 			})
 
-		// Preserve display ordering Starter -> Growth -> Max
 		return plans.sort((a, b) => {
 			const order = { starter: 1, growth: 2, max: 3 } as Record<string, number>
 			return (order[a.id] || 99) - (order[b.id] || 99)
@@ -177,29 +175,13 @@ export function KiboStylePricing({
 
 	const handleSubscribe = async (plan: PricingPlan) => {
 		if (subscriptionMutation.isPending) return
-
-		if (plan.id === 'max') {
-			await startCheckout(plan)
-			return
-		}
-
+		if (plan.id === 'max') { await startCheckout(plan); return }
 		const authenticated = await isUserAuthenticated()
-		if (!authenticated) {
-			setPendingPlan(plan)
-			setSubscribeDialogOpen(true)
-			return
-		}
-
+		if (!authenticated) { setPendingPlan(plan); setSubscribeDialogOpen(true); return }
 		try {
 			await startCheckout(plan)
 		} catch (error) {
-			const message =
-				error instanceof Error
-					? error.message
-					: 'Unable to start checkout. Please try again.'
-			logger.error('Failed to start checkout', {
-				metadata: { error: message }
-			})
+			logger.error('Failed to start checkout', { metadata: { error: error instanceof Error ? error.message : 'Unable to start checkout' } })
 		}
 	}
 
@@ -290,26 +272,14 @@ export function KiboStylePricing({
 				onComplete={async ({ email, tenant_id, requiresEmailConfirmation }) => {
 					if (!pendingPlan) return
 					try {
-						await startCheckout(pendingPlan, {
-							customerEmail: email,
-							...(tenant_id && { tenant_id })
-						})
+						await startCheckout(pendingPlan, { customerEmail: email, ...(tenant_id && { tenant_id }) })
 						setSubscribeDialogOpen(false)
 						setPendingPlan(null)
 						if (requiresEmailConfirmation) {
-							logger.info(
-								'Signup requires email confirmation before first login',
-								{
-									metadata: { email }
-								}
-							)
+							logger.info('Signup requires email confirmation', { metadata: { email } })
 						}
 					} catch (error) {
-						logger.error('Checkout failed after signup', {
-							metadata: {
-								error: error instanceof Error ? error.message : 'Unknown error'
-							}
-						})
+						logger.error('Checkout failed after signup', { metadata: { error: error instanceof Error ? error.message : 'Unknown error' } })
 						throw error
 					}
 				}}

@@ -13,16 +13,10 @@ import {
 	ArrowDownRight
 } from 'lucide-react'
 
-/**
- * Animated dashboard mockup for hero section
- * Replaces static Unsplash image with interactive, branded content
- */
 export function HeroDashboardMockup({ className }: { className?: string }) {
 	return (
 		<div className={cn('relative', className)}>
-			{/* Main dashboard container */}
 			<div className="relative rounded-2xl overflow-hidden shadow-2xl border border-border bg-card">
-				{/* Mock browser chrome */}
 				<div className="flex items-center gap-2 px-4 py-3 bg-muted/50 border-b border-border">
 					<div className="flex gap-1.5">
 						<div className="size-3 rounded-full bg-destructive/60" />
@@ -37,9 +31,7 @@ export function HeroDashboardMockup({ className }: { className?: string }) {
 					<div className="w-12" />
 				</div>
 
-				{/* Dashboard content */}
 				<div className="p-4 space-y-4 bg-gradient-to-b from-background to-muted/20">
-					{/* Header row */}
 					<div className="flex-between">
 						<div>
 							<h3 className="text-sm font-semibold text-foreground">
@@ -60,7 +52,6 @@ export function HeroDashboardMockup({ className }: { className?: string }) {
 						</div>
 					</div>
 
-					{/* Stats row */}
 					<div className="grid grid-cols-4 gap-3">
 						<StatCard
 							label="Properties"
@@ -92,9 +83,7 @@ export function HeroDashboardMockup({ className }: { className?: string }) {
 						/>
 					</div>
 
-					{/* Two column layout */}
 					<div className="grid grid-cols-5 gap-3">
-						{/* Revenue chart */}
 						<div className="col-span-3 card-standard p-3">
 							<div className="flex-between mb-3">
 								<span className="text-xs font-medium text-foreground">
@@ -128,7 +117,6 @@ export function HeroDashboardMockup({ className }: { className?: string }) {
 							</div>
 						</div>
 
-						{/* Quick actions */}
 						<div className="col-span-2 space-y-2">
 							<QuickAction
 								icon={<CreditCard className="size-3.5" />}
@@ -149,7 +137,6 @@ export function HeroDashboardMockup({ className }: { className?: string }) {
 						</div>
 					</div>
 
-					{/* Recent activity */}
 					<div className="card-standard p-3">
 						<div className="flex-between mb-3">
 							<span className="text-xs font-medium text-foreground">
@@ -192,25 +179,14 @@ export function HeroDashboardMockup({ className }: { className?: string }) {
 				</div>
 			</div>
 
-			{/* Decorative elements */}
 			<div className="absolute -top-4 -right-4 size-24 bg-primary/20 rounded-full blur-3xl" />
 			<div className="absolute -bottom-4 -left-4 size-32 bg-primary/10 rounded-full blur-3xl" />
 		</div>
 	)
 }
 
-function StatCard({
-	label,
-	value,
-	trend,
-	trendUp,
-	icon
-}: {
-	label: string
-	value: string
-	trend: string
-	trendUp: boolean
-	icon: ReactNode
+function StatCard({ label, value, trend, trendUp, icon }: {
+	label: string; value: string; trend: string; trendUp: boolean; icon: ReactNode
 }) {
 	return (
 		<div className="card-standard p-2.5 hover:border-primary/20 transition-colors">
@@ -238,16 +214,8 @@ function StatCard({
 	)
 }
 
-function QuickAction({
-	icon,
-	label,
-	badge,
-	badgeColor
-}: {
-	icon: ReactNode
-	label: string
-	badge?: string
-	badgeColor?: 'warning' | 'info' | 'success'
+function QuickAction({ icon, label, badge, badgeColor }: {
+	icon: ReactNode; label: string; badge?: string; badgeColor?: 'warning' | 'info' | 'success'
 }) {
 	const badgeColors = {
 		warning: 'bg-warning/10 text-warning',
@@ -282,20 +250,8 @@ function QuickAction({
 	)
 }
 
-function ActivityItem({
-	avatar,
-	name,
-	action,
-	amount,
-	time,
-	status
-}: {
-	avatar: string
-	name: string
-	action: string
-	amount: string
-	time: string
-	status: 'success' | 'warning' | 'info'
+function ActivityItem({ avatar, name, action, amount, time, status }: {
+	avatar: string; name: string; action: string; amount: string; time: string; status: 'success' | 'warning' | 'info'
 }) {
 	const statusColors = {
 		success: 'bg-success/10 text-success',

@@ -12,7 +12,7 @@ import { EMPTY_PAYMENT_SUMMARY } from '#types/api-contracts'
 import { ChartLoadingSkeleton } from '#components/shared/chart-loading-skeleton'
 
 const RevenueExpenseChart = dynamic(
-	() => import('./financial-charts').then(mod => mod.RevenueExpenseChart),
+	() => import('./revenue-expense-chart').then(mod => mod.RevenueExpenseChart),
 	{ ssr: false, loading: () => <ChartLoadingSkeleton /> }
 )
 

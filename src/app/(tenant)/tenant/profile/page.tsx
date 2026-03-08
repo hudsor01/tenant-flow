@@ -23,7 +23,7 @@ import {
 	AlertDialogFooter,
 	AlertDialogHeader,
 	AlertDialogTitle
-} from '#components/ui/dialog'
+} from '#components/ui/alert-dialog'
 import { useSupabaseUpdateProfileMutation } from '#hooks/api/use-auth-mutations'
 import {
 	useTenantNotificationPreferences,

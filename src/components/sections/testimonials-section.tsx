@@ -24,51 +24,11 @@ interface TestimonialsSectionProps {
 }
 
 const defaultTestimonials: Testimonial[] = [
-	{
-		quote:
-			'TenantFlow transformed how we manage our 35-unit portfolio. The automation alone saves us 20+ hours per week on rent collection and maintenance coordination.',
-		author: 'Sarah Chen',
-		title: 'Portfolio Manager',
-		company: 'Westside Properties',
-		metric: '+47%',
-		metricLabel: 'NOI increase'
-	},
-	{
-		quote:
-			"We evaluated 6 different platforms before choosing TenantFlow. The ROI was clear within 60 days - best property management decision we've made.",
-		author: 'Marcus Rodriguez',
-		title: 'Director of Operations',
-		company: 'Urban Real Estate Group',
-		metric: '60 days',
-		metricLabel: 'to positive ROI'
-	},
-	{
-		quote:
-			'The tenant portal has completely changed our relationship with residents. Maintenance requests are handled faster, and tenants love being able to pay rent online.',
-		author: 'Jennifer Walsh',
-		title: 'Property Manager',
-		company: 'Metropolitan Holdings',
-		metric: '4.9/5',
-		metricLabel: 'tenant satisfaction'
-	},
-	{
-		quote:
-			"As a small landlord with 8 units, I thought enterprise software was overkill. TenantFlow proved me wrong - it's powerful yet simple enough for solo operators.",
-		author: 'David Park',
-		title: 'Independent Owner',
-		company: 'Park Properties LLC',
-		metric: '25 hrs',
-		metricLabel: 'saved weekly'
-	},
-	{
-		quote:
-			'The financial reporting alone is worth the subscription. I can generate professional reports for my investors in minutes instead of hours with spreadsheets.',
-		author: 'Amanda Foster',
-		title: 'Asset Manager',
-		company: 'Foster Investments',
-		metric: '90%',
-		metricLabel: 'faster reporting'
-	}
+	{ quote: 'TenantFlow transformed how we manage our 35-unit portfolio. The automation alone saves us 20+ hours per week on rent collection and maintenance coordination.', author: 'Sarah Chen', title: 'Portfolio Manager', company: 'Westside Properties', metric: '+47%', metricLabel: 'NOI increase' },
+	{ quote: "We evaluated 6 different platforms before choosing TenantFlow. The ROI was clear within 60 days - best property management decision we've made.", author: 'Marcus Rodriguez', title: 'Director of Operations', company: 'Urban Real Estate Group', metric: '60 days', metricLabel: 'to positive ROI' },
+	{ quote: 'The tenant portal has completely changed our relationship with residents. Maintenance requests are handled faster, and tenants love being able to pay rent online.', author: 'Jennifer Walsh', title: 'Property Manager', company: 'Metropolitan Holdings', metric: '4.9/5', metricLabel: 'tenant satisfaction' },
+	{ quote: "As a small landlord with 8 units, I thought enterprise software was overkill. TenantFlow proved me wrong - it's powerful yet simple enough for solo operators.", author: 'David Park', title: 'Independent Owner', company: 'Park Properties LLC', metric: '25 hrs', metricLabel: 'saved weekly' },
+	{ quote: 'The financial reporting alone is worth the subscription. I can generate professional reports for my investors in minutes instead of hours with spreadsheets.', author: 'Amanda Foster', title: 'Asset Manager', company: 'Foster Investments', metric: '90%', metricLabel: 'faster reporting' },
 ]
 
 export function TestimonialsSection({
@@ -96,7 +56,6 @@ export function TestimonialsSection({
 		setIsAutoRotating(false)
 	}, [])
 
-	// Auto-rotate
 	useEffect(() => {
 		if (!isAutoRotating || variant === 'grid') return
 
@@ -157,31 +116,25 @@ export function TestimonialsSection({
 
 				<BlurFade delay={0.2} inView>
 					<div className="relative max-w-4xl mx-auto">
-						{/* Main testimonial card */}
 						<div className="relative bg-card rounded-2xl border border-border p-8 md:p-12 shadow-lg">
-							{/* Quote icon */}
 							<div className="absolute -top-4 left-8 md:left-12">
 								<div className="icon-container-lg bg-primary text-primary-foreground shadow-lg">
 									<Quote className="size-6" />
 								</div>
 							</div>
 
-							{/* Stars */}
 							<div className="flex gap-1 mb-6 pt-4">
 								{[...Array(5)].map((_, i) => (
 									<Star key={i} className="size-5 fill-accent text-accent" />
 								))}
 							</div>
 
-							{/* Quote */}
 							<blockquote className="text-xl md:text-2xl text-foreground font-medium leading-relaxed mb-8">
 								"{currentTestimonial?.quote}"
 							</blockquote>
 
-							{/* Author info */}
 							<div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
 								<div className="flex items-center gap-4">
-									{/* Initial avatar instead of photo */}
 									<div className="size-14 rounded-full bg-primary/10 flex-center text-primary text-xl font-bold">
 										{currentTestimonial?.author
 											.split(' ')
@@ -201,7 +154,6 @@ export function TestimonialsSection({
 									</div>
 								</div>
 
-								{/* Metric highlight */}
 								{currentTestimonial?.metric && (
 									<div className="text-center md:text-right p-4 rounded-xl bg-primary/5 border border-primary/10">
 										<div className="typography-h2 text-primary">
@@ -215,7 +167,6 @@ export function TestimonialsSection({
 							</div>
 						</div>
 
-						{/* Navigation */}
 						<div className="flex items-center justify-center gap-4 mt-8">
 							<Button
 								variant="outline"
@@ -230,7 +181,6 @@ export function TestimonialsSection({
 								<ChevronLeft className="size-5" />
 							</Button>
 
-							{/* Dots */}
 							<div className="flex gap-2">
 								{testimonials.map((_, index) => (
 									<button
@@ -272,22 +222,17 @@ function TestimonialCard({ testimonial }: { testimonial: Testimonial }) {
 	return (
 		<div className="relative group h-full">
 			<div className="card-standard p-8 h-full flex flex-col hover:border-primary/20 hover:shadow-lg transition-all duration-300">
-				{/* Quote icon */}
 				<Quote className="size-8 text-primary/20 mb-4" />
-
-				{/* Stars */}
 				<div className="flex gap-0.5 mb-4">
 					{[...Array(5)].map((_, i) => (
 						<Star key={i} className="size-4 fill-accent text-accent" />
 					))}
 				</div>
 
-				{/* Quote text */}
 				<blockquote className="text-foreground/90 leading-relaxed mb-6 flex-1">
 					"{testimonial.quote}"
 				</blockquote>
 
-				{/* Attribution */}
 				<div className="flex items-center justify-between pt-4 border-t border-border/50">
 					<div className="flex items-center gap-3">
 						<div className="size-10 rounded-full bg-primary/10 flex-center text-primary text-sm font-bold">
@@ -321,5 +266,3 @@ function TestimonialCard({ testimonial }: { testimonial: Testimonial }) {
 		</div>
 	)
 }
-
-export default TestimonialsSection

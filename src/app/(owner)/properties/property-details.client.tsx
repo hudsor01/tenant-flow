@@ -14,7 +14,7 @@ import {
 	AlertDialogFooter,
 	AlertDialogHeader,
 	AlertDialogTitle
-} from '#components/ui/dialog'
+} from '#components/ui/alert-dialog'
 import type { Property } from '#types/core'
 import { Building, Edit, MapPin, Trash2 } from 'lucide-react'
 import Link from 'next/link'

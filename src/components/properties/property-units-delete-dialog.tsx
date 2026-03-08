@@ -9,7 +9,7 @@ import {
 	AlertDialogFooter,
 	AlertDialogHeader,
 	AlertDialogTitle
-} from '#components/ui/dialog'
+} from '#components/ui/alert-dialog'
 import type { Unit } from '#types/core'
 
 interface UnitDeleteDialogProps {

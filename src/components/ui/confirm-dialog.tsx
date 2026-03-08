@@ -9,7 +9,7 @@ import {
 	AlertDialogFooter,
 	AlertDialogHeader,
 	AlertDialogTitle
-} from '#components/ui/dialog'
+} from '#components/ui/alert-dialog'
 
 interface ConfirmDialogProps {
 	open: boolean

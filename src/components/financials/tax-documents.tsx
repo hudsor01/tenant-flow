@@ -33,10 +33,8 @@ export function TaxDocuments({ documents, onDownload }: TaxDocumentsProps) {
 	>('all')
 	const [searchQuery, setSearchQuery] = useState('')
 
-	// Get unique years for filter
 	const years = [...new Set(documents.map(d => d.year))].sort((a, b) => b - a)
 
-	// Filter documents
 	const filteredDocuments = documents.filter(doc => {
 		if (yearFilter !== 'all' && doc.year !== yearFilter) return false
 		if (statusFilter !== 'all' && doc.status !== statusFilter) return false
@@ -48,7 +46,6 @@ export function TaxDocuments({ documents, onDownload }: TaxDocumentsProps) {
 		return true
 	})
 
-	// Group documents by year
 	const documentsByYear = filteredDocuments.reduce(
 		(acc, doc) => {
 			const yearDocs = acc[doc.year] ?? []
@@ -83,14 +80,12 @@ export function TaxDocuments({ documents, onDownload }: TaxDocumentsProps) {
 		}
 	}
 
-	// Summary counts
 	const readyCount = documents.filter(d => d.status === 'ready').length
 	const pendingCount = documents.filter(d => d.status === 'pending').length
 	const filedCount = documents.filter(d => d.status === 'filed').length
 
 	return (
 		<div className="p-6 lg:p-8 bg-background min-h-full">
-			{/* Header */}
 			<BlurFade delay={0.1} inView>
 				<div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-6">
 					<div>
@@ -104,7 +99,6 @@ export function TaxDocuments({ documents, onDownload }: TaxDocumentsProps) {
 				</div>
 			</BlurFade>
 
-			{/* Summary Cards */}
 			<div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
 				<BlurFade delay={0.2} inView>
 					<button
@@ -182,7 +176,6 @@ export function TaxDocuments({ documents, onDownload }: TaxDocumentsProps) {
 				</BlurFade>
 			</div>
 
-			{/* Filters */}
 			<BlurFade delay={0.5} inView>
 				<div className="flex flex-col sm:flex-row gap-3 mb-6">
 					<div className="relative flex-1">
@@ -214,7 +207,6 @@ export function TaxDocuments({ documents, onDownload }: TaxDocumentsProps) {
 				</div>
 			</BlurFade>
 
-			{/* Documents List */}
 			<div className="space-y-6">
 				{Object.entries(documentsByYear)
 					.sort(([a], [b]) => Number(b) - Number(a))
@@ -284,7 +276,6 @@ export function TaxDocuments({ documents, onDownload }: TaxDocumentsProps) {
 					))}
 			</div>
 
-			{/* Empty State */}
 			{filteredDocuments.length === 0 && (
 				<BlurFade delay={0.6} inView>
 					<div className="flex flex-col items-center justify-center py-12 text-center">

@@ -54,17 +54,14 @@ export function ChartAreaInteractive({
 	const [timeRange, setTimeRange] = useState<FinancialTimeRange>('6m')
 	const isMobile = useMediaQuery('(max-width: 767px)')
 
-	// Fetch financial data with TanStack Query
 	const { data: chartData, isLoading, error } = useFinancialChartData(timeRange)
 
-	// Automatically switch to mobile-friendly time range
 	useEffect(() => {
 		if (isMobile && timeRange === '1y') {
 			setTimeRange('6m')
 		}
 	}, [isMobile, timeRange, setTimeRange])
 
-	// Calculate summary metrics
 	const totalRevenue =
 		chartData?.reduce((sum, item) => sum + item.revenue, 0) || 0
 	const totalExpenses =

@@ -38,9 +38,6 @@ interface EditUnitPanelProps {
 	onSuccess?: () => void
 }
 
-/**
- * EditUnitPanel - Slide-out panel for editing an existing unit
- */
 export function EditUnitPanel({
 	unit,
 	propertyName,
@@ -67,44 +64,15 @@ export function EditUnitPanel({
 		onSubmit: async ({ value }) => {
 			setIsSubmitting(true)
 			try {
-				// Validate required fields
-				if (!value.unit_number?.trim()) {
-					toast.error('Unit number is required')
-					setIsSubmitting(false)
-					return
-				}
-
-				if (!value.rent_amount?.trim()) {
-					toast.error('Monthly rent is required')
-					setIsSubmitting(false)
-					return
-				}
-
+				if (!value.unit_number?.trim()) { toast.error('Unit number is required'); setIsSubmitting(false); return }
+				if (!value.rent_amount?.trim()) { toast.error('Monthly rent is required'); setIsSubmitting(false); return }
 				const bedrooms = Number.parseInt(value.bedrooms, 10)
 				const bathrooms = Number.parseFloat(value.bathrooms)
 				const rent_amount = Number.parseFloat(value.rent_amount)
-				const square_feet = value.square_feet
-					? Number.parseInt(value.square_feet, 10)
-					: null
-
-				if (!Number.isFinite(bedrooms) || bedrooms < 0) {
-					toast.error('Bedrooms must be a valid positive number')
-					setIsSubmitting(false)
-					return
-				}
-
-				if (!Number.isFinite(bathrooms) || bathrooms < 0) {
-					toast.error('Bathrooms must be a valid positive number')
-					setIsSubmitting(false)
-					return
-				}
-
-				if (!Number.isFinite(rent_amount) || rent_amount <= 0) {
-					toast.error('Rent must be a valid positive number')
-					setIsSubmitting(false)
-					return
-				}
-
+				const square_feet = value.square_feet ? Number.parseInt(value.square_feet, 10) : null
+				if (!Number.isFinite(bedrooms) || bedrooms < 0) { toast.error('Bedrooms must be a valid positive number'); setIsSubmitting(false); return }
+				if (!Number.isFinite(bathrooms) || bathrooms < 0) { toast.error('Bathrooms must be a valid positive number'); setIsSubmitting(false); return }
+				if (!Number.isFinite(rent_amount) || rent_amount <= 0) { toast.error('Rent must be a valid positive number'); setIsSubmitting(false); return }
 				await updateUnitMutation.mutateAsync({
 					id: unit.id,
 					data: {
@@ -127,7 +95,6 @@ export function EditUnitPanel({
 		}
 	})
 
-	// Reset form when unit changes
 	useEffect(() => {
 		form.reset({
 			unit_number: unit.unit_number ?? '',
@@ -160,7 +127,6 @@ export function EditUnitPanel({
 					}}
 					className="flex flex-col gap-6 p-4"
 				>
-					{/* Unit Number */}
 					<form.Field name="unit_number">
 						{field => (
 							<Field>
@@ -180,7 +146,6 @@ export function EditUnitPanel({
 						)}
 					</form.Field>
 
-					{/* Bedrooms and Bathrooms */}
 					<div className="grid grid-cols-2 gap-4">
 						<form.Field name="bedrooms">
 							{field => (
@@ -214,7 +179,6 @@ export function EditUnitPanel({
 						</form.Field>
 					</div>
 
-					{/* Square Feet */}
 					<form.Field name="square_feet">
 						{field => (
 							<Field>
@@ -233,7 +197,6 @@ export function EditUnitPanel({
 						)}
 					</form.Field>
 
-					{/* Monthly Rent */}
 					<form.Field name="rent_amount">
 						{field => (
 							<Field>
@@ -258,7 +221,6 @@ export function EditUnitPanel({
 						)}
 					</form.Field>
 
-					{/* Status */}
 					<form.Field name="status">
 						{field => (
 							<Field>

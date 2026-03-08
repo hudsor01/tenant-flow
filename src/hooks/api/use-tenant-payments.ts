@@ -1,9 +1,5 @@
 'use client'
 
-/**
- * Tenant Payment Hooks — payment queries, amount due, rent checkout
- */
-
 import { queryOptions, useQuery, useMutation, mutationOptions } from '@tanstack/react-query'
 import { createClient } from '#lib/supabase/client'
 import { handlePostgrestError } from '#lib/postgrest-error-handler'
@@ -241,17 +237,9 @@ export const tenantPaymentQueries = {
 		})
 }
 
-// ============================================================================
-// QUERY HOOKS
-// ============================================================================
-
 export function useTenantPayments() {
 	return useQuery(tenantPaymentQueries.payments())
 }
-
-// ============================================================================
-// MUTATION OPTIONS FACTORY
-// ============================================================================
 
 const tenantPaymentMutationFactories = {
 	rentCheckout: () =>
@@ -281,10 +269,6 @@ const tenantPaymentMutationFactories = {
 			}
 		})
 }
-
-// ============================================================================
-// MUTATION HOOKS
-// ============================================================================
 
 export function useRentCheckoutMutation() {
 	return useMutation({

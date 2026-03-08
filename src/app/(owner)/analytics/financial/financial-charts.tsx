@@ -33,7 +33,6 @@ import {
 	SelectValue
 } from '#components/ui/select'
 
-
 const billingTimelineConfig = {
 	invoiced: { label: 'Invoiced', color: 'oklch(0.72 0.08 45)' },
 	paid: { label: 'Paid', color: 'oklch(0.55 0.18 140)' },

@@ -2,19 +2,14 @@
 
 import { useDirection } from '@radix-ui/react-direction'
 import { Slot } from '@radix-ui/react-slot'
-import {
-	useCallback,
-	useEffect,
-	useId,
-	useMemo,
-	useRef
-} from 'react'
+import { useCallback, useEffect, useId, useMemo, useRef } from 'react'
 import type { ChangeEvent } from 'react'
 import { cn } from '#lib/utils'
 import { useAsRef } from '#hooks/use-as-ref'
 import { useLazyRef } from '#hooks/use-lazy-ref'
 import { FileUploadContext } from './context'
 import { StoreContext, createStoreReducer } from './store'
+import { validateFiles } from './file-upload-validation'
 import type {
 	FileUploadProps,
 	FileUploadContextValue,
@@ -182,81 +177,19 @@ export function FileUpload(props: FileUploadProps) {
 		(originalFiles: File[]) => {
 			if (disabled) return
 
-			let filesToProcess = [...originalFiles]
-			let isInvalid = false
-
-			if (maxFiles) {
-				const currentCount = store.getState().files.size
-				const remainingSlotCount = Math.max(0, maxFiles - currentCount)
-
-				if (remainingSlotCount < filesToProcess.length) {
-					const rejectedFiles = filesToProcess.slice(remainingSlotCount)
-					isInvalid = true
-
-					filesToProcess = filesToProcess.slice(0, remainingSlotCount)
-
-					for (const file of rejectedFiles) {
-						let rejectionMessage = `Maximum ${maxFiles} files allowed`
-
-						if (propsRef.current.onFileValidate) {
-							const validationMessage = propsRef.current.onFileValidate(file)
-							if (validationMessage) {
-								rejectionMessage = validationMessage
-							}
-						}
-
-						propsRef.current.onFileReject?.(file, rejectionMessage)
-					}
+			const { acceptedFiles, isInvalid } = validateFiles(
+				originalFiles,
+				{
+					acceptTypes,
+					maxSize,
+					maxFiles,
+					currentFileCount: store.getState().files.size
+				},
+				{
+					onFileValidate: propsRef.current.onFileValidate,
+					onFileReject: propsRef.current.onFileReject
 				}
-			}
-
-			const acceptedFiles: File[] = []
-
-			for (const file of filesToProcess) {
-				let rejected = false
-				let rejectionMessage: string
-
-				if (propsRef.current.onFileValidate) {
-					const validationMessage = propsRef.current.onFileValidate(file)
-					if (validationMessage) {
-						rejectionMessage = validationMessage
-						propsRef.current.onFileReject?.(file, rejectionMessage)
-						isInvalid = true
-						continue
-					}
-				}
-
-				if (acceptTypes) {
-					const fileType = file.type
-					const fileExtension = `.${file.name.split('.').pop()}`
-
-					if (
-						!acceptTypes.some(
-							(type) =>
-								type === fileType ||
-								type === fileExtension ||
-								(type.includes('/*') &&
-									fileType.startsWith(type.replace('/*', '/')))
-						)
-					) {
-						rejectionMessage = 'File type not accepted'
-						propsRef.current.onFileReject?.(file, rejectionMessage)
-						rejected = true
-						isInvalid = true
-					}
-				}
-
-				if (maxSize && file.size > maxSize) {
-					rejectionMessage = 'File too large'
-					propsRef.current.onFileReject?.(file, rejectionMessage)
-					rejected = true
-					isInvalid = true
-				}
-
-				if (!rejected) {
-					acceptedFiles.push(file)
-				}
-			}
+			)
 
 			if (isInvalid) {
 				store.dispatch({ type: 'SET_INVALID', invalid: true })
