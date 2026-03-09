@@ -20,7 +20,7 @@ import {
 import { checkoutRateLimiter } from '#lib/security'
 import { useMutation } from '@tanstack/react-query'
 import { toast } from 'sonner'
-import { createLogger } from '#lib/frontend-logger.js'
+import { createLogger } from '#lib/frontend-logger'
 import { getAllPricingPlans, PLAN_FEATURES } from '#config/pricing'
 
 const logger = createLogger({ component: 'KiboStylePricing' })

@@ -2,7 +2,7 @@
 
 import { Button } from '#components/ui/button'
 import { useFormWithProgress } from '#hooks/use-form-progress'
-import { createLogger } from '#lib/frontend-logger.js'
+import { createLogger } from '#lib/frontend-logger'
 import type { ContactFormRequest } from '#types/domain'
 import { Check, Mail, MapPin, Phone } from 'lucide-react'
 import type { FormEvent } from 'react'

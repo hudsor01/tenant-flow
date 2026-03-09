@@ -1,4 +1,4 @@
-import { createLogger } from '#lib/frontend-logger.js'
+import { createLogger } from '#lib/frontend-logger'
 import { createClient } from '#lib/supabase/client'
 import { getCachedUser } from '#lib/supabase/get-cached-user'
 const logger = createLogger({ component: 'TourProgress' })

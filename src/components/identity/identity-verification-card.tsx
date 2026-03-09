@@ -7,7 +7,7 @@ import { Button } from '#components/ui/button'
 import { CardLayout } from '#components/ui/card-layout'
 import { Spinner } from '#components/ui/loading-spinner'
 import { getStripe } from '#lib/stripe/stripe-client'
-import { createLogger } from '#lib/frontend-logger.js'
+import { createLogger } from '#lib/frontend-logger'
 import type { IdentityVerificationStatus } from '#types/stripe'
 import {
 	useCreateIdentityVerificationSessionMutation,

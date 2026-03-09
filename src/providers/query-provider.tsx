@@ -1,7 +1,7 @@
 'use client'
 
 import * as Sentry from '@sentry/nextjs'
-import { createLogger } from '#lib/frontend-logger.js'
+import { createLogger } from '#lib/frontend-logger'
 import type { DehydratedState, DefaultOptions } from '@tanstack/react-query'
 import {
 	HydrationBoundary,

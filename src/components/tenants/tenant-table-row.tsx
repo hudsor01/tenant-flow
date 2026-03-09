@@ -5,7 +5,7 @@ import { Checkbox } from '#components/ui/checkbox'
 import { Button } from '#components/ui/button'
 import type { TenantItem } from '#types/sections/tenants'
 import type { LeaseStatus } from '#types/core'
-import { createLogger } from '#lib/frontend-logger.js'
+import { createLogger } from '#lib/frontend-logger'
 import { StatusSelectCell } from './tenant-table-helpers'
 
 const logger = createLogger({ component: 'TenantTableRow' })

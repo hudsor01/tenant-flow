@@ -2,7 +2,7 @@
 
 import { GridPattern } from '#components/ui/grid-pattern'
 import { createClient } from '#lib/supabase/client'
-import { logger } from '#lib/frontend-logger.js'
+import { logger } from '#lib/frontend-logger'
 import { Suspense, useEffect, useRef, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { toast } from 'sonner'

@@ -3,7 +3,7 @@
 import { ForgotPasswordModal } from '#components/auth/forgot-password-modal'
 import { MfaVerificationDialog } from '#components/auth/mfa-verification-dialog'
 import { authKeys } from '#hooks/api/use-auth'
-import { createLogger } from '#lib/frontend-logger.js'
+import { createLogger } from '#lib/frontend-logger'
 import { createClient } from '#lib/supabase/client'
 import { useQueryClient } from '@tanstack/react-query'
 import { Building2, Home, Lock, Smartphone, Zap } from 'lucide-react'

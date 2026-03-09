@@ -10,7 +10,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { handleMutationError, handleMutationSuccess } from '#lib/mutation-error-handler'
 import { toast } from 'sonner'
-import { incrementVersion } from '#lib/utils/optimistic-locking.js'
+import { incrementVersion } from '#lib/utils/optimistic-locking'
 import type { Tenant, TenantWithLeaseInfo, TenantWithLeaseInfoWithVersion } from '#types/core'
 
 import { tenantQueries } from './query-keys/tenant-keys'

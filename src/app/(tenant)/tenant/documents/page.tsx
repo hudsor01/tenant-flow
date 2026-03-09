@@ -4,7 +4,7 @@ import { useTenantLeaseDocuments } from '#hooks/api/use-tenant-lease'
 import { Button } from '#components/ui/button'
 import { CardLayout } from '#components/ui/card-layout'
 import { Calendar, Download, Eye, FileText, FolderOpen } from 'lucide-react'
-import { createLogger } from '#lib/frontend-logger.js'
+import { createLogger } from '#lib/frontend-logger'
 import {
 	LeaseDocumentsSkeleton,
 	MoveInDocumentsSection,

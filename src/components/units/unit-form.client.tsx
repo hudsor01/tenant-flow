@@ -16,7 +16,7 @@ import { ERROR_MESSAGES } from '#lib/constants/error-messages'
 import {
 	isConflictError,
 	handleConflictError
-} from '#lib/utils/optimistic-locking.js'
+} from '#lib/utils/optimistic-locking'
 import { handleMutationError } from '#lib/mutation-error-handler'
 import { useCurrentUser } from '#hooks/use-current-user'
 import { UnitFormFields } from './unit-form-fields'

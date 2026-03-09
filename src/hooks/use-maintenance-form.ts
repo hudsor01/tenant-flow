@@ -1,5 +1,5 @@
 import { useForm } from '@tanstack/react-form'
-import { createLogger } from '#lib/frontend-logger.js'
+import { createLogger } from '#lib/frontend-logger'
 import type { UseMutationResult } from '@tanstack/react-query'
 import type {
 	MaintenanceRequestCreate,

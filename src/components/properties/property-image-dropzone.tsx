@@ -23,7 +23,7 @@ import {
 	DropzoneEmptyState
 } from '#components/ui/dropzone'
 import { propertyQueries } from '#hooks/api/query-keys/property-keys'
-import { createLogger } from '#lib/frontend-logger.js'
+import { createLogger } from '#lib/frontend-logger'
 
 const logger = createLogger({ component: 'PropertyImageDropzone' })
 

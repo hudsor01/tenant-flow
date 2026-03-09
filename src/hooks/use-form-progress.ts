@@ -6,7 +6,7 @@
 
 'use client'
 
-import { createLogger } from '#lib/frontend-logger.js'
+import { createLogger } from '#lib/frontend-logger'
 import type { FormProgressData } from '#types/core'
 import { startTransition, useDeferredValue, useEffect, useState } from 'react'
 

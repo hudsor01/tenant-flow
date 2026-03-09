@@ -24,7 +24,7 @@ import {
 import { useState, useRef } from 'react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { propertyQueries } from '#hooks/api/query-keys/property-keys'
-import { createLogger } from '#lib/frontend-logger.js'
+import { createLogger } from '#lib/frontend-logger'
 import type {
 	BulkImportResult,
 	ParsedRow,

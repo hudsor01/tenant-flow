@@ -3,7 +3,7 @@
 import type { ChangeEvent, FormEvent } from 'react'
 import { useState } from 'react'
 import { X, UserPlus, Mail, User, Loader2 } from 'lucide-react'
-import { createLogger } from '#lib/frontend-logger.js'
+import { createLogger } from '#lib/frontend-logger'
 import type { InviteTenantData } from '#types/sections/tenants'
 import type { InvitationType } from '#types/core'
 

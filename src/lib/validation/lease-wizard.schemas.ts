@@ -11,7 +11,7 @@ import {
 	positiveNumberSchema,
 	nonNegativeNumberSchema
 } from './common'
-import { VALIDATION_LIMITS } from '#lib/constants/billing.js'
+import { VALIDATION_LIMITS } from '#lib/constants/billing'
 
 // ============================================================================
 // UTILITY SCHEMAS

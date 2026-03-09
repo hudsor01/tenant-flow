@@ -22,7 +22,7 @@ import { MaintenanceCard } from '../cards/maintenance-card'
 import { MaintenanceSortableCard } from '../cards/maintenance-sortable-card'
 import type { MaintenanceStatus } from '#types/core'
 import type { MaintenanceDisplayRequest } from '#types/sections/maintenance'
-import { createLogger } from '#lib/frontend-logger.js'
+import { createLogger } from '#lib/frontend-logger'
 import { createClient } from '#lib/supabase/client'
 
 const logger = createLogger({ component: 'MaintenanceKanban' })

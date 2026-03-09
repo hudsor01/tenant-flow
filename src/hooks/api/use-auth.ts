@@ -15,7 +15,7 @@ import { queryOptions, useQuery, useQueryClient } from '@tanstack/react-query'
 import { createClient } from '#lib/supabase/client'
 import { getCachedUser } from '#lib/supabase/get-cached-user'
 import { QUERY_CACHE_TIMES } from '#lib/constants/query-config'
-import { logger } from '#lib/frontend-logger.js'
+import { logger } from '#lib/frontend-logger'
 import type { Session, User as SupabaseUser } from '@supabase/supabase-js'
 import type { AuthSession } from '#types/auth'
 

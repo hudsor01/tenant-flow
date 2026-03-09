@@ -18,7 +18,7 @@ import type { TransitionStartFunction } from 'react'
 
 import { useDebouncedCallback } from '#hooks/use-debounced-callback'
 import { getSortingStateParser } from '#lib/parsers'
-import type { ExtendedColumnSort, QueryKeys } from '#types/data-table.js'
+import type { ExtendedColumnSort, QueryKeys } from '#types/data-table'
 
 const DEFAULTS = { page: 'page', perPage: 'perPage', sort: 'sort', filters: 'filters', joinOperator: 'joinOperator' } as const
 const ARRAY_SEPARATOR = ','

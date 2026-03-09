@@ -9,7 +9,7 @@
  */
 
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { logger } from '#lib/frontend-logger.js'
+import { logger } from '#lib/frontend-logger'
 import { handleMutationError } from '#lib/mutation-error-handler'
 
 import { leaseQueries } from './query-keys/lease-keys'

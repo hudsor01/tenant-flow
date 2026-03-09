@@ -10,7 +10,7 @@
  */
 
 import { z } from 'zod'
-import { VALIDATION_LIMITS } from '#lib/constants/billing.js'
+import { VALIDATION_LIMITS } from '#lib/constants/billing'
 
 // ============================================================================
 // TOP-LEVEL STRING FORMAT VALIDATORS (Zod 4)

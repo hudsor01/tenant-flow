@@ -1,7 +1,7 @@
 'use client'
 
 import { GoogleButton } from '#components/auth/google-button'
-import { createLogger } from '#lib/frontend-logger.js'
+import { createLogger } from '#lib/frontend-logger'
 import { createClient } from '#lib/supabase/client'
 import { useState } from 'react'
 

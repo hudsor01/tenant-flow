@@ -1,5 +1,5 @@
 import { createClient } from '#lib/supabase/server'
-import { createLogger } from '#lib/frontend-logger.js'
+import { createLogger } from '#lib/frontend-logger'
 import type { MetadataRoute } from 'next'
 import { env } from '#env'
 

@@ -10,7 +10,7 @@ import {
 	ChevronDown,
 	Check
 } from 'lucide-react'
-import { createLogger } from '#lib/frontend-logger.js'
+import { createLogger } from '#lib/frontend-logger'
 import type { TenantItem } from '#types/sections/tenants'
 import type { LeaseStatus } from '#types/core'
 import { BlurFade } from '#components/ui/blur-fade'

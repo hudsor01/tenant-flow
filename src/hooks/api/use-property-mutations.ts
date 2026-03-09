@@ -11,7 +11,7 @@ import { toast } from 'sonner'
 
 import { handleMutationError } from '#lib/mutation-error-handler'
 
-import { logger } from '#lib/frontend-logger.js'
+import { logger } from '#lib/frontend-logger'
 import type { Property } from '#types/core'
 
 import { propertyQueries } from './query-keys/property-keys'

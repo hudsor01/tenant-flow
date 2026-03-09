@@ -1,6 +1,6 @@
 import { toast } from 'sonner'
 import type { RefObject } from 'react'
-import { createLogger } from '#lib/frontend-logger.js'
+import { createLogger } from '#lib/frontend-logger'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import type { QueryClient } from '@tanstack/react-query'
 import { propertyQueries } from '#hooks/api/query-keys/property-keys'

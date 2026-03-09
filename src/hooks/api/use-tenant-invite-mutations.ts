@@ -11,7 +11,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { handleMutationError } from '#lib/mutation-error-handler'
 import { toast } from 'sonner'
-import { logger } from '#lib/frontend-logger.js'
+import { logger } from '#lib/frontend-logger'
 
 import { tenantQueries } from './query-keys/tenant-keys'
 import { tenantInvitationQueries } from './query-keys/tenant-invitation-keys'

@@ -9,7 +9,7 @@
  */
 
 import { create } from 'zustand'
-import { createLogger } from '#lib/frontend-logger.js'
+import { createLogger } from '#lib/frontend-logger'
 import type { ToastT } from 'sonner'
 
 const logger = createLogger({ component: 'ToastStore' })

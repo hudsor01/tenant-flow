@@ -13,7 +13,7 @@
 
 import { z } from 'zod'
 import { uuidSchema, requiredString, phoneSchema } from './common'
-import { VALIDATION_LIMITS } from '#lib/constants/billing.js'
+import { VALIDATION_LIMITS } from '#lib/constants/billing'
 
 // Tenant status enum validation
 export const tenantStatusSchema = z.enum([

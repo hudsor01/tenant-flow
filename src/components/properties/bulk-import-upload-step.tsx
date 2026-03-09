@@ -5,7 +5,7 @@ import { FileUpload } from '#components/ui/file-upload/file-upload'
 import { FileUploadDropzone } from '#components/ui/file-upload/file-upload-dropzone'
 import { FileUploadTrigger } from '#components/ui/file-upload/file-upload-actions'
 import { Download, FileSpreadsheet, CheckCircle2, Upload } from 'lucide-react'
-import { createLogger } from '#lib/frontend-logger.js'
+import { createLogger } from '#lib/frontend-logger'
 import {
 	buildCsvTemplate,
 	triggerCsvDownload,

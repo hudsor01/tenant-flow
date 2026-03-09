@@ -14,7 +14,7 @@
  * ```
  */
 
-import { createLogger } from '#lib/frontend-logger.js'
+import { createLogger } from '#lib/frontend-logger'
 import { toast } from 'sonner'
 
 const logger = createLogger({ component: 'MutationErrorHandler' })

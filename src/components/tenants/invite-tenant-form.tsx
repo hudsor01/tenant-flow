@@ -1,7 +1,7 @@
 'use client'
 
 import { Button } from '#components/ui/button'
-import { createLogger } from '#lib/frontend-logger.js'
+import { createLogger } from '#lib/frontend-logger'
 import type { Property, Unit } from '#types/core'
 import type { InviteTenantRequest } from '#lib/validation/tenants'
 import { useForm } from '@tanstack/react-form'

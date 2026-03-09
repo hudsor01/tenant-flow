@@ -14,7 +14,7 @@ import { propertyQueries } from '#hooks/api/query-keys/property-keys'
 import { useSupabaseUser } from '#hooks/api/use-auth'
 import { useCurrentUser } from '#hooks/use-current-user'
 
-import { createLogger } from '#lib/frontend-logger.js'
+import { createLogger } from '#lib/frontend-logger'
 import type { Property, PropertyType } from '#types/core'
 import { propertyFormSchema } from '#lib/validation/properties'
 import { useForm } from '@tanstack/react-form'

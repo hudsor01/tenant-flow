@@ -10,7 +10,7 @@ import {
 	DialogTitle
 } from '#components/ui/dialog'
 import { useMfaEnrollMutation, useMfaVerifyMutation, useMfaUnenrollMutation } from '#hooks/api/use-mfa'
-import { logger } from '#lib/frontend-logger.js'
+import { logger } from '#lib/frontend-logger'
 import { Loader2, ShieldOff } from 'lucide-react'
 import { useState, useEffect } from 'react'
 import { toast } from 'sonner'
