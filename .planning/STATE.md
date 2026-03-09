@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.2
 milestone_name: Production Polish & Code Consolidation
 status: executing
-stopped_at: Completed 18-05-PLAN.md
-last_updated: "2026-03-09T00:45:00Z"
-last_activity: "2026-03-08 -- Completed Plan 05: React Compiler enabled globally with tour.tsx opt-out"
+stopped_at: Completed 18-06-PLAN.md (Phase 18 complete)
+last_updated: "2026-03-09T01:20:00Z"
+last_activity: "2026-03-09 -- Completed Plan 06: Removed 339 manual memos from 93 files, React Compiler sole memoization strategy"
 progress:
   total_phases: 5
-  completed_phases: 2
+  completed_phases: 3
   total_plans: 15
-  completed_plans: 13
-  percent: 87
+  completed_plans: 14
+  percent: 93
 ---
 
 # Project State: TenantFlow
@@ -21,24 +21,24 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-08)
 
 **Core value:** A landlord can add a property, invite a tenant, collect rent, and see their financials -- without touching a spreadsheet or calling anyone.
-**Current focus:** v1.2 Production Polish & Code Consolidation -- Phase 18 in progress
+**Current focus:** v1.2 Production Polish & Code Consolidation -- Phase 18 complete, Phase 19 next
 
 ## Current Position
 
 Milestone: v1.2 Production Polish & Code Consolidation
-Phase: 18 of 20 (Components Consolidation)
-Plan: 6 of 6
+Phase: 19 of 20 (UI Polish)
+Plan: 0 of TBD
 Status: executing
-Last activity: 2026-03-08 -- Completed Plan 05: React Compiler enabled globally with tour.tsx opt-out
+Last activity: 2026-03-09 -- Completed Plan 06: Removed 339 manual memos from 93 files, React Compiler sole memoization strategy
 
-Progress: [████████--] 87% (13/15 plans)
+Progress: [█████████-] 93% (14/15 plans)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 14
-- Average duration: 27min
-- Total execution time: 382min
+- Total plans completed: 15
+- Average duration: 28min
+- Total execution time: 427min
 
 | Phase | Plan | Duration | Tasks | Files |
 |-------|------|----------|-------|-------|
@@ -52,6 +52,7 @@ Progress: [████████--] 87% (13/15 plans)
 | 18-components-consolidation | 02 | 20min | 2 | 20 |
 | 18-components-consolidation | 03 | 45min | 2 | 27 |
 | 18-components-consolidation | 05 | 12min | 2 | 4 |
+| 18-components-consolidation | 06 | 45min | 2 | 96 |
 
 ## Shipped Milestones
 
@@ -86,6 +87,9 @@ Progress: [████████--] 87% (13/15 plans)
 - Lookup objects replacing switch statements for brand/type mapping (payment-methods-list)
 - reactCompiler: true placed at top level of next.config.ts (stable in Next.js 16, not under experimental)
 - 'use no memo' directive placed after 'use client' in tour.tsx to preserve vendored manual memoization
+- useLazyRef replaces useMemo for store initialization in stepper.tsx and file-upload.tsx (single-init semantics preserved)
+- No manual useMemo/useCallback/React.memo in project-owned code -- React Compiler handles all memoization
+- Type annotations required when removing useMemo generics that provided type narrowing (DynamicField[], CustomClause[], SidebarContextProps)
 
 ### Blockers/Concerns
 
@@ -93,6 +97,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-09T00:45:00Z
-Stopped at: Completed 18-05-PLAN.md
-Resume file: .planning/phases/18-components-consolidation/18-05-SUMMARY.md
+Last session: 2026-03-09T01:20:00Z
+Stopped at: Completed 18-06-PLAN.md (Phase 18 complete)
+Resume file: .planning/phases/18-components-consolidation/18-06-SUMMARY.md
