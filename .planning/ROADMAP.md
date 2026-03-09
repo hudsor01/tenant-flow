@@ -44,7 +44,7 @@ TenantFlow is a multi-tenant property management SaaS platform for property owne
 - [x] **Phase 16: Shared Cleanup & Dead Code** - Flatten src/shared/ into top-level directories, delete design-system.ts, run Knip audit, delete TYPES.md, update CLAUDE.md
 - [x] **Phase 17: Hooks Consolidation** - Deduplicate and modernize API hooks, expand useSuspenseQuery, split oversized hook files, migrate react-hook-form to TanStack Form, add mutationOptions() factories
 - [x] **Phase 18: Components Consolidation** - Split oversized components, enable React Compiler, remove manual memoization
-- [ ] **Phase 19: UI Polish** - Redesign marketing navbar, enforce button/card/layout consistency across all page groups
+- [x] **Phase 19: UI Polish** - Redesign marketing navbar, enforce button/card/layout consistency across all page groups
 - [ ] **Phase 20: Browser Audit** - Systematic browser automation verification of all pages at desktop and mobile viewports
 
 ## Phase Details
@@ -108,9 +108,9 @@ Plans:
 **Requirements**: UI-01, UI-02, UI-03, UI-04
 **Plans:** 3 plans
 Plans:
-- [ ] 19-01-PLAN.md -- Simplify marketing navbar: remove auth logic, add responsive mobile behavior
-- [ ] 19-02-PLAN.md -- Consolidate button variants (11 to 6) and sizes (9 to 4), convert hero inline CTAs
-- [ ] 19-03-PLAN.md -- Consolidate card variants (18 to 6), change rounded-sm to rounded-md, migrate consumers
+- [x] 19-01-PLAN.md -- Simplify marketing navbar: remove auth logic, add responsive mobile behavior
+- [x] 19-02-PLAN.md -- Consolidate button variants (11 to 6) and sizes (9 to 4), convert hero inline CTAs
+- [x] 19-03-PLAN.md -- Consolidate card variants (18 to 6), change rounded-sm to rounded-md, migrate consumers
 **Success Criteria** (what must be TRUE):
   1. Marketing navbar is redesigned with correct navigation links, responsive behavior, and proper auth state handling (logged in vs logged out)
   2. All buttons and CTAs use consistent variants, border-radius, and spacing across every page group
@@ -134,5 +134,5 @@ Plans:
 | 16. Shared Cleanup & Dead Code | 3/3 | Complete | 2026-03-08 |
 | 17. Hooks Consolidation | 6/6 | Complete | 2026-03-08 |
 | 18. Components Consolidation | 6/6 | Complete    | 2026-03-09 |
-| 19. UI Polish | 0/3 | Not started | - |
+| 19. UI Polish | 3/3 | Complete | 2026-03-09 |
 | 20. Browser Audit | 0/TBD | Not started | - |
