@@ -16,7 +16,6 @@ export interface TenantShellProps {
 	children: ReactNode
 }
 
-// Mobile bottom navigation items
 const mobileNavItems = [
 	{ title: 'Home', href: '/tenant', icon: Home },
 	{ title: 'Payments', href: '/tenant/payments', icon: CreditCard },
