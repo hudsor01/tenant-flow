@@ -121,11 +121,18 @@ Plans:
 **Goal**: Every user-facing page is verified working through systematic browser automation, confirming interactions and visual consistency at all viewport sizes
 **Depends on**: Phase 19
 **Requirements**: VER-01, VER-02
+**Plans:** 6 plans
+Plans:
+- [ ] 20-01-PLAN.md -- Audit 19 marketing pages at 3 viewports (public, no auth)
+- [ ] 20-02-PLAN.md -- Audit 3 blog routes at 3 viewports (public, data-driven)
+- [ ] 20-03-PLAN.md -- Audit 7 auth pages at 3 viewports (mixed access)
+- [ ] 20-04-PLAN.md -- Audit 18 tenant portal pages at 3 viewports (tenant auth)
+- [ ] 20-05-PLAN.md -- Audit 27 owner dashboard core pages at 3 viewports (owner auth)
+- [ ] 20-06-PLAN.md -- Audit 32 owner dashboard secondary pages at 3 viewports (owner auth)
 **Success Criteria** (what must be TRUE):
   1. Every page in all 5 page groups (marketing, blog, auth, tenant portal, owner dashboard) loads without errors and all interactive elements respond correctly
   2. All pages pass visual consistency checks at 375px, 768px, and 1440px viewports with no responsive layout regressions
   3. Any issues found during the audit are logged, fixed, and re-verified before the milestone ships
-**Plans**: TBD
 
 ## Progress
 
@@ -135,4 +142,4 @@ Plans:
 | 17. Hooks Consolidation | 6/6 | Complete | 2026-03-08 |
 | 18. Components Consolidation | 6/6 | Complete    | 2026-03-09 |
 | 19. UI Polish | 3/3 | Complete | 2026-03-09 |
-| 20. Browser Audit | 0/TBD | Not started | - |
+| 20. Browser Audit | 0/6 | Not started | - |
