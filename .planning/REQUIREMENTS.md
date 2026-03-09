@@ -17,7 +17,7 @@ Requirements for Production Polish & Code Consolidation. Each maps to roadmap ph
 
 ### Modernization
 
-- [ ] **MOD-01**: Enable React Compiler via `babel-plugin-react-compiler` to auto-memoize components and eliminate manual `useMemo`/`useCallback`
+- [x] **MOD-01**: Enable React Compiler via `babel-plugin-react-compiler` to auto-memoize components and eliminate manual `useMemo`/`useCallback`
 - [ ] **MOD-02**: Expand `useSuspenseQuery` usage to components inside Suspense boundaries beyond current 5 dashboard calls
 - [ ] **MOD-03**: Reconcile design tokens — `globals.css` is the sole source of truth, reduce `design-system.ts` to non-CSS contexts only (OG images, emails)
 - [x] **MOD-04**: Migrate all react-hook-form usage (17 files) to TanStack Form and remove react-hook-form dependency
@@ -70,7 +70,7 @@ Requirements for Production Polish & Code Consolidation. Each maps to roadmap ph
 | CLEAN-03 | Phase 16 | Pending |
 | CLEAN-04 | Phase 16 | Pending |
 | CLEAN-05 | Phase 16 | Pending |
-| MOD-01 | Phase 18 | Pending |
+| MOD-01 | Phase 18 | Complete |
 | MOD-02 | Phase 17 | Pending |
 | MOD-03 | Phase 16 | Pending |
 | MOD-04 | Phase 17 | Complete |

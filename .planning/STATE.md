@@ -3,9 +3,9 @@ gsd_state_version: 1.0
 milestone: v1.2
 milestone_name: Production Polish & Code Consolidation
 status: executing
-stopped_at: Completed 18-03-PLAN.md
-last_updated: "2026-03-08T23:00:00Z"
-last_activity: 2026-03-08 -- Phase 18 Plan 03 complete (medium splits + borderline cleanup)
+stopped_at: Completed 18-05-PLAN.md
+last_updated: "2026-03-09T00:45:00Z"
+last_activity: "2026-03-08 -- Completed Plan 05: React Compiler enabled globally with tour.tsx opt-out"
 progress:
   total_phases: 5
   completed_phases: 2
@@ -27,18 +27,18 @@ See: .planning/PROJECT.md (updated 2026-03-08)
 
 Milestone: v1.2 Production Polish & Code Consolidation
 Phase: 18 of 20 (Components Consolidation)
-Plan: 4 of 6
+Plan: 6 of 6
 Status: executing
-Last activity: 2026-03-08 -- Completed Plan 03: split 8 medium components and cleaned 11 borderline files
+Last activity: 2026-03-08 -- Completed Plan 05: React Compiler enabled globally with tour.tsx opt-out
 
 Progress: [████████--] 87% (13/15 plans)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 13
-- Average duration: 28min
-- Total execution time: 370min
+- Total plans completed: 14
+- Average duration: 27min
+- Total execution time: 382min
 
 | Phase | Plan | Duration | Tasks | Files |
 |-------|------|----------|-------|-------|
@@ -51,6 +51,7 @@ Progress: [████████--] 87% (13/15 plans)
 | 18-components-consolidation | 01 | 35min | 2 | 41 |
 | 18-components-consolidation | 02 | 20min | 2 | 20 |
 | 18-components-consolidation | 03 | 45min | 2 | 27 |
+| 18-components-consolidation | 05 | 12min | 2 | 4 |
 
 ## Shipped Milestones
 
@@ -83,6 +84,8 @@ Progress: [████████--] 87% (13/15 plans)
 - FlowList helper extracted in cash-flow.tsx to deduplicate identical inflows/outflows rendering
 - Data-driven JSX pattern: config array + .map() replacing repetitive blocks (bulk-import-stepper)
 - Lookup objects replacing switch statements for brand/type mapping (payment-methods-list)
+- reactCompiler: true placed at top level of next.config.ts (stable in Next.js 16, not under experimental)
+- 'use no memo' directive placed after 'use client' in tour.tsx to preserve vendored manual memoization
 
 ### Blockers/Concerns
 
@@ -90,6 +93,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-08T23:00:00Z
-Stopped at: Completed 18-03-PLAN.md
-Resume file: .planning/phases/18-components-consolidation/18-03-SUMMARY.md
+Last session: 2026-03-09T00:45:00Z
+Stopped at: Completed 18-05-PLAN.md
+Resume file: .planning/phases/18-components-consolidation/18-05-SUMMARY.md
