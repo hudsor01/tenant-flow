@@ -10,7 +10,7 @@ import { useDataTable } from '#hooks/use-data-table'
 import type { ColumnDef } from '@tanstack/react-table'
 import { formatCurrency, formatNumber } from '#lib/formatters/currency'
 import { Calendar, DollarSign, BarChart3 } from 'lucide-react'
-import { useMemo } from 'react'
+
 import dynamic from 'next/dynamic'
 import type { LeaseFinancialInsight } from '#types/analytics'
 import { ChartLoadingSkeleton } from '#components/shared/chart-loading-skeleton'
@@ -50,8 +50,7 @@ export function LeaseInsightsSkeleton() {
 }
 
 function ProfitabilityTable({ leases }: { leases: LeaseFinancialInsight[] }) {
-	const columns: ColumnDef<LeaseFinancialInsight>[] = useMemo(
-		() => [
+	const columns: ColumnDef<LeaseFinancialInsight>[] = [
 			{
 				accessorKey: 'lease_id',
 				header: 'Lease',
@@ -132,9 +131,7 @@ function ProfitabilityTable({ leases }: { leases: LeaseFinancialInsight[] }) {
 					</div>
 				)
 			}
-		],
-		[]
-	)
+		]
 
 	const { table } = useDataTable({
 		data: leases,

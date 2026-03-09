@@ -1,6 +1,6 @@
 'use client'
 
-import { useId, useMemo } from 'react'
+import { useId } from 'react'
 import { useDirection } from '@radix-ui/react-direction'
 import { Slot } from '@radix-ui/react-slot'
 import { cn } from '#lib/utils'
@@ -77,64 +77,63 @@ function StepperRoot(props: StepperRootProps) {
 		onValueChange, onValueComplete, onValueAdd, onValueRemove, onValidate
 	})
 
-	const store = useMemo<Store>(() => {
-		return {
-			subscribe: cb => {
-				listenersRef.current.add(cb)
-				return () => listenersRef.current.delete(cb)
-			},
-			getState: () => stateRef.current,
-			setState: (key, storeValue) => {
-				if (Object.is(stateRef.current[key], storeValue)) return
-				if (key === 'value' && typeof storeValue === 'string') {
-					stateRef.current.value = storeValue
-					propsRef.current.onValueChange?.(storeValue)
-				} else {
-					stateRef.current[key] = storeValue
-				}
-				store.notify()
-			},
-			setStateWithValidation: async (storeValue, direction) => {
-				if (!propsRef.current.onValidate) {
-					store.setState('value', storeValue)
-					return true
-				}
-				try {
-					const isValid = await propsRef.current.onValidate(storeValue, direction)
-					if (isValid) store.setState('value', storeValue)
-					return isValid
-				} catch {
-					return false
-				}
-			},
-			hasValidation: () => !!propsRef.current.onValidate,
-			addStep: (stepValue, completed, stepDisabled) => {
-				const newStep: StepState = { value: stepValue, completed, disabled: stepDisabled }
-				stateRef.current.steps.set(stepValue, newStep)
-				propsRef.current.onValueAdd?.(stepValue)
-				store.notify()
-			},
-			removeStep: stepValue => {
-				stateRef.current.steps.delete(stepValue)
-				propsRef.current.onValueRemove?.(stepValue)
-				store.notify()
-			},
-			setStep: (stepValue, completed, stepDisabled) => {
-				const step = stateRef.current.steps.get(stepValue)
-				if (step) {
-					const updatedStep: StepState = { ...step, completed, disabled: stepDisabled }
-					stateRef.current.steps.set(stepValue, updatedStep)
-					if (completed !== step.completed) {
-						propsRef.current.onValueComplete?.(stepValue, completed)
-					}
-					store.notify()
-				}
-			},
-			notify: () => {
-				for (const cb of listenersRef.current) cb()
+	const storeRef = useLazyRef<Store>(() => ({
+		subscribe: cb => {
+			listenersRef.current.add(cb)
+			return () => listenersRef.current.delete(cb)
+		},
+		getState: () => stateRef.current,
+		setState: (key, storeValue) => {
+			if (Object.is(stateRef.current[key], storeValue)) return
+			if (key === 'value' && typeof storeValue === 'string') {
+				stateRef.current.value = storeValue
+				propsRef.current.onValueChange?.(storeValue)
+			} else {
+				stateRef.current[key] = storeValue
 			}
+			storeRef.current.notify()
+		},
+		setStateWithValidation: async (storeValue, direction) => {
+			if (!propsRef.current.onValidate) {
+				storeRef.current.setState('value', storeValue)
+				return true
+			}
+			try {
+				const isValid = await propsRef.current.onValidate(storeValue, direction)
+				if (isValid) storeRef.current.setState('value', storeValue)
+				return isValid
+			} catch {
+				return false
+			}
+		},
+		hasValidation: () => !!propsRef.current.onValidate,
+		addStep: (stepValue, completed, stepDisabled) => {
+			const newStep: StepState = { value: stepValue, completed, disabled: stepDisabled }
+			stateRef.current.steps.set(stepValue, newStep)
+			propsRef.current.onValueAdd?.(stepValue)
+			storeRef.current.notify()
+		},
+		removeStep: stepValue => {
+			stateRef.current.steps.delete(stepValue)
+			propsRef.current.onValueRemove?.(stepValue)
+			storeRef.current.notify()
+		},
+		setStep: (stepValue, completed, stepDisabled) => {
+			const step = stateRef.current.steps.get(stepValue)
+			if (step) {
+				const updatedStep: StepState = { ...step, completed, disabled: stepDisabled }
+				stateRef.current.steps.set(stepValue, updatedStep)
+				if (completed !== step.completed) {
+					propsRef.current.onValueComplete?.(stepValue, completed)
+				}
+				storeRef.current.notify()
+			}
+		},
+		notify: () => {
+			for (const cb of listenersRef.current) cb()
 		}
-	}, [listenersRef, stateRef, propsRef])
+	}))
+	const store = storeRef.current
 
 	useIsomorphicLayoutEffect(() => {
 		if (value !== undefined) store.setState('value', value)
@@ -144,10 +143,7 @@ function StepperRoot(props: StepperRootProps) {
 	const id = useId()
 	const rootId = idProp ?? id
 
-	const contextValue = useMemo<StepperContextValue>(
-		() => ({ id: rootId, dir, orientation, activationMode, disabled, nonInteractive, loop }),
-		[rootId, dir, orientation, activationMode, disabled, nonInteractive, loop]
-	)
+	const contextValue: StepperContextValue = { id: rootId, dir, orientation, activationMode, disabled, nonInteractive, loop }
 
 	const RootPrimitive = asChild ? Slot : 'div'
 

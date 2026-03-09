@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef } from 'react'
+import { useEffect, useRef } from 'react'
 import type { Ref, RefCallback } from 'react'
 
 type PossibleRef<T> = Ref<T> | undefined
@@ -64,10 +64,7 @@ function useComposedRefs<T>(...refs: PossibleRef<T>[]): RefCallback<T> {
 		refsRef.current = refs
 	})
 
-	return useCallback(
-		(node: T) => composeRefs(...refsRef.current)(node),
-		[]
-	)
+	return (node: T) => composeRefs(...refsRef.current)(node)
 }
 
 export { composeRefs, useComposedRefs }

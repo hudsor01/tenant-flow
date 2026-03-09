@@ -1,4 +1,4 @@
-import { useCallback } from 'react'
+
 import { Plus, Building2, Search } from 'lucide-react'
 import { Button } from '#components/ui/button'
 import { PropertyBulkImportDialog } from './bulk-import-dialog'
@@ -100,15 +100,15 @@ export function useBulkHandlers(
 	deletePropertyMutation: { mutateAsync: (id: string) => Promise<unknown> },
 	clearSelection: () => void
 ) {
-	const handleBulkEditOpen = useCallback(() => {
+	const handleBulkEditOpen = () => {
 		if (selectedRows.size === 0) return
 		const firstSelected = properties.find(p => selectedRows.has(p.id))
 		if (firstSelected) {
 			openBulkEdit(firstSelected.status, firstSelected.propertyType)
 		}
-	}, [properties, selectedRows, openBulkEdit])
+	}
 
-	const handleBulkDelete = useCallback(async () => {
+	const handleBulkDelete = async () => {
 		if (selectedRows.size === 0) return
 		const ids = Array.from(selectedRows)
 		const label = ids.length === 1 ? 'property' : 'properties'
@@ -123,7 +123,7 @@ export function useBulkHandlers(
 		await Promise.allSettled(
 			ids.map(id => deletePropertyMutation.mutateAsync(id))
 		)
-	}, [selectedRows, deletePropertyMutation, clearSelection])
+	}
 
 	return { handleBulkEditOpen, handleBulkDelete }
 }

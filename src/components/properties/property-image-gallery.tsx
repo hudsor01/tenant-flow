@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useState } from 'react'
+import { useState } from 'react'
 import Image from 'next/image'
 import { createLogger } from '#lib/frontend-logger.js'
 import { usePropertyImages } from '#hooks/api/use-properties'
@@ -51,8 +51,7 @@ export function PropertyImageGallery({
 		goToImage
 	} = useLightboxState(0)
 
-	const executeDelete = useCallback(
-		async (imageId: string, imageUrl: string) => {
+	const executeDelete = async (imageId: string, imageUrl: string) => {
 			// Extract storage path from URL (e.g., "property_id/filename.webp")
 			let imagePath: string | undefined
 			try {
@@ -80,9 +79,7 @@ export function PropertyImageGallery({
 					}
 				})
 			}
-		},
-		[deleteMutation, propertyId]
-	)
+		}
 
 	const handleDeleteClick = (imageId: string, imageUrl: string) => {
 		setDeleteTarget({ imageId, imageUrl })

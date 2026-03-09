@@ -12,7 +12,7 @@ import {
 	CardTitle
 } from '#components/ui/card'
 import { ArrowRight, BadgeCheck, Loader2 } from 'lucide-react'
-import { useMemo, useState } from 'react'
+import { useState } from 'react'
 import {
 	createCheckoutSession,
 	isUserAuthenticated
@@ -121,7 +121,7 @@ export function KiboStylePricing({
 		}
 	})
 
-	const pricingPlans = useMemo<PricingPlan[]>(() => {
+	const pricingPlans = (() => {
 		const plans = getAllPricingPlans()
 			.filter(plan => plan.planId !== 'trial')
 			.map(plan => {
@@ -160,7 +160,7 @@ export function KiboStylePricing({
 			const order = { starter: 1, growth: 2, max: 3 } as Record<string, number>
 			return (order[a.id] || 99) - (order[b.id] || 99)
 		})
-	}, [])
+	})()
 
 	const startCheckout = async (
 		plan: PricingPlan,

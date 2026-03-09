@@ -1,7 +1,7 @@
 'use client'
 
 import { CreditCard, ShieldCheck, Trash2 } from 'lucide-react'
-import { useMemo } from 'react'
+
 import { toast } from 'sonner'
 
 import {
@@ -53,16 +53,11 @@ export function PaymentMethodsList() {
 	const setDefault = useSetDefaultPaymentMethod()
 	const deleteMethod = useDeletePaymentMethod()
 
-	const sortedMethods = useMemo(
-		() =>
-			[...paymentMethods].sort(
+	const sortedMethods = [...paymentMethods].sort(
 				(a, b) => Number(b.isDefault) - Number(a.isDefault)
-			),
-		[paymentMethods]
-	)
+			)
 
-	const columns: ColumnDef<PaymentMethodResponse>[] = useMemo(
-		() => [
+	const columns: ColumnDef<PaymentMethodResponse>[] = [
 			{
 				accessorKey: 'brand',
 				header: 'Method',
@@ -182,9 +177,7 @@ export function PaymentMethodsList() {
 					)
 				}
 			}
-		],
-		[setDefault, deleteMethod]
-	)
+		]
 
 	const { table } = useDataTable({
 		data: sortedMethods,

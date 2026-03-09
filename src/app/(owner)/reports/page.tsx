@@ -10,7 +10,7 @@ import {
 import { callGeneratePdfFromHtml } from '#hooks/api/use-report-mutations'
 import { BarChart3, FileText, Calendar } from 'lucide-react'
 import Link from 'next/link'
-import { useMemo, useState } from 'react'
+import { useState } from 'react'
 import { toast } from 'sonner'
 import dynamic from 'next/dynamic'
 import { DateRangeSelector } from '#components/reports/sections/date-range-selector'
@@ -99,7 +99,7 @@ function buildReportPdfHtml(
 /* eslint-enable color-tokens/no-hex-colors */
 
 export default function ReportsPage() {
-	const defaultRange = useMemo(() => getDefaultDateRange(), [])
+	const defaultRange = getDefaultDateRange()
 	const [startDate, setStartDate] = useState(defaultRange.start)
 	const [endDate, setEndDate] = useState(defaultRange.end)
 	const [isExporting, setIsExporting] = useState<string | null>(null)

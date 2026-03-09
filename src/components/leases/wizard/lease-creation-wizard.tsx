@@ -4,7 +4,7 @@
  * Lease Creation Wizard
  * Unified multi-step wizard for creating lease agreements
  */
-import { useState, useCallback, useMemo, useRef } from 'react'
+import { useState, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { useUnsavedChangesWarning } from '#hooks/use-unsaved-changes'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
@@ -59,7 +59,7 @@ export function LeaseCreationWizard({ onSuccess }: LeaseCreationWizardProps) {
 	})
 	const [selectedDuration, setSelectedDuration] = useState<DurationPreset>(null)
 	const rentAutoFilled = useRef(false)
-	const handleUnitSelected = useCallback((rentAmount: number | null) => {
+	const handleUnitSelected = (rentAmount: number | null) => {
 		if (rentAmount && rentAmount > 0) {
 			setTermsData(prev => ({
 				...prev,
@@ -68,7 +68,7 @@ export function LeaseCreationWizard({ onSuccess }: LeaseCreationWizardProps) {
 			}))
 			rentAutoFilled.current = true
 		}
-	}, [])
+	}
 	const [detailsData, setDetailsData] = useState<Partial<LeaseDetailsStepData>>(
 		{
 			pets_allowed: false,
@@ -151,7 +151,7 @@ export function LeaseCreationWizard({ onSuccess }: LeaseCreationWizardProps) {
 		}
 	})
 
-	const validateStep = useCallback((step: WizardStep): boolean => {
+	const validateStep = (step: WizardStep): boolean => {
 		switch (step) {
 			case 'selection': return selectionStepSchema.safeParse(selectionData).success
 			case 'terms': return termsStepSchema.safeParse(termsData).success
@@ -159,7 +159,7 @@ export function LeaseCreationWizard({ onSuccess }: LeaseCreationWizardProps) {
 			case 'review': return true
 			default: return false
 		}
-	}, [selectionData, termsData, detailsData])
+	}
 
 	const currentStepIndex = WIZARD_STEPS.findIndex(s => s.value === currentStep)
 	const isFirstStep = currentStepIndex === 0
@@ -187,14 +187,11 @@ export function LeaseCreationWizard({ onSuccess }: LeaseCreationWizardProps) {
 		}
 	}
 
-	const combinedData = useMemo(
-		() => ({
+	const combinedData = ({
 			...selectionData,
 			...termsData,
 			...detailsData
-		}),
-		[selectionData, termsData, detailsData]
-	)
+		})
 
 	return (
 		<div className="w-full max-w-4xl mx-auto space-y-8">

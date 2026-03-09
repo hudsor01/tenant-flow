@@ -1,5 +1,5 @@
 import { useQueryState, parseAsInteger, parseAsBoolean } from 'nuqs'
-import { useCallback } from 'react'
+
 
 /**
  * Hook to manage lightbox state with URL parameters
@@ -17,21 +17,18 @@ export function useLightboxState(initialIndex: number = 0) {
 		parseAsInteger.withDefault(initialIndex)
 	)
 
-	const open = useCallback(() => {
+	const open = () => {
 		setLightboxOpen(true)
-	}, [setLightboxOpen])
+	}
 
-	const close = useCallback(() => {
+	const close = () => {
 		setLightboxOpen(false)
-	}, [setLightboxOpen])
+	}
 
-	const goToImage = useCallback(
-		(index: number) => {
+	const goToImage = (index: number) => {
 			setCurrentIndex(index)
 			setLightboxOpen(true)
-		},
-		[setCurrentIndex, setLightboxOpen]
-	)
+		}
 
 	return {
 		isOpen: lightboxOpen,

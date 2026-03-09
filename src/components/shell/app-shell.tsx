@@ -1,7 +1,7 @@
 'use client'
 
 import type { ReactNode } from 'react'
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 
 import {
 	Home,
@@ -57,7 +57,7 @@ export function AppShell({ children, showQuickActionsDock = true }: AppShellProp
 		.toUpperCase()
 		.slice(0, 2)
 
-	const tenantItems = useMemo(() => {
+	const tenantItems = (() => {
 		const tenants = tenantsResponse?.data ?? []
 		return tenants.map(tenant => {
 			const fullName =
@@ -72,19 +72,16 @@ export function AppShell({ children, showQuickActionsDock = true }: AppShellProp
 				href: `/tenants/${tenant.id}`
 			}
 		})
-	}, [tenantsResponse?.data])
+	})()
 
-	const propertyItems = useMemo(() => {
-		return (properties ?? []).map(property => ({
-			id: property.id,
-			label: property.name,
-			subtitle: [property.city, property.state].filter(Boolean).join(', '),
-			href: `/properties/${property.id}`
-		}))
-	}, [properties])
+	const propertyItems = (properties ?? []).map(property => ({
+		id: property.id,
+		label: property.name,
+		subtitle: [property.city, property.state].filter(Boolean).join(', '),
+		href: `/properties/${property.id}`
+	}))
 
-	const commandGroups = useMemo(
-		() => [
+	const commandGroups = [
 			{
 				heading: 'Navigation',
 				items: [
@@ -126,19 +123,14 @@ export function AppShell({ children, showQuickActionsDock = true }: AppShellProp
 					{ label: 'Lease Template', href: '/documents/lease-template', icon: FileCheck }
 				]
 			}
-		],
-		[]
-	)
+	]
 
-	const commandActions = useMemo(
-		() => [
-			{ label: 'Notifications', href: '/settings?tab=notifications', icon: Bell },
-			{ label: 'Settings', href: '/settings', icon: Settings },
-			{ label: 'Profile', href: '/profile', icon: Settings },
-			{ label: 'Help & Support', href: '/help', icon: HelpCircle }
-		],
-		[]
-	)
+	const commandActions = [
+		{ label: 'Notifications', href: '/settings?tab=notifications', icon: Bell },
+		{ label: 'Settings', href: '/settings', icon: Settings },
+		{ label: 'Profile', href: '/profile', icon: Settings },
+		{ label: 'Help & Support', href: '/help', icon: HelpCircle }
+	]
 
 	useEffect(() => {
 		const onKeyDown = (event: KeyboardEvent) => {
@@ -152,17 +144,18 @@ export function AppShell({ children, showQuickActionsDock = true }: AppShellProp
 		return () => window.removeEventListener('keydown', onKeyDown)
 	}, [])
 
-	const closeSidebar = useCallback(() => {
+	const closeSidebar = () => {
 		setSidebarOpen(false)
 		triggerRef.current?.focus()
-	}, [])
+	}
 
 	// Escape key handler + focus trap for mobile sidebar
 	useEffect(() => {
 		if (!sidebarOpen) return
 		const handleKeyDown = (e: KeyboardEvent) => {
 			if (e.key === 'Escape') {
-				closeSidebar()
+				setSidebarOpen(false)
+				triggerRef.current?.focus()
 				return
 			}
 			if (e.key === 'Tab' && sidebarRef.current) {
@@ -183,7 +176,7 @@ export function AppShell({ children, showQuickActionsDock = true }: AppShellProp
 		}
 		window.addEventListener('keydown', handleKeyDown)
 		return () => window.removeEventListener('keydown', handleKeyDown)
-	}, [sidebarOpen, closeSidebar])
+	}, [sidebarOpen])
 
 	const handleCommandSelect = (href: string) => {
 		setCommandOpen(false)

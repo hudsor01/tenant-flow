@@ -9,7 +9,7 @@ import { DataTableToolbar } from '#components/data-table/data-table-toolbar'
 import { useDataTable } from '#hooks/use-data-table'
 import type { ColumnDef } from '@tanstack/react-table'
 import { TrendingUp, DollarSign, Wrench } from 'lucide-react'
-import { useMemo } from 'react'
+
 import dynamic from 'next/dynamic'
 import type { MaintenanceCategoryBreakdown } from '#types/analytics'
 import { ChartLoadingSkeleton } from '#components/shared/chart-loading-skeleton'
@@ -55,8 +55,7 @@ function CategoryBreakdownTable({
 }: {
 	entries: MaintenanceCategoryBreakdown[]
 }) {
-	const columns: ColumnDef<MaintenanceCategoryBreakdown>[] = useMemo(
-		() => [
+	const columns: ColumnDef<MaintenanceCategoryBreakdown>[] = [
 			{
 				accessorKey: 'category',
 				header: 'Category',
@@ -82,9 +81,7 @@ function CategoryBreakdownTable({
 					<div className="text-right">{row.original.count}</div>
 				)
 			}
-		],
-		[]
-	)
+		]
 
 	const { table } = useDataTable({
 		data: entries,

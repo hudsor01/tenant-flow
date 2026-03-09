@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useState } from 'react'
+import { useState } from 'react'
 import { Download, RefreshCw, Calendar, FileText, Zap } from 'lucide-react'
 import { BlurFade } from '#components/ui/blur-fade'
 import { Skeleton } from '#components/ui/skeleton'
@@ -54,53 +54,43 @@ export default function RentCollectionPage() {
 	const [overdueOpen, setOverdueOpen] = useState(true)
 	const [activeTab, setActiveTab] = useState('subscriptions')
 
-	const handlePause = useCallback(
-		async (id: string) => {
+	const handlePause = async (id: string) => {
 			setActioningId(id)
 			try {
 				await pauseSubscription.mutateAsync(id)
 			} finally {
 				setActioningId(null)
 			}
-		},
-		[pauseSubscription]
-	)
+		}
 
-	const handleResume = useCallback(
-		async (id: string) => {
+	const handleResume = async (id: string) => {
 			setActioningId(id)
 			try {
 				await resumeSubscription.mutateAsync(id)
 			} finally {
 				setActioningId(null)
 			}
-		},
-		[resumeSubscription]
-	)
+		}
 
-	const handleCancel = useCallback(
-		async (id: string) => {
+	const handleCancel = async (id: string) => {
 			setActioningId(id)
 			try {
 				await cancelSubscription.mutateAsync(id)
 			} finally {
 				setActioningId(null)
 			}
-		},
-		[cancelSubscription]
-	)
+		}
 
-	const handleExport = useCallback(async () => {
+	const handleExport = async () => {
 		try {
 			await exportPayments.mutateAsync({})
 			toast.success('Payments exported successfully')
 		} catch {
 			toast.error('Failed to export payments')
 		}
-	}, [exportPayments])
+	}
 
-	const getPaymentMethodInfo = useCallback(
-		(paymentMethodId: string) => {
+	const getPaymentMethodInfo = (paymentMethodId: string) => {
 			const paymentMethod = paymentMethods?.find(
 				(pm: PaymentMethodResponse) => pm.id === paymentMethodId
 			)
@@ -111,9 +101,7 @@ export default function RentCollectionPage() {
 				last4: paymentMethod.last4,
 				brand: paymentMethod.brand
 			}
-		},
-		[paymentMethods]
-	)
+		}
 
 	// Calculate stats from analytics or subscriptions
 	const activeSubscriptions =

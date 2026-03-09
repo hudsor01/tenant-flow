@@ -3,7 +3,7 @@
 import { GridPattern } from '#components/ui/grid-pattern'
 import { createClient } from '#lib/supabase/client'
 import { logger } from '#lib/frontend-logger.js'
-import { Suspense, useCallback, useEffect, useRef, useState } from 'react'
+import { Suspense, useEffect, useRef, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { toast } from 'sonner'
 import {
@@ -33,7 +33,7 @@ function ConfirmEmailContent() {
 		}
 	}, [])
 
-	const startCooldown = useCallback(() => {
+	const startCooldown = () => {
 		setCooldownSeconds(RESEND_COOLDOWN_SECONDS)
 		if (intervalRef.current) {
 			clearInterval(intervalRef.current)
@@ -50,7 +50,7 @@ function ConfirmEmailContent() {
 				return prev - 1
 			})
 		}, 1000)
-	}, [])
+	}
 
 	const handleResendEmail = async () => {
 		if (cooldownSeconds > 0) return

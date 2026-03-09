@@ -1,7 +1,6 @@
 'use client'
 
 import { Slot } from '@radix-ui/react-slot'
-import { useCallback } from 'react'
 import type { MouseEvent } from 'react'
 import { cn } from '#lib/utils'
 import { useFileUploadContext, useFileUploadItemContext } from './context'
@@ -26,36 +25,30 @@ export function FileUploadItemPreview(props: FileUploadItemPreviewProps) {
 	const itemContext = useFileUploadItemContext(ITEM_PREVIEW_NAME)
 	const context = useFileUploadContext(ITEM_PREVIEW_NAME)
 
-	const getDefaultRender = useCallback(
-		(file: File) => {
-			if (itemContext.fileState?.file.type.startsWith('image/')) {
-				let url = context.urlCache.get(file)
-				if (!url) {
-					url = URL.createObjectURL(file)
-					context.urlCache.set(file, url)
-				}
-
-				return (
-					// biome-ignore lint/performance/noImgElement: blob: URLs from URL.createObjectURL() are not supported by next/image (protocol restriction). Raw <img> is the only option for local file previews.
-					<img src={url} alt={file.name} className="size-full object-cover" />
-				)
+	const getDefaultRender = (file: File) => {
+		if (itemContext.fileState?.file.type.startsWith('image/')) {
+			let url = context.urlCache.get(file)
+			if (!url) {
+				url = URL.createObjectURL(file)
+				context.urlCache.set(file, url)
 			}
 
-			return getFileIcon(file)
-		},
-		[itemContext.fileState?.file.type, context.urlCache]
-	)
+			return (
+				// biome-ignore lint/performance/noImgElement: blob: URLs from URL.createObjectURL() are not supported by next/image (protocol restriction). Raw <img> is the only option for local file previews.
+				<img src={url} alt={file.name} className="size-full object-cover" />
+			)
+		}
 
-	const onPreviewRender = useCallback(
-		(file: File) => {
-			if (render) {
-				return render(file, () => getDefaultRender(file))
-			}
+		return getFileIcon(file)
+	}
 
-			return getDefaultRender(file)
-		},
-		[render, getDefaultRender]
-	)
+	const onPreviewRender = (file: File) => {
+		if (render) {
+			return render(file, () => getDefaultRender(file))
+		}
+
+		return getDefaultRender(file)
+	}
 
 	if (!itemContext.fileState) return null
 
@@ -263,19 +256,16 @@ export function FileUploadItemDelete(props: FileUploadItemDeleteProps) {
 	const store = useStoreContext(ITEM_DELETE_NAME)
 	const itemContext = useFileUploadItemContext(ITEM_DELETE_NAME)
 
-	const onClick = useCallback(
-		(event: MouseEvent<HTMLButtonElement>) => {
-			onClickProp?.(event)
+	const onClick = (event: MouseEvent<HTMLButtonElement>) => {
+		onClickProp?.(event)
 
-			if (!itemContext.fileState || event.defaultPrevented) return
+		if (!itemContext.fileState || event.defaultPrevented) return
 
-			store.dispatch({
-				type: 'REMOVE_FILE',
-				file: itemContext.fileState.file
-			})
-		},
-		[store, itemContext.fileState, onClickProp]
-	)
+		store.dispatch({
+			type: 'REMOVE_FILE',
+			file: itemContext.fileState.file
+		})
+	}
 
 	if (!itemContext.fileState) return null
 

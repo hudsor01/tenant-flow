@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo } from 'react'
+
 import DOMPurify from 'dompurify'
 import {
 	Card,
@@ -17,7 +17,7 @@ interface PreviewPanelProps {
 
 export function PreviewPanel({ html }: PreviewPanelProps) {
 	// Sanitize HTML to prevent XSS attacks
-	const sanitizedHtml = useMemo(() => {
+	const sanitizedHtml = (() => {
 		if (typeof window === 'undefined') return html
 		return DOMPurify.sanitize(html, {
 			ALLOWED_TAGS: [
@@ -50,7 +50,7 @@ export function PreviewPanel({ html }: PreviewPanelProps) {
 			FORBID_TAGS: ['script', 'iframe', 'embed', 'object', 'form'],
 			FORBID_ATTR: ['onerror', 'onload', 'onclick', 'onmouseover']
 		})
-	}, [html])
+	})()
 
 	return (
 		<Card className="shadow-sm">

@@ -3,7 +3,7 @@
 import { Button } from '#components/ui/button'
 import { handleMutationError } from '#lib/mutation-error-handler'
 import { RefreshCw } from 'lucide-react'
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { toast } from 'sonner'
 
 interface RefreshButtonProps {
@@ -43,7 +43,7 @@ export function RefreshButton({
 		}
 	}, [])
 
-	const handleRefresh = useCallback(async () => {
+	const handleRefresh = async () => {
 		if (isRefreshing || cooldownRemaining > 0) {
 			if (cooldownRemaining > 0) {
 				toast.warning(
@@ -83,7 +83,7 @@ export function RefreshButton({
 		} finally {
 			setIsRefreshing(false)
 		}
-	}, [isRefreshing, cooldownRemaining, cooldownSeconds, onRefresh])
+	}
 
 	const isDisabled = isRefreshing || cooldownRemaining > 0
 

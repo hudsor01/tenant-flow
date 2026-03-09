@@ -1,6 +1,5 @@
 'use client'
 
-import { useCallback } from 'react'
 import type { MouseEvent } from 'react'
 import { Slot } from '@radix-ui/react-slot'
 import {
@@ -23,21 +22,17 @@ function StepperPrev(props: ButtonProps) {
 	const isDisabled = disabled || currentIndex <= 0
 
 	const handlePrevClick = prevProps.onClick
-	const onClick = useCallback(
-		async (event: MouseEvent<HTMLButtonElement>) => {
-			handlePrevClick?.(event)
-			if (event.defaultPrevented || isDisabled) return
+	const onClick = async (event: MouseEvent<HTMLButtonElement>) => {
+		handlePrevClick?.(event)
+		if (event.defaultPrevented || isDisabled) return
 
-			const prevIndex = Math.max(currentIndex - 1, 0)
-			const prevStepValue = stepKeys[prevIndex]
+		const prevIndex = Math.max(currentIndex - 1, 0)
+		const prevStepValue = stepKeys[prevIndex]
 
-			if (prevStepValue) {
-				store.setState('value', prevStepValue)
-			}
-		},
-		// Intentionally depend on specific callback, not entire prevProps object
-		[handlePrevClick, isDisabled, currentIndex, stepKeys, store]
-	)
+		if (prevStepValue) {
+			store.setState('value', prevStepValue)
+		}
+	}
 
 	const PrevPrimitive = asChild ? Slot : 'button'
 
@@ -64,21 +59,17 @@ function StepperNext(props: ButtonProps) {
 	const isDisabled = disabled || currentIndex >= stepKeys.length - 1
 
 	const handleNextClick = nextProps.onClick
-	const onClick = useCallback(
-		async (event: MouseEvent<HTMLButtonElement>) => {
-			handleNextClick?.(event)
-			if (event.defaultPrevented || isDisabled) return
+	const onClick = async (event: MouseEvent<HTMLButtonElement>) => {
+		handleNextClick?.(event)
+		if (event.defaultPrevented || isDisabled) return
 
-			const nextIndex = Math.min(currentIndex + 1, stepKeys.length - 1)
-			const nextStepValue = stepKeys[nextIndex]
+		const nextIndex = Math.min(currentIndex + 1, stepKeys.length - 1)
+		const nextStepValue = stepKeys[nextIndex]
 
-			if (nextStepValue) {
-				await store.setStateWithValidation(nextStepValue, 'next')
-			}
-		},
-		// Intentionally depend on specific callback, not entire nextProps object
-		[handleNextClick, isDisabled, currentIndex, stepKeys, store]
-	)
+		if (nextStepValue) {
+			await store.setStateWithValidation(nextStepValue, 'next')
+		}
+	}
 
 	const NextPrimitive = asChild ? Slot : 'button'
 

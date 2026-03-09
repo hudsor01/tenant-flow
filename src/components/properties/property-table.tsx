@@ -1,6 +1,6 @@
 'use client'
 
-import { useRef, useState, useMemo } from 'react'
+import { useRef, useState } from 'react'
 import { useVirtualizer } from '@tanstack/react-virtual'
 import { ArrowUpDown } from 'lucide-react'
 import { Checkbox } from '#components/ui/checkbox'
@@ -65,7 +65,7 @@ export function PropertyTable({
 		}
 	}
 
-	const sortedProperties = useMemo(() => {
+	const sortedProperties = (() => {
 		return [...properties].sort((a, b) => {
 			let comparison = 0
 			switch (sortField) {
@@ -87,7 +87,7 @@ export function PropertyTable({
 			}
 			return sortDirection === 'asc' ? comparison : -comparison
 		})
-	}, [properties, sortField, sortDirection])
+	})()
 
 	const SortHeader = ({
 		field,

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect } from 'react'
 import { cn } from '#lib/utils'
 import { BlurFade } from '#components/ui/blur-fade'
 import { Quote, ChevronLeft, ChevronRight, Star } from 'lucide-react'
@@ -41,27 +41,29 @@ export function TestimonialsSection({
 	const [currentIndex, setCurrentIndex] = useState(0)
 	const [isAutoRotating, setIsAutoRotating] = useState(autoRotate)
 
-	const goToNext = useCallback(() => {
+	const goToNext = () => {
 		setCurrentIndex(prev => (prev + 1) % testimonials.length)
-	}, [testimonials.length])
+	}
 
-	const goToPrev = useCallback(() => {
+	const goToPrev = () => {
 		setCurrentIndex(
 			prev => (prev - 1 + testimonials.length) % testimonials.length
 		)
-	}, [testimonials.length])
+	}
 
-	const goToSlide = useCallback((index: number) => {
+	const goToSlide = (index: number) => {
 		setCurrentIndex(index)
 		setIsAutoRotating(false)
-	}, [])
+	}
 
 	useEffect(() => {
 		if (!isAutoRotating || variant === 'grid') return
 
-		const interval = setInterval(goToNext, rotateInterval)
+		const interval = setInterval(() => {
+			setCurrentIndex(prev => (prev + 1) % testimonials.length)
+		}, rotateInterval)
 		return () => clearInterval(interval)
-	}, [isAutoRotating, goToNext, rotateInterval, variant])
+	}, [isAutoRotating, testimonials.length, rotateInterval, variant])
 
 	const currentTestimonial = testimonials[currentIndex]
 

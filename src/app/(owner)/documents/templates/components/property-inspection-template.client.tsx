@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useMemo, useState } from 'react'
+import { useState } from 'react'
 import type { ChangeEvent } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '#components/ui/card'
 import { Badge } from '#components/ui/badge'
@@ -74,8 +74,7 @@ export function PropertyInspectionTemplate() {
 	const [customFields, setCustomFields] = useState<CustomField[]>([])
 	const [clauses, setClauses] = useState<ClauseItem[]>(defaultClauses)
 
-	const baseFields = useMemo<DynamicField[]>(
-		() => [
+	const baseFields: DynamicField[] = [
 			{
 				name: 'propertyName',
 				label: 'Property name',
@@ -131,9 +130,7 @@ export function PropertyInspectionTemplate() {
 					{ key: 'status', label: 'Completed', type: 'checkbox' }
 				]
 			}
-		],
-		[]
-	)
+		]
 
 	const {
 		fields,
@@ -143,7 +140,7 @@ export function PropertyInspectionTemplate() {
 		save: saveFields
 	} = useTemplateDefinition('property-inspection', baseFields, form as never)
 
-	const getPayload = useCallback(() => {
+	const getPayload = () => {
 		const values = form.state.values as Record<string, unknown>
 		const dynamicFields = builderFields.map(field => ({
 			label: field.label,
@@ -177,7 +174,7 @@ export function PropertyInspectionTemplate() {
 				dynamicFields
 			}
 		}
-	}, [branding, builderFields, clauses, customFields, form.state.values, photos])
+	}
 
 	const {
 		previewUrl,

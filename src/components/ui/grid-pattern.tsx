@@ -1,7 +1,7 @@
 'use client'
 
 import type { SVGProps } from 'react'
-import { useId, useMemo } from 'react'
+import { useId } from 'react'
 
 import { cn } from '#lib/utils'
 
@@ -36,10 +36,7 @@ export function GridPattern({
 }: GridPatternProps) {
 	const reactId = useId()
 	// Use provided patternId for stable hydration, or fall back to useId()
-	const id = useMemo(
-		() => patternId ?? `grid-pattern-${reactId.replace(/:/g, '')}`,
-		[patternId, reactId]
-	)
+	const id = patternId ?? `grid-pattern-${reactId.replace(/:/g, '')}`
 
 	// Style variants for different visual approaches
 	const variantStyles = {

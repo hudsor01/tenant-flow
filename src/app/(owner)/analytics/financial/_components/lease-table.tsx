@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo } from 'react'
+
 import { DataTable } from '#components/data-table/data-table'
 import { DataTableToolbar } from '#components/data-table/data-table-toolbar'
 import { useDataTable } from '#hooks/use-data-table'
@@ -9,8 +9,7 @@ import { formatCurrency, formatNumber } from '#lib/formatters/currency'
 import type { LeaseFinancialInsight } from '#types/analytics'
 
 export function LeaseTable({ leases }: { leases: LeaseFinancialInsight[] }) {
-	const columns: ColumnDef<LeaseFinancialInsight>[] = useMemo(
-		() => [
+	const columns: ColumnDef<LeaseFinancialInsight>[] = [
 			{
 				accessorKey: 'lease_id',
 				header: 'Lease',
@@ -91,9 +90,7 @@ export function LeaseTable({ leases }: { leases: LeaseFinancialInsight[] }) {
 					</div>
 				)
 			}
-		],
-		[]
-	)
+		]
 
 	const { table } = useDataTable({
 		data: leases,

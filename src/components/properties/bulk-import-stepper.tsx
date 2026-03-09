@@ -21,7 +21,7 @@ import {
 	Loader2,
 	Building2
 } from 'lucide-react'
-import { useState, useCallback, useRef } from 'react'
+import { useState, useRef } from 'react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { propertyQueries } from '#hooks/api/query-keys/property-keys'
 import { createLogger } from '#lib/frontend-logger.js'
@@ -84,7 +84,7 @@ export function BulkImportStepper({
 		}
 	})
 
-	const resetDialog = useCallback(() => {
+	const resetDialog = () => {
 		setFile(null)
 		setResult(null)
 		onStepChange('upload')
@@ -93,10 +93,9 @@ export function BulkImportStepper({
 		if (fileInputRef.current) {
 			fileInputRef.current.value = ''
 		}
-	}, [onStepChange])
+	}
 
-	const handleFileSelect = useCallback(
-		async (selectedFile: File) => {
+	const handleFileSelect = async (selectedFile: File) => {
 			setFile(selectedFile)
 			setResult(null)
 			onStepChange('validate')
@@ -108,9 +107,7 @@ export function BulkImportStepper({
 				logger.error('Failed to parse CSV', { error })
 				setParsedData([])
 			}
-		},
-		[onStepChange]
-	)
+		}
 
 	const handleUpload = async () => {
 		if (!file) return

@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo, useState } from 'react'
+import { useState } from 'react'
 import { useIncomeStatement } from '#hooks/api/use-financials'
 import { IncomeStatementPageLoading } from './income-statement-page-loading'
 import { IncomeStatementPageError } from './income-statement-page-error'
@@ -13,7 +13,7 @@ export default function IncomeStatementPage() {
 	const [period, setPeriod] = useState('monthly')
 	const [year, setYear] = useState('2024')
 
-	const dateRange = useMemo(() => {
+	const dateRange = (() => {
 		const yearNum = parseInt(year, 10)
 		if (period === 'yearly') {
 			return {
@@ -36,7 +36,7 @@ export default function IncomeStatementPage() {
 				end_date: `${yearNum}-${currentMonth.toString().padStart(2, '0')}-${lastDay.toString().padStart(2, '0')}`
 			}
 		}
-	}, [period, year])
+	})()
 
 	const {
 		data: response,

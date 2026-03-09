@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback } from 'react'
+
 import { toast } from 'sonner'
 
 import { Button } from '#components/ui/button'
@@ -86,7 +86,7 @@ export function IdentityVerificationCard() {
 	const info = (status && statusMap[status]) || defaultStatus
 	const Icon = info.icon
 
-	const handleStartVerification = useCallback(async () => {
+	const handleStartVerification = async () => {
 		if (sessionMutation.isPending) return
 
 		try {
@@ -116,7 +116,7 @@ export function IdentityVerificationCard() {
 						: 'Unable to launch identity verification'
 			)
 		}
-	}, [sessionMutation])
+	}
 
 	const buttonDisabled =
 		status === 'verified' || sessionMutation.isPending || statusQuery.isLoading

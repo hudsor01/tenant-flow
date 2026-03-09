@@ -1,6 +1,6 @@
 'use client'
 
-import { useRef, useMemo, useState } from 'react'
+import { useRef, useState } from 'react'
 import { useVirtualizer } from '@tanstack/react-virtual'
 import { Checkbox } from '#components/ui/checkbox'
 import { Button } from '#components/ui/button'
@@ -54,7 +54,7 @@ export function TenantTable({
 		}
 	}
 
-	const sortedTenants = useMemo(() => {
+	const sortedTenants = (() => {
 		if (!sortField || !sortDirection) return tenants
 
 		return [...tenants].sort((a, b) => {
@@ -83,7 +83,7 @@ export function TenantTable({
 			const comparison = aVal.localeCompare(bVal)
 			return sortDirection === 'asc' ? comparison : -comparison
 		})
-	}, [tenants, sortField, sortDirection])
+	})()
 
 	const paginatedTenants = sortedTenants.slice(
 		pageIndex * pageSize,

@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useMemo, useState } from 'react'
+import { useState } from 'react'
 import {
 	AlertTriangle,
 	CheckCircle,
@@ -50,7 +50,7 @@ export function MaintenanceViewClient() {
 	const [searchQuery, setSearchQuery] = useState('')
 
 	const { data: response, isLoading } = useQuery(maintenanceQueries.list())
-	const requests = useMemo(() => (response?.data ?? []) as MaintenanceDisplayRequest[], [response?.data])
+	const requests = (response?.data ?? []) as MaintenanceDisplayRequest[]
 
 	const handleViewChange = (view: ViewType) => { setViewPreference('maintenance', view) }
 
@@ -61,7 +61,7 @@ export function MaintenanceViewClient() {
 	const urgentCount = requests.filter(r => r.priority === 'urgent' && r.status !== 'completed').length
 
 	// Filter requests
-	const filteredRequests = useMemo(() => {
+	const filteredRequests = (() => {
 		if (!searchQuery) return requests
 		const query = searchQuery.toLowerCase()
 		return requests.filter(r => {
@@ -70,9 +70,9 @@ export function MaintenanceViewClient() {
 			const propertyName = r.property?.name?.toLowerCase() ?? ''
 			return title.includes(query) || description.includes(query) || propertyName.includes(query)
 		})
-	}, [requests, searchQuery])
+	})()
 
-	const handleViewAnalytics = useCallback(() => { router.push('/reports/analytics') }, [router])
+	const handleViewAnalytics = () => { router.push('/reports/analytics') }
 
 	if (isLoading) {
 		return (

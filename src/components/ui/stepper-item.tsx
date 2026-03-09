@@ -1,6 +1,5 @@
 'use client'
 
-import { useMemo } from 'react'
 import { Slot } from '@radix-ui/react-slot'
 import { cn } from '#lib/utils'
 import {
@@ -53,10 +52,7 @@ function StepperItem(props: StepperItemProps) {
 	const steps = useStore(state => state.steps)
 	const dataState = getDataState(value, itemValue, stepState, steps)
 
-	const itemContextValue = useMemo(
-		() => ({ value: itemValue, stepState }),
-		[itemValue, stepState]
-	)
+	const itemContextValue = { value: itemValue, stepState }
 
 	const ItemPrimitive = asChild ? Slot : 'div'
 

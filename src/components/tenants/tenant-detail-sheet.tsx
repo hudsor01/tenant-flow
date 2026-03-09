@@ -1,7 +1,7 @@
 'use client'
 
 import { createPortal } from 'react-dom'
-import { useEffect, useCallback } from 'react'
+import { useEffect } from 'react'
 import { X } from 'lucide-react'
 import { Button } from '#components/ui/button'
 import type { TenantSectionDetail } from '#types/sections/tenants'
@@ -32,25 +32,24 @@ export function TenantDetailSheet({
 	onViewLease,
 	onViewPaymentHistory
 }: TenantDetailSheetProps) {
-	const handleEscape = useCallback(
-		(e: KeyboardEvent) => {
-			if (e.key === 'Escape') {
-				onOpenChange(false)
-			}
-		},
-		[onOpenChange]
-	)
-
 	useEffect(() => {
 		if (isOpen) {
+			const handleEscape = (e: KeyboardEvent) => {
+				if (e.key === 'Escape') {
+					onOpenChange(false)
+				}
+			}
 			document.addEventListener('keydown', handleEscape)
 			document.body.style.overflow = 'hidden'
+			return () => {
+				document.removeEventListener('keydown', handleEscape)
+				document.body.style.overflow = ''
+			}
 		}
 		return () => {
-			document.removeEventListener('keydown', handleEscape)
 			document.body.style.overflow = ''
 		}
-	}, [isOpen, handleEscape])
+	}, [isOpen, onOpenChange])
 
 	if (!isOpen || !tenant) return null
 	if (typeof window === 'undefined') return null

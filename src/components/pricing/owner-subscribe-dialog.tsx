@@ -12,7 +12,7 @@ import { Button } from '#components/ui/button'
 import { createClient } from '#lib/supabase/client'
 import { useForm } from '@tanstack/react-form'
 import { signupFormSchema } from '#lib/validation/auth'
-import { useMemo, useState } from 'react'
+import { useState } from 'react'
 import { toast } from 'sonner'
 import { SubscribeFormFields } from './owner-subscribe-plan-selector'
 
@@ -36,7 +36,7 @@ export function OwnerSubscribeDialog({
 	planCta
 }: OwnerSubscribeDialogProps) {
 	const [isSubmitting, setIsSubmitting] = useState(false)
-	const supabase = useMemo(() => createClient(), [])
+	const supabase = createClient()
 
 	const form = useForm({
 		defaultValues: {

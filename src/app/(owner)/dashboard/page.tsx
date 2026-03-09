@@ -1,6 +1,6 @@
 'use client'
 
-import { Suspense, useMemo, useCallback, useState, useEffect } from 'react'
+import { Suspense, useState, useEffect } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { toast } from 'sonner'
 import { ErrorBoundary } from '#components/error-boundary/error-boundary'
@@ -62,7 +62,7 @@ function DashboardContent() {
 		usePropertyPerformance()
 
 	// Transform stats to design-os format
-	const metrics = useMemo(() => {
+	const metrics = (() => {
 		if (!statsData?.stats) {
 			return {
 				totalRevenue: 0,
@@ -94,20 +94,20 @@ function DashboardContent() {
 			openMaintenanceRequests: stats.maintenance?.open ?? 0,
 			collectionRate: 0 // Not available in current API
 		}
-	}, [statsData])
+	})()
 
 	// Transform revenue trends
-	const revenueTrend = useMemo(() => {
+	const revenueTrend = (() => {
 		if (!chartsData?.timeSeries?.monthlyRevenue) return []
 
 		return chartsData.timeSeries.monthlyRevenue.map(point => ({
 			month: point.date,
 			revenue: point.value * 100 // Convert to cents
 		}))
-	}, [chartsData])
+	})()
 
 	// Transform property performance
-	const propertyPerformance = useMemo(() => {
+	const propertyPerformance = (() => {
 		if (!performanceData) return []
 
 		return performanceData.map(prop => ({
@@ -120,28 +120,28 @@ function DashboardContent() {
 			monthlyRevenue: prop.monthlyRevenue * 100, // Convert to cents
 			openMaintenance: 0 // Not in current API response
 		}))
-	}, [performanceData])
+	})()
 
 	// Navigation callbacks
-	const onAddProperty = useCallback(() => {
+	const onAddProperty = () => {
 		router.push('/properties/new')
-	}, [router])
+	}
 
-	const onCreateLease = useCallback(() => {
+	const onCreateLease = () => {
 		router.push('/leases/new')
-	}, [router])
+	}
 
-	const onInviteTenant = useCallback(() => {
+	const onInviteTenant = () => {
 		router.push('/tenants/new')
-	}, [router])
+	}
 
-	const onRecordPayment = useCallback(() => {
+	const onRecordPayment = () => {
 		router.push('/rent-collection')
-	}, [router])
+	}
 
-	const onCreateMaintenanceRequest = useCallback(() => {
+	const onCreateMaintenanceRequest = () => {
 		router.push('/maintenance/new')
-	}, [router])
+	}
 
 	// Loading state
 	const isLoading = statsLoading || chartsLoading || performanceLoading

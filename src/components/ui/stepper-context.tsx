@@ -2,7 +2,6 @@
 
 import {
 	createContext,
-	useCallback,
 	useContext,
 	useEffect,
 	useLayoutEffect,
@@ -95,10 +94,7 @@ export function useStoreContext(consumerName: string) {
 export function useStore<T>(selector: (state: StoreState) => T): T {
 	const store = useStoreContext('useStore')
 
-	const getSnapshot = useCallback(
-		() => selector(store.getState()),
-		[store, selector]
-	)
+	const getSnapshot = () => selector(store.getState())
 
 	return useSyncExternalStore(store.subscribe, getSnapshot, getSnapshot)
 }

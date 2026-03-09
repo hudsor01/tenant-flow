@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo } from 'react'
+
 import { Wrench } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 
@@ -66,7 +66,7 @@ export function MaintenanceForm({ mode, request }: MaintenanceFormProps) {
 		}
 	})
 
-	const unitsByProperty = useMemo(() => {
+	const unitsByProperty = (() => {
 		if (!unitsData || !propertiesData) return new Map<string, Unit[]>()
 		const grouped = new Map<string, Unit[]>()
 		for (const unit of unitsData) {
@@ -74,7 +74,7 @@ export function MaintenanceForm({ mode, request }: MaintenanceFormProps) {
 			grouped.set(unit.property_id, [...existing, unit])
 		}
 		return grouped
-	}, [unitsData, propertiesData])
+	})()
 
 	const isLoading = propertiesLoading || unitsLoading
 

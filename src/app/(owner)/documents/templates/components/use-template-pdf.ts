@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { toast } from 'sonner'
 import type { TemplatePreviewOptions } from './template-types'
 
@@ -28,7 +28,7 @@ export function useTemplatePdf(
 		}
 	}, [previewUrl])
 
-	const handlePreview = useCallback(async () => {
+	const handlePreview = async () => {
 		if (debounceTimerRef.current) {
 			clearTimeout(debounceTimerRef.current)
 		}
@@ -41,16 +41,16 @@ export function useTemplatePdf(
 				setIsGeneratingPreview(false)
 			}
 		}, PREVIEW_DEBOUNCE_MS)
-	}, [])
+	}
 
-	const handleExport = useCallback(async () => {
+	const handleExport = async () => {
 		setIsExporting(true)
 		try {
 			toast.info('PDF export is not yet available')
 		} finally {
 			setIsExporting(false)
 		}
-	}, [])
+	}
 
 	return {
 		previewUrl,

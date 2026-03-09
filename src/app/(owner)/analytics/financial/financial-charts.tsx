@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo, useState } from 'react'
+import { useState } from 'react'
 import type {
 	BillingInsightsTimeline,
 	NetOperatingIncomeByProperty
@@ -95,7 +95,7 @@ type BillingTimelineChartProps = { data: BillingInsightsTimeline }
 export function BillingTimelineChart({ data }: BillingTimelineChartProps) {
 	const [timeRange, setTimeRange] = useState('all')
 
-	const chartData = useMemo(() => {
+	const chartData = (() => {
 		const timeline = data?.points ?? []
 		if (!timeline.length) return []
 		return timeline.map(point => ({
@@ -104,13 +104,13 @@ export function BillingTimelineChart({ data }: BillingTimelineChartProps) {
 			paid: point.paid,
 			overdue: point.overdue
 		}))
-	}, [data?.points])
+	})()
 
-	const filteredData = useMemo(() => {
+	const filteredData = (() => {
 		if (timeRange === 'all' || chartData.length <= 3) return chartData
 		const periods = timeRange === '3m' ? 3 : timeRange === '6m' ? 6 : chartData.length
 		return chartData.slice(-periods)
-	}, [chartData, timeRange])
+	})()
 
 	const timeline = data?.points ?? []
 	if (!timeline.length) {

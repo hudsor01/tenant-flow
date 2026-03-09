@@ -1,6 +1,5 @@
 'use client'
 
-import { memo } from 'react'
 import { Pencil, Trash2, FileText } from 'lucide-react'
 import { Checkbox } from '#components/ui/checkbox'
 import { Button } from '#components/ui/button'
@@ -21,7 +20,7 @@ interface TenantTableRowProps {
 	onViewLease: (leaseId: string) => void
 }
 
-export const TenantTableRow = memo(function TenantTableRow({
+export function TenantTableRow({
 	tenant,
 	isSelected,
 	onSelect,
@@ -122,4 +121,4 @@ export const TenantTableRow = memo(function TenantTableRow({
 			</td>
 		</tr>
 	)
-})
+}

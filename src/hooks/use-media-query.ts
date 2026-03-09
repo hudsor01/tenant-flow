@@ -1,7 +1,7 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 
 export function useMediaQuery(query: string) {
-	const getMatch = useCallback(() => {
+	const getMatch = () => {
 		if (
 			typeof window === 'undefined' ||
 			typeof window.matchMedia === 'undefined'
@@ -9,7 +9,7 @@ export function useMediaQuery(query: string) {
 			return false
 		}
 		return window.matchMedia(query).matches
-	}, [query])
+	}
 
 	const [value, setValue] = useState<boolean>(getMatch)
 

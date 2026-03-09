@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo } from 'react'
+
 import type { ColumnDef } from '@tanstack/react-table'
 import { Badge } from '#components/ui/badge'
 import { DataTable } from '#components/data-table/data-table'
@@ -10,8 +10,7 @@ import { formatCurrency, formatNumber } from '#lib/formatters/currency'
 import type { PropertyUnitDetail } from '#types/analytics'
 
 export function ActiveUnitsTable({ units }: { units: PropertyUnitDetail[] }) {
-	const columns: ColumnDef<PropertyUnitDetail>[] = useMemo(
-		() => [
+	const columns: ColumnDef<PropertyUnitDetail>[] = [
 			{
 				accessorKey: 'unit_number',
 				header: 'Unit',
@@ -91,9 +90,7 @@ export function ActiveUnitsTable({ units }: { units: PropertyUnitDetail[] }) {
 					</div>
 				)
 			}
-		],
-		[]
-	)
+		]
 
 	const { table } = useDataTable({
 		data: units,

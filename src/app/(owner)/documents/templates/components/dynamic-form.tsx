@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo } from 'react'
+
 import type { ComponentType, ReactNode } from 'react'
 import { Input } from '#components/ui/input'
 import { Textarea } from '#components/ui/textarea'
@@ -65,7 +65,7 @@ export function DynamicForm({ form, fields }: DynamicFormProps) {
 			children: (fieldApi: FieldRenderProps) => ReactNode
 		}>
 	}
-	const sections = useMemo(() => {
+	const sections = (() => {
 		const map = new Map<string, DynamicField[]>()
 		fields.forEach(field => {
 			const section = field.section ?? 'Details'
@@ -74,7 +74,7 @@ export function DynamicForm({ form, fields }: DynamicFormProps) {
 			map.set(section, current)
 		})
 		return Array.from(map.entries())
-	}, [fields])
+	})()
 
 	return (
 		<div className="space-y-6">

@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo } from 'react'
+
 import type { ColumnDef } from '@tanstack/react-table'
 import { DataTable } from '#components/data-table/data-table'
 import { DataTableToolbar } from '#components/data-table/data-table-toolbar'
@@ -17,8 +17,7 @@ export function TopPropertiesTable({
 }: {
 	properties: PropertyPerformanceEntry[]
 }) {
-	const columns: ColumnDef<PropertyPerformanceEntry>[] = useMemo(
-		() => [
+	const columns: ColumnDef<PropertyPerformanceEntry>[] = [
 			{
 				accessorKey: 'propertyName',
 				header: 'Property',
@@ -67,9 +66,7 @@ export function TopPropertiesTable({
 					</div>
 				)
 			}
-		],
-		[]
-	)
+		]
 
 	const { table } = useDataTable({
 		data: properties,

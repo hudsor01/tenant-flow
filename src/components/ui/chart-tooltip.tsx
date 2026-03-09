@@ -1,7 +1,6 @@
 'use client'
 
 import type { ComponentProps, CSSProperties } from 'react'
-import { useMemo } from 'react'
 import * as RechartsPrimitive from 'recharts'
 import type {
 	NameType,
@@ -48,7 +47,7 @@ function ChartTooltipContent({
 	const { config } = useChart()
 	const payload = tooltipPayload
 
-	const tooltipLabel = useMemo(() => {
+	const tooltipLabel = (() => {
 		if (hideLabel || !payload?.length) {
 			return null
 		}
@@ -87,16 +86,7 @@ function ChartTooltipContent({
 		}
 
 		return <div className={cn('font-medium', labelClassName)}>{value}</div>
-	}, [
-		label,
-		labelFormatter,
-		payload,
-		hideLabel,
-		labelClassName,
-		config,
-		labelKey,
-		tooltipPayload
-	])
+	})()
 
 	if (!active || !payload?.length) {
 		return null

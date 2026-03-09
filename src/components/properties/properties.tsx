@@ -1,6 +1,5 @@
 'use client'
 
-import { useMemo, useCallback } from 'react'
 
 import {
 	useDeletePropertyMutation,
@@ -66,7 +65,7 @@ export function Properties({
 		selectedRows, properties, openBulkEdit, deletePropertyMutation, clearSelection
 	)
 
-	const handleBulkEditSubmit = useCallback(async () => {
+	const handleBulkEditSubmit = async () => {
 		if (selectedRows.size === 0) return
 		if (!applyBulkStatus && !applyBulkType) return
 		const ids = Array.from(selectedRows)
@@ -83,12 +82,9 @@ export function Properties({
 		} finally {
 			setIsBulkSaving(false)
 		}
-	}, [
-		applyBulkStatus, applyBulkType, bulkEditStatus, bulkEditType,
-		clearSelection, closeBulkEdit, selectedRows, setIsBulkSaving, updatePropertyMutation
-	])
+	}
 
-	const filteredProperties = useMemo(() => {
+	const filteredProperties = (() => {
 		return properties.filter(p => {
 			if (searchQuery) {
 				const query = searchQuery.toLowerCase()
@@ -104,19 +100,16 @@ export function Properties({
 			if (typeFilter !== 'all' && p.propertyType !== typeFilter) return false
 			return true
 		})
-	}, [properties, searchQuery, statusFilter, typeFilter])
+	})()
 
-	const handleSelectAll = useCallback(() => {
+	const handleSelectAll = () => {
 		selectAll(filteredProperties.map(p => p.id))
-	}, [filteredProperties, selectAll])
+	}
 
-	const handleStatusFilterChange = useCallback(
-		(value: PropertyStatusFilter) => {
+	const handleStatusFilterChange = (value: PropertyStatusFilter) => {
 			setStatusFilter(value)
 			onFilterChange?.(value)
-		},
-		[onFilterChange, setStatusFilter]
-	)
+		}
 
 	if (properties.length === 0 && !isLoading) {
 		return <EmptyProperties onAddProperty={onAddProperty} />

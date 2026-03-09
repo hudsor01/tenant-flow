@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo, useState } from 'react'
+import { useState } from 'react'
 import { useCashFlow } from '#hooks/api/use-financials'
 import { CashFlowLoading } from './cash-flow-loading'
 import { CashFlowError } from './cash-flow-error'
@@ -14,7 +14,7 @@ export default function CashFlowPage() {
 	const [period, setPeriod] = useState('monthly')
 	const [year, setYear] = useState('2024')
 
-	const dateRange = useMemo(() => {
+	const dateRange = (() => {
 		const currentDate = new Date()
 		const selectedYear = parseInt(year, 10)
 
@@ -39,12 +39,12 @@ export default function CashFlowPage() {
 				end_date: `${selectedYear}-${String(month).padStart(2, '0')}-${lastDay}`
 			}
 		}
-	}, [period, year])
+	})()
 
 	const { data, isLoading, error, refetch } = useCashFlow(dateRange)
 	const cashFlowData = data?.data
 
-	const inflowItems = useMemo(() => {
+	const inflowItems = (() => {
 		if (!cashFlowData) return []
 		const items = [
 			{
@@ -65,9 +65,9 @@ export default function CashFlowPage() {
 			...i,
 			percentage: total > 0 ? (i.amount / total) * 100 : 0
 		}))
-	}, [cashFlowData])
+	})()
 
-	const outflowItems = useMemo(() => {
+	const outflowItems = (() => {
 		if (!cashFlowData) return []
 		const items = [
 			{
@@ -100,7 +100,7 @@ export default function CashFlowPage() {
 			...i,
 			percentage: total > 0 ? (i.amount / total) * 100 : 0
 		}))
-	}, [cashFlowData])
+	})()
 
 	const totalInflows = inflowItems.reduce((sum, i) => sum + i.amount, 0)
 	const totalOutflows = outflowItems.reduce((sum, i) => sum + i.amount, 0)

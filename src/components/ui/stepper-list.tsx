@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useMemo, useRef, useState } from 'react'
+import { useRef, useState } from 'react'
 import type { FocusEvent, MouseEvent } from 'react'
 import { Slot } from '@radix-ui/react-slot'
 import { useComposedRefs } from '#lib/compose-refs'
@@ -38,14 +38,14 @@ function StepperList(props: StepperListProps) {
 	const listRef = useRef<ListElement>(null)
 	const composedRef = useComposedRefs(ref, listRef)
 
-	const onItemFocus = useCallback((id: string) => { setTabStopId(id) }, [])
-	const onItemShiftTab = useCallback(() => { setIsTabbingBackOut(true) }, [])
-	const onFocusableItemAdd = useCallback(() => { setFocusableItemCount(c => c + 1) }, [])
-	const onFocusableItemRemove = useCallback(() => { setFocusableItemCount(c => c - 1) }, [])
-	const onItemRegister = useCallback((item: ItemData) => { itemsRef.current.set(item.id, item) }, [])
-	const onItemUnregister = useCallback((id: string) => { itemsRef.current.delete(id) }, [])
+	const onItemFocus = (id: string) => { setTabStopId(id) }
+	const onItemShiftTab = () => { setIsTabbingBackOut(true) }
+	const onFocusableItemAdd = () => { setFocusableItemCount(c => c + 1) }
+	const onFocusableItemRemove = () => { setFocusableItemCount(c => c - 1) }
+	const onItemRegister = (item: ItemData) => { itemsRef.current.set(item.id, item) }
+	const onItemUnregister = (id: string) => { itemsRef.current.delete(id) }
 
-	const getItems = useCallback(() => {
+	const getItems = () => {
 		return Array.from(itemsRef.current.values())
 			.filter(item => item.ref.current)
 			.sort((a, b) => {
@@ -57,59 +57,47 @@ function StepperList(props: StepperListProps) {
 				if (position & Node.DOCUMENT_POSITION_PRECEDING) return 1
 				return 0
 			})
-	}, [])
+	}
 
 	const handleListBlur = listProps.onBlur
-	const onBlur = useCallback(
-		(event: FocusEvent<ListElement>) => {
-			handleListBlur?.(event)
-			if (event.defaultPrevented) return
-			setIsTabbingBackOut(false)
-		},
-		[handleListBlur]
-	)
+	const onBlur = (event: FocusEvent<ListElement>) => {
+		handleListBlur?.(event)
+		if (event.defaultPrevented) return
+		setIsTabbingBackOut(false)
+	}
 
 	const handleListFocus = listProps.onFocus
-	const onFocus = useCallback(
-		(event: FocusEvent<ListElement>) => {
-			handleListFocus?.(event)
-			if (event.defaultPrevented) return
-			const isKeyboardFocus = !isClickFocusRef.current
-			if (event.target === event.currentTarget && isKeyboardFocus && !isTabbingBackOut) {
-				const entryFocusEvent = new CustomEvent(ENTRY_FOCUS, EVENT_OPTIONS)
-				event.currentTarget.dispatchEvent(entryFocusEvent)
-				if (!entryFocusEvent.defaultPrevented) {
-					const items = Array.from(itemsRef.current.values()).filter(item => !item.disabled)
-					const selectedItem = currentValue ? items.find(item => item.value === currentValue) : undefined
-					const activeItem = items.find(item => item.active)
-					const currentItem = items.find(item => item.id === tabStopId)
-					const candidateItems = [selectedItem, activeItem, currentItem, ...items].filter(Boolean) as ItemData[]
-					const candidateRefs = candidateItems.map(item => item.ref)
-					focusFirst(candidateRefs, false)
-				}
+	const onFocus = (event: FocusEvent<ListElement>) => {
+		handleListFocus?.(event)
+		if (event.defaultPrevented) return
+		const isKeyboardFocus = !isClickFocusRef.current
+		if (event.target === event.currentTarget && isKeyboardFocus && !isTabbingBackOut) {
+			const entryFocusEvent = new CustomEvent(ENTRY_FOCUS, EVENT_OPTIONS)
+			event.currentTarget.dispatchEvent(entryFocusEvent)
+			if (!entryFocusEvent.defaultPrevented) {
+				const items = Array.from(itemsRef.current.values()).filter(item => !item.disabled)
+				const selectedItem = currentValue ? items.find(item => item.value === currentValue) : undefined
+				const activeItem = items.find(item => item.active)
+				const currentItem = items.find(item => item.id === tabStopId)
+				const candidateItems = [selectedItem, activeItem, currentItem, ...items].filter(Boolean) as ItemData[]
+				const candidateRefs = candidateItems.map(item => item.ref)
+				focusFirst(candidateRefs, false)
 			}
-			isClickFocusRef.current = false
-		},
-		[handleListFocus, isTabbingBackOut, currentValue, tabStopId]
-	)
+		}
+		isClickFocusRef.current = false
+	}
 
 	const handleListMouseDown = listProps.onMouseDown
-	const onMouseDown = useCallback(
-		(event: MouseEvent<ListElement>) => {
-			handleListMouseDown?.(event)
-			if (event.defaultPrevented) return
-			isClickFocusRef.current = true
-		},
-		[handleListMouseDown]
-	)
+	const onMouseDown = (event: MouseEvent<ListElement>) => {
+		handleListMouseDown?.(event)
+		if (event.defaultPrevented) return
+		isClickFocusRef.current = true
+	}
 
-	const focusContextValue = useMemo<FocusContextValue>(
-		() => ({
-			tabStopId, onItemFocus, onItemShiftTab, onFocusableItemAdd,
-			onFocusableItemRemove, onItemRegister, onItemUnregister, getItems
-		}),
-		[tabStopId, onItemFocus, onItemShiftTab, onFocusableItemAdd, onFocusableItemRemove, onItemRegister, onItemUnregister, getItems]
-	)
+	const focusContextValue: FocusContextValue = {
+		tabStopId, onItemFocus, onItemShiftTab, onFocusableItemAdd,
+		onFocusableItemRemove, onItemRegister, onItemUnregister, getItems
+	}
 
 	const ListPrimitive = asChild ? Slot : 'div'
 

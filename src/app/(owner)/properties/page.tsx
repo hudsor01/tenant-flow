@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useMemo, useState } from 'react'
+import { useState } from 'react'
 import { Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import {
@@ -61,10 +61,7 @@ export default function PropertiesPage() {
 	const { data: propertiesResponse, isLoading, error } = useQuery(
 		propertyQueries.list()
 	)
-	const rawProperties = useMemo(
-		() => propertiesResponse?.data ?? [],
-		[propertiesResponse?.data]
-	)
+	const rawProperties = propertiesResponse?.data ?? []
 
 	// Fetch all units for all properties using useQueries
 	const unitsQueriesResults = useQueries({
@@ -78,13 +75,13 @@ export default function PropertiesPage() {
 	const unitsData = unitsQueriesResults.map(result => result.data)
 
 	// Get units map by property ID
-	const unitsMap = useMemo(() => {
+	const unitsMap = (() => {
 		const map: Record<string, Unit[]> = {}
 		rawProperties.forEach((p, i) => {
 			map[p.id] = unitsData[i] ?? []
 		})
 		return map
-	}, [rawProperties, unitsData])
+	})()
 
 	// Fetch images for all properties using useQueries
 	const imagesQueriesResults = useQueries({
@@ -97,32 +94,25 @@ export default function PropertiesPage() {
 	// Extract stable data from images queries
 	const imagesData = imagesQueriesResults.map(result => result.data)
 
-	const imagesMap = useMemo(() => {
+	const imagesMap = (() => {
 		const map: Record<string, string | undefined> = {}
 		rawProperties.forEach((p, i) => {
 			const images = imagesData[i]
 			map[p.id] = images?.[0]?.image_url
 		})
 		return map
-	}, [rawProperties, imagesData])
+	})()
 
 	// Transform to design-os format
-	const properties = useMemo(
-		() =>
-			rawProperties.map(p =>
+	const properties = rawProperties.map(p =>
 				transformToPropertyItem(p, unitsMap[p.id], imagesMap[p.id])
-			),
-		[rawProperties, unitsMap, imagesMap]
-	)
+			)
 
 	// Calculate summary (use API total for accurate count across pages)
-	const summary = useMemo(
-		() => ({
+	const summary = ({
 			...calculateSummary(properties),
 			totalProperties: propertiesResponse?.total ?? properties.length
-		}),
-		[properties, propertiesResponse?.total]
-	)
+		})
 
 	// Delete mutation -- soft-delete: set status to 'inactive'
 	const { mutate: deleteProperty } = useMutation({
@@ -145,37 +135,28 @@ export default function PropertiesPage() {
 	})
 
 	// Callbacks
-	const handleAddProperty = useCallback(() => {
+	const handleAddProperty = () => {
 		router.push('/properties/new')
-	}, [router])
+	}
 
-	const handlePropertyClick = useCallback(
-		(propertyId: string) => {
+	const handlePropertyClick = (propertyId: string) => {
 			router.push(`/properties/${propertyId}`)
-		},
-		[router]
-	)
+		}
 
-	const handlePropertyEdit = useCallback(
-		(propertyId: string) => {
+	const handlePropertyEdit = (propertyId: string) => {
 			router.push(`/properties/${propertyId}/edit`)
-		},
-		[router]
-	)
+		}
 
-	const handlePropertyDelete = useCallback(
-		(propertyId: string) => {
+	const handlePropertyDelete = (propertyId: string) => {
 			setPropertyToDelete(propertyId)
-		},
-		[]
-	)
+		}
 
-	const confirmDelete = useCallback(() => {
+	const confirmDelete = () => {
 		if (propertyToDelete) {
 			deleteProperty(propertyToDelete)
 			setPropertyToDelete(null)
 		}
-	}, [propertyToDelete, deleteProperty])
+	}
 
 	if (isLoading) {
 		return <PropertiesLoadingSkeleton />

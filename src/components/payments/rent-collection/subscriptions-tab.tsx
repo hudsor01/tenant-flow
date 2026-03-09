@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useState } from 'react'
 import {
 	ChevronLeft,
 	ChevronRight,
@@ -55,7 +55,7 @@ export function SubscriptionsTab({
 	const [currentPage, setCurrentPage] = useState(1)
 	const itemsPerPage = 10
 
-	const filteredSubscriptions = useMemo(() => {
+	const filteredSubscriptions = (() => {
 		return subscriptions.filter(sub => {
 			if (searchQuery) {
 				const query = searchQuery.toLowerCase()
@@ -66,7 +66,7 @@ export function SubscriptionsTab({
 			if (statusFilter !== 'all' && sub.status !== statusFilter) return false
 			return true
 		})
-	}, [subscriptions, searchQuery, statusFilter])
+	})()
 
 	const totalPages = Math.ceil(filteredSubscriptions.length / itemsPerPage)
 	const paginatedSubscriptions = filteredSubscriptions.slice(

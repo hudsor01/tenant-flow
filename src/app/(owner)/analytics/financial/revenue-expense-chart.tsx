@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useState } from 'react'
 import type { MonthlyFinancialMetric } from '#types/analytics'
 import { Area, AreaChart, CartesianGrid, XAxis, YAxis } from 'recharts'
 import { Badge } from '#components/ui/badge'
@@ -43,7 +43,7 @@ type RevenueExpenseChartProps = { data: MonthlyFinancialMetric[] }
 export function RevenueExpenseChart({ data }: RevenueExpenseChartProps) {
 	const [timeRange, setTimeRange] = useState('all')
 
-	const chartData = useMemo(() => {
+	const chartData = (() => {
 		if (!data || data.length === 0) return []
 		return data.map(item => ({
 			month: item.month,
@@ -51,13 +51,13 @@ export function RevenueExpenseChart({ data }: RevenueExpenseChartProps) {
 			expenses: item.expenses,
 			netIncome: item.netIncome
 		}))
-	}, [data])
+	})()
 
-	const filteredData = useMemo(() => {
+	const filteredData = (() => {
 		if (timeRange === 'all' || chartData.length <= 3) return chartData
 		const months = timeRange === '3m' ? 3 : timeRange === '6m' ? 6 : chartData.length
 		return chartData.slice(-months)
-	}, [chartData, timeRange])
+	})()
 
 	if (!data || data.length === 0) {
 		return <EmptyState message="We couldn't find monthly financial data for this period." />

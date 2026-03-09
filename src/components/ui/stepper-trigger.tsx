@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useEffect, useRef } from 'react'
+import { useEffect, useRef } from 'react'
 import type {
 	FocusEvent,
 	KeyboardEvent as ReactKeyboardEvent,
@@ -84,105 +84,93 @@ function StepperTrigger(props: ButtonProps) {
 	}, [focusContext, triggerId, itemValue, isTabStop, isDisabled])
 
 	const handleTriggerClick = triggerProps.onClick
-	const onClick = useCallback(
-		async (event: MouseEvent<TriggerElement>) => {
-			handleTriggerClick?.(event)
-			if (event.defaultPrevented) return
-			if (!isDisabled && !context.nonInteractive) {
-				const currentStepIndex = Array.from(steps.keys()).indexOf(value ?? '')
-				const targetStepIndex = Array.from(steps.keys()).indexOf(itemValue)
-				const direction = targetStepIndex > currentStepIndex ? 'next' : 'prev'
-				await store.setStateWithValidation(itemValue, direction)
-			}
-		},
-		[isDisabled, context.nonInteractive, store, itemValue, value, steps, handleTriggerClick]
-	)
+	const onClick = async (event: MouseEvent<TriggerElement>) => {
+		handleTriggerClick?.(event)
+		if (event.defaultPrevented) return
+		if (!isDisabled && !context.nonInteractive) {
+			const currentStepIndex = Array.from(steps.keys()).indexOf(value ?? '')
+			const targetStepIndex = Array.from(steps.keys()).indexOf(itemValue)
+			const direction = targetStepIndex > currentStepIndex ? 'next' : 'prev'
+			await store.setStateWithValidation(itemValue, direction)
+		}
+	}
 
 	const handleTriggerFocus = triggerProps.onFocus
-	const onFocus = useCallback(
-		async (event: FocusEvent<TriggerElement>) => {
-			handleTriggerFocus?.(event)
-			if (event.defaultPrevented) return
-			focusContext.onItemFocus(triggerId)
-			const isKeyboardFocus = !isMouseClickRef.current
-			if (!isActive && !isDisabled && activationMode !== 'manual' && !context.nonInteractive && isKeyboardFocus) {
-				const currentStepIndex = Array.from(steps.keys()).indexOf(value || '')
-				const targetStepIndex = Array.from(steps.keys()).indexOf(itemValue)
-				const direction = targetStepIndex > currentStepIndex ? 'next' : 'prev'
-				await store.setStateWithValidation(itemValue, direction)
-			}
-			isMouseClickRef.current = false
-		},
-		[focusContext, triggerId, activationMode, isActive, isDisabled, context.nonInteractive, store, itemValue, value, steps, handleTriggerFocus]
-	)
+	const onFocus = async (event: FocusEvent<TriggerElement>) => {
+		handleTriggerFocus?.(event)
+		if (event.defaultPrevented) return
+		focusContext.onItemFocus(triggerId)
+		const isKeyboardFocus = !isMouseClickRef.current
+		if (!isActive && !isDisabled && activationMode !== 'manual' && !context.nonInteractive && isKeyboardFocus) {
+			const currentStepIndex = Array.from(steps.keys()).indexOf(value || '')
+			const targetStepIndex = Array.from(steps.keys()).indexOf(itemValue)
+			const direction = targetStepIndex > currentStepIndex ? 'next' : 'prev'
+			await store.setStateWithValidation(itemValue, direction)
+		}
+		isMouseClickRef.current = false
+	}
 
 	const handleTriggerKeyDown = triggerProps.onKeyDown
-	const onKeyDown = useCallback(
-		async (event: ReactKeyboardEvent<TriggerElement>) => {
-			handleTriggerKeyDown?.(event)
-			if (event.defaultPrevented) return
-			if (event.key === 'Enter' && context.nonInteractive) {
-				event.preventDefault()
-				return
+	const onKeyDown = async (event: ReactKeyboardEvent<TriggerElement>) => {
+		handleTriggerKeyDown?.(event)
+		if (event.defaultPrevented) return
+		if (event.key === 'Enter' && context.nonInteractive) {
+			event.preventDefault()
+			return
+		}
+		if ((event.key === 'Enter' || event.key === ' ') && activationMode === 'manual' && !context.nonInteractive) {
+			event.preventDefault()
+			if (!isDisabled && triggerRef.current) triggerRef.current.click()
+			return
+		}
+		if (event.key === 'Tab' && event.shiftKey) {
+			focusContext.onItemShiftTab()
+			return
+		}
+		if (event.target !== event.currentTarget) return
+		const focusIntentResult = getFocusIntent(event, context.dir, orientation)
+		if (focusIntentResult !== undefined) {
+			if (event.metaKey || event.ctrlKey || event.altKey || event.shiftKey) return
+			event.preventDefault()
+			const items = focusContext.getItems().filter(item => !item.disabled)
+			let candidateRefs = items.map(item => item.ref)
+			if (focusIntentResult === 'last') {
+				candidateRefs.reverse()
+			} else if (focusIntentResult === 'prev' || focusIntentResult === 'next') {
+				if (focusIntentResult === 'prev') candidateRefs.reverse()
+				const currentIndex = candidateRefs.findIndex(r => r.current === event.currentTarget)
+				candidateRefs = loop ? wrapArray(candidateRefs, currentIndex + 1) : candidateRefs.slice(currentIndex + 1)
 			}
-			if ((event.key === 'Enter' || event.key === ' ') && activationMode === 'manual' && !context.nonInteractive) {
-				event.preventDefault()
-				if (!isDisabled && triggerRef.current) triggerRef.current.click()
-				return
-			}
-			if (event.key === 'Tab' && event.shiftKey) {
-				focusContext.onItemShiftTab()
-				return
-			}
-			if (event.target !== event.currentTarget) return
-			const focusIntentResult = getFocusIntent(event, context.dir, orientation)
-			if (focusIntentResult !== undefined) {
-				if (event.metaKey || event.ctrlKey || event.altKey || event.shiftKey) return
-				event.preventDefault()
-				const items = focusContext.getItems().filter(item => !item.disabled)
-				let candidateRefs = items.map(item => item.ref)
-				if (focusIntentResult === 'last') {
-					candidateRefs.reverse()
-				} else if (focusIntentResult === 'prev' || focusIntentResult === 'next') {
-					if (focusIntentResult === 'prev') candidateRefs.reverse()
-					const currentIndex = candidateRefs.findIndex(r => r.current === event.currentTarget)
-					candidateRefs = loop ? wrapArray(candidateRefs, currentIndex + 1) : candidateRefs.slice(currentIndex + 1)
-				}
-				if (store.hasValidation() && candidateRefs.length > 0) {
-					const nextRef = candidateRefs[0]
-					const nextElement = nextRef?.current
-					const nextItem = items.find(item => item.ref.current === nextElement)
-					if (nextItem && nextItem.value !== itemValue) {
-						const currentStepIndex = Array.from(steps.keys()).indexOf(value || '')
-						const targetStepIndex = Array.from(steps.keys()).indexOf(nextItem.value)
-						const direction: NavigationDirection = targetStepIndex > currentStepIndex ? 'next' : 'prev'
-						if (direction === 'next') {
-							const isValid = await store.setStateWithValidation(nextItem.value, direction)
-							if (!isValid) return
-						} else {
-							store.setState('value', nextItem.value)
-						}
-						queueMicrotask(() => nextElement?.focus())
-						return
+			if (store.hasValidation() && candidateRefs.length > 0) {
+				const nextRef = candidateRefs[0]
+				const nextElement = nextRef?.current
+				const nextItem = items.find(item => item.ref.current === nextElement)
+				if (nextItem && nextItem.value !== itemValue) {
+					const currentStepIndex = Array.from(steps.keys()).indexOf(value || '')
+					const targetStepIndex = Array.from(steps.keys()).indexOf(nextItem.value)
+					const direction: NavigationDirection = targetStepIndex > currentStepIndex ? 'next' : 'prev'
+					if (direction === 'next') {
+						const isValid = await store.setStateWithValidation(nextItem.value, direction)
+						if (!isValid) return
+					} else {
+						store.setState('value', nextItem.value)
 					}
+					queueMicrotask(() => nextElement?.focus())
+					return
 				}
-				queueMicrotask(() => focusFirst(candidateRefs))
 			}
-		},
-		[focusContext, context.nonInteractive, context.dir, activationMode, orientation, loop, isDisabled, handleTriggerKeyDown, store, itemValue, value, steps]
-	)
+			queueMicrotask(() => focusFirst(candidateRefs))
+		}
+	}
 
 	const handleTriggerMouseDown = triggerProps.onMouseDown
-	const onMouseDown = useCallback(
-		(event: MouseEvent<TriggerElement>) => {
-			handleTriggerMouseDown?.(event)
-			if (event.defaultPrevented) return
-			isMouseClickRef.current = true
-			if (isDisabled) event.preventDefault()
-			else focusContext.onItemFocus(triggerId)
-		},
-		[focusContext, triggerId, isDisabled, handleTriggerMouseDown]
-	)
+	const onMouseDown = (event: MouseEvent<TriggerElement>) => {
+		handleTriggerMouseDown?.(event)
+		if (event.defaultPrevented) return
+		isMouseClickRef.current = true
+		if (isDisabled) event.preventDefault()
+		else focusContext.onItemFocus(triggerId)
+	}
 
 	const TriggerPrimitive = asChild ? Slot : 'button'
 

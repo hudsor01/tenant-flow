@@ -7,7 +7,7 @@
  * Uses controlled state pattern for flexibility with parent components.
  */
 
-import { useState, useCallback } from 'react'
+import { useState } from 'react'
 import { format } from 'date-fns'
 import { Calendar, Download, FileText, ChevronDown } from 'lucide-react'
 import { Button } from '#components/ui/button'
@@ -83,8 +83,7 @@ export function DashboardFilters({
 	const [customStart, setCustomStart] = useState('')
 	const [customEnd, setCustomEnd] = useState('')
 
-	const handlePresetChange = useCallback(
-		(preset: DateRangePreset) => {
+	const handlePresetChange = (preset: DateRangePreset) => {
 			setActivePreset(preset)
 			if (preset !== 'custom') {
 				const range = getDateRangeFromPreset(preset)
@@ -93,18 +92,16 @@ export function DashboardFilters({
 			} else {
 				setShowCustomRange(true)
 			}
-		},
-		[onDateRangeChange]
-	)
+		}
 
-	const handleCustomRangeApply = useCallback(() => {
+	const handleCustomRangeApply = () => {
 		if (customStart && customEnd) {
 			onDateRangeChange?.({ start: customStart, end: customEnd })
 			setShowCustomRange(false)
 		}
-	}, [customStart, customEnd, onDateRangeChange])
+	}
 
-	const handleExportCSV = useCallback(async () => {
+	const handleExportCSV = async () => {
 		if (
 			!exportData?.propertyPerformance ||
 			exportData.propertyPerformance.length === 0
@@ -131,9 +128,9 @@ export function DashboardFilters({
 		} finally {
 			setIsExporting(null)
 		}
-	}, [exportData])
+	}
 
-	const handleExportPDF = useCallback(async () => {
+	const handleExportPDF = async () => {
 		if (!exportData?.stats) {
 			toast.error('No data available to export')
 			return
@@ -153,7 +150,7 @@ export function DashboardFilters({
 		} finally {
 			setIsExporting(null)
 		}
-	}, [exportData])
+	}
 
 	if (compact) {
 		return (

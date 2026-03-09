@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
 import type { DynamicField } from './dynamic-form'
 
@@ -60,19 +60,16 @@ export function useTemplateDefinition(
 		})
 	}, [customFields, form])
 
-	const allFields = useMemo(
-		() => [...baseFields, ...customFields],
-		[baseFields, customFields]
-	)
+	const allFields = [...baseFields, ...customFields]
 
-	const save = useCallback(async () => {
+	const save = async () => {
 		setIsSaving(true)
 		try {
 			toast.info('Template saving is not yet available')
 		} finally {
 			setIsSaving(false)
 		}
-	}, [])
+	}
 
 	return {
 		customFields,

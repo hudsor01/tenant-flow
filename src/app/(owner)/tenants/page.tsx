@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useMemo, useState } from 'react'
+import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useQuery } from '@tanstack/react-query'
 import { toast } from 'sonner'
@@ -38,10 +38,7 @@ export default function TenantsPage() {
 
 	// Fetch tenants list
 	const { data: tenantsResponse, isLoading, error } = useQuery(tenantQueries.list())
-	const rawTenants = useMemo(
-		() => tenantsResponse?.data ?? [],
-		[tenantsResponse?.data]
-	)
+	const rawTenants = tenantsResponse?.data ?? []
 
 	// Transform to design-os format
 	const { data: selectedTenantPayments } = useQuery(
@@ -50,7 +47,7 @@ export default function TenantsPage() {
 			enabled: Boolean(selectedTenantId)
 		})
 	)
-	const selectedTenantTotalPaid = useMemo(() => {
+	const selectedTenantTotalPaid = (() => {
 		if (!selectedTenantPayments?.payments?.length) return 0
 		return selectedTenantPayments.payments.reduce((total, payment) => {
 			if (payment.status?.toLowerCase() === 'succeeded') {
@@ -58,8 +55,8 @@ export default function TenantsPage() {
 			}
 			return total
 		}, 0)
-	}, [selectedTenantPayments?.payments])
-	const selectedTenantPaymentHistory = useMemo(() => {
+	})()
+	const selectedTenantPaymentHistory = (() => {
 		if (!selectedTenantPayments?.payments?.length) return undefined
 		return selectedTenantPayments.payments.map(payment => ({
 			id: payment.id,
@@ -68,18 +65,15 @@ export default function TenantsPage() {
 			dueDate: payment.due_date,
 			...(payment.paid_date !== null ? { paidDate: payment.paid_date } : {})
 		}))
-	}, [selectedTenantPayments?.payments])
-	const totalPaidByTenant = useMemo(() => {
+	})()
+	const totalPaidByTenant = (() => {
 		if (!selectedTenantId) return new Map<string, number>()
 		return new Map([[selectedTenantId, selectedTenantTotalPaid]])
-	}, [selectedTenantId, selectedTenantTotalPaid])
-	const tenants = useMemo(
-		() => rawTenants.map(tenant => transformToTenantItem(tenant, totalPaidByTenant)),
-		[rawTenants, totalPaidByTenant]
-	)
+	})()
+	const tenants = rawTenants.map(tenant => transformToTenantItem(tenant, totalPaidByTenant))
 
 	// Get selected tenant detail
-	const selectedTenant = useMemo(() => {
+	const selectedTenant = (() => {
 		if (!selectedTenantId) return undefined
 		const raw = rawTenants.find(t => t.id === selectedTenantId)
 		return raw
@@ -89,12 +83,7 @@ export default function TenantsPage() {
 					selectedTenantPaymentHistory
 				)
 			: undefined
-	}, [
-		selectedTenantId,
-		rawTenants,
-		totalPaidByTenant,
-		selectedTenantPaymentHistory
-	])
+	})()
 
 	// Delete mutation — consolidated hook with active-lease guard
 	const { mutate: deleteTenant } = useDeleteTenantMutation()
@@ -103,30 +92,26 @@ export default function TenantsPage() {
 	const { mutate: cancelInvitation } = useCancelInvitationMutation()
 
 	// Callbacks
-	const handleInviteTenant = useCallback(() => {
+	const handleInviteTenant = () => {
 		router.push('/tenants/new')
-	}, [router])
+	}
 
-	const handleViewTenant = useCallback((tenantId: string) => {
+	const handleViewTenant = (tenantId: string) => {
 		setSelectedTenantId(tenantId)
-	}, [])
+	}
 
-	const handleEditTenant = useCallback(
-		(tenantId: string) => {
+	const handleEditTenant = (tenantId: string) => {
 			router.push(`/tenants/${tenantId}/edit`)
-		},
-		[router]
-	)
+		}
 
-	const confirmDeleteTenant = useCallback(() => {
+	const confirmDeleteTenant = () => {
 		if (tenantToDelete) {
 			deleteTenant(tenantToDelete)
 			setTenantToDelete(null)
 		}
-	}, [tenantToDelete, deleteTenant])
+	}
 
-	const handleContactTenant = useCallback(
-		(tenantId: string, method: 'email' | 'phone') => {
+	const handleContactTenant = (tenantId: string, method: 'email' | 'phone') => {
 			const tenant = rawTenants.find(t => t.id === tenantId)
 			if (!tenant) return
 
@@ -135,33 +120,25 @@ export default function TenantsPage() {
 			} else if (method === 'phone' && tenant.phone) {
 				window.location.href = `tel:${tenant.phone}`
 			}
-		},
-		[rawTenants]
-	)
+		}
 
-	const handleViewLease = useCallback(
-		(leaseId: string) => {
+	const handleViewLease = (leaseId: string) => {
 			router.push(`/leases/${leaseId}`)
-		},
-		[router]
-	)
+		}
 
-	const handleViewPaymentHistory = useCallback(
-		(tenantId: string) => {
+	const handleViewPaymentHistory = (tenantId: string) => {
 			router.push(`/tenants/${tenantId}/payments`)
-		},
-		[router]
-	)
+		}
 
-	const handleResendInvitation = useCallback((invitationId: string) => {
+	const handleResendInvitation = (invitationId: string) => {
 		toast.info('Resending invitation...')
 		resendInvitation(invitationId)
-	}, [resendInvitation])
+	}
 
-	const handleCancelInvitation = useCallback((invitationId: string) => {
+	const handleCancelInvitation = (invitationId: string) => {
 		toast.info('Cancelling invitation...')
 		cancelInvitation(invitationId)
-	}, [cancelInvitation])
+	}
 
 	if (isLoading) {
 		return <TenantsLoadingSkeleton />

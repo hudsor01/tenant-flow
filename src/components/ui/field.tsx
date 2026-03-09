@@ -1,7 +1,6 @@
 'use client'
 
 import type { ComponentProps, ReactNode } from 'react'
-import { useMemo } from 'react'
 
 import { cva, type VariantProps } from 'class-variance-authority'
 
@@ -193,7 +192,7 @@ function FieldError({
 }: ComponentProps<'div'> & {
 	errors?: Array<{ message?: string } | string | null | undefined>
 }) {
-	const content = useMemo(() => {
+	const content = (() => {
 		if (children) {
 			return children
 		}
@@ -233,7 +232,7 @@ function FieldError({
 				))}
 			</ul>
 		)
-	}, [children, errors])
+	})()
 
 	if (!content) {
 		return null

@@ -9,7 +9,7 @@
  * @see TODO.md REACT-001 - State consolidated from 13 useState calls
  */
 
-import { useEffect, useMemo, Suspense } from 'react'
+import { useEffect, Suspense } from 'react'
 import { Plus } from 'lucide-react'
 import { useLeaseList } from '#hooks/api/use-lease'
 import { useDeleteLeaseMutation } from '#hooks/api/use-lease-mutations'
@@ -91,16 +91,13 @@ export default function LeasesPage() {
 	const { data: leasesResponse, isLoading, error } = useLeaseList({ limit: 50, offset: 0 })
 	const deleteLeaseMutation = useDeleteLeaseMutation()
 
-	const rawLeases = useMemo(
-		() => leasesResponse?.data ?? [],
-		[leasesResponse?.data]
-	)
+	const rawLeases = leasesResponse?.data ?? []
 
-	const leases: LeaseDisplay[] = useMemo(() => {
+	const leases: LeaseDisplay[] = (() => {
 		return rawLeases.map(lease =>
 			transformLease(lease as LeaseWithNestedRelations)
 		)
-	}, [rawLeases])
+	})()
 
 	const totalLeases = leases.length
 	const activeLeases = leases.filter(l => l.status === 'active').length
@@ -109,16 +106,16 @@ export default function LeasesPage() {
 		l => l.status === 'pending_signature'
 	).length
 
-	const filteredLeases = useMemo(() => leases.filter(l => {
+	const filteredLeases = leases.filter(l => {
 		if (searchQuery) {
 			const query = searchQuery.toLowerCase()
 			if (!(l.tenantName ?? '').toLowerCase().includes(query) && !(l.propertyName ?? '').toLowerCase().includes(query)) return false
 		}
 		if (statusFilter !== 'all' && l.status !== statusFilter) return false
 		return true
-	}), [leases, searchQuery, statusFilter])
+	})
 
-	const sortedLeases = useMemo(() => [...filteredLeases].sort((a, b) => {
+	const sortedLeases = [...filteredLeases].sort((a, b) => {
 		const cmp: Record<string, number> = {
 			tenant: a.tenantName.localeCompare(b.tenantName),
 			property: a.propertyName.localeCompare(b.propertyName),
@@ -128,7 +125,7 @@ export default function LeasesPage() {
 			status: a.status.localeCompare(b.status)
 		}
 		return sortDirection === 'asc' ? (cmp[sortField] ?? 0) : -(cmp[sortField] ?? 0)
-	}), [filteredLeases, sortField, sortDirection])
+	})
 
 	const totalPages = Math.ceil(sortedLeases.length / itemsPerPage)
 	const paginatedLeases = sortedLeases.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
