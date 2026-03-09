@@ -2,19 +2,17 @@
 
 import type { Ref } from 'react'
 
-import { useSignOutMutation } from '#hooks/api/use-auth-mutations'
+import { Button } from '#components/ui/button'
 import { useNavigation } from '#hooks/use-navigation'
 import { cn } from '#lib/utils'
-import { useAuth } from '#providers/auth-provider'
 import { Menu, X } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { NavbarDesktopNav } from './navbar/navbar-desktop-nav'
-import { NavbarDesktopAuth } from './navbar/navbar-desktop-auth'
 import { NavbarMobileMenu } from './navbar/navbar-mobile-menu'
-import { DEFAULT_NAV_ITEMS, AUTH_NAV_ITEMS, type NavbarProps } from './navbar/types'
+import { DEFAULT_NAV_ITEMS, type NavbarProps } from './navbar/types'
 
 export function Navbar({
 	className,
@@ -26,17 +24,10 @@ export function Navbar({
 	...props
 }: NavbarProps & { ref?: Ref<HTMLElement> }) {
 	const [isScrolled, setIsScrolled] = useState(false)
-	const [isMounted, setIsMounted] = useState(false)
 
 	const { isMobileMenuOpen, toggleMobileMenu, closeMobileMenu } =
 		useNavigation()
 	const pathname = usePathname()
-	const { isAuthenticated, isLoading, user } = useAuth()
-	const signOutMutation = useSignOutMutation()
-
-	useEffect(() => {
-		queueMicrotask(() => setIsMounted(true))
-	}, [])
 
 	useEffect(() => {
 		const handleScroll = () => {
@@ -46,20 +37,6 @@ export function Navbar({
 		window.addEventListener('scroll', handleScroll)
 		return () => window.removeEventListener('scroll', handleScroll)
 	}, [])
-
-	const handleSignOut = () => {
-		signOutMutation.mutate(undefined, {
-			onSettled: () => {
-				closeMobileMenu()
-			}
-		})
-	}
-
-	const currentNavItems = isMounted
-		? isAuthenticated
-			? AUTH_NAV_ITEMS
-			: navItems
-		: navItems
 
 	return (
 		<nav
@@ -75,7 +52,7 @@ export function Navbar({
 			{...props}
 		>
 			<div className="flex-between">
-				{/* Logo - Clean, no container */}
+				{/* Logo */}
 				<Link
 					href="/"
 					className="flex items-center gap-2.5 transition-opacity duration-fast hover:opacity-80"
@@ -91,18 +68,20 @@ export function Navbar({
 					<span className="text-lg font-semibold text-foreground">{logo}</span>
 				</Link>
 
-				<NavbarDesktopNav navItems={currentNavItems} pathname={pathname} />
+				<NavbarDesktopNav navItems={navItems} pathname={pathname} />
 
 				<div className="flex items-center space-x-4">
-					<NavbarDesktopAuth
-						isAuthenticated={isAuthenticated}
-						isLoading={isLoading}
-						isMounted={isMounted}
-						user={user ?? null}
-						ctaText={ctaText}
-						ctaHref={ctaHref}
-						onSignOut={handleSignOut}
-					/>
+					<div className="hidden sm:flex items-center gap-3">
+						<Link
+							href="/login"
+							className="px-3 py-1.5 text-foreground/70 hover:text-foreground rounded-md border border-transparent hover:border-border/50 transition-colors duration-fast text-sm font-medium"
+						>
+							Sign In
+						</Link>
+						<Button asChild size="sm">
+							<Link href={ctaHref}>{ctaText}</Link>
+						</Button>
+					</div>
 
 					{/* Mobile Toggle */}
 					<button
@@ -120,14 +99,10 @@ export function Navbar({
 				isOpen={isMobileMenuOpen}
 				onOpenChange={(open: boolean) => (open ? toggleMobileMenu() : closeMobileMenu())}
 				onClose={closeMobileMenu}
-				navItems={currentNavItems}
+				navItems={navItems}
 				pathname={pathname}
-				isAuthenticated={isAuthenticated}
-				isLoading={isLoading}
-				user={user ?? null}
 				ctaText={ctaText}
 				ctaHref={ctaHref}
-				onSignOut={handleSignOut}
 			/>
 		</nav>
 	)

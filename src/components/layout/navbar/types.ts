@@ -31,19 +31,3 @@ export const DEFAULT_NAV_ITEMS: NavItem[] = [
 	}
 ]
 
-export const AUTH_NAV_ITEMS: NavItem[] = [
-	{ name: 'Dashboard', href: '/' },
-	{ name: 'Properties', href: '/properties' },
-	{ name: 'Analytics', href: '/analytics' },
-	{
-		name: 'More',
-		href: '#',
-		hasDropdown: true,
-		dropdownItems: [
-			{ name: 'Leases', href: '/leases' },
-			{ name: 'Maintenance', href: '/maintenance' },
-			{ name: 'Reports', href: '/reports' },
-			{ name: 'Settings', href: '/settings' }
-		]
-	}
-]

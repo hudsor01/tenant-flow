@@ -10,7 +10,6 @@ import { cn } from '#lib/utils'
 import { ArrowRight, ChevronDown } from 'lucide-react'
 import Link from 'next/link'
 import { useState } from 'react'
-import type { User } from '@supabase/supabase-js'
 import type { NavItem } from './types'
 
 interface NavbarMobileMenuProps {
@@ -19,12 +18,8 @@ interface NavbarMobileMenuProps {
 	onClose: () => void
 	navItems: NavItem[]
 	pathname: string
-	isAuthenticated: boolean
-	isLoading: boolean
-	user: User | null
 	ctaText: string
 	ctaHref: string
-	onSignOut: () => void
 }
 
 export function NavbarMobileMenu({
@@ -33,12 +28,8 @@ export function NavbarMobileMenu({
 	onClose,
 	navItems,
 	pathname,
-	isAuthenticated,
-	isLoading,
-	user,
 	ctaText,
-	ctaHref,
-	onSignOut
+	ctaHref
 }: NavbarMobileMenuProps) {
 	const [openDropdown, setOpenDropdown] = useState<string | null>(null)
 
@@ -105,42 +96,22 @@ export function NavbarMobileMenu({
 						{/* Divider */}
 						<div className="my-2 border-t border-border/50" />
 
-						{/* Mobile Auth Links */}
-						{isLoading ? (
-							<div className="px-4 py-3 text-foreground/50 text-sm">Loading...</div>
-						) : isAuthenticated ? (
-							<>
-								<div className="px-4 py-2 text-foreground/60 text-sm">
-									{user?.email?.split('@')[0]}
-								</div>
-								<button
-									onClick={onSignOut}
-									className="w-full text-left px-4 py-3 text-foreground/70 hover:text-foreground hover:bg-muted/50 rounded-lg transition-colors duration-fast"
-								>
-									Sign Out
-								</button>
-							</>
-						) : (
-							<>
-								<Link
-									href="/login"
-									onClick={() => onClose()}
-									className="block px-4 py-3 text-foreground/70 hover:text-foreground hover:bg-muted/50 rounded-lg transition-colors duration-fast"
-								>
-									Sign In
-								</Link>
-
-								{/* Mobile CTA - Solid dark button */}
-								<Link
-									href={ctaHref}
-									onClick={() => onClose()}
-									className="flex items-center justify-center w-full px-6 py-3 mt-2 bg-foreground text-background font-medium text-sm rounded-lg hover:bg-foreground/90 transition-colors duration-fast"
-								>
-									{ctaText}
-									<ArrowRight className="ml-2 size-4" />
-								</Link>
-							</>
-						)}
+						{/* Guest Links */}
+						<Link
+							href="/login"
+							onClick={() => onClose()}
+							className="block px-4 py-3 text-foreground/70 hover:text-foreground hover:bg-muted/50 rounded-lg transition-colors duration-fast"
+						>
+							Sign In
+						</Link>
+						<Link
+							href={ctaHref}
+							onClick={() => onClose()}
+							className="flex items-center justify-center w-full px-6 py-3 mt-2 bg-primary text-primary-foreground font-medium text-sm rounded-md hover:bg-primary/90 transition-colors duration-fast"
+						>
+							{ctaText}
+							<ArrowRight className="ml-2 size-4" />
+						</Link>
 					</nav>
 				</div>
 			</SheetContent>
