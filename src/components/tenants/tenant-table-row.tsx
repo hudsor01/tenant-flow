@@ -102,7 +102,8 @@ export function TenantTableRow({
 				<div className="flex items-center justify-end gap-1">
 					<Button
 						variant="ghost"
-						size="icon-sm"
+						size="icon"
+						className="h-8 w-8 min-h-8 min-w-8"
 						onClick={() => onEdit(tenant.id)}
 					>
 						<Pencil className="h-4 w-4" />
@@ -110,8 +111,8 @@ export function TenantTableRow({
 					</Button>
 					<Button
 						variant="ghost"
-						size="icon-sm"
-						className="text-destructive hover:text-destructive hover:bg-destructive/10"
+						size="icon"
+						className="h-8 w-8 min-h-8 min-w-8 text-destructive hover:text-destructive hover:bg-destructive/10"
 						onClick={() => onDelete(tenant.id)}
 					>
 						<Trash2 className="h-4 w-4" />

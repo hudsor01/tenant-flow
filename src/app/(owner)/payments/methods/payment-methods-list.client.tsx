@@ -140,8 +140,8 @@ export function PaymentMethodsList() {
 								<AlertDialogTrigger asChild>
 									<Button
 										variant="ghost"
-										size="icon-sm"
-										className="text-destructive hover:text-destructive"
+										size="icon"
+										className="h-8 w-8 min-h-8 min-w-8 text-destructive hover:text-destructive"
 									>
 										<Trash2 className="size-4" />
 										<span className="sr-only">Delete payment method</span>
