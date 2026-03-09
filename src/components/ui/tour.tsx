@@ -1,5 +1,7 @@
 'use client'
 
+'use no memo'
+
 import {
 	autoUpdate,
 	flip,
