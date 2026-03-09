@@ -43,10 +43,15 @@ export function Navbar({
 			data-site-navbar
 			ref={ref}
 			className={cn(
-				'fixed left-1/2 transform translate-x-[-50%] z-50 transition-all duration-normal rounded-2xl px-6 py-3 w-auto',
+				'fixed z-50 transition-all duration-normal',
+				// Mobile: full-width sticky top bar
+				'left-0 right-0 top-0 rounded-none px-4 py-2 w-full',
+				// Desktop/tablet: floating pill centered
+				'md:left-1/2 md:right-auto md:transform md:-translate-x-1/2 md:rounded-2xl md:px-6 md:py-3 md:w-auto',
+				// Scroll behavior
 				isScrolled
-					? 'top-2 bg-card/95 backdrop-blur-2xl shadow-xl border border-border/40'
-					: 'top-4 bg-card/80 backdrop-blur-xl shadow-lg border border-border/20',
+					? 'md:top-2 bg-card/95 backdrop-blur-2xl shadow-xl border border-border/40'
+					: 'md:top-4 bg-card/80 backdrop-blur-xl shadow-lg border border-border/20',
 				className
 			)}
 			{...props}

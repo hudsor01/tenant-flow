@@ -160,8 +160,8 @@ export function CustomerPortalCard({
 				title="Account Management"
 				description="Manage your subscription and billing preferences"
 				className={cn(
-					cardVariants({ variant: 'premium' }),
-					'shadow-2xl hover:shadow-3xl border-2 bg-background',
+					cardVariants({ variant: 'elevated' }),
+					'border-2 bg-background',
 					'relative overflow-hidden',
 					'animate-in fade-in-0 duration-300',
 					className

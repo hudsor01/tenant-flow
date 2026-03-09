@@ -1,5 +1,6 @@
 import { Badge } from '#components/ui/badge'
 import { cardVariants } from '#components/ui/card'
+import { cn } from '#lib/utils'
 import {
 	Activity,
 	Clock,
@@ -38,7 +39,7 @@ export function PortalUsageStats({ stats }: PortalUsageStatsProps) {
 			</div>
 
 			<div className="portal-feature-grid">
-				<div className={cardVariants({ variant: 'portalFeature' })}>
+				<div className={cn(cardVariants({ variant: 'default' }), 'text-center p-4 bg-background/50 border-muted/30 hover:bg-primary/5 transition-all')}>
 					<div className="size-10 rounded-lg flex-center mx-auto mb-2 bg-accent/10">
 						<FileText className="size-5 text-accent" />
 					</div>
@@ -48,7 +49,7 @@ export function PortalUsageStats({ stats }: PortalUsageStatsProps) {
 					<p className="text-caption font-medium">Properties</p>
 				</div>
 
-				<div className={cardVariants({ variant: 'portalFeature' })}>
+				<div className={cn(cardVariants({ variant: 'default' }), 'text-center p-4 bg-background/50 border-muted/30 hover:bg-primary/5 transition-all')}>
 					<div className="size-10 rounded-lg flex-center mx-auto mb-2 bg-primary/10">
 						<Users className="size-5 text-primary" />
 					</div>
@@ -58,7 +59,7 @@ export function PortalUsageStats({ stats }: PortalUsageStatsProps) {
 					<p className="text-caption font-medium">Tenants</p>
 				</div>
 
-				<div className={cardVariants({ variant: 'portalFeature' })}>
+				<div className={cn(cardVariants({ variant: 'default' }), 'text-center p-4 bg-background/50 border-muted/30 hover:bg-primary/5 transition-all')}>
 					<div className="size-10 rounded-lg flex-center mx-auto mb-2 bg-primary/10">
 						<Zap className="size-5 text-primary" />
 					</div>
@@ -69,7 +70,7 @@ export function PortalUsageStats({ stats }: PortalUsageStatsProps) {
 				</div>
 
 				{stats.monthlyRevenue !== undefined && (
-					<div className={cardVariants({ variant: 'portalFeature' })}>
+					<div className={cn(cardVariants({ variant: 'default' }), 'text-center p-4 bg-background/50 border-muted/30 hover:bg-primary/5 transition-all')}>
 						<div className="size-10 rounded-lg flex-center mx-auto mb-2 bg-primary/10">
 							<TrendingUp className="size-5 text-primary" />
 						</div>
@@ -81,7 +82,7 @@ export function PortalUsageStats({ stats }: PortalUsageStatsProps) {
 				)}
 
 				{stats.activeLeases !== undefined && (
-					<div className={cardVariants({ variant: 'portalFeature' })}>
+					<div className={cn(cardVariants({ variant: 'default' }), 'text-center p-4 bg-background/50 border-muted/30 hover:bg-primary/5 transition-all')}>
 						<div className="size-10 rounded-lg flex-center mx-auto mb-2 bg-accent/10">
 							<FileText className="size-5 text-accent" />
 						</div>

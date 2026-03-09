@@ -1,5 +1,6 @@
 import { Badge } from '#components/ui/badge'
 import { cardVariants } from '#components/ui/card'
+import { cn } from '#lib/utils'
 import { Calendar, CheckCircle2, CreditCard, Lock } from 'lucide-react'
 import { formatDate } from '#lib/formatters/date'
 
@@ -32,7 +33,7 @@ export function PortalBillingInfo({ billingInfo }: PortalBillingInfoProps) {
 
 			<div className="grid gap-4 grid-cols-1 md:grid-cols-3">
 				{billingInfo.nextBillingDate && (
-					<div className={cardVariants({ variant: 'billingInfo' })}>
+					<div className={cn(cardVariants({ variant: 'default' }), 'bg-background/70 p-4 border-primary/20')}>
 						<div className="flex items-center gap-2 mb-2">
 							<Calendar className="size-4 text-primary" />
 							<span className="text-sm font-semibold text-muted-foreground">
@@ -46,7 +47,7 @@ export function PortalBillingInfo({ billingInfo }: PortalBillingInfoProps) {
 				)}
 
 				{billingInfo.lastPayment && (
-					<div className={cardVariants({ variant: 'billingInfo' })}>
+					<div className={cn(cardVariants({ variant: 'default' }), 'bg-background/70 p-4 border-primary/20')}>
 						<div className="flex items-center gap-2 mb-2">
 							<CheckCircle2 className="size-4 text-accent" />
 							<span className="text-sm font-semibold text-muted-foreground">
@@ -60,7 +61,7 @@ export function PortalBillingInfo({ billingInfo }: PortalBillingInfoProps) {
 				)}
 
 				{billingInfo.paymentMethod && (
-					<div className={cardVariants({ variant: 'billingInfo' })}>
+					<div className={cn(cardVariants({ variant: 'default' }), 'bg-background/70 p-4 border-primary/20')}>
 						<div className="flex items-center gap-2 mb-2">
 							<CreditCard className="size-4 text-primary" />
 							<span className="text-sm font-semibold text-muted-foreground">
