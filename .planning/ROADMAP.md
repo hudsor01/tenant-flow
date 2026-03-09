@@ -93,9 +93,9 @@ Plans:
 - [x] 18-01-PLAN.md -- Split 6 oversized UI primitive files (stepper group, chart, file-upload, dialog)
 - [x] 18-02-PLAN.md -- Split 9 large feature components (app-shell, contact-form, wizard, forms, dialogs)
 - [x] 18-03-PLAN.md -- Split 8 medium feature components and clean up 11 borderline files
-- [ ] 18-04-PLAN.md -- Split 18 oversized page files (login mandatory, dashboard, tenant pages)
-- [ ] 18-05-PLAN.md -- Enable React Compiler via babel-plugin-react-compiler
-- [ ] 18-06-PLAN.md -- Remove all manual useMemo/useCallback/React.memo from 88 source files
+- [x] 18-04-PLAN.md -- Split 18 oversized page files (login mandatory, dashboard, tenant pages)
+- [x] 18-05-PLAN.md -- Enable React Compiler via babel-plugin-react-compiler
+- [x] 18-06-PLAN.md -- Remove all manual useMemo/useCallback/React.memo from 88 source files
 **Success Criteria** (what must be TRUE):
   1. Zero component files exceed the 300-line limit (20+ files split, excluding vendored tour.tsx)
   2. React Compiler is enabled via babel-plugin-react-compiler and all existing unit/component tests pass
@@ -106,12 +106,16 @@ Plans:
 **Goal**: The public-facing UI has a consistent, polished look across marketing, auth, blog, dashboard, tenant portal, and billing pages
 **Depends on**: Phase 18
 **Requirements**: UI-01, UI-02, UI-03, UI-04
+**Plans:** 3 plans
+Plans:
+- [ ] 19-01-PLAN.md -- Simplify marketing navbar: remove auth logic, add responsive mobile behavior
+- [ ] 19-02-PLAN.md -- Consolidate button variants (11 to 6) and sizes (9 to 4), convert hero inline CTAs
+- [ ] 19-03-PLAN.md -- Consolidate card variants (18 to 6), change rounded-sm to rounded-md, migrate consumers
 **Success Criteria** (what must be TRUE):
   1. Marketing navbar is redesigned with correct navigation links, responsive behavior, and proper auth state handling (logged in vs logged out)
   2. All buttons and CTAs use consistent variants, border-radius, and spacing across every page group
   3. All cards and layout containers use consistent spacing, typography, and shadow styles across every page group
   4. All pages render correctly at mobile (375px), tablet (768px), and desktop (1440px) viewports with no overflow, clipping, or layout breakage
-**Plans**: TBD
 
 ### Phase 20: Browser Audit
 **Goal**: Every user-facing page is verified working through systematic browser automation, confirming interactions and visual consistency at all viewport sizes
@@ -130,5 +134,5 @@ Plans:
 | 16. Shared Cleanup & Dead Code | 3/3 | Complete | 2026-03-08 |
 | 17. Hooks Consolidation | 6/6 | Complete | 2026-03-08 |
 | 18. Components Consolidation | 6/6 | Complete    | 2026-03-09 |
-| 19. UI Polish | 0/TBD | Not started | - |
+| 19. UI Polish | 0/3 | Not started | - |
 | 20. Browser Audit | 0/TBD | Not started | - |
