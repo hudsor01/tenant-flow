@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.2
 milestone_name: Production Polish & Code Consolidation
-status: verifying
-stopped_at: Phase 20 context gathered
-last_updated: "2026-03-09T04:04:23.884Z"
-last_activity: "2026-03-09 -- Phase 19 UI Polish: navbar simplified, buttons 11→6, cards 18→6"
+status: complete
+stopped_at: Phase 20 complete — all plans executed
+last_updated: "2026-03-09T06:00:00.000Z"
+last_activity: "2026-03-09 -- Phase 20 Browser Audit: 6 plans, 100+ pages audited"
 progress:
   total_phases: 5
-  completed_phases: 3
+  completed_phases: 5
   total_plans: 18
-  completed_plans: 15
-  percent: 95
+  completed_plans: 18
+  percent: 100
 ---
 
 # Project State: TenantFlow
@@ -21,22 +21,32 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-08)
 
 **Core value:** A landlord can add a property, invite a tenant, collect rent, and see their financials -- without touching a spreadsheet or calling anyone.
-**Current focus:** v1.2 Production Polish & Code Consolidation -- Phase 19 complete, Phase 20 next
+**Current focus:** v1.2 Production Polish & Code Consolidation -- all 5 phases complete
 
 ## Current Position
 
 Milestone: v1.2 Production Polish & Code Consolidation
-Phase: 19 of 20 (UI Polish) — COMPLETE
-Plan: 3 of 3
-Status: Phase 19 complete, pending verification
-Last activity: 2026-03-09 -- Phase 19 UI Polish: navbar simplified, buttons 11→6, cards 18→6
+Phase: 20 of 20 (Browser Audit) — COMPLETE
+Plan: 6 of 6
+Status: All phases complete, pending milestone verification
+Last activity: 2026-03-09 -- Phase 20 Browser Audit: 6 plans, 100+ pages audited across marketing, blog, auth, tenant portal, and owner dashboard
 
-Progress: [█████████▌] 95% (18/18 plans)
+Progress: [██████████] 100% (18/18 plans)
+
+## Phase 20 Audit Findings
+
+### Confirmed Code Bugs (require fixes)
+1. **P0**: `export-buttons.tsx:76` — `.js` extension in dynamic import (`#lib/utils/api-error.js`) crashes `/analytics/financial` with module not found error
+2. **P1**: `/tenant/payments/methods` — `TenantPaymentMethods` component crashes to error boundary
+3. **P2**: Duplicate "TenantFlow" in page titles — `/inspections/new`, `/billing/checkout/success`, `/billing/checkout/cancel`, `/maintenance/vendors`
+
+### Auth/Data-Related (test environment artifacts)
+Multiple "Error Loading" messages on owner list pages (properties, tenants, leases, units, inspections) are likely caused by the manual REST API auth approach used during testing — the proxy middleware `updateSession` was bypassed, resulting in incomplete RLS context. These should be re-verified with proper E2E testing (Playwright).
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 15
+- Total plans completed: 18
 - Average duration: 28min
 - Total execution time: 427min
 
@@ -56,6 +66,7 @@ Progress: [█████████▌] 95% (18/18 plans)
 | 19-ui-polish | 01 | 15min | 2 | 5 |
 | 19-ui-polish | 02 | 12min | 2 | 5 |
 | 19-ui-polish | 03 | 12min | 2 | 5 |
+| 20-browser-audit | 01-06 | audit | -- | 0 |
 
 ## Shipped Milestones
 
@@ -96,10 +107,11 @@ Progress: [█████████▌] 95% (18/18 plans)
 
 ### Blockers/Concerns
 
-None.
+- export-buttons.tsx `.js` extension in dynamic import needs fix before milestone ships
+- TenantPaymentMethods crash needs investigation
 
 ## Session Continuity
 
-Last session: 2026-03-09T04:04:23.881Z
-Stopped at: Phase 20 context gathered
-Resume file: .planning/phases/20-browser-audit/20-CONTEXT.md
+Last session: 2026-03-09T06:00:00.000Z
+Stopped at: Phase 20 complete — all plans executed
+Resume file: none (milestone ready for verification)

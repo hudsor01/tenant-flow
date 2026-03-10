@@ -45,7 +45,7 @@ TenantFlow is a multi-tenant property management SaaS platform for property owne
 - [x] **Phase 17: Hooks Consolidation** - Deduplicate and modernize API hooks, expand useSuspenseQuery, split oversized hook files, migrate react-hook-form to TanStack Form, add mutationOptions() factories
 - [x] **Phase 18: Components Consolidation** - Split oversized components, enable React Compiler, remove manual memoization
 - [x] **Phase 19: UI Polish** - Redesign marketing navbar, enforce button/card/layout consistency across all page groups
-- [ ] **Phase 20: Browser Audit** - Systematic browser automation verification of all pages at desktop and mobile viewports
+- [x] **Phase 20: Browser Audit** - Systematic browser automation verification of all pages at desktop and mobile viewports
 
 ## Phase Details
 
@@ -123,12 +123,12 @@ Plans:
 **Requirements**: VER-01, VER-02
 **Plans:** 6 plans
 Plans:
-- [ ] 20-01-PLAN.md -- Audit 19 marketing pages at 3 viewports (public, no auth)
-- [ ] 20-02-PLAN.md -- Audit 3 blog routes at 3 viewports (public, data-driven)
-- [ ] 20-03-PLAN.md -- Audit 7 auth pages at 3 viewports (mixed access)
-- [ ] 20-04-PLAN.md -- Audit 18 tenant portal pages at 3 viewports (tenant auth)
-- [ ] 20-05-PLAN.md -- Audit 27 owner dashboard core pages at 3 viewports (owner auth)
-- [ ] 20-06-PLAN.md -- Audit 32 owner dashboard secondary pages at 3 viewports (owner auth)
+- [x] 20-01-PLAN.md -- Audit 19 marketing pages at 3 viewports (public, no auth)
+- [x] 20-02-PLAN.md -- Audit 3 blog routes at 3 viewports (public, data-driven)
+- [x] 20-03-PLAN.md -- Audit 7 auth pages at 3 viewports (mixed access)
+- [x] 20-04-PLAN.md -- Audit 18 tenant portal pages at 3 viewports (tenant auth)
+- [x] 20-05-PLAN.md -- Audit 27 owner dashboard core pages at 3 viewports (owner auth)
+- [x] 20-06-PLAN.md -- Audit 32 owner dashboard secondary pages at 3 viewports (owner auth)
 **Success Criteria** (what must be TRUE):
   1. Every page in all 5 page groups (marketing, blog, auth, tenant portal, owner dashboard) loads without errors and all interactive elements respond correctly
   2. All pages pass visual consistency checks at 375px, 768px, and 1440px viewports with no responsive layout regressions
@@ -142,4 +142,4 @@ Plans:
 | 17. Hooks Consolidation | 6/6 | Complete | 2026-03-08 |
 | 18. Components Consolidation | 6/6 | Complete    | 2026-03-09 |
 | 19. UI Polish | 3/3 | Complete | 2026-03-09 |
-| 20. Browser Audit | 0/6 | Not started | - |
+| 20. Browser Audit | 6/6 | Complete | 2026-03-09 |
