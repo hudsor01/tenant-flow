@@ -5,7 +5,7 @@ export default function Footer() {
 	return (
 		<footer className="bg-background py-(--spacing-4)">
 			<div className="max-w-7xl mx-auto px-(--spacing-4)">
-				<div className="flex justify-center items-center gap-8 text-muted-foreground text-sm">
+				<div className="flex flex-wrap justify-center items-center gap-x-8 gap-y-2 text-muted-foreground text-sm">
 					<div className="flex items-center space-x-2">
 						<div className="rounded bg-primary flex-center w-[var(--spacing-4)] h-[var(--spacing-4)] min-w-[var(--spacing-4)] min-h-[var(--spacing-4)]">
 							<Home className="w-[var(--spacing-2_5)] h-[var(--spacing-2_5)] text-primary-foreground" />

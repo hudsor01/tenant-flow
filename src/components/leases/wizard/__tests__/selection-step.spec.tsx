@@ -57,26 +57,21 @@ describe('SelectionStep - Tenant Filtering', () => {
 		{ id: 'unit-2', unit_number: '102', property_id: 'prop-123' }
 	]
 
+	// Tenants returned from PostgREST join: tenants with users!inner(...)
 	const mockInvitedTenants = [
 		{
 			id: 'tenant-1',
-			first_name: 'John',
-			last_name: 'Doe',
-			email: 'john@example.com'
+			users: { first_name: 'John', last_name: 'Doe', email: 'john@example.com' }
 		},
 		{
 			id: 'tenant-2',
-			first_name: 'Jane',
-			last_name: 'Smith',
-			email: 'jane@example.com'
+			users: { first_name: 'Jane', last_name: 'Smith', email: 'jane@example.com' }
 		}
 	]
 
 	const mockUninvitedTenant = {
 		id: 'tenant-3',
-		first_name: 'Bob',
-		last_name: 'Wilson',
-		email: 'bob@example.com'
+		users: { first_name: 'Bob', last_name: 'Wilson', email: 'bob@example.com' }
 	}
 
 	let queryClient: QueryClient
@@ -87,9 +82,7 @@ describe('SelectionStep - Tenant Filtering', () => {
 		units?: typeof mockUnits
 		tenants?: Array<{
 			id: string
-			first_name: string
-			last_name: string
-			email: string
+			users: { first_name: string; last_name: string; email: string }
 		}>
 	}) {
 		mockFrom.mockImplementation((table: string) => {
@@ -162,13 +155,13 @@ describe('SelectionStep - Tenant Filtering', () => {
 
 		// Verify the tenant data returned contains only invited tenants (not uninvited tenant Bob Wilson)
 		expect(mockInvitedTenants).toHaveLength(2)
-		expect(mockInvitedTenants.some(t => t.email === 'john@example.com')).toBe(
+		expect(mockInvitedTenants.some(t => t.users.email === 'john@example.com')).toBe(
 			true
 		)
-		expect(mockInvitedTenants.some(t => t.email === 'jane@example.com')).toBe(
+		expect(mockInvitedTenants.some(t => t.users.email === 'jane@example.com')).toBe(
 			true
 		)
-		expect(mockInvitedTenants.some(t => t.email === 'bob@example.com')).toBe(
+		expect(mockInvitedTenants.some(t => t.users.email === 'bob@example.com')).toBe(
 			false
 		)
 	})
@@ -226,7 +219,7 @@ describe('SelectionStep - Tenant Filtering', () => {
 		expect(screen.getByRole('button', { name: /Invite New Tenant/i })).toBeInTheDocument()
 	})
 
-	it('should re-fetch tenants when property selection changes', async () => {
+	it('should fetch all tenants regardless of property selection', async () => {
 		setupSupabaseMock({
 			properties: mockProperties,
 			units: mockUnits,
@@ -247,14 +240,8 @@ describe('SelectionStep - Tenant Filtering', () => {
 			(call: unknown[]) => call[0] === 'tenants'
 		).length
 
-		// Change property selection - set up new mock for prop-456
-		const tenantForProp456 = mockInvitedTenants[0]
-		setupSupabaseMock({
-			properties: mockProperties,
-			units: [{ id: 'unit-3', unit_number: '201', property_id: 'prop-456' }],
-			tenants: tenantForProp456 ? [tenantForProp456] : [] // Only one tenant invited to prop-456
-		})
-
+		// Change property selection — tenant query should NOT re-fetch
+		// because tenant list is property-independent (joined via users table)
 		const updatedData = { ...mockData, property_id: 'prop-456' }
 
 		rerender(
@@ -263,12 +250,10 @@ describe('SelectionStep - Tenant Filtering', () => {
 			</QueryClientProvider>
 		)
 
-		// Verify tenants query was called again after property change
-		await waitFor(() => {
-			const totalTenantCalls = mockFrom.mock.calls.filter(
-				(call: unknown[]) => call[0] === 'tenants'
-			).length
-			expect(totalTenantCalls).toBeGreaterThan(initialTenantCallCount)
-		})
+		// Tenant query count should stay the same (cached, not re-fetched)
+		const totalTenantCalls = mockFrom.mock.calls.filter(
+			(call: unknown[]) => call[0] === 'tenants'
+		).length
+		expect(totalTenantCalls).toBe(initialTenantCallCount)
 	})
 })

@@ -13,7 +13,7 @@ import {
 } from 'lucide-react'
 
 export const metadata: Metadata = {
-	title: 'Support Center | TenantFlow',
+	title: 'Support Center',
 	description:
 		'Get help with TenantFlow property management. Find answers to common questions about payments, leases, maintenance, and account management.'
 }

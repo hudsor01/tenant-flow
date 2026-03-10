@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import { VendorsPageClient } from '#components/maintenance/vendors-page.client'
 
 export const metadata: Metadata = {
-	title: 'Vendors | TenantFlow',
+	title: 'Vendors',
 	description: 'Manage your contractors and vendors',
 }
 

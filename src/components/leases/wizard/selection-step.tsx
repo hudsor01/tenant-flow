@@ -86,14 +86,25 @@ export function SelectionStep({ data, onChange, onUnitSelected }: SelectionStepP
 	})
 
 	const { data: tenants, isLoading: tenantsLoading, error: tenantsError } = useQuery({
-		queryKey: [...tenantQueries.all(), 'list', data.property_id],
+		queryKey: [...tenantQueries.all(), 'list-for-lease'],
 		queryFn: async () => {
 			const supabase = createClient()
-			let query = supabase.from('tenants').select('id, first_name, last_name, email').neq('status', 'inactive').order('last_name')
-			if (data.property_id) { query = query.eq('property_id', data.property_id) }
-			const { data: rows, error } = await query
+			const { data: rows, error } = await supabase
+				.from('tenants')
+				.select('id, users!inner(first_name, last_name, email)')
+				.neq('users.status', 'inactive')
 			if (error) throw error
-			return (rows ?? []) as Tenant[]
+			return (rows ?? [])
+				.map(row => {
+					const user = row.users as unknown as { first_name: string | null; last_name: string | null; email: string }
+					return {
+						id: row.id,
+						first_name: user.first_name ?? '',
+						last_name: user.last_name ?? '',
+						email: user.email
+					} satisfies Tenant
+				})
+				.sort((a, b) => a.last_name.localeCompare(b.last_name))
 		}
 	})
 

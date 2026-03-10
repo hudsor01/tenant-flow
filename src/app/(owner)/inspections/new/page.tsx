@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import { NewInspectionForm } from '#components/inspections/new-inspection-form.client'
 
 export const metadata: Metadata = {
-	title: 'New Inspection | TenantFlow',
+	title: 'New Inspection',
 	description: 'Create a new move-in or move-out property inspection'
 }
 

@@ -86,13 +86,22 @@ export const tenantMutations = {
 					)
 				}
 
-				// Soft-delete: mark tenant as inactive
-				const { error } = await supabase
+				// Soft-delete: get tenant's user_id and mark user as inactive
+				const { data: tenant, error: tenantError } = await supabase
 					.from('tenants')
-					.update({ status: 'inactive' })
+					.select('user_id')
 					.eq('id', id)
+					.single()
 
-				if (error) handlePostgrestError(error, 'tenants')
+				if (tenantError) handlePostgrestError(tenantError, 'tenants')
+				if (!tenant) throw new Error('Tenant not found')
+
+				const { error } = await supabase
+					.from('users')
+					.update({ status: 'inactive', updated_at: new Date().toISOString() })
+					.eq('id', tenant.user_id)
+
+				if (error) handlePostgrestError(error, 'users')
 			}
 		}),
 

@@ -20,8 +20,8 @@ type Status = 'loading' | 'activating' | 'success' | 'error'
 /**
  * Tenant Onboarding Page
  * Called after Supabase Auth email confirmation
- * Activates tenant record by setting status to 'active' via PostgREST.
- * The tenants.status column is updated directly; no NestJS activation endpoint needed.
+ * Activates user record by setting status to 'active' via PostgREST.
+ * Status lives on the users table (not tenants).
  */
 export default function TenantOnboardingPage() {
 	const [status, setStatus] = useState<Status>('loading')
@@ -53,12 +53,12 @@ export default function TenantOnboardingPage() {
 
 				setStatus('activating')
 
-				// Activate tenant record via PostgREST
-				// The tenants table has a status column; set to 'active' for the current user
+				// Activate user record via PostgREST
+				// Status lives on the users table, not tenants
 				const { error: updateError } = await supabase
-					.from('tenants')
-					.update({ status: 'active' })
-					.eq('user_id', user.id)
+					.from('users')
+					.update({ status: 'active', updated_at: new Date().toISOString() })
+					.eq('id', user.id)
 
 				if (updateError) {
 					logger.error('Failed to activate tenant record', {

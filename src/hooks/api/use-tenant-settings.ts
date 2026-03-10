@@ -63,19 +63,19 @@ export const tenantSettingsQueries = {
 				const user = await getCachedUser()
 				if (!user) throw new Error('Not authenticated')
 
-				const { data: tenantData } = await supabase
-					.from('tenants')
-					.select('id, first_name, last_name, email, phone')
-					.eq('user_id', user.id)
+				const { data: userData } = await supabase
+					.from('users')
+					.select('first_name, last_name, email, phone')
+					.eq('id', user.id)
 					.single()
 
 				return {
 					profile: {
 						id: user.id,
-						first_name: (tenantData as Record<string, unknown> | null)?.first_name as string | null ?? null,
-						last_name: (tenantData as Record<string, unknown> | null)?.last_name as string | null ?? null,
-						email: user.email ?? null,
-						phone: (tenantData as Record<string, unknown> | null)?.phone as string | null ?? null
+						first_name: userData?.first_name ?? null,
+						last_name: userData?.last_name ?? null,
+						email: userData?.email ?? user.email ?? null,
+						phone: userData?.phone ?? null
 					}
 				}
 			},

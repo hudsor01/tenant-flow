@@ -2,7 +2,7 @@ import { PageLayout } from '#components/layout/page-layout'
 import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
-	title: 'Security Policy | TenantFlow',
+	title: 'Security Policy',
 	description:
 		'TenantFlow security vulnerability disclosure policy. Learn how to report security issues responsibly.'
 }

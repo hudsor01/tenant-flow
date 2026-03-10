@@ -102,8 +102,14 @@ export function LeaseCreationWizard({ onSuccess }: LeaseCreationWizardProps) {
 		queryKey: [...tenantQueries.all(), selectionData.primary_tenant_id],
 		queryFn: async () => {
 			const supabase = createClient()
-			const { data } = await supabase.from('tenants').select('id, first_name, last_name').eq('id', selectionData.primary_tenant_id ?? '').single()
-			return data ?? null
+			const { data } = await supabase
+				.from('tenants')
+				.select('id, users!inner(first_name, last_name)')
+				.eq('id', selectionData.primary_tenant_id ?? '')
+				.single()
+			if (!data) return null
+			const user = data.users as unknown as { first_name: string | null; last_name: string | null }
+			return { id: data.id, first_name: user.first_name, last_name: user.last_name }
 		},
 		enabled: !!selectionData.primary_tenant_id
 	})
