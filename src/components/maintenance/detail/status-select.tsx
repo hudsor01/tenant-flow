@@ -8,8 +8,8 @@ import {
 	SelectValue
 } from '#components/ui/select'
 import { useMaintenanceRequestUpdateMutation } from '#hooks/api/use-maintenance'
-import { createLogger } from '#shared/lib/frontend-logger'
-import type { MaintenanceStatus } from '#shared/types/core'
+import { createLogger } from '#lib/frontend-logger'
+import type { MaintenanceStatus } from '#types/core'
 
 const logger = createLogger({ component: 'StatusSelect' })
 

@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback } from 'react'
+
 import type { ChangeEvent } from 'react'
 import { Input } from '#components/ui/input'
 import { Label } from '#components/ui/label'
@@ -20,8 +20,7 @@ interface BrandingEditorProps {
 }
 
 export function BrandingEditor({ branding, onChange }: BrandingEditorProps) {
-	const handleLogoUpload = useCallback(
-		(event: ChangeEvent<HTMLInputElement>) => {
+	const handleLogoUpload = (event: ChangeEvent<HTMLInputElement>) => {
 			const file = event.target.files?.[0]
 			if (!file) return
 
@@ -45,9 +44,7 @@ export function BrandingEditor({ branding, onChange }: BrandingEditorProps) {
 				})
 			}
 			reader.readAsDataURL(file)
-		},
-		[branding, onChange]
-	)
+		}
 
 	return (
 		<Card>

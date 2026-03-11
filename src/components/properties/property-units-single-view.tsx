@@ -3,7 +3,7 @@
 import { Badge } from '#components/ui/badge'
 import { Button } from '#components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '#components/ui/card'
-import type { Unit, UnitStatus } from '#shared/types/core'
+import type { Unit, UnitStatus } from '#types/core'
 import { Bath, Bed, DollarSign, Home, Pencil, Ruler } from 'lucide-react'
 import { cn } from '#lib/utils'
 import { statusConfig, formatUnitCurrency } from './property-units-table-config'

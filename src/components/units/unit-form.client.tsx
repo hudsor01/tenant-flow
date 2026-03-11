@@ -6,7 +6,7 @@ import {
 } from '#hooks/api/use-unit'
 import { propertyQueries } from '#hooks/api/query-keys/property-keys'
 import { unitQueries } from '#hooks/api/query-keys/unit-keys'
-import type { Unit } from '#shared/types/core'
+import type { Unit } from '#types/core'
 import { useForm } from '@tanstack/react-form'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useRouter } from 'next/navigation'
@@ -16,7 +16,7 @@ import { ERROR_MESSAGES } from '#lib/constants/error-messages'
 import {
 	isConflictError,
 	handleConflictError
-} from '#shared/utils/optimistic-locking'
+} from '#lib/utils/optimistic-locking'
 import { handleMutationError } from '#lib/mutation-error-handler'
 import { useCurrentUser } from '#hooks/use-current-user'
 import { UnitFormFields } from './unit-form-fields'

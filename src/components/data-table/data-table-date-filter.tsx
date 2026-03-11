@@ -2,7 +2,7 @@
 
 import type { Column } from '@tanstack/react-table'
 import { CalendarIcon, XCircle } from 'lucide-react'
-import { useCallback, useMemo } from 'react'
+
 import type { MouseEvent } from 'react'
 import type { DateRange } from 'react-day-picker'
 
@@ -60,7 +60,7 @@ export function DataTableDateFilter<TData>({
 }: DataTableDateFilterProps<TData>) {
 	const columnFilterValue = column.getFilterValue()
 
-	const selectedDates = useMemo<DateSelection>(() => {
+	const selectedDates = (() => {
 		if (!columnFilterValue) {
 			return multiple ? { from: undefined, to: undefined } : []
 		}
@@ -76,10 +76,9 @@ export function DataTableDateFilter<TData>({
 		const timestamps = parseColumnFilterValue(columnFilterValue)
 		const date = parseAsDate(timestamps[0])
 		return date ? [date] : []
-	}, [columnFilterValue, multiple])
+	})()
 
-	const onSelect = useCallback(
-		(date: Date | DateRange | undefined) => {
+	const onSelect = (date: Date | DateRange | undefined) => {
 			if (!date) {
 				column.setFilterValue(undefined)
 				return
@@ -92,36 +91,31 @@ export function DataTableDateFilter<TData>({
 			} else if (!multiple && 'getTime' in date) {
 				column.setFilterValue(date.getTime())
 			}
-		},
-		[column, multiple]
-	)
+		}
 
-	const onReset = useCallback(
-		(event: MouseEvent) => {
+	const onReset = (event: MouseEvent) => {
 			event.stopPropagation()
 			column.setFilterValue(undefined)
-		},
-		[column]
-	)
+		}
 
-	const hasValue = useMemo(() => {
+	const hasValue = (() => {
 		if (multiple) {
 			if (!getIsDateRange(selectedDates)) return false
 			return selectedDates.from || selectedDates.to
 		}
 		if (!Array.isArray(selectedDates)) return false
 		return selectedDates.length > 0
-	}, [multiple, selectedDates])
+	})()
 
-	const formatDateRange = useCallback((range: DateRange) => {
+	const formatDateRange = (range: DateRange) => {
 		if (!range.from && !range.to) return ''
 		if (range.from && range.to) {
 			return `${formatDate(range.from)} - ${formatDate(range.to)}`
 		}
 		return formatDate(range.from ?? range.to)
-	}, [])
+	}
 
-	const label = useMemo(() => {
+	const label = (() => {
 		if (multiple) {
 			if (!getIsDateRange(selectedDates)) return null
 
@@ -167,7 +161,7 @@ export function DataTableDateFilter<TData>({
 				)}
 			</span>
 		)
-	}, [selectedDates, multiple, formatDateRange, title])
+	})()
 
 	return (
 		<Popover>

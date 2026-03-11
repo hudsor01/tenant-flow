@@ -1,4 +1,4 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useMutation, useQuery, useQueryClient, mutationOptions } from '@tanstack/react-query'
 
 import { QUERY_CACHE_TIMES } from '#lib/constants/query-config'
 import { createClient } from '#lib/supabase/client'
@@ -7,13 +7,41 @@ import { mutationKeys } from './mutation-keys'
 import type {
 	IdentityVerificationRecord,
 	IdentityVerificationSessionPayload
-} from '#shared/types/stripe'
+} from '#types/stripe'
 import { stripeConnectKeys } from './use-stripe-connect'
 
 export const identityVerificationKeys = {
 	all: ['identityVerification'] as const,
 	status: () => [...identityVerificationKeys.all, 'status'] as const
 }
+
+// ============================================================================
+// MUTATION OPTIONS FACTORY
+// ============================================================================
+
+const identityVerificationMutationFactories = {
+	start: () =>
+		mutationOptions<{ success: boolean; data: IdentityVerificationSessionPayload }, unknown, void>({
+			mutationKey: mutationKeys.identityVerification.start,
+			mutationFn: async (): Promise<{
+				success: boolean
+				data: IdentityVerificationSessionPayload
+			}> => {
+				return {
+					success: false,
+					data: {
+						clientSecret: '',
+						sessionId: '',
+						status: 'requires_input'
+					}
+				}
+			}
+		})
+}
+
+// ============================================================================
+// HOOKS
+// ============================================================================
 
 export function useIdentityVerificationStatus() {
 	return useQuery({
@@ -49,20 +77,7 @@ export function useCreateIdentityVerificationSessionMutation() {
 	const queryClient = useQueryClient()
 
 	return useMutation({
-		mutationKey: mutationKeys.identityVerification.start,
-		mutationFn: async (): Promise<{
-			success: boolean
-			data: IdentityVerificationSessionPayload
-		}> => {
-			return {
-				success: false,
-				data: {
-					clientSecret: '',
-					sessionId: '',
-					status: 'requires_input'
-				}
-			}
-		},
+		...identityVerificationMutationFactories.start(),
 		onSuccess: () => {
 			queryClient.invalidateQueries({
 				queryKey: identityVerificationKeys.status()

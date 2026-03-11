@@ -1,14 +1,14 @@
 import { useForm } from '@tanstack/react-form'
-import { createLogger } from '#shared/lib/frontend-logger'
+import { createLogger } from '#lib/frontend-logger'
 import type { UseMutationResult } from '@tanstack/react-query'
 import type {
 	MaintenanceRequestCreate,
 	MaintenanceRequestUpdate
-} from '#shared/validation/maintenance'
+} from '#lib/validation/maintenance'
 import type {
 	MaintenanceRequest,
 	MaintenancePriority
-} from '#shared/types/core'
+} from '#types/core'
 import type { MaintenanceUpdateMutationVariables } from '#hooks/api/use-maintenance'
 
 const logger = createLogger({ component: 'MaintenanceFormHook' })

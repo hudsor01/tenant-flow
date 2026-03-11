@@ -1,42 +1,31 @@
 'use client'
 
-import { useCallback, useId, useMemo, useRef, useState } from 'react'
-import type { FocusEvent, MouseEvent } from 'react'
+import { useId } from 'react'
 import { useDirection } from '@radix-ui/react-direction'
 import { Slot } from '@radix-ui/react-slot'
-import { useComposedRefs } from '#lib/compose-refs'
 import { cn } from '#lib/utils'
 import {
-	ENTRY_FOCUS,
-	EVENT_OPTIONS,
-	FocusContext,
-	LIST_NAME,
 	StoreContext,
 	StepperContext,
-	focusFirst,
 	useAsRef,
 	useIsomorphicLayoutEffect,
 	useLazyRef,
-	useStepperContext,
 	useStore,
 	type DivProps,
-	type FocusContextValue,
-	type ItemData,
-	type ListElement,
 	type StepState,
 	type StepperContextValue,
 	type Store,
 	type StoreState
 } from './stepper-context'
+import { StepperList } from './stepper-list'
+import { StepperItem, StepperTrigger } from './stepper-item'
 import {
 	StepperContent,
 	StepperDescription,
 	StepperIndicator,
-	StepperItem,
 	StepperSeparator,
-	StepperTitle,
-	StepperTrigger
-} from './stepper-item'
+	StepperTitle
+} from './stepper-header'
 import { StepperNext, StepperPrev } from './stepper-navigation'
 
 interface StepperRootProps extends DivProps {
@@ -85,105 +74,76 @@ function StepperRoot(props: StepperRootProps) {
 		value: value ?? defaultValue ?? ''
 	}))
 	const propsRef = useAsRef({
-		onValueChange,
-		onValueComplete,
-		onValueAdd,
-		onValueRemove,
-		onValidate
+		onValueChange, onValueComplete, onValueAdd, onValueRemove, onValidate
 	})
 
-	const store = useMemo<Store>(() => {
-		return {
-			subscribe: cb => {
-				listenersRef.current.add(cb)
-				return () => listenersRef.current.delete(cb)
-			},
-			getState: () => stateRef.current,
-			setState: (key, value) => {
-				if (Object.is(stateRef.current[key], value)) return
-
-				if (key === 'value' && typeof value === 'string') {
-					stateRef.current.value = value
-					propsRef.current.onValueChange?.(value)
-				} else {
-					stateRef.current[key] = value
-				}
-
-				store.notify()
-			},
-			setStateWithValidation: async (value, direction) => {
-				if (!propsRef.current.onValidate) {
-					store.setState('value', value)
-					return true
-				}
-
-				try {
-					const isValid = await propsRef.current.onValidate(value, direction)
-					if (isValid) {
-						store.setState('value', value)
-					}
-					return isValid
-				} catch {
-					return false
-				}
-			},
-			hasValidation: () => !!propsRef.current.onValidate,
-			addStep: (value, completed, disabled) => {
-				const newStep: StepState = { value, completed, disabled }
-				stateRef.current.steps.set(value, newStep)
-				propsRef.current.onValueAdd?.(value)
-				store.notify()
-			},
-			removeStep: value => {
-				stateRef.current.steps.delete(value)
-				propsRef.current.onValueRemove?.(value)
-				store.notify()
-			},
-			setStep: (value, completed, disabled) => {
-				const step = stateRef.current.steps.get(value)
-				if (step) {
-					const updatedStep: StepState = { ...step, completed, disabled }
-					stateRef.current.steps.set(value, updatedStep)
-
-					if (completed !== step.completed) {
-						propsRef.current.onValueComplete?.(value, completed)
-					}
-
-					store.notify()
-				}
-			},
-			notify: () => {
-				for (const cb of listenersRef.current) {
-					cb()
-				}
+	const storeRef = useLazyRef<Store>(() => ({
+		subscribe: cb => {
+			listenersRef.current.add(cb)
+			return () => listenersRef.current.delete(cb)
+		},
+		getState: () => stateRef.current,
+		setState: (key, storeValue) => {
+			if (Object.is(stateRef.current[key], storeValue)) return
+			if (key === 'value' && typeof storeValue === 'string') {
+				stateRef.current.value = storeValue
+				propsRef.current.onValueChange?.(storeValue)
+			} else {
+				stateRef.current[key] = storeValue
 			}
+			storeRef.current.notify()
+		},
+		setStateWithValidation: async (storeValue, direction) => {
+			if (!propsRef.current.onValidate) {
+				storeRef.current.setState('value', storeValue)
+				return true
+			}
+			try {
+				const isValid = await propsRef.current.onValidate(storeValue, direction)
+				if (isValid) storeRef.current.setState('value', storeValue)
+				return isValid
+			} catch {
+				return false
+			}
+		},
+		hasValidation: () => !!propsRef.current.onValidate,
+		addStep: (stepValue, completed, stepDisabled) => {
+			const newStep: StepState = { value: stepValue, completed, disabled: stepDisabled }
+			stateRef.current.steps.set(stepValue, newStep)
+			propsRef.current.onValueAdd?.(stepValue)
+			storeRef.current.notify()
+		},
+		removeStep: stepValue => {
+			stateRef.current.steps.delete(stepValue)
+			propsRef.current.onValueRemove?.(stepValue)
+			storeRef.current.notify()
+		},
+		setStep: (stepValue, completed, stepDisabled) => {
+			const step = stateRef.current.steps.get(stepValue)
+			if (step) {
+				const updatedStep: StepState = { ...step, completed, disabled: stepDisabled }
+				stateRef.current.steps.set(stepValue, updatedStep)
+				if (completed !== step.completed) {
+					propsRef.current.onValueComplete?.(stepValue, completed)
+				}
+				storeRef.current.notify()
+			}
+		},
+		notify: () => {
+			for (const cb of listenersRef.current) cb()
 		}
-	}, [listenersRef, stateRef, propsRef])
+	}))
+	const store = storeRef.current
 
 	useIsomorphicLayoutEffect(() => {
-		if (value !== undefined) {
-			store.setState('value', value)
-		}
+		if (value !== undefined) store.setState('value', value)
 	}, [value, store])
 
 	const dir = useDirection(dirProp)
-
 	const id = useId()
-
 	const rootId = idProp ?? id
 
-	const contextValue = useMemo<StepperContextValue>(
-		() => ({
-			id: rootId,
-			dir,
-			orientation,
-			activationMode,
-			disabled,
-			nonInteractive,
-			loop
-		}),
-		[rootId, dir, orientation, activationMode, disabled, nonInteractive, loop]
-	)
+	const contextValue: StepperContextValue = { id: rootId, dir, orientation, activationMode, disabled, nonInteractive, loop }
 
 	const RootPrimitive = asChild ? Slot : 'div'
 
@@ -208,183 +168,6 @@ function StepperRoot(props: StepperRootProps) {
 	)
 }
 
-interface StepperListProps extends DivProps {
-	asChild?: boolean
-}
-
-function StepperList(props: StepperListProps) {
-	const { className, children, asChild, ref, ...listProps } = props
-
-	const context = useStepperContext(LIST_NAME)
-	const orientation = context.orientation
-	const currentValue = useStore(state => state.value)
-
-	const [tabStopId, setTabStopId] = useState<string | null>(null)
-	const [isTabbingBackOut, setIsTabbingBackOut] = useState(false)
-	const [focusableItemCount, setFocusableItemCount] = useState(0)
-	const isClickFocusRef = useRef(false)
-	const itemsRef = useRef<Map<string, ItemData>>(new Map())
-	const listRef = useRef<ListElement>(null)
-	const composedRef = useComposedRefs(ref, listRef)
-
-	const onItemFocus = useCallback((tabStopId: string) => {
-		setTabStopId(tabStopId)
-	}, [])
-
-	const onItemShiftTab = useCallback(() => {
-		setIsTabbingBackOut(true)
-	}, [])
-
-	const onFocusableItemAdd = useCallback(() => {
-		setFocusableItemCount(prevCount => prevCount + 1)
-	}, [])
-
-	const onFocusableItemRemove = useCallback(() => {
-		setFocusableItemCount(prevCount => prevCount - 1)
-	}, [])
-
-	const onItemRegister = useCallback((item: ItemData) => {
-		itemsRef.current.set(item.id, item)
-	}, [])
-
-	const onItemUnregister = useCallback((id: string) => {
-		itemsRef.current.delete(id)
-	}, [])
-
-	const getItems = useCallback(() => {
-		return Array.from(itemsRef.current.values())
-			.filter(item => item.ref.current)
-			.sort((a, b) => {
-				const elementA = a.ref.current
-				const elementB = b.ref.current
-				if (!elementA || !elementB) return 0
-				const position = elementA.compareDocumentPosition(elementB)
-				if (position & Node.DOCUMENT_POSITION_FOLLOWING) {
-					return -1
-				}
-				if (position & Node.DOCUMENT_POSITION_PRECEDING) {
-					return 1
-				}
-				return 0
-			})
-	}, [])
-
-	const handleListBlur = listProps.onBlur
-	const onBlur = useCallback(
-		(event: FocusEvent<ListElement>) => {
-			handleListBlur?.(event)
-			if (event.defaultPrevented) return
-
-			setIsTabbingBackOut(false)
-		},
-		[handleListBlur]
-	)
-
-	const handleListFocus = listProps.onFocus
-	const onFocus = useCallback(
-		(event: FocusEvent<ListElement>) => {
-			handleListFocus?.(event)
-			if (event.defaultPrevented) return
-
-			const isKeyboardFocus = !isClickFocusRef.current
-			if (
-				event.target === event.currentTarget &&
-				isKeyboardFocus &&
-				!isTabbingBackOut
-			) {
-				const entryFocusEvent = new CustomEvent(ENTRY_FOCUS, EVENT_OPTIONS)
-				event.currentTarget.dispatchEvent(entryFocusEvent)
-
-				if (!entryFocusEvent.defaultPrevented) {
-					const items = Array.from(itemsRef.current.values()).filter(
-						item => !item.disabled
-					)
-					const selectedItem = currentValue
-						? items.find(item => item.value === currentValue)
-						: undefined
-					const activeItem = items.find(item => item.active)
-					const currentItem = items.find(item => item.id === tabStopId)
-
-					const candidateItems = [
-						selectedItem,
-						activeItem,
-						currentItem,
-						...items
-					].filter(Boolean) as ItemData[]
-					const candidateRefs = candidateItems.map(item => item.ref)
-					focusFirst(candidateRefs, false)
-				}
-			}
-			isClickFocusRef.current = false
-		},
-		[handleListFocus, isTabbingBackOut, currentValue, tabStopId]
-	)
-
-	const handleListMouseDown = listProps.onMouseDown
-	const onMouseDown = useCallback(
-		(event: MouseEvent<ListElement>) => {
-			handleListMouseDown?.(event)
-
-			if (event.defaultPrevented) return
-
-			isClickFocusRef.current = true
-		},
-		[handleListMouseDown]
-	)
-
-	const focusContextValue = useMemo<FocusContextValue>(
-		() => ({
-			tabStopId,
-			onItemFocus,
-			onItemShiftTab,
-			onFocusableItemAdd,
-			onFocusableItemRemove,
-			onItemRegister,
-			onItemUnregister,
-			getItems
-		}),
-		[
-			tabStopId,
-			onItemFocus,
-			onItemShiftTab,
-			onFocusableItemAdd,
-			onFocusableItemRemove,
-			onItemRegister,
-			onItemUnregister,
-			getItems
-		]
-	)
-
-	const ListPrimitive = asChild ? Slot : 'div'
-
-	return (
-		<FocusContext.Provider value={focusContextValue}>
-			<ListPrimitive
-				role="tablist"
-				aria-orientation={orientation}
-				data-orientation={orientation}
-				data-slot="stepper-list"
-				dir={context.dir}
-				tabIndex={isTabbingBackOut || focusableItemCount === 0 ? -1 : 0}
-				{...listProps}
-				ref={composedRef}
-				className={cn(
-					'flex outline-none',
-					orientation === 'horizontal'
-						? 'flex-row items-center'
-						: 'flex-col items-start',
-					className
-				)}
-				onBlur={onBlur}
-				onFocus={onFocus}
-				onMouseDown={onMouseDown}
-			>
-				{children}
-			</ListPrimitive>
-		</FocusContext.Provider>
-	)
-}
-
 export {
 	StepperRoot as Root,
 	StepperList as List,
@@ -397,7 +180,6 @@ export {
 	StepperContent as Content,
 	StepperPrev as Prev,
 	StepperNext as Next,
-	//
 	StepperRoot as Stepper,
 	StepperList,
 	StepperItem,
@@ -409,8 +191,6 @@ export {
 	StepperContent,
 	StepperPrev,
 	StepperNext,
-	//
 	useStore as useStepper,
-	//
 	type StepperRootProps as StepperProps
 }

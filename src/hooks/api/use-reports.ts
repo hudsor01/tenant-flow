@@ -13,11 +13,12 @@ import {
 } from '#lib/mutation-error-handler'
 import { mutationKeys } from './mutation-keys'
 import { reportKeys, reportQueries } from './query-keys/report-keys'
+import { reportAnalyticsQueries } from './query-keys/report-analytics-keys'
 import type { UseMutationResult } from '@tanstack/react-query'
 import type {
 	ListReportsResponse,
 	Report as ReportType
-} from '#shared/types/reports'
+} from '#types/reports'
 
 // Re-export keys and queries for backwards compatibility and tests
 export { reportKeys as reportsKeys, reportQueries as reportsQueries }
@@ -244,33 +245,33 @@ export function useMonthlyRevenue(months: number = 12) {
 }
 
 export function usePaymentAnalytics(start_date?: string, end_date?: string) {
-	return useQuery(reportQueries.paymentAnalytics(start_date, end_date))
+	return useQuery(reportAnalyticsQueries.paymentAnalytics(start_date, end_date))
 }
 
 export function useOccupancyMetrics() {
-	return useQuery(reportQueries.occupancyMetrics())
+	return useQuery(reportAnalyticsQueries.occupancyMetrics())
 }
 
 export function useFinancialReport(start_date?: string, end_date?: string) {
-	return useQuery(reportQueries.financial(start_date, end_date))
+	return useQuery(reportAnalyticsQueries.financial(start_date, end_date))
 }
 
 export function usePropertyReport(start_date?: string, end_date?: string) {
-	return useQuery(reportQueries.properties(start_date, end_date))
+	return useQuery(reportAnalyticsQueries.properties(start_date, end_date))
 }
 
 export function useTenantReport(start_date?: string, end_date?: string) {
-	return useQuery(reportQueries.tenants(start_date, end_date))
+	return useQuery(reportAnalyticsQueries.tenants(start_date, end_date))
 }
 
 export function useMaintenanceReport(start_date?: string, end_date?: string) {
-	return useQuery(reportQueries.maintenance(start_date, end_date))
+	return useQuery(reportAnalyticsQueries.maintenance(start_date, end_date))
 }
 
 export function useYearEndSummary(year: number) {
-	return useQuery(reportQueries.yearEnd(year))
+	return useQuery(reportAnalyticsQueries.yearEnd(year))
 }
 
 export function use1099Summary(year: number) {
-	return useQuery(reportQueries.report1099(year))
+	return useQuery(reportAnalyticsQueries.report1099(year))
 }

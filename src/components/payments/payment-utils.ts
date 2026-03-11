@@ -5,7 +5,7 @@ import {
 	AlertCircle,
 	type LucideIcon
 } from 'lucide-react'
-import type { PaymentStatus } from '#shared/types/core'
+import type { PaymentStatus } from '#types/core'
 
 export interface StatusConfig {
 	className: string
@@ -67,4 +67,3 @@ export function getStatusConfig(status: PaymentStatus): StatusConfig {
 		}
 	)
 }
-

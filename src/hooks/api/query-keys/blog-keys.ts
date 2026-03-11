@@ -14,8 +14,8 @@ import { queryOptions } from '@tanstack/react-query'
 import { createClient } from '#lib/supabase/client'
 import { handlePostgrestError } from '#lib/postgrest-error-handler'
 import { QUERY_CACHE_TIMES } from '#lib/constants/query-config'
-import type { PaginatedResponse } from '#shared/types/api-contracts'
-import type { Database } from '#shared/types/supabase'
+import type { PaginatedResponse } from '#types/api-contracts'
+import type { Database } from '#types/supabase'
 
 // ============================================================================
 // TYPES

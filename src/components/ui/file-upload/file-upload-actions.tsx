@@ -1,7 +1,6 @@
 'use client'
 
 import { Slot } from '@radix-ui/react-slot'
-import { useCallback } from 'react'
 import type { MouseEvent } from 'react'
 import { useAsRef } from '#hooks/use-as-ref'
 import { useFileUploadContext } from './context'
@@ -18,16 +17,13 @@ export function FileUploadTrigger(props: FileUploadTriggerProps) {
 		onClick: onClickProp
 	})
 
-	const onClick = useCallback(
-		(event: MouseEvent<HTMLButtonElement>) => {
-			propsRef.current.onClick?.(event)
+	const onClick = (event: MouseEvent<HTMLButtonElement>) => {
+		propsRef.current.onClick?.(event)
 
-			if (event.defaultPrevented) return
+		if (event.defaultPrevented) return
 
-			context.inputRef.current?.click()
-		},
-		[context.inputRef, propsRef]
-	)
+		context.inputRef.current?.click()
+	}
 
 	const TriggerPrimitive = asChild ? Slot : 'button'
 
@@ -59,16 +55,13 @@ export function FileUploadClear(props: FileUploadClearProps) {
 
 	const isDisabled = disabled || context.disabled
 
-	const onClick = useCallback(
-		(event: MouseEvent<HTMLButtonElement>) => {
-			onClickProp?.(event)
+	const onClick = (event: MouseEvent<HTMLButtonElement>) => {
+		onClickProp?.(event)
 
-			if (event.defaultPrevented) return
+		if (event.defaultPrevented) return
 
-			store.dispatch({ type: 'CLEAR' })
-		},
-		[store, onClickProp]
-	)
+		store.dispatch({ type: 'CLEAR' })
+	}
 
 	const shouldRender = forceMount || fileCount > 0
 

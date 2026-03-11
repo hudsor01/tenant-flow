@@ -8,7 +8,7 @@ import {
 	StatIndicator,
 	StatDescription
 } from '#components/ui/stat'
-import type { ConnectedAccountWithIdentity } from '#shared/types/stripe'
+import type { ConnectedAccountWithIdentity } from '#types/stripe'
 
 interface BillingStatCardsProps {
 	account: ConnectedAccountWithIdentity

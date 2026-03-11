@@ -17,7 +17,7 @@ import {
 	InputOTPSeparator
 } from '#components/ui/input-otp'
 import { createClient } from '#lib/supabase/client'
-import { logger } from '#shared/lib/frontend-logger'
+import { logger } from '#lib/frontend-logger'
 import { Loader2, Shield } from 'lucide-react'
 import { useState } from 'react'
 

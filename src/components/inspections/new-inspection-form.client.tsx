@@ -16,8 +16,8 @@ import { useCreateInspection } from '#hooks/api/use-inspection-mutations'
 import { useCurrentUser } from '#hooks/use-current-user'
 import { cn } from '#lib/utils'
 import { useLeaseList } from '#hooks/api/use-lease'
-import type { CreateInspectionInput } from '#shared/validation/inspections'
-import type { LeaseWithRelations } from '#shared/types/relations'
+import type { CreateInspectionInput } from '#lib/validation/inspections'
+import type { LeaseWithRelations } from '#types/relations'
 
 export function NewInspectionForm() {
 	const router = useRouter()

@@ -1,12 +1,11 @@
 'use client'
 
-import { memo } from 'react'
 import { Pencil, Trash2, FileText } from 'lucide-react'
 import { Checkbox } from '#components/ui/checkbox'
 import { Button } from '#components/ui/button'
-import type { TenantItem } from '#shared/types/sections/tenants'
-import type { LeaseStatus } from '#shared/types/core'
-import { createLogger } from '#shared/lib/frontend-logger'
+import type { TenantItem } from '#types/sections/tenants'
+import type { LeaseStatus } from '#types/core'
+import { createLogger } from '#lib/frontend-logger'
 import { StatusSelectCell } from './tenant-table-helpers'
 
 const logger = createLogger({ component: 'TenantTableRow' })
@@ -21,7 +20,7 @@ interface TenantTableRowProps {
 	onViewLease: (leaseId: string) => void
 }
 
-export const TenantTableRow = memo(function TenantTableRow({
+export function TenantTableRow({
 	tenant,
 	isSelected,
 	onSelect,
@@ -103,7 +102,8 @@ export const TenantTableRow = memo(function TenantTableRow({
 				<div className="flex items-center justify-end gap-1">
 					<Button
 						variant="ghost"
-						size="icon-sm"
+						size="icon"
+						className="h-8 w-8 min-h-8 min-w-8"
 						onClick={() => onEdit(tenant.id)}
 					>
 						<Pencil className="h-4 w-4" />
@@ -111,8 +111,8 @@ export const TenantTableRow = memo(function TenantTableRow({
 					</Button>
 					<Button
 						variant="ghost"
-						size="icon-sm"
-						className="text-destructive hover:text-destructive hover:bg-destructive/10"
+						size="icon"
+						className="h-8 w-8 min-h-8 min-w-8 text-destructive hover:text-destructive hover:bg-destructive/10"
 						onClick={() => onDelete(tenant.id)}
 					>
 						<Trash2 className="h-4 w-4" />
@@ -122,4 +122,4 @@ export const TenantTableRow = memo(function TenantTableRow({
 			</td>
 		</tr>
 	)
-})
+}

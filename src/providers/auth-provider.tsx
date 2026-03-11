@@ -4,11 +4,11 @@ import * as Sentry from '@sentry/nextjs'
 import { createClient } from '#lib/supabase/client'
 import { authKeys } from '#hooks/api/use-auth'
 import { setQueryClientRef } from '#lib/supabase/get-cached-user'
-import { createLogger } from '#shared/lib/frontend-logger'
+import { createLogger } from '#lib/frontend-logger'
 import type { AuthChangeEvent, Session, SupabaseClient } from '@supabase/supabase-js'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import type { ReactNode } from 'react'
-import { createContext, useContext, useEffect, useMemo, useRef } from 'react'
+import { createContext, useContext, useEffect, useRef } from 'react'
 
 const logger = createLogger({ component: 'AuthProvider' })
 
@@ -110,15 +110,12 @@ export const AuthStoreProvider = ({ children }: { children: ReactNode }) => {
 
 	const isLoading = isUserLoading
 
-	const authState: AuthContextType = useMemo(
-		() => ({
+	const authState: AuthContextType = ({
 			session: undefined,
 			isAuthenticated: !!user,
 			isLoading,
 			user
-		}),
-		[user, isLoading]
-	)
+		})
 
 	return (
 		<AuthContext.Provider value={authState}>{children}</AuthContext.Provider>

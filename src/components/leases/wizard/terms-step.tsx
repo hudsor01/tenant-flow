@@ -4,7 +4,7 @@
  * Lease Creation Wizard - Step 2: Terms
  * Dates and financial details with duration presets
  *
- * Note: Validation is handled by Zod schemas in #shared/validation/lease-wizard.schemas.ts
+ * Note: Validation is handled by Zod schemas in #lib/validation/lease-wizard.schemas.ts
  * This component only handles display/input - uses type="text" with inputMode for mobile keyboards
  */
 import { Button } from '#components/ui/button'
@@ -16,7 +16,7 @@ import {
 } from '#components/ui/field'
 import { Input } from '#components/ui/input'
 import { cn } from '#lib/utils'
-import type { TermsStepData } from '#shared/validation/lease-wizard.schemas'
+import type { TermsStepData } from '#lib/validation/lease-wizard.schemas'
 
 /** Duration preset in months. null = custom (no preset). */
 export type DurationPreset = 1 | 6 | 12 | 24 | null

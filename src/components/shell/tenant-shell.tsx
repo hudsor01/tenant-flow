@@ -1,7 +1,7 @@
 'use client'
 
 import type { ReactNode } from 'react'
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 
 import { Menu, X, Bell, ChevronRight, Sparkles, Home, CreditCard, Wrench, Settings, ChevronLeft } from 'lucide-react'
 import Link from 'next/link'
@@ -16,7 +16,6 @@ export interface TenantShellProps {
 	children: ReactNode
 }
 
-// Mobile bottom navigation items
 const mobileNavItems = [
 	{ title: 'Home', href: '/tenant', icon: Home },
 	{ title: 'Payments', href: '/tenant/payments', icon: CreditCard },
@@ -53,17 +52,18 @@ export function TenantShell({ children }: TenantShellProps) {
 		return pathname.startsWith(href)
 	}
 
-	const closeSidebar = useCallback(() => {
+	const closeSidebar = () => {
 		setSidebarOpen(false)
 		triggerRef.current?.focus()
-	}, [])
+	}
 
 	// Escape key handler + focus trap for mobile sidebar
 	useEffect(() => {
 		if (!sidebarOpen) return
 		const handleKeyDown = (e: KeyboardEvent) => {
 			if (e.key === 'Escape') {
-				closeSidebar()
+				setSidebarOpen(false)
+				triggerRef.current?.focus()
 				return
 			}
 			// Focus trap within sidebar dialog
@@ -85,7 +85,7 @@ export function TenantShell({ children }: TenantShellProps) {
 		}
 		window.addEventListener('keydown', handleKeyDown)
 		return () => window.removeEventListener('keydown', handleKeyDown)
-	}, [sidebarOpen, closeSidebar])
+	}, [sidebarOpen])
 
 	return (
 		<div className="min-h-screen bg-background">

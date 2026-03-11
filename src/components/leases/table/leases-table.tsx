@@ -1,28 +1,13 @@
 'use client'
 
-import { useRef, type ReactNode } from 'react'
+import { useRef } from 'react'
 import { useVirtualizer } from '@tanstack/react-virtual'
-
-import {
-	Search,
-	ChevronLeft,
-	ChevronRight,
-	Pencil,
-	ArrowUpDown,
-	Eye,
-	RefreshCw,
-	XCircle
-} from 'lucide-react'
+import { Search, ChevronLeft, ChevronRight } from 'lucide-react'
 import { BlurFade } from '#components/ui/blur-fade'
-import { formatDate } from '#lib/formatters/date'
-import {
-	getStatusConfig,
-	type LeaseDisplay,
-	type SortField,
-	type SortDirection
-} from './lease-utils'
+import type { LeaseDisplay, SortField, SortDirection } from './lease-utils'
 import type { StatusFilter } from '#stores/leases-store'
 import { LeasesTableToolbar } from './leases-table-toolbar'
+import { SortHeader, LeaseRow } from './leases-table-columns'
 
 interface LeasesTableProps {
 	leases: LeaseDisplay[]
@@ -46,43 +31,6 @@ interface LeasesTableProps {
 	onRenew: (lease: LeaseDisplay) => void
 	onTerminate: (lease: LeaseDisplay) => void
 	onClearSelection: () => void
-}
-
-function SortHeader({
-	field,
-	sortField,
-	children,
-	className = '',
-	onSort
-}: {
-	field: SortField
-	sortField: SortField
-	children: ReactNode
-	className?: string
-	onSort: (field: SortField) => void
-}) {
-	return (
-		<button
-			onClick={() => onSort(field)}
-			className={`flex items-center gap-1 hover:text-foreground transition-colors group ${className}`}
-		>
-			{children}
-			<ArrowUpDown
-				className={`w-3.5 h-3.5 transition-colors ${sortField === field ? 'text-primary' : 'text-muted-foreground/50 group-hover:text-muted-foreground'}`}
-			/>
-		</button>
-	)
-}
-
-function StatusBadge({ status }: { status: string }) {
-	const config = getStatusConfig(status)
-	return (
-		<span
-			className={`inline-flex items-center px-2.5 py-1 rounded-sm text-xs font-medium ${config.className}`}
-		>
-			{config.label}
-		</span>
-	)
 }
 
 export function LeasesTable({
@@ -130,28 +78,19 @@ export function LeasesTable({
 					onSearchChange={onSearchChange}
 					onStatusFilterChange={onStatusFilterChange}
 				/>
-
-				{/* Bulk Actions */}
 				{selectedRows.size > 0 && (
 					<div className="px-4 py-2 bg-primary/5 border-b border-primary/20 flex items-center justify-between">
-						<span className="text-sm font-medium text-foreground">
-							{selectedRows.size} selected
-						</span>
+						<span className="text-sm font-medium text-foreground">{selectedRows.size} selected</span>
 						<div className="flex items-center gap-2">
 							<button className="px-3 py-1.5 text-sm font-medium text-muted-foreground hover:text-foreground border border-border rounded-sm hover:bg-muted transition-colors">
 								Export
 							</button>
-							<button
-								onClick={onClearSelection}
-								className="px-3 py-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
-							>
+							<button onClick={onClearSelection} className="px-3 py-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors">
 								Clear
 							</button>
 						</div>
 					</div>
 				)}
-
-				{/* Table */}
 				<div ref={tableScrollRef} className="overflow-auto max-h-[calc(100vh-420px)]">
 					<table className="w-full">
 						<thead className="sticky top-0 z-10">
@@ -159,40 +98,23 @@ export function LeasesTable({
 								<th className="w-12 px-4 py-3">
 									<input
 										type="checkbox"
-										checked={
-											selectedRows.size === leases.length && leases.length > 0
-										}
+										checked={selectedRows.size === leases.length && leases.length > 0}
 										onChange={onToggleSelectAll}
 										className="w-4 h-4 rounded border-border text-primary focus:ring-primary focus:ring-offset-0"
 									/>
 								</th>
 								<th className="px-4 py-3 text-left">
-									<SortHeader
-										field="tenant"
-										sortField={sortField}
-										onSort={onSort}
-										className="text-xs font-medium text-muted-foreground uppercase tracking-wider"
-									>
+									<SortHeader field="tenant" sortField={sortField} onSort={onSort} className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
 										Tenant
 									</SortHeader>
 								</th>
 								<th className="px-4 py-3 text-left hidden lg:table-cell">
-									<SortHeader
-										field="property"
-										sortField={sortField}
-										onSort={onSort}
-										className="text-xs font-medium text-muted-foreground uppercase tracking-wider"
-									>
+									<SortHeader field="property" sortField={sortField} onSort={onSort} className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
 										Property
 									</SortHeader>
 								</th>
 								<th className="px-4 py-3 text-left">
-									<SortHeader
-										field="status"
-										sortField={sortField}
-										onSort={onSort}
-										className="text-xs font-medium text-muted-foreground uppercase tracking-wider"
-									>
+									<SortHeader field="status" sortField={sortField} onSort={onSort} className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
 										Status
 									</SortHeader>
 								</th>
@@ -203,94 +125,26 @@ export function LeasesTable({
 							{rowVirtualizer.getVirtualItems().map(virtualRow => {
 								const lease = paginatedLeases[virtualRow.index]!
 								return (
-								<tr
-									key={lease.id}
-									className={`hover:bg-muted/50 transition-colors ${selectedRows.has(lease.id) ? 'bg-primary/5' : ''}`}
-								>
-									<td className="px-4 py-3">
-										<input
-											type="checkbox"
-											checked={selectedRows.has(lease.id)}
-											onChange={() => onToggleSelect(lease.id)}
-											className="w-4 h-4 rounded border-border text-primary focus:ring-primary focus:ring-offset-0"
-										/>
-									</td>
-									<td className="px-4 py-3">
-										<button
-											onClick={() => onView(lease.id)}
-											className="font-medium text-foreground hover:text-primary hover:underline transition-colors text-left"
-										>
-											{lease.tenantName}
-										</button>
-										<p className="text-xs text-muted-foreground">
-											{formatDate(lease.startDate, { fallback: 'N/A' })} -{' '}
-											{formatDate(lease.endDate, { fallback: 'N/A' })}
-										</p>
-										<p className="text-sm text-muted-foreground lg:hidden">
-											{lease.propertyName}
-										</p>
-									</td>
-									<td className="px-4 py-3 hidden lg:table-cell">
-										<p className="text-sm text-foreground">
-											{lease.propertyName}
-										</p>
-										<p className="text-xs text-muted-foreground">
-											Unit {lease.unitNumber}
-										</p>
-									</td>
-									<td className="px-4 py-3">
-										<StatusBadge status={lease.status} />
-									</td>
-									<td className="px-4 py-3">
-										<div className="flex items-center justify-end gap-1">
-											<button
-												onClick={() => onView(lease.id)}
-												className="p-2 rounded-sm hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
-												title="View"
-											>
-												<Eye className="w-4 h-4" />
-											</button>
-											<button
-												onClick={() => onEdit(lease.id)}
-												className="p-2 rounded-sm hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
-												title="Edit"
-											>
-												<Pencil className="w-4 h-4" />
-											</button>
-											{lease.status === 'active' && (
-												<>
-													<button
-														onClick={() => onRenew(lease)}
-														className="p-2 rounded-sm hover:bg-muted text-muted-foreground hover:text-primary transition-colors"
-														title="Renew Lease"
-													>
-														<RefreshCw className="w-4 h-4" />
-													</button>
-													<button
-														onClick={() => onTerminate(lease)}
-														className="p-2 rounded-sm hover:bg-muted text-muted-foreground hover:text-destructive transition-colors"
-														title="Terminate Lease"
-													>
-														<XCircle className="w-4 h-4" />
-													</button>
-												</>
-											)}
-										</div>
-									</td>
-								</tr>
+									<LeaseRow
+										key={lease.id}
+										lease={lease}
+										isSelected={selectedRows.has(lease.id)}
+										onToggleSelect={onToggleSelect}
+										onView={onView}
+										onEdit={onEdit}
+										onRenew={onRenew}
+										onTerminate={onTerminate}
+									/>
 								)
 							})}
 						</tbody>
 					</table>
 				</div>
-
-				{/* Pagination */}
 				{totalPages > 1 && (
 					<div className="px-4 py-3 border-t border-border flex items-center justify-between">
 						<span className="text-sm text-muted-foreground">
 							Showing {(currentPage - 1) * itemsPerPage + 1} to{' '}
-							{Math.min(currentPage * itemsPerPage, leases.length)} of{' '}
-							{leases.length}
+							{Math.min(currentPage * itemsPerPage, leases.length)} of {leases.length}
 						</span>
 						<div className="flex items-center gap-1">
 							<button
@@ -300,13 +154,9 @@ export function LeasesTable({
 							>
 								<ChevronLeft className="w-4 h-4" />
 							</button>
-							<span className="px-3 py-1 text-sm text-foreground">
-								{currentPage} / {totalPages}
-							</span>
+							<span className="px-3 py-1 text-sm text-foreground">{currentPage} / {totalPages}</span>
 							<button
-								onClick={() =>
-									onPageChange(Math.min(totalPages, currentPage + 1))
-								}
+								onClick={() => onPageChange(Math.min(totalPages, currentPage + 1))}
 								disabled={currentPage === totalPages}
 								className="p-2 rounded-sm hover:bg-muted text-muted-foreground hover:text-foreground disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
 							>
@@ -315,18 +165,11 @@ export function LeasesTable({
 						</div>
 					</div>
 				)}
-
-				{/* No results */}
 				{leases.length === 0 && (searchQuery || statusFilter !== 'all') && (
 					<div className="text-center py-12">
 						<Search className="w-10 h-10 text-muted-foreground/40 mx-auto mb-3" />
-						<p className="text-muted-foreground">
-							No leases match your filters
-						</p>
-						<button
-							onClick={handleClearFilters}
-							className="mt-3 text-sm text-primary hover:underline"
-						>
+						<p className="text-muted-foreground">No leases match your filters</p>
+						<button onClick={handleClearFilters} className="mt-3 text-sm text-primary hover:underline">
 							Clear filters
 						</button>
 					</div>

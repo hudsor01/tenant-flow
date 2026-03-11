@@ -14,9 +14,9 @@ import { propertyQueries } from '#hooks/api/query-keys/property-keys'
 import { useSupabaseUser } from '#hooks/api/use-auth'
 import { useCurrentUser } from '#hooks/use-current-user'
 
-import { createLogger } from '#shared/lib/frontend-logger'
-import type { Property, PropertyType } from '#shared/types/core'
-import { propertyFormSchema } from '#shared/validation/properties'
+import { createLogger } from '#lib/frontend-logger'
+import type { Property, PropertyType } from '#types/core'
+import { propertyFormSchema } from '#lib/validation/properties'
 import { useForm } from '@tanstack/react-form'
 import { useQueryClient } from '@tanstack/react-query'
 import { z } from 'zod'
@@ -34,8 +34,7 @@ import {
 import { PropertyFormActions } from './sections/property-form-actions'
 import { uploadPropertyImages } from './property-form-upload'
 import { usePropertyImageDropzone } from './use-property-image-dropzone'
-import { Label } from '#components/ui/label'
-import { Input } from '#components/ui/input'
+import { AcquisitionDetailsSection } from './property-form-fields'
 
 interface PropertyFormProps {
 	mode: 'create' | 'edit'
@@ -45,16 +44,6 @@ interface PropertyFormProps {
 	className?: string
 }
 
-/**
- * Consolidated Property Form Component
- *
- * Supports both create and edit modes with a single, reusable implementation.
- *
- * @param mode - 'create' | 'edit' determines form behavior
- * @param property - Required for edit mode, provides initial values
- * @param onSuccess - Optional callback after successful submission
- * @param showSuccessState - Whether to show success UI (default: true for create, false for edit)
- */
 export function PropertyForm({
 	mode,
 	property,
@@ -67,12 +56,7 @@ export function PropertyForm({
 	const [filesWithStatus, setFilesWithStatus] = useState<FileWithStatus[]>([])
 	const isMountedRef = useRef(true)
 
-	useEffect(() => {
-		isMountedRef.current = true
-		return () => {
-			isMountedRef.current = false
-		}
-	}, [])
+	useEffect(() => { isMountedRef.current = true; return () => { isMountedRef.current = false } }, [])
 
 	const { data: user } = useSupabaseUser()
 	const { isLoading: isAuthLoading } = useCurrentUser()
@@ -168,7 +152,6 @@ export function PropertyForm({
 		}
 	})
 
-	// Warn before navigating away with unsaved form changes
 	useUnsavedChangesWarning(form.state.isDirty)
 
 	async function handleCreateSubmit(
@@ -283,63 +266,7 @@ export function PropertyForm({
 					<PropertyAddressSection form={form} />
 				</div>
 
-				{/* Acquisition Details (optional) */}
-				<div className="space-y-4 border rounded-lg p-6">
-					<div>
-						<h3 className="text-sm font-medium">Acquisition Details</h3>
-						<p className="text-xs text-muted-foreground mt-1">
-							Optional. Used for accurate depreciation calculations in your tax documents.
-						</p>
-					</div>
-
-					<div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-						<form.Field name="acquisition_cost">
-							{field => (
-								<div className="space-y-2">
-									<Label htmlFor="acquisition_cost">Purchase Price</Label>
-									<Input
-										id="acquisition_cost"
-										type="number"
-										step="0.01"
-										min="0"
-										placeholder="e.g. 250000"
-										value={field.state.value ?? ''}
-										onChange={e => {
-											const raw = e.target.value
-											field.handleChange(raw === '' ? null : parseFloat(raw))
-										}}
-										onBlur={field.handleBlur}
-									/>
-									{(field.state.meta.errors?.length ?? 0) > 0 && (
-										<p className="text-xs text-destructive">
-											{String(field.state.meta.errors[0])}
-										</p>
-									)}
-								</div>
-							)}
-						</form.Field>
-
-						<form.Field name="acquisition_date">
-							{field => (
-								<div className="space-y-2">
-									<Label htmlFor="acquisition_date">Purchase Date</Label>
-									<Input
-										id="acquisition_date"
-										type="date"
-										value={field.state.value ?? ''}
-										onChange={e => field.handleChange(e.target.value)}
-										onBlur={field.handleBlur}
-									/>
-									{(field.state.meta.errors?.length ?? 0) > 0 && (
-										<p className="text-xs text-destructive">
-											{String(field.state.meta.errors[0])}
-										</p>
-									)}
-								</div>
-							)}
-						</form.Field>
-					</div>
-				</div>
+				<AcquisitionDetailsSection form={form} />
 
 				{mode === 'edit' && property?.id && (
 					<PropertyImagesEditSection propertyId={property.id} />

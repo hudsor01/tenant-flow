@@ -1,6 +1,6 @@
 'use client'
 
-import { useQuery } from '@tanstack/react-query'
+import { useSuspenseQuery } from '@tanstack/react-query'
 import { analyticsQueries } from '#hooks/api/use-analytics'
 import { Skeleton } from '#components/ui/skeleton'
 import { BlurFade } from '#components/ui/blur-fade'
@@ -10,9 +10,9 @@ import { useDataTable } from '#hooks/use-data-table'
 import type { ColumnDef } from '@tanstack/react-table'
 import { formatCurrency, formatNumber } from '#lib/formatters/currency'
 import { Calendar, DollarSign, BarChart3 } from 'lucide-react'
-import { useMemo } from 'react'
+
 import dynamic from 'next/dynamic'
-import type { LeaseFinancialInsight } from '#shared/types/analytics'
+import type { LeaseFinancialInsight } from '#types/analytics'
 import { ChartLoadingSkeleton } from '#components/shared/chart-loading-skeleton'
 
 const LeaseLifecycleChart = dynamic(
@@ -50,8 +50,7 @@ export function LeaseInsightsSkeleton() {
 }
 
 function ProfitabilityTable({ leases }: { leases: LeaseFinancialInsight[] }) {
-	const columns: ColumnDef<LeaseFinancialInsight>[] = useMemo(
-		() => [
+	const columns: ColumnDef<LeaseFinancialInsight>[] = [
 			{
 				accessorKey: 'lease_id',
 				header: 'Lease',
@@ -132,9 +131,7 @@ function ProfitabilityTable({ leases }: { leases: LeaseFinancialInsight[] }) {
 					</div>
 				)
 			}
-		],
-		[]
-	)
+		]
 
 	const { table } = useDataTable({
 		data: leases,
@@ -165,13 +162,9 @@ function ProfitabilityTable({ leases }: { leases: LeaseFinancialInsight[] }) {
 }
 
 export function LeaseInsightsSection() {
-	const { data, isLoading } = useQuery(analyticsQueries.leasePageData())
+	const { data } = useSuspenseQuery(analyticsQueries.leasePageData())
 
-	if (isLoading) {
-		return <LeaseInsightsSkeleton />
-	}
-
-	const { profitability = [], lifecycle = [], statusBreakdown = [] } = data || {}
+	const { profitability = [], lifecycle = [], statusBreakdown = [] } = data
 
 	return (
 		<div className="space-y-6">

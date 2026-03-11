@@ -22,7 +22,7 @@ import { formatCurrency } from '#lib/formatters/currency'
 import type {
 	CashFlowCategory,
 	MonthlyCashFlow
-} from '#shared/types/financial-statements'
+} from '#types/financial-statements'
 
 interface CashFlowProps {
 	inflows: CashFlowCategory[]
@@ -50,7 +50,6 @@ export function CashFlow({
 
 	return (
 		<div className="p-6 lg:p-8 bg-background min-h-full">
-			{/* Header */}
 			<BlurFade delay={0.1} inView>
 				<div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-6">
 					<div>
@@ -82,7 +81,6 @@ export function CashFlow({
 				</div>
 			</BlurFade>
 
-			{/* Cash Flow Summary */}
 			<BlurFade delay={0.2} inView>
 				<div className="bg-card border border-border rounded-lg p-6 mb-8">
 					<div className="flex flex-col md:flex-row items-center justify-between gap-6">
@@ -119,7 +117,6 @@ export function CashFlow({
 				</div>
 			</BlurFade>
 
-			{/* Summary Stats */}
 			<div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
 				<BlurFade delay={0.3} inView>
 					<Stat className="relative overflow-hidden">
@@ -177,98 +174,10 @@ export function CashFlow({
 			</div>
 
 			<div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-				{/* Cash Inflows */}
-				<BlurFade delay={0.6} inView>
-					<div className="bg-card border border-border rounded-lg p-6">
-						<h3 className="font-medium text-foreground mb-4 flex items-center gap-2">
-							<ArrowUpCircle className="w-4 h-4 text-emerald-600" />
-							Cash Inflows
-						</h3>
-						<div className="space-y-4">
-							{inflows.map((item, idx) => (
-								<BlurFade key={item.category} delay={0.65 + idx * 0.05} inView>
-									<div>
-										<div className="flex items-center justify-between mb-1">
-											<span className="text-sm text-foreground">
-												{item.category}
-											</span>
-											<div className="flex items-center gap-3">
-												<span className="text-sm text-muted-foreground">
-													{item.percentage.toFixed(1)}%
-												</span>
-												<span className="text-sm font-medium text-emerald-600">
-													{formatCurrency(item.amount)}
-												</span>
-											</div>
-										</div>
-										<div className="h-2 bg-muted rounded-full overflow-hidden">
-											<div
-												className="h-full bg-emerald-500 rounded-full transition-all duration-1000"
-												style={{ width: `${item.percentage}%` }}
-											/>
-										</div>
-									</div>
-								</BlurFade>
-							))}
-							<div className="flex items-center justify-between pt-4 border-t border-border">
-								<span className="text-sm font-medium text-foreground">
-									Total Inflows
-								</span>
-								<span className="text-sm font-semibold text-emerald-600">
-									{formatCurrency(totalInflows)}
-								</span>
-							</div>
-						</div>
-					</div>
-				</BlurFade>
-
-				{/* Cash Outflows */}
-				<BlurFade delay={0.7} inView>
-					<div className="bg-card border border-border rounded-lg p-6">
-						<h3 className="font-medium text-foreground mb-4 flex items-center gap-2">
-							<ArrowDownCircle className="w-4 h-4 text-red-600" />
-							Cash Outflows
-						</h3>
-						<div className="space-y-4">
-							{outflows.map((item, idx) => (
-								<BlurFade key={item.category} delay={0.75 + idx * 0.05} inView>
-									<div>
-										<div className="flex items-center justify-between mb-1">
-											<span className="text-sm text-foreground">
-												{item.category}
-											</span>
-											<div className="flex items-center gap-3">
-												<span className="text-sm text-muted-foreground">
-													{item.percentage.toFixed(1)}%
-												</span>
-												<span className="text-sm font-medium text-red-600">
-													{formatCurrency(item.amount)}
-												</span>
-											</div>
-										</div>
-										<div className="h-2 bg-muted rounded-full overflow-hidden">
-											<div
-												className="h-full bg-red-500 rounded-full transition-all duration-1000"
-												style={{ width: `${item.percentage}%` }}
-											/>
-										</div>
-									</div>
-								</BlurFade>
-							))}
-							<div className="flex items-center justify-between pt-4 border-t border-border">
-								<span className="text-sm font-medium text-foreground">
-									Total Outflows
-								</span>
-								<span className="text-sm font-semibold text-red-600">
-									{formatCurrency(totalOutflows)}
-								</span>
-							</div>
-						</div>
-					</div>
-				</BlurFade>
+				<FlowList icon={ArrowUpCircle} title="Cash Inflows" items={inflows} total={totalInflows} color="emerald" baseDelay={0.6} />
+				<FlowList icon={ArrowDownCircle} title="Cash Outflows" items={outflows} total={totalOutflows} color="red" baseDelay={0.7} />
 			</div>
 
-			{/* Monthly Cash Flow Chart */}
 			<BlurFade delay={0.8} inView>
 				<div className="bg-card border border-border rounded-lg p-6">
 					<h3 className="font-medium text-foreground mb-4">
@@ -325,5 +234,44 @@ export function CashFlow({
 				</div>
 			</BlurFade>
 		</div>
+	)
+}
+
+function FlowList({ icon: Icon, title, items, total, color, baseDelay }: {
+	icon: typeof ArrowUpCircle; title: string; items: CashFlowCategory[]; total: number; color: 'emerald' | 'red'; baseDelay: number
+}) {
+	const textCls = color === 'emerald' ? 'text-emerald-600' : 'text-red-600'
+	const barCls = color === 'emerald' ? 'bg-emerald-500' : 'bg-red-500'
+	return (
+		<BlurFade delay={baseDelay} inView>
+			<div className="bg-card border border-border rounded-lg p-6">
+				<h3 className="font-medium text-foreground mb-4 flex items-center gap-2">
+					<Icon className={`w-4 h-4 ${textCls}`} />
+					{title}
+				</h3>
+				<div className="space-y-4">
+					{items.map((item, idx) => (
+						<BlurFade key={item.category} delay={baseDelay + 0.05 + idx * 0.05} inView>
+							<div>
+								<div className="flex items-center justify-between mb-1">
+									<span className="text-sm text-foreground">{item.category}</span>
+									<div className="flex items-center gap-3">
+										<span className="text-sm text-muted-foreground">{item.percentage.toFixed(1)}%</span>
+										<span className={`text-sm font-medium ${textCls}`}>{formatCurrency(item.amount)}</span>
+									</div>
+								</div>
+								<div className="h-2 bg-muted rounded-full overflow-hidden">
+									<div className={`h-full ${barCls} rounded-full transition-all duration-1000`} style={{ width: `${item.percentage}%` }} />
+								</div>
+							</div>
+						</BlurFade>
+					))}
+					<div className="flex items-center justify-between pt-4 border-t border-border">
+						<span className="text-sm font-medium text-foreground">Total {title.split(' ')[1]}</span>
+						<span className={`text-sm font-semibold ${textCls}`}>{formatCurrency(total)}</span>
+					</div>
+				</div>
+			</div>
+		</BlurFade>
 	)
 }

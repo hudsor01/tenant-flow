@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useMemo, useState } from 'react'
+import { useState } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '#components/ui/card'
 import { Badge } from '#components/ui/badge'
 import { BrandingEditor } from './branding-editor'
@@ -62,8 +62,7 @@ export function MaintenanceRequestTemplate() {
 	})
 	const [customFields, setCustomFields] = useState<CustomField[]>([])
 
-	const baseFields = useMemo<DynamicField[]>(
-		() => [
+	const baseFields: DynamicField[] = [
 			{
 				name: 'propertyName',
 				label: 'Property name',
@@ -122,9 +121,7 @@ export function MaintenanceRequestTemplate() {
 				section: 'Request details',
 				fullWidth: true
 			}
-		],
-		[]
-	)
+		]
 
 	const {
 		fields,
@@ -134,7 +131,7 @@ export function MaintenanceRequestTemplate() {
 		save: saveFields
 	} = useTemplateDefinition('maintenance-request', baseFields, form as never)
 
-	const getPayload = useCallback(() => {
+	const getPayload = () => {
 		const values = form.state.values as Record<string, unknown>
 		const dynamicFields = builderFields.map(field => ({
 			label: field.label,
@@ -169,7 +166,7 @@ export function MaintenanceRequestTemplate() {
 				dynamicFields
 			}
 		}
-	}, [branding, builderFields, customFields, form.state.values])
+	}
 
 	const {
 		previewUrl,

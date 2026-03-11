@@ -1,9 +1,3 @@
-/**
- * Submit New Maintenance Request
- *
- * Form for tenants to submit maintenance requests
- */
-
 'use client'
 
 import type { FormEvent } from 'react'
@@ -29,7 +23,6 @@ export default function NewMaintenanceRequestPage() {
 	const router = useRouter()
 	const createRequest = useMaintenanceRequestCreateMutation()
 
-	// Form state
 	const [formData, setFormData] = useState({
 		title: '',
 		category: '',
@@ -38,33 +31,7 @@ export default function NewMaintenanceRequestPage() {
 		allowEntry: true
 	})
 
-	// Image upload state
-	const {
-		files,
-		setFiles,
-		onUpload,
-		loading,
-		successes,
-		errors,
-		setErrors,
-		isSuccess,
-		maxFileSize,
-		maxFiles,
-		allowedMimeTypes,
-		getRootProps,
-		getInputProps,
-		isDragActive,
-		isDragReject,
-		inputRef,
-		open,
-		isFocused,
-		isDragAccept,
-		isFileDialogActive,
-		acceptedFiles,
-		fileRejections,
-		rootRef,
-		isDragGlobal
-	} = useSupabaseUpload({
+	const upload = useSupabaseUpload({
 		bucketName: 'maintenance-photos',
 		path: 'maintenance_requests',
 		allowedMimeTypes: ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'],
@@ -77,7 +44,6 @@ export default function NewMaintenanceRequestPage() {
 	const handleSubmit = async (e: FormEvent) => {
 		e.preventDefault()
 
-		// Validation
 		if (!formData.title.trim()) {
 			toast.error('Please enter a title')
 			return
@@ -95,42 +61,21 @@ export default function NewMaintenanceRequestPage() {
 			return
 		}
 
-		// Priority values match DB enum (lowercase): 'low' | 'normal' | 'high' | 'urgent'
 		const priorityMap: Record<string, 'low' | 'normal' | 'high' | 'urgent'> = {
-			low: 'low',
-			medium: 'normal', // Form uses 'medium', DB uses 'normal'
-			high: 'high',
-			urgent: 'urgent'
+			low: 'low', medium: 'normal', high: 'high', urgent: 'urgent'
+		}
+		const categoryMap: Record<string, 'PLUMBING' | 'ELECTRICAL' | 'HVAC' | 'APPLIANCES' | 'SAFETY' | 'GENERAL' | 'OTHER'> = {
+			plumbing: 'PLUMBING', electrical: 'ELECTRICAL', hvac: 'HVAC', appliances: 'APPLIANCES',
+			safety: 'SAFETY', general: 'GENERAL', other: 'OTHER'
 		}
 
-		// Category values are app-level constants (not DB enum)
-		const categoryMap: Record<
-			string,
-			| 'PLUMBING'
-			| 'ELECTRICAL'
-			| 'HVAC'
-			| 'APPLIANCES'
-			| 'SAFETY'
-			| 'GENERAL'
-			| 'OTHER'
-		> = {
-			plumbing: 'PLUMBING',
-			electrical: 'ELECTRICAL',
-			hvac: 'HVAC',
-			appliances: 'APPLIANCES',
-			safety: 'SAFETY',
-			general: 'GENERAL',
-			other: 'OTHER'
-		}
-
-		// Get uploaded image URLs from Supabase
 		const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
 		if (!supabaseUrl) {
 			toast.error('Application configuration error. Please contact support.')
 			return
 		}
 
-		const photoUrls = successes.map(fileName => {
+		const photoUrls = upload.successes.map(fileName => {
 			const baseUrl = `${supabaseUrl}/storage/v1/object/public/maintenance-photos/maintenance_requests/`
 			return `${baseUrl}${fileName}`
 		})
@@ -256,49 +201,17 @@ export default function NewMaintenanceRequestPage() {
 						</p>
 					</Field>
 
-					{/* Image Upload */}
 					<Field>
 						<FieldLabel>Photos (Optional)</FieldLabel>
-						<Dropzone
-							files={files}
-							setFiles={setFiles}
-							onUpload={onUpload}
-							loading={loading}
-							successes={successes}
-							errors={errors}
-							isSuccess={isSuccess}
-							setErrors={setErrors}
-							maxFileSize={maxFileSize}
-							maxFiles={maxFiles}
-							allowedMimeTypes={allowedMimeTypes}
-							getRootProps={getRootProps}
-							getInputProps={getInputProps}
-							isDragActive={isDragActive}
-							isDragReject={isDragReject}
-							inputRef={inputRef}
-							open={open}
-							isFocused={isFocused}
-							isDragAccept={isDragAccept}
-							isFileDialogActive={isFileDialogActive}
-							acceptedFiles={acceptedFiles}
-							fileRejections={fileRejections}
-							rootRef={rootRef}
-							isDragGlobal={isDragGlobal}
-						>
+						<Dropzone {...upload}>
 							<DropzoneEmptyState />
 							<DropzoneContent />
 						</Dropzone>
 					</Field>
 					<div className="flex gap-4 pt-2 mb-4">
-						{files.length > 0 && !isSuccess && (
-							<Button
-								type="button"
-								variant="outline"
-								size="sm"
-								onClick={onUpload}
-								disabled={loading}
-							>
-								{loading ? 'Uploading...' : `Upload ${files.length} photo(s)`}
+						{upload.files.length > 0 && !upload.isSuccess && (
+							<Button type="button" variant="outline" size="sm" onClick={upload.onUpload} disabled={upload.loading}>
+								{upload.loading ? 'Uploading...' : `Upload ${upload.files.length} photo(s)`}
 							</Button>
 						)}
 					</div>

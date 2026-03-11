@@ -15,14 +15,14 @@ import {
 	AlertDialogHeader,
 	AlertDialogTitle,
 	AlertDialogTrigger
-} from '#components/ui/dialog'
+} from '#components/ui/alert-dialog'
 import { Clock, MapPin, Trash2 } from 'lucide-react'
 import { toast } from 'sonner'
 import type {
 	MaintenanceStatus,
 	MaintenancePriority
-} from '#shared/types/core'
-import type { MaintenanceDisplayRequest } from '#shared/types/sections/maintenance'
+} from '#types/core'
+import type { MaintenanceDisplayRequest } from '#types/sections/maintenance'
 import { createClient } from '#lib/supabase/client'
 import { maintenanceQueries } from '#hooks/api/query-keys/maintenance-keys'
 

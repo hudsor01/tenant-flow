@@ -1,9 +1,5 @@
 'use client'
 
-/**
- * Lease Creation Wizard - Step 3: Lease Details
- * Occupancy, pets, utilities, and disclosures
- */
 import { Label } from '#components/ui/label'
 import { Input } from '#components/ui/input'
 import { Textarea } from '#components/ui/textarea'
@@ -17,7 +13,7 @@ import {
 	SelectValue
 } from '#components/ui/select'
 import { AlertTriangle } from 'lucide-react'
-import type { LeaseDetailsStepData } from '#shared/validation/lease-wizard.schemas'
+import type { LeaseDetailsStepData } from '#lib/validation/lease-wizard.schemas'
 
 interface DetailsStepProps {
 	data: Partial<LeaseDetailsStepData>
@@ -48,7 +44,6 @@ const US_STATES = [
 	{ value: 'GA', label: 'Georgia' },
 	{ value: 'NC', label: 'North Carolina' },
 	{ value: 'MI', label: 'Michigan' }
-	// Add more states as needed
 ]
 
 export function DetailsStep({ data, onChange }: DetailsStepProps) {
@@ -70,17 +65,12 @@ export function DetailsStep({ data, onChange }: DetailsStepProps) {
 		handleChange(field, updated)
 	}
 
-	// Format cents to dollars for display
-	const centsToDisplay = (cents: number | undefined) => {
-		if (cents === undefined) return ''
-		return (cents / 100).toFixed(2)
-	}
+	const centsToDisplay = (cents: number | undefined) =>
+		cents === undefined ? '' : (cents / 100).toFixed(2)
 
-	// Parse dollars to cents for storage
 	const dollarsToCents = (dollars: string) => {
 		const num = parseFloat(dollars)
-		if (isNaN(num)) return undefined
-		return Math.round(num * 100)
+		return isNaN(num) ? undefined : Math.round(num * 100)
 	}
 
 	return (
@@ -93,7 +83,6 @@ export function DetailsStep({ data, onChange }: DetailsStepProps) {
 				</p>
 			</div>
 
-			{/* Occupancy */}
 			<div className="space-y-4">
 				<h4 className="font-medium">Occupancy</h4>
 				<div className="grid grid-cols-2 gap-4">
@@ -140,7 +129,6 @@ export function DetailsStep({ data, onChange }: DetailsStepProps) {
 				</div>
 			</div>
 
-			{/* Pet Policy */}
 			<div className="space-y-4">
 				<div className="flex items-center justify-between">
 					<h4 className="font-medium">Pet Policy</h4>
@@ -188,7 +176,6 @@ export function DetailsStep({ data, onChange }: DetailsStepProps) {
 				)}
 			</div>
 
-			{/* Utilities */}
 			<div className="space-y-4">
 				<h4 className="font-medium">Utilities</h4>
 				<div className="grid grid-cols-2 gap-6">
@@ -246,7 +233,6 @@ export function DetailsStep({ data, onChange }: DetailsStepProps) {
 				</div>
 			</div>
 
-			{/* Property Rules */}
 			<div className="space-y-2">
 				<Label htmlFor="property_rules">Property Rules</Label>
 				<Textarea
@@ -258,7 +244,6 @@ export function DetailsStep({ data, onChange }: DetailsStepProps) {
 				/>
 			</div>
 
-			{/* Lead Paint Disclosure */}
 			<div className="space-y-4 p-4 border rounded-lg bg-muted/50">
 				<div className="flex items-start gap-3">
 					<AlertTriangle className="h-5 w-5 text-amber-500 mt-0.5" />

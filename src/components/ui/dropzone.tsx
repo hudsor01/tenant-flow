@@ -7,7 +7,6 @@ import { CheckCircle, File, Loader2, Upload, X } from 'lucide-react'
 import {
 	createContext,
 	type PropsWithChildren,
-	useCallback,
 	useContext
 } from 'react'
 
@@ -90,12 +89,9 @@ const DropzoneContent = ({ className }: { className?: string }) => {
 
 	const exceedMaxFiles = files.length > maxFiles
 
-	const handleRemoveFile = useCallback(
-		(fileName: string) => {
-			setFiles(files.filter(file => file.name !== fileName))
-		},
-		[files, setFiles]
-	)
+	const handleRemoveFile = (fileName: string) => {
+		setFiles(files.filter(file => file.name !== fileName))
+	}
 
 	if (isSuccess) {
 		return (

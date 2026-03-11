@@ -21,15 +21,15 @@ import {
 	Loader2,
 	Building2
 } from 'lucide-react'
-import { useState, useCallback, useRef } from 'react'
+import { useState, useRef } from 'react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { propertyQueries } from '#hooks/api/query-keys/property-keys'
-import { createLogger } from '#shared/lib/frontend-logger'
+import { createLogger } from '#lib/frontend-logger'
 import type {
 	BulkImportResult,
 	ParsedRow,
 	ImportStep
-} from '#shared/types/api-contracts'
+} from '#types/api-contracts'
 import { BulkImportUploadStep } from './bulk-import-upload-step'
 import { BulkImportValidateStep } from './bulk-import-validate-step'
 import { BulkImportConfirmStep } from './bulk-import-confirm-step'
@@ -84,7 +84,7 @@ export function BulkImportStepper({
 		}
 	})
 
-	const resetDialog = useCallback(() => {
+	const resetDialog = () => {
 		setFile(null)
 		setResult(null)
 		onStepChange('upload')
@@ -93,10 +93,9 @@ export function BulkImportStepper({
 		if (fileInputRef.current) {
 			fileInputRef.current.value = ''
 		}
-	}, [onStepChange])
+	}
 
-	const handleFileSelect = useCallback(
-		async (selectedFile: File) => {
+	const handleFileSelect = async (selectedFile: File) => {
 			setFile(selectedFile)
 			setResult(null)
 			onStepChange('validate')
@@ -108,9 +107,7 @@ export function BulkImportStepper({
 				logger.error('Failed to parse CSV', { error })
 				setParsedData([])
 			}
-		},
-		[onStepChange]
-	)
+		}
 
 	const handleUpload = async () => {
 		if (!file) return
@@ -139,102 +136,41 @@ export function BulkImportStepper({
 
 	const validRowCount = parsedData.filter(row => row.errors.length === 0).length
 
+	const triggerCls = cn(
+		'w-full rounded-lg p-3 transition-all duration-200 hover:bg-background/80',
+		'data-[state=active]:bg-background data-[state=active]:shadow-sm data-[state=completed]:bg-success/5'
+	)
+	const indicatorCls = cn(
+		'size-9 rounded-lg transition-all duration-200',
+		'data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md',
+		'data-[state=completed]:bg-success data-[state=completed]:text-success-foreground',
+		'data-[state=inactive]:bg-muted data-[state=inactive]:text-muted-foreground'
+	)
+
+	const steps = [
+		{ value: 'upload' as const, icon: Upload, title: 'Upload', desc: 'Choose CSV file', hasSep: true },
+		{ value: 'validate' as const, icon: FileCheck, title: 'Validate', desc: 'Review data', hasSep: true },
+		{ value: 'confirm' as const, icon: CheckCheck, title: 'Confirm', desc: 'Import properties', hasSep: false },
+	]
+
 	return (
 		<>
 			<StepperRoot value={currentStep} className="w-full">
-				{/* Enhanced Stepper List */}
 				<StepperList className="mb-8 p-1 bg-muted/30 rounded-xl">
-					<StepperItem value="upload">
-						<StepperTrigger
-							className={cn(
-								'w-full rounded-lg p-3 transition-all duration-200',
-								'hover:bg-background/80',
-								'data-[state=active]:bg-background data-[state=active]:shadow-sm',
-								'data-[state=completed]:bg-success/5'
-							)}
-						>
-							<StepperIndicator
-								className={cn(
-									'size-9 rounded-lg transition-all duration-200',
-									'data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md',
-									'data-[state=completed]:bg-success data-[state=completed]:text-success-foreground',
-									'data-[state=inactive]:bg-muted data-[state=inactive]:text-muted-foreground'
-								)}
-							>
-								<Upload className="size-4" />
-							</StepperIndicator>
-							<div className="flex flex-col items-start ml-3">
-								<StepperTitle className="text-sm font-semibold">
-									Upload
-								</StepperTitle>
-								<StepperDescription className="text-xs">
-									Choose CSV file
-								</StepperDescription>
-							</div>
-						</StepperTrigger>
-						<StepperSeparator className="mx-2 data-[state=completed]:bg-success" />
-					</StepperItem>
-
-					<StepperItem value="validate">
-						<StepperTrigger
-							className={cn(
-								'w-full rounded-lg p-3 transition-all duration-200',
-								'hover:bg-background/80',
-								'data-[state=active]:bg-background data-[state=active]:shadow-sm',
-								'data-[state=completed]:bg-success/5'
-							)}
-						>
-							<StepperIndicator
-								className={cn(
-									'size-9 rounded-lg transition-all duration-200',
-									'data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md',
-									'data-[state=completed]:bg-success data-[state=completed]:text-success-foreground',
-									'data-[state=inactive]:bg-muted data-[state=inactive]:text-muted-foreground'
-								)}
-							>
-								<FileCheck className="size-4" />
-							</StepperIndicator>
-							<div className="flex flex-col items-start ml-3">
-								<StepperTitle className="text-sm font-semibold">
-									Validate
-								</StepperTitle>
-								<StepperDescription className="text-xs">
-									Review data
-								</StepperDescription>
-							</div>
-						</StepperTrigger>
-						<StepperSeparator className="mx-2 data-[state=completed]:bg-success" />
-					</StepperItem>
-
-					<StepperItem value="confirm">
-						<StepperTrigger
-							className={cn(
-								'w-full rounded-lg p-3 transition-all duration-200',
-								'hover:bg-background/80',
-								'data-[state=active]:bg-background data-[state=active]:shadow-sm',
-								'data-[state=completed]:bg-success/5'
-							)}
-						>
-							<StepperIndicator
-								className={cn(
-									'size-9 rounded-lg transition-all duration-200',
-									'data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md',
-									'data-[state=completed]:bg-success data-[state=completed]:text-success-foreground',
-									'data-[state=inactive]:bg-muted data-[state=inactive]:text-muted-foreground'
-								)}
-							>
-								<CheckCheck className="size-4" />
-							</StepperIndicator>
-							<div className="flex flex-col items-start ml-3">
-								<StepperTitle className="text-sm font-semibold">
-									Confirm
-								</StepperTitle>
-								<StepperDescription className="text-xs">
-									Import properties
-								</StepperDescription>
-							</div>
-						</StepperTrigger>
-					</StepperItem>
+					{steps.map(step => (
+						<StepperItem key={step.value} value={step.value}>
+							<StepperTrigger className={triggerCls}>
+								<StepperIndicator className={indicatorCls}>
+									<step.icon className="size-4" />
+								</StepperIndicator>
+								<div className="flex flex-col items-start ml-3">
+									<StepperTitle className="text-sm font-semibold">{step.title}</StepperTitle>
+									<StepperDescription className="text-xs">{step.desc}</StepperDescription>
+								</div>
+							</StepperTrigger>
+							{step.hasSep && <StepperSeparator className="mx-2 data-[state=completed]:bg-success" />}
+						</StepperItem>
+					))}
 				</StepperList>
 
 				<StepperContent
@@ -265,7 +201,6 @@ export function BulkImportStepper({
 				</StepperContent>
 			</StepperRoot>
 
-			{/* Enhanced Dialog Footer */}
 			<DialogFooter className="gap-3 pt-4 border-t border-border/50">
 				{currentStep !== 'upload' && !result && (
 					<Button

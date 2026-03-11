@@ -1,7 +1,7 @@
 'use client'
 
 import type { ComponentType } from 'react'
-import { memo, useMemo, useTransition } from 'react'
+import { useTransition } from 'react'
 
 import { Building2, Home, LogOut, Menu, Users, Wrench } from 'lucide-react'
 import Link from 'next/link'
@@ -25,35 +25,32 @@ const MOBILE_NAV_ITEMS: MobileNavItem[] = [
 	{ label: 'Maintenance', href: '/maintenance', icon: Wrench }
 ]
 
-const NavItem = memo(
-	({ item, isActive }: { item: MobileNavItem; isActive: boolean }) => {
-		const Icon = item.icon
+function NavItem({ item, isActive }: { item: MobileNavItem; isActive: boolean }) {
+	const Icon = item.icon
 
-		return (
-			<Link
-				href={item.href}
-				className={cn(
-					'flex h-14 w-16 flex-col items-center justify-center rounded-lg text-xs font-medium transition-colors',
-					isActive
-						? 'text-primary bg-primary/10'
-						: 'text-muted-foreground hover:text-foreground'
-				)}
-				aria-label={`${item.label} navigation`}
-				aria-current={isActive ? 'page' : undefined}
-			>
-				<Icon className="size-5 mb-1" aria-hidden />
-				<span>{item.label}</span>
-			</Link>
-		)
-	}
-)
-NavItem.displayName = 'NavItem'
+	return (
+		<Link
+			href={item.href}
+			className={cn(
+				'flex h-14 w-16 flex-col items-center justify-center rounded-lg text-xs font-medium transition-colors',
+				isActive
+					? 'text-primary bg-primary/10'
+					: 'text-muted-foreground hover:text-foreground'
+			)}
+			aria-label={`${item.label} navigation`}
+			aria-current={isActive ? 'page' : undefined}
+		>
+			<Icon className="size-5 mb-1" aria-hidden />
+			<span>{item.label}</span>
+		</Link>
+	)
+}
 
-export const MobileNav = memo(() => {
+export function MobileNav() {
 	const pathname = usePathname()
 	const [isPending, startTransition] = useTransition()
 
-	const activeIndex = useMemo(() => {
+	const activeIndex = (() => {
 		// First, try to find an exact match
 		const exactMatchIndex = MOBILE_NAV_ITEMS.findIndex(
 			item => pathname === item.href
@@ -64,7 +61,7 @@ export const MobileNav = memo(() => {
 		return MOBILE_NAV_ITEMS.findIndex(item =>
 			pathname.startsWith(`${item.href}/`)
 		)
-	}, [pathname])
+	})()
 
 	const handleSignOut = () => {
 		startTransition(async () => {
@@ -141,6 +138,4 @@ export const MobileNav = memo(() => {
 			</div>
 		</div>
 	)
-})
-
-MobileNav.displayName = 'MobileNav'
+}

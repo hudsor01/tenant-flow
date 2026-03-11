@@ -6,9 +6,10 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 
 import { QUERY_CACHE_TIMES } from '#lib/constants/query-config'
-import type { PaginatedResponse } from '#shared/types/api-contracts'
-import type { Property } from '#shared/types/core'
+import type { PaginatedResponse } from '#types/api-contracts'
+import type { Property } from '#types/core'
 import { propertyQueries, type PropertyFilters } from './query-keys/property-keys'
+import { propertyStatsQueries } from './query-keys/property-stats-keys'
 
 /** Stable select function for TanStack Query optimization */
 const selectPaginatedData = <T>(response: PaginatedResponse<T>): T[] => response.data
@@ -69,23 +70,23 @@ export function usePropertiesWithUnits() {
 }
 
 export function usePropertyStats() {
-	return useQuery(propertyQueries.stats())
+	return useQuery(propertyStatsQueries.stats())
 }
 
 export function usePropertyPerformanceAnalytics() {
-	return useQuery(propertyQueries.performance())
+	return useQuery(propertyStatsQueries.performance())
 }
 
 export function usePropertyOccupancyAnalytics() {
-	return useQuery(propertyQueries.analytics.occupancy())
+	return useQuery(propertyStatsQueries.analytics.occupancy())
 }
 
 export function usePropertyFinancialAnalytics() {
-	return useQuery(propertyQueries.analytics.financial())
+	return useQuery(propertyStatsQueries.analytics.financial())
 }
 
 export function usePropertyMaintenanceAnalytics() {
-	return useQuery(propertyQueries.analytics.maintenance())
+	return useQuery(propertyStatsQueries.analytics.maintenance())
 }
 
 export function usePropertyImages(property_id: string) {

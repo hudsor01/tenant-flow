@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useLoadingStore } from '#stores/loading-store'
 import { LoadingSpinner } from '#components/ui/loading-spinner'
 
@@ -27,12 +27,9 @@ export function GlobalLoadingIndicator() {
 		return () => clearTimeout(timer)
 	}, [isLoading, lastShownAt])
 
-	const label = useMemo(() => {
-		if (activeOperationCount > 1) {
-			return `${activeOperationCount} actions in progress`
-		}
-		return 'Loading…'
-	}, [activeOperationCount])
+	const label = activeOperationCount > 1
+		? `${activeOperationCount} actions in progress`
+		: 'Loading\u2026'
 
 	if (!visible) return null
 

@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo } from 'react'
+
 import { Download, Wallet } from 'lucide-react'
 import { BlurFade } from '#components/ui/blur-fade'
 import { DataTable } from '#components/data-table/data-table'
@@ -23,8 +23,7 @@ export function PayoutHistoryTable({
 	onPayoutClick,
 	onExport
 }: PayoutHistoryTableProps) {
-	const payoutColumns: ColumnDef<Payout>[] = useMemo(
-		() => [
+	const payoutColumns: ColumnDef<Payout>[] = [
 			{
 				accessorKey: 'created',
 				header: 'Date',
@@ -87,9 +86,7 @@ export function PayoutHistoryTable({
 					<span className="capitalize">{row.original.method}</span>
 				)
 			}
-		],
-		[onPayoutClick]
-	)
+		]
 
 	const { table: payoutsTable } = useDataTable({
 		data: payouts,

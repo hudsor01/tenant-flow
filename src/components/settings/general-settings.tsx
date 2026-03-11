@@ -13,7 +13,7 @@ import { toast } from 'sonner'
 import { createClient } from '#lib/supabase/client'
 import { getCachedUser } from '#lib/supabase/get-cached-user'
 import { profileKeys, useProfile } from '#hooks/api/use-profile'
-import type { ThemeMode } from '#shared/types/domain'
+import type { ThemeMode } from '#types/domain'
 import type { DataDensity } from '#stores/preferences-store'
 
 export function GeneralSettings() {

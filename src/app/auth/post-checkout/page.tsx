@@ -3,7 +3,7 @@
 import { Spinner } from '#components/ui/loading-spinner'
 import { useMutation } from '@tanstack/react-query'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 
 import { Alert, AlertDescription } from '#components/ui/alert'
 import { Button } from '#components/ui/button'
@@ -98,11 +98,11 @@ export default function PostCheckoutPage() {
 		}
 	})
 
-	const handleResend = useCallback(() => {
+	const handleResend = () => {
 		if (email) {
 			resendMagicLink(email)
 		}
-	}, [email, resendMagicLink])
+	}
 
 	if (isFetchingEmail) {
 		return (

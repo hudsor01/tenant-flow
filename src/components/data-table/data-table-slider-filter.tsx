@@ -2,7 +2,7 @@
 
 import type { Column } from '@tanstack/react-table'
 import { PlusCircle, XCircle } from 'lucide-react'
-import { useCallback, useId, useMemo } from 'react'
+import { useId } from 'react'
 import type { ChangeEvent, MouseEvent } from 'react'
 import { Button } from '#components/ui/button'
 import { Input } from '#components/ui/input'
@@ -11,11 +11,6 @@ import { Popover, PopoverContent, PopoverTrigger } from '#components/ui/popover'
 import { Separator } from '#components/ui/separator'
 import { Slider } from '#components/ui/slider'
 import { cn } from '#lib/utils'
-
-interface Range {
-	min: number
-	max: number
-}
 
 type RangeValue = [number, number]
 
@@ -58,7 +53,7 @@ export function DataTableSliderFilter<TData>({
 	const defaultRange = column.columnDef.meta?.range
 	const unit = column.columnDef.meta?.unit
 
-	const { min, max, step } = useMemo<Range & { step: number }>(() => {
+	const { min, max, step } = (() => {
 		let minValue = 0
 		let maxValue = 100
 
@@ -87,54 +82,40 @@ export function DataTableSliderFilter<TData>({
 					: Math.ceil(rangeSize / 50)
 
 		return { min: minValue, max: maxValue, step }
-	}, [column, defaultRange])
+	})()
 
-	const range = useMemo((): RangeValue => {
-		return columnFilterValue ?? [min, max]
-	}, [columnFilterValue, min, max])
+	const range: RangeValue = columnFilterValue ?? [min, max]
 
-	const formatValue = useCallback((value: number) => {
+	const formatValue = (value: number) => {
 		return value.toLocaleString(undefined, { maximumFractionDigits: 0 })
-	}, [])
+	}
 
-	const onFromInputChange = useCallback(
-		(event: ChangeEvent<HTMLInputElement>) => {
+	const onFromInputChange = (event: ChangeEvent<HTMLInputElement>) => {
 			const numValue = Number(event.target.value)
 			if (!Number.isNaN(numValue) && numValue >= min && numValue <= range[1]) {
 				column.setFilterValue([numValue, range[1]])
 			}
-		},
-		[column, min, range]
-	)
+		}
 
-	const onToInputChange = useCallback(
-		(event: ChangeEvent<HTMLInputElement>) => {
+	const onToInputChange = (event: ChangeEvent<HTMLInputElement>) => {
 			const numValue = Number(event.target.value)
 			if (!Number.isNaN(numValue) && numValue <= max && numValue >= range[0]) {
 				column.setFilterValue([range[0], numValue])
 			}
-		},
-		[column, max, range]
-	)
+		}
 
-	const onSliderValueChange = useCallback(
-		(value: RangeValue) => {
+	const onSliderValueChange = (value: RangeValue) => {
 			if (Array.isArray(value) && value.length === 2) {
 				column.setFilterValue(value)
 			}
-		},
-		[column]
-	)
+		}
 
-	const onReset = useCallback(
-		(event: MouseEvent) => {
+	const onReset = (event: MouseEvent) => {
 			if (event.target instanceof HTMLDivElement) {
 				event.stopPropagation()
 			}
 			column.setFilterValue(undefined)
-		},
-		[column]
-	)
+		}
 
 	return (
 		<Popover>

@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo } from 'react'
+
 import { Download, Building2, User, Home, CreditCard, Landmark } from 'lucide-react'
 import { BlurFade } from '#components/ui/blur-fade'
 import { Badge } from '#components/ui/badge'
@@ -18,8 +18,7 @@ interface TransfersTableProps {
 }
 
 export function TransfersTable({ transfers, onExport }: TransfersTableProps) {
-	const transferColumns: ColumnDef<Transfer>[] = useMemo(
-		() => [
+	const transferColumns: ColumnDef<Transfer>[] = [
 			{
 				accessorKey: 'created',
 				header: 'Date',
@@ -126,9 +125,7 @@ export function TransfersTable({ transfers, onExport }: TransfersTableProps) {
 					</span>
 				)
 			}
-		],
-		[]
-	)
+		]
 
 	const { table: transfersTable } = useDataTable({
 		data: transfers,

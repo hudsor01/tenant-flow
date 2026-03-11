@@ -1,7 +1,7 @@
 'use client'
 
 import * as Sentry from '@sentry/nextjs'
-import { createLogger } from '#shared/lib/frontend-logger'
+import { createLogger } from '#lib/frontend-logger'
 import type { DehydratedState, DefaultOptions } from '@tanstack/react-query'
 import {
 	HydrationBoundary,
@@ -14,7 +14,7 @@ import {
 import type { Persister } from '@tanstack/react-query-persist-client'
 import { PersistQueryClientProvider } from '@tanstack/react-query-persist-client'
 import type { ReactNode } from 'react'
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useState } from 'react'
 import type { PostgrestError } from '@supabase/supabase-js'
 import { createQueryErrorHandlers } from './query-error-handler'
 
@@ -234,12 +234,9 @@ export function QueryProvider({
 		}
 	}, [queryClient])
 
-	const hydrateContent = useMemo(
-		() => (
+	const hydrateContent = (
 			<HydrationBoundary state={dehydratedState}>{children}</HydrationBoundary>
-		),
-		[children, dehydratedState]
-	)
+		)
 
 	if (persister && isPersistenceReady) {
 		return (

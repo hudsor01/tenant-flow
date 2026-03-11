@@ -9,10 +9,10 @@ import {
 	AlertDialogFooter,
 	AlertDialogHeader,
 	AlertDialogTitle
-} from '#components/ui/dialog'
+} from '#components/ui/alert-dialog'
 import { useTerminateLeaseMutation } from '#hooks/api/use-lease-lifecycle-mutations'
 import { handleMutationError } from '#lib/mutation-error-handler'
-import type { Lease } from '#shared/types/core'
+import type { Lease } from '#types/core'
 import { AlertTriangle } from 'lucide-react'
 import { toast } from 'sonner'
 

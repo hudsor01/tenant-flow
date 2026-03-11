@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo, useState } from 'react'
+import { useState } from 'react'
 import { Building2, Wallet, CreditCard, Download } from 'lucide-react'
 import {
 	Select,
@@ -34,7 +34,7 @@ export default function BalanceSheetPage() {
 	const { data, isLoading, error, refetch } = useBalanceSheet(asOfDate)
 	const balanceData = data?.data
 
-	const assetsItems = useMemo(() => {
+	const assetsItems = (() => {
 		if (!balanceData) return []
 		return [
 			{
@@ -74,9 +74,9 @@ export default function BalanceSheetPage() {
 				subtotal: balanceData.assets.fixedAssets.netPropertyValue
 			}
 		]
-	}, [balanceData])
+	})()
 
-	const liabilitiesItems = useMemo(() => {
+	const liabilitiesItems = (() => {
 		if (!balanceData) return []
 		return [
 			{
@@ -113,9 +113,9 @@ export default function BalanceSheetPage() {
 				subtotal: balanceData.liabilities.longTermLiabilities.mortgagesPayable
 			}
 		]
-	}, [balanceData])
+	})()
 
-	const equityItems = useMemo(() => {
+	const equityItems = (() => {
 		if (!balanceData) return []
 		return [
 			{ name: 'Owner Capital', amount: balanceData.equity.ownerCapital },
@@ -128,7 +128,7 @@ export default function BalanceSheetPage() {
 				amount: balanceData.equity.currentPeriodIncome
 			}
 		]
-	}, [balanceData])
+	})()
 
 	const totalAssets = balanceData?.assets.totalAssets || 0
 	const totalLiabilities = balanceData?.liabilities.totalLiabilities || 0

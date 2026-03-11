@@ -1,15 +1,9 @@
 'use client'
 
 import type { ReactNode } from 'react'
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 
 import {
-	Menu,
-	X,
-	Bell,
-	ChevronRight,
-	Sparkles,
-	Search,
 	Home,
 	Building2,
 	Users,
@@ -20,31 +14,20 @@ import {
 	Receipt,
 	FilePlus,
 	FileCheck,
+	Bell,
 	Settings,
-	HelpCircle,
-	LogOut
+	HelpCircle
 } from 'lucide-react'
-import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
-import { MainNav } from './main-nav'
 import { QuickActionsDock } from './quick-actions-dock'
-import { GlobalSyncIndicator } from '#components/ui/global-sync-indicator'
 import { generateBreadcrumbs } from '#lib/breadcrumbs'
 import { useSupabaseUser } from '#hooks/api/use-auth'
 import { useSignOutMutation } from '#hooks/api/use-auth-mutations'
 import { usePropertyList } from '#hooks/api/use-properties'
 import { useTenantList } from '#hooks/api/use-tenant'
-import {
-	CommandDialog,
-	CommandEmpty,
-	CommandGroup,
-	CommandInput,
-	CommandItem,
-	CommandList,
-	CommandSeparator,
-	CommandShortcut
-} from '#components/ui/command'
-import { UserProfileMenu } from './user-profile-menu'
+import { AppShellSidebar } from './app-shell-sidebar'
+import { AppShellHeader } from './app-shell-header'
+import { AppShellSearch } from './app-shell-search'
 
 export interface AppShellProps {
 	children: ReactNode
@@ -74,7 +57,7 @@ export function AppShell({ children, showQuickActionsDock = true }: AppShellProp
 		.toUpperCase()
 		.slice(0, 2)
 
-	const tenantItems = useMemo(() => {
+	const tenantItems = (() => {
 		const tenants = tenantsResponse?.data ?? []
 		return tenants.map(tenant => {
 			const fullName =
@@ -89,19 +72,16 @@ export function AppShell({ children, showQuickActionsDock = true }: AppShellProp
 				href: `/tenants/${tenant.id}`
 			}
 		})
-	}, [tenantsResponse?.data])
+	})()
 
-	const propertyItems = useMemo(() => {
-		return (properties ?? []).map(property => ({
-			id: property.id,
-			label: property.name,
-			subtitle: [property.city, property.state].filter(Boolean).join(', '),
-			href: `/properties/${property.id}`
-		}))
-	}, [properties])
+	const propertyItems = (properties ?? []).map(property => ({
+		id: property.id,
+		label: property.name,
+		subtitle: [property.city, property.state].filter(Boolean).join(', '),
+		href: `/properties/${property.id}`
+	}))
 
-	const commandGroups = useMemo(
-		() => [
+	const commandGroups = [
 			{
 				heading: 'Navigation',
 				items: [
@@ -143,19 +123,14 @@ export function AppShell({ children, showQuickActionsDock = true }: AppShellProp
 					{ label: 'Lease Template', href: '/documents/lease-template', icon: FileCheck }
 				]
 			}
-		],
-		[]
-	)
+	]
 
-	const commandActions = useMemo(
-		() => [
-			{ label: 'Notifications', href: '/settings?tab=notifications', icon: Bell },
-			{ label: 'Settings', href: '/settings', icon: Settings },
-			{ label: 'Profile', href: '/profile', icon: Settings },
-			{ label: 'Help & Support', href: '/help', icon: HelpCircle }
-		],
-		[]
-	)
+	const commandActions = [
+		{ label: 'Notifications', href: '/settings?tab=notifications', icon: Bell },
+		{ label: 'Settings', href: '/settings', icon: Settings },
+		{ label: 'Profile', href: '/profile', icon: Settings },
+		{ label: 'Help & Support', href: '/help', icon: HelpCircle }
+	]
 
 	useEffect(() => {
 		const onKeyDown = (event: KeyboardEvent) => {
@@ -169,20 +144,20 @@ export function AppShell({ children, showQuickActionsDock = true }: AppShellProp
 		return () => window.removeEventListener('keydown', onKeyDown)
 	}, [])
 
-	const closeSidebar = useCallback(() => {
+	const closeSidebar = () => {
 		setSidebarOpen(false)
 		triggerRef.current?.focus()
-	}, [])
+	}
 
 	// Escape key handler + focus trap for mobile sidebar
 	useEffect(() => {
 		if (!sidebarOpen) return
 		const handleKeyDown = (e: KeyboardEvent) => {
 			if (e.key === 'Escape') {
-				closeSidebar()
+				setSidebarOpen(false)
+				triggerRef.current?.focus()
 				return
 			}
-			// Focus trap within sidebar dialog
 			if (e.key === 'Tab' && sidebarRef.current) {
 				const focusable = sidebarRef.current.querySelectorAll<HTMLElement>(
 					'a[href], button:not([disabled]), input:not([disabled]), [tabindex]:not([tabindex="-1"])'
@@ -201,7 +176,7 @@ export function AppShell({ children, showQuickActionsDock = true }: AppShellProp
 		}
 		window.addEventListener('keydown', handleKeyDown)
 		return () => window.removeEventListener('keydown', handleKeyDown)
-	}, [sidebarOpen, closeSidebar])
+	}, [sidebarOpen])
 
 	const handleCommandSelect = (href: string) => {
 		setCommandOpen(false)
@@ -226,171 +201,25 @@ export function AppShell({ children, showQuickActionsDock = true }: AppShellProp
 				/>
 			)}
 
-			{/* Sidebar */}
-			<aside
-				ref={sidebarRef}
-				role={sidebarOpen ? 'dialog' : undefined}
-				aria-modal={sidebarOpen ? true : undefined}
-				data-tour="sidebar-nav"
-				className={`
-					fixed inset-y-0 left-0 z-50 w-56 bg-card
-					border-r border-border
-					transform transition-transform duration-200 ease-out
-					lg:translate-x-0 flex flex-col
-					${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}
-				`}
-			>
-				{/* Logo */}
-				<div className="flex items-center gap-3 px-4 h-14 shrink-0">
-					<Link href="/dashboard" className="flex items-center gap-3 rounded-lg focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none hover:opacity-80 transition-opacity">
-						<div className="flex items-center justify-center w-8 h-8 rounded-lg bg-primary">
-							<Sparkles className="w-4 h-4 text-primary-foreground" />
-						</div>
-						<span className="font-semibold text-foreground text-lg tracking-tight">
-							TenantFlow
-						</span>
-					</Link>
-					<button
-						className="ml-auto lg:hidden min-h-11 min-w-11 flex items-center justify-center rounded-md hover:bg-muted"
-						onClick={closeSidebar}
-						aria-label="Close navigation menu"
-					>
-						<X className="w-4 h-4 text-muted-foreground" />
-					</button>
-				</div>
-
-				{/* Command Palette Trigger */}
-				<div className="px-3 py-3">
-					<button
-						onClick={() => setCommandOpen(true)}
-						className="w-full flex items-center gap-2 px-3 py-2 bg-muted/50 hover:bg-muted text-muted-foreground hover:text-foreground text-sm rounded-md border border-border transition-colors"
-					>
-						<Search className="w-4 h-4" />
-						<span className="flex-1 text-left">Search...</span>
-						<kbd className="hidden sm:inline-flex items-center gap-0.5 px-1.5 py-0.5 text-xs bg-background border border-border rounded">
-							<span className="text-xs">&#8984;</span>K
-						</kbd>
-					</button>
-				</div>
-
-				{/* Navigation */}
-				<MainNav onNavigate={closeSidebar} />
-			</aside>
+			<AppShellSidebar
+				sidebarRef={sidebarRef}
+				sidebarOpen={sidebarOpen}
+				closeSidebar={closeSidebar}
+				onCommandOpen={() => setCommandOpen(true)}
+			/>
 
 			{/* Main content area */}
 			<div className="lg:pl-56 flex flex-col min-h-screen">
-				{/* Top header */}
-				<header className="sticky top-0 z-30 flex items-center justify-between px-4 lg:px-6 h-14 bg-card border-b border-border">
-					{/* Left side - mobile menu + breadcrumbs */}
-					<div className="flex items-center gap-3">
-						<button
-							ref={triggerRef}
-							className="p-2 rounded-md hover:bg-muted lg:hidden"
-							onClick={() => setSidebarOpen(true)}
-							aria-label="Open navigation menu"
-						>
-							<Menu className="w-5 h-5 text-muted-foreground" />
-						</button>
-
-						{/* Breadcrumbs */}
-						{breadcrumbs.length > 0 && (() => {
-							const firstCrumb = breadcrumbs[0]!
-							const lastCrumb = breadcrumbs[breadcrumbs.length - 1]!
-							return (
-							<nav aria-label="Breadcrumb" className="flex items-center gap-1 text-sm">
-								{/* First crumb always visible */}
-								<div className="flex items-center gap-1">
-									{firstCrumb.href ? (
-										<Link
-											href={firstCrumb.href}
-											className="text-muted-foreground hover:text-foreground transition-colors"
-										>
-											{firstCrumb.label}
-										</Link>
-									) : (
-										<span className="text-foreground font-medium">
-											{firstCrumb.label}
-										</span>
-									)}
-								</div>
-
-								{/* Middle crumbs: hidden on mobile, visible on sm+ */}
-								{breadcrumbs.length > 2 && (
-									<>
-										<span className="hidden sm:contents">
-											{breadcrumbs.slice(1, -1).map((crumb, index) => (
-												<div key={index + 1} className="flex items-center gap-1">
-													<ChevronRight className="w-3.5 h-3.5 text-muted-foreground" />
-													{crumb.href ? (
-														<Link
-															href={crumb.href}
-															className="text-muted-foreground hover:text-foreground transition-colors"
-														>
-															{crumb.label}
-														</Link>
-													) : (
-														<span className="text-foreground font-medium">
-															{crumb.label}
-														</span>
-													)}
-												</div>
-											))}
-										</span>
-										{/* Collapsed indicator: visible on mobile only */}
-										<span className="flex items-center gap-1 sm:hidden">
-											<ChevronRight className="size-3.5 text-muted-foreground" />
-											<span className="text-muted-foreground">...</span>
-										</span>
-									</>
-								)}
-
-								{/* Last crumb (when more than 1) */}
-								{breadcrumbs.length > 1 && lastCrumb && (
-									<div className="flex items-center gap-1">
-										<ChevronRight className="w-3.5 h-3.5 text-muted-foreground" />
-										{lastCrumb.href ? (
-											<Link
-												href={lastCrumb.href}
-												className="text-muted-foreground hover:text-foreground transition-colors"
-											>
-												{lastCrumb.label}
-											</Link>
-										) : (
-											<span className="text-foreground font-medium truncate max-w-[150px] sm:max-w-none">
-												{lastCrumb.label}
-											</span>
-										)}
-									</div>
-								)}
-							</nav>
-							)
-						})()}
-					</div>
-
-					{/* Right side - sync status, notifications, user */}
-					<div className="flex items-center gap-2">
-						<GlobalSyncIndicator />
-						<Link
-							href="/settings?tab=notifications"
-							className="p-2 rounded-md hover:bg-muted transition-colors"
-							aria-label="View notifications"
-						>
-							<Bell className="w-5 h-5 text-muted-foreground" />
-						</Link>
-
-						{/* User profile */}
-						{user && (
-							<UserProfileMenu
-								userInitials={userInitials}
-								userName={userName}
-								userEmail={userEmail}
-								profileHref="/profile"
-								settingsHref="/settings"
-								onSignOut={() => signOutMutation.mutate()}
-							/>
-						)}
-					</div>
-				</header>
+				<AppShellHeader
+					triggerRef={triggerRef}
+					onSidebarOpen={() => setSidebarOpen(true)}
+					breadcrumbs={breadcrumbs}
+					user={user ?? null}
+					userInitials={userInitials}
+					userName={userName}
+					userEmail={userEmail}
+					onSignOut={() => signOutMutation.mutate()}
+				/>
 
 				{/* Page content */}
 				<main id="main-content" className="flex-1 bg-muted/30 pb-24 sm:pb-6">
@@ -401,91 +230,17 @@ export function AppShell({ children, showQuickActionsDock = true }: AppShellProp
 			{/* Quick Actions Dock */}
 			{showQuickActionsDock && <QuickActionsDock />}
 
-			<CommandDialog
+			<AppShellSearch
 				open={commandOpen}
 				onOpenChange={setCommandOpen}
-				className="max-w-xl"
-			>
-				<CommandInput placeholder="Search pages and actions..." />
-				<CommandList>
-					<CommandEmpty>No results found.</CommandEmpty>
-					{propertyItems.length > 0 && (
-						<CommandGroup heading="Recent Properties">
-							{propertyItems.map(item => (
-								<CommandItem
-									key={item.id}
-									value={`${item.label} ${item.subtitle}`}
-									onSelect={() => handleCommandSelect(item.href)}
-								>
-									<Building2 className="w-4 h-4 text-muted-foreground" />
-									<span className="flex-1">{item.label}</span>
-									{item.subtitle && (
-										<span className="text-xs text-muted-foreground">
-											{item.subtitle}
-										</span>
-									)}
-								</CommandItem>
-							))}
-						</CommandGroup>
-					)}
-					{tenantItems.length > 0 && (
-						<CommandGroup heading="Recent Tenants">
-							{tenantItems.map(item => (
-								<CommandItem
-									key={item.id}
-									value={`${item.label} ${item.subtitle}`}
-									onSelect={() => handleCommandSelect(item.href)}
-								>
-									<Users className="w-4 h-4 text-muted-foreground" />
-									<span className="flex-1">{item.label}</span>
-									{item.subtitle && (
-										<span className="text-xs text-muted-foreground">
-											{item.subtitle}
-										</span>
-									)}
-								</CommandItem>
-							))}
-						</CommandGroup>
-					)}
-					{commandGroups.map(group => (
-						<CommandGroup key={group.heading} heading={group.heading}>
-							{group.items.map(item => (
-								<CommandItem
-									key={item.href}
-									onSelect={() => handleCommandSelect(item.href)}
-								>
-									<item.icon className="w-4 h-4 text-muted-foreground" />
-									<span>{item.label}</span>
-								</CommandItem>
-							))}
-						</CommandGroup>
-					))}
-					<CommandSeparator />
-					<CommandGroup heading="Account & Support">
-						{commandActions.map(action => (
-							<CommandItem
-								key={action.href}
-								onSelect={() => handleCommandSelect(action.href)}
-							>
-								<action.icon className="w-4 h-4 text-muted-foreground" />
-								<span>{action.label}</span>
-							</CommandItem>
-						))}
-						{user && (
-							<CommandItem
-								onSelect={() => {
-									setCommandOpen(false)
-									signOutMutation.mutate()
-								}}
-							>
-								<LogOut className="w-4 h-4 text-muted-foreground" />
-								<span>Sign out</span>
-								<CommandShortcut>↵</CommandShortcut>
-							</CommandItem>
-						)}
-					</CommandGroup>
-				</CommandList>
-			</CommandDialog>
+				propertyItems={propertyItems}
+				tenantItems={tenantItems}
+				commandGroups={commandGroups}
+				commandActions={commandActions}
+				user={user}
+				onSelect={handleCommandSelect}
+				onSignOut={() => signOutMutation.mutate()}
+			/>
 		</div>
 	)
 }

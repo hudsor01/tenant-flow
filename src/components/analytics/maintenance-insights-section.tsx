@@ -1,6 +1,6 @@
 'use client'
 
-import { useQuery } from '@tanstack/react-query'
+import { useSuspenseQuery } from '@tanstack/react-query'
 import { analyticsQueries } from '#hooks/api/use-analytics'
 import { Skeleton } from '#components/ui/skeleton'
 import { BlurFade } from '#components/ui/blur-fade'
@@ -9,9 +9,9 @@ import { DataTableToolbar } from '#components/data-table/data-table-toolbar'
 import { useDataTable } from '#hooks/use-data-table'
 import type { ColumnDef } from '@tanstack/react-table'
 import { TrendingUp, DollarSign, Wrench } from 'lucide-react'
-import { useMemo } from 'react'
+
 import dynamic from 'next/dynamic'
-import type { MaintenanceCategoryBreakdown } from '#shared/types/analytics'
+import type { MaintenanceCategoryBreakdown } from '#types/analytics'
 import { ChartLoadingSkeleton } from '#components/shared/chart-loading-skeleton'
 
 const MaintenanceTrendChart = dynamic(
@@ -55,8 +55,7 @@ function CategoryBreakdownTable({
 }: {
 	entries: MaintenanceCategoryBreakdown[]
 }) {
-	const columns: ColumnDef<MaintenanceCategoryBreakdown>[] = useMemo(
-		() => [
+	const columns: ColumnDef<MaintenanceCategoryBreakdown>[] = [
 			{
 				accessorKey: 'category',
 				header: 'Category',
@@ -82,9 +81,7 @@ function CategoryBreakdownTable({
 					<div className="text-right">{row.original.count}</div>
 				)
 			}
-		],
-		[]
-	)
+		]
 
 	const { table } = useDataTable({
 		data: entries,
@@ -115,13 +112,9 @@ function CategoryBreakdownTable({
 }
 
 export function MaintenanceInsightsSection() {
-	const { data, isLoading } = useQuery(analyticsQueries.maintenancePageData())
+	const { data } = useSuspenseQuery(analyticsQueries.maintenancePageData())
 
-	if (isLoading) {
-		return <MaintenanceInsightsSkeleton />
-	}
-
-	const { trends = [], costBreakdown = [], categoryBreakdown = [] } = data || {}
+	const { trends = [], costBreakdown = [], categoryBreakdown = [] } = data
 
 	return (
 		<div className="space-y-6">

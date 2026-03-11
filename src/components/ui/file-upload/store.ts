@@ -2,7 +2,6 @@
 
 import {
 	createContext,
-	useCallback,
 	useContext,
 	useSyncExternalStore
 } from 'react'
@@ -35,7 +34,7 @@ export function useStore<T>(selector: (state: StoreState) => T): T {
 		() => null
 	)
 
-	const getSnapshot = useCallback(() => {
+	const getSnapshot = () => {
 		const state = store.getState()
 		const prevValue = lastValueRef.current
 
@@ -46,7 +45,7 @@ export function useStore<T>(selector: (state: StoreState) => T): T {
 		const nextValue = selector(state)
 		lastValueRef.current = { value: nextValue, state }
 		return nextValue
-	}, [store, selector, lastValueRef])
+	}
 
 	return useSyncExternalStore(store.subscribe, getSnapshot, getSnapshot)
 }

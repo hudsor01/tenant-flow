@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo, useState } from 'react'
+import { useState } from 'react'
 import {
 	useFinancialOverview,
 	useMonthlyMetrics
@@ -18,7 +18,7 @@ export default function FinancialsPage() {
 	const { data: overview, isLoading, error, refetch } = useFinancialOverview()
 	const { data: monthlyMetrics } = useMonthlyMetrics()
 
-	const recentMonths = useMemo(() => {
+	const recentMonths = (() => {
 		if (!monthlyMetrics || monthlyMetrics.length < 2) return null
 		const sorted = [...monthlyMetrics].sort((a, b) =>
 			a.month.localeCompare(b.month)
@@ -37,7 +37,7 @@ export default function FinancialsPage() {
 				: 0
 
 		return { revenueChange, expenseChange, current, previous }
-	}, [monthlyMetrics])
+	})()
 
 	const totalRevenue = overview?.overview?.total_revenue ?? 0
 	const totalExpenses = overview?.overview?.total_expenses ?? 0

@@ -5,19 +5,15 @@
  * Property, Unit, and Tenant selection with cascading filters
  *
  * Features:
- * - Cascading property → unit → tenant selection
+ * - Cascading property -> unit -> tenant selection
  * - Vacant unit filtering (only shows available units)
  * - Auto-populate rent/deposit from selected unit
  * - Inline tenant invitation form
  */
 import { useState } from 'react'
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { toast } from 'sonner'
+import { useQuery } from '@tanstack/react-query'
 import { createClient } from '#lib/supabase/client'
-import { getCachedUser } from '#lib/supabase/get-cached-user'
-import { requireOwnerUserId } from '#lib/require-owner-user-id'
 import { Label } from '#components/ui/label'
-import { Input } from '#components/ui/input'
 import {
 	Combobox,
 	ComboboxAnchor,
@@ -35,16 +31,16 @@ import {
 	EmptyDescription,
 	EmptyMedia
 } from '#components/ui/empty'
-import { Button } from '#components/ui/button'
-import { AlertCircle, Loader2, Mail, UserPlus } from 'lucide-react'
+import { AlertCircle, UserPlus } from 'lucide-react'
 import { propertyQueries } from '#hooks/api/query-keys/property-keys'
 import { unitQueries } from '#hooks/api/query-keys/unit-keys'
 import { tenantQueries } from '#hooks/api/query-keys/tenant-keys'
-import type { SelectionStepData } from '#shared/validation/lease-wizard.schemas'
+import { InlineTenantInvite, TenantModeToggle } from './selection-step-filters'
+import type { SelectionStepData } from '#lib/validation/lease-wizard.schemas'
 import type {
 	Property as SharedProperty,
 	Unit as SharedUnit
-} from '#shared/types/core'
+} from '#types/core'
 
 interface SelectionStepProps {
 	data: Partial<SelectionStepData>
@@ -66,133 +62,55 @@ interface Tenant {
 }
 
 export function SelectionStep({ data, onChange, onUnitSelected }: SelectionStepProps) {
-	const queryClient = useQueryClient()
-
-	// Invite mode state
 	const [inviteMode, setInviteMode] = useState(false)
-	const [inviteForm, setInviteForm] = useState({
-		first_name: '',
-		last_name: '',
-		email: '',
-		phone: ''
-	})
 
-	// Fetch properties via Supabase PostgREST
-	const {
-		data: properties,
-		isLoading: propertiesLoading,
-		error: propertiesError
-	} = useQuery({
+	const { data: properties, isLoading: propertiesLoading, error: propertiesError } = useQuery({
 		queryKey: [...propertyQueries.all(), 'list'],
 		queryFn: async () => {
 			const supabase = createClient()
-			const { data: rows, error } = await supabase
-				.from('properties')
-				.select('id, name, address_line1, city, state')
-				.neq('status', 'inactive')
-				.order('name')
+			const { data: rows, error } = await supabase.from('properties').select('id, name, address_line1, city, state').neq('status', 'inactive').order('name')
 			if (error) throw error
 			return (rows ?? []) as Property[]
 		}
 	})
 
-	// Fetch available units filtered by selected property via Supabase PostgREST
-	const {
-		data: units,
-		isLoading: unitsLoading,
-		error: unitsError
-	} = useQuery({
+	const { data: units, isLoading: unitsLoading, error: unitsError } = useQuery({
 		queryKey: [...unitQueries.all(), 'by-property', data.property_id, 'available'],
 		queryFn: async () => {
 			const supabase = createClient()
-			const { data: rows, error } = await supabase
-				.from('units')
-				.select('id, unit_number, property_id, rent_amount')
-				.eq('property_id', data.property_id ?? '')
-				.eq('status', 'available')
-				.order('unit_number')
+			const { data: rows, error } = await supabase.from('units').select('id, unit_number, property_id, rent_amount').eq('property_id', data.property_id ?? '').eq('status', 'available').order('unit_number')
 			if (error) throw error
 			return (rows ?? []) as Unit[]
 		},
 		enabled: !!data.property_id
 	})
 
-	// Fetch tenants (filtered by selected property) via Supabase PostgREST
-	const {
-		data: tenants,
-		isLoading: tenantsLoading,
-		error: tenantsError
-	} = useQuery({
-		queryKey: [...tenantQueries.all(), 'list', data.property_id],
+	const { data: tenants, isLoading: tenantsLoading, error: tenantsError } = useQuery({
+		queryKey: [...tenantQueries.all(), 'list-for-lease'],
 		queryFn: async () => {
 			const supabase = createClient()
-			let query = supabase
+			const { data: rows, error } = await supabase
 				.from('tenants')
-				.select('id, first_name, last_name, email')
-				.neq('status', 'inactive')
-				.order('last_name')
-			if (data.property_id) {
-				query = query.eq('property_id', data.property_id)
-			}
-			const { data: rows, error } = await query
+				.select('id, users!inner(first_name, last_name, email)')
+				.neq('users.status', 'inactive')
 			if (error) throw error
-			return (rows ?? []) as Tenant[]
-		}
-	})
-
-	// Inline tenant invitation mutation (doesn't require lease_id)
-	const inviteMutation = useMutation({
-		mutationFn: async (inviteData: {
-			first_name: string
-			last_name: string
-			email: string
-			phone: string
-		}) => {
-			const supabase = createClient()
-			const user = await getCachedUser()
-			const ownerId = requireOwnerUserId(user?.id)
-
-			const invitationCode = crypto.randomUUID()
-			const appBaseUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3050'
-			const invitationUrl = `${appBaseUrl}/auth/accept-invitation?code=${invitationCode}`
-			const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString()
-
-			const { error } = await supabase
-				.from('tenant_invitations')
-				.insert({
-					email: inviteData.email,
-					owner_user_id: ownerId,
-					property_id: data.property_id ?? null,
-					invitation_code: invitationCode,
-					invitation_url: invitationUrl,
-					expires_at: expiresAt,
-					status: 'sent',
-					type: 'lease_signing'
+			return (rows ?? [])
+				.map(row => {
+					const user = row.users as unknown as { first_name: string | null; last_name: string | null; email: string }
+					return {
+						id: row.id,
+						first_name: user.first_name ?? '',
+						last_name: user.last_name ?? '',
+						email: user.email
+					} satisfies Tenant
 				})
-
-			if (error) throw new Error(error.message || 'Failed to send invitation')
-		},
-		onSuccess: () => {
-			toast.success('Invitation sent', {
-				description: `${inviteForm.first_name} ${inviteForm.last_name} will receive an email to join`
-			})
-			setInviteMode(false)
-			setInviteForm({ first_name: '', last_name: '', email: '', phone: '' })
-			queryClient.invalidateQueries({ queryKey: tenantQueries.lists() })
-			queryClient.invalidateQueries({ queryKey: tenantQueries.invitations() })
-		},
-		onError: (error: Error) => {
-			toast.error(error.message)
+				.sort((a, b) => a.last_name.localeCompare(b.last_name))
 		}
 	})
 
 	const handlePropertyChange = (propertyId: string) => {
-		const newData: Partial<SelectionStepData> = {
-			property_id: propertyId
-		}
-		if (data.primary_tenant_id) {
-			newData.primary_tenant_id = data.primary_tenant_id
-		}
+		const newData: Partial<SelectionStepData> = { property_id: propertyId }
+		if (data.primary_tenant_id) { newData.primary_tenant_id = data.primary_tenant_id }
 		onChange(newData)
 	}
 
@@ -205,13 +123,6 @@ export function SelectionStep({ data, onChange, onUnitSelected }: SelectionStepP
 	const handleTenantChange = (tenantId: string) => {
 		onChange({ ...data, primary_tenant_id: tenantId })
 	}
-
-	const handleSendInvite = () => {
-		if (!inviteForm.first_name || !inviteForm.last_name || !inviteForm.email) return
-		inviteMutation.mutate(inviteForm)
-	}
-
-	const isInviteFormValid = inviteForm.first_name && inviteForm.last_name && inviteForm.email
 
 	return (
 		<div className="space-y-6">
@@ -234,10 +145,7 @@ export function SelectionStep({ data, onChange, onUnitSelected }: SelectionStepP
 							Failed to load properties: {propertiesError.message}
 						</div>
 					) : (
-						<Combobox
-							value={data.property_id ?? ''}
-							onValueChange={handlePropertyChange}
-						>
+						<Combobox value={data.property_id ?? ''} onValueChange={handlePropertyChange}>
 							<ComboboxAnchor id="property">
 								<ComboboxInput placeholder="Search properties..." autoFocus />
 								<ComboboxTrigger />
@@ -275,10 +183,7 @@ export function SelectionStep({ data, onChange, onUnitSelected }: SelectionStepP
 							No available units for this property
 						</div>
 					) : (
-						<Combobox
-							value={data.unit_id ?? ''}
-							onValueChange={handleUnitChange}
-						>
+						<Combobox value={data.unit_id ?? ''} onValueChange={handleUnitChange}>
 							<ComboboxAnchor id="unit">
 								<ComboboxInput placeholder="Search units..." />
 								<ComboboxTrigger />
@@ -299,94 +204,11 @@ export function SelectionStep({ data, onChange, onUnitSelected }: SelectionStepP
 				<div className="space-y-2">
 					<div className="flex items-center justify-between">
 						<Label htmlFor="tenant">Primary Tenant *</Label>
-						<Button
-							type="button"
-							variant="ghost"
-							size="sm"
-							onClick={() => setInviteMode(!inviteMode)}
-						>
-							{inviteMode ? (
-								'Existing Tenant'
-							) : (
-								<>
-									<Mail className="mr-1.5 h-3.5 w-3.5" />
-									Invite New Tenant
-								</>
-							)}
-						</Button>
+						<TenantModeToggle inviteMode={inviteMode} onToggle={() => setInviteMode(!inviteMode)} />
 					</div>
 
 					{inviteMode ? (
-						<div className="space-y-3 rounded-md border border-border p-4">
-							<div className="grid grid-cols-2 gap-3">
-								<div className="space-y-1">
-									<Label htmlFor="invite_first_name">First Name *</Label>
-									<Input
-										id="invite_first_name"
-										value={inviteForm.first_name}
-										onChange={e =>
-											setInviteForm(f => ({ ...f, first_name: e.target.value }))
-										}
-										placeholder="Jane"
-									/>
-								</div>
-								<div className="space-y-1">
-									<Label htmlFor="invite_last_name">Last Name *</Label>
-									<Input
-										id="invite_last_name"
-										value={inviteForm.last_name}
-										onChange={e =>
-											setInviteForm(f => ({ ...f, last_name: e.target.value }))
-										}
-										placeholder="Doe"
-									/>
-								</div>
-							</div>
-							<div className="grid grid-cols-2 gap-3">
-								<div className="space-y-1">
-									<Label htmlFor="invite_email">Email *</Label>
-									<Input
-										id="invite_email"
-										type="email"
-										value={inviteForm.email}
-										onChange={e =>
-											setInviteForm(f => ({ ...f, email: e.target.value }))
-										}
-										placeholder="jane@example.com"
-									/>
-								</div>
-								<div className="space-y-1">
-									<Label htmlFor="invite_phone">Phone</Label>
-									<Input
-										id="invite_phone"
-										type="tel"
-										value={inviteForm.phone}
-										onChange={e =>
-											setInviteForm(f => ({ ...f, phone: e.target.value }))
-										}
-										placeholder="(555) 123-4567"
-									/>
-								</div>
-							</div>
-							<Button
-								type="button"
-								size="sm"
-								onClick={handleSendInvite}
-								disabled={!isInviteFormValid || inviteMutation.isPending}
-							>
-								{inviteMutation.isPending ? (
-									<>
-										<Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" />
-										Sending...
-									</>
-								) : (
-									<>
-										<UserPlus className="mr-2 h-3.5 w-3.5" />
-										Send Invitation
-									</>
-								)}
-							</Button>
-						</div>
+						<InlineTenantInvite propertyId={data.property_id} onToggleMode={() => setInviteMode(false)} />
 					) : tenantsLoading ? (
 						<Skeleton className="h-10 w-full" />
 					) : tenantsError ? (
@@ -397,9 +219,7 @@ export function SelectionStep({ data, onChange, onUnitSelected }: SelectionStepP
 					) : tenants?.length === 0 ? (
 						<Empty>
 							<EmptyHeader>
-								<EmptyMedia variant="icon">
-									<UserPlus />
-								</EmptyMedia>
+								<EmptyMedia variant="icon"><UserPlus /></EmptyMedia>
 								<EmptyTitle>No Tenants Available</EmptyTitle>
 								<EmptyDescription>
 									{data.property_id
@@ -409,10 +229,7 @@ export function SelectionStep({ data, onChange, onUnitSelected }: SelectionStepP
 							</EmptyHeader>
 						</Empty>
 					) : (
-						<Combobox
-							value={data.primary_tenant_id ?? ''}
-							onValueChange={handleTenantChange}
-						>
+						<Combobox value={data.primary_tenant_id ?? ''} onValueChange={handleTenantChange}>
 							<ComboboxAnchor id="tenant">
 								<ComboboxInput placeholder="Search tenants..." />
 								<ComboboxTrigger />

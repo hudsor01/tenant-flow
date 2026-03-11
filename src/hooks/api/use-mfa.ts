@@ -5,13 +5,11 @@
  * @see https://supabase.com/docs/guides/auth/auth-mfa
  */
 
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useMutation, useQuery, useQueryClient, mutationOptions } from '@tanstack/react-query'
 import { createClient } from '#lib/supabase/client'
 import { toast } from 'sonner'
 import { handleMutationError } from '#lib/mutation-error-handler'
 import { mutationKeys } from './mutation-keys'
-
-const supabase = createClient()
 
 /**
  * MFA query keys
@@ -54,6 +52,70 @@ export interface EnrollmentResult {
 	uri: string
 }
 
+// ============================================================================
+// MUTATION OPTIONS FACTORY
+// ============================================================================
+
+const mfaMutationFactories = {
+	enroll: () =>
+		mutationOptions({
+			mutationKey: mutationKeys.mfa.enroll,
+			mutationFn: async (friendlyName?: string): Promise<EnrollmentResult> => {
+				const supabase = createClient()
+				const { data, error } = await supabase.auth.mfa.enroll({
+					factorType: 'totp',
+					friendlyName: friendlyName ?? 'Authenticator App'
+				})
+
+				if (error) throw error
+
+				return {
+					factorId: data.id,
+					qrCode: data.totp.qr_code,
+					secret: data.totp.secret,
+					uri: data.totp.uri
+				}
+			}
+		}),
+
+	verify: () =>
+		mutationOptions<void, unknown, { factorId: string; code: string }>({
+			mutationKey: mutationKeys.mfa.verify,
+			mutationFn: async ({ factorId, code }) => {
+				const supabase = createClient()
+				// Create a challenge first
+				const { data: challengeData, error: challengeError } =
+					await supabase.auth.mfa.challenge({ factorId })
+
+				if (challengeError) throw challengeError
+
+				// Verify the code
+				const { error: verifyError } = await supabase.auth.mfa.verify({
+					factorId,
+					challengeId: challengeData.id,
+					code
+				})
+
+				if (verifyError) throw verifyError
+			}
+		}),
+
+	unenroll: () =>
+		mutationOptions<void, unknown, string>({
+			mutationKey: mutationKeys.mfa.unenroll,
+			mutationFn: async (factorId: string) => {
+				const supabase = createClient()
+				const { error } = await supabase.auth.mfa.unenroll({ factorId })
+
+				if (error) throw error
+			}
+		})
+}
+
+// ============================================================================
+// QUERY HOOKS
+// ============================================================================
+
 /**
  * Get current MFA status and assurance level
  */
@@ -61,6 +123,7 @@ export function useMfaStatus() {
 	return useQuery({
 		queryKey: mfaKeys.status(),
 		queryFn: async (): Promise<MfaStatus> => {
+			const supabase = createClient()
 			const { data, error } =
 				await supabase.auth.mfa.getAuthenticatorAssuranceLevel()
 
@@ -85,6 +148,7 @@ export function useMfaFactors() {
 	return useQuery({
 		queryKey: mfaKeys.factors(),
 		queryFn: async (): Promise<EnrolledFactor[]> => {
+			const supabase = createClient()
 			const { data, error } = await supabase.auth.mfa.listFactors()
 
 			if (error) throw error
@@ -125,29 +189,18 @@ export function useMfaFactors() {
 	})
 }
 
+// ============================================================================
+// MUTATION HOOKS
+// ============================================================================
+
 /**
  * Enroll a new TOTP factor
  * Returns QR code and secret for authenticator app setup
  */
 export function useMfaEnrollMutation() {
 	return useMutation({
-		mutationKey: mutationKeys.mfa.enroll,
-		mutationFn: async (friendlyName?: string): Promise<EnrollmentResult> => {
-			const { data, error } = await supabase.auth.mfa.enroll({
-				factorType: 'totp',
-				friendlyName: friendlyName ?? 'Authenticator App'
-			})
-
-			if (error) throw error
-
-			return {
-				factorId: data.id,
-				qrCode: data.totp.qr_code,
-				secret: data.totp.secret,
-				uri: data.totp.uri
-			}
-		},
-		onError: (error: Error) => handleMutationError(error, 'MFA enrollment')
+		...mfaMutationFactories.enroll(),
+		onError: (error) => handleMutationError(error, 'MFA enrollment')
 	})
 }
 
@@ -158,35 +211,13 @@ export function useMfaVerifyMutation() {
 	const queryClient = useQueryClient()
 
 	return useMutation({
-		mutationKey: mutationKeys.mfa.verify,
-		mutationFn: async ({
-			factorId,
-			code
-		}: {
-			factorId: string
-			code: string
-		}): Promise<void> => {
-			// Create a challenge first
-			const { data: challengeData, error: challengeError } =
-				await supabase.auth.mfa.challenge({ factorId })
-
-			if (challengeError) throw challengeError
-
-			// Verify the code
-			const { error: verifyError } = await supabase.auth.mfa.verify({
-				factorId,
-				challengeId: challengeData.id,
-				code
-			})
-
-			if (verifyError) throw verifyError
-		},
+		...mfaMutationFactories.verify(),
 		onSuccess: () => {
 			// Invalidate MFA queries to refresh status
 			queryClient.invalidateQueries({ queryKey: mfaKeys.all })
 			toast.success('Two-factor authentication verified')
 		},
-		onError: (error: Error) => handleMutationError(error, 'MFA verification')
+		onError: (error) => handleMutationError(error, 'MFA verification')
 	})
 }
 
@@ -197,25 +228,11 @@ export function useMfaUnenrollMutation() {
 	const queryClient = useQueryClient()
 
 	return useMutation({
-		mutationKey: mutationKeys.mfa.unenroll,
-		mutationFn: async (factorId: string): Promise<void> => {
-			const { error } = await supabase.auth.mfa.unenroll({ factorId })
-
-			if (error) throw error
-		},
+		...mfaMutationFactories.unenroll(),
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: mfaKeys.all })
 			toast.success('Two-factor authentication disabled')
 		},
-		onError: (error: Error) => handleMutationError(error, 'Disable 2FA')
+		onError: (error) => handleMutationError(error, 'Disable 2FA')
 	})
-}
-
-/**
- * Check if MFA verification is required for current session
- * Used during login flow to determine if MFA challenge is needed
- */
-export function useRequiresMfaVerification() {
-	const { data: status } = useMfaStatus()
-	return status?.requiresMfaVerification ?? false
 }

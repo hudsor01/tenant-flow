@@ -21,13 +21,13 @@ import {
 	AlertDialogHeader,
 	AlertDialogTitle,
 	AlertDialogTrigger
-} from '#components/ui/dialog'
+} from '#components/ui/alert-dialog'
 import { Plus, Trash2 } from 'lucide-react'
 import { useOptimistic, useState, useTransition } from 'react'
 import { toast } from 'sonner'
 import type { ColumnDef } from '@tanstack/react-table'
-import type { MaintenanceDisplayRequest } from '#shared/types/sections/maintenance'
-import { createLogger } from '#shared/lib/frontend-logger'
+import type { MaintenanceDisplayRequest } from '#types/sections/maintenance'
+import { createLogger } from '#lib/frontend-logger'
 import { createClient } from '#lib/supabase/client'
 import { useDataTable } from '#hooks/use-data-table'
 

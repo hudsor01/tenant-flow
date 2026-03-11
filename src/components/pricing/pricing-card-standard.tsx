@@ -18,7 +18,7 @@ import {
 import { checkoutRateLimiter } from '#lib/security'
 import { useMutation } from '@tanstack/react-query'
 import { toast } from 'sonner'
-import { createLogger } from '#shared/lib/frontend-logger'
+import { createLogger } from '#lib/frontend-logger'
 import { cn } from '#lib/utils'
 
 const logger = createLogger({ component: 'PricingCardStandard' })

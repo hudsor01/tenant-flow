@@ -12,7 +12,7 @@ import {
 	DialogTitle
 } from '#components/ui/dialog'
 import type { PropertyType } from './types'
-import type { PropertyStatus } from '#shared/types/core'
+import type { PropertyStatus } from '#types/core'
 
 interface PropertyBulkEditDialogProps {
 	open: boolean

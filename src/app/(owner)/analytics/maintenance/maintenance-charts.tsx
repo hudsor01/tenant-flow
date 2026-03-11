@@ -3,7 +3,7 @@
 import type {
 	MaintenanceCostBreakdownEntry,
 	MaintenanceTrendPoint
-} from '#shared/types/analytics'
+} from '#types/analytics'
 import {
 	Bar,
 	BarChart,

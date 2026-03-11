@@ -1,7 +1,6 @@
 'use client'
 
 import { Slot } from '@radix-ui/react-slot'
-import { useCallback } from 'react'
 import type {
 	ClipboardEvent,
 	DragEvent,
@@ -44,147 +43,126 @@ export function FileUploadDropzone(props: FileUploadDropzoneProps) {
 		onKeyDown: onKeyDownProp
 	})
 
-	const onClick = useCallback(
-		(event: MouseEvent<HTMLDivElement>) => {
-			propsRef.current.onClick?.(event)
+	const onClick = (event: MouseEvent<HTMLDivElement>) => {
+		propsRef.current.onClick?.(event)
 
-			if (event.defaultPrevented) return
+		if (event.defaultPrevented) return
 
-			const target = event.target
+		const target = event.target
 
-			const isFromTrigger =
-				target instanceof HTMLElement &&
-				target.closest('[data-slot="file-upload-trigger"]')
+		const isFromTrigger =
+			target instanceof HTMLElement &&
+			target.closest('[data-slot="file-upload-trigger"]')
 
-			if (!isFromTrigger) {
-				context.inputRef.current?.click()
-			}
-		},
-		[context.inputRef, propsRef]
-	)
+		if (!isFromTrigger) {
+			context.inputRef.current?.click()
+		}
+	}
 
-	const onDragOver = useCallback(
-		(event: DragEvent<HTMLDivElement>) => {
-			propsRef.current.onDragOver?.(event)
+	const onDragOver = (event: DragEvent<HTMLDivElement>) => {
+		propsRef.current.onDragOver?.(event)
 
-			if (event.defaultPrevented) return
+		if (event.defaultPrevented) return
 
-			event.preventDefault()
-			store.dispatch({ type: 'SET_DRAG_OVER', dragOver: true })
-		},
-		[store, propsRef]
-	)
+		event.preventDefault()
+		store.dispatch({ type: 'SET_DRAG_OVER', dragOver: true })
+	}
 
-	const onDragEnter = useCallback(
-		(event: DragEvent<HTMLDivElement>) => {
-			propsRef.current.onDragEnter?.(event)
+	const onDragEnter = (event: DragEvent<HTMLDivElement>) => {
+		propsRef.current.onDragEnter?.(event)
 
-			if (event.defaultPrevented) return
+		if (event.defaultPrevented) return
 
-			event.preventDefault()
-			store.dispatch({ type: 'SET_DRAG_OVER', dragOver: true })
-		},
-		[store, propsRef]
-	)
+		event.preventDefault()
+		store.dispatch({ type: 'SET_DRAG_OVER', dragOver: true })
+	}
 
-	const onDragLeave = useCallback(
-		(event: DragEvent<HTMLDivElement>) => {
-			propsRef.current.onDragLeave?.(event)
+	const onDragLeave = (event: DragEvent<HTMLDivElement>) => {
+		propsRef.current.onDragLeave?.(event)
 
-			if (event.defaultPrevented) return
+		if (event.defaultPrevented) return
 
-			const relatedTarget = event.relatedTarget
-			if (
-				relatedTarget &&
-				relatedTarget instanceof Node &&
-				event.currentTarget.contains(relatedTarget)
-			) {
-				return
-			}
+		const relatedTarget = event.relatedTarget
+		if (
+			relatedTarget &&
+			relatedTarget instanceof Node &&
+			event.currentTarget.contains(relatedTarget)
+		) {
+			return
+		}
 
-			event.preventDefault()
-			store.dispatch({ type: 'SET_DRAG_OVER', dragOver: false })
-		},
-		[store, propsRef]
-	)
+		event.preventDefault()
+		store.dispatch({ type: 'SET_DRAG_OVER', dragOver: false })
+	}
 
-	const onDrop = useCallback(
-		(event: DragEvent<HTMLDivElement>) => {
-			propsRef.current.onDrop?.(event)
+	const onDrop = (event: DragEvent<HTMLDivElement>) => {
+		propsRef.current.onDrop?.(event)
 
-			if (event.defaultPrevented) return
+		if (event.defaultPrevented) return
 
-			event.preventDefault()
-			store.dispatch({ type: 'SET_DRAG_OVER', dragOver: false })
+		event.preventDefault()
+		store.dispatch({ type: 'SET_DRAG_OVER', dragOver: false })
 
-			const files = Array.from(event.dataTransfer.files)
-			const inputElement = context.inputRef.current
-			if (!inputElement) return
+		const files = Array.from(event.dataTransfer.files)
+		const inputElement = context.inputRef.current
+		if (!inputElement) return
 
-			const dataTransfer = new DataTransfer()
-			for (const file of files) {
-				dataTransfer.items.add(file)
-			}
+		const dataTransfer = new DataTransfer()
+		for (const file of files) {
+			dataTransfer.items.add(file)
+		}
 
-			inputElement.files = dataTransfer.files
-			inputElement.dispatchEvent(new Event('change', { bubbles: true }))
-		},
-		[store, context.inputRef, propsRef]
-	)
+		inputElement.files = dataTransfer.files
+		inputElement.dispatchEvent(new Event('change', { bubbles: true }))
+	}
 
-	const onPaste = useCallback(
-		(event: ClipboardEvent<HTMLDivElement>) => {
-			propsRef.current.onPaste?.(event)
+	const onPaste = (event: ClipboardEvent<HTMLDivElement>) => {
+		propsRef.current.onPaste?.(event)
 
-			if (event.defaultPrevented) return
+		if (event.defaultPrevented) return
 
-			event.preventDefault()
-			store.dispatch({ type: 'SET_DRAG_OVER', dragOver: false })
+		event.preventDefault()
+		store.dispatch({ type: 'SET_DRAG_OVER', dragOver: false })
 
-			const items = event.clipboardData?.items
-			if (!items) return
+		const items = event.clipboardData?.items
+		if (!items) return
 
-			const files: File[] = []
-			for (let i = 0; i < items.length; i++) {
-				const item = items[i]
-				if (item?.kind === 'file') {
-					const file = item.getAsFile()
-					if (file) {
-						files.push(file)
-					}
+		const files: File[] = []
+		for (let i = 0; i < items.length; i++) {
+			const item = items[i]
+			if (item?.kind === 'file') {
+				const file = item.getAsFile()
+				if (file) {
+					files.push(file)
 				}
 			}
+		}
 
-			if (files.length === 0) return
+		if (files.length === 0) return
 
-			const inputElement = context.inputRef.current
-			if (!inputElement) return
+		const inputElement = context.inputRef.current
+		if (!inputElement) return
 
-			const dataTransfer = new DataTransfer()
-			for (const file of files) {
-				dataTransfer.items.add(file)
-			}
+		const dataTransfer = new DataTransfer()
+		for (const file of files) {
+			dataTransfer.items.add(file)
+		}
 
-			inputElement.files = dataTransfer.files
-			inputElement.dispatchEvent(new Event('change', { bubbles: true }))
-		},
-		[store, context.inputRef, propsRef]
-	)
+		inputElement.files = dataTransfer.files
+		inputElement.dispatchEvent(new Event('change', { bubbles: true }))
+	}
 
-	const onKeyDown = useCallback(
-		(event: KeyboardEvent<HTMLDivElement>) => {
-			propsRef.current.onKeyDown?.(event)
+	const onKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
+		propsRef.current.onKeyDown?.(event)
 
-			if (
-				!event.defaultPrevented &&
-				(event.key === 'Enter' || event.key === ' ')
-			) {
-				event.preventDefault()
-				context.inputRef.current?.click()
-			}
-		},
-		[context.inputRef, propsRef]
-	)
+		if (
+			!event.defaultPrevented &&
+			(event.key === 'Enter' || event.key === ' ')
+		) {
+			event.preventDefault()
+			context.inputRef.current?.click()
+		}
+	}
 
 	const DropzonePrimitive = asChild ? Slot : 'div'
 

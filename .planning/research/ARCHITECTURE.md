@@ -1,436 +1,398 @@
 # Architecture Patterns
 
-**Domain:** Blog redesign, newsletter subscription, CI optimization for existing property management SaaS
-**Researched:** 2026-03-06
-**Confidence:** HIGH -- all integration points verified against live codebase
+**Domain:** Hooks/components/shared consolidation and UI polish for existing property management SaaS
+**Researched:** 2026-03-08
+**Confidence:** HIGH -- all integration points verified against live codebase analysis
 
 ## Recommended Architecture
 
-The blog redesign adds three layers to the existing architecture: (1) new shared UI components in `src/components/blog/`, (2) an enhanced data layer in `use-blogs.ts` with pagination and a new RPC, and (3) a new Edge Function for newsletter subscription. CI changes are structural workflow modifications only.
+This consolidation milestone is a refactoring operation, not a feature build. The architecture stays the same -- what changes is the internal organization of three layers: (1) hooks (`src/hooks/api/` -- 85 files), (2) components (`src/components/` -- 450 files across 69 dirs), and (3) shared (`src/shared/` -- 50 files). Additionally, the existing design system in `globals.css` (1,702 lines) and `design-system.ts` (548 lines) gets enforced across all public-facing UI.
+
+The guiding principle: **preserve every working pattern, consolidate the organizational debt, and enforce the design system that already exists but is inconsistently applied.**
 
 ```
-                        EXISTING                              NEW/MODIFIED
-                        --------                              ------------
+                    CURRENT STATE                          TARGET STATE
+                    -------------                          ------------
 
-  Blog Pages            src/app/blog/page.tsx          -->    REWRITE (split zones, pagination, categories)
-  (3 pages)             src/app/blog/[slug]/page.tsx   -->    REWRITE (featured image, related posts)
-                        src/app/blog/category/          -->    REWRITE (dynamic names, pagination)
+  Hooks Layer       85 files in src/hooks/api/             Same files, fewer dead exports,
+  (query + mut)     15 query-key factories                 consistent patterns, dead hooks
+                    1 mutation-keys.ts                     identified and removed
+                    ~10 domain hook files > 250 lines      All hooks < 300 lines
 
-  Shared Components     (none exist)                   -->    src/components/blog/blog-card.tsx        NEW
-                                                              src/components/blog/blog-pagination.tsx  NEW
-                                                              src/components/blog/newsletter-signup.tsx NEW
+  Components        450 files across 69 dirs               Same dirs, 20+ oversized files
+  Layer             20 files > 300 lines (excl. tour.tsx)  split or consolidated
+                    Inconsistent design system usage        Consistent typography/spacing
+                    Mix of custom CSS + Tailwind utilities  Semantic utilities applied
 
-  Data Layer            src/hooks/api/use-blogs.ts     -->    REWRITE (paginated, categories, related)
-                        (no RPC)                       -->    get_blog_categories() SQL function         NEW
+  Shared Layer      50 files (types, validation,           Dead exports pruned,
+                    constants, utils, config, templates)    TYPES.md updated,
+                    TYPES.md as master lookup               design-system.ts aligned
+                    design-system.ts (548 lines)           with globals.css tokens
 
-  Edge Functions        15 existing functions           -->    newsletter-subscribe/index.ts             NEW
-                        _shared/{cors,env,errors,            (consumes existing _shared/ utilities)
-                         rate-limit}.ts
-
-  CI                    .github/workflows/ci-cd.yml    -->    MODIFY (dedup checks, independent e2e)
-
-  Proxy/Middleware      proxy.ts (blog in PUBLIC_ROUTES) -->  NO CHANGE (already public)
+  Design System     globals.css: 1,702 lines               Same tokens, enforced usage
+                    ~100 custom @utility definitions        across marketing + auth + portal
+                    5-level typography hierarchy            + dashboard pages
+                    oklch color system (light + dark)
 ```
 
 ### Component Boundaries
 
-| Component | Responsibility | Communicates With |
-|-----------|---------------|-------------------|
-| `BlogCard` | Renders a single blog post card (image, title, excerpt, metadata) | Receives `BlogListItem` from parent page |
-| `BlogPagination` | URL-driven page controls via `nuqs` | Reads/writes `?page=N` URL param; parent reads same param to drive query |
-| `NewsletterSignup` | Email capture form + Edge Function call | Calls `newsletter-subscribe` Edge Function directly via `fetch()` |
-| `use-blogs.ts` (hooks) | TanStack Query hooks for all blog data fetching | Supabase PostgREST for list/detail, Supabase RPC for categories |
-| `get_blog_categories` RPC | Aggregates distinct published categories with counts | Called by `useCategories()` hook |
-| `newsletter-subscribe` Edge Function | Validates email, rate-limits, adds contact to Resend | Resend Contacts API (`POST /contacts`) |
-| `PageLayout` | Marketing page shell (navbar, footer, grid pattern) | Wraps all blog pages (ALREADY EXISTS, no changes) |
-| `MarkdownContent` | Dynamic-imported `react-markdown` renderer | Used by detail page only (ALREADY EXISTS, no changes) |
+The consolidation preserves the existing component boundary model. No new boundaries are created.
+
+| Layer | Responsibility | Dependency Direction |
+|-------|---------------|---------------------|
+| `src/hooks/api/query-keys/` (15 files) | queryOptions() factories with queryFn embedded | Depends on: Supabase client, shared types |
+| `src/hooks/api/use-*.ts` (40+ files) | Re-export hooks wrapping queryOptions/useMutation | Depends on: query-keys, mutation-keys, shared types |
+| `src/hooks/api/mutation-keys.ts` | Centralized mutation key constants | No dependencies |
+| `src/hooks/api/use-tenant-portal-keys.ts` | Shared tenant portal keys + resolveTenantId | Depends on: Supabase client, auth |
+| `src/hooks/use-*.ts` (15 files) | Non-API utility hooks (navigation, toast, debounce, etc.) | Depends on: nothing or browser APIs |
+| `src/components/ui/` (85+ files) | shadcn/ui base primitives | Depends on: Radix, cva, cn() |
+| `src/components/shared/` (6 files) | Cross-domain shared components (skeletons, error pages) | Depends on: ui/ components |
+| `src/components/<domain>/` (60+ dirs) | Domain-specific feature components | Depends on: hooks/api, ui/, shared types |
+| `src/shared/types/` (25 files) | All shared TypeScript types, TYPES.md lookup | Depends on: supabase.ts (generated) |
+| `src/shared/constants/` (4 files) | Design system tokens, status types, billing constants | No dependencies |
+| `src/shared/validation/` (9 files) | Zod schemas for form/API validation | Depends on: shared types |
+| `src/shared/utils/` (3 files) | Currency formatting, API error handling, optimistic locking | No dependencies |
 
 ### Data Flow
 
-**Blog Hub Page (`/blog`)**
+**Data flow does not change.** The existing pattern is:
+
 ```
-URL ?page=N  --(nuqs)--> useQueryState('page')
-                              |
-                              +--> useFeaturedComparisons(6) --> Supabase PostgREST
-                              |                                   .from('blogs')
-                              |                                   .eq('category', 'Software Comparisons')
-                              |                                   .limit(6)
-                              |
-                              +--> useBlogs(page)            --> Supabase PostgREST
-                              |                                   .from('blogs')
-                              |                                   .neq('category', 'Software Comparisons')
-                              |                                   .range(from, to)
-                              |                                   { count: 'exact' }
-                              |
-                              +--> useCategories()           --> Supabase RPC
-                                                                  get_blog_categories()
+Page Component (src/app/)
+  -> useQuery(queryOptions()) from query-keys/*.ts
+  -> Supabase PostgREST (RLS enforced)
+  -> Data renders in domain components
+
+Mutations:
+  Page Component
+  -> useMutation() from use-*-mutations.ts
+  -> Supabase PostgREST or Edge Function
+  -> queryClient.invalidateQueries() on success
+  -> UI updates via TanStack Query cache
 ```
 
-**Blog Detail Page (`/blog/[slug]`)**
-```
-useParams().slug --> useBlogBySlug(slug)    --> Supabase PostgREST .single()
-                     |
-                     +--> useRelatedPosts(post.category, slug) --> Supabase PostgREST
-                                                                    .eq('category', category)
-                                                                    .neq('slug', excludeSlug)
-                                                                    .limit(3)
-```
+This pattern is sound. The consolidation does not touch data flow -- it touches file organization and CSS consistency.
 
-**Category Page (`/blog/category/[category]`)**
-```
-useParams().category --> deslugify() --> useBlogsByCategory(name, page)
-                                              |
-URL ?page=N --(nuqs)---------------------+   +--> Supabase PostgREST
-                                                     .eq('category', name)
-                                                     .range(from, to)
-                                                     { count: 'exact' }
-```
+## Build Order: Shared First, Hooks Second, Components Third
 
-**Newsletter Subscription**
-```
-NewsletterSignup form --> useMutation --> fetch() --> newsletter-subscribe Edge Function
-                                                        |
-                                                        +--> rateLimit(5 req/min)
-                                                        +--> validateEnv(RESEND_API_KEY)
-                                                        +--> POST https://api.resend.com/contacts
-                                                              { email }
-```
+**This order is mandatory because of the dependency direction.**
 
-## Integration Points (Existing vs New)
+### Phase 1: Shared Directory Cleanup (Foundation)
 
-### 1. Proxy/Middleware -- NO CHANGE NEEDED
-`/blog` is already in `PUBLIC_ROUTES` (proxy.ts line 13). The `isPublicRoute()` function uses `startsWith(route + '/')` matching, so `/blog/[slug]` and `/blog/category/[category]` are already covered. Blog pages do not require authentication.
+Everything depends on `src/shared/`. Clean it first so downstream work has a stable foundation.
 
-**Confidence:** HIGH -- verified against proxy.ts source.
+**What to do:**
+- Audit every export in shared types files for actual usage
+- Remove dead exports from `core.ts`, `relations.ts`, `api-contracts.ts`, `analytics.ts`
+- Update TYPES.md to match actual state (last updated 2026-02-20, now stale)
+- Reconcile `design-system.ts` constants with `globals.css` tokens (they define overlapping systems -- `design-system.ts` has `TYPOGRAPHY_SCALE` with 20+ entries, while `globals.css` has its own 5-level `typography-*` utilities using CSS custom properties; the CSS version is the one actually used in components)
+- Verify `@repo/shared/types/*` import alias still resolves correctly everywhere
+- Check `src/shared/validation/` schemas against current form requirements
 
-### 2. PageLayout -- NO CHANGE NEEDED
-All three blog pages already wrap content in `<PageLayout>` from `#components/layout/page-layout`. The redesign continues this pattern. No modifications to PageLayout are required.
+**Why first:** Types and constants are imported by every hook and component. Pruning dead exports here prevents false positives when auditing hooks and components. If a type is unused in shared but referenced in a hook, you need to know whether the hook itself is dead -- but you can only know that if the type audit is done first.
 
-**Confidence:** HIGH -- verified against current page source.
+**Dependencies:** None (shared is the bottom of the dependency tree)
 
-### 3. NuqsAdapter -- ALREADY IN PROVIDER TREE
-The `NuqsAdapter` from `nuqs/adapters/next/app` is already mounted in `src/components/providers.tsx` (wraps `AuthStoreProvider`). `BlogPagination` can use `useQueryState` immediately with no provider changes.
+**Risk:** LOW -- removing dead exports is safe if verified unused across the entire `src/` tree. TypeScript strict mode catches any broken imports immediately.
 
-**Confidence:** HIGH -- verified in providers.tsx line 33.
+### Phase 2: Hooks Consolidation (Data Layer)
 
-### 4. Blog Hooks (`use-blogs.ts`) -- FULL REWRITE
-Current hooks: `useBlogs()`, `useBlogBySlug()`, `useBlogsByCategory()`, `useFeaturedBlogs()`.
-All use flat `.limit(20)` queries with no pagination and no `{ count: 'exact' }`.
+Hooks sit between shared types and components. Clean them after shared is stable.
 
-New hooks add:
-- `page` parameter to `useBlogs()` and `useBlogsByCategory()` with `.range(from, to)` and `{ count: 'exact' }`
-- `useCategories()` calling `get_blog_categories` RPC
-- `useRelatedPosts(category, excludeSlug, limit)` for detail page
-- `useFeaturedComparisons(limit)` replacing `useFeaturedBlogs()`
-- `PaginatedBlogs` return type (`{ posts, total }`) replacing flat arrays
-- `blogKeys` expanded with pagination-aware cache keys
+**What to do:**
 
-**Breaking change:** `useBlogs()` return type changes from `BlogListItem[]` to `PaginatedBlogs`. Any consumer of `useBlogs()` must be updated. The only consumer is `src/app/blog/page.tsx` which is being fully rewritten, so this is safe.
+1. **Identify dead hooks** -- hooks that export functions imported by zero components:
+   - `use-emergency-contact.ts` (290 lines) -- only imported by 1 file (tenant profile page), but contains both queries AND mutations. Check if the queries are actually called.
+   - `use-identity-verification.ts` (78 lines) -- only imported by 1 file (`identity-verification-card.tsx`). Feature may be incomplete.
+   - `use-offline-data.ts` -- imported by only `property-form.mobile.tsx`. Check if that component exists/is used.
+   - `dashboard-graphql-keys.ts` -- only imported by `use-dashboard-hooks.ts`. pg_graphql is available but check if this is active or aspirational.
 
-**Confidence:** HIGH -- verified all consumers via grep.
+2. **Split oversized hooks** (>300 line rule):
+   - `use-tenant-mutations.ts` (314 lines) -- over limit, needs splitting by sub-domain (create/update vs invite vs status change)
+   - `use-vendor.ts` (297 lines) -- close to limit, leave unless it grows
+   - `use-tenant-payments.ts` (290 lines) -- close, leave
+   - `use-emergency-contact.ts` (290 lines) -- close, but may be dead (see above)
 
-### 5. Query Key Structure Change
-Current `blogKeys.all` is `['blogs']`. Current `blogKeys.category` is `['blogs', 'category', category]`.
+3. **Verify query-key factory consistency**:
+   - 15 factory files exist, all follow the queryOptions() pattern
+   - `tenant-mappers.ts` in query-keys/ is not a query key file -- it is a mapper function file. Consider whether it belongs in query-keys/ or should move to a utils location. (LOW priority -- it works where it is)
+   - `dashboard-graphql-keys.ts` uses pg_graphql queries. Verify these are active or dead code.
 
-New keys add page/limit parameters: `['blogs', 'list', page, limit]`, `['blogs', 'category', category, page]`, `['blogs', 'categories']`, `['blogs', 'comparisons', limit]`, `['blogs', 'related', category, excludeSlug]`.
+4. **Verify mutation-keys coverage**:
+   - `mutation-keys.ts` (224 lines) defines keys for 20+ domains
+   - Cross-check: every useMutation call should reference a mutationKey from this file
+   - Missing domains in mutation-keys: `inspections`, `vendors` -- check if these mutations use inline keys
 
-The `blogKeys` object stays in `use-blogs.ts` (not in `src/hooks/api/query-keys/`). This is an existing pattern deviation -- blog keys are co-located with hooks. The plan maintains this pattern rather than extracting to `query-keys/`.
+5. **Verify hook import patterns are consistent**:
+   - All hooks create `createClient()` inside functions (not module-level) -- verified
+   - All hooks import query-key factories from `./query-keys/` -- verified
+   - All mutation hooks import from `./mutation-keys` -- verified
 
-This is acceptable because blogs are public marketing content, not tenant data. They do not need cross-domain invalidation (no mutation from the frontend -- blogs are service_role only for write).
+**Why second:** Hooks import from shared types. If you clean hooks first and a type is dead, you might incorrectly think the hook is live because the import resolves. Clean shared first, then you know exactly which types are alive.
 
-**Confidence:** HIGH -- no other code references `blogKeys` for invalidation.
+**Dependencies:** Phase 1 (shared cleanup must be complete)
 
-### 6. Edge Function Shared Utilities -- CONSUMED, NOT MODIFIED
-The `newsletter-subscribe` Edge Function imports from existing `_shared/` modules:
-- `cors.ts` -- `getCorsHeaders()`, `handleCorsOptions()`
-- `errors.ts` -- `errorResponse()`
-- `env.ts` -- `validateEnv()`
-- `rate-limit.ts` -- `rateLimit()`
+**Risk:** LOW-MEDIUM -- removing dead hooks is safe if verified. Splitting large hooks requires moving exports, which means updating all import sites. TypeScript will catch all of these.
 
-No modifications to these shared modules are needed. The new Edge Function follows the exact same pattern as `tenant-invitation-validate` and `stripe-checkout-session` (unauthenticated, rate-limited).
+### Phase 3: Components Consolidation (UI Layer)
 
-**Confidence:** HIGH -- verified all imports match existing function signatures.
+Components are at the top of the dependency tree. Clean them last.
 
-### 7. Deno Import Map -- NO CHANGE NEEDED
-The `supabase/functions/deno.json` already includes `@sentry/deno`, `@upstash/ratelimit`, and `@upstash/redis`. The newsletter function does not introduce any new Deno dependencies -- it uses `fetch()` directly for the Resend API (same as `_shared/resend.ts` pattern).
+**What to do:**
 
-**Confidence:** HIGH -- verified against deno.json.
+1. **Split oversized components** (files >300 lines, excluding test files and tour.tsx which is vendored):
 
-### 8. Supabase Types -- REGENERATION REQUIRED
-After creating the `get_blog_categories` RPC migration, `pnpm db:types` must run to update `src/shared/types/supabase.ts`. The `useCategories()` hook calls `supabase.rpc('get_blog_categories')` which needs type definitions.
+   | File | Lines | Action |
+   |------|-------|--------|
+   | `stepper-item.tsx` | 607 | Extract sub-components (step icon, step content, step connector) |
+   | `app-shell.tsx` | 491 | Extract command palette, breadcrumbs, sidebar nav into separate files |
+   | `contact-form.tsx` | 452 | Extract form sections (personal, message, submit) |
+   | `selection-step.tsx` (lease wizard) | 434 | Extract selection list, filters, search into sub-files |
+   | `chart.tsx` | 430 | This is a shadcn/ui file -- leave as-is (upstream pattern) |
+   | `stepper.tsx` | 416 | Extract context, navigation, content areas |
+   | `inspection-detail.client.tsx` | 417 | Extract sections (photos, rooms, timeline) |
+   | `maintenance-view.client.tsx` | 394 | Extract tab panels |
+   | `subscriptions-tab.tsx` | 379 | Extract subscription card, actions panel |
+   | `maintenance-form.client.tsx` | 374 | Extract form sections |
+   | `lease-creation-wizard.tsx` | 374 | Extract step components |
+   | `two-factor-setup-dialog.tsx` | 369 | Extract QR code step, verify step |
+   | `property-form.client.tsx` | 368 | Extract form sections (details, images, address) |
+   | `file-upload.tsx` | 363 | This is a compound component -- leave if internally organized |
+   | `tenant-detail-sheet.tsx` | 359 | Extract detail sections |
+   | `balance-sheet.tsx` | 350 | Extract financial sections |
+   | `connect-account-status.tsx` | 346 | Extract status panels |
+   | `renew-lease-dialog.tsx` | 342 | Extract form, preview, confirmation |
+   | `properties.tsx` | 341 | Extract toolbar, grid view, table view |
 
-**Confidence:** HIGH -- standard pattern for all RPCs in this codebase.
+2. **Audit component directory structure** -- the current structure is domain-organized which is correct. No restructuring needed. Key directories:
+   - `ui/` (85 files) -- shadcn/ui primitives. Do not reorganize.
+   - `shared/` (6 files) -- skeletons, error pages. May need additions for newly-extracted shared patterns.
+   - `<domain>/` -- property, lease, maintenance, tenant, etc. Each owns its domain components.
 
-### 9. Blogs Table Schema -- NO MIGRATION NEEDED (for schema)
-The `blogs` table already has: `category TEXT`, `idx_blogs_category`, `featured_image TEXT`, `tags TEXT[]`, `reading_time` (computed), `status CHECK`. All columns needed by the redesign exist.
+3. **Identify dead components** -- components that are not imported by any page or other component. Requires full import graph analysis.
 
-One migration IS needed: `get_blog_categories()` RPC function (pure read-only aggregation, `SECURITY INVOKER`, no schema changes).
+4. **Extract repeated patterns into shared components** -- look for patterns duplicated across 3+ domain components:
+   - Status badge rendering (each domain has its own status color mapping)
+   - Empty state patterns (beyond the `Empty` compound component)
+   - Detail page section headers
+   - Filter/toolbar patterns
 
-**Confidence:** HIGH -- verified against `20251209120000_create_blogs_table.sql`.
+**Why third:** Components depend on hooks and shared types. If you refactor components first and then change a hook API, you refactor twice. Clean bottom-up: shared -> hooks -> components.
 
-### 10. RLS Policies -- NO CHANGE NEEDED
-`blogs_select_published` policy allows `anon, authenticated` users to SELECT where `status = 'published'`. All new queries filter by `status = 'published'`, and the `get_blog_categories` RPC uses `SECURITY INVOKER` so it respects existing RLS. No new policies required.
+**Dependencies:** Phase 1 and Phase 2 (both must be complete)
 
-**Confidence:** HIGH -- verified against `20251219210000_add_blogs_rls_policies.sql`.
+**Risk:** MEDIUM -- splitting components requires careful prop threading and ensuring the split pieces are properly connected. Each split generates import changes. Test coverage (1,415 unit tests) provides safety net.
 
-### 11. EmptyState Component -- DOES NOT EXIST AS SHARED
-The plan references `EmptyState` from `#components/shared/empty-state` in the category page. This component DOES NOT EXIST as a shared reusable component. The codebase has domain-specific empty states (`DashboardEmptyState`, `BillingEmptyState`, `LeaseTemplateEmptyState`) but no shared generic one.
+### Phase 4: Design System Enforcement (UI Polish)
 
-**Resolution:** Inline the empty state in the category page. The current category page already has inline empty state markup. Creating a shared component for one usage point is premature abstraction.
+This phase runs after the structural consolidation because it touches component markup/classes.
 
-**Confidence:** HIGH -- verified via grep across entire `src/` directory.
+**What to do:**
 
-### 12. LazySection and SectionSkeleton -- ALREADY EXIST
-The plan uses `<LazySection>` and `<SectionSkeleton>` in the hub page for the Insights & Guides zone. Both components exist:
-- `src/components/ui/lazy-section.tsx` (IntersectionObserver-based)
-- `src/components/ui/section-skeleton.tsx` (variant: 'grid' produces 3-column skeleton)
+1. **Audit typography consistency across all pages:**
+   - Marketing pages (landing, features, pricing, contact, blog) should use `typography-display-*`, `typography-hero`, `typography-lead`
+   - Dashboard pages should use `typography-h1` through `typography-h4`, `typography-stat-*`
+   - Auth pages should use `typography-h2`, `typography-p`
+   - Currently, some components use raw Tailwind (`text-5xl lg:text-7xl font-bold`) while the design system defines `typography-hero` for exactly this purpose
 
-These are currently used only in landing page sections. Using them in the blog hub is architecturally consistent.
+2. **Enforce card utilities:**
+   - `card-standard`, `card-elevated`, `card-bordered`, `card-glass` are defined in globals.css but usage is inconsistent
+   - Dashboard uses `dashboard-widget-card` and `stat-card-professional` utilities correctly
+   - Marketing pages mix inline styles with semantic utilities
 
-**Confidence:** HIGH -- verified source and usage.
+3. **Enforce status badge utilities:**
+   - `status-badge`, `status-badge-success`, `status-badge-warning`, `status-badge-destructive` exist in globals.css
+   - Each domain component may have its own status rendering -- consolidate to use these utilities
 
-### 13. Resend Contacts API -- ENDPOINT HAS CHANGED
-The plan uses `POST /audiences/{id}/contacts` with `RESEND_AUDIENCE_ID` env var. Resend has updated their API: contacts are now global entities. The canonical endpoint is `POST https://api.resend.com/contacts` with `{ email }` in the body. The `audience_id` is no longer in the URL path.
+4. **Enforce spacing utilities:**
+   - `section-spacing`, `section-spacing-compact`, `page-offset-navbar`, `page-container` are defined
+   - Marketing pages should use these consistently instead of raw spacing values
 
-**Impact:** The Edge Function code needs to use the updated endpoint. The `RESEND_AUDIENCE_ID` env var may not be needed (verify at implementation time whether audience segmentation requires passing an audience reference in the request body).
+5. **Verify button variant usage:**
+   - Button has 10 variants (default, destructive, outline, secondary, ghost, link, premium, masculine, navbar, navbarGhost, lightboxNav)
+   - `premium` and `masculine` variants: check if both are needed or if they serve different contexts
+   - All CTA buttons should use consistent variants across marketing pages
 
-**Confidence:** MEDIUM -- based on Resend docs fetched during research. The older endpoint may still work but the newer one is canonical.
+6. **Reconcile design-system.ts with globals.css:**
+   - `TYPOGRAPHY_SCALE` in design-system.ts defines a parallel type system (display-2xl, heading-xl, body-lg, etc.) with exact pixel sizes and font weights
+   - `globals.css` defines the actual CSS utilities (typography-hero, typography-display-lg, etc.) using CSS custom properties
+   - These are two systems describing the same thing. Resolution: `globals.css` is the source of truth (it is what Tailwind uses). `design-system.ts` should reference the CSS custom properties or be deprecated in favor of direct Tailwind utility usage
+   - `COMPONENT_PRESETS` in design-system.ts (button, input, card presets) duplicate what cva variants in button.tsx and Tailwind utilities already provide
+   - `SEMANTIC_COLORS` in design-system.ts reference CSS vars that are already available as Tailwind utilities (`bg-primary`, `text-foreground`, etc.)
 
-### 14. Design System Tokens -- ALL EXIST
-The plan uses design system utilities from `globals.css`. Verified as existing:
-- `hero-highlight` (line 617)
-- `text-responsive-display-xl`, `text-responsive-display-lg` (line 1020+)
-- `section-spacing`, `section-spacing-compact` (line 1060+)
-- `typography-h1` through `typography-h4` (line 1214+)
+**Why last:** Design system changes are cosmetic. They require the structural work (splitting, pruning) to be done first so you are not applying CSS fixes to files that are about to be split or deleted.
 
-**Confidence:** HIGH -- verified against globals.css.
+**Dependencies:** Phases 1-3 (structural consolidation must be complete)
+
+**Risk:** LOW -- CSS class changes do not affect logic. Visual regression is the main risk, mitigated by the E2E test suite (17 journeys) and manual browser review.
+
+### Phase 5: Full-App UI Audit (Browser Automation)
+
+Verify all changes visually across every surface.
+
+**What to do:** Walk through every user-facing page in browser automation, checking:
+- Typography hierarchy consistency
+- Spacing and alignment
+- Card and container patterns
+- Status indicator consistency
+- Button variant usage
+- Mobile responsiveness
+- Dark mode (if applicable)
+
+**Why last:** You need all structural and CSS changes in place before auditing visually.
+
+**Dependencies:** Phase 4 (design system enforcement must be complete)
 
 ## Patterns to Follow
 
-### Pattern 1: Paginated PostgREST Queries with `{ count: 'exact' }`
-**What:** All list queries use `.range(from, to)` with `{ count: 'exact' }` for server-side pagination.
-**When:** Any list that can grow beyond a single page.
-**Why:** Existing convention throughout the codebase (properties, leases, tenants all use this pattern).
+### Pattern 1: queryOptions() Factory (PRESERVE)
+**What:** All query definitions use `queryOptions()` from TanStack Query, co-located with their `queryFn` in `src/hooks/api/query-keys/<domain>-keys.ts`.
+**Why preserve:** This pattern ensures type-safe query keys, co-located cache configuration, and centralized queryFn definitions. It is the TanStack Query v5 recommended pattern.
+**Status:** Fully implemented across all 15 factory files. No changes needed.
 
 ```typescript
-const from = (page - 1) * POSTS_PER_PAGE
-const to = from + POSTS_PER_PAGE - 1
-
-const { data, error, count } = await supabase
-  .from('blogs')
-  .select(BLOG_LIST_COLUMNS, { count: 'exact' })
-  .eq('status', 'published')
-  .order('published_at', { ascending: false })
-  .range(from, to)
-
-return { posts: data ?? [], total: count ?? 0 }
+// src/hooks/api/query-keys/property-keys.ts
+export const propertyQueries = {
+  all: () => queryOptions({
+    queryKey: ['properties'],
+    queryFn: async () => { /* Supabase query */ }
+  }),
+  detail: (id: string) => queryOptions({
+    queryKey: ['properties', id],
+    queryFn: async () => { /* Supabase query */ }
+  }),
+}
 ```
 
-### Pattern 2: URL-Driven Pagination via `nuqs`
-**What:** Page state lives in the URL (`?page=2`) via `nuqs` `useQueryState`.
-**When:** Blog list pages where pagination should be shareable/bookmarkable.
-**Why:** Already established in the codebase -- `NuqsAdapter` is in the provider tree, data tables use the same pattern.
+### Pattern 2: Mutation Key Constants (PRESERVE)
+**What:** All mutation keys are centralized in `mutation-keys.ts` as readonly tuples.
+**Why preserve:** Enables `useMutationState()` for global pending mutation tracking, consistent key naming, and centralized mutation key discovery.
+**Status:** 224 lines, 20+ domains. Well-organized.
 
-```typescript
-const [page] = useQueryState('page', parseAsInteger.withDefault(1))
-```
+### Pattern 3: Tenant Portal Key Sharing (PRESERVE)
+**What:** `use-tenant-portal-keys.ts` provides shared keys and `resolveTenantId()` for all tenant portal hooks.
+**Why preserve:** Prevents circular dependencies between tenant portal hook files. The `tenantIdQuery()` caches tenant ID resolution for 10 minutes, preventing redundant DB calls.
+**Status:** Working correctly. All tenant portal hooks use this pattern.
 
-### Pattern 3: Edge Function with Rate Limiting (Unauthenticated)
-**What:** Public Edge Functions use `rateLimit()` before processing.
-**When:** Any endpoint callable without authentication (newsletter, invitation validation).
-**Why:** Prevents abuse. Three existing functions follow this exact pattern.
+### Pattern 4: Custom Tailwind Utilities (PRESERVE + ENFORCE)
+**What:** ~100 custom `@utility` definitions in globals.css providing semantic CSS classes (typography-*, status-*, card-*, interactive-*, etc.).
+**Why preserve:** These encode the design system decisions. They are the "correct" way to apply visual styles in this codebase.
+**What to enforce:** Many components still use raw Tailwind utilities where semantic utilities exist. The consolidation should migrate to semantic utilities where they apply.
 
-```typescript
-const rateLimited = await rateLimit(req, {
-  maxRequests: 5,
-  windowMs: 60_000,
-  prefix: 'newsletter',
-})
-if (rateLimited) return rateLimited
-```
+### Pattern 5: Domain Component Organization (PRESERVE)
+**What:** Components organized by domain (`leases/`, `maintenance/`, `properties/`, `tenants/`, etc.) with `__tests__/` subdirectories.
+**Why preserve:** This matches the app route structure and makes feature work self-contained. Reshuffling component directories would break import paths across the entire app with zero architectural benefit.
 
-### Pattern 4: `SECURITY INVOKER` for Read-Only RPCs
-**What:** The `get_blog_categories` RPC uses `SECURITY INVOKER` (not `SECURITY DEFINER`).
-**When:** RPCs that only read data and should respect existing RLS policies.
-**Why:** No need for elevated privileges. The `blogs_select_published` RLS policy already allows anon/authenticated reads. Using INVOKER means the RPC automatically filters to published blogs through RLS.
-
-```sql
-CREATE OR REPLACE FUNCTION get_blog_categories()
-RETURNS TABLE(category text, count bigint)
-LANGUAGE sql
-STABLE
-SECURITY INVOKER
-SET search_path = public
-AS $$
-  SELECT b.category, count(*)::bigint
-  FROM blogs b
-  WHERE b.status = 'published' AND b.category IS NOT NULL
-  GROUP BY b.category
-  ORDER BY count(*) DESC;
-$$;
-```
-
-### Pattern 5: Component Folder per Domain
-**What:** Blog components go in `src/components/blog/` (new directory).
-**When:** Creating related shared components for a specific domain.
-**Why:** Follows existing patterns: `src/components/properties/`, `src/components/leases/`, `src/components/dashboard/`.
-
-### Pattern 6: Dynamic Import for Heavy Libraries
-**What:** `MarkdownContent` (react-markdown) is already loaded via `next/dynamic` with `ssr: false`.
-**When:** Libraries that are large and not needed on initial render.
-**Why:** Existing convention (recharts, react-markdown documented in CLAUDE.md).
+### Pattern 6: Client/Server Component Split (PRESERVE)
+**What:** `.client.tsx` suffix for explicitly client-side components (26 files). Server Components by default.
+**Why preserve:** This is the Next.js 16 convention. The `'use client'` boundary is correctly placed. Do not move client boundaries.
 
 ## Anti-Patterns to Avoid
 
-### Anti-Pattern 1: Hardcoded Category Configuration
-**What:** The current category page has a `categoryConfig` object mapping slug to `{ name, icon, description, color }`.
-**Why bad:** Requires code changes whenever categories change in the database. Fragile coupling between DB data and frontend config.
-**Instead:** Derive category name from URL slug via `deslugify()`. Fetch category list from `get_blog_categories` RPC for the hub page category pills.
+### Anti-Pattern 1: Creating Barrel Files
+**What:** Creating `index.ts` files that re-export from multiple files in a directory.
+**Why bad:** Explicitly forbidden in CLAUDE.md. Barrel files prevent tree-shaking, create circular dependency risks, and obscure the actual import source.
+**Instead:** Import directly from the defining file. This is already the codebase convention.
 
-### Anti-Pattern 2: Non-Functional Newsletter Forms
-**What:** Current blog pages have newsletter email inputs with no backend wiring.
-**Why bad:** Users submit forms that silently do nothing. Damages trust.
-**Instead:** Wire to `newsletter-subscribe` Edge Function with proper success/error states and toast feedback.
+### Anti-Pattern 2: Moving Query Logic Out of Query-Key Files
+**What:** Extracting queryFn out of queryOptions() factories into separate "service" files.
+**Why bad:** Breaks the co-location pattern that makes query keys and their data fetching logic discoverable together. The current pattern where queryFn lives inside queryOptions() is correct.
+**Instead:** Keep queryFn inside queryOptions(). If a queryFn is complex, extract helper functions within the same file.
 
-### Anti-Pattern 3: Flat List Queries Without Pagination
-**What:** Current `useBlogs()` fetches `.limit(20)` with no pagination controls.
-**Why bad:** Cannot scale beyond 20 posts. No way for users to navigate to older content.
-**Instead:** Use `.range()` with `{ count: 'exact' }` and `BlogPagination` component.
+### Anti-Pattern 3: Consolidating by Combining Unrelated Hooks
+**What:** Merging multiple domain hooks into a single file to "reduce file count."
+**Why bad:** Creates 500+ line files that violate the 300-line rule, mix unrelated domains, and make git blame useless.
+**Instead:** Split by concern. Each hook file should cover one domain or one sub-domain. The current split (e.g., `use-lease.ts` for queries, `use-lease-mutations.ts` for mutations, `use-lease-lifecycle-mutations.ts` for lifecycle operations) is correct.
 
-### Anti-Pattern 4: Gradient CTA Styling
-**What:** Current detail page CTA uses `bg-linear-to-br from-primary/10 via-primary/5` gradient.
-**Why bad:** Inconsistent with the rest of the marketing site design system (card-based, backdrop-blur).
-**Instead:** Use `bg-card/20 backdrop-blur-sm border border-border/30` (matches design tokens).
+### Anti-Pattern 4: Replacing CSS Utilities with design-system.ts Constants
+**What:** Using JavaScript constants from `design-system.ts` to generate inline styles instead of Tailwind utilities.
+**Why bad:** `design-system.ts` defines constants that duplicate what CSS custom properties and Tailwind utilities already provide. Using them creates an indirection layer that does not compose with Tailwind's utility model.
+**Instead:** Use the Tailwind utility classes defined in globals.css directly. The CSS custom properties (`--text-title-1`, `--color-primary`, etc.) are the source of truth. `design-system.ts` should be treated as documentation, not as a runtime dependency.
 
-### Anti-Pattern 5: Using Audience-Scoped Resend Endpoint
-**What:** The plan uses `POST /audiences/{id}/contacts` for Resend.
-**Why bad:** Resend has updated their API. Contacts are now global entities. The endpoint is now `POST /contacts`.
-**Instead:** Use `POST https://api.resend.com/contacts` with `{ email }` in the body.
+### Anti-Pattern 5: Restructuring Component Directories
+**What:** Reorganizing component directories (e.g., moving from domain-based to feature-based, or creating a "common" directory).
+**Why bad:** This is 450+ files. Restructuring directories means updating every import path, every test mock path, and every dynamic import. The current domain-based structure works and matches the app route structure.
+**Instead:** Keep the current directory structure. Consolidation means splitting oversized files and removing dead code within the existing structure.
 
-## CI Workflow Architecture
+## New vs Modified Components
 
-### Current Structure (Problem)
-```yaml
-on:
-  push: [main]        # triggers checks + e2e-smoke
-  pull_request: [main] # triggers checks only
+### New Components (Expected)
 
-jobs:
-  checks:             # runs on BOTH push and PR (duplicate on merge)
-    - lint, typecheck, build
+| Component | Purpose | Rationale |
+|-----------|---------|-----------|
+| None expected | This is a consolidation milestone | New features are out of scope |
 
-  e2e-smoke:
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-    needs: [checks]   # BLOCKED by checks completing first
-```
+The consolidation may create new *files* when splitting oversized components, but these are extractions from existing components, not new features.
 
-**Problems:**
-1. When a PR merges to main, `checks` runs twice: once for the PR close event and once for the push event.
-2. `e2e-smoke` is blocked by `checks` even though they are independent (e2e uses real Supabase, not build output).
+### Modified Components (Expected)
 
-### Recommended Structure
-```yaml
-on:
-  push:
-    branches: [main]
-  pull_request:
-    branches: [main]
+| Category | Files | Type of Modification |
+|----------|-------|---------------------|
+| Oversized components | ~20 files >300 lines | Split into sub-components |
+| Marketing pages | hero-section, bento-features, pricing cards, etc. | CSS class updates for design system consistency |
+| Auth pages | login, accept-invite | CSS class updates |
+| Dashboard components | owner-dashboard, stat cards | CSS class updates (already mostly correct) |
+| Tenant portal components | 6 files | CSS class updates |
+| Navbar | navbar.tsx + 3 sub-files | May need CTA consistency fixes |
+| Blog components | 6 files (recently created) | Unlikely to need changes (already uses design system) |
 
-jobs:
-  checks:
-    if: github.event_name == 'pull_request'   # ONLY on PRs
-    # lint, typecheck, build
+### Preserved Components (Do Not Touch)
 
-  e2e-smoke:
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-    # NO needs: [checks] -- runs independently
-    # install, playwright, run smoke tests
-```
-
-**Changes:**
-1. Gate `checks` to `pull_request` only -- PR must pass before merge.
-2. Remove `needs: [checks]` from `e2e-smoke` -- runs independently on push to main.
-3. Both jobs keep the same `paths-ignore` and `concurrency` settings.
-
-**Implication:** After merge, only e2e-smoke runs (no redundant lint/build). On PRs, only checks run (no premature e2e). Total CI minutes reduced.
-
-## Build Order (Dependency-Aware)
-
-The following order respects dependencies between components:
-
-```
-Phase 1: Data Layer (no UI dependencies)
-  1a. get_blog_categories RPC migration     -- SQL only, no frontend deps
-  1b. Regenerate supabase types             -- pnpm db:types
-  1c. Rewrite use-blogs.ts hooks            -- depends on 1b for RPC types
-
-Phase 2: Shared Components (depend on hooks, no page deps)
-  2a. blog-card.tsx                         -- depends on BlogListItem type from 1c
-  2b. blog-pagination.tsx                   -- depends on POSTS_PER_PAGE from 1c
-  2c. newsletter-subscribe Edge Function    -- independent of frontend
-  2d. newsletter-signup.tsx                 -- depends on Edge Function URL existing
-
-Phase 3: Page Rewrites (depend on all Phase 1 + 2 components)
-  3a. /blog hub page                        -- uses BlogCard, BlogPagination, NewsletterSignup, all hooks
-  3b. /blog/[slug] detail page              -- uses BlogCard, useBlogBySlug, useRelatedPosts
-  3c. /blog/category/[category] page        -- uses BlogCard, BlogPagination, useBlogsByCategory
-
-Phase 4: CI Optimization (independent of all above)
-  4a. Modify ci-cd.yml workflow             -- add event_name conditions, remove needs dependency
-```
-
-**Why this order:**
-- Phase 1 must come first because hooks are consumed by both components (Phase 2) and pages (Phase 3).
-- Phase 2 components are leaf nodes -- they have no dependencies on each other and can be built in parallel.
-- Phase 3 pages cannot be built until all their component imports exist.
-- Phase 4 is completely independent and can be done at any point, but logically groups as a final cleanup step.
-
-## New vs Modified Files Summary
-
-| Action | File | Why |
-|--------|------|-----|
-| CREATE | `supabase/migrations/20260306120000_blog_categories_rpc.sql` | New RPC function |
-| MODIFY | `src/shared/types/supabase.ts` | Regenerated (includes RPC types) |
-| MODIFY | `src/hooks/api/use-blogs.ts` | Full rewrite with pagination + new hooks |
-| CREATE | `src/components/blog/blog-card.tsx` | New shared component |
-| CREATE | `src/components/blog/blog-pagination.tsx` | New shared component |
-| CREATE | `supabase/functions/newsletter-subscribe/index.ts` | New Edge Function |
-| CREATE | `src/components/blog/newsletter-signup.tsx` | New shared component |
-| MODIFY | `src/app/blog/page.tsx` | Full rewrite (split zones) |
-| MODIFY | `src/app/blog/[slug]/page.tsx` | Full rewrite (featured image, related) |
-| MODIFY | `src/app/blog/category/[category]/page.tsx` | Full rewrite (dynamic, paginated) |
-| MODIFY | `.github/workflows/ci-cd.yml` | CI dedup optimization |
-| NO CHANGE | `src/app/blog/error.tsx` | Already uses ErrorPage correctly |
-| NO CHANGE | `src/app/blog/[slug]/markdown-content.tsx` | Already dynamic-imported correctly |
-| NO CHANGE | `proxy.ts` | `/blog` already in PUBLIC_ROUTES |
-| NO CHANGE | `supabase/functions/_shared/*.ts` | Consumed, not modified |
-| NO CHANGE | `supabase/functions/deno.json` | No new Deno deps needed |
-
-## Risks and Mitigations
-
-| Risk | Likelihood | Impact | Mitigation |
-|------|-----------|--------|------------|
-| Resend API endpoint changed (audience_id path deprecated) | HIGH | Edge Function 404s | Use `POST /contacts` endpoint; verify at deploy time |
-| `EmptyState` import fails (component does not exist) | HIGH | Build error | Inline empty state markup in category page |
-| Category slug/name mismatch (URL slug does not match DB category) | MEDIUM | Empty results | `deslugify()` must match DB values exactly; consider normalizing |
-| `get_blog_categories` RPC not in generated types | LOW | TypeCheck fails | Standard: run `pnpm db:types` after migration |
+| Component | Lines | Reason |
+|-----------|-------|--------|
+| `tour.tsx` | 1,732 | Vendored Dice UI upstream copy -- exempt from 300-line rule |
+| `chart.tsx` | 430 | shadcn/ui pattern -- upstream file structure |
+| `file-upload/*.tsx` | 363+ (compound) | Well-organized compound component with proper internal file split |
+| All `__tests__/*.test.tsx` | Various | Test files are not subject to the 300-line rule |
 
 ## Scalability Considerations
 
-| Concern | Current (< 50 posts) | At 500 posts | At 5,000 posts |
-|---------|----------------------|--------------|----------------|
-| Blog list query | `.limit(20)` -- fine | Pagination handles it | Add DB-level text search (pg_trgm index already exists on other tables) |
-| Categories RPC | Full scan of blogs | Fine (small table) | Consider materialized view if categories change infrequently |
-| Featured images | Stored as URL strings | Fine | Consider Supabase Storage for CDN delivery |
-| Newsletter contacts | Resend API | Resend handles scale | No change needed |
-| Related posts query | Full scan by category | Fine | Add composite index `(category, published_at DESC)` if slow |
+Not applicable for this consolidation milestone. The architectural scalability properties (RLS, PostgREST, query-key factories, domain-based component organization) are already in place and are being preserved, not changed.
+
+## Key Integration Points
+
+### Hook -> Query-Key Dependency Map
+
+```
+use-properties.ts       -> query-keys/property-keys.ts
+use-property-mutations.ts -> query-keys/property-keys.ts, unit-keys.ts
+use-lease.ts            -> query-keys/lease-keys.ts, maintenance-keys.ts
+use-lease-mutations.ts  -> query-keys/lease-keys.ts, tenant-keys.ts, unit-keys.ts
+use-lease-lifecycle-mutations.ts -> query-keys/lease-keys.ts, tenant-keys.ts, unit-keys.ts
+use-tenant.ts           -> query-keys/tenant-keys.ts
+use-tenant-mutations.ts -> query-keys/tenant-keys.ts, lease-keys.ts
+use-maintenance.ts      -> query-keys/maintenance-keys.ts
+use-analytics.ts        -> query-keys/analytics-keys.ts
+use-owner-dashboard.ts  -> query-keys/analytics-keys.ts
+use-billing.ts          -> query-keys/billing-keys.ts
+use-reports.ts          -> query-keys/report-keys.ts
+use-blogs.ts            -> query-keys/blog-keys.ts
+use-inspections.ts      -> query-keys/inspection-keys.ts
+use-dashboard-hooks.ts  -> query-keys/dashboard-graphql-keys.ts
+```
+
+Cross-domain invalidation (mutations that invalidate multiple query-key factories) is the primary source of complexity. These cross-references must be preserved exactly during any hook refactoring.
+
+### Design System Token Chain
+
+```
+globals.css @theme block
+  -> CSS custom properties (--text-title-1, --color-primary, etc.)
+  -> @utility definitions (typography-h1, card-standard, etc.)
+  -> Tailwind class usage in component JSX
+
+design-system.ts (parallel system -- documentation only)
+  -> TYPOGRAPHY_SCALE, SEMANTIC_COLORS, COMPONENT_PRESETS
+  -> Imported by: ONLY OG image generation and email templates
+  -> Should NOT be used for component styling
+```
 
 ## Sources
 
-- Codebase analysis: all files listed in integration points section verified via Read tool
-- Resend API: [Resend Contacts Documentation](https://resend.com/docs/dashboard/audiences/contacts), [Resend Blog on Audiences](https://resend.com/blog/manage-subscribers-using-resend-audiences)
-- GitHub Actions: [Workflow Syntax](https://docs.github.com/actions/using-workflows/workflow-syntax-for-github-actions)
-- nuqs: verified in `src/components/providers.tsx` (NuqsAdapter already mounted)
-- Blog table schema: `supabase/migrations/20251209120000_create_blogs_table.sql`
-- Blog RLS: `supabase/migrations/20251219210000_add_blogs_rls_policies.sql`
-- Proxy routes: `proxy.ts` lines 8-31
+- Live codebase analysis: `src/hooks/api/` (85 files), `src/components/` (450 files), `src/shared/` (50 files)
+- `globals.css` (1,702 lines of CSS custom properties and @utility definitions)
+- `design-system.ts` (548 lines of JS constants)
+- `TYPES.md` (shared types master lookup, last updated 2026-02-20)
+- `CLAUDE.md` (project conventions and rules)
+- All confidence levels HIGH -- based on direct codebase analysis, not external sources

@@ -2,7 +2,7 @@
 
 import type { Column } from '@tanstack/react-table'
 import { Check, PlusCircle, XCircle } from 'lucide-react'
-import { useCallback, useMemo, useState } from 'react'
+import { useState } from 'react'
 import type { MouseEvent } from 'react'
 
 import { Badge } from '#components/ui/badge'
@@ -37,13 +37,9 @@ export function DataTableFacetedFilter<TData, TValue>({
 	const [open, setOpen] = useState(false)
 
 	const columnFilterValue = column?.getFilterValue()
-	const selectedValues = useMemo(
-		() => new Set(Array.isArray(columnFilterValue) ? columnFilterValue : []),
-		[columnFilterValue]
-	)
+	const selectedValues = new Set(Array.isArray(columnFilterValue) ? columnFilterValue : [])
 
-	const onItemSelect = useCallback(
-		(option: Option, isSelected: boolean) => {
+	const onItemSelect = (option: Option, isSelected: boolean) => {
 			if (!column) return
 
 			if (multiple) {
@@ -59,17 +55,12 @@ export function DataTableFacetedFilter<TData, TValue>({
 				column.setFilterValue(isSelected ? undefined : [option.value])
 				setOpen(false)
 			}
-		},
-		[column, multiple, selectedValues]
-	)
+		}
 
-	const onReset = useCallback(
-		(event?: MouseEvent) => {
+	const onReset = (event?: MouseEvent) => {
 			event?.stopPropagation()
 			column?.setFilterValue(undefined)
-		},
-		[column]
-	)
+		}
 
 	return (
 		<Popover open={open} onOpenChange={setOpen}>

@@ -8,7 +8,7 @@ import {
 } from '#components/ui/input-group'
 import {
 	inviteTenantSchema
-} from '#shared/validation/tenants'
+} from '#lib/validation/tenants'
 import { Mail, Phone, User } from 'lucide-react'
 import type { ChangeEvent } from 'react'
 import type { InviteTenantFormApi } from './invite-tenant-form-types'

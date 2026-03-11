@@ -15,9 +15,9 @@ import { queryOptions, useQuery, useQueryClient } from '@tanstack/react-query'
 import { createClient } from '#lib/supabase/client'
 import { getCachedUser } from '#lib/supabase/get-cached-user'
 import { QUERY_CACHE_TIMES } from '#lib/constants/query-config'
-import { logger } from '#shared/lib/frontend-logger'
+import { logger } from '#lib/frontend-logger'
 import type { Session, User as SupabaseUser } from '@supabase/supabase-js'
-import type { AuthSession } from '#shared/types/auth'
+import type { AuthSession } from '#types/auth'
 
 // NOTE: No module-level Supabase client — each mutation/query creates its own
 // to avoid persisting a single client across requests (AUTH-06)
@@ -58,8 +58,6 @@ export const authKeys = {
 		session: () => ['supabase-auth', 'session'] as const
 	}
 }
-
-export const supabaseAuthKeys = authKeys.supabase
 
 // ============================================================================
 // QUERY OPTIONS (for direct use in pages with useQueries/prefetch)

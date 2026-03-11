@@ -44,11 +44,8 @@ export default function TenantAutopayPage() {
 		usePaymentMethods()
 	const setupAutopay = useTenantPortalSetupAutopayMutation()
 	const cancelAutopay = useTenantPortalCancelAutopayMutation()
-	const [selectedPaymentMethodId, setSelectedPaymentMethodId] =
-		useState<string>('')
-
-	const isLoading =
-		isLoadingAutopay || isLoadingLease || isLoadingPaymentMethods
+	const [selectedPaymentMethodId, setSelectedPaymentMethodId] = useState<string>('')
+	const isLoading = isLoadingAutopay || isLoadingLease || isLoadingPaymentMethods
 	const isAutopayEnabled = autopayStatus?.autopayEnabled ?? false
 	const hasPaymentMethods = (paymentMethods?.length ?? 0) > 0
 	const isMutating = setupAutopay.isPending || cancelAutopay.isPending

@@ -13,7 +13,7 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import { Suspense, useState } from 'react'
 
 import { createClient } from '#lib/supabase/client'
-import { createLogger } from '#shared/lib/frontend-logger'
+import { createLogger } from '#lib/frontend-logger'
 
 import { ErrorState } from '#components/auth/accept-invite/error-state'
 import { InviteHeroSection } from '#components/auth/accept-invite/invite-hero-section'
@@ -23,8 +23,8 @@ import { SuccessState } from '#components/auth/accept-invite/success-state'
 import type { AcceptInviteFormValues } from '#components/auth/accept-invite/accept-invite-form-types'
 import {
 	InvalidInviteError,
-	tenantQueries
-} from '#hooks/api/query-keys/tenant-keys'
+	tenantInvitationQueries
+} from '#hooks/api/query-keys/tenant-invitation-keys'
 
 const logger = createLogger({ component: 'AcceptInvitePage' })
 
@@ -40,7 +40,7 @@ function AcceptInviteContent() {
 		data: invitation,
 		isLoading,
 		error
-	} = useQuery(tenantQueries.validateInvitation(code))
+	} = useQuery(tenantInvitationQueries.validate(code))
 
 	async function acceptInvitation() {
 		const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL

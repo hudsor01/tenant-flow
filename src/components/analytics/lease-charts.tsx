@@ -1,7 +1,7 @@
 import type {
 	LeaseLifecyclePoint,
 	LeaseStatusBreakdown
-} from '#shared/types/analytics'
+} from '#types/analytics'
 import {
 	Area,
 	AreaChart,

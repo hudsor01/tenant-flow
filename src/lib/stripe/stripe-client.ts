@@ -5,7 +5,7 @@
 import { loadStripe, type Stripe } from '@stripe/stripe-js'
 import { createClient } from '#lib/supabase/client'
 import { ERROR_MESSAGES } from '#lib/constants/error-messages'
-import { createLogger } from '#shared/lib/frontend-logger'
+import { createLogger } from '#lib/frontend-logger'
 
 const logger = createLogger({ component: 'StripeClient' })
 

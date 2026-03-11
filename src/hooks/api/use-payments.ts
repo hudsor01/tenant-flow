@@ -14,10 +14,8 @@ import { useQuery } from '@tanstack/react-query'
 import { createClient } from '#lib/supabase/client'
 import { handlePostgrestError } from '#lib/postgrest-error-handler'
 import { QUERY_CACHE_TIMES } from '#lib/constants/query-config'
-import type { StripeSessionStatusResponse } from '#shared/types/core'
-import type {
-	TenantPaymentStatusResponse
-} from '#shared/types/api-contracts'
+import type { StripeSessionStatusResponse } from '#types/core'
+import type { TenantPaymentStatusResponse } from '#types/api-contracts'
 import type { SubscriptionData } from '#types/stripe'
 
 import {
@@ -32,7 +30,6 @@ export {
 	rentCollectionKeys,
 	rentPaymentKeys,
 	paymentVerificationKeys,
-	paymentQueryKeys,
 	rentCollectionQueries,
 	tenantPaymentQueries
 } from './query-keys/payment-keys'

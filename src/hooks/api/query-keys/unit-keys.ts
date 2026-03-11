@@ -1,21 +1,26 @@
 /**
- * Unit Query Keys & Options
- * Extracted to avoid circular dependencies and enable reuse across files
+ * Unit Query Keys, Options & Mutations
+ * Query and mutation factories for unit domain.
  *
  * TanStack Query v5 patterns:
  * - queryOptions() for type-safe query configuration
+ * - mutationOptions() for type-safe mutation configuration
  * - Query key factory for consistent cache management
  * - PostgREST direct via supabase-js (no apiRequest calls)
  */
 
-import { queryOptions } from '@tanstack/react-query'
+import { queryOptions, mutationOptions } from '@tanstack/react-query'
 import { createClient } from '#lib/supabase/client'
+import { getCachedUser } from '#lib/supabase/get-cached-user'
 import { handlePostgrestError } from '#lib/postgrest-error-handler'
+import { requireOwnerUserId } from '#lib/require-owner-user-id'
 import { sanitizeSearchInput } from '#lib/sanitize-search'
 import { QUERY_CACHE_TIMES } from '#lib/constants/query-config'
-import type { PaginatedResponse } from '#shared/types/api-contracts'
-import type { Unit } from '#shared/types/core'
-import type { UnitStats } from '#shared/types/stats'
+import { mutationKeys } from '../mutation-keys'
+import type { PaginatedResponse } from '#types/api-contracts'
+import type { Unit } from '#types/core'
+import type { UnitStats } from '#types/stats'
+import type { UnitInput, UnitUpdate } from '#lib/validation/units'
 
 // ============================================================================
 // TYPES
@@ -241,5 +246,72 @@ export const unitQueries = {
 			},
 			...QUERY_CACHE_TIMES.DETAIL,
 			gcTime: 30 * 60 * 1000
+		})
+}
+
+// ============================================================================
+// MUTATION OPTIONS FACTORIES
+// ============================================================================
+
+export const unitMutations = {
+	create: () =>
+		mutationOptions({
+			mutationKey: mutationKeys.units.create,
+			mutationFn: async (data: UnitInput): Promise<Unit> => {
+				const supabase = createClient()
+				const user = await getCachedUser()
+				const ownerId = requireOwnerUserId(user?.id)
+
+				const { data: created, error } = await supabase
+					.from('units')
+					.insert({ ...data, owner_user_id: ownerId })
+					.select()
+					.single()
+
+				if (error) handlePostgrestError(error, 'units')
+
+				return created as Unit
+			}
+		}),
+
+	update: () =>
+		mutationOptions({
+			mutationKey: mutationKeys.units.update,
+			mutationFn: async ({
+				id,
+				data,
+				version
+			}: {
+				id: string
+				data: UnitUpdate
+				version?: number
+			}): Promise<Unit> => {
+				const supabase = createClient()
+				const updatePayload = version ? { ...data, version } : { ...data }
+				const { data: updated, error } = await supabase
+					.from('units')
+					.update(updatePayload)
+					.eq('id', id)
+					.select()
+					.single()
+
+				if (error) handlePostgrestError(error, 'units')
+
+				return updated as Unit
+			}
+		}),
+
+	delete: () =>
+		mutationOptions({
+			mutationKey: mutationKeys.units.delete,
+			mutationFn: async (id: string): Promise<void> => {
+				const supabase = createClient()
+				const { error } = await supabase
+					.from('units')
+					.update({ status: 'inactive' })
+					.eq('id', id)
+
+				if (error) handlePostgrestError(error, 'units')
+			}
 		})
 }

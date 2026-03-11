@@ -4,8 +4,8 @@ import type { MouseEvent } from 'react'
 
 import { Clock, MapPin, MoreHorizontal, User } from 'lucide-react'
 import Link from 'next/link'
-import type { MaintenancePriority } from '#shared/types/core'
-import type { MaintenanceDisplayRequest } from '#shared/types/sections/maintenance'
+import type { MaintenancePriority } from '#types/core'
+import type { MaintenanceDisplayRequest } from '#types/sections/maintenance'
 import { BorderBeam } from '#components/ui/border-beam'
 
 function getDaysOpen(timestamp: string | null | undefined): number {

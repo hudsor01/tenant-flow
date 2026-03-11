@@ -5,7 +5,7 @@
  * React 19 + TanStack Query v5 patterns
  */
 
-import { queryOptions, useQuery } from '@tanstack/react-query'
+import { queryOptions } from '@tanstack/react-query'
 import { createClient } from '#lib/supabase/client'
 import { getCachedUser } from '#lib/supabase/get-cached-user'
 import { handlePostgrestError } from '#lib/postgrest-error-handler'
@@ -16,8 +16,8 @@ import type {
 	MaintenanceInsightsPageData,
 	OccupancyAnalyticsPageData,
 	PropertyPerformancePageData
-} from '#shared/types/analytics-page-data'
-import type { OwnerPaymentSummaryResponse } from '#shared/types/api-contracts'
+} from '#types/analytics-page-data'
+import type { OwnerPaymentSummaryResponse } from '#types/api-contracts'
 
 // ============================================================================
 // QUERY OPTIONS (for direct use in pages with useQueries/prefetch)
@@ -196,55 +196,3 @@ export const analyticsQueries = {
 		})
 }
 
-// ============================================================================
-// QUERY HOOKS
-// ============================================================================
-
-/**
- * Hook to fetch financial analytics page data
- */
-export function useFinancialAnalytics() {
-	return useQuery(analyticsQueries.financialPageData())
-}
-
-/**
- * Hook to fetch lease analytics page data
- */
-export function useLeaseAnalytics() {
-	return useQuery(analyticsQueries.leasePageData())
-}
-
-/**
- * Hook to fetch maintenance insights page data
- */
-export function useMaintenanceAnalytics() {
-	return useQuery(analyticsQueries.maintenancePageData())
-}
-
-/**
- * Hook to fetch occupancy analytics page data
- */
-export function useOccupancyAnalytics() {
-	return useQuery(analyticsQueries.occupancyPageData())
-}
-
-/**
- * Hook to fetch analytics overview page data
- */
-export function useAnalyticsOverview() {
-	return useQuery(analyticsQueries.overviewPageData())
-}
-
-/**
- * Hook to fetch property performance page data
- */
-export function usePropertyPerformanceAnalytics() {
-	return useQuery(analyticsQueries.propertyPerformancePageData())
-}
-
-/**
- * Hook to fetch owner payment summary
- */
-export function useOwnerPaymentSummary() {
-	return useQuery(analyticsQueries.ownerPaymentSummary())
-}

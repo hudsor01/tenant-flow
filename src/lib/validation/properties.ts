@@ -1,0 +1,233 @@
+/**
+ * Property Validation Schemas
+ *
+ * Schema Pattern (Zod 4 Best Practices):
+ * - InputSchema: User-provided fields only (no id, created_at, updated_at)
+ * - Schema: Full schema = InputSchema.extend({ id, created_at, updated_at })
+ * - CreateSchema: Uses InputSchema directly (has all defaults)
+ * - UpdateSchema: InputSchema.partial()
+ *
+ * IMPORTANT: .omit() only accepts keys that exist in the source schema.
+ * Zod 4 throws "Unrecognized key" errors for non-existent keys.
+ */
+
+import { z } from 'zod'
+import {
+	uuidSchema,
+	requiredString,
+	nonEmptyStringSchema,
+	positiveNumberSchema,
+	nonNegativeNumberSchema
+} from './common'
+import { VALIDATION_LIMITS } from '#lib/constants/billing'
+
+// Property status enum validation
+export const propertyStatusSchema = z.enum([
+	'active',
+	'inactive',
+	'sold'
+])
+
+// Property type enum validation - must match PROPERTY_TYPES constant
+export const propertyTypeSchema = z.enum([
+	'SINGLE_FAMILY',
+	'MULTI_UNIT',
+	'APARTMENT',
+	'COMMERCIAL',
+	'CONDO',
+	'TOWNHOUSE',
+	'OTHER'
+])
+
+// Base property input schema (matches database exactly)
+export const propertyInputSchema = z.object({
+	name: nonEmptyStringSchema
+		.min(2, 'Property name must be at least 2 characters')
+		.max(
+			VALIDATION_LIMITS.PROPERTY_NAME_MAX_LENGTH,
+			`Property name cannot exceed ${VALIDATION_LIMITS.PROPERTY_NAME_MAX_LENGTH} characters`
+		),
+
+	address_line1: nonEmptyStringSchema
+		.min(5, 'Address line 1 must be at least 5 characters')
+		.max(200, 'Address line 1 cannot exceed 200 characters'),
+
+	address_line2: z
+		.string()
+		.max(200, 'Address line 2 cannot exceed 200 characters')
+		.optional(),
+
+	city: nonEmptyStringSchema
+		.min(2, 'City must be at least 2 characters')
+		.max(50, 'City cannot exceed 50 characters'),
+
+	state: z
+		.string()
+		.min(2, 'State is required')
+		.max(2, 'State must be 2 characters')
+		.regex(/^[A-Z]{2}$/, 'State must be 2 uppercase letters'),
+
+	postal_code: z
+		.string()
+		.regex(
+			/^\d{5}(-\d{4})?$/,
+			'Please enter a valid ZIP code (12345 or 12345-6789)'
+		),
+
+	country: z
+		.string()
+		.max(50, 'Country cannot exceed 50 characters')
+		.default('US'),
+
+	property_type: propertyTypeSchema,
+
+	status: propertyStatusSchema.default('active'),
+
+	owner_user_id: uuidSchema
+})
+
+// Full property schema (includes server-generated fields)
+export const propertySchema = propertyInputSchema.extend({
+	id: uuidSchema,
+	created_at: z.string(),
+	updated_at: z.string()
+})
+
+// Property update schema (partial input)
+export const propertyUpdateSchema = propertyInputSchema.partial().extend({
+	id: uuidSchema.optional(),
+	status: propertyStatusSchema.optional(),
+	owner_user_id: uuidSchema.optional()
+})
+
+// Property query schema (for search/filtering)
+export const propertyQuerySchema = z.object({
+	search: z.string().optional(),
+	property_type: propertyTypeSchema.optional(),
+	city: z.string().optional(),
+	state: z.string().optional(),
+	status: propertyStatusSchema.optional(),
+	owner_user_id: uuidSchema.optional(),
+	sort_by: z
+		.enum(['name', 'created_at', 'city', 'status', 'property_type'])
+		.optional(),
+	sort_order: z.enum(['asc', 'desc']).optional().default('asc'),
+	page: z.coerce.number().int().positive().default(1),
+	limit: z.coerce
+		.number()
+		.int()
+		.positive()
+		.max(VALIDATION_LIMITS.API_QUERY_MAX_LIMIT)
+		.default(20)
+})
+
+// Property creation schema
+// Note: propertyInputSchema already has status with default('active')
+// id, created_at, updated_at are server-generated and not in propertyInputSchema
+// owner_user_id is set by the backend from authenticated user, not sent by client
+export const propertyCreateSchema = propertyInputSchema.omit({
+	owner_user_id: true
+})
+
+// Property address validation schema
+export const propertyAddressSchema = z.object({
+	address_line1: nonEmptyStringSchema
+		.min(5, 'Address line 1 must be at least 5 characters')
+		.max(200, 'Address line 1 cannot exceed 200 characters'),
+	address_line2: z
+		.string()
+		.max(200, 'Address line 2 cannot exceed 200 characters')
+		.optional(),
+	city: nonEmptyStringSchema
+		.min(2, 'City must be at least 2 characters')
+		.max(50, 'City cannot exceed 50 characters'),
+	state: z
+		.string()
+		.min(2, 'State is required')
+		.max(2, 'State must be 2 characters')
+		.regex(/^[A-Z]{2}$/, 'State must be 2 uppercase letters'),
+	postal_code: z
+		.string()
+		.regex(
+			/^\d{5}(-\d{4})?$/,
+			'Please enter a valid ZIP code (12345 or 12345-6789)'
+		),
+	country: z
+		.string()
+		.max(50, 'Country cannot exceed 50 characters')
+		.default('US')
+})
+
+// Property statistics schema
+export const propertyStatsSchema = z.object({
+	total: nonNegativeNumberSchema,
+	active: nonNegativeNumberSchema,
+	inactive: nonNegativeNumberSchema,
+	sold: nonNegativeNumberSchema,
+	units: nonNegativeNumberSchema,
+	occupied_units: nonNegativeNumberSchema,
+	vacant_units: nonNegativeNumberSchema,
+	occupancy_rate: z.number().min(0).max(100)
+})
+
+// Property sold schema
+export const propertySoldSchema = z.object({
+	sale_date: z.string().min(1, 'Sale date is required'),
+	sale_price: positiveNumberSchema.max(
+		VALIDATION_LIMITS.SALE_PRICE_MAXIMUM,
+		'Sale price seems unrealistic'
+	),
+	sale_notes: z
+		.string()
+		.max(
+			VALIDATION_LIMITS.PROPERTY_DESCRIPTION_MAX_LENGTH,
+			`Sale notes cannot exceed ${VALIDATION_LIMITS.PROPERTY_DESCRIPTION_MAX_LENGTH} characters`
+		)
+		.optional()
+})
+
+// Export types
+export type PropertyInput = z.infer<typeof propertyInputSchema>
+export type Property = z.infer<typeof propertySchema>
+export type PropertyUpdate = z.infer<typeof propertyUpdateSchema>
+export type PropertyQuery = z.infer<typeof propertyQuerySchema>
+export type PropertyCreate = z.infer<typeof propertyCreateSchema>
+export type PropertyAddress = z.infer<typeof propertyAddressSchema>
+export type PropertyStats = z.infer<typeof propertyStatsSchema>
+export type PropertySold = z.infer<typeof propertySoldSchema>
+
+// Frontend-specific form schemas
+export const propertyFormSchema = z.object({
+	name: requiredString,
+	address_line1: requiredString,
+	address_line2: z.string().optional(),
+	city: requiredString,
+	state: requiredString,
+	postal_code: requiredString,
+	country: z.string().optional().default('US'),
+	property_type: propertyTypeSchema,
+	owner_user_id: requiredString,
+	acquisition_cost: z.number().positive('Purchase price must be positive').optional().nullable(),
+	acquisition_date: z.string().optional().nullable()
+})
+
+export const propertyUpdateFormSchema = propertyFormSchema.partial()
+
+// Transform functions for form data
+export const transformPropertyFormData = (data: PropertyFormData) => ({
+	name: data.name,
+	address_line1: data.address_line1,
+	address_line2: data.address_line2 || undefined,
+	city: data.city,
+	state: data.state,
+	postal_code: data.postal_code,
+	country: data.country || 'US',
+	property_type: data.property_type,
+	owner_user_id: data.owner_user_id
+})
+
+export type PropertyFormData = z.infer<typeof propertyFormSchema>
+export type PropertyUpdateFormData = z.infer<typeof propertyUpdateFormSchema>
+export type TransformedPropertyData = ReturnType<
+	typeof transformPropertyFormData
+>

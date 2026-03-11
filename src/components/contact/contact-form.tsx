@@ -1,27 +1,14 @@
 'use client'
 
 import { Button } from '#components/ui/button'
-import { Field, FieldError, FieldLabel } from '#components/ui/field'
-import { Input } from '#components/ui/input'
-import {
-	InputGroup,
-	InputGroupAddon,
-	InputGroupInput
-} from '#components/ui/input-group'
-import {
-	Select,
-	SelectContent,
-	SelectItem,
-	SelectTrigger,
-	SelectValue
-} from '#components/ui/select'
-import { Textarea } from '#components/ui/textarea'
 import { useFormWithProgress } from '#hooks/use-form-progress'
-import { createLogger } from '#shared/lib/frontend-logger'
-import type { ContactFormRequest } from '#shared/types/domain'
+import { createLogger } from '#lib/frontend-logger'
+import type { ContactFormRequest } from '#types/domain'
 import { Check, Mail, MapPin, Phone } from 'lucide-react'
-import type { ChangeEvent, FormEvent } from 'react'
+import type { FormEvent } from 'react'
 import { useState } from 'react'
+import { ContactFormFields } from './contact-form-fields'
+
 const logger = createLogger({ component: 'ContactForm' })
 
 interface ContactFormProps {
@@ -36,14 +23,12 @@ export function ContactForm({ className = '' }: ContactFormProps) {
 	const validateForm = (data: ContactFormRequest): boolean => {
 		const newErrors: Record<string, string> = {}
 
-		// Name validation
 		if (!data.name.trim()) {
 			newErrors.name = 'Name is required'
 		} else if (data.name.trim().length < 2) {
 			newErrors.name = 'Name must be at least 2 characters'
 		}
 
-		// Email validation
 		const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 		if (!data.email.trim()) {
 			newErrors.email = 'Email is required'
@@ -51,7 +36,6 @@ export function ContactForm({ className = '' }: ContactFormProps) {
 			newErrors.email = 'Please enter a valid email address'
 		}
 
-		// Phone validation (optional but must be valid if provided)
 		if (data.phone && data.phone.trim()) {
 			const phoneRegex = /^[\d\s()+-]+$/
 			if (!phoneRegex.test(data.phone)) {
@@ -59,12 +43,10 @@ export function ContactForm({ className = '' }: ContactFormProps) {
 			}
 		}
 
-		// Subject validation
 		if (!data.subject) {
 			newErrors.subject = "Please select what you're interested in"
 		}
 
-		// Message validation
 		if (!data.message.trim()) {
 			newErrors.message = 'Message is required'
 		} else if (data.message.trim().length < 10) {
@@ -75,7 +57,6 @@ export function ContactForm({ className = '' }: ContactFormProps) {
 		return Object.keys(newErrors).length === 0
 	}
 
-	// Initialize form with progress persistence
 	const {
 		formData,
 		updateField,
@@ -117,7 +98,6 @@ export function ContactForm({ className = '' }: ContactFormProps) {
 		try {
 			await handleFormSubmit(formData)
 		} catch (error) {
-			// Error handling is managed by useFormWithProgress
 			logger.error('Form submission error', {
 				action: 'contact_form_submit_failed',
 				metadata: {
@@ -174,7 +154,6 @@ export function ContactForm({ className = '' }: ContactFormProps) {
 		>
 			{/* Left side - Contact Info with Image Background */}
 			<div className="relative flex flex-col justify-center w-full p-8 lg:w-1/2 lg:px-12 xl:px-32 overflow-hidden">
-				{/* Background Image - Warm modern residential building */}
 				<div
 					className="absolute inset-0 bg-cover bg-center"
 					style={{
@@ -182,16 +161,12 @@ export function ContactForm({ className = '' }: ContactFormProps) {
 							"url('https://images.unsplash.com/photo-1512917774080-9991f1c4c750?q=80&w=2070&auto=format&fit=crop')"
 					}}
 				/>
-
-				{/* Subtle gradient overlay for text contrast */}
 				<div className="absolute inset-0 bg-linear-to-br from-background/30 via-transparent to-background/20" />
 
-				{/* Glassmorphism Container */}
 				<div className="relative z-10 p-8 rounded-2xl backdrop-blur-lg bg-background/60 dark:bg-card/60 border border-border/20 shadow-2xl">
 					<h1 className="typography-h2 text-foreground lg:text-4xl">
 						Let&apos;s Talk About Your Properties
 					</h1>
-
 					<p className="mt-4 text-muted-foreground text-lg">
 						Whether you manage 5 or 500 units, we&apos;re here to help
 						streamline your operations and save you time every day.
@@ -250,14 +225,12 @@ export function ContactForm({ className = '' }: ContactFormProps) {
 						to hear from you. Our team typically responds within 4 hours.
 					</p>
 
-					{/* Progress indicator */}
 					{!isHydrated && (
 						<div className="mb-4 p-3 bg-muted rounded-md">
 							<p className="text-muted-foreground">Restoring your progress...</p>
 						</div>
 					)}
 
-					{/* Error display */}
 					{submitError && (
 						<div className="mb-4 p-3 bg-destructive/10 border border-destructive/20 rounded-md">
 							<p className="text-sm text-destructive">{submitError}</p>
@@ -265,172 +238,11 @@ export function ContactForm({ className = '' }: ContactFormProps) {
 					)}
 
 					<form onSubmit={handleSubmit} className="space-y-6">
-						<div className="grid md:grid-cols-2 gap-4">
-							<Field>
-								<FieldLabel htmlFor="name">Full Name *</FieldLabel>
-								<InputGroup>
-									<InputGroupAddon align="inline-start">
-										<Mail className="size-4" />
-									</InputGroupAddon>
-									<InputGroupInput
-										id="name"
-										name="name"
-										type="text"
-										autoComplete="name"
-										value={formData.name}
-										onChange={(e: ChangeEvent<HTMLInputElement>) =>
-											handleInputChange('name', e.target.value)
-										}
-										placeholder="John Smith"
-										required
-										className={errors.name ? 'border-destructive' : ''}
-									/>
-								</InputGroup>
-								{errors.name && <FieldError>{errors.name}</FieldError>}
-							</Field>
-
-							<Field>
-								<FieldLabel htmlFor="email">Email Address *</FieldLabel>
-								<InputGroup>
-									<InputGroupAddon align="inline-start">
-										<Mail className="size-4" />
-									</InputGroupAddon>
-									<InputGroupInput
-										id="email"
-										name="email"
-										type="email"
-										autoComplete="email"
-										value={formData.email}
-										onChange={(e: ChangeEvent<HTMLInputElement>) =>
-											handleInputChange('email', e.target.value)
-										}
-										placeholder="john@propertyco.com"
-										required
-										className={errors.email ? 'border-destructive' : ''}
-									/>
-								</InputGroup>
-								{errors.email && <FieldError>{errors.email}</FieldError>}
-							</Field>
-						</div>
-
-						<div className="grid md:grid-cols-2 gap-4">
-							<Field>
-								<FieldLabel htmlFor="company">Company Name</FieldLabel>
-								<Input
-									id="company"
-									name="organization"
-									type="text"
-									autoComplete="organization"
-									value={formData.company || ''}
-									onChange={(e: ChangeEvent<HTMLInputElement>) =>
-										handleInputChange('company', e.target.value)
-									}
-									placeholder="Property Management Co"
-								/>
-							</Field>
-
-							<Field>
-								<FieldLabel htmlFor="phone">Phone Number</FieldLabel>
-								<InputGroup>
-									<InputGroupAddon align="inline-start">
-										<Phone className="size-4" />
-									</InputGroupAddon>
-									<InputGroupInput
-										id="phone"
-										name="tel"
-										type="tel"
-										autoComplete="tel"
-										value={formData.phone || ''}
-										onChange={(e: ChangeEvent<HTMLInputElement>) =>
-											handleInputChange('phone', e.target.value)
-										}
-										placeholder="+1 (555) 123-4567"
-										className={errors.phone ? 'border-destructive' : ''}
-									/>
-								</InputGroup>
-								{errors.phone && <FieldError>{errors.phone}</FieldError>}
-							</Field>
-						</div>
-
-						<Field>
-							<FieldLabel htmlFor="subject">
-								I&apos;m interested in... *
-							</FieldLabel>
-							<Select
-								name="subject"
-								value={formData.subject}
-								onValueChange={(value: string) =>
-									handleInputChange('subject', value)
-								}
-								required
-							>
-								<SelectTrigger
-									id="subject"
-									className={errors.subject ? 'border-destructive' : ''}
-								>
-									<SelectValue placeholder="What brings you to TenantFlow?" />
-								</SelectTrigger>
-								<SelectContent>
-									<SelectItem value="Product Demo">
-										Scheduling a product demo
-									</SelectItem>
-									<SelectItem value="Pricing Information">
-										Learning about pricing plans
-									</SelectItem>
-									<SelectItem value="Technical Support">
-										Getting technical support
-									</SelectItem>
-									<SelectItem value="Partnership">
-										Partnership opportunities
-									</SelectItem>
-									<SelectItem value="General Question">
-										General questions about TenantFlow
-									</SelectItem>
-								</SelectContent>
-							</Select>
-							{errors.subject && <FieldError>{errors.subject}</FieldError>}
-						</Field>
-
-						<Field>
-							<FieldLabel htmlFor="type">How did you hear about us?</FieldLabel>
-							<Select
-								name="referralSource"
-								value={formData.type}
-								onValueChange={(value: string) =>
-									handleInputChange('type', value)
-								}
-							>
-								<SelectTrigger id="type">
-									<SelectValue placeholder="Select an option" />
-								</SelectTrigger>
-								<SelectContent>
-									<SelectItem value="search">Google Search</SelectItem>
-									<SelectItem value="social">Social Media</SelectItem>
-									<SelectItem value="referral">Referral</SelectItem>
-									<SelectItem value="sales">Sales Outreach</SelectItem>
-									<SelectItem value="conference">Conference/Event</SelectItem>
-									<SelectItem value="other">Other</SelectItem>
-								</SelectContent>
-							</Select>
-						</Field>
-
-						<Field>
-							<FieldLabel htmlFor="message">How can we help? *</FieldLabel>
-							<Textarea
-								id="message"
-								name="message"
-								autoComplete="off"
-								value={formData.message}
-								onChange={(e: ChangeEvent<HTMLTextAreaElement>) =>
-									handleInputChange('message', e.target.value)
-								}
-								placeholder="Tell us about your property portfolio, current challenges, or any specific questions you have about TenantFlow..."
-								required
-								rows={5}
-								className={`resize-none ${errors.message ? 'border-destructive' : ''}`}
-							/>
-							{errors.message && <FieldError>{errors.message}</FieldError>}
-						</Field>
+						<ContactFormFields
+							formData={formData}
+							errors={errors}
+							onInputChange={handleInputChange}
+						/>
 
 						<Button
 							type="submit"

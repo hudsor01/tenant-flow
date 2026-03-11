@@ -2,6 +2,8 @@
  * Tenant Query Keys & Options
  * Extracted to avoid circular dependencies with mutation hooks
  *
+ * Invitation queries split to tenant-invitation-keys.ts.
+ *
  * TanStack Query v5 patterns:
  * - queryOptions() for type-safe query configuration
  * - Query key factory for consistent cache management
@@ -18,18 +20,10 @@ import { queryOptions } from '@tanstack/react-query'
 import { createClient } from '#lib/supabase/client'
 import { handlePostgrestError } from '#lib/postgrest-error-handler'
 import { sanitizeSearchInput } from '#lib/sanitize-search'
-import type { Tenant, TenantWithLeaseInfo } from '#shared/types/core'
-import type { TenantStats } from '#shared/types/stats'
-import type {
-	PaginatedResponse,
-	TenantFilters,
-	TenantInvitation
-} from '#shared/types/api-contracts'
+import type { Tenant, TenantWithLeaseInfo } from '#types/core'
+import type { TenantStats } from '#types/stats'
+import type { PaginatedResponse, TenantFilters } from '#types/api-contracts'
 import { QUERY_CACHE_TIMES } from '#lib/constants/query-config'
-import type {
-	InvitationData,
-	PageState
-} from '#components/auth/accept-invite/accept-invite-form-types'
 import { mapTenantRow } from './tenant-mappers'
 import type { TenantPostgrestRow } from './tenant-mappers'
 
@@ -38,14 +32,6 @@ const TENANT_BASE_SELECT =
 
 const TENANT_WITH_LEASE_SELECT =
 	'*, users!tenants_user_id_fkey(id, email, first_name, last_name, full_name, phone, status), lease_tenants(lease_id, is_primary, leases(id, lease_status, start_date, end_date, rent_amount, security_deposit, unit_id, auto_pay_enabled, primary_tenant_id, owner_user_id, units(id, unit_number, bedrooms, bathrooms, square_feet, rent_amount, property_id, properties(id, name, address_line1, address_line2, city, state, postal_code))))'
-
-export class InvalidInviteError extends Error {
-	state: PageState
-	constructor(state: PageState, message?: string) {
-		super(message ?? `Invitation ${state}`)
-		this.state = state
-	}
-}
 
 /**
  * Tenant query factory
@@ -57,7 +43,7 @@ export const tenantQueries = {
 	/**
 	 * Paginated tenant list with optional filters.
 	 * Joins users table to populate name/email/phone on TenantWithLeaseInfo.
-	 * Joins lease_tenants → leases for current lease context.
+	 * Joins lease_tenants -> leases for current lease context.
 	 */
 	list: (filters?: TenantFilters) =>
 		queryOptions({
@@ -75,9 +61,7 @@ export const tenantQueries = {
 				if (filters?.search) {
 					const safe = sanitizeSearchInput(filters.search)
 					if (safe) {
-						q = q.or(
-							`users.full_name.ilike.%${safe}%,users.email.ilike.%${safe}%`
-						)
+						q = q.or(`users.full_name.ilike.%${safe}%,users.email.ilike.%${safe}%`)
 					}
 				}
 
@@ -88,7 +72,6 @@ export const tenantQueries = {
 				if (error) handlePostgrestError(error, 'tenants')
 
 				const total = count ?? 0
-
 				const tenants: TenantWithLeaseInfo[] = (data ?? []).map(
 					(row: TenantPostgrestRow) => mapTenantRow(row)
 				)
@@ -133,7 +116,7 @@ export const tenantQueries = {
 
 	/**
 	 * Single tenant with embedded lease information
-	 * Joins users + lease_tenants → leases → units → properties
+	 * Joins users + lease_tenants -> leases -> units -> properties
 	 */
 	withLease: (id: string) =>
 		queryOptions({
@@ -148,9 +131,7 @@ export const tenantQueries = {
 
 				if (error) handlePostgrestError(error, 'tenants')
 
-				return mapTenantRow(
-					data as TenantPostgrestRow
-				) as TenantWithLeaseInfo
+				return mapTenantRow(data as TenantPostgrestRow) as TenantWithLeaseInfo
 			},
 			...QUERY_CACHE_TIMES.DETAIL,
 			enabled: !!id
@@ -165,47 +146,25 @@ export const tenantQueries = {
 			queryKey: [...tenantQueries.all(), 'stats'],
 			queryFn: async (): Promise<TenantStats> => {
 				const supabase = createClient()
+				const [totalResult, activeResult, inactiveResult] = await Promise.all([
+					supabase.from('tenants').select('id', { count: 'exact', head: true }),
+					supabase.from('tenants').select('id', { count: 'exact', head: true }).eq('users.status', 'active'),
+					supabase.from('tenants').select('id', { count: 'exact', head: true }).eq('users.status', 'inactive')
+				])
 
-				const [totalResult, activeResult, inactiveResult] =
-					await Promise.all([
-						supabase
-							.from('tenants')
-							.select('id', { count: 'exact', head: true }),
-						supabase
-							.from('tenants')
-							.select('id', { count: 'exact', head: true })
-							.eq('users.status', 'active'),
-						supabase
-							.from('tenants')
-							.select('id', { count: 'exact', head: true })
-							.eq('users.status', 'inactive')
-					])
-
-				if (totalResult.error)
-					handlePostgrestError(totalResult.error, 'tenants')
-				if (activeResult.error)
-					handlePostgrestError(activeResult.error, 'tenants')
-				if (inactiveResult.error)
-					handlePostgrestError(inactiveResult.error, 'tenants')
+				if (totalResult.error) handlePostgrestError(totalResult.error, 'tenants')
+				if (activeResult.error) handlePostgrestError(activeResult.error, 'tenants')
+				if (inactiveResult.error) handlePostgrestError(inactiveResult.error, 'tenants')
 
 				const total = totalResult.count ?? 0
 				const active = activeResult.count ?? 0
 				const inactive = inactiveResult.count ?? 0
 
-				return {
-					total,
-					active,
-					inactive,
-					newThisMonth: 0,
-					totalTenants: total,
-					activeTenants: active
-				}
+				return { total, active, inactive, newThisMonth: 0, totalTenants: total, activeTenants: active }
 			},
 			...QUERY_CACHE_TIMES.DETAIL,
 			gcTime: 30 * 60 * 1000
 		}),
-
-	invitations: () => [...tenantQueries.all(), 'invitations'] as const,
 
 	/**
 	 * All tenants (for dropdowns, selects, etc.)
@@ -238,11 +197,7 @@ export const tenantQueries = {
 	 */
 	notificationPreferences: (tenant_id: string) =>
 		queryOptions({
-			queryKey: [
-				...tenantQueries.details(),
-				tenant_id,
-				'notification-preferences'
-			],
+			queryKey: [...tenantQueries.details(), tenant_id, 'notification-preferences'],
 			queryFn: async (): Promise<{
 				emailNotifications: boolean
 				smsNotifications: boolean
@@ -257,8 +212,7 @@ export const tenantQueries = {
 					.eq('id', tenant_id)
 					.single()
 
-				if (tenantError)
-					handlePostgrestError(tenantError, 'tenants')
+				if (tenantError) handlePostgrestError(tenantError, 'tenants')
 
 				const { data, error } = await supabase
 					.from('notification_settings')
@@ -266,8 +220,7 @@ export const tenantQueries = {
 					.eq('user_id', tenantRow!.user_id)
 					.single()
 
-				if (error)
-					handlePostgrestError(error, 'notification_settings')
+				if (error) handlePostgrestError(error, 'notification_settings')
 
 				return {
 					emailNotifications: data?.email ?? true,
@@ -279,122 +232,5 @@ export const tenantQueries = {
 			enabled: !!tenant_id,
 			...QUERY_CACHE_TIMES.DETAIL,
 			gcTime: 10 * 60 * 1000
-		}),
-
-	/**
-	 * Tenant invitations list
-	 * Uses tenant_invitations table directly via PostgREST
-	 */
-	invitationList: () =>
-		queryOptions({
-			queryKey: tenantQueries.invitations(),
-			queryFn: async (): Promise<PaginatedResponse<TenantInvitation>> => {
-				const supabase = createClient()
-				const { data, error, count } = await supabase
-					.from('tenant_invitations')
-					.select(
-						'id, email, lease_id, unit_id, status, created_at, expires_at, accepted_at, leases(id, units(id, unit_number, properties(id, name)))',
-						{ count: 'exact' }
-					)
-					.order('created_at', { ascending: false })
-
-				if (error)
-					handlePostgrestError(error, 'tenant_invitations')
-
-				const total = count ?? 0
-
-				type InvitationRow = {
-					id: string
-					email: string
-					lease_id: string | null
-					unit_id: string | null
-					status: string
-					created_at: string | null
-					expires_at: string
-					accepted_at: string | null
-					leases: {
-						id: string
-						units: {
-							id: string
-							unit_number: string | null
-							properties: {
-								id: string
-								name: string
-							} | null
-						} | null
-					} | null
-				}
-				const invitations: TenantInvitation[] = (
-					data as unknown as InvitationRow[]
-				).map(row => ({
-					id: row.id,
-					email: row.email,
-					first_name: null,
-					last_name: null,
-					unit_id: row.unit_id ?? row.leases?.units?.id ?? '',
-					unit_number: row.leases?.units?.unit_number ?? '',
-					property_name:
-						row.leases?.units?.properties?.name ?? '',
-					created_at: row.created_at ?? '',
-					expires_at: row.expires_at,
-					accepted_at: row.accepted_at,
-					status:
-						(row.status as TenantInvitation['status']) ?? 'sent'
-				}))
-
-				return {
-					data: invitations,
-					total,
-					pagination: {
-						page: 1,
-						limit: total,
-						total,
-						totalPages: 1
-					}
-				}
-			},
-			...QUERY_CACHE_TIMES.LIST
-		}),
-
-	/**
-	 * Validate a tenant invitation code via Edge Function.
-	 * Used by the accept-invite page (unauthenticated tenant flow).
-	 */
-	validateInvitation: (code: string | null) =>
-		queryOptions({
-			queryKey: [...tenantQueries.invitations(), 'validate', code],
-			queryFn: async (): Promise<InvitationData> => {
-				const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-				const response = await fetch(
-					`${supabaseUrl}/functions/v1/tenant-invitation-validate`,
-					{
-						method: 'POST',
-						headers: { 'Content-Type': 'application/json' },
-						body: JSON.stringify({ code })
-					}
-				)
-
-				if (!response.ok) {
-					if (response.status === 404) {
-						throw new InvalidInviteError(
-							'invalid',
-							'This invitation is invalid or has already been used.'
-						)
-					} else if (response.status === 410) {
-						throw new InvalidInviteError('expired')
-					}
-					throw new InvalidInviteError('error')
-				}
-
-				const data = (await response.json()) as InvitationData
-
-				if (!data.valid) {
-					throw new InvalidInviteError('invalid')
-				}
-
-				return data
-			},
-			enabled: !!code,
-			retry: false
 		})
 }

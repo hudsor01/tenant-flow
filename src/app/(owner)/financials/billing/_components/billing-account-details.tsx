@@ -4,7 +4,7 @@ import { CheckCircle, Clock, ExternalLink } from 'lucide-react'
 import { BlurFade } from '#components/ui/blur-fade'
 import { Button } from '#components/ui/button'
 import { Spinner } from '#components/ui/loading-spinner'
-import type { ConnectedAccountWithIdentity } from '#shared/types/stripe'
+import type { ConnectedAccountWithIdentity } from '#types/stripe'
 
 interface BillingAccountDetailsProps {
 	account: ConnectedAccountWithIdentity

@@ -1,7 +1,7 @@
 'use client'
 
 import { CreditCard, ShieldCheck, Trash2 } from 'lucide-react'
-import { useMemo } from 'react'
+
 import { toast } from 'sonner'
 
 import {
@@ -14,7 +14,7 @@ import {
 	AlertDialogHeader,
 	AlertDialogTitle,
 	AlertDialogTrigger
-} from '#components/ui/dialog'
+} from '#components/ui/alert-dialog'
 import { Badge } from '#components/ui/badge'
 import { Button } from '#components/ui/button'
 import { CardLayout } from '#components/ui/card-layout'
@@ -29,12 +29,13 @@ import { DataTable } from '#components/data-table/data-table'
 import { DataTableToolbar } from '#components/data-table/data-table-toolbar'
 import { useDataTable } from '#hooks/use-data-table'
 import type { ColumnDef } from '@tanstack/react-table'
-import type { PaymentMethodResponse } from '#shared/types/core'
+import type { PaymentMethodResponse } from '#types/core'
 import {
 	useDeletePaymentMethod,
-	usePaymentMethods,
-	useSetDefaultPaymentMethod
+	useSetDefaultPaymentMethod,
+	paymentMethodsQueries
 } from '#hooks/api/use-payment-methods'
+import { useSuspenseQuery } from '@tanstack/react-query'
 
 function formatMethodLabel(type: string) {
 	switch (type) {
@@ -48,20 +49,15 @@ function formatMethodLabel(type: string) {
 }
 
 export function PaymentMethodsList() {
-	const { data: paymentMethods = [], isLoading, isError } = usePaymentMethods()
+	const { data: paymentMethods = [] } = useSuspenseQuery(paymentMethodsQueries.list())
 	const setDefault = useSetDefaultPaymentMethod()
 	const deleteMethod = useDeletePaymentMethod()
 
-	const sortedMethods = useMemo(
-		() =>
-			[...paymentMethods].sort(
+	const sortedMethods = [...paymentMethods].sort(
 				(a, b) => Number(b.isDefault) - Number(a.isDefault)
-			),
-		[paymentMethods]
-	)
+			)
 
-	const columns: ColumnDef<PaymentMethodResponse>[] = useMemo(
-		() => [
+	const columns: ColumnDef<PaymentMethodResponse>[] = [
 			{
 				accessorKey: 'brand',
 				header: 'Method',
@@ -144,8 +140,8 @@ export function PaymentMethodsList() {
 								<AlertDialogTrigger asChild>
 									<Button
 										variant="ghost"
-										size="icon-sm"
-										className="text-destructive hover:text-destructive"
+										size="icon"
+										className="h-8 w-8 min-h-8 min-w-8 text-destructive hover:text-destructive"
 									>
 										<Trash2 className="size-4" />
 										<span className="sr-only">Delete payment method</span>
@@ -181,9 +177,7 @@ export function PaymentMethodsList() {
 					)
 				}
 			}
-		],
-		[setDefault, deleteMethod]
-	)
+		]
 
 	const { table } = useDataTable({
 		data: sortedMethods,
@@ -197,27 +191,6 @@ export function PaymentMethodsList() {
 			}
 		}
 	})
-
-	if (isLoading) {
-		return (
-			<div className="animate-pulse text-muted-foreground">
-				Loading payment methods...
-			</div>
-		)
-	}
-
-	if (isError) {
-		return (
-			<CardLayout
-				title="Payment methods"
-				description="Manage saved payment instruments for rent collection."
-			>
-				<div className="rounded-lg border border-destructive/30 bg-destructive/10 p-4 text-sm text-destructive">
-					Unable to load payment methods. Please try again later.
-				</div>
-			</CardLayout>
-		)
-	}
 
 	if (!sortedMethods.length) {
 		return (

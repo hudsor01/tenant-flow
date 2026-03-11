@@ -1,6 +1,6 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import type { NotificationChannelPreferences } from '#shared/types/notifications'
-import type { Database } from '#shared/types/supabase'
+import { useMutation, useQuery, useQueryClient, mutationOptions } from '@tanstack/react-query'
+import type { NotificationChannelPreferences } from '#types/notifications'
+import type { Database } from '#types/supabase'
 
 import { createClient } from '#lib/supabase/client'
 import { getCachedUser } from '#lib/supabase/get-cached-user'
@@ -21,10 +21,6 @@ export type OwnerNotificationSettingsUpdate = Partial<
 type NotificationSettingsRow =
 	Database['public']['Tables']['notification_settings']['Row']
 
-/**
- * Map a flat notification_settings DB row to the NotificationChannelPreferences shape.
- * DB column in_app maps to type field inApp.
- */
 function mapDbRowToPreferences(
 	row: NotificationSettingsRow
 ): OwnerNotificationSettings {
@@ -55,6 +51,52 @@ const defaultPreferences: OwnerNotificationSettings = {
 
 const notificationSettingsKey = ['owner', 'notification-settings'] as const
 
+// ============================================================================
+// MUTATION OPTIONS FACTORY
+// ============================================================================
+
+const ownerNotificationSettingsMutationFactories = {
+	update: () =>
+		mutationOptions({
+			mutationKey: mutationKeys.ownerNotificationSettings.update,
+			mutationFn: async (
+				updates: OwnerNotificationSettingsUpdate
+			): Promise<OwnerNotificationSettings> => {
+				const supabase = createClient()
+				const user = await getCachedUser()
+				if (!user) throw new Error('Not authenticated')
+
+				const dbUpdate: Partial<NotificationSettingsRow> = {}
+
+				if (updates.email !== undefined) dbUpdate.email = updates.email
+				if (updates.inApp !== undefined) dbUpdate.in_app = updates.inApp
+				if (updates.push !== undefined) dbUpdate.push = updates.push
+				if (updates.sms !== undefined) dbUpdate.sms = updates.sms
+				if (updates.categories?.maintenance !== undefined)
+					dbUpdate.maintenance = updates.categories.maintenance
+				if (updates.categories?.leases !== undefined)
+					dbUpdate.leases = updates.categories.leases
+				if (updates.categories?.general !== undefined)
+					dbUpdate.general = updates.categories.general
+				dbUpdate.updated_at = new Date().toISOString()
+
+				const { data, error } = await supabase
+					.from('notification_settings')
+					.upsert({ user_id: user.id, ...dbUpdate }, { onConflict: 'user_id' })
+					.select()
+					.single()
+
+				if (error) throw error
+
+				return mapDbRowToPreferences(data)
+			}
+		})
+}
+
+// ============================================================================
+// HOOKS
+// ============================================================================
+
 export function useOwnerNotificationSettings() {
 	return useQuery({
 		queryKey: notificationSettingsKey,
@@ -84,39 +126,7 @@ export function useUpdateOwnerNotificationSettingsMutation() {
 	const queryClient = useQueryClient()
 
 	return useMutation({
-		mutationKey: mutationKeys.ownerNotificationSettings.update,
-		mutationFn: async (
-			updates: OwnerNotificationSettingsUpdate
-		): Promise<OwnerNotificationSettings> => {
-			const supabase = createClient()
-			const user = await getCachedUser()
-
-			if (!user) throw new Error('Not authenticated')
-
-			const dbUpdate: Partial<NotificationSettingsRow> = {}
-
-			if (updates.email !== undefined) dbUpdate.email = updates.email
-			if (updates.inApp !== undefined) dbUpdate.in_app = updates.inApp
-			if (updates.push !== undefined) dbUpdate.push = updates.push
-			if (updates.sms !== undefined) dbUpdate.sms = updates.sms
-			if (updates.categories?.maintenance !== undefined)
-				dbUpdate.maintenance = updates.categories.maintenance
-			if (updates.categories?.leases !== undefined)
-				dbUpdate.leases = updates.categories.leases
-			if (updates.categories?.general !== undefined)
-				dbUpdate.general = updates.categories.general
-			dbUpdate.updated_at = new Date().toISOString()
-
-			const { data, error } = await supabase
-				.from('notification_settings')
-				.upsert({ user_id: user.id, ...dbUpdate }, { onConflict: 'user_id' })
-				.select()
-				.single()
-
-			if (error) throw error
-
-			return mapDbRowToPreferences(data)
-		},
+		...ownerNotificationSettingsMutationFactories.update(),
 		onMutate: async updates => {
 			await queryClient.cancelQueries({ queryKey: notificationSettingsKey })
 
@@ -132,7 +142,6 @@ export function useUpdateOwnerNotificationSettingsMutation() {
 					): OwnerNotificationSettings | undefined => {
 						if (!old) return undefined
 
-						// Destructure categories out of updates to avoid Partial<> type conflict
 						const { categories: updatedCategories, ...restUpdates } = updates
 
 						return {

@@ -12,7 +12,7 @@ import { Skeleton } from '#components/ui/skeleton'
 import { useInspection } from '#hooks/api/use-inspections'
 import { useTenantReview } from '#hooks/api/use-inspection-mutations'
 import { formatDate } from '#lib/formatters/date'
-import type { InspectionRoom } from '#shared/types/sections/inspections'
+import type { InspectionRoom } from '#types/sections/inspections'
 
 const CONDITION_LABELS: Record<string, string> = {
 	excellent: 'Excellent',

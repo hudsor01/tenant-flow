@@ -11,12 +11,10 @@
 
 import { useMutation, useQuery, useQueryClient, queryOptions } from '@tanstack/react-query'
 import { createClient } from '#lib/supabase/client'
-import { getCachedUser } from '#lib/supabase/get-cached-user'
 import { handlePostgrestError } from '#lib/postgrest-error-handler'
-import { requireOwnerUserId } from '#lib/require-owner-user-id'
 import { sanitizeSearchInput } from '#lib/sanitize-search'
 import { handleMutationError } from '#lib/mutation-error-handler'
-import { maintenanceQueries } from './query-keys/maintenance-keys'
+import { maintenanceQueries, vendorMutations } from './query-keys/maintenance-keys'
 import { ownerDashboardKeys } from './use-owner-dashboard'
 import { toast } from 'sonner'
 
@@ -165,21 +163,7 @@ export function useVendor(id: string) {
 export function useCreateVendorMutation() {
 	const queryClient = useQueryClient()
 	return useMutation({
-		mutationFn: async (data: VendorCreateInput): Promise<Vendor> => {
-			const supabase = createClient()
-			const user = await getCachedUser()
-			const ownerId = requireOwnerUserId(user?.id)
-
-			const { data: created, error } = await supabase
-				.from('vendors')
-				.insert({ ...data, owner_user_id: ownerId })
-				.select(VENDOR_SELECT_COLUMNS)
-				.single()
-
-			if (error) handlePostgrestError(error, 'vendors')
-
-			return created as Vendor
-		},
+		...vendorMutations.create(),
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: vendorKeys.lists() })
 			queryClient.invalidateQueries({ queryKey: ownerDashboardKeys.all })
@@ -192,19 +176,7 @@ export function useCreateVendorMutation() {
 export function useUpdateVendorMutation() {
 	const queryClient = useQueryClient()
 	return useMutation({
-		mutationFn: async ({ id, data }: { id: string; data: VendorUpdateInput }): Promise<Vendor> => {
-			const supabase = createClient()
-			const { data: updated, error } = await supabase
-				.from('vendors')
-				.update(data)
-				.eq('id', id)
-				.select(VENDOR_SELECT_COLUMNS)
-				.single()
-
-			if (error) handlePostgrestError(error, 'vendors')
-
-			return updated as Vendor
-		},
+		...vendorMutations.update(),
 		onSuccess: (vendor) => {
 			queryClient.setQueryData(vendorKeys.detail(vendor.id).queryKey, vendor)
 			queryClient.invalidateQueries({ queryKey: vendorKeys.lists() })
@@ -218,16 +190,7 @@ export function useUpdateVendorMutation() {
 export function useDeleteVendorMutation() {
 	const queryClient = useQueryClient()
 	return useMutation({
-		// Hard delete — no financial retention requirement for vendor records
-		mutationFn: async (id: string): Promise<void> => {
-			const supabase = createClient()
-			const { error } = await supabase
-				.from('vendors')
-				.delete()
-				.eq('id', id)
-
-			if (error) handlePostgrestError(error, 'vendors')
-		},
+		...vendorMutations.delete(),
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: vendorKeys.lists() })
 			queryClient.invalidateQueries({ queryKey: ownerDashboardKeys.all })
@@ -244,21 +207,7 @@ export function useDeleteVendorMutation() {
 export function useAssignVendorMutation() {
 	const queryClient = useQueryClient()
 	return useMutation({
-		mutationFn: async ({
-			vendorId,
-			maintenanceId
-		}: {
-			vendorId: string
-			maintenanceId: string
-		}): Promise<void> => {
-			const supabase = createClient()
-			const { error } = await supabase
-				.from('maintenance_requests')
-				.update({ vendor_id: vendorId, status: 'assigned' })
-				.eq('id', maintenanceId)
-
-			if (error) handlePostgrestError(error, 'maintenance_requests')
-		},
+		...vendorMutations.assign(),
 		onSuccess: (_data, { maintenanceId }) => {
 			queryClient.invalidateQueries({
 				queryKey: maintenanceQueries.detail(maintenanceId).queryKey
@@ -277,15 +226,7 @@ export function useAssignVendorMutation() {
 export function useUnassignVendorMutation() {
 	const queryClient = useQueryClient()
 	return useMutation({
-		mutationFn: async (maintenanceId: string): Promise<void> => {
-			const supabase = createClient()
-			const { error } = await supabase
-				.from('maintenance_requests')
-				.update({ vendor_id: null, status: 'needs_reassignment' })
-				.eq('id', maintenanceId)
-
-			if (error) handlePostgrestError(error, 'maintenance_requests')
-		},
+		...vendorMutations.unassign(),
 		onSuccess: (_data, maintenanceId) => {
 			queryClient.invalidateQueries({
 				queryKey: maintenanceQueries.detail(maintenanceId).queryKey

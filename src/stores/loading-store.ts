@@ -9,7 +9,7 @@
  */
 
 import { create } from 'zustand'
-import { createLogger } from '#shared/lib/frontend-logger'
+import { createLogger } from '#lib/frontend-logger'
 
 const logger = createLogger({ component: 'LoadingStore' })
 

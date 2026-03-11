@@ -1,7 +1,4 @@
-import type {
-	MaintenanceStatus,
-	MaintenancePriority
-} from '#shared/types/core'
+import type { MaintenanceStatus, MaintenancePriority } from '#types/core'
 import {
 	Clock,
 	AlertTriangle,

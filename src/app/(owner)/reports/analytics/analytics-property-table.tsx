@@ -1,5 +1,5 @@
 import { Card } from '#components/ui/card'
-import type { OccupancyMetrics } from '#shared/types/reports'
+import type { OccupancyMetrics } from '#types/reports'
 
 const formatPercent = (value: number) => `${value.toFixed(1)}%`
 

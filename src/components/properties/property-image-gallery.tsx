@@ -1,8 +1,8 @@
 'use client'
 
-import { useCallback, useState } from 'react'
+import { useState } from 'react'
 import Image from 'next/image'
-import { createLogger } from '#shared/lib/frontend-logger'
+import { createLogger } from '#lib/frontend-logger'
 import { usePropertyImages } from '#hooks/api/use-properties'
 import { useDeletePropertyImageMutation } from '#hooks/api/use-property-mutations'
 import { useLightboxState } from '#hooks/use-lightbox-state'
@@ -16,7 +16,7 @@ import {
 	AlertDialogFooter,
 	AlertDialogHeader,
 	AlertDialogTitle
-} from '#components/ui/dialog'
+} from '#components/ui/alert-dialog'
 import { Badge } from '#components/ui/badge'
 import { Button } from '#components/ui/button'
 import { Skeleton } from '#components/ui/skeleton'
@@ -51,8 +51,7 @@ export function PropertyImageGallery({
 		goToImage
 	} = useLightboxState(0)
 
-	const executeDelete = useCallback(
-		async (imageId: string, imageUrl: string) => {
+	const executeDelete = async (imageId: string, imageUrl: string) => {
 			// Extract storage path from URL (e.g., "property_id/filename.webp")
 			let imagePath: string | undefined
 			try {
@@ -80,9 +79,7 @@ export function PropertyImageGallery({
 					}
 				})
 			}
-		},
-		[deleteMutation, propertyId]
-	)
+		}
 
 	const handleDeleteClick = (imageId: string, imageUrl: string) => {
 		setDeleteTarget({ imageId, imageUrl })

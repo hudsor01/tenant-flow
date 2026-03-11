@@ -1,6 +1,6 @@
 import { CheckCircle, Clock, Pause, XCircle } from 'lucide-react'
 
-import type { PaymentStatus } from '#shared/types/core'
+import type { PaymentStatus } from '#types/core'
 
 export type SubscriptionStatus = 'active' | 'paused' | 'cancelled'
 

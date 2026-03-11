@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Download, AlertTriangle } from 'lucide-react'
 import { Skeleton } from '#components/ui/skeleton'
 import { BlurFade } from '#components/ui/blur-fade'
@@ -20,7 +20,7 @@ export default function ExpensesPage() {
 	const { data: expenses, isLoading, error, refetch } = useExpenses()
 	const { data: summary, isLoading: summaryLoading } = useExpenseSummary()
 
-	const filteredExpenses = useMemo(() => {
+	const filteredExpenses = (() => {
 		if (!expenses) return []
 		return expenses.filter(expense => {
 			if (categoryFilter !== 'all' && expense.category !== categoryFilter) {
@@ -38,7 +38,7 @@ export default function ExpensesPage() {
 			}
 			return true
 		})
-	}, [expenses, categoryFilter, searchQuery])
+	})()
 
 	const totalPages = Math.ceil(filteredExpenses.length / itemsPerPage)
 	const paginatedExpenses = filteredExpenses.slice(
@@ -59,13 +59,13 @@ export default function ExpensesPage() {
 	const monthlyAvg = summary?.monthly_average ?? 0
 	const yoyChange = summary?.year_over_year_change ?? null
 
-	const maintenanceTotal = useMemo(() => {
+	const maintenanceTotal = (() => {
 		if (!summary?.categories) return 0
 		const maintenance = summary.categories.find(
 			c => c.category === 'maintenance'
 		)
 		return maintenance?.amount ?? 0
-	}, [summary])
+	})()
 
 	const maintenancePercent =
 		totalExpenses > 0

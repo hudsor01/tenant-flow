@@ -18,12 +18,11 @@ import {
 	useQuery,
 	useQueryClient
 } from '@tanstack/react-query'
-import type {
-	TenantWithLeaseInfo
-} from '#shared/types/core'
+import type { TenantWithLeaseInfo } from '#types/core'
 
 // Import query keys from separate file to avoid circular dependency
 import { tenantQueries } from './query-keys/tenant-keys'
+import { tenantInvitationQueries } from './query-keys/tenant-invitation-keys'
 
 // ============================================================================
 // TYPES
@@ -230,5 +229,5 @@ export function useNotificationPreferences(tenant_id: string) {
  * Hook to fetch tenant invitations list
  */
 export function useInvitations() {
-	return useQuery(tenantQueries.invitationList())
+	return useQuery(tenantInvitationQueries.list())
 }

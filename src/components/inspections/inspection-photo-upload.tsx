@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useCallback } from 'react'
+import { useState } from 'react'
 import { useDropzone } from 'react-dropzone'
 import { Upload, X, CheckCircle } from 'lucide-react'
 import { Button } from '#components/ui/button'
@@ -30,14 +30,14 @@ export function InspectionPhotoUpload({
 	const [isUploading, setIsUploading] = useState(false)
 	const recordPhoto = useRecordInspectionPhoto(inspectionId)
 
-	const onDrop = useCallback((acceptedFiles: File[]) => {
+	const onDrop = (acceptedFiles: File[]) => {
 		const newFiles = acceptedFiles.map(file => ({
 			file,
 			objectUrl: URL.createObjectURL(file),
 			status: 'pending' as const
 		}))
 		setFiles(prev => [...prev, ...newFiles])
-	}, [])
+	}
 
 	const { getRootProps, getInputProps, isDragActive } = useDropzone({
 		onDrop,

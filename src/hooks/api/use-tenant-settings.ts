@@ -11,7 +11,8 @@ import {
 	queryOptions,
 	useQuery,
 	useMutation,
-	useQueryClient
+	useQueryClient,
+	mutationOptions
 } from '@tanstack/react-query'
 import { createClient } from '#lib/supabase/client'
 import { getCachedUser } from '#lib/supabase/get-cached-user'
@@ -21,8 +22,8 @@ import {
 	handleMutationError,
 	handleMutationSuccess
 } from '#lib/mutation-error-handler'
-import { DEFAULT_RETRY_ATTEMPTS } from '#shared/types/api-contracts'
-import { logger } from '#shared/lib/frontend-logger'
+import { DEFAULT_RETRY_ATTEMPTS } from '#types/api-contracts'
+import { logger } from '#lib/frontend-logger'
 import { tenantPortalKeys } from './use-tenant-portal-keys'
 
 // ============================================================================
@@ -62,19 +63,19 @@ export const tenantSettingsQueries = {
 				const user = await getCachedUser()
 				if (!user) throw new Error('Not authenticated')
 
-				const { data: tenantData } = await supabase
-					.from('tenants')
-					.select('id, first_name, last_name, email, phone')
-					.eq('user_id', user.id)
+				const { data: userData } = await supabase
+					.from('users')
+					.select('first_name, last_name, email, phone')
+					.eq('id', user.id)
 					.single()
 
 				return {
 					profile: {
 						id: user.id,
-						first_name: (tenantData as Record<string, unknown> | null)?.first_name as string | null ?? null,
-						last_name: (tenantData as Record<string, unknown> | null)?.last_name as string | null ?? null,
-						email: user.email ?? null,
-						phone: (tenantData as Record<string, unknown> | null)?.phone as string | null ?? null
+						first_name: userData?.first_name ?? null,
+						last_name: userData?.last_name ?? null,
+						email: userData?.email ?? user.email ?? null,
+						phone: userData?.phone ?? null
 					}
 				}
 			},
@@ -123,6 +124,49 @@ export function useTenantNotificationPreferences() {
 }
 
 // ============================================================================
+// MUTATION OPTIONS FACTORY
+// ============================================================================
+
+const tenantSettingsMutationFactories = {
+	updateNotificationPreferences: () =>
+		mutationOptions({
+			mutationKey: mutationKeys.tenantNotificationPreferences.update,
+			mutationFn: async (preferences: Partial<TenantNotificationPreferences>) => {
+				const supabase = createClient()
+				const user = await getCachedUser()
+				if (!user) throw new Error('Not authenticated')
+
+				const { data, error } = await supabase
+					.from('notification_settings')
+					.upsert(
+						{
+							user_id: user.id,
+							rent_reminders: preferences.rentReminders,
+							maintenance_updates: preferences.maintenanceUpdates,
+							property_notices: preferences.propertyNotices,
+							email_notifications: preferences.emailNotifications,
+							sms_notifications: preferences.smsNotifications
+						},
+						{ onConflict: 'user_id' }
+					)
+					.select('rent_reminders, maintenance_updates, property_notices, email_notifications, sms_notifications')
+					.single()
+
+				if (error) throw new Error(error.message)
+
+				const row = data as Record<string, unknown>
+				return {
+					rentReminders: row.rent_reminders as boolean ?? true,
+					maintenanceUpdates: row.maintenance_updates as boolean ?? true,
+					propertyNotices: row.property_notices as boolean ?? true,
+					emailNotifications: row.email_notifications as boolean ?? true,
+					smsNotifications: row.sms_notifications as boolean ?? false
+				} satisfies TenantNotificationPreferences
+			}
+		})
+}
+
+// ============================================================================
 // MUTATION HOOKS
 // ============================================================================
 
@@ -130,39 +174,7 @@ export function useUpdateTenantNotificationPreferences() {
 	const queryClient = useQueryClient()
 
 	return useMutation({
-		mutationKey: mutationKeys.tenantNotificationPreferences.update,
-		mutationFn: async (preferences: Partial<TenantNotificationPreferences>) => {
-			const supabase = createClient()
-			const user = await getCachedUser()
-			if (!user) throw new Error('Not authenticated')
-
-			const { data, error } = await supabase
-				.from('notification_settings')
-				.upsert(
-					{
-						user_id: user.id,
-						rent_reminders: preferences.rentReminders,
-						maintenance_updates: preferences.maintenanceUpdates,
-						property_notices: preferences.propertyNotices,
-						email_notifications: preferences.emailNotifications,
-						sms_notifications: preferences.smsNotifications
-					},
-					{ onConflict: 'user_id' }
-				)
-				.select('rent_reminders, maintenance_updates, property_notices, email_notifications, sms_notifications')
-				.single()
-
-			if (error) throw new Error(error.message)
-
-			const row = data as Record<string, unknown>
-			return {
-				rentReminders: row.rent_reminders as boolean ?? true,
-				maintenanceUpdates: row.maintenance_updates as boolean ?? true,
-				propertyNotices: row.property_notices as boolean ?? true,
-				emailNotifications: row.email_notifications as boolean ?? true,
-				smsNotifications: row.sms_notifications as boolean ?? false
-			} satisfies TenantNotificationPreferences
-		},
+		...tenantSettingsMutationFactories.updateNotificationPreferences(),
 		onMutate: async (newPreferences: Partial<TenantNotificationPreferences>) => {
 			await queryClient.cancelQueries({
 				queryKey: tenantPortalKeys.notificationPreferences.detail()

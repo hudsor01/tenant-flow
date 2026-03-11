@@ -2,7 +2,7 @@ import { PageLayout } from '#components/layout/page-layout'
 import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
-	title: 'Privacy Policy | TenantFlow',
+	title: 'Privacy Policy',
 	description:
 		'TenantFlow Privacy Policy - Learn how we collect, use, and protect your data.'
 }

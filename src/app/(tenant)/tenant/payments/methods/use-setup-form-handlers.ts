@@ -1,10 +1,10 @@
 'use client'
 
-import { createLogger } from '#shared/lib/frontend-logger'
+import { createLogger } from '#lib/frontend-logger'
 import { useElements, useStripe } from '@stripe/react-stripe-js'
 import type { StripeExpressCheckoutElementConfirmEvent } from '@stripe/stripe-js'
 import type { FormEvent } from 'react'
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { toast } from 'sonner'
 import { attachPaymentMethod } from './attach-payment-method'
 import { getStripeErrorMessage } from './stripe-error-utils'
@@ -60,8 +60,7 @@ export function useSetupFormHandlers(
 		}
 	}, [])
 
-	const handleSubmit = useCallback(
-		async (e: FormEvent) => {
+	const handleSubmit = async (e: FormEvent) => {
 			e.preventDefault()
 
 			if (!stripe || !elements) {
@@ -142,27 +141,24 @@ export function useSetupFormHandlers(
 					setIsProcessing(false)
 				}
 			}
-		},
-		[stripe, elements, isProcessing]
-	)
+		}
 
-	const handleElementReady = useCallback(() => {
+	const handleElementReady = () => {
 		if (isMountedRef.current) {
 			setIsLoading(false)
 			setElementReady(true)
 		}
-	}, [])
+	}
 
-	const handleLoadError = useCallback((message: string) => {
+	const handleLoadError = (message: string) => {
 		if (isMountedRef.current) {
 			logger.error('Element failed to load', { message })
 			toast.error(message)
 			setIsLoading(false)
 		}
-	}, [])
+	}
 
-	const handleExpressCheckoutConfirm = useCallback(
-		async (_event: StripeExpressCheckoutElementConfirmEvent) => {
+	const handleExpressCheckoutConfirm = async (_event: StripeExpressCheckoutElementConfirmEvent) => {
 			if (!stripe || !elements) {
 				toast.error('Payment form not ready. Please wait.')
 				return
@@ -234,9 +230,7 @@ export function useSetupFormHandlers(
 					setIsProcessing(false)
 				}
 			}
-		},
-		[stripe, elements, isProcessing]
-	)
+		}
 
 	return {
 		isProcessing,

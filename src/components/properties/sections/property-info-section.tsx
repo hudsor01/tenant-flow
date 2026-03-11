@@ -10,7 +10,7 @@ import {
 	SelectTrigger,
 	SelectValue
 } from '#components/ui/select'
-import type { PropertyType } from '#shared/types/core'
+import type { PropertyType } from '#types/core'
 import type { PropertyFormApi } from '../property-form-types'
 
 interface PropertyInfoSectionProps {

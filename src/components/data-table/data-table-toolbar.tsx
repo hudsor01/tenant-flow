@@ -2,7 +2,7 @@
 
 import type { Column, Table } from '@tanstack/react-table'
 import { X } from 'lucide-react'
-import { useCallback, useMemo } from 'react'
+
 import type { ComponentProps } from 'react'
 
 import { DataTableDateFilter } from '#components/data-table/data-table-date-filter'
@@ -25,14 +25,11 @@ export function DataTableToolbar<TData>({
 }: DataTableToolbarProps<TData>) {
 	const isFiltered = table.getState().columnFilters.length > 0
 
-	const columns = useMemo(
-		() => table.getAllColumns().filter(column => column.getCanFilter()),
-		[table]
-	)
+	const columns = table.getAllColumns().filter(column => column.getCanFilter())
 
-	const onReset = useCallback(() => {
+	const onReset = () => {
 		table.resetColumnFilters()
-	}, [table])
+	}
 
 	return (
 		<div
@@ -78,7 +75,7 @@ function DataTableToolbarFilter<TData>({
 	{
 		const columnMeta = column.columnDef.meta
 
-		const onFilterRender = useCallback(() => {
+		const onFilterRender = () => {
 			if (!columnMeta?.variant) return null
 
 			switch (columnMeta.variant) {
@@ -143,7 +140,7 @@ function DataTableToolbarFilter<TData>({
 				default:
 					return null
 			}
-		}, [column, columnMeta])
+		}
 
 		return onFilterRender()
 	}

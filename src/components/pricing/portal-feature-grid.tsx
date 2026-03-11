@@ -16,7 +16,7 @@ export function PortalFeatureGrid() {
 				'animate-in fade-in-0 duration-300'
 			)}
 		>
-			<div className={cardVariants({ variant: 'pricingFeature' })}>
+			<div className={cn(cardVariants({ variant: 'interactive' }), 'p-5 border-2 bg-primary/8 border-primary/20 hover:border-primary/30')}>
 				<div className="flex items-center gap-4 mb-3">
 					<div className="p-3 bg-primary/10 rounded-xl">
 						<CreditCard className="size-6 text-primary" />
@@ -34,7 +34,7 @@ export function PortalFeatureGrid() {
 				</div>
 			</div>
 
-			<div className={cardVariants({ variant: 'pricingFeatureAccent' })}>
+			<div className={cn(cardVariants({ variant: 'interactive' }), 'p-5 border-2 bg-accent/8 border-accent/20 hover:border-accent/30')}>
 				<div className="flex items-center gap-4 mb-3">
 					<div className="p-3 bg-accent/10 rounded-xl">
 						<FileText className="size-6 text-accent" />
@@ -52,7 +52,7 @@ export function PortalFeatureGrid() {
 				</div>
 			</div>
 
-			<div className={cardVariants({ variant: 'pricingFeature' })}>
+			<div className={cn(cardVariants({ variant: 'interactive' }), 'p-5 border-2 bg-primary/8 border-primary/20 hover:border-primary/30')}>
 				<div className="flex items-center gap-4 mb-3">
 					<div className="p-3 bg-primary/10 rounded-xl">
 						<Download className="size-6 text-primary" />
@@ -70,7 +70,7 @@ export function PortalFeatureGrid() {
 				</div>
 			</div>
 
-			<div className={cardVariants({ variant: 'pricingFeatureAccent' })}>
+			<div className={cn(cardVariants({ variant: 'interactive' }), 'p-5 border-2 bg-accent/8 border-accent/20 hover:border-accent/30')}>
 				<div className="flex items-center gap-4 mb-3">
 					<div className="p-3 bg-accent/10 rounded-xl">
 						<Sparkles className="size-6 text-accent" />

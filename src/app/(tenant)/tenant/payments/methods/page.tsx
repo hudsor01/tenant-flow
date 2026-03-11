@@ -1,7 +1,23 @@
 import { Suspense } from 'react'
 
 import { AddPaymentMethod } from '#app/(owner)/payments/methods/add-payment-method.client'
+import { ErrorBoundary } from '#components/error-boundary/error-boundary'
+import { Alert, AlertDescription, AlertTitle } from '#components/ui/alert'
+import { AlertTriangle } from 'lucide-react'
 import { TenantPaymentMethods } from './tenant-payment-methods.client'
+
+function PaymentMethodsError() {
+	return (
+		<Alert variant="destructive">
+			<AlertTriangle className="size-4" />
+			<AlertTitle>Failed to load payment methods</AlertTitle>
+			<AlertDescription>
+				There was an error loading your payment methods. Please try refreshing the
+				page. If the problem persists, contact support.
+			</AlertDescription>
+		</Alert>
+	)
+}
 
 export default function TenantPaymentMethodsPage() {
 	return (
@@ -13,15 +29,17 @@ export default function TenantPaymentMethodsPage() {
 					any time.
 				</p>
 			</div>
-			<Suspense
-				fallback={
-					<div className="animate-pulse text-muted-foreground">
-						Loading payment methods...
-					</div>
-				}
-			>
-				<TenantPaymentMethods />
-			</Suspense>
+			<ErrorBoundary fallback={<PaymentMethodsError />}>
+				<Suspense
+					fallback={
+						<div className="animate-pulse text-muted-foreground">
+							Loading payment methods...
+						</div>
+					}
+				>
+					<TenantPaymentMethods />
+				</Suspense>
+			</ErrorBoundary>
 			<AddPaymentMethod />
 		</div>
 	)

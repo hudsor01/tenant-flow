@@ -1,8 +1,8 @@
 'use client'
 
-import { useEffect, useCallback } from 'react'
+import { useEffect } from 'react'
 import Image from 'next/image'
-import type { Tables } from '#shared/types/supabase'
+import type { Tables } from '#types/supabase'
 import {
 	Dialog,
 	DialogContent,
@@ -33,15 +33,15 @@ export function ImageLightbox({
 	// Use controlled index if provided (for URL state), otherwise use initialIndex
 	const currentIndex = controlledIndex ?? initialIndex
 
-	const handlePrevious = useCallback(() => {
+	const handlePrevious = () => {
 		const newIndex = currentIndex === 0 ? images.length - 1 : currentIndex - 1
 		onIndexChange?.(newIndex)
-	}, [images.length, currentIndex, onIndexChange])
+	}
 
-	const handleNext = useCallback(() => {
+	const handleNext = () => {
 		const newIndex = currentIndex === images.length - 1 ? 0 : currentIndex + 1
 		onIndexChange?.(newIndex)
-	}, [images.length, currentIndex, onIndexChange])
+	}
 
 	// Handle keyboard navigation
 	useEffect(() => {
@@ -50,10 +50,12 @@ export function ImageLightbox({
 		const handleKeyDown = (e: KeyboardEvent) => {
 			if (e.key === 'ArrowLeft') {
 				e.preventDefault()
-				handlePrevious()
+				const prevIndex = currentIndex === 0 ? images.length - 1 : currentIndex - 1
+				onIndexChange?.(prevIndex)
 			} else if (e.key === 'ArrowRight') {
 				e.preventDefault()
-				handleNext()
+				const nextIndex = currentIndex === images.length - 1 ? 0 : currentIndex + 1
+				onIndexChange?.(nextIndex)
 			} else if (e.key === 'Escape') {
 				onClose()
 			}
@@ -61,7 +63,7 @@ export function ImageLightbox({
 
 		window.addEventListener('keydown', handleKeyDown)
 		return () => window.removeEventListener('keydown', handleKeyDown)
-	}, [open, handlePrevious, handleNext, onClose])
+	}, [open, currentIndex, images.length, onIndexChange, onClose])
 
 	if (images.length === 0) return null
 

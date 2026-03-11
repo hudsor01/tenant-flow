@@ -1,6 +1,5 @@
 'use client'
 
-import { memo } from 'react'
 import { Badge } from '#components/ui/badge'
 import { Button } from '#components/ui/button'
 import {
@@ -14,7 +13,7 @@ import {
 	DropdownMenuSeparator,
 	DropdownMenuTrigger
 } from '#components/ui/dropdown-menu'
-import type { Unit, UnitStatus } from '#shared/types/core'
+import type { Unit, UnitStatus } from '#types/core'
 import { Bath, Bed, DollarSign, MoreHorizontal, Pencil, Ruler, Trash2 } from 'lucide-react'
 import { cn } from '#lib/utils'
 import { statusConfig, formatUnitCurrency } from './property-units-table-config'
@@ -25,7 +24,7 @@ interface UnitTableRowProps {
 	onDelete: (unit: Unit) => void
 }
 
-export const UnitTableRow = memo(function UnitTableRow({ unit, onEdit, onDelete }: UnitTableRowProps) {
+export function UnitTableRow({ unit, onEdit, onDelete }: UnitTableRowProps) {
 	const status = (unit.status as UnitStatus) || 'available'
 	const config = statusConfig[status]
 	const StatusIcon = config.icon
@@ -121,4 +120,4 @@ export const UnitTableRow = memo(function UnitTableRow({ unit, onEdit, onDelete 
 			</TableCell>
 		</TableRow>
 	)
-})
+}

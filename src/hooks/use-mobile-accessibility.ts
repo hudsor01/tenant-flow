@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 
 const HIGH_CONTRAST_QUERY = '(prefers-contrast: more), (prefers-contrast: high)'
 const REDUCED_MOTION_QUERY = '(prefers-reduced-motion: reduce)'
@@ -46,16 +46,13 @@ export function useMobileAccessibility() {
 		}
 	}, [])
 
-	const applyAccessibilityStyles = useCallback(
-		(element: HTMLElement | null) => {
+	const applyAccessibilityStyles = (element: HTMLElement | null) => {
 			if (!element) return
 			element.setAttribute('data-mobile-focus', 'true')
 			element.classList.add('outline-none')
 			element.style.outline = '2px solid var(--color-primary)'
 			element.style.outlineOffset = '2px'
-		},
-		[]
-	)
+		}
 
 	return {
 		isScreenReader: isScreenReaderMode,

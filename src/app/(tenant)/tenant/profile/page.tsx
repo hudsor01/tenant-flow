@@ -23,7 +23,7 @@ import {
 	AlertDialogFooter,
 	AlertDialogHeader,
 	AlertDialogTitle
-} from '#components/ui/dialog'
+} from '#components/ui/alert-dialog'
 import { useSupabaseUpdateProfileMutation } from '#hooks/api/use-auth-mutations'
 import {
 	useTenantNotificationPreferences,
@@ -36,7 +36,7 @@ import {
 } from '#hooks/api/use-emergency-contact'
 import { useCurrentUser } from '#hooks/use-current-user'
 import { handleMutationError } from '#lib/mutation-error-handler'
-import { emailSchema } from '#shared/validation/common'
+import { emailSchema } from '#lib/validation/common'
 import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
 import { PersonalInformationSection } from '#components/profiles/tenant/personal-information-section'
@@ -221,19 +221,11 @@ export default function TenantProfilePage() {
 	}
 
 	const handleCancelEmergencyContactEdit = () => {
-		if (emergency_contact) {
-			setEmergencyContactForm({
-				name: emergency_contact.name || '',
-				relationship: emergency_contact.relationship || '',
-				phone: emergency_contact.phone || ''
-			})
-		} else {
-			setEmergencyContactForm({
-				name: '',
-				relationship: '',
-				phone: ''
-			})
-		}
+		setEmergencyContactForm(
+			emergency_contact
+				? { name: emergency_contact.name || '', relationship: emergency_contact.relationship || '', phone: emergency_contact.phone || '' }
+				: { name: '', relationship: '', phone: '' }
+		)
 		setEmergencyContactEditing(false)
 	}
 
@@ -241,9 +233,7 @@ export default function TenantProfilePage() {
 		<div className="max-w-4xl mx-auto space-y-8">
 			<div>
 				<h1 className="typography-h1">My Profile</h1>
-				<p className="text-muted-foreground">
-					Manage your contact information and account settings
-				</p>
+				<p className="text-muted-foreground">Manage your contact information and account settings</p>
 			</div>
 
 			<PersonalInformationSection

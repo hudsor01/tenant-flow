@@ -3,7 +3,7 @@
  * Client-side security helpers for Stripe integration
  */
 
-import { isValidUrl } from '#shared/validation/common'
+import { isValidUrl } from '#lib/validation/common'
 
 /**
  * Generate a secure random string for state/CSRF protection

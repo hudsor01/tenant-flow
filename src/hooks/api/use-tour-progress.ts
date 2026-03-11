@@ -1,4 +1,4 @@
-import { createLogger } from '#shared/lib/frontend-logger'
+import { createLogger } from '#lib/frontend-logger'
 import { createClient } from '#lib/supabase/client'
 import { getCachedUser } from '#lib/supabase/get-cached-user'
 const logger = createLogger({ component: 'TourProgress' })
@@ -63,7 +63,8 @@ export async function getTourProgress(tourKey: TourKey): Promise<TourProgress> {
 			tour_key: tourKey,
 			status: localStatus,
 			current_step: 0,
-			completed_at: localStatus === 'completed' ? new Date().toISOString() : null,
+			completed_at:
+				localStatus === 'completed' ? new Date().toISOString() : null,
 			skipped_at: localStatus === 'skipped' ? new Date().toISOString() : null,
 			last_seen_at: new Date().toISOString()
 		}

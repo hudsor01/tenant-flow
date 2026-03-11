@@ -5,8 +5,8 @@
  * Split from use-profile-mutations.ts for the 300-line file size rule.
  */
 
-import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { logger } from '#shared/lib/frontend-logger'
+import { useMutation, useQueryClient, mutationOptions } from '@tanstack/react-query'
+import { logger } from '#lib/frontend-logger'
 import {
 	handleMutationError,
 	handleMutationSuccess
@@ -16,10 +16,62 @@ import { getCachedUser } from '#lib/supabase/get-cached-user'
 import type {
 	SetEmergencyContactInput,
 	UserProfile
-} from '#shared/types/api-contracts'
+} from '#types/api-contracts'
 
 import { mutationKeys } from './mutation-keys'
 import { profileKeys } from './use-profile'
+
+// ============================================================================
+// MUTATION OPTIONS FACTORIES
+// ============================================================================
+
+const profileEmergencyMutationFactories = {
+	update: () =>
+		mutationOptions({
+			mutationKey: mutationKeys.profile.updateEmergencyContact,
+			mutationFn: async (
+				input: SetEmergencyContactInput
+			): Promise<{ success: boolean; message: string }> => {
+				const supabase = createClient()
+				const user = await getCachedUser()
+				if (!user) throw new Error('Not authenticated')
+				const { error } = await supabase
+					.from('tenants')
+					.update({
+						emergency_contact_name: input.name,
+						emergency_contact_phone: input.phone,
+						emergency_contact_relationship: input.relationship ?? null
+					})
+					.eq('user_id', user.id)
+				if (error) throw error
+				return { success: true, message: 'Emergency contact updated' }
+			}
+		}),
+
+	remove: () =>
+		mutationOptions<{ success: boolean; message: string }, unknown, void>({
+			mutationKey: mutationKeys.profile.deleteEmergencyContact,
+			mutationFn: async (): Promise<{ success: boolean; message: string }> => {
+				const supabase = createClient()
+				const user = await getCachedUser()
+				if (!user) throw new Error('Not authenticated')
+				const { error } = await supabase
+					.from('tenants')
+					.update({
+						emergency_contact_name: null,
+						emergency_contact_phone: null,
+						emergency_contact_relationship: null
+					})
+					.eq('user_id', user.id)
+				if (error) throw error
+				return { success: true, message: 'Emergency contact removed' }
+			}
+		})
+}
+
+// ============================================================================
+// MUTATION HOOKS
+// ============================================================================
 
 /**
  * Update emergency contact (for tenants)
@@ -29,24 +81,7 @@ export function useUpdateProfileEmergencyContactMutation() {
 	const queryClient = useQueryClient()
 
 	return useMutation({
-		mutationKey: mutationKeys.profile.updateEmergencyContact,
-		mutationFn: async (
-			input: SetEmergencyContactInput
-		): Promise<{ success: boolean; message: string }> => {
-			const supabase = createClient()
-			const user = await getCachedUser()
-			if (!user) throw new Error('Not authenticated')
-			const { error } = await supabase
-				.from('tenants')
-				.update({
-					emergency_contact_name: input.name,
-					emergency_contact_phone: input.phone,
-					emergency_contact_relationship: input.relationship ?? null
-				})
-				.eq('user_id', user.id)
-			if (error) throw error
-			return { success: true, message: 'Emergency contact updated' }
-		},
+		...profileEmergencyMutationFactories.update(),
 
 		onMutate: async newData => {
 			await queryClient.cancelQueries({ queryKey: profileKeys.detail() })
@@ -103,22 +138,7 @@ export function useRemoveProfileEmergencyContactMutation() {
 	const queryClient = useQueryClient()
 
 	return useMutation({
-		mutationKey: mutationKeys.profile.deleteEmergencyContact,
-		mutationFn: async (): Promise<{ success: boolean; message: string }> => {
-			const supabase = createClient()
-			const user = await getCachedUser()
-			if (!user) throw new Error('Not authenticated')
-			const { error } = await supabase
-				.from('tenants')
-				.update({
-					emergency_contact_name: null,
-					emergency_contact_phone: null,
-					emergency_contact_relationship: null
-				})
-				.eq('user_id', user.id)
-			if (error) throw error
-			return { success: true, message: 'Emergency contact removed' }
-		},
+		...profileEmergencyMutationFactories.remove(),
 
 		onMutate: async () => {
 			await queryClient.cancelQueries({ queryKey: profileKeys.detail() })

@@ -60,7 +60,11 @@ A landlord can add a property, invite a tenant, collect rent, and see their fina
 
 ### Active
 
-(None -- next milestone not yet defined)
+- v1.2: Hooks audit and consolidation (85 files, modernize for TanStack Query v5 / Next.js 16)
+- v1.2: Components audit and consolidation (366 files across 69 dirs)
+- v1.2: Shared directory cleanup (duplicate types, dead exports, organization)
+- v1.2: Public UI polish (navbar, CTAs, buttons, radius, design system consistency)
+- v1.2: Full-app UI audit via browser automation (marketing, blog, auth, tenant portal, owner dashboard)
 
 ### Out of Scope
 
@@ -137,4 +141,4 @@ Frontend (Next.js 16 / Vercel) -> supabase-js -> Supabase PostgREST (RLS enforce
 | Resend Contacts API (not Audiences) | Audiences deprecated, Contacts is current API | Good |
 
 ---
-*Last updated: 2026-03-08 after v1.1 Blog Redesign & CI milestone completed*
+*Last updated: 2026-03-08 after v1.2 Production Polish & Code Consolidation milestone started*

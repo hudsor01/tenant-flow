@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo, useCallback } from 'react'
+
 import { useRouter } from 'next/navigation'
 import { Dashboard } from './dashboard'
 import { Skeleton } from '#components/ui/skeleton'
@@ -130,7 +130,7 @@ export function OwnerDashboard() {
 		usePropertyPerformance()
 
 	// Transform stats to design-os format
-	const metrics = useMemo(() => {
+	const metrics = (() => {
 		if (!statsData?.stats) {
 			return {
 				totalRevenue: 0,
@@ -162,20 +162,20 @@ export function OwnerDashboard() {
 			openMaintenanceRequests: stats.maintenance?.open ?? 0,
 			collectionRate: 0 // Not available in current API
 		}
-	}, [statsData])
+	})()
 
 	// Transform revenue trends
-	const revenueTrend = useMemo(() => {
+	const revenueTrend = (() => {
 		if (!chartsData?.timeSeries?.monthlyRevenue) return []
 
 		return chartsData.timeSeries.monthlyRevenue.map(point => ({
 			month: point.date,
 			revenue: point.value * 100 // Convert to cents
 		}))
-	}, [chartsData])
+	})()
 
 	// Transform property performance
-	const propertyPerformance = useMemo(() => {
+	const propertyPerformance = (() => {
 		if (!performanceData) return []
 
 		return performanceData.map(prop => ({
@@ -188,28 +188,28 @@ export function OwnerDashboard() {
 			monthlyRevenue: prop.monthlyRevenue * 100, // Convert to cents
 			openMaintenance: 0 // Not in current API response
 		}))
-	}, [performanceData])
+	})()
 
 	// Navigation callbacks
-	const onAddProperty = useCallback(() => {
+	const onAddProperty = () => {
 		router.push('/properties/new')
-	}, [router])
+	}
 
-	const onCreateLease = useCallback(() => {
+	const onCreateLease = () => {
 		router.push('/leases/new')
-	}, [router])
+	}
 
-	const onInviteTenant = useCallback(() => {
+	const onInviteTenant = () => {
 		router.push('/tenants/new')
-	}, [router])
+	}
 
-	const onRecordPayment = useCallback(() => {
+	const onRecordPayment = () => {
 		router.push('/rent-collection')
-	}, [router])
+	}
 
-	const onCreateMaintenanceRequest = useCallback(() => {
+	const onCreateMaintenanceRequest = () => {
 		router.push('/maintenance/new')
-	}, [router])
+	}
 
 	// Loading state
 	const isLoading = statsLoading || chartsLoading || performanceLoading

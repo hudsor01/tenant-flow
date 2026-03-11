@@ -105,18 +105,19 @@ Deno.serve(async (req: Request) => {
         { data: tenantRow },
         { data: unitRow },
       ] = await Promise.all([
-        supabase.from('profiles').select('full_name, email').eq('id', lease.owner_user_id).single(),
-        supabase.from('tenants').select('user_id, first_name, last_name, email').eq('id', lease.primary_tenant_id).single(),
-        supabase.from('units').select('unit_number, properties(name, address_line1, city, state, zip_code)').eq('id', lease.unit_id).single(),
+        supabase.from('users').select('full_name, email').eq('id', lease.owner_user_id).single(),
+        supabase.from('tenants').select('user_id, users!inner(first_name, last_name, email)').eq('id', lease.primary_tenant_id).single(),
+        supabase.from('units').select('unit_number, properties(name, address_line1, city, state, postal_code)').eq('id', lease.unit_id).single(),
       ])
 
       const ownerName = (ownerProfile?.full_name as string | null) ?? 'Property Owner'
       const ownerEmail = (ownerProfile?.email as string | null) ?? ''
 
-      const tenantName = tenantRow
-        ? `${(tenantRow.first_name as string | null) ?? ''} ${(tenantRow.last_name as string | null) ?? ''}`.trim()
+      const tenantUser = tenantRow?.users as unknown as { first_name: string | null; last_name: string | null; email: string } | null
+      const tenantName = tenantUser
+        ? `${tenantUser.first_name ?? ''} ${tenantUser.last_name ?? ''}`.trim()
         : 'Tenant'
-      const tenantEmail = (tenantRow?.email as string | null) ?? ''
+      const tenantEmail = tenantUser?.email ?? ''
 
       const property = unitRow
         ? (unitRow.properties as unknown as {
@@ -124,7 +125,7 @@ Deno.serve(async (req: Request) => {
             address_line1: string | null
             city: string | null
             state: string | null
-            zip_code: string | null
+            postal_code: string | null
           } | null)
         : null
 
@@ -132,7 +133,7 @@ Deno.serve(async (req: Request) => {
         ? [
             property.name,
             property.address_line1,
-            [property.city, property.state, property.zip_code].filter(Boolean).join(', ')
+            [property.city, property.state, property.postal_code].filter(Boolean).join(', ')
           ]
             .filter(Boolean)
             .join(' — ')

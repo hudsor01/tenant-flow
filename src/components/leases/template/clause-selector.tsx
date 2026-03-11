@@ -2,8 +2,8 @@
 
 import {
 	leaseTemplateSchema
-} from '#shared/templates/lease-template'
-import type { USState } from '#shared/types/lease-generator.types'
+} from '#lib/templates/lease-template'
+import type { USState } from '#types/lease-generator.types'
 import {
 	Card,
 	CardContent,

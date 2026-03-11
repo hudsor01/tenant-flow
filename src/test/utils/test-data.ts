@@ -9,7 +9,7 @@
  * - Direct object creation with spread operators
  */
 
-import type { Lease, Property, Tenant, User } from '#shared/types/core'
+import type { Lease, Property, Tenant, User } from '#types/core'
 
 /**
  * Default Tenant - Use with spread operator for overrides

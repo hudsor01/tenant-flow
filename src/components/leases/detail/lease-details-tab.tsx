@@ -3,7 +3,7 @@ import { Calendar, User, Building } from 'lucide-react'
 import { cn } from '#lib/utils'
 import { formatDate } from '#lib/formatters/date'
 import { getDaysUntilExpiry } from './lease-detail-utils'
-import type { Lease } from '#shared/types/core'
+import type { Lease } from '#types/core'
 
 interface TenantInfo {
 	email?: string | null | undefined

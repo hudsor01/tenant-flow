@@ -1,5 +1,5 @@
 import { cn } from '#lib/utils'
-import type { UnitStats } from '#shared/types/stats'
+import type { UnitStats } from '#types/stats'
 
 interface UnitStatsDisplayProps {
 	stats: UnitStats

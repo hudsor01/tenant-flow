@@ -1,13 +1,13 @@
 /**
  * Lease Template Builder - Dynamic Lease Agreement Generator
- * 
+ *
  * This client component provides an interactive lease template builder
  * with clause selection, state-specific rules, and PDF generation.
  */
 
 'use client'
 
-import { useCallback, useMemo, useState } from 'react'
+import { useState } from 'react'
 import {
 	leaseTemplateSchema,
 	renderLeaseHtmlBody,
@@ -17,8 +17,8 @@ import {
 	type LeaseTemplateContext,
 	type CustomClause,
 	stateNames
-} from '#shared/templates/lease-template'
-import type { USState } from '#shared/types/lease-generator.types'
+} from '#lib/templates/lease-template'
+import type { USState } from '#types/lease-generator.types'
 import {
 	Card,
 	CardContent,
@@ -80,7 +80,7 @@ export function LeaseTemplateBuilder() {
 		() =>
 			getDefaultSelections(leaseTemplateSchema, defaultState).selectedClauses
 	)
-	const customClauses = useMemo<CustomClause[]>(() => [], [])
+	const customClauses: CustomClause[] = []
 	const [pdfPreview, setPdfPreview] = useState<string | null>(null)
 	const [isGeneratingPdf, setIsGeneratingPdf] = useState(false)
 
@@ -98,7 +98,7 @@ export function LeaseTemplateBuilder() {
 		gracePeriodDays: '5'
 	})
 
-	const context: LeaseTemplateContext = useMemo(() => {
+	const context: LeaseTemplateContext = (() => {
 		return createDefaultContext({
 			ownerName: builderInputs.ownerName,
 			ownerAddress: builderInputs.ownerAddress,
@@ -113,44 +113,35 @@ export function LeaseTemplateBuilder() {
 			late_fee_amountCents: dollarsToCents(builderInputs.late_fee_amount),
 			gracePeriodDays: Number(builderInputs.gracePeriodDays) || 0
 		})
-	}, [builderInputs, state])
+	})()
 
-	const selections: LeaseTemplateSelections = useMemo(
-		() => ({
+	const selections: LeaseTemplateSelections = ({
 			state,
 			selectedClauses,
 			includeFederalDisclosures,
 			includeStateDisclosures,
 			customClauses
-		}),
-		[
-			state,
-			selectedClauses,
-			includeFederalDisclosures,
-			includeStateDisclosures,
-			customClauses
-		]
-	)
+		})
 
-	const previewHtml = useMemo(() => {
+	const previewHtml = (() => {
 		return renderLeaseHtmlBody(leaseTemplateSchema, selections, context)
-	}, [context, selections])
+	})()
 
-	const recommendedClauses = useMemo(() => {
+	const recommendedClauses = (() => {
 		return new Set(
 			leaseTemplateSchema.stateRules[state]?.recommendedClauses ?? []
 		)
-	}, [state])
+	})()
 
-	const toggleClause = useCallback((clauseId: string) => {
+	const toggleClause = (clauseId: string) => {
 		setSelectedClauses(prev =>
 			prev.includes(clauseId)
 				? prev.filter(id => id !== clauseId)
 				: [...prev, clauseId]
 		)
-	}, [])
+	}
 
-	const handlePreviewPdf = useCallback(async () => {
+	const handlePreviewPdf = async () => {
 		setIsGeneratingPdf(true)
 		try {
 			const supabase = createClient()
@@ -185,7 +176,7 @@ export function LeaseTemplateBuilder() {
 		} finally {
 			setIsGeneratingPdf(false)
 		}
-	}, [previewHtml])
+	}
 
 	return (
 		<TooltipProvider>

@@ -7,7 +7,7 @@ import {
 	PartyPopper
 } from 'lucide-react'
 import { Progress } from '#components/ui/progress'
-import type { BulkImportResult } from '#shared/types/api-contracts'
+import type { BulkImportResult } from '#types/api-contracts'
 import { cn } from '#lib/utils'
 
 interface BulkImportConfirmStepProps {

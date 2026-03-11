@@ -6,113 +6,13 @@
  * Query hooks remain in use-payments.ts.
  */
 
-import {
-	useMutation,
-	useQueryClient,
-	type QueryKey
-} from '@tanstack/react-query'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { handleMutationError } from '#lib/mutation-error-handler'
-import { mutationKeys } from './mutation-keys'
+import { paymentMutations } from './query-keys/payment-mutation-options'
 import {
 	rentCollectionKeys,
 	rentPaymentKeys
 } from './query-keys/payment-keys'
-import type {
-	SendPaymentReminderRequest,
-	SendPaymentReminderResponse
-} from '#shared/types/api-contracts'
-import type {
-	PaymentFilters,
-	ManualPaymentInput
-} from '#shared/types/sections/payments'
-import { createClient } from '#lib/supabase/client'
-import { handlePostgrestError } from '#lib/postgrest-error-handler'
-
-// ============================================================================
-// UTILITY FUNCTIONS
-// ============================================================================
-
-/**
- * Convert rent_payments rows to CSV string
- */
-function rowsToCsv(rows: Record<string, unknown>[]): string {
-	if (rows.length === 0) return ''
-	const headers = Object.keys(rows[0] as Record<string, unknown>)
-	const headerRow = headers.join(',')
-	const dataRows = rows.map(row =>
-		headers
-			.map(h => {
-				const val = (row as Record<string, unknown>)[h]
-				const str = val === null || val === undefined ? '' : String(val)
-				// Escape double-quotes and wrap in quotes if value contains comma/newline/quote
-				return str.includes(',') || str.includes('"') || str.includes('\n')
-					? `"${str.replace(/"/g, '""')}"`
-					: str
-			})
-			.join(',')
-	)
-	return [headerRow, ...dataRows].join('\n')
-}
-
-/**
- * Export payments as CSV — client-side generation from PostgREST
- */
-async function exportPaymentsCSV(
-	filters?: PaymentFilters
-): Promise<Blob> {
-	const supabase = createClient()
-	let query = supabase
-		.from('rent_payments')
-		.select(
-			'id, amount, currency, status, due_date, paid_date, period_start, period_end, payment_method_type, late_fee_amount, notes, created_at'
-		)
-		.order('due_date', { ascending: false })
-		.limit(10000)
-
-	if (filters?.status) {
-		query = query.eq('status', filters.status)
-	}
-	if (filters?.startDate) {
-		query = query.gte('due_date', filters.startDate)
-	}
-	if (filters?.endDate) {
-		query = query.lte('due_date', filters.endDate)
-	}
-
-	const { data, error } = await query
-	if (error) handlePostgrestError(error, 'rent_payments')
-	const csv = rowsToCsv((data ?? []) as unknown as Record<string, unknown>[])
-	return new Blob([csv], { type: 'text/csv' })
-}
-
-/**
- * Record a manual payment — PostgREST insert into rent_payments
- */
-async function recordManualPayment(
-	input: ManualPaymentInput
-): Promise<{ success: boolean; payment: unknown }> {
-	const supabase = createClient()
-	const { data, error } = await supabase
-		.from('rent_payments')
-		.insert({
-			tenant_id: input.tenant_id,
-			lease_id: input.lease_id,
-			amount: input.amount,
-			currency: 'USD',
-			status: 'succeeded',
-			payment_method_type: input.payment_method ?? 'manual',
-			period_start: new Date().toISOString().split('T')[0] as string,
-			period_end: new Date().toISOString().split('T')[0] as string,
-			due_date: input.paid_date,
-			paid_date: input.paid_date,
-			application_fee_amount: 0,
-			notes: input.notes ?? null
-		})
-		.select('id')
-		.single()
-	if (error) handlePostgrestError(error, 'rent_payments')
-	return { success: true, payment: data }
-}
 
 // ============================================================================
 // MUTATION HOOKS
@@ -125,8 +25,7 @@ export function useRecordManualPaymentMutation() {
 	const queryClient = useQueryClient()
 
 	return useMutation({
-		mutationKey: mutationKeys.rentCollection.recordManual,
-		mutationFn: (data: ManualPaymentInput) => recordManualPayment(data),
+		...paymentMutations.recordManual(),
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: rentCollectionKeys.all })
 		},
@@ -137,14 +36,13 @@ export function useRecordManualPaymentMutation() {
 }
 
 /**
- * Export payments as CSV — client-side from PostgREST
+ * Export payments as CSV -- client-side from PostgREST.
+ * Downloads the CSV file via browser blob URL.
  */
 export function useExportPaymentsMutation() {
 	return useMutation({
-		mutationKey: mutationKeys.rentCollection.exportCsv,
-		mutationFn: async (filters?: PaymentFilters) => {
-			const blob = await exportPaymentsCSV(filters)
-
+		...paymentMutations.exportCsv(),
+		onSuccess: (blob) => {
 			const url = window.URL.createObjectURL(blob)
 			const a = document.createElement('a')
 			a.href = url
@@ -153,18 +51,11 @@ export function useExportPaymentsMutation() {
 			a.click()
 			window.URL.revokeObjectURL(url)
 			document.body.removeChild(a)
-
-			return blob
 		},
 		onError: (error) => {
 			handleMutationError(error, 'Export payments')
 		}
 	})
-}
-
-type SendReminderVariables = {
-	request: SendPaymentReminderRequest
-	ownerQueryKey?: QueryKey
 }
 
 /**
@@ -176,18 +67,7 @@ export function useSendTenantPaymentReminderMutation() {
 	const queryClient = useQueryClient()
 
 	return useMutation({
-		mutationKey: mutationKeys.rentPayments.sendReminder,
-		mutationFn: async (variables: SendReminderVariables): Promise<SendPaymentReminderResponse> => {
-			const supabase = createClient()
-			const { data, error } = await supabase.functions.invoke(
-				'send-payment-reminder',
-				{
-					body: variables.request
-				}
-			)
-			if (error) throw new Error(error.message ?? 'Failed to send payment reminder')
-			return (data as SendPaymentReminderResponse) ?? { success: true }
-		},
+		...paymentMutations.sendReminder(),
 		onSuccess: (_data, variables) => {
 			if (variables?.ownerQueryKey) {
 				queryClient.invalidateQueries({

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { type FileError, type FileRejection, useDropzone } from 'react-dropzone'
 import { createClient } from '#lib/supabase/client'
 
@@ -9,7 +9,7 @@ interface FileWithPreview extends File {
 	errors: readonly FileError[]
 }
 
-import { UseSupabaseUploadOptions } from '#shared/types/file-upload'
+import { UseSupabaseUploadOptions } from '#types/file-upload'
 
 type UseSupabaseUploadReturn = ReturnType<typeof useSupabaseUpload>
 
@@ -30,7 +30,7 @@ const useSupabaseUpload = (options: UseSupabaseUploadOptions) => {
 	const [errors, setErrors] = useState<{ name: string; message: string }[]>([])
 	const [successes, setSuccesses] = useState<string[]>([])
 
-	const isSuccess = useMemo(() => {
+	const isSuccess = (() => {
 		if (errors.length === 0 && successes.length === 0) {
 			return false
 		}
@@ -38,10 +38,9 @@ const useSupabaseUpload = (options: UseSupabaseUploadOptions) => {
 			return true
 		}
 		return false
-	}, [errors.length, successes.length, files.length])
+	})()
 
-	const onDrop = useCallback(
-		(acceptedFiles: File[], fileRejections: FileRejection[]) => {
+	const onDrop = (acceptedFiles: File[], fileRejections: FileRejection[]) => {
 			const validFiles = acceptedFiles
 				.filter(file => !files.find(x => x.name === file.name))
 				.map(file => {
@@ -59,9 +58,7 @@ const useSupabaseUpload = (options: UseSupabaseUploadOptions) => {
 			const newFiles = [...files, ...validFiles, ...invalidFiles]
 
 			setFiles(newFiles)
-		},
-		[files, setFiles]
-	)
+		}
 
 	const dropzoneProps = useDropzone({
 		onDrop,
@@ -74,7 +71,7 @@ const useSupabaseUpload = (options: UseSupabaseUploadOptions) => {
 		multiple: maxFiles !== 1
 	})
 
-	const onUpload = useCallback(async () => {
+	const onUpload = async () => {
 		setLoading(true)
 
 		// [Joshen] This is to support handling partial successes
@@ -119,7 +116,7 @@ const useSupabaseUpload = (options: UseSupabaseUploadOptions) => {
 		setSuccesses(newSuccesses)
 
 		setLoading(false)
-	}, [files, path, bucketName, errors, successes, cacheControl, upsert])
+	}
 
 	useEffect(() => {
 		if (files.length === 0) {
@@ -141,7 +138,7 @@ const useSupabaseUpload = (options: UseSupabaseUploadOptions) => {
 			}
 		}
 		// Effect has guards (length check and changed check) to prevent infinite loops
-	}, [files, setFiles, maxFiles])
+	}, [files, maxFiles])
 
 	// Auto-upload: trigger upload immediately when NEW files are added
 	// Using refs to avoid infinite loops while keeping behavior correct

@@ -14,7 +14,7 @@ import {
 import { createClient } from '#lib/supabase/client'
 import { handlePostgrestError } from '#lib/postgrest-error-handler'
 import { QUERY_CACHE_TIMES } from '#lib/constants/query-config'
-import { DEFAULT_RETRY_ATTEMPTS } from '#shared/types/api-contracts'
+import { DEFAULT_RETRY_ATTEMPTS } from '#types/api-contracts'
 import { tenantPortalKeys, resolveTenantId } from './use-tenant-portal-keys'
 
 // ============================================================================

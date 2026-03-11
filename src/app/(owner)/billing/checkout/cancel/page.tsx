@@ -13,7 +13,7 @@ import {
 } from '#components/ui/card'
 
 export const metadata: Metadata = {
-	title: 'Checkout Cancelled | TenantFlow',
+	title: 'Checkout Cancelled',
 	description: 'Your checkout was cancelled',
 	robots: 'noindex, nofollow'
 }

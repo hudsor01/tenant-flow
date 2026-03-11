@@ -3,25 +3,8 @@
 import { Badge } from '#components/ui/badge'
 import { Button } from '#components/ui/button'
 import { CardLayout } from '#components/ui/card-layout'
-import {
-	Dialog,
-	DialogContent,
-	DialogDescription,
-	DialogFooter,
-	DialogHeader,
-	DialogTitle
-} from '#components/ui/dialog'
-import { Input } from '#components/ui/input'
-import { Label } from '#components/ui/label'
-import {
-	Select,
-	SelectContent,
-	SelectItem,
-	SelectTrigger,
-	SelectValue
-} from '#components/ui/select'
-import { Textarea } from '#components/ui/textarea'
 import { useMarkTenantAsMovedOutMutation } from '#hooks/api/use-tenant-mutations'
+import { MoveOutDialog } from './move-out-dialog'
 import { tenantQueries } from '#hooks/api/query-keys/tenant-keys'
 import { handleMutationError } from '#lib/mutation-error-handler'
 import { formatDate } from '#lib/formatters/date'
@@ -29,9 +12,8 @@ import { Calendar, Edit, Mail, Phone } from 'lucide-react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
-import { useQuery } from '@tanstack/react-query'
+import { useSuspenseQuery } from '@tanstack/react-query'
 import { toast } from 'sonner'
-import { TenantSkeleton } from './tenant-skeleton'
 
 interface TenantDetailsProps {
 	id: string
@@ -57,11 +39,7 @@ const validateMoveOutDate = (dateString: string): void => {
 }
 
 export function TenantDetails({ id }: TenantDetailsProps) {
-	const {
-		data: tenant,
-		isLoading,
-		isError
-	} = useQuery(tenantQueries.withLease(id))
+	const { data: tenant } = useSuspenseQuery(tenantQueries.withLease(id))
 	const router = useRouter()
 	const markAsMovedOut = useMarkTenantAsMovedOutMutation()
 
@@ -101,24 +79,6 @@ export function TenantDetails({ id }: TenantDetailsProps) {
 		} catch (error) {
 			handleMutationError(error, 'Mark tenant as moved out')
 		}
-	}
-
-	if (isLoading) {
-		return <TenantSkeleton />
-	}
-
-	if (isError || !tenant) {
-		return (
-			<CardLayout
-				title="Tenant Not Found"
-				description="The tenant you're looking for doesn't exist."
-			>
-				<div className="rounded-lg border-destructive/40 bg-destructive/10 p-6 text-destructive">
-					The tenant you&apos;re looking for doesn&apos;t exist or there was a
-					problem loading the data.
-				</div>
-			</CardLayout>
-		)
 	}
 
 	// Header with Actions
@@ -274,81 +234,18 @@ export function TenantDetails({ id }: TenantDetailsProps) {
 				</Button>
 			</div>
 
-			{/* Move-out dialog using existing Dialog component */}
-			<Dialog open={moveOutDialogOpen} onOpenChange={setMoveOutDialogOpen}>
-				<DialogContent>
-					<DialogHeader>
-						<DialogTitle>Mark Tenant as Moved Out</DialogTitle>
-						<DialogDescription>
-							This will mark the tenant as moved out and remove them from active
-							listings. All data will be retained for legal compliance.
-						</DialogDescription>
-					</DialogHeader>
-
-					<div className="space-y-4 py-4">
-						<div className="space-y-2">
-							<Label htmlFor="moveOutDate">Move Out Date *</Label>
-							<Input
-								id="moveOutDate"
-								type="date"
-								value={moveOutDate}
-								onChange={e => setMoveOutDate(e.target.value)}
-								required
-							/>
-						</div>
-
-						<div className="space-y-2">
-							<Label htmlFor="moveOutReason">Reason *</Label>
-							<Select value={moveOutReason} onValueChange={setMoveOutReason}>
-								<SelectTrigger id="moveOutReason">
-									<SelectValue placeholder="Select reason" />
-								</SelectTrigger>
-								<SelectContent>
-									<SelectItem value="lease_expired">Lease Expired</SelectItem>
-									<SelectItem value="early_termination">
-										Early Termination
-									</SelectItem>
-									<SelectItem value="eviction">Eviction</SelectItem>
-									<SelectItem value="purchase">Purchased Property</SelectItem>
-									<SelectItem value="relocation">Relocation</SelectItem>
-									<SelectItem value="other">Other</SelectItem>
-								</SelectContent>
-							</Select>
-						</div>
-
-						<div className="space-y-2">
-							<Label htmlFor="additionalNotes">
-								Additional Notes (Optional)
-							</Label>
-							<Textarea
-								id="additionalNotes"
-								value={additionalNotes}
-								onChange={e => setAdditionalNotes(e.target.value)}
-								placeholder="Any additional details..."
-								rows={3}
-							/>
-						</div>
-					</div>
-
-					<DialogFooter>
-						<Button
-							variant="outline"
-							onClick={() => setMoveOutDialogOpen(false)}
-							disabled={markAsMovedOut.isPending}
-						>
-							Cancel
-						</Button>
-						<Button
-							onClick={handleMarkAsMovedOut}
-							disabled={
-								markAsMovedOut.isPending || !moveOutDate || !moveOutReason
-							}
-						>
-							{markAsMovedOut.isPending ? 'Processing...' : 'Mark as Moved Out'}
-						</Button>
-					</DialogFooter>
-				</DialogContent>
-			</Dialog>
+			<MoveOutDialog
+				open={moveOutDialogOpen}
+				onOpenChange={setMoveOutDialogOpen}
+				moveOutDate={moveOutDate}
+				onMoveOutDateChange={setMoveOutDate}
+				moveOutReason={moveOutReason}
+				onMoveOutReasonChange={setMoveOutReason}
+				additionalNotes={additionalNotes}
+				onAdditionalNotesChange={setAdditionalNotes}
+				isPending={markAsMovedOut.isPending}
+				onSubmit={handleMarkAsMovedOut}
+			/>
 		</>
 	)
 }

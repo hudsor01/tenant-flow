@@ -35,28 +35,20 @@ import {
 	useDeletePaymentMethod,
 	useSetDefaultPaymentMethod
 } from '#hooks/api/use-payment-methods'
-import type { PaymentMethodResponse } from '#shared/types/core'
+import type { PaymentMethodResponse } from '#types/core'
 import { cn } from '#lib/utils'
 
 interface PaymentMethodsListProps {
 	onAddClick: () => void
 }
 
-function getCardBrandIcon(brand: string) {
-	const brandLower = (brand ?? '').toLowerCase()
-	switch (brandLower) {
-		case 'visa':
-			return '💳 Visa'
-		case 'mastercard':
-			return '💳 Mastercard'
-		case 'amex':
-		case 'american_express':
-			return '💳 Amex'
-		case 'discover':
-			return '💳 Discover'
-		default:
-			return '💳 Card'
-	}
+const CARD_BRANDS: Record<string, string> = {
+	visa: 'Visa', mastercard: 'Mastercard', amex: 'Amex',
+	american_express: 'Amex', discover: 'Discover'
+}
+
+function getCardBrandLabel(brand: string) {
+	return CARD_BRANDS[(brand ?? '').toLowerCase()] ?? 'Card'
 }
 
 function PaymentMethodCard({
@@ -75,35 +67,16 @@ function PaymentMethodCard({
 	const [showDeleteDialog, setShowDeleteDialog] = useState(false)
 	const isProcessing = isDeleting || isSettingDefault
 
-	const getMethodDisplay = () => {
-		if (method.type === 'card') {
-			return {
-				icon: <CreditCard className="size-5 text-muted-foreground" />,
-				title: getCardBrandIcon(method.brand ?? ''),
-				subtitle: method.last4 ? `•••• ${method.last4}` : '',
-				detail: '',
-				isLowerFees: false
-			}
-		}
-		if (method.type === 'us_bank_account') {
-			return {
-				icon: <Building2 className="size-5 text-success" />,
-				title: method.bankName ?? 'Bank Account',
-				subtitle: method.last4 ? `•••• ${method.last4}` : '',
-				detail: 'Bank Account',
-				isLowerFees: true
-			}
-		}
-		return {
-			icon: <CreditCard className="size-5 text-muted-foreground" />,
-			title: 'Payment Method',
-			subtitle: '',
-			detail: '',
-			isLowerFees: false
-		}
+	const isBank = method.type === 'us_bank_account'
+	const display = {
+		icon: isBank
+			? <Building2 className="size-5 text-success" />
+			: <CreditCard className="size-5 text-muted-foreground" />,
+		title: isBank ? (method.bankName ?? 'Bank Account') : getCardBrandLabel(method.brand ?? ''),
+		subtitle: method.last4 ? `•••• ${method.last4}` : '',
+		detail: isBank ? 'Bank Account' : '',
+		isLowerFees: isBank
 	}
-
-	const display = getMethodDisplay()
 
 	return (
 		<>

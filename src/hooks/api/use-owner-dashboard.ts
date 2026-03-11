@@ -5,14 +5,14 @@
  * Derived hooks in use-dashboard-hooks.ts.
  */
 
-import { queryOptions, useQuery } from '@tanstack/react-query'
+import { queryOptions } from '@tanstack/react-query'
 import { createClient } from '#lib/supabase/client'
 import { getCachedUser } from '#lib/supabase/get-cached-user'
 import { handlePostgrestError } from '#lib/postgrest-error-handler'
-import type { ActivityItem } from '#shared/types/activity'
-import type { PropertyPerformance } from '#shared/types/core'
-import type { DashboardStats } from '#shared/types/stats'
-import type { MetricTrend, TimeSeriesDataPoint } from '#shared/types/analytics'
+import type { ActivityItem } from '#types/activity'
+import type { PropertyPerformance } from '#types/core'
+import type { DashboardStats } from '#types/stats'
+import type { MetricTrend, TimeSeriesDataPoint } from '#types/analytics'
 import { revenueTrendsQuery, occupancyTrendsQuery } from './query-keys/analytics-keys'
 
 /** Hierarchical query keys for owner dashboard — enables targeted cache invalidation */
@@ -232,6 +232,3 @@ export const DASHBOARD_BASE_QUERY_OPTIONS = {
 	structuralSharing: true
 } as const
 
-export function useOwnerDashboardData() {
-	return useQuery<OwnerDashboardData>(DASHBOARD_BASE_QUERY_OPTIONS)
-}

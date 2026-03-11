@@ -5,7 +5,7 @@ import {
 	CardTitle
 } from '#components/ui/card'
 import { formatCents } from '#lib/formatters/currency'
-import type { OwnerPaymentSummaryResponse } from '#shared/types/api-contracts'
+import type { OwnerPaymentSummaryResponse } from '#types/api-contracts'
 
 interface OwnerPaymentSummaryProps {
 	summary: OwnerPaymentSummaryResponse | null

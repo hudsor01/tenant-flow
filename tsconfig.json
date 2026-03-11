@@ -51,7 +51,6 @@
 			"#app/*": ["./src/app/*"],
 			"#components/*": ["./src/components/*"],
 			"#contexts/*": ["./src/contexts/*"],
-			"#design-system/*": ["./src/design-system/*"],
 			"#lib/*": ["./src/lib/*"],
 			"#hooks/*": ["./src/hooks/*"],
 			"#stores/*": ["./src/stores/*"],
@@ -59,8 +58,7 @@
 			"#providers/*": ["./src/providers/*"],
 			"#test/*": ["./src/test/*"],
 			"#config/*": ["./src/config/*"],
-			"#utils/*": ["./src/utils/*"],
-			"#shared/*": ["./src/shared/*"]
+			"#utils/*": ["./src/utils/*"]
 		}
 	},
 	"include": [

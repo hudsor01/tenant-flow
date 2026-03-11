@@ -1,7 +1,7 @@
 import { RenewLeaseDialog } from './renew-lease-dialog'
 import { TerminateLeaseDialog } from './terminate-lease-dialog'
 import { ConfirmDialog } from '#components/ui/confirm-dialog'
-import type { Lease } from '#shared/types/core'
+import type { Lease } from '#types/core'
 
 interface LeasesDialogsProps {
 	selectedLease: Lease | null

@@ -13,7 +13,7 @@ import {
 } from '#components/ui/card'
 
 export const metadata: Metadata = {
-	title: 'Subscription Activated | TenantFlow',
+	title: 'Subscription Activated',
 	description: 'Your subscription is now active',
 	robots: 'noindex, nofollow'
 }

@@ -16,12 +16,8 @@ export type {
 	ExpenseSummaryData
 } from './query-keys/financial-keys'
 
-// Re-export financial keys for backwards compatibility
+// Re-export financial keys for consumers that import from use-financials
 export const financialKeys = importedFinancialKeys
-
-// Legacy key exports for backwards compatibility
-export const financialOverviewKeys = importedFinancialKeys
-export const financialStatementsKeys = importedFinancialKeys
 
 // ============================================================================
 // FINANCIAL OVERVIEW HOOKS

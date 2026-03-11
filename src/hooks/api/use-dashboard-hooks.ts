@@ -15,7 +15,7 @@ import { useQuery, useSuspenseQuery } from '@tanstack/react-query'
 import { createClient } from '#lib/supabase/client'
 import { getCachedUser } from '#lib/supabase/get-cached-user'
 import { handlePostgrestError } from '#lib/postgrest-error-handler'
-import type { FinancialMetrics } from '#shared/types/core'
+import type { FinancialMetrics } from '#types/core'
 import {
 	ownerDashboardKeys,
 	DASHBOARD_BASE_QUERY_OPTIONS,
@@ -24,8 +24,7 @@ import {
 	type DashboardActivityData,
 	type OwnerDashboardData
 } from './use-owner-dashboard'
-import type { PropertyPerformance } from '#shared/types/core'
-import { dashboardGraphQLQueries } from './query-keys/dashboard-graphql-keys'
+import type { PropertyPerformance } from '#types/core'
 
 // ============================================================================
 // STABLE SELECT FUNCTIONS (outside components for referential equality)
@@ -190,18 +189,3 @@ export function useFinancialChartData(timeRange: FinancialTimeRange = '6m') {
 	})
 }
 
-// ============================================================================
-// PORTFOLIO OVERVIEW (pg_graphql)
-// ============================================================================
-
-/**
- * Owner portfolio overview using pg_graphql
- * Single request fetches all properties with per-property unit counts and revenue.
- * Replaces N+1 PostgREST calls (one per property) with one pg_graphql request.
- *
- * GRAPH-01 + GRAPH-02 compliance: uses supabase.rpc('graphql.resolve') as specified.
- * RLS is enforced server-side — pg_graphql respects auth.uid() automatically.
- */
-export function useOwnerPortfolioOverview() {
-	return useQuery(dashboardGraphQLQueries.portfolioOverview())
-}

@@ -1,5 +1,9 @@
 'use client'
 
+import { ArrowRight } from 'lucide-react'
+import Link from 'next/link'
+
+import { Button } from '#components/ui/button'
 import { PageLayout } from '#components/layout/page-layout'
 import { HeroDashboardMockup } from '#components/sections/hero-dashboard-mockup'
 import { LogoCloud } from '#components/sections/logo-cloud'
@@ -40,33 +44,15 @@ export default function MarketingHomePage() {
 								</div>
 
 								<div className="flex flex-row gap-4">
-									<a
-										href="/pricing"
-										className="inline-flex items-center justify-center rounded-md typography-small ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 bg-primary text-primary-foreground hover:bg-primary/90 h-11 px-8"
-									>
-										Start Managing Properties
-										<svg
-											xmlns="http://www.w3.org/2000/svg"
-											width="24"
-											height="24"
-											viewBox="0 0 24 24"
-											fill="none"
-											stroke="currentColor"
-											strokeWidth="2"
-											strokeLinecap="round"
-											strokeLinejoin="round"
-											className="ml-2 size-4"
-										>
-											<path d="M5 12h14" />
-											<path d="m12 5 7 7-7 7" />
-										</svg>
-									</a>
-									<a
-										href="/pricing"
-										className="inline-flex items-center justify-center rounded-md typography-small ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-11 px-8"
-									>
-										View Pricing
-									</a>
+									<Button asChild size="lg">
+										<Link href="/pricing">
+											Start Managing Properties
+											<ArrowRight className="ml-2 size-4" />
+										</Link>
+									</Button>
+									<Button asChild variant="outline" size="lg">
+										<Link href="/pricing">View Pricing</Link>
+									</Button>
 								</div>
 
 								<p className="text-muted-foreground text-sm">

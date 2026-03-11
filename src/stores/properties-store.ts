@@ -15,7 +15,7 @@
 
 import { create } from 'zustand'
 import type { PropertyType } from '#components/properties/types'
-import type { PropertyStatus } from '#shared/types/core'
+import type { PropertyStatus } from '#types/core'
 
 export type PropertyStatusFilter = 'all' | 'occupied' | 'available' | 'maintenance'
 

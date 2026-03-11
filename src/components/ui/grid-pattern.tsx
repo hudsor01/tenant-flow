@@ -1,10 +1,9 @@
 'use client'
 
 import type { SVGProps } from 'react'
-import { useId, useMemo } from 'react'
+import { useId } from 'react'
 
 import { cn } from '#lib/utils'
-import { ANIMATION_DURATIONS } from '#shared/constants/design-system'
 
 interface GridPatternProps extends SVGProps<SVGSVGElement> {
 	width?: number
@@ -37,10 +36,7 @@ export function GridPattern({
 }: GridPatternProps) {
 	const reactId = useId()
 	// Use provided patternId for stable hydration, or fall back to useId()
-	const id = useMemo(
-		() => patternId ?? `grid-pattern-${reactId.replace(/:/g, '')}`,
-		[patternId, reactId]
-	)
+	const id = patternId ?? `grid-pattern-${reactId.replace(/:/g, '')}`
 
 	// Style variants for different visual approaches
 	const variantStyles = {
@@ -70,7 +66,7 @@ export function GridPattern({
 			style={{
 				opacity: finalOpacity,
 				animationDuration: animated
-					? `${ANIMATION_DURATIONS.slow}ms`
+					? '500ms'
 					: undefined
 			}}
 			{...props}
@@ -116,7 +112,7 @@ export function GridPattern({
 							style={{
 								animationDelay: animated ? `${(x + y) * 100}ms` : undefined,
 								animationDuration: animated
-									? `${ANIMATION_DURATIONS.default}ms`
+									? '200ms'
 									: undefined
 							}}
 						/>

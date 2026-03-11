@@ -3,16 +3,16 @@
 import { useQuery } from '@tanstack/react-query'
 import { analyticsQueries } from '#hooks/api/use-analytics'
 import { RefreshableAnalytics } from '#app/(owner)/analytics/refreshable-analytics'
-import { ExportButtons } from '#components/export/export-buttons'
+import { ExportButtons } from '#components/shared/export-buttons'
 import { BlurFade } from '#components/ui/blur-fade'
 import { BarChart3, FileDown, PieChart } from 'lucide-react'
 import { OwnerPaymentSummary } from '#components/analytics/owner-payment-summary'
 import dynamic from 'next/dynamic'
-import { EMPTY_PAYMENT_SUMMARY } from '#shared/types/api-contracts'
+import { EMPTY_PAYMENT_SUMMARY } from '#types/api-contracts'
 import { ChartLoadingSkeleton } from '#components/shared/chart-loading-skeleton'
 
 const RevenueExpenseChart = dynamic(
-	() => import('./financial-charts').then(mod => mod.RevenueExpenseChart),
+	() => import('./revenue-expense-chart').then(mod => mod.RevenueExpenseChart),
 	{ ssr: false, loading: () => <ChartLoadingSkeleton /> }
 )
 

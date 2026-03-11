@@ -2,7 +2,7 @@ import { PageLayout } from '#components/layout/page-layout'
 import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
-	title: 'Terms of Service | TenantFlow',
+	title: 'Terms of Service',
 	description:
 		'TenantFlow Terms of Service - Review the terms and conditions for using our property management platform.'
 }

@@ -2,7 +2,7 @@
 
 import type { Table } from '@tanstack/react-table'
 import { Check, Settings2 } from 'lucide-react'
-import { useMemo } from 'react'
+
 import type { ComponentProps } from 'react'
 import { Button } from '#components/ui/button'
 import {
@@ -28,16 +28,12 @@ export function DataTableViewOptions<TData>({
 	disabled,
 	...props
 }: DataTableViewOptionsProps<TData>) {
-	const columns = useMemo(
-		() =>
-			table
+	const columns = table
 				.getAllColumns()
 				.filter(
 					column =>
 						typeof column.accessorFn !== 'undefined' && column.getCanHide()
-				),
-		[table]
-	)
+				)
 
 	return (
 		<Popover>

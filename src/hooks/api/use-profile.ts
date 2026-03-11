@@ -12,7 +12,7 @@
 import { queryOptions, useQuery } from '@tanstack/react-query'
 import { QUERY_CACHE_TIMES } from '#lib/constants/query-config'
 import { createClient } from '#lib/supabase/client'
-import type { UserProfile } from '#shared/types/api-contracts'
+import type { UserProfile } from '#types/api-contracts'
 
 // ============================================================================
 // QUERY KEYS

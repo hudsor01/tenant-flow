@@ -1,8 +1,8 @@
 /**
- * Payment Methods Hooks — Canonical Module
+ * Payment Methods Hooks -- Canonical Module
  * TanStack Query hooks for tenant payment method management
  *
- * All operations use Supabase PostgREST directly — no apiRequest calls.
+ * All operations use Supabase PostgREST directly -- no apiRequest calls.
  * payment_methods table: id, stripe_payment_method_id, tenant_id, type,
  *   brand, last_four, exp_month, exp_year, bank_name, is_default, created_at
  *
@@ -23,22 +23,11 @@ import {
 	handleMutationError,
 	handleMutationSuccess
 } from '#lib/mutation-error-handler'
-import { mutationKeys } from './mutation-keys'
-import type { PaymentMethodResponse } from '#shared/types/core'
+import { paymentMutations } from './query-keys/payment-mutation-options'
+import type { PaymentMethodResponse } from '#types/core'
 
-// ============================================================================
-// TYPES
-// ============================================================================
-
-export interface AddPaymentMethodInput {
-	stripe_payment_method_id: string
-	type: string
-	brand?: string
-	last_four?: string
-	exp_month?: number
-	exp_year?: number
-	bank_name?: string
-}
+// Re-export AddPaymentMethodInput from factory for backward compatibility
+export type { AddPaymentMethodInput } from './query-keys/payment-mutation-options'
 
 // ============================================================================
 // QUERY KEYS
@@ -206,49 +195,7 @@ export function useAddPaymentMethodMutation() {
 	const queryClient = useQueryClient()
 
 	return useMutation({
-		mutationKey: mutationKeys.paymentMethods.add,
-		mutationFn: async (
-			input: AddPaymentMethodInput
-		): Promise<PaymentMethodResponse> => {
-			const supabase = createClient()
-			const user = await getCachedUser()
-			if (!user) throw new Error('Not authenticated')
-
-			const { data: tenant, error: tenantError } = await supabase
-				.from('tenants')
-				.select('id')
-				.eq('user_id', user.id)
-				.single()
-			if (tenantError) handlePostgrestError(tenantError, 'tenants')
-			if (!tenant) throw new Error('Tenant record not found')
-
-			const { count, error: countError } = await supabase
-				.from('payment_methods')
-				.select('id', { count: 'exact', head: true })
-				.eq('tenant_id', tenant.id)
-			if (countError) handlePostgrestError(countError, 'payment_methods')
-			const isFirst = (count ?? 0) === 0
-
-			const { data, error } = await supabase
-				.from('payment_methods')
-				.insert({
-					stripe_payment_method_id: input.stripe_payment_method_id,
-					tenant_id: tenant.id,
-					type: input.type,
-					brand: input.brand ?? null,
-					last_four: input.last_four ?? null,
-					exp_month: input.exp_month ?? null,
-					exp_year: input.exp_year ?? null,
-					bank_name: input.bank_name ?? null,
-					is_default: isFirst
-				})
-				.select(
-					'id, stripe_payment_method_id, type, brand, last_four, exp_month, exp_year, bank_name, is_default, created_at'
-				)
-				.single()
-			if (error) handlePostgrestError(error, 'payment_methods')
-			return mapToResponse(data as Record<string, unknown>)
-		},
+		...paymentMutations.addPaymentMethod(),
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: paymentMethodsKeys.all })
 			handleMutationSuccess('Add payment method', 'Payment method added')

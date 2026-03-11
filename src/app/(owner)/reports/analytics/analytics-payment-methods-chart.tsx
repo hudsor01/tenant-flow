@@ -11,7 +11,7 @@ import {
 	XAxis,
 	YAxis
 } from 'recharts'
-import type { ReportPaymentAnalytics } from '#shared/types/reports'
+import type { ReportPaymentAnalytics } from '#types/reports'
 
 interface AnalyticsPaymentMethodsChartProps {
 	paymentAnalytics: ReportPaymentAnalytics | undefined

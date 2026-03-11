@@ -2,20 +2,18 @@
 
 import { Button } from '#components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '#components/ui/card'
-import { useQuery, useQueryClient } from '@tanstack/react-query'
+import { useQuery, useQueryClient, useSuspenseQuery } from '@tanstack/react-query'
 import { maintenanceQueries } from '#hooks/api/query-keys/maintenance-keys'
 import { propertyQueries } from '#hooks/api/query-keys/property-keys'
 import { unitQueries } from '#hooks/api/query-keys/unit-keys'
-import { createLogger } from '#shared/lib/frontend-logger'
 import { createClient } from '#lib/supabase/client'
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
 import { useDeleteMaintenanceRequest } from '#hooks/api/use-maintenance'
-import type { ExpenseRecord } from '#shared/types/core'
+import type { ExpenseRecord } from '#types/core'
 
 import { User, Edit2, Trash2 } from 'lucide-react'
 
-import { MaintenanceDetailsSkeleton } from './maintenance-details-skeleton'
 import { MaintenanceHeaderCard } from './maintenance-header-card'
 import { ExpensesCard } from './expenses-card'
 import { PhotosCard } from './photos-card'
@@ -26,19 +24,13 @@ interface MaintenanceDetailsProps {
 	id: string
 }
 
-const logger = createLogger({ component: 'MaintenanceDetails' })
-
 export function MaintenanceDetails({ id }: MaintenanceDetailsProps) {
 	const router = useRouter()
 	const queryClient = useQueryClient()
 	const deleteMutation = useDeleteMaintenanceRequest()
-	const {
-		data: request,
-		isLoading,
-		isError
-	} = useQuery(maintenanceQueries.detail(id))
-	const { data: propertiesResponse } = useQuery(propertyQueries.list())
-	const { data: unitsResponse } = useQuery(unitQueries.list())
+	const { data: request } = useSuspenseQuery(maintenanceQueries.detail(id))
+	const { data: propertiesResponse } = useSuspenseQuery(propertyQueries.list())
+	const { data: unitsResponse } = useSuspenseQuery(unitQueries.list())
 
 	const { data: expensesData } = useQuery({
 		queryKey: [...maintenanceQueries.all(), id, 'expenses'],
@@ -101,33 +93,6 @@ export function MaintenanceDetails({ id }: MaintenanceDetailsProps) {
 		a.click()
 		URL.revokeObjectURL(url)
 		toast.success('Export downloaded')
-	}
-
-	if (isLoading) {
-		return <MaintenanceDetailsSkeleton />
-	}
-
-	if (isError || !request) {
-		logger.error('Failed to load maintenance request')
-		return (
-			<Card className="border-destructive/20 bg-destructive/5">
-				<CardHeader>
-					<CardTitle>Unable to load request</CardTitle>
-				</CardHeader>
-				<CardContent>
-					<p className="text-sm text-destructive">
-						Something went wrong while loading this maintenance request.
-					</p>
-					<Button
-						variant="outline"
-						className="mt-4"
-						onClick={() => router.back()}
-					>
-						Go Back
-					</Button>
-				</CardContent>
-			</Card>
-		)
 	}
 
 	const timeline = generateTimeline(request)
