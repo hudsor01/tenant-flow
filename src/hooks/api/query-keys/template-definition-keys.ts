@@ -12,6 +12,7 @@
 
 import { queryOptions } from '@tanstack/react-query'
 import { createClient } from '#lib/supabase/client'
+import { getCachedUser } from '#lib/supabase/get-cached-user'
 import { handlePostgrestError } from '#lib/postgrest-error-handler'
 import { QUERY_CACHE_TIMES } from '#lib/constants/query-config'
 import type { DynamicField } from '#app/(owner)/documents/templates/components/dynamic-form'
@@ -23,22 +24,22 @@ export const templateDefinitionQueries = {
 	all: () => ['document-template-definitions'] as const,
 
 	/**
-	 * Fetch custom fields for a specific owner + template key combination.
+	 * Fetch custom fields for a specific template key for the current user.
 	 * Returns an empty array when no definition exists (maybeSingle returns null).
+	 * Uses getCachedUser() inside queryFn (standard pattern).
 	 */
-	byTemplateKey: (ownerUserId: string, templateKey: string) =>
+	byTemplateKey: (templateKey: string) =>
 		queryOptions({
-			queryKey: [
-				...templateDefinitionQueries.all(),
-				ownerUserId,
-				templateKey
-			],
+			queryKey: [...templateDefinitionQueries.all(), templateKey],
 			queryFn: async (): Promise<DynamicField[]> => {
+				const user = await getCachedUser()
+				if (!user) return []
+
 				const supabase = createClient()
 				const { data, error } = await supabase
 					.from('document_template_definitions')
 					.select('custom_fields')
-					.eq('owner_user_id', ownerUserId)
+					.eq('owner_user_id', user.id)
 					.eq('template_key', templateKey)
 					.maybeSingle()
 
@@ -46,7 +47,7 @@ export const templateDefinitionQueries = {
 
 				return (data?.custom_fields ?? []) as DynamicField[]
 			},
-			enabled: !!ownerUserId && !!templateKey,
+			enabled: !!templateKey,
 			...QUERY_CACHE_TIMES.DETAIL
 		})
 }

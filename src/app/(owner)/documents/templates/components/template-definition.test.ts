@@ -2,12 +2,13 @@
  * Template Definition Hook Tests
  *
  * Tests for useTemplateDefinition covering:
- * - Load from PostgREST on mount (populates customFields)
+ * - Load from PostgREST via useQuery + factory (populates customFields)
  * - Empty array when no definition exists
  * - Save via upsert with correct shape
  * - Success/error toasts
  * - isSaving state management
  * - Form field defaults for loaded custom fields
+ * - Cache invalidation uses factory key (not string literal)
  */
 
 import { renderHook, act, waitFor } from '@testing-library/react'
@@ -57,7 +58,7 @@ vi.mock('sonner', () => ({
 	}
 }))
 
-// Mock TanStack Query - provide real-ish wrapper
+// Mock TanStack Query - provide real-ish wrapper with mocked invalidation
 const mockInvalidateQueries = vi.fn()
 vi.mock('@tanstack/react-query', async () => {
 	const actual = await vi.importActual<typeof import('@tanstack/react-query')>(
@@ -72,6 +73,7 @@ vi.mock('@tanstack/react-query', async () => {
 })
 
 import { useTemplateDefinition } from './template-definition'
+import { templateDefinitionQueries } from '#hooks/api/query-keys/template-definition-keys'
 import type { DynamicField } from './dynamic-form'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { createElement } from 'react'
@@ -110,7 +112,7 @@ describe('useTemplateDefinition', () => {
 	})
 
 	// =========================================================================
-	// Load behavior
+	// Load behavior (via useQuery + factory)
 	// =========================================================================
 	describe('load', () => {
 		it('fetches custom fields from PostgREST on mount and populates customFields', async () => {
@@ -322,7 +324,7 @@ describe('useTemplateDefinition', () => {
 			expect(result.current.isSaving).toBe(false)
 		})
 
-		it('invalidates query cache after successful save', async () => {
+		it('invalidates query cache using factory key after successful save', async () => {
 			setupSelectChain({ data: null, error: null })
 			mockUpsert.mockResolvedValue({ data: null, error: null })
 
@@ -342,7 +344,7 @@ describe('useTemplateDefinition', () => {
 			})
 
 			expect(mockInvalidateQueries).toHaveBeenCalledWith({
-				queryKey: ['document-template-definitions']
+				queryKey: templateDefinitionQueries.all()
 			})
 		})
 	})

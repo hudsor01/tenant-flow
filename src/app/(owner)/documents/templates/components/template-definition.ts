@@ -1,11 +1,11 @@
 'use client'
 
-import { useEffect, useState } from 'react'
-import { useQueryClient } from '@tanstack/react-query'
+import { useEffect, useRef, useState } from 'react'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { createClient } from '#lib/supabase/client'
 import { getCachedUser } from '#lib/supabase/get-cached-user'
-import { handlePostgrestError } from '#lib/postgrest-error-handler'
+import { templateDefinitionQueries } from '#hooks/api/query-keys/template-definition-keys'
 import type { DynamicField } from './dynamic-form'
 
 /**
@@ -30,43 +30,21 @@ export function useTemplateDefinition(
 	form?: FormLike
 ) {
 	const [customFields, setCustomFields] = useState<DynamicField[]>([])
-	const [isLoading, setIsLoading] = useState(true)
 	const [isSaving, setIsSaving] = useState(false)
 	const queryClient = useQueryClient()
+	const loadedKeyRef = useRef<string | null>(null)
 
+	const { data, isPending } = useQuery(
+		templateDefinitionQueries.byTemplateKey(templateKey)
+	)
+
+	// Sync loaded data to local editing state (once per templateKey)
 	useEffect(() => {
-		let isActive = true
-
-		async function load() {
-			try {
-				const user = await getCachedUser()
-				if (!user || !isActive) return
-
-				const supabase = createClient()
-				const { data, error } = await supabase
-					.from('document_template_definitions')
-					.select('custom_fields')
-					.eq('owner_user_id', user.id)
-					.eq('template_key', templateKey)
-					.maybeSingle()
-
-				if (error) handlePostgrestError(error, 'document_template_definitions')
-
-				if (isActive) {
-					setCustomFields((data?.custom_fields ?? []) as DynamicField[])
-				}
-			} finally {
-				if (isActive) {
-					setIsLoading(false)
-				}
-			}
+		if (data !== undefined && loadedKeyRef.current !== templateKey) {
+			setCustomFields(data)
+			loadedKeyRef.current = templateKey
 		}
-
-		void load()
-		return () => {
-			isActive = false
-		}
-	}, [templateKey])
+	}, [data, templateKey])
 
 	useEffect(() => {
 		if (!form) return
@@ -113,7 +91,7 @@ export function useTemplateDefinition(
 
 			toast.success('Template definition saved')
 			queryClient.invalidateQueries({
-				queryKey: ['document-template-definitions']
+				queryKey: templateDefinitionQueries.all()
 			})
 		} catch {
 			toast.error('Failed to save template definition')
@@ -126,7 +104,7 @@ export function useTemplateDefinition(
 		customFields,
 		setCustomFields,
 		fields: allFields,
-		isLoading,
+		isLoading: isPending,
 		isSaving,
 		save
 	}
