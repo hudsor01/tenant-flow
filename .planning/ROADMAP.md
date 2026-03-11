@@ -126,7 +126,7 @@ Phases execute in numeric order: 21 -> 22 -> 23 -> 24 -> 25
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 21. Email Invitations | 2/2 | Complete    | 2026-03-11 |
-| 22. GDPR Data Rights | 2/2 | Complete   | 2026-03-11 |
+| 22. GDPR Data Rights | 2/2 | Complete    | 2026-03-11 |
 | 23. Document Templates | 0/TBD | Not started | - |
 | 24. Bulk Property Import | 0/TBD | Not started | - |
 | 25. Maintenance Photos & Stripe Dashboard | 0/TBD | Not started | - |
