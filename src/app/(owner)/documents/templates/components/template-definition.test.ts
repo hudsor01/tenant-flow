@@ -185,8 +185,8 @@ describe('useTemplateDefinition', () => {
 			})
 
 			expect(result.current.fields).toHaveLength(2) // 1 base + 1 custom
-			expect(result.current.fields[0].name).toBe('description')
-			expect(result.current.fields[1].name).toBe('extra')
+			expect(result.current.fields[0]?.name).toBe('description')
+			expect(result.current.fields[1]?.name).toBe('extra')
 		})
 	})
 

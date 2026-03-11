@@ -1,7 +1,11 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
+import { createClient } from '#lib/supabase/client'
+import { getCachedUser } from '#lib/supabase/get-cached-user'
+import { handlePostgrestError } from '#lib/postgrest-error-handler'
 import type { DynamicField } from './dynamic-form'
 
 /**
@@ -13,24 +17,43 @@ interface FormLike {
 	state: { values: Record<string, unknown> }
 }
 
+/**
+ * Hook to load and save custom template field definitions from PostgREST.
+ *
+ * Each owner can define custom fields per template type. Definitions persist
+ * in the document_template_definitions table via upsert (unique on
+ * owner_user_id + template_key).
+ */
 export function useTemplateDefinition(
-	_templateKey: string,
+	templateKey: string,
 	baseFields: DynamicField[],
 	form?: FormLike
 ) {
 	const [customFields, setCustomFields] = useState<DynamicField[]>([])
 	const [isLoading, setIsLoading] = useState(true)
 	const [isSaving, setIsSaving] = useState(false)
+	const queryClient = useQueryClient()
 
 	useEffect(() => {
 		let isActive = true
 
 		async function load() {
 			try {
-				// Template definitions are loaded from edge function when available.
-				// Returns empty custom fields as fallback.
+				const user = await getCachedUser()
+				if (!user || !isActive) return
+
+				const supabase = createClient()
+				const { data, error } = await supabase
+					.from('document_template_definitions')
+					.select('custom_fields')
+					.eq('owner_user_id', user.id)
+					.eq('template_key', templateKey)
+					.maybeSingle()
+
+				if (error) handlePostgrestError(error, 'document_template_definitions')
+
 				if (isActive) {
-					setCustomFields([])
+					setCustomFields((data?.custom_fields ?? []) as DynamicField[])
 				}
 			} finally {
 				if (isActive) {
@@ -43,18 +66,18 @@ export function useTemplateDefinition(
 		return () => {
 			isActive = false
 		}
-	}, [_templateKey])
+	}, [templateKey])
 
 	useEffect(() => {
 		if (!form) return
 		customFields.forEach(field => {
 			if (form.state.values[field.name] !== undefined) return
 			const defaultValue =
-			field.type === 'checkbox'
-				? false
-				: field.type === 'select'
-					? field.options?.[0]?.value ?? ''
-					: ''
+				field.type === 'checkbox'
+					? false
+					: field.type === 'select'
+						? field.options?.[0]?.value ?? ''
+						: ''
 			// Cast to never for dynamic field names (TanStack Form requires exact field types)
 			form.setFieldValue(field.name as never, defaultValue)
 		})
@@ -65,7 +88,35 @@ export function useTemplateDefinition(
 	const save = async () => {
 		setIsSaving(true)
 		try {
-			toast.info('Template saving is not yet available')
+			const user = await getCachedUser()
+			if (!user) {
+				toast.error('Failed to save template definition')
+				return
+			}
+
+			const supabase = createClient()
+			const { error } = await supabase
+				.from('document_template_definitions')
+				.upsert(
+					{
+						owner_user_id: user.id,
+						template_key: templateKey,
+						custom_fields: customFields
+					},
+					{ onConflict: 'owner_user_id,template_key' }
+				)
+
+			if (error) {
+				toast.error('Failed to save template definition')
+				return
+			}
+
+			toast.success('Template definition saved')
+			queryClient.invalidateQueries({
+				queryKey: ['document-template-definitions']
+			})
+		} catch {
+			toast.error('Failed to save template definition')
 		} finally {
 			setIsSaving(false)
 		}
