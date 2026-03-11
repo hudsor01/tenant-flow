@@ -21,7 +21,7 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-11)
 
 **Core value:** A landlord can add a property, invite a tenant, collect rent, and see their financials -- without touching a spreadsheet or calling anyone.
-**Current focus:** v1.3 Stub Elimination -- Phase 22 (GDPR Data Rights) complete, ready for Phase 23
+**Current focus:** v1.3 Stub Elimination -- Phase 23 (Document Templates)
 
 ## Current Position
 
@@ -61,9 +61,9 @@ Progress: [█████████░] 91%
 
 ### Stubs to Eliminate (v1.3 scope)
 
-1. Email invitation sending (Phase 21)
-2. GDPR data export (Phase 22)
-3. Self-service account deletion (Phase 22)
+1. ~~Email invitation sending (Phase 21)~~ ✓
+2. ~~GDPR data export (Phase 22)~~ ✓
+3. ~~Self-service account deletion (Phase 22)~~ ✓
 4. PDF template preview/export (Phase 23)
 5. Template definition saving (Phase 23)
 6. Bulk property import (Phase 24)
@@ -72,6 +72,6 @@ Progress: [█████████░] 91%
 
 ## Session Continuity
 
-Last session: 2026-03-11T21:28:00Z
-Stopped at: Completed 22-02-PLAN.md
+Last session: 2026-03-11
+Stopped at: Phase 22 complete, ready to plan Phase 23
 Resume file: None
