@@ -83,7 +83,10 @@ Plans:
   2. Tenant can trigger a data export from their portal settings and receive a downloadable file containing all their personal data (lease info, payment history, maintenance requests)
   3. Owner can initiate account deletion from settings, which starts a 30-day grace period (no "contact support" workaround)
   4. Owner can cancel account deletion during the grace period and resume normal usage
-**Plans**: TBD
+**Plans:** 2 plans
+Plans:
+- [ ] 22-01-PLAN.md -- Role-aware export-user-data Edge Function (owner + tenant data queries, JSON download)
+- [ ] 22-02-PLAN.md -- Wire data export + account deletion into owner settings and tenant profile UI
 
 ### Phase 23: Document Templates
 **Goal**: Owners can preview lease templates as PDF, export/download them, and save custom template field configurations that persist across sessions
@@ -122,8 +125,8 @@ Phases execute in numeric order: 21 -> 22 -> 23 -> 24 -> 25
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 21. Email Invitations | 2/2 | Complete   | 2026-03-11 |
-| 22. GDPR Data Rights | 0/TBD | Not started | - |
+| 21. Email Invitations | 2/2 | Complete    | 2026-03-11 |
+| 22. GDPR Data Rights | 0/2 | Not started | - |
 | 23. Document Templates | 0/TBD | Not started | - |
 | 24. Bulk Property Import | 0/TBD | Not started | - |
 | 25. Maintenance Photos & Stripe Dashboard | 0/TBD | Not started | - |
