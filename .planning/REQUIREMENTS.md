@@ -1,39 +1,42 @@
-# Requirements: TenantFlow v1.2
+# Requirements: TenantFlow v1.3
 
-**Defined:** 2026-03-08
+**Defined:** 2026-03-11
 **Core Value:** A landlord can add a property, invite a tenant, collect rent, and see their financials -- without touching a spreadsheet or calling anyone.
 
-## v1.2 Requirements
+## v1.3 Requirements
 
-Requirements for Production Polish & Code Consolidation. Each maps to roadmap phases.
+Requirements for Stub Elimination. Each replaces a placeholder/toast with a real, production-ready implementation.
 
-### Cleanup & Dead Code
+### Email & Notifications
 
-- [ ] **CLEAN-01**: Run Knip audit to identify and remove unused files, exports, and dependencies across the entire codebase
-- [x] **CLEAN-02**: Split all files exceeding 300-line rule (20+ components, 2+ hooks) into focused sub-files
-- [ ] **CLEAN-03**: Update TYPES.md master lookup with accurate type locations after cleanup
-- [ ] **CLEAN-04**: Cross-directory audit of `src/shared/`, `src/lib/`, `src/types/`, `src/shared/types/`, and `src/components/shared/` for redundancy, misplacement, and duplication
-- [ ] **CLEAN-05**: Reconcile or eliminate organizational overlap between `src/shared/` and `src/lib/` with clear ownership boundaries
+- [x] **EMAIL-01**: Tenant receives invitation email when owner creates invitation (via Edge Function + Resend)
+- [x] **EMAIL-02**: Invitation email contains accept link that routes to tenant onboarding
 
-### Modernization
+### Data Export & Privacy
 
-- [x] **MOD-01**: Enable React Compiler via `babel-plugin-react-compiler` to auto-memoize components and eliminate manual `useMemo`/`useCallback`
-- [ ] **MOD-02**: Expand `useSuspenseQuery` usage to components inside Suspense boundaries beyond current 5 dashboard calls
-- [ ] **MOD-03**: Reconcile design tokens — `globals.css` is the sole source of truth, reduce `design-system.ts` to non-CSS contexts only (OG images, emails)
-- [x] **MOD-04**: Migrate all react-hook-form usage (17 files) to TanStack Form and remove react-hook-form dependency
-- [x] **MOD-05**: Add mutationOptions() factories for all mutation hooks, mirroring queryOptions() pattern
+- [x] **GDPR-01**: Owner can export all personal data as downloadable file (GDPR/CCPA compliance)
+- [x] **GDPR-02**: Owner can self-service delete account with 30-day grace period (no "contact support" workaround)
+- [x] **GDPR-03**: Tenant can export all personal data as downloadable file
 
-### UI Polish
+### Documents & Templates
 
-- [ ] **UI-01**: Redesign marketing navbar (visual design, navigation links, auth state handling)
-- [ ] **UI-02**: Audit and fix button/CTA consistency (variants, radius, spacing) across all page groups
-- [ ] **UI-03**: Audit and fix card and layout consistency (spacing, typography, shadows) across all page groups
-- [ ] **UI-04**: Fix mobile/responsive layout issues across all page groups
+- [x] **DOC-01**: Owner can preview lease template as PDF before sending
+- [x] **DOC-02**: Owner can export/download lease template as PDF
+- [x] **DOC-03**: Owner can save custom template definitions (field configurations persist)
 
-### Verification
+### Property Management
 
-- [ ] **VER-01**: Systematic browser automation audit of all pages (marketing, blog, auth, tenant portal, owner dashboard) verifying interactions and visual consistency
-- [ ] **VER-02**: Mobile viewport testing at 375px, 768px, and 1440px breakpoints verifying responsive layouts
+- [ ] **PROP-01**: Owner can bulk import properties via CSV upload (backend processes and creates records)
+- [ ] **PROP-02**: Bulk import validates CSV data and reports errors before committing
+
+### Maintenance
+
+- [ ] **MAINT-01**: Tenant can upload photos when submitting maintenance request
+- [ ] **MAINT-02**: Owner can view maintenance request photos in detail view
+
+### Stripe Integration
+
+- [ ] **STRIPE-01**: Owner can access Stripe Express Dashboard via login link from connect status page
 
 ## Future Requirements
 
@@ -54,39 +57,34 @@ Requirements for Production Polish & Code Consolidation. Each maps to roadmap ph
 
 | Feature | Reason |
 |---------|--------|
-| RSC prefetching migration | Architecture change too large for consolidation milestone |
-| Storybook setup | Setup cost unjustified for one-time audit |
-| `use cache` directive | Experimental, not relevant to dynamic data app |
-| TanStack Router migration | Already on Next.js App Router |
-| Full mobile responsiveness milestone | Spot-check and fix, not comprehensive redesign |
-| ~~mutationOptions() factories~~ | Moved to Phase 17 (MOD-05) |
+| In-app notifications | Email covers notification needs for now |
+| Twilio SMS notifications | Email sufficient for v1 |
+| Real-time chat | High complexity, not core to property management |
+| Mobile app | Web-first approach |
 
 ## Traceability
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| CLEAN-01 | Phase 16 | Pending |
-| CLEAN-02 | Phase 18 | Complete |
-| CLEAN-03 | Phase 16 | Pending |
-| CLEAN-04 | Phase 16 | Pending |
-| CLEAN-05 | Phase 16 | Pending |
-| MOD-01 | Phase 18 | Complete |
-| MOD-02 | Phase 17 | Pending |
-| MOD-03 | Phase 16 | Pending |
-| MOD-04 | Phase 17 | Complete |
-| MOD-05 | Phase 17 | Complete |
-| UI-01 | Phase 19 | Pending |
-| UI-02 | Phase 19 | Pending |
-| UI-03 | Phase 19 | Pending |
-| UI-04 | Phase 19 | Pending |
-| VER-01 | Phase 20 | Pending |
-| VER-02 | Phase 20 | Pending |
+| EMAIL-01 | Phase 21 | Complete |
+| EMAIL-02 | Phase 21 | Complete |
+| GDPR-01 | Phase 22 | Complete |
+| GDPR-02 | Phase 22 | Complete |
+| GDPR-03 | Phase 22 | Complete |
+| DOC-01 | Phase 23 | Complete |
+| DOC-02 | Phase 23 | Complete |
+| DOC-03 | Phase 23 | Complete |
+| PROP-01 | Phase 24 | Pending |
+| PROP-02 | Phase 24 | Pending |
+| MAINT-01 | Phase 25 | Pending |
+| MAINT-02 | Phase 25 | Pending |
+| STRIPE-01 | Phase 25 | Pending |
 
 **Coverage:**
-- v1.2 requirements: 16 total
-- Mapped to phases: 16
+- v1.3 requirements: 13 total
+- Mapped to phases: 13
 - Unmapped: 0
 
 ---
-*Requirements defined: 2026-03-08*
-*Last updated: 2026-03-08 after roadmap creation*
+*Requirements defined: 2026-03-11*
+*Last updated: 2026-03-11 after roadmap creation*

@@ -43,6 +43,7 @@ import { PersonalInformationSection } from '#components/profiles/tenant/personal
 import { EmergencyContactSection } from '#components/profiles/tenant/emergency-contact-section'
 import { NotificationPreferencesSection } from '#components/profiles/tenant/notification-preferences-section'
 import { AccountSecuritySection } from '#components/profiles/tenant/account-security-section'
+import { TenantAccountDataSection } from '#components/profiles/tenant/account-data-section'
 
 export default function TenantProfilePage() {
 	const [isEditing, setIsEditing] = useState(false)
@@ -270,6 +271,8 @@ export default function TenantProfilePage() {
 				lastSignInAt={user?.last_sign_in_at}
 				onChangePassword={() => setShowChangePasswordDialog(true)}
 			/>
+
+			<TenantAccountDataSection />
 
 			<ChangePasswordDialog
 				open={showChangePasswordDialog}

@@ -58,13 +58,18 @@ A landlord can add a property, invite a tenant, collect rent, and see their fina
 - v1.1: Blog pages rewritten (hub split zones, detail blur-fade + related posts, category DB names + pagination)
 - v1.1: CI optimization (checks PR-only, e2e-smoke independent on push, per-job concurrency)
 
+- v1.3/Phase 21: Email invitation sending via Edge Function (send-tenant-invitation)
+- v1.3/Phase 22: GDPR data export via Edge Function (role-aware owner/tenant export, downloadable JSON)
+- v1.3/Phase 22: Self-service account deletion with 30-day grace period (request, countdown, cancel)
+
 ### Active
 
-- v1.2: Hooks audit and consolidation (85 files, modernize for TanStack Query v5 / Next.js 16)
-- v1.2: Components audit and consolidation (366 files across 69 dirs)
-- v1.2: Shared directory cleanup (duplicate types, dead exports, organization)
-- v1.2: Public UI polish (navbar, CTAs, buttons, radius, design system consistency)
-- v1.2: Full-app UI audit via browser automation (marketing, blog, auth, tenant portal, owner dashboard)
+- v1.3: Replace all stub implementations with real, production-ready functionality
+- v1.3: PDF template preview and export via DocuSeal/StirlingPDF
+- v1.3: Template definition saving
+- v1.3: Bulk property import backend
+- v1.3: Maintenance photo upload via Supabase Storage
+- v1.3: Stripe Dashboard access (login link)
 
 ### Out of Scope
 
@@ -139,6 +144,9 @@ Frontend (Next.js 16 / Vercel) -> supabase-js -> Supabase PostgREST (RLS enforce
 | Blog queries via anon RLS | Public content, no auth required, simpler cache | Good |
 | Per-job CI concurrency groups | Checks and e2e-smoke run independently | Good |
 | Resend Contacts API (not Audiences) | Audiences deprecated, Contacts is current API | Good |
+| Service role for GDPR export | Bypass RLS for complete data, JWT still validated first | Good |
+| Edge Function blob download | fetch → blob → createObjectURL → anchor click pattern | Good |
+| authKeys.deletionStatus() | Deletion status is account-scoped, shares key across owner/tenant | Good |
 
 ---
-*Last updated: 2026-03-08 after v1.2 Production Polish & Code Consolidation milestone started*
+*Last updated: 2026-03-11 after Phase 22 (GDPR Data Rights)*

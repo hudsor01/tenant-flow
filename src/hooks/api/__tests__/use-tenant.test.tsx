@@ -99,17 +99,28 @@ function makeQueryChain(result: { data?: unknown; error?: unknown; count?: numbe
 	return chain
 }
 
+// Mock fetch for Edge Function calls (send-tenant-invitation)
+const mockFetch = vi.hoisted(() =>
+	vi.fn().mockResolvedValue({
+		ok: true,
+		json: async () => ({ sent: true, email_id: 'test-id' })
+	})
+)
+vi.stubGlobal('fetch', mockFetch)
+
 // Supabase mock with configurable from() responses
 const supabaseFromMock = vi.fn()
 let supabaseInsertMock = vi.fn()
 let supabaseUpdateMock = vi.fn()
 const supabaseAuthGetUserMock = vi.fn()
+const supabaseAuthGetSessionMock = vi.fn()
 
 vi.mock('#lib/supabase/client', () => ({
 	createClient: () => ({
 		from: supabaseFromMock,
 		auth: {
-			getUser: supabaseAuthGetUserMock
+			getUser: supabaseAuthGetUserMock,
+			getSession: supabaseAuthGetSessionMock
 		}
 	})
 }))
@@ -165,6 +176,10 @@ describe('Query Hooks', () => {
 
 		supabaseAuthGetUserMock.mockResolvedValue({
 			data: { user: { id: 'owner-user-123' } }
+		})
+
+		supabaseAuthGetSessionMock.mockResolvedValue({
+			data: { session: { access_token: 'test-jwt-token' } }
 		})
 
 		// Default: from() returns a query chain with mock tenant data
@@ -363,6 +378,10 @@ describe('Mutation Hooks', () => {
 
 		supabaseAuthGetUserMock.mockResolvedValue({
 			data: { user: { id: 'owner-user-123' } }
+		})
+
+		supabaseAuthGetSessionMock.mockResolvedValue({
+			data: { session: { access_token: 'test-jwt-token' } }
 		})
 
 		supabaseInsertMock = vi.fn().mockReturnValue({
@@ -569,7 +588,7 @@ describe('Mutation Hooks', () => {
 	})
 
 	describe('useInviteTenantMutation', () => {
-		it('should create tenant via PostgREST and link to lease', async () => {
+		it('should create tenant via PostgREST and send invitation email', async () => {
 			const { result } = renderHook(() => useInviteTenantMutation(), {
 				wrapper: createWrapper()
 			})
@@ -584,11 +603,23 @@ describe('Mutation Hooks', () => {
 
 			// Should have inserted a tenant_invitation record
 			expect(supabaseFromMock).toHaveBeenCalledWith('tenant_invitations')
+
+			// Should have called the send-tenant-invitation Edge Function
+			expect(mockFetch).toHaveBeenCalledWith(
+				expect.stringContaining('/functions/v1/send-tenant-invitation'),
+				expect.objectContaining({
+					method: 'POST',
+					headers: expect.objectContaining({
+						Authorization: 'Bearer test-jwt-token'
+					}),
+					body: expect.stringContaining('invite-123')
+				})
+			)
 		})
 	})
 
 	describe('useResendInvitationMutation', () => {
-		it('should update tenant_invitations via PostgREST (reset expiry and status)', async () => {
+		it('should update tenant_invitations via PostgREST and resend email', async () => {
 			const { result } = renderHook(() => useResendInvitationMutation(), {
 				wrapper: createWrapper()
 			})
@@ -598,6 +629,15 @@ describe('Mutation Hooks', () => {
 			expect(supabaseFromMock).toHaveBeenCalledWith('tenant_invitations')
 			expect(supabaseUpdateMock).toHaveBeenCalledWith(
 				expect.objectContaining({ status: 'sent' })
+			)
+
+			// Should have called the send-tenant-invitation Edge Function
+			expect(mockFetch).toHaveBeenCalledWith(
+				expect.stringContaining('/functions/v1/send-tenant-invitation'),
+				expect.objectContaining({
+					method: 'POST',
+					body: expect.stringContaining('invitation-123')
+				})
 			)
 		})
 	})
