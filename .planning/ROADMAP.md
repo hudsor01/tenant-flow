@@ -96,7 +96,7 @@ Plans:
   1. Owner can click "Preview" on a lease template and see a PDF rendering of that template in the browser
   2. Owner can click "Export" or "Download" on a lease template and receive a PDF file downloaded to their device
   3. Owner can configure template fields (custom field definitions) and save them so they persist when returning later
-**Plans:** 2 plans
+**Plans:** 1/2 plans executed
 Plans:
 - [ ] 23-01-PLAN.md -- Database table, RLS, query key factory, and wire useTemplateDefinition for custom field persistence
 - [ ] 23-02-PLAN.md -- HTML builder and wire useTemplatePdf to generate-pdf Edge Function for preview and export
@@ -130,6 +130,6 @@ Phases execute in numeric order: 21 -> 22 -> 23 -> 24 -> 25
 |-------|----------------|--------|-----------|
 | 21. Email Invitations | 2/2 | Complete    | 2026-03-11 |
 | 22. GDPR Data Rights | 2/2 | Complete    | 2026-03-11 |
-| 23. Document Templates | 0/2 | Not started | - |
+| 23. Document Templates | 1/2 | In Progress|  |
 | 24. Bulk Property Import | 0/TBD | Not started | - |
 | 25. Maintenance Photos & Stripe Dashboard | 0/TBD | Not started | - |
