@@ -69,7 +69,7 @@ TenantFlow is a multi-tenant property management SaaS platform for property owne
   1. When an owner creates a tenant invitation, the tenant receives an email at the invited address within seconds
   2. The invitation email contains an accept link that navigates the tenant to the onboarding/signup flow
   3. The accept link works correctly for both new users (creates account) and existing users (links to existing account)
-**Plans:** 2 plans
+**Plans:** 1/2 plans executed
 Plans:
 - [ ] 21-01-PLAN.md -- Edge Function + branded email template for sending tenant invitation emails via Resend
 - [ ] 21-02-PLAN.md -- Wire all frontend invitation creation paths to call the send-tenant-invitation Edge Function
@@ -122,7 +122,7 @@ Phases execute in numeric order: 21 -> 22 -> 23 -> 24 -> 25
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 21. Email Invitations | 0/2 | Planning complete | - |
+| 21. Email Invitations | 1/2 | In Progress|  |
 | 22. GDPR Data Rights | 0/TBD | Not started | - |
 | 23. Document Templates | 0/TBD | Not started | - |
 | 24. Bulk Property Import | 0/TBD | Not started | - |
