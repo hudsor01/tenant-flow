@@ -54,7 +54,7 @@ TenantFlow is a multi-tenant property management SaaS platform for property owne
 ### v1.3 Stub Elimination (In Progress)
 
 - [x] **Phase 21: Email Invitations** - Tenant receives real invitation email with accept link when owner creates invitation (completed 2026-03-11)
-- [ ] **Phase 22: GDPR Data Rights** - Owners and tenants can export personal data and owners can self-service delete accounts
+- [x] **Phase 22: GDPR Data Rights** - Owners and tenants can export personal data and owners can self-service delete accounts (completed 2026-03-11)
 - [ ] **Phase 23: Document Templates** - Owner can preview, export, and save lease template definitions via DocuSeal/StirlingPDF
 - [ ] **Phase 24: Bulk Property Import** - Owner can import properties via CSV with validation and error reporting
 - [ ] **Phase 25: Maintenance Photos & Stripe Dashboard** - Tenants can upload maintenance photos and owners can access Stripe Express Dashboard
@@ -83,7 +83,7 @@ Plans:
   2. Tenant can trigger a data export from their portal settings and receive a downloadable file containing all their personal data (lease info, payment history, maintenance requests)
   3. Owner can initiate account deletion from settings, which starts a 30-day grace period (no "contact support" workaround)
   4. Owner can cancel account deletion during the grace period and resume normal usage
-**Plans:** 1/2 plans executed
+**Plans:** 2/2 plans complete
 Plans:
 - [ ] 22-01-PLAN.md -- Role-aware export-user-data Edge Function (owner + tenant data queries, JSON download)
 - [ ] 22-02-PLAN.md -- Wire data export + account deletion into owner settings and tenant profile UI
@@ -126,7 +126,7 @@ Phases execute in numeric order: 21 -> 22 -> 23 -> 24 -> 25
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 21. Email Invitations | 2/2 | Complete    | 2026-03-11 |
-| 22. GDPR Data Rights | 1/2 | In Progress|  |
+| 22. GDPR Data Rights | 2/2 | Complete   | 2026-03-11 |
 | 23. Document Templates | 0/TBD | Not started | - |
 | 24. Bulk Property Import | 0/TBD | Not started | - |
 | 25. Maintenance Photos & Stripe Dashboard | 0/TBD | Not started | - |

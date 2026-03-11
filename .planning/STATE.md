@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.3
 milestone_name: Stub Elimination
 status: in-progress
-stopped_at: Completed 22-01-PLAN.md
-last_updated: "2026-03-11T21:11:05Z"
-last_activity: 2026-03-11 -- Completed Phase 22 Plan 01 (GDPR data export Edge Function)
+stopped_at: Completed 22-02-PLAN.md
+last_updated: "2026-03-11T21:31:00.811Z"
+last_activity: 2026-03-11 -- Completed 22-02 (GDPR frontend integration)
 progress:
   total_phases: 5
-  completed_phases: 1
+  completed_phases: 2
   total_plans: 4
-  completed_plans: 3
-  percent: 75
+  completed_plans: 4
+  percent: 91
 ---
 
 # Project State: TenantFlow
@@ -21,17 +21,17 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-11)
 
 **Core value:** A landlord can add a property, invite a tenant, collect rent, and see their financials -- without touching a spreadsheet or calling anyone.
-**Current focus:** v1.3 Stub Elimination -- Phase 22 (GDPR Data Rights) plan 1/2 complete
+**Current focus:** v1.3 Stub Elimination -- Phase 22 (GDPR Data Rights) complete, ready for Phase 23
 
 ## Current Position
 
 Milestone: v1.3 Stub Elimination
-Phase: 22 of 25 (GDPR Data Rights)
-Plan: 1 of 2
-Status: In Progress
-Last activity: 2026-03-11 -- Completed 22-01 (GDPR data export Edge Function)
+Phase: 22 of 25 (GDPR Data Rights) -- COMPLETE
+Plan: 2 of 2
+Status: Phase Complete
+Last activity: 2026-03-11 -- Completed 22-02 (GDPR frontend integration)
 
-Progress: [███████░░░] 75%
+Progress: [█████████░] 91%
 
 ## Shipped Milestones
 
@@ -56,6 +56,8 @@ Progress: [███████░░░] 75%
 - [Phase 21]: Non-fatal Edge Function email pattern: await fetch(...).catch() preserves DB record if email fails
 - [Phase 22]: Service role client for data export queries (bypass RLS for complete data, JWT still validated first)
 - [Phase 22]: Pre-fetch ID pattern for parallel .in() queries (lease IDs, maintenance IDs fetched before main batch)
+- [Phase 22]: authKeys.deletionStatus() extends auth query key factory for GDPR deletion status (shared across owner + tenant)
+- [Phase 22]: Edge Function blob download pattern: fetch -> blob -> createObjectURL -> programmatic anchor click
 
 ### Stubs to Eliminate (v1.3 scope)
 
@@ -70,6 +72,6 @@ Progress: [███████░░░] 75%
 
 ## Session Continuity
 
-Last session: 2026-03-11T21:11:05Z
-Stopped at: Completed 22-01-PLAN.md
+Last session: 2026-03-11T21:28:00Z
+Stopped at: Completed 22-02-PLAN.md
 Resume file: None
