@@ -14,9 +14,9 @@ Requirements for Stub Elimination. Each replaces a placeholder/toast with a real
 
 ### Data Export & Privacy
 
-- [ ] **GDPR-01**: Owner can export all personal data as downloadable file (GDPR/CCPA compliance)
+- [x] **GDPR-01**: Owner can export all personal data as downloadable file (GDPR/CCPA compliance)
 - [ ] **GDPR-02**: Owner can self-service delete account with 30-day grace period (no "contact support" workaround)
-- [ ] **GDPR-03**: Tenant can export all personal data as downloadable file
+- [x] **GDPR-03**: Tenant can export all personal data as downloadable file
 
 ### Documents & Templates
 
@@ -68,9 +68,9 @@ Requirements for Stub Elimination. Each replaces a placeholder/toast with a real
 |-------------|-------|--------|
 | EMAIL-01 | Phase 21 | Complete |
 | EMAIL-02 | Phase 21 | Complete |
-| GDPR-01 | Phase 22 | Pending |
+| GDPR-01 | Phase 22 | Complete |
 | GDPR-02 | Phase 22 | Pending |
-| GDPR-03 | Phase 22 | Pending |
+| GDPR-03 | Phase 22 | Complete |
 | DOC-01 | Phase 23 | Pending |
 | DOC-02 | Phase 23 | Pending |
 | DOC-03 | Phase 23 | Pending |

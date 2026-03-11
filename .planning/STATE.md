@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.3
 milestone_name: Stub Elimination
-status: executing
-stopped_at: Completed 21-02-PLAN.md
-last_updated: "2026-03-11T20:19:18.576Z"
-last_activity: 2026-03-11 -- Completed Phase 21 (Email Invitations -- Edge Function + frontend wiring)
+status: in-progress
+stopped_at: Completed 22-01-PLAN.md
+last_updated: "2026-03-11T21:11:05Z"
+last_activity: 2026-03-11 -- Completed Phase 22 Plan 01 (GDPR data export Edge Function)
 progress:
   total_phases: 5
   completed_phases: 1
-  total_plans: 2
-  completed_plans: 2
-  percent: 100
+  total_plans: 4
+  completed_plans: 3
+  percent: 75
 ---
 
 # Project State: TenantFlow
@@ -21,17 +21,17 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-11)
 
 **Core value:** A landlord can add a property, invite a tenant, collect rent, and see their financials -- without touching a spreadsheet or calling anyone.
-**Current focus:** v1.3 Stub Elimination -- Phase 21 (Email Invitations) complete, advancing to Phase 22
+**Current focus:** v1.3 Stub Elimination -- Phase 22 (GDPR Data Rights) plan 1/2 complete
 
 ## Current Position
 
 Milestone: v1.3 Stub Elimination
-Phase: 21 of 25 (Email Invitations) -- COMPLETE
-Plan: 2 of 2
-Status: Phase Complete
-Last activity: 2026-03-11 -- Completed Phase 21 (Email Invitations -- Edge Function + frontend wiring)
+Phase: 22 of 25 (GDPR Data Rights)
+Plan: 1 of 2
+Status: In Progress
+Last activity: 2026-03-11 -- Completed 22-01 (GDPR data export Edge Function)
 
-Progress: [██████████] 100%
+Progress: [███████░░░] 75%
 
 ## Shipped Milestones
 
@@ -54,6 +54,8 @@ Progress: [██████████] 100%
 - Authenticated Edge Functions (JWT required) do not need IP-based rate limiting -- only unauthenticated endpoints get rateLimit()
 - tenantInvitationEmail is distinct from invitationEmail -- former for owner tenant invites, latter for Supabase Auth invites
 - [Phase 21]: Non-fatal Edge Function email pattern: await fetch(...).catch() preserves DB record if email fails
+- [Phase 22]: Service role client for data export queries (bypass RLS for complete data, JWT still validated first)
+- [Phase 22]: Pre-fetch ID pattern for parallel .in() queries (lease IDs, maintenance IDs fetched before main batch)
 
 ### Stubs to Eliminate (v1.3 scope)
 
@@ -68,6 +70,6 @@ Progress: [██████████] 100%
 
 ## Session Continuity
 
-Last session: 2026-03-11T20:19:18.574Z
-Stopped at: Completed 21-02-PLAN.md
+Last session: 2026-03-11T21:11:05Z
+Stopped at: Completed 22-01-PLAN.md
 Resume file: None
