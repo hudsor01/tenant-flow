@@ -55,7 +55,7 @@ TenantFlow is a multi-tenant property management SaaS platform for property owne
 
 - [x] **Phase 21: Email Invitations** - Tenant receives real invitation email with accept link when owner creates invitation (completed 2026-03-11)
 - [x] **Phase 22: GDPR Data Rights** - Owners and tenants can export personal data and owners can self-service delete accounts (completed 2026-03-11)
-- [ ] **Phase 23: Document Templates** - Owner can preview, export, and save lease template definitions via DocuSeal/StirlingPDF
+- [x] **Phase 23: Document Templates** - Owner can preview, export, and save lease template definitions via DocuSeal/StirlingPDF (completed 2026-03-11)
 - [ ] **Phase 24: Bulk Property Import** - Owner can import properties via CSV with validation and error reporting
 - [ ] **Phase 25: Maintenance Photos & Stripe Dashboard** - Tenants can upload maintenance photos and owners can access Stripe Express Dashboard
 
@@ -96,7 +96,7 @@ Plans:
   1. Owner can click "Preview" on a lease template and see a PDF rendering of that template in the browser
   2. Owner can click "Export" or "Download" on a lease template and receive a PDF file downloaded to their device
   3. Owner can configure template fields (custom field definitions) and save them so they persist when returning later
-**Plans:** 1/2 plans executed
+**Plans:** 2/2 plans complete
 Plans:
 - [ ] 23-01-PLAN.md -- Database table, RLS, query key factory, and wire useTemplateDefinition for custom field persistence
 - [ ] 23-02-PLAN.md -- HTML builder and wire useTemplatePdf to generate-pdf Edge Function for preview and export
@@ -130,6 +130,6 @@ Phases execute in numeric order: 21 -> 22 -> 23 -> 24 -> 25
 |-------|----------------|--------|-----------|
 | 21. Email Invitations | 2/2 | Complete    | 2026-03-11 |
 | 22. GDPR Data Rights | 2/2 | Complete    | 2026-03-11 |
-| 23. Document Templates | 1/2 | In Progress|  |
+| 23. Document Templates | 2/2 | Complete   | 2026-03-11 |
 | 24. Bulk Property Import | 0/TBD | Not started | - |
 | 25. Maintenance Photos & Stripe Dashboard | 0/TBD | Not started | - |

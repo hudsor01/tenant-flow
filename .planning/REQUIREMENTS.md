@@ -20,8 +20,8 @@ Requirements for Stub Elimination. Each replaces a placeholder/toast with a real
 
 ### Documents & Templates
 
-- [ ] **DOC-01**: Owner can preview lease template as PDF before sending
-- [ ] **DOC-02**: Owner can export/download lease template as PDF
+- [x] **DOC-01**: Owner can preview lease template as PDF before sending
+- [x] **DOC-02**: Owner can export/download lease template as PDF
 - [x] **DOC-03**: Owner can save custom template definitions (field configurations persist)
 
 ### Property Management
@@ -71,8 +71,8 @@ Requirements for Stub Elimination. Each replaces a placeholder/toast with a real
 | GDPR-01 | Phase 22 | Complete |
 | GDPR-02 | Phase 22 | Complete |
 | GDPR-03 | Phase 22 | Complete |
-| DOC-01 | Phase 23 | Pending |
-| DOC-02 | Phase 23 | Pending |
+| DOC-01 | Phase 23 | Complete |
+| DOC-02 | Phase 23 | Complete |
 | DOC-03 | Phase 23 | Complete |
 | PROP-01 | Phase 24 | Pending |
 | PROP-02 | Phase 24 | Pending |
