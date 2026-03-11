@@ -64,19 +64,46 @@ export function InviteTenantForm({
 				Date.now() + 7 * 24 * 60 * 60 * 1000
 			).toISOString()
 
-			const { error } = await supabase.from('tenant_invitations').insert({
-				email: payload.tenantData.email,
-				owner_user_id: user.id,
-				property_id: payload.leaseData?.property_id ?? null,
-				unit_id: payload.leaseData?.unit_id ?? null,
-				invitation_code: invitationCode,
-				invitation_url: invitationUrl,
-				expires_at: expiresAt,
-				status: 'sent',
-				type: 'portal_access'
-			})
+			const { data: invitationData, error } = await supabase
+				.from('tenant_invitations')
+				.insert({
+					email: payload.tenantData.email,
+					owner_user_id: user.id,
+					property_id: payload.leaseData?.property_id ?? null,
+					unit_id: payload.leaseData?.unit_id ?? null,
+					invitation_code: invitationCode,
+					invitation_url: invitationUrl,
+					expires_at: expiresAt,
+					status: 'sent',
+					type: 'portal_access'
+				})
+				.select('id')
+				.single()
 
 			if (error) throw error
+
+			// Send invitation email (non-fatal)
+			const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+			const {
+				data: { session }
+			} = await supabase.auth.getSession()
+			if (session?.access_token && invitationData?.id) {
+				await fetch(
+					`${supabaseUrl}/functions/v1/send-tenant-invitation`,
+					{
+						method: 'POST',
+						headers: {
+							'Content-Type': 'application/json',
+							Authorization: `Bearer ${session.access_token}`
+						},
+						body: JSON.stringify({
+							invitation_id: invitationData.id
+						})
+					}
+				).catch(err => {
+					console.error('[invitation-email] Email send failed:', err)
+				})
+			}
 		},
 		onSuccess: async () => {
 			await queryClient.invalidateQueries({ queryKey: tenantQueries.all() })
