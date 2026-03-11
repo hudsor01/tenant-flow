@@ -53,7 +53,7 @@ TenantFlow is a multi-tenant property management SaaS platform for property owne
 
 ### v1.3 Stub Elimination (In Progress)
 
-- [ ] **Phase 21: Email Invitations** - Tenant receives real invitation email with accept link when owner creates invitation
+- [x] **Phase 21: Email Invitations** - Tenant receives real invitation email with accept link when owner creates invitation (completed 2026-03-11)
 - [ ] **Phase 22: GDPR Data Rights** - Owners and tenants can export personal data and owners can self-service delete accounts
 - [ ] **Phase 23: Document Templates** - Owner can preview, export, and save lease template definitions via DocuSeal/StirlingPDF
 - [ ] **Phase 24: Bulk Property Import** - Owner can import properties via CSV with validation and error reporting
@@ -69,7 +69,7 @@ TenantFlow is a multi-tenant property management SaaS platform for property owne
   1. When an owner creates a tenant invitation, the tenant receives an email at the invited address within seconds
   2. The invitation email contains an accept link that navigates the tenant to the onboarding/signup flow
   3. The accept link works correctly for both new users (creates account) and existing users (links to existing account)
-**Plans:** 1/2 plans executed
+**Plans:** 2/2 plans complete
 Plans:
 - [ ] 21-01-PLAN.md -- Edge Function + branded email template for sending tenant invitation emails via Resend
 - [ ] 21-02-PLAN.md -- Wire all frontend invitation creation paths to call the send-tenant-invitation Edge Function
@@ -122,7 +122,7 @@ Phases execute in numeric order: 21 -> 22 -> 23 -> 24 -> 25
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 21. Email Invitations | 1/2 | In Progress|  |
+| 21. Email Invitations | 2/2 | Complete   | 2026-03-11 |
 | 22. GDPR Data Rights | 0/TBD | Not started | - |
 | 23. Document Templates | 0/TBD | Not started | - |
 | 24. Bulk Property Import | 0/TBD | Not started | - |

@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.3
 milestone_name: Stub Elimination
 status: executing
-stopped_at: Completed 21-01-PLAN.md
-last_updated: "2026-03-11T20:10:15.378Z"
-last_activity: 2026-03-11 -- Executed 21-01 (send-tenant-invitation Edge Function + email template)
+stopped_at: Completed 21-02-PLAN.md
+last_updated: "2026-03-11T20:19:18.576Z"
+last_activity: 2026-03-11 -- Completed Phase 21 (Email Invitations -- Edge Function + frontend wiring)
 progress:
   total_phases: 5
-  completed_phases: 0
+  completed_phases: 1
   total_plans: 2
-  completed_plans: 1
-  percent: 50
+  completed_plans: 2
+  percent: 100
 ---
 
 # Project State: TenantFlow
@@ -21,17 +21,17 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-11)
 
 **Core value:** A landlord can add a property, invite a tenant, collect rent, and see their financials -- without touching a spreadsheet or calling anyone.
-**Current focus:** v1.3 Stub Elimination -- Phase 21 (Email Invitations) executing, plan 01 complete
+**Current focus:** v1.3 Stub Elimination -- Phase 21 (Email Invitations) complete, advancing to Phase 22
 
 ## Current Position
 
 Milestone: v1.3 Stub Elimination
-Phase: 21 of 25 (Email Invitations)
+Phase: 21 of 25 (Email Invitations) -- COMPLETE
 Plan: 2 of 2
-Status: Executing
-Last activity: 2026-03-11 -- Executed 21-01 (send-tenant-invitation Edge Function + email template)
+Status: Phase Complete
+Last activity: 2026-03-11 -- Completed Phase 21 (Email Invitations -- Edge Function + frontend wiring)
 
-Progress: [█████░░░░░] 50%
+Progress: [██████████] 100%
 
 ## Shipped Milestones
 
@@ -53,6 +53,7 @@ Progress: [█████░░░░░] 50%
 - DocuSeal/StirlingPDF accessible from Edge Functions via internal k3s URLs
 - Authenticated Edge Functions (JWT required) do not need IP-based rate limiting -- only unauthenticated endpoints get rateLimit()
 - tenantInvitationEmail is distinct from invitationEmail -- former for owner tenant invites, latter for Supabase Auth invites
+- [Phase 21]: Non-fatal Edge Function email pattern: await fetch(...).catch() preserves DB record if email fails
 
 ### Stubs to Eliminate (v1.3 scope)
 
@@ -67,6 +68,6 @@ Progress: [█████░░░░░] 50%
 
 ## Session Continuity
 
-Last session: 2026-03-11T20:10:15.376Z
-Stopped at: Completed 21-01-PLAN.md
+Last session: 2026-03-11T20:19:18.574Z
+Stopped at: Completed 21-02-PLAN.md
 Resume file: None
