@@ -9,8 +9,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { createClient } from '#lib/supabase/client'
 import { handleMutationError } from '#lib/mutation-error-handler'
-import { subscriptionsKeys } from './query-keys/billing-keys'
-import { billingMutations } from './query-keys/billing-mutation-options'
+import { subscriptionsKeys, billingMutations } from './query-keys/billing-keys'
 
 // ============================================================================
 // SUBSCRIPTION CRUD MUTATIONS

@@ -15,7 +15,7 @@ import {
 	handleMutationError,
 	handleMutationSuccess
 } from '#lib/mutation-error-handler'
-import { reportMutations } from './query-keys/report-mutation-options'
+import { reportMutations } from './query-keys/report-keys'
 
 // ============================================================================
 // STANDALONE EDGE FUNCTION HELPER (used by component-level callers)

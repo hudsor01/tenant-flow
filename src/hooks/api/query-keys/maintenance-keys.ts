@@ -1,21 +1,33 @@
 /**
- * Maintenance Query Keys & Options
- * Extracted to avoid circular dependencies and enable reuse across files
+ * Maintenance Query Keys, Options & Mutations
+ * Query and mutation factories for maintenance and vendor domains.
  *
  * TanStack Query v5 patterns:
  * - queryOptions() for type-safe query configuration
+ * - mutationOptions() for type-safe mutation configuration
  * - Query key factory for consistent cache management
  * - PostgREST direct via supabase-js (no apiRequest calls)
  */
 
-import { queryOptions } from '@tanstack/react-query'
+import { queryOptions, mutationOptions } from '@tanstack/react-query'
 import { createClient } from '#lib/supabase/client'
 import { getCachedUser } from '#lib/supabase/get-cached-user'
 import { handlePostgrestError } from '#lib/postgrest-error-handler'
+import { requireOwnerUserId } from '#lib/require-owner-user-id'
 import { resolveTenantId } from '../use-tenant-portal-keys'
 import { QUERY_CACHE_TIMES } from '#lib/constants/query-config'
+import { mutationKeys } from '../mutation-keys'
 import type { PaginatedResponse } from '#types/api-contracts'
 import type { MaintenanceRequest } from '#types/core'
+import type {
+	MaintenanceRequestCreate,
+	MaintenanceRequestUpdate
+} from '#lib/validation/maintenance'
+import type {
+	Vendor,
+	VendorCreateInput,
+	VendorUpdateInput
+} from '../use-vendor'
 
 // ============================================================================
 // TYPES
@@ -267,5 +279,186 @@ export const maintenanceQueries = {
 				return { requests, total, open, inProgress, completed }
 			},
 			...QUERY_CACHE_TIMES.LIST
+		})
+}
+
+// ============================================================================
+// MAINTENANCE MUTATION TYPES
+// ============================================================================
+
+/** Variables for update mutation including optional optimistic locking version */
+export interface MaintenanceUpdateMutationVariables {
+	id: string
+	data: MaintenanceRequestUpdate
+	version?: number
+}
+
+// ============================================================================
+// MAINTENANCE MUTATION OPTIONS FACTORIES
+// ============================================================================
+
+export const maintenanceMutations = {
+	create: () =>
+		mutationOptions({
+			mutationKey: mutationKeys.maintenance.create,
+			mutationFn: async (
+				data: MaintenanceRequestCreate
+			): Promise<MaintenanceRequest> => {
+				const supabase = createClient()
+				const user = await getCachedUser()
+				const ownerId = requireOwnerUserId(user?.id)
+
+				const { data: created, error } = await supabase
+					.from('maintenance_requests')
+					.insert({ ...data, owner_user_id: ownerId })
+					.select()
+					.single()
+
+				if (error) handlePostgrestError(error, 'maintenance_requests')
+
+				return created as MaintenanceRequest
+			}
+		}),
+
+	update: () =>
+		mutationOptions({
+			mutationKey: mutationKeys.maintenance.update,
+			mutationFn: async ({
+				id,
+				data,
+				version: _version
+			}: MaintenanceUpdateMutationVariables): Promise<MaintenanceRequest> => {
+				// Note: version is intentionally unused -- optimistic locking via version
+				// is not implemented in the DB schema. The parameter is kept in the
+				// interface for future compatibility.
+				const supabase = createClient()
+
+				const { data: updated, error } = await supabase
+					.from('maintenance_requests')
+					.update(data)
+					.eq('id', id)
+					.select()
+					.single()
+
+				if (error) handlePostgrestError(error, 'maintenance_requests')
+
+				return updated as MaintenanceRequest
+			}
+		}),
+
+	delete: () =>
+		mutationOptions({
+			mutationKey: mutationKeys.maintenance.delete,
+			mutationFn: async (id: string): Promise<void> => {
+				const supabase = createClient()
+				const { error } = await supabase
+					.from('maintenance_requests')
+					.delete()
+					.eq('id', id)
+
+				if (error) handlePostgrestError(error, 'maintenance_requests')
+			}
+		})
+}
+
+// ============================================================================
+// VENDOR MUTATION OPTIONS FACTORIES
+// ============================================================================
+
+// Explicit column list for vendor queries -- no select('*')
+const VENDOR_SELECT_COLUMNS =
+	'id, owner_user_id, name, email, phone, trade, hourly_rate, status, notes, created_at, updated_at'
+
+export const vendorMutations = {
+	create: () =>
+		mutationOptions({
+			mutationKey: ['mutations', 'vendors', 'create'] as const,
+			mutationFn: async (data: VendorCreateInput): Promise<Vendor> => {
+				const supabase = createClient()
+				const user = await getCachedUser()
+				const ownerId = requireOwnerUserId(user?.id)
+
+				const { data: created, error } = await supabase
+					.from('vendors')
+					.insert({ ...data, owner_user_id: ownerId })
+					.select(VENDOR_SELECT_COLUMNS)
+					.single()
+
+				if (error) handlePostgrestError(error, 'vendors')
+
+				return created as Vendor
+			}
+		}),
+
+	update: () =>
+		mutationOptions({
+			mutationKey: ['mutations', 'vendors', 'update'] as const,
+			mutationFn: async ({
+				id,
+				data
+			}: {
+				id: string
+				data: VendorUpdateInput
+			}): Promise<Vendor> => {
+				const supabase = createClient()
+				const { data: updated, error } = await supabase
+					.from('vendors')
+					.update(data)
+					.eq('id', id)
+					.select(VENDOR_SELECT_COLUMNS)
+					.single()
+
+				if (error) handlePostgrestError(error, 'vendors')
+
+				return updated as Vendor
+			}
+		}),
+
+	delete: () =>
+		mutationOptions({
+			mutationKey: ['mutations', 'vendors', 'delete'] as const,
+			mutationFn: async (id: string): Promise<void> => {
+				const supabase = createClient()
+				const { error } = await supabase
+					.from('vendors')
+					.delete()
+					.eq('id', id)
+
+				if (error) handlePostgrestError(error, 'vendors')
+			}
+		}),
+
+	assign: () =>
+		mutationOptions({
+			mutationKey: ['mutations', 'vendors', 'assign'] as const,
+			mutationFn: async ({
+				vendorId,
+				maintenanceId
+			}: {
+				vendorId: string
+				maintenanceId: string
+			}): Promise<void> => {
+				const supabase = createClient()
+				const { error } = await supabase
+					.from('maintenance_requests')
+					.update({ vendor_id: vendorId, status: 'assigned' })
+					.eq('id', maintenanceId)
+
+				if (error) handlePostgrestError(error, 'maintenance_requests')
+			}
+		}),
+
+	unassign: () =>
+		mutationOptions({
+			mutationKey: ['mutations', 'vendors', 'unassign'] as const,
+			mutationFn: async (maintenanceId: string): Promise<void> => {
+				const supabase = createClient()
+				const { error } = await supabase
+					.from('maintenance_requests')
+					.update({ vendor_id: null, status: 'needs_reassignment' })
+					.eq('id', maintenanceId)
+
+				if (error) handlePostgrestError(error, 'maintenance_requests')
+			}
 		})
 }

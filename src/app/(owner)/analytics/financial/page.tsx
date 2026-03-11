@@ -3,7 +3,7 @@
 import { useQuery } from '@tanstack/react-query'
 import { analyticsQueries } from '#hooks/api/use-analytics'
 import { RefreshableAnalytics } from '#app/(owner)/analytics/refreshable-analytics'
-import { ExportButtons } from '#components/export/export-buttons'
+import { ExportButtons } from '#components/shared/export-buttons'
 import { BlurFade } from '#components/ui/blur-fade'
 import { BarChart3, FileDown, PieChart } from 'lucide-react'
 import { OwnerPaymentSummary } from '#components/analytics/owner-payment-summary'

@@ -15,7 +15,7 @@ import { logger } from '#lib/frontend-logger'
 import type { Property } from '#types/core'
 
 import { propertyQueries } from './query-keys/property-keys'
-import { propertyMutations } from './query-keys/property-mutation-options'
+import { propertyMutations } from './query-keys/property-keys'
 import { propertyStatsQueries } from './query-keys/property-stats-keys'
 import { unitQueries } from './query-keys/unit-keys'
 import { ownerDashboardKeys } from './use-owner-dashboard'

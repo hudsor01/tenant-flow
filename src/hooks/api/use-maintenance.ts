@@ -15,14 +15,13 @@ import {
 } from '@tanstack/react-query'
 
 // Import query keys from separate file to avoid circular dependency
-import { maintenanceQueries } from './query-keys/maintenance-keys'
-import { maintenanceMutations } from './query-keys/maintenance-mutation-options'
+import { maintenanceQueries, maintenanceMutations } from './query-keys/maintenance-keys'
 import { handleMutationError } from '#lib/mutation-error-handler'
 import { ownerDashboardKeys } from './use-owner-dashboard'
 import { toast } from 'sonner'
 
 /** Variables for update mutation including optional optimistic locking version */
-export type { MaintenanceUpdateMutationVariables } from './query-keys/maintenance-mutation-options'
+export type { MaintenanceUpdateMutationVariables } from './query-keys/maintenance-keys'
 
 // ============================================================================
 // MUTATION HOOKS

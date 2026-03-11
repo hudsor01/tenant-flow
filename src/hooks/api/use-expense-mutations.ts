@@ -8,12 +8,12 @@ import { createClient } from '#lib/supabase/client'
 import { getCachedUser } from '#lib/supabase/get-cached-user'
 import { handlePostgrestError } from '#lib/postgrest-error-handler'
 import { handleMutationError } from '#lib/mutation-error-handler'
-import { financialMutations } from './query-keys/financial-mutation-options'
-import type { Expense } from './query-keys/financial-mutation-options'
+import { financialMutations } from './query-keys/financial-keys'
+import type { Expense } from './query-keys/financial-keys'
 import type { TaxDocumentsData } from '#types/financial-statements'
 
 // Re-export types from factory for backward compatibility
-export type { Expense, CreateExpenseInput } from './query-keys/financial-mutation-options'
+export type { Expense, CreateExpenseInput } from './query-keys/financial-keys'
 
 // ============================================================================
 // QUERY KEYS

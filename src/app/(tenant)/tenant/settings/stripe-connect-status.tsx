@@ -12,7 +12,7 @@ import {
 	useConnectedAccount,
 	useRefreshOnboardingMutation
 } from '#hooks/api/use-stripe-connect'
-import { IdentityVerificationCard } from '#components/identity/identity-verification-card'
+import { IdentityVerificationCard } from '#components/connect/identity-verification-card'
 import { ConnectOnboardingDialog } from './stripe-connect-onboarding'
 
 export function StripeConnectStatus() {
