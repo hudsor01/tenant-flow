@@ -129,3 +129,33 @@ ${ctaBlock(params.confirmUrl, 'Confirm Email Change')}
 <p style="font-size:13px;color:#a1a1aa;margin-top:24px;">If you did not request this change, please secure your account immediately.</p>`),
   }
 }
+
+export function tenantInvitationEmail(params: {
+  acceptUrl: string
+  tenantEmail: string
+  ownerName: string
+  propertyName?: string
+  unitNumber?: string
+}): { subject: string; html: string } {
+  const safeEmail = escapeHtml(params.tenantEmail)
+  const safeOwnerName = escapeHtml(params.ownerName)
+
+  let propertyLine = ''
+  if (params.propertyName) {
+    const safePropName = escapeHtml(params.propertyName)
+    propertyLine = params.unitNumber
+      ? `<p style="margin:0 0 8px;font-size:15px;color:#3f3f46;">Property: <strong>${safePropName}</strong> &mdash; Unit <strong>${escapeHtml(params.unitNumber)}</strong></p>`
+      : `<p style="margin:0 0 8px;font-size:15px;color:#3f3f46;">Property: <strong>${safePropName}</strong></p>`
+  }
+
+  return {
+    subject: `You're invited to manage your tenancy on ${BRAND_NAME}`,
+    html: wrapInLayout(`
+<h1 style="margin:0 0 16px;font-size:22px;color:#18181b;">Tenant Invitation</h1>
+<p style="margin:0 0 8px;font-size:15px;color:#3f3f46;">${safeOwnerName} has invited you (<strong>${safeEmail}</strong>) to join ${BRAND_NAME} as a tenant.</p>
+${propertyLine}
+<p style="margin:0 0 24px;font-size:15px;color:#3f3f46;">Click the button below to create your account and get started.</p>
+${ctaBlock(params.acceptUrl, 'Accept Invitation')}
+<p style="font-size:13px;color:#a1a1aa;margin-top:24px;">This invitation will expire in 7 days. If you were not expecting this, you can safely ignore this email.</p>`),
+  }
+}
