@@ -79,10 +79,14 @@ function buildRequest(pathname: string): NextRequest {
   } as unknown as NextRequest
 }
 
-function makeUser(userType?: string): User {
+function makeUser(userType?: string, stripeCustomerId?: string): User {
+  const appMetadata: Record<string, unknown> = userType ? { user_type: userType } : {}
+  if (stripeCustomerId) {
+    appMetadata.stripe_customer_id = stripeCustomerId
+  }
   return {
     id: 'user-123',
-    app_metadata: userType ? { user_type: userType } : {},
+    app_metadata: appMetadata,
     aud: 'authenticated',
     created_at: '2026-01-01',
   } as User
@@ -205,10 +209,10 @@ describe('proxy routing', () => {
       expect(result).toBe(supabaseResponse)
     })
 
-    it('allows authenticated OWNER on /dashboard to pass through', async () => {
+    it('allows authenticated OWNER with stripe_customer_id on /dashboard to pass through', async () => {
       const supabaseResponse = makeSupabaseResponse()
       mockUpdateSession.mockResolvedValue({
-        user: makeUser('OWNER'),
+        user: makeUser('OWNER', 'cus_test'),
         supabaseResponse,
       })
 
@@ -226,6 +230,88 @@ describe('proxy routing', () => {
       })
 
       const result = await proxy(buildRequest('/tenant'))
+
+      expect(NextResponse.redirect).not.toHaveBeenCalled()
+      expect(result).toBe(supabaseResponse)
+    })
+  })
+
+  describe('subscription gate for OWNER', () => {
+    it('redirects OWNER without stripe_customer_id on /dashboard to /pricing', async () => {
+      mockUpdateSession.mockResolvedValue({
+        user: makeUser('OWNER'),
+        supabaseResponse: makeSupabaseResponse(),
+      })
+
+      await proxy(buildRequest('/dashboard'))
+
+      expect(NextResponse.redirect).toHaveBeenCalledOnce()
+      const redirectUrl = (NextResponse.redirect as ReturnType<typeof vi.fn>)
+        .mock.calls[0]![0] as URL
+      expect(redirectUrl.pathname).toBe('/pricing')
+    })
+
+    it('redirects OWNER without stripe_customer_id on /dashboard/properties to /pricing', async () => {
+      mockUpdateSession.mockResolvedValue({
+        user: makeUser('OWNER'),
+        supabaseResponse: makeSupabaseResponse(),
+      })
+
+      await proxy(buildRequest('/dashboard/properties'))
+
+      expect(NextResponse.redirect).toHaveBeenCalledOnce()
+      const redirectUrl = (NextResponse.redirect as ReturnType<typeof vi.fn>)
+        .mock.calls[0]![0] as URL
+      expect(redirectUrl.pathname).toBe('/pricing')
+    })
+
+    it('allows OWNER without stripe_customer_id on /pricing to pass through', async () => {
+      const supabaseResponse = makeSupabaseResponse()
+      mockUpdateSession.mockResolvedValue({
+        user: makeUser('OWNER'),
+        supabaseResponse,
+      })
+
+      const result = await proxy(buildRequest('/pricing'))
+
+      expect(NextResponse.redirect).not.toHaveBeenCalled()
+      expect(result).toBe(supabaseResponse)
+    })
+
+    it('allows OWNER without stripe_customer_id on /billing/checkout to pass through', async () => {
+      const supabaseResponse = makeSupabaseResponse()
+      mockUpdateSession.mockResolvedValue({
+        user: makeUser('OWNER'),
+        supabaseResponse,
+      })
+
+      const result = await proxy(buildRequest('/billing/checkout'))
+
+      expect(NextResponse.redirect).not.toHaveBeenCalled()
+      expect(result).toBe(supabaseResponse)
+    })
+
+    it('does not affect TENANT user (no stripe check)', async () => {
+      const supabaseResponse = makeSupabaseResponse()
+      mockUpdateSession.mockResolvedValue({
+        user: makeUser('TENANT'),
+        supabaseResponse,
+      })
+
+      const result = await proxy(buildRequest('/tenant'))
+
+      expect(NextResponse.redirect).not.toHaveBeenCalled()
+      expect(result).toBe(supabaseResponse)
+    })
+
+    it('does not affect ADMIN user (no stripe check)', async () => {
+      const supabaseResponse = makeSupabaseResponse()
+      mockUpdateSession.mockResolvedValue({
+        user: makeUser('ADMIN'),
+        supabaseResponse,
+      })
+
+      const result = await proxy(buildRequest('/dashboard'))
 
       expect(NextResponse.redirect).not.toHaveBeenCalled()
       expect(result).toBe(supabaseResponse)

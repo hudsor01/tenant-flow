@@ -105,6 +105,20 @@ export async function proxy(
     )
   }
 
+  // Subscription gate: OWNER without Stripe customer must subscribe first
+  if (
+    userType === 'OWNER' &&
+    !user.app_metadata?.stripe_customer_id &&
+    !pathname.startsWith('/pricing') &&
+    !pathname.startsWith('/billing') &&
+    !pathname.startsWith('/auth/')
+  ) {
+    return redirectWithCookies(
+      new URL('/pricing', request.url),
+      supabaseResponse
+    )
+  }
+
   return supabaseResponse
 }
 
