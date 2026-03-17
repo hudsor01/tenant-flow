@@ -116,7 +116,7 @@ export default function SelectRolePage() {
 				logger.warn('Session refresh failed after role update', { error: refreshError.message })
 			}
 			logger.info('[ROLE_SELECTED]', { role, userId: currentUser.id })
-			router.push(role === 'TENANT' ? '/tenant' : '/dashboard')
+			router.push(role === 'TENANT' ? '/tenant' : '/pricing')
 		} catch (err) {
 			const message = err instanceof Error ? err.message : 'Something went wrong'
 			setError(message)
