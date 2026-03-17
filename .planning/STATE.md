@@ -29,7 +29,7 @@ Milestone: v1.2 Production Polish & Code Consolidation
 Phase: 20 of 20 (Browser Audit) — COMPLETE
 Plan: 6 of 6
 Status: All phases complete, pending milestone verification
-Last activity: 2026-03-09 -- Phase 20 Browser Audit: 6 plans, 100+ pages audited across marketing, blog, auth, tenant portal, and owner dashboard
+Last activity: 2026-03-17 - Completed quick task 260317-omp: Fix subscription gate bypass for OWNER users without Stripe customer ID
 
 Progress: [██████████] 100% (18/18 plans)
 
@@ -109,6 +109,12 @@ Multiple "Error Loading" messages on owner list pages (properties, tenants, leas
 
 - export-buttons.tsx `.js` extension in dynamic import needs fix before milestone ships
 - TenantPaymentMethods crash needs investigation
+
+### Quick Tasks Completed
+
+| # | Description | Date | Commit | Directory |
+|---|-------------|------|--------|-----------|
+| 260317-omp | Fix subscription gate bypass for OWNER users without Stripe customer ID | 2026-03-17 | a0cd32d | [260317-omp-fix-subscription-gate-bypass-for-owner-u](./quick/260317-omp-fix-subscription-gate-bypass-for-owner-u/) |
 
 ## Session Continuity
 

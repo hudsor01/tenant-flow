@@ -105,7 +105,10 @@ export async function proxy(
     )
   }
 
-  // Subscription gate: OWNER without Stripe customer must subscribe first
+  // Subscription gate: OWNER who has never subscribed (no stripe_customer_id)
+  // must complete checkout before accessing the dashboard.
+  // Lapsed subscriptions (canceled/unpaid) are handled client-side by
+  // SubscriptionStatusBanner since they still have a stripe_customer_id.
   if (
     userType === 'OWNER' &&
     !user.app_metadata?.stripe_customer_id &&

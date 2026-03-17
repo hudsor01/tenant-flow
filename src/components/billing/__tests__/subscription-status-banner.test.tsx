@@ -92,6 +92,43 @@ describe('SubscriptionStatusBanner', () => {
 		expect(link).toHaveAttribute('href', '/owner/billing')
 	})
 
+	it('renders nothing when status is trialing', () => {
+		mockUseSubscriptionStatus.mockReturnValue({
+			data: {
+				subscriptionStatus: 'trialing',
+				stripeCustomerId: 'cus_123',
+				stripePriceId: 'price_123',
+				currentPeriodEnd: '2026-04-01',
+				cancelAtPeriodEnd: false,
+			},
+			isLoading: false,
+		})
+
+		const { container } = render(<SubscriptionStatusBanner />)
+		expect(container.innerHTML).toBe('')
+	})
+
+	it('renders red lock banner when status is unpaid', () => {
+		mockUseSubscriptionStatus.mockReturnValue({
+			data: {
+				subscriptionStatus: 'unpaid',
+				stripeCustomerId: 'cus_123',
+				stripePriceId: 'price_123',
+				currentPeriodEnd: '2026-04-01',
+				cancelAtPeriodEnd: false,
+			},
+			isLoading: false,
+		})
+
+		render(<SubscriptionStatusBanner />)
+
+		expect(
+			screen.getByText(/subscription is inactive/i)
+		).toBeInTheDocument()
+		const link = screen.getByRole('link', { name: /reactivate/i })
+		expect(link).toHaveAttribute('href', '/owner/billing')
+	})
+
 	it('renders red lock banner when status is canceled', () => {
 		mockUseSubscriptionStatus.mockReturnValue({
 			data: {

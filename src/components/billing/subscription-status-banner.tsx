@@ -10,7 +10,7 @@ import { useSubscriptionStatus } from '#hooks/api/use-billing'
  * - active/trialing: renders nothing (null)
  * - past_due: yellow warning with link to /owner/billing
  * - unpaid/canceled/cancelled: red lock banner with link to /owner/billing
- * - null (no subscription): renders nothing
+ * - null (no subscription): blue info banner with link to /pricing
  *
  * Include in owner layout to show across all owner pages.
  */
