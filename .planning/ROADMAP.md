@@ -134,7 +134,11 @@ Plans:
   1. Tenant can upload one or more photos when submitting a new maintenance request
   2. Owner can view the uploaded photos when viewing a maintenance request detail page
   3. Owner can click a button on the Stripe Connect status page and be redirected to their Stripe Express Dashboard
-**Plans**: TBD
+**Plans:** 2 plans
+
+Plans:
+- [ ] 25-01-PLAN.md -- Database migration, tenant photo upload flow, owner photo display with lightbox
+- [ ] 25-02-PLAN.md -- Stripe Express Dashboard login link (Edge Function action + button)
 
 ## Progress
 
@@ -147,5 +151,5 @@ Phases execute in numeric order: 21 -> 22 -> 23 -> 23.1 -> 24 -> 25
 | 22. GDPR Data Rights | 2/2 | Complete    | 2026-03-11 |
 | 23. Document Templates | 2/2 | Complete   | 2026-03-11 |
 | 23.1. UI/UX Polish | 2/2 | Complete    | 2026-03-18 |
-| 24. Bulk Property Import | 2/2 | Complete   | 2026-03-18 |
-| 25. Maintenance Photos & Stripe Dashboard | 0/TBD | Not started | - |
+| 24. Bulk Property Import | 2/2 | Complete    | 2026-03-18 |
+| 25. Maintenance Photos & Stripe Dashboard | 0/2 | Not started | - |
