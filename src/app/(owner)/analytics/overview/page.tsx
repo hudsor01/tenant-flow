@@ -121,7 +121,7 @@ export default function AnalyticsPage() {
 			<BlurFade delay={0.1} inView>
 				<div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-6">
 					<div>
-						<h1 className="text-2xl font-semibold text-foreground">Analytics</h1>
+						<h1 className="typography-h1">Analytics</h1>
 						<p className="text-muted-foreground">Portfolio performance and insights.</p>
 					</div>
 					<div className="flex gap-2">
