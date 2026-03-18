@@ -23,6 +23,7 @@ import {
 	TrendingUp,
 	Users
 } from 'lucide-react'
+import { SOCIAL_PROOF } from '#config/social-proof'
 
 export default function HelpPage() {
 	return (
@@ -31,7 +32,7 @@ export default function HelpPage() {
 			<HeroSection
 				title="We guarantee your success"
 				titleHighlight="or your money back"
-				subtitle="Get white-glove support from property management experts who've helped 10,000+ managers save $30,000+ annually. Average response time: 90 seconds. Success rate: 98.7%."
+				subtitle={`Get white-glove support from property management experts who've helped ${SOCIAL_PROOF.managerCount} managers save ${SOCIAL_PROOF.annualSavings} annually. Average response time: ${SOCIAL_PROOF.responseTime}. Success rate: ${SOCIAL_PROOF.successRate}.`}
 				primaryCta={{
 					label: 'Get Instant Expert Help',
 					href: '/pricing'
@@ -305,7 +306,7 @@ export default function HelpPage() {
 						Ready to stop losing money?
 					</h2>
 					<p className="text-xl text-primary-foreground/90 mb-8">
-						Join 10,000+ property managers who have increased their NOI by 40%
+						{`Join ${SOCIAL_PROOF.managerCount} property managers who have increased their NOI by ${SOCIAL_PROOF.noiIncrease}`}
 						with TenantFlow. Our experts are standing by to help you get
 						started.
 					</p>

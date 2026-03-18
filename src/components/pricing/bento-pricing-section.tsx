@@ -9,6 +9,7 @@ import { Label } from '#components/ui/label'
 import { Badge } from '#components/ui/badge'
 import { getAllPricingPlans, PLAN_FEATURES } from '#config/pricing'
 import { Building2, Users, Shield } from 'lucide-react'
+import { SOCIAL_PROOF } from '#config/social-proof'
 
 interface BentoPricingSectionProps {
 	defaultBillingCycle?: 'monthly' | 'yearly'
@@ -57,7 +58,7 @@ export function BentoPricingSection({
 				<div className="flex items-center gap-2 text-sm text-muted-foreground">
 					<Building2 className="size-4 text-primary" />
 					<span>
-						<strong className="text-foreground">8,000+</strong> properties
+						<strong className="text-foreground">{SOCIAL_PROOF.propertiesManaged}</strong> properties
 						managed
 					</span>
 				</div>

@@ -1,4 +1,5 @@
 import { CheckCircle2, Shield, Users } from 'lucide-react'
+import { SOCIAL_PROOF } from '#config/social-proof'
 
 export function PortalTrustSignals() {
 	return (
@@ -29,7 +30,7 @@ export function PortalTrustSignals() {
 						<Users className="size-5 text-primary" />
 					</div>
 					<div>
-						<p className="font-bold text-foreground">10,000+ Managers</p>
+						<p className="font-bold text-foreground">{SOCIAL_PROOF.managerCount} Managers</p>
 						<p className="text-caption">Growing community</p>
 					</div>
 				</div>

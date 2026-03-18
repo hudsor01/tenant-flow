@@ -16,6 +16,7 @@ import { SectionSkeleton } from '#components/ui/section-skeleton'
 import FeaturesSectionDemo from '#components/sections/features-section'
 import { StatsShowcase } from '#components/sections/stats-showcase'
 import { PremiumCta } from '#components/sections/premium-cta'
+import { SOCIAL_PROOF } from '#config/social-proof'
 
 export default function MarketingHomePage() {
 	return (
@@ -56,7 +57,7 @@ export default function MarketingHomePage() {
 								</div>
 
 								<p className="text-muted-foreground text-sm">
-									Join 10,000+ property managers already using TenantFlow
+									{`Join ${SOCIAL_PROOF.managerCount} property managers already using TenantFlow`}
 								</p>
 							</div>
 

@@ -21,6 +21,7 @@ import { tenantAutopayQueries } from '#hooks/api/use-tenant-autopay'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { PenLine } from 'lucide-react'
+import { useSupabaseUser } from '#hooks/api/use-auth'
 import Link from 'next/link'
 
 /**
@@ -44,6 +45,7 @@ export default function TenantDashboardPage() {
 	const searchParams = useSearchParams()
 	const toastShown = useRef(false)
 
+	const { data: authUser } = useSupabaseUser()
 	const { data, isLoading } = useTenantPortalDashboard()
 	const { data: documentsData, isLoading: isLoadingDocuments } =
 		useTenantLeaseDocuments()
@@ -111,7 +113,7 @@ export default function TenantDashboardPage() {
 	}
 
 	// Get tenant name from settings or lease
-	const tenantFirstName = 'Tenant' // Fallback, could come from settings
+	const tenantFirstName = (authUser?.user_metadata?.first_name as string | undefined) ?? 'there'
 
 	// Property info from lease
 	const propertyName = activeLease?.unit?.property?.name ?? 'Your Property'

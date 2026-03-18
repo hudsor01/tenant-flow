@@ -1,6 +1,7 @@
 import { BlurFade } from '#components/ui/blur-fade'
 import { BorderBeam } from '#components/ui/border-beam'
 import { NumberTicker } from '#components/ui/number-ticker'
+import { SOCIAL_PROOF } from '#config/social-proof'
 import { cn } from '#lib/utils'
 
 interface StatsShowcaseProps {
@@ -10,8 +11,8 @@ interface StatsShowcaseProps {
 export function StatsShowcase({ className }: StatsShowcaseProps) {
 	const stats = [
 		{
-			number: '2,847',
-			value: 2847,
+			number: SOCIAL_PROOF.managerCount,
+			value: 10000,
 			label: 'Property Owners',
 			description: 'Trust TenantFlow daily',
 			suffix: '',

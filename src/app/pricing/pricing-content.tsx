@@ -8,11 +8,12 @@ import { Button } from '#components/ui/button'
 import { Card } from '#components/ui/card'
 import { ArrowRight, Building, CheckCircle2, Clock, Star } from 'lucide-react'
 import Link from 'next/link'
+import { SOCIAL_PROOF } from '#config/social-proof'
 
 const STATS = [
 	{
 		label: 'Active Properties',
-		value: '35,000+',
+		value: SOCIAL_PROOF.propertiesManaged,
 		description: 'Properties managed across North America',
 		icon: Building
 	},

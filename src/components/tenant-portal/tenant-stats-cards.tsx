@@ -194,7 +194,7 @@ export function TenantStatsCards({
 					)}
 					<StatLabel>Open Requests</StatLabel>
 					<StatValue
-						className={`flex items-baseline ${openRequestsCount > 0 ? 'text-amber-600 dark:text-amber-400' : ''}`}
+						className={`flex items-baseline ${openRequestsCount > 0 ? 'text-warning' : ''}`}
 					>
 						<NumberTicker value={openRequestsCount} duration={800} />
 					</StatValue>

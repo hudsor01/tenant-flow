@@ -5,6 +5,7 @@ import { Button } from '#components/ui/button'
 
 import { faqData } from '../../data/faqs'
 import { ArrowRight } from 'lucide-react'
+import { SOCIAL_PROOF } from '#config/social-proof'
 import Link from 'next/link'
 
 export default function FAQPage() {
@@ -65,13 +66,13 @@ export default function FAQPage() {
 				trustBadge="Real answers from real results"
 				title="Your $30,000 annual savings"
 				titleHighlight="questions answered"
-				subtitle="Everything you need to know about how TenantFlow delivers guaranteed 40% NOI increase, saves 20+ hours weekly, and pays for itself in 60 days. Real answers from real results."
+				subtitle={`Everything you need to know about how TenantFlow delivers guaranteed ${SOCIAL_PROOF.noiIncrease} NOI increase, saves ${SOCIAL_PROOF.hoursSavedWeekly} hours weekly, and pays for itself in ${SOCIAL_PROOF.roiTimeline.replace('-', ' ')}. Real answers from real results.`}
 				primaryCta={{
 					label: 'Calculate Your Savings Now',
 					href: '/pricing'
 				}}
 				secondaryCta={{ label: 'Talk to Success Manager', href: '/pricing' }}
-				trustSignals="40% NOI increase • 20+ hours saved weekly • 60-day ROI"
+				trustSignals={`${SOCIAL_PROOF.noiIncrease} NOI increase • ${SOCIAL_PROOF.hoursSavedWeekly} hours saved weekly • ${SOCIAL_PROOF.roiTimeline} ROI`}
 				image={{
 					src: 'https://images.unsplash.com/photo-1497366216548-37526070297c?q=80&w=2069&auto=format&fit=crop',
 					alt: 'Modern office workspace showcasing property management efficiency'

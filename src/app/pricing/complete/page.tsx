@@ -134,7 +134,7 @@ export default function CompletePage() {
 
 	if (loading) {
 		return (
-			<div className="min-h-screen flex-center bg-linear-to-br from-slate-50 to-white">
+			<div className="min-h-screen flex-center bg-linear-to-br from-background to-background">
 				<CardLayout
 					title="Checking payment status..."
 					className="w-full max-w-md"
@@ -151,7 +151,7 @@ export default function CompletePage() {
 	}
 
 	return (
-		<div className="min-h-screen bg-linear-to-br from-slate-50 to-white">
+		<div className="min-h-screen bg-linear-to-br from-background to-background">
 			<div className="container mx-auto px-4 section-compact">
 				<div className="max-w-2xl mx-auto">
 					{/* Payment Status Display */}
