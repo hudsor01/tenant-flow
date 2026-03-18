@@ -120,7 +120,11 @@ Plans:
   1. Owner can upload a CSV file containing multiple properties and have them all created as property records
   2. The system validates CSV data (required fields, format, duplicates) and shows a clear error report before committing any records
   3. Owner can fix validation errors and re-upload without partial/duplicate records being created
-**Plans**: TBD
+**Plans:** 1/2 plans executed
+
+Plans:
+- [ ] 24-01-PLAN.md -- Rewrite CSV parsing with Papa Parse and Zod validation using propertyCreateSchema
+- [ ] 24-02-PLAN.md -- Wire stepper to real PostgREST inserts with all-or-nothing validation and progress tracking
 
 ### Phase 25: Maintenance Photos & Stripe Dashboard
 **Goal**: Tenants can attach photos to maintenance requests and owners can access their Stripe Express Dashboard directly from TenantFlow
@@ -142,6 +146,6 @@ Phases execute in numeric order: 21 -> 22 -> 23 -> 23.1 -> 24 -> 25
 | 21. Email Invitations | 2/2 | Complete    | 2026-03-11 |
 | 22. GDPR Data Rights | 2/2 | Complete    | 2026-03-11 |
 | 23. Document Templates | 2/2 | Complete   | 2026-03-11 |
-| 23.1. UI/UX Polish | 2/2 | Complete   | 2026-03-18 |
-| 24. Bulk Property Import | 0/TBD | Not started | - |
+| 23.1. UI/UX Polish | 2/2 | Complete    | 2026-03-18 |
+| 24. Bulk Property Import | 1/2 | In Progress|  |
 | 25. Maintenance Photos & Stripe Dashboard | 0/TBD | Not started | - |

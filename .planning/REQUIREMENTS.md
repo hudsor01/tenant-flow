@@ -27,7 +27,7 @@ Requirements for Stub Elimination. Each replaces a placeholder/toast with a real
 ### Property Management
 
 - [ ] **PROP-01**: Owner can bulk import properties via CSV upload (backend processes and creates records)
-- [ ] **PROP-02**: Bulk import validates CSV data and reports errors before committing
+- [x] **PROP-02**: Bulk import validates CSV data and reports errors before committing
 
 ### Maintenance
 
@@ -75,7 +75,7 @@ Requirements for Stub Elimination. Each replaces a placeholder/toast with a real
 | DOC-02 | Phase 23 | Complete |
 | DOC-03 | Phase 23 | Complete |
 | PROP-01 | Phase 24 | Pending |
-| PROP-02 | Phase 24 | Pending |
+| PROP-02 | Phase 24 | Complete |
 | MAINT-01 | Phase 25 | Pending |
 | MAINT-02 | Phase 25 | Pending |
 | STRIPE-01 | Phase 25 | Pending |
