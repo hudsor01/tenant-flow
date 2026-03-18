@@ -19,9 +19,8 @@ import { tenantInviteMutations } from './query-keys/tenant-invite-mutation-optio
 import { leaseQueries } from './query-keys/lease-keys'
 
 /**
- * Invite tenant - Creates a tenant_invitation record in the database.
- * The email invite sending is deferred to Phase 55 (Edge Function).
- * TODO(phase-55): send invitation email via Edge Function after creating invitation record
+ * Invite tenant - Creates a tenant_invitation record and sends the invitation email
+ * via the send-tenant-invitation Edge Function. Email send is non-fatal.
  */
 export function useInviteTenantMutation() {
 	const queryClient = useQueryClient()

@@ -51,6 +51,8 @@ export const authKeys = {
 	signoutCheck: ['auth', 'signout-check'] as const,
 	// User with Stripe data from database
 	me: () => ['user', 'me'] as const,
+	// Account deletion status (GDPR)
+	deletionStatus: () => [...authKeys.all, 'deletion-status'] as const,
 	// Supabase auth-specific keys
 	supabase: {
 		all: ['supabase-auth'] as const,

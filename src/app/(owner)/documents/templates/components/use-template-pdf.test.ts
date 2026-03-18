@@ -1,19 +1,43 @@
 /**
  * Tests for useTemplatePdf hook
  *
- * PDF preview and export are not yet implemented (Edge Function pending).
- * These tests validate the graceful "not available" behavior:
- * - handlePreview debounces, then shows an info toast
- * - handleExport sets isExporting, then shows an info toast
+ * Validates real PDF generation via the generate-pdf Edge Function:
+ * - handlePreview debounces, calls Edge Function, sets blob URL for iframe
+ * - handleExport calls callGeneratePdfFromHtml for browser download
+ * - Error handling shows toast on fetch failure
  * - Cleanup revokes blob URLs and clears debounce timers
  */
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { renderHook, act } from '@testing-library/react'
-import { useTemplatePdf } from './use-template-pdf'
-import { toast } from 'sonner'
 
-// Mock sonner
+// vi.hoisted() for mock variables referenced inside vi.mock() factories
+const {
+	mockBuildTemplateHtml,
+	mockCallGeneratePdfFromHtml,
+	mockGetSession
+} = vi.hoisted(() => ({
+	mockBuildTemplateHtml: vi.fn(() => '<html>mock</html>'),
+	mockCallGeneratePdfFromHtml: vi.fn(),
+	mockGetSession: vi.fn()
+}))
+
+vi.mock('./build-template-html', () => ({
+	buildTemplateHtml: mockBuildTemplateHtml
+}))
+
+vi.mock('#hooks/api/use-report-mutations', () => ({
+	callGeneratePdfFromHtml: mockCallGeneratePdfFromHtml
+}))
+
+vi.mock('#lib/supabase/client', () => ({
+	createClient: () => ({
+		auth: {
+			getSession: mockGetSession
+		}
+	})
+}))
+
 vi.mock('sonner', () => ({
 	toast: {
 		success: vi.fn(),
@@ -21,6 +45,9 @@ vi.mock('sonner', () => ({
 		info: vi.fn()
 	}
 }))
+
+import { useTemplatePdf } from './use-template-pdf'
+import { toast } from 'sonner'
 
 /** Debounce delay in the hook - must match PREVIEW_DEBOUNCE_MS */
 const DEBOUNCE_DELAY = 500
@@ -37,10 +64,10 @@ Object.defineProperty(URL, 'revokeObjectURL', {
 	writable: true
 })
 
-// Mock window.open
-const mockWindowOpen = vi.fn()
-Object.defineProperty(window, 'open', {
-	value: mockWindowOpen,
+// Mock global fetch
+const mockFetch = vi.fn()
+Object.defineProperty(globalThis, 'fetch', {
+	value: mockFetch,
 	writable: true
 })
 
@@ -48,7 +75,11 @@ describe('useTemplatePdf', () => {
 	const mockTemplate = 'property-inspection'
 	const mockPayload = {
 		templateTitle: 'Test Template',
-		branding: { companyName: 'Test Company', logoUrl: null, primaryColor: 'steelblue' },
+		branding: {
+			companyName: 'Test Company',
+			logoUrl: null,
+			primaryColor: 'steelblue'
+		},
 		customFields: [],
 		clauses: [],
 		data: {}
@@ -58,6 +89,16 @@ describe('useTemplatePdf', () => {
 	beforeEach(() => {
 		vi.clearAllMocks()
 		vi.useFakeTimers()
+		mockGetSession.mockResolvedValue({
+			data: {
+				session: { access_token: 'test-jwt-token' }
+			}
+		})
+		mockFetch.mockResolvedValue({
+			ok: true,
+			blob: () => Promise.resolve(new Blob(['pdf-data'], { type: 'application/pdf' }))
+		})
+		mockCallGeneratePdfFromHtml.mockResolvedValue(undefined)
 	})
 
 	afterEach(() => {
@@ -87,26 +128,119 @@ describe('useTemplatePdf', () => {
 	})
 
 	describe('handlePreview', () => {
-		it('should debounce preview calls', async () => {
+		it('should debounce preview calls and call generate-pdf Edge Function', async () => {
 			const { result } = renderHook(() =>
 				useTemplatePdf(mockTemplate, mockGetPayload)
 			)
 
-			// Call preview - should not immediately trigger info toast (debounced)
 			await act(async () => {
 				result.current.handlePreview()
 			})
 
-			expect(toast.info).not.toHaveBeenCalled()
+			// Before debounce, fetch should not be called
+			expect(mockFetch).not.toHaveBeenCalled()
 
 			// Advance timer past debounce delay
 			await act(async () => {
 				vi.advanceTimersByTime(DEBOUNCE_DELAY)
-				await Promise.resolve() // flush microtasks
+				await vi.advanceTimersByTimeAsync(0)
 			})
 
-			// After debounce fires, the info toast should appear
-			expect(toast.info).toHaveBeenCalled()
+			// After debounce, fetch should be called with correct URL and body
+			expect(mockFetch).toHaveBeenCalledWith(
+				expect.stringContaining('/functions/v1/generate-pdf'),
+				expect.objectContaining({
+					method: 'POST',
+					headers: expect.objectContaining({
+						Authorization: 'Bearer test-jwt-token',
+						'Content-Type': 'application/json'
+					})
+				})
+			)
+		})
+
+		it('should set previewUrl from blob response', async () => {
+			const { result } = renderHook(() =>
+				useTemplatePdf(mockTemplate, mockGetPayload)
+			)
+
+			await act(async () => {
+				result.current.handlePreview()
+				vi.advanceTimersByTime(DEBOUNCE_DELAY)
+				await vi.advanceTimersByTimeAsync(0)
+			})
+
+			expect(mockCreateObjectURL).toHaveBeenCalled()
+			expect(result.current.previewUrl).toBe('blob:mock-url')
+		})
+
+		it('should set isGeneratingPreview during fetch and false after', async () => {
+			const { result } = renderHook(() =>
+				useTemplatePdf(mockTemplate, mockGetPayload)
+			)
+
+			await act(async () => {
+				result.current.handlePreview()
+			})
+
+			// Before debounce fires
+			expect(result.current.isGeneratingPreview).toBe(false)
+
+			await act(async () => {
+				vi.advanceTimersByTime(DEBOUNCE_DELAY)
+				await vi.advanceTimersByTimeAsync(0)
+			})
+
+			// After preview completes
+			expect(result.current.isGeneratingPreview).toBe(false)
+		})
+
+		it('should show error toast when fetch fails', async () => {
+			mockFetch.mockResolvedValue({
+				ok: false,
+				statusText: 'Service Unavailable'
+			})
+
+			const { result } = renderHook(() =>
+				useTemplatePdf(mockTemplate, mockGetPayload)
+			)
+
+			await act(async () => {
+				result.current.handlePreview()
+				vi.advanceTimersByTime(DEBOUNCE_DELAY)
+				await vi.advanceTimersByTimeAsync(0)
+			})
+
+			expect(toast.error).toHaveBeenCalledWith(
+				'Failed to generate preview. Please try again.'
+			)
+		})
+
+		it('should revoke previous previewUrl before setting new one', async () => {
+			const { result } = renderHook(() =>
+				useTemplatePdf(mockTemplate, mockGetPayload)
+			)
+
+			// First preview
+			await act(async () => {
+				result.current.handlePreview()
+				vi.advanceTimersByTime(DEBOUNCE_DELAY)
+				await vi.advanceTimersByTimeAsync(0)
+			})
+
+			expect(result.current.previewUrl).toBe('blob:mock-url')
+
+			// Second preview
+			mockCreateObjectURL.mockReturnValue('blob:mock-url-2')
+
+			await act(async () => {
+				result.current.handlePreview()
+				vi.advanceTimersByTime(DEBOUNCE_DELAY)
+				await vi.advanceTimersByTimeAsync(0)
+			})
+
+			expect(mockRevokeObjectURL).toHaveBeenCalledWith('blob:mock-url')
+			expect(result.current.previewUrl).toBe('blob:mock-url-2')
 		})
 
 		it('should cancel previous debounced call when called again', async () => {
@@ -114,7 +248,6 @@ describe('useTemplatePdf', () => {
 				useTemplatePdf(mockTemplate, mockGetPayload)
 			)
 
-			// Call preview twice in quick succession
 			await act(async () => {
 				result.current.handlePreview()
 			})
@@ -129,24 +262,24 @@ describe('useTemplatePdf', () => {
 				result.current.handlePreview()
 			})
 
-			// Advance another half - still shouldn't trigger (timer was reset)
+			// Advance another half - still should not trigger (timer was reset)
 			await act(async () => {
 				vi.advanceTimersByTime(DEBOUNCE_DELAY / 2)
 			})
 
-			expect(toast.info).not.toHaveBeenCalled()
+			expect(mockFetch).not.toHaveBeenCalled()
 
 			// Advance remaining time - now the second call fires
 			await act(async () => {
 				vi.advanceTimersByTime(DEBOUNCE_DELAY / 2)
-				await Promise.resolve()
+				await vi.advanceTimersByTimeAsync(0)
 			})
 
-			// Only one toast call should have been made (deduplicated)
-			expect(vi.mocked(toast.info).mock.calls.length).toBe(1)
+			// Only one fetch call should have been made (deduplicated)
+			expect(mockFetch).toHaveBeenCalledTimes(1)
 		})
 
-		it('should show info toast on preview attempt', async () => {
+		it('should call buildTemplateHtml with payload', async () => {
 			const { result } = renderHook(() =>
 				useTemplatePdf(mockTemplate, mockGetPayload)
 			)
@@ -154,42 +287,17 @@ describe('useTemplatePdf', () => {
 			await act(async () => {
 				result.current.handlePreview()
 				vi.advanceTimersByTime(DEBOUNCE_DELAY)
-				await Promise.resolve()
+				await vi.advanceTimersByTimeAsync(0)
 			})
 
-			// Shows info toast indicating feature is not yet available
-			expect(toast.info).toHaveBeenCalledWith(
-				'PDF preview is not yet available'
-			)
-			// previewUrl remains null since feature is not implemented
-			expect(result.current.previewUrl).toBeNull()
-		})
-
-		it('should reset isGeneratingPreview after preview attempt', async () => {
-			const { result } = renderHook(() =>
-				useTemplatePdf(mockTemplate, mockGetPayload)
-			)
-
-			await act(async () => {
-				result.current.handlePreview()
-			})
-
-			// Before debounce fires, isGeneratingPreview is false
-			expect(result.current.isGeneratingPreview).toBe(false)
-
-			// After debounce timer fires
-			await act(async () => {
-				vi.advanceTimersByTime(DEBOUNCE_DELAY)
-				await Promise.resolve()
-			})
-
-			// After info toast, isGeneratingPreview should be false again
-			expect(result.current.isGeneratingPreview).toBe(false)
+			expect(mockBuildTemplateHtml).toHaveBeenCalledWith(mockPayload)
 		})
 	})
 
 	describe('handleExport', () => {
-		it('should set isExporting to false after export completes', async () => {
+		it('should call callGeneratePdfFromHtml with built HTML and filename', async () => {
+			vi.useRealTimers()
+
 			const { result } = renderHook(() =>
 				useTemplatePdf(mockTemplate, mockGetPayload)
 			)
@@ -198,26 +306,15 @@ describe('useTemplatePdf', () => {
 				await result.current.handleExport()
 			})
 
-			// After the info toast and finally runs, isExporting should be false
-			expect(result.current.isExporting).toBe(false)
-		})
-
-		it('should show info toast on export attempt', async () => {
-			const { result } = renderHook(() =>
-				useTemplatePdf(mockTemplate, mockGetPayload)
-			)
-
-			await act(async () => {
-				await result.current.handleExport()
-			})
-
-			// Shows info toast indicating feature is not yet available
-			expect(toast.info).toHaveBeenCalledWith(
-				'PDF export is not yet available'
+			expect(mockCallGeneratePdfFromHtml).toHaveBeenCalledWith(
+				'<html>mock</html>',
+				'property-inspection.pdf'
 			)
 		})
 
-		it('should reset isExporting to false after export attempt', async () => {
+		it('should set isExporting to true during operation and false after', async () => {
+			vi.useRealTimers()
+
 			const { result } = renderHook(() =>
 				useTemplatePdf(mockTemplate, mockGetPayload)
 			)
@@ -227,6 +324,56 @@ describe('useTemplatePdf', () => {
 			})
 
 			expect(result.current.isExporting).toBe(false)
+		})
+
+		it('should show success toast on export completion', async () => {
+			vi.useRealTimers()
+
+			const { result } = renderHook(() =>
+				useTemplatePdf(mockTemplate, mockGetPayload)
+			)
+
+			await act(async () => {
+				await result.current.handleExport()
+			})
+
+			expect(toast.success).toHaveBeenCalledWith(
+				'PDF exported successfully'
+			)
+		})
+
+		it('should show error toast on export failure', async () => {
+			vi.useRealTimers()
+			mockCallGeneratePdfFromHtml.mockRejectedValue(
+				new Error('PDF generation failed')
+			)
+
+			const { result } = renderHook(() =>
+				useTemplatePdf(mockTemplate, mockGetPayload)
+			)
+
+			await act(async () => {
+				await result.current.handleExport()
+			})
+
+			expect(toast.error).toHaveBeenCalledWith(
+				'Failed to export PDF. Please try again.'
+			)
+			expect(result.current.isExporting).toBe(false)
+		})
+
+		it('should call buildTemplateHtml with payload', async () => {
+			vi.useRealTimers()
+
+			const { result } = renderHook(() =>
+				useTemplatePdf(mockTemplate, mockGetPayload)
+			)
+
+			await act(async () => {
+				await result.current.handleExport()
+			})
+
+			expect(mockBuildTemplateHtml).toHaveBeenCalledWith(mockPayload)
 		})
 	})
 
@@ -243,13 +390,13 @@ describe('useTemplatePdf', () => {
 			// Unmount before debounce fires
 			unmount()
 
-			// Advance timer - toast.info should NOT be called because timer was cleared
+			// Advance timer - fetch should NOT be called because timer was cleared
 			await act(async () => {
 				vi.advanceTimersByTime(DEBOUNCE_DELAY)
 				await Promise.resolve()
 			})
 
-			expect(toast.info).not.toHaveBeenCalled()
+			expect(mockFetch).not.toHaveBeenCalled()
 		})
 
 		it('should not throw on unmount without preview', () => {
@@ -257,7 +404,6 @@ describe('useTemplatePdf', () => {
 				useTemplatePdf(mockTemplate, mockGetPayload)
 			)
 
-			// Should not throw
 			expect(() => unmount()).not.toThrow()
 		})
 	})

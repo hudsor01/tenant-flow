@@ -13,6 +13,46 @@ import type { TenantWithExtras } from '#types/core'
 import { mutationKeys } from '../mutation-keys'
 
 // ============================================================================
+// EMAIL SEND HELPER
+// ============================================================================
+
+/**
+ * Call the send-tenant-invitation Edge Function to send the invitation email.
+ * Non-fatal: if this fails, the invitation DB record is preserved. The caller
+ * should warn the user but not treat it as a mutation failure.
+ */
+async function sendInvitationEmail(invitationId: string): Promise<void> {
+	const supabase = createClient()
+	const {
+		data: { session }
+	} = await supabase.auth.getSession()
+	if (!session?.access_token) {
+		console.warn('[send-invitation-email] No session, skipping email send')
+		return
+	}
+
+	const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+	const response = await fetch(
+		`${supabaseUrl}/functions/v1/send-tenant-invitation`,
+		{
+			method: 'POST',
+			headers: {
+				'Content-Type': 'application/json',
+				Authorization: `Bearer ${session.access_token}`
+			},
+			body: JSON.stringify({ invitation_id: invitationId })
+		}
+	)
+
+	if (!response.ok) {
+		console.error(
+			'[send-invitation-email] Edge Function returned',
+			response.status
+		)
+	}
+}
+
+// ============================================================================
 // MUTATION OPTIONS FACTORIES
 // ============================================================================
 
@@ -72,6 +112,11 @@ export const tenantInviteMutations = {
 				if (inviteError)
 					handlePostgrestError(inviteError, 'tenant_invitations')
 
+				// Send invitation email (non-fatal -- DB record preserved if email fails)
+				await sendInvitationEmail(invitation!.id).catch(err => {
+					console.error('[invite] Email send failed:', err)
+				})
+
 				// Return a TenantWithExtras-compatible shape from the invitation
 				return {
 					id: invitation!.id,
@@ -103,6 +148,12 @@ export const tenantInviteMutations = {
 					.eq('id', invitationId)
 
 				if (error) handlePostgrestError(error, 'tenant_invitations')
+
+				// Re-send invitation email (non-fatal)
+				await sendInvitationEmail(invitationId).catch(err => {
+					console.error('[resend] Email send failed:', err)
+				})
+
 				return { message: 'Invitation resent' }
 			}
 		}),
