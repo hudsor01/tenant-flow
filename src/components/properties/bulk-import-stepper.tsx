@@ -33,7 +33,7 @@ import type {
 import { BulkImportUploadStep } from './bulk-import-upload-step'
 import { BulkImportValidateStep } from './bulk-import-validate-step'
 import { BulkImportConfirmStep } from './bulk-import-confirm-step'
-import { parseCSVFile } from './csv-utils'
+import { parseAndValidateCSV } from './csv-utils'
 import { cn } from '#lib/utils'
 
 const logger = createLogger({ component: 'BulkImportStepper' })
@@ -101,8 +101,9 @@ export function BulkImportStepper({
 			onStepChange('validate')
 
 			try {
-				const parsed = await parseCSVFile(selectedFile)
-				setParsedData(parsed)
+				const text = await selectedFile.text()
+				const { rows } = parseAndValidateCSV(text)
+				setParsedData(rows)
 			} catch (error) {
 				logger.error('Failed to parse CSV', { error })
 				setParsedData([])

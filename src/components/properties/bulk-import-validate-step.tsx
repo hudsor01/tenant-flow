@@ -172,10 +172,10 @@ export function BulkImportValidateStep({
 										<td
 											className={cn(
 												'px-4 py-3',
-												!row.data.address && 'text-muted-foreground italic'
+												!row.data.address_line1 && 'text-muted-foreground italic'
 											)}
 										>
-											{row.data.address || '—'}
+											{row.data.address_line1 || '—'}
 										</td>
 										<td
 											className={cn(
@@ -201,9 +201,9 @@ export function BulkImportValidateStep({
 													</div>
 													<span
 														className="text-xs text-destructive font-medium truncate max-w-24"
-														title={row.errors[0]}
+														title={row.errors[0]?.message}
 													>
-														{row.errors[0]}
+														{row.errors[0]?.message}
 													</span>
 												</div>
 											) : (

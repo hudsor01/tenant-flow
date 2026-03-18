@@ -25,18 +25,28 @@ describe('BulkImportValidateStep Component', () => {
 	const createParsedRow = (
 		row: number,
 		data: Partial<Record<string, string>>,
-		errors: string[] = []
+		errors: Array<{ field: string; message: string }> = []
 	): ParsedRow => ({
 		row,
 		data: {
 			name: data.name || '',
-			address: data.address || '',
+			address_line1: data.address_line1 || '',
 			city: data.city || '',
 			state: data.state || '',
 			postal_code: data.postal_code || '',
 			...data
 		},
-		errors
+		errors,
+		parsed: errors.length === 0 ? {
+			name: data.name || '',
+			address_line1: data.address_line1 || '',
+			city: data.city || '',
+			state: data.state || 'NY',
+			postal_code: data.postal_code || '10001',
+			property_type: 'APARTMENT' as const,
+			status: 'active' as const,
+			country: 'US',
+		} : null
 	})
 
 	describe('File Information', () => {
@@ -78,14 +88,14 @@ describe('BulkImportValidateStep Component', () => {
 			const parsedData: ParsedRow[] = [
 				createParsedRow(1, {
 					name: 'Property 1',
-					address: '123 Main',
+					address_line1: '123 Main',
 					city: 'NYC',
 					state: 'NY',
 					postal_code: '10001'
 				}),
 				createParsedRow(2, {
 					name: 'Property 2',
-					address: '456 Oak',
+					address_line1: '456 Oak',
 					city: 'LA',
 					state: 'CA',
 					postal_code: '90001'
@@ -104,7 +114,7 @@ describe('BulkImportValidateStep Component', () => {
 			const parsedData: ParsedRow[] = [
 				createParsedRow(1, {
 					name: 'Property 1',
-					address: '123 Main',
+					address_line1: '123 Main',
 					city: 'NYC',
 					state: 'NY',
 					postal_code: '10001'
@@ -126,7 +136,7 @@ describe('BulkImportValidateStep Component', () => {
 			const parsedData: ParsedRow[] = [
 				createParsedRow(1, {
 					name: 'Test Property',
-					address: '123 Main St',
+					address_line1: '123 Main St',
 					city: 'New York',
 					state: 'NY',
 					postal_code: '10001'
@@ -148,12 +158,12 @@ describe('BulkImportValidateStep Component', () => {
 					1,
 					{
 						name: 'Property',
-						address: '',
+						address_line1: '',
 						city: 'NYC',
 						state: 'NY',
 						postal_code: '10001'
 					},
-					['Missing address']
+					[{ field: 'address_line1', message: 'Missing address' }]
 				)
 			]
 
@@ -179,7 +189,7 @@ describe('BulkImportValidateStep Component', () => {
 			const parsedData: ParsedRow[] = [
 				createParsedRow(1, {
 					name: 'Property 1',
-					address: '123 Main',
+					address_line1: '123 Main',
 					city: 'NYC',
 					state: 'NY',
 					postal_code: '10001'
@@ -198,12 +208,12 @@ describe('BulkImportValidateStep Component', () => {
 					1,
 					{
 						name: '',
-						address: '123 Main',
+						address_line1: '123 Main',
 						city: 'NYC',
 						state: 'NY',
 						postal_code: '10001'
 					},
-					['Missing name']
+					[{ field: 'name', message: 'Missing name' }]
 				)
 			]
 
@@ -217,7 +227,7 @@ describe('BulkImportValidateStep Component', () => {
 			const parsedData: ParsedRow[] = [
 				createParsedRow(1, {
 					name: 'Property 1',
-					address: '123 Main',
+					address_line1: '123 Main',
 					city: 'NYC',
 					state: 'NY',
 					postal_code: '10001'
@@ -226,12 +236,12 @@ describe('BulkImportValidateStep Component', () => {
 					2,
 					{
 						name: '',
-						address: '456 Oak',
+						address_line1: '456 Oak',
 						city: 'LA',
 						state: 'CA',
 						postal_code: '90001'
 					},
-					['Missing name']
+					[{ field: 'name', message: 'Missing name' }]
 				)
 			]
 
@@ -246,14 +256,14 @@ describe('BulkImportValidateStep Component', () => {
 			const parsedData: ParsedRow[] = [
 				createParsedRow(1, {
 					name: 'Property 1',
-					address: '123 Main',
+					address_line1: '123 Main',
 					city: 'NYC',
 					state: 'NY',
 					postal_code: '10001'
 				}),
 				createParsedRow(2, {
 					name: 'Property 2',
-					address: '456 Oak',
+					address_line1: '456 Oak',
 					city: 'LA',
 					state: 'CA',
 					postal_code: '90001'
@@ -273,12 +283,12 @@ describe('BulkImportValidateStep Component', () => {
 					1,
 					{
 						name: '',
-						address: '',
+						address_line1: '',
 						city: 'NYC',
 						state: 'NY',
 						postal_code: '10001'
 					},
-					['Missing name', 'Missing address']
+					[{ field: 'name', message: 'Missing name' }, { field: 'address_line1', message: 'Missing address' }]
 				)
 			]
 
@@ -297,21 +307,21 @@ describe('BulkImportValidateStep Component', () => {
 			const parsedData: ParsedRow[] = [
 				createParsedRow(1, {
 					name: 'Property 1',
-					address: '123 Main',
+					address_line1: '123 Main',
 					city: 'NYC',
 					state: 'NY',
 					postal_code: '10001'
 				}),
 				createParsedRow(2, {
 					name: 'Property 2',
-					address: '456 Oak',
+					address_line1: '456 Oak',
 					city: 'LA',
 					state: 'CA',
 					postal_code: '90001'
 				}),
 				createParsedRow(3, {
 					name: 'Property 3',
-					address: '789 Pine',
+					address_line1: '789 Pine',
 					city: 'CHI',
 					state: 'IL',
 					postal_code: '60601'
@@ -333,21 +343,21 @@ describe('BulkImportValidateStep Component', () => {
 			const parsedData: ParsedRow[] = [
 				createParsedRow(1, {
 					name: 'Property A',
-					address: '123 Main',
+					address_line1: '123 Main',
 					city: 'NYC',
 					state: 'NY',
 					postal_code: '10001'
 				}),
 				createParsedRow(2, {
 					name: 'Property B',
-					address: '456 Oak',
+					address_line1: '456 Oak',
 					city: 'LA',
 					state: 'CA',
 					postal_code: '90001'
 				}),
 				createParsedRow(3, {
 					name: 'Property C',
-					address: '789 Pine',
+					address_line1: '789 Pine',
 					city: 'CHI',
 					state: 'IL',
 					postal_code: '60601'
@@ -366,7 +376,7 @@ describe('BulkImportValidateStep Component', () => {
 			const parsedData: ParsedRow[] = [
 				createParsedRow(1, {
 					name: 'Valid Property',
-					address: '123 Main',
+					address_line1: '123 Main',
 					city: 'NYC',
 					state: 'NY',
 					postal_code: '10001'
@@ -375,12 +385,12 @@ describe('BulkImportValidateStep Component', () => {
 					2,
 					{
 						name: '',
-						address: '456 Oak',
+						address_line1: '456 Oak',
 						city: 'LA',
 						state: 'CA',
 						postal_code: '90001'
 					},
-					['Missing name']
+					[{ field: 'name', message: 'Missing name' }]
 				)
 			]
 
