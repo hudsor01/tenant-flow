@@ -1,37 +1,33 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.3
-milestone_name: Stub Elimination
-status: executing
-stopped_at: Completed 25-01-PLAN.md
-last_updated: "2026-03-18T19:18:40.459Z"
-last_activity: 2026-03-18 -- Phase 24 Plan 01 complete (CSV parsing rewrite)
+milestone: null
+milestone_name: null
+status: idle
+stopped_at: null
+last_updated: "2026-03-18T20:45:00.000Z"
+last_activity: 2026-03-18 -- v1.3 Stub Elimination milestone complete
 progress:
-  total_phases: 6
-  completed_phases: 6
-  total_plans: 11
-  completed_plans: 12
-  percent: 95
+  total_phases: 0
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
+  percent: 0
 ---
 
 # Project State: TenantFlow
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-03-11)
+See: .planning/PROJECT.md (updated 2026-03-18)
 
 **Core value:** A landlord can add a property, invite a tenant, collect rent, and see their financials -- without touching a spreadsheet or calling anyone.
-**Current focus:** v1.3 Stub Elimination -- Phase 24 (Bulk Property Import)
+**Current focus:** Planning next milestone
 
 ## Current Position
 
-Milestone: v1.3 Stub Elimination
-Phase: 24 of 25 (Bulk Property Import)
-Plan: 1 of 2 complete
-Status: Executing
-Last activity: 2026-03-18 -- Phase 24 Plan 01 complete (CSV parsing rewrite)
-
-Progress: [█████████░] 95%
+Milestone: None (v1.3 shipped)
+Status: Idle
+Last activity: 2026-03-18 -- v1.3 Stub Elimination milestone complete
 
 ## Shipped Milestones
 
@@ -40,56 +36,16 @@ Progress: [█████████░] 95%
 | v1.0 | Production Hardening | 10 | 60 | 2026-03-07 |
 | v1.1 | Blog Redesign & CI | 5 | 8 | 2026-03-08 |
 | v1.2 | Production Polish & Code Consolidation | 5 | 18 | 2026-03-11 |
+| v1.3 | Stub Elimination | 6 | 12 | 2026-03-18 |
 
 ## Accumulated Context
 
 ### Decisions
 
-- Edge Functions use `validateEnv()` from `_shared/env.ts`, `errorResponse()` from `_shared/errors.ts`, `rateLimit()` from `_shared/rate-limit.ts`
-- Archive-then-delete pattern for all data retention
-- GDPR anonymization uses 30-day grace period with `request_account_deletion()` / `cancel_account_deletion()` RPCs
-- Email sent via Resend through Edge Functions (auth-email-send pattern)
-- Supabase Storage for file uploads (property images pattern exists)
-- DocuSeal/StirlingPDF accessible from Edge Functions via internal k3s URLs
-- Authenticated Edge Functions (JWT required) do not need IP-based rate limiting -- only unauthenticated endpoints get rateLimit()
-- tenantInvitationEmail is distinct from invitationEmail -- former for owner tenant invites, latter for Supabase Auth invites
-- [Phase 21]: Non-fatal Edge Function email pattern: await fetch(...).catch() preserves DB record if email fails
-- [Phase 22]: Service role client for data export queries (bypass RLS for complete data, JWT still validated first)
-- [Phase 22]: Pre-fetch ID pattern for parallel .in() queries (lease IDs, maintenance IDs fetched before main batch)
-- [Phase 22]: authKeys.deletionStatus() extends auth query key factory for GDPR deletion status (shared across owner + tenant)
-- [Phase 22]: Edge Function blob download pattern: fetch -> blob -> createObjectURL -> programmatic anchor click
-- [Phase 23]: PostgREST upsert with onConflict for owner-scoped template definitions (jsonb custom_fields)
-- [Phase 23]: buildTemplateHtml pure function with local escapeHtml + inline CSS for StirlingPDF isolation
-- [Phase 23]: Preview uses direct fetch + blob URL for iframe; export reuses callGeneratePdfFromHtml pattern
-- [Phase 23.1]: Centralized social proof constants in src/config/social-proof.ts -- all marketing numbers reference this single file
-- [Phase 23.1]: typography-h1 CSS class standardized on all page-level headings across owner, analytics, and tenant pages
-- [Phase 23.1]: Semantic color tokens (text-warning, text-success, text-destructive) replace raw Tailwind colors in maintenance stats
-- [Phase 23.1]: Empty compound component with domain-specific icons for all chart empty states
-- [Phase 23.1]: All native HTML form elements replaced with shadcn components across financials and analytics pages
-- [Phase 24]: Papa Parse + Zod validation pipeline for CSV bulk import (parseAndValidateCSV with structured field-level errors)
-- [Phase 24]: ImportProgress type placed in api-contracts.ts to avoid circular dependency between stepper and confirm-step
-- [Phase 24]: Removed ready state -- import starts immediately from validate step for simpler UX
-- [Phase 25]: Stripe login link via existing stripe-connect Edge Function action (createLoginLink), opened in new tab via window.open
-- [Phase 25]: Staged file upload pattern (no auto-upload) for maintenance photos -- simpler than Dropzone
-- [Phase 25]: Photo upload failures non-blocking -- request creation succeeds even if photo upload fails
-
-### Stubs to Eliminate (v1.3 scope)
-
-1. ~~Email invitation sending (Phase 21)~~ ✓
-2. ~~GDPR data export (Phase 22)~~ ✓
-3. ~~Self-service account deletion (Phase 22)~~ ✓
-4. ~~PDF template preview/export (Phase 23)~~ ✓
-5. ~~Template definition saving (Phase 23)~~ ✓
-6. Bulk property import (Phase 24)
-7. Maintenance photo upload (Phase 25)
-8. Stripe Dashboard access (Phase 25)
-
-### Roadmap Evolution
-
-- Phase 23.1 inserted after Phase 23: UI/UX Polish (URGENT) -- Fix 12 priority findings from full-app UI audit
+(Cleared at milestone boundary -- see .planning/PROJECT.md Key Decisions table for persistent decisions)
 
 ## Session Continuity
 
-Last session: 2026-03-18T19:18:40.457Z
-Stopped at: Completed 25-01-PLAN.md
+Last session: 2026-03-18
+Stopped at: Milestone v1.3 complete
 Resume file: None

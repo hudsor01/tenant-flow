@@ -1,5 +1,35 @@
 # Project Milestones: TenantFlow
 
+## v1.3 Stub Elimination (Shipped: 2026-03-18)
+
+**Delivered:** Replaced every stub/placeholder in the application with real, production-ready implementations -- from email sending to GDPR compliance to file uploads.
+
+**Phases completed:** 6 phases, 12 plans
+
+**Key accomplishments:**
+
+- Real tenant invitation emails via Resend Edge Function with branded template and accept link routing
+- GDPR Article 20 data portability with role-aware export (owner gets properties/leases/financials, tenant gets lease/payment/maintenance)
+- Self-service account deletion with 30-day grace period, countdown UI, and cancel capability
+- PDF template preview and export via StirlingPDF with custom field persistence (PostgREST upsert)
+- Bulk property import via CSV with Papa Parse + Zod validation pipeline and progress tracking
+- Maintenance photo upload to Supabase Storage with thumbnail grid and Dialog lightbox viewer
+- Stripe Express Dashboard access via login link (extends existing stripe-connect Edge Function)
+- Cross-cutting UI/UX polish: 12 audit findings fixed (typography, dark mode, empty states, shadcn consistency)
+
+**Stats:**
+
+- 6 phases (+ 1 inserted decimal phase 23.1), 12 plans, 38 commits
+- 141 files changed, +11,582 / -2,164 lines
+- Timeline: 7 days (2026-03-11 to 2026-03-18)
+- Requirements: 13/13 satisfied (2 EMAIL + 3 GDPR + 3 DOC + 2 PROP + 2 MAINT + 1 STRIPE)
+
+**Git tag:** `v1.3`
+
+**Archives:** [v1.3-ROADMAP.md](milestones/v1.3-ROADMAP.md) | [v1.3-REQUIREMENTS.md](milestones/v1.3-REQUIREMENTS.md)
+
+---
+
 ## v1.1 Blog Redesign & CI (Shipped: 2026-03-08)
 
 **Delivered:** Transformed MVP blog into a production content-marketing platform with split content zones, pagination, category navigation, working newsletter subscription, and CI workflow optimization.

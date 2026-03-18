@@ -58,6 +58,56 @@
 
 ---
 
+## Milestone: v1.3 -- Stub Elimination
+
+**Shipped:** 2026-03-18
+**Phases:** 6 | **Plans:** 12
+
+### What Was Built
+- Real tenant invitation emails via Resend with branded template and accept link routing
+- GDPR data portability (Article 20) with role-aware export for owners and tenants
+- Self-service account deletion with 30-day grace period, countdown UI, and cancellation
+- PDF template preview/export via StirlingPDF with custom field persistence
+- Bulk property import via CSV with Papa Parse + Zod validation pipeline
+- Maintenance photo upload/display with Supabase Storage and Dialog lightbox
+- Stripe Express Dashboard access via login link
+- Cross-cutting UI/UX polish: 12 audit findings fixed
+
+### What Worked
+- Discuss-phase workflow effectively gathered implementation decisions before planning -- no re-asking during execution
+- Research phase caught critical bugs: CSV parser used naive String.split(','), column names mismatched DB schema
+- Two independent features (maintenance photos + Stripe dashboard) executed in parallel as separate plans in same phase
+- Extending existing Edge Functions (stripe-connect) instead of creating new ones reduced boilerplate
+- Auto-advance mode kept momentum across phases without manual intervention
+
+### What Was Inefficient
+- Research was initially disabled in config, causing a wasted planner run that had to be discarded and replanned
+- Context exhaustion required multiple /clear breaks during auto-advance chains
+- Phase 25 researcher returned early without creating RESEARCH.md, needed manual resume
+- The gsd-tools `phase complete` returned `is_last_phase: false` for Phase 25 even though it was the last phase
+
+### Patterns Established
+- Staged file upload pattern (no auto-upload) -- simpler than Dropzone for form-embedded uploads
+- Non-blocking photo upload -- request creation succeeds even if Storage upload fails
+- Extend existing Edge Function with new action vs creating new function
+- Papa Parse + Zod validation pipeline for CSV imports
+- Centralized social proof constants (src/config/social-proof.ts) for marketing numbers
+- PostgREST upsert with onConflict for owner-scoped definitions
+
+### Key Lessons
+1. Always verify `workflow.research` is enabled before planning phases -- a no-research planner produces unusable output
+2. Research phase is high-value for stub elimination: it catches mismatches between stub code and real requirements
+3. Independent features within a phase should be separate plans for parallel execution
+4. Context management is the main bottleneck for auto-advance chains across many phases
+
+### Cost Observations
+- Model: 100% opus (quality profile)
+- 38 commits across 6 phases
+- Timeline: 7 days (2026-03-11 to 2026-03-18)
+- Multiple context resets required due to exhaustion during auto-advance
+
+---
+
 ## Cross-Milestone Trends
 
 ### Process Evolution
@@ -65,14 +115,18 @@
 | Milestone | Phases | Plans | Key Change |
 |-----------|--------|-------|------------|
 | v1.0 | 10 | 60 | Wave-based parallel execution, verification gates, security-first ordering |
+| v1.3 | 6 | 12 | Discuss-phase for decisions, research for stub analysis, auto-advance chains |
 
 ### Cumulative Quality
 
 | Milestone | Unit Tests | RLS Tests | E2E Tests | Edge Function Tests |
 |-----------|-----------|-----------|-----------|-------------------|
 | v1.0 | 1,319 | 16 files | 17 | 4 suites |
+| v1.3 | 1,415 | 16 files | 17 | 5 suites |
 
 ### Top Lessons (Verified Across Milestones)
 
 1. Multi-agent review + prioritized requirements = efficient production hardening
 2. Living documentation (CLAUDE.md per phase) prevents knowledge drift
+3. Research phase catches mismatches between existing code and actual requirements (verified v1.0 + v1.3)
+4. Auto-advance with context management is the main throughput bottleneck for long milestone chains

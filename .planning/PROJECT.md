@@ -61,15 +61,16 @@ A landlord can add a property, invite a tenant, collect rent, and see their fina
 - v1.3/Phase 21: Email invitation sending via Edge Function (send-tenant-invitation)
 - v1.3/Phase 22: GDPR data export via Edge Function (role-aware owner/tenant export, downloadable JSON)
 - v1.3/Phase 22: Self-service account deletion with 30-day grace period (request, countdown, cancel)
+- v1.3/Phase 23: PDF template preview and export via StirlingPDF with custom field persistence
+- v1.3/Phase 23: Template definition saving via PostgREST upsert with onConflict
+- v1.3/Phase 23.1: Cross-cutting UI/UX polish (12 audit findings: typography, dark mode, empty states, shadcn consistency)
+- v1.3/Phase 24: Bulk property import via CSV with Papa Parse + Zod validation pipeline
+- v1.3/Phase 25: Maintenance photo upload to Supabase Storage with lightbox display
+- v1.3/Phase 25: Stripe Express Dashboard access via login link (extends stripe-connect Edge Function)
 
 ### Active
 
-- v1.3: Replace all stub implementations with real, production-ready functionality
-- v1.3: PDF template preview and export via DocuSeal/StirlingPDF
-- v1.3: Template definition saving
-- v1.3: Bulk property import backend
-- v1.3: Maintenance photo upload via Supabase Storage
-- v1.3: Stripe Dashboard access (login link)
+(No active requirements -- next milestone not yet defined)
 
 ### Out of Scope
 
@@ -111,6 +112,7 @@ Frontend (Next.js 16 / Vercel) -> supabase-js -> Supabase PostgREST (RLS enforce
 
 - 749 files changed in v1.0 hardening (+54,581 / -16,719 lines)
 - 85 files changed in v1.1 blog redesign (+8,096 / -14,662 lines)
+- 141 files changed in v1.3 stub elimination (+11,582 / -2,164 lines)
 - 1,415 unit tests, 16 RLS integration test files, 5 Edge Function test suites, 17 E2E tests
 - TypeScript strict mode (noUnusedLocals, noUnusedParameters, isolatedModules, checkJs)
 - Zero eslint errors, zero typecheck errors
@@ -147,6 +149,12 @@ Frontend (Next.js 16 / Vercel) -> supabase-js -> Supabase PostgREST (RLS enforce
 | Service role for GDPR export | Bypass RLS for complete data, JWT still validated first | Good |
 | Edge Function blob download | fetch → blob → createObjectURL → anchor click pattern | Good |
 | authKeys.deletionStatus() | Deletion status is account-scoped, shares key across owner/tenant | Good |
+| PostgREST upsert with onConflict | Template definitions: owner-scoped upsert with jsonb custom_fields | Good |
+| Papa Parse for CSV import | RFC 4180 compliance, handles edge cases (quoted commas, newlines) | Good |
+| Staged file upload (no auto-upload) | Simpler than Dropzone for maintenance photos, upload after form submit | Good |
+| Extend existing Edge Function actions | Stripe login-link added to stripe-connect function vs new function | Good |
+| Non-blocking photo upload | Request creation succeeds even if photo upload fails | Good |
+| Centralized social proof constants | Single source of truth for all marketing numbers | Good |
 
 ---
-*Last updated: 2026-03-11 after Phase 22 (GDPR Data Rights)*
+*Last updated: 2026-03-18 after v1.3 milestone (Stub Elimination)*
