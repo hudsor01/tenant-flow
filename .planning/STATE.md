@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.3
 milestone_name: Stub Elimination
 status: executing
-stopped_at: Completed 24-01-PLAN.md
-last_updated: "2026-03-18T15:43:44Z"
+stopped_at: Completed 24-02-PLAN.md
+last_updated: "2026-03-18T15:59:18.362Z"
 last_activity: 2026-03-18 -- Phase 24 Plan 01 complete (CSV parsing rewrite)
 progress:
   total_phases: 6
-  completed_phases: 4
+  completed_phases: 5
   total_plans: 9
-  completed_plans: 9
+  completed_plans: 10
   percent: 95
 ---
 
@@ -67,6 +67,8 @@ Progress: [█████████░] 95%
 - [Phase 23.1]: Empty compound component with domain-specific icons for all chart empty states
 - [Phase 23.1]: All native HTML form elements replaced with shadcn components across financials and analytics pages
 - [Phase 24]: Papa Parse + Zod validation pipeline for CSV bulk import (parseAndValidateCSV with structured field-level errors)
+- [Phase 24]: ImportProgress type placed in api-contracts.ts to avoid circular dependency between stepper and confirm-step
+- [Phase 24]: Removed ready state -- import starts immediately from validate step for simpler UX
 
 ### Stubs to Eliminate (v1.3 scope)
 
@@ -85,6 +87,6 @@ Progress: [█████████░] 95%
 
 ## Session Continuity
 
-Last session: 2026-03-18T15:43:44Z
-Stopped at: Completed 24-01-PLAN.md
-Resume file: .planning/phases/24-bulk-property-import/24-02-PLAN.md
+Last session: 2026-03-18T15:59:18.360Z
+Stopped at: Completed 24-02-PLAN.md
+Resume file: None

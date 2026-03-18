@@ -56,7 +56,7 @@ TenantFlow is a multi-tenant property management SaaS platform for property owne
 - [x] **Phase 21: Email Invitations** - Tenant receives real invitation email with accept link when owner creates invitation (completed 2026-03-11)
 - [x] **Phase 22: GDPR Data Rights** - Owners and tenants can export personal data and owners can self-service delete accounts (completed 2026-03-11)
 - [x] **Phase 23: Document Templates** - Owner can preview, export, and save lease template definitions via DocuSeal/StirlingPDF (completed 2026-03-11)
-- [ ] **Phase 24: Bulk Property Import** - Owner can import properties via CSV with validation and error reporting
+- [x] **Phase 24: Bulk Property Import** - Owner can import properties via CSV with validation and error reporting (completed 2026-03-18)
 - [ ] **Phase 25: Maintenance Photos & Stripe Dashboard** - Tenants can upload maintenance photos and owners can access Stripe Express Dashboard
 
 ## Phase Details
@@ -120,7 +120,7 @@ Plans:
   1. Owner can upload a CSV file containing multiple properties and have them all created as property records
   2. The system validates CSV data (required fields, format, duplicates) and shows a clear error report before committing any records
   3. Owner can fix validation errors and re-upload without partial/duplicate records being created
-**Plans:** 1/2 plans executed
+**Plans:** 2/2 plans complete
 
 Plans:
 - [ ] 24-01-PLAN.md -- Rewrite CSV parsing with Papa Parse and Zod validation using propertyCreateSchema
@@ -147,5 +147,5 @@ Phases execute in numeric order: 21 -> 22 -> 23 -> 23.1 -> 24 -> 25
 | 22. GDPR Data Rights | 2/2 | Complete    | 2026-03-11 |
 | 23. Document Templates | 2/2 | Complete   | 2026-03-11 |
 | 23.1. UI/UX Polish | 2/2 | Complete    | 2026-03-18 |
-| 24. Bulk Property Import | 1/2 | In Progress|  |
+| 24. Bulk Property Import | 2/2 | Complete   | 2026-03-18 |
 | 25. Maintenance Photos & Stripe Dashboard | 0/TBD | Not started | - |
