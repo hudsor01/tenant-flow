@@ -15,13 +15,19 @@ import {
 	YAxis
 } from 'recharts'
 
-import { Badge } from '#components/ui/badge'
-import { CardDescription } from '#components/ui/card'
 import {
 	ChartContainer,
 	ChartTooltipContent,
 	type ChartConfig
 } from '#components/ui/chart'
+import {
+	Empty,
+	EmptyDescription,
+	EmptyHeader,
+	EmptyMedia,
+	EmptyTitle
+} from '#components/ui/empty'
+import { Wrench } from 'lucide-react'
 
 const trendConfig = {
 	completed: {
@@ -49,23 +55,20 @@ type MaintenanceCostChartProps = {
 	entries: MaintenanceCostBreakdownEntry[]
 }
 
-function EmptyState({ message }: { message: string }) {
-	return (
-		<div className="flex h-60 flex-col items-center justify-center rounded-lg border border-dashed">
-			<Badge variant="outline" className="mb-2">
-				No data
-			</Badge>
-			<CardDescription className="max-w-sm text-center text-muted-foreground">
-				{message}
-			</CardDescription>
-		</div>
-	)
-}
-
 export function MaintenanceTrendChart({ points }: MaintenanceTrendChartProps) {
 	if (!points.length) {
 		return (
-			<EmptyState message="Maintenance request trends are not available yet." />
+			<Empty className="py-12">
+				<EmptyHeader>
+					<EmptyMedia variant="icon">
+						<Wrench />
+					</EmptyMedia>
+					<EmptyTitle>No maintenance data</EmptyTitle>
+					<EmptyDescription>
+						Maintenance trends will appear once requests are submitted
+					</EmptyDescription>
+				</EmptyHeader>
+			</Empty>
 		)
 	}
 
@@ -105,7 +108,17 @@ export function MaintenanceTrendChart({ points }: MaintenanceTrendChartProps) {
 export function MaintenanceCostChart({ entries }: MaintenanceCostChartProps) {
 	if (!entries.length) {
 		return (
-			<EmptyState message="No maintenance cost data recorded for this period." />
+			<Empty className="py-12">
+				<EmptyHeader>
+					<EmptyMedia variant="icon">
+						<Wrench />
+					</EmptyMedia>
+					<EmptyTitle>No maintenance data</EmptyTitle>
+					<EmptyDescription>
+						Maintenance trends will appear once requests are submitted
+					</EmptyDescription>
+				</EmptyHeader>
+			</Empty>
 		)
 	}
 

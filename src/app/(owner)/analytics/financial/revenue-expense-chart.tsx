@@ -1,8 +1,6 @@
 import { useState } from 'react'
 import type { MonthlyFinancialMetric } from '#types/analytics'
 import { Area, AreaChart, CartesianGrid, XAxis, YAxis } from 'recharts'
-import { Badge } from '#components/ui/badge'
-import { CardDescription } from '#components/ui/card'
 import {
 	ChartContainer,
 	ChartLegend,
@@ -12,31 +10,26 @@ import {
 	type ChartConfig
 } from '#components/ui/chart'
 import {
+	Empty,
+	EmptyDescription,
+	EmptyHeader,
+	EmptyMedia,
+	EmptyTitle
+} from '#components/ui/empty'
+import {
 	Select,
 	SelectContent,
 	SelectItem,
 	SelectTrigger,
 	SelectValue
 } from '#components/ui/select'
+import { DollarSign } from 'lucide-react'
 
 const revenueExpenseConfig = {
 	revenue: { label: 'Revenue', color: 'oklch(0.6 0.16 138)' },
 	expenses: { label: 'Expenses', color: 'oklch(0.75 0.08 20)' },
 	netIncome: { label: 'Net Income', color: 'oklch(0.64 0.19 162)' }
 } satisfies ChartConfig
-
-function EmptyState({ message }: { message: string }) {
-	return (
-		<div className="flex h-70 flex-col items-center justify-center rounded-lg border border-dashed">
-			<Badge variant="outline" className="mb-2">
-				No data
-			</Badge>
-			<CardDescription className="text-center text-muted-foreground">
-				{message}
-			</CardDescription>
-		</div>
-	)
-}
 
 type RevenueExpenseChartProps = { data: MonthlyFinancialMetric[] }
 
@@ -60,7 +53,19 @@ export function RevenueExpenseChart({ data }: RevenueExpenseChartProps) {
 	})()
 
 	if (!data || data.length === 0) {
-		return <EmptyState message="We couldn't find monthly financial data for this period." />
+		return (
+			<Empty className="py-12">
+				<EmptyHeader>
+					<EmptyMedia variant="icon">
+						<DollarSign />
+					</EmptyMedia>
+					<EmptyTitle>No revenue data</EmptyTitle>
+					<EmptyDescription>
+						Revenue and expense data will appear once transactions are recorded
+					</EmptyDescription>
+				</EmptyHeader>
+			</Empty>
+		)
 	}
 
 	return (

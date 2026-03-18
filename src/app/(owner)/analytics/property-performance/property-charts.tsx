@@ -16,13 +16,19 @@ import {
 	YAxis
 } from 'recharts'
 
-import { Badge } from '#components/ui/badge'
-import { CardDescription } from '#components/ui/card'
 import {
 	ChartContainer,
 	ChartTooltipContent,
 	type ChartConfig
 } from '#components/ui/chart'
+import {
+	Empty,
+	EmptyDescription,
+	EmptyHeader,
+	EmptyMedia,
+	EmptyTitle
+} from '#components/ui/empty'
+import { Building2 } from 'lucide-react'
 
 const occupancyConfig = {
 	occupancy: {
@@ -58,23 +64,20 @@ type VisitorAnalyticsChartProps = {
 	data: VisitorAnalyticsResponse
 }
 
-function EmptyState({ message }: { message: string }) {
-	return (
-		<div className="flex h-60 flex-col items-center justify-center rounded-lg border border-dashed">
-			<Badge variant="outline" className="mb-2">
-				No data
-			</Badge>
-			<CardDescription className="max-w-sm text-center text-muted-foreground">
-				{message}
-			</CardDescription>
-		</div>
-	)
-}
-
 export function PropertyOccupancyChart({ data }: PropertyOccupancyChartProps) {
 	if (!data.length) {
 		return (
-			<EmptyState message="We couldn't find property performance data for your portfolio yet." />
+			<Empty className="py-12">
+				<EmptyHeader>
+					<EmptyMedia variant="icon">
+						<Building2 />
+					</EmptyMedia>
+					<EmptyTitle>No property data</EmptyTitle>
+					<EmptyDescription>
+						Property performance data will appear once properties are added
+					</EmptyDescription>
+				</EmptyHeader>
+			</Empty>
 		)
 	}
 
@@ -126,7 +129,17 @@ export function PropertyOccupancyChart({ data }: PropertyOccupancyChartProps) {
 export function VisitorAnalyticsChart({ data }: VisitorAnalyticsChartProps) {
 	if (!data.timeline.length) {
 		return (
-			<EmptyState message="We haven't tracked visitor activity for this period." />
+			<Empty className="py-12">
+				<EmptyHeader>
+					<EmptyMedia variant="icon">
+						<Building2 />
+					</EmptyMedia>
+					<EmptyTitle>No property data</EmptyTitle>
+					<EmptyDescription>
+						Property performance data will appear once properties are added
+					</EmptyDescription>
+				</EmptyHeader>
+			</Empty>
 		)
 	}
 

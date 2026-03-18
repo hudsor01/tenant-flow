@@ -3,9 +3,9 @@ gsd_state_version: 1.0
 milestone: v1.3
 milestone_name: Stub Elimination
 status: executing
-stopped_at: Completed 23-02-PLAN.md
-last_updated: "2026-03-11T22:22:22Z"
-last_activity: 2026-03-11 -- Completed 23-02 (PDF preview/export wiring)
+stopped_at: Completed 23.1-01-PLAN.md
+last_updated: "2026-03-18T14:34:40Z"
+last_activity: 2026-03-18 -- Completed 23.1-01 (Typography, social proof, dark mode fixes)
 progress:
   total_phases: 5
   completed_phases: 3
@@ -21,15 +21,15 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-11)
 
 **Core value:** A landlord can add a property, invite a tenant, collect rent, and see their financials -- without touching a spreadsheet or calling anyone.
-**Current focus:** v1.3 Stub Elimination -- Phase 23 (Document Templates)
+**Current focus:** v1.3 Stub Elimination -- Phase 23.1 (UI/UX Polish)
 
 ## Current Position
 
 Milestone: v1.3 Stub Elimination
-Phase: 23 of 25 (Document Templates) -- COMPLETE
-Plan: 2 of 2
-Status: Phase Complete
-Last activity: 2026-03-11 -- Completed 23-02 (PDF preview/export wiring)
+Phase: 23.1 of 25 (UI/UX Polish)
+Plan: 1 of 2
+Status: Executing
+Last activity: 2026-03-18 -- Completed 23.1-01 (Typography, social proof, dark mode fixes)
 
 Progress: [█████████░] 95%
 
@@ -61,6 +61,9 @@ Progress: [█████████░] 95%
 - [Phase 23]: PostgREST upsert with onConflict for owner-scoped template definitions (jsonb custom_fields)
 - [Phase 23]: buildTemplateHtml pure function with local escapeHtml + inline CSS for StirlingPDF isolation
 - [Phase 23]: Preview uses direct fetch + blob URL for iframe; export reuses callGeneratePdfFromHtml pattern
+- [Phase 23.1]: Centralized social proof constants in src/config/social-proof.ts -- all marketing numbers reference this single file
+- [Phase 23.1]: typography-h1 CSS class standardized on all page-level headings across owner, analytics, and tenant pages
+- [Phase 23.1]: Semantic color tokens (text-warning, text-success, text-destructive) replace raw Tailwind colors in maintenance stats
 
 ### Stubs to Eliminate (v1.3 scope)
 
@@ -79,6 +82,6 @@ Progress: [█████████░] 95%
 
 ## Session Continuity
 
-Last session: 2026-03-11T22:22:22Z
-Stopped at: Completed 23-02-PLAN.md (Phase 23 complete)
+Last session: 2026-03-18T14:34:40Z
+Stopped at: Completed 23.1-01-PLAN.md
 Resume file: None

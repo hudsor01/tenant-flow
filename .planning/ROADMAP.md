@@ -109,7 +109,7 @@ Plans:
 **Plans:** 2 plans
 
 Plans:
-- [ ] 23.1-01-PLAN.md -- Social proof consolidation, typography standardization, dark mode fixes, semantic colors, tenant greeting
+- [x] 23.1-01-PLAN.md -- Social proof consolidation, typography standardization, dark mode fixes, semantic colors, tenant greeting
 - [ ] 23.1-02-PLAN.md -- Component consistency (shadcn replacements), chart empty states, Units layout, Payment History fix, accept-invite layout
 
 ### Phase 24: Bulk Property Import
@@ -142,6 +142,6 @@ Phases execute in numeric order: 21 -> 22 -> 23 -> 23.1 -> 24 -> 25
 | 21. Email Invitations | 2/2 | Complete    | 2026-03-11 |
 | 22. GDPR Data Rights | 2/2 | Complete    | 2026-03-11 |
 | 23. Document Templates | 2/2 | Complete   | 2026-03-11 |
-| 23.1. UI/UX Polish | 0/2 | Not started | - |
+| 23.1. UI/UX Polish | 1/2 | In progress | - |
 | 24. Bulk Property Import | 0/TBD | Not started | - |
 | 25. Maintenance Photos & Stripe Dashboard | 0/TBD | Not started | - |

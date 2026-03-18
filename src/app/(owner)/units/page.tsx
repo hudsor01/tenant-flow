@@ -20,6 +20,14 @@ import {
 	DropdownMenuSeparator,
 	DropdownMenuTrigger
 } from '#components/ui/dropdown-menu'
+import {
+	Empty,
+	EmptyDescription,
+	EmptyHeader,
+	EmptyMedia,
+	EmptyTitle
+} from '#components/ui/empty'
+import { Skeleton } from '#components/ui/skeleton'
 import { DataTable } from '#components/data-table/data-table'
 import { DataTableToolbar } from '#components/data-table/data-table-toolbar'
 import { useQuery } from '@tanstack/react-query'
@@ -211,7 +219,7 @@ export default function UnitsPage() {
 
 	if (error) {
 		return (
-			<div className="container py-8">
+			<div className="p-6 lg:p-8">
 				<div className="rounded-lg border border-destructive/50 bg-destructive/10 p-4">
 					<h2 className="typography-large text-destructive">
 						Error Loading Units
@@ -226,17 +234,27 @@ export default function UnitsPage() {
 
 	if (isLoading) {
 		return (
-			<div className="container py-8">
-				<div className="rounded-lg border p-8 text-center">
-					<div className="inline-block size-8 animate-spin rounded-full border-4 border-solid border-current border-r-transparent" />
-					<p className="mt-2 text-muted-foreground">Loading units...</p>
+			<div className="p-6 lg:p-8 space-y-6">
+				<div className="flex-between">
+					<div>
+						<Skeleton className="h-8 w-24 mb-2" />
+						<Skeleton className="h-5 w-64" />
+					</div>
+					<Skeleton className="h-10 w-28" />
+				</div>
+				<div className="space-y-2">
+					<Skeleton className="h-12 w-full" />
+					<Skeleton className="h-12 w-full" />
+					<Skeleton className="h-12 w-full" />
+					<Skeleton className="h-12 w-full" />
+					<Skeleton className="h-12 w-full" />
 				</div>
 			</div>
 		)
 	}
 
 	return (
-		<div className="container py-8 space-y-6">
+		<div className="p-6 lg:p-8 space-y-6">
 			{/* Header */}
 			<div className="flex-between">
 				<div>
@@ -252,13 +270,17 @@ export default function UnitsPage() {
 
 			{/* DataTable with Toolbar */}
 			{units.length === 0 ? (
-				<div className="rounded-lg border p-8 text-center">
-					<Home className="mx-auto size-12 text-muted-foreground/50" />
-					<h3 className="mt-4 typography-large">No units found</h3>
-					<p className="mt-2 text-muted-foreground">
-						Get started by creating your first unit
-					</p>
-				</div>
+				<Empty>
+					<EmptyHeader>
+						<EmptyMedia variant="icon">
+							<Home />
+						</EmptyMedia>
+						<EmptyTitle>No units found</EmptyTitle>
+						<EmptyDescription>
+							Get started by creating your first unit
+						</EmptyDescription>
+					</EmptyHeader>
+				</Empty>
 			) : (
 				<DataTable table={table}>
 					<DataTableToolbar table={table} />
