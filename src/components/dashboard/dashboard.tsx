@@ -157,7 +157,7 @@ export function Dashboard({
 		<div className="flex flex-1 flex-col gap-6 p-6">
 			{/* Header */}
 			<div data-testid="dashboard-stats">
-				<h1 className="text-2xl font-semibold tracking-tight">Dashboard</h1>
+				<h1 className="typography-h1">Dashboard</h1>
 				<p className="text-sm text-muted-foreground">
 					{metrics.occupiedUnits} of {metrics.totalUnits} units occupied ·{' '}
 					{formatDashboardCurrency(metrics.totalRevenue)} this month

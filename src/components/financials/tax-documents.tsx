@@ -9,6 +9,15 @@ import {
 	Calendar,
 	Search
 } from 'lucide-react'
+import { Button } from '#components/ui/button'
+import { Input } from '#components/ui/input'
+import {
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+	SelectValue
+} from '#components/ui/select'
 import { BlurFade } from '#components/ui/blur-fade'
 import { formatDate } from '#lib/formatters/date'
 
@@ -84,6 +93,10 @@ export function TaxDocuments({ documents, onDownload }: TaxDocumentsProps) {
 	const pendingCount = documents.filter(d => d.status === 'pending').length
 	const filedCount = documents.filter(d => d.status === 'filed').length
 
+	const handleYearChange = (value: string) => {
+		setYearFilter(value === 'all' ? 'all' : Number(value))
+	}
+
 	return (
 		<div className="p-6 lg:p-8 bg-background min-h-full">
 			<BlurFade delay={0.1} inView>
@@ -101,14 +114,15 @@ export function TaxDocuments({ documents, onDownload }: TaxDocumentsProps) {
 
 			<div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
 				<BlurFade delay={0.2} inView>
-					<button
+					<Button
+						variant="outline"
 						onClick={() =>
 							setStatusFilter(statusFilter === 'ready' ? 'all' : 'ready')
 						}
-						className={`w-full p-4 rounded-lg border transition-colors text-left ${
+						className={`w-full p-4 h-auto rounded-lg text-left justify-start ${
 							statusFilter === 'ready'
 								? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-950/30'
-								: 'border-border bg-card hover:bg-muted/50'
+								: ''
 						}`}
 					>
 						<div className="flex items-center gap-3">
@@ -122,18 +136,19 @@ export function TaxDocuments({ documents, onDownload }: TaxDocumentsProps) {
 								</p>
 							</div>
 						</div>
-					</button>
+					</Button>
 				</BlurFade>
 
 				<BlurFade delay={0.3} inView>
-					<button
+					<Button
+						variant="outline"
 						onClick={() =>
 							setStatusFilter(statusFilter === 'pending' ? 'all' : 'pending')
 						}
-						className={`w-full p-4 rounded-lg border transition-colors text-left ${
+						className={`w-full p-4 h-auto rounded-lg text-left justify-start ${
 							statusFilter === 'pending'
 								? 'border-amber-500 bg-amber-50 dark:bg-amber-950/30'
-								: 'border-border bg-card hover:bg-muted/50'
+								: ''
 						}`}
 					>
 						<div className="flex items-center gap-3">
@@ -147,18 +162,19 @@ export function TaxDocuments({ documents, onDownload }: TaxDocumentsProps) {
 								</p>
 							</div>
 						</div>
-					</button>
+					</Button>
 				</BlurFade>
 
 				<BlurFade delay={0.4} inView>
-					<button
+					<Button
+						variant="outline"
 						onClick={() =>
 							setStatusFilter(statusFilter === 'filed' ? 'all' : 'filed')
 						}
-						className={`w-full p-4 rounded-lg border transition-colors text-left ${
+						className={`w-full p-4 h-auto rounded-lg text-left justify-start ${
 							statusFilter === 'filed'
 								? 'border-blue-500 bg-blue-50 dark:bg-blue-950/30'
-								: 'border-border bg-card hover:bg-muted/50'
+								: ''
 						}`}
 					>
 						<div className="flex items-center gap-3">
@@ -172,7 +188,7 @@ export function TaxDocuments({ documents, onDownload }: TaxDocumentsProps) {
 								</p>
 							</div>
 						</div>
-					</button>
+					</Button>
 				</BlurFade>
 			</div>
 
@@ -180,30 +196,30 @@ export function TaxDocuments({ documents, onDownload }: TaxDocumentsProps) {
 				<div className="flex flex-col sm:flex-row gap-3 mb-6">
 					<div className="relative flex-1">
 						<Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-						<input
+						<Input
 							type="text"
 							placeholder="Search documents..."
 							value={searchQuery}
 							onChange={e => setSearchQuery(e.target.value)}
-							className="w-full pl-10 pr-4 py-2.5 text-sm bg-card border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-ring"
+							className="pl-10"
 						/>
 					</div>
-					<select
-						value={yearFilter}
-						onChange={e =>
-							setYearFilter(
-								e.target.value === 'all' ? 'all' : Number(e.target.value)
-							)
-						}
-						className="px-4 py-2.5 text-sm bg-card border border-border rounded-lg"
+					<Select
+						value={String(yearFilter)}
+						onValueChange={handleYearChange}
 					>
-						<option value="all">All Years</option>
-						{years.map(year => (
-							<option key={year} value={year}>
-								{year}
-							</option>
-						))}
-					</select>
+						<SelectTrigger className="w-[130px]">
+							<SelectValue placeholder="All Years" />
+						</SelectTrigger>
+						<SelectContent>
+							<SelectItem value="all">All Years</SelectItem>
+							{years.map(year => (
+								<SelectItem key={year} value={String(year)}>
+									{year}
+								</SelectItem>
+							))}
+						</SelectContent>
+					</Select>
 				</div>
 			</BlurFade>
 
@@ -257,13 +273,14 @@ export function TaxDocuments({ documents, onDownload }: TaxDocumentsProps) {
 															{status.label}
 														</span>
 														{doc.status !== 'pending' && (
-															<button
+															<Button
+																variant="ghost"
+																size="icon"
 																onClick={() => onDownload?.(doc.id)}
-																className="p-2 hover:bg-muted rounded-lg transition-colors"
-																title="Download"
+																aria-label="Download"
 															>
 																<Download className="w-4 h-4 text-muted-foreground" />
-															</button>
+															</Button>
 														)}
 													</div>
 												</div>

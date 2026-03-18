@@ -5,7 +5,7 @@ import { Analytics } from '@vercel/analytics/next'
 import { SpeedInsights } from '@vercel/speed-insights/next'
 import { GeistMono } from 'geist/font/mono'
 import type { Metadata } from 'next'
-import { Inter } from 'next/font/google'
+import { Playfair_Display, Roboto } from 'next/font/google'
 
 import { ErrorBoundary } from '#components/error-boundary/error-boundary'
 import { Providers } from '#components/providers'
@@ -16,11 +16,19 @@ import { generateSiteMetadata } from '#lib/generate-metadata'
 
 import './globals.css'
 
-// Inter - the industry-standard SaaS font (used by Linear, Notion, Figma)
-const inter = Inter({
+// Roboto - clean, geometric sans-serif for body text and UI
+const roboto = Roboto({
 	subsets: ['latin'],
 	display: 'swap',
-	variable: '--font-sans'
+	variable: '--font-sans',
+	weight: ['300', '400', '500', '700']
+})
+
+// Playfair Display - elegant serif for hero/marketing headlines
+const playfairDisplay = Playfair_Display({
+	subsets: ['latin'],
+	display: 'swap',
+	variable: '--font-display'
 })
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -59,7 +67,7 @@ export default async function RootLayout({
 				<SeoJsonLd />
 			</head>
 			<body
-				className={`${inter.variable} ${GeistMono.variable} font-sans antialiased`}
+				className={`${roboto.variable} ${playfairDisplay.variable} ${GeistMono.variable} font-sans antialiased`}
 			>
 				<Providers>
 					<div className="min-h-screen bg-background text-foreground flex flex-col">

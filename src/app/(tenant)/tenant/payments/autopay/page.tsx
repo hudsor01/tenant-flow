@@ -108,7 +108,7 @@ export default function TenantAutopayPage() {
 	return (
 		<div className="space-y-6 p-6">
 			<div>
-				<h1 className="typography-h3 tracking-tight">Autopay Settings</h1>
+				<h1 className="typography-h1">Autopay Settings</h1>
 				<p className="text-muted-foreground">
 					Manage automatic rent payments for your lease.
 				</p>

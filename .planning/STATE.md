@@ -73,6 +73,10 @@ Progress: [█████████░] 95%
 7. Maintenance photo upload (Phase 25)
 8. Stripe Dashboard access (Phase 25)
 
+### Roadmap Evolution
+
+- Phase 23.1 inserted after Phase 23: UI/UX Polish (URGENT) -- Fix 12 priority findings from full-app UI audit
+
 ## Session Continuity
 
 Last session: 2026-03-11T22:22:22Z

@@ -240,7 +240,7 @@ export default function UnitsPage() {
 			{/* Header */}
 			<div className="flex-between">
 				<div>
-					<h1 className="typography-h2 tracking-tight">Units</h1>
+					<h1 className="typography-h1">Units</h1>
 					<p className="text-muted-foreground">
 						Manage your rental units across all properties
 					</p>

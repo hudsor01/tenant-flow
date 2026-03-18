@@ -2,6 +2,14 @@
 
 import { useState } from 'react'
 import { Download } from 'lucide-react'
+import { Button } from '#components/ui/button'
+import {
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+	SelectValue
+} from '#components/ui/select'
 import { BlurFade } from '#components/ui/blur-fade'
 import { IncomeStatementSummaryStats } from '#components/financials/income-statement-summary-stats'
 import { IncomeStatementBreakdownCards } from '#components/financials/income-statement-breakdown-cards'
@@ -91,23 +99,21 @@ export function IncomeStatement({
 						</p>
 					</div>
 					<div className="flex gap-2">
-						<select
-							value={dateRange}
-							onChange={e => setDateRange(e.target.value)}
-							className="px-4 py-2.5 text-sm bg-card border border-border rounded-lg"
-						>
-							<option value="this_month">This Month</option>
-							<option value="this_quarter">This Quarter</option>
-							<option value="this_year">This Year</option>
-							<option value="last_year">Last Year</option>
-						</select>
-						<button
-							onClick={onExport}
-							className="inline-flex items-center gap-2 px-4 py-2.5 bg-card border border-border hover:bg-muted rounded-lg transition-colors"
-						>
+						<Select value={dateRange} onValueChange={setDateRange}>
+							<SelectTrigger className="w-[140px]">
+								<SelectValue />
+							</SelectTrigger>
+							<SelectContent>
+								<SelectItem value="this_month">This Month</SelectItem>
+								<SelectItem value="this_quarter">This Quarter</SelectItem>
+								<SelectItem value="this_year">This Year</SelectItem>
+								<SelectItem value="last_year">Last Year</SelectItem>
+							</SelectContent>
+						</Select>
+						<Button variant="outline" onClick={onExport}>
 							<Download className="w-4 h-4" />
 							Export
-						</button>
+						</Button>
 					</div>
 				</div>
 			</BlurFade>

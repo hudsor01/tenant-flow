@@ -8,6 +8,7 @@ import {
 	Check,
 	X
 } from 'lucide-react'
+import { Button } from '#components/ui/button'
 import { BlurFade } from '#components/ui/blur-fade'
 import { NumberTicker } from '#components/ui/number-ticker'
 import { BorderBeam } from '#components/ui/border-beam'
@@ -73,13 +74,10 @@ export function BalanceSheet({
 							As of {formatDate(asOfDate, { style: 'long' })}
 						</p>
 					</div>
-					<button
-						onClick={onExport}
-						className="inline-flex items-center gap-2 px-4 py-2.5 bg-card border border-border hover:bg-muted rounded-lg transition-colors"
-					>
+					<Button variant="outline" onClick={onExport}>
 						<Download className="w-4 h-4" />
 						Export
-					</button>
+					</Button>
 				</div>
 			</BlurFade>
 

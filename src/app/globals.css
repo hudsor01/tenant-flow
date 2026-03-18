@@ -8,15 +8,18 @@
 
 @theme {
 	/* ============================================================================
-	   TYPOGRAPHY SYSTEM - SaaS Industry Standard
+	   TYPOGRAPHY SYSTEM
 	   ============================================================================
-	   Inter - Used by Linear, Notion, Figma, Supabase, Raycast
+	   Roboto - Clean geometric sans-serif for body text and UI
+	   Playfair Display - Elegant serif for hero/marketing headlines
 	   Geist Mono - Vercel's monospace font for code
 	   ========================================================================== */
 
 	/* Font Stacks */
 	--font-sans: var(--font-sans), system-ui, -apple-system, BlinkMacSystemFont,
 		'Segoe UI', Roboto, sans-serif;
+	--font-display: var(--font-display), 'Playfair Display', Georgia,
+		'Times New Roman', serif;
 	--font-mono: var(--font-geist-mono), ui-monospace, 'SF Mono', 'Cascadia Code',
 		monospace;
 
@@ -1155,9 +1158,9 @@
    Level 5: Caption (tertiary)   → typography-label, typography-caption
    ========================================================================== */
 
-/* Level 1: Display - Marketing/Hero (Bold Inter - SaaS standard) */
+/* Level 1: Display - Marketing/Hero (Playfair Display serif) */
 @utility typography-hero {
-	font-family: var(--font-sans);
+	font-family: var(--font-display);
 	font-size: var(--text-display-hero);
 	font-weight: var(--font-weight-bold);
 	line-height: var(--leading-display);
@@ -1166,7 +1169,7 @@
 }
 
 @utility typography-display-lg {
-	font-family: var(--font-sans);
+	font-family: var(--font-display);
 	font-size: var(--text-display-lg);
 	font-weight: var(--font-weight-bold);
 	line-height: var(--leading-display);
@@ -1175,7 +1178,7 @@
 }
 
 @utility typography-display {
-	font-family: var(--font-sans);
+	font-family: var(--font-display);
 	font-size: var(--text-display);
 	font-weight: var(--font-weight-semibold);
 	line-height: var(--leading-tight);
@@ -1184,7 +1187,7 @@
 }
 
 @utility typography-display-sm {
-	font-family: var(--font-sans);
+	font-family: var(--font-display);
 	font-size: var(--text-display-sm);
 	font-weight: var(--font-weight-semibold);
 	line-height: var(--leading-tight);

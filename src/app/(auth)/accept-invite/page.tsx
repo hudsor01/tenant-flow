@@ -177,28 +177,30 @@ function AcceptInviteContent() {
 			<InviteHeroSection />
 
 			<div className="flex-1 lg:w-1/2 flex-center p-6 sm:p-8 lg:p-12 min-h-screen">
-				<div className="space-y-4 text-center mb-8">
-					<div className="size-14 mx-auto">
-						<div className="w-full h-full bg-primary rounded-xl flex-center shadow-sm">
-							<Home className="size-7 text-primary-foreground" />
+				<div className="w-full max-w-md">
+					<div className="space-y-4 text-center mb-8">
+						<div className="size-14 mx-auto">
+							<div className="w-full h-full bg-primary rounded-xl flex-center shadow-sm">
+								<Home className="size-7 text-primary-foreground" />
+							</div>
+						</div>
+
+						<div className="space-y-2">
+							<h1 className="typography-h3 text-foreground">
+								Accept Your Invitation
+							</h1>
+							<p className="text-muted-foreground text-sm">
+								Create your tenant account to get started
+							</p>
 						</div>
 					</div>
 
-					<div className="space-y-2">
-						<h1 className="typography-h3 text-foreground">
-							Accept Your Invitation
-						</h1>
-						<p className="text-muted-foreground text-sm">
-							Create your tenant account to get started
-						</p>
-					</div>
+					<InviteSignupForm
+						invitation={invitation ?? null}
+						errorMessage={submitError}
+						onSubmit={handleSignup}
+					/>
 				</div>
-
-				<InviteSignupForm
-					invitation={invitation ?? null}
-					errorMessage={submitError}
-					onSubmit={handleSignup}
-				/>
 			</div>
 		</div>
 	)

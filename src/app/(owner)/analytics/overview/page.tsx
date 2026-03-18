@@ -14,6 +14,13 @@ const ChartAreaInteractive = dynamic(
 )
 import { Badge } from '#components/ui/badge'
 import { Button } from '#components/ui/button'
+import {
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+	SelectValue
+} from '#components/ui/select'
 import { Skeleton } from '#components/ui/skeleton'
 import { BlurFade } from '#components/ui/blur-fade'
 import { EMPTY_PAYMENT_SUMMARY } from '#types/api-contracts'
@@ -118,12 +125,17 @@ export default function AnalyticsPage() {
 						<p className="text-muted-foreground">Portfolio performance and insights.</p>
 					</div>
 					<div className="flex gap-2">
-						<select className="px-4 py-2.5 text-sm bg-card border border-border rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-ring">
-							<option value="30_days">Last 30 Days</option>
-							<option value="3_months">Last 3 Months</option>
-							<option value="6_months">Last 6 Months</option>
-							<option value="12_months">Last 12 Months</option>
-						</select>
+						<Select defaultValue="30_days">
+							<SelectTrigger className="w-[160px]">
+								<SelectValue placeholder="Time range" />
+							</SelectTrigger>
+							<SelectContent>
+								<SelectItem value="30_days">Last 30 Days</SelectItem>
+								<SelectItem value="3_months">Last 3 Months</SelectItem>
+								<SelectItem value="6_months">Last 6 Months</SelectItem>
+								<SelectItem value="12_months">Last 12 Months</SelectItem>
+							</SelectContent>
+						</Select>
 					</div>
 				</div>
 			</BlurFade>

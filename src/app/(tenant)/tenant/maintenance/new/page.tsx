@@ -9,6 +9,14 @@ import {
 } from '#components/ui/dropzone'
 import { useSupabaseUpload } from '#hooks/use-supabase-upload'
 import { Button } from '#components/ui/button'
+import { Input } from '#components/ui/input'
+import {
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+	SelectValue
+} from '#components/ui/select'
 import { CardLayout } from '#components/ui/card-layout'
 import { Field, FieldLabel } from '#components/ui/field'
 import { useMaintenanceRequestCreateMutation } from '#hooks/api/use-tenant-maintenance'
@@ -126,9 +134,8 @@ export default function NewMaintenanceRequestPage() {
 				<form onSubmit={handleSubmit} className="space-y-6">
 					<Field>
 						<FieldLabel>Issue Title *</FieldLabel>
-						<input
+						<Input
 							type="text"
-							className="input w-full"
 							placeholder="e.g., Leaky faucet in bathroom"
 							value={formData.title}
 							onChange={e => handleChange('title', e.target.value)}
@@ -138,37 +145,41 @@ export default function NewMaintenanceRequestPage() {
 
 					<Field>
 						<FieldLabel>Category *</FieldLabel>
-						<select
-							className="input w-full"
+						<Select
 							value={formData.category}
-							onChange={e => handleChange('category', e.target.value)}
-							required
+							onValueChange={value => handleChange('category', value)}
 						>
-							<option value="">Select category...</option>
-							<option value="plumbing">Plumbing</option>
-							<option value="electrical">Electrical</option>
-							<option value="hvac">Heating/Cooling (HVAC)</option>
-							<option value="appliances">Appliances</option>
-							<option value="safety">Safety/Structural</option>
-							<option value="general">General Maintenance</option>
-							<option value="other">Other</option>
-						</select>
+							<SelectTrigger className="w-full">
+								<SelectValue placeholder="Select category..." />
+							</SelectTrigger>
+							<SelectContent>
+								<SelectItem value="plumbing">Plumbing</SelectItem>
+								<SelectItem value="electrical">Electrical</SelectItem>
+								<SelectItem value="hvac">Heating/Cooling (HVAC)</SelectItem>
+								<SelectItem value="appliances">Appliances</SelectItem>
+								<SelectItem value="safety">Safety/Structural</SelectItem>
+								<SelectItem value="general">General Maintenance</SelectItem>
+								<SelectItem value="other">Other</SelectItem>
+							</SelectContent>
+						</Select>
 					</Field>
 
 					<Field>
 						<FieldLabel>Priority *</FieldLabel>
-						<select
-							className="input w-full"
+						<Select
 							value={formData.priority}
-							onChange={e => handleChange('priority', e.target.value)}
-							required
+							onValueChange={value => handleChange('priority', value)}
 						>
-							<option value="">Select priority...</option>
-							<option value="low">Low - Can wait a few days</option>
-							<option value="medium">Medium - Should be addressed soon</option>
-							<option value="high">High - Needs attention this week</option>
-							<option value="urgent">Urgent - Safety/health concern</option>
-						</select>
+							<SelectTrigger className="w-full">
+								<SelectValue placeholder="Select priority..." />
+							</SelectTrigger>
+							<SelectContent>
+								<SelectItem value="low">Low - Can wait a few days</SelectItem>
+								<SelectItem value="medium">Medium - Should be addressed soon</SelectItem>
+								<SelectItem value="high">High - Needs attention this week</SelectItem>
+								<SelectItem value="urgent">Urgent - Safety/health concern</SelectItem>
+							</SelectContent>
+						</Select>
 					</Field>
 
 					<Field>

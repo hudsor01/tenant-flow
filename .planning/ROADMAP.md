@@ -101,6 +101,17 @@ Plans:
 - [ ] 23-01-PLAN.md -- Database table, RLS, query key factory, and wire useTemplateDefinition for custom field persistence
 - [ ] 23-02-PLAN.md -- HTML builder and wire useTemplatePdf to generate-pdf Edge Function for preview and export
 
+### Phase 23.1: UI/UX Polish (INSERTED)
+
+**Goal:** Fix all 12 priority findings from full-app UI audit -- typography consistency, social proof consolidation, dark mode fixes, component alignment, empty states, and copy corrections
+**Requirements**: N/A (cross-cutting polish, no feature requirements)
+**Depends on:** Phase 23
+**Plans:** 2 plans
+
+Plans:
+- [ ] 23.1-01-PLAN.md -- Social proof consolidation, typography standardization, dark mode fixes, semantic colors, tenant greeting
+- [ ] 23.1-02-PLAN.md -- Component consistency (shadcn replacements), chart empty states, Units layout, Payment History fix, accept-invite layout
+
 ### Phase 24: Bulk Property Import
 **Goal**: Owners can import multiple properties at once by uploading a CSV file, with validation that catches errors before committing
 **Depends on**: Phase 23
@@ -124,12 +135,13 @@ Plans:
 ## Progress
 
 **Execution Order:**
-Phases execute in numeric order: 21 -> 22 -> 23 -> 24 -> 25
+Phases execute in numeric order: 21 -> 22 -> 23 -> 23.1 -> 24 -> 25
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 21. Email Invitations | 2/2 | Complete    | 2026-03-11 |
 | 22. GDPR Data Rights | 2/2 | Complete    | 2026-03-11 |
 | 23. Document Templates | 2/2 | Complete   | 2026-03-11 |
+| 23.1. UI/UX Polish | 0/2 | Not started | - |
 | 24. Bulk Property Import | 0/TBD | Not started | - |
 | 25. Maintenance Photos & Stripe Dashboard | 0/TBD | Not started | - |

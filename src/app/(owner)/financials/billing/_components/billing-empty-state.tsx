@@ -1,6 +1,7 @@
 'use client'
 
 import { Building, CreditCard } from 'lucide-react'
+import { Button } from '#components/ui/button'
 import { BlurFade } from '#components/ui/blur-fade'
 import { ConnectOnboardingDialog } from './connect-onboarding-dialog'
 
@@ -44,13 +45,10 @@ export function BillingEmptyState({
 							online.
 						</p>
 					</div>
-					<button
-						onClick={() => onShowOnboarding(true)}
-						className="inline-flex items-center gap-2 px-6 py-3 bg-primary hover:bg-primary/90 text-primary-foreground font-medium rounded-md transition-colors"
-					>
+					<Button onClick={() => onShowOnboarding(true)}>
 						<Building className="w-5 h-5" />
 						Connect Stripe Account
-					</button>
+					</Button>
 				</div>
 			</BlurFade>
 
