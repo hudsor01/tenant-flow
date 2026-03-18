@@ -1,6 +1,6 @@
 'use client'
 
-import { AlertTriangle, Lock } from 'lucide-react'
+import { AlertTriangle, Info, Lock } from 'lucide-react'
 import Link from 'next/link'
 import { useSubscriptionStatus } from '#hooks/api/use-billing'
 
@@ -10,19 +10,37 @@ import { useSubscriptionStatus } from '#hooks/api/use-billing'
  * - active/trialing: renders nothing (null)
  * - past_due: yellow warning with link to /owner/billing
  * - unpaid/canceled/cancelled: red lock banner with link to /owner/billing
- * - null (no subscription): renders nothing
+ * - null (no subscription): blue info banner with link to /pricing
  *
  * Include in owner layout to show across all owner pages.
  */
 export function SubscriptionStatusBanner() {
 	const { data: subscription, isLoading } = useSubscriptionStatus()
 
-	if (isLoading || !subscription) return null
+	if (isLoading) return null
+
+	// No subscription at all — user needs to subscribe
+	if (!subscription || subscription.subscriptionStatus === null) {
+		return (
+			<div className="flex items-center gap-3 rounded-lg border border-blue-300 bg-blue-50 px-4 py-3 text-sm text-blue-800 dark:border-blue-700 dark:bg-blue-950/50 dark:text-blue-200">
+				<Info className="size-5 shrink-0" />
+				<p className="flex-1">
+					Start your subscription to unlock all property management features.
+				</p>
+				<Link
+					href="/pricing"
+					className="shrink-0 font-medium underline underline-offset-4 hover:text-blue-900 dark:hover:text-blue-100"
+				>
+					View plans
+				</Link>
+			</div>
+		)
+	}
 
 	const status = subscription.subscriptionStatus
 
 	// Active or trialing subscriptions need no banner
-	if (!status || status === 'active' || status === 'trialing') {
+	if (status === 'active' || status === 'trialing') {
 		return null
 	}
 
