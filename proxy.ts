@@ -109,11 +109,14 @@ export async function proxy(
   // must complete checkout before accessing the dashboard.
   // Lapsed subscriptions (canceled/unpaid) are handled client-side by
   // SubscriptionStatusBanner since they still have a stripe_customer_id.
+  // Allowlist: /pricing (plan selection), /billing/checkout and /billing/plans
+  // (Stripe checkout flow), /auth/* (already public, defense-in-depth).
   if (
     userType === 'OWNER' &&
     !user.app_metadata?.stripe_customer_id &&
     !pathname.startsWith('/pricing') &&
-    !pathname.startsWith('/billing') &&
+    !pathname.startsWith('/billing/checkout') &&
+    !pathname.startsWith('/billing/plans') &&
     !pathname.startsWith('/auth/')
   ) {
     return redirectWithCookies(

@@ -291,6 +291,33 @@ describe('proxy routing', () => {
       expect(result).toBe(supabaseResponse)
     })
 
+    it('allows OWNER without stripe_customer_id on /billing/plans to pass through', async () => {
+      const supabaseResponse = makeSupabaseResponse()
+      mockUpdateSession.mockResolvedValue({
+        user: makeUser('OWNER'),
+        supabaseResponse,
+      })
+
+      const result = await proxy(buildRequest('/billing/plans'))
+
+      expect(NextResponse.redirect).not.toHaveBeenCalled()
+      expect(result).toBe(supabaseResponse)
+    })
+
+    it('redirects OWNER without stripe_customer_id on non-allowlisted owner routes', async () => {
+      mockUpdateSession.mockResolvedValue({
+        user: makeUser('OWNER'),
+        supabaseResponse: makeSupabaseResponse(),
+      })
+
+      await proxy(buildRequest('/settings'))
+
+      expect(NextResponse.redirect).toHaveBeenCalledOnce()
+      const redirectUrl = (NextResponse.redirect as ReturnType<typeof vi.fn>)
+        .mock.calls[0]![0] as URL
+      expect(redirectUrl.pathname).toBe('/pricing')
+    })
+
     it('does not affect TENANT user (no stripe check)', async () => {
       const supabaseResponse = makeSupabaseResponse()
       mockUpdateSession.mockResolvedValue({
