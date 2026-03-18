@@ -31,8 +31,8 @@ Requirements for Stub Elimination. Each replaces a placeholder/toast with a real
 
 ### Maintenance
 
-- [ ] **MAINT-01**: Tenant can upload photos when submitting maintenance request
-- [ ] **MAINT-02**: Owner can view maintenance request photos in detail view
+- [x] **MAINT-01**: Tenant can upload photos when submitting maintenance request
+- [x] **MAINT-02**: Owner can view maintenance request photos in detail view
 
 ### Stripe Integration
 
@@ -76,8 +76,8 @@ Requirements for Stub Elimination. Each replaces a placeholder/toast with a real
 | DOC-03 | Phase 23 | Complete |
 | PROP-01 | Phase 24 | Complete |
 | PROP-02 | Phase 24 | Complete |
-| MAINT-01 | Phase 25 | Pending |
-| MAINT-02 | Phase 25 | Pending |
+| MAINT-01 | Phase 25 | Complete |
+| MAINT-02 | Phase 25 | Complete |
 | STRIPE-01 | Phase 25 | Complete |
 
 **Coverage:**

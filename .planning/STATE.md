@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.3
 milestone_name: Stub Elimination
 status: executing
-stopped_at: Completed 25-02-PLAN.md
-last_updated: "2026-03-18T19:07:30.687Z"
+stopped_at: Completed 25-01-PLAN.md
+last_updated: "2026-03-18T19:18:40.459Z"
 last_activity: 2026-03-18 -- Phase 24 Plan 01 complete (CSV parsing rewrite)
 progress:
   total_phases: 6
-  completed_phases: 5
+  completed_phases: 6
   total_plans: 11
-  completed_plans: 11
+  completed_plans: 12
   percent: 95
 ---
 
@@ -70,6 +70,8 @@ Progress: [█████████░] 95%
 - [Phase 24]: ImportProgress type placed in api-contracts.ts to avoid circular dependency between stepper and confirm-step
 - [Phase 24]: Removed ready state -- import starts immediately from validate step for simpler UX
 - [Phase 25]: Stripe login link via existing stripe-connect Edge Function action (createLoginLink), opened in new tab via window.open
+- [Phase 25]: Staged file upload pattern (no auto-upload) for maintenance photos -- simpler than Dropzone
+- [Phase 25]: Photo upload failures non-blocking -- request creation succeeds even if photo upload fails
 
 ### Stubs to Eliminate (v1.3 scope)
 
@@ -88,6 +90,6 @@ Progress: [█████████░] 95%
 
 ## Session Continuity
 
-Last session: 2026-03-18T19:07:30.685Z
-Stopped at: Completed 25-02-PLAN.md
+Last session: 2026-03-18T19:18:40.457Z
+Stopped at: Completed 25-01-PLAN.md
 Resume file: None
