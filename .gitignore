@@ -309,3 +309,5 @@ tenants-page
 
 # Lefthook local overrides
 .lefthook-local.yml
+docs/
+.env.example

@@ -105,6 +105,26 @@ export async function proxy(
     )
   }
 
+  // Subscription gate: OWNER who has never subscribed (no stripe_customer_id)
+  // must complete checkout before accessing the dashboard.
+  // Lapsed subscriptions (canceled/unpaid) are handled client-side by
+  // SubscriptionStatusBanner since they still have a stripe_customer_id.
+  // Allowlist: /pricing (plan selection), /billing/checkout and /billing/plans
+  // (Stripe checkout flow), /auth/* (already public, defense-in-depth).
+  if (
+    userType === 'OWNER' &&
+    !user.app_metadata?.stripe_customer_id &&
+    !pathname.startsWith('/pricing') &&
+    !pathname.startsWith('/billing/checkout') &&
+    !pathname.startsWith('/billing/plans') &&
+    !pathname.startsWith('/auth/')
+  ) {
+    return redirectWithCookies(
+      new URL('/pricing', request.url),
+      supabaseResponse
+    )
+  }
+
   return supabaseResponse
 }
 
