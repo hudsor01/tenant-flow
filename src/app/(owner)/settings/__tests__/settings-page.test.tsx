@@ -219,6 +219,10 @@ vi.mock('#hooks/api/use-stripe-connect', () => ({
 	useRefreshOnboardingMutation: () => ({
 		mutateAsync: vi.fn(),
 		isPending: false
+	}),
+	useStripeDashboardLink: () => ({
+		mutate: vi.fn(),
+		isPending: false
 	})
 }))
 

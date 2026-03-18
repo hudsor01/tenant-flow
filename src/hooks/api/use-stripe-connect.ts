@@ -144,6 +144,14 @@ const stripeConnectMutationFactories = {
 				window.location.href = result.onboardingUrl
 				return result
 			}
+		}),
+
+	dashboardLink: () =>
+		mutationOptions<{ url: string }, unknown, void>({
+			mutationKey: mutationKeys.stripeConnect.dashboardLink,
+			mutationFn: async () => {
+				return callStripeConnectFunction<{ url: string }>('login-link')
+			}
 		})
 }
 
@@ -196,6 +204,22 @@ export function useRefreshOnboardingMutation() {
 				error,
 				'Refresh onboarding link',
 				'Unable to connect to Stripe -- try again'
+			)
+		},
+	})
+}
+
+export function useStripeDashboardLink() {
+	return useMutation({
+		...stripeConnectMutationFactories.dashboardLink(),
+		onSuccess: (data) => {
+			window.open(data.url, '_blank')
+		},
+		onError: (error) => {
+			handleMutationError(
+				error,
+				'Open Stripe Dashboard',
+				'Unable to open Stripe Dashboard -- try again'
 			)
 		},
 	})
