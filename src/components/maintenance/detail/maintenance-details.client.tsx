@@ -117,7 +117,7 @@ export function MaintenanceDetails({ id }: MaintenanceDetailsProps) {
 					onRefresh={handleRefresh}
 				/>
 
-				<PhotosCard />
+				<PhotosCard requestId={id} />
 			</div>
 
 			{/* Sidebar */}

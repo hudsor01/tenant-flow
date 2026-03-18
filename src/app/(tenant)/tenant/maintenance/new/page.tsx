@@ -2,12 +2,6 @@
 
 import type { FormEvent } from 'react'
 
-import {
-	Dropzone,
-	DropzoneContent,
-	DropzoneEmptyState
-} from '#components/ui/dropzone'
-import { useSupabaseUpload } from '#hooks/use-supabase-upload'
 import { Button } from '#components/ui/button'
 import { Input } from '#components/ui/input'
 import {
@@ -21,11 +15,15 @@ import { CardLayout } from '#components/ui/card-layout'
 import { Field, FieldLabel } from '#components/ui/field'
 import { useMaintenanceRequestCreateMutation } from '#hooks/api/use-tenant-maintenance'
 import { handleMutationError } from '#lib/mutation-error-handler'
-import { ArrowLeft } from 'lucide-react'
+import { ArrowLeft, Camera, X } from 'lucide-react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { useState } from 'react'
+import { useCallback, useState } from 'react'
 import { toast } from 'sonner'
+
+const ACCEPTED_TYPES = ['image/jpeg', 'image/png', 'image/webp']
+const MAX_FILES = 5
+const MAX_SIZE = 5 * 1024 * 1024 // 5MB
 
 export default function NewMaintenanceRequestPage() {
 	const router = useRouter()
@@ -39,15 +37,41 @@ export default function NewMaintenanceRequestPage() {
 		allowEntry: true
 	})
 
-	const upload = useSupabaseUpload({
-		bucketName: 'maintenance-photos',
-		path: 'maintenance_requests',
-		allowedMimeTypes: ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'],
-		maxFileSize: 5 * 1024 * 1024,
-		maxFiles: 5,
-		cacheControl: 3600,
-		upsert: false
-	})
+	const [stagedFiles, setStagedFiles] = useState<File[]>([])
+
+	const handleFilesSelected = useCallback(
+		(e: React.ChangeEvent<HTMLInputElement>) => {
+			const selected = Array.from(e.target.files ?? [])
+			const valid = selected.filter(f => {
+				if (!ACCEPTED_TYPES.includes(f.type)) {
+					toast.error(`${f.name}: unsupported file type`)
+					return false
+				}
+				if (f.size > MAX_SIZE) {
+					toast.error(`${f.name}: exceeds 5MB limit`)
+					return false
+				}
+				return true
+			})
+
+			setStagedFiles(prev => {
+				const combined = [...prev, ...valid]
+				if (combined.length > MAX_FILES) {
+					toast.error(`Maximum ${MAX_FILES} photos allowed`)
+					return combined.slice(0, MAX_FILES)
+				}
+				return combined
+			})
+
+			// Reset input so same file can be re-selected
+			e.target.value = ''
+		},
+		[]
+	)
+
+	const removeFile = useCallback((index: number) => {
+		setStagedFiles(prev => prev.filter((_, i) => i !== index))
+	}, [])
 
 	const handleSubmit = async (e: FormEvent) => {
 		e.preventDefault()
@@ -77,24 +101,13 @@ export default function NewMaintenanceRequestPage() {
 			safety: 'SAFETY', general: 'GENERAL', other: 'OTHER'
 		}
 
-		const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-		if (!supabaseUrl) {
-			toast.error('Application configuration error. Please contact support.')
-			return
-		}
-
-		const photoUrls = upload.successes.map(fileName => {
-			const baseUrl = `${supabaseUrl}/storage/v1/object/public/maintenance-photos/maintenance_requests/`
-			return `${baseUrl}${fileName}`
-		})
-
 		const requestData = {
 			title: formData.title,
 			description: formData.description,
 			priority: priorityMap[formData.priority] || 'normal',
 			category: categoryMap[formData.category] || 'GENERAL',
 			allowEntry: formData.allowEntry,
-			photos: photoUrls
+			...(stagedFiles.length > 0 ? { stagedFiles } : {})
 		}
 
 		try {
@@ -213,19 +226,47 @@ export default function NewMaintenanceRequestPage() {
 					</Field>
 
 					<Field>
-						<FieldLabel>Photos (Optional)</FieldLabel>
-						<Dropzone {...upload}>
-							<DropzoneEmptyState />
-							<DropzoneContent />
-						</Dropzone>
+						<FieldLabel>Photos (Optional, max {MAX_FILES})</FieldLabel>
+						<div className="space-y-3">
+							{stagedFiles.length > 0 && (
+								<div className="grid grid-cols-3 sm:grid-cols-5 gap-2">
+									{stagedFiles.map((file, index) => (
+										<div key={`${file.name}-${index}`} className="relative group">
+											<img
+												src={URL.createObjectURL(file)}
+												alt={file.name}
+												className="rounded-md object-cover aspect-square w-full"
+											/>
+											<button
+												type="button"
+												onClick={() => removeFile(index)}
+												className="absolute -top-1.5 -right-1.5 rounded-full bg-destructive text-destructive-foreground p-0.5 opacity-0 group-hover:opacity-100 transition-opacity"
+												aria-label={`Remove ${file.name}`}
+											>
+												<X className="size-3.5" />
+											</button>
+										</div>
+									))}
+								</div>
+							)}
+
+							{stagedFiles.length < MAX_FILES && (
+								<label className="flex items-center justify-center gap-2 border-2 border-dashed border-muted-foreground/25 rounded-lg p-4 cursor-pointer hover:border-primary/50 transition-colors">
+									<Camera className="size-5 text-muted-foreground" />
+									<span className="text-sm text-muted-foreground">
+										{stagedFiles.length === 0 ? 'Add photos' : 'Add more photos'}
+									</span>
+									<input
+										type="file"
+										accept="image/jpeg,image/png,image/webp"
+										multiple
+										onChange={handleFilesSelected}
+										className="sr-only"
+									/>
+								</label>
+							)}
+						</div>
 					</Field>
-					<div className="flex gap-4 pt-2 mb-4">
-						{upload.files.length > 0 && !upload.isSuccess && (
-							<Button type="button" variant="outline" size="sm" onClick={upload.onUpload} disabled={upload.loading}>
-								{upload.loading ? 'Uploading...' : `Upload ${upload.files.length} photo(s)`}
-							</Button>
-						)}
-					</div>
 
 					<div className="flex gap-4 pt-4">
 						<Link href="/tenant/maintenance" className="flex-1">

@@ -61,7 +61,7 @@ export interface MaintenanceRequestCreate {
 	priority: MaintenancePriority
 	category?: MaintenanceCategory
 	allowEntry: boolean
-	photos?: string[]
+	stagedFiles?: File[]
 }
 
 // ============================================================================
@@ -181,6 +181,9 @@ const tenantMaintenanceMutationFactories = {
 
 				const leaseData = lease as Record<string, unknown>
 
+				const { data: userData } = await supabase.auth.getUser()
+				const userId = userData?.user?.id ?? null
+
 				const { data, error } = await supabase
 					.from('maintenance_requests')
 					.insert({
@@ -198,8 +201,41 @@ const tenantMaintenanceMutationFactories = {
 				if (error) throw new Error(error.message)
 
 				const row = data as Record<string, unknown>
+				const requestId = row.id as string
+
+				// Upload photos after request creation (non-blocking failures)
+				const files = request.stagedFiles ?? []
+				for (const file of files.slice(0, 5)) {
+					try {
+						const ext = file.name.split('.').pop() ?? 'jpg'
+						const storagePath = `${requestId}/${crypto.randomUUID()}.${ext}`
+
+						const { error: uploadError } = await supabase.storage
+							.from('maintenance-photos')
+							.upload(storagePath, file)
+
+						if (uploadError) {
+							console.error('Photo upload failed:', uploadError.message)
+							continue
+						}
+
+						await supabase
+							.from('maintenance_request_photos')
+							.insert({
+								maintenance_request_id: requestId,
+								storage_path: storagePath,
+								file_name: file.name,
+								file_size: file.size,
+								mime_type: file.type || 'image/jpeg',
+								uploaded_by: userId
+							})
+					} catch (photoErr) {
+						console.error('Photo processing failed:', photoErr)
+					}
+				}
+
 				return {
-					id: row.id as string,
+					id: requestId,
 					title: row.title as string,
 					description: row.description as string | null,
 					priority: row.priority as MaintenancePriority,

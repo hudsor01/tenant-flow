@@ -36,7 +36,7 @@ Requirements for Stub Elimination. Each replaces a placeholder/toast with a real
 
 ### Stripe Integration
 
-- [ ] **STRIPE-01**: Owner can access Stripe Express Dashboard via login link from connect status page
+- [x] **STRIPE-01**: Owner can access Stripe Express Dashboard via login link from connect status page
 
 ## Future Requirements
 
@@ -78,7 +78,7 @@ Requirements for Stub Elimination. Each replaces a placeholder/toast with a real
 | PROP-02 | Phase 24 | Complete |
 | MAINT-01 | Phase 25 | Pending |
 | MAINT-02 | Phase 25 | Pending |
-| STRIPE-01 | Phase 25 | Pending |
+| STRIPE-01 | Phase 25 | Complete |
 
 **Coverage:**
 - v1.3 requirements: 13 total
