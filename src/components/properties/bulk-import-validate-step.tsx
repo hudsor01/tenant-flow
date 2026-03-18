@@ -12,13 +12,18 @@ import { Badge } from '#components/ui/badge'
 
 interface BulkImportValidateStepProps {
 	file: File
-	parsedData: ParsedRow[]
+	parseResult: {
+		rows: ParsedRow[]
+		tooManyRows: boolean
+		totalRowCount: number
+	} | null
 }
 
 export function BulkImportValidateStep({
 	file,
-	parsedData
+	parseResult
 }: BulkImportValidateStepProps) {
+	const parsedData = parseResult?.rows ?? []
 	const errorCount = parsedData.filter(row => row.errors.length > 0).length
 	const validCount = parsedData.length - errorCount
 	const hasErrors = errorCount > 0
@@ -45,6 +50,21 @@ export function BulkImportValidateStep({
 					</Badge>
 				</div>
 			</div>
+
+			{/* Too Many Rows Warning */}
+			{parseResult?.tooManyRows && (
+				<div className="flex items-start gap-3 p-3 rounded-lg bg-warning/10 border border-warning/30">
+					<AlertTriangle className="size-4 text-warning shrink-0 mt-0.5" />
+					<div>
+						<p className="typography-small text-warning-foreground">
+							Too many rows
+						</p>
+						<p className="text-xs text-muted-foreground mt-0.5">
+							Your CSV has {parseResult.totalRowCount} rows. Maximum is 100 rows per import. Only the first 100 rows are shown.
+						</p>
+					</div>
+				</div>
+			)}
 
 			{/* Validation Summary */}
 			<div className="grid grid-cols-2 gap-3">
@@ -94,15 +114,14 @@ export function BulkImportValidateStep({
 
 			{/* Error Alert Banner */}
 			{hasErrors && (
-				<div className="flex items-start gap-3 p-3 rounded-lg bg-warning/10 border border-warning/30">
-					<AlertCircle className="size-4 text-warning shrink-0 mt-0.5" />
+				<div className="flex items-start gap-3 p-3 rounded-lg bg-destructive/10 border border-destructive/30">
+					<AlertCircle className="size-4 text-destructive shrink-0 mt-0.5" />
 					<div>
-						<p className="typography-small text-warning-foreground">
-							{errorCount} row{errorCount > 1 ? 's' : ''} need attention
+						<p className="typography-small text-destructive">
+							{errorCount} row{errorCount > 1 ? 's' : ''} have errors
 						</p>
 						<p className="text-xs text-muted-foreground mt-0.5">
-							Fix the highlighted errors before importing. Rows with errors will
-							be skipped.
+							Fix errors in your CSV and re-upload. All rows must be valid before importing.
 						</p>
 					</div>
 				</div>
@@ -133,13 +152,16 @@ export function BulkImportValidateStep({
 										Name
 									</th>
 									<th className="px-4 py-3 text-left font-semibold text-xs uppercase tracking-wider text-muted-foreground">
-										Address
+										Address Line 1
 									</th>
 									<th className="px-4 py-3 text-left font-semibold text-xs uppercase tracking-wider text-muted-foreground">
 										City
 									</th>
 									<th className="px-4 py-3 text-left font-semibold text-xs uppercase tracking-wider text-muted-foreground w-20">
 										State
+									</th>
+									<th className="px-4 py-3 text-left font-semibold text-xs uppercase tracking-wider text-muted-foreground w-28">
+										Type
 									</th>
 									<th className="px-4 py-3 text-left font-semibold text-xs uppercase tracking-wider text-muted-foreground w-32">
 										Status
@@ -167,7 +189,7 @@ export function BulkImportValidateStep({
 												!row.data.name && 'text-muted-foreground italic'
 											)}
 										>
-											{row.data.name || '—'}
+											{row.data.name || '\u2014'}
 										</td>
 										<td
 											className={cn(
@@ -175,7 +197,7 @@ export function BulkImportValidateStep({
 												!row.data.address_line1 && 'text-muted-foreground italic'
 											)}
 										>
-											{row.data.address_line1 || '—'}
+											{row.data.address_line1 || '\u2014'}
 										</td>
 										<td
 											className={cn(
@@ -183,7 +205,7 @@ export function BulkImportValidateStep({
 												!row.data.city && 'text-muted-foreground italic'
 											)}
 										>
-											{row.data.city || '—'}
+											{row.data.city || '\u2014'}
 										</td>
 										<td
 											className={cn(
@@ -191,20 +213,26 @@ export function BulkImportValidateStep({
 												!row.data.state && 'text-muted-foreground italic'
 											)}
 										>
-											{row.data.state || '—'}
+											{row.data.state || '\u2014'}
+										</td>
+										<td
+											className={cn(
+												'px-4 py-3 text-xs',
+												!row.data.property_type && 'text-muted-foreground italic'
+											)}
+										>
+											{row.data.property_type || '\u2014'}
 										</td>
 										<td className="px-4 py-3">
 											{row.errors.length > 0 ? (
-												<div className="flex items-center gap-2">
-													<div className="icon-container-sm bg-destructive/10 text-destructive shrink-0">
-														<X className="size-3" />
-													</div>
-													<span
-														className="text-xs text-destructive font-medium truncate max-w-24"
-														title={row.errors[0]?.message}
-													>
-														{row.errors[0]?.message}
-													</span>
+												<div className="space-y-1">
+													{row.errors.map((err, i) => (
+														<div key={i} className="flex items-center gap-1.5 text-xs text-destructive">
+															<X className="size-3 shrink-0" />
+															<span className="font-medium">{err.field}:</span>
+															<span>{err.message}</span>
+														</div>
+													))}
 												</div>
 											) : (
 												<div className="flex items-center gap-2">

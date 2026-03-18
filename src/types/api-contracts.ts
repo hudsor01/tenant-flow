@@ -1004,6 +1004,13 @@ export interface ParsedRow {
 	parsed: PropertyCreate | null
 }
 
+export interface ImportProgress {
+	current: number
+	total: number
+	succeeded: number
+	failed: number
+}
+
 export interface BulkImportStepperProps {
 	currentStep: ImportStep
 	onStepChange: (step: ImportStep) => void

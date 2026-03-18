@@ -2,27 +2,27 @@ import {
 	CheckCircle2,
 	XCircle,
 	Loader2,
-	Building2,
 	AlertTriangle,
 	PartyPopper
 } from 'lucide-react'
 import { Progress } from '#components/ui/progress'
-import type { BulkImportResult } from '#types/api-contracts'
+import type { BulkImportResult, ImportProgress } from '#types/api-contracts'
 import { cn } from '#lib/utils'
 
 interface BulkImportConfirmStepProps {
 	isImporting: boolean
-	uploadProgress: number
+	importProgress: ImportProgress | null
 	result: BulkImportResult | null
 }
 
 export function BulkImportConfirmStep({
 	isImporting,
-	uploadProgress,
+	importProgress,
 	result
 }: BulkImportConfirmStepProps) {
-	// Show ready state when not importing and no result yet
-	const showReadyState = !isImporting && !result
+	const progressPercent = importProgress
+		? (importProgress.current / importProgress.total) * 100
+		: 0
 
 	return (
 		<div className="space-y-5">
@@ -36,112 +36,49 @@ export function BulkImportConfirmStep({
 						<div className="flex-1">
 							<p className="text-sm font-semibold">Importing properties...</p>
 							<p className="text-xs text-muted-foreground mt-0.5">
-								Please wait while we process your file
+								{importProgress
+									? `Importing property ${importProgress.current} of ${importProgress.total}`
+									: 'Preparing import...'}
 							</p>
 						</div>
-						<span className="typography-h3 text-primary tabular-nums">
-							{uploadProgress}%
-						</span>
+						{importProgress && (
+							<span className="typography-h3 text-primary tabular-nums">
+								{importProgress.current}/{importProgress.total}
+							</span>
+						)}
 					</div>
 
 					<div className="space-y-2">
 						<Progress
-							value={uploadProgress}
+							value={progressPercent}
 							variant="default"
 							size="lg"
 							className="h-3"
 						/>
 						<div className="flex justify-between text-xs text-muted-foreground">
-							<span>Processing CSV data</span>
-							<span>
-								{uploadProgress < 100 ? 'In progress...' : 'Finalizing...'}
-							</span>
+							{importProgress ? (
+								<>
+									<span>
+										{importProgress.succeeded} succeeded
+										{importProgress.failed > 0 && `, ${importProgress.failed} failed`}
+									</span>
+									<span>
+										{Math.round(progressPercent)}%
+									</span>
+								</>
+							) : (
+								<>
+									<span>Processing CSV data</span>
+									<span>Starting...</span>
+								</>
+							)}
 						</div>
 					</div>
-
-					{/* Progress Steps */}
-					<div className="grid grid-cols-3 gap-2 pt-2">
-						<ProgressStep
-							label="Upload"
-							isComplete={uploadProgress >= 30}
-							isActive={uploadProgress < 30}
-						/>
-						<ProgressStep
-							label="Validate"
-							isComplete={uploadProgress >= 70}
-							isActive={uploadProgress >= 30 && uploadProgress < 70}
-						/>
-						<ProgressStep
-							label="Import"
-							isComplete={uploadProgress >= 100}
-							isActive={uploadProgress >= 70 && uploadProgress < 100}
-						/>
-					</div>
-				</div>
-			)}
-
-			{/* Ready State */}
-			{showReadyState && (
-				<div className="card-standard p-8 text-center bg-linear-to-b from-primary/5 to-transparent">
-					<div className="icon-container-lg bg-primary/10 text-primary border border-primary/20 mx-auto mb-4">
-						<Building2 className="size-7" />
-					</div>
-					<p className="typography-large">Ready to import</p>
-					<p className="text-sm text-muted-foreground mt-2 max-w-sm mx-auto">
-						Click the button below to add your properties to your portfolio
-					</p>
 				</div>
 			)}
 
 			{/* Result Panel */}
 			{result && <BulkImportResultPanel result={result} />}
-		</div>
-	)
-}
-
-function ProgressStep({
-	label,
-	isComplete,
-	isActive
-}: {
-	label: string
-	isComplete: boolean
-	isActive: boolean
-}) {
-	return (
-		<div
-			className={cn(
-				'flex flex-col items-center gap-1.5 p-2 rounded-lg transition-colors',
-				isComplete && 'bg-success/10',
-				isActive && 'bg-primary/10'
-			)}
-		>
-			<div
-				className={cn(
-					'size-6 rounded-full flex items-center justify-center text-xs font-bold transition-all',
-					isComplete && 'bg-success text-success-foreground',
-					isActive && 'bg-primary text-primary-foreground animate-pulse',
-					!isComplete && !isActive && 'bg-muted text-muted-foreground'
-				)}
-			>
-				{isComplete ? (
-					<CheckCircle2 className="size-4" />
-				) : isActive ? (
-					<Loader2 className="size-3.5 animate-spin" />
-				) : (
-					<span className="size-2 rounded-full bg-current" />
-				)}
-			</div>
-			<span
-				className={cn(
-					'text-xs font-medium',
-					isComplete && 'text-success',
-					isActive && 'text-primary',
-					!isComplete && !isActive && 'text-muted-foreground'
-				)}
-			>
-				{label}
-			</span>
 		</div>
 	)
 }
