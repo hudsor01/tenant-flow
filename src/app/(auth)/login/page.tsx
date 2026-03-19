@@ -12,6 +12,7 @@ import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Suspense, useEffect, useState } from 'react'
 import { LoginForm } from './login-form'
+import { SOCIAL_PROOF } from '#config/social-proof'
 import { LoginOAuth } from './login-oauth'
 
 const logger = createLogger({ component: 'LoginPage' })
@@ -171,7 +172,7 @@ function LoginPageContent() {
 								</div>
 								<h2 className="text-foreground font-bold text-xl">Your Success Dashboard Awaits</h2>
 								<p className="text-muted-foreground max-w-md mx-auto text-base">
-									Join 10,000+ property managers who check their dashboard daily to see vacancy rates drop, NOI increase, and hours saved multiply.
+									{`Join ${SOCIAL_PROOF.managerCount} property managers who check their dashboard daily to see vacancy rates drop, NOI increase, and hours saved multiply.`}
 								</p>
 								<div className="grid grid-cols-3 gap-6 pt-6">
 									{HERO_STATS.map(stat => (

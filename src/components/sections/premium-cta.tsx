@@ -3,6 +3,7 @@ import { Button } from '#components/ui/button'
 import { GlowingEffect } from '#components/ui/glowing-effect'
 import { cn } from '#lib/utils'
 import { ArrowRight, Check, Clock, TrendingUp } from 'lucide-react'
+import { SOCIAL_PROOF } from '#config/social-proof'
 import Link from 'next/link'
 
 interface PremiumCtaProps {
@@ -38,8 +39,7 @@ export function PremiumCta({ className }: PremiumCtaProps) {
 					{/* Value Proposition */}
 					<BlurFade delay={0.2} inView>
 						<p className="text-responsive-h1 text-muted-foreground leading-relaxed mb-10 max-w-4xl mx-auto font-light">
-							Join 2,847 property managers saving 20+ hours weekly and
-							increasing NOI by 40%.
+							{`Join ${SOCIAL_PROOF.managerCount} property managers saving ${SOCIAL_PROOF.hoursSavedWeekly} hours weekly and increasing NOI by ${SOCIAL_PROOF.noiIncrease}.`}
 							<span className="block mt-3 text-foreground font-medium">
 								Your transformation starts with a 14-day free trial.
 							</span>

@@ -140,7 +140,7 @@ export function Tenants({
 			<BlurFade delay={0.1} inView>
 				<div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
 					<div>
-						<h1 className="text-2xl font-bold text-foreground">Tenants</h1>
+						<h1 className="typography-h1">Tenants</h1>
 						<p className="text-sm text-muted-foreground mt-1">
 							Manage tenants and send invitations
 						</p>

@@ -65,7 +65,7 @@ export default function PropertyPerformancePage() {
 			<div className="p-6 lg:p-8 bg-background min-h-full">
 				<BlurFade delay={0.1} inView>
 					<div className="flex flex-col gap-2 mb-6">
-						<h1 className="text-2xl font-semibold text-foreground">Property Performance</h1>
+						<h1 className="typography-h1">Property Performance</h1>
 						<p className="text-muted-foreground">Monitor occupancy, revenue, and demand signals across your portfolio.</p>
 					</div>
 				</BlurFade>
@@ -86,7 +86,7 @@ export default function PropertyPerformancePage() {
 		<div className="p-6 lg:p-8 bg-background min-h-full">
 			<BlurFade delay={0.1} inView>
 				<div className="flex flex-col gap-2 mb-6">
-					<h1 className="text-2xl font-semibold text-foreground">Property Performance</h1>
+					<h1 className="typography-h1">Property Performance</h1>
 					<p className="text-muted-foreground">Monitor occupancy, revenue, and demand signals across your portfolio.</p>
 				</div>
 			</BlurFade>

@@ -134,7 +134,7 @@ export function BulkImportUploadStep({
 								Required Fields
 							</p>
 							<p className="text-xs text-muted-foreground">
-								name, address, city, state, postal_code
+								name, address_line1, city, state, postal_code, property_type
 							</p>
 						</div>
 					</div>
@@ -147,7 +147,7 @@ export function BulkImportUploadStep({
 								Optional Fields
 							</p>
 							<p className="text-xs text-muted-foreground">
-								property_type, description
+								address_line2, country (defaults to US)
 							</p>
 						</div>
 					</div>

@@ -15,8 +15,6 @@ import {
 	YAxis
 } from 'recharts'
 
-import { Badge } from '#components/ui/badge'
-import { CardDescription } from '#components/ui/card'
 import {
 	ChartContainer,
 	ChartLegend,
@@ -26,12 +24,20 @@ import {
 	type ChartConfig
 } from '#components/ui/chart'
 import {
+	Empty,
+	EmptyDescription,
+	EmptyHeader,
+	EmptyMedia,
+	EmptyTitle
+} from '#components/ui/empty'
+import {
 	Select,
 	SelectContent,
 	SelectItem,
 	SelectTrigger,
 	SelectValue
 } from '#components/ui/select'
+import { TrendingUp } from 'lucide-react'
 
 const billingTimelineConfig = {
 	invoiced: { label: 'Invoiced', color: 'oklch(0.72 0.08 45)' },
@@ -43,24 +49,23 @@ const noiConfig = {
 	noi: { label: 'NOI', color: 'oklch(0.68 0.1 255)' }
 } satisfies ChartConfig
 
-function EmptyState({ message }: { message: string }) {
-	return (
-		<div className="flex h-70 flex-col items-center justify-center rounded-lg border border-dashed">
-			<Badge variant="outline" className="mb-2">
-				No data
-			</Badge>
-			<CardDescription className="text-center text-muted-foreground">
-				{message}
-			</CardDescription>
-		</div>
-	)
-}
-
 type NetOperatingIncomeChartProps = { data: NetOperatingIncomeByProperty[] }
 
 export function NetOperatingIncomeChart({ data }: NetOperatingIncomeChartProps) {
 	if (!data || data.length === 0) {
-		return <EmptyState message="We couldn't find NOI data for your properties." />
+		return (
+			<Empty className="py-12">
+				<EmptyHeader>
+					<EmptyMedia variant="icon">
+						<TrendingUp />
+					</EmptyMedia>
+					<EmptyTitle>No financial data</EmptyTitle>
+					<EmptyDescription>
+						Financial trends will appear once transactions are recorded
+					</EmptyDescription>
+				</EmptyHeader>
+			</Empty>
+		)
 	}
 
 	const chartData = data.map(item => ({
@@ -114,7 +119,19 @@ export function BillingTimelineChart({ data }: BillingTimelineChartProps) {
 
 	const timeline = data?.points ?? []
 	if (!timeline.length) {
-		return <EmptyState message="We couldn't find billing activity for the selected period." />
+		return (
+			<Empty className="py-12">
+				<EmptyHeader>
+					<EmptyMedia variant="icon">
+						<TrendingUp />
+					</EmptyMedia>
+					<EmptyTitle>No financial data</EmptyTitle>
+					<EmptyDescription>
+						Financial trends will appear once transactions are recorded
+					</EmptyDescription>
+				</EmptyHeader>
+			</Empty>
+		)
 	}
 
 	return (

@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { ArrowRight, Check } from 'lucide-react'
 import { Button } from '#components/ui/button'
 import { BlurFade } from '#components/ui/blur-fade'
+import { SOCIAL_PROOF } from '#config/social-proof'
 import { LazySection } from '#components/ui/lazy-section'
 import { SectionSkeleton } from '#components/ui/section-skeleton'
 
@@ -32,8 +33,7 @@ export function FinalCtaSection() {
 							</h2>
 
 							<p className="text-muted-foreground leading-relaxed max-w-3xl mx-auto text-xl">
-								Join 10,000+ property managers who&apos;ve transformed their
-								portfolios with TenantFlow.
+								{`Join ${SOCIAL_PROOF.managerCount} property managers who've transformed their portfolios with TenantFlow.`}
 								<span className="block mt-2 text-foreground font-semibold">
 									ROI guaranteed in 90 days or your money back.
 								</span>

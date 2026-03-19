@@ -2,6 +2,7 @@ import { PageLayout } from '#components/layout/page-layout'
 import { Badge } from '#components/ui/badge'
 import { CheckCircle2 } from 'lucide-react'
 import { TestimonialsSection } from '#components/sections/testimonials-section'
+import { SOCIAL_PROOF } from '#config/social-proof'
 import { PricingSection } from './_components/pricing-section'
 import {
 	PricingCtaSection,
@@ -117,7 +118,7 @@ export default async function PricingPage() {
 								className="h-2 w-2 rounded-full bg-primary animate-pulse"
 								aria-hidden="true"
 							/>
-							Trusted by 35,000+ property professionals
+							{`Trusted by ${SOCIAL_PROOF.managerCount} property professionals`}
 						</Badge>
 						<h1 className="text-balance typography-h1 tracking-tight text-foreground sm:text-5xl lg:text-6xl">
 							Simple, transparent pricing for{' '}

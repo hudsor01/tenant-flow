@@ -17,23 +17,25 @@ import {
 	Upload,
 	FileCheck,
 	CheckCheck,
-	ArrowLeft,
-	Loader2,
-	Building2
+	ArrowLeft
 } from 'lucide-react'
-import { useState, useRef } from 'react'
+import { useState } from 'react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { propertyQueries } from '#hooks/api/query-keys/property-keys'
+import { ownerDashboardKeys } from '#hooks/api/use-owner-dashboard'
+import { createClient } from '#lib/supabase/client'
 import { createLogger } from '#lib/frontend-logger'
 import type {
 	BulkImportResult,
 	ParsedRow,
-	ImportStep
+	ImportStep,
+	ImportProgress
 } from '#types/api-contracts'
+import type { PropertyCreate } from '#lib/validation/properties'
 import { BulkImportUploadStep } from './bulk-import-upload-step'
 import { BulkImportValidateStep } from './bulk-import-validate-step'
 import { BulkImportConfirmStep } from './bulk-import-confirm-step'
-import { parseCSVFile } from './csv-utils'
+import { parseAndValidateCSV } from './csv-utils'
 import { cn } from '#lib/utils'
 
 const logger = createLogger({ component: 'BulkImportStepper' })
@@ -50,75 +52,108 @@ export function BulkImportStepper({
 	onComplete
 }: BulkImportStepperProps) {
 	const [file, setFile] = useState<File | null>(null)
-	const [parsedData, setParsedData] = useState<ParsedRow[]>([])
-	const [uploadProgress, setUploadProgress] = useState(0)
+	const [parseResult, setParseResult] = useState<{
+		rows: ParsedRow[]
+		tooManyRows: boolean
+		totalRowCount: number
+	} | null>(null)
+	const [importProgress, setImportProgress] = useState<ImportProgress | null>(null)
 	const [result, setResult] = useState<BulkImportResult | null>(null)
-	const fileInputRef = useRef<HTMLInputElement>(null)
 	const queryClient = useQueryClient()
 
 	const bulkImportMutation = useMutation({
-		mutationFn: async (_uploadFile: File): Promise<BulkImportResult> => {
+		mutationFn: async (rows: PropertyCreate[]): Promise<BulkImportResult> => {
+			const supabase = createClient()
+			const { data: { user } } = await supabase.auth.getUser()
+			if (!user) throw new Error('Not authenticated')
+
+			const errors: Array<{ row: number; error: string }> = []
+			let succeeded = 0
+
+			for (let i = 0; i < rows.length; i++) {
+				const row = rows[i]
+				const { error } = await supabase
+					.from('properties')
+					.insert({ ...row, owner_user_id: user.id })
+
+				if (error) {
+					errors.push({ row: i + 1, error: error.message })
+				} else {
+					succeeded++
+				}
+
+				setImportProgress({
+					current: i + 1,
+					total: rows.length,
+					succeeded,
+					failed: errors.length,
+				})
+			}
+
 			return {
-				success: false,
-				imported: 0,
-				failed: 0,
-				errors: [{ row: 0, error: 'Bulk import is not yet available. Please add properties individually.' }]
+				success: errors.length === 0,
+				imported: succeeded,
+				failed: errors.length,
+				errors,
 			}
 		},
-		onSuccess: async data => {
+		onSuccess: async (data) => {
+			await queryClient.invalidateQueries({ queryKey: propertyQueries.lists() })
 			await queryClient.invalidateQueries({ queryKey: propertyQueries.all() })
+			await queryClient.invalidateQueries({ queryKey: ownerDashboardKeys.all })
 
+			setResult(data)
 			if (data.success && data.imported > 0) {
-				setResult(data)
 				setTimeout(() => {
 					onComplete()
 					resetDialog()
 				}, 2000)
-			} else {
-				setResult(data)
 			}
 		},
-		onError: error => {
+		onError: (error) => {
 			logger.error('Bulk import failed', { error })
-			setUploadProgress(0)
-		}
+			setImportProgress(null)
+		},
 	})
 
 	const resetDialog = () => {
 		setFile(null)
 		setResult(null)
 		onStepChange('upload')
-		setParsedData([])
-		setUploadProgress(0)
-		if (fileInputRef.current) {
-			fileInputRef.current.value = ''
-		}
+		setParseResult(null)
+		setImportProgress(null)
 	}
 
 	const handleFileSelect = async (selectedFile: File) => {
-			setFile(selectedFile)
-			setResult(null)
-			onStepChange('validate')
-
-			try {
-				const parsed = await parseCSVFile(selectedFile)
-				setParsedData(parsed)
-			} catch (error) {
-				logger.error('Failed to parse CSV', { error })
-				setParsedData([])
-			}
+		setFile(selectedFile)
+		setResult(null)
+		onStepChange('validate')
+		try {
+			const text = await selectedFile.text()
+			const parsed = parseAndValidateCSV(text)
+			setParseResult(parsed)
+		} catch (error) {
+			logger.error('Failed to parse CSV', { error })
+			setParseResult(null)
 		}
+	}
 
 	const handleUpload = async () => {
-		if (!file) return
+		if (!parseResult) return
+		const validRows = parseResult.rows
+			.filter(r => r.parsed !== null)
+			.map(r => r.parsed!)
+
+		if (validRows.length === 0) return
 
 		setResult(null)
+		setImportProgress(null)
 		onStepChange('confirm')
 
 		try {
-			logger.info('Starting bulk import', { fileName: file.name })
-			await bulkImportMutation.mutateAsync(file)
-			logger.info('Bulk import initiated successfully')
+			logger.info('Starting bulk import', { rowCount: validRows.length })
+			await bulkImportMutation.mutateAsync(validRows)
+			logger.info('Bulk import completed successfully')
 		} catch (error) {
 			logger.error('Bulk import mutation failed', { error })
 		}
@@ -128,13 +163,14 @@ export function BulkImportStepper({
 		if (currentStep === 'validate') {
 			onStepChange('upload')
 			setFile(null)
-			setParsedData([])
+			setParseResult(null)
 		} else if (currentStep === 'confirm') {
 			onStepChange('validate')
 		}
 	}
 
-	const validRowCount = parsedData.filter(row => row.errors.length === 0).length
+	const validRowCount = parseResult?.rows.filter(r => r.errors.length === 0).length ?? 0
+	const hasErrors = parseResult?.rows.some(r => r.errors.length > 0) ?? false
 
 	const triggerCls = cn(
 		'w-full rounded-lg p-3 transition-all duration-200 hover:bg-background/80',
@@ -185,7 +221,7 @@ export function BulkImportStepper({
 					className="animate-in fade-in slide-in-from-right-4 duration-300"
 				>
 					{file && (
-						<BulkImportValidateStep file={file} parsedData={parsedData} />
+						<BulkImportValidateStep file={file} parseResult={parseResult} />
 					)}
 				</StepperContent>
 
@@ -195,7 +231,7 @@ export function BulkImportStepper({
 				>
 					<BulkImportConfirmStep
 						isImporting={bulkImportMutation.isPending}
-						uploadProgress={uploadProgress}
+						importProgress={importProgress}
 						result={result}
 					/>
 				</StepperContent>
@@ -216,39 +252,15 @@ export function BulkImportStepper({
 
 				{currentStep === 'validate' && (
 					<Button
-						onClick={() => onStepChange('confirm')}
-						disabled={validRowCount === 0}
+						onClick={handleUpload}
+						disabled={validRowCount === 0 || hasErrors || (parseResult?.tooManyRows ?? false) || bulkImportMutation.isPending}
 						className="gap-2 min-w-32"
 					>
-						Continue
-						{validRowCount > 0 && (
-							<span className="bg-primary-foreground/20 px-2 py-0.5 rounded text-xs">
-								{validRowCount} valid
-							</span>
-						)}
+						Import {validRowCount} Properties
 					</Button>
 				)}
 
-				{currentStep === 'confirm' && !result && (
-					<Button
-						onClick={handleUpload}
-						disabled={!file || bulkImportMutation.isPending}
-						className="gap-2 min-w-40"
-					>
-						{bulkImportMutation.isPending ? (
-							<>
-								<Loader2 className="size-4 animate-spin" />
-								Importing...
-							</>
-						) : (
-							<>
-								<Building2 className="size-4" />
-								Import Properties
-							</>
-						)}
-					</Button>
-				)}
-			</DialogFooter>
+				</DialogFooter>
 		</>
 	)
 }

@@ -27,9 +27,10 @@ import {
 	Zap
 } from 'lucide-react'
 import Link from 'next/link'
+import { SOCIAL_PROOF } from '#config/social-proof'
 
 const stats = [
-	{ number: '8,000+', label: 'Properties Managed', Icon: Building2 },
+	{ number: SOCIAL_PROOF.propertiesManaged, label: 'Properties Managed', Icon: Building2 },
 	{ number: '500+', label: 'Property Managers', Icon: Users },
 	{ number: '99.9%', label: 'Platform Uptime', Icon: Bolt },
 	{ number: '24/7', label: 'Customer Support', Icon: LifeBuoy }

@@ -1,6 +1,7 @@
 'use client'
 
 import { CreditCard } from 'lucide-react'
+import { Button } from '#components/ui/button'
 
 export function BalanceSheetError({
 	error,
@@ -21,12 +22,9 @@ export function BalanceSheetError({
 				<p className="text-muted-foreground mb-6">
 					{error instanceof Error ? error.message : 'An error occurred'}
 				</p>
-				<button
-					onClick={onRetryAction}
-					className="inline-flex items-center gap-2 px-6 py-3 bg-primary hover:bg-primary/90 text-primary-foreground font-medium rounded-md transition-colors"
-				>
+				<Button onClick={onRetryAction}>
 					Try Again
-				</button>
+				</Button>
 			</div>
 		</div>
 	)

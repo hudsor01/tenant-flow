@@ -4,7 +4,7 @@
  * Tests the CSV utility functions:
  * - buildCsvTemplate: Generates CSV content from headers and rows
  * - getFileValidationError: Validates file type and size
- * - parseCSVFile: Parses CSV content and validates rows
+ * - parseAndValidateCSV: Parses CSV content with Papa Parse + Zod validation
  *
  * @vitest-environment jsdom
  */
@@ -13,32 +13,24 @@ import { describe, it, expect } from 'vitest'
 import {
 	buildCsvTemplate,
 	getFileValidationError,
-	parseCSVFile,
+	parseAndValidateCSV,
 	CSV_TEMPLATE_HEADERS,
 	CSV_TEMPLATE_SAMPLE_ROWS,
 	CSV_ACCEPTED_MIME_TYPES,
-	CSV_MAX_FILE_SIZE_BYTES
+	CSV_MAX_FILE_SIZE_BYTES,
+	CSV_MAX_ROWS
 } from '../csv-utils'
-
-// Helper to create a File with working text() method
-function createMockFile(content: string, name: string, type: string): File {
-	const blob = new Blob([content], { type })
-	const file = new File([blob], name, { type })
-	// Mock the text() method since jsdom doesn't fully support it
-	file.text = () => Promise.resolve(content)
-	return file
-}
 
 describe('CSV Utilities', () => {
 	describe('buildCsvTemplate', () => {
 		it('generates CSV with headers and rows', () => {
-			const headers = ['name', 'address', 'city']
+			const headers = ['name', 'address_line1', 'city']
 			const rows = [['Property 1', '123 Main St', 'NYC']]
 
 			const result = buildCsvTemplate(headers, rows)
 
 			expect(result).toBe(
-				'"name","address","city"\n"Property 1","123 Main St","NYC"'
+				'"name","address_line1","city"\n"Property 1","123 Main St","NYC"'
 			)
 		})
 
@@ -57,12 +49,12 @@ describe('CSV Utilities', () => {
 		})
 
 		it('handles empty rows array', () => {
-			const headers = ['name', 'address']
+			const headers = ['name', 'address_line1']
 			const rows: string[][] = []
 
 			const result = buildCsvTemplate(headers, rows)
 
-			expect(result).toBe('"name","address"')
+			expect(result).toBe('"name","address_line1"')
 		})
 
 		it('properly quotes all values', () => {
@@ -81,9 +73,9 @@ describe('CSV Utilities', () => {
 			)
 
 			expect(result).toContain('"name"')
-			expect(result).toContain('"address"')
-			expect(result).toContain('"Sample Property 1"')
-			expect(result).toContain('"Sample Property 2"')
+			expect(result).toContain('"address_line1"')
+			expect(result).toContain('"Sunset Apartments"')
+			expect(result).toContain('"Oak House"')
 		})
 	})
 
@@ -123,7 +115,6 @@ describe('CSV Utilities', () => {
 		})
 
 		it('returns error for file exceeding size limit', () => {
-			// Create a small file but mock its size to exceed 5MB
 			const file = new File(['x'], 'large.csv', { type: 'text/csv' })
 			Object.defineProperty(file, 'size', {
 				value: CSV_MAX_FILE_SIZE_BYTES + 1
@@ -135,7 +126,6 @@ describe('CSV Utilities', () => {
 		})
 
 		it('returns null for file at exactly the size limit', () => {
-			// Create a small file but mock its size to be exactly at the limit
 			const file = new File(['x'], 'exact.csv', { type: 'text/csv' })
 			Object.defineProperty(file, 'size', { value: CSV_MAX_FILE_SIZE_BYTES })
 
@@ -145,8 +135,6 @@ describe('CSV Utilities', () => {
 		})
 
 		it('validates type before size', () => {
-			// Invalid type AND too large - should return type error first
-			// Use a small file but mock its size to exceed 5MB
 			const file = new File(['x'], 'large.txt', { type: 'text/plain' })
 			Object.defineProperty(file, 'size', {
 				value: CSV_MAX_FILE_SIZE_BYTES + 1
@@ -158,155 +146,223 @@ describe('CSV Utilities', () => {
 		})
 	})
 
-	describe('parseCSVFile', () => {
-		it('parses valid CSV with all required fields', async () => {
-			const csvContent = `name,address,city,state,postal_code
-Property 1,123 Main St,NYC,NY,10001`
-			const file = createMockFile(csvContent, 'test.csv', 'text/csv')
+	describe('parseAndValidateCSV', () => {
+		it('parses valid CSV with all required fields', () => {
+			const csvText = `name,address_line1,city,state,postal_code,property_type
+Sunset Apartments,123 Main St,San Francisco,CA,94105,APARTMENT`
 
-			const result = await parseCSVFile(file)
+			const result = parseAndValidateCSV(csvText)
 
-			expect(result).toHaveLength(1)
-			expect(result[0]).toEqual({
-				row: 1,
-				data: {
-					name: 'Property 1',
-					address: '123 Main St',
-					city: 'NYC',
-					state: 'NY',
-					postal_code: '10001'
-				},
-				errors: []
-			})
+			expect(result.rows).toHaveLength(1)
+			expect(result.rows[0]?.errors).toHaveLength(0)
+			expect(result.rows[0]?.parsed).not.toBeNull()
+			expect(result.rows[0]?.parsed?.name).toBe('Sunset Apartments')
+			expect(result.rows[0]?.parsed?.address_line1).toBe('123 Main St')
+			expect(result.rows[0]?.parsed?.city).toBe('San Francisco')
+			expect(result.rows[0]?.parsed?.state).toBe('CA')
+			expect(result.rows[0]?.parsed?.postal_code).toBe('94105')
+			expect(result.rows[0]?.parsed?.property_type).toBe('APARTMENT')
 		})
 
-		it('returns errors for missing required fields', async () => {
-			const csvContent = `name,address,city,state,postal_code
-,123 Main St,NYC,NY,10001`
-			const file = createMockFile(csvContent, 'test.csv', 'text/csv')
+		it('returns structured errors for missing required field (name)', () => {
+			const csvText = `name,address_line1,city,state,postal_code,property_type
+,123 Main St,San Francisco,CA,94105,APARTMENT`
 
-			const result = await parseCSVFile(file)
+			const result = parseAndValidateCSV(csvText)
 
-			expect(result).toHaveLength(1)
-			expect(result[0]?.errors).toContain('Missing name')
+			expect(result.rows).toHaveLength(1)
+			expect(result.rows[0]?.parsed).toBeNull()
+			expect(result.rows[0]?.errors.length).toBeGreaterThan(0)
+			const nameError = result.rows[0]?.errors.find(e => e.field === 'name')
+			expect(nameError).toBeDefined()
+			expect(nameError?.message).toBeTruthy()
 		})
 
-		it('returns multiple errors for multiple missing fields', async () => {
-			const csvContent = `name,address,city,state,postal_code
-,,,,`
-			const file = createMockFile(csvContent, 'test.csv', 'text/csv')
+		it('returns multiple errors for multiple missing fields', () => {
+			const csvText = `name,address_line1,city,state,postal_code,property_type
+,,,,, `
 
-			const result = await parseCSVFile(file)
+			const result = parseAndValidateCSV(csvText)
 
-			expect(result).toHaveLength(1)
-			expect(result[0]?.errors).toContain('Missing name')
-			expect(result[0]?.errors).toContain('Missing address')
-			expect(result[0]?.errors).toContain('Missing city')
-			expect(result[0]?.errors).toContain('Missing state')
-			expect(result[0]?.errors).toContain('Missing postal code')
+			expect(result.rows).toHaveLength(1)
+			expect(result.rows[0]?.parsed).toBeNull()
+			expect(result.rows[0]?.errors.length).toBeGreaterThanOrEqual(3)
+			// Each error has field and message
+			for (const error of result.rows[0]?.errors ?? []) {
+				expect(error.field).toBeTruthy()
+				expect(error.message).toBeTruthy()
+			}
 		})
 
-		it('parses multiple rows', async () => {
-			const csvContent = `name,address,city,state,postal_code
-Property 1,123 Main St,NYC,NY,10001
-Property 2,456 Oak Ave,LA,CA,90001`
-			const file = createMockFile(csvContent, 'test.csv', 'text/csv')
+		it('validates each row independently', () => {
+			const csvText = `name,address_line1,city,state,postal_code,property_type
+Sunset Apartments,123 Main St,San Francisco,CA,94105,APARTMENT
+,456 Oak Ave,Los Angeles,CA,90001,SINGLE_FAMILY`
 
-			const result = await parseCSVFile(file)
+			const result = parseAndValidateCSV(csvText)
 
-			expect(result).toHaveLength(2)
-			expect(result[0]?.data.name).toBe('Property 1')
-			expect(result[1]?.data.name).toBe('Property 2')
+			expect(result.rows).toHaveLength(2)
+			expect(result.rows[0]?.errors).toHaveLength(0)
+			expect(result.rows[0]?.parsed).not.toBeNull()
+			expect(result.rows[1]?.errors.length).toBeGreaterThan(0)
+			expect(result.rows[1]?.parsed).toBeNull()
 		})
 
-		it('limits preview to first 10 rows', async () => {
-			const rows = Array.from(
-				{ length: 15 },
-				(_, i) => `Property ${i + 1},Address ${i + 1},City,ST,${10000 + i}`
+		it('flags tooManyRows for 101+ rows and validates first 100', () => {
+			const dataRows = Array.from(
+				{ length: 150 },
+				(_, i) => `Property ${i + 1},${100 + i} Main St,City,CA,${90000 + i},APARTMENT`
 			).join('\n')
-			const csvContent = `name,address,city,state,postal_code\n${rows}`
-			const file = createMockFile(csvContent, 'test.csv', 'text/csv')
+			const csvText = `name,address_line1,city,state,postal_code,property_type\n${dataRows}`
 
-			const result = await parseCSVFile(file)
+			const result = parseAndValidateCSV(csvText)
 
-			expect(result).toHaveLength(10)
+			expect(result.tooManyRows).toBe(true)
+			expect(result.totalRowCount).toBe(150)
+			expect(result.rows).toHaveLength(100)
 		})
 
-		it('returns empty array for file with only headers', async () => {
-			const csvContent = `name,address,city,state,postal_code`
-			const file = createMockFile(csvContent, 'test.csv', 'text/csv')
+		it('returns empty result for empty CSV', () => {
+			const result = parseAndValidateCSV('')
 
-			const result = await parseCSVFile(file)
-
-			expect(result).toHaveLength(0)
+			expect(result.rows).toHaveLength(0)
+			expect(result.tooManyRows).toBe(false)
+			expect(result.totalRowCount).toBe(0)
 		})
 
-		it('returns empty array for empty file', async () => {
-			const file = createMockFile('', 'test.csv', 'text/csv')
+		it('returns empty result for headers-only CSV', () => {
+			const csvText = `name,address_line1,city,state,postal_code,property_type`
 
-			const result = await parseCSVFile(file)
+			const result = parseAndValidateCSV(csvText)
 
-			expect(result).toHaveLength(0)
+			expect(result.rows).toHaveLength(0)
+			expect(result.tooManyRows).toBe(false)
+			expect(result.totalRowCount).toBe(0)
 		})
 
-		it('handles quoted values correctly', async () => {
-			const csvContent = `name,address,city,state,postal_code
-"Property 1","123 Main St","NYC","NY","10001"`
-			const file = createMockFile(csvContent, 'test.csv', 'text/csv')
+		it('handles quoted values with commas correctly', () => {
+			const csvText = `name,address_line1,city,state,postal_code,property_type
+"Sunset Apartments","123 Main St, Suite 100",San Francisco,CA,94105,APARTMENT`
 
-			const result = await parseCSVFile(file)
+			const result = parseAndValidateCSV(csvText)
 
-			expect(result[0]?.data.name).toBe('Property 1')
-			expect(result[0]?.data.address).toBe('123 Main St')
+			expect(result.rows).toHaveLength(1)
+			expect(result.rows[0]?.data.address_line1).toBe('123 Main St, Suite 100')
+			expect(result.rows[0]?.errors).toHaveLength(0)
 		})
 
-		it('handles extra whitespace in values', async () => {
-			const csvContent = `name,address,city,state,postal_code
-  Property 1  ,  123 Main St  ,  NYC  ,  NY  ,  10001  `
-			const file = createMockFile(csvContent, 'test.csv', 'text/csv')
+		it('trims whitespace from values', () => {
+			const csvText = `name,address_line1,city,state,postal_code,property_type
+  Sunset Apartments  ,  123 Main St  ,  San Francisco  ,  CA  ,  94105  ,  APARTMENT  `
 
-			const result = await parseCSVFile(file)
+			const result = parseAndValidateCSV(csvText)
 
-			expect(result[0]?.data.name).toBe('Property 1')
-			expect(result[0]?.data.address).toBe('123 Main St')
+			expect(result.rows).toHaveLength(1)
+			expect(result.rows[0]?.parsed?.name).toBe('Sunset Apartments')
+			expect(result.rows[0]?.parsed?.address_line1).toBe('123 Main St')
+			expect(result.rows[0]?.parsed?.city).toBe('San Francisco')
 		})
 
-		it('handles optional fields', async () => {
-			const csvContent = `name,address,city,state,postal_code,property_type,description
-Property 1,123 Main St,NYC,NY,10001,APARTMENT,Nice place`
-			const file = createMockFile(csvContent, 'test.csv', 'text/csv')
+		it('normalizes state to uppercase', () => {
+			const csvText = `name,address_line1,city,state,postal_code,property_type
+Sunset Apartments,123 Main St,San Francisco,ca,94105,APARTMENT`
 
-			const result = await parseCSVFile(file)
+			const result = parseAndValidateCSV(csvText)
 
-			expect(result[0]?.data.property_type).toBe('APARTMENT')
-			expect(result[0]?.data.description).toBe('Nice place')
-			expect(result[0]?.errors).toHaveLength(0)
+			expect(result.rows[0]?.parsed?.state).toBe('CA')
 		})
 
-		it('assigns correct row numbers', async () => {
-			const csvContent = `name,address,city,state,postal_code
-Property 1,123 Main St,NYC,NY,10001
-Property 2,456 Oak Ave,LA,CA,90001
-Property 3,789 Pine Rd,CHI,IL,60601`
-			const file = createMockFile(csvContent, 'test.csv', 'text/csv')
+		it('normalizes property_type to uppercase', () => {
+			const csvText = `name,address_line1,city,state,postal_code,property_type
+Sunset Apartments,123 Main St,San Francisco,CA,94105,apartment`
 
-			const result = await parseCSVFile(file)
+			const result = parseAndValidateCSV(csvText)
 
-			expect(result[0]?.row).toBe(1)
-			expect(result[1]?.row).toBe(2)
-			expect(result[2]?.row).toBe(3)
+			expect(result.rows[0]?.parsed?.property_type).toBe('APARTMENT')
+		})
+
+		it('defaults country to US when empty', () => {
+			const csvText = `name,address_line1,city,state,postal_code,country,property_type
+Sunset Apartments,123 Main St,San Francisco,CA,94105,,APARTMENT`
+
+			const result = parseAndValidateCSV(csvText)
+
+			expect(result.rows[0]?.parsed?.country).toBe('US')
+		})
+
+		it('sets empty address_line2 to undefined', () => {
+			const csvText = `name,address_line1,address_line2,city,state,postal_code,property_type
+Sunset Apartments,123 Main St,,San Francisco,CA,94105,APARTMENT`
+
+			const result = parseAndValidateCSV(csvText)
+
+			expect(result.rows[0]?.parsed?.address_line2).toBeUndefined()
+		})
+
+		it('preserves non-empty address_line2', () => {
+			const csvText = `name,address_line1,address_line2,city,state,postal_code,property_type
+Oak House,456 Oak Ave,Unit B,Los Angeles,CA,90001,SINGLE_FAMILY`
+
+			const result = parseAndValidateCSV(csvText)
+
+			expect(result.rows[0]?.parsed?.address_line2).toBe('Unit B')
+		})
+
+		it('uses 1-based row numbers', () => {
+			const csvText = `name,address_line1,city,state,postal_code,property_type
+Property A,123 Main St,NYC,NY,10001,APARTMENT
+Property B,456 Oak Ave,LA,CA,90001,SINGLE_FAMILY
+Property C,789 Pine Rd,Chicago,IL,60601,CONDO`
+
+			const result = parseAndValidateCSV(csvText)
+
+			expect(result.rows[0]?.row).toBe(1)
+			expect(result.rows[1]?.row).toBe(2)
+			expect(result.rows[2]?.row).toBe(3)
+		})
+
+		it('normalizes header casing', () => {
+			const csvText = `Name,ADDRESS_LINE1,City,STATE,Postal_Code,Property_Type
+Sunset Apartments,123 Main St,San Francisco,CA,94105,APARTMENT`
+
+			const result = parseAndValidateCSV(csvText)
+
+			expect(result.rows[0]?.errors).toHaveLength(0)
+			expect(result.rows[0]?.parsed).not.toBeNull()
+		})
+
+		it('does not flag tooManyRows for exactly 100 rows', () => {
+			const dataRows = Array.from(
+				{ length: 100 },
+				(_, i) => `Property ${i + 1},${100 + i} Main St,City,CA,${90000 + i},APARTMENT`
+			).join('\n')
+			const csvText = `name,address_line1,city,state,postal_code,property_type\n${dataRows}`
+
+			const result = parseAndValidateCSV(csvText)
+
+			expect(result.tooManyRows).toBe(false)
+			expect(result.totalRowCount).toBe(100)
+			expect(result.rows).toHaveLength(100)
 		})
 	})
 
 	describe('Constants', () => {
 		it('has correct template headers', () => {
 			expect(CSV_TEMPLATE_HEADERS).toContain('name')
-			expect(CSV_TEMPLATE_HEADERS).toContain('address')
+			expect(CSV_TEMPLATE_HEADERS).toContain('address_line1')
+			expect(CSV_TEMPLATE_HEADERS).toContain('address_line2')
 			expect(CSV_TEMPLATE_HEADERS).toContain('city')
 			expect(CSV_TEMPLATE_HEADERS).toContain('state')
 			expect(CSV_TEMPLATE_HEADERS).toContain('postal_code')
+			expect(CSV_TEMPLATE_HEADERS).toContain('country')
 			expect(CSV_TEMPLATE_HEADERS).toContain('property_type')
-			expect(CSV_TEMPLATE_HEADERS).toContain('description')
+			// Old headers should NOT be present
+			expect(CSV_TEMPLATE_HEADERS).not.toContain('address')
+			expect(CSV_TEMPLATE_HEADERS).not.toContain('description')
+		})
+
+		it('has CSV_MAX_ROWS set to 100', () => {
+			expect(CSV_MAX_ROWS).toBe(100)
 		})
 
 		it('has correct accepted mime types', () => {

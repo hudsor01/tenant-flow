@@ -1,4 +1,5 @@
 import { TrendingDown } from 'lucide-react'
+import { Button } from '#components/ui/button'
 
 interface IncomeStatementPageErrorProps {
 	error: Error | null
@@ -21,12 +22,9 @@ export function IncomeStatementPageError({
 				<p className="text-muted-foreground mb-6">
 					{error instanceof Error ? error.message : 'An error occurred'}
 				</p>
-				<button
-					onClick={onRetry}
-					className="inline-flex items-center gap-2 px-6 py-3 bg-primary hover:bg-primary/90 text-primary-foreground font-medium rounded-md transition-colors"
-				>
+				<Button onClick={onRetry}>
 					Try Again
-				</button>
+				</Button>
 			</div>
 		</div>
 	)

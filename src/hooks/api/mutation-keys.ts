@@ -139,7 +139,8 @@ export const mutationKeys = {
 	// Stripe Connect
 	stripeConnect: {
 		createAccount: ['mutations', 'stripeConnect', 'createAccount'] as const,
-		refreshLink: ['mutations', 'stripeConnect', 'refreshLink'] as const
+		refreshLink: ['mutations', 'stripeConnect', 'refreshLink'] as const,
+		dashboardLink: ['mutations', 'stripeConnect', 'dashboardLink'] as const
 	},
 
 	// Identity Verification

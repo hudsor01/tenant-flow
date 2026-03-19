@@ -11,6 +11,7 @@ import { PageLayout } from '#components/layout/page-layout'
 import { Button } from '#components/ui/button'
 import { BlogCard } from '#components/blog/blog-card'
 import { BlogLoadingSkeleton } from '#components/shared/blog-loading-skeleton'
+import { SOCIAL_PROOF } from '#config/social-proof'
 import { useBlogBySlug, useBlogCategories, useRelatedPosts } from '#hooks/api/use-blogs'
 
 const MarkdownContent = dynamic(() => import('./markdown-content'), {
@@ -169,7 +170,7 @@ export default function BlogArticlePage() {
 						Ready to transform your property management?
 					</h3>
 					<p className="text-muted-foreground mb-6">
-						Join 10,000+ property managers using TenantFlow
+						{`Join ${SOCIAL_PROOF.managerCount} property managers using TenantFlow`}
 					</p>
 					<Button size="lg" className="px-8" asChild>
 						<Link href="/login">

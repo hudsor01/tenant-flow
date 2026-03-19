@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { toast } from 'sonner'
 import { Settings } from 'lucide-react'
+import { Button } from '#components/ui/button'
 import { BlurFade } from '#components/ui/blur-fade'
 import {
 	useConnectedAccount,
@@ -55,10 +56,10 @@ export default function BillingPage() {
 							Manage your Stripe account and payment settings.
 						</p>
 					</div>
-					<button className="inline-flex items-center gap-2 px-4 py-2.5 bg-card border border-border hover:bg-muted text-foreground font-medium rounded-lg transition-colors">
+					<Button variant="outline">
 						<Settings className="w-4 h-4" />
 						Settings
-					</button>
+					</Button>
 				</div>
 			</BlurFade>
 

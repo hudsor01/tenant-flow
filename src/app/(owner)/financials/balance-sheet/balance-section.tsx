@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import type { ElementType } from 'react'
 import { ChevronDown, ChevronRight } from 'lucide-react'
+import { Button } from '#components/ui/button'
 import { formatCents } from '#lib/formatters/currency'
 import type { FinancialLineItem } from '#types/financial-statements'
 
@@ -40,9 +41,10 @@ export function BalanceSection({
 			<div className="divide-y divide-border">
 				{items.map(section => (
 					<div key={section.label}>
-						<button
+						<Button
+							variant="ghost"
 							onClick={() => toggleExpanded(section.label)}
-							className="w-full flex items-center justify-between p-4 hover:bg-muted/30 transition-colors"
+							className="w-full flex items-center justify-between p-4 h-auto rounded-none"
 						>
 							<div className="flex items-center gap-2">
 								{expanded[section.label] ? (
@@ -55,7 +57,7 @@ export function BalanceSection({
 							<span className="text-sm font-medium tabular-nums">
 								{formatCents(section.subtotal * 100)}
 							</span>
-						</button>
+						</Button>
 						{expanded[section.label] && (
 							<div className="bg-muted/20 px-4 pb-4">
 								{section.items.map((item, idx) => (

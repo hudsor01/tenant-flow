@@ -7,12 +7,19 @@ import type {
 import { Area, AreaChart, CartesianGrid, Tooltip, XAxis, YAxis } from 'recharts'
 
 import { Badge } from '#components/ui/badge'
-import { CardDescription } from '#components/ui/card'
 import {
 	ChartContainer,
 	ChartTooltipContent,
 	type ChartConfig
 } from '#components/ui/chart'
+import {
+	Empty,
+	EmptyDescription,
+	EmptyHeader,
+	EmptyMedia,
+	EmptyTitle
+} from '#components/ui/empty'
+import { Building2 } from 'lucide-react'
 
 const occupancyConfig = {
 	occupancyRate: {
@@ -29,22 +36,21 @@ type VacancyListProps = {
 	entries: VacancyAnalysisEntry[]
 }
 
-function EmptyState({ message }: { message: string }) {
-	return (
-		<div className="flex h-60 flex-col items-center justify-center rounded-lg border border-dashed">
-			<Badge variant="outline" className="mb-2">
-				No data
-			</Badge>
-			<CardDescription className="max-w-sm text-center text-muted-foreground">
-				{message}
-			</CardDescription>
-		</div>
-	)
-}
-
 export function OccupancyTrendChart({ data }: OccupancyTrendChartProps) {
 	if (!data.length) {
-		return <EmptyState message="Occupancy trend data is not available yet." />
+		return (
+			<Empty className="py-12">
+				<EmptyHeader>
+					<EmptyMedia variant="icon">
+						<Building2 />
+					</EmptyMedia>
+					<EmptyTitle>No occupancy data</EmptyTitle>
+					<EmptyDescription>
+						Occupancy trends will appear once units are added
+					</EmptyDescription>
+				</EmptyHeader>
+			</Empty>
+		)
 	}
 
 	const chartData = data.map(point => ({
@@ -76,7 +82,17 @@ export function OccupancyTrendChart({ data }: OccupancyTrendChartProps) {
 export function VacancySummaryList({ entries }: VacancyListProps) {
 	if (!entries.length) {
 		return (
-			<EmptyState message="No vacancy analysis available for the selected filters." />
+			<Empty className="py-12">
+				<EmptyHeader>
+					<EmptyMedia variant="icon">
+						<Building2 />
+					</EmptyMedia>
+					<EmptyTitle>No occupancy data</EmptyTitle>
+					<EmptyDescription>
+						Occupancy trends will appear once units are added
+					</EmptyDescription>
+				</EmptyHeader>
+			</Empty>
 		)
 	}
 

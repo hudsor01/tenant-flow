@@ -1,6 +1,5 @@
 'use client'
 
-import { useState } from 'react'
 import {
 	Building2,
 	ExternalLink,
@@ -20,7 +19,8 @@ import { Skeleton } from '#components/ui/skeleton'
 import {
 	useConnectedAccount,
 	useConnectedAccountBalance,
-	useRefreshOnboardingMutation
+	useRefreshOnboardingMutation,
+	useStripeDashboardLink
 } from '#hooks/api/use-stripe-connect'
 import {
 	StatusBadge,
@@ -39,22 +39,13 @@ export function ConnectAccountStatus({
 	const { data: account, isLoading, error, refetch } = useConnectedAccount()
 	const { data: balance } = useConnectedAccountBalance()
 	const refreshOnboarding = useRefreshOnboardingMutation()
-	const [isOpeningDashboard, setIsOpeningDashboard] = useState(false)
+	const dashboardLink = useStripeDashboardLink()
 
 	const handleContinueSetup = async () => {
 		try {
 			await refreshOnboarding.mutateAsync()
 		} catch {
 			toast.error('Failed to get onboarding link. Please try again.')
-		}
-	}
-
-	const handleOpenDashboard = async () => {
-		setIsOpeningDashboard(true)
-		try {
-			toast.info('Stripe Dashboard access is coming soon.')
-		} finally {
-			setIsOpeningDashboard(false)
 		}
 	}
 
@@ -145,9 +136,9 @@ export function ConnectAccountStatus({
 				<RequirementsWarning count={requirementsCount} />
 				<div className="flex flex-wrap gap-2">
 					{isComplete ? (
-						<Button variant="outline" onClick={handleOpenDashboard} disabled={isOpeningDashboard} className="min-h-11">
-							{isOpeningDashboard ? <RefreshCw className="mr-2 size-4 animate-spin" /> : <ExternalLink className="mr-2 size-4" />}
-							Stripe Dashboard
+						<Button variant="outline" onClick={() => dashboardLink.mutate()} disabled={dashboardLink.isPending} className="min-h-11">
+							{dashboardLink.isPending ? <RefreshCw className="mr-2 size-4 animate-spin" /> : <ExternalLink className="mr-2 size-4" />}
+							Open Dashboard
 						</Button>
 					) : (
 						<Button onClick={handleContinueSetup} disabled={refreshOnboarding.isPending} className="min-h-11">

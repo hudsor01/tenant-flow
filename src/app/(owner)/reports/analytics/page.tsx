@@ -63,7 +63,7 @@ export default function AnalyticsPage() {
 			{/* Header */}
 			<div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-6">
 				<div>
-					<h1 className="text-2xl font-semibold text-foreground">
+					<h1 className="typography-h1">
 						Analytics Dashboard
 					</h1>
 					<p className="text-muted-foreground">

@@ -1,34 +1,24 @@
+import Papa from 'papaparse'
+import { propertyCreateSchema } from '#lib/validation/properties'
+import type { PropertyCreate } from '#lib/validation/properties'
 import type { ParsedRow } from '#types/api-contracts'
+
+export const CSV_MAX_ROWS = 100
 
 export const CSV_TEMPLATE_HEADERS = [
 	'name',
-	'address',
+	'address_line1',
+	'address_line2',
 	'city',
 	'state',
 	'postal_code',
+	'country',
 	'property_type',
-	'description'
 ] as const
 
 export const CSV_TEMPLATE_SAMPLE_ROWS = [
-	[
-		'Sample Property 1',
-		'123 Main St',
-		'San Francisco',
-		'CA',
-		'94105',
-		'APARTMENT',
-		'Modern apartment building'
-	],
-	[
-		'Sample Property 2',
-		'456 Oak Ave',
-		'Los Angeles',
-		'CA',
-		'90001',
-		'SINGLE_FAMILY',
-		'Single family home'
-	]
+	['Sunset Apartments', '123 Main St', '', 'San Francisco', 'CA', '94105', 'US', 'APARTMENT'],
+	['Oak House', '456 Oak Ave', 'Unit B', 'Los Angeles', 'CA', '90001', 'US', 'SINGLE_FAMILY'],
 ] as const
 
 export const CSV_ACCEPTED_MIME_TYPES = ['text/csv', 'application/csv']
@@ -72,44 +62,63 @@ export function getFileValidationError(file: File): string | null {
 	return null
 }
 
-export async function parseCSVFile(file: File): Promise<ParsedRow[]> {
-	const text = await file.text()
-	const lines = text.split('\n').filter(line => line.trim())
+interface ParseResult {
+	rows: ParsedRow[]
+	tooManyRows: boolean
+	totalRowCount: number
+}
 
-	if (lines.length < 2) {
-		return []
+export function parseAndValidateCSV(csvText: string): ParseResult {
+	const { data } = Papa.parse<Record<string, string>>(csvText, {
+		header: true,
+		skipEmptyLines: true,
+		transformHeader: (h: string) => h.trim().toLowerCase().replace(/\s+/g, '_'),
+		transform: (value: string) => value.trim(),
+	})
+
+	if (data.length === 0) {
+		return { rows: [], tooManyRows: false, totalRowCount: 0 }
 	}
 
-	const headerLine = lines[0]
-	if (!headerLine) {
-		return []
-	}
+	const tooManyRows = data.length > CSV_MAX_ROWS
+	const totalRowCount = data.length
+	const rowsToValidate = data.slice(0, CSV_MAX_ROWS)
 
-	const headers = headerLine.split(',').map(h => h.trim().replace(/"/g, ''))
-	const rows: ParsedRow[] = []
+	const rows: ParsedRow[] = rowsToValidate.map((rawRow, index) => {
+		const mapped = {
+			name: rawRow.name ?? '',
+			address_line1: rawRow.address_line1 ?? '',
+			address_line2: (rawRow.address_line2 ?? '').trim() || undefined,
+			city: rawRow.city ?? '',
+			state: (rawRow.state ?? '').toUpperCase(),
+			postal_code: rawRow.postal_code ?? '',
+			country: (rawRow.country ?? '').trim() || 'US',
+			property_type: (rawRow.property_type ?? '').toUpperCase(),
+		}
 
-	// Preview first 10 rows
-	for (let i = 1; i < Math.min(lines.length, 11); i++) {
-		const line = lines[i]
-		if (!line) continue
+		const result = propertyCreateSchema.safeParse(mapped)
 
-		const values = line.split(',').map(v => v.trim().replace(/"/g, ''))
-		const rowData: Record<string, string> = {}
-		const errors: string[] = []
+		if (result.success) {
+			return {
+				row: index + 1,
+				data: rawRow,
+				errors: [],
+				parsed: result.data as PropertyCreate,
+			}
+		}
 
-		headers.forEach((header, index) => {
-			rowData[header] = values[index] || ''
-		})
+		const fieldErrors = result.error.issues.map(issue => ({
+			field: issue.path.join('.') || 'unknown',
+			message: issue.message,
+		}))
 
-		// Basic validation
-		if (!rowData.name) errors.push('Missing name')
-		if (!rowData.address) errors.push('Missing address')
-		if (!rowData.city) errors.push('Missing city')
-		if (!rowData.state) errors.push('Missing state')
-		if (!rowData.postal_code) errors.push('Missing postal code')
+		return {
+			row: index + 1,
+			data: rawRow,
+			errors: fieldErrors,
+			parsed: null,
+		}
+	})
 
-		rows.push({ row: i, data: rowData, errors })
-	}
-
-	return rows
+	return { rows, tooManyRows, totalRowCount }
 }

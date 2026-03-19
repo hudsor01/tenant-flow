@@ -1,4 +1,5 @@
 import { Download } from 'lucide-react'
+import { Button } from '#components/ui/button'
 import {
 	Select,
 	SelectContent,
@@ -51,10 +52,10 @@ export function IncomeStatementPageHeader({
 							<SelectItem value="2022">2022</SelectItem>
 						</SelectContent>
 					</Select>
-					<button className="inline-flex items-center gap-2 px-4 py-2.5 bg-card border border-border hover:bg-muted text-foreground font-medium rounded-lg transition-colors">
+					<Button variant="outline">
 						<Download className="w-4 h-4" />
 						Export
-					</button>
+					</Button>
 				</div>
 			</div>
 		</BlurFade>

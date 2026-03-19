@@ -15,13 +15,19 @@ import {
 	YAxis
 } from 'recharts'
 
-import { Badge } from '#components/ui/badge'
-import { CardDescription } from '#components/ui/card'
 import {
 	ChartContainer,
 	ChartTooltipContent,
 	type ChartConfig
 } from '#components/ui/chart'
+import {
+	Empty,
+	EmptyDescription,
+	EmptyHeader,
+	EmptyMedia,
+	EmptyTitle
+} from '#components/ui/empty'
+import { FileText } from 'lucide-react'
 
 const lifecycleConfig = {
 	renewals: {
@@ -53,23 +59,20 @@ type LeaseStatusChartProps = {
 	breakdown: LeaseStatusBreakdown[]
 }
 
-function EmptyState({ message }: { message: string }) {
-	return (
-		<div className="flex h-60 flex-col items-center justify-center rounded-lg border border-dashed">
-			<Badge variant="outline" className="mb-2">
-				No data
-			</Badge>
-			<CardDescription className="max-w-sm text-center text-muted-foreground">
-				{message}
-			</CardDescription>
-		</div>
-	)
-}
-
 export function LeaseLifecycleChart({ points }: LeaseLifecycleChartProps) {
 	if (!points || !Array.isArray(points) || points.length === 0) {
 		return (
-			<EmptyState message="No lifecycle events recorded for the selected leases." />
+			<Empty className="py-12">
+				<EmptyHeader>
+					<EmptyMedia variant="icon">
+						<FileText />
+					</EmptyMedia>
+					<EmptyTitle>No lease data</EmptyTitle>
+					<EmptyDescription>
+						Lease analytics will appear once leases are created
+					</EmptyDescription>
+				</EmptyHeader>
+			</Empty>
 		)
 	}
 
@@ -115,7 +118,19 @@ export function LeaseLifecycleChart({ points }: LeaseLifecycleChartProps) {
 
 export function LeaseStatusChart({ breakdown }: LeaseStatusChartProps) {
 	if (!breakdown || !Array.isArray(breakdown) || breakdown.length === 0) {
-		return <EmptyState message="No lease status breakdown available." />
+		return (
+			<Empty className="py-12">
+				<EmptyHeader>
+					<EmptyMedia variant="icon">
+						<FileText />
+					</EmptyMedia>
+					<EmptyTitle>No lease data</EmptyTitle>
+					<EmptyDescription>
+						Lease analytics will appear once leases are created
+					</EmptyDescription>
+				</EmptyHeader>
+			</Empty>
+		)
 	}
 
 	const chartData = breakdown.map(item => ({

@@ -2,7 +2,7 @@
  * Unit Tests: BulkImportConfirmStep Component
  *
  * Tests the confirmation step of the bulk import dialog:
- * - Shows progress during import
+ * - Shows progress during import with X of Y display
  * - Displays success state
  * - Displays failure state with error details
  *
@@ -14,15 +14,22 @@ import { render } from '#test/utils/test-render'
 import { BulkImportConfirmStep } from '../bulk-import-confirm-step'
 import { describe, it, expect } from 'vitest'
 import '@testing-library/jest-dom/vitest'
-import type { BulkImportResult } from '#types/api-contracts'
+import type { BulkImportResult, ImportProgress } from '#types/api-contracts'
 
 describe('BulkImportConfirmStep Component', () => {
+	const createProgress = (current: number, total: number, succeeded?: number, failed?: number): ImportProgress => ({
+		current,
+		total,
+		succeeded: succeeded ?? current,
+		failed: failed ?? 0,
+	})
+
 	describe('Importing State', () => {
 		it('shows importing message when importing', () => {
 			render(
 				<BulkImportConfirmStep
 					isImporting={true}
-					uploadProgress={50}
+					importProgress={createProgress(3, 10)}
 					result={null}
 				/>
 			)
@@ -30,24 +37,24 @@ describe('BulkImportConfirmStep Component', () => {
 			expect(screen.getByText(/importing properties/i)).toBeInTheDocument()
 		})
 
-		it('shows progress percentage when importing', () => {
+		it('shows X of Y progress display', () => {
 			render(
 				<BulkImportConfirmStep
 					isImporting={true}
-					uploadProgress={75}
+					importProgress={createProgress(5, 10)}
 					result={null}
 				/>
 			)
 
-			// Check that the percentage is displayed somewhere
-			expect(screen.getByText(/75/)).toBeInTheDocument()
+			expect(screen.getByText('5/10')).toBeInTheDocument()
+			expect(screen.getByText(/importing property 5 of 10/i)).toBeInTheDocument()
 		})
 
 		it('renders progress indicator when importing', () => {
 			const { container } = render(
 				<BulkImportConfirmStep
 					isImporting={true}
-					uploadProgress={50}
+					importProgress={createProgress(3, 10)}
 					result={null}
 				/>
 			)
@@ -56,6 +63,31 @@ describe('BulkImportConfirmStep Component', () => {
 			expect(
 				container.querySelector('[role="progressbar"]')
 			).toBeInTheDocument()
+		})
+
+		it('shows succeeded and failed counts', () => {
+			render(
+				<BulkImportConfirmStep
+					isImporting={true}
+					importProgress={createProgress(5, 10, 4, 1)}
+					result={null}
+				/>
+			)
+
+			expect(screen.getByText(/4 succeeded/)).toBeInTheDocument()
+			expect(screen.getByText(/1 failed/)).toBeInTheDocument()
+		})
+
+		it('shows preparing message when importProgress is null', () => {
+			render(
+				<BulkImportConfirmStep
+					isImporting={true}
+					importProgress={null}
+					result={null}
+				/>
+			)
+
+			expect(screen.getByText(/preparing import/i)).toBeInTheDocument()
 		})
 	})
 
@@ -71,13 +103,12 @@ describe('BulkImportConfirmStep Component', () => {
 			render(
 				<BulkImportConfirmStep
 					isImporting={false}
-					uploadProgress={100}
+					importProgress={null}
 					result={result}
 				/>
 			)
 
 			expect(screen.getByText(/import successful/i)).toBeInTheDocument()
-			// Text is split across elements: count in one, label in another
 			expect(screen.getByText('1')).toBeInTheDocument()
 			expect(screen.getByText(/property imported/i)).toBeInTheDocument()
 		})
@@ -93,13 +124,12 @@ describe('BulkImportConfirmStep Component', () => {
 			render(
 				<BulkImportConfirmStep
 					isImporting={false}
-					uploadProgress={100}
+					importProgress={null}
 					result={result}
 				/>
 			)
 
 			expect(screen.getByText(/import successful/i)).toBeInTheDocument()
-			// Text is split across elements: count in one, label in another
 			expect(screen.getByText('5')).toBeInTheDocument()
 			expect(screen.getByText(/properties imported/i)).toBeInTheDocument()
 		})
@@ -115,12 +145,11 @@ describe('BulkImportConfirmStep Component', () => {
 			const { container } = render(
 				<BulkImportConfirmStep
 					isImporting={false}
-					uploadProgress={100}
+					importProgress={null}
 					result={result}
 				/>
 			)
 
-			// Check for success styling class (border-success/30 is the actual class)
 			const successPanel = container.querySelector('[class*="border-success"]')
 			expect(successPanel).toBeInTheDocument()
 		})
@@ -138,13 +167,12 @@ describe('BulkImportConfirmStep Component', () => {
 			render(
 				<BulkImportConfirmStep
 					isImporting={false}
-					uploadProgress={100}
+					importProgress={null}
 					result={result}
 				/>
 			)
 
 			expect(screen.getByText(/import failed/i)).toBeInTheDocument()
-			// Text is split across elements: count in one, label in another
 			expect(screen.getByText('1')).toBeInTheDocument()
 			expect(screen.getByText(/row failed/i)).toBeInTheDocument()
 		})
@@ -164,13 +192,12 @@ describe('BulkImportConfirmStep Component', () => {
 			render(
 				<BulkImportConfirmStep
 					isImporting={false}
-					uploadProgress={100}
+					importProgress={null}
 					result={result}
 				/>
 			)
 
 			expect(screen.getByText(/import failed/i)).toBeInTheDocument()
-			// Text is split across elements: count in one, label in another
 			expect(screen.getByText('3')).toBeInTheDocument()
 			expect(screen.getByText(/rows failed/i)).toBeInTheDocument()
 		})
@@ -186,12 +213,11 @@ describe('BulkImportConfirmStep Component', () => {
 			const { container } = render(
 				<BulkImportConfirmStep
 					isImporting={false}
-					uploadProgress={100}
+					importProgress={null}
 					result={result}
 				/>
 			)
 
-			// Check for destructive styling class (border-destructive/30 is the actual class)
 			const failurePanel = container.querySelector(
 				'[class*="border-destructive"]'
 			)
@@ -200,11 +226,11 @@ describe('BulkImportConfirmStep Component', () => {
 	})
 
 	describe('No Result State', () => {
-		it('does not show result panel when result is null', () => {
+		it('does not show result panel when result is null and not importing', () => {
 			render(
 				<BulkImportConfirmStep
 					isImporting={false}
-					uploadProgress={0}
+					importProgress={null}
 					result={null}
 				/>
 			)
@@ -226,7 +252,7 @@ describe('BulkImportConfirmStep Component', () => {
 			render(
 				<BulkImportConfirmStep
 					isImporting={false}
-					uploadProgress={100}
+					importProgress={null}
 					result={result}
 				/>
 			)
@@ -238,7 +264,7 @@ describe('BulkImportConfirmStep Component', () => {
 			render(
 				<BulkImportConfirmStep
 					isImporting={false}
-					uploadProgress={50}
+					importProgress={null}
 					result={null}
 				/>
 			)

@@ -103,8 +103,8 @@ export default function TenantPaymentHistoryPage() {
 					<div className="flex items-center gap-3">
 						<Calendar className="size-8 text-accent-main" />
 						<div>
-							<Skeleton className="h-8 w-24" />
-							<p className="text-muted-foreground mt-1">Due date</p>
+							<p className="typography-h3 text-muted-foreground">--</p>
+							<p className="text-muted-foreground mt-1">No upcoming payments</p>
 						</div>
 					</div>
 				</CardLayout>

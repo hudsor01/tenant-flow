@@ -204,6 +204,35 @@ export const maintenanceQueries = {
 			gcTime: 5 * 60 * 1000
 		}),
 
+	photos: (requestId: string) =>
+		queryOptions({
+			queryKey: [...maintenanceQueries.all(), 'photos', requestId],
+			queryFn: async () => {
+				const supabase = createClient()
+				const { data, error } = await supabase
+					.from('maintenance_request_photos')
+					.select('id, maintenance_request_id, storage_path, file_name, file_size, mime_type, uploaded_by, created_at')
+					.eq('maintenance_request_id', requestId)
+					.order('created_at', { ascending: true })
+					.limit(20)
+
+				if (error) handlePostgrestError(error, 'maintenance_request_photos')
+
+				return (data ?? []) as Array<{
+					id: string
+					maintenance_request_id: string
+					storage_path: string
+					file_name: string
+					file_size: number | null
+					mime_type: string
+					uploaded_by: string | null
+					created_at: string
+				}>
+			},
+			...QUERY_CACHE_TIMES.DETAIL,
+			enabled: !!requestId
+		}),
+
 	overdue: () =>
 		queryOptions({
 			queryKey: [...maintenanceQueries.all(), 'overdue'],

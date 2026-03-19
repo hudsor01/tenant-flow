@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { ArrowRight, Check } from 'lucide-react'
 import { Button } from '#components/ui/button'
 import { BlurFade } from '#components/ui/blur-fade'
+import { SOCIAL_PROOF } from '#config/social-proof'
 
 export function HeroSection() {
 	return (
@@ -20,7 +21,7 @@ export function HeroSection() {
 						</h1>
 
 						<p className="text-muted-foreground leading-relaxed max-w-3xl mx-auto text-xl font-medium">
-							Join 10,000+ property managers who&apos;ve increased NOI by 40%
+							{`Join ${SOCIAL_PROOF.managerCount} property managers who've increased NOI by ${SOCIAL_PROOF.noiIncrease}`}
 							with enterprise-grade automation and AI-powered analytics.{' '}
 							<span className="text-foreground font-semibold">
 								ROI guaranteed in 90 days.
@@ -55,7 +56,7 @@ export function HeroSection() {
 
 						<p className="text-muted-foreground/80 typography-small">
 							<Check className="size-4 inline text-primary mr-2" />
-							Join 10,000+ managers already growing NOI • No credit card required
+							{`Join ${SOCIAL_PROOF.managerCount} managers already growing NOI`} • No credit card required
 						</p>
 					</div>
 				</BlurFade>

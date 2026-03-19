@@ -64,7 +64,7 @@ export default function CheckoutSuccessPage() {
 	}
 
 	return (
-		<div className="min-h-screen bg-primary flex flex-col">
+		<div className="min-h-screen bg-background flex flex-col">
 			<Navbar />
 
 			<main className="flex-1 page-offset-navbar">

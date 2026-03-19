@@ -268,6 +268,38 @@ Deno.serve(async (req: Request) => {
       )
     }
 
+    // -----------------------------------------------------------------------
+    // action: 'login-link' — generate Stripe Express Dashboard login link
+    // -----------------------------------------------------------------------
+    if (action === 'login-link') {
+      const { data: row, error: dbError } = await supabase
+        .from('stripe_connected_accounts')
+        .select('stripe_account_id')
+        .eq('user_id', user.id)
+        .maybeSingle()
+
+      if (dbError) {
+        return errorResponse(req, 500, dbError, { action: 'stripe_connect_login_link' })
+      }
+
+      if (!row) {
+        return new Response(
+          JSON.stringify({ error: 'No connected account found' }),
+          { status: 404, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
+        )
+      }
+
+      try {
+        const loginLink = await stripe.accounts.createLoginLink(row.stripe_account_id as string)
+        return new Response(
+          JSON.stringify({ url: loginLink.url }),
+          { status: 200, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
+        )
+      } catch (stripeErr) {
+        return errorResponse(req, 500, stripeErr, { action: 'stripe_connect_login_link' })
+      }
+    }
+
     // Unknown action
     return new Response(
       JSON.stringify({ error: 'Unknown action' }),

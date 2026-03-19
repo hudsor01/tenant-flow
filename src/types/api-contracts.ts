@@ -18,6 +18,7 @@ import type { Tables, TablesInsert, TablesUpdate } from './supabase'
 
 // Import Zod-inferred types (Single Source of Truth)
 import type { TenantCreate, TenantUpdate } from '#lib/validation/tenants'
+import type { PropertyCreate } from '#lib/validation/properties'
 
 // =============================================================================
 // USER PROFILE TYPES
@@ -999,7 +1000,15 @@ export interface BulkImportResult {
 export interface ParsedRow {
 	row: number
 	data: Record<string, string>
-	errors: string[]
+	errors: Array<{ field: string; message: string }>
+	parsed: PropertyCreate | null
+}
+
+export interface ImportProgress {
+	current: number
+	total: number
+	succeeded: number
+	failed: number
 }
 
 export interface BulkImportStepperProps {

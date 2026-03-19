@@ -145,7 +145,7 @@ export function MaintenanceViewClient() {
 					<Stat className="relative overflow-hidden">
 						{openCount > 0 && <BorderBeam size={80} duration={8} colorFrom="var(--color-warning)" colorTo="oklch(from var(--color-warning) l c h / 0.3)" />}
 						<StatLabel>Open</StatLabel>
-						<StatValue className="flex items-baseline text-amber-600 dark:text-amber-400"><NumberTicker value={openCount} duration={800} /></StatValue>
+						<StatValue className="flex items-baseline text-warning"><NumberTicker value={openCount} duration={800} /></StatValue>
 						<StatIndicator variant="icon" color="warning"><Clock /></StatIndicator>
 						<StatDescription>awaiting action</StatDescription>
 					</Stat>
@@ -161,7 +161,7 @@ export function MaintenanceViewClient() {
 				<BlurFade delay={0.25} inView>
 					<Stat className="relative overflow-hidden">
 						<StatLabel>Completed</StatLabel>
-						<StatValue className="flex items-baseline text-emerald-600 dark:text-emerald-400"><NumberTicker value={completedCount} duration={800} /></StatValue>
+						<StatValue className="flex items-baseline text-success"><NumberTicker value={completedCount} duration={800} /></StatValue>
 						<StatIndicator variant="icon" color="success"><CheckCircle /></StatIndicator>
 						<StatDescription>this month</StatDescription>
 					</Stat>
@@ -170,7 +170,7 @@ export function MaintenanceViewClient() {
 					<Stat className="relative overflow-hidden">
 						{urgentCount > 0 && <BorderBeam size={80} duration={4} colorFrom="var(--color-destructive)" colorTo="oklch(from var(--color-destructive) l c h / 0.3)" />}
 						<StatLabel>Urgent</StatLabel>
-						<StatValue className="flex items-baseline text-red-600 dark:text-red-400"><NumberTicker value={urgentCount} duration={800} /></StatValue>
+						<StatValue className="flex items-baseline text-destructive"><NumberTicker value={urgentCount} duration={800} /></StatValue>
 						<StatIndicator variant="icon" color="destructive"><Wrench /></StatIndicator>
 						<StatDescription>{urgentCount > 0 ? 'needs attention' : 'all clear'}</StatDescription>
 					</Stat>
