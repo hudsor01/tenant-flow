@@ -43,20 +43,15 @@ export function Navbar({
 			data-site-navbar
 			ref={ref}
 			className={cn(
-				'fixed z-50 transition-all duration-normal',
-				// Mobile: full-width sticky top bar
-				'left-0 right-0 top-0 rounded-none px-4 py-2 w-full',
-				// Desktop/tablet: floating pill centered
-				'md:left-1/2 md:right-auto md:transform md:-translate-x-1/2 md:rounded-2xl md:px-6 md:py-3 md:w-auto',
-				// Scroll behavior
+				'fixed top-0 left-0 right-0 z-50 w-full transition-all duration-normal',
 				isScrolled
-					? 'md:top-2 bg-card/95 backdrop-blur-2xl shadow-xl border border-border/40'
-					: 'md:top-4 bg-card/80 backdrop-blur-xl shadow-lg border border-border/20',
+					? 'bg-card/95 backdrop-blur-2xl shadow-md border-b border-border/40'
+					: 'bg-transparent',
 				className
 			)}
 			{...props}
 		>
-			<div className="flex-between">
+			<div className="flex-between max-w-7xl mx-auto px-6 lg:px-8 h-18">
 				{/* Logo */}
 				<Link
 					href="/"
@@ -70,7 +65,7 @@ export function Navbar({
 						className="size-7 object-contain"
 						priority
 					/>
-					<span className="text-lg font-semibold text-foreground">{logo}</span>
+					<span className="text-xl font-semibold text-foreground">{logo}</span>
 				</Link>
 
 				<NavbarDesktopNav navItems={navItems} pathname={pathname} />
@@ -79,11 +74,11 @@ export function Navbar({
 					<div className="hidden sm:flex items-center gap-3">
 						<Link
 							href="/login"
-							className="px-3 py-1.5 text-foreground/70 hover:text-foreground rounded-md border border-transparent hover:border-border/50 transition-colors duration-fast text-sm font-medium"
+							className="px-4 py-2 text-foreground/70 hover:text-foreground rounded-md border border-transparent hover:border-border/50 transition-colors duration-fast text-base font-medium"
 						>
 							Sign In
 						</Link>
-						<Button asChild size="sm">
+						<Button asChild size="default">
 							<Link href={ctaHref}>{ctaText}</Link>
 						</Button>
 					</div>

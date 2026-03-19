@@ -258,7 +258,7 @@ export default function AboutPage() {
 
 			{/* Team Section */}
 			<section className="section-spacing bg-muted/20">
-				<div className="max-w-7xl mx-auto px-6 lg:px-18">
+				<div className="max-w-7xl mx-auto px-6 lg:px-8">
 					<BlurFade delay={0.7} inView>
 						<div className="text-center mb-16 space-y-8">
 							<h2 className="text-4xl lg:text-5xl font-bold tracking-tight text-foreground">

@@ -22,32 +22,37 @@ export function LogoCloud({
 		{
 			name: 'Stripe',
 			description: 'Payments',
-			logo: StripeLogo
+			logo: StripeLogo,
+			width: 'w-24'
 		},
 		{
 			name: 'Supabase',
 			description: 'Database',
-			logo: SupabaseLogo
+			logo: SupabaseWordmark,
+			width: 'w-28'
 		},
 		{
 			name: 'Vercel',
 			description: 'Hosting',
-			logo: VercelLogo
+			logo: VercelWordmark,
+			width: 'w-24'
 		},
 		{
 			name: 'DocuSeal',
 			description: 'E-Signatures',
-			logo: DocuSealLogo
+			logo: DocuSealLogo,
+			width: 'w-24'
 		},
 		{
 			name: 'Resend',
 			description: 'Email',
-			logo: ResendLogo
+			logo: ResendLogo,
+			width: 'w-20'
 		}
 	]
 
 	return (
-		<section className={cn('section-spacing-compact', className)}>
+		<section className={cn('pb-6', className)}>
 			<div className="max-w-7xl mx-auto px-6 lg:px-8">
 				<BlurFade delay={0.1} inView>
 					<div className="text-center mb-8">
@@ -65,10 +70,15 @@ export function LogoCloud({
 								inView
 							>
 								<div className="group relative flex flex-col items-center gap-2">
-									<div className="h-10 flex items-center grayscale opacity-60 group-hover:grayscale-0 group-hover:opacity-100 transition-all duration-300">
-										<integration.logo className="h-full w-auto" />
+									<div
+										className={cn(
+											'h-8 flex items-center justify-center grayscale opacity-80 hover:grayscale-0 hover:opacity-100 transition-all duration-300',
+											integration.width
+										)}
+									>
+										<integration.logo className="h-full w-full" />
 									</div>
-									<span className="text-xs text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+									<span className="text-xs text-muted-foreground">
 										{integration.description}
 									</span>
 								</div>
@@ -100,30 +110,41 @@ function StripeLogo({ className }: { className?: string }) {
 	)
 }
 
-function SupabaseLogo({ className }: { className?: string }) {
+function SupabaseWordmark({ className }: { className?: string }) {
 	return (
 		<svg
 			className={className}
-			viewBox="0 0 109 113"
+			viewBox="0 0 581 113"
 			fill="none"
 			xmlns="http://www.w3.org/2000/svg"
 		>
 			<path
 				d="M63.7076 110.284C60.8481 113.885 55.0502 111.912 54.9813 107.314L53.9738 40.0627L99.1935 40.0627C107.384 40.0627 111.952 49.5228 106.859 55.9374L63.7076 110.284Z"
-				fill="url(#paint0_linear)"
+				fill="url(#paint0_linear_wm)"
 			/>
 			<path
 				d="M63.7076 110.284C60.8481 113.885 55.0502 111.912 54.9813 107.314L53.9738 40.0627L99.1935 40.0627C107.384 40.0627 111.952 49.5228 106.859 55.9374L63.7076 110.284Z"
-				fill="url(#paint1_linear)"
+				fill="url(#paint1_linear_wm)"
 				fillOpacity="0.2"
 			/>
 			<path
 				d="M45.317 2.07103C48.1765 -1.53037 53.9745 0.442937 54.0434 5.041L54.4849 72.2922H9.83113C1.64038 72.2922 -2.92775 62.8321 2.16512 56.4175L45.317 2.07103Z"
 				fill="#3ECF8E"
 			/>
+			<text
+				x="120"
+				y="78"
+				fontFamily="system-ui, -apple-system, sans-serif"
+				fontSize="60"
+				fontWeight="600"
+				letterSpacing="-1"
+				fill="#3ECF8E"
+			>
+				Supabase
+			</text>
 			<defs>
 				<linearGradient
-					id="paint0_linear"
+					id="paint0_linear_wm"
 					x1="53.9738"
 					y1="54.974"
 					x2="94.1635"
@@ -134,7 +155,7 @@ function SupabaseLogo({ className }: { className?: string }) {
 					<stop offset="1" stopColor="#3ECF8E" />
 				</linearGradient>
 				<linearGradient
-					id="paint1_linear"
+					id="paint1_linear_wm"
 					x1="36.1558"
 					y1="30.578"
 					x2="54.4844"
@@ -149,15 +170,26 @@ function SupabaseLogo({ className }: { className?: string }) {
 	)
 }
 
-function VercelLogo({ className }: { className?: string }) {
+function VercelWordmark({ className }: { className?: string }) {
 	return (
 		<svg
 			className={className}
-			viewBox="0 0 76 65"
+			viewBox="0 0 284 65"
 			fill="none"
 			xmlns="http://www.w3.org/2000/svg"
 		>
 			<path d="M37.5274 0L75.0548 65H0L37.5274 0Z" fill="currentColor" />
+			<text
+				x="90"
+				y="52"
+				fontFamily="system-ui, -apple-system, sans-serif"
+				fontSize="52"
+				fontWeight="700"
+				letterSpacing="-1"
+				fill="currentColor"
+			>
+				Vercel
+			</text>
 		</svg>
 	)
 }
@@ -170,8 +202,7 @@ function DocuSealLogo({ className }: { className?: string }) {
 			fill="none"
 			xmlns="http://www.w3.org/2000/svg"
 		>
-			{/* DocuSeal text-based logo */}
-			<text
+		<text
 				x="0"
 				y="22"
 				fontFamily="system-ui, -apple-system, sans-serif"
@@ -193,8 +224,7 @@ function ResendLogo({ className }: { className?: string }) {
 			fill="none"
 			xmlns="http://www.w3.org/2000/svg"
 		>
-			{/* Resend text-based logo */}
-			<text
+		<text
 				x="0"
 				y="20"
 				fontFamily="system-ui, -apple-system, sans-serif"

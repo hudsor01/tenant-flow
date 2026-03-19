@@ -133,7 +133,7 @@ export default function ResourcesPage() {
 			/>
 
 			{/* Hero Section */}
-			<section className="relative page-offset-navbar pb-16 overflow-hidden">
+			<section className="relative pb-16 overflow-hidden">
 				<div className="absolute inset-0 bg-background">
 					<div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,color-mix(in_oklch,var(--color-primary)_5%,transparent),transparent_50%)]" />
 				</div>

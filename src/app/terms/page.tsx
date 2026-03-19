@@ -10,7 +10,7 @@ export const metadata: Metadata = {
 export default function TermsPage() {
 	return (
 		<PageLayout>
-			<div className="mx-auto min-h-screen max-w-4xl px-6 section-spacing page-offset-navbar">
+			<div className="mx-auto min-h-screen max-w-4xl px-6 section-spacing">
 				<h1 className="mb-8 typography-h1">Terms of Service</h1>
 				<p className="mb-6 text-muted-foreground">Last Updated: October 5, 2025</p>
 
