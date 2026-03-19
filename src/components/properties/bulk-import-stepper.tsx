@@ -253,7 +253,7 @@ export function BulkImportStepper({
 				{currentStep === 'validate' && (
 					<Button
 						onClick={handleUpload}
-						disabled={validRowCount === 0 || hasErrors || (parseResult?.tooManyRows ?? false)}
+						disabled={validRowCount === 0 || hasErrors || (parseResult?.tooManyRows ?? false) || bulkImportMutation.isPending}
 						className="gap-2 min-w-32"
 					>
 						Import {validRowCount} Properties
