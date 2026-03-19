@@ -44,6 +44,7 @@ import {
 	useSignLeaseAsTenantMutation,
 	useCancelSignatureRequestMutation
 } from '../use-lease-signature-mutations'
+import { createQueryChain } from '#test/mocks/supabase-query-mock'
 
 // Mock logger
 vi.mock('#shared/lib/frontend-logger', () => ({
@@ -80,37 +81,6 @@ vi.mock('#hooks/api/use-auth', () => ({
 		data: { id: 'user-123', email: 'owner@example.com' }
 	})
 }))
-
-// Build a chainable Supabase query mock
-function makeQueryChain(result: { data?: unknown; error?: unknown; count?: number | null }) {
-	const chain: Record<string, unknown> = {}
-	const methods = [
-		'select', 'insert', 'update', 'upsert', 'delete', 'eq', 'neq',
-		'ilike', 'or', 'order', 'range', 'limit', 'single', 'maybeSingle', 'head', 'lte', 'gte'
-	]
-
-	const resolver = () => Promise.resolve({
-		data: result.data ?? null,
-		error: result.error ?? null,
-		count: result.count ?? null
-	})
-
-	methods.forEach(method => {
-		chain[method] = vi.fn(() => {
-			if (method === 'single' || method === 'maybeSingle') return resolver()
-			return chain
-		})
-	})
-
-	// Ensure awaiting the chain itself works (for non-.single() calls)
-	Object.defineProperty(chain, 'then', {
-		get() {
-			return resolver().then.bind(resolver())
-		}
-	})
-
-	return chain
-}
 
 // Supabase mock with configurable from() responses
 const supabaseFromMock = vi.fn()
@@ -205,9 +175,9 @@ describe('Query Hooks', () => {
 		// Default: from('leases') returns a query chain with mock lease data
 		supabaseFromMock.mockImplementation((table: string) => {
 			if (table === 'leases') {
-				return makeQueryChain({ data: mockLease, count: 1 })
+				return createQueryChain({ data: mockLease, count: 1 })
 			}
-			return makeQueryChain({ data: null })
+			return createQueryChain({ data: null })
 		})
 	})
 
@@ -237,9 +207,9 @@ describe('Query Hooks', () => {
 		it('should query leases with count for list', async () => {
 			supabaseFromMock.mockImplementation((table: string) => {
 				if (table === 'leases') {
-					return makeQueryChain({ data: [mockLease], count: 1 })
+					return createQueryChain({ data: [mockLease], count: 1 })
 				}
-				return makeQueryChain({ data: null })
+				return createQueryChain({ data: null })
 			})
 
 			const { result } = renderHook(() => useLeaseList(), {
@@ -256,9 +226,9 @@ describe('Query Hooks', () => {
 		it('should query leases with filters when provided', async () => {
 			supabaseFromMock.mockImplementation((table: string) => {
 				if (table === 'leases') {
-					return makeQueryChain({ data: [], count: 0 })
+					return createQueryChain({ data: [], count: 0 })
 				}
-				return makeQueryChain({ data: null })
+				return createQueryChain({ data: null })
 			})
 
 			const { result } = renderHook(
@@ -278,9 +248,9 @@ describe('Query Hooks', () => {
 		it('should query active lease for tenant portal', async () => {
 			supabaseFromMock.mockImplementation((table: string) => {
 				if (table === 'leases') {
-					return makeQueryChain({ data: mockLease })
+					return createQueryChain({ data: mockLease })
 				}
-				return makeQueryChain({ data: null })
+				return createQueryChain({ data: null })
 			})
 
 			const { result } = renderHook(() => useCurrentLease(), {
@@ -299,9 +269,9 @@ describe('Query Hooks', () => {
 		it('should query leases expiring within default 30 days', async () => {
 			supabaseFromMock.mockImplementation((table: string) => {
 				if (table === 'leases') {
-					return makeQueryChain({ data: [mockLease] })
+					return createQueryChain({ data: [mockLease] })
 				}
-				return makeQueryChain({ data: null })
+				return createQueryChain({ data: null })
 			})
 
 			const { result } = renderHook(() => useExpiringLeases(), {
@@ -318,9 +288,9 @@ describe('Query Hooks', () => {
 		it('should query leases expiring within custom days', async () => {
 			supabaseFromMock.mockImplementation((table: string) => {
 				if (table === 'leases') {
-					return makeQueryChain({ data: [] })
+					return createQueryChain({ data: [] })
 				}
-				return makeQueryChain({ data: null })
+				return createQueryChain({ data: null })
 			})
 
 			const { result } = renderHook(() => useExpiringLeases(60), {
@@ -369,9 +339,9 @@ describe('Query Hooks', () => {
 		it('should query signature status columns from leases table', async () => {
 			supabaseFromMock.mockImplementation((table: string) => {
 				if (table === 'leases') {
-					return makeQueryChain({ data: mockSignatureStatus })
+					return createQueryChain({ data: mockSignatureStatus })
 				}
-				return makeQueryChain({ data: null })
+				return createQueryChain({ data: null })
 			})
 
 			const { result } = renderHook(
@@ -399,7 +369,7 @@ describe('Query Hooks', () => {
 		it('should query docuseal_submission_id from leases table via PostgREST', async () => {
 			supabaseFromMock.mockImplementation((table: string) => {
 				if (table === 'leases') {
-					return makeQueryChain({
+					return createQueryChain({
 						data: {
 							docuseal_submission_id: 'sub-999',
 							owner_signed_at: '2024-01-15T10:00:00Z',
@@ -407,7 +377,7 @@ describe('Query Hooks', () => {
 						}
 					})
 				}
-				return makeQueryChain({ data: null })
+				return createQueryChain({ data: null })
 			})
 
 			const { result } = renderHook(() => useSignedDocumentUrl('lease-123'), {
@@ -452,9 +422,9 @@ describe('Mutation Hooks', () => {
 
 		supabaseFromMock.mockImplementation((table: string) => {
 			if (table === 'leases') {
-				return makeQueryChain({ data: mockLease })
+				return createQueryChain({ data: mockLease })
 			}
-			return makeQueryChain({ data: null })
+			return createQueryChain({ data: null })
 		})
 	})
 
@@ -487,9 +457,9 @@ describe('Mutation Hooks', () => {
 			const updatedLease = { ...mockLease, rent_amount: 1600 }
 			supabaseFromMock.mockImplementation((table: string) => {
 				if (table === 'leases') {
-					return makeQueryChain({ data: updatedLease })
+					return createQueryChain({ data: updatedLease })
 				}
-				return makeQueryChain({ data: null })
+				return createQueryChain({ data: null })
 			})
 
 			const { result } = renderHook(() => useUpdateLeaseMutation(), {
@@ -508,9 +478,9 @@ describe('Mutation Hooks', () => {
 			const updatedLease = { ...mockLease, rent_amount: 1600 }
 			supabaseFromMock.mockImplementation((table: string) => {
 				if (table === 'leases') {
-					return makeQueryChain({ data: updatedLease })
+					return createQueryChain({ data: updatedLease })
 				}
-				return makeQueryChain({ data: null })
+				return createQueryChain({ data: null })
 			})
 
 			const { result } = renderHook(() => useUpdateLeaseMutation(), {
@@ -544,9 +514,9 @@ describe('Mutation Hooks', () => {
 			const terminatedLease = { ...mockLease, lease_status: 'terminated' }
 			supabaseFromMock.mockImplementation((table: string) => {
 				if (table === 'leases') {
-					return makeQueryChain({ data: terminatedLease })
+					return createQueryChain({ data: terminatedLease })
 				}
-				return makeQueryChain({ data: null })
+				return createQueryChain({ data: null })
 			})
 
 			const { result } = renderHook(() => useTerminateLeaseMutation(), {
@@ -564,9 +534,9 @@ describe('Mutation Hooks', () => {
 			const renewedLease = { ...mockLease, end_date: '2026-01-01' }
 			supabaseFromMock.mockImplementation((table: string) => {
 				if (table === 'leases') {
-					return makeQueryChain({ data: renewedLease })
+					return createQueryChain({ data: renewedLease })
 				}
-				return makeQueryChain({ data: null })
+				return createQueryChain({ data: null })
 			})
 
 			const { result } = renderHook(() => useRenewLeaseMutation(), {
@@ -687,9 +657,9 @@ describe('Utility Hooks', () => {
 
 		supabaseFromMock.mockImplementation((table: string) => {
 			if (table === 'leases') {
-				return makeQueryChain({ data: mockLease })
+				return createQueryChain({ data: mockLease })
 			}
-			return makeQueryChain({ data: null })
+			return createQueryChain({ data: null })
 		})
 	})
 
@@ -724,7 +694,7 @@ describe('Error Handling', () => {
 
 	it('should handle PostgREST errors in query hooks', async () => {
 		supabaseFromMock.mockImplementation(() =>
-			makeQueryChain({
+			createQueryChain({
 				data: null,
 				error: { code: 'PGRST116', message: 'Not found', details: null, hint: null }
 			})
@@ -755,7 +725,7 @@ describe('Error Handling', () => {
 
 	it('should handle mutation errors from PostgREST', async () => {
 		supabaseFromMock.mockImplementation(() =>
-			makeQueryChain({
+			createQueryChain({
 				data: null,
 				error: { code: '42501', message: 'Permission denied', details: null, hint: null }
 			})

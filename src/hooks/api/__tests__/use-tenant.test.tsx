@@ -36,6 +36,7 @@ import {
 	useResendInvitationMutation,
 	useCancelInvitationMutation
 } from '../use-tenant-invite-mutations'
+import { createQueryChain } from '#test/mocks/supabase-query-mock'
 
 // Mock logger
 vi.mock('#shared/lib/frontend-logger', () => ({
@@ -67,37 +68,6 @@ vi.mock('@sentry/nextjs', () => ({
 }))
 
 // Note: useResendInvitationMutation and useCancelInvitationMutation update tenant_invitations via PostgREST
-
-// Build a chainable Supabase query mock
-function makeQueryChain(result: { data?: unknown; error?: unknown; count?: number | null }) {
-	const chain: Record<string, unknown> = {}
-	const methods = [
-		'select', 'insert', 'update', 'upsert', 'delete', 'eq', 'neq',
-		'ilike', 'or', 'order', 'range', 'limit', 'single', 'head'
-	]
-
-	const resolver = () => Promise.resolve({
-		data: result.data ?? null,
-		error: result.error ?? null,
-		count: result.count ?? null
-	})
-
-	methods.forEach(method => {
-		chain[method] = vi.fn(() => {
-			if (method === 'single') return resolver()
-			return chain
-		})
-	})
-
-	// Ensure awaiting the chain itself works (for non-.single() calls)
-	Object.defineProperty(chain, 'then', {
-		get() {
-			return resolver().then.bind(resolver())
-		}
-	})
-
-	return chain
-}
 
 // Mock fetch for Edge Function calls (send-tenant-invitation)
 const mockFetch = vi.hoisted(() =>
@@ -185,23 +155,23 @@ describe('Query Hooks', () => {
 		// Default: from() returns a query chain with mock tenant data
 		supabaseFromMock.mockImplementation((table: string) => {
 			if (table === 'tenants') {
-				return makeQueryChain({ data: mockTenant, count: 1 })
+				return createQueryChain({ data: mockTenant, count: 1 })
 			}
 			if (table === 'notification_settings') {
-				return makeQueryChain({
+				return createQueryChain({
 					data: { email: true, sms: false, maintenance: true, general: true }
 				})
 			}
 			if (table === 'tenant_invitations') {
-				return makeQueryChain({ data: [], count: 0 })
+				return createQueryChain({ data: [], count: 0 })
 			}
 			if (table === 'rent_payments') {
-				return makeQueryChain({ data: [], count: 0 })
+				return createQueryChain({ data: [], count: 0 })
 			}
 			if (table === 'lease_tenants') {
-				return makeQueryChain({ data: [] })
+				return createQueryChain({ data: [] })
 			}
-			return makeQueryChain({ data: null })
+			return createQueryChain({ data: null })
 		})
 	})
 
@@ -231,9 +201,9 @@ describe('Query Hooks', () => {
 		it('should query tenants table with user and lease join', async () => {
 			supabaseFromMock.mockImplementation((table: string) => {
 				if (table === 'tenants') {
-					return makeQueryChain({ data: mockTenantWithLease })
+					return createQueryChain({ data: mockTenantWithLease })
 				}
-				return makeQueryChain({ data: null })
+				return createQueryChain({ data: null })
 			})
 
 			const { result } = renderHook(() => useTenantWithLease('tenant-123'), {
@@ -260,9 +230,9 @@ describe('Query Hooks', () => {
 		it('should query tenants with count', async () => {
 			supabaseFromMock.mockImplementation((table: string) => {
 				if (table === 'tenants') {
-					return makeQueryChain({ data: [mockTenantWithLease], count: 1 })
+					return createQueryChain({ data: [mockTenantWithLease], count: 1 })
 				}
-				return makeQueryChain({ data: null })
+				return createQueryChain({ data: null })
 			})
 
 			const { result } = renderHook(() => useTenantList(), {
@@ -281,9 +251,9 @@ describe('Query Hooks', () => {
 		it('should query all tenants with user and lease join', async () => {
 			supabaseFromMock.mockImplementation((table: string) => {
 				if (table === 'tenants') {
-					return makeQueryChain({ data: [mockTenantWithLease] })
+					return createQueryChain({ data: [mockTenantWithLease] })
 				}
-				return makeQueryChain({ data: null })
+				return createQueryChain({ data: null })
 			})
 
 			const { result } = renderHook(() => useAllTenants(), {
@@ -302,9 +272,9 @@ describe('Query Hooks', () => {
 		it('should aggregate tenant counts from tenants table', async () => {
 			supabaseFromMock.mockImplementation((table: string) => {
 				if (table === 'tenants') {
-					return makeQueryChain({ data: null, count: 10 })
+					return createQueryChain({ data: null, count: 10 })
 				}
-				return makeQueryChain({ data: null, count: 0 })
+				return createQueryChain({ data: null, count: 0 })
 			})
 
 			const { result } = renderHook(() => useTenantStats(), {
@@ -323,14 +293,14 @@ describe('Query Hooks', () => {
 		it('should query notification_settings via user_id', async () => {
 			supabaseFromMock.mockImplementation((table: string) => {
 				if (table === 'tenants') {
-					return makeQueryChain({ data: { user_id: 'user-123' } })
+					return createQueryChain({ data: { user_id: 'user-123' } })
 				}
 				if (table === 'notification_settings') {
-					return makeQueryChain({
+					return createQueryChain({
 						data: { email: true, sms: false, maintenance: true, general: true }
 					})
 				}
-				return makeQueryChain({ data: null })
+				return createQueryChain({ data: null })
 			})
 
 			const { result } = renderHook(
@@ -468,7 +438,7 @@ describe('Mutation Hooks', () => {
 					})
 				}
 			}
-			return makeQueryChain({ data: null })
+			return createQueryChain({ data: null })
 		})
 	})
 
@@ -539,7 +509,7 @@ describe('Mutation Hooks', () => {
 				if (table === 'users') {
 					return { update: usersUpdateMock }
 				}
-				return makeQueryChain({ data: null })
+				return createQueryChain({ data: null })
 			})
 
 			const { result } = renderHook(() => useDeleteTenantMutation(), {
@@ -574,7 +544,7 @@ describe('Mutation Hooks', () => {
 						})
 					}
 				}
-				return makeQueryChain({ data: null })
+				return createQueryChain({ data: null })
 			})
 
 			const { result } = renderHook(() => useDeleteTenantMutation(), {
@@ -662,7 +632,7 @@ describe('Utility Hooks', () => {
 	beforeEach(() => {
 		vi.clearAllMocks()
 
-		supabaseFromMock.mockImplementation(() => makeQueryChain({ data: null }))
+		supabaseFromMock.mockImplementation(() => createQueryChain({ data: null }))
 	})
 
 	describe('usePrefetchTenantDetail', () => {
@@ -683,7 +653,7 @@ describe('Error Handling', () => {
 
 	it('should handle PostgREST errors in query hooks', async () => {
 		supabaseFromMock.mockImplementation(() =>
-			makeQueryChain({
+			createQueryChain({
 				data: null,
 				error: {
 					message: 'Row not found',
