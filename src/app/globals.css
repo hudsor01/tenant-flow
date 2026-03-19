@@ -338,7 +338,7 @@
 		--layout-grid-cols-5: repeat(5, minmax(0, 1fr));
 		--layout-stack-tight: var(--spacing-3);
 		--layout-navbar-height: var(--spacing-16);
-		--layout-navbar-spacing: var(--spacing-32);
+		--layout-navbar-spacing: var(--spacing-20);
 	}
 
 	html {

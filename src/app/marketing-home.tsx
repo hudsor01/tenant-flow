@@ -28,7 +28,7 @@ export default function MarketingHomePage() {
 			<section className="relative flex-1 flex flex-col">
 				<div className="flex-1 w-full">
 					<div className="max-w-7xl mx-auto px-6 lg:px-8">
-						<div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center min-h-150">
+						<div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center lg:min-h-[32rem]">
 							{/* Content */}
 							<div className="flex flex-col justify-center space-y-8">
 								<div className="space-y-6">
@@ -68,10 +68,10 @@ export default function MarketingHomePage() {
 						</div>
 					</div>
 				</div>
-			</section>
 
-			{/* Logo Cloud - Trusted Integrations */}
-			<LogoCloud />
+				{/* Logo Cloud - Trusted Integrations */}
+				<LogoCloud />
+			</section>
 
 			{/* How It Works */}
 			<LazySection

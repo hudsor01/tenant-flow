@@ -98,7 +98,7 @@ export function NavbarDesktopNav({ navItems, pathname }: NavbarDesktopNavProps) 
 						href={item.href}
 						onKeyDown={e => handleKeyDown(e, item)}
 						className={cn(
-							'flex items-center px-3 py-2 text-foreground/70 hover:text-foreground font-medium text-sm rounded-lg transition-colors duration-fast',
+							'flex items-center px-4 py-2 text-foreground/70 hover:text-foreground font-medium text-base rounded-lg transition-colors duration-fast',
 							isActiveLink(item.href) && 'text-foreground'
 						)}
 					>
@@ -116,7 +116,7 @@ export function NavbarDesktopNav({ navItems, pathname }: NavbarDesktopNavProps) 
 					{/* Dropdown Menu */}
 					{item.hasDropdown && openDropdown === item.name && (
 						<div
-							className="absolute top-full left-0 mt-2 w-48 bg-card border border-border rounded-lg shadow-lg py-1 animate-in fade-in-0 zoom-in-95 duration-150"
+							className="absolute top-full left-0 mt-2 w-52 bg-card border border-border rounded-lg shadow-lg py-2 animate-in fade-in-0 zoom-in-95 duration-150"
 							onMouseEnter={() => handleDropdownOpen(item.name)}
 							onMouseLeave={handleDropdownClose}
 						>
@@ -126,7 +126,7 @@ export function NavbarDesktopNav({ navItems, pathname }: NavbarDesktopNavProps) 
 									href={dropdownItem.href}
 									data-dropdown-item={`${item.name}-${index}`}
 									onKeyDown={e => handleKeyDown(e, item, index)}
-									className="block px-4 py-2 text-foreground/70 hover:text-foreground hover:bg-muted/50 transition-colors duration-fast text-sm"
+									className="block px-4 py-2.5 text-foreground/70 hover:text-foreground hover:bg-muted/50 transition-colors duration-fast text-base"
 								>
 									{dropdownItem.name}
 								</Link>

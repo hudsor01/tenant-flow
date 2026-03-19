@@ -96,7 +96,7 @@ const supportCategories = [
 export default function SupportPage() {
 	return (
 		<PageLayout>
-			<div className="mx-auto max-w-5xl px-6 section-spacing page-offset-navbar">
+			<div className="mx-auto max-w-5xl px-6 section-spacing">
 				{/* Header */}
 				<div className="text-center mb-16">
 					<h1 className="typography-h1 mb-4">Support Center</h1>

@@ -80,7 +80,7 @@ export const AuthStoreProvider = ({ children }: { children: ReactNode }) => {
 				error
 			} = await getSupabaseClient().auth.getUser()
 			if (error) {
-				logger.error('Failed to get auth user', { error: error.message })
+				logger.debug('No authenticated user', { error: error.message })
 				return null
 			}
 			return user
