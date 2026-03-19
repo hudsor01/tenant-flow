@@ -47,7 +47,10 @@ export default defineConfig({
 					environment: 'jsdom',
 					pool: 'vmThreads',
 					globals: true,
-					setupFiles: ['./src/test/unit-setup.ts'],
+					setupFiles: [
+						'./src/test/msw-polyfill.ts',
+						'./src/test/unit-setup.ts'
+					],
 					include: ['src/**/*.{test,spec}.{ts,tsx}'],
 					exclude: [
 						'node_modules',
@@ -91,7 +94,10 @@ export default defineConfig({
 					environment: 'jsdom',
 					pool: 'vmThreads',
 					globals: true,
-					setupFiles: ['./src/test/unit-setup.ts'],
+					setupFiles: [
+						'./src/test/msw-polyfill.ts',
+						'./src/test/unit-setup.ts'
+					],
 					include: ['src/**/*.component.test.{ts,tsx}'],
 					testTimeout: 10000,
 					hookTimeout: 10000
