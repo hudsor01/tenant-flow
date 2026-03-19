@@ -276,32 +276,6 @@ Deno.test('tenant-invitation-accept: 405 response is plain text "Method Not Allo
   )
 })
 
-// =============================================================================
-// Rate limiting documentation
-// =============================================================================
-
-Deno.test('tenant-invitation-accept: documents rate limiting behavior', () => {
-  // Rate limiting is configured at 10 req/min per IP via Upstash Redis:
-  //   const rateLimited = await rateLimit(req, { maxRequests: 10, windowMs: 60_000, prefix: 'invite-accept' })
-  //
-  // Key behaviors:
-  //   1. Rate limit checked BEFORE auth (unauthenticated endpoint protection)
-  //   2. IP extracted from x-forwarded-for > cf-connecting-ip > 'unknown'
-  //   3. Rate limiter FAILS OPEN on Upstash errors (availability over enforcement)
-  //   4. When rate limited: returns 429 with { error: 'Too many requests' }
-  //   5. Response includes Retry-After, X-RateLimit-Limit, X-RateLimit-Remaining, X-RateLimit-Reset headers
-  //
-  // Testing rate limits in CI is impractical because:
-  //   - Requires a live Upstash Redis instance
-  //   - Rapid-fire requests could hit Redis quota limits
-  //   - Rate limit state persists between test runs (flaky)
-  //
-  // Rate limiting is verified via:
-  //   - Code review: rateLimit() call is present before auth check
-  //   - Unit tests on rateLimit() utility (in _shared/rate-limit.ts)
-  //   - Manual testing in staging environment
-  assert(true, 'Rate limiting behavior documented')
-})
 
 // =============================================================================
 // Authenticated flow tests
@@ -328,20 +302,3 @@ Deno.test('tenant-invitation-accept: authenticated request with valid format ret
   assertEquals(data.error, 'Invalid or already used invitation')
 })
 
-Deno.test('tenant-invitation-accept: documents success response format', () => {
-  // Successful invitation acceptance returns:
-  //   { accepted: true }  with status 200
-  //
-  // Side effects on success:
-  //   1. Upserts tenant record (tenants table) linking auth user_id
-  //   2. If invitation has lease_id, links tenant to lease (lease_tenants table)
-  //   3. Updates invitation status to 'accepted' with timestamp and user_id
-  //
-  // Full success path testing requires:
-  //   - A valid, pending invitation in the database
-  //   - A tenant user who hasn't already accepted
-  //   - Invitation must not be expired
-  //
-  // This is covered by E2E tests (tenant-invitation flow) and manual QA.
-  assert(true, 'Success response format documented')
-})

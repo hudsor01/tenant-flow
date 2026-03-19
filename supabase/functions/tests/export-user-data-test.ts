@@ -250,26 +250,3 @@ Deno.test('export-user-data: 405 response is plain text "Method Not Allowed"', a
   )
 })
 
-// =============================================================================
-// Success response documentation
-// =============================================================================
-
-Deno.test('export-user-data: documents success response format', () => {
-  // Successful data export returns:
-  //   JSON file with Content-Disposition: attachment header
-  //
-  // The function:
-  //   1. Validates JWT and extracts user identity
-  //   2. Queries users table for user_type (OWNER vs TENANT)
-  //   3. Collects role-specific data using service_role client (bypasses RLS)
-  //   4. OWNER: profile, properties, units, leases, rent_due, rent_payments, maintenance, documents, expenses
-  //   5. TENANT: profile, tenant record, leases via lease_tenants, rent_due, rent_payments, maintenance
-  //   6. Returns downloadable JSON with metadata (exported_at, user_role, user_id)
-  //
-  // Full success path testing requires:
-  //   - An authenticated user with data in the database
-  //   - Valid E2E test credentials
-  //
-  // Partial coverage via authenticated tests above (Content-Type, Content-Disposition, JSON structure).
-  assert(true, 'Success response format documented')
-})

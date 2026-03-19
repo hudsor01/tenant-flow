@@ -264,25 +264,3 @@ Deno.test('stripe-autopay-charge: does not return CORS headers (pg_cron only, no
   assertEquals(corsHeader, null, 'pg_cron-only function should not return CORS headers')
 })
 
-// =============================================================================
-// Idempotency documentation
-// =============================================================================
-
-Deno.test('stripe-autopay-charge: documents idempotency key pattern', () => {
-  // Idempotency is enforced via Stripe PaymentIntent creation with idempotencyKey:
-  //   idempotencyKey: `${rent_due_id}_${tenant_id}`
-  //
-  // This means:
-  //   1. Duplicate pg_cron invocations for the same rent_due + tenant will not create duplicate charges
-  //   2. Stripe deduplicates based on the idempotency key within a 24-hour window
-  //   3. The function also checks rent_payments table for existing succeeded/processing payments
-  //      before attempting a Stripe charge (belt-and-suspenders approach)
-  //
-  // Full integration testing of idempotency requires:
-  //   - A real Stripe test environment with valid customer + payment method
-  //   - A real rent_due record in the database
-  //   - Two invocations with the same rent_due_id + tenant_id
-  //
-  // This is covered by manual QA / staging environment testing.
-  assert(true, 'Idempotency pattern documented')
-})
