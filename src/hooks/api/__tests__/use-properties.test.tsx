@@ -29,6 +29,7 @@ import {
 	useMarkPropertySoldMutation,
 	usePrefetchPropertyDetail
 } from '../use-property-mutations'
+import { createQueryChain } from '#test/mocks/supabase-query-mock'
 
 // Mock logger
 vi.mock('#shared/lib/frontend-logger', () => ({
@@ -65,13 +66,9 @@ const {
 	mockSelect,
 	mockEq,
 	mockNeq,
-	mockOr,
 	mockOrder,
-	mockRange,
 	mockSingle,
 	mockUpdate,
-	mockInsert,
-	mockDelete,
 	mockHead,
 	mockGetUser,
 	mockRpc,
@@ -82,13 +79,9 @@ const {
 	mockSelect: vi.fn(),
 	mockEq: vi.fn(),
 	mockNeq: vi.fn(),
-	mockOr: vi.fn(),
 	mockOrder: vi.fn(),
-	mockRange: vi.fn(),
 	mockSingle: vi.fn(),
 	mockUpdate: vi.fn(),
-	mockInsert: vi.fn(),
-	mockDelete: vi.fn(),
 	mockHead: vi.fn(),
 	mockGetUser: vi.fn(),
 	mockRpc: vi.fn(),
@@ -145,38 +138,6 @@ const mockProperty = {
 	updated_at: '2024-01-01T00:00:00Z'
 }
 
-// Default chainable query builder mock
-function buildQueryChain(resolvedValue: { data: unknown; error: unknown; count?: number }) {
-	const chain: Record<string, ReturnType<typeof vi.fn>> = {}
-
-	chain.select = mockSelect
-	chain.eq = mockEq
-	chain.neq = mockNeq
-	chain.or = mockOr
-	chain.order = mockOrder
-	chain.range = mockRange
-	chain.single = mockSingle
-	chain.update = mockUpdate
-	chain.insert = mockInsert
-	chain.delete = mockDelete
-	chain.head = mockHead
-
-	// Each method returns the chain (for fluent chaining)
-	mockSelect.mockReturnValue(chain)
-	mockEq.mockReturnValue(chain)
-	mockNeq.mockReturnValue(chain)
-	mockOr.mockReturnValue(chain)
-	mockOrder.mockReturnValue(chain)
-	mockRange.mockResolvedValue(resolvedValue)
-	mockSingle.mockResolvedValue(resolvedValue)
-	mockUpdate.mockReturnValue(chain)
-	mockInsert.mockReturnValue(chain)
-	mockDelete.mockReturnValue(chain)
-	mockHead.mockReturnValue(chain)
-
-	return chain
-}
-
 describe('Query Hooks', () => {
 	beforeEach(() => {
 		vi.clearAllMocks()
@@ -187,9 +148,7 @@ describe('Query Hooks', () => {
 
 	describe('useProperty', () => {
 		it('should fetch property by ID using supabase.from', async () => {
-			buildQueryChain({ data: mockProperty, error: null })
-
-			mockFrom.mockReturnValue({ select: mockSelect })
+			mockFrom.mockReturnValue(createQueryChain({ data: mockProperty, error: null }))
 
 			const { result } = renderHook(() => useProperty('prop-123'), {
 				wrapper: createWrapper()
@@ -213,12 +172,11 @@ describe('Query Hooks', () => {
 
 	describe('usePropertyList', () => {
 		it('should fetch property list using supabase.from', async () => {
-			buildQueryChain({
+			mockFrom.mockReturnValue(createQueryChain({
 				data: [mockProperty],
 				error: null,
 				count: 1
-			})
-			mockFrom.mockReturnValue({ select: mockSelect })
+			}))
 
 			const { result } = renderHook(() => usePropertyList(), {
 				wrapper: createWrapper()
@@ -232,12 +190,11 @@ describe('Query Hooks', () => {
 		})
 
 		it('should select data array from response', async () => {
-			buildQueryChain({
+			mockFrom.mockReturnValue(createQueryChain({
 				data: [mockProperty],
 				error: null,
 				count: 1
-			})
-			mockFrom.mockReturnValue({ select: mockSelect })
+			}))
 
 			const { result } = renderHook(() => usePropertyList(), {
 				wrapper: createWrapper()
@@ -254,10 +211,7 @@ describe('Query Hooks', () => {
 	describe('usePropertiesWithUnits', () => {
 		it('should query properties with units using supabase.from', async () => {
 			const propertyWithUnits = { ...mockProperty, units: [] }
-			buildQueryChain({ data: [propertyWithUnits], error: null })
-			// withUnits uses .order() as terminal
-			mockOrder.mockResolvedValue({ data: [propertyWithUnits], error: null })
-			mockFrom.mockReturnValue({ select: mockSelect })
+			mockFrom.mockReturnValue(createQueryChain({ data: [propertyWithUnits], error: null }))
 
 			const { result } = renderHook(() => usePropertiesWithUnits(), {
 				wrapper: createWrapper()

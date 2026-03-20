@@ -309,28 +309,3 @@ Deno.test('send-tenant-invitation: 405 response is plain text "Method Not Allowe
   )
 })
 
-// =============================================================================
-// Success response documentation
-// =============================================================================
-
-Deno.test('send-tenant-invitation: documents success response format', () => {
-  // Successful email send returns:
-  //   { sent: true, email_id: string }  with status 200
-  //
-  // The function:
-  //   1. Validates JWT and extracts user identity
-  //   2. Fetches invitation by ID (with joined owner/property/unit data)
-  //   3. Verifies caller is the invitation owner (403 if not)
-  //   4. Checks invitation is still active (not accepted/cancelled/expired)
-  //   5. Renders branded HTML email via tenantInvitationEmail()
-  //   6. Sends via Resend (sendEmail)
-  //   7. Returns { sent: true, email_id } on success
-  //
-  // Full success path testing requires:
-  //   - A pending invitation in the database
-  //   - Owned by the authenticated user
-  //   - Valid Resend API key
-  //
-  // This is covered by manual QA and staging environment testing.
-  assert(true, 'Success response format documented')
-})

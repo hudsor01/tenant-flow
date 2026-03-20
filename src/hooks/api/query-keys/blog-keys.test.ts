@@ -47,6 +47,7 @@ vi.mock('#lib/postgrest-error-handler', () => ({
 	})
 }))
 
+import { createQueryChain } from '#test/mocks/supabase-query-mock'
 import { blogQueries } from './blog-keys'
 import type { BlogFilters } from './blog-keys'
 
@@ -82,18 +83,22 @@ function callQueryFn<T>(opts: {
 	return (opts.queryFn as (c: MockQueryContext) => T | Promise<T>)(ctx)
 }
 
-// Helper to set up chained query mock
+// Helper to set up chained query mock using createQueryChain with hoisted mocks for assertions
 function setupChainedMock(result: { data: unknown; error: unknown; count?: number | null }) {
-	const chain = {
-		select: mockSelect.mockReturnThis(),
-		eq: mockEq.mockReturnThis(),
-		neq: mockNeq.mockReturnThis(),
-		order: mockOrder.mockReturnThis(),
-		limit: mockLimit.mockReturnValue(result),
-		range: mockRange.mockReturnValue(result),
-		single: mockSingle.mockReturnValue(result),
-		contains: mockContains.mockReturnThis()
-	}
+	const chain = createQueryChain(result)
+	// Wire hoisted mocks onto the chain so expect(mockEq) etc. assertions work
+	mockSelect.mockReturnValue(chain)
+	mockEq.mockReturnValue(chain)
+	mockNeq.mockReturnValue(chain)
+	mockOrder.mockReturnValue(chain)
+	mockContains.mockReturnValue(chain)
+	mockLimit.mockReturnValue(result)
+	mockRange.mockReturnValue(result)
+	mockSingle.mockReturnValue(result)
+	Object.assign(chain, {
+		select: mockSelect, eq: mockEq, neq: mockNeq, order: mockOrder,
+		limit: mockLimit, range: mockRange, single: mockSingle, contains: mockContains
+	})
 	mockFrom.mockReturnValue(chain)
 	return chain
 }

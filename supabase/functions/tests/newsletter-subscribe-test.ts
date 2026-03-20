@@ -207,30 +207,3 @@ Deno.test('newsletter-subscribe: 405 response is plain text "Method Not Allowed"
   )
 })
 
-// =============================================================================
-// Rate limiting documentation (NEWS-02)
-// =============================================================================
-
-Deno.test('newsletter-subscribe: documents rate limiting behavior', () => {
-  // Rate limiting is configured at 5 req/min per IP via Upstash Redis:
-  //   const rateLimited = await rateLimit(req, { maxRequests: 5, windowMs: 60_000, prefix: 'newsletter' })
-  //
-  // Key behaviors:
-  //   1. Rate limit checked BEFORE body parsing (protects against payload floods)
-  //   2. IP extracted from x-forwarded-for > cf-connecting-ip > 'unknown'
-  //   3. Rate limiter FAILS OPEN on Upstash errors (availability over enforcement)
-  //   4. When rate limited: returns 429 with { error: 'Too many requests' }
-  //   5. Response includes Retry-After, X-RateLimit-Limit, X-RateLimit-Remaining, X-RateLimit-Reset headers
-  //   6. Prefix 'newsletter' namespaces keys to avoid collision with other functions
-  //
-  // Testing rate limits in CI is impractical because:
-  //   - Requires a live Upstash Redis instance
-  //   - Rapid-fire requests could hit Redis quota limits
-  //   - Rate limit state persists between test runs (flaky)
-  //
-  // Rate limiting is verified via:
-  //   - Code review: rateLimit() call is present before body parsing
-  //   - Unit tests on rateLimit() utility (in _shared/rate-limit.ts)
-  //   - Manual testing in staging environment
-  assert(true, 'Rate limiting behavior documented')
-})
