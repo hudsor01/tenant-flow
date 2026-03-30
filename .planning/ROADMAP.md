@@ -83,7 +83,10 @@ TenantFlow is a multi-tenant property management SaaS platform for property owne
   2. Owner's PostgREST insert into tenant_invitations succeeds with RLS policies referencing the correct owner_user_id column
   3. Attempting to create a second active invitation for the same email and owner is rejected by the database
   4. A newly inserted invitation row has expires_at automatically set to 7 days from now without any client-side date calculation
-**Plans**: TBD
+**Plans:** 2 plans
+Plans:
+- [ ] 26-01-PLAN.md -- Write atomic migration file (backfill, RLS, unique index, expiry default)
+- [ ] 26-02-PLAN.md -- Fix portal_access typo and remove client-side expires_at from code
 
 ### Phase 27: Unified Mutation Hook
 **Goal**: One hook handles all invitation creation logic -- type derivation, duplicate detection, DB insert, email send, and cache invalidation -- so no UI component needs to implement any of this inline
@@ -116,6 +119,6 @@ Phases execute in numeric order: 26 -> 27 -> 28
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
-| 26. Database Stabilization | v1.4 | 0/TBD | Not started | - |
+| 26. Database Stabilization | v1.4 | 0/2 | Not started | - |
 | 27. Unified Mutation Hook | v1.4 | 0/TBD | Not started | - |
 | 28. Consumer Migration & Dead Code Removal | v1.4 | 0/TBD | Not started | - |
