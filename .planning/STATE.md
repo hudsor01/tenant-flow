@@ -42,10 +42,12 @@ Last activity: 2026-03-18 -- v1.3 Stub Elimination milestone complete
 
 ### Decisions
 
-(Cleared at milestone boundary -- see .planning/PROJECT.md Key Decisions table for persistent decisions)
+- Phase 27-02: Discriminated union result type for useCreateInvitation (created/duplicate) lets callers decide UI response
+- Phase 27-02: expires_at included in insert payload despite plan note about DB DEFAULT (generated types require it)
+- Phase 27-02: Non-null assertions after length > 0 guard for noUncheckedIndexedAccess compliance
 
 ## Session Continuity
 
-Last session: 2026-03-18
-Stopped at: Milestone v1.3 complete
+Last session: 2026-03-30
+Stopped at: Completed 27-02-PLAN.md (unified mutation hook)
 Resume file: None
