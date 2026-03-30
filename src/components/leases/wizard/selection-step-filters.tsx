@@ -43,7 +43,6 @@ export function InlineTenantInvite({ propertyId, onToggleMode }: InlineTenantInv
 			const invitationCode = crypto.randomUUID()
 			const appBaseUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3050'
 			const invitationUrl = `${appBaseUrl}/auth/accept-invitation?code=${invitationCode}`
-			const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString()
 
 			const { data: invitationData, error } = await supabase
 				.from('tenant_invitations')
@@ -53,7 +52,6 @@ export function InlineTenantInvite({ propertyId, onToggleMode }: InlineTenantInv
 					property_id: propertyId ?? null,
 					invitation_code: invitationCode,
 					invitation_url: invitationUrl,
-					expires_at: expiresAt,
 					status: 'sent',
 					type: 'lease_signing'
 				})
