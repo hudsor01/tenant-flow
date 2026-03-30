@@ -2,12 +2,12 @@
 gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Tenant Invitation Flow Redesign
-status: defining_requirements
+status: ready_to_plan
 stopped_at: null
 last_updated: "2026-03-30T00:00:00.000Z"
-last_activity: 2026-03-30 -- Milestone v1.4 started
+last_activity: 2026-03-30 -- Roadmap created (3 phases, 16 requirements)
 progress:
-  total_phases: 0
+  total_phases: 3
   completed_phases: 0
   total_plans: 0
   completed_plans: 0
@@ -21,14 +21,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-30)
 
 **Core value:** A landlord can add a property, invite a tenant, collect rent, and see their financials -- without touching a spreadsheet or calling anyone.
-**Current focus:** v1.4 Tenant Invitation Flow Redesign
+**Current focus:** v1.4 Phase 26 -- Database Stabilization
 
 ## Current Position
 
-Phase: Not started (defining requirements)
-Plan: —
-Status: Defining requirements
-Last activity: 2026-03-30 -- Milestone v1.4 started
+Phase: 26 of 28 (Database Stabilization)
+Plan: --
+Status: Ready to plan
+Last activity: 2026-03-30 -- Roadmap created (3 phases, 16 requirements mapped)
+
+Progress: [░░░░░░░░░░] 0%
 
 ## Shipped Milestones
 
@@ -46,9 +48,16 @@ Last activity: 2026-03-30 -- Milestone v1.4 started
 - One unified invitation flow replaces 4 separate code paths (onboarding, modal, form, lease wizard)
 - Type field stays as internal metadata -- auto-set by context, never user-facing
 - Accept Edge Function behavior unchanged (already context-agnostic)
+- DB fixes must land before hook; hook before consumer migration (strict dependency chain)
+- Phase 26 research flag: verify live RLS policies with pg_policy query before writing migration SQL
+
+### Blockers/Concerns
+
+- RLS policy column drift needs live DB verification (may already be fixed out-of-band)
+- CHECK constraint ('portal_access' typo) is a confirmed production bug -- dashboard invitations currently broken
 
 ## Session Continuity
 
 Last session: 2026-03-30
-Stopped at: Defining requirements for v1.4
+Stopped at: Roadmap created, ready to plan Phase 26
 Resume file: None

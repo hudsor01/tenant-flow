@@ -47,22 +47,22 @@
 
 | Requirement | Phase | Plan | Status |
 |-------------|-------|------|--------|
-| DB-01 | — | — | pending |
-| DB-02 | — | — | pending |
-| DB-03 | — | — | pending |
-| DB-04 | — | — | pending |
-| INV-01 | — | — | pending |
-| INV-02 | — | — | pending |
-| INV-03 | — | — | pending |
-| INV-04 | — | — | pending |
-| INV-05 | — | — | pending |
-| UI-01 | — | — | pending |
-| UI-02 | — | — | pending |
-| UI-03 | — | — | pending |
-| UI-04 | — | — | pending |
-| UI-05 | — | — | pending |
-| UI-06 | — | — | pending |
-| UI-07 | — | — | pending |
+| DB-01 | Phase 26 | — | pending |
+| DB-02 | Phase 26 | — | pending |
+| DB-03 | Phase 26 | — | pending |
+| DB-04 | Phase 26 | — | pending |
+| INV-01 | Phase 27 | — | pending |
+| INV-02 | Phase 27 | — | pending |
+| INV-03 | Phase 27 | — | pending |
+| INV-04 | Phase 27 | — | pending |
+| INV-05 | Phase 27 | — | pending |
+| UI-01 | Phase 28 | — | pending |
+| UI-02 | Phase 28 | — | pending |
+| UI-03 | Phase 28 | — | pending |
+| UI-04 | Phase 28 | — | pending |
+| UI-05 | Phase 28 | — | pending |
+| UI-06 | Phase 28 | — | pending |
+| UI-07 | Phase 28 | — | pending |
 
 ---
 *Created: 2026-03-30*
