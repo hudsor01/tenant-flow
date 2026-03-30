@@ -70,7 +70,16 @@ A landlord can add a property, invite a tenant, collect rent, and see their fina
 
 ### Active
 
-(No active requirements -- next milestone not yet defined)
+## Current Milestone: v1.4 Tenant Invitation Flow Redesign
+
+**Goal:** Replace 4 duplicated tenant invitation paths with one unified invite flow that works everywhere -- onboarding, dashboard, and lease wizard.
+
+**Target features:**
+- One invitation component/flow used across all contexts (onboarding wizard, dashboard tenants, lease wizard)
+- Context-aware fields (property/unit picker when relevant, lease attachment when coming from lease wizard)
+- Remove user-facing type dropdown (internal metadata only, auto-set by context)
+- Fix CHECK constraint bugs ('portal_access' typo in invite-tenant-form.tsx)
+- Clean post-invite experience (pending state, resend, status visibility)
 
 ### Out of Scope
 
@@ -157,4 +166,4 @@ Frontend (Next.js 16 / Vercel) -> supabase-js -> Supabase PostgREST (RLS enforce
 | Centralized social proof constants | Single source of truth for all marketing numbers | Good |
 
 ---
-*Last updated: 2026-03-18 after v1.3 milestone (Stub Elimination)*
+*Last updated: 2026-03-30 after v1.4 milestone start (Tenant Invitation Flow Redesign)*
