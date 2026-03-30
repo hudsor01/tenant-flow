@@ -58,7 +58,7 @@ async function createInvitation(
 		.limit(1)
 
 	if (existingInvitations && existingInvitations.length > 0) {
-		return { status: 'duplicate', existing: existingInvitations[0] }
+		return { status: 'duplicate', existing: existingInvitations[0]! }
 	}
 
 	// Derive type (D-03)
@@ -102,7 +102,7 @@ async function createInvitation(
 			.limit(1)
 
 		if (raceExisting && raceExisting.length > 0) {
-			return { status: 'duplicate', existing: raceExisting[0] }
+			return { status: 'duplicate', existing: raceExisting[0]! }
 		}
 	}
 
