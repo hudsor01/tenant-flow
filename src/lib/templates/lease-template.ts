@@ -437,7 +437,7 @@ function resolveToken(context: LeaseTemplateContext, token: string): string {
 		if (
 			current &&
 			typeof current === 'object' &&
-			segment in (current as Record<string, unknown>)
+			Object.hasOwn(current as Record<string, unknown>, segment)
 		) {
 			current = (current as Record<string, unknown>)[segment]
 		} else {
