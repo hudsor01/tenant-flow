@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Tenant Invitation Flow Redesign
 status: in-progress
-stopped_at: "Completed 26-01-PLAN.md"
-last_updated: "2026-03-30T20:35:00Z"
-last_activity: 2026-03-30 -- Phase 26 Plan 01 complete (database stabilization migration)
+stopped_at: "Completed 26-02-PLAN.md"
+last_updated: "2026-03-30T21:06:08.423Z"
+last_activity: 2026-03-30 -- Phase 26 Plan 02 complete (code fixes for typo and expires_at)
 progress:
   total_phases: 3
   completed_phases: 0
   total_plans: 2
-  completed_plans: 1
-  percent: 50
+  completed_plans: 2
+  percent: 100
 ---
 
 # Project State: TenantFlow
@@ -27,9 +27,9 @@ See: .planning/PROJECT.md (updated 2026-03-30)
 
 Milestone: v1.4 Tenant Invitation Flow
 Phase: 26 - Database Stabilization
-Current Plan: 1 of 2 complete
-Status: In Progress
-Last activity: 2026-03-30 -- Phase 26 Plan 01 complete (stabilize_tenant_invitations migration)
+Current Plan: 2 of 2 complete
+Status: All plans complete — pending verification
+Last activity: 2026-03-30 -- Phase 26 Plan 02 complete (code fixes for typo and expires_at)
 
 ## Shipped Milestones
 
@@ -58,8 +58,10 @@ Last activity: 2026-03-30 -- Phase 26 Plan 01 complete (stabilize_tenant_invitat
 |------------|----------|-------|-------|
 | 26-01 | 2min | 1 | 1 |
 
+- [Phase 26]: DB DEFAULT for expires_at on INSERT; explicit set on UPDATE resend path
+
 ## Session Continuity
 
 Last session: 2026-03-30
-Stopped at: Completed 26-01-PLAN.md
+Stopped at: Completed 26-02-PLAN.md
 Resume file: None

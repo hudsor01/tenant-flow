@@ -87,7 +87,7 @@ TenantFlow is a multi-tenant property management SaaS platform for property owne
 **Plans:** 2 plans
 Plans:
 - [x] 26-01-PLAN.md -- Write atomic migration file (backfill, RLS, unique index, expiry default)
-- [ ] 26-02-PLAN.md -- Fix portal_access typo and remove client-side expires_at from code
+- [x] 26-02-PLAN.md -- Fix portal_access typo and remove client-side expires_at from code
 
 ### Phase 27: Unified Mutation Hook
 **Goal**: One hook handles all invitation creation logic -- type derivation, duplicate detection, DB insert, email send, and cache invalidation -- so no UI component needs to implement any of this inline
@@ -120,6 +120,6 @@ Phases execute in numeric order: 26 -> 27 -> 28
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
-| 26. Database Stabilization | v1.4 | 1/2 | In progress | - |
+| 26. Database Stabilization | v1.4 | 2/2 | All plans complete | - |
 | 27. Unified Mutation Hook | v1.4 | 0/TBD | Not started | - |
 | 28. Consumer Migration & Dead Code Removal | v1.4 | 0/TBD | Not started | - |
