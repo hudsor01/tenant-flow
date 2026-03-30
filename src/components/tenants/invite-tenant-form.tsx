@@ -15,6 +15,7 @@ import { tenantQueries } from '#hooks/api/query-keys/tenant-keys'
 import { createClient } from '#lib/supabase/client'
 import { getCachedUser } from '#lib/supabase/get-cached-user'
 import { handleMutationError } from '#lib/mutation-error-handler'
+import { INVITATION_ACCEPT_PATH } from '#lib/constants/routes'
 import { InviteTenantInfoFields } from './invite-tenant-info-fields'
 import { InviteTenantPropertyFields } from './invite-tenant-property-fields'
 
@@ -59,7 +60,10 @@ export function InviteTenantForm({
 			const invitationCode = crypto.randomUUID()
 			const appBaseUrl =
 				process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3050'
-			const invitationUrl = `${appBaseUrl}/auth/accept-invitation?code=${invitationCode}`
+			const invitationUrl = `${appBaseUrl}${INVITATION_ACCEPT_PATH}?code=${invitationCode}`
+			const expiresAt = new Date(
+				Date.now() + 7 * 24 * 60 * 60 * 1000
+			).toISOString()
 
 			const { data: invitationData, error } = await supabase
 				.from('tenant_invitations')
@@ -70,8 +74,9 @@ export function InviteTenantForm({
 					unit_id: payload.leaseData?.unit_id ?? null,
 					invitation_code: invitationCode,
 					invitation_url: invitationUrl,
+					expires_at: expiresAt,
 					status: 'sent',
-					type: 'platform_access'
+					type: 'portal_access'
 				})
 				.select('id')
 				.single()
