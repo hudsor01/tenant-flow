@@ -60,9 +60,6 @@ export function InviteTenantForm({
 			const appBaseUrl =
 				process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3050'
 			const invitationUrl = `${appBaseUrl}/auth/accept-invitation?code=${invitationCode}`
-			const expiresAt = new Date(
-				Date.now() + 7 * 24 * 60 * 60 * 1000
-			).toISOString()
 
 			const { data: invitationData, error } = await supabase
 				.from('tenant_invitations')
@@ -73,9 +70,8 @@ export function InviteTenantForm({
 					unit_id: payload.leaseData?.unit_id ?? null,
 					invitation_code: invitationCode,
 					invitation_url: invitationUrl,
-					expires_at: expiresAt,
 					status: 'sent',
-					type: 'portal_access'
+					type: 'platform_access'
 				})
 				.select('id')
 				.single()
