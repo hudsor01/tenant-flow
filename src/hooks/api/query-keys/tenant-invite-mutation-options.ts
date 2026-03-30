@@ -10,6 +10,7 @@ import { mutationOptions } from '@tanstack/react-query'
 import { createClient } from '#lib/supabase/client'
 import { handlePostgrestError } from '#lib/postgrest-error-handler'
 import type { TenantWithExtras } from '#types/core'
+import { INVITATION_ACCEPT_PATH } from '#lib/constants/routes'
 import { mutationKeys } from '../mutation-keys'
 
 // ============================================================================
@@ -82,7 +83,7 @@ export const tenantInviteMutations = {
 				const invitationCode = crypto.randomUUID()
 				const appBaseUrl =
 					process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3050'
-				const invitationUrl = `${appBaseUrl}/auth/accept-invitation?code=${invitationCode}`
+				const invitationUrl = `${appBaseUrl}${INVITATION_ACCEPT_PATH}?code=${invitationCode}`
 				const expiresAt = new Date(
 					Date.now() + 7 * 24 * 60 * 60 * 1000
 				).toISOString()

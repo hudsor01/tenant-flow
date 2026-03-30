@@ -411,7 +411,7 @@ describe('Mutation Hooks', () => {
 									unit_id: 'unit-123',
 									property_id: 'property-123',
 									invitation_code: 'code-123',
-									invitation_url: 'http://localhost:3050/auth/accept-invitation?code=code-123',
+									invitation_url: 'http://localhost:3050/accept-invite?code=code-123',
 									expires_at: '2024-02-01T00:00:00Z',
 									status: 'sent',
 									type: 'lease_signing'
