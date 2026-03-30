@@ -123,8 +123,9 @@ self.addEventListener('activate', event => {
 
 // Handle messages from client (e.g., skipWaiting)
 self.addEventListener('message', event => {
-	// Only accept messages from same-origin clients
+	// Only accept messages from same-origin controlled clients
 	if (!event.source || !(event.source instanceof Client)) return
+	if (event.origin && event.origin !== self.location.origin) return
 	if (!event.data) return
 	if (event.data.type === 'SKIP_WAITING') {
 		self.skipWaiting()
@@ -201,8 +202,9 @@ self.addEventListener('fetch', event => {
 
 // Periodic cleanup: trim runtime cache on message request
 self.addEventListener('message', event => {
-	// Only accept messages from same-origin clients
+	// Only accept messages from same-origin controlled clients
 	if (!event.source || !(event.source instanceof Client)) return
+	if (event.origin && event.origin !== self.location.origin) return
 	if (event.data && event.data.type === 'TRIM_CACHES') {
 		event.waitUntil(trimCache(RUNTIME, MAX_RUNTIME_ENTRIES))
 	}
