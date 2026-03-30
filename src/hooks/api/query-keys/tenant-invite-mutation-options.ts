@@ -83,9 +83,6 @@ export const tenantInviteMutations = {
 				const appBaseUrl =
 					process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3050'
 				const invitationUrl = `${appBaseUrl}/auth/accept-invitation?code=${invitationCode}`
-				const expiresAt = new Date(
-					Date.now() + 7 * 24 * 60 * 60 * 1000
-				).toISOString()
 
 				const leaseUnit = Array.isArray(lease?.units)
 					? lease?.units[0]
@@ -102,7 +99,6 @@ export const tenantInviteMutations = {
 						property_id: leaseUnit?.property_id ?? null,
 						invitation_code: invitationCode,
 						invitation_url: invitationUrl,
-						expires_at: expiresAt,
 						status: 'sent',
 						type: 'lease_signing'
 					})
@@ -135,6 +131,7 @@ export const tenantInviteMutations = {
 				invitationId: string
 			): Promise<{ message: string }> => {
 				const supabase = createClient()
+				// expires_at must be set explicitly on UPDATE -- DB DEFAULT only applies to INSERT
 				const newExpiry = new Date(
 					Date.now() + 7 * 24 * 60 * 60 * 1000
 				).toISOString()
