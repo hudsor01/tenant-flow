@@ -1859,7 +1859,7 @@ export type Database = {
           accepted_by_user_id?: string | null
           created_at?: string | null
           email: string
-          expires_at: string
+          expires_at?: string | null
           id?: string
           invitation_code: string
           invitation_url: string
