@@ -64,11 +64,12 @@ TenantFlow is a multi-tenant property management SaaS platform for property owne
 
 </details>
 
+
 ### v1.4 Tenant Invitation Flow Redesign (In Progress)
 
 **Milestone Goal:** Replace 4 duplicated tenant invitation code paths with one unified flow that works everywhere -- onboarding, dashboard, and lease wizard.
 
-- [ ] **Phase 26: Database Stabilization** - Fix production bugs and add missing constraints on tenant_invitations table
+- [ ] **Phase 26: Database Stabilization** (1/2 plans) - Fix production bugs and add missing constraints on tenant_invitations table
 - [ ] **Phase 27: Unified Mutation Hook** - Build single useCreateInvitation() hook as sole invitation entry point
 - [ ] **Phase 28: Consumer Migration & Dead Code Removal** - Migrate all UI consumers to shared hook, surface pending invitations, delete redundant code
 
@@ -85,7 +86,7 @@ TenantFlow is a multi-tenant property management SaaS platform for property owne
   4. A newly inserted invitation row has expires_at automatically set to 7 days from now without any client-side date calculation
 **Plans:** 2 plans
 Plans:
-- [ ] 26-01-PLAN.md -- Write atomic migration file (backfill, RLS, unique index, expiry default)
+- [x] 26-01-PLAN.md -- Write atomic migration file (backfill, RLS, unique index, expiry default)
 - [ ] 26-02-PLAN.md -- Fix portal_access typo and remove client-side expires_at from code
 
 ### Phase 27: Unified Mutation Hook
@@ -119,6 +120,6 @@ Phases execute in numeric order: 26 -> 27 -> 28
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
-| 26. Database Stabilization | v1.4 | 0/2 | Not started | - |
+| 26. Database Stabilization | v1.4 | 1/2 | In progress | - |
 | 27. Unified Mutation Hook | v1.4 | 0/TBD | Not started | - |
 | 28. Consumer Migration & Dead Code Removal | v1.4 | 0/TBD | Not started | - |
