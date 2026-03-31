@@ -130,7 +130,7 @@ export function TenantTable({
 				<table className="w-full">
 					<thead className="border-b border-border bg-muted/50 sticky top-0 z-10">
 						<tr>
-							<th className="w-10 px-4 py-3">
+							<th className="w-10 px-4 py-2">
 								<Checkbox
 									checked={
 										allSelected ? true : someSelected ? 'indeterminate' : false
@@ -139,7 +139,7 @@ export function TenantTable({
 									aria-label="Select all"
 								/>
 							</th>
-							<th className="px-4 py-3 text-left">
+							<th className="px-4 py-2 text-left">
 								<SortableHeader
 									title="Name"
 									field="fullName"
@@ -148,7 +148,7 @@ export function TenantTable({
 									onSort={handleSort}
 								/>
 							</th>
-							<th className="px-4 py-3 text-left">
+							<th className="px-4 py-2 text-left">
 								<SortableHeader
 									title="Email"
 									field="email"
@@ -157,10 +157,10 @@ export function TenantTable({
 									onSort={handleSort}
 								/>
 							</th>
-							<th className="px-4 py-3 text-left text-sm font-medium text-muted-foreground">
+							<th className="px-4 py-2 text-left text-sm font-medium text-muted-foreground">
 								Phone
 							</th>
-							<th className="px-4 py-3 text-left">
+							<th className="px-4 py-2 text-left">
 								<SortableHeader
 									title="Property"
 									field="property"
@@ -169,7 +169,7 @@ export function TenantTable({
 									onSort={handleSort}
 								/>
 							</th>
-							<th className="px-4 py-3 text-left">
+							<th className="px-4 py-2 text-left">
 								<SortableHeader
 									title="Status"
 									field="leaseStatus"
@@ -178,10 +178,10 @@ export function TenantTable({
 									onSort={handleSort}
 								/>
 							</th>
-							<th className="px-4 py-3 text-left text-sm font-medium text-muted-foreground">
+							<th className="px-4 py-2 text-left text-sm font-medium text-muted-foreground">
 								Lease
 							</th>
-							<th className="w-20 px-4 py-3"></th>
+							<th className="w-20 px-4 py-2"></th>
 						</tr>
 					</thead>
 					<tbody className="divide-y divide-border" style={{ height: `${rowVirtualizer.getTotalSize()}px`, position: 'relative' }}>
@@ -206,7 +206,7 @@ export function TenantTable({
 
 			{/* Pagination */}
 			{totalPages > 1 && (
-				<div className="flex items-center justify-between px-4 py-3 border-t border-border">
+				<div className="flex items-center justify-between px-4 py-2 border-t border-border">
 					<p className="text-sm text-muted-foreground">
 						Showing {pageIndex * pageSize + 1} to{' '}
 						{Math.min((pageIndex + 1) * pageSize, sortedTenants.length)} of{' '}

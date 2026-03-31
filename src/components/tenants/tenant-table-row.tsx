@@ -35,14 +35,14 @@ export function TenantTableRow({
 				isSelected ? 'bg-primary/5' : ''
 			}`}
 		>
-			<td className="px-4 py-3">
+			<td className="px-4 py-2">
 				<Checkbox
 					checked={isSelected}
 					onCheckedChange={() => onSelect(tenant.id)}
 					aria-label={`Select ${tenant.fullName}`}
 				/>
 			</td>
-			<td className="px-4 py-3">
+			<td className="px-4 py-2">
 				<button
 					onClick={() => onView(tenant.id)}
 					className="font-medium text-foreground hover:text-primary hover:underline transition-colors text-left"
@@ -50,15 +50,15 @@ export function TenantTableRow({
 					{tenant.fullName}
 				</button>
 			</td>
-			<td className="px-4 py-3">
+			<td className="px-4 py-2">
 				<span className="text-sm text-muted-foreground">{tenant.email}</span>
 			</td>
-			<td className="px-4 py-3">
+			<td className="px-4 py-2">
 				<span className="text-sm text-muted-foreground">
 					{tenant.phone || '—'}
 				</span>
 			</td>
-			<td className="px-4 py-3">
+			<td className="px-4 py-2">
 				{tenant.currentProperty ? (
 					<div className="text-left">
 						<p className="text-sm text-foreground">{tenant.currentProperty}</p>
@@ -72,7 +72,7 @@ export function TenantTableRow({
 					<span className="text-sm text-muted-foreground">—</span>
 				)}
 			</td>
-			<td className="px-4 py-3">
+			<td className="px-4 py-2">
 				<StatusSelectCell
 					value={tenant.leaseStatus}
 					onChange={(value: LeaseStatus) =>
@@ -83,7 +83,7 @@ export function TenantTableRow({
 					}
 				/>
 			</td>
-			<td className="px-4 py-3">
+			<td className="px-4 py-2">
 				{tenant.leaseStatus === 'active' ? (
 					<Button
 						variant="ghost"
@@ -98,7 +98,7 @@ export function TenantTableRow({
 					<span className="text-sm text-muted-foreground">—</span>
 				)}
 			</td>
-			<td className="px-4 py-3">
+			<td className="px-4 py-2">
 				<div className="flex items-center justify-end gap-1">
 					<Button
 						variant="ghost"
