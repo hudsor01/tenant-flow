@@ -44,8 +44,14 @@ Last activity: 2026-03-18 -- v1.3 Stub Elimination milestone complete
 
 (Cleared at milestone boundary -- see .planning/PROJECT.md Key Decisions table for persistent decisions)
 
+### Decisions
+
+- Used getUser() for session detection on accept-invite page (CLAUDE.md security requirement)
+- Reused existing acceptInvitation() handler for logged-in accept flow (no duplication)
+- Passed invitation code as explicit prop to InviteSignupForm
+
 ## Session Continuity
 
-Last session: 2026-03-18
-Stopped at: Milestone v1.3 complete
+Last session: 2026-03-30
+Stopped at: Completed 28-03-PLAN.md
 Resume file: None
