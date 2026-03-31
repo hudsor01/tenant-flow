@@ -1,17 +1,17 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.4
-milestone_name: Tenant Invitation Flow Redesign
-status: executing
-stopped_at: "Completed 28-01-PLAN.md"
-last_updated: "2026-03-31T02:35:00Z"
-last_activity: 2026-03-31 -- Phase 28 Plan 01 consumer migration complete
+milestone: null
+milestone_name: null
+status: idle
+stopped_at: null
+last_updated: "2026-03-18T20:45:00.000Z"
+last_activity: 2026-03-18 -- v1.3 Stub Elimination milestone complete
 progress:
-  total_phases: 1
+  total_phases: 0
   completed_phases: 0
-  total_plans: 3
-  completed_plans: 1
-  percent: 33
+  total_plans: 0
+  completed_plans: 0
+  percent: 0
 ---
 
 # Project State: TenantFlow
@@ -21,14 +21,13 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-18)
 
 **Core value:** A landlord can add a property, invite a tenant, collect rent, and see their financials -- without touching a spreadsheet or calling anyone.
-**Current focus:** Phase 28 - Consumer Migration & Dead Code Removal
+**Current focus:** Planning next milestone
 
 ## Current Position
 
-Milestone: v1.4 Tenant Invitation Flow Redesign
-Phase: 28-consumer-migration-dead-code-removal
-Status: Executing (Plan 01 complete, Plans 02-03 pending)
-Last activity: 2026-03-31 -- Phase 28 Plan 01 consumer migration complete
+Milestone: None (v1.3 shipped)
+Status: Idle
+Last activity: 2026-03-18 -- v1.3 Stub Elimination milestone complete
 
 ## Shipped Milestones
 
@@ -43,12 +42,16 @@ Last activity: 2026-03-31 -- Phase 28 Plan 01 consumer migration complete
 
 ### Decisions
 
-- Unified useCreateInvitation hook with discriminated union result (created vs duplicate)
-- handleDuplicateInvitation shared utility for info toast with resend action
-- Router.push replaces Zustand modal state for invite navigation
+(Cleared at milestone boundary -- see .planning/PROJECT.md Key Decisions table for persistent decisions)
+
+### Decisions
+
+- Used getUser() for session detection on accept-invite page (CLAUDE.md security requirement)
+- Reused existing acceptInvitation() handler for logged-in accept flow (no duplication)
+- Passed invitation code as explicit prop to InviteSignupForm
 
 ## Session Continuity
 
-Last session: 2026-03-31
-Stopped at: Completed 28-01-PLAN.md
+Last session: 2026-03-30
+Stopped at: Completed 28-03-PLAN.md
 Resume file: None

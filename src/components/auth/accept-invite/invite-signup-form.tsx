@@ -20,12 +20,14 @@ interface InviteSignupFormProps {
 	invitation: InvitationData | null
 	errorMessage: string
 	onSubmit: (values: AcceptInviteFormValues) => Promise<void>
+	code?: string | null
 }
 
 export function InviteSignupForm({
 	invitation,
 	errorMessage,
-	onSubmit
+	onSubmit,
+	code
 }: InviteSignupFormProps) {
 	const [showPassword, setShowPassword] = useState(false)
 	const [showConfirmPassword, setShowConfirmPassword] = useState(false)
@@ -225,14 +227,14 @@ export function InviteSignupForm({
 						: 'Accept Invitation & Create Account'}
 				</Button>
 
-				{/* Already have account */}
-				<p className="text-center text-muted-foreground">
+				{/* Already have account -- D-09: redirect preserves invitation code */}
+				<p className="text-sm text-center text-muted-foreground mt-6">
 					Already have an account?{' '}
 					<Link
-						href="/login"
+						href={`/login?redirect=${encodeURIComponent(`/accept-invite?code=${code ?? ''}`)}`}
 						className="text-primary hover:underline font-medium"
 					>
-						Sign in
+						Log in to accept
 					</Link>
 				</p>
 			</form>

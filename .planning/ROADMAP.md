@@ -10,7 +10,6 @@ TenantFlow is a multi-tenant property management SaaS platform for property owne
 - v1.1 **Blog Redesign & CI** -- Phases 11-15 (shipped 2026-03-08) | [archive](milestones/v1.1-ROADMAP.md)
 - v1.2 **Production Polish & Code Consolidation** -- Phases 16-20 (shipped 2026-03-11) | [archive](milestones/v1.2-ROADMAP.md)
 - v1.3 **Stub Elimination** -- Phases 21-25 (shipped 2026-03-18) | [archive](milestones/v1.3-ROADMAP.md)
-- v1.4 **Tenant Invitation Flow Redesign** -- Phases 26-28 (in progress)
 
 ## Phases
 
@@ -65,10 +64,8 @@ TenantFlow is a multi-tenant property management SaaS platform for property owne
 </details>
 
 <details>
-<summary>v1.4 Tenant Invitation Flow Redesign (Phases 26-28) -- IN PROGRESS</summary>
+<summary>v1.4 Tenant Invitation Flow Redesign (Phase 28) -- IN PROGRESS</summary>
 
-- [x] Phase 26: Database Stabilization (3/3 plans) -- completed 2026-03-30
-- [x] Phase 27: Unified Mutation Hook (2/2 plans) -- completed 2026-03-30
-- [ ] Phase 28: Consumer Migration & Dead Code Removal (1/3 plans) -- in progress
+- [ ] Phase 28: Consumer Migration & Dead Code Removal -- in progress
 
 </details>
