@@ -1,6 +1,7 @@
 'use client'
 
 import { Users, UserPlus } from 'lucide-react'
+import { useRouter } from 'next/navigation'
 import { createLogger } from '#lib/frontend-logger'
 import type { TenantsProps } from '#types/sections/tenants'
 import { useTenantsStore } from '#stores/tenants-store'
@@ -8,7 +9,6 @@ import { TenantTable } from './tenant-table'
 import { TenantGrid } from './tenant-grid'
 import { TenantDetailSheet } from './tenant-detail-sheet'
 import { TenantActionBar } from './tenant-action-bar'
-import { InviteTenantModal } from './invite-tenant-modal'
 import { TenantStats } from './tenant-stats'
 import { TenantQuickActions } from './tenant-quick-actions'
 import { TenantToolbar } from './tenant-toolbar'
@@ -19,13 +19,13 @@ const logger = createLogger({ component: 'Tenants' })
 export function Tenants({
 	tenants,
 	selectedTenant,
-	onInviteTenant,
 	onViewTenant,
 	onEditTenant,
 	onContactTenant,
 	onViewLease,
 	onViewPaymentHistory
 }: TenantsProps) {
+	const router = useRouter()
 
 	const {
 		viewMode,
@@ -39,13 +39,14 @@ export function Tenants({
 		setSelectedIds,
 		selectAll,
 		clearSelection,
-		isInviteModalOpen,
-		openInviteModal,
-		closeInviteModal,
 		isDetailSheetOpen,
 		openDetailSheet,
 		setDetailSheetOpen
 	} = useTenantsStore()
+
+	const handleInviteClick = () => {
+		router.push('/tenants/new')
+	}
 
 	// Calculate summary stats
 	const totalTenants = tenants.length
@@ -116,7 +117,7 @@ export function Tenants({
 							Invite your first tenant to get started with lease management.
 						</p>
 						<button
-							onClick={openInviteModal}
+							onClick={handleInviteClick}
 							className="inline-flex items-center gap-2 px-6 py-3 bg-primary hover:bg-primary/90 text-primary-foreground font-medium rounded-md transition-colors"
 						>
 							<UserPlus className="w-5 h-5" />
@@ -124,12 +125,6 @@ export function Tenants({
 						</button>
 					</div>
 				</BlurFade>
-
-				<InviteTenantModal
-					isOpen={isInviteModalOpen}
-					onClose={closeInviteModal}
-					onSubmit={onInviteTenant}
-				/>
 			</div>
 		)
 	}
@@ -146,7 +141,7 @@ export function Tenants({
 						</p>
 					</div>
 					<button
-						onClick={openInviteModal}
+						onClick={handleInviteClick}
 						className="inline-flex items-center gap-2 px-4 py-2.5 bg-primary hover:bg-primary/90 text-primary-foreground font-medium rounded-md transition-colors"
 					>
 						<UserPlus className="w-4 h-4" />
@@ -162,7 +157,7 @@ export function Tenants({
 				endedTenants={endedTenants}
 			/>
 
-			<TenantQuickActions onInvite={openInviteModal} />
+			<TenantQuickActions onInvite={handleInviteClick} />
 
 			{/* View Toggle & Filters */}
 			<BlurFade delay={0.6} inView>
@@ -235,12 +230,6 @@ export function Tenants({
 				onContact={onContactTenant}
 				onViewLease={onViewLease}
 				onViewPaymentHistory={onViewPaymentHistory}
-			/>
-
-			<InviteTenantModal
-				isOpen={isInviteModalOpen}
-				onClose={closeInviteModal}
-				onSubmit={onInviteTenant}
 			/>
 		</div>
 	)
