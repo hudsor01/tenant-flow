@@ -45,8 +45,14 @@ Last activity: 2026-03-30
 - Phase 27-02: expires_at included in insert payload despite plan note about DB DEFAULT (generated types require it)
 - Phase 27-02: Non-null assertions after length > 0 guard for noUncheckedIndexedAccess compliance
 
+### Quick Tasks Completed
+
+| # | Description | Date | Commit | Directory |
+|---|-------------|------|--------|-----------|
+| 260330-rp5 | Fix non-4px-grid spacing in tenant table and badge | 2026-03-31 | 827e9c204 | [260330-rp5-fix-non-4px-grid-spacing-in-tenant-table](./quick/260330-rp5-fix-non-4px-grid-spacing-in-tenant-table/) |
+
 ## Session Continuity
 
-Last session: 2026-03-31T00:54:56.361Z
-Stopped at: Phase 28 UI-SPEC approved
+Last session: 2026-03-31
+Stopped at: Quick task 260330-rp5 complete
 Resume file: .planning/phases/28-consumer-migration-dead-code-removal/28-UI-SPEC.md
