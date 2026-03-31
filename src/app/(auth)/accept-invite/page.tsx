@@ -290,6 +290,7 @@ function AcceptInviteContent() {
 						invitation={invitation ?? null}
 						errorMessage={submitError}
 						onSubmit={handleSignup}
+						code={code}
 					/>
 				</div>
 			</div>
