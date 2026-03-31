@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Tenant Invitation Flow Redesign
 status: Idle
-stopped_at: Phase 28 context gathered
-last_updated: "2026-03-31T00:44:52.534Z"
+stopped_at: Phase 28 UI-SPEC approved
+last_updated: "2026-03-31T00:54:56.363Z"
 last_activity: 2026-03-30
 progress:
   total_phases: 3
@@ -47,6 +47,6 @@ Last activity: 2026-03-30
 
 ## Session Continuity
 
-Last session: 2026-03-31T00:44:52.531Z
-Stopped at: Phase 28 context gathered
-Resume file: .planning/phases/28-consumer-migration-dead-code-removal/28-CONTEXT.md
+Last session: 2026-03-31T00:54:56.361Z
+Stopped at: Phase 28 UI-SPEC approved
+Resume file: .planning/phases/28-consumer-migration-dead-code-removal/28-UI-SPEC.md
