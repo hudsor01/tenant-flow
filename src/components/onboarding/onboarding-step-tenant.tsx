@@ -5,13 +5,9 @@ import { Users } from 'lucide-react'
 import { Button } from '#components/ui/button'
 import { Input } from '#components/ui/input'
 import { Label } from '#components/ui/label'
-import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { tenantQueries } from '#hooks/api/query-keys/tenant-keys'
-import { createClient } from '#lib/supabase/client'
-import { getCachedUser } from '#lib/supabase/get-cached-user'
-import { handleMutationError } from '#lib/mutation-error-handler'
-import { INVITATION_ACCEPT_PATH } from '#lib/constants/routes'
-import { toast } from 'sonner'
+import { useCreateInvitation } from '#hooks/api/use-create-invitation'
+import { useResendInvitationMutation } from '#hooks/api/use-tenant-invite-mutations'
+import { handleDuplicateInvitation } from '#lib/invitation-utils'
 
 interface OnboardingStepTenantProps {
 	onNext: () => void
@@ -25,93 +21,35 @@ export function OnboardingStepTenant({
 	onNext,
 	onSkip
 }: OnboardingStepTenantProps) {
-	const queryClient = useQueryClient()
-
 	const [email, setEmail] = useState('')
 	const [firstName, setFirstName] = useState('')
 	const [lastName, setLastName] = useState('')
 
-	const inviteTenant = useMutation({
-		mutationFn: async (data: {
-			tenantData: { email: string; first_name: string; last_name: string }
-		}) => {
-			const supabase = createClient()
-			const user = await getCachedUser()
-			if (!user) throw new Error('Not authenticated')
+	const createInvitation = useCreateInvitation()
+	const resendInvitation = useResendInvitationMutation()
 
-			const invitationCode = crypto.randomUUID()
-			const appBaseUrl =
-				process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3050'
-			const invitationUrl = `${appBaseUrl}${INVITATION_ACCEPT_PATH}?code=${invitationCode}`
-			const expiresAt = new Date(
-				Date.now() + 7 * 24 * 60 * 60 * 1000
-			).toISOString()
-
-			const { data: invitationData, error } = await supabase
-				.from('tenant_invitations')
-				.insert({
-					email: data.tenantData.email,
-					owner_user_id: user.id,
-					invitation_code: invitationCode,
-					invitation_url: invitationUrl,
-					expires_at: expiresAt,
-					status: 'sent',
-					type: 'portal_access'
-				})
-				.select('id')
-				.single()
-
-			if (error) throw error
-
-			// Send invitation email (non-fatal)
-			const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-			const {
-				data: { session }
-			} = await supabase.auth.getSession()
-			if (session?.access_token && invitationData?.id) {
-				await fetch(
-					`${supabaseUrl}/functions/v1/send-tenant-invitation`,
-					{
-						method: 'POST',
-						headers: {
-							'Content-Type': 'application/json',
-							Authorization: `Bearer ${session.access_token}`
-						},
-						body: JSON.stringify({
-							invitation_id: invitationData.id
-						})
-					}
-				).catch(err => {
-					console.error('[invitation-email] Email send failed:', err)
-				})
-			}
-		},
-		onSuccess: () => {
-			toast.success('Invitation sent', {
-				description: `${firstName.trim()} ${lastName.trim()} will receive an email invitation`
-			})
-			queryClient.invalidateQueries({ queryKey: tenantQueries.lists() })
-			onNext()
-		},
-		onError: (error: unknown) => {
-			handleMutationError(error, 'Invite tenant')
-		}
-	})
-
-	const handleSubmit = (e: React.FormEvent) => {
+	const handleSubmit = async (e: React.FormEvent) => {
 		e.preventDefault()
 
 		if (!email.trim() || !firstName.trim() || !lastName.trim()) {
 			return
 		}
 
-		inviteTenant.mutate({
-			tenantData: {
-				email: email.trim(),
-				first_name: firstName.trim(),
-				last_name: lastName.trim()
+		try {
+			const result = await createInvitation.mutateAsync({
+				email: email.trim()
+			})
+
+			if (result.status === 'duplicate') {
+				handleDuplicateInvitation(result.existing, resendInvitation.mutate)
+				return
 			}
-		})
+
+			// Hook handles toast + cache. Consumer handles onNext() navigation.
+			onNext()
+		} catch {
+			// Error handled by hook onError callback
+		}
 	}
 
 	return (
@@ -170,10 +108,10 @@ export function OnboardingStepTenant({
 				<div className="flex gap-2 pt-2">
 					<Button
 						type="submit"
-						disabled={inviteTenant.isPending}
+						disabled={createInvitation.isPending}
 						className="min-h-11 flex-1"
 					>
-						{inviteTenant.isPending ? 'Sending...' : 'Send Invitation'}
+						{createInvitation.isPending ? 'Sending...' : 'Send Invitation'}
 					</Button>
 					<Button
 						type="button"

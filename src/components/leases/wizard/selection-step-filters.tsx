@@ -1,18 +1,13 @@
 'use client'
 
 import { useState } from 'react'
-import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { toast } from 'sonner'
-import { createClient } from '#lib/supabase/client'
-import { getCachedUser } from '#lib/supabase/get-cached-user'
-import { requireOwnerUserId } from '#lib/require-owner-user-id'
 import { Label } from '#components/ui/label'
 import { Input } from '#components/ui/input'
 import { Button } from '#components/ui/button'
 import { Loader2, Mail, UserPlus } from 'lucide-react'
-import { tenantQueries } from '#hooks/api/query-keys/tenant-keys'
-import { tenantInvitationQueries } from '#hooks/api/query-keys/tenant-invitation-keys'
-import { INVITATION_ACCEPT_PATH } from '#lib/constants/routes'
+import { useCreateInvitation } from '#hooks/api/use-create-invitation'
+import { useResendInvitationMutation } from '#hooks/api/use-tenant-invite-mutations'
+import { handleDuplicateInvitation } from '#lib/invitation-utils'
 
 interface InviteFormData {
 	first_name: string
@@ -27,7 +22,6 @@ interface InlineTenantInviteProps {
 }
 
 export function InlineTenantInvite({ propertyId, onToggleMode }: InlineTenantInviteProps) {
-	const queryClient = useQueryClient()
 	const [inviteForm, setInviteForm] = useState<InviteFormData>({
 		first_name: '',
 		last_name: '',
@@ -35,70 +29,29 @@ export function InlineTenantInvite({ propertyId, onToggleMode }: InlineTenantInv
 		phone: ''
 	})
 
-	const inviteMutation = useMutation({
-		mutationFn: async (inviteData: InviteFormData) => {
-			const supabase = createClient()
-			const user = await getCachedUser()
-			const ownerId = requireOwnerUserId(user?.id)
+	const createInvitation = useCreateInvitation()
+	const resendInvitation = useResendInvitationMutation()
 
-			const invitationCode = crypto.randomUUID()
-			const appBaseUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3050'
-			const invitationUrl = `${appBaseUrl}${INVITATION_ACCEPT_PATH}?code=${invitationCode}`
-			const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString()
+	const handleSendInvite = async () => {
+		if (!inviteForm.first_name || !inviteForm.last_name || !inviteForm.email) return
 
-			const { data: invitationData, error } = await supabase
-				.from('tenant_invitations')
-				.insert({
-					email: inviteData.email,
-					owner_user_id: ownerId,
-					property_id: propertyId ?? null,
-					invitation_code: invitationCode,
-					invitation_url: invitationUrl,
-					expires_at: expiresAt,
-					status: 'sent',
-					type: 'lease_signing'
-				})
-				.select('id')
-				.single()
-
-			if (error) throw new Error(error.message || 'Failed to send invitation')
-
-			// Send invitation email (non-fatal)
-			const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-			const { data: { session } } = await supabase.auth.getSession()
-			if (session?.access_token && invitationData?.id) {
-				await fetch(
-					`${supabaseUrl}/functions/v1/send-tenant-invitation`,
-					{
-						method: 'POST',
-						headers: {
-							'Content-Type': 'application/json',
-							Authorization: `Bearer ${session.access_token}`
-						},
-						body: JSON.stringify({ invitation_id: invitationData.id })
-					}
-				).catch(err => {
-					console.error('[invitation-email] Email send failed:', err)
-				})
-			}
-		},
-		onSuccess: () => {
-			toast.success('Invitation sent', {
-				description: `${inviteForm.first_name} ${inviteForm.last_name} will receive an email to join`
+		try {
+			const result = await createInvitation.mutateAsync({
+				email: inviteForm.email,
+				property_id: propertyId
 			})
+
+			if (result.status === 'duplicate') {
+				handleDuplicateInvitation(result.existing, resendInvitation.mutate)
+				return
+			}
+
+			// Hook handles toast + cache. Consumer handles onToggleMode().
 			onToggleMode()
 			setInviteForm({ first_name: '', last_name: '', email: '', phone: '' })
-			queryClient.invalidateQueries({ queryKey: tenantQueries.lists() })
-			queryClient.invalidateQueries({ queryKey: tenantInvitationQueries.invitations() })
-		},
-		onError: (error: Error) => {
-			toast.error(error.message)
+		} catch {
+			// Error handled by hook onError callback
 		}
-	})
-
-	const handleSendInvite = () => {
-		if (!inviteForm.first_name || !inviteForm.last_name || !inviteForm.email) return
-		inviteMutation.mutate(inviteForm)
 	}
 
 	const isInviteFormValid = inviteForm.first_name && inviteForm.last_name && inviteForm.email
@@ -159,9 +112,9 @@ export function InlineTenantInvite({ propertyId, onToggleMode }: InlineTenantInv
 				type="button"
 				size="sm"
 				onClick={handleSendInvite}
-				disabled={!isInviteFormValid || inviteMutation.isPending}
+				disabled={!isInviteFormValid || createInvitation.isPending}
 			>
-				{inviteMutation.isPending ? (
+				{createInvitation.isPending ? (
 					<>
 						<Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" />
 						Sending...

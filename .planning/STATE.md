@@ -2,15 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Tenant Invitation Flow Redesign
-status: Idle
-stopped_at: Phase 28 UI-SPEC approved
-last_updated: "2026-03-31T00:54:56.363Z"
-last_activity: 2026-03-30
+status: executing
+stopped_at: "Completed 28-01-PLAN.md"
+last_updated: "2026-03-31T02:35:00Z"
+last_activity: 2026-03-31 -- Phase 28 Plan 01 consumer migration complete
 progress:
-  total_phases: 3
-  completed_phases: 2
-  total_plans: 4
-  completed_plans: 4
+  total_phases: 1
+  completed_phases: 0
+  total_plans: 3
+  completed_plans: 1
+  percent: 33
 ---
 
 # Project State: TenantFlow
@@ -20,13 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-18)
 
 **Core value:** A landlord can add a property, invite a tenant, collect rent, and see their financials -- without touching a spreadsheet or calling anyone.
-**Current focus:** Planning next milestone
+**Current focus:** Phase 28 - Consumer Migration & Dead Code Removal
 
 ## Current Position
 
-Milestone: None (v1.3 shipped)
-Status: Idle
-Last activity: 2026-03-30
+Milestone: v1.4 Tenant Invitation Flow Redesign
+Phase: 28-consumer-migration-dead-code-removal
+Status: Executing (Plan 01 complete, Plans 02-03 pending)
+Last activity: 2026-03-31 -- Phase 28 Plan 01 consumer migration complete
 
 ## Shipped Milestones
 
@@ -41,18 +43,12 @@ Last activity: 2026-03-30
 
 ### Decisions
 
-- Phase 27-02: Discriminated union result type for useCreateInvitation (created/duplicate) lets callers decide UI response
-- Phase 27-02: expires_at included in insert payload despite plan note about DB DEFAULT (generated types require it)
-- Phase 27-02: Non-null assertions after length > 0 guard for noUncheckedIndexedAccess compliance
-
-### Quick Tasks Completed
-
-| # | Description | Date | Commit | Directory |
-|---|-------------|------|--------|-----------|
-| 260330-rp5 | Fix non-4px-grid spacing in tenant table and badge | 2026-03-31 | 827e9c204 | [260330-rp5-fix-non-4px-grid-spacing-in-tenant-table](./quick/260330-rp5-fix-non-4px-grid-spacing-in-tenant-table/) |
+- Unified useCreateInvitation hook with discriminated union result (created vs duplicate)
+- handleDuplicateInvitation shared utility for info toast with resend action
+- Router.push replaces Zustand modal state for invite navigation
 
 ## Session Continuity
 
 Last session: 2026-03-31
-Stopped at: Quick task 260330-rp5 complete
-Resume file: .planning/phases/28-consumer-migration-dead-code-removal/28-UI-SPEC.md
+Stopped at: Completed 28-01-PLAN.md
+Resume file: None

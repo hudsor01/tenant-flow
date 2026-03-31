@@ -26,9 +26,9 @@ import type { Tables } from '#types/supabase'
 
 export type CreateInvitationParams = {
 	email: string
-	lease_id?: string
-	property_id?: string
-	unit_id?: string
+	lease_id?: string | undefined
+	property_id?: string | undefined
+	unit_id?: string | undefined
 }
 
 type InvitationRecord = Pick<
@@ -57,8 +57,9 @@ async function createInvitation(
 		.in('status', ['pending', 'sent'])
 		.limit(1)
 
-	if (existingInvitations && existingInvitations.length > 0) {
-		return { status: 'duplicate', existing: existingInvitations[0]! }
+	const existingMatch = existingInvitations?.[0]
+	if (existingMatch) {
+		return { status: 'duplicate', existing: existingMatch }
 	}
 
 	// Derive type (D-03)
@@ -101,8 +102,9 @@ async function createInvitation(
 			.in('status', ['pending', 'sent'])
 			.limit(1)
 
-		if (raceExisting && raceExisting.length > 0) {
-			return { status: 'duplicate', existing: raceExisting[0]! }
+		const raceMatch = raceExisting?.[0]
+		if (raceMatch) {
+			return { status: 'duplicate', existing: raceMatch }
 		}
 	}
 

@@ -12,7 +12,6 @@ export interface TenantsProps {
 	selectedTenant?: TenantSectionDetail | undefined
 
 	// Callbacks
-	onInviteTenant: (data: InviteTenantData) => void
 	onResendInvitation: (invitationId: string) => void
 	onCancelInvitation: (invitationId: string) => void
 	onViewTenant: (tenantId: string) => void
@@ -96,16 +95,6 @@ export interface TenantSectionInvitation {
 	expiresAt: string
 	sentAt: string
 	acceptedAt?: string
-}
-
-export interface InviteTenantData {
-	email: string
-	firstName?: string
-	lastName?: string
-	propertyId?: string
-	unitId?: string
-	leaseId?: string
-	type: InvitationType
 }
 
 export type UserStatus = 'active' | 'inactive' | 'suspended'
