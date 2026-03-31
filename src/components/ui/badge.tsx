@@ -31,7 +31,7 @@ const badgeVariants = cva(
 			size: {
 				default: 'rounded-md px-2 py-0.5 text-xs [&>svg]:size-3 gap-1',
 				sm: 'rounded-md px-1.5 py-0.5 text-[10px] [&>svg]:size-2.5 gap-0.5',
-				lg: 'rounded-md px-3 py-1 text-sm [&>svg]:size-4 gap-1.5',
+				lg: 'rounded-md px-3 py-1 text-sm [&>svg]:size-4 gap-1',
 				// Trust indicator size
 				trust: 'rounded-full px-4 py-2 text-sm gap-2 [&>svg]:size-4'
 			}
