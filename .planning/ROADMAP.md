@@ -70,7 +70,7 @@ TenantFlow is a multi-tenant property management SaaS platform for property owne
 **Milestone Goal:** Replace 4 duplicated tenant invitation code paths with one unified flow that works everywhere -- onboarding, dashboard, and lease wizard.
 
 - [x] **Phase 26: Database Stabilization** (1/2 plans) - Fix production bugs and add missing constraints on tenant_invitations table (completed 2026-03-30)
-- [ ] **Phase 27: Unified Mutation Hook** - Build single useCreateInvitation() hook as sole invitation entry point
+- [x] **Phase 27: Unified Mutation Hook** - Build single useCreateInvitation() hook as sole invitation entry point (completed 2026-03-30)
 - [ ] **Phase 28: Consumer Migration & Dead Code Removal** - Migrate all UI consumers to shared hook, surface pending invitations, delete redundant code
 
 ## Phase Details
@@ -110,8 +110,12 @@ Plans:
   3. Owner can copy an invitation link to clipboard from any pending invitation row
   4. An existing registered user who clicks an invitation accept link is routed to login instead of seeing a signup form that errors
   5. No references to InviteTenantModal, isInviteModalOpen, or InviteTenantData exist anywhere in the codebase
-**Plans**: TBD
+**Plans:** 3 plans
 **UI hint**: yes
+Plans:
+- [ ] 28-01-PLAN.md -- Migrate 3 consumers to useCreateInvitation() and delete legacy modal dead code
+- [ ] 28-02-PLAN.md -- Surface pending invitations on tenant list with dropdown actions
+- [ ] 28-03-PLAN.md -- Add session-aware accept flow for existing users
 
 ## Progress
 
@@ -121,5 +125,5 @@ Phases execute in numeric order: 26 -> 27 -> 28
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
 | 26. Database Stabilization | v1.4 | 2/2 | Complete    | 2026-03-30 |
-| 27. Unified Mutation Hook | v1.4 | 0/TBD | Not started | - |
-| 28. Consumer Migration & Dead Code Removal | v1.4 | 0/TBD | Not started | - |
+| 27. Unified Mutation Hook | v1.4 | 0/TBD | Complete    | 2026-03-30 |
+| 28. Consumer Migration & Dead Code Removal | v1.4 | 0/3 | Not started | - |
