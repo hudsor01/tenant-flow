@@ -1,17 +1,16 @@
 ---
 gsd_state_version: 1.0
-milestone: null
-milestone_name: null
-status: idle
-stopped_at: null
-last_updated: "2026-03-18T20:45:00.000Z"
-last_activity: 2026-03-18 -- v1.3 Stub Elimination milestone complete
+milestone: v1.4
+milestone_name: Tenant Invitation Flow Redesign
+status: executing
+stopped_at: Quick task 260330-rp5 complete
+last_updated: "2026-03-31T02:21:17.265Z"
+last_activity: 2026-03-31 -- Phase 28 execution started
 progress:
-  total_phases: 0
-  completed_phases: 0
-  total_plans: 0
-  completed_plans: 0
-  percent: 0
+  total_phases: 3
+  completed_phases: 2
+  total_plans: 7
+  completed_plans: 4
 ---
 
 # Project State: TenantFlow
@@ -21,13 +20,15 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-18)
 
 **Core value:** A landlord can add a property, invite a tenant, collect rent, and see their financials -- without touching a spreadsheet or calling anyone.
-**Current focus:** Planning next milestone
+**Current focus:** Phase 28 — consumer-migration-dead-code-removal
 
 ## Current Position
 
+Phase: 28 (consumer-migration-dead-code-removal) — EXECUTING
+Plan: 1 of 3
 Milestone: None (v1.3 shipped)
-Status: Idle
-Last activity: 2026-03-18 -- v1.3 Stub Elimination milestone complete
+Status: Executing Phase 28
+Last activity: 2026-03-31 -- Phase 28 execution started
 
 ## Shipped Milestones
 
@@ -42,16 +43,18 @@ Last activity: 2026-03-18 -- v1.3 Stub Elimination milestone complete
 
 ### Decisions
 
-(Cleared at milestone boundary -- see .planning/PROJECT.md Key Decisions table for persistent decisions)
+- Phase 27-02: Discriminated union result type for useCreateInvitation (created/duplicate) lets callers decide UI response
+- Phase 27-02: expires_at included in insert payload despite plan note about DB DEFAULT (generated types require it)
+- Phase 27-02: Non-null assertions after length > 0 guard for noUncheckedIndexedAccess compliance
 
-### Decisions
+### Quick Tasks Completed
 
-- Used getUser() for session detection on accept-invite page (CLAUDE.md security requirement)
-- Reused existing acceptInvitation() handler for logged-in accept flow (no duplication)
-- Passed invitation code as explicit prop to InviteSignupForm
+| # | Description | Date | Commit | Directory |
+|---|-------------|------|--------|-----------|
+| 260330-rp5 | Fix non-4px-grid spacing in tenant table and badge | 2026-03-31 | 827e9c204 | [260330-rp5-fix-non-4px-grid-spacing-in-tenant-table](./quick/260330-rp5-fix-non-4px-grid-spacing-in-tenant-table/) |
 
 ## Session Continuity
 
-Last session: 2026-03-30
-Stopped at: Completed 28-03-PLAN.md
-Resume file: None
+Last session: 2026-03-31
+Stopped at: Quick task 260330-rp5 complete
+Resume file: .planning/phases/28-consumer-migration-dead-code-removal/28-UI-SPEC.md
