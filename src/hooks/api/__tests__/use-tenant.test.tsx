@@ -32,7 +32,6 @@ import {
 	useDeleteTenantMutation
 } from '../use-tenant-mutations'
 import {
-	useInviteTenantMutation,
 	useResendInvitationMutation,
 	useCancelInvitationMutation
 } from '../use-tenant-invite-mutations'
@@ -554,37 +553,6 @@ describe('Mutation Hooks', () => {
 			await expect(result.current.mutateAsync('tenant-123')).rejects.toMatchObject({
 				message: expect.stringContaining('Cannot delete tenant with active lease')
 			})
-		})
-	})
-
-	describe('useInviteTenantMutation', () => {
-		it('should create tenant via PostgREST and send invitation email', async () => {
-			const { result } = renderHook(() => useInviteTenantMutation(), {
-				wrapper: createWrapper()
-			})
-
-			await result.current.mutateAsync({
-				email: 'newuser@example.com',
-				first_name: 'New',
-				last_name: 'User',
-				phone: '555-9999',
-				lease_id: 'lease-456'
-			})
-
-			// Should have inserted a tenant_invitation record
-			expect(supabaseFromMock).toHaveBeenCalledWith('tenant_invitations')
-
-			// Should have called the send-tenant-invitation Edge Function
-			expect(mockFetch).toHaveBeenCalledWith(
-				expect.stringContaining('/functions/v1/send-tenant-invitation'),
-				expect.objectContaining({
-					method: 'POST',
-					headers: expect.objectContaining({
-						Authorization: 'Bearer test-jwt-token'
-					}),
-					body: expect.stringContaining('invite-123')
-				})
-			)
 		})
 	})
 

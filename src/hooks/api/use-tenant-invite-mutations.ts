@@ -16,36 +16,6 @@ import { logger } from '#lib/frontend-logger'
 import { tenantQueries } from './query-keys/tenant-keys'
 import { tenantInvitationQueries } from './query-keys/tenant-invitation-keys'
 import { tenantInviteMutations } from './query-keys/tenant-invite-mutation-options'
-import { leaseQueries } from './query-keys/lease-keys'
-
-/**
- * Invite tenant - Creates a tenant_invitation record and sends the invitation email
- * via the send-tenant-invitation Edge Function. Email send is non-fatal.
- */
-export function useInviteTenantMutation() {
-	const queryClient = useQueryClient()
-
-	return useMutation({
-		...tenantInviteMutations.invite(),
-		onSuccess: data => {
-			toast.success('Invitation sent', {
-				description: `${data?.name ?? 'Tenant'} will receive an email to accept the invitation`
-			})
-
-			queryClient.invalidateQueries({ queryKey: tenantQueries.lists() })
-			queryClient.invalidateQueries({ queryKey: tenantInvitationQueries.invitations() })
-			queryClient.invalidateQueries({ queryKey: leaseQueries.lists() })
-
-			logger.info('Tenant invitation sent', {
-				action: 'invite_tenant',
-				metadata: { invitation_id: data?.id, email: data?.email ?? '' }
-			})
-		},
-		onError: error => {
-			handleMutationError(error, 'Send tenant invitation')
-		}
-	})
-}
 
 /**
  * Resend invitation by extending expiry for expired or pending invitations
