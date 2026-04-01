@@ -51,6 +51,30 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 		}
 	]
 
+	// Comparison landing pages (high-intent SEO)
+	const comparePages: MetadataRoute.Sitemap = [
+		'buildium',
+		'appfolio',
+		'rentredi',
+	].map(competitor => ({
+		url: `${baseUrl}/compare/${competitor}`,
+		lastModified: currentDate,
+		changeFrequency: 'monthly' as const,
+		priority: 0.8
+	}))
+
+	// Free resource pages (lead magnets)
+	const resourcePages: MetadataRoute.Sitemap = [
+		'seasonal-maintenance-checklist',
+		'landlord-tax-deduction-tracker',
+		'security-deposit-reference-card',
+	].map(resource => ({
+		url: `${baseUrl}/resources/${resource}`,
+		lastModified: currentDate,
+		changeFrequency: 'monthly' as const,
+		priority: 0.7
+	}))
+
 	// Company and support pages
 	const companyPages: MetadataRoute.Sitemap = [
 		{
@@ -157,6 +181,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 	const allPages = [
 		...marketingPages,
 		...contentPages,
+		...comparePages,
+		...resourcePages,
 		...companyPages,
 		...legalPages,
 		...authPages,

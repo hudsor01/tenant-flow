@@ -70,6 +70,18 @@ vi.mock('#components/blog/blog-card', () => ({
 	),
 }))
 
+vi.mock('#components/blog/newsletter-signup', () => ({
+	NewsletterSignup: () => (
+		<div data-testid="newsletter-signup">Newsletter</div>
+	),
+}))
+
+vi.mock('#components/blog/lead-magnet-cta', () => ({
+	LeadMagnetCta: () => (
+		<div data-testid="lead-magnet-cta">Lead Magnet</div>
+	),
+}))
+
 vi.mock('#components/shared/blog-loading-skeleton', () => ({
 	BlogLoadingSkeleton: () => (
 		<div data-testid="blog-loading-skeleton">Loading...</div>
@@ -94,12 +106,16 @@ vi.mock('#components/ui/button', () => ({
 	}) => <button {...props}>{children}</button>,
 }))
 
-vi.mock('lucide-react', () => ({
-	ArrowLeft: () => <span data-testid="arrow-left" />,
-	ArrowRight: () => <span data-testid="arrow-right" />,
-	Clock: () => <span data-testid="clock-icon" />,
-	User: () => <span data-testid="user-icon" />,
-}))
+vi.mock('lucide-react', async (importOriginal) => {
+	const actual = await importOriginal<Record<string, unknown>>()
+	return {
+		...actual,
+		ArrowLeft: () => <span data-testid="arrow-left" />,
+		ArrowRight: () => <span data-testid="arrow-right" />,
+		Clock: () => <span data-testid="clock-icon" />,
+		User: () => <span data-testid="user-icon" />,
+	}
+})
 
 import BlogArticlePage from './page'
 
