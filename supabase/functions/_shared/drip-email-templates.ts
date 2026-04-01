@@ -64,7 +64,7 @@ export function day1WelcomeEmail(params: {
 }): { subject: string; html: string } {
   const safeName = escapeHtml(params.firstName)
   return {
-    subject: `Welcome to ${BRAND_NAME}, ${safeName}! Here's how to get started`,
+    subject: `Welcome to ${BRAND_NAME}, ${params.firstName}! Here's how to get started`,
     html: wrapInLayout(`
 <h1 style="margin:0 0 16px;font-size:22px;color:#18181b;">Welcome to ${BRAND_NAME}, ${safeName}!</h1>
 <p style="margin:0 0 16px;font-size:15px;color:#3f3f46;">Your 14-day free trial is active. Here is a quick setup guide to get the most out of ${BRAND_NAME} in under 5 minutes:</p>
@@ -88,7 +88,7 @@ export function day3RentCollectionEmail(params: {
 }): { subject: string; html: string } {
   const safeName = escapeHtml(params.firstName)
   return {
-    subject: `${safeName}, automate your rent collection with ${BRAND_NAME}`,
+    subject: `${params.firstName}, automate your rent collection with ${BRAND_NAME}`,
     html: wrapInLayout(`
 <h1 style="margin:0 0 16px;font-size:22px;color:#18181b;">Stop Chasing Rent Payments</h1>
 <p style="margin:0 0 16px;font-size:15px;color:#3f3f46;">${safeName}, did you know that landlords spend an average of 4 hours per month managing rent collection manually? ${BRAND_NAME} automates the entire process.</p>
@@ -159,7 +159,7 @@ export function day12TrialEndingEmail(params: {
   const safeName = escapeHtml(params.firstName)
   const safeDate = escapeHtml(params.trialEndsAt)
   return {
-    subject: `${safeName}, your ${BRAND_NAME} trial ends in 2 days`,
+    subject: `${params.firstName}, your ${BRAND_NAME} trial ends in 2 days`,
     html: wrapInLayout(`
 <h1 style="margin:0 0 16px;font-size:22px;color:#18181b;">Your Trial Ends ${safeDate}</h1>
 <p style="margin:0 0 16px;font-size:15px;color:#3f3f46;">${safeName}, your 14-day free trial is almost over. To keep managing your properties with ${BRAND_NAME}, choose a plan that fits your portfolio:</p>

@@ -70,11 +70,8 @@ async function createInvitation(
 	const appBaseUrl =
 		process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3050'
 	const invitationUrl = `${appBaseUrl}${INVITATION_ACCEPT_PATH}?code=${invitationCode}`
-	const expiresAt = new Date(
-		Date.now() + 7 * 24 * 60 * 60 * 1000
-	).toISOString()
 
-	// Insert invitation
+	// Insert invitation (expires_at uses DB default: now() + 7 days)
 	const { data: invitation, error: insertError } = await supabase
 		.from('tenant_invitations')
 		.insert({
@@ -85,7 +82,6 @@ async function createInvitation(
 			lease_id: params.lease_id ?? null,
 			invitation_code: invitationCode,
 			invitation_url: invitationUrl,
-			expires_at: expiresAt,
 			status: 'sent',
 			type: invitationType
 		})

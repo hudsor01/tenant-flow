@@ -1,36 +1,4 @@
-type FeatureSupport = 'yes' | 'no' | 'partial' | 'addon'
-
-interface FeatureRow {
-	name: string
-	tenantflow: FeatureSupport
-	tenantflowNote?: string
-	competitor: FeatureSupport
-	competitorNote?: string
-}
-
-interface PricingTier {
-	name: string
-	price: string
-	note?: string
-}
-
-interface CompetitorData {
-	name: string
-	slug: string
-	tagline: string
-	description: string
-	metaDescription: string
-	heroSubtitle: string
-	capterra: string
-	g2: string
-	founded: string
-	bestFor: string
-	tenantflowPricing: PricingTier[]
-	competitorPricing: PricingTier[]
-	features: FeatureRow[]
-	whySwitch: string[]
-	competitorStrengths: string[]
-}
+import type { CompetitorData, PricingTier } from '#types/sections/compare'
 
 const TENANTFLOW_PRICING: PricingTier[] = [
 	{ name: 'Starter', price: '$29/mo', note: 'Up to 5 properties, 25 units' },
@@ -46,6 +14,7 @@ export const COMPETITORS: Record<string, CompetitorData> = {
 	buildium: {
 		name: 'Buildium',
 		slug: 'buildium',
+		blogSlug: 'tenantflow-vs-buildium-comparison',
 		tagline: 'The Modern Buildium Alternative',
 		description:
 			'See why landlords are switching from Buildium to TenantFlow for lower costs, modern features, and a better tenant experience.',
@@ -147,6 +116,7 @@ export const COMPETITORS: Record<string, CompetitorData> = {
 	appfolio: {
 		name: 'AppFolio',
 		slug: 'appfolio',
+		blogSlug: 'tenantflow-vs-appfolio-comparison',
 		tagline: 'The AppFolio Alternative for Small Landlords',
 		description:
 			'AppFolio requires 50+ units and $298/month minimum. TenantFlow starts at $29/month with no minimums. Compare features and pricing.',
@@ -261,6 +231,7 @@ export const COMPETITORS: Record<string, CompetitorData> = {
 	rentredi: {
 		name: 'RentRedi',
 		slug: 'rentredi',
+		blogSlug: 'tenantflow-vs-rentredi-comparison',
 		tagline: 'TenantFlow vs RentRedi: More Features, Fair Price',
 		description:
 			'RentRedi is cheap but basic. TenantFlow adds advanced reporting, visual workflows, and lease management for just $20 more per month.',
