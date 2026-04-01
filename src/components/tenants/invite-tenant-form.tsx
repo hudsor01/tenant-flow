@@ -3,18 +3,14 @@
 import { Button } from '#components/ui/button'
 import { createLogger } from '#lib/frontend-logger'
 import type { Property, Unit } from '#types/core'
-import type { InviteTenantRequest } from '#lib/validation/tenants'
 import { useForm } from '@tanstack/react-form'
-import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { Mail } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
-import { toast } from 'sonner'
 import { useUnsavedChangesWarning } from '#hooks/use-unsaved-changes'
-import { tenantQueries } from '#hooks/api/query-keys/tenant-keys'
-import { createClient } from '#lib/supabase/client'
-import { getCachedUser } from '#lib/supabase/get-cached-user'
-import { handleMutationError } from '#lib/mutation-error-handler'
+import { useCreateInvitation } from '#hooks/api/use-create-invitation'
+import { useResendInvitationMutation } from '#hooks/api/use-tenant-invite-mutations'
+import { handleDuplicateInvitation } from '#lib/invitation-utils'
 import { InviteTenantInfoFields } from './invite-tenant-info-fields'
 import { InviteTenantPropertyFields } from './invite-tenant-property-fields'
 
@@ -47,71 +43,9 @@ export function InviteTenantForm({
 	onSuccess
 }: InviteTenantFormProps) {
 	const router = useRouter()
-	const queryClient = useQueryClient()
 	const [selectedPropertyId, setSelectedPropertyId] = useState('')
-
-	const inviteTenantMutation = useMutation({
-		mutationFn: async (payload: InviteTenantRequest) => {
-			const supabase = createClient()
-			const user = await getCachedUser()
-			if (!user) throw new Error('Not authenticated')
-
-			const invitationCode = crypto.randomUUID()
-			const appBaseUrl =
-				process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3050'
-			const invitationUrl = `${appBaseUrl}/auth/accept-invitation?code=${invitationCode}`
-			const expiresAt = new Date(
-				Date.now() + 7 * 24 * 60 * 60 * 1000
-			).toISOString()
-
-			const { data: invitationData, error } = await supabase
-				.from('tenant_invitations')
-				.insert({
-					email: payload.tenantData.email,
-					owner_user_id: user.id,
-					property_id: payload.leaseData?.property_id ?? null,
-					unit_id: payload.leaseData?.unit_id ?? null,
-					invitation_code: invitationCode,
-					invitation_url: invitationUrl,
-					expires_at: expiresAt,
-					status: 'sent',
-					type: 'portal_access'
-				})
-				.select('id')
-				.single()
-
-			if (error) throw error
-
-			// Send invitation email (non-fatal)
-			const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-			const {
-				data: { session }
-			} = await supabase.auth.getSession()
-			if (session?.access_token && invitationData?.id) {
-				await fetch(
-					`${supabaseUrl}/functions/v1/send-tenant-invitation`,
-					{
-						method: 'POST',
-						headers: {
-							'Content-Type': 'application/json',
-							Authorization: `Bearer ${session.access_token}`
-						},
-						body: JSON.stringify({
-							invitation_id: invitationData.id
-						})
-					}
-				).catch(err => {
-					console.error('[invitation-email] Email send failed:', err)
-				})
-			}
-		},
-		onSuccess: async () => {
-			await queryClient.invalidateQueries({ queryKey: tenantQueries.all() })
-		},
-		onError: (error: unknown) => {
-			handleMutationError(error, 'Invite tenant')
-		}
-	})
+	const createInvitation = useCreateInvitation()
+	const resendInvitation = useResendInvitationMutation()
 
 	const form = useForm({
 		defaultValues: {
@@ -124,30 +58,20 @@ export function InviteTenantForm({
 		},
 		onSubmit: async ({ value }) => {
 			try {
-				const payload: InviteTenantRequest = {
-					tenantData: {
-						email: value.email,
-						first_name: value.first_name,
-						last_name: value.last_name,
-						...(value.phone && { phone: value.phone })
-					}
-				}
-
-				if (value.property_id) {
-					payload.leaseData = {
-						property_id: value.property_id,
-						...(value.unit_id && { unit_id: value.unit_id })
-					}
-				}
-
-				await inviteTenantMutation.mutateAsync(payload)
-
-				logger.info('Tenant invitation sent', {
-					email: value.email
+				const result = await createInvitation.mutateAsync({
+					email: value.email,
+					property_id: value.property_id || undefined,
+					unit_id: value.unit_id || undefined
 				})
 
-				toast.success('Invitation Sent', {
-					description: `${value.first_name} ${value.last_name} will receive an email to access their tenant portal.`
+				if (result.status === 'duplicate') {
+					handleDuplicateInvitation(result.existing, resendInvitation.mutate)
+					return
+				}
+
+				// Hook already fires success toast. Consumer handles navigation only.
+				logger.info('Tenant invitation sent', {
+					email: value.email
 				})
 
 				onSuccess?.()
@@ -156,13 +80,6 @@ export function InviteTenantForm({
 			} catch (error) {
 				logger.error('Failed to invite tenant', {
 					error: error instanceof Error ? error.message : String(error)
-				})
-
-				toast.error('Failed to send invitation', {
-					description:
-						error instanceof Error
-							? error.message
-							: 'Please try again or contact support.'
 				})
 			}
 		}
@@ -211,12 +128,12 @@ export function InviteTenantForm({
 						<Button
 							type="submit"
 							disabled={
-								!canSubmit || inviteTenantMutation.isPending || isFormSubmitting
+								!canSubmit || createInvitation.isPending || isFormSubmitting
 							}
 							onClick={form.handleSubmit}
 						>
 							<Mail className="size-4 mr-2" />
-							{inviteTenantMutation.isPending || isFormSubmitting
+							{createInvitation.isPending || isFormSubmitting
 								? 'Sending Invitation...'
 								: 'Send Invitation'}
 						</Button>

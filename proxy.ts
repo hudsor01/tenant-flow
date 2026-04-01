@@ -20,6 +20,7 @@ const PUBLIC_ROUTES = [
   '/security-policy',
   '/support',
   '/resources',
+  '/compare',
   '/search',
   '/accept-invite',
   '/auth/callback',

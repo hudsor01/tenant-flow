@@ -92,10 +92,6 @@ export default function TenantsPage() {
 	const { mutate: cancelInvitation } = useCancelInvitationMutation()
 
 	// Callbacks
-	const handleInviteTenant = () => {
-		router.push('/tenants/new')
-	}
-
 	const handleViewTenant = (tenantId: string) => {
 		setSelectedTenantId(tenantId)
 	}
@@ -165,7 +161,6 @@ export default function TenantsPage() {
 				tenants={tenants}
 				invitations={[]}
 				selectedTenant={selectedTenant}
-				onInviteTenant={handleInviteTenant}
 				onResendInvitation={handleResendInvitation}
 				onCancelInvitation={handleCancelInvitation}
 				onViewTenant={handleViewTenant}

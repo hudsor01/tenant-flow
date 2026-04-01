@@ -7,6 +7,7 @@
 // -> 200 { accepted: true }
 // -> 400 { error: 'code is required' }
 // -> 401 { error: 'Authorization required' | 'Invalid token' }
+// -> 403 { error: 'This invitation was sent to a different email address' }
 // -> 404 { error: 'Invalid or already used invitation' }
 // -> 410 { error: 'Invitation has expired' }
 // -> 429 { error: 'Too many requests' }
@@ -80,6 +81,14 @@ Deno.serve(async (req: Request) => {
       return new Response(
         JSON.stringify({ error: 'Invalid or already used invitation' }),
         { status: 404, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
+      )
+    }
+
+    // Email-match guard: prevent user A from accepting user B's invitation
+    if (user.email?.toLowerCase() !== invitation.email.toLowerCase()) {
+      return new Response(
+        JSON.stringify({ error: 'This invitation was sent to a different email address' }),
+        { status: 403, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
       )
     }
 

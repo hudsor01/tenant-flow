@@ -8,7 +8,7 @@
  * - View: table/grid view mode
  * - Filters: search, status filter
  * - Selection: selected row IDs
- * - Modals: invite modal, detail sheet
+ * - Modals: detail sheet
  *
  * @see TODO.md REACT-001 pattern
  */
@@ -34,7 +34,6 @@ export interface TenantsState {
 	selectedIds: Set<string>
 
 	// Modal state
-	isInviteModalOpen: boolean
 	isDetailSheetOpen: boolean
 }
 
@@ -53,8 +52,6 @@ export interface TenantsActions {
 	clearSelection: () => void
 
 	// Modal actions
-	openInviteModal: () => void
-	closeInviteModal: () => void
 	openDetailSheet: () => void
 	closeDetailSheet: () => void
 	setDetailSheetOpen: (open: boolean) => void
@@ -68,7 +65,6 @@ const initialState: TenantsState = {
 	searchQuery: '',
 	statusFilter: 'all',
 	selectedIds: new Set(),
-	isInviteModalOpen: false,
 	isDetailSheetOpen: false
 }
 
@@ -99,10 +95,6 @@ export const useTenantsStore = create<TenantsState & TenantsActions>(
 		clearSelection: () => set({ selectedIds: new Set() }),
 
 		// Modal actions
-		openInviteModal: () => set({ isInviteModalOpen: true }),
-
-		closeInviteModal: () => set({ isInviteModalOpen: false }),
-
 		openDetailSheet: () => set({ isDetailSheetOpen: true }),
 
 		closeDetailSheet: () => set({ isDetailSheetOpen: false }),
@@ -142,10 +134,7 @@ export const useTenantsSelection = () =>
 
 export const useTenantsModals = () =>
 	useTenantsStore(state => ({
-		isInviteModalOpen: state.isInviteModalOpen,
 		isDetailSheetOpen: state.isDetailSheetOpen,
-		openInviteModal: state.openInviteModal,
-		closeInviteModal: state.closeInviteModal,
 		openDetailSheet: state.openDetailSheet,
 		closeDetailSheet: state.closeDetailSheet,
 		setDetailSheetOpen: state.setDetailSheetOpen

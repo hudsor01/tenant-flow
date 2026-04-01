@@ -89,9 +89,13 @@ vi.mock('#components/layout/page-layout', () => ({
 	),
 }))
 
-vi.mock('lucide-react', () => ({
-	ArrowLeft: () => <span data-testid="arrow-left" />,
-}))
+vi.mock('lucide-react', async (importOriginal) => {
+	const actual = await importOriginal<Record<string, unknown>>()
+	return {
+		...actual,
+		ArrowLeft: () => <span data-testid="arrow-left" />,
+	}
+})
 
 import BlogCategoryPage from './page'
 

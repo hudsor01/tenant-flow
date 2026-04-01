@@ -5,14 +5,18 @@ import { Button } from '#components/ui/button'
 import {
 	ArrowRight,
 	BookOpen,
+	ClipboardCheck,
 	Clock,
+	Download,
 	FileText,
 	GraduationCap,
 	HelpCircle,
 	Mail,
 	MessageCircle,
 	PlayCircle,
+	Scale,
 	Sparkles,
+	Table,
 	Video
 } from 'lucide-react'
 import Link from 'next/link'
@@ -237,6 +241,69 @@ export default function ResourcesPage() {
 										</div>
 									</div>
 								</div>
+							</Link>
+						))}
+					</div>
+				</div>
+			</section>
+
+			{/* Free Downloads */}
+			<section className="section-spacing">
+				<div className="max-w-7xl mx-auto px-6 lg:px-8">
+					<div className="text-center mb-12">
+						<h2 className="typography-h2 text-foreground mb-3">
+							Free Downloads
+						</h2>
+						<p className="text-muted-foreground text-lg">
+							Printable tools and reference guides for landlords
+						</p>
+					</div>
+
+					<div className="grid md:grid-cols-3 gap-6">
+						{[
+							{
+								icon: <ClipboardCheck className="size-6" />,
+								title: 'Seasonal Maintenance Checklist',
+								description: 'Season-by-season checklist covering HVAC, plumbing, electrical, and exterior inspections.',
+								href: '/resources/seasonal-maintenance-checklist',
+								badge: 'Checklist',
+							},
+							{
+								icon: <Table className="size-6" />,
+								title: 'Tax Deduction Tracker',
+								description: 'Track every deductible expense year-round, organized by IRS Schedule E categories.',
+								href: '/resources/landlord-tax-deduction-tracker',
+								badge: 'Spreadsheet',
+							},
+							{
+								icon: <Scale className="size-6" />,
+								title: 'Security Deposit Reference Card',
+								description: 'Deposit limits, return deadlines, and documentation requirements for all 50 states.',
+								href: '/resources/security-deposit-reference-card',
+								badge: 'Guide',
+							},
+						].map(resource => (
+							<Link
+								key={resource.title}
+								href={resource.href}
+								className="group rounded-2xl border border-border bg-card p-6 hover:shadow-lg hover:border-primary/50 transition-all duration-300"
+							>
+								<div className="flex items-center gap-3 mb-4">
+									<div className="size-10 rounded-xl bg-primary/10 flex-center text-primary">
+										{resource.icon}
+									</div>
+									<Badge variant="secondary">{resource.badge}</Badge>
+								</div>
+								<h3 className="font-semibold text-foreground mb-2 group-hover:text-primary transition-colors">
+									{resource.title}
+								</h3>
+								<p className="text-sm text-muted-foreground mb-4">
+									{resource.description}
+								</p>
+								<span className="inline-flex items-center text-sm text-primary font-medium group-hover:translate-x-1 transition-transform">
+									<Download className="size-4 mr-1.5" />
+									View &amp; Print
+								</span>
 							</Link>
 						))}
 					</div>

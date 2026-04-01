@@ -9,7 +9,6 @@
 import { mutationOptions } from '@tanstack/react-query'
 import { createClient } from '#lib/supabase/client'
 import { handlePostgrestError } from '#lib/postgrest-error-handler'
-import type { TenantWithExtras } from '#types/core'
 import { mutationKeys } from '../mutation-keys'
 
 // ============================================================================
@@ -21,7 +20,7 @@ import { mutationKeys } from '../mutation-keys'
  * Non-fatal: if this fails, the invitation DB record is preserved. The caller
  * should warn the user but not treat it as a mutation failure.
  */
-async function sendInvitationEmail(invitationId: string): Promise<void> {
+export async function sendInvitationEmail(invitationId: string): Promise<void> {
 	const supabase = createClient()
 	const {
 		data: { session }
@@ -57,77 +56,6 @@ async function sendInvitationEmail(invitationId: string): Promise<void> {
 // ============================================================================
 
 export const tenantInviteMutations = {
-	invite: () =>
-		mutationOptions({
-			mutationKey: mutationKeys.tenants.invite,
-			mutationFn: async (data: {
-				email: string
-				first_name: string
-				last_name: string
-				phone: string | null
-				lease_id: string
-			}): Promise<TenantWithExtras> => {
-				const supabase = createClient()
-
-				// Get lease details to populate invitation (property_id, unit_id)
-				const { data: lease, error: leaseError } = await supabase
-					.from('leases')
-					.select('id, unit_id, owner_user_id, units(property_id)')
-					.eq('id', data.lease_id)
-					.single()
-
-				if (leaseError) handlePostgrestError(leaseError, 'leases')
-
-				// Generate invitation code and URL
-				const invitationCode = crypto.randomUUID()
-				const appBaseUrl =
-					process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3050'
-				const invitationUrl = `${appBaseUrl}/auth/accept-invitation?code=${invitationCode}`
-				const expiresAt = new Date(
-					Date.now() + 7 * 24 * 60 * 60 * 1000
-				).toISOString()
-
-				const leaseUnit = Array.isArray(lease?.units)
-					? lease?.units[0]
-					: lease?.units
-
-				// Create tenant_invitation record
-				const { data: invitation, error: inviteError } = await supabase
-					.from('tenant_invitations')
-					.insert({
-						email: data.email,
-						owner_user_id: lease!.owner_user_id,
-						lease_id: data.lease_id,
-						unit_id: lease!.unit_id ?? null,
-						property_id: leaseUnit?.property_id ?? null,
-						invitation_code: invitationCode,
-						invitation_url: invitationUrl,
-						expires_at: expiresAt,
-						status: 'sent',
-						type: 'lease_signing'
-					})
-					.select()
-					.single()
-
-				if (inviteError)
-					handlePostgrestError(inviteError, 'tenant_invitations')
-
-				// Send invitation email (non-fatal -- DB record preserved if email fails)
-				await sendInvitationEmail(invitation!.id).catch(err => {
-					console.error('[invite] Email send failed:', err)
-				})
-
-				// Return a TenantWithExtras-compatible shape from the invitation
-				return {
-					id: invitation!.id,
-					user_id: invitation!.owner_user_id,
-					email: invitation!.email,
-					name: `${data.first_name} ${data.last_name}`.trim(),
-					invitation_status: invitation!.status
-				} as TenantWithExtras
-			}
-		}),
-
 	resend: () =>
 		mutationOptions({
 			mutationKey: mutationKeys.tenants.resendInvite,

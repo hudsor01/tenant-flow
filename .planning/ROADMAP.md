@@ -62,3 +62,10 @@ TenantFlow is a multi-tenant property management SaaS platform for property owne
 - [x] Phase 25: Maintenance Photos & Stripe Dashboard (2/2 plans) -- completed 2026-03-18
 
 </details>
+
+<details>
+<summary>v1.4 Tenant Invitation Flow Redesign (Phase 28) -- IN PROGRESS</summary>
+
+- [ ] Phase 28: Consumer Migration & Dead Code Removal -- in progress
+
+</details>

@@ -8,6 +8,7 @@ export interface SendEmailParams {
   subject: string
   html: string
   tags?: Array<{ name: string; value: string }>
+  idempotencyKey?: string
 }
 
 export type SendEmailResult =
@@ -43,12 +44,18 @@ export async function sendEmail(params: SendEmailParams): Promise<SendEmailResul
       body.tags = params.tags
     }
 
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${apiKey}`,
+    }
+
+    if (params.idempotencyKey) {
+      headers['Idempotency-Key'] = params.idempotencyKey
+    }
+
     const res = await fetch(RESEND_API_URL, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${apiKey}`,
-      },
+      headers,
       body: JSON.stringify(body),
     })
 
