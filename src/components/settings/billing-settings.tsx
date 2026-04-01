@@ -50,7 +50,6 @@ function getStatusBadge(status: string | null) {
 }
 
 export function BillingSettings() {
-	const supabase = createClient()
 	const { data: subscriptionStatus, isLoading: statusLoading } =
 		useSubscriptionStatus()
 	const { isLoading: connectLoading } = useConnectedAccount()
@@ -58,6 +57,7 @@ export function BillingSettings() {
 	const { data: paymentMethods, isLoading: methodsLoading } = useQuery({
 		queryKey: paymentMethodsKeys.all,
 		queryFn: async () => {
+			const supabase = createClient()
 			const { data, error } = await supabase
 				.from('payment_methods')
 				.select('id, type, brand, last_four, exp_month, exp_year')

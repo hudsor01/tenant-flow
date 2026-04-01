@@ -20,7 +20,6 @@ export function GeneralSettings() {
 	const themeMode = usePreferencesStore(state => state.themeMode)
 	const setThemeMode = usePreferencesStore(state => state.setThemeMode)
 	const { dataDensity, setDataDensity } = useDataDensity()
-	const supabase = createClient()
 
 	// Fetch current user profile via shared hook
 	const { data: profile, isLoading: profileLoading } = useProfile()
@@ -29,6 +28,7 @@ export function GeneralSettings() {
 	const { data: companyProfile, isLoading: companyLoading } = useQuery({
 		queryKey: profileKeys.company(),
 		queryFn: async () => {
+			const supabase = createClient()
 			const user = await getCachedUser()
 			if (!user) throw new Error('Not authenticated')
 
@@ -68,6 +68,7 @@ export function GeneralSettings() {
 	// Update profile mutation
 	const updateProfile = useMutation({
 		mutationFn: async (updates: { phone?: string; email?: string }) => {
+			const supabase = createClient()
 			const user = await getCachedUser()
 			if (!user) throw new Error('Not authenticated')
 			const { error } = await supabase
