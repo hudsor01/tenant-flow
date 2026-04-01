@@ -113,12 +113,16 @@ async function createInvitation(
 		handlePostgrestError(insertError, 'tenant_invitations')
 	}
 
+	if (!invitation) {
+		throw new Error('Failed to create invitation record')
+	}
+
 	// Send email (non-fatal -- D-10, D-11)
-	await sendInvitationEmail(invitation!.id).catch(err => {
+	await sendInvitationEmail(invitation.id).catch(err => {
 		console.error('[create-invitation] Email send failed:', err)
 	})
 
-	return { status: 'created', invitation: invitation! }
+	return { status: 'created', invitation }
 }
 
 export function useCreateInvitation() {

@@ -16,11 +16,6 @@ import {
   DRIP_SCHEDULE,
 } from '../_shared/drip-email-templates.ts'
 
-Sentry.init({
-  dsn: Deno.env.get('SENTRY_DSN'),
-  tracesSampleRate: 0.1,
-})
-
 Deno.serve(async (req: Request) => {
   const env = validateEnv({
     required: [
@@ -31,10 +26,24 @@ Deno.serve(async (req: Request) => {
     optional: ['SENTRY_DSN'],
   })
 
+  Sentry.init({
+    dsn: env.SENTRY_DSN ?? undefined,
+    tracesSampleRate: 0.1,
+  })
+
   // Only allow POST (from pg_cron or manual invocation)
   if (req.method !== 'POST') {
     return new Response(JSON.stringify({ error: 'Method not allowed' }), {
       status: 405,
+      headers: { 'Content-Type': 'application/json' },
+    })
+  }
+
+  // Auth guard: only callable with service_role key (pg_cron or admin)
+  const authHeader = req.headers.get('Authorization')
+  if (authHeader !== `Bearer ${env.SUPABASE_SERVICE_ROLE_KEY}`) {
+    return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+      status: 401,
       headers: { 'Content-Type': 'application/json' },
     })
   }
@@ -132,6 +141,7 @@ Deno.serve(async (req: Request) => {
             { name: 'category', value: 'trial-drip' },
             { name: 'drip_day', value: String(schedule.day) },
           ],
+          idempotencyKey: `drip-${user.id}-day${schedule.day}`,
         })
 
         if (result.success) {
