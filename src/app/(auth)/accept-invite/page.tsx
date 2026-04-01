@@ -88,7 +88,7 @@ function AcceptInviteContent() {
 		if (!response.ok) {
 			const err = await response.json().catch(() => ({}))
 			throw new Error(
-				(err as { message?: string }).message ||
+				(err as { error?: string }).error ||
 					'Failed to accept invitation'
 			)
 		}
