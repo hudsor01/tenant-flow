@@ -78,10 +78,10 @@ Deno.serve(async (req: Request) => {
         .lt(
           'created_at',
           new Date(
-            Date.now() - schedule.day * 24 * 60 * 60 * 1000,
+            Date.now() - (schedule.day - 1) * 24 * 60 * 60 * 1000,
           )
             .toISOString()
-            .split('T')[0] + 'T23:59:59Z',
+            .split('T')[0] + 'T00:00:00Z',
         )
         .limit(500)
 
@@ -131,6 +131,8 @@ Deno.serve(async (req: Request) => {
             })
             break
           }
+          default:
+            continue
         }
 
         const result = await sendEmail({
