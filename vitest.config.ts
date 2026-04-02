@@ -45,7 +45,7 @@ export default defineConfig({
 				test: {
 					name: 'unit',
 					environment: 'jsdom',
-					pool: 'vmThreads',
+					pool: 'threads',
 					globals: true,
 					setupFiles: [
 						'./src/test/msw-polyfill.ts',
@@ -92,7 +92,7 @@ export default defineConfig({
 				test: {
 					name: 'component',
 					environment: 'jsdom',
-					pool: 'vmThreads',
+					pool: 'threads',
 					globals: true,
 					setupFiles: [
 						'./src/test/msw-polyfill.ts',

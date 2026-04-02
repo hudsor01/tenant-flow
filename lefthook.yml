@@ -11,7 +11,7 @@ pre-commit:
     duplicate-types:
       run: ./scripts/check-duplicate-types.sh
     lockfile-verify:
-      run: pnpm install --frozen-lockfile --prefer-offline > /dev/null 2>&1
+      run: CI=true pnpm install --frozen-lockfile --prefer-offline > /dev/null 2>&1
     lint:
       run: pnpm lint
     typecheck:

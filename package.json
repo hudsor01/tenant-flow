@@ -5,7 +5,7 @@
 	"version": "1.0.1",
 	"type": "module",
 	"engines": {
-		"node": "24.x",
+		"node": ">=24",
 		"pnpm": ">=10"
 	},
 	"packageManager": "pnpm@10.32.1+sha512.a706938f0e89ac1456b6563eab4edf1d1faf3368d1191fc5c59790e96dc918e4456ab2e67d613de1043d2e8c81f87303e6b40d4ffeca9df15ef1ad567348f2be",
@@ -62,7 +62,6 @@
 	},
 	"pnpm": {
 		"overrides": {
-			"@tanstack/query-core": "5.90.20",
 			"typescript": "^5.9.3",
 			"path-to-regexp": ">=8.4.0",
 			"undici": ">=7.24.0",
@@ -92,6 +91,12 @@
 			"brace-expansion": ">=5.0.5",
 			"yaml": ">=2.8.3",
 			"smol-toml": ">=1.6.1"
+		},
+		"peerDependencyRules": {
+			"allowedVersions": {
+				"eslint-plugin-react-hooks>eslint": ">=10",
+				"@tanstack/eslint-plugin-query>eslint": ">=10"
+			}
 		},
 		"onlyBuiltDependencies": [
 			"supabase"
@@ -133,7 +138,6 @@
 		"@supabase/ssr": "^0.9.0",
 		"@supabase/supabase-js": "^2.98.0",
 		"@t3-oss/env-nextjs": "^0.13.10",
-		"@tanstack/query-core": "5.90.20",
 		"@tanstack/react-form": "^1.28.3",
 		"@tanstack/react-query": "^5.90.21",
 		"@tanstack/react-query-persist-client": "^5.90.24",
