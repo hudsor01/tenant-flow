@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { formatCurrency, formatNumber, formatCents } from '../currency'
+import { formatCurrency, formatNumber, formatCents } from '#lib/utils/currency'
 import { formatDate, formatRelativeDate } from '../date'
 
 describe('date formatters', () => {
