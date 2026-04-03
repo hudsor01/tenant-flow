@@ -3,10 +3,11 @@
 // Authenticates via JWT bearer token — no anon access.
 // PDF format: delegates to generate-pdf Edge Function (StirlingPDF via k3s).
 
-import { createClient } from '@supabase/supabase-js'
-import { getCorsHeaders, handleCorsOptions } from '../_shared/cors.ts'
+import { validateBearerAuth } from '../_shared/auth.ts'
+import { getCorsHeaders, getJsonHeaders, handleCorsOptions } from '../_shared/cors.ts'
 import { validateEnv } from '../_shared/env.ts'
 import { errorResponse } from '../_shared/errors.ts'
+import { createAdminClient } from '../_shared/supabase-client.ts'
 
 Deno.serve(async (req: Request) => {
   const optionsResponse = handleCorsOptions(req)
@@ -23,21 +24,17 @@ Deno.serve(async (req: Request) => {
 
   try {
     // Authenticate
-    const authHeader = req.headers.get('Authorization')
-    if (!authHeader) {
-      return new Response('Unauthorized', { status: 401, headers: getCorsHeaders(req) })
-    }
-
     const supabaseUrl = env.SUPABASE_URL
-    const supabaseKey = env.SUPABASE_SERVICE_ROLE_KEY
-    const supabase = createClient(supabaseUrl, supabaseKey)
+    const supabase = createAdminClient(supabaseUrl, env.SUPABASE_SERVICE_ROLE_KEY)
 
-    // Verify user JWT
-    const token = authHeader.replace('Bearer ', '')
-    const { data: { user }, error: authError } = await supabase.auth.getUser(token)
-    if (authError || !user) {
-      return new Response('Unauthorized', { status: 401, headers: getCorsHeaders(req) })
+    const auth = await validateBearerAuth(req, supabase)
+    if ('error' in auth) {
+      return new Response(JSON.stringify({ error: auth.error }), {
+        status: auth.status,
+        headers: getJsonHeaders(req),
+      })
     }
+    const { user, token } = auth
 
     const url = new URL(req.url)
     const reportType = url.searchParams.get('type') ?? 'financial'
@@ -77,7 +74,7 @@ Deno.serve(async (req: Request) => {
       const pdfResponse = await fetch(generatePdfUrl, {
         method: 'POST',
         headers: {
-          Authorization: authHeader,
+          Authorization: `Bearer ${token}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({ html: htmlContent, filename: `${filename}.pdf` }),

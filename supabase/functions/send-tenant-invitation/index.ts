@@ -12,10 +12,12 @@
 // -> 410 { error: 'Invitation has expired' }
 
 import { createClient } from '@supabase/supabase-js'
-import { getCorsHeaders, handleCorsOptions } from '../_shared/cors.ts'
+import { validateBearerAuth } from '../_shared/auth.ts'
+import { getCorsHeaders, getJsonHeaders, handleCorsOptions } from '../_shared/cors.ts'
 import { validateEnv } from '../_shared/env.ts'
 import { errorResponse } from '../_shared/errors.ts'
 import { sendEmail } from '../_shared/resend.ts'
+import { createAdminClient } from '../_shared/supabase-client.ts'
 import { tenantInvitationEmail } from '../_shared/auth-email-templates.ts'
 
 Deno.serve(async (req: Request) => {
@@ -33,29 +35,18 @@ Deno.serve(async (req: Request) => {
     })
 
     // JWT auth guard -- derive user identity from token
-    const authHeader = req.headers.get('Authorization')
-    if (!authHeader?.startsWith('Bearer ')) {
-      return new Response(
-        JSON.stringify({ error: 'Authorization required' }),
-        { status: 401, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
-      )
+    const supabaseAuth = createClient(env['SUPABASE_URL'], env['SUPABASE_ANON_KEY'])
+    const auth = await validateBearerAuth(req, supabaseAuth)
+    if ('error' in auth) {
+      return new Response(JSON.stringify({ error: auth.error }), {
+        status: auth.status,
+        headers: getJsonHeaders(req),
+      })
     }
-    const token = authHeader.replace('Bearer ', '')
-
-    // Validate token using anon-key client
-    const supabaseAuth = createClient(env['SUPABASE_URL'], env['SUPABASE_ANON_KEY'], {
-      global: { headers: { Authorization: `Bearer ${token}` } }
-    })
-    const { data: { user }, error: authError } = await supabaseAuth.auth.getUser(token)
-    if (authError || !user) {
-      return new Response(
-        JSON.stringify({ error: 'Invalid token' }),
-        { status: 401, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
-      )
-    }
+    const { user } = auth
 
     // Service role client -- bypasses RLS for invitation lookup
-    const supabase = createClient(env['SUPABASE_URL'], env['SUPABASE_SERVICE_ROLE_KEY'])
+    const supabase = createAdminClient(env['SUPABASE_URL'], env['SUPABASE_SERVICE_ROLE_KEY'])
 
     // Parse and validate request body
     const body = await req.json()
@@ -64,7 +55,7 @@ Deno.serve(async (req: Request) => {
     if (!invitationId) {
       return new Response(
         JSON.stringify({ error: 'invitation_id is required' }),
-        { status: 400, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
+        { status: 400, headers: getJsonHeaders(req) }
       )
     }
 
@@ -89,7 +80,7 @@ Deno.serve(async (req: Request) => {
     if (fetchError || !invitation) {
       return new Response(
         JSON.stringify({ error: 'Invitation not found' }),
-        { status: 404, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
+        { status: 404, headers: getJsonHeaders(req) }
       )
     }
 
@@ -97,7 +88,7 @@ Deno.serve(async (req: Request) => {
     if (invitation.owner_user_id !== user.id) {
       return new Response(
         JSON.stringify({ error: 'Not authorized' }),
-        { status: 403, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
+        { status: 403, headers: getJsonHeaders(req) }
       )
     }
 
@@ -105,7 +96,7 @@ Deno.serve(async (req: Request) => {
     if (invitation.status === 'accepted' || invitation.status === 'cancelled') {
       return new Response(
         JSON.stringify({ error: 'Invitation is no longer active' }),
-        { status: 400, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
+        { status: 400, headers: getJsonHeaders(req) }
       )
     }
 
@@ -113,7 +104,7 @@ Deno.serve(async (req: Request) => {
     if (new Date(invitation.expires_at) < new Date()) {
       return new Response(
         JSON.stringify({ error: 'Invitation has expired' }),
-        { status: 410, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
+        { status: 410, headers: getJsonHeaders(req) }
       )
     }
 
@@ -164,7 +155,7 @@ Deno.serve(async (req: Request) => {
 
     return new Response(
       JSON.stringify({ sent: true, email_id: result.id }),
-      { status: 200, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
+      { status: 200, headers: getJsonHeaders(req) }
     )
   } catch (err) {
     return errorResponse(req, 500, err, { action: 'send_tenant_invitation' })
