@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { phoneSchema } from '#lib/validation/common'
 
 export const propertyInspectionSchema = z.object({
 	propertyName: z.string().min(1, 'Property name is required'),
@@ -20,7 +21,7 @@ export const propertyInspectionSchema = z.object({
 export const rentalApplicationSchema = z.object({
 	applicantName: z.string().min(1, 'Applicant name is required'),
 	email: z.string().email('Valid email required'),
-	phone: z.string().min(1, 'Phone is required'),
+	phone: phoneSchema,
 	currentAddress: z.string().min(1, 'Current address is required'),
 	employer: z.string().min(1, 'Employer is required'),
 	monthlyIncome: z.string().min(1, 'Monthly income is required'),
@@ -31,7 +32,7 @@ export const rentalApplicationSchema = z.object({
 			z.object({
 				name: z.string().min(1, 'Reference name is required'),
 				relationship: z.string().min(1, 'Relationship is required'),
-				phone: z.string().optional()
+				phone: phoneSchema.optional()
 			})
 		)
 		.optional()
@@ -51,7 +52,7 @@ export const maintenanceRequestSchema = z.object({
 	propertyName: z.string().min(1, 'Property name is required'),
 	unit: z.string().min(1, 'Unit is required'),
 	requesterName: z.string().min(1, 'Requester name is required'),
-	requesterPhone: z.string().min(1, 'Requester phone is required'),
+	requesterPhone: phoneSchema,
 	requesterEmail: z.string().email('Valid email required'),
 	priority: z.enum(['low', 'medium', 'high', 'urgent']),
 	preferredDate: z.string().min(1, 'Preferred date is required'),
