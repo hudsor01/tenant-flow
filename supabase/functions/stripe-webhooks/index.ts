@@ -5,8 +5,9 @@
 // On duplicate: return 200 immediately (idempotent via stripe_webhook_events PK).
 
 import Stripe from 'stripe'
-import { createClient } from '@supabase/supabase-js'
 import * as Sentry from 'npm:@sentry/deno@9'
+import { getStripeClient } from '../_shared/stripe-client.ts'
+import { createAdminClient } from '../_shared/supabase-client.ts'
 import { validateEnv } from '../_shared/env.ts'
 import { errorResponse } from '../_shared/errors.ts'
 import { handleCustomerSubscriptionUpdated } from './handlers/customer-subscription-updated.ts'
@@ -37,8 +38,8 @@ Deno.serve(async (req: Request) => {
     return errorResponse(req, 500, err, { action: 'env_validation' })
   }
 
-  const stripe = new Stripe(env.STRIPE_SECRET_KEY, { apiVersion: '2026-02-25.clover' as Stripe.LatestApiVersion })
-  const supabase = createClient(env.SUPABASE_URL, env.SUPABASE_SERVICE_ROLE_KEY)
+  const stripe = getStripeClient(env.STRIPE_SECRET_KEY)
+  const supabase = createAdminClient(env.SUPABASE_URL, env.SUPABASE_SERVICE_ROLE_KEY)
 
   // Verify Stripe signature
   const signature = req.headers.get('stripe-signature')

@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 29-01-PLAN.md
-last_updated: "2026-04-03T20:17:17.147Z"
+stopped_at: Completed 29-02-PLAN.md
+last_updated: "2026-04-03T21:11:10.251Z"
 last_activity: 2026-04-03
 progress:
   total_phases: 10
   completed_phases: 8
   total_plans: 19
-  completed_plans: 20
+  completed_plans: 21
 ---
 
 # Project State: TenantFlow
@@ -20,11 +20,11 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-18)
 
 **Core value:** A landlord can add a property, invite a tenant, collect rent, and see their financials -- without touching a spreadsheet or calling anyone.
-**Current focus:** Phase 28 — consumer-migration-dead-code-removal
+**Current focus:** Phase 29 — edge-function-shared-utilities
 
 ## Current Position
 
-Phase: 28 (consumer-migration-dead-code-removal) — EXECUTING
+Phase: 29 (edge-function-shared-utilities) — EXECUTING
 Plan: 2 of 3
 Milestone: None (v1.3 shipped)
 Status: Ready to execute
@@ -48,6 +48,8 @@ Last activity: 2026-04-03
 - Phase 27-02: Non-null assertions after length > 0 guard for noUncheckedIndexedAccess compliance
 - [Phase 29]: Stripe API version 2026-02-25.clover locked in shared factory
 - [Phase 29]: ctaBlock kept local per template; wrapEmailLayout shared with options pattern
+- [Phase 29]: detach-payment-method retains createClient import for user-scoped client with custom headers
+- [Phase 29]: stripe-autopay-charge SupabaseClient type alias updated to reference createAdminClient
 
 ### Quick Tasks Completed
 
@@ -57,6 +59,6 @@ Last activity: 2026-04-03
 
 ## Session Continuity
 
-Last session: 2026-04-03T20:17:17.145Z
-Stopped at: Completed 29-01-PLAN.md
+Last session: 2026-04-03T21:11:10.249Z
+Stopped at: Completed 29-02-PLAN.md
 Resume file: None

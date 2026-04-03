@@ -2,24 +2,10 @@ import Stripe from 'stripe'
 import React from 'npm:react@18.3.1'
 import { renderAsync } from 'npm:@react-email/components@0.0.22'
 import { sendEmail } from '../../_shared/resend.ts'
+import { captureWebhookError } from '../../_shared/errors.ts'
 import { PaymentReceipt } from '../_templates/payment-receipt.tsx'
 import { OwnerNotification } from '../_templates/owner-notification.tsx'
 import type { SupabaseAdmin } from './types.ts'
-
-/**
- * Capture an error to Sentry if configured, otherwise log structured JSON.
- */
-function captureError(error: Error, extra: Record<string, unknown>): void {
-  const sentryDsn = Deno.env.get('SENTRY_DSN')
-  if (sentryDsn) {
-    // Dynamic import would be ideal, but for consistency with the module-level
-    // Sentry init in index.ts, we log structured JSON here.
-    // Sentry.captureException is called at the router level.
-    console.error(JSON.stringify({ level: 'error', sentry: true, message: error.message, ...extra }))
-  } else {
-    console.error(JSON.stringify({ level: 'error', sentry: true, message: error.message, ...extra }))
-  }
-}
 
 /**
  * Handle payment_intent.succeeded event.
@@ -39,7 +25,7 @@ export async function handlePaymentIntentSucceeded(
   const rentDueId = metadata['rent_due_id'] || null
 
   if (!tenantId || !leaseId) {
-    captureError(
+    captureWebhookError(
       new Error('Missing required payment metadata'),
       { event_id: event.id, pi_id: pi.id, metadata: pi.metadata }
     )

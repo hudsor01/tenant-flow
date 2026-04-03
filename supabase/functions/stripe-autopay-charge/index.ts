@@ -10,11 +10,11 @@
 //
 // Auth: service_role key in Authorization header (sent by pg_net from process_autopay_charges).
 
-import Stripe from 'stripe'
-import { createClient } from '@supabase/supabase-js'
 import { sendEmail } from '../_shared/resend.ts'
 import { validateEnv } from '../_shared/env.ts'
 import { errorResponse } from '../_shared/errors.ts'
+import { getStripeClient } from '../_shared/stripe-client.ts'
+import { createAdminClient } from '../_shared/supabase-client.ts'
 
 interface AutopayRequest {
   tenant_id: string
@@ -67,7 +67,7 @@ Deno.serve(async (req: Request) => {
     )
   }
 
-  const supabase = createClient(supabaseUrl, supabaseServiceKey)
+  const supabase = createAdminClient(supabaseUrl, supabaseServiceKey)
 
   // Parse body outside try so catch block can access fields for retry tracking
   let parsedBody: Partial<AutopayRequest> = {}
@@ -234,7 +234,7 @@ Deno.serve(async (req: Request) => {
     // 8. Create off-session PaymentIntent with destination charge
     //    PAY-08: Idempotency key prevents duplicate charges for same rent_due + tenant
     // -------------------------------------------------------------------------
-    const stripe = new Stripe(stripeKey, { apiVersion: '2026-02-25.clover' as Stripe.LatestApiVersion })
+    const stripe = getStripeClient(stripeKey)
 
     const paymentIntent = await stripe.paymentIntents.create({
       amount: amountCents,
@@ -358,7 +358,7 @@ Deno.serve(async (req: Request) => {
 // Retry schedule: day 1 (initial), day 3 (retry 1), day 7 (retry 2)
 // Tenant emailed on every attempt. Owner emailed only on final (3rd) failure.
 
-type SupabaseClient = ReturnType<typeof createClient>
+type SupabaseClient = ReturnType<typeof createAdminClient>
 
 async function handleAutopayFailure(
   supabase: SupabaseClient,

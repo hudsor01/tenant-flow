@@ -4,18 +4,18 @@
 // Returns { url, session_id } — frontend redirects tenant to the Checkout URL.
 // Authenticated: requires JWT Bearer token (tenant user).
 
-import Stripe from 'stripe'
-import { createClient } from '@supabase/supabase-js'
-import { getCorsHeaders, handleCorsOptions } from '../_shared/cors.ts'
+import { handleCorsOptions, getJsonHeaders } from '../_shared/cors.ts'
 import { validateEnv } from '../_shared/env.ts'
 import { errorResponse } from '../_shared/errors.ts'
+import { validateBearerAuth } from '../_shared/auth.ts'
+import { getStripeClient } from '../_shared/stripe-client.ts'
+import { createAdminClient } from '../_shared/supabase-client.ts'
 
 Deno.serve(async (req: Request) => {
   const optionsResponse = handleCorsOptions(req)
   if (optionsResponse) return optionsResponse
 
-  const corsHeaders = getCorsHeaders(req)
-  const jsonHeaders = { ...corsHeaders, 'Content-Type': 'application/json' }
+  const jsonHeaders = getJsonHeaders(req)
 
   // ---------------------------------------------------------------------------
   // Environment variables
@@ -38,23 +38,15 @@ Deno.serve(async (req: Request) => {
   // ---------------------------------------------------------------------------
   // 1. Authenticate tenant via JWT
   // ---------------------------------------------------------------------------
-  const authHeader = req.headers.get('Authorization')
-  if (!authHeader) {
-    return new Response(
-      JSON.stringify({ error: 'Unauthorized' }),
-      { status: 401, headers: jsonHeaders }
-    )
+  const supabase = createAdminClient(supabaseUrl, supabaseServiceKey)
+  const auth = await validateBearerAuth(req, supabase)
+  if ('error' in auth) {
+    return new Response(JSON.stringify({ error: auth.error }), {
+      status: auth.status,
+      headers: jsonHeaders,
+    })
   }
-
-  const supabase = createClient(supabaseUrl, supabaseServiceKey)
-  const token = authHeader.replace('Bearer ', '')
-  const { data: { user }, error: authError } = await supabase.auth.getUser(token)
-  if (authError || !user) {
-    return new Response(
-      JSON.stringify({ error: 'Unauthorized' }),
-      { status: 401, headers: jsonHeaders }
-    )
-  }
+  const { user } = auth
 
   try {
     // -------------------------------------------------------------------------
@@ -273,7 +265,7 @@ Deno.serve(async (req: Request) => {
     // 11. Resolve or create Stripe Customer for the tenant
     //     Required for setup_future_usage to save the payment method for autopay.
     // -------------------------------------------------------------------------
-    const stripe = new Stripe(stripeKey, { apiVersion: '2026-02-25.clover' as Stripe.LatestApiVersion })
+    const stripe = getStripeClient(stripeKey)
 
     let stripeCustomerId = (tenant as Record<string, unknown>).stripe_customer_id as string | null
 
