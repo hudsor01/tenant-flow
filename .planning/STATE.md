@@ -1,16 +1,16 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.4
-milestone_name: Tenant Invitation Flow Redesign
+milestone: v1.0
+milestone_name: milestone
 status: executing
-stopped_at: Quick task 260330-rp5 complete
-last_updated: "2026-03-31T02:21:17.265Z"
-last_activity: 2026-03-31 -- Phase 28 execution started
+stopped_at: Completed 29-02-PLAN.md
+last_updated: "2026-04-03T21:11:10.251Z"
+last_activity: 2026-04-03
 progress:
-  total_phases: 3
-  completed_phases: 2
-  total_plans: 7
-  completed_plans: 4
+  total_phases: 10
+  completed_phases: 8
+  total_plans: 19
+  completed_plans: 21
 ---
 
 # Project State: TenantFlow
@@ -25,10 +25,10 @@ See: .planning/PROJECT.md (updated 2026-03-18)
 ## Current Position
 
 Phase: 28 (consumer-migration-dead-code-removal) — EXECUTING
-Plan: 1 of 3
+Plan: 2 of 3
 Milestone: None (v1.3 shipped)
-Status: Executing Phase 28
-Last activity: 2026-03-31 -- Phase 28 execution started
+Status: Ready to execute
+Last activity: 2026-04-03
 
 ## Shipped Milestones
 
@@ -46,6 +46,8 @@ Last activity: 2026-03-31 -- Phase 28 execution started
 - Phase 27-02: Discriminated union result type for useCreateInvitation (created/duplicate) lets callers decide UI response
 - Phase 27-02: expires_at included in insert payload despite plan note about DB DEFAULT (generated types require it)
 - Phase 27-02: Non-null assertions after length > 0 guard for noUncheckedIndexedAccess compliance
+- [Phase 29]: detach-payment-method retains createClient import for user-scoped client with custom headers
+- [Phase 29]: stripe-autopay-charge SupabaseClient type alias updated to reference createAdminClient
 
 ### Quick Tasks Completed
 
@@ -55,6 +57,6 @@ Last activity: 2026-03-31 -- Phase 28 execution started
 
 ## Session Continuity
 
-Last session: 2026-03-31
-Stopped at: Quick task 260330-rp5 complete
-Resume file: .planning/phases/28-consumer-migration-dead-code-removal/28-UI-SPEC.md
+Last session: 2026-04-03T21:11:10.249Z
+Stopped at: Completed 29-02-PLAN.md
+Resume file: None
