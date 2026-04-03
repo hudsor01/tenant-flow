@@ -65,7 +65,7 @@ TenantFlow is a multi-tenant property management SaaS platform for property owne
 
 ### v1.5 Code Quality & Deduplication (In Progress)
 
-- [ ] **Phase 29: Edge Function Shared Utilities** - Extract duplicated patterns across Edge Functions into shared modules
+- [x] **Phase 29: Edge Function Shared Utilities** - Extract duplicated patterns across Edge Functions into shared modules (completed 2026-04-03)
 - [ ] **Phase 30: Frontend Import & Validation Cleanup** - Remove currency re-export indirection and consolidate phone validation
 - [ ] **Phase 31: Frontend Hook Factories** - Extract repeated query detail and mutation callback patterns into generic factories
 
@@ -81,7 +81,7 @@ TenantFlow is a multi-tenant property management SaaS platform for property owne
   3. No Edge Function file contains inline `new Stripe(key, { apiVersion })` or inline `createClient(url, serviceKey)` -- all use shared factories
   4. Auth email templates and drip email templates share a single `wrapEmailLayout()` function from `_shared/email-layout.ts`
   5. Webhook handlers use `captureWebhookError()` from `_shared/errors.ts` instead of inline error logging
-**Plans:** 3 plans
+**Plans:** 3/3 plans complete
 
 Plans:
 - [ ] 29-01-PLAN.md -- Create shared utility modules (auth, headers, clients, email layout, webhook errors)
@@ -117,6 +117,6 @@ Phases execute in numeric order: 29 -> 30 -> 31
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
-| 29. Edge Function Shared Utilities | v1.5 | 0/3 | Not started | - |
+| 29. Edge Function Shared Utilities | v1.5 | 0/3 | Complete    | 2026-04-03 |
 | 30. Frontend Import & Validation Cleanup | v1.5 | 0/TBD | Not started | - |
 | 31. Frontend Hook Factories | v1.5 | 0/TBD | Not started | - |
