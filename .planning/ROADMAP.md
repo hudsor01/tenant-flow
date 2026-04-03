@@ -122,5 +122,5 @@ Phases execute in numeric order: 29 -> 30 -> 31
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
 | 29. Edge Function Shared Utilities | v1.5 | 0/3 | Complete    | 2026-04-03 |
-| 30. Frontend Import & Validation Cleanup | v1.5 | 2/2 | Complete   | 2026-04-03 |
+| 30. Frontend Import & Validation Cleanup | v1.5 | 2/2 | Complete    | 2026-04-03 |
 | 31. Frontend Hook Factories | v1.5 | 0/TBD | Not started | - |
