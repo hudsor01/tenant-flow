@@ -13,11 +13,13 @@
 // 5. If deleted method was default, promote next most recent
 // 6. If deleted method was used for autopay and no others remain, disable autopay
 
-import Stripe from 'stripe'
 import { createClient } from '@supabase/supabase-js'
-import { getCorsHeaders, handleCorsOptions } from '../_shared/cors.ts'
+import { getCorsHeaders, handleCorsOptions, getJsonHeaders } from '../_shared/cors.ts'
 import { validateEnv } from '../_shared/env.ts'
 import { errorResponse } from '../_shared/errors.ts'
+import { validateBearerAuth } from '../_shared/auth.ts'
+import { getStripeClient } from '../_shared/stripe-client.ts'
+import { createAdminClient } from '../_shared/supabase-client.ts'
 
 Deno.serve(async (req: Request) => {
   const optionsResponse = handleCorsOptions(req)
@@ -30,8 +32,7 @@ Deno.serve(async (req: Request) => {
     })
   }
 
-  const corsHeaders = getCorsHeaders(req)
-  const jsonHeaders = { ...corsHeaders, 'Content-Type': 'application/json' }
+  const jsonHeaders = getJsonHeaders(req)
 
   let env: Record<string, string>
   try {
@@ -44,35 +45,25 @@ Deno.serve(async (req: Request) => {
 
   try {
     // 1. Authenticate
-    const authHeader = req.headers.get('authorization')
-    if (!authHeader?.startsWith('Bearer ')) {
-      return new Response(
-        JSON.stringify({ error: 'Missing authorization header' }),
-        { status: 401, headers: jsonHeaders }
-      )
-    }
-    const token = authHeader.replace('Bearer ', '')
-
     const supabaseUrl = env.SUPABASE_URL
     const supabaseServiceKey = env.SUPABASE_SERVICE_ROLE_KEY
     const stripeKey = env.STRIPE_SECRET_KEY
 
     // Create user-scoped client for auth verification
+    const authHeader = req.headers.get('authorization') ?? req.headers.get('Authorization')
+    const token = authHeader?.startsWith('Bearer ') ? authHeader.slice(7) : ''
     const supabaseAuth = createClient(supabaseUrl, supabaseServiceKey, {
       global: { headers: { Authorization: `Bearer ${token}` } },
     })
 
-    const {
-      data: { user },
-      error: userError,
-    } = await supabaseAuth.auth.getUser(token)
-
-    if (userError || !user) {
-      return new Response(
-        JSON.stringify({ error: 'Not authenticated' }),
-        { status: 401, headers: jsonHeaders }
-      )
+    const auth = await validateBearerAuth(req, supabaseAuth)
+    if ('error' in auth) {
+      return new Response(JSON.stringify({ error: auth.error }), {
+        status: auth.status,
+        headers: jsonHeaders,
+      })
     }
+    const { user } = auth
 
     // Parse request body
     const body = await req.json()
@@ -86,7 +77,7 @@ Deno.serve(async (req: Request) => {
     }
 
     // Use service role client for DB operations
-    const supabase = createClient(supabaseUrl, supabaseServiceKey)
+    const supabase = createAdminClient(supabaseUrl, supabaseServiceKey)
 
     // 2. Look up payment method and verify ownership
     const { data: paymentMethod, error: pmError } = await supabase
@@ -118,7 +109,7 @@ Deno.serve(async (req: Request) => {
     }
 
     // 3. Detach from Stripe API -- MANDATORY, no fallback
-    const stripe = new Stripe(stripeKey, { apiVersion: '2026-02-25.clover' })
+    const stripe = getStripeClient(stripeKey)
     const stripePmId = paymentMethod.stripe_payment_method_id as string
 
     await stripe.paymentMethods.detach(stripePmId)

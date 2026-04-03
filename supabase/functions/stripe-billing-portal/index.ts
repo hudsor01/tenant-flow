@@ -3,11 +3,12 @@
 // Returns { url } — frontend redirects to this URL.
 // Authenticated: requires JWT Bearer token.
 
-import Stripe from 'stripe'
-import { createClient } from '@supabase/supabase-js'
-import { getCorsHeaders, handleCorsOptions } from '../_shared/cors.ts'
+import { handleCorsOptions, getJsonHeaders } from '../_shared/cors.ts'
 import { validateEnv } from '../_shared/env.ts'
 import { errorResponse } from '../_shared/errors.ts'
+import { validateBearerAuth } from '../_shared/auth.ts'
+import { getStripeClient } from '../_shared/stripe-client.ts'
+import { createAdminClient } from '../_shared/supabase-client.ts'
 
 Deno.serve(async (req: Request) => {
   const optionsResponse = handleCorsOptions(req)
@@ -29,20 +30,18 @@ Deno.serve(async (req: Request) => {
   const frontendUrl = env.FRONTEND_URL ?? 'http://localhost:3050'
 
   // Authenticate
-  const authHeader = req.headers.get('Authorization')
-  if (!authHeader) {
-    return new Response('Unauthorized', { status: 401, headers: getCorsHeaders(req) })
+  const supabase = createAdminClient(supabaseUrl, supabaseServiceKey)
+  const auth = await validateBearerAuth(req, supabase)
+  if ('error' in auth) {
+    return new Response(JSON.stringify({ error: auth.error }), {
+      status: auth.status,
+      headers: getJsonHeaders(req),
+    })
   }
-
-  const supabase = createClient(supabaseUrl, supabaseServiceKey)
-  const token = authHeader.replace('Bearer ', '')
-  const { data: { user }, error: authError } = await supabase.auth.getUser(token)
-  if (authError || !user) {
-    return new Response('Unauthorized', { status: 401, headers: getCorsHeaders(req) })
-  }
+  const { user } = auth
 
   try {
-    const stripe = new Stripe(stripeKey, { apiVersion: '2026-02-25.clover' as Stripe.LatestApiVersion })
+    const stripe = getStripeClient(stripeKey)
 
     // Get Stripe customer ID for this user
     const { data: userData } = await supabase
@@ -54,7 +53,7 @@ Deno.serve(async (req: Request) => {
     if (!userData?.stripe_customer_id) {
       return new Response(
         JSON.stringify({ error: 'No Stripe customer found. Subscribe to a plan first.' }),
-        { status: 404, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
+        { status: 404, headers: getJsonHeaders(req) }
       )
     }
 
@@ -67,7 +66,7 @@ Deno.serve(async (req: Request) => {
 
     return new Response(JSON.stringify({ url: session.url }), {
       status: 200,
-      headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' },
+      headers: getJsonHeaders(req),
     })
   } catch (err) {
     return errorResponse(req, 500, err, { action: 'create_billing_portal_session' })
