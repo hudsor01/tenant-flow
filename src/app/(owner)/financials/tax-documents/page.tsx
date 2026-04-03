@@ -24,7 +24,7 @@ import {
 } from '#components/ui/select'
 import { useTaxDocuments } from '#hooks/api/use-expense-mutations'
 import { useDownloadTaxDocumentPdf } from '#hooks/api/use-report-mutations'
-import { formatCents } from '#lib/formatters/currency'
+import { formatCents } from '#lib/utils/currency'
 
 const logger = createLogger({ component: 'TaxDocumentsPage' })
 

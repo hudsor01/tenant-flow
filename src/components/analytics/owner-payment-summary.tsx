@@ -4,7 +4,7 @@ import {
 	CardHeader,
 	CardTitle
 } from '#components/ui/card'
-import { formatCents } from '#lib/formatters/currency'
+import { formatCents } from '#lib/utils/currency'
 import type { OwnerPaymentSummaryResponse } from '#types/api-contracts'
 
 interface OwnerPaymentSummaryProps {

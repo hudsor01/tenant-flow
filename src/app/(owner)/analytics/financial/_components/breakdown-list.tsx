@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { formatCurrency } from '#lib/formatters/currency'
+import { formatCurrency } from '#lib/utils/currency'
 import type { FinancialBreakdownRow } from '#types/analytics'
 import { TrendPill } from './trend-pill'
 

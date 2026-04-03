@@ -233,7 +233,7 @@ vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
 }))
 
 // Mock formatCurrency
-vi.mock('#lib/formatters/currency', () => ({
+vi.mock('#lib/utils/currency', () => ({
 	formatCurrency: (amount: number) => `$${amount.toFixed(2)}`
 }))
 

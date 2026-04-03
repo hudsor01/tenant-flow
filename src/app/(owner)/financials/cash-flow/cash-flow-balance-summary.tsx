@@ -1,6 +1,6 @@
 import { ArrowRight } from 'lucide-react'
 import { BlurFade } from '#components/ui/blur-fade'
-import { formatCents } from '#lib/formatters/currency'
+import { formatCents } from '#lib/utils/currency'
 
 interface CashFlowBalanceSummaryProps {
 	openingBalance: number

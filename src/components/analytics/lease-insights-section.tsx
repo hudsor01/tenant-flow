@@ -8,7 +8,7 @@ import { DataTable } from '#components/data-table/data-table'
 import { DataTableToolbar } from '#components/data-table/data-table-toolbar'
 import { useDataTable } from '#hooks/use-data-table'
 import type { ColumnDef } from '@tanstack/react-table'
-import { formatCurrency, formatNumber } from '#lib/formatters/currency'
+import { formatCurrency, formatNumber } from '#lib/utils/currency'
 import { Calendar, DollarSign, BarChart3 } from 'lucide-react'
 
 import dynamic from 'next/dynamic'

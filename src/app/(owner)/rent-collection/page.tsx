@@ -25,7 +25,7 @@ import {
 	useOverduePayments
 } from '#hooks/api/use-payments'
 import { useExportPaymentsMutation } from '#hooks/api/use-payment-mutations'
-import { formatCents } from '#lib/formatters/currency'
+import { formatCents } from '#lib/utils/currency'
 import { toast } from 'sonner'
 
 import { RecordPaymentDialog } from '#components/payments/rent-collection/record-payment-dialog'

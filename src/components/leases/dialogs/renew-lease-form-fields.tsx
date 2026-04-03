@@ -1,7 +1,7 @@
 import { Button } from '#components/ui/button'
 import { Input } from '#components/ui/input'
 import { Label } from '#components/ui/label'
-import { formatCurrency } from '#lib/formatters/currency'
+import { formatCurrency } from '#lib/utils/currency'
 import { addMonths, format, parseISO } from 'date-fns'
 import { Calendar, DollarSign, Info, TrendingUp } from 'lucide-react'
 

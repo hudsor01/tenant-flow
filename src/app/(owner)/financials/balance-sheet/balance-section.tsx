@@ -4,7 +4,7 @@ import { useState } from 'react'
 import type { ElementType } from 'react'
 import { ChevronDown, ChevronRight } from 'lucide-react'
 import { Button } from '#components/ui/button'
-import { formatCents } from '#lib/formatters/currency'
+import { formatCents } from '#lib/utils/currency'
 import type { FinancialLineItem } from '#types/financial-statements'
 
 export interface BalanceSectionProps {

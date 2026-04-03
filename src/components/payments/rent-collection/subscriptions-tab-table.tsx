@@ -28,7 +28,7 @@ import {
 	DropdownMenuSeparator,
 	DropdownMenuTrigger
 } from '#components/ui/dropdown-menu'
-import { formatCents } from '#lib/formatters/currency'
+import { formatCents } from '#lib/utils/currency'
 import { getStatusBadge, type SubscriptionStatus } from './status-utils'
 
 interface Subscription {

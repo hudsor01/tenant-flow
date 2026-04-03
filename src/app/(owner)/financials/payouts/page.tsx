@@ -10,7 +10,7 @@ import {
 	type Payout,
 	type Transfer
 } from '#hooks/api/use-stripe-connect'
-import { formatCurrency } from '#lib/formatters/currency'
+import { formatCurrency } from '#lib/utils/currency'
 import { formatDate } from '#lib/formatters/date'
 import { PayoutDetailsModal } from '#components/connect/payout-details-modal'
 import { exportToCsv, type CsvColumnMapping } from '#lib/export-utils'

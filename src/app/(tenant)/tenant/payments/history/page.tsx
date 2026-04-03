@@ -18,7 +18,7 @@ import { useBillingHistory } from '#hooks/api/use-billing'
 import type { BillingHistoryItem } from '#types/api-contracts'
 import { usePaymentMethods } from '#hooks/api/use-payment-methods'
 import { useMediaQuery } from '#hooks/use-media-query'
-import { formatCurrency } from '#lib/formatters/currency'
+import { formatCurrency } from '#lib/utils/currency'
 import { Calendar, CreditCard, DollarSign, Download } from 'lucide-react'
 import Link from 'next/link'
 

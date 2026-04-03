@@ -4,7 +4,7 @@
  */
 import { Badge } from '#components/ui/badge'
 import { Separator } from '#components/ui/separator'
-import { formatCents } from '#lib/formatters/currency'
+import { formatCents } from '#lib/utils/currency'
 import { formatDate, getOrdinalSuffix } from '#lib/formatters/date'
 import {
 	CheckCircle2,

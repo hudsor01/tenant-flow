@@ -8,7 +8,7 @@ import {
 	Check,
 	ChevronRight
 } from 'lucide-react'
-import { formatCurrency } from '#lib/formatters/currency'
+import { formatCurrency } from '#lib/utils/currency'
 import { formatDate } from '#lib/formatters/date'
 import type {
 	TenantSectionDetail,

@@ -1,5 +1,5 @@
 import { Badge } from '#components/ui/badge'
-import { formatNumber, formatPercentage } from '#lib/formatters/currency'
+import { formatNumber, formatPercentage } from '#lib/utils/currency'
 import type { UnitStatisticEntry } from '#types/analytics'
 
 export function PortfolioKPIs({ unitStats }: { unitStats: UnitStatisticEntry[] }) {

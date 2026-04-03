@@ -15,7 +15,7 @@ import { IncomeStatementSummaryStats } from '#components/financials/income-state
 import { IncomeStatementBreakdownCards } from '#components/financials/income-statement-breakdown-cards'
 import { IncomeStatementMonthlyTrend } from '#components/financials/income-statement-monthly-trend'
 import { IncomeStatementPropertyTable } from '#components/financials/income-statement-property-table'
-import { formatCurrency } from '#lib/formatters/currency'
+import { formatCurrency } from '#lib/utils/currency'
 import type {
 	IncomeStatementRevenueBreakdown,
 	IncomeStatementExpenseBreakdown,

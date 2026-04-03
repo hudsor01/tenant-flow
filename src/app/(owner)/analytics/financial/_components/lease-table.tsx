@@ -5,7 +5,7 @@ import { DataTable } from '#components/data-table/data-table'
 import { DataTableToolbar } from '#components/data-table/data-table-toolbar'
 import { useDataTable } from '#hooks/use-data-table'
 import type { ColumnDef } from '@tanstack/react-table'
-import { formatCurrency, formatNumber } from '#lib/formatters/currency'
+import { formatCurrency, formatNumber } from '#lib/utils/currency'
 import type { LeaseFinancialInsight } from '#types/analytics'
 
 export function LeaseTable({ leases }: { leases: LeaseFinancialInsight[] }) {

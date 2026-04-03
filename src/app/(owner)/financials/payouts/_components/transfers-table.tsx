@@ -9,7 +9,7 @@ import { DataTableToolbar } from '#components/data-table/data-table-toolbar'
 import { useDataTable } from '#hooks/use-data-table'
 import type { ColumnDef } from '@tanstack/react-table'
 import type { Transfer } from '#hooks/api/use-stripe-connect'
-import { formatCurrency } from '#lib/formatters/currency'
+import { formatCurrency } from '#lib/utils/currency'
 import { formatDate } from '#lib/formatters/date'
 
 interface TransfersTableProps {

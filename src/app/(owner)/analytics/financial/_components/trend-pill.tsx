@@ -1,6 +1,6 @@
 import { ArrowDownRight, ArrowUpRight } from 'lucide-react'
 import { Badge } from '#components/ui/badge'
-import { formatPercentage } from '#lib/formatters/currency'
+import { formatPercentage } from '#lib/utils/currency'
 
 export function TrendPill({ value }: { value: number | null | undefined }) {
 	if (value === null || value === undefined) {

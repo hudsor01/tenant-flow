@@ -8,7 +8,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '#components/ui/tooltip'
 import { Checkbox } from '#components/ui/checkbox'
 import { cn } from '#lib/utils'
 import type { PropertyItem } from './types'
-import { formatCurrency } from '#lib/formatters/currency'
+import { formatCurrency } from '#lib/utils/currency'
 import type { ColumnId } from './property-table-types'
 import { formatPropertyType } from './property-table-types'
 

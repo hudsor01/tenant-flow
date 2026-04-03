@@ -21,7 +21,7 @@ import {
 import { Separator } from '#components/ui/separator'
 import { Skeleton } from '#components/ui/skeleton'
 import type { Payout } from '#hooks/api/use-stripe-connect'
-import { formatCurrency } from '#lib/formatters/currency'
+import { formatCurrency } from '#lib/utils/currency'
 import { cn } from '#lib/utils'
 
 interface PayoutDetailsModalProps {

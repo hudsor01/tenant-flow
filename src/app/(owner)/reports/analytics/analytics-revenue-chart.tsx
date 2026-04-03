@@ -13,7 +13,7 @@ import {
 	YAxis
 } from 'recharts'
 import type { RevenueData } from '#types/reports'
-import { formatCurrency } from '#lib/formatters/currency'
+import { formatCurrency } from '#lib/utils/currency'
 
 const formatWholeAmount = (value: number) =>
 	formatCurrency(value, { minimumFractionDigits: 0, maximumFractionDigits: 0 })

@@ -9,7 +9,7 @@ import {
 	formatCurrency,
 	formatNumber,
 	formatPercentage
-} from '#lib/formatters/currency'
+} from '#lib/utils/currency'
 import type { PropertyPerformanceEntry } from '#types/analytics'
 
 export function TopPropertiesTable({

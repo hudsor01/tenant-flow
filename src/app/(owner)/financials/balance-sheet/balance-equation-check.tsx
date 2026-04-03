@@ -1,5 +1,5 @@
 import { Check, X } from 'lucide-react'
-import { formatCents } from '#lib/formatters/currency'
+import { formatCents } from '#lib/utils/currency'
 
 export function BalanceEquationCheck({
 	totalAssets,
