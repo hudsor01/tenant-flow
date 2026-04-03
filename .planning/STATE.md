@@ -4,12 +4,12 @@ milestone: v1.5
 milestone_name: Code Quality & Deduplication
 status: executing
 stopped_at: Completed 29-03-PLAN.md
-last_updated: "2026-04-03T21:20:34.437Z"
-last_activity: 2026-04-03
+last_updated: "2026-04-03T21:57:10.427Z"
+last_activity: 2026-04-03 -- Phase 30 execution started
 progress:
   total_phases: 3
   completed_phases: 1
-  total_plans: 3
+  total_plans: 5
   completed_plans: 3
 ---
 
@@ -20,15 +20,15 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-18)
 
 **Core value:** A landlord can add a property, invite a tenant, collect rent, and see their financials -- without touching a spreadsheet or calling anyone.
-**Current focus:** Phase 29 — edge-function-shared-utilities
+**Current focus:** Phase 30 — frontend-import-validation-cleanup
 
 ## Current Position
 
-Phase: 30
-Plan: Not started
+Phase: 30 (frontend-import-validation-cleanup) — EXECUTING
+Plan: 1 of 2
 Milestone: None (v1.3 shipped)
-Status: Ready to execute
-Last activity: 2026-04-03
+Status: Executing Phase 30
+Last activity: 2026-04-03 -- Phase 30 execution started
 
 ## Shipped Milestones
 

@@ -66,7 +66,7 @@ TenantFlow is a multi-tenant property management SaaS platform for property owne
 ### v1.5 Code Quality & Deduplication (In Progress)
 
 - [x] **Phase 29: Edge Function Shared Utilities** - Extract duplicated patterns across Edge Functions into shared modules (completed 2026-04-03)
-- [ ] **Phase 30: Frontend Import & Validation Cleanup** - Remove currency re-export indirection and consolidate phone validation
+- [x] **Phase 30: Frontend Import & Validation Cleanup** - Remove currency re-export indirection and consolidate phone validation (completed 2026-04-03)
 - [ ] **Phase 31: Frontend Hook Factories** - Extract repeated query detail and mutation callback patterns into generic factories
 
 ## Phase Details
@@ -97,7 +97,11 @@ Plans:
   2. All imports of `formatCurrency` point to `src/lib/utils/currency.ts` (or its `#lib/utils/currency` alias) with zero remaining references to the old path
   3. Every form schema that accepts a phone number uses `phoneSchema` from `src/lib/validation/common.ts` -- no inline phone regex or custom phone validators
   4. All 1,469+ existing unit tests pass with zero failures
-**Plans**: TBD
+**Plans:** 2/2 plans complete
+
+Plans:
+- [x] 30-01-PLAN.md -- Eliminate currency re-export wrapper (move formatCents to canonical, update 57 imports, delete wrapper)
+- [x] 30-02-PLAN.md -- Replace inline phone validation with shared phoneSchema across 3 schema files
 
 ### Phase 31: Frontend Hook Factories
 **Goal**: Repeated hook boilerplate for entity detail queries and mutation callbacks is extracted into typed factories, reducing per-hook code by 50%+
@@ -118,5 +122,5 @@ Phases execute in numeric order: 29 -> 30 -> 31
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
 | 29. Edge Function Shared Utilities | v1.5 | 0/3 | Complete    | 2026-04-03 |
-| 30. Frontend Import & Validation Cleanup | v1.5 | 0/TBD | Not started | - |
+| 30. Frontend Import & Validation Cleanup | v1.5 | 2/2 | Complete   | 2026-04-03 |
 | 31. Frontend Hook Factories | v1.5 | 0/TBD | Not started | - |
