@@ -48,3 +48,25 @@ export function errorResponse(
     },
   )
 }
+
+/**
+ * Log a webhook handler error to Sentry + structured console.error.
+ * For use inside webhook handler modules where there is no req object.
+ * Does NOT create a Response -- callers handle control flow themselves.
+ */
+export function captureWebhookError(
+  error: unknown,
+  extra: Record<string, unknown>,
+): void {
+  const message = error instanceof Error ? error.message : String(error)
+
+  console.error(JSON.stringify({
+    level: 'error',
+    message,
+    ...extra,
+  }))
+
+  Sentry.captureException(error, {
+    extra,
+  })
+}

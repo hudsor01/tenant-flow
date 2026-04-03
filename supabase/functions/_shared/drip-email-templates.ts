@@ -6,39 +6,9 @@
 // Day 12: Trial ending + conversion offer
 
 import { escapeHtml } from './escape-html.ts'
+import { wrapEmailLayout, BRAND_COLOR, BRAND_NAME } from './email-layout.ts'
 
-const BRAND_COLOR = '#2563eb'
-const BRAND_NAME = 'TenantFlow'
-const TAGLINE = 'Property Management Made Simple'
 const APP_URL = 'https://tenantflow.app'
-
-function wrapInLayout(bodyContent: string): string {
-  return `<!DOCTYPE html>
-<html lang="en">
-<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"></head>
-<body style="margin:0;padding:0;background-color:#f4f4f5;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">
-<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#f4f4f5;padding:32px 16px;">
-<tr><td align="center">
-<table role="presentation" width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;background-color:#ffffff;border-radius:8px;overflow:hidden;">
-<!-- Header -->
-<tr><td style="background-color:${BRAND_COLOR};padding:24px 32px;text-align:center;">
-<a href="${APP_URL}" style="font-size:24px;font-weight:700;color:#ffffff;letter-spacing:-0.5px;text-decoration:none;">${BRAND_NAME}</a>
-</td></tr>
-<!-- Body -->
-<tr><td style="padding:32px;">
-${bodyContent}
-</td></tr>
-<!-- Footer -->
-<tr><td style="padding:16px 32px;text-align:center;border-top:1px solid #e4e4e7;">
-<p style="margin:0 0 8px;font-size:13px;color:#71717a;">${BRAND_NAME} &mdash; ${TAGLINE}</p>
-<p style="margin:0;font-size:12px;color:#a1a1aa;"><a href="${APP_URL}/privacy" style="color:#a1a1aa;">Privacy Policy</a> &middot; <a href="${APP_URL}/terms" style="color:#a1a1aa;">Terms</a></p>
-</td></tr>
-</table>
-</td></tr>
-</table>
-</body>
-</html>`
-}
 
 function ctaBlock(url: string, label: string): string {
   return `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:24px 0;">
@@ -65,7 +35,7 @@ export function day1WelcomeEmail(params: {
   const safeName = escapeHtml(params.firstName)
   return {
     subject: `Welcome to ${BRAND_NAME}, ${params.firstName}! Here's how to get started`,
-    html: wrapInLayout(`
+    html: wrapEmailLayout(`
 <h1 style="margin:0 0 16px;font-size:22px;color:#18181b;">Welcome to ${BRAND_NAME}, ${safeName}!</h1>
 <p style="margin:0 0 16px;font-size:15px;color:#3f3f46;">Your 14-day free trial is active. Here is a quick setup guide to get the most out of ${BRAND_NAME} in under 5 minutes:</p>
 
@@ -78,7 +48,7 @@ ${featureRow('4.', 'Set up rent collection', 'Connect Stripe to start collecting
 
 ${ctaBlock(`${APP_URL}/dashboard`, 'Go to Dashboard')}
 
-<p style="margin:16px 0 0;font-size:14px;color:#71717a;">Need help? Reply to this email or visit our <a href="${APP_URL}/help" style="color:${BRAND_COLOR};">help center</a>.</p>`),
+<p style="margin:16px 0 0;font-size:14px;color:#71717a;">Need help? Reply to this email or visit our <a href="${APP_URL}/help" style="color:${BRAND_COLOR};">help center</a>.</p>`, { headerLinkUrl: APP_URL, includeFooterLinks: true, appUrl: APP_URL }),
   }
 }
 
@@ -89,7 +59,7 @@ export function day3RentCollectionEmail(params: {
   const safeName = escapeHtml(params.firstName)
   return {
     subject: `${params.firstName}, automate your rent collection with ${BRAND_NAME}`,
-    html: wrapInLayout(`
+    html: wrapEmailLayout(`
 <h1 style="margin:0 0 16px;font-size:22px;color:#18181b;">Stop Chasing Rent Payments</h1>
 <p style="margin:0 0 16px;font-size:15px;color:#3f3f46;">${safeName}, did you know that landlords spend an average of 4 hours per month managing rent collection manually? ${BRAND_NAME} automates the entire process.</p>
 
@@ -107,7 +77,7 @@ ${featureRow('&#10003;', 'Payment tracking', 'See who paid, who is late, and out
 
 ${ctaBlock(`${APP_URL}/dashboard`, 'Set Up Rent Collection')}
 
-<p style="margin:16px 0 0;font-size:14px;color:#71717a;">Your trial has 11 days remaining. All features are fully unlocked.</p>`),
+<p style="margin:16px 0 0;font-size:14px;color:#71717a;">Your trial has 11 days remaining. All features are fully unlocked.</p>`, { headerLinkUrl: APP_URL, includeFooterLinks: true, appUrl: APP_URL }),
   }
 }
 
@@ -118,7 +88,7 @@ export function day7SuccessStoryEmail(params: {
   const safeName = escapeHtml(params.firstName)
   return {
     subject: `How one landlord saved 20+ hours/month with ${BRAND_NAME}`,
-    html: wrapInLayout(`
+    html: wrapEmailLayout(`
 <h1 style="margin:0 0 16px;font-size:22px;color:#18181b;">From Spreadsheets to Streamlined</h1>
 <p style="margin:0 0 16px;font-size:15px;color:#3f3f46;">Hey ${safeName}, here is how landlords like you are using ${BRAND_NAME} to simplify their operations:</p>
 
@@ -147,7 +117,7 @@ export function day7SuccessStoryEmail(params: {
 
 ${ctaBlock(`${APP_URL}/dashboard`, 'Explore Your Dashboard')}
 
-<p style="margin:16px 0 0;font-size:14px;color:#71717a;">Your trial has 7 days remaining. Make sure you have explored all the features available to you.</p>`),
+<p style="margin:16px 0 0;font-size:14px;color:#71717a;">Your trial has 7 days remaining. Make sure you have explored all the features available to you.</p>`, { headerLinkUrl: APP_URL, includeFooterLinks: true, appUrl: APP_URL }),
   }
 }
 
@@ -160,7 +130,7 @@ export function day12TrialEndingEmail(params: {
   const safeDate = escapeHtml(params.trialEndsAt)
   return {
     subject: `${params.firstName}, your ${BRAND_NAME} trial ends in 2 days`,
-    html: wrapInLayout(`
+    html: wrapEmailLayout(`
 <h1 style="margin:0 0 16px;font-size:22px;color:#18181b;">Your Trial Ends ${safeDate}</h1>
 <p style="margin:0 0 16px;font-size:15px;color:#3f3f46;">${safeName}, your 14-day free trial is almost over. To keep managing your properties with ${BRAND_NAME}, choose a plan that fits your portfolio:</p>
 
@@ -194,7 +164,7 @@ ${ctaBlock(`${APP_URL}/pricing`, 'Choose Your Plan')}
 <p style="margin:0;font-size:14px;color:#92400e;"><strong>What happens after your trial?</strong> Your data and settings are preserved. Choose a plan within 30 days to pick up right where you left off. No data loss, no re-setup.</p>
 </div>
 
-<p style="margin:16px 0 0;font-size:14px;color:#71717a;">Questions about which plan is right for you? Reply to this email and we will help you decide.</p>`),
+<p style="margin:16px 0 0;font-size:14px;color:#71717a;">Questions about which plan is right for you? Reply to this email and we will help you decide.</p>`, { headerLinkUrl: APP_URL, includeFooterLinks: true, appUrl: APP_URL }),
   }
 }
 

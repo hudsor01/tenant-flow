@@ -46,3 +46,14 @@ export function handleCorsOptions(req: Request): Response | null {
 
   return new Response(null, { status: 204 })
 }
+
+/**
+ * Returns CORS headers merged with Content-Type: application/json.
+ * Shorthand for the pattern: { ...getCorsHeaders(req), 'Content-Type': 'application/json' }
+ */
+export function getJsonHeaders(req: Request): Record<string, string> {
+  return {
+    ...getCorsHeaders(req),
+    'Content-Type': 'application/json',
+  }
+}
