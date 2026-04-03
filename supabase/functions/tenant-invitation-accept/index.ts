@@ -13,10 +13,12 @@
 // -> 429 { error: 'Too many requests' }
 
 import { createClient } from '@supabase/supabase-js'
-import { getCorsHeaders, handleCorsOptions } from '../_shared/cors.ts'
+import { validateBearerAuth } from '../_shared/auth.ts'
+import { getCorsHeaders, getJsonHeaders, handleCorsOptions } from '../_shared/cors.ts'
 import { validateEnv } from '../_shared/env.ts'
 import { errorResponse } from '../_shared/errors.ts'
 import { rateLimit } from '../_shared/rate-limit.ts'
+import { createAdminClient } from '../_shared/supabase-client.ts'
 
 Deno.serve(async (req: Request) => {
   const optionsResponse = handleCorsOptions(req)
@@ -36,29 +38,18 @@ Deno.serve(async (req: Request) => {
     })
 
     // AUTH-04: JWT auth guard — derive user identity from token
-    const authHeader = req.headers.get('Authorization')
-    if (!authHeader?.startsWith('Bearer ')) {
-      return new Response(
-        JSON.stringify({ error: 'Authorization required' }),
-        { status: 401, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
-      )
+    const supabaseAuth = createClient(env['SUPABASE_URL'], env['SUPABASE_ANON_KEY'])
+    const auth = await validateBearerAuth(req, supabaseAuth)
+    if ('error' in auth) {
+      return new Response(JSON.stringify({ error: auth.error }), {
+        status: auth.status,
+        headers: getJsonHeaders(req),
+      })
     }
-    const token = authHeader.replace('Bearer ', '')
-
-    // Validate token using a token-scoped client
-    const supabaseAuth = createClient(env['SUPABASE_URL'], env['SUPABASE_ANON_KEY'], {
-      global: { headers: { Authorization: `Bearer ${token}` } }
-    })
-    const { data: { user }, error: authError } = await supabaseAuth.auth.getUser(token)
-    if (authError || !user) {
-      return new Response(
-        JSON.stringify({ error: 'Invalid token' }),
-        { status: 401, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
-      )
-    }
+    const { user } = auth
 
     // Service role client — bypasses RLS for invite acceptance writes
-    const supabase = createClient(env['SUPABASE_URL'], env['SUPABASE_SERVICE_ROLE_KEY'])
+    const supabase = createAdminClient(env['SUPABASE_URL'], env['SUPABASE_SERVICE_ROLE_KEY'])
 
     const body = await req.json()
     const code: string = body.code
@@ -66,7 +57,7 @@ Deno.serve(async (req: Request) => {
     if (!code) {
       return new Response(
         JSON.stringify({ error: 'code is required' }),
-        { status: 400, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
+        { status: 400, headers: getJsonHeaders(req) }
       )
     }
 
@@ -80,7 +71,7 @@ Deno.serve(async (req: Request) => {
     if (fetchError || !invitation) {
       return new Response(
         JSON.stringify({ error: 'Invalid or already used invitation' }),
-        { status: 404, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
+        { status: 404, headers: getJsonHeaders(req) }
       )
     }
 
@@ -88,21 +79,21 @@ Deno.serve(async (req: Request) => {
     if (user.email?.toLowerCase() !== invitation.email.toLowerCase()) {
       return new Response(
         JSON.stringify({ error: 'This invitation was sent to a different email address' }),
-        { status: 403, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
+        { status: 403, headers: getJsonHeaders(req) }
       )
     }
 
     if (invitation.status === 'accepted') {
       return new Response(
         JSON.stringify({ error: 'Invalid or already used invitation' }),
-        { status: 404, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
+        { status: 404, headers: getJsonHeaders(req) }
       )
     }
 
     if (new Date(invitation.expires_at) < new Date()) {
       return new Response(
         JSON.stringify({ error: 'Invitation has expired' }),
-        { status: 410, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
+        { status: 410, headers: getJsonHeaders(req) }
       )
     }
 
@@ -148,7 +139,7 @@ Deno.serve(async (req: Request) => {
 
     return new Response(
       JSON.stringify({ accepted: true }),
-      { status: 200, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
+      { status: 200, headers: getJsonHeaders(req) }
     )
   } catch (err) {
     return errorResponse(req, 500, err, { action: 'invitation_accept' })

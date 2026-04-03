@@ -10,7 +10,7 @@
 // -> 429 { error: 'Too many requests' }
 // -> 500 { error: 'An error occurred' }
 
-import { getCorsHeaders, handleCorsOptions } from '../_shared/cors.ts'
+import { getCorsHeaders, getJsonHeaders, handleCorsOptions } from '../_shared/cors.ts'
 import { validateEnv } from '../_shared/env.ts'
 import { errorResponse } from '../_shared/errors.ts'
 import { rateLimit } from '../_shared/rate-limit.ts'
@@ -122,10 +122,7 @@ Deno.serve(async (req: Request) => {
         JSON.stringify({ error: 'Valid email is required' }),
         {
           status: 400,
-          headers: {
-            ...getCorsHeaders(req),
-            'Content-Type': 'application/json',
-          },
+          headers: getJsonHeaders(req),
         },
       )
     }
@@ -163,10 +160,7 @@ Deno.serve(async (req: Request) => {
 
     return new Response(JSON.stringify({ success: true }), {
       status: 200,
-      headers: {
-        ...getCorsHeaders(req),
-        'Content-Type': 'application/json',
-      },
+      headers: getJsonHeaders(req),
     })
   } catch (err) {
     return errorResponse(req, 500, err, { action: 'newsletter_subscribe' })

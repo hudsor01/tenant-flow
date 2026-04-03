@@ -7,11 +7,13 @@
 // JWT-authenticated — requires a valid Bearer token.
 // Fail-fast: no retry on StirlingPDF errors (matches stripe-webhooks pattern).
 
-import { createClient } from '@supabase/supabase-js'
-import { getCorsHeaders, handleCorsOptions } from '../_shared/cors.ts'
+import type { SupabaseClient } from '@supabase/supabase-js'
+import { validateBearerAuth } from '../_shared/auth.ts'
+import { getCorsHeaders, getJsonHeaders, handleCorsOptions } from '../_shared/cors.ts'
 import { errorResponse } from '../_shared/errors.ts'
 import { escapeHtml } from '../_shared/escape-html.ts'
 import { validateEnv } from '../_shared/env.ts'
+import { createAdminClient } from '../_shared/supabase-client.ts'
 
 type ReportRow = Record<string, string | number | null | undefined>
 
@@ -58,7 +60,7 @@ function buildReportHtml(reportType: string, year: number, rows: ReportRow[]): s
 }
 
 async function fetchReportRows(
-  supabase: ReturnType<typeof createClient>,
+  supabase: SupabaseClient,
   userId: string,
 ): Promise<ReportRow[]> {
   const { data, error } = await supabase.rpc('get_dashboard_stats', { p_user_id: userId })
@@ -71,7 +73,7 @@ async function fetchReportRows(
 }
 
 async function buildLeasePreviewHtml(
-  supabase: ReturnType<typeof createClient>,
+  supabase: SupabaseClient,
   leaseId: string,
 ): Promise<string> {
   const { data: lease, error } = await supabase
@@ -156,23 +158,16 @@ Deno.serve(async (req: Request) => {
       required: ['SUPABASE_URL', 'SUPABASE_SERVICE_ROLE_KEY', 'STIRLING_PDF_URL'],
     })
 
-    const authHeader = req.headers.get('Authorization')
-    if (!authHeader) {
-      return new Response(
-        JSON.stringify({ error: 'Missing Authorization header' }),
-        { status: 401, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } },
-      )
-    }
+    const supabase = createAdminClient(env['SUPABASE_URL'], env['SUPABASE_SERVICE_ROLE_KEY'])
 
-    const supabase = createClient(env['SUPABASE_URL'], env['SUPABASE_SERVICE_ROLE_KEY'])
-    const token = authHeader.replace('Bearer ', '')
-    const { data: { user }, error: authError } = await supabase.auth.getUser(token)
-    if (authError || !user) {
-      return new Response(
-        JSON.stringify({ error: 'Invalid or expired token' }),
-        { status: 401, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } },
-      )
+    const auth = await validateBearerAuth(req, supabase)
+    if ('error' in auth) {
+      return new Response(JSON.stringify({ error: auth.error }), {
+        status: auth.status,
+        headers: getJsonHeaders(req),
+      })
     }
+    const { user } = auth
 
     const body = await req.json() as RequestBody
     const filename = body.filename ?? 'report.pdf'
@@ -184,7 +179,7 @@ Deno.serve(async (req: Request) => {
       if (!body.html || typeof body.html !== 'string') {
         return new Response(
           JSON.stringify({ error: 'html field must be a non-empty string' }),
-          { status: 400, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } },
+          { status: 400, headers: getJsonHeaders(req) },
         )
       }
       html = body.html
@@ -193,7 +188,7 @@ Deno.serve(async (req: Request) => {
       if (!body.leaseId || typeof body.leaseId !== 'string') {
         return new Response(
           JSON.stringify({ error: 'leaseId must be a non-empty string' }),
-          { status: 400, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } },
+          { status: 400, headers: getJsonHeaders(req) },
         )
       }
 
@@ -207,7 +202,7 @@ Deno.serve(async (req: Request) => {
       if (ownershipError || !leaseOwnership || leaseOwnership.owner_user_id !== user.id) {
         return new Response(
           JSON.stringify({ error: 'Forbidden' }),
-          { status: 403, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } },
+          { status: 403, headers: getJsonHeaders(req) },
         )
       }
 
@@ -217,7 +212,7 @@ Deno.serve(async (req: Request) => {
       if (!body.reportType || typeof body.year !== 'number') {
         return new Response(
           JSON.stringify({ error: 'reportType (string) and year (number) are required' }),
-          { status: 400, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } },
+          { status: 400, headers: getJsonHeaders(req) },
         )
       }
       const rows = await fetchReportRows(supabase, user.id)
@@ -255,7 +250,7 @@ Deno.serve(async (req: Request) => {
     if (isTimeout) {
       return new Response(
         JSON.stringify({ error: 'PDF generation timed out' }),
-        { status: 504, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } },
+        { status: 504, headers: getJsonHeaders(req) },
       )
     }
     return errorResponse(req, 500, err, { action: 'generate_pdf' })

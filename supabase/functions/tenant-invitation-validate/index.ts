@@ -8,11 +8,11 @@
 // -> 410 { error: 'Invitation has expired' }
 // -> 429 { error: 'Too many requests' }
 
-import { createClient } from '@supabase/supabase-js'
-import { getCorsHeaders, handleCorsOptions } from '../_shared/cors.ts'
+import { getCorsHeaders, getJsonHeaders, handleCorsOptions } from '../_shared/cors.ts'
 import { validateEnv } from '../_shared/env.ts'
 import { errorResponse } from '../_shared/errors.ts'
 import { rateLimit } from '../_shared/rate-limit.ts'
+import { createAdminClient } from '../_shared/supabase-client.ts'
 
 Deno.serve(async (req: Request) => {
   const optionsResponse = handleCorsOptions(req)
@@ -31,7 +31,7 @@ Deno.serve(async (req: Request) => {
       required: ['SUPABASE_URL', 'SUPABASE_SERVICE_ROLE_KEY'],
     })
 
-    const supabase = createClient(env['SUPABASE_URL'], env['SUPABASE_SERVICE_ROLE_KEY'])
+    const supabase = createAdminClient(env['SUPABASE_URL'], env['SUPABASE_SERVICE_ROLE_KEY'])
 
     const body = await req.json()
     const code: string = body.code
@@ -39,7 +39,7 @@ Deno.serve(async (req: Request) => {
     if (!code) {
       return new Response(
         JSON.stringify({ error: 'code is required' }),
-        { status: 400, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
+        { status: 400, headers: getJsonHeaders(req) }
       )
     }
 
@@ -61,7 +61,7 @@ Deno.serve(async (req: Request) => {
     if (error || !invitation) {
       return new Response(
         JSON.stringify({ error: 'Invalid or already used invitation' }),
-        { status: 404, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
+        { status: 404, headers: getJsonHeaders(req) }
       )
     }
 
@@ -69,7 +69,7 @@ Deno.serve(async (req: Request) => {
     if (invitation.status === 'accepted') {
       return new Response(
         JSON.stringify({ error: 'Invalid or already used invitation' }),
-        { status: 404, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
+        { status: 404, headers: getJsonHeaders(req) }
       )
     }
 
@@ -77,7 +77,7 @@ Deno.serve(async (req: Request) => {
     if (new Date(invitation.expires_at) < new Date()) {
       return new Response(
         JSON.stringify({ error: 'Invitation has expired' }),
-        { status: 410, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
+        { status: 410, headers: getJsonHeaders(req) }
       )
     }
 
@@ -101,7 +101,7 @@ Deno.serve(async (req: Request) => {
         property_name: (property as { name?: string } | null)?.name ?? undefined,
         unit_number: (unit as { unit_number?: string } | null)?.unit_number ?? undefined,
       }),
-      { status: 200, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json', 'Cache-Control': 'private, max-age=300' } }
+      { status: 200, headers: { ...getJsonHeaders(req), 'Cache-Control': 'private, max-age=300' } }
     )
   } catch (err) {
     return errorResponse(req, 500, err, { action: 'invitation_validate' })

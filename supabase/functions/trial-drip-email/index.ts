@@ -3,10 +3,10 @@
 // Schedule: Day 1 (welcome), Day 3 (rent collection), Day 7 (success story), Day 12 (trial ending).
 // Uses service_role to query users -- not exposed to frontend.
 
-import { createClient } from 'jsr:@supabase/supabase-js@2'
 import * as Sentry from '@sentry/deno'
 import { validateEnv } from '../_shared/env.ts'
 import { errorResponse } from '../_shared/errors.ts'
+import { createAdminClient } from '../_shared/supabase-client.ts'
 import { sendEmail } from '../_shared/resend.ts'
 import {
   day1WelcomeEmail,
@@ -49,7 +49,7 @@ Deno.serve(async (req: Request) => {
   }
 
   try {
-    const supabase = createClient(
+    const supabase = createAdminClient(
       env.SUPABASE_URL,
       env.SUPABASE_SERVICE_ROLE_KEY,
     )

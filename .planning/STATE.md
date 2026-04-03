@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 29-02-PLAN.md
-last_updated: "2026-04-03T21:11:10.251Z"
+stopped_at: Completed 29-03-PLAN.md
+last_updated: "2026-04-03T21:11:48.358Z"
 last_activity: 2026-04-03
 progress:
   total_phases: 10
   completed_phases: 8
   total_plans: 19
-  completed_plans: 21
+  completed_plans: 22
 ---
 
 # Project State: TenantFlow
@@ -25,7 +25,7 @@ See: .planning/PROJECT.md (updated 2026-03-18)
 ## Current Position
 
 Phase: 29 (edge-function-shared-utilities) — EXECUTING
-Plan: 2 of 3
+Plan: 3 of 3
 Milestone: None (v1.3 shipped)
 Status: Ready to execute
 Last activity: 2026-04-03
@@ -50,6 +50,8 @@ Last activity: 2026-04-03
 - [Phase 29]: ctaBlock kept local per template; wrapEmailLayout shared with options pattern
 - [Phase 29]: detach-payment-method retains createClient import for user-scoped client with custom headers
 - [Phase 29]: stripe-autopay-charge SupabaseClient type alias updated to reference createAdminClient
+- [Phase 29]: Sub-pattern B anon-key clients simplified by removing unnecessary global headers option
+- [Phase 29]: SupabaseClient type import replaces ReturnType<typeof createClient> when createClient fully removed
 
 ### Quick Tasks Completed
 
@@ -59,6 +61,6 @@ Last activity: 2026-04-03
 
 ## Session Continuity
 
-Last session: 2026-04-03T21:11:10.249Z
-Stopped at: Completed 29-02-PLAN.md
+Last session: 2026-04-03T21:11:48.356Z
+Stopped at: Completed 29-03-PLAN.md
 Resume file: None

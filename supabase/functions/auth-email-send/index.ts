@@ -8,7 +8,7 @@
 // When configured, Supabase Auth sends a POST here instead of using
 // its built-in email templates. We render branded HTML via Resend.
 
-import { getCorsHeaders, handleCorsOptions } from '../_shared/cors.ts'
+import { getJsonHeaders, handleCorsOptions } from '../_shared/cors.ts'
 import { errorResponse } from '../_shared/errors.ts'
 import { validateEnv } from '../_shared/env.ts'
 import { sendEmail } from '../_shared/resend.ts'
@@ -45,8 +45,7 @@ Deno.serve(async (req: Request) => {
   const optionsResponse = handleCorsOptions(req)
   if (optionsResponse) return optionsResponse
 
-  const corsHeaders = getCorsHeaders(req)
-  const jsonHeaders = { ...corsHeaders, 'Content-Type': 'application/json' }
+  const jsonHeaders = getJsonHeaders(req)
 
   if (req.method !== 'POST') {
     return new Response(
