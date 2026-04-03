@@ -63,9 +63,60 @@ TenantFlow is a multi-tenant property management SaaS platform for property owne
 
 </details>
 
-<details>
-<summary>v1.4 Tenant Invitation Flow Redesign (Phase 28) -- IN PROGRESS</summary>
+### v1.5 Code Quality & Deduplication (In Progress)
 
-- [ ] Phase 28: Consumer Migration & Dead Code Removal -- in progress
+- [ ] **Phase 29: Edge Function Shared Utilities** - Extract duplicated patterns across Edge Functions into shared modules
+- [ ] **Phase 30: Frontend Import & Validation Cleanup** - Remove currency re-export indirection and consolidate phone validation
+- [ ] **Phase 31: Frontend Hook Factories** - Extract repeated query detail and mutation callback patterns into generic factories
 
-</details>
+## Phase Details
+
+### Phase 29: Edge Function Shared Utilities
+**Goal**: Every Edge Function uses shared utility modules for auth, headers, clients, email layout, and error capture -- eliminating copy-pasted boilerplate across 13+ functions
+**Depends on**: Nothing (first phase of v1.5)
+**Requirements**: EDGE-01, EDGE-02, EDGE-03, EDGE-04, EDGE-05, EDGE-06
+**Success Criteria** (what must be TRUE):
+  1. Running `deno test --allow-all --no-check` in `supabase/functions/` passes all existing Edge Function tests with zero regressions
+  2. No Edge Function file contains inline `getUser(token)` JWT extraction -- all use `validateBearerAuth()` from `_shared/auth.ts`
+  3. No Edge Function file contains inline `new Stripe(key, { apiVersion })` or inline `createClient(url, serviceKey)` -- all use shared factories
+  4. Auth email templates and drip email templates share a single `wrapEmailLayout()` function from `_shared/email-layout.ts`
+  5. Webhook handlers use `captureWebhookError()` from `_shared/errors.ts` instead of inline error logging
+**Plans:** 3 plans
+
+Plans:
+- [ ] 29-01-PLAN.md -- Create shared utility modules (auth, headers, clients, email layout, webhook errors)
+- [ ] 29-02-PLAN.md -- Update Stripe-related Edge Functions to use shared utilities
+- [ ] 29-03-PLAN.md -- Update non-Stripe Edge Functions to use shared utilities
+
+### Phase 30: Frontend Import & Validation Cleanup
+**Goal**: All frontend code imports `formatCurrency` from its canonical source and all form schemas use the shared `phoneSchema` -- removing indirection and inconsistency
+**Depends on**: Nothing (independent of Phase 29)
+**Requirements**: FRONT-01, FRONT-04
+**Success Criteria** (what must be TRUE):
+  1. `src/lib/formatters/currency.ts` no longer exists -- the re-export file is deleted
+  2. All imports of `formatCurrency` point to `src/lib/utils/currency.ts` (or its `#lib/utils/currency` alias) with zero remaining references to the old path
+  3. Every form schema that accepts a phone number uses `phoneSchema` from `src/lib/validation/common.ts` -- no inline phone regex or custom phone validators
+  4. All 1,469+ existing unit tests pass with zero failures
+**Plans**: TBD
+
+### Phase 31: Frontend Hook Factories
+**Goal**: Repeated hook boilerplate for entity detail queries and mutation callbacks is extracted into typed factories, reducing per-hook code by 50%+
+**Depends on**: Phase 30 (import paths must be stable before refactoring hooks)
+**Requirements**: FRONT-02, FRONT-03
+**Success Criteria** (what must be TRUE):
+  1. A generic `useEntityDetail<T>()` factory exists in `src/hooks/use-entity-detail.ts` and is used by 8+ entity detail hooks (properties, leases, tenants, etc.)
+  2. A `createMutationCallbacks()` utility exists and is used by 15+ mutation hooks to generate `onSuccess`/`onError` callbacks with toast + cache invalidation
+  3. All 1,469+ existing unit tests pass with zero failures
+  4. No hook file exceeds the 300-line limit after refactoring
+**Plans**: TBD
+
+## Progress
+
+**Execution Order:**
+Phases execute in numeric order: 29 -> 30 -> 31
+
+| Phase | Milestone | Plans Complete | Status | Completed |
+|-------|-----------|----------------|--------|-----------|
+| 29. Edge Function Shared Utilities | v1.5 | 0/3 | Not started | - |
+| 30. Frontend Import & Validation Cleanup | v1.5 | 0/TBD | Not started | - |
+| 31. Frontend Hook Factories | v1.5 | 0/TBD | Not started | - |
