@@ -108,15 +108,15 @@ Plans:
 **Depends on**: Phase 30 (import paths must be stable before refactoring hooks)
 **Requirements**: FRONT-02, FRONT-03
 **Success Criteria** (what must be TRUE):
-  1. A generic `useEntityDetail<T>()` factory exists in `src/hooks/use-entity-detail.ts` and is used by 8+ entity detail hooks (properties, leases, tenants, etc.)
-  2. A `createMutationCallbacks()` utility exists and is used by 15+ mutation hooks to generate `onSuccess`/`onError` callbacks with toast + cache invalidation
+  1. A generic `useEntityDetail<T>()` factory exists in `src/hooks/use-entity-detail.ts` and is used by 7+ entity detail hooks (properties, leases, tenants, tenantWithLease, units, vendors, inspections). Note: useSubscription excluded -- uses inline queryFn incompatible with the factory pattern.
+  2. A `createMutationCallbacks()` utility exists with Tier 1/2/3 support (including optimistic update config per D-01) and is used by 15+ mutation hooks to generate `onSuccess`/`onError`/`onMutate`/`onSettled` callbacks
   3. All 1,469+ existing unit tests pass with zero failures
   4. No hook file exceeds the 300-line limit after refactoring
 **Plans:** 2 plans
 
 Plans:
-- [ ] 31-01-PLAN.md -- Build useEntityDetail + createMutationCallbacks factories with tests, migrate property/vendor hooks as proof
-- [ ] 31-02-PLAN.md -- Migrate all remaining detail hooks (6) and mutation hooks (15+) to factories
+- [ ] 31-01-PLAN.md -- Build useEntityDetail + createMutationCallbacks factories (with Tier 3 optimistic support) with tests, migrate property/vendor hooks as proof
+- [ ] 31-02-PLAN.md -- Migrate remaining detail hooks (5) and mutation hooks (15+) including optimistic mutations to factories
 
 ## Progress
 
