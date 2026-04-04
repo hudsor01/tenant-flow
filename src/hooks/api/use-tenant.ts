@@ -19,6 +19,7 @@ import {
 	useQueryClient
 } from '@tanstack/react-query'
 import type { TenantWithLeaseInfo } from '#types/core'
+import { useEntityDetail } from '#hooks/use-entity-detail'
 
 // Import query keys from separate file to avoid circular dependency
 import { tenantQueries } from './query-keys/tenant-keys'
@@ -46,24 +47,10 @@ export interface InvitationFilters {
  * Uses placeholderData from list cache for instant detail view
  */
 export function useTenant(id: string) {
-	const queryClient = useQueryClient()
-
-	return useQuery({
-		...tenantQueries.detail(id),
-		placeholderData: () => {
-			// Search all list caches for this tenant
-			const listCaches = queryClient.getQueriesData<{
-				data?: TenantWithLeaseInfo[]
-			}>({
-				queryKey: tenantQueries.lists()
-			})
-
-			for (const [, response] of listCaches) {
-				const item = response?.data?.find(t => t.id === id)
-				if (item) return item
-			}
-			return undefined
-		}
+	return useEntityDetail<TenantWithLeaseInfo>({
+		queryOptions: tenantQueries.detail(id),
+		listQueryKey: tenantQueries.lists(),
+		id
 	})
 }
 
@@ -71,7 +58,10 @@ export function useTenant(id: string) {
  * Hook to fetch tenant with lease information
  */
 export function useTenantWithLease(id: string) {
-	return useQuery(tenantQueries.withLease(id))
+	return useEntityDetail<TenantWithLeaseInfo>({
+		queryOptions: tenantQueries.withLease(id),
+		id
+	})
 }
 
 /**

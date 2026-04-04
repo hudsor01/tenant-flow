@@ -22,6 +22,7 @@ import type { PaginatedResponse } from '#types/api-contracts'
 import { QUERY_CACHE_TIMES } from '#lib/constants/query-config'
 import { handleMutationError } from '#lib/mutation-error-handler'
 import { toast } from 'sonner'
+import { useEntityDetail } from '#hooks/use-entity-detail'
 
 // Import query keys from separate file to avoid circular dependency
 import { unitQueries } from './query-keys/unit-keys'
@@ -45,22 +46,10 @@ const selectPaginatedData = <T>(response: PaginatedResponse<T>): T[] => response
  * Uses placeholderData from list cache for instant detail view
  */
 export function useUnit(id: string) {
-	const queryClient = useQueryClient()
-
-	return useQuery({
-		...unitQueries.detail(id),
-		placeholderData: () => {
-			// Search all list caches for this unit
-			const listCaches = queryClient.getQueriesData<Unit[]>({
-				queryKey: unitQueries.lists()
-			})
-
-			for (const [, units] of listCaches) {
-				const item = units?.find(u => u.id === id)
-				if (item) return item
-			}
-			return undefined
-		}
+	return useEntityDetail<Unit>({
+		queryOptions: unitQueries.detail(id),
+		listQueryKey: unitQueries.lists(),
+		id
 	})
 }
 

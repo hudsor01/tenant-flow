@@ -12,6 +12,7 @@ import { usePrefetchQuery, useQuery, useQueryClient } from '@tanstack/react-quer
 import type { Lease } from '#types/core'
 import { handlePostgrestError } from '#lib/postgrest-error-handler'
 import { createClient } from '#lib/supabase/client'
+import { useEntityDetail } from '#hooks/use-entity-detail'
 // Import query keys from separate file to avoid circular dependency
 import { leaseQueries } from './query-keys/lease-keys'
 
@@ -24,24 +25,10 @@ import { leaseQueries } from './query-keys/lease-keys'
  * Uses placeholderData from list cache for instant detail view
  */
 export function useLease(id: string) {
-	const queryClient = useQueryClient()
-
-	return useQuery({
-		...leaseQueries.detail(id),
-		placeholderData: () => {
-			// Search all list caches for this lease
-			const listCaches = queryClient.getQueriesData<{
-				data: Lease[]
-			}>({
-				queryKey: leaseQueries.lists()
-			})
-
-			for (const [, response] of listCaches) {
-				const item = response?.data?.find(l => l.id === id)
-				if (item) return item
-			}
-			return undefined
-		}
+	return useEntityDetail<Lease>({
+		queryOptions: leaseQueries.detail(id),
+		listQueryKey: leaseQueries.lists(),
+		id
 	})
 }
 
