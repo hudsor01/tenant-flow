@@ -10,11 +10,6 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { financialMutations, expenseKeys, expenseQueries, financialTaxQueries } from './query-keys/expense-keys'
 import { createMutationCallbacks } from '#hooks/create-mutation-callbacks'
 
-// Re-export types from factory for backward compatibility
-export type { Expense, CreateExpenseInput } from './query-keys/expense-keys'
-
-// Re-export keys for existing consumers
-export { expenseKeys, taxDocumentKeys } from './query-keys/expense-keys'
 
 // ============================================================================
 // EXPENSE QUERY HOOKS

@@ -14,10 +14,6 @@ import { useQuery } from '@tanstack/react-query'
 import { billingQueries } from './query-keys/billing-keys'
 import { subscriptionQueries, subscriptionStatusQuery } from './query-keys/subscription-keys'
 
-// Re-export keys and types for consumers that import from use-billing
-export { billingKeys, billingQueries } from './query-keys/billing-keys'
-export { subscriptionsKeys, subscriptionQueries } from './query-keys/subscription-keys'
-export type { FormattedInvoice } from './query-keys/billing-keys'
 
 // ============================================================================
 // INVOICE HOOKS

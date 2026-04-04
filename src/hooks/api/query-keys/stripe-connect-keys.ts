@@ -6,6 +6,7 @@
 import { queryOptions } from '@tanstack/react-query'
 import { QUERY_CACHE_TIMES } from '#lib/constants/query-config'
 import { createClient } from '#lib/supabase/client'
+import { getCachedUser } from '#lib/supabase/get-cached-user'
 import type { ConnectedAccountWithIdentity } from '#types/stripe'
 
 // ============================================================================
@@ -64,10 +65,13 @@ export async function callStripeConnectFunction<T>(
 	action: string,
 	body?: Record<string, unknown>
 ): Promise<T> {
+	const user = await getCachedUser()
+	if (!user) throw new Error('Not authenticated')
+
 	const supabase = createClient()
 	const { data: sessionData } = await supabase.auth.getSession()
 	const token = sessionData.session?.access_token
-	if (!token) throw new Error('Not authenticated')
+	if (!token) throw new Error('No session token')
 
 	const baseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
 	const response = await fetch(`${baseUrl}/functions/v1/stripe-connect`, {

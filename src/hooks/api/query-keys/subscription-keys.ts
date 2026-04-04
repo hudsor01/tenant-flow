@@ -169,7 +169,8 @@ export const subscriptionQueries = {
 					.eq('id', id)
 					.single()
 				if (error) handlePostgrestError(error, 'leases')
-				const row = data!
+				if (!data) throw new Error('Subscription not found')
+				const row = data
 				return {
 					id: row.id,
 					leaseId: row.id,
@@ -198,10 +199,13 @@ async function callBillingEdgeFunction<T>(
 	functionName: 'stripe-checkout' | 'stripe-billing-portal',
 	body?: Record<string, unknown>
 ): Promise<T> {
+	const user = await getCachedUser()
+	if (!user) throw new Error('Not authenticated')
+
 	const supabase = createClient()
 	const { data: sessionData } = await supabase.auth.getSession()
 	const token = sessionData.session?.access_token
-	if (!token) throw new Error('Not authenticated')
+	if (!token) throw new Error('No session token')
 
 	const baseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
 	const response = await fetch(`${baseUrl}/functions/v1/${functionName}`, {

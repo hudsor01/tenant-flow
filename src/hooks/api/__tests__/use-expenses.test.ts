@@ -17,8 +17,8 @@ import {
 	useExpensesByDateRange,
 	useCreateExpenseMutation,
 	useDeleteExpenseMutation,
-	expenseKeys
 } from '../use-expense-mutations'
+import { expenseKeys } from '../query-keys/expense-keys'
 
 // Supabase mock using vi.hoisted() to avoid initialization errors
 const {

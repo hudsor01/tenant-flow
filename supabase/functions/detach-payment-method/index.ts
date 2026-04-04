@@ -13,7 +13,6 @@
 // 5. If deleted method was default, promote next most recent
 // 6. If deleted method was used for autopay and no others remain, disable autopay
 
-import { createClient } from '@supabase/supabase-js'
 import { getCorsHeaders, handleCorsOptions, getJsonHeaders } from '../_shared/cors.ts'
 import { validateEnv } from '../_shared/env.ts'
 import { errorResponse } from '../_shared/errors.ts'
@@ -49,8 +48,8 @@ Deno.serve(async (req: Request) => {
     const supabaseServiceKey = env.SUPABASE_SERVICE_ROLE_KEY
     const stripeKey = env.STRIPE_SECRET_KEY
 
-    // Create user-scoped client for auth verification
-    const supabaseAuth = createClient(supabaseUrl, supabaseServiceKey)
+    // Use admin client for auth verification (validateBearerAuth calls getUser with the token)
+    const supabaseAuth = createAdminClient(supabaseUrl, supabaseServiceKey)
 
     const auth = await validateBearerAuth(req, supabaseAuth)
     if ('error' in auth) {

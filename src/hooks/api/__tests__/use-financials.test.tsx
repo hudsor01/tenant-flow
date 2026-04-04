@@ -20,7 +20,8 @@ import {
 	useBalanceSheet,
 	financialKeys
 } from '../use-financials'
-import { useTaxDocuments, expenseKeys } from '../use-expense-mutations'
+import { useTaxDocuments } from '../use-expense-mutations'
+import { expenseKeys } from '../query-keys/expense-keys'
 
 // Mock Supabase client using vi.hoisted() to avoid initialization errors
 const { mockRpc, mockGetCachedUser } = vi.hoisted(() => ({

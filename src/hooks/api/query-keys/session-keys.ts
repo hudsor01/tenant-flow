@@ -43,7 +43,7 @@ export const sessionQueries = {
 				}
 
 				const currentSession: UserSession = {
-					id: session.access_token,
+					id: `session-${session.access_token.slice(-16)}`,
 					user_id: session.user.id,
 					created_at: new Date(session.user.created_at).toISOString(),
 					updated_at: new Date().toISOString(),
