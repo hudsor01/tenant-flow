@@ -13,7 +13,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { createClient } from '#lib/supabase/client'
 import { handleMutationError } from '#lib/mutation-error-handler'
-import { subscriptionsKeys, billingMutations } from './query-keys/billing-keys'
+import { subscriptionsKeys, billingMutations } from './query-keys/subscription-keys'
 import { createMutationCallbacks } from '#hooks/create-mutation-callbacks'
 
 // ============================================================================

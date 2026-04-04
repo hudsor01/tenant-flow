@@ -3,7 +3,7 @@
  * TanStack Query hooks for payment data fetching
  *
  * Mutation hooks are in use-payment-mutations.ts.
- * Query keys and options are in query-keys/payment-keys.ts.
+ * Query keys and options are in query-keys/payment-keys.ts and query-keys/payment-verification-keys.ts.
  *
  * All operations use Supabase PostgREST directly — no apiRequest calls.
  *
@@ -14,19 +14,21 @@ import { useQuery } from '@tanstack/react-query'
 
 import {
 	rentCollectionQueries,
-	tenantPaymentQueries,
-	paymentStatusQueries
+	tenantPaymentQueries
 } from './query-keys/payment-keys'
+import { paymentStatusQueries } from './query-keys/payment-verification-keys'
 
 // Re-export keys and query factories for consumers that import from use-payments
 export {
 	rentCollectionKeys,
 	rentPaymentKeys,
-	paymentVerificationKeys,
 	rentCollectionQueries,
-	tenantPaymentQueries,
-	paymentStatusQueries
+	tenantPaymentQueries
 } from './query-keys/payment-keys'
+export {
+	paymentVerificationKeys,
+	paymentStatusQueries
+} from './query-keys/payment-verification-keys'
 
 // ============================================================================
 // RENT COLLECTION HOOKS

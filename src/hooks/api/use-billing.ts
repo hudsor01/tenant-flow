@@ -3,7 +3,7 @@
  * TanStack Query hooks for billing, invoices, and subscription data fetching
  *
  * Mutation hooks are in use-billing-mutations.ts.
- * Query keys and options are in query-keys/billing-keys.ts.
+ * Query keys and options are in query-keys/billing-keys.ts and query-keys/subscription-keys.ts.
  *
  * Data source: stripe.* tables synced by Supabase Stripe Sync Engine (Decision #13).
  * Billing hooks (PAY-19, PAY-20) query stripe.* tables which must have current data.
@@ -11,13 +11,12 @@
 
 import { useQuery } from '@tanstack/react-query'
 
-import {
-	billingQueries,
-	subscriptionQueries
-} from './query-keys/billing-keys'
+import { billingQueries } from './query-keys/billing-keys'
+import { subscriptionQueries, subscriptionStatusQuery } from './query-keys/subscription-keys'
 
 // Re-export keys and types for consumers that import from use-billing
-export { billingKeys, subscriptionsKeys, billingQueries, subscriptionQueries } from './query-keys/billing-keys'
+export { billingKeys, billingQueries } from './query-keys/billing-keys'
+export { subscriptionsKeys, subscriptionQueries } from './query-keys/subscription-keys'
 export type { FormattedInvoice } from './query-keys/billing-keys'
 
 // ============================================================================
@@ -45,7 +44,7 @@ export function useFailedPaymentAttempts() {
 // ============================================================================
 
 export function useSubscriptionStatus(options: { enabled?: boolean } = {}) {
-	return useQuery(billingQueries.subscriptionStatus(options))
+	return useQuery(subscriptionStatusQuery.subscriptionStatus(options))
 }
 
 // ============================================================================
@@ -59,4 +58,3 @@ export function useSubscriptions() {
 export function useSubscription(id: string) {
 	return useQuery(subscriptionQueries.detail(id))
 }
-
