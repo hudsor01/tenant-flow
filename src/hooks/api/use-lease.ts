@@ -10,8 +10,6 @@
 import { useEffect } from 'react'
 import { usePrefetchQuery, useQuery, useQueryClient } from '@tanstack/react-query'
 import type { Lease } from '#types/core'
-import { handlePostgrestError } from '#lib/postgrest-error-handler'
-import { createClient } from '#lib/supabase/client'
 import { useEntityDetail } from '#hooks/use-entity-detail'
 // Import query keys from separate file to avoid circular dependency
 import { leaseQueries } from './query-keys/lease-keys'
@@ -117,31 +115,5 @@ export function useLeaseSignatureStatus(leaseId: string) {
  * Full signed document URL is wired up in Phase 55-03 (docuseal-webhook plan).
  */
 export function useSignedDocumentUrl(leaseId: string, enabled = true) {
-	return useQuery({
-		queryKey: [...leaseQueries.all(), leaseId, 'signed-document'],
-		queryFn: async (): Promise<{ document_url: string | null }> => {
-			const supabase = createClient()
-			const { data, error } = await supabase
-				.from('leases')
-				.select('docuseal_submission_id, owner_signed_at, tenant_signed_at')
-				.eq('id', leaseId)
-				.single()
-			if (error) handlePostgrestError(error, 'leases')
-			const row = data as {
-				docuseal_submission_id: string | null
-				owner_signed_at: string | null
-				tenant_signed_at: string | null
-			}
-			// Document URL available only when submission exists and both parties have signed.
-			// Full URL returned by docuseal-webhook plan when it wires up the signed doc URL.
-			return {
-				document_url:
-					row?.docuseal_submission_id && row.owner_signed_at && row.tenant_signed_at
-						? `pending:${row.docuseal_submission_id}`
-						: null,
-			}
-		},
-		enabled: enabled && !!leaseId,
-		staleTime: 5 * 60 * 1000 // 5 minutes
-	})
+	return useQuery(leaseQueries.signedDocument(leaseId, enabled))
 }

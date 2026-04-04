@@ -276,6 +276,87 @@ export const financialTaxQueries = {
 }
 
 // ============================================================================
+// EXPENSE QUERY KEYS (separate root from financialKeys to preserve cache structure)
+// ============================================================================
+
+export const expenseKeys = {
+	all: ['expenses'] as const,
+	list: () => [...expenseKeys.all, 'list'] as const,
+	detail: (id: string) => [...expenseKeys.all, 'detail', id] as const,
+	byProperty: (propertyId: string) =>
+		[...expenseKeys.all, 'property', propertyId] as const,
+	byCategory: (category: string) =>
+		[...expenseKeys.all, 'category', category] as const,
+	byDateRange: (start: string, end: string) =>
+		[...expenseKeys.all, 'dateRange', start, end] as const
+}
+
+export const taxDocumentKeys = {
+	all: ['taxDocuments'] as const,
+	byYear: (taxYear: number) => [...taxDocumentKeys.all, taxYear] as const
+}
+
+// ============================================================================
+// EXPENSE QUERY OPTIONS
+// ============================================================================
+
+export const expenseQueries = {
+	list: (options?: { enabled?: boolean }) =>
+		queryOptions({
+			queryKey: expenseKeys.list(),
+			queryFn: async (): Promise<Expense[]> => {
+				const supabase = createClient()
+				const { data, error } = await supabase
+					.from('expenses')
+					.select('id, amount, expense_date, vendor_name, maintenance_request_id, created_at')
+					.order('expense_date', { ascending: false })
+				if (error) handlePostgrestError(error, 'expenses')
+				return (data ?? []) as Expense[]
+			},
+			staleTime: 2 * 60 * 1000,
+			gcTime: 10 * 60 * 1000,
+			enabled: options?.enabled ?? true
+		}),
+
+	byProperty: (propertyId: string, options?: { enabled?: boolean }) =>
+		queryOptions({
+			queryKey: expenseKeys.byProperty(propertyId),
+			queryFn: async (): Promise<Expense[]> => {
+				const supabase = createClient()
+				const { data, error } = await supabase
+					.from('expenses')
+					.select('id, amount, expense_date, vendor_name, maintenance_request_id, created_at')
+					.order('expense_date', { ascending: false })
+				if (error) handlePostgrestError(error, 'expenses by property')
+				void propertyId
+				return (data ?? []) as Expense[]
+			},
+			staleTime: 2 * 60 * 1000,
+			gcTime: 10 * 60 * 1000,
+			enabled: (options?.enabled ?? true) && Boolean(propertyId)
+		}),
+
+	byDateRange: (startDate: string, endDate: string, options?: { enabled?: boolean }) =>
+		queryOptions({
+			queryKey: expenseKeys.byDateRange(startDate, endDate),
+			queryFn: async (): Promise<Expense[]> => {
+				const supabase = createClient()
+				const { data, error } = await supabase
+					.from('expenses')
+					.select('id, amount, expense_date, vendor_name, maintenance_request_id, created_at')
+					.gte('expense_date', startDate)
+					.lte('expense_date', endDate)
+					.order('expense_date', { ascending: false })
+				if (error) handlePostgrestError(error, 'expenses by date range')
+				return (data ?? []) as Expense[]
+			},
+			staleTime: 2 * 60 * 1000,
+			gcTime: 10 * 60 * 1000,
+			enabled: (options?.enabled ?? true) && Boolean(startDate) && Boolean(endDate)
+		})
+}
+
+// ============================================================================
 // EXPENSE TYPES
 // ============================================================================
 

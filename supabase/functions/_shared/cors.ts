@@ -1,6 +1,8 @@
-// Shared CORS helper for Supabase Edge Functions
+// Shared CORS helper for Supabase Edge Functions.
 // Browser-facing functions use getCorsHeaders(req) for origin-restricted CORS.
-// Webhook-only functions (stripe-webhooks, docuseal-webhook) should NOT import this.
+// Webhook-only functions (stripe-webhooks, docuseal-webhook) do not import this directly.
+// Note: errorResponse() in errors.ts calls getCorsHeaders() for all responses — this is
+// harmless for webhooks because getCorsHeaders returns {} when origin does not match.
 
 /**
  * Returns CORS headers if the request origin matches the configured FRONTEND_URL.

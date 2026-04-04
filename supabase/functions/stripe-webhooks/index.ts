@@ -5,7 +5,7 @@
 // On duplicate: return 200 immediately (idempotent via stripe_webhook_events PK).
 
 import Stripe from 'stripe'
-import * as Sentry from 'npm:@sentry/deno@9'
+import * as Sentry from '@sentry/deno'
 import { getStripeClient } from '../_shared/stripe-client.ts'
 import { createAdminClient } from '../_shared/supabase-client.ts'
 import { validateEnv } from '../_shared/env.ts'

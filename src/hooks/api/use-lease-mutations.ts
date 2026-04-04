@@ -113,6 +113,8 @@ export function useDeleteLeaseOptimisticMutation(options?: {
 	return useMutation({
 		...leaseMutations.deleteOptimistic(),
 		...callbacks,
+		// Dual error handling: factory shows standard toast via handleMutationError;
+		// options.onError is for caller-specific side effects (e.g., navigation, dialog close).
 		onError: (err, vars, ctx) => {
 			callbacks.onError(err, vars, ctx)
 			options?.onError?.(

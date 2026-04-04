@@ -21,8 +21,10 @@ interface EmailLayoutOptions {
  *   - Drip emails: linked header, footer with Privacy/Terms links (pass options)
  */
 export function wrapEmailLayout(bodyContent: string, options?: EmailLayoutOptions): string {
-  const headerContent = options?.headerLinkUrl
-    ? `<a href="${options.headerLinkUrl}" style="font-size:24px;font-weight:700;color:#ffffff;letter-spacing:-0.5px;text-decoration:none;">${BRAND_NAME}</a>`
+  const linkUrl = options?.headerLinkUrl
+  const safeLink = linkUrl?.startsWith('https://') ? linkUrl : undefined
+  const headerContent = safeLink
+    ? `<a href="${safeLink}" style="font-size:24px;font-weight:700;color:#ffffff;letter-spacing:-0.5px;text-decoration:none;">${BRAND_NAME}</a>`
     : `<span style="font-size:24px;font-weight:700;color:#ffffff;letter-spacing:-0.5px;">${BRAND_NAME}</span>`
 
   const footerLinks = options?.includeFooterLinks && options?.appUrl

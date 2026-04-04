@@ -130,7 +130,7 @@ export function useMarkTenantAsMovedOutMutation() {
 						if (!old) return old
 						return incrementVersion(old, {
 							updated_at: new Date().toISOString()
-						} as Partial<TenantWithLeaseInfoWithVersion>) as TenantWithLeaseInfoWithVersion
+						} satisfies Partial<TenantWithLeaseInfoWithVersion>)
 					}
 					qc.setQueryData<TenantWithLeaseInfoWithVersion>(
 						tenantQueries.detail(id).queryKey,

@@ -16,7 +16,7 @@ import {
 	useAssignVendorMutation,
 	useUnassignVendorMutation,
 } from '#hooks/api/use-vendor'
-import type { Vendor, VendorFilters } from '#hooks/api/use-vendor'
+import type { Vendor, VendorFilters } from '#types/domain'
 import { UserPlus, X, Search } from 'lucide-react'
 import { Badge } from '#components/ui/badge'
 import { cn } from '#lib/utils'

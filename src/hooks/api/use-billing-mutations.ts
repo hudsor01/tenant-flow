@@ -4,6 +4,10 @@
  *
  * Split from use-billing.ts for the 300-line file size rule.
  * Query hooks remain in use-billing.ts.
+ *
+ * Note: update/pause/resume/portal mutations use handleMutationError directly
+ * rather than createMutationCallbacks because they redirect to Stripe's hosted
+ * portal — no cache invalidation is needed (Stripe webhooks update data async).
  */
 
 import { useMutation, useQueryClient } from '@tanstack/react-query'

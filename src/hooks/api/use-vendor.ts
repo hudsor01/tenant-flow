@@ -15,56 +15,9 @@ import { createMutationCallbacks } from '#hooks/create-mutation-callbacks'
 import { useEntityDetail } from '#hooks/use-entity-detail'
 import { handlePostgrestError } from '#lib/postgrest-error-handler'
 import { sanitizeSearchInput } from '#lib/sanitize-search'
+import type { Vendor, VendorFilters } from '#types/domain'
 import { maintenanceQueries, vendorMutations } from './query-keys/maintenance-keys'
 import { ownerDashboardKeys } from './use-owner-dashboard'
-
-// ============================================================================
-// TYPES
-// ============================================================================
-
-export interface Vendor {
-	id: string
-	owner_user_id: string
-	name: string
-	email?: string | null
-	phone?: string | null
-	trade:
-		| 'plumbing'
-		| 'electrical'
-		| 'hvac'
-		| 'carpentry'
-		| 'painting'
-		| 'landscaping'
-		| 'appliance'
-		| 'general'
-		| 'other'
-	hourly_rate?: number | null
-	status: 'active' | 'inactive'
-	notes?: string | null
-	created_at: string
-	updated_at: string
-}
-
-export interface VendorCreateInput {
-	name: string
-	email?: string
-	phone?: string
-	trade: Vendor['trade']
-	hourly_rate?: number
-	notes?: string
-}
-
-export interface VendorUpdateInput extends Partial<VendorCreateInput> {
-	status?: Vendor['status']
-}
-
-export interface VendorFilters {
-	trade?: string
-	status?: string
-	search?: string
-	limit?: number
-	offset?: number
-}
 
 interface VendorListResponse {
 	data: Vendor[]

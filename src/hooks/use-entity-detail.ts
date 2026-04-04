@@ -79,9 +79,12 @@ export function useEntityDetail<T extends { id: string }>(
 				)
 		: undefined
 
-	// Cast is safe: opts is always a queryOptions() return value with proper queryKey/queryFn,
-	// and T extends { id: string } (always an object, never a function) so
-	// NonFunctionGuard<T> = T at runtime. TypeScript can't prove this for generics.
+	// Cast required: TanStack Query's UseQueryOptions has contravariant queryFn generics.
+	// When a queryOptions() return value is spread through EntityDetailConfig's
+	// Record<string, unknown> shape, TypeScript loses the generic connection and can't
+	// prove the reassembled object satisfies UseQueryOptions<T>. This is safe because:
+	// (1) opts always originates from a queryOptions() factory with matching queryKey/queryFn,
+	// (2) T extends { id: string } so NonFunctionGuard<T> = T (never a function).
 	return useQuery({
 		...opts,
 		...(placeholderData ? { placeholderData } : {})

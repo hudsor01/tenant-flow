@@ -7,7 +7,7 @@
  * Tier 3: + optimistic updates with cancel/snapshot/rollback/apply
  */
 
-import type { QueryClient, QueryKey } from '@tanstack/react-query'
+import type { QueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 
 import {
@@ -133,7 +133,7 @@ export function createMutationCallbacks<
 				? config.invalidate(variables)
 				: config.invalidate
 		for (const key of keys) {
-			queryClient.invalidateQueries({ queryKey: key as QueryKey })
+			queryClient.invalidateQueries({ queryKey: key })
 		}
 	}
 
@@ -150,7 +150,7 @@ export function createMutationCallbacks<
 
 				for (const key of cancelKeys) {
 					await queryClient.cancelQueries({
-						queryKey: key as QueryKey
+						queryKey: key
 					})
 				}
 
