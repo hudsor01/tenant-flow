@@ -20,7 +20,7 @@ import {
 } from '#components/ui/dialog'
 import { Separator } from '#components/ui/separator'
 import { Skeleton } from '#components/ui/skeleton'
-import type { Payout } from '#hooks/api/use-stripe-connect'
+import type { Payout } from '#hooks/api/query-keys/stripe-connect-keys'
 import { formatCurrency } from '#lib/utils/currency'
 import { cn } from '#lib/utils'
 

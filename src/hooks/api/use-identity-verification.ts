@@ -5,7 +5,6 @@ import type { IdentityVerificationSessionPayload } from '#types/stripe'
 import { stripeConnectKeys } from './query-keys/stripe-connect-keys'
 import { identityVerificationKeys, identityVerificationQueries } from './query-keys/identity-verification-keys'
 
-export { identityVerificationKeys } from './query-keys/identity-verification-keys'
 
 // ============================================================================
 // MUTATION OPTIONS FACTORY

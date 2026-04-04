@@ -12,6 +12,7 @@
 
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { createClient } from '#lib/supabase/client'
+import { getCachedUser } from '#lib/supabase/get-cached-user'
 import { handleMutationError } from '#lib/mutation-error-handler'
 import { subscriptionsKeys, billingMutations } from './query-keys/subscription-keys'
 import { createMutationCallbacks } from '#hooks/create-mutation-callbacks'
@@ -81,10 +82,13 @@ export function useBillingPortalMutation() {
 	return useMutation({
 		mutationKey: ['mutations', 'billing', 'portal'] as const,
 		mutationFn: async () => {
+			const user = await getCachedUser()
+			if (!user) throw new Error('Not authenticated')
+
 			const supabase = createClient()
 			const { data: sessionData } = await supabase.auth.getSession()
 			const token = sessionData.session?.access_token
-			if (!token) throw new Error('Not authenticated')
+			if (!token) throw new Error('No session token')
 
 			const baseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
 			const response = await fetch(`${baseUrl}/functions/v1/stripe-billing-portal`, {

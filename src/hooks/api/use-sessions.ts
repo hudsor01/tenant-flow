@@ -8,7 +8,6 @@ import {
 } from '#lib/mutation-error-handler'
 import { sessionKeys, sessionQueries, type UserSession } from './query-keys/session-keys'
 
-export { sessionKeys, type UserSession } from './query-keys/session-keys'
 
 // ============================================================================
 // MUTATION OPTIONS FACTORY

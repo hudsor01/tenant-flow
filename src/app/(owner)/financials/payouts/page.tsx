@@ -7,9 +7,8 @@ import {
 	useConnectedAccountBalance,
 	useConnectedAccountPayouts,
 	useConnectedAccountTransfers,
-	type Payout,
-	type Transfer
 } from '#hooks/api/use-stripe-connect'
+import type { Payout, Transfer } from '#hooks/api/query-keys/stripe-connect-keys'
 import { formatCurrency } from '#lib/utils/currency'
 import { formatDate } from '#lib/formatters/date'
 import { PayoutDetailsModal } from '#components/connect/payout-details-modal'

@@ -12,7 +12,6 @@ import { handleMutationError } from '#lib/mutation-error-handler'
 import { mutationKeys } from './mutation-keys'
 import { mfaKeys, mfaQueries } from './query-keys/mfa-keys'
 
-export { mfaKeys, type MfaStatus, type EnrolledFactor } from './query-keys/mfa-keys'
 
 /**
  * Enrollment result with QR code

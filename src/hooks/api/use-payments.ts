@@ -18,17 +18,6 @@ import {
 } from './query-keys/payment-keys'
 import { paymentStatusQueries } from './query-keys/payment-verification-keys'
 
-// Re-export keys and query factories for consumers that import from use-payments
-export {
-	rentCollectionKeys,
-	rentPaymentKeys,
-	rentCollectionQueries,
-	tenantPaymentQueries
-} from './query-keys/payment-keys'
-export {
-	paymentVerificationKeys,
-	paymentStatusQueries
-} from './query-keys/payment-verification-keys'
 
 // ============================================================================
 // RENT COLLECTION HOOKS

@@ -27,12 +27,6 @@ import {
 	type TenantNotificationPreferences
 } from './query-keys/tenant-settings-keys'
 
-export {
-	tenantSettingsQueries,
-	type TenantProfile,
-	type TenantSettings,
-	type TenantNotificationPreferences
-} from './query-keys/tenant-settings-keys'
 
 // ============================================================================
 // QUERY HOOKS

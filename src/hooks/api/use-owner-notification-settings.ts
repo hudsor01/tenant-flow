@@ -15,7 +15,6 @@ import {
 	type OwnerNotificationSettings
 } from './query-keys/owner-notification-settings-keys'
 
-export { ownerNotificationSettingsKeys, type OwnerNotificationSettings } from './query-keys/owner-notification-settings-keys'
 
 export type OwnerNotificationSettingsUpdate = Partial<
 	Omit<OwnerNotificationSettings, 'categories'>
