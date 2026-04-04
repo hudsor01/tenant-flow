@@ -25,7 +25,7 @@ import {
 import { useCreateVendorMutation, useUpdateVendorMutation } from '#hooks/api/use-vendor'
 import { useCurrentUser } from '#hooks/use-current-user'
 import { cn } from '#lib/utils'
-import type { Vendor, VendorCreateInput } from '#hooks/api/use-vendor'
+import type { Vendor, VendorCreateInput } from '#types/domain'
 import { Plus, Pencil } from 'lucide-react'
 
 const TRADES = [

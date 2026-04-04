@@ -1,5 +1,5 @@
 import { Wallet } from 'lucide-react'
-import { formatCents } from '#lib/formatters/currency'
+import { formatCents } from '#lib/utils/currency'
 import type { FinancialLineItem } from '#types/financial-statements'
 
 export function EquitySection({

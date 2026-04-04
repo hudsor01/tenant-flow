@@ -3,38 +3,7 @@
 // All templates use inline CSS for email client compatibility.
 
 import { escapeHtml } from './escape-html.ts'
-
-const BRAND_COLOR = '#2563eb'
-const BRAND_NAME = 'TenantFlow'
-const TAGLINE = 'Property Management Made Simple'
-
-/** Wrap email body content in the shared layout (header, footer, responsive container). */
-function wrapInLayout(bodyContent: string): string {
-  return `<!DOCTYPE html>
-<html lang="en">
-<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"></head>
-<body style="margin:0;padding:0;background-color:#f4f4f5;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">
-<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#f4f4f5;padding:32px 16px;">
-<tr><td align="center">
-<table role="presentation" width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;background-color:#ffffff;border-radius:8px;overflow:hidden;">
-<!-- Header -->
-<tr><td style="background-color:${BRAND_COLOR};padding:24px 32px;text-align:center;">
-<span style="font-size:24px;font-weight:700;color:#ffffff;letter-spacing:-0.5px;">${BRAND_NAME}</span>
-</td></tr>
-<!-- Body -->
-<tr><td style="padding:32px;">
-${bodyContent}
-</td></tr>
-<!-- Footer -->
-<tr><td style="padding:16px 32px;text-align:center;border-top:1px solid #e4e4e7;">
-<p style="margin:0;font-size:13px;color:#71717a;">${BRAND_NAME} &mdash; ${TAGLINE}</p>
-</td></tr>
-</table>
-</td></tr>
-</table>
-</body>
-</html>`
-}
+import { wrapEmailLayout, BRAND_COLOR, BRAND_NAME } from './email-layout.ts'
 
 /** CTA button + fallback plain-text URL. */
 function ctaBlock(url: string, label: string): string {
@@ -53,7 +22,7 @@ export function signupConfirmationEmail(params: {
   const safeEmail = escapeHtml(params.email)
   return {
     subject: `Confirm your ${BRAND_NAME} account`,
-    html: wrapInLayout(`
+    html: wrapEmailLayout(`
 <h1 style="margin:0 0 16px;font-size:22px;color:#18181b;">Welcome to ${BRAND_NAME}</h1>
 <p style="margin:0 0 8px;font-size:15px;color:#3f3f46;">Thanks for signing up with <strong>${safeEmail}</strong>.</p>
 <p style="margin:0 0 24px;font-size:15px;color:#3f3f46;">Please confirm your email address to get started.</p>
@@ -69,7 +38,7 @@ export function passwordResetEmail(params: {
   const safeEmail = escapeHtml(params.email)
   return {
     subject: `Reset your ${BRAND_NAME} password`,
-    html: wrapInLayout(`
+    html: wrapEmailLayout(`
 <h1 style="margin:0 0 16px;font-size:22px;color:#18181b;">Password Reset</h1>
 <p style="margin:0 0 8px;font-size:15px;color:#3f3f46;">We received a password reset request for <strong>${safeEmail}</strong>.</p>
 <p style="margin:0 0 24px;font-size:15px;color:#3f3f46;">Click the button below to choose a new password.</p>
@@ -87,7 +56,7 @@ export function invitationEmail(params: {
   const inviter = params.inviterName ? escapeHtml(params.inviterName) : 'A property manager'
   return {
     subject: `You're invited to ${BRAND_NAME}`,
-    html: wrapInLayout(`
+    html: wrapEmailLayout(`
 <h1 style="margin:0 0 16px;font-size:22px;color:#18181b;">You've Been Invited</h1>
 <p style="margin:0 0 8px;font-size:15px;color:#3f3f46;">${inviter} has invited <strong>${safeEmail}</strong> to join ${BRAND_NAME}.</p>
 <p style="margin:0 0 24px;font-size:15px;color:#3f3f46;">Click the button below to accept the invitation and create your account.</p>
@@ -103,7 +72,7 @@ export function magicLinkEmail(params: {
   const safeEmail = escapeHtml(params.email)
   return {
     subject: `Your ${BRAND_NAME} sign-in link`,
-    html: wrapInLayout(`
+    html: wrapEmailLayout(`
 <h1 style="margin:0 0 16px;font-size:22px;color:#18181b;">Sign In to ${BRAND_NAME}</h1>
 <p style="margin:0 0 8px;font-size:15px;color:#3f3f46;">Use the link below to sign in as <strong>${safeEmail}</strong>.</p>
 <p style="margin:0 0 24px;font-size:15px;color:#3f3f46;">This link is single-use and will expire shortly.</p>
@@ -121,7 +90,7 @@ export function emailChangeEmail(params: {
   const safeNewEmail = escapeHtml(params.newEmail)
   return {
     subject: `Confirm your new ${BRAND_NAME} email address`,
-    html: wrapInLayout(`
+    html: wrapEmailLayout(`
 <h1 style="margin:0 0 16px;font-size:22px;color:#18181b;">Email Address Change</h1>
 <p style="margin:0 0 8px;font-size:15px;color:#3f3f46;">A request was made to change the email address for your ${BRAND_NAME} account from <strong>${safeEmail}</strong> to <strong>${safeNewEmail}</strong>.</p>
 <p style="margin:0 0 24px;font-size:15px;color:#3f3f46;">Click the button below to confirm this change.</p>
@@ -150,7 +119,7 @@ export function tenantInvitationEmail(params: {
 
   return {
     subject: `You're invited to manage your tenancy on ${BRAND_NAME}`,
-    html: wrapInLayout(`
+    html: wrapEmailLayout(`
 <h1 style="margin:0 0 16px;font-size:22px;color:#18181b;">Tenant Invitation</h1>
 <p style="margin:0 0 8px;font-size:15px;color:#3f3f46;">${safeOwnerName} has invited you (<strong>${safeEmail}</strong>) to join ${BRAND_NAME} as a tenant.</p>
 ${propertyLine}

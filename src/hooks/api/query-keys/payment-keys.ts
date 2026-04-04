@@ -5,9 +5,10 @@
  * Contains:
  * - rentCollectionKeys: cache key factories for rent collection analytics
  * - rentPaymentKeys: cache key factories for rent payment status/history
- * - paymentVerificationKeys: cache key factories for Stripe session verification
  * - rentCollectionQueries: queryOptions factories for rent collection data
  * - tenantPaymentQueries: queryOptions factories for tenant payment data
+ *
+ * Payment verification keys and status queries are in payment-verification-keys.ts.
  */
 
 import { queryOptions } from '@tanstack/react-query'
@@ -15,7 +16,9 @@ import { createClient } from '#lib/supabase/client'
 import { getCachedUser } from '#lib/supabase/get-cached-user'
 import { handlePostgrestError } from '#lib/postgrest-error-handler'
 import { QUERY_CACHE_TIMES } from '#lib/constants/query-config'
-import type { TenantPaymentHistoryResponse } from '#types/api-contracts'
+import type {
+	TenantPaymentHistoryResponse
+} from '#types/api-contracts'
 import type {
 	PaymentCollectionAnalytics,
 	UpcomingPayment,
@@ -68,16 +71,6 @@ export const rentPaymentKeys = {
 		] as const,
 	selfView: (limit?: number) =>
 		[...rentPaymentKeys.all, 'tenant-history', 'self', limit ?? 20] as const
-}
-
-/**
- * Payment verification query keys
- */
-export const paymentVerificationKeys = {
-	verifySession: (sessionId: string) =>
-		['payment', 'verify', sessionId] as const,
-	sessionStatus: (sessionId: string) =>
-		['payment', 'status', sessionId] as const
 }
 
 // ============================================================================
@@ -229,4 +222,3 @@ export const tenantPaymentQueries = {
 			enabled: options?.enabled ?? true
 		})
 }
-

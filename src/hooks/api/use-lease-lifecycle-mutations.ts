@@ -10,10 +10,10 @@
  */
 
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { handleMutationError } from '#lib/mutation-error-handler'
+import type { Lease } from '#types/core'
+import { createMutationCallbacks } from '#hooks/create-mutation-callbacks'
 import { tenantQueries } from './query-keys/tenant-keys'
 import { unitQueries } from './query-keys/unit-keys'
-import { toast } from 'sonner'
 
 import { leaseQueries } from './query-keys/lease-keys'
 import { leaseMutations } from './query-keys/lease-mutation-options'
@@ -27,16 +27,16 @@ export function useTerminateLeaseMutation() {
 
 	return useMutation({
 		...leaseMutations.terminate(),
-		onSuccess: _terminatedLease => {
-			queryClient.invalidateQueries({ queryKey: leaseQueries.lists() })
-			queryClient.invalidateQueries({ queryKey: tenantQueries.lists() })
-			queryClient.invalidateQueries({ queryKey: unitQueries.lists() })
-			queryClient.invalidateQueries({ queryKey: ownerDashboardKeys.all })
-			toast.success('Lease terminated successfully')
-		},
-		onError: error => {
-			handleMutationError(error, 'Terminate lease')
-		}
+		...createMutationCallbacks(queryClient, {
+			invalidate: [
+				leaseQueries.lists(),
+				tenantQueries.lists(),
+				unitQueries.lists(),
+				ownerDashboardKeys.all
+			],
+			successMessage: 'Lease terminated successfully',
+			errorContext: 'Terminate lease'
+		})
 	})
 }
 
@@ -48,17 +48,14 @@ export function useRenewLeaseMutation() {
 
 	return useMutation({
 		...leaseMutations.renew(),
-		onSuccess: renewedLease => {
-			queryClient.setQueryData(
-				leaseQueries.detail(renewedLease.id).queryKey,
-				renewedLease
-			)
-			queryClient.invalidateQueries({ queryKey: leaseQueries.lists() })
-			queryClient.invalidateQueries({ queryKey: ownerDashboardKeys.all })
-			toast.success('Lease renewed successfully')
-		},
-		onError: error => {
-			handleMutationError(error, 'Renew lease')
-		}
+		...createMutationCallbacks<Lease>(queryClient, {
+			invalidate: [leaseQueries.lists(), ownerDashboardKeys.all],
+			updateDetail: lease => ({
+				queryKey: leaseQueries.detail(lease.id).queryKey,
+				data: lease
+			}),
+			successMessage: 'Lease renewed successfully',
+			errorContext: 'Renew lease'
+		})
 	})
 }

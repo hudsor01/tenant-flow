@@ -12,10 +12,9 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { logger } from '#lib/frontend-logger'
 import type { Lease } from '#types/core'
-import { handleMutationError } from '#lib/mutation-error-handler'
+import { createMutationCallbacks } from '#hooks/create-mutation-callbacks'
 import { tenantQueries } from './query-keys/tenant-keys'
 import { unitQueries } from './query-keys/unit-keys'
-import { toast } from 'sonner'
 
 import { leaseQueries } from './query-keys/lease-keys'
 import { leaseMutations } from './query-keys/lease-mutation-options'
@@ -34,75 +33,93 @@ export function useDeleteLeaseOptimisticMutation(options?: {
 }) {
 	const queryClient = useQueryClient()
 
-	return useMutation({
-		...leaseMutations.deleteOptimistic(),
-		onMutate: async (id: string) => {
-			// Cancel outgoing queries
-			await queryClient.cancelQueries({
-				queryKey: leaseQueries.detail(id).queryKey
-			})
-			await queryClient.cancelQueries({ queryKey: leaseQueries.lists() })
-
-			// Snapshot previous state
-			const previousDetail = queryClient.getQueryData<Lease>(
-				leaseQueries.detail(id).queryKey
-			)
-			const previousLists = queryClient.getQueriesData<{
-				data: Lease[]
-				total?: number
-				limit?: number
-				offset?: number
-			}>({ queryKey: leaseQueries.lists() })
-
-			// Optimistically remove from all caches
-			queryClient.removeQueries({ queryKey: leaseQueries.detail(id).queryKey })
-			queryClient.setQueriesData<{
-				data: Lease[]
-				total?: number
-				limit?: number
-				offset?: number
-			}>({ queryKey: leaseQueries.lists() }, old =>
-				old
-					? {
-							...old,
-							data: old.data.filter(lease => lease.id !== id),
-							total: (old.total ?? old.data.length) - 1
-						}
-					: old
-			)
-
-			return { previousDetail, previousLists }
-		},
-		onError: (err, id, context) => {
-			// Rollback on error
-			if (context?.previousDetail) {
-				queryClient.setQueryData(
-					leaseQueries.detail(id).queryKey,
-					context.previousDetail
+	const callbacks = createMutationCallbacks<
+		string,
+		string,
+		{
+			previousDetail: Lease | undefined
+			previousLists: [
+				readonly unknown[],
+				(
+					| {
+							data: Lease[]
+							total?: number
+							limit?: number
+							offset?: number
+					  }
+					| undefined
 				)
-			}
-			if (context?.previousLists) {
-				context.previousLists.forEach(([queryKey, data]) => {
-					queryClient.setQueryData(queryKey, data)
-				})
-			}
-
-			logger.error('Failed to delete lease', {
-				lease_id: id,
-				error: err instanceof Error ? err.message : String(err)
-			})
-
-			options?.onError?.(err instanceof Error ? err : new Error(String(err)))
-		},
-		onSuccess: id => {
-			logger.info('Lease deleted successfully', { lease_id: id })
+			][]
+		}
+	>(queryClient, {
+		invalidate: [
+			leaseQueries.lists(),
+			leaseQueries.stats().queryKey,
+			ownerDashboardKeys.all
+		],
+		errorContext: 'Delete lease',
+		onSuccessExtra: () => {
+			logger.info('Lease deleted successfully')
 			options?.onSuccess?.()
 		},
-		onSettled: () => {
-			// Refetch to ensure consistency
-			queryClient.invalidateQueries({ queryKey: leaseQueries.lists() })
-			queryClient.invalidateQueries({ queryKey: leaseQueries.stats().queryKey })
-			queryClient.invalidateQueries({ queryKey: ownerDashboardKeys.all })
+		optimistic: {
+			cancel: id => [leaseQueries.detail(id).queryKey, leaseQueries.lists()],
+			snapshot: (qc, id) => ({
+				previousDetail: qc.getQueryData<Lease>(
+					leaseQueries.detail(id).queryKey
+				),
+				previousLists: qc.getQueriesData<{
+					data: Lease[]
+					total?: number
+					limit?: number
+					offset?: number
+				}>({ queryKey: leaseQueries.lists() })
+			}),
+			apply: (qc, id) => {
+				qc.removeQueries({
+					queryKey: leaseQueries.detail(id).queryKey
+				})
+				qc.setQueriesData<{
+					data: Lease[]
+					total?: number
+					limit?: number
+					offset?: number
+				}>({ queryKey: leaseQueries.lists() }, old =>
+					old
+						? {
+								...old,
+								data: old.data.filter(lease => lease.id !== id),
+								total: (old.total ?? old.data.length) - 1
+							}
+						: old
+				)
+			},
+			rollback: (qc, context, id) => {
+				if (context.previousDetail) {
+					qc.setQueryData(
+						leaseQueries.detail(id).queryKey,
+						context.previousDetail
+					)
+				}
+				if (context.previousLists) {
+					context.previousLists.forEach(([queryKey, data]) => {
+						qc.setQueryData(queryKey, data)
+					})
+				}
+			}
+		}
+	})
+
+	return useMutation({
+		...leaseMutations.deleteOptimistic(),
+		...callbacks,
+		// Dual error handling: factory shows standard toast via handleMutationError;
+		// options.onError is for caller-specific side effects (e.g., navigation, dialog close).
+		onError: (err, vars, ctx) => {
+			callbacks.onError(err, vars, ctx)
+			options?.onError?.(
+				err instanceof Error ? err : new Error(String(err))
+			)
 		}
 	})
 }
@@ -115,17 +132,16 @@ export function useCreateLeaseMutation() {
 
 	return useMutation({
 		...leaseMutations.create(),
-		onSuccess: _newLease => {
-			// Invalidate lease, tenant, and unit lists
-			queryClient.invalidateQueries({ queryKey: leaseQueries.lists() })
-			queryClient.invalidateQueries({ queryKey: tenantQueries.lists() })
-			queryClient.invalidateQueries({ queryKey: unitQueries.lists() })
-			queryClient.invalidateQueries({ queryKey: ownerDashboardKeys.all })
-			toast.success('Lease created successfully')
-		},
-		onError: error => {
-			handleMutationError(error, 'Create lease')
-		}
+		...createMutationCallbacks(queryClient, {
+			invalidate: [
+				leaseQueries.lists(),
+				tenantQueries.lists(),
+				unitQueries.lists(),
+				ownerDashboardKeys.all
+			],
+			successMessage: 'Lease created successfully',
+			errorContext: 'Create lease'
+		})
 	})
 }
 
@@ -137,22 +153,20 @@ export function useUpdateLeaseMutation() {
 
 	return useMutation({
 		...leaseMutations.update(),
-		onSuccess: updatedLease => {
-			// Update the specific lease in cache
-			queryClient.setQueryData(
-				leaseQueries.detail(updatedLease.id).queryKey,
-				updatedLease
-			)
-			// Invalidate lists
-			queryClient.invalidateQueries({ queryKey: leaseQueries.lists() })
-			queryClient.invalidateQueries({ queryKey: tenantQueries.lists() })
-			queryClient.invalidateQueries({ queryKey: unitQueries.lists() })
-			queryClient.invalidateQueries({ queryKey: ownerDashboardKeys.all })
-			toast.success('Lease updated successfully')
-		},
-		onError: error => {
-			handleMutationError(error, 'Update lease')
-		}
+		...createMutationCallbacks<Lease>(queryClient, {
+			invalidate: [
+				leaseQueries.lists(),
+				tenantQueries.lists(),
+				unitQueries.lists(),
+				ownerDashboardKeys.all
+			],
+			updateDetail: lease => ({
+				queryKey: leaseQueries.detail(lease.id).queryKey,
+				data: lease
+			}),
+			successMessage: 'Lease updated successfully',
+			errorContext: 'Update lease'
+		})
 	})
 }
 
@@ -165,19 +179,17 @@ export function useDeleteLeaseMutation() {
 
 	return useMutation({
 		...leaseMutations.delete(),
-		onSuccess: (_result, deletedId) => {
-			// Remove from cache
-			queryClient.removeQueries({
-				queryKey: leaseQueries.detail(deletedId).queryKey
-			})
-			queryClient.invalidateQueries({ queryKey: leaseQueries.lists() })
-			queryClient.invalidateQueries({ queryKey: tenantQueries.lists() })
-			queryClient.invalidateQueries({ queryKey: unitQueries.lists() })
-			queryClient.invalidateQueries({ queryKey: ownerDashboardKeys.all })
-			toast.success('Lease deleted successfully')
-		},
-		onError: error => {
-			handleMutationError(error, 'Delete lease')
-		}
+		...createMutationCallbacks<unknown, string>(queryClient, {
+			invalidate: [
+				leaseQueries.lists(),
+				tenantQueries.lists(),
+				unitQueries.lists(),
+				ownerDashboardKeys.all
+			],
+			removeDetail: (_data, deletedId) =>
+				leaseQueries.detail(deletedId).queryKey,
+			successMessage: 'Lease deleted successfully',
+			errorContext: 'Delete lease'
+		})
 	})
 }

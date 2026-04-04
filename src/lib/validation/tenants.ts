@@ -137,7 +137,7 @@ export const tenantFormSchema = z.object({
 	user_id: requiredString,
 	date_of_birth: z.string().optional(),
 	emergency_contact_name: z.string().max(100).optional(),
-	emergency_contact_phone: z.string().optional(),
+	emergency_contact_phone: phoneSchema.optional(),
 	emergency_contact_relationship: z.string().max(50).optional(),
 	identity_verified: z.boolean().optional(),
 	ssn_last_four: z
@@ -151,7 +151,7 @@ export const tenantFormUpdateSchema = z.object({
 	user_id: requiredString.optional().nullable(),
 	date_of_birth: z.string().optional(),
 	emergency_contact_name: z.string().max(100).optional(),
-	emergency_contact_phone: z.string().optional(),
+	emergency_contact_phone: phoneSchema.optional(),
 	emergency_contact_relationship: z.string().max(50).optional(),
 	identity_verified: z.boolean().optional(),
 	ssn_last_four: z

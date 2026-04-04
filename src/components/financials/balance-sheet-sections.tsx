@@ -5,7 +5,7 @@ import { useState } from 'react'
 import { ChevronDown, ChevronRight } from 'lucide-react'
 import { Button } from '#components/ui/button'
 import { BlurFade } from '#components/ui/blur-fade'
-import { formatCurrency } from '#lib/formatters/currency'
+import { formatCurrency } from '#lib/utils/currency'
 import type { FinancialLineItem } from '#types/financial-statements'
 
 interface BalanceSectionProps {

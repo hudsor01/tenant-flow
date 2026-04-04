@@ -9,9 +9,11 @@
 // -> 405 Method Not Allowed (non-GET requests)
 
 import { createClient } from '@supabase/supabase-js'
-import { getCorsHeaders, handleCorsOptions } from '../_shared/cors.ts'
+import { validateBearerAuth } from '../_shared/auth.ts'
+import { getCorsHeaders, getJsonHeaders, handleCorsOptions } from '../_shared/cors.ts'
 import { validateEnv } from '../_shared/env.ts'
 import { errorResponse } from '../_shared/errors.ts'
+import { createAdminClient } from '../_shared/supabase-client.ts'
 
 interface UserRecord {
   user_type: string
@@ -39,29 +41,18 @@ Deno.serve(async (req: Request) => {
     })
 
     // JWT auth guard -- derive user identity from token
-    const authHeader = req.headers.get('Authorization')
-    if (!authHeader?.startsWith('Bearer ')) {
-      return new Response(
-        JSON.stringify({ error: 'Authorization required' }),
-        { status: 401, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
-      )
+    const supabaseAuth = createClient(env['SUPABASE_URL'], env['SUPABASE_ANON_KEY'])
+    const auth = await validateBearerAuth(req, supabaseAuth)
+    if ('error' in auth) {
+      return new Response(JSON.stringify({ error: auth.error }), {
+        status: auth.status,
+        headers: getJsonHeaders(req),
+      })
     }
-    const token = authHeader.replace('Bearer ', '')
-
-    // Validate token using anon-key client
-    const supabaseAuth = createClient(env['SUPABASE_URL'], env['SUPABASE_ANON_KEY'], {
-      global: { headers: { Authorization: `Bearer ${token}` } }
-    })
-    const { data: { user }, error: authError } = await supabaseAuth.auth.getUser(token)
-    if (authError || !user) {
-      return new Response(
-        JSON.stringify({ error: 'Invalid token' }),
-        { status: 401, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
-      )
-    }
+    const { user } = auth
 
     // Service role client -- bypasses RLS for complete data export
-    const supabase = createClient(env['SUPABASE_URL'], env['SUPABASE_SERVICE_ROLE_KEY'])
+    const supabase = createAdminClient(env['SUPABASE_URL'], env['SUPABASE_SERVICE_ROLE_KEY'])
 
     // Fetch user profile to determine role
     const { data: userRecord, error: userError } = await supabase
@@ -111,8 +102,7 @@ Deno.serve(async (req: Request) => {
     return new Response(JSON.stringify(exportData, null, 2), {
       status: 200,
       headers: {
-        ...getCorsHeaders(req),
-        'Content-Type': 'application/json',
+        ...getJsonHeaders(req),
         'Content-Disposition': `attachment; filename="${filename}"`,
       },
     })

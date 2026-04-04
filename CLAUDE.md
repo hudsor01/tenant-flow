@@ -103,17 +103,20 @@ All query keys use `queryOptions()` factories in `src/hooks/api/query-keys/`. Ne
 
 **Factory files:**
 - `analytics-keys.ts` — analytics/revenue trends AND occupancy trends (shared across dashboard + analytics + reports)
-- `billing-keys.ts` — billing, subscriptions, invoices
+- `billing-keys.ts` — billing invoices, history, failed payments
 - `blog-keys.ts` — blog posts
-- `financial-keys.ts` — financials, expenses
+- `expense-keys.ts` — expenses, tax documents (+mutation options)
+- `financial-keys.ts` — financial overview, monthly metrics, statements
 - `inspection-keys.ts` — inspections (+mutation options)
 - `lease-keys.ts` — leases (+mutation options)
 - `maintenance-keys.ts` — maintenance requests, vendors
-- `payment-keys.ts` — payments, rent collection, autopay (+mutation options)
+- `payment-keys.ts` — rent collection, tenant payment history
+- `payment-verification-keys.ts` — payment status, Stripe session verification
 - `property-keys.ts` — properties
 - `property-stats-keys.ts` — property statistics
 - `report-keys.ts` — reports, report runs (parallel `Promise.all` for multi-RPC queries)
 - `report-analytics-keys.ts` — report analytics
+- `subscription-keys.ts` — subscriptions, subscription status (+mutation options)
 - `template-definition-keys.ts` — lease templates
 - `tenant-keys.ts` — tenants (+mutation options)
 - `tenant-invitation-keys.ts` — tenant invitations (+mutation options)

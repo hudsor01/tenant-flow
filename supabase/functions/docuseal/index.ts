@@ -10,11 +10,12 @@
 //   cancel             — archive DocuSeal submission and reset lease to draft
 //   resend             — resend pending signature request emails
 
-import { createClient } from '@supabase/supabase-js'
-import { getCorsHeaders, handleCorsOptions } from '../_shared/cors.ts'
+import { validateBearerAuth } from '../_shared/auth.ts'
+import { getCorsHeaders, getJsonHeaders, handleCorsOptions } from '../_shared/cors.ts'
 import { errorResponse } from '../_shared/errors.ts'
 import { escapeHtml } from '../_shared/escape-html.ts'
 import { validateEnv } from '../_shared/env.ts'
+import { createAdminClient } from '../_shared/supabase-client.ts'
 
 Deno.serve(async (req: Request) => {
   const optionsResponse = handleCorsOptions(req)
@@ -27,31 +28,21 @@ Deno.serve(async (req: Request) => {
     })
 
     // Authenticate via Bearer token
-    const authHeader = req.headers.get('Authorization')
-    if (!authHeader) {
-      return new Response(
-        JSON.stringify({ error: 'Unauthorized' }),
-        { status: 401, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
-      )
-    }
-
     const supabaseUrl = env['SUPABASE_URL']
     const supabaseServiceKey = env['SUPABASE_SERVICE_ROLE_KEY']
     const docusealUrl = env['DOCUSEAL_URL']
     const docusealApiKey = env['DOCUSEAL_API_KEY']
 
-    // Use service role client for all DB operations
-    const supabase = createClient(supabaseUrl, supabaseServiceKey)
+    const supabase = createAdminClient(supabaseUrl, supabaseServiceKey)
 
-    // Verify caller JWT
-    const token = authHeader.replace('Bearer ', '')
-    const { data: { user }, error: authError } = await supabase.auth.getUser(token)
-    if (authError || !user) {
-      return new Response(
-        JSON.stringify({ error: 'Unauthorized' }),
-        { status: 401, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
-      )
+    const auth = await validateBearerAuth(req, supabase)
+    if ('error' in auth) {
+      return new Response(JSON.stringify({ error: auth.error }), {
+        status: auth.status,
+        headers: getJsonHeaders(req),
+      })
     }
+    const { user } = auth
 
     // Parse action from request body
     const body = await req.json() as Record<string, unknown>
@@ -73,7 +64,7 @@ Deno.serve(async (req: Request) => {
       if (!leaseId) {
         return new Response(
           JSON.stringify({ error: 'leaseId is required' }),
-          { status: 400, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
+          { status: 400, headers: getJsonHeaders(req) }
         )
       }
 
@@ -87,7 +78,7 @@ Deno.serve(async (req: Request) => {
       if (leaseError || !lease) {
         return new Response(
           JSON.stringify({ error: 'Forbidden' }),
-          { status: 403, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
+          { status: 403, headers: getJsonHeaders(req) }
         )
       }
 
@@ -95,7 +86,7 @@ Deno.serve(async (req: Request) => {
       if (lease.owner_user_id !== user.id) {
         return new Response(
           JSON.stringify({ error: 'Forbidden' }),
-          { status: 403, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
+          { status: 403, headers: getJsonHeaders(req) }
         )
       }
 
@@ -296,7 +287,7 @@ Deno.serve(async (req: Request) => {
 
       return new Response(
         JSON.stringify({ success: true, submission_id: submission.id }),
-        { status: 200, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
+        { status: 200, headers: getJsonHeaders(req) }
       )
     }
 
@@ -310,7 +301,7 @@ Deno.serve(async (req: Request) => {
       if (!leaseId) {
         return new Response(
           JSON.stringify({ error: 'leaseId is required' }),
-          { status: 400, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
+          { status: 400, headers: getJsonHeaders(req) }
         )
       }
 
@@ -323,7 +314,7 @@ Deno.serve(async (req: Request) => {
       if (leaseError || !lease) {
         return new Response(
           JSON.stringify({ error: 'Forbidden' }),
-          { status: 403, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
+          { status: 403, headers: getJsonHeaders(req) }
         )
       }
 
@@ -331,7 +322,7 @@ Deno.serve(async (req: Request) => {
       if (lease.owner_user_id !== user.id) {
         return new Response(
           JSON.stringify({ error: 'Forbidden' }),
-          { status: 403, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
+          { status: 403, headers: getJsonHeaders(req) }
         )
       }
 
@@ -356,7 +347,7 @@ Deno.serve(async (req: Request) => {
 
       return new Response(
         JSON.stringify({ success: true }),
-        { status: 200, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
+        { status: 200, headers: getJsonHeaders(req) }
       )
     }
 
@@ -371,7 +362,7 @@ Deno.serve(async (req: Request) => {
       if (!leaseId) {
         return new Response(
           JSON.stringify({ error: 'leaseId is required' }),
-          { status: 400, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
+          { status: 400, headers: getJsonHeaders(req) }
         )
       }
 
@@ -384,7 +375,7 @@ Deno.serve(async (req: Request) => {
       if (leaseError || !lease) {
         return new Response(
           JSON.stringify({ error: 'Forbidden' }),
-          { status: 403, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
+          { status: 403, headers: getJsonHeaders(req) }
         )
       }
 
@@ -401,7 +392,7 @@ Deno.serve(async (req: Request) => {
       if (!isOwner && !isTenant) {
         return new Response(
           JSON.stringify({ error: 'Forbidden' }),
-          { status: 403, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
+          { status: 403, headers: getJsonHeaders(req) }
         )
       }
 
@@ -426,7 +417,7 @@ Deno.serve(async (req: Request) => {
 
       return new Response(
         JSON.stringify({ success: true }),
-        { status: 200, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
+        { status: 200, headers: getJsonHeaders(req) }
       )
     }
 
@@ -440,7 +431,7 @@ Deno.serve(async (req: Request) => {
       if (!leaseId) {
         return new Response(
           JSON.stringify({ error: 'leaseId is required' }),
-          { status: 400, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
+          { status: 400, headers: getJsonHeaders(req) }
         )
       }
 
@@ -453,7 +444,7 @@ Deno.serve(async (req: Request) => {
       if (leaseError || !lease) {
         return new Response(
           JSON.stringify({ error: 'Forbidden' }),
-          { status: 403, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
+          { status: 403, headers: getJsonHeaders(req) }
         )
       }
 
@@ -461,7 +452,7 @@ Deno.serve(async (req: Request) => {
       if (lease.owner_user_id !== user.id) {
         return new Response(
           JSON.stringify({ error: 'Forbidden' }),
-          { status: 403, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
+          { status: 403, headers: getJsonHeaders(req) }
         )
       }
 
@@ -503,7 +494,7 @@ Deno.serve(async (req: Request) => {
 
       return new Response(
         JSON.stringify({ success: true }),
-        { status: 200, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
+        { status: 200, headers: getJsonHeaders(req) }
       )
     }
 
@@ -518,7 +509,7 @@ Deno.serve(async (req: Request) => {
       if (!leaseId) {
         return new Response(
           JSON.stringify({ error: 'leaseId is required' }),
-          { status: 400, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
+          { status: 400, headers: getJsonHeaders(req) }
         )
       }
 
@@ -531,7 +522,7 @@ Deno.serve(async (req: Request) => {
       if (leaseError || !lease || !lease.docuseal_submission_id) {
         return new Response(
           JSON.stringify({ error: 'Forbidden' }),
-          { status: 403, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
+          { status: 403, headers: getJsonHeaders(req) }
         )
       }
 
@@ -539,7 +530,7 @@ Deno.serve(async (req: Request) => {
       if (lease.owner_user_id !== user.id) {
         return new Response(
           JSON.stringify({ error: 'Forbidden' }),
-          { status: 403, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
+          { status: 403, headers: getJsonHeaders(req) }
         )
       }
 
@@ -603,14 +594,14 @@ Deno.serve(async (req: Request) => {
 
       return new Response(
         JSON.stringify({ success: true }),
-        { status: 200, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
+        { status: 200, headers: getJsonHeaders(req) }
       )
     }
 
     // Unknown action — sanitized (don't echo user input)
     return new Response(
       JSON.stringify({ error: 'Unknown action' }),
-      { status: 400, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
+      { status: 400, headers: getJsonHeaders(req) }
     )
   } catch (err) {
     return errorResponse(req, 500, err, { action: 'docuseal' })

@@ -6,7 +6,7 @@ import { Badge } from '#components/ui/badge'
 import { DataTable } from '#components/data-table/data-table'
 import { DataTableToolbar } from '#components/data-table/data-table-toolbar'
 import { useDataTable } from '#hooks/use-data-table'
-import { formatCurrency, formatNumber } from '#lib/formatters/currency'
+import { formatCurrency, formatNumber } from '#lib/utils/currency'
 import type { PropertyUnitDetail } from '#types/analytics'
 
 export function ActiveUnitsTable({ units }: { units: PropertyUnitDetail[] }) {

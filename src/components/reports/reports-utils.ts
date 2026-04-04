@@ -1,4 +1,4 @@
-import { formatCurrency } from '#lib/formatters/currency'
+import { formatCurrency } from '#lib/utils/currency'
 import { format } from 'date-fns'
 import type { ValueType } from 'recharts/types/component/DefaultTooltipContent'
 

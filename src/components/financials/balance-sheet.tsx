@@ -19,7 +19,7 @@ import {
 	StatIndicator,
 	StatDescription
 } from '#components/ui/stat'
-import { formatCurrency } from '#lib/formatters/currency'
+import { formatCurrency } from '#lib/utils/currency'
 import { formatDate } from '#lib/formatters/date'
 import type { FinancialLineItem } from '#types/financial-statements'
 import { BalanceSection } from './balance-sheet-sections'

@@ -4,12 +4,18 @@
  *
  * Split from use-billing.ts for the 300-line file size rule.
  * Query hooks remain in use-billing.ts.
+ *
+ * Note: update/pause/resume/portal mutations use handleMutationError directly
+ * rather than createMutationCallbacks because they redirect to Stripe's hosted
+ * portal — no cache invalidation is needed (Stripe webhooks update data async).
  */
 
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { createClient } from '#lib/supabase/client'
+import { getCachedUser } from '#lib/supabase/get-cached-user'
 import { handleMutationError } from '#lib/mutation-error-handler'
-import { subscriptionsKeys, billingMutations } from './query-keys/billing-keys'
+import { subscriptionsKeys, billingMutations } from './query-keys/subscription-keys'
+import { createMutationCallbacks } from '#hooks/create-mutation-callbacks'
 
 // ============================================================================
 // SUBSCRIPTION CRUD MUTATIONS
@@ -20,10 +26,10 @@ export function useCreateSubscriptionMutation() {
 
 	return useMutation({
 		...billingMutations.createSubscription(),
-		onSuccess: () => {
-			queryClient.invalidateQueries({ queryKey: subscriptionsKeys.list() })
-		},
-		onError: error => handleMutationError(error, 'Create subscription')
+		...createMutationCallbacks(queryClient, {
+			invalidate: [subscriptionsKeys.list()],
+			errorContext: 'Create subscription'
+		})
 	})
 }
 
@@ -53,10 +59,10 @@ export function useCancelSubscriptionMutation() {
 
 	return useMutation({
 		...billingMutations.cancelSubscription(),
-		onSuccess: () => {
-			queryClient.invalidateQueries({ queryKey: subscriptionsKeys.list() })
-		},
-		onError: error => handleMutationError(error, 'Cancel subscription')
+		...createMutationCallbacks(queryClient, {
+			invalidate: [subscriptionsKeys.list()],
+			errorContext: 'Cancel subscription'
+		})
 	})
 }
 
@@ -76,10 +82,13 @@ export function useBillingPortalMutation() {
 	return useMutation({
 		mutationKey: ['mutations', 'billing', 'portal'] as const,
 		mutationFn: async () => {
+			const user = await getCachedUser()
+			if (!user) throw new Error('Not authenticated')
+
 			const supabase = createClient()
 			const { data: sessionData } = await supabase.auth.getSession()
 			const token = sessionData.session?.access_token
-			if (!token) throw new Error('Not authenticated')
+			if (!token) throw new Error('No session token')
 
 			const baseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
 			const response = await fetch(`${baseUrl}/functions/v1/stripe-billing-portal`, {

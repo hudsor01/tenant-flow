@@ -3,11 +3,12 @@
 // Authenticates via JWT bearer token — no anon access.
 // Stripe API calls are made server-side using the secret key stored in Edge Function secrets.
 
-import { createClient } from '@supabase/supabase-js'
-import Stripe from 'stripe'
-import { getCorsHeaders, handleCorsOptions } from '../_shared/cors.ts'
+import { handleCorsOptions, getJsonHeaders } from '../_shared/cors.ts'
 import { validateEnv } from '../_shared/env.ts'
 import { errorResponse } from '../_shared/errors.ts'
+import { validateBearerAuth } from '../_shared/auth.ts'
+import { getStripeClient } from '../_shared/stripe-client.ts'
+import { createAdminClient } from '../_shared/supabase-client.ts'
 
 Deno.serve(async (req: Request) => {
   const optionsResponse = handleCorsOptions(req)
@@ -20,21 +21,18 @@ Deno.serve(async (req: Request) => {
     })
 
     // Authenticate via Bearer token
-    const authHeader = req.headers.get('Authorization')
-    if (!authHeader) {
-      return new Response('Unauthorized', { status: 401, headers: getCorsHeaders(req) })
-    }
-
-    const supabase = createClient(env['SUPABASE_URL'], env['SUPABASE_SERVICE_ROLE_KEY'])
-    const stripe = new Stripe(env['STRIPE_SECRET_KEY'], { apiVersion: '2026-02-25.clover' as Stripe.LatestApiVersion })
+    const supabase = createAdminClient(env['SUPABASE_URL'], env['SUPABASE_SERVICE_ROLE_KEY'])
+    const stripe = getStripeClient(env['STRIPE_SECRET_KEY'])
     const returnUrl = env['FRONTEND_URL'] ?? 'http://localhost:3050'
 
-    // Verify user JWT
-    const token = authHeader.replace('Bearer ', '')
-    const { data: { user }, error: authError } = await supabase.auth.getUser(token)
-    if (authError || !user) {
-      return new Response('Unauthorized', { status: 401, headers: getCorsHeaders(req) })
+    const auth = await validateBearerAuth(req, supabase)
+    if ('error' in auth) {
+      return new Response(JSON.stringify({ error: auth.error }), {
+        status: auth.status,
+        headers: getJsonHeaders(req),
+      })
     }
+    const { user } = auth
 
     // Parse action from request body
     const body = await req.json() as Record<string, unknown>
@@ -57,7 +55,7 @@ Deno.serve(async (req: Request) => {
       if (!row) {
         return new Response(
           JSON.stringify({ account: null, hasAccount: false }),
-          { status: 200, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
+          { status: 200, headers: getJsonHeaders(req) }
         )
       }
 
@@ -73,13 +71,13 @@ Deno.serve(async (req: Request) => {
         }
         return new Response(
           JSON.stringify({ account, hasAccount: true }),
-          { status: 200, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
+          { status: 200, headers: getJsonHeaders(req) }
         )
       } catch (stripeErr) {
         console.warn('[stripe-connect] Stripe API unreachable, returning DB data:', stripeErr)
         return new Response(
           JSON.stringify({ account: row, hasAccount: true }),
-          { status: 200, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
+          { status: 200, headers: getJsonHeaders(req) }
         )
       }
     }
@@ -138,7 +136,7 @@ Deno.serve(async (req: Request) => {
 
       return new Response(
         JSON.stringify({ onboardingUrl: accountLink.url, accountId: stripeAccountId }),
-        { status: 200, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
+        { status: 200, headers: getJsonHeaders(req) }
       )
     }
 
@@ -155,7 +153,7 @@ Deno.serve(async (req: Request) => {
       if (dbError || !row) {
         return new Response(
           JSON.stringify({ error: 'No connected account found' }),
-          { status: 404, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
+          { status: 404, headers: getJsonHeaders(req) }
         )
       }
 
@@ -168,7 +166,7 @@ Deno.serve(async (req: Request) => {
 
       return new Response(
         JSON.stringify({ onboardingUrl: accountLink.url }),
-        { status: 200, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
+        { status: 200, headers: getJsonHeaders(req) }
       )
     }
 
@@ -185,7 +183,7 @@ Deno.serve(async (req: Request) => {
       if (dbError || !row) {
         return new Response(
           JSON.stringify({ error: 'No connected account found' }),
-          { status: 404, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
+          { status: 404, headers: getJsonHeaders(req) }
         )
       }
 
@@ -195,7 +193,7 @@ Deno.serve(async (req: Request) => {
 
       return new Response(
         JSON.stringify({ balance: { available: balance.available, pending: balance.pending } }),
-        { status: 200, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
+        { status: 200, headers: getJsonHeaders(req) }
       )
     }
 
@@ -216,7 +214,7 @@ Deno.serve(async (req: Request) => {
       if (dbError || !row) {
         return new Response(
           JSON.stringify({ error: 'No connected account found' }),
-          { status: 404, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
+          { status: 404, headers: getJsonHeaders(req) }
         )
       }
 
@@ -229,7 +227,7 @@ Deno.serve(async (req: Request) => {
 
       return new Response(
         JSON.stringify({ payouts: payouts.data, hasMore: payouts.has_more }),
-        { status: 200, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
+        { status: 200, headers: getJsonHeaders(req) }
       )
     }
 
@@ -250,7 +248,7 @@ Deno.serve(async (req: Request) => {
       if (dbError || !row) {
         return new Response(
           JSON.stringify({ error: 'No connected account found' }),
-          { status: 404, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
+          { status: 404, headers: getJsonHeaders(req) }
         )
       }
 
@@ -264,7 +262,7 @@ Deno.serve(async (req: Request) => {
 
       return new Response(
         JSON.stringify({ transfers: transfers.data, hasMore: transfers.has_more }),
-        { status: 200, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
+        { status: 200, headers: getJsonHeaders(req) }
       )
     }
 
@@ -285,7 +283,7 @@ Deno.serve(async (req: Request) => {
       if (!row) {
         return new Response(
           JSON.stringify({ error: 'No connected account found' }),
-          { status: 404, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
+          { status: 404, headers: getJsonHeaders(req) }
         )
       }
 
@@ -293,7 +291,7 @@ Deno.serve(async (req: Request) => {
         const loginLink = await stripe.accounts.createLoginLink(row.stripe_account_id as string)
         return new Response(
           JSON.stringify({ url: loginLink.url }),
-          { status: 200, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
+          { status: 200, headers: getJsonHeaders(req) }
         )
       } catch (stripeErr) {
         return errorResponse(req, 500, stripeErr, { action: 'stripe_connect_login_link' })
@@ -303,7 +301,7 @@ Deno.serve(async (req: Request) => {
     // Unknown action
     return new Response(
       JSON.stringify({ error: 'Unknown action' }),
-      { status: 400, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
+      { status: 400, headers: getJsonHeaders(req) }
     )
   } catch (err) {
     return errorResponse(req, 500, err, { action: 'stripe_connect' })

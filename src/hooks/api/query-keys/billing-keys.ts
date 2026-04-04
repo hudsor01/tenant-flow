@@ -1,26 +1,23 @@
 /**
- * Billing & Subscription Query Keys, Options & Mutations
- * Query and mutation factories for billing/subscription domain.
+ * Billing Query Keys, Options & Mutations
+ * Query and mutation factories for billing/invoices domain.
  *
  * Contains:
  * - billingKeys: cache key factories for billing/invoices/history
- * - subscriptionsKeys: cache key factories for subscription CRUD
  * - billingQueries: queryOptions factories for billing data fetching
  * - billingMutations: mutationOptions factories for subscription management
+ *
+ * Subscription query keys and options are in subscription-keys.ts.
  */
 
-import { queryOptions, mutationOptions } from '@tanstack/react-query'
+import { queryOptions } from '@tanstack/react-query'
 import { createClient } from '#lib/supabase/client'
 import { getCachedUser } from '#lib/supabase/get-cached-user'
 import { handlePostgrestError } from '#lib/postgrest-error-handler'
 import { createLogger } from '#lib/frontend-logger'
-import { mutationKeys } from '../mutation-keys'
 import type {
 	BillingHistoryItem,
-	CreateRentSubscriptionRequest,
-	FailedPaymentAttempt,
-	RentSubscriptionResponse,
-	UpdateSubscriptionRequest
+	FailedPaymentAttempt
 } from '#types/api-contracts'
 
 const logger = createLogger({ component: 'BillingKeys' })
@@ -53,14 +50,7 @@ export const billingKeys = {
 		[...billingKeys.all, 'history', 'subscription', subscriptionId] as const,
 	failed: () => [...billingKeys.all, 'failed'] as const,
 	failedBySubscription: (subscriptionId: string) =>
-		[...billingKeys.all, 'failed', subscriptionId] as const,
-	subscriptionStatus: () => [...billingKeys.all, 'subscription-status'] as const
-}
-
-export const subscriptionsKeys = {
-	all: ['subscriptions'] as const,
-	list: () => [...subscriptionsKeys.all, 'list'] as const,
-	detail: (id: string) => [...subscriptionsKeys.all, 'detail', id] as const
+		[...billingKeys.all, 'failed', subscriptionId] as const
 }
 
 // ============================================================================
@@ -253,91 +243,3 @@ export const billingQueries = {
 		})
 }
 
-// ============================================================================
-// EDGE FUNCTION HELPER
-// ============================================================================
-
-async function callBillingEdgeFunction<T>(
-	functionName: 'stripe-checkout' | 'stripe-billing-portal',
-	body?: Record<string, unknown>
-): Promise<T> {
-	const supabase = createClient()
-	const { data: sessionData } = await supabase.auth.getSession()
-	const token = sessionData.session?.access_token
-	if (!token) throw new Error('Not authenticated')
-
-	const baseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-	const response = await fetch(`${baseUrl}/functions/v1/${functionName}`, {
-		method: 'POST',
-		headers: {
-			Authorization: `Bearer ${token}`,
-			'Content-Type': 'application/json'
-		},
-		body: JSON.stringify(body ?? {})
-	})
-
-	if (!response.ok) {
-		const err = await response.json().catch(() => ({ error: response.statusText }))
-		throw new Error((err as { error?: string }).error ?? `${functionName} failed: ${response.status}`)
-	}
-
-	return response.json() as Promise<T>
-}
-
-// ============================================================================
-// MUTATION OPTIONS FACTORIES
-// ============================================================================
-
-export const billingMutations = {
-	createSubscription: () =>
-		mutationOptions({
-			mutationKey: mutationKeys.subscriptions.create,
-			mutationFn: async (data: CreateRentSubscriptionRequest): Promise<RentSubscriptionResponse> => {
-				const result = await callBillingEdgeFunction<{ url: string }>('stripe-checkout', {
-					price_id: undefined
-				})
-				window.location.href = result.url
-				return { id: data.leaseId, status: 'redirecting' } as RentSubscriptionResponse
-			}
-		}),
-
-	updateSubscription: () =>
-		mutationOptions({
-			mutationKey: mutationKeys.subscriptions.update,
-			mutationFn: async (_args: { id: string; data: UpdateSubscriptionRequest }): Promise<RentSubscriptionResponse> => {
-				const result = await callBillingEdgeFunction<{ url: string }>('stripe-billing-portal')
-				window.location.href = result.url
-				return {} as RentSubscriptionResponse
-			}
-		}),
-
-	pauseSubscription: () =>
-		mutationOptions({
-			mutationKey: mutationKeys.subscriptions.pause,
-			mutationFn: async (_id: string): Promise<{ subscription: undefined }> => {
-				const result = await callBillingEdgeFunction<{ url: string }>('stripe-billing-portal')
-				window.location.href = result.url
-				return { subscription: undefined }
-			}
-		}),
-
-	resumeSubscription: () =>
-		mutationOptions({
-			mutationKey: mutationKeys.subscriptions.resume,
-			mutationFn: async (_id: string): Promise<{ subscription: undefined }> => {
-				const result = await callBillingEdgeFunction<{ url: string }>('stripe-billing-portal')
-				window.location.href = result.url
-				return { subscription: undefined }
-			}
-		}),
-
-	cancelSubscription: () =>
-		mutationOptions({
-			mutationKey: mutationKeys.subscriptions.cancel,
-			mutationFn: async (_id: string): Promise<{ subscription: undefined }> => {
-				const result = await callBillingEdgeFunction<{ url: string }>('stripe-billing-portal')
-				window.location.href = result.url
-				return { subscription: undefined }
-			}
-		})
-}

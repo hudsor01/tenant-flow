@@ -4,7 +4,7 @@ import { CreditCard, CheckCircle, Download } from 'lucide-react'
 import Link from 'next/link'
 import { BlurFade } from '#components/ui/blur-fade'
 import { Button } from '#components/ui/button'
-import { formatCurrency } from '#lib/formatters/currency'
+import { formatCurrency } from '#lib/utils/currency'
 import { formatDate } from '#lib/formatters/date'
 
 interface PaymentHistoryItem {

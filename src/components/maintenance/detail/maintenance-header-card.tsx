@@ -3,7 +3,7 @@
 import { Badge } from '#components/ui/badge'
 import { Button } from '#components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '#components/ui/card'
-import { formatCurrency } from '#lib/formatters/currency'
+import { formatCurrency } from '#lib/utils/currency'
 import {
 	Calendar,
 	DollarSign,

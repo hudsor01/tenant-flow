@@ -6,7 +6,7 @@ import {
 	CardDescription
 } from '#components/ui/card'
 import { Badge } from '#components/ui/badge'
-import { formatCurrency } from '#lib/formatters/currency'
+import { formatCurrency } from '#lib/utils/currency'
 import type { Lease } from '#types/core'
 
 interface LeaseTermsTabProps {

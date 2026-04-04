@@ -157,6 +157,35 @@ export const leaseQueries = {
 			...QUERY_CACHE_TIMES.STATS
 		}),
 
+	signedDocument: (leaseId: string, enabled = true) =>
+		queryOptions({
+			queryKey: [...leaseQueries.all(), leaseId, 'signed-document'],
+			queryFn: async (): Promise<{ document_url: string | null }> => {
+				const supabase = createClient()
+				const { data, error } = await supabase
+					.from('leases')
+					.select('docuseal_submission_id, owner_signed_at, tenant_signed_at')
+					.eq('id', leaseId)
+					.single()
+				if (error) handlePostgrestError(error, 'leases')
+				const row = data as {
+					docuseal_submission_id: string | null
+					owner_signed_at: string | null
+					tenant_signed_at: string | null
+				}
+				// Document URL available only when submission exists and both parties have signed.
+				// Full URL returned by docuseal-webhook plan when it wires up the signed doc URL.
+				return {
+					document_url:
+						row?.docuseal_submission_id && row.owner_signed_at && row.tenant_signed_at
+							? `pending:${row.docuseal_submission_id}`
+							: null,
+				}
+			},
+			enabled: enabled && !!leaseId,
+			staleTime: 5 * 60 * 1000
+		}),
+
 	signatureStatus: (id: string) =>
 		queryOptions({
 			queryKey: [...leaseQueries.all(), 'signature-status', id],

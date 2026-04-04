@@ -9,7 +9,7 @@ import {
 	StatTrend,
 	StatDescription
 } from '#components/ui/stat'
-import { formatNumber } from '#lib/formatters/currency'
+import { formatNumber } from '#lib/utils/currency'
 import type { PropertyPerformanceSummary } from '#types/analytics'
 import { Building2, TrendingUp, DollarSign, Home } from 'lucide-react'
 

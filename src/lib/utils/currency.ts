@@ -30,7 +30,7 @@ export const formatCurrency = (
 	const {
 		locale = 'en-US',
 		currency = 'USD',
-		minimumFractionDigits = 0,
+		minimumFractionDigits = 2,
 		maximumFractionDigits = 2,
 		compact = false
 	} = options
@@ -46,6 +46,15 @@ export const formatCurrency = (
 
 	return formatter.format(amount)
 }
+
+/**
+ * Format a cents value as currency (divides by 100 first)
+ * Use for values stored in cents (e.g., Stripe amounts)
+ */
+export const formatCents = (
+	cents: number,
+	options?: CurrencyFormatOptions
+): string => formatCurrency(cents / 100, options)
 
 /**
  * Format price with special handling for Free/Custom and intervals
@@ -127,6 +136,7 @@ export const formatCompactCurrency = (
 ): string => {
 	return formatCurrency(amount, {
 		compact: true,
+		minimumFractionDigits: 0,
 		maximumFractionDigits: 1,
 		currency
 	})

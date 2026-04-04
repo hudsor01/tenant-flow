@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import {
 	formatCurrency,
+	formatCents,
 	formatPrice,
 	getIntervalSuffix,
 	formatCompactCurrency,
@@ -15,23 +16,35 @@ import {
 
 describe('formatCurrency', () => {
 	it('formats whole dollar amount', () => {
-		expect(formatCurrency(100)).toBe('$100')
+		expect(formatCurrency(100)).toBe('$100.00')
 	})
 	it('formats zero', () => {
-		expect(formatCurrency(0)).toBe('$0')
+		expect(formatCurrency(0)).toBe('$0.00')
 	})
 	it('formats decimal amounts', () => {
 		expect(formatCurrency(99.99, { minimumFractionDigits: 2 })).toBe('$99.99')
 	})
 	it('formats large amounts', () => {
-		expect(formatCurrency(1000000)).toBe('$1,000,000')
+		expect(formatCurrency(1000000)).toBe('$1,000,000.00')
 	})
 	it('formats negative amounts', () => {
-		expect(formatCurrency(-50)).toBe('-$50')
+		expect(formatCurrency(-50)).toBe('-$50.00')
 	})
 	it('uses compact notation when requested', () => {
 		const result = formatCurrency(1500, { compact: true })
-		expect(result).toMatch(/\$1\.5K/i)
+		expect(result).toMatch(/\$1\.50?K/i)
+	})
+})
+
+describe('formatCents', () => {
+	it('converts cents to formatted dollars', () => {
+		expect(formatCents(1299)).toBe('$12.99')
+	})
+	it('handles whole dollar cent amounts', () => {
+		expect(formatCents(500)).toBe('$5.00')
+	})
+	it('handles zero', () => {
+		expect(formatCents(0)).toBe('$0.00')
 	})
 })
 
@@ -134,17 +147,17 @@ describe('formatNumber', () => {
 
 describe('formatCurrencyChange', () => {
 	it('adds + prefix for positive amounts', () => {
-		expect(formatCurrencyChange(500)).toBe('+$500')
+		expect(formatCurrencyChange(500)).toBe('+$500.00')
 	})
 	it('adds - prefix for negative amounts', () => {
-		expect(formatCurrencyChange(-200)).toBe('-$200')
+		expect(formatCurrencyChange(-200)).toBe('-$200.00')
 	})
 	it('adds + prefix for zero', () => {
-		expect(formatCurrencyChange(0)).toBe('+$0')
+		expect(formatCurrencyChange(0)).toBe('+$0.00')
 	})
 	it('omits sign when showSign is false', () => {
-		expect(formatCurrencyChange(500, false)).toBe('$500')
-		expect(formatCurrencyChange(-200, false)).toBe('$200')
+		expect(formatCurrencyChange(500, false)).toBe('$500.00')
+		expect(formatCurrencyChange(-200, false)).toBe('$200.00')
 	})
 })
 
@@ -163,13 +176,13 @@ describe('formatPercentageChange', () => {
 describe('getDashboardCurrency', () => {
 	it('returns value, compact, and raw fields', () => {
 		const result = getDashboardCurrency(1500)
-		expect(result.value).toBe('$1,500')
+		expect(result.value).toBe('$1,500.00')
 		expect(result.compact).toMatch(/\$1\.5K/i)
 		expect(result.raw).toBe(1500)
 	})
 	it('handles zero', () => {
 		const result = getDashboardCurrency(0)
-		expect(result.value).toBe('$0')
+		expect(result.value).toBe('$0.00')
 		expect(result.raw).toBe(0)
 	})
 })

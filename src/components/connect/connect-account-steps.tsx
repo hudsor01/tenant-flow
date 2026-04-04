@@ -7,7 +7,7 @@ import {
 } from 'lucide-react'
 import { Badge } from '#components/ui/badge'
 import { cn } from '#lib/utils'
-import { formatCurrency, type CurrencyCode } from '#lib/formatters/currency'
+import { formatCurrency, type CurrencyCode } from '#lib/utils/currency'
 
 interface ConnectedAccountData {
 	onboarding_status: string | null

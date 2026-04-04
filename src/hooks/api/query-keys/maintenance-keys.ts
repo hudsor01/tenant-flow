@@ -27,7 +27,7 @@ import type {
 	Vendor,
 	VendorCreateInput,
 	VendorUpdateInput
-} from '../use-vendor'
+} from '#types/domain'
 
 // ============================================================================
 // TYPES

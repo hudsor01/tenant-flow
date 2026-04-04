@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import { useQuery } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { tenantQueries } from '#hooks/api/query-keys/tenant-keys'
-import { tenantPaymentQueries } from '#hooks/api/use-payments'
+import { tenantPaymentQueries } from '#hooks/api/query-keys/payment-keys'
 import {
 	useCancelInvitationMutation,
 	useResendInvitationMutation

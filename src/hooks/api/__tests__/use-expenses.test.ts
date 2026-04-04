@@ -17,14 +17,15 @@ import {
 	useExpensesByDateRange,
 	useCreateExpenseMutation,
 	useDeleteExpenseMutation,
-	expenseKeys
 } from '../use-expense-mutations'
+import { expenseKeys } from '../query-keys/expense-keys'
 
 // Supabase mock using vi.hoisted() to avoid initialization errors
 const {
 	mockFrom,
 	mockSelect,
 	mockEq,
+	mockIn,
 	mockGte,
 	mockLte,
 	mockOrder,
@@ -35,6 +36,7 @@ const {
 	mockFrom: vi.fn(),
 	mockSelect: vi.fn(),
 	mockEq: vi.fn(),
+	mockIn: vi.fn(),
 	mockGte: vi.fn(),
 	mockLte: vi.fn(),
 	mockOrder: vi.fn(),
@@ -150,10 +152,21 @@ describe('useExpensesByProperty', () => {
 	})
 
 	it('fetches expenses for a specific property', async () => {
-		const selectChain = { order: mockOrder }
-		mockSelect.mockReturnValue(selectChain)
+		// Step 1: maintenance_requests query returns IDs
+		const mrSelectChain = { eq: mockEq }
+		mockEq.mockResolvedValue({ data: [{ id: 'mr-1' }], error: null })
+
+		// Step 2: expenses query filters by maintenance_request_id
+		const expSelectChain = { in: mockIn }
+		const inChain = { order: mockOrder }
+		mockIn.mockReturnValue(inChain)
 		mockOrder.mockResolvedValue({ data: [mockExpenseRow], error: null })
-		mockFrom.mockReturnValue({ select: mockSelect })
+
+		mockFrom.mockImplementation((table: string) => {
+			if (table === 'maintenance_requests') return { select: vi.fn().mockReturnValue(mrSelectChain) }
+			return { select: mockSelect }
+		})
+		mockSelect.mockReturnValue(expSelectChain)
 
 		const { result } = renderHook(() => useExpensesByProperty('prop-1'), {
 			wrapper: createWrapper()
@@ -163,6 +176,7 @@ describe('useExpensesByProperty', () => {
 			expect(result.current.isSuccess).toBe(true)
 		})
 
+		expect(mockFrom).toHaveBeenCalledWith('maintenance_requests')
 		expect(mockFrom).toHaveBeenCalledWith('expenses')
 	})
 

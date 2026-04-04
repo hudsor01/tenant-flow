@@ -29,8 +29,7 @@ export default function TenantNotificationsPage() {
 		limit: 10,
 		unreadOnly: filter === 'unread'
 	})
-	const { data: unreadData } = useUnreadNotificationsCount()
-	const unreadCount = unreadData?.total ?? 0
+	const { data: unreadCount = 0 } = useUnreadNotificationsCount()
 
 	const markNotificationRead = useMarkNotificationReadMutation()
 	const deleteNotification = useDeleteNotificationMutation()

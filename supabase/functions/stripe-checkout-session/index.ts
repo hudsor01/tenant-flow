@@ -9,11 +9,11 @@
 // -> 429 { error: 'Too many requests' }
 // -> 500 { error: 'An error occurred' }
 
-import Stripe from 'stripe'
-import { getCorsHeaders, handleCorsOptions } from '../_shared/cors.ts'
+import { getCorsHeaders, handleCorsOptions, getJsonHeaders } from '../_shared/cors.ts'
 import { validateEnv } from '../_shared/env.ts'
 import { errorResponse } from '../_shared/errors.ts'
 import { rateLimit } from '../_shared/rate-limit.ts'
+import { getStripeClient } from '../_shared/stripe-client.ts'
 
 Deno.serve(async (req: Request) => {
   const optionsResponse = handleCorsOptions(req)
@@ -39,11 +39,11 @@ Deno.serve(async (req: Request) => {
     if (!sessionId) {
       return new Response(
         JSON.stringify({ error: 'sessionId is required' }),
-        { status: 400, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
+        { status: 400, headers: getJsonHeaders(req) }
       )
     }
 
-    const stripe = new Stripe(env['STRIPE_SECRET_KEY'], { apiVersion: '2026-02-25.clover' as Stripe.LatestApiVersion })
+    const stripe = getStripeClient(env['STRIPE_SECRET_KEY'])
 
     const session = await stripe.checkout.sessions.retrieve(sessionId)
 
@@ -51,7 +51,7 @@ Deno.serve(async (req: Request) => {
     if (session.status !== 'complete') {
       return new Response(
         JSON.stringify({ error: 'Checkout session is not complete' }),
-        { status: 400, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
+        { status: 400, headers: getJsonHeaders(req) }
       )
     }
 
@@ -60,7 +60,7 @@ Deno.serve(async (req: Request) => {
 
     return new Response(
       JSON.stringify({ customer_email: customerEmail }),
-      { status: 200, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
+      { status: 200, headers: getJsonHeaders(req) }
     )
   } catch (err) {
     return errorResponse(req, 500, err, { action: 'checkout_session_retrieve' })

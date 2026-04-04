@@ -1,5 +1,5 @@
 import { Building2, Users, DollarSign, Home } from 'lucide-react'
-import { formatCurrency } from '#lib/formatters/currency'
+import { formatCurrency } from '#lib/utils/currency'
 import type { PropertiesSummary } from './types'
 
 interface PropertyStatsSectionProps {

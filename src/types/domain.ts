@@ -178,3 +178,53 @@ export type StripeWebhookEventTypes =
 
 // NOTE: Import WebhookNotification directly from './stripe' - not re-exported here
 // NOTE: Import SecurityEvent directly from './security' - not re-exported here
+
+// VENDOR DOMAIN
+
+export type VendorTrade =
+	| 'plumbing'
+	| 'electrical'
+	| 'hvac'
+	| 'carpentry'
+	| 'painting'
+	| 'landscaping'
+	| 'appliance'
+	| 'general'
+	| 'other'
+
+export type VendorStatus = 'active' | 'inactive'
+
+export interface Vendor {
+	id: string
+	owner_user_id: string
+	name: string
+	email?: string | null
+	phone?: string | null
+	trade: VendorTrade
+	hourly_rate?: number | null
+	status: VendorStatus
+	notes?: string | null
+	created_at: string
+	updated_at: string
+}
+
+export interface VendorCreateInput {
+	name: string
+	email?: string
+	phone?: string
+	trade: VendorTrade
+	hourly_rate?: number
+	notes?: string
+}
+
+export interface VendorUpdateInput extends Partial<VendorCreateInput> {
+	status?: VendorStatus
+}
+
+export interface VendorFilters {
+	trade?: string
+	status?: string
+	search?: string
+	limit?: number
+	offset?: number
+}

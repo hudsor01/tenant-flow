@@ -8,9 +8,10 @@
 //   form.completed       — individual party has signed (updates owner_signed_at or tenant_signed_at)
 //   submission.completed — all parties signed (flips lease_status to active + inserts notification)
 
-import { createClient } from '@supabase/supabase-js'
+import type { SupabaseClient } from '@supabase/supabase-js'
 import { errorResponse } from '../_shared/errors.ts'
 import { validateEnv } from '../_shared/env.ts'
+import { createAdminClient } from '../_shared/supabase-client.ts'
 
 // -----------------------------------------------------------------------
 // Types
@@ -40,7 +41,7 @@ interface SubmissionCompletedPayload {
 // -----------------------------------------------------------------------
 
 async function handleFormCompleted(
-  supabase: ReturnType<typeof createClient>,
+  supabase: SupabaseClient,
   body: FormCompletedPayload
 ): Promise<void> {
   const { submission_id, role, completed_at, metadata } = body
@@ -130,7 +131,7 @@ async function handleFormCompleted(
 }
 
 async function handleSubmissionCompleted(
-  supabase: ReturnType<typeof createClient>,
+  supabase: SupabaseClient,
   body: SubmissionCompletedPayload
 ): Promise<void> {
   const { id: submissionId, documents, metadata } = body
@@ -275,7 +276,7 @@ Deno.serve(async (req: Request) => {
       )
     }
 
-    const supabase = createClient(env['SUPABASE_URL'], env['SUPABASE_SERVICE_ROLE_KEY'])
+    const supabase = createAdminClient(env['SUPABASE_URL'], env['SUPABASE_SERVICE_ROLE_KEY'])
 
     // Parse the verified body (already consumed by req.text())
     let body: Record<string, unknown>

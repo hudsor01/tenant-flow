@@ -9,6 +9,8 @@
  */
 
 import { useQuery } from '@tanstack/react-query'
+import type { Inspection } from '#types/sections/inspections'
+import { useEntityDetail } from '#hooks/use-entity-detail'
 import { inspectionQueries } from './query-keys/inspection-keys'
 
 // ============================================================================
@@ -26,5 +28,8 @@ export function useInspections() {
  * Hook to fetch a single inspection with rooms and photos
  */
 export function useInspection(id: string) {
-	return useQuery(inspectionQueries.detailQuery(id))
+	return useEntityDetail<Inspection>({
+		queryOptions: inspectionQueries.detailQuery(id),
+		id
+	})
 }

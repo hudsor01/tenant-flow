@@ -5,7 +5,7 @@ import {
 	CardHeader,
 	CardTitle
 } from '#components/ui/card'
-import { formatCurrency } from '#lib/formatters/currency'
+import { formatCurrency } from '#lib/utils/currency'
 import { DollarSign } from 'lucide-react'
 import type { ExpenseRecord } from '#types/core'
 import { AddExpenseDialog } from './add-expense-dialog'

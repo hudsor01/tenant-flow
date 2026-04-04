@@ -1,5 +1,5 @@
 import { BlurFade } from '#components/ui/blur-fade'
-import { formatCents } from '#lib/formatters/currency'
+import { formatCents } from '#lib/utils/currency'
 import { getCategoryBadge } from './expense-category-badge'
 
 interface CategorySummary {

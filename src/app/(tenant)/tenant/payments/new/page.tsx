@@ -14,7 +14,7 @@ import {
 import { Separator } from '#components/ui/separator'
 import { Skeleton } from '#components/ui/skeleton'
 import { AlertTriangle, CheckCircle2, CreditCard, Loader2 } from 'lucide-react'
-import { formatCents } from '#lib/formatters/currency'
+import { formatCents } from '#lib/utils/currency'
 import { tenantPaymentQueries, useRentCheckoutMutation } from '#hooks/api/use-tenant-payments'
 
 export default function PayRentPage() {

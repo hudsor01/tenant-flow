@@ -1,6 +1,6 @@
 import { BlurFade } from '#components/ui/blur-fade'
 import { Badge } from '#components/ui/badge'
-import { formatCurrency } from '#lib/formatters/currency'
+import { formatCurrency } from '#lib/utils/currency'
 
 interface InvoiceStatusRow {
 	status: string

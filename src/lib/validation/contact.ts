@@ -3,6 +3,7 @@
  */
 import { z } from 'zod'
 import type { ContactFormRequest } from '#types/domain'
+import { phoneSchema } from './common'
 
 export const contactFormSchema = z
 	.object({
@@ -25,7 +26,7 @@ export const contactFormSchema = z
 		type: z.enum(['sales', 'support', 'general'], {
 			message: 'Type must be one of: sales, support, general'
 		}),
-		phone: z.string().optional(),
+		phone: phoneSchema.optional(),
 		company: z.string().optional(),
 		urgency: z.enum(['LOW', 'MEDIUM', 'HIGH']).optional()
 	})

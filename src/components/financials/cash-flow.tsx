@@ -26,7 +26,7 @@ import {
 	StatIndicator,
 	StatDescription
 } from '#components/ui/stat'
-import { formatCurrency } from '#lib/formatters/currency'
+import { formatCurrency } from '#lib/utils/currency'
 import type {
 	CashFlowCategory,
 	MonthlyCashFlow

@@ -10,7 +10,7 @@ import {
 import { Skeleton } from '#components/ui/skeleton'
 import { TrendingUp } from 'lucide-react'
 import type { ReportPaymentAnalytics, OccupancyMetrics } from '#types/reports'
-import { formatCurrency } from '#lib/formatters/currency'
+import { formatCurrency } from '#lib/utils/currency'
 
 const formatWholeAmount = (value: number) =>
 	formatCurrency(value, { minimumFractionDigits: 0, maximumFractionDigits: 0 })

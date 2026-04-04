@@ -3,7 +3,7 @@
 import Image from 'next/image'
 import { Building2, MapPin, Home, DollarSign, Eye } from 'lucide-react'
 import { Checkbox } from '#components/ui/checkbox'
-import { formatCompactCurrency } from '#lib/formatters/currency'
+import { formatCompactCurrency } from '#lib/utils/currency'
 import { cn } from '#lib/utils'
 import type { PropertyItem } from './types'
 

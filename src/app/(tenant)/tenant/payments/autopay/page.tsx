@@ -34,7 +34,7 @@ import {
 } from '#hooks/api/use-tenant-autopay'
 import { useTenantLease } from '#hooks/api/use-tenant-lease'
 import { usePaymentMethods } from '#hooks/api/use-payment-methods'
-import { formatCents } from '#lib/formatters/currency'
+import { formatCents } from '#lib/utils/currency'
 
 export default function TenantAutopayPage() {
 	const { data: autopayStatus, isLoading: isLoadingAutopay } =

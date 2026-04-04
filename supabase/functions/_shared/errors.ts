@@ -1,5 +1,7 @@
 // Shared error response utility for Supabase Edge Functions.
 // Logs full error details to Sentry + console.error, returns generic message to client.
+// Includes CORS headers via getCorsHeaders() — returns empty headers for non-browser
+// requests (webhooks), so the dependency is harmless for all callers.
 
 import * as Sentry from '@sentry/deno'
 import { getCorsHeaders } from './cors.ts'
@@ -47,4 +49,26 @@ export function errorResponse(
       },
     },
   )
+}
+
+/**
+ * Log a webhook handler error to Sentry + structured console.error.
+ * For use inside webhook handler modules where there is no req object.
+ * Does NOT create a Response -- callers handle control flow themselves.
+ */
+export function captureWebhookError(
+  error: unknown,
+  extra: Record<string, unknown>,
+): void {
+  const message = error instanceof Error ? error.message : String(error)
+
+  console.error(JSON.stringify({
+    level: 'error',
+    message,
+    ...extra,
+  }))
+
+  Sentry.captureException(error, {
+    extra,
+  })
 }

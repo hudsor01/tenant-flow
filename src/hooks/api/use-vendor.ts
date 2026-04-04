@@ -11,60 +11,13 @@
 
 import { useMutation, useQuery, useQueryClient, queryOptions } from '@tanstack/react-query'
 import { createClient } from '#lib/supabase/client'
+import { createMutationCallbacks } from '#hooks/create-mutation-callbacks'
+import { useEntityDetail } from '#hooks/use-entity-detail'
 import { handlePostgrestError } from '#lib/postgrest-error-handler'
 import { sanitizeSearchInput } from '#lib/sanitize-search'
-import { handleMutationError } from '#lib/mutation-error-handler'
+import type { Vendor, VendorFilters } from '#types/domain'
 import { maintenanceQueries, vendorMutations } from './query-keys/maintenance-keys'
 import { ownerDashboardKeys } from './use-owner-dashboard'
-import { toast } from 'sonner'
-
-// ============================================================================
-// TYPES
-// ============================================================================
-
-export interface Vendor {
-	id: string
-	owner_user_id: string
-	name: string
-	email?: string | null
-	phone?: string | null
-	trade:
-		| 'plumbing'
-		| 'electrical'
-		| 'hvac'
-		| 'carpentry'
-		| 'painting'
-		| 'landscaping'
-		| 'appliance'
-		| 'general'
-		| 'other'
-	hourly_rate?: number | null
-	status: 'active' | 'inactive'
-	notes?: string | null
-	created_at: string
-	updated_at: string
-}
-
-export interface VendorCreateInput {
-	name: string
-	email?: string
-	phone?: string
-	trade: Vendor['trade']
-	hourly_rate?: number
-	notes?: string
-}
-
-export interface VendorUpdateInput extends Partial<VendorCreateInput> {
-	status?: Vendor['status']
-}
-
-export interface VendorFilters {
-	trade?: string
-	status?: string
-	search?: string
-	limit?: number
-	offset?: number
-}
 
 interface VendorListResponse {
 	data: Vendor[]
@@ -153,7 +106,10 @@ export function useVendors(filters?: VendorFilters) {
 }
 
 export function useVendor(id: string) {
-	return useQuery(vendorKeys.detail(id))
+	return useEntityDetail<Vendor>({
+		queryOptions: vendorKeys.detail(id),
+		id
+	})
 }
 
 // ============================================================================
@@ -164,12 +120,11 @@ export function useCreateVendorMutation() {
 	const queryClient = useQueryClient()
 	return useMutation({
 		...vendorMutations.create(),
-		onSuccess: () => {
-			queryClient.invalidateQueries({ queryKey: vendorKeys.lists() })
-			queryClient.invalidateQueries({ queryKey: ownerDashboardKeys.all })
-			toast.success('Vendor added successfully')
-		},
-		onError: (error) => handleMutationError(error, 'Add vendor')
+		...createMutationCallbacks(queryClient, {
+			invalidate: [vendorKeys.lists(), ownerDashboardKeys.all],
+			successMessage: 'Vendor added successfully',
+			errorContext: 'Add vendor'
+		})
 	})
 }
 
@@ -177,13 +132,15 @@ export function useUpdateVendorMutation() {
 	const queryClient = useQueryClient()
 	return useMutation({
 		...vendorMutations.update(),
-		onSuccess: (vendor) => {
-			queryClient.setQueryData(vendorKeys.detail(vendor.id).queryKey, vendor)
-			queryClient.invalidateQueries({ queryKey: vendorKeys.lists() })
-			queryClient.invalidateQueries({ queryKey: ownerDashboardKeys.all })
-			toast.success('Vendor updated successfully')
-		},
-		onError: (error) => handleMutationError(error, 'Update vendor')
+		...createMutationCallbacks<Vendor>(queryClient, {
+			invalidate: [vendorKeys.lists(), ownerDashboardKeys.all],
+			updateDetail: (vendor) => ({
+				queryKey: vendorKeys.detail(vendor.id).queryKey,
+				data: vendor
+			}),
+			successMessage: 'Vendor updated successfully',
+			errorContext: 'Update vendor'
+		})
 	})
 }
 
@@ -191,12 +148,11 @@ export function useDeleteVendorMutation() {
 	const queryClient = useQueryClient()
 	return useMutation({
 		...vendorMutations.delete(),
-		onSuccess: () => {
-			queryClient.invalidateQueries({ queryKey: vendorKeys.lists() })
-			queryClient.invalidateQueries({ queryKey: ownerDashboardKeys.all })
-			toast.success('Vendor removed')
-		},
-		onError: (error) => handleMutationError(error, 'Remove vendor')
+		...createMutationCallbacks(queryClient, {
+			invalidate: [vendorKeys.lists(), ownerDashboardKeys.all],
+			successMessage: 'Vendor removed',
+			errorContext: 'Remove vendor'
+		})
 	})
 }
 
@@ -208,13 +164,16 @@ export function useAssignVendorMutation() {
 	const queryClient = useQueryClient()
 	return useMutation({
 		...vendorMutations.assign(),
-		onSuccess: (_data, { maintenanceId }) => {
-			queryClient.invalidateQueries({
-				queryKey: maintenanceQueries.detail(maintenanceId).queryKey
-			})
-			toast.success('Vendor assigned to request')
-		},
-		onError: (error) => handleMutationError(error, 'Assign vendor')
+		...createMutationCallbacks<
+			void,
+			{ vendorId: string; maintenanceId: string }
+		>(queryClient, {
+			invalidate: (vars) => [
+				maintenanceQueries.detail(vars.maintenanceId).queryKey
+			],
+			successMessage: 'Vendor assigned to request',
+			errorContext: 'Assign vendor'
+		})
 	})
 }
 
@@ -227,12 +186,12 @@ export function useUnassignVendorMutation() {
 	const queryClient = useQueryClient()
 	return useMutation({
 		...vendorMutations.unassign(),
-		onSuccess: (_data, maintenanceId) => {
-			queryClient.invalidateQueries({
-				queryKey: maintenanceQueries.detail(maintenanceId).queryKey
-			})
-			toast.success('Vendor unassigned')
-		},
-		onError: (error) => handleMutationError(error, 'Unassign vendor')
+		...createMutationCallbacks<void, string>(queryClient, {
+			invalidate: (maintenanceId) => [
+				maintenanceQueries.detail(maintenanceId).queryKey
+			],
+			successMessage: 'Vendor unassigned',
+			errorContext: 'Unassign vendor'
+		})
 	})
 }
