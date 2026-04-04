@@ -10,6 +10,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { createClient } from '#lib/supabase/client'
 import { handleMutationError } from '#lib/mutation-error-handler'
 import { subscriptionsKeys, billingMutations } from './query-keys/billing-keys'
+import { createMutationCallbacks } from '#hooks/create-mutation-callbacks'
 
 // ============================================================================
 // SUBSCRIPTION CRUD MUTATIONS
@@ -20,10 +21,10 @@ export function useCreateSubscriptionMutation() {
 
 	return useMutation({
 		...billingMutations.createSubscription(),
-		onSuccess: () => {
-			queryClient.invalidateQueries({ queryKey: subscriptionsKeys.list() })
-		},
-		onError: error => handleMutationError(error, 'Create subscription')
+		...createMutationCallbacks(queryClient, {
+			invalidate: [subscriptionsKeys.list()],
+			errorContext: 'Create subscription'
+		})
 	})
 }
 
@@ -53,10 +54,10 @@ export function useCancelSubscriptionMutation() {
 
 	return useMutation({
 		...billingMutations.cancelSubscription(),
-		onSuccess: () => {
-			queryClient.invalidateQueries({ queryKey: subscriptionsKeys.list() })
-		},
-		onError: error => handleMutationError(error, 'Cancel subscription')
+		...createMutationCallbacks(queryClient, {
+			invalidate: [subscriptionsKeys.list()],
+			errorContext: 'Cancel subscription'
+		})
 	})
 }
 

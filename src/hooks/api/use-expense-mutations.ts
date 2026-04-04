@@ -7,8 +7,8 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { createClient } from '#lib/supabase/client'
 import { getCachedUser } from '#lib/supabase/get-cached-user'
 import { handlePostgrestError } from '#lib/postgrest-error-handler'
-import { handleMutationError } from '#lib/mutation-error-handler'
 import { financialMutations } from './query-keys/financial-keys'
+import { createMutationCallbacks } from '#hooks/create-mutation-callbacks'
 import type { Expense } from './query-keys/financial-keys'
 import type { TaxDocumentsData } from '#types/financial-statements'
 
@@ -114,10 +114,10 @@ export function useCreateExpenseMutation() {
 
 	return useMutation({
 		...financialMutations.createExpense(),
-		onSuccess: () => {
-			queryClient.invalidateQueries({ queryKey: expenseKeys.all })
-		},
-		onError: (error) => handleMutationError(error, 'Create expense')
+		...createMutationCallbacks(queryClient, {
+			invalidate: [expenseKeys.all],
+			errorContext: 'Create expense'
+		})
 	})
 }
 
@@ -126,10 +126,10 @@ export function useDeleteExpenseMutation() {
 
 	return useMutation({
 		...financialMutations.deleteExpense(),
-		onSuccess: () => {
-			queryClient.invalidateQueries({ queryKey: expenseKeys.all })
-		},
-		onError: (error) => handleMutationError(error, 'Delete expense')
+		...createMutationCallbacks(queryClient, {
+			invalidate: [expenseKeys.all],
+			errorContext: 'Delete expense'
+		})
 	})
 }
 

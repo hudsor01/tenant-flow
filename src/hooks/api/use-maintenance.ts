@@ -15,10 +15,10 @@ import {
 } from '@tanstack/react-query'
 
 // Import query keys from separate file to avoid circular dependency
+import type { MaintenanceRequest } from '#types/core'
 import { maintenanceQueries, maintenanceMutations } from './query-keys/maintenance-keys'
-import { handleMutationError } from '#lib/mutation-error-handler'
+import { createMutationCallbacks } from '#hooks/create-mutation-callbacks'
 import { ownerDashboardKeys } from './use-owner-dashboard'
-import { toast } from 'sonner'
 
 /** Variables for update mutation including optional optimistic locking version */
 export type { MaintenanceUpdateMutationVariables } from './query-keys/maintenance-keys'
@@ -35,15 +35,11 @@ export function useMaintenanceRequestCreateMutation() {
 
 	return useMutation({
 		...maintenanceMutations.create(),
-		onSuccess: _newRequest => {
-			// Invalidate and refetch maintenance lists
-			queryClient.invalidateQueries({ queryKey: maintenanceQueries.lists() })
-			queryClient.invalidateQueries({ queryKey: ownerDashboardKeys.all })
-			toast.success('Maintenance request created successfully')
-		},
-		onError: error => {
-			handleMutationError(error, 'Create maintenance request')
-		}
+		...createMutationCallbacks(queryClient, {
+			invalidate: [maintenanceQueries.lists(), ownerDashboardKeys.all],
+			successMessage: 'Maintenance request created successfully',
+			errorContext: 'Create maintenance request'
+		})
 	})
 }
 
@@ -56,13 +52,10 @@ export function useDeleteMaintenanceRequest() {
 
 	return useMutation({
 		...maintenanceMutations.delete(),
-		onSuccess: () => {
-			queryClient.invalidateQueries({ queryKey: maintenanceQueries.lists() })
-			queryClient.invalidateQueries({ queryKey: ownerDashboardKeys.all })
-		},
-		onError: error => {
-			handleMutationError(error, 'Delete maintenance request')
-		}
+		...createMutationCallbacks(queryClient, {
+			invalidate: [maintenanceQueries.lists(), ownerDashboardKeys.all],
+			errorContext: 'Delete maintenance request'
+		})
 	})
 }
 
@@ -74,19 +67,14 @@ export function useMaintenanceRequestUpdateMutation() {
 
 	return useMutation({
 		...maintenanceMutations.update(),
-		onSuccess: updatedRequest => {
-			// Update the specific maintenance request in cache
-			queryClient.setQueryData(
-				maintenanceQueries.detail(updatedRequest.id).queryKey,
-				updatedRequest
-			)
-			// Invalidate lists to ensure consistency
-			queryClient.invalidateQueries({ queryKey: maintenanceQueries.lists() })
-			queryClient.invalidateQueries({ queryKey: ownerDashboardKeys.all })
-			toast.success('Maintenance request updated successfully')
-		},
-		onError: error => {
-			handleMutationError(error, 'Update maintenance request')
-		}
+		...createMutationCallbacks<MaintenanceRequest>(queryClient, {
+			invalidate: [maintenanceQueries.lists(), ownerDashboardKeys.all],
+			updateDetail: request => ({
+				queryKey: maintenanceQueries.detail(request.id).queryKey,
+				data: request
+			}),
+			successMessage: 'Maintenance request updated successfully',
+			errorContext: 'Update maintenance request'
+		})
 	})
 }

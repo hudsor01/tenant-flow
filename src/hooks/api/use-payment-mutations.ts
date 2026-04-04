@@ -13,6 +13,7 @@ import {
 	rentCollectionKeys,
 	rentPaymentKeys
 } from './query-keys/payment-keys'
+import { createMutationCallbacks } from '#hooks/create-mutation-callbacks'
 
 // ============================================================================
 // MUTATION HOOKS
@@ -26,12 +27,10 @@ export function useRecordManualPaymentMutation() {
 
 	return useMutation({
 		...paymentMutations.recordManual(),
-		onSuccess: () => {
-			queryClient.invalidateQueries({ queryKey: rentCollectionKeys.all })
-		},
-		onError: (error) => {
-			handleMutationError(error, 'Record manual payment')
-		}
+		...createMutationCallbacks(queryClient, {
+			invalidate: [rentCollectionKeys.all],
+			errorContext: 'Record manual payment'
+		})
 	})
 }
 

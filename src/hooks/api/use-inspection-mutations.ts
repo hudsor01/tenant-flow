@@ -12,7 +12,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query'
 
 import { inspectionQueries } from './query-keys/inspection-keys'
 import { inspectionMutations } from './query-keys/inspection-mutation-options'
-import { handleMutationError, handleMutationSuccess } from '#lib/mutation-error-handler'
+import { createMutationCallbacks } from '#hooks/create-mutation-callbacks'
 
 // ============================================================================
 // INSPECTION MUTATION HOOKS
@@ -26,13 +26,12 @@ export function useCreateInspection() {
 
 	return useMutation({
 		...inspectionMutations.create(),
-		onSuccess: () => {
-			queryClient.invalidateQueries({ queryKey: inspectionQueries.lists() })
-			handleMutationSuccess('Create inspection', 'Inspection created successfully')
-		},
-		onError: (error) => {
-			handleMutationError(error, 'Create inspection')
-		}
+		...createMutationCallbacks(queryClient, {
+			invalidate: [inspectionQueries.lists()],
+			successMessage: 'Inspection created successfully',
+			errorContext: 'Create inspection',
+			useSuccessHandler: true
+		})
 	})
 }
 
@@ -44,14 +43,16 @@ export function useUpdateInspection(id: string) {
 
 	return useMutation({
 		...inspectionMutations.update(id),
-		onSuccess: (updated) => {
-			queryClient.setQueryData(inspectionQueries.detailQuery(id).queryKey, updated)
-			queryClient.invalidateQueries({ queryKey: inspectionQueries.lists() })
-			handleMutationSuccess('Update inspection', 'Inspection updated')
-		},
-		onError: (error) => {
-			handleMutationError(error, 'Update inspection')
-		}
+		...createMutationCallbacks(queryClient, {
+			invalidate: [inspectionQueries.lists()],
+			updateDetail: updated => ({
+				queryKey: inspectionQueries.detailQuery(id).queryKey,
+				data: updated
+			}),
+			successMessage: 'Inspection updated',
+			errorContext: 'Update inspection',
+			useSuccessHandler: true
+		})
 	})
 }
 
@@ -64,16 +65,15 @@ export function useCompleteInspection(id: string) {
 
 	return useMutation({
 		...inspectionMutations.complete(id),
-		onSuccess: () => {
-			queryClient.invalidateQueries({
-				queryKey: inspectionQueries.detailQuery(id).queryKey
-			})
-			queryClient.invalidateQueries({ queryKey: inspectionQueries.lists() })
-			handleMutationSuccess('Complete inspection', 'Inspection marked as complete')
-		},
-		onError: (error) => {
-			handleMutationError(error, 'Complete inspection')
-		}
+		...createMutationCallbacks(queryClient, {
+			invalidate: [
+				inspectionQueries.detailQuery(id).queryKey,
+				inspectionQueries.lists()
+			],
+			successMessage: 'Inspection marked as complete',
+			errorContext: 'Complete inspection',
+			useSuccessHandler: true
+		})
 	})
 }
 
@@ -86,16 +86,15 @@ export function useSubmitForTenantReview(id: string) {
 
 	return useMutation({
 		...inspectionMutations.submitForReview(id),
-		onSuccess: () => {
-			queryClient.invalidateQueries({
-				queryKey: inspectionQueries.detailQuery(id).queryKey
-			})
-			queryClient.invalidateQueries({ queryKey: inspectionQueries.lists() })
-			handleMutationSuccess('Submit for review', 'Sent to tenant for review')
-		},
-		onError: (error) => {
-			handleMutationError(error, 'Submit for review')
-		}
+		...createMutationCallbacks(queryClient, {
+			invalidate: [
+				inspectionQueries.detailQuery(id).queryKey,
+				inspectionQueries.lists()
+			],
+			successMessage: 'Sent to tenant for review',
+			errorContext: 'Submit for review',
+			useSuccessHandler: true
+		})
 	})
 }
 
@@ -109,16 +108,15 @@ export function useTenantReview(id: string) {
 
 	return useMutation({
 		...inspectionMutations.tenantReview(id),
-		onSuccess: () => {
-			queryClient.invalidateQueries({
-				queryKey: inspectionQueries.detailQuery(id).queryKey
-			})
-			queryClient.invalidateQueries({ queryKey: inspectionQueries.lists() })
-			handleMutationSuccess('Tenant review', 'Inspection reviewed and signed')
-		},
-		onError: (error) => {
-			handleMutationError(error, 'Tenant review')
-		}
+		...createMutationCallbacks(queryClient, {
+			invalidate: [
+				inspectionQueries.detailQuery(id).queryKey,
+				inspectionQueries.lists()
+			],
+			successMessage: 'Inspection reviewed and signed',
+			errorContext: 'Tenant review',
+			useSuccessHandler: true
+		})
 	})
 }
 
@@ -130,12 +128,11 @@ export function useDeleteInspection() {
 
 	return useMutation({
 		...inspectionMutations.delete(),
-		onSuccess: () => {
-			queryClient.invalidateQueries({ queryKey: inspectionQueries.lists() })
-			handleMutationSuccess('Delete inspection', 'Inspection deleted')
-		},
-		onError: (error) => {
-			handleMutationError(error, 'Delete inspection')
-		}
+		...createMutationCallbacks(queryClient, {
+			invalidate: [inspectionQueries.lists()],
+			successMessage: 'Inspection deleted',
+			errorContext: 'Delete inspection',
+			useSuccessHandler: true
+		})
 	})
 }

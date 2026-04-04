@@ -8,23 +8,19 @@
  */
 
 import { useQuery, useQueryClient } from '@tanstack/react-query'
-import type { QueryKey } from '@tanstack/react-query'
+import type { QueryKey, UseQueryOptions } from '@tanstack/react-query'
 
 /**
  * Config accepted by useEntityDetail. The queryOptions field accepts
  * the return value of a queryOptions() factory call directly.
- * We use Record<string, unknown> to accept the complex return type
- * of queryOptions() without fighting exactOptionalPropertyTypes.
  */
-export interface EntityDetailConfig<T> {
+export interface EntityDetailConfig {
 	/** Return value from a queryOptions() factory — spread into useQuery */
-	queryOptions: Record<string, unknown> & { queryKey: QueryKey }
+	queryOptions: { queryKey: QueryKey } & Record<string, unknown>
 	/** Query key prefix to search list caches for placeholderData */
 	listQueryKey?: readonly unknown[]
 	/** Entity ID to match within list cache data */
 	id: string
-	/** Phantom type anchor -- not read at runtime */
-	_type?: T
 }
 
 /**
@@ -64,25 +60,30 @@ function findInListCaches<T extends { id: string }>(
  * to enable instant detail views from list-to-detail navigation.
  */
 export function useEntityDetail<T extends { id: string }>(
-	config: EntityDetailConfig<T>
+	config: EntityDetailConfig
 ) {
 	// Always call useQueryClient unconditionally (React Compiler requires stable hook calls)
 	const queryClient = useQueryClient()
 
 	const { queryOptions: opts, listQueryKey, id } = config
 
-	if (listQueryKey) {
-		return useQuery({
-			...(opts as Parameters<typeof useQuery>[0]),
-			placeholderData: () =>
+	// Build placeholderData function conditionally, but call useQuery unconditionally
+	// to satisfy react-hooks/rules-of-hooks
+	const placeholderData = listQueryKey
+		? () =>
 				findInListCaches<T>(
 					queryClient.getQueriesData<{ data?: T[] } | T[]>({
 						queryKey: listQueryKey
 					}),
 					id
 				)
-		})
-	}
+		: undefined
 
-	return useQuery(opts as Parameters<typeof useQuery>[0])
+	// Cast is safe: opts is always a queryOptions() return value with proper queryKey/queryFn,
+	// and T extends { id: string } (always an object, never a function) so
+	// NonFunctionGuard<T> = T at runtime. TypeScript can't prove this for generics.
+	return useQuery({
+		...opts,
+		...(placeholderData ? { placeholderData } : {})
+	} as UseQueryOptions<T, Error, T, QueryKey>)
 }
