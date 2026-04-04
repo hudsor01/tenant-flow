@@ -90,7 +90,7 @@ export const notificationQueries = {
 	unreadCount: () =>
 		queryOptions({
 			queryKey: notificationKeys.unreadCount,
-			queryFn: async (): Promise<PaginatedNotifications> => {
+			queryFn: async (): Promise<number> => {
 				const supabase = createClient()
 				const { count, error } = await supabase
 					.from('notifications')
@@ -99,7 +99,7 @@ export const notificationQueries = {
 
 				if (error) throw error
 
-				return { data: [], total: count ?? 0, page: 1, limit: 1 }
+				return count ?? 0
 			},
 			staleTime: 30_000,
 			gcTime: 60_000

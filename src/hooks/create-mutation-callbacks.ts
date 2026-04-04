@@ -164,11 +164,11 @@ export function createMutationCallbacks<
 			},
 			onError: (
 				error: unknown,
-				_variables: TVariables,
+				variables: TVariables,
 				context: TContext | undefined
 			) => {
 				if (context) {
-					opt.rollback(queryClient, context, _variables)
+					opt.rollback(queryClient, context, variables)
 				}
 				handleMutationError(error, config.errorContext)
 			},

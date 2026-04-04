@@ -27,8 +27,10 @@ export function wrapEmailLayout(bodyContent: string, options?: EmailLayoutOption
     ? `<a href="${safeLink}" style="font-size:24px;font-weight:700;color:#ffffff;letter-spacing:-0.5px;text-decoration:none;">${BRAND_NAME}</a>`
     : `<span style="font-size:24px;font-weight:700;color:#ffffff;letter-spacing:-0.5px;">${BRAND_NAME}</span>`
 
-  const footerLinks = options?.includeFooterLinks && options?.appUrl
-    ? `\n<p style="margin:0;font-size:12px;color:#a1a1aa;"><a href="${options.appUrl}/privacy" style="color:#a1a1aa;">Privacy Policy</a> &middot; <a href="${options.appUrl}/terms" style="color:#a1a1aa;">Terms</a></p>`
+  const appUrl = options?.appUrl
+  const safeAppUrl = appUrl?.startsWith('https://') ? appUrl : undefined
+  const footerLinks = options?.includeFooterLinks && safeAppUrl
+    ? `\n<p style="margin:0;font-size:12px;color:#a1a1aa;"><a href="${safeAppUrl}/privacy" style="color:#a1a1aa;">Privacy Policy</a> &middot; <a href="${safeAppUrl}/terms" style="color:#a1a1aa;">Terms</a></p>`
     : ''
 
   return `<!DOCTYPE html>

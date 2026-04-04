@@ -50,11 +50,7 @@ Deno.serve(async (req: Request) => {
     const stripeKey = env.STRIPE_SECRET_KEY
 
     // Create user-scoped client for auth verification
-    const authHeader = req.headers.get('authorization') ?? req.headers.get('Authorization')
-    const token = authHeader?.startsWith('Bearer ') ? authHeader.slice(7) : ''
-    const supabaseAuth = createClient(supabaseUrl, supabaseServiceKey, {
-      global: { headers: { Authorization: `Bearer ${token}` } },
-    })
+    const supabaseAuth = createClient(supabaseUrl, supabaseServiceKey)
 
     const auth = await validateBearerAuth(req, supabaseAuth)
     if ('error' in auth) {
