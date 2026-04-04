@@ -11,6 +11,8 @@
 
 import { useMutation, useQuery, useQueryClient, queryOptions } from '@tanstack/react-query'
 import { createClient } from '#lib/supabase/client'
+import { createMutationCallbacks } from '#hooks/create-mutation-callbacks'
+import { useEntityDetail } from '#hooks/use-entity-detail'
 import { handlePostgrestError } from '#lib/postgrest-error-handler'
 import { sanitizeSearchInput } from '#lib/sanitize-search'
 import { handleMutationError } from '#lib/mutation-error-handler'
@@ -153,7 +155,10 @@ export function useVendors(filters?: VendorFilters) {
 }
 
 export function useVendor(id: string) {
-	return useQuery(vendorKeys.detail(id))
+	return useEntityDetail<Vendor>({
+		queryOptions: vendorKeys.detail(id),
+		id
+	})
 }
 
 // ============================================================================
@@ -164,12 +169,11 @@ export function useCreateVendorMutation() {
 	const queryClient = useQueryClient()
 	return useMutation({
 		...vendorMutations.create(),
-		onSuccess: () => {
-			queryClient.invalidateQueries({ queryKey: vendorKeys.lists() })
-			queryClient.invalidateQueries({ queryKey: ownerDashboardKeys.all })
-			toast.success('Vendor added successfully')
-		},
-		onError: (error) => handleMutationError(error, 'Add vendor')
+		...createMutationCallbacks(queryClient, {
+			invalidate: [vendorKeys.lists(), ownerDashboardKeys.all],
+			successMessage: 'Vendor added successfully',
+			errorContext: 'Add vendor'
+		})
 	})
 }
 
@@ -177,13 +181,15 @@ export function useUpdateVendorMutation() {
 	const queryClient = useQueryClient()
 	return useMutation({
 		...vendorMutations.update(),
-		onSuccess: (vendor) => {
-			queryClient.setQueryData(vendorKeys.detail(vendor.id).queryKey, vendor)
-			queryClient.invalidateQueries({ queryKey: vendorKeys.lists() })
-			queryClient.invalidateQueries({ queryKey: ownerDashboardKeys.all })
-			toast.success('Vendor updated successfully')
-		},
-		onError: (error) => handleMutationError(error, 'Update vendor')
+		...createMutationCallbacks<Vendor>(queryClient, {
+			invalidate: [vendorKeys.lists(), ownerDashboardKeys.all],
+			updateDetail: (vendor) => ({
+				queryKey: vendorKeys.detail(vendor.id).queryKey,
+				data: vendor
+			}),
+			successMessage: 'Vendor updated successfully',
+			errorContext: 'Update vendor'
+		})
 	})
 }
 
@@ -191,12 +197,11 @@ export function useDeleteVendorMutation() {
 	const queryClient = useQueryClient()
 	return useMutation({
 		...vendorMutations.delete(),
-		onSuccess: () => {
-			queryClient.invalidateQueries({ queryKey: vendorKeys.lists() })
-			queryClient.invalidateQueries({ queryKey: ownerDashboardKeys.all })
-			toast.success('Vendor removed')
-		},
-		onError: (error) => handleMutationError(error, 'Remove vendor')
+		...createMutationCallbacks(queryClient, {
+			invalidate: [vendorKeys.lists(), ownerDashboardKeys.all],
+			successMessage: 'Vendor removed',
+			errorContext: 'Remove vendor'
+		})
 	})
 }
 

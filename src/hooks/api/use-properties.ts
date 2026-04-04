@@ -3,8 +3,9 @@
  * Query keys in query-keys/property-keys.ts.
  */
 
-import { useQuery, useQueryClient } from '@tanstack/react-query'
+import { useQuery } from '@tanstack/react-query'
 
+import { useEntityDetail } from '#hooks/use-entity-detail'
 import { QUERY_CACHE_TIMES } from '#lib/constants/query-config'
 import type { PaginatedResponse } from '#types/api-contracts'
 import type { Property } from '#types/core'
@@ -19,21 +20,10 @@ const selectPaginatedData = <T>(response: PaginatedResponse<T>): T[] => response
  * Uses placeholderData from list cache for instant detail view
  */
 export function useProperty(id: string) {
-	const queryClient = useQueryClient()
-
-	return useQuery({
-		...propertyQueries.detail(id),
-		placeholderData: () => {
-			const listCaches = queryClient.getQueriesData<PaginatedResponse<Property>>({
-				queryKey: propertyQueries.lists()
-			})
-
-			for (const [, response] of listCaches) {
-				const item = response?.data?.find(p => p.id === id)
-				if (item) return item
-			}
-			return undefined
-		}
+	return useEntityDetail<Property>({
+		queryOptions: propertyQueries.detail(id),
+		listQueryKey: propertyQueries.lists(),
+		id
 	})
 }
 

@@ -9,6 +9,7 @@
 import { useMutation, usePrefetchQuery, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 
+import { createMutationCallbacks } from '#hooks/create-mutation-callbacks'
 import { handleMutationError } from '#lib/mutation-error-handler'
 
 import { logger } from '#lib/frontend-logger'
@@ -52,45 +53,51 @@ export function useMarkPropertySoldMutation() {
 
 	return useMutation({
 		...propertyMutations.markSold(),
-		onMutate: async ({ id }) => {
-			await queryClient.cancelQueries({
-				queryKey: propertyQueries.detail(id).queryKey
-			})
-			await queryClient.cancelQueries({ queryKey: propertyQueries.lists() })
-
-			const previousDetail = queryClient.getQueryData<Property>(
-				propertyQueries.detail(id).queryKey
-			)
-			const previousLists = queryClient.getQueriesData<Property[]>({
-				queryKey: propertyQueries.lists()
-			})
-
-			return { previousDetail, previousLists }
-		},
-		onError: (err, { id }, context) => {
-			if (context?.previousDetail) {
-				queryClient.setQueryData(
-					propertyQueries.detail(id).queryKey,
-					context.previousDetail
-				)
+		...createMutationCallbacks<
+			{ message: string },
+			{ id: string },
+			{
+				previousDetail: Property | undefined
+				previousLists: [readonly unknown[], Property[] | undefined][]
 			}
-			if (context?.previousLists) {
-				context.previousLists.forEach(([queryKey, data]) => {
-					queryClient.setQueryData(queryKey, data)
-				})
+		>(queryClient, {
+			invalidate: [
+				propertyQueries.lists(),
+				propertyStatsQueries.stats().queryKey,
+				ownerDashboardKeys.all
+			],
+			errorContext: 'Mark property as sold',
+			onSuccessExtra: (data) => {
+				logger.info('Property marked as sold', { message: data.message })
+			},
+			optimistic: {
+				cancel: (variables) => [
+					propertyQueries.detail(variables.id).queryKey,
+					propertyQueries.lists()
+				],
+				snapshot: (qc, variables) => ({
+					previousDetail: qc.getQueryData<Property>(
+						propertyQueries.detail(variables.id).queryKey
+					),
+					previousLists: qc.getQueriesData<Property[]>({
+						queryKey: propertyQueries.lists()
+					})
+				}),
+				rollback: (qc, context, variables) => {
+					if (context.previousDetail) {
+						qc.setQueryData(
+							propertyQueries.detail(variables.id).queryKey,
+							context.previousDetail
+						)
+					}
+					if (context.previousLists) {
+						context.previousLists.forEach(([queryKey, data]) => {
+							qc.setQueryData(queryKey, data)
+						})
+					}
+				}
 			}
-			handleMutationError(err, 'Mark property as sold')
-		},
-		onSuccess: data => {
-			logger.info('Property marked as sold', { message: data.message })
-		},
-		onSettled: () => {
-			queryClient.invalidateQueries({ queryKey: propertyQueries.lists() })
-			queryClient.invalidateQueries({
-				queryKey: propertyStatsQueries.stats().queryKey
-			})
-			queryClient.invalidateQueries({ queryKey: ownerDashboardKeys.all })
-		}
+		})
 	})
 }
 
@@ -100,12 +107,11 @@ export function useCreatePropertyMutation() {
 
 	return useMutation({
 		...propertyMutations.create(),
-		onSuccess: () => {
-			queryClient.invalidateQueries({ queryKey: propertyQueries.lists() })
-			queryClient.invalidateQueries({ queryKey: ownerDashboardKeys.all })
-			toast.success('Property created successfully')
-		},
-		onError: error => handleMutationError(error, 'Create property')
+		...createMutationCallbacks(queryClient, {
+			invalidate: [propertyQueries.lists(), ownerDashboardKeys.all],
+			successMessage: 'Property created successfully',
+			errorContext: 'Create property'
+		})
 	})
 }
 
@@ -115,17 +121,19 @@ export function useUpdatePropertyMutation() {
 
 	return useMutation({
 		...propertyMutations.update(),
-		onSuccess: updatedProperty => {
-			queryClient.setQueryData(
-				propertyQueries.detail(updatedProperty.id).queryKey,
-				updatedProperty
-			)
-			queryClient.invalidateQueries({ queryKey: propertyQueries.lists() })
-			queryClient.invalidateQueries({ queryKey: unitQueries.lists() })
-			queryClient.invalidateQueries({ queryKey: ownerDashboardKeys.analytics.stats() })
-			toast.success('Property updated successfully')
-		},
-		onError: error => handleMutationError(error, 'Update property')
+		...createMutationCallbacks<Property>(queryClient, {
+			invalidate: [
+				propertyQueries.lists(),
+				unitQueries.lists(),
+				ownerDashboardKeys.analytics.stats()
+			],
+			updateDetail: (property) => ({
+				queryKey: propertyQueries.detail(property.id).queryKey,
+				data: property
+			}),
+			successMessage: 'Property updated successfully',
+			errorContext: 'Update property'
+		})
 	})
 }
 
