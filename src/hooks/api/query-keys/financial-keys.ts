@@ -323,12 +323,20 @@ export const expenseQueries = {
 			queryKey: expenseKeys.byProperty(propertyId),
 			queryFn: async (): Promise<Expense[]> => {
 				const supabase = createClient()
+				// expenses table has no property_id column — filter via maintenance_requests join
+				const { data: mrIds, error: mrError } = await supabase
+					.from('maintenance_requests')
+					.select('id')
+					.eq('property_id', propertyId)
+				if (mrError) handlePostgrestError(mrError, 'maintenance_requests')
+				const ids = (mrIds ?? []).map(r => r.id)
+				if (ids.length === 0) return []
 				const { data, error } = await supabase
 					.from('expenses')
 					.select('id, amount, expense_date, vendor_name, maintenance_request_id, created_at')
+					.in('maintenance_request_id', ids)
 					.order('expense_date', { ascending: false })
 				if (error) handlePostgrestError(error, 'expenses by property')
-				void propertyId
 				return (data ?? []) as Expense[]
 			},
 			staleTime: 2 * 60 * 1000,

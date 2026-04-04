@@ -83,12 +83,19 @@ export const tenantSettingsQueries = {
 					.eq('user_id', user.id)
 					.single()
 
+				const row = data as {
+					rent_reminders: boolean | null
+					maintenance_updates: boolean | null
+					property_notices: boolean | null
+					email_notifications: boolean | null
+					sms_notifications: boolean | null
+				} | null
 				return {
-					rentReminders: (data as Record<string, unknown> | null)?.rent_reminders as boolean ?? true,
-					maintenanceUpdates: (data as Record<string, unknown> | null)?.maintenance_updates as boolean ?? true,
-					propertyNotices: (data as Record<string, unknown> | null)?.property_notices as boolean ?? true,
-					emailNotifications: (data as Record<string, unknown> | null)?.email_notifications as boolean ?? true,
-					smsNotifications: (data as Record<string, unknown> | null)?.sms_notifications as boolean ?? false
+					rentReminders: row?.rent_reminders ?? true,
+					maintenanceUpdates: row?.maintenance_updates ?? true,
+					propertyNotices: row?.property_notices ?? true,
+					emailNotifications: row?.email_notifications ?? true,
+					smsNotifications: row?.sms_notifications ?? false
 				}
 			},
 			...QUERY_CACHE_TIMES.DETAIL
