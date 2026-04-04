@@ -112,7 +112,11 @@ Plans:
   2. A `createMutationCallbacks()` utility exists and is used by 15+ mutation hooks to generate `onSuccess`/`onError` callbacks with toast + cache invalidation
   3. All 1,469+ existing unit tests pass with zero failures
   4. No hook file exceeds the 300-line limit after refactoring
-**Plans**: TBD
+**Plans:** 2 plans
+
+Plans:
+- [ ] 31-01-PLAN.md -- Build useEntityDetail + createMutationCallbacks factories with tests, migrate property/vendor hooks as proof
+- [ ] 31-02-PLAN.md -- Migrate all remaining detail hooks (6) and mutation hooks (15+) to factories
 
 ## Progress
 
@@ -123,4 +127,4 @@ Phases execute in numeric order: 29 -> 30 -> 31
 |-------|-----------|----------------|--------|-----------|
 | 29. Edge Function Shared Utilities | v1.5 | 0/3 | Complete    | 2026-04-03 |
 | 30. Frontend Import & Validation Cleanup | v1.5 | 2/2 | Complete    | 2026-04-03 |
-| 31. Frontend Hook Factories | v1.5 | 0/TBD | Not started | - |
+| 31. Frontend Hook Factories | v1.5 | 0/2 | Not started | - |
