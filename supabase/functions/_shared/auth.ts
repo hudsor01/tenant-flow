@@ -1,10 +1,10 @@
 // Shared auth validation for Supabase Edge Functions.
 // Extracts Bearer token from Authorization header and validates via getUser().
 
-import type { SupabaseClient } from '@supabase/supabase-js'
+import type { SupabaseClient, User } from '@supabase/supabase-js'
 
 interface AuthResult {
-  user: { id: string; email?: string; [key: string]: unknown }
+  user: User
   token: string
 }
 

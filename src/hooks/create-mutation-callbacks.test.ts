@@ -16,7 +16,7 @@ vi.mock('#lib/mutation-error-handler', () => ({
 
 import { createMutationCallbacks } from './create-mutation-callbacks'
 
-function createMockQueryClient(): Pick<
+type MockQueryClient = Pick<
 	QueryClient,
 	| 'invalidateQueries'
 	| 'setQueryData'
@@ -24,7 +24,9 @@ function createMockQueryClient(): Pick<
 	| 'cancelQueries'
 	| 'getQueryData'
 	| 'getQueriesData'
-> {
+>
+
+function createMockQueryClient(): MockQueryClient {
 	return {
 		invalidateQueries: vi.fn(),
 		setQueryData: vi.fn(),
@@ -33,6 +35,11 @@ function createMockQueryClient(): Pick<
 		getQueryData: vi.fn(),
 		getQueriesData: vi.fn()
 	}
+}
+
+/** Cast mock to QueryClient for createMutationCallbacks */
+function asQueryClient(mock: MockQueryClient): QueryClient {
+	return mock as unknown as QueryClient
 }
 
 describe('createMutationCallbacks', () => {
@@ -45,7 +52,7 @@ describe('createMutationCallbacks', () => {
 
 	describe('Tier 1 + Tier 2 (standard callbacks)', () => {
 		it('onSuccess calls invalidateQueries for each key in invalidate array', () => {
-			const callbacks = createMutationCallbacks(qc as unknown as QueryClient, {
+			const callbacks = createMutationCallbacks(asQueryClient(qc), {
 				invalidate: [['a'], ['b', 'c']],
 				errorContext: 'Test'
 			})
@@ -58,7 +65,7 @@ describe('createMutationCallbacks', () => {
 		})
 
 		it('onSuccess calls toast.success with successMessage when provided', () => {
-			const callbacks = createMutationCallbacks(qc as unknown as QueryClient, {
+			const callbacks = createMutationCallbacks(asQueryClient(qc), {
 				invalidate: [],
 				successMessage: 'Created!',
 				errorContext: 'Test'
@@ -70,7 +77,7 @@ describe('createMutationCallbacks', () => {
 		})
 
 		it('onSuccess does NOT call toast when successMessage is omitted', () => {
-			const callbacks = createMutationCallbacks(qc as unknown as QueryClient, {
+			const callbacks = createMutationCallbacks(asQueryClient(qc), {
 				invalidate: [],
 				errorContext: 'Test'
 			})
@@ -81,7 +88,7 @@ describe('createMutationCallbacks', () => {
 		})
 
 		it('onError calls handleMutationError with error and errorContext', () => {
-			const callbacks = createMutationCallbacks(qc as unknown as QueryClient, {
+			const callbacks = createMutationCallbacks(asQueryClient(qc), {
 				invalidate: [],
 				errorContext: 'Create widget'
 			})
@@ -94,7 +101,7 @@ describe('createMutationCallbacks', () => {
 
 		it('onSuccess calls setQueryData when updateDetail config is provided (Tier 2)', () => {
 			const callbacks = createMutationCallbacks<{ id: string }>(
-				qc as unknown as QueryClient,
+				asQueryClient(qc),
 				{
 					invalidate: [],
 					errorContext: 'Test',
@@ -115,7 +122,7 @@ describe('createMutationCallbacks', () => {
 			const callbacks = createMutationCallbacks<
 				{ id: string },
 				{ deletedId: string }
-			>(qc as unknown as QueryClient, {
+			>(asQueryClient(qc), {
 				invalidate: [],
 				errorContext: 'Test',
 				removeDetail: (_data, vars) => ['items', vars.deletedId]
@@ -130,7 +137,7 @@ describe('createMutationCallbacks', () => {
 
 		it('onSuccess calls onSuccessExtra callback after standard operations', () => {
 			const extra = vi.fn()
-			const callbacks = createMutationCallbacks(qc as unknown as QueryClient, {
+			const callbacks = createMutationCallbacks(asQueryClient(qc), {
 				invalidate: [['a']],
 				successMessage: 'Done',
 				errorContext: 'Test',
@@ -145,12 +152,12 @@ describe('createMutationCallbacks', () => {
 			expect(mockToastSuccess).toHaveBeenCalled()
 		})
 
-		it('onSuccess calls handleMutationSuccess instead of toast.success when useSuccessHandler is true', () => {
-			const callbacks = createMutationCallbacks(qc as unknown as QueryClient, {
+		it('onSuccess calls handleMutationSuccess instead of toast.success when broadcastSuccess is true', () => {
+			const callbacks = createMutationCallbacks(asQueryClient(qc), {
 				invalidate: [],
 				successMessage: 'Saved!',
 				errorContext: 'Save item',
-				useSuccessHandler: true
+				broadcastSuccess: true
 			})
 
 			callbacks.onSuccess({ id: '1' }, undefined)
@@ -166,7 +173,7 @@ describe('createMutationCallbacks', () => {
 				{ id: string },
 				{ id: string },
 				Record<string, unknown>
-			>(qc as unknown as QueryClient, {
+			>(asQueryClient(qc), {
 				invalidate: [],
 				errorContext: 'Test',
 				optimistic: {
@@ -189,7 +196,7 @@ describe('createMutationCallbacks', () => {
 				{ id: string },
 				{ id: string },
 				{ prev: string }
-			>(qc as unknown as QueryClient, {
+			>(asQueryClient(qc), {
 				invalidate: [],
 				errorContext: 'Test',
 				optimistic: {
@@ -209,7 +216,7 @@ describe('createMutationCallbacks', () => {
 				{ id: string },
 				{ id: string },
 				Record<string, unknown>
-			>(qc as unknown as QueryClient, {
+			>(asQueryClient(qc), {
 				invalidate: [],
 				errorContext: 'Test',
 				optimistic: {
@@ -232,7 +239,7 @@ describe('createMutationCallbacks', () => {
 				{ id: string },
 				{ id: string },
 				{ old: boolean }
-			>(qc as unknown as QueryClient, {
+			>(asQueryClient(qc), {
 				invalidate: [],
 				errorContext: 'Opt test',
 				optimistic: {
@@ -258,7 +265,7 @@ describe('createMutationCallbacks', () => {
 				{ id: string },
 				{ id: string },
 				Record<string, unknown>
-			>(qc as unknown as QueryClient, {
+			>(asQueryClient(qc), {
 				invalidate: [['x'], ['y', 'z']],
 				errorContext: 'Test',
 				optimistic: {
@@ -280,7 +287,7 @@ describe('createMutationCallbacks', () => {
 				{ id: string },
 				{ id: string },
 				Record<string, unknown>
-			>(qc as unknown as QueryClient, {
+			>(asQueryClient(qc), {
 				invalidate: [['a']],
 				errorContext: 'Test',
 				optimistic: {
@@ -301,7 +308,7 @@ describe('createMutationCallbacks', () => {
 				{ id: string },
 				{ id: string },
 				Record<string, unknown>
-			>(qc as unknown as QueryClient, {
+			>(asQueryClient(qc), {
 				invalidate: [],
 				errorContext: 'Test',
 				optimistic: {

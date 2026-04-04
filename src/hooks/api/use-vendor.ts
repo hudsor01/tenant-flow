@@ -15,10 +15,8 @@ import { createMutationCallbacks } from '#hooks/create-mutation-callbacks'
 import { useEntityDetail } from '#hooks/use-entity-detail'
 import { handlePostgrestError } from '#lib/postgrest-error-handler'
 import { sanitizeSearchInput } from '#lib/sanitize-search'
-import { handleMutationError } from '#lib/mutation-error-handler'
 import { maintenanceQueries, vendorMutations } from './query-keys/maintenance-keys'
 import { ownerDashboardKeys } from './use-owner-dashboard'
-import { toast } from 'sonner'
 
 // ============================================================================
 // TYPES
@@ -213,13 +211,16 @@ export function useAssignVendorMutation() {
 	const queryClient = useQueryClient()
 	return useMutation({
 		...vendorMutations.assign(),
-		onSuccess: (_data, { maintenanceId }) => {
-			queryClient.invalidateQueries({
-				queryKey: maintenanceQueries.detail(maintenanceId).queryKey
-			})
-			toast.success('Vendor assigned to request')
-		},
-		onError: (error) => handleMutationError(error, 'Assign vendor')
+		...createMutationCallbacks<
+			void,
+			{ vendorId: string; maintenanceId: string }
+		>(queryClient, {
+			invalidate: (vars) => [
+				maintenanceQueries.detail(vars.maintenanceId).queryKey
+			],
+			successMessage: 'Vendor assigned to request',
+			errorContext: 'Assign vendor'
+		})
 	})
 }
 
@@ -232,12 +233,12 @@ export function useUnassignVendorMutation() {
 	const queryClient = useQueryClient()
 	return useMutation({
 		...vendorMutations.unassign(),
-		onSuccess: (_data, maintenanceId) => {
-			queryClient.invalidateQueries({
-				queryKey: maintenanceQueries.detail(maintenanceId).queryKey
-			})
-			toast.success('Vendor unassigned')
-		},
-		onError: (error) => handleMutationError(error, 'Unassign vendor')
+		...createMutationCallbacks<void, string>(queryClient, {
+			invalidate: (maintenanceId) => [
+				maintenanceQueries.detail(maintenanceId).queryKey
+			],
+			successMessage: 'Vendor unassigned',
+			errorContext: 'Unassign vendor'
+		})
 	})
 }

@@ -86,7 +86,7 @@ export function useMarkTenantAsMovedOutMutation() {
 			TenantWithLeaseInfo | null,
 			{ id: string },
 			{
-				previousDetail: TenantWithLeaseInfo | undefined
+				previousDetail: Tenant | undefined
 				previousWithLease: TenantWithLeaseInfo | undefined
 				previousList: TenantWithLeaseInfo[] | undefined
 				id: string
@@ -112,7 +112,7 @@ export function useMarkTenantAsMovedOutMutation() {
 					tenantQueries.lists()
 				],
 				snapshot: (qc, { id }) => ({
-					previousDetail: qc.getQueryData<TenantWithLeaseInfo>(
+					previousDetail: qc.getQueryData<Tenant>(
 						tenantQueries.detail(id).queryKey
 					),
 					previousWithLease: qc.getQueryData<TenantWithLeaseInfo>(
@@ -149,7 +149,7 @@ export function useMarkTenantAsMovedOutMutation() {
 					if (context.previousDetail)
 						qc.setQueryData(
 							tenantQueries.detail(context.id).queryKey,
-							context.previousDetail as unknown as Tenant
+							context.previousDetail
 						)
 					if (context.previousWithLease)
 						qc.setQueryData(

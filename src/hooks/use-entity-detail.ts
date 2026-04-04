@@ -16,7 +16,7 @@ import type { QueryKey, UseQueryOptions } from '@tanstack/react-query'
  */
 export interface EntityDetailConfig {
 	/** Return value from a queryOptions() factory — spread into useQuery */
-	queryOptions: { queryKey: QueryKey } & Record<string, unknown>
+	queryOptions: { queryKey: QueryKey; queryFn?: unknown } & Record<string, unknown>
 	/** Query key prefix to search list caches for placeholderData */
 	listQueryKey?: readonly unknown[]
 	/** Entity ID to match within list cache data */

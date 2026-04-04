@@ -3,7 +3,8 @@
 
 import Stripe from 'stripe'
 
-/** Locked API version used across all Edge Functions. */
+/** Locked API version used across all Edge Functions.
+ *  Update this when bumping the `stripe` package in deno.json. */
 const STRIPE_API_VERSION = '2026-02-25.clover' as Stripe.LatestApiVersion
 
 /**

@@ -56,8 +56,8 @@ export interface MutationCallbackConfig<
 	) => readonly unknown[]
 	/** Custom callback after standard operations */
 	onSuccessExtra?: (data: TData) => void
-	/** When true, use handleMutationSuccess instead of toast.success */
-	useSuccessHandler?: boolean
+	/** When true, use handleMutationSuccess (structured logging) instead of toast.success */
+	broadcastSuccess?: boolean
 	/** Tier 3: optimistic update config */
 	optimistic?: OptimisticConfig<TVariables, TContext>
 }
@@ -120,22 +120,19 @@ export function createMutationCallbacks<
 	| OptimisticCallbacks<TData, TVariables, TContext>
 	| StandardCallbacks<TData, TVariables> {
 	const showSuccess = () => {
-		if (config.useSuccessHandler && config.successMessage) {
+		if (config.broadcastSuccess && config.successMessage) {
 			handleMutationSuccess(config.errorContext, config.successMessage)
 		} else if (config.successMessage) {
 			toast.success(config.successMessage)
 		}
 	}
 
-	const resolveInvalidateKeys = (variables?: TVariables) => {
-		if (typeof config.invalidate === 'function') {
-			return config.invalidate(variables as TVariables)
-		}
-		return config.invalidate
-	}
-
-	const invalidateAll = (variables?: TVariables) => {
-		for (const key of resolveInvalidateKeys(variables)) {
+	const invalidateAll = (variables: TVariables) => {
+		const keys =
+			typeof config.invalidate === 'function'
+				? config.invalidate(variables)
+				: config.invalidate
+		for (const key of keys) {
 			queryClient.invalidateQueries({ queryKey: key as QueryKey })
 		}
 	}
@@ -196,7 +193,7 @@ export function createMutationCallbacks<
 				const queryKey = config.removeDetail(data, variables)
 				queryClient.removeQueries({ queryKey })
 			}
-			invalidateAll()
+			invalidateAll(variables)
 			showSuccess()
 			config.onSuccessExtra?.(data)
 		},

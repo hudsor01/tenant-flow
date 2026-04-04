@@ -30,7 +30,7 @@ export function useCreateInspection() {
 			invalidate: [inspectionQueries.lists()],
 			successMessage: 'Inspection created successfully',
 			errorContext: 'Create inspection',
-			useSuccessHandler: true
+			broadcastSuccess: true
 		})
 	})
 }
@@ -51,7 +51,7 @@ export function useUpdateInspection(id: string) {
 			}),
 			successMessage: 'Inspection updated',
 			errorContext: 'Update inspection',
-			useSuccessHandler: true
+			broadcastSuccess: true
 		})
 	})
 }
@@ -72,7 +72,7 @@ export function useCompleteInspection(id: string) {
 			],
 			successMessage: 'Inspection marked as complete',
 			errorContext: 'Complete inspection',
-			useSuccessHandler: true
+			broadcastSuccess: true
 		})
 	})
 }
@@ -93,7 +93,7 @@ export function useSubmitForTenantReview(id: string) {
 			],
 			successMessage: 'Sent to tenant for review',
 			errorContext: 'Submit for review',
-			useSuccessHandler: true
+			broadcastSuccess: true
 		})
 	})
 }
@@ -115,7 +115,7 @@ export function useTenantReview(id: string) {
 			],
 			successMessage: 'Inspection reviewed and signed',
 			errorContext: 'Tenant review',
-			useSuccessHandler: true
+			broadcastSuccess: true
 		})
 	})
 }
@@ -132,7 +132,7 @@ export function useDeleteInspection() {
 			invalidate: [inspectionQueries.lists()],
 			successMessage: 'Inspection deleted',
 			errorContext: 'Delete inspection',
-			useSuccessHandler: true
+			broadcastSuccess: true
 		})
 	})
 }

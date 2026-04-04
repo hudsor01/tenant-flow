@@ -7,10 +7,8 @@
  */
 
 import { useMutation, usePrefetchQuery, useQueryClient } from '@tanstack/react-query'
-import { toast } from 'sonner'
 
 import { createMutationCallbacks } from '#hooks/create-mutation-callbacks'
-import { handleMutationError } from '#lib/mutation-error-handler'
 
 import { logger } from '#lib/frontend-logger'
 import type { Property } from '#types/core'
@@ -146,16 +144,17 @@ export function useDeletePropertyMutation() {
 
 	return useMutation({
 		...propertyMutations.delete(),
-		onSuccess: (_result, deletedId) => {
-			queryClient.removeQueries({
-				queryKey: propertyQueries.detail(deletedId).queryKey
-			})
-			queryClient.invalidateQueries({ queryKey: propertyQueries.lists() })
-			queryClient.invalidateQueries({ queryKey: unitQueries.lists() })
-			queryClient.invalidateQueries({ queryKey: ownerDashboardKeys.all })
-			toast.success('Property deleted successfully')
-		},
-		onError: error => handleMutationError(error, 'Delete property')
+		...createMutationCallbacks<void, string>(queryClient, {
+			invalidate: [
+				propertyQueries.lists(),
+				unitQueries.lists(),
+				ownerDashboardKeys.all
+			],
+			removeDetail: (_data, deletedId) =>
+				propertyQueries.detail(deletedId).queryKey,
+			successMessage: 'Property deleted successfully',
+			errorContext: 'Delete property'
+		})
 	})
 }
 
@@ -165,13 +164,16 @@ export function useDeletePropertyImageMutation() {
 
 	return useMutation({
 		...propertyMutations.deleteImage(),
-		onSuccess: (_, { property_id }) => {
-			queryClient.invalidateQueries({
-				queryKey: [...propertyQueries.detail(property_id).queryKey, 'images']
-			})
-			queryClient.invalidateQueries({ queryKey: propertyQueries.lists() })
-			toast.success('Image deleted successfully')
-		},
-		onError: error => handleMutationError(error, 'Delete image')
+		...createMutationCallbacks<
+			{ success: boolean },
+			{ imageId: string; property_id: string; imagePath?: string }
+		>(queryClient, {
+			invalidate: (vars) => [
+				[...propertyQueries.detail(vars.property_id).queryKey, 'images'],
+				propertyQueries.lists()
+			],
+			successMessage: 'Image deleted successfully',
+			errorContext: 'Delete image'
+		})
 	})
 }
