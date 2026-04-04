@@ -2,7 +2,7 @@ import { useMutation, useQuery, useQueryClient, mutationOptions } from '@tanstac
 
 import { mutationKeys } from './mutation-keys'
 import type { IdentityVerificationSessionPayload } from '#types/stripe'
-import { stripeConnectKeys } from './use-stripe-connect'
+import { stripeConnectKeys } from './query-keys/stripe-connect-keys'
 import { identityVerificationKeys, identityVerificationQueries } from './query-keys/identity-verification-keys'
 
 export { identityVerificationKeys } from './query-keys/identity-verification-keys'
