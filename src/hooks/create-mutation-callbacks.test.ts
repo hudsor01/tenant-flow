@@ -268,7 +268,7 @@ describe('createMutationCallbacks', () => {
 				}
 			})
 
-			callbacks.onSettled()
+			callbacks.onSettled(undefined, undefined, { id: 'test' })
 
 			expect(qc.invalidateQueries).toHaveBeenCalledTimes(2)
 			expect(qc.invalidateQueries).toHaveBeenCalledWith({ queryKey: ['x'] })

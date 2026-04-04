@@ -37,8 +37,10 @@ export interface MutationCallbackConfig<
 	TVariables = unknown,
 	TContext = unknown
 > {
-	/** Query keys to invalidate on success */
-	invalidate: ReadonlyArray<readonly unknown[]>
+	/** Query keys to invalidate on success. Static array, or function of variables for optimistic mode. */
+	invalidate:
+		| ReadonlyArray<readonly unknown[]>
+		| ((variables: TVariables) => ReadonlyArray<readonly unknown[]>)
 	/** Toast message on success */
 	successMessage?: string
 	/** Context for handleMutationError (e.g., "Create property") */
@@ -69,7 +71,11 @@ interface OptimisticCallbacks<TData, TVariables, TContext> {
 		variables: TVariables,
 		context: TContext | undefined
 	) => void
-	onSettled: () => void
+	onSettled: (
+		data: TData | undefined,
+		error: unknown,
+		variables: TVariables
+	) => void
 }
 
 /** Return type for standard callbacks (Tier 1 / Tier 2) */
@@ -121,8 +127,15 @@ export function createMutationCallbacks<
 		}
 	}
 
-	const invalidateAll = () => {
-		for (const key of config.invalidate) {
+	const resolveInvalidateKeys = (variables?: TVariables) => {
+		if (typeof config.invalidate === 'function') {
+			return config.invalidate(variables as TVariables)
+		}
+		return config.invalidate
+	}
+
+	const invalidateAll = (variables?: TVariables) => {
+		for (const key of resolveInvalidateKeys(variables)) {
 			queryClient.invalidateQueries({ queryKey: key as QueryKey })
 		}
 	}
@@ -162,8 +175,12 @@ export function createMutationCallbacks<
 				}
 				handleMutationError(error, config.errorContext)
 			},
-			onSettled: () => {
-				invalidateAll()
+			onSettled: (
+				_data: TData | undefined,
+				_error: unknown,
+				variables: TVariables
+			) => {
+				invalidateAll(variables)
 			}
 		}
 	}

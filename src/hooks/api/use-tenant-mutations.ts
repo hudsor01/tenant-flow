@@ -8,10 +8,10 @@
  */
 
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { handleMutationError, handleMutationSuccess } from '#lib/mutation-error-handler'
-import { toast } from 'sonner'
+import { handleMutationSuccess } from '#lib/mutation-error-handler'
 import { incrementVersion } from '#lib/utils/optimistic-locking'
 import type { Tenant, TenantWithLeaseInfo, TenantWithLeaseInfoWithVersion } from '#types/core'
+import { createMutationCallbacks } from '#hooks/create-mutation-callbacks'
 
 import { tenantQueries } from './query-keys/tenant-keys'
 import { tenantMutations } from './query-keys/tenant-mutation-options'
@@ -26,12 +26,11 @@ export function useCreateTenantMutation() {
 	const queryClient = useQueryClient()
 	return useMutation({
 		...tenantMutations.create(),
-		onSuccess: () => {
-			queryClient.invalidateQueries({ queryKey: tenantQueries.lists() })
-			queryClient.invalidateQueries({ queryKey: ownerDashboardKeys.all })
-			toast.success('Tenant created successfully')
-		},
-		onError: error => handleMutationError(error, 'Create tenant')
+		...createMutationCallbacks(queryClient, {
+			invalidate: [tenantQueries.lists(), ownerDashboardKeys.all],
+			successMessage: 'Tenant created successfully',
+			errorContext: 'Create tenant'
+		})
 	})
 }
 
@@ -40,13 +39,15 @@ export function useUpdateTenantMutation() {
 	const queryClient = useQueryClient()
 	return useMutation({
 		...tenantMutations.update(),
-		onSuccess: updatedTenant => {
-			queryClient.setQueryData(tenantQueries.detail(updatedTenant.id).queryKey, updatedTenant)
-			queryClient.invalidateQueries({ queryKey: tenantQueries.lists() })
-			queryClient.invalidateQueries({ queryKey: ownerDashboardKeys.all })
-			toast.success('Tenant updated successfully')
-		},
-		onError: error => handleMutationError(error, 'Update tenant')
+		...createMutationCallbacks<TenantWithLeaseInfo>(queryClient, {
+			invalidate: [tenantQueries.lists(), ownerDashboardKeys.all],
+			updateDetail: tenant => ({
+				queryKey: tenantQueries.detail(tenant.id).queryKey,
+				data: tenant
+			}),
+			successMessage: 'Tenant updated successfully',
+			errorContext: 'Update tenant'
+		})
 	})
 }
 
@@ -58,14 +59,17 @@ export function useDeleteTenantMutation() {
 	const queryClient = useQueryClient()
 	return useMutation({
 		...tenantMutations.delete(),
-		onSuccess: (_result, deletedId) => {
-			queryClient.removeQueries({ queryKey: tenantQueries.detail(deletedId).queryKey })
-			queryClient.invalidateQueries({ queryKey: tenantQueries.lists() })
-			queryClient.invalidateQueries({ queryKey: leaseQueries.lists() })
-			queryClient.invalidateQueries({ queryKey: ownerDashboardKeys.all })
-			toast.success('Tenant deleted successfully')
-		},
-		onError: error => handleMutationError(error, 'Delete tenant')
+		...createMutationCallbacks<unknown, string>(queryClient, {
+			invalidate: [
+				tenantQueries.lists(),
+				leaseQueries.lists(),
+				ownerDashboardKeys.all
+			],
+			removeDetail: (_data, deletedId) =>
+				tenantQueries.detail(deletedId).queryKey,
+			successMessage: 'Tenant deleted successfully',
+			errorContext: 'Delete tenant'
+		})
 	})
 }
 
@@ -78,37 +82,84 @@ export function useMarkTenantAsMovedOutMutation() {
 
 	return useMutation({
 		...tenantMutations.markMovedOut(),
-		onMutate: async ({ id }) => {
-			await queryClient.cancelQueries({ queryKey: tenantQueries.detail(id).queryKey })
-			await queryClient.cancelQueries({ queryKey: tenantQueries.withLease(id).queryKey })
-			await queryClient.cancelQueries({ queryKey: tenantQueries.lists() })
-			const previousDetail = queryClient.getQueryData<TenantWithLeaseInfo>(tenantQueries.detail(id).queryKey)
-			const previousWithLease = queryClient.getQueryData<TenantWithLeaseInfo>(tenantQueries.withLease(id).queryKey)
-			const previousList = queryClient.getQueryData<TenantWithLeaseInfo[]>(tenantQueries.lists())
-			const updateFn = (old: TenantWithLeaseInfoWithVersion | undefined) => {
-				if (!old) return old
-				return incrementVersion(old, { updated_at: new Date().toISOString() } as Partial<TenantWithLeaseInfoWithVersion>) as TenantWithLeaseInfoWithVersion
+		...createMutationCallbacks<
+			TenantWithLeaseInfo | null,
+			{ id: string },
+			{
+				previousDetail: TenantWithLeaseInfo | undefined
+				previousWithLease: TenantWithLeaseInfo | undefined
+				previousList: TenantWithLeaseInfo[] | undefined
+				id: string
 			}
-			queryClient.setQueryData<TenantWithLeaseInfoWithVersion>(tenantQueries.detail(id).queryKey, updateFn)
-			queryClient.setQueryData<TenantWithLeaseInfoWithVersion>(tenantQueries.withLease(id).queryKey, updateFn)
-			queryClient.setQueryData<TenantWithLeaseInfo[]>(tenantQueries.lists(), old => old ? old.filter(tenant => tenant.id !== id) : old)
-			return { previousDetail, previousWithLease, previousList, id }
-		},
-		onError: (err, _variables, context) => {
-			if (context) {
-				if (context.previousDetail) queryClient.setQueryData(tenantQueries.detail(context.id).queryKey, context.previousDetail as unknown as Tenant)
-				if (context.previousWithLease) queryClient.setQueryData(tenantQueries.withLease(context.id).queryKey, context.previousWithLease)
-				if (context.previousList) queryClient.setQueryData(tenantQueries.lists(), context.previousList)
+		>(queryClient, {
+			invalidate: ({ id }) => [
+				tenantQueries.detail(id).queryKey,
+				tenantQueries.withLease(id).queryKey,
+				tenantQueries.lists(),
+				ownerDashboardKeys.all
+			],
+			errorContext: 'Mark tenant as moved out',
+			onSuccessExtra: data => {
+				handleMutationSuccess(
+					'Mark tenant as moved out',
+					`${data?.name ?? 'Tenant'} has been marked as moved out`
+				)
+			},
+			optimistic: {
+				cancel: ({ id }) => [
+					tenantQueries.detail(id).queryKey,
+					tenantQueries.withLease(id).queryKey,
+					tenantQueries.lists()
+				],
+				snapshot: (qc, { id }) => ({
+					previousDetail: qc.getQueryData<TenantWithLeaseInfo>(
+						tenantQueries.detail(id).queryKey
+					),
+					previousWithLease: qc.getQueryData<TenantWithLeaseInfo>(
+						tenantQueries.withLease(id).queryKey
+					),
+					previousList: qc.getQueryData<TenantWithLeaseInfo[]>(
+						tenantQueries.lists()
+					),
+					id
+				}),
+				apply: (qc, { id }) => {
+					const updateFn = (
+						old: TenantWithLeaseInfoWithVersion | undefined
+					) => {
+						if (!old) return old
+						return incrementVersion(old, {
+							updated_at: new Date().toISOString()
+						} as Partial<TenantWithLeaseInfoWithVersion>) as TenantWithLeaseInfoWithVersion
+					}
+					qc.setQueryData<TenantWithLeaseInfoWithVersion>(
+						tenantQueries.detail(id).queryKey,
+						updateFn
+					)
+					qc.setQueryData<TenantWithLeaseInfoWithVersion>(
+						tenantQueries.withLease(id).queryKey,
+						updateFn
+					)
+					qc.setQueryData<TenantWithLeaseInfo[]>(
+						tenantQueries.lists(),
+						old => (old ? old.filter(tenant => tenant.id !== id) : old)
+					)
+				},
+				rollback: (qc, context) => {
+					if (context.previousDetail)
+						qc.setQueryData(
+							tenantQueries.detail(context.id).queryKey,
+							context.previousDetail as unknown as Tenant
+						)
+					if (context.previousWithLease)
+						qc.setQueryData(
+							tenantQueries.withLease(context.id).queryKey,
+							context.previousWithLease
+						)
+					if (context.previousList)
+						qc.setQueryData(tenantQueries.lists(), context.previousList)
+				}
 			}
-			handleMutationError(err, 'Mark tenant as moved out')
-		},
-		onSuccess: data => {
-			handleMutationSuccess('Mark tenant as moved out', `${data?.name ?? 'Tenant'} has been marked as moved out`)
-		},
-		onSettled: (_data, _error, variables) => {
-			queryClient.invalidateQueries({ queryKey: tenantQueries.detail(variables.id).queryKey })
-			queryClient.invalidateQueries({ queryKey: tenantQueries.withLease(variables.id).queryKey })
-			queryClient.invalidateQueries({ queryKey: tenantQueries.lists() })
-		}
+		})
 	})
 }

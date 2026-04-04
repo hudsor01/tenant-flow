@@ -20,9 +20,8 @@ import {
 import type { Unit } from '#types/core'
 import type { PaginatedResponse } from '#types/api-contracts'
 import { QUERY_CACHE_TIMES } from '#lib/constants/query-config'
-import { handleMutationError } from '#lib/mutation-error-handler'
-import { toast } from 'sonner'
 import { useEntityDetail } from '#hooks/use-entity-detail'
+import { createMutationCallbacks } from '#hooks/create-mutation-callbacks'
 
 // Import query keys from separate file to avoid circular dependency
 import { unitQueries } from './query-keys/unit-keys'
@@ -142,15 +141,15 @@ export function useCreateUnitMutation() {
 
 	return useMutation({
 		...unitMutations.create(),
-		onSuccess: _newUnit => {
-			queryClient.invalidateQueries({ queryKey: unitQueries.lists() })
-			queryClient.invalidateQueries({ queryKey: propertyQueries.lists() })
-			queryClient.invalidateQueries({ queryKey: ownerDashboardKeys.all })
-			toast.success('Unit created successfully')
-		},
-		onError: error => {
-			handleMutationError(error, 'Create unit')
-		}
+		...createMutationCallbacks(queryClient, {
+			invalidate: [
+				unitQueries.lists(),
+				propertyQueries.lists(),
+				ownerDashboardKeys.all
+			],
+			successMessage: 'Unit created successfully',
+			errorContext: 'Create unit'
+		})
 	})
 }
 
@@ -162,20 +161,20 @@ export function useUpdateUnitMutation() {
 
 	return useMutation({
 		...unitMutations.update(),
-		onSuccess: updatedUnit => {
-			queryClient.setQueryData(
-				unitQueries.detail(updatedUnit.id).queryKey,
-				updatedUnit
-			)
-			queryClient.invalidateQueries({ queryKey: unitQueries.lists() })
-			queryClient.invalidateQueries({ queryKey: propertyQueries.lists() })
-			queryClient.invalidateQueries({ queryKey: leaseQueries.lists() })
-			queryClient.invalidateQueries({ queryKey: ownerDashboardKeys.all })
-			toast.success('Unit updated successfully')
-		},
-		onError: error => {
-			handleMutationError(error, 'Update unit')
-		}
+		...createMutationCallbacks<Unit>(queryClient, {
+			invalidate: [
+				unitQueries.lists(),
+				propertyQueries.lists(),
+				leaseQueries.lists(),
+				ownerDashboardKeys.all
+			],
+			updateDetail: unit => ({
+				queryKey: unitQueries.detail(unit.id).queryKey,
+				data: unit
+			}),
+			successMessage: 'Unit updated successfully',
+			errorContext: 'Update unit'
+		})
 	})
 }
 
@@ -187,18 +186,17 @@ export function useDeleteUnitMutation() {
 
 	return useMutation({
 		...unitMutations.delete(),
-		onSuccess: (_result, deletedId) => {
-			queryClient.removeQueries({
-				queryKey: unitQueries.detail(deletedId).queryKey
-			})
-			queryClient.invalidateQueries({ queryKey: unitQueries.lists() })
-			queryClient.invalidateQueries({ queryKey: propertyQueries.lists() })
-			queryClient.invalidateQueries({ queryKey: leaseQueries.lists() })
-			queryClient.invalidateQueries({ queryKey: ownerDashboardKeys.all })
-			toast.success('Unit deleted successfully')
-		},
-		onError: error => {
-			handleMutationError(error, 'Delete unit')
-		}
+		...createMutationCallbacks<unknown, string>(queryClient, {
+			invalidate: [
+				unitQueries.lists(),
+				propertyQueries.lists(),
+				leaseQueries.lists(),
+				ownerDashboardKeys.all
+			],
+			removeDetail: (_data, deletedId) =>
+				unitQueries.detail(deletedId).queryKey,
+			successMessage: 'Unit deleted successfully',
+			errorContext: 'Delete unit'
+		})
 	})
 }
