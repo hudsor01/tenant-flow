@@ -5,7 +5,7 @@ const PRODUCTION_URL = 'https://tenantflow.app'
 
 // Use getter to ensure env var is read at runtime, not compile time
 // Falls back to VERCEL_URL during build, or production URL as final fallback
-function getSiteUrl(): string {
+export function getSiteUrl(): string {
 	// Primary: explicit app URL (validated by t3-env)
 	if (env.NEXT_PUBLIC_APP_URL) {
 		return env.NEXT_PUBLIC_APP_URL
