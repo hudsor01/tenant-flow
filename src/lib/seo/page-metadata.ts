@@ -17,7 +17,8 @@ interface PageMetadataConfig {
 export function createPageMetadata(config: PageMetadataConfig): Metadata {
 	const { title, description, path, noindex, ogImage } = config
 	const siteUrl = getSiteUrl()
-	const canonicalUrl = `${siteUrl}${path}`
+	const normalizedPath = path.startsWith('/') ? path : `/${path}`
+	const canonicalUrl = `${siteUrl}${normalizedPath}`
 	const imageUrl = ogImage ?? `${siteUrl}/images/property-management-og.jpg`
 
 	return {

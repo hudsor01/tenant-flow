@@ -91,6 +91,18 @@ describe('createPageMetadata', () => {
 		expect(firstImage?.url).toContain('/images/property-management-og.jpg')
 	})
 
+	it('normalizes path missing leading slash', () => {
+		const result = createPageMetadata({
+			title: 'FAQ',
+			description: 'desc',
+			path: 'faq'
+		})
+
+		expect(result.alternates?.canonical).toBe('https://tenantflow.app/faq')
+		const og = result.openGraph as Record<string, unknown>
+		expect(og.url).toBe('https://tenantflow.app/faq')
+	})
+
 	it('custom ogImage overrides default', () => {
 		const result = createPageMetadata({
 			title: 'FAQ',
