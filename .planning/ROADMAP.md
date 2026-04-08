@@ -78,7 +78,7 @@ TenantFlow is a multi-tenant property management SaaS platform for property owne
 ### v1.6 SEO & Google Indexing Optimization (Phases 32-38)
 
 - [x] **Phase 32: Crawlability & Critical Fixes** - Fix robots.txt blocking Googlebot rendering, delete stale static files, remove spam-risk AggregateRating
-- [ ] **Phase 33: SEO Utilities Foundation** - Build shared JSON-LD components and metadata factories that all subsequent phases consume
+- [x] **Phase 33: SEO Utilities Foundation** - Build shared JSON-LD components and metadata factories that all subsequent phases consume (completed 2026-04-08)
 - [ ] **Phase 34: Per-Page Metadata** - Add generateMetadata() to all public pages with canonical URLs, OG tags, and server wrappers for client pages
 - [ ] **Phase 35: Structured Data Enrichment** - Add missing schemas and refactor existing inline JSON-LD to use shared utilities
 - [ ] **Phase 36: Pricing Page Polish** - Fix pricing page technical debt (HTML entities, legacy Tailwind, mobile layout, dynamic dates)
@@ -110,10 +110,10 @@ Plans:
   3. `getSiteUrl()` is exported from `src/lib/seo/` (or `generate-metadata.ts`) and is the single source of truth for base URL -- no other file constructs the site URL from `process.env` directly
   4. `schema-dts` is listed in `devDependencies` in `package.json`
   5. Unit tests exist for every utility function in `src/lib/seo/` and the `JsonLdScript` component, all passing
-**Plans:** 2 plans
+**Plans:** 2/2 plans complete
 Plans:
-- [ ] 33-01-PLAN.md -- JsonLdScript component, breadcrumb factory, page-metadata factory, schema-dts install
-- [ ] 33-02-PLAN.md -- Article, FAQ, and product JSON-LD schema factories
+- [x] 33-01-PLAN.md -- JsonLdScript component, breadcrumb factory, page-metadata factory, schema-dts install
+- [x] 33-02-PLAN.md -- Article, FAQ, and product JSON-LD schema factories
 
 ### Phase 34: Per-Page Metadata
 **Goal**: Every public page has unique, crawlable metadata with correct canonical URLs and OG tags
@@ -192,7 +192,7 @@ Note: Phase 35 and Phase 36 both depend on Phase 33 and are independent of each 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
 | 32. Crawlability & Critical Fixes | v1.6 | 1/1 | Complete | 2026-04-08 |
-| 33. SEO Utilities Foundation | v1.6 | 0/2 | Not started | - |
+| 33. SEO Utilities Foundation | v1.6 | 2/2 | Complete    | 2026-04-08 |
 | 34. Per-Page Metadata | v1.6 | 0/0 | Not started | - |
 | 35. Structured Data Enrichment | v1.6 | 0/0 | Not started | - |
 | 36. Pricing Page Polish | v1.6 | 0/0 | Not started | - |
