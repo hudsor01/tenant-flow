@@ -1,9 +1,9 @@
 ---
 phase: 31
 slug: frontend-hook-factories
-status: draft
-nyquist_compliant: false
-wave_0_complete: false
+status: complete
+nyquist_compliant: true
+wave_0_complete: true
 created: 2026-04-03
 ---
 
@@ -38,10 +38,10 @@ created: 2026-04-03
 
 | Task ID | Plan | Wave | Requirement | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|-----------|-------------------|-------------|--------|
-| 31-01-01 | 01 | 1 | FRONT-02 | unit | `pnpm test:unit -- --run src/hooks/use-entity-detail.test.ts` | ❌ W0 | ⬜ pending |
-| 31-01-02 | 01 | 1 | FRONT-03 | unit | `pnpm test:unit -- --run src/hooks/create-mutation-callbacks.test.ts` | ❌ W0 | ⬜ pending |
-| 31-01-03 | 01 | 1 | FRONT-02 | unit | `pnpm test:unit -- --run` | ✅ | ⬜ pending |
-| 31-02-01 | 02 | 2 | FRONT-02, FRONT-03 | unit | `pnpm test:unit -- --run` | ✅ | ⬜ pending |
+| 31-01-01 | 01 | 1 | FRONT-02 | unit | `pnpm test:unit -- --run src/hooks/use-entity-detail.test.ts` | ✅ | ✅ green |
+| 31-01-02 | 01 | 1 | FRONT-03 | unit | `pnpm test:unit -- --run src/hooks/create-mutation-callbacks.test.ts` | ✅ | ✅ green |
+| 31-01-03 | 01 | 1 | FRONT-02 | unit | `pnpm test:unit -- --run` | ✅ | ✅ green |
+| 31-02-01 | 02 | 2 | FRONT-02, FRONT-03 | unit | `pnpm test:unit -- --run` | ✅ | ✅ green |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
@@ -49,10 +49,10 @@ created: 2026-04-03
 
 ## Wave 0 Requirements
 
-- [ ] `src/hooks/use-entity-detail.test.ts` — unit tests for useEntityDetail factory
-- [ ] `src/hooks/create-mutation-callbacks.test.ts` — unit tests for createMutationCallbacks factory
+- [x] `src/hooks/use-entity-detail.test.ts` — unit tests for useEntityDetail factory
+- [x] `src/hooks/create-mutation-callbacks.test.ts` — unit tests for createMutationCallbacks factory
 
-*Existing test infrastructure (vitest 4.1.2, 1499 passing tests) covers all other phase requirements.*
+*Existing test infrastructure (vitest 4.1.2, 1519 passing tests) covers all other phase requirements.*
 
 ---
 
@@ -66,11 +66,11 @@ created: 2026-04-03
 
 ## Validation Sign-Off
 
-- [ ] All tasks have `<automated>` verify or Wave 0 dependencies
-- [ ] Sampling continuity: no 3 consecutive tasks without automated verify
-- [ ] Wave 0 covers all MISSING references
-- [ ] No watch-mode flags
-- [ ] Feedback latency < 15s
-- [ ] `nyquist_compliant: true` set in frontmatter
+- [x] All tasks have `<automated>` verify or Wave 0 dependencies
+- [x] Sampling continuity: no 3 consecutive tasks without automated verify
+- [x] Wave 0 covers all MISSING references
+- [x] No watch-mode flags
+- [x] Feedback latency < 15s
+- [x] `nyquist_compliant: true` set in frontmatter
 
-**Approval:** pending
+**Approval:** approved (v1.5 merged via PR #580, 2026-04-08)
