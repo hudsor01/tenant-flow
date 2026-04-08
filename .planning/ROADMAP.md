@@ -121,14 +121,14 @@ Plans:
 **Requirements**: META-01, META-02, META-03, META-04, META-05, META-06, META-07, META-08, META-09, META-10, META-11, META-12
 **Success Criteria** (what must be TRUE):
   1. Every `page.tsx` under `src/app/(public)/` (or equivalent public route group) exports `metadata` or `generateMetadata()` with a unique title and description
-  2. `/features`, `/blog`, and `/blog/category/[category]` each have a server-component `page.tsx` that exports metadata and renders a separate `*-content.tsx` client component
+  2. `/features`, `/blog`, and `/blog/category/[category]` each have a server-component `page.tsx` that exports metadata and renders a separate `*-client.tsx` client component
   3. All public pages include `alternates.canonical` pointing to their own canonical URL (not inheriting the homepage canonical)
   4. Paginated blog listing pages beyond page 1 include `robots: { index: false, follow: true }` in their metadata
   5. Running `pnpm typecheck && pnpm lint && pnpm test:unit` passes with zero errors
-**Plans:** 1 plan
+**Plans:** 2 plans
 Plans:
-- [ ] 32-01-PLAN.md -- Dynamic robots.ts, delete stale static files, remove fabricated aggregateRating
-**UI hint**: yes
+- [ ] 34-01-PLAN.md -- Static metadata + inline JSON-LD migration for 7 server-component pages
+- [ ] 34-02-PLAN.md -- Server/client splits for features, blog, blog/category with generateMetadata and pagination noindex
 
 ### Phase 35: Structured Data Enrichment
 **Goal**: Google Rich Results Test shows valid schemas for every public page type (breadcrumbs, articles, FAQ, HowTo, comparisons)
@@ -193,7 +193,7 @@ Note: Phase 35 and Phase 36 both depend on Phase 33 and are independent of each 
 |-------|-----------|----------------|--------|-----------|
 | 32. Crawlability & Critical Fixes | v1.6 | 1/1 | Complete | 2026-04-08 |
 | 33. SEO Utilities Foundation | v1.6 | 2/2 | Complete    | 2026-04-08 |
-| 34. Per-Page Metadata | v1.6 | 0/0 | Not started | - |
+| 34. Per-Page Metadata | v1.6 | 0/2 | Not started | - |
 | 35. Structured Data Enrichment | v1.6 | 0/0 | Not started | - |
 | 36. Pricing Page Polish | v1.6 | 0/0 | Not started | - |
 | 37. Content SEO & Internal Linking | v1.6 | 0/0 | Not started | - |
