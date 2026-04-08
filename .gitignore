@@ -40,6 +40,7 @@ doppler.env
 **/.env.keys
 .env.vault
 .doppler.yaml
+.mcp.json
 
 # Environment keys and credentials
 .api-keys
