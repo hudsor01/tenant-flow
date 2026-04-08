@@ -27,7 +27,8 @@ export function createBreadcrumbJsonLd(
 	segments.forEach((segment, index) => {
 		currentPath += `/${segment}`
 		const isLast = index === segments.length - 1
-		const name = overrides?.[segment] ?? formatSegment(segment)
+		const rawName = overrides?.[segment] ?? formatSegment(segment)
+		const name = rawName.replace(/<[^>]*>/g, '')
 
 		const listItem: ListItem = {
 			'@type': 'ListItem' as const,

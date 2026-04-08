@@ -50,7 +50,7 @@ export function createArticleJsonLd(config: ArticleJsonLdConfig): Article {
 				url: `${siteUrl}/tenant-flow-logo.png`
 			}
 		},
-		mainEntityOfPage: `${siteUrl}/blog/${slug}`,
+		mainEntityOfPage: `${siteUrl}/blog/${encodeURIComponent(slug)}`,
 		...(image ? { image } : {}),
 		...(wordCount ? { wordCount } : {}),
 		...(keywords && keywords.length > 0
