@@ -1,3 +1,5 @@
+import type { Metadata } from 'next'
+
 import { PageLayout } from '#components/layout/page-layout'
 import { HeroSection } from '#components/sections/hero-section'
 import { Button } from '#components/ui/button'
@@ -24,6 +26,14 @@ import {
 	Users
 } from 'lucide-react'
 import { SOCIAL_PROOF } from '#config/social-proof'
+import { createPageMetadata } from '#lib/seo/page-metadata'
+
+export const metadata: Metadata = createPageMetadata({
+	title: 'Property Management Help Center & Support',
+	description:
+		'Get expert help with TenantFlow. Browse guides, FAQs, and tutorials. Contact our support team for personalized property management assistance.',
+	path: '/help'
+})
 
 export default function HelpPage() {
 	return (

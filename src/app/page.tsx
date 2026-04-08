@@ -1,8 +1,19 @@
+import type { Metadata } from 'next'
+
+import { createPageMetadata } from '#lib/seo/page-metadata'
+
 import MarketingHomePage from './marketing-home'
 
 // Pre-render at build time and serve from edge cache — content is fully static.
 // Middleware still runs and will redirect authenticated users to /dashboard.
 export const dynamic = 'force-static'
+
+export const metadata: Metadata = createPageMetadata({
+	title: 'Property Management Software for Modern Landlords',
+	description:
+		'Streamline rent collection, maintenance tracking, tenant screening, and financial reporting. Start free and scale as your portfolio grows.',
+	path: '/'
+})
 
 /**
  * Root Page - Marketing Homepage

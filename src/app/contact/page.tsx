@@ -1,38 +1,22 @@
+import type { Metadata } from 'next'
+
 import { ContactForm } from '#components/contact/contact-form'
 import { PageLayout } from '#components/layout/page-layout'
+import { JsonLdScript } from '#components/seo/json-ld-script'
+import { createBreadcrumbJsonLd } from '#lib/seo/breadcrumbs'
+import { createPageMetadata } from '#lib/seo/page-metadata'
+
+export const metadata: Metadata = createPageMetadata({
+	title: 'Contact TenantFlow Property Management Support',
+	description:
+		'Reach our property management experts. Get personalized help with setup, features, and growing your portfolio. Fast response times guaranteed.',
+	path: '/contact'
+})
 
 export default function ContactPage() {
-	const baseUrl =
-		process.env.NEXT_PUBLIC_APP_URL ||
-		(process.env.NODE_ENV === 'production' ? '' : 'http://localhost:3050')
-
-	// Breadcrumb Schema
-	const breadcrumbSchema = {
-		'@context': 'https://schema.org',
-		'@type': 'BreadcrumbList',
-		itemListElement: [
-			{
-				'@type': 'ListItem',
-				position: 1,
-				name: 'Home',
-				item: baseUrl
-			},
-			{
-				'@type': 'ListItem',
-				position: 2,
-				name: 'Contact'
-			}
-		]
-	}
-
 	return (
 		<PageLayout>
-			<script
-				type="application/ld+json"
-				dangerouslySetInnerHTML={{
-					__html: JSON.stringify(breadcrumbSchema).replace(/</g, '\\u003c')
-				}}
-			/>
+			<JsonLdScript schema={createBreadcrumbJsonLd('/contact')} />
 			<ContactForm />
 		</PageLayout>
 	)

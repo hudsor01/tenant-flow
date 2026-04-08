@@ -1,5 +1,8 @@
+import type { Metadata } from 'next'
+
 import { PageLayout } from '#components/layout/page-layout'
 import { HeroSection } from '#components/sections/hero-section'
+import { JsonLdScript } from '#components/seo/json-ld-script'
 import { BlurFade } from '#components/ui/blur-fade'
 import { Button } from '#components/ui/button'
 import {
@@ -28,6 +31,8 @@ import {
 } from 'lucide-react'
 import Link from 'next/link'
 import { SOCIAL_PROOF } from '#config/social-proof'
+import { createBreadcrumbJsonLd } from '#lib/seo/breadcrumbs'
+import { createPageMetadata } from '#lib/seo/page-metadata'
 
 const stats = [
 	{ number: SOCIAL_PROOF.propertiesManaged, label: 'Properties Managed', Icon: Building2 },
@@ -36,37 +41,17 @@ const stats = [
 	{ number: '24/7', label: 'Customer Support', Icon: LifeBuoy }
 ]
 
+export const metadata: Metadata = createPageMetadata({
+	title: 'About TenantFlow - Our Mission & Team',
+	description:
+		'Meet the team behind TenantFlow. Learn about our mission to simplify property management for thousands of professionals worldwide.',
+	path: '/about'
+})
+
 export default function AboutPage() {
-	const baseUrl =
-		process.env.NEXT_PUBLIC_APP_URL ||
-		(process.env.NODE_ENV === 'production' ? '' : 'http://localhost:3050')
-
-	const breadcrumbSchema = {
-		'@context': 'https://schema.org',
-		'@type': 'BreadcrumbList',
-		itemListElement: [
-			{
-				'@type': 'ListItem',
-				position: 1,
-				name: 'Home',
-				item: baseUrl
-			},
-			{
-				'@type': 'ListItem',
-				position: 2,
-				name: 'About'
-			}
-		]
-	}
-
 	return (
 		<PageLayout>
-			<script
-				type="application/ld+json"
-				dangerouslySetInnerHTML={{
-					__html: JSON.stringify(breadcrumbSchema).replace(/</g, '\\u003c')
-				}}
-			/>
+			<JsonLdScript schema={createBreadcrumbJsonLd('/about')} />
 
 			{/* Hero Section */}
 			<HeroSection
