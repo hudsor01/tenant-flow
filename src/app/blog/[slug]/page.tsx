@@ -15,9 +15,10 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 	const supabase = await createClient()
 
 	// Race against 5s timeout to prevent Supabase cold-start hangs (80-398s observed in Sentry)
-	const timeout = new Promise<never>((_, reject) =>
-		setTimeout(() => reject(new Error('Blog metadata query timed out')), 5000)
-	)
+	let timer: ReturnType<typeof setTimeout>
+	const timeout = new Promise<never>((_, reject) => {
+		timer = setTimeout(() => reject(new Error('Blog metadata query timed out')), 5000)
+	})
 	const query = supabase
 		.from('blogs')
 		.select('title, excerpt, meta_description, featured_image, published_at, category')
@@ -26,8 +27,12 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 		.single()
 
 	const post = await Promise.race([query, timeout])
-		.then(result => result.data)
+		.then(({ data, error }) => {
+			if (error) console.error('Blog metadata query failed:', error.message)
+			return data
+		})
 		.catch(() => null)
+		.finally(() => clearTimeout(timer!))
 
 	if (!post) {
 		return { title: 'Blog Post Not Found | TenantFlow' }
