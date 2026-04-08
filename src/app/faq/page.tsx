@@ -1,67 +1,35 @@
+import type { Metadata } from 'next'
+
 import { FaqsAccordion } from '#app/faq/faq-accordion'
 import { PageLayout } from '#components/layout/page-layout'
 import { HeroSection } from '#components/sections/hero-section'
+import { JsonLdScript } from '#components/seo/json-ld-script'
 import { Button } from '#components/ui/button'
 
 import { faqData } from '../../data/faqs'
 import { ArrowRight } from 'lucide-react'
 import { SOCIAL_PROOF } from '#config/social-proof'
+import { createBreadcrumbJsonLd } from '#lib/seo/breadcrumbs'
+import { createFaqJsonLd } from '#lib/seo/faq-schema'
+import { createPageMetadata } from '#lib/seo/page-metadata'
 import Link from 'next/link'
 
+export const metadata: Metadata = createPageMetadata({
+	title: 'Frequently Asked Questions About Property Management',
+	description:
+		'Get answers to common property management questions. Learn about rent collection, maintenance, tenant screening, and how TenantFlow simplifies it all.',
+	path: '/faq'
+})
+
 export default function FAQPage() {
-	const baseUrl =
-		process.env.NEXT_PUBLIC_APP_URL ||
-		(process.env.NODE_ENV === 'production' ? '' : 'http://localhost:3000')
 	const faqCategories = faqData
 
-	// FAQ Schema for Google rich snippets - flatten all questions
 	const allQuestions = faqCategories.flatMap(category => category.questions)
-	const faqSchema = {
-		'@context': 'https://schema.org',
-		'@type': 'FAQPage',
-		mainEntity: allQuestions.map(q => ({
-			'@type': 'Question',
-			name: q.question,
-			acceptedAnswer: {
-				'@type': 'Answer',
-				text: q.answer
-			}
-		}))
-	}
-
-	// Breadcrumb Schema
-	const breadcrumbSchema = {
-		'@context': 'https://schema.org',
-		'@type': 'BreadcrumbList',
-		itemListElement: [
-			{
-				'@type': 'ListItem',
-				position: 1,
-				name: 'Home',
-				item: baseUrl
-			},
-			{
-				'@type': 'ListItem',
-				position: 2,
-				name: 'FAQ'
-			}
-		]
-	}
 
 	return (
 		<PageLayout>
-			<script
-				type="application/ld+json"
-				dangerouslySetInnerHTML={{
-					__html: JSON.stringify(faqSchema).replace(/</g, '\\u003c')
-				}}
-			/>
-			<script
-				type="application/ld+json"
-				dangerouslySetInnerHTML={{
-					__html: JSON.stringify(breadcrumbSchema).replace(/</g, '\\u003c')
-				}}
-			/>
+			<JsonLdScript schema={createFaqJsonLd(allQuestions.map(q => ({ question: q.question, answer: q.answer })))} />
+			<JsonLdScript schema={createBreadcrumbJsonLd('/faq')} />
 			<HeroSection
 				trustBadge="Real answers from real results"
 				title="Your $30,000 annual savings"
