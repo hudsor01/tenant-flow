@@ -4,12 +4,12 @@ milestone: v1.5
 milestone_name: Code Quality & Deduplication
 status: executing
 stopped_at: Phase 31 context gathered
-last_updated: "2026-04-04T02:39:58.897Z"
-last_activity: 2026-04-03
+last_updated: "2026-04-04T14:55:59.714Z"
+last_activity: 2026-04-04 -- Phase 31 execution started
 progress:
   total_phases: 3
   completed_phases: 2
-  total_plans: 5
+  total_plans: 7
   completed_plans: 5
 ---
 
@@ -20,15 +20,15 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-18)
 
 **Core value:** A landlord can add a property, invite a tenant, collect rent, and see their financials -- without touching a spreadsheet or calling anyone.
-**Current focus:** Phase 30 — frontend-import-validation-cleanup
+**Current focus:** Phase 31 — frontend-hook-factories
 
 ## Current Position
 
-Phase: 31
-Plan: Not started
+Phase: 31 (frontend-hook-factories) — EXECUTING
+Plan: 1 of 2
 Milestone: None (v1.3 shipped)
-Status: Executing Phase 30
-Last activity: 2026-04-03
+Status: Executing Phase 31
+Last activity: 2026-04-04 -- Phase 31 execution started
 
 ## Shipped Milestones
 
