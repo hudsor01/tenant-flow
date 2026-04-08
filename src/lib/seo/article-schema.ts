@@ -35,7 +35,7 @@ export function createArticleJsonLd(config: ArticleJsonLdConfig): Article {
 	return {
 		'@type': 'Article',
 		headline: title,
-		description,
+		...(description ? { description } : {}),
 		datePublished,
 		...(dateModified ? { dateModified } : {}),
 		author: {
