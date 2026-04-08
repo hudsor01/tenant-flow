@@ -147,14 +147,7 @@ export function getJsonLd() {
 			'https://twitter.com/tenantflow',
 			'https://linkedin.com/company/tenantflow',
 			'https://facebook.com/tenantflow'
-		],
-		aggregateRating: {
-			'@type': 'AggregateRating',
-			ratingValue: '4.8',
-			reviewCount: '1250',
-			bestRating: '5',
-			worstRating: '1'
-		}
+		]
 	}
 
 	// SoftwareApplication schema
@@ -197,13 +190,7 @@ export function getJsonLd() {
 			'Online Payments',
 			'Document Storage',
 			'Tenant Screening'
-		],
-		aggregateRating: {
-			'@type': 'AggregateRating',
-			ratingValue: '4.8',
-			reviewCount: '1250',
-			bestRating: '5'
-		}
+		]
 	}
 
 	return [organization, software]
