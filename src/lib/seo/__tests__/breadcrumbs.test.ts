@@ -13,17 +13,27 @@ vi.mock('#lib/generate-metadata', () => ({
 
 import { createBreadcrumbJsonLd } from '../breadcrumbs'
 
+/** Convert schema-dts readonly result to plain JSON for easier assertions */
+function toPlain(value: unknown): Record<string, unknown> {
+	return JSON.parse(JSON.stringify(value)) as Record<string, unknown>
+}
+
+function getItems(result: ReturnType<typeof createBreadcrumbJsonLd>): Array<Record<string, unknown>> {
+	const plain = toPlain(result)
+	return plain.itemListElement as Array<Record<string, unknown>>
+}
+
 describe('createBreadcrumbJsonLd', () => {
 	it('returns BreadcrumbList with Home + FAQ items for /faq', () => {
 		const result = createBreadcrumbJsonLd('/faq')
+		const plain = toPlain(result)
 
-		expect(result['@type']).toBe('BreadcrumbList')
-		expect(result.itemListElement).toHaveLength(2)
+		expect(plain['@type']).toBe('BreadcrumbList')
+		expect(plain.itemListElement).toHaveLength(2)
 	})
 
 	it('first item is Home with site URL', () => {
-		const result = createBreadcrumbJsonLd('/faq')
-		const items = result.itemListElement as Array<Record<string, unknown>>
+		const items = getItems(createBreadcrumbJsonLd('/faq'))
 
 		expect(items[0]).toMatchObject({
 			'@type': 'ListItem',
@@ -34,8 +44,7 @@ describe('createBreadcrumbJsonLd', () => {
 	})
 
 	it('last breadcrumb item omits the item URL (per Schema.org spec)', () => {
-		const result = createBreadcrumbJsonLd('/faq')
-		const items = result.itemListElement as Array<Record<string, unknown>>
+		const items = getItems(createBreadcrumbJsonLd('/faq'))
 
 		expect(items[1]).toMatchObject({
 			'@type': 'ListItem',
@@ -46,10 +55,11 @@ describe('createBreadcrumbJsonLd', () => {
 	})
 
 	it('overrides slug label when provided', () => {
-		const result = createBreadcrumbJsonLd('/blog/my-post', {
-			'my-post': 'My Blog Post'
-		})
-		const items = result.itemListElement as Array<Record<string, unknown>>
+		const items = getItems(
+			createBreadcrumbJsonLd('/blog/my-post', {
+				'my-post': 'My Blog Post'
+			})
+		)
 
 		expect(items).toHaveLength(3)
 		expect(items[2]).toMatchObject({
@@ -60,8 +70,7 @@ describe('createBreadcrumbJsonLd', () => {
 	})
 
 	it('handles multi-segment paths correctly', () => {
-		const result = createBreadcrumbJsonLd('/resources/guides')
-		const items = result.itemListElement as Array<Record<string, unknown>>
+		const items = getItems(createBreadcrumbJsonLd('/resources/guides'))
 
 		expect(items).toHaveLength(3)
 		expect(items[0]).toMatchObject({ position: 1, name: 'Home' })
@@ -75,8 +84,7 @@ describe('createBreadcrumbJsonLd', () => {
 	})
 
 	it('position numbering starts at 1 and increments', () => {
-		const result = createBreadcrumbJsonLd('/a/b/c')
-		const items = result.itemListElement as Array<Record<string, unknown>>
+		const items = getItems(createBreadcrumbJsonLd('/a/b/c'))
 
 		expect(items).toHaveLength(4)
 		items.forEach((listItem, index) => {
