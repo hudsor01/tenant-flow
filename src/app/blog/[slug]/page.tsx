@@ -2,6 +2,10 @@ import { createClient } from '#lib/supabase/server'
 import type { Metadata } from 'next'
 import BlogPostPage from './blog-post-page'
 
+// Cache blog pages for 1 hour via ISR — generateMetadata only runs during
+// background revalidation, not on every request (27K+ requests/month)
+export const revalidate = 3600
+
 interface Props {
 	params: Promise<{ slug: string }>
 }
@@ -10,12 +14,20 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 	const { slug } = await params
 	const supabase = await createClient()
 
-	const { data: post } = await supabase
+	// Race against 5s timeout to prevent Supabase cold-start hangs (80-398s observed in Sentry)
+	const timeout = new Promise<never>((_, reject) =>
+		setTimeout(() => reject(new Error('Blog metadata query timed out')), 5000)
+	)
+	const query = supabase
 		.from('blogs')
 		.select('title, excerpt, meta_description, featured_image, published_at, category')
 		.eq('slug', slug)
 		.eq('status', 'published')
 		.single()
+
+	const post = await Promise.race([query, timeout])
+		.then(result => result.data)
+		.catch(() => null)
 
 	if (!post) {
 		return { title: 'Blog Post Not Found | TenantFlow' }
