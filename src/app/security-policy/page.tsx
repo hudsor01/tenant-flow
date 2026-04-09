@@ -1,5 +1,7 @@
 import { PageLayout } from '#components/layout/page-layout'
 import type { Metadata } from 'next'
+import { JsonLdScript } from '#components/seo/json-ld-script'
+import { createBreadcrumbJsonLd } from '#lib/seo/breadcrumbs'
 
 export const metadata: Metadata = {
 	title: 'Security Policy',
@@ -10,6 +12,7 @@ export const metadata: Metadata = {
 export default function SecurityPolicyPage() {
 	return (
 		<PageLayout>
+			<JsonLdScript schema={createBreadcrumbJsonLd('/security-policy')} />
 			<div className="mx-auto min-h-screen max-w-4xl px-6 section-spacing">
 				<h1 className="mb-8 typography-h1">Security Policy</h1>
 				<p className="mb-6 text-muted-foreground">Last Updated: February 27, 2026</p>

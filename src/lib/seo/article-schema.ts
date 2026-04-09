@@ -12,6 +12,7 @@ interface ArticleJsonLdConfig {
 	wordCount?: number
 	keywords?: string[]
 	description?: string
+	timeRequired?: string
 }
 
 /**
@@ -29,7 +30,8 @@ export function createArticleJsonLd(config: ArticleJsonLdConfig): Article {
 		image,
 		wordCount,
 		keywords,
-		description
+		description,
+		timeRequired
 	} = config
 
 	return {
@@ -55,6 +57,7 @@ export function createArticleJsonLd(config: ArticleJsonLdConfig): Article {
 		...(wordCount ? { wordCount } : {}),
 		...(keywords && keywords.length > 0
 			? { keywords: keywords.join(', ') }
-			: {})
+			: {}),
+		...(timeRequired ? { timeRequired } : {})
 	}
 }

@@ -1,5 +1,7 @@
 import type { Metadata } from 'next'
 import { createPageMetadata } from '#lib/seo/page-metadata'
+import { JsonLdScript } from '#components/seo/json-ld-script'
+import { createBreadcrumbJsonLd } from '#lib/seo/breadcrumbs'
 import BlogClient from './blog-client'
 
 interface BlogPageProps {
@@ -19,5 +21,10 @@ export async function generateMetadata({ searchParams }: BlogPageProps): Promise
 }
 
 export default function BlogPage() {
-	return <BlogClient />
+	return (
+		<>
+			<JsonLdScript schema={createBreadcrumbJsonLd('/blog')} />
+			<BlogClient />
+		</>
+	)
 }
