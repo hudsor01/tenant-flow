@@ -25,8 +25,8 @@ const STATS = [
 	},
 	{
 		label: 'Customer Rating',
-		value: '4.9/5',
-		description: 'Based on 2,500+ user reviews',
+		value: SOCIAL_PROOF.customerRating,
+		description: `Based on ${SOCIAL_PROOF.reviewCount} user reviews`,
 		icon: Star
 	}
 ]
@@ -55,12 +55,12 @@ const FAQS = [
 	{
 		question: 'What happens if I exceed my plan limits?',
 		answer:
-			'We&apos;ll notify you when you&apos;re approaching your limits. You can upgrade anytime to accommodate growth.'
+			"We'll notify you when you're approaching your limits. You can upgrade anytime to accommodate growth."
 	},
 	{
 		question: 'Do you offer refunds?',
 		answer:
-			'Yes! We offer a 60-day money-back guarantee. If you&apos;re not satisfied, contact us for a full refund.'
+			"Yes! We offer a 60-day money-back guarantee. If you're not satisfied, contact us for a full refund."
 	}
 ]
 

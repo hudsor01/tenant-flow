@@ -7,4 +7,6 @@ export const SOCIAL_PROOF = {
 	roiTimeline: '60-day',
 	responseTime: '90 seconds',
 	successRate: '98.7%',
+	customerRating: '4.9/5',
+	reviewCount: '2,500+',
 } as const
