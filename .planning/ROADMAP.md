@@ -138,12 +138,13 @@ Plans:
   1. Every public page renders at least a `BreadcrumbList` JSON-LD script tag in its HTML source
   2. Blog post pages render an `Article` JSON-LD with `mainEntityOfPage`, `image`, `wordCount`, `keywords`, and a `Person` author (not just organization)
   3. Homepage renders a `WebSite` JSON-LD with `SearchAction` (potentialAction with `query-input`)
-  4. All previously inline `dangerouslySetInnerHTML` JSON-LD blocks on FAQ, pricing, about, contact, features, resources, and compare pages are replaced with `JsonLdScript` component calls using shared utility functions
+  4. All previously inline JSON-LD blocks on FAQ, pricing, about, contact, features, resources, and compare pages are replaced with `JsonLdScript` component calls using shared utility functions
   5. Running `pnpm typecheck && pnpm lint && pnpm test:unit` passes with zero errors
-**Plans:** 2 plans
+**Plans:** 3 plans
 Plans:
-- [ ] 35-01-PLAN.md -- Blog post Article schema + breadcrumbs for blog hub, category, help, support, legal, and resource pages
-- [ ] 35-02-PLAN.md -- Homepage WebSite schema, compare page SoftwareApplication factory + migration, HowTo on maintenance checklist
+- [x] 35-01-PLAN.md -- Blog post Article schema + breadcrumbs for blog hub, category, help, support, legal, and resource pages -- completed 2026-04-09
+- [x] 35-02-PLAN.md -- Homepage WebSite schema, compare page SoftwareApplication factory + migration, HowTo on maintenance checklist -- completed 2026-04-09
+- [x] 35-03-PLAN.md -- Gap closure: fix blog test imports broken by async server component conversion -- completed 2026-04-09
 
 ### Phase 36: Pricing Page Polish
 **Goal**: Pricing page has zero technical debt, correct structured data dates, and works well on mobile
@@ -195,7 +196,7 @@ Note: Phase 35 and Phase 36 both depend on Phase 33 and are independent of each 
 | 32. Crawlability & Critical Fixes | v1.6 | 1/1 | Complete | 2026-04-08 |
 | 33. SEO Utilities Foundation | v1.6 | 2/2 | Complete    | 2026-04-08 |
 | 34. Per-Page Metadata | v1.6 | 2/2 | Complete | 2026-04-08 |
-| 35. Structured Data Enrichment | v1.6 | 0/2 | Not started | - |
+| 35. Structured Data Enrichment | v1.6 | 3/3 | Complete | 2026-04-09 |
 | 36. Pricing Page Polish | v1.6 | 0/0 | Not started | - |
 | 37. Content SEO & Internal Linking | v1.6 | 0/0 | Not started | - |
 | 38. Validation & Verification | v1.6 | 0/0 | Not started | - |
