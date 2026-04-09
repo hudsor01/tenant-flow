@@ -117,7 +117,7 @@ vi.mock('lucide-react', async (importOriginal) => {
 	}
 })
 
-import BlogArticlePage from './page'
+import BlogArticlePage from './blog-post-page'
 
 // --- Mock data ---
 

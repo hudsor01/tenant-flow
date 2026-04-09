@@ -10,9 +10,9 @@ interface ArticleJsonLdConfig {
 	authorName: string
 	image?: string
 	wordCount?: number
-	keywords?: string[]
-	description?: string
-	timeRequired?: string
+	keywords?: string[] | undefined
+	description?: string | undefined
+	timeRequired?: string | undefined
 }
 
 /**
