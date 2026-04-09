@@ -127,8 +127,8 @@ Plans:
   5. Running `pnpm typecheck && pnpm lint && pnpm test:unit` passes with zero errors
 **Plans:** 2 plans
 Plans:
-- [ ] 34-01-PLAN.md -- Static metadata + inline JSON-LD migration for 7 server-component pages
-- [ ] 34-02-PLAN.md -- Server/client splits for features, blog, blog/category with generateMetadata and pagination noindex
+- [x] 34-01-PLAN.md -- Static metadata + inline JSON-LD migration for 7 server-component pages -- completed 2026-04-08
+- [x] 34-02-PLAN.md -- Server/client splits for features, blog, blog/category with generateMetadata and pagination noindex -- completed 2026-04-08
 
 ### Phase 35: Structured Data Enrichment
 **Goal**: Google Rich Results Test shows valid schemas for every public page type (breadcrumbs, articles, FAQ, HowTo, comparisons)
@@ -140,9 +140,10 @@ Plans:
   3. Homepage renders a `WebSite` JSON-LD with `SearchAction` (potentialAction with `query-input`)
   4. All previously inline `dangerouslySetInnerHTML` JSON-LD blocks on FAQ, pricing, about, contact, features, resources, and compare pages are replaced with `JsonLdScript` component calls using shared utility functions
   5. Running `pnpm typecheck && pnpm lint && pnpm test:unit` passes with zero errors
-**Plans:** 1 plan
+**Plans:** 2 plans
 Plans:
-- [ ] 32-01-PLAN.md -- Dynamic robots.ts, delete stale static files, remove fabricated aggregateRating
+- [ ] 35-01-PLAN.md -- Blog post Article schema + breadcrumbs for blog hub, category, help, support, legal, and resource pages
+- [ ] 35-02-PLAN.md -- Homepage WebSite schema, compare page SoftwareApplication factory + migration, HowTo on maintenance checklist
 
 ### Phase 36: Pricing Page Polish
 **Goal**: Pricing page has zero technical debt, correct structured data dates, and works well on mobile
@@ -193,8 +194,8 @@ Note: Phase 35 and Phase 36 both depend on Phase 33 and are independent of each 
 |-------|-----------|----------------|--------|-----------|
 | 32. Crawlability & Critical Fixes | v1.6 | 1/1 | Complete | 2026-04-08 |
 | 33. SEO Utilities Foundation | v1.6 | 2/2 | Complete    | 2026-04-08 |
-| 34. Per-Page Metadata | v1.6 | 0/2 | Not started | - |
-| 35. Structured Data Enrichment | v1.6 | 0/0 | Not started | - |
+| 34. Per-Page Metadata | v1.6 | 2/2 | Complete | 2026-04-08 |
+| 35. Structured Data Enrichment | v1.6 | 0/2 | Not started | - |
 | 36. Pricing Page Polish | v1.6 | 0/0 | Not started | - |
 | 37. Content SEO & Internal Linking | v1.6 | 0/0 | Not started | - |
 | 38. Validation & Verification | v1.6 | 0/0 | Not started | - |
