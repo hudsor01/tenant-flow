@@ -1,6 +1,8 @@
 import type { Metadata } from 'next'
 
 import { createPageMetadata } from '#lib/seo/page-metadata'
+import { JsonLdScript } from '#components/seo/json-ld-script'
+import { getSiteUrl } from '#lib/generate-metadata'
 
 import MarketingHomePage from './marketing-home'
 
@@ -26,5 +28,25 @@ export const metadata: Metadata = createPageMetadata({
  * - Direct navigation from login page after authentication
  */
 export default function RootPage() {
-	return <MarketingHomePage />
+	const siteUrl = getSiteUrl()
+
+	// WebSite schema with SearchAction for sitelinks search box (SCHEMA-03)
+	const websiteSchema = {
+		'@type': 'WebSite' as const,
+		name: 'TenantFlow',
+		url: siteUrl,
+		description: 'Professional property management software for modern landlords.',
+		potentialAction: {
+			'@type': 'SearchAction' as const,
+			target: `${siteUrl}/search?q={search_term_string}`,
+			'query-input': 'required name=search_term_string'
+		}
+	}
+
+	return (
+		<>
+			<JsonLdScript schema={websiteSchema as Parameters<typeof JsonLdScript>[0]['schema']} />
+			<MarketingHomePage />
+		</>
+	)
 }
