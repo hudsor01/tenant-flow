@@ -4,6 +4,8 @@ import { ArrowLeft } from 'lucide-react'
 import { PageLayout } from '#components/layout/page-layout'
 import { Button } from '#components/ui/button'
 import { PrintButton } from '#components/shared/print-button'
+import { JsonLdScript } from '#components/seo/json-ld-script'
+import { createBreadcrumbJsonLd } from '#lib/seo/breadcrumbs'
 import { deductionCategories } from './tax-deduction-data'
 
 export const metadata: Metadata = {
@@ -15,6 +17,7 @@ export const metadata: Metadata = {
 export default function TaxDeductionTrackerPage() {
 	return (
 		<PageLayout>
+			<JsonLdScript schema={createBreadcrumbJsonLd('/resources/landlord-tax-deduction-tracker', { 'landlord-tax-deduction-tracker': 'Landlord Tax Deduction Tracker' })} />
 			<style
 				dangerouslySetInnerHTML={{
 					__html: `

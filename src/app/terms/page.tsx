@@ -1,5 +1,7 @@
 import { PageLayout } from '#components/layout/page-layout'
 import type { Metadata } from 'next'
+import { JsonLdScript } from '#components/seo/json-ld-script'
+import { createBreadcrumbJsonLd } from '#lib/seo/breadcrumbs'
 
 export const metadata: Metadata = {
 	title: 'Terms of Service',
@@ -10,6 +12,7 @@ export const metadata: Metadata = {
 export default function TermsPage() {
 	return (
 		<PageLayout>
+			<JsonLdScript schema={createBreadcrumbJsonLd('/terms')} />
 			<div className="mx-auto min-h-screen max-w-4xl px-6 section-spacing">
 				<h1 className="mb-8 typography-h1">Terms of Service</h1>
 				<p className="mb-6 text-muted-foreground">Last Updated: October 5, 2025</p>

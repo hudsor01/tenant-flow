@@ -1,5 +1,7 @@
 import type { Metadata } from 'next'
 import { createPageMetadata } from '#lib/seo/page-metadata'
+import { JsonLdScript } from '#components/seo/json-ld-script'
+import { createBreadcrumbJsonLd } from '#lib/seo/breadcrumbs'
 import BlogCategoryClient from './blog-category-client'
 
 interface CategoryPageProps {
@@ -25,6 +27,17 @@ export async function generateMetadata({ params, searchParams }: CategoryPagePro
 	})
 }
 
-export default function BlogCategoryPage() {
-	return <BlogCategoryClient />
+export default async function BlogCategoryPage({ params }: CategoryPageProps) {
+	const { category } = await params
+	const categoryName = category
+		.split('-')
+		.map((w: string) => w.charAt(0).toUpperCase() + w.slice(1))
+		.join(' ')
+
+	return (
+		<>
+			<JsonLdScript schema={createBreadcrumbJsonLd(`/blog/category/${category}`, { [category]: categoryName })} />
+			<BlogCategoryClient />
+		</>
+	)
 }
