@@ -151,34 +151,6 @@ export default function BlogPostPage() {
 
 	return (
 		<PageLayout>
-			{/* JSON-LD Structured Data */}
-			<script
-				type="application/ld+json"
-				dangerouslySetInnerHTML={{
-					__html: JSON.stringify({
-						'@context': 'https://schema.org',
-						'@type': 'BlogPosting',
-						headline: post.title,
-						description: post.meta_description || post.excerpt,
-						image: post.featured_image,
-						datePublished: post.published_at,
-						dateModified: post.updated_at || post.published_at,
-						timeRequired: `PT${post.reading_time}M`,
-						articleSection: post.category,
-						author: {
-							'@type': 'Organization',
-							name: 'TenantFlow',
-							url: 'https://tenantflow.app'
-						},
-						publisher: {
-							'@type': 'Organization',
-							name: 'TenantFlow',
-							url: 'https://tenantflow.app'
-						}
-					})
-				}}
-			/>
-
 			{/* Back to Blog */}
 			<div className="container mx-auto px-6 page-content pb-8 max-w-4xl">
 				<Link

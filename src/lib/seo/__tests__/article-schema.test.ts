@@ -28,7 +28,8 @@ describe('createArticleJsonLd', () => {
 		image: 'https://example.com/image.jpg',
 		wordCount: 1500,
 		keywords: ['property management', 'landlord tips'],
-		description: 'A test article about property management.'
+		description: 'A test article about property management.',
+		timeRequired: 'PT5M'
 	}
 
 	it('returns object with @type Article', () => {
@@ -110,5 +111,16 @@ describe('createArticleJsonLd', () => {
 	it('description matches input', () => {
 		const result = toPlain(createArticleJsonLd(baseInput))
 		expect(result.description).toBe('A test article about property management.')
+	})
+
+	it('timeRequired is included when provided', () => {
+		const result = toPlain(createArticleJsonLd(baseInput))
+		expect(result.timeRequired).toBe('PT5M')
+	})
+
+	it('omits timeRequired when not provided', () => {
+		const { timeRequired: _, ...inputWithoutTimeRequired } = baseInput
+		const result = toPlain(createArticleJsonLd(inputWithoutTimeRequired))
+		expect(result).not.toHaveProperty('timeRequired')
 	})
 })
