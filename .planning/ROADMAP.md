@@ -75,15 +75,17 @@ TenantFlow is a multi-tenant property management SaaS platform for property owne
 
 ## Phases
 
-### v1.6 SEO & Google Indexing Optimization (Phases 32-38)
+### v1.6 SEO & Google Indexing Optimization (Phases 32-40)
 
 - [x] **Phase 32: Crawlability & Critical Fixes** - Fix robots.txt blocking Googlebot rendering, delete stale static files, remove spam-risk AggregateRating
 - [x] **Phase 33: SEO Utilities Foundation** - Build shared JSON-LD components and metadata factories that all subsequent phases consume (completed 2026-04-08)
-- [ ] **Phase 34: Per-Page Metadata** - Add generateMetadata() to all public pages with canonical URLs, OG tags, and server wrappers for client pages
-- [ ] **Phase 35: Structured Data Enrichment** - Add missing schemas and refactor existing inline JSON-LD to use shared utilities
+- [x] **Phase 34: Per-Page Metadata** - Add generateMetadata() to all public pages with canonical URLs, OG tags, and server wrappers for client pages (completed 2026-04-08)
+- [x] **Phase 35: Structured Data Enrichment** - Add missing schemas and refactor existing inline JSON-LD to use shared utilities (completed 2026-04-09)
 - [x] **Phase 36: Pricing Page Polish** - Fix pricing page technical debt (HTML entities, legacy Tailwind, mobile layout, dynamic dates) (completed 2026-04-10)
 - [x] **Phase 37: Content SEO & Internal Linking** - Cross-link blog, comparison, and resource pages for topical authority (completed 2026-04-10)
 - [x] **Phase 38: Validation & Verification** - GSC verification, E2E SEO smoke tests, sitemap enhancements, full regression pass (completed 2026-04-10)
+- [ ] **Phase 39: Structured Data Gap Closure** - Wire orphaned SoftwareApplication factory, add HowTo + BreadcrumbList to checklist page, remove stale inline BlogPosting
+- [ ] **Phase 40: Metadata & Verification Completeness** - Convert legal/support pages to createPageMetadata(), add GSC verification meta tag
 
 ## Phase Details
 
@@ -191,19 +193,44 @@ Plans:
 - [x] 38-01-PLAN.md -- Sitemap overhaul with missing pages, blog categories, static dates
 - [x] 38-02-PLAN.md -- E2E SEO smoke tests for all public pages + full regression pass
 
+### Phase 39: Structured Data Gap Closure
+**Goal**: All orphaned/missing JSON-LD schemas are wired into their target pages and stale inline blocks are removed
+**Depends on**: Phase 33, Phase 35
+**Requirements**: SCHEMA-01, SCHEMA-02, SCHEMA-05, SCHEMA-06, SCHEMA-07
+**Gap Closure**: Closes gaps from v1.6 milestone audit
+**Success Criteria** (what must be TRUE):
+  1. `src/app/compare/[competitor]/page.tsx` imports and renders `createSoftwareApplicationJsonLd` for both TenantFlow and competitor, plus `createBreadcrumbJsonLd` via `JsonLdScript` -- no inline `comparisonSchema` or direct `process.env` reads
+  2. `src/app/resources/seasonal-maintenance-checklist/page.tsx` renders HowTo JSON-LD with 4 `HowToSection` steps (Spring/Summer/Fall/Winter) and a BreadcrumbList, both via `JsonLdScript`
+  3. `src/app/blog/[slug]/blog-post-page.tsx` contains zero `<script type="application/ld+json">` inline blocks -- only the server component `page.tsx` renders Article JSON-LD
+  4. Running `pnpm typecheck && pnpm lint && pnpm test:unit` passes with zero errors
+**Plans:** 0 plans
+
+### Phase 40: Metadata & Verification Completeness
+**Goal**: Every public page has canonical URLs and OG tags via createPageMetadata(), and GSC verification meta tag is in the root layout
+**Depends on**: Phase 33
+**Requirements**: META-11, VALID-01
+**Gap Closure**: Closes gaps from v1.6 milestone audit
+**Success Criteria** (what must be TRUE):
+  1. `/terms`, `/privacy`, `/security-policy`, and `/support` page.tsx files use `createPageMetadata()` with title, description, and canonical URL -- no raw `metadata` objects without `alternates.canonical`
+  2. `src/app/layout.tsx` metadata includes `verification: { google: '<token>' }` (placeholder acceptable)
+  3. Running `pnpm typecheck && pnpm lint && pnpm test:unit` passes with zero errors
+**Plans:** 0 plans
+
 ## Progress
 
 **Execution Order:**
-Phases execute in numeric order: 32 -> 33 -> 34 -> 35 -> 36 -> 37 -> 38
+Phases execute in numeric order: 32 -> 33 -> 34 -> 35 -> 36 -> 37 -> 38 -> 39 -> 40
 
-Note: Phase 35 and Phase 36 both depend on Phase 33 and are independent of each other. Phase 36 can begin before Phase 35 completes if needed.
+Phase 39 and 40 are independent gap closure phases that can execute in either order.
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
 | 32. Crawlability & Critical Fixes | v1.6 | 1/1 | Complete | 2026-04-08 |
-| 33. SEO Utilities Foundation | v1.6 | 2/2 | Complete    | 2026-04-08 |
+| 33. SEO Utilities Foundation | v1.6 | 2/2 | Complete | 2026-04-08 |
 | 34. Per-Page Metadata | v1.6 | 2/2 | Complete | 2026-04-08 |
 | 35. Structured Data Enrichment | v1.6 | 3/3 | Complete | 2026-04-09 |
-| 36. Pricing Page Polish | v1.6 | 4/4 | Complete    | 2026-04-10 |
-| 37. Content SEO & Internal Linking | v1.6 | 2/2 | Complete    | 2026-04-10 |
-| 38. Validation & Verification | v1.6 | 2/2 | Complete   | 2026-04-10 |
+| 36. Pricing Page Polish | v1.6 | 4/4 | Complete | 2026-04-10 |
+| 37. Content SEO & Internal Linking | v1.6 | 2/2 | Complete | 2026-04-10 |
+| 38. Validation & Verification | v1.6 | 2/2 | Complete | 2026-04-10 |
+| 39. Structured Data Gap Closure | v1.6 | 0/0 | Planned | - |
+| 40. Metadata & Verification Completeness | v1.6 | 0/0 | Planned | - |
