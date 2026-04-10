@@ -1,7 +1,9 @@
+import { Suspense } from 'react'
 import type { Metadata } from 'next'
 import { createPageMetadata } from '#lib/seo/page-metadata'
 import { JsonLdScript } from '#components/seo/json-ld-script'
 import { createBreadcrumbJsonLd } from '#lib/seo/breadcrumbs'
+import { BlogLoadingSkeleton } from '#components/shared/blog-loading-skeleton'
 import BlogClient from './blog-client'
 
 interface BlogPageProps {
@@ -24,7 +26,9 @@ export default function BlogPage() {
 	return (
 		<>
 			<JsonLdScript schema={createBreadcrumbJsonLd('/blog')} />
-			<BlogClient />
+			<Suspense fallback={<BlogLoadingSkeleton />}>
+				<BlogClient />
+			</Suspense>
 		</>
 	)
 }
