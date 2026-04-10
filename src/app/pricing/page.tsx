@@ -1,8 +1,15 @@
+import type { Metadata } from 'next'
+
 import { PageLayout } from '#components/layout/page-layout'
+import { JsonLdScript } from '#components/seo/json-ld-script'
 import { Badge } from '#components/ui/badge'
 import { CheckCircle2 } from 'lucide-react'
 import { TestimonialsSection } from '#components/sections/testimonials-section'
 import { SOCIAL_PROOF } from '#config/social-proof'
+import { createBreadcrumbJsonLd } from '#lib/seo/breadcrumbs'
+import { createFaqJsonLd } from '#lib/seo/faq-schema'
+import { createPageMetadata } from '#lib/seo/page-metadata'
+import { createProductJsonLd } from '#lib/seo/product-schema'
 import { PricingSection } from './_components/pricing-section'
 import {
 	PricingCtaSection,
@@ -11,104 +18,34 @@ import {
 	pricingFaqs
 } from './pricing-content'
 
+export const metadata: Metadata = createPageMetadata({
+	title: 'Property Management Pricing & Plans',
+	description:
+		'Compare TenantFlow pricing plans. Free starter tier, Growth at $79/mo, MAX at $199/mo. No credit card required. Start your 14-day free trial.',
+	path: '/pricing'
+})
+
 export default async function PricingPage() {
-	const baseUrl =
-		process.env.NEXT_PUBLIC_APP_URL ||
-		(process.env.NODE_ENV === 'production' ? '' : 'http://localhost:3000')
-
-	const faqSchema = {
-		'@context': 'https://schema.org',
-		'@type': 'FAQPage',
-		mainEntity: pricingFaqs.map(faq => ({
-			'@type': 'Question',
-			name: faq.question,
-			acceptedAnswer: {
-				'@type': 'Answer',
-				text: faq.answer
-			}
-		}))
-	}
-
-	const breadcrumbSchema = {
-		'@context': 'https://schema.org',
-		'@type': 'BreadcrumbList',
-		itemListElement: [
-			{ '@type': 'ListItem', position: 1, name: 'Home', item: baseUrl },
-			{ '@type': 'ListItem', position: 2, name: 'Pricing' }
-		]
-	}
-
-	const offerSchema = {
-		'@context': 'https://schema.org',
-		'@type': 'Product',
+	const faqJsonLd = createFaqJsonLd(
+		pricingFaqs.map(faq => ({ question: faq.question, answer: faq.answer }))
+	)
+	const breadcrumbJsonLd = createBreadcrumbJsonLd('/pricing')
+	const productJsonLd = createProductJsonLd({
 		name: 'TenantFlow Property Management Software',
 		description:
 			'Professional property management software with automated rent collection, maintenance tracking, and financial reporting. Plans starting at $29/month.',
-		image: [
-			`${baseUrl}/images/property-management-og.jpg`,
-			`${baseUrl}/tenant-flow-logo.png`
-		],
-		brand: { '@type': 'Brand', name: 'TenantFlow' },
 		offers: [
-			{
-				'@type': 'Offer',
-				name: 'Starter',
-				price: '29.00',
-				priceCurrency: 'USD',
-				priceValidUntil: '2025-12-31',
-				availability: 'https://schema.org/InStock',
-				url: `${baseUrl}/pricing`,
-				description: 'Ideal for small owners managing a few properties'
-			},
-			{
-				'@type': 'Offer',
-				name: 'Growth',
-				price: '79.00',
-				priceCurrency: 'USD',
-				priceValidUntil: '2025-12-31',
-				availability: 'https://schema.org/InStock',
-				url: `${baseUrl}/pricing`,
-				description: 'Perfect for growing property management portfolios'
-			},
-			{
-				'@type': 'Offer',
-				name: 'MAX',
-				price: '199.00',
-				priceCurrency: 'USD',
-				priceValidUntil: '2025-12-31',
-				availability: 'https://schema.org/InStock',
-				url: `${baseUrl}/pricing`,
-				description: 'Unlimited power for professional property managers'
-			}
-		],
-		aggregateRating: {
-			'@type': 'AggregateRating',
-			ratingValue: '4.8',
-			reviewCount: '1250',
-			bestRating: '5'
-		}
-	}
+			{ name: 'Starter', price: '29.00' },
+			{ name: 'Growth', price: '79.00' },
+			{ name: 'MAX', price: '199.00' }
+		]
+	})
 
 	return (
 		<PageLayout>
-			<script
-				type="application/ld+json"
-				dangerouslySetInnerHTML={{
-					__html: JSON.stringify(faqSchema).replace(/</g, '\\u003c')
-				}}
-			/>
-			<script
-				type="application/ld+json"
-				dangerouslySetInnerHTML={{
-					__html: JSON.stringify(breadcrumbSchema).replace(/</g, '\\u003c')
-				}}
-			/>
-			<script
-				type="application/ld+json"
-				dangerouslySetInnerHTML={{
-					__html: JSON.stringify(offerSchema).replace(/</g, '\\u003c')
-				}}
-			/>
+			<JsonLdScript schema={faqJsonLd} />
+			<JsonLdScript schema={breadcrumbJsonLd} />
+			<JsonLdScript schema={productJsonLd} />
 			{/* Minimal Hero with Pricing Above the Fold */}
 			<section className="relative overflow-hidden section-spacing animate-in fade-in duration-700">
 				<div className="relative mx-auto flex max-w-7xl flex-col gap-12 px-6 text-center lg:px-8">

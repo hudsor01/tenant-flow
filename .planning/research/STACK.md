@@ -1,251 +1,313 @@
 # Technology Stack
 
-**Project:** TenantFlow v1.4 - Tenant Invitation Flow Redesign
-**Researched:** 2026-03-30
+**Project:** TenantFlow v1.6 - SEO & Google Indexing Optimization
+**Researched:** 2026-04-08
 **Overall confidence:** HIGH
 
-## Verdict: No New Dependencies
+## Verdict: 1 Dev Dependency, 0 Runtime Dependencies
 
-This milestone requires **zero** new libraries. The existing stack already provides every capability needed for the unified invitation flow. The problem is not missing tools -- it is duplicated implementations of the same logic across four separate code paths.
+This milestone adds **one** dev dependency (`schema-dts`) for type-safe JSON-LD authoring. Everything else uses native Next.js 16 APIs, existing Vercel tooling already in the project, or pure implementation patterns (no libraries needed).
 
-### Why This Matters for Roadmap
+The SEO work is almost entirely about **correct usage of existing capabilities** -- the project already has `generateMetadata()`, `sitemap.ts`, `robots.txt`, JSON-LD injection, OG tags, and Vercel Speed Insights. The gap is completeness and consistency, not missing tools.
 
-Adding libraries adds bundle size, maintenance burden, and learning curve. The four invitation paths already use a mix of patterns (TanStack Form in one, raw useState in three; Zod validation in one, none in three). The fix is consolidation onto the best existing pattern, not introducing new abstractions.
+## Stack Additions
 
-## Current Stack (Unchanged)
+### Dev Dependencies (Build-Time Only)
 
-### Core Framework -- No Changes Needed
+| Technology | Version | Purpose | Why |
+|------------|---------|---------|-----|
+| schema-dts | 2.0.0 | TypeScript types for Schema.org JSON-LD | Type-safe structured data authoring; catches schema errors at compile time, not after deployment; 100K+ weekly npm downloads; by Google; zero runtime cost (types only) |
 
-| Technology | Current Version | Purpose | Status |
-|------------|----------------|---------|--------|
-| Next.js | 16.1.7 | App framework | Keep |
-| React | 19.2.4 | UI library | Keep |
-| TailwindCSS | 4.2 | Styling | Keep |
-| TypeScript | 5.9.x (strict) | Type safety | Keep |
+**Install:**
+```bash
+pnpm add -D schema-dts@^2.0.0
+```
 
-### Form & Validation -- Already Sufficient
+`schema-dts` is a dev dependency because it exports only TypeScript type definitions -- no JavaScript ships to the browser. The `WithContext<T>` generic enforces correct `@context` and `@type` fields. The `Graph` type supports multi-entity `@graph` arrays. Version 2.0.0 (released March 2026) drops the TypeScript peer dependency, so it works as a regular dev dep without version conflicts.
 
-| Technology | Current Version | Purpose | Status |
-|------------|----------------|---------|--------|
-| @tanstack/react-form | ^1.28.3 | Form state management | Keep -- use for ALL invitation forms (currently only 1 of 4 paths uses it) |
-| zod | ^4.3.6 | Schema validation | Keep -- use `inviteTenantSchema` everywhere (currently only 1 of 4 paths validates) |
+### Runtime Dependencies: None
 
-### Data Layer -- Already Sufficient
+No runtime packages. Next.js 16 metadata API, native `sitemap.ts`, and `<script type="application/ld+json">` injection handle everything.
 
-| Technology | Current Version | Purpose | Status |
-|------------|----------------|---------|--------|
-| @tanstack/react-query | ^5.90.21 | Server state + cache | Keep -- `tenantInviteMutations` factories already exist but 3 of 4 paths ignore them |
-| @supabase/supabase-js | ^2.98.0 | DB + Auth | Keep |
-| @supabase/ssr | ^0.9.0 | Cookie-based auth | Keep |
+## What Next.js 16 Handles Natively (DO NOT Add Libraries For)
 
-### UI Components -- Already Sufficient
+### Metadata Management -- Native `generateMetadata()`
+Already used on 3 dynamic routes (`blog/[slug]`, `compare/[competitor]`, root layout). The project also has a `generate-metadata.ts` utility with lazy-initialized defaults, `metadataBase`, `title.template`, OG images, and Twitter cards.
 
-| Technology | Current Version | Purpose | Status |
-|------------|----------------|---------|--------|
-| shadcn/ui (Radix primitives) | Various | Dialog, Select, Input, etc. | Keep |
-| Stepper (Dice UI vendored) | In-repo | Multi-step wizard | Keep -- available but NOT needed (see Anti-Additions below) |
-| lucide-react | ^0.576.0 | Icons | Keep |
-| sonner | ^2.0.7 | Toast notifications | Keep |
+**What to extend (not replace):**
+- Add `generateMetadata()` to the 8 public pages currently missing it (help, search, blog/category/[category], resources/*, features, blog hub)
+- Ensure every public page has `alternates.canonical`
+- Ensure OG image dimensions are consistent (1200x630)
 
-### Email -- Already Sufficient
+**DO NOT add:** `next-seo`, `next-metadata`, or any metadata management library. Next.js `Metadata` type handles title templates, OG, Twitter, robots, alternates, and canonical URLs natively. These libraries were useful in Pages Router; they are redundant in App Router.
 
-| Technology | Current Version | Purpose | Status |
-|------------|----------------|---------|--------|
-| Resend (via Edge Function) | N/A (server-side) | Email delivery | Keep |
-| auth-email-templates.ts | In-repo | HTML email templates | Keep -- `tenantInvitationEmail()` already branded and context-aware |
+### Sitemap Generation -- Native `sitemap.ts` + `generateSitemaps()`
+The project has `src/app/sitemap.ts` generating a flat sitemap with marketing + blog pages. Next.js natively supports:
+- `sitemap.ts` returning `MetadataRoute.Sitemap` (already used)
+- `generateSitemaps()` for splitting into multiple sitemaps with `sitemap/[id].xml` URLs
+- ISR caching via `export const revalidate` (already set to 86400)
 
-## The Actual Problem: Duplication Map
+**What to extend:**
+- Split into category sitemaps using route-based sitemap files (e.g., `src/app/blog/sitemap.ts`, `src/app/compare/sitemap.ts`)
+- Add missing pages: `help`, `support`, `search`, `security-policy`, resource detail pages, blog category pages
+- Delete stale `public/sitemap.xml` and `public/sitemap-index.xml` (static files from pre-dynamic era that shadow the dynamic route)
 
-Four paths implement the same invitation logic independently:
+**DO NOT add:** `next-sitemap`. The npm package adds a post-build step, its own config file, and generates static XML. Native `sitemap.ts` is simpler, runs at request time with ISR caching, and the project already uses it. `next-sitemap` would be a downgrade.
 
-| Path | File | Form Library | Validation | Mutation Pattern | Query Invalidation |
-|------|------|-------------|------------|-----------------|-------------------|
-| 1. Tenants page | `invite-tenant-form.tsx` | TanStack Form | Zod (inviteTenantSchema) | Inline useMutation | `tenantQueries.all()` |
-| 2. Legacy modal | `invite-tenant-modal.tsx` | Raw useState | None | Props callback (onSubmit) | Caller's responsibility |
-| 3. Onboarding wizard | `onboarding-step-tenant.tsx` | Raw useState | None (manual check) | Inline useMutation | `tenantQueries.lists()` |
-| 4. Lease wizard | `selection-step-filters.tsx` | Raw useState | None (manual check) | Inline useMutation | `tenantQueries.lists()` + `tenantInvitationQueries.invitations()` |
+### robots.txt -- Native `robots.ts` (Upgrade from Static File)
+The project currently has `public/robots.txt` (static). Next.js supports `src/app/robots.ts` returning `MetadataRoute.Robots` with programmatic rules, which is better because:
+- Environment-aware (can reference `env.NEXT_PUBLIC_APP_URL` for sitemap URL)
+- Type-safe via `MetadataRoute.Robots`
+- No stale static file to maintain
 
-### What Each Path Duplicates
+**What to do:**
+- Convert `public/robots.txt` to `src/app/robots.ts`
+- Remove invalid directives (`Request-rate`, `Host` -- not part of robots.txt spec, ignored by all major crawlers)
+- Keep Googlebot/Bingbot-specific rules, social bot allowances, and SEO bot blocks
 
-Every path independently:
-1. Generates `crypto.randomUUID()` invitation code
-2. Constructs invitation URL with `NEXT_PUBLIC_APP_URL`
-3. Calculates 7-day expiry
-4. Inserts into `tenant_invitations` via PostgREST
-5. Calls `send-tenant-invitation` Edge Function via fetch
-6. Handles success/error toasts
+### JSON-LD Injection -- Native `<script>` in Server Components
+Next.js official guidance (as of 2025-2026) is to render JSON-LD as a `<script type="application/ld+json">` tag directly in page/layout components. There is no native `Metadata.structuredData` API -- this is an open feature request (vercel/next.js Discussion #70652) that has not been implemented.
 
-This is ~40 lines of identical business logic copy-pasted four times, with slight variations that introduce bugs (Path 2 uses `'portal_access'` type by default while path 4 uses `'lease_signing'`; path 1 invalidates `.all()` while paths 3-4 invalidate `.lists()`).
+The project already uses this pattern in 9 pages. The improvement is:
+- Type-safe authoring with `schema-dts` types instead of raw object literals
+- Centralized JSON-LD builder utilities (avoid copy-pasting `@context` and `replace(/</g, '\\u003c')` in every page)
+- Expand schema coverage to all public pages
 
-## What the Unified Flow Should Use (Existing Stack)
+### Open Graph & Twitter Cards -- Native Metadata API
+Already implemented in the root layout and blog detail pages. Coverage gaps exist on comparison pages (missing images), resource pages, and some marketing pages. This is a content/metadata audit, not a tooling gap.
 
-### 1. Single Mutation Factory: `tenantInviteMutations.invite()`
+### Core Web Vitals Monitoring -- Vercel Speed Insights (Already Installed)
+The project already has `@vercel/speed-insights` and `@vercel/analytics` in the root layout, rendering in production only. These provide:
+- Real User Monitoring (RUM) for LCP, INP, CLS
+- 75th percentile tracking (what Google actually uses)
+- Per-route breakdowns in the Vercel dashboard
 
-Already exists in `src/hooks/api/query-keys/tenant-invite-mutation-options.ts`. Currently only used by `useInviteTenantMutation()` hook. The unified flow should route ALL invitation submissions through this single mutation.
+**DO NOT add:** `web-vitals` npm package, Lighthouse CI, or `playwright-lighthouse`. Vercel Speed Insights already collects the exact CWV metrics Google uses for ranking. Adding synthetic testing tools (Lighthouse) for CI is overkill for this milestone -- the project has 2 E2E specs, not hundreds of pages to regression-test. Manual Lighthouse audits in Chrome DevTools are sufficient for the handful of public pages.
 
-**Current gap:** The existing `invite()` factory requires `lease_id` (it fetches lease to get property/unit). The unified flow needs it to accept optional `property_id` and `unit_id` directly, with `lease_id` optional.
+### Google Search Console Verification -- Static File or Meta Tag
+GSC verification does not require a library. The standard approach for Vercel-hosted Next.js sites:
+1. Add Google's HTML verification file to `public/` (e.g., `public/google[hash].html`)
+2. OR add meta tag via `generateMetadata()` in root layout: `verification: { google: 'your-verification-code' }`
 
-### 2. TanStack Form for All Form Instances
+Next.js `Metadata` type includes a `verification` field that generates `<meta name="google-site-verification">` natively.
 
-The `invite-tenant-form.tsx` already demonstrates the correct pattern: `useForm()` with `inviteTenantSchema` field validators via `form.Field`. The three other paths use raw `useState` with manual validation -- these should be replaced with the same TanStack Form pattern.
+**DO NOT add:** `@googleapis/searchconsole` (v5.0.0). This is a server-side SDK for programmatically querying Search Console data (search analytics, URL inspection). It requires Google OAuth service account credentials and a Node.js server runtime. The milestone scope is SEO readiness (verification, structured data, sitemaps), not building a Search Console analytics dashboard. If GSC data integration is wanted later, it would be an Edge Function or server action -- but that is out of scope for v1.6.
 
-**No new form library needed.** TanStack Form 1.28 supports:
-- Field-level Zod validators (already used in path 1)
-- `form.Subscribe` for derived state (already used in path 1)
-- `useUnsavedChangesWarning(form.state.isDirty)` (already used in path 1)
+## What Already Exists and Should Be Extended (Not Replaced)
 
-### 3. Zod Schema: `inviteTenantSchema`
+### Existing JSON-LD Coverage
 
-Already defined in `src/lib/validation/tenants.ts`. Already validates email, first_name, last_name, optional phone/property_id/unit_id. Paths 2, 3, and 4 skip validation entirely -- the unified form uses this schema for all instances.
+| Page | Schema Types Present | Gap |
+|------|---------------------|-----|
+| Root layout (`SeoJsonLd`) | Organization, SoftwareApplication | Good -- keep as global schemas |
+| `/faq` | FAQPage, BreadcrumbList | Good -- complete |
+| `/about` | Organization (local) | Missing BreadcrumbList |
+| `/contact` | ContactPoint/LocalBusiness | Missing BreadcrumbList |
+| `/pricing` | Product, Offer, BreadcrumbList | Good -- complete |
+| `/features` | BreadcrumbList | Missing SoftwareApplication features detail |
+| `/resources` | CollectionPage, BreadcrumbList | Good -- complete |
+| `/blog/[slug]` | BlogPosting | Missing BreadcrumbList, missing mainEntityOfPage |
+| `/compare/[competitor]` | Webpage comparison | Missing BreadcrumbList |
+| `/blog` hub | None | Needs CollectionPage + BreadcrumbList |
+| `/blog/category/[category]` | None | Needs CollectionPage + BreadcrumbList |
+| `/help` | None | Needs FAQPage or WebPage + BreadcrumbList |
+| `/support` | None | Needs ContactPoint + BreadcrumbList |
+| `/search` | None | Needs SearchAction (WebSite schema) |
+| `/terms`, `/privacy`, `/security-policy` | None | Needs WebPage + BreadcrumbList |
+| Resource detail pages (3) | None | Needs HowTo or Article + BreadcrumbList |
 
-### 4. Context-Aware Props (Not a Library)
+### Existing Metadata Coverage
 
-The unified component receives context via props:
+Pages with `generateMetadata()` or `export const metadata`: blog/[slug], compare/[competitor], root layout, plus ~19 owner/tenant layouts. Public marketing pages mostly inherit from the root layout's `title.template` but lack page-specific descriptions and canonical URLs.
+
+### Existing Sitemap
+
+`src/app/sitemap.ts` generates ~20 URLs. Missing: `help`, `support`, `search`, `security-policy`, blog category pages, resource detail pages. The stale `public/sitemap.xml` (15 entries, dated 2025-02-11) shadows the dynamic route and should be deleted.
+
+## Recommended Architecture for JSON-LD Utilities
+
+No library needed -- build utility functions using `schema-dts` types:
 
 ```typescript
-interface UnifiedInviteProps {
-  // Context determines which fields show/hide
-  context: 'standalone' | 'onboarding' | 'lease-wizard'
-  // Pre-filled values from parent context
-  propertyId?: string
-  unitId?: string
-  leaseId?: string
-  // Callback for embedded contexts
-  onSuccess?: () => void
-  onCancel?: () => void
+// src/lib/seo/json-ld.ts
+import type { WithContext, FAQPage, BreadcrumbList, BlogPosting, WebPage } from 'schema-dts'
+
+const SITE_URL = 'https://tenantflow.app'
+
+export function breadcrumbJsonLd(items: Array<{ name: string; url?: string }>): WithContext<BreadcrumbList> {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: items.map((item, i) => ({
+      '@type': 'ListItem',
+      position: i + 1,
+      name: item.name,
+      ...(item.url ? { item: item.url } : {})
+    }))
+  }
+}
+
+export function blogPostJsonLd(post: BlogPostData): WithContext<BlogPosting> {
+  // Type-checked at compile time
+}
+
+export function faqJsonLd(questions: Array<{ q: string; a: string }>): WithContext<FAQPage> {
+  // Type-checked at compile time
 }
 ```
 
-This is a prop interface, not a library. The `InvitationType` (`'platform_access' | 'lease_signing'`) is derived from context automatically -- never shown to the user.
+This pattern:
+- Centralizes the `@context` boilerplate
+- Enforces correct schema types via TypeScript (compile-time, not runtime)
+- Can be unit-tested with Vitest
+- Eliminates the `dangerouslySetInnerHTML` + `replace(/</g, '\\u003c')` copy-paste across 15+ pages
 
-### 5. shadcn Dialog for Modal Contexts
+### JSON-LD Renderer Component (Existing Pattern, Improved)
 
-`invite-tenant-modal.tsx` currently implements a custom modal with raw DOM (backdrop div, z-index management, custom close button). Replace with shadcn `Dialog` component already in the project. This gives accessibility (focus trap, Escape key, aria attributes) for free.
+```typescript
+// src/components/seo/json-ld-script.tsx (replaces current seo-json-ld.tsx pattern)
+import type { Thing, WithContext } from 'schema-dts'
 
-### 6. Invitation Status: Polling via TanStack Query
+interface JsonLdScriptProps {
+  data: WithContext<Thing> | Array<WithContext<Thing>>
+}
 
-For status visibility (pending/sent/accepted/expired), the existing `tenantInvitationQueries.list()` with `QUERY_CACHE_TIMES.LIST` (10-minute staleTime) is sufficient. Invitations are not time-critical enough to warrant Supabase Realtime WebSocket subscriptions (see Anti-Additions below).
+export function JsonLdScript({ data }: JsonLdScriptProps) {
+  const schemas = Array.isArray(data) ? data : [data]
+  return (
+    <>
+      {schemas.map((schema, i) => (
+        <script
+          key={`jsonld-${i}`}
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify(schema).replace(/</g, '\\u003c')
+          }}
+        />
+      ))}
+    </>
+  )
+}
+```
 
-If tighter updates are wanted for the invitation list specifically, use the existing `QUERY_CACHE_TIMES.REALTIME` config (30-second polling) -- no new library needed.
+## SEO Testing Strategy (No New Dependencies)
+
+### Unit Tests (Vitest -- Already in Stack)
+
+Test JSON-LD builder functions output valid schema shapes:
+```typescript
+// src/lib/seo/__tests__/json-ld.test.ts
+describe('breadcrumbJsonLd', () => {
+  it('generates valid BreadcrumbList schema', () => {
+    const result = breadcrumbJsonLd([{ name: 'Home', url: '/' }, { name: 'Blog' }])
+    expect(result['@type']).toBe('BreadcrumbList')
+    expect(result.itemListElement).toHaveLength(2)
+  })
+})
+```
+
+### E2E Validation (Playwright -- Already in Stack)
+
+Add SEO smoke tests checking meta tags and JSON-LD presence on public pages:
+```typescript
+// tests/e2e/tests/seo-smoke.spec.ts
+test('homepage has required meta tags', async ({ page }) => {
+  await page.goto('/')
+  const title = await page.title()
+  expect(title).toContain('TenantFlow')
+  const description = page.locator('meta[name="description"]')
+  await expect(description).toHaveAttribute('content', expect.stringContaining('property management'))
+  const jsonLd = page.locator('script[type="application/ld+json"]')
+  expect(await jsonLd.count()).toBeGreaterThan(0)
+})
+```
+
+### Manual Validation (No Library)
+
+- Google Rich Results Test (https://search.google.com/test/rich-results) -- paste URLs after deployment
+- Schema Markup Validator (https://validator.schema.org/) -- validate JSON-LD snippets during development
+- Google Search Console -- monitor indexing after verification
+
+**There is no programmatic API for Rich Results Test** -- Google deprecated the old Structured Data Testing Tool API and never provided a replacement. Manual testing after deploy is the standard workflow.
 
 ## Anti-Additions: What NOT to Add
 
-### Do NOT Add: Supabase Realtime Subscriptions
+| Library | Why It Seems Tempting | Why Not | What to Do Instead |
+|---------|----------------------|---------|-------------------|
+| `next-seo` | Popular SEO package | Redundant -- Next.js `Metadata` API does everything `next-seo` does (title templates, OG, canonical, robots). Was useful in Pages Router; unnecessary in App Router. | Use native `generateMetadata()` |
+| `next-sitemap` | Auto-generates sitemaps | Adds post-build step, config file, and static XML generation. Native `sitemap.ts` is already in the project and runs dynamically with ISR. | Extend existing `sitemap.ts` + add route-level sitemaps |
+| `@googleapis/searchconsole` | Query GSC data | Requires OAuth service account, server runtime. Out of scope -- milestone is SEO readiness, not analytics dashboard. | Verify via meta tag, use GSC web UI manually |
+| `web-vitals` | Core Web Vitals | Already have `@vercel/speed-insights` which collects the same metrics with a better dashboard. Adding `web-vitals` is redundant. | Use existing Vercel Speed Insights |
+| `lighthouse` / `playwright-lighthouse` | CI performance testing | `playwright-lighthouse` last updated 2 years ago. Synthetic tests are less accurate than RUM. Only ~20 public pages -- manual Lighthouse audits suffice. | Manual Chrome DevTools Lighthouse + Vercel Speed Insights RUM |
+| `react-schemaorg` | JSX wrapper for JSON-LD | Adds a React component layer around `<script>` injection. Unnecessary -- the 5-line `JsonLdScript` component does the same thing without a dependency. | Build a simple typed component |
+| `schema-org` (Harlan Wilton's) | Unhead-based schema management | Designed for Nuxt/Vue/Unhead ecosystem. Does not integrate with Next.js metadata API. | Use `schema-dts` types + custom builders |
 
-**Why it seems tempting:** Real-time status updates when a tenant accepts an invitation.
+## Stale Files to Remove
 
-**Why not:**
-- Invitation acceptance is a rare event (once per tenant, ever). Polling at 30s or even 10m is more than adequate.
-- Supabase Realtime adds WebSocket connection management, cleanup on unmount, reconnection handling, and multiplexing complexity.
-- The project has zero Realtime channel usage today. Introducing it for a low-frequency event is over-engineering.
-- The existing `refetchOnWindowFocus: true` default already updates stale data when the owner returns to the tab.
+| File | Why Remove |
+|------|-----------|
+| `public/sitemap.xml` | Static file from 2025-02-11 with 15 entries. Shadows the dynamic `src/app/sitemap.ts` route. Crawlers may hit this instead of the dynamic version. |
+| `public/sitemap-index.xml` | Points to `public/sitemap.xml`. Stale and misleading. |
+| `public/robots.txt` | Will be replaced by `src/app/robots.ts` for dynamic generation. Static file would shadow the route. |
 
-**What to do instead:** Use `QUERY_CACHE_TIMES.LIST` for the invitations query. When the owner sends an invitation, `queryClient.invalidateQueries()` already forces an immediate refresh. The owner sees the status change instantly for their own actions; background acceptance by a tenant will be visible within 10 minutes or on next focus.
+## Google Search Console Verification
 
-### Do NOT Add: React Email / @react-email/components
+No library needed. Two options:
 
-**Why it seems tempting:** JSX-based email templates instead of HTML string concatenation.
-
-**Why not:**
-- The existing `auth-email-templates.ts` pattern works. It uses `wrapInLayout()` + `ctaBlock()` helper functions with inline CSS -- the standard for email compatibility.
-- There are only 6 email templates total. The overhead of adding a React rendering pipeline for emails (which requires a build step or server-side rendering of React to HTML) is not justified.
-- The existing `tenantInvitationEmail()` function already handles context-aware content (property name, unit number, owner name).
-- React Email would require adding `@react-email/components` (the component library) plus a render step. The project's Edge Functions run Deno -- React Email's render function adds complexity.
-
-**What to do instead:** Enhance the existing `tenantInvitationEmail()` template function if needed (add lease context line, adjust copy). Same pattern, no new dependency.
-
-### Do NOT Add: Multi-Step Form Library (react-hook-form-wizard, etc.)
-
-**Why it seems tempting:** The onboarding wizard and lease wizard embed invitation forms as steps.
-
-**Why not:**
-- These are not multi-step invitation forms. The invitation is a single form that happens to be embedded in a step of a larger wizard.
-- The existing Stepper component (Dice UI) handles the parent wizard navigation. The invitation form is just content inside one step.
-- TanStack Form already handles the form state. The step transition is the parent's concern.
-
-### Do NOT Add: State Machine Library (XState, etc.)
-
-**Why it seems tempting:** Invitation state transitions (draft -> sent -> accepted/expired/cancelled).
-
-**Why not:**
-- These transitions happen in the database. The `status` column has a CHECK constraint. The frontend only reads and displays status -- it does not drive transitions.
-- The mutation factory (`tenantInviteMutations.invite/resend/cancel`) already handles each action. Adding a client-side state machine that mirrors DB state is redundant complexity.
-
-### Do NOT Add: Optimistic Updates Library
-
-**Why it seems tempting:** Show the invitation as "sent" immediately before the API responds.
-
-**Why not:**
-- TanStack Query's built-in `onMutate` for optimistic updates is already available (no extra library).
-- However, even this is unnecessary for invitations. The mutation takes <1 second. A loading spinner ("Sending...") is the right UX -- the user expects a brief wait when sending an email.
-- Optimistic updates add rollback complexity for a non-instant operation that includes an email send.
-
-## Integration Points (Existing, Not New)
-
-### Mutation Flow (Single Path)
-
+**Option A (Recommended): Meta tag via Metadata API**
+```typescript
+// src/app/layout.tsx generateMetadata()
+export async function generateMetadata(): Promise<Metadata> {
+  return {
+    ...metadata,
+    verification: {
+      google: 'your-verification-string-from-gsc',
+    },
+  }
+}
 ```
-Unified Form Component
-  -> useInviteTenantMutation() hook (existing)
-    -> tenantInviteMutations.invite() factory (existing, needs signature update)
-      -> PostgREST insert to tenant_invitations (existing)
-      -> sendInvitationEmail() helper -> send-tenant-invitation Edge Function (existing)
-        -> tenantInvitationEmail() template (existing)
-        -> Resend API (existing)
-```
+This is built into Next.js `Metadata` type. No extra dependency.
 
-### Query Invalidation (Standardize)
+**Option B: HTML file**
+Drop `public/google[hash].html` from GSC into `public/`. Vercel serves it as a static asset.
 
-All invitation mutations should invalidate the same set of keys:
-- `tenantQueries.lists()` -- tenant list may show invitation status
-- `tenantInvitationQueries.invitations()` -- invitation list
-- `leaseQueries.lists()` -- if invitation was lease-linked
+Either method is permanent and survives deployments. Option A is cleaner (no stray files in `public/`).
 
-This is already done correctly in `useInviteTenantMutation()`. The three inline mutations do it inconsistently.
-
-### Validation (Single Schema)
-
-```
-inviteTenantSchema (existing in src/lib/validation/tenants.ts)
-  -> email: z.email()
-  -> first_name: z.string().trim().min(1).max(100)
-  -> last_name: z.string().trim().min(1).max(100)
-  -> phone: phoneSchema.optional()
-  -> property_id: uuidSchema.optional()
-  -> unit_id: uuidSchema.optional()
-```
-
-May need to add `lease_id: uuidSchema.optional()` for lease wizard context.
-
-## Bug Fix: CHECK Constraint Mismatch
-
-PROJECT.md mentions a `'portal_access'` typo bug in `invite-tenant-form.tsx`. The DB CHECK constraint on `tenant_invitations.type` allows `'platform_access' | 'lease_signing'`. The code in `invite-tenant-form.tsx` line 79 currently uses `type: 'portal_access'` which may fail silently or be accepted without the CHECK.
-
-**Fix:** The unified flow derives type from context:
-- `context === 'lease-wizard'` -> `type: 'lease_signing'`
-- All other contexts -> `type: 'platform_access'`
-
-This is a code change, not a stack change.
-
-## Summary
+## Summary Table
 
 | Category | Decision | Rationale |
 |----------|----------|-----------|
-| Form library | Keep TanStack Form 1.28 | Already used in 1 of 4 paths; extend to all 4 |
-| Validation | Keep Zod 4.3 + inviteTenantSchema | Already defined; 3 paths skip it -- make mandatory |
-| Mutation layer | Keep tenantInviteMutations factory | Already exists; update signature to accept optional property_id/unit_id |
-| Modal component | Use existing shadcn Dialog | Replace custom modal div with accessible Dialog |
-| Email templates | Keep auth-email-templates.ts | Already branded and context-aware |
-| Real-time updates | Use existing polling (QUERY_CACHE_TIMES) | Invitations are low-frequency events |
-| New dependencies | None | Zero packages to add |
+| Structured data types | Add `schema-dts@^2.0.0` (dev) | Type-safe JSON-LD authoring; zero runtime cost; by Google |
+| Metadata management | Use native `generateMetadata()` | Already covers everything; extend to all public pages |
+| Sitemap generation | Extend native `sitemap.ts` | Already dynamic with ISR; split into route-level sitemaps |
+| robots.txt | Convert to native `robots.ts` | Dynamic, type-safe, environment-aware |
+| Core Web Vitals | Keep `@vercel/speed-insights` | Already installed; RUM is better than synthetic tests |
+| JSON-LD injection | Build typed utility functions | 1 component + 4-5 builder functions using schema-dts types |
+| SEO testing | Vitest (unit) + Playwright (E2E smoke) | Already in stack; add SEO-specific test files |
+| GSC verification | `Metadata.verification` field | Native Next.js; no library needed |
+| New runtime deps | None | Zero bundle size impact |
+
+## Version Compatibility
+
+| Technology | Version | Compatibility Notes |
+|------------|---------|---------------------|
+| schema-dts | 2.0.0 | TypeScript 5.9+ compatible; no peer deps in v2; types-only package |
+| Next.js Metadata API | 16.1.7 | `generateMetadata()`, `MetadataRoute.Sitemap`, `MetadataRoute.Robots` all stable |
+| Vercel Speed Insights | ^1.3.1 (installed) | CWV monitoring active in production |
+| Vercel Analytics | ^1.6.1 (installed) | Page view and route tracking active |
 
 ## Sources
 
-- Codebase analysis: 4 invitation code paths identified and compared (HIGH confidence)
-- `package.json` dependency versions verified against installed packages (HIGH confidence)
-- `src/lib/validation/tenants.ts` schema definitions confirmed (HIGH confidence)
-- `supabase/functions/send-tenant-invitation/index.ts` Edge Function reviewed (HIGH confidence)
-- `supabase/functions/_shared/auth-email-templates.ts` template pattern reviewed (HIGH confidence)
-- `src/hooks/api/query-keys/tenant-invite-mutation-options.ts` mutation factory reviewed (HIGH confidence)
-- `src/components/ui/stepper*.ts` stepper component availability confirmed (HIGH confidence)
-- `src/lib/constants/query-config.ts` cache strategy reviewed (HIGH confidence)
+- [Next.js JSON-LD Guide](https://nextjs.org/docs/app/guides/json-ld) -- official recommendation is `<script>` tag injection, no native Metadata API field (HIGH confidence)
+- [Next.js generateSitemaps](https://nextjs.org/docs/app/api-reference/functions/generate-sitemaps) -- native multi-sitemap support via route-based splitting (HIGH confidence)
+- [Next.js Metadata Files: sitemap.xml](https://nextjs.org/docs/app/api-reference/file-conventions/metadata/sitemap) -- `MetadataRoute.Sitemap` type and ISR caching (HIGH confidence)
+- [Next.js Metadata Files: robots.txt](https://nextjs.org/docs/app/api-reference/file-conventions/metadata/robots) -- `MetadataRoute.Robots` for dynamic robots.ts (HIGH confidence)
+- [schema-dts on npm](https://www.npmjs.com/package/schema-dts) -- v2.0.0, 100K+ weekly downloads, by Google (HIGH confidence)
+- [schema-dts GitHub releases](https://github.com/google/schema-dts/releases) -- v2.0.0 changelog: drops TS peer dep, adds schema-dts-lib (HIGH confidence)
+- [Vercel Speed Insights docs](https://vercel.com/docs/speed-insights) -- RUM-based CWV monitoring, already in project (HIGH confidence)
+- [Vercel preview deployment indexing](https://vercel.com/kb/guide/are-vercel-preview-deployment-indexed-by-search-engines) -- automatic `X-Robots-Tag: noindex` on preview deploys (HIGH confidence)
+- [Google Search Console verification methods](https://support.google.com/webmasters/answer/9008080) -- meta tag, HTML file, DNS TXT record options (HIGH confidence)
+- [@googleapis/searchconsole on npm](https://www.npmjs.com/package/@googleapis/searchconsole) -- v5.0.0, requires OAuth service account; scope confirmed as out of v1.6 (MEDIUM confidence)
+- [vercel/next.js Discussion #70652](https://github.com/vercel/next.js/discussions/70652) -- Feature request for native `structuredData` in Metadata API; NOT implemented as of Next.js 16.1 (HIGH confidence)
+- [Rich Results Test](https://search.google.com/test/rich-results) -- manual validation only; no programmatic API available (HIGH confidence)
+- Codebase analysis of 9 pages with existing JSON-LD, sitemap.ts, robots.txt, generate-metadata.ts (HIGH confidence)

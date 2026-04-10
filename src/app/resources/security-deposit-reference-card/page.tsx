@@ -4,6 +4,8 @@ import { ArrowLeft } from 'lucide-react'
 import { PageLayout } from '#components/layout/page-layout'
 import { Button } from '#components/ui/button'
 import { PrintButton } from '#components/shared/print-button'
+import { RelatedArticles } from '#components/blog/related-articles'
+import { RESOURCE_TO_BLOGS } from '#lib/content-links'
 
 export const metadata: Metadata = {
 	title: 'Security Deposit Laws by State - Quick Reference Card | TenantFlow',
@@ -265,6 +267,11 @@ export default function SecurityDepositReferenceCardPage() {
 						</div>
 					</div>
 				</section>
+
+				<RelatedArticles
+					slugs={RESOURCE_TO_BLOGS['security-deposit-reference-card'] ?? []}
+					title="Related Blog Posts"
+				/>
 
 				{/* Footer CTA */}
 				<div className="mt-12 text-center print:hidden">

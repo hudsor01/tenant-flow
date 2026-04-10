@@ -1,97 +1,92 @@
-import Footer from '#components/layout/footer'
-import { Navbar } from '#components/layout/navbar'
-import { HeroSection } from '#components/sections/hero-section'
+import type { Metadata } from 'next'
 
+import { PageLayout } from '#components/layout/page-layout'
 import { Button } from '#components/ui/button'
 import { CardLayout } from '#components/ui/card-layout'
+import { createPageMetadata } from '#lib/seo/page-metadata'
 import { ArrowLeft, Home, MessageCircle, XCircle } from 'lucide-react'
 import Link from 'next/link'
 
+export const metadata: Metadata = createPageMetadata({
+	title: 'Checkout Cancelled',
+	description: 'Your TenantFlow checkout was cancelled. No payment was processed.',
+	path: '/pricing/cancel',
+	noindex: true
+})
+
 export default function CheckoutCancelPage() {
 	return (
-		<div className="min-h-screen bg-background flex flex-col">
-			<Navbar />
-
-			<main className="flex-1 page-offset-navbar">
-				{/* Hero Section */}
-				<HeroSection
-					title="Payment Cancelled"
-					subtitle="No worries! Your payment was cancelled and you haven't been charged. You can try again anytime or contact our support team for assistance."
-					primaryCta={{ label: 'Back to Pricing', href: '/pricing' }}
-					secondaryCta={{ label: 'Contact Support', href: '/contact' }}
-				/>
-
-				<div className="section-content">
-					<div className="container mx-auto px-4 section-content max-w-2xl">
-						<CardLayout
-							title="Payment Cancelled"
-							description="No worries! Your payment was cancelled and you haven't been charged."
-							className="text-center"
-						>
-							<div className="pb-8">
-								<div className="size-16 bg-muted/30 rounded-full flex-center mx-auto mb-6">
-									<XCircle className="size-8 text-muted-foreground" />
-								</div>
-								<p className="text-xl text-muted-foreground">
-									No worries! Your payment was cancelled and you haven&apos;t
-									been charged.
-								</p>
-							</div>
-
-							<div className="space-y-6">
-								<div className="bg-muted/50 rounded-lg p-6 text-left">
-									<h3 className="font-semibold mb-4">What happened?</h3>
-									<ul className="space-y-2 text-muted-foreground">
-										<li>• You cancelled the checkout process</li>
-										<li>• No payment was processed</li>
-										<li>• Your account remains unchanged</li>
-										<li>• You can try again anytime</li>
-									</ul>
-								</div>
-
-								<div className="space-y-4">
-									<h3 className="font-semibold">Ready to get started?</h3>
-									<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-										<Link href="/pricing">
-											<Button className="w-full" size="lg">
-												<ArrowLeft className="size-4 mr-2" />
-												Back to Pricing
-											</Button>
-										</Link>
-										<Link href="/dashboard">
-											<Button variant="outline" className="w-full" size="lg">
-												<Home className="size-4 mr-2" />
-												Go to Dashboard
-											</Button>
-										</Link>
-									</div>
-								</div>
-
-								<div className="pt-6 border-t">
-									<p className="text-muted-foreground mb-4">
-										Still have questions about our pricing or need help choosing
-										the right plan?
-									</p>
-									<div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-										<Link href="/contact">
-											<Button variant="outline" size="sm">
-												<MessageCircle className="size-4 mr-2" />
-												Contact Support
-											</Button>
-										</Link>
-										<Link href="/features">
-											<Button variant="ghost" size="sm">
-												View Features
-											</Button>
-										</Link>
-									</div>
-								</div>
-							</div>
-						</CardLayout>
+		<PageLayout>
+			<div className="mx-auto max-w-2xl px-6 section-content lg:px-8">
+				<CardLayout
+					title="Checkout cancelled"
+					description="No worries — your payment was cancelled and you haven't been charged."
+					className="text-center"
+				>
+					<div className="flex flex-col items-center gap-6 pb-4">
+						<div className="flex-center size-16 rounded-full bg-muted/50">
+							<XCircle
+								className="size-8 text-muted-foreground"
+								aria-hidden="true"
+							/>
+						</div>
 					</div>
-				</div>
-			</main>
-			<Footer />
-		</div>
+
+					<div className="space-y-6">
+						<div className="rounded-lg bg-muted/50 p-6 text-left">
+							<h3 className="mb-4 font-semibold text-foreground">
+								What happened?
+							</h3>
+							<ul className="space-y-2 text-muted-foreground">
+								<li>You cancelled the checkout process</li>
+								<li>No payment was processed</li>
+								<li>Your account remains unchanged</li>
+								<li>You can try again anytime</li>
+							</ul>
+						</div>
+
+						<div className="space-y-4">
+							<h3 className="font-semibold text-foreground">
+								Ready to get started?
+							</h3>
+							<div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+								<Link href="/pricing">
+									<Button className="w-full" size="lg">
+										<ArrowLeft className="mr-2 size-4" />
+										Back to Pricing
+									</Button>
+								</Link>
+								<Link href="/dashboard">
+									<Button variant="outline" className="w-full" size="lg">
+										<Home className="mr-2 size-4" />
+										Go to Dashboard
+									</Button>
+								</Link>
+							</div>
+						</div>
+
+						<div className="border-t pt-6">
+							<p className="mb-4 text-muted-foreground">
+								Still have questions about our pricing or need help choosing
+								the right plan?
+							</p>
+							<div className="flex flex-col items-center justify-center gap-4 sm:flex-row">
+								<Link href="/contact">
+									<Button variant="outline" size="sm">
+										<MessageCircle className="mr-2 size-4" />
+										Contact Support
+									</Button>
+								</Link>
+								<Link href="/features">
+									<Button variant="ghost" size="sm">
+										View Features
+									</Button>
+								</Link>
+							</div>
+						</div>
+					</div>
+				</CardLayout>
+			</div>
+		</PageLayout>
 	)
 }

@@ -1,6 +1,8 @@
 import { PageLayout } from '#components/layout/page-layout'
 import type { Metadata } from 'next'
 import Link from 'next/link'
+import { JsonLdScript } from '#components/seo/json-ld-script'
+import { createBreadcrumbJsonLd } from '#lib/seo/breadcrumbs'
 import {
 	Building,
 	CreditCard,
@@ -96,6 +98,7 @@ const supportCategories = [
 export default function SupportPage() {
 	return (
 		<PageLayout>
+			<JsonLdScript schema={createBreadcrumbJsonLd('/support')} />
 			<div className="mx-auto max-w-5xl px-6 section-spacing">
 				{/* Header */}
 				<div className="text-center mb-16">

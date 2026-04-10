@@ -11,6 +11,7 @@ import {
 import { PageLayout } from '#components/layout/page-layout'
 import { Button } from '#components/ui/button'
 import { SOCIAL_PROOF } from '#config/social-proof'
+import { RelatedArticles } from '#components/blog/related-articles'
 import { COMPETITORS, VALID_COMPETITORS } from './compare-data'
 import {
 	PricingComparison,
@@ -176,6 +177,7 @@ export default async function ComparePage({ params }: PageProps) {
 			<PricingComparison data={data} />
 			<FeatureTable data={data} />
 			<WhySwitchSection data={data} />
+			<RelatedArticles slugs={[data.blogSlug]} title="Read the Full Comparison" />
 			<BottomCta data={data} />
 		</PageLayout>
 	)

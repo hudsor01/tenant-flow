@@ -5,7 +5,7 @@ const PRODUCTION_URL = 'https://tenantflow.app'
 
 // Use getter to ensure env var is read at runtime, not compile time
 // Falls back to VERCEL_URL during build, or production URL as final fallback
-function getSiteUrl(): string {
+export function getSiteUrl(): string {
 	// Primary: explicit app URL (validated by t3-env)
 	if (env.NEXT_PUBLIC_APP_URL) {
 		return env.NEXT_PUBLIC_APP_URL
@@ -147,14 +147,7 @@ export function getJsonLd() {
 			'https://twitter.com/tenantflow',
 			'https://linkedin.com/company/tenantflow',
 			'https://facebook.com/tenantflow'
-		],
-		aggregateRating: {
-			'@type': 'AggregateRating',
-			ratingValue: '4.8',
-			reviewCount: '1250',
-			bestRating: '5',
-			worstRating: '1'
-		}
+		]
 	}
 
 	// SoftwareApplication schema
@@ -197,13 +190,7 @@ export function getJsonLd() {
 			'Online Payments',
 			'Document Storage',
 			'Tenant Screening'
-		],
-		aggregateRating: {
-			'@type': 'AggregateRating',
-			ratingValue: '4.8',
-			reviewCount: '1250',
-			bestRating: '5'
-		}
+		]
 	}
 
 	return [organization, software]

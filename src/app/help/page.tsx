@@ -2,6 +2,8 @@ import { PageLayout } from '#components/layout/page-layout'
 import { HeroSection } from '#components/sections/hero-section'
 import { Button } from '#components/ui/button'
 import { CardLayout } from '#components/ui/card-layout'
+import { JsonLdScript } from '#components/seo/json-ld-script'
+import { createBreadcrumbJsonLd } from '#lib/seo/breadcrumbs'
 
 import {
 	Item,
@@ -28,6 +30,7 @@ import { SOCIAL_PROOF } from '#config/social-proof'
 export default function HelpPage() {
 	return (
 		<PageLayout>
+			<JsonLdScript schema={createBreadcrumbJsonLd('/help')} />
 			{/* Hero Section */}
 			<HeroSection
 				title="We guarantee your success"

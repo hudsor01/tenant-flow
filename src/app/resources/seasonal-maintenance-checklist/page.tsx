@@ -4,6 +4,8 @@ import { ArrowLeft } from 'lucide-react'
 import { PageLayout } from '#components/layout/page-layout'
 import { Button } from '#components/ui/button'
 import { PrintButton } from '#components/shared/print-button'
+import { RelatedArticles } from '#components/blog/related-articles'
+import { RESOURCE_TO_BLOGS } from '#lib/content-links'
 
 export const metadata: Metadata = {
 	title: 'Seasonal Maintenance Checklist for Rental Properties | TenantFlow',
@@ -221,6 +223,11 @@ export default function SeasonalMaintenanceChecklistPage() {
 						</div>
 					</div>
 				</section>
+
+				<RelatedArticles
+					slugs={RESOURCE_TO_BLOGS['seasonal-maintenance-checklist'] ?? []}
+					title="Related Blog Posts"
+				/>
 
 				{/* Footer CTA */}
 				<div className="mt-12 text-center print:hidden">

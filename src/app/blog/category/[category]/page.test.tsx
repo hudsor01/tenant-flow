@@ -97,7 +97,7 @@ vi.mock('lucide-react', async (importOriginal) => {
 	}
 })
 
-import BlogCategoryPage from './page'
+import BlogCategoryPage from './blog-category-client'
 
 // --- Mock data ---
 

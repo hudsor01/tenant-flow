@@ -70,16 +70,19 @@ A landlord can add a property, invite a tenant, collect rent, and see their fina
 
 ### Active
 
-## Current Milestone: v1.4 Tenant Invitation Flow Redesign
+## Current Milestone: v1.6 SEO & Google Indexing Optimization
 
-**Goal:** Replace 4 duplicated tenant invitation paths with one unified invite flow that works everywhere -- onboarding, dashboard, and lease wizard.
+**Goal:** Make every public-facing TenantFlow page fully discoverable, richly structured, and optimized for organic search rankings.
 
 **Target features:**
-- One invitation component/flow used across all contexts (onboarding wizard, dashboard tenants, lease wizard)
-- Context-aware fields (property/unit picker when relevant, lease attachment when coming from lease wizard)
-- Remove user-facing type dropdown (internal metadata only, auto-set by context)
-- Fix CHECK constraint bugs ('portal_access' typo in invite-tenant-form.tsx)
-- Clean post-invite experience (pending state, resend, status visibility)
+- Comprehensive structured data (JSON-LD) on all public page types (FAQ, Article, BreadcrumbList, HowTo, Review/Comparison)
+- Sitemap completeness audit + split into category sitemaps
+- Per-page metadata audit (titles, descriptions, OG tags, canonical URLs)
+- Internal linking improvements between blog/comparison/resource pages
+- Google Search Console readiness (verification, monitoring setup)
+- robots.txt review and crawl budget optimization
+- Blog post SEO enrichment (article tags, author, reading time)
+- Pricing page conversion optimization (missing generateMetadata, stale priceValidUntil dates, inconsistent social proof numbers, HTML entity bugs, noindex on checkout sub-pages, legacy Tailwind v3 syntax in complete/page.tsx, mobile comparison table accessibility)
 
 ### Out of Scope
 
@@ -166,4 +169,22 @@ Frontend (Next.js 16 / Vercel) -> supabase-js -> Supabase PostgREST (RLS enforce
 | Centralized social proof constants | Single source of truth for all marketing numbers | Good |
 
 ---
-*Last updated: 2026-03-30 after v1.4 milestone start (Tenant Invitation Flow Redesign)*
+## Evolution
+
+This document evolves at phase transitions and milestone boundaries.
+
+**After each phase transition** (via `/gsd-transition`):
+1. Requirements invalidated? → Move to Out of Scope with reason
+2. Requirements validated? → Move to Validated with phase reference
+3. New requirements emerged? → Add to Active
+4. Decisions to log? → Add to Key Decisions
+5. "What This Is" still accurate? → Update if drifted
+
+**After each milestone** (via `/gsd-complete-milestone`):
+1. Full review of all sections
+2. Core Value check — still the right priority?
+3. Audit Out of Scope — reasons still valid?
+4. Update Context with current state
+
+---
+*Last updated: 2026-04-08 after v1.6 milestone start (SEO & Google Indexing Optimization)*

@@ -1,123 +1,150 @@
-# Architecture: Tenant Invitation Flow Consolidation
+# Architecture: SEO & Google Indexing Optimization
 
-**Domain:** Invitation creation path unification in property management SaaS
-**Researched:** 2026-03-30
-**Confidence:** HIGH (all evidence from codebase analysis, no external dependencies)
+**Domain:** SEO integration for existing Next.js 16 App Router SaaS marketing pages
+**Researched:** 2026-04-08
+**Confidence:** HIGH (codebase analysis + official Next.js docs + Google structured data specs)
 
-## Current State: 4 Invitation Paths
+## Current State Analysis
 
-Four separate code paths create `tenant_invitations` records. Each duplicates the same core logic: generate UUID code, build URL, compute 7-day expiry, insert row, call `send-tenant-invitation` Edge Function.
+### What Exists Today
 
-### Path 1: InviteTenantForm (standalone page/modal)
-- **Files:** `src/components/tenants/invite-tenant-form.tsx` (228 lines)
-- **Surface:** `/tenants/new` page and `@modal/(.)tenants/new` intercepting route
-- **Fields:** email, first_name, last_name, phone, property_id (optional), unit_id (optional)
-- **Type set:** `'portal_access'` (hardcoded)
-- **Mutation:** inline `useMutation` in component -- NOT using `tenantInviteMutations.invite()`
-- **Post-success:** navigates to `/tenants`, invalidates `tenantQueries.all()`
-- **Sub-components:** `InviteTenantInfoFields`, `InviteTenantPropertyFields` (TanStack Form)
+The codebase already has a foundational SEO layer, but it is fragmented and inconsistent across pages.
 
-### Path 2: InviteTenantModal (custom modal, tenants list page)
-- **File:** `src/components/tenants/invite-tenant-modal.tsx` (224 lines)
-- **Surface:** opened from Tenants page via Zustand `isInviteModalOpen` state
-- **Fields:** email, firstName, lastName, type dropdown (user-facing!)
-- **Type set:** user picks `'platform_access'` or `'lease_signing'` from dropdown
-- **Mutation:** NONE -- delegates to parent via `onSubmit: (data: InviteTenantData) => void` callback
-- **Problem:** uses raw HTML inputs (no shadcn), no validation, camelCase field names mismatch
-- **Problem:** exposes `type` dropdown to user -- meaningless UX choice
+**Global Layer:**
+- `src/lib/generate-metadata.ts` -- exports `getDefaultMetadata()` (lazy-initialized Metadata object with title template, OG, Twitter, robots directives) and `getJsonLd()` (Organization + SoftwareApplication schemas)
+- `src/components/seo/seo-json-ld.tsx` -- renders global JSON-LD in `<head>` via root layout
+- Root layout (`src/app/layout.tsx`) -- calls `generateSiteMetadata()` and renders `<SeoJsonLd />` in `<head>`
 
-### Path 3: OnboardingStepTenant (onboarding wizard)
-- **File:** `src/components/onboarding/onboarding-step-tenant.tsx` (189 lines)
-- **Surface:** step 4 of onboarding wizard dialog
-- **Fields:** email, first_name, last_name (all required)
-- **Type set:** `'platform_access'` (hardcoded)
-- **Mutation:** inline `useMutation` in component -- duplicates insert logic
-- **Post-success:** calls `onNext()` to advance wizard, invalidates `tenantQueries.lists()`
-- **Constraints:** no property/unit fields (property may not exist yet), skip button required
+**Sitemap Layer:**
+- `src/app/sitemap.ts` -- dynamic sitemap with ISR (24h), fetches blog slugs from Supabase with 5s timeout
+- `public/sitemap.xml` -- static XML with 15 hardcoded URLs (stale dates from Feb 2025)
+- `public/sitemap-index.xml` -- static index pointing to `/sitemap.xml` (stale)
+- `public/robots.txt` -- static file with user-agent rules and Sitemap directive
 
-### Path 4: InlineTenantInvite (lease wizard)
-- **File:** `src/components/leases/wizard/selection-step-filters.tsx` (203 lines)
-- **Surface:** inline form in lease creation wizard's selection step
-- **Fields:** first_name, last_name, email, phone
-- **Type set:** `'lease_signing'` (hardcoded)
-- **Mutation:** inline `useMutation` in component -- duplicates insert logic
-- **Post-success:** resets form, calls `onToggleMode()` to switch back to tenant picker
-- **Context:** receives `propertyId` as prop, no unit_id or lease_id
+**Per-Page Structured Data (present):**
+- FAQ page: FAQPage + BreadcrumbList JSON-LD (inline in component)
+- Pricing page: FAQPage + BreadcrumbList + Product/Offer JSON-LD (inline)
+- Compare pages: WebPage + BreadcrumbList JSON-LD (inline)
+- About page: BreadcrumbList JSON-LD (inline)
+- Contact page: BreadcrumbList JSON-LD (inline)
+- Resources hub: BreadcrumbList JSON-LD (inline)
+- Features page: BreadcrumbList JSON-LD (via `getBreadcrumbSchema()` in features-data.ts)
 
-### Existing Centralized Mutation (unused by 3 of 4 paths)
-- **File:** `src/hooks/api/query-keys/tenant-invite-mutation-options.ts`
-- **Hook:** `src/hooks/api/use-tenant-invite-mutations.ts` -> `useInviteTenantMutation()`
-- **Problem:** requires `lease_id` as mandatory field, making it unusable for platform_access invitations
-- **Problem:** returns `TenantWithExtras` shape (not an invitation) -- leaks abstraction
+**Per-Page Metadata (present):**
+- Blog `[slug]`: `generateMetadata()` with OG article type, canonical, Twitter card
+- Compare `[competitor]`: `generateMetadata()` with OG, canonical
+- Resource subpages (3): static `export const metadata`
+- Legal pages (terms, privacy, security-policy): static `export const metadata`
+- Support page: static `export const metadata`
+- Owner/tenant layouts: static `export const metadata` (not SEO-relevant, behind auth)
+
+### Critical Gaps Identified
+
+**Pages MISSING explicit metadata (falling back to root defaults):**
+- `/faq` -- no `generateMetadata` or `export const metadata`
+- `/about` -- no metadata export
+- `/features` -- no metadata export (also `'use client'` -- cannot use `generateMetadata`)
+- `/pricing` -- no metadata export
+- `/blog` -- no metadata export (also `'use client'`)
+- `/blog/category/[category]` -- no metadata export (also `'use client'`)
+- `/contact` -- no metadata export
+- `/resources` -- no metadata export
+- `/help` -- no metadata export
+- `/` (homepage) -- no metadata export (delegates to `marketing-home`, which is force-static)
+
+**Pages MISSING canonical URLs:**
+- Every page except `/blog/[slug]` and `/compare/[competitor]` lacks explicit `alternates.canonical`
+
+**Pages MISSING structured data:**
+- Blog `[slug]`: no Article JSON-LD, no author, no datePublished, no BreadcrumbList
+- Blog hub: no BreadcrumbList, no CollectionPage
+- Blog category: no BreadcrumbList, no CollectionPage
+- Resource subpages: no HowTo or Article JSON-LD, no BreadcrumbList
+- Homepage: no WebSite SearchAction, no BreadcrumbList
+- Help page: no BreadcrumbList
+
+**Architectural Issues:**
+1. `baseUrl` is constructed differently in every file -- some use `process.env.NEXT_PUBLIC_APP_URL` directly, some use the `env` import, some use different fallback ports (3000 vs 3050). The `getSiteUrl()` helper in `generate-metadata.ts` exists but is not exported/used by page components.
+2. JSON-LD is constructed inline in every page component as raw object literals with manual `JSON.stringify().replace()` -- no shared rendering pattern, no type safety.
+3. BreadcrumbList schema is duplicated across 7+ pages with copy-pasted boilerplate.
+4. The static `public/sitemap.xml` and `public/sitemap-index.xml` conflict with the dynamic `src/app/sitemap.ts`. Crawlers may get stale static files instead of fresh dynamic ones depending on resolution order.
+5. `robots.txt` blocks `SemrushBot` and `AhrefsBot` (reasonable for crawl budget, but prevents competitive analysis tools -- a business trade-off to document).
+6. Blog hub page is `'use client'` -- cannot use `generateMetadata()`, so it cannot have server-side metadata. This is a structural limitation.
+7. The `priceValidUntil` in pricing JSON-LD is hardcoded to `2025-12-31` (expired).
 
 ## Recommended Architecture
 
-### Principle: Shared Hook, Context-Driven Fields
+### Principle: Layered Metadata with Shared Utilities
 
-Use a **single mutation hook** consumed by **context-aware UI wrappers**. The hook handles all DB insert + email logic. Each consumer passes context that determines which fields are required, which are pre-filled, and what `type` value is auto-set.
+Three layers, each with clear ownership:
 
-This is "shared hook, not shared component" because the UI requirements differ substantially:
-- Onboarding needs a compact card with skip button inside a dialog
-- Dashboard page/modal needs full form with optional property pickers
-- Lease wizard needs an inline bordered box embedded in a larger form
+```
+Layer 1: Root Layout (global defaults)
+  - Default title template, OG, Twitter, robots
+  - Organization + SoftwareApplication JSON-LD
+  - Applied to EVERY page automatically via Next.js metadata merging
 
-Forcing a single component to handle all three layouts would create a worse abstraction than three thin wrappers over one shared hook.
+Layer 2: Shared SEO Utilities (reusable building blocks)
+  - getSiteUrl() -- single source of truth for base URL
+  - createBreadcrumbJsonLd() -- generates BreadcrumbList from route segments
+  - createArticleJsonLd() -- generates Article schema for blog posts
+  - createFaqJsonLd() -- generates FAQPage schema from question arrays
+  - JsonLdScript component -- type-safe rendering with XSS prevention
+  - Page-level metadata factory functions
+
+Layer 3: Per-Page (page-specific overrides)
+  - generateMetadata() or export const metadata per route
+  - Page-specific JSON-LD via composable utility functions
+  - Canonical URLs derived from route path
+```
 
 ### Component Boundaries
 
-```
-                     useCreateInvitation()
-                    (single mutation hook)
-                            |
-          +-----------------+------------------+
-          |                 |                  |
-  InviteTenantForm   OnboardingInvite   LeaseWizardInvite
-  (page + modal)     (wizard step)      (inline in step 1)
-```
-
-| Component | Responsibility | Communicates With |
-|-----------|---------------|-------------------|
-| `useCreateInvitation` | DB insert, URL generation, email send, cache invalidation | Supabase client, send-tenant-invitation Edge Function |
-| `InviteTenantForm` | Full invite form (email, name, phone, property/unit pickers) | `useCreateInvitation`, property/unit queries |
-| `OnboardingInviteStep` | Minimal invite form (email, name only), skip/next controls | `useCreateInvitation`, onboarding wizard state |
-| `LeaseWizardInvite` | Inline invite form within lease creation, auto-sets property context | `useCreateInvitation`, lease wizard state |
-| `InviteTenantModal` | **DELETE** -- replaced by route-based modal using `InviteTenantForm` | n/a |
+| Component | Responsibility | Location |
+|-----------|---------------|----------|
+| `getSiteUrl()` | Single canonical base URL resolution | `src/lib/generate-metadata.ts` (already exists, needs export) |
+| `JsonLdScript` | Type-safe JSON-LD `<script>` rendering with XSS escaping | `src/components/seo/json-ld-script.tsx` (NEW) |
+| `createBreadcrumbJsonLd()` | Generates BreadcrumbList from route path segments | `src/lib/seo/breadcrumbs.ts` (NEW) |
+| `createArticleJsonLd()` | Generates Article schema from blog post data | `src/lib/seo/article-schema.ts` (NEW) |
+| `createFaqJsonLd()` | Generates FAQPage schema from question/answer pairs | `src/lib/seo/faq-schema.ts` (NEW) |
+| `createProductJsonLd()` | Generates Product/Offer schema for pricing | `src/lib/seo/product-schema.ts` (NEW) |
+| `createPageMetadata()` | Factory for per-page Metadata with canonical + OG | `src/lib/seo/page-metadata.ts` (NEW) |
+| `SeoJsonLd` | Global JSON-LD in root layout (existing) | `src/components/seo/seo-json-ld.tsx` (KEEP) |
 
 ### Data Flow
 
 ```
-Consumer provides:
-  { email, first_name, last_name, phone?, property_id?, unit_id?, lease_id? }
-                          |
-                          v
-      useCreateInvitation hook derives:
-        - type: lease_id present ? 'lease_signing' : 'platform_access'
-        - invitation_code: crypto.randomUUID()
-        - invitation_url: ${APP_URL}/auth/accept-invitation?code=${code}
-        - expires_at: now + 7 days
-        - owner_user_id: from getCachedUser()
-        - status: 'sent'
-                          |
-                          v
-      PostgREST insert into tenant_invitations
-                          |
-                          v
-      fetch send-tenant-invitation Edge Function (non-fatal)
-                          |
-                          v
-      Invalidate query caches:
-        - tenantQueries.lists()
-        - tenantInvitationQueries.invitations()
-        - ownerDashboardKeys.all (if exists)
-                          |
-                          v
-      Return { invitation_id, status } to consumer
-                          |
-                          v
-      Consumer handles post-success:
-        - InviteTenantForm: toast + navigate to /tenants
-        - OnboardingInviteStep: toast + onNext()
-        - LeaseWizardInvite: toast + toggle back to picker + reset form
+Route: /blog/how-to-collect-rent
+
+1. Root layout generateMetadata() returns:
+   { title: { template: '%s | TenantFlow' }, metadataBase, openGraph, twitter, robots }
+
+2. Blog [slug] page generateMetadata() returns (MERGED over root):
+   { title: 'How to Collect Rent | TenantFlow Blog',
+     description: post.meta_description,
+     alternates: { canonical: 'https://tenantflow.app/blog/how-to-collect-rent' },
+     openGraph: { type: 'article', publishedTime, ... },
+     twitter: { card: 'summary_large_image', ... } }
+
+3. Blog [slug] page component renders JSON-LD:
+   <JsonLdScript schema={createArticleJsonLd(post)} />
+   <JsonLdScript schema={createBreadcrumbJsonLd('/blog/how-to-collect-rent', {
+     segments: [
+       { name: 'Blog', path: '/blog' },
+       { name: 'How to Collect Rent', path: '/blog/how-to-collect-rent' }
+     ]
+   })} />
+
+4. Root layout <head> renders (via SeoJsonLd):
+   <script type="application/ld+json">Organization schema</script>
+   <script type="application/ld+json">SoftwareApplication schema</script>
+
+5. Final HTML <head> contains:
+   - Merged <meta> tags (page overrides root where both define same property)
+   - Organization JSON-LD (global, every page)
+   - SoftwareApplication JSON-LD (global, every page)
+   - Article JSON-LD (page-specific)
+   - BreadcrumbList JSON-LD (page-specific)
 ```
 
 ## New and Modified Files
@@ -126,221 +153,410 @@ Consumer provides:
 
 | File | Purpose | Lines (est) |
 |------|---------|-------------|
-| `src/hooks/api/use-create-invitation.ts` | Single mutation hook. Replaces all 4 inline mutations. | ~80 |
+| `src/lib/seo/breadcrumbs.ts` | `createBreadcrumbJsonLd(path, overrides?)` -- generates BreadcrumbList from URL path. Auto-derives segment names from path (capitalizes, converts hyphens), with optional label overrides for dynamic segments. | ~40 |
+| `src/lib/seo/article-schema.ts` | `createArticleJsonLd(post)` -- generates Article schema with headline, datePublished, author, image, description. Returns typed `WithContext<Article>` from schema-dts. | ~50 |
+| `src/lib/seo/faq-schema.ts` | `createFaqJsonLd(questions)` -- generates FAQPage schema from `{ question, answer }[]`. Replaces inline FAQ schema construction in faq/page.tsx and pricing/page.tsx. | ~25 |
+| `src/lib/seo/product-schema.ts` | `createProductJsonLd(offers)` -- generates Product schema for pricing page. Replaces inline offer schema in pricing/page.tsx. Computes `priceValidUntil` dynamically. | ~40 |
+| `src/lib/seo/page-metadata.ts` | `createPageMetadata(config)` -- factory that produces Next.js `Metadata` with canonical URL, OG, Twitter derived from route path and title. Eliminates per-page boilerplate. | ~60 |
+| `src/components/seo/json-ld-script.tsx` | `<JsonLdScript schema={...} />` -- type-safe component accepting `WithContext<Thing>` from schema-dts. Handles `JSON.stringify` + XSS escaping. Replaces all inline `<script dangerouslySetInnerHTML>` blocks. | ~20 |
+| `src/app/robots.ts` | Dynamic robots.txt route using `MetadataRoute.Robots`. Replaces `public/robots.txt`. Uses `getSiteUrl()` for sitemap URL. | ~35 |
+| `src/lib/seo/__tests__/breadcrumbs.test.ts` | Unit tests for breadcrumb generation | ~60 |
+| `src/lib/seo/__tests__/article-schema.test.ts` | Unit tests for article schema | ~40 |
+| `src/lib/seo/__tests__/faq-schema.test.ts` | Unit tests for FAQ schema | ~30 |
+| `src/lib/seo/__tests__/page-metadata.test.ts` | Unit tests for metadata factory | ~50 |
 
 ### Modified Files
 
 | File | Change | Why |
 |------|--------|-----|
-| `src/hooks/api/query-keys/tenant-invite-mutation-options.ts` | Rewrite `invite()` factory: make `lease_id` optional, accept flat `CreateInvitationInput` instead of requiring lease lookup | Mutation factory currently forces lease_id, making it unusable for platform_access invites |
-| `src/components/tenants/invite-tenant-form.tsx` | Remove inline `useMutation`, import `useCreateInvitation()` instead | Deduplicate mutation logic |
-| `src/components/onboarding/onboarding-step-tenant.tsx` | Remove inline `useMutation`, import `useCreateInvitation()` instead | Deduplicate mutation logic |
-| `src/components/leases/wizard/selection-step-filters.tsx` | Remove inline `useMutation` from `InlineTenantInvite`, import `useCreateInvitation()` | Deduplicate mutation logic |
-| `src/components/tenants/invite-tenant-modal.tsx` | **DELETE entirely** | Replaced by route-based modal (`@modal/(.)tenants/new`) which already uses `InviteTenantForm` |
-| `src/components/tenants/tenants.tsx` | Remove `InviteTenantModal` import/usage, remove `isInviteModalOpen`/`openInviteModal`/`closeInviteModal` from Zustand store usage, wire "Invite Tenant" button to `router.push('/tenants/new')` instead | The route-based modal already exists and works; the custom modal is redundant |
-| `src/stores/tenants-store.ts` | Remove `isInviteModalOpen`, `openInviteModal`, `closeInviteModal` state | Dead state after modal removal |
-| `src/types/sections/tenants.ts` | Remove `InviteTenantData` interface, remove `onInviteTenant` from `TenantsProps` | Dead type after modal removal |
-| `src/app/(owner)/tenants/page.tsx` | Remove `handleInviteTenant` callback, remove `onInviteTenant` prop | Dead callback after modal removal |
-| `src/lib/validation/tenants.ts` | Keep `inviteTenantSchema` as-is (already correct), but add `createInvitationSchema` for the hook's input shape | Type safety for the new hook |
+| `src/lib/generate-metadata.ts` | Export `getSiteUrl()` publicly. Currently private function. | All page components and SEO utilities need the canonical base URL. |
+| `src/components/seo/seo-json-ld.tsx` | Refactor to use `JsonLdScript` component instead of inline `dangerouslySetInnerHTML`. | Consistency -- every JSON-LD render uses the same component. |
+| `src/app/faq/page.tsx` | Add `export const metadata` with title/description/canonical. Replace inline JSON-LD with `createFaqJsonLd()` + `createBreadcrumbJsonLd()` + `<JsonLdScript>`. | Missing metadata, duplicated schema construction. |
+| `src/app/about/page.tsx` | Add `export const metadata`. Replace inline breadcrumb JSON-LD with `createBreadcrumbJsonLd()` + `<JsonLdScript>`. | Missing metadata, duplicated breadcrumb boilerplate. |
+| `src/app/pricing/page.tsx` | Add `export const metadata`. Replace inline FAQ/breadcrumb/product JSON-LD with utility functions + `<JsonLdScript>`. Fix expired `priceValidUntil`. | Missing metadata, stale pricing dates, duplicated schemas. |
+| `src/app/contact/page.tsx` | Add `export const metadata`. Replace inline breadcrumb JSON-LD. | Missing metadata. |
+| `src/app/resources/page.tsx` | Add `export const metadata`. Replace inline breadcrumb JSON-LD. | Missing metadata. |
+| `src/app/help/page.tsx` | Add `export const metadata`. Add BreadcrumbList JSON-LD. | Missing metadata and structured data. |
+| `src/app/blog/[slug]/page.tsx` | Add Article JSON-LD via `createArticleJsonLd()`. Add BreadcrumbList. Keep existing `generateMetadata()`. | Blog posts lack Article structured data -- critical for Google rich results. |
+| `src/app/compare/[competitor]/page.tsx` | Refactor inline JSON-LD to use `<JsonLdScript>` + `createBreadcrumbJsonLd()`. Replace hardcoded `baseUrl` with `getSiteUrl()`. | Consistency, deduplication. |
+| `src/app/resources/seasonal-maintenance-checklist/page.tsx` | Add BreadcrumbList + HowTo JSON-LD. | Missing structured data. |
+| `src/app/resources/landlord-tax-deduction-tracker/page.tsx` | Add BreadcrumbList JSON-LD. | Missing structured data. |
+| `src/app/resources/security-deposit-reference-card/page.tsx` | Add BreadcrumbList JSON-LD. | Missing structured data. |
+| `src/components/landing/features-data.ts` | Replace `getBreadcrumbSchema()` with call to `createBreadcrumbJsonLd()`. | Remove one-off breadcrumb function. |
+| `src/app/features/page.tsx` | Replace inline breadcrumb JSON-LD. Cannot add metadata (is `'use client'`). | Consistency. |
+| `src/app/sitemap.ts` | Add support page, security-policy page, blog category pages. Add `lastModified` from actual DB timestamps for blog posts. | Missing pages in sitemap. |
 
-### Files NOT Modified
+### Files to DELETE
 
-| File | Why Left Alone |
-|------|---------------|
-| `send-tenant-invitation/index.ts` (Edge Function) | Already correct -- reads invitation by ID, sends email. No changes needed. |
-| `tenant-invitation-accept/index.ts` (Edge Function) | Already correct -- accepts by code, creates tenant record, links lease. No changes needed. |
-| `tenant-invitation-validate/index.ts` (Edge Function) | Already correct -- validates code for accept page. No changes needed. |
-| `src/hooks/api/query-keys/tenant-invitation-keys.ts` | Query factories are fine. No changes needed. |
-| `src/hooks/api/use-tenant-invite-mutations.ts` | Resend/cancel mutations stay as-is. `useInviteTenantMutation` becomes a thin wrapper over the new hook or is replaced by it. |
+| File | Why |
+|------|-----|
+| `public/robots.txt` | Replaced by dynamic `src/app/robots.ts` route. Having both causes conflict -- Next.js serves the static file from `/public` at a higher priority than the dynamic route. |
+| `public/sitemap.xml` | Stale static file (dates from Feb 2025). The dynamic `src/app/sitemap.ts` already generates fresh content. Having both means crawlers may hit the stale static version. |
+| `public/sitemap-index.xml` | Stale static index. Not needed -- Next.js serves the dynamic sitemap at `/sitemap.xml` directly. |
 
 ## Patterns to Follow
 
-### Pattern 1: Context-Derived Type (never user-facing)
+### Pattern 1: JsonLdScript Component (replaces all inline dangerouslySetInnerHTML)
 
-The `type` column (`platform_access` | `lease_signing`) is internal metadata. The user never picks it. The hook derives it from context.
+**What:** A single component for rendering JSON-LD that handles serialization and XSS escaping.
 
-**Rule:** If `lease_id` is provided, type = `'lease_signing'`. Otherwise, type = `'platform_access'`.
-
-```typescript
-// Inside useCreateInvitation hook
-const type: InvitationType = input.lease_id ? 'lease_signing' : 'platform_access'
-```
-
-This eliminates the dropdown in `InviteTenantModal` and the `'portal_access'` typo bug (the CHECK constraint only allows `platform_access` and `lease_signing` -- `portal_access` would fail at DB level).
-
-### Pattern 2: Flat Input Shape
-
-The current `inviteTenantRequestSchema` uses nested `tenantData` / `leaseData` objects -- a leftover from the old NestJS DTO pattern. The new hook uses a flat shape matching what the DB actually needs.
+**When:** Every page that needs structured data.
 
 ```typescript
-interface CreateInvitationInput {
-  email: string
-  first_name: string
-  last_name: string
-  phone?: string
-  property_id?: string
-  unit_id?: string
-  lease_id?: string
+// src/components/seo/json-ld-script.tsx
+import type { Thing, WithContext } from 'schema-dts'
+
+interface JsonLdScriptProps {
+  schema: WithContext<Thing> | WithContext<Thing>[]
+}
+
+export function JsonLdScript({ schema }: JsonLdScriptProps) {
+  const schemas = Array.isArray(schema) ? schema : [schema]
+  return (
+    <>
+      {schemas.map((s, i) => (
+        <script
+          key={`jsonld-${i}`}
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify(s).replace(/</g, '\\u003c')
+          }}
+        />
+      ))}
+    </>
+  )
 }
 ```
 
-Each consumer populates only the fields it has. The hook fills in the rest (owner_user_id, invitation_code, etc).
+**Why:** Eliminates 10+ instances of duplicated `dangerouslySetInnerHTML` + `JSON.stringify().replace()` boilerplate. Type safety via `schema-dts` catches malformed schemas at compile time.
 
-### Pattern 3: Non-Fatal Email Send
+### Pattern 2: Breadcrumb Generation from Route Path
 
-All 4 current paths already treat the Edge Function email call as non-fatal (`.catch()`). The consolidated hook preserves this: if the DB insert succeeds but the email fails, the invitation record exists and can be resent later.
+**What:** A utility that generates BreadcrumbList JSON-LD from the current URL path, with override support for dynamic segments.
 
-```typescript
-// In useCreateInvitation mutationFn
-const { data: invitation, error } = await supabase
-  .from('tenant_invitations')
-  .insert({ ... })
-  .select('id')
-  .single()
-
-if (error) throw error
-
-// Non-fatal email send
-await sendInvitationEmail(invitation.id).catch(err => {
-  console.error('[create-invitation] Email send failed:', err)
-})
-
-return { invitation_id: invitation.id }
-```
-
-### Pattern 4: Consumer Handles Post-Success UX
-
-The hook does NOT navigate, close modals, or advance wizards. It only:
-1. Inserts the record
-2. Sends the email (non-fatal)
-3. Invalidates caches
-4. Returns the result
-
-Each consumer's `onSuccess` callback handles its own UX:
+**When:** Every public-facing page.
 
 ```typescript
-// InviteTenantForm
-const mutation = useCreateInvitation()
-// In onSubmit:
-await mutation.mutateAsync(input)
-toast.success('Invitation sent', { ... })
-router.push('/tenants')
+// src/lib/seo/breadcrumbs.ts
+import type { BreadcrumbList, WithContext } from 'schema-dts'
 
-// OnboardingInviteStep
-const mutation = useCreateInvitation()
-// In onSubmit:
-await mutation.mutateAsync(input)
-toast.success('Invitation sent', { ... })
-onNext() // advance wizard
+interface BreadcrumbOverride {
+  name: string
+  path: string
+}
 
-// LeaseWizardInvite
-const mutation = useCreateInvitation()
-// In onSubmit:
-await mutation.mutateAsync(input)
-toast.success('Invitation sent', { ... })
-onToggleMode() // switch back to tenant picker
+export function createBreadcrumbJsonLd(
+  path: string,
+  overrides?: { segments?: BreadcrumbOverride[] }
+): WithContext<BreadcrumbList> {
+  const siteUrl = getSiteUrl()
+  const segments = overrides?.segments ?? pathToSegments(path)
+
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: 'Home', item: siteUrl },
+      ...segments.map((seg, i) => ({
+        '@type': 'ListItem' as const,
+        position: i + 2,
+        name: seg.name,
+        ...(i < segments.length - 1 ? { item: `${siteUrl}${seg.path}` } : {})
+      }))
+    ]
+  }
+}
+
+function pathToSegments(path: string): BreadcrumbOverride[] {
+  return path.split('/').filter(Boolean).map((segment, i, arr) => ({
+    name: segment.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' '),
+    path: '/' + arr.slice(0, i + 1).join('/')
+  }))
+}
 ```
+
+**Why:** Replaces 7+ duplicated breadcrumb schema definitions. The `pathToSegments` auto-derives human-readable names from URL slugs, while `overrides.segments` allows explicit control for dynamic routes (e.g., blog post titles).
+
+### Pattern 3: Page Metadata Factory
+
+**What:** A factory function that generates consistent `Metadata` objects with canonical URL, OG, and Twitter card derived from a minimal config.
+
+**When:** Every static marketing page that needs `export const metadata`.
+
+```typescript
+// src/lib/seo/page-metadata.ts
+import type { Metadata } from 'next'
+
+interface PageMetadataConfig {
+  title: string
+  description: string
+  path: string
+  ogType?: 'website' | 'article'
+  noIndex?: boolean
+}
+
+export function createPageMetadata(config: PageMetadataConfig): Metadata {
+  const siteUrl = getSiteUrl()
+  const url = `${siteUrl}${config.path}`
+
+  return {
+    title: config.title,
+    description: config.description,
+    alternates: { canonical: url },
+    openGraph: {
+      title: config.title,
+      description: config.description,
+      url,
+      type: config.ogType ?? 'website',
+      siteName: 'TenantFlow',
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: config.title,
+      description: config.description,
+    },
+    ...(config.noIndex ? { robots: 'noindex, nofollow' } : {}),
+  }
+}
+```
+
+**Why:** Pages like FAQ, About, Contact, Help, Resources all need the same metadata structure with different values. This eliminates per-page boilerplate while ensuring every page gets canonical URLs and consistent OG tags.
+
+### Pattern 4: Dynamic robots.ts Route
+
+**What:** Replace static `public/robots.txt` with a dynamic `src/app/robots.ts` route.
+
+**When:** Immediately -- the static file and dynamic sitemap are currently in conflict.
+
+```typescript
+// src/app/robots.ts
+import type { MetadataRoute } from 'next'
+
+export default function robots(): MetadataRoute.Robots {
+  const siteUrl = getSiteUrl()
+
+  return {
+    rules: [
+      {
+        userAgent: '*',
+        allow: '/',
+        disallow: ['/admin/', '/api/', '/auth/', '/dashboard/', '/tenant/',
+                   '/settings/', '/profile/', '/billing/', '/_next/', '/sw.js'],
+      },
+      {
+        userAgent: 'Googlebot',
+        allow: '/',
+        disallow: ['/admin/', '/api/', '/auth/', '/dashboard/', '/tenant/',
+                   '/settings/', '/profile/', '/billing/'],
+      },
+    ],
+    sitemap: `${siteUrl}/sitemap.xml`,
+    host: siteUrl,
+  }
+}
+```
+
+**Why:** The `MetadataRoute.Robots` type ensures correct format. Using `getSiteUrl()` means the sitemap URL is always correct across environments (preview deploys, production). The static `public/robots.txt` must be deleted because Next.js serves static files at higher priority than dynamic routes.
+
+Note: The current `robots.txt` disallows `/manage/` which is not a route in the app (the authenticated area is `/dashboard/`). The dynamic version corrects this. It also removes `Crawl-delay` (not respected by Google) and `Request-rate` (non-standard directive).
 
 ## Anti-Patterns to Avoid
 
-### Anti-Pattern 1: Single Mega-Component
-**What:** One `<UnifiedInviteForm>` component with `mode` prop controlling layout/fields.
-**Why bad:** The three contexts have fundamentally different layouts (full page card vs wizard dialog step vs inline bordered box in a larger form). A single component would need extensive conditional rendering, making it harder to maintain than three simple wrappers.
-**Instead:** Shared hook, separate thin UI wrappers per context.
+### Anti-Pattern 1: Client Component Metadata
+**What:** Pages using `'use client'` (features, blog hub, blog category) cannot export `generateMetadata()` or `export const metadata`.
+**Why bad:** These pages fall back to root layout defaults -- generic title, no page-specific description, no canonical URL.
+**Instead:** Extract the metadata export into a separate server component wrapper, or convert the page to a Server Component that renders a client component child. For blog hub specifically: the page component itself should be a Server Component that prefetches initial data and passes it to a client component for interactivity.
 
-### Anti-Pattern 2: User-Facing Type Selector
-**What:** Dropdown letting user pick `platform_access` vs `lease_signing`.
-**Why bad:** Users do not understand or care about this distinction. The system knows: if you are in the lease wizard, it is a lease signing invitation. If you are on the tenants page, it is platform access.
-**Instead:** Derive type from context automatically.
+### Anti-Pattern 2: Hardcoded Base URLs in Components
+**What:** Each page constructs `baseUrl` differently: `process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'` vs `env.NEXT_PUBLIC_APP_URL || 'https://tenantflow.app'` vs various fallback ports.
+**Why bad:** Inconsistent canonical URLs. Some pages use port 3000 (wrong -- dev server is 3050). Production URLs may differ from what canonical tags emit.
+**Instead:** Always use the exported `getSiteUrl()` from `src/lib/generate-metadata.ts`. One function, one source of truth.
 
-### Anti-Pattern 3: Inline Mutation Logic
-**What:** Each component defining its own `useMutation({ mutationFn: async () => { ... } })` with duplicated insert logic.
-**Why bad:** The current bug exists because `invite-tenant-form.tsx` hardcodes `type: 'portal_access'` (a typo -- the CHECK constraint only allows `platform_access`). If the mutation lived in one place, this bug would not exist in 4 places.
-**Instead:** Single `useCreateInvitation` hook.
+### Anti-Pattern 3: Static and Dynamic Sitemap Conflict
+**What:** Having both `public/sitemap.xml` (static) and `src/app/sitemap.ts` (dynamic) in the same project.
+**Why bad:** Next.js serves files from `/public` at the highest priority. Crawlers requesting `/sitemap.xml` may get the stale static version (Feb 2025 dates, no blog posts) instead of the fresh dynamic version.
+**Instead:** Delete `public/sitemap.xml` and `public/sitemap-index.xml`. The dynamic `src/app/sitemap.ts` is the only sitemap source.
 
-### Anti-Pattern 4: Requiring lease_id for All Invitations
-**What:** The existing `tenantInviteMutations.invite()` in `tenant-invite-mutation-options.ts` requires `lease_id` as a mandatory field and does a lease lookup to get property_id.
-**Why bad:** Platform access invitations (from tenants page, onboarding) do not have a lease. This forced 3 of 4 paths to bypass the centralized mutation entirely.
-**Instead:** Make `lease_id` optional. If provided, derive property_id/unit_id from it. If not, use whatever property_id/unit_id the caller passes directly.
+### Anti-Pattern 4: Inline JSON-LD Object Construction
+**What:** Building JSON-LD schemas as raw object literals inside page components.
+**Why bad:** No type safety (typos like `'portal_access'` are not caught). The `@context` and `@type` strings are repeated everywhere. Schema changes require updating 10+ files.
+**Instead:** Use `schema-dts` types for compile-time validation and utility functions for each schema type.
 
-## Integration Points
+## Sitemap Strategy: Keep Single, Enhance Content
 
-### Database
-- **Table:** `tenant_invitations` -- no schema changes needed
-- **CHECK constraint:** `type IN ('platform_access', 'lease_signing')` -- already correct
-- **RLS:** existing policies cover owner insert/select -- no changes needed
-- **Edge Functions:** `send-tenant-invitation`, `tenant-invitation-validate`, `tenant-invitation-accept` -- no changes needed
+### Decision: Do NOT Split Into Category Sitemaps
 
-### Query Cache
-The new hook invalidates these keys on success:
-- `tenantQueries.lists()` -- tenant list may show pending invitations
-- `tenantInvitationQueries.invitations()` -- invitation list table
-- `ownerDashboardKeys.all` -- dashboard stats may show invitation counts
+The current page count is approximately 25-35 URLs (15 static pages + ~10-20 blog posts + 3 compare pages + 3 resource pages). Google's limit is 50,000 URLs per sitemap. Splitting into category sitemaps at this scale provides zero SEO benefit and adds complexity.
 
-### Zustand Store
-Remove invitation modal state from `tenants-store.ts`:
-- `isInviteModalOpen` (boolean)
-- `openInviteModal` (action)
-- `closeInviteModal` (action)
+**When to revisit:** If blog post count exceeds 500, or if total indexed pages exceed 1,000, split into category sitemaps using `generateSitemaps()`:
+```
+/sitemap/0.xml  -- static marketing pages
+/sitemap/1.xml  -- blog posts
+/sitemap/2.xml  -- comparison pages
+```
 
-The route-based modal (`@modal/(.)tenants/new`) replaces the Zustand-driven modal entirely.
+### Sitemap Enhancements (no splitting needed)
 
-### Existing Tests
-- **Unit tests:** `invite-tenant-form.property.test.tsx`, `invite-tenant-form-success.property.test.tsx` will need updates to mock `useCreateInvitation` instead of inline mutation
-- **RLS tests:** `tenant-invitations.rls.test.ts` -- no changes (tests DB policies, not frontend)
-- **Edge Function tests:** `send-tenant-invitation-test.ts` -- no changes
-- **Modal test:** `@modal/(.)tenants/new/page.test.tsx` -- no changes (tests the route modal, which already uses `InviteTenantForm`)
+1. **Add missing pages:** `/support`, `/security-policy`, `/blog/category/*` pages
+2. **Use real `lastModified` dates:** Blog posts should use `published_at` (already done). Static pages should use hardcoded dates that update when content changes.
+3. **Remove stale static files:** Delete `public/sitemap.xml` and `public/sitemap-index.xml`
+
+## Metadata Composition Pattern for 'use client' Pages
+
+Three pages are `'use client'` and cannot export metadata: `/features`, `/blog`, `/blog/category/[category]`.
+
+**Solution: Server Component Wrapper Pattern**
+
+```
+// BEFORE (features/page.tsx is 'use client')
+'use client'
+export default function FeaturesPage() { ... }
+// NO metadata export possible
+
+// AFTER (features/page.tsx is Server Component, delegates to client)
+import type { Metadata } from 'next'
+import { createPageMetadata } from '#lib/seo/page-metadata'
+import FeaturesContent from './features-content'  // 'use client' lives here
+
+export const metadata: Metadata = createPageMetadata({
+  title: 'Features - Property Management Software | TenantFlow',
+  description: 'Explore TenantFlow features...',
+  path: '/features',
+})
+
+export default function FeaturesPage() {
+  return <FeaturesContent />
+}
+```
+
+The existing page component code moves into a `-content.tsx` file with `'use client'`. The `page.tsx` becomes a thin Server Component that exports metadata and renders the client component.
+
+This pattern applies to:
+- `src/app/features/page.tsx` -> split into `page.tsx` (server) + `features-content.tsx` (client)
+- `src/app/blog/page.tsx` -> split into `page.tsx` (server) + `blog-content.tsx` (client)
+- `src/app/blog/category/[category]/page.tsx` -> split into `page.tsx` (server) + `category-content.tsx` (client)
+
+## Internal Linking Component Pattern
+
+Internal linking improvements do not need a new component. The existing `next/link` with `<Link href="...">` is correct. What is needed is **content-level linking strategy** -- ensuring pages cross-reference each other:
+
+1. **Blog -> Compare:** Blog posts mentioning competitors should link to `/compare/[competitor]`
+2. **Compare -> Blog:** Compare pages should link to related blog posts (already have `blogSlug` in compare data)
+3. **Blog -> Resources:** Blog posts on maintenance topics should link to `/resources/seasonal-maintenance-checklist`
+4. **Resources -> Blog:** Resource pages should link to related blog posts
+5. **FAQ -> Features/Pricing:** FAQ answers should deep-link to specific feature descriptions
+
+This is a **content editing task**, not an architecture task. No new components needed.
+
+## SEO Validation in CI Pipeline
+
+### Recommended: Build-Time Schema Validation (Not External API)
+
+Do NOT call Google's Rich Results Test API in CI -- it requires network access, adds latency, and is rate-limited.
+
+Instead, validate JSON-LD output at build time:
+
+1. **schema-dts type checking:** TypeScript compilation catches malformed schemas. If `createArticleJsonLd()` returns `WithContext<Article>` and you pass wrong fields, `tsc` fails.
+2. **Unit tests for schema functions:** Each utility in `src/lib/seo/` gets tests that verify:
+   - Required fields are present (`@context`, `@type`, key properties)
+   - Output matches expected schema structure
+   - XSS characters are escaped in serialized output
+3. **Existing CI pipeline is sufficient:** `pnpm typecheck && pnpm lint` already runs on every PR. Adding typed JSON-LD functions means schema correctness is checked automatically.
+
+Optional future enhancement: Add a `structured-data-testing-tool` npm package to CI for deeper validation against Schema.org specs.
 
 ## Suggested Build Order
 
-Build order follows dependency chain: shared hook first, then consumers, then cleanup.
+Build order follows dependency chain: shared utilities first, then page migrations, then cleanup.
 
-### Phase 1: Create shared hook (no breaking changes)
-1. Create `src/hooks/api/use-create-invitation.ts` with the unified mutation
-2. Add `createInvitationSchema` to `src/lib/validation/tenants.ts`
-3. Update `tenant-invite-mutation-options.ts`: rewrite `invite()` to accept optional `lease_id`
-4. Write unit tests for the new hook
+### Phase 1: Shared SEO Utilities (no breaking changes)
+1. Install `schema-dts` dev dependency
+2. Export `getSiteUrl()` from `src/lib/generate-metadata.ts`
+3. Create `src/lib/seo/breadcrumbs.ts` -- breadcrumb generation
+4. Create `src/lib/seo/article-schema.ts` -- Article JSON-LD
+5. Create `src/lib/seo/faq-schema.ts` -- FAQPage JSON-LD
+6. Create `src/lib/seo/product-schema.ts` -- Product/Offer JSON-LD
+7. Create `src/lib/seo/page-metadata.ts` -- metadata factory
+8. Create `src/components/seo/json-ld-script.tsx` -- shared rendering component
+9. Write unit tests for all new utility functions
 
-**Why first:** Everything else depends on this. Creating it alongside existing code means nothing breaks.
+**Why first:** Every subsequent phase depends on these utilities. Creating them alongside existing code means nothing breaks.
 
-### Phase 2: Migrate consumers to shared hook
-5. Update `invite-tenant-form.tsx`: replace inline mutation with `useCreateInvitation()`, fix `'portal_access'` typo
-6. Update `onboarding-step-tenant.tsx`: replace inline mutation with `useCreateInvitation()`
-7. Update `selection-step-filters.tsx` (`InlineTenantInvite`): replace inline mutation with `useCreateInvitation()`
-8. Update existing unit tests to mock `useCreateInvitation` instead of inline Supabase calls
+### Phase 2: Crawlability Foundation (robots.ts + sitemap cleanup)
+10. Create `src/app/robots.ts` dynamic route
+11. Delete `public/robots.txt`
+12. Delete `public/sitemap.xml` and `public/sitemap-index.xml`
+13. Enhance `src/app/sitemap.ts` -- add missing pages, real timestamps
 
-**Why second:** After Phase 1, consumers can adopt incrementally without coordination.
+**Why second:** Crawlability must be correct before search engines can benefit from improved structured data. The static/dynamic sitemap conflict must be resolved early.
 
-### Phase 3: Delete redundant code
-9. Delete `invite-tenant-modal.tsx` (the custom Zustand-driven modal)
-10. Update `tenants.tsx`: remove `InviteTenantModal` usage, wire buttons to `router.push('/tenants/new')`
-11. Remove modal state from `tenants-store.ts`
-12. Remove `InviteTenantData` and `onInviteTenant` from `src/types/sections/tenants.ts`
-13. Clean up dead imports in `tenants/page.tsx`
+### Phase 3: Metadata Gap Closure (add missing metadata to all pages)
+14. Add `export const metadata` to: faq, about, pricing, contact, resources, help
+15. Split `'use client'` pages into server wrapper + client content:
+    - `features/page.tsx` -> server wrapper + `features-content.tsx`
+    - `blog/page.tsx` -> server wrapper + `blog-content.tsx`
+    - `blog/category/[category]/page.tsx` -> server wrapper + `category-content.tsx`
+16. Add canonical URLs to all public pages via `createPageMetadata()`
 
-**Why last:** Deletion is safest after consumers are already migrated. If anything was missed, the old code still exists during Phase 2.
+**Why third:** Metadata is the most impactful SEO change and has the most files to touch. It should happen after utilities exist (Phase 1) and crawlability is fixed (Phase 2).
+
+### Phase 4: Structured Data Enrichment (JSON-LD on all pages)
+17. Refactor existing inline JSON-LD to use `<JsonLdScript>` + utility functions:
+    - FAQ page: `createFaqJsonLd()` + `createBreadcrumbJsonLd()`
+    - Pricing page: `createProductJsonLd()` + `createFaqJsonLd()` + `createBreadcrumbJsonLd()`
+    - Compare pages: `createBreadcrumbJsonLd()`
+    - About, Contact, Resources: `createBreadcrumbJsonLd()`
+    - Features: `createBreadcrumbJsonLd()`
+18. Add NEW structured data:
+    - Blog `[slug]`: `createArticleJsonLd()` + `createBreadcrumbJsonLd()`
+    - Resource subpages: BreadcrumbList
+    - Homepage: WebSite SearchAction (optional -- only if search is implemented)
+19. Update `src/components/seo/seo-json-ld.tsx` to use `<JsonLdScript>`
+20. Delete `getBreadcrumbSchema()` from `features-data.ts`
+
+**Why fourth:** Structured data enrichment is the final layer. It depends on Phase 1 utilities and benefits from Phase 3 metadata being in place (canonical URLs in metadata complement structured data).
+
+### Phase 5: Validation and Verification
+21. Run Google Rich Results Test manually on key pages (homepage, blog post, FAQ, pricing, compare)
+22. Verify sitemap.xml renders correctly in browser
+23. Verify robots.txt renders correctly
+24. Check Google Search Console for indexing errors (manual -- not CI)
+
+**Why last:** Validation confirms everything works end-to-end. This is a manual verification step, not automated.
 
 ## Confidence Assessment
 
 | Area | Confidence | Notes |
 |------|------------|-------|
-| 4 paths identified correctly | HIGH | Grep for `tenant_invitations` insert and `send-tenant-invitation` fetch confirms exactly 4 independent mutations |
-| `portal_access` typo bug | HIGH | `invite-tenant-form.tsx:79` sets `type: 'portal_access'`, but CHECK constraint only allows `platform_access` and `lease_signing` |
-| Route modal already works | HIGH | `@modal/(.)tenants/new/page.tsx` exists, imports `InviteTenantForm`, renders in `RouteModal` |
-| Custom modal is redundant | HIGH | `InviteTenantModal` in `tenants.tsx` and the route modal in `@modal/(.)tenants/new` serve the same purpose |
-| Edge Functions need no changes | HIGH | They operate on invitation records by ID -- how those records are created is irrelevant to them |
-| Shared hook approach | HIGH | Standard TanStack Query pattern, matches existing codebase conventions (see `use-tenant-invite-mutations.ts` for resend/cancel) |
+| Metadata gap analysis | HIGH | Direct codebase grep confirms which pages have/lack `generateMetadata` or `export const metadata` |
+| Static/dynamic sitemap conflict | HIGH | Next.js serves `/public` files at highest priority -- documented behavior |
+| robots.ts replacing robots.txt | HIGH | Official Next.js docs confirm `src/app/robots.ts` generates `/robots.txt` route, but static file in `/public` takes precedence and must be deleted |
+| schema-dts type safety | HIGH | Google-maintained package, 100k+ weekly downloads, used in official Next.js JSON-LD examples |
+| Server wrapper pattern for client pages | HIGH | Standard Next.js App Router pattern -- metadata exports require Server Components |
+| No sitemap splitting needed | HIGH | 25-35 URLs is far below the 50,000 URL limit where splitting provides value |
+| Build-time schema validation vs CI API calls | MEDIUM | schema-dts catches structural errors but not semantic Schema.org violations. For full validation, the `structured-data-testing-tool` npm package exists but adds CI complexity |
+| Blog hub as Server Component | MEDIUM | Requires refactoring from `'use client'` to server component with client child. May need TanStack Query prefetching pattern adjustment |
 
 ## Sources
 
-All findings derived from codebase analysis:
-- `src/components/tenants/invite-tenant-form.tsx` -- Path 1
-- `src/components/tenants/invite-tenant-modal.tsx` -- Path 2
-- `src/components/onboarding/onboarding-step-tenant.tsx` -- Path 3
-- `src/components/leases/wizard/selection-step-filters.tsx` -- Path 4
-- `src/hooks/api/query-keys/tenant-invite-mutation-options.ts` -- existing centralized mutation
-- `src/hooks/api/use-tenant-invite-mutations.ts` -- existing hook wrappers
-- `src/lib/validation/tenants.ts` -- validation schemas and type definitions
-- `supabase/migrations/20251101000000_base_schema.sql:1730` -- CHECK constraint definition
-- `supabase/functions/send-tenant-invitation/index.ts` -- Edge Function (unchanged)
-- `supabase/functions/tenant-invitation-accept/index.ts` -- Edge Function (unchanged)
+### Official Documentation
+- [Next.js generateSitemaps](https://nextjs.org/docs/app/api-reference/functions/generate-sitemaps) -- sitemap splitting API, 50K URL limit
+- [Next.js sitemap.xml file convention](https://nextjs.org/docs/app/api-reference/file-conventions/metadata/sitemap) -- dynamic sitemap generation
+- [Next.js robots.txt file convention](https://nextjs.org/docs/app/api-reference/file-conventions/metadata/robots) -- dynamic robots.ts route, MetadataRoute.Robots type
+- [Next.js JSON-LD guide](https://nextjs.org/docs/app/guides/json-ld) -- recommended `<script>` tag pattern, XSS prevention
+- [schema-dts npm package](https://www.npmjs.com/package/schema-dts) -- Google-maintained TypeScript types for Schema.org
+- [schema-dts GitHub](https://github.com/google/schema-dts) -- source, documentation
+
+### Codebase Analysis
+- `src/lib/generate-metadata.ts` -- existing global metadata + JSON-LD (getSiteUrl is private)
+- `src/components/seo/seo-json-ld.tsx` -- existing global JSON-LD renderer
+- `src/app/sitemap.ts` -- existing dynamic sitemap with ISR
+- `public/robots.txt` -- existing static robots file
+- `public/sitemap.xml`, `public/sitemap-index.xml` -- stale static sitemaps
+- All page.tsx files in `src/app/` -- metadata export audit
+
+### SEO Best Practices
+- [Google Rich Results Test](https://developers.google.com/search/docs/appearance/structured-data) -- manual validation tool
+- [structured-data-testing-tool](https://github.com/iaincollins/structured-data-testing-tool) -- CLI for CI integration
+- [Next.js SEO breadcrumb patterns](https://jeremykreutzbender.com/blog/app-router-dynamic-breadcrumbs) -- useSelectedLayoutSegments approach
+- [Next.js SEO Best Practices 2026](https://globalinkz.com/blog/next-js-seo-best-practices-complete-2026-guide.html) -- comprehensive guide

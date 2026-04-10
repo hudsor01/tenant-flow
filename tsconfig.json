@@ -1,85 +1,124 @@
 {
-	"$schema": "https://json.schemastore.org/tsconfig",
-	"display": "TenantFlow",
-	"compilerOptions": {
-		"target": "ES2022",
-		"lib": ["ES2022", "DOM", "DOM.Iterable"],
-		"moduleDetection": "force",
-		"module": "ESNext",
-		"moduleResolution": "bundler",
-		"resolveJsonModule": true,
-		"allowJs": true,
-		"checkJs": true,
-		"esModuleInterop": true,
-		"allowSyntheticDefaultImports": true,
-		"forceConsistentCasingInFileNames": true,
-		"verbatimModuleSyntax": false,
-		"isolatedModules": true,
-		"incremental": true,
-		"skipLibCheck": true,
-		"skipDefaultLibCheck": true,
-		"strict": true,
-		"noImplicitAny": true,
-		"strictNullChecks": true,
-		"strictFunctionTypes": true,
-		"strictBindCallApply": true,
-		"strictPropertyInitialization": true,
-		"noImplicitThis": true,
-		"useUnknownInCatchVariables": true,
-		"alwaysStrict": true,
-		"noUnusedLocals": true,
-		"noUnusedParameters": true,
-		"exactOptionalPropertyTypes": true,
-		"noImplicitReturns": true,
-		"noFallthroughCasesInSwitch": true,
-		"noUncheckedIndexedAccess": true,
-		"noImplicitOverride": true,
-		"noPropertyAccessFromIndexSignature": false,
-		"allowUnusedLabels": false,
-		"allowUnreachableCode": false,
-		"sourceMap": true,
-		"baseUrl": ".",
-		"noEmit": true,
-		"jsx": "react-jsx",
-		"composite": false,
-		"declaration": false,
-		"plugins": [{ "name": "next" }],
-		"types": ["next/types/global", "node", "vitest/globals"],
-		"paths": {
-			"#proxy": ["./proxy.ts"],
-			"#env": ["./src/env.ts"],
-			"#app/*": ["./src/app/*"],
-			"#components/*": ["./src/components/*"],
-			"#contexts/*": ["./src/contexts/*"],
-			"#lib/*": ["./src/lib/*"],
-			"#hooks/*": ["./src/hooks/*"],
-			"#stores/*": ["./src/stores/*"],
-			"#types/*": ["./src/types/*"],
-			"#providers/*": ["./src/providers/*"],
-			"#test/*": ["./src/test/*"],
-			"#config/*": ["./src/config/*"],
-			"#utils/*": ["./src/utils/*"]
-		}
-	},
-	"include": [
-		"next-env.d.ts",
-		"proxy.ts",
-		"src/**/*.ts",
-		"src/**/*.tsx",
-		"src/**/*.d.ts",
-		".next/types/**/*.ts",
-		".next/dev/types/**/*.ts",
-		"next.config.ts",
-		"scripts/**/*.ts"
-	],
-	"exclude": [
-		"node_modules",
-		".next",
-		"out",
-		"dist",
-		"coverage",
-		"playwright-report",
-		"tests/**/*",
-		"src/test/**/*"
-	]
+  "$schema": "https://json.schemastore.org/tsconfig",
+  "display": "TenantFlow",
+  "compilerOptions": {
+    "target": "ES2022",
+    "lib": [
+      "ES2022",
+      "DOM",
+      "DOM.Iterable"
+    ],
+    "moduleDetection": "force",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "resolveJsonModule": true,
+    "allowJs": true,
+    "checkJs": true,
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "forceConsistentCasingInFileNames": true,
+    "verbatimModuleSyntax": false,
+    "isolatedModules": true,
+    "incremental": true,
+    "skipLibCheck": true,
+    "skipDefaultLibCheck": true,
+    "strict": true,
+    "noImplicitAny": true,
+    "strictNullChecks": true,
+    "strictFunctionTypes": true,
+    "strictBindCallApply": true,
+    "strictPropertyInitialization": true,
+    "noImplicitThis": true,
+    "useUnknownInCatchVariables": true,
+    "alwaysStrict": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "exactOptionalPropertyTypes": true,
+    "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": true,
+    "noUncheckedIndexedAccess": true,
+    "noImplicitOverride": true,
+    "noPropertyAccessFromIndexSignature": false,
+    "allowUnusedLabels": false,
+    "allowUnreachableCode": false,
+    "sourceMap": true,
+    "baseUrl": ".",
+    "noEmit": true,
+    "jsx": "react-jsx",
+    "composite": false,
+    "declaration": false,
+    "plugins": [
+      {
+        "name": "next"
+      }
+    ],
+    "types": [
+      "next/types/global",
+      "node",
+      "vitest/globals"
+    ],
+    "paths": {
+      "#proxy": [
+        "./proxy.ts"
+      ],
+      "#env": [
+        "./src/env.ts"
+      ],
+      "#app/*": [
+        "./src/app/*"
+      ],
+      "#components/*": [
+        "./src/components/*"
+      ],
+      "#contexts/*": [
+        "./src/contexts/*"
+      ],
+      "#lib/*": [
+        "./src/lib/*"
+      ],
+      "#hooks/*": [
+        "./src/hooks/*"
+      ],
+      "#stores/*": [
+        "./src/stores/*"
+      ],
+      "#types/*": [
+        "./src/types/*"
+      ],
+      "#providers/*": [
+        "./src/providers/*"
+      ],
+      "#test/*": [
+        "./src/test/*"
+      ],
+      "#config/*": [
+        "./src/config/*"
+      ],
+      "#utils/*": [
+        "./src/utils/*"
+      ]
+    }
+  },
+  "include": [
+    "next-env.d.ts",
+    "proxy.ts",
+    "src/**/*.ts",
+    "src/**/*.tsx",
+    "src/**/*.d.ts",
+    ".next/types/**/*.ts",
+    ".next/dev/types/**/*.ts",
+    "next.config.ts",
+    "scripts/**/*.ts",
+    ".next/dev/dev/types/**/*.ts"
+  ],
+  "exclude": [
+    "node_modules",
+    ".next",
+    "out",
+    "dist",
+    "coverage",
+    "playwright-report",
+    "tests/**/*",
+    "src/test/**/*"
+  ]
 }

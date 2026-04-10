@@ -1,4 +1,7 @@
+import type { Metadata } from 'next'
+
 import { PageLayout } from '#components/layout/page-layout'
+import { JsonLdScript } from '#components/seo/json-ld-script'
 import { Badge } from '#components/ui/badge'
 import { Button } from '#components/ui/button'
 
@@ -20,31 +23,17 @@ import {
 	Video
 } from 'lucide-react'
 import Link from 'next/link'
+import { createBreadcrumbJsonLd } from '#lib/seo/breadcrumbs'
+import { createPageMetadata } from '#lib/seo/page-metadata'
+
+export const metadata: Metadata = createPageMetadata({
+	title: 'Property Management Resources, Guides & Tools',
+	description:
+		'Free property management resources: maintenance checklists, tax deduction trackers, security deposit guides. Expert tutorials and downloadable tools.',
+	path: '/resources'
+})
 
 export default function ResourcesPage() {
-	const baseUrl =
-		process.env.NEXT_PUBLIC_APP_URL ||
-		(process.env.NODE_ENV === 'production' ? '' : 'http://localhost:3000')
-
-	// Breadcrumb Schema
-	const breadcrumbSchema = {
-		'@context': 'https://schema.org',
-		'@type': 'BreadcrumbList',
-		itemListElement: [
-			{
-				'@type': 'ListItem',
-				position: 1,
-				name: 'Home',
-				item: baseUrl
-			},
-			{
-				'@type': 'ListItem',
-				position: 2,
-				name: 'Resources'
-			}
-		]
-	}
-
 	const mainResources = [
 		{
 			icon: <HelpCircle className="size-8" />,
@@ -129,12 +118,7 @@ export default function ResourcesPage() {
 
 	return (
 		<PageLayout>
-			<script
-				type="application/ld+json"
-				dangerouslySetInnerHTML={{
-					__html: JSON.stringify(breadcrumbSchema).replace(/</g, '\\u003c')
-				}}
-			/>
+			<JsonLdScript schema={createBreadcrumbJsonLd('/resources')} />
 
 			{/* Hero Section */}
 			<section className="relative pb-16 overflow-hidden">
