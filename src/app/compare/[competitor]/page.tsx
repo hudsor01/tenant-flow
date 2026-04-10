@@ -10,11 +10,8 @@ import {
 } from 'lucide-react'
 import { PageLayout } from '#components/layout/page-layout'
 import { Button } from '#components/ui/button'
-import { JsonLdScript } from '#components/seo/json-ld-script'
-import { getSiteUrl } from '#lib/generate-metadata'
-import { createBreadcrumbJsonLd } from '#lib/seo/breadcrumbs'
-import { createSoftwareApplicationJsonLd } from '#lib/seo/software-application-schema'
 import { SOCIAL_PROOF } from '#config/social-proof'
+import { RelatedArticles } from '#components/blog/related-articles'
 import { COMPETITORS, VALID_COMPETITORS } from './compare-data'
 import {
 	PricingComparison,
@@ -38,16 +35,18 @@ export async function generateMetadata({
 	const data = COMPETITORS[slug]
 	if (!data) return {}
 
-	const siteUrl = getSiteUrl()
+	const baseUrl =
+		process.env.NEXT_PUBLIC_APP_URL ||
+		(process.env.NODE_ENV === 'production' ? '' : 'http://localhost:3050')
 
 	return {
 		title: `TenantFlow vs ${data.name}: Feature & Pricing Comparison | TenantFlow`,
 		description: data.metaDescription,
-		alternates: { canonical: `${siteUrl}/compare/${slug}` },
+		alternates: { canonical: `${baseUrl}/compare/${slug}` },
 		openGraph: {
 			title: `TenantFlow vs ${data.name} Comparison`,
 			description: data.metaDescription,
-			url: `${siteUrl}/compare/${slug}`,
+			url: `${baseUrl}/compare/${slug}`,
 			type: 'website',
 		},
 		twitter: {
@@ -64,38 +63,46 @@ export default async function ComparePage({ params }: PageProps) {
 
 	if (!data) notFound()
 
-	const siteUrl = getSiteUrl()
+	const baseUrl =
+		process.env.NEXT_PUBLIC_APP_URL ||
+		(process.env.NODE_ENV === 'production' ? '' : 'http://localhost:3050')
 
-	const tenantflowSchema = createSoftwareApplicationJsonLd({
-		name: 'TenantFlow',
-		description: 'Professional property management software for modern landlords. Streamline rent collection, maintenance tracking, and financial reporting.',
-		url: siteUrl,
-		offers: [
-			{ price: '0' },
-			{ price: '29' },
-			{ price: '79' },
-			{ price: '199' }
-		]
-	})
-
-	const competitorOffers = data.competitorPricing.map((tier: { price: string }) => ({
-		price: tier.price.replace(/[^0-9.]/g, '')
-	}))
-	const competitorSchema = createSoftwareApplicationJsonLd({
-		name: data.name,
-		description: data.description,
-		offers: competitorOffers
-	})
-
-	const breadcrumbSchema = createBreadcrumbJsonLd(`/compare/${slug}`, {
-		[slug]: `TenantFlow vs ${data.name}`
-	})
+	const comparisonSchema = {
+		'@context': 'https://schema.org',
+		'@type': 'WebPage',
+		name: `TenantFlow vs ${data.name} Comparison`,
+		description: data.metaDescription,
+		url: `${baseUrl}/compare/${slug}`,
+		breadcrumb: {
+			'@type': 'BreadcrumbList',
+			itemListElement: [
+				{
+					'@type': 'ListItem',
+					position: 1,
+					name: 'Home',
+					item: baseUrl,
+				},
+				{
+					'@type': 'ListItem',
+					position: 2,
+					name: `TenantFlow vs ${data.name}`,
+					item: `${baseUrl}/compare/${slug}`,
+				},
+			],
+		},
+	}
 
 	return (
 		<PageLayout>
-			<JsonLdScript schema={tenantflowSchema} />
-			<JsonLdScript schema={competitorSchema} />
-			<JsonLdScript schema={breadcrumbSchema} />
+			<script
+				type="application/ld+json"
+				dangerouslySetInnerHTML={{
+					__html: JSON.stringify(comparisonSchema).replace(
+						/</g,
+						'\\u003c'
+					),
+				}}
+			/>
 
 			{/* Hero */}
 			<section className="section-spacing">
@@ -170,6 +177,7 @@ export default async function ComparePage({ params }: PageProps) {
 			<PricingComparison data={data} />
 			<FeatureTable data={data} />
 			<WhySwitchSection data={data} />
+			<RelatedArticles slugs={[data.blogSlug]} title="Read the Full Comparison" />
 			<BottomCta data={data} />
 		</PageLayout>
 	)

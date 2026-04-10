@@ -1,12 +1,11 @@
 import type { Metadata } from 'next'
-import type { HowTo } from 'schema-dts'
 import Link from 'next/link'
 import { ArrowLeft } from 'lucide-react'
 import { PageLayout } from '#components/layout/page-layout'
 import { Button } from '#components/ui/button'
 import { PrintButton } from '#components/shared/print-button'
-import { JsonLdScript } from '#components/seo/json-ld-script'
-import { createBreadcrumbJsonLd } from '#lib/seo/breadcrumbs'
+import { RelatedArticles } from '#components/blog/related-articles'
+import { RESOURCE_TO_BLOGS } from '#lib/content-links'
 
 export const metadata: Metadata = {
 	title: 'Seasonal Maintenance Checklist for Rental Properties | TenantFlow',
@@ -105,28 +104,8 @@ const seasons = [
 ]
 
 export default function SeasonalMaintenanceChecklistPage() {
-	// HowTo schema with seasonal sections (SCHEMA-06)
-	const howToSchema: HowTo = {
-		'@type': 'HowTo',
-		name: 'Seasonal Maintenance Checklist for Rental Properties',
-		description: 'A comprehensive season-by-season maintenance guide for landlords covering HVAC, plumbing, electrical, exterior, and safety inspections.',
-		step: seasons.map((season, i) => ({
-			'@type': 'HowToSection' as const,
-			name: season.name,
-			position: i + 1,
-			itemListElement: season.tasks.map((task, j) => ({
-				'@type': 'HowToStep' as const,
-				position: j + 1,
-				name: task.task,
-				text: `${task.area}: ${task.task}`
-			}))
-		}))
-	}
-
 	return (
 		<PageLayout>
-			<JsonLdScript schema={createBreadcrumbJsonLd('/resources/seasonal-maintenance-checklist', { 'seasonal-maintenance-checklist': 'Seasonal Maintenance Checklist' })} />
-			<JsonLdScript schema={howToSchema} />
 			{/* Print styles */}
 			<style
 				dangerouslySetInnerHTML={{
@@ -244,6 +223,11 @@ export default function SeasonalMaintenanceChecklistPage() {
 						</div>
 					</div>
 				</section>
+
+				<RelatedArticles
+					slugs={RESOURCE_TO_BLOGS['seasonal-maintenance-checklist'] ?? []}
+					title="Related Blog Posts"
+				/>
 
 				{/* Footer CTA */}
 				<div className="mt-12 text-center print:hidden">

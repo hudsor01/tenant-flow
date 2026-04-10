@@ -4,8 +4,8 @@ import { ArrowLeft } from 'lucide-react'
 import { PageLayout } from '#components/layout/page-layout'
 import { Button } from '#components/ui/button'
 import { PrintButton } from '#components/shared/print-button'
-import { JsonLdScript } from '#components/seo/json-ld-script'
-import { createBreadcrumbJsonLd } from '#lib/seo/breadcrumbs'
+import { RelatedArticles } from '#components/blog/related-articles'
+import { RESOURCE_TO_BLOGS } from '#lib/content-links'
 
 export const metadata: Metadata = {
 	title: 'Security Deposit Laws by State - Quick Reference Card | TenantFlow',
@@ -80,7 +80,6 @@ const stateData: StateDeposit[] = [
 export default function SecurityDepositReferenceCardPage() {
 	return (
 		<PageLayout>
-			<JsonLdScript schema={createBreadcrumbJsonLd('/resources/security-deposit-reference-card', { 'security-deposit-reference-card': 'Security Deposit Laws by State' })} />
 			<style
 				dangerouslySetInnerHTML={{
 					__html: `
@@ -268,6 +267,11 @@ export default function SecurityDepositReferenceCardPage() {
 						</div>
 					</div>
 				</section>
+
+				<RelatedArticles
+					slugs={RESOURCE_TO_BLOGS['security-deposit-reference-card'] ?? []}
+					title="Related Blog Posts"
+				/>
 
 				{/* Footer CTA */}
 				<div className="mt-12 text-center print:hidden">

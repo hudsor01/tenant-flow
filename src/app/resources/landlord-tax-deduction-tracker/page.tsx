@@ -4,8 +4,8 @@ import { ArrowLeft } from 'lucide-react'
 import { PageLayout } from '#components/layout/page-layout'
 import { Button } from '#components/ui/button'
 import { PrintButton } from '#components/shared/print-button'
-import { JsonLdScript } from '#components/seo/json-ld-script'
-import { createBreadcrumbJsonLd } from '#lib/seo/breadcrumbs'
+import { RelatedArticles } from '#components/blog/related-articles'
+import { RESOURCE_TO_BLOGS } from '#lib/content-links'
 import { deductionCategories } from './tax-deduction-data'
 
 export const metadata: Metadata = {
@@ -17,7 +17,6 @@ export const metadata: Metadata = {
 export default function TaxDeductionTrackerPage() {
 	return (
 		<PageLayout>
-			<JsonLdScript schema={createBreadcrumbJsonLd('/resources/landlord-tax-deduction-tracker', { 'landlord-tax-deduction-tracker': 'Landlord Tax Deduction Tracker' })} />
 			<style
 				dangerouslySetInnerHTML={{
 					__html: `
@@ -187,6 +186,11 @@ export default function TaxDeductionTrackerPage() {
 						</p>
 					</div>
 				</section>
+
+				<RelatedArticles
+					slugs={RESOURCE_TO_BLOGS['landlord-tax-deduction-tracker'] ?? []}
+					title="Related Blog Posts"
+				/>
 
 				{/* Footer CTA */}
 				<div className="mt-12 text-center print:hidden">
