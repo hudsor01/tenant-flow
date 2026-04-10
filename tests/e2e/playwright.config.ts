@@ -260,7 +260,7 @@ export default defineConfig({
 		{
 			// Frontend: rm -rf .next ensures fresh build with correct env vars
 			// rm .env.local prevents production config from overriding test config
-			command: `rm -rf .next && rm -f .env.local && bash -c "export NODE_ENV='test' && export SKIP_ENV_VALIDATION='true' && export NEXT_PUBLIC_SUPABASE_URL='${LOCAL_SUPABASE_URL}' && export NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY='${LOCAL_SUPABASE_PUBLISHABLE_KEY}' && exec npx next dev --turbopack --port ${TEST_FRONTEND_PORT}"`,
+			command: `rm -rf .next && rm -f .env.local && bash -c "export NODE_ENV='test' && export SKIP_ENV_VALIDATION='true' && export NEXT_PUBLIC_SUPABASE_URL='${LOCAL_SUPABASE_URL}' && export NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY='${LOCAL_SUPABASE_PUBLISHABLE_KEY}' && export NEXT_PUBLIC_APP_URL='${TEST_FRONTEND_URL}' && export NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY='pk_test_placeholder' && exec npx next dev --turbopack --port ${TEST_FRONTEND_PORT}"`,
 			url: TEST_FRONTEND_URL,
 			timeout: 120_000,
 			reuseExistingServer: !process.env.CI,
@@ -269,7 +269,9 @@ export default defineConfig({
 			cwd: path.resolve(__dirname, '../..'),
 			env: {
 				NEXT_PUBLIC_SUPABASE_URL: LOCAL_SUPABASE_URL,
-				NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: LOCAL_SUPABASE_PUBLISHABLE_KEY
+				NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: LOCAL_SUPABASE_PUBLISHABLE_KEY,
+				NEXT_PUBLIC_APP_URL: TEST_FRONTEND_URL,
+				NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: 'pk_test_placeholder'
 			}
 		}
 	],
