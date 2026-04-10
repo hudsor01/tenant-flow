@@ -203,7 +203,10 @@ Plans:
   2. `src/app/resources/seasonal-maintenance-checklist/page.tsx` renders HowTo JSON-LD with 4 `HowToSection` steps (Spring/Summer/Fall/Winter) and a BreadcrumbList, both via `JsonLdScript`
   3. `src/app/blog/[slug]/blog-post-page.tsx` contains zero `<script type="application/ld+json">` inline blocks -- only the server component `page.tsx` renders Article JSON-LD
   4. Running `pnpm typecheck && pnpm lint && pnpm test:unit` passes with zero errors
-**Plans:** 0 plans
+**Plans:** 2 plans
+Plans:
+- [ ] 39-01-PLAN.md -- Add HowTo + BreadcrumbList to maintenance checklist, replace inline comparisonSchema with factory calls
+- [ ] 39-02-PLAN.md -- Remove stale inline BlogPosting from blog-post-page.tsx
 
 ### Phase 40: Metadata & Verification Completeness
 **Goal**: Every public page has canonical URLs and OG tags via createPageMetadata(), and GSC verification meta tag is in the root layout
@@ -232,5 +235,5 @@ Phase 39 and 40 are independent gap closure phases that can execute in either or
 | 36. Pricing Page Polish | v1.6 | 4/4 | Complete | 2026-04-10 |
 | 37. Content SEO & Internal Linking | v1.6 | 2/2 | Complete | 2026-04-10 |
 | 38. Validation & Verification | v1.6 | 2/2 | Complete | 2026-04-10 |
-| 39. Structured Data Gap Closure | v1.6 | 0/0 | Planned | - |
+| 39. Structured Data Gap Closure | v1.6 | 0/2 | Executing | - |
 | 40. Metadata & Verification Completeness | v1.6 | 0/0 | Planned | - |
