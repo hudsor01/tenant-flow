@@ -158,8 +158,10 @@ Plans:
   5. Pricing JSON-LD `priceValidUntil` is computed dynamically (not hardcoded to any specific date)
 **Plans:** 4/4 plans complete
 Plans:
-- [ ] 32-01-PLAN.md -- Dynamic robots.ts, delete stale static files, remove fabricated aggregateRating
-**UI hint**: yes
+- [x] 36-01-PLAN.md -- HTML entity cleanup and SOCIAL_PROOF config centralization
+- [x] 36-02-PLAN.md -- Success/cancel page restructure with noindex and PageLayout
+- [x] 36-03-PLAN.md -- Tailwind v3 to v4 migration on pricing/complete
+- [x] 36-04-PLAN.md -- Responsive mobile layout for pricing comparison table
 
 ### Phase 37: Content SEO & Internal Linking
 **Goal**: Blog, comparison, and resource pages cross-link to each other, building topical authority clusters
@@ -169,9 +171,10 @@ Plans:
   1. Blog posts that mention a competitor by name include a link to the corresponding `/compare/[competitor]` page
   2. Comparison pages include a "Related Articles" section linking to relevant blog posts
   3. Resource pages link to related blog posts and blog posts link back to related resource pages
-**Plans:** 1 plan
+**Plans:** 2 plans
 Plans:
-- [ ] 32-01-PLAN.md -- Dynamic robots.ts, delete stale static files, remove fabricated aggregateRating
+- [ ] 37-01-PLAN.md -- Content-links mapping config + RelatedArticles server component with tests
+- [ ] 37-02-PLAN.md -- Wire cross-links into blog, compare, and resource pages
 
 ### Phase 38: Validation & Verification
 **Goal**: All SEO work is verified end-to-end and the site is ready for Google Search Console monitoring
@@ -198,5 +201,5 @@ Note: Phase 35 and Phase 36 both depend on Phase 33 and are independent of each 
 | 34. Per-Page Metadata | v1.6 | 2/2 | Complete | 2026-04-08 |
 | 35. Structured Data Enrichment | v1.6 | 3/3 | Complete | 2026-04-09 |
 | 36. Pricing Page Polish | v1.6 | 4/4 | Complete    | 2026-04-10 |
-| 37. Content SEO & Internal Linking | v1.6 | 0/0 | Not started | - |
+| 37. Content SEO & Internal Linking | v1.6 | 0/2 | Not started | - |
 | 38. Validation & Verification | v1.6 | 0/0 | Not started | - |
