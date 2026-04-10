@@ -13,7 +13,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 	const baseUrl = env.NEXT_PUBLIC_APP_URL || 'https://tenantflow.app'
 	const currentDate = new Date().toISOString()
 
-	// High-priority marketing pages
+	// High-priority marketing pages — keep currentDate (change weekly/monthly)
 	const marketingPages: MetadataRoute.Sitemap = [
 		{
 			url: baseUrl,
@@ -35,7 +35,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 		}
 	]
 
-	// Content pages
+	// Content hubs — keep currentDate (new posts arrive regularly)
 	const contentPages: MetadataRoute.Sitemap = [
 		{
 			url: `${baseUrl}/blog`,
@@ -51,86 +51,99 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 		}
 	]
 
-	// Comparison landing pages (high-intent SEO)
+	// Comparison landing pages — static date (updated with milestone releases)
 	const comparePages: MetadataRoute.Sitemap = [
 		'buildium',
 		'appfolio',
 		'rentredi',
 	].map(competitor => ({
 		url: `${baseUrl}/compare/${competitor}`,
-		lastModified: currentDate,
+		lastModified: '2026-04-01',
 		changeFrequency: 'monthly' as const,
 		priority: 0.8
 	}))
 
-	// Free resource pages (lead magnets)
+	// Free resource pages — static date (updated with milestone releases)
 	const resourcePages: MetadataRoute.Sitemap = [
 		'seasonal-maintenance-checklist',
 		'landlord-tax-deduction-tracker',
 		'security-deposit-reference-card',
 	].map(resource => ({
 		url: `${baseUrl}/resources/${resource}`,
-		lastModified: currentDate,
+		lastModified: '2026-04-01',
 		changeFrequency: 'monthly' as const,
 		priority: 0.7
 	}))
 
-	// Company and support pages
+	// Company and support pages — static date (updated with milestone releases)
 	const companyPages: MetadataRoute.Sitemap = [
 		{
 			url: `${baseUrl}/about`,
-			lastModified: currentDate,
+			lastModified: '2026-04-01',
 			changeFrequency: 'monthly',
 			priority: 0.7
 		},
 		{
 			url: `${baseUrl}/contact`,
-			lastModified: currentDate,
+			lastModified: '2026-04-01',
 			changeFrequency: 'monthly',
 			priority: 0.7
 		},
 		{
 			url: `${baseUrl}/faq`,
-			lastModified: currentDate,
+			lastModified: '2026-04-01',
 			changeFrequency: 'monthly',
 			priority: 0.6
 		},
 		{
 			url: `${baseUrl}/help`,
-			lastModified: currentDate,
+			lastModified: '2026-04-01',
+			changeFrequency: 'monthly',
+			priority: 0.6
+		},
+		{
+			url: `${baseUrl}/support`,
+			lastModified: '2026-04-01',
 			changeFrequency: 'monthly',
 			priority: 0.6
 		}
 	]
 
-	// Legal pages
+	// Legal pages — stable content, rarely changes
 	const legalPages: MetadataRoute.Sitemap = [
 		{
 			url: `${baseUrl}/terms`,
-			lastModified: currentDate,
+			lastModified: '2026-01-01',
 			changeFrequency: 'yearly',
 			priority: 0.3
 		},
 		{
 			url: `${baseUrl}/privacy`,
-			lastModified: currentDate,
+			lastModified: '2026-01-01',
+			changeFrequency: 'yearly',
+			priority: 0.3
+		},
+		{
+			url: `${baseUrl}/security-policy`,
+			lastModified: '2026-01-01',
 			changeFrequency: 'yearly',
 			priority: 0.3
 		}
 	]
 
-	// Auth pages (low priority, but indexed for completeness)
+	// Auth pages — stable
 	const authPages: MetadataRoute.Sitemap = [
 		{
 			url: `${baseUrl}/login`,
-			lastModified: currentDate,
+			lastModified: '2026-01-01',
 			changeFrequency: 'monthly',
 			priority: 0.2
 		}
 	]
 
-	// Dynamic blog posts from database
+	// Dynamic blog posts and categories from database
 	let blogPages: MetadataRoute.Sitemap = []
+	let blogCategoryPages: MetadataRoute.Sitemap = []
 	try {
 		const supabase = await createClient()
 
@@ -139,34 +152,62 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 		const timeout = new Promise<never>((_, reject) =>
 			setTimeout(() => reject(new Error('Sitemap DB query timed out after 5s')), 5000)
 		)
+
 		const query = supabase
 			.from('blogs')
 			.select('slug, published_at')
 			.eq('status', 'published')
 			.order('published_at', { ascending: false })
 
-		const { data: blogPosts, error } = await Promise.race([query, timeout])
+		const categoryQuery = supabase
+			.from('blogs')
+			.select('category')
+			.eq('status', 'published')
+			.not('category', 'is', null)
+
+		// Run blog posts + categories in parallel with shared timeout
+		const [blogResult, categoryResult] = await Promise.race([
+			Promise.all([query, categoryQuery]),
+			timeout
+		])
+
+		const { data: blogPosts, error } = blogResult
+		const { data: categoryRows } = categoryResult
 
 		if (error) {
 			throw new Error(`Failed to fetch blog posts: ${error.message}`)
 		}
 
-		logger.info('Generating blog post sitemap entries', {
+		logger.info('Generating blog sitemap entries', {
 			action: 'generateBlogSitemap',
 			route: '/sitemap.xml',
 			metadata: {
-				postCount: blogPosts?.length || 0
+				postCount: blogPosts?.length ?? 0,
+				categoryCount: categoryRows?.length ?? 0
 			}
 		})
 
-		blogPages = (blogPosts || []).map(post => ({
+		blogPages = (blogPosts ?? []).map(post => ({
 			url: `${baseUrl}/blog/${post.slug}`,
 			lastModified: post.published_at || currentDate,
 			changeFrequency: 'monthly' as const,
 			priority: 0.7
 		}))
+
+		// Deduplicate categories and build category hub pages
+		const categories = [
+			...new Set(
+				(categoryRows ?? []).map(r => r.category).filter(Boolean)
+			)
+		]
+		blogCategoryPages = categories.map(cat => ({
+			url: `${baseUrl}/blog/category/${cat}`,
+			lastModified: currentDate,
+			changeFrequency: 'weekly' as const,
+			priority: 0.6
+		}))
 	} catch (error) {
-		logger.error('Failed to generate blog post sitemap entries', {
+		logger.error('Failed to generate blog sitemap entries', {
 			action: 'generateBlogSitemap',
 			route: '/sitemap.xml',
 			timestamp: new Date().toISOString(),
@@ -175,7 +216,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 				stack: error instanceof Error ? error.stack : undefined
 			}
 		})
-		// Return empty array to allow sitemap generation to continue with static pages
+		// Return empty arrays to allow sitemap generation to continue with static pages
 	}
 
 	const allPages = [
@@ -186,7 +227,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 		...companyPages,
 		...legalPages,
 		...authPages,
-		...blogPages
+		...blogPages,
+		...blogCategoryPages
 	]
 
 	logger.info('Generated sitemap', {
@@ -194,8 +236,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 		route: '/sitemap.xml',
 		metadata: {
 			totalEntries: allPages.length,
-			staticEntries: allPages.length - blogPages.length,
-			blogEntries: blogPages.length
+			staticEntries: allPages.length - blogPages.length - blogCategoryPages.length,
+			blogEntries: blogPages.length,
+			categoryEntries: blogCategoryPages.length
 		}
 	})
 
