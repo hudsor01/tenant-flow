@@ -81,7 +81,7 @@ TenantFlow is a multi-tenant property management SaaS platform for property owne
 - [x] **Phase 33: SEO Utilities Foundation** - Build shared JSON-LD components and metadata factories that all subsequent phases consume (completed 2026-04-08)
 - [ ] **Phase 34: Per-Page Metadata** - Add generateMetadata() to all public pages with canonical URLs, OG tags, and server wrappers for client pages
 - [ ] **Phase 35: Structured Data Enrichment** - Add missing schemas and refactor existing inline JSON-LD to use shared utilities
-- [ ] **Phase 36: Pricing Page Polish** - Fix pricing page technical debt (HTML entities, legacy Tailwind, mobile layout, dynamic dates)
+- [x] **Phase 36: Pricing Page Polish** - Fix pricing page technical debt (HTML entities, legacy Tailwind, mobile layout, dynamic dates) (completed 2026-04-10)
 - [ ] **Phase 37: Content SEO & Internal Linking** - Cross-link blog, comparison, and resource pages for topical authority
 - [ ] **Phase 38: Validation & Verification** - GSC verification, E2E SEO smoke tests, sitemap enhancements, full regression pass
 
@@ -156,7 +156,7 @@ Plans:
   3. `pricing/success/page.tsx` and `pricing/cancel/page.tsx` export `noindex` metadata and render inside `PageLayout`
   4. `pricing/complete/page.tsx` contains no Tailwind v3 syntax (`bg-gray-50`, `text-gray-600`, etc.) -- all converted to v4 design tokens (`bg-muted`, `text-muted-foreground`, etc.)
   5. Pricing JSON-LD `priceValidUntil` is computed dynamically (not hardcoded to any specific date)
-**Plans:** 1 plan
+**Plans:** 4/4 plans complete
 Plans:
 - [ ] 32-01-PLAN.md -- Dynamic robots.ts, delete stale static files, remove fabricated aggregateRating
 **UI hint**: yes
@@ -197,6 +197,6 @@ Note: Phase 35 and Phase 36 both depend on Phase 33 and are independent of each 
 | 33. SEO Utilities Foundation | v1.6 | 2/2 | Complete    | 2026-04-08 |
 | 34. Per-Page Metadata | v1.6 | 2/2 | Complete | 2026-04-08 |
 | 35. Structured Data Enrichment | v1.6 | 3/3 | Complete | 2026-04-09 |
-| 36. Pricing Page Polish | v1.6 | 0/0 | Not started | - |
+| 36. Pricing Page Polish | v1.6 | 4/4 | Complete    | 2026-04-10 |
 | 37. Content SEO & Internal Linking | v1.6 | 0/0 | Not started | - |
 | 38. Validation & Verification | v1.6 | 0/0 | Not started | - |
