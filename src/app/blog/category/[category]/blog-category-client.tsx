@@ -15,7 +15,7 @@ import { useBlogCategories, useBlogsByCategory } from '#hooks/api/use-blogs'
 
 export default function BlogCategoryClient() {
 	const params = useParams()
-	const categorySlug = params.category as string
+	const categorySlug = String(params.category)
 	const router = useRouter()
 	const [page] = useQueryState('page', parseAsInteger.withDefault(1))
 

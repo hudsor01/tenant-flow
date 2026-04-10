@@ -82,7 +82,7 @@ function splitContentForCta(content: string): [string, string] {
 
 export default function BlogPostPage() {
 	const params = useParams()
-	const slug = params.slug as string
+	const slug = String(params.slug)
 	const [imageLoaded, setImageLoaded] = useState(false)
 
 	const { data: post, isLoading } = useBlogBySlug(slug)

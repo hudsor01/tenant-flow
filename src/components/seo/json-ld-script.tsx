@@ -17,7 +17,7 @@ export function JsonLdScript({ schema }: JsonLdScriptProps) {
 	const hasContext = '@context' in schema
 	const jsonString = hasContext
 		? JSON.stringify(schema)
-		: JSON.stringify({ '@context': 'https://schema.org', ...Object.entries(schema).reduce<Record<string, unknown>>((acc, [k, v]) => { acc[k] = v; return acc }, {}) })
+		: JSON.stringify({ '@context': 'https://schema.org', ...(schema as Record<string, unknown>) })
 
 	return (
 		<script

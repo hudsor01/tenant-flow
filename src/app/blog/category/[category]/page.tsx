@@ -31,7 +31,7 @@ export default async function BlogCategoryPage({ params }: CategoryPageProps) {
 	const { category } = await params
 	const categoryName = category
 		.split('-')
-		.map((w: string) => w.charAt(0).toUpperCase() + w.slice(1))
+		.map(w => w.charAt(0).toUpperCase() + w.slice(1))
 		.join(' ')
 
 	return (

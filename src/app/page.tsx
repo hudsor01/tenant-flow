@@ -31,7 +31,9 @@ export default function RootPage() {
 	const siteUrl = getSiteUrl()
 
 	// WebSite schema with SearchAction for sitelinks search box (SCHEMA-03)
+	// Uses Record spread for Google's non-standard `query-input` property
 	const websiteSchema = {
+		'@context': 'https://schema.org' as const,
 		'@type': 'WebSite' as const,
 		name: 'TenantFlow',
 		url: siteUrl,
@@ -41,11 +43,11 @@ export default function RootPage() {
 			target: `${siteUrl}/search?q={search_term_string}`,
 			'query-input': 'required name=search_term_string'
 		}
-	}
+	} satisfies Record<string, unknown>
 
 	return (
 		<>
-			<JsonLdScript schema={websiteSchema as Parameters<typeof JsonLdScript>[0]['schema']} />
+			<JsonLdScript schema={websiteSchema as import('schema-dts').WithContext<import('schema-dts').WebSite>} />
 			<MarketingHomePage />
 		</>
 	)

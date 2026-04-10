@@ -201,7 +201,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 			)
 		]
 		blogCategoryPages = categories.map(cat => ({
-			url: `${baseUrl}/blog/category/${cat}`,
+			url: `${baseUrl}/blog/category/${String(cat).toLowerCase().replace(/\s+/g, '-')}`,
 			lastModified: currentDate,
 			changeFrequency: 'weekly' as const,
 			priority: 0.6
