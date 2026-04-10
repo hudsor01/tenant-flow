@@ -28,19 +28,19 @@ fi
 
 # Find all duplicate exported type/interface names
 ALL_DUPLICATES=$(
-  grep -rh "^export \(interface\|type\) [A-Z][A-Za-z0-9]*" "$TYPES_DIR" \
+  command grep -rh "^export \(interface\|type\) [A-Z][A-Za-z0-9]*" "$TYPES_DIR" \
     --include="*.ts" \
     --exclude="supabase.ts" \
     --exclude="*.test.ts" \
     --exclude="*.spec.ts" \
-  | sed -E 's/export (interface|type) ([A-Za-z0-9]+).*/\2/' \
+  | command sed -E 's/export (interface|type) ([A-Za-z0-9]+).*/\2/' \
   | sort \
   | uniq -d
 )
 
 # Count mode - just show counts
 if [ "$MODE" = "--count" ]; then
-  TOTAL=$(echo "$ALL_DUPLICATES" | grep -c . || echo 0)
+  TOTAL=$(echo "$ALL_DUPLICATES" | command grep -c . || echo 0)
   KNOWN=${#KNOWN_DUPLICATES[@]}
   echo "Total duplicate types: $TOTAL"
   echo "Known/baselined: $KNOWN"
@@ -64,7 +64,7 @@ while IFS= read -r typename; do
 done <<< "$ALL_DUPLICATES"
 
 # Remove trailing newline
-NEW_DUPLICATES=$(echo -e "$NEW_DUPLICATES" | sed '/^$/d')
+NEW_DUPLICATES=$(echo -e "$NEW_DUPLICATES" | command sed '/^$/d')
 
 # Strict mode - fail on ANY duplicate
 if [ "$MODE" = "--strict" ]; then
@@ -74,10 +74,10 @@ if [ "$MODE" = "--strict" ]; then
     echo "$ALL_DUPLICATES" | while read -r typename; do
       [ -z "$typename" ] && continue
       echo "  Type: $typename"
-      grep -rl "^export \(interface\|type\) $typename" "$TYPES_DIR" \
+      command grep -rl "^export \(interface\|type\) $typename" "$TYPES_DIR" \
         --include="*.ts" \
         --exclude="supabase.ts" 2>/dev/null \
-      | sed 's/^/    - /'
+      | command sed 's/^/    - /'
     done
     exit 1
   fi
@@ -93,10 +93,10 @@ if [ -n "$NEW_DUPLICATES" ]; then
     [ -z "$typename" ] && continue
     echo "  Type: $typename"
     echo "  Found in:"
-    grep -rl "^export \(interface\|type\) $typename" "$TYPES_DIR" \
+    command grep -rl "^export \(interface\|type\) $typename" "$TYPES_DIR" \
       --include="*.ts" \
       --exclude="supabase.ts" 2>/dev/null \
-    | sed 's/^/    - /'
+    | command sed 's/^/    - /'
     echo ""
   done
   echo "Please consolidate these types into a single file."

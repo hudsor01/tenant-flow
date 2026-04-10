@@ -1,329 +1,311 @@
-# Domain Pitfalls: Tenant Invitation Flow Consolidation
+# Pitfalls Research: SEO & Google Indexing Optimization
 
-**Domain:** Multi-path invitation consolidation in existing SaaS (property management)
-**Researched:** 2026-03-30
-**Confidence:** HIGH (pitfalls derived from direct codebase analysis + industry patterns)
+**Domain:** Adding comprehensive SEO to existing Next.js 16 SaaS on Vercel
+**Researched:** 2026-04-08
+**Confidence:** HIGH (verified against Google developer docs, Next.js official docs, codebase audit)
 
 ## Critical Pitfalls
 
-Mistakes that cause data loss, security breaches, or require rewrites.
+### Pitfall 1: robots.txt Blocks `/_next/` -- Googlebot Cannot Render Pages
 
-### Pitfall 1: CHECK Constraint Violation from Inconsistent Type Values
+**What goes wrong:**
+The current `public/robots.txt` contains `Disallow: /_next/` which blocks ALL assets under that path, including CSS and JavaScript that Googlebot needs to render pages. Google's crawler fetches these assets to understand page layout and content. Without them, pages appear as blank white screens to Googlebot, leading to "Crawled but not indexed" status in Search Console. One documented case showed only 23 of 156 pages indexed after this mistake.
 
-**What goes wrong:** The `invite-tenant-form.tsx` (dashboard path) inserts `type: 'portal_access'` on line 78, but the DB CHECK constraint (`tenant_invitations_type_check`) only allows `'platform_access'` and `'lease_signing'`. The string `'portal_access'` violates the constraint and the insert fails silently or throws an unhandled PostgREST error.
+**Why it happens:**
+Developers see `/_next/` as internal build artifacts and assume blocking them saves crawl budget. In reality, `/_next/static/` contains CSS and JS required for rendering, and `/_next/image/` serves optimized images that appear in content.
 
-**Why it happens:** Four separate code paths were written independently. Each path hardcodes its own `type` value without referencing a shared constant or the DB constraint definition. Nobody tested the dashboard invite path end-to-end against the live DB after the CHECK constraint was added.
+**How to avoid:**
+Replace the blanket `Disallow: /_next/` with targeted rules:
+```
+Allow: /_next/static/
+Allow: /_next/image/
+Disallow: /_next/data/
+Disallow: /*_buildManifest.js$
+Disallow: /*_middlewareManifest.js$
+```
+This preserves rendering assets while blocking internal data fetching routes and build manifests that waste crawl budget.
 
-**Consequences:** Dashboard invitations fail at the database level. The owner sees a generic error toast. No invitation record is created, no email is sent, and the owner thinks the system is broken. This is a **production bug right now**.
+**Warning signs:**
+- Google Search Console shows "Crawled - currently not indexed" for pages that have content
+- Rich Results Test shows blank page or no structured data detected
+- Mobile Usability report shows issues on pages that look fine in a browser
 
-**Prevention:**
-- Define a single `INVITATION_TYPES` constant (e.g., in `src/lib/constants/`) derived from the Zod schema `invitationTypeSchema`, which already matches the DB CHECK constraint
-- All insertion code must reference this constant, never hardcode strings
-- Add a unit test that asserts every insertion path uses a value from the allowed set
-- The unified flow eliminates this class of bug entirely -- one insertion function, one type assignment
-
-**Detection:** Any invitation sent from the dashboard `/tenants/new` page fails. Check Sentry for PostgREST errors with `check_violation` or `23514` error code on `tenant_invitations`.
-
-**Phase to address:** Phase 1 (DB + shared mutation). This is a fix-first item before any UI consolidation.
-
----
-
-### Pitfall 2: RLS Policy Column Mismatch (property_owner_id vs owner_user_id)
-
-**What goes wrong:** The `tenant_invitations` RLS INSERT/UPDATE/DELETE policies still reference the old column `property_owner_id` (from base schema migration `20251101000000`), but the live DB column was renamed to `owner_user_id`. The frontend `invite-tenant-form.tsx` uses an authenticated Supabase client (not service_role), meaning the insert goes through RLS. The RLS policy evaluates `property_owner_id = get_current_property_owner_id()`, but the column name is `owner_user_id`.
-
-**Why it happens:** The column rename migration ran on the live DB but the RLS policies were never updated for `tenant_invitations` specifically. Other tables (leases, properties) had their policies fixed in later migrations, but `tenant_invitations` was missed. The frontend code appears to work because the `tenant-invite-mutation-options.ts` (lease wizard path) uses service_role via the Edge Function, bypassing RLS entirely.
-
-**Consequences:** Two scenarios:
-1. If PostgreSQL resolves the policy against the actual column name and the policy references a non-existent column, the policy silently fails (allows nothing), meaning **direct PostgREST inserts from authenticated clients are blocked**. The dashboard invite form would fail.
-2. If an alias or compatibility shim exists, it works by accident but is fragile.
-
-**Prevention:**
-- Audit ALL RLS policies on `tenant_invitations` during Phase 1 migration
-- Rewrite policies to use `owner_user_id = (select auth.uid())` (direct comparison, no function call overhead)
-- Drop the stale `get_current_property_owner_id()` dependency from these policies
-- Add RLS integration tests specifically for tenant invitation CRUD (insert, select, update, delete) from an authenticated owner
-
-**Detection:** Run `SELECT polname, polqual, polwithcheck FROM pg_policy WHERE polrelid = 'public.tenant_invitations'::regclass;` and check for references to `property_owner_id`.
-
-**Phase to address:** Phase 1 (DB migration). Must be fixed before the unified mutation can safely use an authenticated client.
+**Phase to address:**
+Phase 1 (robots.txt audit) -- this is the single highest-impact fix. Must be done before any structured data work, because broken rendering means Google cannot see JSON-LD either.
 
 ---
 
-### Pitfall 3: Race Condition -- Duplicate Invitations for Same Email
+### Pitfall 2: Self-Serving AggregateRating on Organization Schema Triggers Spam Signals
 
-**What goes wrong:** There is no UNIQUE constraint on `(email, owner_user_id, status)` for active invitations. Two rapid clicks, two browser tabs, or two API calls can create multiple `sent` invitations for the same email to the same owner. The tenant receives multiple emails with different invitation codes, causing confusion about which link to click. If they use an older link, the newer invitation remains dangling.
+**What goes wrong:**
+The current `generate-metadata.ts` includes `aggregateRating` with `ratingValue: '4.8'` and `reviewCount: '1250'` on both the Organization and SoftwareApplication schemas. Google explicitly prohibits self-serving reviews where entity A's website hosts ratings for entity A. For Organization and LocalBusiness schema types, Google stopped showing review rich results in 2019 and will never display these stars. Worse, if the rating numbers (4.8 stars, 1,250 reviews) are not visible on any page, this constitutes "invisible markup" -- a direct violation of Google's structured data policies that can trigger a manual action.
 
-**Why it happens:** The table has `UNIQUE(invitation_code)` but no uniqueness constraint on the business-level combination of email + owner + active status. The current code generates `invitation_code` via `crypto.randomUUID()` client-side, so each insert gets a unique code regardless of duplicates.
+**Why it happens:**
+Developers copy schema examples from SEO guides without checking whether the specific schema type supports self-hosted ratings. The Organization + AggregateRating combination looks correct syntactically but violates Google's content policies.
 
-**Consequences:**
-- Tenant receives multiple invitation emails (spam, confusion)
-- Owner sees duplicate pending invitations in their list
-- If an owner resends, the old invitation is not cancelled -- both remain active
-- The `tenant-invitation-accept` Edge Function marks ONE invitation as accepted but leaves duplicates in `sent` status forever
+**How to avoid:**
+- Remove `aggregateRating` from the Organization schema entirely -- Google will never show it as a rich result
+- For SoftwareApplication: only include `aggregateRating` if the ratings are from a third-party review platform (e.g., embedded Capterra widget) and the numbers are visibly displayed on the page
+- If keeping ratings on SoftwareApplication, the `ratingValue` and `reviewCount` must exactly match what users see on the page
+- Use `offers` on SoftwareApplication (already present) which IS eligible for rich results
 
-**Prevention:**
-- Add a partial unique index: `CREATE UNIQUE INDEX idx_tenant_invitations_active_email ON tenant_invitations(email, owner_user_id) WHERE status IN ('pending', 'sent')`
-- The unified mutation should check for existing active invitations before inserting (upsert or explicit check)
-- On resend, update the existing record (new code, new expiry) rather than creating a new one
-- The `cancel` mutation should cancel ALL active invitations for an email, not just one by ID
+**Warning signs:**
+- Google Search Console Manual Actions report shows "Spammy structured markup"
+- Rich Results Test shows warnings about reviews not being eligible
+- No star ratings ever appear in SERPs despite having the schema
 
-**Detection:** Query `SELECT email, owner_user_id, COUNT(*) FROM tenant_invitations WHERE status IN ('pending', 'sent') GROUP BY email, owner_user_id HAVING COUNT(*) > 1`.
-
-**Phase to address:** Phase 1 (DB migration -- add partial unique index) + Phase 2 (unified mutation -- upsert logic).
-
----
-
-### Pitfall 4: Existing Invitations Break During Type Constraint Migration
-
-**What goes wrong:** If the consolidation adds a new `type` value (e.g., unifying to a single type) or removes existing values from the CHECK constraint, any existing rows with the old type value will violate the new constraint. The migration fails and rolls back.
-
-**Why it happens:** `ALTER TABLE ... ADD CONSTRAINT ... CHECK (...)` scans all existing rows by default. If any row has a type value not in the new allowed set, the entire migration fails.
-
-**Consequences:** Migration fails in production. If not caught in staging, it blocks the entire deployment.
-
-**Prevention:**
-- **Step 1:** Backfill existing rows to the new type values BEFORE modifying the constraint
-- **Step 2:** Add the new constraint with `NOT VALID` (skips existing row scan)
-- **Step 3:** Run `VALIDATE CONSTRAINT` in a separate statement (acquires ShareUpdateExclusive lock, allows concurrent operations)
-- Write an idempotent migration: `UPDATE tenant_invitations SET type = 'platform_access' WHERE type NOT IN ('platform_access', 'lease_signing')` before dropping/recreating the constraint
-- Test migration against a production snapshot, not just empty dev DB
-
-**Detection:** Migration test with seeded data that includes edge-case type values.
-
-**Phase to address:** Phase 1 (DB migration). Must be the first operation in any migration that touches type constraints.
+**Phase to address:**
+Phase 1 (structured data audit) -- must fix before adding more structured data, as a manual action removes ALL rich result eligibility across the entire site.
 
 ---
 
-### Pitfall 5: Onboarding Invite Creates Orphaned Invitations Without Property Context
+### Pitfall 3: FAQPage Schema Will Not Generate Rich Results for Non-Government/Health Sites
 
-**What goes wrong:** The onboarding wizard (`onboarding-step-tenant.tsx`) creates invitations with `property_id: null` and `unit_id: null`. The tenant receives a generic "join the platform" email with no property context. After accepting, the tenant has no association to any property or unit. The owner must then manually create a lease and assign the tenant. But the invitation list shows this tenant with blank property/unit columns, making it look broken.
+**What goes wrong:**
+The current FAQ page and pricing page both emit `FAQPage` structured data. Since August 2023, Google restricted FAQ rich results to only well-known, authoritative government and health websites. For a SaaS product like TenantFlow, this schema will never produce visible rich results in Google Search. The markup is not harmful (no penalty), but it creates false expectations and wastes development effort if the goal is visible rich snippets.
 
-**Why it happens:** The onboarding flow has no property picker because the property may not exist yet (or was just created in a previous wizard step). The invitation is sent before the owner completes onboarding. There is no mechanism to retroactively update the invitation with property context once the owner finishes onboarding.
+**Why it happens:**
+FAQ schema was extremely popular before 2023 and many SEO guides still recommend it. The restriction was a major change that invalidated years of SEO advice.
 
-**Consequences:**
-- Tenant receives a vague invitation email ("You've been invited to TenantFlow") with no property name
-- Owner dashboard shows invitation with empty property/unit -- looks like a bug
-- If the owner abandons onboarding after step 2 (tenant invite) but before step 3 (lease), the tenant is invited to... nothing
+**How to avoid:**
+- Keep FAQPage schema for AI/LLM discoverability (ChatGPT, Perplexity, and other AI platforms do consume it) but do not expect or measure Google rich result appearances
+- Do NOT invest additional effort making FAQ schema more elaborate for Google purposes
+- Focus structured data effort on schema types that DO produce visible rich results: Article (blog posts), BreadcrumbList, SoftwareApplication, Product (pricing), WebSite (sitelinks searchbox)
 
-**Prevention:**
-- The unified flow should make property context required when the calling context has a property (lease wizard, dashboard with property selected)
-- For onboarding context, pass the property ID from the just-created property step to the tenant step
-- Display a clear "Platform invitation (no property assigned yet)" state instead of empty columns
-- Consider deferring the invitation email until property context is available
+**Warning signs:**
+- FAQ rich results never appear in Google Search despite valid schema
+- Time wasted debugging FAQ schema that validates perfectly but produces nothing
 
-**Detection:** Query `SELECT COUNT(*) FROM tenant_invitations WHERE property_id IS NULL AND status = 'sent'` -- these are contextless invitations.
-
-**Phase to address:** Phase 2 (unified component) + Phase 3 (onboarding integration).
-
----
-
-### Pitfall 6: Invitation Code Enumeration via Validate Endpoint
-
-**What goes wrong:** The `tenant-invitation-validate` Edge Function returns different HTTP status codes for different failure modes: 404 for invalid/used codes, 410 for expired codes. An attacker can enumerate valid-but-expired invitation codes by checking for 410 responses, then use timing to distinguish "code exists but expired" from "code never existed." The rate limit (10 req/min) slows but does not prevent a determined attacker.
-
-**Why it happens:** The validate endpoint is intentionally unauthenticated (the invitation code IS the authentication). Different HTTP status codes for different failure states is helpful UX but leaks information about which codes have been used.
-
-**Consequences:**
-- Attacker learns which invitation codes existed (even if expired/used)
-- Combined with email enumeration (200 response includes email address), an attacker can map email-to-invitation relationships
-- Not an immediate data breach, but violates OWASP's guidance on consistent error responses for authentication endpoints
-
-**Prevention:**
-- Return 404 for ALL failure modes (invalid, used, expired) -- the client already handles this gracefully
-- Move expiry checking to the accept step only (validate returns "valid" or "not found," nothing else)
-- Rate limit should be per-IP AND per-code (prevent an attacker from trying many codes from one IP)
-- Invitation codes should be cryptographically random (UUID v4 is acceptable -- 122 bits of entropy)
-- Add Sentry alerting on sustained 404 patterns from a single IP against the validate endpoint
-
-**Detection:** Monitor `tenant-invitation-validate` Edge Function logs for high 404 rates from single IPs.
-
-**Phase to address:** Phase 2 (Edge Function hardening). Can be addressed alongside the unified mutation work.
-
-## Moderate Pitfalls
-
-### Pitfall 7: Four Email Send Implementations with Inconsistent Error Handling
-
-**What goes wrong:** The invitation email send logic is duplicated in four places:
-1. `invite-tenant-form.tsx` (lines 85-106) -- inline fetch, `.catch()` swallows error
-2. `onboarding-step-tenant.tsx` (lines 65-82) -- identical inline fetch, `.catch()` swallows error
-3. `selection-step-filters.tsx` (lines 66-81) -- identical inline fetch, `.catch()` swallows error
-4. `tenant-invite-mutation-options.ts` (lines 24-53) -- extracted `sendInvitationEmail()` helper, logs error but does not surface to user
-
-None of these inform the user that the invitation record was created but the email failed to send. The tenant never receives the email, the owner thinks it was sent, and the invitation sits in `sent` status with no email actually delivered.
-
-**Prevention:**
-- Extract to single `sendInvitationEmail()` function (already exists in `tenant-invite-mutation-options.ts` -- make all paths use it)
-- Return a result type: `{ emailSent: boolean; error?: string }`
-- On email failure, show a warning toast: "Invitation created but email delivery failed. You can resend from the tenant list."
-- Consider updating invitation status to `pending` (not `sent`) if the email fails, so the owner knows to resend
-
-**Phase to address:** Phase 2 (unified mutation). All paths converge to one function.
+**Phase to address:**
+Phase 1 (structured data strategy) -- understand which schemas actually produce results before investing implementation time.
 
 ---
 
-### Pitfall 8: Cache Invalidation Inconsistency Across Paths
+### Pitfall 4: Expired `priceValidUntil` Dates in Offer Schema
 
-**What goes wrong:** The four invitation paths invalidate different query keys on success:
-- `invite-tenant-form.tsx`: invalidates `tenantQueries.all()`
-- `onboarding-step-tenant.tsx`: invalidates `tenantQueries.lists()` only
-- `selection-step-filters.tsx`: invalidates both `tenantQueries.lists()` and `tenantInvitationQueries.invitations()`
-- `use-tenant-invite-mutations.ts`: invalidates `tenantQueries.lists()`, `tenantInvitationQueries.invitations()`, AND `leaseQueries.lists()`
+**What goes wrong:**
+The pricing page's Product/Offer schema contains `priceValidUntil: '2025-12-31'` on all three pricing tiers. This date has already passed (it is April 2026). Google's Rich Results Test will flag expired offers, and Google may stop showing pricing rich results or show them with a "price expired" indicator, actively hurting CTR.
 
-After sending an invitation from the dashboard form, the tenant list may update but the invitation list does not refresh. After sending from the onboarding wizard, neither the invitation list nor the lease list refreshes.
+**Why it happens:**
+Structured data with dates is set-and-forget. Developers add it once during initial implementation and never update the dates. Unlike visible page content that someone might notice is stale, JSON-LD dates are invisible to casual page review.
 
-**Prevention:**
-- The unified mutation hook must invalidate ALL related query keys: `tenantQueries.lists()`, `tenantInvitationQueries.invitations()`, and `ownerDashboardKeys.all` (per CLAUDE.md convention)
-- Create a single `invalidateInvitationRelatedQueries()` helper to ensure consistency
-- Add a unit test that verifies the mutation's `onSuccess` calls `invalidateQueries` for all required keys
+**How to avoid:**
+- Compute `priceValidUntil` dynamically: set it to 1 year from the current date, regenerated on each build/ISR cycle
+- Add a unit test that validates all structured data date fields are in the future
+- Alternative: omit `priceValidUntil` entirely if prices do not actually have expiration dates (subscription pricing is ongoing)
 
-**Phase to address:** Phase 2 (unified mutation hook).
+**Warning signs:**
+- Rich Results Test shows warnings about expired offers
+- Pricing rich results disappear from SERPs
+- Google Search Console shows "Invalid item" errors for Product structured data
 
----
-
-### Pitfall 9: Type Dropdown Exposes Internal Metadata to Users
-
-**What goes wrong:** The `invite-tenant-modal.tsx` renders a `<select>` dropdown with options "Platform Access Only" and "Lease Signing." These are internal system concepts that a property owner should never need to choose between. Owners do not think in terms of "platform access" vs "lease signing" -- they think "I want to invite a tenant."
-
-**Why it happens:** The `type` column was designed for backend routing logic (does the invitation link to a lease or not?), but it was surfaced as a user-facing form field without UX review.
-
-**Consequences:**
-- Owner confusion: "What does Platform Access mean?"
-- Wrong selection: Owner picks "Lease Signing" without a lease context, then the invitation has `type: 'lease_signing'` with `lease_id: null` -- semantically broken
-- Form complexity: An extra field that provides no user value
-
-**Prevention:**
-- Remove the type dropdown entirely from the UI
-- Auto-set type based on calling context: lease wizard sets `lease_signing`, everything else sets `platform_access`
-- The unified component receives context as a prop, not as a user selection
-- If a type dropdown is ever needed (admin view), it should be in an admin-only settings panel, not the invite form
-
-**Phase to address:** Phase 2 (unified component design). This is a core UX requirement of the milestone.
+**Phase to address:**
+Phase 1 (structured data audit) -- quick fix with high impact. Already broken in production.
 
 ---
 
-### Pitfall 10: Email Deliverability Degradation After Consolidation
+### Pitfall 5: Canonical URL Inconsistency Across Pages
 
-**What goes wrong:** Consolidating invitation paths may increase email send volume from a single domain/sender, pushing past Resend's rate limits or triggering spam filters. If invitation emails and marketing emails (newsletter) share the same Resend API key and sender domain, deliverability issues in one stream affect the other.
+**What goes wrong:**
+The codebase has three different canonical URL patterns:
+1. Root layout: `canonical: SITE_URL` (absolute URL via `generate-metadata.ts`)
+2. Blog posts: `canonical: '/blog/${slug}'` (relative path)
+3. Compare pages: `canonical: '${baseUrl}/compare/${slug}'` (absolute URL via env var)
+4. Most pages (features, help, search, blog hub): NO explicit canonical at all
 
-**Why it happens:** Invitation consolidation may lead to more resend operations (retry logic, bulk invites if added later). The current architecture sends from a single Resend configuration without stream separation.
+Pages without explicit canonicals inherit the root layout's `alternates.canonical: SITE_URL` which points to the homepage -- meaning Google may treat those pages as duplicates of the homepage. Additionally, the mix of relative and absolute canonical URLs creates unpredictable behavior when `metadataBase` resolution interacts with different environments.
 
-**Consequences:**
-- Invitation emails land in spam folders
-- Resend rate limits cause silent failures (the Edge Function logs the error but the owner sees "Invitation sent")
-- If the domain gets blacklisted, ALL transactional emails (auth, receipts, invitations) are affected
+**Why it happens:**
+Next.js metadata merging is deep -- child pages override parent metadata properties. But developers assume "the root layout handles it" without verifying what actually gets merged for each specific page. The root canonical pointing to the site root is correct for the homepage but wrong when inherited by child pages.
 
-**Prevention:**
-- Verify SPF, DKIM, and DMARC are configured for the sending domain (table-stakes requirement per Google/Microsoft 2025 sender policies)
-- Use Resend tags (already partially implemented: `category: 'tenant-invitation'`) to separate invitation traffic from other email types
-- Add monitoring: alert if the Edge Function returns non-200 from Resend more than N times in an hour
-- Consider adding an `email_sent_at` column to `tenant_invitations` to track actual delivery vs assumed delivery
-- Rate limit invitation creation per owner (e.g., max 50 invitations per hour) to prevent abuse
+**How to avoid:**
+- Every public-facing page MUST set its own `alternates.canonical` to its specific URL
+- Use consistent format: always relative paths (e.g., `/pricing`, `/about`) and let `metadataBase` resolve them to absolute URLs
+- Remove the root-level `alternates.canonical` from `generate-metadata.ts` or change it to only apply to the root page
+- Add a build-time check or test that verifies every page in the sitemap has a unique canonical URL
 
-**Phase to address:** Phase 2 (Edge Function consolidation) + operational monitoring.
+**Warning signs:**
+- Google Search Console shows "Duplicate without user-selected canonical" issues
+- Multiple pages competing for the same keyword because Google thinks they are the same URL
+- Blog posts showing homepage in search results instead of the blog post URL
 
----
-
-### Pitfall 11: Invitation Expiry Edge Cases with Timezone Handling
-
-**What goes wrong:** Invitation expiry is calculated with `new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString()` client-side in multiple places. This uses the client's clock, which may be wrong. The `tenant-invitation-validate` Edge Function compares `new Date(invitation.expires_at) < new Date()` using the Edge Function's server clock. Clock skew between client and server can cause invitations to expire early or late.
-
-**Why it happens:** Expiry is calculated client-side rather than server-side. There is no server-side `NOW() + INTERVAL '7 days'` default on the column.
-
-**Consequences:**
-- A client with a clock 1 hour ahead creates an invitation that expires 1 hour early from the server's perspective
-- Edge case: an invitation created at 23:59 UTC on a client with clock skew might appear valid for 6 days instead of 7
-
-**Prevention:**
-- Move expiry calculation to the database: `DEFAULT NOW() + INTERVAL '7 days'` on the `expires_at` column, or calculate server-side in the mutation
-- If client-side calculation must stay, use the Supabase server time (`SELECT NOW()`) as the reference
-- The unified mutation should calculate expiry in one place, not four
-- Validate endpoint should use `expires_at < NOW()` in the SQL query (not JavaScript date comparison) for consistency
-
-**Phase to address:** Phase 1 (DB migration -- add default) + Phase 2 (unified mutation).
-
-## Minor Pitfalls
-
-### Pitfall 12: Invitation URL Inconsistency (`accept-invitation` vs `accept-invite`)
-
-**What goes wrong:** The invitation forms generate URLs with `/auth/accept-invitation?code=...` but the actual Next.js page route is at `/accept-invite/` (based on `src/app/(auth)/accept-invite/page.tsx`). If these paths do not match, tenants clicking the email link land on a 404.
-
-**Prevention:**
-- Use a single `INVITATION_ACCEPT_PATH` constant for URL construction
-- Add an E2E test that generates an invitation, extracts the URL, and navigates to it
-- If both paths exist (redirect from old to new), document the redirect in proxy.ts
-
-**Phase to address:** Phase 2 (unified mutation). Verify the actual route and use it consistently.
+**Phase to address:**
+Phase 2 (metadata audit) -- systematic review of all pages. Must be done before sitemap improvements, as sitemaps and canonicals must agree.
 
 ---
 
-### Pitfall 13: No Handling for Existing Tenant Accepting a New Invitation
+### Pitfall 6: Adding Structured Data to Client Components Breaks SSR Extraction
 
-**What goes wrong:** The `tenant-invitation-accept` Edge Function creates a tenant record via upsert (`onConflict: 'user_id', ignoreDuplicates: false`). If a tenant already exists and accepts a new invitation (e.g., a tenant moving to a new property with the same owner), the upsert succeeds but the existing tenant record is not updated with the new property/unit context. The new invitation's `lease_id` association works, but any prior property/unit from the old invitation persists.
+**What goes wrong:**
+Blog post detail page (`blog-post-page.tsx`) is a `'use client'` component. If JSON-LD structured data for Article schema is added inside this client component, it will only be present after JavaScript hydration. Googlebot's initial HTML parse (the "first pass") will not see the structured data. While Google does execute JavaScript, there is a delay and sometimes Googlebot's rendering budget is exhausted before reaching the client-rendered JSON-LD.
 
-**Prevention:**
-- When an existing tenant accepts a new invitation, update the tenant's property/unit associations based on the new invitation's context
-- Consider whether the `tenants` table should have property/unit context at all, or whether this should only live in `lease_tenants`
-- Log when an upsert hits an existing tenant so the system knows it is a re-invitation scenario
+**Why it happens:**
+The blog post page has a Server Component wrapper (`page.tsx`) that calls `generateMetadata`, but the actual content rendering happens in the client component. Developers naturally want to place the Article JSON-LD where the article data is available -- inside the client component. But JSON-LD should be in server-rendered HTML for reliable extraction.
 
-**Phase to address:** Phase 2 (Edge Function update).
+**How to avoid:**
+- Add Article JSON-LD in the Server Component (`page.tsx`) alongside `generateMetadata`, using the same data fetched for metadata
+- Use Next.js's recommended pattern: `<script type="application/ld+json">` in the Server Component's JSX
+- Never place structured data inside `'use client'` components
+- For data already fetched in `generateMetadata`, pass it to a Server Component that renders both the JSON-LD script tag and the client component
 
----
+**Warning signs:**
+- Rich Results Test (URL Inspection) shows structured data, but "View Page Source" does not contain JSON-LD
+- Intermittent rich results -- sometimes appearing, sometimes not
+- Rich Results Test in "code" mode shows JSON-LD but "live test" does not
 
-### Pitfall 14: Accessibility Gaps in Invitation Forms
-
-**What goes wrong:** The `invite-tenant-modal.tsx` uses raw `<button>`, `<input>`, `<select>`, and `<label>` elements without proper `aria-` attributes. The close button (line 94-99) has no `aria-label`. The modal backdrop click-to-close has no keyboard equivalent (Escape key). The form does not announce submission success/failure to screen readers.
-
-**Prevention:**
-- Replace the custom modal with the shadcn `Dialog` component (already in the project's UI library)
-- Ensure all interactive elements have `aria-label` where visible text is insufficient
-- Add Escape key handler for modal dismissal
-- Use `aria-live` regions or toast announcements for form submission feedback
-- The unified component should be built with shadcn primitives from the start, avoiding a second accessibility pass
-
-**Phase to address:** Phase 3 (unified component implementation). Build accessible from day one.
+**Phase to address:**
+Phase 2 (Article structured data) -- this is the architectural decision that must be right from the start. Retrofitting server-side JSON-LD after building it client-side requires restructuring data flow.
 
 ---
 
-### Pitfall 15: Query Key Leak -- Invitation List Shows All Statuses
+### Pitfall 7: Sitemap Uses `new Date().toISOString()` for All `lastModified` Values
 
-**What goes wrong:** The `tenantInvitationQueries.list()` query fetches ALL invitations without filtering by status. This includes `cancelled` and `expired` invitations mixed with `sent` and `accepted` ones. The UI must filter client-side, which wastes bandwidth and creates inconsistent displays if the filter logic differs between views.
+**What goes wrong:**
+The current sitemap sets `lastModified: currentDate` (the generation timestamp) for every static page. This means every time the sitemap regenerates (every 24h via ISR), ALL pages appear to have been modified. Google's crawler interprets `lastmod` as a signal to re-crawl. When every page has today's date, Google learns that `lastmod` is unreliable for this site and may start ignoring the sitemap's freshness signals entirely, or waste crawl budget re-crawling pages that have not actually changed.
 
-**Prevention:**
-- Add status filter to the PostgREST query: `.in('status', ['pending', 'sent', 'accepted'])`
-- Provide separate query options for "active invitations" and "all invitations (admin view)"
-- Ensure the unified component clearly shows expired/cancelled states rather than hiding them
+**Why it happens:**
+Using `new Date()` is the simplest implementation. Developers think "fresh dates = good for SEO" when the opposite is true -- accurate dates build crawler trust.
 
-**Phase to address:** Phase 2 (query optimization alongside mutation consolidation).
+**How to avoid:**
+- Static marketing pages: use hardcoded dates that only change when the page content actually changes (or the last git commit date for that file)
+- Blog posts: already using `post.published_at` (correct) but should use `updated_at` if available
+- Comparison pages: use a fixed date, updated only when comparison data changes
+- Resource pages: use a fixed date, updated only when the resource content changes
+- Consider adding `updated_at` column to blogs table for content freshness tracking
 
-## Phase-Specific Warnings
+**Warning signs:**
+- Google Search Console crawl stats show high re-crawl rate on unchanged pages
+- `lastmod` dates in sitemap all match (easy to spot by viewing `/sitemap.xml`)
+- Google stops respecting sitemap freshness signals (crawl patterns become random)
 
-| Phase Topic | Likely Pitfall | Mitigation |
-|-------------|---------------|------------|
-| DB migration (Phase 1) | CHECK constraint change breaks existing rows | Backfill data BEFORE altering constraint; use NOT VALID + VALIDATE |
-| DB migration (Phase 1) | RLS policies reference old column name | Audit and rewrite ALL tenant_invitations policies to use owner_user_id |
-| DB migration (Phase 1) | Missing unique index allows duplicate active invitations | Add partial unique index on (email, owner_user_id) WHERE status IN ('pending', 'sent') |
-| Unified mutation (Phase 2) | Cache invalidation misses some query keys | Create shared invalidation helper; test all key invalidations |
-| Unified mutation (Phase 2) | Email send failure not surfaced to user | Return result type from sendInvitationEmail; show warning toast on failure |
-| Unified component (Phase 3) | Type dropdown reappears due to incomplete cleanup | Delete invite-tenant-modal.tsx entirely; grep for all type dropdown references |
-| Onboarding integration (Phase 3) | Invitation created without property context | Pass property ID from previous wizard step; make it required when available |
-| Edge Function update (Phase 2) | Validate endpoint leaks invitation existence info | Return 404 for all failure modes; move expiry check to accept step |
-| Testing (all phases) | New code paths not covered by RLS integration tests | Add tenant_invitations to RLS test suite: insert, select, update from owner and non-owner |
+**Phase to address:**
+Phase 3 (sitemap improvements) -- after metadata and structured data are solid.
+
+---
+
+## Technical Debt Patterns
+
+Shortcuts that seem reasonable but create long-term problems.
+
+| Shortcut | Immediate Benefit | Long-term Cost | When Acceptable |
+|----------|-------------------|----------------|-----------------|
+| Hardcoding `priceValidUntil` dates | Quick to implement | Goes stale, breaks rich results | Never -- always compute dynamically |
+| Using `FAQPage` schema everywhere | Appears comprehensive | Wasted effort, false expectations | Acceptable if team understands it is for AI only |
+| Single monolithic sitemap | Simpler code | Cannot track crawl patterns per section | Acceptable under ~100 URLs total |
+| `baseUrl` via `process.env` in page components | Works in all environments | Inconsistent URL construction across pages | Never -- centralize in one utility |
+| Blocking SEO tool bots (Ahrefs, Semrush) | Saves bandwidth | Competitors can still see you; you lose your own backlink data | Only if you never use these tools yourself |
+| Static `robots.txt` in `/public` | Simple, no code needed | Cannot adapt rules per environment | Acceptable if production is the only environment that matters |
+
+## Integration Gotchas
+
+Common mistakes when connecting SEO tools and services to Next.js + Vercel.
+
+| Integration | Common Mistake | Correct Approach |
+|-------------|----------------|------------------|
+| Google Search Console | Verifying with HTML file upload but Vercel redeploys remove it | Use DNS TXT record verification or meta tag in root layout (persistent across deploys) |
+| Vercel preview deployments | Preview URLs get indexed despite `X-Robots-Tag: noindex` because custom preview domains bypass the header | If using custom domains on preview branches, add explicit `noindex` meta tag in `robots` metadata for non-production environments |
+| Sitemap + ISR | Sitemap has 24h revalidation but new blog posts need immediate inclusion | Use on-demand revalidation (`revalidateTag`/`revalidatePath`) for sitemap when new content is published |
+| Supabase queries in `generateMetadata` | Cold-start latency (80-398s observed per Sentry) causes timeout on first request after deploy | Already mitigated with 5s timeout + ISR caching (good). Ensure the fallback metadata for timeout cases still has valid canonical and title |
+| JSON-LD validation | Only testing with Schema.org validator, not Google's Rich Results Test | Schema.org validates syntax; Google's tool validates what actually produces rich results. Always test with both |
+| Blog canonical URLs | Using relative paths (`/blog/slug`) in some places, absolute URLs in others | Always use relative paths and let Next.js `metadataBase` resolve them. Consistent pattern prevents environment-specific bugs |
+
+## Performance Traps
+
+Patterns that work at small scale but fail as the site grows.
+
+| Trap | Symptoms | Prevention | When It Breaks |
+|------|----------|------------|----------------|
+| Single sitemap file with DB query | Works fine with 20 blog posts | Use `generateSitemaps()` to split by content type (blog, compare, resources, static) | 50,000+ URLs or 50MB file size (Google hard limit) |
+| `generateMetadata` fetching full blog post | Metadata includes image, excerpt, etc. | Select only the columns needed for metadata (already done correctly) | High-traffic blog pages where every ms of TTFB matters |
+| JSON-LD on every page via root layout | Global schemas (Organization, Software) on all pages including dashboard | Move global schemas to marketing layout only; dashboard pages do not need SEO schemas | When authenticated pages get bloated with unnecessary script tags |
+| `currentDate` as `lastModified` on all sitemap entries | Google re-crawls everything daily | Use actual content modification dates | When Google devalues your sitemap signals (starts ignoring lastmod) |
+
+## Security Mistakes
+
+Domain-specific security issues beyond general web security.
+
+| Mistake | Risk | Prevention |
+|---------|------|------------|
+| JSON-LD containing user-generated content without sanitization | XSS via structured data script tags | Already using `.replace(/</g, '\\u003c')` pattern (good). Maintain this on all new JSON-LD |
+| Exposing internal URL patterns in sitemap | Dashboard/API routes visible to crawlers | Audit sitemap to only include public routes. Current implementation is correct (only public pages listed) |
+| `baseUrl` falling back to `localhost:3050` in production structured data | Structured data points to localhost, Google indexes wrong URLs | Use strict env validation: never allow localhost in production. Current pattern uses `process.env.NEXT_PUBLIC_APP_URL` with fallback -- ensure the fallback is production URL, not localhost |
+| Blog metadata timeout returns `{ title: 'Blog Post Not Found' }` | Google indexes "Not Found" title for valid blog posts during cold starts | Return HTTP 503 (Service Unavailable) with `Retry-After` header instead of a 200 with "not found" title. This tells Google to come back later rather than indexing the error state |
+
+## UX Pitfalls
+
+Common user experience mistakes when optimizing for SEO.
+
+| Pitfall | User Impact | Better Approach |
+|---------|-------------|-----------------|
+| Keyword-stuffed titles that read unnaturally | Users see "TenantFlow - Property Management Software \| Property Management \| PM Tool" in browser tab | Write titles for humans first: "TenantFlow vs Buildium: Honest Comparison" reads better and performs better |
+| Over-long meta descriptions truncated mid-sentence | Google shows "..." cutting off the value proposition | Keep descriptions under 155 characters. Front-load the most important information |
+| Comparison pages with biased feature tables (TenantFlow wins everything) | Users distrust the comparison, bounce rate increases | Show genuine strengths of competitors. Acknowledge areas where they excel. Honest comparisons build trust and reduce bounce rate |
+| JSON-LD rich results promising features not yet available | Users click expecting "Tenant Screening" (listed in `featureList`) but it does not exist | Only list actually-available features in structured data. Remove aspirational features from the `featureList` array |
+
+## "Looks Done But Isn't" Checklist
+
+Things that appear complete but are missing critical pieces.
+
+- [ ] **robots.txt:** Appears to block internal routes (good) but also blocks `/_next/` which prevents Googlebot from rendering pages -- verify with Google's URL Inspection tool
+- [ ] **Canonical URLs:** Root layout sets canonical but child pages may inherit homepage canonical instead of their own URL -- verify each public page's canonical in View Source
+- [ ] **JSON-LD Organization:** Has all required fields but `aggregateRating` is self-serving and will never display -- verify with Rich Results Test (not just Schema.org validator)
+- [ ] **Pricing schema:** Has valid Offer markup but `priceValidUntil` dates are expired (2025-12-31) -- verify dates are current
+- [ ] **Blog metadata:** Has `generateMetadata` with ISR caching but timeout fallback returns 200 with "Not Found" title instead of signaling temporary unavailability -- verify with `curl -I` during cold start
+- [ ] **Sitemap:** Contains all public pages but `lastModified` dates are unreliable (all set to generation time) -- verify by viewing `/sitemap.xml` raw output
+- [ ] **FAQ schema:** Validates perfectly in structured data testing tools but will never produce rich results for a SaaS site -- verify understanding of current Google restrictions
+- [ ] **Pages without metadata:** Features, help, search, and blog hub pages have no explicit metadata export -- verify they do not inherit only the root defaults
+- [ ] **Comparison pages:** Have breadcrumb schema but breadcrumb only has 2 levels (Home > Comparison) -- should include "Compare" as an intermediate level if a /compare hub exists
+- [ ] **`Crawl-delay` directive:** Present in robots.txt but Google completely ignores it -- verify understanding that this only affects Bing/Yandex
+
+## Recovery Strategies
+
+When pitfalls occur despite prevention, how to recover.
+
+| Pitfall | Recovery Cost | Recovery Steps |
+|---------|---------------|----------------|
+| Manual action for spammy structured data | MEDIUM (1-2 weeks) | Remove violating markup, request review in Search Console, wait for Google to re-process (typically 2-14 days) |
+| `/_next/` blocked causing mass de-indexing | MEDIUM (2-4 weeks) | Fix robots.txt, request re-indexing of key pages in Search Console, wait for Google to re-crawl (gradual, 2-4 weeks for full recovery) |
+| Expired `priceValidUntil` losing pricing rich results | LOW (same day) | Update dates, deploy, request re-indexing of pricing page. Rich results typically restore within 1-3 days |
+| Canonical URL confusion causing wrong pages indexed | MEDIUM (2-4 weeks) | Fix canonicals on all pages, deploy, wait for Google to re-process. Cannot force immediate re-canonicalization |
+| Blog metadata returning "Not Found" title during cold start | LOW (1-2 days) | Fix timeout handling, deploy. Request re-indexing of affected blog posts in Search Console |
+| Sitemap `lastmod` trust lost | HIGH (weeks to months) | Fix dates to be accurate, then wait for Google to rebuild trust in your sitemap signals. No way to force this |
+
+## Pitfall-to-Phase Mapping
+
+How roadmap phases should address these pitfalls.
+
+| Pitfall | Prevention Phase | Verification |
+|---------|------------------|--------------|
+| `/_next/` blocked in robots.txt | Phase 1: robots.txt audit | Google URL Inspection tool shows page rendered correctly |
+| Self-serving AggregateRating | Phase 1: structured data audit | Rich Results Test shows no warnings; no ratings on Organization schema |
+| FAQPage not producing rich results | Phase 1: structured data strategy | Team alignment that FAQ schema is for AI, not Google rich results |
+| Expired priceValidUntil | Phase 1: structured data audit | Rich Results Test shows valid offers; dates are in the future |
+| Canonical URL inconsistency | Phase 2: per-page metadata | View Source on every public page shows unique, correct canonical URL |
+| Client-side JSON-LD not in SSR HTML | Phase 2: Article structured data | View Page Source (not inspect) shows JSON-LD in raw HTML |
+| Sitemap lastModified inaccuracy | Phase 3: sitemap improvements | Raw `/sitemap.xml` shows varied, accurate dates |
+| Blog metadata timeout returning wrong title | Phase 2: blog SEO enrichment | `curl -v` during cold start returns 503 or valid metadata, not "Not Found" |
+| Pages missing explicit metadata | Phase 2: per-page metadata audit | Every page in sitemap has unique title and description in View Source |
+| Comparison page bias hurting trust | Phase 2: comparison page SEO | Bounce rate monitoring; honest feature acknowledgments added |
+| `baseUrl` inconsistency across pages | Phase 1: centralize URL construction | Single `getSiteUrl()` used everywhere; grep confirms no `process.env.NEXT_PUBLIC_APP_URL` in page components |
+| SoftwareApplication featureList listing unavailable features | Phase 1: structured data audit | Every feature in `featureList` has a corresponding working page/section |
 
 ## Sources
 
-- Codebase analysis: `invite-tenant-form.tsx`, `onboarding-step-tenant.tsx`, `selection-step-filters.tsx`, `tenant-invite-mutation-options.ts` (4 code paths examined)
-- DB schema: `supabase/migrations/20251128100000_separate_tenant_invitation_from_lease.sql`, `supabase/migrations/20251101000000_base_schema.sql`
-- Generated types: `src/types/supabase.ts` (confirms `owner_user_id` is the live column name)
-- RLS policies: `supabase/migrations/20251225182240_fix_rls_policy_security_and_performance.sql`, `supabase/migrations/20260303140000_phase3_rls_function_audit.sql`
-- Edge Functions: `tenant-invitation-validate/index.ts`, `tenant-invitation-accept/index.ts`, `send-tenant-invitation/index.ts`
-- [Breaking Invite Limits with Race Condition](https://medium.com/@moatymohamed897/breaking-invite-limits-with-race-condition-196c9995f5fd) -- race condition exploitation in invitation systems
-- [Stop Duplicate Records: Fix Race Conditions Using Unique Database Indexes](https://medium.com/@itsvinayc/race-conditions-in-web-apps-and-how-a-unique-index-can-save-you-736d682dabfb) -- partial unique index pattern
-- [Exploiting a Race Condition in an Organization Invitation Feature](https://medium.com/@n0apol0giz3/outrunning-the-limits-exploiting-a-race-condition-in-an-organization-invitation-feature-cf4106263d57) -- real-world invitation race condition exploit
-- [Breaking the Invite: 3 Easy-to-Find Vulnerabilities in Invite Users Functionality](https://medium.com/@basetm307/breaking-the-invite-3-easy-to-find-vulnerabilities-in-invite-users-function-735c3b75d130) -- invitation enumeration and brute force
-- [OWASP Top 10 2025: A07 Authentication Failures](https://owasp.org/Top10/2025/A07_2025-Authentication_Failures/) -- consistent error responses, rate limiting
-- [PostgreSQL Database Migrations: Zero-Downtime Patterns](https://oneuptime.com/blog/post/2026-02-02-postgresql-database-migrations/view) -- NOT VALID + VALIDATE constraint pattern
-- [Backward Compatibility and Making Changes with Less Risk](https://hackmd.io/@pyYYTG05Sl6tmFXiz2DuWw/BymSCGgJB) -- migration backward compatibility
-- [Mastering Email Deliverability: The Ultimate 2026 Guide](https://www.mailmunch.com/blog/mastering-email-deliverability) -- SPF/DKIM/DMARC requirements
-- [How to Onboard Invited Users to Your SaaS Product](https://userpilot.com/blog/onboard-invited-users-saas/) -- invited user onboarding patterns
-- [Designing an Intuitive User Flow for Inviting Teammates](https://pageflows.com/blog/invite-teammates-user-flow/) -- invitation UX best practices
+- [Google Structured Data Policies](https://developers.google.com/search/docs/appearance/structured-data/sd-policies) -- invisible markup rules, manual action triggers (HIGH confidence)
+- [Google FAQ/HowTo Rich Results Changes (Aug 2023)](https://developers.google.com/search/blog/2023/08/howto-faq-changes) -- FAQPage restricted to government/health sites (HIGH confidence)
+- [Google Review Snippet Documentation](https://developers.google.com/search/docs/appearance/structured-data/review-snippet) -- self-serving review restrictions (HIGH confidence)
+- [Google Making Review Rich Results More Helpful (2019)](https://developers.google.com/search/blog/2019/09/making-review-rich-results-more-helpful) -- Organization/LocalBusiness rating restriction (HIGH confidence)
+- [Next.js JSON-LD Guide](https://nextjs.org/docs/app/guides/json-ld) -- official recommendation for structured data placement (HIGH confidence)
+- [Next.js generateSitemaps Documentation](https://nextjs.org/docs/app/api-reference/functions/generate-sitemaps) -- sitemap splitting for large sites (HIGH confidence)
+- [Vercel: Avoiding Duplicate Content with vercel.app URLs](https://vercel.com/kb/guide/avoiding-duplicate-content-with-vercel-app-urls) -- canonical + X-Robots-Tag guidance (HIGH confidence)
+- [Vercel: Are Preview Deployments Indexed?](https://vercel.com/kb/guide/are-vercel-preview-deployment-indexed-by-search-engines) -- X-Robots-Tag: noindex on previews (HIGH confidence)
+- [The Robots.txt Mistake That Cost Me Visitors](https://minasami.com/web-development/seo/2025/12/05/nextjs-seo-robots-txt-mistake.html) -- real-world /_next/ blocking impact (MEDIUM confidence)
+- [Google Crawl-delay Not Supported](https://www.stanventures.com/news/google-updates-robots-txt-rules-no-more-crawl-delay-confusion-1014/) -- Googlebot ignores Crawl-delay directive (HIGH confidence)
+- [Google Self-Serving Review Snippets Policy](https://www.practicalecommerce.com/google-muzzles-self-serving-review-snippets) -- entity A reviewing itself (MEDIUM confidence)
+- [Stop Using FAQ Schema: New Rules 2026](https://greenserp.com/high-impact-schema-seo-guide/) -- current state of FAQ schema effectiveness (MEDIUM confidence)
+- [Next.js SEO: _rsc Parameter Issues](https://github.com/vercel/next.js/discussions/61850) -- Google crawling _rsc parameter URLs (MEDIUM confidence)
+- [Google Keyword Stuffing Policies](https://www.stanventures.com/news/keyword-stuffing-in-2025-its-impact-and-google-recommendations-1427/) -- over-optimization penalties (MEDIUM confidence)
+
+---
+*Pitfalls research for: SEO & Google Indexing Optimization on Next.js 16 + Vercel*
+*Researched: 2026-04-08*

@@ -82,8 +82,8 @@ TenantFlow is a multi-tenant property management SaaS platform for property owne
 - [ ] **Phase 34: Per-Page Metadata** - Add generateMetadata() to all public pages with canonical URLs, OG tags, and server wrappers for client pages
 - [ ] **Phase 35: Structured Data Enrichment** - Add missing schemas and refactor existing inline JSON-LD to use shared utilities
 - [x] **Phase 36: Pricing Page Polish** - Fix pricing page technical debt (HTML entities, legacy Tailwind, mobile layout, dynamic dates) (completed 2026-04-10)
-- [ ] **Phase 37: Content SEO & Internal Linking** - Cross-link blog, comparison, and resource pages for topical authority
-- [ ] **Phase 38: Validation & Verification** - GSC verification, E2E SEO smoke tests, sitemap enhancements, full regression pass
+- [x] **Phase 37: Content SEO & Internal Linking** - Cross-link blog, comparison, and resource pages for topical authority (completed 2026-04-10)
+- [x] **Phase 38: Validation & Verification** - GSC verification, E2E SEO smoke tests, sitemap enhancements, full regression pass (completed 2026-04-10)
 
 ## Phase Details
 
@@ -171,10 +171,10 @@ Plans:
   1. Blog posts that mention a competitor by name include a link to the corresponding `/compare/[competitor]` page
   2. Comparison pages include a "Related Articles" section linking to relevant blog posts
   3. Resource pages link to related blog posts and blog posts link back to related resource pages
-**Plans:** 2 plans
+**Plans:** 2/2 plans complete
 Plans:
-- [ ] 37-01-PLAN.md -- Content-links mapping config + RelatedArticles server component with tests
-- [ ] 37-02-PLAN.md -- Wire cross-links into blog, compare, and resource pages
+- [x] 37-01-PLAN.md -- Content-links mapping config + RelatedArticles server component with tests
+- [x] 37-02-PLAN.md -- Wire cross-links into blog, compare, and resource pages
 
 ### Phase 38: Validation & Verification
 **Goal**: All SEO work is verified end-to-end and the site is ready for Google Search Console monitoring
@@ -186,6 +186,10 @@ Plans:
   3. Sitemap includes `/support`, `/security-policy`, and all blog category pages
   4. Blog post entries in the sitemap use their `published_at` timestamp for `lastModified` instead of the generation timestamp
   5. Running `pnpm typecheck && pnpm lint && pnpm test:unit` passes with zero errors
+**Plans:** 2/2 plans complete
+Plans:
+- [x] 38-01-PLAN.md -- Sitemap overhaul with missing pages, blog categories, static dates
+- [x] 38-02-PLAN.md -- E2E SEO smoke tests for all public pages + full regression pass
 
 ## Progress
 
@@ -201,5 +205,5 @@ Note: Phase 35 and Phase 36 both depend on Phase 33 and are independent of each 
 | 34. Per-Page Metadata | v1.6 | 2/2 | Complete | 2026-04-08 |
 | 35. Structured Data Enrichment | v1.6 | 3/3 | Complete | 2026-04-09 |
 | 36. Pricing Page Polish | v1.6 | 4/4 | Complete    | 2026-04-10 |
-| 37. Content SEO & Internal Linking | v1.6 | 0/2 | Not started | - |
-| 38. Validation & Verification | v1.6 | 0/0 | Not started | - |
+| 37. Content SEO & Internal Linking | v1.6 | 2/2 | Complete    | 2026-04-10 |
+| 38. Validation & Verification | v1.6 | 2/2 | Complete   | 2026-04-10 |
