@@ -195,34 +195,40 @@ export function PricingComparisonTable({
 				</p>
 			</div>
 
-			<div className="rounded-xl border border-border/50 bg-card overflow-hidden">
-				{/* Sticky header */}
-				<div className="grid grid-cols-4 items-center py-4 px-6 bg-muted/50 border-b border-border/50 sticky top-0 z-10">
-					<div className="text-sm font-medium text-muted-foreground">
-						Features
+			<div className="relative overflow-x-auto rounded-xl border border-border/50 bg-card">
+				<div
+					className="pointer-events-none absolute inset-y-0 right-0 z-20 w-8 bg-gradient-to-l from-card to-transparent md:hidden"
+					aria-hidden="true"
+				/>
+				<div className="min-w-[640px]">
+					{/* Sticky header */}
+					<div className="grid grid-cols-4 items-center py-4 px-6 bg-muted/50 border-b border-border/50 sticky top-0 z-10">
+						<div className="text-sm font-medium text-muted-foreground">
+							Features
+						</div>
+						<div className="text-center">
+							<div className="text-sm font-semibold text-foreground">Starter</div>
+							<div className="text-xs text-muted-foreground">$29/mo</div>
+						</div>
+						<div className="text-center bg-primary/5 -my-4 py-4 border-x border-primary/10">
+							<div className="text-sm font-semibold text-primary">Growth</div>
+							<div className="text-xs text-primary/70">$79/mo</div>
+						</div>
+						<div className="text-center">
+							<div className="text-sm font-semibold text-foreground">Max</div>
+							<div className="text-xs text-muted-foreground">Custom</div>
+						</div>
 					</div>
-					<div className="text-center">
-						<div className="text-sm font-semibold text-foreground">Starter</div>
-						<div className="text-xs text-muted-foreground">$29/mo</div>
-					</div>
-					<div className="text-center bg-primary/5 -my-4 py-4 border-x border-primary/10">
-						<div className="text-sm font-semibold text-primary">Growth</div>
-						<div className="text-xs text-primary/70">$79/mo</div>
-					</div>
-					<div className="text-center">
-						<div className="text-sm font-semibold text-foreground">Max</div>
-						<div className="text-xs text-muted-foreground">Custom</div>
-					</div>
-				</div>
 
-				{/* Category sections */}
-				{comparisonData.map((category, idx) => (
-					<CategorySection
-						key={category.category}
-						{...category}
-						defaultOpen={idx === 0}
-					/>
-				))}
+					{/* Category sections */}
+					{comparisonData.map((category, idx) => (
+						<CategorySection
+							key={category.category}
+							{...category}
+							defaultOpen={idx === 0}
+						/>
+					))}
+				</div>
 			</div>
 		</div>
 	)
