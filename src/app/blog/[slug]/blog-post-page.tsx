@@ -16,6 +16,8 @@ import { NewsletterSignup } from '#components/blog/newsletter-signup'
 import { BlogLoadingSkeleton } from '#components/shared/blog-loading-skeleton'
 import { SOCIAL_PROOF } from '#config/social-proof'
 import { useBlogBySlug, useBlogCategories, useRelatedPosts } from '#hooks/api/use-blogs'
+import { BLOG_TO_COMPETITOR, BLOG_TO_RESOURCE } from '#lib/content-links'
+import { COMPETITORS } from '#app/compare/[competitor]/compare-data'
 
 const MarkdownContent = dynamic(() => import('./markdown-content'), {
 	ssr: false,
@@ -143,6 +145,8 @@ export default function BlogPostPage() {
 	const markdownContent = post.content.trim()
 	const [firstHalf, secondHalf] = splitContentForCta(markdownContent)
 	const leadMagnet = LEAD_MAGNETS[slug]
+	const competitorSlug = BLOG_TO_COMPETITOR[slug]
+	const resourceSlug = BLOG_TO_RESOURCE[slug]
 
 	// Resolve category slug from database categories
 	const postCategory = post.category ?? ''
@@ -151,6 +155,34 @@ export default function BlogPostPage() {
 
 	return (
 		<PageLayout>
+			{/* JSON-LD Structured Data */}
+			<script
+				type="application/ld+json"
+				dangerouslySetInnerHTML={{
+					__html: JSON.stringify({
+						'@context': 'https://schema.org',
+						'@type': 'BlogPosting',
+						headline: post.title,
+						description: post.meta_description || post.excerpt,
+						image: post.featured_image,
+						datePublished: post.published_at,
+						dateModified: post.updated_at || post.published_at,
+						timeRequired: `PT${post.reading_time}M`,
+						articleSection: post.category,
+						author: {
+							'@type': 'Organization',
+							name: 'TenantFlow',
+							url: 'https://tenantflow.app'
+						},
+						publisher: {
+							'@type': 'Organization',
+							name: 'TenantFlow',
+							url: 'https://tenantflow.app'
+						}
+					})
+				}}
+			/>
+
 			{/* Back to Blog */}
 			<div className="container mx-auto px-6 page-content pb-8 max-w-4xl">
 				<Link
@@ -235,6 +267,36 @@ export default function BlogPostPage() {
 					))}
 					{secondHalf && <MarkdownContent content={secondHalf} />}
 				</div>
+
+				{competitorSlug && (
+					<div className="mt-8 p-6 bg-primary/5 border border-primary/20 rounded-xl text-center">
+						<p className="text-muted-foreground mb-3">
+							Compare TenantFlow vs {COMPETITORS[competitorSlug]?.name} side-by-side
+						</p>
+						<Link
+							href={`/compare/${competitorSlug}`}
+							className="inline-flex items-center text-primary font-semibold hover:text-primary/80 transition-colors"
+						>
+							See Full Comparison
+							<ArrowRight className="ml-1.5 size-4" aria-hidden="true" />
+						</Link>
+					</div>
+				)}
+
+				{resourceSlug && (
+					<div className="mt-8 p-6 bg-muted border border-border rounded-xl text-center">
+						<p className="text-muted-foreground mb-3">
+							Download our free related resource
+						</p>
+						<Link
+							href={`/resources/${resourceSlug}`}
+							className="inline-flex items-center text-primary font-semibold hover:text-primary/80 transition-colors"
+						>
+							View Resource
+							<ArrowRight className="ml-1.5 size-4" aria-hidden="true" />
+						</Link>
+					</div>
+				)}
 
 				{/* Bottom CTA Section */}
 				<div className="mt-16 p-8 bg-linear-to-br from-primary/10 via-primary/5 to-transparent border border-primary/20 rounded-2xl text-center">
