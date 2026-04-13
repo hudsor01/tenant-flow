@@ -165,7 +165,7 @@ v1.7 phases (41-44) can execute in any order -- they are independent and share n
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
-| 41. Payment Correctness & Split-Rent Tests | v1.7 | 3/3 | Complete   | 2026-04-13 |
+| 41. Payment Correctness & Split-Rent Tests | v1.7 | 3/3 | Complete    | 2026-04-13 |
 | 42. Cancellation UX End-to-End Audit + Fix | v1.7 | 0/TBD | Not started | - |
 | 43. Post-Deploy Sentry Regression Gate | v1.7 | 0/TBD | Not started | - |
 | 44. Deliverability + Funnel Analytics | v1.7 | 0/TBD | Not started | - |
