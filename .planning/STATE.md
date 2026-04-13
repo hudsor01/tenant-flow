@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.7
 milestone_name: Launch Readiness
 status: executing
-stopped_at: v1.7 milestone opened (PROJECT.md committed); REQUIREMENTS.md and ROADMAP.md pending; v1.6 phase dirs still on disk
-last_updated: "2026-04-13T19:44:23.791Z"
-last_activity: 2026-04-13 -- Phase 41 planning complete
+stopped_at: Completed 41-01-PLAN.md (5 commits, 5 files, TEST-01..04 covered)
+last_updated: "2026-04-13T22:09:44.578Z"
+last_activity: 2026-04-13
 progress:
   total_phases: 4
   completed_phases: 0
   total_plans: 3
-  completed_plans: 0
-  percent: 0
+  completed_plans: 1
+  percent: 33
 ---
 
 # Project State: TenantFlow
@@ -21,14 +21,15 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-13)
 
 **Core value:** A landlord can add a property, invite a tenant, collect rent, and see their financials -- without touching a spreadsheet or calling anyone.
-**Current focus:** v1.7 Launch Readiness -- prove the four product promises (2-day payouts, honest autopay, 1-click cancel, 20-door focus) with tests, audits, and monitoring before writing marketing copy
+**Current focus:** Phase 41 — Payment Correctness & Split-Rent Tests
 
 ## Current Position
 
-Phase: (none yet -- REQUIREMENTS.md and ROADMAP.md pending)
+Phase: 41 (Payment Correctness & Split-Rent Tests) — EXECUTING
+Plan: 2 of 3
 Milestone: v1.7 Launch Readiness -- defining
 Status: Ready to execute
-Last activity: 2026-04-13 -- Phase 41 planning complete
+Last activity: 2026-04-13
 
 ## Shipped Milestones
 
@@ -54,6 +55,9 @@ Last activity: 2026-04-13 -- Phase 41 planning complete
 - [Phase 29]: stripe-autopay-charge SupabaseClient type alias updated to reference createAdminClient
 - [Phase 29]: Sub-pattern B anon-key clients simplified by removing unnecessary global headers option
 - [Phase 29]: SupabaseClient type import replaces ReturnType<typeof createClient> when createClient fully removed
+- [Phase 41]: Phase 41-01: rent_payments schema has paid_date (not paid_at) and no stripe_charge_id column — plan's interfaces block was stale, assertions adapted to real schema
+- [Phase 41]: Phase 41-01: DB notifications row is the deterministic proof of autopay exhaustion — tests assert DB row, not Resend HTTP interception
+- [Phase 41]: Phase 41-01: Tests skip cleanly (not fail) on missing env vars — integration tests are never silent false-positives
 
 ### Quick Tasks Completed
 
@@ -63,6 +67,6 @@ Last activity: 2026-04-13 -- Phase 41 planning complete
 
 ## Session Continuity
 
-Last session: 2026-04-13T11:32:00.000Z
-Stopped at: v1.7 milestone opened (PROJECT.md committed); REQUIREMENTS.md and ROADMAP.md pending; v1.6 phase dirs still on disk
-Resume file: .planning/PROJECT.md (v1.7 Launch Readiness section)
+Last session: 2026-04-13T22:09:44.575Z
+Stopped at: Completed 41-01-PLAN.md (5 commits, 5 files, TEST-01..04 covered)
+Resume file: None

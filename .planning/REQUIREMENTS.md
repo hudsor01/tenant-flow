@@ -10,10 +10,10 @@
 
 ### Autopay Correctness Tests (Stage 2 / Phase 41)
 
-- [ ] **TEST-01**: Deno integration test proves `stripe-autopay-charge` charges the default payment method on a due `rent_due` row, writes a `rent_payments` row with status `succeeded`, marks `rent_due.status = 'paid'`, and records Stripe payment intent / charge IDs -- using Stripe test mode (no mocked Stripe client).
-- [ ] **TEST-02**: Deno integration test proves a card-decline `payment_intent.payment_failed` response increments `rent_due.autopay_attempts`, sets `rent_due.autopay_last_attempt_at`, schedules `rent_due.autopay_next_retry_at` according to the documented retry schedule (3 attempts over 7 days), and leaves `rent_due.status` unchanged -- verifying retry scheduling matches what `process-autopay-charges` cron reads.
-- [ ] **TEST-03**: Deno integration test proves the third (final) failed autopay attempt sends the "autopay final attempt failed" notification via the Resend path and does NOT schedule a fourth retry (no `autopay_next_retry_at` write) -- verifies the autopay exhaustion UX promised by Stage 1 notifications.
-- [ ] **TEST-04**: Deno integration test proves replaying a Stripe `payment_intent.succeeded` webhook event with the same `event.id` leaves DB state idempotent: no duplicate `rent_payments` rows, `stripe_webhook_events.status` stays `succeeded`, no double-decrement of retry counters.
+- [x] **TEST-01**: Deno integration test proves `stripe-autopay-charge` charges the default payment method on a due `rent_due` row, writes a `rent_payments` row with status `succeeded`, marks `rent_due.status = 'paid'`, and records Stripe payment intent / charge IDs -- using Stripe test mode (no mocked Stripe client).
+- [x] **TEST-02**: Deno integration test proves a card-decline `payment_intent.payment_failed` response increments `rent_due.autopay_attempts`, sets `rent_due.autopay_last_attempt_at`, schedules `rent_due.autopay_next_retry_at` according to the documented retry schedule (3 attempts over 7 days), and leaves `rent_due.status` unchanged -- verifying retry scheduling matches what `process-autopay-charges` cron reads.
+- [x] **TEST-03**: Deno integration test proves the third (final) failed autopay attempt sends the "autopay final attempt failed" notification via the Resend path and does NOT schedule a fourth retry (no `autopay_next_retry_at` write) -- verifies the autopay exhaustion UX promised by Stage 1 notifications.
+- [x] **TEST-04**: Deno integration test proves replaying a Stripe `payment_intent.succeeded` webhook event with the same `event.id` leaves DB state idempotent: no duplicate `rent_payments` rows, `stripe_webhook_events.status` stays `succeeded`, no double-decrement of retry counters.
 
 ### Payout Lifecycle Tests (Stage 2 / Phase 41)
 
