@@ -17,6 +17,7 @@ import { handlePaymentIntentSucceeded } from './handlers/payment-intent-succeede
 import { handlePaymentIntentFailed } from './handlers/payment-intent-failed.ts'
 import { handleCheckoutSessionCompleted } from './handlers/checkout-session-completed.ts'
 import { handleInvoicePaymentFailed } from './handlers/invoice-payment-failed.ts'
+import { handlePayoutLifecycle } from './handlers/payout-lifecycle.ts'
 
 // Initialize Sentry for error monitoring (Decision #15: Sentry is MANDATORY for metadata validation)
 const sentryDsn = Deno.env.get('SENTRY_DSN')
@@ -120,6 +121,11 @@ Deno.serve(async (req: Request) => {
         break
       case 'invoice.payment_failed':
         await handleInvoicePaymentFailed(supabase, stripe, event)
+        break
+      case 'payout.created':
+      case 'payout.paid':
+      case 'payout.failed':
+        await handlePayoutLifecycle(supabase, stripe, event)
         break
       default:
         console.warn('[WEBHOOK] Unhandled event type:', event.type)
