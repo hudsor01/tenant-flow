@@ -135,7 +135,7 @@ test.describe('SEO Smoke Tests', () => {
 		await assertPageSeo(
 			page,
 			'/resources/landlord-tax-deduction-tracker',
-			['Organization']
+			['Organization', 'BreadcrumbList']
 		)
 	})
 
@@ -143,7 +143,7 @@ test.describe('SEO Smoke Tests', () => {
 		await assertPageSeo(
 			page,
 			'/resources/security-deposit-reference-card',
-			['Organization']
+			['Organization', 'BreadcrumbList']
 		)
 	})
 
@@ -177,5 +177,26 @@ test.describe('SEO Smoke Tests', () => {
 			return
 		}
 		await assertPageSeo(page, href, ['BreadcrumbList'])
+	})
+
+	test('title tag has no double brand suffix on Phase 40 target paths', async ({ page }) => {
+		const phase40Paths = [
+			'/terms',
+			'/privacy',
+			'/security-policy',
+			'/support',
+			'/resources/seasonal-maintenance-checklist',
+			'/resources/security-deposit-reference-card',
+			'/resources/landlord-tax-deduction-tracker'
+		]
+
+		for (const path of phase40Paths) {
+			await page.goto(path, { waitUntil: 'load', timeout: 30000 })
+			const title = await page.title()
+			expect(
+				title,
+				`${path}: title should not contain double brand suffix "| TenantFlow | TenantFlow"`
+			).not.toContain('| TenantFlow | TenantFlow')
+		}
 	})
 })
