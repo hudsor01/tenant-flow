@@ -2,12 +2,14 @@ import { PageLayout } from '#components/layout/page-layout'
 import type { Metadata } from 'next'
 import { JsonLdScript } from '#components/seo/json-ld-script'
 import { createBreadcrumbJsonLd } from '#lib/seo/breadcrumbs'
+import { createPageMetadata } from '#lib/seo/page-metadata'
 
-export const metadata: Metadata = {
-	title: 'Security Policy',
+export const metadata: Metadata = createPageMetadata({
+	title: 'Security Policy & Vulnerability Disclosure',
 	description:
-		'TenantFlow security vulnerability disclosure policy. Learn how to report security issues responsibly.'
-}
+		'TenantFlow Security Policy. Report vulnerabilities, review our responsible disclosure process, and learn about the controls protecting landlord and tenant data.',
+	path: '/security-policy'
+})
 
 export default function SecurityPolicyPage() {
 	return (

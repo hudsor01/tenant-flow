@@ -2,12 +2,14 @@ import { PageLayout } from '#components/layout/page-layout'
 import type { Metadata } from 'next'
 import { JsonLdScript } from '#components/seo/json-ld-script'
 import { createBreadcrumbJsonLd } from '#lib/seo/breadcrumbs'
+import { createPageMetadata } from '#lib/seo/page-metadata'
 
-export const metadata: Metadata = {
+export const metadata: Metadata = createPageMetadata({
 	title: 'Terms of Service',
 	description:
-		'TenantFlow Terms of Service - Review the terms and conditions for using our property management platform.'
-}
+		'TenantFlow Terms of Service. Review the terms and conditions governing use of our property management platform, billing, and user obligations.',
+	path: '/terms'
+})
 
 export default function TermsPage() {
 	return (
