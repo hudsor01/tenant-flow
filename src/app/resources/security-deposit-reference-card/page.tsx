@@ -6,12 +6,16 @@ import { Button } from '#components/ui/button'
 import { PrintButton } from '#components/shared/print-button'
 import { RelatedArticles } from '#components/blog/related-articles'
 import { RESOURCE_TO_BLOGS } from '#lib/content-links'
+import { JsonLdScript } from '#components/seo/json-ld-script'
+import { createBreadcrumbJsonLd } from '#lib/seo/breadcrumbs'
+import { createPageMetadata } from '#lib/seo/page-metadata'
 
-export const metadata: Metadata = {
-	title: 'Security Deposit Laws by State - Quick Reference Card | TenantFlow',
+export const metadata: Metadata = createPageMetadata({
+	title: 'Security Deposit Laws by State - Quick Reference Card',
 	description:
 		'Free printable security deposit reference card with deposit limits, return deadlines, and required documentation for all 50 states plus DC.',
-}
+	path: '/resources/security-deposit-reference-card'
+})
 
 interface StateDeposit {
 	state: string
@@ -78,8 +82,14 @@ const stateData: StateDeposit[] = [
 ]
 
 export default function SecurityDepositReferenceCardPage() {
+	const breadcrumbSchema = createBreadcrumbJsonLd(
+		'/resources/security-deposit-reference-card',
+		{ 'security-deposit-reference-card': 'Security Deposit Laws by State' }
+	)
+
 	return (
 		<PageLayout>
+			<JsonLdScript schema={breadcrumbSchema} />
 			<style
 				dangerouslySetInnerHTML={{
 					__html: `

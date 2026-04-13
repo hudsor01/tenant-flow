@@ -8,12 +8,14 @@ import { RelatedArticles } from '#components/blog/related-articles'
 import { RESOURCE_TO_BLOGS } from '#lib/content-links'
 import { JsonLdScript } from '#components/seo/json-ld-script'
 import { createBreadcrumbJsonLd } from '#lib/seo/breadcrumbs'
+import { createPageMetadata } from '#lib/seo/page-metadata'
 
-export const metadata: Metadata = {
-	title: 'Seasonal Maintenance Checklist for Rental Properties | TenantFlow',
+export const metadata: Metadata = createPageMetadata({
+	title: 'Seasonal Maintenance Checklist for Rental Properties',
 	description:
 		'Free printable season-by-season maintenance checklist for landlords. Covers HVAC, plumbing, electrical, exterior, and safety inspections.',
-}
+	path: '/resources/seasonal-maintenance-checklist'
+})
 
 const seasons = [
 	{

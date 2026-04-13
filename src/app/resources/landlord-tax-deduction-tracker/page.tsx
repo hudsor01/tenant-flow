@@ -7,16 +7,21 @@ import { PrintButton } from '#components/shared/print-button'
 import { RelatedArticles } from '#components/blog/related-articles'
 import { RESOURCE_TO_BLOGS } from '#lib/content-links'
 import { deductionCategories } from './tax-deduction-data'
+import { JsonLdScript } from '#components/seo/json-ld-script'
+import { createBreadcrumbJsonLd } from '#lib/seo/breadcrumbs'
+import { createPageMetadata } from '#lib/seo/page-metadata'
 
-export const metadata: Metadata = {
-	title: 'Landlord Tax Deduction Tracker | TenantFlow',
+export const metadata: Metadata = createPageMetadata({
+	title: 'Landlord Tax Deduction Tracker',
 	description:
 		'Free printable tax deduction tracker for landlords. Categorized by IRS Schedule E with common deductions, examples, and space to track amounts year-round.',
-}
+	path: '/resources/landlord-tax-deduction-tracker'
+})
 
 export default function TaxDeductionTrackerPage() {
 	return (
 		<PageLayout>
+			<JsonLdScript schema={createBreadcrumbJsonLd('/resources/landlord-tax-deduction-tracker')} />
 			<style
 				dangerouslySetInnerHTML={{
 					__html: `

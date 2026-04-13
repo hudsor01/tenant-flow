@@ -85,7 +85,7 @@ TenantFlow is a multi-tenant property management SaaS platform for property owne
 - [x] **Phase 37: Content SEO & Internal Linking** - Cross-link blog, comparison, and resource pages for topical authority (completed 2026-04-10)
 - [x] **Phase 38: Validation & Verification** - GSC verification, E2E SEO smoke tests, sitemap enhancements, full regression pass (completed 2026-04-10)
 - [x] **Phase 39: Structured Data Gap Closure** - Wire orphaned SoftwareApplication factory, add HowTo + BreadcrumbList to checklist page, remove stale inline BlogPosting (completed 2026-04-13)
-- [ ] **Phase 40: Metadata & Verification Completeness** - Convert legal/support pages to createPageMetadata(), add GSC verification meta tag
+- [ ] **Phase 40: Metadata & Verification Completeness** - Migrate 7 remaining pages (legal, support, resource guides) to createPageMetadata(), close BreadcrumbList gap on 2 resource pages (VALID-01 already satisfied via DNS per Phase 38 D-01)
 
 ## Phase Details
 
@@ -209,15 +209,22 @@ Plans:
 - [x] 39-02-PLAN.md -- Remove stale inline BlogPosting from blog-post-page.tsx
 
 ### Phase 40: Metadata & Verification Completeness
-**Goal**: Every public page has canonical URLs and OG tags via createPageMetadata(), and GSC verification meta tag is in the root layout
+**Goal**: Every public page has canonical URLs, Open Graph tags, Twitter card, and BreadcrumbList JSON-LD via shared factories -- the full public SEO surface is consistent
 **Depends on**: Phase 33
-**Requirements**: META-11, VALID-01
-**Gap Closure**: Closes gaps from v1.6 milestone audit
+**Requirements**: META-11, VALID-01, SCHEMA-01
+**Gap Closure**: Closes gaps from v1.6 milestone audit (scope expanded from 4 to 7 pages per factual codebase scan)
 **Success Criteria** (what must be TRUE):
-  1. `/terms`, `/privacy`, `/security-policy`, and `/support` page.tsx files use `createPageMetadata()` with title, description, and canonical URL -- no raw `metadata` objects without `alternates.canonical`
-  2. `src/app/layout.tsx` metadata includes `verification: { google: '<token>' }` (placeholder acceptable)
-  3. Running `pnpm typecheck && pnpm lint && pnpm test:unit` passes with zero errors
-**Plans:** 0 plans
+  1. `/terms`, `/privacy`, `/security-policy`, `/support`, `/resources/seasonal-maintenance-checklist`, `/resources/security-deposit-reference-card`, and `/resources/landlord-tax-deduction-tracker` page.tsx files use `createPageMetadata()` with canonical, OG, and Twitter card -- no raw `metadata` objects without `alternates.canonical`
+  2. VALID-01 satisfied via DNS verification (Phase 38 D-01 lock) -- no `verification.google` meta tag added to `src/app/layout.tsx`
+  3. `/resources/security-deposit-reference-card` and `/resources/landlord-tax-deduction-tracker` render BreadcrumbList JSON-LD via shared factory (closes SCHEMA-01 on full public surface)
+  4. No page title contains inline `| TenantFlow` suffix -- root `title.template` handles brand (Pitfall 1 avoided)
+  5. E2E SEO smoke spec passes for all 7 Phase 40 paths (canonical, breadcrumb, double-suffix regression)
+  6. Running `pnpm typecheck && pnpm lint && pnpm test:unit` passes with zero errors
+**Plans:** 3 plans
+Plans:
+- [ ] 40-01-PLAN.md -- Strengthen E2E SEO smoke spec with breadcrumb + double-suffix assertions (Wave 0)
+- [ ] 40-02-PLAN.md -- Migrate 4 legal/support pages to createPageMetadata factory (Template A, Wave 1)
+- [ ] 40-03-PLAN.md -- Migrate 3 resource pages + close BreadcrumbList gap + update ROADMAP (Templates B/C, Wave 1)
 
 ## Progress
 
@@ -236,4 +243,4 @@ Phase 39 and 40 are independent gap closure phases that can execute in either or
 | 37. Content SEO & Internal Linking | v1.6 | 2/2 | Complete | 2026-04-10 |
 | 38. Validation & Verification | v1.6 | 2/2 | Complete | 2026-04-10 |
 | 39. Structured Data Gap Closure | v1.6 | 2/2 | Complete    | 2026-04-13 |
-| 40. Metadata & Verification Completeness | v1.6 | 0/0 | Planned | - |
+| 40. Metadata & Verification Completeness | v1.6 | 0/3 | Planned | - |
