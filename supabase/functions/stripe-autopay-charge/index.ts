@@ -10,11 +10,16 @@
 //
 // Auth: service_role key in Authorization header (sent by pg_net from process_autopay_charges).
 
+import * as Sentry from '@sentry/deno'
 import { sendEmail } from '../_shared/resend.ts'
 import { validateEnv } from '../_shared/env.ts'
 import { errorResponse } from '../_shared/errors.ts'
 import { getStripeClient } from '../_shared/stripe-client.ts'
 import { createAdminClient } from '../_shared/supabase-client.ts'
+import {
+  tenantAutopayFailureEmail,
+  ownerAutopayFailureEmail,
+} from '../_shared/autopay-email-template.ts'
 
 interface AutopayRequest {
   tenant_id: string
@@ -318,11 +323,24 @@ Deno.serve(async (req: Request) => {
     // -------------------------------------------------------------------------
 
     if (isStripeCardError && rent_due_id && tenant_id) {
+      // Log the decline to Sentry so ops sees it alongside other exceptions.
+      Sentry.captureException(err, {
+        tags: { category: 'autopay_failure' },
+        extra: {
+          rent_due_id,
+          tenant_id,
+          lease_id,
+          owner_user_id,
+          amount: computedTenantAmount,
+        },
+      })
+
       await handleAutopayFailure(
         supabase,
         rent_due_id,
         tenant_id,
         lease_id ?? '',
+        owner_user_id ?? '',
         computedTenantAmount,
         frontendUrl,
         (err as Error).message
@@ -356,15 +374,18 @@ Deno.serve(async (req: Request) => {
 // PAY-13: Autopay failure handler — retry tracking + email notifications
 // =============================================================================
 // Retry schedule: day 1 (initial), day 3 (retry 1), day 7 (retry 2)
-// Tenant emailed on every attempt. Owner emailed only on final (3rd) failure.
+// Tenant emailed on every attempt. Owner emailed + notifications row on final (3rd).
 
 type SupabaseClient = ReturnType<typeof createAdminClient>
+
+const MAX_AUTOPAY_ATTEMPTS = 3
 
 async function handleAutopayFailure(
   supabase: SupabaseClient,
   rentDueId: string,
   tenantId: string,
   leaseId: string,
+  ownerUserId: string,
   failedAmount: number,
   frontendUrl: string,
   errorMessage: string
@@ -382,7 +403,7 @@ async function handleAutopayFailure(
   // Compute next retry date based on attempt number
   // Retry schedule: day 1 (initial), day 3 (retry 1), day 7 (retry 2)
   let nextRetryAt: string | null = null
-  if (attemptNumber < 3) {
+  if (attemptNumber < MAX_AUTOPAY_ATTEMPTS) {
     const retryDaysFromNow = attemptNumber === 1 ? 2 : 4 // +2 days for day 3, +4 days for day 7
     const retryDate = new Date()
     retryDate.setDate(retryDate.getDate() + retryDaysFromNow)
@@ -427,26 +448,49 @@ async function handleAutopayFailure(
   const formattedAmount = `$${failedAmount.toFixed(2)}`
   const payNowUrl = `${frontendUrl}/tenant/payments?rent_due_id=${rentDueId}`
 
-  // Email tenant on EVERY failed attempt
+  // Insert in-app notification for the OWNER on every failed attempt so the
+  // NotificationBell badge shows counts. notification_type 'payment' is a valid
+  // CHECK constraint value (see 20251231081143_migrate_enums_to_text_constraints.sql).
+  if (ownerUserId) {
+    const title = attemptNumber >= MAX_AUTOPAY_ATTEMPTS
+      ? `Autopay exhausted for ${tenantFirstName}`
+      : `Autopay failed for ${tenantFirstName} (attempt ${attemptNumber} of ${MAX_AUTOPAY_ATTEMPTS})`
+
+    const { error: notifError } = await supabase.from('notifications').insert({
+      user_id: ownerUserId,
+      notification_type: 'payment',
+      entity_type: 'rent_due',
+      entity_id: rentDueId,
+      title,
+      message: `${formattedAmount} - ${errorMessage}`,
+    })
+
+    if (notifError) {
+      console.error(`[AUTOPAY] Failed to insert owner notification for rent_due ${rentDueId}:`, notifError.message)
+      Sentry.captureException(notifError, {
+        tags: { category: 'autopay_notification_insert' },
+        extra: { rent_due_id: rentDueId, owner_user_id: ownerUserId },
+      })
+    }
+  }
+
+  // Email tenant on EVERY failed attempt, using branded template
   if (tenantEmail) {
-    const nextRetryMessage = attemptNumber < 3 && nextRetryAt
-      ? `<p>We'll retry automatically on <strong>${new Date(nextRetryAt).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}</strong>.</p>`
-      : '<p>This was the final attempt. No more automatic retries will be made.</p>'
+    const { subject, html } = tenantAutopayFailureEmail({
+      tenantFirstName,
+      amount: formattedAmount,
+      attemptNumber,
+      maxAttempts: MAX_AUTOPAY_ATTEMPTS,
+      failureReason: errorMessage,
+      nextRetryAt,
+      payNowUrl,
+      appUrl: frontendUrl,
+    })
 
     const tenantEmailResult = await sendEmail({
       to: [tenantEmail],
-      subject: `Autopay Failed - Attempt ${attemptNumber} of 3`,
-      html: `
-        <h2>Autopay Payment Failed</h2>
-        <p>Hi ${tenantFirstName},</p>
-        <p>Your automatic rent payment of <strong>${formattedAmount}</strong> failed (Attempt ${attemptNumber} of 3).</p>
-        <p><strong>Reason:</strong> ${errorMessage}</p>
-        ${nextRetryMessage}
-        <p>You can make a manual payment at any time:</p>
-        <p><a href="${payNowUrl}" style="display:inline-block;padding:12px 24px;background:#2563eb;color:#fff;text-decoration:none;border-radius:6px;">Pay Now</a></p>
-        <p>If you need to update your payment method, please visit your payment settings in the tenant portal.</p>
-        <p>Thank you,<br>TenantFlow</p>
-      `,
+      subject,
+      html,
       tags: [
         { name: 'category', value: 'autopay_failure' },
         { name: 'attempt', value: String(attemptNumber) },
@@ -459,7 +503,7 @@ async function handleAutopayFailure(
   }
 
   // Email owner ONLY on final failure (attempt 3)
-  if (attemptNumber >= 3 && leaseId) {
+  if (attemptNumber >= MAX_AUTOPAY_ATTEMPTS && leaseId) {
     const { data: lease } = await supabase
       .from('leases')
       .select('owner_user_id, unit_id')
@@ -499,19 +543,21 @@ async function handleAutopayFailure(
       }
 
       if (ownerEmail) {
+        const { subject, html } = ownerAutopayFailureEmail({
+          ownerFirstName,
+          tenantFirstName,
+          propertyInfo,
+          amount: formattedAmount,
+          maxAttempts: MAX_AUTOPAY_ATTEMPTS,
+          failureReason: errorMessage,
+          dashboardUrl: `${frontendUrl}/rent-collection`,
+          appUrl: frontendUrl,
+        })
+
         const ownerEmailResult = await sendEmail({
           to: [ownerEmail],
-          subject: `Autopay Failed for ${tenantFirstName} - Manual Follow-up Required`,
-          html: `
-            <h2>Autopay Final Failure Notice</h2>
-            <p>Hi ${ownerFirstName},</p>
-            <p>Automatic rent payment for tenant <strong>${tenantFirstName}</strong> has failed after all 3 attempts.</p>
-            ${propertyInfo ? `<p><strong>Property:</strong> ${propertyInfo}</p>` : ''}
-            <p><strong>Amount:</strong> ${formattedAmount}</p>
-            <p><strong>Reason:</strong> ${errorMessage}</p>
-            <p>All 3 autopay attempts have been exhausted. The tenant has been notified and given a link to pay manually. You may want to follow up with them directly.</p>
-            <p>Thank you,<br>TenantFlow</p>
-          `,
+          subject,
+          html,
           tags: [
             { name: 'category', value: 'autopay_final_failure' },
           ],
@@ -524,5 +570,5 @@ async function handleAutopayFailure(
     }
   }
 
-  console.log(`[AUTOPAY] Failure handled for rent_due ${rentDueId} tenant ${tenantId}: attempt ${attemptNumber}/3, next_retry=${nextRetryAt ?? 'none'}`)
+  console.log(`[AUTOPAY] Failure handled for rent_due ${rentDueId} tenant ${tenantId}: attempt ${attemptNumber}/${MAX_AUTOPAY_ATTEMPTS}, next_retry=${nextRetryAt ?? 'none'}`)
 }
