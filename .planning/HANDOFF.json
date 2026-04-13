@@ -1,0 +1,51 @@
+{
+  "version": "1.0",
+  "timestamp": "2026-04-13T18:59:06.713Z",
+  "phase": null,
+  "phase_name": null,
+  "phase_dir": null,
+  "plan": null,
+  "task": null,
+  "total_tasks": null,
+  "status": "paused",
+  "context": "milestone_definition",
+  "milestone": "v1.7",
+  "milestone_name": "Launch Readiness",
+  "milestone_status": "defining",
+  "branch": "feat/v1.7-launch-readiness-planning",
+  "based_on": "feat/launch-readiness-instrumentation (PR 589 still open)",
+  "completed_tasks": [
+    {"id": 1, "name": "Create v1.7 planning branch off current", "status": "done"},
+    {"id": 2, "name": "Edit PROJECT.md: swap v1.6 for v1.7 milestone block, move v1.6/v1.5/Stage1 into Validated", "status": "done", "commit": "dbb02e2ef"},
+    {"id": 3, "name": "Commit PROJECT.md edit", "status": "done", "commit": "dbb02e2ef"},
+    {"id": 4, "name": "Update STATE.md to milestone v1.7 / status defining / progress 0/0; add v1.6 to Shipped Milestones", "status": "done", "commit": "52751993e"},
+    {"id": 5, "name": "Clear 9 v1.6 phase directories from .planning/phases/", "status": "done", "commit": "52751993e"},
+    {"id": 6, "name": "Draft REQUIREMENTS.md for v1.7 (19 reqs across TEST/CANCEL/DEPLOY/ANALYTICS)", "status": "done", "commit": "52751993e"},
+    {"id": 7, "name": "Generate ROADMAP.md via gsd-roadmapper (phases 41-44, v1.6 collapsed into details block)", "status": "done", "commit": "52751993e"},
+    {"id": 8, "name": "Archive v1.6 REQUIREMENTS.md and ROADMAP.md to .planning/milestones/", "status": "done", "commit": "52751993e"},
+    {"id": 9, "name": "Commit v1.7 planning artifacts (single commit covering STATE+REQUIREMENTS+ROADMAP+archives+phase deletes)", "status": "done", "commit": "52751993e"}
+  ],
+  "remaining_tasks": [
+    {"id": 10, "name": "Push branch and open PR for v1.7 milestone planning (after PR 589 merges, OR open separate planning PR now)", "status": "not_started"},
+    {"id": 11, "name": "/gsd:plan-phase 41 (Payment Correctness & Split-Rent Tests)", "status": "not_started"},
+    {"id": 12, "name": "/gsd:plan-phase 42 (Cancellation UX End-to-End Audit + Fix)", "status": "not_started"},
+    {"id": 13, "name": "/gsd:plan-phase 43 (Post-Deploy Sentry Regression Gate)", "status": "not_started"},
+    {"id": 14, "name": "/gsd:plan-phase 44 (Deliverability + Funnel Analytics)", "status": "not_started"}
+  ],
+  "blockers": [
+    {"description": "PR 589 (feat/launch-readiness-instrumentation) still open. v1.7 planning branch is based on it. Cannot rebase milestone planning onto main until PR 589 merges.", "type": "external", "workaround": "Open a separate PR for v1.7 milestone planning now; OR wait for PR 589 to merge then rebase planning branch."}
+  ],
+  "human_actions_pending": [
+    {"action": "Decide whether to push feat/v1.7-launch-readiness-planning and open a planning PR now, or wait for PR 589 to merge first", "context": "Branch is local-only with two milestone planning commits. Resume memory documents both options.", "blocking": false}
+  ],
+  "decisions": [
+    {"decision": "Branch feat/v1.7-launch-readiness-planning was created off feat/launch-readiness-instrumentation, not off main", "rationale": "Resume memory explicitly offered 'off current' as an option; main does not yet have Stage 1 instrumentation that v1.7 phases reference", "phase": null},
+    {"decision": "All four v1.7 phases (41-44) were defined as independent and parallelizable", "rationale": "Phase 41 builds on Stage 1 code (already shipped), Phase 42 touches frontend + subscription read path, Phase 43 is CI-only, Phase 44 adds new tables/Edge Function/admin view -- no shared code paths", "phase": null},
+    {"decision": "Marketing copy and launch announcement explicitly placed Out of Scope of v1.7", "rationale": "Founder-validated approach: prove the four product promises (2-day payouts, honest autopay, 1-click cancel, 20-door focus) BEFORE writing copy that claims them", "phase": null},
+    {"decision": "v1.6 phase directories deleted (not archived to phases/_archive)", "rationale": "Used gsd-tools.cjs phases clear --confirm; the v1.6-ROADMAP.md and v1.6-REQUIREMENTS.md archives in .planning/milestones/ retain the audit trail", "phase": null},
+    {"decision": "Skipped research step in milestone definition workflow", "rationale": "Stages 2-5 are testing/audit/CI/analytics on EXISTING code paths -- no new domain research needed", "phase": null}
+  ],
+  "uncommitted_files": [],
+  "next_action": "Choose either /gsd:plan-phase 41 to plan the first v1.7 phase (Payment Correctness tests) -- or push feat/v1.7-launch-readiness-planning and open a PR if you want milestone planning reviewed independently of PR 589.",
+  "context_notes": "Resumed from launch-readiness-v1-7-resume.md memory after a prior session paused at 78% context with only an unsaved PROJECT.md edit. This session redid the PROJECT.md edit cleanly, then completed all remaining steps of the new-milestone workflow: STATE reset, phase clear, REQUIREMENTS rewrite, ROADMAP rewrite (via gsd-roadmapper agent), v1.6 archive. Two commits landed on feat/v1.7-launch-readiness-planning. Memory updated to reflect completion. Ready for /gsd:plan-phase on any of phases 41-44."
+}
