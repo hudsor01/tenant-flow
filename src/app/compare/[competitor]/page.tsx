@@ -12,6 +12,10 @@ import { PageLayout } from '#components/layout/page-layout'
 import { Button } from '#components/ui/button'
 import { SOCIAL_PROOF } from '#config/social-proof'
 import { RelatedArticles } from '#components/blog/related-articles'
+import { JsonLdScript } from '#components/seo/json-ld-script'
+import { createBreadcrumbJsonLd } from '#lib/seo/breadcrumbs'
+import { createSoftwareApplicationJsonLd } from '#lib/seo/software-application-schema'
+import { getSiteUrl } from '#lib/generate-metadata'
 import { COMPETITORS, VALID_COMPETITORS } from './compare-data'
 import {
 	PricingComparison,
@@ -35,9 +39,7 @@ export async function generateMetadata({
 	const data = COMPETITORS[slug]
 	if (!data) return {}
 
-	const baseUrl =
-		process.env.NEXT_PUBLIC_APP_URL ||
-		(process.env.NODE_ENV === 'production' ? '' : 'http://localhost:3050')
+	const baseUrl = getSiteUrl()
 
 	return {
 		title: `TenantFlow vs ${data.name}: Feature & Pricing Comparison | TenantFlow`,
@@ -63,46 +65,39 @@ export default async function ComparePage({ params }: PageProps) {
 
 	if (!data) notFound()
 
-	const baseUrl =
-		process.env.NEXT_PUBLIC_APP_URL ||
-		(process.env.NODE_ENV === 'production' ? '' : 'http://localhost:3050')
+	const siteUrl = getSiteUrl()
 
-	const comparisonSchema = {
-		'@context': 'https://schema.org',
-		'@type': 'WebPage',
-		name: `TenantFlow vs ${data.name} Comparison`,
-		description: data.metaDescription,
-		url: `${baseUrl}/compare/${slug}`,
-		breadcrumb: {
-			'@type': 'BreadcrumbList',
-			itemListElement: [
-				{
-					'@type': 'ListItem',
-					position: 1,
-					name: 'Home',
-					item: baseUrl,
-				},
-				{
-					'@type': 'ListItem',
-					position: 2,
-					name: `TenantFlow vs ${data.name}`,
-					item: `${baseUrl}/compare/${slug}`,
-				},
-			],
-		},
-	}
+	const tenantflowSchema = createSoftwareApplicationJsonLd({
+		name: 'TenantFlow',
+		description:
+			'Modern property management software for landlords. Online rent collection, maintenance tracking, lease management, and tenant portal.',
+		url: siteUrl,
+		applicationCategory: 'BusinessApplication',
+		operatingSystem: 'Web Browser',
+		offers: [
+			{ price: '29', priceCurrency: 'USD' },
+			{ price: '79', priceCurrency: 'USD' },
+			{ price: '199', priceCurrency: 'USD' },
+		],
+	})
+
+	const competitorSchema = createSoftwareApplicationJsonLd({
+		name: data.name,
+		description: data.description,
+		applicationCategory: 'BusinessApplication',
+		operatingSystem: 'Web Browser',
+	})
+
+	const breadcrumbSchema = createBreadcrumbJsonLd(
+		`/compare/${slug}`,
+		{ [slug]: `TenantFlow vs ${data.name}` }
+	)
 
 	return (
 		<PageLayout>
-			<script
-				type="application/ld+json"
-				dangerouslySetInnerHTML={{
-					__html: JSON.stringify(comparisonSchema).replace(
-						/</g,
-						'\\u003c'
-					),
-				}}
-			/>
+			<JsonLdScript schema={tenantflowSchema} />
+			<JsonLdScript schema={competitorSchema} />
+			<JsonLdScript schema={breadcrumbSchema} />
 
 			{/* Hero */}
 			<section className="section-spacing">

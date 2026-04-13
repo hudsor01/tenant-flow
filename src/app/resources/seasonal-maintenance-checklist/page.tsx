@@ -6,6 +6,8 @@ import { Button } from '#components/ui/button'
 import { PrintButton } from '#components/shared/print-button'
 import { RelatedArticles } from '#components/blog/related-articles'
 import { RESOURCE_TO_BLOGS } from '#lib/content-links'
+import { JsonLdScript } from '#components/seo/json-ld-script'
+import { createBreadcrumbJsonLd } from '#lib/seo/breadcrumbs'
 
 export const metadata: Metadata = {
 	title: 'Seasonal Maintenance Checklist for Rental Properties | TenantFlow',
@@ -104,8 +106,31 @@ const seasons = [
 ]
 
 export default function SeasonalMaintenanceChecklistPage() {
+	const howToSchema = {
+		'@type': 'HowTo' as const,
+		name: 'Seasonal Maintenance Checklist for Rental Properties',
+		description:
+			'A comprehensive season-by-season maintenance checklist covering HVAC, plumbing, electrical, exterior, safety, and landscaping inspections.',
+		step: seasons.map(season => ({
+			'@type': 'HowToSection' as const,
+			name: season.name,
+			itemListElement: season.tasks.map(task => ({
+				'@type': 'HowToStep' as const,
+				name: task.task,
+				text: `[${task.area}] ${task.task}`,
+			})),
+		})),
+	}
+
+	const breadcrumbSchema = createBreadcrumbJsonLd(
+		'/resources/seasonal-maintenance-checklist',
+		{ 'seasonal-maintenance-checklist': 'Seasonal Maintenance Checklist' }
+	)
+
 	return (
 		<PageLayout>
+			<JsonLdScript schema={howToSchema} />
+			<JsonLdScript schema={breadcrumbSchema} />
 			{/* Print styles */}
 			<style
 				dangerouslySetInnerHTML={{
