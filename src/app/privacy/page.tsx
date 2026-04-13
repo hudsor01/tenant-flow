@@ -2,12 +2,14 @@ import { PageLayout } from '#components/layout/page-layout'
 import type { Metadata } from 'next'
 import { JsonLdScript } from '#components/seo/json-ld-script'
 import { createBreadcrumbJsonLd } from '#lib/seo/breadcrumbs'
+import { createPageMetadata } from '#lib/seo/page-metadata'
 
-export const metadata: Metadata = {
-	title: 'Privacy Policy',
+export const metadata: Metadata = createPageMetadata({
+	title: 'Privacy Policy - Data Protection & User Rights',
 	description:
-		'TenantFlow Privacy Policy - Learn how we collect, use, and protect your data.'
-}
+		'TenantFlow Privacy Policy. Learn how we collect, use, and safeguard your data, including tenant records, payment information, and account activity.',
+	path: '/privacy'
+})
 
 export default function PrivacyPage() {
 	return (

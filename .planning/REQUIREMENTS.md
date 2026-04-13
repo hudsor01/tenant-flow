@@ -124,22 +124,22 @@
 | META-08 | Phase 34 | Pending |
 | META-09 | Phase 34 | Pending |
 | META-10 | Phase 34 | Pending |
-| META-11 | Phase 34 | Pending |
+| META-11 | Phase 34, Phase 40 | Pending |
 | META-12 | Phase 34 | Pending |
-| SCHEMA-01 | Phase 35 | Pending |
-| SCHEMA-02 | Phase 35 | Pending |
+| SCHEMA-01 | Phase 35, Phase 39 | Pending |
+| SCHEMA-02 | Phase 35, Phase 39 | Pending |
 | SCHEMA-03 | Phase 35 | Pending |
 | SCHEMA-04 | Phase 36 | Pending |
-| SCHEMA-05 | Phase 35 | Pending |
-| SCHEMA-06 | Phase 35 | Pending |
-| SCHEMA-07 | Phase 35 | Pending |
+| SCHEMA-05 | Phase 35, Phase 39 | Pending |
+| SCHEMA-06 | Phase 39 | Pending |
+| SCHEMA-07 | Phase 39 | Pending |
 | SCHEMA-08 | Phase 35 | Pending |
 | PRICE-01 | Phase 36 | Pending |
 | PRICE-02 | Phase 36 | Pending |
 | PRICE-03 | Phase 36 | Pending |
 | PRICE-04 | Phase 36 | Pending |
 | PRICE-05 | Phase 36 | Pending |
-| VALID-01 | Phase 38 | Pending |
+| VALID-01 | Phase 38, Phase 40 | Pending |
 | VALID-02 | Phase 38 | Pending |
 | VALID-03 | Phase 38 | Pending |
 | CONTENT-01 | Phase 37 | Pending |
@@ -153,4 +153,4 @@
 
 ---
 *Requirements defined: 2026-04-08*
-*Last updated: 2026-04-08 after roadmap creation (all requirements mapped to phases)*
+*Last updated: 2026-04-10 — gap closure phases 39-40 added after milestone audit*

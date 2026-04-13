@@ -3,6 +3,7 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { JsonLdScript } from '#components/seo/json-ld-script'
 import { createBreadcrumbJsonLd } from '#lib/seo/breadcrumbs'
+import { createPageMetadata } from '#lib/seo/page-metadata'
 import {
 	Building,
 	CreditCard,
@@ -14,11 +15,12 @@ import {
 	Wrench
 } from 'lucide-react'
 
-export const metadata: Metadata = {
-	title: 'Support Center',
+export const metadata: Metadata = createPageMetadata({
+	title: 'Support Center - Property Management Help',
 	description:
-		'Get help with TenantFlow property management. Find answers to common questions about payments, leases, maintenance, and account management.'
-}
+		'Get help with TenantFlow. Contact support, browse FAQs, troubleshoot common issues, and find guides for landlords managing properties, leases, and tenants.',
+	path: '/support'
+})
 
 const supportCategories = [
 	{
