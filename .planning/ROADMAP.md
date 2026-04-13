@@ -73,174 +73,95 @@ TenantFlow is a multi-tenant property management SaaS platform for property owne
 
 </details>
 
+<details>
+<summary>v1.6 SEO & Google Indexing Optimization -- Phases 32-40 (shipped 2026-04-13)</summary>
+
+- [x] Phase 32: Crawlability & Critical Fixes (1/1 plans) -- completed 2026-04-08
+- [x] Phase 33: SEO Utilities Foundation (2/2 plans) -- completed 2026-04-08
+- [x] Phase 34: Per-Page Metadata (2/2 plans) -- completed 2026-04-08
+- [x] Phase 35: Structured Data Enrichment (3/3 plans) -- completed 2026-04-09
+- [x] Phase 36: Pricing Page Polish (4/4 plans) -- completed 2026-04-10
+- [x] Phase 37: Content SEO & Internal Linking (2/2 plans) -- completed 2026-04-10
+- [x] Phase 38: Validation & Verification (2/2 plans) -- completed 2026-04-10
+- [x] Phase 39: Structured Data Gap Closure (2/2 plans) -- completed 2026-04-13
+- [x] Phase 40: Metadata & Verification Completeness (3/3 plans) -- completed 2026-04-13
+
+[archive](milestones/v1.6-ROADMAP.md)
+
+</details>
+
 ## Phases
 
-### v1.6 SEO & Google Indexing Optimization (Phases 32-40)
+### v1.7 Launch Readiness (Phases 41-44)
 
-- [x] **Phase 32: Crawlability & Critical Fixes** - Fix robots.txt blocking Googlebot rendering, delete stale static files, remove spam-risk AggregateRating
-- [x] **Phase 33: SEO Utilities Foundation** - Build shared JSON-LD components and metadata factories that all subsequent phases consume (completed 2026-04-08)
-- [x] **Phase 34: Per-Page Metadata** - Add generateMetadata() to all public pages with canonical URLs, OG tags, and server wrappers for client pages (completed 2026-04-08)
-- [x] **Phase 35: Structured Data Enrichment** - Add missing schemas and refactor existing inline JSON-LD to use shared utilities (completed 2026-04-09)
-- [x] **Phase 36: Pricing Page Polish** - Fix pricing page technical debt (HTML entities, legacy Tailwind, mobile layout, dynamic dates) (completed 2026-04-10)
-- [x] **Phase 37: Content SEO & Internal Linking** - Cross-link blog, comparison, and resource pages for topical authority (completed 2026-04-10)
-- [x] **Phase 38: Validation & Verification** - GSC verification, E2E SEO smoke tests, sitemap enhancements, full regression pass (completed 2026-04-10)
-- [x] **Phase 39: Structured Data Gap Closure** - Wire orphaned SoftwareApplication factory, add HowTo + BreadcrumbList to checklist page, remove stale inline BlogPosting (completed 2026-04-13)
-- [x] **Phase 40: Metadata & Verification Completeness** - Migrate 7 remaining pages (legal, support, resource guides) to createPageMetadata(), close BreadcrumbList gap on 2 resource pages (VALID-01 already satisfied via DNS per Phase 38 D-01)
+- [ ] **Phase 41: Payment Correctness & Split-Rent Tests** - Deno integration tests for autopay charge path and payout lifecycle, plus Vitest RLS tests for split-rent allocation
+- [ ] **Phase 42: Cancellation UX End-to-End Audit + Fix** - One-click cancel from settings, real subscription state from `stripe.subscriptions`, inline GDPR export/delete actions
+- [ ] **Phase 43: Post-Deploy Sentry Regression Gate** - GitHub Actions workflow that queries Sentry against the deployed release and fails the deploy on regressions above threshold
+- [ ] **Phase 44: Deliverability + Funnel Analytics** - Resend webhook ingestion into `email_deliverability`, onboarding funnel event tracking, admin analytics view
 
 ## Phase Details
 
-### Phase 32: Crawlability & Critical Fixes
-**Goal**: Googlebot can render every public page and no structured data risks a manual action
-**Depends on**: Nothing (first phase -- highest priority)
-**Requirements**: CRAWL-01, CRAWL-02, CRAWL-03, CRAWL-04
+### Phase 41: Payment Correctness & Split-Rent Tests
+**Goal**: Autopay charge path, payout lifecycle webhook, and split-rent RLS all have proof-by-test that they do what Stage 1 instrumented and what the marketing promises will claim
+**Depends on**: Nothing (first phase of v1.7; builds on Stage 1 code shipped in PR 589, but planning is independent)
+**Requirements**: TEST-01, TEST-02, TEST-03, TEST-04, TEST-05, TEST-06, TEST-07, TEST-08, TEST-09
 **Success Criteria** (what must be TRUE):
-  1. No file in `public/` named `robots.txt`, `sitemap.xml`, or `sitemap-index.xml`
-  2. `src/app/robots.ts` exists and exports a `MetadataRoute.Robots` with `/_next/static/` and `/_next/image/` allowed, `/_next/data/` and `/dashboard/` disallowed, and no invalid patterns like `*.json$` or non-standard directives like `Request-rate`/`Crawl-delay`
-  3. No `aggregateRating` property exists anywhere in `generate-metadata.ts` Organization schema
-  4. Running `pnpm typecheck && pnpm lint && pnpm test:unit` passes with zero errors
-**Plans:** 1 plan
-Plans:
-- [x] 32-01-PLAN.md -- Dynamic robots.ts, delete stale static files, remove fabricated aggregateRating -- completed 2026-04-08
+  1. `supabase/functions/tests/` contains a Deno integration test that charges a due `rent_due` row via `stripe-autopay-charge`, writes a `rent_payments` row with `status = 'succeeded'`, marks `rent_due.status = 'paid'`, and records Stripe payment intent / charge IDs using Stripe test mode (no mocked Stripe client)
+  2. A Deno integration test proves a card-decline `payment_intent.payment_failed` response increments `rent_due.autopay_attempts`, sets `rent_due.autopay_last_attempt_at`, schedules `rent_due.autopay_next_retry_at` per the documented 3-attempts-over-7-days schedule, and leaves `rent_due.status` unchanged
+  3. A Deno integration test proves the third (final) failed autopay attempt sends the "autopay final attempt failed" notification via the Resend path and does NOT schedule a fourth retry
+  4. A Deno integration test proves replaying a Stripe `payment_intent.succeeded` webhook event with the same `event.id` leaves DB state idempotent: no duplicate `rent_payments` rows, `stripe_webhook_events.status` stays `succeeded`, no double-decrement of retry counters
+  5. A Deno integration test proves `handlePayoutLifecycle` writes a `payouts` row with correct state on `payout.paid` events (connected account id, amount, arrival date, status `paid`) and that duplicate delivery is idempotent via `stripe_webhook_events`; `duration_hours` is computed from arrival_date - created_at and surfaced to the owner dashboard health RPC
+  6. `tests/integration/rls/` contains Vitest RLS tests proving: each tenant on a shared lease sees only their own portion of `rent_due` computed from `lease_tenants.responsibility_percentage`; tenant A cannot read tenant B's `rent_due` / `rent_payments` rows (returns zero rows, not an error); the owner sees the full aggregated view across all tenants on the shared lease
+  7. `pnpm typecheck && pnpm lint && pnpm test:unit` passes with zero errors, and all new Deno and Vitest tests are runnable locally and green
+**Plans:** TBD (likely 3 plans: autopay tests, payout lifecycle tests, split-rent RLS tests)
 
-### Phase 33: SEO Utilities Foundation
-**Goal**: All JSON-LD and metadata generation uses tested, type-safe shared utilities instead of per-page inline boilerplate
-**Depends on**: Phase 32
-**Requirements**: UTIL-01, UTIL-02, UTIL-03, UTIL-04, UTIL-05, UTIL-06, UTIL-07, UTIL-08
+### Phase 42: Cancellation UX End-to-End Audit + Fix
+**Goal**: The "1-click cancel" promise is real -- owners can cancel from settings in one click, the UI reflects real subscription state from `stripe.subscriptions`, and the canceled-state UI exposes GDPR export + delete actions inline
+**Depends on**: Nothing in this milestone (can execute in parallel with Phase 41)
+**Requirements**: CANCEL-01, CANCEL-02, CANCEL-03
 **Success Criteria** (what must be TRUE):
-  1. `src/components/seo/json-ld-script.tsx` renders a `<script type="application/ld+json">` tag with XSS-escaped content and accepts any `schema-dts` type
-  2. `src/lib/seo/` contains `breadcrumbs.ts`, `article-schema.ts`, `faq-schema.ts`, `product-schema.ts`, and `page-metadata.ts` exporting their respective factory functions
-  3. `getSiteUrl()` is exported from `src/lib/seo/` (or `generate-metadata.ts`) and is the single source of truth for base URL -- no other file constructs the site URL from `process.env` directly
-  4. `schema-dts` is listed in `devDependencies` in `package.json`
-  5. Unit tests exist for every utility function in `src/lib/seo/` and the `JsonLdScript` component, all passing
-**Plans:** 2/2 plans complete
-Plans:
-- [x] 33-01-PLAN.md -- JsonLdScript component, breadcrumb factory, page-metadata factory, schema-dts install
-- [x] 33-02-PLAN.md -- Article, FAQ, and product JSON-LD schema factories
+  1. An owner on an active paid subscription can cancel from the settings page end-to-end in one click (one confirmation dialog, one mutation) without visiting Stripe customer portal or a separate cancellation page, and the UI reflects the new state after the mutation resolves
+  2. Subscription status shown in the UI is computed from `stripe.subscriptions.status` with all documented states (`active`, `past_due`, `canceled`, `unpaid`, `paused`, `trialing`) correctly labelled; dashboard gating and cancel-at-period-end / immediate-cancel / paused states all derive from this source -- no code path checks `users.stripe_customer_id` existence for status
+  3. Canceled-state UI exposes "export my data" and "request account deletion" actions inline without additional navigation, and the owner sees the end date + 30-day GDPR deletion grace period messaging
+  4. Playwright E2E test covers the happy-path cancel flow from settings click through Stripe `cancel_at_period_end` mutation to UI state change
+  5. `pnpm typecheck && pnpm lint && pnpm test:unit` passes with zero errors
+**Plans:** TBD (likely 2 plans: subscription status wiring + cancel mutation; canceled-state UI + E2E coverage)
+**UI hint**: yes
 
-### Phase 34: Per-Page Metadata
-**Goal**: Every public page has unique, crawlable metadata with correct canonical URLs and OG tags
-**Depends on**: Phase 33
-**Requirements**: META-01, META-02, META-03, META-04, META-05, META-06, META-07, META-08, META-09, META-10, META-11, META-12
+### Phase 43: Post-Deploy Sentry Regression Gate
+**Goal**: Production deploys are automatically checked for regressions against a Sentry baseline, and the gate fails the deploy on regressions above configurable thresholds
+**Depends on**: Nothing in this milestone (can execute in parallel with Phases 41, 42)
+**Requirements**: DEPLOY-01, DEPLOY-02
 **Success Criteria** (what must be TRUE):
-  1. Every `page.tsx` under `src/app/(public)/` (or equivalent public route group) exports `metadata` or `generateMetadata()` with a unique title and description
-  2. `/features`, `/blog`, and `/blog/category/[category]` each have a server-component `page.tsx` that exports metadata and renders a separate `*-client.tsx` client component
-  3. All public pages include `alternates.canonical` pointing to their own canonical URL (not inheriting the homepage canonical)
-  4. Paginated blog listing pages beyond page 1 include `robots: { index: false, follow: true }` in their metadata
-  5. Running `pnpm typecheck && pnpm lint && pnpm test:unit` passes with zero errors
-**Plans:** 2 plans
-Plans:
-- [x] 34-01-PLAN.md -- Static metadata + inline JSON-LD migration for 7 server-component pages -- completed 2026-04-08
-- [x] 34-02-PLAN.md -- Server/client splits for features, blog, blog/category with generateMetadata and pagination noindex -- completed 2026-04-08
+  1. A GitHub Actions workflow runs after each production deploy (triggered by `deployment_status` event or scheduled post-deploy), queries the Sentry API for the newly-deployed release tag, and captures a baseline snapshot (error count, p95 transactions, new unresolved issue count) persisted to a known artifact location
+  2. The workflow fails (and optionally triggers a Vercel rollback or alert) when the release introduces a regression above configured thresholds -- new unresolved issue with > N events, or error rate increase > X% -- within the post-deploy observation window
+  3. Regression thresholds (event count, error-rate delta, observation window) are configurable via workflow env vars / repo variables, not hardcoded
+  4. Workflow is documented with required secrets (`SENTRY_AUTH_TOKEN`, org/project slugs) and runs green against a known-good release as a smoke test
+**Plans:** TBD (likely 1 plan)
 
-### Phase 35: Structured Data Enrichment
-**Goal**: Google Rich Results Test shows valid schemas for every public page type (breadcrumbs, articles, FAQ, HowTo, comparisons)
-**Depends on**: Phase 33, Phase 34
-**Requirements**: SCHEMA-01, SCHEMA-02, SCHEMA-03, SCHEMA-05, SCHEMA-06, SCHEMA-07, SCHEMA-08
+### Phase 44: Deliverability + Funnel Analytics
+**Goal**: Resend webhook events land in a deliverability table and the onboarding funnel is tracked end-to-end with an admin-only analytics view, so the team sees email and activation problems before marketing copy claims a certain conversion rate
+**Depends on**: Nothing in this milestone (can execute in parallel with Phases 41-43)
+**Requirements**: ANALYTICS-01, ANALYTICS-02, ANALYTICS-03, ANALYTICS-04, ANALYTICS-05
 **Success Criteria** (what must be TRUE):
-  1. Every public page renders at least a `BreadcrumbList` JSON-LD script tag in its HTML source
-  2. Blog post pages render an `Article` JSON-LD with `mainEntityOfPage`, `image`, `wordCount`, `keywords`, and a `Person` author (not just organization)
-  3. Homepage renders a `WebSite` JSON-LD with `SearchAction` (potentialAction with `query-input`)
-  4. All previously inline JSON-LD blocks on FAQ, pricing, about, contact, features, resources, and compare pages are replaced with `JsonLdScript` component calls using shared utility functions
-  5. Running `pnpm typecheck && pnpm lint && pnpm test:unit` passes with zero errors
-**Plans:** 3 plans
-Plans:
-- [x] 35-01-PLAN.md -- Blog post Article schema + breadcrumbs for blog hub, category, help, support, legal, and resource pages -- completed 2026-04-09
-- [x] 35-02-PLAN.md -- Homepage WebSite schema, compare page SoftwareApplication factory + migration, HowTo on maintenance checklist -- completed 2026-04-09
-- [x] 35-03-PLAN.md -- Gap closure: fix blog test imports broken by async server component conversion -- completed 2026-04-09
-
-### Phase 36: Pricing Page Polish
-**Goal**: Pricing page has zero technical debt, correct structured data dates, and works well on mobile
-**Depends on**: Phase 33
-**Requirements**: PRICE-01, PRICE-02, PRICE-03, PRICE-04, PRICE-05, SCHEMA-04
-**Success Criteria** (what must be TRUE):
-  1. No `&apos;` HTML entity appears in any pricing page source file -- all replaced with literal apostrophes or proper Unicode
-  2. A single `SOCIAL_PROOF` config object is the source of truth for all social proof numbers on pricing pages -- no hardcoded `"10,000+"` or `"4.8"` scattered in JSX
-  3. `pricing/success/page.tsx` and `pricing/cancel/page.tsx` export `noindex` metadata and render inside `PageLayout`
-  4. `pricing/complete/page.tsx` contains no Tailwind v3 syntax (`bg-gray-50`, `text-gray-600`, etc.) -- all converted to v4 design tokens (`bg-muted`, `text-muted-foreground`, etc.)
-  5. Pricing JSON-LD `priceValidUntil` is computed dynamically (not hardcoded to any specific date)
-**Plans:** 4/4 plans complete
-Plans:
-- [x] 36-01-PLAN.md -- HTML entity cleanup and SOCIAL_PROOF config centralization
-- [x] 36-02-PLAN.md -- Success/cancel page restructure with noindex and PageLayout
-- [x] 36-03-PLAN.md -- Tailwind v3 to v4 migration on pricing/complete
-- [x] 36-04-PLAN.md -- Responsive mobile layout for pricing comparison table
-
-### Phase 37: Content SEO & Internal Linking
-**Goal**: Blog, comparison, and resource pages cross-link to each other, building topical authority clusters
-**Depends on**: Phase 34, Phase 35
-**Requirements**: CONTENT-01, CONTENT-02, CONTENT-03
-**Success Criteria** (what must be TRUE):
-  1. Blog posts that mention a competitor by name include a link to the corresponding `/compare/[competitor]` page
-  2. Comparison pages include a "Related Articles" section linking to relevant blog posts
-  3. Resource pages link to related blog posts and blog posts link back to related resource pages
-**Plans:** 2/2 plans complete
-Plans:
-- [x] 37-01-PLAN.md -- Content-links mapping config + RelatedArticles server component with tests
-- [x] 37-02-PLAN.md -- Wire cross-links into blog, compare, and resource pages
-
-### Phase 38: Validation & Verification
-**Goal**: All SEO work is verified end-to-end and the site is ready for Google Search Console monitoring
-**Depends on**: Phase 32, Phase 33, Phase 34, Phase 35, Phase 36, Phase 37
-**Requirements**: VALID-01, VALID-02, VALID-03, CRAWL-05, CRAWL-06
-**Success Criteria** (what must be TRUE):
-  1. Root layout `metadata.verification.google` contains a verification string (placeholder acceptable until real GSC code is obtained)
-  2. E2E tests exist that visit key public pages and assert presence of `<title>`, `<meta name="description">`, and `<script type="application/ld+json">` tags
-  3. Sitemap includes `/support`, `/security-policy`, and all blog category pages
-  4. Blog post entries in the sitemap use their `published_at` timestamp for `lastModified` instead of the generation timestamp
-  5. Running `pnpm typecheck && pnpm lint && pnpm test:unit` passes with zero errors
-**Plans:** 2/2 plans complete
-Plans:
-- [x] 38-01-PLAN.md -- Sitemap overhaul with missing pages, blog categories, static dates
-- [x] 38-02-PLAN.md -- E2E SEO smoke tests for all public pages + full regression pass
-
-### Phase 39: Structured Data Gap Closure
-**Goal**: All orphaned/missing JSON-LD schemas are wired into their target pages and stale inline blocks are removed
-**Depends on**: Phase 33, Phase 35
-**Requirements**: SCHEMA-01, SCHEMA-02, SCHEMA-05, SCHEMA-06, SCHEMA-07
-**Gap Closure**: Closes gaps from v1.6 milestone audit
-**Success Criteria** (what must be TRUE):
-  1. `src/app/compare/[competitor]/page.tsx` imports and renders `createSoftwareApplicationJsonLd` for both TenantFlow and competitor, plus `createBreadcrumbJsonLd` via `JsonLdScript` -- no inline `comparisonSchema` or direct `process.env` reads
-  2. `src/app/resources/seasonal-maintenance-checklist/page.tsx` renders HowTo JSON-LD with 4 `HowToSection` steps (Spring/Summer/Fall/Winter) and a BreadcrumbList, both via `JsonLdScript`
-  3. `src/app/blog/[slug]/blog-post-page.tsx` contains zero `<script type="application/ld+json">` inline blocks -- only the server component `page.tsx` renders Article JSON-LD
-  4. Running `pnpm typecheck && pnpm lint && pnpm test:unit` passes with zero errors
-**Plans:** 2/2 plans complete
-Plans:
-- [x] 39-01-PLAN.md -- Add HowTo + BreadcrumbList to maintenance checklist, replace inline comparisonSchema with factory calls
-- [x] 39-02-PLAN.md -- Remove stale inline BlogPosting from blog-post-page.tsx
-
-### Phase 40: Metadata & Verification Completeness
-**Goal**: Every public page has canonical URLs, Open Graph tags, Twitter card, and BreadcrumbList JSON-LD via shared factories -- the full public SEO surface is consistent
-**Depends on**: Phase 33
-**Requirements**: META-11, VALID-01, SCHEMA-01
-**Gap Closure**: Closes gaps from v1.6 milestone audit (scope expanded from 4 to 7 pages per factual codebase scan)
-**Success Criteria** (what must be TRUE):
-  1. `/terms`, `/privacy`, `/security-policy`, `/support`, `/resources/seasonal-maintenance-checklist`, `/resources/security-deposit-reference-card`, and `/resources/landlord-tax-deduction-tracker` page.tsx files use `createPageMetadata()` with canonical, OG, and Twitter card -- no raw `metadata` objects without `alternates.canonical`
-  2. VALID-01 satisfied via DNS verification (Phase 38 D-01 lock) -- no `verification.google` meta tag added to `src/app/layout.tsx`
-  3. `/resources/security-deposit-reference-card` and `/resources/landlord-tax-deduction-tracker` render BreadcrumbList JSON-LD via shared factory (closes SCHEMA-01 on full public surface)
-  4. No page title contains inline `| TenantFlow` suffix -- root `title.template` handles brand (Pitfall 1 avoided)
-  5. E2E SEO smoke spec passes for all 7 Phase 40 paths (canonical, breadcrumb, double-suffix regression)
-  6. Running `pnpm typecheck && pnpm lint && pnpm test:unit` passes with zero errors
-**Plans:** 3/3 plans complete
-Plans:
-- [x] 40-01-PLAN.md -- Strengthen E2E SEO smoke spec with breadcrumb + double-suffix assertions (Wave 0)
-- [x] 40-02-PLAN.md -- Migrate 4 legal/support pages to createPageMetadata factory (Template A, Wave 1)
-- [x] 40-03-PLAN.md -- Migrate 3 resource pages + close BreadcrumbList gap + update ROADMAP (Templates B/C, Wave 1)
+  1. An Edge Function with Resend signature verification ingests `email.delivered`, `email.bounced`, `email.opened`, `email.complained`, and `email.delivery_delayed` events and writes them to an `email_deliverability` table keyed by Resend message id, with event timestamp, event type, recipient email, and originating template tag
+  2. A SECURITY DEFINER RPC with `is_admin()` guard returns per-template deliverability stats (sent / delivered / bounced / complained rate) over a rolling window for admin dashboard consumption
+  3. Onboarding funnel steps are recorded server-side on the events that complete them: signup (users row created), first property added, first tenant invited, first rent collected (`rent_payments.status = 'succeeded'`); stored with owner user id, step name, and timestamp; retroactive one-time backfill runs over existing users
+  4. A SECURITY DEFINER RPC with `is_admin()` guard returns funnel aggregate stats (count at each step, conversion rate between steps, median time between steps) scoped to a date range
+  5. Admin analytics view renders the funnel RPC output as a stepped visualization with conversion percentages and drop-off highlighting
+  6. All new RPCs have RLS tests in `tests/integration/rls/` proving non-admin users are rejected and admin users get correct aggregated data
+  7. `pnpm typecheck && pnpm lint && pnpm test:unit` passes with zero errors
+**Plans:** TBD (likely 3 plans: deliverability ingestion + table + admin RPC; funnel event tracking + backfill + funnel RPC; admin UI wiring)
+**UI hint**: yes
 
 ## Progress
 
 **Execution Order:**
-Phases execute in numeric order: 32 -> 33 -> 34 -> 35 -> 36 -> 37 -> 38 -> 39 -> 40
-
-Phase 39 and 40 are independent gap closure phases that can execute in either order.
+v1.7 phases (41-44) can execute in any order -- they are independent and share no code paths. Phase 41 (payment tests) builds on Stage 1 instrumentation already shipped in PR 589; Phase 42 (cancellation UX) touches frontend + subscription read path; Phase 43 (Sentry gate) is CI-only; Phase 44 (analytics) adds new tables, Edge Function, and admin view. All four can run in parallel.
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
-| 32. Crawlability & Critical Fixes | v1.6 | 1/1 | Complete | 2026-04-08 |
-| 33. SEO Utilities Foundation | v1.6 | 2/2 | Complete | 2026-04-08 |
-| 34. Per-Page Metadata | v1.6 | 2/2 | Complete | 2026-04-08 |
-| 35. Structured Data Enrichment | v1.6 | 3/3 | Complete | 2026-04-09 |
-| 36. Pricing Page Polish | v1.6 | 4/4 | Complete | 2026-04-10 |
-| 37. Content SEO & Internal Linking | v1.6 | 2/2 | Complete | 2026-04-10 |
-| 38. Validation & Verification | v1.6 | 2/2 | Complete | 2026-04-10 |
-| 39. Structured Data Gap Closure | v1.6 | 2/2 | Complete    | 2026-04-13 |
-| 40. Metadata & Verification Completeness | v1.6 | 3/3 | Complete | 2026-04-13 |
+| 41. Payment Correctness & Split-Rent Tests | v1.7 | 0/TBD | Not started | - |
+| 42. Cancellation UX End-to-End Audit + Fix | v1.7 | 0/TBD | Not started | - |
+| 43. Post-Deploy Sentry Regression Gate | v1.7 | 0/TBD | Not started | - |
+| 44. Deliverability + Funnel Analytics | v1.7 | 0/TBD | Not started | - |
