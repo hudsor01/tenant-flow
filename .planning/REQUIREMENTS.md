@@ -22,9 +22,9 @@
 
 ### Split-Rent RLS Tests (Stage 2 / Phase 41)
 
-- [ ] **TEST-07**: Vitest RLS integration test proves each tenant on a shared lease sees only their own portion of `rent_due` (computed from `lease_tenants.responsibility_percentage`), not the full lease amount, via the tenant portal query path.
-- [ ] **TEST-08**: Vitest RLS integration test proves tenant A on a shared lease cannot read tenant B's `rent_due` / `rent_payments` rows -- cross-tenant reads return zero rows, not an authorization error.
-- [ ] **TEST-09**: Vitest RLS integration test proves the owner of a shared-lease property sees the full aggregated rent_due / rent_payments across all tenants on that lease (owner aggregate view is unaffected by tenant-scoped RLS).
+- [x] **TEST-07**: Vitest RLS integration test proves each tenant on a shared lease sees only their own portion of `rent_due` (computed from `lease_tenants.responsibility_percentage`), not the full lease amount, via the tenant portal query path.
+- [x] **TEST-08**: Vitest RLS integration test proves tenant A on a shared lease cannot read tenant B's `rent_due` / `rent_payments` rows -- cross-tenant reads return zero rows, not an authorization error.
+- [x] **TEST-09**: Vitest RLS integration test proves the owner of a shared-lease property sees the full aggregated rent_due / rent_payments across all tenants on that lease (owner aggregate view is unaffected by tenant-scoped RLS).
 
 ### Cancellation UX (Stage 3 / Phase 42)
 

@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.7
 milestone_name: Launch Readiness
-status: executing
-stopped_at: Completed 41-02-PLAN.md
-last_updated: "2026-04-13T22:22:46.503Z"
+status: verifying
+stopped_at: "Completed 41-03-PLAN.md (phase 41 COMPLETE: 3/3 plans, ready for verification)"
+last_updated: "2026-04-13T22:45:36.715Z"
 last_activity: 2026-04-13
 progress:
   total_phases: 4
-  completed_phases: 0
+  completed_phases: 1
   total_plans: 3
-  completed_plans: 2
-  percent: 67
+  completed_plans: 3
+  percent: 100
 ---
 
 # Project State: TenantFlow
@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-04-13)
 Phase: 41 (Payment Correctness & Split-Rent Tests) — EXECUTING
 Plan: 3 of 3
 Milestone: v1.7 Launch Readiness -- defining
-Status: Ready to execute
+Status: Phase complete — ready for verification
 Last activity: 2026-04-13
 
 ## Shipped Milestones
@@ -62,6 +62,8 @@ Last activity: 2026-04-13
 - [Phase 41-payment-correctness-split-rent-tests]: Tests skip cleanly on missing env vars via requireEnv() + SKIP: log — integration tests never become silent false-positives
 - [Phase 41-payment-correctness-split-rent-tests]: Deterministic 36-hour span for duration_hours (first_charge_at=2026-04-10T00Z, paid_at=2026-04-11T12Z) — exact assertion, no tolerance window
 - [Phase 41-payment-correctness-split-rent-tests]: Admin RPC test signs in as E2E_ADMIN to get real admin JWT (is_admin() check needs auth.uid(), not service_role)
+- [Phase 41-payment-correctness-split-rent-tests]: Reframed TEST-08 from plan spec: rent_due has no tenant_id column (shared-lease rows are correctly shared at lease level). Isolation asserted at rent_payments.tenant_id, lease_tenants.tenant_id, and tenants.user_id RLS surfaces instead.
+- [Phase 41-payment-correctness-split-rent-tests]: Split-rent fixture uses two-step shared-lease resolution (tenantA finds candidate lease via RLS-filtered inner join; tenantB confirms own presence on same lease). Works around RLS without needing service-role key.
 
 ### Quick Tasks Completed
 
@@ -71,6 +73,6 @@ Last activity: 2026-04-13
 
 ## Session Continuity
 
-Last session: 2026-04-13T22:22:46.501Z
-Stopped at: Completed 41-02-PLAN.md
+Last session: 2026-04-13T22:45:36.713Z
+Stopped at: Completed 41-03-PLAN.md (phase 41 COMPLETE: 3/3 plans, ready for verification)
 Resume file: None
