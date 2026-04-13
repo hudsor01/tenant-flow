@@ -17,8 +17,8 @@
 
 ### Payout Lifecycle Tests (Stage 2 / Phase 41)
 
-- [ ] **TEST-05**: Deno integration test proves `handlePayoutLifecycle` writes a `payouts` row with correct state on `payout.paid` events (connected account id, amount, arrival date, status `paid`) and that duplicate delivery is idempotent via `stripe_webhook_events`.
-- [ ] **TEST-06**: Deno integration test proves `handlePayoutLifecycle` computes `duration_hours` (arrival_date - created_at) on `payout.paid`, records it to the payouts table, and surfaces it to the owner dashboard health RPC so the "2-day payouts" promise has a measurable signal.
+- [x] **TEST-05**: Deno integration test proves `handlePayoutLifecycle` writes a `payouts` row with correct state on `payout.paid` events (connected account id, amount, arrival date, status `paid`) and that duplicate delivery is idempotent via `stripe_webhook_events`.
+- [x] **TEST-06**: Deno integration test proves `handlePayoutLifecycle` computes `duration_hours` (arrival_date - created_at) on `payout.paid`, records it to the payouts table, and surfaces it to the owner dashboard health RPC so the "2-day payouts" promise has a measurable signal.
 
 ### Split-Rent RLS Tests (Stage 2 / Phase 41)
 

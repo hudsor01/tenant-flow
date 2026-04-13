@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.7
 milestone_name: Launch Readiness
 status: executing
-stopped_at: Completed 41-01-PLAN.md (5 commits, 5 files, TEST-01..04 covered)
-last_updated: "2026-04-13T22:09:44.578Z"
+stopped_at: Completed 41-02-PLAN.md
+last_updated: "2026-04-13T22:22:46.503Z"
 last_activity: 2026-04-13
 progress:
   total_phases: 4
   completed_phases: 0
   total_plans: 3
-  completed_plans: 1
-  percent: 33
+  completed_plans: 2
+  percent: 67
 ---
 
 # Project State: TenantFlow
@@ -26,7 +26,7 @@ See: .planning/PROJECT.md (updated 2026-04-13)
 ## Current Position
 
 Phase: 41 (Payment Correctness & Split-Rent Tests) — EXECUTING
-Plan: 2 of 3
+Plan: 3 of 3
 Milestone: v1.7 Launch Readiness -- defining
 Status: Ready to execute
 Last activity: 2026-04-13
@@ -58,6 +58,10 @@ Last activity: 2026-04-13
 - [Phase 41]: Phase 41-01: rent_payments schema has paid_date (not paid_at) and no stripe_charge_id column — plan's interfaces block was stale, assertions adapted to real schema
 - [Phase 41]: Phase 41-01: DB notifications row is the deterministic proof of autopay exhaustion — tests assert DB row, not Resend HTTP interception
 - [Phase 41]: Phase 41-01: Tests skip cleanly (not fail) on missing env vars — integration tests are never silent false-positives
+- [Phase 41-payment-correctness-split-rent-tests]: Used createClient() direct instantiation for tests (matches 41-01 autopay-fixtures pattern; plan's createAdminClient helper does not exist in _shared/)
+- [Phase 41-payment-correctness-split-rent-tests]: Tests skip cleanly on missing env vars via requireEnv() + SKIP: log — integration tests never become silent false-positives
+- [Phase 41-payment-correctness-split-rent-tests]: Deterministic 36-hour span for duration_hours (first_charge_at=2026-04-10T00Z, paid_at=2026-04-11T12Z) — exact assertion, no tolerance window
+- [Phase 41-payment-correctness-split-rent-tests]: Admin RPC test signs in as E2E_ADMIN to get real admin JWT (is_admin() check needs auth.uid(), not service_role)
 
 ### Quick Tasks Completed
 
@@ -67,6 +71,6 @@ Last activity: 2026-04-13
 
 ## Session Continuity
 
-Last session: 2026-04-13T22:09:44.575Z
-Stopped at: Completed 41-01-PLAN.md (5 commits, 5 files, TEST-01..04 covered)
+Last session: 2026-04-13T22:22:46.501Z
+Stopped at: Completed 41-02-PLAN.md
 Resume file: None

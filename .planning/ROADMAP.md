@@ -113,10 +113,10 @@ TenantFlow is a multi-tenant property management SaaS platform for property owne
   5. A Deno integration test proves `handlePayoutLifecycle` writes a `payouts` row with correct state on `payout.paid` events (connected account id, amount, arrival date, status `paid`) and that duplicate delivery is idempotent via `stripe_webhook_events`; `duration_hours` is computed from arrival_date - created_at and surfaced to the owner dashboard health RPC
   6. `tests/integration/rls/` contains Vitest RLS tests proving: each tenant on a shared lease sees only their own portion of `rent_due` computed from `lease_tenants.responsibility_percentage`; tenant A cannot read tenant B's `rent_due` / `rent_payments` rows (returns zero rows, not an error); the owner sees the full aggregated view across all tenants on the shared lease
   7. `pnpm typecheck && pnpm lint && pnpm test:unit` passes with zero errors, and all new Deno and Vitest tests are runnable locally and green
-**Plans:** 1/3 plans executed
+**Plans:** 2/3 plans executed
 Plans:
 - [x] 41-01-PLAN.md -- Autopay correctness Deno tests (TEST-01..TEST-04): success, decline+retry schedule, final-attempt exhaustion, webhook idempotency
-- [ ] 41-02-PLAN.md -- Payout lifecycle Deno tests (TEST-05, TEST-06): payout.paid end-to-end via signed webhook, idempotent duplicate delivery, duration_hours generated column + get_payout_timing_stats RPC
+- [x] 41-02-PLAN.md -- Payout lifecycle Deno tests (TEST-05, TEST-06): payout.paid end-to-end via signed webhook, idempotent duplicate delivery, duration_hours generated column + get_payout_timing_stats RPC
 - [ ] 41-03-PLAN.md -- Split-rent Vitest RLS tests (TEST-07, TEST-08, TEST-09): tenant portion via responsibility_percentage, cross-tenant isolation, owner aggregate view
 
 ### Phase 42: Cancellation UX End-to-End Audit + Fix
@@ -165,7 +165,7 @@ v1.7 phases (41-44) can execute in any order -- they are independent and share n
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
-| 41. Payment Correctness & Split-Rent Tests | v1.7 | 1/3 | In Progress|  |
+| 41. Payment Correctness & Split-Rent Tests | v1.7 | 2/3 | In Progress|  |
 | 42. Cancellation UX End-to-End Audit + Fix | v1.7 | 0/TBD | Not started | - |
 | 43. Post-Deploy Sentry Regression Gate | v1.7 | 0/TBD | Not started | - |
 | 44. Deliverability + Funnel Analytics | v1.7 | 0/TBD | Not started | - |
