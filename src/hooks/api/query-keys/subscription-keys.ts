@@ -270,15 +270,5 @@ export const billingMutations = {
 				window.location.href = result.url
 				return { subscription: undefined }
 			}
-		}),
-
-	cancelSubscription: () =>
-		mutationOptions({
-			mutationKey: mutationKeys.subscriptions.cancel,
-			mutationFn: async (_id: string): Promise<{ subscription: undefined }> => {
-				const result = await callBillingEdgeFunction<{ url: string }>('stripe-billing-portal')
-				window.location.href = result.url
-				return { subscription: undefined }
-			}
 		})
 }

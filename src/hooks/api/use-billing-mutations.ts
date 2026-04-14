@@ -8,6 +8,11 @@
  * Note: update/pause/resume/portal mutations use handleMutationError directly
  * rather than createMutationCallbacks because they redirect to Stripe's hosted
  * portal — no cache invalidation is needed (Stripe webhooks update data async).
+ *
+ * Cancel/Reactivate mutations (Phase 42) call the dedicated
+ * `stripe-cancel-subscription` Edge Function directly and mutate the
+ * subscription-status cache using Stripe's authoritative response
+ * (mitigates T-42-06: Stripe Sync Engine FDW staleness).
  */
 
 import { useMutation, useQueryClient } from '@tanstack/react-query'
@@ -16,6 +21,9 @@ import { getCachedUser } from '#lib/supabase/get-cached-user'
 import { handleMutationError } from '#lib/mutation-error-handler'
 import { subscriptionsKeys, billingMutations } from './query-keys/subscription-keys'
 import { createMutationCallbacks } from '#hooks/create-mutation-callbacks'
+import { ownerDashboardKeys } from './use-owner-dashboard'
+import { mutationKeys } from './mutation-keys'
+import type { SubscriptionStatusResponse } from '#types/api-contracts'
 
 // ============================================================================
 // SUBSCRIPTION CRUD MUTATIONS
@@ -54,15 +62,120 @@ export function useResumeSubscriptionMutation() {
 	})
 }
 
+// ============================================================================
+// CANCEL / REACTIVATE MUTATIONS (Phase 42 / CANCEL-01)
+// ============================================================================
+
+export interface CancelSubscriptionResponse {
+	id: string
+	status: string
+	cancel_at_period_end: boolean
+	current_period_end: number
+}
+
+async function callStripeCancelSubscription(
+	action: 'cancel' | 'reactivate'
+): Promise<CancelSubscriptionResponse> {
+	const user = await getCachedUser()
+	if (!user) throw new Error('Not authenticated')
+
+	const supabase = createClient()
+	const { data: sessionData } = await supabase.auth.getSession()
+	const token = sessionData.session?.access_token
+	if (!token) throw new Error('No session token')
+
+	const baseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+	const response = await fetch(`${baseUrl}/functions/v1/stripe-cancel-subscription`, {
+		method: 'POST',
+		headers: {
+			Authorization: `Bearer ${token}`,
+			'Content-Type': 'application/json'
+		},
+		body: JSON.stringify({ action })
+	})
+
+	if (!response.ok) {
+		const err = (await response.json().catch(() => ({ error: response.statusText }))) as {
+			error?: string
+		}
+		throw new Error(err.error ?? `stripe-cancel-subscription failed: ${response.status}`)
+	}
+
+	return response.json() as Promise<CancelSubscriptionResponse>
+}
+
+// Map Edge Function response → SubscriptionStatusResponse shape used by useSubscriptionStatus
+function mapCancelResponseToStatus(
+	response: CancelSubscriptionResponse
+): Partial<SubscriptionStatusResponse> {
+	return {
+		subscriptionStatus: response.status as SubscriptionStatusResponse['subscriptionStatus'],
+		currentPeriodEnd: new Date(response.current_period_end * 1000).toISOString(),
+		cancelAtPeriodEnd: response.cancel_at_period_end
+	}
+}
+
+// subscription-status cache key — mirrors src/hooks/api/query-keys/subscription-keys.ts
+const SUBSCRIPTION_STATUS_KEY = ['billing', 'subscription-status'] as const
+
+/**
+ * Writes the Edge Function response into the subscription-status cache using
+ * Stripe's authoritative data, BEFORE invalidation fires. Mitigates T-42-06
+ * (Stripe Sync Engine FDW staleness) — without this, invalidateQueries would
+ * re-fetch stale FDW data and the UI would not flip.
+ */
+function writeSubscriptionStatusCache(
+	queryClient: ReturnType<typeof useQueryClient>,
+	response: CancelSubscriptionResponse
+): void {
+	const existing = queryClient.getQueryData<SubscriptionStatusResponse>(SUBSCRIPTION_STATUS_KEY)
+	queryClient.setQueryData<SubscriptionStatusResponse>(SUBSCRIPTION_STATUS_KEY, {
+		...(existing ?? {
+			subscriptionStatus: null,
+			stripeCustomerId: null,
+			stripePriceId: null,
+			currentPeriodEnd: null,
+			cancelAtPeriodEnd: false
+		}),
+		...mapCancelResponseToStatus(response)
+	})
+}
+
 export function useCancelSubscriptionMutation() {
 	const queryClient = useQueryClient()
 
 	return useMutation({
-		...billingMutations.cancelSubscription(),
-		...createMutationCallbacks(queryClient, {
-			invalidate: [subscriptionsKeys.list()],
-			errorContext: 'Cancel subscription'
-		})
+		mutationKey: mutationKeys.subscriptions.cancel,
+		mutationFn: () => callStripeCancelSubscription('cancel'),
+		onSuccess: (response) => {
+			// T-42-06 mitigation: write Stripe's authoritative response into the cache
+			// BEFORE invalidateQueries so the UI flips instantly, regardless of FDW sync lag.
+			writeSubscriptionStatusCache(queryClient, response)
+			// Inlined invalidation (instead of spreading createMutationCallbacks) because
+			// the callback factory REPLACES onSuccess rather than merging — this preserves
+			// the setQueryData call above.
+			queryClient.invalidateQueries({ queryKey: subscriptionsKeys.list() })
+			queryClient.invalidateQueries({ queryKey: SUBSCRIPTION_STATUS_KEY })
+			queryClient.invalidateQueries({ queryKey: ownerDashboardKeys.all })
+		},
+		onError: error => handleMutationError(error, 'Cancel subscription')
+	})
+}
+
+export function useReactivateSubscriptionMutation() {
+	const queryClient = useQueryClient()
+
+	return useMutation({
+		mutationKey: mutationKeys.subscriptions.reactivate,
+		mutationFn: () => callStripeCancelSubscription('reactivate'),
+		onSuccess: (response) => {
+			// T-42-06 mitigation: mirror the cancel mutation setQueryData pattern.
+			writeSubscriptionStatusCache(queryClient, response)
+			queryClient.invalidateQueries({ queryKey: subscriptionsKeys.list() })
+			queryClient.invalidateQueries({ queryKey: SUBSCRIPTION_STATUS_KEY })
+			queryClient.invalidateQueries({ queryKey: ownerDashboardKeys.all })
+		},
+		onError: error => handleMutationError(error, 'Reactivate subscription')
 	})
 }
 

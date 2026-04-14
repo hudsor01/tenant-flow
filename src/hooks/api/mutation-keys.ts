@@ -176,7 +176,8 @@ export const mutationKeys = {
 		update: ['mutations', 'subscriptions', 'update'] as const,
 		pause: ['mutations', 'subscriptions', 'pause'] as const,
 		resume: ['mutations', 'subscriptions', 'resume'] as const,
-		cancel: ['mutations', 'subscriptions', 'cancel'] as const
+		cancel: ['mutations', 'subscriptions', 'cancel'] as const,
+		reactivate: ['mutations', 'subscriptions', 'reactivate'] as const
 	},
 
 	// Owner Notification Settings

@@ -75,7 +75,10 @@ export default function RentCollectionPage() {
 	const handleCancel = async (id: string) => {
 			setActioningId(id)
 			try {
-				await cancelSubscription.mutateAsync(id)
+				// Wave 1: new useCancelSubscriptionMutation cancels the owner's
+				// TenantFlow subscription (action='cancel') — no per-id argument.
+				// Wave 2 (Plan 42-02) rewrites this caller for the correct flow.
+				await cancelSubscription.mutateAsync()
 			} finally {
 				setActioningId(null)
 			}
