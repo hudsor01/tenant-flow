@@ -95,7 +95,7 @@ TenantFlow is a multi-tenant property management SaaS platform for property owne
 ### v1.7 Launch Readiness (Phases 41-44)
 
 - [x] **Phase 41: Payment Correctness & Split-Rent Tests** - Deno integration tests for autopay charge path and payout lifecycle, plus Vitest RLS tests for split-rent allocation (completed 2026-04-13)
-- [ ] **Phase 42: Cancellation UX End-to-End Audit + Fix** - One-click cancel from settings, real subscription state from `stripe.subscriptions`, inline GDPR export/delete actions
+- [x] **Phase 42: Cancellation UX End-to-End Audit + Fix** - One-click cancel from settings, real subscription state from `stripe.subscriptions`, inline GDPR export/delete actions (completed 2026-04-14)
 - [ ] **Phase 43: Post-Deploy Sentry Regression Gate** - GitHub Actions workflow that queries Sentry against the deployed release and fails the deploy on regressions above threshold
 - [ ] **Phase 44: Deliverability + Funnel Analytics** - Resend webhook ingestion into `email_deliverability`, onboarding funnel event tracking, admin analytics view
 
@@ -166,6 +166,6 @@ v1.7 phases (41-44) can execute in any order -- they are independent and share n
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
 | 41. Payment Correctness & Split-Rent Tests | v1.7 | 3/3 | Complete    | 2026-04-13 |
-| 42. Cancellation UX End-to-End Audit + Fix | v1.7 | 0/TBD | Not started | - |
+| 42. Cancellation UX End-to-End Audit + Fix | v1.7 | 2/2 | Complete    | 2026-04-14 |
 | 43. Post-Deploy Sentry Regression Gate | v1.7 | 0/TBD | Not started | - |
 | 44. Deliverability + Funnel Analytics | v1.7 | 0/TBD | Not started | - |
