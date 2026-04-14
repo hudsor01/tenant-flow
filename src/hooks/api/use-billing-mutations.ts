@@ -19,7 +19,11 @@ import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { createClient } from '#lib/supabase/client'
 import { getCachedUser } from '#lib/supabase/get-cached-user'
 import { handleMutationError } from '#lib/mutation-error-handler'
-import { subscriptionsKeys, billingMutations } from './query-keys/subscription-keys'
+import {
+	billingMutations,
+	subscriptionStatusKey,
+	subscriptionsKeys
+} from './query-keys/subscription-keys'
 import { createMutationCallbacks } from '#hooks/create-mutation-callbacks'
 import { ownerDashboardKeys } from './use-owner-dashboard'
 import { mutationKeys } from './mutation-keys'
@@ -115,9 +119,6 @@ function mapCancelResponseToStatus(
 	}
 }
 
-// subscription-status cache key — mirrors src/hooks/api/query-keys/subscription-keys.ts
-const SUBSCRIPTION_STATUS_KEY = ['billing', 'subscription-status'] as const
-
 /**
  * Writes the Edge Function response into the subscription-status cache using
  * Stripe's authoritative data, BEFORE invalidation fires. Mitigates T-42-06
@@ -128,8 +129,8 @@ function writeSubscriptionStatusCache(
 	queryClient: ReturnType<typeof useQueryClient>,
 	response: CancelSubscriptionResponse
 ): void {
-	const existing = queryClient.getQueryData<SubscriptionStatusResponse>(SUBSCRIPTION_STATUS_KEY)
-	queryClient.setQueryData<SubscriptionStatusResponse>(SUBSCRIPTION_STATUS_KEY, {
+	const existing = queryClient.getQueryData<SubscriptionStatusResponse>(subscriptionStatusKey)
+	queryClient.setQueryData<SubscriptionStatusResponse>(subscriptionStatusKey, {
 		...(existing ?? {
 			subscriptionStatus: null,
 			stripeCustomerId: null,
@@ -155,7 +156,7 @@ export function useCancelSubscriptionMutation() {
 			// the callback factory REPLACES onSuccess rather than merging — this preserves
 			// the setQueryData call above.
 			queryClient.invalidateQueries({ queryKey: subscriptionsKeys.list() })
-			queryClient.invalidateQueries({ queryKey: SUBSCRIPTION_STATUS_KEY })
+			queryClient.invalidateQueries({ queryKey: subscriptionStatusKey })
 			queryClient.invalidateQueries({ queryKey: ownerDashboardKeys.all })
 		},
 		onError: error => handleMutationError(error, 'Cancel subscription')
@@ -172,7 +173,7 @@ export function useReactivateSubscriptionMutation() {
 			// T-42-06 mitigation: mirror the cancel mutation setQueryData pattern.
 			writeSubscriptionStatusCache(queryClient, response)
 			queryClient.invalidateQueries({ queryKey: subscriptionsKeys.list() })
-			queryClient.invalidateQueries({ queryKey: SUBSCRIPTION_STATUS_KEY })
+			queryClient.invalidateQueries({ queryKey: subscriptionStatusKey })
 			queryClient.invalidateQueries({ queryKey: ownerDashboardKeys.all })
 		},
 		onError: error => handleMutationError(error, 'Reactivate subscription')

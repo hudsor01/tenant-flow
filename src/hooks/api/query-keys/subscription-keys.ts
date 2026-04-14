@@ -34,9 +34,10 @@ export const subscriptionsKeys = {
 }
 
 /**
- * Subscription status key lives here (colocated with its query factory)
+ * Subscription status key lives here (colocated with its query factory).
+ * Exported so mutation hooks (cancel/reactivate) can write/invalidate the same cache entry.
  */
-const subscriptionStatusKey = ['billing', 'subscription-status'] as const
+export const subscriptionStatusKey = ['billing', 'subscription-status'] as const
 
 // ============================================================================
 // QUERY OPTIONS
