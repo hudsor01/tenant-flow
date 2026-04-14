@@ -15,7 +15,6 @@ import {
 } from '#hooks/api/use-billing'
 import { usePaymentMethods } from '#hooks/api/use-payment-methods'
 import {
-	useCancelSubscriptionMutation,
 	usePauseSubscriptionMutation,
 	useResumeSubscriptionMutation
 } from '#hooks/api/use-billing-mutations'
@@ -46,7 +45,6 @@ export default function RentCollectionPage() {
 	const { data: overduePayments } = useOverduePayments()
 	const pauseSubscription = usePauseSubscriptionMutation()
 	const resumeSubscription = useResumeSubscriptionMutation()
-	const cancelSubscription = useCancelSubscriptionMutation()
 	const exportPayments = useExportPaymentsMutation()
 
 	const [actioningId, setActioningId] = useState<string | null>(null)
@@ -67,18 +65,6 @@ export default function RentCollectionPage() {
 			setActioningId(id)
 			try {
 				await resumeSubscription.mutateAsync(id)
-			} finally {
-				setActioningId(null)
-			}
-		}
-
-	const handleCancel = async (id: string) => {
-			setActioningId(id)
-			try {
-				// Wave 1: new useCancelSubscriptionMutation cancels the owner's
-				// TenantFlow subscription (action='cancel') — no per-id argument.
-				// Wave 2 (Plan 42-02) rewrites this caller for the correct flow.
-				await cancelSubscription.mutateAsync()
 			} finally {
 				setActioningId(null)
 			}
@@ -260,7 +246,6 @@ export default function RentCollectionPage() {
 							getPaymentMethodInfo={getPaymentMethodInfo}
 							onPause={handlePause}
 							onResume={handleResume}
-							onCancel={handleCancel}
 							actioningId={actioningId}
 						/>
 					</TabsContent>

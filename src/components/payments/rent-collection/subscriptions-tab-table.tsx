@@ -9,7 +9,6 @@ import {
 	MoreVertical,
 	Pause,
 	Play,
-	XCircle,
 	Zap
 } from 'lucide-react'
 import { Button } from '#components/ui/button'
@@ -52,7 +51,6 @@ interface SubscriptionsTableProps {
 	getPaymentMethodInfo: (paymentMethodId: string) => PaymentMethodInfo | null
 	onPause: (id: string) => Promise<void>
 	onResume: (id: string) => Promise<void>
-	onCancel: (id: string) => Promise<void>
 	actioningId: string | null
 }
 
@@ -61,7 +59,6 @@ export function SubscriptionsTable({
 	getPaymentMethodInfo,
 	onPause,
 	onResume,
-	onCancel,
 	actioningId
 }: SubscriptionsTableProps) {
 	return (
@@ -131,11 +128,6 @@ export function SubscriptionsTable({
 										)}
 										{sub.status === 'paused' && (
 											<DropdownMenuItem onClick={() => sub.id && onResume(sub.id)}><Play className="mr-2 h-4 w-4" />Resume Subscription</DropdownMenuItem>
-										)}
-										{sub.status !== 'cancelled' && (
-											<DropdownMenuItem onClick={() => sub.id && onCancel(sub.id)} className="text-destructive focus:text-destructive">
-												<XCircle className="mr-2 h-4 w-4" />Cancel Subscription
-											</DropdownMenuItem>
 										)}
 									</DropdownMenuContent>
 								</DropdownMenu>
