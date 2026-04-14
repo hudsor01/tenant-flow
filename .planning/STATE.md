@@ -2,9 +2,9 @@
 gsd_state_version: 1.0
 milestone: v1.7
 milestone_name: Launch Readiness
-status: verifying
-stopped_at: Phase 42 executed (2 plans, 7 tasks, CANCEL-01/02/03 closed) — ready for verification
-last_updated: "2026-04-14T02:07:30.000Z"
+status: complete
+stopped_at: Phase 42 verified (CANCEL-01/02/03 all PASS) + 3 follow-ups landed (W-01 dropdown removal, W-02 key consolidation, engines widen) — ready for next phase
+last_updated: "2026-04-14T08:15:00.000Z"
 last_activity: 2026-04-14
 progress:
   total_phases: 4
@@ -26,9 +26,9 @@ See: .planning/PROJECT.md (updated 2026-04-13)
 ## Current Position
 
 Phase: 42
-Plan: 42-01 + 42-02 executed
+Plan: 42-01 + 42-02 executed + 3 follow-ups landed
 Milestone: v1.7 Launch Readiness
-Status: Phase complete — ready for verification
+Status: Phase complete — verifier PASS-WITH-FOLLOWUPS (3 live-Stripe smoke items for human verification)
 Last activity: 2026-04-14
 
 ## Shipped Milestones
