@@ -94,3 +94,58 @@ create policy email_deliverability_archive_delete_service_role
 
 comment on table public.email_deliverability_archive is
   'Archive of old email_deliverability rows. Populated by cleanup_old_email_deliverability() cron. ANALYTICS-01.';
+
+-- =============================================================================
+-- Part C: cleanup_old_email_deliverability() + cron schedule (D1 retention)
+-- 90-day retention; archive-then-delete pattern mirroring cleanup_old_errors().
+-- Batched at 10000 rows/run with FOR UPDATE SKIP LOCKED for concurrent safety.
+-- Called by pg_cron at 0 4 * * * (4 AM UTC; avoids the crowded 3 AM slot).
+-- =============================================================================
+
+create or replace function public.cleanup_old_email_deliverability()
+returns integer
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_archived integer := 0;
+begin
+  -- archive rows older than 90 days
+  with to_archive as (
+    select id from public.email_deliverability
+    where event_at < now() - interval '90 days'
+    limit 10000
+    for update skip locked
+  ),
+  archived as (
+    insert into public.email_deliverability_archive
+    select ed.* from public.email_deliverability ed
+    join to_archive ta on ta.id = ed.id
+    on conflict (id) do nothing
+    returning 1
+  )
+  select count(*) into v_archived from archived;
+
+  -- delete only successfully archived rows
+  delete from public.email_deliverability
+  where event_at < now() - interval '90 days'
+    and id in (select id from public.email_deliverability_archive);
+
+  raise notice 'cleanup_old_email_deliverability: archived % rows', v_archived;
+  return v_archived;
+end;
+$$;
+
+revoke all on function public.cleanup_old_email_deliverability() from public;
+grant execute on function public.cleanup_old_email_deliverability() to service_role;
+
+comment on function public.cleanup_old_email_deliverability() is
+  'Archive-then-delete email deliverability events older than 90 days. Batched 10k rows. Called by cleanup-email-deliverability cron at 0 4 * * *. ANALYTICS-01 retention.';
+
+-- Schedule cleanup at 4 AM UTC (per D1 — avoids crowded 3 AM window)
+select cron.schedule(
+  'cleanup-email-deliverability',
+  '0 4 * * *',
+  $$select public.cleanup_old_email_deliverability()$$
+);
