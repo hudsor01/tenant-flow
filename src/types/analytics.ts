@@ -446,3 +446,25 @@ export interface PropertyPerformancePageResponse {
 	visitorAnalytics: VisitorAnalyticsResponse
 }
 
+// =============================================================================
+// DELIVERABILITY ANALYTICS (admin-only, from get_deliverability_stats RPC)
+// =============================================================================
+
+/**
+ * Per-template email deliverability aggregate from
+ * `get_deliverability_stats(p_days integer)`.
+ *
+ * Rates are stored as percentage points (0..100) — the RPC multiplies by 100
+ * before returning. UI renders with single-decimal formatting.
+ */
+export interface DeliverabilityStats {
+	templateTag: string
+	sent: number
+	delivered: number
+	opened: number
+	bounced: number
+	complained: number
+	bouncePercent: number // 0..100
+	complaintPercent: number // 0..100
+}
+
