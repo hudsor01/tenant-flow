@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.7
 milestone_name: Launch Readiness
 status: complete
-stopped_at: Phase 42 verified (CANCEL-01/02/03 all PASS) + 3 follow-ups landed (W-01 dropdown removal, W-02 key consolidation, engines widen) — ready for next phase
-last_updated: "2026-04-14T08:15:00.000Z"
+stopped_at: Phase 43 verified (DEPLOY-01/02 4/4 PASS-WITH-FOLLOWUPS) — post-deploy sentry regression gate workflow shipped, operator live-verify deferred
+last_updated: "2026-04-14T23:52:00.000Z"
 last_activity: 2026-04-14
 progress:
   total_phases: 4
-  completed_phases: 2
-  total_plans: 5
-  completed_plans: 5
+  completed_phases: 3
+  total_plans: 6
+  completed_plans: 6
   percent: 100
 ---
 
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-13)
 
 **Core value:** A landlord can add a property, invite a tenant, collect rent, and see their financials -- without touching a spreadsheet or calling anyone.
-**Current focus:** Phase 42 — Cancellation UX End-to-End Audit + Fix
+**Current focus:** Phase 43 — Post-Deploy Sentry Regression Gate
 
 ## Current Position
 
-Phase: 42
-Plan: 42-01 + 42-02 executed + 3 follow-ups landed
+Phase: 43
+Plan: 43-01 executed (6 atomic commits) — post-deploy-sentry-gate.yml (398 lines)
 Milestone: v1.7 Launch Readiness
-Status: Phase complete — verifier PASS-WITH-FOLLOWUPS (3 live-Stripe smoke items for human verification)
+Status: Phase complete — verifier PASS-WITH-FOLLOWUPS (3 live-verify operator actions: secrets, Vercel dispatch events enable, smoke run)
 Last activity: 2026-04-14
 
 ## Shipped Milestones
@@ -82,6 +82,6 @@ Last activity: 2026-04-14
 
 ## Session Continuity
 
-Last session: 2026-04-14T02:07:30.000Z
-Stopped at: Phase 42 executed — CANCEL-01 (1-click cancel without portal), CANCEL-02 (stripe.subscriptions as status source), CANCEL-03 (inline GDPR actions in canceled state) all closed. Gates green: typecheck, lint, 21 settings tests, Playwright --list shows 2 tests.
-Resume file: .planning/phases/42-cancellation-ux-end-to-end-audit-fix/42-02-SUMMARY.md
+Last session: 2026-04-14T23:52:00.000Z
+Stopped at: Phase 43 executed — 6 atomic commits building post-deploy-sentry-gate.yml workflow. DEPLOY-01 (post-deploy Sentry query + baseline snapshot) and DEPLOY-02 (fail-on-regression with configurable thresholds) both verified. Alert-only (GitHub issue + workflow-fail, no auto-rollback). Operator setup deferred: set 3 Sentry repo secrets, optionally set 3 threshold repo variables, enable Vercel GitHub integration dispatch events, run smoke test.
+Resume file: .planning/phases/43-post-deploy-sentry-regression-gate/43-SUMMARY.md

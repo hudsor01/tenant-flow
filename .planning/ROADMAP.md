@@ -96,7 +96,7 @@ TenantFlow is a multi-tenant property management SaaS platform for property owne
 
 - [x] **Phase 41: Payment Correctness & Split-Rent Tests** - Deno integration tests for autopay charge path and payout lifecycle, plus Vitest RLS tests for split-rent allocation (completed 2026-04-13)
 - [x] **Phase 42: Cancellation UX End-to-End Audit + Fix** - One-click cancel from settings, real subscription state from `stripe.subscriptions`, inline GDPR export/delete actions (completed 2026-04-14)
-- [ ] **Phase 43: Post-Deploy Sentry Regression Gate** - GitHub Actions workflow that queries Sentry against the deployed release and fails the deploy on regressions above threshold
+- [x] **Phase 43: Post-Deploy Sentry Regression Gate** - GitHub Actions workflow that queries Sentry against the deployed release and fails the deploy on regressions above threshold (completed 2026-04-14)
 - [ ] **Phase 44: Deliverability + Funnel Analytics** - Resend webhook ingestion into `email_deliverability`, onboarding funnel event tracking, admin analytics view
 
 ## Phase Details
@@ -141,7 +141,9 @@ Plans:
   2. The workflow fails (and optionally triggers a Vercel rollback or alert) when the release introduces a regression above configured thresholds -- new unresolved issue with > N events, or error rate increase > X% -- within the post-deploy observation window
   3. Regression thresholds (event count, error-rate delta, observation window) are configurable via workflow env vars / repo variables, not hardcoded
   4. Workflow is documented with required secrets (`SENTRY_AUTH_TOKEN`, org/project slugs) and runs green against a known-good release as a smoke test
-**Plans:** TBD (likely 1 plan)
+**Plans:** 1/1 plans complete
+Plans:
+- [x] 43-01-PLAN.md -- Post-deploy Sentry regression gate workflow (DEPLOY-01, DEPLOY-02): triggers, Sentry API queries, baseline artifact, threshold gate, GitHub issue on regression
 
 ### Phase 44: Deliverability + Funnel Analytics
 **Goal**: Resend webhook events land in a deliverability table and the onboarding funnel is tracked end-to-end with an admin-only analytics view, so the team sees email and activation problems before marketing copy claims a certain conversion rate
@@ -167,5 +169,5 @@ v1.7 phases (41-44) can execute in any order -- they are independent and share n
 |-------|-----------|----------------|--------|-----------|
 | 41. Payment Correctness & Split-Rent Tests | v1.7 | 3/3 | Complete    | 2026-04-13 |
 | 42. Cancellation UX End-to-End Audit + Fix | v1.7 | 2/2 | Complete    | 2026-04-14 |
-| 43. Post-Deploy Sentry Regression Gate | v1.7 | 0/TBD | Not started | - |
+| 43. Post-Deploy Sentry Regression Gate | v1.7 | 1/1 | Complete    | 2026-04-14 |
 | 44. Deliverability + Funnel Analytics | v1.7 | 0/TBD | Not started | - |
