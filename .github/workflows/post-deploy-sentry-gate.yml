@@ -346,3 +346,53 @@ jobs:
               exit 1
               ;;
           esac
+
+      - name: Build snapshot JSON
+        if: always()
+        env:
+          RELEASE_SHA: ${{ steps.release.outputs.sha }}
+          EVENT_COUNT: ${{ steps.sentry_issues.outputs.event_count_new_issues }}
+          ERROR_RATE: ${{ steps.sentry_sessions.outputs.error_rate_pct }}
+          P95_MS: ${{ steps.sentry_transactions.outputs.transactions_p95_ms }}
+          GATE_STATUS: ${{ steps.gate.outputs.gate_status }}
+          GATE_REASON: ${{ steps.gate.outputs.gate_reason }}
+        run: |
+          set -uo pipefail
+          CAPTURED_AT=$(date -u +%Y-%m-%dT%H:%M:%SZ)
+          # Prune issue objects to id/title/count/permalink — drop heavy Sentry fields.
+          # Fall back to [] if current-issues.json was never created (early failure).
+          if [ -f current-issues.json ]; then
+            NEW_ISSUES=$(jq '[.[] | {id, title, count: (.count | tonumber), permalink}]' current-issues.json)
+          else
+            NEW_ISSUES="[]"
+          fi
+          jq -n \
+            --arg sha "${RELEASE_SHA}" \
+            --arg captured "${CAPTURED_AT}" \
+            --argjson issues "${NEW_ISSUES}" \
+            --arg ec "${EVENT_COUNT:-0}" \
+            --arg er "${ERROR_RATE:-0}" \
+            --arg p95 "${P95_MS:-0}" \
+            --arg gs "${GATE_STATUS:-UNKNOWN}" \
+            --arg gr "${GATE_REASON:-no reason recorded}" \
+            '{
+              release_sha: $sha,
+              captured_at: $captured,
+              new_issues: $issues,
+              event_count_new_issues: ($ec | tonumber),
+              error_rate_pct: ($er | tonumber),
+              transactions_p95_ms: ($p95 | tonumber),
+              gate_status: $gs,
+              gate_reason: $gr
+            }' > snapshot.json
+          echo "Snapshot written:"
+          cat snapshot.json
+
+      - name: Upload baseline artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: sentry-baseline-${{ steps.release.outputs.sha }}
+          path: snapshot.json
+          retention-days: 90
+          if-no-files-found: error
