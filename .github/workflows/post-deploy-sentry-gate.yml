@@ -188,3 +188,108 @@ jobs:
           P95_MS=$(jq '[.data[]? | .[1][0].count // empty] | if length == 0 then 0 else (add / length) end' current-transactions.json 2>/dev/null || echo "0")
           echo "transactions_p95_ms=${P95_MS}" >> "$GITHUB_OUTPUT"
           echo "p95 transaction duration: ${P95_MS}ms"
+
+      - name: Fetch previous release baseline (if any)
+        id: baseline
+        env:
+          RELEASE_SHA: ${{ steps.release.outputs.sha }}
+        run: |
+          set -euo pipefail
+          REPO="${GITHUB_REPOSITORY}"
+          # List all sentry-baseline-* artifacts, sort by created_at desc, skip the current-SHA
+          # artifact (if this is a re-run), take the first remaining as the "previous" baseline.
+          ARTIFACTS_JSON=$(gh api "repos/${REPO}/actions/artifacts?per_page=100" --jq \
+            "[.artifacts[] | select(.name | startswith(\"sentry-baseline-\")) | select(.name != \"sentry-baseline-${RELEASE_SHA}\") | select(.expired == false)] | sort_by(.created_at) | reverse")
+          PREV_COUNT=$(echo "${ARTIFACTS_JSON}" | jq 'length')
+          if [ "${PREV_COUNT}" = "0" ]; then
+            echo "No previous baseline found — this is the first gate run. Emitting first_run placeholder."
+            echo '{"first_run": true}' > previous-snapshot.json
+            echo "first_run=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          PREV_ARTIFACT_ID=$(echo "${ARTIFACTS_JSON}" | jq '.[0].id')
+          PREV_ARTIFACT_NAME=$(echo "${ARTIFACTS_JSON}" | jq -r '.[0].name')
+          echo "Previous baseline: ${PREV_ARTIFACT_NAME} (id ${PREV_ARTIFACT_ID})"
+          # Download the artifact zip and extract snapshot.json
+          gh api "repos/${REPO}/actions/artifacts/${PREV_ARTIFACT_ID}/zip" > prev.zip
+          unzip -p prev.zip snapshot.json > previous-snapshot.json
+          rm prev.zip
+          echo "first_run=false" >> "$GITHUB_OUTPUT"
+          echo "previous_sha=${PREV_ARTIFACT_NAME#sentry-baseline-}" >> "$GITHUB_OUTPUT"
+
+      - name: Evaluate regression thresholds
+        id: gate
+        env:
+          RELEASE_SHA: ${{ steps.release.outputs.sha }}
+          SHORT_SHA: ${{ steps.release.outputs.short_sha }}
+          CURRENT_EVENT_COUNT: ${{ steps.sentry_issues.outputs.event_count_new_issues }}
+          CURRENT_NEW_ISSUE_COUNT: ${{ steps.sentry_issues.outputs.new_issue_count }}
+          CURRENT_ERROR_RATE_PCT: ${{ steps.sentry_sessions.outputs.error_rate_pct }}
+          CURRENT_P95_MS: ${{ steps.sentry_transactions.outputs.transactions_p95_ms }}
+          FIRST_RUN: ${{ steps.baseline.outputs.first_run }}
+          PREVIOUS_SHA: ${{ steps.baseline.outputs.previous_sha }}
+        run: |
+          set -euo pipefail
+
+          # Render current snapshot markdown for the summary / issue body.
+          {
+            echo "## Sentry Gate Result — ${SHORT_SHA}"
+            echo ""
+            echo "| Metric | Current | Previous | Threshold |"
+            echo "|---|---|---|---|"
+          } > gate-summary.md
+
+          if [ "${FIRST_RUN}" = "true" ]; then
+            STATUS="PASS_WITH_WARNING"
+            REASON="No prior baseline artifact found — this is the first gate run. Baseline will be established after this release."
+            {
+              echo "| New-issue event count | ${CURRENT_EVENT_COUNT} | — | ${NEW_ISSUE_EVENT_THRESHOLD} |"
+              echo "| Error rate % | ${CURRENT_ERROR_RATE_PCT} | — | Δ ${ERROR_RATE_DELTA_PCT} |"
+              echo "| p95 transaction (ms) | ${CURRENT_P95_MS} | — | (baseline only) |"
+              echo ""
+              echo "**Status:** PASS_WITH_WARNING — ${REASON}"
+            } >> gate-summary.md
+            echo "gate_status=PASS_WITH_WARNING" >> "$GITHUB_OUTPUT"
+            echo "gate_reason=${REASON}" >> "$GITHUB_OUTPUT"
+            cat gate-summary.md >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+
+          PREV_ERROR_RATE=$(jq -r '.error_rate_pct // 0' previous-snapshot.json)
+          PREV_EVENT_COUNT=$(jq -r '.event_count_new_issues // 0' previous-snapshot.json)
+          PREV_P95=$(jq -r '.transactions_p95_ms // 0' previous-snapshot.json)
+
+          # Rule 1: new-issue event-count absolute threshold.
+          EVENT_BREACH=$(awk -v c="${CURRENT_EVENT_COUNT}" -v t="${NEW_ISSUE_EVENT_THRESHOLD}" 'BEGIN { exit !(c > t) }' && echo "1" || echo "0")
+
+          # Rule 2: error-rate delta.
+          DELTA=$(awk -v c="${CURRENT_ERROR_RATE_PCT}" -v p="${PREV_ERROR_RATE}" 'BEGIN { printf "%.4f", c - p }')
+          RATE_BREACH=$(awk -v d="${DELTA}" -v t="${ERROR_RATE_DELTA_PCT}" 'BEGIN { exit !(d > t) }' && echo "1" || echo "0")
+
+          {
+            echo "| New-issue event count | ${CURRENT_EVENT_COUNT} | ${PREV_EVENT_COUNT} | > ${NEW_ISSUE_EVENT_THRESHOLD} |"
+            echo "| Error rate % | ${CURRENT_ERROR_RATE_PCT} | ${PREV_ERROR_RATE} | Δ > ${ERROR_RATE_DELTA_PCT} (actual Δ: ${DELTA}) |"
+            echo "| p95 transaction (ms) | ${CURRENT_P95_MS} | ${PREV_P95} | (baseline only) |"
+            echo ""
+            echo "**Previous release:** \`${PREVIOUS_SHA}\`"
+          } >> gate-summary.md
+
+          if [ "${EVENT_BREACH}" = "1" ]; then
+            STATUS="FAIL"
+            REASON="New-issue event count ${CURRENT_EVENT_COUNT} exceeded threshold ${NEW_ISSUE_EVENT_THRESHOLD}."
+          elif [ "${RATE_BREACH}" = "1" ]; then
+            STATUS="FAIL"
+            REASON="Error-rate delta ${DELTA}% exceeded threshold ${ERROR_RATE_DELTA_PCT}%."
+          else
+            STATUS="PASS"
+            REASON="All thresholds within bounds."
+          fi
+
+          {
+            echo ""
+            echo "**Status:** ${STATUS} — ${REASON}"
+          } >> gate-summary.md
+
+          echo "gate_status=${STATUS}" >> "$GITHUB_OUTPUT"
+          echo "gate_reason=${REASON}" >> "$GITHUB_OUTPUT"
+          cat gate-summary.md >> "$GITHUB_STEP_SUMMARY"
