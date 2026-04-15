@@ -293,3 +293,56 @@ jobs:
           echo "gate_status=${STATUS}" >> "$GITHUB_OUTPUT"
           echo "gate_reason=${REASON}" >> "$GITHUB_OUTPUT"
           cat gate-summary.md >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Open regression issue
+        if: steps.gate.outputs.gate_status == 'FAIL'
+        env:
+          RELEASE_SHA: ${{ steps.release.outputs.sha }}
+          SHORT_SHA: ${{ steps.release.outputs.short_sha }}
+          GATE_REASON: ${{ steps.gate.outputs.gate_reason }}
+        run: |
+          set -euo pipefail
+          SENTRY_RELEASE_URL="https://sentry.io/organizations/${SENTRY_ORG}/releases/${RELEASE_SHA}/"
+          RUN_URL="${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
+          {
+            cat gate-summary.md
+            echo ""
+            echo "---"
+            echo ""
+            echo "- **Sentry release:** ${SENTRY_RELEASE_URL}"
+            echo "- **Actions run:** ${RUN_URL}"
+            echo "- **Gate reason:** ${GATE_REASON}"
+          } > issue-body.md
+          ISSUE_URL=$(gh issue create \
+            --title "Sentry regression detected in ${SHORT_SHA}" \
+            --body-file issue-body.md \
+            --label "sentry-regression,deploy-gate" 2>&1) || {
+            echo "::warning::gh issue create failed: ${ISSUE_URL}"
+            exit 0
+          }
+          echo "Opened issue: ${ISSUE_URL}"
+          echo "**Issue:** ${ISSUE_URL}" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Exit with gate status
+        if: always()
+        env:
+          GATE_STATUS: ${{ steps.gate.outputs.gate_status }}
+        run: |
+          case "${GATE_STATUS}" in
+            FAIL)
+              echo "::error::Sentry regression gate FAILED — see gate-summary.md and opened issue."
+              exit 1
+              ;;
+            PASS_WITH_WARNING)
+              echo "::notice::Sentry regression gate PASS_WITH_WARNING (first run baseline established)."
+              exit 0
+              ;;
+            PASS)
+              echo "Sentry regression gate PASS."
+              exit 0
+              ;;
+            *)
+              echo "::error::Gate status not set — evaluate step may have failed. Treating as FAIL."
+              exit 1
+              ;;
+          esac
