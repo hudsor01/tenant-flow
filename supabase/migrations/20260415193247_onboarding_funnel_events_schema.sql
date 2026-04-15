@@ -117,3 +117,93 @@ create trigger trg_funnel_first_property
   after insert on public.properties
   for each row
   execute function public.fn_record_first_property_funnel_event();
+
+-- Trigger 3: first_tenant (tenant_invitations only per D8 forward-going
+-- policy; legacy tenants-table rows covered by backfill UNION in the backfill
+-- migration). Modern flow goes through tenant_invitations, so that is the
+-- authoritative source for live captures.
+create or replace function public.fn_record_first_tenant_funnel_event()
+  returns trigger
+  language plpgsql
+  security definer
+  set search_path = public
+as $$
+begin
+  begin
+    insert into public.onboarding_funnel_events
+      (owner_user_id, step_name, completed_at, metadata)
+    values
+      (new.owner_user_id,
+       'first_tenant',
+       coalesce(new.created_at, now()),
+       jsonb_build_object('invitation_id', new.id))
+    on conflict (owner_user_id, step_name) do nothing;
+  exception when others then
+    raise warning 'fn_record_first_tenant_funnel_event failed for invitation %: % / %',
+      new.id, sqlstate, sqlerrm;
+  end;
+  return new;
+end;
+$$;
+
+create trigger trg_funnel_first_tenant
+  after insert on public.tenant_invitations
+  for each row
+  execute function public.fn_record_first_tenant_funnel_event();
+
+-- Trigger 4: first_rent -- SHARED function body for AFTER INSERT and
+-- AFTER UPDATE OF status triggers on rent_payments.
+-- Pitfall 3 mitigation: trigger reads ONLY NEW.* and does exactly ONE SELECT
+-- against leases (read-only, different table). Never SELECT rent_payments
+-- itself (would risk deadlock on shared row locks under concurrent writes).
+create or replace function public.fn_record_first_rent_funnel_event()
+  returns trigger
+  language plpgsql
+  security definer
+  set search_path = public
+as $$
+declare
+  v_owner_user_id uuid;
+begin
+  -- Gate: only proceed if new row is succeeded AND either (a) INSERT,
+  -- or (b) status just transitioned INTO 'succeeded' from something else.
+  if new.status = 'succeeded'
+     and (tg_op = 'INSERT' or coalesce(old.status, '') is distinct from 'succeeded')
+  then
+    begin
+      select l.owner_user_id
+        into v_owner_user_id
+      from public.leases l
+      where l.id = new.lease_id;
+
+      if v_owner_user_id is not null then
+        insert into public.onboarding_funnel_events
+          (owner_user_id, step_name, completed_at, metadata)
+        values
+          (v_owner_user_id,
+           'first_rent',
+           coalesce(new.paid_date, new.created_at, now()),
+           jsonb_build_object(
+             'lease_id', new.lease_id,
+             'rent_payment_id', new.id
+           ))
+        on conflict (owner_user_id, step_name) do nothing;
+      end if;
+    exception when others then
+      raise warning 'fn_record_first_rent_funnel_event failed for rent_payment %: % / %',
+        new.id, sqlstate, sqlerrm;
+    end;
+  end if;
+  return new;
+end;
+$$;
+
+create trigger trg_funnel_first_rent_insert
+  after insert on public.rent_payments
+  for each row
+  execute function public.fn_record_first_rent_funnel_event();
+
+create trigger trg_funnel_first_rent_update
+  after update of status on public.rent_payments
+  for each row
+  execute function public.fn_record_first_rent_funnel_event();
