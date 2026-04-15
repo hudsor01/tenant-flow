@@ -109,5 +109,82 @@ jobs:
           echo "Sleeping ${OBSERVATION_WINDOW_MINUTES} minute(s) for Sentry to receive error/session signal..."
           sleep "${OBSERVATION_WINDOW_MINUTES}m"
 
-      # Sentry query, baseline fetch, gate evaluation, issue creation, artifact upload
-      # steps are added in Tasks 2-5 below. Task 1 stops here.
+      - name: Confirm release exists in Sentry
+        env:
+          RELEASE_SHA: ${{ steps.release.outputs.sha }}
+        run: |
+          STATUS=$(curl -sS -o /dev/null -w "%{http_code}" \
+            "https://sentry.io/api/0/organizations/${SENTRY_ORG}/releases/${RELEASE_SHA}/" \
+            -H "Authorization: Bearer ${SENTRY_AUTH_TOKEN}")
+          if [ "${STATUS}" = "404" ]; then
+            echo "::error::Sentry release ${RELEASE_SHA} not found. Check that @sentry/nextjs setCommits succeeded in the Vercel build. See next.config.ts:65-70."
+            exit 1
+          fi
+          if [ "${STATUS}" != "200" ]; then
+            echo "::error::Sentry releases API returned HTTP ${STATUS}. Check SENTRY_AUTH_TOKEN scopes (project:read required)."
+            exit 1
+          fi
+          echo "Release ${RELEASE_SHA} confirmed in Sentry."
+
+      - name: Query Sentry issues (new unresolved)
+        id: sentry_issues
+        env:
+          RELEASE_SHA: ${{ steps.release.outputs.sha }}
+        run: |
+          set -euo pipefail
+          curl -sS -f -G "https://sentry.io/api/0/organizations/${SENTRY_ORG}/issues/" \
+            -H "Authorization: Bearer ${SENTRY_AUTH_TOKEN}" \
+            --data-urlencode "project=${SENTRY_PROJECT}" \
+            --data-urlencode "environment=production" \
+            --data-urlencode "query=release:${RELEASE_SHA} is:unresolved age:-${OBSERVATION_WINDOW_MINUTES}m" \
+            --data-urlencode "sort=new" \
+            --data-urlencode "limit=100" \
+            -o current-issues.json
+          EVENT_COUNT=$(jq '[.[] | .count | tonumber] | add // 0' current-issues.json)
+          NEW_ISSUE_COUNT=$(jq 'length' current-issues.json)
+          echo "event_count_new_issues=${EVENT_COUNT}" >> "$GITHUB_OUTPUT"
+          echo "new_issue_count=${NEW_ISSUE_COUNT}" >> "$GITHUB_OUTPUT"
+          echo "Captured ${NEW_ISSUE_COUNT} new unresolved issue(s) with ${EVENT_COUNT} total events."
+
+      - name: Query Sentry sessions (crash-free rate)
+        id: sentry_sessions
+        env:
+          RELEASE_SHA: ${{ steps.release.outputs.sha }}
+        run: |
+          set -euo pipefail
+          curl -sS -f -G "https://sentry.io/api/0/organizations/${SENTRY_ORG}/sessions/" \
+            -H "Authorization: Bearer ${SENTRY_AUTH_TOKEN}" \
+            --data-urlencode "project=${SENTRY_PROJECT}" \
+            --data-urlencode "environment=production" \
+            --data-urlencode "field=sum(session)" \
+            --data-urlencode "field=crash_free_rate(session)" \
+            --data-urlencode "statsPeriod=1h" \
+            --data-urlencode "query=release:${RELEASE_SHA}" \
+            -o current-sessions.json
+          # Default crash_free_rate to 1.0 if no sessions recorded yet (avoid false positive).
+          CRASH_FREE=$(jq '[.groups[]? | select((.by // {}) | length == 0) | .totals["crash_free_rate(session)"]] | first // 1' current-sessions.json)
+          ERROR_RATE_PCT=$(awk -v cf="${CRASH_FREE}" 'BEGIN { printf "%.4f", (1 - cf) * 100 }')
+          echo "error_rate_pct=${ERROR_RATE_PCT}" >> "$GITHUB_OUTPUT"
+          echo "Crash-free rate: ${CRASH_FREE} → error rate ${ERROR_RATE_PCT}%"
+
+      - name: Query Sentry transactions (p95 — baseline only)
+        id: sentry_transactions
+        env:
+          RELEASE_SHA: ${{ steps.release.outputs.sha }}
+        run: |
+          set -euo pipefail
+          # Baseline metric only — not gated per 43-RESEARCH.md line 654. Captured for
+          # post-mortem trend analysis via the 90-day artifact.
+          curl -sS -f -G "https://sentry.io/api/0/organizations/${SENTRY_ORG}/events-stats/" \
+            -H "Authorization: Bearer ${SENTRY_AUTH_TOKEN}" \
+            --data-urlencode "project=${SENTRY_PROJECT}" \
+            --data-urlencode "environment=production" \
+            --data-urlencode "query=release:${RELEASE_SHA}" \
+            --data-urlencode "yAxis=p95(transaction.duration)" \
+            --data-urlencode "statsPeriod=1h" \
+            -o current-transactions.json || true
+          # events-stats response shape: { data: [[timestamp, [{count: <ms>}]], ...] }.
+          # If query returns no data (low traffic), default to null.
+          P95_MS=$(jq '[.data[]? | .[1][0].count // empty] | if length == 0 then 0 else (add / length) end' current-transactions.json 2>/dev/null || echo "0")
+          echo "transactions_p95_ms=${P95_MS}" >> "$GITHUB_OUTPUT"
+          echo "p95 transaction duration: ${P95_MS}ms"
