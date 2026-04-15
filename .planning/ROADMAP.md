@@ -157,7 +157,10 @@ Plans:
   5. Admin analytics view renders the funnel RPC output as a stepped visualization with conversion percentages and drop-off highlighting
   6. All new RPCs have RLS tests in `tests/integration/rls/` proving non-admin users are rejected and admin users get correct aggregated data
   7. `pnpm typecheck && pnpm lint && pnpm test:unit` passes with zero errors
-**Plans:** TBD (likely 3 plans: deliverability ingestion + table + admin RPC; funnel event tracking + backfill + funnel RPC; admin UI wiring)
+**Plans:** 3 plans (2 complete):
+- [x] 44-01-PLAN.md -- Deliverability ingestion (ANALYTICS-01, ANALYTICS-02): email_deliverability table + archive + cleanup cron + resend-webhook Edge Function + get_deliverability_stats RPC + getAdminTestCredentials helper + RLS test (completed 2026-04-15, 6 commits; Task 7 db:types deferred to Wave 0)
+- [x] 44-02-PLAN.md -- Funnel event tracking + backfill + funnel RPC (ANALYTICS-03, ANALYTICS-04): onboarding_funnel_events table + 4 trigger fns + 5 triggers + get_funnel_stats RPC + idempotent backfill_funnel_events (D8 union) + RLS test (completed 2026-04-15, 6 commits; Task 7 db:types deferred to Wave 0)
+- [ ] 44-03-PLAN.md -- Admin UI wiring (ANALYTICS-05)
 **UI hint**: yes
 
 ## Progress
@@ -170,4 +173,4 @@ v1.7 phases (41-44) can execute in any order -- they are independent and share n
 | 41. Payment Correctness & Split-Rent Tests | v1.7 | 3/3 | Complete    | 2026-04-13 |
 | 42. Cancellation UX End-to-End Audit + Fix | v1.7 | 2/2 | Complete    | 2026-04-14 |
 | 43. Post-Deploy Sentry Regression Gate | v1.7 | 1/1 | Complete    | 2026-04-14 |
-| 44. Deliverability + Funnel Analytics | v1.7 | 0/TBD | Not started | - |
+| 44. Deliverability + Funnel Analytics | v1.7 | 2/3 | In Progress | - |

@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.7
 milestone_name: Launch Readiness
-status: complete
-stopped_at: Phase 43 verified (DEPLOY-01/02 4/4 PASS-WITH-FOLLOWUPS) — post-deploy sentry regression gate workflow shipped, operator live-verify deferred
-last_updated: "2026-04-14T23:52:00.000Z"
-last_activity: 2026-04-14
+status: in-progress
+stopped_at: Phase 44-02 executed (6 atomic commits) — onboarding funnel schema + triggers + admin RPC + backfill + RLS test shipped. Task 7 (pnpm db:types) deferred to Wave 0 (Supabase CLI TLS cert error in sandbox)
+last_updated: "2026-04-15T15:24:00.000Z"
+last_activity: 2026-04-15
 progress:
   total_phases: 4
   completed_phases: 3
-  total_plans: 6
-  completed_plans: 6
-  percent: 100
+  total_plans: 9
+  completed_plans: 8
+  percent: 89
 ---
 
 # Project State: TenantFlow
@@ -21,15 +21,15 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-13)
 
 **Core value:** A landlord can add a property, invite a tenant, collect rent, and see their financials -- without touching a spreadsheet or calling anyone.
-**Current focus:** Phase 43 — Post-Deploy Sentry Regression Gate
+**Current focus:** Phase 44 — Deliverability + Funnel Analytics (Wave 2)
 
 ## Current Position
 
-Phase: 43
-Plan: 43-01 executed (6 atomic commits) — post-deploy-sentry-gate.yml (398 lines)
+Phase: 44
+Plan: 44-02 executed (6 atomic commits) — onboarding_funnel_events schema + 4 trigger fns + 5 triggers + get_funnel_stats RPC + backfill + integration test
 Milestone: v1.7 Launch Readiness
-Status: Phase complete — verifier PASS-WITH-FOLLOWUPS (3 live-verify operator actions: secrets, Vercel dispatch events enable, smoke run)
-Last activity: 2026-04-14
+Status: Plan 44-02 complete — 6/7 tasks shipped. Task 7 (pnpm db:types) deferred to Wave 0 operator action (Supabase CLI TLS auth gate in sandbox, same as Plan 44-01). typecheck PASS, lint PASS, 1632 unit tests PASS.
+Last activity: 2026-04-15
 
 ## Shipped Milestones
 
@@ -73,6 +73,12 @@ Last activity: 2026-04-14
 - [Phase 42-02]: `SubscriptionCancelSection` is a 3-state machine gated on `(subscriptionStatus, cancelAtPeriodEnd)` — State 1 Active, State 2 Cancel-scheduled (grace window), State 3 Canceled (terminal). Returns `null` for `past_due`/`unpaid` (delegates to `SubscriptionStatusBanner`)
 - [Phase 42-02]: AlertDialog confirm uses `event.preventDefault()` + manual `setDialogOpen(false)` only on success — prevents dialog close during pending mutation (would lose the `Canceling...` spinner)
 - [Phase 42-02]: Playwright spec uses `test.skip(condition, reason)` — if seeded owner has no Stripe test-mode subscription, the spec skips with a clear reason rather than silently passing
+- [Phase 44-02]: Signup-cohort semantics (D2) — `get_funnel_stats` cohort = owners whose signup falls in [p_from, p_to]; downstream steps counted at ANY time (not windowed). `cohort_label` key in jsonb return lets UI header display "owners who signed up between X and Y" (Pitfall 5 mitigation)
+- [Phase 44-02]: D8 backfill union — `backfill_funnel_events()` Step 3 unions `tenant_invitations` (modern flow) with `tenants → lease_tenants → leases.owner_user_id` (legacy direct-tenant flow pre-v1.3). `public.tenants` has NO direct `owner_user_id` — join walks via lease_tenants.
+- [Phase 44-02]: Trigger-deadlock avoidance (Pitfall 3) — `fn_record_first_rent_funnel_event` reads ONLY `NEW.*` + ONE SELECT against `leases`, never against `rent_payments` itself. ON CONFLICT DO NOTHING on composite UNIQUE (owner_user_id, step_name) releases without waiting on concurrent writers.
+- [Phase 44-02]: Exception-swallowing pattern — every trigger function wraps INSERT in `BEGIN / EXCEPTION WHEN others THEN RAISE WARNING / END` so funnel-insert failure NEVER fails source writes. Accepted residual risk T-44-02-06 (silent drift via RAISE WARNING visible in Supabase logs + Sentry).
+- [Phase 44-02]: Migration timestamp ordering — Plan 2's 20260415193247/48/49 strictly greater than Plan 1's 193245/46. Internal order schema+triggers < rpc < backfill ensures triggers exist before backfill runs (backfill uses same ON CONFLICT target).
+- [Phase 44-02]: Task 7 (pnpm db:types) deferred to Wave 0 operator action — same TLS cert gate hit by Plan 44-01 (sandbox cannot reach api.supabase.com). Operator must run `supabase login` + `pnpm db:types` + commit as `chore(phase-44): regenerate supabase types for funnel events + RPC`.
 
 ### Quick Tasks Completed
 
@@ -82,6 +88,6 @@ Last activity: 2026-04-14
 
 ## Session Continuity
 
-Last session: 2026-04-14T23:52:00.000Z
-Stopped at: Phase 43 executed — 6 atomic commits building post-deploy-sentry-gate.yml workflow. DEPLOY-01 (post-deploy Sentry query + baseline snapshot) and DEPLOY-02 (fail-on-regression with configurable thresholds) both verified. Alert-only (GitHub issue + workflow-fail, no auto-rollback). Operator setup deferred: set 3 Sentry repo secrets, optionally set 3 threshold repo variables, enable Vercel GitHub integration dispatch events, run smoke test.
-Resume file: .planning/phases/43-post-deploy-sentry-regression-gate/43-SUMMARY.md
+Last session: 2026-04-15T15:24:00.000Z
+Stopped at: Phase 44-02 executed — 6 atomic commits: onboarding_funnel_events table+RLS (63f346dde), signup/first_property triggers (1c633d8e5), first_tenant/first_rent triggers (615c8858b), get_funnel_stats RPC (90c264ef6), idempotent backfill w/D8 union (c3a30b2e3), RLS integration test (8737626c0). Task 7 (pnpm db:types) deferred to Wave 0 (Supabase CLI TLS cert error in sandbox). Types file restored intact (3089 lines). typecheck + lint + 1632 unit tests PASS.
+Resume file: .planning/phases/44-deliverability-funnel-analytics/44-02-SUMMARY.md

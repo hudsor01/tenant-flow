@@ -44,8 +44,8 @@
 
 ### Funnel Analytics (Stage 5 / Phase 44)
 
-- [ ] **ANALYTICS-03**: Key onboarding funnel steps are tracked server-side on the events that actually complete them: signup (users row created), first property added, first tenant invited, first rent collected (first `rent_payments.status = 'succeeded'` for the owner). Events are stored with owner user id, step name, and timestamp; retroactive backfill runs once over existing users.
-- [ ] **ANALYTICS-04**: A SECURITY DEFINER RPC returns aggregate funnel stats (count at each step, conversion rate between steps, median time between steps) scoped to a date range, with `is_admin()` guard.
+- [x] **ANALYTICS-03**: Key onboarding funnel steps are tracked server-side on the events that actually complete them: signup (users row created), first property added, first tenant invited, first rent collected (first `rent_payments.status = 'succeeded'` for the owner). Events are stored with owner user id, step name, and timestamp; retroactive backfill runs once over existing users.
+- [x] **ANALYTICS-04**: A SECURITY DEFINER RPC returns aggregate funnel stats (count at each step, conversion rate between steps, median time between steps) scoped to a date range, with `is_admin()` guard.
 - [ ] **ANALYTICS-05**: Admin analytics view renders the funnel RPC output as a stepped visualization with conversion percentages and drop-off highlighting, so the team can see where 20-door-focused owners stall before their first collected rent.
 
 ## Out of Scope (explicit)
