@@ -52,3 +52,68 @@ comment on column public.onboarding_funnel_events.recorded_at is
   'When THIS row was inserted into the funnel table. Equals completed_at for live trigger-driven rows; differs for backfilled historical rows.';
 comment on column public.onboarding_funnel_events.metadata is
   'Event-specific context (e.g., property_id for first_property, lease_id+rent_payment_id for first_rent). Defaults to {} - never null - to keep aggregation SQL simple.';
+
+-- =============================================================================
+-- Part B: Trigger functions + triggers
+-- All SECURITY DEFINER with set search_path = public. Each INSERT is wrapped
+-- in BEGIN/EXCEPTION WHEN others THEN RAISE WARNING so a funnel-insert failure
+-- NEVER fails the source table write (Pitfall 3 mitigation).
+-- =============================================================================
+
+-- Trigger 1: signup (ANY user_type -- filtered downstream by presence of
+-- owner-only steps; user_type could transition PENDING -> OWNER post-insert)
+create or replace function public.fn_record_signup_funnel_event()
+  returns trigger
+  language plpgsql
+  security definer
+  set search_path = public
+as $$
+begin
+  begin
+    insert into public.onboarding_funnel_events (owner_user_id, step_name, completed_at)
+    values (new.id, 'signup', coalesce(new.created_at, now()))
+    on conflict (owner_user_id, step_name) do nothing;
+  exception when others then
+    raise warning 'fn_record_signup_funnel_event failed for user %: % / %',
+      new.id, sqlstate, sqlerrm;
+  end;
+  return new;
+end;
+$$;
+
+create trigger trg_funnel_signup
+  after insert on public.users
+  for each row
+  execute function public.fn_record_signup_funnel_event();
+
+-- Trigger 2: first_property (fires for every property insert; earliest wins
+-- via ON CONFLICT). No status filter: soft-deleted properties still count as
+-- "first property reached" (funnel captures intent, not current state).
+create or replace function public.fn_record_first_property_funnel_event()
+  returns trigger
+  language plpgsql
+  security definer
+  set search_path = public
+as $$
+begin
+  begin
+    insert into public.onboarding_funnel_events
+      (owner_user_id, step_name, completed_at, metadata)
+    values
+      (new.owner_user_id,
+       'first_property',
+       coalesce(new.created_at, now()),
+       jsonb_build_object('property_id', new.id))
+    on conflict (owner_user_id, step_name) do nothing;
+  exception when others then
+    raise warning 'fn_record_first_property_funnel_event failed for property %: % / %',
+      new.id, sqlstate, sqlerrm;
+  end;
+  return new;
+end;
+$$;
+
+create trigger trg_funnel_first_property
+  after insert on public.properties
+  for each row
+  execute function public.fn_record_first_property_funnel_event();
