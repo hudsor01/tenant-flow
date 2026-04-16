@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.7
 milestone_name: Launch Readiness
-status: in-progress
-stopped_at: Phase 44-02 executed (6 atomic commits) — onboarding funnel schema + triggers + admin RPC + backfill + RLS test shipped. Task 7 (pnpm db:types) deferred to Wave 0 (Supabase CLI TLS cert error in sandbox)
-last_updated: "2026-04-15T15:24:00.000Z"
+status: complete
+stopped_at: Phase 44-03 executed (8 atomic commits) — admin analytics UI shipped. v1.7 milestone complete (all 9 plans across 4 phases shipped).
+last_updated: "2026-04-15T20:35:00.000Z"
 last_activity: 2026-04-15
 progress:
   total_phases: 4
-  completed_phases: 3
+  completed_phases: 4
   total_plans: 9
-  completed_plans: 8
-  percent: 89
+  completed_plans: 9
+  percent: 100
 ---
 
 # Project State: TenantFlow
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-13)
 
 **Core value:** A landlord can add a property, invite a tenant, collect rent, and see their financials -- without touching a spreadsheet or calling anyone.
-**Current focus:** Phase 44 — Deliverability + Funnel Analytics (Wave 2)
+**Current focus:** v1.7 Launch Readiness milestone complete
 
 ## Current Position
 
-Phase: 44
-Plan: 44-02 executed (6 atomic commits) — onboarding_funnel_events schema + 4 trigger fns + 5 triggers + get_funnel_stats RPC + backfill + integration test
+Phase: 44 (final)
+Plan: 44-03 executed (8 atomic commits) — admin route group + /admin/analytics page + deliverability table + funnel chart + typed hooks + Playwright E2E + RLS test
 Milestone: v1.7 Launch Readiness
-Status: Plan 44-02 complete — 6/7 tasks shipped. Task 7 (pnpm db:types) deferred to Wave 0 operator action (Supabase CLI TLS auth gate in sandbox, same as Plan 44-01). typecheck PASS, lint PASS, 1632 unit tests PASS.
+Status: All 9 plans complete. typecheck PASS, lint PASS, 1632 unit tests PASS, pnpm build PASS. Wave 0 operator actions pending (apply migrations, regen types, provision admin test user, configure Resend webhook).
 Last activity: 2026-04-15
 
 ## Shipped Milestones
@@ -79,6 +79,11 @@ Last activity: 2026-04-15
 - [Phase 44-02]: Exception-swallowing pattern — every trigger function wraps INSERT in `BEGIN / EXCEPTION WHEN others THEN RAISE WARNING / END` so funnel-insert failure NEVER fails source writes. Accepted residual risk T-44-02-06 (silent drift via RAISE WARNING visible in Supabase logs + Sentry).
 - [Phase 44-02]: Migration timestamp ordering — Plan 2's 20260415193247/48/49 strictly greater than Plan 1's 193245/46. Internal order schema+triggers < rpc < backfill ensures triggers exist before backfill runs (backfill uses same ON CONFLICT target).
 - [Phase 44-02]: Task 7 (pnpm db:types) deferred to Wave 0 operator action — same TLS cert gate hit by Plan 44-01 (sandbox cannot reach api.supabase.com). Operator must run `supabase login` + `pnpm db:types` + commit as `chore(phase-44): regenerate supabase types for funnel events + RPC`.
+- [Phase 44-03]: RPC field names differ from plan doc: step names are signup/first_property/first_tenant/first_rent (not first_tenant_invited/first_rent_collected); RPC shape uses 'from'/'to' keys (not cohort_from/cohort_to); column names are sent_count/delivered_count/etc (not sent/delivered). Mappers adjusted to match actual SQL.
+- [Phase 44-03]: Bounce/complaint rates from get_deliverability_stats are in percentage points (0..100), not fractions — the SQL multiplies by 100. DeliverabilityStats uses bouncePercent/complaintPercent naming.
+- [Phase 44-03]: src/lib/supabase/server.ts exports createClient() not createServerClient() — plan code snippet was inaccurate; layout + page use the correct import.
+- [Phase 44-03]: getAdminTestCredentials() already existed from Plan 1 Task 4 — no duplicate added in Task 8.
+- [Phase 44-03]: funnel-renderer.tsx (recharts-only code-split module) created but was missing from plan's files_modified frontmatter.
 
 ### Quick Tasks Completed
 
@@ -88,6 +93,6 @@ Last activity: 2026-04-15
 
 ## Session Continuity
 
-Last session: 2026-04-15T15:24:00.000Z
-Stopped at: Phase 44-02 executed — 6 atomic commits: onboarding_funnel_events table+RLS (63f346dde), signup/first_property triggers (1c633d8e5), first_tenant/first_rent triggers (615c8858b), get_funnel_stats RPC (90c264ef6), idempotent backfill w/D8 union (c3a30b2e3), RLS integration test (8737626c0). Task 7 (pnpm db:types) deferred to Wave 0 (Supabase CLI TLS cert error in sandbox). Types file restored intact (3089 lines). typecheck + lint + 1632 unit tests PASS.
-Resume file: .planning/phases/44-deliverability-funnel-analytics/44-02-SUMMARY.md
+Last session: 2026-04-15T20:35:00.000Z
+Stopped at: Phase 44-03 executed — 8 atomic commits: proxy /admin/* gate (bc9a369fe), deliverability types+keys+hook (2a53615ee), funnel types+keys+hook (123b73fa1), DeliverabilityTable (02b8183f7), FunnelChart+Renderer (6194de10c), admin layout+page (ba2366073), Playwright E2E (cd7c20901), RLS test (1e2e8e8c0). v1.7 milestone complete — 9/9 plans shipped.
+Resume file: .planning/phases/44-deliverability-funnel-analytics/44-03-SUMMARY.md
