@@ -108,11 +108,11 @@ None. v1.7 shipped 2026-04-15. Next milestone scope TBD — run `/gsd:new-milest
 
 ## Wave 0 Operator Actions (v1.7)
 
-These deferred operator actions must complete before v1.7 is fully production-live (the code is shipped, but external integrations need wiring):
+Status: 2/4 complete (CLI-applicable items done 2026-04-16). Remaining items require dashboard or CI access.
 
-1. Apply 5 Phase 44 migrations (`20260415193245`..`193249`) to live Supabase project
-2. Run `supabase login && pnpm db:types && git commit src/types/supabase.ts`
-3. Configure Resend webhook → deployed `resend-webhook` Edge Function URL + `RESEND_WEBHOOK_SECRET`
-4. Provision admin test user (`users.user_type = 'ADMIN'`) + set `E2E_ADMIN_EMAIL`/`E2E_ADMIN_PASSWORD` in CI
+1. ~~Apply 5 Phase 44 migrations (`20260415193245`..`193249`)~~ — **DONE 2026-04-16** (commit `7da87331d`)
+2. ~~Run `supabase login && pnpm db:types && git commit src/types/supabase.ts`~~ — **DONE 2026-04-16** (commit `7da87331d`)
+3. Configure Resend webhook → deployed `resend-webhook` Edge Function URL + `RESEND_WEBHOOK_SECRET` *(Resend dashboard)*
+4. Provision admin test user (`users.user_type = 'ADMIN'`) + set `E2E_ADMIN_EMAIL`/`E2E_ADMIN_PASSWORD` in CI *(Supabase dashboard + GitHub Actions Secrets)*
 
 See `milestones/v1.7-ROADMAP.md` for details.
