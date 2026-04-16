@@ -2,10 +2,10 @@
 gsd_state_version: 1.0
 milestone: v1.7
 milestone_name: Launch Readiness
-status: complete
-stopped_at: Phase 44-03 executed (8 atomic commits) — admin analytics UI shipped. v1.7 milestone complete (all 9 plans across 4 phases shipped).
-last_updated: "2026-04-15T20:35:00.000Z"
-last_activity: 2026-04-15
+status: archived
+stopped_at: v1.7 milestone archived to milestones/v1.7-ROADMAP.md + milestones/v1.7-REQUIREMENTS.md. Main ROADMAP collapsed v1.7 into <details> block matching v1.0-v1.6 pattern. Wave 0 operator actions still pending (apply 5 migrations, regen types, configure Resend webhook, provision admin test user).
+last_updated: "2026-04-16T00:00:00.000Z"
+last_activity: 2026-04-16
 progress:
   total_phases: 4
   completed_phases: 4
@@ -21,15 +21,15 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-13)
 
 **Core value:** A landlord can add a property, invite a tenant, collect rent, and see their financials -- without touching a spreadsheet or calling anyone.
-**Current focus:** v1.7 Launch Readiness milestone complete
+**Current focus:** No active milestone. v1.7 Launch Readiness archived. Run `/gsd:new-milestone vX.Y <name>` to scope the next one.
 
 ## Current Position
 
-Phase: 44 (final)
-Plan: 44-03 executed (8 atomic commits) — admin route group + /admin/analytics page + deliverability table + funnel chart + typed hooks + Playwright E2E + RLS test
-Milestone: v1.7 Launch Readiness
-Status: v1.7 COMPLETE. Verifier PASS 7/7 (all human-verify items resolved via code inspection). Wave 0 operator actions pending (apply migrations, regen types, provision admin test user, configure Resend webhook).
-Last activity: 2026-04-15
+Phase: -- (no active milestone)
+Plan: -- (v1.7 archived to milestones/v1.7-ROADMAP.md)
+Milestone: v1.7 Launch Readiness — ARCHIVED 2026-04-16
+Status: v1.7 COMPLETE + ARCHIVED. Verifier PASS 7/7. Wave 0 operator actions still pending: apply 5 Phase 44 migrations, run `pnpm db:types`, configure Resend webhook, provision admin test user.
+Last activity: 2026-04-16
 
 ## Shipped Milestones
 
@@ -94,6 +94,6 @@ Last activity: 2026-04-15
 
 ## Session Continuity
 
-Last session: 2026-04-15T20:45:00.000Z
-Stopped at: v1.7 Launch Readiness milestone COMPLETE — all 4 phases (41-44), 9 plans, 22 Phase 44 commits. Verifier PASS 7/7 success criteria. 3 human-verify items pending (admin page rendering, non-admin redirect, unauthenticated redirect). Wave 0 operator actions pending (apply 5 migrations, regen types, provision admin user, configure Resend webhook).
-Resume file: .planning/phases/44-deliverability-funnel-analytics/44-VERIFICATION.md
+Last session: 2026-04-16T00:00:00.000Z
+Stopped at: v1.7 Launch Readiness milestone ARCHIVED. Created milestones/v1.7-ROADMAP.md + milestones/v1.7-REQUIREMENTS.md, collapsed v1.7 into <details> block in main ROADMAP. No active milestone. Wave 0 operator actions still pending (apply 5 Phase 44 migrations, regen types, configure Resend webhook, provision admin test user) — see milestones/v1.7-ROADMAP.md "Wave 0 Operator Actions" section.
+Resume file: .planning/ROADMAP.md (collapsed v1.7) — start next milestone with `/gsd:new-milestone vX.Y <name>`
