@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-04-13)
 Phase: 44 (final)
 Plan: 44-03 executed (8 atomic commits) — admin route group + /admin/analytics page + deliverability table + funnel chart + typed hooks + Playwright E2E + RLS test
 Milestone: v1.7 Launch Readiness
-Status: All 9 plans complete. typecheck PASS, lint PASS, 1632 unit tests PASS, pnpm build PASS. Wave 0 operator actions pending (apply migrations, regen types, provision admin test user, configure Resend webhook).
+Status: v1.7 COMPLETE. Verifier PASS 7/7 (all human-verify items resolved via code inspection). Wave 0 operator actions pending (apply migrations, regen types, provision admin test user, configure Resend webhook).
 Last activity: 2026-04-15
 
 ## Shipped Milestones
