@@ -108,11 +108,11 @@ None. v1.7 shipped 2026-04-15. Next milestone scope TBD — run `/gsd:new-milest
 
 ## Wave 0 Operator Actions (v1.7)
 
-Status: 2/4 complete (CLI-applicable items done 2026-04-16). Remaining items require dashboard or CI access.
+Status: 3.5/4 complete (only Resend dashboard webhook registration remaining).
 
 1. ~~Apply 5 Phase 44 migrations (`20260415193245`..`193249`)~~ — **DONE 2026-04-16** (commit `7da87331d`)
 2. ~~Run `supabase login && pnpm db:types && git commit src/types/supabase.ts`~~ — **DONE 2026-04-16** (commit `7da87331d`)
-3. Configure Resend webhook → deployed `resend-webhook` Edge Function URL + `RESEND_WEBHOOK_SECRET` *(Resend dashboard)*
-4. Provision admin test user (`users.user_type = 'ADMIN'`) + set `E2E_ADMIN_EMAIL`/`E2E_ADMIN_PASSWORD` in CI *(Supabase dashboard + GitHub Actions Secrets)*
+3. Configure Resend webhook — **PARTIALLY DONE 2026-04-16**: Edge Function deployed + `RESEND_WEBHOOK_SECRET` set; operator must register webhook URL in Resend dashboard
+4. ~~Provision admin test user~~ — **DONE 2026-04-16**: `e2e-admin@tenantflow.app` (id `e4364d5c…`) with `user_type=ADMIN`; `E2E_ADMIN_EMAIL`/`PASSWORD` in GH secrets
 
 See `milestones/v1.7-ROADMAP.md` for details.

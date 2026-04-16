@@ -3,7 +3,7 @@ gsd_state_version: 1.0
 milestone: v1.7
 milestone_name: Launch Readiness
 status: archived
-stopped_at: v1.7 milestone archived. Wave 0 actions 1+2 (apply 5 Phase 44 migrations + regenerate types) DONE 2026-04-16 via commits 0a013bb71 + 7da87331d. Migration ledger drift resolved (6 dashboard-applied migrations backfilled to local + 7 already-shipped local migrations marked applied). Wave 0 actions 3+4 (Resend webhook + admin test user) still pending — dashboard/CI access only.
+stopped_at: v1.7 milestone archived. Wave 0 actions 1, 2, 4 DONE 2026-04-16 (migrations applied + types regenerated + admin user e2e-admin@tenantflow.app provisioned with E2E_ADMIN_EMAIL/PASSWORD in GH secrets). Wave 0 action 3 PARTIAL: resend-webhook Edge Function deployed (v1, ACTIVE) + RESEND_WEBHOOK_SECRET set in Supabase secrets — only Resend dashboard webhook registration remaining (operator must paste URL+secret at https://resend.com/webhooks).
 last_updated: "2026-04-16T00:00:00.000Z"
 last_activity: 2026-04-16
 progress:
@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-04-13)
 Phase: -- (no active milestone)
 Plan: -- (v1.7 archived to milestones/v1.7-ROADMAP.md)
 Milestone: v1.7 Launch Readiness — ARCHIVED 2026-04-16
-Status: v1.7 COMPLETE + ARCHIVED. Verifier PASS 7/7. Wave 0: 2/4 done (migrations applied + types regenerated 2026-04-16). Pending: Resend webhook config + admin test user provisioning (both require dashboard).
+Status: v1.7 COMPLETE + ARCHIVED. Verifier PASS 7/7. Wave 0: 3.5/4 done (migrations + types + admin user 2026-04-16; resend-webhook deployed + secret set). Only remaining: Resend dashboard webhook URL registration.
 Last activity: 2026-04-16
 
 ## Shipped Milestones
@@ -95,5 +95,5 @@ Last activity: 2026-04-16
 ## Session Continuity
 
 Last session: 2026-04-16T00:00:00.000Z
-Stopped at: v1.7 Launch Readiness milestone ARCHIVED + Wave 0 partial. Wave 0 actions 1 (apply 5 Phase 44 migrations to live Supabase) and 2 (regenerate types) DONE 2026-04-16. Migration drift between local and remote resolved: 6 dashboard-applied migrations (2026-03-30 stabilize_tenant_invitations re-apply + 5 Supabase Security Advisor fixes from 2026-04-03) backfilled to local files; 7 already-shipped local migrations marked applied via `supabase migration repair`. Two commits landed (0a013bb71, 7da87331d) and pushed. Wave 0 actions 3 (Resend webhook config) + 4 (admin test user) still pending — both require dashboard access not available from CLI. No active milestone.
+Stopped at: v1.7 Launch Readiness milestone ARCHIVED + Wave 0 nearly complete. Actions 1+2 (migrations applied + types regenerated) DONE via commits 0a013bb71 + 7da87331d + 7b50460e1. Migration drift resolved (6 dashboard migrations backfilled to local). Wave 0 #3 PARTIAL: resend-webhook Edge Function deployed via supabase CLI (v1, ACTIVE, verify_jwt=false) + RESEND_WEBHOOK_SECRET set in Supabase Edge Function secrets (Svix whsec_ format) — only Resend dashboard URL registration remains (operator paste). Wave 0 #4 DONE: e2e-admin@tenantflow.app (id e4364d5c-b6d6-43eb-bc95-9ecc899aa52f) created via Auth Admin API, public.users.user_type=ADMIN (immutability trigger temp-disabled and restored), login verified end-to-end (200 with app_metadata.user_type=ADMIN), E2E_ADMIN_EMAIL/E2E_ADMIN_PASSWORD written to GH repo secrets via gh CLI. No active milestone.
 Resume file: .planning/ROADMAP.md (collapsed v1.7) — start next milestone with `/gsd:new-milestone vX.Y <name>`
