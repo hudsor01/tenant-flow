@@ -331,6 +331,11 @@ allow_dynamic_registration = false
 [functions.stripe-sync]
 verify_jwt = false
 
+# DocuSeal — uses handler.ts as entrypoint (not index.ts). Tier-gate + action
+# dispatch live in handler.ts; entitlement.ts is the entitlement helper.
+[functions.docuseal]
+entrypoint = "./functions/docuseal/handler.ts"
+
 [edge_runtime]
 enabled = true
 # Supported request policies: `oneshot`, `per_worker`.
