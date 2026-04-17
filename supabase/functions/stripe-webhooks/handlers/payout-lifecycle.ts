@@ -58,15 +58,28 @@ export async function handlePayoutLifecycle(
   if (event.type === 'payout.paid') {
     basePayload.paid_at = new Date(event.created * 1000).toISOString()
 
-    // Find earliest charge in this payout by walking balance transactions on the connected account
+    // Find earliest charge in this payout by walking ALL balance transactions on the connected account.
+    // Stripe sorts descending by `created`, so the first 100 are the NEWEST — the true earliest
+    // charge could be on a later page. Auto-paginate to capture every transaction.
+    // Hard cap at 10K to bound worst-case API cost (a typical owner payout has <500 charges).
     try {
-      const txns = await stripe.balanceTransactions.list(
+      const chargeIds: string[] = []
+      const MAX_TRANSACTIONS = 10_000
+      const iterator = stripe.balanceTransactions.list(
         { payout: payout.id, limit: 100, type: 'charge' },
         { stripeAccount: accountId },
       )
-      const chargeIds = txns.data
-        .map((t) => (typeof t.source === 'string' ? t.source : (t.source as Stripe.Charge | null)?.id))
-        .filter((id): id is string => typeof id === 'string')
+      for await (const txn of iterator) {
+        const id = typeof txn.source === 'string' ? txn.source : (txn.source as Stripe.Charge | null)?.id
+        if (typeof id === 'string') chargeIds.push(id)
+        if (chargeIds.length >= MAX_TRANSACTIONS) {
+          captureWebhookWarning('[payout-lifecycle] Hit MAX_TRANSACTIONS cap; first_charge_at may be inaccurate', {
+            payout_id: payout.id,
+            cap: MAX_TRANSACTIONS,
+          })
+          break
+        }
+      }
 
       if (chargeIds.length > 0) {
         const { data: earliestPayment } = await supabase

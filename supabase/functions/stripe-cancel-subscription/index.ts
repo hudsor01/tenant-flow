@@ -80,11 +80,26 @@ Deno.serve(async (req: Request) => {
       )
     }
 
-    // Guard: cannot reactivate a fully canceled subscription (Stripe returns 400 if we try).
-    if (action === 'reactivate' && subscription.status === 'canceled') {
+    // Guards: Stripe rejects update() on a `canceled` subscription with 400. Catch this
+    // before calling Stripe so the caller gets a meaningful response (UI can render the
+    // appropriate empty/lapsed state) instead of an opaque 500.
+    if (subscription.status === 'canceled') {
+      if (action === 'reactivate') {
+        return new Response(
+          JSON.stringify({ error: 'Subscription has ended. Please subscribe again from /pricing.' }),
+          { status: 400, headers: getJsonHeaders(req) },
+        )
+      }
+      // action === 'cancel' on an already-canceled sub: idempotent success. Return the
+      // current state so the UI can refresh without an error toast.
       return new Response(
-        JSON.stringify({ error: 'Subscription has ended. Please subscribe again from /pricing.' }),
-        { status: 400, headers: getJsonHeaders(req) },
+        JSON.stringify({
+          id: subscription.id,
+          status: subscription.status,
+          cancel_at_period_end: subscription.cancel_at_period_end,
+          current_period_end: subscription.current_period_end,
+        }),
+        { status: 200, headers: getJsonHeaders(req) },
       )
     }
 
