@@ -43,6 +43,7 @@ Deno.serve(async (req: Request) => {
   // Default: OFF. Set RENT_PAYMENTS_ENABLED=true in Supabase secrets to enable.
   // ---------------------------------------------------------------------------
   if (Deno.env.get('RENT_PAYMENTS_ENABLED') !== 'true') {
+    logEvent('[AUTOPAY] Skipped: RENT_PAYMENTS_ENABLED flag is off', {})
     return new Response(
       JSON.stringify({ skipped: true, reason: 'Rent payments disabled (RENT_PAYMENTS_ENABLED flag off)' }),
       { status: 200, headers: jsonHeaders }

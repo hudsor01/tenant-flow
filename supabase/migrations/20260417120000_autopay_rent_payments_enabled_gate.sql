@@ -39,6 +39,7 @@ begin
   v_supabase_url := current_setting('app.settings.SUPABASE_URL', true);
   v_service_key  := current_setting('app.settings.SUPABASE_SERVICE_ROLE_KEY', true);
 
+  -- Abort gracefully if not configured.
   if v_supabase_url is null or v_supabase_url = '' then
     raise notice 'process_autopay_charges: SUPABASE_URL not configured, skipping';
     return;
@@ -52,7 +53,8 @@ begin
   v_edge_fn_url := v_supabase_url || '/functions/v1/stripe-autopay-charge';
 
   -- =========================================================================
-  -- Cursor 1: Due-date charges (unchanged from 20260304160000)
+  -- Cursor 1: Due-date charges (initial autopay for today's rent)
+  -- Per-tenant amounts computed from lease_tenants.responsibility_percentage.
   -- =========================================================================
   for v_record in
     select
@@ -82,6 +84,7 @@ begin
     where
       rd.due_date = current_date
       and rd.status = 'pending'
+      -- Skip if a payment already exists for this tenant + rent_due
       and not exists (
         select 1 from public.rent_payments rp
         where rp.rent_due_id = rd.id
@@ -110,7 +113,9 @@ begin
   end loop;
 
   -- =========================================================================
-  -- Cursor 2: Retry charges (unchanged from 20260304160000)
+  -- Cursor 2: Retry charges (failed autopay from previous days)
+  -- Queries rent_due records where autopay_next_retry_at has arrived
+  -- and fewer than 3 attempts have been made.
   -- =========================================================================
   for v_record in
     select
@@ -143,6 +148,7 @@ begin
       and rd.autopay_next_retry_at <= now()
       and rd.autopay_attempts < 3
       and rd.status != 'paid'
+      -- Skip if a payment already exists for this tenant + rent_due
       and not exists (
         select 1 from public.rent_payments rp
         where rp.rent_due_id = rd.id
