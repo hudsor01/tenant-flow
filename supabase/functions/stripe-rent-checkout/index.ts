@@ -18,6 +18,29 @@ Deno.serve(async (req: Request) => {
   const jsonHeaders = getJsonHeaders(req)
 
   // ---------------------------------------------------------------------------
+  // PHASE3 GATE — hard disable of tenant-initiated rent checkout.
+  // This returns 503 regardless of RENT_PAYMENTS_ENABLED. Tenant rent checkout
+  // is intentionally locked off until an explicit Phase 3 code change + deploy
+  // re-enables it (after LLC formation and compliance review). Grep for
+  // "PHASE3 GATE" to locate before removing.
+  // ---------------------------------------------------------------------------
+  return new Response(
+    JSON.stringify({ error: 'Rent payments are not currently available.' }),
+    { status: 503, headers: jsonHeaders }
+  )
+
+  // ---------------------------------------------------------------------------
+  // RENT_PAYMENTS_ENABLED flag (defense in depth — unreachable while PHASE3 GATE above is active)
+  // ---------------------------------------------------------------------------
+  // deno-lint-ignore no-unreachable
+  if (Deno.env.get('RENT_PAYMENTS_ENABLED') !== 'true') {
+    return new Response(
+      JSON.stringify({ error: 'Rent payments are temporarily disabled.' }),
+      { status: 503, headers: jsonHeaders }
+    )
+  }
+
+  // ---------------------------------------------------------------------------
   // Environment variables
   // ---------------------------------------------------------------------------
   let env: Record<string, string>
@@ -317,6 +340,7 @@ Deno.serve(async (req: Request) => {
         },
         setup_future_usage: 'off_session',
         metadata: {
+          kind: 'rent',
           tenant_id: tenant.id,
           lease_id: lease.id,
           property_id: propertyId,

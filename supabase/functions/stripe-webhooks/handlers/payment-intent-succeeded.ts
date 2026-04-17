@@ -19,6 +19,32 @@ export async function handlePaymentIntentSucceeded(
   const pi = event.data.object as Stripe.PaymentIntent
   const metadata = pi.metadata ?? {}
 
+  // ---------------------------------------------------------------------------
+  // RENT_PAYMENTS_ENABLED flag — refuse to record a rent payment while the
+  // feature is disabled. This branch should be UNREACHABLE in normal operation
+  // (cron is unscheduled, tenant checkout returns 503). If we see it fire, it
+  // means real money moved through Stripe while the platform was supposed to
+  // be off — surface loudly for manual reconciliation rather than silently
+  // persisting DB state for it.
+  // Gated on metadata.kind === 'rent' (affirmative marker set at every rent
+  // PI creation site) rather than inferring from tenant_id/lease_id presence.
+  // ---------------------------------------------------------------------------
+  if (Deno.env.get('RENT_PAYMENTS_ENABLED') !== 'true' && metadata['kind'] === 'rent') {
+    captureWebhookError(
+      new Error('Rent payment_intent.succeeded received while RENT_PAYMENTS_ENABLED is off'),
+      {
+        message: '[WEBHOOK] Rent payment succeeded while feature disabled — manual reconciliation required',
+        event_id: event.id,
+        pi_id: pi.id,
+        pi_amount: pi.amount,
+        tenant_id: metadata['tenant_id'],
+        lease_id: metadata['lease_id'],
+        rent_due_id: metadata['rent_due_id'],
+      }
+    )
+    return
+  }
+
   // PAY-10: Validate required metadata — reject empty strings
   const tenantId = metadata['tenant_id']
   const leaseId = metadata['lease_id']

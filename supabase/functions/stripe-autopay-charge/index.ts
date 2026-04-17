@@ -36,6 +36,20 @@ Deno.serve(async (req: Request) => {
   const jsonHeaders = { 'Content-Type': 'application/json' }
 
   // ---------------------------------------------------------------------------
+  // RENT_PAYMENTS_ENABLED flag — defense in depth.
+  // Primary kill-switch is cron.unschedule('process-autopay-charges').
+  // This guard stops any ad-hoc invocation (manual curl, rescheduled cron,
+  // anything else that reaches the function) from firing real charges.
+  // Default: OFF. Set RENT_PAYMENTS_ENABLED=true in Supabase secrets to enable.
+  // ---------------------------------------------------------------------------
+  if (Deno.env.get('RENT_PAYMENTS_ENABLED') !== 'true') {
+    return new Response(
+      JSON.stringify({ skipped: true, reason: 'Rent payments disabled (RENT_PAYMENTS_ENABLED flag off)' }),
+      { status: 200, headers: jsonHeaders }
+    )
+  }
+
+  // ---------------------------------------------------------------------------
   // Environment variables
   // ---------------------------------------------------------------------------
   let env: Record<string, string>
@@ -259,6 +273,7 @@ Deno.serve(async (req: Request) => {
         destination: connectedAccount.stripe_account_id,
       },
       metadata: {
+        kind: 'rent',
         tenant_id,
         lease_id,
         property_id: propertyId,
