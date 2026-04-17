@@ -9,7 +9,10 @@
 import { mutationOptions } from '@tanstack/react-query'
 import { createClient } from '#lib/supabase/client'
 import { handlePostgrestError } from '#lib/postgrest-error-handler'
+import { createLogger } from '#lib/frontend-logger'
 import { mutationKeys } from '../mutation-keys'
+
+const logger = createLogger({ component: 'tenant-invite-mutation-options' })
 
 // ============================================================================
 // EMAIL SEND HELPER
@@ -26,7 +29,9 @@ export async function sendInvitationEmail(invitationId: string): Promise<void> {
 		data: { session }
 	} = await supabase.auth.getSession()
 	if (!session?.access_token) {
-		console.warn('[send-invitation-email] No session, skipping email send')
+		logger.warn('[send-invitation-email] No session, skipping email send', {
+			metadata: { invitation_id: invitationId }
+		})
 		return
 	}
 
@@ -44,10 +49,9 @@ export async function sendInvitationEmail(invitationId: string): Promise<void> {
 	)
 
 	if (!response.ok) {
-		console.error(
-			'[send-invitation-email] Edge Function returned',
-			response.status
-		)
+		logger.error('[send-invitation-email] Edge Function returned non-OK', {
+			metadata: { invitation_id: invitationId, status: response.status }
+		})
 	}
 }
 
@@ -79,7 +83,7 @@ export const tenantInviteMutations = {
 
 				// Re-send invitation email (non-fatal)
 				await sendInvitationEmail(invitationId).catch(err => {
-					console.error('[resend] Email send failed:', err)
+					logger.error('[resend] Email send failed', { metadata: { invitation_id: invitationId } }, err)
 				})
 
 				return { message: 'Invitation resent' }

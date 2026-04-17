@@ -13,7 +13,7 @@
 import * as Sentry from '@sentry/deno'
 import { sendEmail } from '../_shared/resend.ts'
 import { validateEnv } from '../_shared/env.ts'
-import { errorResponse } from '../_shared/errors.ts'
+import { errorResponse, captureWebhookError, captureWebhookWarning, logEvent } from '../_shared/errors.ts'
 import { getStripeClient } from '../_shared/stripe-client.ts'
 import { createAdminClient } from '../_shared/supabase-client.ts'
 import {
@@ -140,7 +140,7 @@ Deno.serve(async (req: Request) => {
 
     // Handle duplicate payment check
     if (existingPaymentResult.data) {
-      console.log(`[AUTOPAY] Skipping rent_due ${rent_due_id} tenant ${tenant_id} — payment already exists`)
+      logEvent('[AUTOPAY] Skipping — payment already exists', { rent_due_id, tenant_id })
       return new Response(
         JSON.stringify({ skipped: true, reason: 'Payment already exists' }),
         { status: 200, headers: jsonHeaders }
@@ -151,7 +151,7 @@ Deno.serve(async (req: Request) => {
     const { data: leaseTenant, error: leaseTenantsError } = leaseTenantsResult
 
     if (leaseTenantsError) {
-      console.error('[AUTOPAY] Error fetching lease_tenants:', leaseTenantsError.message)
+      captureWebhookError(leaseTenantsError, { message: '[AUTOPAY] Error fetching lease_tenants', rent_due_id, tenant_id, lease_id })
       return new Response(
         JSON.stringify({ error: 'Failed to verify tenant lease membership' }),
         { status: 500, headers: jsonHeaders }
@@ -159,7 +159,7 @@ Deno.serve(async (req: Request) => {
     }
 
     if (!leaseTenant) {
-      console.error(`[AUTOPAY] Tenant ${tenant_id} not found on lease ${lease_id}`)
+      captureWebhookError(new Error('Tenant not found on lease'), { message: '[AUTOPAY] Tenant not found on lease', tenant_id, lease_id })
       return new Response(
         JSON.stringify({ error: 'Tenant not found on lease' }),
         { status: 400, headers: jsonHeaders }
@@ -170,7 +170,7 @@ Deno.serve(async (req: Request) => {
     const rentDue = rentDueResult.data
 
     if (!rentDue) {
-      console.error(`[AUTOPAY] rent_due ${rent_due_id} not found`)
+      captureWebhookError(new Error('rent_due not found'), { message: '[AUTOPAY] rent_due not found', rent_due_id })
       return new Response(
         JSON.stringify({ error: 'Rent due record not found' }),
         { status: 400, headers: jsonHeaders }
@@ -182,7 +182,13 @@ Deno.serve(async (req: Request) => {
 
     // Safety net: verify passed amount matches computed amount
     if (Math.abs(amount - computedAmount) > 0.01) {
-      console.warn(`[AUTOPAY] Amount mismatch: passed=${amount}, computed=${computedAmount} (percentage=${percentage}). Using computed value.`)
+      captureWebhookWarning('[AUTOPAY] Amount mismatch — using computed value', {
+        passed: amount,
+        computed: computedAmount,
+        percentage,
+        rent_due_id,
+        tenant_id,
+      })
     }
 
     const tenantAmount = computedAmount
@@ -192,7 +198,7 @@ Deno.serve(async (req: Request) => {
     const { data: connectedAccount, error: connectedError } = connectedAccountResult
 
     if (connectedError) {
-      console.error('[AUTOPAY] Error fetching connected account:', connectedError.message)
+      captureWebhookError(connectedError, { message: '[AUTOPAY] Error fetching connected account', owner_user_id })
       return new Response(
         JSON.stringify({ error: 'Failed to fetch payment configuration' }),
         { status: 500, headers: jsonHeaders }
@@ -200,7 +206,7 @@ Deno.serve(async (req: Request) => {
     }
 
     if (!connectedAccount) {
-      console.error(`[AUTOPAY] No connected account for owner ${owner_user_id}`)
+      captureWebhookError(new Error('No connected account for owner'), { message: '[AUTOPAY] No connected account for owner', owner_user_id })
       return new Response(
         JSON.stringify({ error: 'Owner has no connected account' }),
         { status: 400, headers: jsonHeaders }
@@ -208,7 +214,7 @@ Deno.serve(async (req: Request) => {
     }
 
     if (!connectedAccount.charges_enabled) {
-      console.error(`[AUTOPAY] Charges not enabled for owner ${owner_user_id}`)
+      captureWebhookError(new Error('Charges not enabled for owner'), { message: '[AUTOPAY] Charges not enabled for owner', owner_user_id })
       return new Response(
         JSON.stringify({ error: 'Owner charges not enabled' }),
         { status: 400, headers: jsonHeaders }
@@ -295,10 +301,15 @@ Deno.serve(async (req: Request) => {
       })
 
     if (insertError) {
-      console.error('[AUTOPAY] Failed to insert rent_payments record:', insertError.message)
+      captureWebhookError(insertError, { message: '[AUTOPAY] Failed to insert rent_payments record', rent_due_id, tenant_id })
     }
 
-    console.log(`[AUTOPAY] Created PaymentIntent ${paymentIntent.id} for rent_due ${rent_due_id} tenant ${tenant_id} amount $${tenantAmount}`)
+    logEvent('[AUTOPAY] Created PaymentIntent', {
+      payment_intent_id: paymentIntent.id,
+      rent_due_id,
+      tenant_id,
+      amount: tenantAmount,
+    })
 
     return new Response(
       JSON.stringify({
@@ -349,7 +360,8 @@ Deno.serve(async (req: Request) => {
 
     if (isStripeCardError) {
       const stripeError = errorObj as { code?: string; decline_code?: string }
-      console.error(`[AUTOPAY] Stripe error: ${(err as Error).message}`, {
+      captureWebhookError(err, {
+        message: '[AUTOPAY] Stripe error',
         code: stripeError.code,
         decline_code: stripeError.decline_code,
         rent_due_id,
@@ -421,7 +433,7 @@ async function handleAutopayFailure(
     .eq('id', rentDueId)
 
   if (updateError) {
-    console.error(`[AUTOPAY] Failed to update retry tracking for rent_due ${rentDueId}:`, updateError.message)
+    captureWebhookError(updateError, { message: '[AUTOPAY] Failed to update retry tracking', rent_due_id: rentDueId })
   }
 
   // Look up tenant info for email
@@ -466,10 +478,11 @@ async function handleAutopayFailure(
     })
 
     if (notifError) {
-      console.error(`[AUTOPAY] Failed to insert owner notification for rent_due ${rentDueId}:`, notifError.message)
-      Sentry.captureException(notifError, {
-        tags: { category: 'autopay_notification_insert' },
-        extra: { rent_due_id: rentDueId, owner_user_id: ownerUserId },
+      captureWebhookError(notifError, {
+        message: '[AUTOPAY] Failed to insert owner notification',
+        rent_due_id: rentDueId,
+        owner_user_id: ownerUserId,
+        category: 'autopay_notification_insert',
       })
     }
   }
@@ -498,7 +511,7 @@ async function handleAutopayFailure(
     })
 
     if (!tenantEmailResult.success) {
-      console.error(`[AUTOPAY] Failed to send tenant failure email: ${tenantEmailResult.error}`)
+      captureWebhookError(new Error(tenantEmailResult.error), { message: '[AUTOPAY] Failed to send tenant failure email', rent_due_id: rentDueId, tenant_id: tenantId })
     }
   }
 
@@ -564,11 +577,17 @@ async function handleAutopayFailure(
         })
 
         if (!ownerEmailResult.success) {
-          console.error(`[AUTOPAY] Failed to send owner final failure email: ${ownerEmailResult.error}`)
+          captureWebhookError(new Error(ownerEmailResult.error), { message: '[AUTOPAY] Failed to send owner final failure email', rent_due_id: rentDueId, owner_user_id: ownerUserId })
         }
       }
     }
   }
 
-  console.log(`[AUTOPAY] Failure handled for rent_due ${rentDueId} tenant ${tenantId}: attempt ${attemptNumber}/${MAX_AUTOPAY_ATTEMPTS}, next_retry=${nextRetryAt ?? 'none'}`)
+  logEvent('[AUTOPAY] Failure handled', {
+    rent_due_id: rentDueId,
+    tenant_id: tenantId,
+    attempt_number: attemptNumber,
+    max_attempts: MAX_AUTOPAY_ATTEMPTS,
+    next_retry_at: nextRetryAt,
+  })
 }

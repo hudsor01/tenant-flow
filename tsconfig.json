@@ -59,7 +59,7 @@
     ],
     "paths": {
       "#proxy": [
-        "./proxy.ts"
+        "./src/proxy.ts"
       ],
       "#env": [
         "./src/env.ts"

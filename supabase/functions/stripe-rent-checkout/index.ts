@@ -6,7 +6,7 @@
 
 import { handleCorsOptions, getJsonHeaders } from '../_shared/cors.ts'
 import { validateEnv } from '../_shared/env.ts'
-import { errorResponse } from '../_shared/errors.ts'
+import { errorResponse, captureWebhookError } from '../_shared/errors.ts'
 import { validateBearerAuth } from '../_shared/auth.ts'
 import { getStripeClient } from '../_shared/stripe-client.ts'
 import { createAdminClient } from '../_shared/supabase-client.ts'
@@ -81,7 +81,7 @@ Deno.serve(async (req: Request) => {
     const { data: tenant, error: tenantError } = tenantResult
 
     if (tenantError) {
-      console.error('Error resolving tenant:', tenantError.message)
+      captureWebhookError(tenantError, { message: 'Error resolving tenant', user_id: user.id })
       return new Response(
         JSON.stringify({ error: 'Failed to resolve tenant' }),
         { status: 500, headers: jsonHeaders }
@@ -99,7 +99,7 @@ Deno.serve(async (req: Request) => {
     const { data: rentDue, error: rentDueError } = rentDueResult
 
     if (rentDueError) {
-      console.error('Error fetching rent_due:', rentDueError.message)
+      captureWebhookError(rentDueError, { message: 'Error fetching rent_due', rent_due_id: rentDueId })
       return new Response(
         JSON.stringify({ error: 'Failed to fetch rent due record' }),
         { status: 500, headers: jsonHeaders }
@@ -124,7 +124,7 @@ Deno.serve(async (req: Request) => {
     const { data: existingPayment, error: dupError } = duplicateResult
 
     if (dupError) {
-      console.error('Error checking duplicate payment:', dupError.message)
+      captureWebhookError(dupError, { message: 'Error checking duplicate payment', rent_due_id: rentDueId })
       return new Response(
         JSON.stringify({ error: 'Failed to check payment status' }),
         { status: 500, headers: jsonHeaders }
@@ -148,7 +148,7 @@ Deno.serve(async (req: Request) => {
       .maybeSingle()
 
     if (leaseError) {
-      console.error('Error fetching lease:', leaseError.message)
+      captureWebhookError(leaseError, { message: 'Error fetching lease', lease_id: rentDue.lease_id })
       return new Response(
         JSON.stringify({ error: 'Failed to fetch lease' }),
         { status: 500, headers: jsonHeaders }
@@ -171,7 +171,7 @@ Deno.serve(async (req: Request) => {
       .maybeSingle()
 
     if (leaseTenantsError) {
-      console.error('Error verifying tenant lease access:', leaseTenantsError.message)
+      captureWebhookError(leaseTenantsError, { message: 'Error verifying tenant lease access', lease_id: lease.id, tenant_id: tenant.id })
       return new Response(
         JSON.stringify({ error: 'Failed to verify lease access' }),
         { status: 500, headers: jsonHeaders }
@@ -206,7 +206,7 @@ Deno.serve(async (req: Request) => {
     const { data: connectedAccount, error: connectedError } = connectedAccountResult
 
     if (connectedError) {
-      console.error('Error fetching connected account:', connectedError.message)
+      captureWebhookError(connectedError, { message: 'Error fetching connected account', owner_user_id: lease.owner_user_id })
       return new Response(
         JSON.stringify({ error: 'Failed to fetch payment configuration' }),
         { status: 500, headers: jsonHeaders }
@@ -241,7 +241,7 @@ Deno.serve(async (req: Request) => {
     const { data: unit, error: unitError } = unitResult
 
     if (unitError) {
-      console.error('Error fetching unit:', unitError.message)
+      captureWebhookError(unitError, { message: 'Error fetching unit', unit_id: lease.unit_id })
       return new Response(
         JSON.stringify({ error: 'Failed to resolve property' }),
         { status: 500, headers: jsonHeaders }

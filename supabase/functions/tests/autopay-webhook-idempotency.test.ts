@@ -46,7 +46,7 @@ Deno.test('autopay-webhook-idempotency: replaying payment_intent.succeeded is id
     id: eventId,
     object: 'event',
     type: 'payment_intent.succeeded',
-    api_version: '2026-02-25.clover',
+    api_version: '2026-03-25.dahlia',
     created: Math.floor(Date.now() / 1000),
     livemode: false,
     data: {
@@ -78,7 +78,7 @@ Deno.test('autopay-webhook-idempotency: replaying payment_intent.succeeded is id
   // The Stripe client constructor arg is unused for signature generation;
   // we just need access to webhooks.generateTestHeaderString.
   const stripeClient = new Stripe('sk_test_webhook_idempotency_unused', {
-    apiVersion: '2026-02-25.clover',
+    apiVersion: '2026-03-25.dahlia',
   })
   const signature = stripeClient.webhooks.generateTestHeaderString({
     payload,

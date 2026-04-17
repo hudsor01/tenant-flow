@@ -72,7 +72,9 @@ Deno.serve(async (req: Request) => {
       await supabase.from('users').update({ stripe_customer_id: customerId }).eq('id', user.id)
     }
 
-    // Create Checkout Session (hosted checkout with Radar fraud detection)
+    // Create Checkout Session (hosted checkout with Radar fraud detection).
+    // subscription_data.metadata propagates to the resulting subscription so
+    // customer.subscription.* webhooks can identify the owner without a lookup.
     const session = await stripe.checkout.sessions.create({
       customer: customerId,
       payment_method_types: ['card'],
@@ -81,6 +83,7 @@ Deno.serve(async (req: Request) => {
       success_url: `${frontendUrl}/dashboard?checkout=success&session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${frontendUrl}/settings/billing?checkout=cancelled`,
       metadata: { supabase_user_id: user.id },
+      subscription_data: { metadata: { supabase_user_id: user.id } },
       allow_promotion_codes: true,
     })
 

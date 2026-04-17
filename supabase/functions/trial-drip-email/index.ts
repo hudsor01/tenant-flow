@@ -5,7 +5,7 @@
 
 import * as Sentry from '@sentry/deno'
 import { validateEnv } from '../_shared/env.ts'
-import { errorResponse } from '../_shared/errors.ts'
+import { errorResponse, captureWebhookError, logEvent } from '../_shared/errors.ts'
 import { createAdminClient } from '../_shared/supabase-client.ts'
 import { sendEmail } from '../_shared/resend.ts'
 import {
@@ -86,10 +86,7 @@ Deno.serve(async (req: Request) => {
         .limit(500)
 
       if (queryError) {
-        console.error(
-          `[DRIP] Failed to query users for day ${schedule.day}:`,
-          queryError.message,
-        )
+        captureWebhookError(queryError, { message: '[DRIP] Failed to query users', day: schedule.day })
         errors++
         results.push({ day: schedule.day, sent, errors })
         continue
@@ -150,16 +147,14 @@ Deno.serve(async (req: Request) => {
           sent++
         } else {
           errors++
-          console.error(
-            `[DRIP] Failed to send day ${schedule.day} email to ${user.id}: ${result.error}`,
-          )
+          captureWebhookError(new Error(result.error), { message: '[DRIP] Failed to send drip email', day: schedule.day, user_id: user.id })
         }
       }
 
       results.push({ day: schedule.day, sent, errors })
     }
 
-    console.log('[DRIP] Completed:', JSON.stringify(results))
+    logEvent('[DRIP] Completed', { results })
 
     return new Response(JSON.stringify({ ok: true, results }), {
       status: 200,

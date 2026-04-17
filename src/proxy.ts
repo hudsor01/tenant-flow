@@ -1,5 +1,10 @@
 import { type NextRequest, NextResponse } from 'next/server'
+import { createServerClient } from '@supabase/ssr'
+import { env } from '#env'
 import { updateSession } from '#lib/supabase/middleware'
+
+/** Stripe subscription statuses that grant dashboard access. */
+const ACTIVE_SUBSCRIPTION_STATUSES = new Set(['active', 'trialing'])
 
 /**
  * Public routes that skip auth checks.
@@ -119,24 +124,44 @@ export async function proxy(
     )
   }
 
-  // Subscription gate: OWNER who has never subscribed (no stripe_customer_id)
-  // must complete checkout before accessing the dashboard.
-  // Lapsed subscriptions (canceled/unpaid) are handled client-side by
-  // SubscriptionStatusBanner since they still have a stripe_customer_id.
+  // Subscription gate: OWNER must have an active or trialing Stripe subscription
+  // to access the dashboard. Webhook handlers (stripe-webhooks Edge Function)
+  // keep public.users.subscription_status in sync with Stripe in real-time.
   // Allowlist: /pricing (plan selection), /billing/checkout and /billing/plans
   // (Stripe checkout flow), /auth/* (already public, defense-in-depth).
   if (
     userType === 'OWNER' &&
-    !user.app_metadata?.stripe_customer_id &&
     !pathname.startsWith('/pricing') &&
     !pathname.startsWith('/billing/checkout') &&
     !pathname.startsWith('/billing/plans') &&
     !pathname.startsWith('/auth/')
   ) {
-    return redirectWithCookies(
-      new URL('/pricing', request.url),
-      supabaseResponse
+    // Read subscription_status with the user's session (RLS allows users to read
+    // their own row). Single PK lookup, ~5ms — proxy already does an auth.getUser
+    // round trip so this is the second round trip per request.
+    const subClient = createServerClient(
+      env.NEXT_PUBLIC_SUPABASE_URL,
+      env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY,
+      {
+        cookies: {
+          getAll: () => request.cookies.getAll(),
+          setAll: () => {},
+        },
+      }
     )
+    const { data: row } = await subClient
+      .from('users')
+      .select('subscription_status')
+      .eq('id', user.id)
+      .maybeSingle()
+
+    const status = row?.subscription_status as string | null | undefined
+    if (!status || !ACTIVE_SUBSCRIPTION_STATUSES.has(status)) {
+      return redirectWithCookies(
+        new URL('/pricing', request.url),
+        supabaseResponse
+      )
+    }
   }
 
   return supabaseResponse

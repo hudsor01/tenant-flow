@@ -12,7 +12,7 @@
 
 import { validateBearerAuth } from '../_shared/auth.ts'
 import { getCorsHeaders, getJsonHeaders, handleCorsOptions } from '../_shared/cors.ts'
-import { errorResponse } from '../_shared/errors.ts'
+import { errorResponse, captureWebhookError } from '../_shared/errors.ts'
 import { escapeHtml } from '../_shared/escape-html.ts'
 import { validateEnv } from '../_shared/env.ts'
 import { createAdminClient } from '../_shared/supabase-client.ts'
@@ -206,7 +206,7 @@ Deno.serve(async (req: Request) => {
 
       if (!pdfResponse.ok) {
         const errText = await pdfResponse.text().catch(() => pdfResponse.statusText)
-        console.error(`PDF generation failed: ${errText}`)
+        captureWebhookError(new Error('PDF generation failed'), { message: 'PDF generation failed', err_text: errText, action: 'send-for-signature', lease_id: leaseId })
         return errorResponse(req, 502, new Error('PDF generation failed'), { action: 'send-for-signature' })
       }
 
@@ -266,7 +266,7 @@ Deno.serve(async (req: Request) => {
 
       if (!submissionResponse.ok) {
         const errBody = await submissionResponse.text().catch(() => submissionResponse.statusText)
-        console.error(`DocuSeal submission failed: ${errBody}`)
+        captureWebhookError(new Error('DocuSeal submission failed'), { message: 'DocuSeal submission failed', err_body: errBody, action: 'send-for-signature', lease_id: leaseId })
         return errorResponse(req, 502, new Error('DocuSeal submission failed'), { action: 'send-for-signature' })
       }
 
@@ -473,7 +473,7 @@ Deno.serve(async (req: Request) => {
 
         if (!archiveResponse.ok) {
           const errBody = await archiveResponse.text().catch(() => archiveResponse.statusText)
-          console.error(`DocuSeal archive failed: ${errBody}`)
+          captureWebhookError(new Error('DocuSeal archive failed'), { message: 'DocuSeal archive failed', err_body: errBody, action: 'cancel', lease_id: leaseId })
           return errorResponse(req, 502, new Error('DocuSeal archive failed'), { action: 'cancel' })
         }
       }
@@ -550,7 +550,7 @@ Deno.serve(async (req: Request) => {
 
       if (!submittersResponse.ok) {
         const errBody = await submittersResponse.text().catch(() => submittersResponse.statusText)
-        console.error(`Failed to fetch submitters: ${errBody}`)
+        captureWebhookError(new Error('Failed to fetch submitters'), { message: 'Failed to fetch submitters', err_body: errBody, action: 'resend', lease_id: leaseId })
         return errorResponse(req, 502, new Error('Failed to fetch submitters'), { action: 'resend' })
       }
 

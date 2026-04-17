@@ -1,4 +1,5 @@
 import Stripe from 'stripe'
+import { captureWebhookError } from '../../_shared/errors.ts'
 import type { SupabaseAdmin } from './types.ts'
 
 /**
@@ -68,7 +69,7 @@ export async function handleAccountUpdated(
       message: 'Your Stripe account has been fully verified — you can now receive rent payments.',
       notification_type: 'system',
     }).then(({ error: notifError }) => {
-      if (notifError) console.error('Failed to create notification:', notifError.message)
+      if (notifError) captureWebhookError(notifError, { message: 'Failed to create notification', stripe_account_id: account.id, user_id: existing.user_id })
     })
   }
 }

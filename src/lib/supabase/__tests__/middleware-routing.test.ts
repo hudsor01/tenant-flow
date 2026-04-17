@@ -10,6 +10,32 @@ vi.mock('#lib/supabase/middleware', () => ({
   updateSession: (...args: unknown[]) => mockUpdateSession(...args),
 }))
 
+// Mock the Supabase SSR client used by the subscription gate.
+// Tests can override mockSubscriptionStatus to simulate an active/canceled/missing
+// subscription row. Default: null (no subscription → redirect to /pricing).
+let mockSubscriptionStatus: string | null = null
+vi.mock('@supabase/ssr', () => ({
+  createServerClient: () => ({
+    from: () => ({
+      select: () => ({
+        eq: () => ({
+          maybeSingle: async () =>
+            mockSubscriptionStatus === null
+              ? { data: null, error: null }
+              : { data: { subscription_status: mockSubscriptionStatus }, error: null },
+        }),
+      }),
+    }),
+  }),
+}))
+
+vi.mock('#env', () => ({
+  env: {
+    NEXT_PUBLIC_SUPABASE_URL: 'http://test',
+    NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: 'sb_publishable_test',
+  },
+}))
+
 // Mock next/server for NextResponse.redirect
 vi.mock('next/server', () => {
   function makeResponse() {
@@ -115,6 +141,7 @@ function makeSupabaseResponse() {
 describe('proxy routing', () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    mockSubscriptionStatus = null
   })
 
   describe('public routes', () => {
@@ -209,17 +236,47 @@ describe('proxy routing', () => {
       expect(result).toBe(supabaseResponse)
     })
 
-    it('allows authenticated OWNER with stripe_customer_id on /dashboard to pass through', async () => {
+    it('allows authenticated OWNER with active subscription on /dashboard to pass through', async () => {
       const supabaseResponse = makeSupabaseResponse()
       mockUpdateSession.mockResolvedValue({
         user: makeUser('OWNER', 'cus_test'),
         supabaseResponse,
       })
+      mockSubscriptionStatus = 'active'
 
       const result = await proxy(buildRequest('/dashboard'))
 
       expect(NextResponse.redirect).not.toHaveBeenCalled()
       expect(result).toBe(supabaseResponse)
+    })
+
+    it('allows authenticated OWNER with trialing subscription on /dashboard to pass through', async () => {
+      const supabaseResponse = makeSupabaseResponse()
+      mockUpdateSession.mockResolvedValue({
+        user: makeUser('OWNER', 'cus_test'),
+        supabaseResponse,
+      })
+      mockSubscriptionStatus = 'trialing'
+
+      const result = await proxy(buildRequest('/dashboard'))
+
+      expect(NextResponse.redirect).not.toHaveBeenCalled()
+      expect(result).toBe(supabaseResponse)
+    })
+
+    it('redirects OWNER with past_due subscription to /pricing', async () => {
+      mockUpdateSession.mockResolvedValue({
+        user: makeUser('OWNER', 'cus_test'),
+        supabaseResponse: makeSupabaseResponse(),
+      })
+      mockSubscriptionStatus = 'past_due'
+
+      await proxy(buildRequest('/dashboard'))
+
+      expect(NextResponse.redirect).toHaveBeenCalledOnce()
+      const redirectUrl = (NextResponse.redirect as ReturnType<typeof vi.fn>)
+        .mock.calls[0]![0] as URL
+      expect(redirectUrl.pathname).toBe('/pricing')
     })
 
     it('allows authenticated TENANT on /tenant to pass through', async () => {

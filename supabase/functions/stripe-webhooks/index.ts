@@ -9,7 +9,7 @@ import * as Sentry from '@sentry/deno'
 import { getStripeClient } from '../_shared/stripe-client.ts'
 import { createAdminClient } from '../_shared/supabase-client.ts'
 import { validateEnv } from '../_shared/env.ts'
-import { errorResponse } from '../_shared/errors.ts'
+import { errorResponse, captureWebhookWarning } from '../_shared/errors.ts'
 import { handleCustomerSubscriptionUpdated } from './handlers/customer-subscription-updated.ts'
 import { handleCustomerSubscriptionDeleted } from './handlers/customer-subscription-deleted.ts'
 import { handleAccountUpdated } from './handlers/account-updated.ts'
@@ -128,7 +128,7 @@ Deno.serve(async (req: Request) => {
         await handlePayoutLifecycle(supabase, stripe, event)
         break
       default:
-        console.warn('[WEBHOOK] Unhandled event type:', event.type)
+        captureWebhookWarning('[WEBHOOK] Unhandled event type', { event_type: event.type, event_id: event.id })
         break
     }
 

@@ -12,7 +12,7 @@
 
 import { getCorsHeaders, getJsonHeaders, handleCorsOptions } from '../_shared/cors.ts'
 import { validateEnv } from '../_shared/env.ts'
-import { errorResponse } from '../_shared/errors.ts'
+import { errorResponse, captureWebhookWarning } from '../_shared/errors.ts'
 import { rateLimit } from '../_shared/rate-limit.ts'
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
@@ -147,15 +147,11 @@ Deno.serve(async (req: Request) => {
     if (!contactRes.ok) {
       const status = contactRes.status
       const errBody = await contactRes.text().catch(() => '')
-      console.error(
-        JSON.stringify({
-          level: 'warn',
-          event: 'resend_contact_create_non_ok',
-          status,
-          body: errBody,
-          email_domain: email.split('@')[1],
-        }),
-      )
+      captureWebhookWarning('resend_contact_create_non_ok', {
+        status,
+        body: errBody,
+        email_domain: email.split('@')[1],
+      })
     }
 
     return new Response(JSON.stringify({ success: true }), {

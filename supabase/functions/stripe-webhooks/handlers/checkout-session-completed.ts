@@ -1,4 +1,5 @@
 import Stripe from 'stripe'
+import { captureWebhookError, logEvent } from '../../_shared/errors.ts'
 import type { SupabaseAdmin } from './types.ts'
 
 /**
@@ -11,7 +12,7 @@ export async function handleCheckoutSessionCompleted(
   event: Stripe.Event,
 ): Promise<void> {
   const session = event.data.object as Stripe.Checkout.Session
-  // Update lease with the subscription ID from checkout
+  // Path 1: tenant rent — update lease with the subscription ID from checkout
   if (session.subscription && session.metadata?.['lease_id']) {
     const { error } = await supabase
       .from('leases')
@@ -23,13 +24,49 @@ export async function handleCheckoutSessionCompleted(
     if (error) throw error
   }
 
+  // Path 2: owner SaaS — write subscription state to users table for proxy gate
+  // (subscription.created webhook also fires; this handler ensures the user is gated
+  // immediately upon checkout completion, before subscription.created is processed)
+  if (session.subscription && session.metadata?.['supabase_user_id']) {
+    const subId = typeof session.subscription === 'string' ? session.subscription : session.subscription.id
+    try {
+      const sub = await stripe.subscriptions.retrieve(subId)
+      const priceId = sub.items.data[0]?.price.id ?? null
+      const planLookup = sub.items.data[0]?.price.lookup_key ?? null
+      const { error } = await supabase
+        .from('users')
+        .update({
+          subscription_id: sub.id,
+          subscription_status: sub.status,
+          subscription_plan: planLookup ?? priceId,
+          subscription_current_period_end: sub.current_period_end
+            ? new Date(sub.current_period_end * 1000).toISOString()
+            : null,
+          subscription_cancel_at_period_end: sub.cancel_at_period_end ?? false,
+          subscription_updated_at: new Date().toISOString(),
+        })
+        .eq('id', session.metadata['supabase_user_id'])
+      if (error) {
+        captureWebhookError(error, { message: '[CHECKOUT] Failed to update user subscription state', user_id: session.metadata['supabase_user_id'], sub_id: sub.id })
+      } else {
+        logEvent('[CHECKOUT] Granted dashboard access to user', {
+          user_id: session.metadata['supabase_user_id'],
+          sub_id: sub.id,
+          status: sub.status,
+        })
+      }
+    } catch (subErr) {
+      captureWebhookError(subErr, { message: '[CHECKOUT] Failed to retrieve subscription for user gate', sub_id: subId })
+    }
+  }
+
   // Save payment method from checkout with setup_future_usage for autopay.
   if (session.payment_intent && session.customer) {
     try {
       await saveCheckoutPaymentMethod(supabase, stripe, session)
     } catch (saveErr) {
       // Non-fatal — log and continue. Tenant can still add payment methods manually.
-      console.error('[AUTOPAY] Failed to save checkout payment method:', saveErr)
+      captureWebhookError(saveErr, { message: '[AUTOPAY] Failed to save checkout payment method', session_id: session.id })
     }
   }
 }
@@ -92,8 +129,8 @@ async function saveCheckoutPaymentMethod(
     })
 
   if (insertError) {
-    console.error('[AUTOPAY] Failed to insert payment method:', insertError.message)
+    captureWebhookError(insertError, { message: '[AUTOPAY] Failed to insert payment method', pm_id: pmId, tenant_id: tenantId })
   } else {
-    console.log(`[AUTOPAY] Saved payment method ${pmId} for tenant ${tenantId}`)
+    logEvent('[AUTOPAY] Saved payment method', { pm_id: pmId, tenant_id: tenantId })
   }
 }

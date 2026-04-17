@@ -1,7 +1,9 @@
 // Shared Resend email helper for Supabase Edge Functions
 // Sends emails via Resend REST API using fetch().
 // NEVER throws -- all errors returned as { success: false, error: string }.
-// Logs errors with [RESEND_ERROR] prefix for Supabase log capture / monitoring.
+// Logs errors via captureWebhookError (Sentry + structured console.error).
+
+import { captureWebhookError } from './errors.ts'
 
 export interface SendEmailParams {
   to: string[]
@@ -29,7 +31,7 @@ export async function sendEmail(params: SendEmailParams): Promise<SendEmailResul
     const apiKey = Deno.env.get('RESEND_API_KEY')
 
     if (!apiKey) {
-      console.error('[RESEND_ERROR] RESEND_API_KEY not configured')
+      captureWebhookError(new Error('RESEND_API_KEY not configured'), { message: '[RESEND_ERROR] RESEND_API_KEY not configured' })
       return { success: false, error: 'RESEND_API_KEY not configured' }
     }
 
@@ -61,7 +63,13 @@ export async function sendEmail(params: SendEmailParams): Promise<SendEmailResul
 
     if (!res.ok) {
       const errBody = await res.text().catch(() => res.statusText)
-      console.error(`[RESEND_ERROR] API returned ${res.status}: ${errBody}`)
+      captureWebhookError(new Error(`Resend API error ${res.status}`), {
+        message: '[RESEND_ERROR] Resend API non-OK response',
+        status: res.status,
+        err_body: errBody,
+        recipients: params.to,
+        subject: params.subject,
+      })
       return { success: false, error: `Resend API error ${res.status}: ${errBody}` }
     }
 
@@ -69,7 +77,7 @@ export async function sendEmail(params: SendEmailParams): Promise<SendEmailResul
     return { success: true, id: data.id }
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err)
-    console.error(`[RESEND_ERROR] Unexpected error: ${message}`)
+    captureWebhookError(err, { message: '[RESEND_ERROR] Unexpected error', recipients: params.to, subject: params.subject })
     return { success: false, error: message }
   }
 }

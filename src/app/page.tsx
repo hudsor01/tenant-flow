@@ -11,9 +11,9 @@ import MarketingHomePage from './marketing-home'
 export const dynamic = 'force-static'
 
 export const metadata: Metadata = createPageMetadata({
-	title: 'Property Management Software for Modern Landlords',
+	title: 'Property Management Software for Small Landlords',
 	description:
-		'Streamline rent collection, maintenance tracking, tenant screening, and financial reporting. Start free and scale as your portfolio grows.',
+		'All-in-one rental property management software for landlords with 1-20 units. Automate online rent collection, track maintenance requests, screen tenants, and manage finances. 14-day free trial, no credit card required.',
 	path: '/'
 })
 

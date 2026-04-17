@@ -72,3 +72,36 @@ export function captureWebhookError(
     extra,
   })
 }
+
+/**
+ * Log a non-error warning event to Sentry + structured console.warn.
+ * Use for: missing optional data, fallback paths, recoverable degradation.
+ * Lower-volume than info — fires a discrete Sentry event (counts toward quota).
+ */
+export function captureWebhookWarning(
+  message: string,
+  extra?: Record<string, unknown>,
+): void {
+  console.warn(JSON.stringify({ level: 'warning', message, ...(extra ?? {}) }))
+  Sentry.captureMessage(message, { level: 'warning', extra })
+}
+
+/**
+ * Add a Sentry breadcrumb for operational/info events.
+ * Breadcrumbs are FREE — they attach to the next captureException event,
+ * giving you a trail of context without firing standalone Sentry events.
+ * Use for: flow tracking ("Created PaymentIntent X"), idempotency notes,
+ * email send confirmations. Replaces most ad-hoc console.log calls.
+ */
+export function logEvent(
+  message: string,
+  data?: Record<string, unknown>,
+): void {
+  console.log(JSON.stringify({ level: 'info', message, ...(data ?? {}) }))
+  Sentry.addBreadcrumb({
+    category: 'edge-function',
+    level: 'info',
+    message,
+    data,
+  })
+}

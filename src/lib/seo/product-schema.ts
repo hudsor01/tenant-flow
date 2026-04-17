@@ -48,7 +48,41 @@ export function createProductJsonLd(config: ProductJsonLdConfig): Product {
 			priceCurrency: 'USD',
 			priceValidUntil,
 			availability: 'https://schema.org/InStock',
-			url: offer.url ?? `${siteUrl}/pricing`
+			url: offer.url ?? `${siteUrl}/pricing`,
+			// Digital SaaS — no physical shipping; Google requires the field anyway.
+			shippingDetails: {
+				'@type': 'OfferShippingDetails',
+				shippingRate: {
+					'@type': 'MonetaryAmount',
+					value: '0',
+					currency: 'USD'
+				},
+				shippingDestination: {
+					'@type': 'DefinedRegion',
+					addressCountry: 'US'
+				},
+				deliveryTime: {
+					'@type': 'ShippingDeliveryTime',
+					handlingTime: {
+						'@type': 'QuantitativeValue',
+						minValue: 0,
+						maxValue: 0,
+						unitCode: 'DAY'
+					},
+					transitTime: {
+						'@type': 'QuantitativeValue',
+						minValue: 0,
+						maxValue: 0,
+						unitCode: 'DAY'
+					}
+				}
+			},
+			// Subscription cancellation policy — refunds prorated, no physical returns.
+			hasMerchantReturnPolicy: {
+				'@type': 'MerchantReturnPolicy',
+				applicableCountry: 'US',
+				returnPolicyCategory: 'https://schema.org/MerchantReturnNotPermitted'
+			}
 		}))
 	}
 }

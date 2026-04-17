@@ -1,9 +1,16 @@
+import { createPageMetadata } from '#lib/seo/page-metadata'
 import { PageLayout } from '#components/layout/page-layout'
 import { HeroSection } from '#components/sections/hero-section'
 import { Button } from '#components/ui/button'
 import { CardLayout } from '#components/ui/card-layout'
 import { JsonLdScript } from '#components/seo/json-ld-script'
 import { createBreadcrumbJsonLd } from '#lib/seo/breadcrumbs'
+
+export const metadata = createPageMetadata({
+	title: 'Help Center — Property Management Support & Guides',
+	description: 'Get help with TenantFlow property management software. Browse setup guides, feature tutorials, and support resources for landlords and property managers.',
+	path: '/help',
+})
 
 import {
 	Item,

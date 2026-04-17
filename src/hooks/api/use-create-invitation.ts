@@ -115,7 +115,7 @@ async function createInvitation(
 
 	// Send email (non-fatal -- D-10, D-11)
 	await sendInvitationEmail(invitation.id).catch(err => {
-		console.error('[create-invitation] Email send failed:', err)
+		logger.error('[create-invitation] Email send failed', { metadata: { invitation_id: invitation.id } }, err)
 	})
 
 	return { status: 'created', invitation }

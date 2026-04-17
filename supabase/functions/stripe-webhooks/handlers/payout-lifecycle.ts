@@ -1,4 +1,5 @@
 import Stripe from 'stripe'
+import { captureWebhookError, captureWebhookWarning } from '../../_shared/errors.ts'
 import type { SupabaseAdmin } from './types.ts'
 
 /**
@@ -22,7 +23,7 @@ export async function handlePayoutLifecycle(
   const accountId = event.account ?? null
 
   if (!accountId) {
-    console.warn('[payout-lifecycle] Skipping payout with no connected account:', payout.id)
+    captureWebhookWarning('[payout-lifecycle] Skipping payout with no connected account', { payout_id: payout.id })
     return
   }
 
@@ -35,7 +36,7 @@ export async function handlePayoutLifecycle(
 
   const ownerUserId = (connected as { user_id?: string } | null)?.user_id
   if (!ownerUserId) {
-    console.warn('[payout-lifecycle] No owner for connected account:', accountId)
+    captureWebhookWarning('[payout-lifecycle] No owner for connected account', { stripe_account_id: accountId, payout_id: payout.id })
     return
   }
 
@@ -85,7 +86,7 @@ export async function handlePayoutLifecycle(
         basePayload.charge_count = chargeIds.length
       }
     } catch (err) {
-      console.error('[payout-lifecycle] balanceTransactions.list failed:', err)
+      captureWebhookError(err, { message: '[payout-lifecycle] balanceTransactions.list failed', payout_id: payout.id, stripe_account_id: accountId })
       // Non-fatal — we still record the payout status
     }
   }

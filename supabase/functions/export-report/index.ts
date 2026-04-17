@@ -6,7 +6,8 @@
 import { validateBearerAuth } from '../_shared/auth.ts'
 import { getCorsHeaders, getJsonHeaders, handleCorsOptions } from '../_shared/cors.ts'
 import { validateEnv } from '../_shared/env.ts'
-import { errorResponse } from '../_shared/errors.ts'
+import { errorResponse, captureWebhookError } from '../_shared/errors.ts'
+import { escapeHtml } from '../_shared/escape-html.ts'
 import { createAdminClient } from '../_shared/supabase-client.ts'
 
 Deno.serve(async (req: Request) => {
@@ -82,7 +83,7 @@ Deno.serve(async (req: Request) => {
 
       if (!pdfResponse.ok) {
         const errText = await pdfResponse.text().catch(() => pdfResponse.statusText)
-        console.error('[export-report] PDF generation failed:', errText)
+        captureWebhookError(new Error('PDF generation failed'), { message: '[export-report] PDF generation failed', err_text: errText, status: pdfResponse.status })
         return errorResponse(req, 502, new Error('PDF generation failed'), { action: 'export_report_pdf' })
       }
 
@@ -125,18 +126,18 @@ Deno.serve(async (req: Request) => {
 })
 
 function buildReportHtml(rows: Record<string, unknown>[], reportType: string, year: number): string {
-  const title = `${reportType.replace(/-/g, ' ').toUpperCase()} REPORT — ${year}`
+  const title = escapeHtml(`${reportType.replace(/-/g, ' ').toUpperCase()} REPORT — ${year}`)
   const headers = rows.length > 0 ? Object.keys(rows[0]) : []
 
   const tableRows = rows.map(row =>
     `<tr>${headers.map(h => {
       const val = row[h]
-      return `<td style="border:1px solid #ccc;padding:6px 10px;">${val === null || val === undefined ? '' : String(val)}</td>`
+      return `<td style="border:1px solid #ccc;padding:6px 10px;">${val === null || val === undefined ? '' : escapeHtml(String(val))}</td>`
     }).join('')}</tr>`
   ).join('')
 
   const headerCells = headers.map(h =>
-    `<th style="border:1px solid #ccc;padding:6px 10px;background:#f0f0f0;text-align:left;">${h}</th>`
+    `<th style="border:1px solid #ccc;padding:6px 10px;background:#f0f0f0;text-align:left;">${escapeHtml(h)}</th>`
   ).join('')
 
   return `<!DOCTYPE html>

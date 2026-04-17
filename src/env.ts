@@ -29,31 +29,15 @@ export const env = createEnv({
 			.min(1, 'STRIPE_SECRET_KEY is required')
 			.startsWith('sk_', 'Must be a Stripe secret key'),
 
-		// Stripe price IDs (server-only for checkout sessions)
-		STRIPE_STARTER_MONTHLY: z
-			.string()
-			.min(1, 'STRIPE_STARTER_MONTHLY is required')
-			.startsWith('price_', 'Must be a Stripe price ID'),
-		STRIPE_STARTER_ANNUAL: z
-			.string()
-			.min(1, 'STRIPE_STARTER_ANNUAL is required')
-			.startsWith('price_', 'Must be a Stripe price ID'),
-		STRIPE_GROWTH_MONTHLY: z
-			.string()
-			.min(1, 'STRIPE_GROWTH_MONTHLY is required')
-			.startsWith('price_', 'Must be a Stripe price ID'),
-		STRIPE_GROWTH_ANNUAL: z
-			.string()
-			.min(1, 'STRIPE_GROWTH_ANNUAL is required')
-			.startsWith('price_', 'Must be a Stripe price ID'),
-		STRIPE_MAX_MONTHLY: z
-			.string()
-			.min(1, 'STRIPE_MAX_MONTHLY is required')
-			.startsWith('price_', 'Must be a Stripe price ID'),
-		STRIPE_MAX_ANNUAL: z
-			.string()
-			.min(1, 'STRIPE_MAX_ANNUAL is required')
-			.startsWith('price_', 'Must be a Stripe price ID'),
+		// Stripe price IDs — optional; canonical values live in src/config/pricing.ts.
+		// Historical: these were validated as required, but no runtime code reads them.
+		// Kept optional for future feature flags / env-driven price overrides.
+		STRIPE_STARTER_MONTHLY: z.string().startsWith('price_').optional(),
+		STRIPE_STARTER_ANNUAL: z.string().startsWith('price_').optional(),
+		STRIPE_GROWTH_MONTHLY: z.string().startsWith('price_').optional(),
+		STRIPE_GROWTH_ANNUAL: z.string().startsWith('price_').optional(),
+		STRIPE_MAX_MONTHLY: z.string().startsWith('price_').optional(),
+		STRIPE_MAX_ANNUAL: z.string().startsWith('price_').optional(),
 
 		// Supabase service role key (server-only — bypasses RLS, never expose to browser)
 		// Used in auth callback for invitation auto-linking

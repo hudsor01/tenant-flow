@@ -10,7 +10,7 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { validateBearerAuth } from '../_shared/auth.ts'
 import { getCorsHeaders, getJsonHeaders, handleCorsOptions } from '../_shared/cors.ts'
-import { errorResponse } from '../_shared/errors.ts'
+import { errorResponse, captureWebhookError } from '../_shared/errors.ts'
 import { escapeHtml } from '../_shared/escape-html.ts'
 import { validateEnv } from '../_shared/env.ts'
 import { createAdminClient } from '../_shared/supabase-client.ts'
@@ -231,7 +231,7 @@ Deno.serve(async (req: Request) => {
 
     if (!pdfResponse.ok) {
       const errorText = await pdfResponse.text().catch(() => pdfResponse.statusText)
-      console.error(`StirlingPDF returned ${pdfResponse.status}: ${errorText}`)
+      captureWebhookError(new Error('StirlingPDF non-OK response'), { message: 'StirlingPDF non-OK response', status: pdfResponse.status, err_text: errorText })
       return errorResponse(req, 502, new Error('PDF generation failed'), { action: 'generate_pdf' })
     }
 

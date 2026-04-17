@@ -155,7 +155,7 @@ export function buildPayoutPaidEvent(
     id: eventId,
     object: 'event',
     type: 'payout.paid',
-    api_version: '2026-02-25.clover',
+    api_version: '2026-03-25.dahlia',
     created: createdUnix,
     livemode: false,
     account: opts.stripeAccountId,
@@ -197,7 +197,7 @@ export function buildPayoutFailedEvent(opts: {
     id: eventId,
     object: 'event',
     type: 'payout.failed',
-    api_version: '2026-02-25.clover',
+    api_version: '2026-03-25.dahlia',
     created: createdUnix,
     livemode: false,
     account: opts.stripeAccountId,
@@ -231,7 +231,7 @@ export function signPayoutEvent(
   // Stripe client constructor arg is unused for signature generation; the SDK
   // only needs a non-empty string so the instance can be created.
   const stripeClient = new Stripe('sk_test_payout_signing_unused', {
-    apiVersion: '2026-02-25.clover',
+    apiVersion: '2026-03-25.dahlia',
   })
   const signatureHeader = stripeClient.webhooks.generateTestHeaderString({
     payload: rawBody,

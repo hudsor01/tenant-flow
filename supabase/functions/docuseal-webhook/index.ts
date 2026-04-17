@@ -9,7 +9,7 @@
 //   submission.completed — all parties signed (flips lease_status to active + inserts notification)
 
 import type { SupabaseClient } from '@supabase/supabase-js'
-import { errorResponse } from '../_shared/errors.ts'
+import { errorResponse, logEvent } from '../_shared/errors.ts'
 import { validateEnv } from '../_shared/env.ts'
 import { createAdminClient } from '../_shared/supabase-client.ts'
 
@@ -76,7 +76,7 @@ async function handleFormCompleted(
 
   // 3. If lease not found — not our document, ignore gracefully
   if (!lease) {
-    console.log(`Lease not found for submission_id=${submission_id} metadata.lease_id=${metadata?.lease_id ?? 'none'} — ignoring`)
+    logEvent('Lease not found for form.completed event — ignoring', { submission_id, metadata_lease_id: metadata?.lease_id ?? null })
     return
   }
 
@@ -88,7 +88,7 @@ async function handleFormCompleted(
   if (isOwner) {
     // Idempotency: already signed — skip
     if (lease.owner_signed_at) {
-      console.log(`owner_signed_at already set for lease ${lease.id} — duplicate delivery, skipping`)
+      logEvent('owner_signed_at already set — duplicate delivery, skipping', { lease_id: lease.id })
       return
     }
 
@@ -104,11 +104,11 @@ async function handleFormCompleted(
       throw new Error(`Failed to update owner signature: ${updateError.message}`)
     }
 
-    console.log(`Owner signature recorded for lease ${lease.id}`)
+    logEvent('Owner signature recorded', { lease_id: lease.id })
   } else if (isTenant) {
     // Idempotency: already signed — skip
     if (lease.tenant_signed_at) {
-      console.log(`tenant_signed_at already set for lease ${lease.id} — duplicate delivery, skipping`)
+      logEvent('tenant_signed_at already set — duplicate delivery, skipping', { lease_id: lease.id })
       return
     }
 
@@ -124,9 +124,9 @@ async function handleFormCompleted(
       throw new Error(`Failed to update tenant signature: ${updateError.message}`)
     }
 
-    console.log(`Tenant signature recorded for lease ${lease.id}`)
+    logEvent('Tenant signature recorded', { lease_id: lease.id })
   } else {
-    console.log(`Unrecognised role '${role}' — no signature update performed`)
+    logEvent('Unrecognised role — no signature update performed', { role })
   }
 }
 
@@ -166,13 +166,13 @@ async function handleSubmissionCompleted(
 
   // 3. If lease not found — not our document, ignore gracefully
   if (!lease) {
-    console.log(`Lease not found for submission_id=${submissionId} metadata.lease_id=${metadata?.lease_id ?? 'none'} — ignoring`)
+    logEvent('Lease not found for submission.completed event — ignoring', { submission_id: submissionId, metadata_lease_id: metadata?.lease_id ?? null })
     return
   }
 
   // 4. Idempotency: already active — skip
   if (lease.lease_status === 'active') {
-    console.log(`Lease ${lease.id} is already active — duplicate delivery, skipping`)
+    logEvent('Lease is already active — duplicate delivery, skipping', { lease_id: lease.id })
     return
   }
 
@@ -186,7 +186,7 @@ async function handleSubmissionCompleted(
     throw new Error(`Failed to activate lease: ${leaseUpdateError.message}`)
   }
 
-  console.log(`Lease ${lease.id} flipped to active`)
+  logEvent('Lease flipped to active', { lease_id: lease.id })
 
   // 5b. Insert owner notification
   // IMPORTANT: notification_type must be 'lease' per notifications_notification_type_check constraint
@@ -204,12 +204,12 @@ async function handleSubmissionCompleted(
     throw new Error(`Failed to insert owner notification: ${notifError.message}`)
   }
 
-  console.log(`Owner notification inserted for lease ${lease.id}`)
+  logEvent('Owner notification inserted', { lease_id: lease.id })
 
   // 5c. Log signed document URL if available (docuseal_document_url column does not exist in DB — skip update)
   const signedDocUrl = documents?.[0]?.url
   if (signedDocUrl) {
-    console.log(`Signed document available for lease ${lease.id}: ${signedDocUrl}`)
+    logEvent('Signed document available', { lease_id: lease.id, signed_doc_url: signedDocUrl })
   }
 }
 
@@ -296,7 +296,7 @@ Deno.serve(async (req: Request) => {
     } else if (eventType === 'submission.completed') {
       await handleSubmissionCompleted(supabase, body as unknown as SubmissionCompletedPayload)
     } else {
-      console.log(`Unhandled DocuSeal event: ${eventType}`)
+      logEvent('Unhandled DocuSeal event', { event_type: eventType })
     }
 
     return new Response(

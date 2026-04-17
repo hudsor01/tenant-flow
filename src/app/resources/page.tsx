@@ -27,9 +27,9 @@ import { createBreadcrumbJsonLd } from '#lib/seo/breadcrumbs'
 import { createPageMetadata } from '#lib/seo/page-metadata'
 
 export const metadata: Metadata = createPageMetadata({
-	title: 'Property Management Resources, Guides & Tools',
+	title: 'Free Landlord Resources — Property Management Templates & Tools',
 	description:
-		'Free property management resources: maintenance checklists, tax deduction trackers, security deposit guides. Expert tutorials and downloadable tools.',
+		'Free downloadable property management templates: seasonal maintenance checklists, landlord tax deduction trackers, security deposit law guides. Expert resources for rental property owners.',
 	path: '/resources'
 })
 

@@ -1,6 +1,12 @@
 export const dynamic = 'force-dynamic'
 
+import type { Metadata } from 'next'
 import type { ReactNode } from 'react'
+
+// Auth-walled. Block search engines from indexing tenant portal pages.
+export const metadata: Metadata = {
+	robots: { index: false, follow: false }
+}
 
 /**
  * Tenant Portal Route Group Layout

@@ -1,8 +1,15 @@
 export const dynamic = 'force-dynamic'
 
+import type { Metadata } from 'next'
 import { OwnerDashboardLayout } from './owner-dashboard-layout'
 import ModalLayout from '#components/layout/modal-layout'
 import type { ReactNode } from 'react'
+
+// Auth-walled. Block search engines from indexing dashboard pages even if
+// they bypass robots.txt or follow internal links.
+export const metadata: Metadata = {
+	robots: { index: false, follow: false }
+}
 
 /**
  * Owner Dashboard Layout (Next.js 16 Pattern)
