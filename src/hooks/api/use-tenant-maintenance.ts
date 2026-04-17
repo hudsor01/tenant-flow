@@ -29,6 +29,9 @@ import type {
 	MaintenancePriority
 } from '#types/core'
 import { tenantPortalKeys, resolveTenantId } from './use-tenant-portal-keys'
+import { createLogger } from '#lib/frontend-logger'
+
+const logger = createLogger({ component: 'use-tenant-maintenance' })
 
 // ============================================================================
 // TYPES
@@ -215,7 +218,7 @@ const tenantMaintenanceMutationFactories = {
 							.upload(storagePath, file)
 
 						if (uploadError) {
-							console.error('Photo upload failed:', uploadError.message)
+							logger.error('Photo upload failed', { metadata: { request_id: requestId, file_name: file.name } }, uploadError)
 							continue
 						}
 
@@ -230,7 +233,7 @@ const tenantMaintenanceMutationFactories = {
 								uploaded_by: userId
 							})
 					} catch (photoErr) {
-						console.error('Photo processing failed:', photoErr)
+						logger.error('Photo processing failed', { metadata: { request_id: requestId, file_name: file.name } }, photoErr)
 					}
 				}
 

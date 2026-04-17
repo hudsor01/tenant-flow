@@ -15,7 +15,7 @@
 
 import { getCorsHeaders, handleCorsOptions, getJsonHeaders } from '../_shared/cors.ts'
 import { validateEnv } from '../_shared/env.ts'
-import { errorResponse } from '../_shared/errors.ts'
+import { errorResponse, captureWebhookError } from '../_shared/errors.ts'
 import { validateBearerAuth } from '../_shared/auth.ts'
 import { getStripeClient } from '../_shared/stripe-client.ts'
 import { createAdminClient } from '../_shared/supabase-client.ts'
@@ -118,7 +118,7 @@ Deno.serve(async (req: Request) => {
       .eq('id', paymentMethodId)
 
     if (deleteError) {
-      console.error('Failed to delete payment method from DB after Stripe detach', deleteError)
+      captureWebhookError(deleteError, { message: 'Failed to delete payment method from DB after Stripe detach', payment_method_id: paymentMethodId, stripe_pm_id: stripePmId })
       return new Response(
         JSON.stringify({ error: 'Stripe detach succeeded but DB deletion failed' }),
         { status: 500, headers: jsonHeaders }
@@ -150,7 +150,7 @@ Deno.serve(async (req: Request) => {
       .select('id, autopay_payment_method_id, lease_tenants!inner(tenant_id)')
       .eq('lease_tenants.tenant_id', tenant.id)
       .eq('auto_pay_enabled', true)
-      .eq('autopay_payment_method_id', stripePmId)
+      .eq('autopay_payment_method_id', paymentMethodId)
 
     if (leases && leases.length > 0) {
       // Check if tenant has any remaining payment methods

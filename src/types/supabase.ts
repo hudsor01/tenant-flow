@@ -10,7 +10,7 @@ export type Database = {
   // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
-    PostgrestVersion: "13.0.5"
+    PostgrestVersion: "14.5"
   }
   public: {
     Tables: {
@@ -140,6 +140,72 @@ export type Database = {
           id?: string
           owner_user_id?: string | null
           storage_url?: string
+        }
+        Relationships: []
+      }
+      email_deliverability: {
+        Row: {
+          event_at: string
+          event_type: string
+          id: string
+          message_id: string
+          raw_payload: Json
+          received_at: string
+          recipient_email: string
+          template_tag: string | null
+        }
+        Insert: {
+          event_at: string
+          event_type: string
+          id?: string
+          message_id: string
+          raw_payload?: Json
+          received_at?: string
+          recipient_email: string
+          template_tag?: string | null
+        }
+        Update: {
+          event_at?: string
+          event_type?: string
+          id?: string
+          message_id?: string
+          raw_payload?: Json
+          received_at?: string
+          recipient_email?: string
+          template_tag?: string | null
+        }
+        Relationships: []
+      }
+      email_deliverability_archive: {
+        Row: {
+          event_at: string
+          event_type: string
+          id: string
+          message_id: string
+          raw_payload: Json
+          received_at: string
+          recipient_email: string
+          template_tag: string | null
+        }
+        Insert: {
+          event_at: string
+          event_type: string
+          id?: string
+          message_id: string
+          raw_payload?: Json
+          received_at?: string
+          recipient_email: string
+          template_tag?: string | null
+        }
+        Update: {
+          event_at?: string
+          event_type?: string
+          id?: string
+          message_id?: string
+          raw_payload?: Json
+          received_at?: string
+          recipient_email?: string
+          template_tag?: string | null
         }
         Relationships: []
       }
@@ -929,6 +995,41 @@ export type Database = {
           {
             foreignKeyName: "notifications_user_id_fkey"
             columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      onboarding_funnel_events: {
+        Row: {
+          completed_at: string
+          id: string
+          metadata: Json
+          owner_user_id: string
+          recorded_at: string
+          step_name: string
+        }
+        Insert: {
+          completed_at: string
+          id?: string
+          metadata?: Json
+          owner_user_id: string
+          recorded_at?: string
+          step_name: string
+        }
+        Update: {
+          completed_at?: string
+          id?: string
+          metadata?: Json
+          owner_user_id?: string
+          recorded_at?: string
+          step_name?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "onboarding_funnel_events_owner_user_id_fkey"
+            columns: ["owner_user_id"]
             isOneToOne: false
             referencedRelation: "users"
             referencedColumns: ["id"]
@@ -2460,7 +2561,19 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      stripe_sync_queue_depth: {
+        Row: {
+          archive_total: number | null
+          db_size: string | null
+          obj_runs_error: number | null
+          obj_runs_pending: number | null
+          obj_runs_running: number | null
+          obj_runs_size: string | null
+          obj_runs_total: number | null
+          open_sync_runs: number | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       acquire_internal_event_lock: {
@@ -2509,6 +2622,7 @@ export type Database = {
           tablename: string
         }[]
       }
+      backfill_funnel_events: { Args: never; Returns: undefined }
       calculate_late_fees: { Args: never; Returns: undefined }
       calculate_maintenance_metrics: {
         Args: {
@@ -2548,6 +2662,7 @@ export type Database = {
         Args: { p_feature: string; p_user_id: string }
         Returns: boolean
       }
+      cleanup_old_email_deliverability: { Args: never; Returns: number }
       cleanup_old_errors: { Args: never; Returns: number }
       cleanup_old_internal_events: {
         Args: { days_to_keep?: number }
@@ -2555,6 +2670,7 @@ export type Database = {
       }
       cleanup_old_security_events: { Args: never; Returns: number }
       cleanup_old_webhook_events: { Args: never; Returns: number }
+      cleanup_stripe_sync_history: { Args: never; Returns: undefined }
       confirm_lease_subscription: {
         Args: { p_lease_id: string; p_subscription_id: string }
         Returns: undefined
@@ -2599,6 +2715,19 @@ export type Database = {
           value: number
         }[]
       }
+      get_deliverability_stats: {
+        Args: { p_days?: number }
+        Returns: {
+          bounce_rate: number
+          bounced_count: number
+          complained_count: number
+          complaint_rate: number
+          delivered_count: number
+          opened_count: number
+          sent_count: number
+          template_tag: string
+        }[]
+      }
       get_error_prone_users: {
         Args: { hours_back?: number; min_errors?: number }
         Returns: {
@@ -2618,6 +2747,10 @@ export type Database = {
       }
       get_expense_summary: { Args: { p_user_id: string }; Returns: Json }
       get_financial_overview: { Args: { p_user_id: string }; Returns: Json }
+      get_funnel_stats: {
+        Args: { p_from?: string; p_to?: string }
+        Returns: Json
+      }
       get_invoice_statistics: { Args: { p_user_id: string }; Returns: Json }
       get_lead_paint_compliance_report: {
         Args: never
@@ -3086,4 +3219,3 @@ export const Constants = {
     },
   },
 } as const
-

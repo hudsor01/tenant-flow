@@ -57,3 +57,20 @@ export function getTenantTestCredentials(): {
 
   return { tenantA: { email: tenantAEmail, password: tenantAPassword } }
 }
+
+/**
+ * Returns admin test credentials from env vars.
+ * Returns null if credentials are not configured (tests should skip gracefully).
+ */
+export function getAdminTestCredentials(): {
+  admin: { email: string; password: string }
+} | null {
+  const adminEmail = process.env['E2E_ADMIN_EMAIL']
+  const adminPassword = process.env['E2E_ADMIN_PASSWORD']
+
+  if (!adminEmail || !adminPassword) {
+    return null
+  }
+
+  return { admin: { email: adminEmail, password: adminPassword } }
+}

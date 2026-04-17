@@ -1,4 +1,5 @@
 import { cache } from 'react'
+import { notFound } from 'next/navigation'
 import { createClient } from '#lib/supabase/server'
 import { createLogger } from '#lib/frontend-logger'
 import type { Metadata } from 'next'
@@ -57,7 +58,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 	const post = await getBlogPost(slug)
 
 	if (!post) {
-		return { title: 'Blog Post Not Found | TenantFlow' }
+		notFound()
 	}
 
 	const description = post.meta_description || post.excerpt

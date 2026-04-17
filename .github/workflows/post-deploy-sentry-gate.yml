@@ -1,0 +1,398 @@
+# Post-Deploy Sentry Regression Gate (Phase 43 / DEPLOY-01, DEPLOY-02)
+#
+# What this does:
+#   After a production Vercel deploy, wait an observation window, query Sentry
+#   against the deployed release SHA, compare issue/error-rate profile against
+#   the previous release's baseline artifact, and fail the workflow + open a
+#   GitHub issue if any threshold is breached.
+#
+# Triggers:
+#   - repository_dispatch: vercel.deployment.success | vercel.deployment.promoted
+#     (Vercel's canonical 2026 integration — requires Vercel project Git settings
+#      to have deployment events enabled; verify Project → Settings → Git in Vercel.)
+#   - workflow_dispatch with input `release_sha` for manual smoke testing / re-runs.
+#
+# Smoke test (run after merging to main):
+#   gh workflow run post-deploy-sentry-gate.yml -f release_sha=<known-good-shipped-sha>
+#   gh run watch
+#   # Expect green exit, PASS summary, and artifact `sentry-baseline-<sha>` uploaded.
+#
+# Required repo secrets:
+#   SENTRY_AUTH_TOKEN  — Sentry Organization Token (Settings → Developer Settings
+#                        → Organization Tokens). Scopes needed: project:read, event:read.
+#   SENTRY_ORG         — Sentry org slug (matches next.config.ts:50)
+#   SENTRY_PROJECT     — Sentry project slug (matches next.config.ts:51)
+#
+# Required repo variables (all tunable without code change via `gh variable set`):
+#   SENTRY_GATE_NEW_ISSUE_EVENT_THRESHOLD  (default 10)
+#   SENTRY_GATE_ERROR_RATE_DELTA_PCT       (default 1.0)
+#   SENTRY_GATE_OBSERVATION_WINDOW_MINUTES (default 30)
+#
+# Threshold tuning: after 5+ production deploys, review opened issues vs false
+# positives. Tighten or relax via `gh variable set SENTRY_GATE_<NAME> --body <value>`.
+#
+# Out of scope (per 43-DECISIONS.md): Vercel rollback, Slack/PagerDuty webhooks,
+# rolling-median baseline, preview-deploy gating, performance (p95) threshold enforcement.
+
+name: Post-Deploy Sentry Regression Gate
+
+on:
+  repository_dispatch:
+    types:
+      - vercel.deployment.success
+      - vercel.deployment.promoted
+  workflow_dispatch:
+    inputs:
+      release_sha:
+        description: 'Git SHA to audit (for smoke tests or manual re-runs against a known-good release)'
+        required: true
+        type: string
+
+concurrency:
+  group: sentry-gate-${{ github.event.client_payload.git.sha || inputs.release_sha }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  actions: read
+  issues: write
+
+jobs:
+  gate:
+    if: github.event_name == 'workflow_dispatch' || github.event.client_payload.environment == 'production'
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    env:
+      SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+      SENTRY_ORG: ${{ secrets.SENTRY_ORG }}
+      SENTRY_PROJECT: ${{ secrets.SENTRY_PROJECT }}
+      NEW_ISSUE_EVENT_THRESHOLD: ${{ vars.SENTRY_GATE_NEW_ISSUE_EVENT_THRESHOLD || '10' }}
+      ERROR_RATE_DELTA_PCT: ${{ vars.SENTRY_GATE_ERROR_RATE_DELTA_PCT || '1.0' }}
+      OBSERVATION_WINDOW_MINUTES: ${{ vars.SENTRY_GATE_OBSERVATION_WINDOW_MINUTES || '30' }}
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - name: Check required secrets
+        run: |
+          missing=()
+          [ -z "${SENTRY_AUTH_TOKEN:-}" ] && missing+=(SENTRY_AUTH_TOKEN)
+          [ -z "${SENTRY_ORG:-}" ]        && missing+=(SENTRY_ORG)
+          [ -z "${SENTRY_PROJECT:-}" ]    && missing+=(SENTRY_PROJECT)
+          if [ ${#missing[@]} -gt 0 ]; then
+            echo "::error::Missing required secrets: ${missing[*]}"
+            exit 1
+          fi
+
+      - name: Resolve release SHA
+        id: release
+        env:
+          CLIENT_PAYLOAD_SHA: ${{ github.event.client_payload.git.sha }}
+          INPUT_RELEASE_SHA: ${{ inputs.release_sha }}
+          EVENT_NAME: ${{ github.event_name }}
+        run: |
+          if [ "${EVENT_NAME}" = "workflow_dispatch" ]; then
+            SHA="${INPUT_RELEASE_SHA}"
+          else
+            SHA="${CLIENT_PAYLOAD_SHA}"
+          fi
+          # T-43-03 mitigation: regex-validate before passing to any curl URL path.
+          if ! echo "${SHA}" | grep -Eq '^[a-f0-9]{40}$'; then
+            echo "::error::Invalid release SHA format: ${SHA}. Expected 40-char hex git SHA."
+            exit 1
+          fi
+          SHORT="${SHA:0:7}"
+          echo "sha=${SHA}" >> "$GITHUB_OUTPUT"
+          echo "short_sha=${SHORT}" >> "$GITHUB_OUTPUT"
+          echo "Release SHA: ${SHA} (short: ${SHORT})"
+
+      - name: Observation window
+        run: |
+          echo "Sleeping ${OBSERVATION_WINDOW_MINUTES} minute(s) for Sentry to receive error/session signal..."
+          sleep "${OBSERVATION_WINDOW_MINUTES}m"
+
+      - name: Confirm release exists in Sentry
+        env:
+          RELEASE_SHA: ${{ steps.release.outputs.sha }}
+        run: |
+          STATUS=$(curl -sS -o /dev/null -w "%{http_code}" \
+            "https://sentry.io/api/0/organizations/${SENTRY_ORG}/releases/${RELEASE_SHA}/" \
+            -H "Authorization: Bearer ${SENTRY_AUTH_TOKEN}")
+          if [ "${STATUS}" = "404" ]; then
+            echo "::error::Sentry release ${RELEASE_SHA} not found. Check that @sentry/nextjs setCommits succeeded in the Vercel build. See next.config.ts:65-70."
+            exit 1
+          fi
+          if [ "${STATUS}" != "200" ]; then
+            echo "::error::Sentry releases API returned HTTP ${STATUS}. Check SENTRY_AUTH_TOKEN scopes (project:read required)."
+            exit 1
+          fi
+          echo "Release ${RELEASE_SHA} confirmed in Sentry."
+
+      - name: Query Sentry issues (new unresolved)
+        id: sentry_issues
+        env:
+          RELEASE_SHA: ${{ steps.release.outputs.sha }}
+        run: |
+          set -euo pipefail
+          curl -sS -f -G "https://sentry.io/api/0/organizations/${SENTRY_ORG}/issues/" \
+            -H "Authorization: Bearer ${SENTRY_AUTH_TOKEN}" \
+            --data-urlencode "project=${SENTRY_PROJECT}" \
+            --data-urlencode "environment=production" \
+            --data-urlencode "query=release:${RELEASE_SHA} is:unresolved age:-${OBSERVATION_WINDOW_MINUTES}m" \
+            --data-urlencode "sort=new" \
+            --data-urlencode "limit=100" \
+            -o current-issues.json
+          EVENT_COUNT=$(jq '[.[] | .count | tonumber] | add // 0' current-issues.json)
+          NEW_ISSUE_COUNT=$(jq 'length' current-issues.json)
+          echo "event_count_new_issues=${EVENT_COUNT}" >> "$GITHUB_OUTPUT"
+          echo "new_issue_count=${NEW_ISSUE_COUNT}" >> "$GITHUB_OUTPUT"
+          echo "Captured ${NEW_ISSUE_COUNT} new unresolved issue(s) with ${EVENT_COUNT} total events."
+
+      - name: Query Sentry sessions (crash-free rate)
+        id: sentry_sessions
+        env:
+          RELEASE_SHA: ${{ steps.release.outputs.sha }}
+        run: |
+          set -euo pipefail
+          curl -sS -f -G "https://sentry.io/api/0/organizations/${SENTRY_ORG}/sessions/" \
+            -H "Authorization: Bearer ${SENTRY_AUTH_TOKEN}" \
+            --data-urlencode "project=${SENTRY_PROJECT}" \
+            --data-urlencode "environment=production" \
+            --data-urlencode "field=sum(session)" \
+            --data-urlencode "field=crash_free_rate(session)" \
+            --data-urlencode "statsPeriod=1h" \
+            --data-urlencode "query=release:${RELEASE_SHA}" \
+            -o current-sessions.json
+          # Default crash_free_rate to 1.0 if no sessions recorded yet (avoid false positive).
+          CRASH_FREE=$(jq '[.groups[]? | select((.by // {}) | length == 0) | .totals["crash_free_rate(session)"]] | first // 1' current-sessions.json)
+          ERROR_RATE_PCT=$(awk -v cf="${CRASH_FREE}" 'BEGIN { printf "%.4f", (1 - cf) * 100 }')
+          echo "error_rate_pct=${ERROR_RATE_PCT}" >> "$GITHUB_OUTPUT"
+          echo "Crash-free rate: ${CRASH_FREE} → error rate ${ERROR_RATE_PCT}%"
+
+      - name: Query Sentry transactions (p95 — baseline only)
+        id: sentry_transactions
+        env:
+          RELEASE_SHA: ${{ steps.release.outputs.sha }}
+        run: |
+          set -euo pipefail
+          # Baseline metric only — not gated per 43-RESEARCH.md line 654. Captured for
+          # post-mortem trend analysis via the 90-day artifact.
+          curl -sS -f -G "https://sentry.io/api/0/organizations/${SENTRY_ORG}/events-stats/" \
+            -H "Authorization: Bearer ${SENTRY_AUTH_TOKEN}" \
+            --data-urlencode "project=${SENTRY_PROJECT}" \
+            --data-urlencode "environment=production" \
+            --data-urlencode "query=release:${RELEASE_SHA}" \
+            --data-urlencode "yAxis=p95(transaction.duration)" \
+            --data-urlencode "statsPeriod=1h" \
+            -o current-transactions.json || true
+          # events-stats response shape: { data: [[timestamp, [{count: <ms>}]], ...] }.
+          # If query returns no data (low traffic), default to null.
+          P95_MS=$(jq '[.data[]? | .[1][0].count // empty] | if length == 0 then 0 else (add / length) end' current-transactions.json 2>/dev/null || echo "0")
+          echo "transactions_p95_ms=${P95_MS}" >> "$GITHUB_OUTPUT"
+          echo "p95 transaction duration: ${P95_MS}ms"
+
+      - name: Fetch previous release baseline (if any)
+        id: baseline
+        env:
+          RELEASE_SHA: ${{ steps.release.outputs.sha }}
+        run: |
+          set -euo pipefail
+          REPO="${GITHUB_REPOSITORY}"
+          # List all sentry-baseline-* artifacts, sort by created_at desc, skip the current-SHA
+          # artifact (if this is a re-run), take the first remaining as the "previous" baseline.
+          ARTIFACTS_JSON=$(gh api "repos/${REPO}/actions/artifacts?per_page=100" --jq \
+            "[.artifacts[] | select(.name | startswith(\"sentry-baseline-\")) | select(.name != \"sentry-baseline-${RELEASE_SHA}\") | select(.expired == false)] | sort_by(.created_at) | reverse")
+          PREV_COUNT=$(echo "${ARTIFACTS_JSON}" | jq 'length')
+          if [ "${PREV_COUNT}" = "0" ]; then
+            echo "No previous baseline found — this is the first gate run. Emitting first_run placeholder."
+            echo '{"first_run": true}' > previous-snapshot.json
+            echo "first_run=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          PREV_ARTIFACT_ID=$(echo "${ARTIFACTS_JSON}" | jq '.[0].id')
+          PREV_ARTIFACT_NAME=$(echo "${ARTIFACTS_JSON}" | jq -r '.[0].name')
+          echo "Previous baseline: ${PREV_ARTIFACT_NAME} (id ${PREV_ARTIFACT_ID})"
+          # Download the artifact zip and extract snapshot.json
+          gh api "repos/${REPO}/actions/artifacts/${PREV_ARTIFACT_ID}/zip" > prev.zip
+          unzip -p prev.zip snapshot.json > previous-snapshot.json
+          rm prev.zip
+          echo "first_run=false" >> "$GITHUB_OUTPUT"
+          echo "previous_sha=${PREV_ARTIFACT_NAME#sentry-baseline-}" >> "$GITHUB_OUTPUT"
+
+      - name: Evaluate regression thresholds
+        id: gate
+        env:
+          RELEASE_SHA: ${{ steps.release.outputs.sha }}
+          SHORT_SHA: ${{ steps.release.outputs.short_sha }}
+          CURRENT_EVENT_COUNT: ${{ steps.sentry_issues.outputs.event_count_new_issues }}
+          CURRENT_NEW_ISSUE_COUNT: ${{ steps.sentry_issues.outputs.new_issue_count }}
+          CURRENT_ERROR_RATE_PCT: ${{ steps.sentry_sessions.outputs.error_rate_pct }}
+          CURRENT_P95_MS: ${{ steps.sentry_transactions.outputs.transactions_p95_ms }}
+          FIRST_RUN: ${{ steps.baseline.outputs.first_run }}
+          PREVIOUS_SHA: ${{ steps.baseline.outputs.previous_sha }}
+        run: |
+          set -euo pipefail
+
+          # Render current snapshot markdown for the summary / issue body.
+          {
+            echo "## Sentry Gate Result — ${SHORT_SHA}"
+            echo ""
+            echo "| Metric | Current | Previous | Threshold |"
+            echo "|---|---|---|---|"
+          } > gate-summary.md
+
+          if [ "${FIRST_RUN}" = "true" ]; then
+            STATUS="PASS_WITH_WARNING"
+            REASON="No prior baseline artifact found — this is the first gate run. Baseline will be established after this release."
+            {
+              echo "| New-issue event count | ${CURRENT_EVENT_COUNT} | — | ${NEW_ISSUE_EVENT_THRESHOLD} |"
+              echo "| Error rate % | ${CURRENT_ERROR_RATE_PCT} | — | Δ ${ERROR_RATE_DELTA_PCT} |"
+              echo "| p95 transaction (ms) | ${CURRENT_P95_MS} | — | (baseline only) |"
+              echo ""
+              echo "**Status:** PASS_WITH_WARNING — ${REASON}"
+            } >> gate-summary.md
+            echo "gate_status=PASS_WITH_WARNING" >> "$GITHUB_OUTPUT"
+            echo "gate_reason=${REASON}" >> "$GITHUB_OUTPUT"
+            cat gate-summary.md >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+
+          PREV_ERROR_RATE=$(jq -r '.error_rate_pct // 0' previous-snapshot.json)
+          PREV_EVENT_COUNT=$(jq -r '.event_count_new_issues // 0' previous-snapshot.json)
+          PREV_P95=$(jq -r '.transactions_p95_ms // 0' previous-snapshot.json)
+
+          # Rule 1: new-issue event-count absolute threshold.
+          EVENT_BREACH=$(awk -v c="${CURRENT_EVENT_COUNT}" -v t="${NEW_ISSUE_EVENT_THRESHOLD}" 'BEGIN { exit !(c > t) }' && echo "1" || echo "0")
+
+          # Rule 2: error-rate delta.
+          DELTA=$(awk -v c="${CURRENT_ERROR_RATE_PCT}" -v p="${PREV_ERROR_RATE}" 'BEGIN { printf "%.4f", c - p }')
+          RATE_BREACH=$(awk -v d="${DELTA}" -v t="${ERROR_RATE_DELTA_PCT}" 'BEGIN { exit !(d > t) }' && echo "1" || echo "0")
+
+          {
+            echo "| New-issue event count | ${CURRENT_EVENT_COUNT} | ${PREV_EVENT_COUNT} | > ${NEW_ISSUE_EVENT_THRESHOLD} |"
+            echo "| Error rate % | ${CURRENT_ERROR_RATE_PCT} | ${PREV_ERROR_RATE} | Δ > ${ERROR_RATE_DELTA_PCT} (actual Δ: ${DELTA}) |"
+            echo "| p95 transaction (ms) | ${CURRENT_P95_MS} | ${PREV_P95} | (baseline only) |"
+            echo ""
+            echo "**Previous release:** \`${PREVIOUS_SHA}\`"
+          } >> gate-summary.md
+
+          if [ "${EVENT_BREACH}" = "1" ]; then
+            STATUS="FAIL"
+            REASON="New-issue event count ${CURRENT_EVENT_COUNT} exceeded threshold ${NEW_ISSUE_EVENT_THRESHOLD}."
+          elif [ "${RATE_BREACH}" = "1" ]; then
+            STATUS="FAIL"
+            REASON="Error-rate delta ${DELTA}% exceeded threshold ${ERROR_RATE_DELTA_PCT}%."
+          else
+            STATUS="PASS"
+            REASON="All thresholds within bounds."
+          fi
+
+          {
+            echo ""
+            echo "**Status:** ${STATUS} — ${REASON}"
+          } >> gate-summary.md
+
+          echo "gate_status=${STATUS}" >> "$GITHUB_OUTPUT"
+          echo "gate_reason=${REASON}" >> "$GITHUB_OUTPUT"
+          cat gate-summary.md >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Open regression issue
+        if: steps.gate.outputs.gate_status == 'FAIL'
+        env:
+          RELEASE_SHA: ${{ steps.release.outputs.sha }}
+          SHORT_SHA: ${{ steps.release.outputs.short_sha }}
+          GATE_REASON: ${{ steps.gate.outputs.gate_reason }}
+        run: |
+          set -euo pipefail
+          SENTRY_RELEASE_URL="https://sentry.io/organizations/${SENTRY_ORG}/releases/${RELEASE_SHA}/"
+          RUN_URL="${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
+          {
+            cat gate-summary.md
+            echo ""
+            echo "---"
+            echo ""
+            echo "- **Sentry release:** ${SENTRY_RELEASE_URL}"
+            echo "- **Actions run:** ${RUN_URL}"
+            echo "- **Gate reason:** ${GATE_REASON}"
+          } > issue-body.md
+          ISSUE_URL=$(gh issue create \
+            --title "Sentry regression detected in ${SHORT_SHA}" \
+            --body-file issue-body.md \
+            --label "sentry-regression,deploy-gate" 2>&1) || {
+            echo "::warning::gh issue create failed: ${ISSUE_URL}"
+            exit 0
+          }
+          echo "Opened issue: ${ISSUE_URL}"
+          echo "**Issue:** ${ISSUE_URL}" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Exit with gate status
+        if: always()
+        env:
+          GATE_STATUS: ${{ steps.gate.outputs.gate_status }}
+        run: |
+          case "${GATE_STATUS}" in
+            FAIL)
+              echo "::error::Sentry regression gate FAILED — see gate-summary.md and opened issue."
+              exit 1
+              ;;
+            PASS_WITH_WARNING)
+              echo "::notice::Sentry regression gate PASS_WITH_WARNING (first run baseline established)."
+              exit 0
+              ;;
+            PASS)
+              echo "Sentry regression gate PASS."
+              exit 0
+              ;;
+            *)
+              echo "::error::Gate status not set — evaluate step may have failed. Treating as FAIL."
+              exit 1
+              ;;
+          esac
+
+      - name: Build snapshot JSON
+        if: always()
+        env:
+          RELEASE_SHA: ${{ steps.release.outputs.sha }}
+          EVENT_COUNT: ${{ steps.sentry_issues.outputs.event_count_new_issues }}
+          ERROR_RATE: ${{ steps.sentry_sessions.outputs.error_rate_pct }}
+          P95_MS: ${{ steps.sentry_transactions.outputs.transactions_p95_ms }}
+          GATE_STATUS: ${{ steps.gate.outputs.gate_status }}
+          GATE_REASON: ${{ steps.gate.outputs.gate_reason }}
+        run: |
+          set -uo pipefail
+          CAPTURED_AT=$(date -u +%Y-%m-%dT%H:%M:%SZ)
+          # Prune issue objects to id/title/count/permalink — drop heavy Sentry fields.
+          # Fall back to [] if current-issues.json was never created (early failure).
+          if [ -f current-issues.json ]; then
+            NEW_ISSUES=$(jq '[.[] | {id, title, count: (.count | tonumber), permalink}]' current-issues.json)
+          else
+            NEW_ISSUES="[]"
+          fi
+          jq -n \
+            --arg sha "${RELEASE_SHA}" \
+            --arg captured "${CAPTURED_AT}" \
+            --argjson issues "${NEW_ISSUES}" \
+            --arg ec "${EVENT_COUNT:-0}" \
+            --arg er "${ERROR_RATE:-0}" \
+            --arg p95 "${P95_MS:-0}" \
+            --arg gs "${GATE_STATUS:-UNKNOWN}" \
+            --arg gr "${GATE_REASON:-no reason recorded}" \
+            '{
+              release_sha: $sha,
+              captured_at: $captured,
+              new_issues: $issues,
+              event_count_new_issues: ($ec | tonumber),
+              error_rate_pct: ($er | tonumber),
+              transactions_p95_ms: ($p95 | tonumber),
+              gate_status: $gs,
+              gate_reason: $gr
+            }' > snapshot.json
+          echo "Snapshot written:"
+          cat snapshot.json
+
+      - name: Upload baseline artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: sentry-baseline-${{ steps.release.outputs.sha }}
+          path: snapshot.json
+          retention-days: 90
+          if-no-files-found: error

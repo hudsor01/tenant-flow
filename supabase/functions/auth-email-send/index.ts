@@ -9,7 +9,7 @@
 // its built-in email templates. We render branded HTML via Resend.
 
 import { getJsonHeaders, handleCorsOptions } from '../_shared/cors.ts'
-import { errorResponse } from '../_shared/errors.ts'
+import { errorResponse, captureWebhookError, logEvent } from '../_shared/errors.ts'
 import { validateEnv } from '../_shared/env.ts'
 import { sendEmail } from '../_shared/resend.ts'
 import {
@@ -66,7 +66,7 @@ Deno.serve(async (req: Request) => {
       const authHeader = req.headers.get('authorization') ?? ''
       const token = authHeader.replace(/^Bearer\s+/i, '')
       if (token !== hookSecret) {
-        console.error('[AUTH_EMAIL] Unauthorized: invalid hook secret')
+        captureWebhookError(new Error('Unauthorized: invalid hook secret'), { message: '[AUTH_EMAIL] Unauthorized: invalid hook secret' })
         return new Response(
           JSON.stringify({ error: 'Unauthorized' }),
           { status: 401, headers: jsonHeaders },
@@ -134,7 +134,7 @@ Deno.serve(async (req: Request) => {
 
       default: {
         const unknownType = email_data.email_action_type as string
-        console.error(`[AUTH_EMAIL] Unknown email_action_type: ${unknownType}`)
+        captureWebhookError(new Error('Unknown email_action_type'), { message: '[AUTH_EMAIL] Unknown email_action_type', email_action_type: unknownType })
         return new Response(
           JSON.stringify({ error: 'Unsupported email action type' }),
           { status: 400, headers: jsonHeaders },
@@ -153,14 +153,22 @@ Deno.serve(async (req: Request) => {
     })
 
     if (!result.success) {
-      console.error(`[AUTH_EMAIL] Failed to send ${email_data.email_action_type} email to ${user.email}: ${result.error}`)
+      captureWebhookError(new Error(result.error), {
+        message: '[AUTH_EMAIL] Failed to send email',
+        email_action_type: email_data.email_action_type,
+        recipient: user.email,
+      })
       return new Response(
         JSON.stringify({ error: 'Failed to send email' }),
         { status: 500, headers: jsonHeaders },
       )
     }
 
-    console.log(`[AUTH_EMAIL] Sent ${email_data.email_action_type} email to ${user.email} (id: ${result.id})`)
+    logEvent('[AUTH_EMAIL] Sent auth email', {
+      email_action_type: email_data.email_action_type,
+      recipient: user.email,
+      resend_id: result.id,
+    })
     return new Response(
       JSON.stringify({ success: true, id: result.id }),
       { status: 200, headers: jsonHeaders },

@@ -2,7 +2,7 @@ import Stripe from 'stripe'
 import React from 'npm:react@18.3.1'
 import { renderAsync } from 'npm:@react-email/components@0.0.22'
 import { sendEmail } from '../../_shared/resend.ts'
-import { captureWebhookError } from '../../_shared/errors.ts'
+import { captureWebhookError, captureWebhookWarning, logEvent } from '../../_shared/errors.ts'
 import { PaymentReceipt } from '../_templates/payment-receipt.tsx'
 import { OwnerNotification } from '../_templates/owner-notification.tsx'
 import type { SupabaseAdmin } from './types.ts'
@@ -27,14 +27,15 @@ export async function handlePaymentIntentSucceeded(
   if (!tenantId || !leaseId) {
     captureWebhookError(
       new Error('Missing required payment metadata'),
-      { event_id: event.id, pi_id: pi.id, metadata: pi.metadata }
+      {
+        message: '[WEBHOOK] Missing required metadata — skipping payment_intent.succeeded',
+        event_id: event.id,
+        pi_id: pi.id,
+        tenant_id: tenantId ?? 'MISSING',
+        lease_id: leaseId ?? 'MISSING',
+        metadata: pi.metadata,
+      }
     )
-    console.error('[WEBHOOK] Missing required metadata — skipping payment_intent.succeeded', {
-      event_id: event.id,
-      pi_id: pi.id,
-      tenant_id: tenantId ?? 'MISSING',
-      lease_id: leaseId ?? 'MISSING',
-    })
     return
   }
 
@@ -55,7 +56,7 @@ export async function handlePaymentIntentSucceeded(
       }
     } catch (feeErr) {
       // Non-fatal — log and continue with stripeFeeAmount = 0
-      console.error('Failed to retrieve balance transaction for fee calculation:', feeErr)
+      captureWebhookError(feeErr, { message: 'Failed to retrieve balance transaction for fee calculation', charge_id: chargeId })
     }
   }
 
@@ -84,7 +85,7 @@ export async function handlePaymentIntentSucceeded(
   try {
     await sendReceiptEmails(supabase, stripe, pi, grossAmount, stripeFeeAmount, platformFeeAmount, netAmount, charge)
   } catch (emailErr) {
-    console.error('[RESEND_ERROR] sendReceiptEmails unexpected error:', emailErr)
+    captureWebhookError(emailErr, { message: '[RESEND_ERROR] sendReceiptEmails unexpected error', pi_id: pi.id })
   }
 }
 
@@ -112,7 +113,7 @@ async function sendReceiptEmails(
 
   // Bail if missing critical metadata (e.g., non-rent payment_intent)
   if (!tenantId || !leaseId || !propertyId) {
-    console.log('[EMAIL_SKIP] Missing metadata for receipt emails — likely a non-rent PaymentIntent')
+    logEvent('[EMAIL_SKIP] Missing metadata for receipt emails — likely a non-rent PaymentIntent', { pi_id: pi.id })
     return
   }
 
@@ -127,7 +128,8 @@ async function sendReceiptEmails(
   ])
 
   if (!tenantResult.data || !leaseResult.data || !propertyResult.data) {
-    console.error('[RESEND_ERROR] Missing critical data for receipt emails:', {
+    captureWebhookError(new Error('Missing critical data for receipt emails'), {
+      message: '[RESEND_ERROR] Missing critical data for receipt emails',
       tenant: !!tenantResult.data,
       lease: !!leaseResult.data,
       property: !!propertyResult.data,
@@ -211,13 +213,13 @@ async function sendReceiptEmails(
         ],
       })
       if (!result.success) {
-        console.error('[RESEND_ERROR] Tenant receipt email failed:', result.error)
+        captureWebhookError(new Error(result.error), { message: '[RESEND_ERROR] Tenant receipt email failed', tenant_id: tenantId })
       }
     })())
   } else if (!tenantUserResult.data?.email) {
-    console.warn('[EMAIL_SKIP] Tenant has no email address:', tenantUserId)
+    captureWebhookWarning('[EMAIL_SKIP] Tenant has no email address', { tenant_user_id: tenantUserId })
   } else {
-    console.log('[EMAIL_SKIP] Tenant email notifications disabled:', tenantUserId)
+    logEvent('[EMAIL_SKIP] Tenant email notifications disabled', { tenant_user_id: tenantUserId })
   }
 
   // Owner notification email
@@ -256,20 +258,20 @@ async function sendReceiptEmails(
         ],
       })
       if (!result.success) {
-        console.error('[RESEND_ERROR] Owner notification email failed:', result.error)
+        captureWebhookError(new Error(result.error), { message: '[RESEND_ERROR] Owner notification email failed', lease_id: leaseId })
       }
     })())
   } else if (!ownerUserResult.data?.email) {
-    console.warn('[EMAIL_SKIP] Owner has no email address:', ownerUserId)
+    captureWebhookWarning('[EMAIL_SKIP] Owner has no email address', { owner_user_id: ownerUserId })
   } else {
-    console.log('[EMAIL_SKIP] Owner email notifications disabled:', ownerUserId)
+    logEvent('[EMAIL_SKIP] Owner email notifications disabled', { owner_user_id: ownerUserId })
   }
 
   // Wait for all emails — allSettled ensures one failure doesn't block the other
   const results = await Promise.allSettled(emailPromises)
   for (const result of results) {
     if (result.status === 'rejected') {
-      console.error('[RESEND_ERROR] Email promise rejected:', result.reason)
+      captureWebhookError(result.reason, { message: '[RESEND_ERROR] Email promise rejected', pi_id: pi.id })
     }
   }
 }

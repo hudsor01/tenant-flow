@@ -29,12 +29,12 @@ function createDefaultMetadata(): Metadata {
 		metadataBase: new URL(SITE_URL),
 		title: {
 			template: '%s | TenantFlow',
-			default: 'TenantFlow - Simplify Property Management | Professional Property Management Software'
+			default: 'TenantFlow — Property Management Software for Small Landlords'
 		},
 		description:
-			"Professional property management software trusted by thousands. Streamline operations, automate workflows, and scale your business with TenantFlow's enterprise platform.",
+			'Property management software built for landlords with 1-20 rental units. Automate rent collection, maintenance tracking, tenant screening, and financial reporting. 14-day free trial.',
 		keywords:
-			'property management software, rental property management, property manager tools, real estate management platform, tenant management system, owner software, property portfolio management',
+			'property management software, rental property management, landlord software, rent collection software, online rent payment, tenant management, maintenance tracking, property manager tools, small landlord software, rental management app, lease management, tenant screening, property accounting, landlord app, rental property accounting',
 		authors: [{ name: 'TenantFlow' }],
 		creator: 'TenantFlow',
 		publisher: 'TenantFlow',
@@ -47,9 +47,9 @@ function createDefaultMetadata(): Metadata {
 			}
 		},
 		openGraph: {
-			title: 'TenantFlow - Simplify Property Management',
+			title: 'TenantFlow — Property Management Software for Small Landlords',
 			description:
-				'Professional property management software trusted by thousands. Streamline operations and scale your business.',
+				'All-in-one rental property management. Automate rent collection, maintenance, and tenant screening. Plans from $29/mo.',
 			url: SITE_URL,
 			siteName: 'TenantFlow',
 			type: 'website',
@@ -73,9 +73,9 @@ function createDefaultMetadata(): Metadata {
 		},
 		twitter: {
 			card: 'summary_large_image',
-			title: 'TenantFlow - Simplify Property Management',
+			title: 'TenantFlow — Property Management Software for Small Landlords',
 			description:
-				'Professional property management software trusted by thousands. Streamline operations and scale your business.',
+				'All-in-one rental property management. Automate rent collection, maintenance, and tenant screening. Plans from $29/mo.',
 			creator: '@tenantflow',
 			images: [`${SITE_URL}/images/property-management-og.jpg`]
 		},
@@ -133,7 +133,7 @@ export function getJsonLd() {
 		url: SITE_URL,
 		logo: `${SITE_URL}/tenant-flow-logo.png`,
 		description:
-			'Professional property management software trusted by thousands. Streamline operations, automate workflows, and scale your business.',
+			'Property management software for small landlords. Automate rent collection, maintenance tracking, and tenant screening. 14-day free trial.',
 		foundingDate: '2024',
 		contactPoint: {
 			'@type': 'ContactPoint',
@@ -159,7 +159,7 @@ export function getJsonLd() {
 		applicationSubCategory: 'Property Management Software',
 		operatingSystem: 'Web Browser',
 		description:
-			'Professional property management software trusted by thousands. Streamline operations, automate workflows, and scale your business with TenantFlow.',
+			'Property management software for small landlords. Automate rent collection, maintenance tracking, tenant screening, and financial reporting. 14-day free trial.',
 		url: SITE_URL,
 		image: [
 			`${SITE_URL}/images/property-management-og.jpg`,

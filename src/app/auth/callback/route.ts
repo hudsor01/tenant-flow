@@ -21,6 +21,9 @@ import { NextResponse, type NextRequest } from 'next/server'
 
 import type { Database } from '#types/supabase'
 import { env } from '#env'
+import { createLogger } from '#lib/frontend-logger'
+
+const logger = createLogger({ component: 'auth/callback' })
 
 /**
  * Valid OTP types for Supabase auth verification.
@@ -108,7 +111,10 @@ async function findAndAcceptPendingInvitation(
 		)
 
 		if (!response.ok) {
-			console.error('[auth/callback] Invitation accept failed:', response.status, await response.text().catch(() => ''))
+			const responseText = await response.text().catch(() => '')
+			logger.error('[auth/callback] Invitation accept failed', {
+				metadata: { status: response.status, response_text: responseText, user_id: userId }
+			})
 			return false
 		}
 
@@ -121,7 +127,7 @@ async function findAndAcceptPendingInvitation(
 
 		return true
 	} catch (err) {
-		console.error('[auth/callback] Invitation auto-link error:', err)
+		logger.error('[auth/callback] Invitation auto-link error', { metadata: { user_id: userId } }, err)
 		return false
 	}
 }

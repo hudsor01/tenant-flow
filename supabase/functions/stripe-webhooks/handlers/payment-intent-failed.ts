@@ -2,6 +2,7 @@ import Stripe from 'stripe'
 import React from 'npm:react@18.3.1'
 import { renderAsync } from 'npm:@react-email/components@0.0.22'
 import { sendEmail } from '../../_shared/resend.ts'
+import { captureWebhookError, captureWebhookWarning } from '../../_shared/errors.ts'
 import { AutopayFailed } from '../_templates/autopay-failed.tsx'
 import type { SupabaseAdmin } from './types.ts'
 
@@ -43,7 +44,7 @@ export async function handlePaymentIntentFailed(
         message: `A rent payment of $${failedPayment.amount.toFixed(2)} failed. Check your Stripe dashboard for details.`,
         notification_type: 'payment',
       }).then(({ error: notifError }) => {
-        if (notifError) console.error('Failed to create payment failure notification:', notifError.message)
+        if (notifError) captureWebhookError(notifError, { message: 'Failed to create payment failure notification', user_id: ownerId, pi_id: pi.id })
       })
     }
   }
@@ -53,7 +54,7 @@ export async function handlePaymentIntentFailed(
     try {
       await sendAutopayFailureEmail(supabase, stripe, pi, failedPayment.amount)
     } catch (emailErr) {
-      console.error('[RESEND_ERROR] sendAutopayFailureEmail unexpected error:', emailErr)
+      captureWebhookError(emailErr, { message: '[RESEND_ERROR] sendAutopayFailureEmail unexpected error', pi_id: pi.id })
     }
   }
 }
@@ -96,7 +97,7 @@ async function resolveAutopayFailureData(
   const pmId = typeof pi.payment_method === 'string' ? pi.payment_method : null
   if (pmId) {
     try { paymentMethodLast4 = (await stripe.paymentMethods.retrieve(pmId)).card?.last4 ?? null }
-    catch (err) { console.warn('[stripe-webhooks] PM retrieval failed:', pmId, err) }
+    catch (err) { captureWebhookWarning('[stripe-webhooks] PM retrieval failed', { pm_id: pmId, err: err instanceof Error ? err.message : String(err) }) }
   }
 
   const lastError = pi.last_payment_error
@@ -148,6 +149,6 @@ async function sendAutopayFailureEmail(
     ],
   })
   if (!result.success) {
-    console.error('[RESEND_ERROR] Autopay failure email failed:', result.error)
+    captureWebhookError(new Error(result.error), { message: '[RESEND_ERROR] Autopay failure email failed', pi_id: pi.id })
   }
 }

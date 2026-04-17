@@ -19,9 +19,9 @@ import {
 } from './pricing-content'
 
 export const metadata: Metadata = createPageMetadata({
-	title: 'Property Management Pricing & Plans',
+	title: 'Property Management Software Pricing — Plans from $29/mo',
 	description:
-		'Compare TenantFlow pricing plans. Free starter tier, Growth at $79/mo, MAX at $199/mo. No credit card required. Start your 14-day free trial.',
+		'Affordable property management software. Starter ($29/mo, 5 properties), Growth ($79/mo, 20 properties), MAX ($199/mo, unlimited). 14-day free trial, no credit card required. Compare plans and features.',
 	path: '/pricing'
 })
 

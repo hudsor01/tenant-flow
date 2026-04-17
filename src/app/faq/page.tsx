@@ -15,9 +15,9 @@ import { createPageMetadata } from '#lib/seo/page-metadata'
 import Link from 'next/link'
 
 export const metadata: Metadata = createPageMetadata({
-	title: 'Frequently Asked Questions About Property Management',
+	title: 'Property Management FAQ — Questions About Rent Collection, Leases & More',
 	description:
-		'Get answers to common property management questions. Learn about rent collection, maintenance, tenant screening, and how TenantFlow simplifies it all.',
+		'Answers to common landlord questions about online rent collection, maintenance tracking, tenant screening, lease management, and property management software. Get started with TenantFlow.',
 	path: '/faq'
 })
 

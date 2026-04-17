@@ -39,7 +39,7 @@ function buildWebhookPayload(eventType: string, overrides?: Record<string, unkno
     id: `evt_test_${crypto.randomUUID().replace(/-/g, '').slice(0, 24)}`,
     object: 'event',
     type: eventType,
-    api_version: '2026-02-25.clover',
+    api_version: '2026-03-25.dahlia',
     created: Math.floor(Date.now() / 1000),
     livemode: false,
     data: {

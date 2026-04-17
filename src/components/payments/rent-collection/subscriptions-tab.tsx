@@ -38,7 +38,6 @@ interface SubscriptionsTabProps {
 	getPaymentMethodInfo: (paymentMethodId: string) => PaymentMethodInfo | null
 	onPause: (id: string) => Promise<void>
 	onResume: (id: string) => Promise<void>
-	onCancel: (id: string) => Promise<void>
 	actioningId: string | null
 }
 
@@ -47,7 +46,6 @@ export function SubscriptionsTab({
 	getPaymentMethodInfo,
 	onPause,
 	onResume,
-	onCancel,
 	actioningId
 }: SubscriptionsTabProps) {
 	const [searchQuery, setSearchQuery] = useState('')
@@ -116,7 +114,6 @@ export function SubscriptionsTab({
 				getPaymentMethodInfo={getPaymentMethodInfo}
 				onPause={onPause}
 				onResume={onResume}
-				onCancel={onCancel}
 				actioningId={actioningId}
 			/>
 

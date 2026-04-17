@@ -68,31 +68,45 @@ A landlord can add a property, invite a tenant, collect rent, and see their fina
 - v1.3/Phase 25: Maintenance photo upload to Supabase Storage with lightbox display
 - v1.3/Phase 25: Stripe Express Dashboard access via login link (extends stripe-connect Edge Function)
 
+- v1.5: Code quality & deduplication pass (shared helpers, hook consolidation, dead code removal)
+
+- v1.6/Phase 32: Crawlability critical fixes (robots.txt, canonical URLs, noindex on checkout paths)
+- v1.6/Phase 33: SEO utilities foundation (metadata helpers, JSON-LD schema builders)
+- v1.6/Phase 34: Per-page metadata audit and generateMetadata coverage (titles, descriptions, OG, canonical)
+- v1.6/Phase 35: Structured data enrichment (FAQ, Article, BreadcrumbList, HowTo, Review/Comparison JSON-LD)
+- v1.6/Phase 36: Pricing page polish (metadata, priceValidUntil, social proof constants, mobile comparison table a11y)
+- v1.6/Phase 37: Content SEO + internal linking between blog/comparison/resource pages
+- v1.6/Phase 38: Validation & verification of sitemap, robots, structured data
+- v1.6/Phase 39: Structured data gap closure across remaining page types
+- v1.6/Phase 40: Metadata verification completeness (final audit pass)
+- v1.6: Sitemap split into category sitemaps + Google Search Console readiness
+
+- v1.7/Stage 1: Payout timing instrumentation + autopay notifications + autopay health dashboard widget (shipped in PR 589, branch `feat/launch-readiness-instrumentation`)
+
 ### Active
 
-## Current Milestone: v1.6 SEO & Google Indexing Optimization
+## Current Milestone: v1.7 Launch Readiness
 
-**Goal:** Make every public-facing TenantFlow page fully discoverable, richly structured, and optimized for organic search rankings.
+**Goal:** Prove the four product promises we plan to put on marketing pages — **2-day payouts**, **honest autopay**, **1-click cancel**, **20-door focus** — with tests, audits, and monitoring, so the launch messaging matches reality BEFORE it ships.
+
+**Stage 1 prerequisite (shipped, PR 589):** payout timing instrumentation, autopay success/decline notifications, and autopay health dashboard widget. Stages 2-5 build on this instrumented baseline.
 
 **Target features:**
-- Comprehensive structured data (JSON-LD) on all public page types (FAQ, Article, BreadcrumbList, HowTo, Review/Comparison)
-- Sitemap completeness audit + split into category sitemaps
-- Per-page metadata audit (titles, descriptions, OG tags, canonical URLs)
-- Internal linking improvements between blog/comparison/resource pages
-- Google Search Console readiness (verification, monitoring setup)
-- robots.txt review and crawl budget optimization
-- Blog post SEO enrichment (article tags, author, reading time)
-- Pricing page conversion optimization (missing generateMetadata, stale priceValidUntil dates, inconsistent social proof numbers, HTML entity bugs, noindex on checkout sub-pages, legacy Tailwind v3 syntax in complete/page.tsx, mobile comparison table accessibility)
+- **Stage 2 — Payment correctness tests (Phase 41):** Deno integration tests for `stripe-autopay-charge` (success / card decline + retry scheduling / final-attempt notification / idempotency on duplicate events); Deno tests for `handlePayoutLifecycle` webhook (paid, failed, duration_hours derivation); Vitest RLS tests for split-rent allocation (per-tenant share from `lease_tenants.responsibility_percentage`, tenant isolation, owner aggregate view).
+- **Stage 3 — Cancellation UX audit (Phase 42):** End-to-end one-click cancellation flow audit and fix; surface real cancellation and grace-period states from `stripe.subscriptions` (not derived from `users.stripe_customer_id` existence); ensure data retention behavior matches documented GDPR grace period.
+- **Stage 4 — Post-deploy Sentry regression gate (Phase 43):** GitHub Action that runs a post-deploy Sentry smoke check against production, captures a baseline error/perf snapshot, and fails the deploy gate on regressions above threshold.
+- **Stage 5 — Deliverability + funnel analytics (Phase 44):** Resend webhook ingestion into a `email_deliverability` table (bounce / delivered / opened / complained events); onboarding funnel step tracking (signup → first property → first tenant invite → first rent collected), dashboard RPC that aggregates funnel stats, and admin analytics view.
 
 ### Out of Scope
 
-- Mobile app -- web-first approach
-- tRPC or Hono -- Supabase PostgREST is sufficient
-- GraphQL -- pg_graphql available but REST is enough
-- Twilio SMS -- email covers notification needs
-- In-app messaging -- not required for monetization
-- MSW component test layer -- future milestone
-- Test data factories (@faker-js/faker) -- future milestone
+- Marketing copy, landing page rewrites, launch announcement — intentionally deferred until Stages 2-5 verify the promises being made
+- Mobile app — web-first approach
+- tRPC or Hono — Supabase PostgREST is sufficient
+- GraphQL — pg_graphql available but REST is enough
+- Twilio SMS — email covers notification needs
+- In-app messaging — not required for monetization
+- MSW component test layer — future milestone
+- Test data factories (@faker-js/faker) — future milestone
 
 ## Context
 
@@ -187,4 +201,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-04-08 after v1.6 milestone start (SEO & Google Indexing Optimization)*
+*Last updated: 2026-04-13 after v1.7 milestone start (Launch Readiness)*

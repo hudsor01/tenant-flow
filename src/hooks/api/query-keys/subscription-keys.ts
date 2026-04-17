@@ -34,9 +34,10 @@ export const subscriptionsKeys = {
 }
 
 /**
- * Subscription status key lives here (colocated with its query factory)
+ * Subscription status key lives here (colocated with its query factory).
+ * Exported so mutation hooks (cancel/reactivate) can write/invalidate the same cache entry.
  */
-const subscriptionStatusKey = ['billing', 'subscription-status'] as const
+export const subscriptionStatusKey = ['billing', 'subscription-status'] as const
 
 // ============================================================================
 // QUERY OPTIONS
@@ -265,16 +266,6 @@ export const billingMutations = {
 	resumeSubscription: () =>
 		mutationOptions({
 			mutationKey: mutationKeys.subscriptions.resume,
-			mutationFn: async (_id: string): Promise<{ subscription: undefined }> => {
-				const result = await callBillingEdgeFunction<{ url: string }>('stripe-billing-portal')
-				window.location.href = result.url
-				return { subscription: undefined }
-			}
-		}),
-
-	cancelSubscription: () =>
-		mutationOptions({
-			mutationKey: mutationKeys.subscriptions.cancel,
 			mutationFn: async (_id: string): Promise<{ subscription: undefined }> => {
 				const result = await callBillingEdgeFunction<{ url: string }>('stripe-billing-portal')
 				window.location.href = result.url

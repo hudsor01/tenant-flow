@@ -446,3 +446,80 @@ export interface PropertyPerformancePageResponse {
 	visitorAnalytics: VisitorAnalyticsResponse
 }
 
+// =============================================================================
+// DELIVERABILITY ANALYTICS (admin-only, from get_deliverability_stats RPC)
+// =============================================================================
+
+/**
+ * Per-template email deliverability aggregate from
+ * `get_deliverability_stats(p_days integer)`.
+ *
+ * Rates are stored as percentage points (0..100) — the RPC multiplies by 100
+ * before returning. UI renders with single-decimal formatting.
+ */
+export interface DeliverabilityStats {
+	templateTag: string
+	sent: number
+	delivered: number
+	opened: number
+	bounced: number
+	complained: number
+	bouncePercent: number // 0..100
+	complaintPercent: number // 0..100
+}
+
+// =============================================================================
+// ONBOARDING FUNNEL ANALYTICS (admin-only, from get_funnel_stats RPC)
+// =============================================================================
+
+/**
+ * Closed set of funnel step identifiers enforced by the
+ * `onboarding_funnel_events.step_name` CHECK constraint in
+ * supabase/migrations/20260415193247_onboarding_funnel_events_schema.sql.
+ */
+export type FunnelStepName =
+	| 'signup'
+	| 'first_property'
+	| 'first_tenant'
+	| 'first_rent'
+
+/**
+ * Single funnel step summary returned by `get_funnel_stats`.
+ *
+ * `conversionRateFromPrior` / `conversionRateFromSignup`: 0..1 fractions
+ * (the RPC rounds to 4 decimal places; multiply by 100 in UI for display).
+ * Both are null when the denominator is zero (empty upstream cohort) so
+ * callers never crash on NaN from a divide-by-zero.
+ *
+ * `medianDaysFromPrior` / `medianDaysFromSignup`: null for the signup row
+ * and whenever no cohort members reached the step.
+ */
+export interface FunnelStep {
+	step: FunnelStepName
+	stepOrder: number
+	count: number
+	conversionRateFromPrior: number | null
+	conversionRateFromSignup: number | null
+	medianDaysFromPrior: number | null
+	medianDaysFromSignup: number | null
+}
+
+/**
+ * Signup-cohort funnel aggregate from
+ * `get_funnel_stats(p_from timestamptz, p_to timestamptz)`.
+ *
+ * Cohort = owners whose signup completed_at is in [from, to]. Downstream
+ * step counts track those same owners at ANY later time, not only within
+ * the window (D2 signup-cohort semantics).
+ *
+ * `cohortLabel` is the human-readable window string the RPC formats for the
+ * admin UI header ("owners who signed up between ...").
+ */
+export interface FunnelStats {
+	from: string // ISO timestamptz
+	to: string // ISO timestamptz
+	cohortLabel: string
+	mediansComputedAt: string // ISO timestamptz
+	steps: FunnelStep[]
+}
+

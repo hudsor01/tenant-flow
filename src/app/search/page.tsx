@@ -1,3 +1,4 @@
+import { createPageMetadata } from '#lib/seo/page-metadata'
 import { PageLayout } from '#components/layout/page-layout'
 import { Badge } from '#components/ui/badge'
 import { Button } from '#components/ui/button'
@@ -10,6 +11,13 @@ import {
 } from '#components/ui/card'
 import { Input } from '#components/ui/input'
 import { FileText, Filter, FolderOpen, Search, Users } from 'lucide-react'
+
+export const metadata = createPageMetadata({
+	title: 'Search',
+	description: 'Search properties, tenants, leases, and documents across your TenantFlow portfolio.',
+	path: '/search',
+	noindex: true,
+})
 
 export default function SearchPage() {
 	return (

@@ -1,16 +1,16 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.6
-milestone_name: SEO & Google Indexing Optimization
-status: executing
-stopped_at: Phase 40 complete
-last_updated: "2026-04-13T04:00:00.000Z"
-last_activity: 2026-04-13 -- Phase 40 complete (all 9 phases done)
+milestone: v1.7
+milestone_name: Launch Readiness
+status: archived
+stopped_at: v1.7 milestone fully production-live. All 4 Wave 0 actions DONE 2026-04-16: migrations applied, types regenerated, resend-webhook Edge Function deployed + Resend webhook registered + RESEND_WEBHOOK_SECRET synced to Resend's signing secret, admin test user e2e-admin@tenantflow.app provisioned with E2E_ADMIN_EMAIL/PASSWORD in GH secrets.
+last_updated: "2026-04-16T00:00:00.000Z"
+last_activity: 2026-04-16
 progress:
-  total_phases: 9
-  completed_phases: 9
-  total_plans: 21
-  completed_plans: 21
+  total_phases: 4
+  completed_phases: 4
+  total_plans: 9
+  completed_plans: 9
   percent: 100
 ---
 
@@ -18,17 +18,18 @@ progress:
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-03-18)
+See: .planning/PROJECT.md (updated 2026-04-13)
 
 **Core value:** A landlord can add a property, invite a tenant, collect rent, and see their financials -- without touching a spreadsheet or calling anyone.
-**Current focus:** v1.6 milestone complete — all 9 phases shipped
+**Current focus:** No active milestone. v1.7 Launch Readiness archived. Run `/gsd:new-milestone vX.Y <name>` to scope the next one.
 
 ## Current Position
 
-Phase: 40 (metadata-verification-completeness) — COMPLETE (3/3 plans)
-Milestone: v1.6 SEO & Google Indexing Optimization — ALL 9 PHASES COMPLETE
-Status: v1.6 milestone ready for release / audit
-Last activity: 2026-04-13 -- Phase 40 complete; v1.6 milestone done
+Phase: -- (no active milestone)
+Plan: -- (v1.7 archived to milestones/v1.7-ROADMAP.md)
+Milestone: v1.7 Launch Readiness — ARCHIVED 2026-04-16
+Status: v1.7 COMPLETE + ARCHIVED + PRODUCTION-LIVE. Verifier PASS 7/7. Wave 0: 4/4 done 2026-04-16. No active milestone — run `/gsd:new-milestone vX.Y <name>` to scope next.
+Last activity: 2026-04-16
 
 ## Shipped Milestones
 
@@ -39,6 +40,8 @@ Last activity: 2026-04-13 -- Phase 40 complete; v1.6 milestone done
 | v1.2 | Production Polish & Code Consolidation | 5 | 18 | 2026-03-11 |
 | v1.3 | Stub Elimination | 6 | 12 | 2026-03-18 |
 | v1.5 | Code Quality & Deduplication | 3 | 7 | 2026-04-08 |
+| v1.6 | SEO & Google Indexing Optimization | 9 | 21 | 2026-04-13 |
+| v1.7 | Launch Readiness | 4 | 9 | 2026-04-15 |
 
 ## Accumulated Context
 
@@ -53,6 +56,35 @@ Last activity: 2026-04-13 -- Phase 40 complete; v1.6 milestone done
 - [Phase 29]: stripe-autopay-charge SupabaseClient type alias updated to reference createAdminClient
 - [Phase 29]: Sub-pattern B anon-key clients simplified by removing unnecessary global headers option
 - [Phase 29]: SupabaseClient type import replaces ReturnType<typeof createClient> when createClient fully removed
+- [Phase 41]: Phase 41-01: rent_payments schema has paid_date (not paid_at) and no stripe_charge_id column — plan's interfaces block was stale, assertions adapted to real schema
+- [Phase 41]: Phase 41-01: DB notifications row is the deterministic proof of autopay exhaustion — tests assert DB row, not Resend HTTP interception
+- [Phase 41]: Phase 41-01: Tests skip cleanly (not fail) on missing env vars — integration tests are never silent false-positives
+- [Phase 41-payment-correctness-split-rent-tests]: Used createClient() direct instantiation for tests (matches 41-01 autopay-fixtures pattern; plan's createAdminClient helper does not exist in _shared/)
+- [Phase 41-payment-correctness-split-rent-tests]: Tests skip cleanly on missing env vars via requireEnv() + SKIP: log — integration tests never become silent false-positives
+- [Phase 41-payment-correctness-split-rent-tests]: Deterministic 36-hour span for duration_hours (first_charge_at=2026-04-10T00Z, paid_at=2026-04-11T12Z) — exact assertion, no tolerance window
+- [Phase 41-payment-correctness-split-rent-tests]: Admin RPC test signs in as E2E_ADMIN to get real admin JWT (is_admin() check needs auth.uid(), not service_role)
+- [Phase 41-payment-correctness-split-rent-tests]: Reframed TEST-08 from plan spec: rent_due has no tenant_id column (shared-lease rows are correctly shared at lease level). Isolation asserted at rent_payments.tenant_id, lease_tenants.tenant_id, and tenants.user_id RLS surfaces instead.
+- [Phase 41-payment-correctness-split-rent-tests]: Split-rent fixture uses two-step shared-lease resolution (tenantA finds candidate lease via RLS-filtered inner join; tenantB confirms own presence on same lease). Works around RLS without needing service-role key.
+- [Phase 42-01]: `get_subscription_status` is a SECURITY DEFINER RPC — stripe schema not exposed via PostgREST, so this bridges `stripe.subscriptions` → frontend with IDOR guard (`p_customer_id` must match caller's own `users.stripe_customer_id`)
+- [Phase 42-01]: Edge Function `stripe-cancel-subscription` rejects any body-supplied `subscription_id` — resolves server-side from `users.stripe_customer_id` via `stripe.subscriptions.list({ customer, status: 'all', limit: 1 })` (T-42-01 IDOR mitigation)
+- [Phase 42-01]: Cancel/reactivate mutations call `queryClient.setQueryData(['billing', 'subscription-status'], mapped)` BEFORE `invalidateQueries` — writes Stripe's authoritative response to cache so UI flips instantly regardless of FDW sync lag (T-42-06 mitigation)
+- [Phase 42-01]: RPC-mapping test moved to own file `use-subscription-status.test.ts` — Vitest hoists `vi.mock()` per-file, so plan's in-file `vi.doMock` + dynamic import didn't bind
+- [Phase 42-01]: Inlined `onSuccess` (not spread with `createMutationCallbacks`) — local factory REPLACES onSuccess; spread would overwrite the T-42-06 `setQueryData` call
+- [Phase 42-02]: `GdprDataActions` extracted with two variants — `standalone` (full Danger Zone framing, BlurFade wrappers) for `account-danger-section.tsx`; `inline` (no card, no eyebrow, `space-y-4` rhythm) for `subscription-cancel-section.tsx` State 3. Dedupes ~200 lines of mutation/query code
+- [Phase 42-02]: `SubscriptionCancelSection` is a 3-state machine gated on `(subscriptionStatus, cancelAtPeriodEnd)` — State 1 Active, State 2 Cancel-scheduled (grace window), State 3 Canceled (terminal). Returns `null` for `past_due`/`unpaid` (delegates to `SubscriptionStatusBanner`)
+- [Phase 42-02]: AlertDialog confirm uses `event.preventDefault()` + manual `setDialogOpen(false)` only on success — prevents dialog close during pending mutation (would lose the `Canceling...` spinner)
+- [Phase 42-02]: Playwright spec uses `test.skip(condition, reason)` — if seeded owner has no Stripe test-mode subscription, the spec skips with a clear reason rather than silently passing
+- [Phase 44-02]: Signup-cohort semantics (D2) — `get_funnel_stats` cohort = owners whose signup falls in [p_from, p_to]; downstream steps counted at ANY time (not windowed). `cohort_label` key in jsonb return lets UI header display "owners who signed up between X and Y" (Pitfall 5 mitigation)
+- [Phase 44-02]: D8 backfill union — `backfill_funnel_events()` Step 3 unions `tenant_invitations` (modern flow) with `tenants → lease_tenants → leases.owner_user_id` (legacy direct-tenant flow pre-v1.3). `public.tenants` has NO direct `owner_user_id` — join walks via lease_tenants.
+- [Phase 44-02]: Trigger-deadlock avoidance (Pitfall 3) — `fn_record_first_rent_funnel_event` reads ONLY `NEW.*` + ONE SELECT against `leases`, never against `rent_payments` itself. ON CONFLICT DO NOTHING on composite UNIQUE (owner_user_id, step_name) releases without waiting on concurrent writers.
+- [Phase 44-02]: Exception-swallowing pattern — every trigger function wraps INSERT in `BEGIN / EXCEPTION WHEN others THEN RAISE WARNING / END` so funnel-insert failure NEVER fails source writes. Accepted residual risk T-44-02-06 (silent drift via RAISE WARNING visible in Supabase logs + Sentry).
+- [Phase 44-02]: Migration timestamp ordering — Plan 2's 20260415193247/48/49 strictly greater than Plan 1's 193245/46. Internal order schema+triggers < rpc < backfill ensures triggers exist before backfill runs (backfill uses same ON CONFLICT target).
+- [Phase 44-02]: Task 7 (pnpm db:types) deferred to Wave 0 operator action — same TLS cert gate hit by Plan 44-01 (sandbox cannot reach api.supabase.com). Operator must run `supabase login` + `pnpm db:types` + commit as `chore(phase-44): regenerate supabase types for funnel events + RPC`.
+- [Phase 44-03]: RPC field names differ from plan doc: step names are signup/first_property/first_tenant/first_rent (not first_tenant_invited/first_rent_collected); RPC shape uses 'from'/'to' keys (not cohort_from/cohort_to); column names are sent_count/delivered_count/etc (not sent/delivered). Mappers adjusted to match actual SQL.
+- [Phase 44-03]: Bounce/complaint rates from get_deliverability_stats are in percentage points (0..100), not fractions — the SQL multiplies by 100. DeliverabilityStats uses bouncePercent/complaintPercent naming.
+- [Phase 44-03]: src/lib/supabase/server.ts exports createClient() not createServerClient() — plan code snippet was inaccurate; layout + page use the correct import.
+- [Phase 44-03]: getAdminTestCredentials() already existed from Plan 1 Task 4 — no duplicate added in Task 8.
+- [Phase 44-03]: funnel-renderer.tsx (recharts-only code-split module) created but was missing from plan's files_modified frontmatter.
 
 ### Quick Tasks Completed
 
@@ -62,6 +94,6 @@ Last activity: 2026-04-13 -- Phase 40 complete; v1.6 milestone done
 
 ## Session Continuity
 
-Last session: 2026-04-10T19:10:50.271Z
-Stopped at: Phase 38 context gathered
-Resume file: .planning/phases/38-validation-verification/38-CONTEXT.md
+Last session: 2026-04-16T00:00:00.000Z
+Stopped at: v1.7 Launch Readiness milestone ARCHIVED + ALL Wave 0 actions COMPLETE 2026-04-16. v1.7 fully production-live. Wave 0 commits: 0a013bb71 (drift backfill), 7da87331d (types regen), 7b50460e1 (status #1+#2), 8d7653a2f (status #3 partial + #4). Final state: 5 Phase 44 migrations live; resend-webhook Edge Function deployed + Resend webhook registered + RESEND_WEBHOOK_SECRET synced to Resend's whsec_…fGm68 signing secret; admin user e2e-admin@tenantflow.app (id e4364d5c-b6d6-43eb-bc95-9ecc899aa52f) with user_type=ADMIN, credentials in E2E_ADMIN_EMAIL/E2E_ADMIN_PASSWORD GH repo secrets. No active milestone.
+Resume file: .planning/ROADMAP.md (collapsed v1.7) — start next milestone with `/gsd:new-milestone vX.Y <name>`

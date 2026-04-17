@@ -1,10 +1,13 @@
 /**
- * Lightweight frontend logger
+ * Frontend logger
  *
  * - Structured logging with optional component context
- * - Console output limited to development environments
- * - Safe no-op in production (no third-party dependencies)
+ * - Console output in development
+ * - Sentry integration in production (errors → captureException, warnings → captureMessage,
+ *   info → breadcrumbs attached to the next error event for free)
  */
+
+import * as Sentry from '@sentry/nextjs'
 
 // TypeScript interfaces for structured logging
 export interface LogContext {
@@ -86,10 +89,59 @@ const developmentConsoleFallback = (entry: LogEntry) => {
 }
 
 /**
- * Core logging function - delegates to the development console logger
+ * Send the entry to Sentry at the appropriate severity.
+ * - ERROR: captureException (or captureMessage if no Error object passed)
+ * - WARN: captureMessage with 'warning' level
+ * - INFO/DEBUG: addBreadcrumb (free — attached to next error event)
+ *
+ * Each Sentry call is guarded — partial mocks in tests or missing SDK methods
+ * in older Sentry versions will degrade gracefully instead of crashing the app.
+ */
+const reportToSentry = (entry: LogEntry) => {
+	const extra: Record<string, unknown> = {
+		...(entry.context ?? {}),
+		args: entry.args && entry.args.length > 0 ? entry.args : undefined,
+	}
+
+	try {
+		switch (entry.level) {
+			case 'ERROR': {
+				const errArg = entry.args?.find((a): a is Error => a instanceof Error)
+				if (errArg && typeof Sentry.captureException === 'function') {
+					Sentry.captureException(errArg, { extra: { message: entry.message, ...extra } })
+				} else if (typeof Sentry.captureMessage === 'function') {
+					Sentry.captureMessage(entry.message, { level: 'error', extra })
+				}
+				break
+			}
+			case 'WARN':
+				if (typeof Sentry.captureMessage === 'function') {
+					Sentry.captureMessage(entry.message, { level: 'warning', extra })
+				}
+				break
+			case 'INFO':
+			case 'DEBUG':
+				if (typeof Sentry.addBreadcrumb === 'function') {
+					Sentry.addBreadcrumb({
+						category: entry.context?.component ?? 'app',
+						level: entry.level === 'DEBUG' ? 'debug' : 'info',
+						message: entry.message,
+						...(entry.context ? { data: entry.context as Record<string, unknown> } : {}),
+					})
+				}
+				break
+		}
+	} catch {
+		// Never let logging break the app
+	}
+}
+
+/**
+ * Core logging function — dev console output + Sentry routing.
  */
 const logEntry = (entry: LogEntry) => {
 	developmentConsoleFallback(entry)
+	reportToSentry(entry)
 }
 
 /**

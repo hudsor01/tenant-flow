@@ -16,7 +16,7 @@ import { createClient } from '@supabase/supabase-js'
 import { validateBearerAuth } from '../_shared/auth.ts'
 import { getCorsHeaders, getJsonHeaders, handleCorsOptions } from '../_shared/cors.ts'
 import { validateEnv } from '../_shared/env.ts'
-import { errorResponse } from '../_shared/errors.ts'
+import { errorResponse, captureWebhookError } from '../_shared/errors.ts'
 import { rateLimit } from '../_shared/rate-limit.ts'
 import { createAdminClient } from '../_shared/supabase-client.ts'
 
@@ -119,7 +119,7 @@ Deno.serve(async (req: Request) => {
 
       if (leaseTenantsError) {
         // Non-fatal — tenant record created, lease link failed. Log and continue.
-        console.error('Failed to link tenant to lease:', leaseTenantsError.message)
+        captureWebhookError(leaseTenantsError, { message: 'Failed to link tenant to lease', lease_id: invitation.lease_id, tenant_id: tenant?.id })
       }
     }
 

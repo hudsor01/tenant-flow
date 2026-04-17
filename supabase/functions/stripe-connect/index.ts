@@ -5,7 +5,7 @@
 
 import { handleCorsOptions, getJsonHeaders } from '../_shared/cors.ts'
 import { validateEnv } from '../_shared/env.ts'
-import { errorResponse } from '../_shared/errors.ts'
+import { errorResponse, captureWebhookWarning } from '../_shared/errors.ts'
 import { validateBearerAuth } from '../_shared/auth.ts'
 import { getStripeClient } from '../_shared/stripe-client.ts'
 import { createAdminClient } from '../_shared/supabase-client.ts'
@@ -74,7 +74,10 @@ Deno.serve(async (req: Request) => {
           { status: 200, headers: getJsonHeaders(req) }
         )
       } catch (stripeErr) {
-        console.warn('[stripe-connect] Stripe API unreachable, returning DB data:', stripeErr)
+        captureWebhookWarning('[stripe-connect] Stripe API unreachable, returning DB data', {
+          stripe_account_id: row.stripe_account_id,
+          err: stripeErr instanceof Error ? stripeErr.message : String(stripeErr),
+        })
         return new Response(
           JSON.stringify({ account: row, hasAccount: true }),
           { status: 200, headers: getJsonHeaders(req) }
