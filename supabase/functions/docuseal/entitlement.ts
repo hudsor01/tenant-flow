@@ -4,6 +4,7 @@
 // through. Keeps the handler.ts dispatcher clean — all tier logic lives here.
 
 import type { SupabaseClient } from '@supabase/supabase-js'
+import { getJsonHeaders } from '../_shared/cors.ts'
 import { captureWebhookError } from '../_shared/errors.ts'
 
 // Live Tenant Flow price IDs for Growth and Max tiers.
@@ -21,8 +22,6 @@ const ESIGN_ENTITLED_PLANS: ReadonlySet<string> = new Set([
 
 const ACTIVE_SUB_STATUSES: ReadonlySet<string> = new Set(['active', 'trialing'])
 
-const JSON_CT = { 'Content-Type': 'application/json' }
-
 /**
  * Check whether the authenticated owner has an active Growth or Max subscription.
  * - Returns `null` if entitled (caller proceeds).
@@ -32,11 +31,18 @@ const JSON_CT = { 'Content-Type': 'application/json' }
  * Only called from the `send-for-signature` action. In-flight signatures
  * (sign-owner, sign-tenant, cancel, resend) remain ungated so users can
  * complete or cancel after downgrade.
+ *
+ * Takes `req` so responses carry the same CORS + JSON headers as every other
+ * response path in handler.ts (browser callers from FRONTEND_URL would
+ * otherwise reject the 402 due to missing Access-Control-Allow-Origin).
  */
 export async function checkESignEntitlement(
   supabase: SupabaseClient,
   userId: string,
+  req: Request,
 ): Promise<Response | null> {
+  const jsonHeaders = getJsonHeaders(req)
+
   const { data: ownerSub, error: subErr } = await supabase
     .from('users')
     .select('subscription_status, subscription_plan')
@@ -50,7 +56,7 @@ export async function checkESignEntitlement(
     })
     return new Response(
       JSON.stringify({ error: 'Unable to verify subscription' }),
-      { status: 500, headers: JSON_CT },
+      { status: 500, headers: jsonHeaders },
     )
   }
 
@@ -67,7 +73,7 @@ export async function checkESignEntitlement(
         current_plan: ownerPlan,
         current_status: ownerStatus,
       }),
-      { status: 402, headers: JSON_CT },
+      { status: 402, headers: jsonHeaders },
     )
   }
 

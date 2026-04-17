@@ -70,7 +70,7 @@ Deno.serve(async (req: Request) => {
       }
 
       // Tier entitlement check — Growth/Max only. See ./entitlement.ts.
-      const entitlementBlock = await checkESignEntitlement(supabase, user.id)
+      const entitlementBlock = await checkESignEntitlement(supabase, user.id, req)
       if (entitlementBlock) return entitlementBlock
 
       // 1. Fetch lease details
