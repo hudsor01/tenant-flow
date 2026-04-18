@@ -36,12 +36,6 @@ export function LeaseTermsTab({ lease }: LeaseTermsTabProps) {
 							</p>
 						</div>
 						<div className="p-3 rounded-lg border">
-							<p className="text-sm text-muted-foreground">Autopay</p>
-							<p className="font-medium">
-								{lease.auto_pay_enabled ? 'Enabled' : 'Disabled'}
-							</p>
-						</div>
-						<div className="p-3 rounded-lg border">
 							<p className="text-sm text-muted-foreground">Currency</p>
 							<p className="font-medium">{lease.rent_currency || 'USD'}</p>
 						</div>

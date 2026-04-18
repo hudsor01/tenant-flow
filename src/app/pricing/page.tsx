@@ -33,7 +33,7 @@ export default async function PricingPage() {
 	const productJsonLd = createProductJsonLd({
 		name: 'TenantFlow Property Management Software',
 		description:
-			'Professional property management software with automated rent collection, maintenance tracking, and financial reporting. Plans starting at $29/month.',
+			'Professional property management software with lease tracking, maintenance management, and financial reporting. Plans starting at $29/month.',
 		offers: [
 			{ name: 'Starter', price: '29.00' },
 			{ name: 'Growth', price: '79.00' },

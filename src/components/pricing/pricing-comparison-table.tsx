@@ -35,22 +35,32 @@ const comparisonData: FeatureCategory[] = [
 		features: [
 			{ name: 'Properties', starter: '5', growth: '20', max: 'Unlimited' },
 			{ name: 'Units', starter: '25', growth: '100', max: 'Unlimited' },
-			{ name: 'Tenants', starter: 'Unlimited', growth: 'Unlimited', max: 'Unlimited' },
+			{ name: 'Tenant records', starter: 'Unlimited', growth: 'Unlimited', max: 'Unlimited' },
 			{ name: 'Team members', starter: '1', growth: '3', max: 'Unlimited' },
 			{ name: 'Lease management', starter: true, growth: true, max: true },
-			{ name: 'Tenant portal', starter: true, growth: true, max: true },
 			{ name: 'Document storage', starter: '10GB', growth: '50GB', max: 'Unlimited' }
 		]
 	},
 	{
-		category: 'Rent Collection',
+		category: 'Leases & Documents',
 		features: [
-			{ name: 'Online payments', starter: true, growth: true, max: true },
-			{ name: 'Auto-pay setup', starter: true, growth: true, max: true },
-			{ name: 'Payment reminders', starter: false, growth: true, max: true },
-			{ name: 'Late fee automation', starter: false, growth: true, max: true },
-			{ name: 'Partial payments', starter: false, growth: true, max: true },
-			{ name: 'Custom payment plans', starter: false, growth: false, max: true }
+			{ name: 'E-sign leases (DocuSeal)', starter: '3 / mo', growth: '25 / mo', max: 'Unlimited' },
+			{ name: 'Lease template library', starter: true, growth: true, max: true },
+			{ name: 'Document vault', starter: true, growth: true, max: true },
+			{ name: 'Renewal reminders', starter: false, growth: true, max: true },
+			{ name: 'Bulk document export', starter: false, growth: true, max: true },
+			{ name: 'Custom lease clauses', starter: false, growth: false, max: true }
+		]
+	},
+	{
+		category: 'Rent Tracking',
+		features: [
+			{ name: 'Rent ledger', starter: true, growth: true, max: true },
+			{ name: 'Late balance flags', starter: true, growth: true, max: true },
+			{ name: 'Late fee tracking', starter: false, growth: true, max: true },
+			{ name: 'Partial rent records', starter: false, growth: true, max: true },
+			{ name: 'Payment method notes', starter: true, growth: true, max: true },
+			{ name: 'CSV export', starter: true, growth: true, max: true }
 		]
 	},
 	{

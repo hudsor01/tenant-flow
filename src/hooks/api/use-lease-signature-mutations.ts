@@ -82,15 +82,12 @@ export function useSignLeaseAsTenantMutation() {
 	return useMutation({
 		...leaseMutations.signAsTenant(),
 		onSuccess: (_result, leaseId) => {
-			// Invalidate lease detail, signature status, and tenant portal data
+			// Invalidate lease detail, signature status, and list
 			queryClient.invalidateQueries({
 				queryKey: leaseQueries.detail(leaseId).queryKey
 			})
 			queryClient.invalidateQueries({
 				queryKey: leaseQueries.signatureStatus(leaseId).queryKey
-			})
-			queryClient.invalidateQueries({
-				queryKey: leaseQueries.tenantPortalActive().queryKey
 			})
 			queryClient.invalidateQueries({ queryKey: leaseQueries.lists() })
 			logger.info('Lease signed by tenant', { leaseId })

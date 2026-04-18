@@ -9,14 +9,16 @@ describe('tenantStatusSchema', () => {
 	it('rejects invalid status', () => { expect(tenantStatusSchema.safeParse('banned').success).toBe(false) })
 })
 describe('tenantInputSchema', () => {
-	const v = { user_id: VALID_UUID }
+	// Landlord-only mode: tenants are data records, user_id is optional
+	const v = { first_name: 'Jane', last_name: 'Doe', email: 'jane@example.com' }
 	it('accepts minimal valid input', () => { expect(tenantInputSchema.safeParse(v).success).toBe(true) })
-	it('accepts input with all optional fields', () => { expect(tenantInputSchema.safeParse({ ...v, date_of_birth: '1990-01-15', emergency_contact_name: 'Jane Doe', emergency_contact_phone: '5551234567', emergency_contact_relationship: 'Spouse', identity_verified: true, ssn_last_four: '1234', stripe_customer_id: 'cus_test123' }).success).toBe(true) })
-	it('rejects missing user_id', () => { expect(tenantInputSchema.safeParse({}).success).toBe(false) })
+	it('accepts empty object (all fields optional)', () => { expect(tenantInputSchema.safeParse({}).success).toBe(true) })
+	it('accepts input with all optional fields', () => { expect(tenantInputSchema.safeParse({ ...v, user_id: VALID_UUID, owner_user_id: VALID_UUID, phone: '5551234567', status: 'active', date_of_birth: '1990-01-15', emergency_contact_name: 'Jane Doe', emergency_contact_phone: '5551234567', emergency_contact_relationship: 'Spouse', identity_verified: true, ssn_last_four: '1234' }).success).toBe(true) })
 	it('rejects invalid user_id', () => { expect(tenantInputSchema.safeParse({ user_id: 'not-uuid' }).success).toBe(false) })
 	it('rejects ssn_last_four with wrong format', () => { expect(tenantInputSchema.safeParse({ ...v, ssn_last_four: '12' }).success).toBe(false); expect(tenantInputSchema.safeParse({ ...v, ssn_last_four: 'abcd' }).success).toBe(false) })
 	it('accepts valid ssn_last_four', () => { expect(tenantInputSchema.safeParse({ ...v, ssn_last_four: '9876' }).success).toBe(true) })
 	it('rejects emergency_contact_name exceeding 100 chars', () => { expect(tenantInputSchema.safeParse({ ...v, emergency_contact_name: 'x'.repeat(101) }).success).toBe(false) })
+	it('rejects invalid status', () => { expect(tenantInputSchema.safeParse({ ...v, status: 'banned' }).success).toBe(false) })
 })
 describe('tenantUpdateSchema', () => {
 	it('accepts partial update', () => { expect(tenantUpdateSchema.safeParse({ identity_verified: true }).success).toBe(true) })
@@ -73,7 +75,7 @@ describe('activateTenantSchema', () => {
 	it('rejects invalid UUID', () => { expect(activateTenantSchema.safeParse({ authuser_id: 'not-uuid' }).success).toBe(false) })
 })
 describe('tenantFormSchema', () => {
-	it('accepts valid form data', () => { expect(tenantFormSchema.safeParse({ user_id: VALID_UUID }).success).toBe(true) })
-	it('rejects missing user_id', () => { expect(tenantFormSchema.safeParse({}).success).toBe(false) })
-	it('rejects empty user_id', () => { expect(tenantFormSchema.safeParse({ user_id: '' }).success).toBe(false) })
+	it('accepts valid form data with user_id', () => { expect(tenantFormSchema.safeParse({ user_id: VALID_UUID }).success).toBe(true) })
+	it('accepts landlord-managed form data with no user_id', () => { expect(tenantFormSchema.safeParse({ first_name: 'Jane', last_name: 'Doe', email: 'jane@example.com' }).success).toBe(true) })
+	it('accepts empty object (all fields optional in landlord-only mode)', () => { expect(tenantFormSchema.safeParse({}).success).toBe(true) })
 })

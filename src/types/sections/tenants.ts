@@ -62,7 +62,6 @@ export interface CurrentLeaseInfo {
 	endDate: string | null
 	rentAmount: number
 	status?: LeaseStatus
-	autopayEnabled: boolean
 }
 
 export interface LeaseHistoryItem {

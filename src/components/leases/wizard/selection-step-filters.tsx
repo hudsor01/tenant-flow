@@ -6,8 +6,9 @@ import { Input } from '#components/ui/input'
 import { Button } from '#components/ui/button'
 import { Loader2, UserPlus } from 'lucide-react'
 import { toast } from 'sonner'
-import { createClient } from '#lib/supabase/client'
+import { useCreateTenantMutation } from '#hooks/api/use-tenant-mutations'
 import { handleMutationError } from '#lib/mutation-error-handler'
+import type { TenantCreate } from '#lib/validation/tenants'
 
 interface InlineFormData {
 	first_name: string
@@ -35,35 +36,28 @@ export function InlineTenantInvite({
 		email: '',
 		phone: ''
 	})
-	const [isSubmitting, setIsSubmitting] = useState(false)
+	const createTenant = useCreateTenantMutation()
+	const isSubmitting = createTenant.isPending
 
 	const handleAddTenant = async () => {
 		if (!form.first_name || !form.last_name || !form.email) return
 
-		setIsSubmitting(true)
 		try {
-			const supabase = createClient()
-			const payload: Record<string, unknown> = {
+			const payload: TenantCreate = {
 				email: form.email,
 				first_name: form.first_name,
 				last_name: form.last_name,
-				name: `${form.first_name} ${form.last_name}`.trim()
+				name: `${form.first_name} ${form.last_name}`.trim(),
+				...(form.phone ? { phone: form.phone } : {})
 			}
-			if (form.phone) payload.phone = form.phone
 
-			const { error } = await supabase.from('tenants').insert(payload as never)
-			if (error) {
-				handleMutationError(error, 'Add tenant')
-				return
-			}
+			await createTenant.mutateAsync(payload)
 
 			toast.success('Tenant added')
 			onToggleMode()
 			setForm({ first_name: '', last_name: '', email: '', phone: '' })
 		} catch (error) {
 			handleMutationError(error, 'Add tenant')
-		} finally {
-			setIsSubmitting(false)
 		}
 	}
 

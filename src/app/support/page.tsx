@@ -6,7 +6,6 @@ import { createBreadcrumbJsonLd } from '#lib/seo/breadcrumbs'
 import { createPageMetadata } from '#lib/seo/page-metadata'
 import {
 	Building,
-	CreditCard,
 	FileText,
 	HelpCircle,
 	Mail,
@@ -23,18 +22,6 @@ export const metadata: Metadata = createPageMetadata({
 })
 
 const supportCategories = [
-	{
-		icon: CreditCard,
-		title: 'Payments & Rent',
-		description:
-			'Payment processing, autopay setup, failed payments, receipts, and refunds.',
-		topics: [
-			'Why did my payment fail?',
-			'How do I set up autopay?',
-			'Where are my payment receipts?',
-			'How do I update my payment method?'
-		]
-	},
 	{
 		icon: FileText,
 		title: 'Leases & Documents',
@@ -87,12 +74,12 @@ const supportCategories = [
 		icon: Shield,
 		title: 'Billing & Subscription',
 		description:
-			'Plans, pricing, Stripe Connect onboarding, payouts, and platform fees.',
+			'Plans, pricing, upgrades, invoices, and managing your TenantFlow subscription.',
 		topics: [
-			'How do I connect my Stripe account?',
-			'How are platform fees calculated?',
-			'When do I receive payouts?',
-			'How do I change my subscription plan?'
+			'How do I change my subscription plan?',
+			'How do I view past invoices?',
+			'How do I update my billing details?',
+			'How do I cancel my subscription?'
 		]
 	}
 ]

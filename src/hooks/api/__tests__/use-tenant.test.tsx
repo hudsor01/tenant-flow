@@ -459,24 +459,15 @@ describe('Mutation Hooks', () => {
 	})
 
 	describe('useDeleteTenantMutation', () => {
-		it('should check active leases then soft-delete tenant by updating users status to inactive', async () => {
-			// Mock the users table update (soft-delete goes to users, not tenants)
-			const usersUpdateMock = vi.fn().mockReturnValue({
+		it('should check active leases then soft-delete tenant by updating tenants status to inactive', async () => {
+			// Landlord-only mode: soft-delete writes to tenants.status directly
+			const tenantsUpdateMock = vi.fn().mockReturnValue({
 				eq: vi.fn().mockResolvedValue({ data: null, error: null })
 			})
 
 			supabaseFromMock.mockImplementation((table: string) => {
 				if (table === 'tenants') {
-					return {
-						select: vi.fn().mockReturnValue({
-							eq: vi.fn().mockReturnValue({
-								single: vi.fn().mockResolvedValue({
-									data: { user_id: 'user-123' },
-									error: null
-								})
-							})
-						})
-					}
+					return { update: tenantsUpdateMock }
 				}
 				if (table === 'lease_tenants') {
 					return {
@@ -486,9 +477,6 @@ describe('Mutation Hooks', () => {
 							})
 						})
 					}
-				}
-				if (table === 'users') {
-					return { update: usersUpdateMock }
 				}
 				return createQueryChain({ data: null })
 			})
@@ -501,11 +489,9 @@ describe('Mutation Hooks', () => {
 
 			// Should check lease_tenants for active leases first
 			expect(supabaseFromMock).toHaveBeenCalledWith('lease_tenants')
-			// Should get tenant's user_id
+			// Should soft-delete by updating tenants.status
 			expect(supabaseFromMock).toHaveBeenCalledWith('tenants')
-			// Should soft-delete by updating users table
-			expect(supabaseFromMock).toHaveBeenCalledWith('users')
-			expect(usersUpdateMock).toHaveBeenCalledWith(
+			expect(tenantsUpdateMock).toHaveBeenCalledWith(
 				expect.objectContaining({ status: 'inactive' })
 			)
 		})

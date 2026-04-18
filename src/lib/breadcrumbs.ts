@@ -33,16 +33,6 @@ const LABEL_MAP: Record<string, string> = {
 	'lease-template': 'Lease Template',
 	generate: 'Generate',
 
-	// Tenant portal routes
-	tenant: 'Tenant Portal',
-	payments: 'Payments',
-	profile: 'Profile',
-	lease: 'Lease Info',
-	onboarding: 'Onboarding',
-	autopay: 'Autopay',
-	methods: 'Payment Methods',
-	history: 'Payment History',
-
 	// Help and search
 	help: 'Get Help',
 	search: 'Search'

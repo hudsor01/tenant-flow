@@ -9,7 +9,7 @@ const callouts = [
 	{
 		icon: <Zap className="size-5" />,
 		title: 'Automate 80% of Tasks',
-		description: 'Rent, renewals, and comms on autopilot'
+		description: 'Renewals, reminders, and workflows run for you'
 	},
 	{
 		icon: <Shield className="size-5" />,

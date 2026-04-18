@@ -13,7 +13,7 @@ export const dynamic = 'force-static'
 export const metadata: Metadata = createPageMetadata({
 	title: 'Property Management Software for Small Landlords',
 	description:
-		'All-in-one rental property management software for landlords with 1-20 units. Automate online rent collection, track maintenance requests, screen tenants, and manage finances. 14-day free trial, no credit card required.',
+		'All-in-one rental property administration software for landlords with 1-20 units. Track leases, maintenance requests, tenant records, and finances in one place. 14-day free trial, no credit card required.',
 	path: '/'
 })
 

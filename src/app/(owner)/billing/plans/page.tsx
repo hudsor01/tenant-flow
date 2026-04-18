@@ -26,9 +26,9 @@ const PLANS: Plan[] = [
 		tier: 0,
 		features: [
 			{ name: 'Up to 1 property', included: true },
-			{ name: 'Basic tenant management', included: true },
+			{ name: 'Basic tenant records', included: true },
 			{ name: 'Email support', included: true },
-			{ name: 'Rent collection', included: false },
+			{ name: 'Rent tracking', included: false },
 			{ name: 'Financial reports', included: false },
 			{ name: 'Maintenance tracking', included: false }
 		]
@@ -42,9 +42,9 @@ const PLANS: Plan[] = [
 		tier: 1,
 		features: [
 			{ name: 'Up to 5 properties', included: true },
-			{ name: 'Full tenant management', included: true },
+			{ name: 'Full tenant records', included: true },
 			{ name: 'Priority email support', included: true },
-			{ name: 'Rent collection', included: true },
+			{ name: 'Rent tracking', included: true },
 			{ name: 'Basic financial reports', included: true },
 			{ name: 'Maintenance tracking', included: false }
 		]
@@ -58,9 +58,9 @@ const PLANS: Plan[] = [
 		tier: 2,
 		features: [
 			{ name: 'Up to 25 properties', included: true },
-			{ name: 'Advanced tenant management', included: true },
+			{ name: 'Advanced tenant records', included: true },
 			{ name: 'Phone & email support', included: true },
-			{ name: 'Automated rent collection', included: true },
+			{ name: 'Rent tracking + late fee tracking', included: true },
 			{ name: 'Advanced financial reports', included: true },
 			{ name: 'Full maintenance tracking', included: true }
 		]
@@ -74,9 +74,9 @@ const PLANS: Plan[] = [
 		tier: 3,
 		features: [
 			{ name: 'Unlimited properties', included: true },
-			{ name: 'Enterprise tenant management', included: true },
+			{ name: 'Enterprise tenant records', included: true },
 			{ name: 'Dedicated account manager', included: true },
-			{ name: 'Advanced rent collection', included: true },
+			{ name: 'Rent tracking + custom rules', included: true },
 			{ name: 'Custom financial reports', included: true },
 			{ name: 'Priority maintenance tracking', included: true }
 		]

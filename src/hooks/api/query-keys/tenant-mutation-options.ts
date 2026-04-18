@@ -29,9 +29,23 @@ export const tenantMutations = {
 			mutationKey: mutationKeys.tenants.create,
 			mutationFn: async (data: TenantCreate): Promise<Tenant> => {
 				const supabase = createClient()
+
+				// RLS requires owner_user_id = auth.uid() for landlord-managed tenants.
+				// Resolve the current session's user id and stamp it on the insert.
+				let owner_user_id = data.owner_user_id
+				if (!owner_user_id) {
+					const {
+						data: { user },
+						error: userErr
+					} = await supabase.auth.getUser()
+					if (userErr) throw userErr
+					if (!user) throw new Error('Not authenticated')
+					owner_user_id = user.id
+				}
+
 				const { data: created, error } = await supabase
 					.from('tenants')
-					.insert(data)
+					.insert({ ...data, owner_user_id })
 					.select()
 					.single()
 
@@ -86,22 +100,14 @@ export const tenantMutations = {
 					)
 				}
 
-				// Soft-delete: get tenant's user_id and mark user as inactive
-				const { data: tenant, error: tenantError } = await supabase
-					.from('tenants')
-					.select('user_id')
-					.eq('id', id)
-					.single()
-
-				if (tenantError) handlePostgrestError(tenantError, 'tenants')
-				if (!tenant) throw new Error('Tenant not found')
-
+				// Soft-delete: mark tenant row inactive (landlord-managed record).
+				// Tenants own their own lifecycle post-demolish; we no longer touch users.
 				const { error } = await supabase
-					.from('users')
+					.from('tenants')
 					.update({ status: 'inactive', updated_at: new Date().toISOString() })
-					.eq('id', tenant.user_id)
+					.eq('id', id)
 
-				if (error) handlePostgrestError(error, 'users')
+				if (error) handlePostgrestError(error, 'tenants')
 			}
 		}),
 
@@ -117,31 +123,22 @@ export const tenantMutations = {
 			}): Promise<TenantWithLeaseInfo> => {
 				const supabase = createClient()
 
-				// Get the tenant to find user_id
-				const { data: tenant, error: tenantError } = await supabase
+				// Mark the tenant row as moved out directly.
+				const { error: updateError } = await supabase
 					.from('tenants')
-					.select('user_id')
-					.eq('id', id)
-					.single()
-
-				if (tenantError) handlePostgrestError(tenantError, 'tenants')
-
-				// Update the user record to mark as inactive
-				const { error: userError } = await supabase
-					.from('users')
 					.update({
-						status: 'inactive',
+						status: 'moved_out',
 						updated_at: new Date().toISOString()
 					})
-					.eq('id', tenant!.user_id)
+					.eq('id', id)
 
-				if (userError) handlePostgrestError(userError, 'users')
+				if (updateError) handlePostgrestError(updateError, 'tenants')
 
-				// Fetch updated tenant with lease info for return value
+				// Fetch updated tenant with lease info for return value.
 				const { data: updated, error: fetchError } = await supabase
 					.from('tenants')
 					.select(
-						'*, users!tenants_user_id_fkey(id, email, first_name, last_name, full_name, phone, status), lease_tenants(lease_id, is_primary, leases(id, lease_status, start_date, end_date, rent_amount, security_deposit, unit_id, auto_pay_enabled, primary_tenant_id, owner_user_id, units(id, unit_number, bedrooms, bathrooms, square_feet, rent_amount, property_id, properties(id, name, address_line1, address_line2, city, state, postal_code))))'
+						'*, users!tenants_user_id_fkey(id, email, first_name, last_name, full_name, phone, status), lease_tenants(lease_id, is_primary, leases(id, lease_status, start_date, end_date, rent_amount, security_deposit, unit_id, primary_tenant_id, owner_user_id, units(id, unit_number, bedrooms, bathrooms, square_feet, rent_amount, property_id, properties(id, name, address_line1, address_line2, city, state, postal_code))))'
 					)
 					.eq('id', id)
 					.single()

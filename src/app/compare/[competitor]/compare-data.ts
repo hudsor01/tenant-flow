@@ -42,9 +42,11 @@ export const COMPETITORS: Record<string, CompetitorData> = {
 		],
 		features: [
 			{
-				name: 'Online Rent Collection',
+				name: 'Rent Tracking',
 				tenantflow: 'yes',
+				tenantflowNote: 'Record and ledger',
 				competitor: 'yes',
+				competitorNote: 'Built-in processing',
 			},
 			{
 				name: 'Maintenance Management',
@@ -58,7 +60,7 @@ export const COMPETITORS: Record<string, CompetitorData> = {
 				tenantflowNote: 'DocuSeal e-signing',
 				competitor: 'yes',
 			},
-			{ name: 'Tenant Portal', tenantflow: 'yes', competitor: 'yes' },
+			{ name: 'Tenant Records', tenantflow: 'yes', competitor: 'yes' },
 			{ name: 'Tenant Screening', tenantflow: 'yes', competitor: 'yes' },
 			{
 				name: 'Financial Reporting',
@@ -104,7 +106,7 @@ export const COMPETITORS: Record<string, CompetitorData> = {
 			'Modern, fast interface built on cloud-native technology',
 			'All core features included on every plan -- no upsell tiers for basics',
 			'14-day free trial with no credit card required',
-			'Automated rent collection, late fees, and lease reminders included',
+			'Purpose-built for small landlords — admin, documents, and records without accounting bloat',
 		],
 		competitorStrengths: [
 			'HOA and community association management features',
@@ -148,9 +150,11 @@ export const COMPETITORS: Record<string, CompetitorData> = {
 		],
 		features: [
 			{
-				name: 'Online Rent Collection',
+				name: 'Rent Tracking',
 				tenantflow: 'yes',
+				tenantflowNote: 'Record and ledger',
 				competitor: 'yes',
+				competitorNote: 'Built-in processing',
 			},
 			{
 				name: 'Maintenance Management',
@@ -165,7 +169,7 @@ export const COMPETITORS: Record<string, CompetitorData> = {
 				competitor: 'yes',
 				competitorNote: 'AI leasing assistant',
 			},
-			{ name: 'Tenant Portal', tenantflow: 'yes', competitor: 'yes' },
+			{ name: 'Tenant Records', tenantflow: 'yes', competitor: 'yes' },
 			{ name: 'Tenant Screening', tenantflow: 'yes', competitor: 'yes' },
 			{
 				name: 'Financial Reporting',
@@ -263,9 +267,11 @@ export const COMPETITORS: Record<string, CompetitorData> = {
 		],
 		features: [
 			{
-				name: 'Online Rent Collection',
+				name: 'Rent Tracking',
 				tenantflow: 'yes',
+				tenantflowNote: 'Record and ledger',
 				competitor: 'yes',
+				competitorNote: 'Built-in processing',
 			},
 			{
 				name: 'Maintenance Management',
@@ -282,9 +288,9 @@ export const COMPETITORS: Record<string, CompetitorData> = {
 				competitorNote: 'Templates + e-signing',
 			},
 			{
-				name: 'Tenant Portal',
+				name: 'Tenant Records',
 				tenantflow: 'yes',
-				tenantflowNote: 'Real-time updates',
+				tenantflowNote: 'Organized by unit',
 				competitor: 'yes',
 				competitorNote: 'Mobile app focused',
 			},

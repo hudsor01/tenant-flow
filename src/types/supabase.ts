@@ -459,51 +459,6 @@ export type Database = {
           },
         ]
       }
-      late_fees: {
-        Row: {
-          assessed_date: string
-          created_at: string
-          days_overdue: number
-          fee_amount: number
-          id: string
-          lease_id: string
-          rent_payment_id: string
-        }
-        Insert: {
-          assessed_date?: string
-          created_at?: string
-          days_overdue: number
-          fee_amount: number
-          id?: string
-          lease_id: string
-          rent_payment_id: string
-        }
-        Update: {
-          assessed_date?: string
-          created_at?: string
-          days_overdue?: number
-          fee_amount?: number
-          id?: string
-          lease_id?: string
-          rent_payment_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "late_fees_lease_id_fkey"
-            columns: ["lease_id"]
-            isOneToOne: false
-            referencedRelation: "leases"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "late_fees_rent_payment_id_fkey"
-            columns: ["rent_payment_id"]
-            isOneToOne: false
-            referencedRelation: "rent_payments"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       lease_reminders: {
         Row: {
           created_at: string
@@ -580,8 +535,6 @@ export type Database = {
       }
       leases: {
         Row: {
-          auto_pay_enabled: boolean | null
-          autopay_payment_method_id: string | null
           created_at: string | null
           docuseal_submission_id: string | null
           end_date: string
@@ -609,7 +562,6 @@ export type Database = {
           security_deposit: number
           sent_for_signature_at: string | null
           start_date: string
-          stripe_connected_account_id: string | null
           stripe_subscription_id: string | null
           stripe_subscription_status: string
           subscription_failure_reason: string | null
@@ -624,8 +576,6 @@ export type Database = {
           utilities_included: string[] | null
         }
         Insert: {
-          auto_pay_enabled?: boolean | null
-          autopay_payment_method_id?: string | null
           created_at?: string | null
           docuseal_submission_id?: string | null
           end_date: string
@@ -653,7 +603,6 @@ export type Database = {
           security_deposit: number
           sent_for_signature_at?: string | null
           start_date: string
-          stripe_connected_account_id?: string | null
           stripe_subscription_id?: string | null
           stripe_subscription_status?: string
           subscription_failure_reason?: string | null
@@ -668,8 +617,6 @@ export type Database = {
           utilities_included?: string[] | null
         }
         Update: {
-          auto_pay_enabled?: boolean | null
-          autopay_payment_method_id?: string | null
           created_at?: string | null
           docuseal_submission_id?: string | null
           end_date?: string
@@ -697,7 +644,6 @@ export type Database = {
           security_deposit?: number
           sent_for_signature_at?: string | null
           start_date?: string
-          stripe_connected_account_id?: string | null
           stripe_subscription_id?: string | null
           stripe_subscription_status?: string
           subscription_failure_reason?: string | null
@@ -724,13 +670,6 @@ export type Database = {
             columns: ["primary_tenant_id"]
             isOneToOne: false
             referencedRelation: "tenants"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "leases_stripe_connected_account_id_fkey"
-            columns: ["stripe_connected_account_id"]
-            isOneToOne: false
-            referencedRelation: "stripe_connected_accounts"
             referencedColumns: ["id"]
           },
           {
@@ -1036,139 +975,6 @@ export type Database = {
           },
         ]
       }
-      payment_methods: {
-        Row: {
-          bank_name: string | null
-          brand: string | null
-          created_at: string | null
-          exp_month: number | null
-          exp_year: number | null
-          id: string
-          is_default: boolean | null
-          last_four: string | null
-          stripe_payment_method_id: string
-          tenant_id: string
-          type: string
-          updated_at: string | null
-        }
-        Insert: {
-          bank_name?: string | null
-          brand?: string | null
-          created_at?: string | null
-          exp_month?: number | null
-          exp_year?: number | null
-          id?: string
-          is_default?: boolean | null
-          last_four?: string | null
-          stripe_payment_method_id: string
-          tenant_id: string
-          type: string
-          updated_at?: string | null
-        }
-        Update: {
-          bank_name?: string | null
-          brand?: string | null
-          created_at?: string | null
-          exp_month?: number | null
-          exp_year?: number | null
-          id?: string
-          is_default?: boolean | null
-          last_four?: string | null
-          stripe_payment_method_id?: string
-          tenant_id?: string
-          type?: string
-          updated_at?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "payment_methods_tenant_id_fkey"
-            columns: ["tenant_id"]
-            isOneToOne: false
-            referencedRelation: "tenants"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      payment_reminders: {
-        Row: {
-          created_at: string
-          id: string
-          lease_id: string
-          reminder_type: string
-          rent_payment_id: string
-          sent_at: string
-        }
-        Insert: {
-          created_at?: string
-          id?: string
-          lease_id: string
-          reminder_type: string
-          rent_payment_id: string
-          sent_at?: string
-        }
-        Update: {
-          created_at?: string
-          id?: string
-          lease_id?: string
-          reminder_type?: string
-          rent_payment_id?: string
-          sent_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "payment_reminders_lease_id_fkey"
-            columns: ["lease_id"]
-            isOneToOne: false
-            referencedRelation: "leases"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "payment_reminders_rent_payment_id_fkey"
-            columns: ["rent_payment_id"]
-            isOneToOne: false
-            referencedRelation: "rent_payments"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      payment_schedules: {
-        Row: {
-          created_at: string | null
-          frequency: string
-          id: string
-          is_active: boolean | null
-          lease_id: string
-          next_payment_date: string
-          updated_at: string | null
-        }
-        Insert: {
-          created_at?: string | null
-          frequency?: string
-          id?: string
-          is_active?: boolean | null
-          lease_id: string
-          next_payment_date: string
-          updated_at?: string | null
-        }
-        Update: {
-          created_at?: string | null
-          frequency?: string
-          id?: string
-          is_active?: boolean | null
-          lease_id?: string
-          next_payment_date?: string
-          updated_at?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "payment_schedules_lease_id_fkey"
-            columns: ["lease_id"]
-            isOneToOne: false
-            referencedRelation: "leases"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       payment_transactions: {
         Row: {
           amount: number
@@ -1212,22 +1018,7 @@ export type Database = {
           stripe_payment_intent_id?: string
           updated_at?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "payment_transactions_payment_method_id_fkey"
-            columns: ["payment_method_id"]
-            isOneToOne: false
-            referencedRelation: "payment_methods"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "payment_transactions_rent_payment_id_fkey"
-            columns: ["rent_payment_id"]
-            isOneToOne: false
-            referencedRelation: "rent_payments"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       processed_internal_events: {
         Row: {
@@ -1331,13 +1122,6 @@ export type Database = {
             referencedRelation: "users"
             referencedColumns: ["id"]
           },
-          {
-            foreignKeyName: "properties_stripe_connected_account_id_fkey"
-            columns: ["stripe_connected_account_id"]
-            isOneToOne: false
-            referencedRelation: "stripe_connected_accounts"
-            referencedColumns: ["id"]
-          },
         ]
       }
       property_images: {
@@ -1368,156 +1152,6 @@ export type Database = {
             columns: ["property_id"]
             isOneToOne: false
             referencedRelation: "properties"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      rent_due: {
-        Row: {
-          amount: number
-          autopay_attempts: number | null
-          autopay_last_attempt_at: string | null
-          autopay_next_retry_at: string | null
-          created_at: string | null
-          due_date: string
-          id: string
-          lease_id: string | null
-          status: string | null
-          unit_id: string
-          updated_at: string | null
-        }
-        Insert: {
-          amount: number
-          autopay_attempts?: number | null
-          autopay_last_attempt_at?: string | null
-          autopay_next_retry_at?: string | null
-          created_at?: string | null
-          due_date: string
-          id?: string
-          lease_id?: string | null
-          status?: string | null
-          unit_id: string
-          updated_at?: string | null
-        }
-        Update: {
-          amount?: number
-          autopay_attempts?: number | null
-          autopay_last_attempt_at?: string | null
-          autopay_next_retry_at?: string | null
-          created_at?: string | null
-          due_date?: string
-          id?: string
-          lease_id?: string | null
-          status?: string | null
-          unit_id?: string
-          updated_at?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "rent_due_unit_id_fkey"
-            columns: ["unit_id"]
-            isOneToOne: false
-            referencedRelation: "units"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      rent_payments: {
-        Row: {
-          amount: number
-          application_fee_amount: number
-          checkout_session_id: string | null
-          created_at: string | null
-          currency: string
-          due_date: string
-          gross_amount: number | null
-          id: string
-          late_fee_amount: number | null
-          lease_id: string
-          net_amount: number | null
-          notes: string | null
-          paid_date: string | null
-          payment_method_type: string
-          period_end: string
-          period_start: string
-          platform_fee_amount: number | null
-          rent_due_id: string | null
-          status: string
-          stripe_fee_amount: number | null
-          stripe_payment_intent_id: string | null
-          tenant_id: string
-          updated_at: string | null
-        }
-        Insert: {
-          amount: number
-          application_fee_amount: number
-          checkout_session_id?: string | null
-          created_at?: string | null
-          currency?: string
-          due_date: string
-          gross_amount?: number | null
-          id?: string
-          late_fee_amount?: number | null
-          lease_id: string
-          net_amount?: number | null
-          notes?: string | null
-          paid_date?: string | null
-          payment_method_type: string
-          period_end: string
-          period_start: string
-          platform_fee_amount?: number | null
-          rent_due_id?: string | null
-          status: string
-          stripe_fee_amount?: number | null
-          stripe_payment_intent_id?: string | null
-          tenant_id: string
-          updated_at?: string | null
-        }
-        Update: {
-          amount?: number
-          application_fee_amount?: number
-          checkout_session_id?: string | null
-          created_at?: string | null
-          currency?: string
-          due_date?: string
-          gross_amount?: number | null
-          id?: string
-          late_fee_amount?: number | null
-          lease_id?: string
-          net_amount?: number | null
-          notes?: string | null
-          paid_date?: string | null
-          payment_method_type?: string
-          period_end?: string
-          period_start?: string
-          platform_fee_amount?: number | null
-          rent_due_id?: string | null
-          status?: string
-          stripe_fee_amount?: number | null
-          stripe_payment_intent_id?: string | null
-          tenant_id?: string
-          updated_at?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "rent_payments_lease_id_fkey"
-            columns: ["lease_id"]
-            isOneToOne: false
-            referencedRelation: "leases"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "rent_payments_rent_due_id_fkey"
-            columns: ["rent_due_id"]
-            isOneToOne: false
-            referencedRelation: "rent_due"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "rent_payments_tenant_id_fkey"
-            columns: ["tenant_id"]
-            isOneToOne: false
-            referencedRelation: "tenants"
             referencedColumns: ["id"]
           },
         ]
@@ -1762,74 +1396,6 @@ export type Database = {
         }
         Relationships: []
       }
-      stripe_connected_accounts: {
-        Row: {
-          business_name: string | null
-          business_type: string
-          charges_enabled: boolean | null
-          completion_percentage: number | null
-          created_at: string | null
-          current_step: string | null
-          default_platform_fee_percent: number | null
-          id: string
-          onboarding_completed_at: string | null
-          onboarding_started_at: string | null
-          onboarding_status: string | null
-          payouts_enabled: boolean | null
-          requirements_due: string[] | null
-          stripe_account_id: string
-          tax_id: string | null
-          updated_at: string | null
-          user_id: string
-        }
-        Insert: {
-          business_name?: string | null
-          business_type: string
-          charges_enabled?: boolean | null
-          completion_percentage?: number | null
-          created_at?: string | null
-          current_step?: string | null
-          default_platform_fee_percent?: number | null
-          id?: string
-          onboarding_completed_at?: string | null
-          onboarding_started_at?: string | null
-          onboarding_status?: string | null
-          payouts_enabled?: boolean | null
-          requirements_due?: string[] | null
-          stripe_account_id: string
-          tax_id?: string | null
-          updated_at?: string | null
-          user_id: string
-        }
-        Update: {
-          business_name?: string | null
-          business_type?: string
-          charges_enabled?: boolean | null
-          completion_percentage?: number | null
-          created_at?: string | null
-          current_step?: string | null
-          default_platform_fee_percent?: number | null
-          id?: string
-          onboarding_completed_at?: string | null
-          onboarding_started_at?: string | null
-          onboarding_status?: string | null
-          payouts_enabled?: boolean | null
-          requirements_due?: string[] | null
-          stripe_account_id?: string
-          tax_id?: string | null
-          updated_at?: string | null
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "property_owners_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: true
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       stripe_webhook_events: {
         Row: {
           data: Json | null
@@ -1890,134 +1456,72 @@ export type Database = {
         }
         Relationships: []
       }
-      tenant_invitations: {
+      tenants: {
         Row: {
-          accepted_at: string | null
-          accepted_by_user_id: string | null
           created_at: string | null
-          email: string
-          expires_at: string
+          date_of_birth: string | null
+          email: string | null
+          emergency_contact_name: string | null
+          emergency_contact_phone: string | null
+          emergency_contact_relationship: string | null
+          first_name: string | null
           id: string
-          invitation_code: string
-          invitation_url: string
-          lease_id: string | null
-          owner_user_id: string
-          property_id: string | null
+          identity_verified: boolean | null
+          last_name: string | null
+          name: string | null
+          owner_user_id: string | null
+          phone: string | null
+          ssn_last_four: string | null
           status: string
-          type: string | null
-          unit_id: string | null
+          updated_at: string | null
+          user_id: string | null
         }
         Insert: {
-          accepted_at?: string | null
-          accepted_by_user_id?: string | null
           created_at?: string | null
-          email: string
-          expires_at?: string
+          date_of_birth?: string | null
+          email?: string | null
+          emergency_contact_name?: string | null
+          emergency_contact_phone?: string | null
+          emergency_contact_relationship?: string | null
+          first_name?: string | null
           id?: string
-          invitation_code: string
-          invitation_url: string
-          lease_id?: string | null
-          owner_user_id: string
-          property_id?: string | null
+          identity_verified?: boolean | null
+          last_name?: string | null
+          name?: string | null
+          owner_user_id?: string | null
+          phone?: string | null
+          ssn_last_four?: string | null
           status?: string
-          type?: string | null
-          unit_id?: string | null
+          updated_at?: string | null
+          user_id?: string | null
         }
         Update: {
-          accepted_at?: string | null
-          accepted_by_user_id?: string | null
           created_at?: string | null
-          email?: string
-          expires_at?: string
+          date_of_birth?: string | null
+          email?: string | null
+          emergency_contact_name?: string | null
+          emergency_contact_phone?: string | null
+          emergency_contact_relationship?: string | null
+          first_name?: string | null
           id?: string
-          invitation_code?: string
-          invitation_url?: string
-          lease_id?: string | null
-          owner_user_id?: string
-          property_id?: string | null
+          identity_verified?: boolean | null
+          last_name?: string | null
+          name?: string | null
+          owner_user_id?: string | null
+          phone?: string | null
+          ssn_last_four?: string | null
           status?: string
-          type?: string | null
-          unit_id?: string | null
+          updated_at?: string | null
+          user_id?: string | null
         }
         Relationships: [
           {
-            foreignKeyName: "tenant_invitations_accepted_by_user_id_fkey"
-            columns: ["accepted_by_user_id"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "tenant_invitations_lease_id_fkey"
-            columns: ["lease_id"]
-            isOneToOne: false
-            referencedRelation: "leases"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "tenant_invitations_owner_user_id_fkey"
+            foreignKeyName: "tenants_owner_user_id_fkey"
             columns: ["owner_user_id"]
             isOneToOne: false
             referencedRelation: "users"
             referencedColumns: ["id"]
           },
-          {
-            foreignKeyName: "tenant_invitations_property_id_fkey"
-            columns: ["property_id"]
-            isOneToOne: false
-            referencedRelation: "properties"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "tenant_invitations_unit_id_fkey"
-            columns: ["unit_id"]
-            isOneToOne: false
-            referencedRelation: "units"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      tenants: {
-        Row: {
-          created_at: string | null
-          date_of_birth: string | null
-          emergency_contact_name: string | null
-          emergency_contact_phone: string | null
-          emergency_contact_relationship: string | null
-          id: string
-          identity_verified: boolean | null
-          ssn_last_four: string | null
-          stripe_customer_id: string | null
-          updated_at: string | null
-          user_id: string
-        }
-        Insert: {
-          created_at?: string | null
-          date_of_birth?: string | null
-          emergency_contact_name?: string | null
-          emergency_contact_phone?: string | null
-          emergency_contact_relationship?: string | null
-          id?: string
-          identity_verified?: boolean | null
-          ssn_last_four?: string | null
-          stripe_customer_id?: string | null
-          updated_at?: string | null
-          user_id: string
-        }
-        Update: {
-          created_at?: string | null
-          date_of_birth?: string | null
-          emergency_contact_name?: string | null
-          emergency_contact_phone?: string | null
-          emergency_contact_relationship?: string | null
-          id?: string
-          identity_verified?: boolean | null
-          ssn_last_four?: string | null
-          stripe_customer_id?: string | null
-          updated_at?: string | null
-          user_id?: string
-        }
-        Relationships: [
           {
             foreignKeyName: "tenants_user_id_fkey"
             columns: ["user_id"]
@@ -2364,6 +1868,12 @@ export type Database = {
           phone: string | null
           status: string
           stripe_customer_id: string | null
+          subscription_cancel_at_period_end: boolean | null
+          subscription_current_period_end: string | null
+          subscription_id: string | null
+          subscription_plan: string | null
+          subscription_status: string | null
+          subscription_updated_at: string | null
           updated_at: string | null
           user_type: string
         }
@@ -2386,6 +1896,12 @@ export type Database = {
           phone?: string | null
           status?: string
           stripe_customer_id?: string | null
+          subscription_cancel_at_period_end?: boolean | null
+          subscription_current_period_end?: string | null
+          subscription_id?: string | null
+          subscription_plan?: string | null
+          subscription_status?: string | null
+          subscription_updated_at?: string | null
           updated_at?: string | null
           user_type: string
         }
@@ -2408,6 +1924,12 @@ export type Database = {
           phone?: string | null
           status?: string
           stripe_customer_id?: string | null
+          subscription_cancel_at_period_end?: boolean | null
+          subscription_current_period_end?: string | null
+          subscription_id?: string | null
+          subscription_plan?: string | null
+          subscription_status?: string | null
+          subscription_updated_at?: string | null
           updated_at?: string | null
           user_type?: string
         }
@@ -2561,19 +2083,7 @@ export type Database = {
       }
     }
     Views: {
-      stripe_sync_queue_depth: {
-        Row: {
-          archive_total: number | null
-          db_size: string | null
-          obj_runs_error: number | null
-          obj_runs_pending: number | null
-          obj_runs_running: number | null
-          obj_runs_size: string | null
-          obj_runs_total: number | null
-          open_sync_runs: number | null
-        }
-        Relationships: []
-      }
+      [_ in never]: never
     }
     Functions: {
       acquire_internal_event_lock: {
@@ -2623,7 +2133,6 @@ export type Database = {
         }[]
       }
       backfill_funnel_events: { Args: never; Returns: undefined }
-      calculate_late_fees: { Args: never; Returns: undefined }
       calculate_maintenance_metrics: {
         Args: {
           p_user_id?: string
@@ -2704,7 +2213,6 @@ export type Database = {
         }[]
       }
       get_current_owner_user_id: { Args: never; Returns: string }
-      get_current_tenant_id: { Args: never; Returns: string }
       get_current_user_type: { Args: never; Returns: string }
       get_dashboard_data_v2: { Args: { p_user_id: string }; Returns: Json }
       get_dashboard_stats: { Args: { p_user_id: string }; Returns: Json }
@@ -2830,7 +2338,6 @@ export type Database = {
       }
       get_tenant_lease_ids: { Args: never; Returns: string[] }
       get_tenant_property_ids: { Args: never; Returns: string[] }
-      get_tenant_unit_ids: { Args: never; Returns: string[] }
       get_tenants_by_owner: { Args: { p_user_id: string }; Returns: string[] }
       get_tenants_with_lease_by_owner: {
         Args: { p_user_id: string }
@@ -2910,7 +2417,6 @@ export type Database = {
         Returns: string
       }
       process_account_deletions: { Args: never; Returns: undefined }
-      process_autopay_charges: { Args: never; Returns: undefined }
       process_payment_intent_failed: {
         Args: {
           p_amount: number
@@ -2929,26 +2435,6 @@ export type Database = {
         Returns: undefined
       }
       queue_lease_reminders: { Args: never; Returns: undefined }
-      queue_payment_reminders: { Args: never; Returns: undefined }
-      record_rent_payment: {
-        Args: {
-          p_amount: number
-          p_checkout_session_id?: string
-          p_currency: string
-          p_due_date: string
-          p_gross_amount: number
-          p_lease_id: string
-          p_net_amount: number
-          p_period_end: string
-          p_period_start: string
-          p_platform_fee_amount: number
-          p_rent_due_id: string
-          p_stripe_fee_amount: number
-          p_stripe_payment_intent_id: string
-          p_tenant_id: string
-        }
-        Returns: undefined
-      }
       request_account_deletion: { Args: never; Returns: undefined }
       require_stripe_schema: { Args: never; Returns: boolean }
       revoke_user_session: {
@@ -2965,10 +2451,6 @@ export type Database = {
           rank: number
           state: string
         }[]
-      }
-      set_default_payment_method: {
-        Args: { p_payment_method_id: string }
-        Returns: undefined
       }
       sign_lease_and_check_activation:
         | {
@@ -2999,14 +2481,6 @@ export type Database = {
               success: boolean
             }[]
           }
-      toggle_autopay: {
-        Args: {
-          p_enabled: boolean
-          p_lease_id: string
-          p_payment_method_id?: string
-        }
-        Returns: undefined
-      }
       upsert_rent_payment: {
         Args: {
           p_amount: number

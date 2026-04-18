@@ -154,8 +154,6 @@ const mockLease: LeaseWithExtras = {
 	subscription_failure_reason: null,
 	subscription_retry_count: 0,
 	subscription_last_attempt_at: null,
-	auto_pay_enabled: null,
-	autopay_payment_method_id: null,
 	payment_day: 1,
 	rent_currency: 'USD',
 	created_at: '2024-01-01T00:00:00Z',
@@ -178,7 +176,6 @@ const mockLease: LeaseWithExtras = {
 	property_built_before_1978: null,
 	lead_paint_disclosure_acknowledged: null,
 	governing_state: null,
-	stripe_connected_account_id: null,
 	unit: {
 		id: 'unit-1',
 		unit_number: '101',

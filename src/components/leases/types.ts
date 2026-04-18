@@ -25,7 +25,6 @@ export interface LeasesProps {
 	onTerminateLease: (leaseId: string, terminationDate: string) => void
 	onUploadDocument: (leaseId: string, file: File) => void
 	onDownloadLease: (leaseId: string) => void
-	onEnableAutopay: (leaseId: string) => void
 	onStatusFilterChange: (status: LeaseStatus | 'all') => void
 }
 
@@ -39,7 +38,6 @@ export interface LeaseItem {
 	endDate: string
 	rentAmount: number
 	status: LeaseStatus
-	autopayEnabled: boolean
 	daysUntilExpiry?: number
 }
 

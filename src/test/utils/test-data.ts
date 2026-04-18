@@ -29,13 +29,19 @@ import type { Lease, Property, Tenant, User } from '#types/core'
 export const DEFAULT_TENANT: Tenant = {
 	id: 'tenant-1',
 	user_id: 'user-1',
+	owner_user_id: 'user-1',
+	first_name: 'Test',
+	last_name: 'Tenant',
+	name: 'Test Tenant',
+	email: 'tenant@example.com',
+	phone: '(555) 123-4567',
+	status: 'active',
 	date_of_birth: null,
 	emergency_contact_name: null,
 	emergency_contact_phone: null,
 	emergency_contact_relationship: null,
 	identity_verified: null,
 	ssn_last_four: null,
-	stripe_customer_id: 'cus_test_tenant',
 	created_at: '2024-01-01T00:00:00Z',
 	updated_at: '2024-01-01T00:00:00Z'
 }
@@ -70,7 +76,13 @@ export const DEFAULT_USER: User = {
 	identity_verification_error: null,
 	onboarding_completed_at: null,
 	onboarding_status: 'not_started',
-	deletion_requested_at: null
+	deletion_requested_at: null,
+	subscription_id: null,
+	subscription_plan: null,
+	subscription_status: null,
+	subscription_cancel_at_period_end: null,
+	subscription_current_period_end: null,
+	subscription_updated_at: null
 }
 
 /**
@@ -132,8 +144,6 @@ export const DEFAULT_LEASE: Lease = {
 	subscription_failure_reason: null,
 	subscription_retry_count: 0,
 	subscription_last_attempt_at: null,
-	auto_pay_enabled: null,
-	autopay_payment_method_id: null,
 	grace_period_days: null,
 	late_fee_amount: null,
 	late_fee_days: null,
@@ -158,8 +168,7 @@ export const DEFAULT_LEASE: Lease = {
 	property_rules: null,
 	property_built_before_1978: null,
 	lead_paint_disclosure_acknowledged: null,
-	governing_state: null,
-	stripe_connected_account_id: null
+	governing_state: null
 }
 
 /**

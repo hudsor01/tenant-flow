@@ -70,7 +70,7 @@ export default async function ComparePage({ params }: PageProps) {
 	const tenantflowSchema = createSoftwareApplicationJsonLd({
 		name: 'TenantFlow',
 		description:
-			'Modern property management software for landlords. Online rent collection, maintenance tracking, lease management, and tenant portal.',
+			'Modern property management software for landlords. Lease management, maintenance tracking, rent records, and tenant administration.',
 		url: siteUrl,
 		applicationCategory: 'BusinessApplication',
 		operatingSystem: 'Web Browser',

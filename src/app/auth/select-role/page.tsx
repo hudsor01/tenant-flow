@@ -198,7 +198,7 @@ export default function SelectRolePage() {
 						<RoleCard
 							role="OWNER" title="Property Owner / Manager"
 							description="I own or manage rental properties" icon={Building2}
-							features={['Manage properties and units', 'Track rent payments and finances', 'Handle maintenance requests', 'Invite and manage tenants']}
+							features={['Manage properties and units', 'Track rent received and finances', 'Handle maintenance requests', 'Manage tenant records and leases']}
 							isSelected={selectedRole === 'OWNER'}
 							isLoading={isLoading && selectedRole === 'OWNER'}
 							onSelect={handleSelectRole}
@@ -206,7 +206,7 @@ export default function SelectRolePage() {
 						<RoleCard
 							role="TENANT" title="Tenant / Renter"
 							description="I rent a property" icon={Key}
-							features={['View lease details', 'Pay rent online', 'Submit maintenance requests', 'Access documents']}
+							features={['View lease details', 'Submit maintenance requests', 'Access documents', 'Stay in sync with your landlord']}
 							isSelected={selectedRole === 'TENANT'}
 							isLoading={isLoading && selectedRole === 'TENANT'}
 							onSelect={handleSelectRole}

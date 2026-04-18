@@ -291,9 +291,7 @@ export type AnalyticsUnit = Database['public']['Tables']['units']['Row'] & {
 	maintenance_requests?: AnalyticsMaintenanceRequest[]
 }
 
-export type AnalyticsLease = Database['public']['Tables']['leases']['Row'] & {
-	rent_payments?: Database['public']['Tables']['rent_payments']['Row'][]
-}
+export type AnalyticsLease = Database['public']['Tables']['leases']['Row']
 
 export type AnalyticsProperty =
 	Database['public']['Tables']['properties']['Row'] & {

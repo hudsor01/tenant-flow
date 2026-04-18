@@ -190,27 +190,6 @@ export const mutationKeys = {
 		update: ['mutations', 'tenantNotificationPreferences', 'update'] as const
 	},
 
-	// Payment Methods
-	paymentMethods: {
-		add: ['mutations', 'paymentMethods', 'add'] as const
-	},
-
-	// Tenant Autopay
-	tenantAutopay: {
-		setup: ['mutations', 'tenantAutopay', 'setup'] as const,
-		cancel: ['mutations', 'tenantAutopay', 'cancel'] as const
-	},
-
-	// Tenant Portal
-	tenantPortal: {
-		createMaintenanceRequest: [
-			'mutations',
-			'tenantPortal',
-			'createMaintenanceRequest'
-		] as const,
-		payRent: ['mutations', 'tenantPortal', 'payRent'] as const
-	},
-
 	// Emergency Contact
 	emergencyContact: {
 		create: ['mutations', 'emergencyContact', 'create'] as const,

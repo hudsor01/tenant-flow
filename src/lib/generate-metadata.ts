@@ -32,9 +32,9 @@ function createDefaultMetadata(): Metadata {
 			default: 'TenantFlow — Property Management Software for Small Landlords'
 		},
 		description:
-			'Property management software built for landlords with 1-20 rental units. Automate rent collection, maintenance tracking, tenant screening, and financial reporting. 14-day free trial.',
+			'Property administration software built for landlords with 1-20 rental units. Track leases, maintenance, tenants, and finances in one place. 14-day free trial.',
 		keywords:
-			'property management software, rental property management, landlord software, rent collection software, online rent payment, tenant management, maintenance tracking, property manager tools, small landlord software, rental management app, lease management, tenant screening, property accounting, landlord app, rental property accounting',
+			'property management software, rental property management, landlord software, lease management software, tenant management, maintenance tracking, property manager tools, small landlord software, rental management app, tenant screening, property accounting, landlord app, rental property accounting, document management, rent tracking',
 		authors: [{ name: 'TenantFlow' }],
 		creator: 'TenantFlow',
 		publisher: 'TenantFlow',
@@ -49,7 +49,7 @@ function createDefaultMetadata(): Metadata {
 		openGraph: {
 			title: 'TenantFlow — Property Management Software for Small Landlords',
 			description:
-				'All-in-one rental property management. Automate rent collection, maintenance, and tenant screening. Plans from $29/mo.',
+				'All-in-one rental property administration. Track leases, maintenance, and tenants. Plans from $29/mo.',
 			url: SITE_URL,
 			siteName: 'TenantFlow',
 			type: 'website',
@@ -75,7 +75,7 @@ function createDefaultMetadata(): Metadata {
 			card: 'summary_large_image',
 			title: 'TenantFlow — Property Management Software for Small Landlords',
 			description:
-				'All-in-one rental property management. Automate rent collection, maintenance, and tenant screening. Plans from $29/mo.',
+				'All-in-one rental property administration. Track leases, maintenance, and tenants. Plans from $29/mo.',
 			creator: '@tenantflow',
 			images: [`${SITE_URL}/images/property-management-og.jpg`]
 		},
@@ -133,7 +133,7 @@ export function getJsonLd() {
 		url: SITE_URL,
 		logo: `${SITE_URL}/tenant-flow-logo.png`,
 		description:
-			'Property management software for small landlords. Automate rent collection, maintenance tracking, and tenant screening. 14-day free trial.',
+			'Property administration software for small landlords. Track leases, maintenance, and tenants. 14-day free trial.',
 		foundingDate: '2024',
 		contactPoint: {
 			'@type': 'ContactPoint',
@@ -159,7 +159,7 @@ export function getJsonLd() {
 		applicationSubCategory: 'Property Management Software',
 		operatingSystem: 'Web Browser',
 		description:
-			'Property management software for small landlords. Automate rent collection, maintenance tracking, tenant screening, and financial reporting. 14-day free trial.',
+			'Property administration software for small landlords. Track leases, maintenance, tenants, and financial reporting. 14-day free trial.',
 		url: SITE_URL,
 		image: [
 			`${SITE_URL}/images/property-management-og.jpg`,
@@ -181,15 +181,15 @@ export function getJsonLd() {
 		screenshot: `${SITE_URL}/images/property-management-og.jpg`,
 		featureList: [
 			'Property Management',
-			'Tenant Management',
-			'Rent Collection',
+			'Tenant Records',
+			'Rent Tracking',
 			'Maintenance Tracking',
 			'Financial Reporting',
 			'Automated Workflows',
 			'Lease Management',
-			'Online Payments',
 			'Document Storage',
-			'Tenant Screening'
+			'Tenant Screening',
+			'E-Sign Leases'
 		]
 	}
 

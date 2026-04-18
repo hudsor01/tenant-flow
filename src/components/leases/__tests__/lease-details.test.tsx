@@ -38,8 +38,6 @@ const mockLease: Lease = {
 	subscription_failure_reason: null,
 	subscription_retry_count: 0,
 	subscription_last_attempt_at: null,
-	auto_pay_enabled: true,
-	autopay_payment_method_id: null,
 	created_at: '2023-12-15T00:00:00Z',
 	updated_at: '2024-06-01T00:00:00Z',
 	docuseal_submission_id: null,
@@ -59,8 +57,7 @@ const mockLease: Lease = {
 	property_rules: null,
 	property_built_before_1978: true,
 	lead_paint_disclosure_acknowledged: true,
-	governing_state: 'TX',
-	stripe_connected_account_id: null
+	governing_state: 'TX'
 }
 
 const mockTenant = {
@@ -331,7 +328,6 @@ describe('LeaseDetails', () => {
 			await waitFor(() => {
 				expect(screen.getByText('Financial Terms')).toBeInTheDocument()
 				expect(screen.getByText('Late Fee')).toBeInTheDocument()
-				expect(screen.getByText('Autopay')).toBeInTheDocument()
 			})
 		})
 

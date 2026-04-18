@@ -34,15 +34,15 @@ const comparisonData: ComparisonFeature[] = [
 		description: '*Excludes your time value'
 	},
 	{
-		name: 'Online Rent Collection',
+		name: 'Rent Tracking',
 		tenantFlow: true,
-		spreadsheets: false,
+		spreadsheets: 'partial',
 		enterprise: true
 	},
 	{
-		name: 'Tenant Portal',
+		name: 'Tenant Records',
 		tenantFlow: true,
-		spreadsheets: false,
+		spreadsheets: 'partial',
 		enterprise: true
 	},
 	{
@@ -52,7 +52,7 @@ const comparisonData: ComparisonFeature[] = [
 		enterprise: true
 	},
 	{
-		name: 'Automated Late Fees',
+		name: 'Late Fee Tracking',
 		tenantFlow: true,
 		spreadsheets: false,
 		enterprise: true

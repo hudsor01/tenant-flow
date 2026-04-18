@@ -24,7 +24,6 @@ import {
 	useLeaseList,
 	useLeaseStats,
 	useExpiringLeases,
-	useCurrentLease,
 	useLeaseSignatureStatus,
 	useSignedDocumentUrl,
 	usePrefetchLeaseDetail
@@ -235,27 +234,6 @@ describe('Query Hooks', () => {
 				() => useLeaseList({ status: 'active', limit: 25, offset: 10 }),
 				{ wrapper: createWrapper() }
 			)
-
-			await waitFor(() => {
-				expect(result.current.isSuccess || result.current.isError).toBe(true)
-			})
-
-			expect(supabaseFromMock).toHaveBeenCalledWith('leases')
-		})
-	})
-
-	describe('useCurrentLease', () => {
-		it('should query active lease for tenant portal', async () => {
-			supabaseFromMock.mockImplementation((table: string) => {
-				if (table === 'leases') {
-					return createQueryChain({ data: mockLease })
-				}
-				return createQueryChain({ data: null })
-			})
-
-			const { result } = renderHook(() => useCurrentLease(), {
-				wrapper: createWrapper()
-			})
 
 			await waitFor(() => {
 				expect(result.current.isSuccess || result.current.isError).toBe(true)

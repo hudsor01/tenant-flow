@@ -31,13 +31,6 @@ export function useLease(id: string) {
 }
 
 /**
- * Hook to fetch user's current active lease
- */
-export function useCurrentLease() {
-	return useQuery(leaseQueries.tenantPortalActive())
-}
-
-/**
  * Hook to fetch lease list with pagination and filtering
  */
 export function useLeaseList(params?: {

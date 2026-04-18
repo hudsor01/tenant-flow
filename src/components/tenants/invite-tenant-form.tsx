@@ -9,8 +9,9 @@ import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
 import { useUnsavedChangesWarning } from '#hooks/use-unsaved-changes'
-import { createClient } from '#lib/supabase/client'
+import { useCreateTenantMutation } from '#hooks/api/use-tenant-mutations'
 import { handleMutationError } from '#lib/mutation-error-handler'
+import type { TenantCreate } from '#lib/validation/tenants'
 import { InviteTenantInfoFields } from './invite-tenant-info-fields'
 import { InviteTenantPropertyFields } from './invite-tenant-property-fields'
 
@@ -44,7 +45,8 @@ export function InviteTenantForm({
 }: InviteTenantFormProps) {
 	const router = useRouter()
 	const [selectedPropertyId, setSelectedPropertyId] = useState('')
-	const [isSubmitting, setIsSubmitting] = useState(false)
+	const createTenant = useCreateTenantMutation()
+	const isSubmitting = createTenant.isPending
 
 	const form = useForm({
 		defaultValues: {
@@ -56,30 +58,17 @@ export function InviteTenantForm({
 			unit_id: ''
 		},
 		onSubmit: async ({ value }) => {
-			setIsSubmitting(true)
 			try {
-				const supabase = createClient()
-
-				// Create tenant record. In landlord-only mode, tenants are data records
-				// without auth accounts. The tenants.user_id FK is expected to be relaxed
-				// in the accompanying DB migration; until then, insertions from this form
-				// rely on the migration being applied.
-				const payload: Record<string, unknown> = {
+				// Landlord-managed tenant record — contact info lives on the tenants row.
+				const payload: TenantCreate = {
 					email: value.email,
 					first_name: value.first_name,
 					last_name: value.last_name,
-					name: `${value.first_name} ${value.last_name}`.trim()
+					name: `${value.first_name} ${value.last_name}`.trim(),
+					...(value.phone ? { phone: value.phone } : {})
 				}
-				if (value.phone) payload.phone = value.phone
 
-				const { error } = await supabase
-					.from('tenants')
-					.insert(payload as never)
-
-				if (error) {
-					handleMutationError(error, 'Add tenant')
-					return
-				}
+				await createTenant.mutateAsync(payload)
 
 				logger.info('Tenant added', { email: value.email })
 				toast.success('Tenant added')
@@ -92,8 +81,6 @@ export function InviteTenantForm({
 					error: error instanceof Error ? error.message : String(error)
 				})
 				handleMutationError(error, 'Add tenant')
-			} finally {
-				setIsSubmitting(false)
 			}
 		}
 	})

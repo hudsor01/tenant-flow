@@ -13,7 +13,7 @@ const homeFaqs = [
 	{
 		question: 'How long does it take to get started?',
 		answer:
-			'Most property managers are up and running within an hour. You can import your properties via CSV, invite tenants, and start collecting rent the same day. Our intuitive interface requires no training.'
+			'Most landlords are up and running within an hour. Import your properties via CSV, add tenant records, and start tracking leases the same day. Our intuitive interface requires no training.'
 	},
 	{
 		question: 'What if I have fewer than 10 units?',
@@ -26,9 +26,9 @@ const homeFaqs = [
 			'Absolutely. We use bank-level encryption (AES-256), are SOC 2 compliant, and host on enterprise-grade infrastructure. Your data is backed up daily and you own it completely - export anytime.'
 	},
 	{
-		question: 'How does rent collection work?',
+		question: 'How does rent tracking work?',
 		answer:
-			'Tenants pay via ACH bank transfer or card through their self-service portal. Funds are deposited directly to your bank account within 2-3 business days. We handle late fee calculations automatically.'
+			'You record rent as you receive it — by cash, check, ACH, or any method you already use. TenantFlow keeps the ledger, flags late balances, and produces the reports you need for taxes and bookkeeping.'
 	},
 	{
 		question: 'Can I switch from my current software?',

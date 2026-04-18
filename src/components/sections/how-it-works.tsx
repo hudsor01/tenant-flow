@@ -31,22 +31,22 @@ const steps = [
 	},
 	{
 		number: '02',
-		title: 'Invite Your Tenants',
+		title: 'Add Tenants and Leases',
 		description:
-			'Send digital invitations to tenants. They get their own portal for payments, maintenance requests, and lease documents.',
+			'Record tenant details, generate and e-sign leases with DocuSeal, and keep every document attached to the unit.',
 		icon: Users,
-		features: ['Self-service portal', 'Online payments', 'Document signing'],
+		features: ['Lease e-signing', 'Document vault', 'Tenant records'],
 		color: 'info'
 	},
 	{
 		number: '03',
-		title: 'Automate Everything',
+		title: 'Track Everything',
 		description:
-			'Let TenantFlow handle the rest. Automated rent collection, late fees, maintenance workflows, and financial reporting.',
+			'Keep maintenance requests, rent received, expenses, and renewals in one place — with reports ready for tax season.',
 		icon: Zap,
 		features: [
-			'Auto rent collection',
-			'Late fee automation',
+			'Maintenance workflow',
+			'Rent tracking',
 			'Financial reports'
 		],
 		color: 'success'

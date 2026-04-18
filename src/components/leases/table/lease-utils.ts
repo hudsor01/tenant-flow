@@ -9,9 +9,6 @@ export interface UserWithExtras extends User {
 export interface TenantWithUser extends Tenant {
 	user?: UserWithExtras
 	User?: UserWithExtras
-	name?: string
-	first_name?: string | null
-	last_name?: string | null
 }
 
 /** Extended unit type that includes property relation */

@@ -226,57 +226,6 @@ export type MaintenanceRequestDetail = Tables<'maintenance_requests'> & {
 }
 
 // =============================================================================
-// RENT PAYMENT RESPONSE TYPES
-// =============================================================================
-
-/** Rent payment list item - minimal fields for list views */
-export type RentPaymentListItem = Pick<
-	Tables<'rent_payments'>,
-	| 'id'
-	| 'amount'
-	| 'status'
-	| 'due_date'
-	| 'paid_date'
-	| 'lease_id'
-	| 'tenant_id'
-	| 'period_start'
-	| 'period_end'
->
-
-/** Rent payment detail - full row with relations */
-export type RentPaymentDetail = Tables<'rent_payments'> & {
-	lease?: Pick<Tables<'leases'>, 'id' | 'unit_id' | 'rent_amount'>
-	tenant?: Pick<Tables<'users'>, 'id' | 'email' | 'first_name' | 'last_name'>
-}
-
-// =============================================================================
-// RENT CHECKOUT TYPES
-// =============================================================================
-
-/**
- * Request to create a Stripe Checkout Session for rent payment
- * Sent to the stripe-rent-checkout Edge Function
- */
-export interface CreateRentCheckoutRequest {
-	rent_due_id: string
-}
-
-/**
- * Response from the stripe-rent-checkout Edge Function
- */
-export interface CreateRentCheckoutResponse {
-	url: string
-	session_id: string
-}
-
-/**
- * Error response from the stripe-rent-checkout Edge Function
- */
-export interface RentCheckoutError {
-	error: string
-}
-
-// =============================================================================
 // INSERT/UPDATE TYPES (for type-safe mutations)
 // =============================================================================
 
@@ -303,12 +252,6 @@ export type MaintenanceRequestInsert = TablesInsert<'maintenance_requests'>
 
 /** Maintenance request update type */
 export type MaintenanceRequestUpdate = TablesUpdate<'maintenance_requests'>
-
-/** Rent payment insert type */
-export type RentPaymentInsert = TablesInsert<'rent_payments'>
-
-/** Rent payment update type */
-export type RentPaymentUpdate = TablesUpdate<'rent_payments'>
 
 // =============================================================================
 // LEGACY TYPES (kept for backwards compatibility - migrate away from these)
@@ -502,12 +445,6 @@ export interface TenantPayment {
 	application_fee_amount: number
 	period_start: string
 	period_end: string
-}
-
-export interface TenantAutopayStatus {
-	autopayEnabled: boolean
-	paymentMethodId: string | null
-	paymentMethodName: string | null
 }
 
 export interface TenantMaintenanceRequest {

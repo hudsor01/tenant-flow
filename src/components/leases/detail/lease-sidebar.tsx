@@ -1,5 +1,4 @@
 import { Card, CardContent, CardHeader, CardTitle } from '#components/ui/card'
-import { Badge } from '#components/ui/badge'
 import { Button } from '#components/ui/button'
 import { Home, User, Building } from 'lucide-react'
 import Link from 'next/link'
@@ -59,36 +58,6 @@ export function LeaseSidebar({ lease, unit }: LeaseSidebarProps) {
 					)}
 				</CardContent>
 			</Card>
-
-			{/* Subscription Status (if active lease) */}
-			{isActive && lease.stripe_subscription_id && (
-				<Card>
-					<CardHeader className="pb-3">
-						<CardTitle className="text-base">Autopay Status</CardTitle>
-					</CardHeader>
-					<CardContent>
-						<div className="space-y-2">
-							<div className="flex items-center justify-between">
-								<span className="text-sm text-muted-foreground">Status</span>
-								<Badge
-									variant={
-										lease.stripe_subscription_status === 'active'
-											? 'default'
-											: 'secondary'
-									}
-								>
-									{lease.stripe_subscription_status}
-								</Badge>
-							</div>
-							{lease.subscription_failure_reason && (
-								<div className="p-2 rounded-lg bg-red-50 dark:bg-red-900/10 text-sm text-red-700 dark:text-red-300">
-									{lease.subscription_failure_reason}
-								</div>
-							)}
-						</div>
-					</CardContent>
-				</Card>
-			)}
 		</div>
 	)
 }
