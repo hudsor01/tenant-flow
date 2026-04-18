@@ -30,8 +30,9 @@ describe.skipIf(!adminCreds)(
 				if (payload) {
 					const claims = JSON.parse(
 						Buffer.from(payload, 'base64url').toString()
-					) as { user_type?: string }
-					adminJwtHasUserType = claims.user_type === 'ADMIN'
+					) as { app_metadata?: { user_type?: string } }
+					adminJwtHasUserType =
+						claims.app_metadata?.user_type === 'ADMIN'
 				}
 			}
 		})
@@ -54,8 +55,9 @@ describe.skipIf(!adminCreds)(
 			it('permits admin caller', async (ctx) => {
 				if (!adminJwtHasUserType) {
 					ctx.skip(
-						'admin JWT lacks user_type claim — Supabase custom_access_token_hook ' +
-						'needs to be enabled in Auth > Hooks > Access Token hook'
+						'admin JWT lacks app_metadata.user_type=ADMIN — verify E2E_ADMIN_EMAIL ' +
+						'points to a user with user_type=ADMIN in public.users and that ' +
+						'custom_access_token_hook is enabled'
 					)
 				}
 				const { data, error } = await adminClient.rpc(
@@ -80,8 +82,9 @@ describe.skipIf(!adminCreds)(
 			it('permits admin caller', async (ctx) => {
 				if (!adminJwtHasUserType) {
 					ctx.skip(
-						'admin JWT lacks user_type claim — Supabase custom_access_token_hook ' +
-						'needs to be enabled in Auth > Hooks > Access Token hook'
+						'admin JWT lacks app_metadata.user_type=ADMIN — verify E2E_ADMIN_EMAIL ' +
+						'points to a user with user_type=ADMIN in public.users and that ' +
+						'custom_access_token_hook is enabled'
 					)
 				}
 				const { data, error } = await adminClient.rpc(
