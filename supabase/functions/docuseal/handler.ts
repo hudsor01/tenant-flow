@@ -16,6 +16,7 @@ import { errorResponse, captureWebhookError } from '../_shared/errors.ts'
 import { escapeHtml } from '../_shared/escape-html.ts'
 import { validateEnv } from '../_shared/env.ts'
 import { createAdminClient } from '../_shared/supabase-client.ts'
+import { checkESignEntitlement } from './entitlement.ts'
 
 Deno.serve(async (req: Request) => {
   const optionsResponse = handleCorsOptions(req)
@@ -67,6 +68,10 @@ Deno.serve(async (req: Request) => {
           { status: 400, headers: getJsonHeaders(req) }
         )
       }
+
+      // Tier entitlement check — Growth/Max only. See ./entitlement.ts.
+      const entitlementBlock = await checkESignEntitlement(supabase, user.id, req)
+      if (entitlementBlock) return entitlementBlock
 
       // 1. Fetch lease details
       const { data: lease, error: leaseError } = await supabase
