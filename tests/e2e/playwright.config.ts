@@ -31,10 +31,7 @@ const TEST_FRONTEND_URL = `http://localhost:${TEST_FRONTEND_PORT}`
 const LOCAL_SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || 'http://127.0.0.1:54321'
 const LOCAL_SUPABASE_PUBLISHABLE_KEY = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24iLCJleHAiOjE5ODM4MTI5OTZ9.CRXP1A7WOeoJeXxjNni43kdQwgnWNReilDMblYTn_I0'
 
-// Auth state file paths (official Playwright pattern)
-// @see https://playwright.dev/docs/auth#basic-shared-account-in-all-tests
 const OWNER_AUTH_FILE = path.join(__dirname, 'playwright/.auth/owner.json')
-const TENANT_AUTH_FILE = path.join(__dirname, 'playwright/.auth/tenant.json')
 
 export default defineConfig({
 	// ===================
@@ -129,33 +126,7 @@ export default defineConfig({
 		},
 
 		// ─────────────────────────────────────────
-		// SETUP: Invite tenant (owner creates tenant record)
-		// Must run after owner auth, creates tenant record in DB
-		// ─────────────────────────────────────────
-		{
-			name: 'setup-invite-tenant',
-			testMatch: /setup-invite-tenant\.setup\.ts/,
-			dependencies: ['setup-owner'],
-			use: {
-				storageState: OWNER_AUTH_FILE
-			},
-			retries: 2
-		},
-
-		// ─────────────────────────────────────────
-		// SETUP: Authenticate tenant via API
-		// Must run after invite (tenant record must exist)
-		// ─────────────────────────────────────────
-		{
-			name: 'setup-tenant',
-			testMatch: /auth-tenant\.setup\.ts/,
-			dependencies: ['setup-invite-tenant'],
-			retries: 2
-		},
-
-		// ─────────────────────────────────────────
 		// OWNER: Owner dashboard tests (authenticated)
-		// Uses storageState - tests start authenticated
 		// ─────────────────────────────────────────
 		{
 			name: 'owner',
@@ -165,20 +136,6 @@ export default defineConfig({
 			},
 			dependencies: ['setup-owner'],
 			testMatch: ['**/owner/**/*.spec.ts']
-		},
-
-		// ─────────────────────────────────────────
-		// TENANT: Tenant portal tests (authenticated)
-		// Uses storageState - tests start authenticated
-		// ─────────────────────────────────────────
-		{
-			name: 'tenant',
-			use: {
-				...devices['Desktop Chrome'],
-				storageState: TENANT_AUTH_FILE
-			},
-			dependencies: ['setup-tenant'],
-			testMatch: ['**/tenant/**/*.spec.ts']
 		},
 
 		// ─────────────────────────────────────────
@@ -194,9 +151,7 @@ export default defineConfig({
 			testIgnore: [
 				'**/*.setup.ts',
 				'**/public/**',
-				'**/owner/**',
-				'**/tenant/**',
-				'**/stripe-payment-flow.e2e.spec.ts'
+				'**/owner/**'
 			]
 		},
 

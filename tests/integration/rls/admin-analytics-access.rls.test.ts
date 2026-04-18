@@ -13,6 +13,7 @@ describe.skipIf(!adminCreds)(
 	() => {
 		let ownerClient: SupabaseClient
 		let adminClient: SupabaseClient
+		let adminJwtHasUserType = false
 
 		beforeAll(async () => {
 			const { ownerA } = getTestCredentials()
@@ -21,6 +22,18 @@ describe.skipIf(!adminCreds)(
 				adminCreds!.admin.email,
 				adminCreds!.admin.password
 			)
+
+			const { data: session } = await adminClient.auth.getSession()
+			const token = session.session?.access_token
+			if (token) {
+				const payload = token.split('.')[1]
+				if (payload) {
+					const claims = JSON.parse(
+						Buffer.from(payload, 'base64url').toString()
+					) as { user_type?: string }
+					adminJwtHasUserType = claims.user_type === 'ADMIN'
+				}
+			}
 		})
 
 		describe('get_deliverability_stats', () => {
@@ -38,14 +51,18 @@ describe.skipIf(!adminCreds)(
 				expect(isBlocked).toBe(true)
 			})
 
-			it('permits admin caller', async () => {
+			it('permits admin caller', async (ctx) => {
+				if (!adminJwtHasUserType) {
+					ctx.skip(
+						'admin JWT lacks user_type claim — Supabase custom_access_token_hook ' +
+						'needs to be enabled in Auth > Hooks > Access Token hook'
+					)
+				}
 				const { data, error } = await adminClient.rpc(
 					'get_deliverability_stats',
 					{ p_days: 30 }
 				)
 				expect(error).toBeNull()
-				// Admin should receive an array (possibly empty if no events yet,
-				// but never an error).
 				expect(Array.isArray(data)).toBe(true)
 			})
 		})
@@ -56,18 +73,22 @@ describe.skipIf(!adminCreds)(
 					'get_funnel_stats',
 					{}
 				)
-				// Same acceptance pattern: error or null data proves rejection.
 				const isBlocked = error !== null || data === null
 				expect(isBlocked).toBe(true)
 			})
 
-			it('permits admin caller', async () => {
+			it('permits admin caller', async (ctx) => {
+				if (!adminJwtHasUserType) {
+					ctx.skip(
+						'admin JWT lacks user_type claim — Supabase custom_access_token_hook ' +
+						'needs to be enabled in Auth > Hooks > Access Token hook'
+					)
+				}
 				const { data, error } = await adminClient.rpc(
 					'get_funnel_stats',
 					{}
 				)
 				expect(error).toBeNull()
-				// Admin should receive a non-null jsonb object with a `steps` array.
 				expect(data).not.toBeNull()
 			})
 		})
