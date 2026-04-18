@@ -22,7 +22,7 @@ export default function FeaturesSectionDemo({
 		{
 			title: 'Smart Property Management',
 			description:
-				'Automate rent collection, lease renewals, and maintenance tracking for 5-50 unit portfolios.',
+				'Track leases, renewals, and maintenance in one place — built for landlords managing 5-50 units.',
 			icon: <Terminal />
 		},
 		{

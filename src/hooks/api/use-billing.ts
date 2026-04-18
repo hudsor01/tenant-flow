@@ -1,31 +1,11 @@
-/**
- * Billing & Subscriptions Query Hooks
- * TanStack Query hooks for billing, invoices, and subscription data fetching
- *
- * Mutation hooks are in use-billing-mutations.ts.
- * Query keys and options are in query-keys/billing-keys.ts and query-keys/subscription-keys.ts.
- *
- * Data source: stripe.* tables synced by Supabase Stripe Sync Engine (Decision #13).
- * Billing hooks (PAY-19, PAY-20) query stripe.* tables which must have current data.
- */
-
 import { useQuery } from '@tanstack/react-query'
 
 import { billingQueries } from './query-keys/billing-keys'
-import { subscriptionQueries, subscriptionStatusQuery } from './query-keys/subscription-keys'
-
-
-// ============================================================================
-// INVOICE HOOKS
-// ============================================================================
+import { subscriptionStatusQuery } from './query-keys/subscription-keys'
 
 export function useInvoices() {
 	return useQuery(billingQueries.invoices())
 }
-
-// ============================================================================
-// BILLING HISTORY HOOKS
-// ============================================================================
 
 export function useBillingHistory() {
 	return useQuery(billingQueries.history())
@@ -35,22 +15,6 @@ export function useFailedPaymentAttempts() {
 	return useQuery(billingQueries.failed())
 }
 
-// ============================================================================
-// SUBSCRIPTION STATUS HOOK
-// ============================================================================
-
 export function useSubscriptionStatus(options: { enabled?: boolean } = {}) {
 	return useQuery(subscriptionStatusQuery.subscriptionStatus(options))
-}
-
-// ============================================================================
-// SUBSCRIPTION QUERY HOOKS
-// ============================================================================
-
-export function useSubscriptions() {
-	return useQuery(subscriptionQueries.list())
-}
-
-export function useSubscription(id: string) {
-	return useQuery(subscriptionQueries.detail(id))
 }

@@ -1,4 +1,4 @@
-import { TenantDetails } from '../../../(tenant)/tenant/tenant-details.client'
+import { TenantDetails } from '../components/tenant-details.client'
 import { Suspense } from 'react'
 import { Skeleton } from '#components/ui/skeleton'
 

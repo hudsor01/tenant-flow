@@ -229,7 +229,7 @@ export function Tenants({
 				onEdit={onEditTenant}
 				onContact={onContactTenant}
 				onViewLease={onViewLease}
-				onViewPaymentHistory={onViewPaymentHistory}
+				{...(onViewPaymentHistory ? { onViewPaymentHistory } : {})}
 			/>
 		</div>
 	)

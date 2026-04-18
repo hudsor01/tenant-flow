@@ -234,10 +234,6 @@ export const DASHBOARD_BASE_QUERY_OPTIONS = {
 	structuralSharing: true
 } as const
 
-// ============================================================================
-// FINANCIAL CHART TYPES & QUERY OPTIONS
-// ============================================================================
-
 export interface FinancialChartDatum {
 	date: string
 	revenue: number

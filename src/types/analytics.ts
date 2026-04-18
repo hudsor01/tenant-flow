@@ -142,10 +142,6 @@ export interface AnalyticsSummary {
 	trend: 'up' | 'down' | 'stable'
 }
 
-// =============================================================================
-// FINANCIAL ANALYTICS (merged from financial-analytics.ts)
-// =============================================================================
-
 export interface FinancialMetricSummary {
 	totalRevenue: number
 	totalExpenses: number
@@ -276,10 +272,6 @@ export interface FinancialAnalyticsPageResponse {
 	leaseAnalytics: LeaseFinancialInsight[]
 }
 
-// =============================================================================
-// LEASE ANALYTICS (merged from lease-analytics.ts)
-// =============================================================================
-
 export interface LeaseLifecyclePoint {
 	period: string
 	renewals: number
@@ -299,10 +291,6 @@ export interface LeaseAnalyticsPageResponse {
 	lifecycle: LeaseLifecyclePoint[]
 	statusBreakdown: LeaseStatusBreakdown[]
 }
-
-// =============================================================================
-// MAINTENANCE ANALYTICS (merged from maintenance-analytics.ts)
-// =============================================================================
 
 export interface MaintenanceMetricSummary {
 	openRequests: number
@@ -337,10 +325,6 @@ export interface MaintenanceAnalyticsPageResponse {
 	categoryBreakdown: MaintenanceCategoryBreakdown[]
 }
 
-// =============================================================================
-// OCCUPANCY ANALYTICS (merged from occupancy-analytics.ts)
-// =============================================================================
-
 export interface OccupancyMetricSummary {
 	currentOccupancy: number
 	averageVacancyDays: number
@@ -368,10 +352,6 @@ export interface OccupancyAnalyticsPageResponse {
 	trends: OccupancyTrendPoint[]
 	vacancyAnalysis: VacancyAnalysisEntry[]
 }
-
-// =============================================================================
-// PROPERTY ANALYTICS (merged from property-analytics.ts)
-// =============================================================================
 
 export interface PropertyPerformanceEntry {
 	property_id: string
@@ -446,10 +426,6 @@ export interface PropertyPerformancePageResponse {
 	visitorAnalytics: VisitorAnalyticsResponse
 }
 
-// =============================================================================
-// DELIVERABILITY ANALYTICS (admin-only, from get_deliverability_stats RPC)
-// =============================================================================
-
 /**
  * Per-template email deliverability aggregate from
  * `get_deliverability_stats(p_days integer)`.
@@ -467,10 +443,6 @@ export interface DeliverabilityStats {
 	bouncePercent: number // 0..100
 	complaintPercent: number // 0..100
 }
-
-// =============================================================================
-// ONBOARDING FUNNEL ANALYTICS (admin-only, from get_funnel_stats RPC)
-// =============================================================================
 
 /**
  * Closed set of funnel step identifiers enforced by the

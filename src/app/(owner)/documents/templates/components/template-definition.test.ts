@@ -111,9 +111,6 @@ describe('useTemplateDefinition', () => {
 		mockGetUser.mockResolvedValue({ id: TEST_USER_ID })
 	})
 
-	// =========================================================================
-	// Load behavior (via useQuery + factory)
-	// =========================================================================
 	describe('load', () => {
 		it('fetches custom fields from PostgREST on mount and populates customFields', async () => {
 			const savedFields: DynamicField[] = [
@@ -192,9 +189,6 @@ describe('useTemplateDefinition', () => {
 		})
 	})
 
-	// =========================================================================
-	// Save behavior
-	// =========================================================================
 	describe('save', () => {
 		it('calls PostgREST upsert with owner_user_id, template_key, custom_fields', async () => {
 			setupSelectChain({ data: null, error: null })
@@ -349,9 +343,6 @@ describe('useTemplateDefinition', () => {
 		})
 	})
 
-	// =========================================================================
-	// Form defaults
-	// =========================================================================
 	describe('form field defaults', () => {
 		it('sets default values for loaded custom fields on form', async () => {
 			const savedFields: DynamicField[] = [

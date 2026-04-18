@@ -131,60 +131,6 @@ export async function getCurrentUser() {
 }
 
 /**
- * Create a payment intent for direct Stripe Elements integration
- */
-export async function createPaymentIntent({
-	amount,
-	currency = 'usd',
-	metadata = {},
-	customerEmail
-}: {
-	amount: number
-	currency?: string
-	metadata?: Record<string, string>
-	customerEmail?: string
-}) {
-	const supabase = createClient()
-
-	// getSession() reads from local cache (no network call).
-	// The Edge Function validates the JWT server-side.
-	const { data: { session } } = await supabase.auth.getSession()
-
-	const headers: Record<string, string> = {
-		'Content-Type': 'application/json'
-	}
-
-	if (session?.access_token) {
-		headers['Authorization'] = `Bearer ${session.access_token}`
-	}
-
-	const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-	const response = await fetch(
-		`${supabaseUrl}/functions/v1/stripe-connect`,
-		{
-			method: 'POST',
-			headers,
-			body: JSON.stringify({
-				action: 'create-payment-intent',
-				amount,
-				currency,
-				metadata,
-				customerEmail
-			})
-		}
-	)
-
-	if (!response.ok) {
-		const errorData = await response.json().catch(() => ({
-			error: `HTTP ${response.status}: ${response.statusText}`
-		}))
-		throw new Error(errorData.error || 'Failed to create payment intent')
-	}
-
-	return response.json()
-}
-
-/**
  * Create a Stripe Customer Portal session for subscription management
  * Official Stripe pattern: customer self-service portal
  */

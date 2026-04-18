@@ -13,10 +13,6 @@ import {
 } from './common'
 import { VALIDATION_LIMITS } from '#lib/constants/billing'
 
-// ============================================================================
-// UTILITY SCHEMAS
-// ============================================================================
-
 /**
  * US State codes for governing law selection
  */
@@ -107,10 +103,6 @@ const dateStringSchema = z
 		)
 	}, 'Invalid date')
 
-// ============================================================================
-// STEP 1: SELECTION SCHEMA
-// ============================================================================
-
 /**
  * Step 1: Property, Unit, and Tenant Selection
  * Validates: Requirements 2.1, 2.2, 2.3, 2.4, 2.5
@@ -122,10 +114,6 @@ export const selectionStepSchema = z.object({
 })
 
 export type SelectionStepData = z.infer<typeof selectionStepSchema>
-
-// ============================================================================
-// STEP 2: TERMS SCHEMA
-// ============================================================================
 
 /**
  * Step 2: Lease Terms (dates and financial details)
@@ -193,10 +181,6 @@ export const validateStartDateNotInPast = (startDate: string): boolean => {
 	const start = new Date(`${startDate}T00:00:00.000Z`)
 	return start >= today
 }
-
-// ============================================================================
-// STEP 3: LEASE DETAILS SCHEMA
-// ============================================================================
 
 /**
  * Step 3: Lease Details (occupancy, pets, utilities, disclosures)
@@ -271,10 +255,6 @@ export const leaseDetailsStepSchema = z
 
 export type LeaseDetailsStepData = z.infer<typeof leaseDetailsStepSchema>
 
-// ============================================================================
-// COMBINED WIZARD SCHEMA
-// ============================================================================
-
 /**
  * Base lease wizard object schema (without refinements)
  * Used as foundation for both wizard and API schemas
@@ -346,10 +326,6 @@ export const leaseWizardSchema = leaseWizardBaseSchema
 
 export type LeaseWizardData = z.infer<typeof leaseWizardSchema>
 
-// ============================================================================
-// API REQUEST/RESPONSE SCHEMAS
-// ============================================================================
-
 /**
  * Create lease request schema (sent to backend)
  * Omits lease_status and adds rent_currency
@@ -393,10 +369,6 @@ export const signatureStatusResponseSchema = z.object({
 export type SignatureStatusResponse = z.infer<
 	typeof signatureStatusResponseSchema
 >
-
-// ============================================================================
-// FORM STATE TYPES (for frontend wizard)
-// ============================================================================
 
 /**
  * Wizard step identifiers

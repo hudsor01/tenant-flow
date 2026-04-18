@@ -23,10 +23,6 @@ export interface EnrollmentResult {
 	uri: string
 }
 
-// ============================================================================
-// MUTATION OPTIONS FACTORY
-// ============================================================================
-
 const mfaMutationFactories = {
 	enroll: () =>
 		mutationOptions({
@@ -83,10 +79,6 @@ const mfaMutationFactories = {
 		})
 }
 
-// ============================================================================
-// QUERY HOOKS
-// ============================================================================
-
 /**
  * Get current MFA status and assurance level
  */
@@ -100,10 +92,6 @@ export function useMfaStatus() {
 export function useMfaFactors() {
 	return useQuery(mfaQueries.factors())
 }
-
-// ============================================================================
-// MUTATION HOOKS
-// ============================================================================
 
 /**
  * Enroll a new TOTP factor

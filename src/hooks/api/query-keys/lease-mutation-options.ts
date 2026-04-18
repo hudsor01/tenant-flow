@@ -18,10 +18,6 @@ import type { Lease } from '#types/core'
 import type { LeaseCreate, LeaseUpdate } from '#lib/validation/leases'
 import { mutationKeys } from '../mutation-keys'
 
-// ============================================================================
-// EDGE FUNCTION HELPER (for signature mutations)
-// ============================================================================
-
 /**
  * Calls the docuseal Edge Function with an action payload.
  * Reads the caller's JWT from the current Supabase session.
@@ -56,10 +52,6 @@ async function callDocuSealEdgeFunction(
 
 	return response.json()
 }
-
-// ============================================================================
-// MUTATION OPTIONS FACTORIES
-// ============================================================================
 
 export const leaseMutations = {
 	create: () =>

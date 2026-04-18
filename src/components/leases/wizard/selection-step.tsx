@@ -91,17 +91,21 @@ export function SelectionStep({ data, onChange, onUnitSelected }: SelectionStepP
 			const supabase = createClient()
 			const { data: rows, error } = await supabase
 				.from('tenants')
-				.select('id, users!inner(first_name, last_name, email)')
-				.neq('users.status', 'inactive')
+				.select(
+					'id, first_name, last_name, email, users!tenants_user_id_fkey(first_name, last_name, email)'
+				)
+				.neq('status', 'inactive')
 			if (error) throw error
 			return (rows ?? [])
 				.map(row => {
-					const user = row.users as unknown as { first_name: string | null; last_name: string | null; email: string }
+					const user = row.users as unknown as
+						| { first_name: string | null; last_name: string | null; email: string | null }
+						| null
 					return {
 						id: row.id,
-						first_name: user.first_name ?? '',
-						last_name: user.last_name ?? '',
-						email: user.email
+						first_name: row.first_name ?? user?.first_name ?? '',
+						last_name: row.last_name ?? user?.last_name ?? '',
+						email: row.email ?? user?.email ?? ''
 					} satisfies Tenant
 				})
 				.sort((a, b) => a.last_name.localeCompare(b.last_name))

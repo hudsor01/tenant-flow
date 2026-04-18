@@ -98,8 +98,7 @@ export function transformToTenantSectionDetail(
 						unitNumber: tenant.unit?.unit_number ?? '',
 						startDate: tenant.currentLease.start_date,
 						endDate: tenant.currentLease.end_date,
-						rentAmount: (tenant.currentLease.rent_amount ?? 0) * 100, // Convert to cents
-						autopayEnabled: tenant.currentLease.auto_pay_enabled ?? false
+						rentAmount: (tenant.currentLease.rent_amount ?? 0) * 100 // Convert to cents
 					}
 				}
 			: {})

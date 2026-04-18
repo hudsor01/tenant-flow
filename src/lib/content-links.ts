@@ -12,13 +12,8 @@
 
 import { COMPETITORS } from '#app/compare/[competitor]/compare-data'
 
-// ============================================================================
-// RESOURCE <-> BLOG MAPPINGS
-// ============================================================================
-
 /**
  * Maps resource page route segments to arrays of related blog post slugs.
- * Used by resource pages to display related blog content.
  */
 export const RESOURCE_TO_BLOGS: Record<string, string[]> = {
 	'seasonal-maintenance-checklist': [
@@ -34,8 +29,6 @@ export const RESOURCE_TO_BLOGS: Record<string, string[]> = {
 
 /**
  * Reverse map: blog post slug -> resource route segment.
- * Derived from RESOURCE_TO_BLOGS. Used by blog post pages to show
- * a resource download CTA when the post has a matching resource page.
  */
 export const BLOG_TO_RESOURCE: Record<string, string> = Object.fromEntries(
 	Object.entries(RESOURCE_TO_BLOGS).flatMap(([resource, blogs]) =>
@@ -43,14 +36,8 @@ export const BLOG_TO_RESOURCE: Record<string, string> = Object.fromEntries(
 	)
 )
 
-// ============================================================================
-// BLOG <-> COMPETITOR MAPPINGS
-// ============================================================================
-
 /**
  * Reverse map: blog post slug -> competitor slug.
- * Derived from COMPETITORS (compare-data.ts). Used by blog post detail pages
- * to show a compare CTA when the post is a competitor comparison article.
  */
 export const BLOG_TO_COMPETITOR: Record<string, string> = Object.fromEntries(
 	Object.values(COMPETITORS)

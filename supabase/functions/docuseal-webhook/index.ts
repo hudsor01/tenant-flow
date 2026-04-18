@@ -13,10 +13,6 @@ import { errorResponse, logEvent } from '../_shared/errors.ts'
 import { validateEnv } from '../_shared/env.ts'
 import { createAdminClient } from '../_shared/supabase-client.ts'
 
-// -----------------------------------------------------------------------
-// Types
-// -----------------------------------------------------------------------
-
 interface FormCompletedPayload {
   event_type: string
   id: number
@@ -36,17 +32,13 @@ interface SubmissionCompletedPayload {
   metadata?: { lease_id?: string }
 }
 
-// -----------------------------------------------------------------------
-// Handlers
-// -----------------------------------------------------------------------
-
 async function handleFormCompleted(
   supabase: SupabaseClient,
   body: FormCompletedPayload
 ): Promise<void> {
   const { submission_id, role, completed_at, metadata } = body
 
-  // 1. Find lease by docuseal_submission_id first, then fallback to metadata.lease_id
+  // Lookup by docuseal_submission_id; fall back to metadata.lease_id for older submissions.
   const { data: leaseBySubmission, error: submissionError } = await supabase
     .from('leases')
     .select('id, lease_status, owner_signed_at, tenant_signed_at, owner_user_id')
@@ -59,7 +51,6 @@ async function handleFormCompleted(
 
   let lease = leaseBySubmission
 
-  // 2. Fallback to metadata.lease_id if not found by submission_id
   if (!lease && metadata?.lease_id) {
     const { data: leaseById, error: leaseIdError } = await supabase
       .from('leases')
@@ -74,19 +65,17 @@ async function handleFormCompleted(
     lease = leaseById
   }
 
-  // 3. If lease not found — not our document, ignore gracefully
+  // Not our document; ignore gracefully (no 500 so DocuSeal stops retrying).
   if (!lease) {
     logEvent('Lease not found for form.completed event — ignoring', { submission_id, metadata_lease_id: metadata?.lease_id ?? null })
     return
   }
 
-  // 4. Determine which party signed based on role
   const isOwner = role.toLowerCase().includes('owner')
   const isTenant = role.toLowerCase().includes('tenant')
   const signedAt = completed_at ?? new Date().toISOString()
 
   if (isOwner) {
-    // Idempotency: already signed — skip
     if (lease.owner_signed_at) {
       logEvent('owner_signed_at already set — duplicate delivery, skipping', { lease_id: lease.id })
       return
@@ -106,7 +95,6 @@ async function handleFormCompleted(
 
     logEvent('Owner signature recorded', { lease_id: lease.id })
   } else if (isTenant) {
-    // Idempotency: already signed — skip
     if (lease.tenant_signed_at) {
       logEvent('tenant_signed_at already set — duplicate delivery, skipping', { lease_id: lease.id })
       return
@@ -136,7 +124,6 @@ async function handleSubmissionCompleted(
 ): Promise<void> {
   const { id: submissionId, documents, metadata } = body
 
-  // 1. Find lease by docuseal_submission_id first, then fallback to metadata.lease_id
   const { data: leaseBySubmission, error: submissionError } = await supabase
     .from('leases')
     .select('id, lease_status, owner_user_id')
@@ -149,7 +136,6 @@ async function handleSubmissionCompleted(
 
   let lease = leaseBySubmission
 
-  // 2. Fallback to metadata.lease_id if not found by submission_id
   if (!lease && metadata?.lease_id) {
     const { data: leaseById, error: leaseIdError } = await supabase
       .from('leases')
@@ -164,19 +150,16 @@ async function handleSubmissionCompleted(
     lease = leaseById
   }
 
-  // 3. If lease not found — not our document, ignore gracefully
   if (!lease) {
     logEvent('Lease not found for submission.completed event — ignoring', { submission_id: submissionId, metadata_lease_id: metadata?.lease_id ?? null })
     return
   }
 
-  // 4. Idempotency: already active — skip
   if (lease.lease_status === 'active') {
     logEvent('Lease is already active — duplicate delivery, skipping', { lease_id: lease.id })
     return
   }
 
-  // 5a. Flip lease_status to active (pending_signature → active)
   const { error: leaseUpdateError } = await supabase
     .from('leases')
     .update({ lease_status: 'active' })
@@ -188,9 +171,8 @@ async function handleSubmissionCompleted(
 
   logEvent('Lease flipped to active', { lease_id: lease.id })
 
-  // 5b. Insert owner notification
-  // IMPORTANT: notification_type must be 'lease' per notifications_notification_type_check constraint
-  // Allowed values: ('maintenance', 'lease', 'payment', 'system')
+  // notification_type must be 'lease' per notifications_notification_type_check constraint
+  // (allowed: 'maintenance', 'lease', 'payment', 'system').
   const { error: notifError } = await supabase
     .from('notifications')
     .insert({
@@ -206,16 +188,12 @@ async function handleSubmissionCompleted(
 
   logEvent('Owner notification inserted', { lease_id: lease.id })
 
-  // 5c. Log signed document URL if available (docuseal_document_url column does not exist in DB — skip update)
+  // docuseal_document_url column does not exist yet; log the URL rather than persisting it.
   const signedDocUrl = documents?.[0]?.url
   if (signedDocUrl) {
     logEvent('Signed document available', { lease_id: lease.id, signed_doc_url: signedDocUrl })
   }
 }
-
-// -----------------------------------------------------------------------
-// Main handler
-// -----------------------------------------------------------------------
 
 Deno.serve(async (req: Request) => {
   try {
@@ -278,7 +256,6 @@ Deno.serve(async (req: Request) => {
 
     const supabase = createAdminClient(env['SUPABASE_URL'], env['SUPABASE_SERVICE_ROLE_KEY'])
 
-    // Parse the verified body (already consumed by req.text())
     let body: Record<string, unknown>
     try {
       body = JSON.parse(rawBody) as Record<string, unknown>
@@ -304,8 +281,7 @@ Deno.serve(async (req: Request) => {
       { status: 200, headers: { 'Content-Type': 'application/json' } }
     )
   } catch (err) {
-    // Return 500 so DocuSeal retries the webhook delivery
-    // errorResponse logs to Sentry + console.error but returns generic message
+    // 500 signals DocuSeal to retry; errorResponse masks details + logs to Sentry.
     return errorResponse(req, 500, err, { action: 'docuseal_webhook' })
   }
 })

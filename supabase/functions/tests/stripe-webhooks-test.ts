@@ -58,7 +58,7 @@ function buildWebhookPayload(eventType: string, overrides?: Record<string, unkno
 
 Deno.test('stripe-webhooks: returns error when stripe-signature header is missing', async () => {
   const client = createTestClient()
-  const payload = buildWebhookPayload('payment_intent.succeeded')
+  const payload = buildWebhookPayload('customer.subscription.updated')
 
   const { data, error } = await client.functions.invoke('stripe-webhooks', {
     body: payload,
@@ -82,7 +82,7 @@ Deno.test('stripe-webhooks: returns error when stripe-signature header is missin
 
 Deno.test('stripe-webhooks: returns error with invalid stripe-signature', async () => {
   const client = createTestClient()
-  const payload = buildWebhookPayload('payment_intent.succeeded')
+  const payload = buildWebhookPayload('customer.subscription.updated')
 
   const { data, error } = await client.functions.invoke('stripe-webhooks', {
     body: payload,
@@ -181,32 +181,6 @@ Deno.test('stripe-webhooks: handles null body', async () => {
 // Event Type Coverage Tests
 // ---------------------------------------------------------------------------
 
-Deno.test('stripe-webhooks: payment_intent.succeeded payload format accepted', async () => {
-  const client = createTestClient()
-  const payload = buildWebhookPayload('payment_intent.succeeded', {
-    data_object: {
-      status: 'succeeded',
-      amount: 150000,
-      currency: 'usd',
-      metadata: {
-        tenant_id: 'test-tenant-id',
-        lease_id: 'test-lease-id',
-        rent_due_id: 'test-rent-due-id',
-      },
-    },
-  })
-
-  const { data, error } = await client.functions.invoke('stripe-webhooks', {
-    body: payload,
-    headers: {
-      'stripe-signature': 't=1234567890,v1=invalid_but_present',
-    },
-  })
-
-  // Will fail signature verification, but should not crash on payload format
-  assert(error !== null || data !== null, 'Function should respond to payment_intent.succeeded payload')
-})
-
 Deno.test('stripe-webhooks: customer.subscription.updated payload format accepted', async () => {
   const client = createTestClient()
   const payload = buildWebhookPayload('customer.subscription.updated', {
@@ -224,15 +198,17 @@ Deno.test('stripe-webhooks: customer.subscription.updated payload format accepte
     },
   })
 
-  assert(error !== null || data !== null, 'Function should respond to subscription payload')
+  // Will fail signature verification, but should not crash on payload format
+  assert(error !== null || data !== null, 'Function should respond to customer.subscription.updated payload')
 })
 
-Deno.test('stripe-webhooks: account.updated payload format accepted', async () => {
+Deno.test('stripe-webhooks: checkout.session.completed payload format accepted', async () => {
   const client = createTestClient()
-  const payload = buildWebhookPayload('account.updated', {
+  const payload = buildWebhookPayload('checkout.session.completed', {
     data_object: {
-      charges_enabled: true,
-      details_submitted: true,
+      mode: 'subscription',
+      customer: 'cus_test123',
+      subscription: 'sub_test123',
     },
   })
 
@@ -243,7 +219,27 @@ Deno.test('stripe-webhooks: account.updated payload format accepted', async () =
     },
   })
 
-  assert(error !== null || data !== null, 'Function should respond to account.updated payload')
+  assert(error !== null || data !== null, 'Function should respond to checkout.session.completed payload')
+})
+
+Deno.test('stripe-webhooks: invoice.payment_failed payload format accepted', async () => {
+  const client = createTestClient()
+  const payload = buildWebhookPayload('invoice.payment_failed', {
+    data_object: {
+      customer: 'cus_test123',
+      subscription: 'sub_test123',
+      attempt_count: 1,
+    },
+  })
+
+  const { data, error } = await client.functions.invoke('stripe-webhooks', {
+    body: payload,
+    headers: {
+      'stripe-signature': 't=1234567890,v1=invalid_but_present',
+    },
+  })
+
+  assert(error !== null || data !== null, 'Function should respond to invoice.payment_failed payload')
 })
 
 Deno.test('stripe-webhooks: unrecognized event type handled gracefully', async () => {
@@ -292,7 +288,7 @@ Deno.test('stripe-webhooks: error responses are JSON', async () => {
       'Authorization': `Bearer ${supabaseAnonKey}`,
       'stripe-signature': 't=1234567890,v1=bad_sig',
     },
-    body: JSON.stringify(buildWebhookPayload('payment_intent.succeeded')),
+    body: JSON.stringify(buildWebhookPayload('customer.subscription.updated')),
   })
 
   // The response should be JSON regardless of error type
@@ -311,7 +307,7 @@ Deno.test('stripe-webhooks: error responses are JSON', async () => {
 })
 
 Deno.test('stripe-webhooks: signature failure returns 400 not 500', async () => {
-  const payload = buildWebhookPayload('payment_intent.succeeded')
+  const payload = buildWebhookPayload('customer.subscription.updated')
 
   const response = await fetch(`${supabaseUrl}/functions/v1/stripe-webhooks`, {
     method: 'POST',

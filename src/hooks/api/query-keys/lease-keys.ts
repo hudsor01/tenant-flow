@@ -37,17 +37,6 @@ export interface SignatureStatus {
 /** Subset of Lease columns for list/summary views (expiring leases, etc.) */
 export type LeaseListItem = Pick<Lease, 'id' | 'unit_id' | 'primary_tenant_id' | 'owner_user_id' | 'rent_amount' | 'lease_status' | 'start_date' | 'end_date' | 'created_at' | 'updated_at'>
 
-/** Tenant Portal Lease -- singular relation names to match page component expectations */
-export type TenantPortalLease = Lease & {
-	unit: {
-		id: string; unit_number: string; bedrooms: number | null
-		bathrooms: number | null; square_feet: number | null
-		property?: { id: string; name: string; address?: string | null; city?: string | null; state?: string | null }
-	} | null
-	tenant: { id: string; user_id: string | null } | null
-	metadata: { documentUrl: string | null }
-}
-
 export const leaseQueries = {
 	all: () => ['leases'] as const,
 	lists: () => [...leaseQueries.all(), 'list'] as const,
@@ -96,24 +85,6 @@ export const leaseQueries = {
 			},
 			...QUERY_CACHE_TIMES.DETAIL,
 			enabled: !!id
-		}),
-
-	tenantPortalActive: () =>
-		queryOptions({
-			queryKey: [...leaseQueries.all(), 'tenant-portal', 'active'],
-			queryFn: async (): Promise<TenantPortalLease | null> => {
-				const supabase = createClient()
-				const { data, error } = await supabase
-					.from('leases')
-					.select('*, units(id, unit_number, bedrooms, bathrooms, square_feet), tenants:primary_tenant_id(id, user_id)')
-					.eq('lease_status', 'active')
-					.maybeSingle()
-				if (error) handlePostgrestError(error, 'leases')
-				if (!data) return null
-				const row = data as Lease & { units: TenantPortalLease['unit']; tenants: TenantPortalLease['tenant'] }
-				return { ...row, unit: row.units, tenant: row.tenants, metadata: { documentUrl: null } } as TenantPortalLease
-			},
-			...QUERY_CACHE_TIMES.DETAIL
 		}),
 
 	expiring: (days: number = 30) =>

@@ -14,10 +14,6 @@ import { QUERY_CACHE_TIMES } from '#lib/constants/query-config'
 import { createClient } from '#lib/supabase/client'
 import type { UserProfile } from '#types/api-contracts'
 
-// ============================================================================
-// QUERY KEYS
-// ============================================================================
-
 /**
  * Profile query keys for cache management
  */
@@ -26,10 +22,6 @@ export const profileKeys = {
 	detail: () => [...profileKeys.all, 'detail'] as const,
 	company: () => [...profileKeys.all, 'company'] as const
 }
-
-// ============================================================================
-// MAPPER (exported for use by mutation file)
-// ============================================================================
 
 export const PROFILE_SELECT =
 	'id, email, first_name, last_name, full_name, phone, avatar_url, user_type, status, created_at, updated_at, stripe_customer_id'
@@ -67,10 +59,6 @@ export function mapUserProfile(row: {
 	} satisfies UserProfile
 }
 
-// ============================================================================
-// QUERY OPTIONS (for direct use in pages with useQueries/prefetch)
-// ============================================================================
-
 /**
  * Profile query factory
  */
@@ -98,10 +86,6 @@ export const profileQueries = {
 			...QUERY_CACHE_TIMES.DETAIL
 		})
 }
-
-// ============================================================================
-// QUERY HOOKS
-// ============================================================================
 
 /**
  * Fetch current user's profile with role-specific data

@@ -19,7 +19,6 @@ describe('QuickActionsDock', () => {
 			expect(screen.getByLabelText('Add Property')).toBeInTheDocument()
 			expect(screen.getByLabelText('New Lease')).toBeInTheDocument()
 			expect(screen.getByLabelText('Maintenance')).toBeInTheDocument()
-			expect(screen.getByLabelText('Record Payment')).toBeInTheDocument()
 			expect(screen.getByLabelText('Notifications')).toBeInTheDocument()
 		})
 
@@ -37,10 +36,6 @@ describe('QuickActionsDock', () => {
 			expect(screen.getByLabelText('Maintenance')).toHaveAttribute(
 				'href',
 				'/maintenance/new'
-			)
-			expect(screen.getByLabelText('Record Payment')).toHaveAttribute(
-				'href',
-				'/rent-collection'
 			)
 			expect(screen.getByLabelText('Notifications')).toHaveAttribute(
 				'href',
@@ -114,7 +109,6 @@ describe('QuickActionsDock', () => {
 			expect(screen.getByText('Add Property')).toBeInTheDocument()
 			expect(screen.getByText('New Lease')).toBeInTheDocument()
 			expect(screen.getByText('Maintenance')).toBeInTheDocument()
-			expect(screen.getByText('Record Payment')).toBeInTheDocument()
 			expect(screen.getByText('Notifications')).toBeInTheDocument()
 		})
 	})

@@ -24,7 +24,6 @@ import {
 	useLeaseList,
 	useLeaseStats,
 	useExpiringLeases,
-	useCurrentLease,
 	useLeaseSignatureStatus,
 	useSignedDocumentUrl,
 	usePrefetchLeaseDetail
@@ -141,8 +140,6 @@ const mockLease = {
 	security_deposit: 1500,
 	payment_day: 1,
 	lease_status: 'active',
-	auto_pay_enabled: false,
-	stripe_subscription_status: 'none',
 	created_at: '2024-01-01T00:00:00Z',
 	updated_at: '2024-01-01T00:00:00Z'
 }
@@ -235,27 +232,6 @@ describe('Query Hooks', () => {
 				() => useLeaseList({ status: 'active', limit: 25, offset: 10 }),
 				{ wrapper: createWrapper() }
 			)
-
-			await waitFor(() => {
-				expect(result.current.isSuccess || result.current.isError).toBe(true)
-			})
-
-			expect(supabaseFromMock).toHaveBeenCalledWith('leases')
-		})
-	})
-
-	describe('useCurrentLease', () => {
-		it('should query active lease for tenant portal', async () => {
-			supabaseFromMock.mockImplementation((table: string) => {
-				if (table === 'leases') {
-					return createQueryChain({ data: mockLease })
-				}
-				return createQueryChain({ data: null })
-			})
-
-			const { result } = renderHook(() => useCurrentLease(), {
-				wrapper: createWrapper()
-			})
 
 			await waitFor(() => {
 				expect(result.current.isSuccess || result.current.isError).toBe(true)
@@ -444,7 +420,6 @@ describe('Mutation Hooks', () => {
 				security_deposit: 1500,
 				payment_day: 1,
 				tenant_ids: ['tenant-789'],
-				auto_pay_enabled: false,
 				lease_status: 'draft'
 			})
 

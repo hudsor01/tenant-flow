@@ -12,7 +12,7 @@ import {
 } from 'lucide-react'
 import {
 	PropertyGrid,
-	RentCollection,
+	RentLedger,
 	TenantListBackground,
 	MaintenanceBoard,
 	LeaseDocuments,
@@ -34,7 +34,7 @@ export function BentoFeaturesSection() {
 								<span className="hero-highlight">manage properties</span>
 							</h2>
 							<p className="text-muted-foreground text-lg leading-relaxed max-w-3xl mx-auto">
-								From rent collection to maintenance tracking, TenantFlow gives
+								From lease management to maintenance tracking, TenantFlow gives
 								you complete control over your property portfolio
 							</p>
 						</div>
@@ -50,20 +50,20 @@ export function BentoFeaturesSection() {
 								cta="Manage Properties"
 							/>
 							<BentoCard
-								name="Rent Collection"
+								name="Rent Tracking"
 								className="md:col-span-1 md:row-span-2"
-								background={<RentCollection />}
+								background={<RentLedger />}
 								Icon={CreditCard}
-								description="Automated ACH payments, late fee calculations, and Stripe integration"
+								description="Record rent received, flag late balances, and keep a clean ledger you can export anytime"
 								href="/financials/billing"
-								cta="Collect Rent"
+								cta="Track Rent"
 							/>
 							<BentoCard
-								name="Tenant Portal"
+								name="Tenant Records"
 								className="md:col-span-1"
 								background={<TenantListBackground />}
 								Icon={Users}
-								description="Self-service portal for payments and maintenance requests"
+								description="Keep tenant contacts, lease history, and documents organized by unit"
 								href="/tenants"
 								cta="View Tenants"
 							/>

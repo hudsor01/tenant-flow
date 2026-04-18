@@ -23,7 +23,6 @@ const LABEL_MAP: Record<string, string> = {
 
 	// Financials routes
 	financials: 'Financials',
-	'rent-collection': 'Rent Collection',
 	'income-statement': 'Income Statement',
 	'cash-flow': 'Cash Flow',
 	'balance-sheet': 'Balance Sheet',
@@ -33,16 +32,6 @@ const LABEL_MAP: Record<string, string> = {
 	documents: 'Documents',
 	'lease-template': 'Lease Template',
 	generate: 'Generate',
-
-	// Tenant portal routes
-	tenant: 'Tenant Portal',
-	payments: 'Payments',
-	profile: 'Profile',
-	lease: 'Lease Info',
-	onboarding: 'Onboarding',
-	autopay: 'Autopay',
-	methods: 'Payment Methods',
-	history: 'Payment History',
 
 	// Help and search
 	help: 'Get Help',

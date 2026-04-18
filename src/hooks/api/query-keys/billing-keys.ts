@@ -1,15 +1,3 @@
-/**
- * Billing Query Keys, Options & Mutations
- * Query and mutation factories for billing/invoices domain.
- *
- * Contains:
- * - billingKeys: cache key factories for billing/invoices/history
- * - billingQueries: queryOptions factories for billing data fetching
- * - billingMutations: mutationOptions factories for subscription management
- *
- * Subscription query keys and options are in subscription-keys.ts.
- */
-
 import { queryOptions } from '@tanstack/react-query'
 import { createClient } from '#lib/supabase/client'
 import { getCachedUser } from '#lib/supabase/get-cached-user'
@@ -22,13 +10,6 @@ import type {
 
 const logger = createLogger({ component: 'BillingKeys' })
 
-// ============================================================================
-// TYPES (Hook-specific, not shared)
-// ============================================================================
-
-/**
- * Formatted invoice for display - frontend presentation format
- */
 export interface FormattedInvoice {
 	id: string
 	date: string
@@ -37,10 +18,6 @@ export interface FormattedInvoice {
 	invoicePdf: string | null
 	hostedUrl: string | null
 }
-
-// ============================================================================
-// QUERY KEYS
-// ============================================================================
 
 export const billingKeys = {
 	all: ['billing'] as const,
@@ -53,10 +30,6 @@ export const billingKeys = {
 		[...billingKeys.all, 'failed', subscriptionId] as const
 }
 
-// ============================================================================
-// QUERY OPTIONS
-// ============================================================================
-
 export const billingQueries = {
 	invoices: () =>
 		queryOptions({
@@ -66,7 +39,6 @@ export const billingQueries = {
 				const user = await getCachedUser()
 				if (!user) throw new Error('Not authenticated')
 
-				// Try get_user_invoices RPC (queries stripe.invoices via SECURITY DEFINER)
 				const { data: rpcData, error: rpcError } = await supabase
 					.rpc('get_user_invoices', { p_limit: 50 })
 
@@ -87,7 +59,7 @@ export const billingQueries = {
 					})
 				}
 
-				// Fall back to rent_payments as invoice proxy
+				// Fallback: use rent_payments as an invoice proxy when the RPC is absent.
 				const { data, error } = await supabase
 					.from('rent_payments')
 					.select('id, amount, status, due_date, paid_date, created_at')
@@ -141,7 +113,6 @@ export const billingQueries = {
 			queryKey: billingKeys.historyBySubscription(subscriptionId),
 			queryFn: async (): Promise<BillingHistoryItem[]> => {
 				const supabase = createClient()
-				// Query rent_payments for the lease with this subscription
 				const { data: lease } = await supabase
 					.from('leases')
 					.select('id')

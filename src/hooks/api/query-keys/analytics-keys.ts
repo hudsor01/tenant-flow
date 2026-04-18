@@ -11,10 +11,6 @@ import { createClient } from '#lib/supabase/client'
 import { getCachedUser } from '#lib/supabase/get-cached-user'
 import { handlePostgrestError } from '#lib/postgrest-error-handler'
 
-// ============================================================================
-// QUERY KEYS
-// ============================================================================
-
 export const analyticsKeys = {
 	all: ['analytics'] as const,
 	revenueTrends: (months: number) =>
@@ -22,10 +18,6 @@ export const analyticsKeys = {
 	occupancyTrends: (months: number) =>
 		[...analyticsKeys.all, 'occupancy-trends', months] as const
 }
-
-// ============================================================================
-// QUERY OPTIONS
-// ============================================================================
 
 /**
  * Shared RPC call for get_revenue_trends_optimized.

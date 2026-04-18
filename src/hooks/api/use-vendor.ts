@@ -1,14 +1,5 @@
 'use client'
 
-/**
- * Vendor Hooks
- * TanStack Query hooks for vendor/contractor data fetching and mutations
- * React 19 + TanStack Query v5 patterns
- *
- * All queryFns use supabase.from('vendors') — no apiRequest calls.
- * RLS enforces owner_user_id = auth.uid() on every query.
- */
-
 import { useMutation, useQuery, useQueryClient, queryOptions } from '@tanstack/react-query'
 import { createClient } from '#lib/supabase/client'
 import { createMutationCallbacks } from '#hooks/create-mutation-callbacks'
@@ -26,13 +17,8 @@ interface VendorListResponse {
 	offset: number
 }
 
-// Explicit column list for vendor queries — no select('*')
 const VENDOR_SELECT_COLUMNS =
 	'id, owner_user_id, name, email, phone, trade, hourly_rate, status, notes, created_at, updated_at'
-
-// ============================================================================
-// QUERY KEYS & OPTIONS
-// ============================================================================
 
 export const vendorKeys = {
 	all: ['vendors'] as const,
@@ -97,10 +83,6 @@ export const vendorKeys = {
 		})
 }
 
-// ============================================================================
-// QUERY HOOKS
-// ============================================================================
-
 export function useVendors(filters?: VendorFilters) {
 	return useQuery(vendorKeys.list(filters))
 }
@@ -111,10 +93,6 @@ export function useVendor(id: string) {
 		id
 	})
 }
-
-// ============================================================================
-// MUTATION HOOKS
-// ============================================================================
 
 export function useCreateVendorMutation() {
 	const queryClient = useQueryClient()
@@ -156,10 +134,6 @@ export function useDeleteVendorMutation() {
 	})
 }
 
-/**
- * Assign a vendor to a maintenance request.
- * Sets vendor_id and transitions status to 'assigned' in a single PostgREST update.
- */
 export function useAssignVendorMutation() {
 	const queryClient = useQueryClient()
 	return useMutation({
@@ -177,11 +151,7 @@ export function useAssignVendorMutation() {
 	})
 }
 
-/**
- * Unassign a vendor from a maintenance request.
- * Sets vendor_id to null and transitions status to 'needs_reassignment'
- * to preserve audit trail — does NOT revert to 'open'.
- */
+// Sets vendor_id to null and transitions to 'needs_reassignment' (not 'open') to preserve audit trail.
 export function useUnassignVendorMutation() {
 	const queryClient = useQueryClient()
 	return useMutation({

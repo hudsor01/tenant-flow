@@ -120,7 +120,7 @@ export function HeroDashboardMockup({ className }: { className?: string }) {
 						<div className="col-span-2 space-y-2">
 							<QuickAction
 								icon={<CreditCard className="size-3.5" />}
-								label="Collect Rent"
+								label="Record Rent"
 								badge="3 pending"
 								badgeColor="warning"
 							/>

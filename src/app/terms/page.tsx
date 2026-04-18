@@ -173,7 +173,7 @@ export default function TermsPage() {
 						<ul className="mb-4 ml-6 list-disc space-y-2">
 							<li>Managing your property portfolio</li>
 							<li>Tracking tenants, leases, and maintenance requests</li>
-							<li>Collecting rent and managing financials</li>
+							<li>Recording rent received and managing financials</li>
 							<li>Generating reports and analytics</li>
 							<li>Other lawful property management purposes</li>
 						</ul>
@@ -302,7 +302,7 @@ export default function TermsPage() {
 						<p>The Service integrates with third-party services including:</p>
 						<ul className="mb-4 ml-6 list-disc space-y-2">
 							<li>
-								<strong>Stripe:</strong> Payment processing for rent collection
+								<strong>Stripe:</strong> Payment processing for TenantFlow subscriptions
 							</li>
 							<li>
 								<strong>Google OAuth:</strong> Authentication services

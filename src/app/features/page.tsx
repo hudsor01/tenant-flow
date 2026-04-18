@@ -5,8 +5,8 @@ import { JsonLdScript } from '#components/seo/json-ld-script'
 import FeaturesClient from './features-client'
 
 export const metadata: Metadata = createPageMetadata({
-	title: 'Property Management Features — Online Rent Collection, Maintenance Tracking & More',
-	description: 'Automated rent collection, maintenance request tracking, tenant screening, lease management, and financial reporting — everything landlords need to manage rental properties in one platform.',
+	title: 'Property Management Features — Lease Management, Maintenance Tracking & More',
+	description: 'Lease management, maintenance request tracking, tenant screening, document storage, and financial reporting — everything landlords need to administer rental properties in one platform.',
 	path: '/features'
 })
 

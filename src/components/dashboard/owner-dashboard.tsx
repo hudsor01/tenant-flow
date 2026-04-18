@@ -16,9 +16,6 @@ import {
 	useDashboardCharts,
 	usePropertyPerformance
 } from '#hooks/api/use-dashboard-hooks'
-import { useProfile } from '#hooks/api/use-profile'
-import { AutopayHealthCard } from './components/autopay-health-card'
-import { PayoutTimingCard } from '#components/admin/payout-timing-card'
 import { Home } from 'lucide-react'
 import Link from 'next/link'
 
@@ -131,8 +128,6 @@ export function OwnerDashboard() {
 	const { data: chartsData, isLoading: chartsLoading } = useDashboardCharts()
 	const { data: performanceData, isLoading: performanceLoading } =
 		usePropertyPerformance()
-	const { data: profile } = useProfile()
-	const isAdmin = profile?.user_type === 'admin'
 
 	// Transform stats to design-os format
 	const metrics = (() => {
@@ -208,10 +203,6 @@ export function OwnerDashboard() {
 		router.push('/tenants/new')
 	}
 
-	const onRecordPayment = () => {
-		router.push('/rent-collection')
-	}
-
 	const onCreateMaintenanceRequest = () => {
 		router.push('/maintenance/new')
 	}
@@ -235,10 +226,6 @@ export function OwnerDashboard() {
 
 	return (
 		<div className="flex flex-1 flex-col">
-			<div className="grid gap-6 px-6 pt-6 md:grid-cols-2">
-				<AutopayHealthCard />
-				<PayoutTimingCard isAdmin={isAdmin} />
-			</div>
 			<Dashboard
 				metrics={metrics}
 				revenueTrend={revenueTrend}
@@ -246,7 +233,6 @@ export function OwnerDashboard() {
 				onAddProperty={onAddProperty}
 				onCreateLease={onCreateLease}
 				onInviteTenant={onInviteTenant}
-				onRecordPayment={onRecordPayment}
 				onCreateMaintenanceRequest={onCreateMaintenanceRequest}
 			/>
 		</div>

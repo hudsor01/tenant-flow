@@ -24,9 +24,38 @@ export const tenantStatusSchema = z.enum([
 	'DELETED'
 ])
 
-// Base tenant input schema (matches database exactly)
+// Base tenant input schema (matches landlord-managed tenants table).
+// Contact fields live directly on the row; user_id is optional because
+// tenants may have no auth account in landlord-only mode.
 export const tenantInputSchema = z.object({
-	user_id: uuidSchema,
+	owner_user_id: uuidSchema.optional(),
+
+	user_id: uuidSchema.nullable().optional(),
+
+	first_name: z
+		.string()
+		.max(100, 'First name cannot exceed 100 characters')
+		.optional(),
+
+	last_name: z
+		.string()
+		.max(100, 'Last name cannot exceed 100 characters')
+		.optional(),
+
+	name: z
+		.string()
+		.max(200, 'Name cannot exceed 200 characters')
+		.optional(),
+
+	email: z
+		.email({ message: 'Valid email is required' })
+		.optional(),
+
+	phone: phoneSchema.optional(),
+
+	status: z
+		.enum(['active', 'inactive', 'pending', 'moved_out'])
+		.optional(),
 
 	date_of_birth: z.string().optional(),
 
@@ -47,12 +76,6 @@ export const tenantInputSchema = z.object({
 	ssn_last_four: z
 		.string()
 		.regex(/^\d{4}$/, 'SSN last four must be 4 digits')
-		.optional(),
-
-	stripe_customer_id: z
-		.string()
-		.max(255, 'Stripe customer ID is too long')
-		.nullable()
 		.optional()
 })
 
@@ -134,7 +157,12 @@ export type TenantVerification = z.infer<typeof tenantVerificationSchema>
 
 // Frontend-specific form schemas
 export const tenantFormSchema = z.object({
-	user_id: requiredString,
+	user_id: requiredString.optional().nullable(),
+	first_name: z.string().max(100).optional(),
+	last_name: z.string().max(100).optional(),
+	name: z.string().max(200).optional(),
+	email: z.email().optional(),
+	phone: phoneSchema.optional(),
 	date_of_birth: z.string().optional(),
 	emergency_contact_name: z.string().max(100).optional(),
 	emergency_contact_phone: phoneSchema.optional(),
@@ -162,7 +190,12 @@ export const tenantFormUpdateSchema = z.object({
 
 // Transform functions for form data
 export const transformTenantFormData = (data: TenantFormData) => ({
-	user_id: data.user_id,
+	user_id: data.user_id || undefined,
+	first_name: data.first_name || undefined,
+	last_name: data.last_name || undefined,
+	name: data.name || undefined,
+	email: data.email || undefined,
+	phone: data.phone || undefined,
 	date_of_birth: data.date_of_birth || undefined,
 	emergency_contact_name: data.emergency_contact_name || undefined,
 	emergency_contact_phone: data.emergency_contact_phone || undefined,
@@ -174,10 +207,6 @@ export const transformTenantFormData = (data: TenantFormData) => ({
 
 export type TenantFormData = z.infer<typeof tenantFormSchema>
 export type TransformedTenantData = ReturnType<typeof transformTenantFormData>
-
-// ============================================================================
-// TENANT INVITATION SCHEMAS (Separate from Lease)
-// ============================================================================
 
 // Invitation type enum
 export const invitationTypeSchema = z.enum([

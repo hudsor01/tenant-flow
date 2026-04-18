@@ -63,8 +63,8 @@ export default function PrivacyPage() {
 								you)
 							</li>
 							<li>
-								<strong>Financial Data:</strong> Payment information for rent
-								collection and subscription billing (processed securely through
+								<strong>Financial Data:</strong> Payment information for your
+								TenantFlow subscription billing (processed securely through
 								Stripe)
 							</li>
 							<li>
@@ -136,7 +136,7 @@ export default function PrivacyPage() {
 								account, authenticate users
 							</li>
 							<li>
-								<strong>Payment Processing:</strong> Process rent collection and
+								<strong>Payment Processing:</strong> Process TenantFlow
 								subscription payments securely
 							</li>
 							<li>
@@ -174,8 +174,8 @@ export default function PrivacyPage() {
 								<strong>Supabase:</strong> Database hosting and authentication
 							</li>
 							<li>
-								<strong>Stripe:</strong> Payment processing for rent collection
-								and subscriptions
+								<strong>Stripe:</strong> Payment processing for TenantFlow
+								subscriptions
 							</li>
 							<li>
 								<strong>Vercel:</strong> Frontend hosting and deployment

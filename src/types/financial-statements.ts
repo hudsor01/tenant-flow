@@ -291,9 +291,7 @@ export type AnalyticsUnit = Database['public']['Tables']['units']['Row'] & {
 	maintenance_requests?: AnalyticsMaintenanceRequest[]
 }
 
-export type AnalyticsLease = Database['public']['Tables']['leases']['Row'] & {
-	rent_payments?: Database['public']['Tables']['rent_payments']['Row'][]
-}
+export type AnalyticsLease = Database['public']['Tables']['leases']['Row']
 
 export type AnalyticsProperty =
 	Database['public']['Tables']['properties']['Row'] & {
@@ -321,13 +319,9 @@ export interface QueryProperty {
 }
 
 // Detailed query types for performance/financial analytics
-export interface DetailedQueryLease extends QueryLease {
-	rent_payments?: {
-		amount: number
-		status: string
-		paid_date: string | null
-	}[]
-}
+// (extends-only marker interface — preserves typing parity with QueryLease while
+// leaving room for future detail-only fields without touching callers.)
+export type DetailedQueryLease = QueryLease
 
 export interface DetailedQueryUnit extends QueryUnit {
 	leases?: DetailedQueryLease[]

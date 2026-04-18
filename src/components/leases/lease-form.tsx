@@ -93,7 +93,6 @@ export function LeaseForm({ mode, lease, onSuccess }: LeaseFormProps) {
 					await createLeaseMutation.mutateAsync({
 						...value,
 						lease_status: leaseStatus,
-						auto_pay_enabled: false,
 						tenant_ids: [value.primary_tenant_id]
 					})
 					await Promise.all([

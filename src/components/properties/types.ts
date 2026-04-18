@@ -1,10 +1,5 @@
-// =============================================================================
-// Data Types
-// =============================================================================
-// Import database enums from shared types (single source of truth)
 import type { PropertyStatus, UnitStatus } from '#types/core'
 
-// App-specific property type (not a database enum)
 export type PropertyType =
 	| 'single_family'
 	| 'multi_family'
@@ -67,13 +62,8 @@ export interface PropertySummary {
 	totalMonthlyRevenue: number
 }
 
-/** Alias for PropertySummary for backward compatibility */
 export type PropertiesSummary = PropertySummary
 
-/**
- * PropertyItem - Simplified property type for list/grid views
- * Contains only the fields needed for property cards and tables
- */
 export interface PropertyItem {
 	id: string
 	name: string
@@ -93,9 +83,6 @@ export interface PropertyItem {
 	monthlyRevenue: number
 }
 
-/**
- * PropertiesProps - Props for the main Properties component
- */
 export interface PropertiesProps {
 	properties: PropertyItem[]
 	summary: PropertySummary
@@ -110,81 +97,46 @@ export interface PropertiesProps {
 	) => void
 }
 
-// =============================================================================
-// Component Props
-// =============================================================================
-
 export interface PropertiesListProps {
-	/** List of properties to display */
 	properties: Property[]
-	/** Portfolio summary metrics */
 	summary: PropertySummary
-	/** Current filter value */
 	filter?: 'all' | 'occupied' | 'available' | 'maintenance'
-	/** Loading state */
 	isLoading?: boolean
-	/** Called when user clicks on a property to view details */
 	onPropertyClick?: (id: string) => void
-	/** Called when user wants to edit a property */
 	onPropertyEdit?: (id: string) => void
-	/** Called when user wants to delete a property */
 	onPropertyDelete?: (id: string) => void
-	/** Called when user wants to create a new property */
 	onAddProperty?: () => void
-	/** Called when user changes filter */
 	onFilterChange?: (
 		filter: 'all' | 'occupied' | 'available' | 'maintenance'
 	) => void
 }
 
 export interface PropertyDetailProps {
-	/** The property to display */
 	property: Property
-	/** Loading state */
 	isLoading?: boolean
-	/** Called when user wants to edit the property */
 	onPropertyEdit?: () => void
-	/** Called when user wants to delete the property */
 	onPropertyDelete?: () => void
-	/** Called when user wants to add a unit */
 	onAddUnit?: () => void
-	/** Called when user clicks on a unit row */
 	onUnitClick?: (unitId: string) => void
-	/** Called when user wants to edit a unit */
 	onUnitEdit?: (unitId: string) => void
-	/** Called when user wants to delete a unit */
 	onUnitDelete?: (unitId: string) => void
-	/** Called when user wants to go back to the list */
 	onBack?: () => void
 }
 
 export interface AddPropertyModalProps {
-	/** Whether the modal is open */
 	isOpen: boolean
-	/** Loading state for form submission */
 	isSubmitting?: boolean
-	/** Called when modal should close */
 	onClose: () => void
-	/** Called when form is submitted */
 	onSubmit: (data: PropertyFormData) => void
 }
 
 export interface AddUnitPanelProps {
-	/** Whether the panel is open */
 	isOpen: boolean
-	/** The property to add the unit to */
 	propertyId: string
-	/** Loading state for form submission */
 	isSubmitting?: boolean
-	/** Called when panel should close */
 	onClose: () => void
-	/** Called when form is submitted */
 	onSubmit: (data: UnitFormData) => void
 }
-
-// =============================================================================
-// Form Data Types
-// =============================================================================
 
 export interface PropertyFormData {
 	name: string

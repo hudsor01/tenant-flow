@@ -4,12 +4,13 @@ import { useState } from 'react'
 import { Label } from '#components/ui/label'
 import { Input } from '#components/ui/input'
 import { Button } from '#components/ui/button'
-import { Loader2, Mail, UserPlus } from 'lucide-react'
-import { useCreateInvitation } from '#hooks/api/use-create-invitation'
-import { useResendInvitationMutation } from '#hooks/api/use-tenant-invite-mutations'
-import { handleDuplicateInvitation } from '#lib/invitation-utils'
+import { Loader2, UserPlus } from 'lucide-react'
+import { toast } from 'sonner'
+import { useCreateTenantMutation } from '#hooks/api/use-tenant-mutations'
+import { handleMutationError } from '#lib/mutation-error-handler'
+import type { TenantCreate } from '#lib/validation/tenants'
 
-interface InviteFormData {
+interface InlineFormData {
 	first_name: string
 	last_name: string
 	email: string
@@ -21,40 +22,46 @@ interface InlineTenantInviteProps {
 	onToggleMode: () => void
 }
 
-export function InlineTenantInvite({ propertyId, onToggleMode }: InlineTenantInviteProps) {
-	const [inviteForm, setInviteForm] = useState<InviteFormData>({
+/**
+ * Inline "add tenant" sub-form for the lease selection step.
+ * Lets the landlord quickly create a tenant record without leaving the wizard.
+ */
+export function InlineTenantInvite({
+	propertyId: _propertyId,
+	onToggleMode
+}: InlineTenantInviteProps) {
+	const [form, setForm] = useState<InlineFormData>({
 		first_name: '',
 		last_name: '',
 		email: '',
 		phone: ''
 	})
+	const createTenant = useCreateTenantMutation()
+	const isSubmitting = createTenant.isPending
 
-	const createInvitation = useCreateInvitation()
-	const resendInvitation = useResendInvitationMutation()
-
-	const handleSendInvite = async () => {
-		if (!inviteForm.first_name || !inviteForm.last_name || !inviteForm.email) return
+	const handleAddTenant = async () => {
+		if (!form.first_name || !form.last_name || !form.email) return
 
 		try {
-			const result = await createInvitation.mutateAsync({
-				email: inviteForm.email,
-				property_id: propertyId
-			})
-
-			if (result.status === 'duplicate') {
-				handleDuplicateInvitation(result.existing, resendInvitation.mutate)
-				return
+			const payload: TenantCreate = {
+				email: form.email,
+				first_name: form.first_name,
+				last_name: form.last_name,
+				name: `${form.first_name} ${form.last_name}`.trim(),
+				...(form.phone ? { phone: form.phone } : {})
 			}
 
-			// Hook handles toast + cache. Consumer handles onToggleMode().
+			await createTenant.mutateAsync(payload)
+
+			toast.success('Tenant added')
 			onToggleMode()
-			setInviteForm({ first_name: '', last_name: '', email: '', phone: '' })
-		} catch {
-			// Error handled by hook onError callback
+			setForm({ first_name: '', last_name: '', email: '', phone: '' })
+		} catch (error) {
+			handleMutationError(error, 'Add tenant')
 		}
 	}
 
-	const isInviteFormValid = inviteForm.first_name && inviteForm.last_name && inviteForm.email
+	const isFormValid = form.first_name && form.last_name && form.email
 
 	return (
 		<div className="space-y-3 rounded-md border border-border p-4">
@@ -63,9 +70,9 @@ export function InlineTenantInvite({ propertyId, onToggleMode }: InlineTenantInv
 					<Label htmlFor="invite_first_name">First Name *</Label>
 					<Input
 						id="invite_first_name"
-						value={inviteForm.first_name}
+						value={form.first_name}
 						onChange={e =>
-							setInviteForm(f => ({ ...f, first_name: e.target.value }))
+							setForm(f => ({ ...f, first_name: e.target.value }))
 						}
 						placeholder="Jane"
 					/>
@@ -74,9 +81,9 @@ export function InlineTenantInvite({ propertyId, onToggleMode }: InlineTenantInv
 					<Label htmlFor="invite_last_name">Last Name *</Label>
 					<Input
 						id="invite_last_name"
-						value={inviteForm.last_name}
+						value={form.last_name}
 						onChange={e =>
-							setInviteForm(f => ({ ...f, last_name: e.target.value }))
+							setForm(f => ({ ...f, last_name: e.target.value }))
 						}
 						placeholder="Doe"
 					/>
@@ -88,9 +95,9 @@ export function InlineTenantInvite({ propertyId, onToggleMode }: InlineTenantInv
 					<Input
 						id="invite_email"
 						type="email"
-						value={inviteForm.email}
+						value={form.email}
 						onChange={e =>
-							setInviteForm(f => ({ ...f, email: e.target.value }))
+							setForm(f => ({ ...f, email: e.target.value }))
 						}
 						placeholder="jane@example.com"
 					/>
@@ -100,9 +107,9 @@ export function InlineTenantInvite({ propertyId, onToggleMode }: InlineTenantInv
 					<Input
 						id="invite_phone"
 						type="tel"
-						value={inviteForm.phone}
+						value={form.phone}
 						onChange={e =>
-							setInviteForm(f => ({ ...f, phone: e.target.value }))
+							setForm(f => ({ ...f, phone: e.target.value }))
 						}
 						placeholder="(555) 123-4567"
 					/>
@@ -111,18 +118,18 @@ export function InlineTenantInvite({ propertyId, onToggleMode }: InlineTenantInv
 			<Button
 				type="button"
 				size="sm"
-				onClick={handleSendInvite}
-				disabled={!isInviteFormValid || createInvitation.isPending}
+				onClick={handleAddTenant}
+				disabled={!isFormValid || isSubmitting}
 			>
-				{createInvitation.isPending ? (
+				{isSubmitting ? (
 					<>
 						<Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" />
-						Sending...
+						Adding...
 					</>
 				) : (
 					<>
 						<UserPlus className="mr-2 h-3.5 w-3.5" />
-						Send Invitation
+						Add Tenant
 					</>
 				)}
 			</Button>
@@ -148,8 +155,8 @@ export function TenantModeToggle({
 				'Existing Tenant'
 			) : (
 				<>
-					<Mail className="mr-1.5 h-3.5 w-3.5" />
-					Invite New Tenant
+					<UserPlus className="mr-1.5 h-3.5 w-3.5" />
+					Add New Tenant
 				</>
 			)}
 		</Button>

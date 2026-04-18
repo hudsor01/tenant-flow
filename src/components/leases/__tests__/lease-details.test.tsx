@@ -33,13 +33,6 @@ const mockLease: Lease = {
 	grace_period_days: 3,
 	late_fee_amount: 50,
 	late_fee_days: 5,
-	stripe_subscription_id: null,
-	stripe_subscription_status: 'none',
-	subscription_failure_reason: null,
-	subscription_retry_count: 0,
-	subscription_last_attempt_at: null,
-	auto_pay_enabled: true,
-	autopay_payment_method_id: null,
 	created_at: '2023-12-15T00:00:00Z',
 	updated_at: '2024-06-01T00:00:00Z',
 	docuseal_submission_id: null,
@@ -59,8 +52,7 @@ const mockLease: Lease = {
 	property_rules: null,
 	property_built_before_1978: true,
 	lead_paint_disclosure_acknowledged: true,
-	governing_state: 'TX',
-	stripe_connected_account_id: null
+	governing_state: 'TX'
 }
 
 const mockTenant = {
@@ -331,7 +323,6 @@ describe('LeaseDetails', () => {
 			await waitFor(() => {
 				expect(screen.getByText('Financial Terms')).toBeInTheDocument()
 				expect(screen.getByText('Late Fee')).toBeInTheDocument()
-				expect(screen.getByText('Autopay')).toBeInTheDocument()
 			})
 		})
 
@@ -401,17 +392,17 @@ describe('LeaseDetails', () => {
 			})
 		})
 
-		test('shows payment and maintenance links for active lease', async () => {
+		test('shows maintenance link for active lease', async () => {
 			render(<LeaseDetails id="lease-test-123" />)
 
 			await waitFor(() => {
 				expect(
-					screen.getByRole('link', { name: /view payments/i })
-				).toBeInTheDocument()
-				expect(
 					screen.getByRole('link', { name: /maintenance requests/i })
 				).toBeInTheDocument()
 			})
+			expect(
+				screen.queryByRole('link', { name: /view payments/i })
+			).not.toBeInTheDocument()
 		})
 
 		test('shows tenant profile link', async () => {

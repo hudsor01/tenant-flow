@@ -23,7 +23,6 @@ import {
 	useAllTenants,
 	useTenantWithLease,
 	useNotificationPreferences,
-	useInvitations,
 	usePrefetchTenantDetail
 } from '../use-tenant'
 import {
@@ -31,10 +30,6 @@ import {
 	useUpdateTenantMutation,
 	useDeleteTenantMutation
 } from '../use-tenant-mutations'
-import {
-	useResendInvitationMutation,
-	useCancelInvitationMutation
-} from '../use-tenant-invite-mutations'
 import { createQueryChain } from '#test/mocks/supabase-query-mock'
 
 // Mock logger
@@ -326,19 +321,6 @@ describe('Query Hooks', () => {
 		})
 	})
 
-	describe('useInvitations', () => {
-		it('should query tenant_invitations table', async () => {
-			const { result } = renderHook(() => useInvitations(), {
-				wrapper: createWrapper()
-			})
-
-			await waitFor(() => {
-				expect(result.current.isSuccess || result.current.isError).toBe(true)
-			})
-
-			expect(supabaseFromMock).toHaveBeenCalledWith('tenant_invitations')
-		})
-	})
 })
 
 describe('Mutation Hooks', () => {
@@ -477,24 +459,15 @@ describe('Mutation Hooks', () => {
 	})
 
 	describe('useDeleteTenantMutation', () => {
-		it('should check active leases then soft-delete tenant by updating users status to inactive', async () => {
-			// Mock the users table update (soft-delete goes to users, not tenants)
-			const usersUpdateMock = vi.fn().mockReturnValue({
+		it('should check active leases then soft-delete tenant by updating tenants status to inactive', async () => {
+			// Landlord-only mode: soft-delete writes to tenants.status directly
+			const tenantsUpdateMock = vi.fn().mockReturnValue({
 				eq: vi.fn().mockResolvedValue({ data: null, error: null })
 			})
 
 			supabaseFromMock.mockImplementation((table: string) => {
 				if (table === 'tenants') {
-					return {
-						select: vi.fn().mockReturnValue({
-							eq: vi.fn().mockReturnValue({
-								single: vi.fn().mockResolvedValue({
-									data: { user_id: 'user-123' },
-									error: null
-								})
-							})
-						})
-					}
+					return { update: tenantsUpdateMock }
 				}
 				if (table === 'lease_tenants') {
 					return {
@@ -504,9 +477,6 @@ describe('Mutation Hooks', () => {
 							})
 						})
 					}
-				}
-				if (table === 'users') {
-					return { update: usersUpdateMock }
 				}
 				return createQueryChain({ data: null })
 			})
@@ -519,11 +489,9 @@ describe('Mutation Hooks', () => {
 
 			// Should check lease_tenants for active leases first
 			expect(supabaseFromMock).toHaveBeenCalledWith('lease_tenants')
-			// Should get tenant's user_id
+			// Should soft-delete by updating tenants.status
 			expect(supabaseFromMock).toHaveBeenCalledWith('tenants')
-			// Should soft-delete by updating users table
-			expect(supabaseFromMock).toHaveBeenCalledWith('users')
-			expect(usersUpdateMock).toHaveBeenCalledWith(
+			expect(tenantsUpdateMock).toHaveBeenCalledWith(
 				expect.objectContaining({ status: 'inactive' })
 			)
 		})
@@ -556,44 +524,6 @@ describe('Mutation Hooks', () => {
 		})
 	})
 
-	describe('useResendInvitationMutation', () => {
-		it('should update tenant_invitations via PostgREST and resend email', async () => {
-			const { result } = renderHook(() => useResendInvitationMutation(), {
-				wrapper: createWrapper()
-			})
-
-			await result.current.mutateAsync('invitation-123')
-
-			expect(supabaseFromMock).toHaveBeenCalledWith('tenant_invitations')
-			expect(supabaseUpdateMock).toHaveBeenCalledWith(
-				expect.objectContaining({ status: 'sent' })
-			)
-
-			// Should have called the send-tenant-invitation Edge Function
-			expect(mockFetch).toHaveBeenCalledWith(
-				expect.stringContaining('/functions/v1/send-tenant-invitation'),
-				expect.objectContaining({
-					method: 'POST',
-					body: expect.stringContaining('invitation-123')
-				})
-			)
-		})
-	})
-
-	describe('useCancelInvitationMutation', () => {
-		it('should update tenant_invitations status to cancelled via PostgREST', async () => {
-			const { result } = renderHook(() => useCancelInvitationMutation(), {
-				wrapper: createWrapper()
-			})
-
-			await result.current.mutateAsync('invitation-123')
-
-			expect(supabaseFromMock).toHaveBeenCalledWith('tenant_invitations')
-			expect(supabaseUpdateMock).toHaveBeenCalledWith(
-				expect.objectContaining({ status: 'cancelled' })
-			)
-		})
-	})
 })
 
 describe('Utility Hooks', () => {

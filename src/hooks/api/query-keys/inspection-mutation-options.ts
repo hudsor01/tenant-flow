@@ -1,11 +1,3 @@
-/**
- * Inspection Mutation Options
- * mutationOptions() factories for inspection CRUD, rooms, and photos.
- *
- * Factories contain ONLY mutationKey + mutationFn.
- * onSuccess/onError/onSettled remain in the hook files.
- */
-
 import { mutationOptions } from '@tanstack/react-query'
 import { createClient } from '#lib/supabase/client'
 import { getCachedUser } from '#lib/supabase/get-cached-user'
@@ -20,10 +12,6 @@ import type {
 } from '#lib/validation/inspections'
 import type { Inspection } from '#types/sections/inspections'
 
-// ============================================================================
-// TYPES
-// ============================================================================
-
 export interface RecordPhotoInput {
 	inspection_room_id: string
 	inspection_id: string
@@ -33,10 +21,6 @@ export interface RecordPhotoInput {
 	mime_type: string
 	caption?: string
 }
-
-// ============================================================================
-// MUTATION OPTIONS FACTORIES
-// ============================================================================
 
 export const inspectionMutations = {
 	create: () =>

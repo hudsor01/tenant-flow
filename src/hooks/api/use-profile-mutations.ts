@@ -23,10 +23,6 @@ import type {
 
 import { profileKeys, PROFILE_SELECT, mapUserProfile } from './use-profile'
 
-// ============================================================================
-// MUTATION OPTIONS FACTORIES
-// ============================================================================
-
 const profileMutationFactories = {
 	update: () =>
 		mutationOptions({
@@ -72,10 +68,6 @@ const profileMutationFactories = {
 			}
 		})
 }
-
-// ============================================================================
-// MUTATION HOOKS
-// ============================================================================
 
 /**
  * Update user profile

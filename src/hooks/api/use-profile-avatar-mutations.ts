@@ -21,10 +21,6 @@ import { mutationKeys } from './mutation-keys'
 
 import { profileKeys } from './use-profile'
 
-// ============================================================================
-// MUTATION OPTIONS FACTORIES
-// ============================================================================
-
 const avatarMutationFactories = {
 	upload: () =>
 		mutationOptions({
@@ -90,10 +86,6 @@ const avatarMutationFactories = {
 			}
 		})
 }
-
-// ============================================================================
-// MUTATION HOOKS
-// ============================================================================
 
 /**
  * Upload avatar image

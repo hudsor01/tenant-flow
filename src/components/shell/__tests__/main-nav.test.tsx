@@ -138,7 +138,6 @@ describe('MainNav', () => {
 			const financialsButton = screen.getByRole('button', { name: /financials/i })
 			await user.click(financialsButton)
 
-			expect(screen.getByRole('link', { name: /rent collection/i })).toBeInTheDocument()
 			expect(screen.getByRole('link', { name: /income statement/i })).toBeInTheDocument()
 			expect(screen.getByRole('link', { name: /cash flow/i })).toBeInTheDocument()
 			expect(screen.getByRole('link', { name: /balance sheet/i })).toBeInTheDocument()
@@ -275,8 +274,8 @@ describe('MainNav', () => {
 			await user.click(financialsButton)
 
 			// Click a child link
-			const rentCollectionLink = screen.getByRole('link', { name: /rent collection/i })
-			await user.click(rentCollectionLink)
+			const incomeStatementLink = screen.getByRole('link', { name: /income statement/i })
+			await user.click(incomeStatementLink)
 
 			expect(onNavigate).toHaveBeenCalledTimes(1)
 		})

@@ -9,10 +9,6 @@ import {
 import { sessionKeys, sessionQueries, type UserSession } from './query-keys/session-keys'
 
 
-// ============================================================================
-// MUTATION OPTIONS FACTORY
-// ============================================================================
-
 const sessionMutationFactories = {
 	revoke: () =>
 		mutationOptions({
@@ -40,10 +36,6 @@ const sessionMutationFactories = {
 			}
 		})
 }
-
-// ============================================================================
-// QUERY HOOKS
-// ============================================================================
 
 export function useUserSessions() {
 	return useQuery(sessionQueries.list())

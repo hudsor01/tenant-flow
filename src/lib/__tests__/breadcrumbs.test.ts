@@ -95,15 +95,6 @@ describe('generateBreadcrumbs', () => {
 			}
 		})
 
-		it('should map tenant portal routes correctly', () => {
-			const result = generateBreadcrumbs('/tenant/payments/history')
-			expect(result).toEqual([
-				{ href: '/tenant', label: 'Tenant Portal' },
-				{ href: '/tenant/payments', label: 'Payments' },
-				{ href: '/tenant/payments/history', label: 'Payment History' }
-			])
-		})
-
 		it('should capitalize unknown segments', () => {
 			const result = generateBreadcrumbs('/custom/unknown-route')
 			expect(result).toEqual([
@@ -159,16 +150,11 @@ describe('generateBreadcrumbs', () => {
 		})
 
 		it('should handle deep nesting', () => {
-			const result = generateBreadcrumbs('/tenant/payments/autopay/methods')
-			expect(result.length).toBe(4)
-			expect(result[3]?.label).toBe('Payment Methods')
-		})
-
-		it('should handle rent-collection route', () => {
-			const result = generateBreadcrumbs('/rent-collection')
-			expect(result).toEqual([
-				{ href: '/rent-collection', label: 'Rent Collection' }
-			])
+			const result = generateBreadcrumbs(
+				'/analytics/property-performance/overview'
+			)
+			expect(result.length).toBe(3)
+			expect(result[2]?.label).toBe('Overview')
 		})
 
 		it('should handle documents routes', () => {

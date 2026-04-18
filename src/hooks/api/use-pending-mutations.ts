@@ -11,19 +11,11 @@
 import { useMutationState } from '@tanstack/react-query'
 import { isMutationKey } from './mutation-keys'
 
-// ============================================================================
-// TYPES
-// ============================================================================
-
 interface MutationInfo {
 	key: readonly string[]
 	domain: string
 	operation: string
 }
-
-// ============================================================================
-// HELPERS
-// ============================================================================
 
 /**
  * Extract human-readable info from mutation key
@@ -63,10 +55,6 @@ function formatOperation(domain: string, operation: string): string {
 	}
 	return operationMap[operation] ?? `${operation} ${domainSingular}`
 }
-
-// ============================================================================
-// HOOK
-// ============================================================================
 
 /**
  * Track all pending mutations across the application

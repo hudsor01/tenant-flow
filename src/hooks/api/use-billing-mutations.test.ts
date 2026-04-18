@@ -96,7 +96,6 @@ describe('useCancelSubscriptionMutation', () => {
 			const invalidatedKeys = invalidateSpy.mock.calls.map(
 				(call) => (call[0] as { queryKey: unknown }).queryKey
 			)
-			expect(invalidatedKeys).toContainEqual(['subscriptions', 'list'])
 			expect(invalidatedKeys).toContainEqual(['billing', 'subscription-status'])
 			expect(invalidatedKeys).toContainEqual(['owner-dashboard'])
 		})

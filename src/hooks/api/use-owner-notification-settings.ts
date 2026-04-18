@@ -25,10 +25,6 @@ export type OwnerNotificationSettingsUpdate = Partial<
 type NotificationSettingsRow =
 	Database['public']['Tables']['notification_settings']['Row']
 
-// ============================================================================
-// MUTATION OPTIONS FACTORY
-// ============================================================================
-
 const ownerNotificationSettingsMutationFactories = {
 	update: () =>
 		mutationOptions({
@@ -66,10 +62,6 @@ const ownerNotificationSettingsMutationFactories = {
 			}
 		})
 }
-
-// ============================================================================
-// HOOKS
-// ============================================================================
 
 export function useOwnerNotificationSettings() {
 	return useQuery(ownerNotificationSettingsQueries.detail())

@@ -4,10 +4,6 @@ import { createPortal } from 'react-dom'
 import { Trash2, Download, X } from 'lucide-react'
 import { Button } from '#components/ui/button'
 
-// ============================================================================
-// TYPES
-// ============================================================================
-
 interface TenantActionBarProps {
 	selectedCount: number
 	isVisible: boolean
@@ -16,11 +12,9 @@ interface TenantActionBarProps {
 	onClose: () => void
 }
 
-// ============================================================================
 // ACTION BAR COMPONENT
 // Floating bar at bottom center, appears when items are selected
 // Styled to match @diceui/action-bar aesthetic
-// ============================================================================
 
 export function TenantActionBar({
 	selectedCount,

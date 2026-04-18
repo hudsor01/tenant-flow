@@ -35,7 +35,7 @@ export function PropertyGrid() {
 	)
 }
 
-export function RentCollection() {
+export function RentLedger() {
 	return (
 		<div className="absolute inset-x-0 top-0 bottom-[30%] p-4 overflow-hidden">
 			<div className="space-y-3 opacity-70">
@@ -50,9 +50,9 @@ export function RentCollection() {
 				</div>
 				<div className="space-y-2">
 					{[
-						{ tenant: 'Sarah Johnson', amount: '$1,850', status: 'Paid' },
-						{ tenant: 'Michael Chen', amount: '$2,200', status: 'Paid' },
-						{ tenant: 'Emily Davis', amount: '$1,650', status: 'Pending' }
+						{ tenant: 'Sarah Johnson', amount: '$1,850', status: 'Received' },
+						{ tenant: 'Michael Chen', amount: '$2,200', status: 'Received' },
+						{ tenant: 'Emily Davis', amount: '$1,650', status: 'Outstanding' }
 					].map(payment => (
 						<div key={payment.tenant} className="card-standard p-2 flex-between">
 							<span className="text-xs text-foreground">{payment.tenant}</span>
@@ -63,7 +63,7 @@ export function RentCollection() {
 								<span
 									className={cn(
 										'text-xs px-2 py-0.5 rounded-full',
-										payment.status === 'Paid'
+										payment.status === 'Received'
 											? 'bg-success/10 text-success'
 											: 'bg-warning/10 text-warning'
 									)}

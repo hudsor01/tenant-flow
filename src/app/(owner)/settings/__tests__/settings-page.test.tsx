@@ -200,31 +200,6 @@ vi.mock('#components/auth/password-strength', () => ({
 	)
 }))
 
-// Mock Stripe Connect hooks
-vi.mock('#hooks/api/use-stripe-connect', () => ({
-	useConnectedAccount: () => ({
-		data: null,
-		isLoading: false,
-		error: null,
-		refetch: vi.fn()
-	}),
-	useConnectedAccountBalance: () => ({
-		data: null,
-		isLoading: false
-	}),
-	useCreateConnectedAccountMutation: () => ({
-		mutateAsync: vi.fn(),
-		isPending: false
-	}),
-	useRefreshOnboardingMutation: () => ({
-		mutateAsync: vi.fn(),
-		isPending: false
-	}),
-	useStripeDashboardLink: () => ({
-		mutate: vi.fn(),
-		isPending: false
-	})
-}))
 
 // Mock fetch for stripe-billing-portal Edge Function calls
 vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
@@ -292,9 +267,8 @@ describe('Settings Page', () => {
 			).toBeInTheDocument()
 		})
 
-		// Check for Business Profile section
-		expect(screen.getByText('Business Profile')).toBeInTheDocument()
-		expect(screen.getByLabelText('Business Name')).toBeInTheDocument()
+		// Check for Contact Info section (Business Profile section removed with Stripe Connect)
+		expect(screen.getByText('Contact Info')).toBeInTheDocument()
 		expect(screen.getByLabelText('Contact Email')).toBeInTheDocument()
 		expect(screen.getByLabelText('Phone Number')).toBeInTheDocument()
 
@@ -391,9 +365,6 @@ describe('Settings Page', () => {
 		expect(screen.getByText('Current Plan')).toBeInTheDocument()
 		expect(screen.getByText('Professional')).toBeInTheDocument()
 		expect(screen.getByText('Active')).toBeInTheDocument()
-
-		// Check for Payment Method section
-		expect(screen.getByText('Payment Method')).toBeInTheDocument()
 
 		// Check for Billing History section
 		expect(screen.getByText('Billing History')).toBeInTheDocument()

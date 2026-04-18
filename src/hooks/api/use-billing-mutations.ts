@@ -5,10 +5,6 @@
  * Split from use-billing.ts for the 300-line file size rule.
  * Query hooks remain in use-billing.ts.
  *
- * Note: update/pause/resume/portal mutations use handleMutationError directly
- * rather than createMutationCallbacks because they redirect to Stripe's hosted
- * portal — no cache invalidation is needed (Stripe webhooks update data async).
- *
  * Cancel/Reactivate mutations (Phase 42) call the dedicated
  * `stripe-cancel-subscription` Edge Function directly and mutate the
  * subscription-status cache using Stripe's authoritative response
@@ -19,56 +15,10 @@ import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { createClient } from '#lib/supabase/client'
 import { getCachedUser } from '#lib/supabase/get-cached-user'
 import { handleMutationError } from '#lib/mutation-error-handler'
-import {
-	billingMutations,
-	subscriptionStatusKey,
-	subscriptionsKeys
-} from './query-keys/subscription-keys'
-import { createMutationCallbacks } from '#hooks/create-mutation-callbacks'
+import { subscriptionStatusKey } from './query-keys/subscription-keys'
 import { ownerDashboardKeys } from './use-owner-dashboard'
 import { mutationKeys } from './mutation-keys'
 import type { SubscriptionStatusResponse } from '#types/api-contracts'
-
-// ============================================================================
-// SUBSCRIPTION CRUD MUTATIONS
-// ============================================================================
-
-export function useCreateSubscriptionMutation() {
-	const queryClient = useQueryClient()
-
-	return useMutation({
-		...billingMutations.createSubscription(),
-		...createMutationCallbacks(queryClient, {
-			invalidate: [subscriptionsKeys.list()],
-			errorContext: 'Create subscription'
-		})
-	})
-}
-
-export function useUpdateSubscriptionMutation() {
-	return useMutation({
-		...billingMutations.updateSubscription(),
-		onError: error => handleMutationError(error, 'Update subscription')
-	})
-}
-
-export function usePauseSubscriptionMutation() {
-	return useMutation({
-		...billingMutations.pauseSubscription(),
-		onError: error => handleMutationError(error, 'Pause subscription')
-	})
-}
-
-export function useResumeSubscriptionMutation() {
-	return useMutation({
-		...billingMutations.resumeSubscription(),
-		onError: error => handleMutationError(error, 'Resume subscription')
-	})
-}
-
-// ============================================================================
-// CANCEL / REACTIVATE MUTATIONS (Phase 42 / CANCEL-01)
-// ============================================================================
 
 export interface CancelSubscriptionResponse {
 	id: string
@@ -149,13 +99,11 @@ export function useCancelSubscriptionMutation() {
 		mutationKey: mutationKeys.subscriptions.cancel,
 		mutationFn: () => callStripeCancelSubscription('cancel'),
 		onSuccess: (response) => {
-			// T-42-06 mitigation: write Stripe's authoritative response into the cache
-			// BEFORE invalidateQueries so the UI flips instantly, regardless of FDW sync lag.
+			// Seed cache with Stripe's authoritative response BEFORE invalidation so the UI
+			// flips instantly, regardless of FDW sync lag. We cannot use createMutationCallbacks
+			// here because that factory replaces onSuccess rather than merging — we would lose
+			// this setQueryData call.
 			writeSubscriptionStatusCache(queryClient, response)
-			// Inlined invalidation (instead of spreading createMutationCallbacks) because
-			// the callback factory REPLACES onSuccess rather than merging — this preserves
-			// the setQueryData call above.
-			queryClient.invalidateQueries({ queryKey: subscriptionsKeys.list() })
 			queryClient.invalidateQueries({ queryKey: subscriptionStatusKey })
 			queryClient.invalidateQueries({ queryKey: ownerDashboardKeys.all })
 		},
@@ -170,19 +118,14 @@ export function useReactivateSubscriptionMutation() {
 		mutationKey: mutationKeys.subscriptions.reactivate,
 		mutationFn: () => callStripeCancelSubscription('reactivate'),
 		onSuccess: (response) => {
-			// T-42-06 mitigation: mirror the cancel mutation setQueryData pattern.
+			// Seed cache with Stripe response before invalidation (matches cancel mutation).
 			writeSubscriptionStatusCache(queryClient, response)
-			queryClient.invalidateQueries({ queryKey: subscriptionsKeys.list() })
 			queryClient.invalidateQueries({ queryKey: subscriptionStatusKey })
 			queryClient.invalidateQueries({ queryKey: ownerDashboardKeys.all })
 		},
 		onError: error => handleMutationError(error, 'Reactivate subscription')
 	})
 }
-
-// ============================================================================
-// BILLING PORTAL MUTATION
-// ============================================================================
 
 /**
  * Opens the Stripe Customer Portal for subscription management.

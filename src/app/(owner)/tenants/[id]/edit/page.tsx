@@ -3,7 +3,7 @@ import { Suspense, lazy } from 'react'
 
 // Dynamic import with code splitting
 const TenantEditForm = lazy(() =>
-	import('../../../../(tenant)/tenant/tenant-edit-form.client').then(mod => ({
+	import('../../components/tenant-edit-form.client').then(mod => ({
 		default: mod.TenantEditForm
 	}))
 )

@@ -10,10 +10,8 @@
  * - PostgREST direct via supabase-js (no apiRequest calls)
  *
  * Schema notes:
- * - tenants table: id, user_id, emergency_contact_*, identity_verified, ssn_last_four, stripe_customer_id
- * - Tenant name/email/phone live on users table (joined via user_id)
- * - tenant_invitations table exists for invitation management
- * - notification_settings table stores notification prefs (keyed by user_id)
+ * - tenants table: id, owner_user_id, name, email, phone, emergency_contact_*, identity_verified, ssn_last_four
+ * - Landlord-only model: tenants are owner-managed records, not authenticated users
  */
 
 import { queryOptions } from '@tanstack/react-query'
@@ -28,10 +26,10 @@ import { mapTenantRow } from './tenant-mappers'
 import type { TenantPostgrestRow } from './tenant-mappers'
 
 const TENANT_BASE_SELECT =
-	'id, user_id, created_at, updated_at, date_of_birth, emergency_contact_name, emergency_contact_phone, emergency_contact_relationship, identity_verified, ssn_last_four, stripe_customer_id'
+	'id, user_id, owner_user_id, first_name, last_name, name, email, phone, status, created_at, updated_at, date_of_birth, emergency_contact_name, emergency_contact_phone, emergency_contact_relationship, identity_verified, ssn_last_four'
 
 const TENANT_WITH_LEASE_SELECT =
-	'*, users!tenants_user_id_fkey(id, email, first_name, last_name, full_name, phone, status), lease_tenants(lease_id, is_primary, leases(id, lease_status, start_date, end_date, rent_amount, security_deposit, unit_id, auto_pay_enabled, primary_tenant_id, owner_user_id, units(id, unit_number, bedrooms, bathrooms, square_feet, rent_amount, property_id, properties(id, name, address_line1, address_line2, city, state, postal_code))))'
+	'*, users!tenants_user_id_fkey(id, email, first_name, last_name, full_name, phone, status), lease_tenants(lease_id, is_primary, leases(id, lease_status, start_date, end_date, rent_amount, security_deposit, unit_id, primary_tenant_id, owner_user_id, units(id, unit_number, bedrooms, bathrooms, square_feet, rent_amount, property_id, properties(id, name, address_line1, address_line2, city, state, postal_code))))'
 
 /**
  * Tenant query factory
@@ -61,7 +59,9 @@ export const tenantQueries = {
 				if (filters?.search) {
 					const safe = sanitizeSearchInput(filters.search)
 					if (safe) {
-						q = q.or(`users.full_name.ilike.%${safe}%,users.email.ilike.%${safe}%`)
+						q = q.or(
+							`name.ilike.%${safe}%,email.ilike.%${safe}%,first_name.ilike.%${safe}%,last_name.ilike.%${safe}%`
+						)
 					}
 				}
 

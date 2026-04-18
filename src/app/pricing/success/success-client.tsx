@@ -3,7 +3,8 @@
 import { CustomerPortalButton } from '#components/pricing/customer-portal'
 import { Button } from '#components/ui/button'
 import { CardLayout } from '#components/ui/card-layout'
-import { usePaymentVerification } from '#hooks/api/use-payments'
+import { subscriptionStatusQueries } from '#hooks/api/query-keys/subscription-verification-keys'
+import { useQuery } from '@tanstack/react-query'
 import { CheckCircle, Home } from 'lucide-react'
 import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
@@ -19,7 +20,7 @@ export function SuccessClient() {
 		isLoading: isVerifying,
 		error: verificationError,
 		isSuccess
-	} = usePaymentVerification(sessionId)
+	} = useQuery(subscriptionStatusQueries.verifySession(sessionId))
 
 	const subscription = verificationData?.subscription
 

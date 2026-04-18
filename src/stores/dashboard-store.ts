@@ -1,48 +1,31 @@
 import { create } from 'zustand'
 
-// =============================================================================
-// Types
-// =============================================================================
-
 export type DashboardViewMode = 'table' | 'grid'
 export type DashboardStatusFilter = 'all' | 'active' | 'expiring' | 'vacant'
 export type DashboardSortField = 'property' | 'rent' | 'units' | 'status'
 export type DashboardSortDirection = 'asc' | 'desc'
 
 interface DashboardState {
-	// View mode
 	viewMode: DashboardViewMode
-	// Filters
 	searchQuery: string
 	statusFilter: DashboardStatusFilter
-	// Sorting
 	sortField: DashboardSortField
 	sortDirection: DashboardSortDirection
-	// Pagination
 	currentPage: number
 	itemsPerPage: number
 }
 
 interface DashboardActions {
-	// View mode
 	setViewMode: (mode: DashboardViewMode) => void
-	// Filters
 	setSearchQuery: (query: string) => void
 	setStatusFilter: (filter: DashboardStatusFilter) => void
 	clearFilters: () => void
-	// Sorting
 	handleSort: (field: DashboardSortField) => void
-	// Pagination
 	setCurrentPage: (page: number) => void
 }
 
-// =============================================================================
-// Store
-// =============================================================================
-
 export const useDashboardStore = create<DashboardState & DashboardActions>(
 	(set, get) => ({
-		// Initial state
 		viewMode: 'table',
 		searchQuery: '',
 		statusFilter: 'all',
@@ -51,7 +34,6 @@ export const useDashboardStore = create<DashboardState & DashboardActions>(
 		currentPage: 1,
 		itemsPerPage: 10,
 
-		// Actions
 		setViewMode: mode => set({ viewMode: mode }),
 
 		setSearchQuery: query => set({ searchQuery: query, currentPage: 1 }),
@@ -77,10 +59,6 @@ export const useDashboardStore = create<DashboardState & DashboardActions>(
 		setCurrentPage: page => set({ currentPage: page })
 	})
 )
-
-// =============================================================================
-// Selector hooks for optimized re-renders
-// =============================================================================
 
 export const useDashboardViewMode = () =>
 	useDashboardStore(state => ({

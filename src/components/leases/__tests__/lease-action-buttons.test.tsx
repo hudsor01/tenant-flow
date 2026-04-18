@@ -114,13 +114,6 @@ const createMockLease = (overrides: Partial<Lease> = {}): Lease => ({
 	security_deposit: 5000,
 	lease_status: 'active',
 	payment_day: 1,
-	stripe_subscription_id: null,
-	stripe_subscription_status: 'none',
-	subscription_failure_reason: null,
-	subscription_retry_count: 0,
-	subscription_last_attempt_at: null,
-	auto_pay_enabled: null,
-	autopay_payment_method_id: null,
 	grace_period_days: null,
 	late_fee_amount: null,
 	late_fee_days: null,
@@ -144,7 +137,6 @@ const createMockLease = (overrides: Partial<Lease> = {}): Lease => ({
 	property_built_before_1978: null,
 	lead_paint_disclosure_acknowledged: null,
 	governing_state: null,
-	stripe_connected_account_id: null,
 	...overrides
 })
 

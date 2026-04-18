@@ -1,17 +1,3 @@
-/**
- * Tenant Query Hooks & Query Options
- * TanStack Query hooks for tenant data fetching
- * React 19 + TanStack Query v5 patterns with Suspense support
- *
- * Query keys are in a separate file to avoid circular dependencies.
- * Mutation hooks are in use-tenant-mutations.ts.
- *
- * PostgREST migration notes:
- * - All CRUD mutations use supabase-js directly
- * - tenants table: id, user_id, emergency_contact_*, identity_verified, ssn_last_four, stripe_customer_id
- * - Invite flow: creates tenant_invitations record; actual tenant created when user accepts
- */
-
 import {
 	keepPreviousData,
 	usePrefetchQuery,
@@ -21,31 +7,9 @@ import {
 import type { TenantWithLeaseInfo } from '#types/core'
 import { useEntityDetail } from '#hooks/use-entity-detail'
 
-// Import query keys from separate file to avoid circular dependency
 import { tenantQueries } from './query-keys/tenant-keys'
-import { tenantInvitationQueries } from './query-keys/tenant-invitation-keys'
 
-// ============================================================================
-// TYPES
-// ============================================================================
-
-/**
- * Invitation filters
- */
-export interface InvitationFilters {
-	status?: 'sent' | 'accepted' | 'expired'
-	page?: number
-	limit?: number
-}
-
-// ============================================================================
-// QUERY HOOKS
-// ============================================================================
-
-/**
- * Hook to fetch tenant by ID
- * Uses placeholderData from list cache for instant detail view
- */
+// Uses placeholderData from list cache for instant detail view
 export function useTenant(id: string) {
 	return useEntityDetail<TenantWithLeaseInfo>({
 		queryOptions: tenantQueries.detail(id),
@@ -54,9 +18,6 @@ export function useTenant(id: string) {
 	})
 }
 
-/**
- * Hook to fetch tenant with lease information
- */
 export function useTenantWithLease(id: string) {
 	return useEntityDetail<TenantWithLeaseInfo>({
 		queryOptions: tenantQueries.withLease(id),
@@ -64,9 +25,6 @@ export function useTenantWithLease(id: string) {
 	})
 }
 
-/**
- * Hook to fetch tenant list with pagination
- */
 export function useTenantList(page: number = 1, limit: number = 50) {
 	const queryClient = useQueryClient()
 	const offset = (page - 1) * limit
@@ -99,9 +57,6 @@ export function useTenantList(page: number = 1, limit: number = 50) {
 	})
 }
 
-/**
- * Hook to fetch all tenants (for dropdowns, selects, etc.)
- */
 export function useAllTenants() {
 	const queryClient = useQueryClient()
 
@@ -136,39 +91,20 @@ export function useAllTenants() {
 	})
 }
 
-/**
- * Hook to fetch tenant statistics
- */
 export function useTenantStats() {
 	return useQuery(tenantQueries.stats())
 }
 
-// ============================================================================
-// UTILITY HOOKS
-// ============================================================================
-
-/**
- * Declarative prefetch hook for tenant detail
- * Prefetches when component mounts (route-level prefetching)
- *
- * For imperative prefetching (e.g., on hover), use:
- * queryClient.prefetchQuery(tenantQueries.detail(id))
- */
+// Declarative prefetch on mount. For hover/imperative prefetch, call queryClient.prefetchQuery directly.
 export function usePrefetchTenantDetail(id: string) {
 	usePrefetchQuery(tenantQueries.detail(id))
 }
 
-/**
- * Declarative prefetch hook for tenant with lease info
- * Prefetches tenant detail with associated lease data
- */
 export function usePrefetchTenantWithLease(id: string) {
 	usePrefetchQuery(tenantQueries.withLease(id))
 }
 
-/**
- * Hook for optimistic tenant updates with automatic rollback
- */
+// Returns a rollback closure for optimistic writes.
 export function useOptimisticTenantUpdate() {
 	const queryClient = useQueryClient()
 
@@ -208,16 +144,7 @@ export function useOptimisticTenantUpdate() {
 	}
 }
 
-/**
- * Hook to fetch notification preferences for a tenant
- */
 export function useNotificationPreferences(tenant_id: string) {
 	return useQuery(tenantQueries.notificationPreferences(tenant_id))
 }
 
-/**
- * Hook to fetch tenant invitations list
- */
-export function useInvitations() {
-	return useQuery(tenantInvitationQueries.list())
-}

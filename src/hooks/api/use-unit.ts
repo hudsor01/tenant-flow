@@ -36,10 +36,6 @@ import { ownerDashboardKeys } from './use-owner-dashboard'
  */
 const selectPaginatedData = <T>(response: PaginatedResponse<T>): T[] => response.data
 
-// ============================================================================
-// QUERY HOOKS
-// ============================================================================
-
 /**
  * Hook to fetch unit by ID
  * Uses placeholderData from list cache for instant detail view
@@ -114,10 +110,6 @@ export function useAllUnits() {
 	return useUnitList()
 }
 
-// ============================================================================
-// UTILITY HOOKS
-// ============================================================================
-
 /**
  * Declarative prefetch hook for unit detail
  * Prefetches when component mounts (route-level prefetching)
@@ -128,10 +120,6 @@ export function useAllUnits() {
 export function usePrefetchUnitDetail(id: string) {
 	usePrefetchQuery(unitQueries.detail(id))
 }
-
-// ============================================================================
-// MUTATION HOOKS
-// ============================================================================
 
 /**
  * Create unit mutation

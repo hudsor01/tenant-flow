@@ -1,10 +1,3 @@
-/**
- * Report Query Keys, Options & Mutations
- * Query factories for reports domain: report CRUD, report runs, downloads/exports.
- *
- * Analytics/report-type queries split to report-analytics-keys.ts.
- */
-
 import { queryOptions, mutationOptions } from '@tanstack/react-query'
 import { createClient } from '#lib/supabase/client'
 import { getCachedUser } from '#lib/supabase/get-cached-user'
@@ -16,10 +9,6 @@ import type {
 	Report as ReportType,
 	RevenueData
 } from '#types/reports'
-
-// ============================================================================
-// QUERY KEYS
-// ============================================================================
 
 export const reportKeys = {
 	all: ['reports'] as const,
@@ -47,10 +36,6 @@ export const reportKeys = {
 	report1099: (year: number) =>
 		[...reportKeys.all, '1099', year] as const
 }
-
-// ============================================================================
-// QUERY OPTIONS
-// ============================================================================
 
 export const reportQueries = {
 	all: () => reportKeys.all,
@@ -149,10 +134,6 @@ export const reportQueries = {
 		})
 }
 
-// ============================================================================
-// EDGE FUNCTION HELPERS
-// ============================================================================
-
 async function callExportEdgeFunction(
 	reportType: string,
 	format: 'csv' | 'xlsx' | 'pdf',
@@ -221,10 +202,6 @@ async function callGeneratePdfEdgeFunction(reportType: string, year: number): Pr
 	document.body.removeChild(link)
 	setTimeout(() => window.URL.revokeObjectURL(blobUrl), 100)
 }
-
-// ============================================================================
-// MUTATION OPTIONS FACTORIES
-// ============================================================================
 
 export const reportMutations = {
 	downloadYearEndCsv: () =>

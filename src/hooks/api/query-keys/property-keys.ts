@@ -1,16 +1,3 @@
-/**
- * Property Query Keys, Options & Mutations
- * Query and mutation factories for property domain.
- *
- * Stats/performance/analytics queries split to property-stats-keys.ts.
- *
- * TanStack Query v5 patterns:
- * - queryOptions() for type-safe query configuration
- * - mutationOptions() for type-safe mutation configuration
- * - Query key factory for consistent cache management
- * - PostgREST direct via supabase-js (no apiRequest calls)
- */
-
 import { queryOptions, mutationOptions } from '@tanstack/react-query'
 import { createClient } from '#lib/supabase/client'
 import { getCachedUser } from '#lib/supabase/get-cached-user'
@@ -28,13 +15,6 @@ import type {
 	PropertyUpdate
 } from '#lib/validation/properties'
 
-// ============================================================================
-// TYPES
-// ============================================================================
-
-/**
- * Property query filters for list queries
- */
 export interface PropertyFilters {
 	status?: PropertyStatus
 	property_type?: PropertyType
@@ -43,36 +23,15 @@ export interface PropertyFilters {
 	offset?: number
 }
 
-// ============================================================================
-// CONSTANTS
-// ============================================================================
-
 const PROPERTY_SELECT_COLUMNS =
 	'id, owner_user_id, name, address_line1, address_line2, city, state, postal_code, country, property_type, status, stripe_connected_account_id, date_sold, sale_price, created_at, updated_at'
 
-// ============================================================================
-// QUERY OPTIONS
-// ============================================================================
-
-/**
- * Property query factory
- * Colocated queryOptions for use with useQuery, useQueries, prefetch
- */
 export const propertyQueries = {
-	/**
-	 * Base key for all property queries
-	 */
 	all: () => ['properties'] as const,
 
-	/**
-	 * Base key for all property lists
-	 */
 	lists: () => [...propertyQueries.all(), 'list'] as const,
 
-	/**
-	 * Property list with optional filters
-	 * Always filters inactive properties unless status is explicitly provided
-	 */
+	// Always filters inactive properties unless status is explicitly provided
 	list: (filters?: PropertyFilters) =>
 		queryOptions({
 			queryKey: [...propertyQueries.lists(), filters ?? {}],
@@ -126,9 +85,6 @@ export const propertyQueries = {
 			...QUERY_CACHE_TIMES.DETAIL
 		}),
 
-	/**
-	 * Properties with units (e.g., management dashboard)
-	 */
 	withUnits: () =>
 		queryOptions({
 			queryKey: [...propertyQueries.all(), 'with-units'] as const,
@@ -147,14 +103,8 @@ export const propertyQueries = {
 			...QUERY_CACHE_TIMES.DETAIL
 		}),
 
-	/**
-	 * Base key for all property details
-	 */
 	details: () => [...propertyQueries.all(), 'detail'] as const,
 
-	/**
-	 * Single property by ID
-	 */
 	detail: (id: string) =>
 		queryOptions({
 			queryKey: [...propertyQueries.details(), id],
@@ -174,13 +124,7 @@ export const propertyQueries = {
 			enabled: !!id
 		}),
 
-	/**
-	 * Property images for a specific property
-	 * Uses Supabase client directly with RLS
-	 *
-	 * Note: image_url stores relative path (e.g., "{property_id}/{filename}")
-	 * This query transforms it to full public URL using Supabase storage API
-	 */
+	// image_url stores a relative storage path; resolve to public URL at read time
 	images: (property_id: string) =>
 		queryOptions({
 			queryKey: [...propertyQueries.detail(property_id).queryKey, 'images'],
@@ -211,10 +155,6 @@ export const propertyQueries = {
 			enabled: !!property_id
 		})
 }
-
-// ============================================================================
-// MUTATION OPTIONS FACTORIES
-// ============================================================================
 
 export const propertyMutations = {
 	create: () =>

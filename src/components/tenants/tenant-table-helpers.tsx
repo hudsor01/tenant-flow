@@ -10,16 +10,8 @@ import {
 } from '#components/ui/select'
 import type { LeaseStatus } from '#types/core'
 
-// ============================================================================
-// TYPES (shared between helper components)
-// ============================================================================
-
 export type SortDirection = 'asc' | 'desc' | null
 export type SortField = 'fullName' | 'email' | 'property' | 'leaseStatus' | null
-
-// ============================================================================
-// STATUS SELECT CELL
-// ============================================================================
 
 export function StatusSelectCell({
 	value,
@@ -54,10 +46,6 @@ export function StatusSelectCell({
 		</Select>
 	)
 }
-
-// ============================================================================
-// SORTABLE COLUMN HEADER
-// ============================================================================
 
 export function SortableHeader({
 	title,

@@ -11,11 +11,9 @@ import type {
 	Database
 } from './supabase'
 
-// ============================================================================
 // DB STATUS TYPE EXPORTS - String literal unions matching CHECK constraints
 // These are manually defined to match database CHECK constraints.
 // When adding/removing values, update both here AND the database constraint.
-// ============================================================================
 
 export type LeaseStatus =
 	| 'draft'
@@ -126,19 +124,13 @@ export interface Pagination {
 	hasMore?: boolean
 }
 
-// ============================================================================
-// DB TABLE TYPE ALIASES - Only the ones actually used
-// ============================================================================
-
 export type User = Tables<'users'>
 export type Property = Tables<'properties'>
 export type Unit = Tables<'units'>
 export type Tenant = Tables<'tenants'>
 export type Lease = Tables<'leases'>
 export type MaintenanceRequest = Tables<'maintenance_requests'>
-export type RentPayment = Tables<'rent_payments'>
 export type ExpenseRecord = Tables<'expenses'>
-export type ConnectedAccount = Tables<'stripe_connected_accounts'>
 
 export type TenantInput = TablesInsert<'tenants'>
 export type TenantUpdate = Partial<TenantInput>
@@ -146,10 +138,6 @@ export type TenantUpdate = Partial<TenantInput>
 // Insert/Update types - only export what's actually used
 export type UserInsert = TablesInsert<'users'>
 export type UserUpdate = TablesUpdate<'users'>
-
-// ============================================================================
-// EXTENDED TYPES - With relations/computed fields
-// ============================================================================
 
 export type LeaseWithExtras = Lease & {
 	version?: number
@@ -275,7 +263,9 @@ export interface LeaseStatsResponse {
 
 export interface TenantWithLeaseInfo {
 	id: string
-	user_id: string
+	user_id: string | null
+	owner_user_id: string | null
+	status: string
 	created_at: string | null
 	date_of_birth: string | null
 	emergency_contact_name: string | null
@@ -283,13 +273,12 @@ export interface TenantWithLeaseInfo {
 	emergency_contact_relationship: string | null
 	identity_verified: boolean | null
 	ssn_last_four: string | null
-	stripe_customer_id: string | null
 	updated_at: string | null
-	name?: string
-	email?: string
-	phone?: string | null
-	first_name?: string | null
-	last_name?: string | null
+	name: string | null
+	email: string | null
+	phone: string | null
+	first_name: string | null
+	last_name: string | null
 	currentLease?: {
 		id: string
 		start_date: string
@@ -299,7 +288,6 @@ export interface TenantWithLeaseInfo {
 		status: string
 		primary_tenant_id: string
 		unit_id: string
-		auto_pay_enabled?: boolean
 	} | null
 	leases?: Array<{
 		id: string
@@ -522,10 +510,6 @@ export type TenantWithLeaseInfoWithVersion = TenantWithLeaseInfo & {
 export type PaymentMethodResponseWithVersion = PaymentMethodResponse & {
 	version?: number
 }
-
-// ============================================================================
-// SEARCH TYPES
-// ============================================================================
 
 export type SearchResultType = 'properties' | 'tenants' | 'units' | 'leases'
 

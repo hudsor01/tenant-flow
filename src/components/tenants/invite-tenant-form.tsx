@@ -4,17 +4,18 @@ import { Button } from '#components/ui/button'
 import { createLogger } from '#lib/frontend-logger'
 import type { Property, Unit } from '#types/core'
 import { useForm } from '@tanstack/react-form'
-import { Mail } from 'lucide-react'
+import { UserPlus } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
+import { toast } from 'sonner'
 import { useUnsavedChangesWarning } from '#hooks/use-unsaved-changes'
-import { useCreateInvitation } from '#hooks/api/use-create-invitation'
-import { useResendInvitationMutation } from '#hooks/api/use-tenant-invite-mutations'
-import { handleDuplicateInvitation } from '#lib/invitation-utils'
+import { useCreateTenantMutation } from '#hooks/api/use-tenant-mutations'
+import { handleMutationError } from '#lib/mutation-error-handler'
+import type { TenantCreate } from '#lib/validation/tenants'
 import { InviteTenantInfoFields } from './invite-tenant-info-fields'
 import { InviteTenantPropertyFields } from './invite-tenant-property-fields'
 
-const logger = createLogger({ component: 'InviteTenantForm' })
+const logger = createLogger({ component: 'AddTenantForm' })
 
 interface InviteTenantFormProps {
 	properties: Property[]
@@ -23,19 +24,19 @@ interface InviteTenantFormProps {
 }
 
 /**
- * Simplified Invite Tenant Form
+ * Add Tenant Form (landlord-only mode)
  *
- * Collects basic tenant info to send portal invitation.
- * Property assignment is OPTIONAL - can be done later when creating a lease.
+ * Collects basic tenant info and records a tenant row for the landlord.
+ * Tenants do NOT receive a portal login — they are data records on the
+ * landlord's side. Lease assignment happens on the lease creation flow.
  *
  * Required Fields:
- * - Email - for invitation
- * - First/Last name - for tenant record
+ * - Email
+ * - First/Last name
  *
  * Optional Fields:
  * - Phone
- * - Property - assign to a property now or later
- * - Unit - for multi-unit properties
+ * - Property / Unit for early association
  */
 export function InviteTenantForm({
 	properties,
@@ -44,8 +45,8 @@ export function InviteTenantForm({
 }: InviteTenantFormProps) {
 	const router = useRouter()
 	const [selectedPropertyId, setSelectedPropertyId] = useState('')
-	const createInvitation = useCreateInvitation()
-	const resendInvitation = useResendInvitationMutation()
+	const createTenant = useCreateTenantMutation()
+	const isSubmitting = createTenant.isPending
 
 	const form = useForm({
 		defaultValues: {
@@ -58,29 +59,28 @@ export function InviteTenantForm({
 		},
 		onSubmit: async ({ value }) => {
 			try {
-				const result = await createInvitation.mutateAsync({
+				// Landlord-managed tenant record — contact info lives on the tenants row.
+				const payload: TenantCreate = {
 					email: value.email,
-					property_id: value.property_id || undefined,
-					unit_id: value.unit_id || undefined
-				})
-
-				if (result.status === 'duplicate') {
-					handleDuplicateInvitation(result.existing, resendInvitation.mutate)
-					return
+					first_name: value.first_name,
+					last_name: value.last_name,
+					name: `${value.first_name} ${value.last_name}`.trim(),
+					...(value.phone ? { phone: value.phone } : {})
 				}
 
-				// Hook already fires success toast. Consumer handles navigation only.
-				logger.info('Tenant invitation sent', {
-					email: value.email
-				})
+				await createTenant.mutateAsync(payload)
+
+				logger.info('Tenant added', { email: value.email })
+				toast.success('Tenant added')
 
 				onSuccess?.()
 				router.push('/tenants')
 				router.refresh()
 			} catch (error) {
-				logger.error('Failed to invite tenant', {
+				logger.error('Failed to add tenant', {
 					error: error instanceof Error ? error.message : String(error)
 				})
+				handleMutationError(error, 'Add tenant')
 			}
 		}
 	})
@@ -127,15 +127,11 @@ export function InviteTenantForm({
 					{([canSubmit, isFormSubmitting]) => (
 						<Button
 							type="submit"
-							disabled={
-								!canSubmit || createInvitation.isPending || isFormSubmitting
-							}
+							disabled={!canSubmit || isSubmitting || isFormSubmitting}
 							onClick={form.handleSubmit}
 						>
-							<Mail className="size-4 mr-2" />
-							{createInvitation.isPending || isFormSubmitting
-								? 'Sending Invitation...'
-								: 'Send Invitation'}
+							<UserPlus className="size-4 mr-2" />
+							{isSubmitting || isFormSubmitting ? 'Adding tenant...' : 'Add Tenant'}
 						</Button>
 					)}
 				</form.Subscribe>

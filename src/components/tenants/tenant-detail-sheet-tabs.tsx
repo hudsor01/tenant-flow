@@ -2,7 +2,6 @@ import {
 	Mail,
 	Phone,
 	MapPin,
-	CreditCard,
 	Clock,
 	AlertTriangle,
 	Check,
@@ -116,12 +115,6 @@ export function CurrentLeaseSection({
 						{tenant.currentLease.endDate ? formatDate(tenant.currentLease.endDate) : 'Ongoing'}
 					</span>
 				</div>
-				{tenant.currentLease.autopayEnabled && (
-					<div className="mt-2 flex items-center gap-1 text-xs text-emerald-600">
-						<CreditCard className="w-3 h-3" />
-						Autopay enabled
-					</div>
-				)}
 			</button>
 		</section>
 	)

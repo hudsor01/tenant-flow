@@ -181,34 +181,6 @@ describe('proxy routing', () => {
   })
 
   describe('role-based enforcement', () => {
-    it('redirects TENANT user on /dashboard to /tenant', async () => {
-      mockUpdateSession.mockResolvedValue({
-        user: makeUser('TENANT'),
-        supabaseResponse: makeSupabaseResponse(),
-      })
-
-      await proxy(buildRequest('/dashboard'))
-
-      expect(NextResponse.redirect).toHaveBeenCalledOnce()
-      const redirectUrl = (NextResponse.redirect as ReturnType<typeof vi.fn>)
-        .mock.calls[0]![0] as URL
-      expect(redirectUrl.pathname).toBe('/tenant')
-    })
-
-    it('redirects OWNER user on /tenant to /dashboard', async () => {
-      mockUpdateSession.mockResolvedValue({
-        user: makeUser('OWNER'),
-        supabaseResponse: makeSupabaseResponse(),
-      })
-
-      await proxy(buildRequest('/tenant'))
-
-      expect(NextResponse.redirect).toHaveBeenCalledOnce()
-      const redirectUrl = (NextResponse.redirect as ReturnType<typeof vi.fn>)
-        .mock.calls[0]![0] as URL
-      expect(redirectUrl.pathname).toBe('/dashboard')
-    })
-
     it('redirects PENDING user on /dashboard to /auth/select-role', async () => {
       mockUpdateSession.mockResolvedValue({
         user: makeUser('PENDING'),

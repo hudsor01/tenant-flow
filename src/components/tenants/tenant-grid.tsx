@@ -18,10 +18,6 @@ import { BorderBeam } from '#components/ui/border-beam'
 
 const logger = createLogger({ component: 'TenantGrid' })
 
-// ============================================================================
-// TYPES
-// ============================================================================
-
 interface TenantGridProps {
 	tenants: TenantItem[]
 	selectedIds: Set<string>
@@ -31,10 +27,6 @@ interface TenantGridProps {
 	onDelete: (id: string) => void
 	onContact: (id: string, method: 'email' | 'phone') => void
 }
-
-// ============================================================================
-// STATUS DROPDOWN
-// ============================================================================
 
 interface StatusDropdownProps {
 	value: LeaseStatus | undefined
@@ -67,10 +59,6 @@ function StatusDropdown({ value, onChange }: StatusDropdownProps) {
 		</div>
 	)
 }
-
-// ============================================================================
-// TENANT CARD
-// ============================================================================
 
 interface TenantCardProps {
 	tenant: TenantItem
@@ -209,10 +197,6 @@ function TenantCard({
 		</BlurFade>
 	)
 }
-
-// ============================================================================
-// MAIN GRID COMPONENT
-// ============================================================================
 
 export function TenantGrid({
 	tenants,

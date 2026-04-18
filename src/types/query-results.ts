@@ -9,16 +9,12 @@
  *
  * @example
  * ```typescript
- * import type { OverduePaymentResult } from '#shared/types/query-results'
+ * import type { MaintenanceRequestResult } from '#shared/types/query-results'
  *
- * const { data } = await client.from('rent_payments').select(`...`)
- * const payments = data as OverduePaymentResult[]
+ * const { data } = await client.from('maintenance_requests').select(`...`)
+ * const requests = data as MaintenanceRequestResult[]
  * ```
  */
-
-// ============================================================================
-// SHARED NESTED TYPES
-// ============================================================================
 
 /** User with only name/contact fields */
 export interface UserBasic {
@@ -50,10 +46,6 @@ export interface TenantForPayment {
 	stripe_customer_id: string | null
 	users: UserBasic | null
 }
-
-// ============================================================================
-// PAYMENT ANALYTICS TYPES (payment-analytics.service.ts)
-// ============================================================================
 
 /** Lease with tenant info for upcoming payments */
 export interface LeaseWithTenantAndUnit {
@@ -119,10 +111,6 @@ export interface PaymentForExport {
 		} | null
 	} | null
 }
-
-// ============================================================================
-// TENANT QUERY TYPES (tenant-lease-query.service.ts)
-// ============================================================================
 
 /** Tenant invitation with tenant data */
 export interface InvitationWithTenant {

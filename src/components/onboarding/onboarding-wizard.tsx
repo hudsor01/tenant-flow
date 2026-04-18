@@ -6,9 +6,7 @@
  * Multi-step wizard dialog that guides new landlords through setup:
  * 1. Welcome
  * 2. Add First Property
- * 3. Connect Stripe
- * 4. Invite First Tenant
- * 5. Complete
+ * 3. Complete
  *
  * Auto-shows when onboarding_status is null or 'not_started'.
  * Marks onboarding complete or skipped on close.
@@ -24,29 +22,17 @@ import {
 import { useOnboarding } from './use-onboarding'
 import { OnboardingStepWelcome } from './onboarding-step-welcome'
 import { OnboardingStepProperty } from './onboarding-step-property'
-import { OnboardingStepStripe } from './onboarding-step-stripe'
-import { OnboardingStepTenant } from './onboarding-step-tenant'
 import { OnboardingStepComplete } from './onboarding-step-complete'
 
-// ============================================================================
-// TYPES
-// ============================================================================
+type WizardStep = 'welcome' | 'property' | 'complete'
 
-type WizardStep = 'welcome' | 'property' | 'stripe' | 'tenant' | 'complete'
-
-const STEPS: WizardStep[] = ['welcome', 'property', 'stripe', 'tenant', 'complete']
+const STEPS: WizardStep[] = ['welcome', 'property', 'complete']
 
 const STEP_LABELS: Record<WizardStep, string> = {
 	welcome: 'Welcome',
 	property: 'Add Property',
-	stripe: 'Connect Stripe',
-	tenant: 'Invite Tenant',
 	complete: 'All Done'
 }
-
-// ============================================================================
-// STEP INDICATOR
-// ============================================================================
 
 function StepIndicator({ currentStep }: { currentStep: WizardStep }) {
 	const currentIndex = STEPS.indexOf(currentStep)
@@ -78,14 +64,6 @@ function StepIndicator({ currentStep }: { currentStep: WizardStep }) {
 	)
 }
 
-// ============================================================================
-// MAIN WIZARD
-// ============================================================================
-
-/**
- * Onboarding wizard dialog - auto-shows for new landlords.
- * Add to any layout component where new owners will land.
- */
 export function OnboardingWizard() {
 	const { showWizard, isLoading, completeOnboarding, skipOnboarding } =
 		useOnboarding()
@@ -154,20 +132,6 @@ export function OnboardingWizard() {
 
 				{currentStep === 'property' && (
 					<OnboardingStepProperty
-						onNext={handleNext}
-						onSkip={handleSkipStep}
-					/>
-				)}
-
-				{currentStep === 'stripe' && (
-					<OnboardingStepStripe
-						onNext={handleNext}
-						onSkip={handleSkipStep}
-					/>
-				)}
-
-				{currentStep === 'tenant' && (
-					<OnboardingStepTenant
 						onNext={handleNext}
 						onSkip={handleSkipStep}
 					/>

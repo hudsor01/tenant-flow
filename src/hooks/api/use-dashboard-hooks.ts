@@ -23,10 +23,6 @@ import {
 } from './use-owner-dashboard'
 import type { PropertyPerformance } from '#types/core'
 
-// ============================================================================
-// STABLE SELECT FUNCTIONS (outside components for referential equality)
-// ============================================================================
-
 const selectStats = (data: OwnerDashboardData): DashboardStatsData => ({
 	stats: data.stats,
 	metricTrends: data.metricTrends
@@ -43,10 +39,6 @@ const selectActivity = (data: OwnerDashboardData): DashboardActivityData => ({
 const selectPropertyPerformance = (data: OwnerDashboardData): PropertyPerformance[] =>
 	data.propertyPerformance
 
-// ============================================================================
-// STATS HOOKS (derive from unified payload via select)
-// ============================================================================
-
 export function useDashboardStatsSuspense() {
 	return useSuspenseQuery({
 		...DASHBOARD_BASE_QUERY_OPTIONS,
@@ -60,10 +52,6 @@ export function useDashboardStats() {
 		select: selectStats
 	})
 }
-
-// ============================================================================
-// CHARTS HOOKS (derive from unified payload via select)
-// ============================================================================
 
 export function useDashboardChartsSuspense() {
 	return useSuspenseQuery({
@@ -79,10 +67,6 @@ export function useDashboardCharts() {
 	})
 }
 
-// ============================================================================
-// ACTIVITY HOOKS (derive from unified payload via select)
-// ============================================================================
-
 export function useDashboardActivitySuspense() {
 	return useSuspenseQuery({
 		...DASHBOARD_BASE_QUERY_OPTIONS,
@@ -96,10 +80,6 @@ export function useDashboardActivity() {
 		select: selectActivity
 	})
 }
-
-// ============================================================================
-// PROPERTY PERFORMANCE
-// ============================================================================
 
 /**
  * Property performance — derives from unified dashboard cache via select
@@ -120,10 +100,6 @@ export function usePropertyPerformance() {
 		select: selectPropertyPerformance
 	})
 }
-
-// ============================================================================
-// FINANCIAL HOOKS (Revenue/Expense Charts)
-// ============================================================================
 
 // Re-export types for existing consumers
 export type { FinancialChartDatum, FinancialTimeRange } from './use-owner-dashboard'

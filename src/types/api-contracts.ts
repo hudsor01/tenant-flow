@@ -20,10 +20,6 @@ import type { Tables, TablesInsert, TablesUpdate } from './supabase'
 import type { TenantCreate, TenantUpdate } from '#lib/validation/tenants'
 import type { PropertyCreate } from '#lib/validation/properties'
 
-// =============================================================================
-// USER PROFILE TYPES
-// =============================================================================
-
 /**
  * Tenant-specific profile data within a UserProfile response
  * Used for displaying tenant info in the user profile view
@@ -105,10 +101,6 @@ export interface AvatarUploadResponse {
 	avatar_url: string
 }
 
-// =============================================================================
-// PROPERTY RESPONSE TYPES
-// =============================================================================
-
 /** Property list item - minimal fields for list views */
 export type PropertyListItem = Pick<
 	Tables<'properties'>,
@@ -131,10 +123,6 @@ export type PropertyDetail = Tables<'properties'> & {
 	>[]
 }
 
-// =============================================================================
-// UNIT RESPONSE TYPES
-// =============================================================================
-
 /** Unit list item - minimal fields for list views */
 export type UnitListItem = Pick<
 	Tables<'units'>,
@@ -153,10 +141,6 @@ export type UnitDetail = Tables<'units'> & {
 	property?: Pick<Tables<'properties'>, 'id' | 'name' | 'address_line1' | 'city' | 'state'>
 }
 
-// =============================================================================
-// TENANT RESPONSE TYPES
-// =============================================================================
-
 /** Tenant list item - combines tenant and user info for list views */
 export type TenantListItem = Pick<Tables<'tenants'>, 'id' | 'user_id' | 'created_at'> & {
 	user: Pick<Tables<'users'>, 'id' | 'email' | 'first_name' | 'last_name' | 'phone' | 'status'>
@@ -173,10 +157,6 @@ export type TenantDetail = Tables<'tenants'> & {
 		'id' | 'lease_status' | 'start_date' | 'end_date' | 'rent_amount' | 'unit_id'
 	>[]
 }
-
-// =============================================================================
-// LEASE RESPONSE TYPES
-// =============================================================================
 
 /** Lease list item - minimal fields for list views */
 export type LeaseListItem = Pick<
@@ -199,10 +179,6 @@ export type LeaseDetail = Tables<'leases'> & {
 	tenant?: Pick<Tables<'users'>, 'id' | 'email' | 'first_name' | 'last_name' | 'phone'>
 }
 
-// =============================================================================
-// MAINTENANCE REQUEST RESPONSE TYPES
-// =============================================================================
-
 /** Maintenance request list item - minimal fields for list views */
 export type MaintenanceRequestListItem = Pick<
 	Tables<'maintenance_requests'>,
@@ -224,61 +200,6 @@ export type MaintenanceRequestDetail = Tables<'maintenance_requests'> & {
 	tenant?: Pick<Tables<'users'>, 'id' | 'email' | 'first_name' | 'last_name' | 'phone'>
 	assigned_user?: Pick<Tables<'users'>, 'id' | 'first_name' | 'last_name'>
 }
-
-// =============================================================================
-// RENT PAYMENT RESPONSE TYPES
-// =============================================================================
-
-/** Rent payment list item - minimal fields for list views */
-export type RentPaymentListItem = Pick<
-	Tables<'rent_payments'>,
-	| 'id'
-	| 'amount'
-	| 'status'
-	| 'due_date'
-	| 'paid_date'
-	| 'lease_id'
-	| 'tenant_id'
-	| 'period_start'
-	| 'period_end'
->
-
-/** Rent payment detail - full row with relations */
-export type RentPaymentDetail = Tables<'rent_payments'> & {
-	lease?: Pick<Tables<'leases'>, 'id' | 'unit_id' | 'rent_amount'>
-	tenant?: Pick<Tables<'users'>, 'id' | 'email' | 'first_name' | 'last_name'>
-}
-
-// =============================================================================
-// RENT CHECKOUT TYPES
-// =============================================================================
-
-/**
- * Request to create a Stripe Checkout Session for rent payment
- * Sent to the stripe-rent-checkout Edge Function
- */
-export interface CreateRentCheckoutRequest {
-	rent_due_id: string
-}
-
-/**
- * Response from the stripe-rent-checkout Edge Function
- */
-export interface CreateRentCheckoutResponse {
-	url: string
-	session_id: string
-}
-
-/**
- * Error response from the stripe-rent-checkout Edge Function
- */
-export interface RentCheckoutError {
-	error: string
-}
-
-// =============================================================================
-// INSERT/UPDATE TYPES (for type-safe mutations)
-// =============================================================================
 
 /** Property insert type */
 export type PropertyInsert = TablesInsert<'properties'>
@@ -303,16 +224,6 @@ export type MaintenanceRequestInsert = TablesInsert<'maintenance_requests'>
 
 /** Maintenance request update type */
 export type MaintenanceRequestUpdate = TablesUpdate<'maintenance_requests'>
-
-/** Rent payment insert type */
-export type RentPaymentInsert = TablesInsert<'rent_payments'>
-
-/** Rent payment update type */
-export type RentPaymentUpdate = TablesUpdate<'rent_payments'>
-
-// =============================================================================
-// LEGACY TYPES (kept for backwards compatibility - migrate away from these)
-// =============================================================================
 
 /**
  * Tenant status values (normalized to lowercase for consistency)
@@ -421,10 +332,6 @@ export interface PaymentHistoryItem {
 	period_end: string
 }
 
-// =============================================================================
-// BILLING & INVOICE TYPES
-// =============================================================================
-
 /**
  * Invoice response from Stripe API
  */
@@ -502,12 +409,6 @@ export interface TenantPayment {
 	application_fee_amount: number
 	period_start: string
 	period_end: string
-}
-
-export interface TenantAutopayStatus {
-	autopayEnabled: boolean
-	paymentMethodId: string | null
-	paymentMethodName: string | null
 }
 
 export interface TenantMaintenanceRequest {
@@ -602,7 +503,6 @@ export interface UpdateMaintenanceRequestInput {
 
 export interface AmountDueResponse {
 	base_rent_cents: number
-	late_fees_cents: number
 	other_charges_cents: number
 	total_due_cents: number
 	next_payment_date: string
@@ -799,15 +699,12 @@ export interface CreateLeaseInput {
 	lead_paint_disclosure_acknowledged?: boolean | null
 	governing_state?: string
 
-	// Status and billing
 	lease_status?:
 		| 'draft'
 		| 'pending_signature'
 		| 'active'
 		| 'ended'
 		| 'terminated'
-	auto_pay_enabled?: boolean
-	stripe_subscription_id?: string
 }
 
 export interface UpdateLeaseInput {
@@ -841,7 +738,6 @@ export interface UpdateLeaseInput {
 		| 'active'
 		| 'ended'
 		| 'terminated'
-	auto_pay_enabled?: boolean
 }
 
 export interface CreatePropertyInput {
@@ -921,48 +817,6 @@ export interface TenantPaymentHistoryResponse {
 	}
 }
 
-// Subscription types
-export interface CreateRentSubscriptionRequest {
-	leaseId: string
-	paymentMethodId: string
-	amount: number
-	billingDayOfMonth: number
-	currency?: string
-}
-
-export interface RentSubscriptionResponse {
-	id: string
-	leaseId: string
-	tenantId: string
-	ownerId: string
-	stripeSubscriptionId: string
-	stripeCustomerId: string
-	paymentMethodId?: string | undefined
-	amount?: number | undefined
-	currency: string
-	billingDayOfMonth: number
-	nextChargeDate?: string | undefined
-	status: string
-	platformFeePercentage: number
-	pausedAt?: string | undefined
-	canceledAt?: string | undefined
-	createdAt: string
-	updatedAt: string
-}
-
-export interface UpdateSubscriptionRequest {
-	paymentMethodId?: string
-	status?: 'active' | 'paused' | 'cancelled'
-	amount?: number
-	billingDayOfMonth?: number
-}
-
-export interface SubscriptionActionResponse {
-	success: boolean
-	message: string
-	subscription?: RentSubscriptionResponse
-}
-
 // Payment reminder types
 export interface SendPaymentReminderRequest {
 	tenant_id: string
@@ -977,7 +831,6 @@ export interface SendPaymentReminderResponse {
 }
 
 // Request/Response aliases for consistency
-export type CreateSubscriptionRequest = CreateRentSubscriptionRequest
 export type CreateTenantRequest = TenantCreate
 export type UpdateTenantRequest = TenantUpdate
 export type CreateUnitRequest = CreateUnitInput
@@ -1017,5 +870,4 @@ export interface BulkImportStepperProps {
 	modalId: string
 }
 
-// Constants
 export const DEFAULT_RETRY_ATTEMPTS = 3
