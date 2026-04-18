@@ -12,7 +12,7 @@
 import { useQuery } from '@tanstack/react-query'
 
 import { billingQueries } from './query-keys/billing-keys'
-import { subscriptionQueries, subscriptionStatusQuery } from './query-keys/subscription-keys'
+import { subscriptionStatusQuery } from './query-keys/subscription-keys'
 
 
 // ============================================================================
@@ -41,16 +41,4 @@ export function useFailedPaymentAttempts() {
 
 export function useSubscriptionStatus(options: { enabled?: boolean } = {}) {
 	return useQuery(subscriptionStatusQuery.subscriptionStatus(options))
-}
-
-// ============================================================================
-// SUBSCRIPTION QUERY HOOKS
-// ============================================================================
-
-export function useSubscriptions() {
-	return useQuery(subscriptionQueries.list())
-}
-
-export function useSubscription(id: string) {
-	return useQuery(subscriptionQueries.detail(id))
 }

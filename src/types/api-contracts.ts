@@ -539,7 +539,6 @@ export interface UpdateMaintenanceRequestInput {
 
 export interface AmountDueResponse {
 	base_rent_cents: number
-	late_fees_cents: number
 	other_charges_cents: number
 	total_due_cents: number
 	next_payment_date: string
@@ -736,15 +735,12 @@ export interface CreateLeaseInput {
 	lead_paint_disclosure_acknowledged?: boolean | null
 	governing_state?: string
 
-	// Status and billing
 	lease_status?:
 		| 'draft'
 		| 'pending_signature'
 		| 'active'
 		| 'ended'
 		| 'terminated'
-	auto_pay_enabled?: boolean
-	stripe_subscription_id?: string
 }
 
 export interface UpdateLeaseInput {
@@ -778,7 +774,6 @@ export interface UpdateLeaseInput {
 		| 'active'
 		| 'ended'
 		| 'terminated'
-	auto_pay_enabled?: boolean
 }
 
 export interface CreatePropertyInput {
@@ -858,48 +853,6 @@ export interface TenantPaymentHistoryResponse {
 	}
 }
 
-// Subscription types
-export interface CreateRentSubscriptionRequest {
-	leaseId: string
-	paymentMethodId: string
-	amount: number
-	billingDayOfMonth: number
-	currency?: string
-}
-
-export interface RentSubscriptionResponse {
-	id: string
-	leaseId: string
-	tenantId: string
-	ownerId: string
-	stripeSubscriptionId: string
-	stripeCustomerId: string
-	paymentMethodId?: string | undefined
-	amount?: number | undefined
-	currency: string
-	billingDayOfMonth: number
-	nextChargeDate?: string | undefined
-	status: string
-	platformFeePercentage: number
-	pausedAt?: string | undefined
-	canceledAt?: string | undefined
-	createdAt: string
-	updatedAt: string
-}
-
-export interface UpdateSubscriptionRequest {
-	paymentMethodId?: string
-	status?: 'active' | 'paused' | 'cancelled'
-	amount?: number
-	billingDayOfMonth?: number
-}
-
-export interface SubscriptionActionResponse {
-	success: boolean
-	message: string
-	subscription?: RentSubscriptionResponse
-}
-
 // Payment reminder types
 export interface SendPaymentReminderRequest {
 	tenant_id: string
@@ -914,7 +867,6 @@ export interface SendPaymentReminderResponse {
 }
 
 // Request/Response aliases for consistency
-export type CreateSubscriptionRequest = CreateRentSubscriptionRequest
 export type CreateTenantRequest = TenantCreate
 export type UpdateTenantRequest = TenantUpdate
 export type CreateUnitRequest = CreateUnitInput

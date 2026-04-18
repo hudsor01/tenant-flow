@@ -140,8 +140,6 @@ const mockLease = {
 	security_deposit: 1500,
 	payment_day: 1,
 	lease_status: 'active',
-	auto_pay_enabled: false,
-	stripe_subscription_status: 'none',
 	created_at: '2024-01-01T00:00:00Z',
 	updated_at: '2024-01-01T00:00:00Z'
 }
@@ -422,7 +420,6 @@ describe('Mutation Hooks', () => {
 				security_deposit: 1500,
 				payment_day: 1,
 				tenant_ids: ['tenant-789'],
-				auto_pay_enabled: false,
 				lease_status: 'draft'
 			})
 

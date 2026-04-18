@@ -8,7 +8,7 @@ import {
 	usePreferencesStore,
 	useDataDensity
 } from '#providers/preferences-provider'
-import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { createClient } from '#lib/supabase/client'
 import { getCachedUser } from '#lib/supabase/get-cached-user'
@@ -24,27 +24,6 @@ export function GeneralSettings() {
 	// Fetch current user profile via shared hook
 	const { data: profile, isLoading: profileLoading } = useProfile()
 
-	// Fetch company profile from stripe_connected_accounts
-	const { data: companyProfile, isLoading: companyLoading } = useQuery({
-		queryKey: profileKeys.company(),
-		queryFn: async () => {
-			const supabase = createClient()
-			const user = await getCachedUser()
-			if (!user) throw new Error('Not authenticated')
-
-			const { data, error } = await supabase
-				.from('stripe_connected_accounts')
-				.select('business_name, business_type')
-				.eq('user_id', user.id)
-				.maybeSingle()
-
-			if (error) throw error
-			return data
-		},
-		staleTime: 5 * 60 * 1000
-	})
-
-	const [businessName, setBusinessName] = useState('')
 	const [contactEmail, setContactEmail] = useState('')
 	const [phone, setPhone] = useState('')
 	const [timezone, setTimezone] = useState('America/Chicago')
@@ -52,16 +31,13 @@ export function GeneralSettings() {
 
 	// Update form when data loads
 	useEffect(() => {
-		if (companyProfile?.business_name) {
-			setBusinessName(companyProfile.business_name)
-		}
 		if (profile?.email) {
 			setContactEmail(profile.email)
 		}
 		if (profile?.phone) {
 			setPhone(profile.phone)
 		}
-	}, [companyProfile, profile])
+	}, [profile])
 
 	const queryClient = useQueryClient()
 
@@ -108,7 +84,7 @@ export function GeneralSettings() {
 		}
 	}
 
-	const isLoading = profileLoading || companyLoading
+	const isLoading = profileLoading
 
 	if (isLoading) {
 		return (
@@ -131,31 +107,14 @@ export function GeneralSettings() {
 				</div>
 			</BlurFade>
 
-			{/* Business Profile */}
+			{/* Contact Info */}
 			<BlurFade delay={0.15} inView>
 				<section className="rounded-lg border bg-card p-6">
 					<h3 className="mb-4 text-sm font-medium text-muted-foreground uppercase tracking-wider">
-						Business Profile
+						Contact Info
 					</h3>
 
 					<div className="space-y-4">
-						<div className="grid gap-2">
-							<label htmlFor="businessName" className="text-sm font-medium">
-								Business Name
-							</label>
-							<input
-								id="businessName"
-								type="text"
-								value={businessName}
-								onChange={e => setBusinessName(e.target.value)}
-								placeholder="Your business name"
-								className="h-10 rounded-lg border bg-background px-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
-							/>
-							<p className="text-xs text-muted-foreground">
-								Business name is managed through Stripe Connect
-							</p>
-						</div>
-
 						<div className="grid gap-2">
 							<label htmlFor="contactEmail" className="text-sm font-medium">
 								Contact Email

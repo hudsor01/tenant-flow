@@ -9,10 +9,10 @@
  *
  * @example
  * ```typescript
- * import type { OverduePaymentResult } from '#shared/types/query-results'
+ * import type { MaintenanceRequestResult } from '#shared/types/query-results'
  *
- * const { data } = await client.from('rent_payments').select(`...`)
- * const payments = data as OverduePaymentResult[]
+ * const { data } = await client.from('maintenance_requests').select(`...`)
+ * const requests = data as MaintenanceRequestResult[]
  * ```
  */
 

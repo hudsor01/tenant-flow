@@ -84,11 +84,7 @@ export const leaseInputSchema = z.object({
 		.max(30, 'Late fee days cannot exceed 30 days')
 		.optional(),
 
-	lease_status: lease_statusSchema.default('draft'),
-
-	auto_pay_enabled: z.boolean().default(false),
-
-	stripe_subscription_id: z.string().optional()
+	lease_status: lease_statusSchema.default('draft')
 })
 
 // Full lease schema (includes server-generated fields)
@@ -141,8 +137,7 @@ export const leaseQuerySchema = z.object({
 // Note: Only omit fields that exist in leaseInputSchema (Zod 4 throws for non-existent keys)
 export const leaseCreateSchema = leaseInputSchema
 	.omit({
-		lease_status: true,
-		stripe_subscription_id: true
+		lease_status: true
 	})
 	.extend({
 		tenant_ids: z.array(uuidSchema).min(1, 'At least one tenant is required'),
@@ -243,8 +238,7 @@ export const leaseFormSchema = z.object({
 	payment_day: z.string().min(1, 'Payment day is required'),
 	grace_period_days: z.string().optional(),
 	late_fee_amount: z.string().optional(),
-	late_fee_days: z.string().optional(),
-	auto_pay_enabled: z.boolean().optional().default(false)
+	late_fee_days: z.string().optional()
 })
 
 export const leaseCreateFormSchema = leaseFormSchema.extend({
@@ -270,8 +264,7 @@ export const transformLeaseFormData = (data: LeaseFormData) => ({
 		: undefined,
 	late_fee_days: data.late_fee_days
 		? parseInt(data.late_fee_days, 10)
-		: undefined,
-	auto_pay_enabled: data.auto_pay_enabled || false
+		: undefined
 })
 
 export type LeaseFormData = z.infer<typeof leaseFormSchema>

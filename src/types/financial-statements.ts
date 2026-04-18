@@ -319,13 +319,9 @@ export interface QueryProperty {
 }
 
 // Detailed query types for performance/financial analytics
-export interface DetailedQueryLease extends QueryLease {
-	rent_payments?: {
-		amount: number
-		status: string
-		paid_date: string | null
-	}[]
-}
+// (extends-only marker interface — preserves typing parity with QueryLease while
+// leaving room for future detail-only fields without touching callers.)
+export type DetailedQueryLease = QueryLease
 
 export interface DetailedQueryUnit extends QueryUnit {
 	leases?: DetailedQueryLease[]

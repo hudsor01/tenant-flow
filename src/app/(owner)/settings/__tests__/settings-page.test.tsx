@@ -267,9 +267,8 @@ describe('Settings Page', () => {
 			).toBeInTheDocument()
 		})
 
-		// Check for Business Profile section
-		expect(screen.getByText('Business Profile')).toBeInTheDocument()
-		expect(screen.getByLabelText('Business Name')).toBeInTheDocument()
+		// Check for Contact Info section (Business Profile section removed with Stripe Connect)
+		expect(screen.getByText('Contact Info')).toBeInTheDocument()
 		expect(screen.getByLabelText('Contact Email')).toBeInTheDocument()
 		expect(screen.getByLabelText('Phone Number')).toBeInTheDocument()
 

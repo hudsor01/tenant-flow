@@ -562,11 +562,6 @@ export type Database = {
           security_deposit: number
           sent_for_signature_at: string | null
           start_date: string
-          stripe_subscription_id: string | null
-          stripe_subscription_status: string
-          subscription_failure_reason: string | null
-          subscription_last_attempt_at: string | null
-          subscription_retry_count: number | null
           tenant_responsible_utilities: string[] | null
           tenant_signature_ip: string | null
           tenant_signature_method: string | null
@@ -603,11 +598,6 @@ export type Database = {
           security_deposit: number
           sent_for_signature_at?: string | null
           start_date: string
-          stripe_subscription_id?: string | null
-          stripe_subscription_status?: string
-          subscription_failure_reason?: string | null
-          subscription_last_attempt_at?: string | null
-          subscription_retry_count?: number | null
           tenant_responsible_utilities?: string[] | null
           tenant_signature_ip?: string | null
           tenant_signature_method?: string | null
@@ -644,11 +634,6 @@ export type Database = {
           security_deposit?: number
           sent_for_signature_at?: string | null
           start_date?: string
-          stripe_subscription_id?: string | null
-          stripe_subscription_status?: string
-          subscription_failure_reason?: string | null
-          subscription_last_attempt_at?: string | null
-          subscription_retry_count?: number | null
           tenant_responsible_utilities?: string[] | null
           tenant_signature_ip?: string | null
           tenant_signature_method?: string | null

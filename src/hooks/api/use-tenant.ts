@@ -8,8 +8,7 @@
  *
  * PostgREST migration notes:
  * - All CRUD mutations use supabase-js directly
- * - tenants table: id, user_id, emergency_contact_*, identity_verified, ssn_last_four, stripe_customer_id
- * - Invite flow: creates tenant_invitations record; actual tenant created when user accepts
+ * - tenants table: id, owner_user_id, name, email, phone, emergency_contact_*, identity_verified, ssn_last_four
  */
 
 import {

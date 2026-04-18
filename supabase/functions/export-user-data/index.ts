@@ -1,6 +1,7 @@
 // Export User Data Edge Function
-// GDPR Article 20 data portability: authenticated users download all their personal data as JSON.
-// Supports OWNER and TENANT roles with role-specific data sections.
+// GDPR Article 20 data portability: authenticated landlords download all their
+// personal data as JSON. Landlord-only mode: rent_due / rent_payments tables
+// are gone; tenant-role export is gone (no tenant accounts exist).
 //
 // GET /functions/v1/export-user-data
 // Headers: Authorization: Bearer <jwt>
@@ -68,7 +69,7 @@ Deno.serve(async (req: Request) => {
     const typedUser = userRecord as UserRecord
     const userType = typedUser.user_type
 
-    // Build profile section (same for both roles)
+    // Build profile section
     const profile = {
       full_name: typedUser.full_name,
       email: typedUser.email,
@@ -85,8 +86,6 @@ Deno.serve(async (req: Request) => {
 
     if (userType === 'OWNER' || userType === 'ADMIN') {
       exportData = await collectOwnerData(supabase, user.id, profile)
-    } else if (userType === 'TENANT') {
-      exportData = await collectTenantData(supabase, user.id, profile)
     } else {
       // PENDING or unknown role -- export profile only
       exportData = {
@@ -116,18 +115,13 @@ async function collectOwnerData(
   userId: string,
   profile: Record<string, unknown>,
 ): Promise<Record<string, unknown>> {
-  // Pre-fetch IDs needed for .in() filters (avoids duplicate queries inside Promise.all)
-  const [leaseIds, maintenanceIds] = await Promise.all([
-    getOwnerLeaseIds(supabase, userId),
-    getOwnerMaintenanceIds(supabase, userId),
-  ])
+  const maintenanceIds = await getOwnerMaintenanceIds(supabase, userId)
 
   const [
     propertiesResult,
     unitsResult,
     leasesResult,
-    rentDueResult,
-    rentPaymentsResult,
+    tenantsResult,
     maintenanceResult,
     documentsResult,
     expensesResult,
@@ -144,18 +138,13 @@ async function collectOwnerData(
       .limit(10000),
     supabase
       .from('leases')
-      .select('id, lease_status, start_date, end_date, rent_amount, created_at')
+      .select('id, lease_status, start_date, end_date, rent_amount, security_deposit, created_at')
       .eq('owner_user_id', userId)
       .limit(10000),
     supabase
-      .from('rent_due')
-      .select('id, amount, due_date, status, lease_id')
-      .in('lease_id', leaseIds.length > 0 ? leaseIds : ['__none__'])
-      .limit(10000),
-    supabase
-      .from('rent_payments')
-      .select('id, amount, status, paid_date, lease_id')
-      .in('lease_id', leaseIds.length > 0 ? leaseIds : ['__none__'])
+      .from('tenants')
+      .select('id, first_name, last_name, name, email, phone, status, date_of_birth, emergency_contact_name, emergency_contact_phone, emergency_contact_relationship, created_at')
+      .eq('owner_user_id', userId)
       .limit(10000),
     supabase
       .from('maintenance_requests')
@@ -182,98 +171,11 @@ async function collectOwnerData(
     properties: propertiesResult.data ?? [],
     units: unitsResult.data ?? [],
     leases: leasesResult.data ?? [],
-    rent_due: rentDueResult.data ?? [],
-    rent_payments: rentPaymentsResult.data ?? [],
+    tenants: tenantsResult.data ?? [],
     maintenance_requests: maintenanceResult.data ?? [],
     documents: documentsResult.data ?? [],
     expenses: expensesResult.data ?? [],
   }
-}
-
-async function collectTenantData(
-  supabase: ReturnType<typeof createClient>,
-  userId: string,
-  profile: Record<string, unknown>,
-): Promise<Record<string, unknown>> {
-  // First get the tenant record to use tenant_id for related queries
-  const { data: tenantRecord } = await supabase
-    .from('tenants')
-    .select('id, status, date_of_birth, emergency_contact_name, emergency_contact_phone, emergency_contact_relationship')
-    .eq('user_id', userId)
-    .single()
-
-  const tenantId = tenantRecord?.id
-
-  if (!tenantId) {
-    return {
-      exported_at: new Date().toISOString(),
-      user_role: 'TENANT',
-      user_id: userId,
-      profile,
-      tenant_record: null,
-      leases: [],
-      rent_due: [],
-      rent_payments: [],
-      maintenance_requests: [],
-    }
-  }
-
-  // Get lease IDs through lease_tenants for this tenant
-  const tenantLeaseIds = await getTenantLeaseIds(supabase, tenantId)
-
-  const [
-    leaseTenantsResult,
-    rentDueResult,
-    rentPaymentsResult,
-    maintenanceResult,
-  ] = await Promise.all([
-    supabase
-      .from('lease_tenants')
-      .select('lease_id, responsibility_percentage, leases(start_date, end_date, rent_amount, lease_status)')
-      .eq('tenant_id', tenantId)
-      .limit(10000),
-    supabase
-      .from('rent_due')
-      .select('id, amount, due_date, status')
-      .in('lease_id', tenantLeaseIds.length > 0 ? tenantLeaseIds : ['__none__'])
-      .limit(10000),
-    supabase
-      .from('rent_payments')
-      .select('id, amount, status, paid_date')
-      .eq('tenant_id', tenantId)
-      .limit(10000),
-    supabase
-      .from('maintenance_requests')
-      .select('id, title, description, status, priority, created_at')
-      .eq('tenant_id', tenantId)
-      .limit(10000),
-  ])
-
-  return {
-    exported_at: new Date().toISOString(),
-    user_role: 'TENANT',
-    user_id: userId,
-    profile,
-    tenant_record: tenantRecord,
-    leases: leaseTenantsResult.data ?? [],
-    rent_due: rentDueResult.data ?? [],
-    rent_payments: rentPaymentsResult.data ?? [],
-    maintenance_requests: maintenanceResult.data ?? [],
-  }
-}
-
-// Helper: get all lease IDs for an owner
-async function getOwnerLeaseIds(
-  supabase: ReturnType<typeof createClient>,
-  userId: string,
-): Promise<string[]> {
-  const { data } = await supabase
-    .from('leases')
-    .select('id')
-    .eq('owner_user_id', userId)
-    .limit(10000)
-
-  return (data ?? []).map((row: { id: string }) => row.id)
 }
 
 // Helper: get all maintenance request IDs for an owner
@@ -288,18 +190,4 @@ async function getOwnerMaintenanceIds(
     .limit(10000)
 
   return (data ?? []).map((row: { id: string }) => row.id)
-}
-
-// Helper: get all lease IDs for a tenant through lease_tenants
-async function getTenantLeaseIds(
-  supabase: ReturnType<typeof createClient>,
-  tenantId: string,
-): Promise<string[]> {
-  const { data } = await supabase
-    .from('lease_tenants')
-    .select('lease_id')
-    .eq('tenant_id', tenantId)
-    .limit(10000)
-
-  return (data ?? []).map((row: { lease_id: string }) => row.lease_id)
 }

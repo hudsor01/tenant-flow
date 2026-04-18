@@ -10,10 +10,8 @@
  * - PostgREST direct via supabase-js (no apiRequest calls)
  *
  * Schema notes:
- * - tenants table: id, user_id, emergency_contact_*, identity_verified, ssn_last_four, stripe_customer_id
- * - Tenant name/email/phone live on users table (joined via user_id)
- * - tenant_invitations table exists for invitation management
- * - notification_settings table stores notification prefs (keyed by user_id)
+ * - tenants table: id, owner_user_id, name, email, phone, emergency_contact_*, identity_verified, ssn_last_four
+ * - Landlord-only model: tenants are owner-managed records, not authenticated users
  */
 
 import { queryOptions } from '@tanstack/react-query'
