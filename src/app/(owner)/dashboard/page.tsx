@@ -1,24 +1,17 @@
 'use client'
 
-import { Suspense, useState, useEffect } from 'react'
+import { Suspense, useEffect } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { toast } from 'sonner'
 import { ErrorBoundary } from '#components/error-boundary/error-boundary'
 import { Dashboard } from '#components/dashboard/dashboard'
 import { OwnerOnboardingTour } from '#components/tours/owner-onboarding-tour'
 import { OnboardingWizard } from '#components/onboarding/onboarding-wizard'
-import { Alert, AlertDescription } from '#components/ui/alert'
-import { Button } from '#components/ui/button'
 import {
 	useDashboardStats,
 	useDashboardCharts,
 	usePropertyPerformance
 } from '#hooks/api/use-dashboard-hooks'
-import {
-	useConnectedAccount,
-	useCreateConnectedAccountMutation
-} from '#hooks/api/use-stripe-connect'
-import { X } from 'lucide-react'
 import { DashboardLoadingSkeleton } from './components/dashboard-loading-skeleton'
 import { DashboardEmptyState } from './components/dashboard-empty-state'
 import '../dashboard.css'
@@ -29,21 +22,6 @@ import '../dashboard.css'
 function DashboardContent() {
 	const router = useRouter()
 	const searchParams = useSearchParams()
-	const [bannerDismissed, setBannerDismissed] = useState(false)
-
-	// Stripe Connect hooks
-	const { data: connectedAccount } = useConnectedAccount()
-	const { mutate: startOnboarding, isPending: isOnboarding } = useCreateConnectedAccountMutation()
-
-	// Return-journey toast: detect ?stripe_connect=success on mount
-	useEffect(() => {
-		if (searchParams.get('stripe_connect') === 'success') {
-			toast.success('Stripe account connected — verification pending')
-			const url = new URL(window.location.href)
-			url.searchParams.delete('stripe_connect')
-			window.history.replaceState({}, '', url.toString())
-		}
-	}, [searchParams])
 
 	// Return-journey toast: detect ?billing=updated after Stripe Customer Portal return
 	useEffect(() => {
@@ -135,10 +113,6 @@ function DashboardContent() {
 		router.push('/tenants/new')
 	}
 
-	const onRecordPayment = () => {
-		router.push('/rent-collection')
-	}
-
 	const onCreateMaintenanceRequest = () => {
 		router.push('/maintenance/new')
 	}
@@ -185,35 +159,6 @@ function DashboardContent() {
 
 	return (
 		<div className="flex flex-1 flex-col">
-			{/* Stripe Connect incomplete verification banner */}
-			{connectedAccount && !connectedAccount.charges_enabled && !bannerDismissed && (
-				<div className="px-6 pt-4">
-					<Alert className="border-warning/20 bg-warning/10 flex items-center justify-between gap-3">
-						<AlertDescription className="col-start-1">
-							Your Stripe account requires additional verification before you can receive payments.
-						</AlertDescription>
-						<div className="flex items-center gap-2 shrink-0 col-start-2">
-							<Button
-								size="sm"
-								variant="outline"
-								onClick={() => startOnboarding({})}
-								disabled={isOnboarding}
-								className="min-h-11"
-							>
-								Complete verification
-							</Button>
-							<button
-								type="button"
-								aria-label="Dismiss banner"
-								className="p-2 hover:opacity-70 rounded"
-								onClick={() => setBannerDismissed(true)}
-							>
-								<X className="h-4 w-4" aria-hidden="true" />
-							</button>
-						</div>
-					</Alert>
-				</div>
-			)}
 			<Dashboard
 				metrics={metrics}
 				revenueTrend={revenueTrend}
@@ -221,7 +166,6 @@ function DashboardContent() {
 				onAddProperty={onAddProperty}
 				onCreateLease={onCreateLease}
 				onInviteTenant={onInviteTenant}
-				onRecordPayment={onRecordPayment}
 				onCreateMaintenanceRequest={onCreateMaintenanceRequest}
 			/>
 		</div>

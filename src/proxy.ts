@@ -27,7 +27,6 @@ const PUBLIC_ROUTES = [
   '/resources',
   '/compare',
   '/search',
-  '/accept-invite',
   '/auth/callback',
   '/auth/confirm-email',
   '/auth/post-checkout',
@@ -81,36 +80,16 @@ export async function proxy(
   // Role-based route enforcement
   const userType = user.app_metadata?.user_type as string | undefined
 
-  // /admin/* is admin-only. Non-admin users (OWNER / TENANT / PENDING)
-  // are redirected to their primary surface. This is the first gate;
-  // the (admin) route group's layout.tsx performs a second check.
+  // /admin/* is admin-only. Non-admin users are redirected to the dashboard.
+  // This is the first gate; the (admin) route group's layout.tsx performs a
+  // second check.
   if (pathname.startsWith('/admin')) {
     if (userType !== 'ADMIN') {
-      const fallback = userType === 'TENANT' ? '/tenant' : '/dashboard'
       return redirectWithCookies(
-        new URL(fallback, request.url),
+        new URL('/dashboard', request.url),
         supabaseResponse
       )
     }
-  }
-
-  // TENANT accessing owner routes
-  if (userType === 'TENANT' && pathname.startsWith('/dashboard')) {
-    return redirectWithCookies(
-      new URL('/tenant', request.url),
-      supabaseResponse
-    )
-  }
-
-  // OWNER or ADMIN accessing tenant routes
-  if (
-    (userType === 'OWNER' || userType === 'ADMIN') &&
-    pathname.startsWith('/tenant')
-  ) {
-    return redirectWithCookies(
-      new URL('/dashboard', request.url),
-      supabaseResponse
-    )
   }
 
   // PENDING or no user_type on non-auth routes -> select role

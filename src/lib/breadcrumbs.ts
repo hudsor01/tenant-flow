@@ -23,7 +23,6 @@ const LABEL_MAP: Record<string, string> = {
 
 	// Financials routes
 	financials: 'Financials',
-	'rent-collection': 'Rent Collection',
 	'income-statement': 'Income Statement',
 	'cash-flow': 'Cash Flow',
 	'balance-sheet': 'Balance Sheet',

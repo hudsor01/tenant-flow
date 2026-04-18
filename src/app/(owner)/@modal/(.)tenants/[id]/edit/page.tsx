@@ -1,5 +1,5 @@
 import { RouteModal } from '#components/ui/route-modal'
-import { TenantEditForm } from '#app/(tenant)/tenant/tenant-edit-form.client'
+import { TenantEditForm } from '#app/(owner)/tenants/components/tenant-edit-form.client'
 import { notFound } from 'next/navigation'
 import { createLogger } from '#lib/frontend-logger'
 

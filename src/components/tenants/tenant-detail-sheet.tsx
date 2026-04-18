@@ -20,7 +20,7 @@ interface TenantDetailSheetProps {
 	onEdit: (tenantId: string) => void
 	onContact: (tenantId: string, method: 'email' | 'phone') => void
 	onViewLease: (leaseId: string) => void
-	onViewPaymentHistory: (tenantId: string) => void
+	onViewPaymentHistory?: (tenantId: string) => void
 }
 
 export function TenantDetailSheet({
@@ -102,7 +102,9 @@ export function TenantDetailSheet({
 							</div>
 						</section>
 					)}
-					<RecentPaymentsSection tenant={tenant} onViewPaymentHistory={onViewPaymentHistory} />
+					{onViewPaymentHistory && (
+						<RecentPaymentsSection tenant={tenant} onViewPaymentHistory={onViewPaymentHistory} />
+					)}
 					<LeaseHistorySection tenant={tenant} onViewLease={onViewLease} />
 					<AccountInfoSection tenant={tenant} />
 				</div>

@@ -109,7 +109,6 @@ export function AppShell({ children, showQuickActionsDock = true }: AppShellProp
 				heading: 'Financials',
 				items: [
 					{ label: 'Financials', href: '/financials', icon: Receipt },
-					{ label: 'Rent Collection', href: '/rent-collection', icon: Receipt },
 					{ label: 'Income Statement', href: '/financials/income-statement', icon: Receipt },
 					{ label: 'Cash Flow', href: '/financials/cash-flow', icon: Receipt },
 					{ label: 'Balance Sheet', href: '/financials/balance-sheet', icon: Receipt },

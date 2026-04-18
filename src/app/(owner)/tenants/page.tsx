@@ -3,13 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useQuery } from '@tanstack/react-query'
-import { toast } from 'sonner'
 import { tenantQueries } from '#hooks/api/query-keys/tenant-keys'
-import { tenantPaymentQueries } from '#hooks/api/query-keys/payment-keys'
-import {
-	useCancelInvitationMutation,
-	useResendInvitationMutation
-} from '#hooks/api/use-tenant-invite-mutations'
 import { useDeleteTenantMutation } from '#hooks/api/use-tenant-mutations'
 import {
 	AlertDialog,
@@ -23,7 +17,6 @@ import {
 } from '#components/ui/alert-dialog'
 import { Tenants } from '#components/tenants/tenants'
 import {
-	normalizePaymentStatus,
 	transformToTenantItem,
 	transformToTenantSectionDetail
 } from './components/tenant-transforms'
@@ -40,36 +33,7 @@ export default function TenantsPage() {
 	const { data: tenantsResponse, isLoading, error } = useQuery(tenantQueries.list())
 	const rawTenants = tenantsResponse?.data ?? []
 
-	// Transform to design-os format
-	const { data: selectedTenantPayments } = useQuery(
-		tenantPaymentQueries.ownerPayments(selectedTenantId ?? '', {
-			limit: 100,
-			enabled: Boolean(selectedTenantId)
-		})
-	)
-	const selectedTenantTotalPaid = (() => {
-		if (!selectedTenantPayments?.payments?.length) return 0
-		return selectedTenantPayments.payments.reduce((total, payment) => {
-			if (payment.status?.toLowerCase() === 'succeeded') {
-				return total + payment.amount
-			}
-			return total
-		}, 0)
-	})()
-	const selectedTenantPaymentHistory = (() => {
-		if (!selectedTenantPayments?.payments?.length) return undefined
-		return selectedTenantPayments.payments.map(payment => ({
-			id: payment.id,
-			amount: payment.amount,
-			status: normalizePaymentStatus(payment.status),
-			dueDate: payment.due_date,
-			...(payment.paid_date !== null ? { paidDate: payment.paid_date } : {})
-		}))
-	})()
-	const totalPaidByTenant = (() => {
-		if (!selectedTenantId) return new Map<string, number>()
-		return new Map([[selectedTenantId, selectedTenantTotalPaid]])
-	})()
+	const totalPaidByTenant = new Map<string, number>()
 	const tenants = rawTenants.map(tenant => transformToTenantItem(tenant, totalPaidByTenant))
 
 	// Get selected tenant detail
@@ -77,19 +41,12 @@ export default function TenantsPage() {
 		if (!selectedTenantId) return undefined
 		const raw = rawTenants.find(t => t.id === selectedTenantId)
 		return raw
-			? transformToTenantSectionDetail(
-					raw,
-					totalPaidByTenant,
-					selectedTenantPaymentHistory
-				)
+			? transformToTenantSectionDetail(raw, totalPaidByTenant)
 			: undefined
 	})()
 
 	// Delete mutation — consolidated hook with active-lease guard
 	const { mutate: deleteTenant } = useDeleteTenantMutation()
-
-	const { mutate: resendInvitation } = useResendInvitationMutation()
-	const { mutate: cancelInvitation } = useCancelInvitationMutation()
 
 	// Callbacks
 	const handleViewTenant = (tenantId: string) => {
@@ -122,20 +79,6 @@ export default function TenantsPage() {
 			router.push(`/leases/${leaseId}`)
 		}
 
-	const handleViewPaymentHistory = (tenantId: string) => {
-			router.push(`/tenants/${tenantId}/payments`)
-		}
-
-	const handleResendInvitation = (invitationId: string) => {
-		toast.info('Resending invitation...')
-		resendInvitation(invitationId)
-	}
-
-	const handleCancelInvitation = (invitationId: string) => {
-		toast.info('Cancelling invitation...')
-		cancelInvitation(invitationId)
-	}
-
 	if (isLoading) {
 		return <TenantsLoadingSkeleton />
 	}
@@ -161,13 +104,10 @@ export default function TenantsPage() {
 				tenants={tenants}
 				invitations={[]}
 				selectedTenant={selectedTenant}
-				onResendInvitation={handleResendInvitation}
-				onCancelInvitation={handleCancelInvitation}
 				onViewTenant={handleViewTenant}
 				onEditTenant={handleEditTenant}
 				onContactTenant={handleContactTenant}
 				onViewLease={handleViewLease}
-				onViewPaymentHistory={handleViewPaymentHistory}
 			/>
 
 			<AlertDialog

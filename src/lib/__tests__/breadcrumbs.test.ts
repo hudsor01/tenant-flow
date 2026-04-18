@@ -164,13 +164,6 @@ describe('generateBreadcrumbs', () => {
 			expect(result[3]?.label).toBe('Payment Methods')
 		})
 
-		it('should handle rent-collection route', () => {
-			const result = generateBreadcrumbs('/rent-collection')
-			expect(result).toEqual([
-				{ href: '/rent-collection', label: 'Rent Collection' }
-			])
-		})
-
 		it('should handle documents routes', () => {
 			const result = generateBreadcrumbs('/documents/lease-template')
 			expect(result).toEqual([

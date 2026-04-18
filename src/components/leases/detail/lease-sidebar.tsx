@@ -1,7 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from '#components/ui/card'
 import { Badge } from '#components/ui/badge'
 import { Button } from '#components/ui/button'
-import { DollarSign, Home, User, Building } from 'lucide-react'
+import { Home, User, Building } from 'lucide-react'
 import Link from 'next/link'
 import { LeaseSignatureStatus } from '#components/leases/lease-signature-status'
 import type { Lease } from '#types/core'
@@ -36,20 +36,12 @@ export function LeaseSidebar({ lease, unit }: LeaseSidebarProps) {
 				</CardHeader>
 				<CardContent className="space-y-2">
 					{isActive && (
-						<>
-							<Button variant="outline" className="w-full justify-start" asChild>
-								<Link href={`/rent-collection?lease_id=${lease.id}`}>
-									<DollarSign className="w-4 h-4 mr-2" />
-									View Payments
-								</Link>
-							</Button>
-							<Button variant="outline" className="w-full justify-start" asChild>
-								<Link href={`/maintenance?unit_id=${lease.unit_id}`}>
-									<Home className="w-4 h-4 mr-2" />
-									Maintenance Requests
-								</Link>
-							</Button>
-						</>
+						<Button variant="outline" className="w-full justify-start" asChild>
+							<Link href={`/maintenance?unit_id=${lease.unit_id}`}>
+								<Home className="w-4 h-4 mr-2" />
+								Maintenance Requests
+							</Link>
+						</Button>
 					)}
 					<Button variant="outline" className="w-full justify-start" asChild>
 						<Link href={`/tenants/${lease.primary_tenant_id}`}>

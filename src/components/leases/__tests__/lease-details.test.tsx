@@ -401,17 +401,17 @@ describe('LeaseDetails', () => {
 			})
 		})
 
-		test('shows payment and maintenance links for active lease', async () => {
+		test('shows maintenance link for active lease', async () => {
 			render(<LeaseDetails id="lease-test-123" />)
 
 			await waitFor(() => {
 				expect(
-					screen.getByRole('link', { name: /view payments/i })
-				).toBeInTheDocument()
-				expect(
 					screen.getByRole('link', { name: /maintenance requests/i })
 				).toBeInTheDocument()
 			})
+			expect(
+				screen.queryByRole('link', { name: /view payments/i })
+			).not.toBeInTheDocument()
 		})
 
 		test('shows tenant profile link', async () => {

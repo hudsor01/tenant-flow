@@ -12,12 +12,8 @@ import { validateEnv } from '../_shared/env.ts'
 import { errorResponse, captureWebhookWarning } from '../_shared/errors.ts'
 import { handleCustomerSubscriptionUpdated } from './handlers/customer-subscription-updated.ts'
 import { handleCustomerSubscriptionDeleted } from './handlers/customer-subscription-deleted.ts'
-import { handleAccountUpdated } from './handlers/account-updated.ts'
-import { handlePaymentIntentSucceeded } from './handlers/payment-intent-succeeded.ts'
-import { handlePaymentIntentFailed } from './handlers/payment-intent-failed.ts'
 import { handleCheckoutSessionCompleted } from './handlers/checkout-session-completed.ts'
 import { handleInvoicePaymentFailed } from './handlers/invoice-payment-failed.ts'
-import { handlePayoutLifecycle } from './handlers/payout-lifecycle.ts'
 
 // Initialize Sentry for error monitoring (Decision #15: Sentry is MANDATORY for metadata validation)
 const sentryDsn = Deno.env.get('SENTRY_DSN')
@@ -107,25 +103,11 @@ Deno.serve(async (req: Request) => {
       case 'customer.subscription.deleted':
         await handleCustomerSubscriptionDeleted(supabase, stripe, event)
         break
-      case 'account.updated':
-        await handleAccountUpdated(supabase, stripe, event)
-        break
-      case 'payment_intent.succeeded':
-        await handlePaymentIntentSucceeded(supabase, stripe, event)
-        break
-      case 'payment_intent.payment_failed':
-        await handlePaymentIntentFailed(supabase, stripe, event)
-        break
       case 'checkout.session.completed':
         await handleCheckoutSessionCompleted(supabase, stripe, event)
         break
       case 'invoice.payment_failed':
         await handleInvoicePaymentFailed(supabase, stripe, event)
-        break
-      case 'payout.created':
-      case 'payout.paid':
-      case 'payout.failed':
-        await handlePayoutLifecycle(supabase, stripe, event)
         break
       default:
         captureWebhookWarning('[WEBHOOK] Unhandled event type', { event_type: event.type, event_id: event.id })

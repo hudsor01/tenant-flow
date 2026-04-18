@@ -6,7 +6,6 @@
 // Actions:
 //   send-for-signature — generate PDF and create DocuSeal submission
 //   sign-owner         — record owner signature in DB
-//   sign-tenant        — record tenant signature in DB (flips lease active if both signed)
 //   cancel             — archive DocuSeal submission and reset lease to draft
 //   resend             — resend pending signature request emails
 
@@ -356,75 +355,8 @@ Deno.serve(async (req: Request) => {
       )
     }
 
-    // -----------------------------------------------------------------------
-    // action: 'sign-tenant'
-    // Records tenant signature timestamp in the leases table.
-    // Flips lease to active if both parties have now signed.
-    // -----------------------------------------------------------------------
-    if (action === 'sign-tenant') {
-      const leaseId = body.leaseId as string
-
-      if (!leaseId) {
-        return new Response(
-          JSON.stringify({ error: 'leaseId is required' }),
-          { status: 400, headers: getJsonHeaders(req) }
-        )
-      }
-
-      const { data: lease, error: leaseError } = await supabase
-        .from('leases')
-        .select('id, owner_user_id, primary_tenant_id, docuseal_submission_id, owner_signed_at')
-        .eq('id', leaseId)
-        .single()
-
-      if (leaseError || !lease) {
-        return new Response(
-          JSON.stringify({ error: 'Forbidden' }),
-          { status: 403, headers: getJsonHeaders(req) }
-        )
-      }
-
-      // Authorization: allow owner or the lease's primary tenant
-      const { data: tenantRecord } = await supabase
-        .from('tenants')
-        .select('id')
-        .eq('user_id', user.id)
-        .maybeSingle()
-
-      const isTenant = tenantRecord?.id === lease.primary_tenant_id
-      const isOwner = lease.owner_user_id === user.id
-
-      if (!isOwner && !isTenant) {
-        return new Response(
-          JSON.stringify({ error: 'Forbidden' }),
-          { status: 403, headers: getJsonHeaders(req) }
-        )
-      }
-
-      const updatePayload: Record<string, unknown> = {
-        tenant_signed_at: new Date().toISOString(),
-        tenant_signature_method: 'docuseal',
-      }
-
-      // If owner already signed, flip lease to active
-      if (lease.owner_signed_at) {
-        updatePayload.lease_status = 'active'
-      }
-
-      const { error: updateError } = await supabase
-        .from('leases')
-        .update(updatePayload)
-        .eq('id', leaseId)
-
-      if (updateError) {
-        return errorResponse(req, 500, updateError, { action: 'sign_tenant' })
-      }
-
-      return new Response(
-        JSON.stringify({ success: true }),
-        { status: 200, headers: getJsonHeaders(req) }
-      )
-    }
+    // Note: tenant signing is handled exclusively via DocuSeal's email flow
+    // (landlord-only mode). The `sign-tenant` action has been removed.
 
     // -----------------------------------------------------------------------
     // action: 'cancel'

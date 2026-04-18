@@ -3,7 +3,8 @@
 import { Button } from '#components/ui/button'
 import { CardLayout } from '#components/ui/card-layout'
 import { LoadingDots } from '#components/ui/loading-spinner'
-import { useSessionStatus } from '#hooks/api/use-payments'
+import { subscriptionStatusQueries } from '#hooks/api/query-keys/subscription-verification-keys'
+import { useQuery } from '@tanstack/react-query'
 import { CheckCircle, ExternalLink, XCircle } from 'lucide-react'
 import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
@@ -30,7 +31,7 @@ export default function CompletePage() {
 		data: sessionData,
 		isLoading,
 		error: sessionError
-	} = useSessionStatus(sessionId)
+	} = useQuery(subscriptionStatusQueries.sessionStatus(sessionId))
 
 	// Derived state based on query results
 	const getDisplayState = () => {

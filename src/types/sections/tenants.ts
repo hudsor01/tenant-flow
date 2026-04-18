@@ -5,20 +5,20 @@ export interface TenantsProps {
 	// Tenant list
 	tenants: TenantItem[]
 
-	// Pending invitations
+	// Pending invitations (deprecated — landlord-only mode has no tenant invitations)
 	invitations: TenantSectionInvitation[]
 
 	// Selected tenant detail
 	selectedTenant?: TenantSectionDetail | undefined
 
 	// Callbacks
-	onResendInvitation: (invitationId: string) => void
-	onCancelInvitation: (invitationId: string) => void
+	onResendInvitation?: (invitationId: string) => void
+	onCancelInvitation?: (invitationId: string) => void
 	onViewTenant: (tenantId: string) => void
 	onEditTenant: (tenantId: string) => void
 	onContactTenant: (tenantId: string, method: 'email' | 'phone') => void
 	onViewLease: (leaseId: string) => void
-	onViewPaymentHistory: (tenantId: string) => void
+	onViewPaymentHistory?: (tenantId: string) => void
 }
 
 export interface TenantItem {

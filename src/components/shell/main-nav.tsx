@@ -73,7 +73,6 @@ const analyticsItems: NavigationItem[] = [
 		href: '/financials',
 		icon: Receipt,
 		children: [
-			{ label: 'Rent Collection', href: '/rent-collection' },
 			{ label: 'Income Statement', href: '/financials/income-statement' },
 			{ label: 'Cash Flow', href: '/financials/cash-flow' },
 			{ label: 'Balance Sheet', href: '/financials/balance-sheet' },

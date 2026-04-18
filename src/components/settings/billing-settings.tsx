@@ -6,11 +6,6 @@ import { BorderBeam } from '#components/ui/border-beam'
 import { Skeleton } from '#components/ui/skeleton'
 import { useSubscriptionStatus } from '#hooks/api/use-billing'
 import { useBillingPortalMutation } from '#hooks/api/use-billing-mutations'
-import { useConnectedAccount } from '#hooks/api/use-stripe-connect'
-import { useQuery } from '@tanstack/react-query'
-import { paymentMethodsKeys } from '#hooks/api/use-payment-methods'
-import { createClient } from '#lib/supabase/client'
-import { ConnectAccountSection } from '#components/settings/sections/connect-account-section'
 import { SubscriptionCancelSection } from '#components/settings/sections/subscription-cancel-section'
 import { BillingHistorySection } from '#components/settings/sections/billing-history-section'
 
@@ -52,25 +47,10 @@ function getStatusBadge(status: string | null) {
 export function BillingSettings() {
 	const { data: subscriptionStatus, isLoading: statusLoading } =
 		useSubscriptionStatus()
-	const { isLoading: connectLoading } = useConnectedAccount()
-
-	const { data: paymentMethods, isLoading: methodsLoading } = useQuery({
-		queryKey: paymentMethodsKeys.all,
-		queryFn: async () => {
-			const supabase = createClient()
-			const { data, error } = await supabase
-				.from('payment_methods')
-				.select('id, type, brand, last_four, exp_month, exp_year')
-				.order('created_at', { ascending: false })
-			if (error) throw error
-			return data || []
-		},
-		staleTime: 2 * 60 * 1000
-	})
 
 	const createPortalSession = useBillingPortalMutation()
 
-	const isLoading = statusLoading || methodsLoading || connectLoading
+	const isLoading = statusLoading
 
 	if (isLoading) {
 		return (
@@ -165,76 +145,7 @@ export function BillingSettings() {
 				</section>
 			</BlurFade>
 
-			{/* Payment Method */}
-			<BlurFade delay={0.25} inView>
-				<section className="rounded-lg border bg-card p-6">
-					<h3 className="mb-4 text-sm font-medium text-muted-foreground uppercase tracking-wider">
-						Payment Method
-					</h3>
-
-					{paymentMethods && paymentMethods.length > 0 ? (
-						<div className="space-y-3">
-							{paymentMethods.map(
-								(pm: {
-									id: string
-									brand: string | null
-									last_four: string | null
-									exp_month: number | null
-									exp_year: number | null
-								}) => (
-									<div
-										key={pm.id}
-										className="flex items-center justify-between p-4 rounded-lg border hover:bg-muted/30 transition-colors"
-									>
-										<div className="flex items-center gap-3">
-											<div className="flex h-10 w-14 items-center justify-center rounded bg-blue-600 text-xs font-bold text-white uppercase">
-												{pm.brand || 'VISA'}
-											</div>
-											<div>
-												<p className="text-sm font-medium">
-													**** **** **** {pm.last_four}
-												</p>
-												<p className="text-xs text-muted-foreground">
-													Expires {pm.exp_month}/{pm.exp_year}
-												</p>
-											</div>
-										</div>
-										<button
-											className="px-3 py-1.5 text-sm font-medium text-primary hover:bg-primary/10 rounded-lg transition-colors"
-											onClick={() => createPortalSession.mutate()}
-										>
-											Update Card
-										</button>
-									</div>
-								)
-							)}
-						</div>
-					) : (
-						<div className="flex items-center justify-between p-4 rounded-lg border hover:bg-muted/30 transition-colors">
-							<div className="flex items-center gap-3">
-								<div className="flex h-10 w-14 items-center justify-center rounded bg-blue-600 text-xs font-bold text-white">
-									VISA
-								</div>
-								<div>
-									<p className="text-sm font-medium">**** **** **** 4242</p>
-									<p className="text-xs text-muted-foreground">
-										Expires 12/2026
-									</p>
-								</div>
-							</div>
-							<button
-								className="px-3 py-1.5 text-sm font-medium text-primary hover:bg-primary/10 rounded-lg transition-colors"
-								onClick={() => createPortalSession.mutate()}
-							>
-								Update Card
-							</button>
-						</div>
-					)}
-				</section>
-			</BlurFade>
-
 			<BillingHistorySection />
-			<ConnectAccountSection />
 			<SubscriptionCancelSection />
 		</div>
 	)

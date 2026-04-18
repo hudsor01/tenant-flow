@@ -23,7 +23,6 @@ import {
 	useAllTenants,
 	useTenantWithLease,
 	useNotificationPreferences,
-	useInvitations,
 	usePrefetchTenantDetail
 } from '../use-tenant'
 import {
@@ -31,10 +30,6 @@ import {
 	useUpdateTenantMutation,
 	useDeleteTenantMutation
 } from '../use-tenant-mutations'
-import {
-	useResendInvitationMutation,
-	useCancelInvitationMutation
-} from '../use-tenant-invite-mutations'
 import { createQueryChain } from '#test/mocks/supabase-query-mock'
 
 // Mock logger
@@ -326,19 +321,6 @@ describe('Query Hooks', () => {
 		})
 	})
 
-	describe('useInvitations', () => {
-		it('should query tenant_invitations table', async () => {
-			const { result } = renderHook(() => useInvitations(), {
-				wrapper: createWrapper()
-			})
-
-			await waitFor(() => {
-				expect(result.current.isSuccess || result.current.isError).toBe(true)
-			})
-
-			expect(supabaseFromMock).toHaveBeenCalledWith('tenant_invitations')
-		})
-	})
 })
 
 describe('Mutation Hooks', () => {
@@ -556,44 +538,6 @@ describe('Mutation Hooks', () => {
 		})
 	})
 
-	describe('useResendInvitationMutation', () => {
-		it('should update tenant_invitations via PostgREST and resend email', async () => {
-			const { result } = renderHook(() => useResendInvitationMutation(), {
-				wrapper: createWrapper()
-			})
-
-			await result.current.mutateAsync('invitation-123')
-
-			expect(supabaseFromMock).toHaveBeenCalledWith('tenant_invitations')
-			expect(supabaseUpdateMock).toHaveBeenCalledWith(
-				expect.objectContaining({ status: 'sent' })
-			)
-
-			// Should have called the send-tenant-invitation Edge Function
-			expect(mockFetch).toHaveBeenCalledWith(
-				expect.stringContaining('/functions/v1/send-tenant-invitation'),
-				expect.objectContaining({
-					method: 'POST',
-					body: expect.stringContaining('invitation-123')
-				})
-			)
-		})
-	})
-
-	describe('useCancelInvitationMutation', () => {
-		it('should update tenant_invitations status to cancelled via PostgREST', async () => {
-			const { result } = renderHook(() => useCancelInvitationMutation(), {
-				wrapper: createWrapper()
-			})
-
-			await result.current.mutateAsync('invitation-123')
-
-			expect(supabaseFromMock).toHaveBeenCalledWith('tenant_invitations')
-			expect(supabaseUpdateMock).toHaveBeenCalledWith(
-				expect.objectContaining({ status: 'cancelled' })
-			)
-		})
-	})
 })
 
 describe('Utility Hooks', () => {

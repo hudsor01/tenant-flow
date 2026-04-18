@@ -14,7 +14,6 @@ import { createClient } from '#lib/supabase/client'
 import { getCachedUser } from '#lib/supabase/get-cached-user'
 import { handlePostgrestError } from '#lib/postgrest-error-handler'
 import { requireOwnerUserId } from '#lib/require-owner-user-id'
-import { resolveTenantId } from '../use-tenant-portal-keys'
 import { QUERY_CACHE_TIMES } from '#lib/constants/query-config'
 import { mutationKeys } from '../mutation-keys'
 import type { PaginatedResponse } from '#types/api-contracts'
@@ -252,63 +251,6 @@ export const maintenanceQueries = {
 			...QUERY_CACHE_TIMES.STATS
 		}),
 
-	tenantPortal: () =>
-		queryOptions({
-			queryKey: [...maintenanceQueries.all(), 'tenant-portal'],
-			queryFn: async (): Promise<{
-				requests: MaintenanceRequest[]
-				total: number
-				open: number
-				inProgress: number
-				completed: number
-			}> => {
-				const supabase = createClient()
-
-				// Use shared tenant ID resolution
-				const tenantId = await resolveTenantId()
-				if (!tenantId) {
-					return { requests: [], total: 0, open: 0, inProgress: 0, completed: 0 }
-				}
-
-				// Parallel queries for paginated list + DB-level counts
-				const [requestsResult, openResult, inProgressResult, completedResult] =
-					await Promise.all([
-						supabase
-							.from('maintenance_requests')
-							.select(MAINTENANCE_SELECT_COLUMNS, { count: 'exact' })
-							.eq('tenant_id', tenantId)
-							.order('created_at', { ascending: false })
-							.limit(50),
-						supabase
-							.from('maintenance_requests')
-							.select('id', { count: 'exact', head: true })
-							.eq('tenant_id', tenantId)
-							.eq('status', 'open'),
-						supabase
-							.from('maintenance_requests')
-							.select('id', { count: 'exact', head: true })
-							.eq('tenant_id', tenantId)
-							.eq('status', 'in_progress'),
-						supabase
-							.from('maintenance_requests')
-							.select('id', { count: 'exact', head: true })
-							.eq('tenant_id', tenantId)
-							.eq('status', 'completed')
-					])
-
-				if (requestsResult.error)
-					handlePostgrestError(requestsResult.error, 'maintenance_requests')
-
-				const requests = (requestsResult.data as MaintenanceRequest[]) ?? []
-				const total = requestsResult.count ?? 0
-				const open = openResult.count ?? 0
-				const inProgress = inProgressResult.count ?? 0
-				const completed = completedResult.count ?? 0
-
-				return { requests, total, open, inProgress, completed }
-			},
-			...QUERY_CACHE_TIMES.LIST
-		})
 }
 
 // ============================================================================

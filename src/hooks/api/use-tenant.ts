@@ -23,20 +23,6 @@ import { useEntityDetail } from '#hooks/use-entity-detail'
 
 // Import query keys from separate file to avoid circular dependency
 import { tenantQueries } from './query-keys/tenant-keys'
-import { tenantInvitationQueries } from './query-keys/tenant-invitation-keys'
-
-// ============================================================================
-// TYPES
-// ============================================================================
-
-/**
- * Invitation filters
- */
-export interface InvitationFilters {
-	status?: 'sent' | 'accepted' | 'expired'
-	page?: number
-	limit?: number
-}
 
 // ============================================================================
 // QUERY HOOKS
@@ -215,9 +201,3 @@ export function useNotificationPreferences(tenant_id: string) {
 	return useQuery(tenantQueries.notificationPreferences(tenant_id))
 }
 
-/**
- * Hook to fetch tenant invitations list
- */
-export function useInvitations() {
-	return useQuery(tenantInvitationQueries.list())
-}
