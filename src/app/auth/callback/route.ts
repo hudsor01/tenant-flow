@@ -1,17 +1,8 @@
 /**
- * Auth Callback Route
- *
- * Handles multiple Supabase auth callback flows:
- * 1. OAuth (Google) - exchanges authorization code for session
- * 2. Email confirmation - verifies token_hash from confirmation email
- * 3. Password recovery - exchanges code for session (handled by update-password page)
- *
- * For first-time Google OAuth users (user_type PENDING or unset):
- * - Checks for pending tenant invitations matching the user's email
- * - If found: auto-accepts the invitation and routes to /tenant
- * - If not found: routes to /auth/select-role for manual role selection
- *
- * CRITICAL: This route is essential for Google OAuth and email confirmation to work.
+ * Auth callback for Supabase OAuth code exchange, email OTP verification,
+ * and password recovery token handling. Landlord-only: TENANT user_type
+ * (legacy) is treated as unknown and falls through to /dashboard so the
+ * proxy + subscription gate decides where they land.
  */
 
 import { createServerClient } from '@supabase/ssr'
@@ -46,10 +37,11 @@ function buildRedirectUrl(
 }
 
 /**
- * Determine dashboard route based on user_type from session metadata
+ * Post-auth destination. PENDING / unset → role selection. Everything else
+ * (OWNER, ADMIN, or legacy TENANT) → /dashboard; the proxy gate routes from
+ * there based on subscription state.
  */
 function getDashboardRoute(userType: string | undefined): string {
-	if (userType === 'TENANT') return '/tenant'
 	if (userType === 'PENDING' || !userType) return '/auth/select-role'
 	return '/dashboard'
 }
