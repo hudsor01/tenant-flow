@@ -1,13 +1,3 @@
-/**
- * Tenant Mutation Options
- * mutationOptions() factories for tenant domain mutations.
- *
- * Contains ONLY mutationKey + mutationFn.
- * onSuccess/onError/onSettled callbacks stay in hook files.
- *
- * Invitation mutations are separate (use-tenant-invite-mutations.ts).
- */
-
 import { mutationOptions } from '@tanstack/react-query'
 import { createClient } from '#lib/supabase/client'
 import { handlePostgrestError } from '#lib/postgrest-error-handler'
@@ -18,10 +8,6 @@ import type {
 	TenantUpdate
 } from '#lib/validation/tenants'
 import { mutationKeys } from '../mutation-keys'
-
-// ============================================================================
-// MUTATION OPTIONS FACTORIES
-// ============================================================================
 
 export const tenantMutations = {
 	create: () =>
@@ -85,7 +71,6 @@ export const tenantMutations = {
 			mutationFn: async (id: string): Promise<void> => {
 				const supabase = createClient()
 
-				// Check for active leases before allowing deletion
 				const { data: activeLeases, error: leaseError } = await supabase
 					.from('lease_tenants')
 					.select('lease_id, leases!inner(id, lease_status)')
@@ -100,8 +85,7 @@ export const tenantMutations = {
 					)
 				}
 
-				// Soft-delete: mark tenant row inactive (landlord-managed record).
-				// Tenants own their own lifecycle post-demolish; we no longer touch users.
+				// Soft delete: do not touch auth users; only the landlord-managed tenant record.
 				const { error } = await supabase
 					.from('tenants')
 					.update({ status: 'inactive', updated_at: new Date().toISOString() })
@@ -123,7 +107,6 @@ export const tenantMutations = {
 			}): Promise<TenantWithLeaseInfo> => {
 				const supabase = createClient()
 
-				// Mark the tenant row as moved out directly.
 				const { error: updateError } = await supabase
 					.from('tenants')
 					.update({
@@ -134,7 +117,6 @@ export const tenantMutations = {
 
 				if (updateError) handlePostgrestError(updateError, 'tenants')
 
-				// Fetch updated tenant with lease info for return value.
 				const { data: updated, error: fetchError } = await supabase
 					.from('tenants')
 					.select(
@@ -145,7 +127,7 @@ export const tenantMutations = {
 
 				if (fetchError) handlePostgrestError(fetchError, 'tenants')
 
-				// Log move-out reason (no DB column for it, kept for audit trail via logger)
+				// Move-out reason has no DB column; persisted via audit log only.
 				logger.info('Tenant marked as moved out', {
 					action: 'mark_moved_out',
 					metadata: {

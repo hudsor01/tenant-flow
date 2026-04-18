@@ -20,10 +20,6 @@ import { leaseQueries } from './query-keys/lease-keys'
 import { leaseMutations } from './query-keys/lease-mutation-options'
 import { ownerDashboardKeys } from './use-owner-dashboard'
 
-// ============================================================================
-// MUTATION HOOKS
-// ============================================================================
-
 /**
  * Mutation hook to delete a lease with optimistic removal
  */

@@ -14,13 +14,8 @@ import { errorResponse } from '../_shared/errors.ts'
 import { validateEnv } from '../_shared/env.ts'
 import { createAdminClient } from '../_shared/supabase-client.ts'
 
-// -----------------------------------------------------------------------
-// Constants & Types
-// -----------------------------------------------------------------------
-
-// Allowed event types — must match the CHECK constraint on
-// public.email_deliverability.event_type. Events outside this list are
-// intentionally ignored (return 200) so Resend does not retry them.
+// Must match the CHECK constraint on public.email_deliverability.event_type.
+// Events outside this list are intentionally ignored (200 response) so Resend does not retry them.
 const ALLOWED_EVENT_TYPES = [
   'email.delivered',
   'email.bounced',
@@ -40,10 +35,6 @@ interface ResendWebhookPayload {
     tags?: unknown
   }
 }
-
-// -----------------------------------------------------------------------
-// Type guards
-// -----------------------------------------------------------------------
 
 function isResendEventType(x: string): x is ResendEventType {
   return (ALLOWED_EVENT_TYPES as readonly string[]).includes(x)
@@ -70,22 +61,8 @@ function isResendWebhookPayload(x: unknown): x is ResendWebhookPayload {
   return true
 }
 
-// -----------------------------------------------------------------------
-// Helpers
-// -----------------------------------------------------------------------
-
-/**
- * Extract the template tag from a Resend payload's `data.tags`.
- *
- * Handles BOTH documented shapes (44-RESEARCH.md Pitfall 1):
- *   - Array shape: [{ name: 'category', value: 'auth' }, ...]
- *   - Object shape: { category: 'auth', type: 'signup' }
- *
- * Priority per D7:
- *   1. `category` (higher-level classification — e.g., 'auth' groups signup + recovery)
- *   2. `type` (falls back for legacy sends)
- *   3. null
- */
+// Resend tags may arrive as either an array of `{name, value}` pairs or a flat object.
+// Prefer `category` (groups auth events) over `type` (legacy); returns null if neither present.
 function extractTemplateTag(tags: unknown): string | null {
   if (!tags) return null
 
@@ -120,16 +97,8 @@ function extractTemplateTag(tags: unknown): string | null {
   return null
 }
 
-/**
- * Verify a Svix-signed webhook (used by Resend for deliverability events).
- *
- * Algorithm (per docs.svix.com/receiving/verifying-payloads/how-manual):
- *   1. 5-minute timestamp freshness tolerance (blocks replay outside window).
- *   2. Strip `whsec_` prefix + base64-decode secret.
- *   3. HMAC-SHA256 over `${svix-id}.${svix-timestamp}.${rawBody}`.
- *   4. Compare to space-delimited list of `v1,<base64>` signatures.
- *   5. Constant-time compare via timingSafeEqual with XOR fallback.
- */
+// Svix HMAC verification per docs.svix.com/receiving/verifying-payloads/how-manual.
+// Enforces 5-minute timestamp freshness, constant-time compare, and accepts rotated signatures.
 async function verifySvixSignature(
   secret: string,
   svixId: string,
@@ -137,14 +106,13 @@ async function verifySvixSignature(
   svixSignatureHeader: string,
   rawBody: string,
 ): Promise<boolean> {
-  // 1. Timestamp freshness — 5-minute tolerance in either direction.
+  // 5-minute freshness window in either direction to defeat replay.
   const nowSec = Math.floor(Date.now() / 1000)
   const tsSec = parseInt(svixTimestamp, 10)
   if (!Number.isFinite(tsSec) || Math.abs(nowSec - tsSec) > 300) {
     return false
   }
 
-  // 2. Strip `whsec_` prefix and base64-decode the secret.
   const secretBase64 = secret.replace(/^whsec_/, '')
   let secretBytes: Uint8Array
   try {
@@ -153,7 +121,6 @@ async function verifySvixSignature(
     return false
   }
 
-  // 3. HMAC-SHA256 over the Svix signed content form.
   const signedContent = `${svixId}.${svixTimestamp}.${rawBody}`
   const key = await crypto.subtle.importKey(
     'raw',
@@ -169,15 +136,13 @@ async function verifySvixSignature(
   )
   const expectedBase64 = btoa(String.fromCharCode(...new Uint8Array(sig)))
 
-  // 4. Header may contain multiple space-delimited `v1,<base64>` entries
-  // (Svix supports key rotation — a single webhook carries old + new sigs).
+  // Header can carry multiple `v1,<base64>` entries during Svix key rotation.
   const signatures = svixSignatureHeader.split(' ').map((part) => {
     const [, value] = part.split(',', 2)
     return value ?? ''
   })
 
-  // 5. Constant-time compare. `crypto.subtle.timingSafeEqual` is available in
-  // Deno but the XOR fallback keeps this robust across runtimes.
+  // Constant-time compare; XOR fallback keeps behavior identical across runtimes.
   return signatures.some((candidate) => {
     if (candidate.length !== expectedBase64.length) return false
     const a = new TextEncoder().encode(candidate)
@@ -202,10 +167,6 @@ async function verifySvixSignature(
     return d === 0
   })
 }
-
-// -----------------------------------------------------------------------
-// Main handler
-// -----------------------------------------------------------------------
 
 Deno.serve(async (req: Request) => {
   try {
@@ -254,7 +215,6 @@ Deno.serve(async (req: Request) => {
       })
     }
 
-    // Parse the verified body.
     let parsed: unknown
     try {
       parsed = JSON.parse(rawBody)

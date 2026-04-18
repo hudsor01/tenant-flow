@@ -9,18 +9,10 @@ import { getCachedUser } from '#lib/supabase/get-cached-user'
 import { QUERY_CACHE_TIMES } from '#lib/constants/query-config'
 import type { IdentityVerificationRecord } from '#types/stripe'
 
-// ============================================================================
-// QUERY KEYS
-// ============================================================================
-
 export const identityVerificationKeys = {
 	all: ['identityVerification'] as const,
 	status: () => [...identityVerificationKeys.all, 'status'] as const
 }
-
-// ============================================================================
-// QUERY OPTIONS
-// ============================================================================
 
 export const identityVerificationQueries = {
 	/**

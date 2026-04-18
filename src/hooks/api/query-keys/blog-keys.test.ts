@@ -108,9 +108,6 @@ describe('blogQueries', () => {
 		vi.clearAllMocks()
 	})
 
-	// =========================================================================
-	// Query key structure
-	// =========================================================================
 	describe('query key structure', () => {
 		it('all() returns ["blogs"]', () => {
 			expect(blogQueries.all()).toEqual(['blogs'])
@@ -158,9 +155,6 @@ describe('blogQueries', () => {
 		})
 	})
 
-	// =========================================================================
-	// Pagination math
-	// =========================================================================
 	describe('pagination math', () => {
 		it('list with offset=0, limit=9 returns page 1', async () => {
 			setupChainedMock({
@@ -218,9 +212,6 @@ describe('blogQueries', () => {
 		})
 	})
 
-	// =========================================================================
-	// Filter application
-	// =========================================================================
 	describe('filter application', () => {
 		it('list with category applies .eq("category", value)', async () => {
 			setupChainedMock({ data: [], error: null, count: 0 })
@@ -256,9 +247,6 @@ describe('blogQueries', () => {
 		})
 	})
 
-	// =========================================================================
-	// Detail PGRST116 handling
-	// =========================================================================
 	describe('detail PGRST116 handling', () => {
 		it('returns blog data on success', async () => {
 			const blogData = {
@@ -310,9 +298,6 @@ describe('blogQueries', () => {
 		})
 	})
 
-	// =========================================================================
-	// Categories
-	// =========================================================================
 	describe('categories', () => {
 		it('calls supabase.rpc("get_blog_categories")', async () => {
 			const categories = [
@@ -338,9 +323,6 @@ describe('blogQueries', () => {
 		})
 	})
 
-	// =========================================================================
-	// Related posts
-	// =========================================================================
 	describe('related posts', () => {
 		it('applies category filter and excludes current slug', async () => {
 			setupChainedMock({ data: [], error: null })
@@ -395,9 +377,6 @@ describe('blogQueries', () => {
 		})
 	})
 
-	// =========================================================================
-	// Comparisons
-	// =========================================================================
 	describe('comparisons', () => {
 		it('applies .contains("tags", [tag]) filter', async () => {
 			setupChainedMock({ data: [], error: null })
@@ -438,9 +417,6 @@ describe('blogQueries', () => {
 		})
 	})
 
-	// =========================================================================
-	// No auth
-	// =========================================================================
 	describe('no auth dependency', () => {
 		it('list queryFn does not call getCachedUser', async () => {
 			setupChainedMock({ data: [], error: null, count: 0 })

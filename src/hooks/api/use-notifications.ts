@@ -1,9 +1,3 @@
-/**
- * Notifications hooks
- *
- * Provides TanStack Query hooks for notifications list + mutations via Supabase PostgREST.
- */
-
 import { useMutation, useQuery, useQueryClient, mutationOptions } from '@tanstack/react-query'
 
 import { createClient } from '#lib/supabase/client'
@@ -19,10 +13,6 @@ import {
 import type { Database } from '#types/supabase'
 
 type NotificationItem = Database['public']['Tables']['notifications']['Row']
-
-// ============================================================================
-// MUTATION OPTIONS FACTORIES
-// ============================================================================
 
 const notificationMutationFactories = {
 	markRead: () =>
@@ -110,10 +100,6 @@ const notificationMutationFactories = {
 		})
 }
 
-// ============================================================================
-// QUERY HOOKS
-// ============================================================================
-
 export function useNotifications(params?: {
 	page?: number
 	limit?: number
@@ -125,10 +111,6 @@ export function useNotifications(params?: {
 export function useUnreadNotificationsCount() {
 	return useQuery(notificationQueries.unreadCount())
 }
-
-// ============================================================================
-// MUTATION HOOKS
-// ============================================================================
 
 export function useMarkNotificationReadMutation() {
 	const queryClient = useQueryClient()

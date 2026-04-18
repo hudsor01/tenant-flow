@@ -1,14 +1,4 @@
-/**
- * Blog Query Keys & Options
- *
- * queryOptions() factory for blog queries. Blogs are public content
- * with anon + authenticated RLS -- no getCachedUser() needed.
- *
- * TanStack Query v5 patterns:
- * - queryOptions() for type-safe query configuration
- * - Query key factory for consistent cache management
- * - PostgREST direct via supabase-js (no apiRequest calls)
- */
+// Blogs are public content with anon + authenticated RLS, so no getCachedUser() is needed.
 
 import { queryOptions } from '@tanstack/react-query'
 import { createClient } from '#lib/supabase/client'
@@ -17,13 +7,8 @@ import { QUERY_CACHE_TIMES } from '#lib/constants/query-config'
 import type { PaginatedResponse } from '#types/api-contracts'
 import type { Database } from '#types/supabase'
 
-// ============================================================================
-// TYPES
-// ============================================================================
-
 type Blog = Database['public']['Tables']['blogs']['Row']
 
-/** Subset of Blog columns fetched for list views (no content, no heavy fields). */
 export type BlogListItem = Pick<
 	Blog,
 	| 'id'
@@ -39,7 +24,6 @@ export type BlogListItem = Pick<
 	| 'tags'
 >
 
-/** Subset of Blog columns fetched for detail view (includes content). */
 export type BlogDetail = Pick<
 	Blog,
 	| 'id'
@@ -59,11 +43,9 @@ export type BlogDetail = Pick<
 	| 'updated_at'
 >
 
-/** Blog category from get_blog_categories RPC. */
 export type BlogCategory =
 	Database['public']['Functions']['get_blog_categories']['Returns'][number]
 
-/** Filters for blog list queries. */
 export interface BlogFilters {
 	category?: string
 	tag?: string
@@ -71,22 +53,16 @@ export interface BlogFilters {
 	offset?: number
 }
 
-/** Parameters for related posts query. */
 export interface RelatedPostsParams {
 	category: string
 	excludeSlug: string
 	limit?: number
 }
 
-/** Parameters for comparisons query. */
 export interface ComparisonParams {
 	tag?: string
 	limit?: number
 }
-
-// ============================================================================
-// CONSTANTS
-// ============================================================================
 
 const BLOG_LIST_COLUMNS =
 	'id, title, slug, excerpt, published_at, category, reading_time, featured_image, author_user_id, status, tags'
@@ -94,29 +70,11 @@ const BLOG_LIST_COLUMNS =
 const BLOG_DETAIL_COLUMNS =
 	'id, title, slug, excerpt, content, published_at, category, reading_time, featured_image, author_user_id, status, meta_description, tags, created_at, updated_at'
 
-// ============================================================================
-// FACTORY
-// ============================================================================
-
-/**
- * Blog query factory
- * Colocated queryOptions for use with useQuery, useQueries, prefetch
- */
 export const blogQueries = {
-	/**
-	 * Base key for all blog queries
-	 */
 	all: () => ['blogs'] as const,
 
-	/**
-	 * Base key for all blog lists
-	 */
 	lists: () => [...blogQueries.all(), 'list'] as const,
 
-	/**
-	 * Blog list with optional filters and pagination
-	 * Returns PaginatedResponse with exact count and page math
-	 */
 	list: (filters?: BlogFilters) =>
 		queryOptions({
 			queryKey: [...blogQueries.lists(), filters ?? {}],
@@ -161,15 +119,9 @@ export const blogQueries = {
 			...QUERY_CACHE_TIMES.BLOG
 		}),
 
-	/**
-	 * Base key for all blog details
-	 */
 	details: () => [...blogQueries.all(), 'detail'] as const,
 
-	/**
-	 * Single blog by slug
-	 * Returns null on PGRST116 (not found) -- this is expected, not an error
-	 */
+	// Returns null on PGRST116 (not found) — expected, not an error.
 	detail: (slug: string) =>
 		queryOptions({
 			queryKey: [...blogQueries.details(), slug],
@@ -196,10 +148,6 @@ export const blogQueries = {
 			enabled: !!slug
 		}),
 
-	/**
-	 * Blog categories from RPC
-	 * Returns name, slug, and post_count for each category
-	 */
 	categories: () =>
 		queryOptions({
 			queryKey: [...blogQueries.all(), 'categories'],
@@ -215,10 +163,6 @@ export const blogQueries = {
 			...QUERY_CACHE_TIMES.BLOG
 		}),
 
-	/**
-	 * Related posts (same category, excludes current post)
-	 * Returns up to `limit` posts (default 3) for sidebar/footer recommendations
-	 */
 	related: (params: RelatedPostsParams) =>
 		queryOptions({
 			queryKey: [...blogQueries.all(), 'related', params],
@@ -242,10 +186,6 @@ export const blogQueries = {
 			enabled: !!params.category && !!params.excludeSlug
 		}),
 
-	/**
-	 * Comparison posts filtered by tag
-	 * Uses .contains() on the tags array column for tag-based filtering
-	 */
 	comparisons: (params: ComparisonParams) =>
 		queryOptions({
 			queryKey: [...blogQueries.all(), 'comparisons', params],

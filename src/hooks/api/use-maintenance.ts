@@ -23,10 +23,6 @@ import { ownerDashboardKeys } from './use-owner-dashboard'
 /** Variables for update mutation including optional optimistic locking version */
 export type { MaintenanceUpdateMutationVariables } from './query-keys/maintenance-keys'
 
-// ============================================================================
-// MUTATION HOOKS
-// ============================================================================
-
 /**
  * Create maintenance request mutation
  */

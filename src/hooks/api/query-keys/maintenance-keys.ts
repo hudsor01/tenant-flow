@@ -28,10 +28,6 @@ import type {
 	VendorUpdateInput
 } from '#types/domain'
 
-// ============================================================================
-// TYPES
-// ============================================================================
-
 /**
  * Maintenance query filters
  */
@@ -47,10 +43,6 @@ export interface MaintenanceFilters {
 // All columns on maintenance_requests (no category column in DB schema)
 const MAINTENANCE_SELECT_COLUMNS =
 	'id, owner_user_id, unit_id, tenant_id, title, description, priority, status, vendor_id, requested_by, assigned_to, estimated_cost, actual_cost, scheduled_date, completed_at, inspection_date, inspection_findings, inspector_id, created_at, updated_at'
-
-// ============================================================================
-// QUERY OPTIONS
-// ============================================================================
 
 /**
  * Maintenance query factory
@@ -253,20 +245,12 @@ export const maintenanceQueries = {
 
 }
 
-// ============================================================================
-// MAINTENANCE MUTATION TYPES
-// ============================================================================
-
 /** Variables for update mutation including optional optimistic locking version */
 export interface MaintenanceUpdateMutationVariables {
 	id: string
 	data: MaintenanceRequestUpdate
 	version?: number
 }
-
-// ============================================================================
-// MAINTENANCE MUTATION OPTIONS FACTORIES
-// ============================================================================
 
 export const maintenanceMutations = {
 	create: () =>
@@ -331,10 +315,6 @@ export const maintenanceMutations = {
 			}
 		})
 }
-
-// ============================================================================
-// VENDOR MUTATION OPTIONS FACTORIES
-// ============================================================================
 
 // Explicit column list for vendor queries -- no select('*')
 const VENDOR_SELECT_COLUMNS =

@@ -24,10 +24,6 @@ import { OnboardingStepWelcome } from './onboarding-step-welcome'
 import { OnboardingStepProperty } from './onboarding-step-property'
 import { OnboardingStepComplete } from './onboarding-step-complete'
 
-// ============================================================================
-// TYPES
-// ============================================================================
-
 type WizardStep = 'welcome' | 'property' | 'complete'
 
 const STEPS: WizardStep[] = ['welcome', 'property', 'complete']
@@ -37,10 +33,6 @@ const STEP_LABELS: Record<WizardStep, string> = {
 	property: 'Add Property',
 	complete: 'All Done'
 }
-
-// ============================================================================
-// STEP INDICATOR
-// ============================================================================
 
 function StepIndicator({ currentStep }: { currentStep: WizardStep }) {
 	const currentIndex = STEPS.indexOf(currentStep)
@@ -72,14 +64,6 @@ function StepIndicator({ currentStep }: { currentStep: WizardStep }) {
 	)
 }
 
-// ============================================================================
-// MAIN WIZARD
-// ============================================================================
-
-/**
- * Onboarding wizard dialog - auto-shows for new landlords.
- * Add to any layout component where new owners will land.
- */
 export function OnboardingWizard() {
 	const { showWizard, isLoading, completeOnboarding, skipOnboarding } =
 		useOnboarding()

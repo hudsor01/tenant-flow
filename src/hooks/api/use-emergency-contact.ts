@@ -1,11 +1,3 @@
-/**
- * Emergency Contact Hooks & Query Options
- * TanStack Query hooks for managing tenant emergency contacts with colocated query options
- *
- * React 19 + TanStack Query v5 patterns
- * Uses authenticated context - no tenant ID needed in URL
- */
-
 import { queryOptions, useMutation, useQuery, useQueryClient, mutationOptions } from '@tanstack/react-query'
 import { createClient } from '#lib/supabase/client'
 import { getCachedUser } from '#lib/supabase/get-cached-user'
@@ -14,10 +6,6 @@ import { QUERY_CACHE_TIMES } from '#lib/constants/query-config'
 import { toast } from 'sonner'
 import { logger } from '#lib/frontend-logger'
 import { handleMutationError } from '#lib/mutation-error-handler'
-
-// ============================================================================
-// TYPES
-// ============================================================================
 
 export interface EmergencyContact {
 	name: string | null
@@ -37,18 +25,10 @@ export interface UpdateEmergencyContactInput {
 	relationship?: string | null
 }
 
-// ============================================================================
-// QUERY KEYS
-// ============================================================================
-
 export const emergencyContactKeys = {
 	all: ['emergency-contacts'] as const,
 	detail: () => [...emergencyContactKeys.all, 'detail'] as const
 }
-
-// ============================================================================
-// QUERY OPTIONS (for direct use in pages with useQueries/prefetch)
-// ============================================================================
 
 export const emergencyContactQueries = {
 	all: () => ['emergency-contacts'] as const,
@@ -89,10 +69,6 @@ export const emergencyContactQueries = {
 			...QUERY_CACHE_TIMES.DETAIL
 		})
 }
-
-// ============================================================================
-// MUTATION OPTIONS FACTORIES
-// ============================================================================
 
 const emergencyContactMutationFactories = {
 	update: () =>
@@ -149,17 +125,9 @@ const emergencyContactMutationFactories = {
 		})
 }
 
-// ============================================================================
-// QUERY HOOKS
-// ============================================================================
-
 export function useEmergencyContact() {
 	return useQuery(emergencyContactQueries.contact())
 }
-
-// ============================================================================
-// MUTATION HOOKS
-// ============================================================================
 
 export function useUpdateEmergencyContact() {
 	const queryClient = useQueryClient()

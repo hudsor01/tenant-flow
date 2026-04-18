@@ -141,10 +141,6 @@ export interface AttachPaymentMethodParams {
 	setAsDefault?: boolean
 }
 
-// ============================================================================
-// STRIPE IDENTITY VERIFICATION TYPES
-// ============================================================================
-
 import type { Json } from './supabase'
 
 /**

@@ -208,10 +208,6 @@ export const transformTenantFormData = (data: TenantFormData) => ({
 export type TenantFormData = z.infer<typeof tenantFormSchema>
 export type TransformedTenantData = ReturnType<typeof transformTenantFormData>
 
-// ============================================================================
-// TENANT INVITATION SCHEMAS (Separate from Lease)
-// ============================================================================
-
 // Invitation type enum
 export const invitationTypeSchema = z.enum([
 	'platform_access', // Just inviting to create account on platform

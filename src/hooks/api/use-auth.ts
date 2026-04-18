@@ -22,10 +22,6 @@ import type { AuthSession } from '#types/auth'
 // NOTE: No module-level Supabase client — each mutation/query creates its own
 // to avoid persisting a single client across requests (AUTH-06)
 
-// ============================================================================
-// TYPES
-// ============================================================================
-
 /**
  * User type with Stripe integration (from database /api/v1/users/me endpoint)
  * Distinct from AuthUser in shared types which is the Supabase auth user
@@ -35,10 +31,6 @@ export interface UserWithStripe {
 	email: string
 	stripe_customer_id: string | null
 }
-
-// ============================================================================
-// QUERY KEYS
-// ============================================================================
 
 /**
  * Query keys for auth operations
@@ -60,10 +52,6 @@ export const authKeys = {
 		session: () => ['supabase-auth', 'session'] as const
 	}
 }
-
-// ============================================================================
-// QUERY OPTIONS (for direct use in pages with useQueries/prefetch)
-// ============================================================================
 
 /**
  * Auth query factory
@@ -147,10 +135,6 @@ export const authQueries = {
 		})
 }
 
-// ============================================================================
-// CACHE UTILITIES
-// ============================================================================
-
 /**
  * Enhanced cache invalidation utilities
  */
@@ -228,10 +212,6 @@ export function useAuthCacheUtils() {
 		}
 	}
 }
-
-// ============================================================================
-// QUERY HOOKS
-// ============================================================================
 
 /**
  * Get current user from React Query cache (from AuthProvider)

@@ -11,10 +11,6 @@ import { financialMutations, expenseKeys, expenseQueries, financialTaxQueries } 
 import { createMutationCallbacks } from '#hooks/create-mutation-callbacks'
 
 
-// ============================================================================
-// EXPENSE QUERY HOOKS
-// ============================================================================
-
 export function useExpenses(options?: { enabled?: boolean }) {
 	return useQuery(expenseQueries.list(options))
 }
@@ -33,10 +29,6 @@ export function useExpensesByDateRange(
 ) {
 	return useQuery(expenseQueries.byDateRange(startDate, endDate, options))
 }
-
-// ============================================================================
-// EXPENSE MUTATION HOOKS
-// ============================================================================
 
 export function useCreateExpenseMutation() {
 	const queryClient = useQueryClient()
@@ -61,10 +53,6 @@ export function useDeleteExpenseMutation() {
 		})
 	})
 }
-
-// ============================================================================
-// TAX DOCUMENTS
-// ============================================================================
 
 export function useTaxDocuments(taxYear?: number) {
 	const year = taxYear ?? new Date().getFullYear()

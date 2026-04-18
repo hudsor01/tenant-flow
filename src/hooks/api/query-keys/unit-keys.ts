@@ -22,10 +22,6 @@ import type { Unit } from '#types/core'
 import type { UnitStats } from '#types/stats'
 import type { UnitInput, UnitUpdate } from '#lib/validation/units'
 
-// ============================================================================
-// TYPES
-// ============================================================================
-
 /**
  * Unit query filters
  */
@@ -39,10 +35,6 @@ export interface UnitFilters {
 
 const UNIT_SELECT_COLUMNS =
 	'id, property_id, owner_user_id, unit_number, bedrooms, bathrooms, square_feet, rent_amount, rent_currency, rent_period, status, created_at, updated_at'
-
-// ============================================================================
-// QUERY OPTIONS
-// ============================================================================
 
 /**
  * Unit query factory
@@ -248,10 +240,6 @@ export const unitQueries = {
 			gcTime: 30 * 60 * 1000
 		})
 }
-
-// ============================================================================
-// MUTATION OPTIONS FACTORIES
-// ============================================================================
 
 export const unitMutations = {
 	create: () =>

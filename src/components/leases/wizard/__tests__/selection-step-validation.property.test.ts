@@ -15,20 +15,8 @@ import { describe, it, expect } from 'vitest'
 import { selectionStepSchema } from '#lib/validation/lease-wizard.schemas'
 import type { SelectionStepData } from '#lib/validation/lease-wizard.schemas'
 
-// ============================================================================
-// SELECTION STEP VALIDATION LOGIC (extracted for testing)
-// ============================================================================
-
-/**
- * Determines if the selection step is complete and valid
- * This mirrors the validation logic used in the wizard component
- *
- * Property 4: Selection step validation
- * For any combination of property, unit, and tenant selections,
- * the Next button is enabled if and only if all three selections are non-empty.
- */
+// Mirrors the validation logic used in the wizard component.
 function isSelectionStepValid(data: Partial<SelectionStepData>): boolean {
-	// All three fields must be present and non-empty
 	const hasProperty = !!data.property_id && data.property_id.trim() !== ''
 	const hasUnit = !!data.unit_id && data.unit_id.trim() !== ''
 	const hasTenant =
@@ -37,10 +25,6 @@ function isSelectionStepValid(data: Partial<SelectionStepData>): boolean {
 	return hasProperty && hasUnit && hasTenant
 }
 
-/**
- * Validates selection data against the Zod schema
- * Returns true if validation passes, false otherwise
- */
 function validateSelectionWithSchema(
 	data: Partial<SelectionStepData>
 ): boolean {
@@ -48,42 +32,30 @@ function validateSelectionWithSchema(
 	return result.success
 }
 
-// ============================================================================
-// ARBITRARIES (data generators)
-// ============================================================================
-
-// Generate valid UUID
 const validUuid = fc.uuid()
 
-// Generate empty or whitespace string
 const emptyOrWhitespace = fc.constantFrom('', ' ', '  ', '\t', '\n')
 
-// Generate complete valid selection data
 const completeSelectionDataArb: fc.Arbitrary<SelectionStepData> = fc.record({
 	property_id: validUuid,
 	unit_id: validUuid,
 	primary_tenant_id: validUuid
 })
 
-// Generate selection data with at least one missing field
 const incompleteSelectionDataArb: fc.Arbitrary<Partial<SelectionStepData>> =
 	fc.oneof(
-		// Missing property_id
 		fc.record({
 			unit_id: validUuid,
 			primary_tenant_id: validUuid
 		}),
-		// Missing unit_id
 		fc.record({
 			property_id: validUuid,
 			primary_tenant_id: validUuid
 		}),
-		// Missing primary_tenant_id
 		fc.record({
 			property_id: validUuid,
 			unit_id: validUuid
 		}),
-		// Missing two fields
 		fc.record({
 			property_id: validUuid
 		}),
@@ -93,36 +65,27 @@ const incompleteSelectionDataArb: fc.Arbitrary<Partial<SelectionStepData>> =
 		fc.record({
 			primary_tenant_id: validUuid
 		}),
-		// Empty object
 		fc.constant({})
 	)
 
-// Generate selection data with empty/whitespace values
 const selectionWithEmptyValuesArb: fc.Arbitrary<Partial<SelectionStepData>> =
 	fc.oneof(
-		// Empty property_id
 		fc.record({
 			property_id: emptyOrWhitespace,
 			unit_id: validUuid,
 			primary_tenant_id: validUuid
 		}),
-		// Empty unit_id
 		fc.record({
 			property_id: validUuid,
 			unit_id: emptyOrWhitespace,
 			primary_tenant_id: validUuid
 		}),
-		// Empty primary_tenant_id
 		fc.record({
 			property_id: validUuid,
 			unit_id: validUuid,
 			primary_tenant_id: emptyOrWhitespace
 		})
 	)
-
-// ============================================================================
-// PROPERTY TESTS
-// ============================================================================
 
 describe('Lease Creation Wizard - Selection Step Validation', () => {
 	describe('Property 4: Selection step validation', () => {

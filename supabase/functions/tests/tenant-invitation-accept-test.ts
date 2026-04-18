@@ -72,10 +72,6 @@ async function getTenantToken(): Promise<string | null> {
   return authData.session?.access_token ?? null
 }
 
-// =============================================================================
-// CORS tests
-// =============================================================================
-
 Deno.test('tenant-invitation-accept: OPTIONS returns CORS preflight response', async () => {
   const frontendUrl = Deno.env.get('FRONTEND_URL') ?? 'http://localhost:3050'
 
@@ -102,10 +98,6 @@ Deno.test('tenant-invitation-accept: OPTIONS returns CORS preflight response', a
   }
 })
 
-// =============================================================================
-// Method tests
-// =============================================================================
-
 Deno.test('tenant-invitation-accept: rejects non-POST methods with 405', async () => {
   const { status } = await rawInvoke({
     method: 'GET',
@@ -129,10 +121,6 @@ Deno.test('tenant-invitation-accept: rejects DELETE method with 405', async () =
   })
   assertEquals(status, 405)
 })
-
-// =============================================================================
-// Auth tests
-// =============================================================================
 
 Deno.test('tenant-invitation-accept: rejects request without Authorization header', async () => {
   const { status, data } = await rawInvoke({
@@ -167,10 +155,6 @@ Deno.test('tenant-invitation-accept: rejects request with malformed Authorizatio
   assertEquals(status, 401)
   assertEquals(data.error, 'Authorization required')
 })
-
-// =============================================================================
-// Validation tests
-// =============================================================================
 
 Deno.test('tenant-invitation-accept: rejects missing invitation code', async () => {
   const token = await getTenantToken()
@@ -209,10 +193,6 @@ Deno.test('tenant-invitation-accept: rejects empty invitation code', async () =>
   assertEquals(data.error, 'code is required')
 })
 
-// =============================================================================
-// Business logic tests
-// =============================================================================
-
 Deno.test('tenant-invitation-accept: returns 404 for non-existent invitation code', async () => {
   const token = await getTenantToken()
   if (!token) {
@@ -230,10 +210,6 @@ Deno.test('tenant-invitation-accept: returns 404 for non-existent invitation cod
   assertEquals(status, 404)
   assertEquals(data.error, 'Invalid or already used invitation')
 })
-
-// =============================================================================
-// Response format tests
-// =============================================================================
 
 Deno.test('tenant-invitation-accept: error responses have JSON Content-Type', async () => {
   // Test with 401 (no auth)
@@ -276,10 +252,6 @@ Deno.test('tenant-invitation-accept: 405 response is plain text "Method Not Allo
   )
 })
 
-
-// =============================================================================
-// Authenticated flow tests
-// =============================================================================
 
 Deno.test('tenant-invitation-accept: authenticated request with valid format returns business logic response', async () => {
   const token = await getTenantToken()

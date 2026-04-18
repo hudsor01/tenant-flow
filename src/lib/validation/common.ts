@@ -12,10 +12,6 @@
 import { z } from 'zod'
 import { VALIDATION_LIMITS } from '#lib/constants/billing'
 
-// ============================================================================
-// TOP-LEVEL STRING FORMAT VALIDATORS (Zod 4)
-// ============================================================================
-
 /**
  * Email validation schema (Zod 4 top-level)
  * @example emailSchema.parse('user@example.com')
@@ -55,10 +51,6 @@ export const urlSchema = z
 		format: 'uri'
 	})
 
-// ============================================================================
-// STRING SCHEMAS
-// ============================================================================
-
 /** Required non-empty string schema */
 export const requiredString = z.string().min(1, 'This field is required')
 
@@ -88,10 +80,6 @@ export const requiredDescription = z
 		`Description cannot exceed ${VALIDATION_LIMITS.DESCRIPTION_MAX_LENGTH} characters`
 	)
 
-// ============================================================================
-// NUMBER SCHEMAS
-// ============================================================================
-
 /** Non-negative number schema (>= 0) */
 export const nonNegativeNumberSchema = z
 	.number()
@@ -107,10 +95,6 @@ export const positiveNumberSchema = z
  * Validates integers within JavaScript's safe integer range
  */
 export const safeIntegerSchema = z.int({ message: 'Must be a valid integer' })
-
-// ============================================================================
-// PHONE SCHEMA
-// ============================================================================
 
 /** Phone number validation schema */
 export const phoneSchema = z
@@ -130,10 +114,6 @@ export const phoneSchema = z
 		format: 'phone'
 	})
 
-// ============================================================================
-// BOOLEAN COERCION (Zod 4)
-// ============================================================================
-
 /**
  * Environment-style boolean parsing (Zod 4)
  * Parses string values to boolean:
@@ -150,10 +130,6 @@ export const stringBoolSchema = z.stringbool()
  * Useful for query params and form checkboxes
  */
 export const optionalStringBool = z.stringbool().optional().default(false)
-
-// ============================================================================
-// FILE VALIDATION (Zod 4)
-// ============================================================================
 
 /**
  * Base file schema for file uploads
@@ -212,10 +188,6 @@ export const leaseDocumentSchema = z
 		maxSize: 20971520 // 20MB in bytes
 	})
 
-// ============================================================================
-// VALIDATION HELPER FUNCTIONS
-// ============================================================================
-
 /**
  * Validate email format
  */
@@ -258,10 +230,6 @@ export function isValidUUID(uuid: string): boolean {
 		/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 	return uuidRegex.test(uuid)
 }
-
-// ============================================================================
-// JSON SCHEMA EXPORT (Zod 4)
-// ============================================================================
 
 /**
  * Convert a Zod schema to JSON Schema format

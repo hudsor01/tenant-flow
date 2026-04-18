@@ -1,26 +1,9 @@
-/**
- * Expense & Tax Document Query Keys, Options & Mutations
- * Extracted from financial-keys.ts for the 300-line file size rule.
- *
- * Contains:
- * - expenseKeys: cache key factories for expense CRUD
- * - taxDocumentKeys: cache key factories for tax documents
- * - expenseQueries: queryOptions factories for expense data fetching
- * - financialTaxQueries: queryOptions factories for tax document data
- * - financialMutations: mutationOptions factories for expense management
- * - Expense, CreateExpenseInput interfaces
- */
-
 import { queryOptions, mutationOptions } from '@tanstack/react-query'
 import { createClient } from '#lib/supabase/client'
 import { getCachedUser } from '#lib/supabase/get-cached-user'
 import { handlePostgrestError } from '#lib/postgrest-error-handler'
 import { mutationKeys } from '../mutation-keys'
 import type { TaxDocumentsData } from '#types/financial-statements'
-
-// ============================================================================
-// TAX DOCUMENT QUERY OPTIONS
-// ============================================================================
 
 export const financialTaxQueries = {
 	taxDocuments: (year: number) =>
@@ -83,10 +66,7 @@ export const financialTaxQueries = {
 		})
 }
 
-// ============================================================================
-// EXPENSE QUERY KEYS (separate root from financialKeys to preserve cache structure)
-// ============================================================================
-
+// Separate root from financialKeys to preserve cache structure across consumers.
 export const expenseKeys = {
 	all: ['expenses'] as const,
 	list: () => [...expenseKeys.all, 'list'] as const,
@@ -103,10 +83,6 @@ export const taxDocumentKeys = {
 	all: ['taxDocuments'] as const,
 	byYear: (taxYear: number) => [...taxDocumentKeys.all, taxYear] as const
 }
-
-// ============================================================================
-// EXPENSE QUERY OPTIONS
-// ============================================================================
 
 export const expenseQueries = {
 	list: (options?: { enabled?: boolean }) =>
@@ -172,10 +148,6 @@ export const expenseQueries = {
 		})
 }
 
-// ============================================================================
-// EXPENSE TYPES
-// ============================================================================
-
 export interface CreateExpenseInput {
 	amount: number
 	expense_date: string
@@ -195,10 +167,6 @@ export interface Expense {
 	maintenance_request_id?: string
 	created_at?: string
 }
-
-// ============================================================================
-// MUTATION OPTIONS FACTORIES
-// ============================================================================
 
 export const financialMutations = {
 	createExpense: () =>

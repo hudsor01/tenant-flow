@@ -179,10 +179,6 @@ export const leasePaymentScheduleSchema = z.object({
 	is_active: z.boolean().default(true)
 })
 
-// ============================================================================
-// LEASE SIGNATURE WORKFLOW SCHEMAS
-// ============================================================================
-
 // Schema for sending lease for signature
 export const sendForSignatureSchema = z.object({
 	lease_id: uuidSchema,

@@ -6,10 +6,6 @@
 import { queryOptions } from '@tanstack/react-query'
 import { createClient } from '#lib/supabase/client'
 
-// ============================================================================
-// TYPES
-// ============================================================================
-
 /**
  * MFA Status response
  */
@@ -32,19 +28,11 @@ export interface EnrolledFactor {
 	updatedAt: string
 }
 
-// ============================================================================
-// QUERY KEYS
-// ============================================================================
-
 export const mfaKeys = {
 	all: ['mfa'] as const,
 	factors: () => [...mfaKeys.all, 'factors'] as const,
 	status: () => [...mfaKeys.all, 'status'] as const
 }
-
-// ============================================================================
-// QUERY OPTIONS
-// ============================================================================
 
 export const mfaQueries = {
 	/**

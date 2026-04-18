@@ -14,10 +14,6 @@ import { inspectionQueries } from './query-keys/inspection-keys'
 import { inspectionMutations } from './query-keys/inspection-mutation-options'
 import { createMutationCallbacks } from '#hooks/create-mutation-callbacks'
 
-// ============================================================================
-// INSPECTION MUTATION HOOKS
-// ============================================================================
-
 /**
  * Create a new inspection
  */

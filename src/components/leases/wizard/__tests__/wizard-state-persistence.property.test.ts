@@ -19,13 +19,6 @@ import type {
 	WizardStep
 } from '#lib/validation/lease-wizard.schemas'
 
-// ============================================================================
-// WIZARD STATE MANAGEMENT (extracted logic for testing)
-// ============================================================================
-
-/**
- * Represents the wizard state that should persist across navigation
- */
 interface WizardState {
 	currentStep: WizardStep
 	selectionData: Partial<SelectionStepData>
@@ -112,14 +105,9 @@ function updateDetailsData(
 	}
 }
 
-// ============================================================================
-// ARBITRARIES (data generators)
-// ============================================================================
-
-// Generate valid UUID
 const validUuid = fc.uuid()
 
-// Generate valid date string (YYYY-MM-DD)
+// YYYY-MM-DD string generator
 const validDateString = fc.integer({ min: 0, max: 3650 }).map(daysFromBase => {
 	const baseDate = new Date('2024-01-01')
 	baseDate.setDate(baseDate.getDate() + daysFromBase)
@@ -309,10 +297,6 @@ const wizardStateArb: fc.Arbitrary<WizardState> = fc.record({
 	termsData: termsDataArb,
 	detailsData: detailsDataArb
 })
-
-// ============================================================================
-// PROPERTY TESTS
-// ============================================================================
 
 describe('Lease Creation Wizard - Property Tests', () => {
 	describe('Property 1: Wizard state persistence across navigation', () => {

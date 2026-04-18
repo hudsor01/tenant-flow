@@ -20,10 +20,6 @@ import type { Tables, TablesInsert, TablesUpdate } from './supabase'
 import type { TenantCreate, TenantUpdate } from '#lib/validation/tenants'
 import type { PropertyCreate } from '#lib/validation/properties'
 
-// =============================================================================
-// USER PROFILE TYPES
-// =============================================================================
-
 /**
  * Tenant-specific profile data within a UserProfile response
  * Used for displaying tenant info in the user profile view
@@ -105,10 +101,6 @@ export interface AvatarUploadResponse {
 	avatar_url: string
 }
 
-// =============================================================================
-// PROPERTY RESPONSE TYPES
-// =============================================================================
-
 /** Property list item - minimal fields for list views */
 export type PropertyListItem = Pick<
 	Tables<'properties'>,
@@ -131,10 +123,6 @@ export type PropertyDetail = Tables<'properties'> & {
 	>[]
 }
 
-// =============================================================================
-// UNIT RESPONSE TYPES
-// =============================================================================
-
 /** Unit list item - minimal fields for list views */
 export type UnitListItem = Pick<
 	Tables<'units'>,
@@ -153,10 +141,6 @@ export type UnitDetail = Tables<'units'> & {
 	property?: Pick<Tables<'properties'>, 'id' | 'name' | 'address_line1' | 'city' | 'state'>
 }
 
-// =============================================================================
-// TENANT RESPONSE TYPES
-// =============================================================================
-
 /** Tenant list item - combines tenant and user info for list views */
 export type TenantListItem = Pick<Tables<'tenants'>, 'id' | 'user_id' | 'created_at'> & {
 	user: Pick<Tables<'users'>, 'id' | 'email' | 'first_name' | 'last_name' | 'phone' | 'status'>
@@ -173,10 +157,6 @@ export type TenantDetail = Tables<'tenants'> & {
 		'id' | 'lease_status' | 'start_date' | 'end_date' | 'rent_amount' | 'unit_id'
 	>[]
 }
-
-// =============================================================================
-// LEASE RESPONSE TYPES
-// =============================================================================
 
 /** Lease list item - minimal fields for list views */
 export type LeaseListItem = Pick<
@@ -199,10 +179,6 @@ export type LeaseDetail = Tables<'leases'> & {
 	tenant?: Pick<Tables<'users'>, 'id' | 'email' | 'first_name' | 'last_name' | 'phone'>
 }
 
-// =============================================================================
-// MAINTENANCE REQUEST RESPONSE TYPES
-// =============================================================================
-
 /** Maintenance request list item - minimal fields for list views */
 export type MaintenanceRequestListItem = Pick<
 	Tables<'maintenance_requests'>,
@@ -224,10 +200,6 @@ export type MaintenanceRequestDetail = Tables<'maintenance_requests'> & {
 	tenant?: Pick<Tables<'users'>, 'id' | 'email' | 'first_name' | 'last_name' | 'phone'>
 	assigned_user?: Pick<Tables<'users'>, 'id' | 'first_name' | 'last_name'>
 }
-
-// =============================================================================
-// INSERT/UPDATE TYPES (for type-safe mutations)
-// =============================================================================
 
 /** Property insert type */
 export type PropertyInsert = TablesInsert<'properties'>
@@ -252,10 +224,6 @@ export type MaintenanceRequestInsert = TablesInsert<'maintenance_requests'>
 
 /** Maintenance request update type */
 export type MaintenanceRequestUpdate = TablesUpdate<'maintenance_requests'>
-
-// =============================================================================
-// LEGACY TYPES (kept for backwards compatibility - migrate away from these)
-// =============================================================================
 
 /**
  * Tenant status values (normalized to lowercase for consistency)
@@ -363,10 +331,6 @@ export interface PaymentHistoryItem {
 	period_start: string
 	period_end: string
 }
-
-// =============================================================================
-// BILLING & INVOICE TYPES
-// =============================================================================
 
 /**
  * Invoice response from Stripe API
@@ -906,5 +870,4 @@ export interface BulkImportStepperProps {
 	modalId: string
 }
 
-// Constants
 export const DEFAULT_RETRY_ATTEMPTS = 3

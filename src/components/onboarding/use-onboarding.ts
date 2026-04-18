@@ -1,38 +1,18 @@
 'use client'
 
-/**
- * Onboarding Hook
- *
- * Manages the onboarding wizard state for new landlords.
- * Reads onboarding_status from the public.users table via Supabase client.
- * Updates status via PATCH /api/v1/users/me/onboarding.
- */
-
 import { queryOptions, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { createClient } from '#lib/supabase/client'
 import { getCachedUser } from '#lib/supabase/get-cached-user'
 import { QUERY_CACHE_TIMES } from '#lib/constants/query-config'
 
-// ============================================================================
-// TYPES
-// ============================================================================
-
 interface OnboardingStatusResult {
 	onboarding_status: string | null
 }
-
-// ============================================================================
-// QUERY KEYS
-// ============================================================================
 
 export const onboardingKeys = {
 	all: ['onboarding'] as const,
 	status: () => [...onboardingKeys.all, 'status'] as const
 }
-
-// ============================================================================
-// QUERY OPTIONS
-// ============================================================================
 
 const onboardingQueries = {
 	status: () =>
@@ -63,19 +43,6 @@ const onboardingQueries = {
 		})
 }
 
-// ============================================================================
-// HOOK
-// ============================================================================
-
-/**
- * Hook to manage onboarding wizard state
- *
- * Returns:
- * - showWizard: true when onboarding_status is null or 'not_started'
- * - completeOnboarding: mutation to mark onboarding as completed
- * - skipOnboarding: mutation to mark onboarding as skipped
- * - isLoading: true while status is being fetched
- */
 export function useOnboarding() {
 	const queryClient = useQueryClient()
 

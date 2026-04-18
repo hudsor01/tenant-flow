@@ -19,10 +19,6 @@ import { propertyStatsQueries } from './query-keys/property-stats-keys'
 import { unitQueries } from './query-keys/unit-keys'
 import { ownerDashboardKeys } from './use-owner-dashboard'
 
-// ============================================================================
-// PREFETCH HOOKS
-// ============================================================================
-
 /**
  * Declarative prefetch hook for property detail
  * Prefetches when component mounts (route-level prefetching)
@@ -38,10 +34,6 @@ export function usePrefetchPropertyWithUnits(id: string) {
 	usePrefetchQuery(propertyQueries.detail(id))
 	usePrefetchQuery(unitQueries.byProperty(id))
 }
-
-// ============================================================================
-// MUTATION HOOKS
-// ============================================================================
 
 /**
  * Mark property as sold (7-year retention compliance)

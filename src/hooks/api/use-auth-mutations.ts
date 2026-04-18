@@ -23,10 +23,6 @@ import {
 import { mutationKeys } from './mutation-keys'
 import { authKeys, useAuthCacheUtils } from './use-auth'
 
-// ============================================================================
-// MUTATION OPTIONS FACTORIES
-// ============================================================================
-
 const authMutationFactories = {
 	logout: () =>
 		mutationOptions<void, unknown, void>({
@@ -136,10 +132,6 @@ const authMutationFactories = {
 			}
 		})
 }
-
-// ============================================================================
-// MUTATION HOOKS
-// ============================================================================
 
 /**
  * Sign out mutation with comprehensive cache clearing

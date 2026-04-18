@@ -89,10 +89,6 @@ async function getTenantToken(): Promise<string | null> {
   return authData.session?.access_token ?? null
 }
 
-// =============================================================================
-// CORS tests
-// =============================================================================
-
 Deno.test('send-tenant-invitation: OPTIONS returns CORS preflight response', async () => {
   const frontendUrl = Deno.env.get('FRONTEND_URL') ?? 'http://localhost:3050'
 
@@ -114,10 +110,6 @@ Deno.test('send-tenant-invitation: OPTIONS returns CORS preflight response', asy
     assertEquals(corsHeader, frontendUrl)
   }
 })
-
-// =============================================================================
-// Method tests
-// =============================================================================
 
 Deno.test('send-tenant-invitation: rejects GET method with 405', async () => {
   const { status } = await rawInvoke({
@@ -142,10 +134,6 @@ Deno.test('send-tenant-invitation: rejects DELETE method with 405', async () => 
   })
   assertEquals(status, 405)
 })
-
-// =============================================================================
-// Auth tests
-// =============================================================================
 
 Deno.test('send-tenant-invitation: rejects request without Authorization header', async () => {
   const { status, data } = await rawInvoke({
@@ -179,10 +167,6 @@ Deno.test('send-tenant-invitation: rejects request with malformed Authorization 
   assertEquals(status, 401)
   assertEquals(data.error, 'Authorization required')
 })
-
-// =============================================================================
-// Validation tests
-// =============================================================================
 
 Deno.test('send-tenant-invitation: rejects missing invitation_id', async () => {
   const token = await getOwnerToken()
@@ -219,10 +203,6 @@ Deno.test('send-tenant-invitation: rejects empty invitation_id', async () => {
   assertEquals(status, 400)
   assertEquals(data.error, 'invitation_id is required')
 })
-
-// =============================================================================
-// Authorization tests
-// =============================================================================
 
 Deno.test('send-tenant-invitation: returns 404 for non-existent invitation_id', async () => {
   const token = await getOwnerToken()
@@ -266,10 +246,6 @@ Deno.test('send-tenant-invitation: non-owner caller gets 403 for valid invitatio
   // The 403 path requires a real invitation owned by a different user
   assert(status === 404 || status === 403, `Expected 404 or 403, got ${status}`)
 })
-
-// =============================================================================
-// Response format tests
-// =============================================================================
 
 Deno.test('send-tenant-invitation: error responses have JSON Content-Type', async () => {
   const { headers } = await rawInvoke({

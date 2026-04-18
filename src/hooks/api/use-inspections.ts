@@ -13,10 +13,6 @@ import type { Inspection } from '#types/sections/inspections'
 import { useEntityDetail } from '#hooks/use-entity-detail'
 import { inspectionQueries } from './query-keys/inspection-keys'
 
-// ============================================================================
-// QUERY HOOKS
-// ============================================================================
-
 /**
  * Hook to fetch all inspections for the current owner
  */

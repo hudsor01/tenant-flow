@@ -33,10 +33,6 @@ type QueryErrorHandlers = {
 	) => void
 }
 
-// ============================================================================
-// ERROR TYPE GUARDS
-// ============================================================================
-
 /**
  * Type guard for PostgrestError from @supabase/supabase-js
  */
@@ -56,10 +52,6 @@ function isPostgrestError(error: unknown): error is PostgrestError {
 function isAbortError(error: unknown): boolean {
 	return error instanceof DOMException && error.name === 'AbortError'
 }
-
-// ============================================================================
-// STANDALONE RETRY FUNCTIONS (for direct use in QueryClient config)
-// ============================================================================
 
 /**
  * Smart retry logic that discriminates between error types
@@ -110,10 +102,6 @@ export function getRetryDelay(attemptIndex: number): number {
 	return Math.min(1000 * Math.pow(2, attemptIndex), 4000)
 }
 
-// ============================================================================
-// UTILITY FUNCTIONS
-// ============================================================================
-
 const formatVariables = (variables: MutationVariables) => {
 	if (variables && typeof variables === 'object') {
 		return Object.keys(variables as Record<string, unknown>)
@@ -131,10 +119,6 @@ const formatError = (error: unknown): string => {
 	}
 	return String(error)
 }
-
-// ============================================================================
-// FACTORY FUNCTION (for QueryClientProvider)
-// ============================================================================
 
 export const createQueryErrorHandlers = (
 	logger: Logger

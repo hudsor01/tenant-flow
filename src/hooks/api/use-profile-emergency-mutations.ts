@@ -21,10 +21,6 @@ import type {
 import { mutationKeys } from './mutation-keys'
 import { profileKeys } from './use-profile'
 
-// ============================================================================
-// MUTATION OPTIONS FACTORIES
-// ============================================================================
-
 const profileEmergencyMutationFactories = {
 	update: () =>
 		mutationOptions({
@@ -68,10 +64,6 @@ const profileEmergencyMutationFactories = {
 			}
 		})
 }
-
-// ============================================================================
-// MUTATION HOOKS
-// ============================================================================
 
 /**
  * Update emergency contact (for tenants)

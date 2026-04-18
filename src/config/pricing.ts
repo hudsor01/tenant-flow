@@ -184,7 +184,6 @@ export const PRICING_PLANS: Record<string, PricingConfig> = {
 	}
 }
 
-// Helper functions
 export function getPricingPlan(planId: PlanId): PricingConfig | undefined {
 	return Object.values(PRICING_PLANS).find(plan => plan.planId === planId)
 }
@@ -193,7 +192,6 @@ export function getAllPricingPlans(): PricingConfig[] {
 	return Object.values(PRICING_PLANS)
 }
 
-// Usage metrics interface for plan checking
 export interface UsageMetrics {
 	properties: number
 	units: number
@@ -202,7 +200,6 @@ export interface UsageMetrics {
 	apiCalls: number
 }
 
-// Check if current usage exceeds plan limits
 export function checkPlanLimits(
 	usage: UsageMetrics,
 	planId: PlanId
@@ -239,7 +236,6 @@ export function checkPlanLimits(
 	return { exceeded, limits }
 }
 
-// Get recommended upgrade based on current usage
 export function getRecommendedUpgrade(
 	usage: UsageMetrics,
 	currentPlanId: PlanId
@@ -247,7 +243,6 @@ export function getRecommendedUpgrade(
 	const plans: PlanId[] = ['trial', 'starter', 'growth', 'max']
 	const currentIndex = plans.indexOf(currentPlanId)
 
-	// Check each higher plan to see if it fits
 	for (let i = currentIndex + 1; i < plans.length; i++) {
 		const planId = plans[i]
 		if (!planId) continue
@@ -261,34 +256,29 @@ export function getRecommendedUpgrade(
 		}
 	}
 
-	return 'max' // Recommend max if nothing else fits
+	return 'max'
 }
 
-// Calculate annual savings
 export function calculateAnnualSavings(monthlyPrice: number): number {
-	const yearlyPrice = monthlyPrice * 10 // 2 months free
+	const yearlyPrice = monthlyPrice * 10 // annual plans get 2 months free
 	const monthlyCost = monthlyPrice * 12
 	return monthlyCost - yearlyPrice
 }
 
-// Get product tier configuration by ID (supports both PlanId and legacy PlanType)
+// Accepts both PlanId and legacy PlanType string keys.
 export function getProductTier(planId: PlanId): PricingConfig | undefined {
-	// Handle legacy PlanType constants
 	if (typeof planId === 'string' && planId in PRICING_PLANS) {
 		return PRICING_PLANS[planId]
 	}
 
-	// Handle new PlanId format
 	return getPricingPlan(planId)
 }
 
-// Convert legacy PlanType to new PlanId
 export function planTypeToId(planType: string): PlanId | undefined {
 	const config = PRICING_PLANS[planType]
 	return config?.planId
 }
 
-// Get trial configuration from a pricing config
 export function getTrialConfig(config: PricingConfig): TrialConfig | null {
 	if (typeof config.trial === 'boolean') {
 		return config.trial
@@ -302,12 +292,10 @@ export function getTrialConfig(config: PricingConfig): TrialConfig | null {
 	return config.trial
 }
 
-// Check if a plan has trial
 export function hasTrial(config: PricingConfig): boolean {
 	return typeof config.trial === 'boolean' ? config.trial : true
 }
 
-// Get Stripe price ID for a plan and billing period
 export function getStripePriceId(
 	planId: PlanId,
 	period: 'monthly' | 'annual'
@@ -320,7 +308,6 @@ export function getStripePriceId(
 		: plan.stripePriceIds.annual
 }
 
-// Plan features for UI display
 export const PLAN_FEATURES = {
 	starter: [
 		'Up to 5 properties',

@@ -16,10 +16,6 @@
  * ```
  */
 
-// ============================================================================
-// SHARED NESTED TYPES
-// ============================================================================
-
 /** User with only name/contact fields */
 export interface UserBasic {
 	id: string
@@ -50,10 +46,6 @@ export interface TenantForPayment {
 	stripe_customer_id: string | null
 	users: UserBasic | null
 }
-
-// ============================================================================
-// PAYMENT ANALYTICS TYPES (payment-analytics.service.ts)
-// ============================================================================
 
 /** Lease with tenant info for upcoming payments */
 export interface LeaseWithTenantAndUnit {
@@ -119,10 +111,6 @@ export interface PaymentForExport {
 		} | null
 	} | null
 }
-
-// ============================================================================
-// TENANT QUERY TYPES (tenant-lease-query.service.ts)
-// ============================================================================
 
 /** Tenant invitation with tenant data */
 export interface InvitationWithTenant {

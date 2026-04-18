@@ -44,15 +44,11 @@ Deno.serve(async (req: Request) => {
     }
     const { user } = auth
 
-    // Parse action from request body
     const body = await req.json() as Record<string, unknown>
     const action = body.action as string
 
-    // -----------------------------------------------------------------------
-    // action: 'send-for-signature'
-    // Generates a PDF via the generate-pdf Edge Function, base64-encodes it,
-    // and submits it to DocuSeal with owner + tenant as signatories.
-    // -----------------------------------------------------------------------
+    // action: 'send-for-signature' — generates a PDF via generate-pdf Edge Function, base64-encodes,
+    // and submits to DocuSeal with owner + tenant as signatories.
     if (action === 'send-for-signature') {
       const leaseId = body.leaseId as string
       const message = body.message as string | undefined
@@ -72,7 +68,6 @@ Deno.serve(async (req: Request) => {
       const entitlementBlock = await checkESignEntitlement(supabase, user.id, req)
       if (entitlementBlock) return entitlementBlock
 
-      // 1. Fetch lease details
       const { data: lease, error: leaseError } = await supabase
         .from('leases')
         .select('id, owner_user_id, primary_tenant_id, start_date, end_date, rent_amount, unit_id')
@@ -94,7 +89,7 @@ Deno.serve(async (req: Request) => {
         )
       }
 
-      // 2-4. Fetch owner, tenant, and unit+property in parallel (all depend on lease, not each other)
+      // Fetch owner, tenant, and unit+property in parallel — all depend on lease, not each other.
       const [
         { data: ownerProfile },
         { data: tenantRow },
@@ -136,7 +131,6 @@ Deno.serve(async (req: Request) => {
 
       const unitNumber = (unitRow?.unit_number as string | null) ?? ''
 
-      // 5. Build minimal HTML for PDF generation
       const startDate = lease.start_date ? new Date(lease.start_date as string).toLocaleDateString('en-US') : 'N/A'
       const endDate = lease.end_date ? new Date(lease.end_date as string).toLocaleDateString('en-US') : 'N/A'
       const rentAmount = typeof lease.rent_amount === 'number'
@@ -195,7 +189,7 @@ Deno.serve(async (req: Request) => {
 </body>
 </html>`
 
-      // 6. Call generate-pdf Edge Function (server-to-server with service role key)
+      // Server-to-server call with service role key.
       const pdfResponse = await fetch(
         `${supabaseUrl}/functions/v1/generate-pdf`,
         {
@@ -214,7 +208,7 @@ Deno.serve(async (req: Request) => {
         return errorResponse(req, 502, new Error('PDF generation failed'), { action: 'send-for-signature' })
       }
 
-      // 7. Base64-encode the PDF (chunked to avoid call stack limits on large files)
+      // Base64-encode the PDF in chunks — avoids call-stack limits on large buffers.
       const pdfBuffer = await pdfResponse.arrayBuffer()
       const uint8 = new Uint8Array(pdfBuffer)
       const CHUNK = 8192
@@ -224,7 +218,6 @@ Deno.serve(async (req: Request) => {
       }
       const base64Pdf = btoa(binary)
 
-      // 8. Build DocuSeal submitters array
       const ownerSubmitter: Record<string, unknown> = {
         role: 'Property Owner',
         email: ownerEmail,
@@ -242,7 +235,6 @@ Deno.serve(async (req: Request) => {
         tenantSubmitter.message = message
       }
 
-      // 9. POST to DocuSeal /api/submissions with embedded document
       const docusealPayload = {
         documents: [
           {
@@ -276,7 +268,6 @@ Deno.serve(async (req: Request) => {
 
       const submission = await submissionResponse.json() as { id: number }
 
-      // 10. Update lease with submission ID and sent timestamp
       const { error: updateError } = await supabase
         .from('leases')
         .update({
@@ -295,10 +286,7 @@ Deno.serve(async (req: Request) => {
       )
     }
 
-    // -----------------------------------------------------------------------
-    // action: 'sign-owner'
-    // Records owner signature timestamp in the leases table.
-    // -----------------------------------------------------------------------
+    // action: 'sign-owner' — records owner signature timestamp.
     if (action === 'sign-owner') {
       const leaseId = body.leaseId as string
 
@@ -355,13 +343,9 @@ Deno.serve(async (req: Request) => {
       )
     }
 
-    // Note: tenant signing is handled exclusively via DocuSeal's email flow
-    // (landlord-only mode). The `sign-tenant` action has been removed.
+    // Tenant signing is handled exclusively via DocuSeal's email flow (landlord-only mode).
 
-    // -----------------------------------------------------------------------
-    // action: 'cancel'
-    // Archives the DocuSeal submission and resets the lease to draft.
-    // -----------------------------------------------------------------------
+    // action: 'cancel' — archives DocuSeal submission and resets lease to draft.
     if (action === 'cancel') {
       const leaseId = body.leaseId as string
 
@@ -435,10 +419,7 @@ Deno.serve(async (req: Request) => {
       )
     }
 
-    // -----------------------------------------------------------------------
-    // action: 'resend'
-    // Resends signature request emails to pending submitters via DocuSeal PUT.
-    // -----------------------------------------------------------------------
+    // action: 'resend' — resends signature request emails to pending submitters via DocuSeal PUT.
     if (action === 'resend') {
       const leaseId = body.leaseId as string
       const message = body.message as string | undefined
@@ -473,7 +454,6 @@ Deno.serve(async (req: Request) => {
 
       const dsSubmissionId = lease.docuseal_submission_id as string
 
-      // Fetch submitters to find pending ones
       const submittersResponse = await fetch(
         `${docusealUrl}/api/submitters?submission_id=${dsSubmissionId}`,
         {
@@ -500,7 +480,6 @@ Deno.serve(async (req: Request) => {
         (s: { id: number; status: string }) => s.status !== 'completed'
       )
 
-      // Resend to all pending submitters in parallel
       const resendPayload: Record<string, unknown> = { send_email: true }
       if (message) resendPayload.message = message
 

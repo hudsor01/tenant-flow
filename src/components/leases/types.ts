@@ -1,20 +1,14 @@
-// Leases Section Types
 import type { ComponentType } from 'react'
 
-// Import database enums from shared types (single source of truth)
 import type { LeaseStatus, PaymentStatus } from '#types/core'
 
 export interface LeasesProps {
-	// Lease list
 	leases: LeaseItem[]
 
-	// Selected lease detail
 	selectedLease?: LeaseDetail
 
-	// Filters
 	statusFilter: LeaseStatus | 'all'
 
-	// Callbacks
 	onCreateLease: () => void
 	onEditLease: (leaseId: string) => void
 	onViewLease: (leaseId: string) => void
@@ -112,7 +106,6 @@ export interface LeaseWizardData {
 	gracePeriodDays?: number
 }
 
-// App-specific types (not database enums)
 export type DocumentType =
 	| 'lease_agreement'
 	| 'addendum'
@@ -131,23 +124,12 @@ export type TimelineEventType =
 	| 'terminated'
 	| 'ended'
 
-// =============================================================================
-// Generate Lease Types
-// =============================================================================
-
-/**
- * Property option for lease generation wizard
- * Simplified type containing only fields needed for property/unit selection
- */
 export interface GenerateLeaseProperty {
 	id: string
 	name: string
 	units: GenerateLeaseUnit[]
 }
 
-/**
- * Unit option for lease generation wizard
- */
 export interface GenerateLeaseUnit {
 	id: string
 	number: string
@@ -157,9 +139,6 @@ export interface GenerateLeaseUnit {
 	status: 'vacant' | 'occupied'
 }
 
-/**
- * Tenant option for lease generation wizard
- */
 export interface GenerateLeaseTenant {
 	id: string
 	name: string
@@ -167,9 +146,6 @@ export interface GenerateLeaseTenant {
 	phone: string
 }
 
-/**
- * Lease template for wizard
- */
 export interface LeaseTemplate {
 	id: string
 	name: string
@@ -178,9 +154,6 @@ export interface LeaseTemplate {
 	isDefault: boolean
 }
 
-/**
- * Props for GenerateLease component
- */
 export interface GenerateLeaseProps {
 	properties: GenerateLeaseProperty[]
 	existingTenants: GenerateLeaseTenant[]
@@ -189,9 +162,6 @@ export interface GenerateLeaseProps {
 	onCancel: () => void
 }
 
-/**
- * Form data collected during lease generation wizard
- */
 export interface LeaseFormData {
 	propertyId: string
 	unitId: string
@@ -212,9 +182,6 @@ export interface LeaseFormData {
 	gracePeriodDays: number
 }
 
-/**
- * Wizard step definition
- */
 export interface LeaseWizardStep {
 	id: string
 	label: string

@@ -20,10 +20,6 @@ import type { IncomeStatementData, CashFlowData, BalanceSheetData } from '#types
 import type { ApiResponse } from '#types/api-contracts'
 import type { ExpenseCategorySummary } from '#types/analytics'
 
-// ============================================================================
-// API RESPONSE TYPES
-// ============================================================================
-
 export interface FinancialOverviewData {
 	overview: { total_revenue: number; total_expenses: number; net_income: number; accounts_receivable: number; accounts_payable: number }
 	highlights: Array<{ label: string; value: number; trend: number | null }>
@@ -60,10 +56,6 @@ function parseDashStats(data: unknown) {
 	}
 }
 
-// ============================================================================
-// QUERY KEYS
-// ============================================================================
-
 export const financialKeys = {
 	all: ['financials'] as const,
 	overview: () => [...financialKeys.all, 'overview'] as const,
@@ -73,10 +65,6 @@ export const financialKeys = {
 	cashFlow: (params: { start_date: string; end_date: string }) => [...financialKeys.all, 'cash-flow', params] as const,
 	balanceSheet: (asOfDate: string) => [...financialKeys.all, 'balance-sheet', asOfDate] as const
 }
-
-// ============================================================================
-// QUERY OPTIONS
-// ============================================================================
 
 export const financialQueries = {
 	all: () => financialKeys.all,

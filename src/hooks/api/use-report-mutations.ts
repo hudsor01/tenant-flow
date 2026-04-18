@@ -17,10 +17,6 @@ import {
 } from '#lib/mutation-error-handler'
 import { reportMutations } from './query-keys/report-keys'
 
-// ============================================================================
-// STANDALONE EDGE FUNCTION HELPER (used by component-level callers)
-// ============================================================================
-
 /**
  * Call the generate-pdf Edge Function with pre-built HTML content.
  * Use this when the component already has the data.
@@ -56,10 +52,6 @@ export async function callGeneratePdfFromHtml(html: string, filename: string): P
 	document.body.removeChild(link)
 	setTimeout(() => window.URL.revokeObjectURL(blobUrl), 100)
 }
-
-// ============================================================================
-// DOWNLOAD MUTATION HOOKS
-// ============================================================================
 
 /**
  * Mutation hook to download year-end summary as CSV

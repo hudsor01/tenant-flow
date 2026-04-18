@@ -11,11 +11,9 @@ import type {
 	Database
 } from './supabase'
 
-// ============================================================================
 // DB STATUS TYPE EXPORTS - String literal unions matching CHECK constraints
 // These are manually defined to match database CHECK constraints.
 // When adding/removing values, update both here AND the database constraint.
-// ============================================================================
 
 export type LeaseStatus =
 	| 'draft'
@@ -126,10 +124,6 @@ export interface Pagination {
 	hasMore?: boolean
 }
 
-// ============================================================================
-// DB TABLE TYPE ALIASES - Only the ones actually used
-// ============================================================================
-
 export type User = Tables<'users'>
 export type Property = Tables<'properties'>
 export type Unit = Tables<'units'>
@@ -144,10 +138,6 @@ export type TenantUpdate = Partial<TenantInput>
 // Insert/Update types - only export what's actually used
 export type UserInsert = TablesInsert<'users'>
 export type UserUpdate = TablesUpdate<'users'>
-
-// ============================================================================
-// EXTENDED TYPES - With relations/computed fields
-// ============================================================================
 
 export type LeaseWithExtras = Lease & {
 	version?: number
@@ -520,10 +510,6 @@ export type TenantWithLeaseInfoWithVersion = TenantWithLeaseInfo & {
 export type PaymentMethodResponseWithVersion = PaymentMethodResponse & {
 	version?: number
 }
-
-// ============================================================================
-// SEARCH TYPES
-// ============================================================================
 
 export type SearchResultType = 'properties' | 'tenants' | 'units' | 'leases'
 

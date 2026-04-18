@@ -13,10 +13,6 @@ import type {
 	PropertyPerformancePageResponse
 } from './analytics'
 
-// ============================================================================
-// Response Time Analytics Types
-// ============================================================================
-
 export interface ResponseTimeEntry {
 	category: string
 	averageHours: number
@@ -31,10 +27,6 @@ export interface PreventiveMaintenanceEntry {
 	completedCount: number
 	complianceRate: number
 }
-
-// ============================================================================
-// Property Performance Analytics Types
-// ============================================================================
 
 export interface OccupancyPropertyPerformance {
 	property_id: string
@@ -53,10 +45,6 @@ export interface SeasonalPatternEntry {
 	avgRentChange: number
 }
 
-// ============================================================================
-// Financial Analytics Page Data
-// ============================================================================
-
 /**
  * Financial Analytics Page Data
  * Aggregates all financial analytics data for the financial analytics page
@@ -70,10 +58,6 @@ export interface FinancialAnalyticsPageData {
 	monthlyMetrics: FinancialAnalyticsPageResponse['monthlyMetrics']
 	leaseAnalytics: FinancialAnalyticsPageResponse['leaseAnalytics']
 }
-
-// ============================================================================
-// Lease Analytics Page Data
-// ============================================================================
 
 export interface VacancyTrendPoint {
 	period: string
@@ -97,10 +81,6 @@ export interface LeaseAnalyticsPageData {
 	statusBreakdown: LeaseAnalyticsPageResponse['statusBreakdown']
 }
 
-// ============================================================================
-// Maintenance Insights Page Data
-// ============================================================================
-
 export interface MaintenanceCostEntry {
 	category: string
 	amount: number
@@ -121,10 +101,6 @@ export interface MaintenanceInsightsPageData {
 	preventiveMaintenance: PreventiveMaintenanceEntry[]
 }
 
-// ============================================================================
-// Occupancy Analytics Page Data
-// ============================================================================
-
 /**
  * Occupancy Analytics Page Data
  * Aggregates all occupancy analytics data for the occupancy analytics page
@@ -136,10 +112,6 @@ export interface OccupancyAnalyticsPageData {
 	seasonalPatterns: SeasonalPatternEntry[]
 	vacancyAnalysis: OccupancyAnalyticsPageResponse['vacancyAnalysis']
 }
-
-// ============================================================================
-// Overview Analytics Page Data
-// ============================================================================
 
 export interface FinancialOverviewSummary {
 	totalRevenue: number
@@ -189,10 +161,6 @@ export interface AnalyticsPageData {
 	lease: LeaseOverviewSummary
 	visitor: VisitorOverviewSummary
 }
-
-// ============================================================================
-// Property Performance Page Data
-// ============================================================================
 
 export interface PropertyMetricsSummary {
 	totalProperties: number
@@ -256,10 +224,6 @@ export interface PropertyPerformancePageData extends PropertyPerformancePageResp
 	// Additional fields for analytics-page-data compatibility
 	revenueTrends: PropertyRevenueTrend[]
 }
-
-// ============================================================================
-// Leases Page Data
-// ============================================================================
 
 export interface LeasesPageLeaseItem {
 	id: string

@@ -19,10 +19,6 @@ import type {
 } from '#types/analytics-page-data'
 import type { OwnerPaymentSummaryResponse } from '#types/api-contracts'
 
-// ============================================================================
-// QUERY OPTIONS (for direct use in pages with useQueries/prefetch)
-// ============================================================================
-
 /**
  * Analytics query factory
  */

@@ -1,9 +1,4 @@
-/**
- * Subscription Verification Query Keys & Options
- *
- * Used for verifying Stripe Checkout sessions after subscription purchase.
- * This is landlord SaaS subscription verification — NOT tenant rent payment.
- */
+// Verifies Stripe Checkout sessions after landlord SaaS subscription purchase.
 
 import { queryOptions } from '@tanstack/react-query'
 import { createClient } from '#lib/supabase/client'
@@ -11,20 +6,12 @@ import { QUERY_CACHE_TIMES } from '#lib/constants/query-config'
 import type { StripeSessionStatusResponse } from '#types/core'
 import type { SubscriptionData } from '#types/stripe'
 
-// ============================================================================
-// QUERY KEYS
-// ============================================================================
-
 export const subscriptionVerificationKeys = {
 	verifySession: (sessionId: string) =>
 		['subscription', 'verify', sessionId] as const,
 	sessionStatus: (sessionId: string) =>
 		['subscription', 'status', sessionId] as const
 }
-
-// ============================================================================
-// QUERY OPTIONS
-// ============================================================================
 
 export const subscriptionStatusQueries = {
 	verifySession: (sessionId: string | null, options?: { throwOnError?: boolean }) =>

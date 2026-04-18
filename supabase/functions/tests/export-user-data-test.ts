@@ -43,10 +43,6 @@ async function rawInvoke(options: {
   return { status: response.status, text, data, headers: response.headers }
 }
 
-// =============================================================================
-// CORS tests
-// =============================================================================
-
 Deno.test('export-user-data: OPTIONS returns CORS preflight response', async () => {
   const frontendUrl = Deno.env.get('FRONTEND_URL') ?? 'http://localhost:3050'
 
@@ -68,10 +64,6 @@ Deno.test('export-user-data: OPTIONS returns CORS preflight response', async () 
   }
 })
 
-// =============================================================================
-// Method tests
-// =============================================================================
-
 Deno.test('export-user-data: rejects POST method with 405', async () => {
   const { status } = await rawInvoke({ method: 'POST' })
   assertEquals(status, 405)
@@ -91,10 +83,6 @@ Deno.test('export-user-data: rejects PATCH method with 405', async () => {
   const { status } = await rawInvoke({ method: 'PATCH' })
   assertEquals(status, 405)
 })
-
-// =============================================================================
-// Auth tests
-// =============================================================================
 
 Deno.test('export-user-data: rejects request without Authorization header', async () => {
   const { status, data } = await rawInvoke({})
@@ -124,10 +112,6 @@ Deno.test('export-user-data: rejects request with malformed Authorization header
   assertEquals(status, 401)
   assertEquals(data.error, 'Authorization required')
 })
-
-// =============================================================================
-// Response format tests (requires valid auth)
-// =============================================================================
 
 Deno.test('export-user-data: response Content-Type is application/json', async () => {
   const ownerEmail = Deno.env.get('E2E_OWNER_EMAIL')
@@ -227,10 +211,6 @@ Deno.test('export-user-data: response body is valid JSON with expected top-level
   const exportedAt = String(data.exported_at)
   assert(!isNaN(Date.parse(exportedAt)), `exported_at should be valid date: ${exportedAt}`)
 })
-
-// =============================================================================
-// Error response format tests
-// =============================================================================
 
 Deno.test('export-user-data: error responses have JSON Content-Type', async () => {
   const { headers } = await rawInvoke({})

@@ -54,10 +54,6 @@ async function rawInvoke(options: {
   return { status: response.status, data, headers: response.headers }
 }
 
-// =============================================================================
-// CORS tests
-// =============================================================================
-
 Deno.test('newsletter-subscribe: OPTIONS returns CORS preflight response', async () => {
   const frontendUrl = Deno.env.get('FRONTEND_URL') ?? 'http://localhost:3050'
 
@@ -84,10 +80,6 @@ Deno.test('newsletter-subscribe: OPTIONS returns CORS preflight response', async
   }
 })
 
-// =============================================================================
-// Method tests
-// =============================================================================
-
 Deno.test('newsletter-subscribe: rejects non-POST methods with 405', async () => {
   const { status } = await rawInvoke({
     method: 'GET',
@@ -111,10 +103,6 @@ Deno.test('newsletter-subscribe: rejects DELETE method with 405', async () => {
   })
   assertEquals(status, 405)
 })
-
-// =============================================================================
-// Validation tests (NEWS-02)
-// =============================================================================
 
 Deno.test('newsletter-subscribe: rejects missing email with 400', async () => {
   const { status, data } = await rawInvoke({
@@ -152,10 +140,6 @@ Deno.test('newsletter-subscribe: rejects email without domain with 400', async (
   assertEquals(data.error, 'Valid email is required')
 })
 
-// =============================================================================
-// Success test (NEWS-01)
-// =============================================================================
-
 Deno.test('newsletter-subscribe: valid email returns 200 with success true', async () => {
   const { status, data } = await rawInvoke({
     body: JSON.stringify({ email: 'test-newsletter-ci@example.com' }),
@@ -164,10 +148,6 @@ Deno.test('newsletter-subscribe: valid email returns 200 with success true', asy
   assertEquals(status, 200)
   assertEquals(data.success, true)
 })
-
-// =============================================================================
-// Response format tests
-// =============================================================================
 
 Deno.test('newsletter-subscribe: error responses have JSON Content-Type', async () => {
   const { headers } = await rawInvoke({

@@ -20,10 +20,6 @@ import { ownerDashboardKeys } from './use-owner-dashboard'
 import { mutationKeys } from './mutation-keys'
 import type { SubscriptionStatusResponse } from '#types/api-contracts'
 
-// ============================================================================
-// CANCEL / REACTIVATE MUTATIONS (Phase 42 / CANCEL-01)
-// ============================================================================
-
 export interface CancelSubscriptionResponse {
 	id: string
 	status: string
@@ -103,12 +99,11 @@ export function useCancelSubscriptionMutation() {
 		mutationKey: mutationKeys.subscriptions.cancel,
 		mutationFn: () => callStripeCancelSubscription('cancel'),
 		onSuccess: (response) => {
-			// T-42-06 mitigation: write Stripe's authoritative response into the cache
-			// BEFORE invalidateQueries so the UI flips instantly, regardless of FDW sync lag.
+			// Seed cache with Stripe's authoritative response BEFORE invalidation so the UI
+			// flips instantly, regardless of FDW sync lag. We cannot use createMutationCallbacks
+			// here because that factory replaces onSuccess rather than merging — we would lose
+			// this setQueryData call.
 			writeSubscriptionStatusCache(queryClient, response)
-			// Inlined invalidation (instead of spreading createMutationCallbacks) because
-			// the callback factory REPLACES onSuccess rather than merging — this preserves
-			// the setQueryData call above.
 			queryClient.invalidateQueries({ queryKey: subscriptionStatusKey })
 			queryClient.invalidateQueries({ queryKey: ownerDashboardKeys.all })
 		},
@@ -123,7 +118,7 @@ export function useReactivateSubscriptionMutation() {
 		mutationKey: mutationKeys.subscriptions.reactivate,
 		mutationFn: () => callStripeCancelSubscription('reactivate'),
 		onSuccess: (response) => {
-			// T-42-06 mitigation: mirror the cancel mutation setQueryData pattern.
+			// Seed cache with Stripe response before invalidation (matches cancel mutation).
 			writeSubscriptionStatusCache(queryClient, response)
 			queryClient.invalidateQueries({ queryKey: subscriptionStatusKey })
 			queryClient.invalidateQueries({ queryKey: ownerDashboardKeys.all })
@@ -131,10 +126,6 @@ export function useReactivateSubscriptionMutation() {
 		onError: error => handleMutationError(error, 'Reactivate subscription')
 	})
 }
-
-// ============================================================================
-// BILLING PORTAL MUTATION
-// ============================================================================
 
 /**
  * Opens the Stripe Customer Portal for subscription management.

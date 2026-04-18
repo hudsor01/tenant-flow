@@ -7,10 +7,6 @@
  * - Use with useMutationState to track pending mutations globally
  */
 
-// ============================================================================
-// MUTATION KEYS
-// ============================================================================
-
 export const mutationKeys = {
 	// Properties
 	properties: {

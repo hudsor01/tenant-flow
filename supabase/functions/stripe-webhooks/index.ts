@@ -55,7 +55,7 @@ Deno.serve(async (req: Request) => {
     )
   }
 
-  // PAY-15: Idempotency with status tracking
+  // Idempotency: primary key on event.id blocks duplicate deliveries; status tracks progress.
   const { error: idempotencyError } = await supabase
     .from('stripe_webhook_events')
     .insert({
