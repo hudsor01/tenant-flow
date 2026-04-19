@@ -1,17 +1,17 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.7
-milestone_name: Launch Readiness
-status: archived
-stopped_at: v1.7 milestone fully production-live. All 4 Wave 0 actions DONE 2026-04-16: migrations applied, types regenerated, resend-webhook Edge Function deployed + Resend webhook registered + RESEND_WEBHOOK_SECRET synced to Resend's signing secret, admin test user e2e-admin@tenantflow.app provisioned with E2E_ADMIN_EMAIL/PASSWORD in GH secrets.
+milestone: v2.0
+milestone_name: Revenue Gates
+status: active
+stopped_at: v2.0 scoped 2026-04-19 — 2 phases (DocuSeal gate prod validation + premium reports tier gate). Previously-audited 8+ revenue streams deferred until real users justify the eng cost.
 last_updated: "2026-04-19T00:00:00.000Z"
 last_activity: 2026-04-19
 progress:
-  total_phases: 4
-  completed_phases: 4
-  total_plans: 9
-  completed_plans: 9
-  percent: 100
+  total_phases: 2
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
+  percent: 0
 ---
 
 # Project State: TenantFlow
@@ -22,14 +22,14 @@ See: .planning/PROJECT.md (updated 2026-04-13)
 
 **Core value:** A landlord can add a property, record tenants and leases, track maintenance, and run financial reports — without touching a spreadsheet or calling anyone.
 **Product scope:** Landlord-only SaaS. No rent payment facilitation (removed 2026-04-18, PR #596). No tenant portal or tenant auth accounts. Tenants are records, not users.
-**Current focus:** No active milestone. v1.7 Launch Readiness archived 2026-04-15. Landlord-only pivot shipped 2026-04-18 (PR #596) + structural collapse to `is_admin` boolean 2026-04-19 (PR #600). Run `/gsd:new-milestone vX.Y <name>` to scope the next one.
+**Current focus:** v2.0 Revenue Gates — validate the DocuSeal paywall is earning (Phase 45) and add a premium-reports paywall (Phase 46). 8 other audited revenue features explicitly deferred.
 
 ## Current Position
 
-Phase: -- (no active milestone)
-Plan: -- (v1.7 archived to milestones/v1.7-ROADMAP.md)
-Milestone: v1.7 Launch Readiness — ARCHIVED 2026-04-16. Post-v1.7 stabilization (unplanned, executed ad-hoc 2026-04-18/19): PR #596 (rent + tenant portal removed), PR #597 (claude-review CI hang fix), PR #598 (GSD docs aligned), PR #599 (test suite aligned), PR #600 (user_type → is_admin).
-Status: No active milestone. Product scope narrowed to landlord-only SaaS. Auth model collapsed to is_admin boolean. Run `/gsd:new-milestone vX.Y <name>` to scope next.
+Phase: 45 (pending)
+Plan: -- (phase not yet started)
+Milestone: v2.0 Revenue Gates — active. See `milestones/v2.0-ROADMAP.md` for scope + battle-proven criteria.
+Status: Scoping complete. Next: write Phase 45 plan (DocuSeal gate metadata tagging + analytics + E2E).
 Last activity: 2026-04-19
 
 ## Shipped Milestones
@@ -43,6 +43,12 @@ Last activity: 2026-04-19
 | v1.5 | Code Quality & Deduplication | 3 | 7 | 2026-04-08 |
 | v1.6 | SEO & Google Indexing Optimization | 9 | 21 | 2026-04-13 |
 | v1.7 | Launch Readiness | 4 | 9 | 2026-04-15 |
+
+**Active (not yet shipped):**
+
+| Version | Name | Phases | Plans | Status |
+|---------|------|--------|-------|--------|
+| v2.0 | Revenue Gates | 2 | 0 | Phase 45 pending |
 
 ## Accumulated Context
 
