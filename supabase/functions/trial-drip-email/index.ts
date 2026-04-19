@@ -62,10 +62,15 @@ Deno.serve(async (req: Request) => {
 
       // Find trial users who signed up exactly N days ago
       // and haven't been sent this drip email yet
+      // Trial drip targets users actively in a Stripe trial. Filtering by
+      // subscription_status='trialing' is the precise audience; is_admin=false
+      // alone would sweep in legacy non-landlord accounts created before the
+      // landlord-only pivot.
       const { data: users, error: queryError } = await supabase
         .from('users')
         .select('id, email, full_name, created_at')
-        .eq('user_type', 'OWNER')
+        .eq('subscription_status', 'trialing')
+        .eq('is_admin', false)
         .is('deletion_requested_at', null)
         .gte(
           'created_at',

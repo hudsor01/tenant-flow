@@ -46,16 +46,6 @@ export const DEFAULT_TENANT: Tenant = {
 	updated_at: '2024-01-01T00:00:00Z'
 }
 
-/**
- * Default User - Use with spread operator for overrides
- *
- * @example
- * const admin: User = {
- *   ...DEFAULT_USER,
- *   user_type: 'ADMIN',
- *   email: 'admin@example.com'
- * }
- */
 export const DEFAULT_USER: User = {
 	id: 'user-1',
 	email: 'user@example.com',
@@ -63,7 +53,7 @@ export const DEFAULT_USER: User = {
 	first_name: 'Test',
 	last_name: 'User',
 	phone: '(555) 123-4567',
-	user_type: 'OWNER',
+	is_admin: false,
 	stripe_customer_id: 'cus_test123',
 	status: 'active',
 	avatar_url: null,

@@ -34,13 +34,12 @@ declare
   v_business_types text[] := ARRAY['sole_prop', 'llc', 'corporation', 'partnership'];
 begin
   -- Batch insert owner users
-  insert into public.users (email, full_name, first_name, last_name, user_type, phone, status, created_at)
+  insert into public.users (email, full_name, first_name, last_name, phone, status, created_at)
   select
     'owner-perf-' || g || '@perf.tenantflow.test',
     v_first_names[1 + (g % 20)] || ' ' || v_last_names[1 + ((g + 5) % 20)],
     v_first_names[1 + (g % 20)],
     v_last_names[1 + ((g + 5) % 20)],
-    'OWNER',
     '+1' || (200 + (g % 800))::text || (100 + (g % 900))::text || (1000 + (g % 9000))::text,
     'active',
     now() - (random() * 730) * interval '1 day' -- Last 2 years
@@ -80,13 +79,12 @@ declare
                                 'Hernandez', 'Lopez', 'Gonzalez', 'Wilson', 'Anderson', 'Thomas', 'Taylor', 'Moore', 'Jackson', 'Martin'];
 begin
   -- Batch insert tenant users
-  insert into public.users (email, full_name, first_name, last_name, user_type, phone, status, created_at)
+  insert into public.users (email, full_name, first_name, last_name, phone, status, created_at)
   select
     'tenant-perf-' || g || '@perf.tenantflow.test',
     v_first_names[1 + (g % 20)] || ' ' || v_last_names[1 + ((g + 7) % 20)],
     v_first_names[1 + (g % 20)],
     v_last_names[1 + ((g + 7) % 20)],
-    'TENANT',
     '+1' || (200 + (g % 800))::text || (100 + ((g + 100) % 900))::text || (1000 + ((g + 1000) % 9000))::text,
     'active',
     now() - (random() * 730) * interval '1 day'

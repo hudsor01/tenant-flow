@@ -41,7 +41,7 @@ begin
   for i in 1..10 loop
     -- Create owner user
     insert into public.users (
-      email, full_name, first_name, last_name, user_type, phone, status,
+      email, full_name, first_name, last_name, phone, status,
       created_at
     )
     values (
@@ -49,7 +49,6 @@ begin
       v_first_names[i] || ' ' || v_last_names[i],
       v_first_names[i],
       v_last_names[i],
-      'OWNER',
       public.seed_random_phone(),
       'active',
       public.seed_random_date(18) -- Created within last 18 months
@@ -160,7 +159,7 @@ begin
   for i in 1..50 loop
     -- Create tenant user
     insert into public.users (
-      email, full_name, first_name, last_name, user_type, phone, status,
+      email, full_name, first_name, last_name, phone, status,
       created_at
     )
     values (
@@ -168,7 +167,6 @@ begin
       v_first_names[i] || ' ' || v_last_names[i],
       v_first_names[i],
       v_last_names[i],
-      'TENANT',
       public.seed_random_phone(),
       'active',
       public.seed_random_date(24)

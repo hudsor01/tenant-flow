@@ -24,8 +24,7 @@ import type {
 const ALLOWED_STEPS: readonly FunnelStepName[] = [
 	'signup',
 	'first_property',
-	'first_tenant',
-	'first_rent'
+	'first_tenant'
 ] as const
 
 function isFunnelStepName(value: unknown): value is FunnelStepName {

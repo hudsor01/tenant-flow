@@ -259,17 +259,17 @@ export default function AboutPage() {
 							{[
 								{
 									name: 'Alex Chen',
-									user_type: 'CEO & Founder',
+									title: 'CEO & Founder',
 									bio: 'Former property manager turned tech entrepreneur. 10+ years in real estate.'
 								},
 								{
 									name: 'Sarah Johnson',
-									user_type: 'CTO',
+									title: 'CTO',
 									bio: 'Software architect with expertise in scalable systems and security.'
 								},
 								{
 									name: 'Mike Rodriguez',
-									user_type: 'Head of Product',
+									title: 'Head of Product',
 									bio: 'Product strategist focused on user experience and customer success.'
 								}
 							].map((member, index) => (
@@ -282,7 +282,7 @@ export default function AboutPage() {
 											{member.name}
 										</h3>
 										<p className="text-primary font-medium mb-4">
-											{member.user_type}
+											{member.title}
 										</p>
 										<p className="text-muted-foreground leading-relaxed">{member.bio}</p>
 									</div>

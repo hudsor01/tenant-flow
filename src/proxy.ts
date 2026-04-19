@@ -1,4 +1,5 @@
 import { type NextRequest, NextResponse } from 'next/server'
+import * as Sentry from '@sentry/nextjs'
 import { createServerClient } from '@supabase/ssr'
 import { env } from '#env'
 import { updateSession } from '#lib/supabase/middleware'
@@ -6,10 +7,6 @@ import { updateSession } from '#lib/supabase/middleware'
 /** Stripe subscription statuses that grant dashboard access. */
 const ACTIVE_SUBSCRIPTION_STATUSES = new Set(['active', 'trialing'])
 
-/**
- * Public routes that skip auth checks.
- * Token refresh (updateSession) still runs for cookie freshness.
- */
 const PUBLIC_ROUTES = [
   '/',
   '/login',
@@ -32,7 +29,6 @@ const PUBLIC_ROUTES = [
   '/auth/post-checkout',
   '/auth/update-password',
   '/auth/signout',
-  '/auth/select-role',
 ]
 
 function isPublicRoute(pathname: string): boolean {
@@ -41,10 +37,6 @@ function isPublicRoute(pathname: string): boolean {
   )
 }
 
-/**
- * Helper: copy all Supabase cookies from supabaseResponse to a redirect
- * response. Prevents session loss on proxy redirects.
- */
 function redirectWithCookies(
   url: URL,
   supabaseResponse: NextResponse
@@ -64,12 +56,10 @@ export async function proxy(
 
   const { user, supabaseResponse } = await updateSession(request)
 
-  // Public routes: return supabaseResponse (token refresh only, no auth check)
   if (isPublicRoute(pathname)) {
     return supabaseResponse
   }
 
-  // Unauthenticated: redirect to login with redirect param
   if (!user) {
     const url = request.nextUrl.clone()
     url.pathname = '/login'
@@ -77,47 +67,9 @@ export async function proxy(
     return redirectWithCookies(url, supabaseResponse)
   }
 
-  // Role-based route enforcement
-  const userType = user.app_metadata?.user_type as string | undefined
-
-  // /admin/* is admin-only. Non-admin users are redirected to the dashboard.
-  // This is the first gate; the (admin) route group's layout.tsx performs a
-  // second check.
+  // /admin/* is admin-only. The (admin) route group's layout.tsx performs a
+  // second server-side is_admin check against public.users.
   if (pathname.startsWith('/admin')) {
-    if (userType !== 'ADMIN') {
-      return redirectWithCookies(
-        new URL('/dashboard', request.url),
-        supabaseResponse
-      )
-    }
-  }
-
-  // PENDING or no user_type on non-auth routes -> select role
-  if (
-    (userType === 'PENDING' || !userType) &&
-    !pathname.startsWith('/auth/')
-  ) {
-    return redirectWithCookies(
-      new URL('/auth/select-role', request.url),
-      supabaseResponse
-    )
-  }
-
-  // Subscription gate: OWNER must have an active or trialing Stripe subscription
-  // to access the dashboard. Webhook handlers (stripe-webhooks Edge Function)
-  // keep public.users.subscription_status in sync with Stripe in real-time.
-  // Allowlist: /pricing (plan selection), /billing/checkout and /billing/plans
-  // (Stripe checkout flow), /auth/* (already public, defense-in-depth).
-  if (
-    userType === 'OWNER' &&
-    !pathname.startsWith('/pricing') &&
-    !pathname.startsWith('/billing/checkout') &&
-    !pathname.startsWith('/billing/plans') &&
-    !pathname.startsWith('/auth/')
-  ) {
-    // Read subscription_status with the user's session (RLS allows users to read
-    // their own row). Single PK lookup, ~5ms — proxy already does an auth.getUser
-    // round trip so this is the second round trip per request.
     const subClient = createServerClient(
       env.NEXT_PUBLIC_SUPABASE_URL,
       env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY,
@@ -128,11 +80,68 @@ export async function proxy(
         },
       }
     )
-    const { data: row } = await subClient
+    const { data: row, error } = await subClient
       .from('users')
-      .select('subscription_status')
+      .select('is_admin')
       .eq('id', user.id)
       .maybeSingle()
+
+    // On DB error: fail loud with 500 rather than silently redirecting an
+    // admin away. Sentry's Next.js SDK captures the thrown error server-side.
+    if (error) {
+      Sentry.captureException(error, {
+        tags: { component: 'proxy', check: 'admin_gate' },
+        extra: { userId: user.id, pathname },
+      })
+      throw error
+    }
+
+    if (!row?.is_admin) {
+      return redirectWithCookies(
+        new URL('/dashboard', request.url),
+        supabaseResponse
+      )
+    }
+  }
+
+  // Subscription gate: authenticated non-admin users need an active or trialing
+  // Stripe subscription to reach the dashboard. Allowlist /pricing and Stripe
+  // checkout paths so users can subscribe.
+  if (
+    !pathname.startsWith('/admin') &&
+    !pathname.startsWith('/pricing') &&
+    !pathname.startsWith('/billing/checkout') &&
+    !pathname.startsWith('/billing/plans') &&
+    !pathname.startsWith('/auth/')
+  ) {
+    const subClient = createServerClient(
+      env.NEXT_PUBLIC_SUPABASE_URL,
+      env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY,
+      {
+        cookies: {
+          getAll: () => request.cookies.getAll(),
+          setAll: () => {},
+        },
+      }
+    )
+    const { data: row, error } = await subClient
+      .from('users')
+      .select('subscription_status, is_admin')
+      .eq('id', user.id)
+      .maybeSingle()
+
+    // Fail loud on DB error — silently redirecting admins to /pricing is
+    // the exact bug Sentry flagged. A 500 is the honest response when we
+    // can't determine subscription status.
+    if (error) {
+      Sentry.captureException(error, {
+        tags: { component: 'proxy', check: 'subscription_gate' },
+        extra: { userId: user.id, pathname },
+      })
+      throw error
+    }
+
+    if (row?.is_admin) return supabaseResponse
 
     const status = row?.subscription_status as string | null | undefined
     if (!status || !ACTIVE_SUBSCRIPTION_STATUSES.has(status)) {

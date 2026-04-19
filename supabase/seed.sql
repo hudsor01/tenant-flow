@@ -28,7 +28,6 @@ begin
     full_name,
     first_name,
     last_name,
-    user_type,
     phone,
     status
   ) values (
@@ -37,7 +36,6 @@ begin
     'Test Admin',
     'Test',
     'Admin',
-    'OWNER',
     '+15551234567',
     'active'
   )
@@ -76,7 +74,7 @@ begin
     now(),
     null,
     now(),
-    '{"provider":"email","providers":["email"],"user_type":"OWNER"}'::jsonb,
+    '{"provider":"email","providers":["email"]}'::jsonb,
     '{"full_name":"Test Admin"}'::jsonb,
     now(),
     now(),
@@ -127,8 +125,8 @@ declare
   v_unit_a1_id uuid;
 begin
   -- Create Owner A user
-  insert into public.users (email, full_name, first_name, last_name, user_type, phone, status)
-  values ('owner-a@test.com', 'Alice Anderson', 'Alice', 'Anderson', 'OWNER', '+15551001001', 'active')
+  insert into public.users (email, full_name, first_name, last_name, phone, status)
+  values ('owner-a@test.com', 'Alice Anderson', 'Alice', 'Anderson', '+15551001001', 'active')
   on conflict (email) do update
   set full_name = excluded.full_name, updated_at = now()
   returning id into v_owner_a_user_id;
@@ -146,7 +144,7 @@ begin
     'owner-a@test.com',
     crypt('TestPassword123!', gen_salt('bf')),
     now(), now(),
-    '{"provider":"email","providers":["email"],"user_type":"OWNER"}'::jsonb,
+    '{"provider":"email","providers":["email"]}'::jsonb,
     '{"full_name":"Alice Anderson"}'::jsonb,
     now(), now(), '', '', '', ''
   )
@@ -156,8 +154,8 @@ begin
       updated_at = now();
 
   -- Create Tenant A user
-  insert into public.users (email, full_name, first_name, last_name, user_type, phone, status)
-  values ('tenant-a@test.com', 'John Doe', 'John', 'Doe', 'TENANT', '+15552001001', 'active')
+  insert into public.users (email, full_name, first_name, last_name, phone, status)
+  values ('tenant-a@test.com', 'John Doe', 'John', 'Doe', '+15552001001', 'active')
   on conflict (email) do update
   set full_name = excluded.full_name, updated_at = now()
   returning id into v_tenant_a_user_id;
@@ -175,7 +173,7 @@ begin
     'tenant-a@test.com',
     crypt('TestPassword123!', gen_salt('bf')),
     now(), now(),
-    '{"provider":"email","providers":["email"],"user_type":"TENANT"}'::jsonb,
+    '{"provider":"email","providers":["email"]}'::jsonb,
     '{"full_name":"John Doe"}'::jsonb,
     now(), now(), '', '', '', ''
   )
@@ -295,8 +293,8 @@ declare
   v_unit_b1_id uuid;
 begin
   -- Create Owner B user
-  insert into public.users (email, full_name, first_name, last_name, user_type, phone, status)
-  values ('owner-b@test.com', 'Bob Baker', 'Bob', 'Baker', 'OWNER', '+15551002002', 'active')
+  insert into public.users (email, full_name, first_name, last_name, phone, status)
+  values ('owner-b@test.com', 'Bob Baker', 'Bob', 'Baker', '+15551002002', 'active')
   on conflict (email) do update
   set full_name = excluded.full_name, updated_at = now()
   returning id into v_owner_b_user_id;
@@ -314,7 +312,7 @@ begin
     'owner-b@test.com',
     crypt('TestPassword123!', gen_salt('bf')),
     now(), now(),
-    '{"provider":"email","providers":["email"],"user_type":"OWNER"}'::jsonb,
+    '{"provider":"email","providers":["email"]}'::jsonb,
     '{"full_name":"Bob Baker"}'::jsonb,
     now(), now(), '', '', '', ''
   )
@@ -324,8 +322,8 @@ begin
       updated_at = now();
 
   -- Create Tenant B user
-  insert into public.users (email, full_name, first_name, last_name, user_type, phone, status)
-  values ('tenant-b@test.com', 'Sarah Smith', 'Sarah', 'Smith', 'TENANT', '+15552002002', 'active')
+  insert into public.users (email, full_name, first_name, last_name, phone, status)
+  values ('tenant-b@test.com', 'Sarah Smith', 'Sarah', 'Smith', '+15552002002', 'active')
   on conflict (email) do update
   set full_name = excluded.full_name, updated_at = now()
   returning id into v_tenant_b_user_id;
@@ -343,7 +341,7 @@ begin
     'tenant-b@test.com',
     crypt('TestPassword123!', gen_salt('bf')),
     now(), now(),
-    '{"provider":"email","providers":["email"],"user_type":"TENANT"}'::jsonb,
+    '{"provider":"email","providers":["email"]}'::jsonb,
     '{"full_name":"Sarah Smith"}'::jsonb,
     now(), now(), '', '', '', ''
   )
@@ -465,7 +463,7 @@ declare
   v_maintenance_count int;
 begin
   select count(*) into v_user_count from public.users;
-  select count(*) into v_owner_count from public.users where user_type = 'OWNER';
+  select count(*) into v_owner_count from public.users where is_admin = false;
   select count(*) into v_tenant_count from public.tenants;
   select count(*) into v_property_count from public.properties;
   select count(*) into v_unit_count from public.units;

@@ -22,7 +22,7 @@
 │  ─────────────  │     │ ─────────────── │     │ ─────────────── │
 │  id (uuid, PK)  │◄────│ user_id (FK)    │◄────│ property_owner  │
 │  email          │     │ stripe_account  │     │ _id (FK)        │
-│  user_type      │     │ business_name   │     │ name, address   │
+│  is_admin       │     │ business_name   │     │ name, address   │
 └─────────────────┘     └─────────────────┘     └────────┬────────┘
                                                          │
                         ┌────────────────────────────────┤
@@ -79,7 +79,7 @@ Central user table (synced from auth.users via trigger).
 | `first_name` | text | First name |
 | `last_name` | text | Last name |
 | `phone` | text | Phone number |
-| `user_type` | text | `OWNER`, `TENANT`, `MANAGER`, `ADMIN` |
+| `is_admin` | boolean | Admin flag (landlord-only: everyone else is an owner) |
 | `stripe_customer_id` | text | Stripe customer for billing |
 | `status` | text | `active`, `inactive`, `suspended` |
 | `avatar_url` | text | Profile image URL |
@@ -506,11 +506,10 @@ The `stripe` schema contains tables synced from Stripe via webhooks. **Do not wr
 
 | Function | Parameters | Returns | Description |
 |----------|------------|---------|-------------|
-| `get_current_user_type` | - | `text` | Get current user's type (OWNER/TENANT/etc.) |
-| `get_current_tenant_id` | - | `uuid` | Get current user's tenant ID |
+| `is_admin` | - | `boolean` | Reads is_admin from public.users via auth.uid() |
 | `get_current_property_owner_id` | - | `uuid` | Get current user's property_owner ID |
 | `get_user_profile` | `p_user_id text` | varies | Get user profile data |
-| `custom_access_token_hook` | `event jsonb` | `jsonb` | JWT claims enhancement |
+| `custom_access_token_hook` | `event jsonb` | `jsonb` | No-op (disabled post landlord-only pivot) |
 | `check_user_feature_access` | `p_user_id text, p_feature text` | `boolean` | Feature access check |
 | `get_user_plan_limits` | `p_user_id text` | `TABLE(...)` | Subscription plan limits |
 

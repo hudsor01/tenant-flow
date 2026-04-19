@@ -26,6 +26,7 @@ const loadEnvFile = (fileName: string) => {
 }
 
 loadEnvFile('.env.test')
+loadEnvFile('.env.local')
 
 export default defineConfig({
 	resolve: {

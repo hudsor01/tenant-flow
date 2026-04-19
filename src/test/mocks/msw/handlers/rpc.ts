@@ -40,7 +40,7 @@ export const rpcHandlers = [
 			id: 'owner-user-123',
 			email: 'owner@example.com',
 			full_name: 'Test Owner',
-			user_type: 'OWNER'
+			is_admin: false
 		})
 	}),
 

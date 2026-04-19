@@ -1,22 +1,8 @@
-/**
- * Profile Query Hooks & Query Options
- * TanStack Query hooks for user profile data fetching
- *
- * Mutation hooks are in use-profile-mutations.ts.
- *
- * Supports profile viewing with role-specific fields.
- *
- * React 19 + TanStack Query v5 patterns
- */
-
 import { queryOptions, useQuery } from '@tanstack/react-query'
 import { QUERY_CACHE_TIMES } from '#lib/constants/query-config'
 import { createClient } from '#lib/supabase/client'
 import type { UserProfile } from '#types/api-contracts'
 
-/**
- * Profile query keys for cache management
- */
 export const profileKeys = {
 	all: ['profile'] as const,
 	detail: () => [...profileKeys.all, 'detail'] as const,
@@ -24,12 +10,8 @@ export const profileKeys = {
 }
 
 export const PROFILE_SELECT =
-	'id, email, first_name, last_name, full_name, phone, avatar_url, user_type, status, created_at, updated_at, stripe_customer_id'
+	'id, email, first_name, last_name, full_name, phone, avatar_url, is_admin, status, created_at, updated_at, stripe_customer_id'
 
-/**
- * Maps a PostgREST users row to UserProfile.
- * Handles user_type union literal that PostgREST returns as plain string.
- */
 export function mapUserProfile(row: {
 	id: string
 	email: string
@@ -38,7 +20,7 @@ export function mapUserProfile(row: {
 	full_name: string | null
 	phone: string | null
 	avatar_url: string | null
-	user_type: string | null
+	is_admin: boolean
 	status: string | null
 	created_at: string
 	updated_at: string
@@ -52,25 +34,15 @@ export function mapUserProfile(row: {
 		full_name: row.full_name ?? '',
 		phone: row.phone,
 		avatar_url: row.avatar_url,
-		user_type: row.user_type as UserProfile['user_type'],
+		is_admin: row.is_admin,
 		status: row.status ?? 'active',
 		created_at: row.created_at,
 		updated_at: row.updated_at
 	} satisfies UserProfile
 }
 
-/**
- * Profile query factory
- */
 export const profileQueries = {
-	/**
-	 * Base key for all profile queries
-	 */
 	all: () => ['profile'] as const,
-
-	/**
-	 * Fetch current user's profile with role-specific data
-	 */
 	detail: () =>
 		queryOptions({
 			queryKey: profileKeys.detail(),
@@ -87,14 +59,6 @@ export const profileQueries = {
 		})
 }
 
-/**
- * Fetch current user's profile with role-specific data
- *
- * Returns:
- * - Base user info (name, email, phone, avatar)
- * - For tenants: emergency contact, current lease info
- * - For owners: Stripe connection status, property/unit counts
- */
 export function useProfile() {
 	return useQuery(profileQueries.detail())
 }

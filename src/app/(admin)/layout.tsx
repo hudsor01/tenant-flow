@@ -7,17 +7,8 @@ export const metadata: Metadata = {
 	robots: { index: false, follow: false }
 }
 
-/**
- * Admin route-group layout. Second of three defense-in-depth layers
- * (proxy.ts, this layout, DB-level is_admin() in RPCs). Server-side
- * check sourced from the JWT app_metadata claim populated by the
- * custom_access_token_hook — no extra DB round-trip on render.
- *
- * Three cases:
- *   1. No user  -> /login?redirect=/admin/analytics
- *   2. Non-admin user -> /dashboard (redirect-loop safe; distinct path)
- *   3. Admin user -> render children
- */
+// Admin route-group layout. Second of three defense-in-depth layers
+// (proxy.ts, this layout, DB-level is_admin() in RPCs).
 export default async function AdminLayout({
 	children
 }: {
@@ -32,11 +23,13 @@ export default async function AdminLayout({
 		redirect('/login?redirect=/admin/analytics')
 	}
 
-	const userType = (
-		user.app_metadata as { user_type?: string } | undefined
-	)?.user_type
+	const { data: row } = await supabase
+		.from('users')
+		.select('is_admin')
+		.eq('id', user.id)
+		.maybeSingle()
 
-	if (userType !== 'ADMIN') {
+	if (!row?.is_admin) {
 		redirect('/dashboard')
 	}
 

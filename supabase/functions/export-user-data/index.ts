@@ -17,7 +17,7 @@ import { errorResponse } from '../_shared/errors.ts'
 import { createAdminClient } from '../_shared/supabase-client.ts'
 
 interface UserRecord {
-  user_type: string
+  is_admin: boolean
   full_name: string
   email: string
   first_name: string | null
@@ -55,10 +55,9 @@ Deno.serve(async (req: Request) => {
     // Service role client -- bypasses RLS for complete data export
     const supabase = createAdminClient(env['SUPABASE_URL'], env['SUPABASE_SERVICE_ROLE_KEY'])
 
-    // Fetch user profile to determine role
     const { data: userRecord, error: userError } = await supabase
       .from('users')
-      .select('user_type, full_name, email, first_name, last_name, phone, avatar_url, created_at, deletion_requested_at')
+      .select('is_admin, full_name, email, first_name, last_name, phone, avatar_url, created_at, deletion_requested_at')
       .eq('id', user.id)
       .single()
 
@@ -67,9 +66,7 @@ Deno.serve(async (req: Request) => {
     }
 
     const typedUser = userRecord as UserRecord
-    const userType = typedUser.user_type
 
-    // Build profile section
     const profile = {
       full_name: typedUser.full_name,
       email: typedUser.email,
@@ -78,25 +75,13 @@ Deno.serve(async (req: Request) => {
       phone: typedUser.phone,
       avatar_url: typedUser.avatar_url,
       created_at: typedUser.created_at,
-      user_type: typedUser.user_type,
+      is_admin: typedUser.is_admin,
       deletion_requested_at: typedUser.deletion_requested_at,
     }
 
-    let exportData: Record<string, unknown>
+    const exportData = await collectOwnerData(supabase, user.id, profile)
 
-    if (userType === 'OWNER' || userType === 'ADMIN') {
-      exportData = await collectOwnerData(supabase, user.id, profile)
-    } else {
-      // PENDING or unknown role -- export profile only
-      exportData = {
-        exported_at: new Date().toISOString(),
-        user_role: userType,
-        user_id: user.id,
-        profile,
-      }
-    }
-
-    const filename = `tenantflow-data-export-${userType.toLowerCase()}-${new Date().toISOString().split('T')[0]}.json`
+    const filename = `tenantflow-data-export-${new Date().toISOString().split('T')[0]}.json`
 
     return new Response(JSON.stringify(exportData, null, 2), {
       status: 200,
@@ -165,7 +150,6 @@ async function collectOwnerData(
 
   return {
     exported_at: new Date().toISOString(),
-    user_role: 'OWNER',
     user_id: userId,
     profile,
     properties: propertiesResult.data ?? [],

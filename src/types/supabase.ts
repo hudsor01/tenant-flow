@@ -1289,7 +1289,6 @@ export type Database = {
           user_agent: string | null
           user_email: string | null
           user_id: string | null
-          user_type: string | null
         }
         Insert: {
           created_at?: string
@@ -1306,7 +1305,6 @@ export type Database = {
           user_agent?: string | null
           user_email?: string | null
           user_id?: string | null
-          user_type?: string | null
         }
         Update: {
           created_at?: string
@@ -1323,7 +1321,6 @@ export type Database = {
           user_agent?: string | null
           user_email?: string | null
           user_id?: string | null
-          user_type?: string | null
         }
         Relationships: []
       }
@@ -1343,7 +1340,6 @@ export type Database = {
           user_agent: string | null
           user_email: string | null
           user_id: string | null
-          user_type: string | null
         }
         Insert: {
           created_at?: string
@@ -1360,7 +1356,6 @@ export type Database = {
           user_agent?: string | null
           user_email?: string | null
           user_id?: string | null
-          user_type?: string | null
         }
         Update: {
           created_at?: string
@@ -1377,7 +1372,6 @@ export type Database = {
           user_agent?: string | null
           user_email?: string | null
           user_id?: string | null
-          user_type?: string | null
         }
         Relationships: []
       }
@@ -1847,6 +1841,7 @@ export type Database = {
           identity_verification_session_id: string | null
           identity_verification_status: string | null
           identity_verified_at: string | null
+          is_admin: boolean
           last_name: string | null
           onboarding_completed_at: string | null
           onboarding_status: string | null
@@ -1860,7 +1855,6 @@ export type Database = {
           subscription_status: string | null
           subscription_updated_at: string | null
           updated_at: string | null
-          user_type: string
         }
         Insert: {
           avatar_url?: string | null
@@ -1875,6 +1869,7 @@ export type Database = {
           identity_verification_session_id?: string | null
           identity_verification_status?: string | null
           identity_verified_at?: string | null
+          is_admin?: boolean
           last_name?: string | null
           onboarding_completed_at?: string | null
           onboarding_status?: string | null
@@ -1888,7 +1883,6 @@ export type Database = {
           subscription_status?: string | null
           subscription_updated_at?: string | null
           updated_at?: string | null
-          user_type: string
         }
         Update: {
           avatar_url?: string | null
@@ -1903,6 +1897,7 @@ export type Database = {
           identity_verification_session_id?: string | null
           identity_verification_status?: string | null
           identity_verified_at?: string | null
+          is_admin?: boolean
           last_name?: string | null
           onboarding_completed_at?: string | null
           onboarding_status?: string | null
@@ -1916,7 +1911,6 @@ export type Database = {
           subscription_status?: string | null
           subscription_updated_at?: string | null
           updated_at?: string | null
-          user_type?: string
         }
         Relationships: []
       }
@@ -2117,7 +2111,6 @@ export type Database = {
           tablename: string
         }[]
       }
-      backfill_funnel_events: { Args: never; Returns: undefined }
       calculate_maintenance_metrics: {
         Args: {
           p_user_id?: string
@@ -2198,7 +2191,6 @@ export type Database = {
         }[]
       }
       get_current_owner_user_id: { Args: never; Returns: string }
-      get_current_user_type: { Args: never; Returns: string }
       get_dashboard_data_v2: { Args: { p_user_id: string }; Returns: Json }
       get_dashboard_stats: { Args: { p_user_id: string }; Returns: Json }
       get_dashboard_time_series: {

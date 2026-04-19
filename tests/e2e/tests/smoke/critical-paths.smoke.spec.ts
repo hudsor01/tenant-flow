@@ -92,9 +92,7 @@ test.describe('🚨 CRITICAL PATH SMOKE TESTS 🚨', () => {
 						`Account: ${OWNER_EMAIL}\n\n` +
 						`Fix:\n` +
 						`1. Check Supabase Dashboard → Users\n` +
-						`2. Verify account exists with correct password\n` +
-						`3. Check Custom Access Token Hook is enabled\n` +
-						`4. Verify app_metadata.user_type is set to "owner"`,
+						`2. Verify account exists with correct password`,
 					{ cause: e }
 				)
 			}
