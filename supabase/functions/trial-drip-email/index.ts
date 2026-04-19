@@ -65,7 +65,7 @@ Deno.serve(async (req: Request) => {
       const { data: users, error: queryError } = await supabase
         .from('users')
         .select('id, email, full_name, created_at')
-        .eq('user_type', 'OWNER')
+        .eq('is_admin', false)
         .is('deletion_requested_at', null)
         .gte(
           'created_at',

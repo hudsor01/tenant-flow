@@ -87,16 +87,8 @@ function LoginPageContent() {
 				queryClient.setQueryData(authKeys.session(), data.session)
 				queryClient.setQueryData(authKeys.user(), data.session.user)
 
-				const userType = data.session.user.app_metadata?.user_type as
-					| string
-					| undefined
 				const redirectTo = searchParams?.get('redirect')
-				let destination =
-					userType === 'TENANT'
-						? '/tenant'
-						: userType === 'PENDING'
-							? '/auth/select-role'
-							: '/dashboard'
+				let destination = '/dashboard'
 
 				if (redirectTo && isValidRedirect(redirectTo)) {
 					destination = redirectTo
@@ -124,10 +116,7 @@ function LoginPageContent() {
 					}
 				}
 
-				logger.info('[LOGIN_REDIRECT]', {
-					destination,
-					userType: userType || 'OWNER'
-				})
+				logger.info('[LOGIN_REDIRECT]', { destination })
 				router.push(destination)
 			}
 		} catch (error) {

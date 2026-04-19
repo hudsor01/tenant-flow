@@ -13,7 +13,7 @@ describe.skipIf(!adminCreds)(
 	() => {
 		let ownerClient: SupabaseClient
 		let adminClient: SupabaseClient
-		let adminJwtHasUserType = false
+		let adminIsReallyAdmin = false
 
 		beforeAll(async () => {
 			const { ownerA } = getTestCredentials()
@@ -23,18 +23,15 @@ describe.skipIf(!adminCreds)(
 				adminCreds!.admin.password
 			)
 
-			const { data: session } = await adminClient.auth.getSession()
-			const token = session.session?.access_token
-			if (token) {
-				const payload = token.split('.')[1]
-				if (payload) {
-					const claims = JSON.parse(
-						Buffer.from(payload, 'base64url').toString()
-					) as { app_metadata?: { user_type?: string } }
-					adminJwtHasUserType =
-						claims.app_metadata?.user_type === 'ADMIN'
-				}
-			}
+			// Verify the authenticated admin user actually has is_admin=true in
+			// public.users. If not, skip "permits admin" assertions so we don't
+			// silently test the wrong user.
+			const { data } = await adminClient
+				.from('users')
+				.select('is_admin')
+				.limit(1)
+				.maybeSingle()
+			adminIsReallyAdmin = data?.is_admin === true
 		})
 
 		describe('get_deliverability_stats', () => {
@@ -43,21 +40,15 @@ describe.skipIf(!adminCreds)(
 					'get_deliverability_stats',
 					{ p_days: 30 }
 				)
-				// Acceptable outcomes:
-				//   1) RPC raises 'Unauthorized' -> PostgREST surfaces an error
-				//   2) Function returns empty set because is_admin() guard runs
-				// Both prove a non-admin cannot read deliverability data.
 				const isBlocked =
 					error !== null || (Array.isArray(data) && data.length === 0)
 				expect(isBlocked).toBe(true)
 			})
 
 			it('permits admin caller', async (ctx) => {
-				if (!adminJwtHasUserType) {
+				if (!adminIsReallyAdmin) {
 					ctx.skip(
-						'admin JWT lacks app_metadata.user_type=ADMIN — verify E2E_ADMIN_EMAIL ' +
-						'points to a user with user_type=ADMIN in public.users and that ' +
-						'custom_access_token_hook is enabled'
+						'E2E_ADMIN_EMAIL does not resolve to a user with is_admin=true in public.users'
 					)
 				}
 				const { data, error } = await adminClient.rpc(
@@ -80,11 +71,9 @@ describe.skipIf(!adminCreds)(
 			})
 
 			it('permits admin caller', async (ctx) => {
-				if (!adminJwtHasUserType) {
+				if (!adminIsReallyAdmin) {
 					ctx.skip(
-						'admin JWT lacks app_metadata.user_type=ADMIN — verify E2E_ADMIN_EMAIL ' +
-						'points to a user with user_type=ADMIN in public.users and that ' +
-						'custom_access_token_hook is enabled'
+						'E2E_ADMIN_EMAIL does not resolve to a user with is_admin=true in public.users'
 					)
 				}
 				const { data, error } = await adminClient.rpc(

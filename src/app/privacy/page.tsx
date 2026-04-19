@@ -223,7 +223,7 @@ export default function PrivacyPage() {
 								(HTTPS/TLS) and at rest (AES-256)
 							</li>
 							<li>
-								<strong>Access Controls:</strong> user_type-based access control
+								<strong>Access Controls:</strong> row-level access control
 								and multi-factor authentication options
 							</li>
 							<li>

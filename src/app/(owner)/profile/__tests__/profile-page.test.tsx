@@ -67,7 +67,7 @@ const mockOwnerProfile = {
 	full_name: 'Test Owner',
 	phone: '(555) 123-4567',
 	avatar_url: null,
-	user_type: 'owner' as const,
+	is_admin: false,
 	status: 'active',
 	created_at: '2024-01-15T00:00:00Z',
 	updated_at: '2024-12-01T00:00:00Z',
@@ -111,17 +111,6 @@ vi.mock('#hooks/api/use-profile-avatar-mutations', () => ({
 	}),
 	useRemoveAvatarMutation: () => ({
 		mutateAsync: mockRemoveAvatar,
-		isPending: false
-	})
-}))
-
-vi.mock('#hooks/api/use-profile-emergency-mutations', () => ({
-	useUpdateProfileEmergencyContactMutation: () => ({
-		mutateAsync: vi.fn(),
-		isPending: false
-	}),
-	useRemoveProfileEmergencyContactMutation: () => ({
-		mutateAsync: vi.fn(),
 		isPending: false
 	})
 }))

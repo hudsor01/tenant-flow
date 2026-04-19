@@ -20,37 +20,12 @@ import type { Tables, TablesInsert, TablesUpdate } from './supabase'
 import type { TenantCreate, TenantUpdate } from '#lib/validation/tenants'
 import type { PropertyCreate } from '#lib/validation/properties'
 
-/**
- * Tenant-specific profile data within a UserProfile response
- * Used for displaying tenant info in the user profile view
- */
-export interface UserProfileTenantData {
-	date_of_birth: string | null
-	emergency_contact_name: string | null
-	emergency_contact_phone: string | null
-	emergency_contact_relationship: string | null
-	identity_verified: boolean | null
-	current_lease?: {
-		property_name: string
-		unit_number: string
-		move_in_date: string
-	} | null
-}
-
-/**
- * Owner-specific profile data within a UserProfile response
- * Used for displaying owner info in the user profile view
- */
 export interface UserProfileOwnerData {
 	stripe_connected: boolean
 	properties_count: number
 	units_count: number
 }
 
-/**
- * User profile response from /api/v1/users/profile
- * Includes base user info and role-specific nested data
- */
 export interface UserProfile {
 	id: string
 	email: string
@@ -59,11 +34,10 @@ export interface UserProfile {
 	full_name: string
 	phone: string | null
 	avatar_url: string | null
-	user_type: 'owner' | 'tenant' | 'manager' | 'admin'
+	is_admin: boolean
 	status: string
 	created_at: string
 	updated_at: string | null
-	tenant_profile?: UserProfileTenantData
 	owner_profile?: UserProfileOwnerData
 }
 

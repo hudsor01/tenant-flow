@@ -93,7 +93,7 @@ describe('updateSession', () => {
 
     mockGetUser.mockResolvedValue({
       data: {
-        user: { id: 'user-123', app_metadata: { user_type: 'OWNER' } },
+        user: { id: 'user-123', app_metadata: {} },
       },
       error: null,
     })
@@ -106,7 +106,7 @@ describe('updateSession', () => {
     expect(mockGetUser).toHaveBeenCalledOnce()
     expect(result.user).toEqual({
       id: 'user-123',
-      app_metadata: { user_type: 'OWNER' },
+      app_metadata: {},
     })
     expect(result.supabaseResponse).toBeDefined()
   })

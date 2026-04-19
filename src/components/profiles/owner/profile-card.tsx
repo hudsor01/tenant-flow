@@ -20,7 +20,6 @@ interface ProfileData {
 	last_name?: string | null
 	full_name: string
 	avatar_url?: string | null
-	user_type: string
 	created_at: string
 	owner_profile?: OwnerProfile | null
 }
@@ -116,11 +115,7 @@ export function ProfileCard({
 						)}
 
 						<h2 className="mt-4 text-xl font-semibold">{profile.full_name}</h2>
-						<p className="text-sm text-muted-foreground capitalize">
-							{profile.user_type === 'owner'
-								? 'Property Owner'
-								: profile.user_type}
-						</p>
+						<p className="text-sm text-muted-foreground">Property Owner</p>
 
 						<div className="mt-2 flex items-center gap-1 text-xs text-muted-foreground">
 							<Clock className="h-3 w-3" />

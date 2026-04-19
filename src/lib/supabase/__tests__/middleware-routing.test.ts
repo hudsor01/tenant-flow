@@ -2,27 +2,20 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import type { NextRequest } from 'next/server'
 import type { User } from '@supabase/supabase-js'
 
-// ── Mocks ──────────────────────────────────────────────────
-
 const mockUpdateSession = vi.fn()
 
 vi.mock('#lib/supabase/middleware', () => ({
   updateSession: (...args: unknown[]) => mockUpdateSession(...args),
 }))
 
-// Mock the Supabase SSR client used by the subscription gate.
-// Tests can override mockSubscriptionStatus to simulate an active/canceled/missing
-// subscription row. Default: null (no subscription → redirect to /pricing).
-let mockSubscriptionStatus: string | null = null
+// Mocks the user row lookup used by proxy.ts for subscription + is_admin checks.
+let mockUserRow: { subscription_status?: string | null; is_admin?: boolean } | null = null
 vi.mock('@supabase/ssr', () => ({
   createServerClient: () => ({
     from: () => ({
       select: () => ({
         eq: () => ({
-          maybeSingle: async () =>
-            mockSubscriptionStatus === null
-              ? { data: null, error: null }
-              : { data: { subscription_status: mockSubscriptionStatus }, error: null },
+          maybeSingle: async () => ({ data: mockUserRow, error: null }),
         }),
       }),
     }),
@@ -36,17 +29,12 @@ vi.mock('#env', () => ({
   },
 }))
 
-// Mock next/server for NextResponse.redirect
 vi.mock('next/server', () => {
   function makeResponse() {
     const cookies = new Map<string, { name: string; value: string }>()
     return {
       cookies: {
-        set: (
-          name: string,
-          value: string,
-          _options?: Record<string, unknown>
-        ) => {
+        set: (name: string, value: string) => {
           cookies.set(name, { name, value })
         },
         getAll: () => [...cookies.values()],
@@ -64,11 +52,7 @@ vi.mock('next/server', () => {
           status: 307,
           headers: new Headers({ Location: url.toString() }),
           cookies: {
-            set: (
-              name: string,
-              value: string,
-              _options?: Record<string, unknown>
-            ) => {
+            set: (name: string, value: string) => {
               cookies.set(name, { name, value })
             },
             getAll: () => [...cookies.values()],
@@ -79,14 +63,11 @@ vi.mock('next/server', () => {
   }
 })
 
-// Import must be after mocks
 import { proxy } from '#proxy'
 import { NextResponse } from 'next/server'
 
-// Helper: build a minimal NextRequest-like object
 function buildRequest(pathname: string): NextRequest {
   const url = new URL(pathname, 'http://localhost:3050')
-  // NextURL has a clone() method that standard URL doesn't
   const nextUrl = Object.assign(url, {
     clone: () => new URL(url.toString()),
   })
@@ -105,14 +86,10 @@ function buildRequest(pathname: string): NextRequest {
   } as unknown as NextRequest
 }
 
-function makeUser(userType?: string, stripeCustomerId?: string): User {
-  const appMetadata: Record<string, unknown> = userType ? { user_type: userType } : {}
-  if (stripeCustomerId) {
-    appMetadata.stripe_customer_id = stripeCustomerId
-  }
+function makeUser(): User {
   return {
     id: 'user-123',
-    app_metadata: appMetadata,
+    app_metadata: {},
     aud: 'authenticated',
     created_at: '2026-01-01',
   } as User
@@ -123,11 +100,7 @@ function makeSupabaseResponse() {
   return {
     _isSupabaseResponse: true,
     cookies: {
-      set: (
-        name: string,
-        value: string,
-        _options?: Record<string, unknown>
-      ) => {
+      set: (name: string, value: string) => {
         cookies.set(name, { name, value })
       },
       getAll: () => [...cookies.values()],
@@ -136,12 +109,10 @@ function makeSupabaseResponse() {
   }
 }
 
-// ── Routing tests ──────────────────────────────────────────
-
 describe('proxy routing', () => {
   beforeEach(() => {
     vi.clearAllMocks()
-    mockSubscriptionStatus = null
+    mockUserRow = null
   })
 
   describe('public routes', () => {
@@ -156,7 +127,6 @@ describe('proxy routing', () => {
 
         const result = await proxy(buildRequest(route))
 
-        // Should return supabaseResponse directly (no redirect)
         expect(result).toBe(supabaseResponse)
         expect(NextResponse.redirect).not.toHaveBeenCalled()
       }
@@ -180,97 +150,72 @@ describe('proxy routing', () => {
     })
   })
 
-  describe('role-based enforcement', () => {
-    it('redirects PENDING user on /dashboard to /auth/select-role', async () => {
+  describe('admin routes', () => {
+    it('redirects non-admin user on /admin to /dashboard', async () => {
       mockUpdateSession.mockResolvedValue({
-        user: makeUser('PENDING'),
+        user: makeUser(),
         supabaseResponse: makeSupabaseResponse(),
       })
+      mockUserRow = { is_admin: false, subscription_status: 'active' }
 
-      await proxy(buildRequest('/dashboard'))
+      await proxy(buildRequest('/admin/analytics'))
 
       expect(NextResponse.redirect).toHaveBeenCalledOnce()
       const redirectUrl = (NextResponse.redirect as ReturnType<typeof vi.fn>)
         .mock.calls[0]![0] as URL
-      expect(redirectUrl.pathname).toBe('/auth/select-role')
+      expect(redirectUrl.pathname).toBe('/dashboard')
     })
 
-    it('allows ADMIN user on /dashboard to pass through', async () => {
+    it('allows is_admin=true user on /admin to pass through', async () => {
       const supabaseResponse = makeSupabaseResponse()
       mockUpdateSession.mockResolvedValue({
-        user: makeUser('ADMIN'),
+        user: makeUser(),
         supabaseResponse,
       })
+      mockUserRow = { is_admin: true }
 
-      const result = await proxy(buildRequest('/dashboard'))
-
-      expect(NextResponse.redirect).not.toHaveBeenCalled()
-      expect(result).toBe(supabaseResponse)
-    })
-
-    it('allows authenticated OWNER with active subscription on /dashboard to pass through', async () => {
-      const supabaseResponse = makeSupabaseResponse()
-      mockUpdateSession.mockResolvedValue({
-        user: makeUser('OWNER', 'cus_test'),
-        supabaseResponse,
-      })
-      mockSubscriptionStatus = 'active'
-
-      const result = await proxy(buildRequest('/dashboard'))
-
-      expect(NextResponse.redirect).not.toHaveBeenCalled()
-      expect(result).toBe(supabaseResponse)
-    })
-
-    it('allows authenticated OWNER with trialing subscription on /dashboard to pass through', async () => {
-      const supabaseResponse = makeSupabaseResponse()
-      mockUpdateSession.mockResolvedValue({
-        user: makeUser('OWNER', 'cus_test'),
-        supabaseResponse,
-      })
-      mockSubscriptionStatus = 'trialing'
-
-      const result = await proxy(buildRequest('/dashboard'))
-
-      expect(NextResponse.redirect).not.toHaveBeenCalled()
-      expect(result).toBe(supabaseResponse)
-    })
-
-    it('redirects OWNER with past_due subscription to /pricing', async () => {
-      mockUpdateSession.mockResolvedValue({
-        user: makeUser('OWNER', 'cus_test'),
-        supabaseResponse: makeSupabaseResponse(),
-      })
-      mockSubscriptionStatus = 'past_due'
-
-      await proxy(buildRequest('/dashboard'))
-
-      expect(NextResponse.redirect).toHaveBeenCalledOnce()
-      const redirectUrl = (NextResponse.redirect as ReturnType<typeof vi.fn>)
-        .mock.calls[0]![0] as URL
-      expect(redirectUrl.pathname).toBe('/pricing')
-    })
-
-    it('allows authenticated TENANT on /tenant to pass through', async () => {
-      const supabaseResponse = makeSupabaseResponse()
-      mockUpdateSession.mockResolvedValue({
-        user: makeUser('TENANT'),
-        supabaseResponse,
-      })
-
-      const result = await proxy(buildRequest('/tenant'))
+      const result = await proxy(buildRequest('/admin/analytics'))
 
       expect(NextResponse.redirect).not.toHaveBeenCalled()
       expect(result).toBe(supabaseResponse)
     })
   })
 
-  describe('subscription gate for OWNER', () => {
-    it('redirects OWNER without stripe_customer_id on /dashboard to /pricing', async () => {
+  describe('subscription gate', () => {
+    it('allows user with active subscription on /dashboard to pass through', async () => {
+      const supabaseResponse = makeSupabaseResponse()
       mockUpdateSession.mockResolvedValue({
-        user: makeUser('OWNER'),
+        user: makeUser(),
+        supabaseResponse,
+      })
+      mockUserRow = { is_admin: false, subscription_status: 'active' }
+
+      const result = await proxy(buildRequest('/dashboard'))
+
+      expect(NextResponse.redirect).not.toHaveBeenCalled()
+      expect(result).toBe(supabaseResponse)
+    })
+
+    it('allows user with trialing subscription on /dashboard to pass through', async () => {
+      const supabaseResponse = makeSupabaseResponse()
+      mockUpdateSession.mockResolvedValue({
+        user: makeUser(),
+        supabaseResponse,
+      })
+      mockUserRow = { is_admin: false, subscription_status: 'trialing' }
+
+      const result = await proxy(buildRequest('/dashboard'))
+
+      expect(NextResponse.redirect).not.toHaveBeenCalled()
+      expect(result).toBe(supabaseResponse)
+    })
+
+    it('redirects user with past_due subscription to /pricing', async () => {
+      mockUpdateSession.mockResolvedValue({
+        user: makeUser(),
         supabaseResponse: makeSupabaseResponse(),
       })
+      mockUserRow = { is_admin: false, subscription_status: 'past_due' }
 
       await proxy(buildRequest('/dashboard'))
 
@@ -280,13 +225,14 @@ describe('proxy routing', () => {
       expect(redirectUrl.pathname).toBe('/pricing')
     })
 
-    it('redirects OWNER without stripe_customer_id on /dashboard/properties to /pricing', async () => {
+    it('redirects user with no subscription on /dashboard to /pricing', async () => {
       mockUpdateSession.mockResolvedValue({
-        user: makeUser('OWNER'),
+        user: makeUser(),
         supabaseResponse: makeSupabaseResponse(),
       })
+      mockUserRow = { is_admin: false, subscription_status: null }
 
-      await proxy(buildRequest('/dashboard/properties'))
+      await proxy(buildRequest('/dashboard'))
 
       expect(NextResponse.redirect).toHaveBeenCalledOnce()
       const redirectUrl = (NextResponse.redirect as ReturnType<typeof vi.fn>)
@@ -294,50 +240,29 @@ describe('proxy routing', () => {
       expect(redirectUrl.pathname).toBe('/pricing')
     })
 
-    it('allows OWNER without stripe_customer_id on /pricing to pass through', async () => {
-      const supabaseResponse = makeSupabaseResponse()
+    it.each(['/pricing', '/billing/checkout', '/billing/plans'])(
+      'allows user without subscription on %s (allowlist)',
+      async (route) => {
+        const supabaseResponse = makeSupabaseResponse()
+        mockUpdateSession.mockResolvedValue({
+          user: makeUser(),
+          supabaseResponse,
+        })
+        mockUserRow = { is_admin: false, subscription_status: null }
+
+        const result = await proxy(buildRequest(route))
+
+        expect(NextResponse.redirect).not.toHaveBeenCalled()
+        expect(result).toBe(supabaseResponse)
+      }
+    )
+
+    it('redirects user without subscription on /settings (non-allowlisted)', async () => {
       mockUpdateSession.mockResolvedValue({
-        user: makeUser('OWNER'),
-        supabaseResponse,
-      })
-
-      const result = await proxy(buildRequest('/pricing'))
-
-      expect(NextResponse.redirect).not.toHaveBeenCalled()
-      expect(result).toBe(supabaseResponse)
-    })
-
-    it('allows OWNER without stripe_customer_id on /billing/checkout to pass through', async () => {
-      const supabaseResponse = makeSupabaseResponse()
-      mockUpdateSession.mockResolvedValue({
-        user: makeUser('OWNER'),
-        supabaseResponse,
-      })
-
-      const result = await proxy(buildRequest('/billing/checkout'))
-
-      expect(NextResponse.redirect).not.toHaveBeenCalled()
-      expect(result).toBe(supabaseResponse)
-    })
-
-    it('allows OWNER without stripe_customer_id on /billing/plans to pass through', async () => {
-      const supabaseResponse = makeSupabaseResponse()
-      mockUpdateSession.mockResolvedValue({
-        user: makeUser('OWNER'),
-        supabaseResponse,
-      })
-
-      const result = await proxy(buildRequest('/billing/plans'))
-
-      expect(NextResponse.redirect).not.toHaveBeenCalled()
-      expect(result).toBe(supabaseResponse)
-    })
-
-    it('redirects OWNER without stripe_customer_id on non-allowlisted owner routes', async () => {
-      mockUpdateSession.mockResolvedValue({
-        user: makeUser('OWNER'),
+        user: makeUser(),
         supabaseResponse: makeSupabaseResponse(),
       })
+      mockUserRow = { is_admin: false, subscription_status: null }
 
       await proxy(buildRequest('/settings'))
 
@@ -347,25 +272,13 @@ describe('proxy routing', () => {
       expect(redirectUrl.pathname).toBe('/pricing')
     })
 
-    it('does not affect TENANT user (no stripe check)', async () => {
+    it('admin user bypasses subscription gate', async () => {
       const supabaseResponse = makeSupabaseResponse()
       mockUpdateSession.mockResolvedValue({
-        user: makeUser('TENANT'),
+        user: makeUser(),
         supabaseResponse,
       })
-
-      const result = await proxy(buildRequest('/tenant'))
-
-      expect(NextResponse.redirect).not.toHaveBeenCalled()
-      expect(result).toBe(supabaseResponse)
-    })
-
-    it('does not affect ADMIN user (no stripe check)', async () => {
-      const supabaseResponse = makeSupabaseResponse()
-      mockUpdateSession.mockResolvedValue({
-        user: makeUser('ADMIN'),
-        supabaseResponse,
-      })
+      mockUserRow = { is_admin: true, subscription_status: null }
 
       const result = await proxy(buildRequest('/dashboard'))
 
@@ -388,7 +301,6 @@ describe('proxy routing', () => {
 
       expect(NextResponse.redirect).toHaveBeenCalledOnce()
 
-      // The proxy should copy cookies from supabaseResponse to redirect response
       const redirectResponse = (
         NextResponse.redirect as ReturnType<typeof vi.fn>
       ).mock.results[0]!.value
