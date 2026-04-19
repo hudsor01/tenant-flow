@@ -49,7 +49,6 @@
 		"validate": "pnpm db:types && pnpm clean && pnpm typecheck && pnpm lint && pnpm test:unit",
 		"validate:quick": "pnpm db:types && pnpm typecheck && pnpm lint && pnpm test:unit",
 		"detect:types": "./scripts/check-duplicate-types.sh",
-		"test:smoke": "bash scripts/smoke-test.sh",
 		"health": "bash scripts/health-check.sh",
 		"changelog": "git cliff --output CHANGELOG.md",
 		"scan:secrets": "gitleaks detect --source . --no-git -v",
