@@ -4,8 +4,8 @@ milestone: v1.7
 milestone_name: Launch Readiness
 status: archived
 stopped_at: v1.7 milestone fully production-live. All 4 Wave 0 actions DONE 2026-04-16: migrations applied, types regenerated, resend-webhook Edge Function deployed + Resend webhook registered + RESEND_WEBHOOK_SECRET synced to Resend's signing secret, admin test user e2e-admin@tenantflow.app provisioned with E2E_ADMIN_EMAIL/PASSWORD in GH secrets.
-last_updated: "2026-04-16T00:00:00.000Z"
-last_activity: 2026-04-16
+last_updated: "2026-04-18T00:00:00.000Z"
+last_activity: 2026-04-18
 progress:
   total_phases: 4
   completed_phases: 4
@@ -20,16 +20,17 @@ progress:
 
 See: .planning/PROJECT.md (updated 2026-04-13)
 
-**Core value:** A landlord can add a property, invite a tenant, collect rent, and see their financials -- without touching a spreadsheet or calling anyone.
-**Current focus:** No active milestone. v1.7 Launch Readiness archived. Run `/gsd:new-milestone vX.Y <name>` to scope the next one.
+**Core value:** A landlord can add a property, record tenants and leases, track maintenance, and run financial reports — without touching a spreadsheet or calling anyone.
+**Product scope:** Landlord-only SaaS. No rent payment facilitation (removed 2026-04-18, PR #596). No tenant portal or tenant auth accounts. Tenants are records, not users.
+**Current focus:** No active milestone. v1.7 Launch Readiness archived 2026-04-15. Landlord-only pivot shipped 2026-04-18. Run `/gsd:new-milestone vX.Y <name>` to scope the next one.
 
 ## Current Position
 
 Phase: -- (no active milestone)
 Plan: -- (v1.7 archived to milestones/v1.7-ROADMAP.md)
-Milestone: v1.7 Launch Readiness — ARCHIVED 2026-04-16
-Status: v1.7 COMPLETE + ARCHIVED + PRODUCTION-LIVE. Verifier PASS 7/7. Wave 0: 4/4 done 2026-04-16. No active milestone — run `/gsd:new-milestone vX.Y <name>` to scope next.
-Last activity: 2026-04-16
+Milestone: v1.7 Launch Readiness — ARCHIVED 2026-04-16. Post-v1.7: landlord-only pivot shipped 2026-04-18 (PR #596) — rent facilitation + tenant portal removed.
+Status: No active milestone. Product scope narrowed to landlord-only SaaS (see PROJECT.md). Run `/gsd:new-milestone vX.Y <name>` to scope next.
+Last activity: 2026-04-18
 
 ## Shipped Milestones
 

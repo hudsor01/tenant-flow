@@ -2,11 +2,11 @@
 
 ## What This Is
 
-TenantFlow is a multi-tenant property management SaaS platform for property owners and managers. It enables owners to manage properties, units, leases, tenants, maintenance requests, and financial reporting -- with rent collection via Stripe Connect (destination charges) and e-signatures via DocuSeal. Tenants get a portal to view their lease, pay rent (manual or autopay), and submit maintenance requests. The platform is production-hardened with comprehensive RLS security, Edge Function rate limiting, and full accessibility.
+TenantFlow is a landlord-only property management SaaS for owners and managers. Owners manage properties, units, leases, tenants (as records, not accounts), maintenance requests, and financial reporting — with e-signatures via DocuSeal (tier-gated). **Rent facilitation and the tenant portal were removed in the 2026-04-18 landlord-only pivot (PR #596)**: TenantFlow does not move money between tenants and landlords, does not host tenant accounts, and does not act as a payments facilitator. The platform is production-hardened with comprehensive RLS security, Edge Function rate limiting, and full accessibility.
 
 ## Core Value
 
-A landlord can add a property, invite a tenant, collect rent, and see their financials -- without touching a spreadsheet or calling anyone.
+A landlord can add a property, record tenants and leases, track maintenance, and run financial reports — without touching a spreadsheet or calling anyone.
 
 ## Requirements
 
@@ -81,25 +81,22 @@ A landlord can add a property, invite a tenant, collect rent, and see their fina
 - v1.6/Phase 40: Metadata verification completeness (final audit pass)
 - v1.6: Sitemap split into category sitemaps + Google Search Console readiness
 
-- v1.7/Stage 1: Payout timing instrumentation + autopay notifications + autopay health dashboard widget (shipped in PR 589, branch `feat/launch-readiness-instrumentation`)
+- v1.7/Stage 1: Payout timing instrumentation + autopay notifications + autopay health dashboard widget (shipped in PR 589, branch `feat/launch-readiness-instrumentation`) — *superseded by landlord-only pivot; autopay + payouts removed 2026-04-18 (PR #596)*
+- v1.7: Launch Readiness — shipped + archived 2026-04-15 (see `milestones/v1.7-ROADMAP.md`)
+- Landlord-only pivot (PR #596, 2026-04-18): removed rent facilitation (rent_due, rent_payments, late_fees, payment_methods, autopay cron + Edge Function, Stripe Connect destination charges), tenant portal (/tenant routes, tenant-portal hooks, tenant_invitations table), payout dashboards. Product now sells as SaaS subscription only; tenants are data records, not auth accounts.
+- DocuSeal e-signature gate: Growth/Max tier subscription required to send for signature (PR #595, 2026-04-16)
 
 ### Active
 
-## Current Milestone: v1.7 Launch Readiness
-
-**Goal:** Prove the four product promises we plan to put on marketing pages — **2-day payouts**, **honest autopay**, **1-click cancel**, **20-door focus** — with tests, audits, and monitoring, so the launch messaging matches reality BEFORE it ships.
-
-**Stage 1 prerequisite (shipped, PR 589):** payout timing instrumentation, autopay success/decline notifications, and autopay health dashboard widget. Stages 2-5 build on this instrumented baseline.
-
-**Target features:**
-- **Stage 2 — Payment correctness tests (Phase 41):** Deno integration tests for `stripe-autopay-charge` (success / card decline + retry scheduling / final-attempt notification / idempotency on duplicate events); Deno tests for `handlePayoutLifecycle` webhook (paid, failed, duration_hours derivation); Vitest RLS tests for split-rent allocation (per-tenant share from `lease_tenants.responsibility_percentage`, tenant isolation, owner aggregate view).
-- **Stage 3 — Cancellation UX audit (Phase 42):** End-to-end one-click cancellation flow audit and fix; surface real cancellation and grace-period states from `stripe.subscriptions` (not derived from `users.stripe_customer_id` existence); ensure data retention behavior matches documented GDPR grace period.
-- **Stage 4 — Post-deploy Sentry regression gate (Phase 43):** GitHub Action that runs a post-deploy Sentry smoke check against production, captures a baseline error/perf snapshot, and fails the deploy gate on regressions above threshold.
-- **Stage 5 — Deliverability + funnel analytics (Phase 44):** Resend webhook ingestion into a `email_deliverability` table (bounce / delivered / opened / complained events); onboarding funnel step tracking (signup → first property → first tenant invite → first rent collected), dashboard RPC that aggregates funnel stats, and admin analytics view.
+No active milestone. v1.7 Launch Readiness archived 2026-04-15. Landlord-only pivot shipped 2026-04-18. Run `/gsd:new-milestone vX.Y <name>` to scope the next milestone.
 
 ### Out of Scope
 
-- Marketing copy, landing page rewrites, launch announcement — intentionally deferred until Stages 2-5 verify the promises being made
+- **Rent payment facilitation** (removed 2026-04-18) — not a money-mover; landlords track rent in the ledger/notes, tenants pay them directly
+- **Tenant portal + tenant auth accounts** (removed 2026-04-18) — tenants are records owned by the landlord, no self-service UI
+- **Stripe Connect / destination charges** (removed 2026-04-18) — platform is Stripe Subscriptions only (SaaS billing)
+- **Autopay, late fees, rent reminders** (removed 2026-04-18) — follow-ons to rent facilitation
+- Marketing copy, landing page rewrites, launch announcement — deferred until next milestone scope lands
 - Mobile app — web-first approach
 - tRPC or Hono — Supabase PostgREST is sufficient
 - GraphQL — pg_graphql available but REST is enough
@@ -114,8 +111,8 @@ A landlord can add a property, invite a tenant, collect rent, and see their fina
 
 ```
 Frontend (Next.js 16 / Vercel) -> supabase-js -> Supabase PostgREST (RLS enforced)
-                                               -> Edge Functions (Stripe, PDF, DocuSeal, Auth emails)
-                                               -> pg_cron (late fees, reminders, autopay, cleanup, GDPR)
+                                               -> Edge Functions (Stripe Subscriptions, PDF, DocuSeal, Auth emails)
+                                               -> pg_cron (cleanup, GDPR, cron health)
                                                -> DB Webhooks -> k3s n8n (background workflows)
 ```
 
@@ -129,7 +126,7 @@ Frontend (Next.js 16 / Vercel) -> supabase-js -> Supabase PostgREST (RLS enforce
 
 - **Frontend**: Next.js 16 + React 19 + TailwindCSS 4 + TanStack Query/Form + Zustand
 - **Backend**: Supabase PostgREST + Edge Functions (Deno) + pg_cron
-- **Payments**: Stripe Connect (destination charges) + Stripe Subscriptions
+- **Payments**: Stripe Subscriptions (platform SaaS billing only; rent facilitation removed 2026-04-18)
 - **Email**: Resend (auth emails, payment receipts, notifications)
 - **Monitoring**: Sentry (frontend + Edge Functions)
 - **CI**: GitHub Actions (next build, unit tests, RLS tests, E2E smoke, gitleaks)
@@ -157,8 +154,9 @@ Frontend (Next.js 16 / Vercel) -> supabase-js -> Supabase PostgREST (RLS enforce
 |----------|-----------|---------|
 | Supabase PostgREST over tRPC/Hono | Zero additional infra, RLS automatic | Good |
 | Edge Functions for Stripe | Official Deno SDK, constructEventAsync | Good |
-| Destination charges (not direct) | Simplest Connect model, automatic fund splitting | Good |
-| Owner absorbs all fees | Industry standard for PM platforms | Good |
+| Destination charges (not direct) | Simplest Connect model, automatic fund splitting | Reversed 2026-04-18 (rent facilitation removed) |
+| Owner absorbs all fees | Industry standard for PM platforms | Reversed 2026-04-18 (rent facilitation removed) |
+| Landlord-only pivot (2026-04-18, PR #596) | Keeping code debt and dead code is irresponsible; not moving money reduces compliance surface (PCI/money transmitter), lets the product focus on the core "spreadsheet replacement" promise | Pivot commit; ~1500 lines comment audit + 7 tables dropped + 9 edge functions removed |
 | pg_cron for scheduled jobs | Runs inside Postgres, no external scheduler | Good |
 | Delete NestJS entirely | Clean break prevents split-brain bugs | Good |
 | service_role for Edge Functions | All verify auth.uid() via getUser(token), avoids RLS overhead | Good |
@@ -201,4 +199,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-04-13 after v1.7 milestone start (Launch Readiness)*
+*Last updated: 2026-04-18 after landlord-only pivot (PR #596) — rent facilitation + tenant portal removed*
