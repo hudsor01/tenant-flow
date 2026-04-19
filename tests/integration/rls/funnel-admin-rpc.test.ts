@@ -125,7 +125,7 @@ describe.skipIf(skipReason)('get_funnel_stats — admin caller aggregates', () =
     }
 
     // Seed a complete funnel progression for ownerA within a 30-day window:
-    // signup -> first_property (5d) -> first_tenant (10d) -> first_rent (20d).
+    // signup -> first_property (5d) -> first_tenant (10d).
     const now = Date.now()
     const rows = [
       {
@@ -142,11 +142,6 @@ describe.skipIf(skipReason)('get_funnel_stats — admin caller aggregates', () =
         owner_user_id: ownerAId,
         step_name: 'first_tenant',
         completed_at: new Date(now - 15 * 86_400_000).toISOString(),
-      },
-      {
-        owner_user_id: ownerAId,
-        step_name: 'first_rent',
-        completed_at: new Date(now - 5 * 86_400_000).toISOString(),
       },
     ]
     const { error: insertError } = await serviceRoleClient
@@ -203,12 +198,11 @@ describe.skipIf(skipReason)('get_funnel_stats — admin caller aggregates', () =
     expect(typeof result.cohort_label).toBe('string')
     expect(result.cohort_label).toContain('owners who signed up between')
     expect(Array.isArray(result.steps)).toBe(true)
-    expect(result.steps).toHaveLength(4)
+    expect(result.steps).toHaveLength(3)
 
     expect(result.steps[0]).toMatchObject({ step: 'signup', step_order: 1 })
     expect(result.steps[1]).toMatchObject({ step: 'first_property', step_order: 2 })
     expect(result.steps[2]).toMatchObject({ step: 'first_tenant', step_order: 3 })
-    expect(result.steps[3]).toMatchObject({ step: 'first_rent', step_order: 4 })
 
     // ownerA contributes 1 to each step count. Other cohort members (real
     // OWNER users captured by the backfill) may also contribute -- assert
@@ -244,7 +238,7 @@ describe.skipIf(skipReason)('get_funnel_stats — admin caller aggregates', () =
         median_days_from_signup: number | null
       }>
     }
-    expect(result.steps).toHaveLength(4)
+    expect(result.steps).toHaveLength(3)
     for (const s of result.steps) {
       expect(Number(s.count)).toBe(0)
     }
@@ -253,6 +247,5 @@ describe.skipIf(skipReason)('get_funnel_stats — admin caller aggregates', () =
     // Downstream rows: nullif(0) makes rates NULL (not 0)
     expect(result.steps[1]!.conversion_rate_from_prior).toBeNull()
     expect(result.steps[2]!.conversion_rate_from_prior).toBeNull()
-    expect(result.steps[3]!.conversion_rate_from_prior).toBeNull()
   })
 })

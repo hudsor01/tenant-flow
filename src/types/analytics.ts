@@ -453,7 +453,6 @@ export type FunnelStepName =
 	| 'signup'
 	| 'first_property'
 	| 'first_tenant'
-	| 'first_rent'
 
 /**
  * Single funnel step summary returned by `get_funnel_stats`.
