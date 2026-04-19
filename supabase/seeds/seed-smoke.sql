@@ -34,13 +34,12 @@ declare
   v_unit_a4_id uuid;
 begin
   -- Create Owner A user
-  insert into public.users (email, full_name, first_name, last_name, user_type, phone, status)
+  insert into public.users (email, full_name, first_name, last_name, phone, status)
   values (
     'owner-a@test.com',
     'Alice Anderson',
     'Alice',
     'Anderson',
-    'OWNER',
     '+15551001001',
     'active'
   )
@@ -68,13 +67,12 @@ begin
   returning id into v_owner_a_po_id;
 
   -- Create Tenant A user
-  insert into public.users (email, full_name, first_name, last_name, user_type, phone, status)
+  insert into public.users (email, full_name, first_name, last_name, phone, status)
   values (
     'tenant-a@test.com',
     'Tom Thompson',
     'Tom',
     'Thompson',
-    'TENANT',
     '+15552001001',
     'active'
   )
@@ -223,13 +221,12 @@ declare
   v_unit_b4_id uuid;
 begin
   -- Create Owner B user
-  insert into public.users (email, full_name, first_name, last_name, user_type, phone, status)
+  insert into public.users (email, full_name, first_name, last_name, phone, status)
   values (
     'owner-b@test.com',
     'Bob Baker',
     'Bob',
     'Baker',
-    'OWNER',
     '+15551002002',
     'active'
   )
@@ -255,13 +252,12 @@ begin
   returning id into v_owner_b_po_id;
 
   -- Create Tenant B user
-  insert into public.users (email, full_name, first_name, last_name, user_type, phone, status)
+  insert into public.users (email, full_name, first_name, last_name, phone, status)
   values (
     'tenant-b@test.com',
     'Sarah Smith',
     'Sarah',
     'Smith',
-    'TENANT',
     '+15552002002',
     'active'
   )
