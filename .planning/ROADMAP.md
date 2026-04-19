@@ -104,7 +104,14 @@ TenantFlow is a multi-tenant property management SaaS platform for property owne
 
 ## Active Milestone
 
-None. v1.7 shipped 2026-04-15. Next milestone scope TBD — run `/gsd:new-milestone vX.Y <name>` to scope it.
+**v2.0 Revenue Gates** — Phases 45-46 (scoped 2026-04-19, target ship 2026-05-10).
+
+- [ ] Phase 45: DocuSeal gate prod validation (3d) — verify PR #595 paywall is earning
+- [ ] Phase 46: Premium reports tier gate (1w) — paywall year-end / 1099 / tax exports
+
+See `milestones/v2.0-ROADMAP.md` for success criteria (battle-proven per phase).
+
+Post-v1.7 stabilization (unplanned, 2026-04-18/19): PRs #596 (rent + tenant portal removed), #597 (CI hang fix), #598 (docs), #599 (tests), #600 (user_type → is_admin), #601 (GSD docs).
 
 ## Wave 0 Operator Actions (v1.7)
 
