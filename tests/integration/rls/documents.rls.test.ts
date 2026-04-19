@@ -129,17 +129,4 @@ describe('Documents RLS — owner_user_id isolation', () => {
     expect(error).not.toBeNull()
     expect(data).toBeNull()
   })
-
-  it.skip('tenant can read documents for leases they belong to (requires E2E_TENANT_EMAIL/E2E_TENANT_PASSWORD env vars)', async () => {
-    // This test requires tenant credentials to verify the tenant leg of the
-    // documents SELECT policy: entity_id IN (SELECT lt.lease_id FROM lease_tenants lt
-    // JOIN tenants t ON t.id = lt.tenant_id WHERE t.user_id = (SELECT auth.uid()))
-    //
-    // When tenant env vars are available:
-    // 1. Create tenant client
-    // 2. Query documents visible to tenant
-    // 3. Verify tenant can see lease-type documents for their leases
-    // 4. Verify owner_user_id on those documents is NOT the tenant's user_id
-    //    (proving access is via lease relationship, not ownership)
-  })
 })

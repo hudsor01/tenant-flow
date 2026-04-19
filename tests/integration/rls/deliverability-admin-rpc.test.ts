@@ -22,7 +22,8 @@ import {
 
 const adminCreds = getAdminTestCredentials()
 const SUPABASE_URL = process.env['NEXT_PUBLIC_SUPABASE_URL']
-const SERVICE_ROLE_KEY = process.env['SUPABASE_SERVICE_ROLE_KEY']
+const SERVICE_ROLE_KEY =
+  process.env['SUPABASE_SERVICE_ROLE_KEY'] ?? process.env['SUPABASE_SECRET_KEY']
 
 // Skip cleanly if admin creds or service-role key missing. Both are required:
 // admin creds to test the positive path; service-role key to seed the
