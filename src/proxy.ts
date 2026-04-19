@@ -86,13 +86,14 @@ export async function proxy(
       .eq('id', user.id)
       .maybeSingle()
 
-    // Fail closed on DB errors and report to Sentry so we can see them
-    // — silent redirects on /admin would mask real outages.
+    // On DB error: fail loud with 500 rather than silently redirecting an
+    // admin away. Sentry's Next.js SDK captures the thrown error server-side.
     if (error) {
       Sentry.captureException(error, {
         tags: { component: 'proxy', check: 'admin_gate' },
         extra: { userId: user.id, pathname },
       })
+      throw error
     }
 
     if (!row?.is_admin) {
@@ -129,11 +130,15 @@ export async function proxy(
       .eq('id', user.id)
       .maybeSingle()
 
+    // Fail loud on DB error — silently redirecting admins to /pricing is
+    // the exact bug Sentry flagged. A 500 is the honest response when we
+    // can't determine subscription status.
     if (error) {
       Sentry.captureException(error, {
         tags: { component: 'proxy', check: 'subscription_gate' },
         extra: { userId: user.id, pathname },
       })
+      throw error
     }
 
     if (row?.is_admin) return supabaseResponse
