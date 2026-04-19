@@ -84,6 +84,7 @@ A landlord can add a property, record tenants and leases, track maintenance, and
 - v1.7/Stage 1: Payout timing instrumentation + autopay notifications + autopay health dashboard widget (shipped in PR 589, branch `feat/launch-readiness-instrumentation`) — *superseded by landlord-only pivot; autopay + payouts removed 2026-04-18 (PR #596)*
 - v1.7: Launch Readiness — shipped + archived 2026-04-15 (see `milestones/v1.7-ROADMAP.md`)
 - Landlord-only pivot (PR #596, 2026-04-18): removed rent facilitation (rent_due, rent_payments, late_fees, payment_methods, autopay cron + Edge Function, Stripe Connect destination charges), tenant portal (/tenant routes, tenant-portal hooks, tenant_invitations table), payout dashboards. Product now sells as SaaS subscription only; tenants are data records, not auth accounts.
+- Auth model collapse (PR #600, 2026-04-19): `user_type` column dropped, replaced with `is_admin` boolean on `public.users`. `custom_access_token_hook` registration deleted; `is_admin()` RPC reads `public.users` directly. `/auth/select-role` flow removed along with user_type sync/restrict triggers. `first_rent` funnel step dropped (dead after rent_payments removal).
 - DocuSeal e-signature gate: Growth/Max tier subscription required to send for signature (PR #595, 2026-04-16)
 
 ### Active
@@ -199,4 +200,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-04-18 after landlord-only pivot (PR #596) — rent facilitation + tenant portal removed*
+*Last updated: 2026-04-19 after auth model collapse (PR #600) — user_type column dropped, is_admin boolean replaces it*
