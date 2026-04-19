@@ -1,4 +1,5 @@
 import { type NextRequest, NextResponse } from 'next/server'
+import * as Sentry from '@sentry/nextjs'
 import { createServerClient } from '@supabase/ssr'
 import { env } from '#env'
 import { updateSession } from '#lib/supabase/middleware'
@@ -79,11 +80,20 @@ export async function proxy(
         },
       }
     )
-    const { data: row } = await subClient
+    const { data: row, error } = await subClient
       .from('users')
       .select('is_admin')
       .eq('id', user.id)
       .maybeSingle()
+
+    // Fail closed on DB errors and report to Sentry so we can see them
+    // — silent redirects on /admin would mask real outages.
+    if (error) {
+      Sentry.captureException(error, {
+        tags: { component: 'proxy', check: 'admin_gate' },
+        extra: { userId: user.id, pathname },
+      })
+    }
 
     if (!row?.is_admin) {
       return redirectWithCookies(
@@ -113,11 +123,18 @@ export async function proxy(
         },
       }
     )
-    const { data: row } = await subClient
+    const { data: row, error } = await subClient
       .from('users')
       .select('subscription_status, is_admin')
       .eq('id', user.id)
       .maybeSingle()
+
+    if (error) {
+      Sentry.captureException(error, {
+        tags: { component: 'proxy', check: 'subscription_gate' },
+        extra: { userId: user.id, pathname },
+      })
+    }
 
     if (row?.is_admin) return supabaseResponse
 
