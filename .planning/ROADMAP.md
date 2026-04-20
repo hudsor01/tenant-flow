@@ -104,7 +104,12 @@ TenantFlow is a multi-tenant property management SaaS platform for property owne
 
 ## Active Milestone
 
-*None.* Next milestone TBD.
+**v2.3 Document Vault + Bulk-Import Extension** — Phases 57–58 (scoped 2026-04-20, target ship 2026-05-04).
+
+- [ ] Phase 57: Document vault MVP (1w) — upload/list/preview/delete for property-scoped documents using signed URLs + path-based storage RLS. Schema migration adds `title`, `tags`, `description` to `documents`; new `documentQueries` + `documentMutations`; upload surfaces on `/properties/[id]`.
+- [ ] Phase 58: CSV importer extension (3d) — extract shared stepper from property-importer into `src/components/bulk-import/`; wire entry points for tenants (`/tenants`), units (`/properties/[id]/units`), leases (`/leases`). Reuses existing Zod validation schemas.
+
+Both phases derived from v2.2 Phase 54 competitor review mining (Avail/Buildium "can't find documents" pain + Buildium/AppFolio switching-cost barrier). See `milestones/v2.3-ROADMAP.md`.
 
 ## Recently Shipped
 

@@ -1,13 +1,13 @@
 ---
 gsd_state_version: 1.0
-milestone: --
-milestone_name: --
-status: idle
-stopped_at: v2.0 Revenue Gates + v2.2 Landlord-First Positioning both shipped 2026-04-20. v2.0 Phase 46 (premium reports gate) + audit fix PR #617 merged; Phase 45 + Phase 46 Edge Functions pending a single operator deploy pass (docuseal/export-report/generate-pdf). No active milestone.
-last_updated: "2026-04-20T16:00:00.000Z"
+milestone: v2.3
+milestone_name: Document Vault + Bulk-Import Extension
+status: active
+stopped_at: v2.3 scoped 2026-04-20. Two phases derived from v2.2's deferred competitor-review backlog — Phase 57 document vault MVP (1 week, property-scoped upload/list/preview/delete with signed URLs + path-based RLS), Phase 58 CSV importer extension to tenants/units/leases (3 days, reuses property importer stepper pattern). No phase started yet.
+last_updated: "2026-04-20T16:15:00.000Z"
 last_activity: 2026-04-20
 progress:
-  total_phases: 0
+  total_phases: 2
   completed_phases: 0
   total_plans: 0
   completed_plans: 0
@@ -26,10 +26,10 @@ See: .planning/PROJECT.md (updated 2026-04-13)
 
 ## Current Position
 
-Phase: -- (no active milestone — v2.0 and v2.2 both shipped 2026-04-20)
-Plan: --
-Milestone: --
-Status: v2.0 Revenue Gates fully shipped (Phase 45 DocuSeal gate + Phase 46 premium reports gate). Audit of the milestone (after Phase 46 merged) surfaced three latent issues, all fixed in PR #617: fire-and-forget gate_events insert was dropping rows (fixed with EdgeRuntime.waitUntil), REQ-46-04 E2E spec was missing (added), and both E2E specs had a base64-decode bug on the localStorage auth path (fixed). v2.2 Landlord-First Positioning also fully shipped earlier same day. Operator action remaining: `supabase functions deploy docuseal && supabase functions deploy export-report && supabase functions deploy generate-pdf` — single pass picks up the waitUntil fix across Phase 45 + Phase 46 gates. Next milestone TBD.
+Phase: 57 (pending — document vault MVP)
+Plan: -- (phase not yet started)
+Milestone: v2.3 Document Vault + Bulk-Import Extension — active. See `milestones/v2.3-ROADMAP.md`.
+Status: v2.3 scoped 2026-04-20 after v2.0 Revenue Gates + v2.2 Landlord-First Positioning shipped same day. v2.3 picks up the two deferred items from v2.2's competitor review mining: document vault (Avail/Buildium "can't find documents" pain) + CSV bulk-import extension to tenants/units/leases (Buildium/AppFolio switching-cost barrier). Phase 57 goes first — property-scoped upload/list/preview/delete using the signed-URL + path-based-RLS pattern locked in by PR #614. Operator action still pending on v2.0: `supabase functions deploy docuseal export-report generate-pdf` (single pass; independent of v2.3 work).
 Last activity: 2026-04-20
 
 ## Shipped Milestones
@@ -51,6 +51,7 @@ Last activity: 2026-04-20
 | v2.0 | Revenue Gates | 2 | 0 | Both phases shipped (Phase 45 PR #604, Phase 46 PR #616 + #617 audit fixes); operator deploy of docuseal/export-report/generate-pdf pending |
 | v2.1 | Production Integrity Hardening | 4 | 0 | All 4 phases shipped 2026-04-19/20 (PRs #605, #606, #607) |
 | v2.2 | Landlord-First Positioning | 3 | 0 | All 3 phases shipped 2026-04-20 (PRs #609, #610, #612, #613, #614) |
+| v2.3 | Document Vault + Bulk-Import Extension | 2 | 0 | Phase 57 pending |
 
 ## Accumulated Context
 
