@@ -19,6 +19,7 @@ import Link from 'next/link'
 import { SendForSignatureButton } from '#components/leases/send-for-signature-button'
 import { SignLeaseButton } from '#components/leases/sign-lease-button'
 import { DownloadSignedLeaseButton } from '#components/leases/download-signed-lease-button'
+import { RentIncreaseNoticeDialog } from '#components/leases/rent-increase-notice-dialog'
 import { toast } from 'sonner'
 import { cn } from '#lib/utils'
 import type { Lease } from '#types/core'
@@ -33,6 +34,8 @@ interface TenantInfo {
 interface LeaseHeaderProps {
 	lease: Lease
 	tenant: TenantInfo | null | undefined
+	unitName?: string | null
+	ownerEmail?: string | null
 	onCancelSignature: () => Promise<void>
 	isCancelling: boolean
 }
@@ -40,6 +43,8 @@ interface LeaseHeaderProps {
 export function LeaseHeader({
 	lease,
 	tenant,
+	unitName,
+	ownerEmail,
 	onCancelSignature,
 	isCancelling
 }: LeaseHeaderProps) {
@@ -162,6 +167,14 @@ export function LeaseHeader({
 					</>
 				)}
 				{isActive && <DownloadSignedLeaseButton leaseId={lease.id} size="sm" />}
+				{isActive && (
+					<RentIncreaseNoticeDialog
+						lease={lease}
+						tenantName={tenantFullName ?? null}
+						propertyAddress={unitName ?? null}
+						ownerName={ownerEmail ?? 'Property Owner'}
+					/>
+				)}
 				<Button asChild variant="outline" size="sm">
 					<Link href={`/leases/${lease.id}/edit`}>Edit Lease</Link>
 				</Button>

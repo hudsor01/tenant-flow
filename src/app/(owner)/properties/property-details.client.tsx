@@ -20,6 +20,7 @@ import { Building, Edit, MapPin, Trash2 } from 'lucide-react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { PropertyImageGallery } from '#components/properties/property-image-gallery'
+import { PropertyPerformanceSection } from '#components/properties/property-performance-section'
 import { PropertyUnitsTable } from '#components/properties/property-units-table'
 import { useDeletePropertyMutation } from '#hooks/api/use-property-mutations'
 import { toast } from 'sonner'
@@ -127,6 +128,9 @@ export function PropertyDetails({ property }: PropertyDetailsProps) {
 					</Button>
 				</ButtonGroup>
 			</div>
+
+			{/* Performance Metrics */}
+			<PropertyPerformanceSection propertyId={property.id} />
 
 			{/* Units Section */}
 			<PropertyUnitsTable

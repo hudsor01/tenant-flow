@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import { toast } from 'sonner'
 import { ErrorBoundary } from '#components/error-boundary/error-boundary'
 import { Dashboard } from '#components/dashboard/dashboard'
+import { ExpiringLeasesWidget } from '#components/dashboard/expiring-leases-widget'
 import { OwnerOnboardingTour } from '#components/tours/owner-onboarding-tour'
 import { OnboardingWizard } from '#components/onboarding/onboarding-wizard'
 import {
@@ -168,6 +169,9 @@ function DashboardContent() {
 				onAddTenant={onAddTenant}
 				onCreateMaintenanceRequest={onCreateMaintenanceRequest}
 			/>
+			<div className="px-6 lg:px-8 pb-6 lg:pb-8">
+				<ExpiringLeasesWidget />
+			</div>
 		</div>
 	)
 }
