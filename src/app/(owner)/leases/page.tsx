@@ -168,7 +168,7 @@ export default function LeasesPage() {
 					<EmptyHeader>
 						<EmptyTitle>No leases yet</EmptyTitle>
 						<EmptyDescription>
-							Create your first lease to start managing tenant agreements.
+							Create a lease between one of your properties and a tenant record to start tracking dates, rent, and deposits.
 						</EmptyDescription>
 					</EmptyHeader>
 					<div className="flex items-center gap-3 mt-2">

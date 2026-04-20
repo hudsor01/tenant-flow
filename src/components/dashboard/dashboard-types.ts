@@ -43,10 +43,10 @@ export const quickActions = [
 		action: 'createLease'
 	},
 	{
-		title: 'Invite Tenant',
-		description: 'Send tenant invitation',
+		title: 'Add Tenant',
+		description: 'Create a tenant record',
 		icon: UserPlus,
-		action: 'inviteTenant'
+		action: 'addTenant'
 	},
 	{
 		title: 'Record Payment',

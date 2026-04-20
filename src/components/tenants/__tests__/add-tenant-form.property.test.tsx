@@ -1,5 +1,5 @@
 /**
- * Property-Based Tests for InviteTenantForm Error Handling
+ * Property-Based Tests for AddTenantForm Error Handling
  *
  * Feature: fix-tenant-invitation-issues
  * Property 6: Frontend Error Display
@@ -23,7 +23,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import * as fc from 'fast-check'
 import { toast } from 'sonner'
 import { renderHook, waitFor } from '@testing-library/react'
-import type { InviteTenantRequest } from '#lib/validation/tenants'
+import type { AddTenantRequest } from '#lib/validation/tenants'
 
 // Mock dependencies
 vi.mock('sonner', () => ({
@@ -51,7 +51,7 @@ function createWrapper() {
 	)
 }
 
-describe('InviteTenantForm - Property-Based Tests', () => {
+describe('AddTenantForm - Property-Based Tests', () => {
 	beforeEach(() => {
 		vi.clearAllMocks()
 	})
@@ -93,7 +93,7 @@ describe('InviteTenantForm - Property-Based Tests', () => {
 					const { result } = renderHook(
 						() =>
 							useMutation({
-								mutationFn: async (_payload: InviteTenantRequest) => {
+								mutationFn: async (_payload: AddTenantRequest) => {
 									throw error
 								},
 								onError: (err: unknown) => {
@@ -110,7 +110,7 @@ describe('InviteTenantForm - Property-Based Tests', () => {
 					)
 
 					// Execute the mutation with valid data
-					const payload: InviteTenantRequest = {
+					const payload: AddTenantRequest = {
 						tenantData: {
 							email: 'test@example.com',
 							first_name: 'John',
@@ -179,7 +179,7 @@ describe('InviteTenantForm - Property-Based Tests', () => {
 					const { result } = renderHook(
 						() =>
 							useMutation({
-								mutationFn: async (_payload: InviteTenantRequest) => {
+								mutationFn: async (_payload: AddTenantRequest) => {
 									throw thrownValue
 								},
 								onError: (err: unknown) => {
@@ -196,7 +196,7 @@ describe('InviteTenantForm - Property-Based Tests', () => {
 					)
 
 					// Execute the mutation with valid data
-					const payload: InviteTenantRequest = {
+					const payload: AddTenantRequest = {
 						tenantData: {
 							email: 'test@example.com',
 							first_name: 'Jane',
@@ -275,7 +275,7 @@ it('should distinguish between authentication and authorization errors', async (
 					type: fc.constant('authorization' as const),
 					error: fc.oneof(
 						fc.constant(
-							new Error('You do not have permission to invite tenants')
+							new Error('You do not have permission to add tenants')
 						),
 						fc.constant(new Error('Access denied: insufficient permissions')),
 						fc.constant(
@@ -293,7 +293,7 @@ it('should distinguish between authentication and authorization errors', async (
 				const { result } = renderHook(
 					() =>
 						useMutation({
-							mutationFn: async (_payload: InviteTenantRequest) => {
+							mutationFn: async (_payload: AddTenantRequest) => {
 								throw error
 							},
 							onError: (err: unknown) => {
@@ -310,7 +310,7 @@ it('should distinguish between authentication and authorization errors', async (
 				)
 
 				// Execute the mutation with valid data
-				const payload: InviteTenantRequest = {
+				const payload: AddTenantRequest = {
 					tenantData: {
 						email: 'test@example.com',
 						first_name: 'Test',

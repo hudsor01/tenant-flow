@@ -199,7 +199,7 @@ export function OwnerDashboard() {
 		router.push('/leases/new')
 	}
 
-	const onInviteTenant = () => {
+	const onAddTenant = () => {
 		router.push('/tenants/new')
 	}
 
@@ -232,7 +232,7 @@ export function OwnerDashboard() {
 				propertyPerformance={propertyPerformance}
 				onAddProperty={onAddProperty}
 				onCreateLease={onCreateLease}
-				onInviteTenant={onInviteTenant}
+				onAddTenant={onAddTenant}
 				onCreateMaintenanceRequest={onCreateMaintenanceRequest}
 			/>
 		</div>

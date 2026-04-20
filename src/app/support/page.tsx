@@ -66,8 +66,8 @@ const supportCategories = [
 		topics: [
 			'How do I change my password?',
 			'How do I update my notification settings?',
-			'What is the difference between Owner and Tenant roles?',
-			'How do I invite a tenant?'
+			'How do I add a tenant record?',
+			'How do I reset two-factor authentication?'
 		]
 	},
 	{

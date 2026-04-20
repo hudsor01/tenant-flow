@@ -155,9 +155,6 @@ describe('Query Hooks', () => {
 					data: { email: true, sms: false, maintenance: true, general: true }
 				})
 			}
-			if (table === 'tenant_invitations') {
-				return createQueryChain({ data: [], count: 0 })
-			}
 			if (table === 'rent_payments') {
 				return createQueryChain({ data: [], count: 0 })
 			}
@@ -375,34 +372,6 @@ describe('Mutation Hooks', () => {
 					}),
 					update: vi.fn().mockReturnValue({
 						eq: vi.fn().mockResolvedValue({ data: null, error: null })
-					})
-				}
-			}
-			if (table === 'tenant_invitations') {
-				return {
-					insert: vi.fn().mockReturnValue({
-						select: vi.fn().mockReturnValue({
-							single: vi.fn().mockResolvedValue({
-								data: {
-									id: 'invite-123',
-									email: 'newuser@example.com',
-									owner_user_id: 'owner-user-123',
-									lease_id: 'lease-456',
-									unit_id: 'unit-123',
-									property_id: 'property-123',
-									invitation_code: 'code-123',
-									invitation_url: 'http://localhost:3050/accept-invite?code=code-123',
-									expires_at: '2024-02-01T00:00:00Z',
-									status: 'sent',
-									type: 'lease_signing'
-								},
-								error: null
-							})
-						})
-					}),
-					update: supabaseUpdateMock,
-					select: vi.fn().mockReturnValue({
-						order: vi.fn().mockResolvedValue({ data: [], error: null, count: 0 })
 					})
 				}
 			}

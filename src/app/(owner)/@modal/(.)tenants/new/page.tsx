@@ -3,20 +3,20 @@
 import { RouteModal } from '#components/ui/route-modal'
 import { DialogTitle, DialogDescription } from '#components/ui/dialog'
 import { Skeleton } from '#components/ui/skeleton'
-import { InviteTenantForm } from '#components/tenants/invite-tenant-form'
+import { AddTenantForm } from '#components/tenants/add-tenant-form'
 import { propertyQueries } from '#hooks/api/query-keys/property-keys'
 import { unitQueries } from '#hooks/api/query-keys/unit-keys'
 import { useQuery } from '@tanstack/react-query'
 
 /**
- * Invite Tenant Modal (Intercepting Route)
+ * Add Tenant Modal (Intercepting Route)
  *
- * Opens as a modal overlay when clicking "Invite Tenant" from /tenants page.
- * Collects basic tenant info + property assignment to send portal invitation.
+ * Opens as a modal overlay when clicking "Add Tenant" from /tenants page.
+ * Collects basic tenant info + optional property assignment for the landlord's records.
  *
- * Lease creation is handled separately after tenant onboards.
+ * Lease creation is handled separately.
  */
-export default function InviteTenantModal() {
+export default function AddTenantModal() {
 	const { data: propertiesResponse, isLoading: propertiesLoading } = useQuery(
 		propertyQueries.list()
 	)
@@ -32,10 +32,10 @@ export default function InviteTenantModal() {
 		<RouteModal intent="create" className="max-w-lg">
 			<div className="space-y-4">
 				<div>
-					<DialogTitle>Invite Tenant</DialogTitle>
+					<DialogTitle>Add Tenant</DialogTitle>
 					<DialogDescription>
-						Send a portal invitation to a new tenant. You can create their lease
-						after they complete onboarding.
+						Add a tenant record. You can assign them to a property now or
+						attach them to a lease later.
 					</DialogDescription>
 				</div>
 				{isLoading ? (
@@ -45,7 +45,7 @@ export default function InviteTenantModal() {
 						))}
 					</div>
 				) : (
-					<InviteTenantForm properties={properties} units={units} />
+					<AddTenantForm properties={properties} units={units} />
 				)}
 			</div>
 		</RouteModal>

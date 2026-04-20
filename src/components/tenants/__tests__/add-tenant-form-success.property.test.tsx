@@ -1,7 +1,7 @@
 /**
- * Property-Based Tests for InviteTenantForm Success Toast Display
+ * Property-Based Tests for AddTenantForm Success Toast Display
  *
- * Feature: fix-tenant-invitation-issues
+ * Feature: add-tenant
  * Property 11: Success Toast Display
  * Validates: Requirements 6.1
  *
@@ -23,7 +23,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import * as fc from 'fast-check'
 import { toast } from 'sonner'
 import { renderHook, waitFor } from '@testing-library/react'
-import type { InviteTenantRequest } from '#lib/validation/tenants'
+import type { AddTenantRequest } from '#lib/validation/tenants'
 
 // Mock dependencies
 vi.mock('sonner', () => ({
@@ -52,13 +52,13 @@ function createWrapper() {
 }
 
 // Response type matching the backend
-interface InviteTenantResponse {
+interface AddTenantResponse {
 	success: boolean
 	tenant_id: string
 	message: string
 }
 
-describe('InviteTenantForm - Success Toast Property Tests', () => {
+describe('AddTenantForm - Success Toast Property Tests', () => {
 	beforeEach(() => {
 		vi.clearAllMocks()
 	})
@@ -77,7 +77,7 @@ describe('InviteTenantForm - Success Toast Property Tests', () => {
 	 *
 	 * We test this by simulating the mutation's success handling directly.
 	 */
-	it('should display success toast for any successful invitation', async () => {
+	it('should display success toast for any successful add', async () => {
 		await fc.assert(
 			fc.asyncProperty(
 				// Generate various valid tenant data combinations
@@ -100,10 +100,10 @@ describe('InviteTenantForm - Success Toast Property Tests', () => {
 					vi.clearAllMocks()
 
 					// Mock success response
-					const mockResponse: InviteTenantResponse = {
+					const mockResponse: AddTenantResponse = {
 						success: true,
 						tenant_id: fc.sample(fc.uuid(), 1)[0] as string,
-						message: 'Invitation sent successfully'
+						message: 'Tenant added successfully'
 					}
 
 					// Create a mutation that mimics the form's success handling behavior
@@ -111,14 +111,14 @@ describe('InviteTenantForm - Success Toast Property Tests', () => {
 						() =>
 							useMutation({
 								mutationFn: async (
-									_payload: InviteTenantRequest
-								): Promise<InviteTenantResponse> => {
+									_payload: AddTenantRequest
+								): Promise<AddTenantResponse> => {
 									return mockResponse
 								},
 								onSuccess: (_response, variables) => {
 									// This is the same success handling logic as in the form
-									toast.success('Invitation Sent', {
-										description: `${variables.tenantData.first_name} ${variables.tenantData.last_name} will receive an email to access their tenant portal.`
+									toast.success('Tenant added', {
+										description: `${variables.tenantData.first_name} ${variables.tenantData.last_name} is now in your tenant records.`
 									})
 								}
 							}),
@@ -126,7 +126,7 @@ describe('InviteTenantForm - Success Toast Property Tests', () => {
 					)
 
 					// Execute the mutation with the generated data
-					const payload: InviteTenantRequest = {
+					const payload: AddTenantRequest = {
 						tenantData: {
 							email: data.email,
 							first_name: data.first_name,
@@ -159,7 +159,7 @@ describe('InviteTenantForm - Success Toast Property Tests', () => {
 						{ description: string }
 					]
 					expect(typeof title).toBe('string')
-					expect(title).toBe('Invitation Sent')
+					expect(title).toBe('Tenant added')
 
 					// Check that options contain a description
 					expect(options).toBeDefined()
@@ -170,11 +170,9 @@ describe('InviteTenantForm - Success Toast Property Tests', () => {
 					expect(options.description).toContain(data.first_name)
 					expect(options.description).toContain(data.last_name)
 
-					// Verify the description mentions email/portal access
+					// Verify the description mentions the landlord-only record semantics
 					const description = options.description.toLowerCase()
-					expect(
-						description.includes('email') || description.includes('portal')
-					).toBe(true)
+					expect(description).toContain('records')
 
 					// Verify toast.error was NOT called on success
 					expect(toast.error).not.toHaveBeenCalled()
@@ -222,10 +220,10 @@ describe('InviteTenantForm - Success Toast Property Tests', () => {
 					// Clear all mocks before each property test iteration
 					vi.clearAllMocks()
 
-					const mockResponse: InviteTenantResponse = {
+					const mockResponse: AddTenantResponse = {
 						success: true,
 						tenant_id: fc.sample(fc.uuid(), 1)[0] as string,
-						message: 'Invitation sent successfully'
+						message: 'Tenant added successfully'
 					}
 
 					// Create a mutation that mimics the form's behavior
@@ -233,13 +231,13 @@ describe('InviteTenantForm - Success Toast Property Tests', () => {
 						() =>
 							useMutation({
 								mutationFn: async (
-									_payload: InviteTenantRequest
-								): Promise<InviteTenantResponse> => {
+									_payload: AddTenantRequest
+								): Promise<AddTenantResponse> => {
 									return mockResponse
 								},
 								onSuccess: (_response, variables) => {
-									toast.success('Invitation Sent', {
-										description: `${variables.tenantData.first_name} ${variables.tenantData.last_name} will receive an email to access their tenant portal.`
+									toast.success('Tenant added', {
+										description: `${variables.tenantData.first_name} ${variables.tenantData.last_name} is now in your tenant records.`
 									})
 								}
 							}),
@@ -247,7 +245,7 @@ describe('InviteTenantForm - Success Toast Property Tests', () => {
 					)
 
 					// Execute the mutation with the generated data
-					const payload: InviteTenantRequest = {
+					const payload: AddTenantRequest = {
 						tenantData: {
 							email: data.email,
 							first_name: data.first_name,
@@ -296,7 +294,7 @@ describe('InviteTenantForm - Success Toast Property Tests', () => {
 	 * Verify that when the mutation succeeds, only toast.success is called
 	 * and toast.error is never called.
 	 */
-	it('should never display error toast on successful invitation', async () => {
+	it('should never display error toast on successful add', async () => {
 		await fc.assert(
 			fc.asyncProperty(
 				// Generate minimal valid data
@@ -314,10 +312,10 @@ describe('InviteTenantForm - Success Toast Property Tests', () => {
 					// Clear all mocks before each property test iteration
 					vi.clearAllMocks()
 
-					const mockResponse: InviteTenantResponse = {
+					const mockResponse: AddTenantResponse = {
 						success: true,
 						tenant_id: fc.sample(fc.uuid(), 1)[0] as string,
-						message: 'Invitation sent successfully'
+						message: 'Tenant added successfully'
 					}
 
 					// Create a mutation that mimics the form's behavior
@@ -325,17 +323,17 @@ describe('InviteTenantForm - Success Toast Property Tests', () => {
 						() =>
 							useMutation({
 								mutationFn: async (
-									_payload: InviteTenantRequest
-								): Promise<InviteTenantResponse> => {
+									_payload: AddTenantRequest
+								): Promise<AddTenantResponse> => {
 									return mockResponse
 								},
 								onSuccess: (_response, variables) => {
-									toast.success('Invitation Sent', {
-										description: `${variables.tenantData.first_name} ${variables.tenantData.last_name} will receive an email to access their tenant portal.`
+									toast.success('Tenant added', {
+										description: `${variables.tenantData.first_name} ${variables.tenantData.last_name} is now in your tenant records.`
 									})
 								},
 								onError: (err: unknown) => {
-									toast.error('Failed to send invitation', {
+									toast.error('Failed to add tenant', {
 										description:
 											err instanceof Error
 												? err.message
@@ -347,7 +345,7 @@ describe('InviteTenantForm - Success Toast Property Tests', () => {
 					)
 
 					// Execute the mutation with the generated data
-					const payload: InviteTenantRequest = {
+					const payload: AddTenantRequest = {
 						tenantData: {
 							email: data.email,
 							first_name: data.first_name,

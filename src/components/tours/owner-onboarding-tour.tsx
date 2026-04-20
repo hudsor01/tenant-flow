@@ -221,8 +221,8 @@ export function OwnerOnboardingTour({
 						<TourTitle>Quick Actions</TourTitle>
 						<TourDescription className={isMobile ? 'text-sm' : ''}>
 							{isMobile
-								? 'Add properties, create leases, invite tenants, and more.'
-								: 'Quickly add properties, create leases, invite tenants, or handle maintenance requests. These shortcuts help you manage your portfolio efficiently.'}
+								? 'Add properties, create leases, add tenants, and more.'
+								: 'Quickly add properties, create leases, add tenants, or handle maintenance requests. These shortcuts help you manage your portfolio efficiently.'}
 						</TourDescription>
 					</TourHeader>
 				</TourStep>

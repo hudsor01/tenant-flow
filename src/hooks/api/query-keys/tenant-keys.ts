@@ -2,8 +2,6 @@
  * Tenant Query Keys & Options
  * Extracted to avoid circular dependencies with mutation hooks
  *
- * Invitation queries split to tenant-invitation-keys.ts.
- *
  * TanStack Query v5 patterns:
  * - queryOptions() for type-safe query configuration
  * - Query key factory for consistent cache management

@@ -8,29 +8,29 @@ import {
 } from '#components/ui/select'
 import type { Property, Unit } from '#types/core'
 import { Building2, Home } from 'lucide-react'
-import type { InviteTenantFormApi } from './invite-tenant-form-types'
+import type { AddTenantFormApi } from './add-tenant-form-types'
 
-interface InviteTenantPropertyFieldsProps {
-	form: InviteTenantFormApi
+interface AddTenantPropertyFieldsProps {
+	form: AddTenantFormApi
 	properties: Property[]
 	availableUnits: Unit[]
 	selectedPropertyId: string
 	onPropertyChange: (propertyId: string) => void
 }
 
-export function InviteTenantPropertyFields({
+export function AddTenantPropertyFields({
 	form,
 	properties,
 	availableUnits,
 	selectedPropertyId,
 	onPropertyChange
-}: InviteTenantPropertyFieldsProps) {
+}: AddTenantPropertyFieldsProps) {
 	if (properties.length === 0) {
 		return (
 			<div className="rounded-lg border border-dashed p-4 text-center text-muted-foreground">
 				<Building2 className="size-8 mx-auto mb-2 opacity-50" />
 				<p className="text-sm">
-					No properties configured yet. You can still invite tenants and assign
+					No properties configured yet. You can still add tenants and assign
 					them to properties later.
 				</p>
 			</div>

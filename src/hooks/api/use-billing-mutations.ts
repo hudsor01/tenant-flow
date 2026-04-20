@@ -86,7 +86,8 @@ function writeSubscriptionStatusCache(
 			stripeCustomerId: null,
 			stripePriceId: null,
 			currentPeriodEnd: null,
-			cancelAtPeriodEnd: false
+			cancelAtPeriodEnd: false,
+			trialEndsAt: null
 		}),
 		...mapCancelResponseToStatus(response)
 	})

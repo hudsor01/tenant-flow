@@ -7,17 +7,17 @@ import {
 	InputGroupInput
 } from '#components/ui/input-group'
 import {
-	inviteTenantSchema
+	addTenantSchema
 } from '#lib/validation/tenants'
 import { Mail, Phone, User } from 'lucide-react'
 import type { ChangeEvent } from 'react'
-import type { InviteTenantFormApi } from './invite-tenant-form-types'
+import type { AddTenantFormApi } from './add-tenant-form-types'
 
-interface InviteTenantInfoFieldsProps {
-	form: InviteTenantFormApi
+interface AddTenantInfoFieldsProps {
+	form: AddTenantFormApi
 }
 
-export function InviteTenantInfoFields({ form }: InviteTenantInfoFieldsProps) {
+export function AddTenantInfoFields({ form }: AddTenantInfoFieldsProps) {
 	return (
 		<div className="space-y-4">
 			<div className="flex items-center gap-2 typography-large">
@@ -29,7 +29,7 @@ export function InviteTenantInfoFields({ form }: InviteTenantInfoFieldsProps) {
 				<form.Field
 					name="first_name"
 					validators={{
-						onChange: inviteTenantSchema.shape.first_name
+						onChange: addTenantSchema.shape.first_name
 					}}
 				>
 					{field => (
@@ -57,7 +57,7 @@ export function InviteTenantInfoFields({ form }: InviteTenantInfoFieldsProps) {
 				<form.Field
 					name="last_name"
 					validators={{
-						onChange: inviteTenantSchema.shape.last_name
+						onChange: addTenantSchema.shape.last_name
 					}}
 				>
 					{field => (
@@ -86,7 +86,7 @@ export function InviteTenantInfoFields({ form }: InviteTenantInfoFieldsProps) {
 			<form.Field
 				name="email"
 				validators={{
-					onChange: inviteTenantSchema.shape.email
+					onChange: addTenantSchema.shape.email
 				}}
 			>
 				{field => (
@@ -109,7 +109,7 @@ export function InviteTenantInfoFields({ form }: InviteTenantInfoFieldsProps) {
 							/>
 						</InputGroup>
 						<p className="text-muted-foreground">
-							Tenant will receive an invitation to access their portal
+							Used for lease records and payment receipts
 						</p>
 						<FieldError errors={field.state.meta.errors} />
 					</Field>
