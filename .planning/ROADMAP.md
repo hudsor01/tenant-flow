@@ -107,7 +107,7 @@ TenantFlow is a multi-tenant property management SaaS platform for property owne
 **v2.2 Landlord-First Positioning** — Phases 52-54 (scoped 2026-04-20, target ship 2026-05-11).
 
 - [x] Phase 52: Dashboard copy + component rename (3d) — rename `invite-tenant-*` to `add-tenant-*`, empty-state rewrites, trial banner (shipped 2026-04-20, PR #609)
-- [ ] Phase 53: Public-facing value-prop reframe (1w) — homepage, features, pricing, FAQ, SEO, blog audit
+- [x] Phase 53: Public-facing value-prop reframe (1w) — homepage, features, pricing, FAQ, SEO, blog audit + positioning sweep `small landlord → property owner` (shipped 2026-04-20, PR #610)
 - [ ] Phase 54: Dashboard UX polish (2w, gated on user feedback) — empty states, sidebar reorg, settings IA
 
 v2.0 Phase 46 (premium reports gate) stays paused.
