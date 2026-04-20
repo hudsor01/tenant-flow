@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v2.2
 milestone_name: Landlord-First Positioning
-status: active
-stopped_at: v2.2 Phase 52 shipped 2026-04-20 (PR #609) + Phase 53 shipped 2026-04-20 (PR #610). Phase 54 (dashboard UX polish) pending, gated on real-user feedback per roadmap.
-last_updated: "2026-04-20T05:00:00.000Z"
+status: shipped
+stopped_at: v2.2 Phases 52 + 53 + 54a + 54b shipped 2026-04-20 (PRs #609, #610, #612, #613, #614). Phase 54 reframed from "dashboard UX polish (gated on real-user feedback)" to "competitor-driven UX fixes mined from Buildium/AppFolio/RentRedi/Avail/Stessa reviews". 3 of 6 original competitor items shipped (lease-expiration widget, rent-increase notice, per-property performance, maintenance multi-file upload + work-order PDF). Remaining 3 (document vault, bulk-import extension, support SLA) deferred — document vault is greenfield (documents table empty in prod, needs full upload/storage/search stack) and belongs in its own milestone.
+last_updated: "2026-04-20T15:40:00.000Z"
 last_activity: 2026-04-20
 progress:
   total_phases: 3
-  completed_phases: 2
+  completed_phases: 3
   total_plans: 0
   completed_plans: 0
-  percent: 67
+  percent: 100
 ---
 
 # Project State: TenantFlow
@@ -26,10 +26,10 @@ See: .planning/PROJECT.md (updated 2026-04-13)
 
 ## Current Position
 
-Phase: 54 (pending — dashboard UX polish, gated on trial-user feedback)
-Plan: -- (phase not yet started)
-Milestone: v2.2 Landlord-First Positioning — active. See `milestones/v2.2-ROADMAP.md` for scope.
-Status: Phases 52 + 53 shipped 2026-04-20 (PRs #609 + #610). Public site + dashboard now aligned with landlord-only product; positioning scoped up from "small landlords" to "property owners" (size-neutral) per user direction. Phase 54 gated per roadmap kill-criterion: if no specific UX complaints in 2 weeks post-53, treat as "designed but not built" and defer.
+Phase: -- (v2.2 fully shipped; no active milestone)
+Plan: --
+Milestone: v2.2 Landlord-First Positioning — shipped 2026-04-20. See `milestones/v2.2-ROADMAP.md` for scope.
+Status: All three phases live. Phase 54 evolved mid-milestone from "dashboard UX polish (gated on feedback)" to "competitor-driven UX fixes" after mining Buildium/AppFolio/RentRedi/Avail/Stessa reviews. Shipped 3 S-effort items (54a: lease-expiration widget, rent-increase notice, per-property performance) and 1 M-effort item (54b: maintenance multi-file upload + work-order PDF). A follow-up #614 tightened all Sentry Seer findings across the milestone. Next milestone TBD.
 Last activity: 2026-04-20
 
 ## Shipped Milestones
@@ -48,9 +48,9 @@ Last activity: 2026-04-20
 
 | Version | Name | Phases | Plans | Status |
 |---------|------|--------|-------|--------|
-| v2.0 | Revenue Gates | 2 | 0 | Phase 45 shipped, Phase 46 PAUSED pending v2.2 |
+| v2.0 | Revenue Gates | 2 | 0 | Phase 45 shipped, Phase 46 PAUSED — now unblocked since v2.2 is out |
 | v2.1 | Production Integrity Hardening | 4 | 0 | All 4 phases shipped 2026-04-19/20 (PRs #605, #606, #607) |
-| v2.2 | Landlord-First Positioning | 3 | 0 | Phases 52+53 shipped (PRs #609, #610), Phase 54 gated on feedback |
+| v2.2 | Landlord-First Positioning | 3 | 0 | All 3 phases shipped 2026-04-20 (PRs #609, #610, #612, #613, #614) |
 
 ## Accumulated Context
 

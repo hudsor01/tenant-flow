@@ -108,7 +108,7 @@ TenantFlow is a multi-tenant property management SaaS platform for property owne
 
 - [x] Phase 52: Dashboard copy + component rename (3d) — rename `invite-tenant-*` to `add-tenant-*`, empty-state rewrites, trial banner (shipped 2026-04-20, PR #609)
 - [x] Phase 53: Public-facing value-prop reframe (1w) — homepage, features, pricing, FAQ, SEO, blog audit + positioning sweep `small landlord → property owner` (shipped 2026-04-20, PR #610)
-- [ ] Phase 54: Dashboard UX polish (2w, gated on user feedback) — empty states, sidebar reorg, settings IA
+- [x] Phase 54: Competitor-driven UX fixes (shipped 2026-04-20, PRs #612, #613, #614) — lease-expiration widget, rent-increase notice generator, per-property performance section, maintenance multi-file upload + work-order PDF. Originally scoped as UX polish, reframed to mine Buildium/AppFolio/RentRedi/Avail/Stessa reviews for concrete fixes.
 
 v2.0 Phase 46 (premium reports gate) stays paused.
 
