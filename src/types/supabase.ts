@@ -268,6 +268,41 @@ export type Database = {
           },
         ]
       }
+      gate_events: {
+        Row: {
+          current_plan: string | null
+          current_status: string | null
+          feature: string
+          hit_at: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          current_plan?: string | null
+          current_status?: string | null
+          feature: string
+          hit_at?: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          current_plan?: string | null
+          current_status?: string | null
+          feature?: string
+          hit_at?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "gate_events_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       inspection_photos: {
         Row: {
           caption: string | null
@@ -2235,6 +2270,16 @@ export type Database = {
       get_funnel_stats: {
         Args: { p_from?: string; p_to?: string }
         Returns: Json
+      }
+      get_gate_conversion_stats: {
+        Args: { p_days?: number }
+        Returns: {
+          conversion_rate: number
+          distinct_users_hit: number
+          feature: string
+          gate_hits: number
+          upgrades_from_gate: number
+        }[]
       }
       get_invoice_statistics: { Args: { p_user_id: string }; Returns: Json }
       get_lead_paint_compliance_report: {
