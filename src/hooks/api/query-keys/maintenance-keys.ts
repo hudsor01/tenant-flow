@@ -313,6 +313,71 @@ export const maintenanceMutations = {
 
 				if (error) handlePostgrestError(error, 'maintenance_requests')
 			}
+		}),
+
+	uploadPhoto: () =>
+		mutationOptions<
+			{ id: string; storage_path: string; file_name: string },
+			Error,
+			{ requestId: string; file: File }
+		>({
+			mutationKey: mutationKeys.maintenance.uploadPhoto,
+			mutationFn: async ({ requestId, file }) => {
+				const supabase = createClient()
+				const user = await getCachedUser()
+				const uploaderId = requireOwnerUserId(user?.id)
+
+				// Generate a unique storage path under requestId folder.
+				const timestamp = Date.now()
+				const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_')
+				const storagePath = `${requestId}/${timestamp}-${safeName}`
+
+				const { error: uploadError } = await supabase.storage
+					.from('maintenance-photos')
+					.upload(storagePath, file, { contentType: file.type, upsert: false })
+				if (uploadError) throw uploadError
+
+				const { data: row, error: dbError } = await supabase
+					.from('maintenance_request_photos')
+					.insert({
+						maintenance_request_id: requestId,
+						storage_path: storagePath,
+						file_name: file.name,
+						file_size: file.size,
+						mime_type: file.type,
+						uploaded_by: uploaderId
+					})
+					.select('id, storage_path, file_name')
+					.single()
+				if (dbError) {
+					// Rollback storage upload on DB failure so we don't orphan blobs.
+					await supabase.storage
+						.from('maintenance-photos')
+						.remove([storagePath])
+					handlePostgrestError(dbError, 'maintenance_request_photos')
+				}
+				return row as { id: string; storage_path: string; file_name: string }
+			}
+		}),
+
+	deletePhoto: () =>
+		mutationOptions<void, Error, { photoId: string; storagePath: string }>({
+			mutationKey: mutationKeys.maintenance.deletePhoto,
+			mutationFn: async ({ photoId, storagePath }) => {
+				const supabase = createClient()
+				const { error: dbError } = await supabase
+					.from('maintenance_request_photos')
+					.delete()
+					.eq('id', photoId)
+				if (dbError) handlePostgrestError(dbError, 'maintenance_request_photos')
+
+				// Storage remove is best-effort — if RLS blocks, we still dropped
+				// the DB row so the UI reflects the intended state.
+				await supabase.storage
+					.from('maintenance-photos')
+					.remove([storagePath])
+					.catch(() => {})
+			}
 		})
 }
 

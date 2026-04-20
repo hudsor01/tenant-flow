@@ -53,7 +53,9 @@ export const mutationKeys = {
 		complete: ['mutations', 'maintenance', 'complete'] as const,
 		assign: ['mutations', 'maintenance', 'assign'] as const,
 		addComment: ['mutations', 'maintenance', 'addComment'] as const,
-		updateStatus: ['mutations', 'maintenance', 'updateStatus'] as const
+		updateStatus: ['mutations', 'maintenance', 'updateStatus'] as const,
+		uploadPhoto: ['mutations', 'maintenance', 'uploadPhoto'] as const,
+		deletePhoto: ['mutations', 'maintenance', 'deletePhoto'] as const
 	},
 
 	// Units

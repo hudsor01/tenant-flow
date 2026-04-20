@@ -10,9 +10,13 @@ import { createClient } from '#lib/supabase/client'
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
 import { useDeleteMaintenanceRequest } from '#hooks/api/use-maintenance'
+import { callGeneratePdfFromHtml } from '#hooks/api/use-report-mutations'
+import { formatCurrency } from '#lib/utils/currency'
+import { buildWorkOrderHtml } from './work-order-template'
 import type { ExpenseRecord } from '#types/core'
+import { useState } from 'react'
 
-import { User, Edit2, Trash2 } from 'lucide-react'
+import { User, Edit2, Trash2, Printer, Loader2 } from 'lucide-react'
 
 import { MaintenanceHeaderCard } from './maintenance-header-card'
 import { ExpensesCard } from './expenses-card'
@@ -98,6 +102,37 @@ export function MaintenanceDetails({ id }: MaintenanceDetailsProps) {
 	const timeline = generateTimeline(request)
 	const totalExpenses = expenses.reduce((sum, e) => sum + (e.amount ?? 0), 0)
 
+	const [isGeneratingPdf, setIsGeneratingPdf] = useState(false)
+	const handleDownloadWorkOrder = async () => {
+		if (!request) return
+		setIsGeneratingPdf(true)
+		try {
+			const html = buildWorkOrderHtml({
+				request,
+				propertyName: property?.name ?? null,
+				unitNumber: unit?.unit_number ?? null,
+				expenses: expenses.map(e => ({
+					vendor_name: e.vendor_name ?? 'Vendor',
+					amount: formatCurrency(e.amount ?? 0),
+					expense_date: e.expense_date ?? ''
+				})),
+				totalExpenses: formatCurrency(totalExpenses)
+			})
+			await callGeneratePdfFromHtml(
+				html,
+				`work-order-${request.id.slice(0, 8)}.pdf`
+			)
+			toast.success('Work order PDF downloaded')
+		} catch (err) {
+			toast.error('Failed to generate work order', {
+				description:
+					err instanceof Error ? err.message : 'Please try again.'
+			})
+		} finally {
+			setIsGeneratingPdf(false)
+		}
+	}
+
 	return (
 		<div className="grid gap-6 lg:grid-cols-3">
 			{/* Main Content */}
@@ -168,6 +203,24 @@ export function MaintenanceDetails({ id }: MaintenanceDetailsProps) {
 						>
 							<Edit2 className="size-4" />
 							Edit Request
+						</Button>
+						<Button
+							variant="outline"
+							className="w-full justify-start gap-2"
+							onClick={handleDownloadWorkOrder}
+							disabled={isGeneratingPdf}
+						>
+							{isGeneratingPdf ? (
+								<>
+									<Loader2 className="size-4 animate-spin" />
+									Generating...
+								</>
+							) : (
+								<>
+									<Printer className="size-4" />
+									Print work order
+								</>
+							)}
 						</Button>
 						<Button
 							variant="outline"
