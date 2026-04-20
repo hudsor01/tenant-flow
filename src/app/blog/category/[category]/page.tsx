@@ -32,7 +32,7 @@ export async function generateMetadata({ params, searchParams }: CategoryPagePro
 
 	return createPageMetadata({
 		title: `${validCategory.name} Articles & Guides`,
-		description: `Browse TenantFlow blog posts about ${validCategory.name.toLowerCase()}. Expert insights and practical guides for property managers and landlords.`,
+		description: `Browse TenantFlow blog posts about ${validCategory.name.toLowerCase()}. Expert insights and practical guides for property owners and operators.`,
 		path: `/blog/category/${category}`,
 		noindex: page > 1
 	})

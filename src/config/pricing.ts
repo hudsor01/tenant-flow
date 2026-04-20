@@ -170,10 +170,10 @@ export const PRICING_PLANS: Record<string, PricingConfig> = {
 		features: [
 			'Unlimited properties',
 			'Unlimited units',
-			'White-label portal',
-			'Full automation',
+			'Unlimited lease e-signs per month',
+			'White-label options',
 			'Custom integrations',
-			'Account manager',
+			'Dedicated account manager',
 			'Unlimited storage',
 			'24/7 support',
 			'Full API access',

@@ -27,11 +27,11 @@ export function StatsShowcase({ className }: StatsShowcaseProps) {
 			prefix: ''
 		},
 		{
-			number: '96%',
-			value: 96,
-			label: 'On-Time Payments',
-			description: 'Average collection rate',
-			suffix: '%',
+			number: '5 min',
+			value: 5,
+			label: 'Setup Time',
+			description: 'From signup to first lease',
+			suffix: ' min',
 			prefix: ''
 		},
 		{

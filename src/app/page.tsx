@@ -11,9 +11,9 @@ import MarketingHomePage from './marketing-home'
 export const dynamic = 'force-static'
 
 export const metadata: Metadata = createPageMetadata({
-	title: 'Property Management Software for Small Landlords',
+	title: 'Property Management Software for Property Owners',
 	description:
-		'All-in-one rental property administration software for landlords with 1-20 units. Track leases, maintenance requests, tenant records, and finances in one place. 14-day free trial, no credit card required.',
+		'All-in-one property administration software for owners and real estate investors. Track leases, maintenance requests, tenant records, and finances in one place. 14-day free trial, no credit card required.',
 	path: '/'
 })
 
@@ -37,7 +37,7 @@ export default function RootPage() {
 		'@type': 'WebSite' as const,
 		name: 'TenantFlow',
 		url: siteUrl,
-		description: 'Professional property management software for modern landlords.',
+		description: 'Professional property management software for property owners and real estate investors.',
 		potentialAction: {
 			'@type': 'SearchAction' as const,
 			target: `${siteUrl}/search?q={search_term_string}`,

@@ -38,19 +38,24 @@ export const faqData: FAQCategory[] = [
 		category: 'Features & Benefits',
 		questions: [
 			{
-				question: 'How does TenantFlow automate 80% of daily tasks?',
+				question: 'Do my tenants create accounts or log in?',
 				answer:
-					'Our smart workflows handle maintenance tracking, lease renewals, maintenance requests, tenant communications, and financial reporting automatically. AI-powered tenant screening, automated notifications, and smart vendor dispatch save you 20+ hours per week.'
+					"No. TenantFlow is built for the property owner — tenants are records you keep for your own tracking, not platform users. You never have to manage tenant logins, password resets, or account support."
+			},
+			{
+				question: 'What does TenantFlow actually help me do?',
+				answer:
+					'Track properties and units, keep tenant and lease records, log maintenance requests and vendor costs, e-sign leases via DocuSeal, and run financial reports on rent you record as received. Everything a property owner needs to replace the spreadsheet.'
 			},
 			{
 				question: 'What specific results can I expect?',
 				answer:
-					'Based on 10,000+ properties managed: 40% average NOI increase, 65% faster vacancy filling, 32% maintenance cost reduction, 80% task automation, and 90% reduction in bad tenants through advanced screening. All results are tracked and guaranteed.'
+					'Property owners report spending less time on admin: centralized records replace spreadsheets and email threads, maintenance requests are tracked with vendor and cost history, and lease e-signing cuts days off renewals. Results vary by portfolio.'
 			},
 			{
 				question: 'Is TenantFlow suitable for my portfolio size?',
 				answer:
-					'Yes! TenantFlow scales from 1 property to unlimited portfolios. Starter plan handles 1-5 properties, Growth plan manages up to 100 units, and TenantFlow Max supports unlimited properties with white-label options and dedicated account management.'
+					'Yes. Starter handles up to 5 properties / 25 units, Growth manages up to 20 properties / 100 units, and MAX supports unlimited properties with white-label options and a dedicated account manager.'
 			}
 		]
 	},
@@ -70,7 +75,7 @@ export const faqData: FAQCategory[] = [
 			{
 				question: 'Do you integrate with my existing systems?',
 				answer:
-					'TenantFlow integrates with all major accounting software, payment processors, and maintenance platforms. Our API connects with 500+ business tools. Custom integrations are available for TenantFlow Max customers with dedicated development support.'
+					'TenantFlow exposes a REST API (Growth/MAX plans) and can export financial reports as CSV for accounting imports. DocuSeal is built in for e-signatures. Custom integrations are available for MAX customers with dedicated development support.'
 			}
 		]
 	},

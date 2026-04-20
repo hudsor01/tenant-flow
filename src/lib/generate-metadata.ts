@@ -29,12 +29,12 @@ function createDefaultMetadata(): Metadata {
 		metadataBase: new URL(SITE_URL),
 		title: {
 			template: '%s | TenantFlow',
-			default: 'TenantFlow — Property Management Software for Small Landlords'
+			default: 'TenantFlow — Property Management Software for Property Owners'
 		},
 		description:
-			'Property administration software built for landlords with 1-20 rental units. Track leases, maintenance, tenants, and finances in one place. 14-day free trial.',
+			'Property administration software built for property owners and real estate investors. Track leases, maintenance, tenants, and finances in one place. 14-day free trial.',
 		keywords:
-			'property management software, rental property management, landlord software, lease management software, tenant management, maintenance tracking, property manager tools, small landlord software, rental management app, tenant screening, property accounting, landlord app, rental property accounting, document management, rent tracking',
+			'property management software, rental property management, property owner software, lease management software, tenant management, maintenance tracking, property manager tools, real estate investor software, rental management app, tenant screening, property accounting, document management, rent tracking',
 		authors: [{ name: 'TenantFlow' }],
 		creator: 'TenantFlow',
 		publisher: 'TenantFlow',
@@ -47,7 +47,7 @@ function createDefaultMetadata(): Metadata {
 			}
 		},
 		openGraph: {
-			title: 'TenantFlow — Property Management Software for Small Landlords',
+			title: 'TenantFlow — Property Management Software for Property Owners',
 			description:
 				'All-in-one rental property administration. Track leases, maintenance, and tenants. Plans from $29/mo.',
 			url: SITE_URL,
@@ -73,7 +73,7 @@ function createDefaultMetadata(): Metadata {
 		},
 		twitter: {
 			card: 'summary_large_image',
-			title: 'TenantFlow — Property Management Software for Small Landlords',
+			title: 'TenantFlow — Property Management Software for Property Owners',
 			description:
 				'All-in-one rental property administration. Track leases, maintenance, and tenants. Plans from $29/mo.',
 			creator: '@tenantflow',
@@ -133,7 +133,7 @@ export function getJsonLd() {
 		url: SITE_URL,
 		logo: `${SITE_URL}/tenant-flow-logo.png`,
 		description:
-			'Property administration software for small landlords. Track leases, maintenance, and tenants. 14-day free trial.',
+			'Property administration software for property owners and real estate investors. Track leases, maintenance, and tenants. 14-day free trial.',
 		foundingDate: '2024',
 		contactPoint: {
 			'@type': 'ContactPoint',
@@ -159,7 +159,7 @@ export function getJsonLd() {
 		applicationSubCategory: 'Property Management Software',
 		operatingSystem: 'Web Browser',
 		description:
-			'Property administration software for small landlords. Track leases, maintenance, tenants, and financial reporting. 14-day free trial.',
+			'Property administration software for property owners and real estate investors. Track leases, maintenance, tenants, and financial reporting. 14-day free trial.',
 		url: SITE_URL,
 		image: [
 			`${SITE_URL}/images/property-management-og.jpg`,

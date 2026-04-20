@@ -13,12 +13,12 @@ const homeFaqs = [
 	{
 		question: 'How long does it take to get started?',
 		answer:
-			'Most landlords are up and running within an hour. Import your properties via CSV, add tenant records, and start tracking leases the same day. Our intuitive interface requires no training.'
+			'Most property owners are up and running within an hour. Import your properties via CSV, add tenant records, and start tracking leases the same day. Our intuitive interface requires no training.'
 	},
 	{
 		question: 'What if I have fewer than 10 units?',
 		answer:
-			'TenantFlow is perfect for portfolios of any size. Our Starter plan is designed specifically for smaller landlords managing 1-25 units, giving you all the core features without enterprise complexity or pricing.'
+			'TenantFlow is perfect for portfolios of any size. Our Starter plan is designed for owners managing up to 25 units, giving you all the core features without enterprise complexity or pricing.'
 	},
 	{
 		question: 'Is my data secure?',

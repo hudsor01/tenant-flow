@@ -13,7 +13,7 @@ import { createPageMetadata } from '#lib/seo/page-metadata'
 export const metadata: Metadata = createPageMetadata({
 	title: 'Seasonal Maintenance Checklist for Rental Properties',
 	description:
-		'Free printable season-by-season maintenance checklist for landlords. Covers HVAC, plumbing, electrical, exterior, and safety inspections.',
+		'Free printable season-by-season maintenance checklist for property owners. Covers HVAC, plumbing, electrical, exterior, and safety inspections.',
 	path: '/resources/seasonal-maintenance-checklist'
 })
 

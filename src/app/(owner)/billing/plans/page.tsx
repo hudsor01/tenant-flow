@@ -37,7 +37,7 @@ const PLANS: Plan[] = [
 	{
 		id: 'starter',
 		name: 'Starter',
-		description: 'For small landlords',
+		description: 'For individual owners and small portfolios',
 		price: 29,
 		priceId: process.env.NEXT_PUBLIC_STRIPE_STARTER_PRICE_ID ?? null,
 		tier: 1,

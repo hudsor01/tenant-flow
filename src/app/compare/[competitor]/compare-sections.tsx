@@ -233,7 +233,7 @@ export function BottomCta({ data }: { data: CompetitorData }) {
 							Ready to make the switch?
 						</h2>
 						<p className="text-lg text-muted-foreground mb-8">
-							{`Join ${SOCIAL_PROOF.managerCount} landlords managing properties with TenantFlow. Start your 14-day free trial today.`}
+							{`Join ${SOCIAL_PROOF.managerCount} property owners managing rentals with TenantFlow. Start your 14-day free trial today.`}
 						</p>
 						<div className="flex flex-col sm:flex-row gap-4 justify-center">
 							<Button size="lg" className="px-8" asChild>
