@@ -76,9 +76,16 @@ export async function checkTierEntitlement(
 
   if (hasActiveSub && onEntitledPlan) return null
 
-  // Record the gate hit for admin analytics. Non-blocking — if the insert
-  // fails (e.g. RLS mismatch), log it but still return the 402 to the user.
-  supabase
+  // Record the gate hit for admin analytics. We fire-and-forget (don't await)
+  // so the 402 response returns as fast as possible, but the Deno Edge runtime
+  // hibernates the isolate as soon as the response promise resolves — without
+  // `EdgeRuntime.waitUntil(...)` the INSERT promise is dropped and no row
+  // ever lands in public.gate_events. Verified empirically: 0 rows after 24h+
+  // of Phase 45 being live. Same issue would have silently dropped every
+  // Phase 46 gate hit.
+  //
+  // Reference: https://supabase.com/docs/guides/functions/background-tasks
+  const insertPromise = supabase
     .from('gate_events')
     .insert({
       user_id: userId,
@@ -94,6 +101,17 @@ export async function checkTierEntitlement(
         })
       }
     })
+
+  // EdgeRuntime is a Deno Edge runtime global. In the local `deno test`
+  // harness or a non-Edge runtime it may be undefined, so we feature-detect.
+  const edgeRuntime = (globalThis as { EdgeRuntime?: { waitUntil: (p: Promise<unknown>) => void } }).EdgeRuntime
+  if (edgeRuntime?.waitUntil) {
+    edgeRuntime.waitUntil(insertPromise)
+  } else {
+    // Non-Edge runtime fallback: awaiting the insert is safe because the
+    // response latency penalty is irrelevant outside of production traffic.
+    await insertPromise
+  }
 
   return new Response(
     JSON.stringify({
