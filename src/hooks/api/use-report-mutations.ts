@@ -15,7 +15,30 @@ import {
 	handleMutationError,
 	handleMutationSuccess
 } from '#lib/mutation-error-handler'
-import { reportMutations } from './query-keys/report-keys'
+import { PaywallError, reportMutations } from './query-keys/report-keys'
+
+/**
+ * Report download mutation error handler. When the Edge Function returned 402,
+ * surface an "Upgrade" toast CTA that navigates to /billing/plans?source=...
+ * so the Stripe checkout keeps the source attribution for admin analytics
+ * (REQ-45-00 / REQ-46-03). Any other error falls through to the shared
+ * handler so generic network failures still toast the underlying message.
+ */
+function handleReportMutationError(err: unknown, action: string): void {
+	if (err instanceof PaywallError) {
+		toast.error('Upgrade required', {
+			description: err.message,
+			action: {
+				label: 'See plans',
+				onClick: () => {
+					window.location.assign(err.upgradeUrl)
+				}
+			}
+		})
+		return
+	}
+	handleMutationError(err, action)
+}
 
 /**
  * Call the generate-pdf Edge Function with pre-built HTML content.
@@ -60,7 +83,7 @@ export function useDownloadYearEndCsv() {
 	return useMutation({
 		...reportMutations.downloadYearEndCsv(),
 		onSuccess: () => handleMutationSuccess('Download year-end CSV'),
-		onError: (err) => handleMutationError(err, 'Download year-end CSV')
+		onError: (err) => handleReportMutationError(err, 'Download year-end CSV')
 	})
 }
 
@@ -71,7 +94,7 @@ export function useDownload1099Csv() {
 	return useMutation({
 		...reportMutations.download1099Csv(),
 		onSuccess: () => handleMutationSuccess('Download 1099 CSV'),
-		onError: (err) => handleMutationError(err, 'Download 1099 CSV')
+		onError: (err) => handleReportMutationError(err, 'Download 1099 CSV')
 	})
 }
 
@@ -83,7 +106,7 @@ export function useDownloadYearEndPdf() {
 	return useMutation({
 		...reportMutations.downloadYearEndPdf(),
 		onSuccess: () => toast.success('Year-end report downloaded'),
-		onError: (err) => handleMutationError(err, 'Download year-end PDF')
+		onError: (err) => handleReportMutationError(err, 'Download year-end PDF')
 	})
 }
 
@@ -95,6 +118,6 @@ export function useDownloadTaxDocumentPdf() {
 	return useMutation({
 		...reportMutations.downloadTaxDocumentPdf(),
 		onSuccess: () => toast.success('Tax documents downloaded'),
-		onError: (err) => handleMutationError(err, 'Download tax documents PDF')
+		onError: (err) => handleReportMutationError(err, 'Download tax documents PDF')
 	})
 }

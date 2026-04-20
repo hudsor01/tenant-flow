@@ -14,6 +14,20 @@ import { errorResponse, captureWebhookError } from '../_shared/errors.ts'
 import { escapeHtml } from '../_shared/escape-html.ts'
 import { validateEnv } from '../_shared/env.ts'
 import { createAdminClient } from '../_shared/supabase-client.ts'
+import { checkTierEntitlement, GROWTH_AND_MAX_PLANS } from '../_shared/tier-gate.ts'
+
+// Mirror of export-report PREMIUM_REPORT_TYPES. generate-pdf's Mode 1
+// (structured report data via {reportType, year}) bypasses export-report
+// entirely, so the same gate has to live here. Modes 2 (raw HTML) and 3
+// (lease preview) are not gated — those are per-entity operations already
+// bounded by ownership checks.
+const PREMIUM_REPORT_TYPES: ReadonlySet<string> = new Set([
+  'year-end',
+  '1099',
+  'financial',
+  'income-statement',
+  'cash-flow',
+])
 
 type ReportRow = Record<string, string | number | null | undefined>
 
@@ -215,6 +229,17 @@ Deno.serve(async (req: Request) => {
           { status: 400, headers: getJsonHeaders(req) },
         )
       }
+
+      // REQ-46-01: premium report types require Growth/Max tier.
+      if (PREMIUM_REPORT_TYPES.has(body.reportType)) {
+        const entitlementBlock = await checkTierEntitlement(req, supabase, user.id, {
+          feature: 'premium_reports',
+          upgrade_source: 'reports_gate',
+          entitled_plans: GROWTH_AND_MAX_PLANS,
+        })
+        if (entitlementBlock) return entitlementBlock
+      }
+
       const rows = await fetchReportRows(supabase, user.id)
       html = buildReportHtml(body.reportType, body.year, rows)
     }
