@@ -76,26 +76,30 @@ export function PhotosCard({ requestId }: PhotosCardProps) {
 		if (!fileList || fileList.length === 0) return
 
 		const files = Array.from(fileList)
-		const invalidType = files.find(
-			f => !ACCEPTED_MIME_TYPES.includes(f.type)
-		)
-		if (invalidType) {
-			toast.error('Unsupported file type', {
-				description: `${invalidType.name} — accepted: JPG, PNG, WebP, MP4, MOV.`
-			})
-			return
+		const valid: File[] = []
+		const rejected: string[] = []
+
+		// Partition files into valid/rejected so one bad file doesn't block the
+		// rest of a multi-file selection from uploading.
+		for (const file of files) {
+			if (!ACCEPTED_MIME_TYPES.includes(file.type)) {
+				rejected.push(`${file.name} — unsupported type`)
+			} else if (file.size > MAX_FILE_SIZE_BYTES) {
+				rejected.push(`${file.name} — exceeds 25 MB`)
+			} else {
+				valid.push(file)
+			}
 		}
-		const oversize = files.find(f => f.size > MAX_FILE_SIZE_BYTES)
-		if (oversize) {
-			toast.error('File too large', {
-				description: `${oversize.name} exceeds the 25 MB limit.`
+
+		if (rejected.length > 0) {
+			toast.error(`Skipped ${rejected.length} file${rejected.length === 1 ? '' : 's'}`, {
+				description: rejected.join('\n')
 			})
-			return
 		}
 
 		let uploaded = 0
 		const failures: string[] = []
-		for (const file of files) {
+		for (const file of valid) {
 			try {
 				await uploadMutation.mutateAsync({ requestId, file })
 				uploaded++
