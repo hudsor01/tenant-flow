@@ -3,14 +3,10 @@ import { captureWebhookWarning, logEvent } from '../../_shared/errors.ts'
 import type { SupabaseAdmin } from './types.ts'
 
 /**
- * Handle customer.subscription.created and customer.subscription.updated events.
- *
- * Two paths:
- *   1. Tenant rent subscription → update leases.stripe_subscription_status
- *   2. Owner SaaS subscription → update users.subscription_* columns (gates dashboard access)
- *
- * Disambiguation: lease subscriptions have lease_id in metadata; owner subscriptions are
- * identified by matching customer to users.stripe_customer_id.
+ * Handle customer.subscription.created and customer.subscription.updated.
+ * Landlord-only (v2.1): updates users.subscription_* columns that gate
+ * dashboard access via proxy.ts. The tenant-rent-subscription lease path
+ * (pre-PR #596) is gone — the leases table no longer has Stripe columns.
  */
 export async function handleCustomerSubscriptionUpdated(
   supabase: SupabaseAdmin,
@@ -20,23 +16,6 @@ export async function handleCustomerSubscriptionUpdated(
   const sub = event.data.object as Stripe.Subscription
   const customerId = typeof sub.customer === 'string' ? sub.customer : sub.customer.id
 
-  // Path 1: tenant rent subscription
-  const { data: leases } = await supabase
-    .from('leases')
-    .select('id')
-    .eq('stripe_subscription_id', sub.id)
-    .limit(1)
-
-  if (leases && leases.length > 0) {
-    const { error: updateError } = await supabase
-      .from('leases')
-      .update({ stripe_subscription_status: sub.status })
-      .eq('stripe_subscription_id', sub.id)
-    if (updateError) throw updateError
-    return
-  }
-
-  // Path 2: owner SaaS subscription — find user by stripe_customer_id
   const { data: user } = await supabase
     .from('users')
     .select('id')
@@ -44,25 +23,35 @@ export async function handleCustomerSubscriptionUpdated(
     .maybeSingle()
 
   if (!user) {
-    captureWebhookWarning('[WEBHOOK] subscription matches no lease and no user', { sub_id: sub.id, customer_id: customerId })
+    captureWebhookWarning('[WEBHOOK] subscription matches no user', { sub_id: sub.id, customer_id: customerId })
     return
   }
 
   const priceId = sub.items.data[0]?.price.id ?? null
   const planLookup = sub.items.data[0]?.price.lookup_key ?? null
 
+  // Capture metadata.source for admin analytics if present on the subscription
+  // (subscription_data.metadata propagates from checkout; also set directly
+  // here so late-arriving subscription.updated events still fill it in).
+  const source = typeof sub.metadata?.['source'] === 'string'
+    ? sub.metadata['source']
+    : null
+
+  const updatePayload: Record<string, unknown> = {
+    subscription_id: sub.id,
+    subscription_status: sub.status,
+    subscription_plan: planLookup ?? priceId,
+    subscription_current_period_end: sub.current_period_end
+      ? new Date(sub.current_period_end * 1000).toISOString()
+      : null,
+    subscription_cancel_at_period_end: sub.cancel_at_period_end ?? false,
+    subscription_updated_at: new Date().toISOString(),
+  }
+  if (source) updatePayload.subscription_source = source
+
   const { error: userUpdateError } = await supabase
     .from('users')
-    .update({
-      subscription_id: sub.id,
-      subscription_status: sub.status,
-      subscription_plan: planLookup ?? priceId,
-      subscription_current_period_end: sub.current_period_end
-        ? new Date(sub.current_period_end * 1000).toISOString()
-        : null,
-      subscription_cancel_at_period_end: sub.cancel_at_period_end ?? false,
-      subscription_updated_at: new Date().toISOString(),
-    })
+    .update(updatePayload)
     .eq('id', user.id)
 
   if (userUpdateError) throw userUpdateError

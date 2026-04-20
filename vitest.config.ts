@@ -2,8 +2,13 @@ import { defineConfig } from 'vitest/config'
 import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 import react from '@vitejs/plugin-react'
+// Keep vite-tsconfig-paths: Vite's native `resolve.tsconfigPaths: true`
+// (available since Vite 7) only handles tsconfig `paths` — it does NOT
+// resolve Node.js subpath imports (the `#env`, `#components/*`, etc. in
+// package.json#imports that the project uses pervasively). The
+// vite-tsconfig-paths plugin handles both; switching to native breaks
+// every `#`-prefixed import. Warning is informational only.
 import tsconfigPaths from 'vite-tsconfig-paths'
-import type { PluginOption } from 'vite'
 
 const loadEnvFile = (fileName: string) => {
 	const path = resolve(__dirname, fileName)

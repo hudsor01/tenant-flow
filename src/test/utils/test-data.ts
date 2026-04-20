@@ -72,7 +72,8 @@ export const DEFAULT_USER: User = {
 	subscription_status: null,
 	subscription_cancel_at_period_end: null,
 	subscription_current_period_end: null,
-	subscription_updated_at: null
+	subscription_updated_at: null,
+	subscription_source: null
 }
 
 /**

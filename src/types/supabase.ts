@@ -1887,6 +1887,7 @@ export type Database = {
           subscription_current_period_end: string | null
           subscription_id: string | null
           subscription_plan: string | null
+          subscription_source: string | null
           subscription_status: string | null
           subscription_updated_at: string | null
           updated_at: string | null
@@ -1915,6 +1916,7 @@ export type Database = {
           subscription_current_period_end?: string | null
           subscription_id?: string | null
           subscription_plan?: string | null
+          subscription_source?: string | null
           subscription_status?: string | null
           subscription_updated_at?: string | null
           updated_at?: string | null
@@ -1943,6 +1945,7 @@ export type Database = {
           subscription_current_period_end?: string | null
           subscription_id?: string | null
           subscription_plan?: string | null
+          subscription_source?: string | null
           subscription_status?: string | null
           subscription_updated_at?: string | null
           updated_at?: string | null
@@ -2357,6 +2360,10 @@ export type Database = {
       get_stripe_customer_by_user_id: {
         Args: { p_user_id: string }
         Returns: string
+      }
+      get_subscription_status: {
+        Args: { p_customer_id: string }
+        Returns: Json
       }
       get_tenant_lease_ids: { Args: never; Returns: string[] }
       get_tenant_property_ids: { Args: never; Returns: string[] }

@@ -61,13 +61,12 @@ vi.mock('@sentry/nextjs', () => ({
 	captureException: vi.fn()
 }))
 
-// Note: useResendInvitationMutation and useCancelInvitationMutation update tenant_invitations via PostgREST
-
-// Mock fetch for Edge Function calls (send-tenant-invitation)
+// Mock fetch for any outbound HTTP — kept since tenant hooks may gain Edge
+// Function calls later. Harmless when no fetch is made.
 const mockFetch = vi.hoisted(() =>
 	vi.fn().mockResolvedValue({
 		ok: true,
-		json: async () => ({ sent: true, email_id: 'test-id' })
+		json: async () => ({ success: true })
 	})
 )
 vi.stubGlobal('fetch', mockFetch)
