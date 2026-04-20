@@ -35,6 +35,14 @@ create index if not exists idx_users_subscription_source
 -- ============================================================================
 -- 2. get_subscription_status(p_customer_id) — IDOR-guarded RPC
 -- ============================================================================
+-- Drop-then-create to survive `supabase db reset` replay. A prior migration
+-- (20260414120000_get_subscription_status_rpc.sql) defined this function with
+-- `RETURNS TABLE(...)`; we're changing the return shape to jsonb. Postgres
+-- rejects that via CREATE OR REPLACE (42P13 cannot change return type).
+-- Prod-applied version survived because MCP apply_migration pre-processes,
+-- but a fresh dev / CI replay would fail without the explicit drop.
+drop function if exists public.get_subscription_status(text);
+
 create or replace function public.get_subscription_status(p_customer_id text)
 returns jsonb
 language plpgsql
