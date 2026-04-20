@@ -104,14 +104,22 @@ TenantFlow is a multi-tenant property management SaaS platform for property owne
 
 ## Active Milestone
 
-**v2.0 Revenue Gates** — Phases 45-46 (scoped 2026-04-19, target ship 2026-05-10).
+**v2.1 Production Integrity Hardening** — Phases 47-50 (scoped 2026-04-19 after prod audit, target ship 2026-04-26).
 
-- [ ] Phase 45: DocuSeal gate prod validation (3d) — verify PR #595 paywall is earning
-- [ ] Phase 46: Premium reports tier gate (1w) — paywall year-end / 1099 / tax exports
+- [ ] Phase 47: RLS recovery + test suite correctness (2d, BLOCKING) — restore policies on leases / maintenance_requests / notifications; fix forEach-on-empty-array false-passing tests
+- [ ] Phase 48: Zombie Edge Function purge (½d) — delete 8 removed-feature functions still active in prod
+- [ ] Phase 49: Billing path + Stripe Sync Engine restoration (2-3d) — fix get_subscription_status, restore or replace stripe.subscriptions dependency
+- [ ] Phase 50: Security advisor cleanup (1d) — enable leaked-password protection, tighten storage buckets, fix search_path
 
-See `milestones/v2.0-ROADMAP.md` for success criteria (battle-proven per phase).
+v2.0 Phase 46 (premium reports gate) PAUSED until v2.1 ships.
 
-Post-v1.7 stabilization (unplanned, 2026-04-18/19): PRs #596 (rent + tenant portal removed), #597 (CI hang fix), #598 (docs), #599 (tests), #600 (user_type → is_admin), #601 (GSD docs).
+See `milestones/v2.1-ROADMAP.md` for full finding list.
+
+## Previously Active
+
+**v2.0 Revenue Gates** — Phase 45 shipped 2026-04-19 (PR #604), Phase 46 paused.
+
+Post-v1.7 stabilization (2026-04-18/19): PRs #596 (rent + tenant portal removed), #597 (CI hang fix), #598 (docs), #599 (tests), #600 (user_type → is_admin), #601 (GSD docs), #602 (v2.0 scoping), #603 (dead backend refs cleanup), #604 (Phase 45 esign gate tracking).
 
 ## Wave 0 Operator Actions (v1.7)
 
