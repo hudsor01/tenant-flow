@@ -131,10 +131,12 @@ export const propertyQueries = {
 				const supabase = createClient()
 				const user = await getCachedUser()
 				if (!user) return null
+				// Valid p_timeframe values: '7d' | '30d' | '90d' | '180d' | '365d'.
+				// Anything else silently falls through to the 30d default.
 				const { data, error } = await supabase.rpc('get_property_performance_analytics', {
 					p_user_id: user.id,
 					p_property_id: property_id,
-					p_timeframe: 'ytd'
+					p_timeframe: '365d'
 				})
 				if (error) handlePostgrestError(error, 'property performance')
 				const rows = (data ?? []) as Array<{
