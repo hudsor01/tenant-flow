@@ -43,15 +43,14 @@ test.describe('v2.0 Phase 45 — DocuSeal paywall wire-up', () => {
 			'No Supabase auth-token in storageState — run the auth setup project first'
 		)
 
-		// The stored value is a base64-encoded JSON `{access_token, ...}`.
-		const decoded = JSON.parse(
-			Buffer.from(
-				(accessTokenEntry!.value.startsWith('base64-')
-					? accessTokenEntry!.value.slice(7)
-					: accessTokenEntry!.value),
-				'base64'
-			).toString('utf8')
-		) as { access_token?: string }
+		// auth-api.setup.ts writes localStorage as plain JSON (unlike the
+		// `base64-`-prefixed cookie payload @supabase/ssr expects). Parse
+		// directly — any base64 decode here would corrupt the JSON and the
+		// test would throw SyntaxError the moment a seeded token actually
+		// exists, instead of reaching its intended 402/skip branches.
+		const decoded = JSON.parse(accessTokenEntry!.value) as {
+			access_token?: string
+		}
 		const accessToken = decoded.access_token
 		test.skip(!accessToken, 'Could not extract access_token from storageState')
 
