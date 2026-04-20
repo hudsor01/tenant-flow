@@ -134,6 +134,48 @@ export const reportQueries = {
 		})
 }
 
+/**
+ * Thrown when the reports tier gate returns 402. Caller mutations detect this
+ * via `instanceof PaywallError` to surface an upgrade CTA instead of a generic
+ * error toast.
+ */
+export class PaywallError extends Error {
+	readonly upgradeUrl: string
+	readonly feature: string
+	constructor(message: string, upgradeUrl: string, feature: string) {
+		super(message)
+		this.name = 'PaywallError'
+		this.upgradeUrl = upgradeUrl
+		this.feature = feature
+	}
+}
+
+async function parsePaywallResponse(
+	response: Response,
+	defaultFeature: string
+): Promise<PaywallError> {
+	try {
+		const body = (await response.json()) as {
+			error?: string
+			upgrade_url?: string
+			upgrade_required?: boolean
+		}
+		const url = typeof body.upgrade_url === 'string'
+			? body.upgrade_url
+			: `/billing/plans?source=${defaultFeature}_gate`
+		const msg = typeof body.error === 'string'
+			? body.error
+			: 'This feature requires a Growth or Max subscription.'
+		return new PaywallError(msg, url, defaultFeature)
+	} catch {
+		return new PaywallError(
+			'This feature requires a Growth or Max subscription.',
+			`/billing/plans?source=${defaultFeature}_gate`,
+			defaultFeature
+		)
+	}
+}
+
 async function callExportEdgeFunction(
 	reportType: string,
 	format: 'csv' | 'xlsx' | 'pdf',
@@ -151,6 +193,9 @@ async function callExportEdgeFunction(
 		headers: { Authorization: `Bearer ${token}` }
 	})
 
+	if (response.status === 402) {
+		throw await parsePaywallResponse(response, 'reports')
+	}
 	if (!response.ok) {
 		throw new Error(`Export failed: ${response.statusText}`)
 	}
@@ -187,6 +232,9 @@ async function callGeneratePdfEdgeFunction(reportType: string, year: number): Pr
 		body: JSON.stringify({ reportType, year, filename }),
 	})
 
+	if (response.status === 402) {
+		throw await parsePaywallResponse(response, 'reports')
+	}
 	if (!response.ok) {
 		const errText = await response.text().catch(() => response.statusText)
 		throw new Error(`PDF generation failed: ${errText}`)

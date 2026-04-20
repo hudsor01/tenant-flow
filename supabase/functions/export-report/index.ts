@@ -9,6 +9,18 @@ import { validateEnv } from '../_shared/env.ts'
 import { errorResponse, captureWebhookError } from '../_shared/errors.ts'
 import { escapeHtml } from '../_shared/escape-html.ts'
 import { createAdminClient } from '../_shared/supabase-client.ts'
+import { checkTierEntitlement, GROWTH_AND_MAX_PLANS } from '../_shared/tier-gate.ts'
+
+// Report types gated behind Growth/Max (REQ-46-02).
+// Free-tier keeps basic reports (maintenance, default revenue trends) so the
+// product is usable without upgrading; tax-prep + year-end reports require paid.
+const PREMIUM_REPORT_TYPES: ReadonlySet<string> = new Set([
+  'year-end',
+  '1099',
+  'financial',
+  'income-statement',
+  'cash-flow',
+])
 
 Deno.serve(async (req: Request) => {
   const optionsResponse = handleCorsOptions(req)
@@ -41,6 +53,18 @@ Deno.serve(async (req: Request) => {
     const reportType = url.searchParams.get('type') ?? 'financial'
     const format = url.searchParams.get('format') ?? 'csv'
     const year = parseInt(url.searchParams.get('year') ?? String(new Date().getFullYear()))
+
+    // REQ-46-01: gate premium report types behind Growth/Max tier.
+    // Returns 402 with upgrade_url on the free tier; records a row in
+    // public.gate_events so admin analytics can attribute conversions.
+    if (PREMIUM_REPORT_TYPES.has(reportType)) {
+      const entitlementBlock = await checkTierEntitlement(req, supabase, user.id, {
+        feature: 'premium_reports',
+        upgrade_source: 'reports_gate',
+        entitled_plans: GROWTH_AND_MAX_PLANS,
+      })
+      if (entitlementBlock) return entitlementBlock
+    }
 
     // Fetch data based on report type
     let rows: Record<string, unknown>[] = []
