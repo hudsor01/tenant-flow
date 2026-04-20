@@ -40,16 +40,18 @@ export function SubscriptionStatusBanner() {
 
 	const status = subscription.subscriptionStatus
 
-	// Trialing: days-remaining banner with upgrade CTA
+	// Trialing: days-remaining banner with upgrade CTA. Fall back to a generic
+	// trial-active message if trial_ends_at is missing (data gap we still want
+	// to surface rather than render nothing).
 	if (status === 'trialing') {
 		const daysLeft = calculateDaysRemaining(subscription.trialEndsAt)
-		if (daysLeft === null) return null
-
 		const dayWord = daysLeft === 1 ? 'day' : 'days'
 		const message =
-			daysLeft <= 0
-				? 'Your trial ended. Upgrade to keep access.'
-				: `${daysLeft} ${dayWord} left in your trial — upgrade to keep access.`
+			daysLeft === null
+				? "You're on a free trial — upgrade to keep access."
+				: daysLeft <= 0
+					? 'Your trial ended. Upgrade to keep access.'
+					: `${daysLeft} ${dayWord} left in your trial — upgrade to keep access.`
 
 		return (
 			<div className="flex items-center gap-3 rounded-lg border border-indigo-300 bg-indigo-50 px-4 py-3 text-sm text-indigo-800 dark:border-indigo-700 dark:bg-indigo-950/50 dark:text-indigo-200">

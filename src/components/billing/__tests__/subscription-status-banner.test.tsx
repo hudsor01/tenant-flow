@@ -151,7 +151,7 @@ describe('SubscriptionStatusBanner', () => {
 		expect(screen.getByText(/your trial ended/i)).toBeInTheDocument()
 	})
 
-	it('renders nothing when trialing but trial_ends_at is missing', () => {
+	it('renders generic trial banner when trialing but trial_ends_at is missing', () => {
 		mockUseSubscriptionStatus.mockReturnValue({
 			data: {
 				subscriptionStatus: 'trialing',
@@ -164,8 +164,11 @@ describe('SubscriptionStatusBanner', () => {
 			isLoading: false,
 		})
 
-		const { container } = render(<SubscriptionStatusBanner />)
-		expect(container.innerHTML).toBe('')
+		render(<SubscriptionStatusBanner />)
+
+		expect(screen.getByText(/on a free trial/i)).toBeInTheDocument()
+		const link = screen.getByRole('link', { name: /upgrade/i })
+		expect(link).toHaveAttribute('href', '/billing/plans?source=trial_banner')
 	})
 
 	it('renders red lock banner when status is unpaid', () => {
