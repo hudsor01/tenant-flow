@@ -37,6 +37,14 @@ interface CreateCheckoutSessionRequest {
 	description?: string
 	customerEmail?: string
 	tenant_id?: string
+	/**
+	 * Paywall attribution tag from the upgrade CTA that sent the user here
+	 * (e.g. 'esign_gate', 'reports_gate'). Forwarded to Stripe Checkout as
+	 * `metadata.source` so admin analytics can count conversions per gate.
+	 * Derived from the current URL's ?source= query param by
+	 * `startCheckoutFromUrl` — pass explicitly to override.
+	 */
+	source?: string
 }
 
 interface CreateCheckoutSessionResponse {
@@ -74,12 +82,14 @@ export async function createCheckoutSession(
 			headers,
 			body: JSON.stringify({
 				priceId: request.priceId,
+				price_id: request.priceId,
 				productName: request.planName,
 				tenant_id: request.tenant_id || user?.id || 'pending_signup',
 				domain: window.location.origin,
 				description: request.description,
 				isSubscription: true,
-				customerEmail: request.customerEmail || user?.email || undefined
+				customerEmail: request.customerEmail || user?.email || undefined,
+				...(request.source ? { source: request.source } : {})
 			})
 		}
 	)

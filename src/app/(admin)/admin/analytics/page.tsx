@@ -2,18 +2,25 @@ import type { Metadata } from 'next'
 import { createClient } from '#lib/supabase/server'
 import { DeliverabilityTable } from '#components/admin/deliverability-table'
 import { FunnelChartClient } from '#components/admin/funnel-chart'
+import { GateConversionTable } from '#components/admin/gate-conversion-table'
 import { mapDeliverabilityRow } from '#hooks/api/query-keys/deliverability-keys'
 import { mapFunnelStats } from '#hooks/api/query-keys/funnel-keys'
-import type { DeliverabilityStats, FunnelStats } from '#types/analytics'
+import { mapGateConversionRow } from '#hooks/api/query-keys/gate-conversion-keys'
+import type {
+	DeliverabilityStats,
+	FunnelStats,
+	GateConversionStats
+} from '#types/analytics'
 
 export const metadata: Metadata = {
 	title: 'Admin Analytics | TenantFlow'
 }
 
-// 90 days of signup cohort — matches the default window noted in
-// 44-03-PLAN.md and gives the funnel enough volume to read meaningfully.
 const FUNNEL_WINDOW_DAYS = 90
 const DELIVERABILITY_WINDOW_DAYS = 30
+// 30-day window gives Phase 45's 7-day battle-proven criterion enough history
+// to spot trend reversals without drowning the signal in old data.
+const GATE_CONVERSION_WINDOW_DAYS = 30
 
 export default async function AdminAnalyticsPage() {
 	const supabase = await createClient()
@@ -24,13 +31,16 @@ export default async function AdminAnalyticsPage() {
 	).toISOString()
 	const funnelTo = now.toISOString()
 
-	const [deliverabilityResult, funnelResult] = await Promise.all([
+	const [deliverabilityResult, funnelResult, gateResult] = await Promise.all([
 		supabase.rpc('get_deliverability_stats', {
 			p_days: DELIVERABILITY_WINDOW_DAYS
 		}),
 		supabase.rpc('get_funnel_stats', {
 			p_from: funnelFrom,
 			p_to: funnelTo
+		}),
+		supabase.rpc('get_gate_conversion_stats', {
+			p_days: GATE_CONVERSION_WINDOW_DAYS
 		})
 	])
 
@@ -48,6 +58,12 @@ export default async function AdminAnalyticsPage() {
 			? mapFunnelStats(funnelRaw as Record<string, unknown>)
 			: null
 
+	const gateConversion: GateConversionStats[] = Array.isArray(gateResult.data)
+		? gateResult.data.map(row =>
+				mapGateConversionRow(row as Record<string, unknown>)
+			)
+		: []
+
 	return (
 		<div className="max-w-7xl mx-auto px-6 lg:px-8 py-8 space-y-8">
 			<div>
@@ -55,9 +71,19 @@ export default async function AdminAnalyticsPage() {
 					Platform Analytics
 				</h2>
 				<p className="text-sm text-muted-foreground">
-					Email deliverability (rolling 30 days) and owner onboarding funnel.
+					Paywall conversions (30 days), email deliverability (30 days), and owner
+					onboarding funnel (90 days).
 				</p>
 			</div>
+			<section aria-labelledby="gate-conversion-heading">
+				<h3
+					id="gate-conversion-heading"
+					className="text-lg font-semibold mb-4 text-foreground"
+				>
+					Paywall Conversions
+				</h3>
+				<GateConversionTable data={gateConversion} />
+			</section>
 			<section aria-labelledby="deliverability-heading">
 				<h3
 					id="deliverability-heading"

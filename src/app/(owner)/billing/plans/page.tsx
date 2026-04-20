@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { Settings, ArrowLeft } from 'lucide-react'
 import Link from 'next/link'
+import { useSearchParams } from 'next/navigation'
 import { toast } from 'sonner'
 import { Button } from '#components/ui/button'
 import { Skeleton } from '#components/ui/skeleton'
@@ -88,6 +89,11 @@ export default function BillingPlansPage() {
 	const [loadingPlanId, setLoadingPlanId] = useState<string | null>(null)
 	const [dialogOpen, setDialogOpen] = useState(false)
 	const [selectedPlan, setSelectedPlan] = useState<Plan | null>(null)
+	// Attribution tag from a paywall CTA (e.g. /billing/plans?source=esign_gate).
+	// Gets forwarded to Stripe Checkout metadata so admin analytics can attribute
+	// the resulting subscription back to the gate. Validated at the Edge Function.
+	const searchParams = useSearchParams()
+	const source = searchParams?.get('source') ?? undefined
 
 	const { data: subscriptionStatus, isLoading: subscriptionLoading } = useSubscriptionStatus()
 	const hasActiveSubscription =
@@ -127,7 +133,8 @@ export default function BillingPlansPage() {
 				const { url } = await createCheckoutSession({
 					priceId: plan.priceId,
 					planName: plan.name,
-					description: plan.description
+					description: plan.description,
+					...(source ? { source } : {})
 				})
 
 				toast.dismiss('checkout')

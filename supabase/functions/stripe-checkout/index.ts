@@ -42,13 +42,22 @@ Deno.serve(async (req: Request) => {
 
   try {
     const body = await req.json()
-    const priceId: string = body.price_id ?? env.STRIPE_PRO_PRICE_ID ?? ''
+    // Accept both snake_case (preferred) and camelCase (legacy frontend) forms
+    const priceId: string = body.price_id ?? body.priceId ?? env.STRIPE_PRO_PRICE_ID ?? ''
 
     if (!priceId) {
       return new Response(JSON.stringify({ error: 'price_id is required' }), {
         status: 400, headers: getJsonHeaders(req),
       })
     }
+
+    // Attribution tag from the upgrade CTA that sent the user here (e.g.
+    // 'esign_gate', 'reports_gate'). Stored on Stripe session + subscription
+    // so admin analytics can count conversions per gate. Must match
+    // ^[a-z_]+$, max 64 chars. Invalid input is silently dropped — not a
+    // user-visible error since attribution is telemetry, not functionality.
+    const rawSource = typeof body.source === 'string' ? body.source : ''
+    const source = /^[a-z_]{1,64}$/.test(rawSource) ? rawSource : ''
 
     const stripe = getStripeClient(stripeKey)
 
@@ -75,6 +84,9 @@ Deno.serve(async (req: Request) => {
     // Create Checkout Session (hosted checkout with Radar fraud detection).
     // subscription_data.metadata propagates to the resulting subscription so
     // customer.subscription.* webhooks can identify the owner without a lookup.
+    const sessionMetadata: Record<string, string> = { supabase_user_id: user.id }
+    if (source) sessionMetadata.source = source
+
     const session = await stripe.checkout.sessions.create({
       customer: customerId,
       payment_method_types: ['card'],
@@ -82,8 +94,8 @@ Deno.serve(async (req: Request) => {
       mode: 'subscription',
       success_url: `${frontendUrl}/dashboard?checkout=success&session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${frontendUrl}/settings/billing?checkout=cancelled`,
-      metadata: { supabase_user_id: user.id },
-      subscription_data: { metadata: { supabase_user_id: user.id } },
+      metadata: sessionMetadata,
+      subscription_data: { metadata: sessionMetadata },
       allow_promotion_codes: true,
     })
 
