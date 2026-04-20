@@ -701,6 +701,54 @@ export type Database = {
           },
         ]
       }
+      maintenance_request_photos: {
+        Row: {
+          created_at: string
+          file_name: string
+          file_size: number | null
+          id: string
+          maintenance_request_id: string
+          mime_type: string
+          storage_path: string
+          uploaded_by: string | null
+        }
+        Insert: {
+          created_at?: string
+          file_name: string
+          file_size?: number | null
+          id?: string
+          maintenance_request_id: string
+          mime_type?: string
+          storage_path: string
+          uploaded_by?: string | null
+        }
+        Update: {
+          created_at?: string
+          file_name?: string
+          file_size?: number | null
+          id?: string
+          maintenance_request_id?: string
+          mime_type?: string
+          storage_path?: string
+          uploaded_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "maintenance_request_photos_maintenance_request_id_fkey"
+            columns: ["maintenance_request_id"]
+            isOneToOne: false
+            referencedRelation: "maintenance_requests"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "maintenance_request_photos_uploaded_by_fkey"
+            columns: ["uploaded_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       maintenance_requests: {
         Row: {
           actual_cost: number | null
@@ -2726,3 +2774,4 @@ export const Constants = {
     },
   },
 } as const
+
