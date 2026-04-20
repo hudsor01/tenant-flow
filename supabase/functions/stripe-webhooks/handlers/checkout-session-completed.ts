@@ -29,18 +29,28 @@ export async function handleCheckoutSessionCompleted(
     const sub = await stripe.subscriptions.retrieve(subId)
     const priceId = sub.items.data[0]?.price.id ?? null
     const planLookup = sub.items.data[0]?.price.lookup_key ?? null
+    // Capture the upgrade attribution tag from session metadata so admin
+    // analytics can compute per-gate conversion (v2.1 Phase 49). The tag
+    // flows through from /billing/plans?source=<x> via stripe-checkout.
+    const source = typeof session.metadata['source'] === 'string'
+      ? session.metadata['source']
+      : null
+
+    const updatePayload: Record<string, unknown> = {
+      subscription_id: sub.id,
+      subscription_status: sub.status,
+      subscription_plan: planLookup ?? priceId,
+      subscription_current_period_end: sub.current_period_end
+        ? new Date(sub.current_period_end * 1000).toISOString()
+        : null,
+      subscription_cancel_at_period_end: sub.cancel_at_period_end ?? false,
+      subscription_updated_at: new Date().toISOString(),
+    }
+    if (source) updatePayload.subscription_source = source
+
     const { error } = await supabase
       .from('users')
-      .update({
-        subscription_id: sub.id,
-        subscription_status: sub.status,
-        subscription_plan: planLookup ?? priceId,
-        subscription_current_period_end: sub.current_period_end
-          ? new Date(sub.current_period_end * 1000).toISOString()
-          : null,
-        subscription_cancel_at_period_end: sub.cancel_at_period_end ?? false,
-        subscription_updated_at: new Date().toISOString(),
-      })
+      .update(updatePayload)
       .eq('id', session.metadata['supabase_user_id'])
     if (error) {
       captureWebhookError(error, {
