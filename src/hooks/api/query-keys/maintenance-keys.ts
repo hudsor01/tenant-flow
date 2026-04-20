@@ -209,7 +209,7 @@ export const maintenanceQueries = {
 
 				if (error) handlePostgrestError(error, 'maintenance_request_photos')
 
-				return (data ?? []) as Array<{
+				type PhotoRow = {
 					id: string
 					maintenance_request_id: string
 					storage_path: string
@@ -218,7 +218,30 @@ export const maintenanceQueries = {
 					mime_type: string
 					uploaded_by: string | null
 					created_at: string
-				}>
+				}
+				const rows = (data ?? []) as PhotoRow[]
+
+				// Bucket is private — getPublicUrl() would return a 403 URL. Batch-sign
+				// all storage paths in one round-trip so <img>/<video> tags can render
+				// without the client having to attach a JWT header on each request.
+				if (rows.length === 0) {
+					return rows.map(r => ({ ...r, signed_url: null as string | null }))
+				}
+				const paths = rows.map(r => r.storage_path)
+				const { data: signed } = await supabase.storage
+					.from('maintenance-photos')
+					.createSignedUrls(paths, 3600)
+
+				const urlByPath = new Map<string, string>()
+				for (const entry of signed ?? []) {
+					if (entry.path && entry.signedUrl) {
+						urlByPath.set(entry.path, entry.signedUrl)
+					}
+				}
+				return rows.map(r => ({
+					...r,
+					signed_url: urlByPath.get(r.storage_path) ?? null
+				}))
 			},
 			...QUERY_CACHE_TIMES.DETAIL,
 			enabled: !!requestId

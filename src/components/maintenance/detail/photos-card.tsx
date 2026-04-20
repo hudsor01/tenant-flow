@@ -20,7 +20,6 @@ import {
 	maintenanceQueries,
 	maintenanceMutations
 } from '#hooks/api/query-keys/maintenance-keys'
-import { createClient } from '#lib/supabase/client'
 import { Camera, Plus, Trash2, Loader2 } from 'lucide-react'
 import { useRef, useState } from 'react'
 import { toast } from 'sonner'
@@ -64,13 +63,6 @@ export function PhotosCard({ requestId }: PhotosCardProps) {
 			})
 		}
 	})
-
-	const getPublicUrl = (storagePath: string) => {
-		const supabase = createClient()
-		return supabase.storage
-			.from('maintenance-photos')
-			.getPublicUrl(storagePath).data.publicUrl
-	}
 
 	const handleFilesSelected = async (fileList: FileList | null) => {
 		if (!fileList || fileList.length === 0) return
@@ -202,7 +194,21 @@ export function PhotosCard({ requestId }: PhotosCardProps) {
 					<div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
 						{photos?.map((photo, index) => {
 							const isVideo = photo.mime_type.startsWith('video/')
-							const url = getPublicUrl(photo.storage_path)
+							const url = photo.signed_url
+							if (!url) {
+								// Signed URL generation failed (e.g. RLS gap or network).
+								// Render a placeholder tile so owners still see the file
+								// exists and can remove it via the preview dialog.
+								return (
+									<div
+										key={photo.id}
+										className="rounded-md bg-muted aspect-square w-full flex items-center justify-center text-xs text-muted-foreground text-center px-2"
+										title={photo.file_name}
+									>
+										{photo.file_name}
+									</div>
+								)
+							}
 							return (
 								<Dialog
 									key={photo.id}

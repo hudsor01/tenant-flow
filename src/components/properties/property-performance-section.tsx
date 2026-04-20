@@ -36,8 +36,8 @@ export function PropertyPerformanceSection({
 		return (
 			<Card>
 				<CardHeader>
-					<CardTitle>Performance (YTD)</CardTitle>
-					<CardDescription>Year-to-date revenue, expenses, and occupancy</CardDescription>
+					<CardTitle>Performance (last 12 months)</CardTitle>
+					<CardDescription>Trailing 12-month revenue, expenses, and occupancy</CardDescription>
 				</CardHeader>
 				<CardContent>
 					<div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
@@ -54,8 +54,8 @@ export function PropertyPerformanceSection({
 		return (
 			<Card>
 				<CardHeader>
-					<CardTitle>Performance (YTD)</CardTitle>
-					<CardDescription>Year-to-date revenue, expenses, and occupancy</CardDescription>
+					<CardTitle>Performance (last 12 months)</CardTitle>
+					<CardDescription>Trailing 12-month revenue, expenses, and occupancy</CardDescription>
 				</CardHeader>
 				<CardContent>
 					<p className="text-sm text-muted-foreground">
