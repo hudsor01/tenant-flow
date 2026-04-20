@@ -16,7 +16,6 @@ Policy: https://tenantflow.app/security-policy
 # Scope:
 # In Scope:
 # - tenantflow.app and subdomains
-# - api.tenantflow.app
 # - Authentication and authorization issues
 # - Data validation and injection vulnerabilities
 # - Cross-site scripting (XSS)
