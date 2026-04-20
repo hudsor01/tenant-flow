@@ -33,14 +33,14 @@ export default function MarketingHomePage() {
 							<div className="flex flex-col justify-center space-y-8">
 								<div className="space-y-6">
 									<h1 className="text-4xl sm:text-5xl lg:text-6xl xl:text-7xl font-bold text-foreground tracking-tight leading-[1.05]">
-										Stop juggling{' '}
-										<span className="hero-highlight">multiple tools</span>
+										Ditch the{' '}
+										<span className="hero-highlight">spreadsheet</span>
 									</h1>
 
 									<p className="text-xl text-muted-foreground leading-relaxed max-w-lg">
-										TenantFlow brings all your property management needs
-										together. Streamline operations, automate workflows, and
-										scale your business.
+										The operations tool for property owners. Track properties,
+										tenants, leases, and maintenance in one place — tenants
+										never have to log in.
 									</p>
 								</div>
 

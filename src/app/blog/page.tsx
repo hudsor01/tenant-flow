@@ -15,8 +15,8 @@ export async function generateMetadata({ searchParams }: BlogPageProps): Promise
 	const page = Number(params.page) || 1
 
 	return createPageMetadata({
-		title: 'Property Management Blog — Tips for Landlords & Property Managers',
-		description: 'Landlord tips, rental property administration guides, and software comparisons. Learn how to manage leases, handle maintenance, screen tenants, and grow your rental portfolio.',
+		title: 'Property Management Blog — Tips for Property Owners & Operators',
+		description: 'Property owner tips, rental property administration guides, and software comparisons. Learn how to manage leases, handle maintenance, screen tenants, and grow your rental portfolio.',
 		path: '/blog',
 		noindex: page > 1
 	})

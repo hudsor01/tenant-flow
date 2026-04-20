@@ -41,7 +41,7 @@ export default function Footer() {
 						Powered by Hudson Digital
 					</Link>
 
-					<span>© 2025 TenantFlow. All rights reserved.</span>
+					<span>© 2026 TenantFlow. All rights reserved.</span>
 				</div>
 			</div>
 		</footer>

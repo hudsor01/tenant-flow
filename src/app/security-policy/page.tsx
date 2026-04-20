@@ -7,7 +7,7 @@ import { createPageMetadata } from '#lib/seo/page-metadata'
 export const metadata: Metadata = createPageMetadata({
 	title: 'Security Policy & Vulnerability Disclosure',
 	description:
-		'TenantFlow Security Policy. Report vulnerabilities, review our responsible disclosure process, and learn about the controls protecting landlord and tenant data.',
+		'TenantFlow Security Policy. Report vulnerabilities, review our responsible disclosure process, and learn about the controls protecting property owner and tenant data.',
 	path: '/security-policy'
 })
 

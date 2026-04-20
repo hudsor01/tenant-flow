@@ -20,7 +20,7 @@ export function BlogInlineCta() {
 					Managing rentals shouldn&apos;t be this hard
 				</h3>
 				<p className="text-muted-foreground leading-relaxed">
-					{`Track leases, maintenance, and tenants in one platform. Join ${SOCIAL_PROOF.managerCount} landlords who've made the switch.`}
+					{`Track leases, maintenance, and tenants in one platform. Join ${SOCIAL_PROOF.managerCount} property owners who've made the switch.`}
 				</p>
 				<div className="flex flex-wrap gap-4 text-sm text-muted-foreground">
 					{benefits.map(b => (

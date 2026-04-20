@@ -70,7 +70,7 @@ export default async function ComparePage({ params }: PageProps) {
 	const tenantflowSchema = createSoftwareApplicationJsonLd({
 		name: 'TenantFlow',
 		description:
-			'Modern property management software for landlords. Lease management, maintenance tracking, rent records, and tenant administration.',
+			'Modern property management software for property owners and investors. Lease management, maintenance tracking, rent records, and tenant administration.',
 		url: siteUrl,
 		applicationCategory: 'BusinessApplication',
 		operatingSystem: 'Web Browser',
@@ -162,7 +162,7 @@ export default async function ComparePage({ params }: PageProps) {
 								{SOCIAL_PROOF.managerCount}
 							</p>
 							<p className="text-sm text-muted-foreground">
-								TenantFlow Landlords
+								TenantFlow Owners
 							</p>
 						</div>
 					</div>

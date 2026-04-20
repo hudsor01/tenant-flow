@@ -53,12 +53,12 @@ export function invitationEmail(params: {
   inviterName?: string
 }): { subject: string; html: string } {
   const safeEmail = escapeHtml(params.email)
-  const inviter = params.inviterName ? escapeHtml(params.inviterName) : 'A property manager'
+  const inviter = params.inviterName ? escapeHtml(params.inviterName) : `A ${BRAND_NAME} landlord`
   return {
-    subject: `You're invited to ${BRAND_NAME}`,
+    subject: `You're invited to join a ${BRAND_NAME} team`,
     html: wrapEmailLayout(`
 <h1 style="margin:0 0 16px;font-size:22px;color:#18181b;">You've Been Invited</h1>
-<p style="margin:0 0 8px;font-size:15px;color:#3f3f46;">${inviter} has invited <strong>${safeEmail}</strong> to join ${BRAND_NAME}.</p>
+<p style="margin:0 0 8px;font-size:15px;color:#3f3f46;">${inviter} has invited <strong>${safeEmail}</strong> to join their ${BRAND_NAME} workspace.</p>
 <p style="margin:0 0 24px;font-size:15px;color:#3f3f46;">Click the button below to accept the invitation and create your account.</p>
 ${ctaBlock(params.inviteUrl, 'Accept Invitation')}
 <p style="font-size:13px;color:#a1a1aa;margin-top:24px;">If you were not expecting this invitation, you can safely ignore this email.</p>`),
@@ -99,32 +99,3 @@ ${ctaBlock(params.confirmUrl, 'Confirm Email Change')}
   }
 }
 
-export function tenantInvitationEmail(params: {
-  acceptUrl: string
-  tenantEmail: string
-  ownerName: string
-  propertyName?: string
-  unitNumber?: string
-}): { subject: string; html: string } {
-  const safeEmail = escapeHtml(params.tenantEmail)
-  const safeOwnerName = escapeHtml(params.ownerName)
-
-  let propertyLine = ''
-  if (params.propertyName) {
-    const safePropName = escapeHtml(params.propertyName)
-    propertyLine = params.unitNumber
-      ? `<p style="margin:0 0 8px;font-size:15px;color:#3f3f46;">Property: <strong>${safePropName}</strong> &mdash; Unit <strong>${escapeHtml(params.unitNumber)}</strong></p>`
-      : `<p style="margin:0 0 8px;font-size:15px;color:#3f3f46;">Property: <strong>${safePropName}</strong></p>`
-  }
-
-  return {
-    subject: `You're invited to manage your tenancy on ${BRAND_NAME}`,
-    html: wrapEmailLayout(`
-<h1 style="margin:0 0 16px;font-size:22px;color:#18181b;">Tenant Invitation</h1>
-<p style="margin:0 0 8px;font-size:15px;color:#3f3f46;">${safeOwnerName} has invited you (<strong>${safeEmail}</strong>) to join ${BRAND_NAME} as a tenant.</p>
-${propertyLine}
-<p style="margin:0 0 24px;font-size:15px;color:#3f3f46;">Click the button below to create your account and get started.</p>
-${ctaBlock(params.acceptUrl, 'Accept Invitation')}
-<p style="font-size:13px;color:#a1a1aa;margin-top:24px;">This invitation will expire in 7 days. If you were not expecting this, you can safely ignore this email.</p>`),
-  }
-}

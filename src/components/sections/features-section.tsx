@@ -22,7 +22,7 @@ export default function FeaturesSectionDemo({
 		{
 			title: 'Smart Property Management',
 			description:
-				'Track leases, renewals, and maintenance in one place — built for landlords managing 5-50 units.',
+				'Track leases, renewals, and maintenance in one place — built for property owners managing any size portfolio.',
 			icon: <Terminal />
 		},
 		{
