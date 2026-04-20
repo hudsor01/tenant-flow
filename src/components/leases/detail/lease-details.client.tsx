@@ -82,6 +82,7 @@ export function LeaseDetails({ id }: LeaseDetailsProps) {
 			<LeaseHeader
 				lease={lease}
 				tenant={tenant}
+				unitName={unit?.unit_number ?? null}
 				onCancelSignature={handleCancelSignature}
 				isCancelling={cancelSignature.isPending}
 			/>

@@ -124,6 +124,36 @@ export const propertyQueries = {
 			enabled: !!id
 		}),
 
+	performance: (property_id: string) =>
+		queryOptions({
+			queryKey: [...propertyQueries.detail(property_id).queryKey, 'performance'],
+			queryFn: async () => {
+				const supabase = createClient()
+				const user = await getCachedUser()
+				if (!user) return null
+				// Valid p_timeframe values: '7d' | '30d' | '90d' | '180d' | '365d'.
+				// Anything else silently falls through to the 30d default.
+				const { data, error } = await supabase.rpc('get_property_performance_analytics', {
+					p_user_id: user.id,
+					p_property_id: property_id,
+					p_timeframe: '365d'
+				})
+				if (error) handlePostgrestError(error, 'property performance')
+				const rows = (data ?? []) as Array<{
+					property_id: string
+					property_name: string
+					timeframe: string
+					total_revenue: number
+					total_expenses: number
+					net_income: number
+					occupancy_rate: number
+				}>
+				return rows[0] ?? null
+			},
+			...QUERY_CACHE_TIMES.DETAIL,
+			enabled: !!property_id
+		}),
+
 	// image_url stores a relative storage path; resolve to public URL at read time
 	images: (property_id: string) =>
 		queryOptions({
