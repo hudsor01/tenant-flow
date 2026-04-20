@@ -87,7 +87,7 @@ export function PropertyPerformanceSection({
 		},
 		{
 			label: 'Occupancy',
-			value: formatPercentage((data.occupancy_rate ?? 0) * 100),
+			value: formatPercentage(data.occupancy_rate ?? 0),
 			icon: Percent,
 			tone: 'text-info'
 		}

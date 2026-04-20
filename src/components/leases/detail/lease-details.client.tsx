@@ -18,7 +18,6 @@ import {
 
 import { LeaseDetailsSkeleton } from './lease-details-skeleton'
 import { LeaseHeader } from './lease-header'
-import { useCurrentUser } from '#hooks/api/use-auth'
 import { formatCurrency } from '#lib/utils/currency'
 import { getOrdinalSuffix } from '#lib/formatters/date'
 import { generateTimelineEvents } from './lease-detail-utils'
@@ -36,7 +35,6 @@ const logger = createLogger({ component: 'LeaseDetails' })
 export function LeaseDetails({ id }: LeaseDetailsProps) {
 	const { data: lease, isLoading, isError, error } = useQuery(leaseQueries.detail(id))
 	const cancelSignature = useCancelSignatureRequestMutation()
-	const { user } = useCurrentUser()
 
 	const { data: tenantsResponse } = useQuery(tenantQueries.list())
 	const { data: units } = useUnitList()
@@ -85,7 +83,6 @@ export function LeaseDetails({ id }: LeaseDetailsProps) {
 				lease={lease}
 				tenant={tenant}
 				unitName={unit?.unit_number ?? null}
-				ownerEmail={user?.email ?? null}
 				onCancelSignature={handleCancelSignature}
 				isCancelling={cancelSignature.isPending}
 			/>

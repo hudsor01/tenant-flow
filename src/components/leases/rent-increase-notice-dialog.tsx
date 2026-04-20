@@ -33,7 +33,6 @@ interface RentIncreaseNoticeDialogProps {
 	lease: Lease
 	tenantName: string | null
 	propertyAddress: string | null
-	ownerName: string
 }
 
 function buildNoticeHtml(params: {
@@ -125,8 +124,7 @@ function buildNoticeHtml(params: {
   </div>
 
   <div class="signature">
-    <p><strong>${escapeHtml(ownerName)}</strong></p>
-    <p>Property Owner</p>
+    <div class="signature-line">${escapeHtml(ownerName)} signature / date</div>
     <div class="signature-line">Tenant signature / date</div>
   </div>
 </body>
@@ -136,8 +134,7 @@ function buildNoticeHtml(params: {
 export function RentIncreaseNoticeDialog({
 	lease,
 	tenantName,
-	propertyAddress,
-	ownerName
+	propertyAddress
 }: RentIncreaseNoticeDialogProps) {
 	const [open, setOpen] = useState(false)
 	const [newRent, setNewRent] = useState<string>('')
@@ -164,13 +161,18 @@ export function RentIncreaseNoticeDialog({
 
 		setIsSubmitting(true)
 		try {
+			// Parse YYYY-MM-DD input as local time (appending T00:00:00) so that
+			// landlords in negative-UTC-offset timezones don't see the PDF show
+			// the previous calendar day. `new Date('2026-05-01')` is UTC midnight;
+			// `new Date('2026-05-01T00:00:00')` is local midnight.
+			const effectiveDateLocal = new Date(`${effectiveDate}T00:00:00`)
 			const html = buildNoticeHtml({
 				tenantName: tenantName ?? 'Tenant',
 				propertyAddress: propertyAddress ?? 'Property',
-				ownerName,
+				ownerName: 'Property Owner',
 				currentRent,
 				newRent: parsedRent,
-				effectiveDate: new Date(effectiveDate).toLocaleDateString('en-US', {
+				effectiveDate: effectiveDateLocal.toLocaleDateString('en-US', {
 					year: 'numeric',
 					month: 'long',
 					day: 'numeric'

@@ -35,7 +35,6 @@ interface LeaseHeaderProps {
 	lease: Lease
 	tenant: TenantInfo | null | undefined
 	unitName?: string | null
-	ownerEmail?: string | null
 	onCancelSignature: () => Promise<void>
 	isCancelling: boolean
 }
@@ -44,7 +43,6 @@ export function LeaseHeader({
 	lease,
 	tenant,
 	unitName,
-	ownerEmail,
 	onCancelSignature,
 	isCancelling
 }: LeaseHeaderProps) {
@@ -172,7 +170,6 @@ export function LeaseHeader({
 						lease={lease}
 						tenantName={tenantFullName ?? null}
 						propertyAddress={unitName ?? null}
-						ownerName={ownerEmail ?? 'Property Owner'}
 					/>
 				)}
 				<Button asChild variant="outline" size="sm">
