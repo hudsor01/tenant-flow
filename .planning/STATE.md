@@ -1,13 +1,13 @@
 ---
 gsd_state_version: 1.0
-milestone: v2.1
-milestone_name: Production Integrity Hardening
+milestone: v2.2
+milestone_name: Landlord-First Positioning
 status: active
-stopped_at: v2.1 scoped 2026-04-19 after prod audit found 4 CRITICAL + 5 HIGH/MEDIUM issues. v2.0 Phase 46 PAUSED until v2.1 ships — not building more paywalls on a broken product.
-last_updated: "2026-04-19T00:00:00.000Z"
-last_activity: 2026-04-19
+stopped_at: v2.2 scoped 2026-04-20 — 3 phases (dashboard copy rename, public-site value-prop reframe, dashboard UX polish). v2.1 Production Integrity shipped 2026-04-19/20. v2.0 Phase 46 (premium reports gate) still paused.
+last_updated: "2026-04-20T00:00:00.000Z"
+last_activity: 2026-04-20
 progress:
-  total_phases: 4
+  total_phases: 3
   completed_phases: 0
   total_plans: 0
   completed_plans: 0
@@ -22,15 +22,15 @@ See: .planning/PROJECT.md (updated 2026-04-13)
 
 **Core value:** A landlord can add a property, record tenants and leases, track maintenance, and run financial reports — without touching a spreadsheet or calling anyone.
 **Product scope:** Landlord-only SaaS. No rent payment facilitation (removed 2026-04-18, PR #596). No tenant portal or tenant auth accounts. Tenants are records, not users.
-**Current focus:** v2.1 Production Integrity — fix RLS policies, purge zombie Edge Functions, restore Stripe billing path, tighten security advisor findings. v2.0 Phase 45 shipped but Phase 46 paused.
+**Current focus:** v2.2 Landlord-First Positioning — rewrite dashboard copy (Phase 52), reframe public-site value prop (Phase 53), polish dashboard UX (Phase 54). Copy debt is blocking marketing: UI still says "invite tenant" for what are now landlord-managed records.
 
 ## Current Position
 
-Phase: 47 (pending — RLS recovery on leases / maintenance_requests / notifications)
+Phase: 52 (pending — dashboard copy + component rename)
 Plan: -- (phase not yet started)
-Milestone: v2.1 Production Integrity Hardening — active. See `milestones/v2.1-ROADMAP.md` for scope + critical findings.
-Status: Scoping complete. Production audit 2026-04-19 surfaced that landlords currently cannot read their own data (RLS enabled + zero policies on core tables). Integration tests pass trivially via empty-array `forEach`. Fixing in Phase 47 first.
-Last activity: 2026-04-19
+Milestone: v2.2 Landlord-First Positioning — active. See `milestones/v2.2-ROADMAP.md` for scope.
+Status: v2.1 shipped 2026-04-19/20 (prod integrity restored, trial model live). Next: rename invite-tenant-* → add-tenant-*, empty-state rewrites, trial banner component.
+Last activity: 2026-04-20
 
 ## Shipped Milestones
 
@@ -48,8 +48,9 @@ Last activity: 2026-04-19
 
 | Version | Name | Phases | Plans | Status |
 |---------|------|--------|-------|--------|
-| v2.0 | Revenue Gates | 2 | 0 | Phase 45 shipped, Phase 46 PAUSED pending v2.1 |
-| v2.1 | Production Integrity Hardening | 4 | 0 | Phase 47 pending |
+| v2.0 | Revenue Gates | 2 | 0 | Phase 45 shipped, Phase 46 PAUSED pending v2.2 |
+| v2.1 | Production Integrity Hardening | 4 | 0 | All 4 phases shipped 2026-04-19/20 (PRs #605, #606, #607) |
+| v2.2 | Landlord-First Positioning | 3 | 0 | Phase 52 pending |
 
 ## Accumulated Context
 
