@@ -445,6 +445,21 @@ export interface DeliverabilityStats {
 }
 
 /**
+ * Per-feature paywall-gate conversion stats from `get_gate_conversion_stats`.
+ * `gateHits` = total 402 responses; `distinctUsersHit` = unique users who saw
+ * the gate; `upgradesFromGate` = Stripe subscriptions with matching
+ * `metadata.source` tag; `conversionRate` = upgrades / distinctUsersHit
+ * (null when denominator is zero).
+ */
+export interface GateConversionStats {
+	feature: string
+	gateHits: number
+	distinctUsersHit: number
+	upgradesFromGate: number
+	conversionRate: number | null
+}
+
+/**
  * Closed set of funnel step identifiers enforced by the
  * `onboarding_funnel_events.step_name` CHECK constraint in
  * supabase/migrations/20260415193247_onboarding_funnel_events_schema.sql.
