@@ -1890,6 +1890,7 @@ export type Database = {
           subscription_source: string | null
           subscription_status: string | null
           subscription_updated_at: string | null
+          trial_ends_at: string | null
           updated_at: string | null
         }
         Insert: {
@@ -1919,6 +1920,7 @@ export type Database = {
           subscription_source?: string | null
           subscription_status?: string | null
           subscription_updated_at?: string | null
+          trial_ends_at?: string | null
           updated_at?: string | null
         }
         Update: {
@@ -1948,6 +1950,7 @@ export type Database = {
           subscription_source?: string | null
           subscription_status?: string | null
           subscription_updated_at?: string | null
+          trial_ends_at?: string | null
           updated_at?: string | null
         }
         Relationships: []
@@ -2202,6 +2205,7 @@ export type Database = {
       }
       custom_access_token_hook: { Args: { event: Json }; Returns: Json }
       expire_leases: { Args: never; Returns: undefined }
+      expire_trials: { Args: never; Returns: number }
       get_billing_insights: {
         Args: {
           end_date_param?: string
