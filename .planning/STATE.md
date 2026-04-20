@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v2.2
 milestone_name: Landlord-First Positioning
 status: active
-stopped_at: v2.2 scoped 2026-04-20 — 3 phases (dashboard copy rename, public-site value-prop reframe, dashboard UX polish). v2.1 Production Integrity shipped 2026-04-19/20. v2.0 Phase 46 (premium reports gate) still paused.
-last_updated: "2026-04-20T00:00:00.000Z"
+stopped_at: v2.2 Phase 52 shipped 2026-04-20 (PR #609). Next up Phase 53 public-facing value-prop reframe. v2.1 Production Integrity shipped 2026-04-19/20. v2.0 Phase 46 (premium reports gate) still paused.
+last_updated: "2026-04-20T04:30:00.000Z"
 last_activity: 2026-04-20
 progress:
   total_phases: 3
-  completed_phases: 0
+  completed_phases: 1
   total_plans: 0
   completed_plans: 0
-  percent: 0
+  percent: 33
 ---
 
 # Project State: TenantFlow
@@ -26,10 +26,10 @@ See: .planning/PROJECT.md (updated 2026-04-13)
 
 ## Current Position
 
-Phase: 52 (pending — dashboard copy + component rename)
+Phase: 53 (pending — public-facing value-prop reframe)
 Plan: -- (phase not yet started)
 Milestone: v2.2 Landlord-First Positioning — active. See `milestones/v2.2-ROADMAP.md` for scope.
-Status: v2.1 shipped 2026-04-19/20 (prod integrity restored, trial model live). Next: rename invite-tenant-* → add-tenant-*, empty-state rewrites, trial banner component.
+Status: Phase 52 shipped 2026-04-20 (PR #609): invite-tenant-* renamed to add-tenant-*, trial banner reads users.trial_ends_at, empty-states rewritten, regression test expanded to src/components/**. Next: homepage/pricing/features/FAQ/blog audit + rewrite to landlord-only positioning.
 Last activity: 2026-04-20
 
 ## Shipped Milestones
@@ -50,7 +50,7 @@ Last activity: 2026-04-20
 |---------|------|--------|-------|--------|
 | v2.0 | Revenue Gates | 2 | 0 | Phase 45 shipped, Phase 46 PAUSED pending v2.2 |
 | v2.1 | Production Integrity Hardening | 4 | 0 | All 4 phases shipped 2026-04-19/20 (PRs #605, #606, #607) |
-| v2.2 | Landlord-First Positioning | 3 | 0 | Phase 52 pending |
+| v2.2 | Landlord-First Positioning | 3 | 0 | Phase 52 shipped (PR #609), Phase 53 pending |
 
 ## Accumulated Context
 
