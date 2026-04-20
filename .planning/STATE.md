@@ -1,17 +1,17 @@
 ---
 gsd_state_version: 1.0
-milestone: v2.2
-milestone_name: Landlord-First Positioning
-status: shipped
-stopped_at: v2.2 Phases 52 + 53 + 54a + 54b shipped 2026-04-20 (PRs #609, #610, #612, #613, #614). Phase 54 reframed from "dashboard UX polish (gated on real-user feedback)" to "competitor-driven UX fixes mined from Buildium/AppFolio/RentRedi/Avail/Stessa reviews". 3 of 6 original competitor items shipped (lease-expiration widget, rent-increase notice, per-property performance, maintenance multi-file upload + work-order PDF). Remaining 3 (document vault, bulk-import extension, support SLA) deferred — document vault is greenfield (documents table empty in prod, needs full upload/storage/search stack) and belongs in its own milestone.
-last_updated: "2026-04-20T15:40:00.000Z"
+milestone: --
+milestone_name: --
+status: idle
+stopped_at: v2.0 Revenue Gates + v2.2 Landlord-First Positioning both shipped 2026-04-20. v2.0 Phase 46 (premium reports gate) + audit fix PR #617 merged; Phase 45 + Phase 46 Edge Functions pending a single operator deploy pass (docuseal/export-report/generate-pdf). No active milestone.
+last_updated: "2026-04-20T16:00:00.000Z"
 last_activity: 2026-04-20
 progress:
-  total_phases: 3
-  completed_phases: 3
+  total_phases: 0
+  completed_phases: 0
   total_plans: 0
   completed_plans: 0
-  percent: 100
+  percent: 0
 ---
 
 # Project State: TenantFlow
@@ -26,10 +26,10 @@ See: .planning/PROJECT.md (updated 2026-04-13)
 
 ## Current Position
 
-Phase: -- (v2.2 fully shipped; no active milestone)
+Phase: -- (no active milestone — v2.0 and v2.2 both shipped 2026-04-20)
 Plan: --
-Milestone: v2.2 Landlord-First Positioning — shipped 2026-04-20. See `milestones/v2.2-ROADMAP.md` for scope.
-Status: All three phases live. Phase 54 evolved mid-milestone from "dashboard UX polish (gated on feedback)" to "competitor-driven UX fixes" after mining Buildium/AppFolio/RentRedi/Avail/Stessa reviews. Shipped 3 S-effort items (54a: lease-expiration widget, rent-increase notice, per-property performance) and 1 M-effort item (54b: maintenance multi-file upload + work-order PDF). A follow-up #614 tightened all Sentry Seer findings across the milestone. Next milestone TBD.
+Milestone: --
+Status: v2.0 Revenue Gates fully shipped (Phase 45 DocuSeal gate + Phase 46 premium reports gate). Audit of the milestone (after Phase 46 merged) surfaced three latent issues, all fixed in PR #617: fire-and-forget gate_events insert was dropping rows (fixed with EdgeRuntime.waitUntil), REQ-46-04 E2E spec was missing (added), and both E2E specs had a base64-decode bug on the localStorage auth path (fixed). v2.2 Landlord-First Positioning also fully shipped earlier same day. Operator action remaining: `supabase functions deploy docuseal && supabase functions deploy export-report && supabase functions deploy generate-pdf` — single pass picks up the waitUntil fix across Phase 45 + Phase 46 gates. Next milestone TBD.
 Last activity: 2026-04-20
 
 ## Shipped Milestones
@@ -48,7 +48,7 @@ Last activity: 2026-04-20
 
 | Version | Name | Phases | Plans | Status |
 |---------|------|--------|-------|--------|
-| v2.0 | Revenue Gates | 2 | 0 | Phase 45 shipped, Phase 46 PAUSED — now unblocked since v2.2 is out |
+| v2.0 | Revenue Gates | 2 | 0 | Both phases shipped (Phase 45 PR #604, Phase 46 PR #616 + #617 audit fixes); operator deploy of docuseal/export-report/generate-pdf pending |
 | v2.1 | Production Integrity Hardening | 4 | 0 | All 4 phases shipped 2026-04-19/20 (PRs #605, #606, #607) |
 | v2.2 | Landlord-First Positioning | 3 | 0 | All 3 phases shipped 2026-04-20 (PRs #609, #610, #612, #613, #614) |
 

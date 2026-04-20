@@ -104,21 +104,23 @@ TenantFlow is a multi-tenant property management SaaS platform for property owne
 
 ## Active Milestone
 
-**v2.2 Landlord-First Positioning** — Phases 52-54 (scoped 2026-04-20, target ship 2026-05-11).
+*None.* Next milestone TBD.
 
-- [x] Phase 52: Dashboard copy + component rename (3d) — rename `invite-tenant-*` to `add-tenant-*`, empty-state rewrites, trial banner (shipped 2026-04-20, PR #609)
-- [x] Phase 53: Public-facing value-prop reframe (1w) — homepage, features, pricing, FAQ, SEO, blog audit + positioning sweep `small landlord → property owner` (shipped 2026-04-20, PR #610)
-- [x] Phase 54: Competitor-driven UX fixes (shipped 2026-04-20, PRs #612, #613, #614) — lease-expiration widget, rent-increase notice generator, per-property performance section, maintenance multi-file upload + work-order PDF. Originally scoped as UX polish, reframed to mine Buildium/AppFolio/RentRedi/Avail/Stessa reviews for concrete fixes.
+## Recently Shipped
 
-v2.0 Phase 46 (premium reports gate) stays paused.
+**v2.0 Revenue Gates** — both paywalls live 2026-04-20.
+- [x] Phase 45: DocuSeal e-sign gate (PR #604, shipped 2026-04-19)
+- [x] Phase 46: Premium reports gate (PR #616 + audit fix PR #617, shipped 2026-04-20)
+- [ ] Operator action pending: `supabase functions deploy docuseal export-report generate-pdf` — single pass picks up both Phase 46's gate logic AND the waitUntil fix for gate_events inserts
+- Battle-proven criteria: ≥5 `esign_gate` upgrades in 7d window + ≥10 `reports_gate` upgrades in 14d window (measured via admin Gate Conversion Stats page)
 
-See `milestones/v2.2-ROADMAP.md` for full scope.
+**v2.2 Landlord-First Positioning** — fully shipped 2026-04-20.
+- [x] Phase 52: Dashboard copy + component rename (PR #609)
+- [x] Phase 53: Public-facing value-prop reframe (PR #610)
+- [x] Phase 54: Competitor-driven UX fixes (PRs #612, #613, #614) — lease-expiration widget, rent-increase notice, per-property performance, maintenance multi-file upload + work-order PDF
+- See `milestones/v2.2-ROADMAP.md`
 
-## Previously Active
-
-**v2.1 Production Integrity Hardening** — Phases 47-50 all shipped 2026-04-19/20 (PRs #605, #606, #607).
-
-**v2.0 Revenue Gates** — Phase 45 shipped 2026-04-19 (PR #604), Phase 46 paused.
+**v2.1 Production Integrity Hardening** — all 4 phases shipped 2026-04-19/20 (PRs #605, #606, #607).
 
 Post-v1.7 stabilization (2026-04-18/19): PRs #596 (rent + tenant portal removed), #597 (CI hang fix), #598 (docs), #599 (tests), #600 (user_type → is_admin), #601 (GSD docs), #602 (v2.0 scoping), #603 (dead backend refs cleanup), #604 (Phase 45 esign gate tracking), #605 (v2.1 integrity), #606 (migration replay fix), #607 (14-day trial model).
 
