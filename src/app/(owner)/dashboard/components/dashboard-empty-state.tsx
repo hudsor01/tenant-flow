@@ -21,7 +21,7 @@ export function DashboardEmptyState() {
 				</EmptyMedia>
 				<EmptyTitle>Welcome to TenantFlow</EmptyTitle>
 				<EmptyDescription>
-					Get started by adding your first property, then invite tenants and
+					Get started by adding your first property, then add tenants and
 					create leases to begin tracking your portfolio.
 				</EmptyDescription>
 				<EmptyContent>

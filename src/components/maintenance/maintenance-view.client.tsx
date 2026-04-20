@@ -106,7 +106,7 @@ export function MaintenanceViewClient() {
 							<Wrench className="w-8 h-8 text-primary" />
 						</div>
 						<h2 className="text-xl font-semibold text-foreground mb-3">No maintenance requests</h2>
-						<p className="text-muted-foreground mb-6">Maintenance requests from tenants will appear here.</p>
+						<p className="text-muted-foreground mb-6">Log a request to track repairs, costs, and vendor assignments for a unit.</p>
 						<Link
 							href="/maintenance/new"
 							className="inline-flex items-center gap-2 px-6 py-3 bg-primary hover:bg-primary/90 text-primary-foreground font-medium rounded-md transition-colors"

@@ -12,12 +12,12 @@ import { useUnsavedChangesWarning } from '#hooks/use-unsaved-changes'
 import { useCreateTenantMutation } from '#hooks/api/use-tenant-mutations'
 import { handleMutationError } from '#lib/mutation-error-handler'
 import type { TenantCreate } from '#lib/validation/tenants'
-import { InviteTenantInfoFields } from './invite-tenant-info-fields'
-import { InviteTenantPropertyFields } from './invite-tenant-property-fields'
+import { AddTenantInfoFields } from './add-tenant-info-fields'
+import { AddTenantPropertyFields } from './add-tenant-property-fields'
 
 const logger = createLogger({ component: 'AddTenantForm' })
 
-interface InviteTenantFormProps {
+interface AddTenantFormProps {
 	properties: Property[]
 	units: Unit[]
 	onSuccess?: () => void
@@ -38,11 +38,11 @@ interface InviteTenantFormProps {
  * - Phone
  * - Property / Unit for early association
  */
-export function InviteTenantForm({
+export function AddTenantForm({
 	properties,
 	units,
 	onSuccess
-}: InviteTenantFormProps) {
+}: AddTenantFormProps) {
 	const router = useRouter()
 	const [selectedPropertyId, setSelectedPropertyId] = useState('')
 	const createTenant = useCreateTenantMutation()
@@ -106,9 +106,9 @@ export function InviteTenantForm({
 
 	return (
 		<div className="space-y-6">
-			<InviteTenantInfoFields form={form} />
+			<AddTenantInfoFields form={form} />
 
-			<InviteTenantPropertyFields
+			<AddTenantPropertyFields
 				form={form}
 				properties={properties}
 				availableUnits={availableUnits}

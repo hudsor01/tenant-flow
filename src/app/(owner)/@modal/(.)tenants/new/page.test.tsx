@@ -1,5 +1,5 @@
 /**
- * InviteTenantModal Component Tests
+ * AddTenantModal Component Tests
  * Tests Dialog accessibility components (DialogTitle and DialogDescription)
  *
  * Feature: fix-tenant-invitation-issues, Task 3.1
@@ -14,7 +14,7 @@ import { render, screen } from '@testing-library/react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { vi } from 'vitest'
 import '@testing-library/jest-dom/vitest'
-import InviteTenantModal from './page'
+import AddTenantModal from './page'
 
 // Mock the RouteModal component to avoid router dependencies
 // We need to import the real Dialog components to provide proper context
@@ -31,9 +31,9 @@ vi.mock('#components/ui/route-modal', async () => {
 	}
 })
 
-// Mock the InviteTenantForm component
-vi.mock('#components/tenants/invite-tenant-form', () => ({
-	InviteTenantForm: () => <div>Form </div>
+// Mock the AddTenantForm component
+vi.mock('#components/tenants/add-tenant-form', () => ({
+	AddTenantForm: () => <div>Form </div>
 }))
 
 // Mock the queries (colocated in use-* files)
@@ -67,7 +67,7 @@ function renderWithQueryClient(ui: ReactElement) {
 	)
 }
 
-describe('InviteTenantModal', () => {
+describe('AddTenantModal', () => {
 	beforeEach(() => {
 		vi.clearAllMocks()
 	})
@@ -77,10 +77,10 @@ describe('InviteTenantModal', () => {
 		 * Requirement 2.1: Dialog must include DialogTitle component
 		 */
 		it('should render DialogTitle component', () => {
-			renderWithQueryClient(<InviteTenantModal />)
+			renderWithQueryClient(<AddTenantModal />)
 
 			// DialogTitle should be present with the correct text
-			const title = screen.getByText('Invite Tenant')
+			const title = screen.getByText('Add Tenant')
 			expect(title).toBeInTheDocument()
 		})
 
@@ -88,11 +88,11 @@ describe('InviteTenantModal', () => {
 		 * Requirement 2.2: Dialog must include DialogDescription component
 		 */
 		it('should render DialogDescription component', () => {
-			renderWithQueryClient(<InviteTenantModal />)
+			renderWithQueryClient(<AddTenantModal />)
 
 			// DialogDescription should be present with the correct text
 			const description = screen.getByText(
-				/Send a portal invitation to a new tenant/
+				/Add a tenant record/
 			)
 			expect(description).toBeInTheDocument()
 		})
@@ -105,7 +105,7 @@ describe('InviteTenantModal', () => {
 			const consoleWarnSpy = vi.spyOn(console, 'warn')
 			const consoleErrorSpy = vi.spyOn(console, 'error')
 
-			renderWithQueryClient(<InviteTenantModal />)
+			renderWithQueryClient(<AddTenantModal />)
 
 			// Filter for accessibility-related warnings
 			const accessibilityWarnings = consoleWarnSpy.mock.calls.filter(call => {

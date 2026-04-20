@@ -8,18 +8,18 @@ import {
 	CardTitle
 } from '#components/ui/card'
 import { Skeleton } from '#components/ui/skeleton'
-import { InviteTenantForm } from '#components/tenants/invite-tenant-form'
+import { AddTenantForm } from '#components/tenants/add-tenant-form'
 import { propertyQueries } from '#hooks/api/query-keys/property-keys'
 import { unitQueries } from '#hooks/api/query-keys/unit-keys'
 import { useQuery } from '@tanstack/react-query'
 
 /**
- * Invite Tenant Page (Full Page Fallback)
+ * Add Tenant Page (Full Page Fallback)
  *
  * Renders when user navigates directly to /tenants/new (e.g., bookmark, refresh).
  * The intercepting route modal handles the normal flow from /tenants.
  */
-export default function InviteTenantPage() {
+export default function AddTenantPage() {
 	const { data: propertiesResponse, isLoading: propertiesLoading } = useQuery(
 		propertyQueries.list()
 	)
@@ -55,14 +55,14 @@ export default function InviteTenantPage() {
 		<div className="mx-auto w-full max-w-lg py-8">
 			<Card>
 				<CardHeader>
-					<CardTitle>Invite Tenant</CardTitle>
+					<CardTitle>Add Tenant</CardTitle>
 					<CardDescription>
-						Send a portal invitation to a new tenant. You can create their lease
-						after they complete onboarding.
+						Add a tenant record. You can assign them to a property now or
+						attach them to a lease later.
 					</CardDescription>
 				</CardHeader>
 				<CardContent>
-					<InviteTenantForm properties={properties} units={units} />
+					<AddTenantForm properties={properties} units={units} />
 				</CardContent>
 			</Card>
 		</div>

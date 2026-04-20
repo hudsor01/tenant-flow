@@ -44,7 +44,7 @@ export function Tenants({
 		setDetailSheetOpen
 	} = useTenantsStore()
 
-	const handleInviteClick = () => {
+	const handleAddClick = () => {
 		router.push('/tenants/new')
 	}
 
@@ -114,14 +114,14 @@ export function Tenants({
 							No tenants yet
 						</h2>
 						<p className="text-muted-foreground mb-6">
-							Invite your first tenant to get started with lease management.
+							Tenants are records you keep for your own tracking — they don&apos;t log in. Add one to start building a lease.
 						</p>
 						<button
-							onClick={handleInviteClick}
+							onClick={handleAddClick}
 							className="inline-flex items-center gap-2 px-6 py-3 bg-primary hover:bg-primary/90 text-primary-foreground font-medium rounded-md transition-colors"
 						>
 							<UserPlus className="w-5 h-5" />
-							Invite Your First Tenant
+							Add Your First Tenant
 						</button>
 					</div>
 				</BlurFade>
@@ -137,15 +137,15 @@ export function Tenants({
 					<div>
 						<h1 className="typography-h1">Tenants</h1>
 						<p className="text-sm text-muted-foreground mt-1">
-							Manage tenants and send invitations
+							Manage your tenant records
 						</p>
 					</div>
 					<button
-						onClick={handleInviteClick}
+						onClick={handleAddClick}
 						className="inline-flex items-center gap-2 px-4 py-2.5 bg-primary hover:bg-primary/90 text-primary-foreground font-medium rounded-md transition-colors"
 					>
 						<UserPlus className="w-4 h-4" />
-						Invite Tenant
+						Add Tenant
 					</button>
 				</div>
 			</BlurFade>
@@ -157,7 +157,7 @@ export function Tenants({
 				endedTenants={endedTenants}
 			/>
 
-			<TenantQuickActions onInvite={handleInviteClick} />
+			<TenantQuickActions onAdd={handleAddClick} />
 
 			{/* View Toggle & Filters */}
 			<BlurFade delay={0.6} inView>

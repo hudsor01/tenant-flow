@@ -1,13 +1,14 @@
 'use client'
 
-import { AlertTriangle, Info, Lock } from 'lucide-react'
+import { AlertTriangle, Clock, Info, Lock } from 'lucide-react'
 import Link from 'next/link'
 import { useSubscriptionStatus } from '#hooks/api/use-billing'
 
 /**
  * SubscriptionStatusBanner — shows warning/lock banner for subscription issues.
  *
- * - active/trialing: renders nothing (null)
+ * - trialing: indigo banner with days-remaining counter + upgrade CTA
+ * - active: renders nothing (null)
  * - past_due: yellow warning with link to /owner/billing
  * - unpaid/canceled/cancelled: red lock banner with link to /owner/billing
  * - null (no subscription): blue info banner with link to /pricing
@@ -39,8 +40,33 @@ export function SubscriptionStatusBanner() {
 
 	const status = subscription.subscriptionStatus
 
-	// Active or trialing subscriptions need no banner
-	if (status === 'active' || status === 'trialing') {
+	// Trialing: days-remaining banner with upgrade CTA
+	if (status === 'trialing') {
+		const daysLeft = calculateDaysRemaining(subscription.trialEndsAt)
+		if (daysLeft === null) return null
+
+		const dayWord = daysLeft === 1 ? 'day' : 'days'
+		const message =
+			daysLeft <= 0
+				? 'Your trial ended. Upgrade to keep access.'
+				: `${daysLeft} ${dayWord} left in your trial — upgrade to keep access.`
+
+		return (
+			<div className="flex items-center gap-3 rounded-lg border border-indigo-300 bg-indigo-50 px-4 py-3 text-sm text-indigo-800 dark:border-indigo-700 dark:bg-indigo-950/50 dark:text-indigo-200">
+				<Clock className="size-5 shrink-0" />
+				<p className="flex-1">{message}</p>
+				<Link
+					href="/billing/plans?source=trial_banner"
+					className="shrink-0 font-medium underline underline-offset-4 hover:text-indigo-900 dark:hover:text-indigo-100"
+				>
+					Upgrade
+				</Link>
+			</div>
+		)
+	}
+
+	// Active subscriptions need no banner
+	if (status === 'active') {
 		return null
 	}
 
@@ -79,4 +105,12 @@ export function SubscriptionStatusBanner() {
 			</Link>
 		</div>
 	)
+}
+
+function calculateDaysRemaining(trialEndsAt: string | null): number | null {
+	if (!trialEndsAt) return null
+	const endMs = Date.parse(trialEndsAt)
+	if (Number.isNaN(endMs)) return null
+	const diffMs = endMs - Date.now()
+	return Math.ceil(diffMs / (1000 * 60 * 60 * 24))
 }

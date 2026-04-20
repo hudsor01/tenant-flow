@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { tenantInputSchema, tenantUpdateSchema, tenantStatusSchema, tenantQuerySchema, tenantFormSchema, inviteTenantSchema, inviteTenantRequestSchema, inviteToSignLeaseSchema, emergencyContactSchema, tenantVerificationSchema, bulkDeleteTenantsSchema, activateTenantSchema } from '../tenants'
+import { tenantInputSchema, tenantUpdateSchema, tenantStatusSchema, tenantQuerySchema, tenantFormSchema, addTenantSchema, addTenantRequestSchema, inviteToSignLeaseSchema, emergencyContactSchema, tenantVerificationSchema, bulkDeleteTenantsSchema, activateTenantSchema } from '../tenants'
 
 const VALID_UUID = '550e8400-e29b-41d4-a716-446655440000'
 const VALID_UUID_2 = '660e8400-e29b-41d4-a716-446655440000'
@@ -29,23 +29,23 @@ describe('tenantQuerySchema', () => {
 	it('accepts empty query with defaults', () => { const r = tenantQuerySchema.safeParse({}); expect(r.success).toBe(true); if (r.success) { expect(r.data.page).toBe(1); expect(r.data.limit).toBe(20); expect(r.data.sort_order).toBe('asc') } })
 	it('rejects limit exceeding 100', () => { expect(tenantQuerySchema.safeParse({ limit: 200 }).success).toBe(false) })
 })
-describe('inviteTenantSchema', () => {
+describe('addTenantSchema', () => {
 	const v = { email: 'tenant@example.com', first_name: 'John', last_name: 'Doe' }
-	it('accepts valid invitation', () => { expect(inviteTenantSchema.safeParse(v).success).toBe(true) })
-	it('rejects missing email', () => { const { email: _, ...r } = v; expect(inviteTenantSchema.safeParse(r).success).toBe(false) })
-	it('rejects invalid email', () => { expect(inviteTenantSchema.safeParse({ ...v, email: 'bad-email' }).success).toBe(false) })
-	it('rejects missing first_name', () => { const { first_name: _, ...r } = v; expect(inviteTenantSchema.safeParse(r).success).toBe(false) })
-	it('rejects empty first_name', () => { expect(inviteTenantSchema.safeParse({ ...v, first_name: '' }).success).toBe(false) })
-	it('rejects missing last_name', () => { const { last_name: _, ...r } = v; expect(inviteTenantSchema.safeParse(r).success).toBe(false) })
-	it('accepts optional property_id and unit_id', () => { expect(inviteTenantSchema.safeParse({ ...v, property_id: VALID_UUID, unit_id: VALID_UUID_2 }).success).toBe(true) })
-	it('accepts optional phone', () => { expect(inviteTenantSchema.safeParse({ ...v, phone: '5551234567' }).success).toBe(true) })
+	it('accepts valid invitation', () => { expect(addTenantSchema.safeParse(v).success).toBe(true) })
+	it('rejects missing email', () => { const { email: _, ...r } = v; expect(addTenantSchema.safeParse(r).success).toBe(false) })
+	it('rejects invalid email', () => { expect(addTenantSchema.safeParse({ ...v, email: 'bad-email' }).success).toBe(false) })
+	it('rejects missing first_name', () => { const { first_name: _, ...r } = v; expect(addTenantSchema.safeParse(r).success).toBe(false) })
+	it('rejects empty first_name', () => { expect(addTenantSchema.safeParse({ ...v, first_name: '' }).success).toBe(false) })
+	it('rejects missing last_name', () => { const { last_name: _, ...r } = v; expect(addTenantSchema.safeParse(r).success).toBe(false) })
+	it('accepts optional property_id and unit_id', () => { expect(addTenantSchema.safeParse({ ...v, property_id: VALID_UUID, unit_id: VALID_UUID_2 }).success).toBe(true) })
+	it('accepts optional phone', () => { expect(addTenantSchema.safeParse({ ...v, phone: '5551234567' }).success).toBe(true) })
 })
-describe('inviteTenantRequestSchema', () => {
+describe('addTenantRequestSchema', () => {
 	const v = { tenantData: { email: 'tenant@example.com', first_name: 'John', last_name: 'Doe' } }
-	it('accepts valid request', () => { expect(inviteTenantRequestSchema.safeParse(v).success).toBe(true) })
-	it('accepts with leaseData', () => { expect(inviteTenantRequestSchema.safeParse({ ...v, leaseData: { property_id: VALID_UUID, unit_id: VALID_UUID_2 } }).success).toBe(true) })
-	it('rejects missing tenantData', () => { expect(inviteTenantRequestSchema.safeParse({}).success).toBe(false) })
-	it('rejects missing email in tenantData', () => { expect(inviteTenantRequestSchema.safeParse({ tenantData: { first_name: 'John', last_name: 'Doe' } }).success).toBe(false) })
+	it('accepts valid request', () => { expect(addTenantRequestSchema.safeParse(v).success).toBe(true) })
+	it('accepts with leaseData', () => { expect(addTenantRequestSchema.safeParse({ ...v, leaseData: { property_id: VALID_UUID, unit_id: VALID_UUID_2 } }).success).toBe(true) })
+	it('rejects missing tenantData', () => { expect(addTenantRequestSchema.safeParse({}).success).toBe(false) })
+	it('rejects missing email in tenantData', () => { expect(addTenantRequestSchema.safeParse({ tenantData: { first_name: 'John', last_name: 'Doe' } }).success).toBe(false) })
 })
 describe('inviteToSignLeaseSchema', () => {
 	it('accepts valid lease invitation', () => { expect(inviteToSignLeaseSchema.safeParse({ lease_id: VALID_UUID, email: 'tenant@example.com' }).success).toBe(true) })

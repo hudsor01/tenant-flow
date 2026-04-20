@@ -45,13 +45,13 @@ export function Dashboard({
 	propertyPerformance,
 	onAddProperty,
 	onCreateLease,
-	onInviteTenant,
+	onAddTenant,
 	onRecordPayment,
 	onCreateMaintenanceRequest
 }: DashboardProps & {
 	onAddProperty?: () => void
 	onCreateLease?: () => void
-	onInviteTenant?: () => void
+	onAddTenant?: () => void
 	onRecordPayment?: () => void
 	onCreateMaintenanceRequest?: () => void
 }) {
@@ -141,8 +141,8 @@ export function Dashboard({
 			case 'createLease':
 				onCreateLease?.()
 				break
-			case 'inviteTenant':
-				onInviteTenant?.()
+			case 'addTenant':
+				onAddTenant?.()
 				break
 			case 'recordPayment':
 				onRecordPayment?.()

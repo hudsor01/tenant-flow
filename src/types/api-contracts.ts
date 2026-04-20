@@ -351,6 +351,7 @@ export interface SubscriptionStatusResponse {
 	stripePriceId: string | null
 	currentPeriodEnd: string | null
 	cancelAtPeriodEnd: boolean
+	trialEndsAt: string | null
 }
 
 /**
@@ -576,38 +577,6 @@ export interface EmergencyContactResponse {
 	relationship: string
 	created_at: string
 	updated_at: string
-}
-
-/** Basic payment status for tenant portal */
-export interface TenantPaymentStatusInfo {
-	status: 'paid' | 'DUE' | 'OVERDUE' | 'pending'
-	due_date: string
-	amount: number
-}
-
-/** Full payment status response from /api/v1/rent-payments/status/:tenant_id */
-export interface TenantPaymentStatusResponse {
-	status: 'paid' | 'DUE' | 'OVERDUE' | 'pending'
-	rent_amount: number
-	nextDueDate: string | null
-	lastPaymentDate: string | null
-	outstandingBalance: number
-	isOverdue: boolean
-}
-
-/**
- * Tenant Notification Toggles
- * Simple boolean toggles for tenant notification preferences
- * Used in tenant portal API responses
- *
- * Note: Different from TenantNotificationPreferences in core.ts which includes
- * both channel preferences (email, sms, push) AND notification types
- */
-export interface TenantNotificationToggles {
-	rentReminders: boolean
-	maintenanceUpdates: boolean
-	leaseNotifications: boolean
-	paymentReminders: boolean
 }
 
 export interface OwnerPaymentSummaryResponse {

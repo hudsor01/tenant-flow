@@ -223,14 +223,14 @@ export const invitationStatusSchema = z.enum([
 	'cancelled' // Owner cancelled
 ])
 
-// Schema for inviting a tenant to the platform (NO lease required)
+// Schema for adding a tenant to the platform (NO lease required)
 // Flat structure - used for simple validation
-export const inviteTenantSchema = z.object({
+export const addTenantSchema = z.object({
 	email: z.email({ message: 'Valid email is required' }),
 	first_name: z.string().trim().min(1, 'First name is required').max(100),
 	last_name: z.string().trim().min(1, 'Last name is required').max(100),
 	phone: phoneSchema.optional(),
-	// Property is OPTIONAL - tenant can be invited without a property assignment
+	// Property is OPTIONAL - tenant can be added without a property assignment
 	// Property/unit assignment can be done later when creating a lease
 	property_id: uuidSchema.optional(),
 	unit_id: uuidSchema.optional()
@@ -238,14 +238,14 @@ export const inviteTenantSchema = z.object({
 
 // Nested structure - matches backend DTO (InviteWithLeaseDto)
 // Used for API requests
-export const inviteTenantRequestSchema = z.object({
+export const addTenantRequestSchema = z.object({
 	tenantData: z.object({
 		email: z.email({ message: 'Valid email is required' }),
 		first_name: z.string().trim().min(1, 'First name is required').max(100),
 		last_name: z.string().trim().min(1, 'Last name is required').max(100),
 		phone: phoneSchema.optional()
 	}),
-	// Property assignment is OPTIONAL - can invite tenant without assigning to property
+	// Property assignment is OPTIONAL - can add tenant without assigning to property
 	leaseData: z
 		.object({
 			property_id: uuidSchema.optional(),
@@ -285,8 +285,8 @@ export const tenantInvitationSchema = z.object({
 // Export invitation types
 export type InvitationType = z.infer<typeof invitationTypeSchema>
 export type InvitationStatus = z.infer<typeof invitationStatusSchema>
-export type InviteTenant = z.infer<typeof inviteTenantSchema>
-export type InviteTenantRequest = z.infer<typeof inviteTenantRequestSchema>
+export type AddTenant = z.infer<typeof addTenantSchema>
+export type AddTenantRequest = z.infer<typeof addTenantRequestSchema>
 export type InviteToSignLease = z.infer<typeof inviteToSignLeaseSchema>
 export type TenantInvitation = z.infer<typeof tenantInvitationSchema>
 

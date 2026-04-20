@@ -498,11 +498,11 @@ describe('OwnerDashboard', () => {
 			).toBeInTheDocument()
 		})
 
-		it('renders Invite Tenant action button', () => {
+		it('renders Add Tenant action button', () => {
 			render(<OwnerDashboard />)
 
-			expect(screen.getByText('Invite Tenant')).toBeInTheDocument()
-			expect(screen.getByText('Send tenant invitation')).toBeInTheDocument()
+			expect(screen.getByText('Add Tenant')).toBeInTheDocument()
+			expect(screen.getByText('Create a tenant record')).toBeInTheDocument()
 		})
 
 		it('renders Record Payment action button', () => {

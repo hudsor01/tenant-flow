@@ -38,25 +38,28 @@ export const subscriptionStatusQuery = {
 					throw new Error('Not authenticated')
 				}
 
-				// Get stripe_customer_id from users table
+				// Get stripe_customer_id + trial_ends_at + subscription_status from users table
 				const { data: userData, error: userError } = await supabase
 					.from('users')
-					.select('stripe_customer_id')
+					.select('stripe_customer_id, trial_ends_at, subscription_status')
 					.eq('id', user.id)
 					.single()
 
 				if (userError) handlePostgrestError(userError, 'users')
 
 				const stripeCustomerId = userData?.stripe_customer_id ?? null
+				const trialEndsAt = userData?.trial_ends_at ?? null
+				const localStatus = userData?.subscription_status ?? null
 
 				if (!stripeCustomerId) {
-					logger.debug('No stripe_customer_id, returning null status')
+					logger.debug('No stripe_customer_id, returning local status')
 					return {
-						subscriptionStatus: null,
+						subscriptionStatus: localStatus as SubscriptionStatusResponse['subscriptionStatus'],
 						stripeCustomerId: null,
 						stripePriceId: null,
 						currentPeriodEnd: null,
-						cancelAtPeriodEnd: false
+						cancelAtPeriodEnd: false,
+						trialEndsAt
 					} satisfies SubscriptionStatusResponse
 				}
 
@@ -65,21 +68,22 @@ export const subscriptionStatusQuery = {
 					.rpc('get_subscription_status', { p_customer_id: stripeCustomerId })
 
 				if (subError) {
-					logger.debug('get_subscription_status RPC failed, returning null status', {
+					logger.debug('get_subscription_status RPC failed, falling back to local status', {
 						error: subError.message
 					})
 					return {
-						subscriptionStatus: null,
+						subscriptionStatus: localStatus as SubscriptionStatusResponse['subscriptionStatus'],
 						stripeCustomerId,
 						stripePriceId: null,
 						currentPeriodEnd: null,
-						cancelAtPeriodEnd: false
+						cancelAtPeriodEnd: false,
+						trialEndsAt
 					} satisfies SubscriptionStatusResponse
 				}
 
 				const sub = (Array.isArray(subData) ? subData[0] : subData) as Record<string, unknown> | null
 
-				const status = (sub?.status as string) ?? null
+				const status = (sub?.status as string) ?? localStatus
 				logger.debug('Subscription status from stripe.subscriptions', { status })
 
 				return {
@@ -87,7 +91,8 @@ export const subscriptionStatusQuery = {
 					stripeCustomerId,
 					stripePriceId: (sub?.price_id as string) ?? null,
 					currentPeriodEnd: (sub?.current_period_end as string) ?? null,
-					cancelAtPeriodEnd: (sub?.cancel_at_period_end as boolean) ?? false
+					cancelAtPeriodEnd: (sub?.cancel_at_period_end as boolean) ?? false,
+					trialEndsAt
 				} satisfies SubscriptionStatusResponse
 			},
 			staleTime: 5 * 60 * 1000,

@@ -5,9 +5,9 @@ import * as fc from 'fast-check'
 import { LoadingTimeoutWrapper } from '../loading-timeout-wrapper'
 
 /**
- * Feature: tenant-onboarding-optimization, Property 3: Loading State Timeout
+ * Feature: loading-timeout, Property 3: Loading State Timeout
  *
- * Property: For any data fetch operation in the tenant portal, the loading state
+ * Property: For any data fetch operation in the owner dashboard, the loading state
  * SHALL resolve to either content or error within 3 seconds.
  *
  * Validates: Requirements 3.1, 3.2

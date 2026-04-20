@@ -2,19 +2,20 @@
  * Marketing copy guard: tenant portal + rent-collection features were removed.
  * The product is now a landlord-only property administration SaaS.
  *
- * This test scans user-facing marketing surfaces for banned phrases that
- * describe features that no longer exist (online rent collection, tenant portal,
- * autopay, etc.). Any occurrence in the scanned files is a regression.
+ * This test scans marketing surfaces + every non-test file under `src/components/**`
+ * for banned phrases that describe features that no longer exist (online rent
+ * collection, tenant portal, autopay, etc.). Any occurrence in the scanned files
+ * is a regression (REQ-52-06).
  *
- * Scoped to marketing surfaces only — internal code (types, hooks, mutation
- * keys, detail views) may still reference autopay/tenant portal terms because
- * the underlying schema and hooks are being torn down on a separate track.
+ * Test files (`__tests__/`, `.test.`, `.spec.`) and the marketing-copy test itself
+ * are skipped so that banned-phrase string literals used in assertions do not
+ * trigger a false positive.
  */
-import { readFileSync } from 'node:fs'
-import { join } from 'node:path'
+import { readdirSync, readFileSync } from 'node:fs'
+import { join, relative } from 'node:path'
 import { describe, expect, it } from 'vitest'
 
-// Phrases that must not appear in any marketing surface file.
+// Phrases that must not appear in any scanned file.
 // Each phrase is matched case-insensitively.
 const BANNED_PHRASES = [
 	'rent collection',
@@ -33,9 +34,9 @@ const BANNED_PHRASES = [
 	'pay rent through'
 ] as const
 
-// Marketing surfaces. Paths are relative to the repo root.
+// Explicit marketing surfaces (kept as a stable allowlist — catches files that
+// might not match the components walker, e.g. /app/pages, config, SEO helpers).
 const MARKETING_FILES = [
-	// Pages
 	'src/app/page.tsx',
 	'src/app/marketing-home.tsx',
 	'src/app/pricing/page.tsx',
@@ -47,40 +48,61 @@ const MARKETING_FILES = [
 	'src/app/(auth)/login/layout.tsx',
 	'src/app/compare/[competitor]/page.tsx',
 	'src/app/compare/[competitor]/compare-data.ts',
-	// Marketing sections/components
-	'src/components/sections/features-section.tsx',
-	'src/components/sections/testimonials-section.tsx',
-	'src/components/sections/how-it-works.tsx',
-	'src/components/sections/home-faq.tsx',
-	'src/components/sections/comparison-table.tsx',
-	'src/components/sections/hero-dashboard-mockup.tsx',
-	'src/components/landing/bento-features-section.tsx',
-	'src/components/landing/feature-backgrounds.tsx',
-	'src/components/landing/feature-callouts.tsx',
-	'src/components/landing/hero-section.tsx',
-	'src/components/blog/blog-inline-cta.tsx',
-	'src/components/pricing/pricing-comparison-table.tsx',
-	// Data/config
 	'src/data/faqs.ts',
 	'src/config/pricing.ts',
-	// SEO
 	'src/lib/generate-metadata.ts'
 ] as const
 
-describe('Marketing copy: landlord-only product', () => {
-	for (const relPath of MARKETING_FILES) {
-		describe(relPath, () => {
-			const absPath = join(process.cwd(), relPath)
-			const content = readFileSync(absPath, 'utf8').toLowerCase()
+function isTestPath(relPath: string): boolean {
+	return (
+		relPath.includes('/__tests__/') ||
+		relPath.includes('.test.') ||
+		relPath.includes('.spec.') ||
+		relPath.endsWith('.d.ts')
+	)
+}
 
-			for (const phrase of BANNED_PHRASES) {
-				it(`must not mention "${phrase}"`, () => {
-					expect(
-						content,
-						`${relPath} contains banned phrase "${phrase}" — tenant portal + rent collection features were removed`
-					).not.toContain(phrase.toLowerCase())
-				})
-			}
-		})
+function walkComponentFiles(root: string): string[] {
+	const entries = readdirSync(root, { recursive: true, withFileTypes: true })
+	const files: string[] = []
+	for (const entry of entries) {
+		if (!entry.isFile()) continue
+		const parentPath = (entry as { parentPath?: string; path?: string }).parentPath ??
+			(entry as { path?: string }).path ??
+			''
+		const absPath = join(parentPath, entry.name)
+		if (!/\.(ts|tsx)$/.test(entry.name)) continue
+		if (isTestPath(absPath)) continue
+		files.push(absPath)
+	}
+	return files
+}
+
+function scanFileForBannedPhrases(absPath: string, relPath: string) {
+	const content = readFileSync(absPath, 'utf8').toLowerCase()
+	describe(relPath, () => {
+		for (const phrase of BANNED_PHRASES) {
+			it(`must not mention "${phrase}"`, () => {
+				expect(
+					content,
+					`${relPath} contains banned phrase "${phrase}" — tenant portal + rent collection features were removed`
+				).not.toContain(phrase.toLowerCase())
+			})
+		}
+	})
+}
+
+describe('Marketing copy: landlord-only product', () => {
+	const cwd = process.cwd()
+	for (const relPath of MARKETING_FILES) {
+		scanFileForBannedPhrases(join(cwd, relPath), relPath)
+	}
+})
+
+describe('Component copy: landlord-only product (REQ-52-06)', () => {
+	const cwd = process.cwd()
+	const componentsRoot = join(cwd, 'src', 'components')
+	for (const absPath of walkComponentFiles(componentsRoot)) {
+		scanFileForBannedPhrases(absPath, relative(cwd, absPath))
 	}
 })

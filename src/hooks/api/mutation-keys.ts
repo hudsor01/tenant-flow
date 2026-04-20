@@ -25,9 +25,6 @@ export const mutationKeys = {
 		update: ['mutations', 'tenants', 'update'] as const,
 		delete: ['mutations', 'tenants', 'delete'] as const,
 		markMovedOut: ['mutations', 'tenants', 'markMovedOut'] as const,
-		invite: ['mutations', 'tenants', 'invite'] as const,
-		resendInvite: ['mutations', 'tenants', 'resendInvite'] as const,
-		cancelInvite: ['mutations', 'tenants', 'cancelInvite'] as const,
 		updateNotificationPreferences: [
 			'mutations',
 			'tenants',
