@@ -10,19 +10,19 @@ import { cn } from '#lib/utils'
 import type { ParsedRow } from '#types/api-contracts'
 import { Badge } from '#components/ui/badge'
 
-interface BulkImportValidateStepProps {
+interface BulkImportValidateStepProps<T> {
 	file: File
 	parseResult: {
-		rows: ParsedRow[]
+		rows: ParsedRow<T>[]
 		tooManyRows: boolean
 		totalRowCount: number
 	} | null
 }
 
-export function BulkImportValidateStep({
+export function BulkImportValidateStep<T>({
 	file,
 	parseResult
-}: BulkImportValidateStepProps) {
+}: BulkImportValidateStepProps<T>) {
 	const parsedData = parseResult?.rows ?? []
 	const errorCount = parsedData.filter(row => row.errors.length > 0).length
 	const validCount = parsedData.length - errorCount

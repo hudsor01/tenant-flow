@@ -21,39 +21,37 @@ import {
 } from 'lucide-react'
 import { useState } from 'react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { propertyQueries } from '#hooks/api/query-keys/property-keys'
-import { ownerDashboardKeys } from '#hooks/api/use-owner-dashboard'
-import { createClient } from '#lib/supabase/client'
 import { createLogger } from '#lib/frontend-logger'
 import type {
 	BulkImportResult,
-	ParsedRow,
 	ImportStep,
-	ImportProgress
+	ImportProgress,
+	ParsedRow
 } from '#types/api-contracts'
-import type { PropertyCreate } from '#lib/validation/properties'
 import { BulkImportUploadStep } from './bulk-import-upload-step'
 import { BulkImportValidateStep } from './bulk-import-validate-step'
 import { BulkImportConfirmStep } from './bulk-import-confirm-step'
-import { parseAndValidateCSV } from './csv-utils'
 import { cn } from '#lib/utils'
+import type { BulkImportConfig } from './types'
 
 const logger = createLogger({ component: 'BulkImportStepper' })
 
-interface BulkImportStepperProps {
+interface BulkImportStepperProps<T> {
+	config: BulkImportConfig<T>
 	currentStep: ImportStep
 	onStepChange: (step: ImportStep) => void
 	onComplete: () => void
 }
 
-export function BulkImportStepper({
+export function BulkImportStepper<T>({
+	config,
 	currentStep,
 	onStepChange,
 	onComplete
-}: BulkImportStepperProps) {
+}: BulkImportStepperProps<T>) {
 	const [file, setFile] = useState<File | null>(null)
 	const [parseResult, setParseResult] = useState<{
-		rows: ParsedRow[]
+		rows: ParsedRow<T>[]
 		tooManyRows: boolean
 		totalRowCount: number
 	} | null>(null)
@@ -62,19 +60,13 @@ export function BulkImportStepper({
 	const queryClient = useQueryClient()
 
 	const bulkImportMutation = useMutation({
-		mutationFn: async (rows: PropertyCreate[]): Promise<BulkImportResult> => {
-			const supabase = createClient()
-			const { data: { user } } = await supabase.auth.getUser()
-			if (!user) throw new Error('Not authenticated')
-
+		mutationFn: async (rows: T[]): Promise<BulkImportResult> => {
 			const errors: Array<{ row: number; error: string }> = []
 			let succeeded = 0
 
 			for (let i = 0; i < rows.length; i++) {
-				const row = rows[i]
-				const { error } = await supabase
-					.from('properties')
-					.insert({ ...row, owner_user_id: user.id })
+				const row = rows[i] as T
+				const { error } = await config.insertRow(row)
 
 				if (error) {
 					errors.push({ row: i + 1, error: error.message })
@@ -86,7 +78,7 @@ export function BulkImportStepper({
 					current: i + 1,
 					total: rows.length,
 					succeeded,
-					failed: errors.length,
+					failed: errors.length
 				})
 			}
 
@@ -94,13 +86,13 @@ export function BulkImportStepper({
 				success: errors.length === 0,
 				imported: succeeded,
 				failed: errors.length,
-				errors,
+				errors
 			}
 		},
-		onSuccess: async (data) => {
-			await queryClient.invalidateQueries({ queryKey: propertyQueries.lists() })
-			await queryClient.invalidateQueries({ queryKey: propertyQueries.all() })
-			await queryClient.invalidateQueries({ queryKey: ownerDashboardKeys.all })
+		onSuccess: async data => {
+			for (const key of config.invalidateKeys) {
+				await queryClient.invalidateQueries({ queryKey: key })
+			}
 
 			setResult(data)
 			if (data.success && data.imported > 0) {
@@ -110,10 +102,13 @@ export function BulkImportStepper({
 				}, 2000)
 			}
 		},
-		onError: (error) => {
-			logger.error('Bulk import failed', { error })
+		onError: error => {
+			logger.error('Bulk import failed', {
+				error,
+				entity: config.entityLabel.plural
+			})
 			setImportProgress(null)
-		},
+		}
 	})
 
 	const resetDialog = () => {
@@ -130,10 +125,13 @@ export function BulkImportStepper({
 		onStepChange('validate')
 		try {
 			const text = await selectedFile.text()
-			const parsed = parseAndValidateCSV(text)
+			const parsed = config.parseAndValidate(text)
 			setParseResult(parsed)
 		} catch (error) {
-			logger.error('Failed to parse CSV', { error })
+			logger.error('Failed to parse CSV', {
+				error,
+				entity: config.entityLabel.plural
+			})
 			setParseResult(null)
 		}
 	}
@@ -142,7 +140,7 @@ export function BulkImportStepper({
 		if (!parseResult) return
 		const validRows = parseResult.rows
 			.filter(r => r.parsed !== null)
-			.map(r => r.parsed!)
+			.map(r => r.parsed as T)
 
 		if (validRows.length === 0) return
 
@@ -151,9 +149,14 @@ export function BulkImportStepper({
 		onStepChange('confirm')
 
 		try {
-			logger.info('Starting bulk import', { rowCount: validRows.length })
+			logger.info('Starting bulk import', {
+				rowCount: validRows.length,
+				entity: config.entityLabel.plural
+			})
 			await bulkImportMutation.mutateAsync(validRows)
-			logger.info('Bulk import completed successfully')
+			logger.info('Bulk import completed successfully', {
+				entity: config.entityLabel.plural
+			})
 		} catch (error) {
 			logger.error('Bulk import mutation failed', { error })
 		}
@@ -169,7 +172,8 @@ export function BulkImportStepper({
 		}
 	}
 
-	const validRowCount = parseResult?.rows.filter(r => r.errors.length === 0).length ?? 0
+	const validRowCount =
+		parseResult?.rows.filter(r => r.errors.length === 0).length ?? 0
 	const hasErrors = parseResult?.rows.some(r => r.errors.length > 0) ?? false
 
 	const triggerCls = cn(
@@ -184,9 +188,27 @@ export function BulkImportStepper({
 	)
 
 	const steps = [
-		{ value: 'upload' as const, icon: Upload, title: 'Upload', desc: 'Choose CSV file', hasSep: true },
-		{ value: 'validate' as const, icon: FileCheck, title: 'Validate', desc: 'Review data', hasSep: true },
-		{ value: 'confirm' as const, icon: CheckCheck, title: 'Confirm', desc: 'Import properties', hasSep: false },
+		{
+			value: 'upload' as const,
+			icon: Upload,
+			title: 'Upload',
+			desc: 'Choose CSV file',
+			hasSep: true
+		},
+		{
+			value: 'validate' as const,
+			icon: FileCheck,
+			title: 'Validate',
+			desc: 'Review data',
+			hasSep: true
+		},
+		{
+			value: 'confirm' as const,
+			icon: CheckCheck,
+			title: 'Confirm',
+			desc: `Import ${config.entityLabel.plural.toLowerCase()}`,
+			hasSep: false
+		}
 	]
 
 	return (
@@ -200,11 +222,17 @@ export function BulkImportStepper({
 									<step.icon className="size-4" />
 								</StepperIndicator>
 								<div className="flex flex-col items-start ml-3">
-									<StepperTitle className="text-sm font-semibold">{step.title}</StepperTitle>
-									<StepperDescription className="text-xs">{step.desc}</StepperDescription>
+									<StepperTitle className="text-sm font-semibold">
+										{step.title}
+									</StepperTitle>
+									<StepperDescription className="text-xs">
+										{step.desc}
+									</StepperDescription>
 								</div>
 							</StepperTrigger>
-							{step.hasSep && <StepperSeparator className="mx-2 data-[state=completed]:bg-success" />}
+							{step.hasSep && (
+								<StepperSeparator className="mx-2 data-[state=completed]:bg-success" />
+							)}
 						</StepperItem>
 					))}
 				</StepperList>
@@ -213,7 +241,7 @@ export function BulkImportStepper({
 					value="upload"
 					className="animate-in fade-in slide-in-from-right-4 duration-300"
 				>
-					<BulkImportUploadStep onFileSelect={handleFileSelect} />
+					<BulkImportUploadStep config={config} onFileSelect={handleFileSelect} />
 				</StepperContent>
 
 				<StepperContent
@@ -230,6 +258,7 @@ export function BulkImportStepper({
 					className="animate-in fade-in slide-in-from-right-4 duration-300"
 				>
 					<BulkImportConfirmStep
+						entityLabel={config.entityLabel}
 						isImporting={bulkImportMutation.isPending}
 						importProgress={importProgress}
 						result={result}
@@ -253,14 +282,18 @@ export function BulkImportStepper({
 				{currentStep === 'validate' && (
 					<Button
 						onClick={handleUpload}
-						disabled={validRowCount === 0 || hasErrors || (parseResult?.tooManyRows ?? false) || bulkImportMutation.isPending}
+						disabled={
+							validRowCount === 0 ||
+							hasErrors ||
+							(parseResult?.tooManyRows ?? false) ||
+							bulkImportMutation.isPending
+						}
 						className="gap-2 min-w-32"
 					>
-						Import {validRowCount} Properties
+						Import {validRowCount} {config.entityLabel.plural}
 					</Button>
 				)}
-
-				</DialogFooter>
+			</DialogFooter>
 		</>
 	)
 }

@@ -793,11 +793,11 @@ export interface BulkImportResult {
 	errors: Array<{ row: number; error: string }>
 }
 
-export interface ParsedRow {
+export interface ParsedRow<T = PropertyCreate> {
 	row: number
 	data: Record<string, string>
 	errors: Array<{ field: string; message: string }>
-	parsed: PropertyCreate | null
+	parsed: T | null
 }
 
 export interface ImportProgress {
