@@ -19,6 +19,7 @@ import type { Property } from '#types/core'
 import { Building, Edit, MapPin, Trash2 } from 'lucide-react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
+import { DocumentsSection } from '#components/documents/documents-section'
 import { PropertyImageGallery } from '#components/properties/property-image-gallery'
 import { PropertyPerformanceSection } from '#components/properties/property-performance-section'
 import { PropertyUnitsTable } from '#components/properties/property-units-table'
@@ -148,6 +149,9 @@ export function PropertyDetails({ property }: PropertyDetailsProps) {
 					<PropertyImageGallery propertyId={property.id} editable={false} />
 				</CardContent>
 			</Card>
+
+			{/* Documents (Phase 57) */}
+			<DocumentsSection entityType="property" entityId={property.id} />
 
 			{/* Delete Confirmation Dialog */}
 			<AlertDialog open={deleteOpen} onOpenChange={setDeleteOpen}>
