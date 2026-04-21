@@ -173,13 +173,22 @@ export const documentMutations = {
 			mutationFn: async ({ id, storagePath }) => {
 				const supabase = createClient()
 
-				// Drop the DB row first; if it fails we surface the error
-				// without leaving the storage blob orphaned downstream.
-				const { error: dbError } = await supabase
+				// Drop the DB row first; .select() returns the affected rows so
+				// we can detect RLS-blocked deletes — PostgREST returns no error
+				// when an RLS policy filters the row out, just zero affected
+				// rows. Without the .length check the UI would falsely report
+				// "Document removed" while the row stays put.
+				const { data: deletedRows, error: dbError } = await supabase
 					.from('documents')
 					.delete()
 					.eq('id', id)
+					.select('id')
 				if (dbError) handlePostgrestError(dbError, 'documents')
+				if (!deletedRows || deletedRows.length === 0) {
+					throw new Error(
+						'Document not found or you do not have permission to delete it.'
+					)
+				}
 
 				// Storage remove is best-effort. Owners can re-trigger from the
 				// UI if it fails; the DB-of-record state is already consistent.
