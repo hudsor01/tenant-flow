@@ -80,7 +80,16 @@ export function unitBulkImportConfig(
 			}),
 		insertRow: async row => {
 			const supabase = createClient()
-			const { error } = await supabase.from('units').insert(row)
+			// units.owner_user_id is NOT NULL and RLS-checked. Attach it from
+			// the authenticated caller; mirrors the property/tenant/lease
+			// insertRow pattern.
+			const {
+				data: { user }
+			} = await supabase.auth.getUser()
+			if (!user) return { error: new Error('Not authenticated') }
+			const { error } = await supabase
+				.from('units')
+				.insert({ ...row, owner_user_id: user.id })
 			return { error: error ? new Error(error.message) : null }
 		},
 		invalidateKeys: [
