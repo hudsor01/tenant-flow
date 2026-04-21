@@ -22,6 +22,7 @@ const TEMPLATE_HEADERS = [
 	'start_date',
 	'end_date',
 	'rent_amount',
+	'security_deposit',
 	'payment_day'
 ] as const
 
@@ -32,6 +33,7 @@ const TEMPLATE_SAMPLE_ROWS = [
 		'2026-05-01',
 		'2027-04-30',
 		'1800',
+		'1800',
 		'1'
 	],
 	[
@@ -40,6 +42,7 @@ const TEMPLATE_SAMPLE_ROWS = [
 		'2026-06-01',
 		'2027-05-31',
 		'2400',
+		'4800',
 		'5'
 	]
 ] as const
@@ -60,7 +63,7 @@ export function leaseBulkImportConfig(): BulkImportConfig<LeaseInput> {
 		templateSampleRows: TEMPLATE_SAMPLE_ROWS,
 		requiredFields:
 			'unit_id, primary_tenant_id, start_date, end_date, rent_amount',
-		optionalFields: 'payment_day (defaults to 1)',
+		optionalFields: 'security_deposit, payment_day (defaults to 1)',
 		parseAndValidate: csvText =>
 			parseCsvWithSchema(csvText, {
 				schema: leaseInputSchema,
@@ -68,14 +71,20 @@ export function leaseBulkImportConfig(): BulkImportConfig<LeaseInput> {
 					const rent_amount = Number((raw.rent_amount ?? '').trim())
 					const parsedPaymentDay = coerceOptionalNumber(raw.payment_day)
 					const payment_day = parsedPaymentDay ?? 1
+					// Missing security_deposit column or empty value falls back
+					// to 0 — the field is required by leaseInputSchema so the
+					// stepper would otherwise fail every row. Users who care
+					// about deposit amounts put them in the CSV column.
+					const parsedDeposit = coerceOptionalNumber(raw.security_deposit)
+					const security_deposit = parsedDeposit ?? 0
 					return {
 						unit_id: (raw.unit_id ?? '').trim(),
 						primary_tenant_id: (raw.primary_tenant_id ?? '').trim(),
 						start_date: (raw.start_date ?? '').trim(),
 						end_date: (raw.end_date ?? '').trim(),
 						rent_amount,
-						payment_day,
-						security_deposit: 0
+						security_deposit,
+						payment_day
 					}
 				}
 			}),
