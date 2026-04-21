@@ -18,6 +18,26 @@ import type { BulkImportConfig } from '#components/bulk-import/types'
 import { tenantQueries } from '#hooks/api/query-keys/tenant-keys'
 import { ownerDashboardKeys } from '#hooks/api/use-owner-dashboard'
 
+// Bulk-import-specific tenant schema: layers .min(1) requirements on top
+// of the shared `tenantCreateSchema` so blank CSV cells surface clear
+// per-row errors instead of silently inserting tenants with empty names.
+// tenantCreateSchema keeps those fields optional for other flows
+// (quick-add dialog, partial update) where the UI isn't demanding every
+// field at once.
+const tenantImportSchema = tenantCreateSchema.extend({
+	email: tenantCreateSchema.shape.email.unwrap(),
+	first_name: tenantCreateSchema.shape.first_name
+		.unwrap()
+		.refine(v => v.trim().length > 0, {
+			message: 'First name is required'
+		}),
+	last_name: tenantCreateSchema.shape.last_name
+		.unwrap()
+		.refine(v => v.trim().length > 0, {
+			message: 'Last name is required'
+		})
+})
+
 const TEMPLATE_HEADERS = [
 	'email',
 	'first_name',
@@ -48,7 +68,7 @@ export function tenantBulkImportConfig(): BulkImportConfig<TenantCreate> {
 		optionalFields: 'phone, status (defaults to active)',
 		parseAndValidate: csvText =>
 			parseCsvWithSchema(csvText, {
-				schema: tenantCreateSchema,
+				schema: tenantImportSchema,
 				mapRow: raw => {
 					const rawStatus = (raw.status ?? '').trim().toLowerCase()
 					const status = ALLOWED_STATUSES.has(rawStatus)
