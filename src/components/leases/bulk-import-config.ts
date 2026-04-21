@@ -74,8 +74,16 @@ export function leaseBulkImportConfig(): BulkImportConfig<LeaseInput> {
 					// the schema's required-field check surfaces a clear row
 					// error.
 					const rent_amount = coerceOptionalNumber(raw.rent_amount)
+					// payment_day: both blank cells and explicit "0" fall back
+					// to day 1. Without the === 0 check a user typing "0" would
+					// get a schema error (1..31 allowed) while a blank cell
+					// silently becomes 1 — inconsistent handling of what the
+					// user meant as "no value".
 					const parsedPaymentDay = coerceOptionalNumber(raw.payment_day)
-					const payment_day = parsedPaymentDay ?? 1
+					const payment_day =
+						parsedPaymentDay === undefined || parsedPaymentDay === 0
+							? 1
+							: parsedPaymentDay
 					// Missing security_deposit column or empty value falls back
 					// to 0 — the field is required by leaseInputSchema so the
 					// stepper would otherwise fail every row. Users who care
