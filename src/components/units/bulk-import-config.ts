@@ -66,14 +66,18 @@ export function unitBulkImportConfig(
 					const bedrooms = coerceOptionalNumber(raw.bedrooms)
 					const bathrooms = coerceOptionalNumber(raw.bathrooms)
 					const square_feet = coerceOptionalNumber(raw.square_feet)
-					const rent_amount = Number((raw.rent_amount ?? '').trim())
+					// Blank rent_amount must fail validation instead of silently
+					// becoming $0 (Number('') === 0 and the schema's
+					// nonNegativeNumberSchema accepts 0). Pass undefined so the
+					// schema's required-field check surfaces a clear row error.
+					const rent_amount = coerceOptionalNumber(raw.rent_amount)
 					return {
 						property_id: propertyId,
 						unit_number: (raw.unit_number ?? '').trim(),
 						...(bedrooms !== undefined ? { bedrooms } : {}),
 						...(bathrooms !== undefined ? { bathrooms } : {}),
 						...(square_feet !== undefined ? { square_feet } : {}),
-						rent_amount,
+						...(rent_amount !== undefined ? { rent_amount } : {}),
 						status
 					}
 				}

@@ -68,7 +68,12 @@ export function leaseBulkImportConfig(): BulkImportConfig<LeaseInput> {
 			parseCsvWithSchema(csvText, {
 				schema: leaseInputSchema,
 				mapRow: raw => {
-					const rent_amount = Number((raw.rent_amount ?? '').trim())
+					// Blank rent_amount must fail validation rather than
+					// silently becoming $0 (Number('') === 0 and the schema's
+					// nonnegative number check accepts 0). Pass undefined so
+					// the schema's required-field check surfaces a clear row
+					// error.
+					const rent_amount = coerceOptionalNumber(raw.rent_amount)
 					const parsedPaymentDay = coerceOptionalNumber(raw.payment_day)
 					const payment_day = parsedPaymentDay ?? 1
 					// Missing security_deposit column or empty value falls back
@@ -82,7 +87,7 @@ export function leaseBulkImportConfig(): BulkImportConfig<LeaseInput> {
 						primary_tenant_id: (raw.primary_tenant_id ?? '').trim(),
 						start_date: (raw.start_date ?? '').trim(),
 						end_date: (raw.end_date ?? '').trim(),
-						rent_amount,
+						...(rent_amount !== undefined ? { rent_amount } : {}),
 						security_deposit,
 						payment_day
 					}
