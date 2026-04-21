@@ -112,7 +112,16 @@ export function DocumentsSection({ entityType, entityId }: DocumentsSectionProps
 		const failures: string[] = []
 		for (const file of valid) {
 			try {
-				await uploadMutation.mutateAsync({ entityType, entityId, file })
+				// Pass the browser-reported MIME so the DB row stores it; the
+				// preview branches `<img>` vs `<iframe>` off `document_type`,
+				// and the default 'other' would force every image into an
+				// iframe with the generic file icon.
+				await uploadMutation.mutateAsync({
+					entityType,
+					entityId,
+					file,
+					documentType: file.type
+				})
 				uploaded++
 			} catch (err) {
 				failures.push(
