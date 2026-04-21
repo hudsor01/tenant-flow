@@ -61,6 +61,9 @@ export function DocumentsSection({ entityType, entityId }: DocumentsSectionProps
 	const queryClient = useQueryClient()
 	const fileInputRef = useRef<HTMLInputElement>(null)
 	const [openId, setOpenId] = useState<string | null>(null)
+	// Track which specific document is being deleted so the "Remove" button
+	// only spins on the row whose mutation is in flight — not every dialog.
+	const [deletingId, setDeletingId] = useState<string | null>(null)
 
 	const { data: documents, isLoading } = useQuery(
 		documentQueries.list({ entityType, entityId })
@@ -143,6 +146,7 @@ export function DocumentsSection({ entityType, entityId }: DocumentsSectionProps
 	}
 
 	const handleDelete = async (doc: DocumentRow) => {
+		setDeletingId(doc.id)
 		try {
 			await deleteMutation.mutateAsync({
 				id: doc.id,
@@ -154,6 +158,8 @@ export function DocumentsSection({ entityType, entityId }: DocumentsSectionProps
 			toast.error('Failed to remove document', {
 				description: err instanceof Error ? err.message : 'Please try again.'
 			})
+		} finally {
+			setDeletingId(prev => (prev === doc.id ? null : prev))
 		}
 	}
 
@@ -299,11 +305,11 @@ export function DocumentsSection({ entityType, entityId }: DocumentsSectionProps
 													size="sm"
 													variant="outline"
 													onClick={() => handleDelete(doc)}
-													disabled={deleteMutation.isPending}
+													disabled={deletingId === doc.id}
 													className="text-destructive hover:text-destructive hover:bg-destructive/10"
 												>
 													<Trash2 className="size-4 mr-2" />
-													{deleteMutation.isPending ? 'Removing...' : 'Remove'}
+													{deletingId === doc.id ? 'Removing...' : 'Remove'}
 												</Button>
 											</div>
 										</DialogContent>
