@@ -19,6 +19,10 @@ interface BulkImportValidateStepProps<T> {
 		totalRowCount: number
 	} | null
 	templateHeaders: readonly string[]
+	/** Set when the parser produced a synthetic `row: 0` entry indicating
+	 *  the whole CSV file is malformed (mismatched quotes, wrong delimiter,
+	 *  unsupported encoding). Renders a distinct CSV-level banner. */
+	csvMalformed?: boolean
 }
 
 // Headers render as "Unit Number" rather than "unit_number" — same display
@@ -33,7 +37,8 @@ function headerToLabel(header: string): string {
 export function BulkImportValidateStep<T>({
 	file,
 	parseResult,
-	templateHeaders
+	templateHeaders,
+	csvMalformed
 }: BulkImportValidateStepProps<T>) {
 	const parsedData = parseResult?.rows ?? []
 	const errorCount = parsedData.filter(row => row.errors.length > 0).length
@@ -67,6 +72,24 @@ export function BulkImportValidateStep<T>({
 					</Badge>
 				</div>
 			</div>
+
+			{/* CSV-level parse error banner — distinct from per-row validation
+			    errors. Catches malformed quotes, wrong delimiters, unsupported
+			    encodings that leave the whole file unreadable. */}
+			{csvMalformed && (
+				<div className="flex items-start gap-3 p-3 rounded-lg bg-destructive/10 border border-destructive/30">
+					<AlertCircle className="size-4 text-destructive shrink-0 mt-0.5" />
+					<div>
+						<p className="typography-small text-destructive">
+							Your CSV file is malformed
+						</p>
+						<p className="text-xs text-muted-foreground mt-0.5">
+							Check for unclosed quotes, wrong delimiter (must be a comma),
+							or unsupported encoding. Re-save as CSV UTF-8 and try again.
+						</p>
+					</div>
+				</div>
+			)}
 
 			{/* Too Many Rows Warning */}
 			{parseResult?.tooManyRows && (
@@ -202,6 +225,7 @@ export function BulkImportValidateStep<T>({
 														'px-4 py-3 max-w-48 truncate',
 														empty && 'text-muted-foreground italic'
 													)}
+													title={empty ? undefined : value}
 												>
 													{empty ? '\u2014' : value}
 												</td>

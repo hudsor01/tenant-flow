@@ -15,12 +15,21 @@ export const CSV_MAX_ROWS = 100
 export const CSV_ACCEPTED_MIME_TYPES = ['text/csv', 'application/csv']
 export const CSV_MAX_FILE_SIZE_BYTES = 5 * 1024 * 1024 // 5 MB
 
+// CSV RFC 4180: fields containing quotes, commas, CR, or LF must be
+// wrapped in double-quotes, and internal quotes must be doubled. We
+// always wrap every cell for simplicity — but we MUST still double any
+// embedded `"` or the output is unparseable (papaparse would read
+// `"She said "hi""` as malformed tokens).
+function escapeCell(cell: string): string {
+	return `"${cell.replace(/"/g, '""')}"`
+}
+
 export function buildCsvTemplate(
 	headers: readonly string[],
 	rows: readonly (readonly string[])[]
 ): string {
-	const headerRow = headers.map(h => `"${h}"`).join(',')
-	const dataRows = rows.map(row => row.map(cell => `"${cell}"`).join(','))
+	const headerRow = headers.map(escapeCell).join(',')
+	const dataRows = rows.map(row => row.map(escapeCell).join(','))
 	return [headerRow, ...dataRows].join('\n')
 }
 

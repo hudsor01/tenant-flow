@@ -1,5 +1,5 @@
 /**
- * Tenant bulk-import configuration (v2.3 Phase 58).
+ * Tenant bulk-import configuration (v2.3 Phase 58 + audit follow-ups).
  *
  * Thin wrapper over the generic `BulkImportConfig<T>` from
  * `src/components/bulk-import/types.ts`. Encapsulates everything the
@@ -15,7 +15,11 @@ import { createClient } from '#lib/supabase/client'
 import { getCachedUser } from '#lib/supabase/get-cached-user'
 import { requireOwnerUserId } from '#lib/require-owner-user-id'
 import { phoneSchema } from '#lib/validation/common'
-import type { TenantCreate } from '#lib/validation/tenants'
+import {
+	TENANT_ACTIVE_STATUSES,
+	type TenantActiveStatus,
+	type TenantCreate
+} from '#lib/validation/tenants'
 import { parseCsvWithSchema } from '#components/bulk-import/parse-csv-with-schema'
 import type { BulkImportConfig } from '#components/bulk-import/types'
 import { tenantQueries } from '#hooks/api/query-keys/tenant-keys'
@@ -25,7 +29,10 @@ import { ownerDashboardKeys } from '#hooks/api/use-owner-dashboard'
 // than reaching into `tenantCreateSchema.shape.*.unwrap()` so the schema
 // is not coupled to the optionality of the reused schema. The import
 // stepper rejects blank cells up front instead of silently inserting
-// tenants with empty names.
+// tenants with empty names. Status defaults to 'active' at the schema
+// level — mapRow sends `undefined` when the CSV cell is blank / unknown,
+// and Zod's `.default('active')` fills it in so we don't depend on a
+// separate TS-only fallback.
 const tenantImportSchema = z.object({
 	email: z.email({ message: 'Valid email is required' }),
 	first_name: z
@@ -37,7 +44,7 @@ const tenantImportSchema = z.object({
 		.min(1, 'Last name is required')
 		.max(100, 'Last name cannot exceed 100 characters'),
 	phone: phoneSchema.optional(),
-	status: z.enum(['active', 'inactive', 'pending', 'moved_out']).optional()
+	status: z.enum(TENANT_ACTIVE_STATUSES).default('active')
 }) satisfies z.ZodType<
 	Pick<TenantCreate, 'email' | 'first_name' | 'last_name' | 'phone' | 'status'>
 >
@@ -55,12 +62,7 @@ const TEMPLATE_SAMPLE_ROWS = [
 	['john.smith@example.com', 'John', 'Smith', '415-555-0102', 'pending']
 ] as const
 
-const ALLOWED_STATUSES = new Set([
-	'active',
-	'inactive',
-	'pending',
-	'moved_out'
-])
+const ALLOWED_STATUSES = new Set<string>(TENANT_ACTIVE_STATUSES)
 
 type TenantImportInput = z.infer<typeof tenantImportSchema>
 
@@ -77,15 +79,20 @@ export function tenantBulkImportConfig(): BulkImportConfig<TenantImportInput> {
 				schema: tenantImportSchema,
 				mapRow: raw => {
 					const rawStatus = (raw.status ?? '').trim().toLowerCase()
-					const status = ALLOWED_STATUSES.has(rawStatus)
-						? (rawStatus as TenantImportInput['status'])
-						: 'active'
+					// Only pass `status` through if it matches a known value.
+					// Blank or unknown → omit, and the Zod `.default('active')`
+					// provides the fallback.
+					const status: TenantActiveStatus | undefined = ALLOWED_STATUSES.has(
+						rawStatus
+					)
+						? (rawStatus as TenantActiveStatus)
+						: undefined
 					return {
 						email: (raw.email ?? '').trim(),
 						first_name: (raw.first_name ?? '').trim(),
 						last_name: (raw.last_name ?? '').trim(),
 						phone: (raw.phone ?? '').trim() || undefined,
-						status
+						...(status ? { status } : {})
 					}
 				}
 			}),

@@ -24,6 +24,19 @@ export const tenantStatusSchema = z.enum([
 	'DELETED'
 ])
 
+// Active-set tenant statuses (excludes SUSPENDED/DELETED which are system
+// states, not user-set). Use this for any UI surface that lets an owner
+// set a status directly — bulk-import, quick-add form, etc. Exported as a
+// tuple so consumers can `z.enum(TENANT_ACTIVE_STATUSES)` without
+// duplicating the list.
+export const TENANT_ACTIVE_STATUSES = [
+	'active',
+	'inactive',
+	'pending',
+	'moved_out'
+] as const
+export type TenantActiveStatus = (typeof TENANT_ACTIVE_STATUSES)[number]
+
 // Base tenant input schema (matches landlord-managed tenants table).
 // Contact fields live directly on the row; user_id is optional because
 // tenants may have no auth account in landlord-only mode.
@@ -53,9 +66,7 @@ export const tenantInputSchema = z.object({
 
 	phone: phoneSchema.optional(),
 
-	status: z
-		.enum(['active', 'inactive', 'pending', 'moved_out'])
-		.optional(),
+	status: z.enum(TENANT_ACTIVE_STATUSES).optional(),
 
 	date_of_birth: z.string().optional(),
 

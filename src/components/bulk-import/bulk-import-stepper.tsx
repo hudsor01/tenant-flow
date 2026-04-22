@@ -13,14 +13,9 @@ import {
 	Description as StepperDescription,
 	Content as StepperContent
 } from '#components/ui/stepper'
-import {
-	Upload,
-	FileCheck,
-	CheckCheck,
-	ArrowLeft
-} from 'lucide-react'
-import { useCallback, useEffect, useRef, useState } from 'react'
-import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { Upload, FileCheck, CheckCheck, ArrowLeft } from 'lucide-react'
+import { useCallback, useEffect, useState } from 'react'
+import { toast } from 'sonner'
 import { createLogger } from '#lib/frontend-logger'
 import type {
 	BulkImportResult,
@@ -33,13 +28,13 @@ import { BulkImportValidateStep } from './bulk-import-validate-step'
 import { BulkImportConfirmStep } from './bulk-import-confirm-step'
 import { cn } from '#lib/utils'
 import type { BulkImportConfig } from './types'
+import {
+	useBulkImportMutation,
+	useMountedRef,
+	type BulkImportMutationInput
+} from './use-bulk-import-mutation'
 
 const logger = createLogger({ component: 'BulkImportStepper' })
-
-// Flush progress at most every ~120 ms of wall-clock + every 5 rows to avoid
-// the 100-re-render storm when a user imports 100 rows back-to-back.
-const PROGRESS_BATCH_EVERY_ROWS = 5
-const PROGRESS_BATCH_EVERY_MS = 120
 
 interface BulkImportStepperProps<T> {
 	config: BulkImportConfig<T>
@@ -62,92 +57,29 @@ export function BulkImportStepper<T>({
 		tooManyRows: boolean
 		totalRowCount: number
 	} | null>(null)
-	const [importProgress, setImportProgress] = useState<ImportProgress | null>(null)
+	const [importProgress, setImportProgress] = useState<ImportProgress | null>(
+		null
+	)
 	const [result, setResult] = useState<BulkImportResult | null>(null)
-	const queryClient = useQueryClient()
-	const mountedRef = useRef(true)
+	// Cumulative totals across initial import + every retry batch. Single-
+	// batch totals in `result` alone would hide prior successes from the UI
+	// when a retry produced its own partial-success.
+	const [cumulative, setCumulative] = useState({
+		imported: 0,
+		failed: 0,
+		totalAttempted: 0
+	})
+	// Retries disable the auto-close so the user can read cumulative totals.
+	const [retryCount, setRetryCount] = useState(0)
+	const mountedRef = useMountedRef()
 
-	useEffect(() => {
-		mountedRef.current = true
-		return () => {
-			mountedRef.current = false
-		}
-	}, [])
-
-	const bulkImportMutation = useMutation({
-		mutationFn: async (
-			rows: Array<{ csvLine: number; parsed: T }>
-		): Promise<BulkImportResult> => {
-			const errors: Array<{ row: number; error: string }> = []
-			let succeeded = 0
-			let lastFlush = Date.now()
-
-			for (let i = 0; i < rows.length; i++) {
-				const entry = rows[i]!
-				const { error } = await config.insertRow(entry.parsed)
-
-				if (error) {
-					// Record the real CSV line number so the "Retry failed" and
-					// "Download failed rows" paths can match on an identifier
-					// that survives filtering invalid rows out of the batch.
-					errors.push({ row: entry.csvLine, error: error.message })
-				} else {
-					succeeded++
-				}
-
-				const now = Date.now()
-				const isLast = i === rows.length - 1
-				const hitRowBatch = (i + 1) % PROGRESS_BATCH_EVERY_ROWS === 0
-				const hitTimeBatch = now - lastFlush >= PROGRESS_BATCH_EVERY_MS
-				if (isLast || hitRowBatch || hitTimeBatch) {
-					if (mountedRef.current) {
-						setImportProgress({
-							current: i + 1,
-							total: rows.length,
-							succeeded,
-							failed: errors.length
-						})
-					}
-					lastFlush = now
-				}
-			}
-
-			return {
-				success: errors.length === 0,
-				imported: succeeded,
-				failed: errors.length,
-				errors
-			}
-		},
-		onSuccess: async data => {
-			for (const key of config.invalidateKeys) {
-				await queryClient.invalidateQueries({ queryKey: key })
-			}
-
-			if (!mountedRef.current) return
-			setResult(data)
-			// Only auto-close on full success. Partial success or failure keeps
-			// the dialog open so the user can read per-row errors and decide
-			// whether to retry. 5 s gives enough time to read the success badge.
-			if (data.success && data.imported > 0) {
-				setTimeout(() => {
-					if (!mountedRef.current) return
-					onComplete()
-					resetDialog()
-				}, 5000)
-			}
-		},
-		onError: error => {
-			logger.error('Bulk import failed', {
-				error,
-				entity: config.entityLabel.plural
-			})
-			if (mountedRef.current) setImportProgress(null)
-		}
+	const bulkImportMutation = useBulkImportMutation<T>({
+		config,
+		setImportProgress,
+		setResult,
+		mountedRef
 	})
 
-	// Lift pending state so the dialog can block close-during-import without
-	// reaching into mutation internals.
 	useEffect(() => {
 		onPendingChange?.(bulkImportMutation.isPending)
 	}, [bulkImportMutation.isPending, onPendingChange])
@@ -158,11 +90,41 @@ export function BulkImportStepper<T>({
 		onStepChange('upload')
 		setParseResult(null)
 		setImportProgress(null)
+		setCumulative({ imported: 0, failed: 0, totalAttempted: 0 })
+		setRetryCount(0)
 	}, [onStepChange])
+
+	// Auto-close only on a first-batch full success. Retries keep the
+	// dialog open so the user can see the cumulative-total panel.
+	useEffect(() => {
+		if (!result) return
+		if (retryCount > 0) return
+		if (!(result.success && result.imported > 0)) return
+		const id = window.setTimeout(() => {
+			if (!mountedRef.current) return
+			onComplete()
+			resetDialog()
+		}, 5000)
+		return () => window.clearTimeout(id)
+	}, [result, retryCount, onComplete, resetDialog, mountedRef])
+
+	// Keep cumulative counters in sync with each mutation result.
+	useEffect(() => {
+		if (!result) return
+		setCumulative(prev => ({
+			imported: prev.imported + result.imported,
+			// Only the most recent batch's failures remain outstanding;
+			// previously-retried-and-fixed rows are gone from this count.
+			failed: result.failed,
+			totalAttempted: prev.totalAttempted + result.imported + result.failed
+		}))
+	}, [result])
 
 	const handleFileSelect = async (selectedFile: File) => {
 		setFile(selectedFile)
 		setResult(null)
+		setCumulative({ imported: 0, failed: 0, totalAttempted: 0 })
+		setRetryCount(0)
 		onStepChange('validate')
 		try {
 			const text = await selectedFile.text()
@@ -174,24 +136,20 @@ export function BulkImportStepper<T>({
 				entity: config.entityLabel.plural
 			})
 			setParseResult(null)
+			toast.error('Failed to read CSV file', {
+				description: 'Check the file is a valid CSV and not corrupted.'
+			})
 		}
 	}
 
-	const runImport = async (rows: Array<{ csvLine: number; parsed: T }>) => {
+	const runImport = async (rows: BulkImportMutationInput<T>[]) => {
 		setResult(null)
 		setImportProgress(null)
 		onStepChange('confirm')
 		try {
-			logger.info('Starting bulk import', {
-				rowCount: rows.length,
-				entity: config.entityLabel.plural
-			})
 			await bulkImportMutation.mutateAsync(rows)
-			logger.info('Bulk import completed', {
-				entity: config.entityLabel.plural
-			})
-		} catch (error) {
-			logger.error('Bulk import mutation failed', { error })
+		} catch (err) {
+			logger.debug('mutateAsync threw (handled by onError)', { error: err })
 		}
 	}
 
@@ -200,23 +158,21 @@ export function BulkImportStepper<T>({
 		const validRows = parseResult.rows
 			.filter(r => r.parsed !== null)
 			.map(r => ({ csvLine: r.row, parsed: r.parsed as T }))
-
 		if (validRows.length === 0) return
 		await runImport(validRows)
 	}
 
+	// On retry: filter the ORIGINAL parsed rows by CSV line number (stable
+	// identifier). Only previously-failed rows rerun; prior successes are
+	// not re-inserted.
 	const handleRetryFailed = async () => {
 		if (!result || !parseResult) return
-		// The mutation records `error.row` as the CSV line number
-		// (parseResult.rows[i].row), so we can match directly against the
-		// original parsed rows without tracking array positions that shift
-		// when invalid rows are filtered out.
 		const failedCsvLines = new Set(result.errors.map(e => e.row))
 		const toRetry = parseResult.rows
 			.filter(r => failedCsvLines.has(r.row) && r.parsed !== null)
 			.map(r => ({ csvLine: r.row, parsed: r.parsed as T }))
-
 		if (toRetry.length === 0) return
+		setRetryCount(n => n + 1)
 		await runImport(toRetry)
 	}
 
@@ -225,14 +181,21 @@ export function BulkImportStepper<T>({
 			onStepChange('upload')
 			setFile(null)
 			setParseResult(null)
+			setCumulative({ imported: 0, failed: 0, totalAttempted: 0 })
+			setRetryCount(0)
 		} else if (currentStep === 'confirm') {
 			onStepChange('validate')
+			// Clear stale result + progress so the validate step doesn't
+			// show ghost counts from the previous attempt.
+			setResult(null)
+			setImportProgress(null)
 		}
 	}
 
 	const validRowCount =
 		parseResult?.rows.filter(r => r.errors.length === 0).length ?? 0
 	const hasErrors = parseResult?.rows.some(r => r.errors.length > 0) ?? false
+	const csvMalformed = parseResult?.rows.some(r => r.row === 0) ?? false
 
 	const triggerCls = cn(
 		'w-full rounded-lg p-3 transition-all duration-200 hover:bg-muted/60',
@@ -311,6 +274,7 @@ export function BulkImportStepper<T>({
 							file={file}
 							parseResult={parseResult}
 							templateHeaders={config.templateHeaders}
+							csvMalformed={csvMalformed}
 						/>
 					)}
 				</StepperContent>
@@ -324,6 +288,9 @@ export function BulkImportStepper<T>({
 						isImporting={bulkImportMutation.isPending}
 						importProgress={importProgress}
 						result={result}
+						cumulative={cumulative}
+						retryCount={retryCount}
+						parseResult={parseResult}
 						onRetryFailed={handleRetryFailed}
 					/>
 				</StepperContent>
@@ -358,7 +325,13 @@ export function BulkImportStepper<T>({
 				)}
 
 				{currentStep === 'confirm' && result && (
-					<Button variant="outline" onClick={() => { onComplete(); resetDialog() }}>
+					<Button
+						variant="outline"
+						onClick={() => {
+							onComplete()
+							resetDialog()
+						}}
+					>
 						Close
 					</Button>
 				)}
