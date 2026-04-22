@@ -39,8 +39,27 @@ describe('parseCsvWithSchema', () => {
 		expect(result.rows).toHaveLength(3)
 		expect(result.rows[0]?.errors).toEqual([])
 		expect(result.rows[1]?.errors.length).toBeGreaterThan(0)
+		// Assert the specific offending field — catches regressions that
+		// silently change which Zod path is reported.
+		expect(result.rows[1]?.errors[0]?.field).toBe('name')
 		expect(result.rows[1]?.parsed).toBeNull()
 		expect(result.rows[2]?.errors).toEqual([])
+	})
+
+	it('escapes embedded quotes when building a CSV template', async () => {
+		const { buildCsvTemplate } = await import('../parse-csv-with-schema')
+		// Round-trip: a sample row with embedded quotes must be parseable
+		// when re-read through `parseCsvWithSchema`. Regression guard for
+		// the H1 finding that `buildCsvTemplate` didn't double quotes.
+		const csv = buildCsvTemplate(
+			['name', 'count'],
+			[[`She said "hi"`, '5']]
+		)
+		const result = parseCsvWithSchema(csv, { schema: sampleSchema, mapRow })
+		expect(result.rows[0]?.parsed).toEqual({
+			name: 'She said "hi"',
+			count: 5
+		})
 	})
 
 	it('normalizes header whitespace + casing', () => {

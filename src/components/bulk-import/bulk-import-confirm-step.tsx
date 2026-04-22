@@ -1,23 +1,22 @@
-import {
-	CheckCircle2,
-	XCircle,
-	Loader2,
-	AlertTriangle,
-	PartyPopper,
-	Download,
-	RotateCcw
-} from 'lucide-react'
+import { Loader2 } from 'lucide-react'
 import { Progress } from '#components/ui/progress'
-import { Button } from '#components/ui/button'
-import type { BulkImportResult, ImportProgress } from '#types/api-contracts'
-import { cn } from '#lib/utils'
-import { triggerCsvDownload } from './parse-csv-with-schema'
+import type {
+	BulkImportResult,
+	ImportProgress,
+	ParsedRow
+} from '#types/api-contracts'
+import { BulkImportResultPanel } from './bulk-import-result-panel'
 
 interface BulkImportConfirmStepProps {
 	entityLabel: { singular: string; plural: string }
 	isImporting: boolean
 	importProgress: ImportProgress | null
 	result: BulkImportResult | null
+	cumulative: { imported: number; failed: number; totalAttempted: number }
+	retryCount: number
+	parseResult:
+		| { rows: ParsedRow<unknown>[]; tooManyRows: boolean; totalRowCount: number }
+		| null
 	onRetryFailed?: () => void
 }
 
@@ -26,6 +25,9 @@ export function BulkImportConfirmStep({
 	isImporting,
 	importProgress,
 	result,
+	cumulative,
+	retryCount,
+	parseResult,
 	onRetryFailed
 }: BulkImportConfirmStepProps) {
 	const singularLower = entityLabel.singular.toLowerCase()
@@ -34,9 +36,14 @@ export function BulkImportConfirmStep({
 		? (importProgress.current / importProgress.total) * 100
 		: 0
 
+	// Only the first successful batch auto-closes. Once retryCount > 0 the
+	// dialog stays open; surface a subtle hint on the first batch so the
+	// user knows a close is coming.
+	const willAutoClose =
+		result !== null && retryCount === 0 && result.success && result.imported > 0
+
 	return (
 		<div className="space-y-5">
-			{/* Importing State */}
 			{isImporting && (
 				<div
 					className="card-standard p-6 space-y-4"
@@ -75,11 +82,10 @@ export function BulkImportConfirmStep({
 								<>
 									<span>
 										{importProgress.succeeded} succeeded
-										{importProgress.failed > 0 && `, ${importProgress.failed} failed`}
+										{importProgress.failed > 0 &&
+											`, ${importProgress.failed} failed`}
 									</span>
-									<span>
-										{Math.round(progressPercent)}%
-									</span>
+									<span>{Math.round(progressPercent)}%</span>
 								</>
 							) : (
 								<>
@@ -92,212 +98,21 @@ export function BulkImportConfirmStep({
 				</div>
 			)}
 
-			{/* Result Panel */}
 			{result && (
 				<div role="status" aria-live="polite">
 					<BulkImportResultPanel
 						entityLabel={entityLabel}
 						result={result}
+						cumulative={cumulative}
+						retryCount={retryCount}
+						parseResult={parseResult}
 						{...(onRetryFailed ? { onRetryFailed } : {})}
 					/>
-				</div>
-			)}
-		</div>
-	)
-}
-
-function BulkImportResultPanel({
-	entityLabel,
-	result,
-	onRetryFailed
-}: {
-	entityLabel: { singular: string; plural: string }
-	result: BulkImportResult | null
-	onRetryFailed?: () => void
-}) {
-	if (!result) return null
-
-	const isSuccess = result.success && result.imported > 0
-	const hasPartialSuccess = result.imported > 0 && result.failed > 0
-	const isFailure =
-		!result.success || (result.imported === 0 && result.failed > 0)
-
-	const downloadFailedRowsCsv = () => {
-		const header = '"row","error"'
-		const body = result.errors
-			.map(e => `"${e.row}","${e.error.replace(/"/g, '""')}"`)
-			.join('\n')
-		triggerCsvDownload(`${header}\n${body}\n`, 'failed-rows.csv')
-	}
-
-	return (
-		<div
-			className={cn(
-				'card-standard p-6 space-y-4',
-				isSuccess &&
-					!hasPartialSuccess &&
-					'bg-linear-to-r from-success/10 to-success/5 border-success/30',
-				hasPartialSuccess &&
-					'bg-linear-to-r from-warning/10 to-warning/5 border-warning/30',
-				isFailure &&
-					!hasPartialSuccess &&
-					'bg-linear-to-r from-destructive/10 to-destructive/5 border-destructive/30'
-			)}
-		>
-			{/* Header */}
-			<div className="flex items-start gap-4">
-				<div
-					className={cn(
-						'icon-container-md border',
-						isSuccess &&
-							!hasPartialSuccess &&
-							'bg-success/10 text-success border-success/20',
-						hasPartialSuccess && 'bg-warning/10 text-warning border-warning/20',
-						isFailure &&
-							!hasPartialSuccess &&
-							'bg-destructive/10 text-destructive border-destructive/20'
-					)}
-				>
-					{isSuccess && !hasPartialSuccess && (
-						<PartyPopper className="size-5" />
-					)}
-					{hasPartialSuccess && <AlertTriangle className="size-5" />}
-					{isFailure && !hasPartialSuccess && <XCircle className="size-5" />}
-				</div>
-				<div className="flex-1">
-					<p
-						className={cn(
-							'text-base font-semibold',
-							isSuccess && !hasPartialSuccess && 'text-success',
-							hasPartialSuccess && 'text-warning',
-							isFailure && !hasPartialSuccess && 'text-destructive'
-						)}
-					>
-						{isSuccess && !hasPartialSuccess && 'Import successful!'}
-						{hasPartialSuccess && 'Partial import completed'}
-						{isFailure && !hasPartialSuccess && 'Import failed'}
-					</p>
-					<p className="text-sm text-muted-foreground mt-1">
-						{isSuccess &&
-							!hasPartialSuccess &&
-							`Your ${entityLabel.plural.toLowerCase()} have been added.`}
-						{hasPartialSuccess &&
-							`Some ${entityLabel.plural.toLowerCase()} were imported, but others had errors.`}
-						{isFailure &&
-							!hasPartialSuccess &&
-							`No ${entityLabel.plural.toLowerCase()} were imported due to errors.`}
-					</p>
-				</div>
-			</div>
-
-			{/* Stats */}
-			<div className="grid grid-cols-2 gap-3">
-				<div
-					className={cn(
-						'p-3 rounded-lg flex items-center gap-3',
-						result.imported > 0 ? 'bg-success/10' : 'bg-muted/50'
-					)}
-				>
-					<div
-						className={cn(
-							'icon-container-sm',
-							result.imported > 0
-								? 'bg-success/20 text-success'
-								: 'bg-muted text-muted-foreground'
-						)}
-					>
-						<CheckCircle2 className="size-4" />
-					</div>
-					<div>
-						<p
-							className={cn(
-								'text-xl font-bold',
-								result.imported > 0 ? 'text-success' : 'text-muted-foreground'
-							)}
-						>
-							{result.imported}
+					{willAutoClose && (
+						<p className="text-xs text-muted-foreground mt-2 text-center">
+							Closing automatically…
 						</p>
-						<p className="text-xs text-muted-foreground">
-							{result.imported === 1
-								? entityLabel.singular
-								: entityLabel.plural}{' '}
-							imported
-						</p>
-					</div>
-				</div>
-				<div
-					className={cn(
-						'p-3 rounded-lg flex items-center gap-3',
-						result.failed > 0 ? 'bg-destructive/10' : 'bg-muted/50'
 					)}
-				>
-					<div
-						className={cn(
-							'icon-container-sm',
-							result.failed > 0
-								? 'bg-destructive/20 text-destructive'
-								: 'bg-muted text-muted-foreground'
-						)}
-					>
-						<XCircle className="size-4" />
-					</div>
-					<div>
-						<p
-							className={cn(
-								'text-xl font-bold',
-								result.failed > 0 ? 'text-destructive' : 'text-muted-foreground'
-							)}
-						>
-							{result.failed}
-						</p>
-						<p className="text-xs text-muted-foreground">
-							{result.failed === 1 ? 'Row' : 'Rows'} failed
-						</p>
-					</div>
-				</div>
-			</div>
-
-			{/* Error Details */}
-			{result.errors.length > 0 && (
-				<div className="space-y-2">
-					<p className="text-sm font-semibold">Failed rows</p>
-					<div className="card-standard max-h-56 overflow-y-auto">
-						<ul className="divide-y divide-border/40 text-xs">
-							{result.errors.map(err => (
-								<li
-									key={err.row}
-									className="px-3 py-2 flex items-start gap-2"
-								>
-									<span className="font-mono text-muted-foreground shrink-0">
-										#{err.row}
-									</span>
-									<span className="text-destructive">{err.error}</span>
-								</li>
-							))}
-						</ul>
-					</div>
-					<div className="flex flex-wrap gap-2">
-						<Button
-							size="sm"
-							variant="outline"
-							onClick={downloadFailedRowsCsv}
-							className="gap-2"
-						>
-							<Download className="size-3.5" />
-							Download failed rows
-						</Button>
-						{onRetryFailed && (
-							<Button
-								size="sm"
-								variant="outline"
-								onClick={onRetryFailed}
-								className="gap-2"
-							>
-								<RotateCcw className="size-3.5" />
-								Retry failed rows
-							</Button>
-						)}
-					</div>
 				</div>
 			)}
 		</div>

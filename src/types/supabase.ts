@@ -2215,9 +2215,11 @@ export type Database = {
       bulk_import_create_lease: {
         Args: {
           p_end_date: string
+          p_lease_status?: string
           p_payment_day: number
           p_primary_tenant_id: string
           p_rent_amount: number
+          p_rent_currency?: string
           p_security_deposit: number
           p_start_date: string
           p_unit_id: string

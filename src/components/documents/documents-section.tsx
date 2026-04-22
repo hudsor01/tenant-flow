@@ -13,11 +13,12 @@ import { Skeleton } from '#components/ui/skeleton'
 import {
 	documentMutations,
 	documentQueries,
+	LIST_DISPLAY_LIMIT,
 	type DocumentEntityType,
 	type DocumentRow as DocumentRowData
 } from '#hooks/api/query-keys/document-keys'
 import { ownerDashboardKeys } from '#hooks/api/use-owner-dashboard'
-import { FileText, Loader2, Plus } from 'lucide-react'
+import { AlertTriangle, FileText, Loader2, Plus } from 'lucide-react'
 import { useCallback, useRef, useState } from 'react'
 import { toast } from 'sonner'
 import { DocumentRow } from './document-row'
@@ -27,13 +28,18 @@ interface DocumentsSectionProps {
 	entityId: string
 }
 
+// `image/jpg` is a quirk some Safari iOS versions report for Photos exports.
+// The bucket allowlist accepts it; the frontend accept list must match so
+// iPhone uploads aren't rejected before hitting storage.
 const ACCEPTED_MIME_TYPES = [
 	'application/pdf',
 	'image/jpeg',
+	'image/jpg',
 	'image/png',
 	'image/webp'
 ]
 const MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024 // 10 MB — matches bucket limit
+const MAX_FAILURES_IN_TOAST = 5
 
 interface UploadSummary {
 	uploaded: number
@@ -58,11 +64,20 @@ function validateFiles(files: File[]): { valid: File[]; rejected: string[] } {
 	return { valid, rejected }
 }
 
+// Cap the toast description so a 50-file batch failure isn't an unreadable
+// wall of text. Full list stays in console for diagnosis.
+function truncateForToast(errors: string[]): string {
+	if (errors.length <= MAX_FAILURES_IN_TOAST) return errors.join('\n')
+	const head = errors.slice(0, MAX_FAILURES_IN_TOAST).join('\n')
+	return `${head}\n…and ${errors.length - MAX_FAILURES_IN_TOAST} more (see console)`
+}
+
 function reportUploadSummary(summary: UploadSummary) {
 	const { uploaded, failures, rejected } = summary
 	const errors = [...rejected, ...failures]
-	// Consolidate into one toast so mobile users don't miss failure info by
-	// dismissing the success toast.
+	if (errors.length > MAX_FAILURES_IN_TOAST) {
+		console.warn('Document upload errors (full list):', errors)
+	}
 	if (uploaded > 0 && errors.length === 0) {
 		toast.success(`Uploaded ${uploaded} file${uploaded === 1 ? '' : 's'}`)
 		return
@@ -71,17 +86,20 @@ function reportUploadSummary(summary: UploadSummary) {
 		toast.warning(
 			`Uploaded ${uploaded} · skipped ${errors.length}`,
 			{
-				description: errors.join('\n'),
+				description: truncateForToast(errors),
 				duration: 10000
 			}
 		)
 		return
 	}
 	if (uploaded === 0 && errors.length > 0) {
-		toast.error(`Skipped ${errors.length} file${errors.length === 1 ? '' : 's'}`, {
-			description: errors.join('\n'),
-			duration: 10000
-		})
+		toast.error(
+			`Skipped ${errors.length} file${errors.length === 1 ? '' : 's'}`,
+			{
+				description: truncateForToast(errors),
+				duration: 10000
+			}
+		)
 	}
 }
 
@@ -89,14 +107,16 @@ export function DocumentsSection({ entityType, entityId }: DocumentsSectionProps
 	const queryClient = useQueryClient()
 	const fileInputRef = useRef<HTMLInputElement>(null)
 	const [openId, setOpenId] = useState<string | null>(null)
-	// Tracks which specific documents are currently being deleted so the
-	// "Remove" button only spins on the row whose mutation is in flight,
-	// even when the user clicks delete on multiple rows rapidly.
 	const [deletingIds, setDeletingIds] = useState<Set<string>>(() => new Set())
 
-	const { data: documents, isLoading } = useQuery(
-		documentQueries.list({ entityType, entityId })
-	)
+	const {
+		data: listResult,
+		isLoading,
+		isError,
+		refetch
+	} = useQuery(documentQueries.list({ entityType, entityId }))
+	const documents = listResult?.rows
+	const totalCount = listResult?.totalCount ?? 0
 
 	const invalidateListAndDashboard = useCallback(() => {
 		queryClient.invalidateQueries({
@@ -105,11 +125,11 @@ export function DocumentsSection({ entityType, entityId }: DocumentsSectionProps
 		queryClient.invalidateQueries({ queryKey: ownerDashboardKeys.all })
 	}, [queryClient, entityType, entityId])
 
-	const uploadMutation = useMutation({
-		...documentMutations.upload(),
-		onSuccess: invalidateListAndDashboard
-	})
-
+	// No onSuccess here — a multi-file upload loop would otherwise fire one
+	// full list + dashboard refetch PER file. Invalidation happens once after
+	// the whole batch in handleFilesSelected.
+	const uploadMutation = useMutation(documentMutations.upload())
+	// Delete is single-document so keep onSuccess here.
 	const deleteMutation = useMutation({
 		...documentMutations.delete(),
 		onSuccess: invalidateListAndDashboard
@@ -128,7 +148,7 @@ export function DocumentsSection({ entityType, entityId }: DocumentsSectionProps
 					entityType,
 					entityId,
 					file,
-					// Browser-reported MIME — the documents row stores it in
+					// Browser-reported MIME. The documents row stores it in
 					// `mime_type`; `document_type` is a categorical column
 					// (defaults to 'other' for owner-uploaded files).
 					mimeType: file.type
@@ -140,6 +160,9 @@ export function DocumentsSection({ entityType, entityId }: DocumentsSectionProps
 				)
 			}
 		}
+
+		// Single invalidation after the whole batch (not once per file).
+		if (uploaded > 0) invalidateListAndDashboard()
 
 		reportUploadSummary({ uploaded, failures, rejected })
 
@@ -158,12 +181,15 @@ export function DocumentsSection({ entityType, entityId }: DocumentsSectionProps
 				storagePath: doc.file_path
 			})
 			toast.success('Document removed')
-			setOpenId(null)
 		} catch (err) {
 			toast.error('Failed to remove document', {
 				description: err instanceof Error ? err.message : 'Please try again.'
 			})
 		} finally {
+			// Always close the preview dialog and clear the in-flight flag,
+			// even on error. Leaving the dialog open on a failed delete shows
+			// a stale/broken preview the user can't escape.
+			setOpenId(null)
 			setDeletingIds(prev => {
 				const next = new Set(prev)
 				next.delete(doc.id)
@@ -174,12 +200,20 @@ export function DocumentsSection({ entityType, entityId }: DocumentsSectionProps
 
 	const docCount = documents?.length ?? 0
 	const isUploading = uploadMutation.isPending
+	const isTruncated = totalCount > (documents?.length ?? 0)
 
 	return (
 		<Card>
 			<CardHeader className="flex flex-row items-start justify-between space-y-0 gap-3">
 				<div>
-					<CardTitle>Documents{docCount > 0 ? ` (${docCount})` : ''}</CardTitle>
+					<CardTitle>
+						Documents
+						{totalCount > 0
+							? isTruncated
+								? ` (showing ${docCount} of ${totalCount})`
+								: ` (${totalCount})`
+							: ''}
+					</CardTitle>
 					<CardDescription>
 						Attach PDFs or images you want to keep alongside this property.
 					</CardDescription>
@@ -189,7 +223,6 @@ export function DocumentsSection({ entityType, entityId }: DocumentsSectionProps
 					variant="outline"
 					onClick={() => fileInputRef.current?.click()}
 					disabled={isUploading}
-					aria-haspopup="dialog"
 				>
 					{isUploading ? (
 						<>
@@ -220,6 +253,20 @@ export function DocumentsSection({ entityType, entityId }: DocumentsSectionProps
 							<Skeleton key={i} className="h-12 w-full" />
 						))}
 					</div>
+				) : isError ? (
+					<div className="text-center py-8">
+						<AlertTriangle className="size-8 mx-auto mb-2 text-destructive" />
+						<p className="mb-3 text-sm text-muted-foreground">
+							We couldn't load your documents.
+						</p>
+						<Button
+							size="sm"
+							variant="outline"
+							onClick={() => { void refetch() }}
+						>
+							Try again
+						</Button>
+					</div>
 				) : docCount === 0 ? (
 					<div className="text-center py-8 text-muted-foreground">
 						<FileText className="size-8 mx-auto mb-2 opacity-50" />
@@ -229,25 +276,33 @@ export function DocumentsSection({ entityType, entityId }: DocumentsSectionProps
 							variant="outline"
 							onClick={() => fileInputRef.current?.click()}
 							disabled={isUploading}
-							aria-haspopup="dialog"
 						>
 							<Plus className="size-4 mr-2" />
 							Upload your first document
 						</Button>
 					</div>
 				) : (
-					<ul className="divide-y divide-border">
-						{documents?.map(doc => (
-							<DocumentRow
-								key={doc.id}
-								doc={doc}
-								isOpen={openId === doc.id}
-								onOpenChange={open => setOpenId(open ? doc.id : null)}
-								onDelete={handleDelete}
-								isDeleting={deletingIds.has(doc.id)}
-							/>
-						))}
-					</ul>
+					<>
+						{isTruncated && (
+							<p className="text-xs text-muted-foreground mb-3">
+								Showing the {LIST_DISPLAY_LIMIT} most-recent documents.{' '}
+								{totalCount - (documents?.length ?? 0)} older documents are
+								not displayed. Pagination arrives in a later release.
+							</p>
+						)}
+						<ul className="divide-y divide-border">
+							{documents?.map(doc => (
+								<DocumentRow
+									key={doc.id}
+									doc={doc}
+									isOpen={openId === doc.id}
+									onOpenChange={open => setOpenId(open ? doc.id : null)}
+									onDelete={handleDelete}
+									isDeleting={deletingIds.has(doc.id)}
+								/>
+							))}
+						</ul>
+					</>
 				)}
 			</CardContent>
 		</Card>

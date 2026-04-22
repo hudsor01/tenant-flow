@@ -12,6 +12,10 @@ const mockToastSuccess = vi.fn()
 const mockToastError = vi.fn()
 const mockToastWarning = vi.fn()
 
+// Shape used by useMutation mock — lets individual tests override
+// `isPending` to exercise the uploading-state branch.
+let uploadPending = false
+
 function mutationKeyMatches(
 	actual: readonly unknown[] | undefined,
 	expected: readonly unknown[]
@@ -29,9 +33,6 @@ vi.mock('@tanstack/react-query', async () => {
 		...actual,
 		useQuery: () => mockUseQuery(),
 		useMutation: (opts: { mutationFn?: unknown }) => {
-			// Compare against the real mutationKey constant from
-			// mutation-keys.ts so future key reshuffling fails the test
-			// instead of silently routing to the wrong mock.
 			const optsRecord = opts as { mutationKey?: readonly unknown[] }
 			const isUpload = mutationKeyMatches(
 				optsRecord.mutationKey,
@@ -40,7 +41,7 @@ vi.mock('@tanstack/react-query', async () => {
 			return {
 				mutate: vi.fn(),
 				mutateAsync: isUpload ? mockUploadMutate : mockDeleteMutate,
-				isPending: false,
+				isPending: isUpload ? uploadPending : false,
 				isError: false,
 				isSuccess: false
 			}
@@ -68,23 +69,38 @@ function renderSection(): ReturnType<typeof render> {
 	return render(ui)
 }
 
+function emptyList() {
+	return { data: { rows: [], totalCount: 0 }, isLoading: false, isError: false }
+}
+
+function list(rows: unknown[], totalCount = rows.length) {
+	return {
+		data: { rows, totalCount },
+		isLoading: false,
+		isError: false
+	}
+}
+
 describe('DocumentsSection', () => {
 	beforeEach(() => {
 		vi.clearAllMocks()
+		uploadPending = false
 	})
 
 	it('hides empty-state CTA while the documents query is in flight', () => {
-		mockUseQuery.mockReturnValue({ data: undefined, isLoading: true })
+		mockUseQuery.mockReturnValue({
+			data: undefined,
+			isLoading: true,
+			isError: false
+		})
 		renderSection()
-		// During loading the empty-state CTA must not render — it should be
-		// either skeletons or the populated list, never the upload prompt.
 		expect(
 			screen.queryByText(/no documents attached/i)
 		).not.toBeInTheDocument()
 	})
 
 	it('renders empty state with upload CTA when no documents exist', () => {
-		mockUseQuery.mockReturnValue({ data: [], isLoading: false })
+		mockUseQuery.mockReturnValue(emptyList())
 		renderSection()
 		expect(screen.getByText(/no documents attached/i)).toBeInTheDocument()
 		expect(
@@ -93,8 +109,8 @@ describe('DocumentsSection', () => {
 	})
 
 	it('renders document rows with title fallback when title is null', () => {
-		mockUseQuery.mockReturnValue({
-			data: [
+		mockUseQuery.mockReturnValue(
+			list([
 				{
 					id: 'doc-1',
 					entity_type: 'property',
@@ -111,26 +127,25 @@ describe('DocumentsSection', () => {
 					created_at: '2026-04-15T00:00:00Z',
 					signed_url: 'https://example.com/signed/lease.pdf'
 				}
-			],
-			isLoading: false
-		})
+			])
+		)
 		renderSection()
-		// Falls back to file_path when title is null
 		expect(
 			screen.getByText('property/property-1/123-lease.pdf')
 		).toBeInTheDocument()
-		// Header shows count
 		expect(screen.getByText(/Documents \(1\)/)).toBeInTheDocument()
 	})
 
+	it('shows "showing X of Y" when the list is truncated at the display cap', () => {
+		mockUseQuery.mockReturnValue(list([{ id: 'doc-1', entity_type: 'property', entity_id: 'property-1', document_type: 'other', mime_type: 'application/pdf', file_path: 'a.pdf', storage_url: 'a.pdf', file_size: 1, title: 'A', tags: null, description: null, owner_user_id: 'o', created_at: '2026-04-15T00:00:00Z', signed_url: null }], 150))
+		renderSection()
+		expect(screen.getByText(/showing 1 of 150/i)).toBeInTheDocument()
+	})
+
 	it('skips uploads with unsupported MIME type and toasts the rejection', async () => {
-		mockUseQuery.mockReturnValue({ data: [], isLoading: false })
+		mockUseQuery.mockReturnValue(emptyList())
 		renderSection()
 
-		// userEvent.upload respects the input's accept attribute and silently
-		// drops files that don't match. Use fireEvent so the change handler
-		// receives the bad file and runs its own MIME validation — that's
-		// what we're testing.
 		const input = document.querySelector(
 			'input[type="file"]'
 		) as HTMLInputElement
@@ -146,14 +161,12 @@ describe('DocumentsSection', () => {
 	})
 
 	it('skips uploads exceeding the 10 MB cap', async () => {
-		mockUseQuery.mockReturnValue({ data: [], isLoading: false })
+		mockUseQuery.mockReturnValue(emptyList())
 		renderSection()
 
 		const input = document.querySelector(
 			'input[type="file"]'
 		) as HTMLInputElement
-
-		// 11 MB blob with an allowed MIME — only the size check should reject.
 		const tooLarge = new File(
 			[new Uint8Array(11 * 1024 * 1024)],
 			'huge.pdf',
@@ -170,5 +183,46 @@ describe('DocumentsSection', () => {
 			)
 		})
 		expect(mockUploadMutate).not.toHaveBeenCalled()
+	})
+
+	it('shows the "Uploading..." label and disables the button while the upload mutation is pending', () => {
+		uploadPending = true
+		mockUseQuery.mockReturnValue(emptyList())
+		renderSection()
+		const uploadingButton = screen.getByRole('button', { name: /uploading/i })
+		expect(uploadingButton).toBeDisabled()
+	})
+
+	it('accepts image/jpg MIME (iOS Safari quirk) in addition to image/jpeg', async () => {
+		mockUseQuery.mockReturnValue(emptyList())
+		renderSection()
+		const input = document.querySelector(
+			'input[type="file"]'
+		) as HTMLInputElement
+		const iosPhoto = new File([new Uint8Array(1024)], 'photo.jpg', {
+			type: 'image/jpg'
+		})
+		fireEvent.change(input, { target: { files: [iosPhoto] } })
+		await waitFor(() => {
+			expect(mockUploadMutate).toHaveBeenCalled()
+		})
+		// No rejection toast.
+		expect(mockToastError).not.toHaveBeenCalled()
+	})
+
+	it('renders an error state with Try again button when the query errors', () => {
+		mockUseQuery.mockReturnValue({
+			data: undefined,
+			isLoading: false,
+			isError: true,
+			refetch: vi.fn()
+		})
+		renderSection()
+		expect(
+			screen.getByText(/couldn't load your documents/i)
+		).toBeInTheDocument()
+		expect(
+			screen.getByRole('button', { name: /try again/i })
+		).toBeInTheDocument()
 	})
 })

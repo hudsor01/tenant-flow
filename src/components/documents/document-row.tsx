@@ -18,10 +18,9 @@ function isImage(mime: string | null | undefined): boolean {
 // Pre-migration rows stored browser MIME in document_type; post-migration
 // rows populate mime_type separately. Prefer mime_type but fall through to
 // document_type so legacy rows still render correctly.
-function resolveMime(doc: {
-	mime_type: string | null
-	document_type: string
-}): string | null {
+type MimeResolvable = Pick<DocumentRowData, 'mime_type' | 'document_type'>
+
+function resolveMime(doc: MimeResolvable): string | null {
 	if (doc.mime_type) return doc.mime_type
 	if (doc.document_type && doc.document_type.includes('/')) return doc.document_type
 	return null
@@ -99,6 +98,9 @@ export function DocumentRow({
 					onInteractOutside={e => {
 						if (isDeleting) e.preventDefault()
 					}}
+					onEscapeKeyDown={e => {
+						if (isDeleting) e.preventDefault()
+					}}
 				>
 					<DialogTitle className="sr-only">{displayName}</DialogTitle>
 					{doc.signed_url ? (
@@ -111,11 +113,15 @@ export function DocumentRow({
 								decoding="async"
 							/>
 						) : (
+							// The browser's built-in PDF viewer doesn't need
+							// scripts to render — dropping `allow-scripts`
+							// keeps a weaponised PDF (PDF JS APIs, embedded
+							// scripts) from executing inside the iframe.
 							<iframe
 								src={doc.signed_url}
 								title={displayName}
 								className="w-full h-[70vh] rounded-md"
-								sandbox="allow-same-origin allow-scripts allow-popups"
+								sandbox="allow-same-origin"
 							/>
 						)
 					) : (

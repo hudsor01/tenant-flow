@@ -31,8 +31,18 @@ const SIGNED_URL_TTL_SECONDS = 3600
 const LIST_STALE_TIME_MS = 45 * 60 * 1000 // 45 min
 const LIST_GC_TIME_MS = 55 * 60 * 1000 // 55 min — still inside TTL
 const STORAGE_BUCKET = 'tenant-documents'
+// Hard display cap. Matches `.limit()` in the query. Surface the true count
+// via `{ count: 'exact' }` so the header badge + truncation banner can show
+// "Showing 100 of N" when a property accumulates more than 100 documents.
+const LIST_DISPLAY_LIMIT = 100
 
 const logger = createLogger({ component: 'document-keys' })
+
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+
+function isUuid(value: string | undefined | null): boolean {
+	return !!value && UUID_RE.test(value)
+}
 
 // Phase 57 ships the property branch only.
 export type DocumentEntityType = 'property'
@@ -54,6 +64,12 @@ export interface DocumentRow {
 	signed_url: string | null
 }
 
+export interface DocumentListResult {
+	rows: DocumentRow[]
+	/** Total number of documents that match the query, before the display limit. */
+	totalCount: number
+}
+
 export interface DocumentUploadInput {
 	entityType: DocumentEntityType
 	entityId: string
@@ -68,42 +84,48 @@ export interface DocumentUploadInput {
 /**
  * Sanitize a filename for S3-key safety without nuking Unicode. We keep
  * letters (including non-ASCII), digits, and a small set of separators;
- * the regex only replaces characters that Supabase storage or common
- * browsers reject in a key path.
+ * the regex only replaces characters that Supabase storage, signed-URL
+ * generators, or common browsers might reject in a key path.
  */
 function sanitizeFilename(name: string): string {
-	return name.replace(/[\\/?%*:|"<>\s]+/g, '_')
+	return name.replace(/[\\/?%*:|"<>#&\s]+/g, '_')
 }
 
+// Call `all()` — factory pattern matches propertyQueries, tenantQueries,
+// leaseQueries, etc. (see src/hooks/api/query-keys/*.ts). Never a bare
+// tuple — that diverges from the rest of the project and bites consumers
+// copy-pasting an invalidation target.
 export const documentQueries = {
 	all: () => ['documents'] as const,
+	lists: () => [...documentQueries.all(), 'list'] as const,
 
 	list: (params: { entityType: DocumentEntityType; entityId: string }) =>
 		queryOptions({
 			queryKey: [
-				...documentQueries.all(),
-				'list',
+				...documentQueries.lists(),
 				params.entityType,
 				params.entityId
 			] as const,
-			queryFn: async (): Promise<DocumentRow[]> => {
+			queryFn: async (): Promise<DocumentListResult> => {
 				const supabase = createClient()
 
-				const { data, error } = await supabase
+				const { data, error, count } = await supabase
 					.from('documents')
 					.select(
-						'id, entity_type, entity_id, document_type, mime_type, file_path, storage_url, file_size, title, tags, description, owner_user_id, created_at'
+						'id, entity_type, entity_id, document_type, mime_type, file_path, storage_url, file_size, title, tags, description, owner_user_id, created_at',
+						{ count: 'exact' }
 					)
 					.eq('entity_type', params.entityType)
 					.eq('entity_id', params.entityId)
 					.order('created_at', { ascending: false })
-					.limit(100)
+					.limit(LIST_DISPLAY_LIMIT)
 
 				if (error) handlePostgrestError(error, 'documents')
 
 				const rows = (data ?? []) as Omit<DocumentRow, 'signed_url'>[]
+				const totalCount = count ?? rows.length
 				if (rows.length === 0) {
-					return rows.map(r => ({ ...r, signed_url: null }))
+					return { rows: [], totalCount }
 				}
 
 				const paths = rows.map(r => r.file_path)
@@ -117,16 +139,24 @@ export const documentQueries = {
 						urlByPath.set(entry.path, entry.signedUrl)
 					}
 				}
-				return rows.map(r => ({
-					...r,
-					signed_url: urlByPath.get(r.file_path) ?? null
-				}))
+				return {
+					rows: rows.map(r => ({
+						...r,
+						signed_url: urlByPath.get(r.file_path) ?? null
+					})),
+					totalCount
+				}
 			},
 			staleTime: LIST_STALE_TIME_MS,
 			gcTime: LIST_GC_TIME_MS,
-			enabled: !!params.entityId
+			// Guard against `undefined`/`"undefined"`/`"null"` route params so a
+			// bogus URL doesn't fire a PostgREST query that returns a UUID
+			// format error.
+			enabled: isUuid(params.entityId)
 		})
 }
+
+export { LIST_DISPLAY_LIMIT }
 
 export const documentMutations = {
 	upload: () =>
@@ -146,9 +176,7 @@ export const documentMutations = {
 
 				// Path: {entity_type}/{entity_id}/{timestamp}-{safeName}.
 				// Path-based storage RLS inspects the first two segments to
-				// verify ownership of the parent entity; the safe filename is
-				// only a cosmetic concern (strip characters that would break
-				// the S3 key path).
+				// verify ownership of the parent entity.
 				const timestamp = Date.now()
 				const safeName = sanitizeFilename(file.name)
 				const storagePath = `${entityType}/${entityId}/${timestamp}-${safeName}`
@@ -160,9 +188,6 @@ export const documentMutations = {
 						upsert: false
 					})
 				if (uploadError) {
-					// Log the raw storage error (not user-visible) and throw a
-					// safe message. Raw messages like "new row violates
-					// row-level security policy" shouldn't reach the toast.
 					logger.error('Document upload failed at storage layer', {
 						path: storagePath,
 						error: uploadError
@@ -214,29 +239,12 @@ export const documentMutations = {
 			mutationFn: async ({ id, storagePath }) => {
 				const supabase = createClient()
 
-				// Storage first, DB second — reverses prior ordering. If
-				// storage fails we abort without touching the DB, so the UI
-				// still shows the row and the user can retry. If DB delete
-				// then fails, the blob is already gone and a stale row
-				// remains (orphan-cleanup cron picks it up if the parent is
-				// also gone; otherwise the user can delete again with no
-				// visible change).
-				const { error: storageError } = await supabase.storage
-					.from(STORAGE_BUCKET)
-					.remove([storagePath])
-				if (storageError) {
-					logger.warn('Storage remove failed during delete', {
-						path: storagePath,
-						error: storageError
-					})
-					throw new Error("We couldn't remove the file. Please try again.")
-				}
-
-				// .select() returns the affected rows so we can detect
-				// RLS-blocked deletes — PostgREST returns no error when an
-				// RLS policy filters the row out, just zero affected rows.
-				// Without the .length check the UI would falsely report
-				// "Document removed" while the row stays put.
+				// DB-first delete. If RLS blocks the row (zero affected rows)
+				// we abort before touching storage, so the user can retry or
+				// get help without having a broken preview of a deleted blob.
+				// If storage remove fails AFTER a successful DB delete, the
+				// orphan-cleanup cron eventually GCs the blob (per the
+				// cleanup_orphan_documents function scope).
 				const { data: deletedRows, error: dbError } = await supabase
 					.from('documents')
 					.delete()
@@ -247,6 +255,19 @@ export const documentMutations = {
 					throw new Error(
 						'Document not found or you do not have permission to delete it.'
 					)
+				}
+
+				const { error: storageError } = await supabase.storage
+					.from(STORAGE_BUCKET)
+					.remove([storagePath])
+				if (storageError) {
+					// DB row is gone; orphaned blob now — log for operator
+					// visibility but don't surface to the user (the row is
+					// already gone from their view).
+					logger.warn('Storage remove failed after DB delete; blob is now orphaned', {
+						path: storagePath,
+						error: storageError
+					})
 				}
 			}
 		})
