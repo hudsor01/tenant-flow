@@ -110,6 +110,7 @@ export type Database = {
       documents: {
         Row: {
           created_at: string | null
+          description: string | null
           document_type: string
           entity_id: string
           entity_type: string
@@ -118,9 +119,12 @@ export type Database = {
           id: string
           owner_user_id: string | null
           storage_url: string
+          tags: string[] | null
+          title: string | null
         }
         Insert: {
           created_at?: string | null
+          description?: string | null
           document_type: string
           entity_id: string
           entity_type: string
@@ -129,9 +133,12 @@ export type Database = {
           id?: string
           owner_user_id?: string | null
           storage_url: string
+          tags?: string[] | null
+          title?: string | null
         }
         Update: {
           created_at?: string | null
+          description?: string | null
           document_type?: string
           entity_id?: string
           entity_type?: string
@@ -140,6 +147,8 @@ export type Database = {
           id?: string
           owner_user_id?: string | null
           storage_url?: string
+          tags?: string[] | null
+          title?: string | null
         }
         Relationships: []
       }
