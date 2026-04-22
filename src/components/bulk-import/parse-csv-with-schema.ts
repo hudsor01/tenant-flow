@@ -30,11 +30,17 @@ export function triggerCsvDownload(content: string, filename: string): void {
 	const link = document.createElement('a')
 	link.setAttribute('href', url)
 	link.setAttribute('download', filename)
-	// The link is detached from the DOM right after click so it never paints.
-	// No visibility styling needed (prior inline `style.visibility = hidden`
-	// was a CLAUDE.md rule violation).
-	link.click()
-	URL.revokeObjectURL(url)
+	// Firefox + Safari require the anchor to be in the DOM for the click to
+	// dispatch a download. `sr-only` hides it without an inline style (the
+	// prior `link.style.visibility = 'hidden'` tripped the CLAUDE.md rule).
+	link.className = 'sr-only'
+	document.body.appendChild(link)
+	try {
+		link.click()
+	} finally {
+		document.body.removeChild(link)
+		URL.revokeObjectURL(url)
+	}
 }
 
 export function getFileValidationError(file: File): string | null {

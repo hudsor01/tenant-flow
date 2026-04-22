@@ -75,17 +75,22 @@ export function BulkImportStepper<T>({
 	}, [])
 
 	const bulkImportMutation = useMutation({
-		mutationFn: async (rows: T[]): Promise<BulkImportResult> => {
+		mutationFn: async (
+			rows: Array<{ csvLine: number; parsed: T }>
+		): Promise<BulkImportResult> => {
 			const errors: Array<{ row: number; error: string }> = []
 			let succeeded = 0
 			let lastFlush = Date.now()
 
 			for (let i = 0; i < rows.length; i++) {
-				const row = rows[i] as T
-				const { error } = await config.insertRow(row)
+				const entry = rows[i]!
+				const { error } = await config.insertRow(entry.parsed)
 
 				if (error) {
-					errors.push({ row: i + 1, error: error.message })
+					// Record the real CSV line number so the "Retry failed" and
+					// "Download failed rows" paths can match on an identifier
+					// that survives filtering invalid rows out of the batch.
+					errors.push({ row: entry.csvLine, error: error.message })
 				} else {
 					succeeded++
 				}
@@ -172,7 +177,7 @@ export function BulkImportStepper<T>({
 		}
 	}
 
-	const runImport = async (rows: T[]) => {
+	const runImport = async (rows: Array<{ csvLine: number; parsed: T }>) => {
 		setResult(null)
 		setImportProgress(null)
 		onStepChange('confirm')
@@ -194,7 +199,7 @@ export function BulkImportStepper<T>({
 		if (!parseResult) return
 		const validRows = parseResult.rows
 			.filter(r => r.parsed !== null)
-			.map(r => r.parsed as T)
+			.map(r => ({ csvLine: r.row, parsed: r.parsed as T }))
 
 		if (validRows.length === 0) return
 		await runImport(validRows)
@@ -202,14 +207,14 @@ export function BulkImportStepper<T>({
 
 	const handleRetryFailed = async () => {
 		if (!result || !parseResult) return
-		// Map the row indices the mutation reported failing back to the
-		// parsed rows and retry those specifically. This is a user-visible
-		// path so correctness matters — we use the `row` number rather than
-		// array index in case anything re-ordered.
-		const failedRowNumbers = new Set(result.errors.map(e => e.row))
+		// The mutation records `error.row` as the CSV line number
+		// (parseResult.rows[i].row), so we can match directly against the
+		// original parsed rows without tracking array positions that shift
+		// when invalid rows are filtered out.
+		const failedCsvLines = new Set(result.errors.map(e => e.row))
 		const toRetry = parseResult.rows
-			.filter((r, idx) => failedRowNumbers.has(idx + 1) && r.parsed !== null)
-			.map(r => r.parsed as T)
+			.filter(r => failedCsvLines.has(r.row) && r.parsed !== null)
+			.map(r => ({ csvLine: r.row, parsed: r.parsed as T }))
 
 		if (toRetry.length === 0) return
 		await runImport(toRetry)
