@@ -117,6 +117,7 @@ export type Database = {
           file_path: string
           file_size: number | null
           id: string
+          mime_type: string | null
           owner_user_id: string | null
           storage_url: string
           tags: string[] | null
@@ -131,6 +132,7 @@ export type Database = {
           file_path: string
           file_size?: number | null
           id?: string
+          mime_type?: string | null
           owner_user_id?: string | null
           storage_url: string
           tags?: string[] | null
@@ -145,6 +147,7 @@ export type Database = {
           file_path?: string
           file_size?: number | null
           id?: string
+          mime_type?: string | null
           owner_user_id?: string | null
           storage_url?: string
           tags?: string[] | null
@@ -2209,6 +2212,18 @@ export type Database = {
           tablename: string
         }[]
       }
+      bulk_import_create_lease: {
+        Args: {
+          p_end_date: string
+          p_payment_day: number
+          p_primary_tenant_id: string
+          p_rent_amount: number
+          p_security_deposit: number
+          p_start_date: string
+          p_unit_id: string
+        }
+        Returns: string
+      }
       calculate_maintenance_metrics: {
         Args: {
           p_user_id?: string
@@ -2255,6 +2270,7 @@ export type Database = {
       }
       cleanup_old_security_events: { Args: never; Returns: number }
       cleanup_old_webhook_events: { Args: never; Returns: number }
+      cleanup_orphan_documents: { Args: never; Returns: undefined }
       cleanup_stripe_sync_history: { Args: never; Returns: undefined }
       confirm_lease_subscription: {
         Args: { p_lease_id: string; p_subscription_id: string }
