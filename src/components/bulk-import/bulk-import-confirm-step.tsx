@@ -3,24 +3,30 @@ import {
 	XCircle,
 	Loader2,
 	AlertTriangle,
-	PartyPopper
+	PartyPopper,
+	Download,
+	RotateCcw
 } from 'lucide-react'
 import { Progress } from '#components/ui/progress'
+import { Button } from '#components/ui/button'
 import type { BulkImportResult, ImportProgress } from '#types/api-contracts'
 import { cn } from '#lib/utils'
+import { triggerCsvDownload } from './parse-csv-with-schema'
 
 interface BulkImportConfirmStepProps {
 	entityLabel: { singular: string; plural: string }
 	isImporting: boolean
 	importProgress: ImportProgress | null
 	result: BulkImportResult | null
+	onRetryFailed?: () => void
 }
 
 export function BulkImportConfirmStep({
 	entityLabel,
 	isImporting,
 	importProgress,
-	result
+	result,
+	onRetryFailed
 }: BulkImportConfirmStepProps) {
 	const singularLower = entityLabel.singular.toLowerCase()
 	const pluralLower = entityLabel.plural.toLowerCase()
@@ -32,7 +38,12 @@ export function BulkImportConfirmStep({
 		<div className="space-y-5">
 			{/* Importing State */}
 			{isImporting && (
-				<div className="card-standard p-6 space-y-4">
+				<div
+					className="card-standard p-6 space-y-4"
+					role="status"
+					aria-live="polite"
+					aria-atomic="true"
+				>
 					<div className="flex items-center gap-4">
 						<div className="icon-container-md bg-primary/10 text-primary border border-primary/20 animate-pulse">
 							<Loader2 className="size-5 animate-spin" />
@@ -83,7 +94,13 @@ export function BulkImportConfirmStep({
 
 			{/* Result Panel */}
 			{result && (
-				<BulkImportResultPanel entityLabel={entityLabel} result={result} />
+				<div role="status" aria-live="polite">
+					<BulkImportResultPanel
+						entityLabel={entityLabel}
+						result={result}
+						{...(onRetryFailed ? { onRetryFailed } : {})}
+					/>
+				</div>
 			)}
 		</div>
 	)
@@ -91,10 +108,12 @@ export function BulkImportConfirmStep({
 
 function BulkImportResultPanel({
 	entityLabel,
-	result
+	result,
+	onRetryFailed
 }: {
 	entityLabel: { singular: string; plural: string }
 	result: BulkImportResult | null
+	onRetryFailed?: () => void
 }) {
 	if (!result) return null
 
@@ -102,6 +121,14 @@ function BulkImportResultPanel({
 	const hasPartialSuccess = result.imported > 0 && result.failed > 0
 	const isFailure =
 		!result.success || (result.imported === 0 && result.failed > 0)
+
+	const downloadFailedRowsCsv = () => {
+		const header = '"row","error"'
+		const body = result.errors
+			.map(e => `"${e.row}","${e.error.replace(/"/g, '""')}"`)
+			.join('\n')
+		triggerCsvDownload(`${header}\n${body}\n`, 'failed-rows.csv')
+	}
 
 	return (
 		<div
@@ -229,6 +256,50 @@ function BulkImportResultPanel({
 					</div>
 				</div>
 			</div>
+
+			{/* Error Details */}
+			{result.errors.length > 0 && (
+				<div className="space-y-2">
+					<p className="text-sm font-semibold">Failed rows</p>
+					<div className="card-standard max-h-56 overflow-y-auto">
+						<ul className="divide-y divide-border/40 text-xs">
+							{result.errors.map(err => (
+								<li
+									key={err.row}
+									className="px-3 py-2 flex items-start gap-2"
+								>
+									<span className="font-mono text-muted-foreground shrink-0">
+										#{err.row}
+									</span>
+									<span className="text-destructive">{err.error}</span>
+								</li>
+							))}
+						</ul>
+					</div>
+					<div className="flex flex-wrap gap-2">
+						<Button
+							size="sm"
+							variant="outline"
+							onClick={downloadFailedRowsCsv}
+							className="gap-2"
+						>
+							<Download className="size-3.5" />
+							Download failed rows
+						</Button>
+						{onRetryFailed && (
+							<Button
+								size="sm"
+								variant="outline"
+								onClick={onRetryFailed}
+								className="gap-2"
+							>
+								<RotateCcw className="size-3.5" />
+								Retry failed rows
+							</Button>
+						)}
+					</div>
+				</div>
+			)}
 		</div>
 	)
 }

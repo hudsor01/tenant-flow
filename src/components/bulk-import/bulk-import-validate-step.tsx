@@ -9,6 +9,7 @@ import {
 import { cn } from '#lib/utils'
 import type { ParsedRow } from '#types/api-contracts'
 import { Badge } from '#components/ui/badge'
+import { formatBytes } from '#lib/format-bytes'
 
 interface BulkImportValidateStepProps<T> {
 	file: File
@@ -17,16 +18,32 @@ interface BulkImportValidateStepProps<T> {
 		tooManyRows: boolean
 		totalRowCount: number
 	} | null
+	templateHeaders: readonly string[]
+}
+
+// Headers render as "Unit Number" rather than "unit_number" — same display
+// ruleset the Supabase dashboard uses for column names.
+function headerToLabel(header: string): string {
+	return header
+		.split('_')
+		.map(part => (part ? part[0]!.toUpperCase() + part.slice(1) : part))
+		.join(' ')
 }
 
 export function BulkImportValidateStep<T>({
 	file,
-	parseResult
+	parseResult,
+	templateHeaders
 }: BulkImportValidateStepProps<T>) {
 	const parsedData = parseResult?.rows ?? []
 	const errorCount = parsedData.filter(row => row.errors.length > 0).length
 	const validCount = parsedData.length - errorCount
 	const hasErrors = errorCount > 0
+
+	// Budget four preview columns + the status column. Users who want the
+	// full row inspect the CSV file directly; a 10-column table doesn't fit
+	// the dialog width on anything smaller than a desktop.
+	const previewHeaders = templateHeaders.slice(0, 4)
 
 	return (
 		<div className="space-y-5">
@@ -39,7 +56,7 @@ export function BulkImportValidateStep<T>({
 					<div className="flex-1 min-w-0">
 						<p className="text-sm font-semibold truncate">{file.name}</p>
 						<p className="text-xs text-muted-foreground">
-							{(file.size / 1024).toFixed(1)} KB • CSV file
+							{formatBytes(file.size)} • CSV file
 						</p>
 					</div>
 					<Badge
@@ -148,28 +165,21 @@ export function BulkImportValidateStep<T>({
 									<th className="px-4 py-3 text-left font-semibold text-xs uppercase tracking-wider text-muted-foreground w-16">
 										Row
 									</th>
-									<th className="px-4 py-3 text-left font-semibold text-xs uppercase tracking-wider text-muted-foreground">
-										Name
-									</th>
-									<th className="px-4 py-3 text-left font-semibold text-xs uppercase tracking-wider text-muted-foreground">
-										Address Line 1
-									</th>
-									<th className="px-4 py-3 text-left font-semibold text-xs uppercase tracking-wider text-muted-foreground">
-										City
-									</th>
-									<th className="px-4 py-3 text-left font-semibold text-xs uppercase tracking-wider text-muted-foreground w-20">
-										State
-									</th>
-									<th className="px-4 py-3 text-left font-semibold text-xs uppercase tracking-wider text-muted-foreground w-28">
-										Type
-									</th>
+									{previewHeaders.map(header => (
+										<th
+											key={header}
+											className="px-4 py-3 text-left font-semibold text-xs uppercase tracking-wider text-muted-foreground"
+										>
+											{headerToLabel(header)}
+										</th>
+									))}
 									<th className="px-4 py-3 text-left font-semibold text-xs uppercase tracking-wider text-muted-foreground w-32">
 										Status
 									</th>
 								</tr>
 							</thead>
 							<tbody className="divide-y divide-border/50">
-								{parsedData.map((row, index) => (
+								{parsedData.map(row => (
 									<tr
 										key={row.row}
 										className={cn(
@@ -178,51 +188,25 @@ export function BulkImportValidateStep<T>({
 												? 'bg-destructive/5 hover:bg-destructive/10'
 												: 'hover:bg-muted/30'
 										)}
-										style={{ animationDelay: `${index * 30}ms` }}
 									>
 										<td className="px-4 py-3 text-muted-foreground font-mono text-xs">
 											#{row.row}
 										</td>
-										<td
-											className={cn(
-												'px-4 py-3 font-medium',
-												!row.data.name && 'text-muted-foreground italic'
-											)}
-										>
-											{row.data.name || '\u2014'}
-										</td>
-										<td
-											className={cn(
-												'px-4 py-3',
-												!row.data.address_line1 && 'text-muted-foreground italic'
-											)}
-										>
-											{row.data.address_line1 || '\u2014'}
-										</td>
-										<td
-											className={cn(
-												'px-4 py-3',
-												!row.data.city && 'text-muted-foreground italic'
-											)}
-										>
-											{row.data.city || '\u2014'}
-										</td>
-										<td
-											className={cn(
-												'px-4 py-3 font-mono uppercase',
-												!row.data.state && 'text-muted-foreground italic'
-											)}
-										>
-											{row.data.state || '\u2014'}
-										</td>
-										<td
-											className={cn(
-												'px-4 py-3 text-xs',
-												!row.data.property_type && 'text-muted-foreground italic'
-											)}
-										>
-											{row.data.property_type || '\u2014'}
-										</td>
+										{previewHeaders.map(header => {
+											const value = row.data[header]
+											const empty = !value
+											return (
+												<td
+													key={header}
+													className={cn(
+														'px-4 py-3 max-w-48 truncate',
+														empty && 'text-muted-foreground italic'
+													)}
+												>
+													{empty ? '\u2014' : value}
+												</td>
+											)
+										})}
 										<td className="px-4 py-3">
 											{row.errors.length > 0 ? (
 												<div className="space-y-1">

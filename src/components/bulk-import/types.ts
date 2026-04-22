@@ -8,7 +8,9 @@
  *   - entityLabel — "Property"/"Properties" used in step titles and the
  *     commit button label.
  *   - templateHeaders/templateSampleRows/templateFilename — CSV template
- *     the user downloads before uploading.
+ *     the user downloads before uploading. templateSampleRows is a tuple
+ *     of strings that must have the same length as templateHeaders — see
+ *     `templateSampleRows` type below.
  *   - parseAndValidate — CSV text → validated rows using the entity's
  *     Zod schema.
  *   - insertRow — single-row PostgREST insert. The stepper loops row-by-
@@ -30,6 +32,14 @@ export interface BulkImportConfig<TInsert> {
 	entityLabel: { singular: string; plural: string }
 	templateFilename: string
 	templateHeaders: readonly string[]
+	/**
+	 * Each sample row is a plain string tuple — same length as
+	 * templateHeaders. Enforced via a length-check in the unit tests for
+	 * each entity config (`properties.bulk-import-config.test.ts` etc.).
+	 * We don't encode the length on the type because TypeScript's tuple
+	 * inference collapses readonly arrays to `readonly string[]` through
+	 * the config factory return type.
+	 */
 	templateSampleRows: readonly (readonly string[])[]
 	requiredFields: string
 	optionalFields?: string

@@ -19,7 +19,7 @@ import {
 	CheckCheck,
 	ArrowLeft
 } from 'lucide-react'
-import { useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { createLogger } from '#lib/frontend-logger'
 import type {
@@ -36,18 +36,25 @@ import type { BulkImportConfig } from './types'
 
 const logger = createLogger({ component: 'BulkImportStepper' })
 
+// Flush progress at most every ~120 ms of wall-clock + every 5 rows to avoid
+// the 100-re-render storm when a user imports 100 rows back-to-back.
+const PROGRESS_BATCH_EVERY_ROWS = 5
+const PROGRESS_BATCH_EVERY_MS = 120
+
 interface BulkImportStepperProps<T> {
 	config: BulkImportConfig<T>
 	currentStep: ImportStep
 	onStepChange: (step: ImportStep) => void
 	onComplete: () => void
+	onPendingChange?: (pending: boolean) => void
 }
 
 export function BulkImportStepper<T>({
 	config,
 	currentStep,
 	onStepChange,
-	onComplete
+	onComplete,
+	onPendingChange
 }: BulkImportStepperProps<T>) {
 	const [file, setFile] = useState<File | null>(null)
 	const [parseResult, setParseResult] = useState<{
@@ -58,28 +65,51 @@ export function BulkImportStepper<T>({
 	const [importProgress, setImportProgress] = useState<ImportProgress | null>(null)
 	const [result, setResult] = useState<BulkImportResult | null>(null)
 	const queryClient = useQueryClient()
+	const mountedRef = useRef(true)
+
+	useEffect(() => {
+		mountedRef.current = true
+		return () => {
+			mountedRef.current = false
+		}
+	}, [])
 
 	const bulkImportMutation = useMutation({
-		mutationFn: async (rows: T[]): Promise<BulkImportResult> => {
+		mutationFn: async (
+			rows: Array<{ csvLine: number; parsed: T }>
+		): Promise<BulkImportResult> => {
 			const errors: Array<{ row: number; error: string }> = []
 			let succeeded = 0
+			let lastFlush = Date.now()
 
 			for (let i = 0; i < rows.length; i++) {
-				const row = rows[i] as T
-				const { error } = await config.insertRow(row)
+				const entry = rows[i]!
+				const { error } = await config.insertRow(entry.parsed)
 
 				if (error) {
-					errors.push({ row: i + 1, error: error.message })
+					// Record the real CSV line number so the "Retry failed" and
+					// "Download failed rows" paths can match on an identifier
+					// that survives filtering invalid rows out of the batch.
+					errors.push({ row: entry.csvLine, error: error.message })
 				} else {
 					succeeded++
 				}
 
-				setImportProgress({
-					current: i + 1,
-					total: rows.length,
-					succeeded,
-					failed: errors.length
-				})
+				const now = Date.now()
+				const isLast = i === rows.length - 1
+				const hitRowBatch = (i + 1) % PROGRESS_BATCH_EVERY_ROWS === 0
+				const hitTimeBatch = now - lastFlush >= PROGRESS_BATCH_EVERY_MS
+				if (isLast || hitRowBatch || hitTimeBatch) {
+					if (mountedRef.current) {
+						setImportProgress({
+							current: i + 1,
+							total: rows.length,
+							succeeded,
+							failed: errors.length
+						})
+					}
+					lastFlush = now
+				}
 			}
 
 			return {
@@ -94,12 +124,17 @@ export function BulkImportStepper<T>({
 				await queryClient.invalidateQueries({ queryKey: key })
 			}
 
+			if (!mountedRef.current) return
 			setResult(data)
+			// Only auto-close on full success. Partial success or failure keeps
+			// the dialog open so the user can read per-row errors and decide
+			// whether to retry. 5 s gives enough time to read the success badge.
 			if (data.success && data.imported > 0) {
 				setTimeout(() => {
+					if (!mountedRef.current) return
 					onComplete()
 					resetDialog()
-				}, 2000)
+				}, 5000)
 			}
 		},
 		onError: error => {
@@ -107,17 +142,23 @@ export function BulkImportStepper<T>({
 				error,
 				entity: config.entityLabel.plural
 			})
-			setImportProgress(null)
+			if (mountedRef.current) setImportProgress(null)
 		}
 	})
 
-	const resetDialog = () => {
+	// Lift pending state so the dialog can block close-during-import without
+	// reaching into mutation internals.
+	useEffect(() => {
+		onPendingChange?.(bulkImportMutation.isPending)
+	}, [bulkImportMutation.isPending, onPendingChange])
+
+	const resetDialog = useCallback(() => {
 		setFile(null)
 		setResult(null)
 		onStepChange('upload')
 		setParseResult(null)
 		setImportProgress(null)
-	}
+	}, [onStepChange])
 
 	const handleFileSelect = async (selectedFile: File) => {
 		setFile(selectedFile)
@@ -136,30 +177,47 @@ export function BulkImportStepper<T>({
 		}
 	}
 
-	const handleUpload = async () => {
-		if (!parseResult) return
-		const validRows = parseResult.rows
-			.filter(r => r.parsed !== null)
-			.map(r => r.parsed as T)
-
-		if (validRows.length === 0) return
-
+	const runImport = async (rows: Array<{ csvLine: number; parsed: T }>) => {
 		setResult(null)
 		setImportProgress(null)
 		onStepChange('confirm')
-
 		try {
 			logger.info('Starting bulk import', {
-				rowCount: validRows.length,
+				rowCount: rows.length,
 				entity: config.entityLabel.plural
 			})
-			await bulkImportMutation.mutateAsync(validRows)
-			logger.info('Bulk import completed successfully', {
+			await bulkImportMutation.mutateAsync(rows)
+			logger.info('Bulk import completed', {
 				entity: config.entityLabel.plural
 			})
 		} catch (error) {
 			logger.error('Bulk import mutation failed', { error })
 		}
+	}
+
+	const handleUpload = async () => {
+		if (!parseResult) return
+		const validRows = parseResult.rows
+			.filter(r => r.parsed !== null)
+			.map(r => ({ csvLine: r.row, parsed: r.parsed as T }))
+
+		if (validRows.length === 0) return
+		await runImport(validRows)
+	}
+
+	const handleRetryFailed = async () => {
+		if (!result || !parseResult) return
+		// The mutation records `error.row` as the CSV line number
+		// (parseResult.rows[i].row), so we can match directly against the
+		// original parsed rows without tracking array positions that shift
+		// when invalid rows are filtered out.
+		const failedCsvLines = new Set(result.errors.map(e => e.row))
+		const toRetry = parseResult.rows
+			.filter(r => failedCsvLines.has(r.row) && r.parsed !== null)
+			.map(r => ({ csvLine: r.row, parsed: r.parsed as T }))
+
+		if (toRetry.length === 0) return
+		await runImport(toRetry)
 	}
 
 	const handleBack = () => {
@@ -177,7 +235,7 @@ export function BulkImportStepper<T>({
 	const hasErrors = parseResult?.rows.some(r => r.errors.length > 0) ?? false
 
 	const triggerCls = cn(
-		'w-full rounded-lg p-3 transition-all duration-200 hover:bg-background/80',
+		'w-full rounded-lg p-3 transition-all duration-200 hover:bg-muted/60',
 		'data-[state=active]:bg-background data-[state=active]:shadow-sm data-[state=completed]:bg-success/5'
 	)
 	const indicatorCls = cn(
@@ -249,7 +307,11 @@ export function BulkImportStepper<T>({
 					className="animate-in fade-in slide-in-from-right-4 duration-300"
 				>
 					{file && (
-						<BulkImportValidateStep file={file} parseResult={parseResult} />
+						<BulkImportValidateStep
+							file={file}
+							parseResult={parseResult}
+							templateHeaders={config.templateHeaders}
+						/>
 					)}
 				</StepperContent>
 
@@ -262,6 +324,7 @@ export function BulkImportStepper<T>({
 						isImporting={bulkImportMutation.isPending}
 						importProgress={importProgress}
 						result={result}
+						onRetryFailed={handleRetryFailed}
 					/>
 				</StepperContent>
 			</StepperRoot>
@@ -291,6 +354,12 @@ export function BulkImportStepper<T>({
 						className="gap-2 min-w-32"
 					>
 						Import {validRowCount} {config.entityLabel.plural}
+					</Button>
+				)}
+
+				{currentStep === 'confirm' && result && (
+					<Button variant="outline" onClick={() => { onComplete(); resetDialog() }}>
+						Close
 					</Button>
 				)}
 			</DialogFooter>

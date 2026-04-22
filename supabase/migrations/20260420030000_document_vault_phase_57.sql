@@ -35,10 +35,11 @@ comment on column public.documents.description is
 
 -- Backfill title from file_path basename for existing rows.
 -- Currently 0 rows in prod (table dormant pre-Phase 57), but cheap insurance
--- for `supabase db reset` replay or future seeds.
+-- for `supabase db reset` replay or future seeds. Guard against NULL
+-- file_path so the regex doesn't coerce a NULL into empty-string title.
 update public.documents
 set title = regexp_replace(file_path, '^.*/', '')
-where title is null;
+where title is null and file_path is not null;
 
 -- ============================================================================
 -- 2. tenant-documents bucket — explicit MIME allowlist

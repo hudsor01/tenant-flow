@@ -77,4 +77,29 @@ describe('parseCsvWithSchema', () => {
 		expect(result.rows[1]?.parsed).toBeNull()
 		expect(result.rows[1]?.errors[0]?.message).toMatch(/empty or invalid/i)
 	})
+
+	it('reports row numbers as CSV line numbers (header = line 1)', () => {
+		const csv = 'name,count\nalpha,1\n,5\ngamma,3\n'
+		const result = parseCsvWithSchema(csv, { schema: sampleSchema, mapRow })
+		// First data row = CSV line 2, second = line 3, third = line 4.
+		expect(result.rows.map(r => r.row)).toEqual([2, 3, 4])
+	})
+
+	it('strips UTF-8 BOM from the first header (Excel-on-Windows export)', () => {
+		const csv = '\uFEFFname,count\nalpha,1\n'
+		const result = parseCsvWithSchema(csv, { schema: sampleSchema, mapRow })
+		expect(result.rows).toHaveLength(1)
+		expect(result.rows[0]?.parsed).toEqual({ name: 'alpha', count: 1 })
+	})
+
+	it('handles quoted fields with embedded commas and quotes', () => {
+		const csv = 'name,count\n"Smith, John",5\n"She said ""hi""",7\n'
+		const result = parseCsvWithSchema(csv, { schema: sampleSchema, mapRow })
+		expect(result.rows).toHaveLength(2)
+		expect(result.rows[0]?.parsed).toEqual({ name: 'Smith, John', count: 5 })
+		expect(result.rows[1]?.parsed).toEqual({
+			name: 'She said "hi"',
+			count: 7
+		})
+	})
 })

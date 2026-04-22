@@ -11,6 +11,8 @@
  */
 
 import { createClient } from '#lib/supabase/client'
+import { getCachedUser } from '#lib/supabase/get-cached-user'
+import { requireOwnerUserId } from '#lib/require-owner-user-id'
 import { propertyCreateSchema } from '#lib/validation/properties'
 import type { PropertyCreate } from '#lib/validation/properties'
 import { parseCsvWithSchema } from '#components/bulk-import/parse-csv-with-schema'
@@ -77,19 +79,17 @@ export function propertyBulkImportConfig(): BulkImportConfig<PropertyCreate> {
 			}),
 		insertRow: async row => {
 			const supabase = createClient()
-			const {
-				data: { user }
-			} = await supabase.auth.getUser()
-			if (!user) return { error: new Error('Not authenticated') }
+			const user = await getCachedUser()
+			const ownerId = requireOwnerUserId(user?.id)
 			const { error } = await supabase
 				.from('properties')
-				.insert({ ...row, owner_user_id: user.id })
+				.insert({ ...row, owner_user_id: ownerId })
 			return { error: error ? new Error(error.message) : null }
 		},
-		invalidateKeys: [
-			propertyQueries.lists(),
-			propertyQueries.all(),
-			ownerDashboardKeys.all
-		]
+		// `propertyQueries.lists()` is a prefix of `propertyQueries.all()`, so
+		// invalidating `all` already invalidates `lists`. Same applies to
+		// tenant/unit/lease configs — we invalidate `all` plus the dashboard
+		// (which cross-cuts every entity).
+		invalidateKeys: [propertyQueries.all(), ownerDashboardKeys.all]
 	}
 }

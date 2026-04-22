@@ -37,8 +37,9 @@ export function BulkImportUploadStep<T>({
 	}
 
 	const handleFileAccept = (file: File) => {
+		// Size + type only — file names can contain PII (e.g.
+		// "tenants_smith_family.csv"). The logger feeds Sentry/PostHog.
 		logger.info('CSV file accepted', {
-			name: file.name,
 			size: file.size,
 			type: file.type,
 			entity: config.entityLabel.plural
@@ -46,11 +47,8 @@ export function BulkImportUploadStep<T>({
 		onFileSelect(file)
 	}
 
-	const handleFileReject = (file: File, message: string) => {
+	const handleFileReject = (_file: File, message: string) => {
 		logger.warn('CSV file rejected', {
-			name: file.name,
-			size: file.size,
-			type: file.type,
 			reason: message,
 			entity: config.entityLabel.plural
 		})

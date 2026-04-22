@@ -807,10 +807,4 @@ export interface ImportProgress {
 	failed: number
 }
 
-export interface BulkImportStepperProps {
-	currentStep: ImportStep
-	onStepChange: (step: ImportStep) => void
-	modalId: string
-}
-
 export const DEFAULT_RETRY_ATTEMPTS = 3
