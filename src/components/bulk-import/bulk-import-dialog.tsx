@@ -48,6 +48,10 @@ export function BulkImportDialog<T>({
 		[importPending]
 	)
 
+	// Memoize so the stepper's auto-close `useEffect` doesn't tear down
+	// and recreate the 5-second timer on every parent re-render.
+	const handleComplete = useCallback(() => setOpen(false), [])
+
 	return (
 		<>
 			<Button
@@ -77,7 +81,7 @@ export function BulkImportDialog<T>({
 						config={config}
 						currentStep={currentStep}
 						onStepChange={setCurrentStep}
-						onComplete={() => setOpen(false)}
+						onComplete={handleComplete}
 						onPendingChange={setImportPending}
 					/>
 				</DialogContent>
