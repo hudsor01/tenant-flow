@@ -1,7 +1,8 @@
 
 import { Plus, Building2, Search } from 'lucide-react'
 import { Button } from '#components/ui/button'
-import { PropertyBulkImportDialog } from './bulk-import-dialog'
+import { BulkImportDialog } from '#components/bulk-import/bulk-import-dialog'
+import { propertyBulkImportConfig } from './bulk-import-config'
 import {
 	Empty,
 	EmptyDescription,
@@ -29,7 +30,7 @@ export function EmptyProperties({ onAddProperty }: EmptyPropertiesProps) {
 				</EmptyDescription>
 			</EmptyHeader>
 			<div className="flex items-center gap-3 mt-2">
-				<PropertyBulkImportDialog />
+				<BulkImportDialog config={propertyBulkImportConfig()} />
 				<Button
 					onClick={onAddProperty}
 					className="gap-2"
@@ -57,7 +58,7 @@ export function PropertiesHeader({ onAddProperty }: PropertiesHeaderProps) {
 				</p>
 			</div>
 			<div className="flex items-center gap-2">
-				<PropertyBulkImportDialog />
+				<BulkImportDialog config={propertyBulkImportConfig()} />
 				<Button
 					onClick={onAddProperty}
 					className="gap-2 min-h-11"

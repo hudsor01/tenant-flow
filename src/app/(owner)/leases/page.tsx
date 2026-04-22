@@ -40,6 +40,8 @@ import { LeasesTable } from '#components/leases/table/leases-table'
 import { LeasesStatCards } from './leases-stat-cards'
 import { LeasesDialogs } from '#components/leases/dialogs/leases-dialogs'
 import { useLeasesStore } from '#stores/leases-store'
+import { BulkImportDialog } from '#components/bulk-import/bulk-import-dialog'
+import { leaseBulkImportConfig } from '#components/leases/bulk-import-config'
 
 export default function LeasesPage() {
 	const router = useRouter()
@@ -194,13 +196,19 @@ export default function LeasesPage() {
 							Manage lease agreements and renewals
 						</p>
 					</div>
-					<Link
-						href="/leases/new"
-						className="inline-flex items-center gap-2 px-4 py-2.5 bg-primary hover:bg-primary/90 text-primary-foreground font-medium rounded-md transition-colors"
-					>
-						<Plus className="w-4 h-4" />
-						New Lease
-					</Link>
+					<div className="flex items-center gap-2">
+						<BulkImportDialog
+							config={leaseBulkImportConfig()}
+							triggerLabel="Import Leases"
+						/>
+						<Link
+							href="/leases/new"
+							className="inline-flex items-center gap-2 px-4 py-2.5 bg-primary hover:bg-primary/90 text-primary-foreground font-medium rounded-md transition-colors"
+						>
+							<Plus className="w-4 h-4" />
+							New Lease
+						</Link>
+					</div>
 				</div>
 			</BlurFade>
 

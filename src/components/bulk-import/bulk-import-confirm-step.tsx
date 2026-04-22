@@ -10,16 +10,20 @@ import type { BulkImportResult, ImportProgress } from '#types/api-contracts'
 import { cn } from '#lib/utils'
 
 interface BulkImportConfirmStepProps {
+	entityLabel: { singular: string; plural: string }
 	isImporting: boolean
 	importProgress: ImportProgress | null
 	result: BulkImportResult | null
 }
 
 export function BulkImportConfirmStep({
+	entityLabel,
 	isImporting,
 	importProgress,
 	result
 }: BulkImportConfirmStepProps) {
+	const singularLower = entityLabel.singular.toLowerCase()
+	const pluralLower = entityLabel.plural.toLowerCase()
 	const progressPercent = importProgress
 		? (importProgress.current / importProgress.total) * 100
 		: 0
@@ -34,10 +38,10 @@ export function BulkImportConfirmStep({
 							<Loader2 className="size-5 animate-spin" />
 						</div>
 						<div className="flex-1">
-							<p className="text-sm font-semibold">Importing properties...</p>
+							<p className="text-sm font-semibold">Importing {pluralLower}...</p>
 							<p className="text-xs text-muted-foreground mt-0.5">
 								{importProgress
-									? `Importing property ${importProgress.current} of ${importProgress.total}`
+									? `Importing ${singularLower} ${importProgress.current} of ${importProgress.total}`
 									: 'Preparing import...'}
 							</p>
 						</div>
@@ -78,14 +82,18 @@ export function BulkImportConfirmStep({
 			)}
 
 			{/* Result Panel */}
-			{result && <BulkImportResultPanel result={result} />}
+			{result && (
+				<BulkImportResultPanel entityLabel={entityLabel} result={result} />
+			)}
 		</div>
 	)
 }
 
 function BulkImportResultPanel({
+	entityLabel,
 	result
 }: {
+	entityLabel: { singular: string; plural: string }
 	result: BulkImportResult | null
 }) {
 	if (!result) return null
@@ -145,12 +153,12 @@ function BulkImportResultPanel({
 					<p className="text-sm text-muted-foreground mt-1">
 						{isSuccess &&
 							!hasPartialSuccess &&
-							'Your properties have been added to your portfolio.'}
+							`Your ${entityLabel.plural.toLowerCase()} have been added.`}
 						{hasPartialSuccess &&
-							'Some properties were imported, but others had errors.'}
+							`Some ${entityLabel.plural.toLowerCase()} were imported, but others had errors.`}
 						{isFailure &&
 							!hasPartialSuccess &&
-							'No properties were imported due to errors.'}
+							`No ${entityLabel.plural.toLowerCase()} were imported due to errors.`}
 					</p>
 				</div>
 			</div>
@@ -183,7 +191,10 @@ function BulkImportResultPanel({
 							{result.imported}
 						</p>
 						<p className="text-xs text-muted-foreground">
-							{result.imported === 1 ? 'Property' : 'Properties'} imported
+							{result.imported === 1
+								? entityLabel.singular
+								: entityLabel.plural}{' '}
+							imported
 						</p>
 					</div>
 				</div>

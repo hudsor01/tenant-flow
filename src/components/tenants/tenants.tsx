@@ -13,6 +13,8 @@ import { TenantStats } from './tenant-stats'
 import { TenantQuickActions } from './tenant-quick-actions'
 import { TenantToolbar } from './tenant-toolbar'
 import { BlurFade } from '#components/ui/blur-fade'
+import { BulkImportDialog } from '#components/bulk-import/bulk-import-dialog'
+import { tenantBulkImportConfig } from './bulk-import-config'
 
 const logger = createLogger({ component: 'Tenants' })
 
@@ -140,13 +142,19 @@ export function Tenants({
 							Manage your tenant records
 						</p>
 					</div>
-					<button
-						onClick={handleAddClick}
-						className="inline-flex items-center gap-2 px-4 py-2.5 bg-primary hover:bg-primary/90 text-primary-foreground font-medium rounded-md transition-colors"
-					>
-						<UserPlus className="w-4 h-4" />
-						Add Tenant
-					</button>
+					<div className="flex items-center gap-2">
+						<BulkImportDialog
+							config={tenantBulkImportConfig()}
+							triggerLabel="Import Tenants"
+						/>
+						<button
+							onClick={handleAddClick}
+							className="inline-flex items-center gap-2 px-4 py-2.5 bg-primary hover:bg-primary/90 text-primary-foreground font-medium rounded-md transition-colors"
+						>
+							<UserPlus className="w-4 h-4" />
+							Add Tenant
+						</button>
+					</div>
 				</div>
 			</BlurFade>
 

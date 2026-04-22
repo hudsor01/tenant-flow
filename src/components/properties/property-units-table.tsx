@@ -24,6 +24,8 @@ import { EditUnitPanel } from './edit-unit-panel'
 import { UnitTableRow } from './property-units-table-row'
 import { SingleUnitNoData, SingleUnitCard } from './property-units-single-view'
 import { UnitDeleteDialog } from './property-units-delete-dialog'
+import { BulkImportDialog } from '#components/bulk-import/bulk-import-dialog'
+import { unitBulkImportConfig } from '#components/units/bulk-import-config'
 
 interface PropertyUnitsTableProps {
 	propertyId: string
@@ -148,13 +150,19 @@ export function PropertyUnitsTable({
 						<Home className="size-5" />
 						Units ({unitList.length})
 					</CardTitle>
-					<Button
-						onClick={() => setAddUnitOpen(true)}
-						className="gap-2 min-h-11"
-					>
-						<Plus className="size-4" />
-						Add Unit
-					</Button>
+					<div className="flex items-center gap-2">
+						<BulkImportDialog
+							config={unitBulkImportConfig(propertyId)}
+							triggerLabel="Import Units"
+						/>
+						<Button
+							onClick={() => setAddUnitOpen(true)}
+							className="gap-2 min-h-11"
+						>
+							<Plus className="size-4" />
+							Add Unit
+						</Button>
+					</div>
 				</CardHeader>
 				<CardContent>
 					{unitList.length === 0 ? (
