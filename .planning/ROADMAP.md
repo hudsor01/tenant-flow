@@ -104,20 +104,20 @@ TenantFlow is a multi-tenant property management SaaS platform for property owne
 
 ## Active Milestone
 
-**v2.3 Document Vault + Bulk-Import Extension** — Phases 57–58 (scoped 2026-04-20, target ship 2026-05-04).
-
-- [ ] Phase 57: Document vault MVP (1w) — upload/list/preview/delete for property-scoped documents using signed URLs + path-based storage RLS. Schema migration adds `title`, `tags`, `description` to `documents`; new `documentQueries` + `documentMutations`; upload surfaces on `/properties/[id]`.
-- [ ] Phase 58: CSV importer extension (3d) — extract shared stepper from property-importer into `src/components/bulk-import/`; wire entry points for tenants (`/tenants`), units (`/properties/[id]/units`), leases (`/leases`). Reuses existing Zod validation schemas.
-
-Both phases derived from v2.2 Phase 54 competitor review mining (Avail/Buildium "can't find documents" pain + Buildium/AppFolio switching-cost barrier). See `milestones/v2.3-ROADMAP.md`.
+*None.* Next milestone TBD.
 
 ## Recently Shipped
 
-**v2.0 Revenue Gates** — both paywalls live 2026-04-20.
-- [x] Phase 45: DocuSeal e-sign gate (PR #604, shipped 2026-04-19)
-- [x] Phase 46: Premium reports gate (PR #616 + audit fix PR #617, shipped 2026-04-20)
-- [ ] Operator action pending: `supabase functions deploy docuseal export-report generate-pdf` — single pass picks up both Phase 46's gate logic AND the waitUntil fix for gate_events inserts
-- Battle-proven criteria: ≥5 `esign_gate` upgrades in 7d window + ≥10 `reports_gate` upgrades in 14d window (measured via admin Gate Conversion Stats page)
+**v2.3 Document Vault + Bulk-Import Extension** — fully shipped + deployed 2026-04-21.
+- [x] Phase 57: Document vault MVP (PR #620) — property-scoped upload/list/preview/delete using signed URLs + path-based storage RLS. Migration `20260420030000` applied via MCP (title/tags/description cols + tenant-documents bucket MIME allowlist + 3 storage RLS policies). Types regen PR #622.
+- [x] Phase 58: Bulk-import extension (PR #621) — generic `src/components/bulk-import/` stepper now powers property/tenant/unit/lease importers. 5 Sentry findings caught and fixed mid-PR.
+- See `milestones/v2.3-ROADMAP.md`.
+
+**v2.0 Revenue Gates** — both paywalls deployed 2026-04-21.
+- [x] Phase 45: DocuSeal e-sign gate (PR #604)
+- [x] Phase 46: Premium reports gate (PR #616 + audit fix PR #617)
+- [x] Operator deploy complete: docuseal v74, export-report v77, generate-pdf v70 all redeployed via MCP with `EdgeRuntime.waitUntil` fix so gate_events rows actually land
+- Battle-proven criteria: ≥5 `esign_gate` upgrades in 7d + ≥10 `reports_gate` upgrades in 14d (measured via admin Gate Conversion Stats page)
 
 **v2.2 Landlord-First Positioning** — fully shipped 2026-04-20.
 - [x] Phase 52: Dashboard copy + component rename (PR #609)
