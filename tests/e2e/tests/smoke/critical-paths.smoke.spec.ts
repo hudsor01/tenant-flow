@@ -116,24 +116,31 @@ test.describe('🚨 CRITICAL PATH SMOKE TESTS 🚨', () => {
 		// Navigate to dashboard
 		await page.goto(`${BASE_URL}/dashboard`)
 
-		// Verify dashboard loads - accept any of these as success
-		// Note: Empty state shows "Welcome to TenantFlow" instead of stats
+		// Verify dashboard loads — accept any of these as success. Empty state
+		// shows "Welcome to TenantFlow" instead of stats; full dashboard
+		// shows "Total Properties" or the wrapper [data-testid].
+		// Timeout of 20s accommodates cold Turbopack route compile in CI;
+		// first-hit /dashboard typically compiles in 5-15s on ubuntu-latest.
 		const dashboardLoaded = await Promise.race([
 			page
 				.locator('h1:has-text("Dashboard")')
-				.waitFor({ timeout: 5000 })
+				.waitFor({ timeout: 20000 })
 				.then(() => true),
 			page
 				.locator('[data-testid="dashboard"]')
-				.waitFor({ timeout: 5000 })
+				.waitFor({ timeout: 20000 })
+				.then(() => true),
+			page
+				.locator('[data-testid="dashboard-stats"]')
+				.waitFor({ timeout: 20000 })
 				.then(() => true),
 			page
 				.locator('text=Total Properties')
-				.waitFor({ timeout: 5000 })
+				.waitFor({ timeout: 20000 })
 				.then(() => true),
 			page
 				.locator('text=Welcome to TenantFlow')
-				.waitFor({ timeout: 5000 })
+				.waitFor({ timeout: 20000 })
 				.then(() => true)
 		]).catch(() => false)
 
@@ -148,22 +155,24 @@ test.describe('🚨 CRITICAL PATH SMOKE TESTS 🚨', () => {
 
 		// Verify properties page loads - accept any of these as success
 		// Note: Empty state shows "No properties yet" instead of property list
+		// 20s per-selector timeout matches the dashboard test above — same
+		// cold Turbopack compile window applies.
 		const propertiesLoaded = await Promise.race([
 			page
 				.locator('h1:has-text("Properties")')
-				.waitFor({ timeout: 5000 })
+				.waitFor({ timeout: 20000 })
 				.then(() => true),
 			page
 				.locator('button:has-text("New Property")')
-				.waitFor({ timeout: 5000 })
+				.waitFor({ timeout: 20000 })
 				.then(() => true),
 			page
 				.locator('text=No properties yet')
-				.waitFor({ timeout: 5000 })
+				.waitFor({ timeout: 20000 })
 				.then(() => true),
 			page
 				.locator('button:has-text("Add Your First Property")')
-				.waitFor({ timeout: 5000 })
+				.waitFor({ timeout: 20000 })
 				.then(() => true)
 		]).catch(() => false)
 
