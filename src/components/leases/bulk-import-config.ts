@@ -1,19 +1,21 @@
 /**
- * Lease bulk-import configuration (v2.3 Phase 58).
+ * Lease bulk-import configuration (v2.3 Phase 58 + audit follow-ups).
  *
  * Thin wrapper over the generic `BulkImportConfig<T>` from
- * `src/components/bulk-import/types.ts`. Encapsulates everything the
- * generic stepper needs to handle lease CSV imports. RLS on `leases`
- * already enforces that the caller owns the referenced unit and tenant
- * — any violation surfaces as a per-row error in the stepper report.
+ * `src/components/bulk-import/types.ts`. Inserts the lease AND its
+ * lease_tenants junction row atomically via the `bulk_import_create_lease`
+ * SECURITY DEFINER RPC. Without the junction insert the lease wouldn't
+ * surface on the tenant detail view (which joins through lease_tenants).
  */
 
+import { z } from 'zod'
 import { createClient } from '#lib/supabase/client'
 import { leaseInputSchema } from '#lib/validation/leases'
 import type { LeaseInput } from '#lib/validation/leases'
 import { parseCsvWithSchema } from '#components/bulk-import/parse-csv-with-schema'
 import type { BulkImportConfig } from '#components/bulk-import/types'
 import { leaseQueries } from '#hooks/api/query-keys/lease-keys'
+import { tenantQueries } from '#hooks/api/query-keys/tenant-keys'
 import { ownerDashboardKeys } from '#hooks/api/use-owner-dashboard'
 
 const TEMPLATE_HEADERS = [
@@ -26,10 +28,12 @@ const TEMPLATE_HEADERS = [
 	'payment_day'
 ] as const
 
+// Sample UUIDs are RFC 4122 v4-shaped so `zod.uuid()` accepts them during
+// the template round-trip test. Replace before importing.
 const TEMPLATE_SAMPLE_ROWS = [
 	[
-		'00000000-0000-0000-0000-000000000001',
-		'00000000-0000-0000-0000-000000000002',
+		'550e8400-e29b-41d4-a716-446655440001',
+		'550e8400-e29b-41d4-a716-446655440002',
 		'2026-05-01',
 		'2027-04-30',
 		'1800',
@@ -37,8 +41,8 @@ const TEMPLATE_SAMPLE_ROWS = [
 		'1'
 	],
 	[
-		'00000000-0000-0000-0000-000000000003',
-		'00000000-0000-0000-0000-000000000004',
+		'550e8400-e29b-41d4-a716-446655440003',
+		'550e8400-e29b-41d4-a716-446655440004',
 		'2026-06-01',
 		'2027-05-31',
 		'2400',
@@ -46,6 +50,22 @@ const TEMPLATE_SAMPLE_ROWS = [
 		'5'
 	]
 ] as const
+
+// Bulk-import-specific lease schema. Extends the shared schema to force
+// security_deposit to be explicit (blank cells are a row error, same as
+// rent_amount) — the audit flagged the inconsistency where rent_amount
+// failed on blank but security_deposit silently became $0.
+const leaseImportSchema = leaseInputSchema
+	.omit({ lease_status: true, rent_currency: true })
+	.extend({
+		security_deposit: z
+			.number()
+			.nonnegative('Security deposit cannot be negative')
+	}) satisfies z.ZodType<
+	Omit<LeaseInput, 'lease_status' | 'rent_currency'>
+>
+
+type LeaseImportInput = z.infer<typeof leaseImportSchema>
 
 function coerceOptionalNumber(value: string | undefined): number | undefined {
 	if (value === undefined) return undefined
@@ -55,66 +75,51 @@ function coerceOptionalNumber(value: string | undefined): number | undefined {
 	return Number.isNaN(parsed) ? undefined : parsed
 }
 
-export function leaseBulkImportConfig(): BulkImportConfig<LeaseInput> {
+export function leaseBulkImportConfig(): BulkImportConfig<LeaseImportInput> {
 	return {
 		entityLabel: { singular: 'Lease', plural: 'Leases' },
 		templateFilename: 'lease-import-template.csv',
 		templateHeaders: TEMPLATE_HEADERS,
 		templateSampleRows: TEMPLATE_SAMPLE_ROWS,
 		requiredFields:
-			'unit_id, primary_tenant_id, start_date, end_date, rent_amount',
-		optionalFields: 'security_deposit, payment_day (defaults to 1)',
+			'unit_id, primary_tenant_id, start_date, end_date, rent_amount, security_deposit, payment_day',
 		parseAndValidate: csvText =>
 			parseCsvWithSchema(csvText, {
-				schema: leaseInputSchema,
+				schema: leaseImportSchema,
 				mapRow: raw => {
-					// Blank rent_amount must fail validation rather than
-					// silently becoming $0 (Number('') === 0 and the schema's
-					// nonnegative number check accepts 0). Pass undefined so
-					// the schema's required-field check surfaces a clear row
-					// error.
 					const rent_amount = coerceOptionalNumber(raw.rent_amount)
-					// payment_day: both blank cells and explicit "0" fall back
-					// to day 1. Without the === 0 check a user typing "0" would
-					// get a schema error (1..31 allowed) while a blank cell
-					// silently becomes 1 — inconsistent handling of what the
-					// user meant as "no value".
-					const parsedPaymentDay = coerceOptionalNumber(raw.payment_day)
-					const payment_day =
-						parsedPaymentDay === undefined || parsedPaymentDay === 0
-							? 1
-							: parsedPaymentDay
-					// Missing security_deposit column or empty value falls back
-					// to 0 — the field is required by leaseInputSchema so the
-					// stepper would otherwise fail every row. Users who care
-					// about deposit amounts put them in the CSV column.
-					const parsedDeposit = coerceOptionalNumber(raw.security_deposit)
-					const security_deposit = parsedDeposit ?? 0
+					const payment_day = coerceOptionalNumber(raw.payment_day)
+					const security_deposit = coerceOptionalNumber(raw.security_deposit)
 					return {
 						unit_id: (raw.unit_id ?? '').trim(),
 						primary_tenant_id: (raw.primary_tenant_id ?? '').trim(),
 						start_date: (raw.start_date ?? '').trim(),
 						end_date: (raw.end_date ?? '').trim(),
 						...(rent_amount !== undefined ? { rent_amount } : {}),
-						security_deposit,
-						payment_day
+						...(security_deposit !== undefined ? { security_deposit } : {}),
+						...(payment_day !== undefined ? { payment_day } : {})
 					}
 				}
 			}),
 		insertRow: async row => {
 			const supabase = createClient()
-			const {
-				data: { user }
-			} = await supabase.auth.getUser()
-			if (!user) return { error: new Error('Not authenticated') }
-			const { error } = await supabase
-				.from('leases')
-				.insert({ ...row, owner_user_id: user.id })
+			// Atomic lease + lease_tenants insert via SECURITY DEFINER RPC.
+			// Without this, bulk-imported leases never appeared on the tenant
+			// view because the tenant list query joins through lease_tenants.
+			const { error } = await supabase.rpc('bulk_import_create_lease', {
+				p_unit_id: row.unit_id,
+				p_primary_tenant_id: row.primary_tenant_id,
+				p_start_date: row.start_date,
+				p_end_date: row.end_date,
+				p_rent_amount: row.rent_amount,
+				p_security_deposit: row.security_deposit,
+				p_payment_day: row.payment_day
+			})
 			return { error: error ? new Error(error.message) : null }
 		},
 		invalidateKeys: [
-			leaseQueries.lists(),
 			leaseQueries.all(),
+			tenantQueries.all(),
 			ownerDashboardKeys.all
 		]
 	}

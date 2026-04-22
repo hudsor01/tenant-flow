@@ -3,12 +3,23 @@ import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import type { ReactElement } from 'react'
 import { DocumentsSection } from '../documents-section'
+import { mutationKeys } from '#hooks/api/mutation-keys'
 
 const mockUseQuery = vi.fn()
 const mockUploadMutate = vi.fn()
 const mockDeleteMutate = vi.fn()
 const mockToastSuccess = vi.fn()
 const mockToastError = vi.fn()
+const mockToastWarning = vi.fn()
+
+function mutationKeyMatches(
+	actual: readonly unknown[] | undefined,
+	expected: readonly unknown[]
+): boolean {
+	if (!actual) return false
+	if (actual.length !== expected.length) return false
+	return actual.every((v, i) => v === expected[i])
+}
 
 vi.mock('@tanstack/react-query', async () => {
 	const actual = await vi.importActual<typeof import('@tanstack/react-query')>(
@@ -18,10 +29,14 @@ vi.mock('@tanstack/react-query', async () => {
 		...actual,
 		useQuery: () => mockUseQuery(),
 		useMutation: (opts: { mutationFn?: unknown }) => {
-			// Tag by mutation key — both mutations get pushed through; tests
-			// inspect the dispatcher mocks per-action.
-			const optsRecord = opts as { mutationKey?: readonly string[] }
-			const isUpload = optsRecord.mutationKey?.[2] === 'upload'
+			// Compare against the real mutationKey constant from
+			// mutation-keys.ts so future key reshuffling fails the test
+			// instead of silently routing to the wrong mock.
+			const optsRecord = opts as { mutationKey?: readonly unknown[] }
+			const isUpload = mutationKeyMatches(
+				optsRecord.mutationKey,
+				mutationKeys.documents.upload
+			)
 			return {
 				mutate: vi.fn(),
 				mutateAsync: isUpload ? mockUploadMutate : mockDeleteMutate,
@@ -36,7 +51,8 @@ vi.mock('@tanstack/react-query', async () => {
 vi.mock('sonner', () => ({
 	toast: {
 		success: (...args: unknown[]) => mockToastSuccess(...args),
-		error: (...args: unknown[]) => mockToastError(...args)
+		error: (...args: unknown[]) => mockToastError(...args),
+		warning: (...args: unknown[]) => mockToastWarning(...args)
 	}
 }))
 
@@ -83,7 +99,8 @@ describe('DocumentsSection', () => {
 					id: 'doc-1',
 					entity_type: 'property',
 					entity_id: 'property-1',
-					document_type: 'application/pdf',
+					document_type: 'other',
+					mime_type: 'application/pdf',
 					file_path: 'property/property-1/123-lease.pdf',
 					storage_url: 'property/property-1/123-lease.pdf',
 					file_size: 524288,

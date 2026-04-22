@@ -1,5 +1,5 @@
 /**
- * Document Vault Query Keys, Options & Mutations (v2.3 Phase 57).
+ * Document Vault Query Keys, Options & Mutations (v2.3 Phase 57 + audit follow-ups).
  *
  * The `tenant-documents` storage bucket is **private**, so listings batch
  * `createSignedUrls` per query (1h TTL) — `getPublicUrl()` returns 403 URLs
@@ -7,8 +7,9 @@
  * header. Same pattern locked in by PR #614 for maintenance-photos.
  *
  * Path convention: ${entity_type}/${entity_id}/${timestamp}-${safeName}.
- * Path-based storage RLS (migration 20260420030000) extracts entity_type +
- * entity_id from the path and confirms ownership against the parent table.
+ * Path-based storage RLS (migration 20260420030000 + 20260421120000)
+ * extracts entity_type + entity_id from the path and confirms ownership
+ * against the parent table, with array_length/UUID-format guards.
  *
  * Phase 57 only handles entity_type === 'property'. Lease/tenant/maintenance
  * branches are additive in v2.4 — same hooks, same RLS shape, more `or`
@@ -20,11 +21,18 @@ import { createClient } from '#lib/supabase/client'
 import { getCachedUser } from '#lib/supabase/get-cached-user'
 import { handlePostgrestError } from '#lib/postgrest-error-handler'
 import { requireOwnerUserId } from '#lib/require-owner-user-id'
-import { QUERY_CACHE_TIMES } from '#lib/constants/query-config'
+import { createLogger } from '#lib/frontend-logger'
 import { mutationKeys } from '../mutation-keys'
 
 const SIGNED_URL_TTL_SECONDS = 3600
+// Refetch the list (and its signed URLs) well before the 1h TTL expires.
+// Keeping staleTime < TTL avoids stale-cache 403s when the user returns
+// within the gcTime window.
+const LIST_STALE_TIME_MS = 45 * 60 * 1000 // 45 min
+const LIST_GC_TIME_MS = 55 * 60 * 1000 // 55 min — still inside TTL
 const STORAGE_BUCKET = 'tenant-documents'
+
+const logger = createLogger({ component: 'document-keys' })
 
 // Phase 57 ships the property branch only.
 export type DocumentEntityType = 'property'
@@ -34,6 +42,7 @@ export interface DocumentRow {
 	entity_type: string
 	entity_id: string
 	document_type: string
+	mime_type: string | null
 	file_path: string
 	storage_url: string
 	file_size: number | null
@@ -49,8 +58,21 @@ export interface DocumentUploadInput {
 	entityType: DocumentEntityType
 	entityId: string
 	file: File
-	documentType?: string
+	/** Browser-reported MIME type stored on the row's mime_type column. */
+	mimeType?: string
+	/** Categorical label (e.g. 'lease', 'receipt'). Defaults to 'other'. */
+	category?: string
 	title?: string
+}
+
+/**
+ * Sanitize a filename for S3-key safety without nuking Unicode. We keep
+ * letters (including non-ASCII), digits, and a small set of separators;
+ * the regex only replaces characters that Supabase storage or common
+ * browsers reject in a key path.
+ */
+function sanitizeFilename(name: string): string {
+	return name.replace(/[\\/?%*:|"<>\s]+/g, '_')
 }
 
 export const documentQueries = {
@@ -70,7 +92,7 @@ export const documentQueries = {
 				const { data, error } = await supabase
 					.from('documents')
 					.select(
-						'id, entity_type, entity_id, document_type, file_path, storage_url, file_size, title, tags, description, owner_user_id, created_at'
+						'id, entity_type, entity_id, document_type, mime_type, file_path, storage_url, file_size, title, tags, description, owner_user_id, created_at'
 					)
 					.eq('entity_type', params.entityType)
 					.eq('entity_id', params.entityId)
@@ -100,7 +122,8 @@ export const documentQueries = {
 					signed_url: urlByPath.get(r.file_path) ?? null
 				}))
 			},
-			...QUERY_CACHE_TIMES.DETAIL,
+			staleTime: LIST_STALE_TIME_MS,
+			gcTime: LIST_GC_TIME_MS,
 			enabled: !!params.entityId
 		})
 }
@@ -113,7 +136,8 @@ export const documentMutations = {
 				entityType,
 				entityId,
 				file,
-				documentType,
+				mimeType,
+				category,
 				title
 			}): Promise<DocumentRow> => {
 				const supabase = createClient()
@@ -121,10 +145,12 @@ export const documentMutations = {
 				const ownerId = requireOwnerUserId(user?.id)
 
 				// Path: {entity_type}/{entity_id}/{timestamp}-{safeName}.
-				// Path-based storage RLS (migration 20260420030000) inspects the
-				// first two segments to verify ownership of the parent entity.
+				// Path-based storage RLS inspects the first two segments to
+				// verify ownership of the parent entity; the safe filename is
+				// only a cosmetic concern (strip characters that would break
+				// the S3 key path).
 				const timestamp = Date.now()
-				const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_')
+				const safeName = sanitizeFilename(file.name)
 				const storagePath = `${entityType}/${entityId}/${timestamp}-${safeName}`
 
 				const { error: uploadError } = await supabase.storage
@@ -133,14 +159,24 @@ export const documentMutations = {
 						contentType: file.type,
 						upsert: false
 					})
-				if (uploadError) throw uploadError
+				if (uploadError) {
+					// Log the raw storage error (not user-visible) and throw a
+					// safe message. Raw messages like "new row violates
+					// row-level security policy" shouldn't reach the toast.
+					logger.error('Document upload failed at storage layer', {
+						path: storagePath,
+						error: uploadError
+					})
+					throw new Error("We couldn't save that file. Please try again.")
+				}
 
 				const { data: row, error: dbError } = await supabase
 					.from('documents')
 					.insert({
 						entity_type: entityType,
 						entity_id: entityId,
-						document_type: documentType ?? 'other',
+						document_type: category ?? 'other',
+						mime_type: mimeType ?? file.type,
 						file_path: storagePath,
 						storage_url: storagePath,
 						file_size: file.size,
@@ -148,17 +184,22 @@ export const documentMutations = {
 						owner_user_id: ownerId
 					})
 					.select(
-						'id, entity_type, entity_id, document_type, file_path, storage_url, file_size, title, tags, description, owner_user_id, created_at'
+						'id, entity_type, entity_id, document_type, mime_type, file_path, storage_url, file_size, title, tags, description, owner_user_id, created_at'
 					)
 					.single()
 
 				if (dbError || !row) {
-					// Roll back the storage upload so we don't orphan blobs when
-					// the DB insert fails (RLS mismatch, FK violation, etc.).
+					// Roll back the storage upload so we don't orphan blobs
+					// when the DB insert fails (RLS mismatch, FK violation).
 					await supabase.storage
 						.from(STORAGE_BUCKET)
 						.remove([storagePath])
-						.catch(() => {})
+						.catch(storageErr => {
+							logger.warn('Storage rollback failed; manual reconciliation needed', {
+								path: storagePath,
+								error: storageErr
+							})
+						})
 					if (dbError) handlePostgrestError(dbError, 'documents')
 					throw new Error('Failed to record document')
 				}
@@ -173,10 +214,28 @@ export const documentMutations = {
 			mutationFn: async ({ id, storagePath }) => {
 				const supabase = createClient()
 
-				// Drop the DB row first; .select() returns the affected rows so
-				// we can detect RLS-blocked deletes — PostgREST returns no error
-				// when an RLS policy filters the row out, just zero affected
-				// rows. Without the .length check the UI would falsely report
+				// Storage first, DB second — reverses prior ordering. If
+				// storage fails we abort without touching the DB, so the UI
+				// still shows the row and the user can retry. If DB delete
+				// then fails, the blob is already gone and a stale row
+				// remains (orphan-cleanup cron picks it up if the parent is
+				// also gone; otherwise the user can delete again with no
+				// visible change).
+				const { error: storageError } = await supabase.storage
+					.from(STORAGE_BUCKET)
+					.remove([storagePath])
+				if (storageError) {
+					logger.warn('Storage remove failed during delete', {
+						path: storagePath,
+						error: storageError
+					})
+					throw new Error("We couldn't remove the file. Please try again.")
+				}
+
+				// .select() returns the affected rows so we can detect
+				// RLS-blocked deletes — PostgREST returns no error when an
+				// RLS policy filters the row out, just zero affected rows.
+				// Without the .length check the UI would falsely report
 				// "Document removed" while the row stays put.
 				const { data: deletedRows, error: dbError } = await supabase
 					.from('documents')
@@ -189,13 +248,6 @@ export const documentMutations = {
 						'Document not found or you do not have permission to delete it.'
 					)
 				}
-
-				// Storage remove is best-effort. Owners can re-trigger from the
-				// UI if it fails; the DB-of-record state is already consistent.
-				await supabase.storage
-					.from(STORAGE_BUCKET)
-					.remove([storagePath])
-					.catch(() => {})
 			}
 		})
 }

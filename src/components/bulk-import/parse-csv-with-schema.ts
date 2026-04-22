@@ -30,10 +30,10 @@ export function triggerCsvDownload(content: string, filename: string): void {
 	const link = document.createElement('a')
 	link.setAttribute('href', url)
 	link.setAttribute('download', filename)
-	link.style.visibility = 'hidden'
-	document.body.appendChild(link)
+	// The link is detached from the DOM right after click so it never paints.
+	// No visibility styling needed (prior inline `style.visibility = hidden`
+	// was a CLAUDE.md rule violation).
 	link.click()
-	document.body.removeChild(link)
 	URL.revokeObjectURL(url)
 }
 
@@ -64,19 +64,66 @@ export interface ParseOptions<TOutput> {
  * Parse CSV text, skip empty rows, normalize headers, validate each row
  * against the provided schema. Caps processed rows at CSV_MAX_ROWS but
  * still reports the true totalRowCount so the validate step can warn.
+ *
+ * Row numbers are reported as CSV line numbers (header = line 1, first
+ * data row = line 2) so users editing the CSV in Excel can jump to the
+ * exact row on an error message.
  */
 export function parseCsvWithSchema<TOutput>(
 	csvText: string,
 	options: ParseOptions<TOutput>
 ): BulkImportParseResult<TOutput> {
-	const { data } = Papa.parse<Record<string, string>>(csvText, {
-		header: true,
-		skipEmptyLines: true,
-		transformHeader: (h: string) => h.trim().toLowerCase().replace(/\s+/g, '_'),
-		transform: (value: string) => value.trim()
-	})
+	// Papa handles CRLF and quoted fields, but does NOT strip a UTF-8 BOM
+	// from the first header. Excel on Windows exports CSV with a BOM, which
+	// would leak into the first header name and silently break the first
+	// column. Strip it up front.
+	const normalized = csvText.charCodeAt(0) === 0xfeff ? csvText.slice(1) : csvText
+
+	const { data, errors: parseErrors } = Papa.parse<Record<string, string>>(
+		normalized,
+		{
+			header: true,
+			skipEmptyLines: true,
+			transformHeader: (h: string) =>
+				h.replace(/^\uFEFF/, '').trim().toLowerCase().replace(/\s+/g, '_'),
+			transform: (value: string) => value.trim()
+		}
+	)
+
+	// Surface malformed-CSV errors (mismatched quotes, bad delimiters) as a
+	// synthetic "row 0" entry so the validate step can render them alongside
+	// per-row errors. Users see "your CSV is broken" instead of silent-junk.
+	//
+	// Filter out per-row field-count warnings (we already report field-level
+	// schema errors) and the "UndetectableDelimiter" warning papaparse
+	// emits for empty/whitespace-only input (there's nothing to delimit).
+	const malformedCsvErrors = parseErrors
+		.filter(
+			err =>
+				err.code !== 'TooFewFields' &&
+				err.code !== 'TooManyFields' &&
+				err.code !== 'UndetectableDelimiter'
+		)
+		.map(err => ({
+			field: 'csv',
+			message: err.message
+		}))
 
 	if (data.length === 0) {
+		if (malformedCsvErrors.length > 0) {
+			return {
+				rows: [
+					{
+						row: 0,
+						data: {},
+						errors: malformedCsvErrors,
+						parsed: null
+					}
+				],
+				tooManyRows: false,
+				totalRowCount: 0
+			}
+		}
 		return { rows: [], tooManyRows: false, totalRowCount: 0 }
 	}
 
@@ -85,10 +132,13 @@ export function parseCsvWithSchema<TOutput>(
 	const rowsToValidate = data.slice(0, CSV_MAX_ROWS)
 
 	const rows = rowsToValidate.map((rawRow, index) => {
+		// Reported row = CSV line number. Header is line 1 so the first data
+		// row is line 2.
+		const csvLine = index + 2
 		const mapped = options.mapRow(rawRow)
 		if (mapped === undefined) {
 			return {
-				row: index + 1,
+				row: csvLine,
 				data: rawRow,
 				errors: [{ field: 'unknown', message: 'Row is empty or invalid.' }],
 				parsed: null
@@ -98,7 +148,7 @@ export function parseCsvWithSchema<TOutput>(
 		const result = options.schema.safeParse(mapped)
 		if (result.success) {
 			return {
-				row: index + 1,
+				row: csvLine,
 				data: rawRow,
 				errors: [],
 				parsed: result.data
@@ -111,7 +161,7 @@ export function parseCsvWithSchema<TOutput>(
 		}))
 
 		return {
-			row: index + 1,
+			row: csvLine,
 			data: rawRow,
 			errors: fieldErrors,
 			parsed: null

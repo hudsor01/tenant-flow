@@ -9,7 +9,7 @@ import {
 	DialogTitle
 } from '#components/ui/dialog'
 import { FileUp } from 'lucide-react'
-import { useState } from 'react'
+import { useCallback, useState } from 'react'
 import { BulkImportStepper } from './bulk-import-stepper'
 import type { ImportStep } from '#types/api-contracts'
 import type { BulkImportConfig } from './types'
@@ -22,7 +22,8 @@ interface BulkImportDialogProps<T> {
 /**
  * Generic bulk-import dialog. Consumers pass an entity-specific
  * `BulkImportConfig<T>` and an optional trigger button label. Internal
- * stepper state resets on close.
+ * stepper state resets on close. Close is blocked while an import is in
+ * flight so the user cannot walk away mid-batch and miss partial results.
  */
 export function BulkImportDialog<T>({
 	config,
@@ -30,13 +31,22 @@ export function BulkImportDialog<T>({
 }: BulkImportDialogProps<T>) {
 	const [open, setOpen] = useState(false)
 	const [currentStep, setCurrentStep] = useState<ImportStep>('upload')
+	const [importPending, setImportPending] = useState(false)
 
 	const handleOpenChange = (isOpen: boolean) => {
+		if (!isOpen && importPending) return
 		setOpen(isOpen)
 		if (!isOpen) {
 			setCurrentStep('upload')
 		}
 	}
+
+	const handleInteractOutside = useCallback(
+		(e: Event) => {
+			if (importPending) e.preventDefault()
+		},
+		[importPending]
+	)
 
 	return (
 		<>
@@ -51,7 +61,11 @@ export function BulkImportDialog<T>({
 			</Button>
 
 			<Dialog open={open} onOpenChange={handleOpenChange}>
-				<DialogContent className="sm:max-w-3xl max-h-[90vh] overflow-y-auto">
+				<DialogContent
+					className="sm:max-w-3xl max-h-[90vh] overflow-y-auto"
+					onInteractOutside={handleInteractOutside}
+					onEscapeKeyDown={e => { if (importPending) e.preventDefault() }}
+				>
 					<DialogHeader>
 						<DialogTitle>Import {config.entityLabel.plural}</DialogTitle>
 						<DialogDescription>
@@ -64,6 +78,7 @@ export function BulkImportDialog<T>({
 						currentStep={currentStep}
 						onStepChange={setCurrentStep}
 						onComplete={() => setOpen(false)}
+						onPendingChange={setImportPending}
 					/>
 				</DialogContent>
 			</Dialog>
