@@ -1,17 +1,17 @@
 ---
 gsd_state_version: 1.0
-milestone: v2.3
-milestone_name: Document Vault + Bulk-Import Extension
-status: active
-stopped_at: v2.3 scoped 2026-04-20. Two phases derived from v2.2's deferred competitor-review backlog — Phase 57 document vault MVP (1 week, property-scoped upload/list/preview/delete with signed URLs + path-based RLS), Phase 58 CSV importer extension to tenants/units/leases (3 days, reuses property importer stepper pattern). No phase started yet.
-last_updated: "2026-04-20T16:15:00.000Z"
-last_activity: 2026-04-20
+milestone: --
+milestone_name: --
+status: idle
+stopped_at: v2.3 fully shipped 2026-04-21. Phase 57 document vault MVP (PR #620 + audit fixes, migration applied, Sentry findings resolved) + Phase 58 generic bulk-import + tenant/unit/lease CSV importers (PR #621, 5 Sentry findings resolved). All v2.0 Edge Functions redeployed with EdgeRuntime.waitUntil fix — docuseal v74, export-report v77, generate-pdf v70. Supabase types regen committed (PR #622). No active milestone.
+last_updated: "2026-04-21T00:00:00.000Z"
+last_activity: 2026-04-21
 progress:
   total_phases: 2
-  completed_phases: 0
+  completed_phases: 2
   total_plans: 0
   completed_plans: 0
-  percent: 0
+  percent: 100
 ---
 
 # Project State: TenantFlow
@@ -26,11 +26,11 @@ See: .planning/PROJECT.md (updated 2026-04-13)
 
 ## Current Position
 
-Phase: 57 (pending — document vault MVP)
-Plan: -- (phase not yet started)
-Milestone: v2.3 Document Vault + Bulk-Import Extension — active. See `milestones/v2.3-ROADMAP.md`.
-Status: v2.3 scoped 2026-04-20 after v2.0 Revenue Gates + v2.2 Landlord-First Positioning shipped same day. v2.3 picks up the two deferred items from v2.2's competitor review mining: document vault (Avail/Buildium "can't find documents" pain) + CSV bulk-import extension to tenants/units/leases (Buildium/AppFolio switching-cost barrier). Phase 57 goes first — property-scoped upload/list/preview/delete using the signed-URL + path-based-RLS pattern locked in by PR #614. Operator action still pending on v2.0: `supabase functions deploy docuseal export-report generate-pdf` (single pass; independent of v2.3 work).
-Last activity: 2026-04-20
+Phase: -- (no active milestone; v2.0, v2.1, v2.2, v2.3 all shipped)
+Plan: --
+Milestone: --
+Status: v2.3 closed out 2026-04-21 — Phase 57 document vault MVP + Phase 58 bulk-import extension both shipped with 8 Sentry findings caught and resolved mid-PR (document vault: 3 on PR #620; bulk-import: 5 on PR #621). Phase 57 migration applied via MCP, types regenerated (PR #622). v2.0 Edge Functions redeployed via MCP so the EdgeRuntime.waitUntil fix from PR #617 is live in prod: docuseal v74, export-report v77, generate-pdf v70. The three stale operator-action blockers are clear. Next milestone TBD.
+Last activity: 2026-04-21
 
 ## Shipped Milestones
 
@@ -48,10 +48,10 @@ Last activity: 2026-04-20
 
 | Version | Name | Phases | Plans | Status |
 |---------|------|--------|-------|--------|
-| v2.0 | Revenue Gates | 2 | 0 | Both phases shipped (Phase 45 PR #604, Phase 46 PR #616 + #617 audit fixes); operator deploy of docuseal/export-report/generate-pdf pending |
+| v2.0 | Revenue Gates | 2 | 0 | All phases shipped + deployed 2026-04-21 (PRs #604, #616, #617); docuseal/export-report/generate-pdf redeployed via MCP with waitUntil fix live |
 | v2.1 | Production Integrity Hardening | 4 | 0 | All 4 phases shipped 2026-04-19/20 (PRs #605, #606, #607) |
 | v2.2 | Landlord-First Positioning | 3 | 0 | All 3 phases shipped 2026-04-20 (PRs #609, #610, #612, #613, #614) |
-| v2.3 | Document Vault + Bulk-Import Extension | 2 | 0 | Phase 57 pending |
+| v2.3 | Document Vault + Bulk-Import Extension | 2 | 0 | Both phases shipped + deployed 2026-04-21 (PRs #620, #621, #622) |
 
 ## Accumulated Context
 
