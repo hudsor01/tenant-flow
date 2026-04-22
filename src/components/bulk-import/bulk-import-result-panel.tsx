@@ -128,6 +128,61 @@ function ResultHeader({
 	)
 }
 
+function StatCard({
+	tone,
+	count,
+	label,
+	icon
+}: {
+	tone: 'success' | 'destructive'
+	count: number
+	label: string
+	icon: 'check' | 'x'
+}) {
+	const active = count > 0
+	const Icon = icon === 'check' ? CheckCircle2 : XCircle
+	return (
+		<div
+			className={cn(
+				'p-3 rounded-lg flex items-center gap-3',
+				active
+					? tone === 'success'
+						? 'bg-success/10'
+						: 'bg-destructive/10'
+					: 'bg-muted/50'
+			)}
+		>
+			<div
+				className={cn(
+					'icon-container-sm',
+					active
+						? tone === 'success'
+							? 'bg-success/20 text-success'
+							: 'bg-destructive/20 text-destructive'
+						: 'bg-muted text-muted-foreground'
+				)}
+			>
+				<Icon className="size-4" />
+			</div>
+			<div>
+				<p
+					className={cn(
+						'text-xl font-bold',
+						active
+							? tone === 'success'
+								? 'text-success'
+								: 'text-destructive'
+							: 'text-muted-foreground'
+					)}
+				>
+					{count}
+				</p>
+				<p className="text-xs text-muted-foreground">{label}</p>
+			</div>
+		</div>
+	)
+}
+
 function ResultStats({
 	entityLabel,
 	result,
@@ -139,77 +194,61 @@ function ResultStats({
 	cumulative: { imported: number; failed: number; totalAttempted: number }
 	retryCount: number
 }) {
-	// After a retry, cumulative > result — show both so the user can see
-	// "30 imported total (5 this batch), 2 still failing".
 	const showCumulative = retryCount > 0
+	const importedCount = showCumulative ? cumulative.imported : result.imported
+	const importedLabel = showCumulative
+		? `${entityLabel.plural.toLowerCase()} imported (total)`
+		: `${result.imported === 1 ? entityLabel.singular : entityLabel.plural} imported`
+	const failedLabel = showCumulative
+		? `${result.failed === 1 ? 'Row' : 'Rows'} still failing this batch`
+		: `${result.failed === 1 ? 'Row' : 'Rows'} failed`
 	return (
 		<div className="grid grid-cols-2 gap-3">
-			<div
-				className={cn(
-					'p-3 rounded-lg flex items-center gap-3',
-					result.imported > 0 ? 'bg-success/10' : 'bg-muted/50'
-				)}
-			>
-				<div
-					className={cn(
-						'icon-container-sm',
-						result.imported > 0
-							? 'bg-success/20 text-success'
-							: 'bg-muted text-muted-foreground'
-					)}
-				>
-					<CheckCircle2 className="size-4" />
-				</div>
-				<div>
-					<p
-						className={cn(
-							'text-xl font-bold',
-							result.imported > 0 ? 'text-success' : 'text-muted-foreground'
-						)}
-					>
-						{showCumulative ? cumulative.imported : result.imported}
-					</p>
-					<p className="text-xs text-muted-foreground">
-						{showCumulative
-							? `${entityLabel.plural.toLowerCase()} imported (total)`
-							: `${result.imported === 1 ? entityLabel.singular : entityLabel.plural} imported`}
-					</p>
-				</div>
-			</div>
-			<div
-				className={cn(
-					'p-3 rounded-lg flex items-center gap-3',
-					result.failed > 0 ? 'bg-destructive/10' : 'bg-muted/50'
-				)}
-			>
-				<div
-					className={cn(
-						'icon-container-sm',
-						result.failed > 0
-							? 'bg-destructive/20 text-destructive'
-							: 'bg-muted text-muted-foreground'
-					)}
-				>
-					<XCircle className="size-4" />
-				</div>
-				<div>
-					<p
-						className={cn(
-							'text-xl font-bold',
-							result.failed > 0 ? 'text-destructive' : 'text-muted-foreground'
-						)}
-					>
-						{result.failed}
-					</p>
-					<p className="text-xs text-muted-foreground">
-						{showCumulative
-							? `${result.failed === 1 ? 'Row' : 'Rows'} still failing this batch`
-							: `${result.failed === 1 ? 'Row' : 'Rows'} failed`}
-					</p>
-				</div>
-			</div>
+			<StatCard
+				tone="success"
+				count={importedCount}
+				label={importedLabel}
+				icon="check"
+			/>
+			<StatCard
+				tone="destructive"
+				count={result.failed}
+				label={failedLabel}
+				icon="x"
+			/>
 		</div>
 	)
+}
+
+// Build a CSV mirroring the original user-supplied headers + failed-row
+// cells + an appended `_error` column. Users can fix the file in Excel and
+// re-upload without cross-referencing row numbers. Falls back to a tiny
+// row,error CSV when parseResult is unavailable (synthetic onError result).
+function buildFailedRowsCsv(
+	errors: Array<{ row: number; error: string }>,
+	parseResult:
+		| { rows: ParsedRow<unknown>[]; tooManyRows: boolean; totalRowCount: number }
+		| null
+): string {
+	if (!parseResult) {
+		const header = '"row","error"'
+		const body = errors
+			.map(e => `"${e.row}","${e.error.replace(/"/g, '""')}"`)
+			.join('\n')
+		return `${header}\n${body}\n`
+	}
+	const firstRow = parseResult.rows[0]
+	const originalHeaders = firstRow ? Object.keys(firstRow.data) : []
+	const headerRow = [...originalHeaders, '_error']
+	const errorByLine = new Map(errors.map(e => [e.row, e.error]))
+	const dataRows = parseResult.rows
+		.filter(r => errorByLine.has(r.row))
+		.map(r => {
+			const cells = originalHeaders.map(h => r.data[h] ?? '')
+			cells.push(errorByLine.get(r.row) ?? '')
+			return cells
+		})
+	return buildCsvTemplate(headerRow, dataRows)
 }
 
 function ResultErrorList({
@@ -223,33 +262,14 @@ function ResultErrorList({
 		| null
 	onRetryFailed?: () => void
 }) {
-	// Download a CSV that mirrors the original user-supplied headers and
-	// includes the failed rows' cells + an `_error` column. Users can fix
-	// in Excel and re-upload without having to cross-reference row numbers.
+	// Synthetic onError result populates a single `row: 0` entry. There's
+	// no real CSV row to retry, so hide the retry button — clicking it
+	// would be a silent no-op (handleRetryFailed filters by csvLine and
+	// finds nothing).
+	const isSyntheticError = errors.every(e => e.row === 0)
 	const downloadFailedRowsCsv = () => {
-		if (!parseResult) {
-			const header = '"row","error"'
-			const body = errors
-				.map(e => `"${e.row}","${e.error.replace(/"/g, '""')}"`)
-				.join('\n')
-			triggerCsvDownload(`${header}\n${body}\n`, 'failed-rows.csv')
-			return
-		}
-		// Derive original headers from the first successfully-read row's data
-		// (all rows share the same normalized header set).
-		const firstRow = parseResult.rows[0]
-		const originalHeaders = firstRow ? Object.keys(firstRow.data) : []
-		const headerRow = [...originalHeaders, '_error']
-		const errorByLine = new Map(errors.map(e => [e.row, e.error]))
-		const dataRows = parseResult.rows
-			.filter(r => errorByLine.has(r.row))
-			.map(r => {
-				const cells = originalHeaders.map(h => r.data[h] ?? '')
-				cells.push(errorByLine.get(r.row) ?? '')
-				return cells
-			})
 		triggerCsvDownload(
-			buildCsvTemplate(headerRow, dataRows),
+			buildFailedRowsCsv(errors, parseResult),
 			'failed-rows.csv'
 		)
 	}
@@ -265,7 +285,7 @@ function ResultErrorList({
 							className="px-3 py-2 flex items-start gap-2"
 						>
 							<span className="font-mono text-muted-foreground shrink-0">
-								#{err.row}
+								{err.row === 0 ? '!' : `#${err.row}`}
 							</span>
 							<span className="text-destructive">{err.error}</span>
 						</li>
@@ -282,7 +302,7 @@ function ResultErrorList({
 					<Download className="size-3.5" />
 					Download failed rows
 				</Button>
-				{onRetryFailed && (
+				{onRetryFailed && !isSyntheticError && (
 					<Button
 						size="sm"
 						variant="outline"

@@ -185,10 +185,15 @@ export function BulkImportStepper<T>({
 			setRetryCount(0)
 		} else if (currentStep === 'confirm') {
 			onStepChange('validate')
-			// Clear stale result + progress so the validate step doesn't
-			// show ghost counts from the previous attempt.
+			// Clear stale result + progress + cumulative so the validate
+			// step doesn't show ghost counts from the previous attempt.
+			// (Today this branch is unreachable while a mutation is
+			// in-flight because the Cancel button is disabled, but reset
+			// unconditionally so the invariant is not timing-dependent.)
 			setResult(null)
 			setImportProgress(null)
+			setCumulative({ imported: 0, failed: 0, totalAttempted: 0 })
+			setRetryCount(0)
 		}
 	}
 

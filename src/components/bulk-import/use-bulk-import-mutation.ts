@@ -23,19 +23,11 @@ interface UseBulkImportMutationArgs<T> {
 	setImportProgress: (progress: ImportProgress | null) => void
 	setResult: (result: BulkImportResult | null) => void
 	mountedRef: React.MutableRefObject<boolean>
-	onBatchSucceeded?: () => void
 }
 
-/**
- * TanStack Query mutation for a bulk-import batch. Extracted from
- * `bulk-import-stepper.tsx` so the stepper stays under the 300-line cap.
- *
- * The mutation surfaces EVERY row error (per-row `insertRow` failures AND
- * thrown exceptions) as `errors[]` in the result. `onError` remains as a
- * defensive belt-and-braces — if the mutation itself throws (queryClient
- * invalidate failure, etc.), it populates a synthetic failure result so
- * the UI unblocks instead of freezing on a pending dialog.
- */
+// Per-row insertRow failures AND thrown exceptions both surface as errors[];
+// onError synthesizes a failure result so a queryClient/invalidate blowup
+// can't freeze the UI on a pending dialog.
 export function useBulkImportMutation<T>({
 	config,
 	setImportProgress,
