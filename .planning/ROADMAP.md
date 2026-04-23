@@ -108,9 +108,11 @@ TenantFlow is a multi-tenant property management SaaS platform for property owne
 
 ## Recently Shipped
 
-**v2.3 Document Vault + Bulk-Import Extension** — fully shipped + deployed 2026-04-21.
+**v2.3 Document Vault + Bulk-Import Extension** — fully shipped + deployed 2026-04-21, post-audit cleanup complete 2026-04-22.
 - [x] Phase 57: Document vault MVP (PR #620) — property-scoped upload/list/preview/delete using signed URLs + path-based storage RLS. Migration `20260420030000` applied via MCP (title/tags/description cols + tenant-documents bucket MIME allowlist + 3 storage RLS policies). Types regen PR #622.
 - [x] Phase 58: Bulk-import extension (PR #621) — generic `src/components/bulk-import/` stepper now powers property/tenant/unit/lease importers. 5 Sentry findings caught and fixed mid-PR.
+- [x] Audit cycles 1-4: 135 findings across 4 rounds (PRs #624, #627, #628) — caught + fixed a P0 production bug (every bulk-imported lease rejected) in cycle 4. Migrations `20260421120000`, `20260422120000`, `20260422130000`, `20260423120000` applied via MCP.
+- [x] RPC integration tests + RLS gap fix + CI gate honesty (PR #629) — 17 new integration tests, `lease_tenants` SELECT/UPDATE/DELETE policies, `rls-security` + `e2e-smoke` CI gates now actually run (were silently skipping every PR). Migration `20260424120000` applied.
 - See `milestones/v2.3-ROADMAP.md`.
 
 **v2.0 Revenue Gates** — both paywalls deployed 2026-04-21.
