@@ -104,7 +104,12 @@ TenantFlow is a multi-tenant property management SaaS platform for property owne
 
 ## Active Milestone
 
-*None.* Next milestone TBD.
+**v2.4 Document Vault Extension + Category Taxonomy** — scoping phase as of 2026-04-22. Target ship 2026-05-06. Three phases:
+- [ ] Phase 59: Storage RLS + upload entry points for lease/tenant/maintenance
+- [ ] Phase 60: Global `/documents/vault` page with search + filter
+- [ ] Phase 61: Category taxonomy + filter UI
+
+See `milestones/v2.4-ROADMAP.md` for the full scope.
 
 ## Recently Shipped
 
