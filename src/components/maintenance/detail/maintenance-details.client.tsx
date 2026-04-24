@@ -23,6 +23,7 @@ import { ExpensesCard } from './expenses-card'
 import { PhotosCard } from './photos-card'
 import { TimelineCard } from './timeline-card'
 import { generateTimeline } from './maintenance-utils'
+import { DocumentsSection } from '#components/documents/documents-section'
 
 interface MaintenanceDetailsProps {
 	id: string
@@ -189,6 +190,8 @@ export function MaintenanceDetails({ id }: MaintenanceDetailsProps) {
 				</Card>
 
 				<TimelineCard timeline={timeline} />
+
+				<DocumentsSection entityType="maintenance_request" entityId={id} />
 
 				{/* Quick Actions */}
 				<Card>

@@ -3,6 +3,10 @@ import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import type { ReactElement } from 'react'
 import { DocumentsSection } from '../documents-section'
+import {
+	DOCUMENT_ENTITY_TYPES,
+	type DocumentEntityType
+} from '#hooks/api/query-keys/document-keys'
 import { mutationKeys } from '#hooks/api/mutation-keys'
 
 const mockUseQuery = vi.fn()
@@ -57,13 +61,18 @@ vi.mock('sonner', () => ({
 	}
 }))
 
-function renderSection(): ReturnType<typeof render> {
+function renderSection(
+	entityType: DocumentEntityType = 'property'
+): ReturnType<typeof render> {
 	const queryClient = new QueryClient({
 		defaultOptions: { queries: { retry: false }, mutations: { retry: false } }
 	})
 	const ui: ReactElement = (
 		<QueryClientProvider client={queryClient}>
-			<DocumentsSection entityType="property" entityId="property-1" />
+			<DocumentsSection
+				entityType={entityType}
+				entityId="00000000-0000-0000-0000-000000000001"
+			/>
 		</QueryClientProvider>
 	)
 	return render(ui)
@@ -224,5 +233,19 @@ describe('DocumentsSection', () => {
 		expect(
 			screen.getByRole('button', { name: /try again/i })
 		).toBeInTheDocument()
+	})
+
+	// v2.4 Phase 59: widen beyond property to lease/tenant/maintenance_request.
+	// Every entity type should render identically at this layer — entity-
+	// specific behavior lives in the backing RLS policies, not the component.
+	describe.each(DOCUMENT_ENTITY_TYPES)('entity type %s', entityType => {
+		it('renders empty state with upload CTA', () => {
+			mockUseQuery.mockReturnValue(emptyList())
+			renderSection(entityType)
+			expect(screen.getByText(/no documents attached/i)).toBeInTheDocument()
+			expect(
+				screen.getByRole('button', { name: /upload your first document/i })
+			).toBeInTheDocument()
+		})
 	})
 })

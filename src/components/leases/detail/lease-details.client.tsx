@@ -8,6 +8,7 @@ import { tenantQueries } from '#hooks/api/query-keys/tenant-keys'
 import { useUnitList } from '#hooks/api/use-unit'
 import { useCancelSignatureRequestMutation } from '#hooks/api/use-lease-signature-mutations'
 import { createLogger } from '#lib/frontend-logger'
+import { DocumentsSection } from '#components/documents/documents-section'
 import {
 	AlertTriangle,
 	DollarSign,
@@ -168,6 +169,8 @@ export function LeaseDetails({ id }: LeaseDetailsProps) {
 				{/* Right column - Sidebar */}
 				<LeaseSidebar lease={lease} unit={unit} />
 			</div>
+
+			<DocumentsSection entityType="lease" entityId={lease.id} />
 		</div>
 	)
 }

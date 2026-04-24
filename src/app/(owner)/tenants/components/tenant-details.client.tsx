@@ -14,6 +14,7 @@ import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 import { useSuspenseQuery } from '@tanstack/react-query'
 import { toast } from 'sonner'
+import { DocumentsSection } from '#components/documents/documents-section'
 
 interface TenantDetailsProps {
 	id: string
@@ -225,6 +226,10 @@ export function TenantDetails({ id }: TenantDetailsProps) {
 						</div>
 					</CardLayout>
 				)}
+			</div>
+
+			<div className="mt-6">
+				<DocumentsSection entityType="tenant" entityId={id} />
 			</div>
 
 			{/* Mark as Moved Out button */}

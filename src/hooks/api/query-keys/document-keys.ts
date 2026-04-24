@@ -44,8 +44,19 @@ function isUuid(value: string | undefined | null): boolean {
 	return !!value && UUID_RE.test(value)
 }
 
-// Phase 57 ships the property branch only.
-export type DocumentEntityType = 'property'
+// v2.4 Phase 59 widens the vault to the full documents schema. The
+// inspection branch remains deferred to v2.5.
+export type DocumentEntityType =
+	| 'property'
+	| 'lease'
+	| 'tenant'
+	| 'maintenance_request'
+export const DOCUMENT_ENTITY_TYPES: readonly DocumentEntityType[] = [
+	'property',
+	'lease',
+	'tenant',
+	'maintenance_request'
+] as const
 
 export interface DocumentRow {
 	id: string
