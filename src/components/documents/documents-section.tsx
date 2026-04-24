@@ -33,6 +33,16 @@ interface DocumentsSectionProps {
 	entityId: string
 }
 
+// Human-readable labels for each entity type. Drives the
+// CardDescription copy + upload button aria-labels so they stay
+// accurate on lease/tenant/maintenance detail pages (not just property).
+const ENTITY_LABELS: Record<DocumentEntityType, string> = {
+	property: 'property',
+	lease: 'lease',
+	tenant: 'tenant',
+	maintenance_request: 'maintenance request'
+}
+
 export function DocumentsSection({ entityType, entityId }: DocumentsSectionProps) {
 	const queryClient = useQueryClient()
 	const fileInputRef = useRef<HTMLInputElement>(null)
@@ -131,6 +141,7 @@ export function DocumentsSection({ entityType, entityId }: DocumentsSectionProps
 	const docCount = documents?.length ?? 0
 	const isUploading = uploadMutation.isPending
 	const isTruncated = totalCount > (documents?.length ?? 0)
+	const entityLabel = ENTITY_LABELS[entityType]
 
 	return (
 		<Card>
@@ -145,7 +156,7 @@ export function DocumentsSection({ entityType, entityId }: DocumentsSectionProps
 							: ''}
 					</CardTitle>
 					<CardDescription>
-						Attach PDFs or images you want to keep alongside this property.
+						Attach PDFs or images you want to keep alongside this {entityLabel}.
 					</CardDescription>
 				</div>
 				<Button
@@ -173,7 +184,7 @@ export function DocumentsSection({ entityType, entityId }: DocumentsSectionProps
 					accept={ACCEPTED_MIME_TYPES.join(',')}
 					onChange={e => handleFilesSelected(e.target.files)}
 					className="sr-only"
-					aria-label="Upload property documents"
+					aria-label={`Upload ${entityLabel} documents`}
 				/>
 			</CardHeader>
 			<CardContent>

@@ -1,19 +1,16 @@
 /**
- * Document Vault Query Keys, Options & Mutations (v2.3 Phase 57 + audit follow-ups).
+ * Document Vault Query Keys, Options & Mutations.
+ * Ships four entity branches: property + lease + tenant + maintenance_request
+ * (v2.4 Phase 59 extended from property-only). Inspection branch defers to v2.5.
  *
- * The `tenant-documents` storage bucket is **private**, so listings batch
- * `createSignedUrls` per query (1h TTL) — `getPublicUrl()` returns 403 URLs
- * for private buckets and `<a href>` / `<iframe src>` won't carry a JWT
- * header. Same pattern locked in by PR #614 for maintenance-photos.
+ * Private bucket — listings batch `createSignedUrls` (1h TTL). Path-based
+ * storage RLS (migration 20260424140000) extracts entity_type + entity_id
+ * from the path, confirms ownership against the corresponding parent table,
+ * and enforces array_length + UUID-format guards on every branch.
  *
- * Path convention: ${entity_type}/${entity_id}/${timestamp}-${safeName}.
- * Path-based storage RLS (migration 20260420030000 + 20260421120000)
- * extracts entity_type + entity_id from the path and confirms ownership
- * against the parent table, with array_length/UUID-format guards.
- *
- * Phase 57 only handles entity_type === 'property'. Lease/tenant/maintenance
- * branches are additive in v2.4 — same hooks, same RLS shape, more `or`
- * clauses + more upload entry points.
+ * Bucket creation, MIME allowlist, and bucket-level config ship in earlier
+ * migrations (20260420030000 + 20260421120000). 20260424140000 only replaces
+ * the four storage.objects policies; it doesn't touch bucket config.
  */
 
 import { queryOptions, mutationOptions } from '@tanstack/react-query'
@@ -44,8 +41,19 @@ function isUuid(value: string | undefined | null): boolean {
 	return !!value && UUID_RE.test(value)
 }
 
-// Phase 57 ships the property branch only.
-export type DocumentEntityType = 'property'
+// v2.4 Phase 59 widens the vault to the full documents schema. The
+// inspection branch remains deferred to v2.5.
+export type DocumentEntityType =
+	| 'property'
+	| 'lease'
+	| 'tenant'
+	| 'maintenance_request'
+export const DOCUMENT_ENTITY_TYPES: readonly DocumentEntityType[] = [
+	'property',
+	'lease',
+	'tenant',
+	'maintenance_request'
+] as const
 
 export interface DocumentRow {
 	id: string
