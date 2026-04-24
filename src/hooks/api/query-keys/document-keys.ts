@@ -1,19 +1,12 @@
 /**
- * Document Vault Query Keys, Options & Mutations (v2.3 Phase 57 + audit follow-ups).
+ * Document Vault Query Keys, Options & Mutations.
+ * Ships four entity branches: property + lease + tenant + maintenance_request
+ * (v2.4 Phase 59 extended from property-only). Inspection branch defers to v2.5.
  *
- * The `tenant-documents` storage bucket is **private**, so listings batch
- * `createSignedUrls` per query (1h TTL) — `getPublicUrl()` returns 403 URLs
- * for private buckets and `<a href>` / `<iframe src>` won't carry a JWT
- * header. Same pattern locked in by PR #614 for maintenance-photos.
- *
- * Path convention: ${entity_type}/${entity_id}/${timestamp}-${safeName}.
- * Path-based storage RLS (migration 20260420030000 + 20260421120000)
- * extracts entity_type + entity_id from the path and confirms ownership
- * against the parent table, with array_length/UUID-format guards.
- *
- * Phase 57 only handles entity_type === 'property'. Lease/tenant/maintenance
- * branches are additive in v2.4 — same hooks, same RLS shape, more `or`
- * clauses + more upload entry points.
+ * Private bucket — listings batch `createSignedUrls` (1h TTL). Path-based
+ * storage RLS (migration 20260424140000) extracts entity_type + entity_id
+ * from the path, confirms ownership against the corresponding parent table,
+ * and enforces array_length + UUID-format guards on every branch.
  */
 
 import { queryOptions, mutationOptions } from '@tanstack/react-query'

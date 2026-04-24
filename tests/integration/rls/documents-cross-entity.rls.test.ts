@@ -182,24 +182,15 @@ describe('Documents cross-entity storage RLS', () => {
 			return
 		}
 
-		const path = `${entityType}/${idA}/${Date.now()}-test.txt`
-		const blob = new Blob(['test'], { type: 'text/plain' })
-
-		// ownerA uploads (note: MIME allowlist blocks text/plain in reality;
-		// RLS evaluates first, so the MIME check is a separate reject path
-		// that doesn't interfere with this test).
+		const path = `${entityType}/${idA}/${Date.now()}-test.pdf`
+		// Minimal valid PDF payload — the bucket's MIME allowlist accepts
+		// application/pdf, and an actual PDF magic-byte header means every
+		// environment (including stricter ones that sniff) accepts it.
+		const pdfBlob = new Blob(['%PDF-1.4\n%%EOF'], { type: 'application/pdf' })
 		const { error: upErr } = await clientA.storage
 			.from(BUCKET)
-			.upload(path, blob, { contentType: 'application/pdf' })
-		if (upErr) {
-			// Some environments reject non-PDF even with contentType override.
-			// Try a minimal PDF header instead.
-			const pdfBlob = new Blob(['%PDF-1.4\n%%EOF'], { type: 'application/pdf' })
-			const { error: upErr2 } = await clientA.storage
-				.from(BUCKET)
-				.upload(path, pdfBlob, { contentType: 'application/pdf' })
-			expect(upErr2).toBeNull()
-		}
+			.upload(path, pdfBlob, { contentType: 'application/pdf' })
+		expect(upErr).toBeNull()
 		fixA.uploadedPaths.push(path)
 
 		// ownerB cannot see it via list
@@ -242,24 +233,39 @@ describe('Documents cross-entity storage RLS', () => {
 		)
 	})
 
-	it('rejects upload with off-convention path segments (path-traversal guard)', async () => {
-		if (!fixA.property) return
-		// Path with 3 segments (sub-directory) should be blocked by the
-		// `array_length = 2` guard — even if ownerA owns the property.
-		const badPath = `property/${fixA.property.id}/sub/${Date.now()}-evil.pdf`
-		const pdf = new Blob(['%PDF-1.4\n%%EOF'], { type: 'application/pdf' })
-		const { error } = await clientA.storage
-			.from(BUCKET)
-			.upload(badPath, pdf, { contentType: 'application/pdf' })
-		expect(error).not.toBeNull()
-	})
+	// Parameterize the path-guard tests across every entity type. A future
+	// migration that accidentally drops the array_length or UUID regex on
+	// just one branch should fail CI instead of silently allowing path
+	// traversal on that branch.
+	const entityBranches = [
+		{ type: 'property' as const, getId: (f: Fixture) => f.property?.id },
+		{ type: 'lease' as const, getId: (f: Fixture) => f.lease?.id },
+		{ type: 'tenant' as const, getId: (f: Fixture) => f.tenant?.id },
+		{
+			type: 'maintenance_request' as const,
+			getId: (f: Fixture) => f.maintenanceRequest?.id
+		}
+	]
 
-	it('rejects upload with non-UUID entity_id segment', async () => {
-		const badPath = `property/not-a-uuid/${Date.now()}-evil.pdf`
-		const pdf = new Blob(['%PDF-1.4\n%%EOF'], { type: 'application/pdf' })
-		const { error } = await clientA.storage
-			.from(BUCKET)
-			.upload(badPath, pdf, { contentType: 'application/pdf' })
-		expect(error).not.toBeNull()
-	})
+	for (const { type, getId } of entityBranches) {
+		it(`${type}: rejects upload with off-convention path segments (3-segment)`, async () => {
+			const id = getId(fixA)
+			if (!id) return
+			const badPath = `${type}/${id}/sub/${Date.now()}-evil.pdf`
+			const pdf = new Blob(['%PDF-1.4\n%%EOF'], { type: 'application/pdf' })
+			const { error } = await clientA.storage
+				.from(BUCKET)
+				.upload(badPath, pdf, { contentType: 'application/pdf' })
+			expect(error).not.toBeNull()
+		})
+
+		it(`${type}: rejects upload with non-UUID entity_id segment`, async () => {
+			const badPath = `${type}/not-a-uuid/${Date.now()}-evil.pdf`
+			const pdf = new Blob(['%PDF-1.4\n%%EOF'], { type: 'application/pdf' })
+			const { error } = await clientA.storage
+				.from(BUCKET)
+				.upload(badPath, pdf, { contentType: 'application/pdf' })
+			expect(error).not.toBeNull()
+		})
+	}
 })

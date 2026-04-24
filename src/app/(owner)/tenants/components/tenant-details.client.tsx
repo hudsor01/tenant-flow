@@ -228,15 +228,15 @@ export function TenantDetails({ id }: TenantDetailsProps) {
 				)}
 			</div>
 
-			<div className="mt-6">
-				<DocumentsSection entityType="tenant" entityId={id} />
-			</div>
-
 			{/* Mark as Moved Out button */}
 			<div className="mt-4">
 				<Button variant="outline" onClick={() => setMoveOutDialogOpen(true)}>
 					Mark as Moved Out
 				</Button>
+			</div>
+
+			<div className="mt-6">
+				<DocumentsSection entityType="tenant" entityId={id} />
 			</div>
 
 			<MoveOutDialog
