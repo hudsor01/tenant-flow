@@ -111,19 +111,25 @@ async function createFixtures(
 		fix.lease = l ? { id: l.id } : null
 	}
 
-	if (fix.property) {
-		const { data: m } = await client
+	if (fix.unit && fix.tenant) {
+		// maintenance_requests requires unit_id + tenant_id (both NOT NULL),
+		// not property_id — the table descends from units, not properties.
+		// priority enum: 'low' | 'normal' | 'high' | 'urgent'.
+		const { data: m, error: mErr } = await client
 			.from('maintenance_requests')
 			.insert({
-				property_id: fix.property.id,
+				unit_id: fix.unit.id,
+				tenant_id: fix.tenant.id,
 				title: `Phase-59 ${label} Maintenance`,
 				description: 'Integration test fixture',
 				status: 'open',
-				priority: 'medium',
+				priority: 'normal',
 				owner_user_id: ownerId
 			})
 			.select('id')
 			.single()
+		if (mErr)
+			console.warn(`maintenance_request insert failed for ${label}:`, mErr.message)
 		fix.maintenanceRequest = m ? { id: m.id } : null
 	}
 
@@ -162,6 +168,25 @@ describe('Documents cross-entity storage RLS', () => {
 
 		fixA = await createFixtures(clientA, ownerAId, 'A')
 		fixB = await createFixtures(clientB, ownerBId, 'B')
+
+		// Fail the suite loudly if any fixture failed to create.
+		// Cycle-3 audit caught this: a silent `fix.X = null` previously
+		// made downstream `if (!id) return` branches skip with zero
+		// assertions, which Vitest counted as PASSED.
+		for (const [label, f] of [['A', fixA], ['B', fixB]] as const) {
+			for (const key of [
+				'property',
+				'unit',
+				'tenant',
+				'lease',
+				'maintenanceRequest'
+			] as const) {
+				expect(
+					f[key],
+					`owner ${label} fixture "${key}" failed to create — check prior test data leaks or RLS drift`
+				).not.toBeNull()
+			}
+		}
 	})
 
 	afterAll(async () => {
@@ -172,15 +197,14 @@ describe('Documents cross-entity storage RLS', () => {
 	})
 
 	// Helper: upload a document to ownerA's entity, verify ownerB can't access it.
+	// `beforeAll` already asserts every fixture ID is non-null, so the non-null
+	// assertion on `idA` is a safe unwrap — any fixture gap would have failed
+	// the suite before any `it()` ran.
 	async function assertCrossOwnerIsolation(
 		entityType: 'property' | 'lease' | 'tenant' | 'maintenance_request',
 		entityIdGetter: (f: Fixture) => string | undefined
 	) {
-		const idA = entityIdGetter(fixA)
-		if (!idA) {
-			console.warn(`Skipping ${entityType}: fixture not created`)
-			return
-		}
+		const idA = entityIdGetter(fixA)!
 
 		const path = `${entityType}/${idA}/${Date.now()}-test.pdf`
 		// Minimal valid PDF payload — the bucket's MIME allowlist accepts
@@ -198,11 +222,16 @@ describe('Documents cross-entity storage RLS', () => {
 		const { data: listedByB } = await clientB.storage.from(BUCKET).list(prefix)
 		expect(listedByB ?? []).toHaveLength(0)
 
-		// ownerB cannot download/signed-url it
-		const { data: signedB } = await clientB.storage
+		// ownerB cannot download/signed-url it. createSignedUrl is the one
+		// storage API that returns an explicit error on RLS block (list
+		// and remove just return empty arrays), so assert both the null
+		// data AND the non-null error — guards against a future supabase
+		// change that starts returning data with no error on denied paths.
+		const { data: signedB, error: signErr } = await clientB.storage
 			.from(BUCKET)
 			.createSignedUrl(path, 60)
 		expect(signedB).toBeNull()
+		expect(signErr).not.toBeNull()
 
 		// ownerB cannot delete it — if this returned data with non-empty
 		// array it would mean RLS let them through.
@@ -249,8 +278,8 @@ describe('Documents cross-entity storage RLS', () => {
 
 	for (const { type, getId } of entityBranches) {
 		it(`${type}: rejects upload with off-convention path segments (3-segment)`, async () => {
-			const id = getId(fixA)
-			if (!id) return
+			// `beforeAll` asserts fixtures; non-null unwrap is safe.
+			const id = getId(fixA)!
 			const badPath = `${type}/${id}/sub/${Date.now()}-evil.pdf`
 			const pdf = new Blob(['%PDF-1.4\n%%EOF'], { type: 'application/pdf' })
 			const { error } = await clientA.storage
