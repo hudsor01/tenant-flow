@@ -226,12 +226,13 @@ export function TenantDetails({ id }: TenantDetailsProps) {
 						</div>
 					</CardLayout>
 				)}
-			</div>
 
-			{/* Wrap in space-y-6 so the Mark as Moved Out button + documents
-			    section share the same vertical rhythm as the leases/personal-
-			    info sections above. */}
-			<div className="space-y-6">
+				{/* Move the Mark-as-Moved-Out button + documents card INSIDE
+				    the outer space-y-6 wrapper so they share the same
+				    vertical rhythm as the leases/personal-info sections.
+				    Keeping them as fragment siblings of the outer div left
+				    them flush with zero margin (fragments don't apply
+				    spacing). */}
 				<Button variant="outline" onClick={() => setMoveOutDialogOpen(true)}>
 					Mark as Moved Out
 				</Button>
