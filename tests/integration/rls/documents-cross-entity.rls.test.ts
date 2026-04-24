@@ -197,15 +197,14 @@ describe('Documents cross-entity storage RLS', () => {
 	})
 
 	// Helper: upload a document to ownerA's entity, verify ownerB can't access it.
+	// `beforeAll` already asserts every fixture ID is non-null, so the non-null
+	// assertion on `idA` is a safe unwrap — any fixture gap would have failed
+	// the suite before any `it()` ran.
 	async function assertCrossOwnerIsolation(
 		entityType: 'property' | 'lease' | 'tenant' | 'maintenance_request',
 		entityIdGetter: (f: Fixture) => string | undefined
 	) {
-		const idA = entityIdGetter(fixA)
-		if (!idA) {
-			console.warn(`Skipping ${entityType}: fixture not created`)
-			return
-		}
+		const idA = entityIdGetter(fixA)!
 
 		const path = `${entityType}/${idA}/${Date.now()}-test.pdf`
 		// Minimal valid PDF payload — the bucket's MIME allowlist accepts
@@ -279,8 +278,8 @@ describe('Documents cross-entity storage RLS', () => {
 
 	for (const { type, getId } of entityBranches) {
 		it(`${type}: rejects upload with off-convention path segments (3-segment)`, async () => {
-			const id = getId(fixA)
-			if (!id) return
+			// `beforeAll` asserts fixtures; non-null unwrap is safe.
+			const id = getId(fixA)!
 			const badPath = `${type}/${id}/sub/${Date.now()}-evil.pdf`
 			const pdf = new Blob(['%PDF-1.4\n%%EOF'], { type: 'application/pdf' })
 			const { error } = await clientA.storage
