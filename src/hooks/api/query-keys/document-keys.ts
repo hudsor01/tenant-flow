@@ -7,6 +7,10 @@
  * storage RLS (migration 20260424140000) extracts entity_type + entity_id
  * from the path, confirms ownership against the corresponding parent table,
  * and enforces array_length + UUID-format guards on every branch.
+ *
+ * Bucket creation, MIME allowlist, and bucket-level config ship in earlier
+ * migrations (20260420030000 + 20260421120000). 20260424140000 only replaces
+ * the four storage.objects policies; it doesn't touch bucket config.
  */
 
 import { queryOptions, mutationOptions } from '@tanstack/react-query'

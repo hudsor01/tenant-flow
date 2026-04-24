@@ -228,14 +228,14 @@ export function TenantDetails({ id }: TenantDetailsProps) {
 				)}
 			</div>
 
-			{/* Mark as Moved Out button */}
-			<div className="mt-4">
+			{/* Wrap in space-y-6 so the Mark as Moved Out button + documents
+			    section share the same vertical rhythm as the leases/personal-
+			    info sections above. */}
+			<div className="space-y-6">
 				<Button variant="outline" onClick={() => setMoveOutDialogOpen(true)}>
 					Mark as Moved Out
 				</Button>
-			</div>
 
-			<div className="mt-6">
 				<DocumentsSection entityType="tenant" entityId={id} />
 			</div>
 
