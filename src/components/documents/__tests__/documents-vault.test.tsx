@@ -221,6 +221,16 @@ describe('DocumentsVaultClient', () => {
 		expect(mockSetPageParam).toHaveBeenCalledWith(null)
 	})
 
+	it('does NOT auto-reset pageParam when on a valid page (cycle-3 N3)', () => {
+		// Negative branch of cycle-2 L1: a regression that always-fires the
+		// reset effect (e.g., dropping the `totalCount > 0` or `rows.length
+		// === 0` guard) would silently clobber the user's page state.
+		pageParamValue = 1 // valid middle page
+		mockUseQuery.mockReturnValue(pagedResult(1, 200, 50))
+		renderVault()
+		expect(mockSetPageParam).not.toHaveBeenCalled()
+	})
+
 	it('treats an unknown URL entity filter as "All types" (H2 guard)', () => {
 		// Attacker- or stale-bookmark-supplied URL like ?entity=banana
 		// must not flow into the RPC as a typed DocumentEntityType.

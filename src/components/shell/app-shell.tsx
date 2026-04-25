@@ -14,6 +14,7 @@ import {
 	Receipt,
 	FilePlus,
 	FileCheck,
+	FolderArchive,
 	Bell,
 	Settings,
 	HelpCircle
@@ -89,7 +90,8 @@ export function AppShell({ children, showQuickActionsDock = true }: AppShellProp
 					{ label: 'Properties', href: '/properties', icon: Building2 },
 					{ label: 'Tenants', href: '/tenants', icon: Users },
 					{ label: 'Leases', href: '/leases', icon: ClipboardList },
-					{ label: 'Maintenance', href: '/maintenance', icon: Wrench }
+					{ label: 'Maintenance', href: '/maintenance', icon: Wrench },
+					{ label: 'Documents', href: '/documents/vault', icon: FolderArchive }
 				]
 			},
 			{
