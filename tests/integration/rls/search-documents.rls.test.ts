@@ -33,7 +33,9 @@ interface SearchDocumentRow {
 	tags: string[] | null
 	description: string | null
 	owner_user_id: string | null
-	created_at: string
+	// Mirror DocumentRow.created_at — DB column is nullable (DEFAULT
+	// now() but no NOT NULL); cycle-5 NIT-1.
+	created_at: string | null
 	total_count: number
 }
 

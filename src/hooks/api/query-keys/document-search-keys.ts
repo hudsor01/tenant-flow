@@ -72,8 +72,9 @@ export const documentSearchQueries = {
 				// Every row carries the same `total_count` — the RPC computes
 				// the full match count in a separate scalar query before
 				// applying LIMIT/OFFSET, then attaches it to each returned
-				// row. Pull from the first row, then strip it from the shape
-				// so the rest of the pipeline matches the per-entity list.
+				// row. Read the value from the first row; mapDocumentRow
+				// reads only the named DocumentRow fields, so total_count
+				// is naturally dropped when the rows are mapped below.
 				//
 				// Defense order:
 				// 1. Reject null/undefined explicitly. `Number(null) === 0`
