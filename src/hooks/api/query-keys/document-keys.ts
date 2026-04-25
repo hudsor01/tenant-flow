@@ -90,30 +90,45 @@ export interface DocumentListResult {
  * degrades to `'other'` rather than poisoning downstream
  * `Record<DocumentCategory, ...>` lookups.
  *
+ * NOT NULL fields throw if absent — the boundary should surface a
+ * dropped column in `.select(...)` immediately rather than silently
+ * producing the literal string `"undefined"` (which would break
+ * signed-URL generation, date rendering, and React keys downstream).
+ *
  * Applies CLAUDE.md's "RPC Return Typing" rule (typed mapper at the
  * PostgREST boundary, not `as unknown as` casts).
  */
 export function mapDocumentRow(
 	raw: Record<string, unknown>
 ): Omit<DocumentRow, 'signed_url'> {
+	function requireString(field: string): string {
+		const value = raw[field]
+		if (typeof value !== 'string') {
+			throw new Error(
+				`mapDocumentRow: NOT NULL field '${field}' missing or non-string from PostgREST response`
+			)
+		}
+		return value
+	}
+
 	const parsedCategory = documentCategorySchema.safeParse(raw.document_type)
 	const document_type: DocumentCategory = parsedCategory.success
 		? parsedCategory.data
 		: 'other'
 	return {
-		id: String(raw.id),
-		entity_type: String(raw.entity_type),
-		entity_id: String(raw.entity_id),
+		id: requireString('id'),
+		entity_type: requireString('entity_type'),
+		entity_id: requireString('entity_id'),
 		document_type,
 		mime_type: (raw.mime_type as string | null) ?? null,
-		file_path: String(raw.file_path),
-		storage_url: String(raw.storage_url),
+		file_path: requireString('file_path'),
+		storage_url: requireString('storage_url'),
 		file_size: (raw.file_size as number | null) ?? null,
 		title: (raw.title as string | null) ?? null,
 		tags: (raw.tags as string[] | null) ?? null,
 		description: (raw.description as string | null) ?? null,
 		owner_user_id: (raw.owner_user_id as string | null) ?? null,
-		created_at: String(raw.created_at)
+		created_at: requireString('created_at')
 	}
 }
 
@@ -288,7 +303,10 @@ export const documentMutations = {
 					throw new Error('Failed to record document')
 				}
 
-				return { ...(row as Omit<DocumentRow, 'signed_url'>), signed_url: null }
+				return {
+					...mapDocumentRow(row as Record<string, unknown>),
+					signed_url: null
+				}
 			}
 		}),
 

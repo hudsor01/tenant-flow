@@ -74,7 +74,22 @@ export const documentSearchQueries = {
 				// applying LIMIT/OFFSET, then attaches it to each returned
 				// row. Pull from the first row, then strip it from the shape
 				// so the rest of the pipeline matches the per-entity list.
-				const totalCount = Number(rawRows[0]!.total_count)
+				// Finite-check guards against an RPC contract regression
+				// where total_count goes missing — without this, NaN would
+				// silently break pagination math (pageEnd < NaN === false,
+				// so the Next button hides and the user can't reach later
+				// pages) with no surfaced error.
+				const totalCountRaw = rawRows[0]!.total_count
+				const totalCountNumeric =
+					typeof totalCountRaw === 'number'
+						? totalCountRaw
+						: Number(totalCountRaw)
+				if (!Number.isFinite(totalCountNumeric)) {
+					throw new Error(
+						'search_documents RPC contract: total_count missing or non-numeric'
+					)
+				}
+				const totalCount = totalCountNumeric
 
 				const mappedRows = rawRows.map(mapDocumentRow)
 				const paths = mappedRows.map(r => r.file_path)
