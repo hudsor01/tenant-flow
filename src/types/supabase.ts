@@ -127,7 +127,7 @@ export type Database = {
         Insert: {
           created_at?: string | null
           description?: string | null
-          document_type: string
+          document_type?: string
           entity_id: string
           entity_type: string
           file_path: string
@@ -2829,4 +2829,3 @@ export const Constants = {
     },
   },
 } as const
-

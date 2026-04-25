@@ -328,6 +328,85 @@ describe('search_documents RPC', () => {
 		}
 	})
 
+	it('Phase 61: CHECK constraint rejects non-taxonomy document_type values', async () => {
+		// Migration 20260425172604 enforces the seven-category enum. Any
+		// other value must be rejected at insert time with 23514.
+		const ts = Date.now()
+		const path = `property/${propertyA!.id}/${ts}-bad-type.pdf`
+		const { error: storageErr } = await clientA.storage
+			.from('tenant-documents')
+			.upload(path, new Blob([PAYLOAD], { type: 'application/pdf' }), {
+				contentType: 'application/pdf'
+			})
+		expect(storageErr).toBeNull()
+
+		const { error: insertErr } = await clientA
+			.from('documents')
+			.insert({
+				entity_type: 'property',
+				entity_id: propertyA!.id,
+				document_type: 'warranty', // not in the taxonomy
+				mime_type: 'application/pdf',
+				file_path: path,
+				storage_url: path,
+				file_size: PAYLOAD.length,
+				title: 'Bad-type fixture',
+				owner_user_id: ownerAId
+			})
+			.select('id')
+			.single()
+
+		expect(insertErr, 'CHECK constraint should reject non-taxonomy value').not
+			.toBeNull()
+		expect(insertErr!.message).toMatch(
+			/documents_document_type_check|check constraint/i
+		)
+
+		// Roll back the orphaned blob so the test doesn't leak storage.
+		await clientA.storage
+			.from('tenant-documents')
+			.remove([path])
+			.catch(() => {})
+	})
+
+	it('Phase 61: omitted document_type defaults to "other"', async () => {
+		// Migration 20260425172604 sets `default 'other'`. PostgREST inserts
+		// that omit document_type should pick up that default rather than
+		// erroring on NOT NULL.
+		const ts = Date.now() + 1
+		const path = `property/${propertyA!.id}/${ts}-default-type.pdf`
+		await clientA.storage
+			.from('tenant-documents')
+			.upload(path, new Blob([PAYLOAD], { type: 'application/pdf' }), {
+				contentType: 'application/pdf'
+			})
+		uploadedPaths.push(path)
+
+		// Cast to satisfy the generated TS type (which still requires
+		// document_type after type regen). The column default makes the DB
+		// happy regardless.
+		const { data: row, error } = await clientA
+			.from('documents')
+			.insert({
+				entity_type: 'property',
+				entity_id: propertyA!.id,
+				mime_type: 'application/pdf',
+				file_path: path,
+				storage_url: path,
+				file_size: PAYLOAD.length,
+				title: 'Default-type fixture',
+				owner_user_id: ownerAId
+			} as Parameters<
+				ReturnType<typeof clientA.from<'documents'>>['insert']
+			>[0])
+			.select('id, document_type')
+			.single()
+
+		expect(error).toBeNull()
+		expect(row?.document_type).toBe('other')
+		if (row) insertedDocIds.push(row.id)
+	})
+
 	it('rejects invalid limit / offset / null limit / over-200 limit', async () => {
 		const { error: e1 } = await clientA.rpc('search_documents', {
 			p_query: null,

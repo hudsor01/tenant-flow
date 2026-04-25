@@ -26,6 +26,11 @@ import {
 	type DocumentEntityType,
 	type DocumentRow as DocumentRowData
 } from '#hooks/api/query-keys/document-keys'
+import {
+	DOCUMENT_CATEGORIES,
+	DOCUMENT_CATEGORY_LABELS,
+	type DocumentCategory
+} from '#lib/validation/documents'
 import { DocumentRow } from './document-row'
 import { AlertTriangle, FolderArchive, Loader2, Search } from 'lucide-react'
 
@@ -37,6 +42,7 @@ const ENTITY_TYPE_LABELS: Record<DocumentEntityType, string> = {
 }
 
 const ANY_ENTITY = '__any__'
+const ANY_CATEGORY = '__any__'
 
 export function DocumentsVaultClient() {
 	// URL-synced filters via nuqs so a shared link reproduces the search.
@@ -47,6 +53,10 @@ export function DocumentsVaultClient() {
 	const [entityParam, setEntityParam] = useQueryState(
 		'entity',
 		parseAsString.withDefault(ANY_ENTITY)
+	)
+	const [categoryParam, setCategoryParam] = useQueryState(
+		'category',
+		parseAsString.withDefault(ANY_CATEGORY)
 	)
 	const [pageParam, setPageParam] = useQueryState(
 		'page',
@@ -89,10 +99,21 @@ export function DocumentsVaultClient() {
 			: undefined
 	}, [entityParam])
 
+	// Same H2-style guard for category — `?category=banana` must NOT flow
+	// into the RPC as a typed DocumentCategory. Empty string also degrades
+	// to "Any" (the RPC treats null as "no filter").
+	const category = useMemo<DocumentCategory | undefined>(() => {
+		if (categoryParam === ANY_CATEGORY) return undefined
+		return (DOCUMENT_CATEGORIES as readonly string[]).includes(categoryParam)
+			? (categoryParam as DocumentCategory)
+			: undefined
+	}, [categoryParam])
+
 	const { data, isLoading, isFetching, isError, refetch } = useQuery(
 		documentSearchQueries.list({
 			...(queryParam ? { query: queryParam } : {}),
 			...(entityType ? { entityType } : {}),
+			...(category ? { category } : {}),
 			page: pageParam
 		})
 	)
@@ -141,7 +162,7 @@ export function DocumentsVaultClient() {
 					<CardTitle className="text-base">Search & filter</CardTitle>
 				</CardHeader>
 				<CardContent className="space-y-4">
-					<div className="grid gap-3 md:grid-cols-[1fr_220px]">
+					<div className="grid gap-3 md:grid-cols-[1fr_180px_180px]">
 						<div className="relative">
 							<Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground pointer-events-none" />
 							<Input
@@ -168,6 +189,25 @@ export function DocumentsVaultClient() {
 								{DOCUMENT_ENTITY_TYPES.map(type => (
 									<SelectItem key={type} value={type}>
 										{ENTITY_TYPE_LABELS[type]}
+									</SelectItem>
+								))}
+							</SelectContent>
+						</Select>
+						<Select
+							value={categoryParam}
+							onValueChange={value => {
+								void setCategoryParam(value === ANY_CATEGORY ? null : value)
+								void setPageParam(null)
+							}}
+						>
+							<SelectTrigger aria-label="Filter by category">
+								<SelectValue placeholder="All categories" />
+							</SelectTrigger>
+							<SelectContent>
+								<SelectItem value={ANY_CATEGORY}>All categories</SelectItem>
+								{DOCUMENT_CATEGORIES.map(value => (
+									<SelectItem key={value} value={value}>
+										{DOCUMENT_CATEGORY_LABELS[value]}
 									</SelectItem>
 								))}
 							</SelectContent>
@@ -216,12 +256,12 @@ export function DocumentsVaultClient() {
 						<EmptyState
 							icon={<FolderArchive className="size-8 opacity-50" />}
 							title={
-								queryParam || entityType
+								queryParam || entityType || category
 									? 'No documents match your search.'
 									: 'No documents uploaded yet.'
 							}
 							subtitle={
-								queryParam || entityType
+								queryParam || entityType || category
 									? 'Try a different keyword or filter.'
 									: 'Open a property, lease, tenant, or maintenance request to upload your first document.'
 							}

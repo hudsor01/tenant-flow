@@ -219,6 +219,37 @@ describe('DocumentsSection', () => {
 		expect(mockToastError).not.toHaveBeenCalled()
 	})
 
+	it('renders the category Select for the next upload (Phase 61)', () => {
+		mockUseQuery.mockReturnValue(emptyList())
+		renderSection()
+		expect(
+			screen.getByLabelText(/category for next upload/i)
+		).toBeInTheDocument()
+	})
+
+	it('passes the chosen category through to the upload mutation (Phase 61)', async () => {
+		mockUseQuery.mockReturnValue(emptyList())
+		mockUploadMutate.mockResolvedValue({})
+		renderSection()
+
+		const input = document.querySelector(
+			'input[type="file"]'
+		) as HTMLInputElement
+		const file = new File(['fake pdf'], 'lease.pdf', {
+			type: 'application/pdf'
+		})
+		fireEvent.change(input, { target: { files: [file] } })
+
+		await waitFor(() => {
+			expect(mockUploadMutate).toHaveBeenCalledTimes(1)
+		})
+		// Default category is 'other' — verify it flows through the
+		// mutateAsync call payload alongside file + entity context.
+		expect(mockUploadMutate).toHaveBeenCalledWith(
+			expect.objectContaining({ category: 'other' })
+		)
+	})
+
 	it('renders an error state with Try again button when the query errors', () => {
 		mockUseQuery.mockReturnValue({
 			data: undefined,
