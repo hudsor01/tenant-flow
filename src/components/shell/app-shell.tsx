@@ -116,7 +116,7 @@ export function AppShell({ children, showQuickActionsDock = true }: AppShellProp
 				]
 			},
 			{
-				heading: 'Documents',
+				heading: 'Templates',
 				items: [
 					{ label: 'Generate Lease', href: '/leases/new', icon: FilePlus },
 					{ label: 'Lease Template', href: '/documents/lease-template', icon: FileCheck }

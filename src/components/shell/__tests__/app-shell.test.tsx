@@ -334,7 +334,10 @@ describe('AppShell', () => {
 			expect(screen.getByText('Analytics & Reports')).toBeInTheDocument()
 			// "Financials" appears in both sidebar nav and command palette - use getAllByText
 			expect(screen.getAllByText('Financials').length).toBeGreaterThanOrEqual(1)
-			expect(screen.getAllByText('Documents').length).toBeGreaterThanOrEqual(1)
+			// v2.4 Phase 60 renamed the legacy "Documents" command-palette
+			// heading to "Templates" — the new top-level "Documents" core
+			// nav item points at /documents/vault.
+			expect(screen.getAllByText('Templates').length).toBeGreaterThanOrEqual(1)
 		})
 
 		it('should show recent properties in command palette', async () => {

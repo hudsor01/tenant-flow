@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { useQueryState, parseAsString, parseAsInteger } from 'nuqs'
 import {
@@ -27,7 +27,7 @@ import {
 	type DocumentRow as DocumentRowData
 } from '#hooks/api/query-keys/document-keys'
 import { DocumentRow } from './document-row'
-import { AlertTriangle, FolderArchive, Search } from 'lucide-react'
+import { AlertTriangle, FolderArchive, Loader2, Search } from 'lucide-react'
 
 const ENTITY_TYPE_LABELS: Record<DocumentEntityType, string> = {
 	property: 'Property',
@@ -56,6 +56,16 @@ export function DocumentsVaultClient() {
 	// Local input mirrors the URL search param but debounces before
 	// committing — we don't want a query-fire on every keystroke.
 	const [searchInput, setSearchInput] = useState(queryParam)
+
+	// Sync searchInput when queryParam changes externally (browser back,
+	// shared link landing). Without this, the debounce useEffect below
+	// would clobber the external change and push the stale local value
+	// back into the URL. The debounce's `searchInput !== queryParam`
+	// guard short-circuits when both are equal, so there's no loop.
+	useEffect(() => {
+		setSearchInput(queryParam)
+	}, [queryParam])
+
 	useEffect(() => {
 		const id = window.setTimeout(() => {
 			if (searchInput !== queryParam) {
@@ -68,12 +78,18 @@ export function DocumentsVaultClient() {
 		return () => window.clearTimeout(id)
 	}, [searchInput, queryParam, setQueryParam, setPageParam])
 
-	const entityType: DocumentEntityType | undefined =
-		entityParam === ANY_ENTITY
-			? undefined
-			: (entityParam as DocumentEntityType)
+	// Validate the URL-supplied entity filter against the known set so a
+	// bookmarked or attacker-tampered `?entity=banana` degrades to "All
+	// types" instead of being passed unchecked into the RPC. Memoise so
+	// the queryKey stays stable.
+	const entityType = useMemo<DocumentEntityType | undefined>(() => {
+		if (entityParam === ANY_ENTITY) return undefined
+		return (DOCUMENT_ENTITY_TYPES as readonly string[]).includes(entityParam)
+			? (entityParam as DocumentEntityType)
+			: undefined
+	}, [entityParam])
 
-	const { data, isLoading, isError, refetch } = useQuery(
+	const { data, isLoading, isFetching, isError, refetch } = useQuery(
 		documentSearchQueries.list({
 			...(queryParam ? { query: queryParam } : {}),
 			...(entityType ? { entityType } : {}),
@@ -86,6 +102,10 @@ export function DocumentsVaultClient() {
 	const pageEnd = pageStart + (data?.rows.length ?? 0)
 	const hasNextPage = pageEnd < totalCount
 	const hasPrevPage = pageParam > 0
+	// Defer the "Showing X-Y" header during pagination refetches so the
+	// stale page-0 row count doesn't display "Showing 51-100 of 51"
+	// momentarily after clicking Next.
+	const showRangeHeader = totalCount > 0 && !isFetching
 
 	return (
 		<div className="container mx-auto space-y-6 py-6">
@@ -139,14 +159,20 @@ export function DocumentsVaultClient() {
 				</CardContent>
 			</Card>
 
-			<Card>
+			<Card aria-busy={isFetching}>
 				<CardHeader className="flex flex-row items-center justify-between space-y-0">
-					<CardTitle className="text-base">
+					<CardTitle className="text-base flex items-center gap-2">
 						{totalCount > 0
 							? `${totalCount} document${totalCount === 1 ? '' : 's'}`
 							: 'Results'}
+						{isFetching && !isLoading && (
+							<Loader2
+								className="size-4 animate-spin text-muted-foreground"
+								aria-hidden="true"
+							/>
+						)}
 					</CardTitle>
-					{totalCount > 0 && (
+					{showRangeHeader && (
 						<p className="text-xs text-muted-foreground">
 							Showing {pageStart + 1}-{pageEnd} of {totalCount}
 						</p>

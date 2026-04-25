@@ -40,6 +40,7 @@ function Skeleton({
 }: ComponentProps<'div'> & VariantProps<typeof skeletonVariants>) {
 	return (
 		<div
+			data-slot="skeleton"
 			className={cn(skeletonVariants({ variant, size }), className)}
 			{...props}
 		/>

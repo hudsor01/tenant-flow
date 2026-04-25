@@ -45,8 +45,20 @@ create trigger documents_search_vector_trigger
   on public.documents
   for each row execute function public.documents_refresh_search_vector();
 
--- Backfill — forces the trigger to fire on every existing row.
-update public.documents set search_vector = null where search_vector is null;
+-- Backfill: populate search_vector directly. The trigger above only
+-- fires when title/description/tags are mentioned in the SET clause, so
+-- `update ... set search_vector = null` does NOT fire it (cycle-1 audit
+-- caught this). Compute the value inline (matches the trigger body) so
+-- existing rows are searchable after migration replay, not just newly-
+-- inserted ones.
+update public.documents
+set search_vector = to_tsvector(
+  'english',
+  coalesce(title, '') || ' ' ||
+  coalesce(description, '') || ' ' ||
+  coalesce(array_to_string(tags, ' '), '')
+)
+where search_vector is null;
 
 create index if not exists idx_documents_search_vector
   on public.documents using gin (search_vector);

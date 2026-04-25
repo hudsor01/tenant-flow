@@ -218,9 +218,11 @@ export const documentSearchQueries = {
 					return { rows: [], totalCount: 0, page, pageSize: SEARCH_PAGE_SIZE }
 				}
 
-				// Every row carries the same `total_count` (window-style aggregate
-				// in the RPC). Pull it from the first row, then strip it off the
-				// shape so the rest of the pipeline matches the per-entity list.
+				// Every row carries the same `total_count` — the RPC computes
+				// the full match count in a separate scalar query before
+				// applying LIMIT/OFFSET, then attaches it to each returned
+				// row. Pull from the first row, then strip it from the shape
+				// so the rest of the pipeline matches the per-entity list.
 				const totalCount = rpcRows[0]!.total_count
 
 				const paths = rpcRows.map(r => r.file_path)
@@ -236,8 +238,20 @@ export const documentSearchQueries = {
 				}
 
 				return {
-					rows: rpcRows.map(({ total_count: _t, ...r }) => ({
-						...(r as Omit<DocumentRow, 'signed_url'>),
+					rows: rpcRows.map(r => ({
+						id: r.id,
+						entity_type: r.entity_type,
+						entity_id: r.entity_id,
+						document_type: r.document_type,
+						mime_type: r.mime_type,
+						file_path: r.file_path,
+						storage_url: r.storage_url,
+						file_size: r.file_size,
+						title: r.title,
+						tags: r.tags,
+						description: r.description,
+						owner_user_id: r.owner_user_id,
+						created_at: r.created_at,
 						signed_url: urlByPath.get(r.file_path) ?? null
 					})),
 					totalCount,

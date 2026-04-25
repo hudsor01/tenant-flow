@@ -77,40 +77,57 @@ describe('search_documents RPC', () => {
 		//   2. description contains 'plumbing' + entity_type 'property'
 		//   3. tag 'inspection' + document_type 'other'
 		//   4. all-blank metadata (only file_path) — should match empty-query only
-		const fixtures = [
+		const fixtures: Array<{
+			title: string | null
+			description: string | null
+			tags: string[] | null
+			document_type: string
+			mime_type: string
+		}> = [
 			{
 				title: 'Quarterly taxreturn2025 W2',
 				description: 'Year-end statement',
 				tags: ['tax', 'irs'],
-				document_type: 'receipt'
+				document_type: 'receipt',
+				mime_type: 'application/pdf'
 			},
 			{
 				title: 'Lease addendum',
 				description: 'Plumbing repair clause attached',
 				tags: ['legal'],
-				document_type: 'other'
+				document_type: 'other',
+				mime_type: 'application/pdf'
 			},
 			{
 				title: 'Move-in walkthrough',
 				description: 'Photos and notes',
 				tags: ['inspection', 'walkthrough'],
-				document_type: 'other'
+				document_type: 'other',
+				// Image fixture (L4): the vault renders <img> for image MIMEs
+				// and <iframe> for everything else; covering both branches
+				// pins the resolveMime + isImage logic in DocumentRow.
+				mime_type: 'image/jpeg'
 			},
 			{
 				title: null,
 				description: null,
 				tags: null,
-				document_type: 'other'
+				document_type: 'other',
+				mime_type: 'application/pdf'
 			}
 		]
 
 		for (const [idx, fx] of fixtures.entries()) {
 			const ts = Date.now() + idx
-			const path = `property/${propertyA!.id}/${ts}-search-test.pdf`
+			const ext = fx.mime_type === 'image/jpeg' ? 'jpg' : 'pdf'
+			const path = `property/${propertyA!.id}/${ts}-search-test.${ext}`
+			// Bucket allowlist accepts both PDF and image/jpeg; payload
+			// content doesn't have to be a real image — the bucket doesn't
+			// magic-byte-sniff, only checks the declared contentType.
 			const { error: upErr } = await clientA.storage
 				.from('tenant-documents')
-				.upload(path, new Blob([PAYLOAD], { type: 'application/pdf' }), {
-					contentType: 'application/pdf'
+				.upload(path, new Blob([PAYLOAD], { type: fx.mime_type }), {
+					contentType: fx.mime_type
 				})
 			expect(upErr, `storage upload failed for fixture ${idx}`).toBeNull()
 			uploadedPaths.push(path)
@@ -121,7 +138,7 @@ describe('search_documents RPC', () => {
 					entity_type: 'property',
 					entity_id: propertyA!.id,
 					document_type: fx.document_type,
-					mime_type: 'application/pdf',
+					mime_type: fx.mime_type,
 					file_path: path,
 					storage_url: path,
 					file_size: PAYLOAD.length,
@@ -152,6 +169,10 @@ describe('search_documents RPC', () => {
 		await clientB.auth.signOut()
 	})
 
+	// `search_documents` filters by auth.uid() server-side, so any row
+	// returned to clientA is owned by ownerA. We could drop the helper
+	// entirely, but keeping it documents intent and makes a regression
+	// where the RPC drops its WHERE clause fail loudly instead of subtly.
 	function ownedRows(rows: SearchDocumentRow[]) {
 		return rows.filter(r => r.owner_user_id === ownerAId)
 	}
@@ -285,7 +306,29 @@ describe('search_documents RPC', () => {
 		expect(overlap).toHaveLength(0)
 	})
 
-	it('rejects invalid limit / offset', async () => {
+	it('search_vector is populated for every fixture (regression for cycle-1 P0 backfill)', async () => {
+		// Cycle-1 audit: the broken backfill left existing rows with
+		// search_vector = NULL. The fix populates inline. This test
+		// asserts the trigger correctly fills search_vector on INSERT
+		// (not just on title/description/tags UPDATE) for every fixture.
+		const { data } = await clientA
+			.from('documents')
+			.select('id, search_vector')
+			.in('id', insertedDocIds)
+		const rows = (data ?? []) as Array<{
+			id: string
+			search_vector: string | null
+		}>
+		expect(rows).toHaveLength(insertedDocIds.length)
+		for (const r of rows) {
+			expect(
+				r.search_vector,
+				`row ${r.id} has NULL search_vector — trigger or backfill regressed`
+			).not.toBeNull()
+		}
+	})
+
+	it('rejects invalid limit / offset / null limit / over-200 limit', async () => {
 		const { error: e1 } = await clientA.rpc('search_documents', {
 			p_query: null,
 			p_entity_type: null,
@@ -305,5 +348,27 @@ describe('search_documents RPC', () => {
 		})
 		expect(e2).not.toBeNull()
 		expect(e2!.message).toMatch(/offset/i)
+
+		// Cycle-1 M5: also pin the upper bound + null-limit branches so a
+		// future migration that drops a guard fails CI.
+		const { error: e3 } = await clientA.rpc('search_documents', {
+			p_query: null,
+			p_entity_type: null,
+			p_category: null,
+			p_limit: 201,
+			p_offset: 0
+		})
+		expect(e3).not.toBeNull()
+		expect(e3!.message).toMatch(/limit/i)
+
+		const { error: e4 } = await clientA.rpc('search_documents', {
+			p_query: null,
+			p_entity_type: null,
+			p_category: null,
+			p_limit: null as unknown as number,
+			p_offset: 0
+		})
+		expect(e4).not.toBeNull()
+		expect(e4!.message).toMatch(/limit/i)
 	})
 })
