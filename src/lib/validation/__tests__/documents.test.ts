@@ -53,8 +53,11 @@ describe('documentCategorySchema', () => {
 			'supabase/migrations/20260425172604_v24_phase_61_document_type_taxonomy.sql',
 			'utf8'
 		)
+		// Case-insensitive + whitespace-tolerant — a future migration
+		// that uppercases CHECK / IN, or wraps the predicate over
+		// multiple lines with extra whitespace, must still match.
 		const checkBlock = migrationSql.match(
-			/check \(document_type in \(([\s\S]*?)\)\)/
+			/check\s*\(\s*document_type\s+in\s*\(([\s\S]*?)\)\s*\)/i
 		)?.[1]
 		expect(checkBlock, 'CHECK block not found in migration').toBeDefined()
 		const quoted = (checkBlock!.match(/'([^']+)'/g) ?? []).map(m =>

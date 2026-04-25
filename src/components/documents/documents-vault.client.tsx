@@ -128,16 +128,21 @@ export function DocumentsVaultClient() {
 	// When the URL value is rejected by the guard, scrub it from the URL
 	// so the address bar matches what the UI is actually filtering by.
 	// Without this, `?entity=banana` lingers in the URL while the page
-	// shows "All types" — confusing on share/bookmark.
+	// shows "All types" — confusing on share/bookmark. Single effect for
+	// both filters so adding a third URL-synced filter (e.g. ?page=…)
+	// stays a one-line change.
 	const entityRejected = entityParam !== ANY_ENTITY && entityType === undefined
 	const categoryRejected =
 		categoryParam !== ANY_CATEGORY && category === undefined
 	useEffect(() => {
 		if (entityRejected) void setEntityParam(null)
-	}, [entityRejected, setEntityParam])
-	useEffect(() => {
 		if (categoryRejected) void setCategoryParam(null)
-	}, [categoryRejected, setCategoryParam])
+	}, [
+		entityRejected,
+		categoryRejected,
+		setEntityParam,
+		setCategoryParam
+	])
 
 	const { data, isLoading, isFetching, isError, refetch } = useQuery(
 		documentSearchQueries.list({

@@ -372,11 +372,12 @@ describe('search_documents RPC', () => {
 		// erroring on NOT NULL.
 		const ts = Date.now() + 1
 		const path = `property/${propertyA!.id}/${ts}-default-type.pdf`
-		await clientA.storage
+		const { error: storageErr } = await clientA.storage
 			.from('tenant-documents')
 			.upload(path, new Blob([PAYLOAD], { type: 'application/pdf' }), {
 				contentType: 'application/pdf'
 			})
+		expect(storageErr).toBeNull()
 		uploadedPaths.push(path)
 
 		const { data: row, error } = await clientA
@@ -398,7 +399,6 @@ describe('search_documents RPC', () => {
 		expect(row?.document_type).toBe('other')
 		if (row) insertedDocIds.push(row.id)
 	})
-
 
 	it('rejects invalid limit / offset / null limit / over-200 limit', async () => {
 		const { error: e1 } = await clientA.rpc('search_documents', {

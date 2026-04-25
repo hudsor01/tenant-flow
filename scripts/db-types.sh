@@ -15,7 +15,12 @@ set -euo pipefail
 readonly PROJECT_ID="bshjmbshupiibfiewpxb"
 readonly DEST="src/types/supabase.ts"
 
-tmp=$(mktemp -t supabase-types.XXXXXX.ts)
+# Tempfile lives next to the destination on the same filesystem so the
+# final `mv` is atomic. macOS BSD `mktemp -t` has a different prefix
+# semantics than GNU `mktemp -t`, and on macOS the system appends a
+# random suffix AFTER the template, breaking the `.ts` extension —
+# avoid `-t` entirely and pass an explicit template path.
+tmp=$(mktemp "$(dirname "$DEST")/.supabase-types.XXXXXX.tmp")
 trap 'rm -f "$tmp"' EXIT
 
 if ! supabase gen types typescript --project-id "$PROJECT_ID" >"$tmp" 2>&1; then

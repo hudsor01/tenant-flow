@@ -28,11 +28,15 @@ where document_type not in (
   'other'
 );
 
--- Idempotent ADD CONSTRAINT: project convention (see e.g.
--- 20260306130000_schema_constraints.sql). Bare `add constraint`
--- raises 42710 on replay, which would tear out a perfectly-good
--- schema during a `supabase db reset` after the constraint already
--- exists.
+-- Idempotent ADD CONSTRAINT via PL/pgSQL exception trap — standard
+-- PostgreSQL pattern for `db reset` replay safety. Bare
+-- `add constraint` raises 42710 if the constraint already exists,
+-- which would tear out a perfectly-good schema during a
+-- `supabase db reset` after the constraint was applied.
+-- (Other idempotent-DDL migrations in this repo use information_schema
+-- introspection plus dynamic execute — same intent, different shape;
+-- the exception-trap form is more concise here because we have a
+-- single named constraint to guard.)
 do $$
 begin
   alter table public.documents

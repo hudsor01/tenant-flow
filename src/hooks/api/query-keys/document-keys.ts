@@ -20,7 +20,10 @@ import { handlePostgrestError } from '#lib/postgrest-error-handler'
 import { requireOwnerUserId } from '#lib/require-owner-user-id'
 import { createLogger } from '#lib/frontend-logger'
 import { mutationKeys } from '../mutation-keys'
-import type { DocumentCategory } from '#lib/validation/documents'
+import {
+	documentCategorySchema,
+	type DocumentCategory
+} from '#lib/validation/documents'
 
 const SIGNED_URL_TTL_SECONDS = 3600
 // Refetch the list (and its signed URLs) well before the 1h TTL expires.
@@ -79,6 +82,41 @@ export interface DocumentListResult {
 	totalCount: number
 }
 
+/**
+ * Maps a PostgREST row (untyped at the TS level — Supabase returns
+ * `document_type: string`) into the strictly-typed `DocumentRow`.
+ * `document_type` is validated via the Zod enum so an out-of-band
+ * value (corruption, dropped CHECK constraint, mid-migration replay)
+ * degrades to `'other'` rather than poisoning downstream
+ * `Record<DocumentCategory, ...>` lookups.
+ *
+ * Applies CLAUDE.md's "RPC Return Typing" rule (typed mapper at the
+ * PostgREST boundary, not `as unknown as` casts).
+ */
+export function mapDocumentRow(
+	raw: Record<string, unknown>
+): Omit<DocumentRow, 'signed_url'> {
+	const parsedCategory = documentCategorySchema.safeParse(raw.document_type)
+	const document_type: DocumentCategory = parsedCategory.success
+		? parsedCategory.data
+		: 'other'
+	return {
+		id: String(raw.id),
+		entity_type: String(raw.entity_type),
+		entity_id: String(raw.entity_id),
+		document_type,
+		mime_type: (raw.mime_type as string | null) ?? null,
+		file_path: String(raw.file_path),
+		storage_url: String(raw.storage_url),
+		file_size: (raw.file_size as number | null) ?? null,
+		title: (raw.title as string | null) ?? null,
+		tags: (raw.tags as string[] | null) ?? null,
+		description: (raw.description as string | null) ?? null,
+		owner_user_id: (raw.owner_user_id as string | null) ?? null,
+		created_at: String(raw.created_at)
+	}
+}
+
 export interface DocumentUploadInput {
 	entityType: DocumentEntityType
 	entityId: string
@@ -131,7 +169,9 @@ export const documentQueries = {
 
 				if (error) handlePostgrestError(error, 'documents')
 
-				const rows = (data ?? []) as Omit<DocumentRow, 'signed_url'>[]
+				const rows = ((data ?? []) as Record<string, unknown>[]).map(
+					mapDocumentRow
+				)
 				const totalCount = count ?? rows.length
 				if (rows.length === 0) {
 					return { rows: [], totalCount }

@@ -15,15 +15,15 @@ function isImage(mime: string | null | undefined): boolean {
 	return !!mime && mime.startsWith('image/')
 }
 
-// Pre-migration rows stored browser MIME in document_type; post-migration
-// rows populate mime_type separately. Prefer mime_type but fall through to
-// document_type so legacy rows still render correctly.
-type MimeResolvable = Pick<DocumentRowData, 'mime_type' | 'document_type'>
+// Post-Phase-61 invariant: `document_type` is a categorical enum (lease,
+// receipt, …, other) — never a MIME string. The MIME lives exclusively in
+// `mime_type`. The pre-migration MIME-in-document_type fallback was
+// removed when migration 20260425172604 added the CHECK constraint and
+// coerced any out-of-band rows to 'other'.
+type MimeResolvable = Pick<DocumentRowData, 'mime_type'>
 
 function resolveMime(doc: MimeResolvable): string | null {
-	if (doc.mime_type) return doc.mime_type
-	if (doc.document_type && doc.document_type.includes('/')) return doc.document_type
-	return null
+	return doc.mime_type ?? null
 }
 
 interface DocumentRowProps {

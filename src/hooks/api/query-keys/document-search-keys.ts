@@ -12,6 +12,7 @@ import { createClient } from '#lib/supabase/client'
 import { handlePostgrestError } from '#lib/postgrest-error-handler'
 import {
 	documentQueries,
+	mapDocumentRow,
 	type DocumentEntityType,
 	type DocumentRow
 } from './document-keys'
@@ -63,10 +64,8 @@ export const documentSearchQueries = {
 				})
 				if (error) handlePostgrestError(error, 'documents')
 
-				const rpcRows = (data ?? []) as Array<
-					Omit<DocumentRow, 'signed_url'> & { total_count: number }
-				>
-				if (rpcRows.length === 0) {
+				const rawRows = (data ?? []) as Array<Record<string, unknown>>
+				if (rawRows.length === 0) {
 					return { rows: [], totalCount: 0, page, pageSize: SEARCH_PAGE_SIZE }
 				}
 
@@ -75,9 +74,10 @@ export const documentSearchQueries = {
 				// applying LIMIT/OFFSET, then attaches it to each returned
 				// row. Pull from the first row, then strip it from the shape
 				// so the rest of the pipeline matches the per-entity list.
-				const totalCount = rpcRows[0]!.total_count
+				const totalCount = Number(rawRows[0]!.total_count)
 
-				const paths = rpcRows.map(r => r.file_path)
+				const mappedRows = rawRows.map(mapDocumentRow)
+				const paths = mappedRows.map(r => r.file_path)
 				const { data: signed } = await supabase.storage
 					.from(STORAGE_BUCKET)
 					.createSignedUrls(paths, SIGNED_URL_TTL_SECONDS)
@@ -90,20 +90,8 @@ export const documentSearchQueries = {
 				}
 
 				return {
-					rows: rpcRows.map(r => ({
-						id: r.id,
-						entity_type: r.entity_type,
-						entity_id: r.entity_id,
-						document_type: r.document_type,
-						mime_type: r.mime_type,
-						file_path: r.file_path,
-						storage_url: r.storage_url,
-						file_size: r.file_size,
-						title: r.title,
-						tags: r.tags,
-						description: r.description,
-						owner_user_id: r.owner_user_id,
-						created_at: r.created_at,
+					rows: mappedRows.map(r => ({
+						...r,
 						signed_url: urlByPath.get(r.file_path) ?? null
 					})),
 					totalCount,
