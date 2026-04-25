@@ -341,10 +341,11 @@ describe('AppShell', () => {
 			// Cycle-3 L5: /documents/vault must be reachable from cmd+K
 			// Navigation group. MainNav is mocked at the top of this file
 			// so the only "Documents" in the DOM comes from the cmd+K
-			// palette itself. "Tax Documents" lives in the Financials
-			// group with its own distinct label, so it won't be matched
-			// by an exact "Documents" string.
-			expect(screen.getAllByText('Documents').length).toBeGreaterThanOrEqual(1)
+			// palette itself. Cycle-5 LOW-1: pin to exact length 1 — a
+			// future regression that adds the entry to a different group
+			// (e.g., moves it from Navigation → Templates) would still
+			// satisfy `>= 1` but fail this stricter assertion.
+			expect(screen.getAllByText('Documents')).toHaveLength(1)
 		})
 
 		it('should show recent properties in command palette', async () => {

@@ -27,6 +27,7 @@ alter table public.documents
 create or replace function public.documents_refresh_search_vector()
 returns trigger
 language plpgsql
+set search_path = public
 as $$
 begin
   new.search_vector := to_tsvector(

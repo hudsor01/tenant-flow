@@ -1,7 +1,13 @@
 -- v2.4 Phase 60 cycle-1 audit fix: repopulate search_vector for any rows
--- the broken backfill in 20260424182557 missed (already applied to prod
--- via MCP at this exact timestamp; this file is the in-repo source of
--- truth so `supabase db diff` and disaster-recovery replays match prod).
+-- the broken backfill in the phase-60 migration missed (originally
+-- authored as 20260424180000 in repo, applied to prod via MCP as
+-- 20260424182557; cycle-4 renamed the repo file to match prod, so the
+-- comment below references the 20260424182557 form throughout. Prod's
+-- stored statement for THIS audit-fix migration still references the
+-- pre-rename "20260424180000" timestamp — both refer to the same file).
+-- Already applied to prod via MCP at this exact 20260425091856 timestamp;
+-- this file is the in-repo source of truth so `supabase db diff` and
+-- disaster-recovery replays from git match prod.
 --
 -- The original backfill said:
 --   update public.documents set search_vector = null where search_vector is null;
