@@ -44,6 +44,22 @@ const ENTITY_TYPE_LABELS: Record<DocumentEntityType, string> = {
 const ANY_ENTITY = '__any__'
 const ANY_CATEGORY = '__any__'
 
+// Sentinels must not collide with any real taxonomy value, otherwise a
+// URL like `?category=__any__` would silently render as "All categories"
+// instead of a literal category. Module-load assert so adding a new
+// entity/category that happens to be `__any__` fails the import in dev
+// rather than producing a confusing UX in prod.
+if ((DOCUMENT_ENTITY_TYPES as readonly string[]).includes(ANY_ENTITY)) {
+	throw new Error(
+		'ANY_ENTITY sentinel collides with a real DOCUMENT_ENTITY_TYPES value'
+	)
+}
+if ((DOCUMENT_CATEGORIES as readonly string[]).includes(ANY_CATEGORY)) {
+	throw new Error(
+		'ANY_CATEGORY sentinel collides with a real DOCUMENT_CATEGORIES value'
+	)
+}
+
 export function DocumentsVaultClient() {
 	// URL-synced filters via nuqs so a shared link reproduces the search.
 	const [queryParam, setQueryParam] = useQueryState(
@@ -108,6 +124,20 @@ export function DocumentsVaultClient() {
 			? (categoryParam as DocumentCategory)
 			: undefined
 	}, [categoryParam])
+
+	// When the URL value is rejected by the guard, scrub it from the URL
+	// so the address bar matches what the UI is actually filtering by.
+	// Without this, `?entity=banana` lingers in the URL while the page
+	// shows "All types" — confusing on share/bookmark.
+	const entityRejected = entityParam !== ANY_ENTITY && entityType === undefined
+	const categoryRejected =
+		categoryParam !== ANY_CATEGORY && category === undefined
+	useEffect(() => {
+		if (entityRejected) void setEntityParam(null)
+	}, [entityRejected, setEntityParam])
+	useEffect(() => {
+		if (categoryRejected) void setCategoryParam(null)
+	}, [categoryRejected, setCategoryParam])
 
 	const { data, isLoading, isFetching, isError, refetch } = useQuery(
 		documentSearchQueries.list({

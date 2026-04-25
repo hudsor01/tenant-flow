@@ -1,4 +1,5 @@
 import { describe, it, expect } from 'vitest'
+import { readFileSync } from 'node:fs'
 import {
 	DOCUMENT_CATEGORIES,
 	DOCUMENT_CATEGORY_LABELS,
@@ -39,5 +40,26 @@ describe('documentCategorySchema', () => {
 			'insurance',
 			'other'
 		])
+	})
+
+	it('migration source is in lockstep with DOCUMENT_CATEGORIES (NIT cross-check)', () => {
+		// Reads the migration file at runtime and parses the literal CHECK
+		// list. Catches the three-source-of-truth drift: if someone edits
+		// the tuple WITHOUT updating the migration (or vice versa), the
+		// hard-coded array literal above would still match the tuple but
+		// this test fails. The migration is the database's source of
+		// truth; this guard makes the repo's source of truth match it.
+		const migrationSql = readFileSync(
+			'supabase/migrations/20260425172604_v24_phase_61_document_type_taxonomy.sql',
+			'utf8'
+		)
+		const checkBlock = migrationSql.match(
+			/check \(document_type in \(([\s\S]*?)\)\)/
+		)?.[1]
+		expect(checkBlock, 'CHECK block not found in migration').toBeDefined()
+		const quoted = (checkBlock!.match(/'([^']+)'/g) ?? []).map(m =>
+			m.replace(/^'|'$/g, '')
+		)
+		expect(quoted.sort()).toEqual([...DOCUMENT_CATEGORIES].sort())
 	})
 })

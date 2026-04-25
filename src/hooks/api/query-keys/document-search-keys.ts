@@ -15,6 +15,7 @@ import {
 	type DocumentEntityType,
 	type DocumentRow
 } from './document-keys'
+import type { DocumentCategory } from '#lib/validation/documents'
 
 const SIGNED_URL_TTL_SECONDS = 3600
 const LIST_STALE_TIME_MS = 45 * 60 * 1000
@@ -26,7 +27,7 @@ export const SEARCH_PAGE_SIZE = 50
 export interface DocumentSearchParams {
 	query?: string
 	entityType?: DocumentEntityType
-	category?: string
+	category?: DocumentCategory
 	page?: number
 }
 

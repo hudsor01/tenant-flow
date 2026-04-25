@@ -1,5 +1,6 @@
 import { describe, expect, it, vi, beforeEach } from 'vitest'
 import { fireEvent, render, screen, waitFor } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import type { ReactElement } from 'react'
 import { DocumentsSection } from '../documents-section'
@@ -227,7 +228,7 @@ describe('DocumentsSection', () => {
 		).toBeInTheDocument()
 	})
 
-	it('passes the chosen category through to the upload mutation (Phase 61)', async () => {
+	it('passes the default category "other" through to the upload mutation (Phase 61)', async () => {
 		mockUseQuery.mockReturnValue(emptyList())
 		mockUploadMutate.mockResolvedValue({})
 		renderSection()
@@ -243,10 +244,44 @@ describe('DocumentsSection', () => {
 		await waitFor(() => {
 			expect(mockUploadMutate).toHaveBeenCalledTimes(1)
 		})
-		// Default category is 'other' — verify it flows through the
-		// mutateAsync call payload alongside file + entity context.
+		// Stricter matcher — pin the full payload shape so a regression
+		// that drops `mimeType` or swaps `entityType` while adding
+		// `category` is caught.
 		expect(mockUploadMutate).toHaveBeenCalledWith(
-			expect.objectContaining({ category: 'other' })
+			expect.objectContaining({
+				category: 'other',
+				mimeType: 'application/pdf',
+				entityType: 'property',
+				entityId: '00000000-0000-0000-0000-000000000001'
+			})
+		)
+	})
+
+	it('passes a non-default category through after the user selects it (cycle-1 P2-1)', async () => {
+		const user = userEvent.setup()
+		mockUseQuery.mockReturnValue(emptyList())
+		mockUploadMutate.mockResolvedValue({})
+		renderSection()
+
+		// Open the Radix Select via its trigger and pick "Lease".
+		const trigger = screen.getByLabelText(/category for next upload/i)
+		await user.click(trigger)
+		const leaseOption = await screen.findByRole('option', { name: /^lease$/i })
+		await user.click(leaseOption)
+
+		const input = document.querySelector(
+			'input[type="file"]'
+		) as HTMLInputElement
+		const file = new File(['fake pdf'], 'addendum.pdf', {
+			type: 'application/pdf'
+		})
+		fireEvent.change(input, { target: { files: [file] } })
+
+		await waitFor(() => {
+			expect(mockUploadMutate).toHaveBeenCalledTimes(1)
+		})
+		expect(mockUploadMutate).toHaveBeenCalledWith(
+			expect.objectContaining({ category: 'lease' })
 		)
 	})
 

@@ -17,7 +17,6 @@ import {
 	SelectTrigger,
 	SelectValue
 } from '#components/ui/select'
-import { Label } from '#components/ui/label'
 import {
 	documentMutations,
 	documentQueries,
@@ -32,7 +31,7 @@ import {
 } from '#lib/validation/documents'
 import { ownerDashboardKeys } from '#hooks/api/use-owner-dashboard'
 import { AlertTriangle, FileText, Loader2, Plus } from 'lucide-react'
-import { useCallback, useId, useRef, useState } from 'react'
+import { useCallback, useRef, useState } from 'react'
 import { toast } from 'sonner'
 import { DocumentRow } from './document-row'
 import {
@@ -59,12 +58,13 @@ const ENTITY_LABELS: Record<DocumentEntityType, string> = {
 export function DocumentsSection({ entityType, entityId }: DocumentsSectionProps) {
 	const queryClient = useQueryClient()
 	const fileInputRef = useRef<HTMLInputElement>(null)
-	const categorySelectId = useId()
 	const [openId, setOpenId] = useState<string | null>(null)
 	const [deletingIds, setDeletingIds] = useState<Set<string>>(() => new Set())
 	// One category per upload batch. Multi-file uploads share the choice;
 	// per-file categorization would force a dialog roundtrip we want to
-	// avoid. Defaults to 'other' to preserve the v2.3 semantics.
+	// avoid. Defaults to 'other' — matches the column-level default added
+	// in migration 20260425172604 so the per-file flow and any direct
+	// PostgREST insert produce the same row.
 	const [category, setCategory] = useState<DocumentCategory>('other')
 
 	const {
@@ -179,19 +179,12 @@ export function DocumentsSection({ entityType, entityId }: DocumentsSectionProps
 					</CardDescription>
 				</div>
 				<div className="flex items-center gap-2">
-					<Label
-						htmlFor={categorySelectId}
-						className="sr-only"
-					>
-						Category for next upload
-					</Label>
 					<Select
 						value={category}
 						onValueChange={value => setCategory(value as DocumentCategory)}
 						disabled={isUploading}
 					>
 						<SelectTrigger
-							id={categorySelectId}
 							size="sm"
 							className="w-[180px]"
 							aria-label="Category for next upload"
@@ -224,16 +217,16 @@ export function DocumentsSection({ entityType, entityId }: DocumentsSectionProps
 							</>
 						)}
 					</Button>
+					<input
+						ref={fileInputRef}
+						type="file"
+						multiple
+						accept={ACCEPTED_MIME_TYPES.join(',')}
+						onChange={e => handleFilesSelected(e.target.files)}
+						className="sr-only"
+						aria-label={`Upload ${entityLabel} documents`}
+					/>
 				</div>
-				<input
-					ref={fileInputRef}
-					type="file"
-					multiple
-					accept={ACCEPTED_MIME_TYPES.join(',')}
-					onChange={e => handleFilesSelected(e.target.files)}
-					className="sr-only"
-					aria-label={`Upload ${entityLabel} documents`}
-				/>
 			</CardHeader>
 			<CardContent>
 				{isLoading ? (

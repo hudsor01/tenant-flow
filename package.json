@@ -44,7 +44,7 @@
 		"db:push": "supabase db push && pnpm db:types",
 		"db:pull": "supabase db pull",
 		"db:reset": "supabase db reset && pnpm db:types",
-		"db:types": "supabase gen types typescript --project-id bshjmbshupiibfiewpxb > src/types/supabase.ts.tmp && test -s src/types/supabase.ts.tmp && mv src/types/supabase.ts.tmp src/types/supabase.ts || (rm -f src/types/supabase.ts.tmp && echo 'db:types failed — supabase.ts unchanged. If CLI is Unauthorized, run `supabase login` or regenerate via the Supabase MCP `generate_typescript_types` tool.' >&2 && exit 1)",
+		"db:types": "bash scripts/db-types.sh",
 		"db:seed:smoke": "psql $DATABASE_URL -f supabase/seeds/seed-common.sql -f supabase/seeds/seed-smoke.sql",
 		"db:seed:dev": "psql $DATABASE_URL -f supabase/seeds/seed-common.sql -f supabase/seeds/seed-development.sql",
 		"db:seed:perf": "psql $DATABASE_URL -f supabase/seeds/seed-common.sql -f supabase/seeds/seed-performance.sql",

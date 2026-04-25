@@ -20,6 +20,7 @@ import { handlePostgrestError } from '#lib/postgrest-error-handler'
 import { requireOwnerUserId } from '#lib/require-owner-user-id'
 import { createLogger } from '#lib/frontend-logger'
 import { mutationKeys } from '../mutation-keys'
+import type { DocumentCategory } from '#lib/validation/documents'
 
 const SIGNED_URL_TTL_SECONDS = 3600
 // Refetch the list (and its signed URLs) well before the 1h TTL expires.
@@ -59,7 +60,7 @@ export interface DocumentRow {
 	id: string
 	entity_type: string
 	entity_id: string
-	document_type: string
+	document_type: DocumentCategory
 	mime_type: string | null
 	file_path: string
 	storage_url: string
@@ -84,8 +85,8 @@ export interface DocumentUploadInput {
 	file: File
 	/** Browser-reported MIME type stored on the row's mime_type column. */
 	mimeType?: string
-	/** Categorical label (e.g. 'lease', 'receipt'). Defaults to 'other'. */
-	category?: string
+	/** Categorical label. Defaults to 'other' at the DB column level too. */
+	category?: DocumentCategory
 	title?: string
 }
 

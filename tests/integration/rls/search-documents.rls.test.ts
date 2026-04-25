@@ -339,6 +339,9 @@ describe('search_documents RPC', () => {
 				contentType: 'application/pdf'
 			})
 		expect(storageErr).toBeNull()
+		// Push to uploadedPaths immediately so afterAll cleans up the blob
+		// even if any subsequent expect() bails early.
+		uploadedPaths.push(path)
 
 		const { error: insertErr } = await clientA
 			.from('documents')
@@ -361,12 +364,6 @@ describe('search_documents RPC', () => {
 		expect(insertErr!.message).toMatch(
 			/documents_document_type_check|check constraint/i
 		)
-
-		// Roll back the orphaned blob so the test doesn't leak storage.
-		await clientA.storage
-			.from('tenant-documents')
-			.remove([path])
-			.catch(() => {})
 	})
 
 	it('Phase 61: omitted document_type defaults to "other"', async () => {
@@ -382,9 +379,6 @@ describe('search_documents RPC', () => {
 			})
 		uploadedPaths.push(path)
 
-		// Cast to satisfy the generated TS type (which still requires
-		// document_type after type regen). The column default makes the DB
-		// happy regardless.
 		const { data: row, error } = await clientA
 			.from('documents')
 			.insert({
@@ -396,9 +390,7 @@ describe('search_documents RPC', () => {
 				file_size: PAYLOAD.length,
 				title: 'Default-type fixture',
 				owner_user_id: ownerAId
-			} as Parameters<
-				ReturnType<typeof clientA.from<'documents'>>['insert']
-			>[0])
+			})
 			.select('id, document_type')
 			.single()
 
@@ -406,6 +398,7 @@ describe('search_documents RPC', () => {
 		expect(row?.document_type).toBe('other')
 		if (row) insertedDocIds.push(row.id)
 	})
+
 
 	it('rejects invalid limit / offset / null limit / over-200 limit', async () => {
 		const { error: e1 } = await clientA.rpc('search_documents', {

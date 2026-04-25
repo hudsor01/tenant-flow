@@ -410,8 +410,39 @@ describe('DocumentsVaultClient', () => {
 				| undefined
 			expect(params).toBeDefined()
 			expect(params).not.toHaveProperty('category')
+			// Mirror the entity-guard test's UX assertion: with no real
+			// filter active (the bad value was scrubbed) and no rows,
+			// the empty state should render the "no docs uploaded yet"
+			// copy rather than the "no docs match your search" copy.
+			expect(
+				screen.getByText(/no documents uploaded yet/i)
+			).toBeInTheDocument()
 		} finally {
 			listSpy.mockRestore()
 		}
+	})
+
+	it('scrubs an unknown category from the URL when the guard rejects it (cycle-1 P3-5)', () => {
+		categoryParamValue = 'banana'
+		mockUseQuery.mockReturnValue({
+			data: { rows: [], totalCount: 0, page: 0, pageSize: 50 },
+			isLoading: false,
+			isFetching: false,
+			isError: false
+		})
+		renderVault()
+		expect(mockSetCategoryParam).toHaveBeenCalledWith(null)
+	})
+
+	it('scrubs an unknown entity from the URL when the guard rejects it (cycle-1 P3-5)', () => {
+		entityParamValue = 'banana'
+		mockUseQuery.mockReturnValue({
+			data: { rows: [], totalCount: 0, page: 0, pageSize: 50 },
+			isLoading: false,
+			isFetching: false,
+			isError: false
+		})
+		renderVault()
+		expect(mockSetEntityParam).toHaveBeenCalledWith(null)
 	})
 })

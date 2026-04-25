@@ -28,17 +28,27 @@ where document_type not in (
   'other'
 );
 
-alter table public.documents
-  add constraint documents_document_type_check
-  check (document_type in (
-    'lease',
-    'receipt',
-    'tax_return',
-    'inspection_report',
-    'maintenance_invoice',
-    'insurance',
-    'other'
-  ));
+-- Idempotent ADD CONSTRAINT: project convention (see e.g.
+-- 20260306130000_schema_constraints.sql). Bare `add constraint`
+-- raises 42710 on replay, which would tear out a perfectly-good
+-- schema during a `supabase db reset` after the constraint already
+-- exists.
+do $$
+begin
+  alter table public.documents
+    add constraint documents_document_type_check
+    check (document_type in (
+      'lease',
+      'receipt',
+      'tax_return',
+      'inspection_report',
+      'maintenance_invoice',
+      'insurance',
+      'other'
+    ));
+exception when duplicate_object then null;
+end
+$$;
 
 -- Make 'other' the column-level default so PostgREST inserts that omit
 -- document_type get a valid taxonomy value (matches the application-
