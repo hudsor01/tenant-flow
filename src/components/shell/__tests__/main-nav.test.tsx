@@ -145,11 +145,11 @@ describe('MainNav', () => {
 		})
 	})
 
-	describe('documents section', () => {
-		it('should render Documents section header', () => {
+	describe('templates section', () => {
+		it('should render Templates section header', () => {
 			render(<MainNav />)
 
-			expect(screen.getByText('Documents')).toBeInTheDocument()
+			expect(screen.getByText('Templates')).toBeInTheDocument()
 		})
 
 		it('should render Generate Lease link', () => {
