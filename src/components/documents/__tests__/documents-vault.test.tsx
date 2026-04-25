@@ -3,6 +3,7 @@ import { act, fireEvent, render, screen } from '@testing-library/react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import type { ReactElement } from 'react'
 import { DocumentsVaultClient } from '../documents-vault.client'
+import { documentSearchQueries } from '#hooks/api/query-keys/document-keys'
 
 const mockUseQuery = vi.fn()
 const mockSetQueryParam = vi.fn()
@@ -152,44 +153,79 @@ describe('DocumentsVaultClient', () => {
 		expect(screen.queryByText(/showing.*of/i)).not.toBeInTheDocument()
 	})
 
-	it('renders Previous/Next buttons with correct enabled state', () => {
-		pageParamValue = 1 // simulate URL on page 2
-		mockUseQuery.mockReturnValue({
+	function pagedResult(page: number, totalCount: number, rowCount: number) {
+		return {
 			data: {
-				rows: Array.from({ length: 50 }, (_, i) => ({
-					id: `doc-${i}`,
+				rows: Array.from({ length: rowCount }, (_, i) => ({
+					id: `doc-${page}-${i}`,
 					entity_type: 'property',
 					entity_id: 'p',
 					document_type: 'other',
 					mime_type: 'application/pdf',
-					file_path: `property/p/${i}.pdf`,
-					storage_url: `property/p/${i}.pdf`,
+					file_path: `property/p/${page}-${i}.pdf`,
+					storage_url: `property/p/${page}-${i}.pdf`,
 					file_size: 1,
-					title: `Doc ${i}`,
+					title: `Doc ${page}-${i}`,
 					tags: null,
 					description: null,
 					owner_user_id: 'o',
 					created_at: '2026-04-25T00:00:00Z',
 					signed_url: null
 				})),
-				totalCount: 200, // 4 pages total
-				page: 1,
+				totalCount,
+				page,
 				pageSize: 50
 			},
 			isLoading: false,
 			isFetching: false,
 			isError: false
+		}
+	}
+
+	it('Previous/Next buttons enabled on a middle page', () => {
+		pageParamValue = 1 // page 2 of 4
+		mockUseQuery.mockReturnValue(pagedResult(1, 200, 50))
+		renderVault()
+		expect(screen.getByRole('button', { name: /previous/i })).toBeEnabled()
+		expect(screen.getByRole('button', { name: /next/i })).toBeEnabled()
+	})
+
+	it('Previous disabled on the first page; Next enabled when more pages exist', () => {
+		pageParamValue = 0
+		mockUseQuery.mockReturnValue(pagedResult(0, 100, 50)) // 50 rows of 100, more remaining
+		renderVault()
+		expect(screen.getByRole('button', { name: /previous/i })).toBeDisabled()
+		expect(screen.getByRole('button', { name: /next/i })).toBeEnabled()
+	})
+
+	it('Next disabled on the last page; Previous enabled', () => {
+		pageParamValue = 1 // page 2 of 2 — last page
+		mockUseQuery.mockReturnValue(pagedResult(1, 100, 50)) // 50 rows, pageEnd=100 === totalCount
+		renderVault()
+		expect(screen.getByRole('button', { name: /previous/i })).toBeEnabled()
+		expect(screen.getByRole('button', { name: /next/i })).toBeDisabled()
+	})
+
+	it('auto-resets pageParam to 0 when page is out of bounds (cycle-2 L1)', () => {
+		pageParamValue = 99 // bookmarked URL pointing past the data
+		mockUseQuery.mockReturnValue({
+			// Empty rows but totalCount > 0 means user has docs, just on a
+			// page that no longer exists.
+			data: { rows: [], totalCount: 12, page: 99, pageSize: 50 },
+			isLoading: false,
+			isFetching: false,
+			isError: false
 		})
 		renderVault()
-		const prev = screen.getByRole('button', { name: /previous/i })
-		const next = screen.getByRole('button', { name: /next/i })
-		expect(prev).toBeEnabled()
-		expect(next).toBeEnabled()
+		// The auto-reset useEffect should have called setPageParam(null).
+		expect(mockSetPageParam).toHaveBeenCalledWith(null)
 	})
 
 	it('treats an unknown URL entity filter as "All types" (H2 guard)', () => {
 		// Attacker- or stale-bookmark-supplied URL like ?entity=banana
-		// must not flow into the query as a typed DocumentEntityType.
+		// must not flow into the RPC as a typed DocumentEntityType.
+		// Spy directly on the query factory so we can assert the exact
+		// params shape passed in — that's the wire we care about (cycle-2 N1).
 		entityParamValue = 'banana'
 		mockUseQuery.mockReturnValue({
 			data: { rows: [], totalCount: 0, page: 0, pageSize: 50 },
@@ -197,13 +233,24 @@ describe('DocumentsVaultClient', () => {
 			isFetching: false,
 			isError: false
 		})
-		renderVault()
-		// Inspect the queryFn arg via the mock call: the hook must NOT
-		// have been passed `entityType: 'banana'` — it should fall back
-		// to undefined. Since we mock useQuery rather than the factory,
-		// rely on the rendered behavior: empty state appears (no rows)
-		// without crashing.
-		expect(screen.getByText(/no documents uploaded yet/i)).toBeInTheDocument()
+		const listSpy = vi.spyOn(documentSearchQueries, 'list')
+		try {
+			renderVault()
+			expect(listSpy).toHaveBeenCalled()
+			const params = listSpy.mock.calls.at(-1)?.[0] as
+				| { entityType?: unknown; query?: unknown; page?: unknown }
+				| undefined
+			expect(params).toBeDefined()
+			// The component spreads `entityType` only when truthy, so an
+			// invalid URL value should yield an object WITHOUT the key.
+			expect(params).not.toHaveProperty('entityType')
+			// Fallback empty state still renders (no crash, no rows).
+			expect(
+				screen.getByText(/no documents uploaded yet/i)
+			).toBeInTheDocument()
+		} finally {
+			listSpy.mockRestore()
+		}
 	})
 
 	it('syncs search input when queryParam changes externally (H1 regression)', () => {
@@ -238,16 +285,46 @@ describe('DocumentsVaultClient', () => {
 		expect(inputAfter.value).toBe('lease')
 	})
 
-	it('search input change is captured in local state', () => {
-		mockUseQuery.mockReturnValue({
-			data: { rows: [], totalCount: 0, page: 0, pageSize: 50 },
-			isLoading: false,
-			isFetching: false,
-			isError: false
-		})
-		renderVault()
-		const input = screen.getByLabelText(/search documents/i) as HTMLInputElement
-		fireEvent.change(input, { target: { value: 'tax' } })
-		expect(input.value).toBe('tax')
+	it('debounces search input and commits to URL after 300ms (M2 path)', () => {
+		// Cycle-1 M2 promised an honest exercise of the debounce path —
+		// just verifying controlled-input echo isn't enough. Fake timers
+		// let us assert: (1) no commit before 300ms, (2) commit AFTER
+		// 300ms with the latest value, (3) page resets when query changes.
+		vi.useFakeTimers()
+		try {
+			mockUseQuery.mockReturnValue({
+				data: { rows: [], totalCount: 0, page: 0, pageSize: 50 },
+				isLoading: false,
+				isFetching: false,
+				isError: false
+			})
+			renderVault()
+			const input = screen.getByLabelText(
+				/search documents/i
+			) as HTMLInputElement
+
+			act(() => {
+				fireEvent.change(input, { target: { value: 'tax' } })
+			})
+			expect(input.value).toBe('tax')
+			// Pre-debounce: nothing committed yet.
+			expect(mockSetQueryParam).not.toHaveBeenCalled()
+
+			// Just-before-debounce-fires: still nothing.
+			act(() => {
+				vi.advanceTimersByTime(299)
+			})
+			expect(mockSetQueryParam).not.toHaveBeenCalled()
+
+			// Cross the threshold — debounce fires.
+			act(() => {
+				vi.advanceTimersByTime(1)
+			})
+			expect(mockSetQueryParam).toHaveBeenCalledWith('tax')
+			// Page resets so a stale ?page=N doesn't out-of-bounds the new query.
+			expect(mockSetPageParam).toHaveBeenCalledWith(null)
+		} finally {
+			vi.useRealTimers()
+		}
 	})
 })

@@ -280,8 +280,10 @@ describe('BlogArticlePage', () => {
 			isLoading: true,
 		})
 		const { container } = render(<BlogArticlePage />)
-		const pulseElements = container.querySelectorAll('.animate-pulse')
-		expect(pulseElements.length).toBeGreaterThan(0)
+		// blog-post-page renders raw animate-pulse divs (not the Skeleton
+		// primitive) for its branded loading shimmer.
+		const skeletons = container.querySelectorAll('.animate-pulse')
+		expect(skeletons.length).toBeGreaterThan(0)
 	})
 
 	it('shows not-found state when post is null', () => {

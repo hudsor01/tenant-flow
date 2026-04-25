@@ -321,8 +321,8 @@ describe('OwnerDashboard', () => {
 
 			const { container } = render(<OwnerDashboard />)
 
-			// Should show skeleton elements (Skeleton component uses animate-pulse class)
-			const skeletons = container.querySelectorAll('.animate-pulse')
+			// Should show skeleton elements (Skeleton emits data-slot="skeleton")
+			const skeletons = container.querySelectorAll('[data-slot="skeleton"]')
 			expect(skeletons.length).toBeGreaterThan(0)
 		})
 
@@ -351,8 +351,8 @@ describe('OwnerDashboard', () => {
 
 			const { container } = render(<OwnerDashboard />)
 
-			// Should have skeleton elements for header
-			const skeletons = container.querySelectorAll('.animate-pulse')
+			// Should have skeleton elements for header (data-slot="skeleton")
+			const skeletons = container.querySelectorAll('[data-slot="skeleton"]')
 			expect(skeletons.length).toBeGreaterThan(0)
 		})
 	})

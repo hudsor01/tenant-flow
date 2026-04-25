@@ -107,6 +107,23 @@ export function DocumentsVaultClient() {
 	// momentarily after clicking Next.
 	const showRangeHeader = totalCount > 0 && !isFetching
 
+	// Out-of-bounds page recovery (cycle-2 L1). If the user lands on a
+	// `?page=N` whose offset is beyond `totalCount` (bookmarked link from
+	// a since-shrunk portfolio, or hand-edited URL), the empty-rows
+	// branch fires with the misleading "No documents uploaded yet"
+	// copy and no recovery affordance. Auto-reset to page 0 when we
+	// detect the mismatch — only AFTER the query has settled (data &&
+	// !isFetching) so we don't reset during a transient fetch.
+	const isOutOfBounds =
+		!isFetching &&
+		!!data &&
+		data.rows.length === 0 &&
+		totalCount > 0 &&
+		pageParam > 0
+	useEffect(() => {
+		if (isOutOfBounds) void setPageParam(null)
+	}, [isOutOfBounds, setPageParam])
+
 	return (
 		<div className="container mx-auto space-y-6 py-6">
 			<div className="flex items-center gap-3">

@@ -94,10 +94,8 @@ describe('LeaseSignatureStatus', () => {
 				<LeaseSignatureStatus leaseId={mockLeaseId} />
 			)
 
-			// Should show skeleton elements (has animate-pulse class from Skeleton component)
-			const skeletons = container.querySelectorAll(
-				'[data-slot="skeleton"], .animate-pulse'
-			)
+			// Skeleton component emits data-slot="skeleton" on its root div.
+			const skeletons = container.querySelectorAll('[data-slot="skeleton"]')
 			expect(skeletons.length).toBeGreaterThan(0)
 		})
 
@@ -112,10 +110,7 @@ describe('LeaseSignatureStatus', () => {
 				<LeaseSignatureStatus leaseId={mockLeaseId} compact />
 			)
 
-			// Compact skeleton should be visible (has animate-pulse class)
-			const skeletons = container.querySelectorAll(
-				'[data-slot="skeleton"], .animate-pulse'
-			)
+			const skeletons = container.querySelectorAll('[data-slot="skeleton"]')
 			expect(skeletons.length).toBeGreaterThan(0)
 		})
 	})
