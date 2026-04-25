@@ -221,12 +221,30 @@ describe('DocumentsVaultClient', () => {
 		expect(mockSetPageParam).toHaveBeenCalledWith(null)
 	})
 
-	it('does NOT auto-reset pageParam when on a valid page (cycle-3 N3)', () => {
-		// Negative branch of cycle-2 L1: a regression that always-fires the
-		// reset effect (e.g., dropping the `totalCount > 0` or `rows.length
-		// === 0` guard) would silently clobber the user's page state.
+	it('does NOT auto-reset pageParam when on a valid page — rows guard (cycle-3 N3)', () => {
+		// Pins the `data.rows.length === 0` guard. With non-empty rows, the
+		// effect must not fire even when pageParam > 0.
 		pageParamValue = 1 // valid middle page
 		mockUseQuery.mockReturnValue(pagedResult(1, 200, 50))
+		renderVault()
+		expect(mockSetPageParam).not.toHaveBeenCalled()
+	})
+
+	it('does NOT auto-reset pageParam when totalCount is 0 — totalCount guard (cycle-4 P3)', () => {
+		// Pins the `totalCount > 0` guard. An empty portfolio with a stale
+		// pageParam > 0 (e.g., the user deleted everything while looking
+		// at page 2) would NOT benefit from a reset — the empty-state copy
+		// is the right UX. Without this assertion, dropping the
+		// `totalCount > 0` clause from isOutOfBounds would still pass
+		// the rows-empty test above (because rows.length=0 alone would
+		// fire). This test catches that specific regression.
+		pageParamValue = 2
+		mockUseQuery.mockReturnValue({
+			data: { rows: [], totalCount: 0, page: 2, pageSize: 50 },
+			isLoading: false,
+			isFetching: false,
+			isError: false
+		})
 		renderVault()
 		expect(mockSetPageParam).not.toHaveBeenCalled()
 	})
