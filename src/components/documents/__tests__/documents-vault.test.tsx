@@ -8,10 +8,12 @@ import { documentSearchQueries } from '#hooks/api/query-keys/document-keys'
 const mockUseQuery = vi.fn()
 const mockSetQueryParam = vi.fn()
 const mockSetEntityParam = vi.fn()
+const mockSetCategoryParam = vi.fn()
 const mockSetPageParam = vi.fn()
 
 let queryParamValue = ''
 let entityParamValue = '__any__'
+let categoryParamValue = '__any__'
 let pageParamValue = 0
 
 vi.mock('@tanstack/react-query', async () => {
@@ -31,6 +33,7 @@ vi.mock('nuqs', async () => {
 		useQueryState: (key: string) => {
 			if (key === 'q') return [queryParamValue, mockSetQueryParam]
 			if (key === 'entity') return [entityParamValue, mockSetEntityParam]
+			if (key === 'category') return [categoryParamValue, mockSetCategoryParam]
 			if (key === 'page') return [pageParamValue, mockSetPageParam]
 			return ['', vi.fn()]
 		}
@@ -54,6 +57,7 @@ describe('DocumentsVaultClient', () => {
 		vi.clearAllMocks()
 		queryParamValue = ''
 		entityParamValue = '__any__'
+		categoryParamValue = '__any__'
 		pageParamValue = 0
 	})
 
@@ -354,5 +358,91 @@ describe('DocumentsVaultClient', () => {
 		} finally {
 			vi.useRealTimers()
 		}
+	})
+
+	it('renders the category filter (Phase 61)', () => {
+		mockUseQuery.mockReturnValue({
+			data: { rows: [], totalCount: 0, page: 0, pageSize: 50 },
+			isLoading: false,
+			isFetching: false,
+			isError: false
+		})
+		renderVault()
+		expect(screen.getByLabelText(/filter by category/i)).toBeInTheDocument()
+	})
+
+	it('passes valid URL category to documentSearchQueries.list (Phase 61)', () => {
+		categoryParamValue = 'tax_return'
+		mockUseQuery.mockReturnValue({
+			data: { rows: [], totalCount: 0, page: 0, pageSize: 50 },
+			isLoading: false,
+			isFetching: false,
+			isError: false
+		})
+		const listSpy = vi.spyOn(documentSearchQueries, 'list')
+		try {
+			renderVault()
+			expect(listSpy).toHaveBeenCalled()
+			const params = listSpy.mock.calls.at(-1)?.[0] as
+				| { category?: unknown }
+				| undefined
+			expect(params?.category).toBe('tax_return')
+		} finally {
+			listSpy.mockRestore()
+		}
+	})
+
+	it('treats an unknown URL category as "All categories" (Phase 61 H2-style guard)', () => {
+		// Same defense as the entity guard: ?category=banana must NOT flow
+		// into the RPC as a typed DocumentCategory. Falls back to undefined.
+		categoryParamValue = 'banana'
+		mockUseQuery.mockReturnValue({
+			data: { rows: [], totalCount: 0, page: 0, pageSize: 50 },
+			isLoading: false,
+			isFetching: false,
+			isError: false
+		})
+		const listSpy = vi.spyOn(documentSearchQueries, 'list')
+		try {
+			renderVault()
+			const params = listSpy.mock.calls.at(-1)?.[0] as
+				| { category?: unknown }
+				| undefined
+			expect(params).toBeDefined()
+			expect(params).not.toHaveProperty('category')
+			// Mirror the entity-guard test's UX assertion: with no real
+			// filter active (the bad value was scrubbed) and no rows,
+			// the empty state should render the "no docs uploaded yet"
+			// copy rather than the "no docs match your search" copy.
+			expect(
+				screen.getByText(/no documents uploaded yet/i)
+			).toBeInTheDocument()
+		} finally {
+			listSpy.mockRestore()
+		}
+	})
+
+	it('scrubs an unknown category from the URL when the guard rejects it (cycle-1 P3-5)', () => {
+		categoryParamValue = 'banana'
+		mockUseQuery.mockReturnValue({
+			data: { rows: [], totalCount: 0, page: 0, pageSize: 50 },
+			isLoading: false,
+			isFetching: false,
+			isError: false
+		})
+		renderVault()
+		expect(mockSetCategoryParam).toHaveBeenCalledWith(null)
+	})
+
+	it('scrubs an unknown entity from the URL when the guard rejects it (cycle-1 P3-5)', () => {
+		entityParamValue = 'banana'
+		mockUseQuery.mockReturnValue({
+			data: { rows: [], totalCount: 0, page: 0, pageSize: 50 },
+			isLoading: false,
+			isFetching: false,
+			isError: false
+		})
+		renderVault()
+		expect(mockSetEntityParam).toHaveBeenCalledWith(null)
 	})
 })

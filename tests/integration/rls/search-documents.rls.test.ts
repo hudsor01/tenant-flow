@@ -33,7 +33,9 @@ interface SearchDocumentRow {
 	tags: string[] | null
 	description: string | null
 	owner_user_id: string | null
-	created_at: string
+	// Mirror DocumentRow.created_at — DB column is nullable (DEFAULT
+	// now() but no NOT NULL); cycle-5 NIT-1.
+	created_at: string | null
 	total_count: number
 }
 
@@ -326,6 +328,78 @@ describe('search_documents RPC', () => {
 				`row ${r.id} has NULL search_vector — trigger or backfill regressed`
 			).not.toBeNull()
 		}
+	})
+
+	it('Phase 61: CHECK constraint rejects non-taxonomy document_type values', async () => {
+		// Migration 20260425172604 enforces the seven-category enum. Any
+		// other value must be rejected at insert time with 23514.
+		const ts = Date.now()
+		const path = `property/${propertyA!.id}/${ts}-bad-type.pdf`
+		const { error: storageErr } = await clientA.storage
+			.from('tenant-documents')
+			.upload(path, new Blob([PAYLOAD], { type: 'application/pdf' }), {
+				contentType: 'application/pdf'
+			})
+		expect(storageErr).toBeNull()
+		// Push to uploadedPaths immediately so afterAll cleans up the blob
+		// even if any subsequent expect() bails early.
+		uploadedPaths.push(path)
+
+		const { error: insertErr } = await clientA
+			.from('documents')
+			.insert({
+				entity_type: 'property',
+				entity_id: propertyA!.id,
+				document_type: 'warranty', // not in the taxonomy
+				mime_type: 'application/pdf',
+				file_path: path,
+				storage_url: path,
+				file_size: PAYLOAD.length,
+				title: 'Bad-type fixture',
+				owner_user_id: ownerAId
+			})
+			.select('id')
+			.single()
+
+		expect(insertErr, 'CHECK constraint should reject non-taxonomy value').not
+			.toBeNull()
+		expect(insertErr!.message).toMatch(
+			/documents_document_type_check|check constraint/i
+		)
+	})
+
+	it('Phase 61: omitted document_type defaults to "other"', async () => {
+		// Migration 20260425172604 sets `default 'other'`. PostgREST inserts
+		// that omit document_type should pick up that default rather than
+		// erroring on NOT NULL.
+		const ts = Date.now() + 1
+		const path = `property/${propertyA!.id}/${ts}-default-type.pdf`
+		const { error: storageErr } = await clientA.storage
+			.from('tenant-documents')
+			.upload(path, new Blob([PAYLOAD], { type: 'application/pdf' }), {
+				contentType: 'application/pdf'
+			})
+		expect(storageErr).toBeNull()
+		uploadedPaths.push(path)
+
+		const { data: row, error } = await clientA
+			.from('documents')
+			.insert({
+				entity_type: 'property',
+				entity_id: propertyA!.id,
+				mime_type: 'application/pdf',
+				file_path: path,
+				storage_url: path,
+				file_size: PAYLOAD.length,
+				title: 'Default-type fixture',
+				owner_user_id: ownerAId
+			})
+			.select('id, document_type')
+			.single()
+
+		expect(error).toBeNull()
+		expect(row?.document_type).toBe('other')
+		if (row) insertedDocIds.push(row.id)
 	})
 
 	it('rejects invalid limit / offset / null limit / over-200 limit', async () => {

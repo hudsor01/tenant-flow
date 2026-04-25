@@ -95,6 +95,27 @@ Object.defineProperty(window, 'ResizeObserver', {
 	value: ResizeObserverMock
 })
 
+// Polyfill pointer-capture + scrollIntoView for Radix UI in JSDOM.
+// Radix Select / Dropdown / Popover trigger handlers call
+// `target.hasPointerCapture(...)` on the trigger element; JSDOM has no
+// PointerEvent implementation so the call throws TypeError. The empty
+// implementations below are sufficient for unit tests — we don't need
+// real pointer-capture semantics, just the methods to exist.
+if (!Element.prototype.hasPointerCapture) {
+	Element.prototype.hasPointerCapture = function () {
+		return false
+	}
+}
+if (!Element.prototype.setPointerCapture) {
+	Element.prototype.setPointerCapture = function () {}
+}
+if (!Element.prototype.releasePointerCapture) {
+	Element.prototype.releasePointerCapture = function () {}
+}
+if (!Element.prototype.scrollIntoView) {
+	Element.prototype.scrollIntoView = function () {}
+}
+
 // Mock IntersectionObserver for components that use it (blur-fade, lazy loading, etc.)
 class IntersectionObserverMock implements IntersectionObserver {
 	readonly root: Element | null = null

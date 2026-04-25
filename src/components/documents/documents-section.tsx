@@ -11,12 +11,24 @@ import {
 import { Button } from '#components/ui/button'
 import { Skeleton } from '#components/ui/skeleton'
 import {
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+	SelectValue
+} from '#components/ui/select'
+import {
 	documentMutations,
 	documentQueries,
 	LIST_DISPLAY_LIMIT,
 	type DocumentEntityType,
 	type DocumentRow as DocumentRowData
 } from '#hooks/api/query-keys/document-keys'
+import {
+	DOCUMENT_CATEGORIES,
+	DOCUMENT_CATEGORY_LABELS,
+	type DocumentCategory
+} from '#lib/validation/documents'
 import { ownerDashboardKeys } from '#hooks/api/use-owner-dashboard'
 import { AlertTriangle, FileText, Loader2, Plus } from 'lucide-react'
 import { useCallback, useRef, useState } from 'react'
@@ -48,6 +60,12 @@ export function DocumentsSection({ entityType, entityId }: DocumentsSectionProps
 	const fileInputRef = useRef<HTMLInputElement>(null)
 	const [openId, setOpenId] = useState<string | null>(null)
 	const [deletingIds, setDeletingIds] = useState<Set<string>>(() => new Set())
+	// One category per upload batch. Multi-file uploads share the choice;
+	// per-file categorization would force a dialog roundtrip we want to
+	// avoid. Defaults to 'other' — matches the column-level default added
+	// in migration 20260425172604 so the per-file flow and any direct
+	// PostgREST insert produce the same row.
+	const [category, setCategory] = useState<DocumentCategory>('other')
 
 	const {
 		data: listResult,
@@ -91,7 +109,8 @@ export function DocumentsSection({ entityType, entityId }: DocumentsSectionProps
 					// Browser-reported MIME. The documents row stores it in
 					// `mime_type`; `document_type` is a categorical column
 					// (defaults to 'other' for owner-uploaded files).
-					mimeType: file.type
+					mimeType: file.type,
+					category
 				})
 				uploaded++
 			} catch (err) {
@@ -159,33 +178,55 @@ export function DocumentsSection({ entityType, entityId }: DocumentsSectionProps
 						Attach PDFs or images you want to keep alongside this {entityLabel}.
 					</CardDescription>
 				</div>
-				<Button
-					size="sm"
-					variant="outline"
-					onClick={() => fileInputRef.current?.click()}
-					disabled={isUploading}
-				>
-					{isUploading ? (
-						<>
-							<Loader2 className="size-4 mr-2 animate-spin" />
-							Uploading...
-						</>
-					) : (
-						<>
-							<Plus className="size-4 mr-2" />
-							Upload
-						</>
-					)}
-				</Button>
-				<input
-					ref={fileInputRef}
-					type="file"
-					multiple
-					accept={ACCEPTED_MIME_TYPES.join(',')}
-					onChange={e => handleFilesSelected(e.target.files)}
-					className="sr-only"
-					aria-label={`Upload ${entityLabel} documents`}
-				/>
+				<div className="flex items-center gap-2">
+					<Select
+						value={category}
+						onValueChange={value => setCategory(value as DocumentCategory)}
+						disabled={isUploading}
+					>
+						<SelectTrigger
+							size="sm"
+							className="w-[180px]"
+							aria-label="Category for next upload"
+						>
+							<SelectValue />
+						</SelectTrigger>
+						<SelectContent>
+							{DOCUMENT_CATEGORIES.map(value => (
+								<SelectItem key={value} value={value}>
+									{DOCUMENT_CATEGORY_LABELS[value]}
+								</SelectItem>
+							))}
+						</SelectContent>
+					</Select>
+					<Button
+						size="sm"
+						variant="outline"
+						onClick={() => fileInputRef.current?.click()}
+						disabled={isUploading}
+					>
+						{isUploading ? (
+							<>
+								<Loader2 className="size-4 mr-2 animate-spin" />
+								Uploading...
+							</>
+						) : (
+							<>
+								<Plus className="size-4 mr-2" />
+								Upload
+							</>
+						)}
+					</Button>
+					<input
+						ref={fileInputRef}
+						type="file"
+						multiple
+						accept={ACCEPTED_MIME_TYPES.join(',')}
+						onChange={e => handleFilesSelected(e.target.files)}
+						className="sr-only"
+						aria-label={`Upload ${entityLabel} documents`}
+					/>
+				</div>
 			</CardHeader>
 			<CardContent>
 				{isLoading ? (

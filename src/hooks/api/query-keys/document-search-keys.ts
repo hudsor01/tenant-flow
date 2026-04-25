@@ -12,9 +12,11 @@ import { createClient } from '#lib/supabase/client'
 import { handlePostgrestError } from '#lib/postgrest-error-handler'
 import {
 	documentQueries,
+	mapDocumentRow,
 	type DocumentEntityType,
 	type DocumentRow
 } from './document-keys'
+import type { DocumentCategory } from '#lib/validation/documents'
 
 const SIGNED_URL_TTL_SECONDS = 3600
 const LIST_STALE_TIME_MS = 45 * 60 * 1000
@@ -26,7 +28,7 @@ export const SEARCH_PAGE_SIZE = 50
 export interface DocumentSearchParams {
 	query?: string
 	entityType?: DocumentEntityType
-	category?: string
+	category?: DocumentCategory
 	page?: number
 }
 
@@ -62,21 +64,44 @@ export const documentSearchQueries = {
 				})
 				if (error) handlePostgrestError(error, 'documents')
 
-				const rpcRows = (data ?? []) as Array<
-					Omit<DocumentRow, 'signed_url'> & { total_count: number }
-				>
-				if (rpcRows.length === 0) {
+				const rawRows = (data ?? []) as Array<Record<string, unknown>>
+				if (rawRows.length === 0) {
 					return { rows: [], totalCount: 0, page, pageSize: SEARCH_PAGE_SIZE }
 				}
 
 				// Every row carries the same `total_count` — the RPC computes
 				// the full match count in a separate scalar query before
 				// applying LIMIT/OFFSET, then attaches it to each returned
-				// row. Pull from the first row, then strip it from the shape
-				// so the rest of the pipeline matches the per-entity list.
-				const totalCount = rpcRows[0]!.total_count
+				// row. Read the value from the first row; mapDocumentRow
+				// reads only the named DocumentRow fields, so total_count
+				// is naturally dropped when the rows are mapped below.
+				//
+				// Defense order:
+				// 1. Reject null/undefined explicitly. `Number(null) === 0`
+				//    and `Number.isFinite(0) === true`, so a bare finite-
+				//    check would silently let a missing count through as 0
+				//    — which silently breaks pagination math.
+				// 2. Then numeric coerce + finite-check to catch strings
+				//    that don't parse, NaN, Infinity.
+				const totalCountRaw = rawRows[0]!.total_count
+				if (totalCountRaw === null || totalCountRaw === undefined) {
+					throw new Error(
+						'search_documents RPC contract: total_count is null/undefined'
+					)
+				}
+				const totalCountNumeric =
+					typeof totalCountRaw === 'number'
+						? totalCountRaw
+						: Number(totalCountRaw)
+				if (!Number.isFinite(totalCountNumeric)) {
+					throw new Error(
+						'search_documents RPC contract: total_count is not a finite number'
+					)
+				}
+				const totalCount = totalCountNumeric
 
-				const paths = rpcRows.map(r => r.file_path)
+				const mappedRows = rawRows.map(mapDocumentRow)
+				const paths = mappedRows.map(r => r.file_path)
 				const { data: signed } = await supabase.storage
 					.from(STORAGE_BUCKET)
 					.createSignedUrls(paths, SIGNED_URL_TTL_SECONDS)
@@ -89,20 +114,8 @@ export const documentSearchQueries = {
 				}
 
 				return {
-					rows: rpcRows.map(r => ({
-						id: r.id,
-						entity_type: r.entity_type,
-						entity_id: r.entity_id,
-						document_type: r.document_type,
-						mime_type: r.mime_type,
-						file_path: r.file_path,
-						storage_url: r.storage_url,
-						file_size: r.file_size,
-						title: r.title,
-						tags: r.tags,
-						description: r.description,
-						owner_user_id: r.owner_user_id,
-						created_at: r.created_at,
+					rows: mappedRows.map(r => ({
+						...r,
 						signed_url: urlByPath.get(r.file_path) ?? null
 					})),
 					totalCount,

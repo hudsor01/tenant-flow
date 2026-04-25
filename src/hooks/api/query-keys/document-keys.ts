@@ -20,6 +20,10 @@ import { handlePostgrestError } from '#lib/postgrest-error-handler'
 import { requireOwnerUserId } from '#lib/require-owner-user-id'
 import { createLogger } from '#lib/frontend-logger'
 import { mutationKeys } from '../mutation-keys'
+import {
+	documentCategorySchema,
+	type DocumentCategory
+} from '#lib/validation/documents'
 
 const SIGNED_URL_TTL_SECONDS = 3600
 // Refetch the list (and its signed URLs) well before the 1h TTL expires.
@@ -59,7 +63,7 @@ export interface DocumentRow {
 	id: string
 	entity_type: string
 	entity_id: string
-	document_type: string
+	document_type: DocumentCategory
 	mime_type: string | null
 	file_path: string
 	storage_url: string
@@ -68,7 +72,10 @@ export interface DocumentRow {
 	tags: string[] | null
 	description: string | null
 	owner_user_id: string | null
-	created_at: string
+	// Nullable in the DB (column has DEFAULT now() but no NOT NULL).
+	// In practice always populated, but typing reflects schema reality so
+	// downstream consumers must handle the null branch defensively.
+	created_at: string | null
 	signed_url: string | null
 }
 
@@ -78,14 +85,65 @@ export interface DocumentListResult {
 	totalCount: number
 }
 
+/**
+ * Maps a PostgREST row (untyped at the TS level — Supabase returns
+ * `document_type: string`) into the strictly-typed `DocumentRow`.
+ * `document_type` is validated via the Zod enum so an out-of-band
+ * value (corruption, dropped CHECK constraint, mid-migration replay)
+ * degrades to `'other'` rather than poisoning downstream
+ * `Record<DocumentCategory, ...>` lookups.
+ *
+ * NOT NULL fields throw if absent — the boundary should surface a
+ * dropped column in `.select(...)` immediately rather than silently
+ * producing the literal string `"undefined"` (which would break
+ * signed-URL generation, date rendering, and React keys downstream).
+ *
+ * Applies CLAUDE.md's "RPC Return Typing" rule (typed mapper at the
+ * PostgREST boundary, not `as unknown as` casts).
+ */
+export function mapDocumentRow(
+	raw: Record<string, unknown>
+): Omit<DocumentRow, 'signed_url'> {
+	function requireString(field: string): string {
+		const value = raw[field]
+		if (typeof value !== 'string') {
+			throw new Error(
+				`mapDocumentRow: NOT NULL field '${field}' missing or non-string from PostgREST response`
+			)
+		}
+		return value
+	}
+
+	const parsedCategory = documentCategorySchema.safeParse(raw.document_type)
+	const document_type: DocumentCategory = parsedCategory.success
+		? parsedCategory.data
+		: 'other'
+	return {
+		id: requireString('id'),
+		entity_type: requireString('entity_type'),
+		entity_id: requireString('entity_id'),
+		document_type,
+		mime_type: (raw.mime_type as string | null) ?? null,
+		file_path: requireString('file_path'),
+		storage_url: requireString('storage_url'),
+		file_size: (raw.file_size as number | null) ?? null,
+		title: (raw.title as string | null) ?? null,
+		tags: (raw.tags as string[] | null) ?? null,
+		description: (raw.description as string | null) ?? null,
+		owner_user_id: (raw.owner_user_id as string | null) ?? null,
+		// Nullable in DB (DEFAULT now() but no NOT NULL). Don't requireString.
+		created_at: (raw.created_at as string | null) ?? null
+	}
+}
+
 export interface DocumentUploadInput {
 	entityType: DocumentEntityType
 	entityId: string
 	file: File
 	/** Browser-reported MIME type stored on the row's mime_type column. */
 	mimeType?: string
-	/** Categorical label (e.g. 'lease', 'receipt'). Defaults to 'other'. */
-	category?: string
+	/** Categorical label. Defaults to 'other' at the DB column level too. */
+	category?: DocumentCategory
 	title?: string
 }
 
@@ -130,7 +188,9 @@ export const documentQueries = {
 
 				if (error) handlePostgrestError(error, 'documents')
 
-				const rows = (data ?? []) as Omit<DocumentRow, 'signed_url'>[]
+				const rows = ((data ?? []) as Record<string, unknown>[]).map(
+					mapDocumentRow
+				)
 				const totalCount = count ?? rows.length
 				if (rows.length === 0) {
 					return { rows: [], totalCount }
@@ -247,7 +307,10 @@ export const documentMutations = {
 					throw new Error('Failed to record document')
 				}
 
-				return { ...(row as Omit<DocumentRow, 'signed_url'>), signed_url: null }
+				return {
+					...mapDocumentRow(row as Record<string, unknown>),
+					signed_url: null
+				}
 			}
 		}),
 

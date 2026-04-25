@@ -290,7 +290,7 @@ File attachments for entities.
 | `id` | uuid (PK) | |
 | `entity_type` | text | `lease`, `property`, `tenant`, etc. |
 | `entity_id` | uuid | ID of parent entity |
-| `document_type` | text | `contract`, `id`, `proof_of_income`, etc. |
+| `document_type` | text | CHECK-enforced enum: `lease`, `receipt`, `tax_return`, `inspection_report`, `maintenance_invoice`, `insurance`, `other`. Default `'other'`. |
 | `file_path` | text | Storage path |
 | `storage_url` | text | Public/signed URL |
 | `file_size` | integer | Size in bytes |
