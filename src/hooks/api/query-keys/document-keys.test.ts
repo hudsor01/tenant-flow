@@ -53,17 +53,18 @@ describe('mapDocumentRow', () => {
 		// Drop `id` — a future hand-edited `.select(...)` typo is the
 		// realistic regression scenario this guards against.
 		const { id: _id, ...withoutId } = fullRow
-		void _id
 		expect(() => mapDocumentRow(withoutId)).toThrowError(/'id'/)
 	})
 
 	it('throws on each NOT NULL field independently', () => {
+		// created_at is intentionally NOT in this list — the DB column is
+		// nullable (DEFAULT now() but no NOT NULL) so the mapper accepts
+		// null and lets downstream consumers handle it.
 		for (const field of [
 			'entity_type',
 			'entity_id',
 			'file_path',
-			'storage_url',
-			'created_at'
+			'storage_url'
 		] as const) {
 			const broken = { ...fullRow, [field]: undefined }
 			expect(
@@ -71,6 +72,11 @@ describe('mapDocumentRow', () => {
 				`expected throw when ${field} is missing`
 			).toThrowError(new RegExp(`'${field}'`))
 		}
+	})
+
+	it('treats null created_at as null (DB column is nullable, cycle-4 P3)', () => {
+		const mapped = mapDocumentRow({ ...fullRow, created_at: null })
+		expect(mapped.created_at).toBeNull()
 	})
 
 	it('treats a null mime_type / tags / description / owner_user_id as null', () => {

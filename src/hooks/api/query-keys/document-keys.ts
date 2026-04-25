@@ -72,7 +72,10 @@ export interface DocumentRow {
 	tags: string[] | null
 	description: string | null
 	owner_user_id: string | null
-	created_at: string
+	// Nullable in the DB (column has DEFAULT now() but no NOT NULL).
+	// In practice always populated, but typing reflects schema reality so
+	// downstream consumers must handle the null branch defensively.
+	created_at: string | null
 	signed_url: string | null
 }
 
@@ -128,7 +131,8 @@ export function mapDocumentRow(
 		tags: (raw.tags as string[] | null) ?? null,
 		description: (raw.description as string | null) ?? null,
 		owner_user_id: (raw.owner_user_id as string | null) ?? null,
-		created_at: requireString('created_at')
+		// Nullable in DB (DEFAULT now() but no NOT NULL). Don't requireString.
+		created_at: (raw.created_at as string | null) ?? null
 	}
 }
 

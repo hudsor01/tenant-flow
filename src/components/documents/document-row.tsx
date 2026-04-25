@@ -70,11 +70,13 @@ export function DocumentRow({
 								</p>
 								<p className="truncate text-xs text-muted-foreground">
 									{formatBytes(doc.file_size)} ·{' '}
-									{new Date(doc.created_at).toLocaleDateString('en-US', {
-										month: 'short',
-										day: 'numeric',
-										year: 'numeric'
-									})}
+									{doc.created_at
+										? new Date(doc.created_at).toLocaleDateString('en-US', {
+												month: 'short',
+												day: 'numeric',
+												year: 'numeric'
+											})
+										: '—'}
 								</p>
 							</div>
 						</button>

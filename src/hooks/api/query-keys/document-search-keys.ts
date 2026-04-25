@@ -74,19 +74,27 @@ export const documentSearchQueries = {
 				// applying LIMIT/OFFSET, then attaches it to each returned
 				// row. Pull from the first row, then strip it from the shape
 				// so the rest of the pipeline matches the per-entity list.
-				// Finite-check guards against an RPC contract regression
-				// where total_count goes missing — without this, NaN would
-				// silently break pagination math (pageEnd < NaN === false,
-				// so the Next button hides and the user can't reach later
-				// pages) with no surfaced error.
+				//
+				// Defense order:
+				// 1. Reject null/undefined explicitly. `Number(null) === 0`
+				//    and `Number.isFinite(0) === true`, so a bare finite-
+				//    check would silently let a missing count through as 0
+				//    — which silently breaks pagination math.
+				// 2. Then numeric coerce + finite-check to catch strings
+				//    that don't parse, NaN, Infinity.
 				const totalCountRaw = rawRows[0]!.total_count
+				if (totalCountRaw === null || totalCountRaw === undefined) {
+					throw new Error(
+						'search_documents RPC contract: total_count is null/undefined'
+					)
+				}
 				const totalCountNumeric =
 					typeof totalCountRaw === 'number'
 						? totalCountRaw
 						: Number(totalCountRaw)
 				if (!Number.isFinite(totalCountNumeric)) {
 					throw new Error(
-						'search_documents RPC contract: total_count missing or non-numeric'
+						'search_documents RPC contract: total_count is not a finite number'
 					)
 				}
 				const totalCount = totalCountNumeric
