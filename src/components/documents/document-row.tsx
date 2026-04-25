@@ -30,8 +30,11 @@ interface DocumentRowProps {
 	doc: DocumentRowData
 	isOpen: boolean
 	onOpenChange: (open: boolean) => void
-	onDelete: (doc: DocumentRowData) => void
-	isDeleting: boolean
+	/** Absent on read-only surfaces (e.g. the global vault). When omitted
+	 *  the Remove button is hidden — vault deletion happens on the entity
+	 *  detail page so list-cache invalidation stays scoped. */
+	onDelete?: (doc: DocumentRowData) => void
+	isDeleting?: boolean
 }
 
 export function DocumentRow({
@@ -39,7 +42,7 @@ export function DocumentRow({
 	isOpen,
 	onOpenChange,
 	onDelete,
-	isDeleting
+	isDeleting = false
 }: DocumentRowProps) {
 	const mime = resolveMime(doc)
 	const Icon = isImage(mime) ? ImageIcon : FileText
@@ -133,16 +136,18 @@ export function DocumentRow({
 						<span className="text-sm text-muted-foreground truncate">
 							{displayName}
 						</span>
-						<Button
-							size="sm"
-							variant="outline"
-							onClick={() => onDelete(doc)}
-							disabled={isDeleting}
-							className="text-destructive hover:text-destructive hover:bg-destructive/10"
-						>
-							<Trash2 className="size-4 mr-2" />
-							{isDeleting ? 'Removing...' : 'Remove'}
-						</Button>
+						{onDelete && (
+							<Button
+								size="sm"
+								variant="outline"
+								onClick={() => onDelete(doc)}
+								disabled={isDeleting}
+								className="text-destructive hover:text-destructive hover:bg-destructive/10"
+							>
+								<Trash2 className="size-4 mr-2" />
+								{isDeleting ? 'Removing...' : 'Remove'}
+							</Button>
+						)}
 					</div>
 				</DialogContent>
 			</Dialog>

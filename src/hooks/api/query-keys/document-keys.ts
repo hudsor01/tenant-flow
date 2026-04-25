@@ -166,6 +166,16 @@ export const documentQueries = {
 
 export { LIST_DISPLAY_LIMIT }
 
+// Global vault search lives in `document-search-keys.ts` to keep this
+// file under the 300-line cap. Re-exported so existing import sites
+// (`#hooks/api/query-keys/document-keys`) keep working.
+export {
+	SEARCH_PAGE_SIZE,
+	documentSearchQueries,
+	type DocumentSearchParams,
+	type DocumentSearchResult
+} from './document-search-keys'
+
 export const documentMutations = {
 	upload: () =>
 		mutationOptions<DocumentRow, Error, DocumentUploadInput>({

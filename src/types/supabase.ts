@@ -119,6 +119,7 @@ export type Database = {
           id: string
           mime_type: string | null
           owner_user_id: string | null
+          search_vector: unknown
           storage_url: string
           tags: string[] | null
           title: string | null
@@ -134,6 +135,7 @@ export type Database = {
           id?: string
           mime_type?: string | null
           owner_user_id?: string | null
+          search_vector?: unknown
           storage_url: string
           tags?: string[] | null
           title?: string | null
@@ -149,6 +151,7 @@ export type Database = {
           id?: string
           mime_type?: string | null
           owner_user_id?: string | null
+          search_vector?: unknown
           storage_url?: string
           tags?: string[] | null
           title?: string | null
@@ -2548,6 +2551,31 @@ export type Database = {
       revoke_user_session: {
         Args: { p_session_id: string; p_user_id: string }
         Returns: undefined
+      }
+      search_documents: {
+        Args: {
+          p_category?: string
+          p_entity_type?: string
+          p_limit?: number
+          p_offset?: number
+          p_query?: string
+        }
+        Returns: {
+          created_at: string
+          description: string
+          document_type: string
+          entity_id: string
+          entity_type: string
+          file_path: string
+          file_size: number
+          id: string
+          mime_type: string
+          owner_user_id: string
+          storage_url: string
+          tags: string[]
+          title: string
+          total_count: number
+        }[]
       }
       search_properties: {
         Args: { p_limit?: number; p_search_term: string; p_user_id: string }

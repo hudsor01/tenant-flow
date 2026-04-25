@@ -100,6 +100,8 @@ describe('SubscriptionCancelSection', () => {
 			refetch: vi.fn()
 		})
 		const { container } = render(<SubscriptionCancelSection />)
+		// SubscriptionCancelSection uses a raw animate-pulse div for its
+		// skeleton (not the <Skeleton/> primitive), so check the class.
 		expect(container.querySelector('.animate-pulse')).not.toBeNull()
 	})
 

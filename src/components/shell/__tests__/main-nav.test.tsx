@@ -34,6 +34,9 @@ describe('MainNav', () => {
 			expect(screen.getByRole('link', { name: /tenants/i })).toBeInTheDocument()
 			expect(screen.getByRole('link', { name: /leases/i })).toBeInTheDocument()
 			expect(screen.getByRole('link', { name: /maintenance/i })).toBeInTheDocument()
+			// Anchored regex avoids matching the "Tax Documents" sub-link
+			// once the Financials section is expanded.
+			expect(screen.getByRole('link', { name: /^documents$/i })).toBeInTheDocument()
 		})
 
 		it('should render correct hrefs for core items', () => {
@@ -59,6 +62,9 @@ describe('MainNav', () => {
 				'href',
 				'/maintenance'
 			)
+			expect(
+				screen.getByRole('link', { name: /^documents$/i })
+			).toHaveAttribute('href', '/documents/vault')
 		})
 	})
 
@@ -145,11 +151,11 @@ describe('MainNav', () => {
 		})
 	})
 
-	describe('documents section', () => {
-		it('should render Documents section header', () => {
+	describe('templates section', () => {
+		it('should render Templates section header', () => {
 			render(<MainNav />)
 
-			expect(screen.getByText('Documents')).toBeInTheDocument()
+			expect(screen.getByText('Templates')).toBeInTheDocument()
 		})
 
 		it('should render Generate Lease link', () => {

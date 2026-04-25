@@ -14,6 +14,7 @@ import {
 	ChevronUp,
 	FilePlus,
 	FileCheck,
+	FolderArchive,
 	HelpCircle,
 	Keyboard,
 	ClipboardList,
@@ -45,7 +46,8 @@ const coreItems: NavigationItem[] = [
 	{ label: 'Properties', href: '/properties', icon: Building2 },
 	{ label: 'Tenants', href: '/tenants', icon: Users },
 	{ label: 'Leases', href: '/leases', icon: ClipboardList },
-	{ label: 'Maintenance', href: '/maintenance', icon: Wrench }
+	{ label: 'Maintenance', href: '/maintenance', icon: Wrench },
+	{ label: 'Documents', href: '/documents/vault', icon: FolderArchive }
 ]
 
 // Collapsible sections
@@ -261,10 +263,10 @@ export function MainNav({ onNavigate }: MainNavProps) {
 				{analyticsItems.map(renderNavItem)}
 			</div>
 
-			{/* Documents section */}
+			{/* Templates section */}
 			<div className="mt-6 pt-4 border-t border-border">
 				<p className="px-3 mb-2 text-xs font-medium text-muted-foreground uppercase tracking-wider">
-					Documents
+					Templates
 				</p>
 				<div className="space-y-0.5">
 					{documentItems.map(item => {
