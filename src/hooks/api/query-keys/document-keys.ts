@@ -1,16 +1,19 @@
 /**
  * Document Vault Query Keys, Options & Mutations.
- * Ships four entity branches: property + lease + tenant + maintenance_request
- * (v2.4 Phase 59 extended from property-only). Inspection branch defers to v2.5.
+ * Ships five entity branches: property + lease + tenant + maintenance_request
+ * + inspection (v2.4 Phase 59 widened from property-only; v2.5 Phase 62 added
+ * the inspection branch).
  *
  * Private bucket — listings batch `createSignedUrls` (1h TTL). Path-based
- * storage RLS (migration 20260424140000) extracts entity_type + entity_id
- * from the path, confirms ownership against the corresponding parent table,
- * and enforces array_length + UUID-format guards on every branch.
+ * storage RLS (migrations 20260424140000 + 20260426040728) extracts
+ * entity_type + entity_id from the path, confirms ownership against the
+ * corresponding parent table, and enforces array_length + UUID-format guards
+ * on every branch.
  *
  * Bucket creation, MIME allowlist, and bucket-level config ship in earlier
- * migrations (20260420030000 + 20260421120000). 20260424140000 only replaces
- * the four storage.objects policies; it doesn't touch bucket config.
+ * migrations (20260420030000 + 20260421120000). The two RLS migrations only
+ * replace the four storage.objects policies (one per CRUD op); they don't
+ * touch bucket config.
  */
 
 import { queryOptions, mutationOptions } from '@tanstack/react-query'
