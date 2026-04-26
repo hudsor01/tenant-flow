@@ -1,5 +1,6 @@
-import { describe, expect, it, vi, beforeEach } from 'vitest'
-import { act, fireEvent, render, screen } from '@testing-library/react'
+import { describe, expect, it, vi, beforeEach, afterAll } from 'vitest'
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import type { ReactElement } from 'react'
 import { DocumentsVaultClient } from '../documents-vault.client'
@@ -12,6 +13,25 @@ const mockSetCategoriesParam = vi.fn()
 const mockSetFromParam = vi.fn()
 const mockSetToParam = vi.fn()
 const mockSetPageParam = vi.fn()
+const mockToastError = vi.fn()
+const mockGetSession = vi.fn()
+
+// Mock the supabase client so getSession() returns a controlled token
+// for the Phase 64 bulk-download path.
+vi.mock('#lib/supabase/client', () => ({
+	createClient: () => ({
+		auth: { getSession: mockGetSession }
+	})
+}))
+
+vi.mock('sonner', () => ({
+	toast: {
+		error: (...args: unknown[]) => mockToastError(...args),
+		success: vi.fn(),
+		warning: vi.fn(),
+		info: vi.fn()
+	}
+}))
 
 let queryParamValue = ''
 let entityParamValue = '__any__'
@@ -69,6 +89,9 @@ describe('DocumentsVaultClient', () => {
 		fromParamValue = ''
 		toParamValue = ''
 		pageParamValue = 0
+		mockGetSession.mockResolvedValue({
+			data: { session: { access_token: 'test-token' } }
+		})
 	})
 
 	it('renders the page header and search controls', () => {
@@ -524,4 +547,145 @@ describe('DocumentsVaultClient', () => {
 		renderVault()
 		expect(mockSetEntityParam).toHaveBeenCalledWith(null)
 	})
+
+	// Phase 64: bulk download as zip
+	describe('bulk download (Phase 64)', () => {
+		const originalFetch = global.fetch
+
+		beforeEach(() => {
+			// Mock fetch to return a tiny zip blob — verifies the handler
+			// reads the body, creates an anchor, and clicks it. Don't
+			// assert on the actual download trigger (jsdom doesn't really
+			// download), just that fetch was called with the right args.
+			global.fetch = vi.fn().mockResolvedValue({
+				ok: true,
+				blob: () => Promise.resolve(new Blob(['fake-zip'], { type: 'application/zip' }))
+			} as unknown as Response)
+		})
+
+		// Restore jsdom's original fetch after this group runs. clearAllMocks
+		// only resets call history, not the implementation we replaced.
+		afterAll(() => {
+			global.fetch = originalFetch
+		})
+
+		it('hides the Download all button when no docs match', () => {
+			mockUseQuery.mockReturnValue({
+				data: { rows: [], totalCount: 0, page: 0, pageSize: 50 },
+				isLoading: false,
+				isFetching: false,
+				isError: false
+			})
+			renderVault()
+			expect(
+				screen.queryByRole('button', { name: /download all/i })
+			).not.toBeInTheDocument()
+		})
+
+		it('renders the Download all button with totalCount when matches exist', () => {
+			mockUseQuery.mockReturnValue({
+				data: { rows: [{ id: 'a' }], totalCount: 12, page: 0, pageSize: 50 },
+				isLoading: false,
+				isFetching: false,
+				isError: false
+			})
+			renderVault()
+			expect(
+				screen.getByRole('button', { name: /download all \(12\)/i })
+			).toBeInTheDocument()
+		})
+
+		it('disables the button when totalCount exceeds the 500-doc cap', () => {
+			mockUseQuery.mockReturnValue({
+				data: { rows: [{ id: 'a' }], totalCount: 501, page: 0, pageSize: 50 },
+				isLoading: false,
+				isFetching: false,
+				isError: false
+			})
+			renderVault()
+			expect(
+				screen.getByRole('button', { name: /download all \(501\)/i })
+			).toBeDisabled()
+		})
+
+		it('clicking the button POSTs the current filter set to the Edge Function', async () => {
+			const user = userEvent.setup()
+			queryParamValue = 'tax'
+			entityParamValue = 'lease'
+			categoriesParamValue = ['lease', 'insurance']
+			fromParamValue = '2026-01-01'
+			toParamValue = '2026-12-31'
+			mockUseQuery.mockReturnValue({
+				data: { rows: [{ id: 'a' }], totalCount: 5, page: 0, pageSize: 50 },
+				isLoading: false,
+				isFetching: false,
+				isError: false
+			})
+			renderVault()
+			await user.click(screen.getByRole('button', { name: /download all \(5\)/i }))
+
+			await waitFor(() => {
+				expect(global.fetch).toHaveBeenCalledTimes(1)
+			})
+			const fetchCall = (global.fetch as ReturnType<typeof vi.fn>).mock.calls[0]
+			expect(fetchCall![0]).toMatch(/\/functions\/v1\/download-documents-zip$/)
+			const init = fetchCall![1] as RequestInit
+			expect(init.method).toBe('POST')
+			expect(init.headers).toMatchObject({
+				Authorization: 'Bearer test-token'
+			})
+			const body = JSON.parse(init.body as string) as Record<string, unknown>
+			expect(body).toMatchObject({
+				query: 'tax',
+				entityType: 'lease',
+				categories: ['lease', 'insurance'],
+				from: '2026-01-01',
+				to: '2026-12-31'
+			})
+		})
+
+		it('shows a toast when the Edge Function returns an error', async () => {
+			const user = userEvent.setup()
+			global.fetch = vi.fn().mockResolvedValue({
+				ok: false,
+				statusText: 'Payload Too Large',
+				json: () =>
+					Promise.resolve({ error: 'Filter matches 600 documents; cap is 500.' })
+			} as unknown as Response)
+			mockUseQuery.mockReturnValue({
+				data: { rows: [{ id: 'a' }], totalCount: 5, page: 0, pageSize: 50 },
+				isLoading: false,
+				isFetching: false,
+				isError: false
+			})
+			renderVault()
+			await user.click(screen.getByRole('button', { name: /download all/i }))
+			await waitFor(() => {
+				expect(mockToastError).toHaveBeenCalledWith(
+					expect.stringMatching(/cap is 500/i)
+				)
+			})
+		})
+
+		it('shows an auth-required toast when getSession returns no token', async () => {
+			const user = userEvent.setup()
+			mockGetSession.mockResolvedValue({ data: { session: null } })
+			mockUseQuery.mockReturnValue({
+				data: { rows: [{ id: 'a' }], totalCount: 5, page: 0, pageSize: 50 },
+				isLoading: false,
+				isFetching: false,
+				isError: false
+			})
+			renderVault()
+			await user.click(screen.getByRole('button', { name: /download all/i }))
+			await waitFor(() => {
+				expect(mockToastError).toHaveBeenCalledWith(
+					expect.stringMatching(/sign in/i)
+				)
+			})
+			// fetch must not be invoked when there's no session token.
+			expect(global.fetch).not.toHaveBeenCalled()
+		})
+	})
 })
+

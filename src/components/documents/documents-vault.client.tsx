@@ -41,7 +41,19 @@ import {
 	type DocumentCategory
 } from '#lib/validation/documents'
 import { DocumentRow } from './document-row'
-import { AlertTriangle, FolderArchive, Loader2, Search } from 'lucide-react'
+import { createClient } from '#lib/supabase/client'
+import { toast } from 'sonner'
+import {
+	AlertTriangle,
+	Download,
+	FolderArchive,
+	Loader2,
+	Search
+} from 'lucide-react'
+
+// Phase 64: hard cap on bulk-download. Mirrors MAX_DOCS_PER_REQUEST in
+// the download-documents-zip Edge Function — keep them in lockstep.
+const BULK_DOWNLOAD_MAX = 500
 
 const ENTITY_TYPE_LABELS: Record<DocumentEntityType, string> = {
 	property: 'Property',
@@ -242,6 +254,65 @@ export function DocumentsVaultClient() {
 	// momentarily after clicking Next.
 	const showRangeHeader = totalCount > 0 && !isFetching
 
+	// Phase 64: bulk-download-as-zip. POSTs the current filter set to
+	// the download-documents-zip Edge Function which re-runs
+	// search_documents server-side under the caller's JWT (RLS-scoped
+	// to their own docs) and streams a zip back. Disabled when the
+	// match exceeds the per-request cap or no docs match.
+	const [isDownloading, setIsDownloading] = useState(false)
+	const canDownload =
+		totalCount > 0 && totalCount <= BULK_DOWNLOAD_MAX && !isDownloading
+	async function handleBulkDownload() {
+		setIsDownloading(true)
+		try {
+			const supabase = createClient()
+			const { data: sessionData } = await supabase.auth.getSession()
+			const token = sessionData.session?.access_token
+			if (!token) {
+				toast.error('Sign in to download documents.')
+				return
+			}
+			const baseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+			const res = await fetch(`${baseUrl}/functions/v1/download-documents-zip`, {
+				method: 'POST',
+				headers: {
+					Authorization: `Bearer ${token}`,
+					'Content-Type': 'application/json'
+				},
+				body: JSON.stringify({
+					query: queryParam || null,
+					entityType: entityType ?? null,
+					categories: categories.length > 0 ? categories : null,
+					from: fromParam || null,
+					to: toParam || null
+				})
+			})
+			if (!res.ok) {
+				const body = (await res
+					.json()
+					.catch(() => ({ error: res.statusText }))) as { error?: string }
+				toast.error(body.error ?? 'Download failed')
+				return
+			}
+			const blob = await res.blob()
+			const url = URL.createObjectURL(blob)
+			const today = new Date().toISOString().slice(0, 10)
+			const a = document.createElement('a')
+			a.href = url
+			a.download = `tenantflow-documents-${today}.zip`
+			document.body.appendChild(a)
+			a.click()
+			a.remove()
+			URL.revokeObjectURL(url)
+		} catch (err) {
+			toast.error(
+				err instanceof Error ? err.message : 'Download failed unexpectedly.'
+			)
+		} finally {
+			setIsDownloading(false)
+		}
+	}
+
 	// Out-of-bounds page recovery (cycle-2 L1). If the user lands on a
 	// `?page=N` whose offset is beyond `totalCount` (bookmarked link from
 	// a since-shrunk portfolio, or hand-edited URL), the empty-rows
@@ -348,11 +419,40 @@ export function DocumentsVaultClient() {
 							/>
 						)}
 					</CardTitle>
-					{showRangeHeader && (
-						<p className="text-xs text-muted-foreground">
-							Showing {pageStart + 1}-{pageEnd} of {totalCount}
-						</p>
-					)}
+					<div className="flex items-center gap-3">
+						{showRangeHeader && (
+							<p className="text-xs text-muted-foreground">
+								Showing {pageStart + 1}-{pageEnd} of {totalCount}
+							</p>
+						)}
+						{totalCount > 0 && (
+							<Button
+								size="sm"
+								variant="outline"
+								onClick={() => {
+									void handleBulkDownload()
+								}}
+								disabled={!canDownload}
+								title={
+									totalCount > BULK_DOWNLOAD_MAX
+										? `Bulk download is capped at ${BULK_DOWNLOAD_MAX} documents — narrow the filter.`
+										: undefined
+								}
+							>
+								{isDownloading ? (
+									<>
+										<Loader2 className="size-4 mr-2 animate-spin" aria-hidden="true" />
+										Preparing zip...
+									</>
+								) : (
+									<>
+										<Download className="size-4 mr-2" aria-hidden="true" />
+										Download all ({totalCount})
+									</>
+								)}
+							</Button>
+						)}
+					</div>
 				</CardHeader>
 				<CardContent>
 					{isLoading ? (
