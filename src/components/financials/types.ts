@@ -1,6 +1,6 @@
 // Financials Section Types
 // Note: Core financial statement types (RevenueBreakdown, ExpenseBreakdown, MonthlyCashFlow,
-// CashFlowCategory, PropertyPL, MonthlyData) are defined in #shared/types/financial-statements.
+// CashFlowCategory, PropertyPL, MonthlyData) are defined in #types/financial-statements.
 // Only domain-specific UI types that are unique to this module are defined here.
 
 import type {

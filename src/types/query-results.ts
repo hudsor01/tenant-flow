@@ -9,7 +9,7 @@
  *
  * @example
  * ```typescript
- * import type { MaintenanceRequestResult } from '#shared/types/query-results'
+ * import type { MaintenanceRequestResult } from '#types/query-results'
  *
  * const { data } = await client.from('maintenance_requests').select(`...`)
  * const requests = data as MaintenanceRequestResult[]

@@ -88,7 +88,7 @@ export const propertyQueries = {
 ```
 
 ## Hook Organization
-- Flat domain naming: `use-leases.ts`, not nested
+- Flat domain naming: `use-lease.ts`, `use-properties.ts`, etc. — not nested
 - Max 300 lines per hook file — split by domain if exceeded
 - No module-level Supabase client — `createClient()` inside each mutation/query function
 
@@ -116,12 +116,11 @@ Reference example: `mapDocumentRow` in `src/hooks/api/query-keys/document-keys.t
 - `owner_user_id` is the canonical owner column on `properties`, `leases`, `maintenance_requests`, `documents` — references `users.id` directly
 - `users.is_admin boolean` controls admin access (the legacy `user_type` was migrated out)
 - `set_updated_at()` is the only `updated_at` trigger function — never duplicate
-- `stripe_connected_accounts` (formerly `property_owners`) stores Stripe Connect data only — not used for ownership lookups
 
 ### Cron Jobs (pg_cron)
 All pg_cron jobs use named SECURITY DEFINER functions with `SET search_path = public`. Never inline SQL in `cron.schedule()`. Cleanup jobs run in the 3 AM UTC window. Archive-then-delete for all retention. Use `FOR UPDATE SKIP LOCKED` for concurrent-safe row processing.
 
-Active jobs: lease expiry, late-fee calc, lease reminders, security-events cleanup (90d), user-errors cleanup (90d), webhook-events cleanup (90d succeeded / 180d failed), cron-health monitor (hourly), GDPR account-deletion processor.
+For the active job list, grep `cron.schedule(` in `supabase/migrations/` — the set changes per release.
 
 ### GDPR
 - 30-day grace period (`deletion_requested_at` on `users`)
@@ -198,7 +197,7 @@ Deno runtime, `supabase/functions/<name>/index.ts`.
 
 ## Path Aliases
 `#` prefix subpath imports defined in BOTH `tsconfig.json#paths` AND `package.json#imports`:
-`#app/*`, `#components/*`, `#contexts/*`, `#lib/*`, `#hooks/*`, `#stores/*`, `#types/*`, `#providers/*`, `#test/*`, `#utils/*`, `#shared/*`, `#config/*`, `#env`, `#proxy`
+`#app/*`, `#components/*`, `#contexts/*`, `#lib/*`, `#hooks/*`, `#stores/*`, `#types/*`, `#providers/*`, `#test/*`, `#utils/*`, `#config/*`, `#env`, `#proxy`
 
 ## Common Gotchas
 - Supabase auth: always `getAll`/`setAll` cookie methods. Never `get`/`set`/`remove`. Never `auth-helpers-nextjs`.
