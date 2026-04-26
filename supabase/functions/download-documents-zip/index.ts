@@ -14,7 +14,7 @@ import { ZipWriter, BlobReader } from '@zip.js/zip.js'
 import { validateBearerAuth } from '../_shared/auth.ts'
 import { getCorsHeaders, handleCorsOptions } from '../_shared/cors.ts'
 import { validateEnv } from '../_shared/env.ts'
-import { errorResponse } from '../_shared/errors.ts'
+import { errorResponse, logEvent } from '../_shared/errors.ts'
 import { createAdminClient } from '../_shared/supabase-client.ts'
 import { createClient } from '@supabase/supabase-js'
 
@@ -47,9 +47,15 @@ interface SearchRow {
 }
 
 // Match the frontend `sanitizeFilename` shape so paths inside the zip
-// can't escape entity-type folders.
+// can't escape entity-type folders. Also strips leading dots (no
+// dotfiles), control chars / NUL bytes (some POSIX archive utilities
+// truncate on \0), and caps length to stay under filesystem limits.
 function sanitizeFilename(name: string): string {
-	return name.replace(/[\\/?%*:|"<>#&\s]+/g, '_')
+	return name
+		.replace(/[\\/?%*:|"<>#&\x00-\x1f]+/g, '_')
+		.replace(/\s+/g, '_')
+		.replace(/^\.+/, '_')
+		.slice(0, 200) || 'document'
 }
 
 function inferExtension(mime: string | null, filePath: string): string {
@@ -76,7 +82,11 @@ Deno.serve(async (req: Request) => {
 	let env: Record<string, string>
 	try {
 		env = validateEnv({
-			required: ['SUPABASE_URL', 'SUPABASE_SERVICE_ROLE_KEY']
+			required: [
+				'SUPABASE_URL',
+				'SUPABASE_SERVICE_ROLE_KEY',
+				'SUPABASE_ANON_KEY'
+			]
 		})
 	} catch (err) {
 		return errorResponse(req, 500, err, { action: 'env_validation' })
@@ -95,12 +105,18 @@ Deno.serve(async (req: Request) => {
 				headers: { 'Content-Type': 'application/json', ...getCorsHeaders(req) }
 			})
 		}
-		const { user, token } = auth
+		const { token } = auth
 
 		// Re-derive the user-scoped client so the search_documents RPC
 		// runs under the caller's JWT (RLS gates the result set to their
-		// own documents — never trust the client-supplied owner_id).
-		const userClient = createClient(env.SUPABASE_URL, env.SUPABASE_SERVICE_ROLE_KEY, {
+		// own documents — never trust the client-supplied owner_id). The
+		// `apikey` MUST be the anon key, not service-role: pairing the
+		// service-role apikey with a user JWT in `Authorization` works
+		// today only because PostgREST honors the user JWT for the role,
+		// but a future client/server change could silently elevate to
+		// service-role and bypass RLS. Mirror the pattern in
+		// `export-user-data/index.ts` to keep this defensive.
+		const userClient = createClient(env.SUPABASE_URL, env.SUPABASE_ANON_KEY, {
 			global: { headers: { Authorization: `Bearer ${token}` } },
 			auth: { persistSession: false, autoRefreshToken: false }
 		})
@@ -171,9 +187,7 @@ Deno.serve(async (req: Request) => {
 		// time and added to the archive; only one document's bytes
 		// live in memory at any moment.
 		const transformStream = new TransformStream<Uint8Array>()
-		const zipWriter = new ZipWriter(transformStream.writable, {
-			bufferedWrite: false
-		})
+		const zipWriter = new ZipWriter(transformStream.writable)
 
 		// Background pump — must NOT be awaited or the response would
 		// only return after the entire zip is built (defeating streaming).
@@ -186,8 +200,14 @@ Deno.serve(async (req: Request) => {
 						.download(doc.file_path)
 					if (dlError || !blob) {
 						// Skip this doc but keep going — a single missing blob
-						// shouldn't void the whole archive. Log via error stream
-						// would be nice; for v1, silent skip.
+						// shouldn't void the whole archive. Sentry breadcrumb
+						// surfaces the skip in any future failure trace without
+						// firing a standalone event.
+						logEvent('document_blob_missing', {
+							docId: doc.id,
+							filePath: doc.file_path,
+							error: dlError?.message ?? 'no_blob_returned'
+						})
 						continue
 					}
 					const ext = inferExtension(doc.mime_type, doc.file_path)
@@ -218,7 +238,6 @@ Deno.serve(async (req: Request) => {
 		})()
 
 		const today = new Date().toISOString().slice(0, 10)
-		void user
 		return new Response(transformStream.readable, {
 			headers: {
 				'Content-Type': 'application/zip',

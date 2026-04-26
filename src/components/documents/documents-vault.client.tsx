@@ -263,6 +263,10 @@ export function DocumentsVaultClient() {
 	const canDownload =
 		totalCount > 0 && totalCount <= BULK_DOWNLOAD_MAX && !isDownloading
 	async function handleBulkDownload() {
+		// Re-render race guard: `disabled` flips after setIsDownloading
+		// commits, so a rapid double-click could fire two POSTs before
+		// the button paint. Bail early on second-entry.
+		if (isDownloading) return
 		setIsDownloading(true)
 		try {
 			const supabase = createClient()
@@ -293,6 +297,17 @@ export function DocumentsVaultClient() {
 					.catch(() => ({ error: res.statusText }))) as { error?: string }
 				toast.error(body.error ?? 'Download failed')
 				return
+			}
+			// NOTE: res.blob() buffers the entire zip in memory before
+			// triggering the download. The Edge Function streams server-
+			// side, but the browser tab still allocates the whole archive
+			// here. Acceptable for typical archive sizes; defer streaming
+			// directly to disk (e.g. via Service Worker + StreamSaver) to
+			// v2.7 if power-user feedback warrants it.
+			if (totalCount > 100) {
+				console.warn(
+					`bulk download buffering ${totalCount} documents in memory; large archives may strain low-spec browsers`
+				)
 			}
 			const blob = await res.blob()
 			const url = URL.createObjectURL(blob)
