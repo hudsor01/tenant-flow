@@ -101,27 +101,32 @@ function formatLocalYmd(d: Date): string {
 
 export function DocumentsVaultClient() {
 	// URL-synced filters via nuqs so a shared link reproduces the search.
+	// Filter dimensions (q/entity/categories/from/to) use history: 'replace'
+	// so refining a search doesn't pollute the back-stack — pressing Back
+	// from the vault should leave the page, not walk through every filter
+	// tweak. Page navigation IS a meaningful event and stays push.
+	const FILTER_HISTORY = { history: 'replace' as const }
 	const [queryParam, setQueryParam] = useQueryState(
 		'q',
-		parseAsString.withDefault('')
+		parseAsString.withDefault('').withOptions(FILTER_HISTORY)
 	)
 	const [entityParam, setEntityParam] = useQueryState(
 		'entity',
-		parseAsString.withDefault(ANY_ENTITY)
+		parseAsString.withDefault(ANY_ENTITY).withOptions(FILTER_HISTORY)
 	)
 	// Phase 63: multi-select. Default empty array → "no filter".
 	const [categoriesParam, setCategoriesParam] = useQueryState(
 		'categories',
-		parseAsArrayOf(parseAsString, ',').withDefault([])
+		parseAsArrayOf(parseAsString, ',').withDefault([]).withOptions(FILTER_HISTORY)
 	)
-	// Phase 63: ISO date strings (`YYYY-MM-DD` or full ISO timestamps).
+	// Phase 63: ISO date strings (`YYYY-MM-DD` form).
 	const [fromParam, setFromParam] = useQueryState(
 		'from',
-		parseAsString.withDefault('')
+		parseAsString.withDefault('').withOptions(FILTER_HISTORY)
 	)
 	const [toParam, setToParam] = useQueryState(
 		'to',
-		parseAsString.withDefault('')
+		parseAsString.withDefault('').withOptions(FILTER_HISTORY)
 	)
 	const [pageParam, setPageParam] = useQueryState(
 		'page',
@@ -167,13 +172,20 @@ export function DocumentsVaultClient() {
 	// Phase 63: multi-select category. Drop unknown values from the URL
 	// array (partial reject — `?categories=lease,banana` keeps `lease`,
 	// drops `banana`) so a single bad value can't void the user's whole
-	// selection. Memoised + sorted for queryKey stability.
+	// selection.
+	//
+	// Memoise on a content-derived key (M-5): nuqs' useQueryState returns
+	// a fresh array reference every render even when content is identical,
+	// so `useMemo([categoriesParam])` would re-run the filter on every
+	// render. Joining the array gives a stable string identity — same
+	// content, same key, no wasted work.
+	const categoriesKey = categoriesParam.join(',')
 	const categories = useMemo<DocumentCategory[]>(() => {
-		const valid = (DOCUMENT_CATEGORIES as readonly string[]).filter(c =>
-			categoriesParam.includes(c)
+		const set = new Set(categoriesKey.split(',').filter(Boolean))
+		return (DOCUMENT_CATEGORIES as readonly string[]).filter(c =>
+			set.has(c)
 		) as DocumentCategory[]
-		return valid
-	}, [categoriesParam])
+	}, [categoriesKey])
 
 	// Phase 63: date-range. Parse the URL YYYY-MM-DD into a local-zone
 	// Date for the picker. The factory expands these to local-zone

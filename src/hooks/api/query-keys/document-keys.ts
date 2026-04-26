@@ -104,6 +104,15 @@ export interface DocumentListResult {
  * producing the literal string `"undefined"` (which would break
  * signed-URL generation, date rendering, and React keys downstream).
  *
+ * Why we need this mapper instead of trusting `Database['public']
+ * ['Functions']['search_documents']['Returns']` directly: Supabase's
+ * type generator strips `| null` from `RETURNS TABLE` columns even
+ * when the underlying column is nullable. So the generated RPC return
+ * type claims `description: string` while the column is `string |
+ * null`. Callers who bypass this mapper and use the raw RPC return
+ * type will mistype nullable fields as non-null and hit "Invalid Date"
+ * / `text-content of null` runtime bugs. M-2 from PR #640 cycle-1.
+ *
  * Applies CLAUDE.md's "RPC Return Typing" rule (typed mapper at the
  * PostgREST boundary, not `as unknown as` casts).
  */

@@ -100,6 +100,30 @@ export function MultiSelectChips<T extends string>({
 							)
 						})}
 					</ul>
+					{/* Footer affordances — popover auto-closes on outside click,
+					    but explicit "Clear" + "Done" make the multi-select pattern
+					    discoverable for keyboard users and screen readers. */}
+					<div className="flex items-center justify-between gap-2 border-t border-border px-1 pt-1 mt-1">
+						<Button
+							type="button"
+							variant="ghost"
+							size="sm"
+							className="h-7 px-2 text-xs"
+							onClick={() => onChange([])}
+							disabled={selected.size === 0}
+						>
+							Clear
+						</Button>
+						<Button
+							type="button"
+							variant="ghost"
+							size="sm"
+							className="h-7 px-2 text-xs"
+							onClick={() => setOpen(false)}
+						>
+							Done
+						</Button>
+					</div>
 				</PopoverContent>
 			</Popover>
 			{selected.size > 0 && (
