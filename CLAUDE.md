@@ -35,7 +35,6 @@ pnpm typecheck && pnpm lint       # quality checks
 pnpm test:unit                    # Vitest unit tests
 pnpm test:unit -- --run src/path/to/test.ts  # single test file
 pnpm test:integration             # RLS integration tests (hits prod)
-pnpm test:e2e                     # Playwright E2E
 pnpm db:types                     # regen src/types/supabase.ts (atomic, see scripts/db-types.sh)
 pnpm validate:quick               # types + lint + unit tests
 ```
