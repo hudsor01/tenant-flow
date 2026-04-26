@@ -50,7 +50,9 @@ Full strict mode incl. `noUnusedLocals`, `noUnusedParameters`, `exactOptionalPro
 - **Skipped tests:** investigate and fix; never leave `.skip` permanently.
 
 ## CI Pipeline
-- **PRs + push to main:** lint + typecheck + `next build` + E2E smoke tests + RLS security tests. Fail hard if required secrets missing.
+- **PRs:** lint + typecheck + `next build` + E2E smoke tests + RLS security tests. `e2e-smoke` and `rls-security` fail hard if required secrets are missing.
+- **Push to main:** E2E smoke tests only (`checks` and `rls-security` are PR-gated).
+- **RLS security tests:** also run via weekly cron + `workflow_dispatch` (independent of branch state).
 - **Coverage / unit tests:** local only via lefthook pre-commit (CI trusts local hooks)
 - **Secret scanning:** gitleaks in pre-commit
 
