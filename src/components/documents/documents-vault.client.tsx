@@ -27,12 +27,14 @@ import { Skeleton } from '#components/ui/skeleton'
 import { DateRangePicker } from '#components/shared/date-range-picker'
 import { MultiSelectChips } from '#components/shared/multi-select-chips'
 import {
-	documentSearchQueries,
 	DOCUMENT_ENTITY_TYPES,
-	SEARCH_PAGE_SIZE,
 	type DocumentEntityType,
 	type DocumentRow as DocumentRowData
 } from '#hooks/api/query-keys/document-keys'
+import {
+	documentSearchQueries,
+	SEARCH_PAGE_SIZE
+} from '#hooks/api/query-keys/document-search-keys'
 import {
 	DOCUMENT_CATEGORIES,
 	DOCUMENT_CATEGORY_LABELS,
