@@ -2,7 +2,12 @@
 
 import { useEffect, useMemo, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
-import { useQueryState, parseAsString, parseAsInteger } from 'nuqs'
+import {
+	useQueryState,
+	parseAsString,
+	parseAsInteger,
+	parseAsArrayOf
+} from 'nuqs'
 import {
 	Card,
 	CardContent,
@@ -19,6 +24,8 @@ import {
 } from '#components/ui/select'
 import { Button } from '#components/ui/button'
 import { Skeleton } from '#components/ui/skeleton'
+import { DateRangePicker } from '#components/shared/date-range-picker'
+import { MultiSelectChips } from '#components/shared/multi-select-chips'
 import {
 	documentSearchQueries,
 	DOCUMENT_ENTITY_TYPES,
@@ -43,22 +50,51 @@ const ENTITY_TYPE_LABELS: Record<DocumentEntityType, string> = {
 }
 
 const ANY_ENTITY = '__any__'
-const ANY_CATEGORY = '__any__'
 
-// Sentinels must not collide with any real taxonomy value, otherwise a
-// URL like `?category=__any__` would silently render as "All categories"
-// instead of a literal category. Module-load assert so adding a new
-// entity/category that happens to be `__any__` fails the import in dev
-// rather than producing a confusing UX in prod.
+// Sentinel must not collide with any real taxonomy value, otherwise a
+// URL like `?entity=__any__` would silently render as "All types"
+// instead of a literal entity. Module-load assert so adding a new entity
+// that happens to be `__any__` fails the import in dev rather than
+// producing a confusing UX in prod.
 if ((DOCUMENT_ENTITY_TYPES as readonly string[]).includes(ANY_ENTITY)) {
 	throw new Error(
 		'ANY_ENTITY sentinel collides with a real DOCUMENT_ENTITY_TYPES value'
 	)
 }
-if ((DOCUMENT_CATEGORIES as readonly string[]).includes(ANY_CATEGORY)) {
-	throw new Error(
-		'ANY_CATEGORY sentinel collides with a real DOCUMENT_CATEGORIES value'
-	)
+
+// Phase 63: category filter is now multi-select via ?categories=lease,insurance.
+// No sentinel needed — empty array is the canonical "no filter" state.
+const CATEGORY_OPTIONS = DOCUMENT_CATEGORIES.map(value => ({
+	value,
+	label: DOCUMENT_CATEGORY_LABELS[value]
+}))
+
+// Parse a YYYY-MM-DD URL value into a local-zone Date (midnight local).
+// Returns undefined on malformed input. Critically uses local-component
+// construction — NOT `new Date('2026-04-30')` which produces UTC midnight
+// and silently shifts the picker by one day for users east of UTC.
+// Round-trips through getFullYear/getMonth/getDate to reject overflow
+// inputs like `2026-13-99` (which JS otherwise wraps to April 9, 2027).
+function parseLocalYmd(input: string | null): Date | undefined {
+	if (!input) return undefined
+	const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(input)
+	if (!m) return undefined
+	const y = Number(m[1])
+	const mo = Number(m[2])
+	const day = Number(m[3])
+	const d = new Date(y, mo - 1, day)
+	if (Number.isNaN(d.getTime())) return undefined
+	if (d.getFullYear() !== y || d.getMonth() !== mo - 1 || d.getDate() !== day) {
+		return undefined
+	}
+	return d
+}
+
+// Format a Date as local-zone YYYY-MM-DD. Pairs with parseLocalYmd for
+// round-trip stability across timezones.
+function formatLocalYmd(d: Date): string {
+	const pad = (n: number) => String(n).padStart(2, '0')
+	return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate())
 }
 
 export function DocumentsVaultClient() {
@@ -71,9 +107,19 @@ export function DocumentsVaultClient() {
 		'entity',
 		parseAsString.withDefault(ANY_ENTITY)
 	)
-	const [categoryParam, setCategoryParam] = useQueryState(
-		'category',
-		parseAsString.withDefault(ANY_CATEGORY)
+	// Phase 63: multi-select. Default empty array → "no filter".
+	const [categoriesParam, setCategoriesParam] = useQueryState(
+		'categories',
+		parseAsArrayOf(parseAsString, ',').withDefault([])
+	)
+	// Phase 63: ISO date strings (`YYYY-MM-DD` or full ISO timestamps).
+	const [fromParam, setFromParam] = useQueryState(
+		'from',
+		parseAsString.withDefault('')
+	)
+	const [toParam, setToParam] = useQueryState(
+		'to',
+		parseAsString.withDefault('')
 	)
 	const [pageParam, setPageParam] = useQueryState(
 		'page',
@@ -116,40 +162,58 @@ export function DocumentsVaultClient() {
 			: undefined
 	}, [entityParam])
 
-	// Same H2-style guard for category — `?category=banana` must NOT flow
-	// into the RPC as a typed DocumentCategory. Empty string also degrades
-	// to "Any" (the RPC treats null as "no filter").
-	const category = useMemo<DocumentCategory | undefined>(() => {
-		if (categoryParam === ANY_CATEGORY) return undefined
-		return (DOCUMENT_CATEGORIES as readonly string[]).includes(categoryParam)
-			? (categoryParam as DocumentCategory)
-			: undefined
-	}, [categoryParam])
+	// Phase 63: multi-select category. Drop unknown values from the URL
+	// array (partial reject — `?categories=lease,banana` keeps `lease`,
+	// drops `banana`) so a single bad value can't void the user's whole
+	// selection. Memoised + sorted for queryKey stability.
+	const categories = useMemo<DocumentCategory[]>(() => {
+		const valid = (DOCUMENT_CATEGORIES as readonly string[]).filter(c =>
+			categoriesParam.includes(c)
+		) as DocumentCategory[]
+		return valid
+	}, [categoriesParam])
 
-	// When the URL value is rejected by the guard, scrub it from the URL
+	// Phase 63: date-range. Parse the URL YYYY-MM-DD into a local-zone
+	// Date for the picker. The factory expands these to local-zone
+	// start/end-of-day ISO timestamps when calling the RPC.
+	const fromDate = useMemo(() => parseLocalYmd(fromParam), [fromParam])
+	const toDate = useMemo(() => parseLocalYmd(toParam), [toParam])
+
+	// When the URL value is rejected by a guard, scrub it from the URL
 	// so the address bar matches what the UI is actually filtering by.
-	// Without this, `?entity=banana` lingers in the URL while the page
-	// shows "All types" — confusing on share/bookmark. Single effect for
-	// both filters so adding a third URL-synced filter (e.g. ?page=…)
-	// stays a one-line change.
+	// Single effect for all four filters so adding a fifth stays a
+	// one-line change.
 	const entityRejected = entityParam !== ANY_ENTITY && entityType === undefined
-	const categoryRejected =
-		categoryParam !== ANY_CATEGORY && category === undefined
+	const categoriesNeedScrub =
+		categoriesParam.length > 0 && categories.length !== categoriesParam.length
+	const fromRejected = fromParam !== '' && fromDate === undefined
+	const toRejected = toParam !== '' && toDate === undefined
 	useEffect(() => {
 		if (entityRejected) void setEntityParam(null)
-		if (categoryRejected) void setCategoryParam(null)
+		if (categoriesNeedScrub) {
+			void setCategoriesParam(categories.length > 0 ? categories : null)
+		}
+		if (fromRejected) void setFromParam(null)
+		if (toRejected) void setToParam(null)
 	}, [
 		entityRejected,
-		categoryRejected,
+		categoriesNeedScrub,
+		categories,
+		fromRejected,
+		toRejected,
 		setEntityParam,
-		setCategoryParam
+		setCategoriesParam,
+		setFromParam,
+		setToParam
 	])
 
 	const { data, isLoading, isFetching, isError, refetch } = useQuery(
 		documentSearchQueries.list({
 			...(queryParam ? { query: queryParam } : {}),
 			...(entityType ? { entityType } : {}),
-			...(category ? { category } : {}),
+			...(categories.length > 0 ? { categories } : {}),
+			...(fromParam ? { from: fromParam } : {}),
+			...(toParam ? { to: toParam } : {}),
 			page: pageParam
 		})
 	)
@@ -198,7 +262,7 @@ export function DocumentsVaultClient() {
 					<CardTitle className="text-base">Search & filter</CardTitle>
 				</CardHeader>
 				<CardContent className="space-y-4">
-					<div className="grid gap-3 md:grid-cols-[1fr_180px_180px]">
+					<div className="grid gap-3 md:grid-cols-[1fr_160px_180px_220px]">
 						<div className="relative">
 							<Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground pointer-events-none" />
 							<Input
@@ -229,25 +293,30 @@ export function DocumentsVaultClient() {
 								))}
 							</SelectContent>
 						</Select>
-						<Select
-							value={categoryParam}
-							onValueChange={value => {
-								void setCategoryParam(value === ANY_CATEGORY ? null : value)
+						<MultiSelectChips<DocumentCategory>
+							options={CATEGORY_OPTIONS}
+							value={categories}
+							onChange={next => {
+								void setCategoriesParam(next.length > 0 ? next : null)
 								void setPageParam(null)
 							}}
-						>
-							<SelectTrigger aria-label="Filter by category">
-								<SelectValue placeholder="All categories" />
-							</SelectTrigger>
-							<SelectContent>
-								<SelectItem value={ANY_CATEGORY}>All categories</SelectItem>
-								{DOCUMENT_CATEGORIES.map(value => (
-									<SelectItem key={value} value={value}>
-										{DOCUMENT_CATEGORY_LABELS[value]}
-									</SelectItem>
-								))}
-							</SelectContent>
-						</Select>
+							placeholder="All categories"
+							aria-label="Filter by category"
+						/>
+						<DateRangePicker
+							value={{ from: fromDate, to: toDate }}
+							onChange={range => {
+								void setFromParam(
+									range.from ? formatLocalYmd(range.from) : null
+								)
+								void setToParam(
+									range.to ? formatLocalYmd(range.to) : null
+								)
+								void setPageParam(null)
+							}}
+							placeholder="Any date"
+							aria-label="Filter by date range"
+						/>
 					</div>
 				</CardContent>
 			</Card>
@@ -292,12 +361,12 @@ export function DocumentsVaultClient() {
 						<EmptyState
 							icon={<FolderArchive className="size-8 opacity-50" />}
 							title={
-								queryParam || entityType || category
+								queryParam || entityType || categories.length > 0 || fromParam || toParam
 									? 'No documents match your search.'
 									: 'No documents uploaded yet.'
 							}
 							subtitle={
-								queryParam || entityType || category
+								queryParam || entityType || categories.length > 0 || fromParam || toParam
 									? 'Try a different keyword or filter.'
 									: 'Open a property, lease, tenant, maintenance request, or inspection to upload your first document.'
 							}
