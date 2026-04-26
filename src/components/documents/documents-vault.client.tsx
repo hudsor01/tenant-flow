@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import {
 	useQueryState,
@@ -260,13 +260,18 @@ export function DocumentsVaultClient() {
 	// to their own docs) and streams a zip back. Disabled when the
 	// match exceeds the per-request cap or no docs match.
 	const [isDownloading, setIsDownloading] = useState(false)
+	// Mutable ref companion to `isDownloading` — the React state value is
+	// captured in the click-handler closure at render time, so a fast
+	// double-click that fires before React commits the next render would
+	// see `isDownloading === false` in BOTH closures and bypass the
+	// state-based guard. A ref updates synchronously and reads the same
+	// value across closures, closing that gap.
+	const downloadInFlightRef = useRef(false)
 	const canDownload =
 		totalCount > 0 && totalCount <= BULK_DOWNLOAD_MAX && !isDownloading
 	async function handleBulkDownload() {
-		// Re-render race guard: `disabled` flips after setIsDownloading
-		// commits, so a rapid double-click could fire two POSTs before
-		// the button paint. Bail early on second-entry.
-		if (isDownloading) return
+		if (downloadInFlightRef.current) return
+		downloadInFlightRef.current = true
 		setIsDownloading(true)
 		try {
 			const supabase = createClient()
@@ -324,6 +329,7 @@ export function DocumentsVaultClient() {
 				err instanceof Error ? err.message : 'Download failed unexpectedly.'
 			)
 		} finally {
+			downloadInFlightRef.current = false
 			setIsDownloading(false)
 		}
 	}

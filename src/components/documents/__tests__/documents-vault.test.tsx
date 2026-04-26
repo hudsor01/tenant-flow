@@ -667,6 +667,45 @@ describe('DocumentsVaultClient', () => {
 			})
 		})
 
+		it('double-click guard prevents two concurrent fetches', async () => {
+			// Hold the fetch promise open so both clicks land BEFORE the
+			// first call resolves (and BEFORE setIsDownloading commits).
+			// Without the ref-based guard, the closures would both see
+			// isDownloading === false and fire two POSTs.
+			let resolveFetch!: (value: Response) => void
+			const pendingResponse = new Promise<Response>(r => {
+				resolveFetch = r
+			})
+			global.fetch = vi.fn().mockReturnValue(pendingResponse)
+			mockUseQuery.mockReturnValue({
+				data: { rows: [{ id: 'a' }], totalCount: 5, page: 0, pageSize: 50 },
+				isLoading: false,
+				isFetching: false,
+				isError: false
+			})
+			renderVault()
+			const button = screen.getByRole('button', { name: /download all \(5\)/i })
+			// fireEvent dispatches synchronously; both clicks happen before
+			// any microtask flushes, so the second click sees the same
+			// closure as the first.
+			fireEvent.click(button)
+			fireEvent.click(button)
+
+			// Resolve fetch so the in-flight call finishes — otherwise
+			// the test hangs on the await inside handleBulkDownload.
+			act(() => {
+				resolveFetch({
+					ok: true,
+					blob: () =>
+						Promise.resolve(new Blob(['fake-zip'], { type: 'application/zip' }))
+				} as unknown as Response)
+			})
+
+			await waitFor(() => {
+				expect(global.fetch).toHaveBeenCalledTimes(1)
+			})
+		})
+
 		it('shows an auth-required toast when getSession returns no token', async () => {
 			const user = userEvent.setup()
 			mockGetSession.mockResolvedValue({ data: { session: null } })

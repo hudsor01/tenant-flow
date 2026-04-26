@@ -225,6 +225,12 @@ Deno.serve(async (req: Request) => {
 				}
 				await zipWriter.close()
 			} catch (err) {
+				// Whole-pump failure produces a truncated download with
+				// zero client-side signal — log loudly so Sentry surfaces
+				// it. Mirrors the per-doc M-2 observability hook above.
+				logEvent('zip_pump_failed', {
+					error: err instanceof Error ? err.message : String(err)
+				})
 				// Abort the stream so the client sees a truncated download
 				// rather than a deceptively-complete-but-corrupt zip.
 				try {

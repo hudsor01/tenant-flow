@@ -136,9 +136,15 @@ describe('download-documents-zip Edge Function — owner isolation', () => {
 		)
 		expect(res.status).toBe(200)
 		expect(res.headers.get('content-type')).toBe('application/zip')
-		// Drain so the connection releases (we don't need to parse the zip
-		// — the 200 + content-type is the contract proof here).
-		await res.arrayBuffer()
+		// Empty-body regression guard: a 200 + zip content-type with zero
+		// bytes would still pass the contract test above. Assert the
+		// response carries a non-trivial payload that begins with the
+		// zip magic bytes (`PK\x03\x04` = 0x50 0x4B 0x03 0x04).
+		const buf = await res.arrayBuffer()
+		expect(buf.byteLength).toBeGreaterThan(0)
+		const magic = new Uint8Array(buf.slice(0, 2))
+		expect(magic[0]).toBe(0x50)
+		expect(magic[1]).toBe(0x4b)
 	})
 
 	it('ownerB filtering by ownerA sentinel receives 404, never 200', async () => {
