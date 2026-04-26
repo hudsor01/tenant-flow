@@ -50,15 +50,13 @@ Full strict mode incl. `noUnusedLocals`, `noUnusedParameters`, `exactOptionalPro
 - **Skipped tests:** investigate and fix; never leave `.skip` permanently.
 
 ## CI Pipeline
-- **PRs:** lint + typecheck + `next build` (clean, no cache, `SKIP_ENV_VALIDATION=true`)
-- **Push to main:** + E2E smoke tests
-- **RLS security tests:** every PR (no path filter)
+- **PRs + push to main:** lint + typecheck + `next build` + E2E smoke tests + RLS security tests. Fail hard if required secrets missing.
 - **Coverage / unit tests:** local only via lefthook pre-commit (CI trusts local hooks)
 - **Secret scanning:** gitleaks in pre-commit
 
 ### Lefthook
 - **commit-msg:** commitlint (conventional commits)
-- **pre-commit** (parallel): gitleaks, duplicate-types check, lockfile verify, lint, typecheck, unit tests with coverage
+- **pre-commit** (parallel): gitleaks, lockfile-verify, lint, typecheck, unit-tests
 - **pre-push:** lockfile sync check
 
 ## Architecture Rules
