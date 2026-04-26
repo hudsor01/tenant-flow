@@ -8,12 +8,16 @@ import { documentSearchQueries } from '#hooks/api/query-keys/document-keys'
 const mockUseQuery = vi.fn()
 const mockSetQueryParam = vi.fn()
 const mockSetEntityParam = vi.fn()
-const mockSetCategoryParam = vi.fn()
+const mockSetCategoriesParam = vi.fn()
+const mockSetFromParam = vi.fn()
+const mockSetToParam = vi.fn()
 const mockSetPageParam = vi.fn()
 
 let queryParamValue = ''
 let entityParamValue = '__any__'
-let categoryParamValue = '__any__'
+let categoriesParamValue: string[] = []
+let fromParamValue = ''
+let toParamValue = ''
 let pageParamValue = 0
 
 vi.mock('@tanstack/react-query', async () => {
@@ -25,7 +29,8 @@ vi.mock('@tanstack/react-query', async () => {
 
 // nuqs hooks call into Next's router; mock to a controllable shape so the
 // component renders deterministically in unit tests without a routing
-// provider.
+// provider. Phase 63 widened the filter set: ?categories=… is now an
+// array, ?from / ?to are ISO date strings.
 vi.mock('nuqs', async () => {
 	const actual = await vi.importActual<typeof import('nuqs')>('nuqs')
 	return {
@@ -33,7 +38,10 @@ vi.mock('nuqs', async () => {
 		useQueryState: (key: string) => {
 			if (key === 'q') return [queryParamValue, mockSetQueryParam]
 			if (key === 'entity') return [entityParamValue, mockSetEntityParam]
-			if (key === 'category') return [categoryParamValue, mockSetCategoryParam]
+			if (key === 'categories')
+				return [categoriesParamValue, mockSetCategoriesParam]
+			if (key === 'from') return [fromParamValue, mockSetFromParam]
+			if (key === 'to') return [toParamValue, mockSetToParam]
 			if (key === 'page') return [pageParamValue, mockSetPageParam]
 			return ['', vi.fn()]
 		}
@@ -57,7 +65,9 @@ describe('DocumentsVaultClient', () => {
 		vi.clearAllMocks()
 		queryParamValue = ''
 		entityParamValue = '__any__'
-		categoryParamValue = '__any__'
+		categoriesParamValue = []
+		fromParamValue = ''
+		toParamValue = ''
 		pageParamValue = 0
 	})
 
@@ -370,7 +380,7 @@ describe('DocumentsVaultClient', () => {
 		}
 	})
 
-	it('renders the category filter (Phase 61)', () => {
+	it('renders the category multi-select filter (Phase 61 + 63)', () => {
 		mockUseQuery.mockReturnValue({
 			data: { rows: [], totalCount: 0, page: 0, pageSize: 50 },
 			isLoading: false,
@@ -381,8 +391,21 @@ describe('DocumentsVaultClient', () => {
 		expect(screen.getByLabelText(/filter by category/i)).toBeInTheDocument()
 	})
 
-	it('passes valid URL category to documentSearchQueries.list (Phase 61)', () => {
-		categoryParamValue = 'tax_return'
+	it('renders the date-range filter (Phase 63)', () => {
+		mockUseQuery.mockReturnValue({
+			data: { rows: [], totalCount: 0, page: 0, pageSize: 50 },
+			isLoading: false,
+			isFetching: false,
+			isError: false
+		})
+		renderVault()
+		expect(
+			screen.getByLabelText(/filter by date range/i)
+		).toBeInTheDocument()
+	})
+
+	it('passes valid URL categories to documentSearchQueries.list (Phase 63)', () => {
+		categoriesParamValue = ['tax_return', 'insurance']
 		mockUseQuery.mockReturnValue({
 			data: { rows: [], totalCount: 0, page: 0, pageSize: 50 },
 			isLoading: false,
@@ -394,18 +417,17 @@ describe('DocumentsVaultClient', () => {
 			renderVault()
 			expect(listSpy).toHaveBeenCalled()
 			const params = listSpy.mock.calls.at(-1)?.[0] as
-				| { category?: unknown }
+				| { categories?: unknown }
 				| undefined
-			expect(params?.category).toBe('tax_return')
+			expect(params?.categories).toEqual(['tax_return', 'insurance'])
 		} finally {
 			listSpy.mockRestore()
 		}
 	})
 
-	it('treats an unknown URL category as "All categories" (Phase 61 H2-style guard)', () => {
-		// Same defense as the entity guard: ?category=banana must NOT flow
-		// into the RPC as a typed DocumentCategory. Falls back to undefined.
-		categoryParamValue = 'banana'
+	it('passes valid URL from/to to documentSearchQueries.list (Phase 63)', () => {
+		fromParamValue = '2026-02-01'
+		toParamValue = '2026-02-28'
 		mockUseQuery.mockReturnValue({
 			data: { rows: [], totalCount: 0, page: 0, pageSize: 50 },
 			isLoading: false,
@@ -416,14 +438,59 @@ describe('DocumentsVaultClient', () => {
 		try {
 			renderVault()
 			const params = listSpy.mock.calls.at(-1)?.[0] as
-				| { category?: unknown }
+				| { from?: unknown; to?: unknown }
 				| undefined
-			expect(params).toBeDefined()
-			expect(params).not.toHaveProperty('category')
-			// Mirror the entity-guard test's UX assertion: with no real
-			// filter active (the bad value was scrubbed) and no rows,
-			// the empty state should render the "no docs uploaded yet"
-			// copy rather than the "no docs match your search" copy.
+			expect(params?.from).toBe('2026-02-01')
+			expect(params?.to).toBe('2026-02-28')
+		} finally {
+			listSpy.mockRestore()
+		}
+	})
+
+	it('partially rejects URL categories — drops unknown values, keeps known (Phase 63)', () => {
+		// `?categories=lease,banana,insurance` should keep lease + insurance,
+		// drop banana, and scrub the URL to the cleaned set so the address
+		// bar matches what's filtering.
+		categoriesParamValue = ['lease', 'banana', 'insurance']
+		mockUseQuery.mockReturnValue({
+			data: { rows: [], totalCount: 0, page: 0, pageSize: 50 },
+			isLoading: false,
+			isFetching: false,
+			isError: false
+		})
+		const listSpy = vi.spyOn(documentSearchQueries, 'list')
+		try {
+			renderVault()
+			const params = listSpy.mock.calls.at(-1)?.[0] as
+				| { categories?: unknown }
+				| undefined
+			expect(params?.categories).toEqual(['lease', 'insurance'])
+			// URL scrubbed to the cleaned set.
+			expect(mockSetCategoriesParam).toHaveBeenCalledWith(['lease', 'insurance'])
+		} finally {
+			listSpy.mockRestore()
+		}
+	})
+
+	it('treats an entirely-unknown URL category set as "All categories" (Phase 63 H2 guard)', () => {
+		// `?categories=banana,papaya` filters to nothing valid → no
+		// `categories` param flows into the RPC, AND the URL is scrubbed
+		// (set to null since the cleaned array is empty).
+		categoriesParamValue = ['banana', 'papaya']
+		mockUseQuery.mockReturnValue({
+			data: { rows: [], totalCount: 0, page: 0, pageSize: 50 },
+			isLoading: false,
+			isFetching: false,
+			isError: false
+		})
+		const listSpy = vi.spyOn(documentSearchQueries, 'list')
+		try {
+			renderVault()
+			const params = listSpy.mock.calls.at(-1)?.[0] as
+				| { categories?: unknown }
+				| undefined
+			expect(params).not.toHaveProperty('categories')
+			expect(mockSetCategoriesParam).toHaveBeenCalledWith(null)
 			expect(
 				screen.getByText(/no documents uploaded yet/i)
 			).toBeInTheDocument()
@@ -432,8 +499,9 @@ describe('DocumentsVaultClient', () => {
 		}
 	})
 
-	it('scrubs an unknown category from the URL when the guard rejects it (cycle-1 P3-5)', () => {
-		categoryParamValue = 'banana'
+	it('scrubs unparseable from/to dates from the URL (Phase 63 H2 guard)', () => {
+		fromParamValue = 'not-a-date'
+		toParamValue = '2026-13-99'
 		mockUseQuery.mockReturnValue({
 			data: { rows: [], totalCount: 0, page: 0, pageSize: 50 },
 			isLoading: false,
@@ -441,7 +509,8 @@ describe('DocumentsVaultClient', () => {
 			isError: false
 		})
 		renderVault()
-		expect(mockSetCategoryParam).toHaveBeenCalledWith(null)
+		expect(mockSetFromParam).toHaveBeenCalledWith(null)
+		expect(mockSetToParam).toHaveBeenCalledWith(null)
 	})
 
 	it('scrubs an unknown entity from the URL when the guard rejects it (cycle-1 P3-5)', () => {

@@ -6,7 +6,8 @@
  *   - p_query null/empty returns the full owner-scoped set.
  *   - p_query free-text matches title / description / tags.
  *   - p_entity_type filter restricts to one of the five branches.
- *   - p_category filter restricts on `document_type`.
+ *   - p_categories (multi-select, Phase 63) restricts on `document_type`.
+ *   - p_from / p_to (Phase 63) restricts on `created_at`.
  *   - LIMIT/OFFSET pagination + total_count surfaced for the UI banner.
  *
  * Mirrors `documents-cross-entity.rls.test.ts` fixture pattern: dual
@@ -183,7 +184,7 @@ describe('search_documents RPC', () => {
 		const { data, error } = await clientB.rpc('search_documents', {
 			p_query: null,
 			p_entity_type: null,
-			p_category: null,
+			p_categories: null,
 			p_limit: 200,
 			p_offset: 0
 		})
@@ -200,7 +201,7 @@ describe('search_documents RPC', () => {
 		const { data, error } = await clientA.rpc('search_documents', {
 			p_query: null,
 			p_entity_type: null,
-			p_category: null,
+			p_categories: null,
 			p_limit: 200,
 			p_offset: 0
 		})
@@ -221,7 +222,7 @@ describe('search_documents RPC', () => {
 		const { data: q1 } = await clientA.rpc('search_documents', {
 			p_query: 'taxreturn2025',
 			p_entity_type: null,
-			p_category: null,
+			p_categories: null,
 			p_limit: 50,
 			p_offset: 0
 		})
@@ -232,7 +233,7 @@ describe('search_documents RPC', () => {
 		const { data: q2 } = await clientA.rpc('search_documents', {
 			p_query: 'plumbing',
 			p_entity_type: null,
-			p_category: null,
+			p_categories: null,
 			p_limit: 50,
 			p_offset: 0
 		})
@@ -243,7 +244,7 @@ describe('search_documents RPC', () => {
 		const { data: q3 } = await clientA.rpc('search_documents', {
 			p_query: 'inspection',
 			p_entity_type: null,
-			p_category: null,
+			p_categories: null,
 			p_limit: 50,
 			p_offset: 0
 		})
@@ -257,7 +258,7 @@ describe('search_documents RPC', () => {
 		const { data } = await clientA.rpc('search_documents', {
 			p_query: null,
 			p_entity_type: 'lease',
-			p_category: null,
+			p_categories: null,
 			p_limit: 50,
 			p_offset: 0
 		})
@@ -267,12 +268,12 @@ describe('search_documents RPC', () => {
 		}
 	})
 
-	it('p_category filter restricts on document_type', async () => {
+	it('p_categories filter restricts on document_type (multi-select, Phase 63)', async () => {
 		// Only fixture 1 has document_type='receipt'.
 		const { data } = await clientA.rpc('search_documents', {
 			p_query: null,
 			p_entity_type: null,
-			p_category: 'receipt',
+			p_categories: ['receipt'],
 			p_limit: 50,
 			p_offset: 0
 		})
@@ -286,7 +287,7 @@ describe('search_documents RPC', () => {
 		const { data: page1 } = await clientA.rpc('search_documents', {
 			p_query: null,
 			p_entity_type: 'property',
-			p_category: null,
+			p_categories: null,
 			p_limit: 2,
 			p_offset: 0
 		})
@@ -299,7 +300,7 @@ describe('search_documents RPC', () => {
 		const { data: page2 } = await clientA.rpc('search_documents', {
 			p_query: null,
 			p_entity_type: 'property',
-			p_category: null,
+			p_categories: null,
 			p_limit: 2,
 			p_offset: 2
 		})
@@ -402,11 +403,101 @@ describe('search_documents RPC', () => {
 		if (row) insertedDocIds.push(row.id)
 	})
 
+	it('Phase 63: p_categories array filter is OR (matches any listed category)', async () => {
+		// Fixture 1 has document_type='receipt'; fixture 4 defaults to 'other'.
+		// Filtering on ['receipt', 'other'] should return both.
+		const { data, error } = await clientA.rpc('search_documents', {
+			p_query: null,
+			p_entity_type: null,
+			p_categories: ['receipt', 'other'],
+			p_limit: 50,
+			p_offset: 0
+		})
+		expect(error).toBeNull()
+		const rows = ownedRows((data ?? []) as SearchDocumentRow[])
+		const matching = rows.filter(r => insertedDocIds.includes(r.id))
+		// Fixtures 1 (receipt), 2 (other), 3 (other), 4 (other) — all four
+		// have document_type in {'receipt', 'other'}.
+		expect(matching.length).toBeGreaterThanOrEqual(4)
+		for (const r of matching) {
+			expect(['receipt', 'other']).toContain(r.document_type)
+		}
+	})
+
+	it('Phase 63: empty p_categories array is treated as "no filter"', async () => {
+		// Empty array must NOT exclude every document (the array_length is
+		// null check in the RPC handles this). Should return the full set.
+		const { data, error } = await clientA.rpc('search_documents', {
+			p_query: null,
+			p_entity_type: null,
+			p_categories: [],
+			p_limit: 200,
+			p_offset: 0
+		})
+		expect(error).toBeNull()
+		const rows = ownedRows((data ?? []) as SearchDocumentRow[])
+		// All 4+ inserted fixtures should be returned; same shape as p_categories: null.
+		const ids = new Set(rows.map(r => r.id))
+		for (const id of insertedDocIds) {
+			expect(ids.has(id)).toBe(true)
+		}
+	})
+
+	it('Phase 63: p_from / p_to date-range filter restricts on created_at', async () => {
+		// All fixtures were inserted in beforeAll, so they share a near-
+		// identical created_at. A range that ends one second before now
+		// should exclude all of them; a range that starts a year ago
+		// should include all of them.
+		const oneSecondAgo = new Date(Date.now() - 1000).toISOString()
+		const yearAgo = new Date(Date.now() - 365 * 24 * 60 * 60 * 1000).toISOString()
+		const tomorrow = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString()
+
+		const { data: excluded } = await clientA.rpc('search_documents', {
+			p_query: null,
+			p_entity_type: null,
+			p_to: oneSecondAgo,
+			p_limit: 200,
+			p_offset: 0
+		})
+		const excludedRows = ownedRows((excluded ?? []) as SearchDocumentRow[])
+		for (const id of insertedDocIds) {
+			expect(excludedRows.find(r => r.id === id)).toBeUndefined()
+		}
+
+		const { data: included } = await clientA.rpc('search_documents', {
+			p_query: null,
+			p_entity_type: null,
+			p_from: yearAgo,
+			p_to: tomorrow,
+			p_limit: 200,
+			p_offset: 0
+		})
+		const includedIds = new Set(
+			((included ?? []) as SearchDocumentRow[]).map(r => r.id)
+		)
+		for (const id of insertedDocIds) {
+			expect(includedIds.has(id)).toBe(true)
+		}
+	})
+
+	it('Phase 63: rejects p_from > p_to with a clear message', async () => {
+		const { error } = await clientA.rpc('search_documents', {
+			p_query: null,
+			p_entity_type: null,
+			p_from: '2026-04-01',
+			p_to: '2026-01-01',
+			p_limit: 50,
+			p_offset: 0
+		})
+		expect(error).not.toBeNull()
+		expect(error!.message).toMatch(/p_from must be <= p_to/i)
+	})
+
 	it('rejects invalid limit / offset / null limit / over-200 limit', async () => {
 		const { error: e1 } = await clientA.rpc('search_documents', {
 			p_query: null,
 			p_entity_type: null,
-			p_category: null,
+			p_categories: null,
 			p_limit: 0,
 			p_offset: 0
 		})
@@ -416,7 +507,7 @@ describe('search_documents RPC', () => {
 		const { error: e2 } = await clientA.rpc('search_documents', {
 			p_query: null,
 			p_entity_type: null,
-			p_category: null,
+			p_categories: null,
 			p_limit: 50,
 			p_offset: -1
 		})
@@ -428,7 +519,7 @@ describe('search_documents RPC', () => {
 		const { error: e3 } = await clientA.rpc('search_documents', {
 			p_query: null,
 			p_entity_type: null,
-			p_category: null,
+			p_categories: null,
 			p_limit: 201,
 			p_offset: 0
 		})
@@ -438,7 +529,7 @@ describe('search_documents RPC', () => {
 		const { error: e4 } = await clientA.rpc('search_documents', {
 			p_query: null,
 			p_entity_type: null,
-			p_category: null,
+			p_categories: null,
 			p_limit: null as unknown as number,
 			p_offset: 0
 		})

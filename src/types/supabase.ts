@@ -2554,11 +2554,13 @@ export type Database = {
       }
       search_documents: {
         Args: {
-          p_category?: string
+          p_categories?: string[]
           p_entity_type?: string
+          p_from?: string
           p_limit?: number
           p_offset?: number
           p_query?: string
+          p_to?: string
         }
         Returns: {
           created_at: string

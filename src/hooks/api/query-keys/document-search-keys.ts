@@ -1,10 +1,13 @@
 /**
- * Global /documents/vault search query factory (v2.4 Phase 60).
+ * Global /documents/vault search query factory (v2.4 Phase 60 + v2.5 Phase 63).
  *
  * Wraps the search_documents RPC. Returns the same DocumentRow shape as
  * the per-entity list factory in `document-keys.ts`, so consumers can
- * reuse <DocumentRow> rendering. Split out of `document-keys.ts` to keep
- * each file under the 300-line cap.
+ * reuse <DocumentRow> rendering.
+ *
+ * Phase 60 shipped query/entity/category/limit/offset filters.
+ * Phase 63 widened category from scalar to array (multi-select) and
+ * added p_from / p_to timestamptz date-range bounds.
  */
 
 import { queryOptions } from '@tanstack/react-query'
@@ -28,7 +31,11 @@ export const SEARCH_PAGE_SIZE = 50
 export interface DocumentSearchParams {
 	query?: string
 	entityType?: DocumentEntityType
-	category?: DocumentCategory
+	/** Phase 63: multi-select. Empty array is treated as "no filter" by the RPC. */
+	categories?: DocumentCategory[]
+	/** Phase 63: ISO timestamps. The RPC raises if from > to. */
+	from?: string
+	to?: string
 	page?: number
 }
 
@@ -42,13 +49,24 @@ export interface DocumentSearchResult {
 export const documentSearchQueries = {
 	all: () => [...documentQueries.all(), 'search'] as const,
 
-	list: (params: DocumentSearchParams) =>
-		queryOptions({
+	list: (params: DocumentSearchParams) => {
+		// Normalize once so both queryKey and queryFn agree on the shape.
+		// Empty array → null so the RPC treats it as "no filter" (matches
+		// the array_length null branch in the RPC body) and the queryKey
+		// stays canonical: same set in different orders shouldn't
+		// fragment the cache.
+		const sortedCategories =
+			params.categories && params.categories.length > 0
+				? [...params.categories].sort()
+				: null
+		return queryOptions({
 			queryKey: [
 				...documentSearchQueries.all(),
 				params.query ?? '',
 				params.entityType ?? null,
-				params.category ?? null,
+				sortedCategories,
+				params.from ?? null,
+				params.to ?? null,
 				params.page ?? 0
 			] as const,
 			queryFn: async (): Promise<DocumentSearchResult> => {
@@ -58,7 +76,9 @@ export const documentSearchQueries = {
 				const { data, error } = await supabase.rpc('search_documents', {
 					p_query: params.query?.trim() || null,
 					p_entity_type: params.entityType ?? null,
-					p_category: params.category ?? null,
+					p_categories: sortedCategories,
+					p_from: params.from ?? null,
+					p_to: params.to ?? null,
 					p_limit: SEARCH_PAGE_SIZE,
 					p_offset: page * SEARCH_PAGE_SIZE
 				})
@@ -126,4 +146,5 @@ export const documentSearchQueries = {
 			staleTime: LIST_STALE_TIME_MS,
 			gcTime: LIST_GC_TIME_MS
 		})
+	}
 }
