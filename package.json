@@ -34,6 +34,7 @@
 		"typecheck": "tsc --noEmit",
 		"test": "vitest",
 		"test:all": "pnpm test:unit && pnpm test:e2e",
+		"test:e2e": "cd tests/e2e && pnpm test",
 		"test:unit": "vitest --run --project unit",
 		"test:component": "vitest --run --project component --passWithNoTests",
 		"test:integration": "vitest --run --project integration",
