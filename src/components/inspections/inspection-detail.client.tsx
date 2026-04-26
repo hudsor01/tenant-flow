@@ -22,6 +22,7 @@ import {
 } from '#hooks/api/use-inspection-mutations'
 import { InspectionRoomCard } from './inspection-room-card'
 import { AddRoomForm } from './inspection-detail-sections'
+import { DocumentsSection } from '#components/documents/documents-section'
 import { formatDate } from '#lib/formatters/date'
 
 const STATUS_LABELS: Record<string, string> = {
@@ -175,6 +176,9 @@ export function InspectionDetailClient({ id }: { id: string }) {
 				)}
 				{rooms.map(room => (<InspectionRoomCard key={room.id} room={room} inspectionId={id} />))}
 			</div>
+
+			{/* Documents */}
+			<DocumentsSection entityType="inspection" entityId={id} />
 		</div>
 	)
 }

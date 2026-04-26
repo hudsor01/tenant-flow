@@ -1,12 +1,12 @@
 /**
- * Cross-entity storage RLS tests for v2.4 Phase 59.
+ * Cross-entity storage RLS tests for v2.4 Phase 59 + v2.5 Phase 62.
  *
  * v2.3 shipped the document vault for property-scoped uploads only.
- * Phase 59 extended the `tenant-documents` bucket RLS to also cover
- * `lease`, `tenant`, and `maintenance_request` branches. These tests
- * pin the ownership invariant across every branch — ownerA uploads a
- * document tied to each of their entities; ownerB cannot SELECT, UPDATE,
- * or DELETE any of them.
+ * Phase 59 extended the `tenant-documents` bucket RLS to cover `lease`,
+ * `tenant`, and `maintenance_request`. Phase 62 added the fifth branch:
+ * `inspection`. These tests pin the ownership invariant across every
+ * branch — ownerA uploads a document tied to each of their entities;
+ * ownerB cannot SELECT, UPDATE, or DELETE any of them.
  *
  * The tests exercise the REAL storage RLS against prod Supabase under
  * dual-client auth — this is the integration-test coverage the
@@ -24,6 +24,7 @@ interface Fixture {
 	lease: { id: string } | null
 	tenant: { id: string } | null
 	maintenanceRequest: { id: string } | null
+	inspection: { id: string } | null
 	unit: { id: string } | null
 	// Uploaded storage paths for cleanup.
 	uploadedPaths: string[]
@@ -35,6 +36,7 @@ function emptyFixture(): Fixture {
 		lease: null,
 		tenant: null,
 		maintenanceRequest: null,
+		inspection: null,
 		unit: null,
 		uploadedPaths: []
 	}
@@ -133,12 +135,34 @@ async function createFixtures(
 		fix.maintenanceRequest = m ? { id: m.id } : null
 	}
 
+	if (fix.property && fix.lease) {
+		// Phase 62: inspection branch. inspections.lease_id +
+		// .property_id are both NOT NULL; unit_id is optional.
+		// Defaults: inspection_type='move_in', status='pending'.
+		const { data: insp, error: inspErr } = await client
+			.from('inspections')
+			.insert({
+				lease_id: fix.lease.id,
+				property_id: fix.property.id,
+				unit_id: fix.unit?.id ?? null,
+				owner_user_id: ownerId
+			})
+			.select('id')
+			.single()
+		if (inspErr)
+			console.warn(`inspection insert failed for ${label}:`, inspErr.message)
+		fix.inspection = insp ? { id: insp.id } : null
+	}
+
 	return fix
 }
 
 async function cleanupFixtures(client: SupabaseClient, fix: Fixture) {
 	if (fix.uploadedPaths.length > 0) {
 		await client.storage.from(BUCKET).remove(fix.uploadedPaths).catch(() => {})
+	}
+	if (fix.inspection) {
+		await client.from('inspections').delete().eq('id', fix.inspection.id)
 	}
 	if (fix.maintenanceRequest) {
 		await client.from('maintenance_requests').delete().eq('id', fix.maintenanceRequest.id)
@@ -179,7 +203,8 @@ describe('Documents cross-entity storage RLS', () => {
 				'unit',
 				'tenant',
 				'lease',
-				'maintenanceRequest'
+				'maintenanceRequest',
+				'inspection'
 			] as const) {
 				expect(
 					f[key],
@@ -201,7 +226,12 @@ describe('Documents cross-entity storage RLS', () => {
 	// assertion on `idA` is a safe unwrap — any fixture gap would have failed
 	// the suite before any `it()` ran.
 	async function assertCrossOwnerIsolation(
-		entityType: 'property' | 'lease' | 'tenant' | 'maintenance_request',
+		entityType:
+			| 'property'
+			| 'lease'
+			| 'tenant'
+			| 'maintenance_request'
+			| 'inspection',
 		entityIdGetter: (f: Fixture) => string | undefined
 	) {
 		const idA = entityIdGetter(fixA)!
@@ -262,6 +292,10 @@ describe('Documents cross-entity storage RLS', () => {
 		)
 	})
 
+	it('inspection branch — ownerB cannot access ownerA uploads (Phase 62)', async () => {
+		await assertCrossOwnerIsolation('inspection', f => f.inspection?.id)
+	})
+
 	// Parameterize the path-guard tests across every entity type. A future
 	// migration that accidentally drops the array_length or UUID regex on
 	// just one branch should fail CI instead of silently allowing path
@@ -273,7 +307,8 @@ describe('Documents cross-entity storage RLS', () => {
 		{
 			type: 'maintenance_request' as const,
 			getId: (f: Fixture) => f.maintenanceRequest?.id
-		}
+		},
+		{ type: 'inspection' as const, getId: (f: Fixture) => f.inspection?.id }
 	]
 
 	for (const { type, getId } of entityBranches) {

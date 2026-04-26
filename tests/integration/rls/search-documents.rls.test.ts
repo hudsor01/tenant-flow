@@ -5,7 +5,7 @@
  *   - Caller-isolation via auth.uid() — ownerB never sees ownerA's docs.
  *   - p_query null/empty returns the full owner-scoped set.
  *   - p_query free-text matches title / description / tags.
- *   - p_entity_type filter restricts to one of the four branches.
+ *   - p_entity_type filter restricts to one of the five branches.
  *   - p_category filter restricts on `document_type`.
  *   - LIMIT/OFFSET pagination + total_count surfaced for the UI banner.
  *

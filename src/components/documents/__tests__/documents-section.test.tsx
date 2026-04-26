@@ -301,9 +301,11 @@ describe('DocumentsSection', () => {
 		).toBeInTheDocument()
 	})
 
-	// v2.4 Phase 59: widen beyond property to lease/tenant/maintenance_request.
-	// Every entity type should render identically at this layer — entity-
-	// specific behavior lives in the backing RLS policies, not the component.
+	// v2.4 Phase 59 widened beyond property to lease/tenant/maintenance_request.
+	// v2.5 Phase 62 added inspection — describe.each picks it up automatically
+	// via DOCUMENT_ENTITY_TYPES. Every entity type should render identically at
+	// this layer; entity-specific behavior lives in the backing RLS policies,
+	// not the component.
 	describe.each(DOCUMENT_ENTITY_TYPES)('entity type %s', entityType => {
 		it('renders empty state with upload CTA', () => {
 			mockUseQuery.mockReturnValue(emptyList())

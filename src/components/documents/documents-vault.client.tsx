@@ -38,7 +38,8 @@ const ENTITY_TYPE_LABELS: Record<DocumentEntityType, string> = {
 	property: 'Property',
 	lease: 'Lease',
 	tenant: 'Tenant',
-	maintenance_request: 'Maintenance request'
+	maintenance_request: 'Maintenance request',
+	inspection: 'Inspection'
 }
 
 const ANY_ENTITY = '__any__'
@@ -298,7 +299,7 @@ export function DocumentsVaultClient() {
 							subtitle={
 								queryParam || entityType || category
 									? 'Try a different keyword or filter.'
-									: 'Open a property, lease, tenant, or maintenance request to upload your first document.'
+									: 'Open a property, lease, tenant, maintenance request, or inspection to upload your first document.'
 							}
 						/>
 					) : (

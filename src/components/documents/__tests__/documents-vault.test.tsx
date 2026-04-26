@@ -81,6 +81,16 @@ describe('DocumentsVaultClient', () => {
 		})
 		renderVault()
 		expect(screen.getByText(/no documents uploaded yet/i)).toBeInTheDocument()
+		// Phase 62 cycle-1 regression guard: the empty-state subtitle must
+		// mention every entity type the vault supports. Without this, a
+		// future entity addition (e.g. v2.6's deferred items) silently
+		// drifts the user-facing copy away from the dropdown.
+		const subtitle = screen.getByText(/upload your first document/i)
+		expect(subtitle).toHaveTextContent(/property/i)
+		expect(subtitle).toHaveTextContent(/lease/i)
+		expect(subtitle).toHaveTextContent(/tenant/i)
+		expect(subtitle).toHaveTextContent(/maintenance request/i)
+		expect(subtitle).toHaveTextContent(/inspection/i)
 	})
 
 	it('renders skeletons during loading', () => {
