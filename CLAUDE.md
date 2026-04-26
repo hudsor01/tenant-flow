@@ -196,7 +196,7 @@ Deno runtime, `supabase/functions/<name>/index.ts`.
 
 ## Path Aliases
 `#` prefix subpath imports defined in BOTH `tsconfig.json#paths` AND `package.json#imports`:
-`#app/*`, `#components/*`, `#contexts/*`, `#lib/*`, `#hooks/*`, `#stores/*`, `#types/*`, `#providers/*`, `#test/*`, `#utils/*`, `#config/*`, `#env`, `#proxy`
+`#app/*`, `#components/*`, `#lib/*`, `#hooks/*`, `#stores/*`, `#types/*`, `#providers/*`, `#test/*`, `#config/*`, `#env`, `#proxy`
 
 ## Common Gotchas
 - Supabase auth: always `getAll`/`setAll` cookie methods. Never `get`/`set`/`remove`. Never `auth-helpers-nextjs`.

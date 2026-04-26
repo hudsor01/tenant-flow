@@ -14,14 +14,12 @@
 		"#env": "./src/env.ts",
 		"#app/*": "./src/app/*",
 		"#components/*": "./src/components/*",
-		"#contexts/*": "./src/contexts/*",
 		"#lib/*": "./src/lib/*",
 		"#hooks/*": "./src/hooks/*",
 		"#stores/*": "./src/stores/*",
 		"#types/*": "./src/types/*",
 		"#providers/*": "./src/providers/*",
 		"#test/*": "./src/test/*",
-		"#utils/*": "./src/utils/*",
 		"#config/*": "./src/config/*"
 	},
 	"scripts": {

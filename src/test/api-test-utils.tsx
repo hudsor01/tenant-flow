@@ -88,7 +88,7 @@ export function createMockFetchResponse<T>(
  * // At top of test file, before vi.mock calls:
  * const { mockGetSession, mockSupabaseSelect } = vi.hoisted(() => createSupabaseMocks());
  *
- * vi.mock('#utils/supabase/client', () => ({
+ * vi.mock('#lib/supabase/client', () => ({
  *   createClient: () => ({
  *     from: () => ({ select: mockSupabaseSelect }),
  *     auth: { getSession: mockGetSession }
