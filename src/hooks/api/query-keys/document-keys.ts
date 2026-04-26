@@ -45,18 +45,21 @@ function isUuid(value: string | undefined | null): boolean {
 	return !!value && UUID_RE.test(value)
 }
 
-// v2.4 Phase 59 widens the vault to the full documents schema. The
-// inspection branch remains deferred to v2.5.
+// v2.5 Phase 62 closes the loop with the inspection branch — the vault
+// now covers all five `documents.entity_type` values that the schema
+// has supported since 20260306140000_documents_owner_column.sql.
 export type DocumentEntityType =
 	| 'property'
 	| 'lease'
 	| 'tenant'
 	| 'maintenance_request'
+	| 'inspection'
 export const DOCUMENT_ENTITY_TYPES: readonly DocumentEntityType[] = [
 	'property',
 	'lease',
 	'tenant',
-	'maintenance_request'
+	'maintenance_request',
+	'inspection'
 ] as const
 
 export interface DocumentRow {

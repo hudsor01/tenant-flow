@@ -52,7 +52,8 @@ const ENTITY_LABELS: Record<DocumentEntityType, string> = {
 	property: 'property',
 	lease: 'lease',
 	tenant: 'tenant',
-	maintenance_request: 'maintenance request'
+	maintenance_request: 'maintenance request',
+	inspection: 'inspection'
 }
 
 export function DocumentsSection({ entityType, entityId }: DocumentsSectionProps) {

@@ -38,7 +38,8 @@ const ENTITY_TYPE_LABELS: Record<DocumentEntityType, string> = {
 	property: 'Property',
 	lease: 'Lease',
 	tenant: 'Tenant',
-	maintenance_request: 'Maintenance request'
+	maintenance_request: 'Maintenance request',
+	inspection: 'Inspection'
 }
 
 const ANY_ENTITY = '__any__'
