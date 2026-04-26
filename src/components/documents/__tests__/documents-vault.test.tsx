@@ -3,7 +3,7 @@ import { act, fireEvent, render, screen } from '@testing-library/react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import type { ReactElement } from 'react'
 import { DocumentsVaultClient } from '../documents-vault.client'
-import { documentSearchQueries } from '#hooks/api/query-keys/document-keys'
+import { documentSearchQueries } from '#hooks/api/query-keys/document-search-keys'
 
 const mockUseQuery = vi.fn()
 const mockSetQueryParam = vi.fn()
