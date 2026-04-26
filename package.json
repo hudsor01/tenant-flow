@@ -15,7 +15,6 @@
 		"#app/*": "./src/app/*",
 		"#components/*": "./src/components/*",
 		"#contexts/*": "./src/contexts/*",
-		"#design-system/*": "./src/design-system/*",
 		"#lib/*": "./src/lib/*",
 		"#hooks/*": "./src/hooks/*",
 		"#stores/*": "./src/stores/*",
