@@ -49,7 +49,7 @@ vi.mock('@sentry/nextjs', () => ({
 	captureException: vi.fn()
 }))
 
-vi.mock('#shared/lib/frontend-logger', () => ({
+vi.mock('#lib/frontend-logger', () => ({
 	logger: {
 		info: vi.fn(),
 		error: vi.fn(),

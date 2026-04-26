@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 
 // Mock the frontend-logger before importing api-error
-vi.mock('#shared/lib/frontend-logger', () => ({
+vi.mock('#lib/frontend-logger', () => ({
 	createLogger: () => ({
 		info: vi.fn(),
 		warn: vi.fn(),

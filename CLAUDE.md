@@ -18,111 +18,66 @@
 
 If a type exists in `src/types/`, use it. Creating a local duplicate is a blocking violation.
 
-**Type files:** `supabase.ts` (generated), `core.ts`, `relations.ts`, `api-contracts.ts`, `domain.ts`, `backend-domain.ts`, `frontend.ts`, `auth.ts`, `analytics.ts`, `errors.ts`, `health.ts`, `notifications.ts`, `reports.ts`, `stats.ts`, `stripe.ts`, `data-table.ts`, `database-rpc.ts`, `file-upload.ts`, `financial-statements.ts`, `lease-generator.types.ts`, `query-results.ts`, `activity.ts`, `analytics-page-data.ts`
-**Section types:** `sections/dashboard.ts`, `sections/inspections.ts`, `sections/leases.ts`, `sections/maintenance.ts`, `sections/payments.ts`, `sections/tenant-portal.ts`, `sections/tenants.ts`
-
 ## Project
-TenantFlow — multi-tenant property management SaaS.
-- **Frontend**: Next.js 16.1 + React 19.2 + TailwindCSS 4.2 + TanStack Query 5.90 / Form 1.28 + Zustand 5 (`localhost:3050`)
-- **Backend**: Supabase (@supabase/supabase-js 2.97, @supabase/ssr 0.8) + Stripe 20.3 (Edge Functions in `supabase/functions/`)
-- **Monitoring**: Sentry 10.40 (Next.js SDK, source maps, tunnel route `/monitoring`)
-- **Types**: `src/types/`
-- **Validation schemas**: `src/lib/validation/`
-- **Package manager**: pnpm 10.29 (standard Next.js layout, no workspaces)
-- **Node**: 24.x
-- **Hosting**: Vercel (deploys from `main` branch only)
-- **React Compiler**: enabled (`reactCompiler: true` in next.config.ts)
+TenantFlow — landlord-only property management SaaS. No rent payment facilitation, no tenant portal, no tenant auth accounts. Tenants are records, not users.
+
+- **Frontend**: Next.js 16 + React 19 + TailwindCSS 4 + TanStack Query / Form + Zustand (`localhost:3050`)
+- **Backend**: Supabase (PostgREST + RPCs + Edge Functions in `supabase/functions/`) + Stripe
+- **Monitoring**: Sentry (Next.js SDK, source maps, tunnel `/monitoring`)
+- **Package manager**: pnpm 10.x, Node 24.x
+- **Hosting**: Vercel (deploys from `main` only)
+- **React Compiler**: enabled
 
 ## Key Commands
 ```bash
-pnpm dev                          # Next.js dev server on port 3050 (Turbopack)
+pnpm dev                          # dev server on port 3050 (Turbopack)
 pnpm typecheck && pnpm lint       # quality checks
-pnpm test:unit                    # Vitest unit tests (--project unit) — 1,469 tests, 106 files
+pnpm test:unit                    # Vitest unit tests
 pnpm test:unit -- --run src/path/to/test.ts  # single test file
-pnpm test:unit -- --coverage      # unit tests with coverage (enforced via lefthook pre-commit)
-pnpm test:component               # Vitest component tests (--project component)
-pnpm test:integration             # RLS integration tests (Vitest --project integration) — 21 test files
-pnpm test:rls                     # (alias: pnpm test:integration)
-pnpm test:e2e                     # Playwright E2E tests — 2 spec files
-pnpm db:types                     # regenerate types from live DB
+pnpm test:integration             # RLS integration tests (hits prod)
+pnpm db:types                     # regen src/types/supabase.ts (atomic, see scripts/db-types.sh)
 pnpm validate:quick               # types + lint + unit tests
-cd supabase/functions && deno test --allow-all --no-check tests/  # Edge Function tests (Deno)
 ```
 
 ## TypeScript Strictness
-- Full strict mode: `strict`, `noUnusedLocals`, `noUnusedParameters`, `isolatedModules`, `checkJs`, `exactOptionalPropertyTypes`, `noUncheckedIndexedAccess`, `noImplicitOverride`
-- Unused callback parameters: prefix with underscore (`_param`) or remove entirely
-- Prefetch-only `useQuery()` calls: call without variable assignment when only cache warming is needed
+Full strict mode incl. `noUnusedLocals`, `noUnusedParameters`, `exactOptionalPropertyTypes`, `noUncheckedIndexedAccess`, `noImplicitOverride`, `checkJs`. Prefix unused callback params with `_` or remove. Prefetch-only `useQuery()` calls go without variable assignment.
 
-## Testing Conventions
-- **Unit tests:** Vitest 4.0 with jsdom, `src/**/*.test.ts` pattern, 80% coverage threshold
-- **RLS integration tests:** `tests/integration/rls/`, dual-client pattern (ownerA/ownerB), sequential execution
-- **Edge Function tests:** Deno test runner in `supabase/functions/tests/`, integration-style via `functions.invoke()` or raw `fetch` for header control
-- **E2E tests:** Playwright 1.58 in `tests/e2e/tests/` (health-check + homepage specs)
-- **Archived E2E tests:** `tests/e2e/tests/_archived/` (preserved but not run, recoverable)
-- **Coverage threshold:** 80% lines/functions/branches/statements (enforced locally via lefthook pre-commit)
-- **Skipped tests:** investigate and fix rather than leaving `.skip` permanently
-- **Tenant RLS tests:** use `describe.skipIf(!credentials)` with `getTenantTestCredentials()` returning null when env vars missing
-- **Vitest mocking:** use `vi.hoisted()` for any mock variable referenced inside `vi.mock()` factory functions
-- **Vitest 4.x + chai 6.x bug:** `.rejects.toThrow('string')` crashes — use `.rejects.toMatchObject({ message: expect.stringContaining('...') })` instead
+## Testing
+- **Unit:** Vitest 4 + jsdom, 80% coverage threshold (enforced via lefthook pre-commit). `vi.hoisted()` for any mock variable referenced in `vi.mock()`. `.rejects.toMatchObject({ message: expect.stringContaining(...) })` instead of `.rejects.toThrow('string')` (chai 6 bug).
+- **RLS integration:** `tests/integration/rls/` — dual-client (ownerA/ownerB) authenticated against prod. Sequential. Synthetic test accounts only — never personal credentials.
+- **E2E:** Playwright in `tests/e2e/`.
+- **Edge Function tests:** Deno in `supabase/functions/tests/`, requires `supabase functions serve` running.
+- **Skipped tests:** investigate and fix; never leave `.skip` permanently.
 
 ## CI Pipeline
-- **PRs:** lint + typecheck + `next build` (clean, no cache, `SKIP_ENV_VALIDATION=true`)
-- **Push to main:** additionally runs E2E smoke tests (informational via `continue-on-error`)
-- **RLS security tests:** run on every PR to main (no path filter — catches policy drift regardless of changed files)
-- **Coverage and unit tests:** local only via lefthook pre-commit (CI trusts local hooks)
-- **Edge Function tests:** local only (manual or pre-push, requires `supabase functions serve`)
-- **Secret scanning:** gitleaks in pre-commit only (secrets caught before reaching repo)
-- **CI ignores:** `**.md`, `.planning/**`, `.vscode/**`, `docs/**`, `LICENSE`
+- **PRs:** lint + typecheck + `next build` + E2E smoke tests + RLS security tests. `e2e-smoke` and `rls-security` fail hard if required secrets are missing.
+- **Push to main:** E2E smoke tests only (`checks` and `rls-security` are PR-gated).
+- **RLS security tests:** also run via weekly cron + `workflow_dispatch` (independent of branch state).
+- **Coverage / unit tests:** local only via lefthook pre-commit (CI trusts local hooks)
+- **Secret scanning:** gitleaks in pre-commit
 
-### Lefthook Hooks
+### Lefthook
 - **commit-msg:** commitlint (conventional commits)
-- **pre-commit** (parallel): gitleaks, duplicate-types check, lockfile verify, lint, typecheck, unit tests with coverage
+- **pre-commit** (parallel): gitleaks, lockfile-verify, lint, typecheck, unit-tests
 - **pre-push:** lockfile sync check
 
 ## Architecture Rules
-- Server Components by default; `'use client'` only when required (hooks, event handlers, browser APIs)
+- Server Components by default; `'use client'` only for hooks / event handlers / browser APIs
 - Max 300 lines per component, 50 lines per function
 - State: TanStack Query for server state, Zustand for UI, TanStack Form for forms, nuqs for URL
-- Mutations must invalidate related query keys including `ownerDashboardKeys.all` in addition to their own domain keys
-- Soft-delete: properties use `status: 'inactive'`, filter with `.neq('status', 'inactive')`
+- Mutations invalidate related query keys + `ownerDashboardKeys.all`
+- Soft-delete: properties use `status: 'inactive'` — filter `.neq('status', 'inactive')`
 
-## Performance Conventions
-- Dynamic import heavy libraries (`recharts`, `react-markdown`) via `next/dynamic` with `ssr: false` and custom loading animations
-- Chart loading: `ChartLoadingSkeleton` from `#components/shared/chart-loading-skeleton` (CSS-only rising bars animation)
-- Blog loading: `BlogLoadingSkeleton` from `#components/shared/blog-loading-skeleton` (CSS-only text-reveal animation)
-- Table list views use `useVirtualizer` from `@tanstack/react-virtual` directly on tbody rows
-- Stats queries use consolidated RPCs: `get_maintenance_stats()`, `get_lease_stats()` (not multiple HEAD queries)
-- Tenant portal hooks use `resolveTenantId()` from `use-tenant-portal-keys.ts` (shared cached resolution)
-- Tenant payment queries use `refetchOnWindowFocus: 'always'` (time-sensitive data exception)
-- All other queries inherit global `refetchOnWindowFocus: true` (only refetch when stale)
-- `optimizePackageImports` in `next.config.ts` for `@tanstack/*`
+## Performance
+- Dynamic-import heavy libs (`recharts`, `react-markdown`) via `next/dynamic` with `ssr: false` and CSS-only loading skeletons
+- Table list views use `useVirtualizer` from `@tanstack/react-virtual`
+- Stats consolidate via single RPCs (e.g. `get_maintenance_stats()`, `get_lease_stats()`) — not multiple HEAD queries
+- All other queries inherit global `refetchOnWindowFocus: true`
+- `optimizePackageImports` for `@tanstack/*` in `next.config.ts`
 
 ## Query Key Factories
-All query keys use `queryOptions()` factories in `src/hooks/api/query-keys/`. Never use string literal arrays like `['blogs']`.
+All query keys use `queryOptions()` factories in `src/hooks/api/query-keys/`. Never string literal arrays. Browse `src/hooks/api/query-keys/` for the current factory list (it grows).
 
-**Factory files:**
-- `analytics-keys.ts` — analytics/revenue trends AND occupancy trends (shared across dashboard + analytics + reports)
-- `billing-keys.ts` — billing invoices, history, failed payments
-- `blog-keys.ts` — blog posts
-- `expense-keys.ts` — expenses, tax documents (+mutation options)
-- `financial-keys.ts` — financial overview, monthly metrics, statements
-- `inspection-keys.ts` — inspections (+mutation options)
-- `lease-keys.ts` — leases (+mutation options)
-- `maintenance-keys.ts` — maintenance requests, vendors
-- `payment-keys.ts` — rent collection, tenant payment history
-- `payment-verification-keys.ts` — payment status, Stripe session verification
-- `property-keys.ts` — properties
-- `property-stats-keys.ts` — property statistics
-- `report-keys.ts` — reports, report runs (parallel `Promise.all` for multi-RPC queries)
-- `report-analytics-keys.ts` — report analytics
-- `subscription-keys.ts` — subscriptions, subscription status (+mutation options)
-- `template-definition-keys.ts` — lease templates
-- `tenant-keys.ts` — tenants (+mutation options)
-- `tenant-invitation-keys.ts` — tenant invitations (+mutation options)
-- `unit-keys.ts` — units
-
-**Pattern:**
 ```typescript
 import { queryOptions } from '@tanstack/react-query'
 export const propertyQueries = {
@@ -132,168 +87,104 @@ export const propertyQueries = {
 ```
 
 ## Hook Organization
-- Flat domain naming: `use-tenant-payments.ts` (not `use-tenant-portal-payments.ts`)
+- Flat domain naming: `use-lease.ts`, `use-properties.ts`, etc. — not nested
 - Max 300 lines per hook file — split by domain if exceeded
-- No module-level Supabase client — create `createClient()` inside each mutation/query function
-- Expense CRUD hooks kept inline in `use-financials.ts` (from() queries, not rpc())
-- Tenant portal hooks use shared `resolveTenantId()` — never resolve tenant ID inline
+- No module-level Supabase client — `createClient()` inside each mutation/query function
 
-## RPC Return Typing
-Use typed mapper functions at RPC boundaries. Never use `as unknown as` to cast PostgREST responses.
+## RPC / PostgREST Return Typing
+Typed mapper at every boundary. Never `as unknown as`.
 
 ```typescript
-// Correct: mapper function
-function mapDashboardStats(raw: Record<string, unknown>): DashboardStats {
-  return { revenue: Number(raw.revenue), ... }
+function mapDocumentRow(raw: Record<string, unknown>): DocumentRow {
+  // validate enum-shaped fields via Zod safeParse, throw on missing NOT NULL fields
 }
-const { data } = await supabase.rpc('get_dashboard_stats', params)
-return data ? mapDashboardStats(data) : null
-
-// Wrong: type assertion
-const data = result.data as unknown as DashboardStats
+const { data } = await supabase.from('documents').select(...)
+return ((data ?? []) as Record<string, unknown>[]).map(mapDocumentRow)
 ```
 
-Exception: 24 structurally required `as unknown as` assertions for PostgREST string vs domain union literals are documented and acceptable.
-
-## Stripe Webhooks
-Webhook processing uses a handler module pattern in `supabase/functions/stripe-webhooks/`:
-- `index.ts` — entry point, signature verification, event routing
-- Handler modules per event type for separation of concerns
-- All handlers use `errorResponse()` from `_shared/errors.ts`
+Reference example: `mapDocumentRow` in `src/hooks/api/query-keys/document-keys.ts`.
 
 ## Database
 - Migrations: `supabase/migrations/YYYYMMDDHHmmss_description.sql`
-- RLS on all tables — see `.claude/rules/rls-policies.md`
-- `supabase.ts` is generated — never edit manually
-- Valid `rent_payments.status`: `pending | processing | succeeded | failed | canceled`
-- Error monitoring RPCs are admin-only (`user_type = 'ADMIN'`)
-- Amount convention: All `amount` columns (`rent_due.amount`, `rent_payments.amount`, etc.) store **dollars** as `numeric(10,2)`. Convert to cents (`Math.round(amount * 100)`) ONLY at the Stripe API boundary in Edge Functions. Never divide by 100 in display code.
-- Autopay retry: `rent_due` has `autopay_attempts`, `autopay_last_attempt_at`, `autopay_next_retry_at` columns for pg_cron retry scheduling (3 attempts over 7 days).
-- Webhook idempotency: `stripe_webhook_events.status` tracks `processing` / `succeeded` / `failed`. Never delete records on failure.
-- Shared leases: Per-tenant portions computed dynamically from `lease_tenants.responsibility_percentage`. Each tenant pays `rent_due.amount * percentage / 100`.
+- RLS on every table; frontend never uses service role
+- `supabase.ts` is generated — never edit manually; `pnpm db:types` is atomic
+- Migrations applied via Supabase MCP `apply_migration` get prod-assigned timestamps that may not match the repo filename — always reconcile via `mcp__supabase__list_migrations` after MCP applies (see `migration-mcp-prod-drift.md` memory)
+- All `amount` columns store **dollars** as `numeric(10,2)`. Convert to cents only at the Stripe API boundary.
 
 ### Schema Conventions
-- `owner_user_id` is the canonical owner column on all tables (properties, leases, maintenance_requests, documents) — references `users.id` directly
-- `set_updated_at()` is the only trigger function for `updated_at` columns — never create duplicates
-- `property_owners` table stores Stripe Connect data only (`stripe_account_id`, `charges_enabled`, `onboarding_completed_at`) — not used for ownership lookups
-- `leases` has single owner column `owner_user_id`
-- `documents` has direct `owner_user_id` column for fast RLS checks (backfilled from parent entities)
-- `blogs.author_user_id` tracks content authorship (FK to `users.id`, ON DELETE SET NULL)
-- `activity.user_id` is NOT NULL with ON DELETE CASCADE (activity records follow user lifecycle)
-- `inspection_photos` has `updated_at` column with `set_updated_at()` trigger
+- `owner_user_id` is the canonical owner column on `properties`, `leases`, `maintenance_requests`, `documents` — references `users.id` directly
+- `users.is_admin boolean` controls admin access (the legacy `user_type` was migrated out)
+- `set_updated_at()` is the only `updated_at` trigger function — never duplicate
 
 ### Cron Jobs (pg_cron)
-All pg_cron jobs use named SECURITY DEFINER functions with `SET search_path = public`. Never use inline SQL in `cron.schedule()`.
+All pg_cron jobs use named SECURITY DEFINER functions with `SET search_path = public`. Never inline SQL in `cron.schedule()`. Cleanup jobs run in the 3 AM UTC window. Archive-then-delete for all retention. Use `FOR UPDATE SKIP LOCKED` for concurrent-safe row processing.
 
-**Scheduled jobs (3 AM UTC window):**
+For the active job list, grep `cron.schedule(` in `supabase/migrations/` — the set changes per release.
 
-| Job Name | Schedule | Function | Purpose |
-|----------|----------|----------|---------|
-| `expire-leases` | `0 23 * * *` | `expire_leases()` | Expire active leases past end_date, notify owner |
-| `calculate_late_fees` | (existing) | `calculate_late_fees()` | Calculate late fees on overdue rent |
-| `queue_lease_reminders` | (existing) | `queue_lease_reminders()` | Send upcoming rent reminders |
-| `process-autopay-charges` | (existing) | via Edge Function | Process autopay for due rent |
-| `cleanup-security-events` | `0 3 * * *` | `cleanup_old_security_events()` | Archive + delete events > 90 days |
-| `cleanup-errors` | `15 3 * * *` | `cleanup_old_errors()` | Archive + delete errors > 90 days |
-| `cleanup-webhook-events` | `30 3 * * *` | `cleanup_old_webhook_events()` | Archive webhooks (90d succeeded / 180d failed) |
-| `check-cron-health` | `0 * * * *` | `check_cron_health()` | Monitor job failures hourly via `cron.job_run_details` |
-| `process-account-deletions` | `45 3 * * *` | `process_account_deletions()` | GDPR: anonymize users past 30-day grace period |
-
-**Conventions:**
-- Cleanup jobs run at 3 AM UTC window (3:00, 3:15, 3:30, 3:45)
-- Archive-then-delete pattern for all data retention (never hard delete without archiving)
-- `check_cron_health` monitors all jobs hourly via `cron.job_run_details`, logs failures to `user_errors` for Sentry pickup
-- Use `FOR UPDATE SKIP LOCKED` for concurrent-safe row processing
-
-### GDPR Patterns
-- Account deletion uses 30-day grace period (`deletion_requested_at` on users table)
-- Anonymization replaces PII with `[deleted]` / `[deleted user]` placeholders — never deletes financial records (rent_payments, rent_due preserved intact)
+### GDPR
+- 30-day grace period (`deletion_requested_at` on `users`)
+- Anonymization replaces PII with `[deleted]` placeholders; financial records preserved intact
 - Owner deletion blocked if active leases or pending payments exist
-- Functions: `request_account_deletion()` (user-callable), `cancel_account_deletion()` (user-callable), `anonymize_deleted_user(uuid)` (cron-only)
-- `process_account_deletions()` cron runs daily, handles each user independently (one failure does not block others)
-- Does NOT delete from `auth.users` — that is handled by Supabase Auth separately
+- Functions: `request_account_deletion()`, `cancel_account_deletion()`, `anonymize_deleted_user(uuid)`, `process_account_deletions()` cron
+- Does NOT delete from `auth.users` — Supabase Auth handles that
 
 ### Data Retention
-| Table | Retention | Archive Table | Policy |
-|-------|-----------|---------------|--------|
-| `security_events` | 90 days | `security_events_archive` | Archive then delete |
-| `user_errors` | 90 days | `user_errors_archive` | Archive then delete |
-| `stripe_webhook_events` (succeeded) | 90 days | `stripe_webhook_events_archive` | Archive then delete |
-| `stripe_webhook_events` (failed) | 180 days | `stripe_webhook_events_archive` | Longer retention for forensics |
+| Table | Retention | Archive |
+|-------|-----------|---------|
+| `security_events` | 90d | `security_events_archive` |
+| `user_errors` | 90d | `user_errors_archive` |
+| `stripe_webhook_events` (succeeded) | 90d | `stripe_webhook_events_archive` |
+| `stripe_webhook_events` (failed) | 180d | `stripe_webhook_events_archive` |
 
-- Archive tables use `*_archive` suffix with identical schema
-- Archive tables are service_role-only access (no authenticated user policies)
-- Cleanup cron jobs process in batches with `LIMIT 10000` and `FOR UPDATE SKIP LOCKED`
+Archive tables are service_role-only. Cleanup batches use `LIMIT 10000` + `FOR UPDATE SKIP LOCKED`.
 
-## Data Access Patterns
-All data access goes through Supabase PostgREST and RPC. There is no custom backend API server.
+## Data Access
+PostgREST + RPCs only. No custom backend.
 
 ```typescript
-// PostgREST queries via supabase-js
 const { data, error, count } = await supabase
   .from('properties')
   .select('*', { count: 'exact' })
-  .neq('status', 'inactive')      // soft-delete filter — required on properties
+  .neq('status', 'inactive')
   .order('created_at', { ascending: false })
   .range(from, to)
-
-// RPC for complex operations (dashboard stats, reports, etc.)
-const { data } = await supabase.rpc('get_dashboard_stats', {
-  p_owner_user_id: userId
-})
 ```
 
-- Always use `{ count: 'exact' }` for pagination — never `data.length`
-- Soft-deleted tables (properties): always filter `.neq('status', 'inactive')`
-- Use `.single()` for exactly-one results, `.limit(1)` + `[0]` when zero-or-one
-- Atomic multi-table writes use SECURITY DEFINER RPCs: `record_rent_payment` (upserts payment + updates rent_due status), `set_default_payment_method` (atomic default swap), `toggle_autopay` (tenant-validated autopay toggle).
-- All list queries MUST have `.limit()` or pagination `.range()` — no unbounded `select('*')` on growing tables
-- Prefer specific column `.select('col1, col2')` over `.select('*')` for list queries
-- Use `.select('*')` only for detail (single record) queries where all columns are needed
+- `{ count: 'exact' }` for pagination — never `data.length`
+- Soft-deleted tables: always filter `.neq('status', 'inactive')`
+- `.single()` for exactly-one, `.limit(1)` + `[0]` for zero-or-one
+- All list queries MUST have `.limit()` or `.range()` — no unbounded `select('*')`
+- Prefer specific column lists over `*` for list queries; reserve `*` for detail queries
 
 ## Edge Functions
-Server-side logic runs as Supabase Edge Functions (Deno runtime).
+Deno runtime, `supabase/functions/<name>/index.ts`.
 
-- Location: `supabase/functions/<function-name>/index.ts`
-- Shared utilities: `supabase/functions/_shared/` (cors.ts, resend.ts, errors.ts, env.ts, escape-html.ts, rate-limit.ts)
-- Import map: `supabase/functions/deno.json` (supabase-js 2.97, Sentry/Deno 9, Stripe 20, Upstash ratelimit/redis)
-- Auth pattern: extract Bearer token, then `supabase.auth.getUser(token)` to verify — derive user identity from JWT, never from request body params
-- CORS: use `getCorsHeaders(req)` and early-return `handleCorsOptions(req)` for preflight. CORS is fail-closed — no CORS headers returned when `FRONTEND_URL` is not set.
-- Deploy: `supabase functions deploy <function-name>`
-- Payment metadata: Always validate `tenant_id`, `lease_id`, `rent_due_id` from Stripe metadata. Never use empty string fallbacks.
-- Payment method deletion: Must call `detach-payment-method` Edge Function which detaches from Stripe API before DB deletion. No DB-only deletion allowed.
-- Auth emails: sent via Resend through `supabase/functions/auth-email-send/index.ts` — configured as Supabase Auth Hook (Authentication > Hooks > Send Email)
-- Email templates: `supabase/functions/_shared/auth-email-templates.ts` — 5 branded templates (signup, recovery, invite, magiclink, email_change) with inline CSS and XSS-safe escaping
-- Error responses: All Edge Functions use `errorResponse()` from `_shared/errors.ts` — never expose `err.message`, `dbError.message`, or stack traces to clients. Generic `{ error: 'An error occurred' }` with Sentry + console.error logging.
-- Env validation: All Edge Functions call `validateEnv({ required: [...], optional: [...] })` from `_shared/env.ts` inside `Deno.serve` handler (not at module level). Missing required vars return 500 immediately.
-- Rate limiting: Unauthenticated Edge Functions (`tenant-invitation-accept`, `tenant-invitation-validate`, `stripe-checkout-session`) use `rateLimit()` from `_shared/rate-limit.ts` (Upstash Redis sliding window, 10 req/min per IP). Rate limiter fails open on errors. Sentry tunnel `/monitoring` rate-limited at 60 req/min in proxy.ts.
-- XSS escaping: All user-provided values in HTML templates (docuseal, generate-pdf) are wrapped with `escapeHtml()` from `_shared/escape-html.ts`.
-- CSP: Content-Security-Policy enforced via vercel.json on all pages.
-- Env secrets for rate limiting: `UPSTASH_REDIS_REST_URL` and `UPSTASH_REDIS_REST_TOKEN` must be set in Supabase Edge Function secrets.
-- Parallelize independent DB queries with `Promise.all()` — never sequential queries where results are independent
-- Use `Promise.all` (not `Promise.allSettled`) when any failure should abort the operation
+- Shared utilities: `supabase/functions/_shared/` (cors, resend, errors, env, escape-html, rate-limit)
+- Auth pattern: extract Bearer, then `supabase.auth.getUser(token)` — never derive identity from request body
+- CORS: `getCorsHeaders(req)` + early-return `handleCorsOptions(req)`. Fail-closed when `FRONTEND_URL` unset.
+- Errors: `errorResponse()` from `_shared/errors.ts` — never expose raw `err.message` to clients. Generic `{ error: 'An error occurred' }` + Sentry/console logging.
+- Env validation: `validateEnv({ required, optional })` from `_shared/env.ts` inside `Deno.serve` (not module level)
+- Rate limiting on unauthenticated functions: `rateLimit()` from `_shared/rate-limit.ts` (Upstash sliding window, 10 req/min per IP, fail-open on errors). Sentry tunnel `/monitoring` rate-limited at 60 req/min in proxy.ts.
+- XSS escaping: `escapeHtml()` from `_shared/escape-html.ts` for all user values in HTML templates
+- CSP enforced via `vercel.json`
+- Parallelize independent DB queries with `Promise.all()`. Use `Promise.allSettled` only when partial failure is acceptable.
+- Browse `supabase/functions/` for the current function set.
 
-**Edge Functions (19):** auth-email-send, detach-payment-method, docuseal, docuseal-webhook, export-report, export-user-data, generate-pdf, newsletter-subscribe, send-tenant-invitation, stripe-autopay-charge, stripe-billing-portal, stripe-checkout, stripe-checkout-session, stripe-connect, stripe-rent-checkout, stripe-webhooks, tenant-invitation-accept, tenant-invitation-validate
-
-## Security Model
-RLS (Row Level Security) is the primary access-control layer. Proxy middleware enforces route-level auth.
-
-- RLS enforced on every table — frontend never uses service role key
+## Security
+- RLS on every table; service-role key never reaches frontend
 - Wrap `auth.uid()` in subselect for performance: `(select auth.uid())`
-- Helper functions: `get_current_owner_user_id()`, `get_current_tenant_id()`, `get_tenant_unit_ids()`
-- Policy rules: see `.claude/rules/rls-policies.md`
+- Helper functions: `get_current_owner_user_id()`, `is_admin()`
 - One policy per operation per role — never `FOR ALL` on authenticated tables
-- All SECURITY DEFINER RPCs validate `auth.uid()` — caller cannot request another user's data
-- Error monitoring RPCs are admin-only (`user_type = 'ADMIN'` via `is_admin()`)
-- Integration tests: `tests/integration/rls/` — 21 test files covering owner isolation, tenant isolation, and cross-role boundaries
-- `user_type` is immutable after initial selection — BEFORE UPDATE trigger on `users` table prevents changes once set beyond `PENDING`
+- All SECURITY DEFINER RPCs validate `auth.uid()` and lock `search_path = public`
+- Admin-only RPCs gate on `is_admin()`
+- Integration tests in `tests/integration/rls/` cover owner isolation and cross-role boundaries
 
-## Proxy Middleware (Route Protection)
-- `proxy.ts` at project root (Next.js 16 replaces deprecated `middleware.ts`)
-- `updateSession` utility in `src/lib/supabase/middleware.ts` handles Supabase token refresh with `getAll`/`setAll` cookie pattern
-- Public routes skip auth: `/`, `/login`, `/pricing`, `/about`, `/blog`, `/contact`, `/faq`, `/features`, `/help`, `/privacy`, `/terms`, `/security-policy`, `/support`, `/resources`, `/search`, `/accept-invite`, `/auth/*`
-- Role-based enforcement: TENANT -> `/tenant/*`, OWNER/ADMIN -> `/dashboard/*`, PENDING -> `/auth/select-role`
-- `redirectWithCookies` helper preserves session cookies on all redirects (prevents session loss)
+## Proxy Middleware
+- `src/proxy.ts` (Next.js 16; replaces deprecated root `middleware.ts`)
+- `updateSession` in `src/lib/supabase/middleware.ts` handles Supabase token refresh with `getAll`/`setAll` cookie pattern
+- Public routes skip auth (see `PUBLIC_ROUTES` in `proxy.ts` for the current set)
+- Authenticated users must have `subscription_status IN ('active', 'trialing')` to access dashboard routes
+- `redirectWithCookies` helper preserves session cookies on every redirect
 
 ## Naming
 | Thing | Convention |
@@ -304,55 +195,42 @@ RLS (Row Level Security) is the primary access-control layer. Proxy middleware e
 | Files | kebab-case |
 
 ## Path Aliases
-All imports use `#` prefix aliases (Node.js subpath imports in package.json + tsconfig paths):
-`#app/*`, `#components/*`, `#contexts/*`, `#lib/*`, `#hooks/*`, `#stores/*`, `#types/*`, `#providers/*`, `#test/*`, `#utils/*`, `#shared/*`, `#config/*`, `#env`, `#proxy`
+`#` prefix subpath imports defined in BOTH `tsconfig.json#paths` AND `package.json#imports`:
+`#app/*`, `#components/*`, `#lib/*`, `#hooks/*`, `#stores/*`, `#types/*`, `#providers/*`, `#test/*`, `#config/*`, `#env`, `#proxy`
 
 ## Common Gotchas
-- Supabase auth: always `getAll`/`setAll` cookie methods (never `get`/`set`/`remove`)
-- Auth decisions: always use `getUser()` (server-validated), never `getSession()` for security decisions. `getSession()` only acceptable for reading the access_token string to pass as Bearer header.
-- No module-level Supabase client in hooks — create `createClient()` inside each mutation/query function
-- Single auth query key factory: `authKeys` from `src/hooks/api/use-auth.ts`. No other key definitions allowed.
-- Query keys: always use factory from `src/hooks/api/query-keys/` — never string literals like `['blogs']`
-- Pagination: use `count` from Supabase response, never `data.length`
-- Amount units: `rent_due.amount` is dollars (numeric). Multiply by 100 only in Edge Functions when calling Stripe API. `formatCurrency(amountInDollars)` is the only currency formatter.
-- Stripe schema: `stripe.*` tables (subscriptions, invoices, etc.) are queryable via PostgREST with existing RLS. Use for billing display — do not call Stripe API for read operations.
-- Subscription status: Query `stripe.subscriptions` for real status (`active`, `past_due`, `canceled`, `unpaid`). Do NOT check `users.stripe_customer_id` existence.
-- Report hooks: report hooks query real `reports` and `report_runs` tables, and aggregate data via existing RPCs (not stub data).
-- Vendored UI components: `src/components/ui/tour.tsx` is a vendored Dice UI upstream copy — exempt from 300-line rule.
-- `next/image` does NOT support blob: URLs — use `<img>` for `URL.createObjectURL()` previews (file-upload-item.tsx)
-- `gitleaks protect --staged` runs in pre-commit — secrets caught before reaching repo
-- Edge Function tests need `supabase functions serve` (or `supabase start`) running locally
-- Tenant RLS integration tests need `E2E_TENANT_EMAIL` and `E2E_TENANT_PASSWORD` env vars (tests skip gracefully without them)
-- `SKIP_ENV_VALIDATION=true` required for `next build` in CI (no runtime env vars available)
+- Supabase auth: always `getAll`/`setAll` cookie methods. Never `get`/`set`/`remove`. Never `auth-helpers-nextjs`.
+- Auth decisions: always `getUser()` (server-validated). `getSession()` only to read the access_token string for Bearer.
+- Single auth query key factory: `authKeys` from `src/hooks/api/use-auth.ts`. No other auth key definitions.
+- Pagination: use `count` from Supabase response. Never `data.length`.
+- Stripe schema: `stripe.*` tables (subscriptions, invoices, etc.) are queryable via PostgREST under existing RLS. Use for billing display — don't call Stripe API for reads.
+- Subscription status: query `stripe.subscriptions` for real status. Don't infer from `users.stripe_customer_id` existence.
+- `next/image` does NOT support `blob:` URLs — use `<img>` for `URL.createObjectURL()` previews
+- Edge Function tests need `supabase functions serve` running locally
+- `SKIP_ENV_VALIDATION=true` required for `next build` in CI
 
-## Accessibility Rules
-- All icon buttons must have `aria-label` (not just `title`)
-- Use `text-muted-foreground` for muted text, never bare `text-muted`
-- Use `bg-background` instead of `bg-white` for dark-mode safety
-- Skip-to-content link required in app shell components
+## Accessibility
+- Icon-only buttons: `aria-label`, not just `title`
+- `text-muted-foreground` for muted text (never bare `text-muted`)
+- `bg-background` for surfaces (never `bg-white` — breaks dark mode)
+- Skip-to-content link in app shell
 - Breadcrumb `<nav>` requires `aria-label="Breadcrumb"`
-- Mobile sidebar overlay requires Escape key handler and focus management
+- Mobile sidebar overlay: Escape key handler + focus management
 
-## Component Conventions
-- 73 UI components in `src/components/ui/`, 9 shared components in `src/components/shared/`
+## Components
 - Use shadcn `Switch` for toggles — never custom CSS toggle divs
-- Use `NotFoundPage` from `#components/shared/not-found-page` for all 404 pages (generic message, not entity-specific)
-- Use `ErrorPage` from `#components/shared/error-page` for all error boundaries (retry + dashboard link)
-- Use `Empty` compound component from `#components/ui/empty` for list page empty states
-- Tenant delete is soft-delete (status: 'inactive') with active-lease blocking guard
-- Kanban boards use scroll-snap on mobile, grid on desktop
+- `NotFoundPage` from `#components/shared/not-found-page` for all 404s
+- `ErrorPage` from `#components/shared/error-page` for all error boundaries
+- `Empty` compound component from `#components/ui/empty` for list-page empty states
 
-## Marketing Page Layout
-- **Navbar** (`src/components/layout/navbar.tsx`): Full-width bar (not floating pill), transparent at top, backdrop blur on scroll. `text-base` nav links, `text-xl` logo.
-- **PageLayout** (`src/components/layout/page-layout.tsx`): Wraps all marketing pages. Provides navbar + footer + grid pattern + `page-offset-navbar` automatically. **Never add `page-offset-navbar` to child content** — it's already applied by PageLayout.
-- **Footer** (`src/components/layout/footer.tsx`): Shared across all marketing pages via PageLayout.
-- **Sections** (`src/components/sections/`): hero-section, features-section, how-it-works, comparison-table, testimonials-section, stats-showcase, premium-cta, home-faq, logo-cloud, hero-dashboard-mockup
-- **Section spacing**: All marketing sections use `section-spacing` (5rem padding-block). Exception: logo-cloud uses `pb-6` only (sits inside hero section).
-- **Section gap**: Homepage uses `section-gap` (4rem) between sections via `containerClass="flex flex-col section-gap"`.
-- **Container pattern**: `max-w-7xl mx-auto px-6 lg:px-8` for full-width sections. Legal/text pages use `max-w-4xl`.
-- **Logo cloud** (`src/components/sections/logo-cloud.tsx`): Uses wordmark SVGs with per-logo explicit widths for visual consistency. Grayscale 80% default, full color on hover.
-- **CSS variables** (in `globals.css`): `--layout-navbar-spacing: spacing-20` (5rem), `--layout-section-padding-y: spacing-20` (5rem), `--layout-gap-section: spacing-16` (4rem).
+## Marketing Pages
+- `src/components/layout/page-layout.tsx` wraps all marketing pages (navbar + footer + grid pattern + `page-offset-navbar`). Never re-add `page-offset-navbar` to children.
+- Section spacing: `section-spacing` (5rem padding-block); section gap on homepage `section-gap` (4rem)
+- Container: `max-w-7xl mx-auto px-6 lg:px-8`. Legal/text pages use `max-w-4xl`.
 
-## Form Conventions
-- Multi-step forms should use `useUnsavedChangesWarning(isDirty)` from `#hooks/use-unsaved-changes`
-- Add `autoFocus` to primary input on key forms (login email, property name, etc.)
+## Forms
+- Multi-step forms use `useUnsavedChangesWarning(isDirty)` from `#hooks/use-unsaved-changes`
+- `autoFocus` on the primary input of key forms (login email, property name, etc.)
+
+## Workflow
+Active workflow: superpowers (skill plugins) + perfect-PR merge gate (two consecutive zero-finding review cycles required). `.planning/` is a frozen archive (v1.0–v2.3 records). Do not invoke any `/gsd:*` commands; that runtime was removed. See memory `workflow-superpowers-perfect-pr.md` for the full rationale.

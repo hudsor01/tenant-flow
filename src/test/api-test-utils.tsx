@@ -88,7 +88,7 @@ export function createMockFetchResponse<T>(
  * // At top of test file, before vi.mock calls:
  * const { mockGetSession, mockSupabaseSelect } = vi.hoisted(() => createSupabaseMocks());
  *
- * vi.mock('#utils/supabase/client', () => ({
+ * vi.mock('#lib/supabase/client', () => ({
  *   createClient: () => ({
  *     from: () => ({ select: mockSupabaseSelect }),
  *     auth: { getSession: mockGetSession }
@@ -184,7 +184,7 @@ export function createPaginatedResponse<T>(data: T[], total?: number) {
  * @example
  * ```typescript
  * // In your test file:
- * vi.mock('#shared/lib/frontend-logger', () => ({
+ * vi.mock('#lib/frontend-logger', () => ({
  *   logger: {
  *     info: vi.fn(),
  *     error: vi.fn(),
@@ -209,7 +209,7 @@ export function createPaginatedResponse<T>(data: T[], total?: number) {
  */
 export const STANDARD_MOCKS_PATTERN = `
 // Mock logger
-vi.mock('#shared/lib/frontend-logger', () => ({
+vi.mock('#lib/frontend-logger', () => ({
   logger: {
     info: vi.fn(),
     error: vi.fn(),

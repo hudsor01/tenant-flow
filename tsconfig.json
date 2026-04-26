@@ -70,9 +70,6 @@
       "#components/*": [
         "./src/components/*"
       ],
-      "#contexts/*": [
-        "./src/contexts/*"
-      ],
       "#lib/*": [
         "./src/lib/*"
       ],
@@ -93,9 +90,6 @@
       ],
       "#config/*": [
         "./src/config/*"
-      ],
-      "#utils/*": [
-        "./src/utils/*"
       ]
     }
   },

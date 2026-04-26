@@ -33,7 +33,7 @@ import {
 import { createQueryChain } from '#test/mocks/supabase-query-mock'
 
 // Mock logger
-vi.mock('#shared/lib/frontend-logger', () => ({
+vi.mock('#lib/frontend-logger', () => ({
 	logger: {
 		info: vi.fn(),
 		error: vi.fn(),
