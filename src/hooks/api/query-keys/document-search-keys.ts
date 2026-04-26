@@ -33,10 +33,48 @@ export interface DocumentSearchParams {
 	entityType?: DocumentEntityType
 	/** Phase 63: multi-select. Empty array is treated as "no filter" by the RPC. */
 	categories?: DocumentCategory[]
-	/** Phase 63: ISO timestamps. The RPC raises if from > to. */
+	/**
+	 * Phase 63: date-range bounds in `YYYY-MM-DD` form (URL shape). The
+	 * factory expands these to local-zone start-of-day / end-of-day ISO
+	 * timestamps at the RPC boundary so a US-Pacific user picking "Apr 30"
+	 * gets documents through 23:59 PT on Apr 30, not 16:59 PT (which is
+	 * what naive UTC slicing would produce). The RPC raises if from > to.
+	 */
 	from?: string
 	to?: string
 	page?: number
+}
+
+/**
+ * Expand a `YYYY-MM-DD` URL date to an ISO timestamp at the boundary of
+ * the user's LOCAL day. Returns null on malformed input — the caller's
+ * H2-style URL guard scrubs the invalid value separately.
+ */
+export function expandDateBoundary(
+	ymd: string | undefined,
+	end: boolean
+): string | null {
+	if (!ymd) return null
+	const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(ymd)
+	if (!m) return null
+	const y = Number(m[1])
+	const mo = Number(m[2])
+	const d = Number(m[3])
+	const local = end
+		? new Date(y, mo - 1, d, 23, 59, 59, 999)
+		: new Date(y, mo - 1, d, 0, 0, 0, 0)
+	if (Number.isNaN(local.getTime())) return null
+	// JS Date silently wraps overflow (e.g. 2026-13-99 → April 9, 2027).
+	// Reject the parse if the constructed Date doesn't match the input
+	// components — otherwise the URL guard hides the bug from the user.
+	if (
+		local.getFullYear() !== y ||
+		local.getMonth() !== mo - 1 ||
+		local.getDate() !== d
+	) {
+		return null
+	}
+	return local.toISOString()
 }
 
 export interface DocumentSearchResult {
@@ -77,8 +115,10 @@ export const documentSearchQueries = {
 					p_query: params.query?.trim() || null,
 					p_entity_type: params.entityType ?? null,
 					p_categories: sortedCategories,
-					p_from: params.from ?? null,
-					p_to: params.to ?? null,
+					// Expand YYYY-MM-DD to local-zone start/end-of-day ISO so
+					// the user's chosen end day is INCLUDED in results.
+					p_from: expandDateBoundary(params.from, false),
+					p_to: expandDateBoundary(params.to, true),
 					p_limit: SEARCH_PAGE_SIZE,
 					p_offset: page * SEARCH_PAGE_SIZE
 				})

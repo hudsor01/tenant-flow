@@ -69,10 +69,32 @@ const CATEGORY_OPTIONS = DOCUMENT_CATEGORIES.map(value => ({
 	label: DOCUMENT_CATEGORY_LABELS[value]
 }))
 
-function parseIsoDateOrNull(input: string | null): Date | undefined {
+// Parse a YYYY-MM-DD URL value into a local-zone Date (midnight local).
+// Returns undefined on malformed input. Critically uses local-component
+// construction — NOT `new Date('2026-04-30')` which produces UTC midnight
+// and silently shifts the picker by one day for users east of UTC.
+// Round-trips through getFullYear/getMonth/getDate to reject overflow
+// inputs like `2026-13-99` (which JS otherwise wraps to April 9, 2027).
+function parseLocalYmd(input: string | null): Date | undefined {
 	if (!input) return undefined
-	const d = new Date(input)
-	return Number.isNaN(d.getTime()) ? undefined : d
+	const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(input)
+	if (!m) return undefined
+	const y = Number(m[1])
+	const mo = Number(m[2])
+	const day = Number(m[3])
+	const d = new Date(y, mo - 1, day)
+	if (Number.isNaN(d.getTime())) return undefined
+	if (d.getFullYear() !== y || d.getMonth() !== mo - 1 || d.getDate() !== day) {
+		return undefined
+	}
+	return d
+}
+
+// Format a Date as local-zone YYYY-MM-DD. Pairs with parseLocalYmd for
+// round-trip stability across timezones.
+function formatLocalYmd(d: Date): string {
+	const pad = (n: number) => String(n).padStart(2, '0')
+	return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate())
 }
 
 export function DocumentsVaultClient() {
@@ -151,11 +173,11 @@ export function DocumentsVaultClient() {
 		return valid
 	}, [categoriesParam])
 
-	// Phase 63: date-range. Parse to Date or undefined; the RPC sees the
-	// raw ISO string. NaN dates degrade to undefined (silent — the
-	// scrub-effect below also clears them from the URL).
-	const fromDate = useMemo(() => parseIsoDateOrNull(fromParam), [fromParam])
-	const toDate = useMemo(() => parseIsoDateOrNull(toParam), [toParam])
+	// Phase 63: date-range. Parse the URL YYYY-MM-DD into a local-zone
+	// Date for the picker. The factory expands these to local-zone
+	// start/end-of-day ISO timestamps when calling the RPC.
+	const fromDate = useMemo(() => parseLocalYmd(fromParam), [fromParam])
+	const toDate = useMemo(() => parseLocalYmd(toParam), [toParam])
 
 	// When the URL value is rejected by a guard, scrub it from the URL
 	// so the address bar matches what the UI is actually filtering by.
@@ -285,10 +307,10 @@ export function DocumentsVaultClient() {
 							value={{ from: fromDate, to: toDate }}
 							onChange={range => {
 								void setFromParam(
-									range.from ? range.from.toISOString().slice(0, 10) : null
+									range.from ? formatLocalYmd(range.from) : null
 								)
 								void setToParam(
-									range.to ? range.to.toISOString().slice(0, 10) : null
+									range.to ? formatLocalYmd(range.to) : null
 								)
 								void setPageParam(null)
 							}}

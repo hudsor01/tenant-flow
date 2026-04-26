@@ -444,18 +444,21 @@ describe('search_documents RPC', () => {
 	})
 
 	it('Phase 63: p_from / p_to date-range filter restricts on created_at', async () => {
-		// All fixtures were inserted in beforeAll, so they share a near-
-		// identical created_at. A range that ends one second before now
-		// should exclude all of them; a range that starts a year ago
-		// should include all of them.
-		const oneSecondAgo = new Date(Date.now() - 1000).toISOString()
+		// Fixtures are created in beforeAll; their created_at is "now" at
+		// suite start. A `p_to` cut at a clearly-past date (2020-01-01)
+		// must exclude every fixture; a wide range that brackets today
+		// must include them all. Don't use `Date.now() - small_delta`
+		// for the exclusion case — in CI the suite runs many seconds
+		// after beforeAll, so any "n seconds ago" can land AFTER fixture
+		// creation and silently invert the assertion.
+		const distantPast = '2020-01-01T00:00:00Z'
 		const yearAgo = new Date(Date.now() - 365 * 24 * 60 * 60 * 1000).toISOString()
 		const tomorrow = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString()
 
 		const { data: excluded } = await clientA.rpc('search_documents', {
 			p_query: null,
 			p_entity_type: null,
-			p_to: oneSecondAgo,
+			p_to: distantPast,
 			p_limit: 200,
 			p_offset: 0
 		})
