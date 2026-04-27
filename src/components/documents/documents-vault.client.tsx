@@ -36,11 +36,8 @@ import {
 	expandDateBoundary,
 	SEARCH_PAGE_SIZE
 } from '#hooks/api/query-keys/document-search-keys'
-import {
-	DOCUMENT_CATEGORIES,
-	DOCUMENT_CATEGORY_LABELS,
-	type DocumentCategory
-} from '#lib/validation/documents'
+import { type DocumentCategory } from '#lib/validation/documents'
+import { useDocumentCategories } from '#hooks/api/use-document-categories'
 import { DocumentRow } from './document-row'
 import { createClient } from '#lib/supabase/client'
 import { toast } from 'sonner'
@@ -77,12 +74,10 @@ if ((DOCUMENT_ENTITY_TYPES as readonly string[]).includes(ANY_ENTITY)) {
 	)
 }
 
-// Phase 63: category filter is now multi-select via ?categories=lease,insurance.
-// No sentinel needed — empty array is the canonical "no filter" state.
-const CATEGORY_OPTIONS = DOCUMENT_CATEGORIES.map(value => ({
-	value,
-	label: DOCUMENT_CATEGORY_LABELS[value]
-}))
+// Phase 65: category filter options now come from the per-owner
+// `document_categories` table via `useDocumentCategories`. The static
+// CATEGORY_OPTIONS constant is gone — see the in-component
+// `categoryOptions` derived from the hook's data.
 
 // Parse a YYYY-MM-DD URL value into a local-zone Date (midnight local).
 // Returns undefined on malformed input. Critically uses local-component
@@ -192,13 +187,35 @@ export function DocumentsVaultClient() {
 	// so `useMemo([categoriesParam])` would re-run the filter on every
 	// render. Joining the array gives a stable string identity — same
 	// content, same key, no wasted work.
+	const {
+		categories: ownedCategories,
+		isLoading: categoriesLoading
+	} = useDocumentCategories()
+	const categoryOptions = useMemo(
+		() =>
+			ownedCategories.map(c => ({
+				value: c.slug,
+				label: c.label
+			})),
+		[ownedCategories]
+	)
+	const ownedSlugSet = useMemo(
+		() => new Set(ownedCategories.map(c => c.slug)),
+		[ownedCategories]
+	)
+	const ownedSlugKey = Array.from(ownedSlugSet).sort().join(',')
 	const categoriesKey = categoriesParam.join(',')
 	const categories = useMemo<DocumentCategory[]>(() => {
-		const set = new Set(categoriesKey.split(',').filter(Boolean))
-		return (DOCUMENT_CATEGORIES as readonly string[]).filter(c =>
-			set.has(c)
-		) as DocumentCategory[]
-	}, [categoriesKey])
+		// Don't scrub URL slugs while categories are still loading — we'd
+		// false-reject every value and clear the user's filter on first
+		// render. Treat empty owned-set as "pass through" until the hook
+		// settles.
+		if (ownedSlugKey.length === 0) {
+			return categoriesKey.split(',').filter(Boolean) as DocumentCategory[]
+		}
+		const requested = new Set(categoriesKey.split(',').filter(Boolean))
+		return Array.from(requested).filter(c => ownedSlugSet.has(c))
+	}, [categoriesKey, ownedSlugSet, ownedSlugKey])
 
 	// Phase 63: date-range. Parse the URL YYYY-MM-DD into a local-zone
 	// Date for the picker. The factory expands these to local-zone
@@ -407,14 +424,17 @@ export function DocumentsVaultClient() {
 							</SelectContent>
 						</Select>
 						<MultiSelectChips<DocumentCategory>
-							options={CATEGORY_OPTIONS}
+							options={categoryOptions}
 							value={categories}
 							onChange={next => {
 								void setCategoriesParam(next.length > 0 ? next : null)
 								void setPageParam(null)
 							}}
-							placeholder="All categories"
+							placeholder={
+								categoriesLoading ? 'Loading…' : 'All categories'
+							}
 							aria-label="Filter by category"
+							disabled={categoriesLoading}
 						/>
 						<DateRangePicker
 							value={{ from: fromDate, to: toDate }}

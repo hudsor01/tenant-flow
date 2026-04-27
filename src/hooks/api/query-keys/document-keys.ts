@@ -23,10 +23,7 @@ import { handlePostgrestError } from '#lib/postgrest-error-handler'
 import { requireOwnerUserId } from '#lib/require-owner-user-id'
 import { createLogger } from '#lib/frontend-logger'
 import { mutationKeys } from '../mutation-keys'
-import {
-	documentCategorySchema,
-	type DocumentCategory
-} from '#lib/validation/documents'
+import { type DocumentCategory } from '#lib/validation/documents'
 
 const SIGNED_URL_TTL_SECONDS = 3600
 // Refetch the list (and its signed URLs) well before the 1h TTL expires.
@@ -94,10 +91,14 @@ export interface DocumentListResult {
 /**
  * Maps a PostgREST row (untyped at the TS level — Supabase returns
  * `document_type: string`) into the strictly-typed `DocumentRow`.
- * `document_type` is validated via the Zod enum so an out-of-band
- * value (corruption, dropped CHECK constraint, mid-migration replay)
- * degrades to `'other'` rather than poisoning downstream
- * `Record<DocumentCategory, ...>` lookups.
+ *
+ * Phase 65 changed `document_type` from a CHECK-enum column to a soft
+ * FK against `document_categories.slug`. Validation now lives in a
+ * BEFORE-INSERT/UPDATE trigger (`validate_document_category`), not at
+ * the application boundary. This mapper trusts whatever slug the DB
+ * returns — there's no compile-time enum to clamp against, and the
+ * trigger guarantees the slug existed in the owner's category set at
+ * write time.
  *
  * NOT NULL fields throw if absent — the boundary should surface a
  * dropped column in `.select(...)` immediately rather than silently
@@ -129,10 +130,7 @@ export function mapDocumentRow(
 		return value
 	}
 
-	const parsedCategory = documentCategorySchema.safeParse(raw.document_type)
-	const document_type: DocumentCategory = parsedCategory.success
-		? parsedCategory.data
-		: 'other'
+	const document_type: DocumentCategory = requireString('document_type')
 	return {
 		id: requireString('id'),
 		entity_type: requireString('entity_type'),
