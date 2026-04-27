@@ -1,5 +1,6 @@
-import { describe, expect, it, vi, beforeEach } from 'vitest'
-import { act, fireEvent, render, screen } from '@testing-library/react'
+import { describe, expect, it, vi, beforeEach, afterAll } from 'vitest'
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import type { ReactElement } from 'react'
 import { DocumentsVaultClient } from '../documents-vault.client'
@@ -12,6 +13,25 @@ const mockSetCategoriesParam = vi.fn()
 const mockSetFromParam = vi.fn()
 const mockSetToParam = vi.fn()
 const mockSetPageParam = vi.fn()
+const mockToastError = vi.fn()
+const mockGetSession = vi.fn()
+
+// Mock the supabase client so getSession() returns a controlled token
+// for the Phase 64 bulk-download path.
+vi.mock('#lib/supabase/client', () => ({
+	createClient: () => ({
+		auth: { getSession: mockGetSession }
+	})
+}))
+
+vi.mock('sonner', () => ({
+	toast: {
+		error: (...args: unknown[]) => mockToastError(...args),
+		success: vi.fn(),
+		warning: vi.fn(),
+		info: vi.fn()
+	}
+}))
 
 let queryParamValue = ''
 let entityParamValue = '__any__'
@@ -69,6 +89,9 @@ describe('DocumentsVaultClient', () => {
 		fromParamValue = ''
 		toParamValue = ''
 		pageParamValue = 0
+		mockGetSession.mockResolvedValue({
+			data: { session: { access_token: 'test-token' } }
+		})
 	})
 
 	it('renders the page header and search controls', () => {
@@ -524,4 +547,201 @@ describe('DocumentsVaultClient', () => {
 		renderVault()
 		expect(mockSetEntityParam).toHaveBeenCalledWith(null)
 	})
+
+	// Phase 64: bulk download as zip
+	describe('bulk download (Phase 64)', () => {
+		const originalFetch = global.fetch
+
+		beforeEach(() => {
+			// Mock fetch to return a real Response so we get type-correct
+			// behavior (avoids `as unknown as Response`). jsdom ships the
+			// Response constructor — body/blob()/json() all work.
+			const blob = new Blob(['fake-zip'], { type: 'application/zip' })
+			global.fetch = vi.fn().mockResolvedValue(new Response(blob))
+		})
+
+		// Restore jsdom's original fetch after this group runs. clearAllMocks
+		// only resets call history, not the implementation we replaced.
+		afterAll(() => {
+			global.fetch = originalFetch
+		})
+
+		it('hides the Download all button when no docs match', () => {
+			mockUseQuery.mockReturnValue({
+				data: { rows: [], totalCount: 0, page: 0, pageSize: 50 },
+				isLoading: false,
+				isFetching: false,
+				isError: false
+			})
+			renderVault()
+			expect(
+				screen.queryByRole('button', { name: /download all/i })
+			).not.toBeInTheDocument()
+		})
+
+		it('renders the Download all button with totalCount when matches exist', () => {
+			mockUseQuery.mockReturnValue({
+				data: { rows: [{ id: 'a' }], totalCount: 12, page: 0, pageSize: 50 },
+				isLoading: false,
+				isFetching: false,
+				isError: false
+			})
+			renderVault()
+			expect(
+				screen.getByRole('button', { name: /download all \(12\)/i })
+			).toBeInTheDocument()
+		})
+
+		it('disables the button when totalCount exceeds the 500-doc cap', () => {
+			mockUseQuery.mockReturnValue({
+				data: { rows: [{ id: 'a' }], totalCount: 501, page: 0, pageSize: 50 },
+				isLoading: false,
+				isFetching: false,
+				isError: false
+			})
+			renderVault()
+			expect(
+				screen.getByRole('button', { name: /download all \(501\)/i })
+			).toBeDisabled()
+		})
+
+		it('clicking the button POSTs the filter set with expanded date boundaries', async () => {
+			const user = userEvent.setup()
+			queryParamValue = 'tax'
+			entityParamValue = 'lease'
+			categoriesParamValue = ['lease', 'insurance']
+			fromParamValue = '2026-01-01'
+			toParamValue = '2026-12-31'
+			mockUseQuery.mockReturnValue({
+				data: { rows: [{ id: 'a' }], totalCount: 5, page: 0, pageSize: 50 },
+				isLoading: false,
+				isFetching: false,
+				isError: false
+			})
+			renderVault()
+			await user.click(screen.getByRole('button', { name: /download all \(5\)/i }))
+
+			await waitFor(() => {
+				expect(global.fetch).toHaveBeenCalledTimes(1)
+			})
+			const fetchCall = (global.fetch as ReturnType<typeof vi.fn>).mock.calls[0]
+			expect(fetchCall![0]).toMatch(/\/functions\/v1\/download-documents-zip$/)
+			const init = fetchCall![1] as RequestInit
+			expect(init.method).toBe('POST')
+			expect(init.headers).toMatchObject({
+				Authorization: 'Bearer test-token'
+			})
+			const body = JSON.parse(init.body as string) as Record<string, unknown>
+			expect(body).toMatchObject({
+				query: 'tax',
+				entityType: 'lease',
+				categories: ['lease', 'insurance']
+			})
+			// from/to MUST be expanded ISO timestamps so the Edge Function
+			// queries the SAME row set the user just saw counted in the
+			// UI. Don't pin the exact ISO value — `expandDateBoundary`
+			// runs in the test runner's local zone, which CI may set to
+			// anything. Round-tripping back to local YMD is the only
+			// timezone-stable check.
+			const fromIso = body['from'] as string
+			const toIso = body['to'] as string
+			const fromLocal = new Date(fromIso)
+			const toLocal = new Date(toIso)
+			expect(fromLocal.getFullYear()).toBe(2026)
+			expect(fromLocal.getMonth()).toBe(0)
+			expect(fromLocal.getDate()).toBe(1)
+			expect(fromLocal.getHours()).toBe(0)
+			expect(toLocal.getFullYear()).toBe(2026)
+			expect(toLocal.getMonth()).toBe(11)
+			expect(toLocal.getDate()).toBe(31)
+			expect(toLocal.getHours()).toBe(23)
+		})
+
+		it('shows a toast when the Edge Function returns an error', async () => {
+			const user = userEvent.setup()
+			global.fetch = vi.fn().mockResolvedValue(
+				new Response(
+					JSON.stringify({
+						error: 'Filter matches 600 documents; cap is 500.'
+					}),
+					{
+						status: 413,
+						statusText: 'Payload Too Large',
+						headers: { 'Content-Type': 'application/json' }
+					}
+				)
+			)
+			mockUseQuery.mockReturnValue({
+				data: { rows: [{ id: 'a' }], totalCount: 5, page: 0, pageSize: 50 },
+				isLoading: false,
+				isFetching: false,
+				isError: false
+			})
+			renderVault()
+			await user.click(screen.getByRole('button', { name: /download all/i }))
+			await waitFor(() => {
+				expect(mockToastError).toHaveBeenCalledWith(
+					expect.stringMatching(/cap is 500/i)
+				)
+			})
+		})
+
+		it('double-click guard prevents two concurrent fetches', async () => {
+			// Hold the fetch promise open so both clicks land BEFORE the
+			// first call resolves (and BEFORE setIsDownloading commits).
+			// Without the ref-based guard, the closures would both see
+			// isDownloading === false and fire two POSTs.
+			let resolveFetch!: (value: Response) => void
+			const pendingResponse = new Promise<Response>(r => {
+				resolveFetch = r
+			})
+			global.fetch = vi.fn().mockReturnValue(pendingResponse)
+			mockUseQuery.mockReturnValue({
+				data: { rows: [{ id: 'a' }], totalCount: 5, page: 0, pageSize: 50 },
+				isLoading: false,
+				isFetching: false,
+				isError: false
+			})
+			renderVault()
+			const button = screen.getByRole('button', { name: /download all \(5\)/i })
+			// fireEvent dispatches synchronously; both clicks happen before
+			// any microtask flushes, so the second click sees the same
+			// closure as the first.
+			fireEvent.click(button)
+			fireEvent.click(button)
+
+			// Resolve fetch so the in-flight call finishes — otherwise
+			// the test hangs on the await inside handleBulkDownload.
+			act(() => {
+				resolveFetch(
+					new Response(new Blob(['fake-zip'], { type: 'application/zip' }))
+				)
+			})
+
+			await waitFor(() => {
+				expect(global.fetch).toHaveBeenCalledTimes(1)
+			})
+		})
+
+		it('shows an auth-required toast when getSession returns no token', async () => {
+			const user = userEvent.setup()
+			mockGetSession.mockResolvedValue({ data: { session: null } })
+			mockUseQuery.mockReturnValue({
+				data: { rows: [{ id: 'a' }], totalCount: 5, page: 0, pageSize: 50 },
+				isLoading: false,
+				isFetching: false,
+				isError: false
+			})
+			renderVault()
+			await user.click(screen.getByRole('button', { name: /download all/i }))
+			await waitFor(() => {
+				expect(mockToastError).toHaveBeenCalledWith(
+					expect.stringMatching(/sign in/i)
+				)
+			})
+			// fetch must not be invoked when there's no session token.
+			expect(global.fetch).not.toHaveBeenCalled()
+		})
+	})
 })
+

@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import {
 	useQueryState,
@@ -33,6 +33,7 @@ import {
 } from '#hooks/api/query-keys/document-keys'
 import {
 	documentSearchQueries,
+	expandDateBoundary,
 	SEARCH_PAGE_SIZE
 } from '#hooks/api/query-keys/document-search-keys'
 import {
@@ -41,7 +42,19 @@ import {
 	type DocumentCategory
 } from '#lib/validation/documents'
 import { DocumentRow } from './document-row'
-import { AlertTriangle, FolderArchive, Loader2, Search } from 'lucide-react'
+import { createClient } from '#lib/supabase/client'
+import { toast } from 'sonner'
+import {
+	AlertTriangle,
+	Download,
+	FolderArchive,
+	Loader2,
+	Search
+} from 'lucide-react'
+
+// Phase 64: hard cap on bulk-download. Mirrors MAX_DOCS_PER_REQUEST in
+// the download-documents-zip Edge Function — keep them in lockstep.
+const BULK_DOWNLOAD_MAX = 500
 
 const ENTITY_TYPE_LABELS: Record<DocumentEntityType, string> = {
 	property: 'Property',
@@ -242,6 +255,92 @@ export function DocumentsVaultClient() {
 	// momentarily after clicking Next.
 	const showRangeHeader = totalCount > 0 && !isFetching
 
+	// Phase 64: bulk-download-as-zip. POSTs the current filter set to
+	// the download-documents-zip Edge Function which re-runs
+	// search_documents server-side under the caller's JWT (RLS-scoped
+	// to their own docs) and streams a zip back. Disabled when the
+	// match exceeds the per-request cap or no docs match.
+	const [isDownloading, setIsDownloading] = useState(false)
+	// Mutable ref companion to `isDownloading` — the React state value is
+	// captured in the click-handler closure at render time, so a fast
+	// double-click that fires before React commits the next render would
+	// see `isDownloading === false` in BOTH closures and bypass the
+	// state-based guard. A ref updates synchronously and reads the same
+	// value across closures, closing that gap.
+	const downloadInFlightRef = useRef(false)
+	const canDownload =
+		totalCount > 0 && totalCount <= BULK_DOWNLOAD_MAX && !isDownloading
+	async function handleBulkDownload() {
+		if (downloadInFlightRef.current) return
+		downloadInFlightRef.current = true
+		setIsDownloading(true)
+		try {
+			const supabase = createClient()
+			const { data: sessionData } = await supabase.auth.getSession()
+			const token = sessionData.session?.access_token
+			if (!token) {
+				toast.error('Sign in to download documents.')
+				return
+			}
+			const baseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+			const res = await fetch(`${baseUrl}/functions/v1/download-documents-zip`, {
+				method: 'POST',
+				headers: {
+					Authorization: `Bearer ${token}`,
+					'Content-Type': 'application/json'
+				},
+				body: JSON.stringify({
+					query: queryParam || null,
+					entityType: entityType ?? null,
+					categories: categories.length > 0 ? categories : null,
+					// Mirror documentSearchQueries.list expansion so the
+					// bulk-download path queries the SAME row set the user
+					// just saw counted in the UI. Expansion runs in the
+					// browser's local zone (the only place we know the
+					// user's timezone) and the Edge Function passes the
+					// resulting ISO timestamps through to the RPC unchanged.
+					from: expandDateBoundary(fromParam || undefined, false),
+					to: expandDateBoundary(toParam || undefined, true)
+				})
+			})
+			if (!res.ok) {
+				const body = (await res
+					.json()
+					.catch(() => ({ error: res.statusText }))) as { error?: string }
+				toast.error(body.error ?? 'Download failed')
+				return
+			}
+			// NOTE: res.blob() buffers the entire zip in memory before
+			// triggering the download. The Edge Function streams server-
+			// side, but the browser tab still allocates the whole archive
+			// here. Acceptable for typical archive sizes; defer streaming
+			// directly to disk (e.g. via Service Worker + StreamSaver) to
+			// v2.7 if power-user feedback warrants it.
+			if (totalCount > 100) {
+				console.warn(
+					`bulk download buffering ${totalCount} documents in memory; large archives may strain low-spec browsers`
+				)
+			}
+			const blob = await res.blob()
+			const url = URL.createObjectURL(blob)
+			const today = new Date().toISOString().slice(0, 10)
+			const a = document.createElement('a')
+			a.href = url
+			a.download = `tenantflow-documents-${today}.zip`
+			document.body.appendChild(a)
+			a.click()
+			a.remove()
+			URL.revokeObjectURL(url)
+		} catch (err) {
+			toast.error(
+				err instanceof Error ? err.message : 'Download failed unexpectedly.'
+			)
+		} finally {
+			downloadInFlightRef.current = false
+			setIsDownloading(false)
+		}
+	}
+
 	// Out-of-bounds page recovery (cycle-2 L1). If the user lands on a
 	// `?page=N` whose offset is beyond `totalCount` (bookmarked link from
 	// a since-shrunk portfolio, or hand-edited URL), the empty-rows
@@ -348,11 +447,40 @@ export function DocumentsVaultClient() {
 							/>
 						)}
 					</CardTitle>
-					{showRangeHeader && (
-						<p className="text-xs text-muted-foreground">
-							Showing {pageStart + 1}-{pageEnd} of {totalCount}
-						</p>
-					)}
+					<div className="flex items-center gap-3">
+						{showRangeHeader && (
+							<p className="text-xs text-muted-foreground">
+								Showing {pageStart + 1}-{pageEnd} of {totalCount}
+							</p>
+						)}
+						{totalCount > 0 && (
+							<Button
+								size="sm"
+								variant="outline"
+								onClick={() => {
+									void handleBulkDownload()
+								}}
+								disabled={!canDownload}
+								title={
+									totalCount > BULK_DOWNLOAD_MAX
+										? `Bulk download is capped at ${BULK_DOWNLOAD_MAX} documents — narrow the filter.`
+										: undefined
+								}
+							>
+								{isDownloading ? (
+									<>
+										<Loader2 className="size-4 mr-2 animate-spin" aria-hidden="true" />
+										Preparing zip...
+									</>
+								) : (
+									<>
+										<Download className="size-4 mr-2" aria-hidden="true" />
+										Download all ({totalCount})
+									</>
+								)}
+							</Button>
+						)}
+					</div>
 				</CardHeader>
 				<CardContent>
 					{isLoading ? (

@@ -4,6 +4,7 @@
     "@sentry/deno": "npm:@sentry/deno@9",
     "stripe": "npm:stripe@20",
     "@upstash/ratelimit": "npm:@upstash/ratelimit",
-    "@upstash/redis": "npm:@upstash/redis"
+    "@upstash/redis": "npm:@upstash/redis",
+    "@zip.js/zip.js": "https://esm.sh/@zip.js/zip.js@2.7.45"
   }
 }
