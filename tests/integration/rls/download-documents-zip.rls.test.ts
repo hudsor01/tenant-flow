@@ -39,8 +39,12 @@ const SUPABASE_PUBLISHABLE_KEY =
 // function can land in this branch before the prod deployment exists.
 // When the function isn't deployed the Supabase gateway returns a
 // 404 with body `{code: 'NOT_FOUND', ...}`; the function's own 404
-// uses `{error: 'No documents match...'}`. Skip gracefully on the
-// former, run normally on the latter.
+// uses `{error: 'No documents match...'}`.
+//
+// Fail-OPEN policy: ONLY a gateway 404 + `{code: 'NOT_FOUND'}` is treated
+// as "not deployed". Every other outcome (5xx, 429, network error, DNS
+// failure) returns true, so the security-isolation tests run and fail
+// LOUDLY rather than silently skipping behind a transient blip.
 async function isFunctionDeployed(): Promise<boolean> {
 	if (!SUPABASE_URL || !SUPABASE_PUBLISHABLE_KEY) return false
 	try {
@@ -55,20 +59,18 @@ async function isFunctionDeployed(): Promise<boolean> {
 				body: '{}'
 			}
 		)
-		// Function deployed → 401 (validateBearerAuth, no token) or
-		// 400 (function-level body parse). NOT deployed → gateway 404
-		// with `{code:'NOT_FOUND'}`. Transient gateway 5xx → fail open
-		// (treat as deployed) so the test fails LOUD instead of silently
-		// skipping a security-isolation guard.
 		if (probe.status === 404) {
 			const body = (await probe.json().catch(() => ({}))) as {
 				code?: string
 			}
 			return body.code !== 'NOT_FOUND'
 		}
-		return probe.status === 401 || probe.status === 400 || probe.ok
+		return true
 	} catch {
-		return false
+		// Network unreachable is also treated as fail-open per the policy
+		// above — let the actual test fail with the real error rather
+		// than masking it as a deployment skip.
+		return true
 	}
 }
 
