@@ -309,6 +309,68 @@ describe('DocumentsSection', () => {
 		)
 	})
 
+	// Phase 65 cycle-3 I-1: error fallback + state re-sync.
+	it('falls back to seven default categories when useDocumentCategories has no rows', async () => {
+		// Empty owned set + not loading → fallback to DEFAULT_CATEGORY_LABELS.
+		// Covers both isError:true and isError:false-with-zero-rows (M-3).
+		mockUseDocumentCategories.mockReturnValue({
+			categories: [],
+			isLoading: false,
+			isError: true
+		})
+		mockUseQuery.mockReturnValue(emptyList())
+		mockUploadMutate.mockResolvedValue({})
+		const user = userEvent.setup()
+		renderSection()
+		// Open the Radix Select; assert all seven default labels rendered.
+		const trigger = screen.getByLabelText(/category for next upload/i)
+		await user.click(trigger)
+		for (const label of [
+			'Lease',
+			'Receipt',
+			'Tax return',
+			'Inspection report',
+			'Maintenance invoice',
+			'Insurance',
+			'Other'
+		]) {
+			expect(
+				await screen.findByRole('option', { name: new RegExp(`^${label}$`, 'i') })
+			).toBeInTheDocument()
+		}
+	})
+
+	it('re-syncs the upload category if the loaded set excludes the current value', async () => {
+		// Initial render: hook returns SEVEN_DEFAULTS (which includes 'other'),
+		// upload submits with 'other'. Then re-render with hook returning a
+		// reduced set that excludes 'other'; useEffect should re-sync to the
+		// first available slug.
+		const reducedSet = SEVEN_DEFAULTS.filter(c => c.slug !== 'other')
+		mockUseDocumentCategories.mockReturnValue({
+			categories: reducedSet,
+			isLoading: false,
+			isError: false
+		})
+		mockUseQuery.mockReturnValue(emptyList())
+		mockUploadMutate.mockResolvedValue({})
+		renderSection()
+
+		const input = document.querySelector(
+			'input[type="file"]'
+		) as HTMLInputElement
+		const file = new File(['fake pdf'], 'resync.pdf', {
+			type: 'application/pdf'
+		})
+		fireEvent.change(input, { target: { files: [file] } })
+		await waitFor(() => {
+			expect(mockUploadMutate).toHaveBeenCalledTimes(1)
+		})
+		// reducedSet's first slug is 'lease' — useEffect re-synced category.
+		expect(mockUploadMutate).toHaveBeenCalledWith(
+			expect.objectContaining({ category: 'lease' })
+		)
+	})
+
 	it('renders an error state with Try again button when the query errors', () => {
 		mockUseQuery.mockReturnValue({
 			data: undefined,

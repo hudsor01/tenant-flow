@@ -10,8 +10,6 @@
 --      triggers so client code can't call them anyway, but the asymmetry
 --      stood out in review.
 
-begin;
-
 create or replace function public.validate_document_category()
 returns trigger
 language plpgsql
@@ -36,5 +34,3 @@ $$;
 
 revoke all on function public.validate_document_category() from public, anon, authenticated;
 revoke all on function public.handle_new_user_seed_categories() from public, anon, authenticated;
-
-commit;

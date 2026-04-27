@@ -76,11 +76,17 @@ export function DocumentsSection({ entityType, entityId }: DocumentsSectionProps
 	// floor of every owner's category set.
 	const {
 		categories: ownedCategories,
-		isLoading: categoriesLoading,
-		isError: categoriesError
+		isLoading: categoriesLoading
 	} = useDocumentCategories()
 	const selectOptions = useMemo(() => {
-		if (categoriesError && ownedCategories.length === 0) {
+		// Fall back to the seven seeded defaults whenever the owned set
+		// is empty AND we're not still loading. Covers BOTH the explicit
+		// error case (network failure, 5xx) AND the empty-success edge
+		// case (transient zero-row response, or — once Phase 66 ships —
+		// a user mid-deletion who removed every category). The fallback
+		// keeps the upload Select usable; the trigger will reject any
+		// slug that isn't in the user's actual taxonomy at write time.
+		if (!categoriesLoading && ownedCategories.length === 0) {
 			return DEFAULT_CATEGORY_SLUGS.map(slug => ({
 				slug,
 				label: DEFAULT_CATEGORY_LABELS[slug],
@@ -92,7 +98,7 @@ export function DocumentsSection({ entityType, entityId }: DocumentsSectionProps
 			label: c.label,
 			key: c.id
 		}))
-	}, [ownedCategories, categoriesError])
+	}, [ownedCategories, categoriesLoading])
 	// Re-sync `category` if the loaded set doesn't include the current
 	// state value. Prevents the form from submitting an orphaned slug
 	// (which would 23514 at the trigger boundary).

@@ -94,10 +94,11 @@ export function mapDocumentCategoryRow(
 }
 
 export const documentCategoryQueries = {
-	all: () =>
-		queryOptions({
-			queryKey: ['documentCategories'] as const
-		}),
+	// Bare-tuple shape matches sibling factories (propertyQueries.all,
+	// tenantQueries.all, etc.) so consumers can do
+	// `invalidateQueries({ queryKey: documentCategoryQueries.all() })`
+	// without unwrapping `.queryKey`.
+	all: () => ['documentCategories'] as const,
 	list: () =>
 		queryOptions({
 			queryKey: ['documentCategories', 'list'] as const,
