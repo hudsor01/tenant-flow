@@ -19,6 +19,8 @@ export interface MultiSelectChipsProps<T extends string> {
 	placeholder?: string
 	'aria-label'?: string
 	className?: string
+	/** Disables the trigger and the clear-x button. Used while option list is loading. */
+	disabled?: boolean
 }
 
 /**
@@ -36,7 +38,8 @@ export function MultiSelectChips<T extends string>({
 	onChange,
 	placeholder = 'Any',
 	'aria-label': ariaLabel,
-	className
+	className,
+	disabled = false
 }: MultiSelectChipsProps<T>) {
 	const [open, setOpen] = useState(false)
 	const selected = new Set(value)
@@ -70,6 +73,7 @@ export function MultiSelectChips<T extends string>({
 							selected.size === 0 && 'text-muted-foreground'
 						)}
 						aria-label={ariaLabel}
+						disabled={disabled}
 					>
 						<span className="truncate">{summary}</span>
 						<ChevronDown className="ml-2 size-4 shrink-0 opacity-50" aria-hidden="true" />
@@ -133,6 +137,7 @@ export function MultiSelectChips<T extends string>({
 					className="size-9 p-0"
 					onClick={() => onChange([])}
 					aria-label="Clear selection"
+					disabled={disabled}
 				>
 					<X className="size-4" aria-hidden="true" />
 				</Button>

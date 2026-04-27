@@ -24,11 +24,8 @@ import {
 	type DocumentEntityType,
 	type DocumentRow as DocumentRowData
 } from '#hooks/api/query-keys/document-keys'
-import {
-	DOCUMENT_CATEGORIES,
-	DOCUMENT_CATEGORY_LABELS,
-	type DocumentCategory
-} from '#lib/validation/documents'
+import { type DocumentCategory } from '#lib/validation/documents'
+import { useDocumentCategories } from '#hooks/api/use-document-categories'
 import { ownerDashboardKeys } from '#hooks/api/use-owner-dashboard'
 import { AlertTriangle, FileText, Loader2, Plus } from 'lucide-react'
 import { useCallback, useRef, useState } from 'react'
@@ -63,10 +60,14 @@ export function DocumentsSection({ entityType, entityId }: DocumentsSectionProps
 	const [deletingIds, setDeletingIds] = useState<Set<string>>(() => new Set())
 	// One category per upload batch. Multi-file uploads share the choice;
 	// per-file categorization would force a dialog roundtrip we want to
-	// avoid. Defaults to 'other' — matches the column-level default added
-	// in migration 20260425172604 so the per-file flow and any direct
-	// PostgREST insert produce the same row.
+	// avoid. Defaults to 'other' — every owner is seeded with `other` at
+	// signup (Phase 65 migration) so this is always a valid slug.
 	const [category, setCategory] = useState<DocumentCategory>('other')
+	// Phase 65: Select options come from the per-owner taxonomy.
+	const {
+		categories: ownedCategories,
+		isLoading: categoriesLoading
+	} = useDocumentCategories()
 
 	const {
 		data: listResult,
@@ -183,19 +184,19 @@ export function DocumentsSection({ entityType, entityId }: DocumentsSectionProps
 					<Select
 						value={category}
 						onValueChange={value => setCategory(value as DocumentCategory)}
-						disabled={isUploading}
+						disabled={isUploading || categoriesLoading}
 					>
 						<SelectTrigger
 							size="sm"
 							className="w-[180px]"
 							aria-label="Category for next upload"
 						>
-							<SelectValue />
+							<SelectValue placeholder={categoriesLoading ? 'Loading…' : undefined} />
 						</SelectTrigger>
 						<SelectContent>
-							{DOCUMENT_CATEGORIES.map(value => (
-								<SelectItem key={value} value={value}>
-									{DOCUMENT_CATEGORY_LABELS[value]}
+							{ownedCategories.map(c => (
+								<SelectItem key={c.id} value={c.slug}>
+									{c.label}
 								</SelectItem>
 							))}
 						</SelectContent>

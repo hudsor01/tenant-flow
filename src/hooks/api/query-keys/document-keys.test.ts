@@ -1,11 +1,15 @@
 /**
  * Unit tests for `mapDocumentRow` — the typed PostgREST→DocumentRow
- * boundary mapper introduced in PR #636 cycle-2 (P2-1).
+ * boundary mapper.
  *
- * Pins three behaviours the cycle-3 audit raised:
- *   (a) Valid taxonomy values pass through unchanged.
- *   (b) Out-of-band `document_type` degrades to `'other'` rather than
- *       poisoning downstream Record<DocumentCategory, ...> lookups.
+ * v2.6 Phase 65 changed `document_type` from a CHECK-enum column to a
+ * soft FK against `document_categories.slug`. The mapper no longer
+ * clamps to a closed enum — it trusts whatever slug the DB returns
+ * (the BEFORE-INSERT trigger already validated it at write time).
+ *
+ * Pins:
+ *   (a) Valid slugs pass through unchanged.
+ *   (b) Custom slugs (Phase 65: arbitrary lowercase-snake_case) pass through.
  *   (c) Missing NOT NULL fields throw with a descriptive message
  *       rather than silently producing the literal string "undefined".
  */
@@ -39,17 +43,22 @@ describe('mapDocumentRow', () => {
 		expect(mapped.description).toBeNull()
 	})
 
-	it('degrades an out-of-band document_type to "other" (cycle-3 boundary defense)', () => {
+	it('passes through custom slugs (Phase 65: any lowercase-snake_case)', () => {
+		// Pre-Phase-65 this would have degraded to 'other'. Now slugs are
+		// per-owner via the document_categories table; the trigger gates
+		// at write time, so any slug coming OUT of PostgREST is by
+		// definition one the owner has in their taxonomy.
 		const mapped = mapDocumentRow({ ...fullRow, document_type: 'warranty' })
-		expect(mapped.document_type).toBe('other')
+		expect(mapped.document_type).toBe('warranty')
 	})
 
-	it('degrades a null document_type to "other"', () => {
-		const mapped = mapDocumentRow({ ...fullRow, document_type: null })
-		expect(mapped.document_type).toBe('other')
+	it('throws when document_type is null (column is NOT NULL since Phase 61)', () => {
+		expect(() => mapDocumentRow({ ...fullRow, document_type: null })).toThrowError(
+			/'document_type'/
+		)
 	})
 
-	it('throws when a NOT NULL field is missing from the PostgREST response (cycle-3 NIT-1)', () => {
+	it('throws when a NOT NULL field is missing from the PostgREST response', () => {
 		// Drop `id` — a future hand-edited `.select(...)` typo is the
 		// realistic regression scenario this guards against.
 		const { id: _id, ...withoutId } = fullRow
@@ -63,6 +72,7 @@ describe('mapDocumentRow', () => {
 		for (const field of [
 			'entity_type',
 			'entity_id',
+			'document_type',
 			'file_path',
 			'storage_url'
 		] as const) {

@@ -17,6 +17,15 @@ const mockToastSuccess = vi.fn()
 const mockToastError = vi.fn()
 const mockToastWarning = vi.fn()
 
+// Phase 65: mock the per-owner taxonomy hook with the seven seeded
+// defaults so existing assertions on category-related rendering keep
+// matching pre-65 behaviour.
+const mockUseDocumentCategories = vi.fn()
+
+vi.mock('#hooks/api/use-document-categories', () => ({
+	useDocumentCategories: () => mockUseDocumentCategories()
+}))
+
 // Shape used by useMutation mock — lets individual tests override
 // `isPending` to exercise the uploading-state branch.
 let uploadPending = false
@@ -91,10 +100,25 @@ function list(rows: unknown[], totalCount = rows.length) {
 	}
 }
 
+const SEVEN_DEFAULTS = [
+	{ id: 'cat-1', slug: 'lease', label: 'Lease', sort_order: 10, is_default: true, owner_user_id: 'u', created_at: null, updated_at: null },
+	{ id: 'cat-2', slug: 'receipt', label: 'Receipt', sort_order: 20, is_default: true, owner_user_id: 'u', created_at: null, updated_at: null },
+	{ id: 'cat-3', slug: 'tax_return', label: 'Tax return', sort_order: 30, is_default: true, owner_user_id: 'u', created_at: null, updated_at: null },
+	{ id: 'cat-4', slug: 'inspection_report', label: 'Inspection report', sort_order: 40, is_default: true, owner_user_id: 'u', created_at: null, updated_at: null },
+	{ id: 'cat-5', slug: 'maintenance_invoice', label: 'Maintenance invoice', sort_order: 50, is_default: true, owner_user_id: 'u', created_at: null, updated_at: null },
+	{ id: 'cat-6', slug: 'insurance', label: 'Insurance', sort_order: 60, is_default: true, owner_user_id: 'u', created_at: null, updated_at: null },
+	{ id: 'cat-7', slug: 'other', label: 'Other', sort_order: 70, is_default: true, owner_user_id: 'u', created_at: null, updated_at: null }
+]
+
 describe('DocumentsSection', () => {
 	beforeEach(() => {
 		vi.clearAllMocks()
 		uploadPending = false
+		mockUseDocumentCategories.mockReturnValue({
+			categories: SEVEN_DEFAULTS,
+			isLoading: false,
+			isError: false
+		})
 	})
 
 	it('hides empty-state CTA while the documents query is in flight', () => {

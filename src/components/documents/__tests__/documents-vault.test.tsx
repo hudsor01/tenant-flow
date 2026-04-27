@@ -24,6 +24,25 @@ vi.mock('#lib/supabase/client', () => ({
 	})
 }))
 
+// Phase 65: vault filter Select reads categories from the per-owner
+// taxonomy hook. Mock with the seven seeded defaults so existing
+// assertions on category-related rendering keep matching pre-65
+// behaviour.
+const mockUseDocumentCategories = vi.fn()
+vi.mock('#hooks/api/use-document-categories', () => ({
+	useDocumentCategories: () => mockUseDocumentCategories()
+}))
+
+const SEVEN_DEFAULTS = [
+	{ id: 'cat-1', slug: 'lease', label: 'Lease', sort_order: 10, is_default: true, owner_user_id: 'u', created_at: null, updated_at: null },
+	{ id: 'cat-2', slug: 'receipt', label: 'Receipt', sort_order: 20, is_default: true, owner_user_id: 'u', created_at: null, updated_at: null },
+	{ id: 'cat-3', slug: 'tax_return', label: 'Tax return', sort_order: 30, is_default: true, owner_user_id: 'u', created_at: null, updated_at: null },
+	{ id: 'cat-4', slug: 'inspection_report', label: 'Inspection report', sort_order: 40, is_default: true, owner_user_id: 'u', created_at: null, updated_at: null },
+	{ id: 'cat-5', slug: 'maintenance_invoice', label: 'Maintenance invoice', sort_order: 50, is_default: true, owner_user_id: 'u', created_at: null, updated_at: null },
+	{ id: 'cat-6', slug: 'insurance', label: 'Insurance', sort_order: 60, is_default: true, owner_user_id: 'u', created_at: null, updated_at: null },
+	{ id: 'cat-7', slug: 'other', label: 'Other', sort_order: 70, is_default: true, owner_user_id: 'u', created_at: null, updated_at: null }
+]
+
 vi.mock('sonner', () => ({
 	toast: {
 		error: (...args: unknown[]) => mockToastError(...args),
@@ -91,6 +110,11 @@ describe('DocumentsVaultClient', () => {
 		pageParamValue = 0
 		mockGetSession.mockResolvedValue({
 			data: { session: { access_token: 'test-token' } }
+		})
+		mockUseDocumentCategories.mockReturnValue({
+			categories: SEVEN_DEFAULTS,
+			isLoading: false,
+			isError: false
 		})
 	})
 
