@@ -331,9 +331,13 @@ describe('search_documents RPC', () => {
 		}
 	})
 
-	it('Phase 61: CHECK constraint rejects non-taxonomy document_type values', async () => {
-		// Migration 20260425172604 enforces the seven-category enum. Any
-		// other value must be rejected at insert time with 23514.
+	it('Phase 61/65: trigger rejects non-taxonomy document_type values', async () => {
+		// Phase 61 (migration 20260425172604) added a CHECK constraint
+		// enforcing the seven-category enum. Phase 65 replaced that CHECK
+		// with a per-owner soft FK validated by a BEFORE-INSERT trigger
+		// (`validate_document_category`). The error code is still 23514
+		// but the message wording changed from PostgreSQL's CHECK violation
+		// to the trigger's RAISE EXCEPTION text.
 		const ts = Date.now()
 		const path = `property/${propertyA!.id}/${ts}-bad-type.pdf`
 		const { error: storageErr } = await clientA.storage
@@ -362,11 +366,8 @@ describe('search_documents RPC', () => {
 			.select('id')
 			.single()
 
-		expect(insertErr, 'CHECK constraint should reject non-taxonomy value').not
-			.toBeNull()
-		expect(insertErr!.message).toMatch(
-			/documents_document_type_check|check constraint/i
-		)
+		expect(insertErr, 'trigger should reject non-taxonomy value').not.toBeNull()
+		expect(insertErr!.message).toMatch(/is not a valid category/i)
 	})
 
 	it('Phase 61: omitted document_type defaults to "other"', async () => {

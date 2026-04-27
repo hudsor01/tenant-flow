@@ -19,6 +19,8 @@ export interface MultiSelectChipsProps<T extends string> {
 	placeholder?: string
 	'aria-label'?: string
 	className?: string
+	/** Disables the trigger and the clear-x button. Used while option list is loading. */
+	disabled?: boolean
 }
 
 /**
@@ -27,8 +29,12 @@ export interface MultiSelectChipsProps<T extends string> {
  * or removes that value from the array. Used by the documents vault for
  * the multi-select category filter (Phase 63).
  *
- * Generic over the value type so callers preserve their own union (e.g.
- * `DocumentCategory`) instead of widening to `string`.
+ * Generic over the value type — `T extends string` lets callers narrow
+ * to their own slug type even when the underlying alias is `string`
+ * (e.g. `DocumentCategory` post-Phase-65 is a structural alias for
+ * `string`, but `MultiSelectChips<DocumentCategory>` still propagates
+ * `T` through `value`/`onChange` so swapping in a different slug type
+ * later catches mismatches at the call site).
  */
 export function MultiSelectChips<T extends string>({
 	options,
@@ -36,7 +42,8 @@ export function MultiSelectChips<T extends string>({
 	onChange,
 	placeholder = 'Any',
 	'aria-label': ariaLabel,
-	className
+	className,
+	disabled = false
 }: MultiSelectChipsProps<T>) {
 	const [open, setOpen] = useState(false)
 	const selected = new Set(value)
@@ -70,6 +77,7 @@ export function MultiSelectChips<T extends string>({
 							selected.size === 0 && 'text-muted-foreground'
 						)}
 						aria-label={ariaLabel}
+						disabled={disabled}
 					>
 						<span className="truncate">{summary}</span>
 						<ChevronDown className="ml-2 size-4 shrink-0 opacity-50" aria-hidden="true" />
@@ -110,7 +118,7 @@ export function MultiSelectChips<T extends string>({
 							size="sm"
 							className="h-7 px-2 text-xs"
 							onClick={() => onChange([])}
-							disabled={selected.size === 0}
+							disabled={disabled || selected.size === 0}
 						>
 							Clear
 						</Button>
@@ -120,6 +128,7 @@ export function MultiSelectChips<T extends string>({
 							size="sm"
 							className="h-7 px-2 text-xs"
 							onClick={() => setOpen(false)}
+							disabled={disabled}
 						>
 							Done
 						</Button>
@@ -133,6 +142,7 @@ export function MultiSelectChips<T extends string>({
 					className="size-9 p-0"
 					onClick={() => onChange([])}
 					aria-label="Clear selection"
+					disabled={disabled}
 				>
 					<X className="size-4" aria-hidden="true" />
 				</Button>

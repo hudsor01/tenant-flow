@@ -17,6 +17,15 @@ const mockToastSuccess = vi.fn()
 const mockToastError = vi.fn()
 const mockToastWarning = vi.fn()
 
+// Phase 65: mock the per-owner taxonomy hook with the seven seeded
+// defaults so existing assertions on category-related rendering keep
+// matching pre-65 behaviour.
+const mockUseDocumentCategories = vi.fn()
+
+vi.mock('#hooks/api/use-document-categories', () => ({
+	useDocumentCategories: () => mockUseDocumentCategories()
+}))
+
 // Shape used by useMutation mock — lets individual tests override
 // `isPending` to exercise the uploading-state branch.
 let uploadPending = false
@@ -91,10 +100,25 @@ function list(rows: unknown[], totalCount = rows.length) {
 	}
 }
 
+const SEVEN_DEFAULTS = [
+	{ id: 'cat-1', slug: 'lease', label: 'Lease', sort_order: 10, is_default: true, owner_user_id: 'u', created_at: '2026-04-26T00:00:00Z', updated_at: '2026-04-26T00:00:00Z' },
+	{ id: 'cat-2', slug: 'receipt', label: 'Receipt', sort_order: 20, is_default: true, owner_user_id: 'u', created_at: '2026-04-26T00:00:00Z', updated_at: '2026-04-26T00:00:00Z' },
+	{ id: 'cat-3', slug: 'tax_return', label: 'Tax return', sort_order: 30, is_default: true, owner_user_id: 'u', created_at: '2026-04-26T00:00:00Z', updated_at: '2026-04-26T00:00:00Z' },
+	{ id: 'cat-4', slug: 'inspection_report', label: 'Inspection report', sort_order: 40, is_default: true, owner_user_id: 'u', created_at: '2026-04-26T00:00:00Z', updated_at: '2026-04-26T00:00:00Z' },
+	{ id: 'cat-5', slug: 'maintenance_invoice', label: 'Maintenance invoice', sort_order: 50, is_default: true, owner_user_id: 'u', created_at: '2026-04-26T00:00:00Z', updated_at: '2026-04-26T00:00:00Z' },
+	{ id: 'cat-6', slug: 'insurance', label: 'Insurance', sort_order: 60, is_default: true, owner_user_id: 'u', created_at: '2026-04-26T00:00:00Z', updated_at: '2026-04-26T00:00:00Z' },
+	{ id: 'cat-7', slug: 'other', label: 'Other', sort_order: 70, is_default: true, owner_user_id: 'u', created_at: '2026-04-26T00:00:00Z', updated_at: '2026-04-26T00:00:00Z' }
+]
+
 describe('DocumentsSection', () => {
 	beforeEach(() => {
 		vi.clearAllMocks()
 		uploadPending = false
+		mockUseDocumentCategories.mockReturnValue({
+			categories: SEVEN_DEFAULTS,
+			isLoading: false,
+			isError: false
+		})
 	})
 
 	it('hides empty-state CTA while the documents query is in flight', () => {
@@ -280,6 +304,68 @@ describe('DocumentsSection', () => {
 		await waitFor(() => {
 			expect(mockUploadMutate).toHaveBeenCalledTimes(1)
 		})
+		expect(mockUploadMutate).toHaveBeenCalledWith(
+			expect.objectContaining({ category: 'lease' })
+		)
+	})
+
+	// Phase 65 cycle-3 I-1: error fallback + state re-sync.
+	it('falls back to seven default categories when useDocumentCategories has no rows', async () => {
+		// Empty owned set + not loading → fallback to DEFAULT_CATEGORY_LABELS.
+		// Covers both isError:true and isError:false-with-zero-rows (M-3).
+		mockUseDocumentCategories.mockReturnValue({
+			categories: [],
+			isLoading: false,
+			isError: true
+		})
+		mockUseQuery.mockReturnValue(emptyList())
+		mockUploadMutate.mockResolvedValue({})
+		const user = userEvent.setup()
+		renderSection()
+		// Open the Radix Select; assert all seven default labels rendered.
+		const trigger = screen.getByLabelText(/category for next upload/i)
+		await user.click(trigger)
+		for (const label of [
+			'Lease',
+			'Receipt',
+			'Tax return',
+			'Inspection report',
+			'Maintenance invoice',
+			'Insurance',
+			'Other'
+		]) {
+			expect(
+				await screen.findByRole('option', { name: new RegExp(`^${label}$`, 'i') })
+			).toBeInTheDocument()
+		}
+	})
+
+	it('re-syncs the upload category if the loaded set excludes the current value', async () => {
+		// Initial render: hook returns SEVEN_DEFAULTS (which includes 'other'),
+		// upload submits with 'other'. Then re-render with hook returning a
+		// reduced set that excludes 'other'; useEffect should re-sync to the
+		// first available slug.
+		const reducedSet = SEVEN_DEFAULTS.filter(c => c.slug !== 'other')
+		mockUseDocumentCategories.mockReturnValue({
+			categories: reducedSet,
+			isLoading: false,
+			isError: false
+		})
+		mockUseQuery.mockReturnValue(emptyList())
+		mockUploadMutate.mockResolvedValue({})
+		renderSection()
+
+		const input = document.querySelector(
+			'input[type="file"]'
+		) as HTMLInputElement
+		const file = new File(['fake pdf'], 'resync.pdf', {
+			type: 'application/pdf'
+		})
+		fireEvent.change(input, { target: { files: [file] } })
+		await waitFor(() => {
+			expect(mockUploadMutate).toHaveBeenCalledTimes(1)
+		})
+		// reducedSet's first slug is 'lease' — useEffect re-synced category.
 		expect(mockUploadMutate).toHaveBeenCalledWith(
 			expect.objectContaining({ category: 'lease' })
 		)

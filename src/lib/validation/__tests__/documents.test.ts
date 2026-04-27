@@ -1,37 +1,45 @@
 import { describe, it, expect } from 'vitest'
 import { readFileSync } from 'node:fs'
 import {
-	DOCUMENT_CATEGORIES,
-	DOCUMENT_CATEGORY_LABELS,
-	documentCategorySchema
+	DEFAULT_CATEGORY_SLUGS,
+	DEFAULT_CATEGORY_LABELS,
+	documentCategorySlugSchema,
+	makeCategorySchema
 } from '../documents'
 
-describe('documentCategorySchema', () => {
-	it('accepts every category in DOCUMENT_CATEGORIES', () => {
-		for (const category of DOCUMENT_CATEGORIES) {
-			expect(documentCategorySchema.safeParse(category).success).toBe(true)
+describe('documentCategorySlugSchema', () => {
+	it('accepts every default slug', () => {
+		for (const slug of DEFAULT_CATEGORY_SLUGS) {
+			expect(documentCategorySlugSchema.safeParse(slug).success).toBe(true)
 		}
 	})
 
-	it('rejects values outside the enum', () => {
-		expect(documentCategorySchema.safeParse('warranty').success).toBe(false)
-		expect(documentCategorySchema.safeParse('LEASE').success).toBe(false)
-		expect(documentCategorySchema.safeParse('').success).toBe(false)
-		expect(documentCategorySchema.safeParse(null).success).toBe(false)
-		expect(documentCategorySchema.safeParse(undefined).success).toBe(false)
+	it('accepts arbitrary lowercase-snake_case slugs (Phase 65: any-slug shape)', () => {
+		expect(documentCategorySlugSchema.safeParse('warranty').success).toBe(true)
+		expect(documentCategorySlugSchema.safeParse('home_office_2024').success).toBe(true)
 	})
 
-	it('exposes a label for every category — keeps Select renders deterministic', () => {
-		for (const category of DOCUMENT_CATEGORIES) {
-			expect(DOCUMENT_CATEGORY_LABELS[category]).toBeTruthy()
-			expect(typeof DOCUMENT_CATEGORY_LABELS[category]).toBe('string')
+	it('rejects malformed slugs', () => {
+		expect(documentCategorySlugSchema.safeParse('LEASE').success).toBe(false)
+		expect(documentCategorySlugSchema.safeParse('lease 1').success).toBe(false)
+		expect(documentCategorySlugSchema.safeParse('lease-1').success).toBe(false)
+		expect(documentCategorySlugSchema.safeParse('').success).toBe(false)
+		expect(documentCategorySlugSchema.safeParse('a'.repeat(51)).success).toBe(false)
+		expect(documentCategorySlugSchema.safeParse(null).success).toBe(false)
+		expect(documentCategorySlugSchema.safeParse(undefined).success).toBe(false)
+	})
+
+	it('exposes a label for every default slug', () => {
+		for (const slug of DEFAULT_CATEGORY_SLUGS) {
+			expect(DEFAULT_CATEGORY_LABELS[slug]).toBeTruthy()
+			expect(typeof DEFAULT_CATEGORY_LABELS[slug]).toBe('string')
 		}
 	})
 
-	it('matches the CHECK constraint in migration 20260425172604 exactly', () => {
-		// If you change DOCUMENT_CATEGORIES, ALSO update the migration —
-		// otherwise PostgREST inserts will throw 23514 check_violation.
-		expect([...DOCUMENT_CATEGORIES]).toEqual([
+	it('default slug list matches the seed function in migration 20260427023101', () => {
+		// If you change DEFAULT_CATEGORY_SLUGS, ALSO update the seed function —
+		// otherwise new owners get the wrong starter set.
+		expect([...DEFAULT_CATEGORY_SLUGS]).toEqual([
 			'lease',
 			'receipt',
 			'tax_return',
@@ -42,27 +50,45 @@ describe('documentCategorySchema', () => {
 		])
 	})
 
-	it('migration source is in lockstep with DOCUMENT_CATEGORIES (NIT cross-check)', () => {
-		// Reads the migration file at runtime and parses the literal CHECK
-		// list. Catches the three-source-of-truth drift: if someone edits
-		// the tuple WITHOUT updating the migration (or vice versa), the
-		// hard-coded array literal above would still match the tuple but
-		// this test fails. The migration is the database's source of
-		// truth; this guard makes the repo's source of truth match it.
+	it('migration seed function is in lockstep with DEFAULT_CATEGORY_SLUGS', () => {
+		// The seed function in the Phase 65 migration inserts the seven
+		// defaults via VALUES tuples. This regex pulls those slug literals
+		// and asserts they match DEFAULT_CATEGORY_SLUGS — closes the
+		// three-source-of-truth gap (table seed, default labels constant,
+		// new-user trigger).
 		const migrationSql = readFileSync(
-			'supabase/migrations/20260425172604_v24_phase_61_document_type_taxonomy.sql',
+			'supabase/migrations/20260427023101_v26_phase_65_document_categories_table.sql',
 			'utf8'
 		)
-		// Case-insensitive + whitespace-tolerant — a future migration
-		// that uppercases CHECK / IN, or wraps the predicate over
-		// multiple lines with extra whitespace, must still match.
-		const checkBlock = migrationSql.match(
-			/check\s*\(\s*document_type\s+in\s*\(([\s\S]*?)\)\s*\)/i
-		)?.[1]
-		expect(checkBlock, 'CHECK block not found in migration').toBeDefined()
-		const quoted = (checkBlock!.match(/'([^']+)'/g) ?? []).map(m =>
-			m.replace(/^'|'$/g, '')
+		const seedFn = migrationSql.match(
+			/seed_default_document_categories[\s\S]*?on conflict/i
+		)?.[0]
+		expect(seedFn, 'seed function block not found').toBeDefined()
+		const slugSet = new Set(
+			Array.from(seedFn!.matchAll(/'([a-z_]+)'/g)).map(m => m[1] as string)
 		)
-		expect(quoted.sort()).toEqual([...DOCUMENT_CATEGORIES].sort())
+		for (const slug of DEFAULT_CATEGORY_SLUGS) {
+			expect(slugSet.has(slug), `slug '${slug}' missing from seed function`).toBe(true)
+		}
+	})
+})
+
+describe('makeCategorySchema', () => {
+	it('returns a runtime enum gating against the allowed set', () => {
+		const schema = makeCategorySchema(['lease', 'insurance'])
+		expect(schema.safeParse('lease').success).toBe(true)
+		expect(schema.safeParse('insurance').success).toBe(true)
+		expect(schema.safeParse('warranty').success).toBe(false)
+	})
+
+	it('falls through to the any-slug shape when the allowed list is empty', () => {
+		// Loading-state callers shouldn't false-reject every value while
+		// the categories query is still in flight.
+		const schema = makeCategorySchema([])
+		expect(schema.safeParse('lease').success).toBe(true)
+		expect(schema.safeParse('warranty').success).toBe(true)
+		// But malformed slugs still fail through documentCategorySlugSchema.
+		expect(schema.safeParse('LEASE').success).toBe(false)
+		expect(schema.safeParse('').success).toBe(false)
 	})
 })
