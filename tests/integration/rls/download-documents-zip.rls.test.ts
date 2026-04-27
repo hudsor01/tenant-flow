@@ -25,17 +25,22 @@ import { createTestClient, getTestCredentials } from '../setup/supabase-client'
 import type { SupabaseClient } from '@supabase/supabase-js'
 
 const PAYLOAD = '%PDF-1.4\n%%EOF'
-const SUPABASE_URL = process.env['NEXT_PUBLIC_SUPABASE_URL']
+// `tests/integration/setup/supabase-client.ts` already throws at
+// import-time when these env vars are missing, so the `!` here is
+// safe by transitive guarantee. Rebinding to a narrowed `string`
+// eliminates `!` at every usage site (cycle-7 M-3).
+const SUPABASE_URL = process.env['NEXT_PUBLIC_SUPABASE_URL']!
 const SUPABASE_PUBLISHABLE_KEY =
-	process.env['NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY']
+	process.env['NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY']!
 
 // Probe whether the Edge Function is deployed. Edge Functions have no
 // automatic CI deploy step (they ship via `supabase functions deploy`
 // or MCP, out-of-band from this repo's PR pipeline), so a brand-new
 // function can land in this branch before the prod deployment exists.
 // When the function isn't deployed the Supabase gateway returns a
-// JSON-shaped error with `{code: 'NOT_FOUND'}` — that's our signal to
-// skip the suite gracefully.
+// 404 with body `{code: 'NOT_FOUND', ...}`; the function's own 404
+// uses `{error: 'No documents match...'}`. Skip gracefully on the
+// former, run normally on the latter.
 async function isFunctionDeployed(): Promise<boolean> {
 	if (!SUPABASE_URL || !SUPABASE_PUBLISHABLE_KEY) return false
 	try {
@@ -50,14 +55,18 @@ async function isFunctionDeployed(): Promise<boolean> {
 				body: '{}'
 			}
 		)
-		const body = (await probe.json().catch(() => ({}))) as {
-			code?: string
-			error?: string
+		// Function deployed → 401 (validateBearerAuth, no token) or
+		// 400 (function-level body parse). NOT deployed → gateway 404
+		// with `{code:'NOT_FOUND'}`. Transient gateway 5xx → fail open
+		// (treat as deployed) so the test fails LOUD instead of silently
+		// skipping a security-isolation guard.
+		if (probe.status === 404) {
+			const body = (await probe.json().catch(() => ({}))) as {
+				code?: string
+			}
+			return body.code !== 'NOT_FOUND'
 		}
-		// Gateway "function not found" surfaces as code: 'NOT_FOUND'.
-		// Anything else (401 from validateBearerAuth, 400, etc.) means
-		// the function ran.
-		return body.code !== 'NOT_FOUND'
+		return probe.status === 401 || probe.status === 400 || probe.ok
 	} catch {
 		return false
 	}
@@ -77,9 +86,6 @@ describe('download-documents-zip Edge Function — owner isolation', () => {
 	let suiteDeployed = false
 
 	beforeAll(async () => {
-		if (!SUPABASE_URL) {
-			throw new Error('NEXT_PUBLIC_SUPABASE_URL must be set')
-		}
 		suiteDeployed = await isFunctionDeployed()
 		if (!suiteDeployed) {
 			console.warn(
@@ -169,15 +175,15 @@ describe('download-documents-zip Edge Function — owner isolation', () => {
 		await clientB.auth.signOut()
 	})
 
-	it('ownerA can download a zip containing the sentinel doc', async () => {
-		if (!suiteDeployed) return
+	it('ownerA can download a zip containing the sentinel doc', async ctx => {
+		if (!suiteDeployed) ctx.skip()
 		const res = await fetch(
 			`${SUPABASE_URL}/functions/v1/download-documents-zip`,
 			{
 				method: 'POST',
 				headers: {
 					Authorization: `Bearer ${ownerATokens.access_token}`,
-					apikey: SUPABASE_PUBLISHABLE_KEY!,
+					apikey: SUPABASE_PUBLISHABLE_KEY,
 					'Content-Type': 'application/json'
 				},
 				body: JSON.stringify({ query: sentinel })
@@ -196,15 +202,15 @@ describe('download-documents-zip Edge Function — owner isolation', () => {
 		expect(magic[1]).toBe(0x4b)
 	})
 
-	it('ownerB filtering by ownerA sentinel receives 404, never 200', async () => {
-		if (!suiteDeployed) return
+	it('ownerB filtering by ownerA sentinel receives 404, never 200', async ctx => {
+		if (!suiteDeployed) ctx.skip()
 		const res = await fetch(
 			`${SUPABASE_URL}/functions/v1/download-documents-zip`,
 			{
 				method: 'POST',
 				headers: {
 					Authorization: `Bearer ${ownerBTokens.access_token}`,
-					apikey: SUPABASE_PUBLISHABLE_KEY!,
+					apikey: SUPABASE_PUBLISHABLE_KEY,
 					'Content-Type': 'application/json'
 				},
 				body: JSON.stringify({ query: sentinel })
@@ -220,14 +226,14 @@ describe('download-documents-zip Edge Function — owner isolation', () => {
 		expect(body.error).toMatch(/no documents match/i)
 	})
 
-	it('a request without a Bearer token receives 401', async () => {
-		if (!suiteDeployed) return
+	it('a request without a Bearer token receives 401', async ctx => {
+		if (!suiteDeployed) ctx.skip()
 		const res = await fetch(
 			`${SUPABASE_URL}/functions/v1/download-documents-zip`,
 			{
 				method: 'POST',
 				headers: {
-					apikey: SUPABASE_PUBLISHABLE_KEY!,
+					apikey: SUPABASE_PUBLISHABLE_KEY,
 					'Content-Type': 'application/json'
 				},
 				body: JSON.stringify({ query: sentinel })
