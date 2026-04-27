@@ -24,11 +24,15 @@ import {
 	type DocumentEntityType,
 	type DocumentRow as DocumentRowData
 } from '#hooks/api/query-keys/document-keys'
-import { type DocumentCategory } from '#lib/validation/documents'
+import {
+	DEFAULT_CATEGORY_LABELS,
+	DEFAULT_CATEGORY_SLUGS,
+	type DocumentCategory
+} from '#lib/validation/documents'
 import { useDocumentCategories } from '#hooks/api/use-document-categories'
 import { ownerDashboardKeys } from '#hooks/api/use-owner-dashboard'
 import { AlertTriangle, FileText, Loader2, Plus } from 'lucide-react'
-import { useCallback, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { toast } from 'sonner'
 import { DocumentRow } from './document-row'
 import {
@@ -61,13 +65,43 @@ export function DocumentsSection({ entityType, entityId }: DocumentsSectionProps
 	// One category per upload batch. Multi-file uploads share the choice;
 	// per-file categorization would force a dialog roundtrip we want to
 	// avoid. Defaults to 'other' — every owner is seeded with `other` at
-	// signup (Phase 65 migration) so this is always a valid slug.
+	// signup (Phase 65 migration) so this is always a valid slug at
+	// first render. The effect below re-syncs if the user has somehow
+	// removed `other` from their taxonomy by the time the categories
+	// query lands (Phase 66+ once delete is exposed).
 	const [category, setCategory] = useState<DocumentCategory>('other')
-	// Phase 65: Select options come from the per-owner taxonomy.
+	// Phase 65: Select options come from the per-owner taxonomy. On
+	// query error, fall back to the seven seeded defaults so the upload
+	// flow keeps working — those slugs are the migration-guaranteed
+	// floor of every owner's category set.
 	const {
 		categories: ownedCategories,
-		isLoading: categoriesLoading
+		isLoading: categoriesLoading,
+		isError: categoriesError
 	} = useDocumentCategories()
+	const selectOptions = useMemo(() => {
+		if (categoriesError && ownedCategories.length === 0) {
+			return DEFAULT_CATEGORY_SLUGS.map(slug => ({
+				slug,
+				label: DEFAULT_CATEGORY_LABELS[slug],
+				key: slug
+			}))
+		}
+		return ownedCategories.map(c => ({
+			slug: c.slug,
+			label: c.label,
+			key: c.id
+		}))
+	}, [ownedCategories, categoriesError])
+	// Re-sync `category` if the loaded set doesn't include the current
+	// state value. Prevents the form from submitting an orphaned slug
+	// (which would 23514 at the trigger boundary).
+	useEffect(() => {
+		if (selectOptions.length === 0) return
+		if (selectOptions.some(o => o.slug === category)) return
+		const fallback = selectOptions[0]?.slug
+		if (fallback) setCategory(fallback)
+	}, [selectOptions, category])
 
 	const {
 		data: listResult,
@@ -194,9 +228,9 @@ export function DocumentsSection({ entityType, entityId }: DocumentsSectionProps
 							<SelectValue placeholder={categoriesLoading ? 'Loading…' : undefined} />
 						</SelectTrigger>
 						<SelectContent>
-							{ownedCategories.map(c => (
-								<SelectItem key={c.id} value={c.slug}>
-									{c.label}
+							{selectOptions.map(o => (
+								<SelectItem key={o.key} value={o.slug}>
+									{o.label}
 								</SelectItem>
 							))}
 						</SelectContent>

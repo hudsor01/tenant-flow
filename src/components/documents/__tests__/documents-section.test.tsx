@@ -101,13 +101,13 @@ function list(rows: unknown[], totalCount = rows.length) {
 }
 
 const SEVEN_DEFAULTS = [
-	{ id: 'cat-1', slug: 'lease', label: 'Lease', sort_order: 10, is_default: true, owner_user_id: 'u', created_at: null, updated_at: null },
-	{ id: 'cat-2', slug: 'receipt', label: 'Receipt', sort_order: 20, is_default: true, owner_user_id: 'u', created_at: null, updated_at: null },
-	{ id: 'cat-3', slug: 'tax_return', label: 'Tax return', sort_order: 30, is_default: true, owner_user_id: 'u', created_at: null, updated_at: null },
-	{ id: 'cat-4', slug: 'inspection_report', label: 'Inspection report', sort_order: 40, is_default: true, owner_user_id: 'u', created_at: null, updated_at: null },
-	{ id: 'cat-5', slug: 'maintenance_invoice', label: 'Maintenance invoice', sort_order: 50, is_default: true, owner_user_id: 'u', created_at: null, updated_at: null },
-	{ id: 'cat-6', slug: 'insurance', label: 'Insurance', sort_order: 60, is_default: true, owner_user_id: 'u', created_at: null, updated_at: null },
-	{ id: 'cat-7', slug: 'other', label: 'Other', sort_order: 70, is_default: true, owner_user_id: 'u', created_at: null, updated_at: null }
+	{ id: 'cat-1', slug: 'lease', label: 'Lease', sort_order: 10, is_default: true, owner_user_id: 'u', created_at: '2026-04-26T00:00:00Z', updated_at: '2026-04-26T00:00:00Z' },
+	{ id: 'cat-2', slug: 'receipt', label: 'Receipt', sort_order: 20, is_default: true, owner_user_id: 'u', created_at: '2026-04-26T00:00:00Z', updated_at: '2026-04-26T00:00:00Z' },
+	{ id: 'cat-3', slug: 'tax_return', label: 'Tax return', sort_order: 30, is_default: true, owner_user_id: 'u', created_at: '2026-04-26T00:00:00Z', updated_at: '2026-04-26T00:00:00Z' },
+	{ id: 'cat-4', slug: 'inspection_report', label: 'Inspection report', sort_order: 40, is_default: true, owner_user_id: 'u', created_at: '2026-04-26T00:00:00Z', updated_at: '2026-04-26T00:00:00Z' },
+	{ id: 'cat-5', slug: 'maintenance_invoice', label: 'Maintenance invoice', sort_order: 50, is_default: true, owner_user_id: 'u', created_at: '2026-04-26T00:00:00Z', updated_at: '2026-04-26T00:00:00Z' },
+	{ id: 'cat-6', slug: 'insurance', label: 'Insurance', sort_order: 60, is_default: true, owner_user_id: 'u', created_at: '2026-04-26T00:00:00Z', updated_at: '2026-04-26T00:00:00Z' },
+	{ id: 'cat-7', slug: 'other', label: 'Other', sort_order: 70, is_default: true, owner_user_id: 'u', created_at: '2026-04-26T00:00:00Z', updated_at: '2026-04-26T00:00:00Z' }
 ]
 
 describe('DocumentsSection', () => {

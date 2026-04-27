@@ -64,11 +64,9 @@ describe('documentCategorySlugSchema', () => {
 			/seed_default_document_categories[\s\S]*?on conflict/i
 		)?.[0]
 		expect(seedFn, 'seed function block not found').toBeDefined()
-		const quoted = (seedFn!.match(/'([a-z_]+)'/g) ?? [])
-			.map(m => m.replace(/^'|'$/g, ''))
-			// The VALUES tuples include label literals too; filter to slug shape.
-			.filter(s => /^[a-z_]+$/.test(s))
-		const slugSet = new Set(quoted)
+		const slugSet = new Set(
+			Array.from(seedFn!.matchAll(/'([a-z_]+)'/g)).map(m => m[1] as string)
+		)
 		for (const slug of DEFAULT_CATEGORY_SLUGS) {
 			expect(slugSet.has(slug), `slug '${slug}' missing from seed function`).toBe(true)
 		}

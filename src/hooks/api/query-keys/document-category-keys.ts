@@ -26,8 +26,43 @@ export interface DocumentCategoryRow {
 	sort_order: number
 	is_default: boolean
 	owner_user_id: string
-	created_at: string | null
-	updated_at: string | null
+	// Both timestamps are NOT NULL (DEFAULT now() + set_updated_at trigger).
+	// Typed as string here to surface schema drift if a future migration
+	// makes them legitimately nullable.
+	created_at: string
+	updated_at: string
+}
+
+// Module-level helpers — hoisted so they're not recreated per call.
+function requireString(
+	raw: Record<string, unknown>,
+	field: string
+): string {
+	const value = raw[field]
+	if (typeof value !== 'string') {
+		throw new Error(
+			`mapDocumentCategoryRow: NOT NULL field '${field}' missing or non-string from PostgREST response`
+		)
+	}
+	return value
+}
+function requireBool(raw: Record<string, unknown>, field: string): boolean {
+	const value = raw[field]
+	if (typeof value !== 'boolean') {
+		throw new Error(
+			`mapDocumentCategoryRow: NOT NULL field '${field}' missing or non-boolean from PostgREST response`
+		)
+	}
+	return value
+}
+function requireNumber(raw: Record<string, unknown>, field: string): number {
+	const value = raw[field]
+	if (typeof value !== 'number') {
+		throw new Error(
+			`mapDocumentCategoryRow: NOT NULL field '${field}' missing or non-number from PostgREST response`
+		)
+	}
+	return value
 }
 
 /**
@@ -39,49 +74,22 @@ export interface DocumentCategoryRow {
 export function mapDocumentCategoryRow(
 	raw: Record<string, unknown>
 ): DocumentCategoryRow {
-	function requireString(field: string): string {
-		const value = raw[field]
-		if (typeof value !== 'string') {
-			throw new Error(
-				`mapDocumentCategoryRow: NOT NULL field '${field}' missing or non-string from PostgREST response`
-			)
-		}
-		return value
-	}
-	function requireBool(field: string): boolean {
-		const value = raw[field]
-		if (typeof value !== 'boolean') {
-			throw new Error(
-				`mapDocumentCategoryRow: NOT NULL field '${field}' missing or non-boolean from PostgREST response`
-			)
-		}
-		return value
-	}
-	function requireNumber(field: string): number {
-		const value = raw[field]
-		if (typeof value !== 'number') {
-			throw new Error(
-				`mapDocumentCategoryRow: NOT NULL field '${field}' missing or non-number from PostgREST response`
-			)
-		}
-		return value
-	}
-	const slug = requireString('slug')
+	const slug = requireString(raw, 'slug')
 	const slugCheck = documentCategorySlugSchema.safeParse(slug)
 	if (!slugCheck.success) {
 		throw new Error(
-			`mapDocumentCategoryRow: row '${requireString('id')}' has malformed slug '${slug}'`
+			`mapDocumentCategoryRow: row '${requireString(raw, 'id')}' has malformed slug '${slug}'`
 		)
 	}
 	return {
-		id: requireString('id'),
+		id: requireString(raw, 'id'),
 		slug,
-		label: requireString('label'),
-		sort_order: requireNumber('sort_order'),
-		is_default: requireBool('is_default'),
-		owner_user_id: requireString('owner_user_id'),
-		created_at: (raw.created_at as string | null) ?? null,
-		updated_at: (raw.updated_at as string | null) ?? null
+		label: requireString(raw, 'label'),
+		sort_order: requireNumber(raw, 'sort_order'),
+		is_default: requireBool(raw, 'is_default'),
+		owner_user_id: requireString(raw, 'owner_user_id'),
+		created_at: requireString(raw, 'created_at'),
+		updated_at: requireString(raw, 'updated_at')
 	}
 }
 

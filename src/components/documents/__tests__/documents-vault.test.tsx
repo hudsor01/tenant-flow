@@ -34,13 +34,13 @@ vi.mock('#hooks/api/use-document-categories', () => ({
 }))
 
 const SEVEN_DEFAULTS = [
-	{ id: 'cat-1', slug: 'lease', label: 'Lease', sort_order: 10, is_default: true, owner_user_id: 'u', created_at: null, updated_at: null },
-	{ id: 'cat-2', slug: 'receipt', label: 'Receipt', sort_order: 20, is_default: true, owner_user_id: 'u', created_at: null, updated_at: null },
-	{ id: 'cat-3', slug: 'tax_return', label: 'Tax return', sort_order: 30, is_default: true, owner_user_id: 'u', created_at: null, updated_at: null },
-	{ id: 'cat-4', slug: 'inspection_report', label: 'Inspection report', sort_order: 40, is_default: true, owner_user_id: 'u', created_at: null, updated_at: null },
-	{ id: 'cat-5', slug: 'maintenance_invoice', label: 'Maintenance invoice', sort_order: 50, is_default: true, owner_user_id: 'u', created_at: null, updated_at: null },
-	{ id: 'cat-6', slug: 'insurance', label: 'Insurance', sort_order: 60, is_default: true, owner_user_id: 'u', created_at: null, updated_at: null },
-	{ id: 'cat-7', slug: 'other', label: 'Other', sort_order: 70, is_default: true, owner_user_id: 'u', created_at: null, updated_at: null }
+	{ id: 'cat-1', slug: 'lease', label: 'Lease', sort_order: 10, is_default: true, owner_user_id: 'u', created_at: '2026-04-26T00:00:00Z', updated_at: '2026-04-26T00:00:00Z' },
+	{ id: 'cat-2', slug: 'receipt', label: 'Receipt', sort_order: 20, is_default: true, owner_user_id: 'u', created_at: '2026-04-26T00:00:00Z', updated_at: '2026-04-26T00:00:00Z' },
+	{ id: 'cat-3', slug: 'tax_return', label: 'Tax return', sort_order: 30, is_default: true, owner_user_id: 'u', created_at: '2026-04-26T00:00:00Z', updated_at: '2026-04-26T00:00:00Z' },
+	{ id: 'cat-4', slug: 'inspection_report', label: 'Inspection report', sort_order: 40, is_default: true, owner_user_id: 'u', created_at: '2026-04-26T00:00:00Z', updated_at: '2026-04-26T00:00:00Z' },
+	{ id: 'cat-5', slug: 'maintenance_invoice', label: 'Maintenance invoice', sort_order: 50, is_default: true, owner_user_id: 'u', created_at: '2026-04-26T00:00:00Z', updated_at: '2026-04-26T00:00:00Z' },
+	{ id: 'cat-6', slug: 'insurance', label: 'Insurance', sort_order: 60, is_default: true, owner_user_id: 'u', created_at: '2026-04-26T00:00:00Z', updated_at: '2026-04-26T00:00:00Z' },
+	{ id: 'cat-7', slug: 'other', label: 'Other', sort_order: 70, is_default: true, owner_user_id: 'u', created_at: '2026-04-26T00:00:00Z', updated_at: '2026-04-26T00:00:00Z' }
 ]
 
 vi.mock('sonner', () => ({
@@ -570,6 +570,49 @@ describe('DocumentsVaultClient', () => {
 		})
 		renderVault()
 		expect(mockSetEntityParam).toHaveBeenCalledWith(null)
+	})
+
+	// Phase 65 cycle-1 I-3: while the categories hook is loading, the URL
+	// guard MUST NOT scrub `?categories=…` slugs even if they look unknown.
+	// Otherwise a user landing on a deeplink would see their filter cleared
+	// before the per-owner taxonomy resolves.
+	it('does NOT scrub URL category slugs while useDocumentCategories is loading', () => {
+		mockUseDocumentCategories.mockReturnValue({
+			categories: [],
+			isLoading: true,
+			isError: false
+		})
+		categoriesParamValue = ['lease', 'banana_unknown']
+		mockUseQuery.mockReturnValue({
+			data: { rows: [], totalCount: 0, page: 0, pageSize: 50 },
+			isLoading: false,
+			isFetching: false,
+			isError: false
+		})
+		renderVault()
+		expect(mockSetCategoriesParam).not.toHaveBeenCalled()
+	})
+
+	// Phase 65 cycle-1 I-3 companion: once the hook lands with a known
+	// owned set that DOESN'T include the URL slug, the scrub effect fires.
+	it('scrubs unknown URL category slugs once owned set has loaded', async () => {
+		mockUseDocumentCategories.mockReturnValue({
+			categories: SEVEN_DEFAULTS,
+			isLoading: false,
+			isError: false
+		})
+		categoriesParamValue = ['lease', 'banana_unknown']
+		mockUseQuery.mockReturnValue({
+			data: { rows: [], totalCount: 0, page: 0, pageSize: 50 },
+			isLoading: false,
+			isFetching: false,
+			isError: false
+		})
+		renderVault()
+		// useEffect runs after render; waitFor lets the scrub commit.
+		await waitFor(() => {
+			expect(mockSetCategoriesParam).toHaveBeenCalledWith(['lease'])
+		})
 	})
 
 	// Phase 64: bulk download as zip

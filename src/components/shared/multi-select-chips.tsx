@@ -29,8 +29,12 @@ export interface MultiSelectChipsProps<T extends string> {
  * or removes that value from the array. Used by the documents vault for
  * the multi-select category filter (Phase 63).
  *
- * Generic over the value type so callers preserve their own union (e.g.
- * `DocumentCategory`) instead of widening to `string`.
+ * Generic over the value type — `T extends string` lets callers narrow
+ * to their own slug type even when the underlying alias is `string`
+ * (e.g. `DocumentCategory` post-Phase-65 is a structural alias for
+ * `string`, but `MultiSelectChips<DocumentCategory>` still propagates
+ * `T` through `value`/`onChange` so swapping in a different slug type
+ * later catches mismatches at the call site).
  */
 export function MultiSelectChips<T extends string>({
 	options,
@@ -114,7 +118,7 @@ export function MultiSelectChips<T extends string>({
 							size="sm"
 							className="h-7 px-2 text-xs"
 							onClick={() => onChange([])}
-							disabled={selected.size === 0}
+							disabled={disabled || selected.size === 0}
 						>
 							Clear
 						</Button>
@@ -124,6 +128,7 @@ export function MultiSelectChips<T extends string>({
 							size="sm"
 							className="h-7 px-2 text-xs"
 							onClick={() => setOpen(false)}
+							disabled={disabled}
 						>
 							Done
 						</Button>
