@@ -553,14 +553,11 @@ describe('DocumentsVaultClient', () => {
 		const originalFetch = global.fetch
 
 		beforeEach(() => {
-			// Mock fetch to return a tiny zip blob — verifies the handler
-			// reads the body, creates an anchor, and clicks it. Don't
-			// assert on the actual download trigger (jsdom doesn't really
-			// download), just that fetch was called with the right args.
-			global.fetch = vi.fn().mockResolvedValue({
-				ok: true,
-				blob: () => Promise.resolve(new Blob(['fake-zip'], { type: 'application/zip' }))
-			} as unknown as Response)
+			// Mock fetch to return a real Response so we get type-correct
+			// behavior (avoids `as unknown as Response`). jsdom ships the
+			// Response constructor — body/blob()/json() all work.
+			const blob = new Blob(['fake-zip'], { type: 'application/zip' })
+			global.fetch = vi.fn().mockResolvedValue(new Response(blob))
 		})
 
 		// Restore jsdom's original fetch after this group runs. clearAllMocks
@@ -608,7 +605,7 @@ describe('DocumentsVaultClient', () => {
 			).toBeDisabled()
 		})
 
-		it('clicking the button POSTs the current filter set to the Edge Function', async () => {
+		it('clicking the button POSTs the filter set with expanded date boundaries', async () => {
 			const user = userEvent.setup()
 			queryParamValue = 'tax'
 			entityParamValue = 'lease'
@@ -638,20 +635,42 @@ describe('DocumentsVaultClient', () => {
 			expect(body).toMatchObject({
 				query: 'tax',
 				entityType: 'lease',
-				categories: ['lease', 'insurance'],
-				from: '2026-01-01',
-				to: '2026-12-31'
+				categories: ['lease', 'insurance']
 			})
+			// from/to MUST be expanded ISO timestamps so the Edge Function
+			// queries the SAME row set the user just saw counted in the
+			// UI. Don't pin the exact ISO value — `expandDateBoundary`
+			// runs in the test runner's local zone, which CI may set to
+			// anything. Round-tripping back to local YMD is the only
+			// timezone-stable check.
+			const fromIso = body['from'] as string
+			const toIso = body['to'] as string
+			const fromLocal = new Date(fromIso)
+			const toLocal = new Date(toIso)
+			expect(fromLocal.getFullYear()).toBe(2026)
+			expect(fromLocal.getMonth()).toBe(0)
+			expect(fromLocal.getDate()).toBe(1)
+			expect(fromLocal.getHours()).toBe(0)
+			expect(toLocal.getFullYear()).toBe(2026)
+			expect(toLocal.getMonth()).toBe(11)
+			expect(toLocal.getDate()).toBe(31)
+			expect(toLocal.getHours()).toBe(23)
 		})
 
 		it('shows a toast when the Edge Function returns an error', async () => {
 			const user = userEvent.setup()
-			global.fetch = vi.fn().mockResolvedValue({
-				ok: false,
-				statusText: 'Payload Too Large',
-				json: () =>
-					Promise.resolve({ error: 'Filter matches 600 documents; cap is 500.' })
-			} as unknown as Response)
+			global.fetch = vi.fn().mockResolvedValue(
+				new Response(
+					JSON.stringify({
+						error: 'Filter matches 600 documents; cap is 500.'
+					}),
+					{
+						status: 413,
+						statusText: 'Payload Too Large',
+						headers: { 'Content-Type': 'application/json' }
+					}
+				)
+			)
 			mockUseQuery.mockReturnValue({
 				data: { rows: [{ id: 'a' }], totalCount: 5, page: 0, pageSize: 50 },
 				isLoading: false,
@@ -694,11 +713,9 @@ describe('DocumentsVaultClient', () => {
 			// Resolve fetch so the in-flight call finishes — otherwise
 			// the test hangs on the await inside handleBulkDownload.
 			act(() => {
-				resolveFetch({
-					ok: true,
-					blob: () =>
-						Promise.resolve(new Blob(['fake-zip'], { type: 'application/zip' }))
-				} as unknown as Response)
+				resolveFetch(
+					new Response(new Blob(['fake-zip'], { type: 'application/zip' }))
+				)
 			})
 
 			await waitFor(() => {

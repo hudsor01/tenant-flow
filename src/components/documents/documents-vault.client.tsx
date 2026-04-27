@@ -33,6 +33,7 @@ import {
 } from '#hooks/api/query-keys/document-keys'
 import {
 	documentSearchQueries,
+	expandDateBoundary,
 	SEARCH_PAGE_SIZE
 } from '#hooks/api/query-keys/document-search-keys'
 import {
@@ -292,8 +293,14 @@ export function DocumentsVaultClient() {
 					query: queryParam || null,
 					entityType: entityType ?? null,
 					categories: categories.length > 0 ? categories : null,
-					from: fromParam || null,
-					to: toParam || null
+					// Mirror documentSearchQueries.list expansion so the
+					// bulk-download path queries the SAME row set the user
+					// just saw counted in the UI. Expansion runs in the
+					// browser's local zone (the only place we know the
+					// user's timezone) and the Edge Function passes the
+					// resulting ISO timestamps through to the RPC unchanged.
+					from: expandDateBoundary(fromParam || undefined, false),
+					to: expandDateBoundary(toParam || undefined, true)
 				})
 			})
 			if (!res.ok) {

@@ -169,7 +169,7 @@ describe('download-documents-zip Edge Function — owner isolation', () => {
 		expect(body.error).toMatch(/no documents match/i)
 	})
 
-	it('ownerB without a Bearer token receives 401', async () => {
+	it('a request without a Bearer token receives 401', async () => {
 		const res = await fetch(
 			`${SUPABASE_URL}/functions/v1/download-documents-zip`,
 			{
@@ -178,7 +178,11 @@ describe('download-documents-zip Edge Function — owner isolation', () => {
 				body: JSON.stringify({ query: sentinel })
 			}
 		)
-		expect([401, 403]).toContain(res.status)
+		// Pinned to 401 — validateBearerAuth returns 401 with "Missing
+		// authorization header" before any function logic runs. Loose
+		// assertions like `[401, 403]` would mask a regression where the
+		// Supabase gateway started rejecting at a different layer.
+		expect(res.status).toBe(401)
 		await res.arrayBuffer()
 	})
 })
