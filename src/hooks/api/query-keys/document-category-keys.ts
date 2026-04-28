@@ -11,10 +11,13 @@
  * via Phase 66's settings UI), so a 5-minute staleTime is plenty.
  */
 
-import { queryOptions } from '@tanstack/react-query'
+import { queryOptions, mutationOptions } from '@tanstack/react-query'
 import { createClient } from '#lib/supabase/client'
 import { handlePostgrestError } from '#lib/postgrest-error-handler'
 import { documentCategorySlugSchema } from '#lib/validation/documents'
+import { requireOwnerUserId } from '#lib/require-owner-user-id'
+import { getCachedUser } from '#lib/supabase/get-cached-user'
+import { mutationKeys } from '../mutation-keys'
 
 const LIST_STALE_TIME_MS = 5 * 60 * 1000 // 5 min — categories change rarely
 const LIST_GC_TIME_MS = 30 * 60 * 1000
@@ -118,5 +121,126 @@ export const documentCategoryQueries = {
 			},
 			staleTime: LIST_STALE_TIME_MS,
 			gcTime: LIST_GC_TIME_MS
+		})
+} as const
+
+// v2.6 Phase 66 — admin UI write path. Each mutation invalidates BOTH
+// `documentCategoryQueries.all()` (the categories list) and the wider
+// document/search queries (since reassign mass-rewrites document_type
+// values). Wiring the invalidations into the mutation options keeps
+// the consumer one-line — `useMutation(documentCategoryMutations.create())`.
+
+export interface CreateDocumentCategoryInput {
+	slug: string
+	label: string
+	sort_order?: number
+}
+
+export interface UpdateDocumentCategoryInput {
+	id: string
+	label: string
+}
+
+export interface DeleteWithReassignInput {
+	from_id: string
+	to_id: string
+}
+
+export interface ReorderInput {
+	orders: Array<{ id: string; sort_order: number }>
+}
+
+export const documentCategoryMutations = {
+	create: () =>
+		mutationOptions<DocumentCategoryRow, Error, CreateDocumentCategoryInput>({
+			mutationKey: mutationKeys.documentCategories.create,
+			mutationFn: async (
+				input: CreateDocumentCategoryInput
+			): Promise<DocumentCategoryRow> => {
+				const supabase = createClient()
+				const user = await getCachedUser()
+				const ownerId = requireOwnerUserId(user?.id)
+				// Slug shape is also enforced by the DB CHECK constraint, but
+				// pre-validating here gives the user an immediate error
+				// without burning a roundtrip.
+				const slugCheck = documentCategorySlugSchema.safeParse(input.slug)
+				if (!slugCheck.success) {
+					throw new Error(
+						'Slug must be lowercase-snake_case (a-z, 0-9, _) and 1-50 chars.'
+					)
+				}
+				const trimmedLabel = input.label.trim()
+				if (trimmedLabel.length < 1 || trimmedLabel.length > 80) {
+					throw new Error('Label must be 1-80 characters.')
+				}
+				const { data, error } = await supabase
+					.from('document_categories')
+					.insert({
+						owner_user_id: ownerId,
+						slug: input.slug,
+						label: trimmedLabel,
+						sort_order: input.sort_order ?? 1000,
+						is_default: false
+					})
+					.select(
+						'id, slug, label, sort_order, is_default, owner_user_id, created_at, updated_at'
+					)
+					.single()
+				if (error) handlePostgrestError(error, 'create document category')
+				return mapDocumentCategoryRow(
+					(data ?? {}) as Record<string, unknown>
+				)
+			}
+		}),
+	update: () =>
+		mutationOptions<DocumentCategoryRow, Error, UpdateDocumentCategoryInput>({
+			mutationKey: mutationKeys.documentCategories.update,
+			mutationFn: async (
+				input: UpdateDocumentCategoryInput
+			): Promise<DocumentCategoryRow> => {
+				const supabase = createClient()
+				const trimmedLabel = input.label.trim()
+				if (trimmedLabel.length < 1 || trimmedLabel.length > 80) {
+					throw new Error('Label must be 1-80 characters.')
+				}
+				// Only `label` is mutable. Slug is canonical (cross-owner export
+				// portability) and `is_default` is set by the seed function. RLS
+				// gates ownership; updating someone else's row returns no rows.
+				const { data, error } = await supabase
+					.from('document_categories')
+					.update({ label: trimmedLabel })
+					.eq('id', input.id)
+					.select(
+						'id, slug, label, sort_order, is_default, owner_user_id, created_at, updated_at'
+					)
+					.single()
+				if (error) handlePostgrestError(error, 'update document category')
+				return mapDocumentCategoryRow(
+					(data ?? {}) as Record<string, unknown>
+				)
+			}
+		}),
+	deleteWithReassign: () =>
+		mutationOptions<void, Error, DeleteWithReassignInput>({
+			mutationKey: mutationKeys.documentCategories.deleteWithReassign,
+			mutationFn: async (input: DeleteWithReassignInput): Promise<void> => {
+				const supabase = createClient()
+				const { error } = await supabase.rpc('reassign_document_category', {
+					p_from_id: input.from_id,
+					p_to_id: input.to_id
+				})
+				if (error) handlePostgrestError(error, 'reassign document category')
+			}
+		}),
+	reorder: () =>
+		mutationOptions<void, Error, ReorderInput>({
+			mutationKey: mutationKeys.documentCategories.reorder,
+			mutationFn: async (input: ReorderInput): Promise<void> => {
+				const supabase = createClient()
+				const { error } = await supabase.rpc('reorder_document_categories', {
+					p_orders: input.orders
+				})
+				if (error) handlePostgrestError(error, 'reorder document categories')
+			}
 		})
 } as const

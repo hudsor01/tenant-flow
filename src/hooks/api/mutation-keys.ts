@@ -83,6 +83,18 @@ export const mutationKeys = {
 		generatePdf: ['mutations', 'documents', 'generatePdf'] as const
 	},
 
+	// Document Categories (v2.6 Phase 66)
+	documentCategories: {
+		create: ['mutations', 'documentCategories', 'create'] as const,
+		update: ['mutations', 'documentCategories', 'update'] as const,
+		deleteWithReassign: [
+			'mutations',
+			'documentCategories',
+			'deleteWithReassign'
+		] as const,
+		reorder: ['mutations', 'documentCategories', 'reorder'] as const
+	},
+
 	// Auth
 	auth: {
 		login: ['mutations', 'auth', 'login'] as const,

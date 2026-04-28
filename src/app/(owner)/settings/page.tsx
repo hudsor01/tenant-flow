@@ -3,15 +3,39 @@
 import { useEffect, useState } from 'react'
 import type { ReactNode } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
-import { Bell, Building2, CreditCard, Shield, ChevronRight, Database } from 'lucide-react'
+import {
+	Bell,
+	Building2,
+	CreditCard,
+	Shield,
+	ChevronRight,
+	Database,
+	FolderTree
+} from 'lucide-react'
 import { BlurFade } from '#components/ui/blur-fade'
 import { GeneralSettings } from '#components/settings/general-settings'
 import { NotificationSettings } from '#components/settings/notification-settings'
 import { SecuritySettings } from '#components/settings/security-settings'
 import { BillingSettings } from '#components/settings/billing-settings'
 import { AccountDataSection } from '#components/settings/account-data-section'
+import { CategoriesSettings } from '#components/settings/categories-settings'
 
-type SettingsTab = 'general' | 'notifications' | 'security' | 'billing' | 'data'
+type SettingsTab =
+	| 'general'
+	| 'notifications'
+	| 'security'
+	| 'billing'
+	| 'categories'
+	| 'data'
+
+const TAB_VALUES: readonly SettingsTab[] = [
+	'general',
+	'notifications',
+	'security',
+	'billing',
+	'categories',
+	'data'
+] as const
 
 interface SettingsSection {
 	id: SettingsTab
@@ -46,6 +70,12 @@ const sections: SettingsSection[] = [
 		description: 'Subscription and payment info'
 	},
 	{
+		id: 'categories',
+		label: 'Categories',
+		icon: <FolderTree className="h-4 w-4" />,
+		description: 'Customize the document taxonomy'
+	},
+	{
 		id: 'data',
 		label: 'My Data',
 		icon: <Database className="h-4 w-4" />,
@@ -58,18 +88,14 @@ export default function SettingsPage() {
 	const router = useRouter()
 	const tabParam = searchParams.get('tab') as SettingsTab | null
 	const [activeTab, setActiveTab] = useState<SettingsTab>(
-		tabParam &&
-			['general', 'notifications', 'security', 'billing', 'data'].includes(tabParam)
+		tabParam && (TAB_VALUES as readonly string[]).includes(tabParam)
 			? tabParam
 			: 'general'
 	)
 
 	// Update tab when URL changes
 	useEffect(() => {
-		if (
-			tabParam &&
-			['general', 'notifications', 'security', 'billing', 'data'].includes(tabParam)
-		) {
+		if (tabParam && (TAB_VALUES as readonly string[]).includes(tabParam)) {
 			setActiveTab(tabParam)
 		}
 	}, [tabParam])
@@ -90,6 +116,8 @@ export default function SettingsPage() {
 				return <SecuritySettings />
 			case 'billing':
 				return <BillingSettings />
+			case 'categories':
+				return <CategoriesSettings />
 			case 'data':
 				return <AccountDataSection />
 			default:
