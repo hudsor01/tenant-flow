@@ -23,12 +23,18 @@ interface TestimonialsSectionProps {
 	variant?: 'carousel' | 'grid'
 }
 
+// Placeholder testimonials kept until v2.7+ collects real owner feedback.
+// Phase 67 stripped the per-testimonial numeric metrics (+47% NOI, 60-day
+// ROI, 4.9/5 rating, 25 hours saved, 90% faster reporting) since none
+// of them mapped to a verified customer outcome. When real testimonials
+// land, restore the `metric` / `metricLabel` fields with documented
+// values from those owners.
 const defaultTestimonials: Testimonial[] = [
-	{ quote: 'TenantFlow transformed how we manage our 35-unit portfolio. Having every lease, document, and maintenance request in one place saves us 20+ hours per week on admin work.', author: 'Sarah Chen', title: 'Portfolio Manager', company: 'Westside Properties', metric: '+47%', metricLabel: 'NOI increase' },
-	{ quote: "We evaluated 6 different platforms before choosing TenantFlow. The ROI was clear within 60 days - best property management decision we've made.", author: 'Marcus Rodriguez', title: 'Director of Operations', company: 'Urban Real Estate Group', metric: '60 days', metricLabel: 'to positive ROI' },
-	{ quote: 'E-signing leases and keeping every document attached to the unit has transformed how we work. Renewals take minutes instead of days, and nothing falls through the cracks.', author: 'Jennifer Walsh', title: 'Property Manager', company: 'Metropolitan Holdings', metric: '4.9/5', metricLabel: 'owner rating' },
-	{ quote: "As an independent owner with 8 units, I thought enterprise software was overkill. TenantFlow proved me wrong - it's powerful yet simple enough for solo operators.", author: 'David Park', title: 'Independent Owner', company: 'Park Properties LLC', metric: '25 hrs', metricLabel: 'saved weekly' },
-	{ quote: 'The financial reporting alone is worth the subscription. I can generate professional reports for my investors in minutes instead of hours with spreadsheets.', author: 'Amanda Foster', title: 'Asset Manager', company: 'Foster Investments', metric: '90%', metricLabel: 'faster reporting' },
+	{ quote: 'TenantFlow transformed how we manage our 35-unit portfolio. Having every lease, document, and maintenance request in one place saves us hours of admin work each week.', author: 'Sarah Chen', title: 'Portfolio Manager', company: 'Westside Properties' },
+	{ quote: "We evaluated several platforms before choosing TenantFlow. The document vault and DocuSeal integration sealed the deal.", author: 'Marcus Rodriguez', title: 'Director of Operations', company: 'Urban Real Estate Group' },
+	{ quote: 'E-signing leases and keeping every document attached to the unit has transformed how we work. Renewals take minutes instead of days, and nothing falls through the cracks.', author: 'Jennifer Walsh', title: 'Property Manager', company: 'Metropolitan Holdings' },
+	{ quote: "As an independent owner with 8 units, I thought enterprise software was overkill. TenantFlow proved me wrong — it's powerful yet simple enough for solo operators.", author: 'David Park', title: 'Independent Owner', company: 'Park Properties LLC' },
+	{ quote: 'The financial reporting alone is worth the subscription. I can generate professional reports for my investors in minutes instead of hours with spreadsheets.', author: 'Amanda Foster', title: 'Asset Manager', company: 'Foster Investments' }
 ]
 
 export function TestimonialsSection({

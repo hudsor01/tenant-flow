@@ -33,20 +33,20 @@ const steps = [
 		number: '02',
 		title: 'Add Tenants and Leases',
 		description:
-			'Record tenant details, generate and e-sign leases with DocuSeal, and keep every document attached to the unit.',
+			'Record tenant details and generate leases. Send for e-signature via DocuSeal on Growth and Max plans.',
 		icon: Users,
-		features: ['Lease e-signing', 'Document vault', 'Tenant records'],
+		features: ['Lease e-signing', 'Tenant records (no logins)', 'Lease tracking'],
 		color: 'info'
 	},
 	{
 		number: '03',
-		title: 'Track Everything',
+		title: 'Organize Every Document',
 		description:
-			'Keep maintenance requests, rent received, expenses, and renewals in one place — with reports ready for tax season.',
+			'Upload leases, receipts, and inspection reports to the document vault. Search across your whole portfolio, filter by category and date, bulk-download for tax season.',
 		icon: Zap,
 		features: [
+			'Document vault with search',
 			'Maintenance workflow',
-			'Rent tracking',
 			'Financial reports'
 		],
 		color: 'success'

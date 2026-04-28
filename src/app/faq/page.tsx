@@ -8,7 +8,6 @@ import { Button } from '#components/ui/button'
 
 import { faqData } from '../../data/faqs'
 import { ArrowRight } from 'lucide-react'
-import { SOCIAL_PROOF } from '#config/social-proof'
 import { createBreadcrumbJsonLd } from '#lib/seo/breadcrumbs'
 import { createFaqJsonLd } from '#lib/seo/faq-schema'
 import { createPageMetadata } from '#lib/seo/page-metadata'
@@ -31,16 +30,16 @@ export default function FAQPage() {
 			<JsonLdScript schema={createFaqJsonLd(allQuestions.map(q => ({ question: q.question, answer: q.answer })))} />
 			<JsonLdScript schema={createBreadcrumbJsonLd('/faq')} />
 			<HeroSection
-				trustBadge="Real answers from real results"
-				title="Your $30,000 annual savings"
-				titleHighlight="questions answered"
-				subtitle={`Everything you need to know about how TenantFlow delivers guaranteed ${SOCIAL_PROOF.noiIncrease} NOI increase, saves ${SOCIAL_PROOF.hoursSavedWeekly} hours weekly, and pays for itself in ${SOCIAL_PROOF.roiTimeline.replace('-', ' ')}. Real answers from real results.`}
+				trustBadge="Built for landlords"
+				title="Frequently asked"
+				titleHighlight="questions"
+				subtitle="How TenantFlow handles documents, e-signing, tenant records, security, and billing. If anything is missing, talk to our team."
 				primaryCta={{
-					label: 'Calculate Your Savings Now',
+					label: 'See Pricing',
 					href: '/pricing'
 				}}
-				secondaryCta={{ label: 'Talk to Success Manager', href: '/pricing' }}
-				trustSignals={`${SOCIAL_PROOF.noiIncrease} NOI increase • ${SOCIAL_PROOF.hoursSavedWeekly} hours saved weekly • ${SOCIAL_PROOF.roiTimeline} ROI`}
+				secondaryCta={{ label: 'Contact Sales', href: '/contact' }}
+				trustSignals="Document vault • DocuSeal e-sign on Growth+ • 14-day free trial"
 				image={{
 					src: 'https://images.unsplash.com/photo-1497366216548-37526070297c?q=80&w=2069&auto=format&fit=crop',
 					alt: 'Modern office workspace showcasing property management efficiency'

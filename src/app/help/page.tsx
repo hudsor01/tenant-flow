@@ -32,7 +32,6 @@ import {
 	TrendingUp,
 	Users
 } from 'lucide-react'
-import { SOCIAL_PROOF } from '#config/social-proof'
 
 export default function HelpPage() {
 	return (
@@ -40,15 +39,15 @@ export default function HelpPage() {
 			<JsonLdScript schema={createBreadcrumbJsonLd('/help')} />
 			{/* Hero Section */}
 			<HeroSection
-				title="We guarantee your success"
-				titleHighlight="or your money back"
-				subtitle={`Get white-glove support from property management experts who've helped ${SOCIAL_PROOF.managerCount} managers save ${SOCIAL_PROOF.annualSavings} annually. Average response time: ${SOCIAL_PROOF.responseTime}. Success rate: ${SOCIAL_PROOF.successRate}.`}
+				title="We're here to help"
+				titleHighlight="when you need us"
+				subtitle="Email support on every plan, with priority and phone support on Growth and Max. Browse the help center below for setup, billing, document vault, and lease e-sign questions."
 				primaryCta={{
-					label: 'Get Instant Expert Help',
+					label: 'See Pricing',
 					href: '/pricing'
 				}}
-				secondaryCta={{ label: 'Schedule Success Call', href: '/contact' }}
-				trustSignals="24/7 Expert Support • 90-second response • 98.7% success rate"
+				secondaryCta={{ label: 'Contact Sales', href: '/contact' }}
+				trustSignals="Email support on every plan • Priority and phone support on Growth and Max"
 				image={{
 					src: 'https://images.unsplash.com/photo-1556761175-b413da4baf72?q=80&w=2074&auto=format&fit=crop',
 					alt: 'Professional customer support team helping property managers'
@@ -313,12 +312,10 @@ export default function HelpPage() {
 			<section className="section-spacing bg-primary">
 				<div className="max-w-4xl mx-auto px-6 lg:px-8 text-center">
 					<h2 className="typography-h1 text-primary-foreground mb-4">
-						Ready to stop losing money?
+						Ready to centralize your portfolio?
 					</h2>
 					<p className="text-xl text-primary-foreground/90 mb-8">
-						{`Join ${SOCIAL_PROOF.managerCount} property managers who have increased their NOI by ${SOCIAL_PROOF.noiIncrease}`}
-						with TenantFlow. Our experts are standing by to help you get
-						started.
+						Replace spreadsheets, Dropbox, and email with a single landlord-only platform. Our team is here to help you migrate and get going.
 					</p>
 					<div className="flex flex-col sm:flex-row gap-4 justify-center">
 						<Button size="lg" variant="secondary" className="px-8">

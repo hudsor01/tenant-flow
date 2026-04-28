@@ -1,7 +1,6 @@
 import Link from 'next/link'
 import { ArrowRight, Check, X, Minus, Plus } from 'lucide-react'
 import { Button } from '#components/ui/button'
-import { SOCIAL_PROOF } from '#config/social-proof'
 import type { CompetitorData, FeatureSupport } from '#types/sections/compare'
 
 function FeatureIcon({ support }: { support: FeatureSupport }) {
@@ -233,7 +232,7 @@ export function BottomCta({ data }: { data: CompetitorData }) {
 							Ready to make the switch?
 						</h2>
 						<p className="text-lg text-muted-foreground mb-8">
-							{`Join ${SOCIAL_PROOF.managerCount} property owners managing rentals with TenantFlow. Start your 14-day free trial today.`}
+							Manage your rentals with the document vault, lease e-sign, and reports built for landlords. Start your 14-day free trial today.
 						</p>
 						<div className="flex flex-col sm:flex-row gap-4 justify-center">
 							<Button size="lg" className="px-8" asChild>

@@ -6,10 +6,14 @@ export interface Testimonial {
 	avatar: string
 }
 
+// Placeholder testimonials kept until v2.7+ collects real owner feedback.
+// Phase 67 stripped the unsubstantiated metric claims (NOI 47%, 25 hours
+// per week, 60-day ROI). Replace each quote with a verified one when
+// real owners go on record.
 export const testimonials: Testimonial[] = [
 	{
 		quote:
-			'TenantFlow increased our NOI by 47% in just 6 months. The automation alone saves us 25 hours per week.',
+			'TenantFlow gave us one source of truth for every lease, document, and maintenance request. The vault search alone has paid for itself.',
 		author: 'Sarah Chen',
 		title: 'Portfolio Manager',
 		company: 'West Coast Properties',
@@ -17,7 +21,7 @@ export const testimonials: Testimonial[] = [
 	},
 	{
 		quote:
-			"Best property management decision we've made. ROI was clear within 60 days.",
+			"E-signing through DocuSeal cut our renewal turnaround from days to minutes. The whole document chain stays attached to the unit.",
 		author: 'Marcus Rodriguez',
 		title: 'Director of Operations',
 		company: 'Urban Real Estate Group',
@@ -25,7 +29,7 @@ export const testimonials: Testimonial[] = [
 	},
 	{
 		quote:
-			'The security and compliance features give us complete peace of mind with enterprise-grade protection.',
+			'Tenants never log in. That alone removes the support overhead we used to spend on password resets and account questions.',
 		author: 'Jennifer Walsh',
 		title: 'Chief Technology Officer',
 		company: 'Metropolitan Holdings',

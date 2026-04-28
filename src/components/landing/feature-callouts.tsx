@@ -1,20 +1,20 @@
-import { BarChart3, Zap, Shield } from 'lucide-react'
+import { FolderArchive, FileSignature, Shield } from 'lucide-react'
 
 const callouts = [
 	{
-		icon: <BarChart3 className="size-5" />,
-		title: 'Reduce Vacancy by 65%',
-		description: 'Smart screening + marketing fill units faster'
+		icon: <FolderArchive className="size-5" />,
+		title: 'Document Vault',
+		description: 'Search, filter, and bulk-download every lease, receipt, and inspection report'
 	},
 	{
-		icon: <Zap className="size-5" />,
-		title: 'Automate 80% of Tasks',
-		description: 'Renewals, reminders, and workflows run for you'
+		icon: <FileSignature className="size-5" />,
+		title: 'DocuSeal E-Sign',
+		description: 'Send leases for signature on Growth and Max plans'
 	},
 	{
 		icon: <Shield className="size-5" />,
-		title: 'Enterprise Security',
-		description: 'SOC 2, RBAC, and audit logging'
+		title: 'Owner-Only Access',
+		description: 'Row-level security per landlord. Tenants are records, never users'
 	}
 ]
 

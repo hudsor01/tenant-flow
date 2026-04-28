@@ -8,25 +8,23 @@ import { Button } from '#components/ui/button'
 import { Card } from '#components/ui/card'
 import { ArrowRight, Building, CheckCircle2, Clock, Star } from 'lucide-react'
 import Link from 'next/link'
-import { SOCIAL_PROOF } from '#config/social-proof'
-
 const STATS = [
 	{
-		label: 'Active Properties',
-		value: SOCIAL_PROOF.propertiesManaged,
-		description: 'Properties managed across North America',
+		label: 'Document Vault',
+		value: 'Per-entity',
+		description: 'Property, lease, tenant, maintenance, inspection',
 		icon: Building
 	},
 	{
-		label: 'Time Saved',
-		value: '20+ hrs/week',
-		description: 'Average automation savings per team',
+		label: 'Bulk Download',
+		value: '500/zip',
+		description: 'Streaming zip export for tax season',
 		icon: Clock
 	},
 	{
-		label: 'Customer Rating',
-		value: SOCIAL_PROOF.customerRating,
-		description: `Based on ${SOCIAL_PROOF.reviewCount} user reviews`,
+		label: 'Built For',
+		value: 'Landlords',
+		description: 'Tenants are records, never platform users',
 		icon: Star
 	}
 ]
@@ -108,7 +106,7 @@ export function PricingFaqSection() {
 						</h2>
 						<p className="mt-4 text-base text-muted-foreground text-sm-foreground sm:text-lg">
 							Details on trials, billing, switching plans, and how access works
-							for teams and tenants.
+							for your team. Tenants are records, not users — they never log in.
 						</p>
 					</div>
 					<div className="grid gap-4 lg:grid-cols-2">
@@ -194,7 +192,7 @@ export function PricingCtaSection() {
 							},
 							{
 								title: 'Guided onboarding',
-								desc: 'Our implementation team and resource hub help migrate leases, payments, and documents in days.'
+								desc: 'Our implementation team and resource hub help migrate leases, tenant records, and documents in days.'
 							}
 						].map(item => (
 							<div key={item.title} className="flex items-start gap-3">

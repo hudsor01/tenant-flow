@@ -1,5 +1,4 @@
 import { CheckCircle2, Shield, Users } from 'lucide-react'
-import { SOCIAL_PROOF } from '#config/social-proof'
 
 export function PortalTrustSignals() {
 	return (
@@ -10,8 +9,8 @@ export function PortalTrustSignals() {
 						<Shield className="size-5 text-accent" />
 					</div>
 					<div>
-						<p className="font-bold text-foreground">Bank-Level Security</p>
-						<p className="text-caption">256-bit SSL encryption</p>
+						<p className="font-bold text-foreground">Encrypted in transit and at rest</p>
+						<p className="text-caption">Postgres row-level security per landlord</p>
 					</div>
 				</div>
 
@@ -20,8 +19,8 @@ export function PortalTrustSignals() {
 						<CheckCircle2 className="size-5 text-primary" />
 					</div>
 					<div>
-						<p className="font-bold text-foreground">Powered by Stripe</p>
-						<p className="text-caption">Trusted by millions</p>
+						<p className="font-bold text-foreground">Billing via Stripe</p>
+						<p className="text-caption">Industry-standard payment processing</p>
 					</div>
 				</div>
 
@@ -30,8 +29,8 @@ export function PortalTrustSignals() {
 						<Users className="size-5 text-primary" />
 					</div>
 					<div>
-						<p className="font-bold text-foreground">{SOCIAL_PROOF.managerCount} Managers</p>
-						<p className="text-caption">Growing community</p>
+						<p className="font-bold text-foreground">Built for landlords</p>
+						<p className="text-caption">Tenants are records, not platform users</p>
 					</div>
 				</div>
 			</div>

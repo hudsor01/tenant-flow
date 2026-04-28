@@ -10,7 +10,6 @@ import {
 } from 'lucide-react'
 import { PageLayout } from '#components/layout/page-layout'
 import { Button } from '#components/ui/button'
-import { SOCIAL_PROOF } from '#config/social-proof'
 import { RelatedArticles } from '#components/blog/related-articles'
 import { JsonLdScript } from '#components/seo/json-ld-script'
 import { createBreadcrumbJsonLd } from '#lib/seo/breadcrumbs'
@@ -159,10 +158,10 @@ export default async function ComparePage({ params }: PageProps) {
 						<div className="text-center p-6 rounded-xl border border-border bg-background">
 							<Users className="size-6 text-primary mx-auto mb-2" />
 							<p className="text-2xl font-bold text-foreground">
-								{SOCIAL_PROOF.managerCount}
+								Landlord-only
 							</p>
 							<p className="text-sm text-muted-foreground">
-								TenantFlow Owners
+								TenantFlow positioning
 							</p>
 						</div>
 					</div>

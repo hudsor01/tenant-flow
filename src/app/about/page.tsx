@@ -30,15 +30,14 @@ import {
 	Zap
 } from 'lucide-react'
 import Link from 'next/link'
-import { SOCIAL_PROOF } from '#config/social-proof'
 import { createBreadcrumbJsonLd } from '#lib/seo/breadcrumbs'
 import { createPageMetadata } from '#lib/seo/page-metadata'
 
 const stats = [
-	{ number: SOCIAL_PROOF.propertiesManaged, label: 'Properties Managed', Icon: Building2 },
-	{ number: '500+', label: 'Property Managers', Icon: Users },
-	{ number: '99.9%', label: 'Platform Uptime', Icon: Bolt },
-	{ number: '24/7', label: 'Customer Support', Icon: LifeBuoy }
+	{ number: 'Vault', label: 'Per-entity document storage', Icon: Building2 },
+	{ number: 'DocuSeal', label: 'Lease e-signing', Icon: Users },
+	{ number: 'RLS', label: 'Postgres-level data isolation', Icon: Bolt },
+	{ number: '14-day', label: 'Free trial, no credit card', Icon: LifeBuoy }
 ]
 
 export const metadata: Metadata = createPageMetadata({

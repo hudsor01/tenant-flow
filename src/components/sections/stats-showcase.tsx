@@ -1,7 +1,6 @@
 import { BlurFade } from '#components/ui/blur-fade'
 import { BorderBeam } from '#components/ui/border-beam'
 import { NumberTicker } from '#components/ui/number-ticker'
-import { SOCIAL_PROOF } from '#config/social-proof'
 import { cn } from '#lib/utils'
 
 interface StatsShowcaseProps {
@@ -9,38 +8,38 @@ interface StatsShowcaseProps {
 }
 
 export function StatsShowcase({ className }: StatsShowcaseProps) {
+	// Phase 67 cleanup: replaced unsubstantiated numeric claims (10,000+
+	// owners, 18,947 units, 40% NOI, etc.) with verifiable feature
+	// counts pulled from the live product. Anything with a number here
+	// must map to a real product capability — no marketing-only stats.
 	const stats = [
 		{
-			number: SOCIAL_PROOF.managerCount,
-			value: 10000,
-			label: 'Property Owners',
-			description: 'Trust TenantFlow daily',
-			suffix: '',
-			prefix: ''
-		},
-		{
-			number: '18,947',
-			value: 18947,
-			label: 'Units Managed',
-			description: 'Across our platform',
-			suffix: '',
-			prefix: ''
-		},
-		{
-			number: '5 min',
 			value: 5,
-			label: 'Setup Time',
-			description: 'From signup to first lease',
-			suffix: ' min',
+			label: 'Entity Branches',
+			description: 'Property, lease, tenant, maintenance, inspection',
+			suffix: '',
 			prefix: ''
 		},
 		{
-			number: '40%',
-			value: 40,
-			label: 'NOI Increase',
-			description: 'Within 90 days',
-			suffix: '%',
-			prefix: '+'
+			value: 7,
+			label: 'Default Categories',
+			description: 'Plus unlimited custom categories per landlord',
+			suffix: '',
+			prefix: ''
+		},
+		{
+			value: 500,
+			label: 'Bulk-Zip Cap',
+			description: 'Documents per zip download',
+			suffix: '',
+			prefix: ''
+		},
+		{
+			value: 14,
+			label: 'Day Free Trial',
+			description: 'No credit card required',
+			suffix: '',
+			prefix: ''
 		}
 	]
 
@@ -55,12 +54,11 @@ export function StatsShowcase({ className }: StatsShowcaseProps) {
 				<div className="text-center mb-10 max-w-3xl mx-auto">
 					<BlurFade delay={0.1} inView>
 						<h2 className="text-3xl lg:text-4xl xl:text-5xl font-bold tracking-tight text-foreground mb-6 leading-tight">
-							Trusted by property managers
-							<span className="text-primary block">nationwide</span>
+							Built for landlord
+							<span className="text-primary block">workflows</span>
 						</h2>
 						<p className="text-xl text-muted-foreground leading-relaxed">
-							Join thousands who&apos;ve transformed their operations with
-							TenantFlow
+							Every feature ships against a real owner workflow — from upload to tax-season export.
 						</p>
 					</BlurFade>
 				</div>

@@ -34,16 +34,18 @@ const comparisonData: ComparisonFeature[] = [
 		description: '*Excludes your time value'
 	},
 	{
-		name: 'Rent Tracking',
+		name: 'Document Vault',
 		tenantFlow: true,
-		spreadsheets: 'partial',
-		enterprise: true
+		spreadsheets: false,
+		enterprise: 'partial',
+		description: 'Per-entity storage with search, filters, bulk-zip export'
 	},
 	{
-		name: 'Tenant Records',
+		name: 'Tenant Records (no logins)',
 		tenantFlow: true,
 		spreadsheets: 'partial',
-		enterprise: true
+		enterprise: false,
+		description: 'Landlord-only platform; tenants are records, not users'
 	},
 	{
 		name: 'Maintenance Tracking',
@@ -52,16 +54,18 @@ const comparisonData: ComparisonFeature[] = [
 		enterprise: true
 	},
 	{
-		name: 'Late Fee Tracking',
-		tenantFlow: true,
+		name: 'Digital Lease Signing',
+		tenantFlow: 'Growth+',
 		spreadsheets: false,
-		enterprise: true
+		enterprise: 'partial',
+		description: 'DocuSeal e-sign on Growth and Max plans'
 	},
 	{
-		name: 'Digital Lease Signing',
+		name: 'Rent Ledger',
 		tenantFlow: true,
-		spreadsheets: false,
-		enterprise: 'partial'
+		spreadsheets: 'partial',
+		enterprise: true,
+		description: 'Manually record what you received — TenantFlow keeps the ledger'
 	},
 	{
 		name: 'Financial Reports',
@@ -70,28 +74,17 @@ const comparisonData: ComparisonFeature[] = [
 		enterprise: true
 	},
 	{
-		name: 'Mobile App',
+		name: 'Responsive Web App',
 		tenantFlow: true,
 		spreadsheets: false,
-		enterprise: true
+		enterprise: true,
+		description: 'Desktop and mobile browsers; no app store install'
 	},
 	{
 		name: 'No Training Required',
 		tenantFlow: true,
 		spreadsheets: true,
 		enterprise: false
-	},
-	{
-		name: '24/7 Support',
-		tenantFlow: true,
-		spreadsheets: false,
-		enterprise: 'partial'
-	},
-	{
-		name: 'SOC 2 Compliance',
-		tenantFlow: true,
-		spreadsheets: false,
-		enterprise: true
 	}
 ]
 

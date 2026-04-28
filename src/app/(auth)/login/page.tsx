@@ -12,15 +12,14 @@ import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Suspense, useEffect, useState } from 'react'
 import { LoginForm } from './login-form'
-import { SOCIAL_PROOF } from '#config/social-proof'
 import { LoginOAuth } from './login-oauth'
 
 const logger = createLogger({ component: 'LoginPage' })
 
 const HERO_STATS = [
-	{ value: '$2.4K+', lines: ['Saved Per', 'Property'] },
-	{ value: '98.7%', lines: ['Customer', 'Success'] },
-	{ value: '90 sec', lines: ['Support', 'Response'] }
+	{ value: 'Vault', lines: ['Document', 'Storage'] },
+	{ value: 'DocuSeal', lines: ['Lease', 'E-sign'] },
+	{ value: 'Reports', lines: ['Tax-ready', 'Exports'] }
 ]
 
 /** AUTH-12: Prevent open redirect attacks including protocol-relative URLs. */
@@ -159,9 +158,9 @@ function LoginPageContent() {
 										<Home className="size-8 text-primary-foreground" />
 									</div>
 								</div>
-								<h2 className="text-foreground font-bold text-xl">Your Success Dashboard Awaits</h2>
+								<h2 className="text-foreground font-bold text-xl">Welcome back</h2>
 								<p className="text-muted-foreground max-w-md mx-auto text-base">
-									{`Join ${SOCIAL_PROOF.managerCount} property managers who check their dashboard daily to see vacancy rates drop, NOI increase, and hours saved multiply.`}
+									Sign in to manage your properties, leases, maintenance, and the document vault.
 								</p>
 								<div className="grid grid-cols-3 gap-6 pt-6">
 									{HERO_STATS.map(stat => (

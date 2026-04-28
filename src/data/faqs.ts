@@ -45,7 +45,7 @@ export const faqData: FAQCategory[] = [
 			{
 				question: 'What does TenantFlow actually help me do?',
 				answer:
-					'Track properties and units, keep tenant and lease records, log maintenance requests and vendor costs, e-sign leases via DocuSeal, and run financial reports on rent you record as received. Everything a property owner needs to replace the spreadsheet.'
+					'Track properties and units, keep tenant and lease records, log maintenance requests and vendor costs, e-sign leases via DocuSeal (Growth and Max plans), and store every lease, receipt, and inspection report in a per-entity document vault with global search and bulk-download. Everything a property owner needs to replace the spreadsheet.'
 			},
 			{
 				question: 'What specific results can I expect?',
@@ -85,12 +85,12 @@ export const faqData: FAQCategory[] = [
 			{
 				question: 'How secure is my data?',
 				answer:
-					'TenantFlow uses bank-level security with 256-bit SSL encryption, SOC 2 Type II compliance, and regular security audits. Your data is backed up across multiple secure data centers with 99.9% uptime SLA and enterprise-grade protection.'
+					'TenantFlow runs on Supabase with TLS in transit and encryption at rest. Postgres row-level security isolates every landlord\u2019s data per request. Tenants never log in, so there are no extra access surfaces to manage. You can export your data or request account deletion at any time (a 30-day grace period applies before anonymization).'
 			},
 			{
-				question: 'Do you comply with rental regulations?',
+				question: 'Are lease templates compliant for my state?',
 				answer:
-					'Yes, TenantFlow automatically handles compliance for all 50 states including fair housing laws, rent control regulations, eviction procedures, and tenant rights. Our legal team updates the system continuously as regulations change.'
+					'Lease templates available on the platform are guidance, not legal advice. State and municipal rules around fair housing, lead-paint disclosures, and security deposits change frequently \u2014 we recommend a final review by a local attorney before signing any lease.'
 			}
 		]
 	},
@@ -98,19 +98,19 @@ export const faqData: FAQCategory[] = [
 		category: 'Pricing & ROI',
 		questions: [
 			{
-				question: "What if TenantFlow doesn't deliver the promised results?",
+				question: 'What kind of results do owners report?',
 				answer:
-					"We guarantee 40% NOI increase within 90 days or your money back. If you don't see measurable improvements in operational efficiency, cost reduction, and revenue optimization, we'll refund your subscription completely."
+					'Owners typically tell us they replace a tangle of spreadsheets, email threads, and Dropbox folders with a single source of truth. Concrete wins: faster lease renewals via DocuSeal, faster CPA hand-offs via the document vault\u2019s bulk-zip download, and fewer "where did I put that receipt?" moments at tax time. Specific revenue impact varies by portfolio.'
 			},
 			{
 				question: 'Are there any hidden fees?',
 				answer:
-					'No hidden fees ever. Our transparent pricing includes all features, unlimited support, regular updates, and data migration. The only additional cost is if you choose premium add-ons like custom integrations or dedicated training sessions.'
+					'No. Pricing on this page is what you pay. DocuSeal e-sign limits scale with the plan you choose (3 / 25 / unlimited per month). Storage scales the same way (10GB / 50GB / unlimited).'
 			},
 			{
 				question: 'Can I try TenantFlow risk-free?',
 				answer:
-					"Yes! Start with our 14-day transformation trial - no credit card required. Experience the full platform, see real results, and if you're not completely satisfied, there's no obligation to continue."
+					"Yes \u2014 start the 14-day trial with no credit card required. Bring your own properties, leases, and documents. Cancel any time."
 			}
 		]
 	}

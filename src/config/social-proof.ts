@@ -1,12 +1,15 @@
+// Public-facing social-proof copy. Phase 67 (v2.7) removed the
+// unsubstantiated specific-number claims (10,000+ managers, 40% NOI,
+// $30,000 savings, 98.7% success rate, 4.9/5 rating) that the
+// 2026-04-27 marketing audit flagged as unverifiable. Whatever stays
+// here is either factual product copy or a qualitative phrase that
+// doesn't make a claim we can't back up.
+//
+// Numeric claims (managerCount, propertiesManaged, noiIncrease, etc.)
+// were removed entirely. Consumers that previously templated them in
+// were rewritten to use product-feature copy instead. Don't reintroduce
+// numeric claims here without a documented methodology.
 export const SOCIAL_PROOF = {
-	managerCount: '10,000+',
-	propertiesManaged: '10,000+',
-	noiIncrease: '40%',
-	hoursSavedWeekly: '20+',
-	annualSavings: '$30,000+',
-	roiTimeline: '60-day',
-	responseTime: '90 seconds',
-	successRate: '98.7%',
-	customerRating: '4.9/5',
-	reviewCount: '2,500+',
+	customerRating: 'Built for landlords',
+	roiTimeline: '14-day trial'
 } as const

@@ -4,7 +4,7 @@ import { SectionSkeleton } from '#components/ui/section-skeleton'
 import { BentoCard, BentoGrid } from '#components/ui/bento-grid'
 import {
 	Building,
-	CreditCard,
+	FolderArchive,
 	Users,
 	Wrench,
 	FileText,
@@ -50,20 +50,20 @@ export function BentoFeaturesSection() {
 								cta="Manage Properties"
 							/>
 							<BentoCard
-								name="Rent Tracking"
+								name="Document Vault"
 								className="md:col-span-1 md:row-span-2"
 								background={<RentLedger />}
-								Icon={CreditCard}
-								description="Record rent received, flag late balances, and keep a clean ledger you can export anytime"
-								href="/financials/billing"
-								cta="Track Rent"
+								Icon={FolderArchive}
+								description="Per-entity document storage with global search, multi-select filters, date range, and bulk download"
+								href="/documents/vault"
+								cta="Open Vault"
 							/>
 							<BentoCard
 								name="Tenant Records"
 								className="md:col-span-1"
 								background={<TenantListBackground />}
 								Icon={Users}
-								description="Keep tenant contacts, lease history, and documents organized by unit"
+								description="Track tenant contacts and lease history. No tenant logins — landlords own every record"
 								href="/tenants"
 								cta="View Tenants"
 							/>
@@ -81,7 +81,7 @@ export function BentoFeaturesSection() {
 								className="md:col-span-1"
 								background={<LeaseDocuments />}
 								Icon={FileText}
-								description="Digital signing with DocuSeal and Texas-compliant templates"
+								description="Digital signing with DocuSeal on Growth and Max plans, with state-aware lease templates"
 								href="/leases"
 								cta="Manage Leases"
 							/>

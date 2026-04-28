@@ -23,12 +23,12 @@ const homeFaqs = [
 	{
 		question: 'Is my data secure?',
 		answer:
-			'Absolutely. We use bank-level encryption (AES-256), are SOC 2 compliant, and host on enterprise-grade infrastructure. Your data is backed up daily and you own it completely - export anytime.'
+			'Yes. Postgres row-level security isolates every landlord\u2019s data, files are encrypted at rest, and you can export or delete your account at any time. Tenants are stored as records under your account \u2014 they never log in, so there are no extra access surfaces to manage.'
 	},
 	{
-		question: 'How does rent tracking work?',
+		question: 'Where do I store lease PDFs and other documents?',
 		answer:
-			'You record rent as you receive it — by cash, check, ACH, or any method you already use. TenantFlow keeps the ledger, flags late balances, and produces the reports you need for taxes and bookkeeping.'
+			'In the document vault. Upload PDFs and images per property, lease, tenant, maintenance request, or inspection. Search across your whole portfolio, filter by category and date, and bulk-download a zip when tax season hits or your CPA asks for a folder.'
 	},
 	{
 		question: 'Can I switch from my current software?',
