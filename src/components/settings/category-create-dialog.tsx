@@ -142,6 +142,7 @@ export function CategoryCreateDialog({
 						<Input
 							id="new-cat-slug"
 							value={slug}
+							maxLength={SLUG_MAX}
 							onChange={e => handleSlugChange(e.target.value)}
 							placeholder="warranty"
 							aria-describedby="new-cat-slug-hint"
