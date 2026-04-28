@@ -66,15 +66,17 @@ describe('Phase 66 category mutation RPCs', () => {
 			await clientA.from('documents').delete().eq('id', id)
 		}
 		// Idempotent cleanup — some category ids may already have been
-		// deleted in-test by the reassign RPC. The DELETE is a no-op
-		// when the row is gone (and `.catch(() => {})` swallows any
-		// transient error). Cycle-1 M-8.
+		// deleted in-test by the reassign RPC. PostgREST DELETEs return
+		// `{ error: null, data: [] }` on missing rows (no throw), so the
+		// loop is naturally idempotent. The try/catch is belt-and-
+		// suspenders against transient network errors so a single
+		// failed cleanup doesn't abort the whole afterAll. Cycle-1 M-8.
 		for (const id of insertedCategoryIds) {
-			await clientA
-				.from('document_categories')
-				.delete()
-				.eq('id', id)
-				.catch(() => undefined)
+			try {
+				await clientA.from('document_categories').delete().eq('id', id)
+			} catch {
+				/* swallow — best-effort cleanup */
+			}
 		}
 		if (propertyA)
 			await clientA.from('properties').delete().eq('id', propertyA.id)
