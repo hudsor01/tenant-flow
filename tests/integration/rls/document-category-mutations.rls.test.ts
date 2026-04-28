@@ -82,7 +82,12 @@ describe('Phase 66 category mutation RPCs', () => {
 		await clientB.auth.signOut()
 	})
 
-	async function seedCategory(slug: string, label: string) {
+	// Append a per-run suffix to slugs so re-runs against the same prod
+	// account don't collide with rows that survived a previous failure
+	// (the cleanup is idempotent but a mid-test crash skips it).
+	const SLUG_SUFFIX = `_${Date.now().toString(36)}`
+	async function seedCategory(baseSlug: string, label: string) {
+		const slug = `${baseSlug}${SLUG_SUFFIX}`.slice(0, 50)
 		const { data, error } = await clientA
 			.from('document_categories')
 			.insert({
@@ -251,7 +256,7 @@ describe('Phase 66 category mutation RPCs', () => {
 			.from('document_categories')
 			.insert({
 				owner_user_id: uB!.id,
-				slug: 'phase66_reorder_foreign',
+				slug: `phase66_reorder_foreign${SLUG_SUFFIX}`.slice(0, 50),
 				label: 'Foreign',
 				sort_order: 999,
 				is_default: false
