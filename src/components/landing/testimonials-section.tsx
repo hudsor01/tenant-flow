@@ -33,10 +33,10 @@ export function TestimonialsSection() {
 							<div className="flex flex-wrap items-center justify-center gap-8 text-muted-foreground/60">
 								<div className="flex items-center space-x-2">
 									<Star className="size-4 fill-current text-accent" />
-									<span className="font-medium">Featured in PropTech Today</span>
+									<span className="font-medium">Built for landlords</span>
 								</div>
 								<div className="flex items-center space-x-2">
-									<span className="font-medium">99.9% Uptime SLA</span>
+									<span className="font-medium">14-day free trial</span>
 								</div>
 							</div>
 

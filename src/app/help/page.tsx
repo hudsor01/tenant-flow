@@ -25,12 +25,9 @@ import {
 import {
 	ArrowRight,
 	Book,
-	Clock,
 	Mail,
 	MessageCircle,
-	Phone,
-	TrendingUp,
-	Users
+	Phone
 } from 'lucide-react'
 
 export default function HelpPage() {
@@ -59,31 +56,31 @@ export default function HelpPage() {
 				<div className="max-w-6xl mx-auto px-6 lg:px-8">
 					<div className="text-center mb-16">
 						<h2 className="typography-h1 mb-4">
-							Your success team is standing by
+							Pick the channel that fits
 						</h2>
 						<p className="text-xl text-muted-foreground">
-							Average customer saves $30,000 in year one with our expert
-							guidance
+							Email support on every plan. Phone and priority support on Growth and Max.
 						</p>
 					</div>
 
 					<ItemGroup>
 						<Item variant="outline">
 							<ItemMedia variant="icon">
-								<MessageCircle />
+								<Mail />
 							</ItemMedia>
 							<ItemContent>
-								<ItemTitle>Live Expert Chat</ItemTitle>
+								<ItemTitle>Email Support</ItemTitle>
 								<ItemDescription>
-									Instant answers from property management specialists
+									Available on every plan
 								</ItemDescription>
-								<div className="mt-2 space-y-2">
-									{/* Online Now */}
-									<p className="text-muted-foreground">Average response: 90 seconds</p>
+								<div className="mt-2">
+									<p className="text-muted-foreground">support@tenantflow.app</p>
 								</div>
 							</ItemContent>
 							<ItemActions>
-								<Button className="w-full">Start Chat</Button>
+								<Button className="w-full" variant="outline">
+									Send Email
+								</Button>
 							</ItemActions>
 						</Item>
 
@@ -94,13 +91,13 @@ export default function HelpPage() {
 								<Phone />
 							</ItemMedia>
 							<ItemContent>
-								<ItemTitle>ROI Consultation</ItemTitle>
+								<ItemTitle>Phone Support</ItemTitle>
 								<ItemDescription>
-									Free 30-minute call with automation expert
+									Growth and Max plans
 								</ItemDescription>
 								<div className="mt-2">
 									<p className="text-muted-foreground">
-										Get custom ROI projection for your portfolio
+										Talk to a real person about onboarding, billing, or feature questions
 									</p>
 								</div>
 							</ItemContent>
@@ -118,19 +115,19 @@ export default function HelpPage() {
 								<Book />
 							</ItemMedia>
 							<ItemContent>
-								<ItemTitle>Success Guides</ItemTitle>
+								<ItemTitle>Help Center</ItemTitle>
 								<ItemDescription>
-									Step-by-step guides to maximize your results
+									Setup, billing, document vault, lease e-sign
 								</ItemDescription>
 								<div className="mt-2">
 									<p className="text-muted-foreground">
-										Learn proven strategies from top property managers
+										Step-by-step articles for the most common workflows
 									</p>
 								</div>
 							</ItemContent>
 							<ItemActions>
 								<Button className="w-full" variant="outline">
-									Browse Guides
+									Browse Articles
 								</Button>
 							</ItemActions>
 						</Item>
@@ -139,107 +136,24 @@ export default function HelpPage() {
 
 						<Item variant="outline">
 							<ItemMedia variant="icon">
-								<Mail />
+								<MessageCircle />
 							</ItemMedia>
 							<ItemContent>
-								<ItemTitle>Priority Support</ItemTitle>
+								<ItemTitle>Contact Sales</ItemTitle>
 								<ItemDescription>
-									Detailed help via email within 4 hours
+									Pre-purchase questions or migration help
 								</ItemDescription>
 								<div className="mt-2">
-									<p className="text-muted-foreground">support@tenantflow.app</p>
+									<p className="text-muted-foreground">
+										Walk through your portfolio with our team and pick the right plan
+									</p>
 								</div>
 							</ItemContent>
 							<ItemActions>
-								<Button className="w-full" variant="outline">
-									Send Email
-								</Button>
+								<Button className="w-full">Contact Sales</Button>
 							</ItemActions>
 						</Item>
 					</ItemGroup>
-				</div>
-			</section>
-
-			{/* Success Stories */}
-			<section className="section-spacing bg-muted/20">
-				<div className="max-w-6xl mx-auto px-6 lg:px-8">
-					<div className="text-center mb-16">
-						<h2 className="typography-h1 mb-4">
-							Success stories from our clients
-						</h2>
-						<p className="text-xl text-muted-foreground">
-							See how TenantFlow&apos;s support team helped property managers
-							achieve amazing results
-						</p>
-					</div>
-
-					<div className="grid md:grid-cols-3 gap-8">
-						<CardLayout
-							title="Sarah M."
-							description="Portfolio Manager"
-							className="bg-card border border-border/50 shadow-md"
-						>
-							<div className="flex items-center mb-4">
-								<TrendingUp className="size-8 text-primary mr-3" />
-								<div>
-									<h3 className="font-semibold">Sarah M.</h3>
-									<p className="text-muted-foreground">Portfolio Manager</p>
-								</div>
-							</div>
-							<p className="text-muted-foreground mb-4">
-								&quot;TenantFlow&apos;s support team helped me implement
-								automation that increased my NOI by 45% in just 60 days. Their
-								expertise made all the difference.&quot;
-							</p>
-							<div className="text-sm font-semibold text-primary">
-								Result: 45% NOI increase in 60 days
-							</div>
-						</CardLayout>
-
-						<CardLayout
-							title="Michael R."
-							description="Real Estate Investor"
-							className="bg-card border border-border/50 shadow-md"
-						>
-							<div className="flex items-center mb-4">
-								<Clock className="size-8 text-accent mr-3" />
-								<div>
-									<h3 className="font-semibold">Michael R.</h3>
-									<p className="text-muted-foreground">Real Estate Investor</p>
-								</div>
-							</div>
-							<p className="text-muted-foreground mb-4">
-								&quot;The onboarding team had me fully automated within 24
-								hours. I now save 25+ hours per week and my vacancy rates
-								dropped by 70%.&quot;
-							</p>
-							<div className="text-sm font-semibold text-accent">
-								Result: 25+ hours saved per week
-							</div>
-						</CardLayout>
-
-						<CardLayout
-							title="David L."
-							description="Property Management Company"
-							className="bg-card border border-border/50 shadow-md"
-						>
-							<div className="flex items-center mb-4">
-								<Users className="size-8 text-primary mr-3" />
-								<div>
-									<h3 className="font-semibold">David L.</h3>
-									<p className="text-muted-foreground">Property Management Company</p>
-								</div>
-							</div>
-							<p className="text-muted-foreground mb-4">
-								&quot;TenantFlow&apos;s customer success manager helped us scale
-								from 50 to 500 properties seamlessly. Our maintenance costs
-								dropped 35%.&quot;
-							</p>
-							<div className="text-sm font-semibold text-primary">
-								Result: Scaled to 50 properties, 35% cost reduction
-							</div>
-						</CardLayout>
-					</div>
 				</div>
 			</section>
 
@@ -256,31 +170,31 @@ export default function HelpPage() {
 					<div className="grid md:grid-cols-2 gap-6">
 						{[
 							{
-								title: 'How to increase NOI by 40% in 90 days',
+								title: 'Set up the document vault',
 								description:
-									'Step-by-step guide to implementing the strategies that deliver guaranteed results',
+									'Per-entity uploads, custom categories, search, filters, and bulk-zip export — everything the vault does in one walkthrough',
 								badge: 'Most Popular',
 								badgeColor: 'bg-primary/10 text-primary'
 							},
 							{
-								title: 'Automating 80% of daily tasks',
+								title: 'Send a lease for e-signature with DocuSeal',
 								description:
-									'Complete setup guide for workflow automation that saves 20+ hours per week',
-								badge: 'Implementation Guide',
+									'How DocuSeal integrates with your lease workflow on the Growth and Max plans, plus monthly volume limits',
+								badge: 'Lease Workflow',
 								badgeColor: 'bg-accent/10 text-accent'
 							},
 							{
-								title: 'Reducing vacancy time by 65%',
+								title: 'Run reports for tax season',
 								description:
-									'Proven techniques for faster tenant placement and reduced revenue loss',
-								badge: 'Quick Win',
+									'Generate CPA-ready financial reports and bulk-download every receipt and tax document by entity',
+								badge: 'Tax Time',
 								badgeColor: 'bg-primary/10 text-primary'
 							},
 							{
-								title: 'Cutting maintenance costs by 32%',
+								title: 'Manage your team and billing',
 								description:
-									'Smart vendor management and predictive maintenance strategies',
-								badge: 'Cost Savings',
+									'Invite team members, switch plans, update payment methods, and export account data',
+								badge: 'Account',
 								badgeColor: 'bg-accent/10 text-accent'
 							}
 						].map(resource => (

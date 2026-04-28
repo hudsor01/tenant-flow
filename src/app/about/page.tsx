@@ -321,7 +321,7 @@ export default function AboutPage() {
 								</Button>
 							</div>
 							<p className="text-muted-foreground">
-								No setup fees • Enterprise security • 99.9% uptime SLA • Cancel
+								No setup fees • Postgres RLS isolation • 14-day free trial • Cancel
 								anytime
 							</p>
 						</div>

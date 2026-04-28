@@ -56,9 +56,9 @@ const FAQS = [
 			"We'll notify you when you're approaching your limits. You can upgrade anytime to accommodate growth."
 	},
 	{
-		question: 'Do you offer refunds?',
+		question: 'Can I cancel any time?',
 		answer:
-			"Yes! We offer a 60-day money-back guarantee. If you're not satisfied, contact us for a full refund."
+			"Yes. Every plan is month-to-month with no contract. Cancel from the billing settings whenever you want; you'll keep access through the end of the current billing period."
 	}
 ]
 

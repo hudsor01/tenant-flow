@@ -63,10 +63,10 @@ export function PortalUsageStats({ stats }: PortalUsageStatsProps) {
 					<div className="size-10 rounded-lg flex-center mx-auto mb-2 bg-primary/10">
 						<Zap className="size-5 text-primary" />
 					</div>
-					<p className="text-2xl font-black text-primary tabular-nums">
+					<p className="text-2xl font-black text-primary">
 						{stats.uptime}
 					</p>
-					<p className="text-caption font-medium">Uptime</p>
+					<p className="text-caption font-medium">Status</p>
 				</div>
 
 				{stats.monthlyRevenue !== undefined && (

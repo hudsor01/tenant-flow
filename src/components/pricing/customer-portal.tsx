@@ -123,7 +123,7 @@ const TIER_CONFIG = {
 const DEFAULT_USAGE_STATS: UsageStatsData = {
 	properties: 12,
 	tenants: 48,
-	uptime: '99.9%',
+	uptime: 'Active',
 	monthlyRevenue: 24500,
 	activeLeases: 42
 }

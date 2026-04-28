@@ -49,6 +49,10 @@ export function BentoFeaturesSection() {
 								href="/properties"
 								cta="Manage Properties"
 							/>
+							{/* TODO Phase 68: swap the RentLedger background asset for a
+							    vault-shaped illustration. The card title + icon are correct
+							    post-Phase-67; the background visual is interim until the
+							    Phase 68 hero rewrite ships its asset pack. */}
 							<BentoCard
 								name="Document Vault"
 								className="md:col-span-1 md:row-span-2"

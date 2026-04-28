@@ -95,7 +95,7 @@ export function ComparisonTable({ className }: ComparisonTableProps) {
 				<BlurFade delay={0.1} inView>
 					<div className="text-center mb-12">
 						<h2 className="text-3xl lg:text-4xl xl:text-5xl font-bold tracking-tight text-foreground mb-4">
-							Why Property Managers Choose{' '}
+							Why Landlords Choose{' '}
 							<span className="hero-highlight">TenantFlow</span>
 						</h2>
 						<p className="text-muted-foreground text-lg max-w-2xl mx-auto">

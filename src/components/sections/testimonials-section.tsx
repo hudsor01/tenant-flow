@@ -112,12 +112,11 @@ export function TestimonialsSection({
 				<BlurFade delay={0.1} inView>
 					<div className="text-center mb-12">
 						<h2 className="text-3xl lg:text-4xl xl:text-5xl font-bold tracking-tight text-foreground mb-4">
-							Trusted by property managers{' '}
-							<span className="hero-highlight">everywhere</span>
+							Built for{' '}
+							<span className="hero-highlight">landlords</span>
 						</h2>
 						<p className="text-muted-foreground text-lg max-w-2xl mx-auto">
-							Join thousands of property managers who've transformed their
-							operations with TenantFlow
+							Owners use TenantFlow to centralize leases, documents, and maintenance into a single workspace.
 						</p>
 					</div>
 				</BlurFade>

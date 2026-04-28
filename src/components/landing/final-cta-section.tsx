@@ -7,8 +7,8 @@ import { SectionSkeleton } from '#components/ui/section-skeleton'
 
 const checkItems = [
 	'No setup fees',
-	'Enterprise security',
-	'99.9% uptime SLA',
+	'Postgres row-level security',
+	'14-day free trial',
 	'Cancel anytime'
 ]
 
