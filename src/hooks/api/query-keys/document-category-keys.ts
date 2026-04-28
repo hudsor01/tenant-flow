@@ -148,6 +148,15 @@ export interface DeleteWithReassignInput {
 
 export interface ReorderInput {
 	orders: Array<{ id: string; sort_order: number }>
+	/**
+	 * Pre-computed reordered list for the optimistic cache write
+	 * inside `onMutate`. Optional — pure RPC callers (without UI
+	 * cache work) can omit it. Cycle-3 M-2 hand-off pattern: the
+	 * caller computes the row order on drag-end and the mutation's
+	 * onMutate hook writes it to the cache after `cancelQueries`,
+	 * keeping snapshot + optimistic write atomically ordered.
+	 */
+	next?: DocumentCategoryRow[]
 }
 
 export const documentCategoryMutations = {

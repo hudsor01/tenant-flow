@@ -39,9 +39,9 @@ function mutationKeyMatches(
 
 // Capture the reorder mutation's onMutate/onError handlers so a unit
 // test can drive them directly to exercise the snapshot-rollback path
-// (cycle-1 M-7).
+// (cycle-1 M-7). Cycle-3 M-2: onMutate now takes an `input` arg.
 const reorderHooks: {
-	onMutate?: () => Promise<unknown>
+	onMutate?: (input: unknown) => Promise<unknown>
 	onError?: (err: Error, vars: unknown, ctx: unknown) => void
 } = {}
 
@@ -53,7 +53,7 @@ vi.mock('@tanstack/react-query', async () => {
 		...actual,
 		useMutation: (opts: {
 			mutationKey?: readonly unknown[]
-			onMutate?: () => Promise<unknown>
+			onMutate?: (input: unknown) => Promise<unknown>
 			onError?: (err: Error, vars: unknown, ctx: unknown) => void
 		}) => {
 			const key = opts.mutationKey
@@ -91,6 +91,11 @@ vi.mock('@tanstack/react-query', async () => {
 
 const SEVEN_DEFAULTS = [
 	{ id: 'cat-1', slug: 'lease', label: 'Lease', sort_order: 10, is_default: true, owner_user_id: 'u', created_at: '2026-04-26T00:00:00Z', updated_at: '2026-04-26T00:00:00Z' },
+	{ id: 'cat-2', slug: 'receipt', label: 'Receipt', sort_order: 20, is_default: true, owner_user_id: 'u', created_at: '2026-04-26T00:00:00Z', updated_at: '2026-04-26T00:00:00Z' },
+	{ id: 'cat-3', slug: 'tax_return', label: 'Tax return', sort_order: 30, is_default: true, owner_user_id: 'u', created_at: '2026-04-26T00:00:00Z', updated_at: '2026-04-26T00:00:00Z' },
+	{ id: 'cat-4', slug: 'inspection_report', label: 'Inspection report', sort_order: 40, is_default: true, owner_user_id: 'u', created_at: '2026-04-26T00:00:00Z', updated_at: '2026-04-26T00:00:00Z' },
+	{ id: 'cat-5', slug: 'maintenance_invoice', label: 'Maintenance invoice', sort_order: 50, is_default: true, owner_user_id: 'u', created_at: '2026-04-26T00:00:00Z', updated_at: '2026-04-26T00:00:00Z' },
+	{ id: 'cat-6', slug: 'insurance', label: 'Insurance', sort_order: 60, is_default: true, owner_user_id: 'u', created_at: '2026-04-26T00:00:00Z', updated_at: '2026-04-26T00:00:00Z' },
 	{ id: 'cat-7', slug: 'other', label: 'Other', sort_order: 70, is_default: true, owner_user_id: 'u', created_at: '2026-04-26T00:00:00Z', updated_at: '2026-04-26T00:00:00Z' }
 ]
 
@@ -296,14 +301,20 @@ describe('CategoriesSettings', () => {
 		const listKey = ['documentCategories', 'list'] as const
 		queryClient.setQueryData(listKey, initial)
 
-		// Snapshot phase — onMutate captures the current cache.
+		// Snapshot phase — onMutate cancels in-flight queries, captures
+		// the current cache, and writes the optimistic order from
+		// `input.next`. Cycle-3 M-2 moved this write inside onMutate so
+		// the snapshot/optimistic ordering is atomic against concurrent
+		// refetches.
 		expect(reorderHooks.onMutate).toBeDefined()
-		const ctx = await reorderHooks.onMutate!()
-
-		// Optimistic mutation — settle a different (incorrect) order in
-		// the cache to simulate the drag.
 		const reordered = [...initial].reverse()
-		queryClient.setQueryData(listKey, reordered)
+		const ctx = await reorderHooks.onMutate!({
+			orders: reordered.map((c, i) => ({
+				id: c.id,
+				sort_order: (i + 1) * 10
+			})),
+			next: reordered
+		})
 		expect(queryClient.getQueryData(listKey)).toEqual(reordered)
 
 		// Failure path — onError should restore the snapshot.

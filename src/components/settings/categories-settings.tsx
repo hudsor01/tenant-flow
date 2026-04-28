@@ -109,10 +109,22 @@ export function CategoriesSettings() {
 	const listKey = documentCategoryQueries.list().queryKey
 	const reorderMutation = useMutation({
 		...documentCategoryMutations.reorder(),
-		onMutate: async () => {
+		// Cycle-3 M-2: write the optimistic order INSIDE onMutate
+		// (after cancelQueries + snapshot), not before mutate(). Doing
+		// the write outside leaves a tiny window where an in-flight
+		// refetch could overwrite the optimistic state, then the
+		// snapshot would capture that already-overwritten state. The
+		// caller passes the pre-computed `next` array via the input.
+		onMutate: async input => {
 			await queryClient.cancelQueries({ queryKey: listKey })
 			const previous =
 				queryClient.getQueryData<DocumentCategoryRow[]>(listKey)
+			if (input.next) {
+				queryClient.setQueryData<DocumentCategoryRow[]>(
+					listKey,
+					() => input.next
+				)
+			}
 			return { previous }
 		},
 		onSuccess: () => invalidateAll(),
@@ -135,16 +147,14 @@ export function CategoriesSettings() {
 			id: c.id,
 			sort_order: (idx + 1) * 10
 		}))
-		// Optimistic UI: write the reordered list to the cache so the
-		// dragged row stays where the user dropped it. onMutate has
-		// already snapshotted the previous order; onError restores it.
-		queryClient.setQueryData<DocumentCategoryRow[]>(listKey, () =>
-			reordered.map((c, idx) => ({
-				...c,
-				sort_order: (idx + 1) * 10
-			}))
-		)
-		reorderMutation.mutate({ orders })
+		const nextRows = reordered.map((c, idx) => ({
+			...c,
+			sort_order: (idx + 1) * 10
+		}))
+		// Pass the pre-computed reordered rows to the mutation so
+		// onMutate can serialize cancelQueries → snapshot → setQueryData
+		// atomically.
+		reorderMutation.mutate({ orders, next: nextRows })
 	}
 
 	// Cycle-1 M-1: append-at-end semantics. Picking max+10 stays

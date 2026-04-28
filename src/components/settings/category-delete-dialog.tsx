@@ -40,18 +40,26 @@ export function CategoryDeleteDialog({
 }: CategoryDeleteDialogProps) {
 	const [reassignTo, setReassignTo] = useState('')
 
-	// Default to the canonical 'other' fallback when present (or first
-	// non-self candidate otherwise). Reset on open.
+	// Default to the canonical 'other' fallback when the dialog opens
+	// against a NEW target. Cycle-3 M-1: only re-run on `target?.id`
+	// change — gating on the full `candidates` array would clobber the
+	// user's chosen reassign target if the categories list refetches
+	// mid-dialog (e.g., refetchOnWindowFocus). The fallback lookup
+	// reaches into the latest `candidates` reference at fire time, so
+	// we don't need it as a dep.
+	const targetId = target?.id
 	useEffect(() => {
-		if (!target) {
+		if (!targetId) {
 			setReassignTo('')
 			return
 		}
 		const fallback =
-			candidates.find(c => c.slug === 'other' && c.id !== target.id) ??
-			candidates.find(c => c.id !== target.id)
+			candidates.find(c => c.slug === 'other' && c.id !== targetId) ??
+			candidates.find(c => c.id !== targetId)
 		setReassignTo(fallback?.id ?? '')
-	}, [target, candidates])
+		// `candidates` intentionally NOT in deps — see comment above.
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [targetId])
 
 	const canSubmit =
 		!isPending &&
