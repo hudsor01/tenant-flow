@@ -65,8 +65,16 @@ describe('Phase 66 category mutation RPCs', () => {
 		for (const id of insertedDocIds) {
 			await clientA.from('documents').delete().eq('id', id)
 		}
+		// Idempotent cleanup — some category ids may already have been
+		// deleted in-test by the reassign RPC. The DELETE is a no-op
+		// when the row is gone (and `.catch(() => {})` swallows any
+		// transient error). Cycle-1 M-8.
 		for (const id of insertedCategoryIds) {
-			await clientA.from('document_categories').delete().eq('id', id)
+			await clientA
+				.from('document_categories')
+				.delete()
+				.eq('id', id)
+				.catch(() => undefined)
 		}
 		if (propertyA)
 			await clientA.from('properties').delete().eq('id', propertyA.id)
@@ -266,10 +274,40 @@ describe('Phase 66 category mutation RPCs', () => {
 	})
 
 	it('reorder_document_categories: rejects non-array p_orders', async () => {
+		// Intentionally invalid input to verify runtime rejection — the
+		// RPC param is typed as `Json` so a plain object satisfies the
+		// type system, but the function checks `jsonb_typeof <> 'array'`.
 		const { error } = await clientA.rpc('reorder_document_categories', {
-			p_orders: { not: 'an array' } as unknown as never
+			p_orders: { not: 'an array' }
 		})
 		expect(error).not.toBeNull()
 		expect(error!.message).toMatch(/must be a json array/i)
+	})
+
+	// Phase 66 cycle-1 I-4: per-element shape validation. The RPC raises
+	// a clear 22023 instead of letting cast/null violations leak through
+	// as generic 500s.
+	it('reorder_document_categories: rejects entries missing sort_order', async () => {
+		const cat = await seedCategory(
+			'phase66_shape_probe',
+			'Shape Probe'
+		)
+		const { error } = await clientA.rpc('reorder_document_categories', {
+			p_orders: [{ id: cat.id }]
+		})
+		expect(error).not.toBeNull()
+		expect(error!.message).toMatch(/each entry must have id .* and sort_order/i)
+	})
+
+	it('reorder_document_categories: rejects entries with non-numeric sort_order', async () => {
+		const cat = await seedCategory(
+			'phase66_shape_string',
+			'Shape String'
+		)
+		const { error } = await clientA.rpc('reorder_document_categories', {
+			p_orders: [{ id: cat.id, sort_order: 'not_a_number' }]
+		})
+		expect(error).not.toBeNull()
+		expect(error!.message).toMatch(/each entry must have id .* and sort_order/i)
 	})
 })

@@ -37,13 +37,25 @@ function mutationKeyMatches(
 	return actual.every((v, i) => v === expected[i])
 }
 
+// Capture the reorder mutation's onMutate/onError handlers so a unit
+// test can drive them directly to exercise the snapshot-rollback path
+// (cycle-1 M-7).
+const reorderHooks: {
+	onMutate?: () => Promise<unknown>
+	onError?: (err: Error, vars: unknown, ctx: unknown) => void
+} = {}
+
 vi.mock('@tanstack/react-query', async () => {
 	const actual = await vi.importActual<typeof import('@tanstack/react-query')>(
 		'@tanstack/react-query'
 	)
 	return {
 		...actual,
-		useMutation: (opts: { mutationKey?: readonly unknown[] }) => {
+		useMutation: (opts: {
+			mutationKey?: readonly unknown[]
+			onMutate?: () => Promise<unknown>
+			onError?: (err: Error, vars: unknown, ctx: unknown) => void
+		}) => {
 			const key = opts.mutationKey
 			let mutate: ReturnType<typeof vi.fn> = vi.fn()
 			if (mutationKeyMatches(key, mutationKeys.documentCategories.create)) {
@@ -63,6 +75,8 @@ vi.mock('@tanstack/react-query', async () => {
 				mutationKeyMatches(key, mutationKeys.documentCategories.reorder)
 			) {
 				mutate = mockReorder
+				if (opts.onMutate) reorderHooks.onMutate = opts.onMutate
+				if (opts.onError) reorderHooks.onError = opts.onError
 			}
 			return {
 				mutate,
@@ -85,7 +99,9 @@ const WITH_CUSTOM = [
 	{ id: 'cat-custom', slug: 'warranty', label: 'Warranty', sort_order: 100, is_default: false, owner_user_id: 'u', created_at: '2026-04-27T00:00:00Z', updated_at: '2026-04-27T00:00:00Z' }
 ]
 
-function renderSettings(): ReturnType<typeof render> {
+function renderSettings(): ReturnType<typeof render> & {
+	queryClient: QueryClient
+} {
 	const queryClient = new QueryClient({
 		defaultOptions: { queries: { retry: false }, mutations: { retry: false } }
 	})
@@ -94,7 +110,8 @@ function renderSettings(): ReturnType<typeof render> {
 			<CategoriesSettings />
 		</QueryClientProvider>
 	)
-	return render(ui)
+	const result = render(ui)
+	return { ...result, queryClient }
 }
 
 describe('CategoriesSettings', () => {
@@ -262,5 +279,40 @@ describe('CategoriesSettings', () => {
 			).not.toBeInTheDocument()
 		})
 		expect(mockDelete).not.toHaveBeenCalled()
+	})
+
+	it('reorder rollback: onError restores the snapshot taken in onMutate (cycle-1 M-7)', async () => {
+		const initial = WITH_CUSTOM
+		mockUseDocumentCategories.mockReturnValue({
+			categories: initial,
+			isLoading: false,
+			isError: false
+		})
+		// Reset the captured hooks before mounting so we know the values
+		// we read after render came from THIS render.
+		delete reorderHooks.onMutate
+		delete reorderHooks.onError
+		const { queryClient } = renderSettings()
+		const listKey = ['documentCategories', 'list'] as const
+		queryClient.setQueryData(listKey, initial)
+
+		// Snapshot phase — onMutate captures the current cache.
+		expect(reorderHooks.onMutate).toBeDefined()
+		const ctx = await reorderHooks.onMutate!()
+
+		// Optimistic mutation — settle a different (incorrect) order in
+		// the cache to simulate the drag.
+		const reordered = [...initial].reverse()
+		queryClient.setQueryData(listKey, reordered)
+		expect(queryClient.getQueryData(listKey)).toEqual(reordered)
+
+		// Failure path — onError should restore the snapshot.
+		expect(reorderHooks.onError).toBeDefined()
+		reorderHooks.onError!(new Error('rpc failed'), undefined, ctx)
+
+		expect(queryClient.getQueryData(listKey)).toEqual(initial)
+		expect(mockToastError).toHaveBeenCalledWith(
+			expect.stringContaining('rpc failed')
+		)
 	})
 })

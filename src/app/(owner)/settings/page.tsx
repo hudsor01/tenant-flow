@@ -37,6 +37,10 @@ const TAB_VALUES: readonly SettingsTab[] = [
 	'data'
 ] as const
 
+function isSettingsTab(value: string): value is SettingsTab {
+	return (TAB_VALUES as readonly string[]).includes(value)
+}
+
 interface SettingsSection {
 	id: SettingsTab
 	label: string
@@ -88,14 +92,12 @@ export default function SettingsPage() {
 	const router = useRouter()
 	const tabParam = searchParams.get('tab') as SettingsTab | null
 	const [activeTab, setActiveTab] = useState<SettingsTab>(
-		tabParam && (TAB_VALUES as readonly string[]).includes(tabParam)
-			? tabParam
-			: 'general'
+		tabParam && isSettingsTab(tabParam) ? tabParam : 'general'
 	)
 
 	// Update tab when URL changes
 	useEffect(() => {
-		if (tabParam && (TAB_VALUES as readonly string[]).includes(tabParam)) {
+		if (tabParam && isSettingsTab(tabParam)) {
 			setActiveTab(tabParam)
 		}
 	}, [tabParam])
