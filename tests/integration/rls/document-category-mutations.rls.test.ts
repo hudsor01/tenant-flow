@@ -284,6 +284,41 @@ describe('Phase 66 category mutation RPCs', () => {
 		expect(error!.message).toMatch(/must be a json array/i)
 	})
 
+	// Cycle-5 M-3: pin the null-param branches that the cycle-3 review
+	// flagged as missing coverage. These branches raise 22023 with a
+	// specific message. The RPC params are typed `string`/`Json`, so
+	// passing `null` is intentionally invalid at the type level and
+	// suppressed via @ts-expect-error rather than the Zero-Tolerance-
+	// banned `as unknown as` double-cast.
+	it('reassign_document_category: rejects null p_from_id', async () => {
+		const { error } = await clientA.rpc('reassign_document_category', {
+			// @ts-expect-error — intentionally null to exercise the runtime guard
+			p_from_id: null,
+			p_to_id: '00000000-0000-0000-0000-000000000001'
+		})
+		expect(error).not.toBeNull()
+		expect(error!.message).toMatch(/p_from_id and p_to_id are required/i)
+	})
+
+	it('reassign_document_category: rejects null p_to_id', async () => {
+		const { error } = await clientA.rpc('reassign_document_category', {
+			p_from_id: '00000000-0000-0000-0000-000000000001',
+			// @ts-expect-error — intentionally null to exercise the runtime guard
+			p_to_id: null
+		})
+		expect(error).not.toBeNull()
+		expect(error!.message).toMatch(/p_from_id and p_to_id are required/i)
+	})
+
+	it('reorder_document_categories: rejects null p_orders', async () => {
+		const { error } = await clientA.rpc('reorder_document_categories', {
+			// @ts-expect-error — intentionally null to exercise the runtime guard
+			p_orders: null
+		})
+		expect(error).not.toBeNull()
+		expect(error!.message).toMatch(/must be a json array/i)
+	})
+
 	// Phase 66 cycle-1 I-4: per-element shape validation. The RPC raises
 	// a clear 22023 instead of letting cast/null violations leak through
 	// as generic 500s.

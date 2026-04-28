@@ -229,6 +229,7 @@ export function CategoriesSettings() {
 				onSubmit={input => createMutation.mutate(input)}
 				isPending={createMutation.isPending}
 				defaultSortOrder={nextSortOrder}
+				existingSlugs={categories.map(c => c.slug)}
 			/>
 
 			<CategoryRenameDialog

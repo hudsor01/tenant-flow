@@ -286,6 +286,31 @@ describe('CategoriesSettings', () => {
 		expect(mockDelete).not.toHaveBeenCalled()
 	})
 
+	it('reorder onMutate: skips optimistic write when input.next is omitted (cycle-5 M-4)', async () => {
+		// Pure-RPC callers that don't want UI cache updates can omit
+		// `next` from the mutation input — `onMutate` should still
+		// snapshot but skip the setQueryData write.
+		const initial = WITH_CUSTOM
+		mockUseDocumentCategories.mockReturnValue({
+			categories: initial,
+			isLoading: false,
+			isError: false
+		})
+		delete reorderHooks.onMutate
+		delete reorderHooks.onError
+		const { queryClient } = renderSettings()
+		const listKey = ['documentCategories', 'list'] as const
+		queryClient.setQueryData(listKey, initial)
+
+		expect(reorderHooks.onMutate).toBeDefined()
+		await reorderHooks.onMutate!({
+			orders: [{ id: 'cat-custom', sort_order: 1234 }]
+			// next omitted intentionally
+		})
+		// Cache is unchanged — onMutate snapshotted but didn't write.
+		expect(queryClient.getQueryData(listKey)).toEqual(initial)
+	})
+
 	it('reorder rollback: onError restores the snapshot taken in onMutate (cycle-1 M-7)', async () => {
 		const initial = WITH_CUSTOM
 		mockUseDocumentCategories.mockReturnValue({
