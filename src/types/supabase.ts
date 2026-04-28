@@ -2587,6 +2587,14 @@ export type Database = {
         Returns: undefined
       }
       queue_lease_reminders: { Args: never; Returns: undefined }
+      reassign_document_category: {
+        Args: { p_from_id: string; p_to_id: string }
+        Returns: undefined
+      }
+      reorder_document_categories: {
+        Args: { p_orders: Json }
+        Returns: undefined
+      }
       request_account_deletion: { Args: never; Returns: undefined }
       require_stripe_schema: { Args: never; Returns: boolean }
       revoke_user_session: {
