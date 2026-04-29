@@ -28,10 +28,10 @@ const comparisonData: ComparisonFeature[] = [
 	},
 	{
 		name: 'Monthly Cost (50 units)',
-		tenantFlow: '$49/mo',
+		tenantFlow: '$79/mo',
 		spreadsheets: 'Free*',
 		enterprise: '$200+/mo',
-		description: '*Excludes your time value'
+		description: '*Excludes your time value (Growth plan, up to 100 units)'
 	},
 	{
 		name: 'Document Vault',
@@ -61,11 +61,11 @@ const comparisonData: ComparisonFeature[] = [
 		description: 'DocuSeal e-sign on Growth and Max plans'
 	},
 	{
-		name: 'Rent Ledger',
+		name: 'Bulk Document Export',
 		tenantFlow: true,
 		spreadsheets: 'partial',
-		enterprise: true,
-		description: 'Manually record what you received — TenantFlow keeps the ledger'
+		enterprise: 'partial',
+		description: 'Zip up to 500 documents per export for tax season'
 	},
 	{
 		name: 'Financial Reports',

@@ -8,7 +8,7 @@
  * - Cascading property -> unit -> tenant selection
  * - Vacant unit filtering (only shows available units)
  * - Auto-populate rent/deposit from selected unit
- * - Inline tenant invitation form
+ * - Inline tenant record creation form
  */
 import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'

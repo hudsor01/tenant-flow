@@ -37,6 +37,24 @@ const BANNED_PHRASES = [
 	'pay rent through'
 ] as const
 
+// Feature claims for capabilities the product does NOT ship. These are
+// outright false advertising — TenantFlow has no tenant screening, no
+// automated workflows engine, no native mobile app, no rent processing.
+// Matched case-insensitively. If a future product genuinely ships any of
+// these, remove the corresponding entry.
+const BANNED_FEATURE_CLAIMS = [
+	'tenant screening',
+	'automated workflow',
+	'rent tracking',
+	'mobile app access',
+	'record rent',
+	'paid rent',
+	'pay rent',
+	'rent processing',
+	'process rent',
+	'tenant invitation'
+] as const
+
 // Numeric / dollar / SLA / guarantee claims that v2.7 Phase 67 removed
 // because we couldn't substantiate them. Reintroducing any of these
 // phrases is a regression — if a future page genuinely needs to cite
@@ -161,6 +179,20 @@ function scanFileForBannedNumericClaims(absPath: string, relPath: string) {
 	})
 }
 
+function scanFileForBannedFeatureClaims(absPath: string, relPath: string) {
+	const content = readFileSync(absPath, 'utf8').toLowerCase()
+	describe(`${relPath} (feature claims)`, () => {
+		for (const phrase of BANNED_FEATURE_CLAIMS) {
+			it(`must not mention "${phrase}"`, () => {
+				expect(
+					content,
+					`${relPath} contains banned feature claim "${phrase}" — these capabilities do not ship in the current product`
+				).not.toContain(phrase.toLowerCase())
+			})
+		}
+	})
+}
+
 describe('Marketing copy: landlord-only product', () => {
 	const cwd = process.cwd()
 	for (const relPath of MARKETING_FILES) {
@@ -188,5 +220,20 @@ describe('Component copy: numeric claims (v2.7 Phase 67)', () => {
 	const componentsRoot = join(cwd, 'src', 'components')
 	for (const absPath of walkComponentFiles(componentsRoot)) {
 		scanFileForBannedNumericClaims(absPath, relative(cwd, absPath))
+	}
+})
+
+describe('Marketing copy: feature claims (v2.7 Phase 67)', () => {
+	const cwd = process.cwd()
+	for (const relPath of MARKETING_FILES) {
+		scanFileForBannedFeatureClaims(join(cwd, relPath), relPath)
+	}
+})
+
+describe('Component copy: feature claims (v2.7 Phase 67)', () => {
+	const cwd = process.cwd()
+	const componentsRoot = join(cwd, 'src', 'components')
+	for (const absPath of walkComponentFiles(componentsRoot)) {
+		scanFileForBannedFeatureClaims(absPath, relative(cwd, absPath))
 	}
 })

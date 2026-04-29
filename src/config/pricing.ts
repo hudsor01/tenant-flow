@@ -105,8 +105,7 @@ export const PRICING_PLANS: Record<string, PricingConfig> = {
 			'Lease management with 3 e-signs/mo',
 			'Financial reporting',
 			'10GB document storage',
-			'Priority email support',
-			'Mobile app access'
+			'Priority email support'
 		],
 		support: 'Priority Email',
 		trial: false
@@ -136,7 +135,6 @@ export const PRICING_PLANS: Record<string, PricingConfig> = {
 			'Up to 100 units',
 			'Advanced analytics',
 			'25 lease e-signs per month',
-			'Tenant screening credits',
 			'Vendor network',
 			'Custom templates',
 			'50GB storage',
@@ -313,34 +311,31 @@ export const PLAN_FEATURES = {
 		'Up to 5 properties',
 		'Up to 25 units',
 		'Unlimited tenant records',
-		'Rent tracking and ledger',
-		'Lease management (3 e-signs/mo)',
+		'Document vault with global search',
+		'3 lease e-signs per month (DocuSeal)',
 		'Maintenance tracking',
 		'10GB document storage',
-		'Priority email support'
+		'Email support'
 	],
 	growth: [
 		'Up to 20 properties',
 		'Up to 100 units',
 		'Everything in Starter',
-		'25 lease e-signs per month',
-		'Tenant screening credits',
-		'Late fee tracking',
-		'Advanced reporting',
+		'25 lease e-signs per month (DocuSeal)',
+		'Renewal reminders',
+		'Advanced financial reporting',
 		'50GB document storage',
-		'Phone & email support',
-		'Mobile app access'
+		'Phone and priority email support'
 	],
 	max: [
 		'Unlimited properties',
 		'Unlimited units',
 		'Everything in Growth',
-		'Unlimited lease e-signs',
-		'Custom integrations (API)',
-		'White-label options',
+		'Unlimited lease e-signs (DocuSeal)',
+		'Custom lease clauses',
+		'API access',
 		'Dedicated account manager',
 		'Unlimited storage',
-		'24/7 phone & chat support',
-		'Custom reports & analytics'
+		'Priority support'
 	]
 } as const

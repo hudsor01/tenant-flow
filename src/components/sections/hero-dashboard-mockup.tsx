@@ -3,7 +3,9 @@ import type { ReactNode } from 'react'
 import { cn } from '#lib/utils'
 import {
 	Building,
-	CreditCard,
+	DollarSign,
+	FileSignature,
+	FolderArchive,
 	TrendingUp,
 	Users,
 	Wrench,
@@ -72,7 +74,7 @@ export function HeroDashboardMockup({ className }: { className?: string }) {
 							value="$52K"
 							trend="+12%"
 							trendUp
-							icon={<CreditCard className="size-3.5" />}
+							icon={<DollarSign className="size-3.5" />}
 						/>
 						<StatCard
 							label="Occupancy"
@@ -119,10 +121,10 @@ export function HeroDashboardMockup({ className }: { className?: string }) {
 
 						<div className="col-span-2 space-y-2">
 							<QuickAction
-								icon={<CreditCard className="size-3.5" />}
-								label="Record Rent"
-								badge="3 pending"
-								badgeColor="warning"
+								icon={<FolderArchive className="size-3.5" />}
+								label="Upload Document"
+								badge="vault"
+								badgeColor="info"
 							/>
 							<QuickAction
 								icon={<Wrench className="size-3.5" />}
@@ -131,8 +133,8 @@ export function HeroDashboardMockup({ className }: { className?: string }) {
 								badgeColor="info"
 							/>
 							<QuickAction
-								icon={<Users className="size-3.5" />}
-								label="New Tenant"
+								icon={<FileSignature className="size-3.5" />}
+								label="Send for E-Sign"
 							/>
 						</div>
 					</div>
@@ -153,8 +155,8 @@ export function HeroDashboardMockup({ className }: { className?: string }) {
 							<ActivityItem
 								avatar="JM"
 								name="John Miller"
-								action="paid rent"
-								amount="$1,850"
+								action="signed lease"
+								amount="DocuSeal"
 								time="2m ago"
 								status="success"
 							/>

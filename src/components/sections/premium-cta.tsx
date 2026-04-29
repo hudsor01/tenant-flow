@@ -2,7 +2,7 @@ import { BlurFade } from '#components/ui/blur-fade'
 import { Button } from '#components/ui/button'
 import { GlowingEffect } from '#components/ui/glowing-effect'
 import { cn } from '#lib/utils'
-import { ArrowRight, Check, Clock, TrendingUp } from 'lucide-react'
+import { ArrowRight, Check, Clock, MessageCircle } from 'lucide-react'
 import Link from 'next/link'
 
 interface PremiumCtaProps {
@@ -76,9 +76,9 @@ export function PremiumCta({ className }: PremiumCtaProps) {
 								className="group border-2 border-border/50 hover:border-primary/40 hover:bg-primary/5 typography-large px-10 py-6 rounded transition-all duration-500 backdrop-blur-sm hover:shadow-lg"
 								asChild
 							>
-								<Link href="/contact" aria-label="Calculate Your Savings">
-									<TrendingUp className="size-6 mr-3 opacity-70 group-hover:opacity-100 group-hover:text-primary transition-all duration-500" />
-									Calculate Your Savings
+								<Link href="/contact" aria-label="Talk to our team">
+									<MessageCircle className="size-6 mr-3 opacity-70 group-hover:opacity-100 group-hover:text-primary transition-all duration-500" />
+									Talk to Our Team
 								</Link>
 							</Button>
 						</div>

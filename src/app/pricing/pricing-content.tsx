@@ -184,7 +184,7 @@ export function PricingCtaSection() {
 						{[
 							{
 								title: '14-day trial, all features',
-								desc: 'Add properties, send invites, test automations--keep everything when you subscribe.'
+								desc: 'Add properties, upload documents, generate and e-sign leases — keep everything when you subscribe.'
 							},
 							{
 								title: 'Billing that flexes with you',

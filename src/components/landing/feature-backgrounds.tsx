@@ -35,49 +35,11 @@ export function PropertyGrid() {
 	)
 }
 
-export function RentLedger() {
-	return (
-		<div className="absolute inset-x-0 top-0 bottom-[30%] p-4 overflow-hidden">
-			<div className="space-y-3 opacity-70">
-				<div className="card-standard p-3">
-					<div className="flex justify-between text-xs mb-2">
-						<span className="text-muted-foreground">December Rent</span>
-						<span className="text-foreground font-medium">$48,250 / $52,000</span>
-					</div>
-					<div className="h-2 bg-muted rounded-full overflow-hidden">
-						<div className="h-full bg-success rounded-full w-[93%]" />
-					</div>
-				</div>
-				<div className="space-y-2">
-					{[
-						{ tenant: 'Sarah Johnson', amount: '$1,850', status: 'Received' },
-						{ tenant: 'Michael Chen', amount: '$2,200', status: 'Received' },
-						{ tenant: 'Emily Davis', amount: '$1,650', status: 'Outstanding' }
-					].map(payment => (
-						<div key={payment.tenant} className="card-standard p-2 flex-between">
-							<span className="text-xs text-foreground">{payment.tenant}</span>
-							<div className="flex items-center gap-2">
-								<span className="text-xs font-medium text-foreground">
-									{payment.amount}
-								</span>
-								<span
-									className={cn(
-										'text-xs px-2 py-0.5 rounded-full',
-										payment.status === 'Received'
-											? 'bg-success/10 text-success'
-											: 'bg-warning/10 text-warning'
-									)}
-								>
-									{payment.status}
-								</span>
-							</div>
-						</div>
-					))}
-				</div>
-			</div>
-		</div>
-	)
-}
+// RentLedger background was removed in v2.7 Phase 67 (cycle-3 C-1).
+// It rendered fake rent-collection imagery (December Rent / received /
+// outstanding rows) under what became the Document Vault card. Use
+// LeaseDocuments instead. If we need a vault-specific visual, add it
+// here as a new export.
 
 export function TenantListBackground() {
 	return (

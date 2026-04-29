@@ -78,7 +78,7 @@ const comparisonData: FeatureCategory[] = [
 			{ name: 'Occupancy analytics', starter: true, growth: true, max: true },
 			{ name: 'Expense tracking', starter: true, growth: true, max: true },
 			{ name: 'Custom dashboards', starter: false, growth: true, max: true },
-				{ name: 'Portfolio benchmarking', starter: false, growth: false, max: true }
+			{ name: 'Portfolio benchmarking', starter: false, growth: false, max: true }
 		]
 	},
 	{
@@ -222,7 +222,7 @@ export function PricingComparisonTable({
 						</div>
 						<div className="text-center">
 							<div className="text-sm font-semibold text-foreground">Max</div>
-							<div className="text-xs text-muted-foreground">Custom</div>
+							<div className="text-xs text-muted-foreground">$199/mo</div>
 						</div>
 					</div>
 

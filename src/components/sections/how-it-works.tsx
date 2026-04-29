@@ -20,12 +20,12 @@ const steps = [
 		number: '01',
 		title: 'Add Your Properties',
 		description:
-			'Import your portfolio in minutes. Add property details, units, and set up rent amounts. Our CSV import handles bulk uploads effortlessly.',
+			'Import your portfolio in minutes. Add property details and units. Our CSV import handles bulk uploads effortlessly.',
 		icon: Building,
 		features: [
 			'Bulk CSV import',
 			'Unit-level management',
-			'Custom rent schedules'
+			'Owner-by-owner RLS isolation'
 		],
 		color: 'primary'
 	},
@@ -71,7 +71,7 @@ export function HowItWorks({ className }: HowItWorksProps) {
 							How TenantFlow Works
 						</h2>
 						<p className="text-muted-foreground text-lg max-w-2xl mx-auto">
-							From signup to automation in three simple steps. No complex setup,
+							From signup to organized records in three simple steps. No complex setup,
 							no technical skills required.
 						</p>
 					</div>

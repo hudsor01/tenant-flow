@@ -34,7 +34,7 @@ function createDefaultMetadata(): Metadata {
 		description:
 			'Property administration software built for property owners and real estate investors. Track leases, maintenance, tenants, and finances in one place. 14-day free trial.',
 		keywords:
-			'property management software, rental property management, property owner software, lease management software, tenant management, maintenance tracking, property manager tools, real estate investor software, rental management app, tenant screening, property accounting, document management, rent tracking',
+			'landlord software, property management software for landlords, rental property management, lease management software, tenant records, maintenance tracking, document vault, lease e-signing, real estate investor software, rental management app, property accounting',
 		authors: [{ name: 'TenantFlow' }],
 		creator: 'TenantFlow',
 		publisher: 'TenantFlow',
@@ -174,7 +174,7 @@ export function getJsonLd() {
 			'@type': 'AggregateOffer',
 			priceCurrency: 'USD',
 			lowPrice: '0',
-			highPrice: '399',
+			highPrice: '199',
 			offerCount: '3',
 			availability: 'https://schema.org/InStock'
 		},
@@ -182,14 +182,11 @@ export function getJsonLd() {
 		featureList: [
 			'Property Management',
 			'Tenant Records',
-			'Rent Tracking',
+			'Lease Management',
 			'Maintenance Tracking',
 			'Financial Reporting',
-			'Automated Workflows',
-			'Lease Management',
-			'Document Storage',
-			'Tenant Screening',
-			'E-Sign Leases'
+			'Document Vault',
+			'DocuSeal Lease E-Signing'
 		]
 	}
 
