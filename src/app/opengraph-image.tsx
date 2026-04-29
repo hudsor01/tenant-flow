@@ -62,7 +62,7 @@ export default async function Image() {
 						lineHeight: 1.4
 					}}
 				>
-					Professional property management software trusted by thousands
+					Landlord-only property platform with a per-entity document vault
 				</div>
 			</div>
 

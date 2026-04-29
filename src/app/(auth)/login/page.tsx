@@ -189,17 +189,15 @@ function LoginPageContent() {
 								</div>
 							</div>
 							<div className="space-y-2">
-								<h1 className="typography-h3 text-foreground">Welcome Back to Your $30,000 Annual Savings</h1>
-								<p className="text-muted-foreground text-sm">Your properties are generating 40% more NOI while you&apos;ve been away.</p>
+								<h1 className="typography-h3 text-foreground">Welcome back</h1>
+								<p className="text-muted-foreground text-sm">Sign in to manage your properties, leases, and the document vault.</p>
 							</div>
 						</div>
 						<div className="bg-muted/50 rounded-lg p-4 space-y-2 text-sm border border-border/50">
 							<p className="text-muted-foreground">
-								<strong className="text-foreground">Property Owners:</strong> New to TenantFlow?{' '}
-								<Link href="/pricing" className="text-primary hover:underline font-medium">View plans</Link>
-							</p>
-							<p className="text-muted-foreground">
-								<strong className="text-foreground">Tenants:</strong> Check your email for an invitation link
+								<strong className="text-foreground">New to TenantFlow?</strong>{' '}
+								<Link href="/pricing" className="text-primary hover:underline font-medium">View plans</Link>{' '}
+								— TenantFlow is landlord-only, so tenants don&apos;t need an account.
 							</p>
 						</div>
 

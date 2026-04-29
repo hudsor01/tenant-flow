@@ -5,8 +5,8 @@ import { cn } from '#lib/utils'
 import {
 	ArrowLeft,
 	DollarSign,
+	FolderArchive,
 	HelpCircle,
-	Settings,
 	Terminal,
 	Zap
 } from 'lucide-react'
@@ -20,21 +20,21 @@ export default function FeaturesSectionDemo({
 }: FeaturesSectionDemoProps) {
 	const features = [
 		{
-			title: 'Smart Property Management',
+			title: 'Property Management',
 			description:
-				'Track leases, renewals, and maintenance in one place — built for property owners managing any size portfolio.',
+				'Track leases, renewals, and maintenance in one place — built for landlords managing any size portfolio.',
 			icon: <Terminal />
 		},
 		{
-			title: 'Lightning Fast Setup',
+			title: 'Fast Setup',
 			description:
-				'Get up and running in under 1 hour. No complex configurations or lengthy onboarding.',
+				'Import your portfolio via CSV and start tracking the same day. No long onboarding, no implementation team required.',
 			icon: <Zap />
 		},
 		{
 			title: 'Transparent Pricing',
 			description:
-				'90% of enterprise features for 20% of the price. No hidden fees, no lock-in contracts.',
+				'Three plans that scale with your portfolio. No hidden fees, no contracts, no charge for tenant accounts that don\u2019t exist.',
 			icon: <DollarSign />
 		},
 		{
@@ -44,16 +44,16 @@ export default function FeaturesSectionDemo({
 			icon: <ArrowLeft />
 		},
 		{
-			title: 'Expert Support',
+			title: 'Email Support',
 			description:
-				'Property management experts available when you need them, plus comprehensive documentation.',
+				'Email support on every plan. Phone and priority support on Growth and Max. No tenant tickets to triage.',
 			icon: <HelpCircle />
 		},
 		{
-			title: '60-Day Money Back',
+			title: 'Document Vault',
 			description:
-				'See ROI within 90 days or get your money back. No questions asked guarantee.',
-			icon: <Settings />
+				'Per-entity storage with global search, multi-select filters, date-range, and bulk-zip download. Custom categories per landlord.',
+			icon: <FolderArchive />
 		}
 	]
 

@@ -20,17 +20,17 @@ export const faqData: FAQCategory[] = [
 			{
 				question: 'How do I get started with TenantFlow?',
 				answer:
-					"Sign up for our 14-day free trial - no credit card required. You'll get instant access to the platform, and our onboarding team will guide you through importing your properties, setting up your workflows, and customizing the dashboard to match your needs. Most property managers are fully operational within 24 hours."
+					"Sign up for the 14-day free trial \u2014 no credit card required. Bring your properties via CSV import, add tenant records and leases, and upload your existing documents to the vault. There's no long onboarding process; you can start the same day."
 			},
 			{
 				question: 'Can I import my existing property data?',
 				answer:
-					'Yes! Our migration specialists handle all data imports at no extra cost. We support imports from all major property management software, spreadsheets, and paper records. The process typically takes 2-4 hours, and we validate everything to ensure accuracy before going live.'
+					'Yes. CSV import covers properties, units, tenants, and leases. Existing documents (PDFs, images) upload directly into the document vault under the right entity (property, lease, tenant, maintenance, or inspection). Reach out to support if your portfolio is non-trivial and you want help validating the import.'
 			},
 			{
-				question: 'How much money will I save with TenantFlow?',
+				question: 'What does TenantFlow help me do that a spreadsheet doesn\u2019t?',
 				answer:
-					'The average property manager saves $2,400+ per property per year with TenantFlow. This comes from reduced vacancy time (65% faster), lower maintenance costs (32% reduction), streamlined operations, and eliminated manual tasks. Most clients see full ROI within 2.3 months.'
+					'A spreadsheet can\u2019t store and search your lease PDFs, run lease e-signature workflows, generate tax-ready financial reports, or maintain row-level data isolation across multiple landlords. TenantFlow ships all of that in one place. Specific time savings vary by portfolio.'
 			}
 		]
 	},
@@ -65,12 +65,12 @@ export const faqData: FAQCategory[] = [
 			{
 				question: 'How long does setup take?',
 				answer:
-					'Most property managers are fully operational within 24-48 hours. Our onboarding specialists handle data migration, system configuration, and team training. You can start seeing results immediately with our automated workflows going live on day one.'
+					'Most landlords have their portfolio imported and their first leases tracked within a day. CSV imports cover the heavy lifting; the document vault accepts existing PDFs and images directly.'
 			},
 			{
 				question: 'What kind of support do you provide?',
 				answer:
-					'All plans include priority email support with 4-hour response times. Growth and Max plans get phone support and dedicated account managers. Our team includes property management experts who understand your challenges and provide strategic guidance.'
+					'Email support is included on every plan. Growth and Max plans add phone support. We are not a 24/7 operation \u2014 expect responses during US business hours.'
 			},
 			{
 				question: 'Do you integrate with my existing systems?',

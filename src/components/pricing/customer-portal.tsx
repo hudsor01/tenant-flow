@@ -134,8 +134,11 @@ const DEFAULT_BILLING_INFO: BillingInfoData = {
 	paymentMethod: 'Visa ending in 4242'
 }
 
+// Placeholder testimonial — Phase 67 stripped the metric claim "saves
+// us hours every month" since it wasn't from a verified customer.
+// Replace with a real quote when we collect attributable feedback.
 const DEFAULT_TESTIMONIAL: TestimonialData = {
-	text: 'TenantFlow transformed our property management workflow. The billing portal saves us hours every month.',
+	text: 'The billing portal puts plan details, usage, and payment history in one place — no spreadsheet juggling.',
 	author: 'Sarah Johnson',
 	company: 'Metro Properties',
 	rating: 5
@@ -213,9 +216,7 @@ export function CustomerPortalCard({
 
 					<div className="text-center space-y-4">
 						<p className="text-muted-foreground leading-relaxed max-w-3xl mx-auto text-base">
-							Manage your subscription, update payment methods, view invoices,
-							download reports, and access all billing features in our secure,
-							enterprise-grade customer portal.
+							Manage your subscription, update payment methods, view invoices, and download reports — all from a single billing portal backed by Stripe.
 						</p>
 
 						{showTestimonial && testimonial && (

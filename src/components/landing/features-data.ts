@@ -7,9 +7,9 @@ export interface Testimonial {
 }
 
 // Placeholder testimonials kept until v2.7+ collects real owner feedback.
-// Phase 67 stripped the unsubstantiated metric claims (NOI 47%, 25 hours
-// per week, 60-day ROI). Replace each quote with a verified one when
-// real owners go on record.
+// Phase 67 stripped the unsubstantiated metric claims that previously
+// appeared in these quotes. Replace each quote with a verified one
+// when real owners go on record.
 export const testimonials: Testimonial[] = [
 	{
 		quote:

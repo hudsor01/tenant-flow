@@ -69,13 +69,12 @@ export default function FAQPage() {
 						Still have questions?
 					</h2>
 					<p className="text-xl text-primary-foreground/90 mb-8">
-						Speak with a property management automation expert and get a custom
-						ROI projection for your portfolio.
+						Talk to our team about your portfolio, the document vault, and which plan tier fits.
 					</p>
 					<div className="flex flex-col sm:flex-row gap-4 justify-center">
 						<Button asChild size="lg" variant="secondary" className="px-8">
 							<Link href="/contact">
-								Schedule Expert Consultation
+								Contact Sales
 								<ArrowRight className="size-5 ml-2" />
 							</Link>
 						</Button>
@@ -85,7 +84,7 @@ export default function FAQPage() {
 							variant="outline"
 							className="px-8 text-primary-foreground border-primary-foreground/50 hover:bg-primary-foreground hover:text-primary"
 						>
-							<Link href="/pricing">Get Custom ROI Report</Link>
+							<Link href="/pricing">View Pricing</Link>
 						</Button>
 					</div>
 				</div>

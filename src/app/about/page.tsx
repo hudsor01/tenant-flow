@@ -43,7 +43,7 @@ const stats = [
 export const metadata: Metadata = createPageMetadata({
 	title: 'About TenantFlow - Our Mission & Team',
 	description:
-		'Meet the team behind TenantFlow. Learn about our mission to simplify property management for thousands of professionals worldwide.',
+		'Meet the team behind TenantFlow, the landlord-only property platform with a per-entity document vault, lease e-signing, and tax-ready reports.',
 	path: '/about'
 })
 
@@ -54,9 +54,9 @@ export default function AboutPage() {
 
 			{/* Hero Section */}
 			<HeroSection
-				title="Simplifying property management"
-				titleHighlight="for thousands of professionals"
-				subtitle="We're on a mission to transform how property managers work, grow, and succeed. Our platform empowers professionals to streamline operations and scale their business with confidence."
+				title="Property management"
+				titleHighlight="built for landlords"
+				subtitle="One platform for property records, leases, maintenance, and the document vault. Tenants are records you keep for your own tracking — never users on the platform."
 				primaryCta={{ label: 'Start Free Trial', href: '/pricing' }}
 				secondaryCta={{ label: 'Talk to Sales', href: '/contact' }}
 				image={{
@@ -153,8 +153,7 @@ export default function AboutPage() {
 								<ItemContent>
 									<ItemTitle>Security & Privacy</ItemTitle>
 									<ItemDescription>
-										We protect your data with enterprise-grade security and
-										transparent privacy practices.
+										Postgres row-level security per landlord, encrypted at rest, GDPR-compliant deletion flow.
 									</ItemDescription>
 								</ItemContent>
 							</Item>
@@ -214,10 +213,10 @@ export default function AboutPage() {
 					<BlurFade delay={0.5} inView>
 						<div className="text-center mb-16 space-y-4">
 							<h2 className="text-4xl lg:text-5xl font-bold tracking-tight text-foreground">
-								TenantFlow by the Numbers
+								What ships in the box
 							</h2>
 							<p className="text-xl text-muted-foreground leading-relaxed">
-								Growing alongside our community of property managers
+								Every plan starts with the document vault and DocuSeal e-sign on Growth and Max.
 							</p>
 						</div>
 
@@ -305,9 +304,7 @@ export default function AboutPage() {
 								?
 							</h2>
 							<p className="text-xl text-muted-foreground leading-relaxed max-w-2xl mx-auto">
-								Join thousands of property managers who&apos;ve streamlined
-								their operations and scaled their business with
-								TenantFlow&apos;s enterprise platform.
+								Centralize your portfolio with the document vault, lease e-sign on Growth and Max, and tax-ready reports.
 							</p>
 							<div className="flex flex-col sm:flex-row gap-4 justify-center">
 								<Button asChild size="lg" className="group">

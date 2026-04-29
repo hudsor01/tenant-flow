@@ -78,8 +78,7 @@ const comparisonData: FeatureCategory[] = [
 			{ name: 'Occupancy analytics', starter: true, growth: true, max: true },
 			{ name: 'Expense tracking', starter: true, growth: true, max: true },
 			{ name: 'Custom dashboards', starter: false, growth: true, max: true },
-			{ name: 'ROI analysis', starter: false, growth: true, max: true },
-			{ name: 'Portfolio benchmarking', starter: false, growth: false, max: true }
+				{ name: 'Portfolio benchmarking', starter: false, growth: false, max: true }
 		]
 	},
 	{

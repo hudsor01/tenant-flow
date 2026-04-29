@@ -161,12 +161,12 @@ export function PricingCtaSection() {
 				<div className="grid gap-10 overflow-hidden rounded-3xl border border-border/60 bg-card/70 p-10 shadow-sm backdrop-blur md:grid-cols-[1.3fr_1fr] md:p-12">
 					<div className="space-y-6 text-left">
 						<h2 className="text-section-title tracking-tight text-foreground">
-							Ready to centralize your portfolio and automate the busywork?
+							Ready to centralize your portfolio?
 						</h2>
 						<p className="text-base leading-relaxed text-muted-foreground text-sm-foreground sm:text-lg">
-							Start with the workflow templates built for self-managing owners,
-							then add teammates, vendors, and integrations as your units grow.
-							Your data and automations stay intact across every plan.
+							Start with the records and document vault built for self-managing owners,
+							then add teammates and integrations as your portfolio grows.
+							Your data carries across every plan.
 						</p>
 						<div className="flex flex-col gap-3 sm:flex-row sm:items-center">
 							<Button size="lg" className="px-8" asChild>

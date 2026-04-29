@@ -8,10 +8,10 @@ interface StatsShowcaseProps {
 }
 
 export function StatsShowcase({ className }: StatsShowcaseProps) {
-	// Phase 67 cleanup: replaced unsubstantiated numeric claims (10,000+
-	// owners, 18,947 units, 40% NOI, etc.) with verifiable feature
-	// counts pulled from the live product. Anything with a number here
-	// must map to a real product capability — no marketing-only stats.
+	// Phase 67 cleanup: replaced unsubstantiated numeric claims with
+	// verifiable feature counts pulled from the live product. Anything
+	// with a number here must map to a real product capability — no
+	// marketing-only stats.
 	const stats = [
 		{
 			value: 5,

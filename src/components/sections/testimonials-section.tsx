@@ -24,11 +24,10 @@ interface TestimonialsSectionProps {
 }
 
 // Placeholder testimonials kept until v2.7+ collects real owner feedback.
-// Phase 67 stripped the per-testimonial numeric metrics (+47% NOI, 60-day
-// ROI, 4.9/5 rating, 25 hours saved, 90% faster reporting) since none
-// of them mapped to a verified customer outcome. When real testimonials
-// land, restore the `metric` / `metricLabel` fields with documented
-// values from those owners.
+// Phase 67 stripped the per-testimonial numeric metrics that previously
+// appeared in the metric / metricLabel fields, since none of them
+// mapped to a verified customer outcome. When real testimonials land,
+// restore those fields with documented values from those owners.
 const defaultTestimonials: Testimonial[] = [
 	{ quote: 'TenantFlow transformed how we manage our 35-unit portfolio. Having every lease, document, and maintenance request in one place saves us hours of admin work each week.', author: 'Sarah Chen', title: 'Portfolio Manager', company: 'Westside Properties' },
 	{ quote: "We evaluated several platforms before choosing TenantFlow. The document vault and DocuSeal integration sealed the deal.", author: 'Marcus Rodriguez', title: 'Director of Operations', company: 'Urban Real Estate Group' },

@@ -3,10 +3,10 @@ import { LazySection } from '#components/ui/lazy-section'
 import { SectionSkeleton } from '#components/ui/section-skeleton'
 import { FolderArchive, FileSignature, Search, Download } from 'lucide-react'
 
-// Phase 67 cleanup: replaced unsubstantiated marketing numbers (40% NOI,
-// 25+ hours saved, 10K+ customers, 90-day ROI) with feature counts that
-// map directly to shipped product capabilities. If we want to put real
-// percentages back, they need a documented methodology.
+// Phase 67 cleanup: replaced unsubstantiated marketing numbers with
+// feature counts that map directly to shipped product capabilities.
+// If we want to put real percentages back, they need a documented
+// methodology backed by customer data.
 const stats = [
 	{
 		icon: FolderArchive,
