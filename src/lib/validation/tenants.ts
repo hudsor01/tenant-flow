@@ -275,31 +275,12 @@ export const inviteToSignLeaseSchema = z.object({
 		.optional()
 })
 
-// Full invitation response schema
-export const tenantInvitationSchema = z.object({
-	id: uuidSchema,
-	email: z.email(),
-	owner_user_id: uuidSchema,
-	unit_id: uuidSchema.nullable().optional(),
-	property_id: uuidSchema.nullable().optional(),
-	lease_id: uuidSchema.nullable().optional(),
-	invitation_code: z.string(),
-	invitation_url: z.url(),
-	status: invitationStatusSchema,
-	type: invitationTypeSchema,
-	expires_at: z.string(),
-	accepted_at: z.string().nullable().optional(),
-	accepted_by_user_id: uuidSchema.nullable().optional(),
-	created_at: z.string()
-})
-
 // Export invitation types
 export type InvitationType = z.infer<typeof invitationTypeSchema>
 export type InvitationStatus = z.infer<typeof invitationStatusSchema>
 export type AddTenant = z.infer<typeof addTenantSchema>
 export type AddTenantRequest = z.infer<typeof addTenantRequestSchema>
 export type InviteToSignLease = z.infer<typeof inviteToSignLeaseSchema>
-export type TenantInvitation = z.infer<typeof tenantInvitationSchema>
 
 // Bulk operation schemas
 export const bulkDeleteTenantsSchema = z.object({

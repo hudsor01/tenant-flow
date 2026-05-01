@@ -1,10 +1,15 @@
 import type { CompetitorData, PricingTier } from '#types/sections/compare'
 
+// Competitor review aggregates and pricing snapshots are captured manually
+// from each vendor's public Capterra / G2 / pricing page. Source: 2026-04-29
+// review of Buildium, AppFolio, RentRedi public listings. Refresh quarterly
+// or whenever a competitor materially changes their pricing.
+
 const TENANTFLOW_PRICING: PricingTier[] = [
 	{ name: 'Starter', price: '$29/mo', note: 'Up to 5 properties, 25 units' },
 	{ name: 'Growth', price: '$79/mo', note: 'Up to 20 properties, 100 units' },
 	{
-		name: 'TenantFlow Max',
+		name: 'Max',
 		price: '$199/mo',
 		note: 'Unlimited properties and units',
 	},

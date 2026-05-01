@@ -8,6 +8,7 @@ import { Button } from '#components/ui/button'
 import { Card } from '#components/ui/card'
 import { ArrowRight, Building, CheckCircle2, Clock, Star } from 'lucide-react'
 import Link from 'next/link'
+
 const STATS = [
 	{
 		label: 'Document Vault',

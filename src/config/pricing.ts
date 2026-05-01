@@ -147,7 +147,7 @@ export const PRICING_PLANS: Record<string, PricingConfig> = {
 	TENANTFLOW_MAX: {
 		id: 'TENANTFLOW_MAX',
 		planId: 'max',
-		name: 'MAX',
+		name: 'Max',
 		description: 'Enterprise solution for property management professionals',
 		price: {
 			monthly: 199,

@@ -1,5 +1,5 @@
 import { cn } from '#lib/utils'
-import { Home, FileText, FolderArchive, Search, Filter, Download } from 'lucide-react'
+import { Home, FileText, FolderArchive, Search, Tag, Download } from 'lucide-react'
 
 export function PropertyGrid() {
 	return (
@@ -43,10 +43,10 @@ export function PropertyGrid() {
 
 export function VaultPreview() {
 	const categories = [
-		{ icon: Filter, label: 'Lease', count: 28 },
-		{ icon: Filter, label: 'Insurance', count: 7 },
-		{ icon: Filter, label: 'Maintenance', count: 41 },
-		{ icon: Filter, label: 'Inspection', count: 12 }
+		{ icon: Tag, label: 'Lease', count: 28 },
+		{ icon: Tag, label: 'Insurance', count: 7 },
+		{ icon: Tag, label: 'Maintenance', count: 41 },
+		{ icon: Tag, label: 'Inspection', count: 12 }
 	]
 
 	return (

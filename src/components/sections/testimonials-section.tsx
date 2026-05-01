@@ -23,22 +23,13 @@ interface TestimonialsSectionProps {
 	variant?: 'carousel' | 'grid'
 }
 
-// Placeholder testimonials kept until v2.7+ collects real owner feedback.
-// Phase 67 stripped the per-testimonial numeric metrics that previously
-// appeared in the metric / metricLabel fields, since none of them
-// mapped to a verified customer outcome. When real testimonials land,
-// restore those fields with documented values from those owners.
-const defaultTestimonials: Testimonial[] = [
-	{ quote: 'TenantFlow transformed how we manage our 35-unit portfolio. Having every lease, document, and maintenance request in one place saves us hours of admin work each week.', author: 'Sarah Chen', title: 'Portfolio Manager', company: 'Westside Properties' },
-	{ quote: "We evaluated several platforms before choosing TenantFlow. The document vault and DocuSeal integration sealed the deal.", author: 'Marcus Rodriguez', title: 'Director of Operations', company: 'Urban Real Estate Group' },
-	{ quote: 'E-signing leases and keeping every document attached to the unit has transformed how we work. Renewals take minutes instead of days, and nothing falls through the cracks.', author: 'Jennifer Walsh', title: 'Property Manager', company: 'Metropolitan Holdings' },
-	{ quote: "As an independent owner with 8 units, I thought enterprise software was overkill. TenantFlow proved me wrong — it's powerful yet simple enough for solo operators.", author: 'David Park', title: 'Independent Owner', company: 'Park Properties LLC' },
-	{ quote: 'The financial reporting alone is worth the subscription. I can generate professional reports for my investors in minutes instead of hours with spreadsheets.', author: 'Amanda Foster', title: 'Asset Manager', company: 'Foster Investments' }
-]
-
+// Phase 67 (v2.7) deleted the placeholder testimonials that carried
+// fabricated names and company affiliations. The component now renders
+// nothing until callers pass a `testimonials` prop with real, attributed
+// quotes — gating on testimonials.length keeps the surface honest.
 export function TestimonialsSection({
 	className,
-	testimonials = defaultTestimonials,
+	testimonials = [],
 	autoRotate = true,
 	rotateInterval = 6000,
 	variant = 'carousel'
@@ -47,10 +38,12 @@ export function TestimonialsSection({
 	const [isAutoRotating, setIsAutoRotating] = useState(autoRotate)
 
 	const goToNext = () => {
+		if (testimonials.length === 0) return
 		setCurrentIndex(prev => (prev + 1) % testimonials.length)
 	}
 
 	const goToPrev = () => {
+		if (testimonials.length === 0) return
 		setCurrentIndex(
 			prev => (prev - 1 + testimonials.length) % testimonials.length
 		)
@@ -63,12 +56,17 @@ export function TestimonialsSection({
 
 	useEffect(() => {
 		if (!isAutoRotating || variant === 'grid') return
+		if (testimonials.length === 0) return
 
 		const interval = setInterval(() => {
 			setCurrentIndex(prev => (prev + 1) % testimonials.length)
 		}, rotateInterval)
 		return () => clearInterval(interval)
 	}, [isAutoRotating, testimonials.length, rotateInterval, variant])
+
+	if (testimonials.length === 0) {
+		return null
+	}
 
 	const currentTestimonial = testimonials[currentIndex]
 

@@ -23,7 +23,7 @@ const homeFaqs = [
 	{
 		question: 'Is my data secure?',
 		answer:
-			'Yes. Postgres row-level security isolates every landlord\u2019s data, files are encrypted at rest, and you can export or delete your account at any time. Tenants are stored as records under your account \u2014 they never log in, so there are no extra access surfaces to manage.'
+			"Yes. Postgres row-level security isolates every landlord's data, files are encrypted at rest, and you can export or delete your account at any time. Tenants are stored as records under your account — they never log in, so there are no extra access surfaces to manage."
 	},
 	{
 		question: 'Where do I store lease PDFs and other documents?',

@@ -6,36 +6,10 @@ export interface Testimonial {
 	avatar: string
 }
 
-// Placeholder testimonials kept until v2.7+ collects real owner feedback.
-// Phase 67 stripped the unsubstantiated metric claims that previously
-// appeared in these quotes. Replace each quote with a verified one
-// when real owners go on record.
-export const testimonials: Testimonial[] = [
-	{
-		quote:
-			'TenantFlow gave us one source of truth for every lease, document, and maintenance request. The vault search alone has paid for itself.',
-		author: 'Sarah Chen',
-		title: 'Portfolio Manager',
-		company: 'West Coast Properties',
-		avatar: '/tenant-flow-logo.png'
-	},
-	{
-		quote:
-			"E-signing through DocuSeal cut our renewal turnaround from days to minutes. The whole document chain stays attached to the unit.",
-		author: 'Marcus Rodriguez',
-		title: 'Director of Operations',
-		company: 'Urban Real Estate Group',
-		avatar: '/tenant-flow-logo.png'
-	},
-	{
-		quote:
-			'Tenants never log in. That alone removes the support overhead we used to spend on password resets and account questions.',
-		author: 'Jennifer Walsh',
-		title: 'Chief Technology Officer',
-		company: 'Metropolitan Holdings',
-		avatar: '/tenant-flow-logo.png'
-	}
-]
+// Phase 67 (v2.7) deleted the placeholder testimonials that carried
+// fabricated names and company affiliations. Add real, attributed
+// testimonials here only when verified customers go on record.
+export const testimonials: Testimonial[] = []
 
 export function getBreadcrumbSchema(baseUrl: string) {
 	return {

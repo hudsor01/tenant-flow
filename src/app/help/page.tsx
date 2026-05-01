@@ -5,13 +5,8 @@ import { Button } from '#components/ui/button'
 import { CardLayout } from '#components/ui/card-layout'
 import { JsonLdScript } from '#components/seo/json-ld-script'
 import { createBreadcrumbJsonLd } from '#lib/seo/breadcrumbs'
-
-export const metadata = createPageMetadata({
-	title: 'Help Center — Property Management Support & Guides',
-	description: 'Get help with TenantFlow property management software. Browse setup guides, feature tutorials, and support resources for property owners and operators.',
-	path: '/help',
-})
-
+import Link from 'next/link'
+import { cn } from '#lib/utils'
 import {
 	Item,
 	ItemActions,
@@ -22,13 +17,13 @@ import {
 	ItemSeparator,
 	ItemTitle
 } from '#components/ui/item'
-import {
-	ArrowRight,
-	Book,
-	Mail,
-	MessageCircle,
-	Phone
-} from 'lucide-react'
+import { ArrowRight, Mail, MessageCircle, Phone } from 'lucide-react'
+
+export const metadata = createPageMetadata({
+	title: 'Help Center — Property Management Support & Guides',
+	description: 'Get help with TenantFlow property management software. Browse setup guides, feature tutorials, and support resources for landlords and operators.',
+	path: '/help',
+})
 
 export default function HelpPage() {
 	return (
@@ -47,7 +42,7 @@ export default function HelpPage() {
 				trustSignals="Email support on every plan • Priority and phone support on Growth and Max"
 				image={{
 					src: 'https://images.unsplash.com/photo-1556761175-b413da4baf72?q=80&w=2074&auto=format&fit=crop',
-					alt: 'Professional customer support team helping property managers'
+					alt: 'TenantFlow support team helping landlords with their portfolios'
 				}}
 			/>
 
@@ -78,8 +73,8 @@ export default function HelpPage() {
 								</div>
 							</ItemContent>
 							<ItemActions>
-								<Button className="w-full" variant="outline">
-									Send Email
+								<Button className="w-full" variant="outline" asChild>
+									<a href="mailto:support@tenantflow.app">Send Email</a>
 								</Button>
 							</ItemActions>
 						</Item>
@@ -102,32 +97,8 @@ export default function HelpPage() {
 								</div>
 							</ItemContent>
 							<ItemActions>
-								<Button className="w-full" variant="outline">
-									Schedule Call
-								</Button>
-							</ItemActions>
-						</Item>
-
-						<ItemSeparator />
-
-						<Item variant="outline">
-							<ItemMedia variant="icon">
-								<Book />
-							</ItemMedia>
-							<ItemContent>
-								<ItemTitle>Help Center</ItemTitle>
-								<ItemDescription>
-									Setup, billing, document vault, lease e-sign
-								</ItemDescription>
-								<div className="mt-2">
-									<p className="text-muted-foreground">
-										Step-by-step articles for the most common workflows
-									</p>
-								</div>
-							</ItemContent>
-							<ItemActions>
-								<Button className="w-full" variant="outline">
-									Browse Articles
+								<Button className="w-full" variant="outline" asChild>
+									<Link href="/contact">Schedule Call</Link>
 								</Button>
 							</ItemActions>
 						</Item>
@@ -150,7 +121,9 @@ export default function HelpPage() {
 								</div>
 							</ItemContent>
 							<ItemActions>
-								<Button className="w-full">Contact Sales</Button>
+								<Button className="w-full" asChild>
+									<Link href="/contact">Contact Sales</Link>
+								</Button>
 							</ItemActions>
 						</Item>
 					</ItemGroup>
@@ -204,18 +177,20 @@ export default function HelpPage() {
 								description={resource.description}
 								className="bg-card border border-border/50 shadow-md transition-shadow"
 							>
-								<div className="flex items-start justify-between mb-4">
-									<h3 className="font-semibold text-lg leading-tight pr-4">
-										{resource.title}
-									</h3>
+								<div className="flex items-start justify-between mb-3">
+									<span className={cn(
+										'inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium',
+										resource.badgeColor
+									)}>
+										{resource.badge}
+									</span>
 								</div>
-								<p className="text-muted-foreground mb-4">
+								<h3 className="font-semibold text-lg leading-tight mb-3">
+									{resource.title}
+								</h3>
+								<p className="text-muted-foreground">
 									{resource.description}
 								</p>
-								<Button variant="outline" className="w-full">
-									Read Guide
-									<ArrowRight className="size-4 ml-2" />
-								</Button>
 							</CardLayout>
 						))}
 					</div>
@@ -232,16 +207,19 @@ export default function HelpPage() {
 						Replace spreadsheets, Dropbox, and email with a single landlord-only platform. Our team is here to help you migrate and get going.
 					</p>
 					<div className="flex flex-col sm:flex-row gap-4 justify-center">
-						<Button size="lg" variant="secondary" className="px-8">
-							Start 14-day transformation
-							<ArrowRight className="size-5 ml-2" />
+						<Button size="lg" variant="secondary" className="px-8" asChild>
+							<Link href="/pricing">
+								Start 14-day free trial
+								<ArrowRight className="size-5 ml-2" />
+							</Link>
 						</Button>
 						<Button
 							size="lg"
 							variant="outline"
 							className="px-8 text-primary-foreground border-primary-foreground/50 hover:bg-primary-foreground hover:text-primary"
+							asChild
 						>
-							Talk to an Expert
+							<Link href="/contact">Talk to an Expert</Link>
 						</Button>
 					</div>
 				</div>

@@ -36,7 +36,7 @@ export default async function PricingPage() {
 		offers: [
 			{ name: 'Starter', price: '29.00' },
 			{ name: 'Growth', price: '79.00' },
-			{ name: 'MAX', price: '199.00' }
+			{ name: 'Max', price: '199.00' }
 		]
 	})
 

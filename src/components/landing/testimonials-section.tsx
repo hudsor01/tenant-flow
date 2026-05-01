@@ -6,20 +6,28 @@ import { BlurFade } from '#components/ui/blur-fade'
 import { LazySection } from '#components/ui/lazy-section'
 import { SectionSkeleton } from '#components/ui/section-skeleton'
 import { Star } from 'lucide-react'
-import { testimonials, type Testimonial } from './features-data'
+import { testimonials } from './features-data'
 
+// Phase 67 (v2.7) gates this section on `testimonials.length`. While
+// the array is empty (no verified customer quotes yet), the section
+// renders nothing rather than fabricated copy.
 export function TestimonialsSection() {
 	const [currentTestimonial, setCurrentTestimonial] = useState(0)
 
 	useEffect(() => {
+		if (testimonials.length === 0) return
 		const interval = setInterval(() => {
 			setCurrentTestimonial(prev => (prev + 1) % testimonials.length)
 		}, 5000)
 		return () => clearInterval(interval)
 	}, [])
 
-	const t = (testimonials[currentTestimonial] ??
-		testimonials[0]) as Testimonial
+	if (testimonials.length === 0) {
+		return null
+	}
+
+	const t = testimonials[currentTestimonial] ?? testimonials[0]
+	if (!t) return null
 
 	return (
 		<LazySection

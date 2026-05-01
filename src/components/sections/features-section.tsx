@@ -34,7 +34,7 @@ export default function FeaturesSectionDemo({
 		{
 			title: 'Transparent Pricing',
 			description:
-				'Three plans that scale with your portfolio. No hidden fees, no contracts, no charge for tenant accounts that don\u2019t exist.',
+				"Three plans that scale with your portfolio. No hidden fees, no contracts, no charge for tenant accounts that don't exist.",
 			icon: <DollarSign />
 		},
 		{

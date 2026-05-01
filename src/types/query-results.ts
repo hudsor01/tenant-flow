@@ -112,28 +112,6 @@ export interface PaymentForExport {
 	} | null
 }
 
-/** Tenant invitation with tenant data */
-export interface InvitationWithTenant {
-	accepted_by_user_id: string
-	tenant: {
-		id: string
-		user_id: string
-		emergency_contact_name: string | null
-		emergency_contact_phone: string | null
-		emergency_contact_relationship: string | null
-		identity_verified: boolean | null
-		created_at: string | null
-		updated_at: string | null
-		lease_tenants: Array<{
-			tenant_id: string
-			lease: {
-				id: string
-				lease_status: string
-			} | null
-		}> | null
-	} | null
-}
-
 /** Extended lease with unit details for tenant queries */
 export interface LeaseWithUnitDetails {
 	id: string
