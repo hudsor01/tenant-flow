@@ -65,10 +65,7 @@ const comparisonData: FeatureCategory[] = [
 		features: [
 			{ name: 'Work order tracking', starter: true, growth: true, max: true },
 			{ name: 'Photo attachments', starter: true, growth: true, max: true },
-			{ name: 'Vendor management', starter: false, growth: true, max: true },
-			{ name: 'Vendor network access', starter: false, growth: true, max: true },
-			{ name: 'Automated assignments', starter: false, growth: false, max: true },
-			{ name: 'Preventive scheduling', starter: false, growth: false, max: true }
+			{ name: 'Kanban workflow board', starter: true, growth: true, max: true }
 		]
 	},
 	{
@@ -76,20 +73,7 @@ const comparisonData: FeatureCategory[] = [
 		features: [
 			{ name: 'Financial reports', starter: 'Basic', growth: 'Advanced', max: 'Custom' },
 			{ name: 'Occupancy analytics', starter: true, growth: true, max: true },
-			{ name: 'Expense tracking', starter: true, growth: true, max: true },
-			{ name: 'Custom dashboards', starter: false, growth: true, max: true },
-			{ name: 'Portfolio benchmarking', starter: false, growth: false, max: true }
-		]
-	},
-	{
-		category: 'Integrations & API',
-		features: [
-			{ name: 'QuickBooks sync', starter: false, growth: true, max: true },
-			{ name: 'Accounting export', starter: true, growth: true, max: true },
-			{ name: 'API access', starter: false, growth: 'Limited', max: 'Full' },
-			{ name: 'Custom integrations', starter: false, growth: false, max: true },
-			{ name: 'Webhooks', starter: false, growth: false, max: true },
-			{ name: 'White-label options', starter: false, growth: false, max: true }
+			{ name: 'Expense tracking', starter: true, growth: true, max: true }
 		]
 	},
 	{

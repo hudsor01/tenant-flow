@@ -7,7 +7,7 @@ import { useSearchParams } from 'next/navigation'
 import { toast } from 'sonner'
 import { Button } from '#components/ui/button'
 import { Skeleton } from '#components/ui/skeleton'
-import { PlanCard, type Plan } from '#components/billing/plan-card'
+import { PlanCard, type Plan, type PlanFeature } from '#components/billing/plan-card'
 import { UpgradeDialog } from '#components/billing/upgrade-dialog'
 import {
 	createCheckoutSession,
@@ -15,83 +15,38 @@ import {
 } from '#lib/stripe/stripe-client'
 import { cn } from '#lib/utils'
 import { useSubscriptionStatus } from '#hooks/api/use-billing'
+import { getAllPricingPlans, type PricingConfig } from '#config/pricing'
 
-// Static plans definition - these would typically come from an API or configuration
-const PLANS: Plan[] = [
-	{
-		id: 'free',
-		name: 'Free',
-		description: 'Perfect for getting started',
-		price: 0,
-		priceId: null,
-		tier: 0,
-		features: [
-			{ name: 'Up to 1 property', included: true },
-			{ name: 'Basic tenant records', included: true },
-			{ name: 'Email support', included: true },
-			{ name: 'Rent tracking', included: false },
-			{ name: 'Financial reports', included: false },
-			{ name: 'Maintenance tracking', included: false }
-		]
-	},
-	{
-		id: 'starter',
-		name: 'Starter',
-		description: 'For individual owners and small portfolios',
-		price: 29,
-		priceId: process.env.NEXT_PUBLIC_STRIPE_STARTER_PRICE_ID ?? null,
-		tier: 1,
-		features: [
-			{ name: 'Up to 5 properties', included: true },
-			{ name: 'Full tenant records', included: true },
-			{ name: 'Priority email support', included: true },
-			{ name: 'Rent tracking', included: true },
-			{ name: 'Basic financial reports', included: true },
-			{ name: 'Maintenance tracking', included: false }
-		]
-	},
-	{
-		id: 'professional',
-		name: 'Professional',
-		description: 'For growing portfolios',
-		price: 79,
-		priceId: process.env.NEXT_PUBLIC_STRIPE_PROFESSIONAL_PRICE_ID ?? null,
-		tier: 2,
-		features: [
-			{ name: 'Up to 25 properties', included: true },
-			{ name: 'Advanced tenant records', included: true },
-			{ name: 'Phone & email support', included: true },
-			{ name: 'Rent tracking + late fee tracking', included: true },
-			{ name: 'Advanced financial reports', included: true },
-			{ name: 'Full maintenance tracking', included: true }
-		]
-	},
-	{
-		id: 'enterprise',
-		name: 'Enterprise',
-		description: 'For large operations',
-		price: 199,
-		priceId: process.env.NEXT_PUBLIC_STRIPE_ENTERPRISE_PRICE_ID ?? null,
-		tier: 3,
-		features: [
-			{ name: 'Unlimited properties', included: true },
-			{ name: 'Enterprise tenant records', included: true },
-			{ name: 'Dedicated account manager', included: true },
-			{ name: 'Rent tracking + custom rules', included: true },
-			{ name: 'Custom financial reports', included: true },
-			{ name: 'Priority maintenance tracking', included: true }
-		]
+const TIER_BY_PLAN_ID: Record<PricingConfig['planId'], number> = {
+	trial: 0,
+	starter: 1,
+	growth: 2,
+	max: 3
+}
+
+function toPlanFeatures(features: readonly string[]): PlanFeature[] {
+	return features.map(name => ({ name, included: true }))
+}
+
+function toBillingPlan(config: PricingConfig): Plan {
+	return {
+		id: config.planId,
+		name: config.name,
+		description: config.description,
+		price: config.price.monthly,
+		priceId: config.stripePriceIds.monthly,
+		tier: TIER_BY_PLAN_ID[config.planId],
+		features: toPlanFeatures(config.features)
 	}
-]
+}
+
+const PLANS: Plan[] = getAllPricingPlans().map(toBillingPlan)
 
 export default function BillingPlansPage() {
 	const [isLoading, setIsLoading] = useState(false)
 	const [loadingPlanId, setLoadingPlanId] = useState<string | null>(null)
 	const [dialogOpen, setDialogOpen] = useState(false)
 	const [selectedPlan, setSelectedPlan] = useState<Plan | null>(null)
-	// Attribution tag from a paywall CTA (e.g. /billing/plans?source=esign_gate).
-	// Gets forwarded to Stripe Checkout metadata so admin analytics can attribute
-	// the resulting subscription back to the gate. Validated at the Edge Function.
 	const searchParams = useSearchParams()
 	const source = searchParams?.get('source') ?? undefined
 
@@ -105,7 +60,6 @@ export default function BillingPlansPage() {
 	const hasSubscription = currentPlan !== null
 
 	const handlePlanSelect = (plan: Plan) => {
-		// Open confirmation dialog
 		setSelectedPlan(plan)
 		setDialogOpen(true)
 	}
@@ -116,12 +70,10 @@ export default function BillingPlansPage() {
 
 		try {
 			if (hasSubscription) {
-				// Existing subscriber - redirect to Customer Portal for plan changes
 				const returnUrl = `${window.location.origin}/billing/plans`
 				const { url } = await createCustomerPortalSession(returnUrl)
 				window.location.href = url
 			} else {
-				// New subscriber - create checkout session
 				if (!plan.priceId) {
 					toast.error('This plan is not available for purchase')
 					setDialogOpen(false)
@@ -189,7 +141,6 @@ export default function BillingPlansPage() {
 
 	return (
 		<div className="container max-w-7xl py-8">
-			{/* Header */}
 			<div className="mb-8">
 				<Link
 					href="/dashboard"
@@ -226,7 +177,6 @@ export default function BillingPlansPage() {
 				</div>
 			</div>
 
-			{/* Current Plan Info */}
 			{hasSubscription && currentPlan && (
 				<div className="mb-8 p-4 rounded-lg border border-primary/20 bg-primary/5">
 					<div className="flex items-center gap-3">
@@ -247,7 +197,6 @@ export default function BillingPlansPage() {
 				</div>
 			)}
 
-			{/* Plan Cards Grid */}
 			<div
 				className={cn(
 					'grid gap-6',
@@ -259,7 +208,7 @@ export default function BillingPlansPage() {
 						key={plan.id}
 						plan={plan}
 						isCurrentPlan={plan.id === currentPlan?.id}
-						isMostPopular={plan.id === 'professional'}
+						isMostPopular={plan.id === 'growth'}
 						currentTier={currentPlan?.tier ?? null}
 						onSelect={handlePlanSelect}
 						isLoading={loadingPlanId === plan.id}
@@ -267,7 +216,6 @@ export default function BillingPlansPage() {
 				))}
 			</div>
 
-			{/* Help Text */}
 			<div className="mt-12 text-center">
 				<p className="text-sm text-muted-foreground">
 					Need help choosing a plan?{' '}
@@ -283,7 +231,6 @@ export default function BillingPlansPage() {
 				</p>
 			</div>
 
-			{/* Upgrade/Downgrade Confirmation Dialog */}
 			<UpgradeDialog
 				targetPlan={selectedPlan}
 				currentPlan={currentPlan}

@@ -1,5 +1,5 @@
 import { cn } from '#lib/utils'
-import { Home, FileText } from 'lucide-react'
+import { Home, FileText, FolderArchive, Search, Filter, Download } from 'lucide-react'
 
 export function PropertyGrid() {
 	return (
@@ -37,9 +37,65 @@ export function PropertyGrid() {
 
 // RentLedger background was removed in v2.7 Phase 67 (cycle-3 C-1).
 // It rendered fake rent-collection imagery (December Rent / received /
-// outstanding rows) under what became the Document Vault card. Use
-// LeaseDocuments instead. If we need a vault-specific visual, add it
-// here as a new export.
+// outstanding rows) under what became the Document Vault card.
+// VaultPreview below replaced it (cycle-4 I-4) so the Document Vault
+// card no longer shares a background with Lease Management.
+
+export function VaultPreview() {
+	const categories = [
+		{ icon: Filter, label: 'Lease', count: 28 },
+		{ icon: Filter, label: 'Insurance', count: 7 },
+		{ icon: Filter, label: 'Maintenance', count: 41 },
+		{ icon: Filter, label: 'Inspection', count: 12 }
+	]
+
+	return (
+		<div className="absolute inset-x-0 top-0 bottom-[45%] p-4 overflow-hidden">
+			<div className="space-y-3 opacity-70">
+				<div className="card-standard p-3 space-y-2">
+					<div className="flex items-center gap-2">
+						<Search className="size-3 text-muted-foreground" />
+						<div className="text-xs text-muted-foreground">
+							Search 88 documents across all entities…
+						</div>
+					</div>
+					<div className="flex items-center gap-1 flex-wrap">
+						{categories.map(category => (
+							<span
+								key={category.label}
+								className="inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full bg-primary/10 text-primary"
+							>
+								<category.icon className="size-2.5" />
+								{category.label}
+								<span className="text-muted-foreground">{category.count}</span>
+							</span>
+						))}
+					</div>
+				</div>
+				<div className="grid grid-cols-2 gap-2">
+					<div className="card-standard p-3 flex items-center gap-2">
+						<div className="icon-container-sm bg-primary/10 text-primary">
+							<FolderArchive className="size-3" />
+						</div>
+						<div>
+							<div className="text-xs font-medium text-foreground">Per-entity</div>
+							<div className="text-xs text-muted-foreground">5 branches</div>
+						</div>
+					</div>
+					<div className="card-standard p-3 flex items-center gap-2">
+						<div className="icon-container-sm bg-primary/10 text-primary">
+							<Download className="size-3" />
+						</div>
+						<div>
+							<div className="text-xs font-medium text-foreground">Bulk zip</div>
+							<div className="text-xs text-muted-foreground">500 / request</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	)
+}
 
 export function TenantListBackground() {
 	return (

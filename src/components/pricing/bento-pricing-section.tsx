@@ -7,7 +7,7 @@ import { PricingComparisonTable } from './pricing-comparison-table'
 import { Switch } from '#components/ui/switch'
 import { Label } from '#components/ui/label'
 import { Badge } from '#components/ui/badge'
-import { getAllPricingPlans, PLAN_FEATURES } from '#config/pricing'
+import { getAllPricingPlans } from '#config/pricing'
 import { Building2, Users, Shield } from 'lucide-react'
 
 interface BentoPricingSectionProps {
@@ -33,9 +33,7 @@ export function BentoPricingSection({
 				yearly: Math.round((plan.price.annual / 12) * 100) / 100
 			},
 			annualTotal: plan.price.annual,
-			features: PLAN_FEATURES[plan.planId as keyof typeof PLAN_FEATURES]
-				? [...PLAN_FEATURES[plan.planId as keyof typeof PLAN_FEATURES]]
-				: [...plan.features.slice(0, 9)],
+			features: [...plan.features],
 			popular: plan.planId === 'growth',
 			stripeMonthlyPriceId: plan.stripePriceIds.monthly,
 			stripeAnnualPriceId: plan.stripePriceIds.annual

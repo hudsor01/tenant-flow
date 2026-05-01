@@ -135,7 +135,22 @@ function isTestPath(relPath: string): boolean {
 	)
 }
 
-function walkComponentFiles(root: string): string[] {
+// Educational / third-party-expense content where banned phrases legitimately
+// appear. The tax-deduction tracker, for example, lists "tenant screening" as
+// a tax-deductible expense paid to a third party — this is not a TenantFlow
+// feature claim. Anything added here must be content where the phrase refers
+// to something OUTSIDE the TenantFlow product (3rd-party services, IRS terms,
+// academic content, etc.).
+const BANLIST_EXEMPT_PATHS: readonly string[] = [
+	'src/app/resources/landlord-tax-deduction-tracker/tax-deduction-data.ts'
+] as const
+
+function isBanlistExempt(relPath: string): boolean {
+	const normalized = relPath.replace(/\\/g, '/')
+	return BANLIST_EXEMPT_PATHS.some(exempt => normalized === exempt)
+}
+
+function walkSourceFiles(root: string, cwd: string): string[] {
 	const entries = readdirSync(root, { recursive: true, withFileTypes: true })
 	const files: string[] = []
 	for (const entry of entries) {
@@ -146,6 +161,7 @@ function walkComponentFiles(root: string): string[] {
 		const absPath = join(parentPath, entry.name)
 		if (!/\.(ts|tsx)$/.test(entry.name)) continue
 		if (isTestPath(absPath)) continue
+		if (isBanlistExempt(relative(cwd, absPath))) continue
 		files.push(absPath)
 	}
 	return files
@@ -210,7 +226,7 @@ describe('Marketing copy: numeric claims (v2.7 Phase 67)', () => {
 describe('Component copy: landlord-only product (REQ-52-06)', () => {
 	const cwd = process.cwd()
 	const componentsRoot = join(cwd, 'src', 'components')
-	for (const absPath of walkComponentFiles(componentsRoot)) {
+	for (const absPath of walkSourceFiles(componentsRoot, cwd)) {
 		scanFileForBannedPhrases(absPath, relative(cwd, absPath))
 	}
 })
@@ -218,7 +234,7 @@ describe('Component copy: landlord-only product (REQ-52-06)', () => {
 describe('Component copy: numeric claims (v2.7 Phase 67)', () => {
 	const cwd = process.cwd()
 	const componentsRoot = join(cwd, 'src', 'components')
-	for (const absPath of walkComponentFiles(componentsRoot)) {
+	for (const absPath of walkSourceFiles(componentsRoot, cwd)) {
 		scanFileForBannedNumericClaims(absPath, relative(cwd, absPath))
 	}
 })
@@ -233,7 +249,35 @@ describe('Marketing copy: feature claims (v2.7 Phase 67)', () => {
 describe('Component copy: feature claims (v2.7 Phase 67)', () => {
 	const cwd = process.cwd()
 	const componentsRoot = join(cwd, 'src', 'components')
-	for (const absPath of walkComponentFiles(componentsRoot)) {
+	for (const absPath of walkSourceFiles(componentsRoot, cwd)) {
+		scanFileForBannedFeatureClaims(absPath, relative(cwd, absPath))
+	}
+})
+
+// Cycle-4 C-2: extend the guard to every page under src/app/** so authenticated
+// routes (billing, settings, dashboard) can't ship stale marketing copy. The
+// previous component-only walker missed `(owner)/billing/plans/page.tsx` which
+// was claiming "Rent tracking" as a paid feature on the live trial-banner CTA.
+describe('App routes: landlord-only product (cycle-4 C-2)', () => {
+	const cwd = process.cwd()
+	const appRoot = join(cwd, 'src', 'app')
+	for (const absPath of walkSourceFiles(appRoot, cwd)) {
+		scanFileForBannedPhrases(absPath, relative(cwd, absPath))
+	}
+})
+
+describe('App routes: numeric claims (cycle-4 C-2)', () => {
+	const cwd = process.cwd()
+	const appRoot = join(cwd, 'src', 'app')
+	for (const absPath of walkSourceFiles(appRoot, cwd)) {
+		scanFileForBannedNumericClaims(absPath, relative(cwd, absPath))
+	}
+})
+
+describe('App routes: feature claims (cycle-4 C-2)', () => {
+	const cwd = process.cwd()
+	const appRoot = join(cwd, 'src', 'app')
+	for (const absPath of walkSourceFiles(appRoot, cwd)) {
 		scanFileForBannedFeatureClaims(absPath, relative(cwd, absPath))
 	}
 })

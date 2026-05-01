@@ -100,10 +100,10 @@ export const PRICING_PLANS: Record<string, PricingConfig> = {
 		features: [
 			'Up to 5 properties',
 			'Up to 25 units',
-			'Full maintenance tracking',
-			'Tenant records and documents',
-			'Lease management with 3 e-signs/mo',
-			'Financial reporting',
+			'Unlimited tenant records',
+			'Document vault with global search',
+			'3 lease e-signs per month (DocuSeal)',
+			'Maintenance tracking',
 			'10GB document storage',
 			'Priority email support'
 		],
@@ -133,14 +133,13 @@ export const PRICING_PLANS: Record<string, PricingConfig> = {
 		features: [
 			'Up to 20 properties',
 			'Up to 100 units',
-			'Advanced analytics',
-			'25 lease e-signs per month',
-			'Vendor network',
-			'Custom templates',
-			'50GB storage',
-			'Phone support',
-			'API access',
-			'Team (3 users)'
+			'Document vault with global search',
+			'25 lease e-signs per month (DocuSeal)',
+			'Renewal reminders',
+			'Advanced financial reporting',
+			'50GB document storage',
+			'Team (3 users)',
+			'Phone and priority email support'
 		],
 		support: 'Phone & Email',
 		trial: false
@@ -168,14 +167,13 @@ export const PRICING_PLANS: Record<string, PricingConfig> = {
 		features: [
 			'Unlimited properties',
 			'Unlimited units',
-			'Unlimited lease e-signs per month',
-			'White-label options',
-			'Custom integrations',
+			'Document vault with global search',
+			'Unlimited lease e-signs (DocuSeal)',
+			'Custom lease clauses',
+			'API access',
 			'Dedicated account manager',
 			'Unlimited storage',
-			'24/7 support',
-			'Full API access',
-			'Unlimited team'
+			'24/7 priority support'
 		],
 		support: '24/7 Dedicated',
 		trial: false
@@ -306,36 +304,3 @@ export function getStripePriceId(
 		: plan.stripePriceIds.annual
 }
 
-export const PLAN_FEATURES = {
-	starter: [
-		'Up to 5 properties',
-		'Up to 25 units',
-		'Unlimited tenant records',
-		'Document vault with global search',
-		'3 lease e-signs per month (DocuSeal)',
-		'Maintenance tracking',
-		'10GB document storage',
-		'Email support'
-	],
-	growth: [
-		'Up to 20 properties',
-		'Up to 100 units',
-		'Everything in Starter',
-		'25 lease e-signs per month (DocuSeal)',
-		'Renewal reminders',
-		'Advanced financial reporting',
-		'50GB document storage',
-		'Phone and priority email support'
-	],
-	max: [
-		'Unlimited properties',
-		'Unlimited units',
-		'Everything in Growth',
-		'Unlimited lease e-signs (DocuSeal)',
-		'Custom lease clauses',
-		'API access',
-		'Dedicated account manager',
-		'Unlimited storage',
-		'Priority support'
-	]
-} as const

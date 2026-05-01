@@ -15,7 +15,8 @@ import {
 	TenantListBackground,
 	MaintenanceBoard,
 	LeaseDocuments,
-	AnalyticsPreview
+	AnalyticsPreview,
+	VaultPreview
 } from './feature-backgrounds'
 
 export function BentoFeaturesSection() {
@@ -51,7 +52,7 @@ export function BentoFeaturesSection() {
 							<BentoCard
 								name="Document Vault"
 								className="md:col-span-1 md:row-span-2"
-								background={<LeaseDocuments />}
+								background={<VaultPreview />}
 								Icon={FolderArchive}
 								description="Per-entity document storage with global search, multi-select filters, date range, and bulk download"
 								href="/documents/vault"

@@ -45,9 +45,9 @@ const steps = [
 			'Upload leases, receipts, and inspection reports to the document vault. Search across your whole portfolio, filter by category and date, bulk-download for tax season.',
 		icon: Zap,
 		features: [
-			'Document vault with search',
-			'Maintenance workflow',
-			'Financial reports'
+			'Per-entity document vault',
+			'Global text search and filters',
+			'Bulk-zip export (500 / request)'
 		],
 		color: 'success'
 	}
