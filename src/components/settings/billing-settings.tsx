@@ -185,6 +185,18 @@ export function BillingSettings() {
 									to confirm your plan.
 								</p>
 							)}
+							{isActive && !currentPlan && !stripePriceId && (
+								<p className="text-sm text-muted-foreground mt-1">
+									Your trial is active.{' '}
+									<a
+										href="/billing/plans"
+										className="text-primary hover:underline underline-offset-4"
+									>
+										Choose a plan
+									</a>{' '}
+									to keep your account when the trial ends.
+								</p>
+							)}
 							{!status && (
 								<p className="text-sm text-muted-foreground mt-1">
 									Upgrade to unlock premium features

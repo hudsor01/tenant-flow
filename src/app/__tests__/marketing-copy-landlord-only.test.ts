@@ -150,27 +150,38 @@ function isTestPath(relPath: string): boolean {
 	)
 }
 
-// Educational / third-party-expense content where banned phrases legitimately
-// appear. The tax-deduction tracker, for example, lists "tenant screening" as
-// a tax-deductible expense paid to a third party — this is not a TenantFlow
-// feature claim. Anything added here must be content where the phrase refers
-// to something OUTSIDE the TenantFlow product (3rd-party services, IRS terms,
-// academic content, etc.).
-const BANLIST_EXEMPT_PATHS: readonly string[] = [
-	'src/app/resources/landlord-tax-deduction-tracker/tax-deduction-data.ts',
-	// Lease templates the landlord generates and sends to tenants — the
-	// template literally contains the phrase "fails to pay rent" / "Failure
-	// to pay rent" inside the default-clause legal copy. That phrase is
-	// part of the lease document, not a TenantFlow product claim.
-	'src/lib/templates/lease-template.ts'
-] as const
+type BanlistKind = 'phrases' | 'numeric' | 'feature' | 'stale_plan'
 
-function isBanlistExempt(relPath: string): boolean {
-	const normalized = relPath.replace(/\\/g, '/')
-	return BANLIST_EXEMPT_PATHS.some(exempt => normalized === exempt)
+// Educational / third-party-expense content where banned phrases legitimately
+// appear. Exemptions are scoped per-banlist so the file still gets scanned by
+// the banlists it doesn't have a legitimate reason to fail.
+//
+// - tax-deduction-data.ts: lists "tenant screening" as a 3rd-party tax-
+//   deductible expense (BANNED_FEATURE_CLAIMS) and "$2,400/year" as an example
+//   landlord-insurance premium (BANNED_NUMERIC_CLAIMS). Neither is a
+//   TenantFlow product claim.
+// - lease-template.ts: contains "fails to pay rent" / "Failure to pay rent"
+//   inside default-clause legal copy (BANNED_FEATURE_CLAIMS). That phrase is
+//   part of the lease document the landlord sends to tenants, not a
+//   TenantFlow product claim.
+//
+// Anything added here must be content where the phrase refers to something
+// OUTSIDE the TenantFlow product (3rd-party services, IRS terms, lease
+// document body, academic content, etc.).
+const BANLIST_EXEMPTIONS: Record<string, readonly BanlistKind[]> = {
+	'src/app/resources/landlord-tax-deduction-tracker/tax-deduction-data.ts': [
+		'numeric',
+		'feature'
+	],
+	'src/lib/templates/lease-template.ts': ['feature']
 }
 
-function walkSourceFiles(root: string, cwd: string): string[] {
+function isExemptFromBanlist(relPath: string, kind: BanlistKind): boolean {
+	const normalized = relPath.replace(/\\/g, '/')
+	return BANLIST_EXEMPTIONS[normalized]?.includes(kind) ?? false
+}
+
+function walkSourceFiles(root: string): string[] {
 	const entries = readdirSync(root, { recursive: true, withFileTypes: true })
 	const files: string[] = []
 	for (const entry of entries) {
@@ -181,13 +192,13 @@ function walkSourceFiles(root: string, cwd: string): string[] {
 		const absPath = join(parentPath, entry.name)
 		if (!/\.(ts|tsx)$/.test(entry.name)) continue
 		if (isTestPath(absPath)) continue
-		if (isBanlistExempt(relative(cwd, absPath))) continue
 		files.push(absPath)
 	}
 	return files
 }
 
 function scanFileForBannedPhrases(absPath: string, relPath: string) {
+	if (isExemptFromBanlist(relPath, 'phrases')) return
 	const content = readFileSync(absPath, 'utf8').toLowerCase()
 	describe(relPath, () => {
 		for (const phrase of BANNED_PHRASES) {
@@ -202,6 +213,7 @@ function scanFileForBannedPhrases(absPath: string, relPath: string) {
 }
 
 function scanFileForBannedNumericClaims(absPath: string, relPath: string) {
+	if (isExemptFromBanlist(relPath, 'numeric')) return
 	const content = readFileSync(absPath, 'utf8').toLowerCase()
 	describe(`${relPath} (numeric claims)`, () => {
 		for (const phrase of BANNED_NUMERIC_CLAIMS) {
@@ -216,6 +228,7 @@ function scanFileForBannedNumericClaims(absPath: string, relPath: string) {
 }
 
 function scanFileForBannedFeatureClaims(absPath: string, relPath: string) {
+	if (isExemptFromBanlist(relPath, 'feature')) return
 	const content = readFileSync(absPath, 'utf8').toLowerCase()
 	describe(`${relPath} (feature claims)`, () => {
 		for (const phrase of BANNED_FEATURE_CLAIMS) {
@@ -230,6 +243,7 @@ function scanFileForBannedFeatureClaims(absPath: string, relPath: string) {
 }
 
 function scanFileForStalePlanRefs(absPath: string, relPath: string) {
+	if (isExemptFromBanlist(relPath, 'stale_plan')) return
 	const content = readFileSync(absPath, 'utf8').toLowerCase()
 	describe(`${relPath} (stale plan refs)`, () => {
 		for (const phrase of BANNED_STALE_PLAN_REFS) {
@@ -260,7 +274,7 @@ describe('Marketing copy: numeric claims (v2.7 Phase 67)', () => {
 describe('Component copy: landlord-only product (REQ-52-06)', () => {
 	const cwd = process.cwd()
 	const componentsRoot = join(cwd, 'src', 'components')
-	for (const absPath of walkSourceFiles(componentsRoot, cwd)) {
+	for (const absPath of walkSourceFiles(componentsRoot)) {
 		scanFileForBannedPhrases(absPath, relative(cwd, absPath))
 	}
 })
@@ -268,7 +282,7 @@ describe('Component copy: landlord-only product (REQ-52-06)', () => {
 describe('Component copy: numeric claims (v2.7 Phase 67)', () => {
 	const cwd = process.cwd()
 	const componentsRoot = join(cwd, 'src', 'components')
-	for (const absPath of walkSourceFiles(componentsRoot, cwd)) {
+	for (const absPath of walkSourceFiles(componentsRoot)) {
 		scanFileForBannedNumericClaims(absPath, relative(cwd, absPath))
 	}
 })
@@ -283,7 +297,7 @@ describe('Marketing copy: feature claims (v2.7 Phase 67)', () => {
 describe('Component copy: feature claims (v2.7 Phase 67)', () => {
 	const cwd = process.cwd()
 	const componentsRoot = join(cwd, 'src', 'components')
-	for (const absPath of walkSourceFiles(componentsRoot, cwd)) {
+	for (const absPath of walkSourceFiles(componentsRoot)) {
 		scanFileForBannedFeatureClaims(absPath, relative(cwd, absPath))
 	}
 })
@@ -295,7 +309,7 @@ describe('Component copy: feature claims (v2.7 Phase 67)', () => {
 describe('App routes: landlord-only product (cycle-4 C-2)', () => {
 	const cwd = process.cwd()
 	const appRoot = join(cwd, 'src', 'app')
-	for (const absPath of walkSourceFiles(appRoot, cwd)) {
+	for (const absPath of walkSourceFiles(appRoot)) {
 		scanFileForBannedPhrases(absPath, relative(cwd, absPath))
 	}
 })
@@ -303,7 +317,7 @@ describe('App routes: landlord-only product (cycle-4 C-2)', () => {
 describe('App routes: numeric claims (cycle-4 C-2)', () => {
 	const cwd = process.cwd()
 	const appRoot = join(cwd, 'src', 'app')
-	for (const absPath of walkSourceFiles(appRoot, cwd)) {
+	for (const absPath of walkSourceFiles(appRoot)) {
 		scanFileForBannedNumericClaims(absPath, relative(cwd, absPath))
 	}
 })
@@ -311,7 +325,7 @@ describe('App routes: numeric claims (cycle-4 C-2)', () => {
 describe('App routes: feature claims (cycle-4 C-2)', () => {
 	const cwd = process.cwd()
 	const appRoot = join(cwd, 'src', 'app')
-	for (const absPath of walkSourceFiles(appRoot, cwd)) {
+	for (const absPath of walkSourceFiles(appRoot)) {
 		scanFileForBannedFeatureClaims(absPath, relative(cwd, absPath))
 	}
 })
@@ -330,7 +344,7 @@ describe('Marketing copy: stale plan refs (cycle-5 C-1)', () => {
 describe('Component copy: stale plan refs (cycle-5 C-1)', () => {
 	const cwd = process.cwd()
 	const componentsRoot = join(cwd, 'src', 'components')
-	for (const absPath of walkSourceFiles(componentsRoot, cwd)) {
+	for (const absPath of walkSourceFiles(componentsRoot)) {
 		scanFileForStalePlanRefs(absPath, relative(cwd, absPath))
 	}
 })
@@ -338,19 +352,22 @@ describe('Component copy: stale plan refs (cycle-5 C-1)', () => {
 describe('App routes: stale plan refs (cycle-5 C-1)', () => {
 	const cwd = process.cwd()
 	const appRoot = join(cwd, 'src', 'app')
-	for (const absPath of walkSourceFiles(appRoot, cwd)) {
+	for (const absPath of walkSourceFiles(appRoot)) {
 		scanFileForStalePlanRefs(absPath, relative(cwd, absPath))
 	}
 })
 
-// Cycle-6 C-1: extend the guard to src/lib/** so dead pricing data
-// (e.g., the deleted BILLING_PLANS block in src/lib/constants/billing.ts
-// that carried $19/$49/$99 alongside PRICING_PLANS at $29/$79/$199) can't
-// hide outside the components/app walkers and become a future landmine.
+// Cycle-6 C-1: extend the guard to src/lib/**. The trigger was the dead
+// BILLING_PLANS block in src/lib/constants/billing.ts (deleted in the same
+// commit) which carried stale pricing alongside the real PRICING_PLANS in
+// src/config/pricing.ts. The walker doesn't catch raw numeric literals
+// (`monthly: 49`), but it does catch quoted forms ('$49/mo'), banned phrases,
+// and stale plan-name strings — closing the surface for future regressions
+// shaped like the cycle-1..5 findings.
 describe('Lib: landlord-only product (cycle-6 C-1)', () => {
 	const cwd = process.cwd()
 	const libRoot = join(cwd, 'src', 'lib')
-	for (const absPath of walkSourceFiles(libRoot, cwd)) {
+	for (const absPath of walkSourceFiles(libRoot)) {
 		scanFileForBannedPhrases(absPath, relative(cwd, absPath))
 	}
 })
@@ -358,7 +375,7 @@ describe('Lib: landlord-only product (cycle-6 C-1)', () => {
 describe('Lib: numeric claims (cycle-6 C-1)', () => {
 	const cwd = process.cwd()
 	const libRoot = join(cwd, 'src', 'lib')
-	for (const absPath of walkSourceFiles(libRoot, cwd)) {
+	for (const absPath of walkSourceFiles(libRoot)) {
 		scanFileForBannedNumericClaims(absPath, relative(cwd, absPath))
 	}
 })
@@ -366,7 +383,7 @@ describe('Lib: numeric claims (cycle-6 C-1)', () => {
 describe('Lib: feature claims (cycle-6 C-1)', () => {
 	const cwd = process.cwd()
 	const libRoot = join(cwd, 'src', 'lib')
-	for (const absPath of walkSourceFiles(libRoot, cwd)) {
+	for (const absPath of walkSourceFiles(libRoot)) {
 		scanFileForBannedFeatureClaims(absPath, relative(cwd, absPath))
 	}
 })
@@ -374,7 +391,7 @@ describe('Lib: feature claims (cycle-6 C-1)', () => {
 describe('Lib: stale plan refs (cycle-6 C-1)', () => {
 	const cwd = process.cwd()
 	const libRoot = join(cwd, 'src', 'lib')
-	for (const absPath of walkSourceFiles(libRoot, cwd)) {
+	for (const absPath of walkSourceFiles(libRoot)) {
 		scanFileForStalePlanRefs(absPath, relative(cwd, absPath))
 	}
 })
