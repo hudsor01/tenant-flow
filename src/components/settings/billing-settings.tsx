@@ -1,6 +1,8 @@
 'use client'
 
+import { useEffect } from 'react'
 import { Loader2 } from 'lucide-react'
+import * as Sentry from '@sentry/nextjs'
 import { BlurFade } from '#components/ui/blur-fade'
 import { BorderBeam } from '#components/ui/border-beam'
 import { Skeleton } from '#components/ui/skeleton'
@@ -83,13 +85,27 @@ export function BillingSettings() {
 	const createPortalSession = useBillingPortalMutation()
 
 	const isLoading = statusLoading
-	const isActive = subscriptionStatus?.subscriptionStatus === 'active'
-	const { plan: currentPlan, period: currentPeriod } = findPlanByStripePriceId(
-		subscriptionStatus?.stripePriceId ?? null
-	)
+	const status = subscriptionStatus?.subscriptionStatus ?? null
+	const isActive = status === 'active' || status === 'trialing'
+	const stripePriceId = subscriptionStatus?.stripePriceId ?? null
+	const { plan: currentPlan, period: currentPeriod } = findPlanByStripePriceId(stripePriceId)
 	const nextBillingDate = formatNextBillingDate(
 		subscriptionStatus?.currentPeriodEnd ?? null
 	)
+	const hasUnknownPriceId = isActive && stripePriceId !== null && currentPlan === null
+
+	useEffect(() => {
+		if (hasUnknownPriceId) {
+			Sentry.captureMessage(
+				'BillingSettings: stripePriceId did not match any PRICING_PLANS entry',
+				{
+					level: 'warning',
+					tags: { component: 'BillingSettings' },
+					extra: { stripePriceId, subscriptionStatus: status }
+				}
+			)
+		}
+	}, [hasUnknownPriceId, stripePriceId, status])
 
 	if (isLoading) {
 		return (
@@ -135,7 +151,7 @@ export function BillingSettings() {
 								<h4 className="text-xl font-bold">
 									{isActive && currentPlan ? currentPlan.name : 'No plan'}
 								</h4>
-								{getStatusBadge(subscriptionStatus?.subscriptionStatus ?? null)}
+								{getStatusBadge(status)}
 							</div>
 							{isActive && currentPlan && (
 								<>
@@ -157,7 +173,19 @@ export function BillingSettings() {
 									)}
 								</>
 							)}
-							{!subscriptionStatus?.subscriptionStatus && (
+							{hasUnknownPriceId && (
+								<p className="text-sm text-muted-foreground mt-1">
+									Subscription details unavailable.{' '}
+									<a
+										href="/contact"
+										className="text-primary hover:underline underline-offset-4"
+									>
+										Contact support
+									</a>{' '}
+									to confirm your plan.
+								</p>
+							)}
+							{!status && (
 								<p className="text-sm text-muted-foreground mt-1">
 									Upgrade to unlock premium features
 								</p>

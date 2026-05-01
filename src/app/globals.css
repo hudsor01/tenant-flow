@@ -1495,18 +1495,6 @@
 	@apply rounded-2xl border border-border/50 bg-background/60 px-5 transition-colors hover:border-primary/30;
 }
 
-@utility portal-feature-grid {
-	@apply grid gap-6 grid-cols-2 lg:grid-cols-5;
-}
-
-@utility billing-info-card {
-	@apply bg-background/70 rounded-lg p-4 border border-primary/20;
-}
-
-@utility trust-signal-item {
-	@apply flex items-center gap-3;
-}
-
 @utility glowing-effect-blur {
 	@apply absolute inset-0 rounded-[inherit] blur-xl;
 }

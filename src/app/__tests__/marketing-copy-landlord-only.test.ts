@@ -157,7 +157,12 @@ function isTestPath(relPath: string): boolean {
 // to something OUTSIDE the TenantFlow product (3rd-party services, IRS terms,
 // academic content, etc.).
 const BANLIST_EXEMPT_PATHS: readonly string[] = [
-	'src/app/resources/landlord-tax-deduction-tracker/tax-deduction-data.ts'
+	'src/app/resources/landlord-tax-deduction-tracker/tax-deduction-data.ts',
+	// Lease templates the landlord generates and sends to tenants — the
+	// template literally contains the phrase "fails to pay rent" / "Failure
+	// to pay rent" inside the default-clause legal copy. That phrase is
+	// part of the lease document, not a TenantFlow product claim.
+	'src/lib/templates/lease-template.ts'
 ] as const
 
 function isBanlistExempt(relPath: string): boolean {
@@ -334,6 +339,42 @@ describe('App routes: stale plan refs (cycle-5 C-1)', () => {
 	const cwd = process.cwd()
 	const appRoot = join(cwd, 'src', 'app')
 	for (const absPath of walkSourceFiles(appRoot, cwd)) {
+		scanFileForStalePlanRefs(absPath, relative(cwd, absPath))
+	}
+})
+
+// Cycle-6 C-1: extend the guard to src/lib/** so dead pricing data
+// (e.g., the deleted BILLING_PLANS block in src/lib/constants/billing.ts
+// that carried $19/$49/$99 alongside PRICING_PLANS at $29/$79/$199) can't
+// hide outside the components/app walkers and become a future landmine.
+describe('Lib: landlord-only product (cycle-6 C-1)', () => {
+	const cwd = process.cwd()
+	const libRoot = join(cwd, 'src', 'lib')
+	for (const absPath of walkSourceFiles(libRoot, cwd)) {
+		scanFileForBannedPhrases(absPath, relative(cwd, absPath))
+	}
+})
+
+describe('Lib: numeric claims (cycle-6 C-1)', () => {
+	const cwd = process.cwd()
+	const libRoot = join(cwd, 'src', 'lib')
+	for (const absPath of walkSourceFiles(libRoot, cwd)) {
+		scanFileForBannedNumericClaims(absPath, relative(cwd, absPath))
+	}
+})
+
+describe('Lib: feature claims (cycle-6 C-1)', () => {
+	const cwd = process.cwd()
+	const libRoot = join(cwd, 'src', 'lib')
+	for (const absPath of walkSourceFiles(libRoot, cwd)) {
+		scanFileForBannedFeatureClaims(absPath, relative(cwd, absPath))
+	}
+})
+
+describe('Lib: stale plan refs (cycle-6 C-1)', () => {
+	const cwd = process.cwd()
+	const libRoot = join(cwd, 'src', 'lib')
+	for (const absPath of walkSourceFiles(libRoot, cwd)) {
 		scanFileForStalePlanRefs(absPath, relative(cwd, absPath))
 	}
 })
