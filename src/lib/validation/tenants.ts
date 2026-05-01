@@ -219,21 +219,6 @@ export const transformTenantFormData = (data: TenantFormData) => ({
 export type TenantFormData = z.infer<typeof tenantFormSchema>
 export type TransformedTenantData = ReturnType<typeof transformTenantFormData>
 
-// Invitation type enum
-export const invitationTypeSchema = z.enum([
-	'platform_access', // Just inviting to create account on platform
-	'lease_signing' // Inviting to sign a specific lease
-])
-
-// Invitation status enum
-export const invitationStatusSchema = z.enum([
-	'pending', // Created but not yet sent
-	'sent', // Email sent to tenant
-	'accepted', // Tenant accepted and created account
-	'expired', // Invitation expired
-	'cancelled' // Owner cancelled
-])
-
 // Schema for adding a tenant to the platform (NO lease required)
 // Flat structure - used for simple validation
 export const addTenantSchema = z.object({
@@ -275,9 +260,6 @@ export const inviteToSignLeaseSchema = z.object({
 		.optional()
 })
 
-// Export invitation types
-export type InvitationType = z.infer<typeof invitationTypeSchema>
-export type InvitationStatus = z.infer<typeof invitationStatusSchema>
 export type AddTenant = z.infer<typeof addTenantSchema>
 export type AddTenantRequest = z.infer<typeof addTenantRequestSchema>
 export type InviteToSignLease = z.infer<typeof inviteToSignLeaseSchema>

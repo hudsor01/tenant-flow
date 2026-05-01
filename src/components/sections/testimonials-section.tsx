@@ -5,15 +5,7 @@ import { cn } from '#lib/utils'
 import { BlurFade } from '#components/ui/blur-fade'
 import { Quote, ChevronLeft, ChevronRight, Star } from 'lucide-react'
 import { Button } from '#components/ui/button'
-
-interface Testimonial {
-	quote: string
-	author: string
-	title: string
-	company: string
-	metric?: string
-	metricLabel?: string
-}
+import type { Testimonial } from '#types/sections/marketing'
 
 interface TestimonialsSectionProps {
 	className?: string

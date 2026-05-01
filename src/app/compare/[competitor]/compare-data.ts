@@ -128,7 +128,7 @@ export const COMPETITORS: Record<string, CompetitorData> = {
 		metaDescription:
 			'AppFolio alternative for property owners — no unit minimums. TenantFlow starts at $29/mo vs AppFolio\'s $298/mo minimum. No unit requirements.',
 		heroSubtitle:
-			'AppFolio requires a minimum of 50 units and $298/month. TenantFlow has no minimums and starts at $29/month -- professional tools for any portfolio size.',
+			'AppFolio requires a minimum of 50 units and $298/month. TenantFlow has no minimums and starts at $29/month — professional tools for any portfolio size.',
 		capterra: '4.5/5',
 		g2: '4.6/5',
 		founded: '2006',
@@ -233,9 +233,9 @@ export const COMPETITORS: Record<string, CompetitorData> = {
 			},
 		],
 		whySwitch: [
-			'No unit minimums -- manage 1 unit or 100 without restrictions',
+			'No unit minimums — manage 1 unit or 100 without restrictions',
 			'Save over $2,600/year at 30 units ($79/mo vs $298/mo minimum)',
-			'Transparent pricing -- no custom quotes or sales calls needed',
+			'Transparent pricing — no custom quotes or sales calls needed',
 			'14-day free trial to test everything before committing',
 			'Per-entity document vault and DocuSeal e-signing without paying for commercial/HOA tools',
 		],

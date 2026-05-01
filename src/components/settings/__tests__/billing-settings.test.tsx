@@ -1,10 +1,10 @@
 /**
  * Tests for BillingSettings empty-state branches.
  *
- * Phase 67 cycle-7 added 4 mutually-exclusive empty-state branches plus a
- * "resubscribe" branch (cycle-8 expansion). Each branch must render for the
- * specific shape of subscriptionStatus + user data that triggers it. Cycle-8
- * I-3 flagged that prior coverage only exercised the happy path.
+ * The component has 5 mutually-exclusive empty-state branches plus a loading
+ * skeleton: active-with-plan, unknown-priceId (Sentry-logged), trialing-
+ * without-priceId, resubscribe (7 statuses), and no-subscription. Each
+ * branch is exercised below.
  */
 
 import type { ReactElement } from 'react'
@@ -13,8 +13,10 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 
+const captureMessageMock = vi.fn()
+
 vi.mock('@sentry/nextjs', () => ({
-	captureMessage: vi.fn()
+	captureMessage: captureMessageMock
 }))
 
 const useSubscriptionStatusMock = vi.fn()
@@ -71,6 +73,7 @@ describe('BillingSettings empty-state branches', () => {
 		useUserMock.mockReset()
 		portalMutate.mockReset()
 		routerPush.mockReset()
+		captureMessageMock.mockReset()
 	})
 
 	it('renders the active-with-plan branch (Growth)', async () => {
@@ -128,7 +131,7 @@ describe('BillingSettings empty-state branches', () => {
 		).toBeInTheDocument()
 	})
 
-	it('renders the unknown-priceId branch with contact support link', async () => {
+	it('renders the unknown-priceId branch and logs the unrecoverable state to Sentry', async () => {
 		useSubscriptionStatusMock.mockReturnValue({
 			data: {
 				subscriptionStatus: 'active',
@@ -153,56 +156,58 @@ describe('BillingSettings empty-state branches', () => {
 		expect(
 			screen.getByRole('link', { name: /Contact support/ })
 		).toHaveAttribute('href', '/contact')
+
+		expect(captureMessageMock).toHaveBeenCalledWith(
+			'BillingSettings: stripePriceId did not match any PRICING_PLANS entry',
+			expect.objectContaining({
+				level: 'warning',
+				tags: { component: 'BillingSettings' },
+				extra: {
+					stripePriceId: 'price_1LegacyBeta00',
+					subscriptionStatus: 'active'
+				}
+			})
+		)
 	})
 
-	it('renders the resubscribe branch for canceled subscriptions', async () => {
-		useSubscriptionStatusMock.mockReturnValue({
-			data: {
-				subscriptionStatus: 'canceled',
-				stripePriceId: 'price_1SPGCNP3WCR53SdorjDpiSy5',
-				currentPeriodEnd: null,
-				stripeCustomerId: 'cus_canceled',
-				cancelAtPeriodEnd: false,
-				trialEndsAt: null
-			},
-			isLoading: false
-		})
-		useUserMock.mockReturnValue({
-			data: { stripe_customer_id: 'cus_canceled' }
-		})
+	const RESUBSCRIBE_CASES = [
+		{ status: 'past_due', badge: 'Past Due', copy: /Your subscription is past due/ },
+		{ status: 'unpaid', badge: 'Unpaid', copy: /Your subscription is unpaid/ },
+		{ status: 'canceled', badge: 'Canceled', copy: /Your subscription is canceled/ },
+		{ status: 'cancelled', badge: 'Canceled', copy: /Your subscription is canceled/ },
+		{ status: 'incomplete', badge: 'Incomplete', copy: /Your subscription is incomplete/ },
+		{ status: 'incomplete_expired', badge: 'Expired', copy: /Your subscription is expired/ },
+		{ status: 'paused', badge: 'Paused', copy: /Your subscription is paused/ }
+	] as const
 
-		const BillingSettings = await getBillingSettings()
-		renderWithProviders(<BillingSettings />)
+	it.each(RESUBSCRIBE_CASES)(
+		'renders the resubscribe branch for $status subscriptions',
+		async ({ status, badge, copy }) => {
+			useSubscriptionStatusMock.mockReturnValue({
+				data: {
+					subscriptionStatus: status,
+					stripePriceId: 'price_1SPGCNP3WCR53SdorjDpiSy5',
+					currentPeriodEnd: null,
+					stripeCustomerId: `cus_${status}`,
+					cancelAtPeriodEnd: false,
+					trialEndsAt: null
+				},
+				isLoading: false
+			})
+			useUserMock.mockReturnValue({
+				data: { stripe_customer_id: `cus_${status}` }
+			})
 
-		expect(screen.getByText('Canceled')).toBeInTheDocument()
-		expect(screen.getByText(/Your subscription is canceled/)).toBeInTheDocument()
-		expect(
-			screen.getByRole('link', { name: 'Resubscribe' })
-		).toHaveAttribute('href', '/billing/plans')
-	})
+			const BillingSettings = await getBillingSettings()
+			renderWithProviders(<BillingSettings />)
 
-	it('renders the resubscribe branch for past_due subscriptions', async () => {
-		useSubscriptionStatusMock.mockReturnValue({
-			data: {
-				subscriptionStatus: 'past_due',
-				stripePriceId: 'price_1SPGCNP3WCR53SdorjDpiSy5',
-				currentPeriodEnd: null,
-				stripeCustomerId: 'cus_pastdue',
-				cancelAtPeriodEnd: false,
-				trialEndsAt: null
-			},
-			isLoading: false
-		})
-		useUserMock.mockReturnValue({
-			data: { stripe_customer_id: 'cus_pastdue' }
-		})
-
-		const BillingSettings = await getBillingSettings()
-		renderWithProviders(<BillingSettings />)
-
-		expect(screen.getByText('Past Due')).toBeInTheDocument()
-		expect(screen.getByText(/Your subscription is past due/)).toBeInTheDocument()
-	})
+			expect(screen.getByText(badge)).toBeInTheDocument()
+			expect(screen.getByText(copy)).toBeInTheDocument()
+			expect(
+				screen.getByRole('link', { name: 'Resubscribe' })
+			).toHaveAttribute('href', '/billing/plans')
+		}
+	)
 
 	it('renders the no-subscription branch (Upgrade to unlock copy)', async () => {
 		useSubscriptionStatusMock.mockReturnValue({
@@ -239,7 +244,9 @@ describe('BillingSettings empty-state branches', () => {
 		const BillingSettings = await getBillingSettings()
 		const { container } = renderWithProviders(<BillingSettings />)
 
-		expect(container.querySelector('.space-y-6')).toBeInTheDocument()
+		const skeletons = container.querySelectorAll('[data-slot="skeleton"]')
+		expect(skeletons.length).toBeGreaterThanOrEqual(3)
 		expect(screen.queryByText(/Billing & Subscription/)).not.toBeInTheDocument()
+		expect(screen.queryByText('Current Plan')).not.toBeInTheDocument()
 	})
 })

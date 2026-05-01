@@ -177,20 +177,14 @@ export default function HelpPage() {
 								description={resource.description}
 								className="bg-card border border-border/50 shadow-md transition-shadow"
 							>
-								<div className="flex items-start justify-between mb-3">
-									<span className={cn(
+								<span
+									className={cn(
 										'inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium',
 										resource.badgeColor
-									)}>
-										{resource.badge}
-									</span>
-								</div>
-								<h3 className="font-semibold text-lg leading-tight mb-3">
-									{resource.title}
-								</h3>
-								<p className="text-muted-foreground">
-									{resource.description}
-								</p>
+									)}
+								>
+									{resource.badge}
+								</span>
 							</CardLayout>
 						))}
 					</div>

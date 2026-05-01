@@ -102,7 +102,6 @@ export default function TenantsPage() {
 		<>
 			<Tenants
 				tenants={tenants}
-				invitations={[]}
 				selectedTenant={selectedTenant}
 				onViewTenant={handleViewTenant}
 				onEditTenant={handleEditTenant}

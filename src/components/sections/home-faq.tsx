@@ -33,12 +33,12 @@ const homeFaqs = [
 	{
 		question: 'Can I switch from my current software?',
 		answer:
-			'Yes! We offer free migration assistance. Our team will help import your properties, tenants, and lease data. Most migrations are completed within 48 hours with zero downtime.'
+			'Yes. CSV import covers properties, units, tenants, and leases; existing lease PDFs and receipts upload directly into the document vault. Reach out to support if you want help validating an import for a non-trivial portfolio.'
 	},
 	{
 		question: "What's included in the free trial?",
 		answer:
-			"Everything. You get full access to all features for 14 days with no credit card required. If you decide TenantFlow isn't right for you, there's no obligation - simply don't subscribe."
+			"Everything. You get full access to all features for 14 days with no credit card required. If you decide TenantFlow isn't right for you, there's no obligation — simply don't subscribe."
 	}
 ]
 

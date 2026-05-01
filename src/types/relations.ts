@@ -14,7 +14,6 @@ type Tenant = Database['public']['Tables']['tenants']['Row']
 type Lease = Database['public']['Tables']['leases']['Row']
 type MaintenanceRequest =
 	Database['public']['Tables']['maintenance_requests']['Row']
-type InvitationStatus = 'pending' | 'accepted' | 'expired' | 'CANCELLED'
 
 // Document type from database
 type Document = Database['public']['Tables']['documents']['Row']
@@ -41,15 +40,6 @@ export interface UnitWithDetails extends Omit<Unit, 'rent_amount'> {
 	rent_amount?: number
 	leaseEndDate?: string
 	tenantName?: string
-}
-
-// Tenant relations
-export interface TenantWithDetails extends Omit<Tenant, 'invitationStatus'> {
-	invitationStatus: InvitationStatus
-	user: User | null
-	leases: Lease[]
-	units: Unit[]
-	maintenanceRequests: MaintenanceRequest[]
 }
 
 // Property subset returned by lease endpoints
@@ -237,18 +227,6 @@ export interface NotificationWithRelations extends NotificationData {
 }
 
 // ADDITIONAL TYPES FOR COMPONENT COMPATIBILITY
-
-/**
- * PropertyWithFullDetails - Complete property with all relations for detailed views
- */
-export interface PropertyWithFullDetails extends PropertyWithUnits {
-	owner?: User
-	leases?: LeaseWithDetails[]
-	tenants?: TenantWithDetails[]
-	maintenanceHistory?: MaintenanceRequestWithDetails[]
-
-	// ALL analytics come from PropertyWithUnits base - no duplicates
-}
 
 /**
  * PropertySummary - Minimal property data for lists and cards

@@ -46,8 +46,6 @@ export type PropertyStatus = 'active' | 'inactive' | 'sold'
 
 export type NotificationType = 'maintenance' | 'lease' | 'payment' | 'system'
 
-export type InvitationType = 'platform_access' | 'lease_signing'
-
 export type StripeSubscriptionStatus = 'none' | 'pending' | 'active' | 'failed'
 
 export type SignatureMethod = 'in_app' | 'docuseal'

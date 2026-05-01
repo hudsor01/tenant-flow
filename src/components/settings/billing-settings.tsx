@@ -58,11 +58,22 @@ const STATUS_BADGE_VARIANTS = {
 	paused: { label: 'Paused', className: 'bg-muted text-muted-foreground' }
 } as const satisfies Record<string, { label: string; className: string }>
 
-function getStatusBadge(status: string | null) {
-	const variant =
-		status && status in STATUS_BADGE_VARIANTS
-			? STATUS_BADGE_VARIANTS[status as keyof typeof STATUS_BADGE_VARIANTS]
-			: { label: 'No Subscription', className: 'bg-muted text-muted-foreground' }
+const NO_SUBSCRIPTION_VARIANT = {
+	label: 'No Subscription',
+	className: 'bg-muted text-muted-foreground'
+} as const
+
+function getStatusVariant(
+	status: string | null
+): { label: string; className: string } {
+	if (status && status in STATUS_BADGE_VARIANTS) {
+		return STATUS_BADGE_VARIANTS[status as keyof typeof STATUS_BADGE_VARIANTS]
+	}
+	return NO_SUBSCRIPTION_VARIANT
+}
+
+function StatusBadge({ status }: { status: string | null }) {
+	const variant = getStatusVariant(status)
 	return (
 		<span className={`text-xs ${variant.className} px-2 py-0.5 rounded-full`}>
 			{variant.label}
@@ -99,6 +110,7 @@ export function BillingSettings() {
 	const hasUnknownPriceId = isActive && stripePriceId !== null && currentPlan === null
 	const isResubscribeState = status !== null && RESUBSCRIBE_STATUSES.has(status)
 	const hasStripeCustomer = Boolean(user?.stripe_customer_id)
+	const statusVariant = getStatusVariant(status)
 
 	useEffect(() => {
 		if (hasUnknownPriceId) {
@@ -167,7 +179,7 @@ export function BillingSettings() {
 								<h4 className="text-xl font-bold">
 									{isActive && currentPlan ? currentPlan.name : 'No plan'}
 								</h4>
-								{getStatusBadge(status)}
+								<StatusBadge status={status} />
 							</div>
 							{isActive && currentPlan && (
 								<>
@@ -201,7 +213,7 @@ export function BillingSettings() {
 									to confirm your plan.
 								</p>
 							)}
-							{isActive && !currentPlan && !stripePriceId && (
+							{status === 'trialing' && !currentPlan && !stripePriceId && (
 								<p className="text-sm text-muted-foreground mt-1">
 									Your trial is active.{' '}
 									<Link
@@ -215,7 +227,7 @@ export function BillingSettings() {
 							)}
 							{isResubscribeState && (
 								<p className="text-sm text-muted-foreground mt-1">
-									Your subscription is {STATUS_BADGE_VARIANTS[status as keyof typeof STATUS_BADGE_VARIANTS]?.label.toLowerCase() ?? status}.{' '}
+									Your subscription is {statusVariant.label.toLowerCase()}.{' '}
 									<Link
 										href="/billing/plans"
 										className="text-primary hover:underline underline-offset-4"
