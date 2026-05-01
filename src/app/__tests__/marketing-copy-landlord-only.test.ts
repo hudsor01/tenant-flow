@@ -55,6 +55,21 @@ const BANNED_FEATURE_CLAIMS = [
 	'tenant invitation'
 ] as const
 
+// Dead plan names + stale prices that don't exist in PRICING_PLANS anymore.
+// The real plans are Trial / Starter / Growth / Max at $0 / $29 / $79 / $199.
+// Hardcoding the legacy "Professional" / "Enterprise" plan names or stale
+// monthly prices ("$49", "$98", "$298") creates regressions like cycle-5 C-1
+// (billing-settings.tsx hardcoded "Professional" + "$49/month" + "Up to 50
+// units"). Anything matching this list must instead be sourced from
+// `getAllPricingPlans()` / `getPricingPlan()` so it stays in sync with Stripe.
+const BANNED_STALE_PLAN_REFS = [
+	'professional plan',
+	'enterprise plan',
+	'$49/mo',
+	'$49/month',
+	'up to 50 units'
+] as const
+
 // Numeric / dollar / SLA / guarantee claims that v2.7 Phase 67 removed
 // because we couldn't substantiate them. Reintroducing any of these
 // phrases is a regression — if a future page genuinely needs to cite
@@ -209,6 +224,20 @@ function scanFileForBannedFeatureClaims(absPath: string, relPath: string) {
 	})
 }
 
+function scanFileForStalePlanRefs(absPath: string, relPath: string) {
+	const content = readFileSync(absPath, 'utf8').toLowerCase()
+	describe(`${relPath} (stale plan refs)`, () => {
+		for (const phrase of BANNED_STALE_PLAN_REFS) {
+			it(`must not mention "${phrase}"`, () => {
+				expect(
+					content,
+					`${relPath} contains stale plan reference "${phrase}" — source plan name and price from getAllPricingPlans()/getPricingPlan() instead`
+				).not.toContain(phrase.toLowerCase())
+			})
+		}
+	})
+}
+
 describe('Marketing copy: landlord-only product', () => {
 	const cwd = process.cwd()
 	for (const relPath of MARKETING_FILES) {
@@ -279,5 +308,32 @@ describe('App routes: feature claims (cycle-4 C-2)', () => {
 	const appRoot = join(cwd, 'src', 'app')
 	for (const absPath of walkSourceFiles(appRoot, cwd)) {
 		scanFileForBannedFeatureClaims(absPath, relative(cwd, absPath))
+	}
+})
+
+// Cycle-5 C-1: stale plan-name / stale-price guard. Catches the failure mode
+// where a hand-coded "Professional / $49/month / Up to 50 units" block ships
+// to authenticated users despite the marketing site, Stripe, and PRICING_PLANS
+// agreeing on Trial / Starter / Growth / Max ($0/$29/$79/$199).
+describe('Marketing copy: stale plan refs (cycle-5 C-1)', () => {
+	const cwd = process.cwd()
+	for (const relPath of MARKETING_FILES) {
+		scanFileForStalePlanRefs(join(cwd, relPath), relPath)
+	}
+})
+
+describe('Component copy: stale plan refs (cycle-5 C-1)', () => {
+	const cwd = process.cwd()
+	const componentsRoot = join(cwd, 'src', 'components')
+	for (const absPath of walkSourceFiles(componentsRoot, cwd)) {
+		scanFileForStalePlanRefs(absPath, relative(cwd, absPath))
+	}
+})
+
+describe('App routes: stale plan refs (cycle-5 C-1)', () => {
+	const cwd = process.cwd()
+	const appRoot = join(cwd, 'src', 'app')
+	for (const absPath of walkSourceFiles(appRoot, cwd)) {
+		scanFileForStalePlanRefs(absPath, relative(cwd, absPath))
 	}
 })

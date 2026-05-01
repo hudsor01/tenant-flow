@@ -55,7 +55,6 @@ const comparisonData: FeatureCategory[] = [
 		category: 'Leases',
 		features: [
 			{ name: 'E-sign leases (DocuSeal)', starter: '3 / mo', growth: '25 / mo', max: 'Unlimited' },
-			{ name: 'Lease template library', starter: true, growth: true, max: true },
 			{ name: 'Renewal reminders', starter: false, growth: true, max: true },
 			{ name: 'Custom lease clauses', starter: false, growth: false, max: true }
 		]
@@ -71,7 +70,7 @@ const comparisonData: FeatureCategory[] = [
 	{
 		category: 'Reporting & Analytics',
 		features: [
-			{ name: 'Financial reports', starter: 'Basic', growth: 'Advanced', max: 'Custom' },
+			{ name: 'Financial reports', starter: 'Basic', growth: 'Advanced', max: 'Advanced' },
 			{ name: 'Occupancy analytics', starter: true, growth: true, max: true },
 			{ name: 'Expense tracking', starter: true, growth: true, max: true }
 		]
@@ -79,12 +78,10 @@ const comparisonData: FeatureCategory[] = [
 	{
 		category: 'Support',
 		features: [
-			{ name: 'Email support', starter: true, growth: true, max: true },
-			{ name: 'Priority support', starter: false, growth: true, max: true },
+			{ name: 'Priority email support', starter: true, growth: true, max: true },
 			{ name: 'Phone support', starter: false, growth: true, max: true },
-			{ name: '24/7 availability', starter: false, growth: false, max: true },
-			{ name: 'Dedicated manager', starter: false, growth: false, max: true },
-			{ name: 'Onboarding training', starter: false, growth: '1 session', max: 'Unlimited' }
+			{ name: '24/7 dedicated support', starter: false, growth: false, max: true },
+			{ name: 'Dedicated account manager', starter: false, growth: false, max: true }
 		]
 	}
 ]

@@ -8,6 +8,38 @@ import { useSubscriptionStatus } from '#hooks/api/use-billing'
 import { useBillingPortalMutation } from '#hooks/api/use-billing-mutations'
 import { SubscriptionCancelSection } from '#components/settings/sections/subscription-cancel-section'
 import { BillingHistorySection } from '#components/settings/sections/billing-history-section'
+import { getAllPricingPlans, type PricingConfig } from '#config/pricing'
+
+function findPlanByStripePriceId(priceId: string | null): {
+	plan: PricingConfig | null
+	period: 'monthly' | 'annual' | null
+} {
+	if (!priceId) return { plan: null, period: null }
+	for (const plan of getAllPricingPlans()) {
+		if (plan.stripePriceIds.monthly === priceId) {
+			return { plan, period: 'monthly' }
+		}
+		if (plan.stripePriceIds.annual === priceId) {
+			return { plan, period: 'annual' }
+		}
+	}
+	return { plan: null, period: null }
+}
+
+function formatUnitLimit(units: number): string {
+	return units === -1 ? 'Unlimited units' : `Up to ${units} units`
+}
+
+function formatNextBillingDate(currentPeriodEnd: string | null): string | null {
+	if (!currentPeriodEnd) return null
+	const date = new Date(currentPeriodEnd)
+	if (Number.isNaN(date.getTime())) return null
+	return date.toLocaleDateString('en-US', {
+		year: 'numeric',
+		month: 'long',
+		day: 'numeric'
+	})
+}
 
 function getStatusBadge(status: string | null) {
 	switch (status) {
@@ -51,6 +83,13 @@ export function BillingSettings() {
 	const createPortalSession = useBillingPortalMutation()
 
 	const isLoading = statusLoading
+	const isActive = subscriptionStatus?.subscriptionStatus === 'active'
+	const { plan: currentPlan, period: currentPeriod } = findPlanByStripePriceId(
+		subscriptionStatus?.stripePriceId ?? null
+	)
+	const nextBillingDate = formatNextBillingDate(
+		subscriptionStatus?.currentPeriodEnd ?? null
+	)
 
 	if (isLoading) {
 		return (
@@ -94,26 +133,28 @@ export function BillingSettings() {
 						<div>
 							<div className="flex items-center gap-2 mb-1">
 								<h4 className="text-xl font-bold">
-									{subscriptionStatus?.subscriptionStatus === 'active'
-										? 'Professional'
-										: 'Free'}
+									{isActive && currentPlan ? currentPlan.name : 'No plan'}
 								</h4>
 								{getStatusBadge(subscriptionStatus?.subscriptionStatus ?? null)}
 							</div>
-							{subscriptionStatus?.subscriptionStatus === 'active' && (
+							{isActive && currentPlan && (
 								<>
 									<p className="text-2xl font-bold text-primary">
-										$49
+										${currentPeriod === 'annual'
+											? currentPlan.price.annual
+											: currentPlan.price.monthly}
 										<span className="text-sm font-normal text-muted-foreground">
-											/month
+											/{currentPeriod === 'annual' ? 'year' : 'month'}
 										</span>
 									</p>
 									<p className="text-sm text-muted-foreground mt-1">
-										Up to 50 units · Unlimited tenants
+										{formatUnitLimit(currentPlan.limits.units)} · Unlimited tenant records
 									</p>
-									<p className="text-xs text-muted-foreground mt-2">
-										Next billing date: January 1, 2025
-									</p>
+									{nextBillingDate && (
+										<p className="text-xs text-muted-foreground mt-2">
+											Next billing date: {nextBillingDate}
+										</p>
+									)}
 								</>
 							)}
 							{!subscriptionStatus?.subscriptionStatus && (

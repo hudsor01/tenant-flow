@@ -261,20 +261,6 @@ export function calculateAnnualSavings(monthlyPrice: number): number {
 	return monthlyCost - yearlyPrice
 }
 
-// Accepts both PlanId and legacy PlanType string keys.
-export function getProductTier(planId: PlanId): PricingConfig | undefined {
-	if (typeof planId === 'string' && planId in PRICING_PLANS) {
-		return PRICING_PLANS[planId]
-	}
-
-	return getPricingPlan(planId)
-}
-
-export function planTypeToId(planType: string): PlanId | undefined {
-	const config = PRICING_PLANS[planType]
-	return config?.planId
-}
-
 export function getTrialConfig(config: PricingConfig): TrialConfig | null {
 	if (typeof config.trial === 'boolean') {
 		return config.trial
