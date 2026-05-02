@@ -40,9 +40,9 @@ const stats = [
 ]
 
 export const metadata: Metadata = createPageMetadata({
-	title: 'About TenantFlow - Our Mission & Team',
+	title: 'About TenantFlow - Our Mission',
 	description:
-		'Meet the team behind TenantFlow, the landlord-only property platform with a per-entity document vault, lease e-signing, and tax-ready reports.',
+		'TenantFlow is a landlord-only property management platform with a per-entity document vault, DocuSeal lease e-signing, and tax-ready reports.',
 	path: '/about'
 })
 
@@ -241,7 +241,7 @@ export default function AboutPage() {
 			{/* CTA Section */}
 			<section className="section-spacing bg-muted/20">
 				<div className="max-w-6xl mx-auto px-6 lg:px-8">
-					<BlurFade delay={1.2} inView>
+					<BlurFade delay={1.0} inView>
 						<div className="text-center space-y-8">
 							<h2 className="text-4xl lg:text-5xl font-bold tracking-tight leading-tight text-foreground">
 								Ready to{' '}

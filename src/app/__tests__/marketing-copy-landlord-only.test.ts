@@ -55,6 +55,21 @@ const BANNED_FEATURE_CLAIMS = [
 	'tenant invitation'
 ] as const
 
+// Fabricated-identity / fabricated-team copy. Pass 7 of the perfect-PR
+// loop deleted the about/page.tsx "Meet the Team" section that listed
+// invented executives ("Alex Chen / CEO", "Sarah Johnson / CTO",
+// "Mike Rodriguez / Head of Product"). The same fabricated-attribution
+// class also produced fake testimonials (Sarah Chen / Westside
+// Properties) and a fake HQ + phone number on the contact page. Until
+// real attribution data exists, these phrases are banned outright.
+const BANNED_FABRICATED_IDENTITY_CLAIMS = [
+	'meet the team',
+	'team behind tenantflow',
+	'engineers, designers, and property management experts',
+	'our team of engineers',
+	'our diverse team'
+] as const
+
 // Dead plan names + stale prices that don't exist in PRICING_PLANS anymore.
 // The real plans are Trial / Starter / Growth / Max at $0 / $29 / $79 / $199.
 // Hardcoding the legacy "Professional" / "Enterprise" plan names or stale
@@ -221,7 +236,7 @@ function isTestPath(relPath: string): boolean {
 	)
 }
 
-type BanlistKind = 'phrases' | 'numeric' | 'feature' | 'stale_plan' | 'sla' | 'superlative'
+type BanlistKind = 'phrases' | 'numeric' | 'feature' | 'stale_plan' | 'sla' | 'superlative' | 'fabricated_identity'
 
 // Educational / third-party-expense content where banned phrases legitimately
 // appear. Exemptions are scoped per-banlist so the file still gets scanned by
@@ -361,6 +376,21 @@ function scanFileForSuperlatives(absPath: string, relPath: string) {
 				expect(
 					content,
 					`${relPath} contains banned superlative "${phrase}" — replace with concrete capability descriptions (named tools, shipped features, documented integrations)`
+				).not.toContain(phrase.toLowerCase())
+			})
+		}
+	})
+}
+
+function scanFileForFabricatedIdentities(absPath: string, relPath: string) {
+	if (isExemptFromBanlist(relPath, 'fabricated_identity')) return
+	const content = readFileSync(absPath, 'utf8').toLowerCase()
+	describe(`${relPath} (fabricated identities)`, () => {
+		for (const phrase of BANNED_FABRICATED_IDENTITY_CLAIMS) {
+			it(`must not mention "${phrase}"`, () => {
+				expect(
+					content,
+					`${relPath} contains banned fabricated-identity claim "${phrase}" — invented team members / testimonials / contact details are banned until real attribution data is available`
 				).not.toContain(phrase.toLowerCase())
 			})
 		}
@@ -569,5 +599,38 @@ describe('Lib: superlatives (loop pass 4)', () => {
 	const libRoot = join(cwd, 'src', 'lib')
 	for (const absPath of walkSourceFiles(libRoot)) {
 		scanFileForSuperlatives(absPath, relative(cwd, absPath))
+	}
+})
+
+// Loop pass 8: catch fabricated team / testimonial / identity copy that
+// would re-introduce the deleted "Meet the Team" surface or its peers.
+describe('Marketing copy: fabricated identities (loop pass 8)', () => {
+	const cwd = process.cwd()
+	for (const relPath of MARKETING_FILES) {
+		scanFileForFabricatedIdentities(join(cwd, relPath), relPath)
+	}
+})
+
+describe('Component copy: fabricated identities (loop pass 8)', () => {
+	const cwd = process.cwd()
+	const componentsRoot = join(cwd, 'src', 'components')
+	for (const absPath of walkSourceFiles(componentsRoot)) {
+		scanFileForFabricatedIdentities(absPath, relative(cwd, absPath))
+	}
+})
+
+describe('App routes: fabricated identities (loop pass 8)', () => {
+	const cwd = process.cwd()
+	const appRoot = join(cwd, 'src', 'app')
+	for (const absPath of walkSourceFiles(appRoot)) {
+		scanFileForFabricatedIdentities(absPath, relative(cwd, absPath))
+	}
+})
+
+describe('Lib: fabricated identities (loop pass 8)', () => {
+	const cwd = process.cwd()
+	const libRoot = join(cwd, 'src', 'lib')
+	for (const absPath of walkSourceFiles(libRoot)) {
+		scanFileForFabricatedIdentities(absPath, relative(cwd, absPath))
 	}
 })
