@@ -9,7 +9,7 @@ import { createPageMetadata } from '#lib/seo/page-metadata'
 export const metadata: Metadata = createPageMetadata({
 	title: 'Contact TenantFlow Property Management Support',
 	description:
-		'Reach our property management experts. Get personalized help with setup, features, and growing your portfolio. Fast response times guaranteed.',
+		'Reach our team for help with setup, features, and growing your portfolio. We respond during US business hours, Monday through Friday.',
 	path: '/contact'
 })
 

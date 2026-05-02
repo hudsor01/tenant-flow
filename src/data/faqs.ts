@@ -75,7 +75,7 @@ export const faqData: FAQCategory[] = [
 			{
 				question: 'Do you integrate with my existing systems?',
 				answer:
-					'API access is available on the Max plan. Every plan can export financial reports as CSV for accounting imports, and DocuSeal is built in for e-signatures on Growth and Max.'
+					'API access is available on the Max plan. Growth and Max can export financial, year-end, and 1099 reports as CSV for accounting imports. DocuSeal e-signatures are included on every paid plan: 3 per month on Starter, 25 on Growth, and unlimited on Max.'
 			}
 		]
 	},

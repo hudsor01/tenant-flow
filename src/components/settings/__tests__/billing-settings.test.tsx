@@ -13,16 +13,23 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 
-const captureMessageMock = vi.fn()
+const {
+	captureMessageMock,
+	useSubscriptionStatusMock,
+	useUserMock,
+	portalMutate,
+	routerPush
+} = vi.hoisted(() => ({
+	captureMessageMock: vi.fn(),
+	useSubscriptionStatusMock: vi.fn(),
+	useUserMock: vi.fn(),
+	portalMutate: vi.fn(),
+	routerPush: vi.fn()
+}))
 
 vi.mock('@sentry/nextjs', () => ({
 	captureMessage: captureMessageMock
 }))
-
-const useSubscriptionStatusMock = vi.fn()
-const useUserMock = vi.fn()
-const portalMutate = vi.fn()
-const routerPush = vi.fn()
 
 vi.mock('next/navigation', () => ({
 	useRouter: () => ({ push: routerPush, replace: vi.fn() })
