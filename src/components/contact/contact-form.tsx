@@ -4,7 +4,7 @@ import { Button } from '#components/ui/button'
 import { useFormWithProgress } from '#hooks/use-form-progress'
 import { createLogger } from '#lib/frontend-logger'
 import type { ContactFormRequest } from '#types/domain'
-import { Check, Mail, MapPin, Phone } from 'lucide-react'
+import { Check, Mail } from 'lucide-react'
 import type { FormEvent } from 'react'
 import { useState } from 'react'
 import { ContactFormFields } from './contact-form-fields'
@@ -173,33 +173,6 @@ export function ContactForm({ className = '' }: ContactFormProps) {
 					</p>
 
 					<div className="mt-8 space-y-6">
-						<div className="flex items-start">
-							<div className="p-2 rounded-lg bg-primary/10 backdrop-blur-sm">
-								<MapPin className="size-6 text-primary" />
-							</div>
-							<div className="ml-3">
-								<p className="text-foreground font-semibold">Headquarters</p>
-								<p className="text-muted-foreground">
-									123 Market Street, Suite 500
-									<br />
-									San Francisco, CA 94103
-								</p>
-							</div>
-						</div>
-
-						<div className="flex items-start">
-							<div className="p-2 rounded-lg bg-primary/10 backdrop-blur-sm">
-								<Phone className="size-6 text-primary" />
-							</div>
-							<div className="ml-3">
-								<p className="text-foreground font-semibold">Sales Hotline</p>
-								<p className="text-muted-foreground">+1 (888) 555-FLOW</p>
-								<p className="text-muted-foreground text-sm">
-									Mon-Fri, 9AM-6PM PST
-								</p>
-							</div>
-						</div>
-
 						<div className="flex items-start">
 							<div className="p-2 rounded-lg bg-primary/10 backdrop-blur-sm">
 								<Mail className="size-6 text-primary" />

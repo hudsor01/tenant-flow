@@ -20,7 +20,7 @@ const steps = [
 		number: '01',
 		title: 'Add Your Properties',
 		description:
-			'Import your portfolio in minutes. Add property details and units. Our CSV import handles bulk uploads effortlessly.',
+			'Import your portfolio via CSV. Add property details and units. The same import covers tenant and lease records too.',
 		icon: Building,
 		features: [
 			'Bulk CSV import',
@@ -65,7 +65,7 @@ export function HowItWorks({ className }: HowItWorksProps) {
 				<BlurFade delay={0.1} inView>
 					<div className="text-center mb-16">
 						<p className="typography-small text-primary uppercase tracking-wider mb-3">
-							Get Started in Minutes
+							Three Steps to Set Up
 						</p>
 						<h2 className="text-3xl lg:text-4xl xl:text-5xl font-bold tracking-tight text-foreground mb-4">
 							How TenantFlow Works

@@ -81,10 +81,11 @@ const comparisonData: ComparisonFeature[] = [
 		description: 'Desktop and mobile browsers; no app store install'
 	},
 	{
-		name: 'No Training Required',
+		name: 'Same-Day Setup',
 		tenantFlow: true,
 		spreadsheets: true,
-		enterprise: false
+		enterprise: false,
+		description: 'CSV import covers properties, units, tenants, leases'
 	}
 ]
 

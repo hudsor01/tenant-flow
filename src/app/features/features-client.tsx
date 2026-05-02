@@ -58,7 +58,7 @@ export default function FeaturesClient() {
 			<BentoFeaturesSection />
 
 			<LogoCloud
-				title="Built on Stripe, Supabase, DocuSeal, and Sentry"
+				title="Built on Stripe, Supabase, Vercel, DocuSeal, and Resend"
 				subtitle="Connect to the tools your portfolio already runs on"
 			/>
 

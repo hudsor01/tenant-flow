@@ -78,6 +78,9 @@ const BANNED_SLA_CLAIMS = [
 	'within 4 hours',
 	'within 24 hours',
 	'within 48 hours',
+	'within an hour',
+	'within minutes',
+	'in minutes',
 	'4-hour response',
 	'24-hour response',
 	'24-48h',
@@ -86,7 +89,9 @@ const BANNED_SLA_CLAIMS = [
 	'guaranteed response',
 	'fast response time',
 	'fastest resolution',
-	'fastest response'
+	'fastest response',
+	'instant setup',
+	'instant onboarding'
 ] as const
 
 // Vague superlatives that imply unsubstantiated quality claims. Replace
@@ -96,7 +101,13 @@ const BANNED_SUPERLATIVES = [
 	'best-in-class',
 	'industry-leading',
 	'world-class',
-	'enterprise-grade'
+	'enterprise-grade',
+	'perfect for',
+	'intuitive interface',
+	'no training required',
+	'requires no training',
+	'no learning curve',
+	'zero learning curve'
 ] as const
 
 // Numeric / dollar / SLA / guarantee claims that v2.7 Phase 67 removed

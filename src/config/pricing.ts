@@ -45,7 +45,7 @@ export const PRICING_PLANS: Record<string, PricingConfig> = {
 		id: 'FREETRIAL',
 		planId: 'trial',
 		name: 'Free Trial',
-		description: 'Perfect for getting started with property management',
+		description: 'Try every feature for 14 days before subscribing',
 		price: {
 			monthly: 0,
 			annual: 0
