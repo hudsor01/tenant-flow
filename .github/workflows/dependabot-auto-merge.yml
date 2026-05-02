@@ -3,13 +3,16 @@ name: Dependabot Auto-Merge
 # Re-runs on every Dependabot push so existing PRs (opened before this
 # workflow shipped) and new PRs both get evaluated. The actual merge is
 # deferred via `gh pr merge --auto`, which holds the PR until required CI
-# checks pass — branch protection still gates the merge.
+# checks pass — branch protection on `main` requires checks / e2e-smoke /
+# rls-security before any PR can merge.
 on:
   pull_request:
     types: [opened, synchronize, reopened]
 
+# Least-privilege: the job only flags an existing PR for auto-merge via the
+# pull_request_auto_merge_enable mutation; it never pushes commits, so
+# `contents: write` is not required.
 permissions:
-  contents: write
   pull-requests: write
 
 jobs:
@@ -18,23 +21,36 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
+      # Pinned by commit SHA per supply-chain best practice. v2.5.0 release.
+      # Bump alongside any `dependabot/fetch-metadata` Dependabot bump in
+      # the github-actions group.
       - name: Fetch Dependabot metadata
         id: meta
-        uses: dependabot/fetch-metadata@v2
+        uses: dependabot/fetch-metadata@21025c705c08248db411dc16f3619e6b5f9ea21a # v2.5.0
 
-      # Auto-merge rules:
-      # - Any patch update (npm or otherwise)
-      # - Minor updates to direct devDependencies (dev tooling only)
-      # - Any GitHub Actions update (pinned by SHA upstream; safe enough)
-      # Everything else (prod minor, all majors, security-sensitive groups)
-      # falls through to manual review.
-      - name: Auto-merge eligible updates
+      # Auto-merge rules (first-match wins):
+      # - Any patch update (npm or otherwise) — fetch-metadata's `update-type`
+      #   for grouped PRs returns the highest semver level in the group, so
+      #   `update-type == patch` means EVERY package in the group is a patch.
+      # - Minor updates to direct devDependencies (dev tooling only) —
+      #   `dependency-type` for grouped PRs returns the highest priority
+      #   (direct:production > direct:development > indirect), so requiring
+      #   `direct:development` rejects any group containing a direct:production
+      #   minor and reroutes it to manual review.
+      # - Any GitHub Actions update — Actions are pinned by SHA upstream and
+      #   the group's blast radius is limited to CI workflow files.
+      # Everything else (prod minor including indirect, all majors,
+      # security-sensitive vendor groups) falls through to manual review.
+      - name: Auto-merge if eligible
         if: |
           steps.meta.outputs.update-type == 'version-update:semver-patch' ||
           (steps.meta.outputs.update-type == 'version-update:semver-minor' &&
            steps.meta.outputs.dependency-type == 'direct:development') ||
           steps.meta.outputs.package-ecosystem == 'github_actions'
-        run: gh pr merge --auto --squash "$PR_URL"
+        # `--merge` matches the repo's allow_merge_commit=true /
+        # allow_squash_merge=false setting (verified via the GitHub API).
+        # Switching to `--squash` would 422 on the enable-auto-merge mutation.
+        run: gh pr merge --auto --merge "$PR_URL"
         env:
           PR_URL: ${{ github.event.pull_request.html_url }}
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

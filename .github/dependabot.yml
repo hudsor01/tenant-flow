@@ -1,5 +1,28 @@
 version: 2
 
+# ─────────────────────────────────────────────────────────────────────────
+# Group precedence: Dependabot uses FIRST-MATCH-WINS evaluation. A package
+# matching multiple groups lands in the first group declared below. Reorder
+# carefully when editing — the auto-merge workflow keys off the resulting
+# group's `update-type` and `dependency-type` outputs from fetch-metadata.
+#
+# Auto-merge wiring (.github/workflows/dependabot-auto-merge.yml):
+#   - Any patch                  → auto-merge
+#   - dev minor (direct only)    → auto-merge
+#   - GitHub Actions any         → auto-merge
+#   - prod minor / vendor / any major → manual review
+#
+# Note on transitive patches: groups without `dependency-type` capture both
+# direct and indirect dependencies. `npm-patches` therefore auto-merges
+# transitive patches too — this is the Dependabot default and matches how
+# security advisories propagate.
+# ─────────────────────────────────────────────────────────────────────────
+
+# Security-sensitive package families excluded from auto-merge groups.
+# When editing, mirror the same list across npm-patches / npm-dev-minor /
+# npm-prod-minor so a future framework or auth bump always lands in its own
+# manual-review PR.
+
 updates:
   # ─────────────────────────────────────────
   # npm / pnpm — monthly, security-focused
@@ -8,7 +31,10 @@ updates:
     directory: /
     schedule:
       interval: monthly
-    open-pull-requests-limit: 8
+    # 5 new groups (npm-patches, npm-dev-minor, npm-prod-minor, supabase,
+    # stripe) plus 1-per-package ungrouped majors. 12 leaves headroom for
+    # months with multiple major bumps without exhausting the limit.
+    open-pull-requests-limit: 12
     assignees:
       - hudsor01
     labels:
@@ -19,29 +45,49 @@ updates:
       include: scope
 
     # ── Grouped PRs ──────────────────────────
-    # Groups are split by update-type + dependency-type so the auto-merge
-    # workflow can decide on each PR independently:
-    #   - patches (any kind)        → auto-merged
-    #   - dev-minor (devDeps minor) → auto-merged
-    #   - prod-minor (prod minor)   → requires review
-    #   - supabase / stripe         → requires review (security-sensitive)
-    #   - majors                    → NOT grouped, one PR per package, requires review
     groups:
-      # Patch updates across the tree — safe enough to auto-merge once CI is green.
+      # Patch updates across the tree — auto-merged.
+      # Excludes security-sensitive vendors so any patch to those families
+      # always lands in its own PR for manual review.
       npm-patches:
         update-types:
           - patch
-        # Exclude security-sensitive packages so they always get their own PR.
         exclude-patterns:
           - '@supabase/*'
           - 'stripe'
           - '@stripe/*'
+          - 'next'
+          - '@next/*'
+          - 'react'
+          - 'react-dom'
+          - '@vercel/*'
+          - '@octokit/*'
+          - 'jose'
+          - 'cookie'
+          - 'dompurify'
+          - 'crypto-js'
 
       # Dev-only minor bumps — auto-merged.
+      # Same security-sensitive exclude list applied defensively in case any
+      # of those packages ever lands as a devDependency.
       npm-dev-minor:
         dependency-type: development
         update-types:
           - minor
+        exclude-patterns:
+          - '@supabase/*'
+          - 'stripe'
+          - '@stripe/*'
+          - 'next'
+          - '@next/*'
+          - 'react'
+          - 'react-dom'
+          - '@vercel/*'
+          - '@octokit/*'
+          - 'jose'
+          - 'cookie'
+          - 'dompurify'
+          - 'crypto-js'
 
       # Prod minor bumps — manual review required.
       npm-prod-minor:
@@ -52,6 +98,16 @@ updates:
           - '@supabase/*'
           - 'stripe'
           - '@stripe/*'
+          - 'next'
+          - '@next/*'
+          - 'react'
+          - 'react-dom'
+          - '@vercel/*'
+          - '@octokit/*'
+          - 'jose'
+          - 'cookie'
+          - 'dompurify'
+          - 'crypto-js'
 
       # Security-sensitive: separate PR for review.
       supabase:
