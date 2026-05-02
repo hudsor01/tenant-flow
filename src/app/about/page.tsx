@@ -25,7 +25,6 @@ import {
 	Rocket,
 	Sprout,
 	Target,
-	User,
 	Users,
 	Zap
 } from 'lucide-react'
@@ -231,58 +230,6 @@ export default function AboutPage() {
 											{stat.number}
 										</div>
 										<div className="text-muted-foreground">{stat.label}</div>
-									</div>
-								</BlurFade>
-							))}
-						</div>
-					</BlurFade>
-				</div>
-			</section>
-
-			{/* Team Section */}
-			<section className="section-spacing bg-muted/20">
-				<div className="max-w-7xl mx-auto px-6 lg:px-8">
-					<BlurFade delay={0.7} inView>
-						<div className="text-center mb-16 space-y-8">
-							<h2 className="text-4xl lg:text-5xl font-bold tracking-tight text-foreground">
-								Meet the Team
-							</h2>
-							<p className="text-xl text-muted-foreground leading-relaxed max-w-lg mx-auto">
-								We&apos;re a diverse team of engineers, designers, and property
-								management experts working together to build something great.
-							</p>
-						</div>
-
-						<div className="grid md:grid-cols-3 gap-2 mb-8">
-							{[
-								{
-									name: 'Alex Chen',
-									title: 'CEO & Founder',
-									bio: 'Former property manager turned tech entrepreneur. 10+ years in real estate.'
-								},
-								{
-									name: 'Sarah Johnson',
-									title: 'CTO',
-									bio: 'Software architect with expertise in scalable systems and security.'
-								},
-								{
-									name: 'Mike Rodriguez',
-									title: 'Head of Product',
-									bio: 'Product strategist focused on user experience and customer success.'
-								}
-							].map((member, index) => (
-								<BlurFade key={member.name} delay={0.8 + index * 0.1} inView>
-									<div className="text-center bg-card rounded-2xl p-8 border border-border/50 hover:border-primary/20 transition-all duration-300 hover:shadow-lg">
-										<div className="size-24 mx-auto mb-6 bg-primary/10 rounded-full flex-center">
-											<User className="size-12 text-primary" />
-										</div>
-										<h3 className="typography-large text-foreground mb-2">
-											{member.name}
-										</h3>
-										<p className="text-primary font-medium mb-4">
-											{member.title}
-										</p>
-										<p className="text-muted-foreground leading-relaxed">{member.bio}</p>
 									</div>
 								</BlurFade>
 							))}
