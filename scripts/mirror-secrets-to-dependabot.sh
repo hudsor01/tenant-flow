@@ -19,8 +19,9 @@
 #      Dependabot scopes do not auto-sync.
 #
 # Verify:
-#   gh api repos/<owner>/<repo>/dependabot/secrets --jq '.secrets[].name'
-#   should list all 6 names below.
+#   gh api "repos/${REPO}/dependabot/secrets" --jq '.secrets[].name'
+#   (where ${REPO} defaults to hudsor01/tenant-flow). The output should
+#   list all 6 names below.
 set -euo pipefail
 
 REPO="${REPO:-hudsor01/tenant-flow}"

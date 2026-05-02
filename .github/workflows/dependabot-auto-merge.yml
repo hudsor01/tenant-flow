@@ -46,10 +46,12 @@ jobs:
       #   (direct:production > direct:development > indirect), so requiring
       #   `direct:development` rejects any group containing a direct:production
       #   minor and reroutes it to manual review.
-      # - GitHub Actions non-major updates — Actions are pinned by SHA
-      #   upstream so minor/patch bumps are low-risk. Majors require manual
-      #   review because a broken CI workflow blocks every other PR's merge
-      #   gate.
+      # - GitHub Actions non-major updates — workflow files are CI-only and
+      #   never ship to prod artifacts, so a broken bump can't reach
+      #   production. The required-checks gate (checks / e2e-smoke /
+      #   rls-security) catches anything that breaks CI itself before merge.
+      #   Majors are still excluded because a major Actions bump can break
+      #   the merge gate for every other PR until it's reverted.
       # Everything else (prod minor including indirect, all majors,
       # security-sensitive vendor groups) falls through to manual review.
       - name: Auto-merge if eligible
