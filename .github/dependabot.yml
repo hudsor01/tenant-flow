@@ -26,10 +26,11 @@ version: 2
 # pattern — when adding a new family, apply the change to all 3 groups.
 #
 # Of the families listed below, the real direct deps (per package.json as
-# of 2026-05-02) are: @supabase/*, stripe, next, react, react-dom,
+# of 2026-05-02) are: @supabase/*, stripe, @stripe/* (react-stripe-js +
+# stripe-js), next, @next/* (eslint-plugin-next), react, react-dom,
 # @vercel/* (analytics + speed-insights), and dompurify. The remaining
-# entries (@next/*, @stripe/*, jose, cookie, crypto-js) are forward-
-# looking guards for security-sensitive packages that may be added later.
+# entries (jose, cookie, crypto-js) are forward-looking guards for
+# security-sensitive packages that may be added later.
 # ─────────────────────────────────────────────────────────────────────────
 
 updates:

@@ -77,4 +77,4 @@ done
 
 echo
 echo "Done. Verify:"
-echo "  gh api repos/${REPO}/dependabot/secrets --jq '.secrets[].name'"
+echo "  gh api \"repos/${REPO}/dependabot/secrets\" --jq '.secrets[].name'"
