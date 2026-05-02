@@ -40,7 +40,7 @@ export default function FeaturesSectionDemo({
 		{
 			title: 'Multi-Property Dashboard',
 			description:
-				'Manage your entire portfolio from one unified dashboard with real-time insights.',
+				'Manage your entire portfolio from one unified dashboard with revenue, occupancy, and maintenance metrics.',
 			icon: <ArrowLeft />
 		},
 		{

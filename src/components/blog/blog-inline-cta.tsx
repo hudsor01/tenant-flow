@@ -5,7 +5,7 @@ import { Button } from '#components/ui/button'
 const benefits = [
 	'Free 14-day trial',
 	'No credit card required',
-	'Setup in under 5 minutes',
+	'CSV import covers your whole portfolio',
 ]
 
 export function BlogInlineCta() {

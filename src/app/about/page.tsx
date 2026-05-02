@@ -121,10 +121,10 @@ export default function AboutPage() {
 									<Rocket />
 								</ItemMedia>
 								<ItemContent>
-									<ItemTitle>Innovation First</ItemTitle>
+									<ItemTitle>Built on a modern stack</ItemTitle>
 									<ItemDescription>
-										We constantly push boundaries to bring cutting-edge
-										solutions to property management.
+										TenantFlow ships on Next.js, React 19, Supabase, and
+										Stripe. The whole stack is documented and current.
 									</ItemDescription>
 								</ItemContent>
 							</Item>

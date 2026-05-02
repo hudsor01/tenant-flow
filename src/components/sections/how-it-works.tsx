@@ -71,8 +71,9 @@ export function HowItWorks({ className }: HowItWorksProps) {
 							How TenantFlow Works
 						</h2>
 						<p className="text-muted-foreground text-lg max-w-2xl mx-auto">
-							From signup to organized records in three simple steps. No complex setup,
-							no technical skills required.
+							From signup to organized records in three steps: import your
+							portfolio, add tenants and leases, and upload your documents
+							to the vault.
 						</p>
 					</div>
 				</BlurFade>

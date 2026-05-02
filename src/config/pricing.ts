@@ -173,9 +173,9 @@ export const PRICING_PLANS: Record<string, PricingConfig> = {
 			'API access',
 			'Dedicated account manager',
 			'Unlimited storage',
-			'24/7 priority support'
+			'Priority support during US business hours'
 		],
-		support: '24/7 Dedicated',
+		support: 'Dedicated account manager',
 		trial: false
 	}
 }

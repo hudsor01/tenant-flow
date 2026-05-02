@@ -85,13 +85,26 @@ const BANNED_SLA_CLAIMS = [
 	'24-hour response',
 	'24-48h',
 	'24/48 hour',
+	'< 1 hour',
+	'in under 5 minutes',
+	'in under 10 minutes',
+	'in under a minute',
+	'under a minute',
+	'in seconds',
+	'a few minutes',
+	'a few seconds',
+	'few clicks',
 	'response time guarantee',
 	'guaranteed response',
 	'fast response time',
 	'fastest resolution',
 	'fastest response',
 	'instant setup',
-	'instant onboarding'
+	'instant onboarding',
+	'24/7 priority support',
+	'24/7 dedicated support',
+	'24/7 phone',
+	'24/7 chat'
 ] as const
 
 // Vague superlatives that imply unsubstantiated quality claims. Replace
@@ -107,7 +120,25 @@ const BANNED_SUPERLATIVES = [
 	'no training required',
 	'requires no training',
 	'no learning curve',
-	'zero learning curve'
+	'zero learning curve',
+	'cutting-edge',
+	'state-of-the-art',
+	'game-changer',
+	'game-changing',
+	'revolutionary',
+	'next-generation',
+	'next-gen',
+	'breakthrough',
+	'push boundaries',
+	'real-time',
+	'realtime',
+	'in real time',
+	'no technical skills',
+	'no technical knowledge',
+	'no coding required',
+	'no setup required',
+	'zero setup',
+	'zero configuration'
 ] as const
 
 // Numeric / dollar / SLA / guarantee claims that v2.7 Phase 67 removed
@@ -218,7 +249,11 @@ const BANLIST_EXEMPTIONS: Record<string, readonly BanlistKind[]> = {
 	// ("acknowledge within 24 hours", "assess within 72 hours", "90-day
 	// coordinated disclosure"), not a marketing claim. The SLAs map to a
 	// real public process at /security-policy and at .well-known/security.txt.
-	'src/app/security-policy/page.tsx': ['sla']
+	'src/app/security-policy/page.tsx': ['sla'],
+	// query-config.ts uses 'realtime' as a TanStack Query cache-tier
+	// identifier (refetch every 30s) — internal infrastructure, not a
+	// marketing claim. The banlist targets user-facing copy.
+	'src/lib/constants/query-config.ts': ['superlative']
 }
 
 function isExemptFromBanlist(relPath: string, kind: BanlistKind): boolean {

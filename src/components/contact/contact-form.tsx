@@ -181,7 +181,7 @@ export function ContactForm({ className = '' }: ContactFormProps) {
 								<p className="text-foreground font-semibold">Email Us</p>
 								<p className="text-muted-foreground">sales@tenantflow.app</p>
 								<p className="text-muted-foreground text-sm">
-									US business hours, Mon–Fri
+									US business hours, Monday through Friday
 								</p>
 							</div>
 						</div>

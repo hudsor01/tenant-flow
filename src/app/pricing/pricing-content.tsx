@@ -34,7 +34,7 @@ const FAQS = [
 	{
 		question: 'How does the 14-day free trial work?',
 		answer:
-			'Start using TenantFlow immediately with full access to all features. No credit card required. After 14 days, choose the plan that fits your needs or continue with our free tier.'
+			'Start using TenantFlow immediately with full access to all features. No credit card required. After 14 days, choose the plan that fits your needs to keep using TenantFlow.'
 	},
 	{
 		question: 'Can I change plans later?',
@@ -193,7 +193,7 @@ export function PricingCtaSection() {
 							},
 							{
 								title: 'Guided onboarding',
-								desc: 'Our implementation team and resource hub help migrate leases, tenant records, and documents in days.'
+								desc: 'CSV import covers properties, units, tenants, and leases. Existing PDFs and receipts upload directly into the document vault.'
 							}
 						].map(item => (
 							<div key={item.title} className="flex items-start gap-3">

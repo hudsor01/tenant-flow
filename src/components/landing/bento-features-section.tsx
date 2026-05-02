@@ -45,7 +45,7 @@ export function BentoFeaturesSection() {
 								className="md:col-span-2"
 								background={<PropertyGrid />}
 								Icon={Building}
-								description="Manage unlimited properties and units with real-time occupancy tracking and portfolio analytics"
+								description="Track properties and units with occupancy and portfolio analytics. Up to 5/20/unlimited properties depending on plan."
 								href="/properties"
 								cta="Manage Properties"
 							/>
@@ -90,7 +90,7 @@ export function BentoFeaturesSection() {
 								className="md:col-span-2"
 								background={<AnalyticsPreview />}
 								Icon={PieChart}
-								description="Real-time revenue tracking, NOI calculations, and exportable financial reports for your entire portfolio"
+								description="Revenue tracking, NOI calculations, and exportable financial reports for your entire portfolio"
 								href="/analytics/financial"
 								cta="View Analytics"
 							/>

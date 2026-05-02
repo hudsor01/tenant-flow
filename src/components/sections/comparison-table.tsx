@@ -21,10 +21,10 @@ interface ComparisonFeature {
 const comparisonData: ComparisonFeature[] = [
 	{
 		name: 'Setup Time',
-		tenantFlow: '< 1 hour',
+		tenantFlow: 'Same day',
 		spreadsheets: '1-2 weeks',
 		enterprise: '2-4 weeks',
-		description: 'Time to get fully operational'
+		description: 'CSV import covers properties, units, tenants, and leases'
 	},
 	{
 		name: 'Monthly Cost (50 units)',

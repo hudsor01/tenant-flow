@@ -80,7 +80,6 @@ const comparisonData: FeatureCategory[] = [
 		features: [
 			{ name: 'Priority email support', starter: true, growth: true, max: true },
 			{ name: 'Phone support', starter: false, growth: true, max: true },
-			{ name: '24/7 dedicated support', starter: false, growth: false, max: true },
 			{ name: 'Dedicated account manager', starter: false, growth: false, max: true }
 		]
 	}
