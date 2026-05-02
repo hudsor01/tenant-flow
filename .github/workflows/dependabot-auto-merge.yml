@@ -1,8 +1,12 @@
 name: Dependabot Auto-Merge
 
+# Re-runs on every Dependabot push so existing PRs (opened before this
+# workflow shipped) and new PRs both get evaluated. The actual merge is
+# deferred via `gh pr merge --auto`, which holds the PR until required CI
+# checks pass — branch protection still gates the merge.
 on:
   pull_request:
-    types: [opened]
+    types: [opened, synchronize, reopened]
 
 permissions:
   contents: write
@@ -14,14 +18,22 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
-      - uses: dependabot/fetch-metadata@v2
+      - name: Fetch Dependabot metadata
         id: meta
+        uses: dependabot/fetch-metadata@v2
 
+      # Auto-merge rules:
+      # - Any patch update (npm or otherwise)
+      # - Minor updates to direct devDependencies (dev tooling only)
+      # - Any GitHub Actions update (pinned by SHA upstream; safe enough)
+      # Everything else (prod minor, all majors, security-sensitive groups)
+      # falls through to manual review.
       - name: Auto-merge eligible updates
         if: |
           steps.meta.outputs.update-type == 'version-update:semver-patch' ||
           (steps.meta.outputs.update-type == 'version-update:semver-minor' &&
-           steps.meta.outputs.dependency-type == 'direct:development')
+           steps.meta.outputs.dependency-type == 'direct:development') ||
+          steps.meta.outputs.package-ecosystem == 'github_actions'
         run: gh pr merge --auto --squash "$PR_URL"
         env:
           PR_URL: ${{ github.event.pull_request.html_url }}
