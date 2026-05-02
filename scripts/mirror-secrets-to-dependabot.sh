@@ -13,12 +13,13 @@
 #   1. `gh auth status` to confirm you're logged in with admin on the repo
 #   2. Run this script and paste each secret value when prompted (values
 #      are read silently, never echoed). Press Enter on a blank line to
-#      skip a secret you've already mirrored.
+#      skip a secret you've already mirrored — already-set secrets are
+#      annotated `[already set]` so you know which prompts can be skipped.
 #   3. Re-run any time you rotate one of these secrets — the Actions and
 #      Dependabot scopes do not auto-sync.
 #
 # Verify:
-#   gh api repos/hudsor01/tenant-flow/dependabot/secrets --jq '.secrets[].name'
+#   gh api repos/<owner>/<repo>/dependabot/secrets --jq '.secrets[].name'
 #   should list all 6 names below.
 set -euo pipefail
 
@@ -33,12 +34,38 @@ SECRETS=(
 	NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY
 )
 
+# Pre-flight: ensure gh CLI is authed with sufficient scope. `gh secret set
+# --app dependabot` requires admin on the repo (the API endpoint is
+# /repos/{owner}/{repo}/dependabot/secrets/{name}).
+if ! gh auth status >/dev/null 2>&1; then
+	echo "Error: gh CLI is not authenticated. Run 'gh auth login' first." >&2
+	exit 1
+fi
+
+if ! gh api "repos/${REPO}" --jq '.permissions.admin' 2>/dev/null | grep -q '^true$'; then
+	echo "Error: current gh auth lacks admin on ${REPO}. The dependabot/secrets endpoint requires admin." >&2
+	exit 1
+fi
+
+# Fetch the names already set in the Dependabot scope so the operator
+# knows which prompts can be skipped vs. which need a value.
+existing="$(gh api "repos/${REPO}/dependabot/secrets" --jq '[.secrets[].name] | join(" ")' 2>/dev/null || echo '')"
+
+is_set() {
+	local name="$1"
+	[[ " ${existing} " == *" ${name} "* ]]
+}
+
 echo "Mirroring ${#SECRETS[@]} Actions secrets into the Dependabot scope on ${REPO}."
-echo "Leave any prompt blank to skip that secret."
+echo "Press Enter on a blank line to skip a prompt."
 echo
 
 for name in "${SECRETS[@]}"; do
-	read -rsp "  ${name}: " value
+	suffix=""
+	if is_set "${name}"; then
+		suffix=" [already set]"
+	fi
+	read -rsp "  ${name}${suffix}: " value
 	echo
 	if [[ -z "${value}" ]]; then
 		echo "  ↳ skipped"

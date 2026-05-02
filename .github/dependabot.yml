@@ -7,21 +7,39 @@ version: 2
 # group's `update-type` and `dependency-type` outputs from fetch-metadata.
 #
 # Auto-merge wiring (.github/workflows/dependabot-auto-merge.yml):
-#   - Any patch                  → auto-merge
-#   - dev minor (direct only)    → auto-merge
-#   - GitHub Actions any         → auto-merge
+#   - Any patch                       → auto-merge
+#   - dev minor (direct only)         → auto-merge
+#   - GitHub Actions non-major        → auto-merge
 #   - prod minor / vendor / any major → manual review
 #
 # Note on transitive patches: groups without `dependency-type` capture both
 # direct and indirect dependencies. `npm-patches` therefore auto-merges
 # transitive patches too — this is the Dependabot default and matches how
 # security advisories propagate.
+#
+# Security-sensitive package families: `&security-excludes` is the single
+# source of truth, aliased into all 3 npm groups. Add new
+# security-sensitive families here once and they apply everywhere. As of
+# 2026-05-02 the only direct deps in this list are `@supabase/*`, `stripe`,
+# `next`, `react`, `react-dom`, `@vercel/*` (analytics + speed-insights);
+# the remaining entries are forward-looking guards for security-sensitive
+# packages that may be added later.
 # ─────────────────────────────────────────────────────────────────────────
 
-# Security-sensitive package families excluded from auto-merge groups.
-# When editing, mirror the same list across npm-patches / npm-dev-minor /
-# npm-prod-minor so a future framework or auth bump always lands in its own
-# manual-review PR.
+# YAML anchor: declared at top-level scope so all 3 groups can alias it.
+x-security-excludes: &security-excludes
+  - '@supabase/*'
+  - 'stripe'
+  - '@stripe/*'
+  - 'next'
+  - '@next/*'
+  - 'react'
+  - 'react-dom'
+  - '@vercel/*'
+  - 'jose'
+  - 'cookie'
+  - 'dompurify'
+  - 'crypto-js'
 
 updates:
   # ─────────────────────────────────────────
@@ -47,67 +65,27 @@ updates:
     # ── Grouped PRs ──────────────────────────
     groups:
       # Patch updates across the tree — auto-merged.
-      # Excludes security-sensitive vendors so any patch to those families
-      # always lands in its own PR for manual review.
+      # `*security-excludes` aliases the YAML anchor declared at the top of
+      # this file so any vendor added there is automatically excluded from
+      # all 3 npm auto-merge fences.
       npm-patches:
         update-types:
           - patch
-        exclude-patterns:
-          - '@supabase/*'
-          - 'stripe'
-          - '@stripe/*'
-          - 'next'
-          - '@next/*'
-          - 'react'
-          - 'react-dom'
-          - '@vercel/*'
-          - '@octokit/*'
-          - 'jose'
-          - 'cookie'
-          - 'dompurify'
-          - 'crypto-js'
+        exclude-patterns: *security-excludes
 
       # Dev-only minor bumps — auto-merged.
-      # Same security-sensitive exclude list applied defensively in case any
-      # of those packages ever lands as a devDependency.
       npm-dev-minor:
         dependency-type: development
         update-types:
           - minor
-        exclude-patterns:
-          - '@supabase/*'
-          - 'stripe'
-          - '@stripe/*'
-          - 'next'
-          - '@next/*'
-          - 'react'
-          - 'react-dom'
-          - '@vercel/*'
-          - '@octokit/*'
-          - 'jose'
-          - 'cookie'
-          - 'dompurify'
-          - 'crypto-js'
+        exclude-patterns: *security-excludes
 
       # Prod minor bumps — manual review required.
       npm-prod-minor:
         dependency-type: production
         update-types:
           - minor
-        exclude-patterns:
-          - '@supabase/*'
-          - 'stripe'
-          - '@stripe/*'
-          - 'next'
-          - '@next/*'
-          - 'react'
-          - 'react-dom'
-          - '@vercel/*'
-          - '@octokit/*'
-          - 'jose'
-          - 'cookie'
-          - 'dompurify'
-          - 'crypto-js'
+        exclude-patterns: *security-excludes
 
       # Security-sensitive: separate PR for review.
       supabase:
@@ -137,7 +115,8 @@ updates:
         update-types: ['version-update:semver-patch']
 
   # ─────────────────────────────────────────
-  # GitHub Actions — monthly, all auto-merged
+  # GitHub Actions — monthly
+  # Non-major updates auto-merged; majors fall through to manual review.
   # ─────────────────────────────────────────
   - package-ecosystem: github-actions
     directory: /
