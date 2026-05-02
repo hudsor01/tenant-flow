@@ -138,9 +138,9 @@ export default function SupportPage() {
 					<Mail className="size-8 text-primary mx-auto mb-4" />
 					<h2 className="typography-h3 mb-2">Need more help?</h2>
 					<p className="text-muted-foreground mb-6 max-w-lg mx-auto">
-						Our support team responds within 4 hours during business hours.
-						Include your account email and a description of the issue for the
-						fastest resolution.
+						Our support team responds during US business hours, Monday through
+						Friday. Include your account email and a description of the issue
+						so we can route your request to the right person.
 					</p>
 					<div className="flex flex-col sm:flex-row items-center justify-center gap-4">
 						<Link

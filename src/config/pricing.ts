@@ -102,8 +102,8 @@ export const PRICING_PLANS: Record<string, PricingConfig> = {
 			'Up to 25 units',
 			'Unlimited tenant records',
 			'Document vault with global search',
-			'3 lease e-signs per month (DocuSeal)',
 			'Maintenance tracking',
+			'Lease templates (e-sign on Growth and Max)',
 			'10GB document storage',
 			'Priority email support'
 		],

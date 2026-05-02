@@ -70,6 +70,35 @@ const BANNED_STALE_PLAN_REFS = [
 	'up to 50 units'
 ] as const
 
+// SLA-shaped phrases (response-time commitments) Phase 67 demolished
+// because no documented SLA exists. The codebase commits to "during US
+// business hours, Monday through Friday" — anything more specific is
+// unsubstantiated. Add new variants here as they appear.
+const BANNED_SLA_CLAIMS = [
+	'within 4 hours',
+	'within 24 hours',
+	'within 48 hours',
+	'4-hour response',
+	'24-hour response',
+	'24-48h',
+	'24/48 hour',
+	'response time guarantee',
+	'guaranteed response',
+	'fast response time',
+	'fastest resolution',
+	'fastest response'
+] as const
+
+// Vague superlatives that imply unsubstantiated quality claims. Replace
+// with concrete capability descriptions (named tools, real shipped
+// features, documented integrations).
+const BANNED_SUPERLATIVES = [
+	'best-in-class',
+	'industry-leading',
+	'world-class',
+	'enterprise-grade'
+] as const
+
 // Numeric / dollar / SLA / guarantee claims that v2.7 Phase 67 removed
 // because we couldn't substantiate them. Reintroducing any of these
 // phrases is a regression — if a future page genuinely needs to cite
@@ -150,7 +179,7 @@ function isTestPath(relPath: string): boolean {
 	)
 }
 
-type BanlistKind = 'phrases' | 'numeric' | 'feature' | 'stale_plan'
+type BanlistKind = 'phrases' | 'numeric' | 'feature' | 'stale_plan' | 'sla' | 'superlative'
 
 // Educational / third-party-expense content where banned phrases legitimately
 // appear. Exemptions are scoped per-banlist so the file still gets scanned by
@@ -173,7 +202,12 @@ const BANLIST_EXEMPTIONS: Record<string, readonly BanlistKind[]> = {
 		'numeric',
 		'feature'
 	],
-	'src/lib/templates/lease-template.ts': ['feature']
+	'src/lib/templates/lease-template.ts': ['feature'],
+	// security-policy is a documented vulnerability disclosure timeline
+	// ("acknowledge within 24 hours", "assess within 72 hours", "90-day
+	// coordinated disclosure"), not a marketing claim. The SLAs map to a
+	// real public process at /security-policy and at .well-known/security.txt.
+	'src/app/security-policy/page.tsx': ['sla']
 }
 
 function isExemptFromBanlist(relPath: string, kind: BanlistKind): boolean {
@@ -251,6 +285,36 @@ function scanFileForStalePlanRefs(absPath: string, relPath: string) {
 				expect(
 					content,
 					`${relPath} contains stale plan reference "${phrase}" — source plan name and price from getAllPricingPlans()/getPricingPlan() instead`
+				).not.toContain(phrase.toLowerCase())
+			})
+		}
+	})
+}
+
+function scanFileForSlaClaims(absPath: string, relPath: string) {
+	if (isExemptFromBanlist(relPath, 'sla')) return
+	const content = readFileSync(absPath, 'utf8').toLowerCase()
+	describe(`${relPath} (SLA claims)`, () => {
+		for (const phrase of BANNED_SLA_CLAIMS) {
+			it(`must not mention "${phrase}"`, () => {
+				expect(
+					content,
+					`${relPath} contains banned SLA claim "${phrase}" — no documented response-time commitment exists; use "during US business hours, Monday through Friday" instead`
+				).not.toContain(phrase.toLowerCase())
+			})
+		}
+	})
+}
+
+function scanFileForSuperlatives(absPath: string, relPath: string) {
+	if (isExemptFromBanlist(relPath, 'superlative')) return
+	const content = readFileSync(absPath, 'utf8').toLowerCase()
+	describe(`${relPath} (superlatives)`, () => {
+		for (const phrase of BANNED_SUPERLATIVES) {
+			it(`must not mention "${phrase}"`, () => {
+				expect(
+					content,
+					`${relPath} contains banned superlative "${phrase}" — replace with concrete capability descriptions (named tools, shipped features, documented integrations)`
 				).not.toContain(phrase.toLowerCase())
 			})
 		}
@@ -393,5 +457,71 @@ describe('Lib: stale plan refs (cycle-6 C-1)', () => {
 	const libRoot = join(cwd, 'src', 'lib')
 	for (const absPath of walkSourceFiles(libRoot)) {
 		scanFileForStalePlanRefs(absPath, relative(cwd, absPath))
+	}
+})
+
+// Perfect-PR loop pass 4: catch SLA-shaped "within N hours" commitments and
+// vague superlatives like "best-in-class" / "industry-leading". Both classes
+// of claim slipped through the prior banlists because they don't match any
+// dollar / percentage / plan-name pattern.
+describe('Marketing copy: SLA claims (loop pass 4)', () => {
+	const cwd = process.cwd()
+	for (const relPath of MARKETING_FILES) {
+		scanFileForSlaClaims(join(cwd, relPath), relPath)
+	}
+})
+
+describe('Component copy: SLA claims (loop pass 4)', () => {
+	const cwd = process.cwd()
+	const componentsRoot = join(cwd, 'src', 'components')
+	for (const absPath of walkSourceFiles(componentsRoot)) {
+		scanFileForSlaClaims(absPath, relative(cwd, absPath))
+	}
+})
+
+describe('App routes: SLA claims (loop pass 4)', () => {
+	const cwd = process.cwd()
+	const appRoot = join(cwd, 'src', 'app')
+	for (const absPath of walkSourceFiles(appRoot)) {
+		scanFileForSlaClaims(absPath, relative(cwd, absPath))
+	}
+})
+
+describe('Lib: SLA claims (loop pass 4)', () => {
+	const cwd = process.cwd()
+	const libRoot = join(cwd, 'src', 'lib')
+	for (const absPath of walkSourceFiles(libRoot)) {
+		scanFileForSlaClaims(absPath, relative(cwd, absPath))
+	}
+})
+
+describe('Marketing copy: superlatives (loop pass 4)', () => {
+	const cwd = process.cwd()
+	for (const relPath of MARKETING_FILES) {
+		scanFileForSuperlatives(join(cwd, relPath), relPath)
+	}
+})
+
+describe('Component copy: superlatives (loop pass 4)', () => {
+	const cwd = process.cwd()
+	const componentsRoot = join(cwd, 'src', 'components')
+	for (const absPath of walkSourceFiles(componentsRoot)) {
+		scanFileForSuperlatives(absPath, relative(cwd, absPath))
+	}
+})
+
+describe('App routes: superlatives (loop pass 4)', () => {
+	const cwd = process.cwd()
+	const appRoot = join(cwd, 'src', 'app')
+	for (const absPath of walkSourceFiles(appRoot)) {
+		scanFileForSuperlatives(absPath, relative(cwd, absPath))
+	}
+})
+
+describe('Lib: superlatives (loop pass 4)', () => {
+	const cwd = process.cwd()
+	const libRoot = join(cwd, 'src', 'lib')
+	for (const absPath of walkSourceFiles(libRoot)) {
+		scanFileForSuperlatives(absPath, relative(cwd, absPath))
 	}
 })

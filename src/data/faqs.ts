@@ -75,7 +75,7 @@ export const faqData: FAQCategory[] = [
 			{
 				question: 'Do you integrate with my existing systems?',
 				answer:
-					'API access is available on the Max plan. Growth and Max can export financial, year-end, and 1099 reports as CSV for accounting imports. DocuSeal e-signatures are included on every paid plan: 3 per month on Starter, 25 on Growth, and unlimited on Max.'
+					'API access is available on the Max plan. Growth and Max can export financial, year-end, and 1099 reports as CSV for accounting imports. DocuSeal e-signatures are included on Growth (25/month) and Max (unlimited); Starter does not include e-sign.'
 			}
 		]
 	},
@@ -105,7 +105,7 @@ export const faqData: FAQCategory[] = [
 			{
 				question: 'Are there any hidden fees?',
 				answer:
-					'No. Pricing on this page is what you pay. DocuSeal e-sign limits scale with the plan you choose (3 / 25 / unlimited per month). Storage scales the same way (10GB / 50GB / unlimited).'
+					'No. Pricing on this page is what you pay. DocuSeal e-sign volume scales with the plan you choose (Growth: 25/month, Max: unlimited; Starter does not include e-sign). Storage scales the same way (10GB / 50GB / unlimited).'
 			},
 			{
 				question: 'Can I try TenantFlow risk-free?',

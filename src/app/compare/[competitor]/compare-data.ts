@@ -345,7 +345,7 @@ export const COMPETITORS: Record<string, CompetitorData> = {
 				tenantflow: 'no',
 				tenantflowNote: 'Responsive web app',
 				competitor: 'yes',
-				competitorNote: 'Best-in-class mobile app',
+				competitorNote: 'iOS + Android apps',
 			},
 		],
 		whySwitch: [
@@ -358,7 +358,7 @@ export const COMPETITORS: Record<string, CompetitorData> = {
 		competitorStrengths: [
 			'Lowest price in the market at $9/month (annual)',
 			'Unlimited units on all plans regardless of price',
-			'Best-in-class native mobile app for iOS and Android',
+			'Native mobile app for iOS and Android',
 			'Unlimited team members included',
 			'Simple, no-frills approach that covers the basics well',
 		],

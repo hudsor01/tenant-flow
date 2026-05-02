@@ -77,7 +77,7 @@ export function ContactForm({ className = '' }: ContactFormProps) {
 			})
 
 			setSubmitMessage(
-				"Thank you for reaching out! We've received your message and will get back to you within 4 hours during business hours."
+				"Thank you for reaching out! We've received your message and will get back to you during US business hours, Monday through Friday."
 			)
 		},
 		{
@@ -208,7 +208,7 @@ export function ContactForm({ className = '' }: ContactFormProps) {
 								<p className="text-foreground font-semibold">Email Us</p>
 								<p className="text-muted-foreground">sales@tenantflow.app</p>
 								<p className="text-muted-foreground text-sm">
-									Response within 4 hours
+									US business hours, Mon–Fri
 								</p>
 							</div>
 						</div>
@@ -222,7 +222,8 @@ export function ContactForm({ className = '' }: ContactFormProps) {
 					<h2 className="typography-h3 text-foreground mb-2">Get in Touch</h2>
 					<p className="text-muted-foreground mb-8">
 						Have questions about TenantFlow? Want to see a demo? We&apos;d love
-						to hear from you. Our team typically responds within 4 hours.
+						to hear from you. Our team responds during US business hours, Monday
+						through Friday.
 					</p>
 
 					{!isHydrated && (
@@ -254,7 +255,7 @@ export function ContactForm({ className = '' }: ContactFormProps) {
 						</Button>
 
 						<p className="text-center text-muted-foreground">
-							We typically respond within 4 hours during business hours
+							We respond during US business hours, Monday through Friday.
 						</p>
 					</form>
 				</div>

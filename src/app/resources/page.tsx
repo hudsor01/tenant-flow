@@ -9,18 +9,12 @@ import {
 	ArrowRight,
 	BookOpen,
 	ClipboardCheck,
-	Clock,
 	Download,
-	FileText,
-	GraduationCap,
 	HelpCircle,
 	Mail,
 	MessageCircle,
-	PlayCircle,
 	Scale,
-	Sparkles,
-	Table,
-	Video
+	Table
 } from 'lucide-react'
 import Link from 'next/link'
 import { createBreadcrumbJsonLd } from '#lib/seo/breadcrumbs'
@@ -29,93 +23,77 @@ import { createPageMetadata } from '#lib/seo/page-metadata'
 export const metadata: Metadata = createPageMetadata({
 	title: 'Free Property Owner Resources — Templates & Tools',
 	description:
-		'Free downloadable property management templates: seasonal maintenance checklists, tax deduction trackers, security deposit law guides. Expert resources for property owners and real estate investors.',
+		'Free downloadable property management templates: seasonal maintenance checklists, tax deduction trackers, security deposit law guides for landlords.',
 	path: '/resources'
 })
 
+const mainResources = [
+	{
+		icon: <HelpCircle className="size-8" />,
+		title: 'Help Center',
+		description:
+			'Setup guides for the document vault, leases, maintenance, and team billing.',
+		href: '/help',
+		color: 'bg-muted border-border',
+		iconColor: 'text-muted-foreground'
+	},
+	{
+		icon: <BookOpen className="size-8" />,
+		title: 'Blog',
+		description:
+			'Property management workflow notes from the team, posted as we ship.',
+		href: '/blog',
+		color: 'bg-primary/10 border-primary/20',
+		iconColor: 'text-primary'
+	},
+	{
+		icon: <MessageCircle className="size-8" />,
+		title: 'FAQ',
+		description:
+			'Common questions about TenantFlow — features, plans, security, and migrating in.',
+		href: '/faq',
+		color: 'bg-success/10 border-success/20',
+		iconColor: 'text-success'
+	},
+	{
+		icon: <Mail className="size-8" />,
+		title: 'Contact Support',
+		description:
+			'Email the team. Responses during US business hours, Monday through Friday.',
+		href: '/contact',
+		color: 'bg-warning/10 border-warning/20',
+		iconColor: 'text-warning dark:text-warning'
+	}
+]
+
+const downloadResources = [
+	{
+		icon: <ClipboardCheck className="size-6" />,
+		title: 'Seasonal Maintenance Checklist',
+		description:
+			'Season-by-season checklist covering HVAC, plumbing, electrical, and exterior inspections.',
+		href: '/resources/seasonal-maintenance-checklist',
+		badge: 'Checklist'
+	},
+	{
+		icon: <Table className="size-6" />,
+		title: 'Tax Deduction Tracker',
+		description:
+			'Track every deductible expense year-round, organized by IRS Schedule E categories.',
+		href: '/resources/landlord-tax-deduction-tracker',
+		badge: 'Spreadsheet'
+	},
+	{
+		icon: <Scale className="size-6" />,
+		title: 'Security Deposit Reference Card',
+		description:
+			'Deposit limits, return deadlines, and documentation requirements for all 50 states.',
+		href: '/resources/security-deposit-reference-card',
+		badge: 'Guide'
+	}
+]
+
 export default function ResourcesPage() {
-	const mainResources = [
-		{
-			icon: <HelpCircle className="size-8" />,
-			title: 'Help Center',
-			description:
-				'Comprehensive guides and tutorials to master property management',
-			href: '/help',
-			color: 'bg-muted border-border',
-			iconColor: 'text-muted-foreground',
-			stats: '50+ articles'
-		},
-		{
-			icon: <BookOpen className="size-8" />,
-			title: 'Blog',
-			description:
-				'Expert insights, industry trends, and best practices for owners',
-			href: '/blog',
-			color: 'bg-primary/10 border-primary/20',
-			iconColor: 'text-primary',
-			stats: 'Weekly updates'
-		},
-		{
-			icon: <MessageCircle className="size-8" />,
-			title: 'FAQ',
-			description:
-				'Quick answers to the most common questions about TenantFlow',
-			href: '/faq',
-			color: 'bg-success/10 border-success/20',
-			iconColor: 'text-success',
-			stats: '30+ questions'
-		},
-		{
-			icon: <Mail className="size-8" />,
-			title: 'Contact Support',
-			description: 'Get personalized help from our dedicated support team',
-			href: '/contact',
-			color: 'bg-warning/10 border-warning/20',
-			iconColor: 'text-warning dark:text-warning',
-			stats: '24-48h response'
-		}
-	]
-
-	const quickLinks = [
-		{
-			icon: <GraduationCap className="size-5" />,
-			title: 'Getting Started Guide',
-			description: 'New to TenantFlow? Start here',
-			href: '/help/getting-started',
-			badge: 'Popular'
-		},
-		{
-			icon: <Video className="size-5" />,
-			title: 'Video Tutorials',
-			description: 'Watch step-by-step walkthroughs',
-			href: '/help/videos',
-			badge: 'New'
-		},
-		{
-			icon: <FileText className="size-5" />,
-			title: 'Documentation',
-			description: 'Complete API & feature reference',
-			href: '/help/docs',
-			badge: null
-		},
-		{
-			icon: <PlayCircle className="size-5" />,
-			title: 'Feature Updates',
-			description: "See what's new in TenantFlow",
-			href: '/blog/updates',
-			badge: null
-		}
-	]
-
-	const popularTopics = [
-		'Setting up properties',
-		'Adding tenants',
-		'Collecting rent',
-		'Maintenance requests',
-		'Lease management',
-		'Financial reports'
-	]
-
 	return (
 		<PageLayout>
 			<JsonLdScript schema={createBreadcrumbJsonLd('/resources')} />
@@ -129,52 +107,14 @@ export default function ResourcesPage() {
 				<div className="max-w-7xl mx-auto px-6 lg:px-8 relative z-10">
 					<div className="text-center max-w-4xl mx-auto space-y-8">
 						<h1 className="text-5xl lg:text-7xl font-bold tracking-tight leading-[1.1] text-foreground">
-							Everything you need to{' '}
-							<span className="text-foreground font-semibold">succeed</span>
+							Resources for{' '}
+							<span className="text-foreground font-semibold">landlords</span>
 						</h1>
 
 						<p className="text-muted-foreground leading-relaxed max-w-3xl mx-auto text-xl">
-							Comprehensive guides, tutorials, and support to help you master
-							property management with TenantFlow
+							Setup guides, downloadable checklists, and reference material for
+							running your portfolio with TenantFlow.
 						</p>
-					</div>
-				</div>
-			</section>
-
-			{/* Quick Links Section */}
-			<section className="section-spacing-compact">
-				<div className="max-w-7xl mx-auto px-6 lg:px-8">
-					<div className="text-center mb-12">
-						<h2 className="typography-h2 text-foreground mb-3">Quick Start</h2>
-						<p className="text-muted-foreground text-lg">
-							Jump right into what you need
-						</p>
-					</div>
-
-					<div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
-						{quickLinks.map(link => (
-							<Link
-								key={link.title}
-								href={link.href}
-								className="group relative bg-card border border-border rounded-2xl p-6 hover:shadow-lg hover:border-primary/50 transition-all duration-300"
-							>
-								{link.badge && (
-									<Badge
-										variant={link.badge === 'New' ? 'default' : 'secondary'}
-										className="absolute top-4 right-4"
-									>
-										{link.badge}
-									</Badge>
-								)}
-								<div className="size-12 rounded-xl bg-primary/10 flex-center mb-4 text-primary group-hover:scale-110 transition-transform duration-300">
-									{link.icon}
-								</div>
-								<h3 className="font-semibold text-foreground mb-2 group-hover:text-primary transition-colors">
-									{link.title}
-								</h3>
-								<p className="text-muted-foreground">{link.description}</p>
-							</Link>
-						))}
 					</div>
 				</div>
 			</section>
@@ -187,7 +127,7 @@ export default function ResourcesPage() {
 							Resource Center
 						</h2>
 						<p className="text-muted-foreground text-lg">
-							Explore our complete library of resources
+							Help, FAQ, blog, and direct support
 						</p>
 					</div>
 
@@ -244,29 +184,7 @@ export default function ResourcesPage() {
 					</div>
 
 					<div className="grid md:grid-cols-3 gap-6">
-						{[
-							{
-								icon: <ClipboardCheck className="size-6" />,
-								title: 'Seasonal Maintenance Checklist',
-								description: 'Season-by-season checklist covering HVAC, plumbing, electrical, and exterior inspections.',
-								href: '/resources/seasonal-maintenance-checklist',
-								badge: 'Checklist',
-							},
-							{
-								icon: <Table className="size-6" />,
-								title: 'Tax Deduction Tracker',
-								description: 'Track every deductible expense year-round, organized by IRS Schedule E categories.',
-								href: '/resources/landlord-tax-deduction-tracker',
-								badge: 'Spreadsheet',
-							},
-							{
-								icon: <Scale className="size-6" />,
-								title: 'Security Deposit Reference Card',
-								description: 'Deposit limits, return deadlines, and documentation requirements for all 50 states.',
-								href: '/resources/security-deposit-reference-card',
-								badge: 'Guide',
-							},
-						].map(resource => (
+						{downloadResources.map(resource => (
 							<Link
 								key={resource.title}
 								href={resource.href}
@@ -294,32 +212,6 @@ export default function ResourcesPage() {
 				</div>
 			</section>
 
-			{/* Popular Topics */}
-			<section className="section-spacing">
-				<div className="max-w-7xl mx-auto px-6 lg:px-8">
-					<div className="text-center mb-12">
-						<h2 className="typography-h2 text-foreground mb-3">
-							Popular Topics
-						</h2>
-						<p className="text-muted-foreground text-lg">
-							Most searched help topics
-						</p>
-					</div>
-
-					<div className="flex flex-wrap justify-center gap-3">
-						{popularTopics.map(topic => (
-							<Link
-								key={topic}
-								href={`/help?search=${encodeURIComponent(topic)}`}
-								className="px-6 py-3 rounded-full bg-card border border-border hover:border-primary/50 hover:bg-primary/5 transition-all duration-200 text-foreground font-medium"
-							>
-								{topic}
-							</Link>
-						))}
-					</div>
-				</div>
-			</section>
-
 			{/* CTA Section */}
 			<section className="section-content relative overflow-hidden">
 				<div className="absolute inset-0 bg-background">
@@ -331,13 +223,13 @@ export default function ResourcesPage() {
 						<h2 className="text-4xl lg:text-5xl font-bold tracking-tight leading-tight text-foreground">
 							Still have questions?{' '}
 							<span className="text-foreground font-semibold">
-								We're here to help
+								Reach the team
 							</span>
 						</h2>
 
 						<p className="text-muted-foreground leading-relaxed max-w-3xl mx-auto text-xl">
-							Our dedicated support team is ready to assist you with any
-							questions about TenantFlow
+							Email us with anything we missed. We respond during US business
+							hours, Monday through Friday.
 						</p>
 
 						<div className="flex flex-col sm:flex-row gap-6 justify-center">
@@ -359,22 +251,6 @@ export default function ResourcesPage() {
 							>
 								<Link href="/help">Browse Help Center</Link>
 							</Button>
-						</div>
-
-						{/* Trust Indicators */}
-						<div className="flex flex-wrap items-center justify-center gap-8 pt-8 text-muted-foreground">
-							<div className="flex items-center gap-2">
-								<Clock className="size-4" />
-								<span>24-48h response time</span>
-							</div>
-							<div className="flex items-center gap-2">
-								<MessageCircle className="size-4" />
-								<span>Live chat available</span>
-							</div>
-							<div className="flex items-center gap-2">
-								<Sparkles className="size-4" />
-								<span>Expert support team</span>
-							</div>
 						</div>
 					</div>
 				</div>

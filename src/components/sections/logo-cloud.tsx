@@ -16,7 +16,7 @@ interface LogoCloudProps {
 export function LogoCloud({
 	className,
 	title = 'Trusted integrations',
-	subtitle = 'Powered by industry-leading technology'
+	subtitle = 'Connect to the tools your portfolio already runs on'
 }: LogoCloudProps) {
 	const integrations = [
 		{
