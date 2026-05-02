@@ -22,7 +22,7 @@ export default function FeaturesSectionDemo({
 		{
 			title: 'Property Management',
 			description:
-				'Track leases, renewals, and maintenance in one place — built for landlords managing any size portfolio.',
+				'Track leases, renewals, and maintenance in one place — Starter handles up to 5 properties, Growth up to 20, Max unlimited.',
 			icon: <Terminal />
 		},
 		{

@@ -166,8 +166,9 @@ export default function AboutPage() {
 								<ItemContent>
 									<ItemTitle>Simplicity</ItemTitle>
 									<ItemDescription>
-										Complex problems deserve simple solutions. We make powerful
-										tools easy to use.
+										Property management has enough moving parts. We focus on
+										workflows landlords run every week — leases, maintenance,
+										documents, and tax-time exports — not configuration.
 									</ItemDescription>
 								</ItemContent>
 							</Item>

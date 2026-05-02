@@ -153,7 +153,11 @@ const BANNED_SUPERLATIVES = [
 	'no coding required',
 	'no setup required',
 	'zero setup',
-	'zero configuration'
+	'zero configuration',
+	'powerful tools',
+	'any size portfolio',
+	'fits any portfolio',
+	'fits any size'
 ] as const
 
 // Numeric / dollar / SLA / guarantee claims that v2.7 Phase 67 removed
