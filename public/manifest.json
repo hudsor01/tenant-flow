@@ -1,7 +1,7 @@
 {
 	"name": "TenantFlow - Property Management Software",
 	"short_name": "TenantFlow",
-	"description": "Professional property management software trusted by thousands. Streamline operations, automate workflows, and scale your business.",
+	"description": "Property management software for landlords. Track leases, maintenance, and a per-entity document vault with global search and DocuSeal e-signing.",
 	"start_url": "/?utm_source=pwa",
 	"display": "standalone",
 	"background_color": "#ffffff",

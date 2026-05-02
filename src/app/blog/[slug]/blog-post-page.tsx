@@ -14,7 +14,6 @@ import { BlogInlineCta } from '#components/blog/blog-inline-cta'
 import { LeadMagnetCta } from '#components/blog/lead-magnet-cta'
 import { NewsletterSignup } from '#components/blog/newsletter-signup'
 import { BlogLoadingSkeleton } from '#components/shared/blog-loading-skeleton'
-import { SOCIAL_PROOF } from '#config/social-proof'
 import { useBlogBySlug, useBlogCategories, useRelatedPosts } from '#hooks/api/use-blogs'
 import { BLOG_TO_COMPETITOR, BLOG_TO_RESOURCE } from '#lib/content-links'
 import { COMPETITORS } from '#app/compare/[competitor]/compare-data'
@@ -276,7 +275,7 @@ export default function BlogPostPage() {
 						Ready to transform your property management?
 					</h3>
 					<p className="text-muted-foreground mb-6">
-						{`Join ${SOCIAL_PROOF.managerCount} property managers using TenantFlow`}
+						Centralize your portfolio with the document vault, lease e-sign, and tax-ready reports.
 					</p>
 					<Button size="lg" className="px-8" asChild>
 						<Link href="/login">

@@ -20,17 +20,17 @@ export const faqData: FAQCategory[] = [
 			{
 				question: 'How do I get started with TenantFlow?',
 				answer:
-					"Sign up for our 14-day free trial - no credit card required. You'll get instant access to the platform, and our onboarding team will guide you through importing your properties, setting up your workflows, and customizing the dashboard to match your needs. Most property managers are fully operational within 24 hours."
+					"Sign up for the 14-day free trial — no credit card required. Bring your properties via CSV import, add tenant records and leases, and upload your existing documents to the vault. There's no long onboarding process; you can start the same day."
 			},
 			{
 				question: 'Can I import my existing property data?',
 				answer:
-					'Yes! Our migration specialists handle all data imports at no extra cost. We support imports from all major property management software, spreadsheets, and paper records. The process typically takes 2-4 hours, and we validate everything to ensure accuracy before going live.'
+					'Yes. CSV import covers properties, units, tenants, and leases. Existing documents (PDFs, images) upload directly into the document vault under the right entity (property, lease, tenant, maintenance, or inspection). Reach out to support if your portfolio is non-trivial and you want help validating the import.'
 			},
 			{
-				question: 'How much money will I save with TenantFlow?',
+				question: "What does TenantFlow help me do that a spreadsheet doesn't?",
 				answer:
-					'The average property manager saves $2,400+ per property per year with TenantFlow. This comes from reduced vacancy time (65% faster), lower maintenance costs (32% reduction), streamlined operations, and eliminated manual tasks. Most clients see full ROI within 2.3 months.'
+					"A spreadsheet can't store and search your lease PDFs, run lease e-signature workflows, generate tax-ready financial reports, or maintain row-level data isolation across multiple landlords. TenantFlow ships all of that in one place. Specific time savings vary by portfolio."
 			}
 		]
 	},
@@ -45,7 +45,7 @@ export const faqData: FAQCategory[] = [
 			{
 				question: 'What does TenantFlow actually help me do?',
 				answer:
-					'Track properties and units, keep tenant and lease records, log maintenance requests and vendor costs, e-sign leases via DocuSeal, and run financial reports on rent you record as received. Everything a property owner needs to replace the spreadsheet.'
+					'Track properties and units, keep tenant and lease records, log maintenance requests and vendor costs, e-sign leases via DocuSeal (Growth and Max plans), and store every lease, receipt, and inspection report in a per-entity document vault with global search and bulk-download. Everything a property owner needs to replace the spreadsheet.'
 			},
 			{
 				question: 'What specific results can I expect?',
@@ -55,7 +55,7 @@ export const faqData: FAQCategory[] = [
 			{
 				question: 'Is TenantFlow suitable for my portfolio size?',
 				answer:
-					'Yes. Starter handles up to 5 properties / 25 units, Growth manages up to 20 properties / 100 units, and MAX supports unlimited properties with white-label options and a dedicated account manager.'
+					'Yes. Starter handles up to 5 properties / 25 units, Growth manages up to 20 properties / 100 units, and Max supports unlimited properties with API access and a dedicated account manager.'
 			}
 		]
 	},
@@ -65,17 +65,17 @@ export const faqData: FAQCategory[] = [
 			{
 				question: 'How long does setup take?',
 				answer:
-					'Most property managers are fully operational within 24-48 hours. Our onboarding specialists handle data migration, system configuration, and team training. You can start seeing results immediately with our automated workflows going live on day one.'
+					'Most landlords have their portfolio imported and their first leases tracked within a day. CSV imports cover the heavy lifting; the document vault accepts existing PDFs and images directly.'
 			},
 			{
 				question: 'What kind of support do you provide?',
 				answer:
-					'All plans include priority email support with 4-hour response times. Growth and Max plans get phone support and dedicated account managers. Our team includes property management experts who understand your challenges and provide strategic guidance.'
+					'Email support is included on every plan. Growth and Max plans add phone support. We are not a 24/7 operation — expect responses during US business hours.'
 			},
 			{
 				question: 'Do you integrate with my existing systems?',
 				answer:
-					'TenantFlow exposes a REST API (Growth/MAX plans) and can export financial reports as CSV for accounting imports. DocuSeal is built in for e-signatures. Custom integrations are available for MAX customers with dedicated development support.'
+					'API access is available on the Max plan. Growth and Max can export financial, year-end, and 1099 reports as CSV for accounting imports. DocuSeal e-signatures are included on Growth (25/month) and Max (unlimited); Starter does not include e-sign.'
 			}
 		]
 	},
@@ -85,12 +85,12 @@ export const faqData: FAQCategory[] = [
 			{
 				question: 'How secure is my data?',
 				answer:
-					'TenantFlow uses bank-level security with 256-bit SSL encryption, SOC 2 Type II compliance, and regular security audits. Your data is backed up across multiple secure data centers with 99.9% uptime SLA and enterprise-grade protection.'
+					"TenantFlow runs on Supabase with TLS in transit and encryption at rest. Postgres row-level security isolates every landlord's data per request. Tenants never log in, so there are no extra access surfaces to manage. You can export your data or request account deletion at any time (a 30-day grace period applies before anonymization)."
 			},
 			{
-				question: 'Do you comply with rental regulations?',
+				question: 'Are lease templates compliant for my state?',
 				answer:
-					'Yes, TenantFlow automatically handles compliance for all 50 states including fair housing laws, rent control regulations, eviction procedures, and tenant rights. Our legal team updates the system continuously as regulations change.'
+					'Lease templates available on the platform are guidance, not legal advice. State and municipal rules around fair housing, lead-paint disclosures, and security deposits change frequently — we recommend a final review by a local attorney before signing any lease.'
 			}
 		]
 	},
@@ -98,19 +98,19 @@ export const faqData: FAQCategory[] = [
 		category: 'Pricing & ROI',
 		questions: [
 			{
-				question: "What if TenantFlow doesn't deliver the promised results?",
+				question: 'What kind of results do owners report?',
 				answer:
-					"We guarantee 40% NOI increase within 90 days or your money back. If you don't see measurable improvements in operational efficiency, cost reduction, and revenue optimization, we'll refund your subscription completely."
+					"Owners typically tell us they replace a tangle of spreadsheets, email threads, and Dropbox folders with a single source of truth. Concrete wins: faster lease renewals via DocuSeal, faster CPA hand-offs via the document vault's bulk-zip download, and fewer 'where did I put that receipt?' moments at tax time. Specific revenue impact varies by portfolio."
 			},
 			{
 				question: 'Are there any hidden fees?',
 				answer:
-					'No hidden fees ever. Our transparent pricing includes all features, unlimited support, regular updates, and data migration. The only additional cost is if you choose premium add-ons like custom integrations or dedicated training sessions.'
+					'No. Pricing on this page is what you pay. DocuSeal e-sign volume scales with the plan you choose (Growth: 25/month, Max: unlimited; Starter does not include e-sign). Storage scales the same way (10GB / 50GB / unlimited).'
 			},
 			{
 				question: 'Can I try TenantFlow risk-free?',
 				answer:
-					"Yes! Start with our 14-day transformation trial - no credit card required. Experience the full platform, see real results, and if you're not completely satisfied, there's no obligation to continue."
+					"Yes — start the 14-day trial with no credit card required. Bring your own properties, leases, and documents. Cancel any time."
 			}
 		]
 	}

@@ -214,26 +214,6 @@ export interface TenantFilters {
 	offset?: number
 }
 
-export interface TenantInvitation {
-	id: string
-	email: string
-	first_name: string | null
-	last_name: string | null
-	unit_id: string
-	unit_number: string
-	property_name: string
-	created_at: string
-	expires_at: string
-	accepted_at: string | null
-	status: 'sent' | 'accepted' | 'expired'
-}
-
-export interface InvitationFilters {
-	status?: 'sent' | 'accepted' | 'expired'
-	page?: number
-	limit?: number
-}
-
 export interface LeaseFilters {
 	status?: string
 	property_id?: string

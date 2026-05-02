@@ -97,17 +97,6 @@ export type TenantStatus = (typeof TENANT_STATUS)[keyof typeof TENANT_STATUS]
 /**
  * INVITATION STATUS ENUMERATION - App-level invitation state
  */
-export const INVITATION_STATUS = {
-	PENDING: 'pending',
-	SENT: 'SENT',
-	ACCEPTED: 'accepted',
-	EXPIRED: 'expired',
-	REVOKED: 'REVOKED'
-} as const
-
-export type InvitationStatus =
-	(typeof INVITATION_STATUS)[keyof typeof INVITATION_STATUS]
-
 /**
  * DOCUMENT TYPE ENUMERATION - App-level document classification
  */

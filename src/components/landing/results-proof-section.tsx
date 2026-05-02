@@ -1,28 +1,32 @@
 import { BlurFade } from '#components/ui/blur-fade'
 import { LazySection } from '#components/ui/lazy-section'
 import { SectionSkeleton } from '#components/ui/section-skeleton'
-import { TrendingUp, Clock, Users, BarChart3 } from 'lucide-react'
+import { FolderArchive, FileSignature, Search, Download } from 'lucide-react'
 
+// Phase 67 cleanup: replaced unsubstantiated marketing numbers with
+// feature counts that map directly to shipped product capabilities.
+// If we want to put real percentages back, they need a documented
+// methodology backed by customer data.
 const stats = [
 	{
-		icon: TrendingUp,
-		value: '40%',
-		label: 'Average NOI increase'
+		icon: FolderArchive,
+		value: '5',
+		label: 'Entity branches in the vault'
 	},
 	{
-		icon: Clock,
-		value: '25+',
-		label: 'Hours saved weekly'
+		icon: Search,
+		value: 'Global',
+		label: 'Full-text search across docs'
 	},
 	{
-		icon: Users,
-		value: '10K+',
-		label: 'Happy customers'
+		icon: Download,
+		value: '500',
+		label: 'Bulk-zip cap (per request)'
 	},
 	{
-		icon: BarChart3,
-		value: '90',
-		label: 'Days to ROI'
+		icon: FileSignature,
+		value: 'Growth+',
+		label: 'DocuSeal e-sign tier'
 	}
 ]
 
@@ -37,11 +41,10 @@ export function ResultsProofSection() {
 					<BlurFade delay={0.4} inView>
 						<div className="text-center mb-16">
 							<h2 className="text-4xl lg:text-5xl font-bold tracking-tight text-foreground mb-6">
-								Real results from real property managers
+								What ships in the box
 							</h2>
 							<p className="text-muted-foreground text-lg max-w-3xl mx-auto">
-								Our customers consistently achieve these results within 90 days
-								of implementation
+								Every plan starts with the document vault. Higher tiers unlock more e-sign volume, more storage, and team-member seats.
 							</p>
 						</div>
 

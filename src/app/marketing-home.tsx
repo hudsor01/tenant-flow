@@ -8,7 +8,6 @@ import { PageLayout } from '#components/layout/page-layout'
 import { HeroDashboardMockup } from '#components/sections/hero-dashboard-mockup'
 import { LogoCloud } from '#components/sections/logo-cloud'
 import { HowItWorks } from '#components/sections/how-it-works'
-import { TestimonialsSection } from '#components/sections/testimonials-section'
 import { ComparisonTable } from '#components/sections/comparison-table'
 import { HomeFaq } from '#components/sections/home-faq'
 import { LazySection } from '#components/ui/lazy-section'
@@ -16,7 +15,6 @@ import { SectionSkeleton } from '#components/ui/section-skeleton'
 import FeaturesSectionDemo from '#components/sections/features-section'
 import { StatsShowcase } from '#components/sections/stats-showcase'
 import { PremiumCta } from '#components/sections/premium-cta'
-import { SOCIAL_PROOF } from '#config/social-proof'
 
 export default function MarketingHomePage() {
 	return (
@@ -57,7 +55,7 @@ export default function MarketingHomePage() {
 								</div>
 
 								<p className="text-muted-foreground text-sm">
-									{`Join ${SOCIAL_PROOF.managerCount} property managers already using TenantFlow`}
+									Built for property owners. 14-day free trial, no credit card.
 								</p>
 							</div>
 
@@ -87,14 +85,6 @@ export default function MarketingHomePage() {
 				minHeight={600}
 			>
 				<FeaturesSectionDemo />
-			</LazySection>
-
-			{/* Testimonials Carousel */}
-			<LazySection
-				fallback={<SectionSkeleton height={500} variant="card" />}
-				minHeight={500}
-			>
-				<TestimonialsSection />
 			</LazySection>
 
 			{/* Stats Showcase */}

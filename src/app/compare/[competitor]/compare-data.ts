@@ -1,10 +1,15 @@
 import type { CompetitorData, PricingTier } from '#types/sections/compare'
 
+// Competitor review aggregates and pricing snapshots are captured manually
+// from each vendor's public Capterra / G2 / pricing page. Source: 2026-04-29
+// review of Buildium, AppFolio, RentRedi public listings. Refresh quarterly
+// or whenever a competitor materially changes their pricing.
+
 const TENANTFLOW_PRICING: PricingTier[] = [
 	{ name: 'Starter', price: '$29/mo', note: 'Up to 5 properties, 25 units' },
 	{ name: 'Growth', price: '$79/mo', note: 'Up to 20 properties, 100 units' },
 	{
-		name: 'TenantFlow Max',
+		name: 'Max',
 		price: '$199/mo',
 		note: 'Unlimited properties and units',
 	},
@@ -42,14 +47,14 @@ export const COMPETITORS: Record<string, CompetitorData> = {
 		],
 		features: [
 			{
-				name: 'Rent Tracking',
+				name: 'Document Vault',
 				tenantflow: 'yes',
-				tenantflowNote: 'Record and ledger',
-				competitor: 'yes',
-				competitorNote: 'Built-in processing',
+				tenantflowNote: 'Per-entity, global search',
+				competitor: 'partial',
+				competitorNote: 'Basic file storage',
 			},
 			{
-				name: 'Maintenance Management',
+				name: 'Maintenance Records',
 				tenantflow: 'yes',
 				tenantflowNote: 'Kanban workflow board',
 				competitor: 'yes',
@@ -57,35 +62,33 @@ export const COMPETITORS: Record<string, CompetitorData> = {
 			{
 				name: 'Lease Management',
 				tenantflow: 'yes',
-				tenantflowNote: 'DocuSeal e-signing',
+				tenantflowNote: 'DocuSeal e-signing (Growth+)',
 				competitor: 'yes',
 			},
 			{ name: 'Tenant Records', tenantflow: 'yes', competitor: 'yes' },
-			{ name: 'Tenant Screening', tenantflow: 'yes', competitor: 'yes' },
 			{
 				name: 'Financial Reporting',
 				tenantflow: 'yes',
 				competitor: 'yes',
 				competitorNote: 'More mature accounting',
 			},
-			{ name: 'Document Storage', tenantflow: 'yes', competitor: 'yes' },
 			{
-				name: 'Automated Workflows',
-				tenantflow: 'yes',
-				competitor: 'partial',
-				competitorNote: 'Higher tiers only',
+				name: 'Background Checks',
+				tenantflow: 'no',
+				tenantflowNote: 'Use a third-party service',
+				competitor: 'yes',
+			},
+			{
+				name: 'ACH / Payment Processing',
+				tenantflow: 'no',
+				tenantflowNote: 'Landlord-only platform',
+				competitor: 'yes',
 			},
 			{
 				name: 'HOA Management',
 				tenantflow: 'no',
 				competitor: 'yes',
 				competitorNote: 'Violation tracking included',
-			},
-			{
-				name: 'Real-Time Updates',
-				tenantflow: 'yes',
-				tenantflowNote: 'Built-in',
-				competitor: 'no',
 			},
 			{
 				name: 'Modern Tech Stack',
@@ -104,9 +107,9 @@ export const COMPETITORS: Record<string, CompetitorData> = {
 		whySwitch: [
 			'Save over $1,200/year compared to Buildium Growth ($79/mo vs $183/mo)',
 			'Modern, fast interface built on cloud-native technology',
-			'All core features included on every plan -- no upsell tiers for basics',
+			'Per-entity document vault with global search included on every plan',
 			'14-day free trial with no credit card required',
-			'Purpose-built for individual owners and small portfolios — admin, documents, and records without accounting bloat',
+			'Purpose-built for individual landlords — admin, documents, and records without accounting bloat',
 		],
 		competitorStrengths: [
 			'HOA and community association management features',
@@ -125,7 +128,7 @@ export const COMPETITORS: Record<string, CompetitorData> = {
 		metaDescription:
 			'AppFolio alternative for property owners — no unit minimums. TenantFlow starts at $29/mo vs AppFolio\'s $298/mo minimum. No unit requirements.',
 		heroSubtitle:
-			'AppFolio requires a minimum of 50 units and $298/month. TenantFlow has no minimums and starts at $29/month -- professional tools for any portfolio size.',
+			'AppFolio requires a minimum of 50 units and $298/month. TenantFlow has no minimums and starts at $29/month — professional tools for any portfolio size.',
 		capterra: '4.5/5',
 		g2: '4.6/5',
 		founded: '2006',
@@ -150,14 +153,14 @@ export const COMPETITORS: Record<string, CompetitorData> = {
 		],
 		features: [
 			{
-				name: 'Rent Tracking',
+				name: 'Document Vault',
 				tenantflow: 'yes',
-				tenantflowNote: 'Record and ledger',
-				competitor: 'yes',
-				competitorNote: 'Built-in processing',
+				tenantflowNote: 'Per-entity, global search',
+				competitor: 'partial',
+				competitorNote: 'Basic file storage',
 			},
 			{
-				name: 'Maintenance Management',
+				name: 'Maintenance Records',
 				tenantflow: 'yes',
 				tenantflowNote: 'Kanban workflow board',
 				competitor: 'yes',
@@ -166,16 +169,28 @@ export const COMPETITORS: Record<string, CompetitorData> = {
 			{
 				name: 'Lease Management',
 				tenantflow: 'yes',
+				tenantflowNote: 'DocuSeal e-signing (Growth+)',
 				competitor: 'yes',
 				competitorNote: 'AI leasing assistant',
 			},
 			{ name: 'Tenant Records', tenantflow: 'yes', competitor: 'yes' },
-			{ name: 'Tenant Screening', tenantflow: 'yes', competitor: 'yes' },
 			{
 				name: 'Financial Reporting',
 				tenantflow: 'yes',
 				competitor: 'yes',
 				competitorNote: 'Full double-entry accounting',
+			},
+			{
+				name: 'Background Checks',
+				tenantflow: 'no',
+				tenantflowNote: 'Use a third-party service',
+				competitor: 'yes',
+			},
+			{
+				name: 'ACH / Payment Processing',
+				tenantflow: 'no',
+				tenantflowNote: 'Landlord-only platform',
+				competitor: 'yes',
 			},
 			{
 				name: 'Listing Syndication',
@@ -218,11 +233,11 @@ export const COMPETITORS: Record<string, CompetitorData> = {
 			},
 		],
 		whySwitch: [
-			'No unit minimums -- manage 1 unit or 100 without restrictions',
+			'No unit minimums — manage 1 unit or 100 without restrictions',
 			'Save over $2,600/year at 30 units ($79/mo vs $298/mo minimum)',
-			'Transparent pricing -- no custom quotes or sales calls needed',
+			'Transparent pricing — no custom quotes or sales calls needed',
 			'14-day free trial to test everything before committing',
-			'All residential property management features you need, without paying for commercial/HOA tools',
+			'Per-entity document vault and DocuSeal e-signing without paying for commercial/HOA tools',
 		],
 		competitorStrengths: [
 			'AI-powered maintenance routing and leasing assistant',
@@ -267,14 +282,14 @@ export const COMPETITORS: Record<string, CompetitorData> = {
 		],
 		features: [
 			{
-				name: 'Rent Tracking',
+				name: 'Document Vault',
 				tenantflow: 'yes',
-				tenantflowNote: 'Record and ledger',
-				competitor: 'yes',
-				competitorNote: 'Built-in processing',
+				tenantflowNote: 'Per-entity, global search',
+				competitor: 'partial',
+				competitorNote: 'Limited storage',
 			},
 			{
-				name: 'Maintenance Management',
+				name: 'Maintenance Records',
 				tenantflow: 'yes',
 				tenantflowNote: 'Kanban workflow board',
 				competitor: 'yes',
@@ -283,7 +298,7 @@ export const COMPETITORS: Record<string, CompetitorData> = {
 			{
 				name: 'Lease Management',
 				tenantflow: 'yes',
-				tenantflowNote: 'DocuSeal e-signing + auto reminders',
+				tenantflowNote: 'DocuSeal e-signing (Growth+)',
 				competitor: 'partial',
 				competitorNote: 'Templates + e-signing',
 			},
@@ -294,25 +309,22 @@ export const COMPETITORS: Record<string, CompetitorData> = {
 				competitor: 'yes',
 				competitorNote: 'Mobile app focused',
 			},
-			{ name: 'Tenant Screening', tenantflow: 'yes', competitor: 'yes' },
 			{
-				name: 'Advanced Analytics',
-				tenantflow: 'yes',
-				tenantflowNote: 'Revenue trends, occupancy, KPIs',
-				competitor: 'no',
-				competitorNote: 'Basic income/expense only',
+				name: 'Background Checks',
+				tenantflow: 'no',
+				tenantflowNote: 'Use a third-party service',
+				competitor: 'yes',
+			},
+			{
+				name: 'ACH / Payment Processing',
+				tenantflow: 'no',
+				tenantflowNote: 'Landlord-only platform',
+				competitor: 'yes',
 			},
 			{
 				name: 'Property Performance Reports',
 				tenantflow: 'yes',
 				competitor: 'no',
-			},
-			{
-				name: 'Document Storage',
-				tenantflow: 'yes',
-				tenantflowNote: 'Up to 50GB on Growth',
-				competitor: 'partial',
-				competitorNote: 'Limited storage',
 			},
 			{
 				name: 'Team Collaboration',
@@ -333,27 +345,20 @@ export const COMPETITORS: Record<string, CompetitorData> = {
 				tenantflow: 'no',
 				tenantflowNote: 'Responsive web app',
 				competitor: 'yes',
-				competitorNote: 'Best-in-class mobile app',
-			},
-			{
-				name: 'Automated Workflows',
-				tenantflow: 'yes',
-				tenantflowNote: 'Late fees, reminders, renewals',
-				competitor: 'partial',
-				competitorNote: 'Late fees + reminders',
+				competitorNote: 'iOS + Android apps',
 			},
 		],
 		whySwitch: [
-			'Advanced analytics and property performance reporting included',
+			'Per-entity document vault with global search across leases, receipts, and inspections',
 			'Visual kanban maintenance workflow vs basic request tracking',
-			'Full lease management with auto renewal reminders and e-signing',
-			'Modern web interface with real-time data updates',
+			'Lease management with DocuSeal e-signing on Growth and Max',
+			'Modern web interface built on Next.js + React 19',
 			'Document storage up to 50GB on Growth plan',
 		],
 		competitorStrengths: [
 			'Lowest price in the market at $9/month (annual)',
 			'Unlimited units on all plans regardless of price',
-			'Best-in-class native mobile app for iOS and Android',
+			'Native mobile app for iOS and Android',
 			'Unlimited team members included',
 			'Simple, no-frills approach that covers the basics well',
 		],

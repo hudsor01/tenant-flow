@@ -12,15 +12,14 @@ import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Suspense, useEffect, useState } from 'react'
 import { LoginForm } from './login-form'
-import { SOCIAL_PROOF } from '#config/social-proof'
 import { LoginOAuth } from './login-oauth'
 
 const logger = createLogger({ component: 'LoginPage' })
 
 const HERO_STATS = [
-	{ value: '$2.4K+', lines: ['Saved Per', 'Property'] },
-	{ value: '98.7%', lines: ['Customer', 'Success'] },
-	{ value: '90 sec', lines: ['Support', 'Response'] }
+	{ value: 'Vault', lines: ['Document', 'Storage'] },
+	{ value: 'DocuSeal', lines: ['Lease', 'E-sign'] },
+	{ value: 'Reports', lines: ['Tax-ready', 'Exports'] }
 ]
 
 /** AUTH-12: Prevent open redirect attacks including protocol-relative URLs. */
@@ -159,9 +158,9 @@ function LoginPageContent() {
 										<Home className="size-8 text-primary-foreground" />
 									</div>
 								</div>
-								<h2 className="text-foreground font-bold text-xl">Your Success Dashboard Awaits</h2>
+								<h2 className="text-foreground font-bold text-xl">Welcome back</h2>
 								<p className="text-muted-foreground max-w-md mx-auto text-base">
-									{`Join ${SOCIAL_PROOF.managerCount} property managers who check their dashboard daily to see vacancy rates drop, NOI increase, and hours saved multiply.`}
+									Sign in to manage your properties, leases, maintenance, and the document vault.
 								</p>
 								<div className="grid grid-cols-3 gap-6 pt-6">
 									{HERO_STATS.map(stat => (
@@ -190,17 +189,15 @@ function LoginPageContent() {
 								</div>
 							</div>
 							<div className="space-y-2">
-								<h1 className="typography-h3 text-foreground">Welcome Back to Your $30,000 Annual Savings</h1>
-								<p className="text-muted-foreground text-sm">Your properties are generating 40% more NOI while you&apos;ve been away.</p>
+								<h1 className="typography-h3 text-foreground">Welcome back</h1>
+								<p className="text-muted-foreground text-sm">Sign in to manage your properties, leases, and the document vault.</p>
 							</div>
 						</div>
 						<div className="bg-muted/50 rounded-lg p-4 space-y-2 text-sm border border-border/50">
 							<p className="text-muted-foreground">
-								<strong className="text-foreground">Property Owners:</strong> New to TenantFlow?{' '}
-								<Link href="/pricing" className="text-primary hover:underline font-medium">View plans</Link>
-							</p>
-							<p className="text-muted-foreground">
-								<strong className="text-foreground">Tenants:</strong> Check your email for an invitation link
+								<strong className="text-foreground">New to TenantFlow?</strong>{' '}
+								<Link href="/pricing" className="text-primary hover:underline font-medium">View plans</Link>{' '}
+								— TenantFlow is landlord-only, so tenants don&apos;t need an account.
 							</p>
 						</div>
 
@@ -219,24 +216,24 @@ function LoginPageContent() {
 						{/* Trust Indicators */}
 						<div className="text-center space-y-4 pt-4 border-t border-border/50">
 							<p className="text-muted-foreground/80 text-xs font-medium">
-								Trusted by property managers worldwide
+								Built for landlords
 							</p>
 							<div className="flex-center flex-wrap gap-4 sm:gap-6 text-xs">
 								<div className="flex items-center gap-1.5 text-muted-foreground/70">
 									<Lock className="size-3" />
 									<span className="font-medium hidden sm:inline">
-										Bank-level Security
+										Encrypted at rest
 									</span>
 									<span className="font-medium sm:hidden">Secure</span>
 								</div>
 								<div className="flex items-center gap-1.5 text-muted-foreground/70">
 									<Zap className="size-3" />
-									<span className="font-medium">99.9% Uptime</span>
+									<span className="font-medium">RLS isolation</span>
 								</div>
 								<div className="flex items-center gap-1.5 text-muted-foreground/70">
 									<Smartphone className="size-3" />
 									<span className="font-medium hidden sm:inline">
-										Mobile Ready
+										Mobile-friendly web
 									</span>
 									<span className="font-medium sm:hidden">Mobile</span>
 								</div>

@@ -166,8 +166,7 @@ export default function UpdatePasswordPage() {
 										Reset Link Issue
 									</h2>
 									<p className="text-muted-foreground text-lg leading-relaxed">
-										No worries - you can request a new password reset link in
-										just a few seconds.
+										No worries — request a new password reset link below.
 									</p>
 								</>
 							) : (

@@ -25,26 +25,24 @@ import {
 	Rocket,
 	Sprout,
 	Target,
-	User,
 	Users,
 	Zap
 } from 'lucide-react'
 import Link from 'next/link'
-import { SOCIAL_PROOF } from '#config/social-proof'
 import { createBreadcrumbJsonLd } from '#lib/seo/breadcrumbs'
 import { createPageMetadata } from '#lib/seo/page-metadata'
 
 const stats = [
-	{ number: SOCIAL_PROOF.propertiesManaged, label: 'Properties Managed', Icon: Building2 },
-	{ number: '500+', label: 'Property Managers', Icon: Users },
-	{ number: '99.9%', label: 'Platform Uptime', Icon: Bolt },
-	{ number: '24/7', label: 'Customer Support', Icon: LifeBuoy }
+	{ number: 'Vault', label: 'Per-entity document storage', Icon: Building2 },
+	{ number: 'DocuSeal', label: 'Lease e-signing', Icon: Users },
+	{ number: 'RLS', label: 'Postgres-level data isolation', Icon: Bolt },
+	{ number: '14-day', label: 'Free trial, no credit card', Icon: LifeBuoy }
 ]
 
 export const metadata: Metadata = createPageMetadata({
-	title: 'About TenantFlow - Our Mission & Team',
+	title: 'About TenantFlow - Our Mission',
 	description:
-		'Meet the team behind TenantFlow. Learn about our mission to simplify property management for thousands of professionals worldwide.',
+		'TenantFlow is a landlord-only property management platform with a per-entity document vault, DocuSeal lease e-signing, and tax-ready reports.',
 	path: '/about'
 })
 
@@ -55,9 +53,9 @@ export default function AboutPage() {
 
 			{/* Hero Section */}
 			<HeroSection
-				title="Simplifying property management"
-				titleHighlight="for thousands of professionals"
-				subtitle="We're on a mission to transform how property managers work, grow, and succeed. Our platform empowers professionals to streamline operations and scale their business with confidence."
+				title="Property management"
+				titleHighlight="built for landlords"
+				subtitle="One platform for property records, leases, maintenance, and the document vault. Tenants are records you keep for your own tracking — never users on the platform."
 				primaryCta={{ label: 'Start Free Trial', href: '/pricing' }}
 				secondaryCta={{ label: 'Talk to Sales', href: '/contact' }}
 				image={{
@@ -122,10 +120,10 @@ export default function AboutPage() {
 									<Rocket />
 								</ItemMedia>
 								<ItemContent>
-									<ItemTitle>Innovation First</ItemTitle>
+									<ItemTitle>Built on a modern stack</ItemTitle>
 									<ItemDescription>
-										We constantly push boundaries to bring cutting-edge
-										solutions to property management.
+										TenantFlow ships on Next.js, React 19, Supabase, and
+										Stripe. The whole stack is documented and current.
 									</ItemDescription>
 								</ItemContent>
 							</Item>
@@ -154,8 +152,7 @@ export default function AboutPage() {
 								<ItemContent>
 									<ItemTitle>Security & Privacy</ItemTitle>
 									<ItemDescription>
-										We protect your data with enterprise-grade security and
-										transparent privacy practices.
+										Postgres row-level security per landlord, encrypted at rest, GDPR-compliant deletion flow.
 									</ItemDescription>
 								</ItemContent>
 							</Item>
@@ -169,8 +166,9 @@ export default function AboutPage() {
 								<ItemContent>
 									<ItemTitle>Simplicity</ItemTitle>
 									<ItemDescription>
-										Complex problems deserve simple solutions. We make powerful
-										tools easy to use.
+										Property management has enough moving parts. We focus on
+										workflows landlords run every week — leases, maintenance,
+										documents, and tax-time exports — not configuration.
 									</ItemDescription>
 								</ItemContent>
 							</Item>
@@ -215,10 +213,10 @@ export default function AboutPage() {
 					<BlurFade delay={0.5} inView>
 						<div className="text-center mb-16 space-y-4">
 							<h2 className="text-4xl lg:text-5xl font-bold tracking-tight text-foreground">
-								TenantFlow by the Numbers
+								What ships in the box
 							</h2>
 							<p className="text-xl text-muted-foreground leading-relaxed">
-								Growing alongside our community of property managers
+								Every plan starts with the document vault and DocuSeal e-sign on Growth and Max.
 							</p>
 						</div>
 
@@ -241,62 +239,10 @@ export default function AboutPage() {
 				</div>
 			</section>
 
-			{/* Team Section */}
-			<section className="section-spacing bg-muted/20">
-				<div className="max-w-7xl mx-auto px-6 lg:px-8">
-					<BlurFade delay={0.7} inView>
-						<div className="text-center mb-16 space-y-8">
-							<h2 className="text-4xl lg:text-5xl font-bold tracking-tight text-foreground">
-								Meet the Team
-							</h2>
-							<p className="text-xl text-muted-foreground leading-relaxed max-w-lg mx-auto">
-								We&apos;re a diverse team of engineers, designers, and property
-								management experts working together to build something great.
-							</p>
-						</div>
-
-						<div className="grid md:grid-cols-3 gap-2 mb-8">
-							{[
-								{
-									name: 'Alex Chen',
-									title: 'CEO & Founder',
-									bio: 'Former property manager turned tech entrepreneur. 10+ years in real estate.'
-								},
-								{
-									name: 'Sarah Johnson',
-									title: 'CTO',
-									bio: 'Software architect with expertise in scalable systems and security.'
-								},
-								{
-									name: 'Mike Rodriguez',
-									title: 'Head of Product',
-									bio: 'Product strategist focused on user experience and customer success.'
-								}
-							].map((member, index) => (
-								<BlurFade key={member.name} delay={0.8 + index * 0.1} inView>
-									<div className="text-center bg-card rounded-2xl p-8 border border-border/50 hover:border-primary/20 transition-all duration-300 hover:shadow-lg">
-										<div className="size-24 mx-auto mb-6 bg-primary/10 rounded-full flex-center">
-											<User className="size-12 text-primary" />
-										</div>
-										<h3 className="typography-large text-foreground mb-2">
-											{member.name}
-										</h3>
-										<p className="text-primary font-medium mb-4">
-											{member.title}
-										</p>
-										<p className="text-muted-foreground leading-relaxed">{member.bio}</p>
-									</div>
-								</BlurFade>
-							))}
-						</div>
-					</BlurFade>
-				</div>
-			</section>
-
 			{/* CTA Section */}
 			<section className="section-spacing bg-muted/20">
 				<div className="max-w-6xl mx-auto px-6 lg:px-8">
-					<BlurFade delay={1.2} inView>
+					<BlurFade delay={1.0} inView>
 						<div className="text-center space-y-8">
 							<h2 className="text-4xl lg:text-5xl font-bold tracking-tight leading-tight text-foreground">
 								Ready to{' '}
@@ -306,9 +252,7 @@ export default function AboutPage() {
 								?
 							</h2>
 							<p className="text-xl text-muted-foreground leading-relaxed max-w-2xl mx-auto">
-								Join thousands of property managers who&apos;ve streamlined
-								their operations and scaled their business with
-								TenantFlow&apos;s enterprise platform.
+								Centralize your portfolio with the document vault, lease e-sign on Growth and Max, and tax-ready reports.
 							</p>
 							<div className="flex flex-col sm:flex-row gap-4 justify-center">
 								<Button asChild size="lg" className="group">
@@ -322,7 +266,7 @@ export default function AboutPage() {
 								</Button>
 							</div>
 							<p className="text-muted-foreground">
-								No setup fees • Enterprise security • 99.9% uptime SLA • Cancel
+								No setup fees • Postgres RLS isolation • 14-day free trial • Cancel
 								anytime
 							</p>
 						</div>

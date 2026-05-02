@@ -67,7 +67,7 @@ export default function AnalyticsPage() {
 						Analytics Dashboard
 					</h1>
 					<p className="text-muted-foreground">
-						Real-time insights into revenue, payments, and occupancy metrics.
+						Insights into revenue, expenses, and occupancy metrics.
 					</p>
 				</div>
 				<Select value={timeRange} onValueChange={setTimeRange}>

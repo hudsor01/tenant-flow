@@ -3,12 +3,11 @@ import { describe, it, expect, beforeEach } from 'vitest'
 import * as fc from 'fast-check'
 
 /**
- * Feature: tenant-onboarding-optimization, Property 4: Data Cache Preservation
+ * Property 4: Data Cache Preservation
  *
- * Property: For any navigation between tenant portal sections, previously fetched data
- * SHALL remain in the TanStack Query cache and not trigger redundant fetches.
- *
- * Validates: Requirements 3.3
+ * Property: For any navigation between owner dashboard sections, previously
+ * fetched data SHALL remain in the TanStack Query cache and not trigger
+ * redundant fetches.
  */
 describe('Property 4: Data Cache Preservation', () => {
 	let queryClient: QueryClient

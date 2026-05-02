@@ -21,29 +21,31 @@ interface ComparisonFeature {
 const comparisonData: ComparisonFeature[] = [
 	{
 		name: 'Setup Time',
-		tenantFlow: '< 1 hour',
+		tenantFlow: 'Same day',
 		spreadsheets: '1-2 weeks',
 		enterprise: '2-4 weeks',
-		description: 'Time to get fully operational'
+		description: 'CSV import covers properties, units, tenants, and leases'
 	},
 	{
 		name: 'Monthly Cost (50 units)',
-		tenantFlow: '$49/mo',
+		tenantFlow: '$79/mo',
 		spreadsheets: 'Free*',
 		enterprise: '$200+/mo',
-		description: '*Excludes your time value'
+		description: '*Excludes your time value (Growth plan, up to 100 units)'
 	},
 	{
-		name: 'Rent Tracking',
+		name: 'Document Vault',
 		tenantFlow: true,
-		spreadsheets: 'partial',
-		enterprise: true
+		spreadsheets: false,
+		enterprise: 'partial',
+		description: 'Per-entity storage with search, filters, bulk-zip export'
 	},
 	{
-		name: 'Tenant Records',
+		name: 'Tenant Records (no logins)',
 		tenantFlow: true,
 		spreadsheets: 'partial',
-		enterprise: true
+		enterprise: false,
+		description: 'Landlord-only platform; tenants are records, not users'
 	},
 	{
 		name: 'Maintenance Tracking',
@@ -52,16 +54,18 @@ const comparisonData: ComparisonFeature[] = [
 		enterprise: true
 	},
 	{
-		name: 'Late Fee Tracking',
-		tenantFlow: true,
+		name: 'Digital Lease Signing',
+		tenantFlow: 'Growth+',
 		spreadsheets: false,
-		enterprise: true
+		enterprise: 'partial',
+		description: 'DocuSeal e-sign on Growth and Max plans'
 	},
 	{
-		name: 'Digital Lease Signing',
+		name: 'Bulk Document Export',
 		tenantFlow: true,
-		spreadsheets: false,
-		enterprise: 'partial'
+		spreadsheets: 'partial',
+		enterprise: 'partial',
+		description: 'Zip up to 500 documents per export for tax season'
 	},
 	{
 		name: 'Financial Reports',
@@ -70,28 +74,18 @@ const comparisonData: ComparisonFeature[] = [
 		enterprise: true
 	},
 	{
-		name: 'Mobile App',
+		name: 'Responsive Web App',
 		tenantFlow: true,
 		spreadsheets: false,
-		enterprise: true
+		enterprise: true,
+		description: 'Desktop and mobile browsers; no app store install'
 	},
 	{
-		name: 'No Training Required',
+		name: 'Same-Day Setup',
 		tenantFlow: true,
 		spreadsheets: true,
-		enterprise: false
-	},
-	{
-		name: '24/7 Support',
-		tenantFlow: true,
-		spreadsheets: false,
-		enterprise: 'partial'
-	},
-	{
-		name: 'SOC 2 Compliance',
-		tenantFlow: true,
-		spreadsheets: false,
-		enterprise: true
+		enterprise: false,
+		description: 'CSV import covers properties, units, tenants, leases'
 	}
 ]
 
@@ -102,7 +96,7 @@ export function ComparisonTable({ className }: ComparisonTableProps) {
 				<BlurFade delay={0.1} inView>
 					<div className="text-center mb-12">
 						<h2 className="text-3xl lg:text-4xl xl:text-5xl font-bold tracking-tight text-foreground mb-4">
-							Why Property Managers Choose{' '}
+							Why Landlords Choose{' '}
 							<span className="hero-highlight">TenantFlow</span>
 						</h2>
 						<p className="text-muted-foreground text-lg max-w-2xl mx-auto">

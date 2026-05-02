@@ -13,32 +13,32 @@ const homeFaqs = [
 	{
 		question: 'How long does it take to get started?',
 		answer:
-			'Most property owners are up and running within an hour. Import your properties via CSV, add tenant records, and start tracking leases the same day. Our intuitive interface requires no training.'
+			'Import your properties via CSV, add tenant records, and start tracking leases the same day. The 14-day free trial covers every feature so you can see the workflow before committing to a plan.'
 	},
 	{
 		question: 'What if I have fewer than 10 units?',
 		answer:
-			'TenantFlow is perfect for portfolios of any size. Our Starter plan is designed for owners managing up to 25 units, giving you all the core features without enterprise complexity or pricing.'
+			'The Starter plan is built for owners managing up to 5 properties / 25 units. You get the document vault, maintenance tracking, and 10GB of document storage at $29/month. Move up to Growth when you outgrow it.'
 	},
 	{
 		question: 'Is my data secure?',
 		answer:
-			'Absolutely. We use bank-level encryption (AES-256), are SOC 2 compliant, and host on enterprise-grade infrastructure. Your data is backed up daily and you own it completely - export anytime.'
+			"Yes. Postgres row-level security isolates every landlord's data, files are encrypted at rest, and you can export or delete your account at any time. Tenants are stored as records under your account — they never log in, so there are no extra access surfaces to manage."
 	},
 	{
-		question: 'How does rent tracking work?',
+		question: 'Where do I store lease PDFs and other documents?',
 		answer:
-			'You record rent as you receive it — by cash, check, ACH, or any method you already use. TenantFlow keeps the ledger, flags late balances, and produces the reports you need for taxes and bookkeeping.'
+			'In the document vault. Upload PDFs and images per property, lease, tenant, maintenance request, or inspection. Search across your whole portfolio, filter by category and date, and bulk-download a zip when tax season hits or your CPA asks for a folder.'
 	},
 	{
 		question: 'Can I switch from my current software?',
 		answer:
-			'Yes! We offer free migration assistance. Our team will help import your properties, tenants, and lease data. Most migrations are completed within 48 hours with zero downtime.'
+			'Yes. CSV import covers properties, units, tenants, and leases; existing lease PDFs and receipts upload directly into the document vault. Reach out to support if you want help validating an import for a non-trivial portfolio.'
 	},
 	{
 		question: "What's included in the free trial?",
 		answer:
-			"Everything. You get full access to all features for 14 days with no credit card required. If you decide TenantFlow isn't right for you, there's no obligation - simply don't subscribe."
+			"Everything. You get full access to all features for 14 days with no credit card required. If you decide TenantFlow isn't right for you, there's no obligation — simply don't subscribe."
 	}
 ]
 

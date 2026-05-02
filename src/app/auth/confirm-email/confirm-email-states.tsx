@@ -54,14 +54,13 @@ export function ConfirmEmailImagePanel() {
 							You&apos;re Almost There!
 						</h2>
 						<p className="text-muted-foreground text-lg leading-relaxed">
-							Just one more step to unlock your property management dashboard
-							and start saving $2,400+ per property annually.
+							Just one more step to unlock your dashboard, document vault, and lease workflow.
 						</p>
 						<div className="grid grid-cols-3 gap-6 pt-6">
 							{[
-								{ value: '$2.4K+', label: ['Saved Per', 'Property'] },
-								{ value: '90 sec', label: ['Setup', 'Time'] },
-								{ value: '98.7%', label: ['Success', 'Rate'] }
+								{ value: 'Vault', label: ['Document', 'Storage'] },
+								{ value: 'DocuSeal', label: ['Lease', 'E-sign'] },
+								{ value: 'Reports', label: ['Tax-ready', 'Exports'] }
 							].map(stat => (
 								<div key={stat.value} className="text-center group">
 									<div className="text-foreground font-bold text-2xl mb-1">
@@ -248,11 +247,11 @@ export function ConfirmEmailFooter() {
 			<div className="flex-center gap-8 text-caption pt-4">
 				<div className="flex items-center gap-2">
 					<CheckCircle2 className="size-4" />
-					<span>Bank-level Security</span>
+					<span>Encrypted at rest</span>
 				</div>
 				<div className="flex items-center gap-2">
 					<CheckCircle2 className="size-4" />
-					<span>99.9% Uptime</span>
+					<span>Postgres RLS isolation</span>
 				</div>
 			</div>
 		</>

@@ -37,30 +37,26 @@ const comparisonData: FeatureCategory[] = [
 			{ name: 'Units', starter: '25', growth: '100', max: 'Unlimited' },
 			{ name: 'Tenant records', starter: 'Unlimited', growth: 'Unlimited', max: 'Unlimited' },
 			{ name: 'Team members', starter: '1', growth: '3', max: 'Unlimited' },
-			{ name: 'Lease management', starter: true, growth: true, max: true },
-			{ name: 'Document storage', starter: '10GB', growth: '50GB', max: 'Unlimited' }
+			{ name: 'Lease management', starter: true, growth: true, max: true }
 		]
 	},
 	{
-		category: 'Leases & Documents',
+		category: 'Document Vault',
 		features: [
-			{ name: 'E-sign leases (DocuSeal)', starter: '3 / mo', growth: '25 / mo', max: 'Unlimited' },
-			{ name: 'Lease template library', starter: true, growth: true, max: true },
-			{ name: 'Document vault', starter: true, growth: true, max: true },
+			{ name: 'Per-entity storage (property, lease, tenant, maintenance, inspection)', starter: true, growth: true, max: true },
+			{ name: 'Global text search', starter: true, growth: true, max: true },
+			{ name: 'Multi-select category + date-range filters', starter: true, growth: true, max: true },
+			{ name: 'Bulk-download as zip (cap 500 docs/request)', starter: true, growth: true, max: true },
+			{ name: 'Custom user-defined categories', starter: true, growth: true, max: true },
+			{ name: 'Storage quota', starter: '10GB', growth: '50GB', max: 'Unlimited' }
+		]
+	},
+	{
+		category: 'Leases',
+		features: [
+			{ name: 'E-sign leases (DocuSeal)', starter: false, growth: '25 / mo', max: 'Unlimited' },
 			{ name: 'Renewal reminders', starter: false, growth: true, max: true },
-			{ name: 'Bulk document export', starter: false, growth: true, max: true },
 			{ name: 'Custom lease clauses', starter: false, growth: false, max: true }
-		]
-	},
-	{
-		category: 'Rent Tracking',
-		features: [
-			{ name: 'Rent ledger', starter: true, growth: true, max: true },
-			{ name: 'Late balance flags', starter: true, growth: true, max: true },
-			{ name: 'Late fee tracking', starter: false, growth: true, max: true },
-			{ name: 'Partial rent records', starter: false, growth: true, max: true },
-			{ name: 'Payment method notes', starter: true, growth: true, max: true },
-			{ name: 'CSV export', starter: true, growth: true, max: true }
 		]
 	},
 	{
@@ -68,43 +64,23 @@ const comparisonData: FeatureCategory[] = [
 		features: [
 			{ name: 'Work order tracking', starter: true, growth: true, max: true },
 			{ name: 'Photo attachments', starter: true, growth: true, max: true },
-			{ name: 'Vendor management', starter: false, growth: true, max: true },
-			{ name: 'Vendor network access', starter: false, growth: true, max: true },
-			{ name: 'Automated assignments', starter: false, growth: false, max: true },
-			{ name: 'Preventive scheduling', starter: false, growth: false, max: true }
+			{ name: 'Kanban workflow board', starter: true, growth: true, max: true }
 		]
 	},
 	{
 		category: 'Reporting & Analytics',
 		features: [
-			{ name: 'Financial reports', starter: 'Basic', growth: 'Advanced', max: 'Custom' },
+			{ name: 'Financial reports', starter: 'Basic', growth: 'Advanced', max: 'Advanced' },
 			{ name: 'Occupancy analytics', starter: true, growth: true, max: true },
-			{ name: 'Expense tracking', starter: true, growth: true, max: true },
-			{ name: 'Custom dashboards', starter: false, growth: true, max: true },
-			{ name: 'ROI analysis', starter: false, growth: true, max: true },
-			{ name: 'Portfolio benchmarking', starter: false, growth: false, max: true }
-		]
-	},
-	{
-		category: 'Integrations & API',
-		features: [
-			{ name: 'QuickBooks sync', starter: false, growth: true, max: true },
-			{ name: 'Accounting export', starter: true, growth: true, max: true },
-			{ name: 'API access', starter: false, growth: 'Limited', max: 'Full' },
-			{ name: 'Custom integrations', starter: false, growth: false, max: true },
-			{ name: 'Webhooks', starter: false, growth: false, max: true },
-			{ name: 'White-label options', starter: false, growth: false, max: true }
+			{ name: 'Expense tracking', starter: true, growth: true, max: true }
 		]
 	},
 	{
 		category: 'Support',
 		features: [
-			{ name: 'Email support', starter: true, growth: true, max: true },
-			{ name: 'Priority support', starter: false, growth: true, max: true },
+			{ name: 'Priority email support', starter: true, growth: true, max: true },
 			{ name: 'Phone support', starter: false, growth: true, max: true },
-			{ name: '24/7 availability', starter: false, growth: false, max: true },
-			{ name: 'Dedicated manager', starter: false, growth: false, max: true },
-			{ name: 'Onboarding training', starter: false, growth: '1 session', max: 'Unlimited' }
+			{ name: 'Dedicated account manager', starter: false, growth: false, max: true }
 		]
 	}
 ]
@@ -226,7 +202,7 @@ export function PricingComparisonTable({
 						</div>
 						<div className="text-center">
 							<div className="text-sm font-semibold text-foreground">Max</div>
-							<div className="text-xs text-muted-foreground">Custom</div>
+							<div className="text-xs text-muted-foreground">$199/mo</div>
 						</div>
 					</div>
 

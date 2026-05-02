@@ -66,15 +66,6 @@ export const mutationKeys = {
 		bulkCreate: ['mutations', 'units', 'bulkCreate'] as const
 	},
 
-	// Payments
-	payments: {
-		create: ['mutations', 'payments', 'create'] as const,
-		update: ['mutations', 'payments', 'update'] as const,
-		process: ['mutations', 'payments', 'process'] as const,
-		refund: ['mutations', 'payments', 'refund'] as const,
-		recordManual: ['mutations', 'payments', 'recordManual'] as const
-	},
-
 	// Documents
 	documents: {
 		create: ['mutations', 'documents', 'create'] as const,
@@ -146,25 +137,12 @@ export const mutationKeys = {
 	// Stripe Connect
 	stripeConnect: {
 		createAccount: ['mutations', 'stripeConnect', 'createAccount'] as const,
-		refreshLink: ['mutations', 'stripeConnect', 'refreshLink'] as const,
 		dashboardLink: ['mutations', 'stripeConnect', 'dashboardLink'] as const
 	},
 
 	// Identity Verification
 	identityVerification: {
 		start: ['mutations', 'identityVerification', 'start'] as const
-	},
-
-	// Rent Payments
-	rentPayments: {
-		process: ['mutations', 'rentPayments', 'process'] as const,
-		sendReminder: ['mutations', 'rentPayments', 'sendReminder'] as const
-	},
-
-	// Rent Collection
-	rentCollection: {
-		recordManual: ['mutations', 'rentCollection', 'recordManual'] as const,
-		exportCsv: ['mutations', 'rentCollection', 'exportCsv'] as const
 	},
 
 	// Reports
@@ -190,11 +168,6 @@ export const mutationKeys = {
 	// Owner Notification Settings
 	ownerNotificationSettings: {
 		update: ['mutations', 'ownerNotificationSettings', 'update'] as const
-	},
-
-	// Tenant Notification Preferences
-	tenantNotificationPreferences: {
-		update: ['mutations', 'tenantNotificationPreferences', 'update'] as const
 	},
 
 	// Emergency Contact

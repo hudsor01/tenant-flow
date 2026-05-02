@@ -5,15 +5,7 @@ import { cn } from '#lib/utils'
 import { BlurFade } from '#components/ui/blur-fade'
 import { Quote, ChevronLeft, ChevronRight, Star } from 'lucide-react'
 import { Button } from '#components/ui/button'
-
-interface Testimonial {
-	quote: string
-	author: string
-	title: string
-	company: string
-	metric?: string
-	metricLabel?: string
-}
+import type { Testimonial } from '#types/sections/marketing'
 
 interface TestimonialsSectionProps {
 	className?: string
@@ -23,17 +15,13 @@ interface TestimonialsSectionProps {
 	variant?: 'carousel' | 'grid'
 }
 
-const defaultTestimonials: Testimonial[] = [
-	{ quote: 'TenantFlow transformed how we manage our 35-unit portfolio. Having every lease, document, and maintenance request in one place saves us 20+ hours per week on admin work.', author: 'Sarah Chen', title: 'Portfolio Manager', company: 'Westside Properties', metric: '+47%', metricLabel: 'NOI increase' },
-	{ quote: "We evaluated 6 different platforms before choosing TenantFlow. The ROI was clear within 60 days - best property management decision we've made.", author: 'Marcus Rodriguez', title: 'Director of Operations', company: 'Urban Real Estate Group', metric: '60 days', metricLabel: 'to positive ROI' },
-	{ quote: 'E-signing leases and keeping every document attached to the unit has transformed how we work. Renewals take minutes instead of days, and nothing falls through the cracks.', author: 'Jennifer Walsh', title: 'Property Manager', company: 'Metropolitan Holdings', metric: '4.9/5', metricLabel: 'owner rating' },
-	{ quote: "As an independent owner with 8 units, I thought enterprise software was overkill. TenantFlow proved me wrong - it's powerful yet simple enough for solo operators.", author: 'David Park', title: 'Independent Owner', company: 'Park Properties LLC', metric: '25 hrs', metricLabel: 'saved weekly' },
-	{ quote: 'The financial reporting alone is worth the subscription. I can generate professional reports for my investors in minutes instead of hours with spreadsheets.', author: 'Amanda Foster', title: 'Asset Manager', company: 'Foster Investments', metric: '90%', metricLabel: 'faster reporting' },
-]
-
+// Phase 67 (v2.7) deleted the placeholder testimonials that carried
+// fabricated names and company affiliations. The component now renders
+// nothing until callers pass a `testimonials` prop with real, attributed
+// quotes — gating on testimonials.length keeps the surface honest.
 export function TestimonialsSection({
 	className,
-	testimonials = defaultTestimonials,
+	testimonials = [],
 	autoRotate = true,
 	rotateInterval = 6000,
 	variant = 'carousel'
@@ -42,10 +30,12 @@ export function TestimonialsSection({
 	const [isAutoRotating, setIsAutoRotating] = useState(autoRotate)
 
 	const goToNext = () => {
+		if (testimonials.length === 0) return
 		setCurrentIndex(prev => (prev + 1) % testimonials.length)
 	}
 
 	const goToPrev = () => {
+		if (testimonials.length === 0) return
 		setCurrentIndex(
 			prev => (prev - 1 + testimonials.length) % testimonials.length
 		)
@@ -58,12 +48,17 @@ export function TestimonialsSection({
 
 	useEffect(() => {
 		if (!isAutoRotating || variant === 'grid') return
+		if (testimonials.length === 0) return
 
 		const interval = setInterval(() => {
 			setCurrentIndex(prev => (prev + 1) % testimonials.length)
 		}, rotateInterval)
 		return () => clearInterval(interval)
 	}, [isAutoRotating, testimonials.length, rotateInterval, variant])
+
+	if (testimonials.length === 0) {
+		return null
+	}
 
 	const currentTestimonial = testimonials[currentIndex]
 
@@ -106,12 +101,11 @@ export function TestimonialsSection({
 				<BlurFade delay={0.1} inView>
 					<div className="text-center mb-12">
 						<h2 className="text-3xl lg:text-4xl xl:text-5xl font-bold tracking-tight text-foreground mb-4">
-							Trusted by property managers{' '}
-							<span className="hero-highlight">everywhere</span>
+							Built for{' '}
+							<span className="hero-highlight">landlords</span>
 						</h2>
 						<p className="text-muted-foreground text-lg max-w-2xl mx-auto">
-							Join thousands of property managers who've transformed their
-							operations with TenantFlow
+							Owners use TenantFlow to centralize leases, documents, and maintenance into a single workspace.
 						</p>
 					</div>
 				</BlurFade>

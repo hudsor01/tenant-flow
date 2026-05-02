@@ -1,19 +1,11 @@
 // Tenants Section Types
-import type { LeaseStatus, PaymentStatus, InvitationType } from '../core'
+import type { LeaseStatus, PaymentStatus } from '../core'
 
 export interface TenantsProps {
-	// Tenant list
 	tenants: TenantItem[]
 
-	// Pending invitations (deprecated — landlord-only mode has no tenant invitations)
-	invitations: TenantSectionInvitation[]
-
-	// Selected tenant detail
 	selectedTenant?: TenantSectionDetail | undefined
 
-	// Callbacks
-	onResendInvitation?: (invitationId: string) => void
-	onCancelInvitation?: (invitationId: string) => void
 	onViewTenant: (tenantId: string) => void
 	onEditTenant: (tenantId: string) => void
 	onContactTenant: (tenantId: string, method: 'email' | 'phone') => void
@@ -84,22 +76,4 @@ export interface TenantPaymentHistoryItem {
 	periodEnd?: string
 }
 
-export interface TenantSectionInvitation {
-	id: string
-	email: string
-	propertyName?: string
-	unitNumber?: string
-	type: InvitationType
-	status: InvitationStatus
-	expiresAt: string
-	sentAt: string
-	acceptedAt?: string
-}
-
 export type UserStatus = 'active' | 'inactive' | 'suspended'
-export type InvitationStatus =
-	| 'pending'
-	| 'sent'
-	| 'accepted'
-	| 'expired'
-	| 'cancelled'

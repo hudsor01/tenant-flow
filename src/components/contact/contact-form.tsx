@@ -4,7 +4,7 @@ import { Button } from '#components/ui/button'
 import { useFormWithProgress } from '#hooks/use-form-progress'
 import { createLogger } from '#lib/frontend-logger'
 import type { ContactFormRequest } from '#types/domain'
-import { Check, Mail, MapPin, Phone } from 'lucide-react'
+import { Check, Mail } from 'lucide-react'
 import type { FormEvent } from 'react'
 import { useState } from 'react'
 import { ContactFormFields } from './contact-form-fields'
@@ -77,7 +77,7 @@ export function ContactForm({ className = '' }: ContactFormProps) {
 			})
 
 			setSubmitMessage(
-				"Thank you for reaching out! We've received your message and will get back to you within 4 hours during business hours."
+				"Thank you for reaching out! We've received your message and will get back to you during US business hours, Monday through Friday."
 			)
 		},
 		{
@@ -175,40 +175,13 @@ export function ContactForm({ className = '' }: ContactFormProps) {
 					<div className="mt-8 space-y-6">
 						<div className="flex items-start">
 							<div className="p-2 rounded-lg bg-primary/10 backdrop-blur-sm">
-								<MapPin className="size-6 text-primary" />
-							</div>
-							<div className="ml-3">
-								<p className="text-foreground font-semibold">Headquarters</p>
-								<p className="text-muted-foreground">
-									123 Market Street, Suite 500
-									<br />
-									San Francisco, CA 94103
-								</p>
-							</div>
-						</div>
-
-						<div className="flex items-start">
-							<div className="p-2 rounded-lg bg-primary/10 backdrop-blur-sm">
-								<Phone className="size-6 text-primary" />
-							</div>
-							<div className="ml-3">
-								<p className="text-foreground font-semibold">Sales Hotline</p>
-								<p className="text-muted-foreground">+1 (888) 555-FLOW</p>
-								<p className="text-muted-foreground text-sm">
-									Mon-Fri, 9AM-6PM PST
-								</p>
-							</div>
-						</div>
-
-						<div className="flex items-start">
-							<div className="p-2 rounded-lg bg-primary/10 backdrop-blur-sm">
 								<Mail className="size-6 text-primary" />
 							</div>
 							<div className="ml-3">
 								<p className="text-foreground font-semibold">Email Us</p>
 								<p className="text-muted-foreground">sales@tenantflow.app</p>
 								<p className="text-muted-foreground text-sm">
-									Response within 4 hours
+									US business hours, Monday through Friday
 								</p>
 							</div>
 						</div>
@@ -222,7 +195,8 @@ export function ContactForm({ className = '' }: ContactFormProps) {
 					<h2 className="typography-h3 text-foreground mb-2">Get in Touch</h2>
 					<p className="text-muted-foreground mb-8">
 						Have questions about TenantFlow? Want to see a demo? We&apos;d love
-						to hear from you. Our team typically responds within 4 hours.
+						to hear from you. Our team responds during US business hours, Monday
+						through Friday.
 					</p>
 
 					{!isHydrated && (
@@ -254,7 +228,7 @@ export function ContactForm({ className = '' }: ContactFormProps) {
 						</Button>
 
 						<p className="text-center text-muted-foreground">
-							We typically respond within 4 hours during business hours
+							We respond during US business hours, Monday through Friday.
 						</p>
 					</form>
 				</div>

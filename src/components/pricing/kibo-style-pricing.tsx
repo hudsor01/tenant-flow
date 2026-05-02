@@ -21,7 +21,7 @@ import { checkoutRateLimiter } from '#lib/security'
 import { useMutation } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { createLogger } from '#lib/frontend-logger'
-import { getAllPricingPlans, PLAN_FEATURES } from '#config/pricing'
+import { getAllPricingPlans } from '#config/pricing'
 
 const logger = createLogger({ component: 'KiboStylePricing' })
 
@@ -139,9 +139,7 @@ export function KiboStylePricing({
 								: 'Free forever'
 					},
 					description: plan.description,
-					features: PLAN_FEATURES[plan.planId as keyof typeof PLAN_FEATURES]
-						? [...PLAN_FEATURES[plan.planId as keyof typeof PLAN_FEATURES]]
-						: plan.features.slice(0, 9),
+					features: [...plan.features],
 					cta:
 						plan.planId === 'max'
 							? 'Contact Sales'

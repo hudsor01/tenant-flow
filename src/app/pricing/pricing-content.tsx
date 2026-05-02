@@ -8,25 +8,24 @@ import { Button } from '#components/ui/button'
 import { Card } from '#components/ui/card'
 import { ArrowRight, Building, CheckCircle2, Clock, Star } from 'lucide-react'
 import Link from 'next/link'
-import { SOCIAL_PROOF } from '#config/social-proof'
 
 const STATS = [
 	{
-		label: 'Active Properties',
-		value: SOCIAL_PROOF.propertiesManaged,
-		description: 'Properties managed across North America',
+		label: 'Document Vault',
+		value: 'Per-entity',
+		description: 'Property, lease, tenant, maintenance, inspection',
 		icon: Building
 	},
 	{
-		label: 'Time Saved',
-		value: '20+ hrs/week',
-		description: 'Average automation savings per team',
+		label: 'Bulk Download',
+		value: '500/zip',
+		description: 'Streaming zip export for tax season',
 		icon: Clock
 	},
 	{
-		label: 'Customer Rating',
-		value: SOCIAL_PROOF.customerRating,
-		description: `Based on ${SOCIAL_PROOF.reviewCount} user reviews`,
+		label: 'Built For',
+		value: 'Landlords',
+		description: 'Tenants are records, never platform users',
 		icon: Star
 	}
 ]
@@ -35,7 +34,7 @@ const FAQS = [
 	{
 		question: 'How does the 14-day free trial work?',
 		answer:
-			'Start using TenantFlow immediately with full access to all features. No credit card required. After 14 days, choose the plan that fits your needs or continue with our free tier.'
+			'Start using TenantFlow immediately with full access to all features. No credit card required. After 14 days, choose the plan that fits your needs to keep using TenantFlow.'
 	},
 	{
 		question: 'Can I change plans later?',
@@ -58,9 +57,9 @@ const FAQS = [
 			"We'll notify you when you're approaching your limits. You can upgrade anytime to accommodate growth."
 	},
 	{
-		question: 'Do you offer refunds?',
+		question: 'Can I cancel any time?',
 		answer:
-			"Yes! We offer a 60-day money-back guarantee. If you're not satisfied, contact us for a full refund."
+			"Yes. Every plan is month-to-month with no contract. Cancel from the billing settings whenever you want; you'll keep access through the end of the current billing period."
 	}
 ]
 
@@ -108,7 +107,7 @@ export function PricingFaqSection() {
 						</h2>
 						<p className="mt-4 text-base text-muted-foreground text-sm-foreground sm:text-lg">
 							Details on trials, billing, switching plans, and how access works
-							for teams and tenants.
+							for your team. Tenants are records, not users — they never log in.
 						</p>
 					</div>
 					<div className="grid gap-4 lg:grid-cols-2">
@@ -163,12 +162,12 @@ export function PricingCtaSection() {
 				<div className="grid gap-10 overflow-hidden rounded-3xl border border-border/60 bg-card/70 p-10 shadow-sm backdrop-blur md:grid-cols-[1.3fr_1fr] md:p-12">
 					<div className="space-y-6 text-left">
 						<h2 className="text-section-title tracking-tight text-foreground">
-							Ready to centralize your portfolio and automate the busywork?
+							Ready to centralize your portfolio?
 						</h2>
 						<p className="text-base leading-relaxed text-muted-foreground text-sm-foreground sm:text-lg">
-							Start with the workflow templates built for self-managing owners,
-							then add teammates, vendors, and integrations as your units grow.
-							Your data and automations stay intact across every plan.
+							Start with the records and document vault built for self-managing owners,
+							then add teammates and integrations as your portfolio grows.
+							Your data carries across every plan.
 						</p>
 						<div className="flex flex-col gap-3 sm:flex-row sm:items-center">
 							<Button size="lg" className="px-8" asChild>
@@ -186,7 +185,7 @@ export function PricingCtaSection() {
 						{[
 							{
 								title: '14-day trial, all features',
-								desc: 'Add properties, send invites, test automations--keep everything when you subscribe.'
+								desc: 'Add properties, upload documents, generate and e-sign leases — keep everything when you subscribe.'
 							},
 							{
 								title: 'Billing that flexes with you',
@@ -194,7 +193,7 @@ export function PricingCtaSection() {
 							},
 							{
 								title: 'Guided onboarding',
-								desc: 'Our implementation team and resource hub help migrate leases, payments, and documents in days.'
+								desc: 'CSV import covers properties, units, tenants, and leases. Existing PDFs and receipts upload directly into the document vault.'
 							}
 						].map(item => (
 							<div key={item.title} className="flex items-start gap-3">

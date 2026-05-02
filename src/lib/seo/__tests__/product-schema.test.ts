@@ -30,11 +30,11 @@ describe('createProductJsonLd', () => {
 
 	const baseInput = {
 		name: 'TenantFlow Property Management Software',
-		description: 'Professional property management software',
+		description: 'Property management software for landlords',
 		offers: [
-			{ name: 'Free', price: '0' },
-			{ name: 'Professional', price: '29' },
-			{ name: 'Enterprise', price: '399' }
+			{ name: 'Starter', price: '29' },
+			{ name: 'Growth', price: '79' },
+			{ name: 'Max', price: '199' }
 		]
 	}
 
@@ -50,7 +50,7 @@ describe('createProductJsonLd', () => {
 
 	it('description matches input', () => {
 		const result = toPlain(createProductJsonLd(baseInput))
-		expect(result.description).toBe('Professional property management software')
+		expect(result.description).toBe('Property management software for landlords')
 	})
 
 	it('offers array contains correct number of Offer objects', () => {
@@ -92,18 +92,18 @@ describe('createProductJsonLd', () => {
 		const result = toPlain(createProductJsonLd(baseInput))
 		const offers = result.offers as Array<Record<string, unknown>>
 
-		expect(offers[0]?.name).toBe('Free')
-		expect(offers[1]?.name).toBe('Professional')
-		expect(offers[2]?.name).toBe('Enterprise')
+		expect(offers[0]?.name).toBe('Starter')
+		expect(offers[1]?.name).toBe('Growth')
+		expect(offers[2]?.name).toBe('Max')
 	})
 
 	it('offer prices match input', () => {
 		const result = toPlain(createProductJsonLd(baseInput))
 		const offers = result.offers as Array<Record<string, unknown>>
 
-		expect(offers[0]?.price).toBe('0')
-		expect(offers[1]?.price).toBe('29')
-		expect(offers[2]?.price).toBe('399')
+		expect(offers[0]?.price).toBe('29')
+		expect(offers[1]?.price).toBe('79')
+		expect(offers[2]?.price).toBe('199')
 	})
 
 	it('url defaults to getSiteUrl()/pricing', () => {

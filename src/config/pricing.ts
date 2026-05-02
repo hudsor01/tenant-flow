@@ -45,7 +45,7 @@ export const PRICING_PLANS: Record<string, PricingConfig> = {
 		id: 'FREETRIAL',
 		planId: 'trial',
 		name: 'Free Trial',
-		description: 'Perfect for getting started with property management',
+		description: 'Try every feature for 14 days before subscribing',
 		price: {
 			monthly: 0,
 			annual: 0
@@ -100,13 +100,12 @@ export const PRICING_PLANS: Record<string, PricingConfig> = {
 		features: [
 			'Up to 5 properties',
 			'Up to 25 units',
-			'Full maintenance tracking',
-			'Tenant records and documents',
-			'Lease management with 3 e-signs/mo',
-			'Financial reporting',
+			'Unlimited tenant records',
+			'Document vault with global search',
+			'Maintenance tracking',
+			'Lease templates (e-sign on Growth and Max)',
 			'10GB document storage',
-			'Priority email support',
-			'Mobile app access'
+			'Priority email support'
 		],
 		support: 'Priority Email',
 		trial: false
@@ -134,15 +133,13 @@ export const PRICING_PLANS: Record<string, PricingConfig> = {
 		features: [
 			'Up to 20 properties',
 			'Up to 100 units',
-			'Advanced analytics',
-			'25 lease e-signs per month',
-			'Tenant screening credits',
-			'Vendor network',
-			'Custom templates',
-			'50GB storage',
-			'Phone support',
-			'API access',
-			'Team (3 users)'
+			'Document vault with global search',
+			'25 lease e-signs per month (DocuSeal)',
+			'Renewal reminders',
+			'Advanced financial reporting',
+			'50GB document storage',
+			'Team (3 users)',
+			'Phone and priority email support'
 		],
 		support: 'Phone & Email',
 		trial: false
@@ -150,7 +147,7 @@ export const PRICING_PLANS: Record<string, PricingConfig> = {
 	TENANTFLOW_MAX: {
 		id: 'TENANTFLOW_MAX',
 		planId: 'max',
-		name: 'MAX',
+		name: 'Max',
 		description: 'Enterprise solution for property management professionals',
 		price: {
 			monthly: 199,
@@ -170,16 +167,15 @@ export const PRICING_PLANS: Record<string, PricingConfig> = {
 		features: [
 			'Unlimited properties',
 			'Unlimited units',
-			'Unlimited lease e-signs per month',
-			'White-label options',
-			'Custom integrations',
+			'Document vault with global search',
+			'Unlimited lease e-signs (DocuSeal)',
+			'Custom lease clauses',
+			'API access',
 			'Dedicated account manager',
 			'Unlimited storage',
-			'24/7 support',
-			'Full API access',
-			'Unlimited team'
+			'Priority support during US business hours'
 		],
-		support: '24/7 Dedicated',
+		support: 'Dedicated account manager',
 		trial: false
 	}
 }
@@ -265,20 +261,6 @@ export function calculateAnnualSavings(monthlyPrice: number): number {
 	return monthlyCost - yearlyPrice
 }
 
-// Accepts both PlanId and legacy PlanType string keys.
-export function getProductTier(planId: PlanId): PricingConfig | undefined {
-	if (typeof planId === 'string' && planId in PRICING_PLANS) {
-		return PRICING_PLANS[planId]
-	}
-
-	return getPricingPlan(planId)
-}
-
-export function planTypeToId(planType: string): PlanId | undefined {
-	const config = PRICING_PLANS[planType]
-	return config?.planId
-}
-
 export function getTrialConfig(config: PricingConfig): TrialConfig | null {
 	if (typeof config.trial === 'boolean') {
 		return config.trial
@@ -308,39 +290,3 @@ export function getStripePriceId(
 		: plan.stripePriceIds.annual
 }
 
-export const PLAN_FEATURES = {
-	starter: [
-		'Up to 5 properties',
-		'Up to 25 units',
-		'Unlimited tenant records',
-		'Rent tracking and ledger',
-		'Lease management (3 e-signs/mo)',
-		'Maintenance tracking',
-		'10GB document storage',
-		'Priority email support'
-	],
-	growth: [
-		'Up to 20 properties',
-		'Up to 100 units',
-		'Everything in Starter',
-		'25 lease e-signs per month',
-		'Tenant screening credits',
-		'Late fee tracking',
-		'Advanced reporting',
-		'50GB document storage',
-		'Phone & email support',
-		'Mobile app access'
-	],
-	max: [
-		'Unlimited properties',
-		'Unlimited units',
-		'Everything in Growth',
-		'Unlimited lease e-signs',
-		'Custom integrations (API)',
-		'White-label options',
-		'Dedicated account manager',
-		'Unlimited storage',
-		'24/7 phone & chat support',
-		'Custom reports & analytics'
-	]
-} as const

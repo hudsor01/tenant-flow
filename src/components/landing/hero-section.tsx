@@ -2,7 +2,6 @@ import Link from 'next/link'
 import { ArrowRight, Check } from 'lucide-react'
 import { Button } from '#components/ui/button'
 import { BlurFade } from '#components/ui/blur-fade'
-import { SOCIAL_PROOF } from '#config/social-proof'
 
 export function HeroSection() {
 	return (
@@ -15,16 +14,15 @@ export function HeroSection() {
 					<div className="text-center max-w-5xl mx-auto space-y-8">
 						<h1 className="text-5xl lg:text-7xl font-bold tracking-tight leading-tight">
 							<span className="text-foreground">
-								Transform your portfolio into a
+								Run your rentals from a
 							</span>{' '}
-							<span className="hero-highlight">profit powerhouse</span>
+							<span className="hero-highlight">single document vault</span>
 						</h1>
 
 						<p className="text-muted-foreground leading-relaxed max-w-3xl mx-auto text-xl font-medium">
-							{`Join ${SOCIAL_PROOF.managerCount} property managers who've increased NOI by ${SOCIAL_PROOF.noiIncrease}`}
-							with enterprise-grade automation and AI-powered analytics.{' '}
+							Per-entity storage with global search, multi-select filters, date-range, and bulk-zip download.{' '}
 							<span className="text-foreground font-semibold">
-								ROI guaranteed in 90 days.
+								DocuSeal e-sign on Growth and Max plans. Tenants are records, never users.
 							</span>
 						</p>
 
@@ -56,7 +54,7 @@ export function HeroSection() {
 
 						<p className="text-muted-foreground/80 typography-small">
 							<Check className="size-4 inline text-primary mr-2" />
-							{`Join ${SOCIAL_PROOF.managerCount} managers already growing NOI`} • No credit card required
+							14-day free trial • No credit card required
 						</p>
 					</div>
 				</BlurFade>

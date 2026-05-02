@@ -7,9 +7,8 @@ import { PricingComparisonTable } from './pricing-comparison-table'
 import { Switch } from '#components/ui/switch'
 import { Label } from '#components/ui/label'
 import { Badge } from '#components/ui/badge'
-import { getAllPricingPlans, PLAN_FEATURES } from '#config/pricing'
+import { getAllPricingPlans } from '#config/pricing'
 import { Building2, Users, Shield } from 'lucide-react'
-import { SOCIAL_PROOF } from '#config/social-proof'
 
 interface BentoPricingSectionProps {
 	defaultBillingCycle?: 'monthly' | 'yearly'
@@ -34,9 +33,7 @@ export function BentoPricingSection({
 				yearly: Math.round((plan.price.annual / 12) * 100) / 100
 			},
 			annualTotal: plan.price.annual,
-			features: PLAN_FEATURES[plan.planId as keyof typeof PLAN_FEATURES]
-				? [...PLAN_FEATURES[plan.planId as keyof typeof PLAN_FEATURES]]
-				: [...plan.features.slice(0, 9)],
+			features: [...plan.features],
 			popular: plan.planId === 'growth',
 			stripeMonthlyPriceId: plan.stripePriceIds.monthly,
 			stripeAnnualPriceId: plan.stripePriceIds.annual
@@ -53,25 +50,24 @@ export function BentoPricingSection({
 
 	return (
 		<div className="w-full">
-			{/* Social Proof Header */}
+			{/* Trust signals — feature-focused, not numeric claims */}
 			<div className="flex-center gap-6 mb-8 flex-wrap">
 				<div className="flex items-center gap-2 text-sm text-muted-foreground">
 					<Building2 className="size-4 text-primary" />
 					<span>
-						<strong className="text-foreground">{SOCIAL_PROOF.propertiesManaged}</strong> properties
-						managed
+						<strong className="text-foreground">Document vault</strong> on every plan
 					</span>
 				</div>
 				<div className="flex items-center gap-2 text-sm text-muted-foreground">
 					<Users className="size-4 text-primary" />
 					<span>
-						<strong className="text-foreground">500+</strong> property managers
+						<strong className="text-foreground">Landlord-only</strong> (no tenant logins)
 					</span>
 				</div>
 				<div className="flex items-center gap-2 text-sm text-muted-foreground">
 					<Shield className="size-4 text-success" />
 					<span>
-						<strong className="text-foreground">90-day</strong> ROI guarantee
+						<strong className="text-foreground">14-day</strong> free trial, no credit card
 					</span>
 				</div>
 			</div>

@@ -4,7 +4,7 @@ import { SectionSkeleton } from '#components/ui/section-skeleton'
 import { BentoCard, BentoGrid } from '#components/ui/bento-grid'
 import {
 	Building,
-	CreditCard,
+	FolderArchive,
 	Users,
 	Wrench,
 	FileText,
@@ -12,11 +12,11 @@ import {
 } from 'lucide-react'
 import {
 	PropertyGrid,
-	RentLedger,
 	TenantListBackground,
 	MaintenanceBoard,
 	LeaseDocuments,
-	AnalyticsPreview
+	AnalyticsPreview,
+	VaultPreview
 } from './feature-backgrounds'
 
 export function BentoFeaturesSection() {
@@ -45,25 +45,25 @@ export function BentoFeaturesSection() {
 								className="md:col-span-2"
 								background={<PropertyGrid />}
 								Icon={Building}
-								description="Manage unlimited properties and units with real-time occupancy tracking and portfolio analytics"
+								description="Track properties and units with occupancy and portfolio analytics. Up to 5/20/unlimited properties depending on plan."
 								href="/properties"
 								cta="Manage Properties"
 							/>
 							<BentoCard
-								name="Rent Tracking"
+								name="Document Vault"
 								className="md:col-span-1 md:row-span-2"
-								background={<RentLedger />}
-								Icon={CreditCard}
-								description="Record rent received, flag late balances, and keep a clean ledger you can export anytime"
-								href="/financials/billing"
-								cta="Track Rent"
+								background={<VaultPreview />}
+								Icon={FolderArchive}
+								description="Per-entity document storage with global search, multi-select filters, date range, and bulk download"
+								href="/documents/vault"
+								cta="Open Vault"
 							/>
 							<BentoCard
 								name="Tenant Records"
 								className="md:col-span-1"
 								background={<TenantListBackground />}
 								Icon={Users}
-								description="Keep tenant contacts, lease history, and documents organized by unit"
+								description="Track tenant contacts and lease history. No tenant logins — landlords own every record"
 								href="/tenants"
 								cta="View Tenants"
 							/>
@@ -81,7 +81,7 @@ export function BentoFeaturesSection() {
 								className="md:col-span-1"
 								background={<LeaseDocuments />}
 								Icon={FileText}
-								description="Digital signing with DocuSeal and Texas-compliant templates"
+								description="Digital signing with DocuSeal on Growth and Max plans, with state-aware lease templates"
 								href="/leases"
 								cta="Manage Leases"
 							/>
@@ -90,7 +90,7 @@ export function BentoFeaturesSection() {
 								className="md:col-span-2"
 								background={<AnalyticsPreview />}
 								Icon={PieChart}
-								description="Real-time revenue tracking, NOI calculations, and exportable financial reports for your entire portfolio"
+								description="Revenue tracking, NOI calculations, and exportable financial reports for your entire portfolio"
 								href="/analytics/financial"
 								cta="View Analytics"
 							/>

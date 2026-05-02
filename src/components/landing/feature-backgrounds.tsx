@@ -1,5 +1,5 @@
 import { cn } from '#lib/utils'
-import { Home, FileText } from 'lucide-react'
+import { Home, FileText, FolderArchive, Search, Tag, Download } from 'lucide-react'
 
 export function PropertyGrid() {
 	return (
@@ -35,44 +35,62 @@ export function PropertyGrid() {
 	)
 }
 
-export function RentLedger() {
+// RentLedger background was removed in v2.7 Phase 67 (cycle-3 C-1).
+// It rendered fake rent-collection imagery (December Rent / received /
+// outstanding rows) under what became the Document Vault card.
+// VaultPreview below replaced it (cycle-4 I-4) so the Document Vault
+// card no longer shares a background with Lease Management.
+
+export function VaultPreview() {
+	const categories = [
+		{ icon: Tag, label: 'Lease', count: 28 },
+		{ icon: Tag, label: 'Insurance', count: 7 },
+		{ icon: Tag, label: 'Maintenance', count: 41 },
+		{ icon: Tag, label: 'Inspection', count: 12 }
+	]
+
 	return (
-		<div className="absolute inset-x-0 top-0 bottom-[30%] p-4 overflow-hidden">
+		<div className="absolute inset-x-0 top-0 bottom-[45%] p-4 overflow-hidden">
 			<div className="space-y-3 opacity-70">
-				<div className="card-standard p-3">
-					<div className="flex justify-between text-xs mb-2">
-						<span className="text-muted-foreground">December Rent</span>
-						<span className="text-foreground font-medium">$48,250 / $52,000</span>
+				<div className="card-standard p-3 space-y-2">
+					<div className="flex items-center gap-2">
+						<Search className="size-3 text-muted-foreground" />
+						<div className="text-xs text-muted-foreground">
+							Search 88 documents across all entities…
+						</div>
 					</div>
-					<div className="h-2 bg-muted rounded-full overflow-hidden">
-						<div className="h-full bg-success rounded-full w-[93%]" />
+					<div className="flex items-center gap-1 flex-wrap">
+						{categories.map(category => (
+							<span
+								key={category.label}
+								className="inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full bg-primary/10 text-primary"
+							>
+								<category.icon className="size-2.5" />
+								{category.label}
+								<span className="text-muted-foreground">{category.count}</span>
+							</span>
+						))}
 					</div>
 				</div>
-				<div className="space-y-2">
-					{[
-						{ tenant: 'Sarah Johnson', amount: '$1,850', status: 'Received' },
-						{ tenant: 'Michael Chen', amount: '$2,200', status: 'Received' },
-						{ tenant: 'Emily Davis', amount: '$1,650', status: 'Outstanding' }
-					].map(payment => (
-						<div key={payment.tenant} className="card-standard p-2 flex-between">
-							<span className="text-xs text-foreground">{payment.tenant}</span>
-							<div className="flex items-center gap-2">
-								<span className="text-xs font-medium text-foreground">
-									{payment.amount}
-								</span>
-								<span
-									className={cn(
-										'text-xs px-2 py-0.5 rounded-full',
-										payment.status === 'Received'
-											? 'bg-success/10 text-success'
-											: 'bg-warning/10 text-warning'
-									)}
-								>
-									{payment.status}
-								</span>
-							</div>
+				<div className="grid grid-cols-2 gap-2">
+					<div className="card-standard p-3 flex items-center gap-2">
+						<div className="icon-container-sm bg-primary/10 text-primary">
+							<FolderArchive className="size-3" />
 						</div>
-					))}
+						<div>
+							<div className="text-xs font-medium text-foreground">Per-entity</div>
+							<div className="text-xs text-muted-foreground">5 branches</div>
+						</div>
+					</div>
+					<div className="card-standard p-3 flex items-center gap-2">
+						<div className="icon-container-sm bg-primary/10 text-primary">
+							<Download className="size-3" />
+						</div>
+						<div>
+							<div className="text-xs font-medium text-foreground">Bulk zip</div>
+							<div className="text-xs text-muted-foreground">500 / request</div>
+						</div>
+					</div>
 				</div>
 			</div>
 		</div>

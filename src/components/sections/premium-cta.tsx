@@ -2,8 +2,7 @@ import { BlurFade } from '#components/ui/blur-fade'
 import { Button } from '#components/ui/button'
 import { GlowingEffect } from '#components/ui/glowing-effect'
 import { cn } from '#lib/utils'
-import { ArrowRight, Check, Clock, TrendingUp } from 'lucide-react'
-import { SOCIAL_PROOF } from '#config/social-proof'
+import { ArrowRight, Check, Clock, MessageCircle } from 'lucide-react'
 import Link from 'next/link'
 
 interface PremiumCtaProps {
@@ -24,13 +23,13 @@ export function PremiumCta({ className }: PremiumCtaProps) {
 					<BlurFade delay={0.1} inView>
 						<div className="mb-8">
 							<h2 className="text-responsive-display-2xl font-bold tracking-tight text-foreground mb-6 leading-[0.9]">
-								Stop losing
+								Stop juggling
 								<span className="block text-primary relative">
-									$30,000+ annually
+									spreadsheets and Dropbox
 									<div className="absolute -inset-1 bg-primary/10 blur-xl rounded-lg" />
 								</span>
 								<span className="block text-foreground/80 text-responsive-display-lg">
-									to inefficiency
+									for your portfolio
 								</span>
 							</h2>
 						</div>
@@ -39,9 +38,9 @@ export function PremiumCta({ className }: PremiumCtaProps) {
 					{/* Value Proposition */}
 					<BlurFade delay={0.2} inView>
 						<p className="text-responsive-h1 text-muted-foreground leading-relaxed mb-10 max-w-4xl mx-auto font-light">
-							{`Join ${SOCIAL_PROOF.managerCount} property managers saving ${SOCIAL_PROOF.hoursSavedWeekly} hours weekly and increasing NOI by ${SOCIAL_PROOF.noiIncrease}.`}
+							Run your rentals from one place — with the document vault as your single source of truth.
 							<span className="block mt-3 text-foreground font-medium">
-								Your transformation starts with a 14-day free trial.
+								Your 14-day free trial includes the full document vault, DocuSeal e-sign on Growth and Max, and every report you need at tax time.
 							</span>
 						</p>
 					</BlurFade>
@@ -77,9 +76,9 @@ export function PremiumCta({ className }: PremiumCtaProps) {
 								className="group border-2 border-border/50 hover:border-primary/40 hover:bg-primary/5 typography-large px-10 py-6 rounded transition-all duration-500 backdrop-blur-sm hover:shadow-lg"
 								asChild
 							>
-								<Link href="/contact" aria-label="Calculate Your Savings">
-									<TrendingUp className="size-6 mr-3 opacity-70 group-hover:opacity-100 group-hover:text-primary transition-all duration-500" />
-									Calculate Your Savings
+								<Link href="/contact" aria-label="Talk to our team">
+									<MessageCircle className="size-6 mr-3 opacity-70 group-hover:opacity-100 group-hover:text-primary transition-all duration-500" />
+									Talk to Our Team
 								</Link>
 							</Button>
 						</div>
@@ -104,10 +103,10 @@ export function PremiumCta({ className }: PremiumCtaProps) {
 								<Clock className="size-8 text-accent mb-4 group-hover:scale-110 transition-transform duration-500" />
 								<div className="text-center">
 									<div className="typography-large text-foreground mb-1">
-										ROI in 30 Days
+										Cancel Anytime
 									</div>
 									<div className="text-muted-foreground">
-										See measurable results within first month
+										Month-to-month billing on every plan
 									</div>
 								</div>
 							</div>

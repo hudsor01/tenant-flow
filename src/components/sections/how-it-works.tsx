@@ -20,12 +20,12 @@ const steps = [
 		number: '01',
 		title: 'Add Your Properties',
 		description:
-			'Import your portfolio in minutes. Add property details, units, and set up rent amounts. Our CSV import handles bulk uploads effortlessly.',
+			'Import your portfolio via CSV. Add property details and units. The same import covers tenant and lease records too.',
 		icon: Building,
 		features: [
 			'Bulk CSV import',
 			'Unit-level management',
-			'Custom rent schedules'
+			'Owner-by-owner RLS isolation'
 		],
 		color: 'primary'
 	},
@@ -33,21 +33,21 @@ const steps = [
 		number: '02',
 		title: 'Add Tenants and Leases',
 		description:
-			'Record tenant details, generate and e-sign leases with DocuSeal, and keep every document attached to the unit.',
+			'Record tenant details and generate leases. Send for e-signature via DocuSeal on Growth and Max plans.',
 		icon: Users,
-		features: ['Lease e-signing', 'Document vault', 'Tenant records'],
+		features: ['Lease e-signing', 'Tenant records (no logins)', 'Lease tracking'],
 		color: 'info'
 	},
 	{
 		number: '03',
-		title: 'Track Everything',
+		title: 'Organize Every Document',
 		description:
-			'Keep maintenance requests, rent received, expenses, and renewals in one place — with reports ready for tax season.',
+			'Upload leases, receipts, and inspection reports to the document vault. Search across your whole portfolio, filter by category and date, bulk-download for tax season.',
 		icon: Zap,
 		features: [
-			'Maintenance workflow',
-			'Rent tracking',
-			'Financial reports'
+			'Per-entity document vault',
+			'Global text search and filters',
+			'Bulk-zip export (500 / request)'
 		],
 		color: 'success'
 	}
@@ -65,14 +65,15 @@ export function HowItWorks({ className }: HowItWorksProps) {
 				<BlurFade delay={0.1} inView>
 					<div className="text-center mb-16">
 						<p className="typography-small text-primary uppercase tracking-wider mb-3">
-							Get Started in Minutes
+							Three Steps to Set Up
 						</p>
 						<h2 className="text-3xl lg:text-4xl xl:text-5xl font-bold tracking-tight text-foreground mb-4">
 							How TenantFlow Works
 						</h2>
 						<p className="text-muted-foreground text-lg max-w-2xl mx-auto">
-							From signup to automation in three simple steps. No complex setup,
-							no technical skills required.
+							From signup to organized records in three steps: import your
+							portfolio, add tenants and leases, and upload your documents
+							to the vault.
 						</p>
 					</div>
 				</BlurFade>

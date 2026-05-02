@@ -80,10 +80,20 @@ vi.mock('#providers/preferences-provider', () => ({
 	})
 }))
 
-// Mock billing hooks (subscription status and billing history)
+// Mock billing hooks (subscription status and billing history). The
+// stripePriceId here must match a real Stripe price in PRICING_PLANS so
+// BillingSettings can resolve the plan card from #config/pricing — point at
+// Growth (price_1SPGCNP3WCR53SdorjDpiSy5).
 vi.mock('#hooks/api/use-billing', () => ({
 	useSubscriptionStatus: () => ({
-		data: { subscriptionStatus: 'active' },
+		data: {
+			subscriptionStatus: 'active',
+			stripePriceId: 'price_1SPGCNP3WCR53SdorjDpiSy5',
+			currentPeriodEnd: '2026-06-01T00:00:00.000Z',
+			stripeCustomerId: 'cus_test',
+			cancelAtPeriodEnd: false,
+			trialEndsAt: null
+		},
 		isLoading: false
 	}),
 	useBillingHistory: () => ({
@@ -91,7 +101,7 @@ vi.mock('#hooks/api/use-billing', () => ({
 			{
 				id: 'inv_123',
 				created_at: '2024-01-15',
-				amount: 4900,
+				amount: 7900,
 				status: 'succeeded'
 			}
 		],
@@ -363,7 +373,7 @@ describe('Settings Page', () => {
 
 		// Check for Current Plan section
 		expect(screen.getByText('Current Plan')).toBeInTheDocument()
-		expect(screen.getByText('Professional')).toBeInTheDocument()
+		expect(screen.getByText('Growth')).toBeInTheDocument()
 		expect(screen.getByText('Active')).toBeInTheDocument()
 
 		// Check for Billing History section
@@ -457,13 +467,13 @@ describe('Settings Page', () => {
 		await user.click(billingTab)
 
 		await waitFor(() => {
-			expect(screen.getByText('Professional')).toBeInTheDocument()
+			expect(screen.getByText('Growth')).toBeInTheDocument()
 		})
 
-		// Check subscription details
-		expect(screen.getByText('$49')).toBeInTheDocument()
+		// Check subscription details (Growth plan: $79/mo, up to 100 units)
+		expect(screen.getByText('$79')).toBeInTheDocument()
 		expect(screen.getByText('/month')).toBeInTheDocument()
-		expect(screen.getByText(/Up to 50 units/)).toBeInTheDocument()
+		expect(screen.getByText(/Up to 100 units/)).toBeInTheDocument()
 	})
 
 	it('has proper touch targets for mobile responsiveness', async () => {

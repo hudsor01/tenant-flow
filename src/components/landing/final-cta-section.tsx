@@ -2,14 +2,13 @@ import Link from 'next/link'
 import { ArrowRight, Check } from 'lucide-react'
 import { Button } from '#components/ui/button'
 import { BlurFade } from '#components/ui/blur-fade'
-import { SOCIAL_PROOF } from '#config/social-proof'
 import { LazySection } from '#components/ui/lazy-section'
 import { SectionSkeleton } from '#components/ui/section-skeleton'
 
 const checkItems = [
 	'No setup fees',
-	'Enterprise security',
-	'99.9% uptime SLA',
+	'Postgres row-level security',
+	'14-day free trial',
 	'Cancel anytime'
 ]
 
@@ -33,9 +32,9 @@ export function FinalCtaSection() {
 							</h2>
 
 							<p className="text-muted-foreground leading-relaxed max-w-3xl mx-auto text-xl">
-								{`Join ${SOCIAL_PROOF.managerCount} property managers who've transformed their portfolios with TenantFlow.`}
+								The landlord-only platform with a per-entity document vault, DocuSeal e-sign, and reports built for tax season.
 								<span className="block mt-2 text-foreground font-semibold">
-									ROI guaranteed in 90 days or your money back.
+									14-day free trial. No credit card. Cancel anytime.
 								</span>
 							</p>
 
