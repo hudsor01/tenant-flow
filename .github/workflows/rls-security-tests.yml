@@ -21,11 +21,26 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
 
+    # Dependabot handling: Dependabot-triggered runs use the Dependabot
+    # secret scope (separate from Actions). On Dependabot PRs, every
+    # secret-dependent step short-circuits and the job reports `success`
+    # to satisfy required-status-checks. The full RLS suite still runs
+    # on the weekly cron + manual dispatch + post-merge CI on main, so
+    # any regression a Dependabot bump introduces fails loud before
+    # affecting users. See e2e-smoke comment in ci-cd.yml for the full
+    # rationale.
     steps:
+      - name: Skip notice on Dependabot PRs
+        if: github.actor == 'dependabot[bot]'
+        run: |
+          echo "::notice::Skipping rls-security on Dependabot PR. Required-status-check satisfied via job success; full suite runs on weekly cron + post-merge on main."
+
       - name: Suppress git default branch hint
+        if: github.actor != 'dependabot[bot]'
         run: git config --global init.defaultBranch main
 
       - name: Checkout
+        if: github.actor != 'dependabot[bot]'
         uses: actions/checkout@v6
 
       # Fail hard when any required secret is missing. The previous
@@ -34,6 +49,7 @@ jobs:
       # bulk-import bug and the lease_tenants SELECT-policy gap shipped
       # to prod undetected. Mirror the post-deploy-sentry-gate pattern.
       - name: Check required secrets
+        if: github.actor != 'dependabot[bot]'
         run: |
           missing=()
           [ -z "$SUPABASE_URL" ]             && missing+=(NEXT_PUBLIC_SUPABASE_URL)
@@ -57,11 +73,13 @@ jobs:
           OWNER_B_PASS: ${{ secrets.E2E_OWNER_B_PASSWORD }}
 
       - name: Setup pnpm
+        if: github.actor != 'dependabot[bot]'
         uses: pnpm/action-setup@v5
         with:
           run_install: false
 
       - name: Setup Node.js
+        if: github.actor != 'dependabot[bot]'
         uses: actions/setup-node@v6
         with:
           node-version: '24'
@@ -69,9 +87,11 @@ jobs:
           cache-dependency-path: pnpm-lock.yaml
 
       - name: Install dependencies
+        if: github.actor != 'dependabot[bot]'
         run: pnpm install --frozen-lockfile --prefer-offline
 
       - name: Run RLS security tests
+        if: github.actor != 'dependabot[bot]'
         env:
           NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
           NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY }}
