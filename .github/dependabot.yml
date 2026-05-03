@@ -1,5 +1,38 @@
 version: 2
 
+# ─────────────────────────────────────────────────────────────────────────
+# Group precedence: Dependabot uses FIRST-MATCH-WINS evaluation. A package
+# matching multiple groups lands in the first group declared below. Reorder
+# carefully when editing — the auto-merge workflow keys off the resulting
+# group's `update-type` and `dependency-type` outputs from fetch-metadata.
+#
+# Auto-merge wiring (.github/workflows/dependabot-auto-merge.yml):
+#   - Any patch                       → auto-merge
+#   - dev minor (direct only)         → auto-merge
+#   - GitHub Actions non-major        → auto-merge
+#   - prod minor / vendor / any major → manual review
+#
+# Note on transitive patches: groups without `dependency-type` capture both
+# direct and indirect dependencies. `npm-patches` therefore auto-merges
+# transitive patches too — this is the Dependabot default and matches how
+# security advisories propagate.
+#
+# Security-sensitive package families: the same `exclude-patterns` list is
+# duplicated across all 3 npm groups (npm-patches, npm-dev-minor,
+# npm-prod-minor). YAML anchors + aliases would DRY this up but
+# dependabot-core's parser uses `Psych.safe_load` with the default
+# `aliases: false`, which raises Psych::BadAlias on any `*alias` reference
+# (verified empirically 2026-05-02). Manual mirroring is the only viable
+# pattern — when adding a new family, apply the change to all 3 groups.
+#
+# Of the families listed below, the real direct deps (per package.json as
+# of 2026-05-02) are: @supabase/*, stripe, @stripe/* (react-stripe-js +
+# stripe-js), next, @next/* (eslint-plugin-next), react, react-dom,
+# @vercel/* (analytics + speed-insights), and dompurify. The remaining
+# entries (jose, cookie, crypto-js) are forward-looking guards for
+# security-sensitive packages that may be added later.
+# ─────────────────────────────────────────────────────────────────────────
+
 updates:
   # ─────────────────────────────────────────
   # npm / pnpm — monthly, security-focused
@@ -8,7 +41,10 @@ updates:
     directory: /
     schedule:
       interval: monthly
-    open-pull-requests-limit: 5
+    # 5 new groups (npm-patches, npm-dev-minor, npm-prod-minor, supabase,
+    # stripe) plus 1-per-package ungrouped majors. 12 leaves headroom for
+    # months with multiple major bumps without exhausting the limit.
+    open-pull-requests-limit: 12
     assignees:
       - hudsor01
     labels:
@@ -20,7 +56,65 @@ updates:
 
     # ── Grouped PRs ──────────────────────────
     groups:
-      # Security-sensitive: separate PR for review
+      # Patch updates across the tree — auto-merged.
+      # Excludes security-sensitive vendors so any patch to those families
+      # always lands in its own PR for manual review.
+      npm-patches:
+        update-types:
+          - patch
+        exclude-patterns:
+          - '@supabase/*'
+          - 'stripe'
+          - '@stripe/*'
+          - 'next'
+          - '@next/*'
+          - 'react'
+          - 'react-dom'
+          - '@vercel/*'
+          - 'jose'
+          - 'cookie'
+          - 'dompurify'
+          - 'crypto-js'
+
+      # Dev-only minor bumps — auto-merged.
+      npm-dev-minor:
+        dependency-type: development
+        update-types:
+          - minor
+        exclude-patterns:
+          - '@supabase/*'
+          - 'stripe'
+          - '@stripe/*'
+          - 'next'
+          - '@next/*'
+          - 'react'
+          - 'react-dom'
+          - '@vercel/*'
+          - 'jose'
+          - 'cookie'
+          - 'dompurify'
+          - 'crypto-js'
+
+      # Prod minor bumps — manual review required.
+      npm-prod-minor:
+        dependency-type: production
+        update-types:
+          - minor
+        exclude-patterns:
+          - '@supabase/*'
+          - 'stripe'
+          - '@stripe/*'
+          - 'next'
+          - '@next/*'
+          - 'react'
+          - 'react-dom'
+          - '@vercel/*'
+          - 'jose'
+          - 'cookie'
+          - 'dompurify'
+          - 'crypto-js'
+
+      # Security-sensitive: separate PR for review.
       supabase:
         patterns:
           - '@supabase/*'
@@ -30,15 +124,9 @@ updates:
           - 'stripe'
           - '@stripe/*'
 
-      # Everything else in one PR
-      minor-and-patch:
-        update-types:
-          - minor
-          - patch
-
     # ── Ignore rules ─────────────────────────
     ignore:
-      # Major bumps for frameworks — manual migration only
+      # Major bumps for frameworks — manual migration only, never opened by bot.
       - dependency-name: 'next'
         update-types: ['version-update:semver-major']
       - dependency-name: 'react'
@@ -55,6 +143,7 @@ updates:
 
   # ─────────────────────────────────────────
   # GitHub Actions — monthly
+  # Non-major updates auto-merged; majors fall through to manual review.
   # ─────────────────────────────────────────
   - package-ecosystem: github-actions
     directory: /
