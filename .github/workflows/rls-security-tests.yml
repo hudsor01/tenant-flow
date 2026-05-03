@@ -34,8 +34,7 @@ jobs:
     # post-merge on main (`push` trigger above), on the weekly Monday
     # cron, and on manual `workflow_dispatch` — so any regression a
     # Dependabot bump introduces fails loud before affecting users.
-    # See e2e-smoke comment in ci-cd.yml for the full rationale and the
-    # "Re-run jobs" note for forcing a real run on a Dependabot PR.
+    # See e2e-smoke comment in ci-cd.yml for the full rationale.
     steps:
       - name: Skip notice on Dependabot PRs
         if: github.actor == 'dependabot[bot]'

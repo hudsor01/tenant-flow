@@ -86,11 +86,6 @@ jobs:
     # Post-merge CI on main re-executes the full E2E suite under the
     # Actions secret scope so a broken bump fails loud before it can
     # affect any user.
-    #
-    # Manual re-run note: clicking "Re-run jobs" on a Dependabot PR sets
-    # `github.actor` to the re-runner's username, which causes the full
-    # suite to execute. This is intentional — it lets a human force a
-    # real CI run on a Dependabot PR before approving / merging.
     runs-on: ubuntu-latest
     concurrency:
       group: e2e-${{ github.ref }}
