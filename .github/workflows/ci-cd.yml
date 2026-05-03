@@ -75,12 +75,22 @@ jobs:
     # secret scope (separate from Actions). Mirroring the 6 E2E secrets
     # into that scope is operationally fragile (rotation drift), so on
     # Dependabot PRs every secret-dependent step short-circuits and the
-    # job reports `success` to satisfy required-status-checks. The
-    # auto-merge workflow only enables auto-merge for patches / dev-minor
-    # / non-major Action bumps — these classes have minimal cross-cutting
-    # risk, and the post-merge CI run on main re-executes the full E2E
-    # suite with the Actions secret scope so a broken bump fails loud
-    # before it can affect any user.
+    # job reports `success` to satisfy required-status-checks.
+    #
+    # Auto-merge classes (see .github/workflows/dependabot-auto-merge.yml
+    # for the full conditional): patches across any ecosystem, minor
+    # bumps to direct devDependencies only, and non-major GitHub Actions
+    # bumps. All other classes (prod-minor, supabase, stripe, npm
+    # majors, GHA majors) flow through manual review.
+    #
+    # Post-merge CI on main re-executes the full E2E suite under the
+    # Actions secret scope so a broken bump fails loud before it can
+    # affect any user.
+    #
+    # Manual re-run note: clicking "Re-run jobs" on a Dependabot PR sets
+    # `github.actor` to the re-runner's username, which causes the full
+    # suite to execute. This is intentional — it lets a human force a
+    # real CI run on a Dependabot PR before approving / merging.
     runs-on: ubuntu-latest
     concurrency:
       group: e2e-${{ github.ref }}
