@@ -31,13 +31,16 @@ export function OwnerEmergencyContactSection() {
 	const [formData, setFormData] = useState<FormState>(EMPTY_FORM)
 
 	useEffect(() => {
-		if (!contact) return
+		// Guard against the global refetchOnWindowFocus + onMutate-driven cache
+		// writes clobbering the user's typed input mid-edit. Mirrors the
+		// precedent at category-delete-dialog.tsx (gates resync on edit-state).
+		if (!contact || isEditing) return
 		setFormData({
 			name: contact.name ?? '',
 			phone: contact.phone ?? '',
 			relationship: contact.relationship ?? ''
 		})
-	}, [contact])
+	}, [contact, isEditing])
 
 	const hasExistingContact = Boolean(
 		contact?.name || contact?.phone || contact?.relationship

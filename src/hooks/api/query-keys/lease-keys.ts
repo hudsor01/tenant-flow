@@ -135,22 +135,30 @@ export const leaseQueries = {
 				const supabase = createClient()
 				const { data, error } = await supabase
 					.from('leases')
-					.select('docuseal_submission_id, owner_signed_at, tenant_signed_at')
+					.select(
+						'docuseal_document_url, docuseal_submission_id, owner_signed_at, tenant_signed_at'
+					)
 					.eq('id', leaseId)
 					.single()
 				if (error) handlePostgrestError(error, 'leases')
 				const row = data as {
+					docuseal_document_url: string | null
 					docuseal_submission_id: string | null
 					owner_signed_at: string | null
 					tenant_signed_at: string | null
 				}
-				// Document URL available only when submission exists and both parties have signed.
-				// Full URL returned by docuseal-webhook plan when it wires up the signed doc URL.
+				// Prefer the persisted signed-PDF URL written by the docuseal-webhook
+				// submission.completed handler (F-8). Fall back to the legacy
+				// `pending:<submission_id>` placeholder for leases that finished
+				// signing before the docuseal_document_url column existed.
 				return {
 					document_url:
-						row?.docuseal_submission_id && row.owner_signed_at && row.tenant_signed_at
+						row?.docuseal_document_url ??
+						(row?.docuseal_submission_id &&
+						row.owner_signed_at &&
+						row.tenant_signed_at
 							? `pending:${row.docuseal_submission_id}`
-							: null,
+							: null),
 				}
 			},
 			enabled: enabled && !!leaseId,

@@ -107,10 +107,18 @@ export const expenseQueries = {
 					.neq('status', 'inactive')
 					.order('expense_date', { ascending: false })
 
-				if (options?.limit !== undefined && options?.offset !== undefined) {
-					q = q.range(options.offset, options.offset + options.limit - 1)
-				} else if (options?.limit !== undefined) {
-					q = q.limit(options.limit)
+				if (options?.limit !== undefined) {
+					if (options?.offset !== undefined) {
+						q = q.range(options.offset, options.offset + options.limit - 1)
+					} else {
+						q = q.limit(options.limit)
+					}
+				} else if (options?.offset !== undefined) {
+					// CLAUDE.md: list queries MUST be bounded. Refuse offset-without-limit
+					// rather than silently returning the full table under a paginated key.
+					throw new Error(
+						'expenseQueries.list: offset requires limit (unbounded list queries are not allowed)'
+					)
 				}
 
 				const { data, error, count } = await q
@@ -213,7 +221,7 @@ export const financialMutations = {
 						maintenance_request_id: input.maintenance_request_id,
 						vendor_name: input.vendor_name
 					})
-					.select('id, amount, expense_date, vendor_name, maintenance_request_id, created_at')
+					.select(EXPENSE_SELECT)
 					.single()
 				if (error) handlePostgrestError(error, 'create expense')
 				return data as Expense
