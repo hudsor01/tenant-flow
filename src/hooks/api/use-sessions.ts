@@ -28,11 +28,24 @@ const sessionMutationFactories = {
 					return { success: true, message: 'Session terminated' }
 				}
 
-				// Revoking non-current sessions requires the Admin API (service_role key),
-				// which cannot be used in the browser client. NestJS backend has been removed.
-				throw new Error(
-					'Revoking non-current sessions requires admin access — not available in this version'
-				)
+				// Non-current sessions are revoked via the public.revoke_user_session
+				// SECURITY DEFINER RPC, which validates that auth.uid() matches the
+				// session's user_id before deleting from auth.sessions. Closes F-4
+				// from the 2026-05-03 audit (previously this path threw).
+				const {
+					data: { user },
+					error: userError
+				} = await supabase.auth.getUser()
+				if (userError) throw userError
+				if (!user) throw new Error('Not authenticated')
+
+				const { error } = await supabase.rpc('revoke_user_session', {
+					p_user_id: user.id,
+					p_session_id: sessionId
+				})
+				if (error) throw error
+
+				return { success: true, message: 'Session terminated' }
 			}
 		})
 }
