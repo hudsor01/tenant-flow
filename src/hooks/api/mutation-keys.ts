@@ -170,11 +170,17 @@ export const mutationKeys = {
 		update: ['mutations', 'ownerNotificationSettings', 'update'] as const
 	},
 
-	// Emergency Contact
+	// Emergency Contact (tenant-side)
 	emergencyContact: {
 		create: ['mutations', 'emergencyContact', 'create'] as const,
 		update: ['mutations', 'emergencyContact', 'update'] as const,
 		delete: ['mutations', 'emergencyContact', 'delete'] as const
+	},
+
+	// Emergency Contact (owner-side, public.users)
+	ownerEmergencyContact: {
+		update: ['mutations', 'ownerEmergencyContact', 'update'] as const,
+		delete: ['mutations', 'ownerEmergencyContact', 'delete'] as const
 	}
 } as const
 

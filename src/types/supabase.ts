@@ -1975,6 +1975,9 @@ export type Database = {
           created_at: string | null
           deletion_requested_at: string | null
           email: string
+          emergency_contact_name: string | null
+          emergency_contact_phone: string | null
+          emergency_contact_relationship: string | null
           first_name: string | null
           full_name: string
           id: string
@@ -2005,6 +2008,9 @@ export type Database = {
           created_at?: string | null
           deletion_requested_at?: string | null
           email: string
+          emergency_contact_name?: string | null
+          emergency_contact_phone?: string | null
+          emergency_contact_relationship?: string | null
           first_name?: string | null
           full_name: string
           id?: string
@@ -2035,6 +2041,9 @@ export type Database = {
           created_at?: string | null
           deletion_requested_at?: string | null
           email?: string
+          emergency_contact_name?: string | null
+          emergency_contact_phone?: string | null
+          emergency_contact_relationship?: string | null
           first_name?: string | null
           full_name?: string
           id?: string
