@@ -49,11 +49,17 @@ export function ActiveSessionsSection() {
 	const confirmBulkRevoke = async () => {
 		setBulkPending(true)
 		try {
-			// Sequentially revoke other sessions so optimistic state updates
-			// land in order. Errors on individual sessions surface via the
-			// mutation's onError toast; we keep going to revoke the rest.
+			// Sequentially revoke so optimistic state updates land in order.
+			// Each iteration is try/caught so a single rejection doesn't abort
+			// the remaining queue — the user wants every other device signed
+			// out, and partial draining is worse than partial-with-errors-toast.
+			// onError already surfaces a toast per failure; we just keep going.
 			for (const s of otherSessions) {
-				await revokeSession.mutateAsync({ id: s.id, isCurrent: false })
+				try {
+					await revokeSession.mutateAsync({ id: s.id, isCurrent: false })
+				} catch {
+					// toast already raised by mutation onError; continue draining.
+				}
 			}
 		} finally {
 			setBulkPending(false)

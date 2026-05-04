@@ -9,33 +9,22 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { financialMutations, expenseKeys, expenseQueries, financialTaxQueries } from './query-keys/expense-keys'
 import { financialKeys } from './query-keys/financial-keys'
+import { ownerDashboardKeys } from './use-owner-dashboard'
 import { createMutationCallbacks } from '#hooks/create-mutation-callbacks'
 
 
 /**
- * Returns the active (non-soft-deleted) expense list. Legacy shape — exposes
- * `data` as `Expense[]` for callers that handle their own client-side
- * filtering/pagination. New callers should prefer `useExpensesPaginated` to
- * receive the `{ data, total }` shape needed for server-side `count: 'exact'`
- * pagination.
+ * Returns the active (non-soft-deleted) expense list. Bounded by
+ * EXPENSES_LIST_DEFAULT_LIMIT inside `expenseQueries.list` so the SELECT is
+ * never unbounded. Callers that need server-side pagination should call
+ * `expenseQueries.list({ limit, offset })` directly via useQuery — there is
+ * no separate paginated hook because no caller currently needs one (YAGNI).
  */
 export function useExpenses(options?: { enabled?: boolean }) {
 	return useQuery({
 		...expenseQueries.list(options),
 		select: page => page.data
 	})
-}
-
-/**
- * Server-side paginated expense list. Uses `{ count: 'exact' }` and `.range()`
- * to match the properties/units/leases pagination pattern.
- */
-export function useExpensesPaginated(options?: {
-	enabled?: boolean
-	limit?: number
-	offset?: number
-}) {
-	return useQuery(expenseQueries.list(options))
 }
 
 export function useExpensesByProperty(
@@ -62,10 +51,12 @@ export function useCreateExpenseMutation() {
 			// Cross-domain fanout: every expense aggregation RPC lives under
 			// financialKeys.all (['financials']) — including tax docs which are
 			// keyed ['financials', 'tax-documents', year], so this prefix alone
-			// covers them. Without this fanout the 2-min staleTime keeps
-			// ExpenseStats / NOI / tax docs frozen after a soft-delete or create.
-			// Closes cycle-2 bug_003.
-			invalidate: [expenseKeys.all, financialKeys.all],
+			// covers them. ownerDashboardKeys.all is included per the
+			// CLAUDE.md convention "mutations invalidate related query keys +
+			// ownerDashboardKeys.all" — covers any future dashboard tile that
+			// surfaces expense numbers (today's get_dashboard_stats does not,
+			// but the convention prevents drift).
+			invalidate: [expenseKeys.all, financialKeys.all, ownerDashboardKeys.all],
 			errorContext: 'Create expense'
 		})
 	})
@@ -78,7 +69,7 @@ export function useDeleteExpenseMutation() {
 		...financialMutations.deleteExpense(),
 		...createMutationCallbacks(queryClient, {
 			// Same cross-domain fanout as create — see useCreateExpenseMutation.
-			invalidate: [expenseKeys.all, financialKeys.all],
+			invalidate: [expenseKeys.all, financialKeys.all, ownerDashboardKeys.all],
 			errorContext: 'Delete expense'
 		})
 	})

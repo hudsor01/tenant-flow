@@ -79,11 +79,6 @@ export const expenseKeys = {
 		[...expenseKeys.all, 'dateRange', start, end] as const
 }
 
-export const taxDocumentKeys = {
-	all: ['taxDocuments'] as const,
-	byYear: (taxYear: number) => [...taxDocumentKeys.all, taxYear] as const
-}
-
 const EXPENSE_SELECT =
 	'id, amount, expense_date, vendor_name, maintenance_request_id, status, created_at'
 
@@ -160,11 +155,14 @@ export const expenseQueries = {
 			queryKey: expenseKeys.byProperty(propertyId),
 			queryFn: async (): Promise<Expense[]> => {
 				const supabase = createClient()
-				// expenses table has no property_id column — filter via maintenance_requests join
+				// expenses table has no property_id column — filter via maintenance_requests join.
+				// Both queries are bounded by the project-wide EXPENSES_LIST_DEFAULT_LIMIT
+				// so neither side can produce an unbounded select.
 				const { data: mrIds, error: mrError } = await supabase
 					.from('maintenance_requests')
 					.select('id')
 					.eq('property_id', propertyId)
+					.limit(EXPENSES_LIST_DEFAULT_LIMIT)
 				if (mrError) handlePostgrestError(mrError, 'maintenance_requests')
 				const ids = (mrIds ?? []).map(r => r.id)
 				if (ids.length === 0) return []
@@ -174,6 +172,7 @@ export const expenseQueries = {
 					.in('maintenance_request_id', ids)
 					.neq('status', 'inactive')
 					.order('expense_date', { ascending: false })
+					.limit(EXPENSES_LIST_DEFAULT_LIMIT)
 				if (error) handlePostgrestError(error, 'expenses by property')
 				return (data ?? []) as Expense[]
 			},
@@ -198,6 +197,7 @@ export const expenseQueries = {
 					.gte('expense_date', startDate)
 					.lte('expense_date', endDate)
 					.order('expense_date', { ascending: false })
+					.limit(EXPENSES_LIST_DEFAULT_LIMIT)
 				if (error) handlePostgrestError(error, 'expenses by date range')
 				return (data ?? []) as Expense[]
 			},

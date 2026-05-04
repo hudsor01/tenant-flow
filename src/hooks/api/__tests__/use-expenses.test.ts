@@ -172,17 +172,32 @@ describe('useExpensesByProperty', () => {
 	})
 
 	it('fetches expenses for a specific property', async () => {
-		// Step 1: maintenance_requests query returns IDs
+		// Step 1: maintenance_requests query returns IDs (now bounded by .limit)
 		const mrSelectChain = { eq: mockEq }
-		mockEq.mockResolvedValue({ data: [{ id: 'mr-1' }], error: null })
+		const mrEqChain = { limit: mockLimit }
+		mockEq.mockReturnValue(mrEqChain)
 
 		// Step 2: expenses query filters by maintenance_request_id
+		// Chain: from → select → in → neq → order → limit
 		const expSelectChain = { in: mockIn }
 		const inChain = { neq: mockNeq }
 		const neqChain = { order: mockOrder }
+		const orderChain = { limit: mockLimit }
 		mockIn.mockReturnValue(inChain)
 		mockNeq.mockReturnValue(neqChain)
-		mockOrder.mockResolvedValue({ data: [mockExpenseRow], error: null })
+		mockOrder.mockReturnValue(orderChain)
+
+		// mockLimit is awaited at the end of BOTH queries — return the right
+		// shape for whichever call this is. First call (maintenance_requests):
+		// returns { data: [{id:...}] }. Second call (expenses): returns expense rows.
+		let limitCall = 0
+		mockLimit.mockImplementation(() => {
+			limitCall += 1
+			if (limitCall === 1) {
+				return Promise.resolve({ data: [{ id: 'mr-1' }], error: null })
+			}
+			return Promise.resolve({ data: [mockExpenseRow], error: null })
+		})
 
 		mockFrom.mockImplementation((table: string) => {
 			if (table === 'maintenance_requests') return { select: vi.fn().mockReturnValue(mrSelectChain) }
@@ -200,6 +215,7 @@ describe('useExpensesByProperty', () => {
 
 		expect(mockFrom).toHaveBeenCalledWith('maintenance_requests')
 		expect(mockFrom).toHaveBeenCalledWith('expenses')
+		expect(mockLimit).toHaveBeenCalledWith(1000)
 	})
 
 	it('does not fetch when propertyId is empty', () => {
@@ -218,12 +234,20 @@ describe('useExpensesByDateRange', () => {
 	})
 
 	it('fetches expenses within date range', async () => {
-		const chain = { neq: mockNeq, gte: mockGte, lte: mockLte, order: mockOrder }
+		// Chain: from → select → neq → gte → lte → order → limit
+		const chain = {
+			neq: mockNeq,
+			gte: mockGte,
+			lte: mockLte,
+			order: mockOrder,
+			limit: mockLimit
+		}
 		mockSelect.mockReturnValue(chain)
 		mockNeq.mockReturnValue(chain)
 		mockGte.mockReturnValue(chain)
 		mockLte.mockReturnValue(chain)
-		mockOrder.mockResolvedValue({ data: [mockExpenseRow], error: null })
+		mockOrder.mockReturnValue(chain)
+		mockLimit.mockResolvedValue({ data: [mockExpenseRow], error: null })
 		mockFrom.mockReturnValue({ select: mockSelect })
 
 		const { result } = renderHook(
