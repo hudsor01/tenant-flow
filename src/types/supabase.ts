@@ -293,6 +293,7 @@ export type Database = {
           expense_date: string
           id: string
           maintenance_request_id: string
+          status: string
           updated_at: string | null
           vendor_name: string | null
         }
@@ -302,6 +303,7 @@ export type Database = {
           expense_date: string
           id?: string
           maintenance_request_id: string
+          status?: string
           updated_at?: string | null
           vendor_name?: string | null
         }
@@ -311,6 +313,7 @@ export type Database = {
           expense_date?: string
           id?: string
           maintenance_request_id?: string
+          status?: string
           updated_at?: string | null
           vendor_name?: string | null
         }

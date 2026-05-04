@@ -84,18 +84,41 @@ export const taxDocumentKeys = {
 	byYear: (taxYear: number) => [...taxDocumentKeys.all, taxYear] as const
 }
 
+const EXPENSE_SELECT =
+	'id, amount, expense_date, vendor_name, maintenance_request_id, status, created_at'
+
+export interface PaginatedExpenses {
+	data: Expense[]
+	total: number
+}
+
 export const expenseQueries = {
-	list: (options?: { enabled?: boolean }) =>
+	list: (options?: { enabled?: boolean; limit?: number; offset?: number }) =>
 		queryOptions({
-			queryKey: expenseKeys.list(),
-			queryFn: async (): Promise<Expense[]> => {
+			queryKey: [
+				...expenseKeys.list(),
+				{ limit: options?.limit ?? null, offset: options?.offset ?? null }
+			] as const,
+			queryFn: async (): Promise<PaginatedExpenses> => {
 				const supabase = createClient()
-				const { data, error } = await supabase
+				let q = supabase
 					.from('expenses')
-					.select('id, amount, expense_date, vendor_name, maintenance_request_id, created_at')
+					.select(EXPENSE_SELECT, { count: 'exact' })
+					.neq('status', 'inactive')
 					.order('expense_date', { ascending: false })
+
+				if (options?.limit !== undefined && options?.offset !== undefined) {
+					q = q.range(options.offset, options.offset + options.limit - 1)
+				} else if (options?.limit !== undefined) {
+					q = q.limit(options.limit)
+				}
+
+				const { data, error, count } = await q
 				if (error) handlePostgrestError(error, 'expenses')
-				return (data ?? []) as Expense[]
+				return {
+					data: (data ?? []) as Expense[],
+					total: count ?? 0
+				}
 			},
 			staleTime: 2 * 60 * 1000,
 			gcTime: 10 * 60 * 1000,
@@ -117,8 +140,9 @@ export const expenseQueries = {
 				if (ids.length === 0) return []
 				const { data, error } = await supabase
 					.from('expenses')
-					.select('id, amount, expense_date, vendor_name, maintenance_request_id, created_at')
+					.select(EXPENSE_SELECT)
 					.in('maintenance_request_id', ids)
+					.neq('status', 'inactive')
 					.order('expense_date', { ascending: false })
 				if (error) handlePostgrestError(error, 'expenses by property')
 				return (data ?? []) as Expense[]
@@ -128,14 +152,19 @@ export const expenseQueries = {
 			enabled: (options?.enabled ?? true) && Boolean(propertyId)
 		}),
 
-	byDateRange: (startDate: string, endDate: string, options?: { enabled?: boolean }) =>
+	byDateRange: (
+		startDate: string,
+		endDate: string,
+		options?: { enabled?: boolean }
+	) =>
 		queryOptions({
 			queryKey: expenseKeys.byDateRange(startDate, endDate),
 			queryFn: async (): Promise<Expense[]> => {
 				const supabase = createClient()
 				const { data, error } = await supabase
 					.from('expenses')
-					.select('id, amount, expense_date, vendor_name, maintenance_request_id, created_at')
+					.select(EXPENSE_SELECT)
+					.neq('status', 'inactive')
 					.gte('expense_date', startDate)
 					.lte('expense_date', endDate)
 					.order('expense_date', { ascending: false })
@@ -144,7 +173,8 @@ export const expenseQueries = {
 			},
 			staleTime: 2 * 60 * 1000,
 			gcTime: 10 * 60 * 1000,
-			enabled: (options?.enabled ?? true) && Boolean(startDate) && Boolean(endDate)
+			enabled:
+				(options?.enabled ?? true) && Boolean(startDate) && Boolean(endDate)
 		})
 }
 
@@ -165,6 +195,7 @@ export interface Expense {
 	expense_date?: string
 	vendor_name?: string
 	maintenance_request_id?: string
+	status?: string
 	created_at?: string
 }
 
@@ -193,10 +224,14 @@ export const financialMutations = {
 		mutationOptions({
 			mutationKey: mutationKeys.expenses.delete,
 			mutationFn: async (expenseId: string): Promise<void> => {
+				// Soft-delete via status='inactive' to match the
+				// properties/units/leases/tenants pattern. List queries filter
+				// `.neq('status', 'inactive')` so the row disappears from views
+				// without losing the audit/financial trail.
 				const supabase = createClient()
 				const { error } = await supabase
 					.from('expenses')
-					.delete()
+					.update({ status: 'inactive' })
 					.eq('id', expenseId)
 				if (error) handlePostgrestError(error, 'delete expense')
 			}

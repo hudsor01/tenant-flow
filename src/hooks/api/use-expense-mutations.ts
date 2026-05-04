@@ -11,7 +11,29 @@ import { financialMutations, expenseKeys, expenseQueries, financialTaxQueries } 
 import { createMutationCallbacks } from '#hooks/create-mutation-callbacks'
 
 
+/**
+ * Returns the active (non-soft-deleted) expense list. Legacy shape — exposes
+ * `data` as `Expense[]` for callers that handle their own client-side
+ * filtering/pagination. New callers should prefer `useExpensesPaginated` to
+ * receive the `{ data, total }` shape needed for server-side `count: 'exact'`
+ * pagination.
+ */
 export function useExpenses(options?: { enabled?: boolean }) {
+	return useQuery({
+		...expenseQueries.list(options),
+		select: page => page.data
+	})
+}
+
+/**
+ * Server-side paginated expense list. Uses `{ count: 'exact' }` and `.range()`
+ * to match the properties/units/leases pagination pattern.
+ */
+export function useExpensesPaginated(options?: {
+	enabled?: boolean
+	limit?: number
+	offset?: number
+}) {
 	return useQuery(expenseQueries.list(options))
 }
 

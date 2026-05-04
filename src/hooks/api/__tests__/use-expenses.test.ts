@@ -25,23 +25,25 @@ const {
 	mockFrom,
 	mockSelect,
 	mockEq,
+	mockNeq,
 	mockIn,
 	mockGte,
 	mockLte,
 	mockOrder,
 	mockInsert,
-	mockDelete,
+	mockUpdate,
 	mockSingle
 } = vi.hoisted(() => ({
 	mockFrom: vi.fn(),
 	mockSelect: vi.fn(),
 	mockEq: vi.fn(),
+	mockNeq: vi.fn(),
 	mockIn: vi.fn(),
 	mockGte: vi.fn(),
 	mockLte: vi.fn(),
 	mockOrder: vi.fn(),
 	mockInsert: vi.fn(),
-	mockDelete: vi.fn(),
+	mockUpdate: vi.fn(),
 	mockSingle: vi.fn()
 }))
 
@@ -69,6 +71,7 @@ const mockExpenseRow = {
 	expense_date: '2024-12-20',
 	vendor_name: 'Austin Plumbing',
 	maintenance_request_id: null,
+	status: 'active',
 	created_at: '2024-12-20T00:00:00Z'
 }
 
@@ -101,9 +104,15 @@ describe('useExpenses', () => {
 	})
 
 	it('fetches all expenses successfully', async () => {
-		const selectChain = { order: mockOrder }
+		const selectChain = { neq: mockNeq }
+		const neqChain = { order: mockOrder }
 		mockSelect.mockReturnValue(selectChain)
-		mockOrder.mockResolvedValue({ data: [mockExpenseRow, { ...mockExpenseRow, id: 'exp-2', vendor_name: 'Cool Air Services' }], error: null })
+		mockNeq.mockReturnValue(neqChain)
+		mockOrder.mockResolvedValue({
+			data: [mockExpenseRow, { ...mockExpenseRow, id: 'exp-2', vendor_name: 'Cool Air Services' }],
+			count: 2,
+			error: null
+		})
 		mockFrom.mockReturnValue({ select: mockSelect })
 
 		const { result } = renderHook(() => useExpenses(), {
@@ -116,12 +125,15 @@ describe('useExpenses', () => {
 
 		expect(result.current.data?.length).toBe(2)
 		expect(mockFrom).toHaveBeenCalledWith('expenses')
+		expect(mockNeq).toHaveBeenCalledWith('status', 'inactive')
 	})
 
 	it('handles empty expense list', async () => {
-		const selectChain = { order: mockOrder }
+		const selectChain = { neq: mockNeq }
+		const neqChain = { order: mockOrder }
 		mockSelect.mockReturnValue(selectChain)
-		mockOrder.mockResolvedValue({ data: [], error: null })
+		mockNeq.mockReturnValue(neqChain)
+		mockOrder.mockResolvedValue({ data: [], count: 0, error: null })
 		mockFrom.mockReturnValue({ select: mockSelect })
 
 		const { result } = renderHook(() => useExpenses(), {
@@ -158,8 +170,10 @@ describe('useExpensesByProperty', () => {
 
 		// Step 2: expenses query filters by maintenance_request_id
 		const expSelectChain = { in: mockIn }
-		const inChain = { order: mockOrder }
+		const inChain = { neq: mockNeq }
+		const neqChain = { order: mockOrder }
 		mockIn.mockReturnValue(inChain)
+		mockNeq.mockReturnValue(neqChain)
 		mockOrder.mockResolvedValue({ data: [mockExpenseRow], error: null })
 
 		mockFrom.mockImplementation((table: string) => {
@@ -196,8 +210,9 @@ describe('useExpensesByDateRange', () => {
 	})
 
 	it('fetches expenses within date range', async () => {
-		const chain = { gte: mockGte, lte: mockLte, order: mockOrder }
+		const chain = { neq: mockNeq, gte: mockGte, lte: mockLte, order: mockOrder }
 		mockSelect.mockReturnValue(chain)
+		mockNeq.mockReturnValue(chain)
 		mockGte.mockReturnValue(chain)
 		mockLte.mockReturnValue(chain)
 		mockOrder.mockResolvedValue({ data: [mockExpenseRow], error: null })
@@ -260,11 +275,11 @@ describe('useDeleteExpenseMutation', () => {
 		vi.clearAllMocks()
 	})
 
-	it('deletes an expense successfully', async () => {
-		const deleteChain = { eq: mockEq }
-		mockDelete.mockReturnValue(deleteChain)
+	it('soft-deletes an expense by setting status to inactive', async () => {
+		const updateChain = { eq: mockEq }
+		mockUpdate.mockReturnValue(updateChain)
 		mockEq.mockResolvedValue({ data: null, error: null })
-		mockFrom.mockReturnValue({ delete: mockDelete })
+		mockFrom.mockReturnValue({ update: mockUpdate })
 
 		const { result } = renderHook(() => useDeleteExpenseMutation(), {
 			wrapper: createWrapper()
@@ -273,6 +288,7 @@ describe('useDeleteExpenseMutation', () => {
 		await result.current.mutateAsync('exp-1')
 
 		expect(mockFrom).toHaveBeenCalledWith('expenses')
+		expect(mockUpdate).toHaveBeenCalledWith({ status: 'inactive' })
 		expect(mockEq).toHaveBeenCalledWith('id', 'exp-1')
 	})
 })
