@@ -1,8 +1,20 @@
--- F-9 follow-up: fix bad column references in the F-9 instrumentation
--- functions. The previous migration referenced `NEW.property_name` and
--- `NEW.address`, but the properties table actually has `name` and
--- `address_line1`/`city`/`state`/`postal_code`. Without this fix, every
--- INSERT/UPDATE on public.properties would error.
+-- F-9 follow-up: redundant since the parent migration 20260504045719 was
+-- corrected in place to use the right column names. This file is preserved
+-- because it was applied to prod via Supabase MCP (recorded in pg_migrations);
+-- removing the local file would diverge the repo from the live migration
+-- history. Its CREATE OR REPLACE statements are now no-ops — they overwrite
+-- the (already-correct) function bodies with the same content.
+--
+-- For fresh `db reset` runs: 20260504045719 now installs the correct
+-- functions on the first pass, and this file's CREATE OR REPLACE on the
+-- second pass produces no observable change. Both orderings end identically.
+--
+-- Original rationale (kept for context): the parent migration referenced
+-- `NEW.property_name` and `NEW.address`, but the properties table actually
+-- has `name` and `address_line1`/`city`/`state`/`postal_code`. Discovered
+-- during a test INSERT immediately after applying 20260504045719 — the
+-- INSERT errored at trigger fire time (`record "new" has no field
+-- "property_name"`).
 
 CREATE OR REPLACE FUNCTION public.log_security_event_property_created()
 RETURNS trigger

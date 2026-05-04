@@ -31,9 +31,11 @@ BEGIN
     'property',
     NEW.id,
     jsonb_build_object(
-      'property_name', NEW.property_name,
+      'name',          NEW.name,
       'property_type', NEW.property_type,
-      'address',       NEW.address
+      'address_line1', NEW.address_line1,
+      'city',          NEW.city,
+      'state',         NEW.state
     )
   );
   RETURN NEW;
@@ -69,7 +71,7 @@ BEGIN
       'property',
       NEW.id,
       jsonb_build_object(
-        'property_name', NEW.property_name,
+        'name',            NEW.name,
         'previous_status', OLD.status
       )
     );
