@@ -30,6 +30,7 @@ const {
 	mockGte,
 	mockLte,
 	mockOrder,
+	mockLimit,
 	mockInsert,
 	mockUpdate,
 	mockSingle
@@ -42,6 +43,7 @@ const {
 	mockGte: vi.fn(),
 	mockLte: vi.fn(),
 	mockOrder: vi.fn(),
+	mockLimit: vi.fn(),
 	mockInsert: vi.fn(),
 	mockUpdate: vi.fn(),
 	mockSingle: vi.fn()
@@ -106,11 +108,14 @@ describe('useExpenses', () => {
 	it('fetches all expenses successfully', async () => {
 		const selectChain = { neq: mockNeq }
 		const neqChain = { order: mockOrder }
+		const orderChain = { limit: mockLimit }
 		mockSelect.mockReturnValue(selectChain)
 		mockNeq.mockReturnValue(neqChain)
-		mockOrder.mockResolvedValue({
+		mockOrder.mockReturnValue(orderChain)
+		// useExpenses applies the default 1000-row ceiling — chain ends in .limit()
+		mockLimit.mockResolvedValue({
 			data: [mockExpenseRow, { ...mockExpenseRow, id: 'exp-2', vendor_name: 'Cool Air Services' }],
-			count: 2,
+			count: null,
 			error: null
 		})
 		mockFrom.mockReturnValue({ select: mockSelect })
@@ -126,14 +131,17 @@ describe('useExpenses', () => {
 		expect(result.current.data?.length).toBe(2)
 		expect(mockFrom).toHaveBeenCalledWith('expenses')
 		expect(mockNeq).toHaveBeenCalledWith('status', 'inactive')
+		expect(mockLimit).toHaveBeenCalledWith(1000)
 	})
 
 	it('handles empty expense list', async () => {
 		const selectChain = { neq: mockNeq }
 		const neqChain = { order: mockOrder }
+		const orderChain = { limit: mockLimit }
 		mockSelect.mockReturnValue(selectChain)
 		mockNeq.mockReturnValue(neqChain)
-		mockOrder.mockResolvedValue({ data: [], count: 0, error: null })
+		mockOrder.mockReturnValue(orderChain)
+		mockLimit.mockResolvedValue({ data: [], count: null, error: null })
 		mockFrom.mockReturnValue({ select: mockSelect })
 
 		const { result } = renderHook(() => useExpenses(), {

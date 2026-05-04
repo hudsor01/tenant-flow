@@ -8,8 +8,8 @@ export function ActiveSessionsSection() {
 	const { data: sessions } = useUserSessions()
 	const revokeSession = useRevokeSessionMutation()
 
-	const handleRevokeSession = (sessionId: string) => {
-		revokeSession.mutate(sessionId)
+	const handleRevokeSession = (sessionId: string, isCurrent: boolean) => {
+		revokeSession.mutate({ id: sessionId, isCurrent })
 	}
 
 	return (
@@ -58,20 +58,24 @@ export function ActiveSessionsSection() {
 											</p>
 										</div>
 									</div>
-									{!session.is_current && (
-										<button
-											onClick={() => handleRevokeSession(session.id)}
-											disabled={revokeSession.isPending}
-											className="p-2 rounded-lg hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors disabled:opacity-50"
-											aria-label="Sign out this device"
-										>
-											{revokeSession.isPending ? (
-												<Loader2 className="h-4 w-4 animate-spin" />
-											) : (
-												<LogOut className="h-4 w-4" />
-											)}
-										</button>
-									)}
+									<button
+										onClick={() =>
+											handleRevokeSession(session.id, session.is_current)
+										}
+										disabled={revokeSession.isPending}
+										className="p-2 rounded-lg hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors disabled:opacity-50"
+										aria-label={
+											session.is_current
+												? 'Sign out this device'
+												: 'Sign out this device (revoke session)'
+										}
+									>
+										{revokeSession.isPending ? (
+											<Loader2 className="h-4 w-4 animate-spin" />
+										) : (
+											<LogOut className="h-4 w-4" />
+										)}
+									</button>
 								</div>
 							</BlurFade>
 						))

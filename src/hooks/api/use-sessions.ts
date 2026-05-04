@@ -9,29 +9,38 @@ import {
 import { sessionKeys, sessionQueries, type UserSession } from './query-keys/session-keys'
 
 
+export interface RevokeSessionInput {
+	/** auth.sessions.id UUID returned by get_user_sessions RPC. */
+	id: string
+	/**
+	 * Whether `id` refers to the browser's own current session. Threaded
+	 * explicitly from the consumer instead of derived inside the mutation —
+	 * comparing `session.access_token` (a JWT) to the session UUID could
+	 * never match, and falling through to the RPC path alone deletes the
+	 * row server-side without clearing the browser auth state.
+	 */
+	isCurrent: boolean
+}
+
 const sessionMutationFactories = {
 	revoke: () =>
 		mutationOptions({
 			mutationKey: mutationKeys.sessions.revoke,
-			mutationFn: async (sessionId: string) => {
+			mutationFn: async (input: RevokeSessionInput) => {
 				const supabase = createClient()
-				const {
-					data: { session }
-				} = await supabase.auth.getSession()
 
-				const isCurrentSession =
-					session?.access_token === sessionId || sessionId === 'current'
-
-				if (isCurrentSession) {
+				if (input.isCurrent) {
+					// Current session: signOut() handles both the server-side delete
+					// (gotrue removes the auth.sessions row) and the client-side
+					// cleanup (clears localStorage tokens + cookies + caches).
 					const { error } = await supabase.auth.signOut()
 					if (error) throw error
 					return { success: true, message: 'Session terminated' }
 				}
 
-				// Non-current sessions are revoked via the public.revoke_user_session
-				// SECURITY DEFINER RPC, which validates that auth.uid() matches the
-				// session's user_id before deleting from auth.sessions. Closes F-4
-				// from the 2026-05-03 audit (previously this path threw).
+				// Non-current sessions: SECURITY DEFINER RPC validates auth.uid() ==
+				// session.user_id and deletes the row from auth.sessions. The user's
+				// other device will fail its next token refresh.
 				const {
 					data: { user },
 					error: userError
@@ -41,7 +50,7 @@ const sessionMutationFactories = {
 
 				const { error } = await supabase.rpc('revoke_user_session', {
 					p_user_id: user.id,
-					p_session_id: sessionId
+					p_session_id: input.id
 				})
 				if (error) throw error
 
@@ -59,14 +68,14 @@ export function useRevokeSessionMutation() {
 
 	return useMutation({
 		...sessionMutationFactories.revoke(),
-		onMutate: async sessionId => {
+		onMutate: async input => {
 			await queryClient.cancelQueries({ queryKey: sessionKeys.all })
 
 			const previous = queryClient.getQueryData<UserSession[]>(sessionKeys.all)
 
 			if (previous) {
 				queryClient.setQueryData<UserSession[]>(sessionKeys.all, old =>
-					old?.filter(session => session.id !== sessionId)
+					old?.filter(session => session.id !== input.id)
 				)
 			}
 

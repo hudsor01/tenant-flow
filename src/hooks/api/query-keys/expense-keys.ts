@@ -92,6 +92,15 @@ export interface PaginatedExpenses {
 	total: number
 }
 
+/**
+ * Default ceiling applied when a caller doesn't specify `limit`. Matches the
+ * PostgREST `max-rows` ceiling we run with project-wide and satisfies CLAUDE.md's
+ * "all list queries MUST have .limit() or .range()" rule even on the legacy
+ * useExpenses() path. Paginated callers pass an explicit limit + offset and
+ * skip this fallback.
+ */
+const EXPENSES_LIST_DEFAULT_LIMIT = 1000
+
 export const expenseQueries = {
 	list: (options?: { enabled?: boolean; limit?: number; offset?: number }) =>
 		queryOptions({
@@ -101,9 +110,18 @@ export const expenseQueries = {
 			] as const,
 			queryFn: async (): Promise<PaginatedExpenses> => {
 				const supabase = createClient()
+				const isPaginated =
+					options?.limit !== undefined && options?.offset !== undefined
+
+				// `count: 'exact'` runs a separate COUNT(*) on every fetch — only
+				// pay for it when the caller actually consumes `total` (paginated
+				// mode). Legacy useExpenses() discards `total` via select(); no count.
 				let q = supabase
 					.from('expenses')
-					.select(EXPENSE_SELECT, { count: 'exact' })
+					.select(
+						EXPENSE_SELECT,
+						isPaginated ? { count: 'exact' } : undefined
+					)
 					.neq('status', 'inactive')
 					.order('expense_date', { ascending: false })
 
@@ -119,13 +137,17 @@ export const expenseQueries = {
 					throw new Error(
 						'expenseQueries.list: offset requires limit (unbounded list queries are not allowed)'
 					)
+				} else {
+					// No caller-supplied bound: apply the default ceiling so the SELECT
+					// is never unbounded, even on the legacy non-paginated path.
+					q = q.limit(EXPENSES_LIST_DEFAULT_LIMIT)
 				}
 
 				const { data, error, count } = await q
 				if (error) handlePostgrestError(error, 'expenses')
 				return {
 					data: (data ?? []) as Expense[],
-					total: count ?? 0
+					total: count ?? (data?.length ?? 0)
 				}
 			},
 			staleTime: 2 * 60 * 1000,
