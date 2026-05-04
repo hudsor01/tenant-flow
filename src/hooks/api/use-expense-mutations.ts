@@ -7,7 +7,7 @@
  */
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { financialMutations, expenseKeys, expenseQueries, financialTaxQueries, taxDocumentKeys } from './query-keys/expense-keys'
+import { financialMutations, expenseKeys, expenseQueries, financialTaxQueries } from './query-keys/expense-keys'
 import { financialKeys } from './query-keys/financial-keys'
 import { createMutationCallbacks } from '#hooks/create-mutation-callbacks'
 
@@ -60,11 +60,12 @@ export function useCreateExpenseMutation() {
 		...financialMutations.createExpense(),
 		...createMutationCallbacks(queryClient, {
 			// Cross-domain fanout: every expense aggregation RPC lives under
-			// financialKeys.all + taxDocumentKeys.all (separate prefixes from
-			// expenseKeys), so soft-delete / create must invalidate all three or
-			// ExpenseStats / NOI / tax docs go stale until the 2-minute staleTime
-			// expires (or window-focus refetch fires). Closes cycle-2 bug_003.
-			invalidate: [expenseKeys.all, financialKeys.all, taxDocumentKeys.all],
+			// financialKeys.all (['financials']) — including tax docs which are
+			// keyed ['financials', 'tax-documents', year], so this prefix alone
+			// covers them. Without this fanout the 2-min staleTime keeps
+			// ExpenseStats / NOI / tax docs frozen after a soft-delete or create.
+			// Closes cycle-2 bug_003.
+			invalidate: [expenseKeys.all, financialKeys.all],
 			errorContext: 'Create expense'
 		})
 	})
@@ -77,7 +78,7 @@ export function useDeleteExpenseMutation() {
 		...financialMutations.deleteExpense(),
 		...createMutationCallbacks(queryClient, {
 			// Same cross-domain fanout as create — see useCreateExpenseMutation.
-			invalidate: [expenseKeys.all, financialKeys.all, taxDocumentKeys.all],
+			invalidate: [expenseKeys.all, financialKeys.all],
 			errorContext: 'Delete expense'
 		})
 	})

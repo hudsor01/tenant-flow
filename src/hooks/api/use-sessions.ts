@@ -6,18 +6,22 @@ import {
 	handleMutationError,
 	handleMutationSuccess
 } from '#lib/mutation-error-handler'
-import { sessionKeys, sessionQueries, type UserSession } from './query-keys/session-keys'
+import {
+	decodeSessionIdFromAccessToken,
+	sessionKeys,
+	sessionQueries,
+	type UserSession
+} from './query-keys/session-keys'
 
 
 export interface RevokeSessionInput {
 	/** auth.sessions.id UUID returned by get_user_sessions RPC. */
 	id: string
 	/**
-	 * Whether `id` refers to the browser's own current session. Threaded
-	 * explicitly from the consumer instead of derived inside the mutation —
-	 * comparing `session.access_token` (a JWT) to the session UUID could
-	 * never match, and falling through to the RPC path alone deletes the
-	 * row server-side without clearing the browser auth state.
+	 * UI hint from the listing's `is_current` flag (decoded at list time).
+	 * The mutation re-derives the current-session match from a fresh JWT
+	 * decode at fire time — this field is advisory only, used for fast-path
+	 * UX (e.g. confirmation prompt). Never the sole signal.
 	 */
 	isCurrent: boolean
 }
@@ -29,7 +33,28 @@ const sessionMutationFactories = {
 			mutationFn: async (input: RevokeSessionInput) => {
 				const supabase = createClient()
 
-				if (input.isCurrent) {
+				const {
+					data: { session }
+				} = await supabase.auth.getSession()
+
+				// Re-derive whether `input.id` is the browser's current session at
+				// fire time. The listing's `is_current` is computed from the same
+				// decode, but if `decodeSessionIdFromAccessToken` returned null on
+				// the listing fetch (rare — custom_access_token_hook stripping
+				// claims, or other JWT-shape changes), every row would carry
+				// is_current=false even for the actual current session. Using
+				// `input.isCurrent || sessionMatchesCurrent` covers both:
+				//  - normal: is_current=true → fast-path signOut
+				//  - decode-failed-at-list-time: row carries false but the fresh
+				//    decode here matches → still routed to signOut
+				const currentSessionId = session
+					? decodeSessionIdFromAccessToken(session.access_token)
+					: null
+				const isOwnCurrentSession =
+					input.isCurrent ||
+					(currentSessionId !== null && currentSessionId === input.id)
+
+				if (isOwnCurrentSession) {
 					// Current session: signOut() handles both the server-side delete
 					// (gotrue removes the auth.sessions row) and the client-side
 					// cleanup (clears localStorage tokens + cookies + caches).

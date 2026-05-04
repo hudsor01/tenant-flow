@@ -30,8 +30,13 @@ export const sessionKeys = {
  * the issuing session. Returns null if the token is malformed or the claim
  * is missing — callers fall back to `is_current=false` for every row, which
  * the UI handles gracefully.
+ *
+ * Exported so the revoke mutation can re-derive at fire time instead of
+ * trusting a stale `is_current` flag from the listing.
  */
-function decodeSessionIdFromAccessToken(accessToken: string): string | null {
+export function decodeSessionIdFromAccessToken(
+	accessToken: string
+): string | null {
 	try {
 		const parts = accessToken.split('.')
 		if (parts.length !== 3) return null
