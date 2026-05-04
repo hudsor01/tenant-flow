@@ -1,14 +1,21 @@
 # n8n Webhook URL Configuration
 
-The four DB functions `notify_n8n_maintenance`, `notify_n8n_payment_reminder`,
-`notify_n8n_lease_reminder`, and `notify_n8n_rent_payment` use `net.http_post()`
-to deliver event payloads to per-event n8n webhooks. Each reads its URL from a
-Postgres GUC (`current_setting('app.settings.<NAME>', true)`) at fire time.
+Five DB functions deliver event payloads to per-event n8n webhooks via
+`net.http_post()`. Each reads its URL from a Postgres GUC
+(`current_setting('app.settings.<NAME>', true)`) at fire time.
 
-When a GUC is unset, the function returns without making the HTTP call (fail-open).
-This means triggers fire and queue tables fill, but no email/SMS is delivered.
-The 2026-05-03 audit (finding F-6) flagged this gap: no migration or runtime
-config sets these GUCs in prod.
+- `notify_n8n_maintenance` — fires on maintenance_requests INSERT / status-change
+- `notify_n8n_payment_reminder` — fires on payment_reminders INSERT
+- `notify_n8n_lease_reminder` — fires on lease_reminders INSERT
+- `notify_n8n_rent_payment` — fires on rent_payments INSERT
+- `notify_critical_error` — fires on user_errors INSERT when the row is an
+  authorization error or a >10-in-5-minutes spike (audit F-7; also keeps the
+  `pg_notify('critical_error', …)` path for LISTEN-based debugging)
+
+When a GUC is unset, the function returns without making the HTTP call
+(fail-open). This means triggers fire and queue tables fill, but no email/SMS
+is delivered. The 2026-05-03 audit (findings F-6 and F-7) flagged this gap:
+no migration or runtime config sets these GUCs in prod.
 
 This runbook is the procedure to wire n8n webhook delivery in. Run it once per
 environment (prod, staging if added later).
@@ -21,7 +28,8 @@ environment (prod, staging if added later).
 | `app.settings.N8N_WEBHOOK_PAYMENT_REMINDER_URL` | Upcoming rent payment reminder (7/3/1d) | `trg_payment_reminders_notify_n8n` |
 | `app.settings.N8N_WEBHOOK_LEASE_REMINDER_URL` | Lease expiry reminder (30/7/1d) | `trg_lease_reminders_notify_n8n` |
 | `app.settings.N8N_WEBHOOK_RENT_PAYMENT_URL` | New rent payment recorded | `trg_rent_payments_notify_n8n` |
-| `app.settings.N8N_WEBHOOK_SECRET` | Bearer token shared with n8n endpoints (used for the `Authorization: Bearer <token>` header) | All four |
+| `app.settings.N8N_WEBHOOK_CRITICAL_ERROR_URL` | Authorization error or error spike on user_errors (F-7) | `notify_critical_error` AFTER INSERT trigger |
+| `app.settings.N8N_WEBHOOK_SECRET` | Bearer token shared with n8n endpoints (used for the `Authorization: Bearer <token>` header) | All five |
 
 ## Set the values
 
@@ -35,6 +43,7 @@ ALTER DATABASE postgres SET "app.settings.N8N_WEBHOOK_MAINTENANCE_URL"      = 'h
 ALTER DATABASE postgres SET "app.settings.N8N_WEBHOOK_PAYMENT_REMINDER_URL" = 'https://n8n.example.com/webhook/payment-reminder';
 ALTER DATABASE postgres SET "app.settings.N8N_WEBHOOK_LEASE_REMINDER_URL"   = 'https://n8n.example.com/webhook/lease-reminder';
 ALTER DATABASE postgres SET "app.settings.N8N_WEBHOOK_RENT_PAYMENT_URL"     = 'https://n8n.example.com/webhook/rent-payment';
+ALTER DATABASE postgres SET "app.settings.N8N_WEBHOOK_CRITICAL_ERROR_URL"   = 'https://n8n.example.com/webhook/critical-error';
 ALTER DATABASE postgres SET "app.settings.N8N_WEBHOOK_SECRET"               = '<generate-a-32-byte-random-token>';
 ```
 
