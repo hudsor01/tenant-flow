@@ -627,6 +627,7 @@ export type Database = {
       leases: {
         Row: {
           created_at: string | null
+          docuseal_document_url: string | null
           docuseal_submission_id: string | null
           end_date: string
           governing_state: string | null
@@ -663,6 +664,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string | null
+          docuseal_document_url?: string | null
           docuseal_submission_id?: string | null
           end_date: string
           governing_state?: string | null
@@ -699,6 +701,7 @@ export type Database = {
         }
         Update: {
           created_at?: string | null
+          docuseal_document_url?: string | null
           docuseal_submission_id?: string | null
           end_date?: string
           governing_state?: string | null

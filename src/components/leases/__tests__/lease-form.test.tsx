@@ -153,6 +153,7 @@ const mockLease: LeaseWithExtras = {
 	rent_currency: 'USD',
 	created_at: '2024-01-01T00:00:00Z',
 	updated_at: '2024-01-01T00:00:00Z',
+	docuseal_document_url: null,
 	docuseal_submission_id: null,
 	owner_signed_at: null,
 	owner_signature_ip: null,
