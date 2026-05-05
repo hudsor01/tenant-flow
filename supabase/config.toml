@@ -330,11 +330,9 @@ allow_dynamic_registration = false
 # Stripe webhook endpoint — public, authenticated via Stripe signature
 # (constructEvent in handler), NOT Supabase JWT. The function name must
 # match the slug in supabase/functions/stripe-webhooks/. The previous
-# declaration named a non-existent `stripe-sync` function, leaving the
-# real `stripe-webhooks` to default to verify_jwt=true on redeploy and
-# silently rejecting every Stripe POST with 401. Live production has
-# verify_jwt=false (set out-of-band when first deployed) — this entry
-# pins it for future redeploys.
+# declaration named a non-existent `stripe-sync` function. Without the
+# correct entry, future redeploys would default to verify_jwt=true and
+# silently 401 every Stripe POST.
 [functions.stripe-webhooks]
 verify_jwt = false
 
