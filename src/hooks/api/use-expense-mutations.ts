@@ -8,11 +8,23 @@
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { financialMutations, expenseKeys, expenseQueries, financialTaxQueries } from './query-keys/expense-keys'
+import { financialKeys } from './query-keys/financial-keys'
+import { ownerDashboardKeys } from './use-owner-dashboard'
 import { createMutationCallbacks } from '#hooks/create-mutation-callbacks'
 
 
+/**
+ * Returns the active (non-soft-deleted) expense list. Bounded by
+ * EXPENSES_LIST_DEFAULT_LIMIT inside `expenseQueries.list` so the SELECT is
+ * never unbounded. Callers that need server-side pagination should call
+ * `expenseQueries.list({ limit, offset })` directly via useQuery — there is
+ * no separate paginated hook because no caller currently needs one (YAGNI).
+ */
 export function useExpenses(options?: { enabled?: boolean }) {
-	return useQuery(expenseQueries.list(options))
+	return useQuery({
+		...expenseQueries.list(options),
+		select: page => page.data
+	})
 }
 
 export function useExpensesByProperty(
@@ -36,7 +48,15 @@ export function useCreateExpenseMutation() {
 	return useMutation({
 		...financialMutations.createExpense(),
 		...createMutationCallbacks(queryClient, {
-			invalidate: [expenseKeys.all],
+			// Cross-domain fanout: every expense aggregation RPC lives under
+			// financialKeys.all (['financials']) — including tax docs which are
+			// keyed ['financials', 'tax-documents', year], so this prefix alone
+			// covers them. ownerDashboardKeys.all is included per the
+			// CLAUDE.md convention "mutations invalidate related query keys +
+			// ownerDashboardKeys.all" — covers any future dashboard tile that
+			// surfaces expense numbers (today's get_dashboard_stats does not,
+			// but the convention prevents drift).
+			invalidate: [expenseKeys.all, financialKeys.all, ownerDashboardKeys.all],
 			errorContext: 'Create expense'
 		})
 	})
@@ -48,7 +68,8 @@ export function useDeleteExpenseMutation() {
 	return useMutation({
 		...financialMutations.deleteExpense(),
 		...createMutationCallbacks(queryClient, {
-			invalidate: [expenseKeys.all],
+			// Same cross-domain fanout as create — see useCreateExpenseMutation.
+			invalidate: [expenseKeys.all, financialKeys.all, ownerDashboardKeys.all],
 			errorContext: 'Delete expense'
 		})
 	})

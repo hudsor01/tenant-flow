@@ -35,6 +35,7 @@ const mockLease: Lease = {
 	late_fee_days: 5,
 	created_at: '2023-12-15T00:00:00Z',
 	updated_at: '2024-06-01T00:00:00Z',
+	docuseal_document_url: null,
 	docuseal_submission_id: null,
 	owner_signed_at: '2023-12-20T10:00:00Z',
 	owner_signature_ip: null,

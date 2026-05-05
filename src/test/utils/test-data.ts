@@ -57,6 +57,9 @@ export const DEFAULT_USER: User = {
 	stripe_customer_id: 'cus_test123',
 	status: 'active',
 	avatar_url: null,
+	emergency_contact_name: null,
+	emergency_contact_phone: null,
+	emergency_contact_relationship: null,
 	created_at: '2024-01-01T00:00:00Z',
 	updated_at: '2024-01-01T00:00:00Z',
 	identity_verified_at: null,
@@ -137,6 +140,7 @@ export const DEFAULT_LEASE: Lease = {
 	created_at: '2024-01-01T00:00:00Z',
 	updated_at: '2024-01-01T00:00:00Z',
 	// Signature tracking fields
+	docuseal_document_url: null,
 	docuseal_submission_id: null,
 	owner_signed_at: null,
 	owner_signature_ip: null,

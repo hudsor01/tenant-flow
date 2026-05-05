@@ -79,23 +79,71 @@ export const expenseKeys = {
 		[...expenseKeys.all, 'dateRange', start, end] as const
 }
 
-export const taxDocumentKeys = {
-	all: ['taxDocuments'] as const,
-	byYear: (taxYear: number) => [...taxDocumentKeys.all, taxYear] as const
+const EXPENSE_SELECT =
+	'id, amount, expense_date, vendor_name, maintenance_request_id, status, created_at'
+
+export interface PaginatedExpenses {
+	data: Expense[]
+	total: number
 }
 
+/**
+ * Default ceiling applied when a caller doesn't specify `limit`. Matches the
+ * PostgREST `max-rows` ceiling we run with project-wide and satisfies CLAUDE.md's
+ * "all list queries MUST have .limit() or .range()" rule even on the legacy
+ * useExpenses() path. Paginated callers pass an explicit limit + offset and
+ * skip this fallback.
+ */
+const EXPENSES_LIST_DEFAULT_LIMIT = 1000
+
 export const expenseQueries = {
-	list: (options?: { enabled?: boolean }) =>
+	list: (options?: { enabled?: boolean; limit?: number; offset?: number }) =>
 		queryOptions({
-			queryKey: expenseKeys.list(),
-			queryFn: async (): Promise<Expense[]> => {
+			queryKey: [
+				...expenseKeys.list(),
+				{ limit: options?.limit ?? null, offset: options?.offset ?? null }
+			] as const,
+			queryFn: async (): Promise<PaginatedExpenses> => {
 				const supabase = createClient()
-				const { data, error } = await supabase
+				const isPaginated =
+					options?.limit !== undefined && options?.offset !== undefined
+
+				// `count: 'exact'` runs a separate COUNT(*) on every fetch — only
+				// pay for it when the caller actually consumes `total` (paginated
+				// mode). Legacy useExpenses() discards `total` via select(); no count.
+				let q = supabase
 					.from('expenses')
-					.select('id, amount, expense_date, vendor_name, maintenance_request_id, created_at')
+					.select(
+						EXPENSE_SELECT,
+						isPaginated ? { count: 'exact' } : undefined
+					)
+					.neq('status', 'inactive')
 					.order('expense_date', { ascending: false })
+
+				if (options?.limit !== undefined) {
+					if (options?.offset !== undefined) {
+						q = q.range(options.offset, options.offset + options.limit - 1)
+					} else {
+						q = q.limit(options.limit)
+					}
+				} else if (options?.offset !== undefined) {
+					// CLAUDE.md: list queries MUST be bounded. Refuse offset-without-limit
+					// rather than silently returning the full table under a paginated key.
+					throw new Error(
+						'expenseQueries.list: offset requires limit (unbounded list queries are not allowed)'
+					)
+				} else {
+					// No caller-supplied bound: apply the default ceiling so the SELECT
+					// is never unbounded, even on the legacy non-paginated path.
+					q = q.limit(EXPENSES_LIST_DEFAULT_LIMIT)
+				}
+
+				const { data, error, count } = await q
 				if (error) handlePostgrestError(error, 'expenses')
-				return (data ?? []) as Expense[]
+				return {
+					data: (data ?? []) as Expense[],
+					total: count ?? (data?.length ?? 0)
+				}
 			},
 			staleTime: 2 * 60 * 1000,
 			gcTime: 10 * 60 * 1000,
@@ -107,19 +155,24 @@ export const expenseQueries = {
 			queryKey: expenseKeys.byProperty(propertyId),
 			queryFn: async (): Promise<Expense[]> => {
 				const supabase = createClient()
-				// expenses table has no property_id column — filter via maintenance_requests join
+				// expenses table has no property_id column — filter via maintenance_requests join.
+				// Both queries are bounded by the project-wide EXPENSES_LIST_DEFAULT_LIMIT
+				// so neither side can produce an unbounded select.
 				const { data: mrIds, error: mrError } = await supabase
 					.from('maintenance_requests')
 					.select('id')
 					.eq('property_id', propertyId)
+					.limit(EXPENSES_LIST_DEFAULT_LIMIT)
 				if (mrError) handlePostgrestError(mrError, 'maintenance_requests')
 				const ids = (mrIds ?? []).map(r => r.id)
 				if (ids.length === 0) return []
 				const { data, error } = await supabase
 					.from('expenses')
-					.select('id, amount, expense_date, vendor_name, maintenance_request_id, created_at')
+					.select(EXPENSE_SELECT)
 					.in('maintenance_request_id', ids)
+					.neq('status', 'inactive')
 					.order('expense_date', { ascending: false })
+					.limit(EXPENSES_LIST_DEFAULT_LIMIT)
 				if (error) handlePostgrestError(error, 'expenses by property')
 				return (data ?? []) as Expense[]
 			},
@@ -128,23 +181,30 @@ export const expenseQueries = {
 			enabled: (options?.enabled ?? true) && Boolean(propertyId)
 		}),
 
-	byDateRange: (startDate: string, endDate: string, options?: { enabled?: boolean }) =>
+	byDateRange: (
+		startDate: string,
+		endDate: string,
+		options?: { enabled?: boolean }
+	) =>
 		queryOptions({
 			queryKey: expenseKeys.byDateRange(startDate, endDate),
 			queryFn: async (): Promise<Expense[]> => {
 				const supabase = createClient()
 				const { data, error } = await supabase
 					.from('expenses')
-					.select('id, amount, expense_date, vendor_name, maintenance_request_id, created_at')
+					.select(EXPENSE_SELECT)
+					.neq('status', 'inactive')
 					.gte('expense_date', startDate)
 					.lte('expense_date', endDate)
 					.order('expense_date', { ascending: false })
+					.limit(EXPENSES_LIST_DEFAULT_LIMIT)
 				if (error) handlePostgrestError(error, 'expenses by date range')
 				return (data ?? []) as Expense[]
 			},
 			staleTime: 2 * 60 * 1000,
 			gcTime: 10 * 60 * 1000,
-			enabled: (options?.enabled ?? true) && Boolean(startDate) && Boolean(endDate)
+			enabled:
+				(options?.enabled ?? true) && Boolean(startDate) && Boolean(endDate)
 		})
 }
 
@@ -165,6 +225,7 @@ export interface Expense {
 	expense_date?: string
 	vendor_name?: string
 	maintenance_request_id?: string
+	status?: string
 	created_at?: string
 }
 
@@ -182,7 +243,7 @@ export const financialMutations = {
 						maintenance_request_id: input.maintenance_request_id,
 						vendor_name: input.vendor_name
 					})
-					.select('id, amount, expense_date, vendor_name, maintenance_request_id, created_at')
+					.select(EXPENSE_SELECT)
 					.single()
 				if (error) handlePostgrestError(error, 'create expense')
 				return data as Expense
@@ -193,10 +254,14 @@ export const financialMutations = {
 		mutationOptions({
 			mutationKey: mutationKeys.expenses.delete,
 			mutationFn: async (expenseId: string): Promise<void> => {
+				// Soft-delete via status='inactive' to match the
+				// properties/units/leases/tenants pattern. List queries filter
+				// `.neq('status', 'inactive')` so the row disappears from views
+				// without losing the audit/financial trail.
 				const supabase = createClient()
 				const { error } = await supabase
 					.from('expenses')
-					.delete()
+					.update({ status: 'inactive' })
 					.eq('id', expenseId)
 				if (error) handlePostgrestError(error, 'delete expense')
 			}

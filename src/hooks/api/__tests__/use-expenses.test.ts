@@ -25,23 +25,27 @@ const {
 	mockFrom,
 	mockSelect,
 	mockEq,
+	mockNeq,
 	mockIn,
 	mockGte,
 	mockLte,
 	mockOrder,
+	mockLimit,
 	mockInsert,
-	mockDelete,
+	mockUpdate,
 	mockSingle
 } = vi.hoisted(() => ({
 	mockFrom: vi.fn(),
 	mockSelect: vi.fn(),
 	mockEq: vi.fn(),
+	mockNeq: vi.fn(),
 	mockIn: vi.fn(),
 	mockGte: vi.fn(),
 	mockLte: vi.fn(),
 	mockOrder: vi.fn(),
+	mockLimit: vi.fn(),
 	mockInsert: vi.fn(),
-	mockDelete: vi.fn(),
+	mockUpdate: vi.fn(),
 	mockSingle: vi.fn()
 }))
 
@@ -69,6 +73,7 @@ const mockExpenseRow = {
 	expense_date: '2024-12-20',
 	vendor_name: 'Austin Plumbing',
 	maintenance_request_id: null,
+	status: 'active',
 	created_at: '2024-12-20T00:00:00Z'
 }
 
@@ -101,9 +106,18 @@ describe('useExpenses', () => {
 	})
 
 	it('fetches all expenses successfully', async () => {
-		const selectChain = { order: mockOrder }
+		const selectChain = { neq: mockNeq }
+		const neqChain = { order: mockOrder }
+		const orderChain = { limit: mockLimit }
 		mockSelect.mockReturnValue(selectChain)
-		mockOrder.mockResolvedValue({ data: [mockExpenseRow, { ...mockExpenseRow, id: 'exp-2', vendor_name: 'Cool Air Services' }], error: null })
+		mockNeq.mockReturnValue(neqChain)
+		mockOrder.mockReturnValue(orderChain)
+		// useExpenses applies the default 1000-row ceiling — chain ends in .limit()
+		mockLimit.mockResolvedValue({
+			data: [mockExpenseRow, { ...mockExpenseRow, id: 'exp-2', vendor_name: 'Cool Air Services' }],
+			count: null,
+			error: null
+		})
 		mockFrom.mockReturnValue({ select: mockSelect })
 
 		const { result } = renderHook(() => useExpenses(), {
@@ -116,12 +130,18 @@ describe('useExpenses', () => {
 
 		expect(result.current.data?.length).toBe(2)
 		expect(mockFrom).toHaveBeenCalledWith('expenses')
+		expect(mockNeq).toHaveBeenCalledWith('status', 'inactive')
+		expect(mockLimit).toHaveBeenCalledWith(1000)
 	})
 
 	it('handles empty expense list', async () => {
-		const selectChain = { order: mockOrder }
+		const selectChain = { neq: mockNeq }
+		const neqChain = { order: mockOrder }
+		const orderChain = { limit: mockLimit }
 		mockSelect.mockReturnValue(selectChain)
-		mockOrder.mockResolvedValue({ data: [], error: null })
+		mockNeq.mockReturnValue(neqChain)
+		mockOrder.mockReturnValue(orderChain)
+		mockLimit.mockResolvedValue({ data: [], count: null, error: null })
 		mockFrom.mockReturnValue({ select: mockSelect })
 
 		const { result } = renderHook(() => useExpenses(), {
@@ -152,15 +172,32 @@ describe('useExpensesByProperty', () => {
 	})
 
 	it('fetches expenses for a specific property', async () => {
-		// Step 1: maintenance_requests query returns IDs
+		// Step 1: maintenance_requests query returns IDs (now bounded by .limit)
 		const mrSelectChain = { eq: mockEq }
-		mockEq.mockResolvedValue({ data: [{ id: 'mr-1' }], error: null })
+		const mrEqChain = { limit: mockLimit }
+		mockEq.mockReturnValue(mrEqChain)
 
 		// Step 2: expenses query filters by maintenance_request_id
+		// Chain: from → select → in → neq → order → limit
 		const expSelectChain = { in: mockIn }
-		const inChain = { order: mockOrder }
+		const inChain = { neq: mockNeq }
+		const neqChain = { order: mockOrder }
+		const orderChain = { limit: mockLimit }
 		mockIn.mockReturnValue(inChain)
-		mockOrder.mockResolvedValue({ data: [mockExpenseRow], error: null })
+		mockNeq.mockReturnValue(neqChain)
+		mockOrder.mockReturnValue(orderChain)
+
+		// mockLimit is awaited at the end of BOTH queries — return the right
+		// shape for whichever call this is. First call (maintenance_requests):
+		// returns { data: [{id:...}] }. Second call (expenses): returns expense rows.
+		let limitCall = 0
+		mockLimit.mockImplementation(() => {
+			limitCall += 1
+			if (limitCall === 1) {
+				return Promise.resolve({ data: [{ id: 'mr-1' }], error: null })
+			}
+			return Promise.resolve({ data: [mockExpenseRow], error: null })
+		})
 
 		mockFrom.mockImplementation((table: string) => {
 			if (table === 'maintenance_requests') return { select: vi.fn().mockReturnValue(mrSelectChain) }
@@ -178,6 +215,7 @@ describe('useExpensesByProperty', () => {
 
 		expect(mockFrom).toHaveBeenCalledWith('maintenance_requests')
 		expect(mockFrom).toHaveBeenCalledWith('expenses')
+		expect(mockLimit).toHaveBeenCalledWith(1000)
 	})
 
 	it('does not fetch when propertyId is empty', () => {
@@ -196,11 +234,20 @@ describe('useExpensesByDateRange', () => {
 	})
 
 	it('fetches expenses within date range', async () => {
-		const chain = { gte: mockGte, lte: mockLte, order: mockOrder }
+		// Chain: from → select → neq → gte → lte → order → limit
+		const chain = {
+			neq: mockNeq,
+			gte: mockGte,
+			lte: mockLte,
+			order: mockOrder,
+			limit: mockLimit
+		}
 		mockSelect.mockReturnValue(chain)
+		mockNeq.mockReturnValue(chain)
 		mockGte.mockReturnValue(chain)
 		mockLte.mockReturnValue(chain)
-		mockOrder.mockResolvedValue({ data: [mockExpenseRow], error: null })
+		mockOrder.mockReturnValue(chain)
+		mockLimit.mockResolvedValue({ data: [mockExpenseRow], error: null })
 		mockFrom.mockReturnValue({ select: mockSelect })
 
 		const { result } = renderHook(
@@ -260,11 +307,11 @@ describe('useDeleteExpenseMutation', () => {
 		vi.clearAllMocks()
 	})
 
-	it('deletes an expense successfully', async () => {
-		const deleteChain = { eq: mockEq }
-		mockDelete.mockReturnValue(deleteChain)
+	it('soft-deletes an expense by setting status to inactive', async () => {
+		const updateChain = { eq: mockEq }
+		mockUpdate.mockReturnValue(updateChain)
 		mockEq.mockResolvedValue({ data: null, error: null })
-		mockFrom.mockReturnValue({ delete: mockDelete })
+		mockFrom.mockReturnValue({ update: mockUpdate })
 
 		const { result } = renderHook(() => useDeleteExpenseMutation(), {
 			wrapper: createWrapper()
@@ -273,6 +320,7 @@ describe('useDeleteExpenseMutation', () => {
 		await result.current.mutateAsync('exp-1')
 
 		expect(mockFrom).toHaveBeenCalledWith('expenses')
+		expect(mockUpdate).toHaveBeenCalledWith({ status: 'inactive' })
 		expect(mockEq).toHaveBeenCalledWith('id', 'exp-1')
 	})
 })

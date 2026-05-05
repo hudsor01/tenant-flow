@@ -293,6 +293,7 @@ export type Database = {
           expense_date: string
           id: string
           maintenance_request_id: string
+          status: string
           updated_at: string | null
           vendor_name: string | null
         }
@@ -302,6 +303,7 @@ export type Database = {
           expense_date: string
           id?: string
           maintenance_request_id: string
+          status?: string
           updated_at?: string | null
           vendor_name?: string | null
         }
@@ -311,6 +313,7 @@ export type Database = {
           expense_date?: string
           id?: string
           maintenance_request_id?: string
+          status?: string
           updated_at?: string | null
           vendor_name?: string | null
         }
@@ -627,6 +630,7 @@ export type Database = {
       leases: {
         Row: {
           created_at: string | null
+          docuseal_document_url: string | null
           docuseal_submission_id: string | null
           end_date: string
           governing_state: string | null
@@ -663,6 +667,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string | null
+          docuseal_document_url?: string | null
           docuseal_submission_id?: string | null
           end_date: string
           governing_state?: string | null
@@ -699,6 +704,7 @@ export type Database = {
         }
         Update: {
           created_at?: string | null
+          docuseal_document_url?: string | null
           docuseal_submission_id?: string | null
           end_date?: string
           governing_state?: string | null
@@ -1972,6 +1978,9 @@ export type Database = {
           created_at: string | null
           deletion_requested_at: string | null
           email: string
+          emergency_contact_name: string | null
+          emergency_contact_phone: string | null
+          emergency_contact_relationship: string | null
           first_name: string | null
           full_name: string
           id: string
@@ -2002,6 +2011,9 @@ export type Database = {
           created_at?: string | null
           deletion_requested_at?: string | null
           email: string
+          emergency_contact_name?: string | null
+          emergency_contact_phone?: string | null
+          emergency_contact_relationship?: string | null
           first_name?: string | null
           full_name: string
           id?: string
@@ -2032,6 +2044,9 @@ export type Database = {
           created_at?: string | null
           deletion_requested_at?: string | null
           email?: string
+          emergency_contact_name?: string | null
+          emergency_contact_phone?: string | null
+          emergency_contact_relationship?: string | null
           first_name?: string | null
           full_name?: string
           id?: string

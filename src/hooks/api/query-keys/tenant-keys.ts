@@ -52,6 +52,7 @@ export const tenantQueries = {
 				let q = supabase
 					.from('tenants')
 					.select(TENANT_WITH_LEASE_SELECT, { count: 'exact' })
+					.neq('status', 'inactive')
 					.order('created_at', { ascending: false })
 
 				if (filters?.search) {
@@ -176,6 +177,7 @@ export const tenantQueries = {
 				const { data, error } = await supabase
 					.from('tenants')
 					.select(TENANT_WITH_LEASE_SELECT)
+					.neq('status', 'inactive')
 					.order('created_at', { ascending: true })
 
 				if (error) handlePostgrestError(error, 'tenants')

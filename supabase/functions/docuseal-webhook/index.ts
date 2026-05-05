@@ -126,7 +126,7 @@ async function handleSubmissionCompleted(
 
   const { data: leaseBySubmission, error: submissionError } = await supabase
     .from('leases')
-    .select('id, lease_status, owner_user_id')
+    .select('id, lease_status, owner_user_id, docuseal_document_url')
     .eq('docuseal_submission_id', String(submissionId))
     .maybeSingle()
 
@@ -139,7 +139,7 @@ async function handleSubmissionCompleted(
   if (!lease && metadata?.lease_id) {
     const { data: leaseById, error: leaseIdError } = await supabase
       .from('leases')
-      .select('id, lease_status, owner_user_id')
+      .select('id, lease_status, owner_user_id, docuseal_document_url')
       .eq('id', metadata.lease_id)
       .maybeSingle()
 
@@ -155,43 +155,58 @@ async function handleSubmissionCompleted(
     return
   }
 
-  if (lease.lease_status === 'active') {
-    logEvent('Lease is already active — duplicate delivery, skipping', { lease_id: lease.id })
+  // Activation is idempotent: only flip lease_status if not already active.
+  // URL persistence heals on redelivery: if the signed URL is missing on the
+  // existing row, write it even when lease_status is already 'active'.
+  const signedDocUrl = typeof documents?.[0]?.url === 'string' ? documents[0].url : null
+  const updatePayload: { lease_status?: 'active'; docuseal_document_url?: string } = {}
+
+  if (lease.lease_status !== 'active') {
+    updatePayload.lease_status = 'active'
+  }
+  if (signedDocUrl && !lease.docuseal_document_url) {
+    updatePayload.docuseal_document_url = signedDocUrl
+  }
+
+  if (Object.keys(updatePayload).length === 0) {
+    logEvent('Lease already active and signed URL already persisted — skipping', { lease_id: lease.id })
     return
   }
 
   const { error: leaseUpdateError } = await supabase
     .from('leases')
-    .update({ lease_status: 'active' })
+    .update(updatePayload)
     .eq('id', lease.id)
 
   if (leaseUpdateError) {
-    throw new Error(`Failed to activate lease: ${leaseUpdateError.message}`)
+    throw new Error(`Failed to update lease: ${leaseUpdateError.message}`)
   }
 
-  logEvent('Lease flipped to active', { lease_id: lease.id })
+  logEvent('Lease updated', {
+    lease_id: lease.id,
+    activated: updatePayload.lease_status === 'active',
+    persisted_signed_url: Boolean(updatePayload.docuseal_document_url),
+  })
 
-  // notification_type must be 'lease' per notifications_notification_type_check constraint
-  // (allowed: 'maintenance', 'lease', 'payment', 'system').
-  const { error: notifError } = await supabase
-    .from('notifications')
-    .insert({
-      user_id: lease.owner_user_id,
-      title: 'Lease fully signed',
-      message: 'Your lease has been signed by all parties and is now active.',
-      notification_type: 'lease',
-    })
+  // Only insert the activation notification when we actually just activated
+  // (not on URL-heal-only redeliveries).
+  if (updatePayload.lease_status === 'active') {
+    // notification_type must be 'lease' per notifications_notification_type_check constraint
+    // (allowed: 'maintenance', 'lease', 'payment', 'system').
+    const { error: notifError } = await supabase
+      .from('notifications')
+      .insert({
+        user_id: lease.owner_user_id,
+        title: 'Lease fully signed',
+        message: 'Your lease has been signed by all parties and is now active.',
+        notification_type: 'lease',
+      })
 
-  if (notifError) {
-    throw new Error(`Failed to insert owner notification: ${notifError.message}`)
-  }
+    if (notifError) {
+      throw new Error(`Failed to insert owner notification: ${notifError.message}`)
+    }
 
-  logEvent('Owner notification inserted', { lease_id: lease.id })
-
-  // docuseal_document_url column does not exist yet; log the URL rather than persisting it.
-  const signedDocUrl = documents?.[0]?.url
-  if (signedDocUrl) {
-    logEvent('Signed document available', { lease_id: lease.id, signed_doc_url: signedDocUrl })
+    logEvent('Owner notification inserted', { lease_id: lease.id })
   }
 }
 

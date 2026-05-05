@@ -15,6 +15,7 @@ import { getCachedUser } from '#lib/supabase/get-cached-user'
 import { profileKeys, useProfile } from '#hooks/api/use-profile'
 import type { ThemeMode } from '#types/domain'
 import type { DataDensity } from '#stores/preferences-store'
+import { OwnerEmergencyContactSection } from './owner-emergency-contact-section'
 
 export function GeneralSettings() {
 	const themeMode = usePreferencesStore(state => state.themeMode)
@@ -243,6 +244,11 @@ export function GeneralSettings() {
 						)}
 					</button>
 				</div>
+			</BlurFade>
+
+			{/* Emergency Contact (F-3 from 2026-05-03 audit) */}
+			<BlurFade delay={0.4} inView>
+				<OwnerEmergencyContactSection />
 			</BlurFade>
 		</div>
 	)
