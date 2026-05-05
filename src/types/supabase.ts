@@ -47,6 +47,24 @@ export type Database = {
         }
         Relationships: []
       }
+      app_config: {
+        Row: {
+          key: string
+          updated_at: string
+          value: string
+        }
+        Insert: {
+          key: string
+          updated_at?: string
+          value: string
+        }
+        Update: {
+          key?: string
+          updated_at?: string
+          value?: string
+        }
+        Relationships: []
+      }
       blogs: {
         Row: {
           author_user_id: string | null
@@ -2543,13 +2561,9 @@ export type Database = {
       get_user_plan_limits: {
         Args: { p_user_id: string }
         Returns: {
-          has_api_access: boolean
-          has_white_label: boolean
-          property_limit: number
-          storage_gb: number
-          support_level: string
-          tenant_limit: number
-          unit_limit: number
+          is_admin: boolean
+          properties_limit: number
+          units_limit: number
         }[]
       }
       get_user_profile: { Args: { p_user_id: string }; Returns: Json }

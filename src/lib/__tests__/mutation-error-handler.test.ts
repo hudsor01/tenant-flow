@@ -119,8 +119,12 @@ describe('handleMutationError — plan-limit detection', () => {
 
 		handleMutationError(error, 'Create property')
 
-		const [title] = lastToastErrorCall()
-		expect(title).not.toBe('Plan limit reached')
+		// Falls through to the generic-message branch (no status, no plan-limit
+		// hint, not a 4xx/5xx code path). Toast title is the raw message.
+		const [title, opts] = lastToastErrorCall()
+		expect(title).toBe('duplicate key value violates unique constraint')
+		// And specifically NOT the plan-limit toast.
+		expect(opts?.action).toBeUndefined()
 	})
 
 	it('does NOT confuse a different P0001 error (no plan_limit_exceeded hint)', () => {
@@ -133,7 +137,8 @@ describe('handleMutationError — plan-limit detection', () => {
 
 		handleMutationError(error, 'Create property')
 
-		const [title] = lastToastErrorCall()
-		expect(title).not.toBe('Plan limit reached')
+		const [title, opts] = lastToastErrorCall()
+		expect(title).toBe('some other raise_exception')
+		expect(opts?.action).toBeUndefined()
 	})
 })
