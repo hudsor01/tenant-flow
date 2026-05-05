@@ -71,27 +71,22 @@ export function handleMutationError(
 	// Show user-friendly toast notification
 	const displayMessage = customMessage || message
 
-	// Plan-limit detection: two upstream shapes both flow through here.
-	//   1. Edge Function tier-gate (`_shared/tier-gate.ts`) returns 402/403 with
-	//      JSON body `{ code: 'PLAN_LIMIT_EXCEEDED', ... }`.
-	//   2. DB BEFORE-INSERT triggers (enforce_property_plan_limit /
-	//      enforce_unit_plan_limit) raise PG exceptions whose PostgrestError
-	//      surfaces here with `error.hint === 'plan_limit_exceeded'` and
-	//      `error.details` as a JSON string carrying upgrade_source.
+	// Plan-limit detection — fired by the BEFORE-INSERT triggers
+	// `enforce_property_plan_limit` / `enforce_unit_plan_limit`. The PG
+	// exception surfaces here as a `PostgrestError` with top-level fields
+	// `hint = 'plan_limit_exceeded'` and `details` as a JSON string carrying
+	// `{ resource, used, limit, upgrade_source }`. Edge Function tier gates
+	// (`_shared/tier-gate.ts`) return a 402 response with `upgrade_url` in
+	// the body and are surfaced through their own per-feature handlers — they
+	// do NOT pass through this function.
 	const errObj = error as Record<string, unknown> | null
-	const bodyObj = errObj?.body as Record<string, unknown> | undefined
-	const edgeErrorCode =
-		bodyObj?.code ??
-		(bodyObj?.message as Record<string, unknown> | undefined)?.code
 	const pgHint = typeof errObj?.hint === 'string' ? errObj.hint : undefined
 	const pgDetails = typeof errObj?.details === 'string' ? errObj.details : undefined
+	const isPlanLimit = pgHint === 'plan_limit_exceeded'
 
-	const isPlanLimit =
-		(status === 403 && edgeErrorCode === 'PLAN_LIMIT_EXCEEDED') ||
-		pgHint === 'plan_limit_exceeded'
-
-	// Best-effort upgrade-source attribution from the DB trigger's DETAIL JSON
-	// (falls back to a generic gate tag for the Edge Function shape).
+	// Source attribution for analytics — DETAIL is JSON-encoded by the
+	// trigger's `format(...)` call. Treat parse failures as a soft default
+	// rather than blocking the toast.
 	let upgradeSource = 'plan_limit_gate'
 	if (pgDetails) {
 		try {
