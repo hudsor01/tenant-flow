@@ -206,7 +206,7 @@
 		"eslint-plugin-react-hooks": "^7.1.1",
 		"fast-check": "^4.7.0",
 		"globals": "^17.6.0",
-		"jsdom": "^28.1.0",
+		"jsdom": "^29.1.1",
 		"knip": "^6.11.0",
 		"lefthook": "^2.1.6",
 		"msw": "2.14.3",
