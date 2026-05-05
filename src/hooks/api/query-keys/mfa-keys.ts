@@ -49,8 +49,8 @@ export const mfaQueries = {
 				if (error) throw error
 
 				return {
-					currentLevel: data.currentLevel ?? 'aal1',
-					nextLevel: data.nextLevel ?? 'aal1',
+					currentLevel: data.currentLevel === 'aal2' ? 'aal2' : 'aal1',
+					nextLevel: data.nextLevel === 'aal2' ? 'aal2' : 'aal1',
 					isMfaEnabled: data.nextLevel === 'aal2',
 					requiresMfaVerification:
 						data.nextLevel === 'aal2' && data.currentLevel !== 'aal2'
