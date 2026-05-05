@@ -79,6 +79,22 @@ const sessionMutationFactories = {
 				})
 				if (error) throw error
 
+				// Defense-in-depth: if the JWT decode failed both at list-fetch
+				// time AND in the fast-path check above, the user may have just
+				// deleted their OWN current session via the RPC path — the
+				// auth.sessions row is gone server-side but local tokens persist
+				// until the next refresh. Re-decode one more time after the
+				// successful RPC and signOut() if a match is now visible.
+				const {
+					data: { session: postSession }
+				} = await supabase.auth.getSession()
+				const postCurrent = postSession
+					? decodeSessionIdFromAccessToken(postSession.access_token)
+					: null
+				if (postCurrent !== null && postCurrent === input.id) {
+					await supabase.auth.signOut()
+				}
+
 				return { success: true, message: 'Session terminated' }
 			}
 		})
