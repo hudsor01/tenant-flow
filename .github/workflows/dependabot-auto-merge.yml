@@ -16,12 +16,14 @@ concurrency:
   group: dependabot-auto-merge-${{ github.event.pull_request.number }}
   cancel-in-progress: true
 
-# Least-privilege: the job only flags an existing PR for auto-merge via the
-# pull_request_auto_merge_enable GraphQL mutation. It never pushes commits.
-# When auto-merge later finalizes, the merge commit is created by GitHub's
-# auto-merge runner using the PR author's token (Dependabot), not this
-# workflow's token — so `contents: write` is genuinely not required here.
+# The enablePullRequestAutoMerge GraphQL mutation needs `contents: write`
+# in addition to `pull-requests: write`. The actual merge commit is later
+# created by GitHub's auto-merge runner under Dependabot's token, but the
+# mutation that *flags* the PR for auto-merge is checked against the
+# caller's repo-write scope. Without `contents: write` the mutation 422s
+# with "Resource not accessible by integration".
 permissions:
+  contents: write
   pull-requests: write
 
 jobs:
