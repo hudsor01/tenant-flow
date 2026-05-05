@@ -104,6 +104,7 @@ describe('Plan-limit enforcement triggers', () => {
 				property_id: propertyId,
 				unit_number: `plan-${Date.now()}`,
 				status: 'available',
+				rent_amount: 1000,
 			})
 			.select('id')
 			.single()
