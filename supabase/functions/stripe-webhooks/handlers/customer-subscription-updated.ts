@@ -1,5 +1,6 @@
 import Stripe from 'stripe'
 import { captureWebhookWarning, logEvent } from '../../_shared/errors.ts'
+import { priceIdToTier } from '../../_shared/plan-tier.ts'
 import type { SupabaseAdmin } from './types.ts'
 
 /**
@@ -29,6 +30,9 @@ export async function handleCustomerSubscriptionUpdated(
 
   const priceId = sub.items.data[0]?.price.id ?? null
   const planLookup = sub.items.data[0]?.price.lookup_key ?? null
+  // Resolve to a canonical tier slug so the plan-limit triggers see a value
+  // they recognize. See checkout-session-completed.ts for the rationale.
+  const tier = priceIdToTier(planLookup) ?? priceIdToTier(priceId)
 
   // Capture metadata.source for admin analytics if present on the subscription
   // (subscription_data.metadata propagates from checkout; also set directly
@@ -40,7 +44,7 @@ export async function handleCustomerSubscriptionUpdated(
   const updatePayload: Record<string, unknown> = {
     subscription_id: sub.id,
     subscription_status: sub.status,
-    subscription_plan: planLookup ?? priceId,
+    subscription_plan: tier ?? planLookup ?? priceId,
     subscription_current_period_end: sub.current_period_end
       ? new Date(sub.current_period_end * 1000).toISOString()
       : null,

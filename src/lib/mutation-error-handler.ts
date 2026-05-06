@@ -71,12 +71,33 @@ export function handleMutationError(
 	// Show user-friendly toast notification
 	const displayMessage = customMessage || message
 
-	// Extract error code from body for structured errors (e.g. PLAN_LIMIT_EXCEEDED).
-	// The code may be at body.code or body.message.code depending on the error shape.
-	const bodyObj = (error as Record<string, unknown>)?.body as Record<string, unknown> | undefined
-	const errorCode =
-		bodyObj?.code ??
-		(bodyObj?.message as Record<string, unknown> | undefined)?.code
+	// Plan-limit detection — fired by the BEFORE-INSERT triggers
+	// `enforce_property_plan_limit` / `enforce_unit_plan_limit`. The PG
+	// exception surfaces here as a `PostgrestError` with top-level fields
+	// `hint = 'plan_limit_exceeded'` and `details` as a JSON string carrying
+	// `{ resource, used, limit, upgrade_source }`. Edge Function tier gates
+	// (`_shared/tier-gate.ts`) return a 402 response with `upgrade_url` in
+	// the body and are surfaced through their own per-feature handlers — they
+	// do NOT pass through this function.
+	const errObj = error as Record<string, unknown> | null
+	const pgHint = typeof errObj?.hint === 'string' ? errObj.hint : undefined
+	const pgDetails = typeof errObj?.details === 'string' ? errObj.details : undefined
+	const isPlanLimit = pgHint === 'plan_limit_exceeded'
+
+	// Source attribution for analytics — DETAIL is JSON-encoded by the
+	// trigger's `format(...)` call. Treat parse failures as a soft default
+	// rather than blocking the toast.
+	let upgradeSource = 'plan_limit_gate'
+	if (pgDetails) {
+		try {
+			const parsed = JSON.parse(pgDetails) as Record<string, unknown>
+			if (typeof parsed.upgrade_source === 'string') {
+				upgradeSource = parsed.upgrade_source
+			}
+		} catch {
+			/* DETAIL wasn't JSON; keep default tag */
+		}
+	}
 
 	// Customize toast based on status code
 	if (status === 409) {
@@ -84,13 +105,13 @@ export function handleMutationError(
 			description:
 				displayMessage || 'This item already exists or has been modified'
 		})
-	} else if (status === 403 && errorCode === 'PLAN_LIMIT_EXCEEDED') {
+	} else if (isPlanLimit) {
 		toast.error('Plan limit reached', {
 			description: displayMessage,
 			action: {
 				label: 'Upgrade',
 				onClick: () => {
-					window.location.href = '/billing/plans'
+					window.location.href = `/billing/plans?source=${encodeURIComponent(upgradeSource)}`
 				}
 			}
 		})

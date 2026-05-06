@@ -1,5 +1,6 @@
 import Stripe from 'stripe'
 import { captureWebhookError, logEvent } from '../../_shared/errors.ts'
+import { priceIdToTier } from '../../_shared/plan-tier.ts'
 import type { SupabaseAdmin } from './types.ts'
 
 /**
@@ -29,6 +30,12 @@ export async function handleCheckoutSessionCompleted(
     const sub = await stripe.subscriptions.retrieve(subId)
     const priceId = sub.items.data[0]?.price.id ?? null
     const planLookup = sub.items.data[0]?.price.lookup_key ?? null
+    // Resolve to a canonical tier slug ('starter' / 'growth' / 'max') so
+    // public.enforce_property_plan_limit / enforce_unit_plan_limit triggers
+    // see a value they recognize. Live Stripe prices have no lookup_key
+    // configured, so `planLookup ?? priceId` previously persisted the raw
+    // price ID and silently dropped paying customers to the trial cap.
+    const tier = priceIdToTier(planLookup) ?? priceIdToTier(priceId)
     // Capture the upgrade attribution tag from session metadata so admin
     // analytics can compute per-gate conversion (v2.1 Phase 49). The tag
     // flows through from /billing/plans?source=<x> via stripe-checkout.
@@ -39,7 +46,7 @@ export async function handleCheckoutSessionCompleted(
     const updatePayload: Record<string, unknown> = {
       subscription_id: sub.id,
       subscription_status: sub.status,
-      subscription_plan: planLookup ?? priceId,
+      subscription_plan: tier ?? planLookup ?? priceId,
       subscription_current_period_end: sub.current_period_end
         ? new Date(sub.current_period_end * 1000).toISOString()
         : null,

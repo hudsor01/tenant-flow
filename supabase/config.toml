@@ -327,8 +327,13 @@ authorization_url_path = "/oauth/consent"
 # Allow dynamic client registration
 allow_dynamic_registration = false
 
-# Stripe Sync Engine — public webhook endpoint (Stripe signature auth, not JWT)
-[functions.stripe-sync]
+# Stripe webhook endpoint — public, authenticated via Stripe signature
+# (constructEvent in handler), NOT Supabase JWT. The function name must
+# match the slug in supabase/functions/stripe-webhooks/. The previous
+# declaration named a non-existent `stripe-sync` function. Without the
+# correct entry, future redeploys would default to verify_jwt=true and
+# silently 401 every Stripe POST.
+[functions.stripe-webhooks]
 verify_jwt = false
 
 # DocuSeal — uses handler.ts as entrypoint (not index.ts). Tier-gate + action
