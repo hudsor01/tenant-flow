@@ -13,7 +13,6 @@ import { Button } from '#components/ui/button'
 import { RelatedArticles } from '#components/blog/related-articles'
 import { JsonLdScript } from '#components/seo/json-ld-script'
 import { createBreadcrumbJsonLd } from '#lib/seo/breadcrumbs'
-import { createSoftwareApplicationJsonLd } from '#lib/seo/software-application-schema'
 import { getSiteUrl } from '#lib/generate-metadata'
 import { COMPETITORS, VALID_COMPETITORS } from './compare-data'
 import {
@@ -41,18 +40,25 @@ export async function generateMetadata({
 	const baseUrl = getSiteUrl()
 
 	return {
-		title: `TenantFlow vs ${data.name}: Feature & Pricing Comparison | TenantFlow`,
+		// `title.absolute` opts out of the parent template, otherwise
+		// rendered as "...Comparison | TenantFlow | TenantFlow".
+		title: {
+			absolute: `TenantFlow vs ${data.name}: Feature & Pricing Comparison`,
+		},
 		description: data.metaDescription,
 		alternates: { canonical: `${baseUrl}/compare/${slug}` },
 		openGraph: {
-			title: `TenantFlow vs ${data.name} Comparison`,
+			title: `TenantFlow vs ${data.name}`,
 			description: data.metaDescription,
 			url: `${baseUrl}/compare/${slug}`,
-			type: 'website',
+			type: 'article',
+			siteName: 'TenantFlow',
 		},
 		twitter: {
 			card: 'summary_large_image',
-			title: `TenantFlow vs ${data.name} Comparison`,
+			site: '@tenantflow',
+			creator: '@tenantflow',
+			title: `TenantFlow vs ${data.name}`,
 			description: data.metaDescription,
 		},
 	}
@@ -64,38 +70,26 @@ export default async function ComparePage({ params }: PageProps) {
 
 	if (!data) notFound()
 
-	const siteUrl = getSiteUrl()
-
-	const tenantflowSchema = createSoftwareApplicationJsonLd({
-		name: 'TenantFlow',
-		description:
-			'Modern property management software for property owners and investors. Lease management, maintenance tracking, rent records, and tenant administration.',
-		url: siteUrl,
-		applicationCategory: 'BusinessApplication',
-		operatingSystem: 'Web Browser',
-		offers: [
-			{ price: '29', priceCurrency: 'USD' },
-			{ price: '79', priceCurrency: 'USD' },
-			{ price: '199', priceCurrency: 'USD' },
-		],
-	})
-
-	const competitorSchema = createSoftwareApplicationJsonLd({
-		name: data.name,
-		description: data.description,
-		applicationCategory: 'BusinessApplication',
-		operatingSystem: 'Web Browser',
-	})
-
+	// Single SoftwareApplication schema for THIS page's primary entity
+	// (TenantFlow). The competitor isn't our product — emitting a second
+	// SoftwareApplication for them on the same URL split rich-result
+	// eligibility and gave Google two competing primary entities. The
+	// comparison itself is captured by the BreadcrumbList + the on-page
+	// content. Root layout already emits sitewide Organization +
+	// SoftwareApplication, so don't duplicate that here either.
 	const breadcrumbSchema = createBreadcrumbJsonLd(
 		`/compare/${slug}`,
 		{ [slug]: `TenantFlow vs ${data.name}` }
 	)
 
+	// Find sibling competitors so the related-comparison block has cross-links.
+	const otherCompetitors = VALID_COMPETITORS.filter(c => c !== slug).map(c => ({
+		slug: c,
+		name: COMPETITORS[c]?.name ?? c,
+	}))
+
 	return (
 		<PageLayout>
-			<JsonLdScript schema={tenantflowSchema} />
-			<JsonLdScript schema={competitorSchema} />
 			<JsonLdScript schema={breadcrumbSchema} />
 
 			{/* Hero */}
@@ -171,6 +165,36 @@ export default async function ComparePage({ params }: PageProps) {
 			<PricingComparison data={data} />
 			<FeatureTable data={data} />
 			<WhySwitchSection data={data} />
+
+			{otherCompetitors.length > 0 && (
+				<section className="section-spacing border-t border-border">
+					<div className="max-w-4xl mx-auto px-6 lg:px-8">
+						<h2 className="text-2xl font-bold text-foreground mb-2">
+							Compare TenantFlow to other tools
+						</h2>
+						<p className="text-muted-foreground mb-6">
+							Evaluating more than one option? See how TenantFlow stacks up
+							against the alternatives landlords most often consider.
+						</p>
+						<ul className="grid gap-3 sm:grid-cols-2">
+							{otherCompetitors.map(({ slug: otherSlug, name }) => (
+								<li key={otherSlug}>
+									<Link
+										href={`/compare/${otherSlug}`}
+										className="flex items-center justify-between rounded-lg border border-border bg-background px-4 py-3 hover:border-primary"
+									>
+										<span className="font-medium">
+											TenantFlow vs {name}
+										</span>
+										<ArrowRight className="size-4 text-muted-foreground" />
+									</Link>
+								</li>
+							))}
+						</ul>
+					</div>
+				</section>
+			)}
+
 			<RelatedArticles slugs={[data.blogSlug]} title="Read the Full Comparison" />
 			<BottomCta data={data} />
 		</PageLayout>

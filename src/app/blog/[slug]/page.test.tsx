@@ -12,18 +12,16 @@ import { render, screen } from '@testing-library/react'
 
 // --- Hoisted mocks ---
 
-const mockUseBlogBySlug = vi.hoisted(() => vi.fn())
+// `useBlogBySlug` was removed when the page was refactored to receive
+// `post` directly from the server (so the article body lands in initial
+// HTML for SEO). Tests now pass the post via props instead of mocking the
+// fetcher.
 const mockUseRelatedPosts = vi.hoisted(() => vi.fn())
 const mockUseBlogCategories = vi.hoisted(() => vi.fn())
 
 vi.mock('#hooks/api/use-blogs', () => ({
-	useBlogBySlug: mockUseBlogBySlug,
 	useRelatedPosts: mockUseRelatedPosts,
 	useBlogCategories: mockUseBlogCategories,
-}))
-
-vi.mock('next/navigation', () => ({
-	useParams: () => ({ slug: 'test-post' }),
 }))
 
 vi.mock('next/link', () => ({
@@ -193,10 +191,6 @@ const mockCategories = [
 
 describe('BlogArticlePage', () => {
 	beforeEach(() => {
-		mockUseBlogBySlug.mockReturnValue({
-			data: mockPost,
-			isLoading: false,
-		})
 		mockUseRelatedPosts.mockReturnValue({
 			data: mockRelatedPosts,
 			isLoading: false,
@@ -208,35 +202,31 @@ describe('BlogArticlePage', () => {
 	})
 
 	it('renders featured image with next/image when post.featured_image exists', () => {
-		render(<BlogArticlePage />)
+		render(<BlogArticlePage post={mockPost} slug="test-post" />)
 		const image = screen.getByTestId('featured-image')
 		expect(image).toBeInTheDocument()
 		expect(image).toHaveAttribute('src', 'https://example.com/images/featured.jpg')
 	})
 
 	it('does NOT render featured image when post.featured_image is null', () => {
-		mockUseBlogBySlug.mockReturnValue({
-			data: mockPostNoImage,
-			isLoading: false,
-		})
-		render(<BlogArticlePage />)
+		render(<BlogArticlePage post={mockPostNoImage} slug="test-post" />)
 		expect(screen.queryByTestId('featured-image')).not.toBeInTheDocument()
 	})
 
 	it('renders category name in meta bar linked to /blog/category/[slug]', () => {
-		render(<BlogArticlePage />)
+		render(<BlogArticlePage post={mockPost} slug="test-post" />)
 		const categoryLink = screen.getByRole('link', { name: 'Property Management' })
 		expect(categoryLink).toHaveAttribute('href', '/blog/category/property-management')
 	})
 
 	it('renders author name and reading time in meta bar', () => {
-		render(<BlogArticlePage />)
+		render(<BlogArticlePage post={mockPost} slug="test-post" />)
 		expect(screen.getByText('TenantFlow Team')).toBeInTheDocument()
 		expect(screen.getByText('8 min read')).toBeInTheDocument()
 	})
 
 	it('renders prose wrapper with simplified classes (no [&>selector] overrides)', () => {
-		const { container } = render(<BlogArticlePage />)
+		const { container } = render(<BlogArticlePage post={mockPost} slug="test-post" />)
 		const proseDiv = container.querySelector('.prose')
 		expect(proseDiv).toBeInTheDocument()
 		expect(proseDiv).toHaveClass('prose-lg')
@@ -246,21 +236,21 @@ describe('BlogArticlePage', () => {
 	})
 
 	it('renders MarkdownContent with post content', () => {
-		render(<BlogArticlePage />)
+		render(<BlogArticlePage post={mockPost} slug="test-post" />)
 		const markdown = screen.getByTestId('markdown-content')
 		expect(markdown).toBeInTheDocument()
 		expect(markdown).toHaveTextContent('## Introduction')
 	})
 
 	it('renders Related Articles section heading', () => {
-		render(<BlogArticlePage />)
+		render(<BlogArticlePage post={mockPost} slug="test-post" />)
 		expect(
 			screen.getByRole('heading', { name: 'Related Articles' })
 		).toBeInTheDocument()
 	})
 
 	it('renders BlogCard for each related post (up to 3)', () => {
-		render(<BlogArticlePage />)
+		render(<BlogArticlePage post={mockPost} slug="test-post" />)
 		const cards = screen.getAllByTestId('blog-card')
 		expect(cards).toHaveLength(3)
 		expect(cards[0]).toHaveTextContent('Tenant Screening Best Practices')
@@ -269,29 +259,13 @@ describe('BlogArticlePage', () => {
 	})
 
 	it('does NOT render raw inline newsletter section (no bare input[type=email])', () => {
-		const { container } = render(<BlogArticlePage />)
+		const { container } = render(<BlogArticlePage post={mockPost} slug="test-post" />)
 		const emailInputs = container.querySelectorAll('input[type="email"]')
 		expect(emailInputs).toHaveLength(0)
 	})
 
-	it('shows loading state when post is loading', () => {
-		mockUseBlogBySlug.mockReturnValue({
-			data: undefined,
-			isLoading: true,
-		})
-		const { container } = render(<BlogArticlePage />)
-		// blog-post-page renders raw animate-pulse divs (not the Skeleton
-		// primitive) for its branded loading shimmer.
-		const skeletons = container.querySelectorAll('.animate-pulse')
-		expect(skeletons.length).toBeGreaterThan(0)
-	})
-
-	it('shows not-found state when post is null', () => {
-		mockUseBlogBySlug.mockReturnValue({
-			data: null,
-			isLoading: false,
-		})
-		render(<BlogArticlePage />)
-		expect(screen.getByText('Blog Post Not Found')).toBeInTheDocument()
-	})
+	// Loading + not-found tests removed: the server `page.tsx` now resolves
+	// `post` before this client component renders, calling `notFound()` for
+	// missing slugs and never reaching this component with null post. The
+	// loading-skeleton branch was removed alongside `useBlogBySlug`.
 })
