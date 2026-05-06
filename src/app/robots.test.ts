@@ -4,45 +4,14 @@ vi.mock('#lib/generate-metadata', () => ({
 	getSiteUrl: () => 'https://tenantflow.app',
 }))
 
-import robots from './robots'
+// Import the source-of-truth arrays from robots.ts directly so any
+// addition OR removal there triggers the per-bot / per-path assertions
+// below. A previous version of this file duplicated the lists, which
+// only caught one drift direction (test missing an entry the source
+// added) — this version catches both.
+import robots, { PRIVATE_PATHS, AI_USER_AGENTS } from './robots'
 
 const ROUTE = robots()
-
-const PRIVATE_PATHS = [
-	'/admin',
-	'/api',
-	'/auth/callback',
-	'/auth/confirm-email',
-	'/auth/post-checkout',
-	'/auth/select-role',
-	'/auth/signout',
-	'/auth/update-password',
-	'/dashboard',
-	'/tenant',
-	'/owner',
-	'/settings',
-	'/profile',
-	'/billing',
-	'/_next/data',
-	'/monitoring',
-	'/stripe',
-	'/pricing/complete',
-] as const
-
-const AI_USER_AGENTS = [
-	'GPTBot',
-	'OAI-SearchBot',
-	'ChatGPT-User',
-	'Google-Extended',
-	'ClaudeBot',
-	'Claude-User',
-	'Claude-SearchBot',
-	'Applebot-Extended',
-	'CCBot',
-	'PerplexityBot',
-	'Perplexity-User',
-	'Amazonbot',
-] as const
 
 function asArray(value: string | string[] | undefined): string[] {
 	if (value === undefined) return []
@@ -79,6 +48,13 @@ describe('robots()', () => {
 				`expected per-bot rule for ${ua} — flipping a single line opts a specific crawler out`
 			).toBeDefined()
 		}
+
+		// Guard against the inverse drift: a UA that's emitted as a rule
+		// but isn't in AI_USER_AGENTS (e.g., someone added a UA inline in
+		// `aiBotRules` instead of via the source list). Count of named
+		// (non-wildcard) UA rules must equal AI_USER_AGENTS.length.
+		const namedRuleCount = rules.filter(r => r.userAgent !== '*').length
+		expect(namedRuleCount).toBe(AI_USER_AGENTS.length)
 	})
 
 	it('every AI bot rule allows / + discovery files and disallows the private path set', () => {

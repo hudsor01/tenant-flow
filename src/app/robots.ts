@@ -5,7 +5,11 @@ import { getSiteUrl } from '#lib/generate-metadata'
 // Private + transactional surface area that should never appear in the
 // SERP. No trailing slashes — `/dashboard` blocks both `/dashboard` and
 // `/dashboard/anything`. Trailing-slash form only blocks subpaths.
-const PRIVATE_PATHS: readonly string[] = [
+//
+// Exported so `robots.test.ts` can import a single source of truth for
+// the bidirectional drift guard (additions or removals here surface in
+// the test without a parallel hardcoded list).
+export const PRIVATE_PATHS = [
 	'/admin',
 	'/api',
 	'/auth/callback',
@@ -26,7 +30,7 @@ const PRIVATE_PATHS: readonly string[] = [
 	// and `/pricing/success`, no unique content, soft-404 risk.
 	'/stripe',
 	'/pricing/complete',
-] as const
+] as const satisfies readonly string[]
 
 // AI-content user agents listed in the canonical vendor docs. Per the
 // best-practices brief (May 2026): the marketing surface is intentionally
@@ -42,7 +46,11 @@ const PRIVATE_PATHS: readonly string[] = [
 //   - Apple:      support.apple.com/en-us/119829
 //   - Common Crawl: commoncrawl.org/ccbot
 //   - Perplexity: docs.perplexity.ai/.../perplexity-crawlers
-const AI_USER_AGENTS: readonly string[] = [
+//
+// Exported so `robots.test.ts` can import a single source of truth for
+// the bidirectional drift guard (additions or removals here surface in
+// the test without a parallel hardcoded list).
+export const AI_USER_AGENTS = [
 	'GPTBot',
 	'OAI-SearchBot',
 	'ChatGPT-User',
@@ -55,7 +63,7 @@ const AI_USER_AGENTS: readonly string[] = [
 	'PerplexityBot',
 	'Perplexity-User',
 	'Amazonbot',
-] as const
+] as const satisfies readonly string[]
 
 export default function robots(): MetadataRoute.Robots {
 	// `MetadataRoute.Robots.rules[].disallow` is a mutable string[]; spread

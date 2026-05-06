@@ -18,7 +18,20 @@ vi.mock('#lib/frontend-logger', () => ({
 // separate `category`-only query is gone. Mock posts include the
 // category field so the dedup logic and category-hub branch are
 // exercised.
-const mockBlogPosts = [
+type MockBlogPost = {
+	slug: string
+	published_at: string | null
+	updated_at: string | null
+	category: string
+}
+
+// Production code only orders by `published_at` today. If a future
+// sitemap change orders by another column, add it to this union and
+// update the fixture; the typed key parameter then forces compile-time
+// awareness of the new sort dimension.
+type SortableColumn = 'published_at' | 'updated_at'
+
+const mockBlogPosts: MockBlogPost[] = [
 	{
 		slug: 'post-one',
 		published_at: '2026-01-15T00:00:00Z',
@@ -55,12 +68,15 @@ const mockBlogPosts = [
  * production would emit, not the array order in the test file.
  */
 function makeQueryBuilder() {
-	let working = [...mockBlogPosts]
+	let working: MockBlogPost[] = [...mockBlogPosts]
 	const result = () => ({ data: working, error: null })
 	const builder: {
 		select: (...args: unknown[]) => typeof builder
 		eq: (...args: unknown[]) => typeof builder
-		order: (column: string, opts?: { ascending?: boolean }) => typeof builder
+		order: (
+			column: SortableColumn,
+			opts?: { ascending?: boolean }
+		) => typeof builder
 		then: (
 			resolve: (v: ReturnType<typeof result>) => unknown,
 			reject?: (e: unknown) => unknown
@@ -69,13 +85,11 @@ function makeQueryBuilder() {
 		select: vi.fn().mockImplementation(() => builder),
 		eq: vi.fn().mockImplementation(() => builder),
 		order: vi.fn().mockImplementation(
-			(column: string, opts?: { ascending?: boolean }) => {
+			(column: SortableColumn, opts?: { ascending?: boolean }) => {
 				const ascending = opts?.ascending ?? true
 				working = [...working].sort((a, b) => {
-					const av =
-						(a as unknown as Record<string, string | null>)[column] ?? ''
-					const bv =
-						(b as unknown as Record<string, string | null>)[column] ?? ''
+					const av = a[column] ?? ''
+					const bv = b[column] ?? ''
 					if (av === bv) return 0
 					if (ascending) return av < bv ? -1 : 1
 					return av < bv ? 1 : -1

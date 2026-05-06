@@ -14,14 +14,13 @@ import { render, screen } from '@testing-library/react'
 
 // `useBlogBySlug` was removed when the page was refactored to receive
 // `post` directly from the server (so the article body lands in initial
-// HTML for SEO). Tests now pass the post via props instead of mocking the
-// fetcher.
+// HTML for SEO). Tests now pass the post via props instead of mocking
+// the fetcher. `useBlogCategories` was also dropped — the slug is now
+// derived locally from `post.category` rather than fetched.
 const mockUseRelatedPosts = vi.hoisted(() => vi.fn())
-const mockUseBlogCategories = vi.hoisted(() => vi.fn())
 
 vi.mock('#hooks/api/use-blogs', () => ({
 	useRelatedPosts: mockUseRelatedPosts,
-	useBlogCategories: mockUseBlogCategories,
 }))
 
 vi.mock('next/link', () => ({
@@ -181,19 +180,10 @@ const mockRelatedPosts = [
 	},
 ]
 
-const mockCategories = [
-	{ name: 'Property Management', slug: 'property-management', post_count: 12 },
-	{ name: 'Software Comparisons', slug: 'software-comparisons', post_count: 5 },
-]
-
 describe('BlogArticlePage', () => {
 	beforeEach(() => {
 		mockUseRelatedPosts.mockReturnValue({
 			data: mockRelatedPosts,
-			isLoading: false,
-		})
-		mockUseBlogCategories.mockReturnValue({
-			data: mockCategories,
 			isLoading: false,
 		})
 	})

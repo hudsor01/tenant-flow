@@ -1,16 +1,18 @@
 /**
- * Server Component renderer for blog markdown.
+ * Markdown renderer for blog posts. This module deliberately omits
+ * `'use client'`, but its parent (`blog-post-page.tsx`) is a client
+ * component, so the React Server Components rule means this file is
+ * still part of the client bundle in practice — a transitive import
+ * from a `'use client'` boundary is a Client Component regardless of
+ * whether it declares the directive itself.
  *
- * Previously this file was a client component (`'use client'`) and the
- * blog post page wrapped it in `dynamic(import, { ssr: false })`. That
- * meant the article body never landed in the initial HTML — only a
- * loading skeleton — so AI crawlers (which don't run JS) and Googlebot
- * pre-render saw an empty article. With the body now flowing through
- * the server-rendered tree, the SEO regression is closed.
- *
- * `react-markdown` v9+ has no DOM-only dependencies and renders fine
- * in RSC. `remark-gfm`, `rehype-raw`, `rehype-sanitize` are all pure
- * Node libs.
+ * The SEO win comes from a different mechanism: dropping the parent's
+ * `dynamic(import, { ssr: false })` wrapper restored the SSR pass, so
+ * Next.js now ships the rendered article body in the initial HTML.
+ * Library choice still matters because it must work both at SSR and on
+ * the client — `react-markdown` v9+, `remark-gfm`, `rehype-raw`, and
+ * `rehype-sanitize` are pure Node libs with no DOM-only dependencies,
+ * so they render identically in both passes.
  */
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
