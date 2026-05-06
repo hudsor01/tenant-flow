@@ -60,7 +60,7 @@
 		"overrides": {
 			"typescript": "^5.9.3",
 			"path-to-regexp": ">=8.4.0",
-			"undici": ">=7.24.0",
+			"undici": ">=7.24.0 <8",
 			"diff": ">=8.0.3",
 			"react-router": ">=7.13.0",
 			"@modelcontextprotocol/sdk": ">=1.26.0",

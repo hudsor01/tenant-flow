@@ -87,8 +87,10 @@ describe('Documents RLS — owner_user_id isolation', () => {
         owner_user_id: ownerAId,
         entity_type: 'lease',
         entity_id: lease.id,
-        document_name: 'RLS Test Doc',
+        title: 'RLS Test Doc',
         document_type: 'other',
+        file_path: 'rls-test/test-doc.pdf',
+        storage_url: 'rls-test/test-doc.pdf',
       })
       .select('id')
       .single()
@@ -120,8 +122,10 @@ describe('Documents RLS — owner_user_id isolation', () => {
         owner_user_id: ownerAId,
         entity_type: 'lease',
         entity_id: lease.id,
-        document_name: 'RLS Impersonation Test',
+        title: 'RLS Impersonation Test',
         document_type: 'other',
+        file_path: 'rls-test/imp.pdf',
+        storage_url: 'rls-test/imp.pdf',
       })
       .select('id')
       .single()

@@ -39,6 +39,17 @@ describe('document_categories — owner isolation + slug validation', () => {
 		} = await clientA.auth.getUser()
 		ownerAId = uA!.id
 
+		// Sweep any residual probe categories from prior crashed runs so the
+		// unique-slug INSERT below doesn't 23505 on rerun. afterAll clears
+		// `insertedCategoryIds`, but only IDs the test pushed before crashing.
+		// (PostgREST `like` uses SQL `_` as single-char wildcard — using `%`
+		// instead so the pattern matches the literal slug.)
+		await clientA
+			.from('document_categories')
+			.delete()
+			.eq('owner_user_id', ownerAId)
+			.like('slug', 'phase65%probe')
+
 		const { data: p } = await clientA
 			.from('properties')
 			.insert({

@@ -202,12 +202,12 @@ describe('RPC auth isolation — cross-user access denied', () => {
     expectAccessDenied(result)
   })
 
-  it('rejects get_user_plan_limits with another user ID', async () => {
-    const result = await clientA.rpc('get_user_plan_limits', {
-      p_user_id: ownerBId,
-    })
-    expectAccessDenied(result)
-  })
+  // get_user_plan_limits(text) was dropped in 20260505230821 — the new
+  // uuid overload is REVOKE'd from authenticated entirely, so there is
+  // no longer an authenticated RPC surface to assert IDOR isolation on.
+  // Plan limits are now read via SECURITY DEFINER triggers that key off
+  // NEW.owner_user_id, not a caller-supplied p_user_id, so cross-user
+  // access is impossible by construction.
 
   it('rejects check_user_feature_access with another user ID', async () => {
     const result = await clientA.rpc('check_user_feature_access', {
