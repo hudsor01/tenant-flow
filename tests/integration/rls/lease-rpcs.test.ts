@@ -4,9 +4,6 @@ import type { SupabaseClient } from '@supabase/supabase-js'
 describe('Lease RPCs — authorization checks', () => {
   let clientA: SupabaseClient
   let clientB: SupabaseClient
-  let ownerAId: string
-  let ownerBId: string
-  let leaseA: { id: string } | null = null
   let leaseB: { id: string } | null = null
 
   beforeAll(async () => {
@@ -15,22 +12,14 @@ describe('Lease RPCs — authorization checks', () => {
     clientB = await createTestClient(ownerB.email, ownerB.password)
 
     const {
-      data: { user: userA },
-    } = await clientA.auth.getUser()
-    const {
       data: { user: userB },
     } = await clientB.auth.getUser()
-    ownerAId = userA!.id
-    ownerBId = userB!.id
+    const ownerBId = userB!.id
 
-    // Find a lease owned by each owner
-    const { data: leasesA } = await clientA
-      .from('leases')
-      .select('id, owner_user_id')
-      .eq('owner_user_id', ownerAId)
-      .limit(1)
-    leaseA = leasesA && leasesA.length > 0 ? { id: leasesA[0].id } : null
-
+    // Find a lease owned by Owner B that Owner A will attempt to operate on.
+    // Owner A's own lease isn't needed any more — the happy-path test for
+    // activate_lease_with_pending_subscription was removed when that
+    // function was dropped (20260506000854).
     const { data: leasesB } = await clientB
       .from('leases')
       .select('id, owner_user_id')
@@ -65,20 +54,12 @@ describe('Lease RPCs — authorization checks', () => {
     expect(result.error_message).toMatch(pattern)
   }
 
-  it('rejects activate_lease_with_pending_subscription when caller is not lease owner', async () => {
-    if (!leaseB) {
-      console.warn('Skipping: no lease found for Owner B')
-      return
-    }
-
-    // Owner A tries to activate Owner B's lease
-    const { data, error } = await clientA.rpc(
-      'activate_lease_with_pending_subscription',
-      { p_lease_id: leaseB.id },
-    )
-
-    expectAccessDenied(data, error, /access denied|not the lease owner/i)
-  })
+  // activate_lease_with_pending_subscription was dropped in
+  // 20260506000854_drop_lease_rpc_regressions — it was dead code referencing
+  // tenant-rent subscription columns that were removed when the tenant-rent
+  // flow was demolished (CLAUDE.md "no rent payment facilitation"). The
+  // happy-path "allows owner to call activate_lease" test was removed in the
+  // same migration commit.
 
   it('rejects sign_lease_and_check_activation as owner when caller is not lease owner', async () => {
     if (!leaseB) {
@@ -118,27 +99,4 @@ describe('Lease RPCs — authorization checks', () => {
     expectAccessDenied(data, error, /access denied|not a tenant/i)
   })
 
-  it('allows owner to call activate_lease on their own lease (no access denied)', async () => {
-    if (!leaseA) {
-      console.warn('Skipping: no lease found for Owner A')
-      return
-    }
-
-    // Owner A activates their own lease -- may fail for business reasons but NOT access denied
-    const { data, error } = await clientA.rpc(
-      'activate_lease_with_pending_subscription',
-      { p_lease_id: leaseA.id },
-    )
-
-    if (error) {
-      expect(error.message).not.toMatch(/access denied|not the lease owner/i)
-    } else {
-      const result = Array.isArray(data) ? data[0] : data
-      if (result && !result.success && result.error_message) {
-        expect(result.error_message).not.toMatch(
-          /access denied|not the lease owner/i,
-        )
-      }
-    }
-  })
 })

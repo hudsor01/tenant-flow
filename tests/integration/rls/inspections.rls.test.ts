@@ -111,7 +111,7 @@ describe('Inspections RLS — cross-tenant isolation', () => {
         property_id: unitA.property_id,
         unit_id: unitA.id,
         inspection_type: 'move_in',
-        status: 'scheduled',
+        status: 'pending',
       })
       .select('id')
       .single()
@@ -149,7 +149,7 @@ describe('Inspections RLS — cross-tenant isolation', () => {
         property_id: unitA.property_id,
         unit_id: unitA.id,
         inspection_type: 'move_in',
-        status: 'scheduled',
+        status: 'pending',
       })
       .select('id')
       .single()
@@ -241,7 +241,7 @@ describe('Inspections RLS — cross-tenant isolation', () => {
         property_id: unitA.property_id,
         unit_id: unitA.id,
         inspection_type: 'move_out',
-        status: 'scheduled',
+        status: 'pending',
       })
       .select('id')
       .single()
