@@ -11,6 +11,7 @@ import { getCachedUser } from '#lib/supabase/get-cached-user'
 import { handlePostgrestError } from '#lib/postgrest-error-handler'
 import type { ActivityItem } from '#types/activity'
 import type { FinancialMetrics, PropertyPerformance } from '#types/core'
+import type { PropertyPerformanceRpcResponse } from '#types/database-rpc'
 import type { DashboardStats } from '#types/stats'
 import type { MetricTrend, TimeSeriesDataPoint } from '#types/analytics'
 import { revenueTrendsQuery, occupancyTrendsQuery } from './query-keys/analytics-keys'
@@ -204,9 +205,33 @@ const fetchOwnerDashboardData = async (): Promise<OwnerDashboardData> => {
 		stats: DashboardStats
 		trends: Record<string, MetricTrend>
 		time_series: Record<string, TimeSeriesDataPoint[]>
-		property_performance: PropertyPerformance[]
+		property_performance: PropertyPerformanceRpcResponse[]
 		activities: ActivityItem[]
 	}
+
+	// The get_dashboard_data_v2 RPC emits property_performance rows with
+	// `property_name` / `address` keys (see PropertyPerformanceRpcResponse).
+	// The downstream PropertyPerformance type uses `property` / `address_line1`,
+	// so map the RPC shape onto it here. Without this map the dashboard sort
+	// crashes with "Cannot read properties of undefined (reading 'localeCompare')"
+	// because every row's `property` field is undefined at runtime.
+	const propertyPerformance: PropertyPerformance[] =
+		(result.property_performance ?? []).map(row => ({
+			property: row.property_name,
+			property_id: row.property_id,
+			totalUnits: row.total_units,
+			occupiedUnits: row.occupied_units,
+			vacantUnits: row.vacant_units,
+			occupancyRate: row.occupancy_rate,
+			revenue: row.annual_revenue,
+			monthlyRevenue: row.monthly_revenue,
+			potentialRevenue: row.potential_revenue,
+			address_line1: row.address,
+			property_type: row.property_type,
+			status: row.status as PropertyPerformance['status'],
+			trend: 'stable',
+			trendPercentage: 0,
+		}))
 
 	return {
 		stats: result.stats,
@@ -221,7 +246,7 @@ const fetchOwnerDashboardData = async (): Promise<OwnerDashboardData> => {
 			occupancyRate: result.time_series?.occupancy_rate ?? [],
 			monthlyRevenue: result.time_series?.monthly_revenue ?? []
 		},
-		propertyPerformance: result.property_performance ?? []
+		propertyPerformance
 	}
 }
 
