@@ -100,12 +100,14 @@ describe('Tenants RLS — cross-tenant isolation', () => {
 
   // ---------------------------------------------------------------------------
   // UPDATE isolation
-  // Tenants UPDATE policy: user_id = auth.uid()
-  // Only the tenant themselves can update their record.
-  // Owners can SELECT but not UPDATE tenant records.
+  // Tenants UPDATE policy (post-demolition, landlord-only era):
+  //   USING / WITH CHECK: owner_user_id = auth.uid()
+  // Tenants are records, not users (per CLAUDE.md "no tenant portal, no
+  // tenant auth accounts"). Landlords own + edit tenant records on their
+  // properties; cross-owner mutation is what RLS blocks.
   // ---------------------------------------------------------------------------
 
-  it('owner A cannot update a tenant record they can view', async () => {
+  it('owner A can update their own tenant record', async () => {
     const { data: tenants } = await clientA
       .from('tenants')
       .select('id')
@@ -115,17 +117,15 @@ describe('Tenants RLS — cross-tenant isolation', () => {
     // Skip if owner A has no visible tenants
     if (!tenants) return
 
-    // Owner A can see the tenant but cannot update (policy requires user_id = auth.uid())
     const { data, error } = await clientA
       .from('tenants')
-      .update({ emergency_contact_name: 'RLS Hijack' })
+      .update({ emergency_contact_name: 'RLS Update Probe' })
       .eq('id', tenants.id)
       .select('id')
 
-    // The UPDATE USING clause fails because ownerAId != tenant.user_id
-    // PostgREST returns 0 rows
+    // Owner A's own tenant — RLS allows the update.
     expect(error).toBeNull()
-    expect(data).toEqual([])
+    expect(data).toHaveLength(1)
   })
 
   it('owner B cannot update a tenant record visible to owner A', async () => {
@@ -152,31 +152,17 @@ describe('Tenants RLS — cross-tenant isolation', () => {
 
   // ---------------------------------------------------------------------------
   // DELETE isolation
-  // Tenants DELETE policy: user_id = auth.uid()
-  // Only the tenant themselves can delete their record.
+  // Tenants DELETE policy (post-demolition, landlord-only era):
+  //   USING: owner_user_id = auth.uid()
+  // Owners can hard-delete their own tenant records when no FK references
+  // them. Cross-owner DELETE is blocked by RLS USING.
+  //
+  // We don't assert a happy-path DELETE here because tenants in test data
+  // are typically referenced by leases (FK 23503), and we don't want to
+  // teardown lease fixtures from another suite. The cross-owner negative
+  // case below covers the isolation contract; the FK case is exercised by
+  // the GDPR / soft-delete suites.
   // ---------------------------------------------------------------------------
-
-  it('owner A cannot delete a tenant record they can view', async () => {
-    const { data: tenants } = await clientA
-      .from('tenants')
-      .select('id')
-      .limit(1)
-      .single()
-
-    // Skip if no tenants
-    if (!tenants) return
-
-    // Owner A can see the tenant but cannot delete (policy requires user_id = auth.uid())
-    const { data, error } = await clientA
-      .from('tenants')
-      .delete()
-      .eq('id', tenants.id)
-      .select('id')
-
-    // The DELETE USING clause fails because ownerAId != tenant.user_id
-    expect(error).toBeNull()
-    expect(data).toEqual([])
-  })
 
   it('owner B cannot delete a tenant record visible to owner A', async () => {
     const { data: tenants } = await clientA
