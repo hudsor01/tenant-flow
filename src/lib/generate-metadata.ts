@@ -33,8 +33,9 @@ function createDefaultMetadata(): Metadata {
 		},
 		description:
 			'Property administration software built for property owners and real estate investors. Track leases, maintenance, tenants, and finances in one place. 14-day free trial.',
-		keywords:
-			'landlord software, property management software for landlords, rental property management, lease management software, tenant records, maintenance tracking, document vault, lease e-signing, real estate investor software, rental management app, property accounting',
+		// `keywords` meta is ignored by Google (confirmed unchanged since
+		// the 2009 Search Central post) and Bing. Stripped — was dead
+		// bytes in every page <head>.
 		authors: [{ name: 'TenantFlow' }],
 		creator: 'TenantFlow',
 		publisher: 'TenantFlow',
@@ -42,9 +43,10 @@ function createDefaultMetadata(): Metadata {
 			'index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1',
 		alternates: {
 			canonical: SITE_URL,
-			languages: {
-				'en-US': SITE_URL
-			}
+			// `languages` was set to `{ 'en-US': SITE_URL }` — declaring an
+			// alternate that equals the canonical is a no-op signal that
+			// some hreflang validators flag. Removed until we ship real
+			// localized content.
 		},
 		openGraph: {
 			title: 'TenantFlow — Property Management Software for Property Owners',
@@ -76,6 +78,7 @@ function createDefaultMetadata(): Metadata {
 			title: 'TenantFlow — Property Management Software for Property Owners',
 			description:
 				'All-in-one rental property administration. Track leases, maintenance, and tenants. Plans from $29/mo.',
+			site: '@tenantflow',
 			creator: '@tenantflow',
 			images: [`${SITE_URL}/images/property-management-og.jpg`]
 		},
@@ -99,7 +102,13 @@ function createDefaultMetadata(): Metadata {
 				{
 					url: '/safari-pinned-tab.svg',
 					rel: 'mask-icon',
-					color: 'var(--color-info)'
+					// Must be a valid CSS color literal — `var(--color-info)`
+					// would not resolve in the rendered <meta> tag because
+					// CSS custom properties don't apply to HTML attribute
+					// values. Hex matches `--color-primary` so the pinned-tab
+					// icon stays brand-aligned.
+					// eslint-disable-next-line color-tokens/no-hex-colors -- HTML meta attribute values cannot reference CSS variables
+					color: '#2563eb'
 				}
 			]
 		},
@@ -135,9 +144,12 @@ export function getJsonLd() {
 		description:
 			'Property administration software for property owners and real estate investors. Track leases, maintenance, and tenants. 14-day free trial.',
 		foundingDate: '2024',
+		// E.164-formatted business line (Schema.org expects digits-only,
+		// hyphens optional). The previous vanity `+1-888-TENANT-1`
+		// contained letters and was rejected by Google's validator.
 		contactPoint: {
 			'@type': 'ContactPoint',
-			telephone: '+1-888-TENANT-1',
+			telephone: '+1-214-843-0779',
 			contactType: 'Customer Service',
 			email: 'support@tenantflow.app',
 			areaServed: 'US',

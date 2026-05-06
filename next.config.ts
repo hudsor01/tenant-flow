@@ -38,6 +38,20 @@ const nextConfig: NextConfig = {
 		]
 	},
 
+	async redirects() {
+		return [
+			{
+				// Password-manager well-known endpoint (W3C draft, consumed by
+				// 1Password, Bitwarden, iCloud Keychain, Chrome, Firefox, Edge).
+				// They follow the redirect to the actual change-password page
+				// when a user clicks "change password" on a saved credential.
+				source: '/.well-known/change-password',
+				destination: '/auth/update-password',
+				permanent: false,
+			},
+		]
+	},
+
 }
 
 // Enable source maps in production, but not preview deployments

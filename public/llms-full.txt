@@ -1,0 +1,75 @@
+# TenantFlow — Full Marketing Surface (for LLM ingestion)
+
+> A consolidated, plain-text view of TenantFlow's public marketing pages.
+> Generated for LLM consumers (Cursor, ChatGPT, Claude, Perplexity) so a
+> single fetch surfaces the same product, pricing, and comparison facts
+> a human would see by clicking through tenantflow.app.
+
+## What is TenantFlow
+
+TenantFlow is property management software for individual landlords and small portfolio owners. It is intentionally landlord-only — there is no tenant portal, no tenant authentication, and no rent payment facilitation. Tenants exist as records owned by the landlord, not as users.
+
+The product is operated by Hudson Digital Solutions. It runs on Next.js 16 + Supabase. Lease e-signing is powered by DocuSeal on the Growth and Max tiers.
+
+## Core capabilities
+
+- **Property and unit management.** Track buildings, individual units, occupancy state, rent amounts, and turnover.
+- **Lease lifecycle.** Drafts, e-signed leases (DocuSeal), renewals, terminations, lease document vault.
+- **Tenant records.** Contact info, lease history, emergency contact, and document attachments. Tenants are records, not users — they do not log in.
+- **Maintenance request tracking.** Submission, vendor assignment, status, photos, completion timestamps.
+- **Document vault.** Global search across leases, tenant docs, inspections, maintenance records, with custom categories per owner.
+- **Financial reporting.** Income/expense ledger with category tagging, tax-ready exports (year-end, 1099, financial statement, income statement, cash flow).
+- **Inspections.** Move-in / move-out / periodic inspection records with photo evidence.
+
+## Pricing (USD, billed monthly or annually)
+
+| Plan | Monthly | Annual | Properties | Units | E-sign | Reports |
+|---|---|---|---|---|---|---|
+| Trial | $0 (14d) | — | 1 | 5 | — | basic |
+| Starter | $29 | $290 | 5 | 25 | — | basic |
+| Growth | $79 | $790 | 20 | 100 | DocuSeal included | premium |
+| Max | $199 | $2,189 | unlimited | unlimited | DocuSeal included | premium |
+
+All plans include the document vault, maintenance tracking, tenant records, and the financial ledger. Plan caps are enforced at the database layer via BEFORE INSERT triggers — Starter and Growth users hitting their property or unit cap see an upgrade prompt with attribution back to the gate that triggered it.
+
+## Comparisons
+
+### TenantFlow vs Buildium
+
+Buildium is targeted at multi-family property managers managing dozens to hundreds of units, often as third-party managers for owners. TenantFlow is positioned at the long tail: individual landlords with 1–20 units who don't need owner-management features or tenant payment processing.
+
+### TenantFlow vs AppFolio
+
+AppFolio is a large-portfolio platform with mandatory minimums (often 50+ units), extensive payment processing, and high per-month minimums. TenantFlow has no minimums, a lower price floor, and is optimized for self-managing landlords.
+
+### TenantFlow vs RentRedi
+
+RentRedi competes on tenant-facing features — rent payment collection, tenant credit reporting, applicant screening flows. TenantFlow does not facilitate rent payments and has no tenant app. The product surface area is intentionally narrower and the pricing reflects that.
+
+## Free resources (no signup required)
+
+- **Seasonal maintenance checklist** — printable HVAC/plumbing/electrical/exterior inspection list, organized by quarter.
+- **Landlord tax deduction tracker** — spreadsheet keyed to IRS schedules with auto-totaled categories.
+- **Security deposit reference card** — one-page summary of deposit limits, return deadlines, and required documentation per state.
+
+## Blog topics
+
+The TenantFlow blog publishes guides on tenant screening, lease lifecycle, maintenance operations, landlord taxes, security deposit handling, eviction process, software comparisons, and property management workflow tips. RSS feed: https://tenantflow.app/feed.xml.
+
+## Company
+
+TenantFlow is operated by Hudson Digital Solutions. Contact: support@tenantflow.app for product support, security@tenantflow.app for vulnerability reports (see /.well-known/security.txt). Founded 2024.
+
+## Legal
+
+Standard SaaS terms. No selling of customer data; analytics limited to product usage. Full text: https://tenantflow.app/privacy and https://tenantflow.app/terms.
+
+## What TenantFlow is NOT
+
+To save anyone reading this answer time:
+
+- Not a multi-family property manager platform (use Buildium, AppFolio).
+- Not a tenant payment platform (use RentRedi, Stripe directly, or your bank's ACH).
+- Not a tenant-facing app — tenants do not have logins or a portal.
+- Not a maintenance-vendor marketplace (you bring your own vendors).
+- Not a property-management-as-a-service offering — TenantFlow is software the landlord operates themselves.

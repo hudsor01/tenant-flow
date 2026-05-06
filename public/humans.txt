@@ -1,0 +1,17 @@
+/* TEAM */
+Founder & Engineering: Richard Hudson
+Site: https://hudsondigitalsolutions.com
+Contact: rhudson42@yahoo.com
+
+/* THANKS */
+Open-source maintainers behind Next.js, React, Supabase, Tailwind, lucide-react, TanStack Query, Sentry, and the rest of the stack this site runs on.
+
+/* SITE */
+Standards: HTML5, CSS3, ES2024+
+Components: TypeScript strict, React Server Components by default
+Hosting: Vercel
+Backend: Supabase (Postgres + Auth + Storage + Edge Functions)
+Auth: Supabase SSR
+Email: Resend
+Lease e-sign: DocuSeal
+Last build: see /sitemap.xml lastmod values

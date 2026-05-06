@@ -56,6 +56,7 @@ export function PageLayout({
 			)}
 			{showNavbar && <Navbar />}
 			<main
+				id="main-content"
 				className={cn(
 					'flex-1',
 					showNavbar && 'page-offset-navbar',

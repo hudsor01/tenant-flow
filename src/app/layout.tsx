@@ -4,7 +4,7 @@ import * as Sentry from '@sentry/nextjs'
 import { Analytics } from '@vercel/analytics/next'
 import { SpeedInsights } from '@vercel/speed-insights/next'
 import { GeistMono } from 'geist/font/mono'
-import type { Metadata } from 'next'
+import type { Metadata, Viewport } from 'next'
 import { Playfair_Display, Roboto } from 'next/font/google'
 
 import { ErrorBoundary } from '#components/error-boundary/error-boundary'
@@ -31,6 +31,22 @@ const playfairDisplay = Playfair_Display({
 	variable: '--font-display'
 })
 
+// `themeColor` and `msapplication-TileColor` are HTML meta attribute
+// values, not CSS — Tailwind tokens / CSS custom properties don't apply.
+// The previous `var(--color-info)` rendered as a literal string and was
+// silently ignored by browsers. Hex matches `--color-primary` (#2563eb).
+/* eslint-disable color-tokens/no-hex-colors -- HTML meta attribute values cannot reference CSS variables */
+export const viewport: Viewport = {
+	width: 'device-width',
+	initialScale: 1,
+	colorScheme: 'light dark',
+	themeColor: [
+		{ media: '(prefers-color-scheme: light)', color: '#2563eb' },
+		{ media: '(prefers-color-scheme: dark)', color: '#1e3a8a' },
+	],
+}
+/* eslint-enable color-tokens/no-hex-colors */
+
 export async function generateMetadata(): Promise<Metadata> {
 	const metadata = await generateSiteMetadata()
 	return {
@@ -54,21 +70,40 @@ export default async function RootLayout({
 	return (
 		<html lang="en" suppressHydrationWarning>
 			<head>
-				<meta name="viewport" content="width=device-width, initial-scale=1" />
-				<meta name="theme-color" content="var(--color-info)" />
-				<meta name="color-scheme" content="light dark" />
+				{/* viewport + theme-color + color-scheme are emitted by the
+				    Viewport API export above (not raw <meta> tags) so they
+				    can be route-overridden via Next.js metadata API. */}
 				<meta name="mobile-web-app-capable" content="yes" />
 				<meta name="apple-mobile-web-app-capable" content="yes" />
 				<meta name="apple-mobile-web-app-status-bar-style" content="default" />
 				<meta name="apple-mobile-web-app-title" content="TenantFlow" />
 				<meta name="application-name" content="TenantFlow" />
-				<meta name="msapplication-TileColor" content="var(--color-info)" />
-				<meta name="msapplication-config" content="/browserconfig.xml" />
+				{/* eslint-disable-next-line color-tokens/no-hex-colors -- HTML meta attribute values cannot reference CSS variables */}
+				<meta name="msapplication-TileColor" content="#2563eb" />
+				{/* Blog discovery: every RSS-aware reader (Feedly, NetNewsWire,
+				    Slack/Discord bots, AI crawlers fetching fresh content) checks
+				    for this <link>. Cheap to ship and there's a real ecosystem
+				    on the receiving side. */}
+				<link
+					rel="alternate"
+					type="application/rss+xml"
+					title="TenantFlow Blog"
+					href="/feed.xml"
+				/>
 				<SeoJsonLd />
 			</head>
 			<body
 				className={`${roboto.variable} ${playfairDisplay.variable} ${GeistMono.variable} font-sans antialiased`}
 			>
+				{/* Skip-to-content for keyboard and screen-reader users. The
+				    target id="main-content" is set on <main> in PageLayout and
+				    on the dashboard shell. CLAUDE.md mandates this link. */}
+				<a
+					href="#main-content"
+					className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:rounded focus:bg-background focus:px-4 focus:py-2 focus:text-sm focus:font-semibold focus:shadow-md focus:ring-2 focus:ring-primary"
+				>
+					Skip to main content
+				</a>
 				<Providers>
 					<div className="min-h-screen bg-background text-foreground flex flex-col">
 						<ErrorBoundary>{children} </ErrorBoundary>
