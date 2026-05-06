@@ -133,8 +133,11 @@ export default async function Page({ params }: Props) {
 				dateModified: post.updated_at ?? post.published_at,
 				// Author byline on the rendered page reads "TenantFlow Team", and
 				// individual posts are not reliably attributed to a single human.
-				// Schema author follows the visible byline so the entity matches.
+				// Schema author follows the visible byline so the entity matches —
+				// `authorType: 'Organization'` because a team/brand isn't a
+				// schema.org `Person`.
 				authorName: 'TenantFlow Team',
+				authorType: 'Organization',
 				image: post.featured_image ?? undefined,
 				wordCount,
 				keywords: Array.isArray(post.tags) ? post.tags.filter((t): t is string => typeof t === 'string') : undefined,

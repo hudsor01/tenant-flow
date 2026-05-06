@@ -61,9 +61,24 @@ export default function robots(): MetadataRoute.Robots {
 	// `MetadataRoute.Robots.rules[].disallow` is a mutable string[]; spread
 	// the readonly arrays onto fresh ones to satisfy Next.js's type.
 	const privatePaths = [...PRIVATE_PATHS]
+
+	// Explicitly allow the discovery files some bots treat as a safe
+	// fetch list. Most crawlers honor `Allow:` paths even when the path
+	// would otherwise match a `Disallow:` pattern, but a few legacy
+	// implementations interpret broad `Disallow:` rules as overriding
+	// `Allow:`. Listing the LLM and reader entry points by name is
+	// belt-and-suspenders.
+	const discoveryAllowPaths = [
+		'/llms.txt',
+		'/llms-full.txt',
+		'/feed.xml',
+		'/sitemap.xml',
+		'/.well-known/security.txt',
+	]
+
 	const aiBotRules = AI_USER_AGENTS.map(userAgent => ({
 		userAgent,
-		allow: ['/'],
+		allow: ['/', ...discoveryAllowPaths],
 		disallow: [...privatePaths],
 	}))
 
@@ -71,7 +86,12 @@ export default function robots(): MetadataRoute.Robots {
 		rules: [
 			{
 				userAgent: '*',
-				allow: ['/', '/_next/static/', '/_next/image/'],
+				allow: [
+					'/',
+					'/_next/static/',
+					'/_next/image/',
+					...discoveryAllowPaths,
+				],
 				disallow: privatePaths,
 			},
 			...aiBotRules,

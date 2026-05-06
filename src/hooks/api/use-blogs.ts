@@ -23,15 +23,10 @@ export function useBlogs(page: number = 1, limit: number = 9) {
 	})
 }
 
-/**
- * Fetch a single blog by slug
- * Returns BlogDetail or null (PGRST116 handling preserved in factory)
- */
-export function useBlogBySlug(slug: string) {
-	return useQuery({
-		...blogQueries.detail(slug)
-	})
-}
+// `useBlogBySlug` was removed when the blog post page was refactored to
+// receive `post` as a server-rendered prop (closes a soft-404 risk where
+// the body shipped only after hydration). The `blogQueries.detail()`
+// factory it wrapped is still useful for prefetching from the hub list.
 
 /**
  * Fetch paginated blogs by category

@@ -50,16 +50,14 @@ vi.mock('next/image', () => ({
 	),
 }))
 
-vi.mock('next/dynamic', () => ({
-	default: (importFn: () => Promise<{ default: React.ComponentType<{ content: string }> }>) => {
-		const Component = (props: { content: string }) => (
-			<div data-testid="markdown-content">{props.content}</div>
-		)
-		// Eagerly resolve the import so component renders synchronously in tests
-		importFn()
-		Component.displayName = 'DynamicMarkdownContent'
-		return Component
-	},
+// MarkdownContent is now a direct (server-renderable) import — the
+// previous `dynamic(import, { ssr: false })` wrapper was dropped so
+// the article body lands in initial HTML for SEO/AI-crawler visibility.
+// Tests mock the module directly instead of through `next/dynamic`.
+vi.mock('./markdown-content', () => ({
+	default: (props: { content: string }) => (
+		<div data-testid="markdown-content">{props.content}</div>
+	),
 }))
 
 vi.mock('#components/blog/blog-card', () => ({
@@ -80,11 +78,10 @@ vi.mock('#components/blog/lead-magnet-cta', () => ({
 	),
 }))
 
-vi.mock('#components/shared/blog-loading-skeleton', () => ({
-	BlogLoadingSkeleton: () => (
-		<div data-testid="blog-loading-skeleton">Loading...</div>
-	),
-}))
+// blog-loading-skeleton mock dropped — the page-level loading branch
+// (gated on `useBlogBySlug` returning isLoading) was removed when the
+// hook was retired in favor of server-rendered post props. The
+// component itself still exists for other consumers.
 
 vi.mock('#components/layout/page-layout', () => ({
 	PageLayout: ({ children }: { children: React.ReactNode }) => (
@@ -264,8 +261,11 @@ describe('BlogArticlePage', () => {
 		expect(emailInputs).toHaveLength(0)
 	})
 
-	// Loading + not-found tests removed: the server `page.tsx` now resolves
-	// `post` before this client component renders, calling `notFound()` for
-	// missing slugs and never reaching this component with null post. The
-	// loading-skeleton branch was removed alongside `useBlogBySlug`.
+	// Loading + not-found tests removed: the server `page.tsx` now
+	// resolves `post` before this client component renders, calling
+	// `notFound()` for missing slugs and never reaching this component
+	// with null post. The page-level loading skeleton branch (which
+	// fired while `useBlogBySlug` was loading) was removed when that
+	// hook was dropped. MarkdownContent is now a server-renderable
+	// direct import, no `dynamic({ ssr: false })` skeleton remains.
 })

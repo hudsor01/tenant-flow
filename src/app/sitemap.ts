@@ -185,7 +185,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 				stack: error instanceof Error ? error.stack : undefined,
 			},
 		})
-		// Continue with static pages only.
+		// Continue with static pages only. `blogHubLastModified` and
+		// `resourcesHubLastModified` stay undefined → the hub URLs ship
+		// without `lastModified`, which is the documented intent: emit
+		// no signal rather than a stale or fake one. The trade-off in
+		// the failure path is that a transient DB outage drops every
+		// blog freshness signal until the next ISR rebuild succeeds.
 	}
 
 	const contentHubs: MetadataRoute.Sitemap = [

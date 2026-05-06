@@ -1,7 +1,7 @@
 /* TEAM */
 Founder & Engineering: Richard Hudson
 Site: https://hudsondigitalsolutions.com
-Contact: rhudson42@yahoo.com
+Contact: support@tenantflow.app
 
 /* THANKS */
 Open-source maintainers behind Next.js, React, Supabase, Tailwind, lucide-react, TanStack Query, Sentry, and the rest of the stack this site runs on.
@@ -14,4 +14,8 @@ Backend: Supabase (Postgres + Auth + Storage + Edge Functions)
 Auth: Supabase SSR
 Email: Resend
 Lease e-sign: DocuSeal
-Last build: see /sitemap.xml lastmod values
+
+/* See also */
+- /sitemap.xml — fresh URL inventory with real lastmod values
+- /llms.txt and /llms-full.txt — curated content for LLM consumers
+- /feed.xml — blog RSS feed

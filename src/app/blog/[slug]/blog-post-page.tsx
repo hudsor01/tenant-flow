@@ -1,7 +1,6 @@
 'use client'
 
 import { useState } from 'react'
-import dynamic from 'next/dynamic'
 import Image from 'next/image'
 import Link from 'next/link'
 import { ArrowLeft, ArrowRight, Clock, User } from 'lucide-react'
@@ -12,8 +11,8 @@ import { BlogCard } from '#components/blog/blog-card'
 import { BlogInlineCta } from '#components/blog/blog-inline-cta'
 import { LeadMagnetCta } from '#components/blog/lead-magnet-cta'
 import { NewsletterSignup } from '#components/blog/newsletter-signup'
-import { BlogLoadingSkeleton } from '#components/shared/blog-loading-skeleton'
-import { useBlogCategories, useRelatedPosts } from '#hooks/api/use-blogs'
+import MarkdownContent from './markdown-content'
+import { useRelatedPosts } from '#hooks/api/use-blogs'
 import { BLOG_TO_COMPETITOR, BLOG_TO_RESOURCE } from '#lib/content-links'
 import { COMPETITORS } from '#app/compare/[competitor]/compare-data'
 
@@ -34,11 +33,6 @@ export type BlogPostProps = {
 	}
 	slug: string
 }
-
-const MarkdownContent = dynamic(() => import('./markdown-content'), {
-	ssr: false,
-	loading: () => <BlogLoadingSkeleton />
-})
 
 /**
  * Split markdown content at a `## ` heading near ~40% of the total length.
@@ -99,11 +93,11 @@ function splitContentForCta(content: string): [string, string] {
 export default function BlogPostPage({ post, slug }: BlogPostProps) {
 	const [imageLoaded, setImageLoaded] = useState(false)
 
-	// Categories + related-posts still client-fetched (small payloads, not
-	// SEO-critical for the article body). The server passes the post itself
-	// so the initial HTML has the h1, excerpt, hero image, author, and date —
-	// the fields crawlers actually parse for Article rich results.
-	const { data: categories } = useBlogCategories()
+	// Related-posts is the only remaining client fetch. `useBlogCategories`
+	// was dropped — its only consumer was a category-name → slug lookup
+	// that's deterministic from the visible category string. The server
+	// already passes `post.category`, so a network round-trip just to
+	// confirm `lower-and-dasherize` was wasted.
 	const { data: relatedPosts } = useRelatedPosts(
 		post.category ?? '',
 		slug,
@@ -116,10 +110,11 @@ export default function BlogPostPage({ post, slug }: BlogPostProps) {
 	const competitorSlug = BLOG_TO_COMPETITOR[slug]
 	const resourceSlug = BLOG_TO_RESOURCE[slug]
 
-	// Resolve category slug from database categories
+	// Category slug is deterministic from the visible category name —
+	// same lower-and-dasherize transform the sitemap uses to build the
+	// `/blog/category/<slug>` URLs. No DB round-trip needed here.
 	const postCategory = post.category ?? ''
-	const categoryMatch = categories?.find(c => c.name === postCategory)
-	const categorySlug = categoryMatch?.slug ?? postCategory.toLowerCase().replace(/\s+/g, '-')
+	const categorySlug = postCategory.toLowerCase().replace(/\s+/g, '-')
 
 	return (
 		<PageLayout>

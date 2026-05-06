@@ -27,8 +27,8 @@ The product is operated by Hudson Digital Solutions. It runs on Next.js 16 + Sup
 |---|---|---|---|---|---|---|
 | Trial | $0 (14d) | — | 1 | 5 | — | basic |
 | Starter | $29 | $290 | 5 | 25 | — | basic |
-| Growth | $79 | $790 | 20 | 100 | DocuSeal included | premium |
-| Max | $199 | $2,189 | unlimited | unlimited | DocuSeal included | premium |
+| Growth | $79 | $790 | 20 | 100 | DocuSeal (25/mo) | premium |
+| Max | $199 | $2,189 | unlimited | unlimited | DocuSeal (unlimited) | premium |
 
 All plans include the document vault, maintenance tracking, tenant records, and the financial ledger. Plan caps are enforced at the database layer via BEFORE INSERT triggers — Starter and Growth users hitting their property or unit cap see an upgrade prompt with attribution back to the gate that triggered it.
 

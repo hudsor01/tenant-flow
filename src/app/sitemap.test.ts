@@ -1,4 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { readFileSync } from 'node:fs'
+import { resolve } from 'node:path'
 
 vi.mock('#env', () => ({
 	env: { NEXT_PUBLIC_APP_URL: 'https://tenantflow.app' }
@@ -43,16 +45,48 @@ const mockBlogPosts = [
 	},
 ]
 
+/**
+ * Build a Supabase query-builder mock that honors `.order(column, opts)`.
+ *
+ * Production code calls `.order('published_at', { ascending: false })`,
+ * so the mock has to actually sort the data — otherwise tests pass even
+ * when the implementation degrades to "use posts[0] verbatim". Sorting
+ * the fixture inside the mock means the test asserts the same shape
+ * production would emit, not the array order in the test file.
+ */
 function makeQueryBuilder() {
-	const result = { data: mockBlogPosts, error: null }
-	const builder = {
-		select: vi.fn().mockImplementation(() => makeQueryBuilder()),
-		eq: vi.fn().mockReturnThis(),
-		order: vi.fn().mockImplementation(() => Promise.resolve(result)),
+	let working = [...mockBlogPosts]
+	const result = () => ({ data: working, error: null })
+	const builder: {
+		select: (...args: unknown[]) => typeof builder
+		eq: (...args: unknown[]) => typeof builder
+		order: (column: string, opts?: { ascending?: boolean }) => typeof builder
 		then: (
-			resolve: (v: typeof result) => unknown,
-			_reject?: (e: unknown) => unknown
-		) => Promise.resolve(result).then(resolve, _reject)
+			resolve: (v: ReturnType<typeof result>) => unknown,
+			reject?: (e: unknown) => unknown
+		) => Promise<unknown>
+	} = {
+		select: vi.fn().mockImplementation(() => builder),
+		eq: vi.fn().mockImplementation(() => builder),
+		order: vi.fn().mockImplementation(
+			(column: string, opts?: { ascending?: boolean }) => {
+				const ascending = opts?.ascending ?? true
+				working = [...working].sort((a, b) => {
+					const av =
+						(a as unknown as Record<string, string | null>)[column] ?? ''
+					const bv =
+						(b as unknown as Record<string, string | null>)[column] ?? ''
+					if (av === bv) return 0
+					if (ascending) return av < bv ? -1 : 1
+					return av < bv ? 1 : -1
+				})
+				return builder
+			}
+		),
+		then: (
+			resolve: (v: ReturnType<typeof result>) => unknown,
+			reject?: (e: unknown) => unknown
+		) => Promise.resolve(result()).then(resolve, reject)
 	}
 	return builder
 }
@@ -203,13 +237,76 @@ describe('sitemap()', () => {
 		const entries = await sitemap()
 		const blogHub = entries.find(e => e.url === 'https://tenantflow.app/blog')
 		expect(blogHub).toBeDefined()
-		// First post in the mock (descending order by published_at) is
-		// post-two with published_at 2026-02-20 and no updated_at.
-		// Test mock returns posts in array order, so posts[0] is post-one
-		// with updated_at 2026-01-20. Real production query is
-		// `.order('published_at', desc)` — the test mock returns the
-		// array as-is. Asserting the first array element's stamp is the
-		// honest test of the implementation.
-		expect(blogHub!.lastModified).toBe('2026-01-20T00:00:00Z')
+		// Production query is `.order('published_at', desc)` — the
+		// mock now honors that order. The freshest post is post-two
+		// (published_at 2026-02-20, no updated_at), so its
+		// published_at is what the hub gets.
+		expect(blogHub!.lastModified).toBe('2026-02-20T00:00:00Z')
+	})
+})
+
+/**
+ * Drift guard: the sitemap's hardcoded "Last Updated" date constants
+ * must match the visible date in each legal page body. The comment in
+ * sitemap.ts says "update both this constant and the page when the
+ * document actually changes" — that's a manual discipline rule. This
+ * test catches the case where one is updated and the other isn't.
+ *
+ * Reads the .tsx files as raw text and greps for "Last Updated: <Month
+ * Day, Year>" (the format used in the page bodies). Asserts the
+ * resulting ISO date matches the constant the sitemap emits.
+ */
+describe('sitemap legal-page lastmod drift guard', () => {
+	const repoRoot = resolve(__dirname, '..', '..')
+
+	function readVisibleDate(relPath: string): string {
+		const source = readFileSync(resolve(repoRoot, relPath), 'utf8')
+		// Match "Last Updated: October 5, 2025" (longform month name) on
+		// any line of the source. Use a non-greedy match for the date
+		// itself so trailing JSX or HTML doesn't leak in.
+		const match = source.match(/Last Updated:?\s*(?<date>[A-Z][a-z]+ \d{1,2}, \d{4})/)
+		const dateStr = match?.groups?.date
+		if (!dateStr) {
+			throw new Error(
+				`Couldn't find "Last Updated:" line in ${relPath}. ` +
+					`Either the page format changed or the constant lookup needs updating.`
+			)
+		}
+		// Convert "October 5, 2025" → "2025-10-05" via Date roundtrip,
+		// then format with YYYY-MM-DD slice.
+		const d = new Date(dateStr)
+		if (Number.isNaN(d.getTime())) {
+			throw new Error(`Couldn't parse visible date "${dateStr}" in ${relPath}`)
+		}
+		// `toISOString()` is UTC; the date portion is what we want.
+		return d.toISOString().slice(0, 10)
+	}
+
+	it('TERMS_LAST_UPDATED matches src/app/terms/page.tsx visible date', async () => {
+		const { default: sitemap } = await import('./sitemap')
+		const entries = await sitemap()
+		const terms = entries.find(e => e.url === 'https://tenantflow.app/terms')
+		const visible = readVisibleDate('src/app/terms/page.tsx')
+		expect(terms?.lastModified).toBe(visible)
+	})
+
+	it('PRIVACY_LAST_UPDATED matches src/app/privacy/page.tsx visible date', async () => {
+		const { default: sitemap } = await import('./sitemap')
+		const entries = await sitemap()
+		const privacy = entries.find(
+			e => e.url === 'https://tenantflow.app/privacy'
+		)
+		const visible = readVisibleDate('src/app/privacy/page.tsx')
+		expect(privacy?.lastModified).toBe(visible)
+	})
+
+	it('SECURITY_POLICY_LAST_UPDATED matches src/app/security-policy/page.tsx visible date', async () => {
+		const { default: sitemap } = await import('./sitemap')
+		const entries = await sitemap()
+		const securityPolicy = entries.find(
+			e => e.url === 'https://tenantflow.app/security-policy'
+		)
+		const visible = readVisibleDate('src/app/security-policy/page.tsx')
+		expect(securityPolicy?.lastModified).toBe(visible)
 	})
 })

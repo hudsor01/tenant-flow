@@ -7,12 +7,19 @@ import { env } from '#env'
 // and the underlying `blogs` table doesn't change minute-to-minute.
 export const revalidate = 86400
 
+// Cap on items shipped per feed fetch. RSS clients don't paginate
+// feeds, so older posts simply won't appear in the channel once the
+// blog grows past this count. 50 is the conventional ceiling — Feedly,
+// NetNewsWire, and similar readers expect to see "recent" posts, not
+// the full archive (which is what /sitemap.xml is for).
+const FEED_ITEM_LIMIT = 50
+
 const logger = createLogger({ component: 'RssFeed' })
 
 /**
- * Escape a string for inclusion in XML CDATA + attribute contexts.
- * RSS 2.0 element bodies use CDATA for HTML; element values used as
- * attribute strings (e.g. inside `<link>` URLs) need entity-escaping.
+ * Entity-escape a string for inclusion in XML element/attribute values.
+ * RSS 2.0 element bodies use CDATA for HTML, so use `cdataEscape` for
+ * those; this helper is for raw element values like `<link>` URLs.
  */
 function xmlEscape(value: string): string {
 	return value
@@ -21,6 +28,19 @@ function xmlEscape(value: string): string {
 		.replace(/>/g, '&gt;')
 		.replace(/"/g, '&quot;')
 		.replace(/'/g, '&apos;')
+}
+
+/**
+ * Escape any literal `]]>` inside content destined for a CDATA section.
+ * The canonical RSS escape splits the section: end the current CDATA
+ * with `]]>`, then re-open with `<![CDATA[` after the literal `>`. Even
+ * though a typical blog excerpt won't contain `]]>`, the input is a
+ * database row that an admin or migration could populate with anything,
+ * and an unescaped `]]>` terminates the CDATA early and lets arbitrary
+ * XML follow.
+ */
+function cdataEscape(value: string): string {
+	return value.replace(/]]>/g, ']]]]><![CDATA[>')
 }
 
 function rfc822(date: string | null | undefined): string {
@@ -44,15 +64,12 @@ export async function GET(): Promise<Response> {
 
 	try {
 		const supabase = await createClient()
-		// Fetch the 50 most recent posts. RSS readers don't paginate;
-		// keeping the cap modest keeps the payload under the de-facto
-		// 100KB readers expect.
 		const { data, error } = await supabase
 			.from('blogs')
 			.select('slug, title, excerpt, published_at, updated_at, category')
 			.eq('status', 'published')
 			.order('published_at', { ascending: false })
-			.limit(50)
+			.limit(FEED_ITEM_LIMIT)
 
 		if (error) {
 			throw new Error(error.message)
@@ -85,7 +102,7 @@ export async function GET(): Promise<Response> {
 				post.category
 					? `      <category>${xmlEscape(post.category)}</category>`
 					: '',
-				`      <description><![CDATA[${description}]]></description>`,
+				`      <description><![CDATA[${cdataEscape(description)}]]></description>`,
 				'    </item>',
 			]
 				.filter(Boolean)

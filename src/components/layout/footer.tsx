@@ -80,13 +80,9 @@ export default function Footer() {
 
 				<div className="flex flex-wrap items-center justify-between gap-4 border-t border-border pt-6 text-sm text-muted-foreground">
 					<div className="flex items-center gap-2">
-						<div
-							className="flex items-center justify-center rounded bg-primary"
-							style={{ width: '1.25rem', height: '1.25rem' }}
-						>
+						<div className="flex items-center justify-center rounded bg-primary size-5">
 							<Home
-								className="text-primary-foreground"
-								style={{ width: '0.75rem', height: '0.75rem' }}
+								className="text-primary-foreground size-3"
 								aria-hidden="true"
 							/>
 						</div>

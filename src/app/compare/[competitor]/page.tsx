@@ -51,7 +51,12 @@ export async function generateMetadata({
 			title: `TenantFlow vs ${data.name}`,
 			description: data.metaDescription,
 			url: `${baseUrl}/compare/${slug}`,
-			type: 'article',
+			// `type: 'article'` would require og:article:published_time,
+			// og:article:author, og:article:section per OGP. The page is
+			// a static comparison landing surface — it's not a published
+			// article — so `website` is the honest type. Setting
+			// `siteName` explicitly so it doesn't depend on parent merge.
+			type: 'website',
 			siteName: 'TenantFlow',
 		},
 		twitter: {

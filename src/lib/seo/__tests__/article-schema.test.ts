@@ -52,11 +52,26 @@ describe('createArticleJsonLd', () => {
 		expect(result.dateModified).toBe('2026-01-16T10:00:00Z')
 	})
 
-	it('author is a Person object with name', () => {
+	it('author defaults to Person type with name', () => {
 		const result = toPlain(createArticleJsonLd(baseInput))
 		const author = result.author as Record<string, unknown>
 		expect(author['@type']).toBe('Person')
 		expect(author.name).toBe('Richard Hudson')
+	})
+
+	it('author respects authorType when provided (Organization for team bylines)', () => {
+		// Brand bylines like "TenantFlow Team" are Organization, not
+		// Person. Schema.org type must match the entity kind.
+		const result = toPlain(
+			createArticleJsonLd({
+				...baseInput,
+				authorName: 'TenantFlow Team',
+				authorType: 'Organization',
+			})
+		)
+		const author = result.author as Record<string, unknown>
+		expect(author['@type']).toBe('Organization')
+		expect(author.name).toBe('TenantFlow Team')
 	})
 
 	it('wordCount is included when provided', () => {
