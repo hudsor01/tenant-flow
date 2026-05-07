@@ -1,48 +1,82 @@
 /**
  * Integration tests for the P0 security hardening on `public.users`.
  *
- * Migration: 20260507190024_lock_privileged_user_columns_and_p0_security.sql
+ * Migrations:
+ *   - 20260507190024_lock_privileged_user_columns_and_p0_security.sql
+ *   - 20260507194555_p0_security_review_followups.sql
  *
- * Pins three independent fixes:
+ * Pins five fixes (3 original P0s + 2 cycle-1 review P0s):
  *
  *   P0-1  An authenticated user can no longer self-promote to admin or
  *         flip their own subscription state. Two layers of defense:
  *           (a) column-level GRANT UPDATE was narrowed to a 10-column
  *               allowlist (REVOKE … FROM authenticated; GRANT (cols)
- *               TO authenticated). PostgREST should refuse the write
- *               with 42501 (insufficient_privilege).
- *           (b) BEFORE-UPDATE trigger `users_guard_self_update` raises
- *               42501 if any privileged column changes when the caller
- *               is not service_role/postgres/supabase_admin.
- *         The trigger is a backstop; the column GRANT is the primary
- *         defense. PostgREST today returns 42501 from the column GRANT
- *         layer before the row reaches the trigger, but we assert on
- *         "the error code is 42501 / 'permission denied'" — either
- *         layer satisfies the contract.
+ *               TO authenticated). PostgREST refuses the write with
+ *               42501 (insufficient_privilege).
+ *           (b) BEFORE-UPDATE trigger `users_guard_self_update` (now
+ *               SECURITY INVOKER, allowlist-based) raises 42501 if the
+ *               jsonb projection of (NEW - allowed_cols) differs from
+ *               (OLD - allowed_cols), i.e., any privileged column
+ *               changed. The cycle-1 review caught that the original
+ *               trigger was non-functional (SECURITY DEFINER + inverted
+ *               check); both are corrected.
  *
  *   P0-2  `sign_lease_and_check_activation` is no longer EXECUTE-able
  *         from `authenticated` or PUBLIC. App code never calls it; lease
  *         signatures flow through the HMAC-protected `docuseal-webhook`
- *         which runs as service_role. PostgREST returns 42883
- *         (undefined_function) because PostgREST resolves a function only
- *         if the caller has EXECUTE — once revoked, the function is
- *         invisible to PostgREST under the `authenticated` role.
+ *         which runs as service_role.
  *
  *   P0-3  The path-checkless INSERT policy on `storage.objects` for
  *         the `property-images` bucket was dropped. Only the strict
  *         `Property owners can upload images` policy remains. Owner A
- *         can upload to A's property folder; Owner A cannot upload to
- *         Owner B's property folder.
+ *         can upload to A's property folder; Owner B cannot upload to
+ *         Owner A's property folder.
+ *
+ *   P0-A  Belt-and-braces trigger now actually fires. With grant drift
+ *         simulated (re-grant `is_admin` to authenticated), an UPDATE
+ *         attempting to set `is_admin=true` is blocked by the trigger
+ *         with 42501. We assert the GRANT-layer rejection in the P0-1
+ *         tests; the trigger-layer rejection can only be proved by
+ *         re-granting which requires service-role and is therefore
+ *         covered by the empirical reproduction in the migration's
+ *         comment block, not a runtime test.
+ *
+ *   P0-B  REVOKE INSERT, DELETE on `public.users` from authenticated
+ *         closes the delete-then-insert escalation path. PostgREST
+ *         surfaces both as 42501.
  */
 
 import { createTestClient, getTestCredentials } from '../setup/supabase-client'
 import type { SupabaseClient } from '@supabase/supabase-js'
+
+const PROBE_PROPERTY_NAME_PREFIX = 'RLS-probe-users-priv-'
+
+interface SafeUserSnapshot {
+	phone: string | null
+	emergency_contact_name: string | null
+	emergency_contact_phone: string | null
+	emergency_contact_relationship: string | null
+}
+
+/** Type guard for the Supabase Storage error shape that exposes statusCode. */
+function isStorageStatusError(
+	value: unknown
+): value is { statusCode: string | number; message?: string } {
+	return (
+		typeof value === 'object' &&
+		value !== null &&
+		'statusCode' in value &&
+		((typeof (value as { statusCode: unknown }).statusCode === 'string') ||
+			(typeof (value as { statusCode: unknown }).statusCode === 'number'))
+	)
+}
 
 describe('P0 security hardening — public.users + sign_lease + property-images storage', () => {
 	let clientA: SupabaseClient
 	let clientB: SupabaseClient
 	let ownerAId: string
 	let ownerBId: string
+	let savedSafeProfile: SafeUserSnapshot | null = null
 	const insertedPropertyIds: string[] = []
 	const uploadedStoragePaths: string[] = []
 
@@ -58,17 +92,78 @@ describe('P0 security hardening — public.users + sign_lease + property-images 
 		} = await clientB.auth.getUser()
 		ownerAId = uA!.id
 		ownerBId = uB!.id
+
+		// Snapshot the safe-update columns so we can restore them after the
+		// tests, even if a probe-write test crashes mid-flight. Keeping the
+		// snapshot at suite scope (not test scope) means a single restore in
+		// afterAll covers any orphan probe values.
+		const { data: snap } = await clientA
+			.from('users')
+			.select(
+				'phone, emergency_contact_name, emergency_contact_phone, emergency_contact_relationship'
+			)
+			.eq('id', ownerAId)
+			.single()
+		savedSafeProfile = snap
+			? {
+					phone: snap.phone ?? null,
+					emergency_contact_name: snap.emergency_contact_name ?? null,
+					emergency_contact_phone: snap.emergency_contact_phone ?? null,
+					emergency_contact_relationship:
+						snap.emergency_contact_relationship ?? null
+				}
+			: null
+
+		// Sweep any orphan probe properties from prior crashed runs so the
+		// inserted-property cleanup converges. afterAll only knows about
+		// IDs the test pushed before crashing.
+		const { data: orphanProps } = await clientA
+			.from('properties')
+			.select('id')
+			.eq('owner_user_id', ownerAId)
+			.like('name', `${PROBE_PROPERTY_NAME_PREFIX}%`)
+		for (const p of orphanProps ?? []) {
+			await clientA.from('properties').delete().eq('id', p.id)
+		}
 	})
 
 	afterAll(async () => {
-		// Best-effort cleanup. RLS lets each owner delete only their own rows.
+		// Best-effort cleanup for storage objects this run uploaded.
 		for (const path of uploadedStoragePaths) {
 			await clientA.storage.from('property-images').remove([path])
 		}
+		// Best-effort cleanup for any properties this run created.
 		for (const id of insertedPropertyIds) {
 			await clientA.from('properties').delete().eq('id', id)
 		}
+		// Restore the safe profile columns back to the pre-suite values so
+		// repeated runs don't drift the synthetic owner's profile.
+		if (savedSafeProfile) {
+			await clientA
+				.from('users')
+				.update(savedSafeProfile)
+				.eq('id', ownerAId)
+		}
 	})
+
+	async function ensureProbeProperty(): Promise<string> {
+		const { data: prop, error: propErr } = await clientA
+			.from('properties')
+			.insert({
+				name: `${PROBE_PROPERTY_NAME_PREFIX}${Date.now()}`,
+				address_line1: '1 Test Way',
+				city: 'Test',
+				state: 'CA',
+				postal_code: '90001',
+				owner_user_id: ownerAId,
+				property_type: 'single_family'
+			})
+			.select('id')
+			.single()
+		if (propErr) throw propErr
+		insertedPropertyIds.push(prop!.id)
+		return prop!.id
+	}
 
 	// --- P0-1 ---------------------------------------------------------
 
@@ -133,14 +228,17 @@ describe('P0 security hardening — public.users + sign_lease + property-images 
 			expect(error!.code).toBe('42501')
 		})
 
-		it('still allows safe self-updates (phone) — UX must not regress', async () => {
-			const { data: before } = await clientA
+		it('rejects self-write of `status` column (P1-A — soft-delete-flag vector)', async () => {
+			const { error } = await clientA
 				.from('users')
-				.select('phone')
+				.update({ status: 'inactive' })
 				.eq('id', ownerAId)
-				.single()
-			const phoneBefore = before?.phone ?? null
+				.select()
+			expect(error).not.toBeNull()
+			expect(error!.code).toBe('42501')
+		})
 
+		it('still allows safe self-updates (phone) — UX must not regress', async () => {
 			const probe = '(555) 123-4567'
 			const { error: writeError } = await clientA
 				.from('users')
@@ -154,23 +252,10 @@ describe('P0 security hardening — public.users + sign_lease + property-images 
 				.eq('id', ownerAId)
 				.single()
 			expect(after?.phone).toBe(probe)
-
-			// Restore so the test is idempotent.
-			await clientA
-				.from('users')
-				.update({ phone: phoneBefore })
-				.eq('id', ownerAId)
+			// afterAll restores the original snapshot — no per-test restore.
 		})
 
 		it('still allows safe self-update of emergency_contact_* columns', async () => {
-			const { data: before } = await clientA
-				.from('users')
-				.select(
-					'emergency_contact_name, emergency_contact_phone, emergency_contact_relationship'
-				)
-				.eq('id', ownerAId)
-				.single()
-
 			const { error: writeError } = await clientA
 				.from('users')
 				.update({
@@ -180,41 +265,55 @@ describe('P0 security hardening — public.users + sign_lease + property-images 
 				})
 				.eq('id', ownerAId)
 			expect(writeError).toBeNull()
+			// afterAll restores the original snapshot.
+		})
+	})
 
-			// Restore (best effort — restore to nulls if the original was nulls).
-			await clientA
+	// --- P0-B ---------------------------------------------------------
+
+	describe('P0-B: INSERT and DELETE on public.users from authenticated are revoked', () => {
+		it('rejects INSERT on public.users (was the delete-then-insert escalation path)', async () => {
+			const { error } = await clientA
 				.from('users')
-				.update({
-					emergency_contact_name: before?.emergency_contact_name ?? null,
-					emergency_contact_phone: before?.emergency_contact_phone ?? null,
-					emergency_contact_relationship:
-						before?.emergency_contact_relationship ?? null
+				.insert({
+					id: ownerAId, // would conflict with own row, but rejected before that check
+					email: 'attacker-reinsert@example.com',
+					is_admin: true,
+					full_name: 'Attacker'
 				})
+				.select()
+			expect(error).not.toBeNull()
+			expect(error!.code).toBe('42501')
+		})
+
+		it('rejects DELETE on public.users (the first half of the delete-then-insert path)', async () => {
+			const { error } = await clientA
+				.from('users')
+				.delete()
 				.eq('id', ownerAId)
+				.select()
+			expect(error).not.toBeNull()
+			expect(error!.code).toBe('42501')
 		})
 	})
 
 	// --- P0-2 ---------------------------------------------------------
 
 	describe('P0-2: sign_lease_and_check_activation is not callable from authenticated', () => {
-		it('PostgREST returns "function not found" — EXECUTE is revoked', async () => {
-			const { error } = await clientA.rpc(
-				'sign_lease_and_check_activation' as never,
-				{
-					p_lease_id: '00000000-0000-0000-0000-000000000000',
-					p_signer_type: 'owner',
-					p_signature_ip: '127.0.0.1',
-					p_signed_at: new Date().toISOString(),
-					p_signature_method: 'in_app'
-				} as never
-			)
+		it('PostgREST returns permission-denied — EXECUTE is revoked', async () => {
+			const { error } = await clientA.rpc('sign_lease_and_check_activation', {
+				p_lease_id: '00000000-0000-0000-0000-000000000000',
+				p_signer_type: 'owner',
+				p_signature_ip: '127.0.0.1',
+				p_signed_at: new Date().toISOString(),
+				p_signature_method: 'in_app'
+			})
 			expect(error).not.toBeNull()
 			// PostgREST surfaces a revoked EXECUTE on a SECURITY DEFINER
-			// function as 42501 (permission denied — this is what we just
-			// observed against prod). Older PostgREST versions returned
-			// 42883 / PGRST202 for the same shape; accept any of them so
-			// the test pins "the function is no longer reachable from
-			// authenticated", not a specific error-code string.
+			// function as 42501 in current versions; older versions returned
+			// 42883 / PGRST202. Accept any of the three so the test pins
+			// "function is no longer reachable from authenticated", not a
+			// specific error-code string.
 			expect(['42501', '42883', 'PGRST202']).toContain(error!.code)
 		})
 	})
@@ -223,25 +322,8 @@ describe('P0 security hardening — public.users + sign_lease + property-images 
 
 	describe('P0-3: property-images storage requires path-ownership', () => {
 		it('owner can upload into a folder for a property they own', async () => {
-			// Create a fresh property under ownerA so the path-uuid maps to a
-			// row ownerA owns. Use a unique name to avoid collisions.
-			const { data: prop, error: propErr } = await clientA
-				.from('properties')
-				.insert({
-					name: `RLS-probe-${Date.now()}`,
-					address_line1: '1 Test Way',
-					city: 'Test',
-					state: 'CA',
-					postal_code: '90001',
-					owner_user_id: ownerAId,
-					property_type: 'single_family'
-				})
-				.select('id')
-				.single()
-			if (propErr) throw propErr
-			insertedPropertyIds.push(prop!.id)
-
-			const path = `${prop!.id}/probe-${Date.now()}.jpg`
+			const propertyId = await ensureProbeProperty()
+			const path = `${propertyId}/probe-${Date.now()}.jpg`
 			const { error: upErr } = await clientA.storage
 				.from('property-images')
 				.upload(path, new Blob(['probe'], { type: 'image/jpeg' }))
@@ -250,46 +332,40 @@ describe('P0 security hardening — public.users + sign_lease + property-images 
 		})
 
 		it('owner B cannot upload into owner A property folder (was the P0-3 hole)', async () => {
-			// Use the property ownerA created above so the test is order-
-			// independent — fall back to creating one if the previous test
-			// didn't run (e.g., partial-suite run).
-			let targetPropertyId: string | undefined =
-				insertedPropertyIds[insertedPropertyIds.length - 1]
-			if (!targetPropertyId) {
-				const { data: prop, error: propErr } = await clientA
-					.from('properties')
-					.insert({
-						name: `RLS-probe-${Date.now()}`,
-						address: '1 Test Way',
-						city: 'Test',
-						state: 'CA',
-						zip_code: '90001',
-						owner_user_id: ownerAId,
-						property_type: 'single_family'
-					})
-					.select('id')
-					.single()
-				if (propErr) throw propErr
-				insertedPropertyIds.push(prop!.id)
-				targetPropertyId = prop!.id
-			}
+			// Reuse the owned property from the previous test if available;
+			// otherwise create one. Either way, the folder UUID resolves to a
+			// property ownerA owns, which is what makes the cross-owner check
+			// meaningful.
+			const targetPropertyId =
+				insertedPropertyIds[insertedPropertyIds.length - 1] ??
+				(await ensureProbeProperty())
 
 			const path = `${targetPropertyId}/cross-owner-${Date.now()}.jpg`
 			const { error } = await clientB.storage
 				.from('property-images')
 				.upload(path, new Blob(['attack'], { type: 'image/jpeg' }))
 			expect(error).not.toBeNull()
-			// Storage RLS returns "new row violates row-level security policy"
-			// (statusCode 403, RLS error). Match either statusCode 403 or the
-			// error name.
-			expect(
-				(error as unknown as { statusCode?: string; error?: string }).statusCode ??
-					error!.message
-			).toBeTruthy()
+
+			// Pin the SHAPE of the rejection: storage returns a 4xx with an
+			// RLS / unauthorized message. Loose `.toBeTruthy()` would also
+			// pass on a transient network error, which would mask a real
+			// regression.
+			if (isStorageStatusError(error)) {
+				const status = String(error.statusCode)
+				expect(['400', '403']).toContain(status)
+				expect(error.message ?? '').toMatch(
+					/row-level security|unauthorized|new row violates|policy/i
+				)
+			} else {
+				// Even if statusCode isn't surfaced (older client versions),
+				// the message must mention the RLS rejection shape.
+				expect(error!.message).toMatch(
+					/row-level security|unauthorized|new row violates|policy/i
+				)
+			}
 		})
 
 		it('owner B cannot upload into a folder whose uuid does not exist (no implicit allow)', async () => {
-			// Folder uuid that doesn't appear in `properties` at all.
 			const fakeFolder = '00000000-0000-0000-0000-000000000001'
 			const path = `${fakeFolder}/orphan-${Date.now()}.jpg`
 			const { error } = await clientB.storage
