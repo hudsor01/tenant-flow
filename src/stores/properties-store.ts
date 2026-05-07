@@ -9,8 +9,6 @@
  * - Filters: search, status filter, type filter
  * - Selection: selected row IDs
  * - Bulk Edit: dialog state and form values
- *
- * @see TODO.md REACT-001 pattern
  */
 
 import { create } from 'zustand'

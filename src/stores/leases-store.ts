@@ -10,8 +10,6 @@
  * - Pagination: current page
  * - Selection: selected row IDs
  * - Dialogs: selected lease, dialog visibility states
- *
- * @see TODO.md REACT-001 for context
  */
 
 import { create } from 'zustand'

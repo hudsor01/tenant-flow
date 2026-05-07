@@ -5,8 +5,6 @@
  *
  * Uses Zustand store for state management (useLeasesStore).
  * See stores/leases-store.ts for state structure.
- *
- * @see TODO.md REACT-001 - State consolidated from 13 useState calls
  */
 
 import { useEffect, Suspense } from 'react'
