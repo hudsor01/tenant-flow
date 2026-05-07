@@ -19,7 +19,7 @@ Deno.serve(async (req: Request) => {
   try {
     env = validateEnv({
       required: ['SUPABASE_URL', 'SUPABASE_SERVICE_ROLE_KEY', 'STRIPE_SECRET_KEY'],
-      optional: ['FRONTEND_URL', 'STRIPE_PRO_PRICE_ID'],
+      optional: ['FRONTEND_URL'],
     })
   } catch (err) {
     return errorResponse(req, 500, err, { action: 'env_validation' })
@@ -44,7 +44,7 @@ Deno.serve(async (req: Request) => {
   try {
     const body = await req.json()
     // Accept both snake_case (preferred) and camelCase (legacy frontend) forms
-    const priceId: string = body.price_id ?? body.priceId ?? env.STRIPE_PRO_PRICE_ID ?? ''
+    const priceId: string = body.price_id ?? body.priceId ?? ''
 
     if (!priceId) {
       return new Response(JSON.stringify({ error: 'price_id is required' }), {

@@ -87,7 +87,7 @@ Deno.serve(async (req: Request) => {
       )
     }
 
-    const appUrl = env['NEXT_PUBLIC_APP_URL'] ?? Deno.env.get('NEXT_PUBLIC_APP_URL') ?? 'http://localhost:3050'
+    const appUrl = env['NEXT_PUBLIC_APP_URL'] ?? 'http://localhost:3050'
     const otpType = OTP_TYPE_MAP[email_data.email_action_type]
     const callbackUrl = `${appUrl}/auth/callback?token_hash=${encodeURIComponent(email_data.token_hash)}&type=${encodeURIComponent(otpType)}`
 
