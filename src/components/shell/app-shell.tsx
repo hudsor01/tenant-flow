@@ -186,13 +186,14 @@ export function AppShell({ children, showQuickActionsDock = true }: AppShellProp
 
 	return (
 		<div className="min-h-screen bg-background">
-			{/* Skip to content */}
-			<a
-				href="#main-content"
-				className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-[100] focus:rounded-md focus:bg-primary focus:px-4 focus:py-2 focus:text-primary-foreground focus:outline-none"
-			>
-				Skip to content
-			</a>
+			{/*
+				Skip-to-content link is provided by the root layout
+				(src/app/layout.tsx). The previous duplicate here meant
+				keyboard users tabbed through two visually-different
+				skip links targeting the same anchor on dashboard pages.
+				The `<main id="main-content">` below is the shared
+				target for both marketing and dashboard layouts.
+			 */}
 
 			{/* Mobile sidebar overlay */}
 			{sidebarOpen && (

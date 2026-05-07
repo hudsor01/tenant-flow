@@ -38,6 +38,36 @@ const nextConfig: NextConfig = {
 		]
 	},
 
+	async redirects() {
+		return [
+			{
+				// Password-manager well-known endpoint (W3C draft, consumed
+				// by 1Password, Bitwarden, iCloud Keychain, Chrome, Firefox,
+				// Edge). Password managers issue a GET when a user clicks
+				// "change password" on a saved credential and follow the
+				// redirect to the page where the form lives.
+				//
+				// `/auth/update-password` handles both inbound flows:
+				//   - Email-recovery link (URL hash carries an error param;
+				//     page renders "Reset Link Issue" copy if the token
+				//     expired).
+				//   - Password-manager click (no hash; page renders the
+				//     "Secure Your Account" change-password form).
+				// Both terminate in `auth.updateUser({ password })`, which
+				// works whether the caller is currently authenticated or
+				// holds a one-time recovery session.
+				//
+				// `permanent: false` produces a 307 so the method is
+				// preserved (always GET in practice). Some older managers
+				// expect 302/303 specifically; in practice all major
+				// browsers and password managers follow 307 for GET.
+				source: '/.well-known/change-password',
+				destination: '/auth/update-password',
+				permanent: false,
+			},
+		]
+	},
+
 }
 
 // Enable source maps in production, but not preview deployments

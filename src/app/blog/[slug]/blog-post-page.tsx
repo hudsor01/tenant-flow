@@ -1,10 +1,8 @@
 'use client'
 
 import { useState } from 'react'
-import dynamic from 'next/dynamic'
 import Image from 'next/image'
 import Link from 'next/link'
-import { useParams } from 'next/navigation'
 import { ArrowLeft, ArrowRight, Clock, User } from 'lucide-react'
 import { cn } from '#lib/utils'
 import { PageLayout } from '#components/layout/page-layout'
@@ -13,15 +11,28 @@ import { BlogCard } from '#components/blog/blog-card'
 import { BlogInlineCta } from '#components/blog/blog-inline-cta'
 import { LeadMagnetCta } from '#components/blog/lead-magnet-cta'
 import { NewsletterSignup } from '#components/blog/newsletter-signup'
-import { BlogLoadingSkeleton } from '#components/shared/blog-loading-skeleton'
-import { useBlogBySlug, useBlogCategories, useRelatedPosts } from '#hooks/api/use-blogs'
+import MarkdownContent from './markdown-content'
+import { useRelatedPosts } from '#hooks/api/use-blogs'
 import { BLOG_TO_COMPETITOR, BLOG_TO_RESOURCE } from '#lib/content-links'
 import { COMPETITORS } from '#app/compare/[competitor]/compare-data'
 
-const MarkdownContent = dynamic(() => import('./markdown-content'), {
-	ssr: false,
-	loading: () => <BlogLoadingSkeleton />
-})
+/**
+ * Subset of `BlogDetail` actually rendered by this page. Defining the prop
+ * shape locally lets the server pass the post directly without forcing the
+ * caller to materialize every column on `blogs`.
+ */
+export type BlogPostProps = {
+	post: {
+		readonly title: string
+		readonly excerpt: string | null
+		readonly content: string
+		readonly featured_image: string | null
+		readonly reading_time: number | null
+		readonly published_at: string | null
+		readonly category: string | null
+	}
+	slug: string
+}
 
 /**
  * Split markdown content at a `## ` heading near ~40% of the total length.
@@ -79,67 +90,19 @@ function splitContentForCta(content: string): [string, string] {
 	return [content, '']
 }
 
-export default function BlogPostPage() {
-	const params = useParams()
-	const slug = String(params.slug)
+export default function BlogPostPage({ post, slug }: BlogPostProps) {
 	const [imageLoaded, setImageLoaded] = useState(false)
 
-	const { data: post, isLoading } = useBlogBySlug(slug)
-	const { data: categories } = useBlogCategories()
+	// Related-posts is the only remaining client fetch. `useBlogCategories`
+	// was dropped — its only consumer was a category-name → slug lookup
+	// that's deterministic from the visible category string. The server
+	// already passes `post.category`, so a network round-trip just to
+	// confirm `lower-and-dasherize` was wasted.
 	const { data: relatedPosts } = useRelatedPosts(
-		post?.category ?? '',
+		post.category ?? '',
 		slug,
 		3
 	)
-
-	if (isLoading) {
-		return (
-			<PageLayout>
-				<div className="container mx-auto px-6 page-content pb-8 max-w-4xl">
-					<div className="h-4 bg-muted rounded w-32 mb-8 animate-pulse" />
-				</div>
-				<article className="container mx-auto px-6 pb-16 max-w-4xl">
-					<header className="mb-12">
-						<div className="h-12 bg-muted rounded w-3/4 mb-6 animate-pulse" />
-						<div className="h-6 bg-muted rounded w-full mb-2 animate-pulse" />
-						<div className="h-6 bg-muted rounded w-2/3 mb-8 animate-pulse" />
-						<div className="flex items-center gap-6 border-t border-b border-border py-4">
-							<div className="h-4 bg-muted rounded w-24 animate-pulse" />
-							<div className="h-4 bg-muted rounded w-20 animate-pulse" />
-							<div className="h-4 bg-muted rounded w-24 animate-pulse" />
-						</div>
-					</header>
-					<div className="space-y-4">
-						{[1, 2, 3, 4, 5].map(i => (
-							<div
-								key={i}
-								className="h-4 bg-muted rounded w-full animate-pulse"
-							/>
-						))}
-					</div>
-				</article>
-			</PageLayout>
-		)
-	}
-
-	if (!post) {
-		return (
-			<PageLayout>
-				<div className="container mx-auto px-6 py-16 max-w-4xl text-center">
-					<h1 className="text-4xl font-bold mb-4">Blog Post Not Found</h1>
-					<p className="text-muted-foreground mb-8">
-						The blog post you&apos;re looking for doesn&apos;t exist or has been removed.
-					</p>
-					<Button asChild>
-						<Link href="/blog">
-							<ArrowLeft className="size-4 mr-2" />
-							Back to Blog
-						</Link>
-					</Button>
-				</div>
-			</PageLayout>
-		)
-	}
 
 	const markdownContent = post.content.trim()
 	const [firstHalf, secondHalf] = splitContentForCta(markdownContent)
@@ -147,10 +110,11 @@ export default function BlogPostPage() {
 	const competitorSlug = BLOG_TO_COMPETITOR[slug]
 	const resourceSlug = BLOG_TO_RESOURCE[slug]
 
-	// Resolve category slug from database categories
+	// Category slug is deterministic from the visible category name —
+	// same lower-and-dasherize transform the sitemap uses to build the
+	// `/blog/category/<slug>` URLs. No DB round-trip needed here.
 	const postCategory = post.category ?? ''
-	const categoryMatch = categories?.find(c => c.name === postCategory)
-	const categorySlug = categoryMatch?.slug ?? postCategory.toLowerCase().replace(/\s+/g, '-')
+	const categorySlug = postCategory.toLowerCase().replace(/\s+/g, '-')
 
 	return (
 		<PageLayout>

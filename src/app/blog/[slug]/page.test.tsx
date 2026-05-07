@@ -12,18 +12,15 @@ import { render, screen } from '@testing-library/react'
 
 // --- Hoisted mocks ---
 
-const mockUseBlogBySlug = vi.hoisted(() => vi.fn())
+// `useBlogBySlug` was removed when the page was refactored to receive
+// `post` directly from the server (so the article body lands in initial
+// HTML for SEO). Tests now pass the post via props instead of mocking
+// the fetcher. `useBlogCategories` was also dropped — the slug is now
+// derived locally from `post.category` rather than fetched.
 const mockUseRelatedPosts = vi.hoisted(() => vi.fn())
-const mockUseBlogCategories = vi.hoisted(() => vi.fn())
 
 vi.mock('#hooks/api/use-blogs', () => ({
-	useBlogBySlug: mockUseBlogBySlug,
 	useRelatedPosts: mockUseRelatedPosts,
-	useBlogCategories: mockUseBlogCategories,
-}))
-
-vi.mock('next/navigation', () => ({
-	useParams: () => ({ slug: 'test-post' }),
 }))
 
 vi.mock('next/link', () => ({
@@ -52,16 +49,14 @@ vi.mock('next/image', () => ({
 	),
 }))
 
-vi.mock('next/dynamic', () => ({
-	default: (importFn: () => Promise<{ default: React.ComponentType<{ content: string }> }>) => {
-		const Component = (props: { content: string }) => (
-			<div data-testid="markdown-content">{props.content}</div>
-		)
-		// Eagerly resolve the import so component renders synchronously in tests
-		importFn()
-		Component.displayName = 'DynamicMarkdownContent'
-		return Component
-	},
+// MarkdownContent is now a direct (server-renderable) import — the
+// previous `dynamic(import, { ssr: false })` wrapper was dropped so
+// the article body lands in initial HTML for SEO/AI-crawler visibility.
+// Tests mock the module directly instead of through `next/dynamic`.
+vi.mock('./markdown-content', () => ({
+	default: (props: { content: string }) => (
+		<div data-testid="markdown-content">{props.content}</div>
+	),
 }))
 
 vi.mock('#components/blog/blog-card', () => ({
@@ -82,11 +77,10 @@ vi.mock('#components/blog/lead-magnet-cta', () => ({
 	),
 }))
 
-vi.mock('#components/shared/blog-loading-skeleton', () => ({
-	BlogLoadingSkeleton: () => (
-		<div data-testid="blog-loading-skeleton">Loading...</div>
-	),
-}))
+// blog-loading-skeleton mock dropped — the page-level loading branch
+// (gated on `useBlogBySlug` returning isLoading) was removed when the
+// hook was retired in favor of server-rendered post props. The
+// component itself still exists for other consumers.
 
 vi.mock('#components/layout/page-layout', () => ({
 	PageLayout: ({ children }: { children: React.ReactNode }) => (
@@ -186,57 +180,40 @@ const mockRelatedPosts = [
 	},
 ]
 
-const mockCategories = [
-	{ name: 'Property Management', slug: 'property-management', post_count: 12 },
-	{ name: 'Software Comparisons', slug: 'software-comparisons', post_count: 5 },
-]
-
 describe('BlogArticlePage', () => {
 	beforeEach(() => {
-		mockUseBlogBySlug.mockReturnValue({
-			data: mockPost,
-			isLoading: false,
-		})
 		mockUseRelatedPosts.mockReturnValue({
 			data: mockRelatedPosts,
-			isLoading: false,
-		})
-		mockUseBlogCategories.mockReturnValue({
-			data: mockCategories,
 			isLoading: false,
 		})
 	})
 
 	it('renders featured image with next/image when post.featured_image exists', () => {
-		render(<BlogArticlePage />)
+		render(<BlogArticlePage post={mockPost} slug="test-post" />)
 		const image = screen.getByTestId('featured-image')
 		expect(image).toBeInTheDocument()
 		expect(image).toHaveAttribute('src', 'https://example.com/images/featured.jpg')
 	})
 
 	it('does NOT render featured image when post.featured_image is null', () => {
-		mockUseBlogBySlug.mockReturnValue({
-			data: mockPostNoImage,
-			isLoading: false,
-		})
-		render(<BlogArticlePage />)
+		render(<BlogArticlePage post={mockPostNoImage} slug="test-post" />)
 		expect(screen.queryByTestId('featured-image')).not.toBeInTheDocument()
 	})
 
 	it('renders category name in meta bar linked to /blog/category/[slug]', () => {
-		render(<BlogArticlePage />)
+		render(<BlogArticlePage post={mockPost} slug="test-post" />)
 		const categoryLink = screen.getByRole('link', { name: 'Property Management' })
 		expect(categoryLink).toHaveAttribute('href', '/blog/category/property-management')
 	})
 
 	it('renders author name and reading time in meta bar', () => {
-		render(<BlogArticlePage />)
+		render(<BlogArticlePage post={mockPost} slug="test-post" />)
 		expect(screen.getByText('TenantFlow Team')).toBeInTheDocument()
 		expect(screen.getByText('8 min read')).toBeInTheDocument()
 	})
 
 	it('renders prose wrapper with simplified classes (no [&>selector] overrides)', () => {
-		const { container } = render(<BlogArticlePage />)
+		const { container } = render(<BlogArticlePage post={mockPost} slug="test-post" />)
 		const proseDiv = container.querySelector('.prose')
 		expect(proseDiv).toBeInTheDocument()
 		expect(proseDiv).toHaveClass('prose-lg')
@@ -246,21 +223,21 @@ describe('BlogArticlePage', () => {
 	})
 
 	it('renders MarkdownContent with post content', () => {
-		render(<BlogArticlePage />)
+		render(<BlogArticlePage post={mockPost} slug="test-post" />)
 		const markdown = screen.getByTestId('markdown-content')
 		expect(markdown).toBeInTheDocument()
 		expect(markdown).toHaveTextContent('## Introduction')
 	})
 
 	it('renders Related Articles section heading', () => {
-		render(<BlogArticlePage />)
+		render(<BlogArticlePage post={mockPost} slug="test-post" />)
 		expect(
 			screen.getByRole('heading', { name: 'Related Articles' })
 		).toBeInTheDocument()
 	})
 
 	it('renders BlogCard for each related post (up to 3)', () => {
-		render(<BlogArticlePage />)
+		render(<BlogArticlePage post={mockPost} slug="test-post" />)
 		const cards = screen.getAllByTestId('blog-card')
 		expect(cards).toHaveLength(3)
 		expect(cards[0]).toHaveTextContent('Tenant Screening Best Practices')
@@ -269,29 +246,16 @@ describe('BlogArticlePage', () => {
 	})
 
 	it('does NOT render raw inline newsletter section (no bare input[type=email])', () => {
-		const { container } = render(<BlogArticlePage />)
+		const { container } = render(<BlogArticlePage post={mockPost} slug="test-post" />)
 		const emailInputs = container.querySelectorAll('input[type="email"]')
 		expect(emailInputs).toHaveLength(0)
 	})
 
-	it('shows loading state when post is loading', () => {
-		mockUseBlogBySlug.mockReturnValue({
-			data: undefined,
-			isLoading: true,
-		})
-		const { container } = render(<BlogArticlePage />)
-		// blog-post-page renders raw animate-pulse divs (not the Skeleton
-		// primitive) for its branded loading shimmer.
-		const skeletons = container.querySelectorAll('.animate-pulse')
-		expect(skeletons.length).toBeGreaterThan(0)
-	})
-
-	it('shows not-found state when post is null', () => {
-		mockUseBlogBySlug.mockReturnValue({
-			data: null,
-			isLoading: false,
-		})
-		render(<BlogArticlePage />)
-		expect(screen.getByText('Blog Post Not Found')).toBeInTheDocument()
-	})
+	// Loading + not-found tests removed: the server `page.tsx` now
+	// resolves `post` before this client component renders, calling
+	// `notFound()` for missing slugs and never reaching this component
+	// with null post. The page-level loading skeleton branch (which
+	// fired while `useBlogBySlug` was loading) was removed when that
+	// hook was dropped. MarkdownContent is now a server-renderable
+	// direct import, no `dynamic({ ssr: false })` skeleton remains.
 })

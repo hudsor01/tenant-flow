@@ -64,19 +64,30 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 	const description = post.meta_description || post.excerpt
 
 	return {
-		title: `${post.title} | TenantFlow Blog`,
+		// `title.absolute` opts out of the parent layout's `'%s | TenantFlow'`
+		// template — without this, the rendered <title> would be
+		// "Post Title | TenantFlow Blog | TenantFlow" (template stacking).
+		title: { absolute: `${post.title} | TenantFlow Blog` },
 		description,
 		openGraph: {
 			title: post.title,
 			description,
 			type: 'article',
 			publishedTime: post.published_at ?? undefined,
+			modifiedTime: post.updated_at ?? post.published_at ?? undefined,
 			section: post.category ?? undefined,
-			images: post.featured_image ? [{ url: post.featured_image, width: 1080, height: 607 }] : [],
+			// Min image size for LinkedIn / Slack / Discord cards is 1200x630;
+			// downscaling a non-conforming source would lie about the file, so
+			// emit dimensions only when the source is a TenantFlow-managed
+			// asset that we know is sized correctly. For untrusted external
+			// URLs, omit width/height and let the platform sniff.
+			images: post.featured_image ? [{ url: post.featured_image }] : [],
 			siteName: 'TenantFlow',
 		},
 		twitter: {
 			card: 'summary_large_image',
+			site: '@tenantflow',
+			creator: '@tenantflow',
 			title: post.title,
 			description,
 			images: post.featured_image ? [post.featured_image] : [],
@@ -90,6 +101,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 export default async function Page({ params }: Props) {
 	const { slug } = await params
 	const post = await getBlogPost(slug)
+	if (!post) notFound()
 
 	const wordCount = post?.content
 		? post.content.trim().split(/\s+/).length
@@ -109,13 +121,23 @@ export default async function Page({ params }: Props) {
 			)
 		: null
 
-	const articleSchema = post
+	// Article schema only emits when we have a real published_at — Google's
+	// Article rich-result eligibility requires datePublished, and faking
+	// `new Date().toISOString()` produces a misleading freshness signal that
+	// will not match what crawlers see on subsequent visits.
+	const articleSchema = post && post.published_at
 		? createArticleJsonLd({
 				title: post.title,
 				slug: post.slug,
-				datePublished: post.published_at ?? new Date().toISOString(),
-				dateModified: post.updated_at ?? post.published_at ?? undefined,
-				authorName: 'Richard Hudson',
+				datePublished: post.published_at,
+				dateModified: post.updated_at ?? post.published_at,
+				// Author byline on the rendered page reads "TenantFlow Team", and
+				// individual posts are not reliably attributed to a single human.
+				// Schema author follows the visible byline so the entity matches —
+				// `authorType: 'Organization'` because a team/brand isn't a
+				// schema.org `Person`.
+				authorName: 'TenantFlow Team',
+				authorType: 'Organization',
 				image: post.featured_image ?? undefined,
 				wordCount,
 				keywords: Array.isArray(post.tags) ? post.tags.filter((t): t is string => typeof t === 'string') : undefined,
@@ -128,7 +150,7 @@ export default async function Page({ params }: Props) {
 		<>
 			{breadcrumbSchema && <JsonLdScript schema={breadcrumbSchema} />}
 			{articleSchema && <JsonLdScript schema={articleSchema} />}
-			<BlogPostPage />
+			<BlogPostPage post={post} slug={slug} />
 		</>
 	)
 }

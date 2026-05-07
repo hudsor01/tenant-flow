@@ -2,33 +2,107 @@ import type { MetadataRoute } from 'next'
 
 import { getSiteUrl } from '#lib/generate-metadata'
 
+// Private + transactional surface area that should never appear in the
+// SERP. No trailing slashes — `/dashboard` blocks both `/dashboard` and
+// `/dashboard/anything`. Trailing-slash form only blocks subpaths.
+//
+// Exported so `robots.test.ts` can import a single source of truth for
+// the bidirectional drift guard (additions or removals here surface in
+// the test without a parallel hardcoded list).
+export const PRIVATE_PATHS = [
+	'/admin',
+	'/api',
+	'/auth/callback',
+	'/auth/confirm-email',
+	'/auth/post-checkout',
+	'/auth/select-role',
+	'/auth/signout',
+	'/auth/update-password',
+	'/dashboard',
+	'/tenant',
+	'/owner',
+	'/settings',
+	'/profile',
+	'/billing',
+	'/_next/data',
+	'/monitoring',
+	// Stripe + checkout result pages — duplicate of `/pricing/cancel`
+	// and `/pricing/success`, no unique content, soft-404 risk.
+	'/stripe',
+	'/pricing/complete',
+] as const satisfies readonly string[]
+
+// AI-content user agents listed in the canonical vendor docs. Per the
+// best-practices brief (May 2026): the marketing surface is intentionally
+// crawlable by training and answer engines so the brand can be cited in
+// AI Overviews and chat answers. We override `Allow` per-bot so future
+// reviewers can flip a single line to opt out without rewriting the wildcard
+// block.
+//
+// Spelling sourced from each vendor's published bot reference:
+//   - OpenAI:     platform.openai.com/docs/bots
+//   - Google:     blog.google/technology/ai/an-update-on-web-publisher-controls/
+//   - Anthropic:  support.claude.com/.../8896518
+//   - Apple:      support.apple.com/en-us/119829
+//   - Common Crawl: commoncrawl.org/ccbot
+//   - Perplexity: docs.perplexity.ai/.../perplexity-crawlers
+//
+// Exported so `robots.test.ts` can import a single source of truth for
+// the bidirectional drift guard (additions or removals here surface in
+// the test without a parallel hardcoded list).
+export const AI_USER_AGENTS = [
+	'GPTBot',
+	'OAI-SearchBot',
+	'ChatGPT-User',
+	'Google-Extended',
+	'ClaudeBot',
+	'Claude-User',
+	'Claude-SearchBot',
+	'Applebot-Extended',
+	'CCBot',
+	'PerplexityBot',
+	'Perplexity-User',
+	'Amazonbot',
+] as const satisfies readonly string[]
+
 export default function robots(): MetadataRoute.Robots {
+	// `MetadataRoute.Robots.rules[].disallow` is a mutable string[]; spread
+	// the readonly arrays onto fresh ones to satisfy Next.js's type.
+	const privatePaths = [...PRIVATE_PATHS]
+
+	// Explicitly allow the discovery files some bots treat as a safe
+	// fetch list. Most crawlers honor `Allow:` paths even when the path
+	// would otherwise match a `Disallow:` pattern, but a few legacy
+	// implementations interpret broad `Disallow:` rules as overriding
+	// `Allow:`. Listing the LLM and reader entry points by name is
+	// belt-and-suspenders.
+	const discoveryAllowPaths = [
+		'/llms.txt',
+		'/llms-full.txt',
+		'/feed.xml',
+		'/sitemap.xml',
+		'/.well-known/security.txt',
+	]
+
+	const aiBotRules = AI_USER_AGENTS.map(userAgent => ({
+		userAgent,
+		allow: ['/', ...discoveryAllowPaths],
+		disallow: [...privatePaths],
+	}))
+
 	return {
 		rules: [
 			{
 				userAgent: '*',
-				allow: ['/', '/_next/static/', '/_next/image/'],
-				// No trailing slashes — `/dashboard` blocks both `/dashboard` and
-			// `/dashboard/anything`. Trailing-slash form only blocks subpaths.
-			disallow: [
-					'/admin',
-					'/api',
-					'/auth/callback',
-					'/auth/confirm-email',
-					'/auth/post-checkout',
-					'/auth/select-role',
-					'/auth/signout',
-					'/auth/update-password',
-					'/dashboard',
-					'/tenant',
-					'/owner',
-					'/settings',
-					'/profile',
-					'/billing',
-					'/_next/data',
-					'/monitoring',
+				allow: [
+					'/',
+					'/_next/static/',
+					'/_next/image/',
+					...discoveryAllowPaths,
 				],
+				disallow: privatePaths,
 			},
+			...aiBotRules,
 		],
 		sitemap: `${getSiteUrl()}/sitemap.xml`,
 		host: getSiteUrl(),

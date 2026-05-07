@@ -17,14 +17,16 @@ export interface NavbarProps extends ComponentProps<'nav'> {
 export const DEFAULT_NAV_ITEMS: NavItem[] = [
 	{ name: 'Features', href: '/features' },
 	{ name: 'Pricing', href: '/pricing' },
+	{ name: 'Compare', href: '/compare' },
 	{ name: 'About', href: '/about' },
 	{
 		name: 'Resources',
 		href: '#',
 		hasDropdown: true,
 		dropdownItems: [
-			{ name: 'Help Center', href: '/help' },
 			{ name: 'Blog', href: '/blog' },
+			{ name: 'Free Resources', href: '/resources' },
+			{ name: 'Help Center', href: '/help' },
 			{ name: 'FAQ', href: '/faq' },
 			{ name: 'Contact', href: '/contact' }
 		]

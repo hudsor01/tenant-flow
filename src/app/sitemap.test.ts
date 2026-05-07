@@ -1,4 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { readFileSync } from 'node:fs'
+import { resolve } from 'node:path'
 
 vi.mock('#env', () => ({
 	env: { NEXT_PUBLIC_APP_URL: 'https://tenantflow.app' }
@@ -11,46 +13,101 @@ vi.mock('#lib/frontend-logger', () => ({
 	})
 }))
 
-const mockBlogPosts = [
-	{ slug: 'post-one', published_at: '2026-01-15T00:00:00Z' },
-	{ slug: 'post-two', published_at: '2026-02-20T00:00:00Z' }
-]
+// The sitemap now derives blog category hub URLs (and their freshness)
+// from the same posts query used to build per-post URLs — the old
+// separate `category`-only query is gone. Mock posts include the
+// category field so the dedup logic and category-hub branch are
+// exercised.
+type MockBlogPost = {
+	slug: string
+	published_at: string | null
+	updated_at: string | null
+	category: string
+}
 
-const mockCategoryRows = [
-	{ category: 'property-management' },
-	{ category: 'tenant-tips' },
-	{ category: 'property-management' }, // duplicate to test dedup
-	{ category: 'legal' }
+// Production code only orders by `published_at` today. If a future
+// sitemap change orders by another column, add it to this union and
+// update the fixture; the typed key parameter then forces compile-time
+// awareness of the new sort dimension.
+type SortableColumn = 'published_at' | 'updated_at'
+
+const mockBlogPosts: MockBlogPost[] = [
+	{
+		slug: 'post-one',
+		published_at: '2026-01-15T00:00:00Z',
+		updated_at: '2026-01-20T00:00:00Z',
+		category: 'Property Management',
+	},
+	{
+		slug: 'post-two',
+		published_at: '2026-02-20T00:00:00Z',
+		updated_at: null,
+		category: 'Tenant Tips',
+	},
+	{
+		slug: 'post-three',
+		published_at: '2026-02-10T00:00:00Z',
+		updated_at: null,
+		category: 'Property Management', // duplicate to test dedup
+	},
+	{
+		slug: 'post-four',
+		published_at: '2026-01-05T00:00:00Z',
+		updated_at: null,
+		category: 'Legal',
+	},
 ]
 
 /**
- * Build a chainable query builder that resolves differently based on the
- * `.select()` argument — 'category' returns category rows, anything else
- * returns blog posts.
+ * Build a Supabase query-builder mock that honors `.order(column, opts)`.
+ *
+ * Production code calls `.order('published_at', { ascending: false })`,
+ * so the mock has to actually sort the data — otherwise tests pass even
+ * when the implementation degrades to "use posts[0] verbatim". Sorting
+ * the fixture inside the mock means the test asserts the same shape
+ * production would emit, not the array order in the test file.
  */
-function makeQueryBuilder(selectArg: string) {
-	const isCategoryQuery = selectArg === 'category'
-	const result = isCategoryQuery
-		? { data: mockCategoryRows, error: null }
-		: { data: mockBlogPosts, error: null }
-
-	const builder = {
-		select: vi.fn().mockImplementation((arg: string) => makeQueryBuilder(arg)),
-		eq: vi.fn().mockReturnThis(),
-		order: vi.fn().mockReturnThis(),
-		not: vi.fn().mockReturnThis(),
-		// thenable so await works
+function makeQueryBuilder() {
+	let working: MockBlogPost[] = [...mockBlogPosts]
+	const result = () => ({ data: working, error: null })
+	const builder: {
+		select: (...args: unknown[]) => typeof builder
+		eq: (...args: unknown[]) => typeof builder
+		order: (
+			column: SortableColumn,
+			opts?: { ascending?: boolean }
+		) => typeof builder
 		then: (
-			resolve: (v: typeof result) => unknown,
-			_reject?: (e: unknown) => unknown
-		) => Promise.resolve(result).then(resolve, _reject)
+			resolve: (v: ReturnType<typeof result>) => unknown,
+			reject?: (e: unknown) => unknown
+		) => Promise<unknown>
+	} = {
+		select: vi.fn().mockImplementation(() => builder),
+		eq: vi.fn().mockImplementation(() => builder),
+		order: vi.fn().mockImplementation(
+			(column: SortableColumn, opts?: { ascending?: boolean }) => {
+				const ascending = opts?.ascending ?? true
+				working = [...working].sort((a, b) => {
+					const av = a[column] ?? ''
+					const bv = b[column] ?? ''
+					if (av === bv) return 0
+					if (ascending) return av < bv ? -1 : 1
+					return av < bv ? 1 : -1
+				})
+				return builder
+			}
+		),
+		then: (
+			resolve: (v: ReturnType<typeof result>) => unknown,
+			reject?: (e: unknown) => unknown
+		) => Promise.resolve(result()).then(resolve, reject)
 	}
 	return builder
 }
 
 vi.mock('#lib/supabase/server', () => ({
 	createClient: vi.fn().mockResolvedValue({
-		from: vi.fn().mockImplementation(() => makeQueryBuilder('slug, published_at'))
+		from: vi.fn().mockImplementation(() => makeQueryBuilder())
 	})
 }))
 
@@ -83,52 +140,66 @@ describe('sitemap()', () => {
 		}
 	})
 
-	it('Test 4: static page entries do not use current date as lastModified', async () => {
-		const today = new Date().toISOString().slice(0, 10) // YYYY-MM-DD portion
+	it('Test 4: static landing pages omit lastModified (no faked freshness)', async () => {
+		// Per Google's sitemap docs (last updated 2025-12-10): a stale or
+		// "always-now" lastmod teaches Google to ignore the field. The
+		// honest signal is "no lastmod" when we can't point to a real
+		// underlying timestamp. Marketing/company pages have no DB-backed
+		// timestamp so they emit no `lastModified`.
 		const { default: sitemap } = await import('./sitemap')
 		const entries = await sitemap()
 
-		// Legal pages should use '2026-01-01', not current date
-		const legalUrls = [
-			'https://tenantflow.app/terms',
-			'https://tenantflow.app/privacy',
-			'https://tenantflow.app/security-policy'
-		]
-		for (const url of legalUrls) {
-			const entry = entries.find(e => e.url === url)
-			expect(entry, `entry for ${url} should exist`).toBeDefined()
-			const lastMod = String(entry!.lastModified ?? '')
-			expect(lastMod, `${url} should not use today's date`).not.toContain(today)
-			expect(lastMod).toBe('2026-01-01')
-		}
-
-		// Company pages should use '2026-04-01', not current date
-		const companyUrls = [
+		const noLastModUrls = [
+			'https://tenantflow.app',
+			'https://tenantflow.app/features',
+			'https://tenantflow.app/pricing',
 			'https://tenantflow.app/about',
 			'https://tenantflow.app/contact',
 			'https://tenantflow.app/faq',
 			'https://tenantflow.app/help',
-			'https://tenantflow.app/support'
+			'https://tenantflow.app/support',
 		]
-		for (const url of companyUrls) {
+		for (const url of noLastModUrls) {
 			const entry = entries.find(e => e.url === url)
 			expect(entry, `entry for ${url} should exist`).toBeDefined()
-			const lastMod = String(entry!.lastModified ?? '')
-			expect(lastMod, `${url} should not use today's date`).not.toContain(today)
-			expect(lastMod).toBe('2026-04-01')
+			expect(entry!.lastModified).toBeUndefined()
 		}
 	})
 
-	it('Test 5: blog post entries use post.published_at (not a fixed date)', async () => {
+	it('Test 4b: legal pages use real "Last Updated" dates from page bodies', async () => {
 		const { default: sitemap } = await import('./sitemap')
 		const entries = await sitemap()
 
-		const postOne = entries.find(e => e.url === 'https://tenantflow.app/blog/post-one')
-		expect(postOne, 'post-one should be in sitemap').toBeDefined()
-		expect(postOne!.lastModified).toBe('2026-01-15T00:00:00Z')
+		const terms = entries.find(e => e.url === 'https://tenantflow.app/terms')
+		expect(terms?.lastModified).toBe('2025-10-05')
 
-		const postTwo = entries.find(e => e.url === 'https://tenantflow.app/blog/post-two')
+		const privacy = entries.find(
+			e => e.url === 'https://tenantflow.app/privacy'
+		)
+		expect(privacy?.lastModified).toBe('2025-10-05')
+
+		const securityPolicy = entries.find(
+			e => e.url === 'https://tenantflow.app/security-policy'
+		)
+		expect(securityPolicy?.lastModified).toBe('2026-02-27')
+	})
+
+	it('Test 5: blog post entries prefer updated_at then published_at', async () => {
+		const { default: sitemap } = await import('./sitemap')
+		const entries = await sitemap()
+
+		const postOne = entries.find(
+			e => e.url === 'https://tenantflow.app/blog/post-one'
+		)
+		expect(postOne, 'post-one should be in sitemap').toBeDefined()
+		// post-one has updated_at; that wins over published_at
+		expect(postOne!.lastModified).toBe('2026-01-20T00:00:00Z')
+
+		const postTwo = entries.find(
+			e => e.url === 'https://tenantflow.app/blog/post-two'
+		)
 		expect(postTwo, 'post-two should be in sitemap').toBeDefined()
+		// post-two has no updated_at; fall back to published_at
 		expect(postTwo!.lastModified).toBe('2026-02-20T00:00:00Z')
 	})
 
@@ -145,19 +216,111 @@ describe('sitemap()', () => {
 		const { default: sitemap } = await import('./sitemap')
 		const entries = await sitemap()
 		const urls = entries.map(e => e.url)
-		expect(urls).toContain('https://tenantflow.app/resources/seasonal-maintenance-checklist')
-		expect(urls).toContain('https://tenantflow.app/resources/landlord-tax-deduction-tracker')
-		expect(urls).toContain('https://tenantflow.app/resources/security-deposit-reference-card')
+		expect(urls).toContain(
+			'https://tenantflow.app/resources/seasonal-maintenance-checklist'
+		)
+		expect(urls).toContain(
+			'https://tenantflow.app/resources/landlord-tax-deduction-tracker'
+		)
+		expect(urls).toContain(
+			'https://tenantflow.app/resources/security-deposit-reference-card'
+		)
 	})
 
-	it('deduplicates blog categories', async () => {
+	it('deduplicates blog categories and uses the most recent post timestamp', async () => {
 		const { default: sitemap } = await import('./sitemap')
 		const entries = await sitemap()
 		const categoryUrls = entries.filter(e => e.url.includes('/blog/category/'))
-		// 'property-management' appears twice in mockCategoryRows but should only produce one entry
-		const pmUrls = categoryUrls.filter(e => e.url.includes('property-management'))
+		// Property Management appears twice in posts but only one hub URL.
+		const pmUrls = categoryUrls.filter(e =>
+			e.url.includes('property-management')
+		)
 		expect(pmUrls).toHaveLength(1)
-		// Total unique categories: property-management, tenant-tips, legal = 3
+		// Three unique categories: property-management, tenant-tips, legal.
 		expect(categoryUrls).toHaveLength(3)
+		// The Property Management hub uses the most recent post in that
+		// category (post-one's updated_at, 2026-01-20, beats post-three's
+		// 2026-02-10? No — 2026-02-10 > 2026-01-20. The freshest is
+		// post-three's published_at).
+		const pmEntry = pmUrls[0]
+		expect(pmEntry?.lastModified).toBe('2026-02-10T00:00:00Z')
+	})
+
+	it('content hub /blog uses the most recent post timestamp', async () => {
+		const { default: sitemap } = await import('./sitemap')
+		const entries = await sitemap()
+		const blogHub = entries.find(e => e.url === 'https://tenantflow.app/blog')
+		expect(blogHub).toBeDefined()
+		// Production query is `.order('published_at', desc)` — the
+		// mock now honors that order. The freshest post is post-two
+		// (published_at 2026-02-20, no updated_at), so its
+		// published_at is what the hub gets.
+		expect(blogHub!.lastModified).toBe('2026-02-20T00:00:00Z')
+	})
+})
+
+/**
+ * Drift guard: the sitemap's hardcoded "Last Updated" date constants
+ * must match the visible date in each legal page body. The comment in
+ * sitemap.ts says "update both this constant and the page when the
+ * document actually changes" — that's a manual discipline rule. This
+ * test catches the case where one is updated and the other isn't.
+ *
+ * Reads the .tsx files as raw text and greps for "Last Updated: <Month
+ * Day, Year>" (the format used in the page bodies). Asserts the
+ * resulting ISO date matches the constant the sitemap emits.
+ */
+describe('sitemap legal-page lastmod drift guard', () => {
+	const repoRoot = resolve(__dirname, '..', '..')
+
+	function readVisibleDate(relPath: string): string {
+		const source = readFileSync(resolve(repoRoot, relPath), 'utf8')
+		// Match "Last Updated: October 5, 2025" (longform month name) on
+		// any line of the source. Use a non-greedy match for the date
+		// itself so trailing JSX or HTML doesn't leak in.
+		const match = source.match(/Last Updated:?\s*(?<date>[A-Z][a-z]+ \d{1,2}, \d{4})/)
+		const dateStr = match?.groups?.date
+		if (!dateStr) {
+			throw new Error(
+				`Couldn't find "Last Updated:" line in ${relPath}. ` +
+					`Either the page format changed or the constant lookup needs updating.`
+			)
+		}
+		// Convert "October 5, 2025" → "2025-10-05" via Date roundtrip,
+		// then format with YYYY-MM-DD slice.
+		const d = new Date(dateStr)
+		if (Number.isNaN(d.getTime())) {
+			throw new Error(`Couldn't parse visible date "${dateStr}" in ${relPath}`)
+		}
+		// `toISOString()` is UTC; the date portion is what we want.
+		return d.toISOString().slice(0, 10)
+	}
+
+	it('TERMS_LAST_UPDATED matches src/app/terms/page.tsx visible date', async () => {
+		const { default: sitemap } = await import('./sitemap')
+		const entries = await sitemap()
+		const terms = entries.find(e => e.url === 'https://tenantflow.app/terms')
+		const visible = readVisibleDate('src/app/terms/page.tsx')
+		expect(terms?.lastModified).toBe(visible)
+	})
+
+	it('PRIVACY_LAST_UPDATED matches src/app/privacy/page.tsx visible date', async () => {
+		const { default: sitemap } = await import('./sitemap')
+		const entries = await sitemap()
+		const privacy = entries.find(
+			e => e.url === 'https://tenantflow.app/privacy'
+		)
+		const visible = readVisibleDate('src/app/privacy/page.tsx')
+		expect(privacy?.lastModified).toBe(visible)
+	})
+
+	it('SECURITY_POLICY_LAST_UPDATED matches src/app/security-policy/page.tsx visible date', async () => {
+		const { default: sitemap } = await import('./sitemap')
+		const entries = await sitemap()
+		const securityPolicy = entries.find(
+			e => e.url === 'https://tenantflow.app/security-policy'
+		)
+		const visible = readVisibleDate('src/app/security-policy/page.tsx')
+		expect(securityPolicy?.lastModified).toBe(visible)
 	})
 })

@@ -1,8 +1,15 @@
+import type { Metadata } from 'next'
 import { Button } from '#components/ui/button'
 import { PageLayout } from '#components/layout/page-layout'
 import { MessageCircle, XCircle } from 'lucide-react'
 import Link from 'next/link'
 import { Suspense } from 'react'
+
+// Transactional Stripe-result page — no SEO value, duplicates `/pricing/cancel`.
+// robots.ts also disallows `/stripe/*` for defense in depth.
+export const metadata: Metadata = {
+	robots: { index: false, follow: false },
+}
 
 function CancelContent() {
 	return (
