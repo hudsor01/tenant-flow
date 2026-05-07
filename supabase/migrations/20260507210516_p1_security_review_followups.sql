@@ -7,14 +7,13 @@
 -- public, authenticated`. The function was originally granted EXECUTE
 -- only to `authenticated`; service_role had reachability via the
 -- default `PUBLIC=X/postgres` grant Postgres assigns to every function.
--- Revoking from PUBLIC therefore removed service_role's path too —
--- contrary to the prior migration's comment which claimed
--- "service_role retains EXECUTE for admin observability".
+-- Revoking from PUBLIC therefore removed service_role's path too. See
+-- `20260507191140`'s "Caveat" block (lines 12-19) for the full
+-- explanation.
 --
--- This migration restores the explicit service_role grant so the
--- documentation matches reality. There's no immediate operational
--- impact because no Edge Function or app code calls this RPC via
--- service_role today (admin observability runs as the postgres
--- superuser via the SQL editor), but the implicit-grant ambiguity
--- is exactly the kind of drift that causes future breakage.
+-- This migration restores the explicit service_role grant. There's no
+-- immediate operational impact because no Edge Function or app code
+-- calls this RPC via service_role today (admin observability runs as
+-- the postgres superuser via the SQL editor), but the implicit-grant
+-- ambiguity is exactly the kind of drift that causes future breakage.
 grant execute on function public.check_stripe_sync_status() to service_role;
