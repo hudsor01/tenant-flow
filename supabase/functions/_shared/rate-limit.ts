@@ -42,18 +42,35 @@ function getLimiter(maxRequests: number, windowMs: string): Ratelimit {
 }
 
 /**
- * Extract client IP from request headers.
- * Checks x-forwarded-for (first segment), cf-connecting-ip, then falls back to 'unknown'.
+ * Extract the trusted client IP from request headers.
+ *
+ * Order:
+ *   1. `cf-connecting-ip` — set by Cloudflare/edge infra, stripped from
+ *      incoming requests, so a client cannot forge it.
+ *   2. Last segment of `x-forwarded-for` — closest hop to our infra.
+ *      The FIRST segment is attacker-controlled (the client can put
+ *      anything they want in the request header before it reaches the
+ *      edge), so trusting it lets an attacker rotate fake IPs to
+ *      bypass any IP-based rate limit. The last segment is added by
+ *      the edge proxy at the network boundary and reflects the real
+ *      caller.
+ *   3. Fallback string `'unknown'` — every untrusted request shares
+ *      this bucket, so the rate limit still applies in aggregate when
+ *      headers are missing entirely (e.g., direct origin hit).
+ *
+ * Reference: Cloudflare's `cf-connecting-ip` documentation explicitly
+ * recommends trusting their own header over `x-forwarded-for` for IP
+ * identification.
  */
 function getClientIp(req: Request): string {
-  const xff = req.headers.get('x-forwarded-for')
-  if (xff) {
-    const first = xff.split(',')[0].trim()
-    if (first) return first
-  }
-
   const cfIp = req.headers.get('cf-connecting-ip')
   if (cfIp) return cfIp
+
+  const xff = req.headers.get('x-forwarded-for')
+  if (xff) {
+    const parts = xff.split(',').map(s => s.trim()).filter(Boolean)
+    if (parts.length > 0) return parts[parts.length - 1]
+  }
 
   return 'unknown'
 }

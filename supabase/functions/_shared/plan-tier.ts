@@ -32,6 +32,22 @@ const TRIAL_PRICE_IDS: ReadonlySet<string> = new Set([
   'price_1RgguDP3WCR53Sdo1lJmjlD5', // Trial $0 (DB-managed; Stripe trial sub never created)
 ])
 
+// Allowlist for `stripe-checkout`. The trial price is intentionally
+// excluded — trials are DB-managed (`subscription_status='trialing'`,
+// `trial_ends_at`) and never flow through Stripe Checkout.
+//
+// Used by stripe-checkout/index.ts to refuse a `price_id` that isn't in
+// our canonical set, closing the path where an attacker (a) crafts a
+// $0 price in some other Stripe account if test-mode keys ever leaked,
+// or (b) pivots to a real-but-unintended price ID (e.g. a coupon or
+// archived tier) and pairs it with `allow_promotion_codes: true` to
+// gain dashboard access at a price never offered through the UI.
+export const ALLOWED_CHECKOUT_PRICE_IDS: ReadonlySet<string> = new Set([
+  ...STARTER_PRICE_IDS,
+  ...GROWTH_PRICE_IDS,
+  ...MAX_PRICE_IDS,
+])
+
 export type PlanTier = 'trial' | 'starter' | 'growth' | 'max'
 
 /**

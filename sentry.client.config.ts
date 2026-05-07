@@ -20,11 +20,18 @@ Sentry.init({
 	replaysOnErrorSampleRate: 1.0, // Always capture replays on errors
 
 	integrations: [
-		// Session Replay
+		// Session Replay. All three masks default to ON so the dashboard
+		// surface — tenant names, email addresses, lease amounts, property
+		// addresses — never reaches Sentry. Without these, replay records
+		// PII that we have no DPA to share with Sentry; flipping them to
+		// `false` would re-open a GDPR exposure for any EU user. Future
+		// callers that need a screen-share UX should add explicit
+		// `unmask: ['.selector']` rules rather than disable masking
+		// globally.
 		Sentry.replayIntegration({
-			maskAllText: false,
-			blockAllMedia: false,
-			maskAllInputs: true // Mask form inputs for privacy
+			maskAllText: true,
+			blockAllMedia: true,
+			maskAllInputs: true
 		}),
 		// Browser Tracing for Web Vitals
 		Sentry.browserTracingIntegration({
