@@ -9,8 +9,6 @@
  * - Filters: search, status filter
  * - Selection: selected row IDs
  * - Modals: detail sheet
- *
- * @see TODO.md REACT-001 pattern
  */
 
 import { create } from 'zustand'
