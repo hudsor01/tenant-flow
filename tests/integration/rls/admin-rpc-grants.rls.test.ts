@@ -11,15 +11,18 @@
  *
  * These tests pin two contracts:
  *
- *   1. authenticated callers cannot reach either RPC. PostgREST
- *      surfaces a revoked EXECUTE on a SECURITY DEFINER function as
- *      42501 in current versions (older variants returned 42883 /
- *      PGRST202). Accept any of the three so the test pins
- *      "function is unreachable", not a specific error code.
+ * authenticated callers cannot reach either RPC. PostgREST surfaces a
+ * revoked EXECUTE on a SECURITY DEFINER function as 42501 in current
+ * versions (older variants returned 42883 / PGRST202). Accept any of
+ * the three so the test pins "function is unreachable from
+ * authenticated", not a specific error-code string.
  *
- *   2. The functions still exist and are owned by `postgres`. If a
- *      future migration accidentally drops one or transfers ownership
- *      to a less-privileged role, this assertion catches it.
+ * Note: PGRST202 ("function not found via PostgREST schema cache")
+ * also fires if the function were genuinely dropped from the schema —
+ * so this test's contract is "authenticated cannot CALL these
+ * functions", not "these functions exist". A separate test (or DB
+ * advisory) should pin existence + ownership if that becomes a
+ * concern.
  */
 
 import { createTestClient, getTestCredentials } from '../setup/supabase-client'

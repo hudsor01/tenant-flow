@@ -30,9 +30,18 @@
 --   - Final hardening pass on all policies
 --
 -- STORAGE POLICIES:
--- Storage policies in 20251110160000_create_lease_documents_bucket.sql use
--- auth.uid()::text with storage.foldername() function. This is the correct
--- pattern for storage objects and does not benefit from SELECT wrapping.
+-- This audit originally covered the three lease-documents storage
+-- policies in 20251110160000_create_lease_documents_bucket.sql. Those
+-- policies were demolished in PR #677 (cycle-1 followup, 2026-05-07)
+-- because the audit-failing `Service can manage lease documents FOR
+-- ALL TO authenticated` policy aborted `supabase db reset` at the
+-- 20260304130000 for-all-audit step, and the other two SELECT
+-- policies referenced the demolished `tenants` model. They no longer
+-- exist anywhere in the migration history. Other storage policies in
+-- the repo (property-images, maintenance-photos, inspection-photos,
+-- profile-avatars) follow the same correct `auth.uid()::text` +
+-- `storage.foldername()` pattern and likewise do not benefit from
+-- SELECT wrapping.
 --
 -- CONCLUSION:
 -- No additional fixes required. All RLS policies use optimal (SELECT auth.uid())
