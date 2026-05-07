@@ -24,9 +24,13 @@
 -- The three dropped policies, for the audit trail:
 --   * `Property owners can read own lease documents` (FOR SELECT,
 --     auth.uid() = (storage.foldername(name))[1])
---   * `Tenants can read their lease documents` (FOR SELECT, joins
---     public.leases.primary_tenant_id) — the JOIN became invalid when
---     the `tenants` model was demolished in 20260418183608
+--   * `Tenants can read their lease documents` (FOR SELECT, matches
+--     `auth.uid() = leases.primary_tenant_id`) — became dead when
+--     20260418140000_demolish_rent_and_tenant_portal removed the
+--     tenant-portal/auth path. `public.tenants` and
+--     `leases.primary_tenant_id` still exist, but `auth.uid()` no
+--     longer resolves to any tenant identity (tenants are records,
+--     not users), so the join can never match.
 --   * `Service can manage lease documents` (FOR ALL TO authenticated,
 --     auth.uid() = (storage.foldername(name))[1]) — the audit-failing
 --     one

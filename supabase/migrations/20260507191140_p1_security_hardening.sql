@@ -7,8 +7,16 @@
 -- invoices, charges, customers, products, prices. No is_admin() check.
 -- Granting EXECUTE to authenticated lets any user estimate the platform's
 -- subscriber count + churn — useful for competitor surveillance, useless
--- for any legitimate authenticated caller. service_role retains EXECUTE
--- so admin observability tooling still works.
+-- for any legitimate authenticated caller.
+--
+-- Caveat (closed in followup migration 20260507210516): the function's
+-- prior ACL only granted EXECUTE explicitly to `authenticated`;
+-- service_role had reachability via the implicit `PUBLIC=X/postgres`
+-- grant Postgres assigns to every function. The `revoke ... from
+-- public` below also strips that implicit path, so service_role loses
+-- EXECUTE here too. The followup migration restores the explicit
+-- service_role grant; until that migration runs, only `postgres`
+-- (the function owner) can call this RPC.
 revoke execute on function public.check_stripe_sync_status() from public, authenticated;
 
 ------------------------------------------------------------
@@ -25,19 +33,23 @@ revoke execute on function public.check_stripe_sync_status() from public, authen
 revoke execute on function public.get_user_id_by_stripe_customer(text) from public, authenticated;
 
 ------------------------------------------------------------
--- P1-7: drop the legacy lease-documents storage policies + bucket
+-- P1-7: drop the legacy lease-documents storage policies (bucket
+-- retention is unavoidable — see comment below)
 ------------------------------------------------------------
--- Migration `20251110160000_create_lease_documents_bucket.sql` left a
--- `Service can manage lease documents ON storage.objects FOR ALL TO
--- authenticated` policy in the migration history. The
--- `for-all-audit` migration at 20260304130000 raises an exception when
--- it sees `FOR ALL TO authenticated`, so a fresh `supabase db reset`
--- against this repo would explode mid-replay even though prod is fine
--- (the policy was manually cleaned up out-of-band).
---
--- This migration brings the repo + prod into agreement by explicitly
--- dropping the legacy policies + bucket. `IF EXISTS` keeps it safe to
--- re-run.
+-- Migration `20251110160000_create_lease_documents_bucket.sql`
+-- originally created three storage policies on `lease-documents`,
+-- one of which was `Service can manage lease documents ON
+-- storage.objects FOR ALL TO authenticated`. The for-all-audit
+-- migration at 20260304130000 raises an exception when it sees
+-- `FOR ALL TO authenticated`. Cycle-1 review of this PR caught that
+-- the DROP POLICY statements below run AFTER the audit, so they
+-- can't actually fix `db reset` — the audit aborts at step
+-- 20260304130000 first. The real fix is in the historical edit to
+-- `20251110160000` (also in this PR) which removes all three policy
+-- creations from history. The DROPs here remain for prod alignment
+-- (prod cleaned the policies out-of-band before this PR; the DROPs
+-- formalize that cleanup in migration history). `IF EXISTS` keeps
+-- them safe to re-run.
 drop policy if exists "Service can manage lease documents" on storage.objects;
 drop policy if exists "Property owners can read own lease documents" on storage.objects;
 drop policy if exists "Tenants can read their lease documents" on storage.objects;

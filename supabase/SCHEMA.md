@@ -606,7 +606,7 @@ Service role (`service_role`) bypasses all RLS for backend operations.
 | `profile-avatars` | User avatars | Yes |
 | `documents` | General documents | No |
 
-> **Note:** Lease PDFs are NOT stored in Supabase Storage. The `generate-pdf` Edge Function streams them to the caller in-memory; no persistence step. The previously-documented `lease-documents` bucket and its three storage policies were demolished in PR #677 (2026-05-07) — see `supabase/migrations/20251110160000_create_lease_documents_bucket.sql` for the audit trail.
+> **Note:** Lease PDFs are NOT stored in Supabase Storage. The `generate-pdf` Edge Function streams them to the caller in-memory; no persistence step. The previously-documented `lease-documents` bucket policies were demolished in PR #677 (2026-05-07); the bucket itself was deleted out-of-band before that PR (Supabase's `storage.protect_delete()` trigger blocks `DELETE FROM storage.buckets`, so the migration cannot reproduce the bucket deletion). See `supabase/migrations/20251110160000_create_lease_documents_bucket.sql` for the full audit trail.
 
 ---
 
