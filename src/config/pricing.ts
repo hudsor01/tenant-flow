@@ -6,6 +6,9 @@
 export type StripePriceId = `price_${string}`
 export type PlanId = 'trial' | 'starter' | 'growth' | 'max'
 
+/** Phase 1 (CRIT-03) placeholder. Phase 5 (PRICE-*) deletes this. Search this symbol when restructuring tiers. */
+export const MAX_PUBLIC_PRICE_DISPLAY = 'Custom' as const
+
 // Trial configuration interface
 export interface TrialConfig {
 	readonly trialPeriodDays?: number

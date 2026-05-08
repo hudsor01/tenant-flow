@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { cn } from '#lib/utils'
+import { MAX_PUBLIC_PRICE_DISPLAY } from '#config/pricing'
 import { Check, Minus, ChevronDown } from 'lucide-react'
 import { Button } from '#components/ui/button'
 import {
@@ -202,7 +203,7 @@ export function PricingComparisonTable({
 						</div>
 						<div className="text-center">
 							<div className="text-sm font-semibold text-foreground">Max</div>
-							<div className="text-xs text-muted-foreground">$199/mo</div>
+							<div className="text-xs text-muted-foreground">{MAX_PUBLIC_PRICE_DISPLAY}</div>
 						</div>
 					</div>
 
