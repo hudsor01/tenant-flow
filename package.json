@@ -88,7 +88,8 @@
 			"yaml": ">=2.8.3",
 			"smol-toml": ">=1.6.1",
 			"uuid": ">=14.0.0",
-			"postcss": ">=8.5.14"
+			"postcss": ">=8.5.14",
+			"ip-address": ">=10.1.1"
 		},
 		"peerDependencyRules": {
 			"allowedVersions": {
