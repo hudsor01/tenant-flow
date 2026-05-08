@@ -42,18 +42,43 @@ function getLimiter(maxRequests: number, windowMs: string): Ratelimit {
 }
 
 /**
- * Extract client IP from request headers.
- * Checks x-forwarded-for (first segment), cf-connecting-ip, then falls back to 'unknown'.
+ * Extract the trusted client IP from request headers.
+ *
+ * Supabase Edge Functions run on Deno Deploy. Whether `cf-connecting-ip`
+ * is populated depends on whether the request transits Cloudflare's
+ * edge layer before reaching the function. When it does, that header
+ * is set by Cloudflare and stripped from incoming requests at its
+ * boundary, so a client cannot forge it — making it the most reliable
+ * IP signal available. When it doesn't, this function falls through to
+ * `x-forwarded-for`.
+ *
+ * Order:
+ *   1. `cf-connecting-ip` — trusted when present.
+ *   2. Last segment of `x-forwarded-for` — closest hop to our infra.
+ *      The FIRST segment is attacker-controlled (the client can put
+ *      anything they want in the request header before it reaches the
+ *      edge), so trusting it lets an attacker rotate fake IPs to
+ *      bypass any IP-based rate limit. The last segment is added by
+ *      the trusted proxy at our network boundary and reflects the
+ *      real caller in single-proxy topologies. In multi-proxy chains,
+ *      the last segment is still the closest-to-us hop, which is the
+ *      most truthful identifier we can pick without coordinating with
+ *      every upstream proxy.
+ *   3. Fallback string `'unknown'` — every untrusted request shares
+ *      this bucket, so the rate limit still applies in aggregate when
+ *      headers are missing entirely (e.g., direct origin hit). This
+ *      falls open for per-IP isolation but stays closed for
+ *      aggregate-traffic ceilings.
  */
 function getClientIp(req: Request): string {
-  const xff = req.headers.get('x-forwarded-for')
-  if (xff) {
-    const first = xff.split(',')[0].trim()
-    if (first) return first
-  }
-
   const cfIp = req.headers.get('cf-connecting-ip')
   if (cfIp) return cfIp
+
+  const xff = req.headers.get('x-forwarded-for')
+  if (xff) {
+    const parts = xff.split(',').map(s => s.trim()).filter(Boolean)
+    if (parts.length > 0) return parts[parts.length - 1]
+  }
 
   return 'unknown'
 }

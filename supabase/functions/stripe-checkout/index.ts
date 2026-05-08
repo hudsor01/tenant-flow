@@ -9,6 +9,7 @@ import { errorResponse } from '../_shared/errors.ts'
 import { validateBearerAuth } from '../_shared/auth.ts'
 import { getStripeClient } from '../_shared/stripe-client.ts'
 import { createAdminClient } from '../_shared/supabase-client.ts'
+import { ALLOWED_CHECKOUT_PRICE_IDS } from '../_shared/plan-tier.ts'
 
 Deno.serve(async (req: Request) => {
   const optionsResponse = handleCorsOptions(req)
@@ -18,7 +19,7 @@ Deno.serve(async (req: Request) => {
   try {
     env = validateEnv({
       required: ['SUPABASE_URL', 'SUPABASE_SERVICE_ROLE_KEY', 'STRIPE_SECRET_KEY'],
-      optional: ['FRONTEND_URL', 'STRIPE_PRO_PRICE_ID'],
+      optional: ['FRONTEND_URL'],
     })
   } catch (err) {
     return errorResponse(req, 500, err, { action: 'env_validation' })
@@ -43,10 +44,22 @@ Deno.serve(async (req: Request) => {
   try {
     const body = await req.json()
     // Accept both snake_case (preferred) and camelCase (legacy frontend) forms
-    const priceId: string = body.price_id ?? body.priceId ?? env.STRIPE_PRO_PRICE_ID ?? ''
+    const priceId: string = body.price_id ?? body.priceId ?? ''
 
     if (!priceId) {
       return new Response(JSON.stringify({ error: 'price_id is required' }), {
+        status: 400, headers: getJsonHeaders(req),
+      })
+    }
+
+    // Refuse a price_id that isn't in our canonical set. Without this
+    // guard a caller can pass any string and Stripe will accept it as
+    // long as the price exists in our account — including coupon
+    // prices, archived tiers, or test-mode-leaked prices. Combined
+    // with `allow_promotion_codes: true` this is a known cheap-tier
+    // bypass shape.
+    if (!ALLOWED_CHECKOUT_PRICE_IDS.has(priceId)) {
+      return new Response(JSON.stringify({ error: 'price_id not allowed' }), {
         status: 400, headers: getJsonHeaders(req),
       })
     }

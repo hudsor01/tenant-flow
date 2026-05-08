@@ -56,22 +56,25 @@ Deno.serve(async (req: Request) => {
 
   try {
     const env = validateEnv({
-      required: ['RESEND_API_KEY'],
-      optional: ['SUPABASE_AUTH_HOOK_SECRET', 'NEXT_PUBLIC_APP_URL'],
+      required: ['RESEND_API_KEY', 'SUPABASE_AUTH_HOOK_SECRET'],
+      optional: ['NEXT_PUBLIC_APP_URL'],
     })
 
-    // Verify the request comes from Supabase via the hook secret
-    const hookSecret = env['SUPABASE_AUTH_HOOK_SECRET'] ?? Deno.env.get('SUPABASE_AUTH_HOOK_SECRET')
-    if (hookSecret) {
-      const authHeader = req.headers.get('authorization') ?? ''
-      const token = authHeader.replace(/^Bearer\s+/i, '')
-      if (token !== hookSecret) {
-        captureWebhookError(new Error('Unauthorized: invalid hook secret'), { message: '[AUTH_EMAIL] Unauthorized: invalid hook secret' })
-        return new Response(
-          JSON.stringify({ error: 'Unauthorized' }),
-          { status: 401, headers: jsonHeaders },
-        )
-      }
+    // Verify the request comes from Supabase via the hook secret. The
+    // secret is now required at startup (see validateEnv above), so the
+    // function refuses to serve when it's unset — closing the
+    // fail-open path where a missing/dropped env var let any caller
+    // POST arbitrary token_hash + email_data and trigger Resend mails
+    // to attacker-chosen recipients.
+    const hookSecret = env['SUPABASE_AUTH_HOOK_SECRET']
+    const authHeader = req.headers.get('authorization') ?? ''
+    const token = authHeader.replace(/^Bearer\s+/i, '')
+    if (token !== hookSecret) {
+      captureWebhookError(new Error('Unauthorized: invalid hook secret'), { message: '[AUTH_EMAIL] Unauthorized: invalid hook secret' })
+      return new Response(
+        JSON.stringify({ error: 'Unauthorized' }),
+        { status: 401, headers: jsonHeaders },
+      )
     }
 
     const payload = (await req.json()) as AuthEmailHookPayload
@@ -84,7 +87,7 @@ Deno.serve(async (req: Request) => {
       )
     }
 
-    const appUrl = env['NEXT_PUBLIC_APP_URL'] ?? Deno.env.get('NEXT_PUBLIC_APP_URL') ?? 'http://localhost:3050'
+    const appUrl = env['NEXT_PUBLIC_APP_URL'] ?? 'http://localhost:3050'
     const otpType = OTP_TYPE_MAP[email_data.email_action_type]
     const callbackUrl = `${appUrl}/auth/callback?token_hash=${encodeURIComponent(email_data.token_hash)}&type=${encodeURIComponent(otpType)}`
 
