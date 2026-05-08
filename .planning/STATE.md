@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: executing
-last_updated: "2026-05-08T23:07:39Z"
-last_activity: "2026-05-08 — Phase 1 Plan 02 (CRIT-03 pricing placeholder) implementation tasks complete; Task 3 awaiting post-deploy human verification"
+status: "Phase 1 shipped — PR #682"
+last_updated: "2026-05-08T23:46:05.975Z"
+last_activity: 2026-05-08
 progress:
   total_phases: 13
-  completed_phases: 0
+  completed_phases: 1
   total_plans: 2
-  completed_plans: 0
-  percent: 0
+  completed_plans: 2
+  percent: 100
 ---
 
 # Project State
@@ -26,8 +26,8 @@ See: .planning/PROJECT.md (updated 2026-05-08)
 
 Phase: 1 (Critical Stop-Bleed: Blog Unpublish + Pricing Placeholder) — EXECUTING
 Plan: 02 of 02 — Tasks 1+2 done; Task 3 (manual Rich Results Test) awaits post-deploy human verification
-Status: Plan 02 implementation complete; awaiting Plan 01 (blog migration, parallel) + post-merge manual verify
-Last activity: 2026-05-08T23:07:39Z — Plan 02 commits 342a6f84a + 8b45a0ea3 landed; SUMMARY written
+Status: Phase 1 shipped — PR #682
+Last activity: 2026-05-08
 
 Progress: [░░░░░░░░░░░░░] 0% (phases stay at 0 until both plans + post-deploy gate close)
 
