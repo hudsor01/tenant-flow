@@ -46,9 +46,11 @@
 -- edit.
 --
 -- Other storage policies in the repo (property-images,
--- maintenance-photos, inspection-photos, profile-avatars) follow the
--- same correct `auth.uid()::text` + `storage.foldername()` pattern
--- and likewise do not benefit from SELECT wrapping.
+-- maintenance-photos, inspection-photos) already use the
+-- `(select auth.uid())` subquery wrapping pattern in their
+-- folder-ownership joins (see 20260218032800, 20260420010000,
+-- 20260220110001 respectively) — they're already optimized and
+-- need no further changes.
 --
 -- CONCLUSION:
 -- No additional fixes required. All RLS policies use optimal (SELECT auth.uid())
