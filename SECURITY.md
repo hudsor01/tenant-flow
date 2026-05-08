@@ -98,7 +98,8 @@ Major security work is reviewed via the perfect-PR gate (two consecutive zero-fi
 
 - **Tenant authentication / portal** — TenantFlow is landlord-only by design. Anyone offering "tenant access" is misrepresenting the product.
 - **Rent payment processing** — payment collection happens through whatever channels the landlord already uses; we don't custodian funds.
-- **Self-hosted deployments** — production is a single hosted instance at `tenantflow.app`. Local development environments are not within scope of this policy.
+- **Self-hosted deployments** — production is a single hosted instance at `tenantflow.app`. Self-hosted instances permitted under [FSL-1.1-MIT](./LICENSE) are not within scope of this policy; users running their own instances are responsible for their own security posture, including applying upstream patches.
+- **Forks / derivative works** — security reports are accepted only for the canonical hosted instance at `tenantflow.app` and the source as published in this repository.
 
 ---
 
