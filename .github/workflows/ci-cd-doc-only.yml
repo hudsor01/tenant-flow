@@ -1,0 +1,55 @@
+name: CI
+
+# Paired no-op workflow for doc-only changes.
+#
+# ci-cd.yml (the real CI) skips on paths-ignore matching markdown,
+# .planning/, .vscode/, docs/, and LICENSE. Branch protection requires
+# the `checks` and `e2e-smoke` jobs to pass on every PR -- but a skipped
+# workflow never reports those check names, leaving them in "expected"
+# state and blocking merge for doc-only PRs.
+#
+# This workflow fires on the inverse path set and produces matching
+# `checks` and `e2e-smoke` job names that immediately succeed. From
+# branch-protection's perspective, the required checks are reported as
+# "success" regardless of which workflow ran, so doc-only PRs merge
+# cleanly without bypassing the gate.
+#
+# IMPORTANT: keep the path list here in lockstep with paths-ignore in
+# ci-cd.yml. Adding a path to one without the other re-introduces the bug.
+#
+# All `run:` steps below use only static strings (no GitHub expression
+# interpolation, no untrusted inputs), so this file is not subject to
+# the github.event injection class of vulnerabilities.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "**.md"
+      - ".planning/**"
+      - ".vscode/**"
+      - "docs/**"
+      - "LICENSE"
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, reopened]
+    paths:
+      - "**.md"
+      - ".planning/**"
+      - ".vscode/**"
+      - "docs/**"
+      - "LICENSE"
+
+permissions:
+  contents: read
+
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "Doc-only change; type/lint/build checks skipped"
+
+  e2e-smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "Doc-only change; E2E smoke skipped"
