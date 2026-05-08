@@ -113,7 +113,13 @@ Routine security verification: paste the prompt in [`scripts/verify-security-pos
 
 ## License
 
-[MIT](./LICENSE) © 2025-2026 Richard Hudson. The hosted service at `tenantflow.app` is operated as a commercial SaaS by the copyright holder.
+[FSL-1.1-MIT](./LICENSE) — [Functional Source License v1.1, MIT Future License](https://fsl.software/) © 2025-2026 Richard Hudson.
+
+You may use, copy, modify, redistribute, and run the Software for any **Permitted Purpose** — including internal commercial use, non-commercial research and education, and professional services delivered to other licensees. You may **not** use the Software to offer a hosted product or service that substitutes for or competes with TenantFlow itself.
+
+Each release auto-converts to the **MIT License** on the **second anniversary of its publication date**. After that date, that release is yours to use without restriction.
+
+The hosted service at `tenantflow.app` is operated as a commercial SaaS by the copyright holder. For commercial licensing inquiries (e.g., embedding TenantFlow into a competing product), contact support@tenantflow.app.
 
 ---
 
