@@ -1,3 +1,18 @@
+---
+gsd_state_version: 1.0
+milestone: v1.0
+milestone_name: milestone
+status: planning
+last_updated: "2026-05-08T22:52:27.384Z"
+last_activity: 2026-05-08 — v1.0 roadmap revised to 13 phases after Q&A added Pricing Restructure (Phase 5) and Blog Rebuild + n8n (Phase 6) as dedicated phases
+progress:
+  total_phases: 13
+  completed_phases: 0
+  total_plans: 2
+  completed_plans: 0
+  percent: 0
+---
+
 # Project State
 
 ## Project Reference
@@ -65,3 +80,5 @@ None.
 
 ---
 *Last updated: 2026-05-08 after v1.0 init Q&A round*
+
+**Planned Phase:** 1 (Critical Stop-Bleed (Blog Unpublish + Pricing Placeholder)) — 2 plans — 2026-05-08T22:52:27.378Z

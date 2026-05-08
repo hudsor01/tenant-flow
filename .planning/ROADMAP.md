@@ -37,6 +37,12 @@ TenantFlow is a mature Next.js 16 + Supabase landlord-only SaaS (v2.6 shipped Ap
 3. Pricing card / `pricing-comparison-table.tsx` / homepage features grid / `Product` JSON-LD all show "Custom" / "Contact Sales" for Max plan with zero contradiction
 4. No new hex/rgb/`bg-white`/inline-ms tokens introduced (cross-cutting design-token check)
 
+**Plans:** 2 plans (parallel — wave 1)
+
+Plans:
+- [ ] 01-01-PLAN.md — Bulk-unpublish broken blog rows + BEFORE-INSERT trigger guard (Supabase migration via MCP, post-flight verification, timestamp reconcile)
+- [ ] 01-02-PLAN.md — Add MAX_PUBLIC_PRICE_DISPLAY constant; update comparison-table sticky header + pricing-page metadata + JSON-LD (omit Max from offers); page-level test; Rich Results Test verification
+
 ### Phase 2: Frontend Correctness (NumberTicker + Mobile)
 **Goal**: Homepage stat counters display "5", "7", "500", "14" instead of "0"; 375px viewport renders the hero without horizontal overflow with a working shadcn `Sheet` hamburger drawer for nav.
 **Depends on**: Nothing (parallel-eligible with Phase 1, 3)
