@@ -115,6 +115,7 @@ config.yml
 *.config.json
 *.config.yaml
 *.config.yml
+!.planning/config.json
 .credentials
 credentials.*
 *.credentials
