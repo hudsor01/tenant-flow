@@ -44,23 +44,34 @@ const getBlogPost = cache(async (slug: string) => {
 		.eq('status', 'published')
 		.single()
 
-	const post = await Promise.race([query, timeout])
-		.then(({ data, error }) => {
-			if (error) {
-				logger.error('Blog post query failed', {
-					action: 'getBlogPost',
-					route: `/blog/${slug}`,
-					metadata: { error: error.message }
-				})
-			}
-			return data
-		})
-		.catch(() => null)
-		.finally(() => {
-			if (timer) clearTimeout(timer)
-		})
-
-	return post
+	try {
+		const { data, error } = await Promise.race([query, timeout])
+		if (error) {
+			// PGRST116 = "Results contain 0 rows" from .single() — genuine miss.
+			// Any other code is a real DB problem; throw so Next.js error boundary
+			// surfaces a 500 instead of a misleading 404.
+			if (error.code === 'PGRST116') return null
+			logger.error('Blog post query failed', {
+				action: 'getBlogPost',
+				route: `/blog/${slug}`,
+				metadata: { error: error.message, code: error.code }
+			})
+			throw new Error('Blog post query failed')
+		}
+		return data
+	} catch (err) {
+		// Re-log timeout errors with context before bubbling to error boundary.
+		if (err instanceof Error && err.message === 'Blog post query timed out') {
+			logger.error('Blog post query timed out', {
+				action: 'getBlogPost',
+				route: `/blog/${slug}`,
+				metadata: {}
+			})
+		}
+		throw err
+	} finally {
+		if (timer) clearTimeout(timer)
+	}
 })
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
