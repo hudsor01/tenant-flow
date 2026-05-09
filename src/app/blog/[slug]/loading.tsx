@@ -15,6 +15,6 @@
 // When Phase 6 (BLOG-02) rebuilds this route with `generateStaticParams` +
 // per-slug ISR, this file can be deleted (the loading shell becomes safe
 // again because the await resolves at build time, not request time).
-export default function BlogPostLoading() {
+export default function BlogPostLoading(): null {
 	return null
 }
