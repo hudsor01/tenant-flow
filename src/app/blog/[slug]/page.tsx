@@ -8,9 +8,19 @@ import { createArticleJsonLd } from '#lib/seo/article-schema'
 import { createBreadcrumbJsonLd } from '#lib/seo/breadcrumbs'
 import BlogPostPage from './blog-post-page'
 
-// Cache blog pages for 1 hour via ISR — generateMetadata only runs during
-// background revalidation, not on every request (27K+ requests/month)
-export const revalidate = 3600
+// Phase 1 (CRIT-01) follow-up: Next.js 16 + ISR (`revalidate`) + `notFound()`
+// returns soft-404 (HTTP 200 + not-found UI), not real HTTP 404. This breaks
+// Specialist-2's "real 404 emitted by framework" contract and slows Google
+// deindex of the 100 broken blog rows the Phase-1 migration drafted.
+//
+// Forcing dynamic rendering ensures `notFound()` correctly emits HTTP 404 on
+// every miss. Cost is acceptable: every row was drafted by the Phase-1
+// migration, so ISR cache hits are zero in the current state.
+//
+// Phase 6 (BLOG-02 server-rendered rebuild) restores ISR with
+// `generateStaticParams` returning the published slug set — at that point
+// dynamic params hit the proper 404 path while known slugs serve from cache.
+export const dynamic = 'force-dynamic'
 
 const logger = createLogger({ component: 'BlogPost' })
 
@@ -34,23 +44,34 @@ const getBlogPost = cache(async (slug: string) => {
 		.eq('status', 'published')
 		.single()
 
-	const post = await Promise.race([query, timeout])
-		.then(({ data, error }) => {
-			if (error) {
-				logger.error('Blog post query failed', {
-					action: 'getBlogPost',
-					route: `/blog/${slug}`,
-					metadata: { error: error.message }
-				})
-			}
-			return data
-		})
-		.catch(() => null)
-		.finally(() => {
-			if (timer) clearTimeout(timer)
-		})
-
-	return post
+	try {
+		const { data, error } = await Promise.race([query, timeout])
+		if (error) {
+			// PGRST116 = "Results contain 0 rows" from .single() — genuine miss.
+			// Any other code is a real DB problem; throw so Next.js error boundary
+			// surfaces a 500 instead of a misleading 404.
+			if (error.code === 'PGRST116') return null
+			logger.error('Blog post query failed', {
+				action: 'getBlogPost',
+				route: `/blog/${slug}`,
+				metadata: { error: error.message, code: error.code }
+			})
+			throw new Error('Blog post query failed')
+		}
+		return data
+	} catch (err) {
+		// Re-log timeout errors with context before bubbling to error boundary.
+		if (err instanceof Error && err.message === 'Blog post query timed out') {
+			logger.error('Blog post query timed out', {
+				action: 'getBlogPost',
+				route: `/blog/${slug}`,
+				metadata: {}
+			})
+		}
+		throw err
+	} finally {
+		if (timer) clearTimeout(timer)
+	}
 })
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
