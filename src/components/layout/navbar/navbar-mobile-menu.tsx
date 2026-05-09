@@ -44,7 +44,7 @@ export function NavbarMobileMenu({
 
 	return (
 		<Sheet open={isOpen} onOpenChange={onOpenChange}>
-			<SheetContent side="right" className="w-[300px] sm:w-[350px]">
+			<SheetContent side="right">
 				<SheetHeader>
 					<SheetTitle className="text-left">Menu</SheetTitle>
 				</SheetHeader>
