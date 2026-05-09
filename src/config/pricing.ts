@@ -6,7 +6,20 @@
 export type StripePriceId = `price_${string}`
 export type PlanId = 'trial' | 'starter' | 'growth' | 'max'
 
-/** Phase 1 (CRIT-03) placeholder. Phase 5 (PRICE-*) deletes this. Search this symbol when restructuring tiers. */
+/**
+ * Phase 1 (CRIT-03) placeholder. Phase 5 (PRICE-*) deletes this constant and its
+ * call site in pricing-comparison-table.tsx. Also update hardcoded "Custom pricing,
+ * contact sales" strings in src/app/pricing/page.tsx (metadata description + JSON-LD
+ * product description) — those strings are not references to this constant.
+ *
+ * @phase-5-cleanup Full surface map:
+ *   1. src/config/pricing.ts — delete this constant (replace literal 'Custom')
+ *   2. src/components/pricing/pricing-comparison-table.tsx ~line 206 — delete import + render of MAX_PUBLIC_PRICE_DISPLAY
+ *   3. src/app/pricing/page.tsx metadata.description — hardcoded "Max — Custom pricing, contact sales"
+ *   4. src/app/pricing/page.tsx productJsonLd description — hardcoded "Max enterprise tier — Custom pricing, contact sales"
+ *
+ * One-liner to find all surfaces: grep -rn 'MAX_PUBLIC_PRICE_DISPLAY\|Custom pricing, contact sales' src/
+ */
 export const MAX_PUBLIC_PRICE_DISPLAY = 'Custom' as const
 
 // Trial configuration interface
