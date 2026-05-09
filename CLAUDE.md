@@ -233,4 +233,4 @@ Deno runtime, `supabase/functions/<name>/index.ts`.
 - `autoFocus` on the primary input of key forms (login email, property name, etc.)
 
 ## Workflow
-Active workflow: superpowers (skill plugins) + perfect-PR merge gate (two consecutive zero-finding review cycles required). `.planning/` is a frozen archive (v1.0–v2.3 records). Do not invoke any `/gsd:*` commands; that runtime was removed. See memory `workflow-superpowers-perfect-pr.md` for the full rationale.
+GSD (`gsd-build/get-shit-done`, installed via `npx get-shit-done-cc@latest`) drives milestone planning + phase execution. Slash commands: `/gsd-new-project`, `/gsd-new-milestone`, `/gsd-discuss-phase N`, `/gsd-plan-phase N`, `/gsd-execute-phase N`, `/gsd-verify-work N`, `/gsd-ship N`, `/gsd-progress --next`, `/gsd-complete-milestone`. GSD writes `.planning/{PROJECT,REQUIREMENTS,ROADMAP,STATE,MILESTONES}.md` + `.planning/phases/<NN-name>/` artifacts. Perfect-PR merge gate (two consecutive zero-finding review cycles) is the merge discipline regardless of planning runtime. Pick milestone version names freely (e.g. `v1.0`, `v2.0`, `v3.0`) — GSD does not enforce semver.

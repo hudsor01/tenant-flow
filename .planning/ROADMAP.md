@@ -1,148 +1,234 @@
-# Roadmap: TenantFlow
+# Roadmap: TenantFlow v1.0 — Marketing Surface Honesty (Fine Granularity)
 
 ## Overview
 
-TenantFlow is a multi-tenant property management SaaS platform for property owners and managers. The roadmap follows milestone-grouped phases with continuous numbering across all versions.
+TenantFlow is a mature Next.js 16 + Supabase landlord-only SaaS (v2.6 shipped April 2026). The v1.0 milestone is a brownfield quality pass on the existing marketing surface plus two strategic rebuilds (pricing restructure + blog rebuild + n8n redesign) that emerged during Q&A. 13 fine-grained phases, 55 requirements mapped, sequenced by the audit's "Recommended Fix Order" plus dependency chain (persona before pricing/blog/copy-card-chrome; pricing-card chrome after pricing restructure ships final numbers). Each phase ships as a small per-phase PR through the perfect-PR merge gate (two consecutive zero-finding review cycles). The cross-cutting design-token alignment constraint (canonical tokens in `src/app/globals.css`; no hex/rgb/`bg-white`/inline ms anywhere) is verified as a success criterion inside every phase. Phase 11 is the only phase that explicitly *targets* existing token drift; every other phase must *not introduce* it.
 
-## Milestones
+## Phases
 
-<details>
-<summary>v1.0 Production Hardening -- Phases 1-10 (shipped 2026-03-07)</summary>
+**Phase Numbering:**
+- Integer phases only (1–13). User explicit instruction: no decimal phases (no `4.5`).
+- Per-phase branches: `gsd/phase-{N}-{slug}`.
 
-- [x] Phase 1: RPC & Database Security (2/2 plans) -- completed 2026-03-04
-- [x] Phase 2: Financial Fixes (7/7 plans) -- completed 2026-03-05
-- [x] Phase 3: Auth & Middleware (6/6 plans) -- completed 2026-03-05
-- [x] Phase 4: Edge Function Hardening (4/4 plans) -- completed 2026-03-05
-- [x] Phase 5: Code Quality & Type Safety (10/10 plans) -- completed 2026-03-06
-- [x] Phase 6: Database Schema & Migrations (7/7 plans) -- completed 2026-03-06
-- [x] Phase 7: UX & Accessibility (6/6 plans) -- completed 2026-03-06
-- [x] Phase 8: Performance Optimization (7/7 plans) -- completed 2026-03-06
-- [x] Phase 9: Testing & CI Pipeline (9/9 plans) -- completed 2026-03-06
-- [x] Phase 10: Audit Cleanup (2/2 plans) -- completed 2026-03-07
+- [ ] **Phase 1: Critical Stop-Bleed (Blog Unpublish + Pricing Placeholder)** — Halt SEO bleeding from broken blog rows; unify Max pricing across 4 surfaces using a "Custom" placeholder until the Pricing Restructure phase ships final numbers
+- [ ] **Phase 2: Frontend Correctness (NumberTicker + Mobile)** — Fix homepage stat counter animation; ship 375px responsive hero with shadcn `Sheet` hamburger
+- [ ] **Phase 3: Routing & Legal-URL Aliases** — Eliminate `/signup → /login` loop; 301 long-form legal URLs to short paths
+- [ ] **Phase 4: Persona & Copy Honesty** — Research-driven persona terminology selection; unify copy; surface tenants-never-login differentiator; replace "Join 500+" with segment-specific framing
+- [ ] **Phase 5: Pricing Restructure** — Revenue audit + competitor analysis + new tier proposal + Stripe migration + propagate everywhere. Replaces CRIT-03 placeholder with final tier structure
+- [ ] **Phase 6: Blog Rebuild + n8n Redesign** — Database cleanup + server-rendered `/blog` UI rebuild + n8n workflow redesign + initial persona-aligned content set
+- [ ] **Phase 7: Pricing-Card Chrome** — Most-Popular badge overlap, Starter subhead spacing, annual-toggle savings math (uses Phase 5's final tier numbers)
+- [ ] **Phase 8: Nav, Active States & Dead Links** — Multi-Property Dashboard icon, `aria-current` on `/`, dead `href="/#"` in Resources dropdown
+- [ ] **Phase 9: Page-Level Cleanup** — Legal-page dates, faded Supabase logo, dup "Why Landlords Choose" table
+- [ ] **Phase 10: CTA & Conversion Standardization** — Canonical "Contact Sales" labels + styles, neutral compare-page framing, fix `/contact` default, testimonials (no headshots) + review badges + monitored inboxes
+- [ ] **Phase 11: Design-Token Alignment & Resources Page** — `/resources` neon-pink + decorative cards → tokens; codify no-hex/no-bg-white/no-inline-ms lint rule
+- [ ] **Phase 12: SEO Metadata, Schema & Content Cleanup** — Meta separator, per-page OG images, Organization + SoftwareApplication schema, blog slugs (post-Phase 6), breadcrumbs, footer sitemap link, sitewide `aria-current` audit
+- [ ] **Phase 13: Performance & Conversion Polish** — Static export + cache headers, sticky CTA on long pages, exit-intent / scroll-depth lead capture (PERF-01 server-render `/blog` already covered in Phase 6)
 
-[archive](milestones/v1.0-ROADMAP.md)
+## Phase Details
 
-</details>
+### Phase 1: Critical Stop-Bleed (Blog Unpublish + Pricing Placeholder)
+**Goal**: Stop ongoing SEO + ad-spend hemorrhage. Bulk-unpublish all broken `blogs` rows so Google stops indexing duplicate "Error Processing Blog" pages. Make Max plan pricing AGREE across pricing card / comparison table / homepage features grid / JSON-LD using "Custom" placeholder until Phase 5 ships final tier numbers.
+**Depends on**: Nothing (first phase)
+**Requirements**: CRIT-01, CRIT-03
+**Branch**: `gsd/phase-1-critical-stop-bleed`
+**Success Criteria**:
+1. `/blog` index and `/blog/[slug]` URLs no longer render the string "Error Processing Blog" — broken rows are unpublished (status='draft' or equivalent), index renders honest empty state
+2. Google Search Console shows declining count of error-pattern pages within 7 days of merge
+3. Pricing card / `pricing-comparison-table.tsx` / homepage features grid / `Product` JSON-LD all show "Custom" / "Contact Sales" for Max plan with zero contradiction
+4. No new hex/rgb/`bg-white`/inline-ms tokens introduced (cross-cutting design-token check)
 
-<details>
-<summary>v1.1 Blog Redesign & CI -- Phases 11-15 (shipped 2026-03-08)</summary>
+**Plans:** 2 plans (parallel — wave 1)
 
-- [x] Phase 11: Blog Data Layer (2/2 plans) -- completed 2026-03-07
-- [x] Phase 12: Blog Components & CSS (2/2 plans) -- completed 2026-03-07
-- [x] Phase 13: Newsletter Backend (1/1 plans) -- completed 2026-03-07
-- [x] Phase 14: Blog Pages (2/2 plans) -- completed 2026-03-08
-- [x] Phase 15: CI Optimization (1/1 plans) -- completed 2026-03-08
+Plans:
+- [ ] 01-01-PLAN.md — Bulk-unpublish broken blog rows + BEFORE-INSERT trigger guard (Supabase migration via MCP, post-flight verification, timestamp reconcile)
+- [ ] 01-02-PLAN.md — Add MAX_PUBLIC_PRICE_DISPLAY constant; update comparison-table sticky header + pricing-page metadata + JSON-LD (omit Max from offers); page-level test; Rich Results Test verification
 
-[archive](milestones/v1.1-ROADMAP.md)
+### Phase 2: Frontend Correctness (NumberTicker + Mobile)
+**Goal**: Homepage stat counters display "5", "7", "500", "14" instead of "0"; 375px viewport renders the hero without horizontal overflow with a working shadcn `Sheet` hamburger drawer for nav.
+**Depends on**: Nothing (parallel-eligible with Phase 1, 3)
+**Requirements**: CRIT-02, CRIT-04
+**Branch**: `gsd/phase-2-frontend-correctness`
+**Success Criteria**:
+1. A visitor on `/` sees "5 Entity Branches", "7 Default Categories", "500 Bulk-Zip Cap", "14 Day Free Trial" animate from 0 → target value (verify via Chrome DevTools + manual viewport scroll)
+2. At 375px width, hero text wraps within viewport (no horizontal scroll), CTA fully visible, hamburger button visible in top nav
+3. Tapping hamburger opens shadcn `Sheet` (right-side slide-in drawer) containing Features, Pricing, Compare, About, Resources, Sign In, Get Started — all reachable
+4. No new hex/rgb/`bg-white`/inline-ms tokens introduced
 
-</details>
+### Phase 3: Routing & Legal-URL Aliases
+**Goal**: `/signup` reaches a real destination (or 301s to `/pricing`) — eliminate the redirect loop. Long-form legal URLs (`/terms-of-service`, `/privacy-policy`, `/help-center`, `/rss-feed`) 301 to canonical short paths.
+**Depends on**: Nothing (parallel-eligible with Phase 1, 2)
+**Requirements**: CRIT-05, CRIT-06
+**Branch**: `gsd/phase-3-routing-aliases`
+**Success Criteria**:
+1. `curl -I /signup` returns either 200 (real page) or 301 (to `/pricing`) — no redirect loop
+2. `curl -I /terms-of-service` returns 301 → `/terms`; same pattern for the other 3 long-form URLs
+3. External links/ads/emails referencing the long-form URLs reach the canonical short-path page in one redirect hop
+4. No new hex/rgb/`bg-white`/inline-ms tokens introduced
 
-<details>
-<summary>v1.2 Production Polish & Code Consolidation -- Phases 16-20 (shipped 2026-03-11)</summary>
+### Phase 4: Persona & Copy Honesty
+**Goal**: One persona term used consistently across all marketing pages; hero contradiction resolved; tenants-never-login pulled forward as visible differentiator; "Join 500+" replaced with "Built for landlords with 1–15 rentals" segment framing; technical jargon softened; FAQ canonicalized.
+**Depends on**: Phases 1, 2, 3 (immediate stop-bleed must ship first; persona work is content-not-emergency)
+**Requirements**: CONS-01, COPY-01, COPY-02, COPY-03, COPY-04, COPY-05, COPY-06, COPY-07
+**Branch**: `gsd/phase-4-persona-copy`
+**Per-phase research**: Research successful B2B SaaS landlord-targeted products for terminology conventions; recommend final persona word with citations.
+**Success Criteria**:
+1. Per-phase researcher delivers a persona terminology recommendation (e.g. "property owner", "owner-operator", "rental property owner") with citation evidence from 3+ comparable products
+2. After global find-and-replace, every public marketing page (`/`, `/pricing`, `/features`, `/about`, `/compare/*`, `/contact`, `/faq`) uses the chosen persona word consistently
+3. Hero subhead reads cleanly: no contradiction between "track tenants" and "tenants never log in"
+4. "Tenants never have to log in" rendered as visible badge or dedicated section above the fold
+5. "Join 500+" string fully replaced with "Built for landlords with 1–15 rentals" framing
+6. DocuSeal plan-tier note appears in ≤3 strategic mentions (down from 6)
+7. FAQ on `/` and `/pricing` reduced to ≤5 entries each, with link to canonical `/faq`
+8. Hero dashboard mockup names reviewed (drop "John Miller" / "Emma Wilson" / "David Park" if collision with real people)
+9. No new hex/rgb/`bg-white`/inline-ms tokens introduced
 
-- [x] Phase 16: Shared Cleanup & Dead Code (3/3 plans) -- completed 2026-03-08
-- [x] Phase 17: Hooks Consolidation (6/6 plans) -- completed 2026-03-08
-- [x] Phase 18: Components Consolidation (6/6 plans) -- completed 2026-03-09
-- [x] Phase 19: UI Polish (3/3 plans) -- completed 2026-03-09
-- [x] Phase 20: Browser Audit (6/6 plans) -- completed 2026-03-09
+### Phase 5: Pricing Restructure
+**Goal**: Audit current Stripe revenue baseline; survey competitor tier structures; propose + ship a new tier structure (names, prices, limits, feature mapping); migrate Stripe products + prices; propagate final numbers across all marketing surfaces.
+**Depends on**: Phase 4 (pricing copy leans on settled persona terminology)
+**Requirements**: PRICE-01, PRICE-02, PRICE-03, PRICE-04, PRICE-05, PRICE-06
+**Branch**: `gsd/phase-5-pricing-restructure`
+**Per-phase research**: Heavy. Surveys Buildium, AppFolio, DoorLoop, Hemlane, TurboTenant, Avail, RentRedi for tier structure + pricing + feature mapping + persona alignment.
+**Success Criteria**:
+1. `.planning/phases/<phase-id>/PRICING-DECISION.md` documents revenue audit, competitor analysis, new tier rationale (price points, names, limits, features)
+2. New Stripe products/prices created via Stripe MCP; tested in Stripe test mode
+3. Customer migration playbook documented (no current subscribers to migrate, but playbook exists for future restructures)
+4. All 4 marketing surfaces (pricing card, comparison table, homepage features grid, JSON-LD `Product`) show the same final tier numbers — replaces CRIT-03 placeholders
+5. Annual savings math (used in CONS-10) is calculable from new monthly + annual prices
+6. No new hex/rgb/`bg-white`/inline-ms tokens introduced
 
-[archive](milestones/v1.2-ROADMAP.md)
+### Phase 6: Blog Rebuild + n8n Redesign
+**Goal**: Audit + clean blog DB; rebuild `/blog` index + post page UI server-rendered with persona-aligned hero, breadcrumbs, clean URL slugs; redesign n8n content-generation workflow for new audience; ship initial 10–15 persona-aligned post set.
+**Depends on**: Phase 4 (content + UI lean on settled persona terminology and tone)
+**Requirements**: BLOG-01, BLOG-02, BLOG-03, BLOG-04, BLOG-05, BLOG-06
+**Branch**: `gsd/phase-6-blog-rebuild`
+**Per-phase research**: Survey successful blog-driven B2B SaaS for landlord audience — content topics, post structure, SEO conventions, n8n flow patterns.
+**Success Criteria**:
+1. `.planning/phases/<phase-id>/N8N-FLOW.md` documents redesigned workflow with persona-aligned content generation
+2. `/blog` index server-renders post list with no client-loading state (covers PERF-01)
+3. `/blog/[slug]` posts render with visible breadcrumbs (covers SEO-05 for blog) and clean URL pattern (covers SEO-04)
+4. 10–15 initial published posts exist, each persona-aligned, each with unique OG image (covers part of SEO-02 for blog)
+5. Content review/QA workflow active: posts ship via `draft` → `in-review` → `published` states with manual approval gate
+6. `/sitemap.xml` and `/feed.xml` reflect the new published dataset
+7. No new hex/rgb/`bg-white`/inline-ms tokens introduced
 
-</details>
+### Phase 7: Pricing-Card Chrome
+**Goal**: Most-Popular badge sits cleanly on Growth card; Starter subhead reads as one sentence with adjacent `/mo`; annual-toggle savings math is correct + explainable (uses Phase 5's final tier numbers).
+**Depends on**: Phase 5 (annual savings math depends on new tier prices)
+**Requirements**: CONS-05, CONS-09, CONS-10
+**Branch**: `gsd/phase-7-pricing-card-chrome`
+**Success Criteria**:
+1. "Most Popular" badge on Growth card no longer overlaps card border at any breakpoint
+2. Starter subhead "Ideal for [persona] managing a few [rental properties]" reads as one sentence; "/mo" stays adjacent to price (no orphaned line)
+3. Annual toggle reveals per-plan annual prices + math-correct savings figure backed by Phase 5's monthly + annual price values
+4. No new hex/rgb/`bg-white`/inline-ms tokens introduced
 
-<details>
-<summary>v1.3 Stub Elimination -- Phases 21-25 (shipped 2026-03-18)</summary>
+### Phase 8: Nav, Active States & Dead Links
+**Goal**: Multi-Property Dashboard feature card uses correct lucide-react icon; `aria-current="page"` logic on homepage stops highlighting "Compare"; Resources nav dropdown items navigate to real URLs.
+**Depends on**: Phase 4 (icon choice + dropdown destinations may depend on persona-aligned page list)
+**Requirements**: CONS-02, CONS-03, CONS-11
+**Branch**: `gsd/phase-8-nav-active-states`
+**Success Criteria**:
+1. "Multi-Property Dashboard" feature card icon is one of `LayoutGrid`, `Building2`, `LayoutDashboard` (not back-arrow); icon visually communicates the feature
+2. On `/`, no nav link is incorrectly highlighted as active; `aria-current="page"` is correct
+3. Every Resources nav dropdown item navigates to a real URL (no `href="/#"`); keyboard activation works
+4. No new hex/rgb/`bg-white`/inline-ms tokens introduced
 
-- [x] Phase 21: Email Invitations (2/2 plans) -- completed 2026-03-11
-- [x] Phase 22: GDPR Data Rights (2/2 plans) -- completed 2026-03-11
-- [x] Phase 23: Document Templates (2/2 plans) -- completed 2026-03-11
-- [x] Phase 23.1: UI/UX Polish (2/2 plans) -- completed 2026-03-18
-- [x] Phase 24: Bulk Property Import (2/2 plans) -- completed 2026-03-18
-- [x] Phase 25: Maintenance Photos & Stripe Dashboard (2/2 plans) -- completed 2026-03-18
+### Phase 9: Page-Level Cleanup
+**Goal**: Legal-page "Last Updated" dates are honest + consistent; Trusted Integrations row renders all 5 logos at consistent visual weight; duplicate "Why Landlords Choose" table de-duplicated.
+**Depends on**: Phase 4 (date standardization may depend on persona-aligned legal copy revision date)
+**Requirements**: CONS-04, CONS-13, CONS-14
+**Branch**: `gsd/phase-9-page-cleanup`
+**Success Criteria**:
+1. Security Policy / Terms of Service / Privacy Policy `Last Updated:` dates each reflect actual most-recent revision (no future dates, no Oct-2025 stale entries)
+2. Trusted Integrations row: Stripe, Vercel, DocuSeal, Resend, Supabase logos render at consistent visual weight (no faded Supabase)
+3. "Why Landlords Choose TenantFlow" table appears on EITHER homepage OR `/features` (not both); the chosen surface differentiates if both are kept
+4. No new hex/rgb/`bg-white`/inline-ms tokens introduced
 
-[archive](milestones/v1.3-ROADMAP.md)
+### Phase 10: CTA & Conversion Standardization
+**Goal**: Canonical "Contact Sales" CTA label + style site-wide; neutral framing on `/compare/*` (no red-✗ for positioning choices); `/contact` form default fixed; testimonials section ships with real names + property counts + quotes (no headshots); review badges added if available; monitored inbox owners documented.
+**Depends on**: Phase 4 (CTA copy + testimonials lean on persona terminology)
+**Requirements**: CONS-06, CONS-07, CONS-08, TRUST-01, TRUST-02, TRUST-03, TRUST-04
+**Branch**: `gsd/phase-10-cta-conversion`
+**Success Criteria**:
+1. Every sales-contact CTA across the site uses the label "Contact Sales" — no "Talk to Sales", "Schedule a walkthrough", or "Connect with sales" remaining
+2. CTA visual style: primary blue for "Start Free Trial"; one canonical secondary style for "Contact Sales"; Features-page top-nav has ONE CTA pill
+3. `/compare/*` ACH/Payment Processing + HOA Management rows use neutral "By design" / "Not applicable" treatment (non-destructive token, not red-✗)
+4. `/contact` "How did you hear about us?" defaults to "Please select" or "Search engine"
+5. ≥3 testimonials surface on homepage and/or `/pricing` with name + property count + quote (avatar = initials/geometric placeholder, no headshot)
+6. G2 / Capterra / Trustpilot review badges added if any reviews exist (or REQ documented as deferred)
+7. Monitoring owner documented for `sales@tenantflow.app` and `security@tenantflow.app`
+8. No new hex/rgb/`bg-white`/inline-ms tokens introduced
 
-</details>
+### Phase 11: Design-Token Alignment & Resources Page
+**Goal**: `/resources` Free Downloads tags + decorative card backgrounds use canonical tokens; site-wide audit replaces remaining hex/rgb/`bg-white`/inline-ms references; lint rule codified to fail future PRs.
+**Depends on**: Nothing (parallel-eligible with later phases; explicitly *targets* drift)
+**Requirements**: TOKEN-01, TOKEN-02, TOKEN-03
+**Branch**: `gsd/phase-11-token-alignment`
+**Success Criteria**:
+1. `/resources` Free Downloads tags use `--color-{primary,accent,info}` or muted backgrounds (no neon pink)
+2. `/resources` cards use `bg-card` or `bg-muted` (no decorative grey/blue/mint/cream tints)
+3. Sitewide grep across `src/components/**` and `src/app/**` returns zero hex codes, zero `rgb(`, zero `bg-white`, zero inline `[NNN]ms`
+4. Custom ESLint plugin or stylelint config codifies the no-token-drift rule; CI fails future PRs that introduce hex/rgb/`bg-white`/inline ms
+5. Lint rule documented in `.planning/phases/<phase-id>/LINT-RULE.md` for future maintainers
 
-<details>
-<summary>v1.5 Code Quality & Deduplication -- Phases 29-31 (shipped 2026-04-08)</summary>
+### Phase 12: SEO Metadata, Schema & Content Cleanup
+**Goal**: Meta-title separator standardized; per-page Open Graph images for top routes; site-wide `Organization` + homepage `SoftwareApplication` JSON-LD; visible breadcrumbs on `/compare/*` (blog already covered in Phase 6); footer XML sitemap link; site-wide `aria-current="page"` audit.
+**Depends on**: Phases 4, 5, 6 (SEO copy depends on persona, pricing, blog being settled)
+**Requirements**: SEO-01, SEO-02, SEO-03, SEO-04, SEO-05, SEO-06, SEO-07
+**Branch**: `gsd/phase-12-seo-metadata`
+**Success Criteria**:
+1. Every `<title>` uses the same separator (em-dash OR pipe — chosen during phase plan); zero mixed usage
+2. `/pricing`, `/features`, `/compare/[competitor]` each have unique OG images (1200×630)
+3. Root layout emits `Organization` JSON-LD; homepage emits `SoftwareApplication` JSON-LD
+4. SEO-04 + SEO-05 outcomes verified for blog (already covered by Phase 6 BLOG-02)
+5. Visible breadcrumbs render on `/compare/[competitor]` posts
+6. Site-wide `aria-current="page"` audit produces a green report covering nav, breadcrumbs, footer, active-link components
+7. Footer links to `/sitemap.xml`; `robots.txt` confirmed pointing at it
+8. No new hex/rgb/`bg-white`/inline-ms tokens introduced
 
-- [x] Phase 29: Edge Function Shared Utilities (3/3 plans) -- completed 2026-04-03
-- [x] Phase 30: Frontend Import & Validation Cleanup (2/2 plans) -- completed 2026-04-03
-- [x] Phase 31: Frontend Hook Factories (2/2 plans) -- completed 2026-04-08
+### Phase 13: Performance & Conversion Polish
+**Goal**: Marketing pages use static generation + cache headers where eligible; sticky CTA on long pages; exit-intent / scroll-depth lead capture (gated behind feature flag for A/B testing).
+**Depends on**: Phases 4, 5, 6, 12 (perf optimization on a stable surface)
+**Requirements**: PERF-01, PERF-02, PERF-03, PERF-04
+**Branch**: `gsd/phase-13-performance-polish`
+**Success Criteria**:
+1. PERF-01 outcome (server-rendered `/blog`) verified — already shipped in Phase 6 (BLOG-02)
+2. `/`, `/pricing`, `/features`, `/about`, `/compare/[competitor]` use static generation + explicit `Cache-Control` headers; Lighthouse TTI improves vs pre-Phase-13 baseline
+3. Sticky CTA bar visible on `/pricing` (scroll past primary CTA), `/faq`, `/features`
+4. Exit-intent OR scroll-depth lead-capture component active on top marketing pages, gated behind a feature flag (default off for v1.0; flip on after copy + visuals settled)
+5. No new hex/rgb/`bg-white`/inline-ms tokens introduced
 
-</details>
+## Cross-Cutting Constraint
 
-<details>
-<summary>v1.6 SEO & Google Indexing Optimization -- Phases 32-40 (shipped 2026-04-13)</summary>
+Every phase's final success criterion is the design-token alignment check (no hex/rgb/`bg-white`/inline ms introduced). Phase 11 explicitly *targets* existing drift; Phase 11's lint rule then protects Phases 12–13 + future v2.0+.
 
-- [x] Phase 32: Crawlability & Critical Fixes (1/1 plans) -- completed 2026-04-08
-- [x] Phase 33: SEO Utilities Foundation (2/2 plans) -- completed 2026-04-08
-- [x] Phase 34: Per-Page Metadata (2/2 plans) -- completed 2026-04-08
-- [x] Phase 35: Structured Data Enrichment (3/3 plans) -- completed 2026-04-09
-- [x] Phase 36: Pricing Page Polish (4/4 plans) -- completed 2026-04-10
-- [x] Phase 37: Content SEO & Internal Linking (2/2 plans) -- completed 2026-04-10
-- [x] Phase 38: Validation & Verification (2/2 plans) -- completed 2026-04-10
-- [x] Phase 39: Structured Data Gap Closure (2/2 plans) -- completed 2026-04-13
-- [x] Phase 40: Metadata & Verification Completeness (3/3 plans) -- completed 2026-04-13
+## Sequencing Rationale
 
-[archive](milestones/v1.6-ROADMAP.md)
+- **Phases 1–3 ship first (parallel-eligible).** All three handle audit-flagged emergencies that block paid marketing spend (SEO bleed, broken signup, broken mobile). Each touches a different review surface (data/content, frontend components, routing/redirects), so they can run as parallel branches without merge conflict.
+- **Phase 4 (Persona) before Phases 5/6.** Pricing copy + blog content + n8n flow design all need the persona word locked. Sequencing Persona → Pricing → Blog avoids re-doing copy after the persona research lands.
+- **Phase 5 (Pricing) before Phase 7 (Pricing-Card Chrome).** Phase 7's annual-toggle savings math depends on Phase 5's final monthly + annual prices. Doing Phase 7 with old $29/$79/$199 numbers means re-doing it after Phase 5 ships.
+- **Phase 6 (Blog) sequenced after Phase 4 (Persona) but parallel-eligible with Phase 5.** Blog content needs persona terminology but doesn't depend on pricing. Could ship in parallel with Phase 5 if reviewer bandwidth allows.
+- **Phases 8–10 sequenced after Phase 4.** Visual cleanup, nav/active-states, CTA standardization all benefit from settled persona copy (CTA labels reference persona; nav active states verify against persona-aligned page set).
+- **Phase 11 (Token Alignment) before Phase 12 (SEO).** Lint rule from Phase 11 protects Phase 12's metadata changes from accidentally introducing token drift.
+- **Phase 13 (Performance) last.** Performance optimization on a moving target wastes work. Stable copy (4) + stable pricing (5) + stable blog (6) + stable metadata (12) → optimize.
 
-</details>
+## Edge-Case Decisions
 
-<details>
-<summary>v1.7 Launch Readiness -- Phases 41-44 (shipped 2026-04-15)</summary>
+- **CRIT-01 narrow scope (Phase 1) + BLOG-01..06 full scope (Phase 6).** User decision: full blog rebuild as a dedicated v1.0 phase. Phase 1 stops the immediate SEO bleed via bulk-unpublish; Phase 6 rebuilds data + UI + n8n. Decoupling these keeps Phase 1 small + parallel-eligible while preserving the full rebuild as a strategic project.
+- **CRIT-03 narrow scope (Phase 1) + PRICE-01..06 full scope (Phase 5).** Same pattern. Phase 1 unifies pricing across surfaces with "Custom" placeholder; Phase 5 ships final tier structure.
+- **CONS-12 removed from v1.0.** User decision: keep "Powered by Hudson Digital" footer. Audit recommendation overridden.
+- **COPY-02 = segment-specific framing, no fabricated count.** User originally asked for arbitrary "500+" count; switched to "Built for landlords with 1–15 rentals" after risk flag. Honest framing.
+- **TRUST-01 modified: name + property count + quote, no headshots.** User-supplied headshots unavailable; avatar fallback uses initials or geometric placeholder.
+- **No standalone research phase.** `config.workflow.research = true` triggers per-phase research inside each `/gsd-plan-phase`. Heaviest research lands in Phase 4 (persona terminology), Phase 5 (competitor pricing), Phase 6 (n8n + blog SEO patterns).
+- **Major-version naming preserved.** Integer phases only (1–13); no decimals. User explicit instruction.
 
-- [x] Phase 41: Payment Correctness & Split-Rent Tests (3/3 plans) -- completed 2026-04-13
-- [x] Phase 42: Cancellation UX End-to-End Audit + Fix (2/2 plans) -- completed 2026-04-14
-- [x] Phase 43: Post-Deploy Sentry Regression Gate (1/1 plans) -- completed 2026-04-14
-- [x] Phase 44: Deliverability + Funnel Analytics (3/3 plans) -- completed 2026-04-15
+## Coverage
 
-[archive](milestones/v1.7-ROADMAP.md)
+55 requirements / 13 phases / 0 unmapped. See REQUIREMENTS.md Traceability table for canonical mapping.
 
-</details>
+## Next Action
 
-## Active Milestone
+`/gsd-plan-phase 1` — decompose Phase 1 (Critical Stop-Bleed) into per-CRIT plans. Per-phase research happens inside this command (config.workflow.research=true). Phase 1's research will be light (data cleanup + placeholder unification — no novel tech).
 
-**v2.4 Document Vault Extension + Category Taxonomy** — scoping phase as of 2026-04-22. Target ship 2026-05-06. Three phases:
-- [ ] Phase 59: Storage RLS + upload entry points for lease/tenant/maintenance
-- [ ] Phase 60: Global `/documents/vault` page with search + filter
-- [ ] Phase 61: Category taxonomy + filter UI
-
-See `milestones/v2.4-ROADMAP.md` for the full scope.
-
-## Recently Shipped
-
-**v2.3 Document Vault + Bulk-Import Extension** — fully shipped + deployed 2026-04-21, post-audit cleanup complete 2026-04-22.
-- [x] Phase 57: Document vault MVP (PR #620) — property-scoped upload/list/preview/delete using signed URLs + path-based storage RLS. Migration `20260420030000` applied via MCP (title/tags/description cols + tenant-documents bucket MIME allowlist + 3 storage RLS policies). Types regen PR #622.
-- [x] Phase 58: Bulk-import extension (PR #621) — generic `src/components/bulk-import/` stepper now powers property/tenant/unit/lease importers. 5 Sentry findings caught and fixed mid-PR.
-- [x] Audit cycles 1-4: 135 findings across 4 rounds (PRs #624, #627, #628) — caught + fixed a P0 production bug (every bulk-imported lease rejected) in cycle 4. Migrations `20260421120000`, `20260422120000`, `20260422130000`, `20260423120000` applied via MCP.
-- [x] RPC integration tests + RLS gap fix + CI gate honesty (PR #629) — 17 new integration tests, `lease_tenants` SELECT/UPDATE/DELETE policies, `rls-security` + `e2e-smoke` CI gates now actually run (were silently skipping every PR). Migration `20260424120000` applied.
-- See `milestones/v2.3-ROADMAP.md`.
-
-**v2.0 Revenue Gates** — both paywalls deployed 2026-04-21.
-- [x] Phase 45: DocuSeal e-sign gate (PR #604)
-- [x] Phase 46: Premium reports gate (PR #616 + audit fix PR #617)
-- [x] Operator deploy complete: docuseal v74, export-report v77, generate-pdf v70 all redeployed via MCP with `EdgeRuntime.waitUntil` fix so gate_events rows actually land
-- Battle-proven criteria: ≥5 `esign_gate` upgrades in 7d + ≥10 `reports_gate` upgrades in 14d (measured via admin Gate Conversion Stats page)
-
-**v2.2 Landlord-First Positioning** — fully shipped 2026-04-20.
-- [x] Phase 52: Dashboard copy + component rename (PR #609)
-- [x] Phase 53: Public-facing value-prop reframe (PR #610)
-- [x] Phase 54: Competitor-driven UX fixes (PRs #612, #613, #614) — lease-expiration widget, rent-increase notice, per-property performance, maintenance multi-file upload + work-order PDF
-- See `milestones/v2.2-ROADMAP.md`
-
-**v2.1 Production Integrity Hardening** — all 4 phases shipped 2026-04-19/20 (PRs #605, #606, #607).
-
-Post-v1.7 stabilization (2026-04-18/19): PRs #596 (rent + tenant portal removed), #597 (CI hang fix), #598 (docs), #599 (tests), #600 (user_type → is_admin), #601 (GSD docs), #602 (v2.0 scoping), #603 (dead backend refs cleanup), #604 (Phase 45 esign gate tracking), #605 (v2.1 integrity), #606 (migration replay fix), #607 (14-day trial model).
-
-## Wave 0 Operator Actions (v1.7)
-
-Status: **4/4 complete** (all Wave 0 actions done 2026-04-16). v1.7 fully production-live.
-
-1. ~~Apply 5 Phase 44 migrations (`20260415193245`..`193249`)~~ — DONE (commit `7da87331d`)
-2. ~~Regenerate types~~ — DONE (commit `7da87331d`)
-3. ~~Configure Resend webhook~~ — DONE: Edge Function deployed, webhook registered, `RESEND_WEBHOOK_SECRET` synced to Resend's `whsec_…` signing secret
-4. ~~Provision admin test user~~ — DONE: `e2e-admin@tenantflow.app` (id `e4364d5c…`) with `user_type=ADMIN`; `E2E_ADMIN_EMAIL`/`PASSWORD` in GH secrets
-
-See `milestones/v1.7-ROADMAP.md` for details.
+---
+*Roadmap defined: 2026-05-08 after v1.0 Q&A. Replaces 11-phase fine-granularity draft after pricing restructure + blog rebuild scope additions.*

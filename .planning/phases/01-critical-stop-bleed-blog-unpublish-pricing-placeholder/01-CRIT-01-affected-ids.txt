@@ -1,0 +1,113 @@
+# CRIT-01 Phase 1 affected IDs — captured before bulk-unpublish migration
+# Generated: 2026-05-08T23:16:44Z
+# Pre-flight bad_rows count: 100
+# Pre-flight total_published count: 100
+# Pre-flight ratio: 100% (100/100) — every published row matches the bad-row signature.
+#   This trips the original >0.95 ratio guard. Q5+Q6 returned 0 (no signature divergence),
+#   confirming the WHERE clause is precise. Migration's ratio guard relaxed accordingly.
+# Pre-flight pg_trigger check: only 'set_updated_at' (non-internal) on public.blogs
+#   Note: plan template assumed 'update_blogs_updated_at'; actual is 'set_updated_at'.
+#   Migration post-flight (H) check uses the actual name.
+# Rollback Path 1: UPDATE public.blogs SET status='published' WHERE id IN (<UUIDs below>)
+#
+# Format: <uuid>	<slug>	<title>
+0c90d4f5-87c6-429b-a337-95facf456463	error-1777539620088	Error Processing Blog
+0e8998e3-46f9-42cf-a47e-14f53e824771	error-1777662009103	Error Processing Blog
+1102fb7d-79db-4b97-8930-25c4d004972b	error-1777561220085	Error Processing Blog
+1305ce18-a1bd-42ab-8b44-b86797c43642	error-1778259609133	Error Processing Blog
+179c4a98-ae71-468b-bf8c-63927b7fd970	error-1777842009097	Error Processing Blog
+1b12bdbb-6a36-4317-b666-821c59833976	error-1778086809121	Error Processing Blog
+1ce3c798-ed21-4d59-946a-c6ecd5493ee3	error-1777878009102	Error Processing Blog
+1db19a93-5ef5-41fe-86ea-1e5cf625147a	error-1777669209114	Error Processing Blog
+1df3495b-8e58-40eb-88d4-8251b06321a3	error-1777741209135	Error Processing Blog
+1e0c2da0-42e1-4446-ba05-5bcd8eecb790	error-1777683609176	Error Processing Blog
+1e7628cf-3370-4213-b2c6-8907c13ed904	error-1777618809104	Error Processing Blog
+24754809-afd1-4e35-8b35-cb0e2867dfeb	error-1777532420087	Error Processing Blog
+28c4fdbc-2e9a-41d9-8df6-bbffe8299630	error-1778173209108	Error Processing Blog
+2e570af0-b156-489e-a94f-d92b9e805c43	error-1777712409086	Error Processing Blog
+2f4e375c-076d-414b-b75b-4e856947bc56	error-1778065209417	Error Processing Blog
+30b86866-d8eb-4d9e-b254-236117b84da3	error-1778130009120	Error Processing Blog
+3252542e-75b4-4ac5-bdf4-7254ecb916ed	error-1777914009108	Error Processing Blog
+3e0dd7a5-c259-482b-9cdc-0cf7612f6b54	error-1777870809109	Error Processing Blog
+4001e3c7-047a-42bd-aad2-4776de42c876	error-1778101209108	Error Processing Blog
+4012549e-53f2-4c51-9a86-115d2c335f9a	error-1777770009109	Error Processing Blog
+4032cc67-8d6f-4e2b-9c9b-e0f795ceb826	error-1777597220090	Error Processing Blog
+43a47392-0aea-450f-a379-8e0dd8ab3585	error-1777928409100	Error Processing Blog
+450b43df-9036-4da8-ad23-f435852f557a	error-1777626009097	Error Processing Blog
+4511495e-ab5f-4b77-ba2c-bb689bbeb927	error-1777820409102	Error Processing Blog
+453be4b2-44f1-4277-96a7-0fcb6095f3c5	error-1777921209215	Error Processing Blog
+45b30089-4b90-4578-be7e-b5307dc1b296	error-1778050809110	Error Processing Blog
+46687338-46c3-4c64-8133-1abaa22f54c0	error-1777813209100	Error Processing Blog
+48b1fed2-7bc5-4c7c-a8b7-433f8fb817ca	error-1777640409105	Error Processing Blog
+5b378ee8-93ca-4714-99f4-acf6fe282bb0	error-1777496420079	Error Processing Blog
+63973448-c67d-4749-b04c-3b9741baa24e	error-1777525220080	Error Processing Blog
+645c265e-e733-44bb-8099-db5ddc7532f5	error-1778094009106	Error Processing Blog
+660c7534-38bc-45ab-a8b3-606367f627db	error-1778137209104	Error Processing Blog
+665320ae-ee1d-4f53-8856-371951ce4f3d	error-1777849209105	Error Processing Blog
+6a2c8ebb-7cc8-456a-bdbc-865ea43b5ca1	error-1778158809855	Error Processing Blog
+6ae91a2d-ca3e-480f-b03e-0c07e662479e	error-1777863609094	Error Processing Blog
+6bb562d2-b711-4d19-9437-081864a19bb7	error-1778166009115	Error Processing Blog
+6cd6e04d-0fe0-4438-a61e-7b104d02c635	error-1778274009131	Error Processing Blog
+6d01da39-630b-460d-883e-954efb121ff6	error-1777726809106	Error Processing Blog
+708f34d4-718b-455f-9a3c-87f3f23f87b3	error-1777834809095	Error Processing Blog
+70e29021-5e33-450c-9907-6b0348e12d41	error-1777582820086	Error Processing Blog
+74e69816-5e0a-4757-92dd-ac0615929b17	error-1777899609098	Error Processing Blog
+7a55ccdb-0e78-4b28-86b4-5545a58ddd18	error-1777690809107	Error Processing Blog
+7befa31f-2ca8-4cf8-aae1-69c526dd63fc	error-1777611609715	Error Processing Blog
+7f46954f-b57c-4389-a21e-c0330f39e9ca	error-1777503620083	Error Processing Blog
+7fe0fa7f-d67f-40c3-8bd8-fc1a865cfab1	error-1777906809104	Error Processing Blog
+84f01f68-f3b2-4e85-99ae-13c4604bdc27	error-1778022009116	Error Processing Blog
+857e4023-efce-4414-a7ea-4641fb99be05	error-1778007609109	Error Processing Blog
+85c5fae6-b4a3-4d2d-b603-692c78041f7b	error-1777705210702	Error Processing Blog
+862966ef-8a18-4d56-80cc-699074242786	error-1777762809418	Error Processing Blog
+86da01ba-9321-4391-abce-36357e123c54	error-1777719609108	Error Processing Blog
+8b745515-e87b-46dd-b1cb-c9a9a8be22b8	error-1777510820090	Error Processing Blog
+8c5797ab-54cb-44aa-bb33-22463ba6e940	error-1777748409099	Error Processing Blog
+8e8f1b20-dc58-4605-ab11-068573b56526	error-1777489220090	Error Processing Blog
+8ecd7920-f651-4a71-8b76-07c958593505	error-1777806009096	Error Processing Blog
+8fc234ca-8ce3-468f-9aab-e3ce1aa0ac9e	error-1777885209102	Error Processing Blog
+930fe951-a1a5-44e1-8d84-ecd25b2669a8	error-1778058009110	Error Processing Blog
+966cb86c-7bc7-4081-af93-77f4a20b3007	error-1777554020092	Error Processing Blog
+98015680-2c88-46cf-8410-f3e7a82c425c	error-1777964409111	Error Processing Blog
+9e1460ed-3aa3-4261-8163-b677c4c87f46	error-1778029209123	Error Processing Blog
+9ff6b5e6-2478-43bc-b839-70ecc17822ad	error-1777590020080	Error Processing Blog
+a026fabf-213d-41f2-9d58-2c4b76b6a663	error-1777957239224	Error Processing Blog
+a1c5997a-0989-4e8e-b656-2e17be229c44	error-1778122809106	Error Processing Blog
+a71ddfc5-a6da-44e7-af63-55f0fc3f477f	error-1777647609104	Error Processing Blog
+a76d4971-2caa-4e5e-9cb3-7275ca4110cd	error-1777791609098	Error Processing Blog
+a77c21ff-e4f9-448d-82e0-c2834ac5f2d8	error-1777971609109	Error Processing Blog
+ac13c420-7370-470a-b25a-7e766d1b5f70	error-1777755609100	Error Processing Blog
+acc4fdad-ecc5-4b7c-bdff-0bb0b1292c0e	error-1777518020087	Error Processing Blog
+ad47be37-19e1-42a5-9177-b1e4c9ffe14f	error-1778252413083	Error Processing Blog
+af126199-be7d-4e62-a312-4332c07878d4	error-1777798809178	Error Processing Blog
+af782118-cb7f-44ca-83d9-62b06e2b62c6	error-1778043609117	Error Processing Blog
+b3506649-ea71-4081-84a3-d838c2adbbbc	error-1777676409101	Error Processing Blog
+b379a22b-1bb3-4217-ab1a-4c4445c0f61c	error-1778266809118	Error Processing Blog
+b5c677ee-71d9-425a-9a0d-cfe52498fd47	error-1777575620093	Error Processing Blog
+bb3c4e3b-4abc-4eca-a412-daf9e1ed7d0d	error-1777546820080	Error Processing Blog
+bc071eac-8f03-4c7a-9d97-2f7b85cf2e60	error-1777950011617	Error Processing Blog
+c1309e21-341c-4909-8506-b4e1eae4402f	error-1777978809110	Error Processing Blog
+c487b05c-44de-4e1a-bad3-e87b74a5ccec	error-1777654809715	Error Processing Blog
+c517201d-0750-41d0-b6eb-f9870c545c11	error-1778151609106	Error Processing Blog
+c5d8328e-08d7-4ab9-a414-f5087d38f189	error-1777935609109	Error Processing Blog
+cbeec986-54c8-4c38-8ad5-e2f1523028c3	error-1778036409107	Error Processing Blog
+cd5ca3af-dc49-4689-9ada-8d0329599e97	error-1778079609110	Error Processing Blog
+cda246a0-307c-4f38-9800-df8f52b4e924	error-1777993209107	Error Processing Blog
+d46dfca4-2190-44fc-80aa-66f0040b63c4	error-1778108409179	Error Processing Blog
+d6fdcc7d-8d97-4ffc-a9d7-3356da962345	error-1778072409820	Error Processing Blog
+d7767acc-1aec-4276-bdcb-b34d228941bb	error-1777777209099	Error Processing Blog
+db2af82a-5e1c-4c54-851f-7327e9cd8d64	error-1778014809108	Error Processing Blog
+dd9c081c-24e0-456a-9f0a-01d8bc614d52	error-1777784409105	Error Processing Blog
+df4a1650-30b1-49ad-a66e-bbb4a66e4867	error-1778115609104	Error Processing Blog
+e16a5019-667c-41b0-8052-5555ae6be0ff	error-1777568420082	Error Processing Blog
+e291973c-647d-42fd-873f-11c78f1f884b	error-1777892409102	Error Processing Blog
+e2963a9a-4951-4157-96b2-53554ec10497	error-1777604420095	Error Processing Blog
+e61e3b1f-188c-437e-98a3-9dcdf5fae92c	error-1777856409105	Error Processing Blog
+e726049d-7093-4f94-88b3-e769bce334b5	error-1777827609104	Error Processing Blog
+ecfafc16-ad02-40b7-9830-e3450cc6f0f0	error-1777942810644	Error Processing Blog
+ef2d3849-b4b3-4725-94b8-96c5a4c74591	error-1778000409108	Error Processing Blog
+f9c9019e-a0aa-4107-b925-81f22b8f9ebd	error-1777734009101	Error Processing Blog
+fa04f0be-744f-4545-820e-500a6f6cd60e	error-1778281209717	Error Processing Blog
+fa654853-6396-4066-89f7-d6659a07d59b	error-1778144409101	Error Processing Blog
+feff56f6-7cc6-4fca-87c0-571c8dcb33ea	error-1777986009721	Error Processing Blog
+ff78db8f-fbec-4f7e-82ef-6f2b3c9921e1	error-1777633209093	Error Processing Blog

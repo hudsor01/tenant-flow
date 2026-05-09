@@ -2,186 +2,160 @@
 
 ## What This Is
 
-TenantFlow is a landlord-only property management SaaS for owners and managers. Owners manage properties, units, leases, tenants (as records, not accounts), maintenance requests, and financial reporting — with e-signatures via DocuSeal (tier-gated). **Rent facilitation and the tenant portal were removed in the 2026-04-18 landlord-only pivot (PR #596)**: TenantFlow does not move money between tenants and landlords, does not host tenant accounts, and does not act as a payments facilitator. The platform is production-hardened with comprehensive RLS security, Edge Function rate limiting, and full accessibility.
+TenantFlow is a landlord-only property management SaaS at tenantflow.app. Landlords use it to organize properties, leases, tenants (as records, not users), maintenance requests, inspections, and a per-entity document vault. Tenants never log in — they are contact records, not authenticated users. The product is mature: v2.6 shipped April 2026 with the document vault as the headline differentiator, custom categories, bulk-zip download, and global search.
 
 ## Core Value
 
-A landlord can add a property, record tenants and leases, track maintenance, and run financial reports — without touching a spreadsheet or calling anyone.
+Every public claim on tenantflow.app must map to working code, and every visual must align to canonical design tokens in `src/app/globals.css`. The marketing surface is the buying funnel — broken stat counters, dead blog posts, mobile layout collapse, and signup redirect loops are direct revenue blockers that compound through paid acquisition.
 
 ## Requirements
 
 ### Validated
 
-- v3.0: Property and unit CRUD with soft-delete
-- v3.0: Tenant management with invitation flow
-- v3.0: Lease management with rent payment tracking
-- v3.0: RLS on all tables (owner_user_id pattern)
-- v5.0: Stripe Connect Express onboarding for owner payouts
-- v5.0: Stripe Subscriptions (platform billing, Free/Pro tiers)
-- v5.0: Supabase Storage for property images
-- v5.0/v6.0: Maintenance request management with vendor assignment
-- v6.0: Financial reporting: income statement, cash flow, year-end, 1099 vendor
-- v6.0: DocuSeal e-signature integration for lease documents
-- v6.0: Move-in/move-out inspection with photo upload
-- v6.0: Landlord onboarding wizard
-- v6.0: GDPR/CCPA data rights (delete account, export)
-- v6.0: Per-endpoint rate limiting + auth hardening
-- v6.0: 2229+ unit tests across financial, billing, maintenance, tenant services
-- v4.0: Sentry error tracking (frontend + backend)
-- v7.0: Frontend API calls use Supabase PostgREST directly (no NestJS proxy)
-- v7.0: Stripe webhooks handled by Supabase Edge Functions
-- v7.0: PDF generation via StirlingPDF Edge Function bridge
-- v7.0: DocuSeal API calls via Edge Functions
-- v7.0: Scheduled jobs (late fees, reminders) via pg_cron
-- v7.0: apps/backend/ directory deleted, Railway subscription cancelled
-- v8.0: Security hardening (8 vulnerabilities closed)
-- v8.0: Stripe rent checkout with destination charge fee split
-- v8.0: Receipt emails via Resend + React Email
-- v8.0: Auth flow completion (password reset, email confirmation, Google OAuth)
-- v8.0: Code quality (double-toast fix, hook consolidation, cached auth)
-- v8.0: Testing & CI/CD (60 RLS write-path tests, PR gating)
-- v8.0: Autopay (pg_cron + Edge Function, off-session charges, failure emails)
-- v1.0: auth.uid() guards on all 25+ SECURITY DEFINER RPCs (data exfiltration closed)
-- v1.0: Payment processing correctness (cents/dollars, autopay idempotency, webhook safety)
-- v1.0: Next.js middleware with role-based routing and server-validated sessions
-- v1.0: Edge Function hardening (env validation, rate limiting, XSS escaping, CSP, generic errors)
-- v1.0: Zero type escape hatches, query key factories, all files under 300 lines
-- v1.0: Database schema corrections (NOT NULL, FK cascades, GDPR anonymization, cron health monitoring)
-- v1.0: Full accessibility (skip-to-content, aria-labels, error boundaries, not-found pages, mobile keyboard)
-- v1.0: Performance (waterfall elimination, code-split charts, consolidated stats RPCs, virtualized lists)
-- v1.0: 1,319 unit tests, 16 RLS integration files, 4 Edge Function test suites, 17 E2E journeys
-- v1.0: CI pipeline with next build, coverage enforcement, gitleaks, RLS on every PR
+<!-- Shipped and confirmed valuable. Locked — changing requires explicit discussion. -->
 
-- v1.1: Blog data layer (paginated queries, get_blog_categories RPC, related posts, comparison posts, queryOptions factory)
-- v1.1: Blog components (BlogCard, BlogPagination, NewsletterSignup, BlogEmptyState with unit tests)
-- v1.1: Newsletter Edge Function (Resend Contacts API, 5 req/min rate limiting, segment auto-creation)
-- v1.1: Blog pages rewritten (hub split zones, detail blur-fade + related posts, category DB names + pagination)
-- v1.1: CI optimization (checks PR-only, e2e-smoke independent on push, per-job concurrency)
-
-- v1.3/Phase 21: Email invitation sending via Edge Function (send-tenant-invitation)
-- v1.3/Phase 22: GDPR data export via Edge Function (role-aware owner/tenant export, downloadable JSON)
-- v1.3/Phase 22: Self-service account deletion with 30-day grace period (request, countdown, cancel)
-- v1.3/Phase 23: PDF template preview and export via StirlingPDF with custom field persistence
-- v1.3/Phase 23: Template definition saving via PostgREST upsert with onConflict
-- v1.3/Phase 23.1: Cross-cutting UI/UX polish (12 audit findings: typography, dark mode, empty states, shadcn consistency)
-- v1.3/Phase 24: Bulk property import via CSV with Papa Parse + Zod validation pipeline
-- v1.3/Phase 25: Maintenance photo upload to Supabase Storage with lightbox display
-- v1.3/Phase 25: Stripe Express Dashboard access via login link (extends stripe-connect Edge Function)
-
-- v1.5: Code quality & deduplication pass (shared helpers, hook consolidation, dead code removal)
-
-- v1.6/Phase 32: Crawlability critical fixes (robots.txt, canonical URLs, noindex on checkout paths)
-- v1.6/Phase 33: SEO utilities foundation (metadata helpers, JSON-LD schema builders)
-- v1.6/Phase 34: Per-page metadata audit and generateMetadata coverage (titles, descriptions, OG, canonical)
-- v1.6/Phase 35: Structured data enrichment (FAQ, Article, BreadcrumbList, HowTo, Review/Comparison JSON-LD)
-- v1.6/Phase 36: Pricing page polish (metadata, priceValidUntil, social proof constants, mobile comparison table a11y)
-- v1.6/Phase 37: Content SEO + internal linking between blog/comparison/resource pages
-- v1.6/Phase 38: Validation & verification of sitemap, robots, structured data
-- v1.6/Phase 39: Structured data gap closure across remaining page types
-- v1.6/Phase 40: Metadata verification completeness (final audit pass)
-- v1.6: Sitemap split into category sitemaps + Google Search Console readiness
-
-- v1.7/Stage 1: Payout timing instrumentation + autopay notifications + autopay health dashboard widget (shipped in PR 589, branch `feat/launch-readiness-instrumentation`) — *superseded by landlord-only pivot; autopay + payouts removed 2026-04-18 (PR #596)*
-- v1.7: Launch Readiness — shipped + archived 2026-04-15 (see `milestones/v1.7-ROADMAP.md`)
-- Landlord-only pivot (PR #596, 2026-04-18): removed rent facilitation (rent_due, rent_payments, late_fees, payment_methods, autopay cron + Edge Function, Stripe Connect destination charges), tenant portal (/tenant routes, tenant-portal hooks, tenant_invitations table), payout dashboards. Product now sells as SaaS subscription only; tenants are data records, not auth accounts.
-- Auth model collapse (PR #600, 2026-04-19): `user_type` column dropped, replaced with `is_admin` boolean on `public.users`. `custom_access_token_hook` registration deleted; `is_admin()` RPC reads `public.users` directly. `/auth/select-role` flow removed along with user_type sync/restrict triggers. `first_rent` funnel step dropped (dead after rent_payments removal).
-- DocuSeal e-signature gate: Growth/Max tier subscription required to send for signature (PR #595, 2026-04-16)
+- ✓ **Document vault with per-entity branches** (5: property/lease/tenant/maintenance/inspection) — v2.4
+- ✓ **Global vault search with full-text matching** — v2.4 (Phase 60)
+- ✓ **Multi-select category filters with date-range picker (timezone-aware)** — v2.5 (Phase 63)
+- ✓ **Bulk zip download (500 doc cap, streaming)** — v2.6 (Phase 64)
+- ✓ **Per-owner custom category taxonomy with 7 seeded defaults** — v2.6 (Phases 65–66)
+- ✓ **Auth via Supabase SSR (`getAll`/`setAll` cookies)** — pre-v1
+- ✓ **Stripe subscriptions billing with `subscription_status` gate (active/trialing)** — pre-v1
+- ✓ **DocuSeal e-sign integration (Starter 3/mo, Growth 25/mo, Max unlimited)** — earlier milestone
+- ✓ **Marketing pages (homepage, pricing, features, compare/[competitor], about, blog, resources, contact, support, FAQ, security, terms, privacy)** — pre-v1
+- ✓ **SEO + organic traffic baseline (sitemap with real lastmod, robots.ts per-bot allowlist for 12 AI crawlers, llms.txt + llms-full.txt + humans.txt, RSS feed at /feed.xml, Article + BreadcrumbList JSON-LD)** — recently shipped (PR #674)
+- ✓ **Design token system in `src/app/globals.css`** (oklch colors, --color-/--spacing-/--text-/--radius-/--shadow-/--duration-/--ease- scales, `--color-{success,warning,info,destructive}` status palette, `--color-chart-{1..5}`)
+- ✓ **GDPR account deletion with 30-day grace + anonymization** — earlier milestone
+- ✓ **Data retention cron jobs (security_events 90d, user_errors 90d, stripe_webhook_events 90d/180d)** — earlier milestone
+- ✓ **RLS on every table; landlord owner isolation enforced via `tests/integration/rls/`** — pre-v1
 
 ### Active
 
-No active milestone. v1.7 Launch Readiness archived 2026-04-15. Landlord-only pivot shipped 2026-04-18. Run `/gsd:new-milestone vX.Y <name>` to scope the next milestone.
+<!-- v1.0 scope: 45 audit findings from external UI audit (2026-05-08).
+     Source spec: audit-ui-2026-05-08.md (project root).
+     All fixes must align to globals.css canonical design tokens. -->
+
+**Critical (block marketing spend):**
+- [ ] Blog content broken — every post renders "Error Processing Blog" (data-broken, ~70 rows in `blogs` table need cleanup or regeneration)
+- [ ] Homepage stat counters render "0" — `NumberTicker` animation/intersection-observer bug, source values are correct
+- [ ] Pricing inconsistency for Max plan across pricing card / comparison table / homepage features grid / JSON-LD
+- [ ] Mobile layout broken at 375px (hero overflow, CTA cut off, no hamburger nav)
+- [ ] `/signup` redirect loop to `/login`
+- [ ] Long-form legal URLs (`/terms-of-service`, `/privacy-policy`, `/help-center`, `/rss-feed`) redirect to login
+
+**High Priority (visual/copy inconsistencies):**
+- [ ] Persona language unification (owner/landlord/manager/investor → ONE primary persona)
+- [ ] Wrong icon on Multi-Property Dashboard feature card
+- [ ] Active-nav state bug ("Compare" highlighted on `/`)
+- [ ] Legal-page date inconsistencies
+- [ ] "Most Popular" badge overlaps Growth card border
+- [ ] Inconsistent CTA button styling (Starter solid black, Talk-to-Sales unstyled, duplicate Free Trial pill on Features)
+- [ ] /compare/buildium frames positioning choices as missing features (red ✗)
+- [ ] /contact "How did you hear" defaults to "Sales Outreach"
+- [ ] Pricing subhead spacing/period bug
+- [ ] Annual-toggle "Save $158" math doesn't match
+- [ ] Resources nav dropdown has dead `href="/#"`
+- [ ] "Powered by Hudson Digital" footer signature
+- [ ] Supabase logo faded in Trusted Integrations
+- [ ] Duplicate "Why Landlords Choose" comparison tables (homepage + Features)
+
+**Medium (content + design-token alignment):**
+- [ ] Hero subhead contradiction ("track tenants" vs "tenants never log in")
+- [ ] "Join 500+" social proof verification
+- [ ] "Tenants never log in" promoted from buried subhead → visible badge/section
+- [ ] DocuSeal tier-restriction messaging de-amplified (mentioned 6× currently)
+- [ ] FAQ canonicalization (home + /pricing + /faq overlap)
+- [ ] "Bulk-zip 500/request" softened to non-technical phrasing
+- [ ] Hero dashboard mockup simplified + name review
+- [ ] Resources page neon-pink download tags → globals.css palette
+- [ ] /resources card backgrounds → globals.css surface tokens
+- [ ] Stale blog dates on error posts (incidentally resolved by Critical #1 fix)
+
+**Low (polish/SEO/A11y/conversion):**
+- [ ] Real testimonials + customer logos
+- [ ] G2/Capterra/Trustpilot review badges
+- [ ] SEO meta separator standardization (em-dash vs pipe)
+- [ ] Per-page Open Graph images
+- [ ] Site-wide Organization + SoftwareApplication schema
+- [ ] Sticky/floating CTA on long pages
+- [ ] Exit-intent / scroll-depth lead capture
+- [ ] Clean blog slugs (drop millisecond timestamps)
+- [ ] Server-render `/blog` index (replace client loading state)
+- [ ] Visible breadcrumbs on blog + comparison pages
+- [ ] Static export + cache headers for marketing pages
+- [ ] `aria-current="page"` site-wide audit
+- [ ] CTA label canonicalization ("Talk to Sales" / "Contact Sales" / "Schedule walkthrough" / "Connect with sales")
+- [ ] Confirm `sales@` + `security@` inboxes monitored
+- [ ] Footer XML sitemap link / robots.txt verification
 
 ### Out of Scope
 
-- **Rent payment facilitation** (removed 2026-04-18) — not a money-mover; landlords track rent in the ledger/notes, tenants pay them directly
-- **Tenant portal + tenant auth accounts** (removed 2026-04-18) — tenants are records owned by the landlord, no self-service UI
-- **Stripe Connect / destination charges** (removed 2026-04-18) — platform is Stripe Subscriptions only (SaaS billing)
-- **Autopay, late fees, rent reminders** (removed 2026-04-18) — follow-ons to rent facilitation
-- Marketing copy, landing page rewrites, launch announcement — deferred until next milestone scope lands
-- Mobile app — web-first approach
-- tRPC or Hono — Supabase PostgREST is sufficient
-- GraphQL — pg_graphql available but REST is enough
-- Twilio SMS — email covers notification needs
-- In-app messaging — not required for monetization
-- MSW component test layer — future milestone
-- Test data factories (@faker-js/faker) — future milestone
+<!-- Explicit boundaries. Includes reasoning to prevent re-adding. -->
+
+- **New features beyond audit fixes** — v1.0 is correctness/alignment only. New product capabilities go to v2.0.
+- **Tenant portal / tenant authentication** — pre-demolition decision, never re-add. Tenants are records, not users.
+- **Rent payment facilitation** — demolished April 2026. Landlords manually log amounts received.
+- **Smart tenant screening** — never built. Audit copy claiming this gets removed; not added back.
+- **Localization / i18n** — English-only.
+- **Native mobile app** — responsive web only. Mobile fixes target `375px` Safari/Chrome breakpoint.
+- **Visual redesign of bento grid / pricing cards** — token-alignment + bug fixes only. Layout overhauls are v2.0+.
+- **Auto-categorization of documents** — v2.6 deferred indefinitely.
+- **Unsubstantiated ROI/NOI/automation percentages in copy** (e.g. "+40% NOI", "Reduce vacancy 65%", "Automate 80%") — substantiate or delete; never re-add.
 
 ## Context
 
-### Current Architecture
+**Tech stack** (relevant for fixes):
+- Next.js 16 + React 19 + TailwindCSS 4 + TanStack Query/Form + Zustand
+- Supabase (PostgREST + RPCs + Edge Functions + RLS) + Stripe subscriptions
+- React Compiler enabled. Server Components by default.
+- pnpm 10 / Node 24. Hosted on Vercel (deploys from main only).
+- Sentry for monitoring; tunnel `/monitoring`.
 
-```
-Frontend (Next.js 16 / Vercel) -> supabase-js -> Supabase PostgREST (RLS enforced)
-                                               -> Edge Functions (Stripe Subscriptions, PDF, DocuSeal, Auth emails)
-                                               -> pg_cron (cleanup, GDPR, cron health)
-                                               -> DB Webhooks -> k3s n8n (background workflows)
-```
+**Design token authority:** `src/app/globals.css` is the canonical source. The `@theme` block defines color (oklch), spacing, typography, radius, shadow, duration, easing scales. Status colors (`--color-{success,warning,info,destructive}`) handle all semantic states. Chart colors (`--color-chart-{1..5}`) handle data viz. CLAUDE.md zero-tolerance rules forbid: `any` types, barrel files, inline styles, hex/rgb colors, `bg-white`, `bg-text-muted` (use `text-muted-foreground`), `@radix-ui/react-icons` (lucide-react only), emojis in UI code.
 
-### Self-Hosted Services (k3s cluster)
+**Domain conventions:**
+- `properties`, `leases`, `maintenance_requests`, `documents` use `owner_user_id` (NOT `property_owner_id`).
+- Soft-delete: `status: 'inactive'` filter on properties.
+- Soft FK: `documents.document_type` validated by `validate_document_category` BEFORE-INSERT/UPDATE trigger.
+- All `amount` columns store dollars as `numeric(10,2)`. Cents only at Stripe API boundary.
+- PostgREST + RPCs only — no custom backend. `{ count: 'exact' }` for pagination.
 
-- **n8n**: Background workflow automation -- receives DB webhook POSTs
-- **StirlingPDF**: PDF generation via HTTP API
-- **DocuSeal**: E-signature templates and submissions via HTTP API
+**Audit source:** External UI audit conducted 2026-05-08 against tenantflow.app prod. Full text at `audit-ui-2026-05-08.md` (project root). Investigations already confirmed: stat counter is animation bug (not data), blog is data-broken (not component), `/signup` route doesn't exist (proxy redirects to login).
 
-### Tech Stack
-
-- **Frontend**: Next.js 16 + React 19 + TailwindCSS 4 + TanStack Query/Form + Zustand
-- **Backend**: Supabase PostgREST + Edge Functions (Deno) + pg_cron
-- **Payments**: Stripe Subscriptions (platform SaaS billing only; rent facilitation removed 2026-04-18)
-- **Email**: Resend (auth emails, payment receipts, notifications)
-- **Monitoring**: Sentry (frontend + Edge Functions)
-- **CI**: GitHub Actions (next build, unit tests, RLS tests, E2E smoke, gitleaks)
-
-### Codebase
-
-- 749 files changed in v1.0 hardening (+54,581 / -16,719 lines)
-- 85 files changed in v1.1 blog redesign (+8,096 / -14,662 lines)
-- 141 files changed in v1.3 stub elimination (+11,582 / -2,164 lines)
-- 1,415 unit tests, 16 RLS integration test files, 5 Edge Function test suites, 17 E2E tests
-- TypeScript strict mode (noUnusedLocals, noUnusedParameters, isolatedModules, checkJs)
-- Zero eslint errors, zero typecheck errors
+**Workflow:** GSD (gsd-build/get-shit-done) drives milestone planning + phase execution. Perfect-PR merge gate (two consecutive zero-finding review cycles) is the merge discipline. Each phase ships its own PR. Branch protection on `main` requires `checks` + `e2e-smoke` + `rls-security` to pass.
 
 ## Constraints
 
-- **Supabase project**: `bshjmbshupiibfiewpxb` (existing, all data in place)
-- **Frontend**: Vercel deployment
-- **RLS**: All PostgREST queries use authenticated user's JWT
-- **Stripe**: Webhook secrets in Edge Function environment variables
-- **k3s services**: n8n/StirlingPDF/DocuSeal accessible from Edge Functions via internal URLs
+- **Tech stack**: Next.js 16, React 19, TailwindCSS 4, Supabase SSR — no framework swaps. Adding shadcn components or lucide-react icons is fine.
+- **Design tokens**: Every color/spacing/typography/radius/shadow/duration value must use a `globals.css` token. No hex, rgb, named colors, or one-off cubic-beziers anywhere in the diff.
+- **Mobile breakpoint**: Fixes must work at 375px (iPhone SE / mid-range Android). Test in Chrome DevTools device toolbar before claiming complete.
+- **No tenant-portal regressions**: Never re-introduce tenant auth, rent collection, or smart screening — these were demolished and the audit explicitly enforces removal where copy still claims them.
+- **Backward compatibility**: Long-form legal URLs (#6) must 301 to short paths, not 404 — external links/emails/sitemaps may reference them.
+- **CI gates**: every PR must pass `lint`, `typecheck`, `next build`, `e2e-smoke`, `rls-security`. No `--no-verify` commits. No `any` types. No barrel files.
+- **Perfect-PR gate**: Two consecutive zero-finding review cycles required before merge. Plan for review iteration in phase scoping.
+- **Owner**: rhudson42@yahoo.com (hudsor01) is sole maintainer. No team coordination overhead.
 
 ## Key Decisions
 
 | Decision | Rationale | Outcome |
 |----------|-----------|---------|
-| Supabase PostgREST over tRPC/Hono | Zero additional infra, RLS automatic | Good |
-| Edge Functions for Stripe | Official Deno SDK, constructEventAsync | Good |
-| Destination charges (not direct) | Simplest Connect model, automatic fund splitting | Reversed 2026-04-18 (rent facilitation removed) |
-| Owner absorbs all fees | Industry standard for PM platforms | Reversed 2026-04-18 (rent facilitation removed) |
-| Landlord-only pivot (2026-04-18, PR #596) | Keeping code debt and dead code is irresponsible; not moving money reduces compliance surface (PCI/money transmitter), lets the product focus on the core "spreadsheet replacement" promise | Pivot commit; ~1500 lines comment audit + 7 tables dropped + 9 edge functions removed |
-| pg_cron for scheduled jobs | Runs inside Postgres, no external scheduler | Good |
-| Delete NestJS entirely | Clean break prevents split-brain bugs | Good |
-| service_role for Edge Functions | All verify auth.uid() via getUser(token), avoids RLS overhead | Good |
-| Invitation code in URL query param | Single-use, expiring, rate-limited, accept requires JWT | Good |
-| Archive-then-delete for data retention | Never hard delete without archiving first | Good |
-| auth.uid() guards on all RPCs | Prevents data exfiltration even if RLS bypassed | Good |
-| queryOptions() factories | Consistent cache keys, type-safe invalidation | Good |
-| CSS-only loading animations | No JS animation libraries, lighter bundle | Good |
-| useVirtualizer directly on tables | More control than wrapper component | Good |
-| Gitleaks in pre-commit only | Catches secrets before they reach repo | Good |
-| Blog queries via anon RLS | Public content, no auth required, simpler cache | Good |
-| Per-job CI concurrency groups | Checks and e2e-smoke run independently | Good |
-| Resend Contacts API (not Audiences) | Audiences deprecated, Contacts is current API | Good |
-| Service role for GDPR export | Bypass RLS for complete data, JWT still validated first | Good |
-| Edge Function blob download | fetch → blob → createObjectURL → anchor click pattern | Good |
-| authKeys.deletionStatus() | Deletion status is account-scoped, shares key across owner/tenant | Good |
-| PostgREST upsert with onConflict | Template definitions: owner-scoped upsert with jsonb custom_fields | Good |
-| Papa Parse for CSV import | RFC 4180 compliance, handles edge cases (quoted commas, newlines) | Good |
-| Staged file upload (no auto-upload) | Simpler than Dropzone for maintenance photos, upload after form submit | Good |
-| Extend existing Edge Function actions | Stripe login-link added to stripe-connect function vs new function | Good |
-| Non-blocking photo upload | Request creation succeeds even if photo upload fails | Good |
-| Centralized social proof constants | Single source of truth for all marketing numbers | Good |
+| GSD config: YOLO mode, **fine** granularity (8–13 phases), **quality** model profile, per-phase research ON, plan-checker + verifier + nyquist ON, parallelization ON, commit_docs ON | User explicit Q&A. Fine granularity = tighter phase scope = shorter perfect-PR review cycles per phase | — Pending |
+| Branching: per-phase branches (`gsd/phase-{N}-{slug}`); one PR per phase; perfect-PR merge gate (2 consecutive zero-finding review cycles) | Matches v2.4–v2.6 history. Branch protection on `main` requires this. | — Pending |
+| Code review depth: **deep** (architectural review + design-token compliance + a11y in every phase) | User upgrade from saved default. Reduces post-merge findings; raises token cost. | — Pending |
+| Skip project-level research; rely on per-phase research during `/gsd-plan-phase` | Brownfield audit-fix; no greenfield stack decisions. Per-phase research keeps research targeted. | — Pending |
+| Major-version-only milestone naming (`v1.0`, `v2.0`, `v3.0` — no decimals like `v1.1` or `Phase 5.5`) | User explicit instruction. Use integer phase numbers; insert NEW phases as integers, not decimals. | — Pending |
+| **Persona** TBD; user leans owner-operator. Final word selected during `/gsd-plan-phase 4` (Persona + Copy) via per-phase researcher who surveys comparable successful B2B SaaS terminology | User rejected "landlord" as too narrow but accepted "landlords with 1–15 rentals" as a segment phrase. Locking single noun via research, not assumption. | — Pending |
+| Sales-contact CTA canonical label: **"Contact Sales"** | User explicit. Replaces "Talk to Sales" / "Schedule a walkthrough" / "Connect with sales" everywhere. | — Pending |
+| Mobile hamburger menu: **slide-in drawer from right** (shadcn `Sheet` component) at <md breakpoint | User explicit. Standard mobile pattern. | — Pending |
+| **Pricing**: full revenue audit + tier restructure as a dedicated phase. Current Stripe prices ($29 / $79 / $199) treated as starting point only — final tiers/names/limits/prices land via the Pricing Restructure phase. | User explicit: "audit our entire offering from a revenue perspective then rebuild and build out an entirely new restructuring of the tiers entirely". Phase happens AFTER persona is locked (Phase 4). | — Pending |
+| **Blog**: full rebuild as a dedicated phase — data cleanup + page UI rebuild (server-rendered) + n8n flow redesign for new audience + initial persona-aligned content set | User explicit: "rebuild blog page + maybe redo n8n flow for new audience + as a single Phase X in v1.0". Depends on persona (Phase 4). | — Pending |
+| Phase 1 (immediate stop-bleed) bulk-unpublishes broken blog rows + makes Max pricing AGREE across 4 surfaces using "Custom" placeholder until Pricing Restructure phase ships | Decouples immediate SEO + ad-spend safety from longer-term restructure work. Avoids propagating $199 twice (once in Phase 1, again after restructure). | — Pending |
+| Footer "Powered by Hudson Digital" line: **KEPT** site-wide. CONS-12 removed from v1.0 scope. | User explicit override of audit recommendation. Personal preference. | — Pending |
+| "Join 500+ Growth subscribers" replaced with **"Built for landlords with 1–15 rentals"** — segment-specific framing, no fabricated count | User has zero subscribers. Segment phrase is honest + serves the same conversion goal (signal "this is for me"). Avoids FTC substantiation risk + future trust kill. | — Pending |
+| Testimonials (TRUST-01): real names + property counts + quotes, **no headshots**. Avatar fallback uses initials or geometric placeholder. | User explicit: can provide names/counts/quotes, headshots difficult to source. | — Pending |
+| Treat audit document as v1.0 spec; locked decisions captured here override audit-default recommendations where they conflict | User input > audit defaults. | — Pending |
+| Brownfield framing — Validated section pre-populated from v2.6 capabilities | TenantFlow is mature; PROJECT.md must reflect that to prevent agents from re-deriving stack/architecture. | — Pending |
 
----
 ## Evolution
 
 This document evolves at phase transitions and milestone boundaries.
@@ -200,4 +174,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-04-19 after auth model collapse (PR #600) — user_type column dropped, is_admin boolean replaces it*
+*Last updated: 2026-05-08 after v1.0 initialization*
