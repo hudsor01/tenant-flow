@@ -71,4 +71,67 @@ describe('NumberTicker', () => {
 		)
 		consoleError.mockRestore()
 	})
+
+	it('does not re-trigger animation after first IntersectionObserver entry (one-shot guard)', async () => {
+		// Capture the IntersectionObserver callback so we can fire a second entry manually.
+		// unit-setup.ts defines window.IntersectionObserver with writable:true (not configurable),
+		// so we assign a wrapper class directly rather than using vi.stubGlobal/vi.spyOn.
+		let capturedCallback: IntersectionObserverCallback | undefined
+		let capturedTarget: Element | undefined
+		const OriginalObserver = window.IntersectionObserver
+
+		class CapturingObserver implements IntersectionObserver {
+			readonly root: Element | null = null
+			readonly rootMargin: string = ''
+			readonly thresholds: ReadonlyArray<number> = []
+			private inner: IntersectionObserver
+
+			constructor(cb: IntersectionObserverCallback, opts?: IntersectionObserverInit) {
+				capturedCallback = cb
+				this.inner = new OriginalObserver(cb, opts)
+			}
+
+			observe(target: Element) {
+				capturedTarget = target
+				this.inner.observe(target)
+			}
+			unobserve(target: Element) { this.inner.unobserve(target) }
+			disconnect() { this.inner.disconnect() }
+			takeRecords() { return this.inner.takeRecords() }
+		}
+
+		// Direct assignment works because the property is writable (unit-setup.ts sets writable: true)
+		window.IntersectionObserver = CapturingObserver as unknown as typeof IntersectionObserver
+
+		render(<NumberTicker value={5} duration={2000} />)
+
+		// First intersection fires synchronously on observe(); advance to complete the animation
+		await vi.advanceTimersByTimeAsync(2100)
+		expect(screen.getByText('5')).toBeInTheDocument()
+
+		// Simulate scroll-out then scroll-back-in via the captured callback
+		if (capturedCallback && capturedTarget) {
+			const makeEntry = (isIntersecting: boolean): IntersectionObserverEntry => ({
+				target: capturedTarget as Element,
+				isIntersecting,
+				intersectionRatio: isIntersecting ? 1 : 0,
+				boundingClientRect: (capturedTarget as Element).getBoundingClientRect(),
+				intersectionRect: (capturedTarget as Element).getBoundingClientRect(),
+				rootBounds: null,
+				time: performance.now()
+			} as IntersectionObserverEntry)
+
+			capturedCallback([makeEntry(false)], {} as IntersectionObserver)
+			capturedCallback([makeEntry(true)], {} as IntersectionObserver)
+		}
+
+		// hasIntersected is one-shot: stays true, effect deps unchanged, animation must NOT
+		// reset to startValue (0). Counter remains at 5.
+		await vi.advanceTimersByTimeAsync(100)
+		expect(screen.queryByText('0')).not.toBeInTheDocument()
+		expect(screen.getByText('5')).toBeInTheDocument()
+
+		// Restore original mock for subsequent tests
+		window.IntersectionObserver = OriginalObserver
+	})
 })
