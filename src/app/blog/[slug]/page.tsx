@@ -8,9 +8,19 @@ import { createArticleJsonLd } from '#lib/seo/article-schema'
 import { createBreadcrumbJsonLd } from '#lib/seo/breadcrumbs'
 import BlogPostPage from './blog-post-page'
 
-// Cache blog pages for 1 hour via ISR — generateMetadata only runs during
-// background revalidation, not on every request (27K+ requests/month)
-export const revalidate = 3600
+// Phase 1 (CRIT-01) follow-up: Next.js 16 + ISR (`revalidate`) + `notFound()`
+// returns soft-404 (HTTP 200 + not-found UI), not real HTTP 404. This breaks
+// Specialist-2's "real 404 emitted by framework" contract and slows Google
+// deindex of the 100 broken blog rows the Phase-1 migration drafted.
+//
+// Forcing dynamic rendering ensures `notFound()` correctly emits HTTP 404 on
+// every miss. Cost is acceptable: every row was drafted by the Phase-1
+// migration, so ISR cache hits are zero in the current state.
+//
+// Phase 6 (BLOG-02 server-rendered rebuild) restores ISR with
+// `generateStaticParams` returning the published slug set — at that point
+// dynamic params hit the proper 404 path while known slugs serve from cache.
+export const dynamic = 'force-dynamic'
 
 const logger = createLogger({ component: 'BlogPost' })
 
