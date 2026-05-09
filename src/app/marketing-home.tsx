@@ -30,7 +30,7 @@ export default function MarketingHomePage() {
 							{/* Content */}
 							<div className="flex flex-col justify-center space-y-8">
 								<div className="space-y-6">
-									<h1 className="text-4xl sm:text-5xl lg:text-6xl xl:text-7xl font-bold text-foreground tracking-tight leading-[1.05]">
+									<h1 className="text-3xl sm:text-5xl lg:text-6xl xl:text-7xl font-bold text-foreground tracking-tight leading-[1.05] text-balance">
 										Ditch the{' '}
 										<span className="hero-highlight">spreadsheet</span>
 									</h1>
@@ -42,14 +42,14 @@ export default function MarketingHomePage() {
 									</p>
 								</div>
 
-								<div className="flex flex-row gap-4">
-									<Button asChild size="lg">
+								<div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto">
+									<Button asChild size="lg" className="w-full sm:w-auto">
 										<Link href="/pricing">
 											Start Managing Properties
 											<ArrowRight className="ml-2 size-4" />
 										</Link>
 									</Button>
-									<Button asChild variant="outline" size="lg">
+									<Button asChild variant="outline" size="lg" className="w-full sm:w-auto">
 										<Link href="/pricing">View Pricing</Link>
 									</Button>
 								</div>
