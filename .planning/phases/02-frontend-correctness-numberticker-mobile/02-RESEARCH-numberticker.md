@@ -449,7 +449,7 @@ Verified the rewrite complies with:
 
 ---
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **Should `value` be added back to the deps?** (Currently `from`, `to` are derived from `value` and included.) Including `value` directly is more readable but redundant since `from = startValue, to = value` for the default `direction='up'` case. Recommendation: keep deps as `[hasIntersected, from, to, delay, duration]` per the rewrite — exhaustive-deps lint will validate.
 

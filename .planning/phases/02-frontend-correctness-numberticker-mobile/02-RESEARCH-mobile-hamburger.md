@@ -489,7 +489,7 @@ Every visual choice in the planned diffs maps to an existing `globals.css` token
 | New e2e spec flakes on Sheet animation timing | LOW | MEDIUM | Test relies on `expect(...).toBeVisible()` / `not.toBeVisible()` — Playwright auto-waits up to 5s (`expect.timeout` from config). If flake observed, add `await page.waitForTimeout(500)` after toggle click. **Avoid hard-coded waits** unless confirmed flaky. |
 | Changing close button style adds visible 44×44 button where today it's smaller | LOW | LOW (visual) | The close button is `absolute top-4 right-4` so increasing its hit-target box doesn't reflow content. The X icon stays `size-4`; the button just expands invisible padding. Verify visual at 375px. |
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **Should we add `showCloseButton` and `closeLabel` props to `sheet.tsx`?**
    - What we know: minimal change, additive, defaults preserve behavior.
