@@ -2,9 +2,9 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: "Phase 1 shipped — PR #682"
-last_updated: "2026-05-08T23:46:05.975Z"
-last_activity: 2026-05-08
+status: completed
+last_updated: "2026-05-09T19:13:20.753Z"
+last_activity: 2026-05-09 (Phase 1 fully complete — 4 PRs merged + revert; soft-404 accepted, real-404 deferred to Phase 6 BLOG-02)
 progress:
   total_phases: 13
   completed_phases: 1
@@ -26,8 +26,8 @@ See: .planning/PROJECT.md (updated 2026-05-08)
 
 Phase: 1 (Critical Stop-Bleed: Blog Unpublish + Pricing Placeholder) — EXECUTING
 Plan: 02 of 02 — Tasks 1+2 done; Task 3 (manual Rich Results Test) awaits post-deploy human verification
-Status: Phase 1 shipped — PR #682
-Last activity: 2026-05-08
+Status: Phase 1 complete (PRs #682, #683, #684, #685). Awaiting next phase or post-deploy observation.
+Last activity: 2026-05-09 (Phase 1 fully complete — 4 PRs merged + revert; soft-404 accepted, real-404 deferred to Phase 6 BLOG-02)
 
 Progress: [░░░░░░░░░░░░░] 0% (phases stay at 0 until both plans + post-deploy gate close)
 
