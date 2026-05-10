@@ -47,7 +47,7 @@ const steps = [
 		features: [
 			'Per-entity document vault',
 			'Global text search and filters',
-			'Bulk-zip export (500 / request)'
+			'Tax-season zip exports'
 		],
 		color: 'success'
 	}

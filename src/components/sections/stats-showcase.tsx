@@ -29,8 +29,8 @@ export function StatsShowcase({ className }: StatsShowcaseProps) {
 		},
 		{
 			value: 500,
-			label: 'Bulk-Zip Cap',
-			description: 'Documents per zip download',
+			label: 'Tax-Season Bulk Zip',
+			description: 'Up to 500 docs per zip export',
 			suffix: '',
 			prefix: ''
 		},

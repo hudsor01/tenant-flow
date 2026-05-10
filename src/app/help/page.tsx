@@ -145,7 +145,7 @@ export default function HelpPage() {
 							{
 								title: 'Set up the document vault',
 								description:
-									'Per-entity uploads, custom categories, search, filters, and bulk-zip export — everything the vault does in one walkthrough',
+									'Per-entity uploads, custom categories, search, filters, and tax-season zip exports — everything the vault does in one walkthrough',
 								badge: 'Most Popular',
 								badgeColor: 'bg-primary/10 text-primary'
 							},

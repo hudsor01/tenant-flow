@@ -100,7 +100,7 @@ export const faqData: FAQCategory[] = [
 			{
 				question: 'What kind of results do owners report?',
 				answer:
-					"Owners typically tell us they replace a tangle of spreadsheets, email threads, and Dropbox folders with a single source of truth. Concrete wins: faster lease renewals, faster CPA hand-offs via the document vault's bulk-zip download, and fewer 'where did I put that receipt?' moments at tax time. Specific revenue impact varies by portfolio."
+					"Owners typically tell us they replace a tangle of spreadsheets, email threads, and Dropbox folders with a single source of truth. Concrete wins: faster lease renewals, faster CPA hand-offs via the document vault's tax-season zip exports, and fewer 'where did I put that receipt?' moments at tax time. Specific revenue impact varies by portfolio."
 			},
 			{
 				question: 'Are there any hidden fees?',

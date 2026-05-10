@@ -87,8 +87,8 @@ export function VaultPreview() {
 							<Download className="size-3" />
 						</div>
 						<div>
-							<div className="text-xs font-medium text-foreground">Bulk zip</div>
-							<div className="text-xs text-muted-foreground">500 / request</div>
+							<div className="text-xs font-medium text-foreground">Tax-season zip</div>
+							<div className="text-xs text-muted-foreground">For tax season</div>
 						</div>
 					</div>
 				</div>

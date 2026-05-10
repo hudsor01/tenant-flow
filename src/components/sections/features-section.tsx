@@ -52,7 +52,7 @@ export default function FeaturesSectionDemo({
 		{
 			title: 'Document Vault',
 			description:
-				'Per-entity storage with global search, multi-select filters, date-range, and bulk-zip download. Custom categories per landlord.',
+				'Per-entity storage with global search, multi-select filters, date-range, and tax-season zip downloads. Custom categories per landlord.',
 			icon: <FolderArchive />
 		}
 	]

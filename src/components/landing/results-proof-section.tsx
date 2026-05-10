@@ -21,7 +21,7 @@ const stats = [
 	{
 		icon: Download,
 		value: '500',
-		label: 'Bulk-zip cap (per request)'
+		label: 'Tax-season zip cap'
 	},
 	{
 		icon: FileSignature,

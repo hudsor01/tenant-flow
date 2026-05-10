@@ -20,7 +20,7 @@ export function HeroSection() {
 						</h1>
 
 						<p className="text-muted-foreground leading-relaxed max-w-3xl mx-auto text-xl font-medium">
-							Per-entity storage with global search, multi-select filters, date-range, and bulk-zip download.{' '}
+							Per-entity storage with global search, multi-select filters, date-range, and tax-season zip downloads.{' '}
 							<span className="text-foreground font-semibold">
 								Lease e-sign on Growth and Max plans. Tenants are records, never users.
 							</span>
