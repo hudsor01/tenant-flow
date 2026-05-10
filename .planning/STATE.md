@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: verifying
-last_updated: "2026-05-09T20:40:52.929Z"
-last_activity: 2026-05-09
+status: completed
+last_updated: "2026-05-09T02:51:31Z"
+last_activity: "2026-05-09 (Phase 3 Plan 01 executed — 3 tasks committed, Task 4 checkpoint awaits post-deploy)"
 progress:
   total_phases: 13
   completed_phases: 2
-  total_plans: 4
+  total_plans: 5
   completed_plans: 4
-  percent: 100
+  percent: 80
 ---
 
 # Project State
@@ -24,10 +24,10 @@ See: .planning/PROJECT.md (updated 2026-05-08)
 
 ## Current Position
 
-Phase: 1 (Critical Stop-Bleed: Blog Unpublish + Pricing Placeholder) — EXECUTING
-Plan: 02 of 02 — Tasks 1+2 done; Task 3 (manual Rich Results Test) awaits post-deploy human verification
-Status: Phase complete — ready for verification
-Last activity: 2026-05-09
+Phase: 3 (Routing & Legal-URL Aliases) — EXECUTING
+Plan: 01 of 01 — Tasks 1-3 committed (next.config.ts redirects, proxy.ts PUBLIC_ROUTES, e2e spec). Task 4 (post-deploy curl verification) awaits human verification after Vercel deploy.
+Status: Phase 3 Plan 01 executed locally. Pre-merge CI gates green. Awaiting PR open + merge + post-deploy curl probes against tenantflow.app.
+Last activity: 2026-05-09 (Phase 3 Plan 01 executed — 3 tasks committed, Task 4 checkpoint awaits post-deploy)
 
 Progress: [██████████] 100%
 
@@ -52,6 +52,7 @@ Progress: [██████████] 100%
 | 13 | TBD | Pending | gsd/phase-13-performance-polish | — | — |
 | Phase 02 P01 | 6 | 3 tasks | 2 files |
 | Phase 02 P02 | 5min | 5 tasks | 5 files |
+| Phase 03 P01 | 2m14s | 3 tasks (4th = post-deploy checkpoint) | 3 files |
 
 ## Locked Decisions (see PROJECT.md Key Decisions for full table)
 
@@ -78,9 +79,9 @@ None.
 
 ## Next Action
 
-`/gsd-plan-phase 1` — decompose Phase 1 (Critical Stop-Bleed) into per-CRIT plans.
+Open PR for `gsd/phase-03-routing-aliases` → run perfect-PR review cycles → after merge + Vercel deploy, run Task 4 post-deploy curl probes per `.planning/phases/03-routing-aliases/03-01-SUMMARY.md § Task 4`.
 
 ---
 *Last updated: 2026-05-08 after v1.0 init Q&A round*
 
-**Planned Phase:** 2 (Frontend Correctness (NumberTicker + Mobile)) — 2 plans — 2026-05-09T20:27:57.111Z
+**Planned Phase:** 3 (Routing & Legal-URL Aliases) — 1 plans — 2026-05-10T02:48:37.661Z
