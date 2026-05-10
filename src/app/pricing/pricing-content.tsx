@@ -137,12 +137,20 @@ export function PricingFaqSection() {
 								setup.
 							</p>
 						</div>
-						<Button size="lg" className="px-7" asChild>
-							<Link href="/contact">
-								Connect with sales
-								<ArrowRight className="ml-2 h-4 w-4" />
+						<div className="flex flex-col items-center gap-3 sm:flex-row">
+							<Link
+								href="/faq"
+								className="text-sm text-muted-foreground hover:text-foreground transition-colors underline-offset-4 hover:underline"
+							>
+								View all FAQs →
 							</Link>
-						</Button>
+							<Button size="lg" className="px-7" asChild>
+								<Link href="/contact">
+									Connect with sales
+									<ArrowRight className="ml-2 h-4 w-4" />
+								</Link>
+							</Button>
+						</div>
 					</div>
 				</div>
 			</div>
