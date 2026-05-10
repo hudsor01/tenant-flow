@@ -20,7 +20,7 @@ export type PlanId = 'trial' | 'starter' | 'growth' | 'max'
  *
  * One-liner to find all surfaces: grep -rn 'MAX_PUBLIC_PRICE_DISPLAY\|Custom pricing, contact sales' src/
  */
-export const MAX_PUBLIC_PRICE_DISPLAY = 'Custom' as const
+export const MAX_PUBLIC_PRICE_DISPLAY = '$149' as const
 
 // Trial configuration interface
 export interface TrialConfig {
@@ -166,12 +166,12 @@ export const PRICING_PLANS: Record<string, PricingConfig> = {
 		name: 'Max',
 		description: 'For landlords with 21+ rentals — unlimited scale and API access',
 		price: {
-			monthly: 199,
-			annual: 2189
+			monthly: 149,
+			annual: 1490
 		},
 		stripePriceIds: {
-			monthly: 'price_1Rd16pP3WCR53SdoCh3oJlDl' as StripePriceId,
-			annual: 'price_1Rd17AP3WCR53SdoTB4FTbSq' as StripePriceId
+			monthly: 'price_1TVTaQP3WCR53Sdo22VAYfhp' as StripePriceId,
+			annual: 'price_1TVTaUP3WCR53Sdo5mnmSAmF' as StripePriceId
 		},
 		limits: {
 			properties: -1,
