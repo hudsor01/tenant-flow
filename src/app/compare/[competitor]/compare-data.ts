@@ -6,11 +6,11 @@ import type { CompetitorData, PricingTier } from '#types/sections/compare'
 // or whenever a competitor materially changes their pricing.
 
 const TENANTFLOW_PRICING: PricingTier[] = [
-	{ name: 'Starter', price: '$29/mo', note: 'Up to 5 properties, 25 units' },
-	{ name: 'Growth', price: '$79/mo', note: 'Up to 20 properties, 100 units' },
+	{ name: 'Starter', price: '$19/mo', note: 'Up to 5 properties, 25 units' },
+	{ name: 'Growth', price: '$49/mo', note: 'Up to 20 properties, 100 units' },
 	{
 		name: 'Max',
-		price: '$199/mo',
+		price: '$149/mo',
 		note: 'Unlimited properties and units',
 	},
 ]
@@ -26,7 +26,7 @@ export const COMPETITORS: Record<string, CompetitorData> = {
 		metaDescription:
 			'Looking for a Buildium alternative? TenantFlow offers the same features at half the price. Compare pricing, features, and see why landlords are switching.',
 		heroSubtitle:
-			'Buildium starts at $58/month. TenantFlow starts at $29/month with the same core features, modern technology, and no hidden fees.',
+			'Buildium starts at $58/month. TenantFlow starts at $19/month with the same core features, modern technology, and no hidden fees.',
 		capterra: '4.5/5 (2,131 reviews)',
 		g2: '4.4/5 (220+ reviews)',
 		founded: '2004',
@@ -105,7 +105,7 @@ export const COMPETITORS: Record<string, CompetitorData> = {
 			},
 		],
 		whySwitch: [
-			'Save over $1,200/year compared to Buildium Growth ($79/mo vs $183/mo)',
+			'Save over $1,600/year compared to Buildium Growth ($49/mo vs $183/mo)',
 			'Modern, fast interface built on cloud-native technology',
 			'Per-entity document vault with global search included on every plan',
 			'14-day free trial with no credit card required',
@@ -124,11 +124,11 @@ export const COMPETITORS: Record<string, CompetitorData> = {
 		blogSlug: 'tenantflow-vs-appfolio-comparison',
 		tagline: 'The AppFolio Alternative for Landlords',
 		description:
-			'AppFolio requires 50+ units and $298/month minimum. TenantFlow starts at $29/month with no minimums. Compare features and pricing.',
+			'AppFolio requires 50+ units and $298/month minimum. TenantFlow starts at $19/month with no minimums. Compare features and pricing.',
 		metaDescription:
-			'AppFolio alternative for landlords — no unit minimums. TenantFlow starts at $29/mo vs AppFolio\'s $298/mo minimum. No unit requirements.',
+			'AppFolio alternative for landlords — no unit minimums. TenantFlow starts at $19/mo vs AppFolio\'s $298/mo minimum. No unit requirements.',
 		heroSubtitle:
-			'AppFolio requires a minimum of 50 units and $298/month. TenantFlow has no minimums and starts at $29/month — professional tools for any portfolio size.',
+			'AppFolio requires a minimum of 50 units and $298/month. TenantFlow has no minimums and starts at $19/month — professional tools for any portfolio size.',
 		capterra: '4.5/5',
 		g2: '4.6/5',
 		founded: '2006',
@@ -234,7 +234,7 @@ export const COMPETITORS: Record<string, CompetitorData> = {
 		],
 		whySwitch: [
 			'No unit minimums — manage 1 unit or 100 without restrictions',
-			'Save over $2,600/year at 30 units ($79/mo vs $298/mo minimum)',
+			'Save over $3,000/year at 30 units ($49/mo vs $298/mo minimum)',
 			'Transparent pricing — no custom quotes or sales calls needed',
 			'14-day free trial to test everything before committing',
 			'Per-entity document vault and lease e-sign (Growth+) without paying for commercial/HOA tools',
@@ -253,11 +253,11 @@ export const COMPETITORS: Record<string, CompetitorData> = {
 		blogSlug: 'tenantflow-vs-rentredi-comparison',
 		tagline: 'TenantFlow vs RentRedi: More Features, Fair Price',
 		description:
-			'RentRedi is cheap but basic. TenantFlow adds advanced reporting, visual workflows, and lease management for just $20 more per month.',
+			'RentRedi is cheap but basic. TenantFlow adds advanced reporting, visual workflows, and lease management for just $10 more per month.',
 		metaDescription:
-			'Compare TenantFlow vs RentRedi for landlords. RentRedi starts at $9/mo with basics. TenantFlow at $29/mo adds analytics, workflows, and more.',
+			'Compare TenantFlow vs RentRedi for landlords. RentRedi starts at $9/mo with basics. TenantFlow at $19/mo adds analytics, workflows, and more.',
 		heroSubtitle:
-			'RentRedi starts at $9/month with unlimited units and basic features. TenantFlow starts at $29/month with advanced analytics, visual workflows, and a more complete feature set.',
+			'RentRedi starts at $9/month with unlimited units and basic features. TenantFlow starts at $19/month with advanced analytics, visual workflows, and a more complete feature set.',
 		capterra: '4.5/5 (104 reviews)',
 		g2: '--',
 		founded: '2016',
