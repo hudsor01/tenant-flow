@@ -93,6 +93,12 @@ Plans:
 8. Hero dashboard mockup names reviewed (drop "John Miller" / "Emma Wilson" / "David Park" if collision with real people)
 9. No new hex/rgb/`bg-white`/inline-ms tokens introduced
 
+**Plans:** 2 plans (sequential — wave 1 → wave 2)
+
+Plans:
+- [ ] 04-01-PLAN.md — Persona unification (CONS-01) + hero subhead (COPY-01) + social-proof segment framing (COPY-02) + tenants-never-login Badge elevation (COPY-03)
+- [ ] 04-02-PLAN.md — DocuSeal de-amp (COPY-04) + FAQ canon + canonical link (COPY-05) + bulk-zip softening (COPY-06) + dashboard mockup names (COPY-07)
+
 ### Phase 5: Pricing Restructure
 **Goal**: Audit current Stripe revenue baseline; survey competitor tier structures; propose + ship a new tier structure (names, prices, limits, feature mapping); migrate Stripe products + prices; propagate final numbers across all marketing surfaces.
 **Depends on**: Phase 4 (pricing copy leans on settled persona terminology)
