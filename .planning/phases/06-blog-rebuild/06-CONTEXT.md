@@ -14,14 +14,16 @@ Phase 6 cleans the blog DB, rebuilds the `/blog` index + post page UI as server-
 - Drop the Phase-1 BEFORE-INSERT reject trigger (it was a blast-radius limiter; obsolete now)
 - Hard-delete the 100 broken draft rows from Phase-1 unpublish
 - Add slug regex CHECK constraint to prevent `Date.now()`-style slug fallback
+- Add `canonical_url text NULL` column to enable per-post canonical override (Blocker-#1 prerequisite)
 - 9 DB validation triggers (word count, H2 count, persona phrase, slug pattern, meta length, excerpt length, category, banlist, DocuSeal-mention)
 - `/blog` index UI rewrite: drop `BlogClient` client component, server-render the post list, no client loading state (PERF-01)
 - `/blog/[slug]` UI: swap `force-dynamic` for `generateStaticParams` + `revalidate=300` (5-min ISR), real HTTP 404 via `notFound()` for unknown slugs
+- `/blog/[slug]` `generateMetadata()` wires `alternates.canonical` from `blogs.canonical_url` (canonical tag lands in `<head>` via Next.js Metadata API)
 - `/blog/category/[slug]` UI: same SSR rewrite (BlogCategoryClient → server component)
 - shadcn `breadcrumb` primitive added via `pnpm dlx shadcn@latest add breadcrumb`
 - Visible breadcrumb on `/blog/[slug]` and `/blog/category/[slug]` (SEO-05; complements existing BreadcrumbList JSON-LD shipped in PR #674)
 - New `/api/og/blog/[slug]/route.ts` dynamic OG image generator using `@vercel/og` (per-post unique image, brand colors, post title)
-- New webhook endpoint at `supabase/functions/n8n-blog-ingest/index.ts` accepting n8n payloads, validating against the 9 gates, inserting into `blogs` with `status='in-review'`
+- New webhook endpoint at `supabase/functions/n8n-blog-ingest/index.ts` accepting n8n payloads (including optional `canonical_url`), validating against the 9 gates, inserting into `blogs` with `status='in-review'`
 - `.planning/phases/06-blog-rebuild/N8N-FLOW.md` documenting the redesigned workflow as a runbook + JSON spec
 - 12 initial posts generated via the n8n flow → `in-review` → manually approved → `published`
 - Sitemap + RSS already handle empty state (PR #674); auto-reflect new published dataset
@@ -30,7 +32,7 @@ Phase 6 cleans the blog DB, rebuilds the `/blog` index + post page UI as server-
 - Affiliate disclosures — explicitly REJECTED for v1.0
 - "Updated {date}" UI display alongside `published_at` — Phase 12 follow-up
 - n8n-flow polish post-launch (per-topic prompt tuning) — out of phase
-- Cannibalization monitoring (tenantflow-vs-buildium post vs `/compare/buildium` page) — Phase 12 SEO follow-up; ship with `<link rel="canonical">` to compare page where appropriate
+- Cannibalization monitoring (tenantflow-vs-buildium post vs `/compare/buildium` page) — Phase 12 SEO follow-up; ship with `<link rel="canonical">` to compare page where appropriate (via `blogs.canonical_url` column → `alternates.canonical` in `<head>`)
 - Author byline = real human names — locked at "TenantFlow Team" (Phase 4 lock)
 - Per-tier publish gating — out of scope; all 12 posts public
 - Newsletter signup flow polish — Phase 10 TRUST-* owns
@@ -75,7 +77,7 @@ Phase 6 cleans the blog DB, rebuilds the `/blog` index + post page UI as server-
 | 11 | Software & Vault | "How to Organize Lease Documents: One System, Search-Ready, Tax-Ready" | `lease-document-organization-system-landlords` | bottom |
 | 12 | Software & Vault | "From Spreadsheet to Document Vault: Migration Guide for Small Landlords" | `spreadsheet-to-document-vault-migration` | bottom |
 
-Post #10 ships with `<link rel="canonical" href="/compare/buildium">` to avoid cannibalization with the existing compare page; monitored in Phase 12 (SEO).
+Post #10 ships with `<link rel="canonical" href="/compare/buildium">` to avoid cannibalization with the existing compare page. The canonical tag is set via `blogs.canonical_url` (Plan 06-01 column) → n8n payload field (Plan 06-03) → Next.js `Metadata.alternates.canonical` (Plan 06-02) — it lives in `<head>`, NOT inside the markdown body. Monitored in Phase 12 (SEO).
 
 ### Status Workflow Primitive (LOCKED)
 
@@ -84,10 +86,11 @@ Post #10 ships with `<link rel="canonical" href="/compare/buildium">` to avoid c
 ### Slug Naming Pattern (LOCKED)
 
 **Topic-only kebab-case + year suffix on time-sensitive posts.**
-- Format: `^[a-z0-9]+(-[a-z0-9]+)*$` (regex enforced by DB CHECK constraint)
+- Format: `^[a-z][a-z0-9]*(-[a-z0-9]+)*$` (regex enforced by DB CHECK constraint — leading letter required to close the audit-#38 numeric-only-slug class; Blocker-#4 fix)
+- Length: 3..120 chars
 - Time-sensitive (yearly-relevance) posts append `-{year}` suffix (e.g., `late-fee-rules-by-state-2026`, `landlord-tax-deductions-2026`, `tenant-screening-software-compared-2026`)
 - Evergreen posts use topic-only (e.g., `tenant-screening-checklist`, `tenantflow-vs-buildium`)
-- NO `Date.now()` fallback — DB rejects slug INSERT if regex doesn't match (closes the previous-flow failure mode)
+- NO `Date.now()` fallback — DB rejects slug INSERT if regex doesn't match. The regex closes the numeric-only class (`1234567890`); the `error-1778151609106` ms-suffix pattern PASSES the regex (it starts with a letter) and is closed by the n8n flow not generating Date.now()-suffix slugs as a fallback.
 
 ### Author Byline (LOCKED — Phase 4 carry-forward)
 
@@ -106,7 +109,7 @@ Implemented as DB BEFORE-INSERT triggers + n8n-side validation:
 | Word count | 1,200 ≤ word_count(content) ≤ 3,000 |
 | H2 count | 4 ≤ count(`^## `) ≤ 10 |
 | Persona phrase | content contains "landlord" OR "landlords" (≥1 occurrence) |
-| Slug pattern | slug matches `^[a-z0-9]+(-[a-z0-9]+)*$` |
+| Slug pattern | slug matches `^[a-z][a-z0-9]*(-[a-z0-9]+)*$` (leading-letter requirement) |
 | Meta length | 50 ≤ length(meta_description) ≤ 160 |
 | Excerpt length | 80 ≤ length(excerpt) ≤ 200 |
 | Category | category IN ('lease-law', 'tax-prep', 'tenant-screening', 'maintenance', 'software-vault') |
@@ -115,7 +118,7 @@ Implemented as DB BEFORE-INSERT triggers + n8n-side validation:
 
 ### Phase 1 + Phase 4 Cross-Check (REGRESSION GUARDS)
 
-- **Phase 1 BEFORE-INSERT reject trigger:** DROP it (Phase 6 obligation per Phase 1 migration comment).
+- **Phase 1 BEFORE-INSERT reject trigger:** DROP it (Phase 6 obligation per Phase 1 migration comment). Trigger name: `reject_n8n_error_blogs_trigger` (verified at `supabase/migrations/20260508231802_unpublish_broken_blogs.sql:100`).
 - **Phase 1 broken-draft rows:** hard-DELETE the 100 rows.
 - **Phase 4 banlist test:** stays green (validation gate #8 enforces the same banlist at insert time, complementary not redundant).
 - **Phase 4 persona word:** every post body uses "landlords" (not "property owners") — validation gate #3 enforces this at insert time.
@@ -178,42 +181,45 @@ OG image route generates oklch colors via inline CSS (Vercel/og requires inline)
 
 ### Suggested plan decomposition: 4 plans
 
-**Plan 06-01: DB cleanup + status workflow + validation triggers (Wave 1)**
-- Drop Phase-1 BEFORE-INSERT reject trigger
+**Plan 06-01: DB cleanup + status workflow + validation triggers + canonical_url column (Wave 1)**
+- Drop Phase-1 BEFORE-INSERT reject trigger (`reject_n8n_error_blogs_trigger`)
 - Hard-DELETE 100 broken draft rows
 - Migration: extend `blogs.status` CHECK to include `'in-review'`
-- Migration: add slug regex CHECK constraint
+- Migration: add slug regex CHECK constraint (`^[a-z][a-z0-9]*(-[a-z0-9]+)*$`)
 - Migration: 9 BEFORE-INSERT validation triggers (word count, H2 count, persona phrase, slug, meta, excerpt, category, banlist, DocuSeal)
+- Migration: ADD COLUMN `canonical_url text NULL` (Blocker-#1 prerequisite for Plan 06-02 + Plan 06-03 wiring)
 - Update `src/types/supabase.ts` via `pnpm db:types`
 
-**Plan 06-02: UI server-render rewrite + breadcrumbs + OG image (Wave 2, depends on 06-01 schema)**
+**Plan 06-02: UI server-render rewrite + breadcrumbs + OG image + canonical wiring (Wave 2, depends on 06-01 schema)**
 - shadcn breadcrumb primitive add (`pnpm dlx shadcn@latest add breadcrumb`)
 - Rewrite `BlogClient` (`src/app/blog/[...]`) as server component (drop client loading state)
 - Rewrite `BlogCategoryClient` as server component
 - `/blog/[slug]` swap: `force-dynamic` → `generateStaticParams` + `revalidate=300` + `notFound()` for unknown slugs
+- `/blog/[slug]` `generateMetadata()` reads `post.canonical_url` and emits `alternates.canonical` → Next.js renders `<link rel="canonical">` in `<head>` (Blocker-#1 fix)
 - Visible breadcrumb component on `/blog/[slug]` and `/blog/category/[slug]`
 - `src/app/api/og/blog/[slug]/route.tsx` dynamic OG image generator (`@vercel/og`)
 - Update post page `generateMetadata()` to point `og:image` at `/api/og/blog/{slug}`
-- Update e2e: `tests/e2e/tests/public/seo-smoke.spec.ts` extends with breadcrumb assertion + OG image assertion
+- Update e2e: `tests/e2e/tests/public/seo-smoke.spec.ts` extends with breadcrumb + OG image + canonical assertions (skip-if-not-published guard)
 
 **Plan 06-03: n8n webhook ingest endpoint + flow spec doc (Wave 3, depends on 06-01)**
-- New Edge Function `supabase/functions/n8n-blog-ingest/index.ts` — POST endpoint accepting n8n payload, validates against the 9 gates (defense-in-depth; DB triggers are primary), inserts into `blogs` with `status='in-review'`
+- New Edge Function `supabase/functions/n8n-blog-ingest/index.ts` — POST endpoint accepting n8n payload (including optional `canonical_url` field), validates against the 9 gates (defense-in-depth; DB triggers are primary), inserts into `blogs` with `status='in-review'`
 - Webhook auth: HMAC-SHA256 with shared secret in Vault; n8n includes `x-n8n-signature` header
-- `.planning/phases/06-blog-rebuild/N8N-FLOW.md` runbook + JSON workflow spec (importable into n8n cloud)
-- Edge Function tests in `supabase/functions/tests/n8n-blog-ingest.test.ts` (Deno; valid payload, malformed payload, signature mismatch, slug collision, banlist hit, persona missing)
+- `.planning/phases/06-blog-rebuild/N8N-FLOW.md` runbook + JSON workflow spec (importable into n8n cloud) + reproducible HMAC test vector
+- `scripts/compute-hmac-vector.ts` Deno script that recomputes the locked HMAC vector deterministically
+- Edge Function tests in `supabase/functions/tests/n8n-blog-ingest.test.ts` (Deno; deterministic `phase-6-deno-` slug prefix + beforeAll/afterEach/afterAll cleanup; valid payload, malformed payload, signature mismatch, slug collision, banlist hit, persona missing, canonical_url passthrough, canonical_url shape rejection)
 
 **Plan 06-04: Generate 12 initial posts via n8n flow + manually approve (Wave 4, depends on 06-02 + 06-03)**
-- User runs the n8n flow 12 times (once per locked title) — flow inserts each post as `in-review`
-- User reviews each post in Supabase Studio; edits if needed; flips `status='published'` and sets `published_at`
-- Verify: `/blog` index renders 12 cards; `/blog/[slug]` for each renders correctly; `/sitemap.xml` includes all 12; `/feed.xml` carries them
+- User runs the n8n flow 12 times (once per locked title) — flow inserts each post as `in-review`. Brief #10's payload includes `canonical_url: '/compare/buildium'`.
+- User reviews each post in Supabase Studio; edits if needed; flips `status='published'` and sets `published_at`. For brief #10, preserves the `canonical_url` column value.
+- Verify: `/blog` index renders 12 cards; `/blog/[slug]` for each renders correctly; brief #10's slug page emits `<link rel="canonical" href="/compare/buildium">` in `<head>`; `/sitemap.xml` includes all 12; `/feed.xml` carries them
 - Stagger publish over 3-4 weeks per Specialist 2 recommendation (user's choice on cadence; not gated by Phase 6 merge)
 
 ### Test strategy
 
-- **Unit tests:** new validation-gate trigger fixtures (insert each violation type, expect rejection)
-- **e2e tests:** `seo-smoke.spec.ts` extension covers breadcrumb visibility + OG image URL pattern; persona-consistency.spec.ts already covers `/blog`
-- **Integration tests:** RLS on `blogs` (anon SEE published only; service-role full access)
-- **Edge Function tests:** Deno suite for `n8n-blog-ingest`
+- **Unit tests:** new validation-gate trigger fixtures (insert each violation type, expect rejection); slug-regex leading-letter case (reject `1234567890`, accept `valid-slug-format`)
+- **e2e tests:** `seo-smoke.spec.ts` extension covers breadcrumb visibility + OG image URL pattern + canonical href ends with `/compare/buildium` for the buildium slug (skip-if-not-published); persona-consistency.spec.ts already covers `/blog`
+- **Integration tests:** RLS on `blogs` (anon SEE published only; service-role full access); canonical_url column wiring (INSERT/SELECT)
+- **Edge Function tests:** Deno suite for `n8n-blog-ingest` including canonical_url passthrough + shape rejection
 
 ### Live verification (post-deploy)
 
@@ -229,6 +235,10 @@ curl -s -o /dev/null -w "%{http_code}\n" https://tenantflow.app/blog/this-slug-d
 # OG image URL pattern
 curl -s https://tenantflow.app/blog/whats-required-in-a-lease-agreement | grep -oE 'og:image"[^>]*content="[^"]*api/og/blog/'
 # Expect: ≥1
+
+# Brief #10 canonical tag in <head> (Blocker-#1 verification)
+curl -s https://tenantflow.app/blog/tenantflow-vs-buildium | grep -oE 'link rel="canonical"[^>]+href="[^"]*"'
+# Expect: link rel="canonical" with href ending in /compare/buildium
 
 # Sitemap includes 12 posts
 curl -s https://tenantflow.app/sitemap.xml | grep -oE '<loc>[^<]+/blog/[a-z0-9-]+</loc>' | wc -l
@@ -264,3 +274,4 @@ These came up during research but explicitly belong to other phases or are out-o
 
 *Phase: 06-blog-rebuild*
 *Context gathered: 2026-05-10 — pre-research-synthesis lock-in, all 12 strategic decisions resolved*
+*Revision 1 (Blocker-#4 slug regex leading-letter requirement) applied 2026-05-10*
