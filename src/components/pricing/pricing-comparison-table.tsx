@@ -195,11 +195,11 @@ export function PricingComparisonTable({
 						</div>
 						<div className="text-center">
 							<div className="text-sm font-semibold text-foreground">Starter</div>
-							<div className="text-xs text-muted-foreground">$29/mo</div>
+							<div className="text-xs text-muted-foreground">$19/mo</div>
 						</div>
 						<div className="text-center bg-primary/5 -my-4 py-4 border-x border-primary/10">
 							<div className="text-sm font-semibold text-primary">Growth</div>
-							<div className="text-xs text-primary/70">$79/mo</div>
+							<div className="text-xs text-primary/70">$49/mo</div>
 						</div>
 						<div className="text-center">
 							<div className="text-sm font-semibold text-foreground">Max</div>
