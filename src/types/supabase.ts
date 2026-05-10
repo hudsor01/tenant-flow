@@ -68,6 +68,7 @@ export type Database = {
       blogs: {
         Row: {
           author_user_id: string | null
+          canonical_url: string | null
           category: string | null
           content: string
           created_at: string | null
@@ -87,6 +88,7 @@ export type Database = {
         }
         Insert: {
           author_user_id?: string | null
+          canonical_url?: string | null
           category?: string | null
           content: string
           created_at?: string | null
@@ -106,6 +108,7 @@ export type Database = {
         }
         Update: {
           author_user_id?: string | null
+          canonical_url?: string | null
           category?: string | null
           content?: string
           created_at?: string | null
@@ -2265,13 +2268,6 @@ export type Database = {
           webhook_event_id: string
         }[]
       }
-      activate_lease_with_pending_subscription: {
-        Args: { p_lease_id: string }
-        Returns: {
-          error_message: string
-          success: boolean
-        }[]
-      }
       anonymize_deleted_user: {
         Args: { p_user_id: string }
         Returns: undefined
@@ -2672,35 +2668,20 @@ export type Database = {
         Args: { p_owner_user_id: string }
         Returns: undefined
       }
-      sign_lease_and_check_activation:
-        | {
-            Args: {
-              p_lease_id: string
-              p_signature_ip: string
-              p_signature_method?: Database["public"]["Enums"]["signature_method"]
-              p_signed_at: string
-              p_signer_type: string
-            }
-            Returns: {
-              both_signed: boolean
-              error_message: string
-              success: boolean
-            }[]
-          }
-        | {
-            Args: {
-              p_lease_id: string
-              p_signature_ip: string
-              p_signature_method?: string
-              p_signed_at: string
-              p_signer_type: string
-            }
-            Returns: {
-              both_signed: boolean
-              error_message: string
-              success: boolean
-            }[]
-          }
+      sign_lease_and_check_activation: {
+        Args: {
+          p_lease_id: string
+          p_signature_ip: string
+          p_signature_method?: string
+          p_signed_at: string
+          p_signer_type: string
+        }
+        Returns: {
+          both_signed: boolean
+          error_message: string
+          success: boolean
+        }[]
+      }
       upsert_rent_payment: {
         Args: {
           p_amount: number
@@ -2724,7 +2705,7 @@ export type Database = {
       user_is_tenant: { Args: never; Returns: boolean }
     }
     Enums: {
-      signature_method: "in_app" | "docuseal"
+      [_ in never]: never
     }
     CompositeTypes: {
       lease_stats_type: {
@@ -2908,8 +2889,6 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {
-      signature_method: ["in_app", "docuseal"],
-    },
+    Enums: {},
   },
 } as const
