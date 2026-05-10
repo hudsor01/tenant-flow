@@ -202,6 +202,11 @@ test.describe('Persona consistency — FAQ canon (COPY-05, Wave 2)', () => {
 test.describe('Persona consistency — bulk-zip softening (COPY-06, Wave 2)', () => {
 	test('Homepage contains "Tax-season zip exports" or "Tax-Season Bulk Zip"', async ({ page }) => {
 		await page.goto('/')
+		// Marketing-home wraps StatsShowcase, HowItWorks and FeaturesSection in
+		// <LazySection> (IntersectionObserver-gated). Scroll to bottom so each
+		// section enters the viewport and renders its bulk-zip copy into the DOM.
+		await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight))
+		await page.waitForLoadState('networkidle')
 		const body = (await page.textContent('body')) ?? ''
 		expect(body).toMatch(/Tax-[Ss]eason ([Bb]ulk [Zz]ip|zip exports?)/)
 	})
@@ -209,6 +214,8 @@ test.describe('Persona consistency — bulk-zip softening (COPY-06, Wave 2)', ()
 	test('No "500 / request" technical jargon on any public page', async ({ page }) => {
 		for (const path of PUBLIC_PATHS) {
 			await page.goto(path)
+			await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight))
+			await page.waitForLoadState('networkidle')
 			const body = (await page.textContent('body')) ?? ''
 			expect(body, `path: ${path}`).not.toMatch(/500\s*\/\s*request/)
 		}
