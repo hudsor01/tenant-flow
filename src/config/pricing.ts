@@ -97,7 +97,7 @@ export const PRICING_PLANS: Record<string, PricingConfig> = {
 		id: 'STARTER',
 		planId: 'starter',
 		name: 'Starter',
-		description: 'Ideal for property owners managing a few properties',
+		description: 'Ideal for landlords with 1–5 rentals',
 		price: {
 			monthly: 29,
 			annual: 290
@@ -164,7 +164,7 @@ export const PRICING_PLANS: Record<string, PricingConfig> = {
 		id: 'TENANTFLOW_MAX',
 		planId: 'max',
 		name: 'Max',
-		description: 'Enterprise solution for property management professionals',
+		description: 'For landlords with 21+ rentals — unlimited scale and API access',
 		price: {
 			monthly: 199,
 			annual: 2189
