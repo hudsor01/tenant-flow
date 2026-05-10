@@ -32,11 +32,6 @@ const STATS = [
 
 const FAQS = [
 	{
-		question: 'How does the 14-day free trial work?',
-		answer:
-			'Start using TenantFlow immediately with full access to all features. No credit card required. After 14 days, choose the plan that fits your needs to keep using TenantFlow.'
-	},
-	{
 		question: 'Can I change plans later?',
 		answer:
 			'Yes! Upgrade or downgrade anytime. Changes take effect immediately and we prorate the difference.'
