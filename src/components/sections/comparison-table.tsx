@@ -28,7 +28,7 @@ const comparisonData: ComparisonFeature[] = [
 	},
 	{
 		name: 'Monthly Cost (50 units)',
-		tenantFlow: '$79/mo',
+		tenantFlow: '$49/mo',
 		spreadsheets: 'Free*',
 		enterprise: '$200+/mo',
 		description: '*Excludes your time value (Growth plan, up to 100 units)'

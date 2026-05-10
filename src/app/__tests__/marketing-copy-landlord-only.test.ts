@@ -70,18 +70,19 @@ const BANNED_FABRICATED_IDENTITY_CLAIMS = [
 	'our diverse team'
 ] as const
 
-// Dead plan names + stale prices that don't exist in PRICING_PLANS anymore.
-// The real plans are Trial / Starter / Growth / Max at $0 / $29 / $79 / $199.
-// Hardcoding the legacy "Professional" / "Enterprise" plan names or stale
-// monthly prices ("$49", "$98", "$298") creates regressions like cycle-5 C-1
-// (billing-settings.tsx hardcoded "Professional" + "$49/month" + "Up to 50
-// units"). Anything matching this list must instead be sourced from
-// `getAllPricingPlans()` / `getPricingPlan()` so it stays in sync with Stripe.
+// Dead plan names that don't exist in PRICING_PLANS. The real plans are
+// Trial / Starter / Growth / Max at $0 / $19 / $49 / $149 (Phase 5 Option A).
+// "Professional" / "Enterprise" are legacy invented names — anything that
+// hardcodes them must instead be sourced from `getAllPricingPlans()` /
+// `getPricingPlan()` so it stays in sync with Stripe + pricing.ts.
+//
+// Pre-Phase-5 this list also banned `$49/mo` / `$49/month` (cycle-5 C-1 hardcoded
+// fake "Professional / $49/month" tier). Phase 5 PRICE-* makes $49 the real Growth
+// price, so those entries are removed; the "up to 50 units" entry stays because
+// no real tier offers 50 units (Starter caps at 25, Growth at 100).
 const BANNED_STALE_PLAN_REFS = [
 	'professional plan',
 	'enterprise plan',
-	'$49/mo',
-	'$49/month',
 	'up to 50 units'
 ] as const
 
@@ -474,10 +475,14 @@ describe('App routes: feature claims (cycle-4 C-2)', () => {
 	}
 })
 
-// Cycle-5 C-1: stale plan-name / stale-price guard. Catches the failure mode
-// where a hand-coded "Professional / $49/month / Up to 50 units" block ships
-// to authenticated users despite the marketing site, Stripe, and PRICING_PLANS
-// agreeing on Trial / Starter / Growth / Max ($0/$29/$79/$199).
+// Cycle-5 C-1: stale plan-name / unit-cap guard. Catches the failure mode
+// where a hand-coded "Professional / Up to 50 units" block ships to
+// authenticated users despite the marketing site, Stripe, and PRICING_PLANS
+// agreeing on Trial / Starter / Growth / Max ($0/$19/$49/$149 — Phase 5 Option A).
+// Stale-price strings ($29/$79/$199) are NOT banned by name here because real
+// competitor prices reference values like $29 / $19.95 in compare-data.ts —
+// the regression risk is hand-coded TenantFlow-side stale tier prices, which
+// the per-file Phase 4 carve-out grep guards in 05-VALIDATION.md already cover.
 describe('Marketing copy: stale plan refs (cycle-5 C-1)', () => {
 	const cwd = process.cwd()
 	for (const relPath of MARKETING_FILES) {
@@ -505,9 +510,9 @@ describe('App routes: stale plan refs (cycle-5 C-1)', () => {
 // BILLING_PLANS block in src/lib/constants/billing.ts (deleted in the same
 // commit) which carried stale pricing alongside the real PRICING_PLANS in
 // src/config/pricing.ts. The walker doesn't catch raw numeric literals
-// (`monthly: 49`), but it does catch quoted forms ('$49/mo'), banned phrases,
-// and stale plan-name strings — closing the surface for future regressions
-// shaped like the cycle-1..5 findings.
+// (`monthly: 49`), but it does catch banned phrases and stale plan-name
+// strings — closing the surface for future regressions shaped like the
+// cycle-1..5 findings.
 describe('Lib: landlord-only product (cycle-6 C-1)', () => {
 	const cwd = process.cwd()
 	const libRoot = join(cwd, 'src', 'lib')

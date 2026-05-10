@@ -14,18 +14,19 @@
 // frontend pricing surface) — keep them in lockstep.
 
 const STARTER_PRICE_IDS: ReadonlySet<string> = new Set([
-  'price_1RtWFcP3WCR53SdoCxiVldhb', // Starter monthly $29
-  'price_1RtWFdP3WCR53SdoArRRXYrL', // Starter annual  $290
+  'price_1TVTaAP3WCR53SdoYMUZN7Vf', // Starter monthly $19
+  'price_1TVTaEP3WCR53Sdo7pbg6BCW', // Starter annual  $190
 ])
 
 const GROWTH_PRICE_IDS: ReadonlySet<string> = new Set([
-  'price_1SPGCNP3WCR53SdorjDpiSy5', // Growth monthly $79
-  'price_1SPGCRP3WCR53SdonqLUTJgK', // Growth annual  $790
+  'price_1TVTaIP3WCR53SdoqnUe1Inv', // Growth monthly $49
+  'price_1TVTaMP3WCR53SdoN4kufrVn', // Growth annual  $490
 ])
 
 const MAX_PRICE_IDS: ReadonlySet<string> = new Set([
-  'price_1Rd16pP3WCR53SdoCh3oJlDl', // Max monthly $199
-  'price_1Rd17AP3WCR53SdoTB4FTbSq', // Max annual  $2189
+  // Replaces Phase 1 CRIT-03 'Custom' placeholder
+  'price_1TVTaQP3WCR53Sdo22VAYfhp', // Max monthly $149
+  'price_1TVTaUP3WCR53Sdo5mnmSAmF', // Max annual  $1490
 ])
 
 const TRIAL_PRICE_IDS: ReadonlySet<string> = new Set([

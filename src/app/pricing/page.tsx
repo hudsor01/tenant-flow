@@ -18,10 +18,9 @@ import {
 } from './pricing-content'
 
 export const metadata: Metadata = createPageMetadata({
-	title: 'Property Management Software Pricing — Plans from $29/mo',
-	// Phase 1 (CRIT-03): "Max — Custom pricing, contact sales" is a placeholder. Phase 5 (PRICE-06) replaces it with the real Max price.
+	title: 'Property Management Software Pricing — Plans from $19/mo',
 	description:
-		'Property management software for landlords with 1–15 rentals. Starter ($29/mo, 5 properties), Growth ($79/mo, 20 properties), Max — Custom pricing, contact sales. 14-day free trial, no credit card required.',
+		'Property management software for landlords with 1–15 rentals. Starter ($19/mo, 5 properties), Growth ($49/mo, 20 properties), Max ($149/mo, unlimited properties). 14-day free trial, no credit card required.',
 	path: '/pricing'
 })
 
@@ -33,13 +32,11 @@ export default async function PricingPage() {
 	const productJsonLd = createProductJsonLd({
 		name: 'TenantFlow Property Management Software',
 		description:
-			'Professional property management software for landlords with 1–15 rentals. Starter $29/mo (5 properties), Growth $79/mo (20 properties). Max enterprise tier — Custom pricing, contact sales. 14-day free trial, no credit card required.',
+			'Professional property management software for landlords with 1–15 rentals. Starter $19/mo (5 properties), Growth $49/mo (20 properties), Max $149/mo (unlimited properties). 14-day free trial, no credit card required.',
 		offers: [
-			{ name: 'Starter', price: '29.00' },
-			{ name: 'Growth', price: '79.00' }
-			// Max omitted from JSON-LD: visible page shows "Custom"; per Google's
-			// Structured Data General Guidelines we must not emit a price the page
-			// doesn't show. Re-add when PRICE-06 (Phase 5) ships final Max pricing.
+			{ name: 'Starter', price: '19.00' },
+			{ name: 'Growth', price: '49.00' },
+			{ name: 'Max', price: '149.00' }
 		]
 	})
 

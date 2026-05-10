@@ -113,6 +113,12 @@ Plans:
 5. Annual savings math (used in CONS-10) is calculable from new monthly + annual prices
 6. No new hex/rgb/`bg-white`/inline-ms tokens introduced
 
+**Plans:** 2 plans (sequential — wave 1 → wave 2)
+
+Plans:
+- [ ] 05-01-PLAN.md — Stripe MCP migration (UPDATE 3 live products + CREATE 6 new prices with lookup_keys + ARCHIVE 2 stale duplicate products + 12 stale prices) + rewrite `pricing.ts` with Option A tier numbers ($19/$49/$149) and flip `MAX_PUBLIC_PRICE_DISPLAY` constant
+- [ ] 05-02-PLAN.md — Marketing surface propagation: page metadata, JSON-LD product offers (CRIT-03 reversal — Max included as 3rd offer), pricing card, comparison tables, FAQ, compare-page tuple + recomputed savings, OG/Twitter descriptions, persona banlist recalibration; flipped pricing/page test; post-deploy curl verification
+
 ### Phase 6: Blog Rebuild + n8n Redesign
 **Goal**: Audit + clean blog DB; rebuild `/blog` index + post page UI server-rendered with persona-aligned hero, breadcrumbs, clean URL slugs; redesign n8n content-generation workflow for new audience; ship initial 10–15 persona-aligned post set.
 **Depends on**: Phase 4 (content + UI lean on settled persona terminology and tone)

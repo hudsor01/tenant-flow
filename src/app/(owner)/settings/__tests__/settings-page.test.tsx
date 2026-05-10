@@ -83,12 +83,12 @@ vi.mock('#providers/preferences-provider', () => ({
 // Mock billing hooks (subscription status and billing history). The
 // stripePriceId here must match a real Stripe price in PRICING_PLANS so
 // BillingSettings can resolve the plan card from #config/pricing — point at
-// Growth (price_1SPGCNP3WCR53SdorjDpiSy5).
+// Growth (price_1TVTaIP3WCR53SdoqnUe1Inv).
 vi.mock('#hooks/api/use-billing', () => ({
 	useSubscriptionStatus: () => ({
 		data: {
 			subscriptionStatus: 'active',
-			stripePriceId: 'price_1SPGCNP3WCR53SdorjDpiSy5',
+			stripePriceId: 'price_1TVTaIP3WCR53SdoqnUe1Inv',
 			currentPeriodEnd: '2026-06-01T00:00:00.000Z',
 			stripeCustomerId: 'cus_test',
 			cancelAtPeriodEnd: false,
@@ -101,7 +101,7 @@ vi.mock('#hooks/api/use-billing', () => ({
 			{
 				id: 'inv_123',
 				created_at: '2024-01-15',
-				amount: 7900,
+				amount: 4900,
 				status: 'succeeded'
 			}
 		],
@@ -470,8 +470,8 @@ describe('Settings Page', () => {
 			expect(screen.getByText('Growth')).toBeInTheDocument()
 		})
 
-		// Check subscription details (Growth plan: $79/mo, up to 100 units)
-		expect(screen.getByText('$79')).toBeInTheDocument()
+		// Check subscription details (Growth plan: $49/mo, up to 100 units)
+		expect(screen.getByText('$49')).toBeInTheDocument()
 		expect(screen.getByText('/month')).toBeInTheDocument()
 		expect(screen.getByText(/Up to 100 units/)).toBeInTheDocument()
 	})

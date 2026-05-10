@@ -20,7 +20,7 @@ export type PlanId = 'trial' | 'starter' | 'growth' | 'max'
  *
  * One-liner to find all surfaces: grep -rn 'MAX_PUBLIC_PRICE_DISPLAY\|Custom pricing, contact sales' src/
  */
-export const MAX_PUBLIC_PRICE_DISPLAY = 'Custom' as const
+export const MAX_PUBLIC_PRICE_DISPLAY = '$149' as const
 
 // Trial configuration interface
 export interface TrialConfig {
@@ -99,12 +99,12 @@ export const PRICING_PLANS: Record<string, PricingConfig> = {
 		name: 'Starter',
 		description: 'Ideal for landlords with 1–5 rentals',
 		price: {
-			monthly: 29,
-			annual: 290
+			monthly: 19,
+			annual: 190
 		},
 		stripePriceIds: {
-			monthly: 'price_1RtWFcP3WCR53SdoCxiVldhb' as StripePriceId,
-			annual: 'price_1RtWFdP3WCR53SdoArRRXYrL' as StripePriceId
+			monthly: 'price_1TVTaAP3WCR53SdoYMUZN7Vf' as StripePriceId,
+			annual: 'price_1TVTaEP3WCR53Sdo7pbg6BCW' as StripePriceId
 		},
 		limits: {
 			properties: 5,
@@ -132,12 +132,12 @@ export const PRICING_PLANS: Record<string, PricingConfig> = {
 		name: 'Growth',
 		description: 'For growing portfolios that need advanced features',
 		price: {
-			monthly: 79,
-			annual: 790
+			monthly: 49,
+			annual: 490
 		},
 		stripePriceIds: {
-			monthly: 'price_1SPGCNP3WCR53SdorjDpiSy5' as StripePriceId,
-			annual: 'price_1SPGCRP3WCR53SdonqLUTJgK' as StripePriceId
+			monthly: 'price_1TVTaIP3WCR53SdoqnUe1Inv' as StripePriceId,
+			annual: 'price_1TVTaMP3WCR53SdoN4kufrVn' as StripePriceId
 		},
 		limits: {
 			properties: 20,
@@ -166,12 +166,12 @@ export const PRICING_PLANS: Record<string, PricingConfig> = {
 		name: 'Max',
 		description: 'For landlords with 21+ rentals — unlimited scale and API access',
 		price: {
-			monthly: 199,
-			annual: 2189
+			monthly: 149,
+			annual: 1490
 		},
 		stripePriceIds: {
-			monthly: 'price_1Rd16pP3WCR53SdoCh3oJlDl' as StripePriceId,
-			annual: 'price_1Rd17AP3WCR53SdoTB4FTbSq' as StripePriceId
+			monthly: 'price_1TVTaQP3WCR53Sdo22VAYfhp' as StripePriceId,
+			annual: 'price_1TVTaUP3WCR53Sdo5mnmSAmF' as StripePriceId
 		},
 		limits: {
 			properties: -1,
