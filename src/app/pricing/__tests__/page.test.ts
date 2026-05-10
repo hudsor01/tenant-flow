@@ -74,19 +74,22 @@ vi.mock('../pricing-content', async () => {
 
 import PricingPage, { metadata } from '../page'
 
-describe('pricing/page.tsx CRIT-03 placeholder', () => {
+describe('pricing/page.tsx PRICE-06 reversal (Phase 5)', () => {
 	beforeEach(() => {
 		mocks.createProductJsonLdSpy.mockClear()
 		mocks.createFaqJsonLdSpy.mockClear()
 	})
 
-	it('metadata.description omits "$199/mo" for Max and includes "Max — Custom pricing, contact sales"', () => {
+	it('metadata.description includes "Max ($149/mo, unlimited properties)" and omits "Custom pricing, contact sales" (Phase 5 PRICE-06 flip)', () => {
 		const desc = (metadata as { description: string }).description
-		expect(desc).not.toContain('$199/mo')
-		expect(desc).toContain('Max — Custom pricing, contact sales')
+		expect(desc).toContain('Max ($149/mo, unlimited properties)')
+		expect(desc).not.toContain('Custom pricing, contact sales')
+		// Sanity: Starter + Growth also reflect new Option A prices
+		expect(desc).toContain('Starter ($19/mo, 5 properties)')
+		expect(desc).toContain('Growth ($49/mo, 20 properties)')
 	})
 
-	it('productJsonLd is built with exactly 2 offers (Starter + Growth, no Max)', async () => {
+	it('productJsonLd is built with exactly 3 offers (Starter + Growth + Max — Phase 5 PRICE-06 flip)', async () => {
 		await PricingPage()
 
 		expect(mocks.createProductJsonLdSpy).toHaveBeenCalledTimes(1)
@@ -95,21 +98,25 @@ describe('pricing/page.tsx CRIT-03 placeholder', () => {
 			description: string
 		}
 
-		expect(config.offers).toHaveLength(2)
-		expect(config.offers[0]).toMatchObject({ name: 'Starter', price: '29.00' })
-		expect(config.offers[1]).toMatchObject({ name: 'Growth', price: '79.00' })
-		expect(config.offers.find(o => o.name === 'Max')).toBeUndefined()
+		expect(config.offers).toHaveLength(3)
+		expect(config.offers[0]).toMatchObject({ name: 'Starter', price: '19.00' })
+		expect(config.offers[1]).toMatchObject({ name: 'Growth', price: '49.00' })
+		expect(config.offers[2]).toMatchObject({ name: 'Max', price: '149.00' })
+		// Stale-price regression guards (the old $29/$79/$199 trio must not reappear)
+		expect(config.offers.find(o => o.price === '29.00')).toBeUndefined()
+		expect(config.offers.find(o => o.price === '79.00')).toBeUndefined()
 		expect(config.offers.find(o => o.price === '199.00')).toBeUndefined()
 	})
 
-	it('productJsonLd.description contains verbatim "Custom pricing, contact sales"', async () => {
+	it('productJsonLd.description contains "Max $149/mo (unlimited properties)" and omits the CRIT-03 placeholder (Phase 5 PRICE-06 flip)', async () => {
 		await PricingPage()
 
 		const config = mocks.createProductJsonLdSpy.mock.calls[0]![0] as {
 			description: string
 		}
 
-		expect(config.description).toContain('Custom pricing, contact sales')
+		expect(config.description).toContain('Max $149/mo (unlimited properties)')
+		expect(config.description).not.toContain('Custom pricing, contact sales')
 	})
 
 	it('FAQPage JSON-LD mainEntity has exactly 5 entries (COPY-05 — pricing FAQ trim)', async () => {
