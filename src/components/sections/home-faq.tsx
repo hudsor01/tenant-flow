@@ -9,7 +9,7 @@ interface HomeFaqProps {
 	className?: string
 }
 
-const homeFaqs = [
+export const homeFaqs = [
 	{
 		question: 'How long does it take to get started?',
 		answer:

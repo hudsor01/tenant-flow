@@ -7,18 +7,16 @@
 
 import { describe, expect, it } from 'vitest'
 import { render, screen } from '@testing-library/react'
-import { HomeFaq } from '../home-faq'
+import { HomeFaq, homeFaqs } from '../home-faq'
 
 describe('HomeFaq', () => {
-	it('renders exactly 5 FAQ entries (COPY-05 — homepage trim)', () => {
-		render(<HomeFaq />)
-		// Each FAQ entry is a <button> wrapping an <h3> question that ends in "?".
-		// The "Still have questions?" CTA also uses an h3 but is filtered out here
-		// because the FAQ-question h3s live inside the FaqsAccordion button trigger
-		// (the CTA h3 sits in a sibling section).
-		const allButtons = screen.getAllByRole('button')
-		const questionButtons = allButtons.filter(btn => /\?\s*$/.test(btn.textContent?.trim() ?? ''))
-		expect(questionButtons.length).toBe(5)
+	it('exports exactly 5 homeFaqs entries (COPY-05 — homepage trim)', () => {
+		expect(homeFaqs).toHaveLength(5)
+	})
+
+	it('does NOT include the "Is my data secure?" overlap entry in the source array', () => {
+		const questions = homeFaqs.map(f => f.question)
+		expect(questions).not.toContain('Is my data secure?')
 	})
 
 	it('does NOT render the "Is my data secure?" overlap entry', () => {

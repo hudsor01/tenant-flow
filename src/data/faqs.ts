@@ -40,17 +40,17 @@ export const faqData: FAQCategory[] = [
 			{
 				question: 'Do my tenants create accounts or log in?',
 				answer:
-					"No. TenantFlow is built for the property owner — tenants are records you keep for your own tracking, not platform users. You never have to manage tenant logins, password resets, or account support."
+					"No. TenantFlow is built for the landlord — tenants are records you keep for your own tracking, not platform users. You never have to manage tenant logins, password resets, or account support."
 			},
 			{
 				question: 'What does TenantFlow actually help me do?',
 				answer:
-					'Track properties and units, keep tenant and lease records, log maintenance requests and vendor costs, e-sign leases (Growth and Max plans), and store every lease, receipt, and inspection report in a per-entity document vault with global search and bulk-download. Everything a property owner needs to replace the spreadsheet.'
+					'Track properties and units, keep tenant and lease records, log maintenance requests and vendor costs, e-sign leases (Growth and Max plans), and store every lease, receipt, and inspection report in a per-entity document vault with global search and bulk-download. Everything a landlord needs to replace the spreadsheet.'
 			},
 			{
 				question: 'What specific results can I expect?',
 				answer:
-					'Property owners report spending less time on admin: centralized records replace spreadsheets and email threads, maintenance requests are tracked with vendor and cost history, and lease e-signing cuts days off renewals. Results vary by portfolio.'
+					'Landlords report spending less time on admin: centralized records replace spreadsheets and email threads, maintenance requests are tracked with vendor and cost history, and lease e-signing cuts days off renewals. Results vary by portfolio.'
 			},
 			{
 				question: 'Is TenantFlow suitable for my portfolio size?',

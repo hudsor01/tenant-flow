@@ -21,7 +21,7 @@ import { ArrowRight, Mail, MessageCircle, Phone } from 'lucide-react'
 
 export const metadata = createPageMetadata({
 	title: 'Help Center — Property Management Support & Guides',
-	description: 'Get help with TenantFlow property management software. Browse setup guides, feature tutorials, and support resources for landlords and operators.',
+	description: 'Get help with TenantFlow property management software. Browse setup guides, feature tutorials, and support resources for landlords.',
 	path: '/help',
 })
 
