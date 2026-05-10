@@ -99,12 +99,12 @@ export const PRICING_PLANS: Record<string, PricingConfig> = {
 		name: 'Starter',
 		description: 'Ideal for landlords with 1–5 rentals',
 		price: {
-			monthly: 29,
-			annual: 290
+			monthly: 19,
+			annual: 190
 		},
 		stripePriceIds: {
-			monthly: 'price_1RtWFcP3WCR53SdoCxiVldhb' as StripePriceId,
-			annual: 'price_1RtWFdP3WCR53SdoArRRXYrL' as StripePriceId
+			monthly: 'price_1TVTaAP3WCR53SdoYMUZN7Vf' as StripePriceId,
+			annual: 'price_1TVTaEP3WCR53Sdo7pbg6BCW' as StripePriceId
 		},
 		limits: {
 			properties: 5,
