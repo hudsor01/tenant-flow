@@ -4,7 +4,20 @@ test.describe('Mobile nav at 375px viewport', () => {
 	test.use({ viewport: { width: 375, height: 667 } })
 
 	test.beforeEach(async ({ page }) => {
-		await page.goto('/', { waitUntil: 'load' })
+		await page.goto('/', { waitUntil: 'networkidle' })
+		// Wait for the toggle button to be hydrated and laid out before any test runs.
+		// This guards against server-rendered-but-not-yet-interactive failure modes
+		// observed on Vercel previews where toBeVisible() passes but boundingBox()
+		// returns null and onClick handlers aren't attached.
+		await page.waitForFunction(
+			() => {
+				const btn = document.querySelector<HTMLButtonElement>(
+					'[data-testid="mobile-nav-toggle"]'
+				)
+				return btn !== null && btn.offsetParent !== null && btn.getBoundingClientRect().width > 0
+			},
+			{ timeout: 10_000 }
+		)
 	})
 
 	test('hero does not horizontally overflow viewport', async ({ page }) => {
@@ -32,9 +45,15 @@ test.describe('Mobile nav at 375px viewport', () => {
 		const toggle = page.getByTestId('mobile-nav-toggle')
 		await expect(toggle).toBeVisible()
 		await expect(toggle).toHaveAttribute('aria-label', 'Open navigation menu')
-		const box = await toggle.boundingBox()
-		expect(box!.width).toBeGreaterThanOrEqual(44)
-		expect(box!.height).toBeGreaterThanOrEqual(44)
+
+		// Poll for the layout box to materialize. expect.poll() retries until success
+		// or timeout — robust against late hydration / browser layout races.
+		await expect
+			.poll(async () => (await toggle.boundingBox())?.width)
+			.toBeGreaterThanOrEqual(44)
+		await expect
+			.poll(async () => (await toggle.boundingBox())?.height)
+			.toBeGreaterThanOrEqual(44)
 	})
 
 	test('tapping hamburger opens drawer with all 7 items', async ({ page }) => {
