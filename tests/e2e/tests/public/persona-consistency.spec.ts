@@ -9,9 +9,13 @@ import { expect, test } from '@playwright/test'
  *         .planning/phases/04-persona-copy/04-VALIDATION.md
  */
 
+// Mirrors src/proxy.ts PUBLIC_ROUTES — every public marketing surface that
+// renders user-facing copy. If a route is added to PUBLIC_ROUTES, add it here
+// so the persona-word + DocuSeal-count + segment-anchor guards run against it.
 const PUBLIC_PATHS = [
 	'/',
 	'/about',
+	'/blog',
 	'/faq',
 	'/pricing',
 	'/contact',
@@ -21,6 +25,10 @@ const PUBLIC_PATHS = [
 	'/help',
 	'/resources',
 	'/features',
+	'/privacy',
+	'/terms',
+	'/security-policy',
+	'/support',
 ] as const
 
 test.describe('Persona consistency — sitewide', () => {
