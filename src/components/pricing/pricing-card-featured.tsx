@@ -9,8 +9,7 @@ import {
 	BadgeCheck,
 	Loader2,
 	Shield,
-	Sparkles,
-	Users
+	Sparkles
 } from 'lucide-react'
 import { useState } from 'react'
 import {
@@ -184,13 +183,14 @@ export function PricingCardFeatured({
 					</div>
 
 					{/* Social Proof */}
-					<div className="flex items-center justify-center gap-2 mb-6 py-3 bg-muted/50 rounded-lg">
-						<Users className="size-4 text-primary" />
-						<span className="text-sm text-muted-foreground">
-							Join <strong className="text-foreground">500+</strong> Growth
-							subscribers
-						</span>
-					</div>
+					<Badge
+						variant="trustIndicator"
+						size="trust"
+						className="w-full justify-center mb-6"
+					>
+						<BadgeCheck className="size-4" aria-hidden="true" />
+						Built for landlords with 1–15 rentals
+					</Badge>
 
 					{/* Features - 2 column grid for featured card */}
 					<div className="grid grid-cols-2 gap-x-6 gap-y-3 mb-8 flex-1">
