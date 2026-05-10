@@ -34,7 +34,7 @@ import { createPageMetadata } from '#lib/seo/page-metadata'
 
 const stats = [
 	{ number: 'Vault', label: 'Per-entity document storage', Icon: Building2 },
-	{ number: 'DocuSeal', label: 'Lease e-signing', Icon: Users },
+	{ number: 'E-Sign', label: 'Lease e-signing', Icon: Users },
 	{ number: 'RLS', label: 'Postgres-level data isolation', Icon: Bolt },
 	{ number: '14-day', label: 'Free trial, no credit card', Icon: LifeBuoy }
 ]
@@ -42,7 +42,7 @@ const stats = [
 export const metadata: Metadata = createPageMetadata({
 	title: 'About TenantFlow - Our Mission',
 	description:
-		'TenantFlow is a landlord-only property management platform with a per-entity document vault, DocuSeal lease e-signing, and tax-ready reports.',
+		'TenantFlow is a landlord-only property management platform with a per-entity document vault, lease e-signing, and tax-ready reports.',
 	path: '/about'
 })
 
@@ -216,7 +216,7 @@ export default function AboutPage() {
 								What ships in the box
 							</h2>
 							<p className="text-xl text-muted-foreground leading-relaxed">
-								Every plan starts with the document vault and DocuSeal e-sign on Growth and Max.
+								Every plan starts with the document vault and lease e-sign on Growth and Max.
 							</p>
 						</div>
 

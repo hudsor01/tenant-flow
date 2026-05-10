@@ -26,7 +26,7 @@ const supportCategories = [
 		icon: FileText,
 		title: 'Leases & Documents',
 		description:
-			'Lease creation, e-signatures, renewals, document templates, and DocuSeal integration.',
+			'Lease creation, e-signatures, renewals, document templates, and lease e-sign integration.',
 		topics: [
 			'How do I create a new lease?',
 			'How does e-signing work?',

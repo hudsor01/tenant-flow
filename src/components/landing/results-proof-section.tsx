@@ -26,7 +26,7 @@ const stats = [
 	{
 		icon: FileSignature,
 		value: 'Growth+',
-		label: 'DocuSeal e-sign tier'
+		label: 'Lease e-sign tier'
 	}
 ]
 

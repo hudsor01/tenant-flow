@@ -58,7 +58,7 @@ const comparisonData: ComparisonFeature[] = [
 		tenantFlow: 'Growth+',
 		spreadsheets: false,
 		enterprise: 'partial',
-		description: 'DocuSeal e-sign on Growth and Max plans'
+		description: 'Lease e-sign on Growth and Max plans'
 	},
 	{
 		name: 'Bulk Document Export',

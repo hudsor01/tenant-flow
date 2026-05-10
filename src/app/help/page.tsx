@@ -150,9 +150,9 @@ export default function HelpPage() {
 								badgeColor: 'bg-primary/10 text-primary'
 							},
 							{
-								title: 'Send a lease for e-signature with DocuSeal',
+								title: 'Send a lease for e-signature',
 								description:
-									'How DocuSeal integrates with your lease workflow on the Growth and Max plans, plus monthly volume limits',
+									'How lease e-sign integrates with your workflow on the Growth and Max plans, plus monthly volume limits',
 								badge: 'Lease Workflow',
 								badgeColor: 'bg-accent/10 text-accent'
 							},

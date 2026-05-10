@@ -33,7 +33,7 @@ const steps = [
 		number: '02',
 		title: 'Add Tenants and Leases',
 		description:
-			'Record tenant details and generate leases. Send for e-signature via DocuSeal on Growth and Max plans.',
+			'Record tenant details and generate leases. Send for e-signature on Growth and Max plans.',
 		icon: Users,
 		features: ['Lease e-signing', 'Tenant records (no logins)', 'Lease tracking'],
 		color: 'info'

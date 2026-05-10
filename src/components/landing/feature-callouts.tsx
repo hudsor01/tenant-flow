@@ -8,7 +8,7 @@ const callouts = [
 	},
 	{
 		icon: <FileSignature className="size-5" />,
-		title: 'DocuSeal E-Sign',
+		title: 'Lease E-Sign',
 		description: 'Send leases for signature on Growth and Max plans'
 	},
 	{

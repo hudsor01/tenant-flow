@@ -22,7 +22,7 @@ export function HeroSection() {
 						<p className="text-muted-foreground leading-relaxed max-w-3xl mx-auto text-xl font-medium">
 							Per-entity storage with global search, multi-select filters, date-range, and bulk-zip download.{' '}
 							<span className="text-foreground font-semibold">
-								DocuSeal e-sign on Growth and Max plans. Tenants are records, never users.
+								Lease e-sign on Growth and Max plans. Tenants are records, never users.
 							</span>
 						</p>
 

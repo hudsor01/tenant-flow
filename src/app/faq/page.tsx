@@ -16,7 +16,7 @@ import Link from 'next/link'
 export const metadata: Metadata = createPageMetadata({
 	title: 'Property Management FAQ — Questions About Leases, Maintenance & More',
 	description:
-		'Answers to common landlord questions about lease management, the document vault, DocuSeal e-signing, maintenance tracking, and property administration. Get started with TenantFlow.',
+		'Answers to common landlord questions about lease management, the document vault, lease e-signing, maintenance tracking, and property administration. Get started with TenantFlow.',
 	path: '/faq'
 })
 
@@ -39,7 +39,7 @@ export default function FAQPage() {
 					href: '/pricing'
 				}}
 				secondaryCta={{ label: 'Contact Sales', href: '/contact' }}
-				trustSignals="Document vault • DocuSeal e-sign on Growth+ • 14-day free trial"
+				trustSignals="Document vault • Lease e-sign on Growth+ • 14-day free trial"
 				image={{
 					src: 'https://images.unsplash.com/photo-1497366216548-37526070297c?q=80&w=2069&auto=format&fit=crop',
 					alt: 'Modern office workspace showcasing property management efficiency'
