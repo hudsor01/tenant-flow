@@ -185,8 +185,8 @@ export function getJsonLd() {
 		offers: {
 			'@type': 'AggregateOffer',
 			priceCurrency: 'USD',
-			lowPrice: '29',
-			highPrice: '199',
+			lowPrice: '19',
+			highPrice: '149',
 			offerCount: '3',
 			availability: 'https://schema.org/InStock'
 		},
