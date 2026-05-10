@@ -164,29 +164,23 @@ export function PricingCardStandard({
 
 				{/* Price */}
 				<div className="mb-6">
-					{isEnterprise ? (
-						<div className="text-3xl font-bold text-foreground">Custom</div>
-					) : (
-						<>
-							<div className="flex items-baseline gap-1">
-								<NumberFlow
-									className="text-3xl font-bold text-foreground"
-									format={{
-										style: 'currency',
-										currency: 'USD',
-										maximumFractionDigits: 0
-									}}
-									value={currentPrice}
-								/>
-								<span className="text-sm text-muted-foreground">/mo</span>
-							</div>
-							<p className="text-xs text-muted-foreground mt-1">
-								{billingCycle === 'yearly'
-									? `Billed annually`
-									: 'Billed monthly'}
-							</p>
-						</>
-					)}
+					<div className="flex items-baseline gap-1">
+						<NumberFlow
+							className="text-3xl font-bold text-foreground"
+							format={{
+								style: 'currency',
+								currency: 'USD',
+								maximumFractionDigits: 0
+							}}
+							value={currentPrice}
+						/>
+						<span className="text-sm text-muted-foreground">/mo</span>
+					</div>
+					<p className="text-xs text-muted-foreground mt-1">
+						{billingCycle === 'yearly'
+							? `Billed annually`
+							: 'Billed monthly'}
+					</p>
 				</div>
 
 				{/* Features */}
