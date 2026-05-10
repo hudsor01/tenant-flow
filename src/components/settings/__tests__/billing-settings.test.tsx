@@ -87,7 +87,7 @@ describe('BillingSettings empty-state branches', () => {
 		useSubscriptionStatusMock.mockReturnValue({
 			data: {
 				subscriptionStatus: 'active',
-				stripePriceId: 'price_1SPGCNP3WCR53SdorjDpiSy5',
+				stripePriceId: 'price_1TVTaIP3WCR53SdoqnUe1Inv',
 				currentPeriodEnd: '2026-06-01T00:00:00.000Z',
 				stripeCustomerId: 'cus_growth',
 				cancelAtPeriodEnd: false,
@@ -103,7 +103,7 @@ describe('BillingSettings empty-state branches', () => {
 		renderWithProviders(<BillingSettings />)
 
 		expect(screen.getByText('Growth')).toBeInTheDocument()
-		expect(screen.getByText('$79')).toBeInTheDocument()
+		expect(screen.getByText('$49')).toBeInTheDocument()
 		expect(screen.getByText(/Up to 100 units/)).toBeInTheDocument()
 		expect(
 			screen.getByRole('button', { name: 'Manage Plan' })
@@ -193,7 +193,7 @@ describe('BillingSettings empty-state branches', () => {
 			useSubscriptionStatusMock.mockReturnValue({
 				data: {
 					subscriptionStatus: status,
-					stripePriceId: 'price_1SPGCNP3WCR53SdorjDpiSy5',
+					stripePriceId: 'price_1TVTaIP3WCR53SdoqnUe1Inv',
 					currentPeriodEnd: null,
 					stripeCustomerId: `cus_${status}`,
 					cancelAtPeriodEnd: false,

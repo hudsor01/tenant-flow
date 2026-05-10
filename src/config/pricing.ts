@@ -132,12 +132,12 @@ export const PRICING_PLANS: Record<string, PricingConfig> = {
 		name: 'Growth',
 		description: 'For growing portfolios that need advanced features',
 		price: {
-			monthly: 79,
-			annual: 790
+			monthly: 49,
+			annual: 490
 		},
 		stripePriceIds: {
-			monthly: 'price_1SPGCNP3WCR53SdorjDpiSy5' as StripePriceId,
-			annual: 'price_1SPGCRP3WCR53SdonqLUTJgK' as StripePriceId
+			monthly: 'price_1TVTaIP3WCR53SdoqnUe1Inv' as StripePriceId,
+			annual: 'price_1TVTaMP3WCR53SdoN4kufrVn' as StripePriceId
 		},
 		limits: {
 			properties: 20,
