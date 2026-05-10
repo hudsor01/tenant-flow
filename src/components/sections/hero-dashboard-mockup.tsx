@@ -153,24 +153,24 @@ export function HeroDashboardMockup({ className }: { className?: string }) {
 						</div>
 						<div className="space-y-2">
 							<ActivityItem
-								avatar="JM"
-								name="John Miller"
+								avatar="JC"
+								name="Jamie Carter"
 								action="signed lease"
-								amount="DocuSeal"
+								amount="E-Sign"
 								time="2m ago"
 								status="success"
 							/>
 							<ActivityItem
-								avatar="EW"
-								name="Emma Wilson"
+								avatar="AR"
+								name="Alex Rivera"
 								action="submitted request"
 								amount="HVAC"
 								time="15m ago"
 								status="warning"
 							/>
 							<ActivityItem
-								avatar="DP"
-								name="David Park"
+								avatar="SP"
+								name="Sam Patel"
 								action="lease renewed"
 								amount="12 mo"
 								time="1h ago"

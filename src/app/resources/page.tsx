@@ -21,7 +21,7 @@ import { createBreadcrumbJsonLd } from '#lib/seo/breadcrumbs'
 import { createPageMetadata } from '#lib/seo/page-metadata'
 
 export const metadata: Metadata = createPageMetadata({
-	title: 'Free Property Owner Resources — Templates & Tools',
+	title: 'Free Landlord Resources — Templates & Tools',
 	description:
 		'Free downloadable property management templates: seasonal maintenance checklists, tax deduction trackers, security deposit law guides for landlords.',
 	path: '/resources'
@@ -179,7 +179,7 @@ export default function ResourcesPage() {
 							Free Downloads
 						</h2>
 						<p className="text-muted-foreground text-lg">
-							Printable tools and reference guides for property owners
+							Printable tools and reference guides for landlords
 						</p>
 					</div>
 

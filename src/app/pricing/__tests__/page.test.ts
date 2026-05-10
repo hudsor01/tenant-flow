@@ -5,6 +5,10 @@ const mocks = vi.hoisted(() => ({
 	createProductJsonLdSpy: vi.fn((cfg: unknown) => ({
 		'@type': 'Product',
 		__captured: cfg
+	})),
+	createFaqJsonLdSpy: vi.fn((entries: unknown) => ({
+		'@type': 'FAQPage',
+		__captured: entries
 	}))
 }))
 
@@ -28,7 +32,7 @@ vi.mock('#lib/seo/breadcrumbs', () => ({
 }))
 
 vi.mock('#lib/seo/faq-schema', () => ({
-	createFaqJsonLd: () => ({ '@type': 'FAQPage' })
+	createFaqJsonLd: mocks.createFaqJsonLdSpy
 }))
 
 vi.mock('#lib/seo/page-metadata', () => ({
@@ -54,18 +58,26 @@ vi.mock('../_components/pricing-section', () => ({
 	PricingSection: () => null
 }))
 
-vi.mock('../pricing-content', () => ({
-	PricingCtaSection: () => null,
-	PricingFaqSection: () => null,
-	PricingStatsGrid: () => null,
-	pricingFaqs: []
-}))
+// Mock visual sections only; let `pricingFaqs` resolve to the real array so the
+// FAQPage JSON-LD length assertion below pins the COPY-05 trim contract.
+vi.mock('../pricing-content', async () => {
+	const actual = await vi.importActual<typeof import('../pricing-content')>(
+		'../pricing-content'
+	)
+	return {
+		PricingCtaSection: () => null,
+		PricingFaqSection: () => null,
+		PricingStatsGrid: () => null,
+		pricingFaqs: actual.pricingFaqs
+	}
+})
 
 import PricingPage, { metadata } from '../page'
 
 describe('pricing/page.tsx CRIT-03 placeholder', () => {
 	beforeEach(() => {
 		mocks.createProductJsonLdSpy.mockClear()
+		mocks.createFaqJsonLdSpy.mockClear()
 	})
 
 	it('metadata.description omits "$199/mo" for Max and includes "Max — Custom pricing, contact sales"', () => {
@@ -98,5 +110,21 @@ describe('pricing/page.tsx CRIT-03 placeholder', () => {
 		}
 
 		expect(config.description).toContain('Custom pricing, contact sales')
+	})
+
+	it('FAQPage JSON-LD mainEntity has exactly 5 entries (COPY-05 — pricing FAQ trim)', async () => {
+		await PricingPage()
+
+		expect(mocks.createFaqJsonLdSpy).toHaveBeenCalledTimes(1)
+		const entries = mocks.createFaqJsonLdSpy.mock.calls[0]![0] as Array<{
+			question: string
+			answer: string
+		}>
+
+		expect(entries).toHaveLength(5)
+		// The trial-overlap entry was dropped in Plan 04-02 Task 3.
+		expect(
+			entries.find(e => /How does the 14-day free trial work\?/i.test(e.question))
+		).toBeUndefined()
 	})
 })

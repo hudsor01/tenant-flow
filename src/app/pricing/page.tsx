@@ -21,7 +21,7 @@ export const metadata: Metadata = createPageMetadata({
 	title: 'Property Management Software Pricing — Plans from $29/mo',
 	// Phase 1 (CRIT-03): "Max — Custom pricing, contact sales" is a placeholder. Phase 5 (PRICE-06) replaces it with the real Max price.
 	description:
-		'Affordable property management software. Starter ($29/mo, 5 properties), Growth ($79/mo, 20 properties), Max — Custom pricing, contact sales. 14-day free trial, no credit card required. Compare plans and features.',
+		'Property management software for landlords with 1–15 rentals. Starter ($29/mo, 5 properties), Growth ($79/mo, 20 properties), Max — Custom pricing, contact sales. 14-day free trial, no credit card required.',
 	path: '/pricing'
 })
 

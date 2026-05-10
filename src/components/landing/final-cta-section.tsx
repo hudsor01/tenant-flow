@@ -32,7 +32,7 @@ export function FinalCtaSection() {
 							</h2>
 
 							<p className="text-muted-foreground leading-relaxed max-w-3xl mx-auto text-xl">
-								The landlord-only platform with a per-entity document vault, DocuSeal e-sign, and reports built for tax season.
+								The landlord-only platform with a per-entity document vault, lease e-sign, and reports built for tax season.
 								<span className="block mt-2 text-foreground font-semibold">
 									14-day free trial. No credit card. Cancel anytime.
 								</span>

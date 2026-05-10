@@ -21,12 +21,12 @@ const stats = [
 	{
 		icon: Download,
 		value: '500',
-		label: 'Bulk-zip cap (per request)'
+		label: 'Tax-season zip cap'
 	},
 	{
 		icon: FileSignature,
 		value: 'Growth+',
-		label: 'DocuSeal e-sign tier'
+		label: 'Lease e-sign tier'
 	}
 ]
 

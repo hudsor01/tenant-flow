@@ -38,7 +38,7 @@ const comparisonData: ComparisonFeature[] = [
 		tenantFlow: true,
 		spreadsheets: false,
 		enterprise: 'partial',
-		description: 'Per-entity storage with search, filters, bulk-zip export'
+		description: 'Per-entity storage with search, filters, and tax-season zip exports'
 	},
 	{
 		name: 'Tenant Records (no logins)',
@@ -58,14 +58,14 @@ const comparisonData: ComparisonFeature[] = [
 		tenantFlow: 'Growth+',
 		spreadsheets: false,
 		enterprise: 'partial',
-		description: 'DocuSeal e-sign on Growth and Max plans'
+		description: 'Lease e-sign on Growth and Max plans'
 	},
 	{
 		name: 'Bulk Document Export',
 		tenantFlow: true,
 		spreadsheets: 'partial',
 		enterprise: 'partial',
-		description: 'Zip up to 500 documents per export for tax season'
+		description: 'Zip exports for tax season'
 	},
 	{
 		name: 'Financial Reports',

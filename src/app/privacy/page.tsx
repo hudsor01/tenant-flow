@@ -469,7 +469,7 @@ export default function PrivacyPage() {
 						</p>
 						<p className="mt-4">
 							<strong>TenantFlow</strong> is a property management software
-							platform designed to help property managers efficiently manage
+							platform designed to help landlords efficiently manage
 							properties, tenants, leases, and financial operations.
 						</p>
 					</div>

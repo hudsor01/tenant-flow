@@ -81,7 +81,7 @@ export function BentoFeaturesSection() {
 								className="md:col-span-1"
 								background={<LeaseDocuments />}
 								Icon={FileText}
-								description="Digital signing with DocuSeal on Growth and Max plans, with state-aware lease templates"
+								description="Digital lease signing on Growth and Max plans, with state-aware templates"
 								href="/leases"
 								cta="Manage Leases"
 							/>

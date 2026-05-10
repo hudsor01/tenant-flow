@@ -40,17 +40,17 @@ export const faqData: FAQCategory[] = [
 			{
 				question: 'Do my tenants create accounts or log in?',
 				answer:
-					"No. TenantFlow is built for the property owner — tenants are records you keep for your own tracking, not platform users. You never have to manage tenant logins, password resets, or account support."
+					"No. TenantFlow is built for the landlord — tenants are records you keep for your own tracking, not platform users. You never have to manage tenant logins, password resets, or account support."
 			},
 			{
 				question: 'What does TenantFlow actually help me do?',
 				answer:
-					'Track properties and units, keep tenant and lease records, log maintenance requests and vendor costs, e-sign leases via DocuSeal (Growth and Max plans), and store every lease, receipt, and inspection report in a per-entity document vault with global search and bulk-download. Everything a property owner needs to replace the spreadsheet.'
+					'Track properties and units, keep tenant and lease records, log maintenance requests and vendor costs, e-sign leases (Growth and Max plans), and store every lease, receipt, and inspection report in a per-entity document vault with global search and bulk-download. Everything a landlord needs to replace the spreadsheet.'
 			},
 			{
 				question: 'What specific results can I expect?',
 				answer:
-					'Property owners report spending less time on admin: centralized records replace spreadsheets and email threads, maintenance requests are tracked with vendor and cost history, and lease e-signing cuts days off renewals. Results vary by portfolio.'
+					'Landlords report spending less time on admin: centralized records replace spreadsheets and email threads, maintenance requests are tracked with vendor and cost history, and lease e-signing cuts days off renewals. Results vary by portfolio.'
 			},
 			{
 				question: 'Is TenantFlow suitable for my portfolio size?',
@@ -100,12 +100,12 @@ export const faqData: FAQCategory[] = [
 			{
 				question: 'What kind of results do owners report?',
 				answer:
-					"Owners typically tell us they replace a tangle of spreadsheets, email threads, and Dropbox folders with a single source of truth. Concrete wins: faster lease renewals via DocuSeal, faster CPA hand-offs via the document vault's bulk-zip download, and fewer 'where did I put that receipt?' moments at tax time. Specific revenue impact varies by portfolio."
+					"Owners typically tell us they replace a tangle of spreadsheets, email threads, and Dropbox folders with a single source of truth. Concrete wins: faster lease renewals, faster CPA hand-offs via the document vault's tax-season zip exports, and fewer 'where did I put that receipt?' moments at tax time. Specific revenue impact varies by portfolio."
 			},
 			{
 				question: 'Are there any hidden fees?',
 				answer:
-					'No. Pricing on this page is what you pay. DocuSeal e-sign volume scales with the plan you choose (Growth: 25/month, Max: unlimited; Starter does not include e-sign). Storage scales the same way (10GB / 50GB / unlimited).'
+					'No. Pricing on this page is what you pay. Lease e-sign volume scales with the plan you choose (Growth: 25/month, Max: unlimited; Starter does not include e-sign). Storage scales the same way (10GB / 50GB / unlimited).'
 			},
 			{
 				question: 'Can I try TenantFlow risk-free?',

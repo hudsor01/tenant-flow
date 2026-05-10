@@ -17,7 +17,7 @@ import {
 export const metadata: Metadata = createPageMetadata({
 	title: 'Support Center - Property Management Help',
 	description:
-		'Get help with TenantFlow. Contact support, browse FAQs, troubleshoot common issues, and find guides for property owners managing properties, leases, and tenants.',
+		'Get help with TenantFlow. Contact support, browse FAQs, troubleshoot common issues, and find guides for landlords managing properties, leases, and tenants.',
 	path: '/support'
 })
 
@@ -26,7 +26,7 @@ const supportCategories = [
 		icon: FileText,
 		title: 'Leases & Documents',
 		description:
-			'Lease creation, e-signatures, renewals, document templates, and DocuSeal integration.',
+			'Lease creation, e-signatures, renewals, document templates, and lease e-sign integration.',
 		topics: [
 			'How do I create a new lease?',
 			'How does e-signing work?',

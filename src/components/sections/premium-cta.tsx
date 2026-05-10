@@ -40,7 +40,7 @@ export function PremiumCta({ className }: PremiumCtaProps) {
 						<p className="text-responsive-h1 text-muted-foreground leading-relaxed mb-10 max-w-4xl mx-auto font-light">
 							Run your rentals from one place — with the document vault as your single source of truth.
 							<span className="block mt-3 text-foreground font-medium">
-								Your 14-day free trial includes the full document vault, DocuSeal e-sign on Growth and Max, and every report you need at tax time.
+								Your 14-day free trial includes the full document vault, lease e-sign on Growth and Max, and every report you need at tax time.
 							</span>
 						</p>
 					</BlurFade>

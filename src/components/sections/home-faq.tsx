@@ -9,7 +9,7 @@ interface HomeFaqProps {
 	className?: string
 }
 
-const homeFaqs = [
+export const homeFaqs = [
 	{
 		question: 'How long does it take to get started?',
 		answer:
@@ -18,12 +18,7 @@ const homeFaqs = [
 	{
 		question: 'What if I have fewer than 10 units?',
 		answer:
-			'The Starter plan is built for owners managing up to 5 properties / 25 units. You get the document vault, maintenance tracking, and 10GB of document storage at $29/month. Move up to Growth when you outgrow it.'
-	},
-	{
-		question: 'Is my data secure?',
-		answer:
-			"Yes. Postgres row-level security isolates every landlord's data, files are encrypted at rest, and you can export or delete your account at any time. Tenants are stored as records under your account — they never log in, so there are no extra access surfaces to manage."
+			'The Starter plan is built for landlords with 1–5 rentals / 25 units. You get the document vault, maintenance tracking, and 10GB of document storage at $29/month. Move up to Growth when you outgrow it.'
 	},
 	{
 		question: 'Where do I store lease PDFs and other documents?',

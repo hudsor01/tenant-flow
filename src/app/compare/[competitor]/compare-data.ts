@@ -22,9 +22,9 @@ export const COMPETITORS: Record<string, CompetitorData> = {
 		blogSlug: 'tenantflow-vs-buildium-comparison',
 		tagline: 'The Modern Buildium Alternative',
 		description:
-			'See why property owners are switching from Buildium to TenantFlow for lower costs, modern features, and a better tenant experience.',
+			'See why landlords are switching from Buildium to TenantFlow for lower costs, modern features, and a better tenant experience.',
 		metaDescription:
-			'Looking for a Buildium alternative? TenantFlow offers the same features at half the price. Compare pricing, features, and see why property owners are switching.',
+			'Looking for a Buildium alternative? TenantFlow offers the same features at half the price. Compare pricing, features, and see why landlords are switching.',
 		heroSubtitle:
 			'Buildium starts at $58/month. TenantFlow starts at $29/month with the same core features, modern technology, and no hidden fees.',
 		capterra: '4.5/5 (2,131 reviews)',
@@ -62,7 +62,7 @@ export const COMPETITORS: Record<string, CompetitorData> = {
 			{
 				name: 'Lease Management',
 				tenantflow: 'yes',
-				tenantflowNote: 'DocuSeal e-signing (Growth+)',
+				tenantflowNote: 'Lease e-sign (Growth+)',
 				competitor: 'yes',
 			},
 			{ name: 'Tenant Records', tenantflow: 'yes', competitor: 'yes' },
@@ -122,11 +122,11 @@ export const COMPETITORS: Record<string, CompetitorData> = {
 		name: 'AppFolio',
 		slug: 'appfolio',
 		blogSlug: 'tenantflow-vs-appfolio-comparison',
-		tagline: 'The AppFolio Alternative for Property Owners',
+		tagline: 'The AppFolio Alternative for Landlords',
 		description:
 			'AppFolio requires 50+ units and $298/month minimum. TenantFlow starts at $29/month with no minimums. Compare features and pricing.',
 		metaDescription:
-			'AppFolio alternative for property owners — no unit minimums. TenantFlow starts at $29/mo vs AppFolio\'s $298/mo minimum. No unit requirements.',
+			'AppFolio alternative for landlords — no unit minimums. TenantFlow starts at $29/mo vs AppFolio\'s $298/mo minimum. No unit requirements.',
 		heroSubtitle:
 			'AppFolio requires a minimum of 50 units and $298/month. TenantFlow has no minimums and starts at $29/month — professional tools for any portfolio size.',
 		capterra: '4.5/5',
@@ -169,7 +169,7 @@ export const COMPETITORS: Record<string, CompetitorData> = {
 			{
 				name: 'Lease Management',
 				tenantflow: 'yes',
-				tenantflowNote: 'DocuSeal e-signing (Growth+)',
+				tenantflowNote: 'Lease e-sign (Growth+)',
 				competitor: 'yes',
 				competitorNote: 'AI leasing assistant',
 			},
@@ -237,7 +237,7 @@ export const COMPETITORS: Record<string, CompetitorData> = {
 			'Save over $2,600/year at 30 units ($79/mo vs $298/mo minimum)',
 			'Transparent pricing — no custom quotes or sales calls needed',
 			'14-day free trial to test everything before committing',
-			'Per-entity document vault and DocuSeal e-signing without paying for commercial/HOA tools',
+			'Per-entity document vault and lease e-sign (Growth+) without paying for commercial/HOA tools',
 		],
 		competitorStrengths: [
 			'AI-powered maintenance routing and leasing assistant',
@@ -255,7 +255,7 @@ export const COMPETITORS: Record<string, CompetitorData> = {
 		description:
 			'RentRedi is cheap but basic. TenantFlow adds advanced reporting, visual workflows, and lease management for just $20 more per month.',
 		metaDescription:
-			'Compare TenantFlow vs RentRedi for property owners. RentRedi starts at $9/mo with basics. TenantFlow at $29/mo adds analytics, workflows, and more.',
+			'Compare TenantFlow vs RentRedi for landlords. RentRedi starts at $9/mo with basics. TenantFlow at $29/mo adds analytics, workflows, and more.',
 		heroSubtitle:
 			'RentRedi starts at $9/month with unlimited units and basic features. TenantFlow starts at $29/month with advanced analytics, visual workflows, and a more complete feature set.',
 		capterra: '4.5/5 (104 reviews)',
@@ -298,7 +298,7 @@ export const COMPETITORS: Record<string, CompetitorData> = {
 			{
 				name: 'Lease Management',
 				tenantflow: 'yes',
-				tenantflowNote: 'DocuSeal e-signing (Growth+)',
+				tenantflowNote: 'Lease e-sign (Growth+)',
 				competitor: 'partial',
 				competitorNote: 'Templates + e-signing',
 			},
@@ -351,7 +351,7 @@ export const COMPETITORS: Record<string, CompetitorData> = {
 		whySwitch: [
 			'Per-entity document vault with global search across leases, receipts, and inspections',
 			'Visual kanban maintenance workflow vs basic request tracking',
-			'Lease management with DocuSeal e-signing on Growth and Max',
+			'Lease management with lease e-sign (Growth+)',
 			'Modern web interface built on Next.js + React 19',
 			'Document storage up to 50GB on Growth plan',
 		],

@@ -21,7 +21,7 @@ import { ArrowRight, Mail, MessageCircle, Phone } from 'lucide-react'
 
 export const metadata = createPageMetadata({
 	title: 'Help Center — Property Management Support & Guides',
-	description: 'Get help with TenantFlow property management software. Browse setup guides, feature tutorials, and support resources for landlords and operators.',
+	description: 'Get help with TenantFlow property management software. Browse setup guides, feature tutorials, and support resources for landlords.',
 	path: '/help',
 })
 
@@ -145,14 +145,14 @@ export default function HelpPage() {
 							{
 								title: 'Set up the document vault',
 								description:
-									'Per-entity uploads, custom categories, search, filters, and bulk-zip export — everything the vault does in one walkthrough',
+									'Per-entity uploads, custom categories, search, filters, and tax-season zip exports — everything the vault does in one walkthrough',
 								badge: 'Most Popular',
 								badgeColor: 'bg-primary/10 text-primary'
 							},
 							{
-								title: 'Send a lease for e-signature with DocuSeal',
+								title: 'Send a lease for e-signature',
 								description:
-									'How DocuSeal integrates with your lease workflow on the Growth and Max plans, plus monthly volume limits',
+									'How lease e-sign integrates with your workflow on the Growth and Max plans, plus monthly volume limits',
 								badge: 'Lease Workflow',
 								badgeColor: 'bg-accent/10 text-accent'
 							},
