@@ -1,8 +1,9 @@
 'use client'
 
-import { ArrowRight } from 'lucide-react'
+import { ArrowRight, Lock } from 'lucide-react'
 import Link from 'next/link'
 
+import { Badge } from '#components/ui/badge'
 import { Button } from '#components/ui/button'
 import { PageLayout } from '#components/layout/page-layout'
 import { HeroDashboardMockup } from '#components/sections/hero-dashboard-mockup'
@@ -30,6 +31,14 @@ export default function MarketingHomePage() {
 							{/* Content */}
 							<div className="flex flex-col justify-center space-y-8">
 								<div className="space-y-6">
+									<Badge
+										variant="trustIndicator"
+										size="trust"
+										className="self-start mb-2"
+									>
+										<Lock className="size-4" aria-hidden="true" />
+										Landlord-only · Tenants never log in
+									</Badge>
 									<h1 className="text-3xl sm:text-5xl lg:text-6xl xl:text-7xl font-bold text-foreground tracking-tight leading-[1.05] text-balance">
 										Ditch the{' '}
 										<span className="hero-highlight">spreadsheet</span>
