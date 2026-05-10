@@ -65,6 +65,40 @@ const nextConfig: NextConfig = {
 				destination: '/auth/update-password',
 				permanent: false,
 			},
+			// CRIT-05: /signup redirect loop. /pricing is the canonical entry
+			// point (Stripe checkout funnels through Supabase signup). No
+			// /signup page exists; the redirect IS the fix. Implements
+			// requirement CRIT-05 (eliminate loop).
+			{
+				source: '/signup',
+				destination: '/pricing',
+				permanent: true,
+			},
+			// CRIT-06: long-form legal URL aliases. External links/emails/
+			// sitemaps may reference verbose forms; canonical paths use the
+			// short forms throughout footer + llms.txt + sitemap.xml.
+			// permanent: true emits 308 — Google + browsers treat as 301 for
+			// SEO + cache.
+			{
+				source: '/terms-of-service',
+				destination: '/terms',
+				permanent: true,
+			},
+			{
+				source: '/privacy-policy',
+				destination: '/privacy',
+				permanent: true,
+			},
+			{
+				source: '/help-center',
+				destination: '/help',
+				permanent: true,
+			},
+			{
+				source: '/rss-feed',
+				destination: '/feed.xml',
+				permanent: true,
+			},
 		]
 	},
 

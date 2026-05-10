@@ -71,6 +71,11 @@ Plans:
 3. External links/ads/emails referencing the long-form URLs reach the canonical short-path page in one redirect hop
 4. No new hex/rgb/`bg-white`/inline-ms tokens introduced
 
+**Plans:** 1 plan (single wave — both fixes ship in one routing-config diff)
+
+Plans:
+- [ ] 03-01-PLAN.md — Append 5 redirects() entries to next.config.ts (CRIT-05 + 4 CRIT-06 aliases, all permanent: true → 308) + add 6 entries to src/proxy.ts PUBLIC_ROUTES (defense-in-depth + /feed.xml latent bug fix) + new Playwright spec with 6 tests + post-deploy live curl verification
+
 ### Phase 4: Persona & Copy Honesty
 **Goal**: One persona term used consistently across all marketing pages; hero contradiction resolved; tenants-never-login pulled forward as visible differentiator; "Join 500+" replaced with "Built for landlords with 1–15 rentals" segment framing; technical jargon softened; FAQ canonicalized.
 **Depends on**: Phases 1, 2, 3 (immediate stop-bleed must ship first; persona work is content-not-emergency)
