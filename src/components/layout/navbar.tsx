@@ -88,7 +88,7 @@ export function Navbar({
 						onClick={toggleMobileMenu}
 						aria-label={isMobileMenuOpen ? 'Close navigation menu' : 'Open navigation menu'}
 						data-testid="mobile-nav-toggle"
-						className="md:hidden p-2 text-foreground/70 hover:text-foreground hover:bg-muted/50 rounded-lg transition-colors duration-fast"
+						className="md:hidden inline-flex items-center justify-center min-h-11 min-w-11 p-2 text-foreground/70 hover:text-foreground hover:bg-muted/50 rounded-lg transition-colors duration-fast"
 					>
 						{isMobileMenuOpen ? <X className="size-5" /> : <Menu className="size-5" />}
 					</button>

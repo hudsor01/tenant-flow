@@ -54,6 +54,12 @@ Plans:
 3. Tapping hamburger opens shadcn `Sheet` (right-side slide-in drawer) containing Features, Pricing, Compare, About, Resources, Sign In, Get Started — all reachable
 4. No new hex/rgb/`bg-white`/inline-ms tokens introduced
 
+**Plans:** 2 plans (parallel — wave 1)
+
+Plans:
+- [ ] 02-01-PLAN.md — NumberTicker animation fix (rewrite number-ticker.tsx eliminating 4 compounding defects: hasIntersected one-shot trigger, useEffect cleanup, monotonic rAF timestamp, no Date.now) + 5 Vitest 4 fake-timer regression tests
+- [ ] 02-02-PLAN.md — Mobile hero overflow + CTA truncation fix (text-3xl + text-balance; flex-col sm:flex-row + w-full sm:w-auto) + drawer polish (toggle 44x44, drop ad-hoc width override, Sheet close aria-label + 44x44) + 8-test 375x667 Playwright spec
+
 ### Phase 3: Routing & Legal-URL Aliases
 **Goal**: `/signup` reaches a real destination (or 301s to `/pricing`) — eliminate the redirect loop. Long-form legal URLs (`/terms-of-service`, `/privacy-policy`, `/help-center`, `/rss-feed`) 301 to canonical short paths.
 **Depends on**: Nothing (parallel-eligible with Phase 1, 2)
