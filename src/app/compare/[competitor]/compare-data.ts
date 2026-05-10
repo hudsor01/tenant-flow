@@ -237,7 +237,7 @@ export const COMPETITORS: Record<string, CompetitorData> = {
 			'Save over $2,600/year at 30 units ($79/mo vs $298/mo minimum)',
 			'Transparent pricing — no custom quotes or sales calls needed',
 			'14-day free trial to test everything before committing',
-			'Per-entity document vault and Lease e-sign (Growth+) without paying for commercial/HOA tools',
+			'Per-entity document vault and lease e-sign (Growth+) without paying for commercial/HOA tools',
 		],
 		competitorStrengths: [
 			'AI-powered maintenance routing and leasing assistant',
@@ -351,7 +351,7 @@ export const COMPETITORS: Record<string, CompetitorData> = {
 		whySwitch: [
 			'Per-entity document vault with global search across leases, receipts, and inspections',
 			'Visual kanban maintenance workflow vs basic request tracking',
-			'Lease management with Lease e-sign (Growth+)',
+			'Lease management with lease e-sign (Growth+)',
 			'Modern web interface built on Next.js + React 19',
 			'Document storage up to 50GB on Growth plan',
 		],
