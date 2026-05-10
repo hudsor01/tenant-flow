@@ -178,7 +178,7 @@ export const deductionCategories: DeductionCategory[] = [
 			{
 				deduction: 'Software & Tools',
 				description: 'Property management software subscriptions',
-				example: 'TenantFlow subscription: $29-$199/month',
+				example: 'TenantFlow subscription: $19-$149/month',
 			},
 			{
 				deduction: 'Office Supplies',

@@ -51,7 +51,7 @@ function createDefaultMetadata(): Metadata {
 		openGraph: {
 			title: 'TenantFlow — Property Management Software for Landlords',
 			description:
-				'All-in-one rental property administration. Track leases, maintenance, and tenants. Plans from $29/mo.',
+				'All-in-one rental property administration. Track leases, maintenance, and tenants. Plans from $19/mo.',
 			url: SITE_URL,
 			siteName: 'TenantFlow',
 			type: 'website',
@@ -77,7 +77,7 @@ function createDefaultMetadata(): Metadata {
 			card: 'summary_large_image',
 			title: 'TenantFlow — Property Management Software for Landlords',
 			description:
-				'All-in-one rental property administration. Track leases, maintenance, and tenants. Plans from $29/mo.',
+				'All-in-one rental property administration. Track leases, maintenance, and tenants. Plans from $19/mo.',
 			site: '@tenantflow',
 			creator: '@tenantflow',
 			images: [`${SITE_URL}/images/property-management-og.jpg`]

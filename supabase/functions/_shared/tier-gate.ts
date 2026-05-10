@@ -21,10 +21,8 @@ const ACTIVE_SUB_STATUSES: ReadonlySet<string> = new Set(['active', 'trialing'])
 // Live Tenant Flow price IDs + lookup-key fallbacks for Growth and Max.
 // Exported so each feature gate can reuse when it requires Growth+ tier.
 export const GROWTH_AND_MAX_PLANS: ReadonlySet<string> = new Set([
-  // Growth
-  'price_1SPGCNP3WCR53SdorjDpiSy5', 'price_1SPGCRP3WCR53SdonqLUTJgK',
-  // Max
-  'price_1Rd16pP3WCR53SdoCh3oJlDl', 'price_1Rd17AP3WCR53SdoTB4FTbSq',
+  'price_1TVTaIP3WCR53SdoqnUe1Inv', 'price_1TVTaMP3WCR53SdoN4kufrVn', // Growth $49 / $490
+  'price_1TVTaQP3WCR53Sdo22VAYfhp', 'price_1TVTaUP3WCR53Sdo5mnmSAmF', // Max $149 / $1490
   // Lookup-key fallbacks
   'growth', 'growth_monthly', 'growth_annual',
   'max', 'max_monthly', 'max_annual',
