@@ -147,30 +147,34 @@ test.describe('Persona consistency — compare pages (CONS-01)', () => {
 })
 
 test.describe('Persona consistency — DocuSeal de-amp (COPY-04, Wave 2)', () => {
+	// COPY-04 audits VISIBLE marketing copy, not the SoftwareApplication
+	// JSON-LD `featureList` (KEEP-AS-INFRASTRUCTURE per 04-RESEARCH.md) and
+	// not the Next.js RSC streaming payload — both are <script> content. Use
+	// innerText (visible text only) to count user-facing mentions.
 	test('Site-wide DocuSeal mention count ≤ 15 across all public marketing pages combined', async ({ page }) => {
 		let totalMentions = 0
 		for (const path of PUBLIC_PATHS) {
 			await page.goto(path)
-			const body = (await page.textContent('body')) ?? ''
-			totalMentions += (body.match(/DocuSeal/g) ?? []).length
+			const visible = await page.locator('body').innerText()
+			totalMentions += (visible.match(/DocuSeal/g) ?? []).length
 		}
 		// Threshold accounts for: pricing.ts feature lists × 2 plans, comparison-table row,
-		// /faq strategic entry, logo-cloud (renders DocuSeal logo across multiple pages),
-		// features-client.tsx integrations subtitle, JSON-LD featureList.
+		// /faq strategic entry, logo-cloud wordmark (renders on / and /features),
+		// features-client.tsx integrations subtitle, login + confirm-email HERO_STATS.
 		// Calibrate down after first run if budget allows.
 		expect(totalMentions).toBeLessThanOrEqual(15)
 	})
 
-	test('/about renders zero DocuSeal mentions', async ({ page }) => {
+	test('/about renders zero visible DocuSeal mentions', async ({ page }) => {
 		await page.goto('/about')
-		const body = (await page.textContent('body')) ?? ''
-		expect((body.match(/DocuSeal/g) ?? []).length).toBe(0)
+		const visible = await page.locator('body').innerText()
+		expect((visible.match(/DocuSeal/g) ?? []).length).toBe(0)
 	})
 
-	test('/pricing renders ≤ 3 DocuSeal mentions (strategic surfaces only)', async ({ page }) => {
+	test('/pricing renders ≤ 3 visible DocuSeal mentions (strategic surfaces only)', async ({ page }) => {
 		await page.goto('/pricing')
-		const body = (await page.textContent('body')) ?? ''
-		expect((body.match(/DocuSeal/g) ?? []).length).toBeLessThanOrEqual(3)
+		const visible = await page.locator('body').innerText()
+		expect((visible.match(/DocuSeal/g) ?? []).length).toBeLessThanOrEqual(3)
 	})
 })
 
