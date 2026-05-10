@@ -137,3 +137,68 @@ test.describe('Persona consistency — compare pages (CONS-01)', () => {
 		expect(body).toContain('Small to mid-sized property managers')
 	})
 })
+
+test.describe('Persona consistency — DocuSeal de-amp (COPY-04, Wave 2)', () => {
+	test('Site-wide DocuSeal mention count ≤ 15 across all public marketing pages combined', async ({ page }) => {
+		let totalMentions = 0
+		for (const path of PUBLIC_PATHS) {
+			await page.goto(path)
+			const body = (await page.textContent('body')) ?? ''
+			totalMentions += (body.match(/DocuSeal/g) ?? []).length
+		}
+		// Threshold accounts for: pricing.ts feature lists × 2 plans, comparison-table row,
+		// /faq strategic entry, logo-cloud (renders DocuSeal logo across multiple pages),
+		// features-client.tsx integrations subtitle, JSON-LD featureList.
+		// Calibrate down after first run if budget allows.
+		expect(totalMentions).toBeLessThanOrEqual(15)
+	})
+
+	test('/about renders zero DocuSeal mentions', async ({ page }) => {
+		await page.goto('/about')
+		const body = (await page.textContent('body')) ?? ''
+		expect((body.match(/DocuSeal/g) ?? []).length).toBe(0)
+	})
+
+	test('/pricing renders ≤ 3 DocuSeal mentions (strategic surfaces only)', async ({ page }) => {
+		await page.goto('/pricing')
+		const body = (await page.textContent('body')) ?? ''
+		expect((body.match(/DocuSeal/g) ?? []).length).toBeLessThanOrEqual(3)
+	})
+})
+
+test.describe('Persona consistency — FAQ canon (COPY-05, Wave 2)', () => {
+	test('Homepage FAQ does NOT contain "Is my data secure?"', async ({ page }) => {
+		await page.goto('/')
+		const body = (await page.textContent('body')) ?? ''
+		expect(body).not.toMatch(/Is my data secure\?/i)
+	})
+
+	test('Pricing FAQ does NOT contain "How does the 14-day free trial work?"', async ({ page }) => {
+		await page.goto('/pricing')
+		const body = (await page.textContent('body')) ?? ''
+		expect(body).not.toMatch(/How does the 14-day free trial work\?/i)
+	})
+
+	test('Pricing-FAQ footer links to /faq with "View all FAQs"', async ({ page }) => {
+		await page.goto('/pricing')
+		const link = page.getByRole('link', { name: /view all faqs/i })
+		await expect(link).toBeVisible()
+		await expect(link).toHaveAttribute('href', '/faq')
+	})
+})
+
+test.describe('Persona consistency — bulk-zip softening (COPY-06, Wave 2)', () => {
+	test('Homepage contains "Tax-season zip exports" or "Tax-Season Bulk Zip"', async ({ page }) => {
+		await page.goto('/')
+		const body = (await page.textContent('body')) ?? ''
+		expect(body).toMatch(/Tax-[Ss]eason ([Bb]ulk [Zz]ip|zip exports?)/)
+	})
+
+	test('No "500 / request" technical jargon on any public page', async ({ page }) => {
+		for (const path of PUBLIC_PATHS) {
+			await page.goto(path)
+			const body = (await page.textContent('body')) ?? ''
+			expect(body, `path: ${path}`).not.toMatch(/500\s*\/\s*request/)
+		}
+	})
+})
