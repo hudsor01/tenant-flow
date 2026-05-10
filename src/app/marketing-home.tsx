@@ -36,9 +36,9 @@ export default function MarketingHomePage() {
 									</h1>
 
 									<p className="text-xl text-muted-foreground leading-relaxed max-w-lg">
-										The operations tool for property owners. Track properties,
-										tenants, leases, and maintenance in one place — tenants
-										never have to log in.
+										The operations tool for landlords with 1–15 rentals.
+										Track properties, leases, and maintenance in one place —
+										tenants stay off the platform.
 									</p>
 								</div>
 
