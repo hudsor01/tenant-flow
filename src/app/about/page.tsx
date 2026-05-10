@@ -75,7 +75,7 @@ export default function AboutPage() {
 								</h2>
 								<div className="space-y-4">
 									<p className="text-xl text-muted-foreground leading-relaxed">
-										To empower property managers with the tools they need to
+										To empower landlords with the tools they need to
 										grow their business, reduce operational overhead, and
 										provide exceptional service to their tenants.
 									</p>
@@ -92,7 +92,7 @@ export default function AboutPage() {
 									Mission-Driven Development
 								</h3>
 								<p className="text-muted-foreground mt-3">
-									Every feature built with property managers in mind
+									Every feature built with landlords in mind
 								</p>
 							</div>
 						</div>
@@ -198,7 +198,7 @@ export default function AboutPage() {
 									<ItemTitle>Continuous Learning</ItemTitle>
 									<ItemDescription>
 										We listen, learn, and adapt to meet the evolving needs of
-										property managers.
+										landlords.
 									</ItemDescription>
 								</ItemContent>
 							</Item>
