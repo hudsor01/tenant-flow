@@ -179,7 +179,7 @@ export default function ResourcesPage() {
 							Free Downloads
 						</h2>
 						<p className="text-muted-foreground text-lg">
-							Printable tools and reference guides for property owners
+							Printable tools and reference guides for landlords
 						</p>
 					</div>
 

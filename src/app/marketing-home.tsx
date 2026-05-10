@@ -55,7 +55,7 @@ export default function MarketingHomePage() {
 								</div>
 
 								<p className="text-muted-foreground text-sm">
-									Built for property owners. 14-day free trial, no credit card.
+									Built for landlords with 1–15 rentals. 14-day free trial, no credit card.
 								</p>
 							</div>
 

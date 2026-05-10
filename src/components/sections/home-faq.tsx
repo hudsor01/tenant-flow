@@ -18,7 +18,7 @@ const homeFaqs = [
 	{
 		question: 'What if I have fewer than 10 units?',
 		answer:
-			'The Starter plan is built for owners managing up to 5 properties / 25 units. You get the document vault, maintenance tracking, and 10GB of document storage at $29/month. Move up to Growth when you outgrow it.'
+			'The Starter plan is built for landlords with 1–5 rentals / 25 units. You get the document vault, maintenance tracking, and 10GB of document storage at $29/month. Move up to Growth when you outgrow it.'
 	},
 	{
 		question: 'Is my data secure?',

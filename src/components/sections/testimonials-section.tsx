@@ -74,7 +74,7 @@ export function TestimonialsSection({
 								What Our Customers Say
 							</h2>
 							<p className="text-xl text-muted-foreground leading-relaxed">
-								Real results from property managers who chose TenantFlow
+								Real results from landlords who chose TenantFlow
 							</p>
 						</BlurFade>
 					</div>
