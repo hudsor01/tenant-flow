@@ -1,35 +1,20 @@
 /**
- * Blog Hub Page Tests
+ * Blog Hub Page Tests (Server Component / RSC pattern)
  *
- * Tests hub page composition: split content zones (Software Comparisons
- * horizontal scroll + Insights & Guides paginated grid), database-driven
- * category pills, and NewsletterSignup component.
+ * Tests hub page composition: server-rendered post grid, category pills,
+ * comparisons zone, breadcrumb visibility, empty-state branch.
  *
  * @vitest-environment jsdom
  */
 
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen } from '@testing-library/react'
+import type { ReactElement } from 'react'
 
-const mockSetPage = vi.hoisted(() => vi.fn())
+const mockCreateClient = vi.hoisted(() => vi.fn())
 
-const mockUseBlogs = vi.hoisted(() => vi.fn())
-const mockUseBlogCategories = vi.hoisted(() => vi.fn())
-const mockUseComparisonPosts = vi.hoisted(() => vi.fn())
-
-vi.mock('nuqs', () => ({
-	parseAsInteger: {
-		withDefault: () => ({
-			parse: (v: string) => parseInt(v, 10),
-		}),
-	},
-	useQueryState: () => [1, mockSetPage] as const,
-}))
-
-vi.mock('#hooks/api/use-blogs', () => ({
-	useBlogs: mockUseBlogs,
-	useBlogCategories: mockUseBlogCategories,
-	useComparisonPosts: mockUseComparisonPosts,
+vi.mock('#lib/supabase/server', () => ({
+	createClient: mockCreateClient,
 }))
 
 vi.mock('next/link', () => ({
@@ -98,12 +83,6 @@ vi.mock('#components/blog/newsletter-signup', () => ({
 	),
 }))
 
-vi.mock('#components/shared/blog-loading-skeleton', () => ({
-	BlogLoadingSkeleton: () => (
-		<div data-testid="blog-loading-skeleton">Loading...</div>
-	),
-}))
-
 vi.mock('#components/shared/blog-empty-state', () => ({
 	BlogEmptyState: ({ message }: { message?: string }) => (
 		<div data-testid="blog-empty-state">{message ?? 'No posts found'}</div>
@@ -116,82 +95,23 @@ vi.mock('#components/layout/page-layout', () => ({
 	),
 }))
 
-vi.mock('#components/layout/navbar', () => ({
-	Navbar: () => <nav>Navbar</nav>,
-}))
-
-vi.mock('#components/layout/footer', () => ({
-	default: () => <footer>Footer</footer>,
-}))
-
-vi.mock('#components/ui/grid-pattern', () => ({
-	GridPattern: () => null,
+vi.mock('#components/seo/json-ld-script', () => ({
+	JsonLdScript: () => <script data-testid="json-ld" />,
 }))
 
 import BlogPage from './page'
 import type { BlogListItem } from '#hooks/api/query-keys/blog-keys'
 
-const mockComparisonPosts: BlogListItem[] = [
-	{
-		id: 'comp-1',
-		title: 'AppFolio vs TenantFlow',
-		slug: 'appfolio-vs-tenantflow',
-		excerpt: 'Compare features side by side.',
-		published_at: '2026-01-10T00:00:00Z',
-		category: 'Software Comparisons',
-		reading_time: 7,
-		featured_image: null,
-		author_user_id: 'user-1',
-		status: 'published',
-		tags: ['comparison'],
-	},
-	{
-		id: 'comp-2',
-		title: 'Buildium vs TenantFlow',
-		slug: 'buildium-vs-tenantflow',
-		excerpt: 'Which property management tool is right for you?',
-		published_at: '2026-01-08T00:00:00Z',
-		category: 'Software Comparisons',
-		reading_time: 6,
-		featured_image: null,
-		author_user_id: 'user-1',
-		status: 'published',
-		tags: ['comparison'],
-	},
-	{
-		id: 'comp-3',
-		title: 'Yardi vs TenantFlow',
-		slug: 'yardi-vs-tenantflow',
-		excerpt: 'Enterprise vs modern property management.',
-		published_at: '2026-01-05T00:00:00Z',
-		category: 'Software Comparisons',
-		reading_time: 8,
-		featured_image: null,
-		author_user_id: 'user-1',
-		status: 'published',
-		tags: ['comparison'],
-	},
-]
-
-const mockCategories = [
-	{
-		name: 'Software Comparisons',
-		slug: 'software-comparisons',
-		post_count: 5,
-	},
-	{ name: 'Insights & Guides', slug: 'insights-guides', post_count: 8 },
-]
-
-const mockBlogPosts: BlogListItem[] = [
+const mockPosts: BlogListItem[] = [
 	{
 		id: 'blog-1',
 		title: 'How to Reduce Vacancy Rates',
 		slug: 'reduce-vacancy-rates',
-		excerpt: 'Practical strategies for property managers.',
+		excerpt: 'Practical strategies.',
 		published_at: '2026-02-15T00:00:00Z',
 		category: 'Insights & Guides',
 		reading_time: 5,
-		featured_image: 'https://example.com/images/vacancy.jpg',
+		featured_image: null,
 		author_user_id: 'user-1',
 		status: 'published',
 		tags: ['management'],
@@ -200,7 +120,7 @@ const mockBlogPosts: BlogListItem[] = [
 		id: 'blog-2',
 		title: 'Automating Rent Collection',
 		slug: 'automating-rent-collection',
-		excerpt: 'Step-by-step guide to automate payments.',
+		excerpt: 'Step-by-step guide.',
 		published_at: '2026-02-10T00:00:00Z',
 		category: 'Insights & Guides',
 		reading_time: 4,
@@ -211,9 +131,9 @@ const mockBlogPosts: BlogListItem[] = [
 	},
 	{
 		id: 'blog-3',
-		title: 'Tenant Screening Best Practices',
+		title: 'Tenant Screening',
 		slug: 'tenant-screening',
-		excerpt: 'Find reliable tenants every time.',
+		excerpt: 'Best practices.',
 		published_at: '2026-02-05T00:00:00Z',
 		category: 'Insights & Guides',
 		reading_time: 6,
@@ -224,137 +144,149 @@ const mockBlogPosts: BlogListItem[] = [
 	},
 ]
 
-const mockBlogData = {
-	data: mockBlogPosts,
-	total: 5,
-	pagination: {
-		page: 1,
-		limit: 9,
-		total: 5,
-		totalPages: 2,
+const mockComparisons: BlogListItem[] = [
+	{
+		id: 'comp-1',
+		title: 'AppFolio vs TenantFlow',
+		slug: 'appfolio-vs-tenantflow',
+		excerpt: 'Compare features.',
+		published_at: '2026-01-10T00:00:00Z',
+		category: 'Software Comparisons',
+		reading_time: 7,
+		featured_image: null,
+		author_user_id: 'user-1',
+		status: 'published',
+		tags: ['comparison'],
 	},
+]
+
+const mockCategories = [
+	{ name: 'Software Comparisons', slug: 'software-comparisons', post_count: 5 },
+	{ name: 'Insights & Guides', slug: 'insights-guides', post_count: 8 },
+]
+
+interface MockBuilderOpts {
+	posts?: BlogListItem[]
+	postsCount?: number | null
+	comparisons?: BlogListItem[]
 }
 
-function setupDefaultMocks() {
-	mockUseBlogs.mockReturnValue({
-		data: mockBlogData,
-		isLoading: false,
+function makeFromBuilder({
+	posts = mockPosts,
+	postsCount = 18,
+	comparisons = mockComparisons,
+}: MockBuilderOpts = {}) {
+	const fromMock = vi.fn((_table: string) => {
+		// Each .from() call returns a fresh chain; we differentiate by checking
+		// whether .contains() is invoked (comparisons path) vs. .range() (posts path).
+		let isComparison = false
+		const chain: Record<string, unknown> = {}
+		chain.select = vi.fn(() => chain)
+		chain.eq = vi.fn(() => chain)
+		chain.order = vi.fn(() => chain)
+		chain.contains = vi.fn(() => {
+			isComparison = true
+			return chain
+		})
+		chain.limit = vi.fn(() => Promise.resolve({ data: comparisons, count: null, error: null }))
+		chain.range = vi.fn(() => Promise.resolve({ data: posts, count: postsCount, error: null }))
+		// Thenable fallback for chains that get awaited without .range/.limit
+		;(chain as { then?: unknown }).then = (
+			resolve: (v: { data: BlogListItem[]; count: number | null; error: null }) => unknown
+		) =>
+			resolve(
+				isComparison
+					? { data: comparisons, count: null, error: null }
+					: { data: posts, count: postsCount, error: null }
+			)
+		return chain
 	})
-	mockUseBlogCategories.mockReturnValue({
-		data: mockCategories,
-		isLoading: false,
+
+	const rpcMock = vi.fn((name: string) => {
+		if (name === 'get_blog_categories') {
+			return Promise.resolve({ data: mockCategories, error: null })
+		}
+		return Promise.resolve({ data: null, error: null })
 	})
-	mockUseComparisonPosts.mockReturnValue({
-		data: mockComparisonPosts,
-		isLoading: false,
-	})
+
+	return { from: fromMock, rpc: rpcMock }
 }
 
-describe('BlogPage (Hub)', () => {
+async function renderPage(opts?: MockBuilderOpts): Promise<ReactElement> {
+	mockCreateClient.mockResolvedValue(makeFromBuilder(opts))
+	const ui = await BlogPage({ searchParams: Promise.resolve({}) })
+	return ui
+}
+
+describe('BlogPage (server component)', () => {
 	beforeEach(() => {
 		vi.clearAllMocks()
-		setupDefaultMocks()
 	})
 
-	it('renders Software Comparisons section heading', () => {
-		render(<BlogPage />)
+	it('renders breadcrumb nav landmark', async () => {
+		render(await renderPage())
 		expect(
-			screen.getByRole('heading', { name: /software comparisons/i })
+			screen.getByRole('navigation', { name: /breadcrumb/i })
 		).toBeInTheDocument()
 	})
 
-	it('renders BlogCard for each comparison post', () => {
-		render(<BlogPage />)
+	it('renders BlogCard for each fetched post', async () => {
+		render(await renderPage())
 		const cards = screen.getAllByTestId('blog-card')
-		const comparisonCards = cards.filter(
-			card =>
-				card.getAttribute('data-post-id')?.startsWith('comp-')
+		const blogCards = cards.filter(c =>
+			c.getAttribute('data-post-id')?.startsWith('blog-')
 		)
-		expect(comparisonCards).toHaveLength(3)
+		expect(blogCards).toHaveLength(3)
+		expect(blogCards[0]).toHaveTextContent('How to Reduce Vacancy Rates')
 	})
 
-	it('comparisons zone has horizontal scroll container with scrollbar-hide class', () => {
-		const { container } = render(<BlogPage />)
-		const scrollContainer = container.querySelector('.scrollbar-hide')
-		expect(scrollContainer).toBeInTheDocument()
+	it('renders pagination when totalPages > 1', async () => {
+		render(await renderPage({ postsCount: 27 }))
+		const pagination = screen.getByTestId('blog-pagination')
+		expect(pagination.getAttribute('data-total-pages')).toBe('3')
 	})
 
-	it('renders category pills from useBlogCategories data with post counts', () => {
-		render(<BlogPage />)
+	it('does NOT render pagination when totalPages = 1', async () => {
+		render(await renderPage({ postsCount: 3 }))
+		expect(screen.queryByTestId('blog-pagination')).not.toBeInTheDocument()
+	})
+
+	it('renders empty-state branch when zero posts', async () => {
+		render(await renderPage({ posts: [], postsCount: 0 }))
+		expect(screen.getByTestId('blog-empty-state')).toBeInTheDocument()
+	})
+
+	it('renders category pills linking to /blog/category/[slug]', async () => {
+		render(await renderPage())
 		const categoryLinks = screen
 			.getAllByRole('link')
 			.filter(link => link.getAttribute('href')?.startsWith('/blog/category/'))
 		expect(categoryLinks).toHaveLength(2)
-		expect(categoryLinks[0]).toHaveTextContent('Software Comparisons')
-		expect(categoryLinks[0]).toHaveTextContent('(5)')
-		expect(categoryLinks[1]).toHaveTextContent('Insights & Guides')
-		expect(categoryLinks[1]).toHaveTextContent('(8)')
-	})
-
-	it('each category pill links to /blog/category/[slug]', () => {
-		render(<BlogPage />)
-		const links = screen.getAllByRole('link')
-		const categoryLinks = links.filter(link => {
-			const href = link.getAttribute('href')
-			return href?.startsWith('/blog/category/')
-		})
-		expect(categoryLinks.length).toBeGreaterThanOrEqual(2)
 		const hrefs = categoryLinks.map(l => l.getAttribute('href'))
 		expect(hrefs).toContain('/blog/category/software-comparisons')
 		expect(hrefs).toContain('/blog/category/insights-guides')
 	})
 
-	it('renders Insights & Guides section heading', () => {
-		render(<BlogPage />)
+	it('renders Software Comparisons section when comparisons exist', async () => {
+		render(await renderPage())
 		expect(
-			screen.getByRole('heading', { name: /insights & guides/i })
+			screen.getByRole('heading', { name: /software comparisons/i })
 		).toBeInTheDocument()
+		const compCards = screen
+			.getAllByTestId('blog-card')
+			.filter(c => c.getAttribute('data-post-id')?.startsWith('comp-'))
+		expect(compCards.length).toBeGreaterThanOrEqual(1)
 	})
 
-	it('renders BlogCard for each blog post in grid zone', () => {
-		render(<BlogPage />)
-		const cards = screen.getAllByTestId('blog-card')
-		const blogCards = cards.filter(
-			card =>
-				card.getAttribute('data-post-id')?.startsWith('blog-')
-		)
-		expect(blogCards).toHaveLength(3)
+	it('does NOT render Software Comparisons section when zero comparisons', async () => {
+		render(await renderPage({ comparisons: [] }))
+		expect(
+			screen.queryByRole('heading', { name: /software comparisons/i })
+		).not.toBeInTheDocument()
 	})
 
-	it('renders BlogPagination with correct totalPages', () => {
-		render(<BlogPage />)
-		const pagination = screen.getByTestId('blog-pagination')
-		expect(pagination).toBeInTheDocument()
-		expect(pagination.getAttribute('data-total-pages')).toBe('2')
-	})
-
-	it('renders NewsletterSignup component', () => {
-		render(<BlogPage />)
+	it('renders NewsletterSignup', async () => {
+		render(await renderPage())
 		expect(screen.getByTestId('newsletter-signup')).toBeInTheDocument()
-	})
-
-	it('shows BlogLoadingSkeleton when comparisons or blogs are loading', () => {
-		mockUseComparisonPosts.mockReturnValue({
-			data: undefined,
-			isLoading: true,
-		})
-		mockUseBlogs.mockReturnValue({
-			data: undefined,
-			isLoading: true,
-		})
-		render(<BlogPage />)
-		const skeletons = screen.getAllByTestId('blog-loading-skeleton')
-		expect(skeletons.length).toBeGreaterThanOrEqual(1)
-	})
-
-	it('does NOT render raw inline newsletter HTML', () => {
-		render(<BlogPage />)
-		const newsletterSignup = screen.getByTestId('newsletter-signup')
-		expect(newsletterSignup).toBeInTheDocument()
-		const emailInputs = document.querySelectorAll('input[type="email"]')
-		const inputsOutsideComponent = Array.from(emailInputs).filter(
-			input => !newsletterSignup.contains(input)
-		)
-		expect(inputsOutsideComponent).toHaveLength(0)
 	})
 })
