@@ -162,9 +162,10 @@ export function PricingCardStandard({
 					<p className="text-sm text-muted-foreground">{plan.description}</p>
 				</div>
 
-				{/* Price */}
+				{/* Price — CONS-09: whitespace-nowrap keeps `$XX` + `/mo` on the
+				    same line at narrow grid columns. */}
 				<div className="mb-6">
-					<div className="flex items-baseline gap-1">
+					<div className="flex items-baseline gap-1 whitespace-nowrap">
 						<NumberFlow
 							className="text-3xl font-bold text-foreground"
 							format={{
@@ -181,6 +182,13 @@ export function PricingCardStandard({
 							? `Billed annually`
 							: 'Billed monthly'}
 					</p>
+					{/* CONS-10: per-card savings — monthly × 2 (2 months free
+					    on annual). Phase 5 math: Starter $38 / Max $298. */}
+					{billingCycle === 'yearly' && plan.price.monthly > 0 && (
+						<p className="text-xs font-semibold text-success mt-1">
+							Save ${plan.price.monthly * 2}/year
+						</p>
+					)}
 				</div>
 
 				{/* Features */}
