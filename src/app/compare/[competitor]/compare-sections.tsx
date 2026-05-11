@@ -13,6 +13,11 @@ function FeatureIcon({ support }: { support: FeatureSupport }) {
 			return <Minus className="size-5 text-amber-500" />
 		case 'addon':
 			return <Plus className="size-5 text-blue-500" />
+		case 'na':
+			// CONS-07: neutral framing for "by design" feature absences
+			// (ACH/Payment, HOA Management) — these are positioning
+			// choices on the landlord-only platform, not gaps.
+			return <Minus className="size-5 text-muted-foreground" aria-label="Not applicable" />
 	}
 }
 

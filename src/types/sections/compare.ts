@@ -1,4 +1,8 @@
-export type FeatureSupport = 'yes' | 'no' | 'partial' | 'addon'
+// `na` — Not applicable / by design. Used for features that TenantFlow
+// intentionally does NOT support (e.g. ACH rent collection, HOA management
+// on the landlord-only platform). Renders with neutral muted styling, not a
+// destructive red ✗, since these are positioning choices not gaps.
+export type FeatureSupport = 'yes' | 'no' | 'partial' | 'addon' | 'na'
 
 export interface FeatureRow {
 	name: string

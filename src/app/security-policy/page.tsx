@@ -208,7 +208,7 @@ export default function SecurityPolicyPage() {
 					</section>
 
 					<section className="mb-8">
-						<h2 className="mb-4 typography-h3">7. Contact</h2>
+						<h2 className="mb-4 typography-h3">7. Contact &amp; Monitored Inboxes</h2>
 						<p>
 							For security-related inquiries, contact us at{' '}
 							<a
@@ -217,7 +217,17 @@ export default function SecurityPolicyPage() {
 							>
 								security@tenantflow.app
 							</a>
-							.
+							. Acknowledged within 24 hours per § 3.
+						</p>
+						<p className="mt-3">
+							For sales and product inquiries, contact{' '}
+							<a
+								href="mailto:sales@tenantflow.app"
+								className="text-primary hover:underline"
+							>
+								sales@tenantflow.app
+							</a>
+							. Responded to within 1 business day (US business hours, Monday through Friday).
 						</p>
 						<p>
 							For general support, visit our{' '}
