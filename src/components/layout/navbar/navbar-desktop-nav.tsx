@@ -97,6 +97,7 @@ export function NavbarDesktopNav({ navItems, pathname }: NavbarDesktopNavProps) 
 					<Link
 						href={item.href}
 						onKeyDown={e => handleKeyDown(e, item)}
+						aria-current={isActiveLink(item.href) ? 'page' : undefined}
 						className={cn(
 							'flex items-center px-4 py-2 text-foreground/70 hover:text-foreground font-medium text-base rounded-lg transition-colors duration-fast',
 							isActiveLink(item.href) && 'text-foreground'

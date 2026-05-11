@@ -21,7 +21,7 @@ export const DEFAULT_NAV_ITEMS: NavItem[] = [
 	{ name: 'About', href: '/about' },
 	{
 		name: 'Resources',
-		href: '#',
+		href: '/resources',
 		hasDropdown: true,
 		dropdownItems: [
 			{ name: 'Blog', href: '/blog' },
