@@ -72,7 +72,7 @@ export function LogoCloud({
 								<div className="group relative flex flex-col items-center gap-2">
 									<div
 										className={cn(
-											'h-8 flex items-center justify-center grayscale opacity-80 hover:grayscale-0 hover:opacity-100 transition-all duration-300',
+											'h-8 flex items-center justify-center opacity-90 hover:opacity-100 transition-opacity duration-300',
 											integration.width
 										)}
 									>

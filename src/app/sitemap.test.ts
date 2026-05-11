@@ -171,17 +171,17 @@ describe('sitemap()', () => {
 		const entries = await sitemap()
 
 		const terms = entries.find(e => e.url === 'https://tenantflow.app/terms')
-		expect(terms?.lastModified).toBe('2025-10-05')
+		expect(terms?.lastModified).toBe('2026-05-11')
 
 		const privacy = entries.find(
 			e => e.url === 'https://tenantflow.app/privacy'
 		)
-		expect(privacy?.lastModified).toBe('2025-10-05')
+		expect(privacy?.lastModified).toBe('2026-05-11')
 
 		const securityPolicy = entries.find(
 			e => e.url === 'https://tenantflow.app/security-policy'
 		)
-		expect(securityPolicy?.lastModified).toBe('2026-02-27')
+		expect(securityPolicy?.lastModified).toBe('2026-05-11')
 	})
 
 	it('Test 5: blog post entries prefer updated_at then published_at', async () => {

@@ -16,9 +16,9 @@ const logger = createLogger({ component: 'Sitemap' })
 //
 // Source: src/app/{terms,privacy,security-policy}/page.tsx visible
 // "Last Updated" line.
-const TERMS_LAST_UPDATED = '2025-10-05'
-const PRIVACY_LAST_UPDATED = '2025-10-05'
-const SECURITY_POLICY_LAST_UPDATED = '2026-02-27'
+const TERMS_LAST_UPDATED = '2026-05-11'
+const PRIVACY_LAST_UPDATED = '2026-05-11'
+const SECURITY_POLICY_LAST_UPDATED = '2026-05-11'
 
 // `changeFrequency` is no longer consulted by Google as of 2023, and the
 // `lastmod` field is the only freshness signal that still affects crawl

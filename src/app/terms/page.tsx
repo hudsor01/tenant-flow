@@ -17,7 +17,7 @@ export default function TermsPage() {
 			<JsonLdScript schema={createBreadcrumbJsonLd('/terms')} />
 			<div className="mx-auto min-h-screen max-w-4xl px-6 section-spacing">
 				<h1 className="mb-8 typography-h1">Terms of Service</h1>
-				<p className="mb-6 text-muted-foreground">Last Updated: October 5, 2025</p>
+				<p className="mb-6 text-muted-foreground">Last Updated: May 11, 2026</p>
 
 				<div className="prose prose-gray dark:prose-invert max-w-none">
 					<section className="mb-8">
@@ -518,7 +518,7 @@ export default function TermsPage() {
 							understood, and agree to be bound by these Terms of Service.
 						</p>
 						<p className="mt-4">
-							<strong>Last Updated:</strong> October 5, 2025
+							<strong>Last Updated:</strong> May 11, 2026
 						</p>
 						<p className="mt-2">
 							<strong>Effective Date:</strong> October 5, 2025

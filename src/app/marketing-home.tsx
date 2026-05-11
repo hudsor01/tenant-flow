@@ -9,7 +9,6 @@ import { PageLayout } from '#components/layout/page-layout'
 import { HeroDashboardMockup } from '#components/sections/hero-dashboard-mockup'
 import { LogoCloud } from '#components/sections/logo-cloud'
 import { HowItWorks } from '#components/sections/how-it-works'
-import { ComparisonTable } from '#components/sections/comparison-table'
 import { HomeFaq } from '#components/sections/home-faq'
 import { LazySection } from '#components/ui/lazy-section'
 import { SectionSkeleton } from '#components/ui/section-skeleton'
@@ -104,13 +103,9 @@ export default function MarketingHomePage() {
 				<StatsShowcase />
 			</LazySection>
 
-			{/* Comparison Table */}
-			<LazySection
-				fallback={<SectionSkeleton height={600} variant="grid" />}
-				minHeight={600}
-			>
-				<ComparisonTable />
-			</LazySection>
+			{/* CONS-14: "Why Landlords Choose TenantFlow" ComparisonTable
+			    removed from homepage to de-duplicate with /features (which is
+			    its natural home). Kept on /features only. */}
 
 			{/* FAQ Section */}
 			<LazySection
