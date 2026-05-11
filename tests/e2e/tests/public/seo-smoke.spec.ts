@@ -163,6 +163,86 @@ test.describe('SEO Smoke Tests', () => {
 		await assertPageSeo(page, href, ['Article', 'BreadcrumbList'])
 	})
 
+	test('/blog/[slug] renders visible breadcrumb + dynamic /api/og/blog/ OG image (Plan 06-02)', async ({
+		page,
+	}) => {
+		await page.goto('/blog', { waitUntil: 'load', timeout: 30000 })
+		const firstLink = page.locator('a[href^="/blog/"][href*="-"]').first()
+		const count = await firstLink.count()
+		if (count === 0) {
+			test.skip(true, 'no published posts yet — re-run after Plan 06-04 ships')
+			return
+		}
+		const href = await firstLink.getAttribute('href', { timeout: 5000 })
+		if (!href) {
+			test.skip(true, 'no published post href resolved')
+			return
+		}
+		await page.goto(href, { waitUntil: 'load', timeout: 30000 })
+
+		// Visible breadcrumb nav landmark must be present (Phase 6 SEO-05).
+		// The shadcn primitive renders `<nav aria-label="breadcrumb">`.
+		await expect(
+			page.getByRole('navigation', { name: /breadcrumb/i }).first()
+		).toBeVisible()
+
+		// og:image content must point at the dynamic OG route (Plan 06-02 Task 2).
+		// We assert the URL pattern, not the byte-for-byte URL, so the test
+		// survives slug variance across Plan 06-04 / future content additions.
+		const ogImage = await page
+			.locator('meta[property="og:image"]')
+			.getAttribute('content')
+		expect(ogImage, 'og:image content should reference /api/og/blog/').toMatch(
+			/\/api\/og\/blog\//
+		)
+	})
+
+	test('/blog/this-slug-does-not-exist returns real HTTP 404 (no soft-200)', async ({
+		page,
+	}) => {
+		// Phase 6 (BLOG-02): generateStaticParams + notFound() must emit a real
+		// 404 for slugs outside the published set. Cache-busting timestamp
+		// guarantees the slug isn't accidentally minted by ISR.
+		const bogusSlug = `this-slug-does-not-exist-${Date.now()}`
+		const response = await page.goto(`/blog/${bogusSlug}`, {
+			waitUntil: 'load',
+			timeout: 30000,
+		})
+		expect(
+			response?.status(),
+			`/blog/${bogusSlug} should return 404 (not soft-200)`
+		).toBe(404)
+	})
+
+	test('canonical tag on tenantflow-vs-buildium points at /compare/buildium (Blocker-#1)', async ({
+		page,
+	}) => {
+		// Plan 06-02 Task 2 wires `post.canonical_url` (Plan 06-01 column) →
+		// Next.js Metadata.alternates.canonical → `<link rel="canonical">` in
+		// <head>. The buildium post (brief #10) ships with canonical_url =
+		// `/compare/buildium` to avoid cannibalization with the compare page.
+		//
+		// Skip-if-not-published guard: post #10 isn't live until Plan 06-04's
+		// editorial flip. The test passes (skipped) before then, asserts after,
+		// and fails loudly if the canonical drops once the post is live.
+		const response = await page.goto('/blog/tenantflow-vs-buildium', {
+			waitUntil: 'load',
+			timeout: 30000,
+		})
+		if (response?.status() === 404) {
+			test.skip(
+				true,
+				'tenantflow-vs-buildium not yet published — re-run after editorial flip'
+			)
+			return
+		}
+		expect(response?.status()).toBe(200)
+		await expect(page.locator('link[rel="canonical"]')).toHaveAttribute(
+			'href',
+			/\/compare\/buildium$/
+		)
+	})
+
 	test('/blog/category/[category] has BreadcrumbList schema', async ({ page }) => {
 		await page.goto('/blog', { waitUntil: 'load', timeout: 30000 })
 		const categoryLink = page.locator('a[href^="/blog/category/"]').first()
