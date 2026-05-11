@@ -12,10 +12,13 @@ import { BlogPostBreadcrumb } from '#components/blog/blog-post-breadcrumb'
 import BlogPostPage from './blog-post-page'
 
 // Phase 6 (BLOG-02): restore ISR with `generateStaticParams` returning the
-// published slug set. Dynamic params hit `notFound()` (real HTTP 404 outside
-// the static set), known slugs serve from the 5-minute revalidate cache.
-// This replaces the Phase-1 `force-dynamic` mitigation now that the broken
-// drafts are hard-deleted (Plan 06-01).
+// published slug set. `dynamicParams = false` makes any slug not in the
+// build-time set return a real HTTP 404 — closes the soft-200 path that
+// Phase-1's `force-dynamic` + in-component `notFound()` couldn't reliably
+// guarantee in dev mode. Newly-published posts are picked up on next
+// Vercel build (frequent given content cadence); known slugs serve from
+// the 5-minute revalidate cache for editorial updates.
+export const dynamicParams = false
 export const revalidate = 300
 
 const logger = createLogger({ component: 'BlogPost' })
