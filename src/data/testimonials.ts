@@ -13,8 +13,8 @@ import type { Testimonial } from '#types/sections/marketing'
 //   - No headshots — avatar renders as initials (component does
 //     author.split(' ').map(n => n[0]).join('') automatically)
 //   - No fabricated metrics — `metric` field intentionally omitted
-//   - No banlist phrases (rent collection, autopay, online rent, etc.)
-//   - Zero DocuSeal mentions (under the ≤1 cap)
+//   - No phrases from BANNED_PHRASES in marketing-copy-landlord-only.test.ts
+//   - Zero references to the e-signing vendor name (under the ≤1 cap)
 //   - Em-dash NOT used inside quoted text (per
 //     feedback_no_em_dash_in_quotes.md memory)
 //
