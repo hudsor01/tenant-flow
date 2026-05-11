@@ -393,13 +393,31 @@ Deno.serve(async (req: Request) => {
 				})
 			}
 			// 23514 = check_violation (CHECK constraint OR validate_blog_post()
-			// RAISE EXCEPTION USING ERRCODE = '23514'). Surface as a gate failure
-			// with the trigger's message so n8n can map it to a fix.
+			// RAISE EXCEPTION USING ERRCODE = '23514'). Map known gate prefixes
+			// from our trigger's RAISE EXCEPTION text to a sanitized gate name +
+			// canonical fix-hint message. Per CLAUDE.md "Edge Function rules: never
+			// expose raw err.message" — these are our own messages but we still
+			// pattern-match rather than pass through verbatim.
 			if (error.code === '23514') {
+				const raw = error.message ?? ''
+				const knownGates = [
+					{ prefix: 'word_count out of range', gate: 'word_count', hint: 'content must be 1200-3000 words' },
+					{ prefix: 'h2_count out of range', gate: 'h2_count', hint: 'content must have 4-10 H2 sections' },
+					{ prefix: 'persona phrase missing', gate: 'persona_phrase', hint: 'content must contain "landlord"' },
+					{ prefix: 'slug pattern invalid', gate: 'slug_pattern', hint: 'slug must match ^[a-z][a-z0-9]*(-[a-z0-9]+)*$, length 3..120' },
+					{ prefix: 'meta_description length out of range', gate: 'meta_length', hint: 'meta_description must be 50-160 chars' },
+					{ prefix: 'excerpt length out of range', gate: 'excerpt_length', hint: 'excerpt must be 80-200 chars' },
+					{ prefix: 'category not in enum', gate: 'category_enum', hint: 'category must be one of: lease-law, tax-prep, tenant-screening, maintenance, software-vault' },
+					{ prefix: 'banlist hit', gate: 'banlist', hint: 'content contains a Phase 4 banned phrase (rent collection, autopay, etc.)' },
+					{ prefix: 'DocuSeal mention count too high', gate: 'docuseal_mention', hint: 'content may mention "DocuSeal" at most 1 time' },
+				]
+				const match = knownGates.find(g => raw.startsWith(g.prefix))
 				return jsonResponse(req, 400, {
 					error: 'validation_failed',
 					gate_failures: [
-						{ gate: 'db_trigger', message: error.message },
+						match
+							? { gate: match.gate, message: match.hint }
+							: { gate: 'db_trigger', message: 'A validation gate rejected the insert. See n8n flow logs.' },
 					],
 				})
 			}

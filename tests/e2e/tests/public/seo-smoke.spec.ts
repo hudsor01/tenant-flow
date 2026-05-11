@@ -149,7 +149,7 @@ test.describe('SEO Smoke Tests', () => {
 
 	test('/blog/[slug] has Article schema', async ({ page }) => {
 		await page.goto('/blog', { waitUntil: 'load', timeout: 30000 })
-		const firstLink = page.locator('a[href^="/blog/"][href*="-"]').first()
+		const firstLink = page.locator('a[href^="/blog/"][href*="-"]:not([href^="/blog/category/"])').first()
 		const count = await firstLink.count()
 		if (count === 0) {
 			test.skip()
@@ -167,7 +167,7 @@ test.describe('SEO Smoke Tests', () => {
 		page,
 	}) => {
 		await page.goto('/blog', { waitUntil: 'load', timeout: 30000 })
-		const firstLink = page.locator('a[href^="/blog/"][href*="-"]').first()
+		const firstLink = page.locator('a[href^="/blog/"][href*="-"]:not([href^="/blog/category/"])').first()
 		const count = await firstLink.count()
 		if (count === 0) {
 			test.skip(true, 'no published posts yet — re-run after Plan 06-04 ships')
