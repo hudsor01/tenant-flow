@@ -14,7 +14,9 @@ import { LazySection } from '#components/ui/lazy-section'
 import { SectionSkeleton } from '#components/ui/section-skeleton'
 import FeaturesSectionDemo from '#components/sections/features-section'
 import { StatsShowcase } from '#components/sections/stats-showcase'
+import { TestimonialsSection } from '#components/sections/testimonials-section'
 import { PremiumCta } from '#components/sections/premium-cta'
+import { realTestimonials } from '../data/testimonials'
 
 export default function MarketingHomePage() {
 	return (
@@ -106,6 +108,15 @@ export default function MarketingHomePage() {
 			{/* CONS-14: "Why Landlords Choose TenantFlow" ComparisonTable
 			    removed from homepage to de-duplicate with /features (which is
 			    its natural home). Kept on /features only. */}
+
+			{/* Testimonials (TRUST-01) — real-customer quotes; data source
+			    in src/data/testimonials.ts gates honest provenance. */}
+			<LazySection
+				fallback={<SectionSkeleton height={500} variant="card" />}
+				minHeight={500}
+			>
+				<TestimonialsSection testimonials={realTestimonials} />
+			</LazySection>
 
 			{/* FAQ Section */}
 			<LazySection
