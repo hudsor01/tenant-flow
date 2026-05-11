@@ -3,10 +3,10 @@ import type { ReactNode } from 'react'
 import { BlurFade } from '#components/ui/blur-fade'
 import { cn } from '#lib/utils'
 import {
-	ArrowLeft,
 	DollarSign,
 	FolderArchive,
 	HelpCircle,
+	LayoutDashboard,
 	Terminal,
 	Zap
 } from 'lucide-react'
@@ -41,7 +41,7 @@ export default function FeaturesSectionDemo({
 			title: 'Multi-Property Dashboard',
 			description:
 				'Manage your entire portfolio from one unified dashboard with revenue, occupancy, and maintenance metrics.',
-			icon: <ArrowLeft />
+			icon: <LayoutDashboard />
 		},
 		{
 			title: 'Email Support',
