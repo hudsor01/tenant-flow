@@ -228,6 +228,7 @@ const MARKETING_FILES = [
 	'src/app/compare/[competitor]/page.tsx',
 	'src/app/compare/[competitor]/compare-data.ts',
 	'src/data/faqs.ts',
+	'src/data/testimonials.ts',
 	'src/config/pricing.ts',
 	'src/lib/generate-metadata.ts'
 ] as const
