@@ -1,8 +1,12 @@
 /**
- * Blog Detail Page Tests
+ * Blog Article Page Tests
  *
- * Tests for the blog article detail page: featured image with blur-fade,
- * simplified prose, related posts section, category link in meta bar.
+ * Tests cover two layers:
+ *   1) `blog-post-page.tsx` (client component) — image blur-fade, prose
+ *      wrapper, related posts, meta bar. Tests pass the post via props.
+ *   2) `page.tsx` (server entry) — generateMetadata wires `alternates.canonical`
+ *      from `post.canonical_url` (Blocker-#1 fix) and `openGraph.images` to
+ *      `/api/og/blog/{slug}`.
  *
  * @vitest-environment jsdom
  */
@@ -76,11 +80,6 @@ vi.mock('#components/blog/lead-magnet-cta', () => ({
 		<div data-testid="lead-magnet-cta">Lead Magnet</div>
 	),
 }))
-
-// blog-loading-skeleton mock dropped — the page-level loading branch
-// (gated on `useBlogBySlug` returning isLoading) was removed when the
-// hook was retired in favor of server-rendered post props. The
-// component itself still exists for other consumers.
 
 vi.mock('#components/layout/page-layout', () => ({
 	PageLayout: ({ children }: { children: React.ReactNode }) => (
@@ -258,4 +257,174 @@ describe('BlogArticlePage', () => {
 	// fired while `useBlogBySlug` was loading) was removed when that
 	// hook was dropped. MarkdownContent is now a server-renderable
 	// direct import, no `dynamic({ ssr: false })` skeleton remains.
+})
+
+// ---------------------------------------------------------------------------
+// Server-entry tests: generateMetadata canonical/OG wiring (Plan 06-02, Task 2)
+//
+// `generateMetadata` is the surface that fixes audit-Blocker-#1: the per-post
+// canonical URL lives in <head> via Next.js Metadata API, NOT in the markdown
+// body. These tests pin two branches:
+//   - `post.canonical_url` non-null → that URL becomes `alternates.canonical`
+//   - `post.canonical_url` null     → fall back to `/blog/{slug}`
+//
+// Plus they pin the `openGraph.images[0].url` → `/api/og/blog/{slug}` wiring
+// added in Plan 06-02 Task 2.
+// ---------------------------------------------------------------------------
+
+const mockServerCreateClient = vi.hoisted(() => vi.fn())
+const mockServerNotFound = vi.hoisted(() =>
+	vi.fn(() => {
+		throw new Error('NEXT_NOT_FOUND')
+	})
+)
+
+vi.mock('#lib/supabase/server', () => ({
+	createClient: mockServerCreateClient,
+}))
+
+vi.mock('next/navigation', () => ({
+	notFound: mockServerNotFound,
+}))
+
+vi.mock('#lib/frontend-logger', () => ({
+	createLogger: () => ({
+		error: vi.fn(),
+		warn: vi.fn(),
+		info: vi.fn(),
+		debug: vi.fn(),
+	}),
+}))
+
+interface BlogRow {
+	title: string
+	slug: string
+	published_at: string | null
+	updated_at: string | null
+	featured_image: string | null
+	content: string
+	reading_time: number | null
+	category: string | null
+	meta_description: string | null
+	excerpt: string | null
+	tags: string[] | null
+	canonical_url: string | null
+}
+
+function makeServerClient(row: BlogRow | null) {
+	const builder = {
+		select: vi.fn(() => builder),
+		eq: vi.fn(() => builder),
+		single: vi.fn(() =>
+			Promise.resolve({
+				data: row,
+				error: row === null ? { code: 'PGRST116' } : null,
+			})
+		),
+	}
+	return {
+		from: vi.fn(() => builder),
+	}
+}
+
+describe('generateMetadata (server entry)', () => {
+	beforeEach(() => {
+		vi.clearAllMocks()
+	})
+
+	it('sets alternates.canonical to post.canonical_url when non-null (Blocker-#1 fix)', async () => {
+		const row: BlogRow = {
+			title: 'TenantFlow vs Buildium',
+			slug: 'tenantflow-vs-buildium',
+			published_at: '2026-05-01T00:00:00Z',
+			updated_at: null,
+			featured_image: null,
+			content: '## Intro\n\nbody',
+			reading_time: 6,
+			category: 'Software & Vault',
+			meta_description: 'An honest comparison.',
+			excerpt: 'An honest comparison.',
+			tags: ['comparison'],
+			canonical_url: '/compare/buildium',
+		}
+		mockServerCreateClient.mockResolvedValue(makeServerClient(row))
+
+		const { generateMetadata } = await import('./page')
+		const metadata = await generateMetadata({
+			params: Promise.resolve({ slug: 'tenantflow-vs-buildium' }),
+		})
+
+		expect(metadata.alternates?.canonical).toBe('/compare/buildium')
+	})
+
+	it('falls back to /blog/{slug} canonical when post.canonical_url is null', async () => {
+		const row: BlogRow = {
+			title: 'A Generic Post',
+			slug: 'a-generic-post',
+			published_at: '2026-05-01T00:00:00Z',
+			updated_at: null,
+			featured_image: null,
+			content: '## Intro\n\nbody',
+			reading_time: 4,
+			category: 'Lease Law',
+			meta_description: 'A generic description.',
+			excerpt: 'A generic description.',
+			tags: ['guide'],
+			canonical_url: null,
+		}
+		mockServerCreateClient.mockResolvedValue(makeServerClient(row))
+
+		const { generateMetadata } = await import('./page')
+		const metadata = await generateMetadata({
+			params: Promise.resolve({ slug: 'a-generic-post' }),
+		})
+
+		expect(metadata.alternates?.canonical).toBe('/blog/a-generic-post')
+	})
+
+	it('wires openGraph.images[0].url to /api/og/blog/{slug}', async () => {
+		const row: BlogRow = {
+			title: 'Some Post',
+			slug: 'some-post',
+			published_at: '2026-05-01T00:00:00Z',
+			updated_at: null,
+			featured_image: null,
+			content: '## Intro\n\nbody',
+			reading_time: 4,
+			category: 'Maintenance',
+			meta_description: 'Maintenance guide.',
+			excerpt: 'Maintenance guide.',
+			tags: ['maintenance'],
+			canonical_url: null,
+		}
+		mockServerCreateClient.mockResolvedValue(makeServerClient(row))
+
+		const { generateMetadata } = await import('./page')
+		const metadata = await generateMetadata({
+			params: Promise.resolve({ slug: 'some-post' }),
+		})
+
+		const ogImages = metadata.openGraph?.images as
+			| Array<{ url: string; width?: number; height?: number; alt?: string }>
+			| undefined
+		expect(ogImages).toBeDefined()
+		expect(ogImages?.[0]?.url).toBe('/api/og/blog/some-post')
+		expect(ogImages?.[0]?.width).toBe(1200)
+		expect(ogImages?.[0]?.height).toBe(630)
+
+		const twitterImages = metadata.twitter?.images as string[] | undefined
+		expect(twitterImages?.[0]).toBe('/api/og/blog/some-post')
+	})
+
+	it('calls notFound() when getBlogPost returns null', async () => {
+		mockServerCreateClient.mockResolvedValue(makeServerClient(null))
+
+		const { generateMetadata } = await import('./page')
+		await expect(
+			generateMetadata({
+				params: Promise.resolve({ slug: 'unknown' }),
+			})
+		).rejects.toMatchObject({ message: expect.stringContaining('NEXT_NOT_FOUND') })
+		expect(mockServerNotFound).toHaveBeenCalled()
+	})
 })
