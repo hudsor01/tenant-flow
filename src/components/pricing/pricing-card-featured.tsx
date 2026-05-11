@@ -183,6 +183,13 @@ export function PricingCardFeatured({
 								? `Billed annually ($${plan.annualTotal}/year)`
 								: 'Billed monthly'}
 						</p>
+						{/* CONS-10: per-card savings — monthly × 2 (2 months free
+						    on annual). Phase 5 math: Growth $98. */}
+						{billingCycle === 'yearly' && plan.price.monthly > 0 && (
+							<p className="text-sm font-semibold text-success mt-1">
+								Save ${plan.price.monthly * 2}/year
+							</p>
+						)}
 					</div>
 
 					{/* Social Proof */}

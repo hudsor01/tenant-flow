@@ -6,7 +6,6 @@ import { PricingCardStandard } from './pricing-card-standard'
 import { PricingComparisonTable } from './pricing-comparison-table'
 import { Switch } from '#components/ui/switch'
 import { Label } from '#components/ui/label'
-import { Badge } from '#components/ui/badge'
 import { getAllPricingPlans } from '#config/pricing'
 import { Building2, Users, Shield } from 'lucide-react'
 
@@ -42,11 +41,6 @@ export function BentoPricingSection({
 	const starterPlan = allPlans.find(p => p.id === 'starter')
 	const growthPlan = allPlans.find(p => p.id === 'growth')
 	const maxPlan = allPlans.find(p => p.id === 'max')
-
-	// Calculate savings for annual
-	const annualSavings = growthPlan
-		? growthPlan.price.monthly * 12 - growthPlan.annualTotal
-		: 0
 
 	return (
 		<div className="w-full">
@@ -94,20 +88,18 @@ export function BentoPricingSection({
 				/>
 				<Label
 					htmlFor="billing-toggle"
-					className={`text-sm font-medium transition-colors cursor-pointer flex items-center gap-2 ${
+					className={`text-sm font-medium transition-colors cursor-pointer ${
 						billingCycle === 'yearly'
 							? 'text-foreground'
 							: 'text-muted-foreground'
 					}`}
 				>
 					Annual
-					<Badge
-						variant="secondary"
-						className="bg-success/10 text-success hover:bg-success/20 text-xs font-semibold"
-					>
-						Save ${Math.round(annualSavings)}
-					</Badge>
 				</Label>
+				{/* CONS-10: per-card "Save $X/year" badges render inside each
+				    PricingCard when billingCycle === 'yearly' — drops the
+				    misleading global badge that previously showed only
+				    Growth's $98 as if it applied to all tiers. */}
 			</div>
 
 			{/* Bento Grid Layout */}
