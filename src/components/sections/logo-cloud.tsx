@@ -10,8 +10,8 @@ interface LogoCloudProps {
 }
 
 /**
- * Logo cloud showing integration partners and technology stack
- * Uses SVG logos with grayscale-to-color hover effect
+ * Logo cloud showing integration partners and technology stack.
+ * SVG logos render at native color with a subtle opacity bump on hover.
  */
 export function LogoCloud({
 	className,
