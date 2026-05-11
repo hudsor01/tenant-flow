@@ -1,6 +1,8 @@
 import { cache } from 'react'
 import { notFound } from 'next/navigation'
-import { createClient } from '#lib/supabase/server'
+import { createClient as createServerClient } from '#lib/supabase/server'
+import { createClient as createSupabaseClient } from '@supabase/supabase-js'
+import { env } from '#env'
 import { createLogger } from '#lib/frontend-logger'
 import type { Metadata } from 'next'
 import { JsonLdScript } from '#components/seo/json-ld-script'
@@ -26,9 +28,19 @@ interface Props {
  * Build-time slug enumeration. Returns ONLY published rows so a leaked
  * unpublished slug cannot mint a static page. ISR misses for unknown
  * slugs hit `notFound()` in the page component below.
+ *
+ * Uses a cookie-less anon-key client (not the `#lib/supabase/server`
+ * cookie-aware client) because `generateStaticParams` runs at build time
+ * without an HTTP request context — `cookies()` from `next/headers`
+ * would throw "used `cookies()` inside `generateStaticParams`". Anon-key
+ * still respects RLS (`status='published'` is also the policy gate for
+ * public reads), so build-time enumeration matches request-time visibility.
  */
 export async function generateStaticParams() {
-	const supabase = await createClient()
+	const supabase = createSupabaseClient(
+		env.NEXT_PUBLIC_SUPABASE_URL,
+		env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY
+	)
 	const { data, error } = await supabase
 		.from('blogs')
 		.select('slug')
@@ -48,7 +60,7 @@ export async function generateStaticParams() {
 
 /** Deduplicated blog post query — shared by generateMetadata and Page */
 const getBlogPost = cache(async (slug: string) => {
-	const supabase = await createClient()
+	const supabase = await createServerClient()
 
 	// Race against 5s timeout to prevent Supabase cold-start hangs
 	// (80-398s observed in Sentry).
