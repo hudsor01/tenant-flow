@@ -57,7 +57,7 @@ export default function AboutPage() {
 				titleHighlight="built for landlords"
 				subtitle="One platform for property records, leases, maintenance, and the document vault. Tenants are records you keep for your own tracking — never users on the platform."
 				primaryCta={{ label: 'Start Free Trial', href: '/pricing' }}
-				secondaryCta={{ label: 'Talk to Sales', href: '/contact' }}
+				secondaryCta={{ label: 'Contact Sales', href: '/contact' }}
 				image={{
 					src: 'https://images.unsplash.com/photo-1522071820081-009f0129c71c?q=80&w=2070&auto=format&fit=crop',
 					alt: 'Professional team collaborating on property management solutions'
@@ -262,7 +262,7 @@ export default function AboutPage() {
 									</Link>
 								</Button>
 								<Button asChild variant="outline" size="lg">
-									<Link href="/contact">Talk to Sales</Link>
+									<Link href="/contact">Contact Sales</Link>
 								</Button>
 							</div>
 							<p className="text-muted-foreground">

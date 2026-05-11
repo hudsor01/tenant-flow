@@ -146,7 +146,7 @@ export function PricingFaqSection() {
 							</Link>
 							<Button size="lg" className="px-7" asChild>
 								<Link href="/contact">
-									Connect with sales
+									Contact Sales
 									<ArrowRight className="ml-2 h-4 w-4" />
 								</Link>
 							</Button>
@@ -180,7 +180,7 @@ export function PricingCtaSection() {
 								</Link>
 							</Button>
 							<Button size="lg" variant="outline" className="px-8" asChild>
-								<Link href="/contact">Schedule a walkthrough</Link>
+								<Link href="/contact">Contact Sales</Link>
 							</Button>
 						</div>
 					</div>

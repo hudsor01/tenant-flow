@@ -80,13 +80,14 @@ export const COMPETITORS: Record<string, CompetitorData> = {
 			},
 			{
 				name: 'ACH / Payment Processing',
-				tenantflow: 'no',
-				tenantflowNote: 'Landlord-only platform',
+				tenantflow: 'na',
+				tenantflowNote: 'By design — landlord-only platform',
 				competitor: 'yes',
 			},
 			{
 				name: 'HOA Management',
-				tenantflow: 'no',
+				tenantflow: 'na',
+				tenantflowNote: 'Not applicable — landlord-only platform',
 				competitor: 'yes',
 				competitorNote: 'Violation tracking included',
 			},
@@ -188,8 +189,8 @@ export const COMPETITORS: Record<string, CompetitorData> = {
 			},
 			{
 				name: 'ACH / Payment Processing',
-				tenantflow: 'no',
-				tenantflowNote: 'Landlord-only platform',
+				tenantflow: 'na',
+				tenantflowNote: 'By design — landlord-only platform',
 				competitor: 'yes',
 			},
 			{
@@ -317,8 +318,8 @@ export const COMPETITORS: Record<string, CompetitorData> = {
 			},
 			{
 				name: 'ACH / Payment Processing',
-				tenantflow: 'no',
-				tenantflowNote: 'Landlord-only platform',
+				tenantflow: 'na',
+				tenantflowNote: 'By design — landlord-only platform',
 				competitor: 'yes',
 			},
 			{

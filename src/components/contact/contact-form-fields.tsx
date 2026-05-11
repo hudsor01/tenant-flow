@@ -166,7 +166,7 @@ export function ContactFormFields({
 					}
 				>
 					<SelectTrigger id="type">
-						<SelectValue placeholder="Select an option" />
+						<SelectValue placeholder="Please select" />
 					</SelectTrigger>
 					<SelectContent>
 						<SelectItem value="search">Google Search</SelectItem>
