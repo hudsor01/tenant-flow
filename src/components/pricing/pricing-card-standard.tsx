@@ -162,9 +162,10 @@ export function PricingCardStandard({
 					<p className="text-sm text-muted-foreground">{plan.description}</p>
 				</div>
 
-				{/* Price */}
+				{/* Price — CONS-09: whitespace-nowrap keeps `$XX` + `/mo` on the
+				    same line at narrow grid columns. */}
 				<div className="mb-6">
-					<div className="flex items-baseline gap-1">
+					<div className="flex items-baseline gap-1 whitespace-nowrap">
 						<NumberFlow
 							className="text-3xl font-bold text-foreground"
 							format={{

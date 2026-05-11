@@ -137,8 +137,11 @@ export function PricingCardFeatured({
 					className
 				)}
 			>
-				{/* Most Popular Badge */}
-				<div className="absolute -top-4 left-1/2 -translate-x-1/2 z-10">
+				{/* Most Popular Badge — CONS-05: top-0 + -translate-y-1/2 keeps the
+				    badge cleanly centered on the card's top edge across all
+				    breakpoints (was `-top-4` which created ~12px overhang on
+				    narrow viewports). */}
+				<div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 z-10">
 					<Badge className="bg-primary text-primary-foreground shadow-lg px-4 py-1.5 text-sm font-semibold">
 						<Sparkles className="size-3.5 mr-1.5" />
 						Most Popular
@@ -161,7 +164,7 @@ export function PricingCardFeatured({
 								${monthlyEquivalent}/mo
 							</div>
 						)}
-						<div className="flex items-baseline justify-center gap-2">
+						<div className="flex items-baseline justify-center gap-2 whitespace-nowrap">
 							<NumberFlow
 								className="text-5xl font-bold text-foreground"
 								format={{
