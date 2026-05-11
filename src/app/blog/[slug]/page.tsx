@@ -1,26 +1,25 @@
 import { cache } from 'react'
 import { notFound } from 'next/navigation'
-import { createClient } from '#lib/supabase/server'
+import { createClient as createServerClient } from '#lib/supabase/server'
+import { createClient as createSupabaseClient } from '@supabase/supabase-js'
+import { env } from '#env'
 import { createLogger } from '#lib/frontend-logger'
 import type { Metadata } from 'next'
 import { JsonLdScript } from '#components/seo/json-ld-script'
 import { createArticleJsonLd } from '#lib/seo/article-schema'
 import { createBreadcrumbJsonLd } from '#lib/seo/breadcrumbs'
+import { BlogPostBreadcrumb } from '#components/blog/blog-post-breadcrumb'
 import BlogPostPage from './blog-post-page'
 
-// Phase 1 (CRIT-01) follow-up: Next.js 16 + ISR (`revalidate`) + `notFound()`
-// returns soft-404 (HTTP 200 + not-found UI), not real HTTP 404. This breaks
-// Specialist-2's "real 404 emitted by framework" contract and slows Google
-// deindex of the 100 broken blog rows the Phase-1 migration drafted.
-//
-// Forcing dynamic rendering ensures `notFound()` correctly emits HTTP 404 on
-// every miss. Cost is acceptable: every row was drafted by the Phase-1
-// migration, so ISR cache hits are zero in the current state.
-//
-// Phase 6 (BLOG-02 server-rendered rebuild) restores ISR with
-// `generateStaticParams` returning the published slug set — at that point
-// dynamic params hit the proper 404 path while known slugs serve from cache.
-export const dynamic = 'force-dynamic'
+// Phase 6 (BLOG-02): restore ISR with `generateStaticParams` returning the
+// published slug set. `dynamicParams = false` makes any slug not in the
+// build-time set return a real HTTP 404 — closes the soft-200 path that
+// Phase-1's `force-dynamic` + in-component `notFound()` couldn't reliably
+// guarantee in dev mode. Newly-published posts are picked up on next
+// Vercel build (frequent given content cadence); known slugs serve from
+// the 5-minute revalidate cache for editorial updates.
+export const dynamicParams = false
+export const revalidate = 300
 
 const logger = createLogger({ component: 'BlogPost' })
 
@@ -28,18 +27,55 @@ interface Props {
 	params: Promise<{ slug: string }>
 }
 
+/**
+ * Build-time slug enumeration. Returns ONLY published rows so a leaked
+ * unpublished slug cannot mint a static page. ISR misses for unknown
+ * slugs hit `notFound()` in the page component below.
+ *
+ * Uses a cookie-less anon-key client (not the `#lib/supabase/server`
+ * cookie-aware client) because `generateStaticParams` runs at build time
+ * without an HTTP request context — `cookies()` from `next/headers`
+ * would throw "used `cookies()` inside `generateStaticParams`". Anon-key
+ * still respects RLS (`status='published'` is also the policy gate for
+ * public reads), so build-time enumeration matches request-time visibility.
+ */
+export async function generateStaticParams() {
+	const supabase = createSupabaseClient(
+		env.NEXT_PUBLIC_SUPABASE_URL,
+		env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY
+	)
+	const { data, error } = await supabase
+		.from('blogs')
+		.select('slug')
+		.eq('status', 'published')
+
+	if (error) {
+		logger.error('generateStaticParams failed', {
+			action: 'generateStaticParams',
+			route: '/blog/[slug]',
+			metadata: { error: error.message, code: error.code },
+		})
+		return []
+	}
+
+	return (data ?? []).map(({ slug }) => ({ slug }))
+}
+
 /** Deduplicated blog post query — shared by generateMetadata and Page */
 const getBlogPost = cache(async (slug: string) => {
-	const supabase = await createClient()
+	const supabase = await createServerClient()
 
-	// Race against 5s timeout to prevent Supabase cold-start hangs (80-398s observed in Sentry)
+	// Race against 5s timeout to prevent Supabase cold-start hangs
+	// (80-398s observed in Sentry).
 	let timer: ReturnType<typeof setTimeout> | undefined
 	const timeout = new Promise<never>((_, reject) => {
 		timer = setTimeout(() => reject(new Error('Blog post query timed out')), 5000)
 	})
 	const query = supabase
 		.from('blogs')
-		.select('title, slug, published_at, updated_at, featured_image, content, reading_time, category, meta_description, excerpt, tags')
+		.select(
+			'title, slug, published_at, updated_at, featured_image, content, reading_time, category, meta_description, excerpt, tags, canonical_url'
+		)
 		.eq('slug', slug)
 		.eq('status', 'published')
 		.single()
@@ -54,7 +90,7 @@ const getBlogPost = cache(async (slug: string) => {
 			logger.error('Blog post query failed', {
 				action: 'getBlogPost',
 				route: `/blog/${slug}`,
-				metadata: { error: error.message, code: error.code }
+				metadata: { error: error.message, code: error.code },
 			})
 			throw new Error('Blog post query failed')
 		}
@@ -65,7 +101,7 @@ const getBlogPost = cache(async (slug: string) => {
 			logger.error('Blog post query timed out', {
 				action: 'getBlogPost',
 				route: `/blog/${slug}`,
-				metadata: {}
+				metadata: {},
 			})
 		}
 		throw err
@@ -83,6 +119,14 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 	}
 
 	const description = post.meta_description || post.excerpt
+	const ogImageUrl = `/api/og/blog/${slug}`
+
+	// Blocker-#1 fix: `post.canonical_url` (Plan 06-01 column) lands here in
+	// the framework-emitted `<head>` via `Metadata.alternates.canonical`.
+	// When non-null the post points elsewhere (e.g. brief #10 →
+	// `/compare/buildium`); when null, fall back to the post's own URL so
+	// every published post always has a canonical reference.
+	const canonical = post.canonical_url ?? `/blog/${slug}`
 
 	return {
 		// `title.absolute` opts out of the parent layout's `'%s | TenantFlow'`
@@ -97,12 +141,20 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 			publishedTime: post.published_at ?? undefined,
 			modifiedTime: post.updated_at ?? post.published_at ?? undefined,
 			section: post.category ?? undefined,
-			// Min image size for LinkedIn / Slack / Discord cards is 1200x630;
-			// downscaling a non-conforming source would lie about the file, so
-			// emit dimensions only when the source is a TenantFlow-managed
-			// asset that we know is sized correctly. For untrusted external
-			// URLs, omit width/height and let the platform sniff.
-			images: post.featured_image ? [{ url: post.featured_image }] : [],
+			// Per-post OG image generated by `/api/og/blog/[slug]/route.tsx`.
+			// Always 1200×630 (the @vercel/og ImageResponse dimensions are
+			// fixed by the route). The post's own `featured_image`, when
+			// present, is rendered inside the article body but is NOT
+			// shadowed here — a single canonical og:image per page is
+			// required for LinkedIn / Slack / Discord cards.
+			images: [
+				{
+					url: ogImageUrl,
+					width: 1200,
+					height: 630,
+					alt: post.title,
+				},
+			],
 			siteName: 'TenantFlow',
 		},
 		twitter: {
@@ -111,10 +163,10 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 			creator: '@tenantflow',
 			title: post.title,
 			description,
-			images: post.featured_image ? [post.featured_image] : [],
+			images: [ogImageUrl],
 		},
 		alternates: {
-			canonical: `/blog/${slug}`,
+			canonical,
 		},
 	}
 }
@@ -133,44 +185,49 @@ export default async function Page({ params }: Props) {
 		: ''
 
 	const breadcrumbSchema = post
-		? createBreadcrumbJsonLd(
-				`/blog/category/${categorySlug}/${slug}`,
-				{
-					[categorySlug]: post.category ?? categorySlug,
-					[slug]: post.title ?? slug
-				}
-			)
+		? createBreadcrumbJsonLd(`/blog/category/${categorySlug}/${slug}`, {
+				[categorySlug]: post.category ?? categorySlug,
+				[slug]: post.title ?? slug,
+			})
 		: null
 
 	// Article schema only emits when we have a real published_at — Google's
 	// Article rich-result eligibility requires datePublished, and faking
 	// `new Date().toISOString()` produces a misleading freshness signal that
 	// will not match what crawlers see on subsequent visits.
-	const articleSchema = post && post.published_at
-		? createArticleJsonLd({
-				title: post.title,
-				slug: post.slug,
-				datePublished: post.published_at,
-				dateModified: post.updated_at ?? post.published_at,
-				// Author byline on the rendered page reads "TenantFlow Team", and
-				// individual posts are not reliably attributed to a single human.
-				// Schema author follows the visible byline so the entity matches —
-				// `authorType: 'Organization'` because a team/brand isn't a
-				// schema.org `Person`.
-				authorName: 'TenantFlow Team',
-				authorType: 'Organization',
-				image: post.featured_image ?? undefined,
-				wordCount,
-				keywords: Array.isArray(post.tags) ? post.tags.filter((t): t is string => typeof t === 'string') : undefined,
-				description: post.meta_description ?? post.excerpt ?? undefined,
-				timeRequired: post.reading_time ? `PT${post.reading_time}M` : undefined
-			})
-		: null
+	const articleSchema =
+		post && post.published_at
+			? createArticleJsonLd({
+					title: post.title,
+					slug: post.slug,
+					datePublished: post.published_at,
+					dateModified: post.updated_at ?? post.published_at,
+					// Author byline on the rendered page reads "TenantFlow Team", and
+					// individual posts are not reliably attributed to a single human.
+					// Schema author follows the visible byline so the entity matches —
+					// `authorType: 'Organization'` because a team/brand isn't a
+					// schema.org `Person`.
+					authorName: 'TenantFlow Team',
+					authorType: 'Organization',
+					image: post.featured_image ?? undefined,
+					wordCount,
+					keywords: Array.isArray(post.tags)
+						? post.tags.filter(
+								(t): t is string => typeof t === 'string'
+							)
+						: undefined,
+					description: post.meta_description ?? post.excerpt ?? undefined,
+					timeRequired: post.reading_time
+						? `PT${post.reading_time}M`
+						: undefined,
+				})
+			: null
 
 	return (
 		<>
 			{breadcrumbSchema && <JsonLdScript schema={breadcrumbSchema} />}
 			{articleSchema && <JsonLdScript schema={articleSchema} />}
+			<BlogPostBreadcrumb title={post.title} category={post.category} />
 			<BlogPostPage post={post} slug={slug} />
 		</>
 	)
