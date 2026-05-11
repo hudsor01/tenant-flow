@@ -17,7 +17,7 @@ export default function PrivacyPage() {
 			<JsonLdScript schema={createBreadcrumbJsonLd('/privacy')} />
 			<div className="mx-auto min-h-screen max-w-4xl px-6 section-spacing">
 				<h1 className="mb-8 typography-h1">Privacy Policy</h1>
-				<p className="mb-6 text-muted-foreground">Last Updated: October 5, 2025</p>
+				<p className="mb-6 text-muted-foreground">Last Updated: May 11, 2026</p>
 
 				<div className="prose prose-gray dark:prose-invert max-w-none">
 					<section className="mb-8">
