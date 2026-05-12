@@ -105,6 +105,13 @@
 	--transition-duration-normal: 300ms;
 	--transition-duration-slow: 500ms;
 	--transition-duration-slower: 700ms;
+	/* Tailwind v4 references --color-white / --color-black for opacity modifiers
+	   like `border-white/20`. Tailwind ships defaults, but our @theme block
+	   replaces them, so we restore both explicitly to keep color-mix() output
+	   valid (otherwise the parser emits `var(--color-white) var(...)` and
+	   lightningcss rejects it). */
+	--color-white: oklch(1 0 0);
+	--color-black: oklch(0 0 0);
 	--color-slate-50: oklch(0.984 0.003 247.858);
 	--color-slate-100: oklch(0.968 0.007 247.896);
 	--color-slate-200: oklch(0.929 0.013 255.508);
