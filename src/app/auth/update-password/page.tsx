@@ -142,7 +142,7 @@ export default function UpdatePasswordPage() {
 							{/* Logo */}
 							<div className="size-16 mx-auto mb-8 relative group">
 								<div className="absolute inset-0 bg-linear-to-r from-primary/50 to-primary/60 rounded-2xl blur-xl group-hover:blur-2xl transition-all duration-500" />
-								<div className="relative w-full h-full bg-primary rounded-2xl flex-center border border-white/20 shadow-lg">
+								<div className="relative w-full h-full bg-primary rounded-2xl flex-center border border-[oklch(1_0_0_/_20%)] shadow-lg">
 									<svg
 										viewBox="0 0 24 24"
 										fill="none"
