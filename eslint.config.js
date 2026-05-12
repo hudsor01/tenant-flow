@@ -292,7 +292,7 @@ export default defineConfig([
 		}
 	},
 
-	// ── 7. Color tokens ────────────────────────────────────────────────
+	// ── 7. Design tokens (color + spacing + duration drift guard) ────────
 	{
 		name: 'frontend/design-system-color-tokens',
 		files: ['src/**/*.{ts,tsx}'],
@@ -301,7 +301,10 @@ export default defineConfig([
 			'color-tokens': colorTokensPlugin
 		},
 		rules: {
-			'color-tokens/no-hex-colors': 'error'
+			'color-tokens/no-hex-colors': 'error',
+			'color-tokens/no-rgba-colors': 'error',
+			'color-tokens/no-bg-white': 'error',
+			'color-tokens/no-inline-ms': 'error'
 		}
 	},
 
