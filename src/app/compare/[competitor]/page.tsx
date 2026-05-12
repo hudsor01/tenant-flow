@@ -12,6 +12,7 @@ import { PageLayout } from '#components/layout/page-layout'
 import { Button } from '#components/ui/button'
 import { RelatedArticles } from '#components/blog/related-articles'
 import { JsonLdScript } from '#components/seo/json-ld-script'
+import { CompareBreadcrumb } from '#components/compare/compare-breadcrumb'
 import { createBreadcrumbJsonLd } from '#lib/seo/breadcrumbs'
 import { getSiteUrl } from '#lib/generate-metadata'
 import { COMPETITORS, VALID_COMPETITORS } from './compare-data'
@@ -38,12 +39,13 @@ export async function generateMetadata({
 	if (!data) return {}
 
 	const baseUrl = getSiteUrl()
+	const ogImageUrl = `${baseUrl}/api/og/compare/${slug}`
 
 	return {
 		// `title.absolute` opts out of the parent template, otherwise
 		// rendered as "...Comparison | TenantFlow | TenantFlow".
 		title: {
-			absolute: `TenantFlow vs ${data.name}: Feature & Pricing Comparison`,
+			absolute: `TenantFlow vs ${data.name} | Feature & Pricing Comparison`,
 		},
 		description: data.metaDescription,
 		alternates: { canonical: `${baseUrl}/compare/${slug}` },
@@ -58,6 +60,7 @@ export async function generateMetadata({
 			// `siteName` explicitly so it doesn't depend on parent merge.
 			type: 'website',
 			siteName: 'TenantFlow',
+			images: [ogImageUrl],
 		},
 		twitter: {
 			card: 'summary_large_image',
@@ -65,6 +68,7 @@ export async function generateMetadata({
 			creator: '@tenantflow',
 			title: `TenantFlow vs ${data.name}`,
 			description: data.metaDescription,
+			images: [ogImageUrl],
 		},
 	}
 }
@@ -96,6 +100,8 @@ export default async function ComparePage({ params }: PageProps) {
 	return (
 		<PageLayout>
 			<JsonLdScript schema={breadcrumbSchema} />
+
+			<CompareBreadcrumb competitorName={data.name} />
 
 			{/* Hero */}
 			<section className="section-spacing">

@@ -19,10 +19,11 @@ import {
 } from './pricing-content'
 
 export const metadata: Metadata = createPageMetadata({
-	title: 'Property Management Software Pricing — Plans from $19/mo',
+	title: 'Property Management Software Pricing | Plans from $19/mo',
 	description:
 		'Property management software for landlords with 1–15 rentals. Starter ($19/mo, 5 properties), Growth ($49/mo, 20 properties), Max ($149/mo, unlimited properties). 14-day free trial, no credit card required.',
-	path: '/pricing'
+	path: '/pricing',
+	ogImage: '/api/og/pricing'
 })
 
 export default async function PricingPage() {
