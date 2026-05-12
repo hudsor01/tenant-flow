@@ -3,6 +3,8 @@
 @plugin "@tailwindcss/typography";
 
 @source "..*.{ts,tsx}";
+@source not "../../.planning/**/*";
+@source not "../../README.md";
 
 @custom-variant dark (&:where(.dark, .dark *));
 
@@ -105,6 +107,11 @@
 	--transition-duration-normal: 300ms;
 	--transition-duration-slow: 500ms;
 	--transition-duration-slower: 700ms;
+	/* Tailwind v4 defaults for white and black ship out of the box, but the
+	   explicit @theme block replaces the default theme entirely. Restore both
+	   so opacity modifiers on these colors compile to valid CSS. */
+	--color-white: oklch(1 0 0);
+	--color-black: oklch(0 0 0);
 	--color-slate-50: oklch(0.984 0.003 247.858);
 	--color-slate-100: oklch(0.968 0.007 247.896);
 	--color-slate-200: oklch(0.929 0.013 255.508);
@@ -710,6 +717,13 @@
    Semantic presets for common animation patterns to reduce repetition.
    All use standardized duration tokens for consistency.
    ========================================================================== */
+
+/* Translucent white border for glass effects on primary-colored surfaces.
+   Authored directly in CSS so the value lives in the design system rather than
+   inline in component class strings. */
+@utility border-glass-light {
+	border-color: oklch(1 0 0 / 20%);
+}
 
 /* Entry animations */
 @utility enter-card {
