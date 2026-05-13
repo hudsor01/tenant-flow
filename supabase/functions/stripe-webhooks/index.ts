@@ -45,7 +45,12 @@ Deno.serve(async (req: Request) => {
   // Verify Stripe signature
   const signature = req.headers.get('stripe-signature')
   if (!signature) {
-    captureWebhookError(new Error('Missing stripe-signature header'), {
+    // Warning-level only — the URL is publicly reachable so every probe
+    // (curl, scanner, dependabot-style health-checker) would otherwise
+    // fire a discrete Sentry exception event and burn quota. The actual
+    // signature-verification-failed branch below stays at error level
+    // because it indicates a real Stripe delivery being rejected.
+    captureWebhookWarning('[WEBHOOK] Missing stripe-signature header', {
       action: 'verify_signature',
       reason: 'header_missing',
       user_agent: req.headers.get('user-agent'),

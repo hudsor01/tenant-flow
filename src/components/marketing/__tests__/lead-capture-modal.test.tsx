@@ -71,8 +71,11 @@ describe('LeadCaptureModal', () => {
 			removeItem: vi.fn((key: string) => {
 				delete mockSession[key]
 			}),
+			// Mutate in place — never reassign `mockSession`, otherwise the
+			// other vi.fn closures keep their pre-clear reference and the
+			// stub silently desyncs.
 			clear: vi.fn(() => {
-				mockSession = {}
+				for (const k of Object.keys(mockSession)) delete mockSession[k]
 			}),
 		})
 		invokeMock.mockClear()

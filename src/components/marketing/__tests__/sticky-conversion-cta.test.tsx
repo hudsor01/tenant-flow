@@ -54,8 +54,11 @@ describe('StickyConversionCta', () => {
 			removeItem: vi.fn((key: string) => {
 				delete mockStorage[key]
 			}),
+			// Mutate in place — never reassign `mockStorage`, otherwise the
+			// other vi.fn closures keep their pre-clear reference and the
+			// stub silently desyncs.
 			clear: vi.fn(() => {
-				mockStorage = {}
+				for (const k of Object.keys(mockStorage)) delete mockStorage[k]
 			}),
 		})
 		setScrollY(0)

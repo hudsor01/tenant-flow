@@ -15,6 +15,7 @@ import {
 	DialogTitle,
 } from '#components/ui/dialog'
 import { Button } from '#components/ui/button'
+import { Input } from '#components/ui/input'
 import { createClient } from '#lib/supabase/client'
 
 interface LeadCaptureModalProps {
@@ -29,7 +30,9 @@ const SESSION_KEY = 'tenantflow-lead-modal-shown'
 /**
  * Lead-capture modal that triggers on exit-intent (desktop only) OR
  * scroll-depth (default 70%). Gated by `NEXT_PUBLIC_LEAD_CAPTURE_MODAL=on`
- * so we can A/B test the surface without a code deploy.
+ * so the surface can be toggled per environment without a code change.
+ * (The env var is bundled at build time, so toggling still requires a
+ * redeploy — but only an env-var update, not a code edit + review.)
  *
  * Submits to the existing `newsletter-subscribe` Edge Function — no
  * additional backend wiring needed.
@@ -108,6 +111,10 @@ export function LeadCaptureModal({
 
 	function handleSubmit(e: FormEvent<HTMLFormElement>) {
 		e.preventDefault()
+		// Guard against touch double-tap: the submit button's `disabled`
+		// flag from React's render cycle isn't reliable for a second
+		// synchronous event fired before re-render.
+		if (mutation.isPending) return
 		const email = inputRef.current?.value?.trim()
 		if (email) mutation.mutate(email)
 	}
@@ -129,14 +136,13 @@ export function LeadCaptureModal({
 				</DialogHeader>
 				<form onSubmit={handleSubmit}>
 					<DialogBody>
-						<input
+						<Input
 							ref={inputRef}
 							type="email"
 							placeholder="your@email.com"
 							required
 							autoFocus
 							aria-label="Email address"
-							className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
 						/>
 					</DialogBody>
 					<DialogFooter>

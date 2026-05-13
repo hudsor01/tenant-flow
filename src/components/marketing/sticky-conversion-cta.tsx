@@ -40,6 +40,8 @@ export function StickyConversionCta({
 	const [dismissed, setDismissed] = useState(false)
 
 	useEffect(() => {
+		if (dismissed) return
+
 		const raw = window.localStorage.getItem(storageKey)
 		if (raw) {
 			const ts = Number(raw)
@@ -55,7 +57,7 @@ export function StickyConversionCta({
 		onScroll()
 		window.addEventListener('scroll', onScroll, { passive: true })
 		return () => window.removeEventListener('scroll', onScroll)
-	}, [scrollThresholdPx, storageKey])
+	}, [scrollThresholdPx, storageKey, dismissed])
 
 	function handleDismiss() {
 		window.localStorage.setItem(storageKey, String(Date.now()))
