@@ -1,5 +1,5 @@
 import { ImageResponse } from '@vercel/og'
-import { COMPETITORS } from '../../../../compare/[competitor]/compare-data'
+import { COMPETITORS } from '#app/compare/[competitor]/compare-data'
 
 // `@vercel/og` requires the edge runtime — it streams the rendered PNG
 // directly without spinning up a Node.js process per request. The CDN
