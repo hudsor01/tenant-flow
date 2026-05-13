@@ -46,7 +46,9 @@ vi.mock('#lib/postgrest-error-handler', () => ({
 }))
 
 vi.mock('@sentry/nextjs', () => ({
-	captureException: vi.fn()
+	captureException: vi.fn(),
+	captureMessage: vi.fn(),
+	addBreadcrumb: vi.fn()
 }))
 
 vi.mock('#lib/frontend-logger', () => ({

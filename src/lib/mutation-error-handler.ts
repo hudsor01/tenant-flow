@@ -25,8 +25,8 @@ const logger = createLogger({ component: 'MutationErrorHandler' })
  * Coerce an unknown error to an Error instance so `Sentry.captureException`
  * gets a real stack trace + exception type instead of falling through to
  * `captureMessage`. Plain Supabase / PostgREST objects look like
- * `{ message, code, hint, details }` — we wrap them as `Error` to preserve
- * the message while attaching the original shape as `cause` for inspection.
+ * `{ message, code, hint, details }` — we wrap them as `Error` (with the
+ * original shape on `cause`) so Sentry can inspect the underlying payload.
  */
 function toError(error: unknown, fallback: string): Error {
 	if (error instanceof Error) return error
@@ -37,9 +37,7 @@ function toError(error: unknown, fallback: string): Error {
 		(typeof (obj?.payload as Record<string, unknown>)?.message === 'string' &&
 			((obj?.payload as Record<string, unknown>).message as string)) ||
 		fallback
-	const wrapped = new Error(message)
-	if (obj) (wrapped as Error & { cause?: unknown }).cause = obj
-	return wrapped
+	return obj ? new Error(message, { cause: obj }) : new Error(message)
 }
 
 /**
@@ -82,23 +80,36 @@ export function handleMutationError(
 	const status = getErrorStatus(error)
 	const action = context.toLowerCase().replace(/\s+/g, '_')
 
-	// Route the real error (with stack + class) to Sentry directly so we
-	// don't fall through to `captureMessage`. `logger.error` keeps the
-	// structured console/breadcrumb trail; Sentry gets the exception form.
+	// Route the real error (with stack + class) to Sentry. Using
+	// `captureException` here is intentional — `logger.error` would
+	// fall through to `captureMessage` and ship a duplicate event for
+	// the same failure.
 	Sentry.captureException(toError(error, `${context} failed`), {
 		tags: { mutation: action },
 		extra: { context, status, message }
 	})
 
-	// Structured logging for the console + Sentry breadcrumb.
-	logger.error(`${context} failed`, {
-		action,
-		metadata: {
+	// Breadcrumb trail for the next captured event (free — does not fire
+	// its own Sentry event). Replaces the prior `logger.error` call which
+	// emitted a duplicate `captureMessage` for every mutation error.
+	Sentry.addBreadcrumb({
+		category: 'mutation',
+		level: 'error',
+		message: `${context} failed`,
+		data: {
+			action,
 			error: message,
 			status,
 			errorType: error instanceof Error ? error.constructor.name : typeof error
 		}
 	})
+	if (process.env.NODE_ENV !== 'production') {
+		console.error(`[mutation] ${context} failed`, {
+			action,
+			error: message,
+			status
+		})
+	}
 
 	// Show user-friendly toast notification
 	const displayMessage = customMessage || message

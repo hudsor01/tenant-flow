@@ -17,6 +17,14 @@ vi.mock('#lib/frontend-logger', () => ({
 	}),
 }))
 
+// `handleMutationError` calls `Sentry.captureException` + `addBreadcrumb`
+// for every error. Mock both so the test stays isolated from the real SDK.
+vi.mock('@sentry/nextjs', () => ({
+	captureException: vi.fn(),
+	captureMessage: vi.fn(),
+	addBreadcrumb: vi.fn(),
+}))
+
 import { handleMutationError } from '#lib/mutation-error-handler'
 import { toast } from 'sonner'
 

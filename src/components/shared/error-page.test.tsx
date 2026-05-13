@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from 'vitest'
+import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { render } from '#test/utils/test-render'
@@ -26,6 +26,12 @@ vi.mock('next/link', () => ({
 describe('ErrorPage', () => {
 	const mockError = new Error('Test error')
 	const mockReset = vi.fn()
+
+	beforeEach(async () => {
+		const { captureException } = await import('@sentry/nextjs')
+		vi.mocked(captureException).mockClear()
+		mockReset.mockClear()
+	})
 
 	it('renders error heading and message', () => {
 		render(<ErrorPage error={mockError} resetAction={mockReset} />)

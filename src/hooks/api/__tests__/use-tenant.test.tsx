@@ -56,9 +56,11 @@ vi.mock('sonner', () => ({
 	}
 }))
 
-// Mock Sentry (used by handlePostgrestError)
+// Mock Sentry (used by handlePostgrestError + handleMutationError)
 vi.mock('@sentry/nextjs', () => ({
-	captureException: vi.fn()
+	captureException: vi.fn(),
+	captureMessage: vi.fn(),
+	addBreadcrumb: vi.fn()
 }))
 
 // Mock fetch for any outbound HTTP — kept since tenant hooks may gain Edge
