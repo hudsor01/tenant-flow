@@ -73,13 +73,13 @@ export function PricingStatsGrid() {
 								<div className="mb-4 typography-h2 text-primary">
 									<stat.icon className="h-8 w-8" />
 								</div>
-								<p className="text-sm font-semibold uppercase tracking-wider text-muted-foreground text-sm-foreground mb-2">
+								<p className="text-sm font-semibold uppercase tracking-wider text-muted-foreground mb-2">
 									{stat.label}
 								</p>
 								<p className="mb-3 typography-h1 tracking-tight text-foreground">
 									{stat.value}
 								</p>
-								<p className="text-sm leading-relaxed text-muted-foreground text-sm-foreground">
+								<p className="text-sm leading-relaxed text-muted-foreground">
 									{stat.description}
 								</p>
 							</div>
@@ -100,7 +100,7 @@ export function PricingFaqSection() {
 						<h2 className="text-section-title tracking-tight text-foreground">
 							Frequently asked questions
 						</h2>
-						<p className="mt-4 text-base text-muted-foreground text-sm-foreground sm:text-lg">
+						<p className="mt-4 text-base text-muted-foreground sm:text-lg">
 							Details on trials, billing, switching plans, and how access works
 							for your team. Tenants are records, not users — they never log in.
 						</p>
@@ -120,7 +120,7 @@ export function PricingFaqSection() {
 									<AccordionTrigger className="text-left text-base font-medium leading-7 text-foreground hover:no-underline sm:text-lg sm:leading-8">
 										{faq.question}
 									</AccordionTrigger>
-									<AccordionContent className="pb-5 text-sm leading-6 text-muted-foreground text-sm-foreground sm:text-base sm:leading-7">
+									<AccordionContent className="pb-5 text-sm leading-6 text-muted-foreground sm:text-base sm:leading-7">
 										{faq.answer}
 									</AccordionContent>
 								</AccordionItem>
@@ -132,7 +132,7 @@ export function PricingFaqSection() {
 							<p className="text-base font-medium text-foreground">
 								Still unsure which plan fits best?
 							</p>
-							<p className="text-sm text-muted-foreground text-sm-foreground sm:text-base">
+							<p className="text-sm text-muted-foreground sm:text-base">
 								Our team can walk through your portfolio and recommend the right
 								setup.
 							</p>
@@ -167,7 +167,7 @@ export function PricingCtaSection() {
 						<h2 className="text-section-title tracking-tight text-foreground">
 							Ready to centralize your portfolio?
 						</h2>
-						<p className="text-base leading-relaxed text-muted-foreground text-sm-foreground sm:text-lg">
+						<p className="text-base leading-relaxed text-muted-foreground sm:text-lg">
 							Start with the records and document vault built for self-managing owners,
 							then add teammates and integrations as your portfolio grows.
 							Your data carries across every plan.

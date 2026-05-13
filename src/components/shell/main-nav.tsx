@@ -216,6 +216,7 @@ export function MainNav({ onNavigate }: MainNavProps) {
 										key={child.href}
 										href={child.href}
 										onClick={handleNavigate}
+										aria-current={childActive ? 'page' : undefined}
 										className={`
 											w-full flex items-center gap-3 px-3 py-2 rounded-lg
 											text-sm transition-colors
@@ -241,6 +242,7 @@ export function MainNav({ onNavigate }: MainNavProps) {
 				key={item.href}
 				href={item.href}
 				onClick={handleNavigate}
+				aria-current={active ? 'page' : undefined}
 				className={`
 					w-full flex items-center gap-3 px-3 py-2.5 rounded-lg
 					text-sm font-medium transition-colors

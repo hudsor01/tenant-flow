@@ -68,7 +68,7 @@ export default async function PricingPage() {
 							Simple, transparent pricing for{' '}
 							<span className="hero-highlight">every portfolio</span>
 						</h1>
-						<p className="mx-auto max-w-2xl text-balance text-lg text-muted-foreground text-sm-foreground">
+						<p className="mx-auto max-w-2xl text-balance text-lg text-muted-foreground">
 							Choose your plan and start your 14-day free trial. Upgrade anytime
 							as your portfolio grows.
 						</p>
@@ -76,7 +76,7 @@ export default async function PricingPage() {
 					<div id="plans">
 						<PricingSection />
 					</div>
-					<div className="flex flex-wrap items-center justify-center gap-6 text-sm text-muted-foreground text-sm-foreground">
+					<div className="flex flex-wrap items-center justify-center gap-6 text-sm text-muted-foreground">
 						<div className="flex items-center gap-2">
 							<CheckCircle2 className="h-4 w-4 text-success" />
 							No credit card required

@@ -169,7 +169,7 @@ export const propertyQueries = {
 				if (error) throw new Error(error.message)
 
 				return (data as Tables<'property_images'>[]).map(image => {
-					const isFullUrl = image.image_url.startsWith('http')
+					const isFullUrl = /^https?:\/\//.test(image.image_url)
 					if (isFullUrl) {
 						return image
 					}

@@ -1,5 +1,6 @@
 'use client'
 
+import * as Sentry from '@sentry/nextjs'
 import { Button } from '#components/ui/button'
 import { CardLayout } from '#components/ui/card-layout'
 import { AlertTriangle, RefreshCw } from 'lucide-react'
@@ -7,10 +8,7 @@ import { useErrorBoundary } from '#hooks/use-error-boundary'
 import { useErrorBoundaryStore } from '#stores/error-boundary-store'
 import type { ErrorInfo, ReactNode } from 'react'
 import { Component } from 'react'
-import { createLogger } from '#lib/frontend-logger'
 import { useRouter } from 'next/navigation'
-
-const logger = createLogger({ component: 'ErrorBoundary' })
 
 interface Props {
 	children: ReactNode
@@ -37,14 +35,12 @@ export class ErrorBoundary extends Component<Props, State> {
 	}
 
 	override componentDidCatch(error: Error, errorInfo: ErrorInfo) {
-		// Log error locally for immediate debugging
-		logger.error('ErrorBoundary - Error caught by boundary', {
-			action: 'component_error_boundary',
-			metadata: {
-				error: error.message,
-				stack: error.stack,
-				componentStack: errorInfo.componentStack
-			}
+		// Route to Sentry as a proper exception event — preserves the stack
+		// trace and exception class. Previously routed through logger.error
+		// which falls through to captureMessage (no stack, no class).
+		Sentry.captureException(error, {
+			tags: { boundary: 'component-error-boundary' },
+			extra: { componentStack: errorInfo.componentStack }
 		})
 
 		// Persist error in global error boundary store for cross-page visibility

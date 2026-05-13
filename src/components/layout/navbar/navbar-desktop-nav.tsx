@@ -3,6 +3,7 @@
 import type { KeyboardEvent } from 'react'
 
 import { cn } from '#lib/utils'
+import { isActiveLink } from '#lib/is-active-link'
 import { ChevronDown } from 'lucide-react'
 import Link from 'next/link'
 import { useRef, useState } from 'react'
@@ -30,11 +31,6 @@ export function NavbarDesktopNav({ navItems, pathname }: NavbarDesktopNavProps) 
 			setOpenDropdown(null)
 			closeTimeoutRef.current = null
 		}, 150)
-	}
-
-	const isActiveLink = (href: string) => {
-		if (href === '/') return pathname === '/'
-		return pathname === href || pathname.startsWith(`${href}/`)
 	}
 
 	const handleKeyDown = (
@@ -97,10 +93,10 @@ export function NavbarDesktopNav({ navItems, pathname }: NavbarDesktopNavProps) 
 					<Link
 						href={item.href}
 						onKeyDown={e => handleKeyDown(e, item)}
-						aria-current={isActiveLink(item.href) ? 'page' : undefined}
+						aria-current={isActiveLink(item.href, pathname) ? 'page' : undefined}
 						className={cn(
 							'flex items-center px-4 py-2 text-foreground/70 hover:text-foreground font-medium text-base rounded-lg transition-colors duration-fast',
-							isActiveLink(item.href) && 'text-foreground'
+							isActiveLink(item.href, pathname) && 'text-foreground'
 						)}
 					>
 						{item.name}
@@ -127,7 +123,7 @@ export function NavbarDesktopNav({ navItems, pathname }: NavbarDesktopNavProps) 
 									href={dropdownItem.href}
 									data-dropdown-item={`${item.name}-${index}`}
 									onKeyDown={e => handleKeyDown(e, item, index)}
-									aria-current={isActiveLink(dropdownItem.href) ? 'page' : undefined}
+									aria-current={isActiveLink(dropdownItem.href, pathname) ? 'page' : undefined}
 									className="block px-4 py-2.5 text-foreground/70 hover:text-foreground hover:bg-muted/50 transition-colors duration-fast text-base"
 								>
 									{dropdownItem.name}
