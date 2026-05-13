@@ -2,10 +2,12 @@
 
 import { useState } from 'react'
 import { Download, Loader2, AlertTriangle, Trash2, Clock, Undo2 } from 'lucide-react'
+import * as Sentry from '@sentry/nextjs'
 import { BlurFade } from '#components/ui/blur-fade'
 import { useMutation, useQuery } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { createClient } from '#lib/supabase/client'
+import { handleMutationError } from '#lib/mutation-error-handler'
 import { authKeys } from '#hooks/api/use-auth'
 
 function formatDeletionDate(deletionRequestedAt: string): string {
@@ -80,7 +82,8 @@ export function GdprDataActions({ variant = 'standalone' }: GdprDataActionsProps
 			URL.revokeObjectURL(url)
 		},
 		onSuccess: () => toast.success('Data export downloaded successfully'),
-		onError: () => toast.error('Failed to export data. Please try again.')
+		onError: err =>
+			handleMutationError(err, 'Export account data', 'Failed to export data. Please try again.')
 	})
 
 	const requestDeletion = useMutation({
@@ -96,6 +99,7 @@ export function GdprDataActions({ variant = 'standalone' }: GdprDataActionsProps
 			deletionStatus.refetch()
 		},
 		onError: (err: Error) => {
+			Sentry.captureException(err, { tags: { mutation: 'request_account_deletion' } })
 			const message = err.message || 'Failed to request deletion'
 			if (message.includes('active leases')) {
 				toast.error('Cannot delete account with active leases. Please end all leases first.')
@@ -117,7 +121,8 @@ export function GdprDataActions({ variant = 'standalone' }: GdprDataActionsProps
 			toast.success('Account deletion cancelled. Your account is safe.')
 			deletionStatus.refetch()
 		},
-		onError: () => toast.error('Failed to cancel deletion. Please try again.')
+		onError: err =>
+			handleMutationError(err, 'Cancel account deletion', 'Failed to cancel deletion. Please try again.')
 	})
 
 	const isPending = deletionStatus.data?.deletion_requested_at !== null &&

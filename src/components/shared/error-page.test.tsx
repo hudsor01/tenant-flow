@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from 'vitest'
+import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { render } from '#test/utils/test-render'
@@ -26,6 +26,12 @@ vi.mock('next/link', () => ({
 describe('ErrorPage', () => {
 	const mockError = new Error('Test error')
 	const mockReset = vi.fn()
+
+	beforeEach(async () => {
+		const { captureException } = await import('@sentry/nextjs')
+		vi.mocked(captureException).mockClear()
+		mockReset.mockClear()
+	})
 
 	it('renders error heading and message', () => {
 		render(<ErrorPage error={mockError} resetAction={mockReset} />)
@@ -60,9 +66,12 @@ describe('ErrorPage', () => {
 		expect(link).toHaveAttribute('href', '/tenant')
 	})
 
-	it('reports error to Sentry on mount', async () => {
+	it('does NOT call Sentry directly — the calling boundary owns capture', async () => {
 		const { captureException } = await import('@sentry/nextjs')
+		// `ErrorPage` is a presentation component; the route-level `error.tsx`
+		// boundaries that render it own `Sentry.captureException` so the
+		// event fires exactly once with proper `boundary` tag metadata.
 		render(<ErrorPage error={mockError} resetAction={mockReset} />)
-		expect(captureException).toHaveBeenCalledWith(mockError)
+		expect(captureException).not.toHaveBeenCalled()
 	})
 })

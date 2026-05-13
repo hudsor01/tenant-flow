@@ -1,5 +1,6 @@
 'use server'
 
+import * as Sentry from '@sentry/nextjs'
 import { createServerClient, type CookieOptions } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 import { redirect } from 'next/navigation'
@@ -47,6 +48,18 @@ export async function signOut() {
 		}
 	)
 
-	await supabase.auth.signOut()
+	try {
+		const { error } = await supabase.auth.signOut()
+		if (error) {
+			Sentry.captureException(error, {
+				tags: { action: 'signOut' }
+			})
+		}
+	} catch (err) {
+		// Log unexpected errors but still redirect so the user isn't stuck.
+		// `redirect()` below throws NEXT_REDIRECT which is the intended
+		// control flow — we don't catch THAT one because it's outside this try.
+		Sentry.captureException(err, { tags: { action: 'signOut' } })
+	}
 	redirect('/login')
 }

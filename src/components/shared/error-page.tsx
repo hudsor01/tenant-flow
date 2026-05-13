@@ -1,10 +1,8 @@
 'use client'
 
 import { Button } from '#components/ui/button'
-import * as Sentry from '@sentry/nextjs'
 import { AlertCircle, Home, RefreshCw } from 'lucide-react'
 import Link from 'next/link'
-import { useEffect } from 'react'
 
 interface ErrorPageProps {
 	error: Error & { digest?: string }
@@ -12,15 +10,14 @@ interface ErrorPageProps {
 	dashboardHref?: string
 }
 
+// Sentry reporting is owned by the route-level `error.tsx` boundaries that
+// render this component — see e.g. `src/app/error.tsx`. Duplicating the
+// captureException call here would fire two events per uncaught error.
 export function ErrorPage({
-	error,
+	error: _error,
 	resetAction,
 	dashboardHref = '/dashboard'
 }: ErrorPageProps) {
-	useEffect(() => {
-		Sentry.captureException(error)
-	}, [error])
-
 	return (
 		<div className="flex min-h-[400px] w-full items-center justify-center p-8">
 			<div className="flex max-w-md flex-col items-center gap-4 text-center">
