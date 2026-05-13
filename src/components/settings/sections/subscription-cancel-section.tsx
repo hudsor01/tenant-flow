@@ -18,6 +18,7 @@ import {
 	AlertDialogTitle,
 	AlertDialogTrigger
 } from '#components/ui/alert-dialog'
+import { handleMutationError } from '#lib/mutation-error-handler'
 import { cn } from '#lib/utils'
 import { useSubscriptionStatus } from '#hooks/api/use-billing'
 import {
@@ -136,7 +137,8 @@ export function SubscriptionCancelSection() {
 		const onReactivate = () => {
 			reactivateMutation.mutate(undefined, {
 				onSuccess: () => toast.success('Your subscription is active again.'),
-				onError: () => toast.error("Couldn't reactivate. Please try again.")
+				onError: err =>
+					handleMutationError(err, 'Reactivate subscription', "Couldn't reactivate. Please try again.")
 			})
 		}
 		return (
@@ -186,9 +188,12 @@ export function SubscriptionCancelSection() {
 				toast.success(`Subscription set to cancel on ${endDate}.`)
 				setDialogOpen(false)
 			},
-			onError: () => {
-				toast.error("Couldn't cancel your subscription. Please try again or contact support.")
-			}
+			onError: err =>
+				handleMutationError(
+					err,
+					'Cancel subscription',
+					"Couldn't cancel your subscription. Please try again or contact support."
+				)
 		})
 	}
 

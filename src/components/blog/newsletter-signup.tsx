@@ -6,6 +6,7 @@ import { type FormEvent, useRef } from 'react'
 import { toast } from 'sonner'
 
 import { createClient } from '#lib/supabase/client'
+import { handleMutationError } from '#lib/mutation-error-handler'
 import { cn } from '#lib/utils'
 
 interface NewsletterSignupProps {
@@ -32,9 +33,8 @@ export function NewsletterSignup({ className }: NewsletterSignupProps) {
 				inputRef.current.value = ''
 			}
 		},
-		onError: () => {
-			toast.error('Could not subscribe. Please try again.')
-		},
+		onError: err =>
+			handleMutationError(err, 'Newsletter subscribe', 'Could not subscribe. Please try again.'),
 	})
 
 	function handleSubmit(e: FormEvent<HTMLFormElement>) {

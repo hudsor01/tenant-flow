@@ -17,6 +17,7 @@ import {
 import { Button } from '#components/ui/button'
 import { Input } from '#components/ui/input'
 import { createClient } from '#lib/supabase/client'
+import { handleMutationError } from '#lib/mutation-error-handler'
 
 interface LeadCaptureModalProps {
 	scrollPercentTrigger?: number
@@ -104,9 +105,8 @@ export function LeadCaptureModal({
 			toast.success('Subscribed! Check your inbox.')
 			setOpen(false)
 		},
-		onError: () => {
-			toast.error('Could not subscribe. Please try again.')
-		},
+		onError: err =>
+			handleMutationError(err, 'Lead capture subscribe', 'Could not subscribe. Please try again.'),
 	})
 
 	function handleSubmit(e: FormEvent<HTMLFormElement>) {

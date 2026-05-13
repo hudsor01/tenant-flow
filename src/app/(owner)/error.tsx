@@ -1,5 +1,8 @@
 'use client'
 
+import * as Sentry from '@sentry/nextjs'
+import { useEffect } from 'react'
+
 import { ErrorPage } from '#components/shared/error-page'
 
 /**
@@ -14,5 +17,12 @@ export default function DashboardError({
 	error: Error & { digest?: string }
 	resetAction: () => void
 }) {
+	useEffect(() => {
+		Sentry.captureException(error, {
+			tags: { boundary: 'owner-dashboard-error' },
+			extra: { digest: error.digest }
+		})
+	}, [error])
+
 	return <ErrorPage error={error} resetAction={resetAction} dashboardHref="/dashboard" />
 }

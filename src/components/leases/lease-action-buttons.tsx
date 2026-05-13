@@ -44,6 +44,7 @@ import {
 } from 'lucide-react'
 import { useDeleteLeaseOptimisticMutation } from '#hooks/api/use-lease-mutations'
 import { useSignLeaseAsOwnerMutation } from '#hooks/api/use-lease-signature-mutations'
+import { handleMutationError } from '#lib/mutation-error-handler'
 import { toast } from 'sonner'
 
 interface LeaseActionButtonsProps {
@@ -61,9 +62,7 @@ export function LeaseActionButtons({ lease }: LeaseActionButtonsProps) {
 			toast.success('Lease deleted successfully')
 			setShowDeleteDialog(false)
 		},
-		onError: () => {
-			toast.error('Failed to delete lease')
-		}
+		onError: err => handleMutationError(err, 'Delete lease', 'Failed to delete lease')
 	})
 
 	const isDraft = lease.lease_status === 'draft'
