@@ -40,7 +40,7 @@ const stats = [
 ]
 
 export const metadata: Metadata = createPageMetadata({
-	title: 'About TenantFlow | Our Mission',
+	title: 'About | Our Mission',
 	description:
 		'TenantFlow is a landlord-only property management platform with a per-entity document vault, lease e-signing, and tax-ready reports.',
 	path: '/about'
