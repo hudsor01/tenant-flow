@@ -7,18 +7,14 @@ export type StripePriceId = `price_${string}`
 export type PlanId = 'trial' | 'starter' | 'growth' | 'max'
 
 /**
- * Phase 1 (CRIT-03) placeholder. Phase 5 (PRICE-*) deletes this constant and its
- * call site in pricing-comparison-table.tsx. Also update hardcoded "Custom pricing,
- * contact sales" strings in src/app/pricing/page.tsx (metadata description + JSON-LD
- * product description) — those strings are not references to this constant.
+ * Single source of truth for the Max plan's displayed price. Rendered in the
+ * pricing comparison table (`pricing-comparison-table.tsx`). Other surfaces
+ * (`page.tsx` metadata description + JSON-LD product) hardcode the same number
+ * because they are static strings, not React renders.
  *
- * @phase-5-cleanup Full surface map:
- *   1. src/config/pricing.ts — delete this constant (replace literal 'Custom')
- *   2. src/components/pricing/pricing-comparison-table.tsx ~line 206 — delete import + render of MAX_PUBLIC_PRICE_DISPLAY
- *   3. src/app/pricing/page.tsx metadata.description — hardcoded "Max — Custom pricing, contact sales"
- *   4. src/app/pricing/page.tsx productJsonLd description — hardcoded "Max enterprise tier — Custom pricing, contact sales"
- *
- * One-liner to find all surfaces: grep -rn 'MAX_PUBLIC_PRICE_DISPLAY\|Custom pricing, contact sales' src/
+ * Originally introduced as the Phase 1 (CRIT-03) "Custom" placeholder when the
+ * Max tier had no published price. Phase 5 set the live value to $149 and
+ * removed all "Custom pricing, contact sales" strings.
  */
 export const MAX_PUBLIC_PRICE_DISPLAY = '$149' as const
 
