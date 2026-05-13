@@ -42,6 +42,7 @@ const FOOTER_SECTIONS: ReadonlyArray<{
 			{ label: 'Terms of Service', href: '/terms' },
 			{ label: 'Privacy Policy', href: '/privacy' },
 			{ label: 'Security Policy', href: '/security-policy' },
+			{ label: 'Sitemap', href: '/sitemap.xml', external: true },
 		],
 	},
 ]
