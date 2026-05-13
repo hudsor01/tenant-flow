@@ -13,6 +13,8 @@ import { Button } from '#components/ui/button'
 import { RelatedArticles } from '#components/blog/related-articles'
 import { JsonLdScript } from '#components/seo/json-ld-script'
 import { CompareBreadcrumb } from '#components/compare/compare-breadcrumb'
+import { LeadCaptureModal } from '#components/marketing/lead-capture-modal'
+import { StickyConversionCta } from '#components/marketing/sticky-conversion-cta'
 import { createBreadcrumbJsonLd } from '#lib/seo/breadcrumbs'
 import { getSiteUrl } from '#lib/generate-metadata'
 import { COMPETITORS, VALID_COMPETITORS } from './compare-data'
@@ -22,6 +24,10 @@ import {
 	WhySwitchSection,
 	BottomCta,
 } from './compare-sections'
+
+// ISR — competitor data is static; 1h revalidate keeps cards/copy edits live
+// without a redeploy.
+export const revalidate = 3600
 
 interface PageProps {
 	params: Promise<{ competitor: string }>
@@ -208,6 +214,11 @@ export default async function ComparePage({ params }: PageProps) {
 
 			<RelatedArticles slugs={[data.blogSlug]} title="Read the Full Comparison" />
 			<BottomCta data={data} />
+			<StickyConversionCta
+				secondaryHref="#comparison"
+				secondaryLabel="See comparison"
+			/>
+			<LeadCaptureModal />
 		</PageLayout>
 	)
 }

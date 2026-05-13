@@ -10,6 +10,9 @@ import { createPageMetadata } from '#lib/seo/page-metadata'
 
 import { COMPETITORS, VALID_COMPETITORS } from './[competitor]/compare-data'
 
+// ISR — competitor list is static; 1h revalidate covers card-copy edits.
+export const revalidate = 3600
+
 export const metadata: Metadata = createPageMetadata({
 	title: 'Compare TenantFlow to Other Property Management Software',
 	description:
