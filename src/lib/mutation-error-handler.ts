@@ -14,10 +14,33 @@
  * ```
  */
 
+import * as Sentry from '@sentry/nextjs'
+
 import { createLogger } from '#lib/frontend-logger'
 import { toast } from 'sonner'
 
 const logger = createLogger({ component: 'MutationErrorHandler' })
+
+/**
+ * Coerce an unknown error to an Error instance so `Sentry.captureException`
+ * gets a real stack trace + exception type instead of falling through to
+ * `captureMessage`. Plain Supabase / PostgREST objects look like
+ * `{ message, code, hint, details }` — we wrap them as `Error` to preserve
+ * the message while attaching the original shape as `cause` for inspection.
+ */
+function toError(error: unknown, fallback: string): Error {
+	if (error instanceof Error) return error
+	if (typeof error === 'string') return new Error(error)
+	const obj = error as Record<string, unknown> | null
+	const message =
+		(typeof obj?.message === 'string' && obj.message) ||
+		(typeof (obj?.payload as Record<string, unknown>)?.message === 'string' &&
+			((obj?.payload as Record<string, unknown>).message as string)) ||
+		fallback
+	const wrapped = new Error(message)
+	if (obj) (wrapped as Error & { cause?: unknown }).cause = obj
+	return wrapped
+}
 
 /**
  * Extract user-friendly error message from various error types
@@ -57,10 +80,19 @@ export function handleMutationError(
 ): void {
 	const message = extractErrorMessage(error)
 	const status = getErrorStatus(error)
+	const action = context.toLowerCase().replace(/\s+/g, '_')
 
-	// Log error with full context
+	// Route the real error (with stack + class) to Sentry directly so we
+	// don't fall through to `captureMessage`. `logger.error` keeps the
+	// structured console/breadcrumb trail; Sentry gets the exception form.
+	Sentry.captureException(toError(error, `${context} failed`), {
+		tags: { mutation: action },
+		extra: { context, status, message }
+	})
+
+	// Structured logging for the console + Sentry breadcrumb.
 	logger.error(`${context} failed`, {
-		action: context.toLowerCase().replace(/\s+/g, '_'),
+		action,
 		metadata: {
 			error: message,
 			status,

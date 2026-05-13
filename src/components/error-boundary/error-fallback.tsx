@@ -1,21 +1,18 @@
 'use client'
 
 import { Button } from '#components/ui/button'
-import * as Sentry from '@sentry/nextjs'
 import { Home, RefreshCw } from 'lucide-react'
 import Link from 'next/link'
-import { useEffect } from 'react'
 
 interface ErrorFallbackProps {
 	error: Error & { digest?: string }
 	reset: () => void
 }
 
-export function ErrorFallback({ error, reset }: ErrorFallbackProps) {
-	useEffect(() => {
-		Sentry.captureException(error)
-	}, [error])
-
+// Sentry reporting is owned by the route-level `error.tsx` / `global-error.tsx`
+// boundaries that render this component. Duplicating the captureException
+// call here would fire two events per uncaught error.
+export function ErrorFallback({ error: _error, reset }: ErrorFallbackProps) {
 	return (
 		<div className="min-h-screen flex flex-col items-center justify-center gap-4 p-8">
 			<h2 className="text-xl font-semibold">Something went wrong!</h2>

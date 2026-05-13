@@ -12,10 +12,10 @@ import { ErrorPage } from '#components/shared/error-page'
  */
 export default function DashboardError({
 	error,
-	resetAction
+	reset
 }: {
 	error: Error & { digest?: string }
-	resetAction: () => void
+	reset: () => void
 }) {
 	useEffect(() => {
 		Sentry.captureException(error, {
@@ -24,5 +24,5 @@ export default function DashboardError({
 		})
 	}, [error])
 
-	return <ErrorPage error={error} resetAction={resetAction} dashboardHref="/dashboard" />
+	return <ErrorPage error={error} resetAction={reset} dashboardHref="/dashboard" />
 }

@@ -60,9 +60,12 @@ describe('ErrorPage', () => {
 		expect(link).toHaveAttribute('href', '/tenant')
 	})
 
-	it('reports error to Sentry on mount', async () => {
+	it('does NOT call Sentry directly — the calling boundary owns capture', async () => {
 		const { captureException } = await import('@sentry/nextjs')
+		// `ErrorPage` is a presentation component; the route-level `error.tsx`
+		// boundaries that render it own `Sentry.captureException` so the
+		// event fires exactly once with proper `boundary` tag metadata.
 		render(<ErrorPage error={mockError} resetAction={mockReset} />)
-		expect(captureException).toHaveBeenCalledWith(mockError)
+		expect(captureException).not.toHaveBeenCalled()
 	})
 })
