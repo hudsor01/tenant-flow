@@ -6,6 +6,8 @@ import { Badge } from '#components/ui/badge'
 import { CheckCircle2 } from 'lucide-react'
 import { TestimonialsSection } from '#components/sections/testimonials-section'
 import { realTestimonials } from '../../data/testimonials'
+import { LeadCaptureModal } from '#components/marketing/lead-capture-modal'
+import { StickyConversionCta } from '#components/marketing/sticky-conversion-cta'
 import { createBreadcrumbJsonLd } from '#lib/seo/breadcrumbs'
 import { createFaqJsonLd } from '#lib/seo/faq-schema'
 import { createPageMetadata } from '#lib/seo/page-metadata'
@@ -17,6 +19,10 @@ import {
 	PricingStatsGrid,
 	pricingFaqs
 } from './pricing-content'
+
+// ISR — pricing copy + JSON-LD are static; refresh once an hour to pick up
+// any pricing-content.tsx edits without a full redeploy.
+export const revalidate = 3600
 
 export const metadata: Metadata = createPageMetadata({
 	title: 'Property Management Software Pricing | Plans from $19/mo',
@@ -93,6 +99,8 @@ export default async function PricingPage() {
 			/>
 			<PricingFaqSection />
 			<PricingCtaSection />
+			<StickyConversionCta />
+			<LeadCaptureModal />
 		</PageLayout>
 	)
 }

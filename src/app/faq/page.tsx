@@ -11,7 +11,11 @@ import { ArrowRight } from 'lucide-react'
 import { createBreadcrumbJsonLd } from '#lib/seo/breadcrumbs'
 import { createFaqJsonLd } from '#lib/seo/faq-schema'
 import { createPageMetadata } from '#lib/seo/page-metadata'
+import { StickyConversionCta } from '#components/marketing/sticky-conversion-cta'
 import Link from 'next/link'
+
+// ISR — faq content is static; 1h revalidate covers copy edits.
+export const revalidate = 3600
 
 export const metadata: Metadata = createPageMetadata({
 	title: 'Property Management FAQ — Questions About Leases, Maintenance & More',
@@ -89,6 +93,7 @@ export default function FAQPage() {
 					</div>
 				</div>
 			</section>
+			<StickyConversionCta />
 		</PageLayout>
 	)
 }
