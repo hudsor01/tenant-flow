@@ -20,7 +20,7 @@ export interface CompareBreadcrumbProps {
  */
 export function CompareBreadcrumb({ competitorName }: CompareBreadcrumbProps) {
 	return (
-		<div className="container mx-auto max-w-7xl px-6 lg:px-8 pt-6">
+		<div className="max-w-7xl mx-auto px-6 lg:px-8 pt-6">
 			<Breadcrumb>
 				<BreadcrumbList>
 					<BreadcrumbItem>

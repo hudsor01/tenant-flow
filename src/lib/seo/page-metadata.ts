@@ -20,7 +20,7 @@ export function createPageMetadata(config: PageMetadataConfig): Metadata {
 	const normalizedPath = path.startsWith('/') ? path : `/${path}`
 	const canonicalUrl = `${siteUrl}${normalizedPath}`
 	const normalizedOgImage = ogImage
-		? ogImage.startsWith('http')
+		? /^https?:\/\//.test(ogImage)
 			? ogImage
 			: `${siteUrl}${ogImage.startsWith('/') ? ogImage : `/${ogImage}`}`
 		: undefined

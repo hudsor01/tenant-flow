@@ -1,6 +1,10 @@
 import { ImageResponse } from '@vercel/og'
 import { COMPETITORS } from '../../../../compare/[competitor]/compare-data'
 
+// `@vercel/og` requires the edge runtime — it streams the rendered PNG
+// directly without spinning up a Node.js process per request. The CDN
+// caches each per-competitor PNG for one hour; competitor names are
+// stable so the cache key rarely shifts.
 export const runtime = 'edge'
 export const revalidate = 3600
 
@@ -16,6 +20,10 @@ export async function GET(_req: Request, { params }: RouteParams) {
 		return new Response('Not found', { status: 404 })
 	}
 
+	// Brand colors derived from globals.css `--color-primary` (oklch).
+	// `@vercel/og` requires inline CSS values so the canonical token
+	// literals are duplicated here. This is the ONE permitted exception
+	// to the no-hex/no-inline-color rule (Phase 6 CONTEXT.md § Design Token).
 	const bgGradient =
 		'linear-gradient(135deg, oklch(0.62 0.18 250) 0%, oklch(0.45 0.20 270) 100%)'
 
