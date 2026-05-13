@@ -29,7 +29,7 @@ export function BlogPostBreadcrumb({ title, category }: BlogPostBreadcrumbProps)
 		: null
 
 	return (
-		<div className="container mx-auto max-w-4xl px-6 lg:px-8 pt-6">
+		<div className="max-w-4xl mx-auto px-6 lg:px-8 pt-6">
 			<Breadcrumb>
 				<BreadcrumbList>
 					<BreadcrumbItem>
