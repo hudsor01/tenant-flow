@@ -32,14 +32,10 @@ export function TwoFactorSetupDialog({
 	const enrollMfa = useMfaEnrollMutation()
 	const verifyMfa = useMfaVerifyMutation()
 
-	// Destructure stable callbacks. The mutation result object itself is a
-	// fresh reference on every render (MutationObserver#updateResult builds a
-	// new `#currentResult`), but the bound `mutate` / `reset` methods are
-	// stable across renders. Putting the whole `enrollMfa` / `verifyMfa`
-	// objects in dep arrays would re-fire the effect every render, and each
-	// `reset()` calls `#notify()` which schedules another render — an
-	// infinite loop that surfaces as React error #185 on every mount of
-	// /settings?tab=security.
+	// MutationObserver#updateResult builds a fresh result object on every
+	// notify, but the bound `mutate` / `reset` methods (and `isPending`
+	// primitive) are stable. Destructure them so effect deps don't re-fire
+	// every render — that loop trips React error #185.
 	const { mutate: enrollMutate, reset: resetEnrollMfa } = enrollMfa
 	const { reset: resetVerifyMfa } = verifyMfa
 	const enrollPending = enrollMfa.isPending

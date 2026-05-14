@@ -1,57 +1,111 @@
 import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest'
 import { render, cleanup } from '@testing-library/react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { createElement, type ReactNode } from 'react'
+import { createElement, useSyncExternalStore, type ReactNode } from 'react'
 
-// Hoisted counters so the mocked hooks share state with the test body.
-const counters = vi.hoisted(() => ({
-	enrollResetCount: 0,
-	verifyResetCount: 0,
-	enrollMutateCount: 0
-}))
+// Hoisted module-level state so the mock factory and the test body share refs.
+//
+// Critical design choices that make this mock a faithful reproduction of the
+// production bug surface:
+//
+//   1. The outer result object returned by each hook MUST be a fresh
+//      reference per render (the real `MutationObserver#updateResult` builds
+//      a new `#currentResult` on every notify).
+//
+//   2. The inner `mutate` / `reset` methods MUST be STABLE references across
+//      renders (the real observer binds them in its constructor — see
+//      `mutationObserver.js#bindMethods`).
+//
+//   3. Calling `reset()` MUST schedule a re-render of every subscriber, just
+//      like the real `#notify()` does via `useSyncExternalStore`.
+//
+// Together, those three properties create the loop: buggy code with the full
+// result object in deps → reset() notifies → re-render → fresh result ref →
+// dep equality fails → effect re-fires → reset() again → ... React error
+// #185. Fixed code with destructured bound methods in deps → reset() notifies
+// → re-render → same bound `reset` ref → deps unchanged → effect does NOT
+// re-fire. Counter stops at 1 (2 under strict-mode double-invocation).
+const store = vi.hoisted(() => {
+	const enrollListeners = new Set<() => void>()
+	const verifyListeners = new Set<() => void>()
+	let enrollVersion = 0
+	let verifyVersion = 0
+	const counters = {
+		enrollResetCount: 0,
+		verifyResetCount: 0,
+		enrollMutateCount: 0
+	}
+	return {
+		counters,
+		enrollListeners,
+		verifyListeners,
+		getEnrollVersion: () => enrollVersion,
+		getVerifyVersion: () => verifyVersion,
+		stableEnrollMutate: () => {
+			counters.enrollMutateCount += 1
+		},
+		stableEnrollReset: () => {
+			counters.enrollResetCount += 1
+			enrollVersion += 1
+			enrollListeners.forEach(fn => fn())
+		},
+		stableVerifyReset: () => {
+			counters.verifyResetCount += 1
+			verifyVersion += 1
+			verifyListeners.forEach(fn => fn())
+		}
+	}
+})
 
 vi.mock('#hooks/api/use-mfa', () => {
-	// Each render builds a fresh result object (the real MutationObserver
-	// behaves this way). The bound methods, by contrast, share identity.
-	const enrollMutate = vi.fn(() => {
-		counters.enrollMutateCount += 1
-	})
-	const enrollReset = vi.fn(() => {
-		counters.enrollResetCount += 1
-	})
-	const verifyMutate = vi.fn()
-	const verifyReset = vi.fn(() => {
-		counters.verifyResetCount += 1
-	})
-	const unenrollMutate = vi.fn()
-	const unenrollReset = vi.fn()
 	return {
-		useMfaEnrollMutation: () => ({
-			mutate: enrollMutate,
-			mutateAsync: vi.fn(),
-			reset: enrollReset,
-			isPending: false,
-			isError: false,
-			isSuccess: false,
-			error: null,
-			data: undefined,
-			status: 'idle' as const
-		}),
-		useMfaVerifyMutation: () => ({
-			mutate: verifyMutate,
-			mutateAsync: vi.fn(),
-			reset: verifyReset,
-			isPending: false,
-			isError: false,
-			isSuccess: false,
-			error: null,
-			data: undefined,
-			status: 'idle' as const
-		}),
+		useMfaEnrollMutation: () => {
+			useSyncExternalStore(
+				cb => {
+					store.enrollListeners.add(cb)
+					return () => store.enrollListeners.delete(cb)
+				},
+				store.getEnrollVersion,
+				store.getEnrollVersion
+			)
+			// Fresh outer object every render — this is the real bug surface.
+			return {
+				mutate: store.stableEnrollMutate,
+				mutateAsync: vi.fn(),
+				reset: store.stableEnrollReset,
+				isPending: false,
+				isError: false,
+				isSuccess: false,
+				error: null,
+				data: undefined,
+				status: 'idle' as const
+			}
+		},
+		useMfaVerifyMutation: () => {
+			useSyncExternalStore(
+				cb => {
+					store.verifyListeners.add(cb)
+					return () => store.verifyListeners.delete(cb)
+				},
+				store.getVerifyVersion,
+				store.getVerifyVersion
+			)
+			return {
+				mutate: vi.fn(),
+				mutateAsync: vi.fn(),
+				reset: store.stableVerifyReset,
+				isPending: false,
+				isError: false,
+				isSuccess: false,
+				error: null,
+				data: undefined,
+				status: 'idle' as const
+			}
+		},
 		useMfaUnenrollMutation: () => ({
-			mutate: unenrollMutate,
+			mutate: vi.fn(),
 			mutateAsync: vi.fn(),
-			reset: unenrollReset,
+			reset: vi.fn(),
 			isPending: false
 		})
 	}
@@ -87,9 +141,9 @@ function renderWithClient(ui: ReactNode) {
 
 describe('TwoFactorSetupDialog — no infinite loop (P1 regression)', () => {
 	beforeEach(() => {
-		counters.enrollResetCount = 0
-		counters.verifyResetCount = 0
-		counters.enrollMutateCount = 0
+		store.counters.enrollResetCount = 0
+		store.counters.verifyResetCount = 0
+		store.counters.enrollMutateCount = 0
 	})
 
 	afterEach(() => {
@@ -97,17 +151,15 @@ describe('TwoFactorSetupDialog — no infinite loop (P1 regression)', () => {
 	})
 
 	// Battle-test 2026-05-12 surfaced React error #185 ("Maximum update depth
-	// exceeded") on every visit to /settings?tab=security. The dialog was
-	// mounted with `open={false}` and its close-reset effect listed the
-	// entire `useMutation()` result object in its dep array. TanStack Query
-	// v5's `MutationObserver.reset()` calls `#updateResult()` (new result
-	// reference) and `#notify()` (re-render). The new reference flipped the
-	// dep equality check, re-firing the effect, which called reset again —
-	// an infinite chain. This test pins the fix: with `open={false}`, the
-	// close-reset effect must fire AT MOST a small bounded number of times
-	// (effectively once after mount; React 19 strict-mode double-invocation
-	// is also bounded). A regression would push the counter well into the
-	// hundreds before the test runner times out the render.
+	// exceeded") on every visit to /settings?tab=security. Cycle-1 review of
+	// PR #709 caught a P0 in the original version of this test: the mocked
+	// `reset()` was a bare counter that did not schedule a re-render, so the
+	// cascade could not be reproduced and the test passed against the buggy
+	// code too. The mock above now drives a `useSyncExternalStore` so each
+	// `reset()` call notifies subscribers — faithful to the real
+	// `MutationObserver#notify()`. Verified empirically: temporarily
+	// reverting the deps in `two-factor-setup-dialog.tsx` to the buggy form
+	// causes this test to fail (counters climb past the ceiling).
 	it('does not call reset() in an unbounded loop when mounted closed', async () => {
 		renderWithClient(
 			createElement(TwoFactorSetupDialog, {
@@ -117,17 +169,19 @@ describe('TwoFactorSetupDialog — no infinite loop (P1 regression)', () => {
 		)
 
 		// Flush microtasks + a macrotask so any pending re-renders settle.
+		// If the loop returns, the cascade keeps firing every microtask tick
+		// and the counter climbs into the hundreds before this resolves.
 		await Promise.resolve()
-		await new Promise<void>(resolve => setTimeout(resolve, 25))
+		await new Promise<void>(resolve => setTimeout(resolve, 50))
 
-		// If the loop returns, these counts climb well past 100 before vitest's
-		// default test timeout kicks in. Allow a tiny ceiling for React 19's
-		// double-invocation under strict mode and the legitimate initial mount.
-		expect(counters.enrollResetCount).toBeLessThanOrEqual(4)
-		expect(counters.verifyResetCount).toBeLessThanOrEqual(4)
+		// Allow a tiny ceiling for React's StrictMode double-invocation plus
+		// the legitimate single mount. A regression pushes both counters past
+		// 100 well before the timeout.
+		expect(store.counters.enrollResetCount).toBeLessThanOrEqual(4)
+		expect(store.counters.verifyResetCount).toBeLessThanOrEqual(4)
 
-		// The first effect (start-enrollment) must NOT fire when closed.
-		expect(counters.enrollMutateCount).toBe(0)
+		// The start-enrollment effect must NOT fire when closed.
+		expect(store.counters.enrollMutateCount).toBe(0)
 	})
 
 	it('does not call mutate() when mounted closed', async () => {
@@ -139,8 +193,8 @@ describe('TwoFactorSetupDialog — no infinite loop (P1 regression)', () => {
 		)
 
 		await Promise.resolve()
-		await new Promise<void>(resolve => setTimeout(resolve, 25))
+		await new Promise<void>(resolve => setTimeout(resolve, 50))
 
-		expect(counters.enrollMutateCount).toBe(0)
+		expect(store.counters.enrollMutateCount).toBe(0)
 	})
 })
