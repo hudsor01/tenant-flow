@@ -32,6 +32,18 @@ export function TwoFactorSetupDialog({
 	const enrollMfa = useMfaEnrollMutation()
 	const verifyMfa = useMfaVerifyMutation()
 
+	// Destructure stable callbacks. The mutation result object itself is a
+	// fresh reference on every render (MutationObserver#updateResult builds a
+	// new `#currentResult`), but the bound `mutate` / `reset` methods are
+	// stable across renders. Putting the whole `enrollMfa` / `verifyMfa`
+	// objects in dep arrays would re-fire the effect every render, and each
+	// `reset()` calls `#notify()` which schedules another render — an
+	// infinite loop that surfaces as React error #185 on every mount of
+	// /settings?tab=security.
+	const { mutate: enrollMutate, reset: resetEnrollMfa } = enrollMfa
+	const { reset: resetVerifyMfa } = verifyMfa
+	const enrollPending = enrollMfa.isPending
+
 	const [step, setStep] = useState<SetupStep>('qr')
 	const [verifyCode, setVerifyCode] = useState('')
 	const [enrollmentData, setEnrollmentData] = useState<{
@@ -42,8 +54,8 @@ export function TwoFactorSetupDialog({
 
 	// Start enrollment when dialog opens
 	useEffect(() => {
-		if (open && !enrollmentData && !enrollMfa.isPending) {
-			enrollMfa.mutate(undefined, {
+		if (open && !enrollmentData && !enrollPending) {
+			enrollMutate(undefined, {
 				onSuccess: data => {
 					setEnrollmentData({
 						factorId: data.factorId,
@@ -53,7 +65,7 @@ export function TwoFactorSetupDialog({
 				}
 			})
 		}
-	}, [open, enrollmentData, enrollMfa])
+	}, [open, enrollmentData, enrollPending, enrollMutate])
 
 	// Reset state when dialog closes
 	useEffect(() => {
@@ -61,10 +73,10 @@ export function TwoFactorSetupDialog({
 			setStep('qr')
 			setVerifyCode('')
 			setEnrollmentData(null)
-			enrollMfa.reset()
-			verifyMfa.reset()
+			resetEnrollMfa()
+			resetVerifyMfa()
 		}
-	}, [open, enrollMfa, verifyMfa])
+	}, [open, resetEnrollMfa, resetVerifyMfa])
 
 	const handleCopySecret = async () => {
 		if (enrollmentData?.secret) {
