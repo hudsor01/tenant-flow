@@ -1,35 +1,13 @@
 /**
  * Stripe integration client using Supabase Edge Functions
  * CLAUDE.md compliant - Native platform integration
+ *
+ * Server-side flows only: checkout sessions and customer portal sessions
+ * are created via Supabase Edge Functions and the browser is redirected
+ * to checkout.stripe.com. No Stripe.js bundle is required.
  */
-import { loadStripe, type Stripe } from '@stripe/stripe-js'
 import { createClient } from '#lib/supabase/client'
 import { ERROR_MESSAGES } from '#lib/constants/error-messages'
-import { createLogger } from '#lib/frontend-logger'
-
-const logger = createLogger({ component: 'StripeClient' })
-
-// Cache the Stripe instance to avoid re-initializing
-let stripePromise: Promise<Stripe | null> | null = null
-
-/**
- * Get Stripe.js instance (lazily loaded and cached)
- * Required for Stripe Elements and Identity verification
- *
- * Uses process.env directly for client-side access (NEXT_PUBLIC_ prefix).
- * T3 Env cannot be imported in client components as it contains server-side vars.
- */
-export function getStripe(): Promise<Stripe | null> {
-	if (!stripePromise) {
-		const publishableKey = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
-		if (!publishableKey) {
-			logger.error('NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY is not set')
-			return Promise.resolve(null)
-		}
-		stripePromise = loadStripe(publishableKey)
-	}
-	return stripePromise
-}
 
 interface CreateCheckoutSessionRequest {
 	priceId: string

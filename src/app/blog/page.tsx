@@ -1,3 +1,4 @@
+import * as Sentry from '@sentry/nextjs'
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { createClient } from '#lib/supabase/server'
@@ -54,30 +55,57 @@ export default async function BlogPage({ searchParams }: BlogPageProps) {
 	const offset = (page - 1) * PAGE_LIMIT
 	const supabase = await createClient()
 
-	const [postsResult, categoriesResult, comparisonsResult] = await Promise.all([
-		supabase
-			.from('blogs')
-			.select(BLOG_LIST_COLUMNS, { count: 'exact' })
-			.eq('status', 'published')
-			.order('published_at', { ascending: false })
-			.range(offset, offset + PAGE_LIMIT - 1),
-		supabase.rpc('get_blog_categories'),
-		supabase
-			.from('blogs')
-			.select(BLOG_LIST_COLUMNS)
-			.eq('status', 'published')
-			.contains('tags', ['comparison'])
-			.order('published_at', { ascending: false })
-			.limit(6),
-	])
+	let posts: BlogListItem[] = []
+	let categories: CategoryRow[] = []
+	let comparisons: BlogListItem[] = []
+	let totalPages = 1
 
-	const posts = (postsResult.data ?? []) as BlogListItem[]
-	const categories = (categoriesResult.data ?? []) as CategoryRow[]
-	const comparisons = (comparisonsResult.data ?? []) as BlogListItem[]
-	const totalPages = Math.max(
-		1,
-		Math.ceil((postsResult.count ?? 0) / PAGE_LIMIT)
-	)
+	try {
+		const [postsResult, categoriesResult, comparisonsResult] =
+			await Promise.all([
+				supabase
+					.from('blogs')
+					.select(BLOG_LIST_COLUMNS, { count: 'exact' })
+					.eq('status', 'published')
+					.order('published_at', { ascending: false })
+					.range(offset, offset + PAGE_LIMIT - 1),
+				supabase.rpc('get_blog_categories'),
+				supabase
+					.from('blogs')
+					.select(BLOG_LIST_COLUMNS)
+					.eq('status', 'published')
+					.contains('tags', ['comparison'])
+					.order('published_at', { ascending: false })
+					.limit(6),
+			])
+
+		if (
+			postsResult.error ||
+			categoriesResult.error ||
+			comparisonsResult.error
+		) {
+			throw new Error(
+				postsResult.error?.message ??
+					categoriesResult.error?.message ??
+					comparisonsResult.error?.message ??
+					'Unknown Supabase error'
+			)
+		}
+
+		posts = (postsResult.data ?? []) as BlogListItem[]
+		categories = (categoriesResult.data ?? []) as CategoryRow[]
+		comparisons = (comparisonsResult.data ?? []) as BlogListItem[]
+		totalPages = Math.max(
+			1,
+			Math.ceil((postsResult.count ?? 0) / PAGE_LIMIT)
+		)
+	} catch (err) {
+		Sentry.captureException(err, {
+			tags: { surface: 'blog-index' },
+			extra: { page },
+		})
+		// posts/categories/comparisons stay [] — page renders empty-state branch.
+	}
 
 	return (
 		<PageLayout>

@@ -10,11 +10,16 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import type { ReactElement } from 'react'
+import * as Sentry from '@sentry/nextjs'
 
 const mockCreateClient = vi.hoisted(() => vi.fn())
 
 vi.mock('#lib/supabase/server', () => ({
 	createClient: mockCreateClient,
+}))
+
+vi.mock('@sentry/nextjs', () => ({
+	captureException: vi.fn(),
 }))
 
 vi.mock('next/link', () => ({
@@ -169,12 +174,20 @@ interface MockBuilderOpts {
 	posts?: BlogListItem[]
 	postsCount?: number | null
 	comparisons?: BlogListItem[]
+	postsError?: { message: string } | null
+	categoriesError?: { message: string } | null
+	comparisonsError?: { message: string } | null
+	rejectPosts?: boolean
 }
 
 function makeFromBuilder({
 	posts = mockPosts,
 	postsCount = 18,
 	comparisons = mockComparisons,
+	postsError = null,
+	categoriesError = null,
+	comparisonsError = null,
+	rejectPosts = false,
 }: MockBuilderOpts = {}) {
 	const fromMock = vi.fn((_table: string) => {
 		// Each .from() call returns a fresh chain; we differentiate by checking
@@ -188,22 +201,45 @@ function makeFromBuilder({
 			isComparison = true
 			return chain
 		})
-		chain.limit = vi.fn(() => Promise.resolve({ data: comparisons, count: null, error: null }))
-		chain.range = vi.fn(() => Promise.resolve({ data: posts, count: postsCount, error: null }))
+		chain.limit = vi.fn(() =>
+			comparisonsError
+				? Promise.resolve({ data: null, count: null, error: comparisonsError })
+				: Promise.resolve({ data: comparisons, count: null, error: null })
+		)
+		chain.range = vi.fn(() => {
+			if (rejectPosts) {
+				return Promise.reject(new Error('range failed'))
+			}
+			if (postsError) {
+				return Promise.resolve({ data: null, count: null, error: postsError })
+			}
+			return Promise.resolve({ data: posts, count: postsCount, error: null })
+		})
 		// Thenable fallback for chains that get awaited without .range/.limit
 		;(chain as { then?: unknown }).then = (
-			resolve: (v: { data: BlogListItem[]; count: number | null; error: null }) => unknown
+			resolve: (v: {
+				data: BlogListItem[] | null
+				count: number | null
+				error: { message: string } | null
+			}) => unknown
 		) =>
 			resolve(
 				isComparison
-					? { data: comparisons, count: null, error: null }
-					: { data: posts, count: postsCount, error: null }
+					? comparisonsError
+						? { data: null, count: null, error: comparisonsError }
+						: { data: comparisons, count: null, error: null }
+					: postsError
+						? { data: null, count: null, error: postsError }
+						: { data: posts, count: postsCount, error: null }
 			)
 		return chain
 	})
 
 	const rpcMock = vi.fn((name: string) => {
 		if (name === 'get_blog_categories') {
+			if (categoriesError) {
+				return Promise.resolve({ data: null, error: categoriesError })
+			}
 			return Promise.resolve({ data: mockCategories, error: null })
 		}
 		return Promise.resolve({ data: null, error: null })
@@ -221,6 +257,7 @@ async function renderPage(opts?: MockBuilderOpts): Promise<ReactElement> {
 describe('BlogPage (server component)', () => {
 	beforeEach(() => {
 		vi.clearAllMocks()
+		vi.mocked(Sentry.captureException).mockClear()
 	})
 
 	it('renders breadcrumb nav landmark', async () => {
@@ -288,5 +325,66 @@ describe('BlogPage (server component)', () => {
 	it('renders NewsletterSignup', async () => {
 		render(await renderPage())
 		expect(screen.getByTestId('newsletter-signup')).toBeInTheDocument()
+	})
+
+	it('routes postsResult.error to Sentry with surface tag and renders empty state', async () => {
+		render(
+			await renderPage({
+				postsError: { message: 'PostgREST error' },
+			})
+		)
+		expect(screen.getByTestId('blog-empty-state')).toBeInTheDocument()
+		expect(vi.mocked(Sentry.captureException)).toHaveBeenCalledTimes(1)
+		expect(vi.mocked(Sentry.captureException)).toHaveBeenCalledWith(
+			expect.anything(),
+			expect.objectContaining({
+				tags: { surface: 'blog-index' },
+				extra: expect.objectContaining({ page: expect.any(Number) }),
+			})
+		)
+	})
+
+	it('routes Promise.all rejection to Sentry and renders empty state without throwing', async () => {
+		// Should NOT throw — if BlogPage rethrows, this await chain would reject.
+		const ui = await renderPage({ rejectPosts: true })
+		render(ui)
+		expect(screen.getByTestId('blog-empty-state')).toBeInTheDocument()
+		expect(vi.mocked(Sentry.captureException)).toHaveBeenCalledTimes(1)
+		expect(vi.mocked(Sentry.captureException)).toHaveBeenCalledWith(
+			expect.anything(),
+			expect.objectContaining({
+				tags: { surface: 'blog-index' },
+			})
+		)
+	})
+
+	it('routes categoriesResult.error to Sentry and degrades to empty state', async () => {
+		render(
+			await renderPage({
+				categoriesError: { message: 'RPC failure' },
+			})
+		)
+		expect(screen.getByTestId('blog-empty-state')).toBeInTheDocument()
+		expect(vi.mocked(Sentry.captureException)).toHaveBeenCalledTimes(1)
+		expect(vi.mocked(Sentry.captureException)).toHaveBeenCalledWith(
+			expect.anything(),
+			expect.objectContaining({
+				tags: { surface: 'blog-index' },
+			})
+		)
+	})
+
+	it('passes extra.page to Sentry matching the requested pagination cursor', async () => {
+		mockCreateClient.mockResolvedValue(
+			makeFromBuilder({ postsError: { message: 'fail' } })
+		)
+		await BlogPage({ searchParams: Promise.resolve({ page: '3' }) })
+		expect(vi.mocked(Sentry.captureException)).toHaveBeenCalledWith(
+			expect.anything(),
+			expect.objectContaining({
+				tags: { surface: 'blog-index' },
+				extra: { page: 3 },
+			})
+		)
 	})
 })

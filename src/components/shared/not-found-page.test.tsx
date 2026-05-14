@@ -33,9 +33,29 @@ describe('NotFoundPage', () => {
 		expect(link).toHaveAttribute('href', '/dashboard')
 	})
 
-	it('renders dashboard link with custom href', () => {
-		render(<NotFoundPage dashboardHref="/tenant" />)
+	it('infers "Back to Dashboard" label when href is "/dashboard"', () => {
+		render(<NotFoundPage dashboardHref="/dashboard" />)
 		const link = screen.getByRole('link', { name: /back to dashboard/i })
+		expect(link).toHaveAttribute('href', '/dashboard')
+	})
+
+	it('infers "Back to Home" label when href is "/"', () => {
+		render(<NotFoundPage dashboardHref="/" />)
+		const link = screen.getByRole('link', { name: /back to home/i })
+		expect(link).toHaveAttribute('href', '/')
+	})
+
+	it('falls back to "Go back" for non-standard hrefs', () => {
+		render(<NotFoundPage dashboardHref="/tenant" />)
+		const link = screen.getByRole('link', { name: /go back/i })
+		expect(link).toHaveAttribute('href', '/tenant')
+	})
+
+	it('honors explicit dashboardLabel override', () => {
+		render(
+			<NotFoundPage dashboardHref="/tenant" dashboardLabel="Back to your area" />
+		)
+		const link = screen.getByRole('link', { name: /back to your area/i })
 		expect(link).toHaveAttribute('href', '/tenant')
 	})
 })

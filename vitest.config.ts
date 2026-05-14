@@ -115,7 +115,12 @@ export default defineConfig({
 					globals: true,
 					testTimeout: 30000,
 					include: ['tests/integration/**/*.test.ts'],
-					setupFiles: ['./tests/integration/setup/env-loader.ts']
+					setupFiles: ['./tests/integration/setup/env-loader.ts'],
+					// One-time auth sign-in for the whole suite. Caches sessions to
+					// a tmp file so each test file's `createTestClient` restores
+					// via setSession (zero auth API calls) — drops the suite from
+					// ~62 sign-ins to 2, well under Supabase's ~45/min rate limit.
+					globalSetup: ['./tests/integration/setup/global-auth-setup.ts']
 				}
 			}
 		]
