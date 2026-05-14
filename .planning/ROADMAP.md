@@ -253,5 +253,19 @@ Every phase's final success criterion is the design-token alignment check (no he
 
 `/gsd-plan-phase 1` — decompose Phase 1 (Critical Stop-Bleed) into per-CRIT plans. Per-phase research happens inside this command (config.workflow.research=true). Phase 1's research will be light (data cleanup + placeholder unification — no novel tech).
 
+### Phase 14: Battle Test Findings Remediation
+
+**Goal:** Close the four real bugs surfaced by the production browser-agent battle test (2026-05-13 + 2026-05-14) that were not resolved by prior milestone work. Findings #1 (aria-current) and #5 (unknown-routes 404) were fixed in PRs #700/#702/#703/#704 — out of scope. Findings #4 (no blog posts) and #8 (Chrome-extension warning) are operational/environmental — out of scope. The four in-scope bugs: public 404 lacks marketing nav + bouncing button; Stripe.js fires on `/pricing` (ad-blocker console noise); `/blog` 5xx's on Supabase hiccup; `/blog` shows skeleton AND empty-state simultaneously.
+**Requirements**: D-01, D-02, D-03, D-04 (decision IDs from `14-CONTEXT.md` — no REQ-IDs; these are battle-test findings)
+**Depends on:** Phase 13
+**Branch**: `gsd/phase-14-battle-test-findings-remediation`
+**Plans:** 4 plans (waves 1 + 2 — plans 01, 02, 03 parallel in wave 1 with zero `files_modified` overlap; plan 04 in wave 2 depending on 14-03 because 14-04 reads the final shape of `src/app/blog/page.tsx` after 14-03 lands)
+
+Plans:
+- [ ] 14-01-PLAN.md — D-01 public 404 wraps marketing layout: `<NotFoundPage>` infers button label from href, `src/app/not-found.tsx` wraps in `<PageLayout>` with `dashboardHref="/"`, 6-case test suite incl. explicit `/dashboard` inference case (partially started on `gsd/public-404-layout`; verify + extend, do not re-implement)
+- [ ] 14-02-PLAN.md — D-02 drop client-side Stripe.js load from `/pricing`: dead-code reality — `getStripe` has zero callers, so delete it from `src/lib/stripe/stripe-client.ts` and uninstall `@stripe/stripe-js` via `pnpm remove`. No new file. `grep -rn '@stripe/stripe-js' src/ package.json` returns zero matches everywhere
+- [ ] 14-03-PLAN.md — D-03 `/blog` Supabase fetch handles errors gracefully: wrap `Promise.all` in try/catch, route failures through `Sentry.captureException` with `tags: { surface: 'blog-index' }`, render empty-state on failure (never 5xx), 4 new tests covering result.error + Promise.all rejection paths
+- [ ] 14-04-PLAN.md — D-04 blog skeleton ↔ empty-state precedence: create route-scoped `src/app/blog/loading.tsx` so Next.js streaming renders blog-themed skeleton chrome instead of generic site-wide PageLoader; `page.tsx` is read-only confirmatory (the grep must return zero skeleton matches — if not, 14-04 flags it as a 14-03 leak and stops); 5-case unit suite proves loading.tsx CONTENTS; runtime mutual exclusion is a Next.js streaming-boundary guarantee verified MANUAL-ONLY
+
 ---
-*Roadmap defined: 2026-05-08 after v1.0 Q&A. Replaces 11-phase fine-granularity draft after pricing restructure + blog rebuild scope additions.*
+*Roadmap defined: 2026-05-08 after v1.0 Q&A. Replaces 11-phase fine-granularity draft after pricing restructure + blog rebuild scope additions. Phase 14 added 2026-05-14 from production battle test.*

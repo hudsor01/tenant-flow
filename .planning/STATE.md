@@ -77,11 +77,15 @@ Progress: [██████████] 100%
 
 None.
 
+## Roadmap Evolution
+
+- Phase 14 added: Battle Test Findings Remediation — close /blog 503, skeleton+empty precedence, Stripe.js noise on /pricing, public 404 lacks marketing nav
+
 ## Next Action
 
-Open PR for `gsd/phase-03-routing-aliases` → run perfect-PR review cycles → after merge + Vercel deploy, run Task 4 post-deploy curl probes per `.planning/phases/03-routing-aliases/03-01-SUMMARY.md § Task 4`.
+Plan Phase 14 via `/gsd-plan-phase 14`.
 
 ---
-*Last updated: 2026-05-08 after v1.0 init Q&A round*
+*Last updated: 2026-05-14 after Phase 14 added*
 
-**Planned Phase:** 06 (blog-rebuild) — 4 plans — 2026-05-10T21:04:28.319Z
+**Planned Phase:** 14 (battle-test-findings-remediation) — pending plan
