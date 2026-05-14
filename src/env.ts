@@ -23,9 +23,12 @@ export const env = createEnv({
 			.enum(['development', 'test', 'production'])
 			.default('development'),
 
-		// Stripe secret key (server-only — never expose to browser)
+		// Stripe secret key (server-only — never expose to browser).
+		// `.trim()` first to survive the common Vercel-paste case where a
+		// trailing newline gets captured and breaks the `sk_` prefix check.
 		STRIPE_SECRET_KEY: z
 			.string()
+			.trim()
 			.min(1, 'STRIPE_SECRET_KEY is required')
 			.startsWith('sk_', 'Must be a Stripe secret key'),
 
