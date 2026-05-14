@@ -4,10 +4,27 @@ import { Home } from 'lucide-react'
 import Link from 'next/link'
 
 interface NotFoundPageProps {
+	/** Where the recovery button points. Default: /dashboard */
 	dashboardHref?: string
+	/**
+	 * Label for the recovery button. Default infers from `dashboardHref`:
+	 * "Back to Dashboard" for `/dashboard`, "Back to Home" for `/`, or the
+	 * caller-supplied label for anything else.
+	 */
+	dashboardLabel?: string
 }
 
-export function NotFoundPage({ dashboardHref = '/dashboard' }: NotFoundPageProps) {
+function inferLabel(href: string): string {
+	if (href === '/') return 'Back to Home'
+	if (href === '/dashboard') return 'Back to Dashboard'
+	return 'Go back'
+}
+
+export function NotFoundPage({
+	dashboardHref = '/dashboard',
+	dashboardLabel
+}: NotFoundPageProps) {
+	const label = dashboardLabel ?? inferLabel(dashboardHref)
 	return (
 		<section className="flex min-h-[400px] items-center justify-center p-8">
 			<div className="max-w-md w-full space-y-4">
@@ -21,7 +38,7 @@ export function NotFoundPage({ dashboardHref = '/dashboard' }: NotFoundPageProps
 				<Button asChild variant="outline" className="w-full">
 					<Link href={dashboardHref}>
 						<Home className="size-4 mr-2" />
-						Back to Dashboard
+						{label}
 					</Link>
 				</Button>
 			</div>
