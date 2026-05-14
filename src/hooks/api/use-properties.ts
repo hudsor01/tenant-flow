@@ -63,22 +63,6 @@ export function usePropertyStats() {
 	return useQuery(propertyStatsQueries.stats())
 }
 
-export function usePropertyPerformanceAnalytics() {
-	return useQuery(propertyStatsQueries.performance())
-}
-
-export function usePropertyOccupancyAnalytics() {
-	return useQuery(propertyStatsQueries.analytics.occupancy())
-}
-
-export function usePropertyFinancialAnalytics() {
-	return useQuery(propertyStatsQueries.analytics.financial())
-}
-
-export function usePropertyMaintenanceAnalytics() {
-	return useQuery(propertyStatsQueries.analytics.maintenance())
-}
-
 export function usePropertyImages(property_id: string) {
 	return useQuery(propertyQueries.images(property_id))
 }

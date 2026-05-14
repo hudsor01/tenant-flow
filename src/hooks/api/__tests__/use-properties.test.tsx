@@ -19,10 +19,6 @@ import {
 	usePropertyList,
 	usePropertiesWithUnits,
 	usePropertyStats,
-	usePropertyPerformanceAnalytics,
-	usePropertyOccupancyAnalytics,
-	usePropertyFinancialAnalytics,
-	usePropertyMaintenanceAnalytics,
 	usePropertyImages
 } from '../use-properties'
 import {
@@ -253,67 +249,6 @@ describe('Query Hooks', () => {
 			})
 
 			expect(mockFrom).toHaveBeenCalledWith('properties')
-		})
-	})
-
-	describe('Analytics Hooks', () => {
-		it('usePropertyPerformanceAnalytics should return empty array (TODO: RPC wiring)', async () => {
-			// performance() queryFn calls both supabase.rpc() and supabase.from('properties').select().eq().neq()
-			const chain: Record<string, ReturnType<typeof vi.fn>> = {}
-			chain.select = mockSelect
-			chain.eq = mockEq
-			chain.neq = mockNeq
-
-			mockSelect.mockReturnValue(chain)
-			mockEq.mockReturnValue(chain)
-			mockNeq.mockResolvedValue({ data: [], error: null })
-			mockFrom.mockReturnValue({ select: mockSelect })
-
-			const { result } = renderHook(() => usePropertyPerformanceAnalytics(), {
-				wrapper: createWrapper()
-			})
-
-			await waitFor(() => {
-				expect(result.current.isSuccess).toBe(true)
-			})
-
-			expect(result.current.data).toEqual([])
-		})
-
-		it('usePropertyOccupancyAnalytics should return empty object (TODO: RPC wiring)', async () => {
-			const { result } = renderHook(() => usePropertyOccupancyAnalytics(), {
-				wrapper: createWrapper()
-			})
-
-			await waitFor(() => {
-				expect(result.current.isSuccess).toBe(true)
-			})
-
-			expect(result.current.data).toEqual({})
-		})
-
-		it('usePropertyFinancialAnalytics should return empty object (TODO: RPC wiring)', async () => {
-			const { result } = renderHook(() => usePropertyFinancialAnalytics(), {
-				wrapper: createWrapper()
-			})
-
-			await waitFor(() => {
-				expect(result.current.isSuccess).toBe(true)
-			})
-
-			expect(result.current.data).toEqual({})
-		})
-
-		it('usePropertyMaintenanceAnalytics should return empty object (TODO: RPC wiring)', async () => {
-			const { result } = renderHook(() => usePropertyMaintenanceAnalytics(), {
-				wrapper: createWrapper()
-			})
-
-			await waitFor(() => {
-				expect(result.current.isSuccess).toBe(true)
-			})
-
-			expect(result.current.data).toEqual({})
 		})
 	})
 })
