@@ -7,39 +7,39 @@ import { updateSession } from '#lib/supabase/middleware'
 /** Stripe subscription statuses that grant dashboard access. */
 const ACTIVE_SUBSCRIPTION_STATUSES = new Set(['active', 'trialing'])
 
-const PUBLIC_ROUTES = [
-  '/',
-  '/login',
-  '/pricing',
-  '/about',
-  '/blog',
-  '/contact',
-  '/faq',
-  '/features',
-  '/help',
-  '/help-center',
-  '/privacy',
-  '/privacy-policy',
-  '/terms',
-  '/terms-of-service',
-  '/security-policy',
-  '/support',
-  '/resources',
-  '/signup',
-  '/compare',
-  '/search',
-  '/feed.xml',
-  '/rss-feed',
-  '/auth/callback',
-  '/auth/confirm-email',
-  '/auth/post-checkout',
-  '/auth/update-password',
-  '/auth/signout',
+/**
+ * Private route prefixes that require an authenticated user. Anything NOT
+ * in this list is treated as public — including unknown URLs, which then
+ * fall through to Next.js so the built-in `not-found.tsx` renders a real
+ * 404 page instead of a hostile "redirect to login" loop.
+ *
+ * Add a prefix here when you ship a new route group that gates on auth.
+ * Owner-dashboard prefixes mirror the directories under `src/app/(owner)/`;
+ * `/admin/*` is the (admin) route group; `/billing/*` is gated EXCEPT for
+ * the checkout + plans subpaths (those are handled inside the subscription
+ * gate below).
+ */
+const PRIVATE_ROUTE_PREFIXES = [
+  '/admin',
+  '/analytics',
+  '/billing',
+  '/dashboard',
+  '/documents',
+  '/financials',
+  '/inspections',
+  '/leases',
+  '/maintenance',
+  '/profile',
+  '/properties',
+  '/reports',
+  '/settings',
+  '/tenants',
+  '/units',
 ]
 
-function isPublicRoute(pathname: string): boolean {
-  return PUBLIC_ROUTES.some(
-    (route) => pathname === route || pathname.startsWith(route + '/')
+function isPrivateRoute(pathname: string): boolean {
+  return PRIVATE_ROUTE_PREFIXES.some(
+    (prefix) => pathname === prefix || pathname.startsWith(prefix + '/')
   )
 }
 
@@ -62,7 +62,12 @@ export async function proxy(
 
   const { user, supabaseResponse } = await updateSession(request)
 
-  if (isPublicRoute(pathname)) {
+  // Everything that isn't a known private route — public pages, unknown
+  // URLs, blog slugs, comparison pages, etc. — passes through so Next.js
+  // can render the matched page or its `not-found.tsx`. Auth-gating
+  // arbitrary typo URLs was making `/featres` redirect to `/login` instead
+  // of showing a 404, which is hostile UX.
+  if (!isPrivateRoute(pathname)) {
     return supabaseResponse
   }
 
