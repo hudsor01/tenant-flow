@@ -1,4 +1,5 @@
 import { createClient, type SupabaseClient } from '@supabase/supabase-js'
+import { readFileSync, existsSync } from 'node:fs'
 
 const SUPABASE_URL = process.env['NEXT_PUBLIC_SUPABASE_URL']
 const SUPABASE_PUBLISHABLE_KEY = process.env['NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY']
@@ -9,12 +10,55 @@ if (!SUPABASE_URL || !SUPABASE_PUBLISHABLE_KEY) {
   )
 }
 
+interface CachedSession {
+  access_token: string
+  refresh_token: string
+}
+
+type SessionCache = Record<string, CachedSession>
+
+/**
+ * Read the session cache written by `global-auth-setup.ts` (vitest globalSetup).
+ * Returns null if the cache file doesn't exist OR is unreadable — caller falls
+ * back to `signInWithPassword`.
+ */
+function readSessionCache(): SessionCache | null {
+  const cachePath = process.env['TEST_SESSION_CACHE_PATH']
+  if (!cachePath || !existsSync(cachePath)) return null
+  try {
+    return JSON.parse(readFileSync(cachePath, 'utf-8')) as SessionCache
+  } catch {
+    return null
+  }
+}
+
 /**
  * Create a Supabase client authenticated as a specific test user.
- * The session JWT is used for all PostgREST calls, so RLS (auth.uid()) resolves correctly.
+ *
+ * Fast path: if `global-auth-setup.ts` already signed in this user, restore
+ * the cached session via `setSession()` — zero auth API calls.
+ *
+ * Slow path: cache miss → fall back to `signInWithPassword`. Used for local
+ * runs where globalSetup wasn't configured, or for users that weren't
+ * pre-cached.
+ *
+ * The session JWT is used for all PostgREST calls, so RLS (auth.uid())
+ * resolves correctly either way.
  */
 export async function createTestClient(email: string, password: string): Promise<SupabaseClient> {
   const client = createClient(SUPABASE_URL!, SUPABASE_PUBLISHABLE_KEY!)
+
+  const cache = readSessionCache()
+  const cached = cache?.[email]
+  if (cached) {
+    const { error } = await client.auth.setSession({
+      access_token: cached.access_token,
+      refresh_token: cached.refresh_token,
+    })
+    if (!error) return client
+    // setSession failed (token expired / invalidated) — fall through to signin
+  }
+
   const { error } = await client.auth.signInWithPassword({ email, password })
   if (error) throw new Error(`Failed to sign in as ${email}: ${error.message}`)
   return client
