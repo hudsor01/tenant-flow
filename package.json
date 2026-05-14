@@ -134,7 +134,6 @@
 		"@radix-ui/react-visually-hidden": "1.2.4",
 		"@sentry/nextjs": "^10.51.0",
 		"@stripe/react-stripe-js": "^6.3.0",
-		"@stripe/stripe-js": "^9.4.0",
 		"@supabase/ssr": "^0.10.2",
 		"@supabase/supabase-js": "^2.105.3",
 		"@t3-oss/env-nextjs": "^0.13.10",
