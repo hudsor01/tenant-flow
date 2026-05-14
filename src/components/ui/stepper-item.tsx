@@ -1,6 +1,6 @@
 'use client'
 
-import { Slot } from '@radix-ui/react-slot'
+import { Slot } from 'radix-ui'
 import { cn } from '#lib/utils'
 import {
 	ITEM_NAME,
@@ -54,7 +54,7 @@ function StepperItem(props: StepperItemProps) {
 
 	const itemContextValue = { value: itemValue, stepState }
 
-	const ItemPrimitive = asChild ? Slot : 'div'
+	const ItemPrimitive = asChild ? Slot.Slot : 'div'
 
 	return (
 		<StepperItemContext.Provider value={itemContextValue}>

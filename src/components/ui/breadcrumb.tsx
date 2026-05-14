@@ -1,6 +1,6 @@
 import { Fragment } from 'react'
 import type { ComponentProps } from 'react'
-import { Slot } from '@radix-ui/react-slot'
+import { Slot } from 'radix-ui'
 import { ChevronRight, MoreHorizontal } from 'lucide-react'
 
 import { cn } from '#lib/utils'
@@ -37,7 +37,7 @@ function BreadcrumbLink({
 }: ComponentProps<'a'> & {
 	asChild?: boolean
 }) {
-	const Comp = asChild ? Slot : 'a'
+	const Comp = asChild ? Slot.Slot : 'a'
 
 	return (
 		<Comp

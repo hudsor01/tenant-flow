@@ -2,7 +2,7 @@
 
 import { useRef, useState } from 'react'
 import type { FocusEvent, MouseEvent } from 'react'
-import { Slot } from '@radix-ui/react-slot'
+import { Slot } from 'radix-ui'
 import { useComposedRefs } from '#lib/compose-refs'
 import { cn } from '#lib/utils'
 import {
@@ -99,7 +99,7 @@ function StepperList(props: StepperListProps) {
 		onFocusableItemRemove, onItemRegister, onItemUnregister, getItems
 	}
 
-	const ListPrimitive = asChild ? Slot : 'div'
+	const ListPrimitive = asChild ? Slot.Slot : 'div'
 
 	return (
 		<FocusContext.Provider value={focusContextValue}>

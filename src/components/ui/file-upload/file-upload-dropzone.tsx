@@ -1,6 +1,6 @@
 'use client'
 
-import { Slot } from '@radix-ui/react-slot'
+import { Slot } from 'radix-ui'
 import type {
 	ClipboardEvent,
 	DragEvent,
@@ -164,7 +164,7 @@ export function FileUploadDropzone(props: FileUploadDropzoneProps) {
 		}
 	}
 
-	const DropzonePrimitive = asChild ? Slot : 'div'
+	const DropzonePrimitive = asChild ? Slot.Slot : 'div'
 
 	return (
 		<DropzonePrimitive

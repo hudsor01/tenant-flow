@@ -1,8 +1,8 @@
 'use client'
 
 import { useId } from 'react'
-import { useDirection } from '@radix-ui/react-direction'
-import { Slot } from '@radix-ui/react-slot'
+import { Direction } from 'radix-ui'
+import { Slot } from 'radix-ui'
 import { cn } from '#lib/utils'
 import {
 	StoreContext,
@@ -139,13 +139,13 @@ function StepperRoot(props: StepperRootProps) {
 		if (value !== undefined) store.setState('value', value)
 	}, [value, store])
 
-	const dir = useDirection(dirProp)
+	const dir = Direction.useDirection(dirProp)
 	const id = useId()
 	const rootId = idProp ?? id
 
 	const contextValue: StepperContextValue = { id: rootId, dir, orientation, activationMode, disabled, nonInteractive, loop }
 
-	const RootPrimitive = asChild ? Slot : 'div'
+	const RootPrimitive = asChild ? Slot.Slot : 'div'
 
 	return (
 		<StoreContext.Provider value={store}>

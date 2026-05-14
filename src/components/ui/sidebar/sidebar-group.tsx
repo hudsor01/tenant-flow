@@ -1,6 +1,6 @@
 'use client'
 
-import { Slot } from '@radix-ui/react-slot'
+import { Slot } from 'radix-ui'
 import type { ComponentProps } from 'react'
 import { cn } from '#lib/utils'
 
@@ -22,7 +22,7 @@ export function SidebarGroupLabel({
 	asChild = false,
 	...props
 }: ComponentProps<'div'> & { asChild?: boolean }) {
-	const Comp = asChild ? Slot : 'div'
+	const Comp = asChild ? Slot.Slot : 'div'
 
 	return (
 		<Comp
@@ -42,7 +42,7 @@ export function SidebarGroupAction({
 	asChild = false,
 	...props
 }: ComponentProps<'button'> & { asChild?: boolean }) {
-	const Comp = asChild ? Slot : 'button'
+	const Comp = asChild ? Slot.Slot : 'button'
 
 	return (
 		<Comp

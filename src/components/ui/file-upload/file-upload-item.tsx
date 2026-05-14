@@ -1,6 +1,6 @@
 'use client'
 
-import { Slot } from '@radix-ui/react-slot'
+import { Slot } from 'radix-ui'
 import type { MouseEvent } from 'react'
 import { cn } from '#lib/utils'
 import { useFileUploadContext, useFileUploadItemContext } from './context'
@@ -52,7 +52,7 @@ export function FileUploadItemPreview(props: FileUploadItemPreviewProps) {
 
 	if (!itemContext.fileState) return null
 
-	const ItemPreviewPrimitive = asChild ? Slot : 'div'
+	const ItemPreviewPrimitive = asChild ? Slot.Slot : 'div'
 
 	return (
 		<ItemPreviewPrimitive
@@ -84,7 +84,7 @@ export function FileUploadItemMetadata(props: FileUploadItemMetadataProps) {
 
 	if (!itemContext.fileState) return null
 
-	const ItemMetadataPrimitive = asChild ? Slot : 'div'
+	const ItemMetadataPrimitive = asChild ? Slot.Slot : 'div'
 
 	return (
 		<ItemMetadataPrimitive
@@ -145,7 +145,7 @@ export function FileUploadItemProgress(props: FileUploadItemProgressProps) {
 
 	if (!shouldRender) return null
 
-	const ItemProgressPrimitive = asChild ? Slot : 'div'
+	const ItemProgressPrimitive = asChild ? Slot.Slot : 'div'
 
 	switch (variant) {
 		case 'circular': {
@@ -269,7 +269,7 @@ export function FileUploadItemDelete(props: FileUploadItemDeleteProps) {
 
 	if (!itemContext.fileState) return null
 
-	const ItemDeletePrimitive = asChild ? Slot : 'button'
+	const ItemDeletePrimitive = asChild ? Slot.Slot : 'button'
 
 	return (
 		<ItemDeletePrimitive

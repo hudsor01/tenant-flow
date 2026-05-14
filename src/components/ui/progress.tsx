@@ -1,7 +1,7 @@
 'use client'
 
 import type { ComponentProps } from 'react'
-import * as ProgressPrimitive from '@radix-ui/react-progress'
+import { Progress as ProgressPrimitive } from 'radix-ui'
 import { cva, type VariantProps } from 'class-variance-authority'
 
 import { cn } from '#lib/utils'

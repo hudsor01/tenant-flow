@@ -2,7 +2,7 @@
 
 import type { ReactNode } from 'react'
 
-import * as VisuallyHidden from '@radix-ui/react-visually-hidden'
+import { VisuallyHidden } from 'radix-ui'
 import { useRouter } from 'next/navigation'
 
 import {

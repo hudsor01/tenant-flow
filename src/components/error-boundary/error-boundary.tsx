@@ -4,84 +4,72 @@ import * as Sentry from '@sentry/nextjs'
 import { Button } from '#components/ui/button'
 import { CardLayout } from '#components/ui/card-layout'
 import { AlertTriangle, RefreshCw } from 'lucide-react'
-import { useErrorBoundary } from '#hooks/use-error-boundary'
-import { useErrorBoundaryStore } from '#stores/error-boundary-store'
-import type { ErrorInfo, ReactNode } from 'react'
-import { Component } from 'react'
 import { useRouter } from 'next/navigation'
+import type { ErrorInfo, ReactElement, ReactNode } from 'react'
+import {
+	ErrorBoundary as ReactErrorBoundary,
+	type FallbackProps
+} from 'react-error-boundary'
+import { useErrorBoundaryStore } from '#stores/error-boundary-store'
 
 interface Props {
 	children: ReactNode
-	fallback?: ReactNode
+	fallback?: ReactElement
 }
 
-interface State {
-	hasError: boolean
-	error?: Error | undefined
+function handleError(error: unknown, info: ErrorInfo) {
+	const err = error instanceof Error ? error : new Error(String(error))
+
+	// Route to Sentry as a proper exception event — preserves the stack
+	// trace and exception class. Previously routed through logger.error
+	// which falls through to captureMessage (no stack, no class).
+	Sentry.captureException(err, {
+		tags: { boundary: 'component-error-boundary' },
+		extra: { componentStack: info.componentStack }
+	})
+
+	// Persist error in global error boundary store for cross-page visibility
+	useErrorBoundaryStore.getState().setError(err, 'ErrorBoundary')
 }
 
-export class ErrorBoundary extends Component<Props, State> {
-	constructor(props: Props) {
-		super(props)
-		this.state = { hasError: false }
-	}
-
-	private resetBoundary = () => {
-		this.setState({ hasError: false, error: undefined })
-	}
-
-	static getDerivedStateFromError(error: Error): State {
-		return { hasError: true, error }
-	}
-
-	override componentDidCatch(error: Error, errorInfo: ErrorInfo) {
-		// Route to Sentry as a proper exception event — preserves the stack
-		// trace and exception class. Previously routed through logger.error
-		// which falls through to captureMessage (no stack, no class).
-		Sentry.captureException(error, {
-			tags: { boundary: 'component-error-boundary' },
-			extra: { componentStack: errorInfo.componentStack }
-		})
-
-		// Persist error in global error boundary store for cross-page visibility
-		const { setError } = useErrorBoundaryStore.getState()
-		setError?.(error, 'ErrorBoundary')
-	}
-
-	override render() {
-		if (this.state.hasError) {
-			if (this.props.fallback) {
-				return this.props.fallback
-			}
-
-			return (
-				<ErrorBoundaryWithStore
-					error={this.state.error}
-					onReset={this.resetBoundary}
-				/>
-			)
-		}
-
-		return this.props.children
-	}
+function handleReset() {
+	useErrorBoundaryStore.getState().clearError()
 }
 
-// Separate component to use hooks within the error boundary
-function ErrorBoundaryWithStore({
-	error,
-	onReset
-}: {
-	error: Error | undefined
-	onReset?: () => void
-}) {
-	const { clearError, errorState } = useErrorBoundary()
+export function ErrorBoundary({ children, fallback }: Props) {
+	if (fallback) {
+		return (
+			<ReactErrorBoundary
+				fallback={fallback}
+				onError={handleError}
+				onReset={handleReset}
+			>
+				{children}
+			</ReactErrorBoundary>
+		)
+	}
+
+	return (
+		<ReactErrorBoundary
+			FallbackComponent={DefaultErrorFallback}
+			onError={handleError}
+			onReset={handleReset}
+		>
+			{children}
+		</ReactErrorBoundary>
+	)
+}
+
+function DefaultErrorFallback({ error, resetErrorBoundary }: FallbackProps) {
 	const router = useRouter()
+	const errorState = useErrorBoundaryStore(state => state.errorState)
 
 	const handleRetry = () => {
-		clearError()
-		onReset?.()
+		resetErrorBoundary()
 		router.refresh()
 	}
+
+	const message = error instanceof Error ? error.message : undefined
 
 	return (
 		<div className="min-h-screen flex-center p-4">
@@ -93,9 +81,9 @@ function ErrorBoundaryWithStore({
 						<p className="text-muted-foreground">
 							An unexpected error occurred. Our team has been notified.
 						</p>
-						{error?.message && (
+						{message && (
 							<p className="text-muted font-mono bg-muted p-2 rounded">
-								{error.message}
+								{message}
 							</p>
 						)}
 						{errorState.errorId && (

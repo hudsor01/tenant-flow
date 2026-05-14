@@ -1,7 +1,7 @@
 'use client'
 
 import type { MouseEvent } from 'react'
-import { Slot } from '@radix-ui/react-slot'
+import { Slot } from 'radix-ui'
 import {
 	NEXT_NAME,
 	PREV_NAME,
@@ -34,7 +34,7 @@ function StepperPrev(props: ButtonProps) {
 		}
 	}
 
-	const PrevPrimitive = asChild ? Slot : 'button'
+	const PrevPrimitive = asChild ? Slot.Slot : 'button'
 
 	return (
 		<PrevPrimitive
@@ -71,7 +71,7 @@ function StepperNext(props: ButtonProps) {
 		}
 	}
 
-	const NextPrimitive = asChild ? Slot : 'button'
+	const NextPrimitive = asChild ? Slot.Slot : 'button'
 
 	return (
 		<NextPrimitive
