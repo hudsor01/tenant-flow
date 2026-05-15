@@ -136,8 +136,13 @@ const RESUBSCRIBE_STATUSES = new Set([
 
 export function BillingSettings() {
 	const router = useRouter();
-	const { data: subscriptionStatus, isLoading: statusLoading } =
-		useSubscriptionStatus();
+	const {
+		data: subscriptionStatus,
+		isLoading: statusLoading,
+		isError: statusIsError,
+		error: statusError,
+		refetch: refetchStatus,
+	} = useSubscriptionStatus();
 	const { data: user } = useUser();
 
 	const createPortalSession = useBillingPortalMutation();
@@ -193,6 +198,68 @@ export function BillingSettings() {
 				<Skeleton className="h-40 rounded-lg" />
 				<Skeleton className="h-32 rounded-lg" />
 				<Skeleton className="h-48 rounded-lg" />
+			</div>
+		);
+	}
+
+	// Surface query errors explicitly instead of falling through to the
+	// "No plan" empty state — silently rendering "No plan" when the query
+	// actually errored hides auth/network problems and looks like a data
+	// issue the user can't act on (battle-test Session 6 P2: synthetic
+	// owner whose getCachedUser() fallback failed saw "No plan" instead
+	// of a real error). The auth-error variant offers a re-sign-in path;
+	// other errors offer retry.
+	if (statusIsError) {
+		const errorMessage =
+			statusError instanceof Error ? statusError.message : String(statusError);
+		const isAuthError = /not authenticated|jwt|unauthorized/i.test(
+			errorMessage,
+		);
+		return (
+			<div className="space-y-6">
+				<BlurFade delay={0.1} inView>
+					<div className="mb-6">
+						<h2 className="text-lg font-semibold">Billing & Subscription</h2>
+						<p className="text-sm text-muted-foreground">
+							We couldn&apos;t load your subscription details.
+						</p>
+					</div>
+				</BlurFade>
+				<section className="rounded-lg border bg-card p-6">
+					<p className="text-sm text-muted-foreground">
+						{isAuthError ? (
+							<>
+								Your session appears to have expired.{" "}
+								<Link
+									href="/login?redirect=%2Fsettings%3Ftab%3Dbilling"
+									className="text-primary hover:underline underline-offset-4"
+								>
+									Sign in again
+								</Link>{" "}
+								to view your subscription.
+							</>
+						) : (
+							<>
+								Subscription details unavailable.{" "}
+								<button
+									type="button"
+									onClick={() => refetchStatus()}
+									className="text-primary hover:underline underline-offset-4"
+								>
+									Retry
+								</button>{" "}
+								or{" "}
+								<Link
+									href="/contact"
+									className="text-primary hover:underline underline-offset-4"
+								>
+									contact support
+								</Link>{" "}
+								if this persists.
+							</>
+						)}
+					</p>
+				</section>
 			</div>
 		);
 	}

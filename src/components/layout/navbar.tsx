@@ -9,6 +9,7 @@ import { useEffect, useState } from "react";
 import { Button } from "#components/ui/button";
 import { useSupabaseSession } from "#hooks/api/use-auth";
 import { useNavigation } from "#hooks/use-navigation";
+import { SUPABASE_AUTH_COOKIE_NAME } from "#lib/supabase/cookie-name";
 import { cn } from "#lib/utils";
 import { NavbarDesktopNav } from "./navbar/navbar-desktop-nav";
 import { NavbarMobileMenu } from "./navbar/navbar-mobile-menu";
@@ -24,16 +25,33 @@ export function Navbar({
 	...props
 }: NavbarProps & { ref?: Ref<HTMLElement> }) {
 	const [isScrolled, setIsScrolled] = useState(false);
+	// Synchronous cookie probe for the signed-OUT fast-path. Starts `false`
+	// so SSR and first-client-paint render identically (no hydration
+	// mismatch). useEffect below promotes it to `true` if the cookie is
+	// actually present — at which point we defer to the query. Without
+	// this fast-path the navbar would hang at authPending=true indefinitely
+	// for signed-out cold-start visitors on /pricing (PersistQueryClient
+	// can pause queries during IDB restoration even when the persisted
+	// namespace is excluded — battle-test Session 6 P1).
+	const [hasAuthCookie, setHasAuthCookie] = useState(false);
 
 	const { isMobileMenuOpen, toggleMobileMenu, closeMobileMenu } =
 		useNavigation();
 	const pathname = usePathname();
 	// Session-only check — reads local cookie cache via getSession(), no
-	// network round-trip. `authResolved` guards the CTA slot to prevent a
-	// flash of unauthenticated state during initial hydration.
+	// network round-trip.
 	const { data: authSession, isPending: authPending } = useSupabaseSession();
-	const authResolved = !authPending;
 	const isAuthenticated = !!authSession;
+	// `authResolved` semantics:
+	//   - If we know there's no auth cookie at all, render immediately
+	//     (no point waiting on a query that will resolve to null anyway).
+	//   - Otherwise the cookie may be present-and-valid OR
+	//     present-and-stale; wait for the query before choosing a branch.
+	const authResolved = !hasAuthCookie || !authPending;
+
+	useEffect(() => {
+		setHasAuthCookie(document.cookie.includes(`${SUPABASE_AUTH_COOKIE_NAME}=`));
+	}, []);
 
 	useEffect(() => {
 		const handleScroll = () => {
