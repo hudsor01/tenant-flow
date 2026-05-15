@@ -139,6 +139,34 @@ describe("BillingSettings empty-state branches", () => {
 		).toBeInTheDocument();
 	});
 
+	it("renders the trialing-with-unknown-priceId branch (no copy gap)", async () => {
+		// Cycle-1 P2 regression guard: prior to this fix, a trialing user with
+		// an unknown stripePriceId fell through to no helper copy (the trialing
+		// branch required `!stripePriceId`, the unified branch required
+		// `status === "active"`). Both now widen to cover this state.
+		useSubscriptionStatusMock.mockReturnValue({
+			data: {
+				subscriptionStatus: "trialing",
+				stripePriceId: "price_1LegacyTrialingFoo",
+				currentPeriodEnd: "2026-06-01T00:00:00.000Z",
+				stripeCustomerId: "cus_legacy_trial",
+				cancelAtPeriodEnd: false,
+				trialEndsAt: "2026-06-01T00:00:00.000Z",
+			},
+			isLoading: false,
+		});
+		useUserMock.mockReturnValue({
+			data: { stripe_customer_id: "cus_legacy_trial" },
+		});
+
+		const BillingSettings = await getBillingSettings();
+		renderWithProviders(<BillingSettings />);
+
+		expect(screen.getByText("Free trial")).toBeInTheDocument();
+		expect(screen.getByText("Trial")).toBeInTheDocument();
+		expect(screen.getByText(/Your trial is active/)).toBeInTheDocument();
+	});
+
 	it("renders the unknown-priceId branch and logs the unrecoverable state to Sentry", async () => {
 		useSubscriptionStatusMock.mockReturnValue({
 			data: {
@@ -161,7 +189,7 @@ describe("BillingSettings empty-state branches", () => {
 		expect(screen.getByText("Active subscription")).toBeInTheDocument();
 		expect(screen.getByText("Active")).toBeInTheDocument();
 		expect(
-			screen.getByText(/Subscription details unavailable/),
+			screen.getByText(/Plan details will sync shortly/),
 		).toBeInTheDocument();
 		expect(
 			screen.getByRole("link", { name: /Contact support/ }),

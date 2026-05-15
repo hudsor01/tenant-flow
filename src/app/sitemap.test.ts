@@ -1,6 +1,6 @@
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 vi.mock("#env", () => ({
 	env: { NEXT_PUBLIC_APP_URL: "https://tenantflow.app" },
@@ -144,16 +144,16 @@ describe("sitemap()", () => {
 		}
 	});
 
-	it("Test 4: static landing pages omit lastModified (no faked freshness)", async () => {
-		// Per Google's sitemap docs (last updated 2025-12-10): a stale or
-		// "always-now" lastmod teaches Google to ignore the field. The
-		// honest signal is "no lastmod" when we can't point to a real
-		// underlying timestamp. Marketing/company pages have no DB-backed
-		// timestamp so they emit no `lastModified`.
+	it("Test 4: static landing pages share STATIC_PAGES_LAST_UPDATED lastmod", async () => {
+		// Battle-test Session 5 (P3) flagged 16/19 sitemap URLs missing
+		// lastmod — sparse coverage looked unintentional. The marketing/
+		// company/compare/resource pages now share a manually-maintained
+		// `STATIC_PAGES_LAST_UPDATED` constant. Bumped together with each
+		// copy-refresh wave to stay verifiable.
 		const { default: sitemap } = await import("./sitemap");
 		const entries = await sitemap();
 
-		const noLastModUrls = [
+		const sharedLastmodUrls = [
 			"https://tenantflow.app",
 			"https://tenantflow.app/features",
 			"https://tenantflow.app/pricing",
@@ -162,11 +162,27 @@ describe("sitemap()", () => {
 			"https://tenantflow.app/faq",
 			"https://tenantflow.app/help",
 			"https://tenantflow.app/support",
+			"https://tenantflow.app/compare/buildium",
+			"https://tenantflow.app/compare/appfolio",
+			"https://tenantflow.app/compare/rentredi",
+			"https://tenantflow.app/resources/seasonal-maintenance-checklist",
+			"https://tenantflow.app/resources/landlord-tax-deduction-tracker",
+			"https://tenantflow.app/resources/security-deposit-reference-card",
 		];
-		for (const url of noLastModUrls) {
+
+		const firstLastmod = entries.find(
+			(e) => e.url === "https://tenantflow.app",
+		)?.lastModified;
+		expect(firstLastmod, "homepage lastmod must be set").toBeDefined();
+		expect(String(firstLastmod)).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+
+		for (const url of sharedLastmodUrls) {
 			const entry = entries.find((e) => e.url === url);
 			expect(entry, `entry for ${url} should exist`).toBeDefined();
-			expect(entry!.lastModified).toBeUndefined();
+			expect(
+				entry!.lastModified,
+				`${url} should share the static lastmod`,
+			).toBe(firstLastmod);
 		}
 	});
 
@@ -332,5 +348,48 @@ describe("sitemap legal-page lastmod drift guard", () => {
 		);
 		const visible = readVisibleDate("src/app/security-policy/page.tsx");
 		expect(securityPolicy?.lastModified).toBe(visible);
+	});
+});
+
+/**
+ * Hub-URL fallback test — isolated describe so the override mock can't
+ * leak into the main suite. When the blog DB query fails, /blog and
+ * /resources must still ship a lastmod (fall back to STATIC_PAGES_LAST_UPDATED)
+ * so every URL keeps the freshness signal added in PR #719.
+ */
+describe("sitemap() — DB-failure fallback", () => {
+	beforeEach(() => {
+		vi.resetModules();
+		vi.doMock("#lib/supabase/server", () => ({
+			createClient: vi.fn().mockResolvedValue({
+				from: vi.fn().mockImplementation(() => {
+					throw new Error("Simulated DB outage");
+				}),
+			}),
+		}));
+	});
+
+	afterEach(() => {
+		// Defense-in-depth: this describe is currently the last in the
+		// file, but unmocking here keeps the "isolated" claim literally
+		// true if a future describe is appended below.
+		vi.doUnmock("#lib/supabase/server");
+	});
+
+	it("hub URLs fall back to STATIC_PAGES_LAST_UPDATED when the blog query throws", async () => {
+		const { default: sitemap } = await import("./sitemap");
+		const entries = await sitemap();
+
+		const home = entries.find((e) => e.url === "https://tenantflow.app");
+		const blogHub = entries.find(
+			(e) => e.url === "https://tenantflow.app/blog",
+		);
+		const resourcesHub = entries.find(
+			(e) => e.url === "https://tenantflow.app/resources",
+		);
+
+		expect(home?.lastModified).toBeDefined();
+		expect(blogHub?.lastModified).toBe(home?.lastModified);
+		expect(resourcesHub?.lastModified).toBe(home?.lastModified);
 	});
 });

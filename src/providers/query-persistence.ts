@@ -10,7 +10,24 @@ type PersistOptions = {
 	buster: string;
 };
 
-const AUTH_QUERY_KEY = "auth";
+// Auth-namespace prefixes that must NEVER be persisted across reloads.
+// Both `authKeys.all` ("auth") and `authKeys.supabase.all` ("supabase-auth")
+// hold session/user data — persisting either lets a stale session survive
+// a cookie clear, causing the marketing navbar to render the signed-in
+// branch for a freshly-cleared visitor (battle-test Session 5, P3-1).
+const NON_PERSISTED_QUERY_NAMESPACES: ReadonlySet<string> = new Set([
+	"auth",
+	"supabase-auth",
+]);
+
+// Narrow auth-adjacent keys under the broader `["user", ...]` namespace
+// that ALSO hold per-identity data (email, stripe_customer_id, active
+// sessions). Excluding only these — not all of `["user", ...]` — keeps
+// other user-scoped caches (e.g. tenant lists, dashboards) persistable.
+const NON_PERSISTED_USER_SUBKEYS: ReadonlySet<string> = new Set([
+	"me", // authKeys.me() — UserWithStripe { id, email, stripe_customer_id }
+	"sessions", // sessionKeys.all — user's auth.sessions list
+]);
 
 const isSerializable = (data: unknown) => {
 	try {
@@ -36,8 +53,14 @@ const shouldDehydrateQuery = (query: Query) => {
 	}
 
 	const queryKey = query.queryKey[0] as string | undefined;
-	if (queryKey === AUTH_QUERY_KEY) {
+	if (queryKey && NON_PERSISTED_QUERY_NAMESPACES.has(queryKey)) {
 		return false;
+	}
+	if (queryKey === "user") {
+		const subKey = query.queryKey[1] as string | undefined;
+		if (subKey && NON_PERSISTED_USER_SUBKEYS.has(subKey)) {
+			return false;
+		}
 	}
 
 	if (queryState.data && !isSerializable(queryState.data)) {
