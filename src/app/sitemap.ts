@@ -229,11 +229,13 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 			},
 		});
 		// Continue with static pages only. `blogHubLastModified` and
-		// `resourcesHubLastModified` stay undefined → the hub URLs ship
-		// without `lastModified`, which is the documented intent: emit
-		// no signal rather than a stale or fake one. The trade-off in
-		// the failure path is that a transient DB outage drops every
-		// blog freshness signal until the next ISR rebuild succeeds.
+		// `resourcesHubLastModified` stay undefined → the hub URLs fall
+		// back to `STATIC_PAGES_LAST_UPDATED` in the contentHubs block
+		// below so every URL ships with a lastmod (battle-test Session 5
+		// P3-3 — no sparse coverage). Trade-off: under DB failure the hub
+		// lastmod no longer reflects actual post freshness, but it's
+		// honest about "the marketing surface was last refreshed on this
+		// date" and crawlers don't see a missing-lastmod outlier.
 	}
 
 	// Hub freshness derives from the most recent post (honest signal of

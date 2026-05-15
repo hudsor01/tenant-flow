@@ -350,3 +350,39 @@ describe("sitemap legal-page lastmod drift guard", () => {
 		expect(securityPolicy?.lastModified).toBe(visible);
 	});
 });
+
+/**
+ * Hub-URL fallback test — isolated describe so the override mock can't
+ * leak into the main suite. When the blog DB query fails, /blog and
+ * /resources must still ship a lastmod (fall back to STATIC_PAGES_LAST_UPDATED)
+ * so every URL keeps the freshness signal added in PR #719.
+ */
+describe("sitemap() — DB-failure fallback", () => {
+	beforeEach(() => {
+		vi.resetModules();
+		vi.doMock("#lib/supabase/server", () => ({
+			createClient: vi.fn().mockResolvedValue({
+				from: vi.fn().mockImplementation(() => {
+					throw new Error("Simulated DB outage");
+				}),
+			}),
+		}));
+	});
+
+	it("hub URLs fall back to STATIC_PAGES_LAST_UPDATED when the blog query throws", async () => {
+		const { default: sitemap } = await import("./sitemap");
+		const entries = await sitemap();
+
+		const home = entries.find((e) => e.url === "https://tenantflow.app");
+		const blogHub = entries.find(
+			(e) => e.url === "https://tenantflow.app/blog",
+		);
+		const resourcesHub = entries.find(
+			(e) => e.url === "https://tenantflow.app/resources",
+		);
+
+		expect(home?.lastModified).toBeDefined();
+		expect(blogHub?.lastModified).toBe(home?.lastModified);
+		expect(resourcesHub?.lastModified).toBe(home?.lastModified);
+	});
+});

@@ -271,7 +271,12 @@ export function BillingSettings() {
 									if this persists.
 								</p>
 							)}
-							{status === "trialing" && !currentPlan && !stripePriceId && (
+							{/* Trialing without a known plan — fires for both
+							    no-priceId AND unknown-priceId variants (the latter is
+							    Sentry-warned by hasUnknownPriceId above). Either way,
+							    the user is on a trial without a committed plan choice,
+							    so the "Choose a plan" prompt applies. */}
+							{status === "trialing" && !currentPlan && (
 								<p className="text-sm text-muted-foreground mt-1">
 									Your trial is active.{" "}
 									<Link
