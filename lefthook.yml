@@ -1,7 +1,7 @@
 commit-msg:
   commands:
     commitlint:
-      run: pnpm commitlint --edit {1}
+      run: bunx commitlint --edit {1}
 
 pre-commit:
   parallel: true
@@ -9,15 +9,15 @@ pre-commit:
     gitleaks:
       run: gitleaks protect --staged --redact --no-banner
     lockfile-verify:
-      run: CI=true pnpm install --frozen-lockfile --prefer-offline > /dev/null 2>&1
+      run: CI=true bun install --frozen-lockfile > /dev/null 2>&1
     lint:
-      run: pnpm lint
+      run: bun run lint
     typecheck:
-      run: pnpm typecheck
+      run: bun run typecheck
     unit-tests:
-      run: CI=true pnpm test:unit -- --coverage
+      run: CI=true bun run test:unit -- --coverage
 
 pre-push:
   commands:
     lockfile-sync:
-      run: pnpm install --lockfile-only --ignore-scripts && git diff --quiet pnpm-lock.yaml
+      run: bun install --lockfile-only --ignore-scripts && git diff --quiet bun.lock

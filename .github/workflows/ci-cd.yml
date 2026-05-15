@@ -40,24 +40,22 @@ jobs:
         with:
           fetch-depth: 1
 
-      - uses: pnpm/action-setup@v6
+      - uses: oven-sh/setup-bun@v2
         with:
-          run_install: false
+          bun-version: 1.3.14
 
       - uses: actions/setup-node@v6
         with:
           node-version: "24"
-          cache: pnpm
-          cache-dependency-path: pnpm-lock.yaml
 
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile --prefer-offline
+        run: bun install --frozen-lockfile
 
       - name: Lint & Typecheck
-        run: pnpm lint & pnpm typecheck & wait
+        run: bun run lint & bun run typecheck & wait
 
       - name: Build
-        run: pnpm build
+        run: bun run build
         env:
           SKIP_ENV_VALIDATION: 'true'
           NEXT_PUBLIC_SUPABASE_URL: 'https://placeholder.supabase.co'
@@ -141,29 +139,27 @@ jobs:
           SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
           SUPABASE_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY }}
 
-      - uses: pnpm/action-setup@v6
+      - uses: oven-sh/setup-bun@v2
         if: github.event_name != 'pull_request' || github.actor != 'dependabot[bot]'
         with:
-          run_install: false
+          bun-version: 1.3.14
 
       - uses: actions/setup-node@v6
         if: github.event_name != 'pull_request' || github.actor != 'dependabot[bot]'
         with:
           node-version: "24"
-          cache: pnpm
-          cache-dependency-path: pnpm-lock.yaml
 
       - name: Install dependencies
         if: github.event_name != 'pull_request' || github.actor != 'dependabot[bot]'
-        run: pnpm install --frozen-lockfile --prefer-offline
+        run: bun install --frozen-lockfile
 
       - name: Install Playwright browsers
         if: github.event_name != 'pull_request' || github.actor != 'dependabot[bot]'
-        run: npx playwright install --with-deps chromium
+        run: bunx playwright install --with-deps chromium
 
       - name: Run E2E smoke tests
         if: github.event_name != 'pull_request' || github.actor != 'dependabot[bot]'
-        run: npx playwright test --config tests/e2e/playwright.config.ts --project=smoke --project=public
+        run: bunx playwright test --config tests/e2e/playwright.config.ts --project=smoke --project=public
         env:
           SKIP_ENV_VALIDATION: 'true'
           E2E_OWNER_EMAIL: ${{ secrets.E2E_OWNER_EMAIL }}
