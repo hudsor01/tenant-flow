@@ -117,12 +117,11 @@ export default defineConfig({
 	// ===================
 	projects: [
 		// ─────────────────────────────────────────
-		// SETUP: Authenticate owner via UI, save real browser storage state
+		// SETUP: Authenticate owner via API (runs first)
 		// ─────────────────────────────────────────
 		{
 			name: 'setup-owner',
-			use: { ...devices['Desktop Chrome'] },
-			testMatch: /auth-ui\.setup\.ts/,
+			testMatch: /auth-api\.setup\.ts/,
 			retries: 2
 		},
 
@@ -157,7 +156,7 @@ export default defineConfig({
 		},
 
 		// ─────────────────────────────────────────
-		// SMOKE: Login-flow smoke tests (no auth — tests the login UI itself)
+		// SMOKE: Critical path tests (no auth - tests login flow)
 		// ─────────────────────────────────────────
 		{
 			name: 'smoke',
@@ -165,24 +164,8 @@ export default defineConfig({
 				...devices['Desktop Chrome'],
 				storageState: { cookies: [], origins: [] } // No auth - tests login flow
 			},
-			testMatch: ['**/smoke/critical-paths.smoke.spec.ts']
-		},
-
-		// ─────────────────────────────────────────
-		// SMOKE-AUTHENTICATED: Post-login smoke tests
-		//   Reuses the setup-owner storageState so the suite costs ONE auth
-		//   call per CI run (Supabase Auth API), not one UI login per test.
-		//   Fixes the rate-limit flake when multiple PRs merge in quick
-		//   succession.
-		// ─────────────────────────────────────────
-		{
-			name: 'smoke-authenticated',
-			use: {
-				...devices['Desktop Chrome'],
-				storageState: OWNER_AUTH_FILE
-			},
-			dependencies: ['setup-owner'],
-			testMatch: ['**/smoke/authenticated-flows.smoke.spec.ts']
+			testMatch: ['**/smoke/**/*.spec.ts'],
+			testIgnore: ['**/minimal.smoke.spec.ts'] // This test requires pre-auth, runs in chromium project
 		},
 
 		// ─────────────────────────────────────────

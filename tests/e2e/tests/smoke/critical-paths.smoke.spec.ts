@@ -1,67 +1,99 @@
-import { test, expect } from '@playwright/test'
+import { test, expect, type Page } from '@playwright/test'
+import { createLogger } from '../../lib/frontend-logger'
 
 /**
- * CRITICAL PATH SMOKE TESTS — Login Flow
+ * CRITICAL PATH SMOKE TESTS
  *
- * The original critical-paths suite had 5 tests, 4 of which started by
- * re-running `loginAsOwner()` through the UI. That hammered Supabase's
- * ~45-sign-ins/minute auth rate limit on busy days (4+ PRs merging in
- * quick succession), producing the "P0 Dashboard loads for owner" flake
- * captured in MEMORY.md.
+ * Two execution blocks:
  *
- * The 4 post-login tests moved to `authenticated-flows.smoke.spec.ts`,
- * which reuses the existing `setup-owner` storageState (one Supabase
- * Auth API call per CI run, not five UI logins). This file keeps only
- * the test that genuinely exercises the login UI itself — it MUST stay
- * un-authenticated.
+ * 1) Login-flow test — un-authenticated, fresh page per test. Verifies
+ *    the login UI itself.
  *
- * Project wiring: this file matches the `smoke` project
- * (`storageState: { cookies: [], origins: [] }`); the authenticated
- * sibling matches the `smoke-authenticated` project.
+ * 2) Authenticated tests — share ONE UI login via `test.beforeAll`. All
+ *    tests then operate on the same already-authenticated `page`.
+ *    Replaces the prior pattern (5 inline UI logins per suite) which on
+ *    busy CI days tripped Supabase Auth's ~45 sign-ins/minute limit and
+ *    produced the "P0 Dashboard loads for owner" flake captured in
+ *    MEMORY.md. With this structure the whole suite costs 2 UI logins
+ *    per CI run (one in the login-flow block, one in the authenticated
+ *    beforeAll), well under the rate limit even when 4 PRs merge in
+ *    rapid succession.
+ *
+ *    The block uses `test.describe.serial` so the shared `page` survives
+ *    between tests; afterAll closes it.
+ *
+ *    An earlier attempt at this used Playwright's storageState (separate
+ *    setup-owner project writes cookies to disk, dependent project reads
+ *    them). That fought an architectural mismatch in how @supabase/ssr
+ *    writes auth state vs. what storageState captures — saved jars came
+ *    up with 0 `sb-*` auth cookies despite the post-login redirect
+ *    succeeding. The beforeAll+serial pattern sidesteps the issue by
+ *    keeping the auth state inside one live page context.
+ *
+ * 3) Environment sanity checks.
  */
 
 const BASE_URL = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:3050'
 const OWNER_EMAIL = process.env.E2E_OWNER_EMAIL || ''
 const OWNER_PASSWORD = process.env.E2E_OWNER_PASSWORD || ''
 const hasCredentials = Boolean(OWNER_EMAIL && OWNER_PASSWORD)
+const logger = createLogger({ component: 'CriticalPathsSmoke' })
 
+async function loginAsOwner(page: Page) {
+	await page.goto(`${BASE_URL}/login`)
+
+	const emailInput = page.locator('input#email')
+	const passwordInput = page.locator('input#password')
+	const submitButton = page.locator('button[type="submit"]')
+
+	await expect(emailInput).toBeVisible({ timeout: 15000 })
+	await expect(emailInput).toBeEnabled({ timeout: 5000 })
+
+	await emailInput.click()
+	await emailInput.fill(OWNER_EMAIL)
+	await passwordInput.click()
+	await passwordInput.fill(OWNER_PASSWORD)
+
+	await expect(emailInput).toHaveValue(OWNER_EMAIL)
+	await expect(passwordInput).toHaveValue(OWNER_PASSWORD)
+
+	await submitButton.click()
+	await page.waitForURL(url => !url.pathname.includes('/login'), {
+		timeout: 20000
+	})
+}
+
+// ─────────────────────────────────────────
+// 1) LOGIN-FLOW TEST — un-authenticated
+// ─────────────────────────────────────────
 test.describe('🚨 CRITICAL PATH SMOKE TESTS — Login Flow 🚨', () => {
 	test.skip(!hasCredentials, 'E2E_OWNER_EMAIL and E2E_OWNER_PASSWORD must be set')
 
 	test('🔥 P0: Owner can login', async ({ page }) => {
-		// Navigate to login
 		await page.goto(`${BASE_URL}/login`)
 
-		// Wait for form to be fully interactive (inputs enabled)
 		const emailInput = page.locator('input#email')
 		const passwordInput = page.locator('input#password')
 		const submitButton = page.locator('button[type="submit"]')
 
-		// Wait for email input to be visible and enabled
 		await expect(emailInput).toBeVisible({ timeout: 10000 })
 		await expect(emailInput).toBeEnabled({ timeout: 5000 })
 
-		// Fill credentials - use click + type for controlled components
 		await emailInput.click()
 		await emailInput.fill(OWNER_EMAIL)
-
 		await passwordInput.click()
 		await passwordInput.fill(OWNER_PASSWORD)
 
-		// Verify values were entered
 		await expect(emailInput).toHaveValue(OWNER_EMAIL)
 		await expect(passwordInput).toHaveValue(OWNER_PASSWORD)
 
-		// Submit
 		await submitButton.click()
 
-		// Wait for navigation AWAY from login page (not just any URL)
 		try {
 			await page.waitForURL(url => !url.pathname.includes('/login'), {
 				timeout: 15000
 			})
 		} catch (e) {
-			// Check if there's an error message on the page
 			const errorMsg = await page
 				.locator('text=/Sign in failed|Invalid|error/i')
 				.textContent()
@@ -70,27 +102,167 @@ test.describe('🚨 CRITICAL PATH SMOKE TESTS — Login Flow 🚨', () => {
 				throw new Error(
 					`🚨 LOGIN FAILED: ${errorMsg}\n\n` +
 						`❌ CRITICAL: Owner cannot login!\n` +
-						`Account: ${OWNER_EMAIL}\n\n` +
-						`Fix:\n` +
-						`1. Check Supabase Dashboard → Users\n` +
-						`2. Verify account exists with correct password`,
+						`Account: ${OWNER_EMAIL}`,
 					{ cause: e }
 				)
 			}
 			throw new Error(
 				`🚨 LOGIN TIMEOUT: No redirect after 15s\n` +
-					`Current URL: ${page.url()}\n` +
-					`Check: Supabase env vars, backend health, frontend build`,
+					`Current URL: ${page.url()}`,
 				{ cause: e }
 			)
 		}
 
-		// Verify we ended up on an authenticated page (dashboard or similar)
-		const currentUrl = page.url()
-		expect(currentUrl).not.toContain('/login')
+		expect(page.url()).not.toContain('/login')
 	})
 })
 
+// ─────────────────────────────────────────
+// 2) AUTHENTICATED CRITICAL PATHS — ONE UI login, shared page
+// ─────────────────────────────────────────
+test.describe.serial('🚨 AUTHENTICATED CRITICAL PATHS 🚨', () => {
+	test.skip(!hasCredentials, 'E2E_OWNER_EMAIL and E2E_OWNER_PASSWORD must be set')
+
+	let page: Page
+
+	test.beforeAll(async ({ browser }) => {
+		const context = await browser.newContext()
+		page = await context.newPage()
+		await loginAsOwner(page)
+	})
+
+	test.afterAll(async () => {
+		await page?.close()
+	})
+
+	test('🔥 P0: Dashboard loads for owner', async () => {
+		await page.goto(`${BASE_URL}/dashboard`)
+
+		const dashboardLoaded = await Promise.race([
+			page
+				.locator('h1:has-text("Dashboard")')
+				.waitFor({ timeout: 20000 })
+				.then(() => true),
+			page
+				.locator('[data-testid="dashboard"]')
+				.waitFor({ timeout: 20000 })
+				.then(() => true),
+			page
+				.locator('[data-testid="dashboard-stats"]')
+				.waitFor({ timeout: 20000 })
+				.then(() => true),
+			page
+				.locator('text=Total Properties')
+				.waitFor({ timeout: 20000 })
+				.then(() => true),
+			page
+				.locator('text=Welcome to TenantFlow')
+				.waitFor({ timeout: 20000 })
+				.then(() => true)
+		]).catch(() => false)
+
+		expect(dashboardLoaded).toBeTruthy()
+	})
+
+	test('🔥 P0: Properties page loads', async () => {
+		await page.goto(`${BASE_URL}/properties`)
+
+		const propertiesLoaded = await Promise.race([
+			page
+				.locator('h1:has-text("Properties")')
+				.waitFor({ timeout: 20000 })
+				.then(() => true),
+			page
+				.locator('button:has-text("New Property")')
+				.waitFor({ timeout: 20000 })
+				.then(() => true),
+			page
+				.locator('text=No properties yet')
+				.waitFor({ timeout: 20000 })
+				.then(() => true),
+			page
+				.locator('button:has-text("Add Your First Property")')
+				.waitFor({ timeout: 20000 })
+				.then(() => true)
+		]).catch(() => false)
+
+		expect(propertiesLoaded).toBeTruthy()
+	})
+
+	test('🔥 P0: Navigation works', async () => {
+		const pages = [
+			{ url: '/', name: 'Dashboard' },
+			{ url: '/properties', name: 'Properties' },
+			{ url: '/tenants', name: 'Tenants' },
+			{ url: '/leases', name: 'Leases' }
+		]
+
+		for (const testPage of pages) {
+			await page.goto(`${BASE_URL}${testPage.url}`)
+
+			const pageLoaded = await Promise.race([
+				page
+					.locator('h1')
+					.first()
+					.waitFor({ timeout: 5000 })
+					.then(() => true),
+				page
+					.locator('main')
+					.waitFor({ timeout: 5000 })
+					.then(() => true)
+			]).catch(() => false)
+
+			if (!pageLoaded) {
+				throw new Error(
+					`🚨 NAVIGATION FAILED: ${testPage.name} page did not load\n` +
+						`URL: ${testPage.url}\n` +
+						`Current: ${page.url()}`
+				)
+			}
+		}
+	})
+
+	test('🔥 P0: No console errors on critical pages', async () => {
+		const errors: string[] = []
+
+		page.on('pageerror', error => {
+			errors.push(`Page Error: ${error.message}`)
+		})
+
+		page.on('console', msg => {
+			if (msg.type() === 'error') {
+				errors.push(`Console Error: ${msg.text()}`)
+			}
+		})
+
+		await page.goto(`${BASE_URL}/dashboard`)
+		await page.waitForLoadState('domcontentloaded')
+		await page.waitForTimeout(1000)
+
+		await page.goto(`${BASE_URL}/properties`)
+		await page.waitForLoadState('domcontentloaded')
+		await page.waitForTimeout(1000)
+
+		const criticalErrors = errors.filter(
+			err =>
+				!err.includes('DevTools') &&
+				!err.includes('favicon') &&
+				!err.includes('webpack') &&
+				!err.includes('HMR')
+		)
+
+		if (criticalErrors.length > 0) {
+			logger.warn('⚠️  Console errors detected:', {
+				metadata: { criticalErrors }
+			})
+			// Don't fail the test, just warn
+		}
+	})
+})
+
+// ─────────────────────────────────────────
+// 3) ENVIRONMENT SANITY CHECKS
+// ─────────────────────────────────────────
 test.describe('🔍 SMOKE: Environment Sanity Checks', () => {
 	test('Environment variables are set', async () => {
 		test.skip(!hasCredentials, 'E2E credentials not configured — skipping env check')
