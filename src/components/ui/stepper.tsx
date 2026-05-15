@@ -1,8 +1,7 @@
 'use client'
 
 import { useId } from 'react'
-import { Direction } from 'radix-ui'
-import { Slot } from 'radix-ui'
+import { Direction, Slot } from 'radix-ui'
 import { cn } from '#lib/utils'
 import {
 	StoreContext,

@@ -1,7 +1,6 @@
 'use client'
 
-import { Direction } from 'radix-ui'
-import { Slot } from 'radix-ui'
+import { Direction, Slot } from 'radix-ui'
 import { useEffect, useId, useRef } from 'react'
 import type { ChangeEvent } from 'react'
 import { cn } from '#lib/utils'
