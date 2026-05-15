@@ -7,7 +7,7 @@
  * - Cache durations are set appropriately
  * - DevTools load only in development
  *
- * Run with: pnpm exec playwright test integration/react-query-production.spec.ts
+ * Run with: bunx playwright test integration/react-query-production.spec.ts
  */
 
 import { expect, test } from '@playwright/test'

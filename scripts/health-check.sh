@@ -27,7 +27,7 @@ gitleaks detect --source . --no-git --no-banner --quiet \
 [extend]
 useDefault = true
 [allowlist]
-paths = ['\.serena/', 'node_modules/', '\.next/', 'dist/', '\.turbo/', 'pnpm-lock\.yaml', '\.pkl$', '\.map$']
+paths = ['\.serena/', 'node_modules/', '\.next/', 'dist/', '\.turbo/', 'bun\.lock', '\.pkl$', '\.map$']
 EOF
 ) 2>/dev/null && echo "No secrets found" || echo "WARNING: Potential secrets detected - run 'secrets' for details"
 echo ""

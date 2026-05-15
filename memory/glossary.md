@@ -33,9 +33,9 @@ TenantFlow shorthand, acronyms, and domain terms.
 
 | Shorthand | Meaning |
 |-----------|---------|
-| typecheck | pnpm typecheck — TypeScript validation |
-| validate:quick | pnpm validate:quick — types + lint + unit tests |
-| db:types | pnpm db:types — regenerate Supabase types from live DB |
+| typecheck | bun run typecheck — TypeScript validation |
+| validate:quick | bun run validate:quick — types + lint + unit tests |
+| db:types | bun run db:types — regenerate Supabase types from live DB |
 | the webhook | supabase/functions/stripe-webhooks/ |
 | the proxy | proxy.ts — Next.js middleware for route protection |
 | Edge Fn | Supabase Edge Function in supabase/functions/ (Deno runtime) |

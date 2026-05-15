@@ -19,20 +19,20 @@ Owners manage properties/units/leases. Tenants pay rent, submit maintenance requ
 | TanStack Form | Form state | Zod schemas for validation |
 | Zustand | Client UI state | Not server state |
 | nuqs | URL state | Query params |
-| pnpm 10 | Package manager | Never use npm/yarn |
+| bun 1.3 | Package manager | Never use npm/yarn |
 | Tailwind CSS v4 | Styling | Utilities only, no inline styles |
 
 ## Key Commands
 
 | Command | What |
 |---------|------|
-| pnpm dev | Start dev server (port 3050) |
-| pnpm validate:quick | types + lint + unit tests |
-| pnpm typecheck && pnpm lint | CI quality gate |
-| pnpm test:unit | Vitest unit tests |
-| pnpm test:integration | RLS security tests |
-| pnpm test:e2e | Playwright E2E tests |
-| pnpm db:types | Regenerate Supabase types from live DB |
+| bun run dev | Start dev server (port 3050) |
+| bun run validate:quick | types + lint + unit tests |
+| bun run typecheck && bun run lint | CI quality gate |
+| bun run test:unit | Vitest unit tests |
+| bun run test:integration | RLS security tests |
+| bun run test:e2e | Playwright E2E tests |
+| bun run db:types | Regenerate Supabase types from live DB |
 | gh issue list --assignee=@me | View open GitHub issues |
 
 ## User Types

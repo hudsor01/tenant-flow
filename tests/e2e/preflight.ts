@@ -125,7 +125,7 @@ async function checkServer(url: string, name: string): Promise<void> {
 			name: `Server: ${name}`,
 			passed: false,
 			error: `Cannot reach ${name}: ${message}`,
-			suggestion: `Start the server with: pnpm dev`
+			suggestion: `Start the server with: bun run dev`
 		})
 	}
 }

@@ -20,7 +20,7 @@ Property management platform for independent landlords and small property manage
 | Document signing | DocuSeal |
 | Monitoring | Sentry (Next.js SDK + source maps + tunnel route) |
 | Hosting | Vercel (frontend), Supabase (backend), deploys from `main` only |
-| Package manager | pnpm 10.x, Node 24.x |
+| Package manager | bun 1.3.x, Node 24.x |
 
 Architecture is intentionally backend-light: the Next.js app talks to Supabase directly via PostgREST. There is no custom API server. Edge Functions (Deno) handle webhooks (Stripe, DocuSeal, Resend) and operations that need privileged access.
 
@@ -34,30 +34,30 @@ git clone https://github.com/hudsor01/tenant-flow.git
 cd tenant-flow
 
 # Install
-pnpm install
+bun install
 
 # Environment
 cp .env.example .env.local   # populate Supabase + Stripe keys
 
 # Dev server (port 3050)
-pnpm dev
+bun run dev
 ```
 
 Common commands:
 
 ```bash
-pnpm dev                          # dev server (Turbopack, port 3050)
-pnpm typecheck                    # tsc --noEmit (strict mode + noUncheckedIndexedAccess)
-pnpm lint                         # eslint
-pnpm test:unit                    # Vitest unit tests
-pnpm test:integration             # RLS integration tests (hits prod, see below)
-pnpm test:e2e                     # Playwright E2E
-pnpm db:types                     # regenerate src/types/supabase.ts atomically
-pnpm validate:quick               # types + lint + unit
+bun run dev                          # dev server (Turbopack, port 3050)
+bun run typecheck                    # tsc --noEmit (strict mode + noUncheckedIndexedAccess)
+bun run lint                         # eslint
+bun run test:unit                    # Vitest unit tests
+bun run test:integration             # RLS integration tests (hits prod, see below)
+bun run test:e2e                     # Playwright E2E
+bun run db:types                     # regenerate src/types/supabase.ts atomically
+bun run validate:quick               # types + lint + unit
 ```
 
 > [!WARNING]
-> `pnpm test:integration` authenticates synthetic test users against **production** Supabase via dual-client (ownerA/ownerB) JWTs. Use only the synthetic accounts (`e2e-owner-a@tenantflow.app`, `e2e-owner-b@tenantflow.app`) — never personal credentials. Supabase auth rate-limits at ~45 sign-ins/minute, so don't run the suite back-to-back without a cooldown.
+> `bun run test:integration` authenticates synthetic test users against **production** Supabase via dual-client (ownerA/ownerB) JWTs. Use only the synthetic accounts (`e2e-owner-a@tenantflow.app`, `e2e-owner-b@tenantflow.app`) — never personal credentials. Supabase auth rate-limits at ~45 sign-ins/minute, so don't run the suite back-to-back without a cooldown.
 
 ---
 
@@ -82,7 +82,7 @@ For the full developer contract (zero-tolerance rules, file conventions, RPC ret
 
 - **Migrations:** `supabase/migrations/YYYYMMDDHHmmss_description.sql`. Applied via Supabase MCP `apply_migration`.
 - **RLS** on every table; the frontend never holds the service-role key.
-- **Generated types:** `src/types/supabase.ts` — never edit manually; regenerate via `pnpm db:types`.
+- **Generated types:** `src/types/supabase.ts` — never edit manually; regenerate via `bun run db:types`.
 - **Migration drift:** prod-applied timestamps from MCP may differ from local filenames; always reconcile via `mcp__supabase__list_migrations` after each apply.
 
 `amount` columns store **dollars** as `numeric(10,2)`. Convert to cents only at the Stripe API boundary.

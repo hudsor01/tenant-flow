@@ -24,19 +24,19 @@ TenantFlow — landlord-only property management SaaS. No rent payment facilitat
 - **Frontend**: Next.js 16 + React 19 + TailwindCSS 4 + TanStack Query / Form + Zustand (`localhost:3050`)
 - **Backend**: Supabase (PostgREST + RPCs + Edge Functions in `supabase/functions/`) + Stripe
 - **Monitoring**: Sentry (Next.js SDK, source maps, tunnel `/monitoring`)
-- **Package manager**: pnpm 10.x, Node 24.x
+- **Package manager**: bun 1.3.x, Node 24.x
 - **Hosting**: Vercel (deploys from `main` only)
 - **React Compiler**: enabled
 
 ## Key Commands
 ```bash
-pnpm dev                          # dev server on port 3050 (Turbopack)
-pnpm typecheck && pnpm lint       # quality checks
-pnpm test:unit                    # Vitest unit tests
-pnpm test:unit -- --run src/path/to/test.ts  # single test file
-pnpm test:integration             # RLS integration tests (hits prod)
-pnpm db:types                     # regen src/types/supabase.ts (atomic, see scripts/db-types.sh)
-pnpm validate:quick               # types + lint + unit tests
+bun run dev                          # dev server on port 3050 (Turbopack)
+bun run typecheck && bun run lint       # quality checks
+bun run test:unit                    # Vitest unit tests
+bun run test:unit -- --run src/path/to/test.ts  # single test file
+bun run test:integration             # RLS integration tests (hits prod)
+bun run db:types                     # regen src/types/supabase.ts (atomic, see scripts/db-types.sh)
+bun run validate:quick               # types + lint + unit tests
 ```
 
 ## TypeScript Strictness
@@ -107,7 +107,7 @@ Reference example: `mapDocumentRow` in `src/hooks/api/query-keys/document-keys.t
 ## Database
 - Migrations: `supabase/migrations/YYYYMMDDHHmmss_description.sql`
 - RLS on every table; frontend never uses service role
-- `supabase.ts` is generated — never edit manually; `pnpm db:types` is atomic
+- `supabase.ts` is generated — never edit manually; `bun run db:types` is atomic
 - Migrations applied via Supabase MCP `apply_migration` get prod-assigned timestamps that may not match the repo filename — always reconcile via `mcp__supabase__list_migrations` after MCP applies (see `migration-mcp-prod-drift.md` memory)
 - All `amount` columns store **dollars** as `numeric(10,2)`. Convert to cents only at the Stripe API boundary.
 
