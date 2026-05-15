@@ -1,11 +1,11 @@
-#!/usr/bin/env npx tsx
+#!/usr/bin/env bun
 /**
  * Preflight Check for E2E Tests
  *
  * Run before E2E tests to validate environment and catch issues early.
  *
  * Usage:
- *   npx tsx scripts/preflight.ts
+ *   bun scripts/preflight.ts
  *   bun run preflight
  */
 

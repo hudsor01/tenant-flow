@@ -6,7 +6,7 @@
 	"description": "Playwright smoke and staging monitors for TenantFlow.",
 	"type": "module",
 	"scripts": {
-		"preflight": "bunx tsx scripts/preflight.ts",
+		"preflight": "bun scripts/preflight.ts",
 		"test": "bunx playwright test",
 		"test:with-preflight": "bun run preflight && bun run test",
 		"test:chromium": "preserve-env=PLAYWRIGHT_BASE_URL,E2E_OWNER_EMAIL,E2E_OWNER_PASSWORD,E2E_TENANT_EMAIL,E2E_TENANT_PASSWORD -- bunx playwright test --project=chromium",
@@ -32,7 +32,6 @@
 		"eslint": "10.0.2",
 		"fast-check": "^4.5.3",
 		"lighthouse": "13.0.1",
-		"tsx": "^4.21.0",
 		"typescript": "^5.9.3"
 	},
 	"dependencies": {}
