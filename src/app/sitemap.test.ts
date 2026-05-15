@@ -1,6 +1,6 @@
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 vi.mock("#env", () => ({
 	env: { NEXT_PUBLIC_APP_URL: "https://tenantflow.app" },
@@ -367,6 +367,13 @@ describe("sitemap() — DB-failure fallback", () => {
 				}),
 			}),
 		}));
+	});
+
+	afterEach(() => {
+		// Defense-in-depth: this describe is currently the last in the
+		// file, but unmocking here keeps the "isolated" claim literally
+		// true if a future describe is appended below.
+		vi.doUnmock("#lib/supabase/server");
 	});
 
 	it("hub URLs fall back to STATIC_PAGES_LAST_UPDATED when the blog query throws", async () => {
