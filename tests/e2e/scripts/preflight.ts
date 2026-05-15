@@ -6,7 +6,7 @@
  *
  * Usage:
  *   npx tsx scripts/preflight.ts
- *   pnpm preflight
+ *   bun run preflight
  */
 
 interface CheckResult {

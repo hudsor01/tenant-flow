@@ -28,7 +28,7 @@ tests
 **tests**
 **mocks**
 apps/backend
-!pnpm-lock.yaml
+!bun.lock
 node_modules
 packages/prettier-config
 Dockerfile
@@ -54,7 +54,7 @@ dist/
 build/
 !apps/frontend/dist/
 yarn.lock
-.pnpm-store
+# .pnpm-store (removed — bun manages cache internally)
 .DS_Store
 .idea
 .vscode

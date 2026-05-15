@@ -35,7 +35,7 @@ version: 2
 
 updates:
   # ─────────────────────────────────────────
-  # npm / pnpm — monthly, security-focused
+  # npm / bun — monthly, security-focused
   # ─────────────────────────────────────────
   - package-ecosystem: npm
     directory: /

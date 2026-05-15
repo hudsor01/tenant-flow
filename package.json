@@ -36,6 +36,7 @@
 		"test:integration": "vitest --run --project integration",
 		"test:rls": "vitest --run --project integration",
 		"test:ci": "CI=true vitest --run",
+		"test:e2e": "bunx playwright test --config tests/e2e/playwright.config.ts",
 		"clean": "rm -rf .next",
 		"db:push": "supabase db push && bun run db:types",
 		"db:pull": "supabase db pull",

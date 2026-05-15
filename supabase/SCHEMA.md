@@ -668,7 +668,7 @@ AND rp.due_date < CURRENT_DATE;
 After schema changes:
 ```bash
 # Regenerate TypeScript types
-pnpm db:types
+bun run db:types
 
 # Review migration and update this document
 ```

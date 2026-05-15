@@ -1,6 +1,6 @@
 -- Migration: get_deliverability_stats admin RPC
 -- Purpose: Admin-only per-template aggregate over public.email_deliverability.
---   Returns typed setof row (not jsonb) so pnpm db:types produces a proper
+--   Returns typed setof row (not jsonb) so bun run db:types produces a proper
 --   tuple-of-objects TS shape for the admin UI.
 -- Affected functions: public.get_deliverability_stats(integer)
 -- Requirements: ANALYTICS-02
