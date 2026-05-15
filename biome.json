@@ -166,21 +166,6 @@
 			}
 		},
 		{
-			"includes": [
-				"**/test/utils/**/*.ts",
-				"**/test/utils/**/*.tsx",
-				"**/components/ui/**/*.tsx",
-				"**/hooks/**/*.ts",
-				"**/lib/formatters/**/*.ts",
-				"**/lib/env/**/*.ts",
-				"**/types/**/*.ts",
-				"**/schemas/**/*.ts",
-				"**/config/**/*.ts",
-				"**/columns.tsx"
-			],
-			"linter": { "rules": {} }
-		},
-		{
 			"includes": ["**/*.ts", "**/*.tsx", "!**/*.d.ts"],
 			"javascript": {
 				"globals": [
@@ -527,7 +512,6 @@
 				"rules": {
 					"correctness": { "noNextAsyncClientComponent": "warn" },
 					"performance": {
-						"noImgElement": "off",
 						"noUnwantedPolyfillio": "warn",
 						"useGoogleFontPreconnect": "warn"
 					},
@@ -541,7 +525,7 @@
 			}
 		},
 		{
-			"includes": ["src/**/*.{ts,tsx}"],
+			"includes": ["src/**/*.{ts,tsx}", "!**/*.test.*", "!**/*.spec.*"],
 			"javascript": { "globals": ["React", "JSX"] },
 			"linter": {
 				"rules": {
@@ -558,7 +542,6 @@
 			"includes": ["src/app/**/*.ts", "src/app/**/*.tsx"],
 			"linter": {
 				"rules": {
-					"style": { "noDefaultExport": "off" },
 					"suspicious": { "useAwait": "off" }
 				}
 			}
@@ -634,10 +617,6 @@
 					"suspicious": { "noConsole": "off", "noExplicitAny": "off" }
 				}
 			}
-		},
-		{
-			"includes": ["tests/e2e/lib/frontend-logger.ts"],
-			"linter": { "rules": { "suspicious": { "noConsole": "off" } } }
 		}
 	],
 	"assist": {

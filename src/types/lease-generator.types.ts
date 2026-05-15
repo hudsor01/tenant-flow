@@ -11,7 +11,6 @@ import type {
 /**
  * US States with specific lease requirements
  */
-// prettier-ignore
 export type USState =
 	| "AL"
 	| "AK"
@@ -68,7 +67,6 @@ export type USState =
 /**
  * Lease term types
  */
-// prettier-ignore
 export type LeaseTermType =
 	| "fixed_term"
 	| "month_to_month"
@@ -154,7 +152,6 @@ export interface LeaseFormData {
 
 		// Additional Fees
 		additionalFees?: Array<{
-			// prettier-ignore
 			type:
 				| "pet_fee"
 				| "cleaning_fee"
@@ -171,7 +168,6 @@ export interface LeaseFormData {
 	policies?: {
 		pets: {
 			allowed: boolean;
-			// prettier-ignore
 			types?: Array<"dogs" | "cats" | "birds" | "fish" | "other">;
 			deposit?: number;
 			monthlyFee?: number;
@@ -203,7 +199,6 @@ export interface LeaseFormData {
 		includeStateDisclosures: boolean;
 		includeFederalDisclosures: boolean;
 		includeSignaturePages: boolean;
-		// prettier-ignore
 		format: "standard" | "detailed" | "simple";
 	};
 
