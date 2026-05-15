@@ -1,41 +1,41 @@
-'use client'
+"use client";
 
-import { useState, useEffect } from 'react'
-import { Button } from '#components/ui/button'
-import { Field, FieldError, FieldLabel } from '#components/ui/field'
-import { Input } from '#components/ui/input'
+import { useForm } from "@tanstack/react-form";
+import { DollarSign, Loader2 } from "lucide-react";
+import { useEffect, useState } from "react";
+import { toast } from "sonner";
+import { Button } from "#components/ui/button";
+import { Field, FieldError, FieldLabel } from "#components/ui/field";
+import { Input } from "#components/ui/input";
 import {
 	InputGroup,
 	InputGroupAddon,
-	InputGroupInput
-} from '#components/ui/input-group'
+	InputGroupInput,
+} from "#components/ui/input-group";
 import {
 	Select,
 	SelectContent,
 	SelectItem,
 	SelectTrigger,
-	SelectValue
-} from '#components/ui/select'
+	SelectValue,
+} from "#components/ui/select";
 import {
 	Sheet,
 	SheetContent,
 	SheetDescription,
 	SheetFooter,
 	SheetHeader,
-	SheetTitle
-} from '#components/ui/sheet'
-import { useUpdateUnitMutation } from '#hooks/api/use-unit'
-import type { Unit } from '#types/core'
-import { useForm } from '@tanstack/react-form'
-import { DollarSign, Loader2 } from 'lucide-react'
-import { toast } from 'sonner'
+	SheetTitle,
+} from "#components/ui/sheet";
+import { useUpdateUnitMutation } from "#hooks/api/use-unit";
+import type { Unit } from "#types/core";
 
 interface EditUnitPanelProps {
-	unit: Unit
-	propertyName: string
-	open: boolean
-	onOpenChange: (open: boolean) => void
-	onSuccess?: () => void
+	unit: Unit;
+	propertyName: string;
+	open: boolean;
+	onOpenChange: (open: boolean) => void;
+	onSuccess?: () => void;
 }
 
 export function EditUnitPanel({
@@ -43,36 +43,58 @@ export function EditUnitPanel({
 	propertyName,
 	open,
 	onOpenChange,
-	onSuccess
+	onSuccess,
 }: EditUnitPanelProps) {
-	const [isSubmitting, setIsSubmitting] = useState(false)
-	const updateUnitMutation = useUpdateUnitMutation()
+	const [isSubmitting, setIsSubmitting] = useState(false);
+	const updateUnitMutation = useUpdateUnitMutation();
 
 	const form = useForm({
 		defaultValues: {
-			unit_number: unit.unit_number ?? '',
-			bedrooms: unit.bedrooms?.toString() ?? '1',
-			bathrooms: unit.bathrooms?.toString() ?? '1',
-			square_feet: unit.square_feet?.toString() ?? '',
-			rent_amount: unit.rent_amount?.toString() ?? '',
-			status: (unit.status ?? 'available') as
-				| 'available'
-				| 'occupied'
-				| 'maintenance'
-				| 'reserved'
+			unit_number: unit.unit_number ?? "",
+			bedrooms: unit.bedrooms?.toString() ?? "1",
+			bathrooms: unit.bathrooms?.toString() ?? "1",
+			square_feet: unit.square_feet?.toString() ?? "",
+			rent_amount: unit.rent_amount?.toString() ?? "",
+			status: (unit.status ?? "available") as
+				| "available"
+				| "occupied"
+				| "maintenance"
+				| "reserved",
 		},
 		onSubmit: async ({ value }) => {
-			setIsSubmitting(true)
+			setIsSubmitting(true);
 			try {
-				if (!value.unit_number?.trim()) { toast.error('Unit number is required'); setIsSubmitting(false); return }
-				if (!value.rent_amount?.trim()) { toast.error('Monthly rent is required'); setIsSubmitting(false); return }
-				const bedrooms = Number.parseInt(value.bedrooms, 10)
-				const bathrooms = Number.parseFloat(value.bathrooms)
-				const rent_amount = Number.parseFloat(value.rent_amount)
-				const square_feet = value.square_feet ? Number.parseInt(value.square_feet, 10) : null
-				if (!Number.isFinite(bedrooms) || bedrooms < 0) { toast.error('Bedrooms must be a valid positive number'); setIsSubmitting(false); return }
-				if (!Number.isFinite(bathrooms) || bathrooms < 0) { toast.error('Bathrooms must be a valid positive number'); setIsSubmitting(false); return }
-				if (!Number.isFinite(rent_amount) || rent_amount <= 0) { toast.error('Rent must be a valid positive number'); setIsSubmitting(false); return }
+				if (!value.unit_number?.trim()) {
+					toast.error("Unit number is required");
+					setIsSubmitting(false);
+					return;
+				}
+				if (!value.rent_amount?.trim()) {
+					toast.error("Monthly rent is required");
+					setIsSubmitting(false);
+					return;
+				}
+				const bedrooms = Number.parseInt(value.bedrooms, 10);
+				const bathrooms = Number.parseFloat(value.bathrooms);
+				const rent_amount = Number.parseFloat(value.rent_amount);
+				const square_feet = value.square_feet
+					? Number.parseInt(value.square_feet, 10)
+					: null;
+				if (!Number.isFinite(bedrooms) || bedrooms < 0) {
+					toast.error("Bedrooms must be a valid positive number");
+					setIsSubmitting(false);
+					return;
+				}
+				if (!Number.isFinite(bathrooms) || bathrooms < 0) {
+					toast.error("Bathrooms must be a valid positive number");
+					setIsSubmitting(false);
+					return;
+				}
+				if (!Number.isFinite(rent_amount) || rent_amount <= 0) {
+					toast.error("Rent must be a valid positive number");
+					setIsSubmitting(false);
+					return;
+				}
 				await updateUnitMutation.mutateAsync({
 					id: unit.id,
 					data: {
@@ -81,34 +103,34 @@ export function EditUnitPanel({
 						bathrooms,
 						square_feet: square_feet ?? undefined,
 						rent_amount,
-						status: value.status
-					}
-				})
+						status: value.status,
+					},
+				});
 
-				onOpenChange(false)
-				onSuccess?.()
+				onOpenChange(false);
+				onSuccess?.();
 			} catch {
 				// Error is handled by mutation
 			} finally {
-				setIsSubmitting(false)
+				setIsSubmitting(false);
 			}
-		}
-	})
+		},
+	});
 
 	useEffect(() => {
 		form.reset({
-			unit_number: unit.unit_number ?? '',
-			bedrooms: unit.bedrooms?.toString() ?? '1',
-			bathrooms: unit.bathrooms?.toString() ?? '1',
-			square_feet: unit.square_feet?.toString() ?? '',
-			rent_amount: unit.rent_amount?.toString() ?? '',
-			status: (unit.status ?? 'available') as
-				| 'available'
-				| 'occupied'
-				| 'maintenance'
-				| 'reserved'
-		})
-	}, [unit, form])
+			unit_number: unit.unit_number ?? "",
+			bedrooms: unit.bedrooms?.toString() ?? "1",
+			bathrooms: unit.bathrooms?.toString() ?? "1",
+			square_feet: unit.square_feet?.toString() ?? "",
+			rent_amount: unit.rent_amount?.toString() ?? "",
+			status: (unit.status ?? "available") as
+				| "available"
+				| "occupied"
+				| "maintenance"
+				| "reserved",
+		});
+	}, [unit, form]);
 
 	return (
 		<Sheet open={open} onOpenChange={onOpenChange}>
@@ -121,14 +143,14 @@ export function EditUnitPanel({
 				</SheetHeader>
 
 				<form
-					onSubmit={e => {
-						e.preventDefault()
-						form.handleSubmit()
+					onSubmit={(e) => {
+						e.preventDefault();
+						form.handleSubmit();
 					}}
 					className="flex flex-col gap-6 p-4"
 				>
 					<form.Field name="unit_number">
-						{field => (
+						{(field) => (
 							<Field>
 								<FieldLabel htmlFor="edit_unit_number">
 									Unit Number/Identifier *
@@ -137,7 +159,7 @@ export function EditUnitPanel({
 									id="edit_unit_number"
 									placeholder="e.g., 101, A1, Suite 200"
 									value={field.state.value}
-									onChange={e => field.handleChange(e.target.value)}
+									onChange={(e) => field.handleChange(e.target.value)}
 								/>
 								{field.state.meta.errors.length > 0 && (
 									<FieldError>{field.state.meta.errors[0]}</FieldError>
@@ -148,7 +170,7 @@ export function EditUnitPanel({
 
 					<div className="grid grid-cols-2 gap-4">
 						<form.Field name="bedrooms">
-							{field => (
+							{(field) => (
 								<Field>
 									<FieldLabel htmlFor="edit_bedrooms">Bedrooms *</FieldLabel>
 									<Input
@@ -156,14 +178,14 @@ export function EditUnitPanel({
 										type="number"
 										min="0"
 										value={field.state.value}
-										onChange={e => field.handleChange(e.target.value)}
+										onChange={(e) => field.handleChange(e.target.value)}
 									/>
 								</Field>
 							)}
 						</form.Field>
 
 						<form.Field name="bathrooms">
-							{field => (
+							{(field) => (
 								<Field>
 									<FieldLabel htmlFor="edit_bathrooms">Bathrooms *</FieldLabel>
 									<Input
@@ -172,7 +194,7 @@ export function EditUnitPanel({
 										min="0"
 										step="0.5"
 										value={field.state.value}
-										onChange={e => field.handleChange(e.target.value)}
+										onChange={(e) => field.handleChange(e.target.value)}
 									/>
 								</Field>
 							)}
@@ -180,7 +202,7 @@ export function EditUnitPanel({
 					</div>
 
 					<form.Field name="square_feet">
-						{field => (
+						{(field) => (
 							<Field>
 								<FieldLabel htmlFor="edit_square_feet">
 									Square Feet (Optional)
@@ -191,14 +213,14 @@ export function EditUnitPanel({
 									min="0"
 									placeholder="e.g., 850"
 									value={field.state.value}
-									onChange={e => field.handleChange(e.target.value)}
+									onChange={(e) => field.handleChange(e.target.value)}
 								/>
 							</Field>
 						)}
 					</form.Field>
 
 					<form.Field name="rent_amount">
-						{field => (
+						{(field) => (
 							<Field>
 								<FieldLabel htmlFor="edit_rent_amount">
 									Monthly Rent *
@@ -214,7 +236,7 @@ export function EditUnitPanel({
 										step="0.01"
 										placeholder="0.00"
 										value={field.state.value}
-										onChange={e => field.handleChange(e.target.value)}
+										onChange={(e) => field.handleChange(e.target.value)}
 									/>
 								</InputGroup>
 							</Field>
@@ -222,18 +244,18 @@ export function EditUnitPanel({
 					</form.Field>
 
 					<form.Field name="status">
-						{field => (
+						{(field) => (
 							<Field>
 								<FieldLabel htmlFor="edit_status">Status *</FieldLabel>
 								<Select
 									value={field.state.value}
-									onValueChange={value =>
+									onValueChange={(value) =>
 										field.handleChange(
 											value as
-												| 'available'
-												| 'occupied'
-												| 'maintenance'
-												| 'reserved'
+												| "available"
+												| "occupied"
+												| "maintenance"
+												| "reserved",
 										)
 									}
 								>
@@ -267,12 +289,12 @@ export function EditUnitPanel({
 									Saving...
 								</>
 							) : (
-								'Save Changes'
+								"Save Changes"
 							)}
 						</Button>
 					</SheetFooter>
 				</form>
 			</SheetContent>
 		</Sheet>
-	)
+	);
 }

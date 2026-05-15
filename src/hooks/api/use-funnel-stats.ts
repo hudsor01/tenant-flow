@@ -1,5 +1,5 @@
-import { useQuery } from '@tanstack/react-query'
-import { funnelQueries } from '#hooks/api/query-keys/funnel-keys'
+import { useQuery } from "@tanstack/react-query";
+import { funnelQueries } from "#hooks/api/query-keys/funnel-keys";
 
 /**
  * Admin-only hook: signup-cohort onboarding funnel stats.
@@ -10,5 +10,5 @@ import { funnelQueries } from '#hooks/api/query-keys/funnel-keys'
  * — see 44-DECISIONS.md D2 for signup-cohort semantics.
  */
 export function useFunnelStats(from: string, to: string) {
-	return useQuery(funnelQueries.stats(from, to))
+	return useQuery(funnelQueries.stats(from, to));
 }

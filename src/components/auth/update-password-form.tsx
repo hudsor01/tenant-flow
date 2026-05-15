@@ -1,90 +1,89 @@
-'use client'
+"use client";
 
-import type { ComponentPropsWithoutRef, FormEvent } from 'react'
-import { useState } from 'react'
-
-import { useMutation } from '@tanstack/react-query'
+import { useMutation } from "@tanstack/react-query";
 import {
 	AlertTriangle,
 	CheckCircle2,
 	Eye,
 	EyeOff,
 	Lock,
-	Shield
-} from 'lucide-react'
-import { useRouter } from 'next/navigation'
-import { toast } from 'sonner'
+	Shield,
+} from "lucide-react";
+import { useRouter } from "next/navigation";
+import type { ComponentPropsWithoutRef, FormEvent } from "react";
+import { useState } from "react";
+import { toast } from "sonner";
 
-import { PasswordStrength } from '#components/auth/password-strength'
-import { Alert, AlertDescription } from '#components/ui/alert'
-import { Button } from '#components/ui/button'
+import { PasswordStrength } from "#components/auth/password-strength";
+import { Alert, AlertDescription } from "#components/ui/alert";
+import { Button } from "#components/ui/button";
 import {
 	Card,
 	CardContent,
 	CardDescription,
 	CardHeader,
 	CardTitle,
-	cardVariants
-} from '#components/ui/card'
-import { Field, FieldError, FieldLabel } from '#components/ui/field'
+	cardVariants,
+} from "#components/ui/card";
+import { Field, FieldError, FieldLabel } from "#components/ui/field";
 import {
 	InputGroup,
 	InputGroupAddon,
-	InputGroupInput
-} from '#components/ui/input-group'
-import { cn } from '#lib/utils'
-import { createClient } from '#lib/supabase/client'
-import { handleMutationError } from '#lib/mutation-error-handler'
+	InputGroupInput,
+} from "#components/ui/input-group";
+import { handleMutationError } from "#lib/mutation-error-handler";
+import { createClient } from "#lib/supabase/client";
+import { cn } from "#lib/utils";
 
 export function UpdatePasswordForm({
 	className,
 	...props
-}: ComponentPropsWithoutRef<'div'>) {
-	const [password, setPassword] = useState('')
-	const [confirmPassword, setConfirmPassword] = useState('')
-	const [showConfirmPassword, setShowConfirmPassword] = useState(false)
-	const router = useRouter()
+}: ComponentPropsWithoutRef<"div">) {
+	const [password, setPassword] = useState("");
+	const [confirmPassword, setConfirmPassword] = useState("");
+	const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+	const router = useRouter();
 
 	// TanStack Query mutation with enhanced feedback
 	const updatePasswordMutation = useMutation({
 		mutationFn: async (password: string) => {
 			if (password !== confirmPassword) {
-				throw new Error('Passwords do not match')
+				throw new Error("Passwords do not match");
 			}
 			if (password.length < 6) {
-				throw new Error('Password must be at least 6 characters')
+				throw new Error("Password must be at least 6 characters");
 			}
-			const supabaseClient = createClient()
-			const { error } = await supabaseClient.auth.updateUser({ password })
-			if (error) throw error
-			return { success: true }
+			const supabaseClient = createClient();
+			const { error } = await supabaseClient.auth.updateUser({ password });
+			if (error) throw error;
+			return { success: true };
 		},
 		onSuccess: () => {
-			toast.success('Password reset successful. Please log in.')
-			setTimeout(() => router.push('/login'), 1500)
+			toast.success("Password reset successful. Please log in.");
+			setTimeout(() => router.push("/login"), 1500);
 		},
-		onError: error => {
-			handleMutationError(error, 'Update password')
-		}
-	})
+		onError: (error) => {
+			handleMutationError(error, "Update password");
+		},
+	});
 
 	const handleUpdatePassword = async (e: FormEvent) => {
-		e.preventDefault()
-		updatePasswordMutation.mutate(password)
-	}
+		e.preventDefault();
+		updatePasswordMutation.mutate(password);
+	};
 
 	return (
 		<div
 			className={cn(
-				'form-container max-w-md mx-auto animate-fade-in',
-				className
+				"form-container max-w-md mx-auto animate-fade-in",
+				className,
 			)}
 			{...props}
 		>
 			<Card
 				className={cn(
-					cardVariants({ variant: 'default' }),
-					'shadow-xl border-2 hover:shadow-2xl transition-all duration-300 ease-out'
+					cardVariants({ variant: "default" }),
+					"shadow-xl border-2 hover:shadow-2xl transition-all duration-300 ease-out",
 				)}
 			>
 				<CardHeader className="text-center space-y-[var(--spacing-4)] animate-slide-in-top">
@@ -113,7 +112,7 @@ export function UpdatePasswordForm({
 									id="password"
 									placeholder="Enter your new password"
 									value={password}
-									onChange={e => setPassword(e.target.value)}
+									onChange={(e) => setPassword(e.target.value)}
 									disabled={updatePasswordMutation.isPending}
 									showStrengthIndicator={true}
 									minLength={6}
@@ -130,15 +129,15 @@ export function UpdatePasswordForm({
 									<InputGroupInput
 										id="confirmPassword"
 										name="confirmPassword"
-										type={showConfirmPassword ? 'text' : 'password'}
+										type={showConfirmPassword ? "text" : "password"}
 										placeholder="Confirm your new password"
 										autoComplete="new-password"
 										value={confirmPassword}
-										onChange={e => setConfirmPassword(e.target.value)}
+										onChange={(e) => setConfirmPassword(e.target.value)}
 										disabled={updatePasswordMutation.isPending}
 										aria-invalid={
 											confirmPassword && password !== confirmPassword
-												? 'true'
+												? "true"
 												: undefined
 										}
 									/>
@@ -154,8 +153,8 @@ export function UpdatePasswordForm({
 											{showConfirmPassword ? <EyeOff /> : <Eye />}
 											<span className="sr-only">
 												{showConfirmPassword
-													? 'Hide password'
-													: 'Show password'}
+													? "Hide password"
+													: "Show password"}
 											</span>
 										</button>
 									</InputGroupAddon>
@@ -185,7 +184,7 @@ export function UpdatePasswordForm({
 								<AlertDescription>
 									{updatePasswordMutation.error instanceof Error
 										? updatePasswordMutation.error.message
-										: 'An error occurred while updating your password'}
+										: "An error occurred while updating your password"}
 								</AlertDescription>
 							</Alert>
 						)}
@@ -193,9 +192,9 @@ export function UpdatePasswordForm({
 						<Button
 							type="submit"
 							className={cn(
-								'bg-primary text-primary-foreground hover:bg-primary/90 h-11 rounded-md px-8',
-								'w-full font-semibold hover:scale-105',
-								'transition-fast-transform'
+								"bg-primary text-primary-foreground hover:bg-primary/90 h-11 rounded-md px-8",
+								"w-full font-semibold hover:scale-105",
+								"transition-fast-transform",
 							)}
 							disabled={
 								updatePasswordMutation.isPending ||
@@ -227,5 +226,5 @@ export function UpdatePasswordForm({
 				</CardContent>
 			</Card>
 		</div>
-	)
+	);
 }

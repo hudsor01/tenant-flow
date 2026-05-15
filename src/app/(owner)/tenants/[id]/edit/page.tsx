@@ -1,15 +1,15 @@
-import { CardLayout } from '#components/ui/card-layout'
-import { Suspense, lazy } from 'react'
+import { lazy, Suspense } from "react";
+import { CardLayout } from "#components/ui/card-layout";
 
 // Dynamic import with code splitting
 const TenantEditForm = lazy(() =>
-	import('../../components/tenant-edit-form.client').then(mod => ({
-		default: mod.TenantEditForm
-	}))
-)
+	import("../../components/tenant-edit-form.client").then((mod) => ({
+		default: mod.TenantEditForm,
+	})),
+);
 
 interface TenantEditPageProps {
-	params: Promise<{ id: string }>
+	params: Promise<{ id: string }>;
 }
 
 // Loading fallback component
@@ -30,11 +30,11 @@ function TenantEditFormSkeleton() {
 				<div className="h-24 rounded-md bg-muted animate-pulse" />
 			</div>
 		</CardLayout>
-	)
+	);
 }
 
 export default async function TenantEditPage({ params }: TenantEditPageProps) {
-	const { id } = await params
+	const { id } = await params;
 
 	return (
 		<div className="mx-auto w-full max-w-4xl space-y-10">
@@ -48,5 +48,5 @@ export default async function TenantEditPage({ params }: TenantEditPageProps) {
 				<TenantEditForm id={id} />
 			</Suspense>
 		</div>
-	)
+	);
 }

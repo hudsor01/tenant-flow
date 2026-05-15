@@ -1,198 +1,203 @@
 // Maintenance Section Types
-import type { ReactElement } from 'react'
+import type { ReactElement } from "react";
 
-import type { MaintenanceRequest, MaintenanceStatus, MaintenancePriority } from '../core'
+import type {
+	MaintenancePriority,
+	MaintenanceRequest,
+	MaintenanceStatus,
+} from "../core";
 
 export interface MaintenanceProps {
 	// Request list
-	requests: MaintenanceRequestItem[]
+	requests: MaintenanceRequestItem[];
 
 	// Selected request detail
-	selectedRequest?: MaintenanceSectionRequestDetail
+	selectedRequest?: MaintenanceSectionRequestDetail;
 
 	// Analytics
-	analytics: MaintenanceAnalytics
+	analytics: MaintenanceAnalytics;
 
 	// Filters
-	statusFilter: MaintenanceStatus | 'all'
-	priorityFilter: MaintenancePriority | 'all'
-	propertyFilter: string | 'all'
+	statusFilter: MaintenanceStatus | "all";
+	priorityFilter: MaintenancePriority | "all";
+	propertyFilter: string | "all";
 
 	// View mode
-	viewMode: 'list' | 'kanban'
+	viewMode: "list" | "kanban";
 
 	// Callbacks
-	onCreateRequest: (data: CreateRequestData) => void
-	onUpdateStatus: (requestId: string, status: MaintenanceStatus) => void
-	onUpdatePriority: (requestId: string, priority: MaintenancePriority) => void
-	onAssignRequest: (requestId: string, assigneeId: string) => void
-	onAddExpense: (requestId: string, expense: ExpenseData) => void
-	onAddNotes: (requestId: string, notes: string) => void
-	onUploadPhotos: (requestId: string, files: File[]) => void
-	onScheduleWork: (requestId: string, date: string) => void
-	onMarkComplete: (requestId: string, notes: string) => void
-	onCancelRequest: (requestId: string) => void
-	onExportRequests: (format: 'csv' | 'pdf') => void
-	onViewRequest: (requestId: string) => void
-	onStatusFilterChange: (status: MaintenanceStatus | 'all') => void
-	onPriorityFilterChange: (priority: MaintenancePriority | 'all') => void
-	onPropertyFilterChange: (propertyId: string | 'all') => void
-	onViewModeChange: (mode: 'list' | 'kanban') => void
+	onCreateRequest: (data: CreateRequestData) => void;
+	onUpdateStatus: (requestId: string, status: MaintenanceStatus) => void;
+	onUpdatePriority: (requestId: string, priority: MaintenancePriority) => void;
+	onAssignRequest: (requestId: string, assigneeId: string) => void;
+	onAddExpense: (requestId: string, expense: ExpenseData) => void;
+	onAddNotes: (requestId: string, notes: string) => void;
+	onUploadPhotos: (requestId: string, files: File[]) => void;
+	onScheduleWork: (requestId: string, date: string) => void;
+	onMarkComplete: (requestId: string, notes: string) => void;
+	onCancelRequest: (requestId: string) => void;
+	onExportRequests: (format: "csv" | "pdf") => void;
+	onViewRequest: (requestId: string) => void;
+	onStatusFilterChange: (status: MaintenanceStatus | "all") => void;
+	onPriorityFilterChange: (priority: MaintenancePriority | "all") => void;
+	onPropertyFilterChange: (propertyId: string | "all") => void;
+	onViewModeChange: (mode: "list" | "kanban") => void;
 }
 
 export interface MaintenanceRequestItem {
-	id: string
-	title: string
-	description: string
-	status: MaintenanceStatus
-	priority: MaintenancePriority
-	propertyName: string
-	unitNumber: string
-	tenantName?: string
-	submittedBy: string
-	submittedAt: string
-	assignedTo?: string
-	scheduledDate?: string
-	createdAt: string
-	updatedAt: string
+	id: string;
+	title: string;
+	description: string;
+	status: MaintenanceStatus;
+	priority: MaintenancePriority;
+	propertyName: string;
+	unitNumber: string;
+	tenantName?: string;
+	submittedBy: string;
+	submittedAt: string;
+	assignedTo?: string;
+	scheduledDate?: string;
+	createdAt: string;
+	updatedAt: string;
 }
 
-export interface MaintenanceSectionRequestDetail extends MaintenanceRequestItem {
-	propertyId: string
-	unitId: string
-	tenantId?: string
-	requestedBy: string
-	estimatedCost?: number
-	actualCost?: number
-	completedAt?: string
-	inspectorId?: string
-	inspectionDate?: string
-	inspectionFindings?: string
-	expenses: ExpenseItem[]
-	photos: PhotoItem[]
-	notes: NoteItem[]
-	timeline: TimelineEvent[]
+export interface MaintenanceSectionRequestDetail
+	extends MaintenanceRequestItem {
+	propertyId: string;
+	unitId: string;
+	tenantId?: string;
+	requestedBy: string;
+	estimatedCost?: number;
+	actualCost?: number;
+	completedAt?: string;
+	inspectorId?: string;
+	inspectionDate?: string;
+	inspectionFindings?: string;
+	expenses: ExpenseItem[];
+	photos: PhotoItem[];
+	notes: NoteItem[];
+	timeline: TimelineEvent[];
 }
 
 export interface ExpenseItem {
-	id: string
-	vendorName: string
-	amount: number
-	expenseDate: string
-	description?: string
+	id: string;
+	vendorName: string;
+	amount: number;
+	expenseDate: string;
+	description?: string;
 }
 
 export interface PhotoItem {
-	id: string
-	imageUrl: string
-	caption?: string
-	uploadedAt: string
-	type: 'before' | 'after' | 'progress'
+	id: string;
+	imageUrl: string;
+	caption?: string;
+	uploadedAt: string;
+	type: "before" | "after" | "progress";
 }
 
 export interface NoteItem {
-	id: string
-	content: string
-	author: string
-	createdAt: string
+	id: string;
+	content: string;
+	author: string;
+	createdAt: string;
 }
 
 export interface TimelineEvent {
-	id: string
-	type: MaintenanceTimelineEventType
-	title: string
-	description?: string
-	timestamp: string
-	actor?: string
+	id: string;
+	type: MaintenanceTimelineEventType;
+	title: string;
+	description?: string;
+	timestamp: string;
+	actor?: string;
 }
 
 export interface MaintenanceAnalytics {
-	openRequests: number
-	inProgressRequests: number
-	completedThisMonth: number
-	averageResolutionDays: number
-	totalCostThisMonth: number
-	byPriority: PriorityBreakdown
-	byProperty: PropertyBreakdown[]
-	resolutionTrend: ResolutionTrend[]
+	openRequests: number;
+	inProgressRequests: number;
+	completedThisMonth: number;
+	averageResolutionDays: number;
+	totalCostThisMonth: number;
+	byPriority: PriorityBreakdown;
+	byProperty: PropertyBreakdown[];
+	resolutionTrend: ResolutionTrend[];
 }
 
 export interface PriorityBreakdown {
-	urgent: number
-	high: number
-	normal: number
-	low: number
+	urgent: number;
+	high: number;
+	normal: number;
+	low: number;
 }
 
 export interface PropertyBreakdown {
-	propertyId: string
-	propertyName: string
-	openRequests: number
-	totalCost: number
+	propertyId: string;
+	propertyName: string;
+	openRequests: number;
+	totalCost: number;
 }
 
 export interface ResolutionTrend {
-	month: string
-	opened: number
-	completed: number
-	averageDays: number
+	month: string;
+	opened: number;
+	completed: number;
+	averageDays: number;
 }
 
 export interface CreateRequestData {
-	title: string
-	description: string
-	priority: MaintenancePriority
-	unitId: string
-	scheduledDate?: string
+	title: string;
+	description: string;
+	priority: MaintenancePriority;
+	unitId: string;
+	scheduledDate?: string;
 }
 
 export interface ExpenseData {
-	vendorName: string
-	amount: number
-	expenseDate: string
-	description?: string
+	vendorName: string;
+	amount: number;
+	expenseDate: string;
+	description?: string;
 }
 
 export type MaintenanceTimelineEventType =
-	| 'created'
-	| 'assigned'
-	| 'status_change'
-	| 'expense_added'
-	| 'note_added'
-	| 'photo_added'
-	| 'scheduled'
-	| 'completed'
+	| "created"
+	| "assigned"
+	| "status_change"
+	| "expense_added"
+	| "note_added"
+	| "photo_added"
+	| "scheduled"
+	| "completed";
 
 /**
  * Flat display type for maintenance requests with optional related entity names.
  * Used by maintenance table, kanban, and card components.
  */
 export type MaintenanceDisplayRequest = MaintenanceRequest & {
-	property?: { name: string } | null
-	unit?: { name: string } | null
-	assignedTo?: { name: string } | null
-	tenant?: { name: string } | null
-}
+	property?: { name: string } | null;
+	unit?: { name: string } | null;
+	assignedTo?: { name: string } | null;
+	tenant?: { name: string } | null;
+};
 
 export interface KanbanColumnProps {
-	title: string
-	count: number
-	colorClass: string
-	icon: ReactElement
-	requests: MaintenanceRequestItem[]
-	onView?: ((id: string) => void) | undefined
-	onUpdateStatus?: (id: string, status: MaintenanceStatus) => void
-	columnIndex: number
+	title: string;
+	count: number;
+	colorClass: string;
+	icon: ReactElement;
+	requests: MaintenanceRequestItem[];
+	onView?: ((id: string) => void) | undefined;
+	onUpdateStatus?: (id: string, status: MaintenanceStatus) => void;
+	columnIndex: number;
 }
 
 export interface MaintenanceListProps {
-	requests: MaintenanceRequestItem[]
-	onView?: (requestId: string) => void
-	onCreate?: () => void
-	onUpdateStatus?: (requestId: string, status: MaintenanceStatus) => void
-	onUpdatePriority?: (requestId: string, priority: MaintenancePriority) => void
-	onExport?: (format: 'csv' | 'pdf') => void
-	onStatusFilterChange?: (status: MaintenanceStatus | 'all') => void
-	onPriorityFilterChange?: (priority: MaintenancePriority | 'all') => void
-	onFilterChange?: (filter: string) => void
+	requests: MaintenanceRequestItem[];
+	onView?: (requestId: string) => void;
+	onCreate?: () => void;
+	onUpdateStatus?: (requestId: string, status: MaintenanceStatus) => void;
+	onUpdatePriority?: (requestId: string, priority: MaintenancePriority) => void;
+	onExport?: (format: "csv" | "pdf") => void;
+	onStatusFilterChange?: (status: MaintenanceStatus | "all") => void;
+	onPriorityFilterChange?: (priority: MaintenancePriority | "all") => void;
+	onFilterChange?: (filter: string) => void;
 }

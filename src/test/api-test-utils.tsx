@@ -14,9 +14,9 @@
  * ```
  */
 
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import type { ReactNode } from 'react'
-import { vi } from 'vitest'
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import type { ReactNode } from "react";
+import { vi } from "vitest";
 
 /**
  * Creates a wrapper component for testing React Query hooks.
@@ -35,15 +35,15 @@ export function createTestWrapper() {
 	const queryClient = new QueryClient({
 		defaultOptions: {
 			queries: { retry: false },
-			mutations: { retry: false }
-		}
-	})
+			mutations: { retry: false },
+		},
+	});
 
 	return function Wrapper({ children }: { children: ReactNode }) {
 		return (
 			<QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
-		)
-	}
+		);
+	};
 }
 
 /**
@@ -65,18 +65,18 @@ export function createTestWrapper() {
 export function createMockFetchResponse<T>(
 	data: T,
 	ok: boolean = true,
-	status?: number
+	status?: number,
 ): Response {
-	const resolvedStatus = status ?? (ok ? 200 : 500)
-	const jsonString = JSON.stringify(data)
+	const resolvedStatus = status ?? (ok ? 200 : 500);
+	const jsonString = JSON.stringify(data);
 
 	return {
 		ok,
 		status: resolvedStatus,
-		statusText: ok ? 'OK' : 'Error',
+		statusText: ok ? "OK" : "Error",
 		json: () => Promise.resolve(data),
-		text: () => Promise.resolve(jsonString)
-	} as Response
+		text: () => Promise.resolve(jsonString),
+	} as Response;
 }
 
 /**
@@ -105,8 +105,8 @@ export function createSupabaseMocks() {
 		mockSupabaseDelete: vi.fn(),
 		mockSupabaseEq: vi.fn(),
 		mockSupabaseOrder: vi.fn(),
-		mockSupabaseSingle: vi.fn()
-	}
+		mockSupabaseSingle: vi.fn(),
+	};
 }
 
 /**
@@ -125,11 +125,11 @@ export function createSupabaseMocks() {
  */
 export function setupAuthenticatedSession(
 	mockGetSession: ReturnType<typeof vi.fn>,
-	accessToken: string = 'test-token'
+	accessToken: string = "test-token",
 ) {
 	mockGetSession.mockResolvedValue({
-		data: { session: { access_token: accessToken } }
-	})
+		data: { session: { access_token: accessToken } },
+	});
 }
 
 /**
@@ -146,11 +146,11 @@ export function setupAuthenticatedSession(
  * ```
  */
 export function setupUnauthenticatedSession(
-	mockGetSession: ReturnType<typeof vi.fn>
+	mockGetSession: ReturnType<typeof vi.fn>,
 ) {
 	mockGetSession.mockResolvedValue({
-		data: { session: null }
-	})
+		data: { session: null },
+	});
 }
 
 /**
@@ -170,8 +170,8 @@ export function setupUnauthenticatedSession(
 export function createPaginatedResponse<T>(data: T[], total?: number) {
 	return {
 		data,
-		total: total ?? data.length
-	}
+		total: total ?? data.length,
+	};
 }
 
 /**
@@ -231,9 +231,9 @@ vi.mock('sonner', () => ({
     error: vi.fn()
   }
 }));
-` as const
+` as const;
 
 /**
  * Test Supabase URL constant for use in fetch URL assertions.
  */
-export const TEST_SUPABASE_URL = 'http://localhost:54321'
+export const TEST_SUPABASE_URL = "http://localhost:54321";

@@ -9,14 +9,14 @@
  * Signature mutations call the docuseal Edge Function.
  */
 
-import { mutationOptions } from '@tanstack/react-query'
-import { handlePostgrestError } from '#lib/postgrest-error-handler'
-import { requireOwnerUserId } from '#lib/require-owner-user-id'
-import { createClient } from '#lib/supabase/client'
-import { getCachedUser } from '#lib/supabase/get-cached-user'
-import type { Lease } from '#types/core'
-import type { LeaseCreate, LeaseUpdate } from '#lib/validation/leases'
-import { mutationKeys } from '../mutation-keys'
+import { mutationOptions } from "@tanstack/react-query";
+import { handlePostgrestError } from "#lib/postgrest-error-handler";
+import { requireOwnerUserId } from "#lib/require-owner-user-id";
+import { createClient } from "#lib/supabase/client";
+import { getCachedUser } from "#lib/supabase/get-cached-user";
+import type { LeaseCreate, LeaseUpdate } from "#lib/validation/leases";
+import type { Lease } from "#types/core";
+import { mutationKeys } from "../mutation-keys";
 
 /**
  * Calls the docuseal Edge Function with an action payload.
@@ -24,33 +24,33 @@ import { mutationKeys } from '../mutation-keys'
  */
 async function callDocuSealEdgeFunction(
 	action: string,
-	payload: Record<string, unknown>
+	payload: Record<string, unknown>,
 ): Promise<{ success: boolean }> {
-	const supabase = createClient()
-	const { data: sessionData } = await supabase.auth.getSession()
-	const token = sessionData.session?.access_token
-	if (!token) throw new Error('Not authenticated')
+	const supabase = createClient();
+	const { data: sessionData } = await supabase.auth.getSession();
+	const token = sessionData.session?.access_token;
+	if (!token) throw new Error("Not authenticated");
 
-	const baseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+	const baseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 	const response = await fetch(`${baseUrl}/functions/v1/docuseal`, {
-		method: 'POST',
+		method: "POST",
 		headers: {
 			Authorization: `Bearer ${token}`,
-			'Content-Type': 'application/json'
+			"Content-Type": "application/json",
 		},
-		body: JSON.stringify({ action, ...payload })
-	})
+		body: JSON.stringify({ action, ...payload }),
+	});
 
 	if (!response.ok) {
 		const error = await response
 			.json()
-			.catch(() => ({ error: response.statusText }))
+			.catch(() => ({ error: response.statusText }));
 		throw new Error(
-			(error as { error?: string }).error ?? 'DocuSeal request failed'
-		)
+			(error as { error?: string }).error ?? "DocuSeal request failed",
+		);
 	}
 
-	return response.json()
+	return response.json();
 }
 
 export const leaseMutations = {
@@ -58,23 +58,23 @@ export const leaseMutations = {
 		mutationOptions({
 			mutationKey: mutationKeys.leases.create,
 			mutationFn: async (data: LeaseCreate): Promise<Lease> => {
-				const supabase = createClient()
-				const user = await getCachedUser()
-				const ownerId = requireOwnerUserId(user?.id)
+				const supabase = createClient();
+				const user = await getCachedUser();
+				const ownerId = requireOwnerUserId(user?.id);
 
 				// Omit tenant_ids (form-only field) before inserting into DB
-				const { tenant_ids: _tenant_ids, ...leaseData } = data
+				const { tenant_ids: _tenant_ids, ...leaseData } = data;
 
 				const { data: created, error } = await supabase
-					.from('leases')
+					.from("leases")
 					.insert({ ...leaseData, owner_user_id: ownerId })
 					.select()
-					.single()
+					.single();
 
-				if (error) handlePostgrestError(error, 'leases')
+				if (error) handlePostgrestError(error, "leases");
 
-				return created as unknown as Lease
-			}
+				return created as unknown as Lease;
+			},
 		}),
 
 	update: () =>
@@ -83,40 +83,40 @@ export const leaseMutations = {
 			mutationFn: async ({
 				id,
 				data,
-				version
+				version,
 			}: {
-				id: string
-				data: LeaseUpdate
-				version?: number
+				id: string;
+				data: LeaseUpdate;
+				version?: number;
 			}): Promise<Lease> => {
-				const supabase = createClient()
-				const payload = version ? { ...data, version } : { ...data }
+				const supabase = createClient();
+				const payload = version ? { ...data, version } : { ...data };
 				const { data: updated, error } = await supabase
-					.from('leases')
+					.from("leases")
 					.update(payload)
-					.eq('id', id)
+					.eq("id", id)
 					.select()
-					.single()
+					.single();
 
-				if (error) handlePostgrestError(error, 'leases')
+				if (error) handlePostgrestError(error, "leases");
 
-				return updated as unknown as Lease
-			}
+				return updated as unknown as Lease;
+			},
 		}),
 
 	delete: () =>
 		mutationOptions({
 			mutationKey: mutationKeys.leases.delete,
 			mutationFn: async (id: string): Promise<void> => {
-				const supabase = createClient()
+				const supabase = createClient();
 				// Soft-delete: set lease_status to inactive (financial record retention)
 				const { error } = await supabase
-					.from('leases')
-					.update({ lease_status: 'inactive' })
-					.eq('id', id)
+					.from("leases")
+					.update({ lease_status: "inactive" })
+					.eq("id", id);
 
-				if (error) handlePostgrestError(error, 'leases')
-			}
+				if (error) handlePostgrestError(error, "leases");
+			},
 		}),
 
 	/** Optimistic delete returns the ID for rollback */
@@ -124,36 +124,36 @@ export const leaseMutations = {
 		mutationOptions({
 			mutationKey: mutationKeys.leases.delete,
 			mutationFn: async (id: string): Promise<string> => {
-				const supabase = createClient()
+				const supabase = createClient();
 				const { error } = await supabase
-					.from('leases')
-					.update({ lease_status: 'inactive' })
-					.eq('id', id)
+					.from("leases")
+					.update({ lease_status: "inactive" })
+					.eq("id", id);
 
-				if (error) handlePostgrestError(error, 'leases')
-				return id
-			}
+				if (error) handlePostgrestError(error, "leases");
+				return id;
+			},
 		}),
 
 	terminate: () =>
 		mutationOptions({
 			mutationKey: mutationKeys.leases.terminate,
 			mutationFn: async (id: string): Promise<Lease> => {
-				const supabase = createClient()
+				const supabase = createClient();
 				const { data: updated, error } = await supabase
-					.from('leases')
+					.from("leases")
 					.update({
-						lease_status: 'terminated',
-						end_date: new Date().toISOString()
+						lease_status: "terminated",
+						end_date: new Date().toISOString(),
 					})
-					.eq('id', id)
+					.eq("id", id)
 					.select()
-					.single()
+					.single();
 
-				if (error) handlePostgrestError(error, 'leases')
+				if (error) handlePostgrestError(error, "leases");
 
-				return updated as unknown as Lease
-			}
+				return updated as unknown as Lease;
+			},
 		}),
 
 	renew: () =>
@@ -161,23 +161,23 @@ export const leaseMutations = {
 			mutationKey: mutationKeys.leases.renew,
 			mutationFn: async ({
 				id,
-				data
+				data,
 			}: {
-				id: string
-				data: { end_date: string }
+				id: string;
+				data: { end_date: string };
 			}): Promise<Lease> => {
-				const supabase = createClient()
+				const supabase = createClient();
 				const { data: updated, error } = await supabase
-					.from('leases')
-					.update({ end_date: data.end_date, lease_status: 'active' })
-					.eq('id', id)
+					.from("leases")
+					.update({ end_date: data.end_date, lease_status: "active" })
+					.eq("id", id)
 					.select()
-					.single()
+					.single();
 
-				if (error) handlePostgrestError(error, 'leases')
+				if (error) handlePostgrestError(error, "leases");
 
-				return updated as unknown as Lease
-			}
+				return updated as unknown as Lease;
+			},
 		}),
 
 	// Signature mutations (DocuSeal Edge Function)
@@ -187,41 +187,41 @@ export const leaseMutations = {
 			mutationFn: ({
 				leaseId,
 				message,
-				missingFields
+				missingFields,
 			}: {
-				leaseId: string
-				message?: string
+				leaseId: string;
+				message?: string;
 				missingFields: {
-					immediate_family_members: string
-					landlord_notice_address: string
-				}
+					immediate_family_members: string;
+					landlord_notice_address: string;
+				};
 			}) =>
-				callDocuSealEdgeFunction('send-for-signature', {
+				callDocuSealEdgeFunction("send-for-signature", {
 					leaseId,
 					message,
-					missingFields
-				})
+					missingFields,
+				}),
 		}),
 
 	signAsOwner: () =>
 		mutationOptions({
 			mutationKey: mutationKeys.leases.sign,
 			mutationFn: (leaseId: string) =>
-				callDocuSealEdgeFunction('sign-owner', { leaseId })
+				callDocuSealEdgeFunction("sign-owner", { leaseId }),
 		}),
 
 	signAsTenant: () =>
 		mutationOptions({
 			mutationKey: mutationKeys.leases.sign,
 			mutationFn: (leaseId: string) =>
-				callDocuSealEdgeFunction('sign-tenant', { leaseId })
+				callDocuSealEdgeFunction("sign-tenant", { leaseId }),
 		}),
 
 	cancelSignature: () =>
 		mutationOptions({
 			mutationKey: mutationKeys.leases.cancelSignature,
 			mutationFn: (leaseId: string) =>
-				callDocuSealEdgeFunction('cancel', { leaseId })
+				callDocuSealEdgeFunction("cancel", { leaseId }),
 		}),
 
 	resendSignature: () =>
@@ -229,10 +229,10 @@ export const leaseMutations = {
 			mutationKey: mutationKeys.leases.resendSignature,
 			mutationFn: ({
 				leaseId,
-				message
+				message,
 			}: {
-				leaseId: string
-				message?: string
-			}) => callDocuSealEdgeFunction('resend', { leaseId, message })
-		})
-}
+				leaseId: string;
+				message?: string;
+			}) => callDocuSealEdgeFunction("resend", { leaseId, message }),
+		}),
+};

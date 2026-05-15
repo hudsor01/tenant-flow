@@ -1,21 +1,21 @@
 import {
 	Card,
 	CardContent,
+	CardDescription,
 	CardHeader,
 	CardTitle,
-	CardDescription
-} from '#components/ui/card'
-import { cn } from '#lib/utils'
-import { formatDate } from '#lib/formatters/date'
+} from "#components/ui/card";
+import { formatDate } from "#lib/formatters/date";
+import { cn } from "#lib/utils";
 import {
-	type TimelineEvent,
-	getTimelineIcon,
+	formatRelativeTime,
 	getTimelineColor,
-	formatRelativeTime
-} from './lease-detail-utils'
+	getTimelineIcon,
+	type TimelineEvent,
+} from "./lease-detail-utils";
 
 interface LeaseTimelineTabProps {
-	events: TimelineEvent[]
+	events: TimelineEvent[];
 }
 
 export function LeaseTimelineTab({ events }: LeaseTimelineTabProps) {
@@ -35,16 +35,16 @@ export function LeaseTimelineTab({ events }: LeaseTimelineTabProps) {
 
 						<div className="space-y-6">
 							{events.map((event, index) => {
-								const Icon = getTimelineIcon(event.type)
-								const colorClass = getTimelineColor(event.type)
+								const Icon = getTimelineIcon(event.type);
+								const colorClass = getTimelineColor(event.type);
 
 								return (
 									<div key={event.id} className="relative flex gap-4 pl-2">
 										{/* Icon */}
 										<div
 											className={cn(
-												'relative z-10 flex items-center justify-center w-8 h-8 rounded-full shrink-0',
-												colorClass
+												"relative z-10 flex items-center justify-center w-8 h-8 rounded-full shrink-0",
+												colorClass,
 											)}
 										>
 											<Icon className="w-4 h-4" />
@@ -73,7 +73,7 @@ export function LeaseTimelineTab({ events }: LeaseTimelineTabProps) {
 											)}
 										</div>
 									</div>
-								)
+								);
 							})}
 						</div>
 					</div>
@@ -84,5 +84,5 @@ export function LeaseTimelineTab({ events }: LeaseTimelineTabProps) {
 				)}
 			</CardContent>
 		</Card>
-	)
+	);
 }

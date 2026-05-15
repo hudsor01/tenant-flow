@@ -1,4 +1,4 @@
-const MAX_SEARCH_LENGTH = 100
+const MAX_SEARCH_LENGTH = 100;
 
 /**
  * Characters that can modify PostgREST filter semantics when interpolated
@@ -12,7 +12,7 @@ const MAX_SEARCH_LENGTH = 100
  * % is intentionally NOT stripped -- it is the ILIKE wildcard
  * and is already part of the template (e.g., %${search}%).
  */
-const POSTGREST_DANGEROUS_CHARS = /[,.()"'\\]/g
+const POSTGREST_DANGEROUS_CHARS = /[,.()"'\\]/g;
 
 /**
  * Strips PostgREST filter operators from user search input.
@@ -20,7 +20,7 @@ const POSTGREST_DANGEROUS_CHARS = /[,.()"'\\]/g
  */
 export function sanitizeSearchInput(input: string): string {
 	return input
-		.replace(POSTGREST_DANGEROUS_CHARS, '')
+		.replace(POSTGREST_DANGEROUS_CHARS, "")
 		.trim()
-		.slice(0, MAX_SEARCH_LENGTH)
+		.slice(0, MAX_SEARCH_LENGTH);
 }

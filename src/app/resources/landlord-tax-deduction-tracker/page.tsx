@@ -1,27 +1,31 @@
-import type { Metadata } from 'next'
-import Link from 'next/link'
-import { ArrowLeft } from 'lucide-react'
-import { PageLayout } from '#components/layout/page-layout'
-import { Button } from '#components/ui/button'
-import { PrintButton } from '#components/shared/print-button'
-import { RelatedArticles } from '#components/blog/related-articles'
-import { RESOURCE_TO_BLOGS } from '#lib/content-links'
-import { deductionCategories } from './tax-deduction-data'
-import { JsonLdScript } from '#components/seo/json-ld-script'
-import { createBreadcrumbJsonLd } from '#lib/seo/breadcrumbs'
-import { createPageMetadata } from '#lib/seo/page-metadata'
+import { ArrowLeft } from "lucide-react";
+import type { Metadata } from "next";
+import Link from "next/link";
+import { RelatedArticles } from "#components/blog/related-articles";
+import { PageLayout } from "#components/layout/page-layout";
+import { JsonLdScript } from "#components/seo/json-ld-script";
+import { PrintButton } from "#components/shared/print-button";
+import { Button } from "#components/ui/button";
+import { RESOURCE_TO_BLOGS } from "#lib/content-links";
+import { createBreadcrumbJsonLd } from "#lib/seo/breadcrumbs";
+import { createPageMetadata } from "#lib/seo/page-metadata";
+import { deductionCategories } from "./tax-deduction-data";
 
 export const metadata: Metadata = createPageMetadata({
-	title: 'Landlord Tax Deduction Tracker',
+	title: "Landlord Tax Deduction Tracker",
 	description:
-		'Free printable tax deduction tracker for landlords. Categorized by IRS Schedule E with common deductions, examples, and space to track amounts year-round.',
-	path: '/resources/landlord-tax-deduction-tracker'
-})
+		"Free printable tax deduction tracker for landlords. Categorized by IRS Schedule E with common deductions, examples, and space to track amounts year-round.",
+	path: "/resources/landlord-tax-deduction-tracker",
+});
 
 export default function TaxDeductionTrackerPage() {
 	return (
 		<PageLayout>
-			<JsonLdScript schema={createBreadcrumbJsonLd('/resources/landlord-tax-deduction-tracker')} />
+			<JsonLdScript
+				schema={createBreadcrumbJsonLd(
+					"/resources/landlord-tax-deduction-tracker",
+				)}
+			/>
 			<style
 				dangerouslySetInnerHTML={{
 					__html: `
@@ -55,18 +59,20 @@ export default function TaxDeductionTrackerPage() {
 						Landlord Tax Deduction Tracker
 					</h1>
 					<p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-						Track every deductible expense year-round. Organized by IRS Schedule E
-						categories with common deductions, examples, and space to record your amounts.
+						Track every deductible expense year-round. Organized by IRS Schedule
+						E categories with common deductions, examples, and space to record
+						your amounts.
 					</p>
 				</header>
 
 				{/* Important notice */}
 				<div className="rounded-xl border border-amber-200 bg-amber-50 p-6 mb-12">
 					<p className="text-sm text-amber-900">
-						<strong>Disclaimer:</strong> This tracker is for informational purposes only and
-						does not constitute tax advice. Consult a qualified tax professional for advice
-						specific to your situation. Tax laws change annually — verify current rules with
-						the IRS or your CPA.
+						<strong>Disclaimer:</strong> This tracker is for informational
+						purposes only and does not constitute tax advice. Consult a
+						qualified tax professional for advice specific to your situation.
+						Tax laws change annually — verify current rules with the IRS or your
+						CPA.
 					</p>
 				</div>
 
@@ -77,7 +83,9 @@ export default function TaxDeductionTrackerPage() {
 					</h2>
 					<div className="grid grid-cols-2 gap-4 rounded-xl border border-border p-6">
 						<div>
-							<p className="text-sm text-muted-foreground mb-1">Property Address</p>
+							<p className="text-sm text-muted-foreground mb-1">
+								Property Address
+							</p>
 							<div className="border-b border-dashed border-muted-foreground/30 pb-2 min-h-8" />
 						</div>
 						<div>
@@ -85,7 +93,9 @@ export default function TaxDeductionTrackerPage() {
 							<div className="border-b border-dashed border-muted-foreground/30 pb-2 min-h-8" />
 						</div>
 						<div>
-							<p className="text-sm text-muted-foreground mb-1">Date Placed in Service</p>
+							<p className="text-sm text-muted-foreground mb-1">
+								Date Placed in Service
+							</p>
 							<div className="border-b border-dashed border-muted-foreground/30 pb-2 min-h-8" />
 						</div>
 						<div>
@@ -102,7 +112,7 @@ export default function TaxDeductionTrackerPage() {
 					{deductionCategories.map((cat, ci) => (
 						<section
 							key={cat.category}
-							className={ci > 0 && ci % 2 === 0 ? 'page-break' : undefined}
+							className={ci > 0 && ci % 2 === 0 ? "page-break" : undefined}
 						>
 							<div className="flex items-baseline justify-between mb-4">
 								<h2 className="text-xl font-bold text-foreground">
@@ -132,9 +142,7 @@ export default function TaxDeductionTrackerPage() {
 											<tr
 												key={i}
 												className={
-													i % 2 === 0
-														? 'bg-background/50'
-														: 'bg-background/80'
+													i % 2 === 0 ? "bg-background/50" : "bg-background/80"
 												}
 											>
 												<td className="p-3 text-sm font-medium text-foreground align-top">
@@ -186,14 +194,15 @@ export default function TaxDeductionTrackerPage() {
 							</div>
 						</div>
 						<p className="text-sm text-muted-foreground mt-4">
-							Transfer this total to IRS Schedule E. Keep all receipts and documentation
-							for at least 3 years (7 years if claiming depreciation).
+							Transfer this total to IRS Schedule E. Keep all receipts and
+							documentation for at least 3 years (7 years if claiming
+							depreciation).
 						</p>
 					</div>
 				</section>
 
 				<RelatedArticles
-					slugs={RESOURCE_TO_BLOGS['landlord-tax-deduction-tracker'] ?? []}
+					slugs={RESOURCE_TO_BLOGS["landlord-tax-deduction-tracker"] ?? []}
 					title="Related Blog Posts"
 				/>
 
@@ -208,5 +217,5 @@ export default function TaxDeductionTrackerPage() {
 				</div>
 			</div>
 		</PageLayout>
-	)
+	);
 }

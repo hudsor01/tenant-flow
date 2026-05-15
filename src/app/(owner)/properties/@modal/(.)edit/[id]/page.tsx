@@ -1,12 +1,12 @@
-'use client'
+"use client";
 
-import { use } from 'react'
-import { PropertyForm } from '#components/properties/property-form.client'
-import { RouteModal } from '#components/ui/route-modal'
-import { Skeleton } from '#components/ui/skeleton'
-import { propertyQueries } from '#hooks/api/query-keys/property-keys'
-import { useQuery } from '@tanstack/react-query'
-import { notFound } from 'next/navigation'
+import { useQuery } from "@tanstack/react-query";
+import { notFound } from "next/navigation";
+import { use } from "react";
+import { PropertyForm } from "#components/properties/property-form.client";
+import { RouteModal } from "#components/ui/route-modal";
+import { Skeleton } from "#components/ui/skeleton";
+import { propertyQueries } from "#hooks/api/query-keys/property-keys";
 
 /**
  * Edit Property Modal (Intercepting Route)
@@ -21,19 +21,19 @@ import { notFound } from 'next/navigation'
  * - URL: /properties/[id]/edit (shareable, bookmarkable)
  */
 export default function EditPropertyModal({
-	params
+	params,
 }: {
-	params: Promise<{ id: string }>
+	params: Promise<{ id: string }>;
 }) {
-	const { id } = use(params)
+	const { id } = use(params);
 	const {
 		data: property,
 		isLoading,
-		error
-	} = useQuery(propertyQueries.detail(id))
+		error,
+	} = useQuery(propertyQueries.detail(id));
 
 	if (error) {
-		notFound()
+		notFound();
 	}
 
 	return (
@@ -48,5 +48,5 @@ export default function EditPropertyModal({
 				/>
 			) : null}
 		</RouteModal>
-	)
+	);
 }

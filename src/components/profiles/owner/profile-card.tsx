@@ -1,40 +1,40 @@
-'use client'
+"use client";
 
-import type { ChangeEvent, RefObject } from 'react'
-import { Camera, Clock, Loader2, LogOut } from 'lucide-react'
-import { BlurFade } from '#components/ui/blur-fade'
-import { BorderBeam } from '#components/ui/border-beam'
-import { NumberTicker } from '#components/ui/number-ticker'
-import { Stat, StatValue, StatDescription } from '#components/ui/stat'
-import { Avatar, AvatarFallback, AvatarImage } from '#components/ui/avatar'
-import { getInitials } from '#lib/formatters/text'
+import { Camera, Clock, Loader2, LogOut } from "lucide-react";
+import type { ChangeEvent, RefObject } from "react";
+import { Avatar, AvatarFallback, AvatarImage } from "#components/ui/avatar";
+import { BlurFade } from "#components/ui/blur-fade";
+import { BorderBeam } from "#components/ui/border-beam";
+import { NumberTicker } from "#components/ui/number-ticker";
+import { Stat, StatDescription, StatValue } from "#components/ui/stat";
+import { getInitials } from "#lib/formatters/text";
 
 interface OwnerProfile {
-	properties_count: number
-	units_count: number
-	stripe_connected: boolean
+	properties_count: number;
+	units_count: number;
+	stripe_connected: boolean;
 }
 
 interface ProfileData {
-	first_name?: string | null
-	last_name?: string | null
-	full_name: string
-	avatar_url?: string | null
-	created_at: string
-	owner_profile?: OwnerProfile | null
+	first_name?: string | null;
+	last_name?: string | null;
+	full_name: string;
+	avatar_url?: string | null;
+	created_at: string;
+	owner_profile?: OwnerProfile | null;
 }
 
 interface ProfileCardProps {
-	profile: ProfileData
-	fileInputRef: RefObject<HTMLInputElement | null>
-	isPending: boolean
-	isUploadingAvatar: boolean
-	isRemovingAvatar: boolean
-	isSigningOut: boolean
-	onAvatarClick: () => void
-	onAvatarChange: (e: ChangeEvent<HTMLInputElement>) => void
-	onRemoveAvatar: () => void
-	onSignOut: () => void
+	profile: ProfileData;
+	fileInputRef: RefObject<HTMLInputElement | null>;
+	isPending: boolean;
+	isUploadingAvatar: boolean;
+	isRemovingAvatar: boolean;
+	isSigningOut: boolean;
+	onAvatarClick: () => void;
+	onAvatarChange: (e: ChangeEvent<HTMLInputElement>) => void;
+	onRemoveAvatar: () => void;
+	onSignOut: () => void;
 }
 
 export function ProfileCard({
@@ -47,17 +47,17 @@ export function ProfileCard({
 	onAvatarClick,
 	onAvatarChange,
 	onRemoveAvatar,
-	onSignOut
+	onSignOut,
 }: ProfileCardProps) {
 	const initials = (() => {
 		if (profile.first_name && profile.last_name) {
-			return `${profile.first_name[0]}${profile.last_name[0]}`.toUpperCase()
+			return `${profile.first_name[0]}${profile.last_name[0]}`.toUpperCase();
 		}
 		if (profile.full_name) {
-			return getInitials(profile.full_name)
+			return getInitials(profile.full_name);
 		}
-		return 'U'
-	})()
+		return "U";
+	})();
 
 	return (
 		<BlurFade delay={0.15} inView>
@@ -110,7 +110,7 @@ export function ProfileCard({
 								disabled={isPending}
 								className="mt-2 text-xs text-muted-foreground hover:text-destructive transition-colors disabled:opacity-50"
 							>
-								{isRemovingAvatar ? 'Removing...' : 'Remove photo'}
+								{isRemovingAvatar ? "Removing..." : "Remove photo"}
 							</button>
 						)}
 
@@ -119,10 +119,10 @@ export function ProfileCard({
 
 						<div className="mt-2 flex items-center gap-1 text-xs text-muted-foreground">
 							<Clock className="h-3 w-3" />
-							Member since{' '}
-							{new Date(profile.created_at).toLocaleDateString('en-US', {
-								month: 'short',
-								year: 'numeric'
+							Member since{" "}
+							{new Date(profile.created_at).toLocaleDateString("en-US", {
+								month: "short",
+								year: "numeric",
 							})}
 						</div>
 					</div>
@@ -169,10 +169,10 @@ export function ProfileCard({
 						) : (
 							<LogOut className="h-4 w-4" />
 						)}
-						{isSigningOut ? 'Signing out...' : 'Sign Out'}
+						{isSigningOut ? "Signing out..." : "Sign Out"}
 					</button>
 				</div>
 			</div>
 		</BlurFade>
-	)
+	);
 }

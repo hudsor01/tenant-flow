@@ -8,293 +8,339 @@
  * - Settings menu behavior
  */
 
-import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { render, screen } from '@testing-library/react'
-import userEvent from '@testing-library/user-event'
-import { MainNav } from '../main-nav'
+import { render, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import { MainNav } from "../main-nav";
 
 // Mock next/navigation
-const mockPathname = vi.fn().mockReturnValue('/dashboard')
-vi.mock('next/navigation', () => ({
-	usePathname: () => mockPathname()
-}))
+const mockPathname = vi.fn().mockReturnValue("/dashboard");
+vi.mock("next/navigation", () => ({
+	usePathname: () => mockPathname(),
+}));
 
-describe('MainNav', () => {
+describe("MainNav", () => {
 	beforeEach(() => {
-		vi.clearAllMocks()
-		mockPathname.mockReturnValue('/dashboard')
-	})
+		vi.clearAllMocks();
+		mockPathname.mockReturnValue("/dashboard");
+	});
 
-	describe('core navigation items', () => {
-		it('should render all core navigation items', () => {
-			render(<MainNav />)
+	describe("core navigation items", () => {
+		it("should render all core navigation items", () => {
+			render(<MainNav />);
 
-			expect(screen.getByRole('link', { name: /dashboard/i })).toBeInTheDocument()
-			expect(screen.getByRole('link', { name: /properties/i })).toBeInTheDocument()
-			expect(screen.getByRole('link', { name: /tenants/i })).toBeInTheDocument()
-			expect(screen.getByRole('link', { name: /leases/i })).toBeInTheDocument()
-			expect(screen.getByRole('link', { name: /maintenance/i })).toBeInTheDocument()
+			expect(
+				screen.getByRole("link", { name: /dashboard/i }),
+			).toBeInTheDocument();
+			expect(
+				screen.getByRole("link", { name: /properties/i }),
+			).toBeInTheDocument();
+			expect(
+				screen.getByRole("link", { name: /tenants/i }),
+			).toBeInTheDocument();
+			expect(screen.getByRole("link", { name: /leases/i })).toBeInTheDocument();
+			expect(
+				screen.getByRole("link", { name: /maintenance/i }),
+			).toBeInTheDocument();
 			// Anchored regex avoids matching the "Tax Documents" sub-link
 			// once the Financials section is expanded.
-			expect(screen.getByRole('link', { name: /^documents$/i })).toBeInTheDocument()
-		})
-
-		it('should render correct hrefs for core items', () => {
-			render(<MainNav />)
-
-			expect(screen.getByRole('link', { name: /dashboard/i })).toHaveAttribute(
-				'href',
-				'/dashboard'
-			)
-			expect(screen.getByRole('link', { name: /properties/i })).toHaveAttribute(
-				'href',
-				'/properties'
-			)
-			expect(screen.getByRole('link', { name: /tenants/i })).toHaveAttribute(
-				'href',
-				'/tenants'
-			)
-			expect(screen.getByRole('link', { name: /leases/i })).toHaveAttribute(
-				'href',
-				'/leases'
-			)
-			expect(screen.getByRole('link', { name: /maintenance/i })).toHaveAttribute(
-				'href',
-				'/maintenance'
-			)
 			expect(
-				screen.getByRole('link', { name: /^documents$/i })
-			).toHaveAttribute('href', '/documents/vault')
-		})
-	})
+				screen.getByRole("link", { name: /^documents$/i }),
+			).toBeInTheDocument();
+		});
 
-	describe('active state highlighting', () => {
-		it('should highlight Dashboard when on /dashboard', () => {
-			mockPathname.mockReturnValue('/dashboard')
-			render(<MainNav />)
+		it("should render correct hrefs for core items", () => {
+			render(<MainNav />);
 
-			const dashboardLink = screen.getByRole('link', { name: /dashboard/i })
-			expect(dashboardLink.className).toContain('text-primary')
-		})
+			expect(screen.getByRole("link", { name: /dashboard/i })).toHaveAttribute(
+				"href",
+				"/dashboard",
+			);
+			expect(screen.getByRole("link", { name: /properties/i })).toHaveAttribute(
+				"href",
+				"/properties",
+			);
+			expect(screen.getByRole("link", { name: /tenants/i })).toHaveAttribute(
+				"href",
+				"/tenants",
+			);
+			expect(screen.getByRole("link", { name: /leases/i })).toHaveAttribute(
+				"href",
+				"/leases",
+			);
+			expect(
+				screen.getByRole("link", { name: /maintenance/i }),
+			).toHaveAttribute("href", "/maintenance");
+			expect(
+				screen.getByRole("link", { name: /^documents$/i }),
+			).toHaveAttribute("href", "/documents/vault");
+		});
+	});
 
-		it('should highlight Properties when on /properties', () => {
-			mockPathname.mockReturnValue('/properties')
-			render(<MainNav />)
+	describe("active state highlighting", () => {
+		it("should highlight Dashboard when on /dashboard", () => {
+			mockPathname.mockReturnValue("/dashboard");
+			render(<MainNav />);
 
-			const propertiesLink = screen.getByRole('link', { name: /properties/i })
-			expect(propertiesLink.className).toContain('text-primary')
-		})
+			const dashboardLink = screen.getByRole("link", { name: /dashboard/i });
+			expect(dashboardLink.className).toContain("text-primary");
+		});
 
-		it('should highlight Properties when on nested property route', () => {
-			mockPathname.mockReturnValue('/properties/123')
-			render(<MainNav />)
+		it("should highlight Properties when on /properties", () => {
+			mockPathname.mockReturnValue("/properties");
+			render(<MainNav />);
 
-			const propertiesLink = screen.getByRole('link', { name: /properties/i })
-			expect(propertiesLink.className).toContain('text-primary')
-		})
+			const propertiesLink = screen.getByRole("link", { name: /properties/i });
+			expect(propertiesLink.className).toContain("text-primary");
+		});
 
-		it('should not highlight other items when Dashboard is active', () => {
-			mockPathname.mockReturnValue('/dashboard')
-			render(<MainNav />)
+		it("should highlight Properties when on nested property route", () => {
+			mockPathname.mockReturnValue("/properties/123");
+			render(<MainNav />);
 
-			const propertiesLink = screen.getByRole('link', { name: /properties/i })
-			expect(propertiesLink.className).not.toContain('text-primary')
-		})
-	})
+			const propertiesLink = screen.getByRole("link", { name: /properties/i });
+			expect(propertiesLink.className).toContain("text-primary");
+		});
 
-	describe('expandable sections', () => {
-		it('should render Analytics as expandable button', () => {
-			render(<MainNav />)
+		it("should not highlight other items when Dashboard is active", () => {
+			mockPathname.mockReturnValue("/dashboard");
+			render(<MainNav />);
 
-			const analyticsButton = screen.getByRole('button', { name: /analytics/i })
-			expect(analyticsButton).toBeInTheDocument()
-		})
+			const propertiesLink = screen.getByRole("link", { name: /properties/i });
+			expect(propertiesLink.className).not.toContain("text-primary");
+		});
+	});
 
-		it('should render Reports as expandable button', () => {
-			render(<MainNav />)
+	describe("expandable sections", () => {
+		it("should render Analytics as expandable button", () => {
+			render(<MainNav />);
 
-			const reportsButton = screen.getByRole('button', { name: /reports/i })
-			expect(reportsButton).toBeInTheDocument()
-		})
+			const analyticsButton = screen.getByRole("button", {
+				name: /analytics/i,
+			});
+			expect(analyticsButton).toBeInTheDocument();
+		});
 
-		it('should render Financials as expandable button', () => {
-			render(<MainNav />)
+		it("should render Reports as expandable button", () => {
+			render(<MainNav />);
 
-			const financialsButton = screen.getByRole('button', { name: /financials/i })
-			expect(financialsButton).toBeInTheDocument()
-		})
+			const reportsButton = screen.getByRole("button", { name: /reports/i });
+			expect(reportsButton).toBeInTheDocument();
+		});
 
-		it('should toggle Analytics children visibility on click', async () => {
-			const user = userEvent.setup()
-			render(<MainNav />)
+		it("should render Financials as expandable button", () => {
+			render(<MainNav />);
 
-			const analyticsButton = screen.getByRole('button', { name: /analytics/i })
+			const financialsButton = screen.getByRole("button", {
+				name: /financials/i,
+			});
+			expect(financialsButton).toBeInTheDocument();
+		});
+
+		it("should toggle Analytics children visibility on click", async () => {
+			const user = userEvent.setup();
+			render(<MainNav />);
+
+			const analyticsButton = screen.getByRole("button", {
+				name: /analytics/i,
+			});
 
 			// Click to expand
-			await user.click(analyticsButton)
+			await user.click(analyticsButton);
 
 			// Now we should find Overview link
-			expect(screen.getByRole('link', { name: /^overview$/i })).toBeInTheDocument()
-		})
+			expect(
+				screen.getByRole("link", { name: /^overview$/i }),
+			).toBeInTheDocument();
+		});
 
-		it('should show Financials children when expanded', async () => {
-			const user = userEvent.setup()
-			render(<MainNav />)
+		it("should show Financials children when expanded", async () => {
+			const user = userEvent.setup();
+			render(<MainNav />);
 
-			const financialsButton = screen.getByRole('button', { name: /financials/i })
-			await user.click(financialsButton)
+			const financialsButton = screen.getByRole("button", {
+				name: /financials/i,
+			});
+			await user.click(financialsButton);
 
-			expect(screen.getByRole('link', { name: /income statement/i })).toBeInTheDocument()
-			expect(screen.getByRole('link', { name: /cash flow/i })).toBeInTheDocument()
-			expect(screen.getByRole('link', { name: /balance sheet/i })).toBeInTheDocument()
-			expect(screen.getByRole('link', { name: /tax documents/i })).toBeInTheDocument()
-		})
-	})
+			expect(
+				screen.getByRole("link", { name: /income statement/i }),
+			).toBeInTheDocument();
+			expect(
+				screen.getByRole("link", { name: /cash flow/i }),
+			).toBeInTheDocument();
+			expect(
+				screen.getByRole("link", { name: /balance sheet/i }),
+			).toBeInTheDocument();
+			expect(
+				screen.getByRole("link", { name: /tax documents/i }),
+			).toBeInTheDocument();
+		});
+	});
 
-	describe('templates section', () => {
-		it('should render Templates section header', () => {
-			render(<MainNav />)
+	describe("templates section", () => {
+		it("should render Templates section header", () => {
+			render(<MainNav />);
 
-			expect(screen.getByText('Templates')).toBeInTheDocument()
-		})
+			expect(screen.getByText("Templates")).toBeInTheDocument();
+		});
 
-		it('should render Generate Lease link', () => {
-			render(<MainNav />)
+		it("should render Generate Lease link", () => {
+			render(<MainNav />);
 
-			const generateLeaseLink = screen.getByRole('link', { name: /generate lease/i })
-			expect(generateLeaseLink).toBeInTheDocument()
-			expect(generateLeaseLink).toHaveAttribute('href', '/leases/new')
-		})
+			const generateLeaseLink = screen.getByRole("link", {
+				name: /generate lease/i,
+			});
+			expect(generateLeaseLink).toBeInTheDocument();
+			expect(generateLeaseLink).toHaveAttribute("href", "/leases/new");
+		});
 
-		it('should render Lease Template link', () => {
-			render(<MainNav />)
+		it("should render Lease Template link", () => {
+			render(<MainNav />);
 
-			const leaseTemplateLink = screen.getByRole('link', { name: /lease template/i })
-			expect(leaseTemplateLink).toBeInTheDocument()
-			expect(leaseTemplateLink).toHaveAttribute('href', '/documents/lease-template')
-		})
-	})
+			const leaseTemplateLink = screen.getByRole("link", {
+				name: /lease template/i,
+			});
+			expect(leaseTemplateLink).toBeInTheDocument();
+			expect(leaseTemplateLink).toHaveAttribute(
+				"href",
+				"/documents/lease-template",
+			);
+		});
+	});
 
-	describe('settings menu', () => {
-		it('should render Settings button', () => {
-			render(<MainNav />)
+	describe("settings menu", () => {
+		it("should render Settings button", () => {
+			render(<MainNav />);
 
-			const settingsButton = screen.getByRole('button', { name: /settings/i })
-			expect(settingsButton).toBeInTheDocument()
-		})
+			const settingsButton = screen.getByRole("button", { name: /settings/i });
+			expect(settingsButton).toBeInTheDocument();
+		});
 
-		it('should show dropdown menu when Settings is clicked', async () => {
-			const user = userEvent.setup()
-			render(<MainNav />)
+		it("should show dropdown menu when Settings is clicked", async () => {
+			const user = userEvent.setup();
+			render(<MainNav />);
 
-			const settingsButton = screen.getByRole('button', { name: /settings/i })
-			await user.click(settingsButton)
+			const settingsButton = screen.getByRole("button", { name: /settings/i });
+			await user.click(settingsButton);
 
-			expect(screen.getByRole('link', { name: /help & support/i })).toBeInTheDocument()
-		})
+			expect(
+				screen.getByRole("link", { name: /help & support/i }),
+			).toBeInTheDocument();
+		});
 
-		it('should render Help & Support link with correct href', async () => {
-			const user = userEvent.setup()
-			render(<MainNav />)
+		it("should render Help & Support link with correct href", async () => {
+			const user = userEvent.setup();
+			render(<MainNav />);
 
-			const settingsButton = screen.getByRole('button', { name: /settings/i })
-			await user.click(settingsButton)
+			const settingsButton = screen.getByRole("button", { name: /settings/i });
+			await user.click(settingsButton);
 
-			const helpLink = screen.getByRole('link', { name: /help & support/i })
-			expect(helpLink).toHaveAttribute('href', '/help')
-		})
+			const helpLink = screen.getByRole("link", { name: /help & support/i });
+			expect(helpLink).toHaveAttribute("href", "/help");
+		});
 
-		it('should call onNavigate when Help & Support is clicked', async () => {
-			const user = userEvent.setup()
-			const onNavigate = vi.fn()
-			render(<MainNav onNavigate={onNavigate} />)
+		it("should call onNavigate when Help & Support is clicked", async () => {
+			const user = userEvent.setup();
+			const onNavigate = vi.fn();
+			render(<MainNav onNavigate={onNavigate} />);
 
-			const settingsButton = screen.getByRole('button', { name: /settings/i })
-			await user.click(settingsButton)
+			const settingsButton = screen.getByRole("button", { name: /settings/i });
+			await user.click(settingsButton);
 
-			const helpLink = screen.getByRole('link', { name: /help & support/i })
-			await user.click(helpLink)
+			const helpLink = screen.getByRole("link", { name: /help & support/i });
+			await user.click(helpLink);
 
-			expect(onNavigate).toHaveBeenCalledTimes(1)
-		})
+			expect(onNavigate).toHaveBeenCalledTimes(1);
+		});
 
-		it('should show keyboard shortcuts item in dropdown', async () => {
-			const user = userEvent.setup()
-			render(<MainNav />)
+		it("should show keyboard shortcuts item in dropdown", async () => {
+			const user = userEvent.setup();
+			render(<MainNav />);
 
-			const settingsButton = screen.getByRole('button', { name: /settings/i })
-			await user.click(settingsButton)
+			const settingsButton = screen.getByRole("button", { name: /settings/i });
+			await user.click(settingsButton);
 
-			expect(screen.getByText(/keyboard shortcuts/i)).toBeInTheDocument()
-		})
+			expect(screen.getByText(/keyboard shortcuts/i)).toBeInTheDocument();
+		});
 
 		it('should show keyboard shortcut indicator "?"', async () => {
-			const user = userEvent.setup()
-			render(<MainNav />)
+			const user = userEvent.setup();
+			render(<MainNav />);
 
-			const settingsButton = screen.getByRole('button', { name: /settings/i })
-			await user.click(settingsButton)
+			const settingsButton = screen.getByRole("button", { name: /settings/i });
+			await user.click(settingsButton);
 
-			expect(screen.getByText('?')).toBeInTheDocument()
-		})
+			expect(screen.getByText("?")).toBeInTheDocument();
+		});
 
-		it('should close dropdown when clicking outside', async () => {
-			const user = userEvent.setup()
-			render(<MainNav />)
+		it("should close dropdown when clicking outside", async () => {
+			const user = userEvent.setup();
+			render(<MainNav />);
 
-			const settingsButton = screen.getByRole('button', { name: /settings/i })
-			await user.click(settingsButton)
+			const settingsButton = screen.getByRole("button", { name: /settings/i });
+			await user.click(settingsButton);
 
 			// Verify dropdown is open
-			expect(screen.getByRole('link', { name: /help & support/i })).toBeInTheDocument()
+			expect(
+				screen.getByRole("link", { name: /help & support/i }),
+			).toBeInTheDocument();
 
 			// Click outside (on the backdrop)
-			const backdrop = document.querySelector('.fixed.inset-0')
-			expect(backdrop).toBeInTheDocument()
-			await user.click(backdrop!)
+			const backdrop = document.querySelector(".fixed.inset-0");
+			expect(backdrop).toBeInTheDocument();
+			await user.click(backdrop!);
 
 			// Verify dropdown is closed
-			expect(screen.queryByRole('link', { name: /help & support/i })).not.toBeInTheDocument()
-		})
-	})
+			expect(
+				screen.queryByRole("link", { name: /help & support/i }),
+			).not.toBeInTheDocument();
+		});
+	});
 
-	describe('onNavigate callback', () => {
-		it('should call onNavigate when a core nav item is clicked', async () => {
-			const user = userEvent.setup()
-			const onNavigate = vi.fn()
-			render(<MainNav onNavigate={onNavigate} />)
+	describe("onNavigate callback", () => {
+		it("should call onNavigate when a core nav item is clicked", async () => {
+			const user = userEvent.setup();
+			const onNavigate = vi.fn();
+			render(<MainNav onNavigate={onNavigate} />);
 
-			const propertiesLink = screen.getByRole('link', { name: /properties/i })
-			await user.click(propertiesLink)
+			const propertiesLink = screen.getByRole("link", { name: /properties/i });
+			await user.click(propertiesLink);
 
-			expect(onNavigate).toHaveBeenCalledTimes(1)
-		})
+			expect(onNavigate).toHaveBeenCalledTimes(1);
+		});
 
-		it('should call onNavigate when an expanded child is clicked', async () => {
-			const user = userEvent.setup()
-			const onNavigate = vi.fn()
-			render(<MainNav onNavigate={onNavigate} />)
+		it("should call onNavigate when an expanded child is clicked", async () => {
+			const user = userEvent.setup();
+			const onNavigate = vi.fn();
+			render(<MainNav onNavigate={onNavigate} />);
 
 			// Expand Financials
-			const financialsButton = screen.getByRole('button', { name: /financials/i })
-			await user.click(financialsButton)
+			const financialsButton = screen.getByRole("button", {
+				name: /financials/i,
+			});
+			await user.click(financialsButton);
 
 			// Click a child link
-			const incomeStatementLink = screen.getByRole('link', { name: /income statement/i })
-			await user.click(incomeStatementLink)
+			const incomeStatementLink = screen.getByRole("link", {
+				name: /income statement/i,
+			});
+			await user.click(incomeStatementLink);
 
-			expect(onNavigate).toHaveBeenCalledTimes(1)
-		})
+			expect(onNavigate).toHaveBeenCalledTimes(1);
+		});
 
-		it('should call onNavigate when document link is clicked', async () => {
-			const user = userEvent.setup()
-			const onNavigate = vi.fn()
-			render(<MainNav onNavigate={onNavigate} />)
+		it("should call onNavigate when document link is clicked", async () => {
+			const user = userEvent.setup();
+			const onNavigate = vi.fn();
+			render(<MainNav onNavigate={onNavigate} />);
 
-			const generateLeaseLink = screen.getByRole('link', { name: /generate lease/i })
-			await user.click(generateLeaseLink)
+			const generateLeaseLink = screen.getByRole("link", {
+				name: /generate lease/i,
+			});
+			await user.click(generateLeaseLink);
 
-			expect(onNavigate).toHaveBeenCalledTimes(1)
-		})
-	})
-})
+			expect(onNavigate).toHaveBeenCalledTimes(1);
+		});
+	});
+});

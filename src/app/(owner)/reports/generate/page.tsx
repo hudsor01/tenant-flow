@@ -1,105 +1,110 @@
-'use client'
+"use client";
 
+import { format, subMonths } from "date-fns";
+import { Calendar } from "lucide-react";
+import { useState } from "react";
+import { toast } from "sonner";
 import {
 	Card,
 	CardContent,
 	CardDescription,
 	CardHeader,
-	CardTitle
-} from '#components/ui/card'
-import { Label } from '#components/ui/label'
+	CardTitle,
+} from "#components/ui/card";
+import { Label } from "#components/ui/label";
 import {
 	Select,
 	SelectContent,
 	SelectItem,
 	SelectTrigger,
-	SelectValue
-} from '#components/ui/select'
-import { handleMutationError } from '#lib/mutation-error-handler'
-import { useAuth } from '#providers/auth-provider'
-
-import { format, subMonths } from 'date-fns'
-import { Calendar } from 'lucide-react'
-import { useState } from 'react'
-import { toast } from 'sonner'
-import { ReportCardGrid } from './components/report-card-grid'
+	SelectValue,
+} from "#components/ui/select";
+import { handleMutationError } from "#lib/mutation-error-handler";
+import { useAuth } from "#providers/auth-provider";
+import { ReportCardGrid } from "./components/report-card-grid";
 import {
+	type ReportFormat,
+	type ReportType,
 	reportCards,
 	reportsClient,
-	type ReportFormat,
-	type ReportType
-} from './components/report-types'
+} from "./components/report-types";
 
 export default function GenerateReportsPage() {
-	const { user } = useAuth()
-	const [selectedPeriod, setSelectedPeriod] = useState('last-month')
+	const { user } = useAuth();
+	const [selectedPeriod, setSelectedPeriod] = useState("last-month");
 	const [generatingReports, setGeneratingReports] = useState<
 		Record<string, boolean>
-	>({})
+	>({});
 
 	// Calculate date range based on selected period
 	const getDateRange = () => {
-		const today = new Date()
-		let start_date: Date
-		const end_date: Date = today
+		const today = new Date();
+		let start_date: Date;
+		const end_date: Date = today;
 
 		switch (selectedPeriod) {
-			case 'last-month':
-				start_date = subMonths(today, 1)
-				break
-			case 'last-3-months':
-				start_date = subMonths(today, 3)
-				break
-			case 'last-6-months':
-				start_date = subMonths(today, 6)
-				break
-			case 'last-year':
-				start_date = subMonths(today, 12)
-				break
+			case "last-month":
+				start_date = subMonths(today, 1);
+				break;
+			case "last-3-months":
+				start_date = subMonths(today, 3);
+				break;
+			case "last-6-months":
+				start_date = subMonths(today, 6);
+				break;
+			case "last-year":
+				start_date = subMonths(today, 12);
+				break;
 			default:
-				start_date = subMonths(today, 1)
+				start_date = subMonths(today, 1);
 		}
 
 		return {
-			start_date: format(start_date, 'yyyy-MM-dd'),
-			end_date: format(end_date, 'yyyy-MM-dd')
-		}
-	}
+			start_date: format(start_date, "yyyy-MM-dd"),
+			end_date: format(end_date, "yyyy-MM-dd"),
+		};
+	};
 
 	const handleGenerateReport = async (
 		reportId: ReportType,
-		reportFormat: ReportFormat
+		reportFormat: ReportFormat,
 	) => {
-		const reportKey = `${reportId}-${reportFormat}`
-		setGeneratingReports(prev => ({ ...prev, [reportKey]: true }))
+		const reportKey = `${reportId}-${reportFormat}`;
+		setGeneratingReports((prev) => ({ ...prev, [reportKey]: true }));
 
 		try {
-			const { start_date, end_date } = getDateRange()
-			const user_id = user?.id
+			const { start_date, end_date } = getDateRange();
+			const user_id = user?.id;
 
 			if (!user_id) {
-				toast.error('User not authenticated')
-				return
+				toast.error("User not authenticated");
+				return;
 			}
 
 			await reportsClient.generateReport(reportId, {
 				user_id,
 				start_date,
 				end_date,
-				format: reportFormat
-			})
+				format: reportFormat,
+			});
 
-			toast.success('Report generated successfully')
+			toast.success("Report generated successfully");
 		} catch (error) {
-			handleMutationError(error, 'Generate report')
+			handleMutationError(error, "Generate report");
 		} finally {
-			setGeneratingReports(prev => ({ ...prev, [reportKey]: false }))
+			setGeneratingReports((prev) => ({ ...prev, [reportKey]: false }));
 		}
-	}
+	};
 
-	const executiveReports = reportCards.filter(r => r.category === 'executive')
-	const financialReports = reportCards.filter(r => r.category === 'financial')
-	const operationsReports = reportCards.filter(r => r.category === 'operations')
+	const executiveReports = reportCards.filter(
+		(r) => r.category === "executive",
+	);
+	const financialReports = reportCards.filter(
+		(r) => r.category === "financial",
+	);
+	const operationsReports = reportCards.filter(
+		(r) => r.category === "operations",
+	);
 
 	return (
 		<div className="p-6 lg:p-8 bg-background min-h-full">
@@ -171,5 +176,5 @@ export default function GenerateReportsPage() {
 				/>
 			</div>
 		</div>
-	)
+	);
 }

@@ -1,27 +1,27 @@
-import { DollarSign, TrendingUp, TrendingDown } from 'lucide-react'
-import { BlurFade } from '#components/ui/blur-fade'
-import { NumberTicker } from '#components/ui/number-ticker'
-import { BorderBeam } from '#components/ui/border-beam'
+import { DollarSign, TrendingDown, TrendingUp } from "lucide-react";
+import { BlurFade } from "#components/ui/blur-fade";
+import { BorderBeam } from "#components/ui/border-beam";
+import { NumberTicker } from "#components/ui/number-ticker";
 import {
 	Stat,
+	StatDescription,
+	StatIndicator,
 	StatLabel,
 	StatValue,
-	StatIndicator,
-	StatDescription
-} from '#components/ui/stat'
+} from "#components/ui/stat";
 
 interface IncomeStatementSummaryStatsProps {
-	revenueTotal: number
-	expensesTotal: number
-	netIncome: number
-	profitMargin: string
+	revenueTotal: number;
+	expensesTotal: number;
+	netIncome: number;
+	profitMargin: string;
 }
 
 export function IncomeStatementSummaryStats({
 	revenueTotal,
 	expensesTotal,
 	netIncome,
-	profitMargin
+	profitMargin,
 }: IncomeStatementSummaryStatsProps) {
 	return (
 		<div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
@@ -79,5 +79,5 @@ export function IncomeStatementSummaryStats({
 				</Stat>
 			</BlurFade>
 		</div>
-	)
+	);
 }

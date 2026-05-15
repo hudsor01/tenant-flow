@@ -1,4 +1,4 @@
-import { Skeleton } from '#components/ui/skeleton'
+import { Skeleton } from "#components/ui/skeleton";
 
 /**
  * Dashboard Loading Skeleton
@@ -6,7 +6,10 @@ import { Skeleton } from '#components/ui/skeleton'
  */
 export function DashboardLoadingSkeleton() {
 	return (
-		<div data-testid="dashboard-stats" className="flex flex-1 flex-col gap-6 p-6">
+		<div
+			data-testid="dashboard-stats"
+			className="flex flex-1 flex-col gap-6 p-6"
+		>
 			{/* Header skeleton */}
 			<div>
 				<Skeleton className="h-8 w-48" />
@@ -68,5 +71,5 @@ export function DashboardLoadingSkeleton() {
 				</div>
 			</div>
 		</div>
-	)
+	);
 }

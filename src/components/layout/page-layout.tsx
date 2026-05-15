@@ -1,21 +1,21 @@
-import Footer from '#components/layout/footer'
-import { Navbar } from '#components/layout/navbar'
-import { GridPattern } from '#components/ui/grid-pattern'
-import { cn } from '#lib/utils'
-import type { ReactNode } from 'react'
+import type { ReactNode } from "react";
+import Footer from "#components/layout/footer";
+import { Navbar } from "#components/layout/navbar";
+import { GridPattern } from "#components/ui/grid-pattern";
+import { cn } from "#lib/utils";
 
 interface PageLayoutProps {
-	children: ReactNode
+	children: ReactNode;
 	/** Show the marketing navbar. Default: true */
-	showNavbar?: boolean
+	showNavbar?: boolean;
 	/** Show the marketing footer. Default: true */
-	showFooter?: boolean
+	showFooter?: boolean;
 	/** Show the grid pattern background. Default: true */
-	showGridPattern?: boolean
+	showGridPattern?: boolean;
 	/** Additional classes for the main content area */
-	containerClass?: string
+	containerClass?: string;
 	/** Additional classes for the root wrapper */
-	className?: string
+	className?: string;
 }
 
 /**
@@ -39,13 +39,13 @@ export function PageLayout({
 	showFooter = true,
 	showGridPattern = true,
 	containerClass,
-	className
+	className,
 }: PageLayoutProps) {
 	return (
 		<div
 			className={cn(
-				'relative min-h-screen flex flex-col marketing-page',
-				className
+				"relative min-h-screen flex flex-col marketing-page",
+				className,
 			)}
 		>
 			{showGridPattern && (
@@ -58,16 +58,16 @@ export function PageLayout({
 			<main
 				id="main-content"
 				className={cn(
-					'flex-1',
-					showNavbar && 'page-offset-navbar',
-					containerClass
+					"flex-1",
+					showNavbar && "page-offset-navbar",
+					containerClass,
 				)}
 			>
 				{children}
 			</main>
 			{showFooter && <Footer />}
 		</div>
-	)
+	);
 }
 
-export default PageLayout
+export default PageLayout;

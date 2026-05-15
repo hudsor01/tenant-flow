@@ -1,12 +1,12 @@
-'use client'
+"use client";
 
-import type { Column } from '@tanstack/react-table'
-import { Check, PlusCircle, XCircle } from 'lucide-react'
-import { useState } from 'react'
-import type { MouseEvent } from 'react'
+import type { Column } from "@tanstack/react-table";
+import { Check, PlusCircle, XCircle } from "lucide-react";
+import type { MouseEvent } from "react";
+import { useState } from "react";
 
-import { Badge } from '#components/ui/badge'
-import { Button } from '#components/ui/button'
+import { Badge } from "#components/ui/badge";
+import { Button } from "#components/ui/button";
 import {
 	Command,
 	CommandEmpty,
@@ -14,53 +14,59 @@ import {
 	CommandInput,
 	CommandItem,
 	CommandList,
-	CommandSeparator
-} from '#components/ui/command'
-import { Popover, PopoverContent, PopoverTrigger } from '#components/ui/popover'
-import { Separator } from '#components/ui/separator'
-import { cn } from '#lib/utils'
-import type { Option } from '#types/data-table'
+	CommandSeparator,
+} from "#components/ui/command";
+import {
+	Popover,
+	PopoverContent,
+	PopoverTrigger,
+} from "#components/ui/popover";
+import { Separator } from "#components/ui/separator";
+import { cn } from "#lib/utils";
+import type { Option } from "#types/data-table";
 
 interface DataTableFacetedFilterProps<TData, TValue> {
-	column?: Column<TData, TValue>
-	title?: string
-	options: Option[]
-	multiple?: boolean
+	column?: Column<TData, TValue>;
+	title?: string;
+	options: Option[];
+	multiple?: boolean;
 }
 
 export function DataTableFacetedFilter<TData, TValue>({
 	column,
 	title,
 	options,
-	multiple
+	multiple,
 }: DataTableFacetedFilterProps<TData, TValue>) {
-	const [open, setOpen] = useState(false)
+	const [open, setOpen] = useState(false);
 
-	const columnFilterValue = column?.getFilterValue()
-	const selectedValues = new Set(Array.isArray(columnFilterValue) ? columnFilterValue : [])
+	const columnFilterValue = column?.getFilterValue();
+	const selectedValues = new Set(
+		Array.isArray(columnFilterValue) ? columnFilterValue : [],
+	);
 
 	const onItemSelect = (option: Option, isSelected: boolean) => {
-			if (!column) return
+		if (!column) return;
 
-			if (multiple) {
-				const newSelectedValues = new Set(selectedValues)
-				if (isSelected) {
-					newSelectedValues.delete(option.value)
-				} else {
-					newSelectedValues.add(option.value)
-				}
-				const filterValues = Array.from(newSelectedValues)
-				column.setFilterValue(filterValues.length ? filterValues : undefined)
+		if (multiple) {
+			const newSelectedValues = new Set(selectedValues);
+			if (isSelected) {
+				newSelectedValues.delete(option.value);
 			} else {
-				column.setFilterValue(isSelected ? undefined : [option.value])
-				setOpen(false)
+				newSelectedValues.add(option.value);
 			}
+			const filterValues = Array.from(newSelectedValues);
+			column.setFilterValue(filterValues.length ? filterValues : undefined);
+		} else {
+			column.setFilterValue(isSelected ? undefined : [option.value]);
+			setOpen(false);
 		}
+	};
 
 	const onReset = (event?: MouseEvent) => {
-			event?.stopPropagation()
-			column?.setFilterValue(undefined)
-		}
+		event?.stopPropagation();
+		column?.setFilterValue(undefined);
+	};
 
 	return (
 		<Popover open={open} onOpenChange={setOpen}>
@@ -106,8 +112,8 @@ export function DataTableFacetedFilter<TData, TValue>({
 									</Badge>
 								) : (
 									options
-										.filter(option => selectedValues.has(option.value))
-										.map(option => (
+										.filter((option) => selectedValues.has(option.value))
+										.map((option) => (
 											<Badge
 												variant="secondary"
 												key={option.value}
@@ -128,8 +134,8 @@ export function DataTableFacetedFilter<TData, TValue>({
 					<CommandList className="max-h-full">
 						<CommandEmpty>No results found.</CommandEmpty>
 						<CommandGroup className="max-h-[300px] scroll-py-1 overflow-y-auto overflow-x-hidden">
-							{options.map(option => {
-								const isSelected = selectedValues.has(option.value)
+							{options.map((option) => {
+								const isSelected = selectedValues.has(option.value);
 
 								return (
 									<CommandItem
@@ -138,10 +144,10 @@ export function DataTableFacetedFilter<TData, TValue>({
 									>
 										<div
 											className={cn(
-												'flex size-4 items-center justify-center rounded-sm border border-primary',
+												"flex size-4 items-center justify-center rounded-sm border border-primary",
 												isSelected
-													? 'bg-primary'
-													: 'opacity-50 [&_svg]:invisible'
+													? "bg-primary"
+													: "opacity-50 [&_svg]:invisible",
 											)}
 										>
 											<Check />
@@ -154,7 +160,7 @@ export function DataTableFacetedFilter<TData, TValue>({
 											</span>
 										)}
 									</CommandItem>
-								)
+								);
 							})}
 						</CommandGroup>
 						{selectedValues.size > 0 && (
@@ -174,5 +180,5 @@ export function DataTableFacetedFilter<TData, TValue>({
 				</Command>
 			</PopoverContent>
 		</Popover>
-	)
+	);
 }

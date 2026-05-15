@@ -9,18 +9,18 @@
  *   if (!user) throw new Error('Not authenticated')
  */
 
-import type { QueryClient } from '@tanstack/react-query'
-import type { User } from '@supabase/supabase-js'
-import { createClient } from './client'
+import type { User } from "@supabase/supabase-js";
+import type { QueryClient } from "@tanstack/react-query";
+import { createClient } from "./client";
 
-let queryClientRef: QueryClient | null = null
+let queryClientRef: QueryClient | null = null;
 
 /**
  * Register the QueryClient reference so getCachedUser can read the auth cache.
  * Called once from AuthStoreProvider on mount.
  */
 export function setQueryClientRef(qc: QueryClient) {
-	queryClientRef = qc
+	queryClientRef = qc;
 }
 
 /**
@@ -32,16 +32,13 @@ export function setQueryClientRef(qc: QueryClient) {
  */
 export async function getCachedUser(): Promise<User | null> {
 	if (queryClientRef) {
-		const user = queryClientRef.getQueryData<User | null>([
-			'auth',
-			'user'
-		])
-		if (user) return user
+		const user = queryClientRef.getQueryData<User | null>(["auth", "user"]);
+		if (user) return user;
 	}
 
-	const supabase = createClient()
+	const supabase = createClient();
 	const {
-		data: { user }
-	} = await supabase.auth.getUser()
-	return user
+		data: { user },
+	} = await supabase.auth.getUser();
+	return user;
 }

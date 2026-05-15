@@ -1,34 +1,34 @@
-import type { Metadata } from 'next'
-import Link from 'next/link'
-import { ArrowRight } from 'lucide-react'
+import { ArrowRight } from "lucide-react";
+import type { Metadata } from "next";
+import Link from "next/link";
 
-import { PageLayout } from '#components/layout/page-layout'
-import { JsonLdScript } from '#components/seo/json-ld-script'
-import { BlurFade } from '#components/ui/blur-fade'
-import { createBreadcrumbJsonLd } from '#lib/seo/breadcrumbs'
-import { createPageMetadata } from '#lib/seo/page-metadata'
+import { PageLayout } from "#components/layout/page-layout";
+import { JsonLdScript } from "#components/seo/json-ld-script";
+import { BlurFade } from "#components/ui/blur-fade";
+import { createBreadcrumbJsonLd } from "#lib/seo/breadcrumbs";
+import { createPageMetadata } from "#lib/seo/page-metadata";
 
-import { COMPETITORS, VALID_COMPETITORS } from './[competitor]/compare-data'
+import { COMPETITORS, VALID_COMPETITORS } from "./[competitor]/compare-data";
 
 // ISR — competitor list is static; 1h revalidate covers card-copy edits.
-export const revalidate = 3600
+export const revalidate = 3600;
 
 export const metadata: Metadata = createPageMetadata({
-	title: 'Compare TenantFlow to Other Property Management Software',
+	title: "Compare TenantFlow to Other Property Management Software",
 	description:
-		'Side-by-side comparisons of TenantFlow against Buildium, AppFolio, RentRedi, and other landlord-focused property management platforms.',
-	path: '/compare'
-})
+		"Side-by-side comparisons of TenantFlow against Buildium, AppFolio, RentRedi, and other landlord-focused property management platforms.",
+	path: "/compare",
+});
 
 export default function ComparePage() {
-	const competitors = VALID_COMPETITORS.map(slug => COMPETITORS[slug]).filter(
+	const competitors = VALID_COMPETITORS.map((slug) => COMPETITORS[slug]).filter(
 		(competitor): competitor is NonNullable<typeof competitor> =>
-			competitor !== undefined
-	)
+			competitor !== undefined,
+	);
 
 	return (
 		<PageLayout>
-			<JsonLdScript schema={createBreadcrumbJsonLd('/compare')} />
+			<JsonLdScript schema={createBreadcrumbJsonLd("/compare")} />
 
 			<section className="section-spacing">
 				<div className="max-w-7xl mx-auto px-6 lg:px-8">
@@ -77,5 +77,5 @@ export default function ComparePage() {
 				</div>
 			</section>
 		</PageLayout>
-	)
+	);
 }

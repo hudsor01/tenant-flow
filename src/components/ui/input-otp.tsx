@@ -1,51 +1,51 @@
-'use client'
+"use client";
 
-import { useContext } from 'react'
-import type { ComponentProps } from 'react'
-import { OTPInput, OTPInputContext } from 'input-otp'
-import { MinusIcon } from 'lucide-react'
+import { OTPInput, OTPInputContext } from "input-otp";
+import { MinusIcon } from "lucide-react";
+import type { ComponentProps } from "react";
+import { useContext } from "react";
 
-import { cn } from '#lib/utils'
+import { cn } from "#lib/utils";
 
 function InputOTP({
 	className,
 	containerClassName,
 	...props
 }: ComponentProps<typeof OTPInput> & {
-	containerClassName?: string
+	containerClassName?: string;
 }) {
 	return (
 		<OTPInput
 			containerClassName={cn(
-				'flex items-center gap-2 has-disabled:opacity-50',
-				containerClassName
+				"flex items-center gap-2 has-disabled:opacity-50",
+				containerClassName,
 			)}
-			className={cn('disabled:cursor-not-allowed', className)}
+			className={cn("disabled:cursor-not-allowed", className)}
 			{...props}
 		/>
-	)
+	);
 }
 
-function InputOTPGroup({ className, ...props }: ComponentProps<'div'>) {
-	return <div className={cn('flex items-center', className)} {...props} />
+function InputOTPGroup({ className, ...props }: ComponentProps<"div">) {
+	return <div className={cn("flex items-center", className)} {...props} />;
 }
 
 function InputOTPSlot({
 	index,
 	className,
 	...props
-}: ComponentProps<'div'> & {
-	index: number
+}: ComponentProps<"div"> & {
+	index: number;
 }) {
-	const inputOTPContext = useContext(OTPInputContext)
-	const { char, hasFakeCaret, isActive } = inputOTPContext?.slots[index] ?? {}
+	const inputOTPContext = useContext(OTPInputContext);
+	const { char, hasFakeCaret, isActive } = inputOTPContext?.slots[index] ?? {};
 
 	return (
 		<div
 			data-active={isActive}
 			className={cn(
-				'data-[active=true]:border-ring data-[active=true]:ring-ring/50 data-[active=true]:aria-invalid:ring-destructive/20 dark:data-[active=true]:aria-invalid:ring-destructive/40 aria-invalid:border-destructive data-[active=true]:aria-invalid:border-destructive dark:bg-input/30 border-input relative flex size-11 items-center justify-center border-y border-r text-sm shadow-xs transition-all outline-none first:rounded-l-md first:border-l last:rounded-r-md data-[active=true]:z-10 data-[active=true]:ring-[3px]',
-				className
+				"data-[active=true]:border-ring data-[active=true]:ring-ring/50 data-[active=true]:aria-invalid:ring-destructive/20 dark:data-[active=true]:aria-invalid:ring-destructive/40 aria-invalid:border-destructive data-[active=true]:aria-invalid:border-destructive dark:bg-input/30 border-input relative flex size-11 items-center justify-center border-y border-r text-sm shadow-xs transition-all outline-none first:rounded-l-md first:border-l last:rounded-r-md data-[active=true]:z-10 data-[active=true]:ring-[3px]",
+				className,
 			)}
 			{...props}
 		>
@@ -56,15 +56,15 @@ function InputOTPSlot({
 				</div>
 			)}
 		</div>
-	)
+	);
 }
 
-function InputOTPSeparator({ ...props }: ComponentProps<'div'>) {
+function InputOTPSeparator({ ...props }: ComponentProps<"div">) {
 	return (
 		<div role="separator" {...props}>
 			<MinusIcon />
 		</div>
-	)
+	);
 }
 
-export { InputOTP, InputOTPGroup, InputOTPSlot, InputOTPSeparator }
+export { InputOTP, InputOTPGroup, InputOTPSeparator, InputOTPSlot };

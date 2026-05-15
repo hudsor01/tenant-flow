@@ -1,33 +1,33 @@
-'use client'
+"use client";
 
-import { Bell, Globe, Mail, MessageSquare } from 'lucide-react'
-import { BlurFade } from '#components/ui/blur-fade'
-import { Skeleton } from '#components/ui/skeleton'
-import { Switch } from '#components/ui/switch'
+import { Bell, Globe, Mail, MessageSquare } from "lucide-react";
+import { BlurFade } from "#components/ui/blur-fade";
+import { Skeleton } from "#components/ui/skeleton";
+import { Switch } from "#components/ui/switch";
 import {
 	useOwnerNotificationSettings,
-	useUpdateOwnerNotificationSettingsMutation
-} from '#hooks/api/use-owner-notification-settings'
+	useUpdateOwnerNotificationSettingsMutation,
+} from "#hooks/api/use-owner-notification-settings";
 
 export function NotificationSettings() {
-	const { data: settings, isLoading } = useOwnerNotificationSettings()
-	const updateSettings = useUpdateOwnerNotificationSettingsMutation()
+	const { data: settings, isLoading } = useOwnerNotificationSettings();
+	const updateSettings = useUpdateOwnerNotificationSettingsMutation();
 
 	const handleChannelToggle = (
-		channel: 'email' | 'sms' | 'push' | 'inApp',
-		value: boolean
+		channel: "email" | "sms" | "push" | "inApp",
+		value: boolean,
 	) => {
-		updateSettings.mutate({ [channel]: value })
-	}
+		updateSettings.mutate({ [channel]: value });
+	};
 
 	const handleCategoryToggle = (
-		category: 'maintenance' | 'leases' | 'general',
-		value: boolean
+		category: "maintenance" | "leases" | "general",
+		value: boolean,
 	) => {
 		updateSettings.mutate({
-			categories: { [category]: value }
-		})
-	}
+			categories: { [category]: value },
+		});
+	};
 
 	if (isLoading) {
 		return (
@@ -36,7 +36,7 @@ export function NotificationSettings() {
 				<Skeleton className="h-24 rounded-lg" />
 				<Skeleton className="h-64 rounded-lg" />
 			</div>
-		)
+		);
 	}
 
 	return (
@@ -62,7 +62,7 @@ export function NotificationSettings() {
 						</div>
 						<Switch
 							checked={settings?.email ?? true}
-							onCheckedChange={value => handleChannelToggle('email', value)}
+							onCheckedChange={(value) => handleChannelToggle("email", value)}
 							disabled={updateSettings.isPending}
 						/>
 					</div>
@@ -89,7 +89,7 @@ export function NotificationSettings() {
 							</div>
 							<Switch
 								checked={settings?.email ?? true}
-								onCheckedChange={value => handleChannelToggle('email', value)}
+								onCheckedChange={(value) => handleChannelToggle("email", value)}
 								disabled={updateSettings.isPending}
 							/>
 						</div>
@@ -106,7 +106,7 @@ export function NotificationSettings() {
 							</div>
 							<Switch
 								checked={settings?.sms ?? false}
-								onCheckedChange={value => handleChannelToggle('sms', value)}
+								onCheckedChange={(value) => handleChannelToggle("sms", value)}
 								disabled={updateSettings.isPending}
 							/>
 						</div>
@@ -123,7 +123,7 @@ export function NotificationSettings() {
 							</div>
 							<Switch
 								checked={settings?.push ?? true}
-								onCheckedChange={value => handleChannelToggle('push', value)}
+								onCheckedChange={(value) => handleChannelToggle("push", value)}
 								disabled={updateSettings.isPending}
 							/>
 						</div>
@@ -140,7 +140,7 @@ export function NotificationSettings() {
 							</div>
 							<Switch
 								checked={settings?.inApp ?? true}
-								onCheckedChange={value => handleChannelToggle('inApp', value)}
+								onCheckedChange={(value) => handleChannelToggle("inApp", value)}
 								disabled={updateSettings.isPending}
 							/>
 						</div>
@@ -165,7 +165,9 @@ export function NotificationSettings() {
 							</div>
 							<Switch
 								checked={settings?.categories?.maintenance ?? true}
-								onCheckedChange={value => handleCategoryToggle('maintenance', value)}
+								onCheckedChange={(value) =>
+									handleCategoryToggle("maintenance", value)
+								}
 								disabled={updateSettings.isPending}
 							/>
 						</div>
@@ -179,7 +181,9 @@ export function NotificationSettings() {
 							</div>
 							<Switch
 								checked={settings?.categories?.leases ?? true}
-								onCheckedChange={value => handleCategoryToggle('leases', value)}
+								onCheckedChange={(value) =>
+									handleCategoryToggle("leases", value)
+								}
 								disabled={updateSettings.isPending}
 							/>
 						</div>
@@ -193,7 +197,9 @@ export function NotificationSettings() {
 							</div>
 							<Switch
 								checked={settings?.categories?.general ?? true}
-								onCheckedChange={value => handleCategoryToggle('general', value)}
+								onCheckedChange={(value) =>
+									handleCategoryToggle("general", value)
+								}
 								disabled={updateSettings.isPending}
 							/>
 						</div>
@@ -201,5 +207,5 @@ export function NotificationSettings() {
 				</section>
 			</BlurFade>
 		</div>
-	)
+	);
 }

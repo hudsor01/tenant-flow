@@ -1,14 +1,14 @@
-import { TrendingDown } from 'lucide-react'
-import { Button } from '#components/ui/button'
+import { TrendingDown } from "lucide-react";
+import { Button } from "#components/ui/button";
 
 interface IncomeStatementPageErrorProps {
-	error: Error | null
-	onRetry: () => void
+	error: Error | null;
+	onRetry: () => void;
 }
 
 export function IncomeStatementPageError({
 	error,
-	onRetry
+	onRetry,
 }: IncomeStatementPageErrorProps) {
 	return (
 		<div className="p-6 lg:p-8 bg-background min-h-full">
@@ -20,12 +20,10 @@ export function IncomeStatementPageError({
 					Failed to Load Income Statement
 				</h2>
 				<p className="text-muted-foreground mb-6">
-					{error instanceof Error ? error.message : 'An error occurred'}
+					{error instanceof Error ? error.message : "An error occurred"}
 				</p>
-				<Button onClick={onRetry}>
-					Try Again
-				</Button>
+				<Button onClick={onRetry}>Try Again</Button>
 			</div>
 		</div>
-	)
+	);
 }

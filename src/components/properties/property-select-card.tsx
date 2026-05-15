@@ -1,17 +1,17 @@
-'use client'
+"use client";
 
-import Image from 'next/image'
-import { Building2, MapPin, Home, DollarSign, Eye } from 'lucide-react'
-import { Checkbox } from '#components/ui/checkbox'
-import { formatCompactCurrency } from '#lib/utils/currency'
-import { cn } from '#lib/utils'
-import type { PropertyItem } from './types'
+import { Building2, DollarSign, Eye, Home, MapPin } from "lucide-react";
+import Image from "next/image";
+import { Checkbox } from "#components/ui/checkbox";
+import { cn } from "#lib/utils";
+import { formatCompactCurrency } from "#lib/utils/currency";
+import type { PropertyItem } from "./types";
 
 export interface PropertyCardProps {
-	property: PropertyItem
-	isSelected?: boolean
-	onSelect?: (id: string) => void
-	onView?: () => void
+	property: PropertyItem;
+	isSelected?: boolean;
+	onSelect?: (id: string) => void;
+	onView?: () => void;
 }
 
 /**
@@ -28,16 +28,16 @@ export function PropertyCard({
 	property,
 	isSelected,
 	onSelect,
-	onView
+	onView,
 }: PropertyCardProps) {
 	return (
 		<div
 			data-testid="property-card"
 			className={cn(
-				'bg-card border rounded-sm overflow-hidden',
-				'hover:shadow-xl hover:shadow-primary/5 hover:border-primary/30 hover:-translate-y-1',
-				'transition-all duration-300 group',
-				isSelected && 'border-primary ring-2 ring-primary/20'
+				"bg-card border rounded-sm overflow-hidden",
+				"hover:shadow-xl hover:shadow-primary/5 hover:border-primary/30 hover:-translate-y-1",
+				"transition-all duration-300 group",
+				isSelected && "border-primary ring-2 ring-primary/20",
 			)}
 		>
 			{/* Property Image */}
@@ -121,5 +121,5 @@ export function PropertyCard({
 				</button>
 			</div>
 		</div>
-	)
+	);
 }

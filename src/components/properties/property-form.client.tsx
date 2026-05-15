@@ -1,79 +1,82 @@
-'use client'
+"use client";
 
-import { useRouter } from 'next/navigation'
-import { useEffect, useRef, useState } from 'react'
-import { toast } from 'sonner'
-import { useUnsavedChangesWarning } from '#hooks/use-unsaved-changes'
-
-import { createClient } from '#lib/supabase/client'
+import { useForm } from "@tanstack/react-form";
+import { useQueryClient } from "@tanstack/react-query";
+import { useRouter } from "next/navigation";
+import { useEffect, useRef, useState } from "react";
+import { toast } from "sonner";
+import { z } from "zod";
+import { propertyQueries } from "#hooks/api/query-keys/property-keys";
+import { useSupabaseUser } from "#hooks/api/use-auth";
 import {
 	useCreatePropertyMutation,
-	useUpdatePropertyMutation
-} from '#hooks/api/use-property-mutations'
-import { propertyQueries } from '#hooks/api/query-keys/property-keys'
-import { useSupabaseUser } from '#hooks/api/use-auth'
-import { useCurrentUser } from '#hooks/use-current-user'
-
-import { createLogger } from '#lib/frontend-logger'
-import type { Property, PropertyType } from '#types/core'
-import { propertyFormSchema } from '#lib/validation/properties'
-import { useForm } from '@tanstack/react-form'
-import { useQueryClient } from '@tanstack/react-query'
-import { z } from 'zod'
-import { handleMutationError } from '#lib/mutation-error-handler'
-import { cn } from '#lib/utils'
-
-import { PropertyFormSuccessState } from './property-form-success-state'
-import { PropertyInfoSection } from './sections/property-info-section'
-import { PropertyAddressSection } from './sections/property-address-section'
-import { PropertyImagesEditSection } from './sections/property-images-edit-section'
+	useUpdatePropertyMutation,
+} from "#hooks/api/use-property-mutations";
+import { useCurrentUser } from "#hooks/use-current-user";
+import { useUnsavedChangesWarning } from "#hooks/use-unsaved-changes";
+import { createLogger } from "#lib/frontend-logger";
+import { handleMutationError } from "#lib/mutation-error-handler";
+import { createClient } from "#lib/supabase/client";
+import { cn } from "#lib/utils";
+import { propertyFormSchema } from "#lib/validation/properties";
+import type { Property, PropertyType } from "#types/core";
+import { AcquisitionDetailsSection } from "./property-form-fields";
+import { PropertyFormSuccessState } from "./property-form-success-state";
+import { uploadPropertyImages } from "./property-form-upload";
+import { PropertyAddressSection } from "./sections/property-address-section";
+import { PropertyFormActions } from "./sections/property-form-actions";
 import {
+	type FileWithStatus,
 	PropertyImagesCreateSection,
-	type FileWithStatus
-} from './sections/property-images-create-section'
-import { PropertyFormActions } from './sections/property-form-actions'
-import { uploadPropertyImages } from './property-form-upload'
-import { usePropertyImageDropzone } from './use-property-image-dropzone'
-import { AcquisitionDetailsSection } from './property-form-fields'
+} from "./sections/property-images-create-section";
+import { PropertyImagesEditSection } from "./sections/property-images-edit-section";
+import { PropertyInfoSection } from "./sections/property-info-section";
+import { usePropertyImageDropzone } from "./use-property-image-dropzone";
 
 interface PropertyFormProps {
-	mode: 'create' | 'edit'
-	property?: Property
-	onSuccess?: () => void
-	showSuccessState?: boolean
-	className?: string
+	mode: "create" | "edit";
+	property?: Property;
+	onSuccess?: () => void;
+	showSuccessState?: boolean;
+	className?: string;
 }
 
 export function PropertyForm({
 	mode,
 	property,
 	onSuccess,
-	showSuccessState = mode === 'create',
-	className
+	showSuccessState = mode === "create",
+	className,
 }: PropertyFormProps) {
-	const [isSubmitted, setIsSubmitted] = useState(false)
-	const [uploadingImages, setUploadingImages] = useState(false)
-	const [filesWithStatus, setFilesWithStatus] = useState<FileWithStatus[]>([])
-	const isMountedRef = useRef(true)
+	const [isSubmitted, setIsSubmitted] = useState(false);
+	const [uploadingImages, setUploadingImages] = useState(false);
+	const [filesWithStatus, setFilesWithStatus] = useState<FileWithStatus[]>([]);
+	const isMountedRef = useRef(true);
 
-	useEffect(() => { isMountedRef.current = true; return () => { isMountedRef.current = false } }, [])
+	useEffect(() => {
+		isMountedRef.current = true;
+		return () => {
+			isMountedRef.current = false;
+		};
+	}, []);
 
-	const { data: user } = useSupabaseUser()
-	const { isLoading: isAuthLoading } = useCurrentUser()
-	const router = useRouter()
-	const queryClient = useQueryClient()
-	const logger = createLogger({ component: 'PropertyForm' })
-	const supabase = createClient()
+	const { data: user } = useSupabaseUser();
+	const { isLoading: isAuthLoading } = useCurrentUser();
+	const router = useRouter();
+	const queryClient = useQueryClient();
+	const logger = createLogger({ component: "PropertyForm" });
+	const supabase = createClient();
 
-	const createPropertyMutation = useCreatePropertyMutation()
-	const updatePropertyMutation = useUpdatePropertyMutation()
+	const createPropertyMutation = useCreatePropertyMutation();
+	const updatePropertyMutation = useUpdatePropertyMutation();
 
 	const mutation =
-		mode === 'create' ? createPropertyMutation : updatePropertyMutation
+		mode === "create" ? createPropertyMutation : updatePropertyMutation;
 
-	const { getRootProps, getInputProps, isDragActive } = usePropertyImageDropzone({
-		setFilesWithStatus
-	})
+	const { getRootProps, getInputProps, isDragActive } =
+		usePropertyImageDropzone({
+			setFilesWithStatus,
+		});
 
 	const validationSchema = propertyFormSchema.pick({
 		name: true,
@@ -81,86 +84,87 @@ export function PropertyForm({
 		address_line1: true,
 		city: true,
 		state: true,
-		postal_code: true
-	})
+		postal_code: true,
+	});
 
 	useEffect(() => {
-		if (mode === 'edit' && property) {
+		if (mode === "edit" && property) {
 			queryClient.setQueryData(
 				propertyQueries.detail(property.id).queryKey,
-				property
-			)
+				property,
+			);
 		}
-	}, [mode, property, queryClient])
+	}, [mode, property, queryClient]);
 
-	const filesWithStatusRef = useRef<FileWithStatus[]>([])
-	filesWithStatusRef.current = filesWithStatus
+	const filesWithStatusRef = useRef<FileWithStatus[]>([]);
+	filesWithStatusRef.current = filesWithStatus;
 	useEffect(() => {
 		return () => {
 			for (const { objectUrl } of filesWithStatusRef.current) {
-				URL.revokeObjectURL(objectUrl)
+				URL.revokeObjectURL(objectUrl);
 			}
-		}
-	}, [])
+		};
+	}, []);
 
 	const form = useForm({
 		defaultValues: {
-			name: property?.name ?? '',
+			name: property?.name ?? "",
 			property_type: (property?.property_type ??
-				'SINGLE_FAMILY') as PropertyType,
-			address_line1: property?.address_line1 ?? '',
-			address_line2: property?.address_line2 ?? '',
-			city: property?.city ?? '',
-			state: property?.state ?? '',
-			postal_code: property?.postal_code ?? '',
-			country: property?.country ?? 'US',
-			acquisition_cost: (property?.acquisition_cost !== null && property?.acquisition_cost !== undefined
+				"SINGLE_FAMILY") as PropertyType,
+			address_line1: property?.address_line1 ?? "",
+			address_line2: property?.address_line2 ?? "",
+			city: property?.city ?? "",
+			state: property?.state ?? "",
+			postal_code: property?.postal_code ?? "",
+			country: property?.country ?? "US",
+			acquisition_cost: (property?.acquisition_cost !== null &&
+			property?.acquisition_cost !== undefined
 				? Number(property.acquisition_cost)
 				: null) as number | null,
-			acquisition_date: property?.acquisition_date ?? ''
+			acquisition_date: property?.acquisition_date ?? "",
 		},
 		onSubmit: async ({ value }) => {
 			try {
-				if (mode === 'create') {
-					await handleCreateSubmit(value)
+				if (mode === "create") {
+					await handleCreateSubmit(value);
 				} else {
-					await handleEditSubmit(value)
+					await handleEditSubmit(value);
 				}
-				onSuccess?.()
+				onSuccess?.();
 			} catch (error) {
 				handleMutationError(
 					error,
-					`${mode === 'create' ? 'Create' : 'Update'} property`
-				)
+					`${mode === "create" ? "Create" : "Update"} property`,
+				);
 			}
 		},
 		validators: {
 			onBlur: ({ value }) => {
-				const result = validationSchema.safeParse(value)
+				const result = validationSchema.safeParse(value);
 				if (!result.success) {
-					return z.treeifyError(result.error)
+					return z.treeifyError(result.error);
 				}
-				return undefined
+				return undefined;
 			},
 			onSubmitAsync: ({ value }) => {
-				const result = validationSchema.safeParse(value)
+				const result = validationSchema.safeParse(value);
 				if (!result.success) {
-					return z.treeifyError(result.error)
+					return z.treeifyError(result.error);
 				}
-				return undefined
-			}
-		}
-	})
+				return undefined;
+			},
+		},
+	});
 
-	useUnsavedChangesWarning(form.state.isDirty)
+	useUnsavedChangesWarning(form.state.isDirty);
 
 	async function handleCreateSubmit(
-		value: typeof form.state.values
+		value: typeof form.state.values,
 	): Promise<void> {
 		if (!user?.id) {
-			toast.error('You must be logged in to create a property')
-			logger.error('User not authenticated', { action: 'formSubmission' })
-			return
+			toast.error("You must be logged in to create a property");
+			logger.error("User not authenticated", { action: "formSubmission" });
+			return;
 		}
 		const createData = {
 			name: value.name,
@@ -170,18 +174,21 @@ export function PropertyForm({
 			postal_code: value.postal_code,
 			country: value.country,
 			property_type: value.property_type,
-			status: 'active' as const,
+			status: "active" as const,
 			...(value.address_line2 ? { address_line2: value.address_line2 } : {}),
 			...(value.acquisition_cost !== null
 				? { acquisition_cost: value.acquisition_cost }
 				: {}),
 			...(value.acquisition_date
 				? { acquisition_date: value.acquisition_date }
-				: {})
-		}
-		logger.info('Creating property', { action: 'formSubmission', data: createData })
+				: {}),
+		};
+		logger.info("Creating property", {
+			action: "formSubmission",
+			data: createData,
+		});
 
-		const newProperty = await createPropertyMutation.mutateAsync(createData)
+		const newProperty = await createPropertyMutation.mutateAsync(createData);
 
 		if (filesWithStatus.length > 0) {
 			await uploadPropertyImages({
@@ -191,24 +198,24 @@ export function PropertyForm({
 				queryClient,
 				isMountedRef,
 				setUploadingImages,
-				setFilesWithStatus
-			})
+				setFilesWithStatus,
+			});
 		} else {
-			toast.success('Property created successfully')
+			toast.success("Property created successfully");
 		}
 
 		if (showSuccessState) {
-			setIsSubmitted(true)
+			setIsSubmitted(true);
 		}
-		form.reset()
+		form.reset();
 	}
 
 	async function handleEditSubmit(
-		value: typeof form.state.values
+		value: typeof form.state.values,
 	): Promise<void> {
 		if (!property?.id) {
-			toast.error('Property ID is missing')
-			return
+			toast.error("Property ID is missing");
+			return;
 		}
 		const updateData = {
 			name: value.name,
@@ -224,40 +231,43 @@ export function PropertyForm({
 				: { acquisition_cost: null }),
 			...(value.acquisition_date
 				? { acquisition_date: value.acquisition_date }
-				: { acquisition_date: null })
-		}
-		logger.info('Updating property', {
-			action: 'formSubmission',
+				: { acquisition_date: null }),
+		};
+		logger.info("Updating property", {
+			action: "formSubmission",
 			property_id: property.id,
-			data: updateData
-		})
+			data: updateData,
+		});
 
-		await updatePropertyMutation.mutateAsync({ id: property.id, data: updateData })
-		toast.success('Property updated successfully')
+		await updatePropertyMutation.mutateAsync({
+			id: property.id,
+			data: updateData,
+		});
+		toast.success("Property updated successfully");
 
 		if (!onSuccess) {
-			router.back()
+			router.back();
 		}
 	}
 
 	function handleRemoveFile(index: number): void {
-		setFilesWithStatus(prev => {
-			const removed = prev[index]
-			if (removed) URL.revokeObjectURL(removed.objectUrl)
-			return prev.filter((_, i) => i !== index)
-		})
+		setFilesWithStatus((prev) => {
+			const removed = prev[index];
+			if (removed) URL.revokeObjectURL(removed.objectUrl);
+			return prev.filter((_, i) => i !== index);
+		});
 	}
 
 	if (showSuccessState && isSubmitted) {
-		return <PropertyFormSuccessState />
+		return <PropertyFormSuccessState />;
 	}
 
 	return (
-		<div className={cn('mx-auto max-w-2xl space-y-6', className)}>
+		<div className={cn("mx-auto max-w-2xl space-y-6", className)}>
 			<form
-				onSubmit={e => {
-					e.preventDefault()
-					form.handleSubmit()
+				onSubmit={(e) => {
+					e.preventDefault();
+					form.handleSubmit();
 				}}
 				className="space-y-6"
 			>
@@ -268,11 +278,11 @@ export function PropertyForm({
 
 				<AcquisitionDetailsSection form={form} />
 
-				{mode === 'edit' && property?.id && (
+				{mode === "edit" && property?.id && (
 					<PropertyImagesEditSection propertyId={property.id} />
 				)}
 
-				{mode === 'create' && (
+				{mode === "create" && (
 					<PropertyImagesCreateSection
 						getRootProps={getRootProps}
 						getInputProps={getInputProps}
@@ -291,5 +301,5 @@ export function PropertyForm({
 				/>
 			</form>
 		</div>
-	)
+	);
 }

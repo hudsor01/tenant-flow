@@ -1,16 +1,16 @@
-import { Building2 } from 'lucide-react'
-import { BlurFade } from '#components/ui/blur-fade'
-import type { PropertyPerformance } from '../analytics-types'
-import { formatAnalyticsCurrency } from '../analytics-types'
+import { Building2 } from "lucide-react";
+import { BlurFade } from "#components/ui/blur-fade";
+import type { PropertyPerformance } from "../analytics-types";
+import { formatAnalyticsCurrency } from "../analytics-types";
 
 interface PropertyPerformanceTableProps {
-	data: PropertyPerformance[]
-	onViewDetails?: () => void
+	data: PropertyPerformance[];
+	onViewDetails?: () => void;
 }
 
 export function PropertyPerformanceTable({
 	data,
-	onViewDetails
+	onViewDetails,
 }: PropertyPerformanceTableProps) {
 	return (
 		<BlurFade delay={1.2} inView>
@@ -72,7 +72,7 @@ export function PropertyPerformanceTable({
 										<td className="px-6 py-4 text-right">
 											<div className="flex items-center justify-end gap-2">
 												<span
-													className={`font-medium ${property.occupancy >= 90 ? 'text-emerald-600 dark:text-emerald-400' : property.occupancy >= 80 ? 'text-amber-600 dark:text-amber-400' : 'text-red-600 dark:text-red-400'}`}
+													className={`font-medium ${property.occupancy >= 90 ? "text-emerald-600 dark:text-emerald-400" : property.occupancy >= 80 ? "text-amber-600 dark:text-amber-400" : "text-red-600 dark:text-red-400"}`}
 												>
 													{property.occupancy}%
 												</span>
@@ -83,7 +83,7 @@ export function PropertyPerformanceTable({
 										</td>
 										<td className="px-6 py-4 text-right">
 											<span
-												className={`inline-flex items-center justify-center w-8 h-8 rounded-full text-sm font-medium ${property.maintenance === 0 ? 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300' : 'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300'}`}
+												className={`inline-flex items-center justify-center w-8 h-8 rounded-full text-sm font-medium ${property.maintenance === 0 ? "bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300" : "bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300"}`}
 											>
 												{property.maintenance}
 											</span>
@@ -104,5 +104,5 @@ export function PropertyPerformanceTable({
 				</div>
 			</div>
 		</BlurFade>
-	)
+	);
 }

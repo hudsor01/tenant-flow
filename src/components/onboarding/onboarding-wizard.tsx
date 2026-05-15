@@ -1,4 +1,4 @@
-'use client'
+"use client";
 
 /**
  * Onboarding Wizard
@@ -12,98 +12,102 @@
  * Marks onboarding complete or skipped on close.
  */
 
-import { useState } from 'react'
+import { useState } from "react";
 import {
 	Dialog,
 	DialogContent,
 	DialogHeader,
-	DialogTitle
-} from '#components/ui/dialog'
-import { useOnboarding } from './use-onboarding'
-import { OnboardingStepWelcome } from './onboarding-step-welcome'
-import { OnboardingStepProperty } from './onboarding-step-property'
-import { OnboardingStepComplete } from './onboarding-step-complete'
+	DialogTitle,
+} from "#components/ui/dialog";
+import { OnboardingStepComplete } from "./onboarding-step-complete";
+import { OnboardingStepProperty } from "./onboarding-step-property";
+import { OnboardingStepWelcome } from "./onboarding-step-welcome";
+import { useOnboarding } from "./use-onboarding";
 
-type WizardStep = 'welcome' | 'property' | 'complete'
+type WizardStep = "welcome" | "property" | "complete";
 
-const STEPS: WizardStep[] = ['welcome', 'property', 'complete']
+const STEPS: WizardStep[] = ["welcome", "property", "complete"];
 
 const STEP_LABELS: Record<WizardStep, string> = {
-	welcome: 'Welcome',
-	property: 'Add Property',
-	complete: 'All Done'
-}
+	welcome: "Welcome",
+	property: "Add Property",
+	complete: "All Done",
+};
 
 function StepIndicator({ currentStep }: { currentStep: WizardStep }) {
-	const currentIndex = STEPS.indexOf(currentStep)
-	const displaySteps = STEPS.filter(s => s !== 'welcome' && s !== 'complete')
+	const currentIndex = STEPS.indexOf(currentStep);
+	const displaySteps = STEPS.filter((s) => s !== "welcome" && s !== "complete");
 
-	if (currentStep === 'welcome' || currentStep === 'complete') {
-		return null
+	if (currentStep === "welcome" || currentStep === "complete") {
+		return null;
 	}
 
 	return (
 		<div className="flex items-center gap-1.5" aria-label="Setup progress">
-			{displaySteps.map(step => {
-				const stepIndex = STEPS.indexOf(step)
-				const isCompleted = stepIndex < currentIndex
-				const isCurrent = step === currentStep
+			{displaySteps.map((step) => {
+				const stepIndex = STEPS.indexOf(step);
+				const isCompleted = stepIndex < currentIndex;
+				const isCurrent = step === currentStep;
 
 				return (
 					<div
 						key={step}
 						title={STEP_LABELS[step]}
 						className={[
-							'h-1.5 rounded-full transition-all duration-200',
-							isCurrent ? 'w-6 bg-primary' : isCompleted ? 'w-3 bg-primary/50' : 'w-3 bg-muted'
-						].join(' ')}
+							"h-1.5 rounded-full transition-all duration-200",
+							isCurrent
+								? "w-6 bg-primary"
+								: isCompleted
+									? "w-3 bg-primary/50"
+									: "w-3 bg-muted",
+						].join(" ")}
 					/>
-				)
+				);
 			})}
 		</div>
-	)
+	);
 }
 
 export function OnboardingWizard() {
 	const { showWizard, isLoading, completeOnboarding, skipOnboarding } =
-		useOnboarding()
+		useOnboarding();
 
-	const [currentStep, setCurrentStep] = useState<WizardStep>('welcome')
-	const [isDismissed, setIsDismissed] = useState(false)
+	const [currentStep, setCurrentStep] = useState<WizardStep>("welcome");
+	const [isDismissed, setIsDismissed] = useState(false);
 
-	const isOpen = !isLoading && showWizard && !isDismissed
+	const isOpen = !isLoading && showWizard && !isDismissed;
 
 	const handleNext = () => {
-		const currentIndex = STEPS.indexOf(currentStep)
-		const nextStep = STEPS[currentIndex + 1]
+		const currentIndex = STEPS.indexOf(currentStep);
+		const nextStep = STEPS[currentIndex + 1];
 		if (nextStep) {
-			setCurrentStep(nextStep)
+			setCurrentStep(nextStep);
 		}
-	}
+	};
 
 	const handleSkipStep = () => {
-		const currentIndex = STEPS.indexOf(currentStep)
-		const nextStep = STEPS[currentIndex + 1]
+		const currentIndex = STEPS.indexOf(currentStep);
+		const nextStep = STEPS[currentIndex + 1];
 		if (nextStep) {
-			setCurrentStep(nextStep)
+			setCurrentStep(nextStep);
 		}
-	}
+	};
 
 	const handleDone = () => {
-		completeOnboarding()
-		setIsDismissed(true)
-	}
+		completeOnboarding();
+		setIsDismissed(true);
+	};
 
 	const handleOpenChange = (open: boolean) => {
 		if (!open) {
-			skipOnboarding()
-			setIsDismissed(true)
+			skipOnboarding();
+			setIsDismissed(true);
 		}
-	}
+	};
 
-	const currentStepIndex = STEPS.indexOf(currentStep)
-	const totalSteps = STEPS.length - 2
-	const displayStepNumber = currentStepIndex
+	const currentStepIndex = STEPS.indexOf(currentStep);
+	const totalSteps = STEPS.length - 2;
+	const displayStepNumber = currentStepIndex;
 
 	return (
 		<Dialog open={isOpen} onOpenChange={handleOpenChange}>
@@ -111,9 +115,9 @@ export function OnboardingWizard() {
 				<DialogHeader>
 					<div className="flex items-center justify-between gap-4">
 						<DialogTitle className="text-base">
-							{currentStep === 'welcome' && 'Getting Started'}
-							{currentStep === 'complete' && 'Setup Complete'}
-							{currentStep !== 'welcome' && currentStep !== 'complete' && (
+							{currentStep === "welcome" && "Getting Started"}
+							{currentStep === "complete" && "Setup Complete"}
+							{currentStep !== "welcome" && currentStep !== "complete" && (
 								<span>
 									Step {displayStepNumber} of {totalSteps}
 								</span>
@@ -123,24 +127,21 @@ export function OnboardingWizard() {
 					</div>
 				</DialogHeader>
 
-				{currentStep === 'welcome' && (
+				{currentStep === "welcome" && (
 					<OnboardingStepWelcome
 						onNext={handleNext}
 						onSkip={() => handleOpenChange(false)}
 					/>
 				)}
 
-				{currentStep === 'property' && (
-					<OnboardingStepProperty
-						onNext={handleNext}
-						onSkip={handleSkipStep}
-					/>
+				{currentStep === "property" && (
+					<OnboardingStepProperty onNext={handleNext} onSkip={handleSkipStep} />
 				)}
 
-				{currentStep === 'complete' && (
+				{currentStep === "complete" && (
 					<OnboardingStepComplete onDone={handleDone} />
 				)}
 			</DialogContent>
 		</Dialog>
-	)
+	);
 }

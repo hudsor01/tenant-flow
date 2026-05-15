@@ -1,12 +1,10 @@
-'use client'
+"use client";
 
-import Link from 'next/link'
-import { useState } from 'react'
-import { AlertTriangle, Clock, Loader2, Lock, Undo2 } from 'lucide-react'
-import { toast } from 'sonner'
-
-import { BlurFade } from '#components/ui/blur-fade'
-import { Button, buttonVariants } from '#components/ui/button'
+import { AlertTriangle, Clock, Loader2, Lock, Undo2 } from "lucide-react";
+import Link from "next/link";
+import { useState } from "react";
+import { toast } from "sonner";
+import { GdprDataActions } from "#components/settings/gdpr-data-actions";
 import {
 	AlertDialog,
 	AlertDialogAction,
@@ -16,48 +14,49 @@ import {
 	AlertDialogFooter,
 	AlertDialogHeader,
 	AlertDialogTitle,
-	AlertDialogTrigger
-} from '#components/ui/alert-dialog'
-import { handleMutationError } from '#lib/mutation-error-handler'
-import { cn } from '#lib/utils'
-import { useSubscriptionStatus } from '#hooks/api/use-billing'
+	AlertDialogTrigger,
+} from "#components/ui/alert-dialog";
+import { BlurFade } from "#components/ui/blur-fade";
+import { Button, buttonVariants } from "#components/ui/button";
+import { useSubscriptionStatus } from "#hooks/api/use-billing";
 import {
 	useCancelSubscriptionMutation,
-	useReactivateSubscriptionMutation
-} from '#hooks/api/use-billing-mutations'
-import { GdprDataActions } from '#components/settings/gdpr-data-actions'
+	useReactivateSubscriptionMutation,
+} from "#hooks/api/use-billing-mutations";
+import { handleMutationError } from "#lib/mutation-error-handler";
+import { cn } from "#lib/utils";
 
 function formatPlanEndDate(iso: string | null): string {
-	if (!iso) return 'your next billing date'
-	return new Date(iso).toLocaleDateString('en-US', {
-		year: 'numeric',
-		month: 'long',
-		day: 'numeric'
-	})
+	if (!iso) return "your next billing date";
+	return new Date(iso).toLocaleDateString("en-US", {
+		year: "numeric",
+		month: "long",
+		day: "numeric",
+	});
 }
 
 function daysUntil(iso: string | null): number {
-	if (!iso) return 0
-	const end = new Date(iso).getTime()
-	return Math.max(0, Math.ceil((end - Date.now()) / (1000 * 60 * 60 * 24)))
+	if (!iso) return 0;
+	const end = new Date(iso).getTime();
+	return Math.max(0, Math.ceil((end - Date.now()) / (1000 * 60 * 60 * 24)));
 }
 
 function addDaysFormatted(iso: string | null, days: number): string {
-	if (!iso) return 'your data retention date'
-	const base = new Date(iso).getTime() + days * 24 * 60 * 60 * 1000
-	return new Date(base).toLocaleDateString('en-US', {
-		year: 'numeric',
-		month: 'long',
-		day: 'numeric'
-	})
+	if (!iso) return "your data retention date";
+	const base = new Date(iso).getTime() + days * 24 * 60 * 60 * 1000;
+	return new Date(base).toLocaleDateString("en-US", {
+		year: "numeric",
+		month: "long",
+		day: "numeric",
+	});
 }
 
 export function SubscriptionCancelSection() {
-	const status = useSubscriptionStatus()
-	const [dialogOpen, setDialogOpen] = useState(false)
+	const status = useSubscriptionStatus();
+	const [dialogOpen, setDialogOpen] = useState(false);
 
-	const cancelMutation = useCancelSubscriptionMutation()
-	const reactivateMutation = useReactivateSubscriptionMutation()
+	const cancelMutation = useCancelSubscriptionMutation();
+	const reactivateMutation = useReactivateSubscriptionMutation();
 
 	if (status.isLoading) {
 		return (
@@ -65,14 +64,14 @@ export function SubscriptionCancelSection() {
 				className="h-32 rounded-lg border bg-muted animate-pulse"
 				aria-label="Loading subscription status"
 			/>
-		)
+		);
 	}
 
 	if (status.isError || !status.data) {
 		return (
 			<section className="rounded-lg border bg-card p-6">
 				<p className="text-sm text-muted-foreground">
-					Subscription status unavailable.{' '}
+					Subscription status unavailable.{" "}
 					<button
 						type="button"
 						onClick={() => status.refetch()}
@@ -82,21 +81,23 @@ export function SubscriptionCancelSection() {
 					</button>
 				</p>
 			</section>
-		)
+		);
 	}
 
-	const { subscriptionStatus, cancelAtPeriodEnd, currentPeriodEnd } = status.data
+	const { subscriptionStatus, cancelAtPeriodEnd, currentPeriodEnd } =
+		status.data;
 
 	// Gates — component opts out when not applicable (per UI-SPEC "Loading & error substates")
-	if (subscriptionStatus === null) return null
-	if (subscriptionStatus === 'past_due' || subscriptionStatus === 'unpaid') return null
+	if (subscriptionStatus === null) return null;
+	if (subscriptionStatus === "past_due" || subscriptionStatus === "unpaid")
+		return null;
 
-	const endDate = formatPlanEndDate(currentPeriodEnd)
-	const daysLeft = daysUntil(currentPeriodEnd)
+	const endDate = formatPlanEndDate(currentPeriodEnd);
+	const daysLeft = daysUntil(currentPeriodEnd);
 
 	// ───────────── State 3: Canceled (terminal) ─────────────
-	if (subscriptionStatus === 'canceled' || subscriptionStatus === 'cancelled') {
-		const dataDeleteDate = addDaysFormatted(currentPeriodEnd, 30)
+	if (subscriptionStatus === "canceled" || subscriptionStatus === "cancelled") {
+		const dataDeleteDate = addDaysFormatted(currentPeriodEnd, 30);
 		return (
 			<BlurFade delay={0.55} inView>
 				<section className="rounded-lg border border-red-300 bg-red-50 p-6 dark:border-red-700 dark:bg-red-950/50">
@@ -108,14 +109,16 @@ export function SubscriptionCancelSection() {
 						Your plan ended on <strong>{endDate}</strong>
 					</p>
 					<p className="text-sm text-muted-foreground mt-2">
-						Your data will be deleted on <strong>{dataDeleteDate}</strong> unless you request deletion or export it sooner.
+						Your data will be deleted on <strong>{dataDeleteDate}</strong>{" "}
+						unless you request deletion or export it sooner.
 					</p>
 					<div className="mt-8 space-y-4">
 						<h4 className="text-sm font-medium text-muted-foreground uppercase tracking-wider">
 							Your Data
 						</h4>
 						<p className="text-sm text-muted-foreground">
-							Under GDPR and CCPA, you have the right to download or delete your data before the 30-day retention window ends.
+							Under GDPR and CCPA, you have the right to download or delete your
+							data before the 30-day retention window ends.
 						</p>
 						<GdprDataActions variant="inline" />
 					</div>
@@ -129,18 +132,22 @@ export function SubscriptionCancelSection() {
 					</div>
 				</section>
 			</BlurFade>
-		)
+		);
 	}
 
 	// ───────────── State 2: Cancel-scheduled (grace window) ─────────────
-	if (subscriptionStatus === 'active' && cancelAtPeriodEnd) {
+	if (subscriptionStatus === "active" && cancelAtPeriodEnd) {
 		const onReactivate = () => {
 			reactivateMutation.mutate(undefined, {
-				onSuccess: () => toast.success('Your subscription is active again.'),
-				onError: err =>
-					handleMutationError(err, 'Reactivate subscription', "Couldn't reactivate. Please try again.")
-			})
-		}
+				onSuccess: () => toast.success("Your subscription is active again."),
+				onError: (err) =>
+					handleMutationError(
+						err,
+						"Reactivate subscription",
+						"Couldn't reactivate. Please try again.",
+					),
+			});
+		};
 		return (
 			<BlurFade delay={0.55} inView>
 				<section className="rounded-lg border bg-card p-6">
@@ -149,13 +156,18 @@ export function SubscriptionCancelSection() {
 						Subscription
 					</h3>
 					<div className="flex items-start gap-3 rounded-lg border border-amber-500/30 bg-amber-500/5 p-4 mb-4">
-						<Clock className="h-5 w-5 text-amber-600 mt-0.5 shrink-0" aria-hidden="true" />
+						<Clock
+							className="h-5 w-5 text-amber-600 mt-0.5 shrink-0"
+							aria-hidden="true"
+						/>
 						<div>
 							<p className="text-sm font-medium text-amber-700">
 								Subscription ends {endDate}
 							</p>
 							<p className="text-sm text-muted-foreground mt-1">
-								Your plan will end on <strong>{endDate}</strong> (<strong>{daysLeft} days remaining</strong>). You can keep your plan active by reactivating before then.
+								Your plan will end on <strong>{endDate}</strong> (
+								<strong>{daysLeft} days remaining</strong>). You can keep your
+								plan active by reactivating before then.
 							</p>
 						</div>
 					</div>
@@ -171,31 +183,34 @@ export function SubscriptionCancelSection() {
 						) : (
 							<Undo2 className="h-4 w-4" aria-hidden="true" />
 						)}
-						{reactivateMutation.isPending ? 'Reactivating...' : 'Reactivate Plan'}
+						{reactivateMutation.isPending
+							? "Reactivating..."
+							: "Reactivate Plan"}
 					</Button>
 					<p className="text-xs text-muted-foreground mt-4">
-						Your data stays for 30 days after your plan ends per our privacy policy.
+						Your data stays for 30 days after your plan ends per our privacy
+						policy.
 					</p>
 				</section>
 			</BlurFade>
-		)
+		);
 	}
 
 	// ───────────── State 1: Active (default) ─────────────
 	const onConfirmCancel = () => {
 		cancelMutation.mutate(undefined, {
 			onSuccess: () => {
-				toast.success(`Subscription set to cancel on ${endDate}.`)
-				setDialogOpen(false)
+				toast.success(`Subscription set to cancel on ${endDate}.`);
+				setDialogOpen(false);
 			},
-			onError: err =>
+			onError: (err) =>
 				handleMutationError(
 					err,
-					'Cancel subscription',
-					"Couldn't cancel your subscription. Please try again or contact support."
-				)
-		})
-	}
+					"Cancel subscription",
+					"Couldn't cancel your subscription. Please try again or contact support.",
+				),
+		});
+	};
 
 	return (
 		<BlurFade delay={0.55} inView>
@@ -208,7 +223,8 @@ export function SubscriptionCancelSection() {
 					<div>
 						<p className="text-sm font-medium">Cancel Subscription</p>
 						<p className="text-xs text-muted-foreground">
-							Your data stays for 30 days after cancellation. You can reactivate anytime before your period ends.
+							Your data stays for 30 days after cancellation. You can reactivate
+							anytime before your period ends.
 						</p>
 					</div>
 					<AlertDialog open={dialogOpen} onOpenChange={setDialogOpen}>
@@ -225,7 +241,8 @@ export function SubscriptionCancelSection() {
 							<AlertDialogHeader>
 								<AlertDialogTitle>Cancel your subscription?</AlertDialogTitle>
 								<AlertDialogDescription>
-									Your plan will stay active until <strong>{endDate}</strong>. Your data stays for 30 days after that per our privacy policy.
+									Your plan will stay active until <strong>{endDate}</strong>.
+									Your data stays for 30 days after that per our privacy policy.
 								</AlertDialogDescription>
 							</AlertDialogHeader>
 							<AlertDialogFooter>
@@ -235,17 +252,25 @@ export function SubscriptionCancelSection() {
 								<AlertDialogAction
 									type="button"
 									onClick={(event) => {
-										event.preventDefault()
-										onConfirmCancel()
+										event.preventDefault();
+										onConfirmCancel();
 									}}
 									disabled={cancelMutation.isPending}
 									aria-label="Confirm subscription cancellation"
-									className={cn(buttonVariants({ variant: 'destructive' }), 'gap-2')}
+									className={cn(
+										buttonVariants({ variant: "destructive" }),
+										"gap-2",
+									)}
 								>
 									{cancelMutation.isPending && (
-										<Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
+										<Loader2
+											className="h-4 w-4 animate-spin"
+											aria-hidden="true"
+										/>
 									)}
-									{cancelMutation.isPending ? 'Canceling...' : 'Yes, cancel plan'}
+									{cancelMutation.isPending
+										? "Canceling..."
+										: "Yes, cancel plan"}
 								</AlertDialogAction>
 							</AlertDialogFooter>
 						</AlertDialogContent>
@@ -253,5 +278,5 @@ export function SubscriptionCancelSection() {
 				</div>
 			</section>
 		</BlurFade>
-	)
+	);
 }

@@ -1,10 +1,10 @@
-'use client'
+"use client";
 
-import { useRouter } from 'next/navigation'
-import { LeaseCreationWizard } from '#components/leases/wizard/lease-creation-wizard'
+import { useRouter } from "next/navigation";
+import { LeaseCreationWizard } from "#components/leases/wizard/lease-creation-wizard";
 
 export default function NewLeasePage() {
-	const router = useRouter()
+	const router = useRouter();
 
 	return (
 		<div className="p-6 lg:p-8 bg-background min-h-full">
@@ -17,8 +17,8 @@ export default function NewLeasePage() {
 				</p>
 			</div>
 			<LeaseCreationWizard
-				onSuccess={leaseId => router.push(`/leases/${leaseId}`)}
+				onSuccess={(leaseId) => router.push(`/leases/${leaseId}`)}
 			/>
 		</div>
-	)
+	);
 }

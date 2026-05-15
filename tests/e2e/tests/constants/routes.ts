@@ -1,76 +1,76 @@
 export const ROUTES = {
 	// Public routes
-	HOME: '/',
-	LOGIN: '/login',
-	FEATURES: '/features',
-	PRICING: '/pricing',
-	PRICING_SUCCESS: '/pricing/success',
+	HOME: "/",
+	LOGIN: "/login",
+	FEATURES: "/features",
+	PRICING: "/pricing",
+	PRICING_SUCCESS: "/pricing/success",
 
 	// Auth routes
-	AUTH_CALLBACK_GOOGLE: '/api/auth/callback/google',
-	AUTH_CONFIRM: '/auth/confirm',
+	AUTH_CALLBACK_GOOGLE: "/api/auth/callback/google",
+	AUTH_CONFIRM: "/auth/confirm",
 
 	// Owner routes
-	OWNER_DASHBOARD: '/dashboard',
-	DASHBOARD_SETTINGS: '/dashboard/settings',
-	OWNER_SETTINGS: '/settings',
-	OWNER_SETTINGS_BILLING: '/settings?tab=billing',
+	OWNER_DASHBOARD: "/dashboard",
+	DASHBOARD_SETTINGS: "/dashboard/settings",
+	OWNER_SETTINGS: "/settings",
+	OWNER_SETTINGS_BILLING: "/settings?tab=billing",
 
 	// Properties
-	PROPERTIES: '/properties',
-	PROPERTIES_NEW: '/properties/new',
+	PROPERTIES: "/properties",
+	PROPERTIES_NEW: "/properties/new",
 	PROPERTIES_EDIT: (id: string) => `/properties/${id}/edit`,
 	PROPERTIES_DETAIL: (id: string) => `/properties/${id}`,
-	PROPERTIES_UNITS: '/properties/units',
+	PROPERTIES_UNITS: "/properties/units",
 
 	// Units
-	UNITS: '/units',
-	UNITS_NEW: '/units/new',
+	UNITS: "/units",
+	UNITS_NEW: "/units/new",
 	UNITS_EDIT: (id: string) => `/units/${id}/edit`,
 
 	// Tenants (data records, no self-service portal)
-	TENANTS: '/tenants',
-	TENANTS_NEW: '/tenants/new',
+	TENANTS: "/tenants",
+	TENANTS_NEW: "/tenants/new",
 	TENANTS_EDIT: (id: string) => `/tenants/${id}/edit`,
 	TENANTS_DETAIL: (id: string) => `/tenants/${id}`,
 
 	// Leases
-	LEASES: '/leases',
-	LEASES_NEW: '/leases/new',
-	LEASES_GENERATE: '/leases/generate',
+	LEASES: "/leases",
+	LEASES_NEW: "/leases/new",
+	LEASES_GENERATE: "/leases/generate",
 	LEASES_EDIT: (id: string) => `/leases/${id}/edit`,
 	LEASES_DETAIL: (id: string) => `/leases/${id}`,
 
 	// Maintenance
-	MAINTENANCE: '/maintenance',
-	MAINTENANCE_NEW: '/maintenance/new',
+	MAINTENANCE: "/maintenance",
+	MAINTENANCE_NEW: "/maintenance/new",
 	MAINTENANCE_EDIT: (id: string) => `/maintenance/${id}/edit`,
 	MAINTENANCE_DETAIL: (id: string) => `/maintenance/${id}`,
 
 	// Documents
-	DOCUMENTS: '/documents',
-	DOCUMENTS_LEASE_TEMPLATE: '/documents/lease-template',
+	DOCUMENTS: "/documents",
+	DOCUMENTS_LEASE_TEMPLATE: "/documents/lease-template",
 
 	// Analytics
-	ANALYTICS: '/analytics',
-	ANALYTICS_OVERVIEW: '/analytics/overview',
-	ANALYTICS_FINANCIAL: '/analytics/financial',
-	ANALYTICS_LEASES: '/analytics/leases',
-	ANALYTICS_MAINTENANCE: '/analytics/maintenance',
-	ANALYTICS_OCCUPANCY: '/analytics/occupancy',
-	ANALYTICS_PROPERTY_PERFORMANCE: '/analytics/property-performance',
+	ANALYTICS: "/analytics",
+	ANALYTICS_OVERVIEW: "/analytics/overview",
+	ANALYTICS_FINANCIAL: "/analytics/financial",
+	ANALYTICS_LEASES: "/analytics/leases",
+	ANALYTICS_MAINTENANCE: "/analytics/maintenance",
+	ANALYTICS_OCCUPANCY: "/analytics/occupancy",
+	ANALYTICS_PROPERTY_PERFORMANCE: "/analytics/property-performance",
 
 	// Financials
-	FINANCIALS_BALANCE_SHEET: '/financials/balance-sheet',
-	FINANCIALS_CASH_FLOW: '/financials/cash-flow',
-	FINANCIALS_INCOME_STATEMENT: '/financials/income-statement',
-	FINANCIALS_TAX_DOCUMENTS: '/financials/tax-documents',
+	FINANCIALS_BALANCE_SHEET: "/financials/balance-sheet",
+	FINANCIALS_CASH_FLOW: "/financials/cash-flow",
+	FINANCIALS_INCOME_STATEMENT: "/financials/income-statement",
+	FINANCIALS_TAX_DOCUMENTS: "/financials/tax-documents",
 
 	// Reports
-	REPORTS: '/reports',
-	REPORTS_ANALYTICS: '/reports/analytics',
-	REPORTS_GENERATE: '/reports/generate'
-} as const
+	REPORTS: "/reports",
+	REPORTS_ANALYTICS: "/reports/analytics",
+	REPORTS_GENERATE: "/reports/generate",
+} as const;
 
 /**
  * Helper function to wait for navigation to a route
@@ -78,15 +78,15 @@ export const ROUTES = {
  */
 export function getRoutePattern(route: string): RegExp {
 	// Escape special regex characters except *
-	const escaped = route.replace(/[.+?^${}()|[\]\\]/g, '\\$&')
+	const escaped = route.replace(/[.+?^${}()|[\]\\]/g, "\\$&");
 	// Convert * to regex wildcard
-	const pattern = escaped.replace(/\*/g, '.*')
-	return new RegExp(`^${pattern}$`)
+	const pattern = escaped.replace(/\*/g, ".*");
+	return new RegExp(`^${pattern}$`);
 }
 
 /**
  * Helper to check if current URL matches a route
  */
 export function matchesRoute(url: string, route: string): boolean {
-	return getRoutePattern(route).test(url)
+	return getRoutePattern(route).test(url);
 }

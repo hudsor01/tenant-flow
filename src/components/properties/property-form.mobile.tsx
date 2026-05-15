@@ -1,47 +1,45 @@
-'use client'
+"use client";
 
-import type { ComponentProps } from 'react'
-import { useEffect } from 'react'
+import { Building2, WifiOff } from "lucide-react";
+import type { ComponentProps } from "react";
+import { useEffect } from "react";
+import { Alert, AlertDescription, AlertTitle } from "#components/ui/alert";
+import { Card, CardContent, CardHeader, CardTitle } from "#components/ui/card";
+import { useMobileAccessibility } from "#hooks/use-mobile-accessibility";
+import { useOfflineData } from "#hooks/use-offline-data";
+import { cn } from "#lib/utils";
+import type { Property } from "#types/core";
+import { PropertyForm } from "./property-form.client";
 
-import type { Property } from '#types/core'
-import { Building2, WifiOff } from 'lucide-react'
-
-import { Alert, AlertDescription, AlertTitle } from '#components/ui/alert'
-import { Card, CardContent, CardHeader, CardTitle } from '#components/ui/card'
-import { useMobileAccessibility } from '#hooks/use-mobile-accessibility'
-import { useOfflineData } from '#hooks/use-offline-data'
-import { cn } from '#lib/utils'
-import { PropertyForm } from './property-form.client'
-
-type PropertyFormComponentProps = ComponentProps<typeof PropertyForm>
+type PropertyFormComponentProps = ComponentProps<typeof PropertyForm>;
 
 interface MobilePropertyFormProps extends PropertyFormComponentProps {
-	offlineEntityKey?: string
+	offlineEntityKey?: string;
 }
 
 export function MobilePropertyForm({
-	offlineEntityKey = 'properties',
+	offlineEntityKey = "properties",
 	...formProps
 }: MobilePropertyFormProps) {
-	const { isHighContrast } = useMobileAccessibility()
-	const { isOnline } = useOfflineData<Property>(offlineEntityKey)
+	const { isHighContrast } = useMobileAccessibility();
+	const { isOnline } = useOfflineData<Property>(offlineEntityKey);
 
 	useEffect(() => {
 		if (isHighContrast) {
-			document.body.classList.add('high-contrast-mode')
-			return () => document.body.classList.remove('high-contrast-mode')
+			document.body.classList.add("high-contrast-mode");
+			return () => document.body.classList.remove("high-contrast-mode");
 		}
 
-		document.body.classList.remove('high-contrast-mode')
-		return undefined
-	}, [isHighContrast])
+		document.body.classList.remove("high-contrast-mode");
+		return undefined;
+	}, [isHighContrast]);
 
 	return (
 		<section className="md:hidden">
 			<Card
 				className={cn(
-					'border-none bg-card/90 shadow-2xl backdrop-blur supports-[backdrop-filter]:bg-card/80',
-					isHighContrast && 'outline outline-2 outline-primary/60'
+					"border-none bg-card/90 shadow-2xl backdrop-blur supports-[backdrop-filter]:bg-card/80",
+					isHighContrast && "outline outline-2 outline-primary/60",
 				)}
 			>
 				<CardHeader className="flex flex-col gap-2">
@@ -50,7 +48,7 @@ export function MobilePropertyForm({
 							<Building2 className="size-5 text-primary" aria-hidden />
 						</span>
 						<CardTitle className="typography-large">
-							{formProps.mode === 'create' ? 'Add Property' : 'Edit Property'}
+							{formProps.mode === "create" ? "Add Property" : "Edit Property"}
 						</CardTitle>
 					</div>
 					<p className="text-muted-foreground">
@@ -73,5 +71,5 @@ export function MobilePropertyForm({
 				</CardContent>
 			</Card>
 		</section>
-	)
+	);
 }

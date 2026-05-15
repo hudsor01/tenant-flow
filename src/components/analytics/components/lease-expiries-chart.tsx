@@ -1,14 +1,14 @@
-import { FileText } from 'lucide-react'
-import { BlurFade } from '#components/ui/blur-fade'
-import type { LeaseExpiry } from '../analytics-types'
-import { formatAnalyticsCurrency } from '../analytics-types'
+import { FileText } from "lucide-react";
+import { BlurFade } from "#components/ui/blur-fade";
+import type { LeaseExpiry } from "../analytics-types";
+import { formatAnalyticsCurrency } from "../analytics-types";
 
 interface LeaseExpiriesChartProps {
-	data: LeaseExpiry[]
+	data: LeaseExpiry[];
 }
 
 export function LeaseExpiriesChart({ data }: LeaseExpiriesChartProps) {
-	const maxCount = Math.max(...data.map(e => e.count))
+	const maxCount = Math.max(...data.map((e) => e.count));
 
 	return (
 		<BlurFade delay={0.9} inView>
@@ -34,7 +34,7 @@ export function LeaseExpiriesChart({ data }: LeaseExpiriesChartProps) {
 									<div
 										className="h-full bg-primary/80 rounded-lg transition-all"
 										style={{
-											width: `${(expiry.count / maxCount) * 100}%`
+											width: `${(expiry.count / maxCount) * 100}%`,
 										}}
 									/>
 									<div className="absolute inset-0 flex items-center justify-between px-3">
@@ -52,5 +52,5 @@ export function LeaseExpiriesChart({ data }: LeaseExpiriesChartProps) {
 				</div>
 			</div>
 		</BlurFade>
-	)
+	);
 }

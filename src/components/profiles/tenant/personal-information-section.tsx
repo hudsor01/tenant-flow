@@ -1,27 +1,26 @@
-'use client'
+"use client";
 
-import type { FormEvent } from 'react'
-
-import { Button } from '#components/ui/button'
-import { CardLayout } from '#components/ui/card-layout'
-import { Field, FieldLabel } from '#components/ui/field'
-import { Mail, Phone } from 'lucide-react'
+import { Mail, Phone } from "lucide-react";
+import type { FormEvent } from "react";
+import { Button } from "#components/ui/button";
+import { CardLayout } from "#components/ui/card-layout";
+import { Field, FieldLabel } from "#components/ui/field";
 
 interface PersonalInfoFormData {
-	first_name: string
-	last_name: string
-	email: string
-	phone: string
+	first_name: string;
+	last_name: string;
+	email: string;
+	phone: string;
 }
 
 interface PersonalInformationSectionProps {
-	formData: PersonalInfoFormData
-	isEditing: boolean
-	isLoading: boolean
-	onEditToggle: (editing: boolean) => void
-	onChange: (field: keyof PersonalInfoFormData, value: string) => void
-	onSave: (e: FormEvent) => void
-	onCancel: () => void
+	formData: PersonalInfoFormData;
+	isEditing: boolean;
+	isLoading: boolean;
+	onEditToggle: (editing: boolean) => void;
+	onChange: (field: keyof PersonalInfoFormData, value: string) => void;
+	onSave: (e: FormEvent) => void;
+	onCancel: () => void;
 }
 
 export function PersonalInformationSection({
@@ -31,7 +30,7 @@ export function PersonalInformationSection({
 	onEditToggle,
 	onChange,
 	onSave,
-	onCancel
+	onCancel,
 }: PersonalInformationSectionProps) {
 	return (
 		<CardLayout
@@ -46,7 +45,7 @@ export function PersonalInformationSection({
 							type="text"
 							className="input w-full"
 							value={formData.first_name}
-							onChange={e => onChange('first_name', e.target.value)}
+							onChange={(e) => onChange("first_name", e.target.value)}
 							disabled={!isEditing || isLoading}
 							required
 						/>
@@ -58,7 +57,7 @@ export function PersonalInformationSection({
 							type="text"
 							className="input w-full"
 							value={formData.last_name}
-							onChange={e => onChange('last_name', e.target.value)}
+							onChange={(e) => onChange("last_name", e.target.value)}
 							disabled={!isEditing || isLoading}
 							required
 						/>
@@ -96,7 +95,7 @@ export function PersonalInformationSection({
 						className="input w-full"
 						placeholder="(555) 123-4567"
 						value={formData.phone}
-						onChange={e => onChange('phone', e.target.value)}
+						onChange={(e) => onChange("phone", e.target.value)}
 						disabled={!isEditing || isLoading}
 					/>
 				</Field>
@@ -113,7 +112,7 @@ export function PersonalInformationSection({
 					) : (
 						<>
 							<Button type="submit" disabled={isLoading}>
-								{isLoading ? 'Saving...' : 'Save Changes'}
+								{isLoading ? "Saving..." : "Save Changes"}
 							</Button>
 							<Button
 								type="button"
@@ -128,5 +127,5 @@ export function PersonalInformationSection({
 				</div>
 			</form>
 		</CardLayout>
-	)
+	);
 }

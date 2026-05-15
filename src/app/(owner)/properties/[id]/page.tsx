@@ -1,13 +1,13 @@
-'use client'
+"use client";
 
-import { Button } from '#components/ui/button'
-import { Skeleton } from '#components/ui/skeleton'
-import { Card, CardContent, CardHeader } from '#components/ui/card'
-import { useQuery } from '@tanstack/react-query'
-import { propertyQueries } from '#hooks/api/query-keys/property-keys'
-import Link from 'next/link'
-import { useParams } from 'next/navigation'
-import { PropertyDetails } from '../property-details.client'
+import { useQuery } from "@tanstack/react-query";
+import Link from "next/link";
+import { useParams } from "next/navigation";
+import { Button } from "#components/ui/button";
+import { Card, CardContent, CardHeader } from "#components/ui/card";
+import { Skeleton } from "#components/ui/skeleton";
+import { propertyQueries } from "#hooks/api/query-keys/property-keys";
+import { PropertyDetails } from "../property-details.client";
 
 function PropertyDetailSkeleton() {
 	return (
@@ -51,21 +51,21 @@ function PropertyDetailSkeleton() {
 				</CardContent>
 			</Card>
 		</div>
-	)
+	);
 }
 
 export default function PropertyDetailPage() {
-	const params = useParams()
-	const property_id = params.id as string
+	const params = useParams();
+	const property_id = params.id as string;
 
 	const {
 		data: property,
 		isLoading,
-		isError
-	} = useQuery(propertyQueries.detail(property_id))
+		isError,
+	} = useQuery(propertyQueries.detail(property_id));
 
 	if (isLoading) {
-		return <PropertyDetailSkeleton />
+		return <PropertyDetailSkeleton />;
 	}
 
 	if (isError || !property) {
@@ -76,8 +76,8 @@ export default function PropertyDetailPage() {
 					<Link href="/properties">Back to Properties</Link>
 				</Button>
 			</div>
-		)
+		);
 	}
 
-	return <PropertyDetails property={property} />
+	return <PropertyDetails property={property} />;
 }

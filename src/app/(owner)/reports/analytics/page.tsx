@@ -1,71 +1,69 @@
-'use client'
+"use client";
 
 /**
  * Reports Analytics Dashboard
  * Phase 5: Advanced Features - Custom Reports & Analytics
  */
 
+import dynamic from "next/dynamic";
+import { useState } from "react";
+import { ChartLoadingSkeleton } from "#components/shared/chart-loading-skeleton";
 import {
 	Select,
 	SelectContent,
 	SelectItem,
 	SelectTrigger,
-	SelectValue
-} from '#components/ui/select'
+	SelectValue,
+} from "#components/ui/select";
 import {
 	useMonthlyRevenue,
 	useOccupancyMetrics,
-	usePaymentAnalytics
-} from '#hooks/api/use-reports'
-import { useState } from 'react'
-import dynamic from 'next/dynamic'
-import { ChartLoadingSkeleton } from '#components/shared/chart-loading-skeleton'
-import { AnalyticsStatsRow } from './analytics-stats-row'
-import { AnalyticsPropertyTable } from './analytics-property-table'
+	usePaymentAnalytics,
+} from "#hooks/api/use-reports";
+import { AnalyticsPropertyTable } from "./analytics-property-table";
+import { AnalyticsStatsRow } from "./analytics-stats-row";
 
 const AnalyticsRevenueChart = dynamic(
 	() =>
-		import('./analytics-revenue-chart').then(
-			mod => mod.AnalyticsRevenueChart
+		import("./analytics-revenue-chart").then(
+			(mod) => mod.AnalyticsRevenueChart,
 		),
-	{ ssr: false, loading: () => <ChartLoadingSkeleton /> }
-)
+	{ ssr: false, loading: () => <ChartLoadingSkeleton /> },
+);
 
 const AnalyticsPaymentMethodsChart = dynamic(
 	() =>
-		import('./analytics-payment-methods-chart').then(
-			mod => mod.AnalyticsPaymentMethodsChart
+		import("./analytics-payment-methods-chart").then(
+			(mod) => mod.AnalyticsPaymentMethodsChart,
 		),
-	{ ssr: false, loading: () => <ChartLoadingSkeleton /> }
-)
+	{ ssr: false, loading: () => <ChartLoadingSkeleton /> },
+);
 
 const AnalyticsOccupancyChart = dynamic(
 	() =>
-		import('./analytics-occupancy-chart').then(
-			mod => mod.AnalyticsOccupancyChart
+		import("./analytics-occupancy-chart").then(
+			(mod) => mod.AnalyticsOccupancyChart,
 		),
-	{ ssr: false, loading: () => <ChartLoadingSkeleton /> }
-)
+	{ ssr: false, loading: () => <ChartLoadingSkeleton /> },
+);
 
 export default function AnalyticsPage() {
-	const [timeRange, setTimeRange] = useState('12')
+	const [timeRange, setTimeRange] = useState("12");
 
 	const { data: revenueData, isLoading: revenueLoading } = useMonthlyRevenue(
-		parseInt(timeRange, 10)
-	)
+		parseInt(timeRange, 10),
+	);
 	const { data: paymentAnalytics, isLoading: paymentsLoading } =
-		usePaymentAnalytics()
+		usePaymentAnalytics();
 	const { data: occupancyMetrics, isLoading: occupancyLoading } =
-		useOccupancyMetrics()
+		useOccupancyMetrics();
 
 	return (
 		<div className="p-6 lg:p-8 bg-background min-h-full">
 			{/* Header */}
 			<div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-6">
 				<div>
-					<h1 className="typography-h1">
-						Analytics Dashboard
-					</h1>
+					<h1 className="typography-h1">Analytics Dashboard</h1>
 					<p className="text-muted-foreground">
 						Insights into revenue, expenses, and occupancy metrics.
 					</p>
@@ -116,5 +114,5 @@ export default function AnalyticsPage() {
 				)}
 			</div>
 		</div>
-	)
+	);
 }

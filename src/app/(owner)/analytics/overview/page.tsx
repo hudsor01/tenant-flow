@@ -1,43 +1,41 @@
-'use client'
+"use client";
 
-import dynamic from 'next/dynamic'
-import { useQuery } from '@tanstack/react-query'
-import { analyticsQueries } from '#hooks/api/use-analytics'
-import { ChartLoadingSkeleton } from '#components/shared/chart-loading-skeleton'
+import { useQuery } from "@tanstack/react-query";
+import dynamic from "next/dynamic";
+import { ChartLoadingSkeleton } from "#components/shared/chart-loading-skeleton";
+import { analyticsQueries } from "#hooks/api/use-analytics";
 
 const ChartAreaInteractive = dynamic(
 	() =>
-		import('#components/dashboard/chart-area-interactive').then(
-			mod => mod.ChartAreaInteractive
+		import("#components/dashboard/chart-area-interactive").then(
+			(mod) => mod.ChartAreaInteractive,
 		),
-	{ ssr: false, loading: () => <ChartLoadingSkeleton /> }
-)
-import { Badge } from '#components/ui/badge'
-import { Button } from '#components/ui/button'
+	{ ssr: false, loading: () => <ChartLoadingSkeleton /> },
+);
+
+import {
+	BarChart3,
+	Building2,
+	Calendar,
+	TrendingDown,
+	TrendingUp,
+} from "lucide-react";
+import { OwnerPaymentSummary } from "#components/analytics/owner-payment-summary";
+import { Badge } from "#components/ui/badge";
+import { BlurFade } from "#components/ui/blur-fade";
+import { Button } from "#components/ui/button";
 import {
 	Select,
 	SelectContent,
 	SelectItem,
 	SelectTrigger,
-	SelectValue
-} from '#components/ui/select'
-import { Skeleton } from '#components/ui/skeleton'
-import { BlurFade } from '#components/ui/blur-fade'
-import { EMPTY_PAYMENT_SUMMARY } from '#types/api-contracts'
-import type { DashboardStats } from '#types/stats'
-import type {
-	DashboardSummary,
-	PropertyPerformance
-} from '#types/core'
-import {
-	Building2,
-	Calendar,
-	TrendingDown,
-	TrendingUp,
-	BarChart3
-} from 'lucide-react'
-import { OwnerPaymentSummary } from '#components/analytics/owner-payment-summary'
-import { AnalyticsStatCards } from './analytics-stat-cards'
+	SelectValue,
+} from "#components/ui/select";
+import { Skeleton } from "#components/ui/skeleton";
+import { EMPTY_PAYMENT_SUMMARY } from "#types/api-contracts";
+import type { DashboardSummary, PropertyPerformance } from "#types/core";
+import type { DashboardStats } from "#types/stats";
+import { AnalyticsStatCards } from "./analytics-stat-cards";
 
 function AnalyticsSkeleton() {
 	return (
@@ -78,43 +76,43 @@ function AnalyticsSkeleton() {
 				</div>
 			</div>
 		</div>
-	)
+	);
 }
 
 export default function AnalyticsPage() {
 	const { data: overviewData, isLoading: overviewLoading } = useQuery(
-		analyticsQueries.overviewPageData()
-	)
+		analyticsQueries.overviewPageData(),
+	);
 	const { data: paymentSummary = EMPTY_PAYMENT_SUMMARY } = useQuery(
-		analyticsQueries.ownerPaymentSummary()
-	)
+		analyticsQueries.ownerPaymentSummary(),
+	);
 
 	if (overviewLoading) {
-		return <AnalyticsSkeleton />
+		return <AnalyticsSkeleton />;
 	}
 
-	const { financial } = overviewData || {}
-	const financialMetrics = financial?.metrics
+	const { financial } = overviewData || {};
+	const financialMetrics = financial?.metrics;
 
 	const stats = {
 		revenue: { growth: financialMetrics?.revenueTrend ?? 0 },
-		units: { occupancyChange: 0 }
-	} as DashboardStats
+		units: { occupancyChange: 0 },
+	} as DashboardStats;
 	const financialStats = {
 		avgRoi:
 			financialMetrics?.netIncome && financialMetrics?.totalRevenue
 				? (financialMetrics.netIncome / financialMetrics.totalRevenue) * 100
-				: 0
-	} as DashboardSummary
-	const properties = [] as PropertyPerformance[]
+				: 0,
+	} as DashboardSummary;
+	const properties = [] as PropertyPerformance[];
 
-	const revenueGrowth = stats?.revenue?.growth ?? 0
-	const occupancyChange = stats?.units?.occupancyChange ?? 0
-	const avgRoi = financialStats?.avgRoi ?? 0
-	const occupancyRate = stats?.units?.occupancyRate ?? 0
-	const activeTenants = stats?.units?.occupied ?? 0
-	const tenantsChange = Math.max(0, Math.round(occupancyChange * 10))
-	const monthlyRevenue = (stats?.revenue?.monthly ?? 0) * 100
+	const revenueGrowth = stats?.revenue?.growth ?? 0;
+	const occupancyChange = stats?.units?.occupancyChange ?? 0;
+	const avgRoi = financialStats?.avgRoi ?? 0;
+	const occupancyRate = stats?.units?.occupancyRate ?? 0;
+	const activeTenants = stats?.units?.occupied ?? 0;
+	const tenantsChange = Math.max(0, Math.round(occupancyChange * 10));
+	const monthlyRevenue = (stats?.revenue?.monthly ?? 0) * 100;
 
 	return (
 		<div className="p-6 lg:p-8 bg-background min-h-full">
@@ -122,7 +120,9 @@ export default function AnalyticsPage() {
 				<div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-6">
 					<div>
 						<h1 className="typography-h1">Analytics</h1>
-						<p className="text-muted-foreground">Portfolio performance and insights.</p>
+						<p className="text-muted-foreground">
+							Portfolio performance and insights.
+						</p>
 					</div>
 					<div className="flex gap-2">
 						<Select defaultValue="30_days">
@@ -163,8 +163,12 @@ export default function AnalyticsPage() {
 					<div className="bg-card border border-border rounded-lg p-6">
 						<div className="flex items-center justify-between mb-6">
 							<div>
-								<h3 className="font-medium text-foreground">Revenue & Expenses Trend</h3>
-								<p className="text-sm text-muted-foreground">6-month performance overview</p>
+								<h3 className="font-medium text-foreground">
+									Revenue & Expenses Trend
+								</h3>
+								<p className="text-sm text-muted-foreground">
+									6-month performance overview
+								</p>
 							</div>
 							<BarChart3 className="w-5 h-5 text-muted-foreground" />
 						</div>
@@ -186,8 +190,12 @@ export default function AnalyticsPage() {
 					<div className="bg-card border border-border rounded-lg p-6">
 						<div className="flex items-center justify-between mb-6">
 							<div>
-								<h3 className="font-medium text-foreground">Top Performing Properties</h3>
-								<p className="text-sm text-muted-foreground">Ranked by monthly revenue</p>
+								<h3 className="font-medium text-foreground">
+									Top Performing Properties
+								</h3>
+								<p className="text-sm text-muted-foreground">
+									Ranked by monthly revenue
+								</p>
 							</div>
 							<Button variant="ghost" size="sm">
 								<Calendar className="size-4 mr-2" />
@@ -197,20 +205,42 @@ export default function AnalyticsPage() {
 						<div className="space-y-3">
 							{properties.length > 0 ? (
 								properties.slice(0, 5).map((property, index: number) => (
-									<BlurFade key={property.property ?? `property-${index}`} delay={0.8 + index * 0.05} inView>
+									<BlurFade
+										key={property.property ?? `property-${index}`}
+										delay={0.8 + index * 0.05}
+										inView
+									>
 										<div className="flex items-center justify-between p-3 rounded-lg bg-muted/20 hover:bg-muted/40 transition-colors">
 											<div className="flex items-center gap-3">
 												<div className="size-10 rounded-lg bg-primary/10 flex items-center justify-center">
 													<Building2 className="w-5 h-5 text-primary" />
 												</div>
 												<div>
-													<p className="font-medium text-foreground">{property.property || 'Unknown Property'}</p>
-													<p className="text-sm text-muted-foreground">{property.occupiedUnits || 0}/{property.totalUnits || 0} units occupied</p>
+													<p className="font-medium text-foreground">
+														{property.property || "Unknown Property"}
+													</p>
+													<p className="text-sm text-muted-foreground">
+														{property.occupiedUnits || 0}/
+														{property.totalUnits || 0} units occupied
+													</p>
 												</div>
 											</div>
-											<Badge variant={(property.occupancyRate || 0) >= 90 ? 'default' : 'destructive'} className="text-xs">
-												{(property.occupancyRate || 0) >= 90 ? <TrendingUp className="size-3 mr-1" /> : <TrendingDown className="size-3 mr-1" />}
-												{property.occupancyRate ? `${property.occupancyRate.toFixed(1)}%` : '0.0%'}
+											<Badge
+												variant={
+													(property.occupancyRate || 0) >= 90
+														? "default"
+														: "destructive"
+												}
+												className="text-xs"
+											>
+												{(property.occupancyRate || 0) >= 90 ? (
+													<TrendingUp className="size-3 mr-1" />
+												) : (
+													<TrendingDown className="size-3 mr-1" />
+												)}
+												{property.occupancyRate
+													? `${property.occupancyRate.toFixed(1)}%`
+													: "0.0%"}
 											</Badge>
 										</div>
 									</BlurFade>
@@ -225,5 +255,5 @@ export default function AnalyticsPage() {
 				</BlurFade>
 			</div>
 		</div>
-	)
+	);
 }

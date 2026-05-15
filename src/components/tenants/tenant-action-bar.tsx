@@ -1,15 +1,15 @@
-'use client'
+"use client";
 
-import { createPortal } from 'react-dom'
-import { Trash2, Download, X } from 'lucide-react'
-import { Button } from '#components/ui/button'
+import { Download, Trash2, X } from "lucide-react";
+import { createPortal } from "react-dom";
+import { Button } from "#components/ui/button";
 
 interface TenantActionBarProps {
-	selectedCount: number
-	isVisible: boolean
-	onDelete: () => void
-	onExport: () => void
-	onClose: () => void
+	selectedCount: number;
+	isVisible: boolean;
+	onDelete: () => void;
+	onExport: () => void;
+	onClose: () => void;
 }
 
 // ACTION BAR COMPONENT
@@ -21,12 +21,12 @@ export function TenantActionBar({
 	isVisible,
 	onDelete,
 	onExport,
-	onClose
+	onClose,
 }: TenantActionBarProps) {
-	if (!isVisible) return null
+	if (!isVisible) return null;
 
 	// Use portal to render at document body level
-	if (typeof window === 'undefined') return null
+	if (typeof window === "undefined") return null;
 
 	return createPortal(
 		<div
@@ -34,9 +34,9 @@ export function TenantActionBar({
 			aria-orientation="horizontal"
 			className="fixed z-50 rounded-lg border bg-card shadow-lg outline-none fade-in-0 zoom-in-95 animate-in duration-250 slide-in-from-bottom-4 flex flex-row items-center gap-2 px-2 py-1.5"
 			style={{
-				bottom: '24px',
-				left: '50%',
-				transform: 'translateX(-50%)'
+				bottom: "24px",
+				left: "50%",
+				transform: "translateX(-50%)",
 			}}
 		>
 			{/* Selection Count */}
@@ -77,6 +77,6 @@ export function TenantActionBar({
 				<X className="h-3.5 w-3.5" />
 			</button>
 		</div>,
-		document.body
-	)
+		document.body,
+	);
 }

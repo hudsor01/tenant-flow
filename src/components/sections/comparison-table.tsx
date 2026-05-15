@@ -1,102 +1,103 @@
-import { cn } from '#lib/utils'
-import { BlurFade } from '#components/ui/blur-fade'
-import { Button } from '#components/ui/button'
-import { Check, X, Minus, ArrowRight, Crown } from 'lucide-react'
-import Link from 'next/link'
+import { ArrowRight, Check, Crown, Minus, X } from "lucide-react";
+import Link from "next/link";
+import { BlurFade } from "#components/ui/blur-fade";
+import { Button } from "#components/ui/button";
+import { cn } from "#lib/utils";
 
 interface ComparisonTableProps {
-	className?: string
+	className?: string;
 }
 
-type FeatureValue = boolean | string | 'partial'
+type FeatureValue = boolean | string | "partial";
 
 interface ComparisonFeature {
-	name: string
-	tenantFlow: FeatureValue
-	spreadsheets: FeatureValue
-	enterprise: FeatureValue
-	description?: string
+	name: string;
+	tenantFlow: FeatureValue;
+	spreadsheets: FeatureValue;
+	enterprise: FeatureValue;
+	description?: string;
 }
 
 const comparisonData: ComparisonFeature[] = [
 	{
-		name: 'Setup Time',
-		tenantFlow: 'Same day',
-		spreadsheets: '1-2 weeks',
-		enterprise: '2-4 weeks',
-		description: 'CSV import covers properties, units, tenants, and leases'
+		name: "Setup Time",
+		tenantFlow: "Same day",
+		spreadsheets: "1-2 weeks",
+		enterprise: "2-4 weeks",
+		description: "CSV import covers properties, units, tenants, and leases",
 	},
 	{
-		name: 'Monthly Cost (50 units)',
-		tenantFlow: '$49/mo',
-		spreadsheets: 'Free*',
-		enterprise: '$200+/mo',
-		description: '*Excludes your time value (Growth plan, up to 100 units)'
+		name: "Monthly Cost (50 units)",
+		tenantFlow: "$49/mo",
+		spreadsheets: "Free*",
+		enterprise: "$200+/mo",
+		description: "*Excludes your time value (Growth plan, up to 100 units)",
 	},
 	{
-		name: 'Document Vault',
+		name: "Document Vault",
 		tenantFlow: true,
 		spreadsheets: false,
-		enterprise: 'partial',
-		description: 'Per-entity storage with search, filters, and tax-season zip exports'
+		enterprise: "partial",
+		description:
+			"Per-entity storage with search, filters, and tax-season zip exports",
 	},
 	{
-		name: 'Tenant Records (no logins)',
+		name: "Tenant Records (no logins)",
 		tenantFlow: true,
-		spreadsheets: 'partial',
+		spreadsheets: "partial",
 		enterprise: false,
-		description: 'Landlord-only platform; tenants are records, not users'
+		description: "Landlord-only platform; tenants are records, not users",
 	},
 	{
-		name: 'Maintenance Tracking',
+		name: "Maintenance Tracking",
 		tenantFlow: true,
-		spreadsheets: 'partial',
-		enterprise: true
+		spreadsheets: "partial",
+		enterprise: true,
 	},
 	{
-		name: 'Digital Lease Signing',
-		tenantFlow: 'Growth+',
+		name: "Digital Lease Signing",
+		tenantFlow: "Growth+",
 		spreadsheets: false,
-		enterprise: 'partial',
-		description: 'Lease e-sign on Growth and Max plans'
+		enterprise: "partial",
+		description: "Lease e-sign on Growth and Max plans",
 	},
 	{
-		name: 'Bulk Document Export',
+		name: "Bulk Document Export",
 		tenantFlow: true,
-		spreadsheets: 'partial',
-		enterprise: 'partial',
-		description: 'Zip exports for tax season'
+		spreadsheets: "partial",
+		enterprise: "partial",
+		description: "Zip exports for tax season",
 	},
 	{
-		name: 'Financial Reports',
+		name: "Financial Reports",
 		tenantFlow: true,
-		spreadsheets: 'partial',
-		enterprise: true
+		spreadsheets: "partial",
+		enterprise: true,
 	},
 	{
-		name: 'Responsive Web App',
+		name: "Responsive Web App",
 		tenantFlow: true,
 		spreadsheets: false,
 		enterprise: true,
-		description: 'Desktop and mobile browsers; no app store install'
+		description: "Desktop and mobile browsers; no app store install",
 	},
 	{
-		name: 'Same-Day Setup',
+		name: "Same-Day Setup",
 		tenantFlow: true,
 		spreadsheets: true,
 		enterprise: false,
-		description: 'CSV import covers properties, units, tenants, leases'
-	}
-]
+		description: "CSV import covers properties, units, tenants, leases",
+	},
+];
 
 export function ComparisonTable({ className }: ComparisonTableProps) {
 	return (
-		<section className={cn('section-spacing bg-muted/30', className)}>
+		<section className={cn("section-spacing bg-muted/30", className)}>
 			<div className="max-w-7xl mx-auto px-6 lg:px-8">
 				<BlurFade delay={0.1} inView>
 					<div className="text-center mb-12">
 						<h2 className="text-3xl lg:text-4xl xl:text-5xl font-bold tracking-tight text-foreground mb-4">
-							Why Landlords Choose{' '}
+							Why Landlords Choose{" "}
 							<span className="hero-highlight">TenantFlow</span>
 						</h2>
 						<p className="text-muted-foreground text-lg max-w-2xl mx-auto">
@@ -152,8 +153,8 @@ export function ComparisonTable({ className }: ComparisonTableProps) {
 									<tr
 										key={feature.name}
 										className={cn(
-											'hover:bg-muted/50 transition-colors',
-											index % 2 === 0 ? 'bg-card/50' : ''
+											"hover:bg-muted/50 transition-colors",
+											index % 2 === 0 ? "bg-card/50" : "",
 										)}
 									>
 										<td className="py-4 px-4">
@@ -201,42 +202,42 @@ export function ComparisonTable({ className }: ComparisonTableProps) {
 				</BlurFade>
 			</div>
 		</section>
-	)
+	);
 }
 
 function FeatureCell({
 	value,
-	highlight
+	highlight,
 }: {
-	value: FeatureValue
-	highlight?: boolean
+	value: FeatureValue;
+	highlight?: boolean;
 }) {
-	if (typeof value === 'string' && value !== 'partial') {
+	if (typeof value === "string" && value !== "partial") {
 		return (
 			<span
 				className={cn(
-					'typography-small',
-					highlight ? 'text-primary' : 'text-foreground'
+					"typography-small",
+					highlight ? "text-primary" : "text-foreground",
 				)}
 			>
 				{value}
 			</span>
-		)
+		);
 	}
 
 	if (value === true) {
 		return (
 			<div
 				className={cn(
-					'size-8 rounded-full flex-center',
-					highlight ? 'bg-primary/10' : 'bg-success/10'
+					"size-8 rounded-full flex-center",
+					highlight ? "bg-primary/10" : "bg-success/10",
 				)}
 			>
 				<Check
-					className={cn('size-5', highlight ? 'text-primary' : 'text-success')}
+					className={cn("size-5", highlight ? "text-primary" : "text-success")}
 				/>
 			</div>
-		)
+		);
 	}
 
 	if (value === false) {
@@ -244,7 +245,7 @@ function FeatureCell({
 			<div className="size-8 rounded-full bg-muted flex-center">
 				<X className="size-5 text-muted-foreground" />
 			</div>
-		)
+		);
 	}
 
 	// partial
@@ -252,7 +253,7 @@ function FeatureCell({
 		<div className="size-8 rounded-full bg-warning/10 flex-center">
 			<Minus className="size-5 text-warning" />
 		</div>
-	)
+	);
 }
 
-export default ComparisonTable
+export default ComparisonTable;

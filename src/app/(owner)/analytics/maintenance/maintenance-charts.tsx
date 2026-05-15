@@ -1,9 +1,6 @@
-'use client'
+"use client";
 
-import type {
-	MaintenanceCostBreakdownEntry,
-	MaintenanceTrendPoint
-} from '#types/analytics'
+import { Wrench } from "lucide-react";
 import {
 	Bar,
 	BarChart,
@@ -12,48 +9,51 @@ import {
 	LineChart,
 	Tooltip,
 	XAxis,
-	YAxis
-} from 'recharts'
+	YAxis,
+} from "recharts";
 
 import {
+	type ChartConfig,
 	ChartContainer,
 	ChartTooltipContent,
-	type ChartConfig
-} from '#components/ui/chart'
+} from "#components/ui/chart";
 import {
 	Empty,
 	EmptyDescription,
 	EmptyHeader,
 	EmptyMedia,
-	EmptyTitle
-} from '#components/ui/empty'
-import { Wrench } from 'lucide-react'
+	EmptyTitle,
+} from "#components/ui/empty";
+import type {
+	MaintenanceCostBreakdownEntry,
+	MaintenanceTrendPoint,
+} from "#types/analytics";
 
 const trendConfig = {
 	completed: {
-		label: 'Completed',
-		color: 'oklch(0.6 0.16 160)'
+		label: "Completed",
+		color: "oklch(0.6 0.16 160)",
 	},
 	pending: {
-		label: 'Pending',
-		color: 'oklch(0.68 0.12 20)'
-	}
-} satisfies ChartConfig
+		label: "Pending",
+		color: "oklch(0.68 0.12 20)",
+	},
+} satisfies ChartConfig;
 
 const costConfig = {
 	amount: {
-		label: 'Cost',
-		color: 'oklch(0.62 0.14 230)'
-	}
-} satisfies ChartConfig
+		label: "Cost",
+		color: "oklch(0.62 0.14 230)",
+	},
+} satisfies ChartConfig;
 
 type MaintenanceTrendChartProps = {
-	points: MaintenanceTrendPoint[]
-}
+	points: MaintenanceTrendPoint[];
+};
 
 type MaintenanceCostChartProps = {
-	entries: MaintenanceCostBreakdownEntry[]
-}
+	entries: MaintenanceCostBreakdownEntry[];
+};
 
 export function MaintenanceTrendChart({ points }: MaintenanceTrendChartProps) {
 	if (!points.length) {
@@ -69,15 +69,15 @@ export function MaintenanceTrendChart({ points }: MaintenanceTrendChartProps) {
 					</EmptyDescription>
 				</EmptyHeader>
 			</Empty>
-		)
+		);
 	}
 
-	const chartData = points.map(point => ({
+	const chartData = points.map((point) => ({
 		period: point.period,
 		completed: point.completed,
 		pending: point.pending,
-		avgResolutionTime: point.avgResolutionTime
-	}))
+		avgResolutionTime: point.avgResolutionTime,
+	}));
 
 	return (
 		<ChartContainer className="h-75" config={trendConfig}>
@@ -102,7 +102,7 @@ export function MaintenanceTrendChart({ points }: MaintenanceTrendChartProps) {
 				/>
 			</LineChart>
 		</ChartContainer>
-	)
+	);
 }
 
 export function MaintenanceCostChart({ entries }: MaintenanceCostChartProps) {
@@ -119,13 +119,13 @@ export function MaintenanceCostChart({ entries }: MaintenanceCostChartProps) {
 					</EmptyDescription>
 				</EmptyHeader>
 			</Empty>
-		)
+		);
 	}
 
-	const chartData = entries.map(entry => ({
+	const chartData = entries.map((entry) => ({
 		category: entry.category,
-		amount: entry.amount
-	}))
+		amount: entry.amount,
+	}));
 
 	return (
 		<ChartContainer className="h-75" config={costConfig}>
@@ -149,5 +149,5 @@ export function MaintenanceCostChart({ entries }: MaintenanceCostChartProps) {
 				/>
 			</BarChart>
 		</ChartContainer>
-	)
+	);
 }

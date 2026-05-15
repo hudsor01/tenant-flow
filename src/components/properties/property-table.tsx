@@ -1,15 +1,20 @@
-'use client'
+"use client";
 
-import { useRef, useState } from 'react'
-import { useVirtualizer } from '@tanstack/react-virtual'
-import { ArrowUpDown } from 'lucide-react'
-import { Checkbox } from '#components/ui/checkbox'
-import { cn } from '#lib/utils'
-import type { ReactNode } from 'react'
-import type { SortField, SortDirection, ColumnId, PropertyTableProps } from './property-table-types'
-import { TABLE_COLUMNS } from './property-table-types'
-import { PropertyTableToolbar } from './property-table-toolbar'
-import { PropertyTableRow } from './property-table-row'
+import { useVirtualizer } from "@tanstack/react-virtual";
+import { ArrowUpDown } from "lucide-react";
+import type { ReactNode } from "react";
+import { useRef, useState } from "react";
+import { Checkbox } from "#components/ui/checkbox";
+import { cn } from "#lib/utils";
+import { PropertyTableRow } from "./property-table-row";
+import { PropertyTableToolbar } from "./property-table-toolbar";
+import type {
+	ColumnId,
+	PropertyTableProps,
+	SortDirection,
+	SortField,
+} from "./property-table-types";
+import { TABLE_COLUMNS } from "./property-table-types";
 
 /**
  * PropertyTable - Table view for displaying properties with sorting and column visibility
@@ -28,73 +33,73 @@ export function PropertyTable({
 	onSelectAll,
 	onView,
 	onEdit,
-	onDelete
+	onDelete,
 }: PropertyTableProps) {
-	const [sortField, setSortField] = useState<SortField>('name')
-	const [sortDirection, setSortDirection] = useState<SortDirection>('asc')
+	const [sortField, setSortField] = useState<SortField>("name");
+	const [sortDirection, setSortDirection] = useState<SortDirection>("asc");
 	const [visibleColumns, setVisibleColumns] = useState<Set<ColumnId>>(
 		new Set(
-			TABLE_COLUMNS.filter(c => c.alwaysVisible || c.defaultVisible).map(
-				c => c.id
-			)
-		)
-	)
-	const [showColumnMenu, setShowColumnMenu] = useState(false)
+			TABLE_COLUMNS.filter((c) => c.alwaysVisible || c.defaultVisible).map(
+				(c) => c.id,
+			),
+		),
+	);
+	const [showColumnMenu, setShowColumnMenu] = useState(false);
 
 	const toggleColumn = (columnId: ColumnId) => {
-		const column = TABLE_COLUMNS.find(c => c.id === columnId)
-		if (column?.alwaysVisible) return
+		const column = TABLE_COLUMNS.find((c) => c.id === columnId);
+		if (column?.alwaysVisible) return;
 
-		const newVisible = new Set(visibleColumns)
+		const newVisible = new Set(visibleColumns);
 		if (newVisible.has(columnId)) {
-			newVisible.delete(columnId)
+			newVisible.delete(columnId);
 		} else {
-			newVisible.add(columnId)
+			newVisible.add(columnId);
 		}
-		setVisibleColumns(newVisible)
-	}
+		setVisibleColumns(newVisible);
+	};
 
-	const isColumnVisible = (columnId: ColumnId) => visibleColumns.has(columnId)
+	const isColumnVisible = (columnId: ColumnId) => visibleColumns.has(columnId);
 
 	const handleSort = (field: SortField) => {
 		if (sortField === field) {
-			setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc')
+			setSortDirection(sortDirection === "asc" ? "desc" : "asc");
 		} else {
-			setSortField(field)
-			setSortDirection('asc')
+			setSortField(field);
+			setSortDirection("asc");
 		}
-	}
+	};
 
 	const sortedProperties = (() => {
 		return [...properties].sort((a, b) => {
-			let comparison = 0
+			let comparison = 0;
 			switch (sortField) {
-				case 'name':
-					comparison = a.name.localeCompare(b.name)
-					break
-				case 'address':
-					comparison = a.addressLine1.localeCompare(b.addressLine1)
-					break
-				case 'units':
-					comparison = a.totalUnits - b.totalUnits
-					break
-				case 'occupancy':
-					comparison = a.occupancyRate - b.occupancyRate
-					break
-				case 'revenue':
-					comparison = a.monthlyRevenue - b.monthlyRevenue
-					break
+				case "name":
+					comparison = a.name.localeCompare(b.name);
+					break;
+				case "address":
+					comparison = a.addressLine1.localeCompare(b.addressLine1);
+					break;
+				case "units":
+					comparison = a.totalUnits - b.totalUnits;
+					break;
+				case "occupancy":
+					comparison = a.occupancyRate - b.occupancyRate;
+					break;
+				case "revenue":
+					comparison = a.monthlyRevenue - b.monthlyRevenue;
+					break;
 			}
-			return sortDirection === 'asc' ? comparison : -comparison
-		})
-	})()
+			return sortDirection === "asc" ? comparison : -comparison;
+		});
+	})();
 
 	const SortHeader = ({
 		field,
-		children
+		children,
 	}: {
-		field: SortField
-		children: ReactNode
+		field: SortField;
+		children: ReactNode;
 	}) => (
 		<button
 			onClick={() => handleSort(field)}
@@ -103,22 +108,22 @@ export function PropertyTable({
 			{children}
 			<ArrowUpDown
 				className={cn(
-					'w-3.5 h-3.5 transition-colors',
+					"w-3.5 h-3.5 transition-colors",
 					sortField === field
-						? 'text-primary'
-						: 'text-muted-foreground/50 group-hover:text-muted-foreground'
+						? "text-primary"
+						: "text-muted-foreground/50 group-hover:text-muted-foreground",
 				)}
 			/>
 		</button>
-	)
+	);
 
-	const tableScrollRef = useRef<HTMLDivElement>(null)
+	const tableScrollRef = useRef<HTMLDivElement>(null);
 	const rowVirtualizer = useVirtualizer({
 		count: sortedProperties.length,
 		getScrollElement: () => tableScrollRef.current,
 		estimateSize: () => 64,
 		overscan: 5,
-	})
+	});
 
 	return (
 		<div className="bg-card border border-border rounded-sm overflow-hidden">
@@ -133,7 +138,10 @@ export function PropertyTable({
 			/>
 
 			{/* Table */}
-			<div ref={tableScrollRef} className="overflow-auto max-h-[calc(100vh-340px)]">
+			<div
+				ref={tableScrollRef}
+				className="overflow-auto max-h-[calc(100vh-340px)]"
+			>
 				<table className="w-full">
 					<thead className="sticky top-0 z-10">
 						<tr className="border-b border-border bg-muted/30">
@@ -146,32 +154,32 @@ export function PropertyTable({
 									onCheckedChange={onSelectAll}
 								/>
 							</th>
-							{isColumnVisible('property') && (
+							{isColumnVisible("property") && (
 								<th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
 									<SortHeader field="name">Property</SortHeader>
 								</th>
 							)}
-							{isColumnVisible('address') && (
+							{isColumnVisible("address") && (
 								<th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider hidden md:table-cell">
 									<SortHeader field="address">Address</SortHeader>
 								</th>
 							)}
-							{isColumnVisible('units') && (
+							{isColumnVisible("units") && (
 								<th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
 									<SortHeader field="units">Units</SortHeader>
 								</th>
 							)}
-							{isColumnVisible('occupancy') && (
+							{isColumnVisible("occupancy") && (
 								<th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
 									<SortHeader field="occupancy">Occupancy</SortHeader>
 								</th>
 							)}
-							{isColumnVisible('status') && (
+							{isColumnVisible("status") && (
 								<th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
 									Status
 								</th>
 							)}
-							{isColumnVisible('revenue') && (
+							{isColumnVisible("revenue") && (
 								<th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider hidden lg:table-cell">
 									<SortHeader field="revenue">Monthly Revenue</SortHeader>
 								</th>
@@ -181,9 +189,15 @@ export function PropertyTable({
 							</th>
 						</tr>
 					</thead>
-					<tbody className="divide-y divide-border" style={{ height: `${rowVirtualizer.getTotalSize()}px`, position: 'relative' }}>
-						{rowVirtualizer.getVirtualItems().map(virtualRow => {
-							const property = sortedProperties[virtualRow.index]!
+					<tbody
+						className="divide-y divide-border"
+						style={{
+							height: `${rowVirtualizer.getTotalSize()}px`,
+							position: "relative",
+						}}
+					>
+						{rowVirtualizer.getVirtualItems().map((virtualRow) => {
+							const property = sortedProperties[virtualRow.index]!;
 							return (
 								<PropertyTableRow
 									key={property.id}
@@ -195,12 +209,11 @@ export function PropertyTable({
 									onEdit={onEdit}
 									onDelete={onDelete}
 								/>
-							)
+							);
 						})}
 					</tbody>
 				</table>
 			</div>
 		</div>
-	)
+	);
 }
-

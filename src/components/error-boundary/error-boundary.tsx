@@ -1,39 +1,39 @@
-'use client'
+"use client";
 
-import * as Sentry from '@sentry/nextjs'
-import { Button } from '#components/ui/button'
-import { CardLayout } from '#components/ui/card-layout'
-import { AlertTriangle, RefreshCw } from 'lucide-react'
-import { useRouter } from 'next/navigation'
-import type { ErrorInfo, ReactElement, ReactNode } from 'react'
+import * as Sentry from "@sentry/nextjs";
+import { AlertTriangle, RefreshCw } from "lucide-react";
+import { useRouter } from "next/navigation";
+import type { ErrorInfo, ReactElement, ReactNode } from "react";
 import {
+	type FallbackProps,
 	ErrorBoundary as ReactErrorBoundary,
-	type FallbackProps
-} from 'react-error-boundary'
-import { useErrorBoundaryStore } from '#stores/error-boundary-store'
+} from "react-error-boundary";
+import { Button } from "#components/ui/button";
+import { CardLayout } from "#components/ui/card-layout";
+import { useErrorBoundaryStore } from "#stores/error-boundary-store";
 
 interface Props {
-	children: ReactNode
-	fallback?: ReactElement
+	children: ReactNode;
+	fallback?: ReactElement;
 }
 
 function handleError(error: unknown, info: ErrorInfo) {
-	const err = error instanceof Error ? error : new Error(String(error))
+	const err = error instanceof Error ? error : new Error(String(error));
 
 	// Route to Sentry as a proper exception event — preserves the stack
 	// trace and exception class. Previously routed through logger.error
 	// which falls through to captureMessage (no stack, no class).
 	Sentry.captureException(err, {
-		tags: { boundary: 'component-error-boundary' },
-		extra: { componentStack: info.componentStack }
-	})
+		tags: { boundary: "component-error-boundary" },
+		extra: { componentStack: info.componentStack },
+	});
 
 	// Persist error in global error boundary store for cross-page visibility
-	useErrorBoundaryStore.getState().setError(err, 'ErrorBoundary')
+	useErrorBoundaryStore.getState().setError(err, "ErrorBoundary");
 }
 
 function handleReset() {
-	useErrorBoundaryStore.getState().clearError()
+	useErrorBoundaryStore.getState().clearError();
 }
 
 export function ErrorBoundary({ children, fallback }: Props) {
@@ -46,7 +46,7 @@ export function ErrorBoundary({ children, fallback }: Props) {
 			>
 				{children}
 			</ReactErrorBoundary>
-		)
+		);
 	}
 
 	return (
@@ -57,19 +57,19 @@ export function ErrorBoundary({ children, fallback }: Props) {
 		>
 			{children}
 		</ReactErrorBoundary>
-	)
+	);
 }
 
 function DefaultErrorFallback({ error, resetErrorBoundary }: FallbackProps) {
-	const router = useRouter()
-	const errorState = useErrorBoundaryStore(state => state.errorState)
+	const router = useRouter();
+	const errorState = useErrorBoundaryStore((state) => state.errorState);
 
 	const handleRetry = () => {
-		resetErrorBoundary()
-		router.refresh()
-	}
+		resetErrorBoundary();
+		router.refresh();
+	};
 
-	const message = error instanceof Error ? error.message : undefined
+	const message = error instanceof Error ? error.message : undefined;
 
 	return (
 		<div className="min-h-screen flex-center p-4">
@@ -99,5 +99,5 @@ function DefaultErrorFallback({ error, resetErrorBoundary }: FallbackProps) {
 				</div>
 			</CardLayout>
 		</div>
-	)
+	);
 }

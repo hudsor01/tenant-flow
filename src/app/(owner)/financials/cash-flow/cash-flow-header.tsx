@@ -1,25 +1,25 @@
-import { Download } from 'lucide-react'
+import { Download } from "lucide-react";
+import { BlurFade } from "#components/ui/blur-fade";
 import {
 	Select,
 	SelectContent,
 	SelectItem,
 	SelectTrigger,
-	SelectValue
-} from '#components/ui/select'
-import { BlurFade } from '#components/ui/blur-fade'
+	SelectValue,
+} from "#components/ui/select";
 
 interface CashFlowHeaderProps {
-	period: string
-	year: string
-	onPeriodChange: (value: string) => void
-	onYearChange: (value: string) => void
+	period: string;
+	year: string;
+	onPeriodChange: (value: string) => void;
+	onYearChange: (value: string) => void;
 }
 
 export function CashFlowHeader({
 	period,
 	year,
 	onPeriodChange,
-	onYearChange
+	onYearChange,
 }: CashFlowHeaderProps) {
 	return (
 		<BlurFade delay={0.1} inView>
@@ -58,5 +58,5 @@ export function CashFlowHeader({
 				</div>
 			</div>
 		</BlurFade>
-	)
+	);
 }

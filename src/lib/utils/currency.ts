@@ -3,21 +3,21 @@
  * Consolidates multiple formatPrice implementations into a single shared utility
  */
 
-export type BillingInterval = 'monthly' | 'annual' | 'month' | 'year'
-export type CurrencyCode = 'USD' | 'EUR' | 'GBP' | 'CAD' | 'AUD'
+export type BillingInterval = "monthly" | "annual" | "month" | "year";
+export type CurrencyCode = "USD" | "EUR" | "GBP" | "CAD" | "AUD";
 
 export interface CurrencyFormatOptions {
-	locale?: string
-	currency?: CurrencyCode
-	minimumFractionDigits?: number
-	maximumFractionDigits?: number
-	compact?: boolean
+	locale?: string;
+	currency?: CurrencyCode;
+	minimumFractionDigits?: number;
+	maximumFractionDigits?: number;
+	compact?: boolean;
 }
 
 export interface PriceFormatOptions extends CurrencyFormatOptions {
-	interval?: BillingInterval
-	showInterval?: boolean
-	fromCents?: boolean
+	interval?: BillingInterval;
+	showInterval?: boolean;
+	fromCents?: boolean;
 }
 
 /**
@@ -25,27 +25,27 @@ export interface PriceFormatOptions extends CurrencyFormatOptions {
  */
 export const formatCurrency = (
 	amount: number,
-	options: CurrencyFormatOptions = {}
+	options: CurrencyFormatOptions = {},
 ): string => {
 	const {
-		locale = 'en-US',
-		currency = 'USD',
+		locale = "en-US",
+		currency = "USD",
 		minimumFractionDigits = 2,
 		maximumFractionDigits = 2,
-		compact = false
-	} = options
+		compact = false,
+	} = options;
 
 	const formatter = new Intl.NumberFormat(locale, {
-		style: 'currency',
+		style: "currency",
 		currency,
 		minimumFractionDigits,
 		maximumFractionDigits,
-		notation: compact ? 'compact' : 'standard',
-		compactDisplay: 'short'
-	})
+		notation: compact ? "compact" : "standard",
+		compactDisplay: "short",
+	});
 
-	return formatter.format(amount)
-}
+	return formatter.format(amount);
+};
 
 /**
  * Format a cents value as currency (divides by 100 first)
@@ -53,8 +53,8 @@ export const formatCurrency = (
  */
 export const formatCents = (
 	cents: number,
-	options?: CurrencyFormatOptions
-): string => formatCurrency(cents / 100, options)
+	options?: CurrencyFormatOptions,
+): string => formatCurrency(cents / 100, options);
 
 /**
  * Format price with special handling for Free/Custom and intervals
@@ -62,85 +62,85 @@ export const formatCents = (
  */
 export const formatPrice = (
 	amount: number,
-	options: PriceFormatOptions = {}
+	options: PriceFormatOptions = {},
 ): string => {
 	const {
 		interval,
 		showInterval = true,
 		fromCents = false,
-		currency = 'USD',
+		currency = "USD",
 		minimumFractionDigits,
 		maximumFractionDigits,
 		...formatOptions
-	} = options
+	} = options;
 
 	// Handle special values
 	if (amount === 0) {
-		return 'Free'
+		return "Free";
 	}
 	if (amount === -1) {
-		return 'Custom'
+		return "Custom";
 	}
 
 	// Convert from cents if needed
-	const dollarAmount = fromCents ? amount / 100 : amount
+	const dollarAmount = fromCents ? amount / 100 : amount;
 
 	// Determine fraction digits based on amount if not specified
 	const shouldShowDecimals = fromCents
 		? amount % 100 !== 0
-		: dollarAmount % 1 !== 0
+		: dollarAmount % 1 !== 0;
 	const finalMinFractionDigits =
-		minimumFractionDigits ?? (shouldShowDecimals ? 2 : 0)
+		minimumFractionDigits ?? (shouldShowDecimals ? 2 : 0);
 	const finalMaxFractionDigits =
-		maximumFractionDigits ?? (shouldShowDecimals ? 2 : 0)
+		maximumFractionDigits ?? (shouldShowDecimals ? 2 : 0);
 
 	// Format the currency
 	const formatted = formatCurrency(dollarAmount, {
 		currency,
 		minimumFractionDigits: finalMinFractionDigits,
 		maximumFractionDigits: finalMaxFractionDigits,
-		...formatOptions
-	})
+		...formatOptions,
+	});
 
 	// Add interval suffix if requested
 	if (showInterval && interval) {
-		const suffix = getIntervalSuffix(interval)
-		return `${formatted}${suffix}`
+		const suffix = getIntervalSuffix(interval);
+		return `${formatted}${suffix}`;
 	}
 
-	return formatted
-}
+	return formatted;
+};
 
 /**
  * Get interval suffix for pricing display
  */
 export const getIntervalSuffix = (interval: BillingInterval): string => {
 	switch (interval) {
-		case 'monthly':
-		case 'month':
-			return '/mo'
-		case 'annual':
-		case 'year':
-			return '/yr'
+		case "monthly":
+		case "month":
+			return "/mo";
+		case "annual":
+		case "year":
+			return "/yr";
 		default:
-			return ''
+			return "";
 	}
-}
+};
 
 /**
  * Format large numbers with K, M, B suffixes
  */
 export const formatCompactCurrency = (
 	amount: number,
-	currency: CurrencyCode = 'USD'
+	currency: CurrencyCode = "USD",
 ): string => {
 	return formatCurrency(amount, {
 		compact: true,
 		minimumFractionDigits: 0,
 		maximumFractionDigits: 1,
-		currency
-	})
-}
+		currency,
+	});
+};
 
 /**
  * Format percentage with consistent styling
@@ -148,20 +148,20 @@ export const formatCompactCurrency = (
 export const formatPercentage = (
 	value: number,
 	options: {
-		minimumFractionDigits?: number
-		maximumFractionDigits?: number
-	} = {}
+		minimumFractionDigits?: number;
+		maximumFractionDigits?: number;
+	} = {},
 ): string => {
-	const { minimumFractionDigits = 0, maximumFractionDigits = 1 } = options
+	const { minimumFractionDigits = 0, maximumFractionDigits = 1 } = options;
 
-	const formatter = new Intl.NumberFormat('en-US', {
-		style: 'percent',
+	const formatter = new Intl.NumberFormat("en-US", {
+		style: "percent",
 		minimumFractionDigits,
-		maximumFractionDigits
-	})
+		maximumFractionDigits,
+	});
 
-	return formatter.format(value / 100)
-}
+	return formatter.format(value / 100);
+};
 
 /**
  * Format numbers with thousand separators
@@ -169,26 +169,26 @@ export const formatPercentage = (
 export const formatNumber = (
 	value: number,
 	options: {
-		minimumFractionDigits?: number
-		maximumFractionDigits?: number
-		compact?: boolean
-	} = {}
+		minimumFractionDigits?: number;
+		maximumFractionDigits?: number;
+		compact?: boolean;
+	} = {},
 ): string => {
 	const {
 		minimumFractionDigits = 0,
 		maximumFractionDigits = 0,
-		compact = false
-	} = options
+		compact = false,
+	} = options;
 
-	const formatter = new Intl.NumberFormat('en-US', {
+	const formatter = new Intl.NumberFormat("en-US", {
 		minimumFractionDigits,
 		maximumFractionDigits,
-		notation: compact ? 'compact' : 'standard',
-		compactDisplay: 'short'
-	})
+		notation: compact ? "compact" : "standard",
+		compactDisplay: "short",
+	});
 
-	return formatter.format(value)
-}
+	return formatter.format(value);
+};
 
 /**
  * Format currency change with proper +/- indicators
@@ -196,101 +196,101 @@ export const formatNumber = (
 export const formatCurrencyChange = (
 	amount: number,
 	showSign = true,
-	currency: CurrencyCode = 'USD'
+	currency: CurrencyCode = "USD",
 ): string => {
-	const formatted = formatCurrency(Math.abs(amount), { currency })
+	const formatted = formatCurrency(Math.abs(amount), { currency });
 	if (!showSign) {
-		return formatted
+		return formatted;
 	}
 
-	return amount >= 0 ? `+${formatted}` : `-${formatted}`
-}
+	return amount >= 0 ? `+${formatted}` : `-${formatted}`;
+};
 
 /**
  * Format percentage change with proper +/- indicators
  */
 export const formatPercentageChange = (
 	value: number,
-	showSign = true
+	showSign = true,
 ): string => {
-	const formatted = formatPercentage(Math.abs(value))
+	const formatted = formatPercentage(Math.abs(value));
 	if (!showSign) {
-		return formatted
+		return formatted;
 	}
 
-	return value >= 0 ? `+${formatted}` : `-${formatted}`
-}
+	return value >= 0 ? `+${formatted}` : `-${formatted}`;
+};
 
 /**
  * Get currency display for dashboard cards
  */
 export const getDashboardCurrency = (
 	amount: number,
-	currency: CurrencyCode = 'USD'
+	currency: CurrencyCode = "USD",
 ): {
-	value: string
-	compact: string
-	raw: number
+	value: string;
+	compact: string;
+	raw: number;
 } => {
 	return {
 		value: formatCurrency(amount, { currency }),
 		compact: formatCompactCurrency(amount, currency),
-		raw: amount
-	}
-}
+		raw: amount,
+	};
+};
 
 /**
  * Get percentage display with color coding
  */
 export const getDashboardPercentage = (
-	value: number
+	value: number,
 ): {
-	value: string
-	color: string
-	trend: 'positive' | 'negative' | 'neutral'
+	value: string;
+	color: string;
+	trend: "positive" | "negative" | "neutral";
 } => {
-	let trend: 'positive' | 'negative' | 'neutral'
+	let trend: "positive" | "negative" | "neutral";
 	if (value > 0) {
-		trend = 'positive'
+		trend = "positive";
 	} else if (value < 0) {
-		trend = 'negative'
+		trend = "negative";
 	} else {
-		trend = 'neutral'
+		trend = "neutral";
 	}
 
-	let color: string
-	if (trend === 'positive') {
-		color = 'text-success'
-	} else if (trend === 'negative') {
-		color = 'text-destructive'
+	let color: string;
+	if (trend === "positive") {
+		color = "text-success";
+	} else if (trend === "negative") {
+		color = "text-destructive";
 	} else {
-		color = 'text-muted-foreground'
+		color = "text-muted-foreground";
 	}
 
 	return {
 		value: formatPercentage(value),
 		color,
-		trend
-	}
-}
+		trend,
+	};
+};
 
 /**
  * Collection rate status helper
  */
 export const getCollectionRateStatus = (
-	rate: number
+	rate: number,
 ): {
-	status: string
-	color: string
-	icon: string
+	status: string;
+	color: string;
+	icon: string;
 } => {
 	if (rate >= 95) {
-		return { status: 'Excellent', color: 'text-success', icon: 'TARGET:' }
+		return { status: "Excellent", color: "text-success", icon: "TARGET:" };
 	} else if (rate >= 85) {
-		return { status: 'Good', color: 'text-info', icon: '[OK]' }
+		return { status: "Good", color: "text-info", icon: "[OK]" };
 	} else if (rate >= 70) {
-		return { status: 'Fair', color: 'text-warning', icon: 'WARNING:' }
+		return { status: "Fair", color: "text-warning", icon: "WARNING:" };
 	} else {
-		return { status: 'Poor', color: 'text-destructive', icon: '[DOWN]' }
+		return { status: "Poor", color: "text-destructive", icon: "[DOWN]" };
 	}
-}
+};

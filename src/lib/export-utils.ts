@@ -6,8 +6,8 @@
  */
 
 export interface CsvColumnMapping<T> {
-	header: string
-	accessor: (row: T) => string | number | null | undefined
+	header: string;
+	accessor: (row: T) => string | number | null | undefined;
 }
 
 /**
@@ -17,24 +17,24 @@ export interface CsvColumnMapping<T> {
  */
 function escapeCsvValue(value: string | number | null | undefined): string {
 	if (value === null || value === undefined) {
-		return ''
+		return "";
 	}
 
-	const stringValue = String(value)
+	const stringValue = String(value);
 
 	// Check if escaping is needed
 	if (
-		stringValue.includes(',') ||
+		stringValue.includes(",") ||
 		stringValue.includes('"') ||
-		stringValue.includes('\n') ||
-		stringValue.includes('\r')
+		stringValue.includes("\n") ||
+		stringValue.includes("\r")
 	) {
 		// Escape quotes by doubling them
-		const escaped = stringValue.replace(/"/g, '""')
-		return `"${escaped}"`
+		const escaped = stringValue.replace(/"/g, '""');
+		return `"${escaped}"`;
 	}
 
-	return stringValue
+	return stringValue;
 }
 
 /**
@@ -42,17 +42,17 @@ function escapeCsvValue(value: string | number | null | undefined): string {
  */
 export function convertToCsv<T>(
 	data: T[],
-	columns: CsvColumnMapping<T>[]
+	columns: CsvColumnMapping<T>[],
 ): string {
 	// Header row
-	const headers = columns.map(col => escapeCsvValue(col.header)).join(',')
+	const headers = columns.map((col) => escapeCsvValue(col.header)).join(",");
 
 	// Data rows
-	const rows = data.map(row =>
-		columns.map(col => escapeCsvValue(col.accessor(row))).join(',')
-	)
+	const rows = data.map((row) =>
+		columns.map((col) => escapeCsvValue(col.accessor(row))).join(","),
+	);
 
-	return [headers, ...rows].join('\n')
+	return [headers, ...rows].join("\n");
 }
 
 /**
@@ -60,30 +60,32 @@ export function convertToCsv<T>(
  */
 export function downloadCsv(csvContent: string, filename: string): void {
 	// Create blob with UTF-8 BOM for Excel compatibility
-	const bom = '\uFEFF'
-	const blob = new Blob([bom + csvContent], { type: 'text/csv;charset=utf-8;' })
+	const bom = "\uFEFF";
+	const blob = new Blob([bom + csvContent], {
+		type: "text/csv;charset=utf-8;",
+	});
 
 	// Create download link
-	const url = URL.createObjectURL(blob)
-	const link = document.createElement('a')
-	link.setAttribute('href', url)
-	link.setAttribute('download', filename)
+	const url = URL.createObjectURL(blob);
+	const link = document.createElement("a");
+	link.setAttribute("href", url);
+	link.setAttribute("download", filename);
 
 	// Trigger download
-	document.body.appendChild(link)
-	link.click()
+	document.body.appendChild(link);
+	link.click();
 
 	// Cleanup
-	document.body.removeChild(link)
-	URL.revokeObjectURL(url)
+	document.body.removeChild(link);
+	URL.revokeObjectURL(url);
 }
 
 /**
  * Generate a filename with current date
  */
 export function generateExportFilename(prefix: string): string {
-	const date = new Date().toISOString().split('T')[0]
-	return `${prefix}-${date}.csv`
+	const date = new Date().toISOString().split("T")[0];
+	return `${prefix}-${date}.csv`;
 }
 
 /**
@@ -92,9 +94,9 @@ export function generateExportFilename(prefix: string): string {
 export function exportToCsv<T>(
 	data: T[],
 	columns: CsvColumnMapping<T>[],
-	filenamePrefix: string
+	filenamePrefix: string,
 ): void {
-	const csvContent = convertToCsv(data, columns)
-	const filename = generateExportFilename(filenamePrefix)
-	downloadCsv(csvContent, filename)
+	const csvContent = convertToCsv(data, columns);
+	const filename = generateExportFilename(filenamePrefix);
+	downloadCsv(csvContent, filename);
 }

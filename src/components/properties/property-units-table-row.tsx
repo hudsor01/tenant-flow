@@ -1,39 +1,45 @@
-'use client'
+"use client";
 
-import { Badge } from '#components/ui/badge'
-import { Button } from '#components/ui/button'
 import {
-	TableCell,
-	TableRow
-} from '#components/ui/table'
+	Bath,
+	Bed,
+	DollarSign,
+	MoreHorizontal,
+	Pencil,
+	Ruler,
+	Trash2,
+} from "lucide-react";
+import { Badge } from "#components/ui/badge";
+import { Button } from "#components/ui/button";
 import {
 	DropdownMenu,
 	DropdownMenuContent,
 	DropdownMenuItem,
 	DropdownMenuSeparator,
-	DropdownMenuTrigger
-} from '#components/ui/dropdown-menu'
-import type { Unit, UnitStatus } from '#types/core'
-import { Bath, Bed, DollarSign, MoreHorizontal, Pencil, Ruler, Trash2 } from 'lucide-react'
-import { cn } from '#lib/utils'
-import { statusConfig, formatUnitCurrency } from './property-units-table-config'
+	DropdownMenuTrigger,
+} from "#components/ui/dropdown-menu";
+import { TableCell, TableRow } from "#components/ui/table";
+import { cn } from "#lib/utils";
+import type { Unit, UnitStatus } from "#types/core";
+import {
+	formatUnitCurrency,
+	statusConfig,
+} from "./property-units-table-config";
 
 interface UnitTableRowProps {
-	unit: Unit
-	onEdit: (unit: Unit) => void
-	onDelete: (unit: Unit) => void
+	unit: Unit;
+	onEdit: (unit: Unit) => void;
+	onDelete: (unit: Unit) => void;
 }
 
 export function UnitTableRow({ unit, onEdit, onDelete }: UnitTableRowProps) {
-	const status = (unit.status as UnitStatus) || 'available'
-	const config = statusConfig[status]
-	const StatusIcon = config.icon
+	const status = (unit.status as UnitStatus) || "available";
+	const config = statusConfig[status];
+	const StatusIcon = config.icon;
 
 	return (
 		<TableRow>
-			<TableCell className="font-medium">
-				{unit.unit_number || '-'}
-			</TableCell>
+			<TableCell className="font-medium">{unit.unit_number || "-"}</TableCell>
 			<TableCell className="hidden sm:table-cell">
 				<div className="flex items-center gap-3">
 					<span className="flex items-center gap-1">
@@ -53,7 +59,7 @@ export function UnitTableRow({ unit, onEdit, onDelete }: UnitTableRowProps) {
 						{unit.square_feet.toLocaleString()}
 					</span>
 				) : (
-					'-'
+					"-"
 				)}
 			</TableCell>
 			<TableCell>
@@ -66,8 +72,8 @@ export function UnitTableRow({ unit, onEdit, onDelete }: UnitTableRowProps) {
 				<Badge
 					variant="outline"
 					className={cn(
-						'flex items-center gap-1.5 w-fit border-0',
-						config.className
+						"flex items-center gap-1.5 w-fit border-0",
+						config.className,
 					)}
 				>
 					<StatusIcon className="size-3" />
@@ -75,7 +81,7 @@ export function UnitTableRow({ unit, onEdit, onDelete }: UnitTableRowProps) {
 				</Badge>
 			</TableCell>
 			<TableCell className="hidden lg:table-cell">
-				{status === 'occupied' ? (
+				{status === "occupied" ? (
 					<span className="text-muted-foreground">Tenant assigned</span>
 				) : (
 					<span className="text-muted-foreground">-</span>
@@ -94,22 +100,19 @@ export function UnitTableRow({ unit, onEdit, onDelete }: UnitTableRowProps) {
 						</Button>
 					</DropdownMenuTrigger>
 					<DropdownMenuContent align="end">
-						<DropdownMenuItem
-							onClick={() => onEdit(unit)}
-							className="gap-2"
-						>
+						<DropdownMenuItem onClick={() => onEdit(unit)} className="gap-2">
 							<Pencil className="size-4" />
 							Edit
 						</DropdownMenuItem>
 						<DropdownMenuSeparator />
 						<DropdownMenuItem
 							onClick={() => onDelete(unit)}
-							disabled={status === 'occupied'}
+							disabled={status === "occupied"}
 							className={cn(
-								'gap-2',
-								status === 'occupied'
-									? 'opacity-50 cursor-not-allowed'
-									: 'text-destructive focus:text-destructive'
+								"gap-2",
+								status === "occupied"
+									? "opacity-50 cursor-not-allowed"
+									: "text-destructive focus:text-destructive",
 							)}
 						>
 							<Trash2 className="size-4" />
@@ -119,5 +122,5 @@ export function UnitTableRow({ unit, onEdit, onDelete }: UnitTableRowProps) {
 				</DropdownMenu>
 			</TableCell>
 		</TableRow>
-	)
+	);
 }

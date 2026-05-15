@@ -1,32 +1,32 @@
-import { Field, FieldError, FieldLabel } from '#components/ui/field'
-import { Input } from '#components/ui/input'
+import { Mail, Phone } from "lucide-react";
+import type { ChangeEvent } from "react";
+import { Field, FieldError, FieldLabel } from "#components/ui/field";
+import { Input } from "#components/ui/input";
 import {
 	InputGroup,
 	InputGroupAddon,
-	InputGroupInput
-} from '#components/ui/input-group'
+	InputGroupInput,
+} from "#components/ui/input-group";
 import {
 	Select,
 	SelectContent,
 	SelectItem,
 	SelectTrigger,
-	SelectValue
-} from '#components/ui/select'
-import { Textarea } from '#components/ui/textarea'
-import { Mail, Phone } from 'lucide-react'
-import type { ChangeEvent } from 'react'
-import type { ContactFormRequest } from '#types/domain'
+	SelectValue,
+} from "#components/ui/select";
+import { Textarea } from "#components/ui/textarea";
+import type { ContactFormRequest } from "#types/domain";
 
 interface ContactFormFieldsProps {
-	formData: ContactFormRequest
-	errors: Record<string, string>
-	onInputChange: (field: keyof ContactFormRequest, value: string) => void
+	formData: ContactFormRequest;
+	errors: Record<string, string>;
+	onInputChange: (field: keyof ContactFormRequest, value: string) => void;
 }
 
 export function ContactFormFields({
 	formData,
 	errors,
-	onInputChange
+	onInputChange,
 }: ContactFormFieldsProps) {
 	return (
 		<>
@@ -44,11 +44,11 @@ export function ContactFormFields({
 							autoComplete="name"
 							value={formData.name}
 							onChange={(e: ChangeEvent<HTMLInputElement>) =>
-								onInputChange('name', e.target.value)
+								onInputChange("name", e.target.value)
 							}
 							placeholder="John Smith"
 							required
-							className={errors.name ? 'border-destructive' : ''}
+							className={errors.name ? "border-destructive" : ""}
 						/>
 					</InputGroup>
 					{errors.name && <FieldError>{errors.name}</FieldError>}
@@ -67,11 +67,11 @@ export function ContactFormFields({
 							autoComplete="email"
 							value={formData.email}
 							onChange={(e: ChangeEvent<HTMLInputElement>) =>
-								onInputChange('email', e.target.value)
+								onInputChange("email", e.target.value)
 							}
 							placeholder="john@propertyco.com"
 							required
-							className={errors.email ? 'border-destructive' : ''}
+							className={errors.email ? "border-destructive" : ""}
 						/>
 					</InputGroup>
 					{errors.email && <FieldError>{errors.email}</FieldError>}
@@ -86,9 +86,9 @@ export function ContactFormFields({
 						name="organization"
 						type="text"
 						autoComplete="organization"
-						value={formData.company || ''}
+						value={formData.company || ""}
 						onChange={(e: ChangeEvent<HTMLInputElement>) =>
-							onInputChange('company', e.target.value)
+							onInputChange("company", e.target.value)
 						}
 						placeholder="Property Management Co"
 					/>
@@ -105,12 +105,12 @@ export function ContactFormFields({
 							name="tel"
 							type="tel"
 							autoComplete="tel"
-							value={formData.phone || ''}
+							value={formData.phone || ""}
 							onChange={(e: ChangeEvent<HTMLInputElement>) =>
-								onInputChange('phone', e.target.value)
+								onInputChange("phone", e.target.value)
 							}
 							placeholder="+1 (555) 123-4567"
-							className={errors.phone ? 'border-destructive' : ''}
+							className={errors.phone ? "border-destructive" : ""}
 						/>
 					</InputGroup>
 					{errors.phone && <FieldError>{errors.phone}</FieldError>}
@@ -118,20 +118,16 @@ export function ContactFormFields({
 			</div>
 
 			<Field>
-				<FieldLabel htmlFor="subject">
-					I&apos;m interested in... *
-				</FieldLabel>
+				<FieldLabel htmlFor="subject">I&apos;m interested in... *</FieldLabel>
 				<Select
 					name="subject"
 					value={formData.subject}
-					onValueChange={(value: string) =>
-						onInputChange('subject', value)
-					}
+					onValueChange={(value: string) => onInputChange("subject", value)}
 					required
 				>
 					<SelectTrigger
 						id="subject"
-						className={errors.subject ? 'border-destructive' : ''}
+						className={errors.subject ? "border-destructive" : ""}
 					>
 						<SelectValue placeholder="What brings you to TenantFlow?" />
 					</SelectTrigger>
@@ -161,9 +157,7 @@ export function ContactFormFields({
 				<Select
 					name="referralSource"
 					value={formData.type}
-					onValueChange={(value: string) =>
-						onInputChange('type', value)
-					}
+					onValueChange={(value: string) => onInputChange("type", value)}
 				>
 					<SelectTrigger id="type">
 						<SelectValue placeholder="Please select" />
@@ -187,15 +181,15 @@ export function ContactFormFields({
 					autoComplete="off"
 					value={formData.message}
 					onChange={(e: ChangeEvent<HTMLTextAreaElement>) =>
-						onInputChange('message', e.target.value)
+						onInputChange("message", e.target.value)
 					}
 					placeholder="Tell us about your property portfolio, current challenges, or any specific questions you have about TenantFlow..."
 					required
 					rows={5}
-					className={`resize-none ${errors.message ? 'border-destructive' : ''}`}
+					className={`resize-none ${errors.message ? "border-destructive" : ""}`}
 				/>
 				{errors.message && <FieldError>{errors.message}</FieldError>}
 			</Field>
 		</>
-	)
+	);
 }

@@ -1,4 +1,4 @@
-import { UnitForm } from '#components/units/unit-form.client'
+import { UnitForm } from "#components/units/unit-form.client";
 
 /**
  * Edit Unit Page (Full-Page)
@@ -8,9 +8,9 @@ import { UnitForm } from '#components/units/unit-form.client'
  * - Fallback when intercepting route fails
  */
 export default async function EditUnitPage({
-	params
-}: PageProps<'/units/[id]/edit'>) {
-	const { id } = await params
+	params,
+}: PageProps<"/units/[id]/edit">) {
+	const { id } = await params;
 
 	return (
 		<div className="mx-auto max-w-3xl space-y-6 p-6">
@@ -20,5 +20,5 @@ export default async function EditUnitPage({
 			</div>
 			<UnitForm mode="edit" id={id} />
 		</div>
-	)
+	);
 }

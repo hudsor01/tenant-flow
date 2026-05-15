@@ -1,51 +1,45 @@
-import type { Metadata } from 'next'
-import { notFound } from 'next/navigation'
-import Link from 'next/link'
+import { ArrowRight, Calendar, Shield, Star, Users } from "lucide-react";
+import type { Metadata } from "next";
+import Link from "next/link";
+import { notFound } from "next/navigation";
+import { RelatedArticles } from "#components/blog/related-articles";
+import { CompareBreadcrumb } from "#components/compare/compare-breadcrumb";
+import { PageLayout } from "#components/layout/page-layout";
+import { LeadCaptureModal } from "#components/marketing/lead-capture-modal";
+import { StickyConversionCta } from "#components/marketing/sticky-conversion-cta";
+import { JsonLdScript } from "#components/seo/json-ld-script";
+import { Button } from "#components/ui/button";
+import { getSiteUrl } from "#lib/generate-metadata";
+import { createBreadcrumbJsonLd } from "#lib/seo/breadcrumbs";
+import { COMPETITORS, VALID_COMPETITORS } from "./compare-data";
 import {
-	ArrowRight,
-	Shield,
-	Star,
-	Calendar,
-	Users,
-} from 'lucide-react'
-import { PageLayout } from '#components/layout/page-layout'
-import { Button } from '#components/ui/button'
-import { RelatedArticles } from '#components/blog/related-articles'
-import { JsonLdScript } from '#components/seo/json-ld-script'
-import { CompareBreadcrumb } from '#components/compare/compare-breadcrumb'
-import { LeadCaptureModal } from '#components/marketing/lead-capture-modal'
-import { StickyConversionCta } from '#components/marketing/sticky-conversion-cta'
-import { createBreadcrumbJsonLd } from '#lib/seo/breadcrumbs'
-import { getSiteUrl } from '#lib/generate-metadata'
-import { COMPETITORS, VALID_COMPETITORS } from './compare-data'
-import {
-	PricingComparison,
-	FeatureTable,
-	WhySwitchSection,
 	BottomCta,
-} from './compare-sections'
+	FeatureTable,
+	PricingComparison,
+	WhySwitchSection,
+} from "./compare-sections";
 
 // ISR — competitor data is static; 1h revalidate keeps cards/copy edits live
 // without a redeploy.
-export const revalidate = 3600
+export const revalidate = 3600;
 
 interface PageProps {
-	params: Promise<{ competitor: string }>
+	params: Promise<{ competitor: string }>;
 }
 
 export function generateStaticParams() {
-	return VALID_COMPETITORS.map(competitor => ({ competitor }))
+	return VALID_COMPETITORS.map((competitor) => ({ competitor }));
 }
 
 export async function generateMetadata({
 	params,
 }: PageProps): Promise<Metadata> {
-	const { competitor: slug } = await params
-	const data = COMPETITORS[slug]
-	if (!data) return {}
+	const { competitor: slug } = await params;
+	const data = COMPETITORS[slug];
+	if (!data) return {};
 
-	const baseUrl = getSiteUrl()
-	const ogImageUrl = `${baseUrl}/api/og/compare/${slug}`
+	const baseUrl = getSiteUrl();
+	const ogImageUrl = `${baseUrl}/api/og/compare/${slug}`;
 
 	return {
 		// `title.absolute` opts out of the parent template, otherwise
@@ -64,26 +58,26 @@ export async function generateMetadata({
 			// a static comparison landing surface — it's not a published
 			// article — so `website` is the honest type. Setting
 			// `siteName` explicitly so it doesn't depend on parent merge.
-			type: 'website',
-			siteName: 'TenantFlow',
+			type: "website",
+			siteName: "TenantFlow",
 			images: [ogImageUrl],
 		},
 		twitter: {
-			card: 'summary_large_image',
-			site: '@tenantflow',
-			creator: '@tenantflow',
+			card: "summary_large_image",
+			site: "@tenantflow",
+			creator: "@tenantflow",
 			title: `TenantFlow vs ${data.name}`,
 			description: data.metaDescription,
 			images: [ogImageUrl],
 		},
-	}
+	};
 }
 
 export default async function ComparePage({ params }: PageProps) {
-	const { competitor: slug } = await params
-	const data = COMPETITORS[slug]
+	const { competitor: slug } = await params;
+	const data = COMPETITORS[slug];
 
-	if (!data) notFound()
+	if (!data) notFound();
 
 	// Single SoftwareApplication schema for THIS page's primary entity
 	// (TenantFlow). The competitor isn't our product — emitting a second
@@ -92,16 +86,17 @@ export default async function ComparePage({ params }: PageProps) {
 	// comparison itself is captured by the BreadcrumbList + the on-page
 	// content. Root layout already emits sitewide Organization +
 	// SoftwareApplication, so don't duplicate that here either.
-	const breadcrumbSchema = createBreadcrumbJsonLd(
-		`/compare/${slug}`,
-		{ [slug]: `TenantFlow vs ${data.name}` }
-	)
+	const breadcrumbSchema = createBreadcrumbJsonLd(`/compare/${slug}`, {
+		[slug]: `TenantFlow vs ${data.name}`,
+	});
 
 	// Find sibling competitors so the related-comparison block has cross-links.
-	const otherCompetitors = VALID_COMPETITORS.filter(c => c !== slug).map(c => ({
-		slug: c,
-		name: COMPETITORS[c]?.name ?? c,
-	}))
+	const otherCompetitors = VALID_COMPETITORS.filter((c) => c !== slug).map(
+		(c) => ({
+			slug: c,
+			name: COMPETITORS[c]?.name ?? c,
+		}),
+	);
 
 	return (
 		<PageLayout>
@@ -150,12 +145,8 @@ export default async function ComparePage({ params }: PageProps) {
 						</div>
 						<div className="text-center p-6 rounded-xl border border-border bg-background">
 							<Star className="size-6 text-primary mx-auto mb-2" />
-							<p className="text-2xl font-bold text-foreground">
-								{data.g2}
-							</p>
-							<p className="text-sm text-muted-foreground">
-								{data.name} G2
-							</p>
+							<p className="text-2xl font-bold text-foreground">{data.g2}</p>
+							<p className="text-sm text-muted-foreground">{data.name} G2</p>
 						</div>
 						<div className="text-center p-6 rounded-xl border border-border bg-background">
 							<Calendar className="size-6 text-primary mx-auto mb-2" />
@@ -200,9 +191,7 @@ export default async function ComparePage({ params }: PageProps) {
 										href={`/compare/${otherSlug}`}
 										className="flex items-center justify-between rounded-lg border border-border bg-background px-4 py-3 hover:border-primary"
 									>
-										<span className="font-medium">
-											TenantFlow vs {name}
-										</span>
+										<span className="font-medium">TenantFlow vs {name}</span>
 										<ArrowRight className="size-4 text-muted-foreground" />
 									</Link>
 								</li>
@@ -212,7 +201,10 @@ export default async function ComparePage({ params }: PageProps) {
 				</section>
 			)}
 
-			<RelatedArticles slugs={[data.blogSlug]} title="Read the Full Comparison" />
+			<RelatedArticles
+				slugs={[data.blogSlug]}
+				title="Read the Full Comparison"
+			/>
 			<BottomCta data={data} />
 			<StickyConversionCta
 				secondaryHref="#comparison"
@@ -220,5 +212,5 @@ export default async function ComparePage({ params }: PageProps) {
 			/>
 			<LeadCaptureModal />
 		</PageLayout>
-	)
+	);
 }

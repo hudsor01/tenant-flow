@@ -1,16 +1,16 @@
-'use client'
+"use client";
 
-import { FileText, Plus } from 'lucide-react'
-import { BlurFade } from '#components/ui/blur-fade'
+import { FileText, Plus } from "lucide-react";
+import { BlurFade } from "#components/ui/blur-fade";
 
 interface LeaseTemplateEmptyStateProps {
-	searchQuery: string
-	onCreateTemplate: () => void
+	searchQuery: string;
+	onCreateTemplate: () => void;
 }
 
 export function LeaseTemplateEmptyState({
 	searchQuery,
-	onCreateTemplate
+	onCreateTemplate,
 }: LeaseTemplateEmptyStateProps) {
 	return (
 		<BlurFade delay={0.3} inView>
@@ -21,8 +21,8 @@ export function LeaseTemplateEmptyState({
 				<h3 className="text-lg font-medium mb-1">No templates found</h3>
 				<p className="text-sm text-muted-foreground mb-4">
 					{searchQuery
-						? 'Try adjusting your search to find more results.'
-						: 'Create your first lease template to get started.'}
+						? "Try adjusting your search to find more results."
+						: "Create your first lease template to get started."}
 				</p>
 				{!searchQuery && (
 					<button
@@ -35,5 +35,5 @@ export function LeaseTemplateEmptyState({
 				)}
 			</div>
 		</BlurFade>
-	)
+	);
 }

@@ -2,15 +2,15 @@
  * Financial Statements and Tax Documents Type Definitions
  */
 
-import type { Database } from './supabase'
+import type { Database } from "./supabase";
 
 /**
  * Generic line item for financial statements (balance sheet, cash flow, income)
  * Used for rendering grouped financial data in UI components
  */
 export interface FinancialLineItem {
-	name: string
-	amount: number
+	name: string;
+	amount: number;
 }
 
 /**
@@ -18,12 +18,12 @@ export interface FinancialLineItem {
  * Used across: income-statement.tsx, income-statement-property-table.tsx, profit-loss.tsx
  */
 export interface PropertyPL {
-	propertyId: string
-	propertyName: string
-	revenue: number
-	expenses: number
-	netIncome: number
-	occupancyRate: number
+	propertyId: string;
+	propertyName: string;
+	revenue: number;
+	expenses: number;
+	netIncome: number;
+	occupancyRate: number;
 }
 
 /**
@@ -31,10 +31,10 @@ export interface PropertyPL {
  * Used across: income-statement.tsx, income-statement-monthly-trend.tsx, profit-loss.tsx
  */
 export interface MonthlyData {
-	month: string
-	revenue: number
-	expenses: number
-	netIncome: number
+	month: string;
+	revenue: number;
+	expenses: number;
+	netIncome: number;
 }
 
 /**
@@ -42,10 +42,10 @@ export interface MonthlyData {
  * Used across: income-statement.tsx, types.ts
  */
 export interface IncomeStatementRevenueBreakdown {
-	rentCollected: number
-	lateFees: number
-	otherIncome: number
-	total: number
+	rentCollected: number;
+	lateFees: number;
+	otherIncome: number;
+	total: number;
 }
 
 /**
@@ -53,11 +53,11 @@ export interface IncomeStatementRevenueBreakdown {
  * Used across: income-statement.tsx, types.ts
  */
 export interface IncomeStatementExpenseBreakdown {
-	maintenance: number
-	platformFees: number
-	processingFees: number
-	otherExpenses: number
-	total: number
+	maintenance: number;
+	platformFees: number;
+	processingFees: number;
+	otherExpenses: number;
+	total: number;
 }
 
 /**
@@ -65,9 +65,9 @@ export interface IncomeStatementExpenseBreakdown {
  * Used across: cash-flow.tsx, types.ts
  */
 export interface CashFlowCategory {
-	category: string
-	amount: number
-	percentage: number
+	category: string;
+	amount: number;
+	percentage: number;
 }
 
 /**
@@ -75,283 +75,283 @@ export interface CashFlowCategory {
  * Used across: cash-flow.tsx, types.ts
  */
 export interface MonthlyCashFlow {
-	month: string
-	inflows: number
-	outflows: number
-	netCashFlow: number
+	month: string;
+	inflows: number;
+	outflows: number;
+	netCashFlow: number;
 }
 
 export interface TaxDocumentsData {
-	period: { start_date: string; end_date: string; label: string }
-	taxYear: number
+	period: { start_date: string; end_date: string; label: string };
+	taxYear: number;
 	totals: {
-		totalIncome: number
-		totalDeductions: number
-		netTaxableIncome: number
-	}
+		totalIncome: number;
+		totalDeductions: number;
+		netTaxableIncome: number;
+	};
 	incomeBreakdown: {
-		grossRentalIncome: number
-		totalExpenses: number
-		netOperatingIncome: number
-		depreciation: number
-		mortgageInterest: number
-		taxableIncome: number
-	}
+		grossRentalIncome: number;
+		totalExpenses: number;
+		netOperatingIncome: number;
+		depreciation: number;
+		mortgageInterest: number;
+		taxableIncome: number;
+	};
 	schedule: {
 		scheduleE: {
-			grossRentalIncome: number
-			totalExpenses: number
-			depreciation: number
-			netIncome: number
-		}
-	}
-	expenseCategories: TaxExpenseCategory[]
-	propertyDepreciation: TaxPropertyDepreciation[]
+			grossRentalIncome: number;
+			totalExpenses: number;
+			depreciation: number;
+			netIncome: number;
+		};
+	};
+	expenseCategories: TaxExpenseCategory[];
+	propertyDepreciation: TaxPropertyDepreciation[];
 }
 
 export interface TaxExpenseCategory {
-	category: string
-	amount: number
-	percentage: number
-	deductible: boolean
-	notes?: string
+	category: string;
+	amount: number;
+	percentage: number;
+	deductible: boolean;
+	notes?: string;
 }
 
 export interface TaxPropertyDepreciation {
-	property_id: string
-	propertyName: string
-	propertyValue: number
-	annualDepreciation: number
-	accumulatedDepreciation: number
-	remainingBasis: number
+	property_id: string;
+	propertyName: string;
+	propertyValue: number;
+	annualDepreciation: number;
+	accumulatedDepreciation: number;
+	remainingBasis: number;
 }
 
 export interface TaxDocumentsQuery {
-	taxYear: number
+	taxYear: number;
 }
 
 export interface TaxDocumentsMutation {
-	taxYear: number
-	data: TaxDocumentsData
+	taxYear: number;
+	data: TaxDocumentsData;
 }
 
 export interface TaxReportGenerationRequest {
-	user_id: string
-	start_date: string
-	end_date: string
+	user_id: string;
+	start_date: string;
+	end_date: string;
 }
 
 export interface TaxReportGenerationResponse {
-	success: boolean
-	message: string
-	reportId?: string
+	success: boolean;
+	message: string;
+	reportId?: string;
 }
 
 export interface BalanceSheetData {
-	period: { start_date: string; end_date: string; label: string }
+	period: { start_date: string; end_date: string; label: string };
 	assets: {
 		currentAssets: {
-			cash: number
-			accountsReceivable: number
-			security_deposits: number
-			total: number
-		}
+			cash: number;
+			accountsReceivable: number;
+			security_deposits: number;
+			total: number;
+		};
 		fixedAssets: {
-			propertyValues: number
-			accumulatedDepreciation: number
-			netPropertyValue: number
-			total: number
-		}
-		totalAssets: number
-	}
+			propertyValues: number;
+			accumulatedDepreciation: number;
+			netPropertyValue: number;
+			total: number;
+		};
+		totalAssets: number;
+	};
 	liabilities: {
 		currentLiabilities: {
-			accountsPayable: number
-			security_depositLiability: number
-			accruedExpenses: number
-			total: number
-		}
+			accountsPayable: number;
+			security_depositLiability: number;
+			accruedExpenses: number;
+			total: number;
+		};
 		longTermLiabilities: {
-			mortgagesPayable: number
-			total: number
-		}
-		totalLiabilities: number
-	}
+			mortgagesPayable: number;
+			total: number;
+		};
+		totalLiabilities: number;
+	};
 	equity: {
-		ownerCapital: number
-		retainedEarnings: number
-		currentPeriodIncome: number
-		totalEquity: number
-	}
-	balanceCheck: boolean
+		ownerCapital: number;
+		retainedEarnings: number;
+		currentPeriodIncome: number;
+		totalEquity: number;
+	};
+	balanceCheck: boolean;
 }
 
 export interface CashFlowData {
-	period: { start_date: string; end_date: string; label: string }
+	period: { start_date: string; end_date: string; label: string };
 	operatingActivities: {
-		rentalPaymentsReceived: number
-		operatingExpensesPaid: number
-		maintenancePaid: number
-		netOperatingCash: number
-	}
+		rentalPaymentsReceived: number;
+		operatingExpensesPaid: number;
+		maintenancePaid: number;
+		netOperatingCash: number;
+	};
 	investingActivities: {
-		propertyAcquisitions: number
-		propertyImprovements: number
-		netInvestingCash: number
-	}
+		propertyAcquisitions: number;
+		propertyImprovements: number;
+		netInvestingCash: number;
+	};
 	financingActivities: {
-		mortgagePayments: number
-		loanProceeds: number
-		ownerContributions: number
-		ownerDistributions: number
-		netFinancingCash: number
-	}
-	netCashFlow: number
-	beginningCash: number
-	endingCash: number
+		mortgagePayments: number;
+		loanProceeds: number;
+		ownerContributions: number;
+		ownerDistributions: number;
+		netFinancingCash: number;
+	};
+	netCashFlow: number;
+	beginningCash: number;
+	endingCash: number;
 }
 
 export interface IncomeStatementData {
-	period: { start_date: string; end_date: string; label: string }
+	period: { start_date: string; end_date: string; label: string };
 	revenue: {
-		rentalIncome: number
-		lateFeesIncome: number
-		otherIncome: number
-		totalRevenue: number
-	}
+		rentalIncome: number;
+		lateFeesIncome: number;
+		otherIncome: number;
+		totalRevenue: number;
+	};
 	expenses: {
-		propertyManagement: number
-		maintenance: number
-		utilities: number
-		insurance: number
-		propertyTax: number
-		mortgage: number
-		other: number
-		totalExpenses: number
-	}
-	grossProfit: number
-	operatingIncome: number
-	netIncome: number
-	profitMargin: number
+		propertyManagement: number;
+		maintenance: number;
+		utilities: number;
+		insurance: number;
+		propertyTax: number;
+		mortgage: number;
+		other: number;
+		totalExpenses: number;
+	};
+	grossProfit: number;
+	operatingIncome: number;
+	netIncome: number;
+	profitMargin: number;
 	previousPeriod?: {
-		netIncome: number
-		change: number
-		changePercent: number
-	}
+		netIncome: number;
+		change: number;
+		changePercent: number;
+	};
 }
 
 export interface FinancialPropertyPerformance {
-	property_id: string
-	property_name: string
-	occupancy_rate: number // percentage (0-100)
-	total_revenue: number
-	total_expenses: number
-	net_income: number
-	timeframe: string
+	property_id: string;
+	property_name: string;
+	occupancy_rate: number; // percentage (0-100)
+	total_revenue: number;
+	total_expenses: number;
+	net_income: number;
+	timeframe: string;
 }
 
 export interface PropertyOccupancyData {
-	property_id: string
-	property_name: string
-	period: string
-	occupancy_rate: number // percentage (0-100)
-	total_units: number
-	occupied_units: number
-	vacant_units: number
+	property_id: string;
+	property_name: string;
+	period: string;
+	occupancy_rate: number; // percentage (0-100)
+	total_units: number;
+	occupied_units: number;
+	vacant_units: number;
 }
 
 export interface PropertyFinancialData {
-	property_id: string
-	property_name: string
-	timeframe: string
-	total_revenue: number
-	total_expenses: number
-	net_income: number
-	profit_margin: number // percentage
+	property_id: string;
+	property_name: string;
+	timeframe: string;
+	total_revenue: number;
+	total_expenses: number;
+	net_income: number;
+	profit_margin: number; // percentage
 }
 
 export interface PropertyMaintenanceData {
-	property_id: string
-	property_name: string
-	timeframe: string
-	total_requests: number
-	completed_requests: number
-	total_cost: number
-	average_cost_per_request: number
+	property_id: string;
+	property_name: string;
+	timeframe: string;
+	total_requests: number;
+	completed_requests: number;
+	total_cost: number;
+	average_cost_per_request: number;
 }
 
 // Database types for analytics processing
 export type AnalyticsMaintenanceRequest =
-	Database['public']['Tables']['maintenance_requests']['Row'] & {
-		expenses?: Database['public']['Tables']['expenses']['Row'][]
-	}
+	Database["public"]["Tables"]["maintenance_requests"]["Row"] & {
+		expenses?: Database["public"]["Tables"]["expenses"]["Row"][];
+	};
 
-export type AnalyticsUnit = Database['public']['Tables']['units']['Row'] & {
-	leases?: AnalyticsLease[]
-	maintenance_requests?: AnalyticsMaintenanceRequest[]
-}
+export type AnalyticsUnit = Database["public"]["Tables"]["units"]["Row"] & {
+	leases?: AnalyticsLease[];
+	maintenance_requests?: AnalyticsMaintenanceRequest[];
+};
 
-export type AnalyticsLease = Database['public']['Tables']['leases']['Row']
+export type AnalyticsLease = Database["public"]["Tables"]["leases"]["Row"];
 
 export type AnalyticsProperty =
-	Database['public']['Tables']['properties']['Row'] & {
-		units?: AnalyticsUnit[]
-	}
+	Database["public"]["Tables"]["properties"]["Row"] & {
+		units?: AnalyticsUnit[];
+	};
 
 // Simplified types for query results (what Supabase actually returns)
 export interface QueryLease {
-	id: string
-	lease_status: string
-	start_date: string
-	end_date: string
+	id: string;
+	lease_status: string;
+	start_date: string;
+	end_date: string;
 }
 
 export interface QueryUnit {
-	id: string
-	status: string
-	leases?: QueryLease[]
+	id: string;
+	status: string;
+	leases?: QueryLease[];
 }
 
 export interface QueryProperty {
-	id: string
-	name: string
-	units?: QueryUnit[]
+	id: string;
+	name: string;
+	units?: QueryUnit[];
 }
 
 // Detailed query types for performance/financial analytics
 // (extends-only marker interface — preserves typing parity with QueryLease while
 // leaving room for future detail-only fields without touching callers.)
-export type DetailedQueryLease = QueryLease
+export type DetailedQueryLease = QueryLease;
 
 export interface DetailedQueryUnit extends QueryUnit {
-	leases?: DetailedQueryLease[]
-	maintenance_requests?: DetailedQueryMaintenanceRequest[]
+	leases?: DetailedQueryLease[];
+	maintenance_requests?: DetailedQueryMaintenanceRequest[];
 }
 
 export interface DetailedQueryMaintenanceRequest {
-	id: string
-	status: string
-	created_at: string | null
-	estimated_cost: number | null
-	actual_cost: number | null
-	completed_at: string | null
+	id: string;
+	status: string;
+	created_at: string | null;
+	estimated_cost: number | null;
+	actual_cost: number | null;
+	completed_at: string | null;
 	expenses?: {
-		amount: number
-		expense_date: string
-	}[]
+		amount: number;
+		expense_date: string;
+	}[];
 }
 
 export interface DetailedQueryProperty extends QueryProperty {
-	units?: DetailedQueryUnit[]
+	units?: DetailedQueryUnit[];
 }
 
 export interface MaintenanceQueryUnit {
-	id: string
-	maintenance_requests?: DetailedQueryMaintenanceRequest[]
+	id: string;
+	maintenance_requests?: DetailedQueryMaintenanceRequest[];
 }
 
 export interface MaintenanceQueryProperty {
-	id: string
-	name: string
-	units?: MaintenanceQueryUnit[]
+	id: string;
+	name: string;
+	units?: MaintenanceQueryUnit[];
 }

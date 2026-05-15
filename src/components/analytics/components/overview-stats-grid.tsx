@@ -1,20 +1,20 @@
-import { Building2, DollarSign, Users, Wrench } from 'lucide-react'
-import { BlurFade } from '#components/ui/blur-fade'
-import { NumberTicker } from '#components/ui/number-ticker'
-import { BorderBeam } from '#components/ui/border-beam'
+import { Building2, DollarSign, Users, Wrench } from "lucide-react";
+import { AnimatedTrendIndicator } from "#components/ui/animated-trend-indicator";
+import { BlurFade } from "#components/ui/blur-fade";
+import { BorderBeam } from "#components/ui/border-beam";
+import { NumberTicker } from "#components/ui/number-ticker";
 import {
 	Stat,
-	StatLabel,
-	StatValue,
+	StatDescription,
 	StatIndicator,
+	StatLabel,
 	StatTrend,
-	StatDescription
-} from '#components/ui/stat'
-import { AnimatedTrendIndicator } from '#components/ui/animated-trend-indicator'
-import type { AnalyticsOverview } from '../analytics-types'
+	StatValue,
+} from "#components/ui/stat";
+import type { AnalyticsOverview } from "../analytics-types";
 
 interface OverviewStatsGridProps {
-	overview: AnalyticsOverview
+	overview: AnalyticsOverview;
 }
 
 export function OverviewStatsGrid({ overview }: OverviewStatsGridProps) {
@@ -40,7 +40,7 @@ export function OverviewStatsGrid({ overview }: OverviewStatsGridProps) {
 					<StatIndicator variant="icon" color="primary">
 						<Building2 />
 					</StatIndicator>
-					<StatTrend trend={overview.occupancyChange >= 0 ? 'up' : 'down'}>
+					<StatTrend trend={overview.occupancyChange >= 0 ? "up" : "down"}>
 						<AnimatedTrendIndicator
 							value={overview.occupancyChange}
 							size="sm"
@@ -130,5 +130,5 @@ export function OverviewStatsGrid({ overview }: OverviewStatsGridProps) {
 				</Stat>
 			</BlurFade>
 		</div>
-	)
+	);
 }

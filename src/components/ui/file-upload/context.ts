@@ -1,31 +1,35 @@
-'use client'
+"use client";
 
-import { createContext, useContext } from 'react'
-import type { FileUploadContextValue, FileUploadItemContextValue } from './types'
-import { ROOT_NAME, ITEM_NAME } from './types'
+import { createContext, useContext } from "react";
+import type {
+	FileUploadContextValue,
+	FileUploadItemContextValue,
+} from "./types";
+import { ITEM_NAME, ROOT_NAME } from "./types";
 
-export const FileUploadContext =
-	createContext<FileUploadContextValue | null>(null)
+export const FileUploadContext = createContext<FileUploadContextValue | null>(
+	null,
+);
 
 export function useFileUploadContext(
-	consumerName: string
+	consumerName: string,
 ): FileUploadContextValue {
-	const context = useContext(FileUploadContext)
+	const context = useContext(FileUploadContext);
 	if (!context) {
-		throw new Error(`\`${consumerName}\` must be used within \`${ROOT_NAME}\``)
+		throw new Error(`\`${consumerName}\` must be used within \`${ROOT_NAME}\``);
 	}
-	return context
+	return context;
 }
 
 export const FileUploadItemContext =
-	createContext<FileUploadItemContextValue | null>(null)
+	createContext<FileUploadItemContextValue | null>(null);
 
 export function useFileUploadItemContext(
-	consumerName: string
+	consumerName: string,
 ): FileUploadItemContextValue {
-	const context = useContext(FileUploadItemContext)
+	const context = useContext(FileUploadItemContext);
 	if (!context) {
-		throw new Error(`\`${consumerName}\` must be used within \`${ITEM_NAME}\``)
+		throw new Error(`\`${consumerName}\` must be used within \`${ITEM_NAME}\``);
 	}
-	return context
+	return context;
 }

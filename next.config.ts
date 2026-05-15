@@ -1,6 +1,6 @@
 // Build trigger: Added NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY to Vercel (2025-01-16)
-import { withSentryConfig } from '@sentry/nextjs'
-import type { NextConfig } from 'next'
+import { withSentryConfig } from "@sentry/nextjs";
+import type { NextConfig } from "next";
 
 /**
  * Build-time environment validation
@@ -9,33 +9,37 @@ import type { NextConfig } from 'next'
  *
  * @see https://env.t3.gg/docs/nextjs#validate-schema-on-build
  */
-import './src/env'
+import "./src/env";
 
 const nextConfig: NextConfig = {
 	output: "standalone",
 	reactCompiler: true,
 
 	experimental: {
-		optimizePackageImports: ['@tanstack/react-query', '@tanstack/react-form', '@tanstack/react-virtual'],
+		optimizePackageImports: [
+			"@tanstack/react-query",
+			"@tanstack/react-form",
+			"@tanstack/react-virtual",
+		],
 	},
 
-// External images
+	// External images
 	images: {
 		// Cache optimized images for 7 days before re-fetching from origin
 		minimumCacheTTL: 60 * 60 * 24 * 7,
 		remotePatterns: [
-			{ protocol: 'https', hostname: '*.supabase.co' },
-			{ protocol: 'https', hostname: 'images.unsplash.com' },
-			{ protocol: 'https', hostname: 'api.dicebear.com' },
-			{ protocol: 'https', hostname: '*.googleusercontent.com' },
+			{ protocol: "https", hostname: "*.supabase.co" },
+			{ protocol: "https", hostname: "images.unsplash.com" },
+			{ protocol: "https", hostname: "api.dicebear.com" },
+			{ protocol: "https", hostname: "*.googleusercontent.com" },
 			// Local Supabase development (excluded from production builds)
-			...(process.env.NODE_ENV !== 'production'
+			...(process.env.NODE_ENV !== "production"
 				? [
-						{ protocol: 'http' as const, hostname: '127.0.0.1' },
-						{ protocol: 'http' as const, hostname: 'localhost' }
+						{ protocol: "http" as const, hostname: "127.0.0.1" },
+						{ protocol: "http" as const, hostname: "localhost" },
 					]
-				: [])
-		]
+				: []),
+		],
 	},
 
 	async redirects() {
@@ -61,8 +65,8 @@ const nextConfig: NextConfig = {
 				// preserved (always GET in practice). Some older managers
 				// expect 302/303 specifically; in practice all major
 				// browsers and password managers follow 307 for GET.
-				source: '/.well-known/change-password',
-				destination: '/auth/update-password',
+				source: "/.well-known/change-password",
+				destination: "/auth/update-password",
 				permanent: false,
 			},
 			// CRIT-05: /signup redirect loop. /pricing is the canonical entry
@@ -70,8 +74,8 @@ const nextConfig: NextConfig = {
 			// /signup page exists; the redirect IS the fix. Implements
 			// requirement CRIT-05 (eliminate loop).
 			{
-				source: '/signup',
-				destination: '/pricing',
+				source: "/signup",
+				destination: "/pricing",
 				permanent: true,
 			},
 			// CRIT-06: long-form legal URL aliases. External links/emails/
@@ -80,56 +84,56 @@ const nextConfig: NextConfig = {
 			// permanent: true emits 308 — Google + browsers treat as 301 for
 			// SEO + cache.
 			{
-				source: '/terms-of-service',
-				destination: '/terms',
+				source: "/terms-of-service",
+				destination: "/terms",
 				permanent: true,
 			},
 			{
-				source: '/privacy-policy',
-				destination: '/privacy',
+				source: "/privacy-policy",
+				destination: "/privacy",
 				permanent: true,
 			},
 			{
-				source: '/help-center',
-				destination: '/help',
+				source: "/help-center",
+				destination: "/help",
 				permanent: true,
 			},
 			{
-				source: '/rss-feed',
-				destination: '/feed.xml',
+				source: "/rss-feed",
+				destination: "/feed.xml",
 				permanent: true,
 			},
-		]
+		];
 	},
-
-}
+};
 
 // Enable source maps in production, but not preview deployments
 // Works on Vercel (VERCEL_ENV) and other platforms (NODE_ENV + explicit flag)
 const isProduction =
-	process.env.VERCEL_ENV === 'production' ||
-	(process.env.NODE_ENV === 'production' && process.env.VERCEL_ENV === undefined)
+	process.env.VERCEL_ENV === "production" ||
+	(process.env.NODE_ENV === "production" &&
+		process.env.VERCEL_ENV === undefined);
 
 export default withSentryConfig(nextConfig, {
-	org: process.env.SENTRY_ORG ?? '',
-	project: process.env.SENTRY_PROJECT ?? '',
+	org: process.env.SENTRY_ORG ?? "",
+	project: process.env.SENTRY_PROJECT ?? "",
 	silent: true,
 	sourcemaps: {
 		// Only upload on production deploys, skip previews
 		disable: !isProduction,
 		deleteSourcemapsAfterUpload: true,
 		// Include all app chunks: app routes, shared chunks (main, framework, webpack)
-		assets: ['.next/static/chunks/app/**', '.next/static/chunks/*.js']
+		assets: [".next/static/chunks/app/**", ".next/static/chunks/*.js"],
 	},
-	tunnelRoute: '/monitoring',
+	tunnelRoute: "/monitoring",
 	bundleSizeOptimizations: {
-		excludeDebugStatements: true
+		excludeDebugStatements: true,
 	},
 	// Release tracking
 	release: {
 		setCommits: {
 			auto: true,
-			ignoreMissing: true
-		}
-	}
-})
+			ignoreMissing: true,
+		},
+	},
+});

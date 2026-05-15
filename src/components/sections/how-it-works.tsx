@@ -1,62 +1,66 @@
-import { cn } from '#lib/utils'
-import { BlurFade } from '#components/ui/blur-fade'
-import { Button } from '#components/ui/button'
 import {
+	ArrowRight,
 	Building,
+	Check,
+	ChevronRight,
 	Users,
 	Zap,
-	ArrowRight,
-	Check,
-	ChevronRight
-} from 'lucide-react'
-import Link from 'next/link'
+} from "lucide-react";
+import Link from "next/link";
+import { BlurFade } from "#components/ui/blur-fade";
+import { Button } from "#components/ui/button";
+import { cn } from "#lib/utils";
 
 interface HowItWorksProps {
-	className?: string
+	className?: string;
 }
 
 const steps = [
 	{
-		number: '01',
-		title: 'Add Your Properties',
+		number: "01",
+		title: "Add Your Properties",
 		description:
-			'Import your portfolio via CSV. Add property details and units. The same import covers tenant and lease records too.',
+			"Import your portfolio via CSV. Add property details and units. The same import covers tenant and lease records too.",
 		icon: Building,
 		features: [
-			'Bulk CSV import',
-			'Unit-level management',
-			'Owner-by-owner RLS isolation'
+			"Bulk CSV import",
+			"Unit-level management",
+			"Owner-by-owner RLS isolation",
 		],
-		color: 'primary'
+		color: "primary",
 	},
 	{
-		number: '02',
-		title: 'Add Tenants and Leases',
+		number: "02",
+		title: "Add Tenants and Leases",
 		description:
-			'Record tenant details and generate leases. Send for e-signature on Growth and Max plans.',
+			"Record tenant details and generate leases. Send for e-signature on Growth and Max plans.",
 		icon: Users,
-		features: ['Lease e-signing', 'Tenant records (no logins)', 'Lease tracking'],
-		color: 'info'
+		features: [
+			"Lease e-signing",
+			"Tenant records (no logins)",
+			"Lease tracking",
+		],
+		color: "info",
 	},
 	{
-		number: '03',
-		title: 'Organize Every Document',
+		number: "03",
+		title: "Organize Every Document",
 		description:
-			'Upload leases, receipts, and inspection reports to the document vault. Search across your whole portfolio, filter by category and date, bulk-download for tax season.',
+			"Upload leases, receipts, and inspection reports to the document vault. Search across your whole portfolio, filter by category and date, bulk-download for tax season.",
 		icon: Zap,
 		features: [
-			'Per-entity document vault',
-			'Global text search and filters',
-			'Tax-season zip exports'
+			"Per-entity document vault",
+			"Global text search and filters",
+			"Tax-season zip exports",
 		],
-		color: 'success'
-	}
-]
+		color: "success",
+	},
+];
 
 export function HowItWorks({ className }: HowItWorksProps) {
 	return (
 		<section
-			className={cn('section-spacing relative overflow-hidden', className)}
+			className={cn("section-spacing relative overflow-hidden", className)}
 		>
 			{/* Subtle background pattern */}
 			<div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,color-mix(in_oklch,var(--color-primary)_3%,transparent),transparent_70%)]" />
@@ -72,8 +76,8 @@ export function HowItWorks({ className }: HowItWorksProps) {
 						</h2>
 						<p className="text-muted-foreground text-lg max-w-2xl mx-auto">
 							From signup to organized records in three steps: import your
-							portfolio, add tenants and leases, and upload your documents
-							to the vault.
+							portfolio, add tenants and leases, and upload your documents to
+							the vault.
 						</p>
 					</div>
 				</BlurFade>
@@ -112,37 +116,37 @@ export function HowItWorks({ className }: HowItWorksProps) {
 				</BlurFade>
 			</div>
 		</section>
-	)
+	);
 }
 
 interface StepCardProps {
-	step: (typeof steps)[number]
-	index: number
+	step: (typeof steps)[number];
+	index: number;
 }
 
 function StepCard({ step, index }: StepCardProps) {
 	const colorClasses = {
 		primary: {
-			bg: 'bg-primary/10',
-			text: 'text-primary',
-			border: 'border-primary/20',
-			ring: 'ring-primary/20'
+			bg: "bg-primary/10",
+			text: "text-primary",
+			border: "border-primary/20",
+			ring: "ring-primary/20",
 		},
 		info: {
-			bg: 'bg-info/10',
-			text: 'text-info',
-			border: 'border-info/20',
-			ring: 'ring-info/20'
+			bg: "bg-info/10",
+			text: "text-info",
+			border: "border-info/20",
+			ring: "ring-info/20",
 		},
 		success: {
-			bg: 'bg-success/10',
-			text: 'text-success',
-			border: 'border-success/20',
-			ring: 'ring-success/20'
-		}
-	}
+			bg: "bg-success/10",
+			text: "text-success",
+			border: "border-success/20",
+			ring: "ring-success/20",
+		},
+	};
 
-	const colors = colorClasses[step.color as keyof typeof colorClasses]
+	const colors = colorClasses[step.color as keyof typeof colorClasses];
 
 	return (
 		<div className="relative group">
@@ -152,17 +156,17 @@ function StepCard({ step, index }: StepCardProps) {
 				<div className="flex items-start justify-between mb-6">
 					<div
 						className={cn(
-							'size-16 rounded-2xl flex-center shadow-lg group-hover:scale-105 transition-transform duration-300',
+							"size-16 rounded-2xl flex-center shadow-lg group-hover:scale-105 transition-transform duration-300",
 							colors.bg,
-							colors.text
+							colors.text,
 						)}
 					>
 						<step.icon className="size-8" />
 					</div>
 					<span
 						className={cn(
-							'typography-h1 opacity-20 group-hover:opacity-40 transition-opacity',
-							colors.text
+							"typography-h1 opacity-20 group-hover:opacity-40 transition-opacity",
+							colors.text,
 						)}
 					>
 						{step.number}
@@ -177,10 +181,10 @@ function StepCard({ step, index }: StepCardProps) {
 
 				{/* Features */}
 				<ul className="space-y-2">
-					{step.features.map(feature => (
+					{step.features.map((feature) => (
 						<li key={feature} className="flex items-center gap-2 text-sm">
-							<div className={cn('size-5 rounded-full flex-center', colors.bg)}>
-								<Check className={cn('size-3', colors.text)} />
+							<div className={cn("size-5 rounded-full flex-center", colors.bg)}>
+								<Check className={cn("size-3", colors.text)} />
 							</div>
 							<span className="text-foreground">{feature}</span>
 						</li>
@@ -195,7 +199,7 @@ function StepCard({ step, index }: StepCardProps) {
 				)}
 			</div>
 		</div>
-	)
+	);
 }
 
-export default HowItWorks
+export default HowItWorks;

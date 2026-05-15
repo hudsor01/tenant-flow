@@ -1,4 +1,4 @@
-'use client'
+"use client";
 
 /**
  * Lease Creation Wizard - Step 2: Terms
@@ -7,97 +7,100 @@
  * Note: Validation is handled by Zod schemas in #lib/validation/lease-wizard.schemas.ts
  * This component only handles display/input - uses type="text" with inputMode for mobile keyboards
  */
-import { Button } from '#components/ui/button'
+import { Button } from "#components/ui/button";
 import {
 	Field,
-	FieldLabel,
 	FieldDescription,
-	FieldGroup
-} from '#components/ui/field'
-import { Input } from '#components/ui/input'
-import { cn } from '#lib/utils'
-import type { TermsStepData } from '#lib/validation/lease-wizard.schemas'
+	FieldGroup,
+	FieldLabel,
+} from "#components/ui/field";
+import { Input } from "#components/ui/input";
+import { cn } from "#lib/utils";
+import type { TermsStepData } from "#lib/validation/lease-wizard.schemas";
 
 /** Duration preset in months. null = custom (no preset). */
-export type DurationPreset = 1 | 6 | 12 | 24 | null
+export type DurationPreset = 1 | 6 | 12 | 24 | null;
 
-const DURATION_PRESETS: { label: string; months: Exclude<DurationPreset, null> }[] = [
-	{ label: 'Month-to-month', months: 1 },
-	{ label: '6 months', months: 6 },
-	{ label: '12 months', months: 12 },
-	{ label: '24 months', months: 24 }
-]
+const DURATION_PRESETS: {
+	label: string;
+	months: Exclude<DurationPreset, null>;
+}[] = [
+	{ label: "Month-to-month", months: 1 },
+	{ label: "6 months", months: 6 },
+	{ label: "12 months", months: 12 },
+	{ label: "24 months", months: 24 },
+];
 
 /**
  * Calculate lease end date from start date + N months.
  * Advances by N months, then subtracts 1 day (e.g. Jan 1 + 12 months = Dec 31).
  */
 export function calculateEndDate(startDate: string, months: number): string {
-	const date = new Date(startDate)
-	date.setMonth(date.getMonth() + months)
-	date.setDate(date.getDate() - 1)
-	return date.toISOString().slice(0, 10)
+	const date = new Date(startDate);
+	date.setMonth(date.getMonth() + months);
+	date.setDate(date.getDate() - 1);
+	return date.toISOString().slice(0, 10);
 }
 
 interface TermsStepProps {
-	data: Partial<TermsStepData>
-	onChange: (data: Partial<TermsStepData>) => void
-	selectedDuration: DurationPreset
-	onDurationChange: (duration: DurationPreset) => void
+	data: Partial<TermsStepData>;
+	onChange: (data: Partial<TermsStepData>) => void;
+	selectedDuration: DurationPreset;
+	onDurationChange: (duration: DurationPreset) => void;
 }
 
 export function TermsStep({
 	data,
 	onChange,
 	selectedDuration,
-	onDurationChange
+	onDurationChange,
 }: TermsStepProps) {
 	const handleChange = (field: keyof TermsStepData, value: string | number) => {
-		onChange({ ...data, [field]: value })
-	}
+		onChange({ ...data, [field]: value });
+	};
 
 	// Display cents as dollars (simple conversion for input value)
 	const centsToDisplay = (cents: number | undefined): string => {
-		if (cents === undefined || cents === 0) return ''
-		return (cents / 100).toString()
-	}
+		if (cents === undefined || cents === 0) return "";
+		return (cents / 100).toString();
+	};
 
 	// Parse dollars input to cents (strips non-numeric except decimal)
 	const parseCents = (value: string): number => {
-		const cleaned = value.replace(/[^0-9.]/g, '')
-		const num = parseFloat(cleaned)
-		return isNaN(num) ? 0 : Math.round(num * 100)
-	}
+		const cleaned = value.replace(/[^0-9.]/g, "");
+		const num = parseFloat(cleaned);
+		return isNaN(num) ? 0 : Math.round(num * 100);
+	};
 
 	// Parse integer input (strips non-numeric)
 	const parseInteger = (value: string): number => {
-		const cleaned = value.replace(/[^0-9]/g, '')
-		const num = parseInt(cleaned, 10)
-		return isNaN(num) ? 0 : num
-	}
+		const cleaned = value.replace(/[^0-9]/g, "");
+		const num = parseInt(cleaned, 10);
+		return isNaN(num) ? 0 : num;
+	};
 
 	const handlePresetSelect = (months: Exclude<DurationPreset, null>) => {
-		onDurationChange(months)
+		onDurationChange(months);
 		if (data.start_date) {
 			onChange({
 				...data,
-				end_date: calculateEndDate(data.start_date, months)
-			})
+				end_date: calculateEndDate(data.start_date, months),
+			});
 		}
-	}
+	};
 
 	const handleStartDateChange = (startDate: string) => {
-		const updates: Partial<TermsStepData> = { ...data, start_date: startDate }
+		const updates: Partial<TermsStepData> = { ...data, start_date: startDate };
 		if (selectedDuration && startDate) {
-			updates.end_date = calculateEndDate(startDate, selectedDuration)
+			updates.end_date = calculateEndDate(startDate, selectedDuration);
 		}
-		onChange(updates)
-	}
+		onChange(updates);
+	};
 
 	const handleEndDateChange = (endDate: string) => {
-		onDurationChange(null)
-		onChange({ ...data, end_date: endDate })
-	}
+		onDurationChange(null);
+		onChange({ ...data, end_date: endDate });
+	};
 
 	return (
 		<div className="space-y-6">
@@ -112,15 +115,18 @@ export function TermsStep({
 			<FieldGroup>
 				<h4 className="font-medium">Lease Duration</h4>
 				<div className="flex flex-wrap gap-2">
-					{DURATION_PRESETS.map(preset => (
+					{DURATION_PRESETS.map((preset) => (
 						<Button
 							key={preset.months}
 							type="button"
-							variant={selectedDuration === preset.months ? 'default' : 'outline'}
+							variant={
+								selectedDuration === preset.months ? "default" : "outline"
+							}
 							size="sm"
 							className={cn(
-								'transition-colors',
-								selectedDuration === preset.months && 'ring-2 ring-ring ring-offset-1'
+								"transition-colors",
+								selectedDuration === preset.months &&
+									"ring-2 ring-ring ring-offset-1",
 							)}
 							onClick={() => handlePresetSelect(preset.months)}
 						>
@@ -137,7 +143,7 @@ export function TermsStep({
 							id="start_date"
 							type="date"
 							value={data.start_date}
-							onChange={e => handleStartDateChange(e.target.value)}
+							onChange={(e) => handleStartDateChange(e.target.value)}
 						/>
 					</Field>
 					<Field>
@@ -146,12 +152,10 @@ export function TermsStep({
 							id="end_date"
 							type="date"
 							value={data.end_date}
-							onChange={e => handleEndDateChange(e.target.value)}
+							onChange={(e) => handleEndDateChange(e.target.value)}
 						/>
 						{selectedDuration && (
-							<FieldDescription>
-								Auto-calculated from preset
-							</FieldDescription>
+							<FieldDescription>Auto-calculated from preset</FieldDescription>
 						)}
 					</Field>
 				</div>
@@ -169,8 +173,8 @@ export function TermsStep({
 							inputMode="decimal"
 							placeholder="1500.00"
 							value={centsToDisplay(data.rent_amount)}
-							onChange={e =>
-								handleChange('rent_amount', parseCents(e.target.value))
+							onChange={(e) =>
+								handleChange("rent_amount", parseCents(e.target.value))
 							}
 						/>
 					</Field>
@@ -184,8 +188,8 @@ export function TermsStep({
 							inputMode="decimal"
 							placeholder="1500.00"
 							value={centsToDisplay(data.security_deposit)}
-							onChange={e =>
-								handleChange('security_deposit', parseCents(e.target.value))
+							onChange={(e) =>
+								handleChange("security_deposit", parseCents(e.target.value))
 							}
 						/>
 						<FieldDescription>Optional, defaults to $0</FieldDescription>
@@ -201,8 +205,8 @@ export function TermsStep({
 							inputMode="numeric"
 							placeholder="1"
 							value={data.payment_day}
-							onChange={e =>
-								handleChange('payment_day', parseInteger(e.target.value))
+							onChange={(e) =>
+								handleChange("payment_day", parseInteger(e.target.value))
 							}
 						/>
 						<FieldDescription>Day rent is due (1-31)</FieldDescription>
@@ -216,9 +220,9 @@ export function TermsStep({
 							type="text"
 							inputMode="numeric"
 							placeholder="3"
-							value={data.grace_period_days ?? ''}
-							onChange={e =>
-								handleChange('grace_period_days', parseInteger(e.target.value))
+							value={data.grace_period_days ?? ""}
+							onChange={(e) =>
+								handleChange("grace_period_days", parseInteger(e.target.value))
 							}
 						/>
 						<FieldDescription>Days before late fee</FieldDescription>
@@ -231,8 +235,8 @@ export function TermsStep({
 							inputMode="decimal"
 							placeholder="50.00"
 							value={centsToDisplay(data.late_fee_amount)}
-							onChange={e =>
-								handleChange('late_fee_amount', parseCents(e.target.value))
+							onChange={(e) =>
+								handleChange("late_fee_amount", parseCents(e.target.value))
 							}
 						/>
 						<FieldDescription>Optional, defaults to $0</FieldDescription>
@@ -240,5 +244,5 @@ export function TermsStep({
 				</div>
 			</FieldGroup>
 		</div>
-	)
+	);
 }

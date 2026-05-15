@@ -1,195 +1,207 @@
-'use client'
+"use client";
 
-import NumberFlow from '@number-flow/react'
-import { OwnerSubscribeDialog } from '#components/pricing/owner-subscribe-dialog'
-import { Button } from '#components/ui/button'
+import NumberFlow from "@number-flow/react";
+import { useMutation } from "@tanstack/react-query";
+import { ArrowRight, BadgeCheck, Loader2 } from "lucide-react";
+import { useState } from "react";
+import { toast } from "sonner";
+import { OwnerSubscribeDialog } from "#components/pricing/owner-subscribe-dialog";
+import { Button } from "#components/ui/button";
 import {
 	Card,
 	CardContent,
 	CardDescription,
 	CardFooter,
 	CardHeader,
-	CardTitle
-} from '#components/ui/card'
-import { ArrowRight, BadgeCheck, Loader2 } from 'lucide-react'
-import { useState } from 'react'
+	CardTitle,
+} from "#components/ui/card";
+import { getAllPricingPlans } from "#config/pricing";
+import { createLogger } from "#lib/frontend-logger";
+import { checkoutRateLimiter } from "#lib/security";
 import {
 	createCheckoutSession,
-	isUserAuthenticated
-} from '#lib/stripe/stripe-client'
-import { checkoutRateLimiter } from '#lib/security'
-import { useMutation } from '@tanstack/react-query'
-import { toast } from 'sonner'
-import { createLogger } from '#lib/frontend-logger'
-import { getAllPricingPlans } from '#config/pricing'
+	isUserAuthenticated,
+} from "#lib/stripe/stripe-client";
 
-const logger = createLogger({ component: 'KiboStylePricing' })
+const logger = createLogger({ component: "KiboStylePricing" });
 
 interface KiboStylePricingProps {
-	billingCycle?: 'monthly' | 'yearly'
+	billingCycle?: "monthly" | "yearly";
 }
 
 interface PricingPlan {
-	id: string
-	name: string
+	id: string;
+	name: string;
 	price: {
-		monthly: number | string
-		yearly: number | string
-	}
-	description: string
-	features: string[]
-	cta: string
-	popular: boolean
-	stripeMonthlyPriceId?: string
-	stripeAnnualPriceId?: string
+		monthly: number | string;
+		yearly: number | string;
+	};
+	description: string;
+	features: string[];
+	cta: string;
+	popular: boolean;
+	stripeMonthlyPriceId?: string;
+	stripeAnnualPriceId?: string;
 }
 
 export function KiboStylePricing({
-	billingCycle = 'monthly'
+	billingCycle = "monthly",
 }: KiboStylePricingProps) {
-	const frequency = billingCycle
-	const [pendingPlan, setPendingPlan] = useState<PricingPlan | null>(null)
-	const [subscribeDialogOpen, setSubscribeDialogOpen] = useState(false)
+	const frequency = billingCycle;
+	const [pendingPlan, setPendingPlan] = useState<PricingPlan | null>(null);
+	const [subscribeDialogOpen, setSubscribeDialogOpen] = useState(false);
 
 	const subscriptionMutation = useMutation({
 		mutationFn: async ({
 			plan,
 			billingCycle,
-			overrides
+			overrides,
 		}: {
-			plan: PricingPlan
-			billingCycle: 'monthly' | 'yearly'
-			overrides?: { customerEmail?: string; tenant_id?: string }
+			plan: PricingPlan;
+			billingCycle: "monthly" | "yearly";
+			overrides?: { customerEmail?: string; tenant_id?: string };
 		}) => {
-			if (plan.id === 'max') {
-				window.location.href = '/contact'
-				return { success: true }
+			if (plan.id === "max") {
+				window.location.href = "/contact";
+				return { success: true };
 			}
 
 			if (!checkoutRateLimiter.canMakeRequest()) {
 				throw new Error(
-					'Too many requests. Please wait a moment before trying again.'
-				)
+					"Too many requests. Please wait a moment before trying again.",
+				);
 			}
 
 			if (!overrides?.tenant_id) {
-				const authenticated = await isUserAuthenticated()
+				const authenticated = await isUserAuthenticated();
 				if (!authenticated) {
-					window.location.href = '/login'
-					throw new Error('Please sign in or create an account to subscribe')
+					window.location.href = "/login";
+					throw new Error("Please sign in or create an account to subscribe");
 				}
 			}
 
 			const stripePriceId =
-				billingCycle === 'yearly'
+				billingCycle === "yearly"
 					? plan.stripeAnnualPriceId
-					: plan.stripeMonthlyPriceId
+					: plan.stripeMonthlyPriceId;
 			if (!stripePriceId) {
-				throw new Error(`No ${billingCycle} price configured for ${plan.name}`)
+				throw new Error(`No ${billingCycle} price configured for ${plan.name}`);
 			}
 
-			toast.loading('Creating checkout session...', { id: 'checkout' })
+			toast.loading("Creating checkout session...", { id: "checkout" });
 
 			const result = await createCheckoutSession({
 				priceId: stripePriceId,
 				planName: plan.name,
 				...(overrides?.customerEmail && {
-					customerEmail: overrides.customerEmail
+					customerEmail: overrides.customerEmail,
 				}),
-				...(overrides?.tenant_id && { tenant_id: overrides.tenant_id })
-			})
+				...(overrides?.tenant_id && { tenant_id: overrides.tenant_id }),
+			});
 
 			if (!result.url) {
-				throw new Error('Failed to create checkout session')
+				throw new Error("Failed to create checkout session");
 			}
 
-			window.location.href = result.url
-			return { success: true }
+			window.location.href = result.url;
+			return { success: true };
 		},
 		onError: (error: Error) => {
-			logger.error('Checkout failed', {
+			logger.error("Checkout failed", {
 				metadata: {
-					error: error instanceof Error ? error.message : 'Unknown error'
-				}
-			})
+					error: error instanceof Error ? error.message : "Unknown error",
+				},
+			});
 			toast.error(
-				error.message || 'Failed to start checkout. Please try again.'
-			)
+				error.message || "Failed to start checkout. Please try again.",
+			);
 		},
 		onSettled: () => {
-			toast.dismiss('checkout')
-		}
-	})
+			toast.dismiss("checkout");
+		},
+	});
 
 	const pricingPlans = (() => {
 		const plans = getAllPricingPlans()
-			.filter(plan => plan.planId !== 'trial')
-			.map(plan => {
-				const monthlyPrice = plan.price.monthly
-				const annualPrice = plan.price.annual
+			.filter((plan) => plan.planId !== "trial")
+			.map((plan) => {
+				const monthlyPrice = plan.price.monthly;
+				const annualPrice = plan.price.annual;
 
 				return {
 					id: plan.planId,
 					name: plan.name,
 					price: {
-						monthly: monthlyPrice || 'Free forever',
+						monthly: monthlyPrice || "Free forever",
 						yearly:
 							annualPrice > 0
 								? Math.round((annualPrice / 12) * 100) / 100
-								: 'Free forever'
+								: "Free forever",
 					},
 					description: plan.description,
 					features: [...plan.features],
 					cta:
-						plan.planId === 'max'
-							? 'Contact Sales'
+						plan.planId === "max"
+							? "Contact Sales"
 							: `Subscribe to ${plan.name}`,
-					popular: plan.planId === 'growth',
+					popular: plan.planId === "growth",
 					...(plan.stripePriceIds.monthly && {
-						stripeMonthlyPriceId: plan.stripePriceIds.monthly
+						stripeMonthlyPriceId: plan.stripePriceIds.monthly,
 					}),
 					...(plan.stripePriceIds.annual && {
-						stripeAnnualPriceId: plan.stripePriceIds.annual
-					})
-				}
-			})
+						stripeAnnualPriceId: plan.stripePriceIds.annual,
+					}),
+				};
+			});
 
 		return plans.sort((a, b) => {
-			const order = { starter: 1, growth: 2, max: 3 } as Record<string, number>
-			return (order[a.id] || 99) - (order[b.id] || 99)
-		})
-	})()
+			const order = { starter: 1, growth: 2, max: 3 } as Record<string, number>;
+			return (order[a.id] || 99) - (order[b.id] || 99);
+		});
+	})();
 
 	const startCheckout = async (
 		plan: PricingPlan,
-		overrides?: { customerEmail?: string; tenant_id?: string }
+		overrides?: { customerEmail?: string; tenant_id?: string },
 	) => {
 		await subscriptionMutation.mutateAsync({
 			plan,
 			billingCycle: frequency,
-			...(overrides && { overrides })
-		})
-	}
+			...(overrides && { overrides }),
+		});
+	};
 
 	const handleSubscribe = async (plan: PricingPlan) => {
-		if (subscriptionMutation.isPending) return
-		if (plan.id === 'max') { await startCheckout(plan); return }
-		const authenticated = await isUserAuthenticated()
-		if (!authenticated) { setPendingPlan(plan); setSubscribeDialogOpen(true); return }
-		try {
-			await startCheckout(plan)
-		} catch (error) {
-			logger.error('Failed to start checkout', { metadata: { error: error instanceof Error ? error.message : 'Unable to start checkout' } })
+		if (subscriptionMutation.isPending) return;
+		if (plan.id === "max") {
+			await startCheckout(plan);
+			return;
 		}
-	}
+		const authenticated = await isUserAuthenticated();
+		if (!authenticated) {
+			setPendingPlan(plan);
+			setSubscribeDialogOpen(true);
+			return;
+		}
+		try {
+			await startCheckout(plan);
+		} catch (error) {
+			logger.error("Failed to start checkout", {
+				metadata: {
+					error:
+						error instanceof Error ? error.message : "Unable to start checkout",
+				},
+			});
+		}
+	};
 
 	return (
 		<>
 			<div className="mx-auto flex w-full max-w-6xl flex-col gap-8 px-(--spacing-4) sm:px-(--spacing-6) lg:px-(--spacing-0)">
 				<div className="mt-10 grid w-full gap-6 sm:grid-cols-2 xl:grid-cols-3">
-					{pricingPlans.map(plan => (
+					{pricingPlans.map((plan) => (
 						<Card
-							variant={plan.popular ? 'pricingPopular' : 'pricing'}
+							variant={plan.popular ? "pricingPopular" : "pricing"}
 							key={plan.id}
 						>
 							<CardHeader className="space-y-[var(--spacing-4)] pb-[var(--spacing-6)] text-left">
@@ -198,15 +210,15 @@ export function KiboStylePricing({
 								</CardTitle>
 								<CardDescription className="space-y-[var(--spacing-2)] text-left text-base text-muted-foreground">
 									<p>{plan.description}</p>
-									{typeof plan.price[frequency] === 'number' ? (
+									{typeof plan.price[frequency] === "number" ? (
 										<div className="space-y-1 text-left">
 											<div className="flex items-baseline gap-[var(--spacing-2)] text-left">
 												<NumberFlow
 													className="typography-h1 text-foreground"
 													format={{
-														style: 'currency',
-														currency: 'USD',
-														maximumFractionDigits: 0
+														style: "currency",
+														currency: "USD",
+														maximumFractionDigits: 0,
 													}}
 													value={plan.price[frequency] as number}
 												/>
@@ -215,9 +227,9 @@ export function KiboStylePricing({
 												</span>
 											</div>
 											<span className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-												{frequency === 'yearly'
-													? 'Billed annually'
-													: 'Billed monthly'}
+												{frequency === "yearly"
+													? "Billed annually"
+													: "Billed monthly"}
 											</span>
 										</div>
 									) : (
@@ -228,7 +240,7 @@ export function KiboStylePricing({
 								</CardDescription>
 							</CardHeader>
 							<CardContent className="flex flex-1 flex-col gap-[var(--spacing-3)] pb-[var(--spacing-6)] text-left">
-								{plan.features.map(feature => (
+								{plan.features.map((feature) => (
 									<div
 										className="flex gap-[var(--spacing-2)] text-left text-sm leading-6 text-muted-foreground"
 										key={feature}
@@ -241,7 +253,7 @@ export function KiboStylePricing({
 							<CardFooter className="mt-auto pt-2">
 								<Button
 									className="w-full"
-									variant={plan.popular ? 'default' : 'outline'}
+									variant={plan.popular ? "default" : "outline"}
 									disabled={subscriptionMutation.isPending}
 									onClick={() => handleSubscribe(plan)}
 								>
@@ -268,20 +280,29 @@ export function KiboStylePricing({
 				{...(pendingPlan?.name && { planName: pendingPlan.name })}
 				{...(pendingPlan?.cta && { planCta: pendingPlan.cta })}
 				onComplete={async ({ email, tenant_id, requiresEmailConfirmation }) => {
-					if (!pendingPlan) return
+					if (!pendingPlan) return;
 					try {
-						await startCheckout(pendingPlan, { customerEmail: email, ...(tenant_id && { tenant_id }) })
-						setSubscribeDialogOpen(false)
-						setPendingPlan(null)
+						await startCheckout(pendingPlan, {
+							customerEmail: email,
+							...(tenant_id && { tenant_id }),
+						});
+						setSubscribeDialogOpen(false);
+						setPendingPlan(null);
 						if (requiresEmailConfirmation) {
-							logger.info('Signup requires email confirmation', { metadata: { email } })
+							logger.info("Signup requires email confirmation", {
+								metadata: { email },
+							});
 						}
 					} catch (error) {
-						logger.error('Checkout failed after signup', { metadata: { error: error instanceof Error ? error.message : 'Unknown error' } })
-						throw error
+						logger.error("Checkout failed after signup", {
+							metadata: {
+								error: error instanceof Error ? error.message : "Unknown error",
+							},
+						});
+						throw error;
 					}
 				}}
 			/>
 		</>
-	)
+	);
 }

@@ -1,5 +1,5 @@
-import { createEnv } from '@t3-oss/env-nextjs'
-import { z } from 'zod'
+import { createEnv } from "@t3-oss/env-nextjs";
+import { z } from "zod";
 
 /**
  * Type-safe environment variables using @t3-oss/env-nextjs
@@ -20,8 +20,8 @@ export const env = createEnv({
 	 */
 	server: {
 		NODE_ENV: z
-			.enum(['development', 'test', 'production'])
-			.default('development'),
+			.enum(["development", "test", "production"])
+			.default("development"),
 
 		// Stripe secret key (server-only — never expose to browser).
 		// `.trim()` first to survive the common Vercel-paste case where a
@@ -29,18 +29,18 @@ export const env = createEnv({
 		STRIPE_SECRET_KEY: z
 			.string()
 			.trim()
-			.min(1, 'STRIPE_SECRET_KEY is required')
-			.startsWith('sk_', 'Must be a Stripe secret key'),
+			.min(1, "STRIPE_SECRET_KEY is required")
+			.startsWith("sk_", "Must be a Stripe secret key"),
 
 		// Stripe price IDs — optional; canonical values live in src/config/pricing.ts.
 		// Historical: these were validated as required, but no runtime code reads them.
 		// Kept optional for future feature flags / env-driven price overrides.
-		STRIPE_STARTER_MONTHLY: z.string().startsWith('price_').optional(),
-		STRIPE_STARTER_ANNUAL: z.string().startsWith('price_').optional(),
-		STRIPE_GROWTH_MONTHLY: z.string().startsWith('price_').optional(),
-		STRIPE_GROWTH_ANNUAL: z.string().startsWith('price_').optional(),
-		STRIPE_MAX_MONTHLY: z.string().startsWith('price_').optional(),
-		STRIPE_MAX_ANNUAL: z.string().startsWith('price_').optional(),
+		STRIPE_STARTER_MONTHLY: z.string().startsWith("price_").optional(),
+		STRIPE_STARTER_ANNUAL: z.string().startsWith("price_").optional(),
+		STRIPE_GROWTH_MONTHLY: z.string().startsWith("price_").optional(),
+		STRIPE_GROWTH_ANNUAL: z.string().startsWith("price_").optional(),
+		STRIPE_MAX_MONTHLY: z.string().startsWith("price_").optional(),
+		STRIPE_MAX_ANNUAL: z.string().startsWith("price_").optional(),
 
 		// Supabase service role key (server-only — bypasses RLS, never expose to browser)
 		// Used in auth callback for invitation auto-linking
@@ -48,12 +48,12 @@ export const env = createEnv({
 
 		// Vercel auto-injected
 		VERCEL_URL: z.string().optional(),
-		VERCEL_ENV: z.enum(['development', 'preview', 'production']).optional(),
+		VERCEL_ENV: z.enum(["development", "preview", "production"]).optional(),
 
 		// Sentry (optional, only needed for source map uploads)
 		SENTRY_ORG: z.string().optional(),
 		SENTRY_PROJECT: z.string().optional(),
-		SENTRY_AUTH_TOKEN: z.string().optional()
+		SENTRY_AUTH_TOKEN: z.string().optional(),
 	},
 
 	/**
@@ -64,31 +64,31 @@ export const env = createEnv({
 	client: {
 		NEXT_PUBLIC_APP_URL: z
 			.string()
-			.url('NEXT_PUBLIC_APP_URL must be a valid URL'),
+			.url("NEXT_PUBLIC_APP_URL must be a valid URL"),
 
 		NEXT_PUBLIC_SUPABASE_URL: z
 			.string()
-			.url('NEXT_PUBLIC_SUPABASE_URL must be a valid URL')
+			.url("NEXT_PUBLIC_SUPABASE_URL must be a valid URL")
 			.refine(
-				url =>
-					url.includes('supabase.co') ||
-					url.includes('supabase.in') ||
-					url.includes('127.0.0.1') ||
-					url.includes('localhost'),
-				'Must be a Supabase URL or localhost'
+				(url) =>
+					url.includes("supabase.co") ||
+					url.includes("supabase.in") ||
+					url.includes("127.0.0.1") ||
+					url.includes("localhost"),
+				"Must be a Supabase URL or localhost",
 			),
 
 		NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: z
 			.string()
-			.min(1, 'NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY is required'),
+			.min(1, "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY is required"),
 
 		NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: z
 			.string()
-			.startsWith('pk_', 'Stripe publishable key must start with pk_'),
+			.startsWith("pk_", "Stripe publishable key must start with pk_"),
 
 		NEXT_PUBLIC_JWT_ALGORITHM: z
-			.enum(['ES256', 'RS256', 'HS256'])
-			.default('ES256')
+			.enum(["ES256", "RS256", "HS256"])
+			.default("ES256"),
 	},
 
 	/**
@@ -115,10 +115,11 @@ export const env = createEnv({
 		// Client
 		NEXT_PUBLIC_APP_URL: process.env.NEXT_PUBLIC_APP_URL,
 		NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL,
-		NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY,
+		NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY:
+			process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY,
 		NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY:
 			process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY,
-		NEXT_PUBLIC_JWT_ALGORITHM: process.env.NEXT_PUBLIC_JWT_ALGORITHM
+		NEXT_PUBLIC_JWT_ALGORITHM: process.env.NEXT_PUBLIC_JWT_ALGORITHM,
 	},
 
 	/**
@@ -126,8 +127,8 @@ export const env = createEnv({
 	 * Set SKIP_ENV_VALIDATION=true to bypass
 	 */
 	skipValidation:
-		process.env.SKIP_ENV_VALIDATION === 'true' ||
-		process.env.npm_lifecycle_event === 'lint',
+		process.env.SKIP_ENV_VALIDATION === "true" ||
+		process.env.npm_lifecycle_event === "lint",
 
 	/**
 	 * Treat empty strings as undefined
@@ -140,37 +141,37 @@ export const env = createEnv({
 	 * Custom validation error handler
 	 * Provides clear, actionable error messages
 	 */
-	onValidationError: issues => {
+	onValidationError: (issues) => {
 		const formatted = issues
-			.map(issue => {
+			.map((issue) => {
 				const path = Array.isArray(issue.path)
-					? issue.path.join('.')
-					: String(issue.path)
-				return `  - ${path}: ${issue.message}`
+					? issue.path.join(".")
+					: String(issue.path);
+				return `  - ${path}: ${issue.message}`;
 			})
-			.join('\n')
+			.join("\n");
 
 		// Include all details in the thrown error - no console needed
 		throw new Error(
-			`\n❌ Invalid environment variables:\n\n${formatted}\n\n📋 Check your .env.local file or deployment configuration.\n`
-		)
+			`\n❌ Invalid environment variables:\n\n${formatted}\n\n📋 Check your .env.local file or deployment configuration.\n`,
+		);
 	},
 
 	/**
 	 * Handler for accessing server variables on client
 	 * Prevents accidental exposure of secrets
 	 */
-	onInvalidAccess: variable => {
+	onInvalidAccess: (variable) => {
 		throw new Error(
 			`❌ Attempted to access server-side environment variable "${variable}" on the client.\n` +
 				`This variable is not prefixed with NEXT_PUBLIC_ and cannot be exposed to the browser.\n` +
-				`If you need this value client-side, create a NEXT_PUBLIC_ version or fetch it from an API route.`
-		)
-	}
-})
+				`If you need this value client-side, create a NEXT_PUBLIC_ version or fetch it from an API route.`,
+		);
+	},
+});
 
 /**
  * Type export for use in other files
  * Enables type-safe access to env vars throughout the app
  */
-export type Env = typeof env
+export type Env = typeof env;

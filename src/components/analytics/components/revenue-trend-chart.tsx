@@ -1,13 +1,13 @@
-import { BarChart3 } from 'lucide-react'
-import { BlurFade } from '#components/ui/blur-fade'
-import type { RevenueTrend } from '../analytics-types'
+import { BarChart3 } from "lucide-react";
+import { BlurFade } from "#components/ui/blur-fade";
+import type { RevenueTrend } from "../analytics-types";
 
 interface RevenueTrendChartProps {
-	data: RevenueTrend[]
+	data: RevenueTrend[];
 }
 
 export function RevenueTrendChart({ data }: RevenueTrendChartProps) {
-	const maxRevenue = Math.max(...data.map(d => d.collected))
+	const maxRevenue = Math.max(...data.map((d) => d.collected));
 
 	return (
 		<BlurFade delay={0.6} inView>
@@ -31,14 +31,14 @@ export function RevenueTrendChart({ data }: RevenueTrendChartProps) {
 									<div
 										className="absolute inset-x-0 bottom-0 bg-muted/50 rounded-t"
 										style={{
-											height: `${(item.projected / maxRevenue) * 160}px`
+											height: `${(item.projected / maxRevenue) * 160}px`,
 										}}
 									/>
 									{/* Collected (foreground) */}
 									<div
 										className="relative w-full bg-primary rounded-t transition-all hover:bg-primary/80"
 										style={{
-											height: `${(item.collected / maxRevenue) * 160}px`
+											height: `${(item.collected / maxRevenue) * 160}px`,
 										}}
 									/>
 								</div>
@@ -62,5 +62,5 @@ export function RevenueTrendChart({ data }: RevenueTrendChartProps) {
 				</div>
 			</div>
 		</BlurFade>
-	)
+	);
 }

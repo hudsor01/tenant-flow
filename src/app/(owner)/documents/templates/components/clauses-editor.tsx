@@ -1,33 +1,33 @@
-'use client'
+"use client";
 
-import { Button } from '#components/ui/button'
-import { Input } from '#components/ui/input'
-import { Label } from '#components/ui/label'
-import { Card, CardContent, CardHeader, CardTitle } from '#components/ui/card'
-import { Plus, Trash2 } from 'lucide-react'
-import type { ClauseItem } from './template-types'
+import { Plus, Trash2 } from "lucide-react";
+import { Button } from "#components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "#components/ui/card";
+import { Input } from "#components/ui/input";
+import { Label } from "#components/ui/label";
+import type { ClauseItem } from "./template-types";
 
 interface ClausesEditorProps {
-	clauses: ClauseItem[]
-	onChange: (clauses: ClauseItem[]) => void
+	clauses: ClauseItem[];
+	onChange: (clauses: ClauseItem[]) => void;
 }
 
 export function ClausesEditor({ clauses, onChange }: ClausesEditorProps) {
 	const handleAdd = () => {
-		const next = [...clauses, { id: crypto.randomUUID(), text: '' }]
-		onChange(next)
-	}
+		const next = [...clauses, { id: crypto.randomUUID(), text: "" }];
+		onChange(next);
+	};
 
 	const handleUpdate = (index: number, value: string) => {
 		const next = clauses.map((clause, idx) =>
-			idx === index ? { ...clause, text: value } : clause
-		)
-		onChange(next)
-	}
+			idx === index ? { ...clause, text: value } : clause,
+		);
+		onChange(next);
+	};
 
 	const handleRemove = (index: number) => {
-		onChange(clauses.filter((_, idx) => idx !== index))
-	}
+		onChange(clauses.filter((_, idx) => idx !== index));
+	};
 
 	return (
 		<Card>
@@ -59,12 +59,12 @@ export function ClausesEditor({ clauses, onChange }: ClausesEditorProps) {
 						</div>
 						<Input
 							value={clause.text}
-							onChange={event => handleUpdate(index, event.target.value)}
+							onChange={(event) => handleUpdate(index, event.target.value)}
 							placeholder="Example: State-required disclosure text"
 						/>
 					</div>
 				))}
 			</CardContent>
 		</Card>
-	)
+	);
 }

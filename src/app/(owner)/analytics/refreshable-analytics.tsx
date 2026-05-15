@@ -1,12 +1,12 @@
-'use client'
+"use client";
 
-import { useRouter } from 'next/navigation'
-import { useTransition, type ReactNode } from 'react'
-import { RefreshButton } from './refresh-button'
+import { useRouter } from "next/navigation";
+import { type ReactNode, useTransition } from "react";
+import { RefreshButton } from "./refresh-button";
 
 interface RefreshableAnalyticsProps {
-	children: ReactNode
-	cooldownSeconds?: number
+	children: ReactNode;
+	cooldownSeconds?: number;
 }
 
 /**
@@ -34,16 +34,16 @@ interface RefreshableAnalyticsProps {
  */
 export function RefreshableAnalytics({
 	children,
-	cooldownSeconds = 30
+	cooldownSeconds = 30,
 }: RefreshableAnalyticsProps) {
-	const router = useRouter()
-	const [isPending, startTransition] = useTransition()
+	const router = useRouter();
+	const [isPending, startTransition] = useTransition();
 
 	const handleRefresh = async () => {
 		startTransition(() => {
-			router.refresh()
-		})
-	}
+			router.refresh();
+		});
+	};
 
 	return (
 		<div className="space-y-4">
@@ -53,9 +53,9 @@ export function RefreshableAnalytics({
 					cooldownSeconds={cooldownSeconds}
 				/>
 			</div>
-			<div className={isPending ? 'opacity-60 pointer-events-none' : ''}>
+			<div className={isPending ? "opacity-60 pointer-events-none" : ""}>
 				{children}
 			</div>
 		</div>
-	)
+	);
 }

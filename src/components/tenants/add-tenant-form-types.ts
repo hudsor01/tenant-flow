@@ -1,19 +1,19 @@
 import type {
-	FormValidateOrFn,
 	FormAsyncValidateOrFn,
-	ReactFormExtendedApi
-} from '@tanstack/react-form'
+	FormValidateOrFn,
+	ReactFormExtendedApi,
+} from "@tanstack/react-form";
 
 /**
  * Form values for the add tenant form.
  */
 export interface AddTenantFormValues {
-	email: string
-	first_name: string
-	last_name: string
-	phone: string
-	property_id: string
-	unit_id: string
+	email: string;
+	first_name: string;
+	last_name: string;
+	phone: string;
+	property_id: string;
+	unit_id: string;
 }
 
 /**
@@ -34,4 +34,4 @@ export type AddTenantFormApi = ReactFormExtendedApi<
 	undefined | FormAsyncValidateOrFn<AddTenantFormValues>,
 	undefined | FormAsyncValidateOrFn<AddTenantFormValues>,
 	unknown
->
+>;

@@ -1,13 +1,13 @@
-import type { Article } from 'schema-dts'
+import type { Article } from "schema-dts";
 
-import { getSiteUrl } from '#lib/generate-metadata'
+import { getSiteUrl } from "#lib/generate-metadata";
 
 interface ArticleJsonLdConfig {
-	title: string
-	slug: string
-	datePublished: string
-	dateModified?: string
-	authorName: string
+	title: string;
+	slug: string;
+	datePublished: string;
+	dateModified?: string;
+	authorName: string;
 	/**
 	 * Author entity type. Schema.org's `Person` is for actual humans;
 	 * a brand byline like "TenantFlow Team" is semantically an
@@ -15,12 +15,12 @@ interface ArticleJsonLdConfig {
 	 * that pass a real human name; pass `'Organization'` for team or
 	 * brand bylines so the JSON-LD type matches the entity.
 	 */
-	authorType?: 'Person' | 'Organization'
-	image?: string
-	wordCount?: number
-	keywords?: string[] | undefined
-	description?: string | undefined
-	timeRequired?: string | undefined
+	authorType?: "Person" | "Organization";
+	image?: string;
+	wordCount?: number;
+	keywords?: string[] | undefined;
+	description?: string | undefined;
+	timeRequired?: string | undefined;
 }
 
 /**
@@ -28,45 +28,45 @@ interface ArticleJsonLdConfig {
  * Produces schema-dts typed output for use with JsonLdScript component.
  */
 export function createArticleJsonLd(config: ArticleJsonLdConfig): Article {
-	const siteUrl = getSiteUrl()
+	const siteUrl = getSiteUrl();
 	const {
 		title,
 		slug,
 		datePublished,
 		dateModified,
 		authorName,
-		authorType = 'Person',
+		authorType = "Person",
 		image,
 		wordCount,
 		keywords,
 		description,
-		timeRequired
-	} = config
+		timeRequired,
+	} = config;
 
 	return {
-		'@type': 'Article',
+		"@type": "Article",
 		headline: title,
 		...(description ? { description } : {}),
 		datePublished,
 		...(dateModified ? { dateModified } : {}),
 		author: {
-			'@type': authorType,
-			name: authorName
+			"@type": authorType,
+			name: authorName,
 		},
 		publisher: {
-			'@type': 'Organization',
-			name: 'TenantFlow',
+			"@type": "Organization",
+			name: "TenantFlow",
 			logo: {
-				'@type': 'ImageObject',
-				url: `${siteUrl}/tenant-flow-logo.png`
-			}
+				"@type": "ImageObject",
+				url: `${siteUrl}/tenant-flow-logo.png`,
+			},
 		},
 		mainEntityOfPage: `${siteUrl}/blog/${encodeURIComponent(slug)}`,
 		...(image ? { image } : {}),
 		...(wordCount ? { wordCount } : {}),
 		...(keywords && keywords.length > 0
-			? { keywords: keywords.join(', ') }
+			? { keywords: keywords.join(", ") }
 			: {}),
-		...(timeRequired ? { timeRequired } : {})
-	}
+		...(timeRequired ? { timeRequired } : {}),
+	};
 }

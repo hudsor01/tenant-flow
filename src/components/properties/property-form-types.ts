@@ -1,25 +1,25 @@
-import type { PropertyType } from '#types/core'
 import type {
-	FormValidateOrFn,
 	FormAsyncValidateOrFn,
-	ReactFormExtendedApi
-} from '@tanstack/react-form'
+	FormValidateOrFn,
+	ReactFormExtendedApi,
+} from "@tanstack/react-form";
+import type { PropertyType } from "#types/core";
 
 /**
  * Form values for the property create/edit form.
  * Defined once here and shared between property-form.client.tsx and its field sub-components.
  */
 export interface PropertyFormValues {
-	name: string
-	property_type: PropertyType
-	address_line1: string
-	address_line2: string
-	city: string
-	state: string
-	postal_code: string
-	country: string
-	acquisition_cost: number | null
-	acquisition_date: string
+	name: string;
+	property_type: PropertyType;
+	address_line1: string;
+	address_line2: string;
+	city: string;
+	state: string;
+	postal_code: string;
+	country: string;
+	acquisition_cost: number | null;
+	acquisition_date: string;
 }
 
 /**
@@ -40,4 +40,4 @@ export type PropertyFormApi = ReactFormExtendedApi<
 	undefined | FormAsyncValidateOrFn<PropertyFormValues>,
 	undefined | FormAsyncValidateOrFn<PropertyFormValues>,
 	unknown
->
+>;

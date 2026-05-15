@@ -4,28 +4,28 @@
  * Tests for server-side cookie reading and SSR compatibility.
  */
 
-import { screen } from '@testing-library/react'
-import { render } from '#test/utils/test-render'
-import { vi } from 'vitest'
-import { ServerSidebarProvider } from '#components/ui/server-sidebar-provider'
-import type { ReactNode, CSSProperties, HTMLAttributes } from 'react'
+import { screen } from "@testing-library/react";
+import type { CSSProperties, HTMLAttributes, ReactNode } from "react";
+import { vi } from "vitest";
+import { ServerSidebarProvider } from "#components/ui/server-sidebar-provider";
+import { render } from "#test/utils/test-render";
 
 // Mock Next.js cookies
-const mockCookies = vi.fn()
-vi.mock('next/headers', () => ({
-	cookies: () => mockCookies()
-}))
+const mockCookies = vi.fn();
+vi.mock("next/headers", () => ({
+	cookies: () => mockCookies(),
+}));
 
 // Mock the SidebarProvider to avoid client-side rendering issues
 // Note: The actual component imports from #components/ui/sidebar/context
-vi.mock('#components/ui/sidebar/context', () => {
+vi.mock("#components/ui/sidebar/context", () => {
 	interface MockSidebarProviderProps extends HTMLAttributes<HTMLDivElement> {
-		defaultOpen?: boolean
-		open?: boolean
-		onOpenChange?: (open: boolean) => void
-		className?: string
-		style?: CSSProperties
-		children: ReactNode
+		defaultOpen?: boolean;
+		open?: boolean;
+		onOpenChange?: (open: boolean) => void;
+		className?: string;
+		style?: CSSProperties;
+		children: ReactNode;
 	}
 
 	const MockSidebarProvider = ({
@@ -44,197 +44,197 @@ vi.mock('#components/ui/sidebar/context', () => {
 		>
 			{children}
 		</div>
-	)
+	);
 
 	return {
-		SidebarProvider: MockSidebarProvider
-	}
-})
+		SidebarProvider: MockSidebarProvider,
+	};
+});
 
 // Test component that uses sidebar context
 function TestSidebarConsumer() {
-	return <div data-testid="server-sidebar-test">Server Sidebar Test</div>
+	return <div data-testid="server-sidebar-test">Server Sidebar Test</div>;
 }
 
-describe('ServerSidebarProvider', () => {
+describe("ServerSidebarProvider", () => {
 	beforeEach(() => {
-		mockCookies.mockClear()
-	})
+		mockCookies.mockClear();
+	});
 
-	describe('Server-side Cookie Reading', () => {
-		it('should read sidebar_state=true from cookies and pass as defaultOpen', async () => {
+	describe("Server-side Cookie Reading", () => {
+		it("should read sidebar_state=true from cookies and pass as defaultOpen", async () => {
 			const mockCookieStore = {
-				get: vi.fn().mockReturnValue({ value: 'true' })
-			}
-			mockCookies.mockResolvedValue(mockCookieStore)
+				get: vi.fn().mockReturnValue({ value: "true" }),
+			};
+			mockCookies.mockResolvedValue(mockCookieStore);
 
 			render(
 				await ServerSidebarProvider({
-					children: <TestSidebarConsumer />
-				})
-			)
+					children: <TestSidebarConsumer />,
+				}),
+			);
 
-			expect(mockCookieStore.get).toHaveBeenCalledWith('sidebar_state')
-			expect(screen.getByTestId('sidebar-provider')).toHaveAttribute(
-				'data-default-open',
-				'true'
-			)
-			expect(screen.getByTestId('server-sidebar-test')).toBeInTheDocument()
-		})
+			expect(mockCookieStore.get).toHaveBeenCalledWith("sidebar_state");
+			expect(screen.getByTestId("sidebar-provider")).toHaveAttribute(
+				"data-default-open",
+				"true",
+			);
+			expect(screen.getByTestId("server-sidebar-test")).toBeInTheDocument();
+		});
 
-		it('should read sidebar_state=false from cookies and pass as defaultOpen', async () => {
+		it("should read sidebar_state=false from cookies and pass as defaultOpen", async () => {
 			const mockCookieStore = {
-				get: vi.fn().mockReturnValue({ value: 'false' })
-			}
-			mockCookies.mockResolvedValue(mockCookieStore)
+				get: vi.fn().mockReturnValue({ value: "false" }),
+			};
+			mockCookies.mockResolvedValue(mockCookieStore);
 
 			render(
 				await ServerSidebarProvider({
-					children: <TestSidebarConsumer />
-				})
-			)
+					children: <TestSidebarConsumer />,
+				}),
+			);
 
-			expect(mockCookieStore.get).toHaveBeenCalledWith('sidebar_state')
-			expect(screen.getByTestId('sidebar-provider')).toHaveAttribute(
-				'data-default-open',
-				'false'
-			)
-		})
+			expect(mockCookieStore.get).toHaveBeenCalledWith("sidebar_state");
+			expect(screen.getByTestId("sidebar-provider")).toHaveAttribute(
+				"data-default-open",
+				"false",
+			);
+		});
 
-		it('should use defaultOpen=true when no cookie exists', async () => {
+		it("should use defaultOpen=true when no cookie exists", async () => {
 			const mockCookieStore = {
-				get: vi.fn().mockReturnValue(undefined)
-			}
-			mockCookies.mockResolvedValue(mockCookieStore)
+				get: vi.fn().mockReturnValue(undefined),
+			};
+			mockCookies.mockResolvedValue(mockCookieStore);
 
 			render(
 				await ServerSidebarProvider({
 					defaultOpen: true,
-					children: <TestSidebarConsumer />
-				})
-			)
+					children: <TestSidebarConsumer />,
+				}),
+			);
 
-			expect(mockCookieStore.get).toHaveBeenCalledWith('sidebar_state')
-			expect(screen.getByTestId('sidebar-provider')).toHaveAttribute(
-				'data-default-open',
-				'true'
-			)
-		})
+			expect(mockCookieStore.get).toHaveBeenCalledWith("sidebar_state");
+			expect(screen.getByTestId("sidebar-provider")).toHaveAttribute(
+				"data-default-open",
+				"true",
+			);
+		});
 
-		it('should use defaultOpen=false when no cookie exists', async () => {
+		it("should use defaultOpen=false when no cookie exists", async () => {
 			const mockCookieStore = {
-				get: vi.fn().mockReturnValue(undefined)
-			}
-			mockCookies.mockResolvedValue(mockCookieStore)
+				get: vi.fn().mockReturnValue(undefined),
+			};
+			mockCookies.mockResolvedValue(mockCookieStore);
 
 			render(
 				await ServerSidebarProvider({
 					defaultOpen: false,
-					children: <TestSidebarConsumer />
-				})
-			)
+					children: <TestSidebarConsumer />,
+				}),
+			);
 
-			expect(mockCookieStore.get).toHaveBeenCalledWith('sidebar_state')
-			expect(screen.getByTestId('sidebar-provider')).toHaveAttribute(
-				'data-default-open',
-				'false'
-			)
-		})
+			expect(mockCookieStore.get).toHaveBeenCalledWith("sidebar_state");
+			expect(screen.getByTestId("sidebar-provider")).toHaveAttribute(
+				"data-default-open",
+				"false",
+			);
+		});
 
-		it('should handle malformed cookie values gracefully', async () => {
+		it("should handle malformed cookie values gracefully", async () => {
 			const mockCookieStore = {
-				get: vi.fn().mockReturnValue({ value: 'invalid' })
-			}
-			mockCookies.mockResolvedValue(mockCookieStore)
+				get: vi.fn().mockReturnValue({ value: "invalid" }),
+			};
+			mockCookies.mockResolvedValue(mockCookieStore);
 
 			render(
 				await ServerSidebarProvider({
 					defaultOpen: true,
-					children: <TestSidebarConsumer />
-				})
-			)
+					children: <TestSidebarConsumer />,
+				}),
+			);
 
-			expect(mockCookieStore.get).toHaveBeenCalledWith('sidebar_state')
+			expect(mockCookieStore.get).toHaveBeenCalledWith("sidebar_state");
 			// Should fallback to defaultOpen=true when cookie is malformed
-			expect(screen.getByTestId('sidebar-provider')).toHaveAttribute(
-				'data-default-open',
-				'true'
-			)
-		})
+			expect(screen.getByTestId("sidebar-provider")).toHaveAttribute(
+				"data-default-open",
+				"true",
+			);
+		});
 
-		it('should prioritize explicit open prop over cookie value', async () => {
+		it("should prioritize explicit open prop over cookie value", async () => {
 			const mockCookieStore = {
-				get: vi.fn().mockReturnValue({ value: 'false' })
-			}
-			mockCookies.mockResolvedValue(mockCookieStore)
+				get: vi.fn().mockReturnValue({ value: "false" }),
+			};
+			mockCookies.mockResolvedValue(mockCookieStore);
 
 			render(
 				await ServerSidebarProvider({
 					open: true, // Explicit prop should override cookie
-					children: <TestSidebarConsumer />
-				})
-			)
+					children: <TestSidebarConsumer />,
+				}),
+			);
 
-			expect(mockCookieStore.get).toHaveBeenCalledWith('sidebar_state')
+			expect(mockCookieStore.get).toHaveBeenCalledWith("sidebar_state");
 			// Should use explicit open prop, not cookie value
-			expect(screen.getByTestId('sidebar-provider')).toHaveAttribute(
-				'data-default-open',
-				'true'
-			)
-		})
+			expect(screen.getByTestId("sidebar-provider")).toHaveAttribute(
+				"data-default-open",
+				"true",
+			);
+		});
 
-		it('should handle cookies API errors gracefully', async () => {
+		it("should handle cookies API errors gracefully", async () => {
 			mockCookies.mockImplementation(() =>
-				Promise.reject(new Error('Cookies API failed'))
-			)
+				Promise.reject(new Error("Cookies API failed")),
+			);
 
 			render(
 				await ServerSidebarProvider({
 					defaultOpen: true,
-					children: <TestSidebarConsumer />
-				})
-			)
+					children: <TestSidebarConsumer />,
+				}),
+			);
 
 			// Should fallback to defaultOpen when cookies API fails
-			expect(screen.getByTestId('sidebar-provider')).toHaveAttribute(
-				'data-default-open',
-				'true'
-			)
-		})
-	})
+			expect(screen.getByTestId("sidebar-provider")).toHaveAttribute(
+				"data-default-open",
+				"true",
+			);
+		});
+	});
 
-	describe('SSR Compatibility', () => {
-		it('should be a server component that can be awaited', async () => {
+	describe("SSR Compatibility", () => {
+		it("should be a server component that can be awaited", async () => {
 			const mockCookieStore = {
-				get: vi.fn().mockReturnValue({ value: 'true' })
-			}
-			mockCookies.mockResolvedValue(mockCookieStore)
+				get: vi.fn().mockReturnValue({ value: "true" }),
+			};
+			mockCookies.mockResolvedValue(mockCookieStore);
 
 			const result = await ServerSidebarProvider({
-				children: <TestSidebarConsumer />
-			})
+				children: <TestSidebarConsumer />,
+			});
 
-			expect(result).toBeDefined()
-			expect(result.props.children).toBeDefined()
-		})
+			expect(result).toBeDefined();
+			expect(result.props.children).toBeDefined();
+		});
 
-		it('should pass through all props to SidebarProvider', async () => {
+		it("should pass through all props to SidebarProvider", async () => {
 			const mockCookieStore = {
-				get: vi.fn().mockReturnValue({ value: 'true' })
-			}
-			mockCookies.mockResolvedValue(mockCookieStore)
+				get: vi.fn().mockReturnValue({ value: "true" }),
+			};
+			mockCookies.mockResolvedValue(mockCookieStore);
 
-			const customClass = 'custom-sidebar'
+			const customClass = "custom-sidebar";
 
 			render(
 				await ServerSidebarProvider({
 					className: customClass,
-					children: <TestSidebarConsumer />
-				})
-			)
+					children: <TestSidebarConsumer />,
+				}),
+			);
 
-			const provider = screen.getByTestId('sidebar-provider')
-			expect(provider).toHaveClass(customClass)
-		})
-	})
-})
+			const provider = screen.getByTestId("sidebar-provider");
+			expect(provider).toHaveClass(customClass);
+		});
+	});
+});

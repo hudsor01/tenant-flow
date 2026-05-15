@@ -1,5 +1,5 @@
-import { test, expect, type Page } from '@playwright/test'
-import { createLogger } from '../../lib/frontend-logger'
+import { expect, type Page, test } from "@playwright/test";
+import { createLogger } from "../../lib/frontend-logger";
 
 /**
  * CRITICAL PATH SMOKE TESTS
@@ -33,249 +33,259 @@ import { createLogger } from '../../lib/frontend-logger'
  * 3) Environment sanity checks.
  */
 
-const BASE_URL = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:3050'
-const OWNER_EMAIL = process.env.E2E_OWNER_EMAIL || ''
-const OWNER_PASSWORD = process.env.E2E_OWNER_PASSWORD || ''
-const hasCredentials = Boolean(OWNER_EMAIL && OWNER_PASSWORD)
-const logger = createLogger({ component: 'CriticalPathsSmoke' })
+const BASE_URL = process.env.PLAYWRIGHT_BASE_URL || "http://localhost:3050";
+const OWNER_EMAIL = process.env.E2E_OWNER_EMAIL || "";
+const OWNER_PASSWORD = process.env.E2E_OWNER_PASSWORD || "";
+const hasCredentials = Boolean(OWNER_EMAIL && OWNER_PASSWORD);
+const logger = createLogger({ component: "CriticalPathsSmoke" });
 
 async function loginAsOwner(page: Page) {
-	await page.goto(`${BASE_URL}/login`)
+	await page.goto(`${BASE_URL}/login`);
 
-	const emailInput = page.locator('input#email')
-	const passwordInput = page.locator('input#password')
-	const submitButton = page.locator('button[type="submit"]')
+	const emailInput = page.locator("input#email");
+	const passwordInput = page.locator("input#password");
+	const submitButton = page.locator('button[type="submit"]');
 
-	await expect(emailInput).toBeVisible({ timeout: 15000 })
-	await expect(emailInput).toBeEnabled({ timeout: 5000 })
+	await expect(emailInput).toBeVisible({ timeout: 15000 });
+	await expect(emailInput).toBeEnabled({ timeout: 5000 });
 
-	await emailInput.click()
-	await emailInput.fill(OWNER_EMAIL)
-	await passwordInput.click()
-	await passwordInput.fill(OWNER_PASSWORD)
+	await emailInput.click();
+	await emailInput.fill(OWNER_EMAIL);
+	await passwordInput.click();
+	await passwordInput.fill(OWNER_PASSWORD);
 
-	await expect(emailInput).toHaveValue(OWNER_EMAIL)
-	await expect(passwordInput).toHaveValue(OWNER_PASSWORD)
+	await expect(emailInput).toHaveValue(OWNER_EMAIL);
+	await expect(passwordInput).toHaveValue(OWNER_PASSWORD);
 
-	await submitButton.click()
-	await page.waitForURL(url => !url.pathname.includes('/login'), {
-		timeout: 20000
-	})
+	await submitButton.click();
+	await page.waitForURL((url) => !url.pathname.includes("/login"), {
+		timeout: 20000,
+	});
 }
 
 // ─────────────────────────────────────────
 // 1) LOGIN-FLOW TEST — un-authenticated
 // ─────────────────────────────────────────
-test.describe('🚨 CRITICAL PATH SMOKE TESTS — Login Flow 🚨', () => {
-	test.skip(!hasCredentials, 'E2E_OWNER_EMAIL and E2E_OWNER_PASSWORD must be set')
+test.describe("🚨 CRITICAL PATH SMOKE TESTS — Login Flow 🚨", () => {
+	test.skip(
+		!hasCredentials,
+		"E2E_OWNER_EMAIL and E2E_OWNER_PASSWORD must be set",
+	);
 
-	test('🔥 P0: Owner can login', async ({ page }) => {
-		await page.goto(`${BASE_URL}/login`)
+	test("🔥 P0: Owner can login", async ({ page }) => {
+		await page.goto(`${BASE_URL}/login`);
 
-		const emailInput = page.locator('input#email')
-		const passwordInput = page.locator('input#password')
-		const submitButton = page.locator('button[type="submit"]')
+		const emailInput = page.locator("input#email");
+		const passwordInput = page.locator("input#password");
+		const submitButton = page.locator('button[type="submit"]');
 
-		await expect(emailInput).toBeVisible({ timeout: 10000 })
-		await expect(emailInput).toBeEnabled({ timeout: 5000 })
+		await expect(emailInput).toBeVisible({ timeout: 10000 });
+		await expect(emailInput).toBeEnabled({ timeout: 5000 });
 
-		await emailInput.click()
-		await emailInput.fill(OWNER_EMAIL)
-		await passwordInput.click()
-		await passwordInput.fill(OWNER_PASSWORD)
+		await emailInput.click();
+		await emailInput.fill(OWNER_EMAIL);
+		await passwordInput.click();
+		await passwordInput.fill(OWNER_PASSWORD);
 
-		await expect(emailInput).toHaveValue(OWNER_EMAIL)
-		await expect(passwordInput).toHaveValue(OWNER_PASSWORD)
+		await expect(emailInput).toHaveValue(OWNER_EMAIL);
+		await expect(passwordInput).toHaveValue(OWNER_PASSWORD);
 
-		await submitButton.click()
+		await submitButton.click();
 
 		try {
-			await page.waitForURL(url => !url.pathname.includes('/login'), {
-				timeout: 15000
-			})
+			await page.waitForURL((url) => !url.pathname.includes("/login"), {
+				timeout: 15000,
+			});
 		} catch (e) {
 			const errorMsg = await page
-				.locator('text=/Sign in failed|Invalid|error/i')
+				.locator("text=/Sign in failed|Invalid|error/i")
 				.textContent()
-				.catch(() => null)
+				.catch(() => null);
 			if (errorMsg) {
 				throw new Error(
 					`🚨 LOGIN FAILED: ${errorMsg}\n\n` +
 						`❌ CRITICAL: Owner cannot login!\n` +
 						`Account: ${OWNER_EMAIL}`,
-					{ cause: e }
-				)
+					{ cause: e },
+				);
 			}
 			throw new Error(
 				`🚨 LOGIN TIMEOUT: No redirect after 15s\n` +
 					`Current URL: ${page.url()}`,
-				{ cause: e }
-			)
+				{ cause: e },
+			);
 		}
 
-		expect(page.url()).not.toContain('/login')
-	})
-})
+		expect(page.url()).not.toContain("/login");
+	});
+});
 
 // ─────────────────────────────────────────
 // 2) AUTHENTICATED CRITICAL PATHS — ONE UI login, shared page
 // ─────────────────────────────────────────
-test.describe.serial('🚨 AUTHENTICATED CRITICAL PATHS 🚨', () => {
-	test.skip(!hasCredentials, 'E2E_OWNER_EMAIL and E2E_OWNER_PASSWORD must be set')
+test.describe
+	.serial("🚨 AUTHENTICATED CRITICAL PATHS 🚨", () => {
+		test.skip(
+			!hasCredentials,
+			"E2E_OWNER_EMAIL and E2E_OWNER_PASSWORD must be set",
+		);
 
-	let page: Page
+		let page: Page;
 
-	test.beforeAll(async ({ browser }) => {
-		const context = await browser.newContext()
-		page = await context.newPage()
-		await loginAsOwner(page)
-	})
+		test.beforeAll(async ({ browser }) => {
+			const context = await browser.newContext();
+			page = await context.newPage();
+			await loginAsOwner(page);
+		});
 
-	test.afterAll(async () => {
-		await page?.close()
-	})
+		test.afterAll(async () => {
+			await page?.close();
+		});
 
-	test('🔥 P0: Dashboard loads for owner', async () => {
-		await page.goto(`${BASE_URL}/dashboard`)
+		test("🔥 P0: Dashboard loads for owner", async () => {
+			await page.goto(`${BASE_URL}/dashboard`);
 
-		const dashboardLoaded = await Promise.race([
-			page
-				.locator('h1:has-text("Dashboard")')
-				.waitFor({ timeout: 20000 })
-				.then(() => true),
-			page
-				.locator('[data-testid="dashboard"]')
-				.waitFor({ timeout: 20000 })
-				.then(() => true),
-			page
-				.locator('[data-testid="dashboard-stats"]')
-				.waitFor({ timeout: 20000 })
-				.then(() => true),
-			page
-				.locator('text=Total Properties')
-				.waitFor({ timeout: 20000 })
-				.then(() => true),
-			page
-				.locator('text=Welcome to TenantFlow')
-				.waitFor({ timeout: 20000 })
-				.then(() => true)
-		]).catch(() => false)
-
-		expect(dashboardLoaded).toBeTruthy()
-	})
-
-	test('🔥 P0: Properties page loads', async () => {
-		await page.goto(`${BASE_URL}/properties`)
-
-		const propertiesLoaded = await Promise.race([
-			page
-				.locator('h1:has-text("Properties")')
-				.waitFor({ timeout: 20000 })
-				.then(() => true),
-			page
-				.locator('button:has-text("New Property")')
-				.waitFor({ timeout: 20000 })
-				.then(() => true),
-			page
-				.locator('text=No properties yet')
-				.waitFor({ timeout: 20000 })
-				.then(() => true),
-			page
-				.locator('button:has-text("Add Your First Property")')
-				.waitFor({ timeout: 20000 })
-				.then(() => true)
-		]).catch(() => false)
-
-		expect(propertiesLoaded).toBeTruthy()
-	})
-
-	test('🔥 P0: Navigation works', async () => {
-		const pages = [
-			{ url: '/', name: 'Dashboard' },
-			{ url: '/properties', name: 'Properties' },
-			{ url: '/tenants', name: 'Tenants' },
-			{ url: '/leases', name: 'Leases' }
-		]
-
-		for (const testPage of pages) {
-			await page.goto(`${BASE_URL}${testPage.url}`)
-
-			const pageLoaded = await Promise.race([
+			const dashboardLoaded = await Promise.race([
 				page
-					.locator('h1')
-					.first()
-					.waitFor({ timeout: 5000 })
+					.locator('h1:has-text("Dashboard")')
+					.waitFor({ timeout: 20000 })
 					.then(() => true),
 				page
-					.locator('main')
-					.waitFor({ timeout: 5000 })
-					.then(() => true)
-			]).catch(() => false)
+					.locator('[data-testid="dashboard"]')
+					.waitFor({ timeout: 20000 })
+					.then(() => true),
+				page
+					.locator('[data-testid="dashboard-stats"]')
+					.waitFor({ timeout: 20000 })
+					.then(() => true),
+				page
+					.locator("text=Total Properties")
+					.waitFor({ timeout: 20000 })
+					.then(() => true),
+				page
+					.locator("text=Welcome to TenantFlow")
+					.waitFor({ timeout: 20000 })
+					.then(() => true),
+			]).catch(() => false);
 
-			if (!pageLoaded) {
-				throw new Error(
-					`🚨 NAVIGATION FAILED: ${testPage.name} page did not load\n` +
-						`URL: ${testPage.url}\n` +
-						`Current: ${page.url()}`
-				)
+			expect(dashboardLoaded).toBeTruthy();
+		});
+
+		test("🔥 P0: Properties page loads", async () => {
+			await page.goto(`${BASE_URL}/properties`);
+
+			const propertiesLoaded = await Promise.race([
+				page
+					.locator('h1:has-text("Properties")')
+					.waitFor({ timeout: 20000 })
+					.then(() => true),
+				page
+					.locator('button:has-text("New Property")')
+					.waitFor({ timeout: 20000 })
+					.then(() => true),
+				page
+					.locator("text=No properties yet")
+					.waitFor({ timeout: 20000 })
+					.then(() => true),
+				page
+					.locator('button:has-text("Add Your First Property")')
+					.waitFor({ timeout: 20000 })
+					.then(() => true),
+			]).catch(() => false);
+
+			expect(propertiesLoaded).toBeTruthy();
+		});
+
+		test("🔥 P0: Navigation works", async () => {
+			const pages = [
+				{ url: "/", name: "Dashboard" },
+				{ url: "/properties", name: "Properties" },
+				{ url: "/tenants", name: "Tenants" },
+				{ url: "/leases", name: "Leases" },
+			];
+
+			for (const testPage of pages) {
+				await page.goto(`${BASE_URL}${testPage.url}`);
+
+				const pageLoaded = await Promise.race([
+					page
+						.locator("h1")
+						.first()
+						.waitFor({ timeout: 5000 })
+						.then(() => true),
+					page
+						.locator("main")
+						.waitFor({ timeout: 5000 })
+						.then(() => true),
+				]).catch(() => false);
+
+				if (!pageLoaded) {
+					throw new Error(
+						`🚨 NAVIGATION FAILED: ${testPage.name} page did not load\n` +
+							`URL: ${testPage.url}\n` +
+							`Current: ${page.url()}`,
+					);
+				}
 			}
-		}
-	})
+		});
 
-	test('🔥 P0: No console errors on critical pages', async () => {
-		const errors: string[] = []
+		test("🔥 P0: No console errors on critical pages", async () => {
+			const errors: string[] = [];
 
-		page.on('pageerror', error => {
-			errors.push(`Page Error: ${error.message}`)
-		})
+			page.on("pageerror", (error) => {
+				errors.push(`Page Error: ${error.message}`);
+			});
 
-		page.on('console', msg => {
-			if (msg.type() === 'error') {
-				errors.push(`Console Error: ${msg.text()}`)
+			page.on("console", (msg) => {
+				if (msg.type() === "error") {
+					errors.push(`Console Error: ${msg.text()}`);
+				}
+			});
+
+			await page.goto(`${BASE_URL}/dashboard`);
+			await page.waitForLoadState("domcontentloaded");
+			await page.waitForTimeout(1000);
+
+			await page.goto(`${BASE_URL}/properties`);
+			await page.waitForLoadState("domcontentloaded");
+			await page.waitForTimeout(1000);
+
+			const criticalErrors = errors.filter(
+				(err) =>
+					!err.includes("DevTools") &&
+					!err.includes("favicon") &&
+					!err.includes("webpack") &&
+					!err.includes("HMR"),
+			);
+
+			if (criticalErrors.length > 0) {
+				logger.warn("⚠️  Console errors detected:", {
+					metadata: { criticalErrors },
+				});
+				// Don't fail the test, just warn
 			}
-		})
-
-		await page.goto(`${BASE_URL}/dashboard`)
-		await page.waitForLoadState('domcontentloaded')
-		await page.waitForTimeout(1000)
-
-		await page.goto(`${BASE_URL}/properties`)
-		await page.waitForLoadState('domcontentloaded')
-		await page.waitForTimeout(1000)
-
-		const criticalErrors = errors.filter(
-			err =>
-				!err.includes('DevTools') &&
-				!err.includes('favicon') &&
-				!err.includes('webpack') &&
-				!err.includes('HMR')
-		)
-
-		if (criticalErrors.length > 0) {
-			logger.warn('⚠️  Console errors detected:', {
-				metadata: { criticalErrors }
-			})
-			// Don't fail the test, just warn
-		}
-	})
-})
+		});
+	});
 
 // ─────────────────────────────────────────
 // 3) ENVIRONMENT SANITY CHECKS
 // ─────────────────────────────────────────
-test.describe('🔍 SMOKE: Environment Sanity Checks', () => {
-	test('Environment variables are set', async () => {
-		test.skip(!hasCredentials, 'E2E credentials not configured — skipping env check')
-		expect(OWNER_EMAIL, 'E2E_OWNER_EMAIL must be set').toBeTruthy()
-		expect(OWNER_PASSWORD, 'E2E_OWNER_PASSWORD must be set').toBeTruthy()
-		expect(BASE_URL, 'PLAYWRIGHT_BASE_URL must be set').toBeTruthy()
-	})
+test.describe("🔍 SMOKE: Environment Sanity Checks", () => {
+	test("Environment variables are set", async () => {
+		test.skip(
+			!hasCredentials,
+			"E2E credentials not configured — skipping env check",
+		);
+		expect(OWNER_EMAIL, "E2E_OWNER_EMAIL must be set").toBeTruthy();
+		expect(OWNER_PASSWORD, "E2E_OWNER_PASSWORD must be set").toBeTruthy();
+		expect(BASE_URL, "PLAYWRIGHT_BASE_URL must be set").toBeTruthy();
+	});
 
-	test('Frontend is reachable', async ({ request }) => {
-		const frontendResponse = await request.get(BASE_URL).catch(() => null)
+	test("Frontend is reachable", async ({ request }) => {
+		const frontendResponse = await request.get(BASE_URL).catch(() => null);
 		expect(
 			frontendResponse,
-			`Frontend not reachable at ${BASE_URL}`
-		).toBeTruthy()
-	})
-})
+			`Frontend not reachable at ${BASE_URL}`,
+		).toBeTruthy();
+	});
+});

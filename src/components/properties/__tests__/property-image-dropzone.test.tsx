@@ -12,20 +12,20 @@
  * @vitest-environment jsdom
  */
 
-import type { ReactNode } from 'react'
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
-import { screen } from '@testing-library/react'
-import { render } from '#test/utils/test-render'
-import { PropertyImageDropzone } from '../property-image-dropzone'
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { vi, describe, it, expect, beforeEach } from 'vitest'
-import userEvent from '@testing-library/user-event'
-import '@testing-library/jest-dom/vitest'
+import { screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
+import type { ReactNode } from "react";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import { render } from "#test/utils/test-render";
+import { PropertyImageDropzone } from "../property-image-dropzone";
+import "@testing-library/jest-dom/vitest";
 
 // Mock the useSupabaseUpload hook
-const mockOnUpload = vi.fn()
-const mockSetFiles = vi.fn()
-const mockSetErrors = vi.fn()
+const mockOnUpload = vi.fn();
+const mockSetFiles = vi.fn();
+const mockSetErrors = vi.fn();
 
 const createMockUploadReturn = (overrides = {}) => ({
 	files: [],
@@ -38,7 +38,7 @@ const createMockUploadReturn = (overrides = {}) => ({
 	onUpload: mockOnUpload,
 	maxFileSize: 10 * 1024 * 1024, // 10MB
 	maxFiles: 10,
-	allowedMimeTypes: ['image/jpeg', 'image/png', 'image/webp', 'image/gif'],
+	allowedMimeTypes: ["image/jpeg", "image/png", "image/webp", "image/gif"],
 	getRootProps: vi.fn(() => ({})),
 	getInputProps: vi.fn(() => ({})),
 	isDragActive: false,
@@ -46,484 +46,486 @@ const createMockUploadReturn = (overrides = {}) => ({
 	isDragReject: false,
 	inputRef: { current: null },
 	open: vi.fn(),
-	...overrides
-})
+	...overrides,
+});
 
-let mockUploadReturn = createMockUploadReturn()
-let capturedOptions: { bucketName: string; path?: string } | null = null
+let mockUploadReturn = createMockUploadReturn();
+let capturedOptions: { bucketName: string; path?: string } | null = null;
 
-vi.mock('#hooks/use-supabase-upload', () => ({
+vi.mock("#hooks/use-supabase-upload", () => ({
 	useSupabaseUpload: vi.fn((options: { bucketName: string; path?: string }) => {
 		// Capture the options for verification
-		capturedOptions = options
-		return mockUploadReturn
-	})
-}))
+		capturedOptions = options;
+		return mockUploadReturn;
+	}),
+}));
 
 // Mock the query client for invalidation testing
-const mockInvalidateQueries = vi.fn()
+const mockInvalidateQueries = vi.fn();
 
 function createWrapper() {
 	const queryClient = new QueryClient({
 		defaultOptions: {
 			queries: { retry: false },
-			mutations: { retry: false }
-		}
-	})
+			mutations: { retry: false },
+		},
+	});
 	// Mock the invalidateQueries method
-	queryClient.invalidateQueries = mockInvalidateQueries
+	queryClient.invalidateQueries = mockInvalidateQueries;
 	return function Wrapper({ children }: { children: ReactNode }) {
 		return (
 			<QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
-		)
-	}
+		);
+	};
 }
 
-describe('PropertyImageDropzone Component', () => {
-	const testPropertyId = 'test-property-123'
+describe("PropertyImageDropzone Component", () => {
+	const testPropertyId = "test-property-123";
 
 	beforeEach(() => {
-		vi.clearAllMocks()
-		mockUploadReturn = createMockUploadReturn()
-		capturedOptions = null
-	})
+		vi.clearAllMocks();
+		mockUploadReturn = createMockUploadReturn();
+		capturedOptions = null;
+	});
 
-	describe('Rendering', () => {
-		it('renders dropzone with empty state', () => {
+	describe("Rendering", () => {
+		it("renders dropzone with empty state", () => {
 			render(<PropertyImageDropzone propertyId={testPropertyId} />, {
-				wrapper: createWrapper()
-			})
+				wrapper: createWrapper(),
+			});
 
 			// Should show upload instructions
-			expect(screen.getByText(/drag and drop/i)).toBeInTheDocument()
-		})
+			expect(screen.getByText(/drag and drop/i)).toBeInTheDocument();
+		});
 
-		it('renders with correct bucket configuration', () => {
+		it("renders with correct bucket configuration", () => {
 			render(<PropertyImageDropzone propertyId={testPropertyId} />, {
-				wrapper: createWrapper()
-			})
+				wrapper: createWrapper(),
+			});
 
 			// Verify the hook was called with correct bucket
-			expect(capturedOptions?.bucketName).toBe('property-images')
-		})
+			expect(capturedOptions?.bucketName).toBe("property-images");
+		});
 
-		it('uses property ID as path for uploads', () => {
+		it("uses property ID as path for uploads", () => {
 			render(<PropertyImageDropzone propertyId={testPropertyId} />, {
-				wrapper: createWrapper()
-			})
+				wrapper: createWrapper(),
+			});
 
 			// Verify useSupabaseUpload was called with correct path
-			expect(capturedOptions?.path).toBe(testPropertyId)
-		})
+			expect(capturedOptions?.path).toBe(testPropertyId);
+		});
 
-		it('shows file size limit info', () => {
+		it("shows file size limit info", () => {
 			render(<PropertyImageDropzone propertyId={testPropertyId} />, {
-				wrapper: createWrapper()
-			})
+				wrapper: createWrapper(),
+			});
 
 			// Should display max file size (formatBytes uses 1000 divisor)
-			expect(screen.getByText(/maximum file size/i)).toBeInTheDocument()
-		})
-	})
+			expect(screen.getByText(/maximum file size/i)).toBeInTheDocument();
+		});
+	});
 
-	describe('File Selection', () => {
-		it('accepts image files via drag and drop area', () => {
+	describe("File Selection", () => {
+		it("accepts image files via drag and drop area", () => {
 			render(<PropertyImageDropzone propertyId={testPropertyId} />, {
-				wrapper: createWrapper()
-			})
+				wrapper: createWrapper(),
+			});
 
 			// Find the dropzone area
-			const dropzone = screen.getByText(/drag and drop/i).closest('div')
-			expect(dropzone).toBeInTheDocument()
-		})
+			const dropzone = screen.getByText(/drag and drop/i).closest("div");
+			expect(dropzone).toBeInTheDocument();
+		});
 
-		it('shows selected files in the list', () => {
+		it("shows selected files in the list", () => {
 			const mockFile = {
-				name: 'test-image.jpg',
+				name: "test-image.jpg",
 				size: 1024 * 1024, // 1MB
-				type: 'image/jpeg',
-				preview: 'blob:test',
-				errors: []
-			}
+				type: "image/jpeg",
+				preview: "blob:test",
+				errors: [],
+			};
 
 			mockUploadReturn = createMockUploadReturn({
-				files: [mockFile]
-			})
+				files: [mockFile],
+			});
 
 			render(<PropertyImageDropzone propertyId={testPropertyId} />, {
-				wrapper: createWrapper()
-			})
+				wrapper: createWrapper(),
+			});
 
-			expect(screen.getByText('test-image.jpg')).toBeInTheDocument()
-		})
+			expect(screen.getByText("test-image.jpg")).toBeInTheDocument();
+		});
 
-		it('allows removing files before upload', async () => {
-			const user = userEvent.setup()
+		it("allows removing files before upload", async () => {
+			const user = userEvent.setup();
 			const mockFile = {
-				name: 'test-image.jpg',
+				name: "test-image.jpg",
 				size: 1024 * 1024,
-				type: 'image/jpeg',
-				preview: 'blob:test',
-				errors: []
-			}
+				type: "image/jpeg",
+				preview: "blob:test",
+				errors: [],
+			};
 
 			mockUploadReturn = createMockUploadReturn({
-				files: [mockFile]
-			})
+				files: [mockFile],
+			});
 
 			render(<PropertyImageDropzone propertyId={testPropertyId} />, {
-				wrapper: createWrapper()
-			})
+				wrapper: createWrapper(),
+			});
 
 			// Find remove button (X icon button)
-			const buttons = screen.getAllByRole('button')
-			const removeButton = buttons.find(btn =>
-				btn.querySelector('svg.lucide-x')
-			)
+			const buttons = screen.getAllByRole("button");
+			const removeButton = buttons.find((btn) =>
+				btn.querySelector("svg.lucide-x"),
+			);
 
 			if (removeButton) {
-				await user.click(removeButton)
-				expect(mockSetFiles).toHaveBeenCalled()
+				await user.click(removeButton);
+				expect(mockSetFiles).toHaveBeenCalled();
 			}
-		})
-	})
+		});
+	});
 
-	describe('File Validation', () => {
-		it('shows error for files that are too large', () => {
+	describe("File Validation", () => {
+		it("shows error for files that are too large", () => {
 			const oversizedFile = {
-				name: 'huge-image.jpg',
+				name: "huge-image.jpg",
 				size: 20 * 1024 * 1024, // 20MB
-				type: 'image/jpeg',
-				preview: 'blob:test',
+				type: "image/jpeg",
+				preview: "blob:test",
 				errors: [
-					{ code: 'file-too-large', message: 'File is larger than 10 MB' }
-				]
-			}
+					{ code: "file-too-large", message: "File is larger than 10 MB" },
+				],
+			};
 
 			mockUploadReturn = createMockUploadReturn({
-				files: [oversizedFile]
-			})
+				files: [oversizedFile],
+			});
 
 			render(<PropertyImageDropzone propertyId={testPropertyId} />, {
-				wrapper: createWrapper()
-			})
+				wrapper: createWrapper(),
+			});
 
-			expect(screen.getByText(/file is larger than/i)).toBeInTheDocument()
-		})
+			expect(screen.getByText(/file is larger than/i)).toBeInTheDocument();
+		});
 
-		it('shows error for non-image files', () => {
+		it("shows error for non-image files", () => {
 			const invalidFile = {
-				name: 'document.pdf',
+				name: "document.pdf",
 				size: 1024 * 1024,
-				type: 'application/pdf',
-				preview: 'blob:test',
+				type: "application/pdf",
+				preview: "blob:test",
 				errors: [
-					{ code: 'file-invalid-type', message: 'File type not accepted' }
-				]
-			}
+					{ code: "file-invalid-type", message: "File type not accepted" },
+				],
+			};
 
 			mockUploadReturn = createMockUploadReturn({
-				files: [invalidFile]
-			})
+				files: [invalidFile],
+			});
 
 			render(<PropertyImageDropzone propertyId={testPropertyId} />, {
-				wrapper: createWrapper()
-			})
+				wrapper: createWrapper(),
+			});
 
-			expect(screen.getByText(/file type not accepted/i)).toBeInTheDocument()
-		})
+			expect(screen.getByText(/file type not accepted/i)).toBeInTheDocument();
+		});
 
-		it('shows error when too many files selected', () => {
+		it("shows error when too many files selected", () => {
 			const files = Array.from({ length: 12 }, (_, i) => ({
 				name: `image-${i}.jpg`,
 				size: 1024 * 1024,
-				type: 'image/jpeg',
+				type: "image/jpeg",
 				preview: `blob:test-${i}`,
-				errors: []
-			}))
+				errors: [],
+			}));
 
 			mockUploadReturn = createMockUploadReturn({
 				files,
-				maxFiles: 10
-			})
+				maxFiles: 10,
+			});
 
 			render(<PropertyImageDropzone propertyId={testPropertyId} />, {
-				wrapper: createWrapper()
-			})
+				wrapper: createWrapper(),
+			});
 
 			// Should show too many files error
-			expect(screen.getByText(/you may upload only up to/i)).toBeInTheDocument()
-		})
-	})
+			expect(
+				screen.getByText(/you may upload only up to/i),
+			).toBeInTheDocument();
+		});
+	});
 
-	describe('Upload Flow', () => {
-		it('shows upload button when files are selected', () => {
+	describe("Upload Flow", () => {
+		it("shows upload button when files are selected", () => {
 			const mockFile = {
-				name: 'test-image.jpg',
+				name: "test-image.jpg",
 				size: 1024 * 1024,
-				type: 'image/jpeg',
-				preview: 'blob:test',
-				errors: []
-			}
+				type: "image/jpeg",
+				preview: "blob:test",
+				errors: [],
+			};
 
 			mockUploadReturn = createMockUploadReturn({
-				files: [mockFile]
-			})
+				files: [mockFile],
+			});
 
 			render(<PropertyImageDropzone propertyId={testPropertyId} />, {
-				wrapper: createWrapper()
-			})
+				wrapper: createWrapper(),
+			});
 
 			expect(
-				screen.getByRole('button', { name: /upload/i })
-			).toBeInTheDocument()
-		})
+				screen.getByRole("button", { name: /upload/i }),
+			).toBeInTheDocument();
+		});
 
-		it('calls onUpload when upload button is clicked', async () => {
-			const user = userEvent.setup()
+		it("calls onUpload when upload button is clicked", async () => {
+			const user = userEvent.setup();
 			const mockFile = {
-				name: 'test-image.jpg',
+				name: "test-image.jpg",
 				size: 1024 * 1024,
-				type: 'image/jpeg',
-				preview: 'blob:test',
-				errors: []
-			}
-
-			mockUploadReturn = createMockUploadReturn({
-				files: [mockFile]
-			})
-
-			render(<PropertyImageDropzone propertyId={testPropertyId} />, {
-				wrapper: createWrapper()
-			})
-
-			const uploadButton = screen.getByRole('button', { name: /upload/i })
-			await user.click(uploadButton)
-
-			expect(mockOnUpload).toHaveBeenCalled()
-		})
-
-		it('disables upload button during upload', () => {
-			const mockFile = {
-				name: 'test-image.jpg',
-				size: 1024 * 1024,
-				type: 'image/jpeg',
-				preview: 'blob:test',
-				errors: []
-			}
+				type: "image/jpeg",
+				preview: "blob:test",
+				errors: [],
+			};
 
 			mockUploadReturn = createMockUploadReturn({
 				files: [mockFile],
-				loading: true
-			})
+			});
 
 			render(<PropertyImageDropzone propertyId={testPropertyId} />, {
-				wrapper: createWrapper()
-			})
+				wrapper: createWrapper(),
+			});
 
-			const uploadButton = screen.getByRole('button', { name: /upload/i })
-			expect(uploadButton).toBeDisabled()
-		})
+			const uploadButton = screen.getByRole("button", { name: /upload/i });
+			await user.click(uploadButton);
 
-		it('shows loading state during upload', () => {
+			expect(mockOnUpload).toHaveBeenCalled();
+		});
+
+		it("disables upload button during upload", () => {
 			const mockFile = {
-				name: 'test-image.jpg',
+				name: "test-image.jpg",
 				size: 1024 * 1024,
-				type: 'image/jpeg',
-				preview: 'blob:test',
-				errors: []
-			}
+				type: "image/jpeg",
+				preview: "blob:test",
+				errors: [],
+			};
 
 			mockUploadReturn = createMockUploadReturn({
 				files: [mockFile],
-				loading: true
-			})
+				loading: true,
+			});
 
 			render(<PropertyImageDropzone propertyId={testPropertyId} />, {
-				wrapper: createWrapper()
-			})
+				wrapper: createWrapper(),
+			});
+
+			const uploadButton = screen.getByRole("button", { name: /upload/i });
+			expect(uploadButton).toBeDisabled();
+		});
+
+		it("shows loading state during upload", () => {
+			const mockFile = {
+				name: "test-image.jpg",
+				size: 1024 * 1024,
+				type: "image/jpeg",
+				preview: "blob:test",
+				errors: [],
+			};
+
+			mockUploadReturn = createMockUploadReturn({
+				files: [mockFile],
+				loading: true,
+			});
+
+			render(<PropertyImageDropzone propertyId={testPropertyId} />, {
+				wrapper: createWrapper(),
+			});
 
 			// Check for uploading text within the upload button
-			const uploadButton = screen.getByRole('button', { name: /uploading/i })
-			expect(uploadButton).toBeInTheDocument()
-		})
-	})
+			const uploadButton = screen.getByRole("button", { name: /uploading/i });
+			expect(uploadButton).toBeInTheDocument();
+		});
+	});
 
-	describe('Success State', () => {
-		it('shows success message after upload', () => {
+	describe("Success State", () => {
+		it("shows success message after upload", () => {
 			const mockFile = {
-				name: 'test-image.jpg',
+				name: "test-image.jpg",
 				size: 1024 * 1024,
-				type: 'image/jpeg',
-				preview: 'blob:test',
-				errors: []
-			}
+				type: "image/jpeg",
+				preview: "blob:test",
+				errors: [],
+			};
 
 			mockUploadReturn = createMockUploadReturn({
 				files: [mockFile],
-				successes: ['test-image.jpg'],
-				isSuccess: true
-			})
+				successes: ["test-image.jpg"],
+				isSuccess: true,
+			});
 
 			render(<PropertyImageDropzone propertyId={testPropertyId} />, {
-				wrapper: createWrapper()
-			})
+				wrapper: createWrapper(),
+			});
 
-			expect(screen.getByText(/successfully uploaded/i)).toBeInTheDocument()
-		})
+			expect(screen.getByText(/successfully uploaded/i)).toBeInTheDocument();
+		});
 
-		it('renders success state without errors', () => {
+		it("renders success state without errors", () => {
 			const mockFile = {
-				name: 'test-image.jpg',
+				name: "test-image.jpg",
 				size: 1024 * 1024,
-				type: 'image/jpeg',
-				preview: 'blob:test',
-				errors: []
-			}
+				type: "image/jpeg",
+				preview: "blob:test",
+				errors: [],
+			};
 
 			mockUploadReturn = createMockUploadReturn({
 				files: [mockFile],
-				successes: ['test-image.jpg'],
-				isSuccess: true
-			})
+				successes: ["test-image.jpg"],
+				isSuccess: true,
+			});
 
 			// Component should render success state without crashing
 			// Query invalidation is an internal implementation detail
 			// that is better tested via integration tests
 			const { container } = render(
 				<PropertyImageDropzone propertyId={testPropertyId} />,
-				{ wrapper: createWrapper() }
-			)
+				{ wrapper: createWrapper() },
+			);
 
-			expect(container).toBeDefined()
-			expect(screen.getByText(/successfully uploaded/i)).toBeInTheDocument()
-		})
-	})
+			expect(container).toBeDefined();
+			expect(screen.getByText(/successfully uploaded/i)).toBeInTheDocument();
+		});
+	});
 
-	describe('Error State', () => {
-		it('shows error message when upload fails', () => {
+	describe("Error State", () => {
+		it("shows error message when upload fails", () => {
 			const mockFile = {
-				name: 'test-image.jpg',
+				name: "test-image.jpg",
 				size: 1024 * 1024,
-				type: 'image/jpeg',
-				preview: 'blob:test',
-				errors: []
-			}
+				type: "image/jpeg",
+				preview: "blob:test",
+				errors: [],
+			};
 
 			mockUploadReturn = createMockUploadReturn({
 				files: [mockFile],
 				errors: [
-					{ name: 'test-image.jpg', message: 'Upload failed: Network error' }
-				]
-			})
+					{ name: "test-image.jpg", message: "Upload failed: Network error" },
+				],
+			});
 
 			render(<PropertyImageDropzone propertyId={testPropertyId} />, {
-				wrapper: createWrapper()
-			})
+				wrapper: createWrapper(),
+			});
 
-			expect(screen.getByText(/failed to upload/i)).toBeInTheDocument()
-		})
+			expect(screen.getByText(/failed to upload/i)).toBeInTheDocument();
+		});
 
-		it('allows retry after error', async () => {
-			const user = userEvent.setup()
+		it("allows retry after error", async () => {
+			const user = userEvent.setup();
 			const mockFile = {
-				name: 'test-image.jpg',
+				name: "test-image.jpg",
 				size: 1024 * 1024,
-				type: 'image/jpeg',
-				preview: 'blob:test',
-				errors: []
-			}
+				type: "image/jpeg",
+				preview: "blob:test",
+				errors: [],
+			};
 
 			mockUploadReturn = createMockUploadReturn({
 				files: [mockFile],
-				errors: [{ name: 'test-image.jpg', message: 'Upload failed' }]
-			})
+				errors: [{ name: "test-image.jpg", message: "Upload failed" }],
+			});
 
 			render(<PropertyImageDropzone propertyId={testPropertyId} />, {
-				wrapper: createWrapper()
-			})
+				wrapper: createWrapper(),
+			});
 
 			// Upload button should still be available for retry
-			const uploadButton = screen.getByRole('button', { name: /upload/i })
-			await user.click(uploadButton)
+			const uploadButton = screen.getByRole("button", { name: /upload/i });
+			await user.click(uploadButton);
 
-			expect(mockOnUpload).toHaveBeenCalled()
-		})
-	})
+			expect(mockOnUpload).toHaveBeenCalled();
+		});
+	});
 
-	describe('Drag and Drop Visual Feedback', () => {
-		it('applies active styling when dragging files over', () => {
+	describe("Drag and Drop Visual Feedback", () => {
+		it("applies active styling when dragging files over", () => {
 			mockUploadReturn = createMockUploadReturn({
 				isDragActive: true,
-				isDragAccept: true
-			})
+				isDragAccept: true,
+			});
 
 			render(<PropertyImageDropzone propertyId={testPropertyId} />, {
-				wrapper: createWrapper()
-			})
+				wrapper: createWrapper(),
+			});
 
 			// The component should render without errors
-			expect(screen.getByText(/drag and drop/i)).toBeInTheDocument()
-		})
+			expect(screen.getByText(/drag and drop/i)).toBeInTheDocument();
+		});
 
-		it('applies reject styling when dragging invalid files', () => {
+		it("applies reject styling when dragging invalid files", () => {
 			mockUploadReturn = createMockUploadReturn({
 				isDragActive: true,
-				isDragReject: true
-			})
+				isDragReject: true,
+			});
 
 			render(<PropertyImageDropzone propertyId={testPropertyId} />, {
-				wrapper: createWrapper()
-			})
+				wrapper: createWrapper(),
+			});
 
 			// The component should render without errors
-			expect(screen.getByText(/drag and drop/i)).toBeInTheDocument()
-		})
-	})
+			expect(screen.getByText(/drag and drop/i)).toBeInTheDocument();
+		});
+	});
 
-	describe('Image Preview', () => {
-		it('shows image preview for selected files', () => {
+	describe("Image Preview", () => {
+		it("shows image preview for selected files", () => {
 			const mockFile = {
-				name: 'test-image.jpg',
+				name: "test-image.jpg",
 				size: 1024 * 1024,
-				type: 'image/jpeg',
-				preview: 'blob:http://localhost/test-preview',
-				errors: []
-			}
-
-			mockUploadReturn = createMockUploadReturn({
-				files: [mockFile]
-			})
-
-			render(<PropertyImageDropzone propertyId={testPropertyId} />, {
-				wrapper: createWrapper()
-			})
-
-			// Should show preview image
-			const preview = screen.getByRole('img', { hidden: true })
-			expect(preview).toHaveAttribute(
-				'src',
-				'blob:http://localhost/test-preview'
-			)
-		})
-	})
-
-	describe('Callbacks', () => {
-		it('renders with onUploadSuccess callback without errors', () => {
-			const onUploadSuccess = vi.fn()
-			const mockFile = {
-				name: 'test-image.jpg',
-				size: 1024 * 1024,
-				type: 'image/jpeg',
-				preview: 'blob:test',
-				errors: []
-			}
+				type: "image/jpeg",
+				preview: "blob:http://localhost/test-preview",
+				errors: [],
+			};
 
 			mockUploadReturn = createMockUploadReturn({
 				files: [mockFile],
-				successes: ['test-image.jpg'],
-				isSuccess: true
-			})
+			});
+
+			render(<PropertyImageDropzone propertyId={testPropertyId} />, {
+				wrapper: createWrapper(),
+			});
+
+			// Should show preview image
+			const preview = screen.getByRole("img", { hidden: true });
+			expect(preview).toHaveAttribute(
+				"src",
+				"blob:http://localhost/test-preview",
+			);
+		});
+	});
+
+	describe("Callbacks", () => {
+		it("renders with onUploadSuccess callback without errors", () => {
+			const onUploadSuccess = vi.fn();
+			const mockFile = {
+				name: "test-image.jpg",
+				size: 1024 * 1024,
+				type: "image/jpeg",
+				preview: "blob:test",
+				errors: [],
+			};
+
+			mockUploadReturn = createMockUploadReturn({
+				files: [mockFile],
+				successes: ["test-image.jpg"],
+				isSuccess: true,
+			});
 
 			// Component should render with callback prop without crashing
 			// The callback behavior is an internal implementation detail
@@ -533,11 +535,11 @@ describe('PropertyImageDropzone Component', () => {
 					propertyId={testPropertyId}
 					onUploadSuccess={onUploadSuccess}
 				/>,
-				{ wrapper: createWrapper() }
-			)
+				{ wrapper: createWrapper() },
+			);
 
-			expect(container).toBeDefined()
-			expect(screen.getByText(/successfully uploaded/i)).toBeInTheDocument()
-		})
-	})
-})
+			expect(container).toBeDefined();
+			expect(screen.getByText(/successfully uploaded/i)).toBeInTheDocument();
+		});
+	});
+});

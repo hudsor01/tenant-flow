@@ -1,54 +1,51 @@
-import type { ReactNode } from 'react'
+import * as Sentry from "@sentry/nextjs";
+import { Analytics } from "@vercel/analytics/next";
+import { SpeedInsights } from "@vercel/speed-insights/next";
+import { GeistMono } from "geist/font/mono";
+import type { Metadata, Viewport } from "next";
+import { Playfair_Display, Roboto } from "next/font/google";
+import type { ReactNode } from "react";
 
-import * as Sentry from '@sentry/nextjs'
-import { Analytics } from '@vercel/analytics/next'
-import { SpeedInsights } from '@vercel/speed-insights/next'
-import { GeistMono } from 'geist/font/mono'
-import type { Metadata, Viewport } from 'next'
-import { Playfair_Display, Roboto } from 'next/font/google'
+import { ErrorBoundary } from "#components/error-boundary/error-boundary";
+import { Providers } from "#components/providers";
+import SeoJsonLd from "#components/seo/seo-json-ld";
+import RegisterServiceWorker from "#components/sw/register-sw";
+import { Toaster } from "#components/ui/toast";
+import { generateSiteMetadata } from "#lib/generate-metadata";
 
-import { ErrorBoundary } from '#components/error-boundary/error-boundary'
-import { Providers } from '#components/providers'
-import SeoJsonLd from '#components/seo/seo-json-ld'
-import RegisterServiceWorker from '#components/sw/register-sw'
-import { Toaster } from '#components/ui/toast'
-import { generateSiteMetadata } from '#lib/generate-metadata'
-
-import './globals.css'
+import "./globals.css";
 
 // Roboto - clean, geometric sans-serif for body text and UI
 const roboto = Roboto({
-	subsets: ['latin'],
-	display: 'swap',
-	variable: '--font-sans',
-	weight: ['300', '400', '500', '700']
-})
+	subsets: ["latin"],
+	display: "swap",
+	variable: "--font-sans",
+	weight: ["300", "400", "500", "700"],
+});
 
 // Playfair Display - elegant serif for hero/marketing headlines
 const playfairDisplay = Playfair_Display({
-	subsets: ['latin'],
-	display: 'swap',
-	variable: '--font-display'
-})
+	subsets: ["latin"],
+	display: "swap",
+	variable: "--font-display",
+});
 
 // `themeColor` and `msapplication-TileColor` are HTML meta attribute
 // values, not CSS — Tailwind tokens / CSS custom properties don't apply.
 // The previous `var(--color-info)` rendered as a literal string and was
 // silently ignored by browsers. Hex matches `--color-primary` (#2563eb).
-/* eslint-disable color-tokens/no-hex-colors -- HTML meta attribute values cannot reference CSS variables */
 export const viewport: Viewport = {
-	width: 'device-width',
+	width: "device-width",
 	initialScale: 1,
-	colorScheme: 'light dark',
+	colorScheme: "light dark",
 	themeColor: [
-		{ media: '(prefers-color-scheme: light)', color: '#2563eb' },
-		{ media: '(prefers-color-scheme: dark)', color: '#1e3a8a' },
+		{ media: "(prefers-color-scheme: light)", color: "#2563eb" },
+		{ media: "(prefers-color-scheme: dark)", color: "#1e3a8a" },
 	],
-}
-/* eslint-enable color-tokens/no-hex-colors */
+};
 
 export async function generateMetadata(): Promise<Metadata> {
-	const metadata = await generateSiteMetadata()
+	const metadata = await generateSiteMetadata();
 	return {
 		...metadata,
 		other: {
@@ -56,16 +53,18 @@ export async function generateMetadata(): Promise<Metadata> {
 			// Inject Sentry trace headers as meta tags for distributed tracing
 			// Allows the browser SDK to continue the SSR trace on the client
 			...(Object.fromEntries(
-				Object.entries(Sentry.getTraceData()).filter(([, v]) => v !== undefined)
-			) as Record<string, string>)
-		}
-	}
+				Object.entries(Sentry.getTraceData()).filter(
+					([, v]) => v !== undefined,
+				),
+			) as Record<string, string>),
+		},
+	};
 }
 
 export default async function RootLayout({
-	children
+	children,
 }: {
-	children: ReactNode
+	children: ReactNode;
 }) {
 	return (
 		<html lang="en" suppressHydrationWarning>
@@ -78,7 +77,6 @@ export default async function RootLayout({
 				<meta name="apple-mobile-web-app-status-bar-style" content="default" />
 				<meta name="apple-mobile-web-app-title" content="TenantFlow" />
 				<meta name="application-name" content="TenantFlow" />
-				{/* eslint-disable-next-line color-tokens/no-hex-colors -- HTML meta attribute values cannot reference CSS variables */}
 				<meta name="msapplication-TileColor" content="#2563eb" />
 				{/* Blog discovery: every RSS-aware reader (Feedly, NetNewsWire,
 				    Slack/Discord bots, AI crawlers fetching fresh content) checks
@@ -112,7 +110,7 @@ export default async function RootLayout({
 						<Toaster position="top-right" richColors closeButton />
 					</div>
 				</Providers>
-				{process.env.NODE_ENV === 'production' && (
+				{process.env.NODE_ENV === "production" && (
 					<>
 						<Analytics />
 						<SpeedInsights />
@@ -120,5 +118,5 @@ export default async function RootLayout({
 				)}
 			</body>
 		</html>
-	)
+	);
 }

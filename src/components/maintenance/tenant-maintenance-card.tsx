@@ -1,34 +1,34 @@
-import { Badge } from '#components/ui/badge'
-import { Separator } from '#components/ui/separator'
-import type { MaintenanceRequest } from '#types/core'
-import { Calendar, Wrench } from 'lucide-react'
-import { formatDate } from '#lib/formatters/date'
-import { cn } from '#lib/utils'
+import { Calendar, Wrench } from "lucide-react";
+import { Badge } from "#components/ui/badge";
+import { Separator } from "#components/ui/separator";
+import { formatDate } from "#lib/formatters/date";
+import { cn } from "#lib/utils";
+import type { MaintenanceRequest } from "#types/core";
 
 interface TenantMaintenanceCardProps {
-	request: MaintenanceRequest
-	layout?: 'stacked' | 'inline'
+	request: MaintenanceRequest;
+	layout?: "stacked" | "inline";
 }
 
 const statusClassMap: Record<string, string> = {
-	OPEN: 'badge badge-secondary',
-	IN_PROGRESS: 'badge badge-warning',
-	COMPLETED: 'badge badge-success',
-	CANCELED: 'badge badge-outline'
-}
+	OPEN: "badge badge-secondary",
+	IN_PROGRESS: "badge badge-warning",
+	COMPLETED: "badge badge-success",
+	CANCELED: "badge badge-outline",
+};
 
 const priorityColorMap: Record<string, string> = {
-	URGENT: 'text-destructive',
-	HIGH: 'text-warning',
-	MEDIUM: 'text-warning',
-	LOW: 'text-info'
-}
+	URGENT: "text-destructive",
+	HIGH: "text-warning",
+	MEDIUM: "text-warning",
+	LOW: "text-info",
+};
 
-const formatStatus = (status: string) => status.replace('_', ' ')
+const formatStatus = (status: string) => status.replace("_", " ");
 
 export function TenantMaintenanceCard({
 	request,
-	layout = 'stacked'
+	layout = "stacked",
 }: TenantMaintenanceCardProps) {
 	return (
 		<div
@@ -47,8 +47,8 @@ export function TenantMaintenanceCard({
 						</p>
 						<span
 							className={cn(
-								'text-xs font-semibold uppercase',
-								priorityColorMap[request.priority] ?? 'text-muted-foreground'
+								"text-xs font-semibold uppercase",
+								priorityColorMap[request.priority] ?? "text-muted-foreground",
 							)}
 						>
 							{request.priority}
@@ -60,16 +60,16 @@ export function TenantMaintenanceCard({
 					<div className="flex flex-wrap items-center gap-2 text-caption text-muted-foreground">
 						<Calendar className="size-3" aria-hidden />
 						<span>
-							Submitted{' '}
+							Submitted{" "}
 							{formatDate(request.created_at || new Date().toISOString(), {
-								relative: true
+								relative: true,
 							})}
 						</span>
 						{request.completed_at && (
 							<>
 								<span>•</span>
 								<span>
-									Completed{' '}
+									Completed{" "}
 									{formatDate(request.completed_at, { relative: true })}
 								</span>
 							</>
@@ -84,7 +84,7 @@ export function TenantMaintenanceCard({
 				<Badge
 					variant="outline"
 					className={cn(
-						statusClassMap[request.status] ?? 'badge badge-outline'
+						statusClassMap[request.status] ?? "badge badge-outline",
 					)}
 				>
 					{formatStatus(request.status)}
@@ -96,5 +96,5 @@ export function TenantMaintenanceCard({
 				)}
 			</div>
 		</div>
-	)
+	);
 }

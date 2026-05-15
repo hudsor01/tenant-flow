@@ -1,15 +1,15 @@
-import { UnitForm } from '#components/units/unit-form.client'
-import { RouteModal } from '#components/ui/route-modal'
+import { RouteModal } from "#components/ui/route-modal";
+import { UnitForm } from "#components/units/unit-form.client";
 
 interface EditUnitModalProps {
-	params: Promise<{ id: string }>
+	params: Promise<{ id: string }>;
 }
 
 /**
  * Edit Unit Modal (Intercepting Route)
  */
 export default async function EditUnitModal({ params }: EditUnitModalProps) {
-	const { id } = await params
+	const { id } = await params;
 
 	return (
 		<RouteModal
@@ -24,5 +24,5 @@ export default async function EditUnitModal({ params }: EditUnitModalProps) {
 				<UnitForm mode="edit" id={id} />
 			</div>
 		</RouteModal>
-	)
+	);
 }

@@ -1,44 +1,44 @@
-'use client'
+"use client";
 
-import type { ComponentProps, CSSProperties } from 'react'
+import type { ComponentProps, CSSProperties } from "react";
 import {
 	Sheet,
 	SheetContent,
 	SheetDescription,
 	SheetHeader,
-	SheetTitle
-} from '#components/ui/sheet'
-import { cn } from '#lib/utils'
-import { useSidebar, SIDEBAR_WIDTH_MOBILE } from './context'
+	SheetTitle,
+} from "#components/ui/sheet";
+import { cn } from "#lib/utils";
+import { SIDEBAR_WIDTH_MOBILE, useSidebar } from "./context";
 
-export interface SidebarProps extends ComponentProps<'div'> {
-	side?: 'left' | 'right'
-	variant?: 'sidebar' | 'floating' | 'inset'
-	collapsible?: 'offcanvas' | 'icon' | 'none'
+export interface SidebarProps extends ComponentProps<"div"> {
+	side?: "left" | "right";
+	variant?: "sidebar" | "floating" | "inset";
+	collapsible?: "offcanvas" | "icon" | "none";
 }
 
 export function Sidebar({
-	side = 'left',
-	variant = 'sidebar',
-	collapsible = 'offcanvas',
+	side = "left",
+	variant = "sidebar",
+	collapsible = "offcanvas",
 	className,
 	children,
 	...props
 }: SidebarProps) {
-	const { isMobile, state, openMobile, setOpenMobile } = useSidebar()
+	const { isMobile, state, openMobile, setOpenMobile } = useSidebar();
 
-	if (collapsible === 'none') {
+	if (collapsible === "none") {
 		return (
 			<div
 				className={cn(
-					'bg-sidebar text-sidebar-foreground flex h-full w-(--sidebar-width) flex-col',
-					className
+					"bg-sidebar text-sidebar-foreground flex h-full w-(--sidebar-width) flex-col",
+					className,
 				)}
 				{...props}
 			>
 				{children}
 			</div>
-		)
+		);
 	}
 
 	if (isMobile) {
@@ -50,7 +50,7 @@ export function Sidebar({
 					className="bg-sidebar text-sidebar-foreground w-(--sidebar-width) p-0 [&>button]:hidden"
 					style={
 						{
-							'--sidebar-width': SIDEBAR_WIDTH_MOBILE
+							"--sidebar-width": SIDEBAR_WIDTH_MOBILE,
 						} as CSSProperties
 					}
 					side={side}
@@ -62,39 +62,39 @@ export function Sidebar({
 					<div className="flex h-full w-full flex-col">{children}</div>
 				</SheetContent>
 			</Sheet>
-		)
+		);
 	}
 
 	return (
 		<div
 			className="group peer text-sidebar-foreground hidden md:block"
 			data-state={state}
-			data-collapsible={state === 'collapsed' ? collapsible : ''}
+			data-collapsible={state === "collapsed" ? collapsible : ""}
 			data-variant={variant}
 			data-side={side}
 		>
 			{/* This is what handles the sidebar gap on desktop */}
 			<div
 				className={cn(
-					'relative h-svh w-(--sidebar-width) bg-transparent transition-[width] duration-200 ease-linear',
-					collapsible === 'icon' &&
-						'group-data-[collapsible=icon]:w-(--sidebar-width-icon)',
-					(variant === 'floating' || variant === 'inset') &&
-						'group-data-[collapsible=icon]:w-[calc(var(--sidebar-width-icon)+var(--spacing-4)+2px)]',
-					'group-data-[collapsible=offcanvas]:w-0'
+					"relative h-svh w-(--sidebar-width) bg-transparent transition-[width] duration-200 ease-linear",
+					collapsible === "icon" &&
+						"group-data-[collapsible=icon]:w-(--sidebar-width-icon)",
+					(variant === "floating" || variant === "inset") &&
+						"group-data-[collapsible=icon]:w-[calc(var(--sidebar-width-icon)+var(--spacing-4)+2px)]",
+					"group-data-[collapsible=offcanvas]:w-0",
 				)}
 			/>
 			<div
 				className={cn(
-					'fixed inset-y-0 z-10 hidden h-svh w-(--sidebar-width) transition-[left,right,width] duration-200 ease-linear md:flex',
-					side === 'left'
-						? 'left-0 group-data-[collapsible=offcanvas]:left-[calc(var(--sidebar-width)*-1)]'
-						: 'right-0 group-data-[collapsible=offcanvas]:right-[calc(var(--sidebar-width)*-1)]',
+					"fixed inset-y-0 z-10 hidden h-svh w-(--sidebar-width) transition-[left,right,width] duration-200 ease-linear md:flex",
+					side === "left"
+						? "left-0 group-data-[collapsible=offcanvas]:left-[calc(var(--sidebar-width)*-1)]"
+						: "right-0 group-data-[collapsible=offcanvas]:right-[calc(var(--sidebar-width)*-1)]",
 					// Adjust the padding for floating and inset variants.
-					variant === 'floating' || variant === 'inset'
-						? 'p-2 group-data-[collapsible=icon]:w-[calc(var(--sidebar-width-icon)+(--spacing(4))+2px)]'
-						: 'group-data-[collapsible=icon]:w-(--sidebar-width-icon) group-data-[side=left]:border-r group-data-[side=right]:border-l',
-					className
+					variant === "floating" || variant === "inset"
+						? "p-2 group-data-[collapsible=icon]:w-[calc(var(--sidebar-width-icon)+(--spacing(4))+2px)]"
+						: "group-data-[collapsible=icon]:w-(--sidebar-width-icon) group-data-[side=left]:border-r group-data-[side=right]:border-l",
+					className,
 				)}
 				{...props}
 			>
@@ -106,5 +106,5 @@ export function Sidebar({
 				</div>
 			</div>
 		</div>
-	)
+	);
 }

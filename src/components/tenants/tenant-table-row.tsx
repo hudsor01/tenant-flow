@@ -1,23 +1,23 @@
-'use client'
+"use client";
 
-import { Pencil, Trash2, FileText } from 'lucide-react'
-import { Checkbox } from '#components/ui/checkbox'
-import { Button } from '#components/ui/button'
-import type { TenantItem } from '#types/sections/tenants'
-import type { LeaseStatus } from '#types/core'
-import { createLogger } from '#lib/frontend-logger'
-import { StatusSelectCell } from './tenant-table-helpers'
+import { FileText, Pencil, Trash2 } from "lucide-react";
+import { Button } from "#components/ui/button";
+import { Checkbox } from "#components/ui/checkbox";
+import { createLogger } from "#lib/frontend-logger";
+import type { LeaseStatus } from "#types/core";
+import type { TenantItem } from "#types/sections/tenants";
+import { StatusSelectCell } from "./tenant-table-helpers";
 
-const logger = createLogger({ component: 'TenantTableRow' })
+const logger = createLogger({ component: "TenantTableRow" });
 
 interface TenantTableRowProps {
-	tenant: TenantItem
-	isSelected: boolean
-	onSelect: (id: string) => void
-	onView: (id: string) => void
-	onEdit: (id: string) => void
-	onDelete: (id: string) => void
-	onViewLease: (leaseId: string) => void
+	tenant: TenantItem;
+	isSelected: boolean;
+	onSelect: (id: string) => void;
+	onView: (id: string) => void;
+	onEdit: (id: string) => void;
+	onDelete: (id: string) => void;
+	onViewLease: (leaseId: string) => void;
 }
 
 export function TenantTableRow({
@@ -27,12 +27,12 @@ export function TenantTableRow({
 	onView,
 	onEdit,
 	onDelete,
-	onViewLease
+	onViewLease,
 }: TenantTableRowProps) {
 	return (
 		<tr
 			className={`hover:bg-muted/50 transition-colors ${
-				isSelected ? 'bg-primary/5' : ''
+				isSelected ? "bg-primary/5" : ""
 			}`}
 		>
 			<td className="px-4 py-2">
@@ -55,7 +55,7 @@ export function TenantTableRow({
 			</td>
 			<td className="px-4 py-2">
 				<span className="text-sm text-muted-foreground">
-					{tenant.phone || '—'}
+					{tenant.phone || "—"}
 				</span>
 			</td>
 			<td className="px-4 py-2">
@@ -76,15 +76,15 @@ export function TenantTableRow({
 				<StatusSelectCell
 					value={tenant.leaseStatus}
 					onChange={(value: LeaseStatus) =>
-						logger.info('Status change:', {
+						logger.info("Status change:", {
 							tenantId: tenant.id,
-							newStatus: value
+							newStatus: value,
 						})
 					}
 				/>
 			</td>
 			<td className="px-4 py-2">
-				{tenant.leaseStatus === 'active' ? (
+				{tenant.leaseStatus === "active" ? (
 					<Button
 						variant="ghost"
 						size="sm"
@@ -121,5 +121,5 @@ export function TenantTableRow({
 				</div>
 			</td>
 		</tr>
-	)
+	);
 }

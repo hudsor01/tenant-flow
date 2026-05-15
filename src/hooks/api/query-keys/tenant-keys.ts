@@ -12,29 +12,29 @@
  * - Landlord-only model: tenants are owner-managed records, not authenticated users
  */
 
-import { queryOptions } from '@tanstack/react-query'
-import { createClient } from '#lib/supabase/client'
-import { handlePostgrestError } from '#lib/postgrest-error-handler'
-import { sanitizeSearchInput } from '#lib/sanitize-search'
-import type { Tenant, TenantWithLeaseInfo } from '#types/core'
-import type { TenantStats } from '#types/stats'
-import type { PaginatedResponse, TenantFilters } from '#types/api-contracts'
-import { QUERY_CACHE_TIMES } from '#lib/constants/query-config'
-import { mapTenantRow } from './tenant-mappers'
-import type { TenantPostgrestRow } from './tenant-mappers'
+import { queryOptions } from "@tanstack/react-query";
+import { QUERY_CACHE_TIMES } from "#lib/constants/query-config";
+import { handlePostgrestError } from "#lib/postgrest-error-handler";
+import { sanitizeSearchInput } from "#lib/sanitize-search";
+import { createClient } from "#lib/supabase/client";
+import type { PaginatedResponse, TenantFilters } from "#types/api-contracts";
+import type { Tenant, TenantWithLeaseInfo } from "#types/core";
+import type { TenantStats } from "#types/stats";
+import type { TenantPostgrestRow } from "./tenant-mappers";
+import { mapTenantRow } from "./tenant-mappers";
 
 const TENANT_BASE_SELECT =
-	'id, user_id, owner_user_id, first_name, last_name, name, email, phone, status, created_at, updated_at, date_of_birth, emergency_contact_name, emergency_contact_phone, emergency_contact_relationship, identity_verified, ssn_last_four'
+	"id, user_id, owner_user_id, first_name, last_name, name, email, phone, status, created_at, updated_at, date_of_birth, emergency_contact_name, emergency_contact_phone, emergency_contact_relationship, identity_verified, ssn_last_four";
 
 const TENANT_WITH_LEASE_SELECT =
-	'*, users!tenants_user_id_fkey(id, email, first_name, last_name, full_name, phone, status), lease_tenants(lease_id, is_primary, leases(id, lease_status, start_date, end_date, rent_amount, security_deposit, unit_id, primary_tenant_id, owner_user_id, units(id, unit_number, bedrooms, bathrooms, square_feet, rent_amount, property_id, properties(id, name, address_line1, address_line2, city, state, postal_code))))'
+	"*, users!tenants_user_id_fkey(id, email, first_name, last_name, full_name, phone, status), lease_tenants(lease_id, is_primary, leases(id, lease_status, start_date, end_date, rent_amount, security_deposit, unit_id, primary_tenant_id, owner_user_id, units(id, unit_number, bedrooms, bathrooms, square_feet, rent_amount, property_id, properties(id, name, address_line1, address_line2, city, state, postal_code))))";
 
 /**
  * Tenant query factory
  */
 export const tenantQueries = {
-	all: () => ['tenants'] as const,
-	lists: () => [...tenantQueries.all(), 'list'] as const,
+	all: () => ["tenants"] as const,
+	lists: () => [...tenantQueries.all(), "list"] as const,
 
 	/**
 	 * Paginated tenant list with optional filters.
@@ -45,35 +45,35 @@ export const tenantQueries = {
 		queryOptions({
 			queryKey: [...tenantQueries.lists(), filters ?? {}],
 			queryFn: async (): Promise<PaginatedResponse<TenantWithLeaseInfo>> => {
-				const supabase = createClient()
-				const limit = filters?.limit ?? 50
-				const offset = filters?.offset ?? 0
+				const supabase = createClient();
+				const limit = filters?.limit ?? 50;
+				const offset = filters?.offset ?? 0;
 
 				let q = supabase
-					.from('tenants')
-					.select(TENANT_WITH_LEASE_SELECT, { count: 'exact' })
-					.neq('status', 'inactive')
-					.order('created_at', { ascending: false })
+					.from("tenants")
+					.select(TENANT_WITH_LEASE_SELECT, { count: "exact" })
+					.neq("status", "inactive")
+					.order("created_at", { ascending: false });
 
 				if (filters?.search) {
-					const safe = sanitizeSearchInput(filters.search)
+					const safe = sanitizeSearchInput(filters.search);
 					if (safe) {
 						q = q.or(
-							`name.ilike.%${safe}%,email.ilike.%${safe}%,first_name.ilike.%${safe}%,last_name.ilike.%${safe}%`
-						)
+							`name.ilike.%${safe}%,email.ilike.%${safe}%,first_name.ilike.%${safe}%,last_name.ilike.%${safe}%`,
+						);
 					}
 				}
 
-				q = q.range(offset, offset + limit - 1)
+				q = q.range(offset, offset + limit - 1);
 
-				const { data, error, count } = await q
+				const { data, error, count } = await q;
 
-				if (error) handlePostgrestError(error, 'tenants')
+				if (error) handlePostgrestError(error, "tenants");
 
-				const total = count ?? 0
+				const total = count ?? 0;
 				const tenants: TenantWithLeaseInfo[] = (data ?? []).map(
-					(row: TenantPostgrestRow) => mapTenantRow(row)
-				)
+					(row: TenantPostgrestRow) => mapTenantRow(row),
+				);
 
 				return {
 					data: tenants,
@@ -82,14 +82,14 @@ export const tenantQueries = {
 						page: Math.floor(offset / limit) + 1,
 						limit,
 						total,
-						totalPages: Math.ceil(total / limit)
-					}
-				}
+						totalPages: Math.ceil(total / limit),
+					},
+				};
 			},
-			...QUERY_CACHE_TIMES.DETAIL
+			...QUERY_CACHE_TIMES.DETAIL,
 		}),
 
-	details: () => [...tenantQueries.all(), 'detail'] as const,
+	details: () => [...tenantQueries.all(), "detail"] as const,
 
 	/**
 	 * Single tenant by ID (base fields only, no lease join)
@@ -98,19 +98,19 @@ export const tenantQueries = {
 		queryOptions({
 			queryKey: [...tenantQueries.details(), id],
 			queryFn: async (): Promise<Tenant> => {
-				const supabase = createClient()
+				const supabase = createClient();
 				const { data, error } = await supabase
-					.from('tenants')
+					.from("tenants")
 					.select(TENANT_BASE_SELECT)
-					.eq('id', id)
-					.single()
+					.eq("id", id)
+					.single();
 
-				if (error) handlePostgrestError(error, 'tenants')
+				if (error) handlePostgrestError(error, "tenants");
 
-				return data as Tenant
+				return data as Tenant;
 			},
 			...QUERY_CACHE_TIMES.DETAIL,
-			enabled: !!id
+			enabled: !!id,
 		}),
 
 	/**
@@ -119,21 +119,21 @@ export const tenantQueries = {
 	 */
 	withLease: (id: string) =>
 		queryOptions({
-			queryKey: [...tenantQueries.all(), 'with-lease', id],
+			queryKey: [...tenantQueries.all(), "with-lease", id],
 			queryFn: async (): Promise<TenantWithLeaseInfo> => {
-				const supabase = createClient()
+				const supabase = createClient();
 				const { data, error } = await supabase
-					.from('tenants')
+					.from("tenants")
 					.select(TENANT_WITH_LEASE_SELECT)
-					.eq('id', id)
-					.single()
+					.eq("id", id)
+					.single();
 
-				if (error) handlePostgrestError(error, 'tenants')
+				if (error) handlePostgrestError(error, "tenants");
 
-				return mapTenantRow(data as TenantPostgrestRow) as TenantWithLeaseInfo
+				return mapTenantRow(data as TenantPostgrestRow) as TenantWithLeaseInfo;
 			},
 			...QUERY_CACHE_TIMES.DETAIL,
-			enabled: !!id
+			enabled: !!id,
 		}),
 
 	/**
@@ -142,27 +142,43 @@ export const tenantQueries = {
 	 */
 	stats: () =>
 		queryOptions({
-			queryKey: [...tenantQueries.all(), 'stats'],
+			queryKey: [...tenantQueries.all(), "stats"],
 			queryFn: async (): Promise<TenantStats> => {
-				const supabase = createClient()
+				const supabase = createClient();
 				const [totalResult, activeResult, inactiveResult] = await Promise.all([
-					supabase.from('tenants').select('id', { count: 'exact', head: true }),
-					supabase.from('tenants').select('id', { count: 'exact', head: true }).eq('users.status', 'active'),
-					supabase.from('tenants').select('id', { count: 'exact', head: true }).eq('users.status', 'inactive')
-				])
+					supabase.from("tenants").select("id", { count: "exact", head: true }),
+					supabase
+						.from("tenants")
+						.select("id", { count: "exact", head: true })
+						.eq("users.status", "active"),
+					supabase
+						.from("tenants")
+						.select("id", { count: "exact", head: true })
+						.eq("users.status", "inactive"),
+				]);
 
-				if (totalResult.error) handlePostgrestError(totalResult.error, 'tenants')
-				if (activeResult.error) handlePostgrestError(activeResult.error, 'tenants')
-				if (inactiveResult.error) handlePostgrestError(inactiveResult.error, 'tenants')
+				if (totalResult.error)
+					handlePostgrestError(totalResult.error, "tenants");
+				if (activeResult.error)
+					handlePostgrestError(activeResult.error, "tenants");
+				if (inactiveResult.error)
+					handlePostgrestError(inactiveResult.error, "tenants");
 
-				const total = totalResult.count ?? 0
-				const active = activeResult.count ?? 0
-				const inactive = inactiveResult.count ?? 0
+				const total = totalResult.count ?? 0;
+				const active = activeResult.count ?? 0;
+				const inactive = inactiveResult.count ?? 0;
 
-				return { total, active, inactive, newThisMonth: 0, totalTenants: total, activeTenants: active }
+				return {
+					total,
+					active,
+					inactive,
+					newThisMonth: 0,
+					totalTenants: total,
+					activeTenants: active,
+				};
 			},
 			...QUERY_CACHE_TIMES.DETAIL,
-			gcTime: 30 * 60 * 1000
+			gcTime: 30 * 60 * 1000,
 		}),
 
 	/**
@@ -171,24 +187,24 @@ export const tenantQueries = {
 	 */
 	allTenants: () =>
 		queryOptions({
-			queryKey: [...tenantQueries.lists(), 'all'],
+			queryKey: [...tenantQueries.lists(), "all"],
 			queryFn: async (): Promise<TenantWithLeaseInfo[]> => {
-				const supabase = createClient()
+				const supabase = createClient();
 				const { data, error } = await supabase
-					.from('tenants')
+					.from("tenants")
 					.select(TENANT_WITH_LEASE_SELECT)
-					.neq('status', 'inactive')
-					.order('created_at', { ascending: true })
+					.neq("status", "inactive")
+					.order("created_at", { ascending: true });
 
-				if (error) handlePostgrestError(error, 'tenants')
+				if (error) handlePostgrestError(error, "tenants");
 
 				return (data ?? []).map((row: TenantPostgrestRow) =>
-					mapTenantRow(row)
-				) as TenantWithLeaseInfo[]
+					mapTenantRow(row),
+				) as TenantWithLeaseInfo[];
 			},
 			...QUERY_CACHE_TIMES.DETAIL,
 			gcTime: 30 * 60 * 1000,
-			structuralSharing: true
+			structuralSharing: true,
 		}),
 
 	/**
@@ -197,40 +213,44 @@ export const tenantQueries = {
 	 */
 	notificationPreferences: (tenant_id: string) =>
 		queryOptions({
-			queryKey: [...tenantQueries.details(), tenant_id, 'notification-preferences'],
+			queryKey: [
+				...tenantQueries.details(),
+				tenant_id,
+				"notification-preferences",
+			],
 			queryFn: async (): Promise<{
-				emailNotifications: boolean
-				smsNotifications: boolean
-				maintenanceUpdates: boolean
-				paymentReminders: boolean
+				emailNotifications: boolean;
+				smsNotifications: boolean;
+				maintenanceUpdates: boolean;
+				paymentReminders: boolean;
 			}> => {
-				const supabase = createClient()
+				const supabase = createClient();
 
 				const { data: tenantRow, error: tenantError } = await supabase
-					.from('tenants')
-					.select('user_id')
-					.eq('id', tenant_id)
-					.single()
+					.from("tenants")
+					.select("user_id")
+					.eq("id", tenant_id)
+					.single();
 
-				if (tenantError) handlePostgrestError(tenantError, 'tenants')
+				if (tenantError) handlePostgrestError(tenantError, "tenants");
 
 				const { data, error } = await supabase
-					.from('notification_settings')
-					.select('email, sms, maintenance, general')
-					.eq('user_id', tenantRow!.user_id)
-					.single()
+					.from("notification_settings")
+					.select("email, sms, maintenance, general")
+					.eq("user_id", tenantRow!.user_id)
+					.single();
 
-				if (error) handlePostgrestError(error, 'notification_settings')
+				if (error) handlePostgrestError(error, "notification_settings");
 
 				return {
 					emailNotifications: data?.email ?? true,
 					smsNotifications: data?.sms ?? false,
 					maintenanceUpdates: data?.maintenance ?? true,
-					paymentReminders: data?.general ?? true
-				}
+					paymentReminders: data?.general ?? true,
+				};
 			},
 			enabled: !!tenant_id,
 			...QUERY_CACHE_TIMES.DETAIL,
-			gcTime: 10 * 60 * 1000
-		})
-}
+			gcTime: 10 * 60 * 1000,
+		}),
+};

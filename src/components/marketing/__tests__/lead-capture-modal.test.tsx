@@ -8,146 +8,154 @@
  * @vitest-environment jsdom
  */
 
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import { act, render, screen } from '@testing-library/react'
+import { act, render, screen } from "@testing-library/react";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-const invokeMock = vi.fn().mockResolvedValue({ error: null })
+const invokeMock = vi.fn().mockResolvedValue({ error: null });
 
-vi.mock('#lib/supabase/client', () => ({
+vi.mock("#lib/supabase/client", () => ({
 	createClient: () => ({
 		functions: { invoke: invokeMock },
 	}),
-}))
+}));
 
-vi.mock('sonner', () => ({
+vi.mock("sonner", () => ({
 	toast: {
 		success: vi.fn(),
 		error: vi.fn(),
 	},
-}))
+}));
 
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { LeadCaptureModal } from '#components/marketing/lead-capture-modal'
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { LeadCaptureModal } from "#components/marketing/lead-capture-modal";
 
 function withQuery(node: React.ReactNode) {
 	const client = new QueryClient({
 		defaultOptions: { queries: { retry: false } },
-	})
-	return <QueryClientProvider client={client}>{node}</QueryClientProvider>
+	});
+	return <QueryClientProvider client={client}>{node}</QueryClientProvider>;
 }
 
 function setScrollY(y: number) {
-	Object.defineProperty(window, 'scrollY', {
+	Object.defineProperty(window, "scrollY", {
 		configurable: true,
 		writable: true,
 		value: y,
-	})
+	});
 }
 
 function setHeights(scrollHeight: number, innerHeight: number) {
-	Object.defineProperty(document.documentElement, 'scrollHeight', {
+	Object.defineProperty(document.documentElement, "scrollHeight", {
 		configurable: true,
 		value: scrollHeight,
-	})
-	Object.defineProperty(window, 'innerHeight', {
+	});
+	Object.defineProperty(window, "innerHeight", {
 		configurable: true,
 		value: innerHeight,
-	})
+	});
 }
 
 // Other test files stub `sessionStorage` via `vi.stubGlobal` and can leak
 // the un-restored stub across parallel test workers. Re-establish a clean
 // in-memory mock per test so assertions don't depend on shared realm state.
-let mockSession: Record<string, string>
+let mockSession: Record<string, string>;
 
-describe('LeadCaptureModal', () => {
+describe("LeadCaptureModal", () => {
 	beforeEach(() => {
-		mockSession = {}
-		vi.stubGlobal('sessionStorage', {
+		mockSession = {};
+		vi.stubGlobal("sessionStorage", {
 			getItem: vi.fn((key: string) => mockSession[key] ?? null),
 			setItem: vi.fn((key: string, value: string) => {
-				mockSession[key] = value
+				mockSession[key] = value;
 			}),
 			removeItem: vi.fn((key: string) => {
-				delete mockSession[key]
+				delete mockSession[key];
 			}),
 			// Mutate in place — never reassign `mockSession`, otherwise the
 			// other vi.fn closures keep their pre-clear reference and the
 			// stub silently desyncs.
 			clear: vi.fn(() => {
-				for (const k of Object.keys(mockSession)) delete mockSession[k]
+				for (const k of Object.keys(mockSession)) delete mockSession[k];
 			}),
-		})
-		invokeMock.mockClear()
-		setScrollY(0)
-	})
+		});
+		invokeMock.mockClear();
+		setScrollY(0);
+	});
 
 	afterEach(() => {
-		vi.unstubAllGlobals()
-		vi.unstubAllEnvs()
-	})
+		vi.unstubAllGlobals();
+		vi.unstubAllEnvs();
+	});
 
-	it('renders nothing when the feature flag is off', () => {
-		vi.stubEnv('NEXT_PUBLIC_LEAD_CAPTURE_MODAL', 'off')
-		render(withQuery(<LeadCaptureModal />))
-		expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
-	})
+	it("renders nothing when the feature flag is off", () => {
+		vi.stubEnv("NEXT_PUBLIC_LEAD_CAPTURE_MODAL", "off");
+		render(withQuery(<LeadCaptureModal />));
+		expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+	});
 
-	it('renders nothing when the flag is unset', () => {
-		render(withQuery(<LeadCaptureModal />))
-		expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
-	})
+	it("renders nothing when the flag is unset", () => {
+		render(withQuery(<LeadCaptureModal />));
+		expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+	});
 
-	it('does not auto-open until scroll-depth crosses the threshold', () => {
-		vi.stubEnv('NEXT_PUBLIC_LEAD_CAPTURE_MODAL', 'on')
-		setHeights(2000, 1000)
-		setScrollY(0)
+	it("does not auto-open until scroll-depth crosses the threshold", () => {
+		vi.stubEnv("NEXT_PUBLIC_LEAD_CAPTURE_MODAL", "on");
+		setHeights(2000, 1000);
+		setScrollY(0);
 		render(
-			withQuery(<LeadCaptureModal scrollPercentTrigger={70} enableExitIntent={false} />),
-		)
-		expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
-	})
+			withQuery(
+				<LeadCaptureModal scrollPercentTrigger={70} enableExitIntent={false} />,
+			),
+		);
+		expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+	});
 
-	it('opens once scroll-depth crosses the trigger', () => {
-		vi.stubEnv('NEXT_PUBLIC_LEAD_CAPTURE_MODAL', 'on')
-		setHeights(2000, 1000)
+	it("opens once scroll-depth crosses the trigger", () => {
+		vi.stubEnv("NEXT_PUBLIC_LEAD_CAPTURE_MODAL", "on");
+		setHeights(2000, 1000);
 		render(
-			withQuery(<LeadCaptureModal scrollPercentTrigger={70} enableExitIntent={false} />),
-		)
+			withQuery(
+				<LeadCaptureModal scrollPercentTrigger={70} enableExitIntent={false} />,
+			),
+		);
 		act(() => {
 			// 2000 - 1000 = 1000 scrollable; 800 / 1000 = 80% > 70%.
-			setScrollY(800)
-			window.dispatchEvent(new Event('scroll'))
-		})
-		expect(screen.getByRole('dialog')).toBeInTheDocument()
-	})
+			setScrollY(800);
+			window.dispatchEvent(new Event("scroll"));
+		});
+		expect(screen.getByRole("dialog")).toBeInTheDocument();
+	});
 
-	it('marks sessionStorage so the modal does not re-open in the same session', () => {
-		vi.stubEnv('NEXT_PUBLIC_LEAD_CAPTURE_MODAL', 'on')
-		setHeights(2000, 1000)
+	it("marks sessionStorage so the modal does not re-open in the same session", () => {
+		vi.stubEnv("NEXT_PUBLIC_LEAD_CAPTURE_MODAL", "on");
+		setHeights(2000, 1000);
 		render(
-			withQuery(<LeadCaptureModal scrollPercentTrigger={50} enableExitIntent={false} />),
-		)
+			withQuery(
+				<LeadCaptureModal scrollPercentTrigger={50} enableExitIntent={false} />,
+			),
+		);
 		act(() => {
-			setScrollY(800)
-			window.dispatchEvent(new Event('scroll'))
-		})
-		expect(window.sessionStorage.getItem('tenantflow-lead-modal-shown')).toBe(
-			'true',
-		)
-	})
+			setScrollY(800);
+			window.dispatchEvent(new Event("scroll"));
+		});
+		expect(window.sessionStorage.getItem("tenantflow-lead-modal-shown")).toBe(
+			"true",
+		);
+	});
 
-	it('respects the session flag and never opens if already shown', () => {
-		vi.stubEnv('NEXT_PUBLIC_LEAD_CAPTURE_MODAL', 'on')
-		window.sessionStorage.setItem('tenantflow-lead-modal-shown', 'true')
-		setHeights(2000, 1000)
+	it("respects the session flag and never opens if already shown", () => {
+		vi.stubEnv("NEXT_PUBLIC_LEAD_CAPTURE_MODAL", "on");
+		window.sessionStorage.setItem("tenantflow-lead-modal-shown", "true");
+		setHeights(2000, 1000);
 		render(
-			withQuery(<LeadCaptureModal scrollPercentTrigger={10} enableExitIntent={false} />),
-		)
+			withQuery(
+				<LeadCaptureModal scrollPercentTrigger={10} enableExitIntent={false} />,
+			),
+		);
 		act(() => {
-			setScrollY(800)
-			window.dispatchEvent(new Event('scroll'))
-		})
-		expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
-	})
-})
+			setScrollY(800);
+			window.dispatchEvent(new Event("scroll"));
+		});
+		expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+	});
+});

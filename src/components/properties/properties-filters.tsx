@@ -1,20 +1,19 @@
-
-import { Plus, Building2, Search } from 'lucide-react'
-import { Button } from '#components/ui/button'
-import { BulkImportDialog } from '#components/bulk-import/bulk-import-dialog'
-import { propertyBulkImportConfig } from './bulk-import-config'
+import { Building2, Plus, Search } from "lucide-react";
+import { BulkImportDialog } from "#components/bulk-import/bulk-import-dialog";
+import { Button } from "#components/ui/button";
 import {
 	Empty,
 	EmptyDescription,
 	EmptyHeader,
 	EmptyMedia,
-	EmptyTitle
-} from '#components/ui/empty'
-import type { PropertyStatus } from '#types/core'
-import type { PropertyType } from './types'
+	EmptyTitle,
+} from "#components/ui/empty";
+import type { PropertyStatus } from "#types/core";
+import { propertyBulkImportConfig } from "./bulk-import-config";
+import type { PropertyType } from "./types";
 
 export interface EmptyPropertiesProps {
-	onAddProperty?: (() => void) | undefined
+	onAddProperty?: (() => void) | undefined;
 }
 
 export function EmptyProperties({ onAddProperty }: EmptyPropertiesProps) {
@@ -41,11 +40,11 @@ export function EmptyProperties({ onAddProperty }: EmptyPropertiesProps) {
 				</Button>
 			</div>
 		</Empty>
-	)
+	);
 }
 
 export interface PropertiesHeaderProps {
-	onAddProperty?: (() => void) | undefined
+	onAddProperty?: (() => void) | undefined;
 }
 
 export function PropertiesHeader({ onAddProperty }: PropertiesHeaderProps) {
@@ -69,11 +68,11 @@ export function PropertiesHeader({ onAddProperty }: PropertiesHeaderProps) {
 				</Button>
 			</div>
 		</div>
-	)
+	);
 }
 
 interface NoResultsFilterProps {
-	onClearFilters: () => void
+	onClearFilters: () => void;
 }
 
 export function NoResultsFilter({ onClearFilters }: NoResultsFilterProps) {
@@ -86,45 +85,56 @@ export function NoResultsFilter({ onClearFilters }: NoResultsFilterProps) {
 				<EmptyDescription>No properties match your filters</EmptyDescription>
 			</EmptyHeader>
 			<div className="flex items-center gap-3 mt-2">
-				<Button variant="link" onClick={onClearFilters} aria-label="Clear all filters">
+				<Button
+					variant="link"
+					onClick={onClearFilters}
+					aria-label="Clear all filters"
+				>
 					Clear filters
 				</Button>
 			</div>
 		</Empty>
-	)
+	);
 }
 
 export function useBulkHandlers(
 	selectedRows: Set<string>,
-	properties: { id: string; status: PropertyStatus; propertyType: PropertyType }[],
-	openBulkEdit: (initialStatus: PropertyStatus, initialType: PropertyType) => void,
+	properties: {
+		id: string;
+		status: PropertyStatus;
+		propertyType: PropertyType;
+	}[],
+	openBulkEdit: (
+		initialStatus: PropertyStatus,
+		initialType: PropertyType,
+	) => void,
 	deletePropertyMutation: { mutateAsync: (id: string) => Promise<unknown> },
-	clearSelection: () => void
+	clearSelection: () => void,
 ) {
 	const handleBulkEditOpen = () => {
-		if (selectedRows.size === 0) return
-		const firstSelected = properties.find(p => selectedRows.has(p.id))
+		if (selectedRows.size === 0) return;
+		const firstSelected = properties.find((p) => selectedRows.has(p.id));
 		if (firstSelected) {
-			openBulkEdit(firstSelected.status, firstSelected.propertyType)
+			openBulkEdit(firstSelected.status, firstSelected.propertyType);
 		}
-	}
+	};
 
 	const handleBulkDelete = async () => {
-		if (selectedRows.size === 0) return
-		const ids = Array.from(selectedRows)
-		const label = ids.length === 1 ? 'property' : 'properties'
+		if (selectedRows.size === 0) return;
+		const ids = Array.from(selectedRows);
+		const label = ids.length === 1 ? "property" : "properties";
 		const confirmed =
-			typeof window === 'undefined'
+			typeof window === "undefined"
 				? true
 				: window.confirm(
-						`Delete ${ids.length} ${label}? This will mark the ${label} as inactive.`
-					)
-		if (!confirmed) return
-		clearSelection()
+						`Delete ${ids.length} ${label}? This will mark the ${label} as inactive.`,
+					);
+		if (!confirmed) return;
+		clearSelection();
 		await Promise.allSettled(
-			ids.map(id => deletePropertyMutation.mutateAsync(id))
-		)
-	}
+			ids.map((id) => deletePropertyMutation.mutateAsync(id)),
+		);
+	};
 
-	return { handleBulkEditOpen, handleBulkDelete }
+	return { handleBulkEditOpen, handleBulkDelete };
 }

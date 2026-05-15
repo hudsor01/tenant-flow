@@ -1,26 +1,26 @@
-import { Download } from 'lucide-react'
-import { Button } from '#components/ui/button'
+import { Download } from "lucide-react";
+import { BlurFade } from "#components/ui/blur-fade";
+import { Button } from "#components/ui/button";
 import {
 	Select,
 	SelectContent,
 	SelectItem,
 	SelectTrigger,
-	SelectValue
-} from '#components/ui/select'
-import { BlurFade } from '#components/ui/blur-fade'
+	SelectValue,
+} from "#components/ui/select";
 
 interface IncomeStatementPageHeaderProps {
-	period: string
-	year: string
-	onPeriodChange: (value: string) => void
-	onYearChange: (value: string) => void
+	period: string;
+	year: string;
+	onPeriodChange: (value: string) => void;
+	onYearChange: (value: string) => void;
 }
 
 export function IncomeStatementPageHeader({
 	period,
 	year,
 	onPeriodChange,
-	onYearChange
+	onYearChange,
 }: IncomeStatementPageHeaderProps) {
 	return (
 		<BlurFade delay={0.1} inView>
@@ -59,5 +59,5 @@ export function IncomeStatementPageHeader({
 				</div>
 			</div>
 		</BlurFade>
-	)
+	);
 }

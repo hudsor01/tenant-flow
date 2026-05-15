@@ -1,14 +1,14 @@
-'use client'
+"use client";
 
-import { useEffect, useState } from 'react'
-import { useRouter } from 'next/navigation'
-import { authKeys } from '#hooks/api/use-auth'
-import { useSignOutMutation } from '#hooks/api/use-auth-mutations'
-import { createClient } from '#lib/supabase/client'
-import { useQuery } from '@tanstack/react-query'
-import { Button } from '#components/ui/button'
-import { CardLayout } from '#components/ui/card-layout'
-import { LogOut } from 'lucide-react'
+import { useQuery } from "@tanstack/react-query";
+import { LogOut } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import { Button } from "#components/ui/button";
+import { CardLayout } from "#components/ui/card-layout";
+import { authKeys } from "#hooks/api/use-auth";
+import { useSignOutMutation } from "#hooks/api/use-auth-mutations";
+import { createClient } from "#lib/supabase/client";
 
 /**
  * AUTH-11: Signout confirmation page
@@ -18,42 +18,42 @@ import { LogOut } from 'lucide-react'
  * If user is already signed out: shows "You have been signed out" message.
  */
 export default function SignOutPage() {
-	const router = useRouter()
-	const signOut = useSignOutMutation()
-	const [signedOut, setSignedOut] = useState(false)
+	const router = useRouter();
+	const signOut = useSignOutMutation();
+	const [signedOut, setSignedOut] = useState(false);
 
 	// Check if user has an active session
 	const { data: session, isLoading } = useQuery({
 		queryKey: authKeys.signoutCheck,
 		queryFn: async () => {
-			const supabase = createClient()
-			const { data } = await supabase.auth.getSession()
-			return data.session
+			const supabase = createClient();
+			const { data } = await supabase.auth.getSession();
+			return data.session;
 		},
 		staleTime: 0,
-	})
+	});
 
-	const isAuthenticated = !!session && !signedOut
+	const isAuthenticated = !!session && !signedOut;
 
 	function handleSignOut() {
 		signOut.mutate(undefined, {
 			onSuccess: () => {
-				setSignedOut(true)
+				setSignedOut(true);
 			},
 			onError: () => {
-				setSignedOut(true)
-			}
-		})
+				setSignedOut(true);
+			},
+		});
 	}
 
 	// Redirect to login after showing signed-out confirmation
 	useEffect(() => {
-		if (!signedOut) return
+		if (!signedOut) return;
 		const timer = setTimeout(() => {
-			router.push('/login')
-		}, 3000)
-		return () => clearTimeout(timer)
-	}, [signedOut, router])
+			router.push("/login");
+		}, 3000);
+		return () => clearTimeout(timer);
+	}, [signedOut, router]);
 
 	if (isLoading) {
 		return (
@@ -66,7 +66,7 @@ export default function SignOutPage() {
 					<div className="py-4" />
 				</CardLayout>
 			</div>
-		)
+		);
 	}
 
 	if (!isAuthenticated) {
@@ -80,16 +80,13 @@ export default function SignOutPage() {
 						<p className="text-sm text-muted-foreground text-center">
 							You will be redirected to the login page shortly.
 						</p>
-						<Button
-							className="w-full"
-							onClick={() => router.push('/login')}
-						>
+						<Button className="w-full" onClick={() => router.push("/login")}>
 							Back to Login
 						</Button>
 					</div>
 				</CardLayout>
 			</div>
-		)
+		);
 	}
 
 	return (
@@ -105,7 +102,7 @@ export default function SignOutPage() {
 						disabled={signOut.isPending}
 					>
 						<LogOut className="mr-2 size-4" />
-						{signOut.isPending ? 'Signing out...' : 'Sign Out'}
+						{signOut.isPending ? "Signing out..." : "Sign Out"}
 					</Button>
 					<Button
 						variant="outline"
@@ -117,5 +114,5 @@ export default function SignOutPage() {
 				</div>
 			</CardLayout>
 		</div>
-	)
+	);
 }

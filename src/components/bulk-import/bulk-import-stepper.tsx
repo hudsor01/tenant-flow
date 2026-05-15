@@ -1,33 +1,33 @@
-'use client'
+"use client";
 
-import { Button } from '#components/ui/button'
-import { DialogFooter } from '#components/ui/dialog'
+import { ArrowLeft, CheckCheck, FileCheck, Upload } from "lucide-react";
+import { Button } from "#components/ui/button";
+import { DialogFooter } from "#components/ui/dialog";
 import {
-	Root as StepperRoot,
-	List as StepperList,
-	Item as StepperItem,
-	Trigger as StepperTrigger,
+	Content as StepperContent,
+	Description as StepperDescription,
 	Indicator as StepperIndicator,
+	Item as StepperItem,
+	List as StepperList,
+	Root as StepperRoot,
 	Separator as StepperSeparator,
 	Title as StepperTitle,
-	Description as StepperDescription,
-	Content as StepperContent
-} from '#components/ui/stepper'
-import { Upload, FileCheck, CheckCheck, ArrowLeft } from 'lucide-react'
-import type { ImportStep } from '#types/api-contracts'
-import { BulkImportUploadStep } from './bulk-import-upload-step'
-import { BulkImportValidateStep } from './bulk-import-validate-step'
-import { BulkImportConfirmStep } from './bulk-import-confirm-step'
-import { cn } from '#lib/utils'
-import type { BulkImportConfig } from './types'
-import { useBulkImportStepperState } from './use-bulk-import-stepper-state'
+	Trigger as StepperTrigger,
+} from "#components/ui/stepper";
+import { cn } from "#lib/utils";
+import type { ImportStep } from "#types/api-contracts";
+import { BulkImportConfirmStep } from "./bulk-import-confirm-step";
+import { BulkImportUploadStep } from "./bulk-import-upload-step";
+import { BulkImportValidateStep } from "./bulk-import-validate-step";
+import type { BulkImportConfig } from "./types";
+import { useBulkImportStepperState } from "./use-bulk-import-stepper-state";
 
 interface BulkImportStepperProps<T> {
-	config: BulkImportConfig<T>
-	currentStep: ImportStep
-	onStepChange: (step: ImportStep) => void
-	onComplete: () => void
-	onPendingChange?: (pending: boolean) => void
+	config: BulkImportConfig<T>;
+	currentStep: ImportStep;
+	onStepChange: (step: ImportStep) => void;
+	onComplete: () => void;
+	onPendingChange?: (pending: boolean) => void;
 }
 
 export function BulkImportStepper<T>({
@@ -35,7 +35,7 @@ export function BulkImportStepper<T>({
 	currentStep,
 	onStepChange,
 	onComplete,
-	onPendingChange
+	onPendingChange,
 }: BulkImportStepperProps<T>) {
 	const {
 		file,
@@ -51,55 +51,55 @@ export function BulkImportStepper<T>({
 		handleFileSelect,
 		handleUpload,
 		handleRetryFailed,
-		handleBack
+		handleBack,
 	} = useBulkImportStepperState<T>({
 		config,
 		currentStep,
 		onStepChange,
 		onComplete,
-		...(onPendingChange ? { onPendingChange } : {})
-	})
+		...(onPendingChange ? { onPendingChange } : {}),
+	});
 
 	const triggerCls = cn(
-		'w-full rounded-lg p-3 transition-all duration-200 hover:bg-muted/60',
-		'data-[state=active]:bg-background data-[state=active]:shadow-sm data-[state=completed]:bg-success/5'
-	)
+		"w-full rounded-lg p-3 transition-all duration-200 hover:bg-muted/60",
+		"data-[state=active]:bg-background data-[state=active]:shadow-sm data-[state=completed]:bg-success/5",
+	);
 	const indicatorCls = cn(
-		'size-9 rounded-lg transition-all duration-200',
-		'data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md',
-		'data-[state=completed]:bg-success data-[state=completed]:text-success-foreground',
-		'data-[state=inactive]:bg-muted data-[state=inactive]:text-muted-foreground'
-	)
+		"size-9 rounded-lg transition-all duration-200",
+		"data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md",
+		"data-[state=completed]:bg-success data-[state=completed]:text-success-foreground",
+		"data-[state=inactive]:bg-muted data-[state=inactive]:text-muted-foreground",
+	);
 
 	const steps = [
 		{
-			value: 'upload' as const,
+			value: "upload" as const,
 			icon: Upload,
-			title: 'Upload',
-			desc: 'Choose CSV file',
-			hasSep: true
+			title: "Upload",
+			desc: "Choose CSV file",
+			hasSep: true,
 		},
 		{
-			value: 'validate' as const,
+			value: "validate" as const,
 			icon: FileCheck,
-			title: 'Validate',
-			desc: 'Review data',
-			hasSep: true
+			title: "Validate",
+			desc: "Review data",
+			hasSep: true,
 		},
 		{
-			value: 'confirm' as const,
+			value: "confirm" as const,
 			icon: CheckCheck,
-			title: 'Confirm',
+			title: "Confirm",
 			desc: `Import ${config.entityLabel.plural.toLowerCase()}`,
-			hasSep: false
-		}
-	]
+			hasSep: false,
+		},
+	];
 
 	return (
 		<>
 			<StepperRoot value={currentStep} className="w-full">
 				<StepperList className="mb-8 p-1 bg-muted/30 rounded-xl">
-					{steps.map(step => (
+					{steps.map((step) => (
 						<StepperItem key={step.value} value={step.value}>
 							<StepperTrigger className={triggerCls}>
 								<StepperIndicator className={indicatorCls}>
@@ -125,7 +125,10 @@ export function BulkImportStepper<T>({
 					value="upload"
 					className="animate-in fade-in slide-in-from-right-4 duration-300"
 				>
-					<BulkImportUploadStep config={config} onFileSelect={handleFileSelect} />
+					<BulkImportUploadStep
+						config={config}
+						onFileSelect={handleFileSelect}
+					/>
 				</StepperContent>
 
 				<StepperContent
@@ -160,7 +163,7 @@ export function BulkImportStepper<T>({
 			</StepperRoot>
 
 			<DialogFooter className="gap-3 pt-4 border-t border-border/50">
-				{currentStep !== 'upload' && !result && (
+				{currentStep !== "upload" && !result && (
 					<Button
 						variant="outline"
 						onClick={handleBack}
@@ -168,11 +171,11 @@ export function BulkImportStepper<T>({
 						className="gap-2 hover:bg-muted/50"
 					>
 						<ArrowLeft className="size-4" />
-						{currentStep === 'validate' ? 'Back' : 'Cancel'}
+						{currentStep === "validate" ? "Back" : "Cancel"}
 					</Button>
 				)}
 
-				{currentStep === 'validate' && (
+				{currentStep === "validate" && (
 					<Button
 						onClick={handleUpload}
 						disabled={
@@ -187,12 +190,12 @@ export function BulkImportStepper<T>({
 					</Button>
 				)}
 
-				{currentStep === 'confirm' && result && (
+				{currentStep === "confirm" && result && (
 					<Button variant="outline" onClick={onComplete}>
 						Close
 					</Button>
 				)}
 			</DialogFooter>
 		</>
-	)
+	);
 }

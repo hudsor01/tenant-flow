@@ -1,18 +1,18 @@
-'use client'
+"use client";
 
-import { DollarSign, FileText, Calendar, Download } from 'lucide-react'
+import { Calendar, DollarSign, Download, FileText } from "lucide-react";
 
 interface ReportsQuickActionsProps {
-	onGenerateReport: ((typeId: string) => void) | undefined
+	onGenerateReport: ((typeId: string) => void) | undefined;
 }
 
 export function ReportsQuickActions({
-	onGenerateReport
+	onGenerateReport,
 }: ReportsQuickActionsProps) {
 	return (
 		<div className="flex items-center gap-3 mb-6">
 			<button
-				onClick={() => onGenerateReport?.('financial-summary')}
+				onClick={() => onGenerateReport?.("financial-summary")}
 				className="flex items-center gap-2 px-4 py-2.5 border border-border rounded-lg hover:bg-muted/50 transition-colors"
 			>
 				<div className="w-8 h-8 rounded-md bg-muted flex items-center justify-center">
@@ -24,7 +24,7 @@ export function ReportsQuickActions({
 				</div>
 			</button>
 			<button
-				onClick={() => onGenerateReport?.('rent-roll')}
+				onClick={() => onGenerateReport?.("rent-roll")}
 				className="flex items-center gap-2 px-4 py-2.5 border border-border rounded-lg hover:bg-muted/50 transition-colors"
 			>
 				<div className="w-8 h-8 rounded-md bg-muted flex items-center justify-center">
@@ -36,7 +36,7 @@ export function ReportsQuickActions({
 				</div>
 			</button>
 			<button
-				onClick={() => onGenerateReport?.('lease-expiry')}
+				onClick={() => onGenerateReport?.("lease-expiry")}
 				className="flex items-center gap-2 px-4 py-2.5 border border-border rounded-lg hover:bg-muted/50 transition-colors"
 			>
 				<div className="w-8 h-8 rounded-md bg-muted flex items-center justify-center">
@@ -57,5 +57,5 @@ export function ReportsQuickActions({
 				</div>
 			</button>
 		</div>
-	)
+	);
 }

@@ -1,37 +1,42 @@
-'use client'
+"use client";
 
-import { ChevronDown, ChevronUp, ChevronsUpDown } from 'lucide-react'
+import { ChevronDown, ChevronsUpDown, ChevronUp } from "lucide-react";
 import {
 	Select,
 	SelectContent,
 	SelectItem,
 	SelectTrigger,
-	SelectValue
-} from '#components/ui/select'
-import type { LeaseStatus } from '#types/core'
+	SelectValue,
+} from "#components/ui/select";
+import type { LeaseStatus } from "#types/core";
 
-export type SortDirection = 'asc' | 'desc' | null
-export type SortField = 'fullName' | 'email' | 'property' | 'leaseStatus' | null
+export type SortDirection = "asc" | "desc" | null;
+export type SortField =
+	| "fullName"
+	| "email"
+	| "property"
+	| "leaseStatus"
+	| null;
 
 export function StatusSelectCell({
 	value,
-	onChange
+	onChange,
 }: {
-	value: LeaseStatus | undefined
-	onChange: (value: LeaseStatus) => void
+	value: LeaseStatus | undefined;
+	onChange: (value: LeaseStatus) => void;
 }) {
 	const statusLabels: Record<LeaseStatus, string> = {
-		draft: 'Draft',
-		pending_signature: 'Pending',
-		active: 'Active',
-		ended: 'Ended',
-		terminated: 'Terminated'
-	}
+		draft: "Draft",
+		pending_signature: "Pending",
+		active: "Active",
+		ended: "Ended",
+		terminated: "Terminated",
+	};
 
 	return (
 		<Select
-			value={value || 'active'}
-			onValueChange={v => onChange(v as LeaseStatus)}
+			value={value || "active"}
+			onValueChange={(v) => onChange(v as LeaseStatus)}
 		>
 			<SelectTrigger className="h-8 w-[100px] text-sm">
 				<SelectValue />
@@ -44,7 +49,7 @@ export function StatusSelectCell({
 				))}
 			</SelectContent>
 		</Select>
-	)
+	);
 }
 
 export function SortableHeader({
@@ -52,15 +57,15 @@ export function SortableHeader({
 	field,
 	currentSort,
 	currentDirection,
-	onSort
+	onSort,
 }: {
-	title: string
-	field: SortField
-	currentSort: SortField
-	currentDirection: SortDirection
-	onSort: (field: SortField) => void
+	title: string;
+	field: SortField;
+	currentSort: SortField;
+	currentDirection: SortDirection;
+	onSort: (field: SortField) => void;
 }) {
-	const isActive = currentSort === field
+	const isActive = currentSort === field;
 
 	return (
 		<button
@@ -69,7 +74,7 @@ export function SortableHeader({
 		>
 			{title}
 			{isActive ? (
-				currentDirection === 'asc' ? (
+				currentDirection === "asc" ? (
 					<ChevronUp className="h-4 w-4" />
 				) : (
 					<ChevronDown className="h-4 w-4" />
@@ -78,5 +83,5 @@ export function SortableHeader({
 				<ChevronsUpDown className="h-4 w-4 opacity-50" />
 			)}
 		</button>
-	)
+	);
 }

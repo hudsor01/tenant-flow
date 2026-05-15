@@ -1,16 +1,16 @@
-import Link from 'next/link'
-import { ArrowRight, Check } from 'lucide-react'
-import { Button } from '#components/ui/button'
-import { BlurFade } from '#components/ui/blur-fade'
-import { LazySection } from '#components/ui/lazy-section'
-import { SectionSkeleton } from '#components/ui/section-skeleton'
+import { ArrowRight, Check } from "lucide-react";
+import Link from "next/link";
+import { BlurFade } from "#components/ui/blur-fade";
+import { Button } from "#components/ui/button";
+import { LazySection } from "#components/ui/lazy-section";
+import { SectionSkeleton } from "#components/ui/section-skeleton";
 
 const checkItems = [
-	'No setup fees',
-	'Postgres row-level security',
-	'14-day free trial',
-	'Cancel anytime'
-]
+	"No setup fees",
+	"Postgres row-level security",
+	"14-day free trial",
+	"Cancel anytime",
+];
 
 export function FinalCtaSection() {
 	return (
@@ -26,13 +26,14 @@ export function FinalCtaSection() {
 						<div className="text-center space-y-8">
 							<h2 className="font-bold tracking-tight leading-tight">
 								<span className="text-foreground">
-									Start your transformation{' '}
+									Start your transformation{" "}
 								</span>
 								<span className="hero-highlight">today</span>
 							</h2>
 
 							<p className="text-muted-foreground leading-relaxed max-w-3xl mx-auto text-xl">
-								The landlord-only platform with a per-entity document vault, lease e-sign, and reports built for tax season.
+								The landlord-only platform with a per-entity document vault,
+								lease e-sign, and reports built for tax season.
 								<span className="block mt-2 text-foreground font-semibold">
 									14-day free trial. No credit card. Cancel anytime.
 								</span>
@@ -65,7 +66,7 @@ export function FinalCtaSection() {
 							</div>
 
 							<div className="flex flex-wrap items-center justify-center gap-8 text-muted-foreground/80 typography-small">
-								{checkItems.map(item => (
+								{checkItems.map((item) => (
 									<div key={item} className="flex-start">
 										<Check className="size-4 text-primary mr-2" />
 										{item}
@@ -77,5 +78,5 @@ export function FinalCtaSection() {
 				</div>
 			</section>
 		</LazySection>
-	)
+	);
 }

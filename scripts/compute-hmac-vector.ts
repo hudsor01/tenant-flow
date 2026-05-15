@@ -14,42 +14,42 @@
 // output is lowercase, padded to 64 chars. Identical to the verifyHmac()
 // implementation in supabase/functions/n8n-blog-ingest/index.ts.
 
-const SECRET = 'tenantflow-phase-6-test'
+const SECRET = "tenantflow-phase-6-test";
 
 // Body MUST be assembled via JSON.stringify so the bytes are byte-for-byte
 // reproducible. Any reformatting of this literal (e.g. spreading the object
 // across multiple lines, or changing field order) will change the bytes and
 // invalidate the locked hex. See N8N-FLOW.md for the canonical body shape.
 const BODY = JSON.stringify({
-	title: 'test',
-	slug: 'test-slug',
+	title: "test",
+	slug: "test-slug",
 	excerpt:
-		'test excerpt about landlords with 1-15 rentals to make this 80 chars or more please ok',
-	content: '# H1\n\n## H2\nlandlord',
-	category: 'lease-law',
+		"test excerpt about landlords with 1-15 rentals to make this 80 chars or more please ok",
+	content: "# H1\n\n## H2\nlandlord",
+	category: "lease-law",
 	meta_description:
-		'test meta description about landlord lease law content with sufficient length here please',
-})
+		"test meta description about landlord lease law content with sufficient length here please",
+});
 
 async function hmacHex(secret: string, body: string): Promise<string> {
-	const enc = new TextEncoder()
+	const enc = new TextEncoder();
 	const key = await crypto.subtle.importKey(
-		'raw',
+		"raw",
 		enc.encode(secret),
-		{ name: 'HMAC', hash: 'SHA-256' },
+		{ name: "HMAC", hash: "SHA-256" },
 		false,
-		['sign'],
-	)
-	const sigBuf = await crypto.subtle.sign('HMAC', key, enc.encode(body))
+		["sign"],
+	);
+	const sigBuf = await crypto.subtle.sign("HMAC", key, enc.encode(body));
 	return Array.from(new Uint8Array(sigBuf))
-		.map((b) => b.toString(16).padStart(2, '0'))
-		.join('')
+		.map((b) => b.toString(16).padStart(2, "0"))
+		.join("");
 }
 
-const hex = await hmacHex(SECRET, BODY)
-const byteLength = new TextEncoder().encode(BODY).byteLength
+const hex = await hmacHex(SECRET, BODY);
+const byteLength = new TextEncoder().encode(BODY).byteLength;
 
-console.log('Secret:', SECRET)
-console.log(`Body bytes (length=${byteLength}):`)
-console.log(BODY)
-console.log('Expected sha256 (hex):', hex)
+console.log("Secret:", SECRET);
+console.log(`Body bytes (length=${byteLength}):`);
+console.log(BODY);
+console.log("Expected sha256 (hex):", hex);

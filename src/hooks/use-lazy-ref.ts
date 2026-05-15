@@ -1,14 +1,14 @@
-import { useRef } from 'react'
-import type { RefObject } from 'react'
+import type { RefObject } from "react";
+import { useRef } from "react";
 
 function useLazyRef<T>(fn: () => T) {
-	const ref = useRef<T | null>(null)
+	const ref = useRef<T | null>(null);
 
 	if (ref.current === null) {
-		ref.current = fn()
+		ref.current = fn();
 	}
 
-	return ref as RefObject<T>
+	return ref as RefObject<T>;
 }
 
-export { useLazyRef }
+export { useLazyRef };

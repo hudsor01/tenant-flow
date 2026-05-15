@@ -48,7 +48,7 @@ Common commands:
 ```bash
 bun run dev                          # dev server (Turbopack, port 3050)
 bun run typecheck                    # tsc --noEmit (strict mode + noUncheckedIndexedAccess)
-bun run lint                         # eslint
+bun run lint                         # biome check
 bun run test:unit                    # Vitest unit tests
 bun run test:integration             # RLS integration tests (hits prod, see below)
 bun run test:e2e                     # Playwright E2E

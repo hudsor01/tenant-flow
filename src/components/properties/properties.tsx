@@ -1,36 +1,35 @@
-'use client'
-
+"use client";
 
 import {
 	useDeletePropertyMutation,
-	useUpdatePropertyMutation
-} from '#hooks/api/use-property-mutations'
-import { PropertyCard } from './property-select-card'
-import { PropertyTable } from './property-table'
-import { PropertyActionBar } from './property-action-bar'
-import { PropertyStatsSection } from './property-stats-section'
-import { PropertyToolbar } from './property-toolbar'
-import { PropertyBulkEditDialog } from './property-bulk-edit-dialog'
-import type { PropertiesProps, PropertyType } from './types'
+	useUpdatePropertyMutation,
+} from "#hooks/api/use-property-mutations";
 import {
+	type PropertyStatusFilter,
 	usePropertiesStore,
-	type PropertyStatusFilter
-} from '#stores/properties-store'
+} from "#stores/properties-store";
 import {
 	EmptyProperties,
-	PropertiesHeader,
 	NoResultsFilter,
-	useBulkHandlers
-} from './properties-filters'
+	PropertiesHeader,
+	useBulkHandlers,
+} from "./properties-filters";
+import { PropertyActionBar } from "./property-action-bar";
+import { PropertyBulkEditDialog } from "./property-bulk-edit-dialog";
+import { PropertyCard } from "./property-select-card";
+import { PropertyStatsSection } from "./property-stats-section";
+import { PropertyTable } from "./property-table";
+import { PropertyToolbar } from "./property-toolbar";
+import type { PropertiesProps, PropertyType } from "./types";
 
 const PROPERTY_TYPE_TO_API: Record<PropertyType, string> = {
-	single_family: 'SINGLE_FAMILY',
-	multi_family: 'MULTI_UNIT',
-	apartment: 'APARTMENT',
-	condo: 'CONDO',
-	townhouse: 'TOWNHOUSE',
-	duplex: 'MULTI_UNIT'
-}
+	single_family: "SINGLE_FAMILY",
+	multi_family: "MULTI_UNIT",
+	apartment: "APARTMENT",
+	condo: "CONDO",
+	townhouse: "TOWNHOUSE",
+	duplex: "MULTI_UNIT",
+};
 
 /**
  * Properties - Main component for managing property portfolio
@@ -40,79 +39,107 @@ const PROPERTY_TYPE_TO_API: Record<PropertyType, string> = {
 export function Properties({
 	properties,
 	summary,
-	filter: _filter = 'all',
+	filter: _filter = "all",
 	isLoading,
 	onPropertyClick,
 	onPropertyEdit,
 	onPropertyDelete,
 	onAddProperty,
-	onFilterChange
+	onFilterChange,
 }: PropertiesProps) {
 	const {
-		viewMode, setViewMode, searchQuery, setSearchQuery,
-		statusFilter, setStatusFilter, typeFilter, setTypeFilter,
-		clearFilters, selectedRows, toggleSelect, selectAll, clearSelection,
-		isBulkEditOpen, bulkEditStatus, bulkEditType,
-		applyBulkStatus, applyBulkType, isBulkSaving,
-		openBulkEdit, closeBulkEdit, setBulkEditStatus, setBulkEditType,
-		setApplyBulkStatus, setApplyBulkType, setIsBulkSaving
-	} = usePropertiesStore()
+		viewMode,
+		setViewMode,
+		searchQuery,
+		setSearchQuery,
+		statusFilter,
+		setStatusFilter,
+		typeFilter,
+		setTypeFilter,
+		clearFilters,
+		selectedRows,
+		toggleSelect,
+		selectAll,
+		clearSelection,
+		isBulkEditOpen,
+		bulkEditStatus,
+		bulkEditType,
+		applyBulkStatus,
+		applyBulkType,
+		isBulkSaving,
+		openBulkEdit,
+		closeBulkEdit,
+		setBulkEditStatus,
+		setBulkEditType,
+		setApplyBulkStatus,
+		setApplyBulkType,
+		setIsBulkSaving,
+	} = usePropertiesStore();
 
-	const deletePropertyMutation = useDeletePropertyMutation()
-	const updatePropertyMutation = useUpdatePropertyMutation()
+	const deletePropertyMutation = useDeletePropertyMutation();
+	const updatePropertyMutation = useUpdatePropertyMutation();
 
 	const { handleBulkEditOpen, handleBulkDelete } = useBulkHandlers(
-		selectedRows, properties, openBulkEdit, deletePropertyMutation, clearSelection
-	)
+		selectedRows,
+		properties,
+		openBulkEdit,
+		deletePropertyMutation,
+		clearSelection,
+	);
 
 	const handleBulkEditSubmit = async () => {
-		if (selectedRows.size === 0) return
-		if (!applyBulkStatus && !applyBulkType) return
-		const ids = Array.from(selectedRows)
-		const updateData: Record<string, string> = {}
-		if (applyBulkStatus) updateData.status = bulkEditStatus
-		if (applyBulkType) updateData.property_type = PROPERTY_TYPE_TO_API[bulkEditType] as string
-		setIsBulkSaving(true)
+		if (selectedRows.size === 0) return;
+		if (!applyBulkStatus && !applyBulkType) return;
+		const ids = Array.from(selectedRows);
+		const updateData: Record<string, string> = {};
+		if (applyBulkStatus) updateData.status = bulkEditStatus;
+		if (applyBulkType)
+			updateData.property_type = PROPERTY_TYPE_TO_API[bulkEditType] as string;
+		setIsBulkSaving(true);
 		try {
 			await Promise.allSettled(
-				ids.map(id => updatePropertyMutation.mutateAsync({ id, data: updateData }))
-			)
-			clearSelection()
-			closeBulkEdit()
+				ids.map((id) =>
+					updatePropertyMutation.mutateAsync({ id, data: updateData }),
+				),
+			);
+			clearSelection();
+			closeBulkEdit();
 		} finally {
-			setIsBulkSaving(false)
+			setIsBulkSaving(false);
 		}
-	}
+	};
 
 	const filteredProperties = (() => {
-		return properties.filter(p => {
+		return properties.filter((p) => {
 			if (searchQuery) {
-				const query = searchQuery.toLowerCase()
+				const query = searchQuery.toLowerCase();
 				if (
-					!(p.name ?? '').toLowerCase().includes(query) &&
-					!(p.addressLine1 ?? '').toLowerCase().includes(query) &&
-					!(p.city ?? '').toLowerCase().includes(query)
-				) return false
+					!(p.name ?? "").toLowerCase().includes(query) &&
+					!(p.addressLine1 ?? "").toLowerCase().includes(query) &&
+					!(p.city ?? "").toLowerCase().includes(query)
+				)
+					return false;
 			}
-			if (statusFilter === 'occupied' && p.availableUnits > 0) return false
-			if (statusFilter === 'available' && p.availableUnits === 0) return false
-			if (statusFilter === 'maintenance' && p.maintenanceUnits === 0) return false
-			if (typeFilter !== 'all' && p.propertyType !== typeFilter) return false
-			return true
-		})
-	})()
+			if (statusFilter === "occupied" && p.availableUnits > 0) return false;
+			if (statusFilter === "available" && p.availableUnits === 0) return false;
+			if (statusFilter === "maintenance" && p.maintenanceUnits === 0)
+				return false;
+			if (typeFilter !== "all" && p.propertyType !== typeFilter) return false;
+			return true;
+		});
+	})();
 
 	const handleSelectAll = () => {
-		selectAll(filteredProperties.map(p => p.id))
-	}
+		selectAll(filteredProperties.map((p) => p.id));
+	};
 
 	const handleStatusFilterChange = (value: PropertyStatusFilter) => {
-			setStatusFilter(value)
-			onFilterChange?.(value)
-		}
+		setStatusFilter(value);
+		onFilterChange?.(value);
+	};
 
 	if (properties.length === 0 && !isLoading) {
-		return <EmptyProperties onAddProperty={onAddProperty} />
+		return <EmptyProperties onAddProperty={onAddProperty} />;
 	}
 
 	return (
@@ -131,10 +158,10 @@ export function Properties({
 					onTypeFilterChange={setTypeFilter}
 					onViewModeChange={setViewMode}
 				/>
-				{viewMode === 'grid' && (
+				{viewMode === "grid" && (
 					<div className="p-5 animate-in fade-in slide-in-from-bottom-2 duration-300 overflow-auto max-h-[calc(100vh-340px)]">
 						<div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-							{filteredProperties.map(property => (
+							{filteredProperties.map((property) => (
 								<PropertyCard
 									key={property.id}
 									property={property}
@@ -146,7 +173,7 @@ export function Properties({
 						</div>
 					</div>
 				)}
-				{viewMode === 'table' && (
+				{viewMode === "table" && (
 					<div className="animate-in fade-in slide-in-from-bottom-2 duration-300">
 						<PropertyTable
 							properties={filteredProperties}
@@ -178,7 +205,9 @@ export function Properties({
 				applyBulkStatus={applyBulkStatus}
 				applyBulkType={applyBulkType}
 				isSaving={isBulkSaving}
-				onOpenChange={open => { if (!open) closeBulkEdit() }}
+				onOpenChange={(open) => {
+					if (!open) closeBulkEdit();
+				}}
 				onStatusChange={setBulkEditStatus}
 				onTypeChange={setBulkEditType}
 				onApplyStatusChange={setApplyBulkStatus}
@@ -186,5 +215,5 @@ export function Properties({
 				onSubmit={handleBulkEditSubmit}
 			/>
 		</div>
-	)
+	);
 }

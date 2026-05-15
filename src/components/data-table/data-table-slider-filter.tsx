@@ -1,26 +1,30 @@
-'use client'
+"use client";
 
-import type { Column } from '@tanstack/react-table'
-import { PlusCircle, XCircle } from 'lucide-react'
-import { useId } from 'react'
-import type { ChangeEvent, MouseEvent } from 'react'
-import { Button } from '#components/ui/button'
-import { Input } from '#components/ui/input'
-import { Label } from '#components/ui/label'
-import { Popover, PopoverContent, PopoverTrigger } from '#components/ui/popover'
-import { Separator } from '#components/ui/separator'
-import { Slider } from '#components/ui/slider'
-import { cn } from '#lib/utils'
+import type { Column } from "@tanstack/react-table";
+import { PlusCircle, XCircle } from "lucide-react";
+import type { ChangeEvent, MouseEvent } from "react";
+import { useId } from "react";
+import { Button } from "#components/ui/button";
+import { Input } from "#components/ui/input";
+import { Label } from "#components/ui/label";
+import {
+	Popover,
+	PopoverContent,
+	PopoverTrigger,
+} from "#components/ui/popover";
+import { Separator } from "#components/ui/separator";
+import { Slider } from "#components/ui/slider";
+import { cn } from "#lib/utils";
 
-type RangeValue = [number, number]
+type RangeValue = [number, number];
 
 function getIsValidRange(value: unknown): value is RangeValue {
 	return (
 		Array.isArray(value) &&
 		value.length === 2 &&
-		typeof value[0] === 'number' &&
-		typeof value[1] === 'number'
-	)
+		typeof value[0] === "number" &&
+		typeof value[1] === "number"
+	);
 }
 
 function parseValuesAsNumbers(value: unknown): RangeValue | undefined {
@@ -28,94 +32,95 @@ function parseValuesAsNumbers(value: unknown): RangeValue | undefined {
 		Array.isArray(value) &&
 		value.length === 2 &&
 		value.every(
-			v => (typeof v === 'string' || typeof v === 'number') && !Number.isNaN(v)
+			(v) =>
+				(typeof v === "string" || typeof v === "number") && !Number.isNaN(v),
 		)
 	) {
-		return [Number(value[0]), Number(value[1])]
+		return [Number(value[0]), Number(value[1])];
 	}
 
-	return undefined
+	return undefined;
 }
 
 interface DataTableSliderFilterProps<TData> {
-	column: Column<TData, unknown>
-	title?: string
+	column: Column<TData, unknown>;
+	title?: string;
 }
 
 export function DataTableSliderFilter<TData>({
 	column,
-	title
+	title,
 }: DataTableSliderFilterProps<TData>) {
-	const id = useId()
+	const id = useId();
 
-	const columnFilterValue = parseValuesAsNumbers(column.getFilterValue())
+	const columnFilterValue = parseValuesAsNumbers(column.getFilterValue());
 
-	const defaultRange = column.columnDef.meta?.range
-	const unit = column.columnDef.meta?.unit
+	const defaultRange = column.columnDef.meta?.range;
+	const unit = column.columnDef.meta?.unit;
 
 	const { min, max, step } = (() => {
-		let minValue = 0
-		let maxValue = 100
+		let minValue = 0;
+		let maxValue = 100;
 
 		if (defaultRange && getIsValidRange(defaultRange)) {
-			;[minValue, maxValue] = defaultRange
+			[minValue, maxValue] = defaultRange;
 		} else {
-			const values = column.getFacetedMinMaxValues()
+			const values = column.getFacetedMinMaxValues();
 			if (values && Array.isArray(values) && values.length === 2) {
-				const [facetMinValue, facetMaxValue] = values
+				const [facetMinValue, facetMaxValue] = values;
 				if (
-					typeof facetMinValue === 'number' &&
-					typeof facetMaxValue === 'number'
+					typeof facetMinValue === "number" &&
+					typeof facetMaxValue === "number"
 				) {
-					minValue = facetMinValue
-					maxValue = facetMaxValue
+					minValue = facetMinValue;
+					maxValue = facetMaxValue;
 				}
 			}
 		}
 
-		const rangeSize = maxValue - minValue
+		const rangeSize = maxValue - minValue;
 		const step =
 			rangeSize <= 20
 				? 1
 				: rangeSize <= 100
 					? Math.ceil(rangeSize / 20)
-					: Math.ceil(rangeSize / 50)
+					: Math.ceil(rangeSize / 50);
 
-		return { min: minValue, max: maxValue, step }
-	})()
+		return { min: minValue, max: maxValue, step };
+	})();
 
-	const range: RangeValue = columnFilterValue ?? [min, max]
+	const range: RangeValue = columnFilterValue ?? [min, max];
 
 	const formatValue = (value: number) => {
-		return value.toLocaleString(undefined, { maximumFractionDigits: 0 })
-	}
+		return value.toLocaleString(undefined, { maximumFractionDigits: 0 });
+	};
 
 	const onFromInputChange = (event: ChangeEvent<HTMLInputElement>) => {
-			const numValue = Number(event.target.value)
-			if (!Number.isNaN(numValue) && numValue >= min && numValue <= range[1]) {
-				column.setFilterValue([numValue, range[1]])
-			}
+		const numValue = Number(event.target.value);
+		if (!Number.isNaN(numValue) && numValue >= min && numValue <= range[1]) {
+			column.setFilterValue([numValue, range[1]]);
 		}
+	};
 
 	const onToInputChange = (event: ChangeEvent<HTMLInputElement>) => {
-			const numValue = Number(event.target.value)
-			if (!Number.isNaN(numValue) && numValue <= max && numValue >= range[0]) {
-				column.setFilterValue([range[0], numValue])
-			}
+		const numValue = Number(event.target.value);
+		if (!Number.isNaN(numValue) && numValue <= max && numValue >= range[0]) {
+			column.setFilterValue([range[0], numValue]);
 		}
+	};
 
 	const onSliderValueChange = (value: RangeValue) => {
-			if (Array.isArray(value) && value.length === 2) {
-				column.setFilterValue(value)
-			}
+		if (Array.isArray(value) && value.length === 2) {
+			column.setFilterValue(value);
 		}
+	};
 
 	const onReset = (event: MouseEvent) => {
-			if (event.target instanceof HTMLDivElement) {
-				event.stopPropagation()
-			}
-			column.setFilterValue(undefined)
+		if (event.target instanceof HTMLDivElement) {
+			event.stopPropagation();
 		}
+		column.setFilterValue(undefined);
+	};
 
 	return (
 		<Popover>
@@ -145,9 +150,9 @@ export function DataTableSliderFilter<TData>({
 								orientation="vertical"
 								className="mx-0.5 data-[orientation=vertical]:h-4"
 							/>
-							{formatValue(columnFilterValue[0])} -{' '}
+							{formatValue(columnFilterValue[0])} -{" "}
 							{formatValue(columnFilterValue[1])}
-							{unit ? ` ${unit}` : ''}
+							{unit ? ` ${unit}` : ""}
 						</>
 					) : null}
 				</Button>
@@ -174,7 +179,7 @@ export function DataTableSliderFilter<TData>({
 								max={max}
 								value={range[0]?.toString()}
 								onChange={onFromInputChange}
-								className={cn('h-8 w-24', unit && 'pr-8')}
+								className={cn("h-8 w-24", unit && "pr-8")}
 							/>
 							{unit && (
 								<span className="absolute top-0 right-0 bottom-0 flex items-center rounded-r-md bg-accent px-2 text-muted-foreground text-sm">
@@ -198,7 +203,7 @@ export function DataTableSliderFilter<TData>({
 								max={max}
 								value={range[1]?.toString()}
 								onChange={onToInputChange}
-								className={cn('h-8 w-24', unit && 'pr-8')}
+								className={cn("h-8 w-24", unit && "pr-8")}
 							/>
 							{unit && (
 								<span className="absolute top-0 right-0 bottom-0 flex items-center rounded-r-md bg-accent px-2 text-muted-foreground text-sm">
@@ -229,5 +234,5 @@ export function DataTableSliderFilter<TData>({
 				</Button>
 			</PopoverContent>
 		</Popover>
-	)
+	);
 }

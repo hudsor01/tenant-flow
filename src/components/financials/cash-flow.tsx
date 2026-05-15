@@ -1,45 +1,45 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
 import {
-	ArrowUpCircle,
 	ArrowDownCircle,
+	ArrowRight,
+	ArrowUpCircle,
 	Download,
 	Wallet,
-	ArrowRight
-} from 'lucide-react'
-import { Button } from '#components/ui/button'
+} from "lucide-react";
+import { useState } from "react";
+import { BlurFade } from "#components/ui/blur-fade";
+import { BorderBeam } from "#components/ui/border-beam";
+import { Button } from "#components/ui/button";
+import { NumberTicker } from "#components/ui/number-ticker";
 import {
 	Select,
 	SelectContent,
 	SelectItem,
 	SelectTrigger,
-	SelectValue
-} from '#components/ui/select'
-import { BlurFade } from '#components/ui/blur-fade'
-import { NumberTicker } from '#components/ui/number-ticker'
-import { BorderBeam } from '#components/ui/border-beam'
+	SelectValue,
+} from "#components/ui/select";
 import {
 	Stat,
+	StatDescription,
+	StatIndicator,
 	StatLabel,
 	StatValue,
-	StatIndicator,
-	StatDescription
-} from '#components/ui/stat'
-import { formatCurrency } from '#lib/utils/currency'
+} from "#components/ui/stat";
+import { formatCurrency } from "#lib/utils/currency";
 import type {
 	CashFlowCategory,
-	MonthlyCashFlow
-} from '#types/financial-statements'
+	MonthlyCashFlow,
+} from "#types/financial-statements";
 
 interface CashFlowProps {
-	inflows: CashFlowCategory[]
-	outflows: CashFlowCategory[]
-	netCashFlow: number
-	openingBalance: number
-	closingBalance: number
-	byMonth: MonthlyCashFlow[]
-	onExport?: () => void
+	inflows: CashFlowCategory[];
+	outflows: CashFlowCategory[];
+	netCashFlow: number;
+	openingBalance: number;
+	closingBalance: number;
+	byMonth: MonthlyCashFlow[];
+	onExport?: () => void;
 }
 
 export function CashFlow({
@@ -49,12 +49,12 @@ export function CashFlow({
 	openingBalance,
 	closingBalance,
 	byMonth,
-	onExport
+	onExport,
 }: CashFlowProps) {
-	const [dateRange, setDateRange] = useState('this_year')
+	const [dateRange, setDateRange] = useState("this_year");
 
-	const totalInflows = inflows.reduce((sum, i) => sum + i.amount, 0)
-	const totalOutflows = outflows.reduce((sum, o) => sum + o.amount, 0)
+	const totalInflows = inflows.reduce((sum, i) => sum + i.amount, 0);
+	const totalOutflows = outflows.reduce((sum, o) => sum + o.amount, 0);
 
 	return (
 		<div className="p-6 lg:p-8 bg-background min-h-full">
@@ -104,9 +104,9 @@ export function CashFlow({
 								Net Cash Flow
 							</p>
 							<p
-								className={`text-2xl font-semibold ${netCashFlow >= 0 ? 'text-emerald-600' : 'text-red-600'}`}
+								className={`text-2xl font-semibold ${netCashFlow >= 0 ? "text-emerald-600" : "text-red-600"}`}
 							>
-								{netCashFlow >= 0 ? '+' : ''}
+								{netCashFlow >= 0 ? "+" : ""}
 								{formatCurrency(netCashFlow)}
 							</p>
 						</div>
@@ -180,8 +180,22 @@ export function CashFlow({
 			</div>
 
 			<div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-				<FlowList icon={ArrowUpCircle} title="Cash Inflows" items={inflows} total={totalInflows} color="emerald" baseDelay={0.6} />
-				<FlowList icon={ArrowDownCircle} title="Cash Outflows" items={outflows} total={totalOutflows} color="red" baseDelay={0.7} />
+				<FlowList
+					icon={ArrowUpCircle}
+					title="Cash Inflows"
+					items={inflows}
+					total={totalInflows}
+					color="emerald"
+					baseDelay={0.6}
+				/>
+				<FlowList
+					icon={ArrowDownCircle}
+					title="Cash Outflows"
+					items={outflows}
+					total={totalOutflows}
+					color="red"
+					baseDelay={0.7}
+				/>
 			</div>
 
 			<BlurFade delay={0.8} inView>
@@ -192,8 +206,8 @@ export function CashFlow({
 					<div className="h-64 flex items-end gap-4">
 						{byMonth.map((data, index) => {
 							const maxValue = Math.max(
-								...byMonth.map(d => Math.max(d.inflows, d.outflows))
-							)
+								...byMonth.map((d) => Math.max(d.inflows, d.outflows)),
+							);
 							return (
 								<BlurFade key={index} delay={0.85 + index * 0.03} inView>
 									<div className="flex-1 flex flex-col items-center gap-2">
@@ -201,14 +215,14 @@ export function CashFlow({
 											<div
 												className="flex-1 bg-emerald-500 rounded-t transition-all"
 												style={{
-													height: `${(data.inflows / maxValue) * 100}%`
+													height: `${(data.inflows / maxValue) * 100}%`,
 												}}
 												title={`Inflows: ${formatCurrency(data.inflows)}`}
 											/>
 											<div
 												className="flex-1 bg-red-500 rounded-t transition-all"
 												style={{
-													height: `${(data.outflows / maxValue) * 100}%`
+													height: `${(data.outflows / maxValue) * 100}%`,
 												}}
 												title={`Outflows: ${formatCurrency(data.outflows)}`}
 											/>
@@ -217,14 +231,14 @@ export function CashFlow({
 											{data.month}
 										</span>
 										<span
-											className={`text-xs font-medium ${data.netCashFlow >= 0 ? 'text-emerald-600' : 'text-red-600'}`}
+											className={`text-xs font-medium ${data.netCashFlow >= 0 ? "text-emerald-600" : "text-red-600"}`}
 										>
-											{data.netCashFlow >= 0 ? '+' : ''}
+											{data.netCashFlow >= 0 ? "+" : ""}
 											{formatCurrency(data.netCashFlow)}
 										</span>
 									</div>
 								</BlurFade>
-							)
+							);
 						})}
 					</div>
 					<div className="flex justify-center gap-6 mt-4">
@@ -240,14 +254,26 @@ export function CashFlow({
 				</div>
 			</BlurFade>
 		</div>
-	)
+	);
 }
 
-function FlowList({ icon: Icon, title, items, total, color, baseDelay }: {
-	icon: typeof ArrowUpCircle; title: string; items: CashFlowCategory[]; total: number; color: 'emerald' | 'red'; baseDelay: number
+function FlowList({
+	icon: Icon,
+	title,
+	items,
+	total,
+	color,
+	baseDelay,
+}: {
+	icon: typeof ArrowUpCircle;
+	title: string;
+	items: CashFlowCategory[];
+	total: number;
+	color: "emerald" | "red";
+	baseDelay: number;
 }) {
-	const textCls = color === 'emerald' ? 'text-emerald-600' : 'text-red-600'
-	const barCls = color === 'emerald' ? 'bg-emerald-500' : 'bg-red-500'
+	const textCls = color === "emerald" ? "text-emerald-600" : "text-red-600";
+	const barCls = color === "emerald" ? "bg-emerald-500" : "bg-red-500";
 	return (
 		<BlurFade delay={baseDelay} inView>
 			<div className="bg-card border border-border rounded-lg p-6">
@@ -257,27 +283,44 @@ function FlowList({ icon: Icon, title, items, total, color, baseDelay }: {
 				</h3>
 				<div className="space-y-4">
 					{items.map((item, idx) => (
-						<BlurFade key={item.category} delay={baseDelay + 0.05 + idx * 0.05} inView>
+						<BlurFade
+							key={item.category}
+							delay={baseDelay + 0.05 + idx * 0.05}
+							inView
+						>
 							<div>
 								<div className="flex items-center justify-between mb-1">
-									<span className="text-sm text-foreground">{item.category}</span>
+									<span className="text-sm text-foreground">
+										{item.category}
+									</span>
 									<div className="flex items-center gap-3">
-										<span className="text-sm text-muted-foreground">{item.percentage.toFixed(1)}%</span>
-										<span className={`text-sm font-medium ${textCls}`}>{formatCurrency(item.amount)}</span>
+										<span className="text-sm text-muted-foreground">
+											{item.percentage.toFixed(1)}%
+										</span>
+										<span className={`text-sm font-medium ${textCls}`}>
+											{formatCurrency(item.amount)}
+										</span>
 									</div>
 								</div>
 								<div className="h-2 bg-muted rounded-full overflow-hidden">
-									<div className={`h-full ${barCls} rounded-full transition-all duration-1000`} style={{ width: `${item.percentage}%` }} />
+									<div
+										className={`h-full ${barCls} rounded-full transition-all duration-1000`}
+										style={{ width: `${item.percentage}%` }}
+									/>
 								</div>
 							</div>
 						</BlurFade>
 					))}
 					<div className="flex items-center justify-between pt-4 border-t border-border">
-						<span className="text-sm font-medium text-foreground">Total {title.split(' ')[1]}</span>
-						<span className={`text-sm font-semibold ${textCls}`}>{formatCurrency(total)}</span>
+						<span className="text-sm font-medium text-foreground">
+							Total {title.split(" ")[1]}
+						</span>
+						<span className={`text-sm font-semibold ${textCls}`}>
+							{formatCurrency(total)}
+						</span>
 					</div>
 				</div>
 			</div>
 		</BlurFade>
-	)
+	);
 }

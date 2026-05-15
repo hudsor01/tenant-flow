@@ -1,20 +1,24 @@
-'use client'
+"use client";
 
-import { use } from 'react'
-import { MaintenanceForm } from '#components/maintenance/maintenance-form.client'
-import { Skeleton } from '#components/ui/skeleton'
-import { maintenanceQueries } from '#hooks/api/query-keys/maintenance-keys'
-import { useQuery } from '@tanstack/react-query'
+import { useQuery } from "@tanstack/react-query";
+import { use } from "react";
+import { MaintenanceForm } from "#components/maintenance/maintenance-form.client";
+import { Skeleton } from "#components/ui/skeleton";
+import { maintenanceQueries } from "#hooks/api/query-keys/maintenance-keys";
 
 interface MaintenanceEditPageProps {
-	params: Promise<{ id: string }>
+	params: Promise<{ id: string }>;
 }
 
 export default function MaintenanceEditPage({
-	params
+	params,
 }: MaintenanceEditPageProps) {
-	const { id } = use(params)
-	const { data: request, isLoading, error } = useQuery(maintenanceQueries.detail(id))
+	const { id } = use(params);
+	const {
+		data: request,
+		isLoading,
+		error,
+	} = useQuery(maintenanceQueries.detail(id));
 
 	if (isLoading) {
 		return (
@@ -25,7 +29,7 @@ export default function MaintenanceEditPage({
 				</div>
 				<Skeleton className="h-96 w-full rounded-xl" />
 			</div>
-		)
+		);
 	}
 
 	if (error) {
@@ -36,11 +40,13 @@ export default function MaintenanceEditPage({
 						Error Loading Request
 					</h2>
 					<p className="text-muted-foreground">
-						{error instanceof Error ? error.message : 'Failed to load maintenance request'}
+						{error instanceof Error
+							? error.message
+							: "Failed to load maintenance request"}
 					</p>
 				</div>
 			</div>
-		)
+		);
 	}
 
 	if (!request) {
@@ -48,7 +54,7 @@ export default function MaintenanceEditPage({
 			<div className="mx-auto w-full max-w-4xl space-y-10">
 				<p className="text-muted-foreground">Maintenance request not found</p>
 			</div>
-		)
+		);
 	}
 
 	return (
@@ -63,5 +69,5 @@ export default function MaintenanceEditPage({
 			</div>
 			<MaintenanceForm mode="edit" request={request} />
 		</div>
-	)
+	);
 }

@@ -12,9 +12,9 @@
  * 4. Custom className prop is merged correctly
  */
 
-import { screen } from '@testing-library/react'
-import { render } from '#test/utils/test-render'
-import { describe, test, expect } from 'vitest'
+import { screen } from "@testing-library/react";
+import { describe, expect, test } from "vitest";
+import { render } from "#test/utils/test-render";
 import {
 	Table,
 	TableBody,
@@ -23,12 +23,12 @@ import {
 	TableFooter,
 	TableHead,
 	TableHeader,
-	TableRow
-} from '../table'
+	TableRow,
+} from "../table";
 
-describe('Table Component', () => {
-	describe('Basic Rendering', () => {
-		test('renders table with all parts', () => {
+describe("Table Component", () => {
+	describe("Basic Rendering", () => {
+		test("renders table with all parts", () => {
 			render(
 				<Table>
 					<TableCaption>Test Caption</TableCaption>
@@ -50,19 +50,19 @@ describe('Table Component', () => {
 							<TableCell>Footer 2</TableCell>
 						</TableRow>
 					</TableFooter>
-				</Table>
-			)
+				</Table>,
+			);
 
-			expect(screen.getByText('Test Caption')).toBeInTheDocument()
-			expect(screen.getByText('Header 1')).toBeInTheDocument()
-			expect(screen.getByText('Header 2')).toBeInTheDocument()
-			expect(screen.getByText('Cell 1')).toBeInTheDocument()
-			expect(screen.getByText('Cell 2')).toBeInTheDocument()
-			expect(screen.getByText('Footer 1')).toBeInTheDocument()
-			expect(screen.getByText('Footer 2')).toBeInTheDocument()
-		})
+			expect(screen.getByText("Test Caption")).toBeInTheDocument();
+			expect(screen.getByText("Header 1")).toBeInTheDocument();
+			expect(screen.getByText("Header 2")).toBeInTheDocument();
+			expect(screen.getByText("Cell 1")).toBeInTheDocument();
+			expect(screen.getByText("Cell 2")).toBeInTheDocument();
+			expect(screen.getByText("Footer 1")).toBeInTheDocument();
+			expect(screen.getByText("Footer 2")).toBeInTheDocument();
+		});
 
-		test('renders table role correctly', () => {
+		test("renders table role correctly", () => {
 			render(
 				<Table>
 					<TableBody>
@@ -70,15 +70,15 @@ describe('Table Component', () => {
 							<TableCell>Test</TableCell>
 						</TableRow>
 					</TableBody>
-				</Table>
-			)
+				</Table>,
+			);
 
-			expect(screen.getByRole('table')).toBeInTheDocument()
-		})
-	})
+			expect(screen.getByRole("table")).toBeInTheDocument();
+		});
+	});
 
-	describe('TableCell - Multi-line Content Support', () => {
-		test('TableCell does NOT have whitespace-nowrap class', () => {
+	describe("TableCell - Multi-line Content Support", () => {
+		test("TableCell does NOT have whitespace-nowrap class", () => {
 			render(
 				<Table>
 					<TableBody>
@@ -86,14 +86,14 @@ describe('Table Component', () => {
 							<TableCell data-testid="test-cell">Content</TableCell>
 						</TableRow>
 					</TableBody>
-				</Table>
-			)
+				</Table>,
+			);
 
-			const cell = screen.getByTestId('test-cell')
-			expect(cell).not.toHaveClass('whitespace-nowrap')
-		})
+			const cell = screen.getByTestId("test-cell");
+			expect(cell).not.toHaveClass("whitespace-nowrap");
+		});
 
-		test('TableCell renders multi-line flex-col content correctly', () => {
+		test("TableCell renders multi-line flex-col content correctly", () => {
 			render(
 				<Table>
 					<TableBody>
@@ -106,16 +106,16 @@ describe('Table Component', () => {
 							</TableCell>
 						</TableRow>
 					</TableBody>
-				</Table>
-			)
+				</Table>,
+			);
 
-			const cell = screen.getByTestId('multiline-cell')
-			expect(cell).toBeInTheDocument()
-			expect(screen.getByText('Line 1')).toBeInTheDocument()
-			expect(screen.getByText('Line 2')).toBeInTheDocument()
-		})
+			const cell = screen.getByTestId("multiline-cell");
+			expect(cell).toBeInTheDocument();
+			expect(screen.getByText("Line 1")).toBeInTheDocument();
+			expect(screen.getByText("Line 2")).toBeInTheDocument();
+		});
 
-		test('TableCell with Unit-style content (property details) renders properly', () => {
+		test("TableCell with Unit-style content (property details) renders properly", () => {
 			// This mimics the actual use case in leases table columns
 			render(
 				<Table>
@@ -131,14 +131,14 @@ describe('Table Component', () => {
 							</TableCell>
 						</TableRow>
 					</TableBody>
-				</Table>
-			)
+				</Table>,
+			);
 
-			expect(screen.getByText('Unit 101')).toBeInTheDocument()
-			expect(screen.getByText('2 bd · 1 ba')).toBeInTheDocument()
-		})
+			expect(screen.getByText("Unit 101")).toBeInTheDocument();
+			expect(screen.getByText("2 bd · 1 ba")).toBeInTheDocument();
+		});
 
-		test('TableCell accepts custom className and merges it', () => {
+		test("TableCell accepts custom className and merges it", () => {
 			render(
 				<Table>
 					<TableBody>
@@ -148,18 +148,18 @@ describe('Table Component', () => {
 							</TableCell>
 						</TableRow>
 					</TableBody>
-				</Table>
-			)
+				</Table>,
+			);
 
-			const cell = screen.getByTestId('custom-cell')
-			expect(cell).toHaveClass('custom-class')
-			expect(cell).toHaveClass('p-2') // Base class
-			expect(cell).toHaveClass('align-middle') // Base class
-		})
-	})
+			const cell = screen.getByTestId("custom-cell");
+			expect(cell).toHaveClass("custom-class");
+			expect(cell).toHaveClass("p-2"); // Base class
+			expect(cell).toHaveClass("align-middle"); // Base class
+		});
+	});
 
-	describe('TableHead - Single-line Headers', () => {
-		test('TableHead has whitespace-nowrap class', () => {
+	describe("TableHead - Single-line Headers", () => {
+		test("TableHead has whitespace-nowrap class", () => {
 			render(
 				<Table>
 					<TableHeader>
@@ -172,14 +172,14 @@ describe('Table Component', () => {
 							<TableCell>Cell</TableCell>
 						</TableRow>
 					</TableBody>
-				</Table>
-			)
+				</Table>,
+			);
 
-			const head = screen.getByTestId('test-head')
-			expect(head).toHaveClass('whitespace-nowrap')
-		})
+			const head = screen.getByTestId("test-head");
+			expect(head).toHaveClass("whitespace-nowrap");
+		});
 
-		test('TableHead accepts custom className and merges it', () => {
+		test("TableHead accepts custom className and merges it", () => {
 			render(
 				<Table>
 					<TableHeader>
@@ -194,17 +194,17 @@ describe('Table Component', () => {
 							<TableCell>Cell</TableCell>
 						</TableRow>
 					</TableBody>
-				</Table>
-			)
+				</Table>,
+			);
 
-			const head = screen.getByTestId('custom-head')
-			expect(head).toHaveClass('custom-header')
-			expect(head).toHaveClass('whitespace-nowrap')
-		})
-	})
+			const head = screen.getByTestId("custom-head");
+			expect(head).toHaveClass("custom-header");
+			expect(head).toHaveClass("whitespace-nowrap");
+		});
+	});
 
-	describe('Data Slots', () => {
-		test('Table has correct data-slot attributes', () => {
+	describe("Data Slots", () => {
+		test("Table has correct data-slot attributes", () => {
 			render(
 				<Table data-testid="table">
 					<TableHeader data-testid="header">
@@ -217,41 +217,41 @@ describe('Table Component', () => {
 							<TableCell data-testid="cell">Cell</TableCell>
 						</TableRow>
 					</TableBody>
-				</Table>
-			)
+				</Table>,
+			);
 
 			// These data-slot attributes help with styling and testing
 			// Table component wraps in a container, so we get the actual table element
-			expect(screen.getByRole('table')).toHaveAttribute('data-slot', 'table')
-			expect(screen.getByTestId('header')).toHaveAttribute(
-				'data-slot',
-				'table-header'
-			)
-			expect(screen.getByTestId('body')).toHaveAttribute(
-				'data-slot',
-				'table-body'
-			)
-			expect(screen.getByTestId('header-row')).toHaveAttribute(
-				'data-slot',
-				'table-row'
-			)
-			expect(screen.getByTestId('body-row')).toHaveAttribute(
-				'data-slot',
-				'table-row'
-			)
-			expect(screen.getByTestId('head')).toHaveAttribute(
-				'data-slot',
-				'table-head'
-			)
-			expect(screen.getByTestId('cell')).toHaveAttribute(
-				'data-slot',
-				'table-cell'
-			)
-		})
-	})
+			expect(screen.getByRole("table")).toHaveAttribute("data-slot", "table");
+			expect(screen.getByTestId("header")).toHaveAttribute(
+				"data-slot",
+				"table-header",
+			);
+			expect(screen.getByTestId("body")).toHaveAttribute(
+				"data-slot",
+				"table-body",
+			);
+			expect(screen.getByTestId("header-row")).toHaveAttribute(
+				"data-slot",
+				"table-row",
+			);
+			expect(screen.getByTestId("body-row")).toHaveAttribute(
+				"data-slot",
+				"table-row",
+			);
+			expect(screen.getByTestId("head")).toHaveAttribute(
+				"data-slot",
+				"table-head",
+			);
+			expect(screen.getByTestId("cell")).toHaveAttribute(
+				"data-slot",
+				"table-cell",
+			);
+		});
+	});
 
-	describe('Overflow Handling', () => {
-		test('Table container has overflow-x-auto for horizontal scroll', () => {
+	describe("Overflow Handling", () => {
+		test("Table container has overflow-x-auto for horizontal scroll", () => {
 			render(
 				<Table data-testid="table">
 					<TableBody>
@@ -259,19 +259,19 @@ describe('Table Component', () => {
 							<TableCell>Cell</TableCell>
 						</TableRow>
 					</TableBody>
-				</Table>
-			)
+				</Table>,
+			);
 
 			// The container div wrapping the table
 			const container = screen
-				.getByTestId('table')
-				.closest('[data-slot="table-container"]')
-			expect(container).toHaveClass('overflow-x-auto')
-		})
-	})
+				.getByTestId("table")
+				.closest('[data-slot="table-container"]');
+			expect(container).toHaveClass("overflow-x-auto");
+		});
+	});
 
-	describe('Accessibility', () => {
-		test('TableRow has correct hover states', () => {
+	describe("Accessibility", () => {
+		test("TableRow has correct hover states", () => {
 			render(
 				<Table>
 					<TableBody>
@@ -279,14 +279,14 @@ describe('Table Component', () => {
 							<TableCell>Cell</TableCell>
 						</TableRow>
 					</TableBody>
-				</Table>
-			)
+				</Table>,
+			);
 
-			const row = screen.getByTestId('row')
-			expect(row).toHaveClass('hover:bg-muted/50')
-		})
+			const row = screen.getByTestId("row");
+			expect(row).toHaveClass("hover:bg-muted/50");
+		});
 
-		test('TableRow supports selected state', () => {
+		test("TableRow supports selected state", () => {
 			render(
 				<Table>
 					<TableBody>
@@ -294,17 +294,17 @@ describe('Table Component', () => {
 							<TableCell>Cell</TableCell>
 						</TableRow>
 					</TableBody>
-				</Table>
-			)
+				</Table>,
+			);
 
-			const row = screen.getByTestId('row')
-			expect(row).toHaveAttribute('data-state', 'selected')
+			const row = screen.getByTestId("row");
+			expect(row).toHaveAttribute("data-state", "selected");
 			// The data-[state=selected]:bg-muted class should apply via CSS
-		})
-	})
+		});
+	});
 
-	describe('Edge Cases', () => {
-		test('handles empty table body', () => {
+	describe("Edge Cases", () => {
+		test("handles empty table body", () => {
 			render(
 				<Table>
 					<TableHeader>
@@ -313,13 +313,13 @@ describe('Table Component', () => {
 						</TableRow>
 					</TableHeader>
 					<TableBody data-testid="empty-body" />
-				</Table>
-			)
+				</Table>,
+			);
 
-			expect(screen.getByTestId('empty-body')).toBeInTheDocument()
-		})
+			expect(screen.getByTestId("empty-body")).toBeInTheDocument();
+		});
 
-		test('handles table with only caption', () => {
+		test("handles table with only caption", () => {
 			render(
 				<Table>
 					<TableCaption>Only Caption</TableCaption>
@@ -328,10 +328,10 @@ describe('Table Component', () => {
 							<TableCell>Cell</TableCell>
 						</TableRow>
 					</TableBody>
-				</Table>
-			)
+				</Table>,
+			);
 
-			expect(screen.getByText('Only Caption')).toBeInTheDocument()
-		})
-	})
-})
+			expect(screen.getByText("Only Caption")).toBeInTheDocument();
+		});
+	});
+});

@@ -1,31 +1,31 @@
-import type { Metadata } from 'next'
-import Link from 'next/link'
-import { CheckCircle2 } from 'lucide-react'
+import { CheckCircle2 } from "lucide-react";
+import type { Metadata } from "next";
+import Link from "next/link";
 
-import { Button } from '#components/ui/button'
+import { Button } from "#components/ui/button";
 import {
 	Card,
 	CardContent,
 	CardDescription,
 	CardFooter,
 	CardHeader,
-	CardTitle
-} from '#components/ui/card'
+	CardTitle,
+} from "#components/ui/card";
 
 export const metadata: Metadata = {
-	title: 'Subscription Activated',
-	description: 'Your subscription is now active',
-	robots: 'noindex, nofollow'
-}
+	title: "Subscription Activated",
+	description: "Your subscription is now active",
+	robots: "noindex, nofollow",
+};
 
 interface CheckoutSuccessPageProps {
-	searchParams: Promise<{ session_id?: string }>
+	searchParams: Promise<{ session_id?: string }>;
 }
 
 export default async function CheckoutSuccessPage({
-	searchParams
+	searchParams,
 }: CheckoutSuccessPageProps) {
-	const { session_id } = await searchParams
+	const { session_id } = await searchParams;
 
 	return (
 		<div className="container flex min-h-[60vh] items-center justify-center py-12">
@@ -61,5 +61,5 @@ export default async function CheckoutSuccessPage({
 				</CardFooter>
 			</Card>
 		</div>
-	)
+	);
 }

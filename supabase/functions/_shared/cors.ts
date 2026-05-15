@@ -10,25 +10,28 @@
  * If origin does not match, returns empty headers (no CORS).
  */
 export function getCorsHeaders(req: Request): Record<string, string> {
-  const frontendUrl = Deno.env.get('FRONTEND_URL')
+	const frontendUrl = Deno.env.get("FRONTEND_URL");
 
-  if (!frontendUrl) {
-    console.error('FRONTEND_URL is not set -- CORS headers will not be returned (fail-closed)')
-    return {}
-  }
+	if (!frontendUrl) {
+		console.error(
+			"FRONTEND_URL is not set -- CORS headers will not be returned (fail-closed)",
+		);
+		return {};
+	}
 
-  const origin = req.headers.get('origin')
+	const origin = req.headers.get("origin");
 
-  if (!origin || origin !== frontendUrl) {
-    return {}
-  }
+	if (!origin || origin !== frontendUrl) {
+		return {};
+	}
 
-  return {
-    'Access-Control-Allow-Origin': origin,
-    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-    'Access-Control-Allow-Methods': 'POST, GET, OPTIONS',
-    'Vary': 'Origin',
-  }
+	return {
+		"Access-Control-Allow-Origin": origin,
+		"Access-Control-Allow-Headers":
+			"authorization, x-client-info, apikey, content-type",
+		"Access-Control-Allow-Methods": "POST, GET, OPTIONS",
+		Vary: "Origin",
+	};
 }
 
 /**
@@ -36,17 +39,17 @@ export function getCorsHeaders(req: Request): Record<string, string> {
  * Returns a Response for OPTIONS requests, or null for other methods.
  */
 export function handleCorsOptions(req: Request): Response | null {
-  if (req.method !== 'OPTIONS') {
-    return null
-  }
+	if (req.method !== "OPTIONS") {
+		return null;
+	}
 
-  const headers = getCorsHeaders(req)
+	const headers = getCorsHeaders(req);
 
-  if (Object.keys(headers).length > 0) {
-    return new Response('ok', { headers })
-  }
+	if (Object.keys(headers).length > 0) {
+		return new Response("ok", { headers });
+	}
 
-  return new Response(null, { status: 204 })
+	return new Response(null, { status: 204 });
 }
 
 /**
@@ -54,8 +57,8 @@ export function handleCorsOptions(req: Request): Response | null {
  * Shorthand for the pattern: { ...getCorsHeaders(req), 'Content-Type': 'application/json' }
  */
 export function getJsonHeaders(req: Request): Record<string, string> {
-  return {
-    ...getCorsHeaders(req),
-    'Content-Type': 'application/json',
-  }
+	return {
+		...getCorsHeaders(req),
+		"Content-Type": "application/json",
+	};
 }

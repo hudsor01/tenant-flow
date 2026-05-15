@@ -1,18 +1,18 @@
-'use client'
+"use client";
 
-import { useState, useEffect } from 'react'
-import { cn } from '#lib/utils'
-import { BlurFade } from '#components/ui/blur-fade'
-import { Quote, ChevronLeft, ChevronRight, Star } from 'lucide-react'
-import { Button } from '#components/ui/button'
-import type { Testimonial } from '#types/sections/marketing'
+import { ChevronLeft, ChevronRight, Quote, Star } from "lucide-react";
+import { useEffect, useState } from "react";
+import { BlurFade } from "#components/ui/blur-fade";
+import { Button } from "#components/ui/button";
+import { cn } from "#lib/utils";
+import type { Testimonial } from "#types/sections/marketing";
 
 interface TestimonialsSectionProps {
-	className?: string
-	testimonials?: Testimonial[]
-	autoRotate?: boolean
-	rotateInterval?: number
-	variant?: 'carousel' | 'grid'
+	className?: string;
+	testimonials?: Testimonial[];
+	autoRotate?: boolean;
+	rotateInterval?: number;
+	variant?: "carousel" | "grid";
 }
 
 // Phase 67 (v2.7) deleted the placeholder testimonials that carried
@@ -24,48 +24,48 @@ export function TestimonialsSection({
 	testimonials = [],
 	autoRotate = true,
 	rotateInterval = 6000,
-	variant = 'carousel'
+	variant = "carousel",
 }: TestimonialsSectionProps) {
-	const [currentIndex, setCurrentIndex] = useState(0)
-	const [isAutoRotating, setIsAutoRotating] = useState(autoRotate)
+	const [currentIndex, setCurrentIndex] = useState(0);
+	const [isAutoRotating, setIsAutoRotating] = useState(autoRotate);
 
 	const goToNext = () => {
-		if (testimonials.length === 0) return
-		setCurrentIndex(prev => (prev + 1) % testimonials.length)
-	}
+		if (testimonials.length === 0) return;
+		setCurrentIndex((prev) => (prev + 1) % testimonials.length);
+	};
 
 	const goToPrev = () => {
-		if (testimonials.length === 0) return
+		if (testimonials.length === 0) return;
 		setCurrentIndex(
-			prev => (prev - 1 + testimonials.length) % testimonials.length
-		)
-	}
+			(prev) => (prev - 1 + testimonials.length) % testimonials.length,
+		);
+	};
 
 	const goToSlide = (index: number) => {
-		setCurrentIndex(index)
-		setIsAutoRotating(false)
-	}
+		setCurrentIndex(index);
+		setIsAutoRotating(false);
+	};
 
 	useEffect(() => {
-		if (!isAutoRotating || variant === 'grid') return
-		if (testimonials.length === 0) return
+		if (!isAutoRotating || variant === "grid") return;
+		if (testimonials.length === 0) return;
 
 		const interval = setInterval(() => {
-			setCurrentIndex(prev => (prev + 1) % testimonials.length)
-		}, rotateInterval)
-		return () => clearInterval(interval)
-	}, [isAutoRotating, testimonials.length, rotateInterval, variant])
+			setCurrentIndex((prev) => (prev + 1) % testimonials.length);
+		}, rotateInterval);
+		return () => clearInterval(interval);
+	}, [isAutoRotating, testimonials.length, rotateInterval, variant]);
 
 	if (testimonials.length === 0) {
-		return null
+		return null;
 	}
 
-	const currentTestimonial = testimonials[currentIndex]
+	const currentTestimonial = testimonials[currentIndex];
 
-	if (variant === 'grid') {
+	if (variant === "grid") {
 		return (
 			<section
-				className={cn('section-spacing relative overflow-hidden', className)}
+				className={cn("section-spacing relative overflow-hidden", className)}
 			>
 				<div className="max-w-7xl mx-auto px-6 lg:px-8">
 					<div className="text-center mb-16 max-w-3xl mx-auto">
@@ -92,20 +92,20 @@ export function TestimonialsSection({
 					</div>
 				</div>
 			</section>
-		)
+		);
 	}
 
 	return (
-		<section className={cn('section-spacing bg-muted/30', className)}>
+		<section className={cn("section-spacing bg-muted/30", className)}>
 			<div className="max-w-7xl mx-auto px-6 lg:px-8">
 				<BlurFade delay={0.1} inView>
 					<div className="text-center mb-12">
 						<h2 className="text-3xl lg:text-4xl xl:text-5xl font-bold tracking-tight text-foreground mb-4">
-							Built for{' '}
-							<span className="hero-highlight">landlords</span>
+							Built for <span className="hero-highlight">landlords</span>
 						</h2>
 						<p className="text-muted-foreground text-lg max-w-2xl mx-auto">
-							Owners use TenantFlow to centralize leases, documents, and maintenance into a single workspace.
+							Owners use TenantFlow to centralize leases, documents, and
+							maintenance into a single workspace.
 						</p>
 					</div>
 				</BlurFade>
@@ -133,9 +133,9 @@ export function TestimonialsSection({
 								<div className="flex items-center gap-4">
 									<div className="size-14 rounded-full bg-primary/10 flex-center text-primary text-xl font-bold">
 										{currentTestimonial?.author
-											.split(' ')
-											.map(n => n[0])
-											.join('')}
+											.split(" ")
+											.map((n) => n[0])
+											.join("")}
 									</div>
 									<div>
 										<div className="font-semibold text-foreground text-lg">
@@ -168,8 +168,8 @@ export function TestimonialsSection({
 								variant="outline"
 								size="icon"
 								onClick={() => {
-									goToPrev()
-									setIsAutoRotating(false)
+									goToPrev();
+									setIsAutoRotating(false);
 								}}
 								className="rounded-full"
 								aria-label="Previous testimonial"
@@ -184,10 +184,10 @@ export function TestimonialsSection({
 										type="button"
 										onClick={() => goToSlide(index)}
 										className={cn(
-											'size-2.5 rounded-full transition-all duration-300',
+											"size-2.5 rounded-full transition-all duration-300",
 											index === currentIndex
-												? 'bg-primary w-8'
-												: 'bg-muted-foreground/30 hover:bg-muted-foreground/50'
+												? "bg-primary w-8"
+												: "bg-muted-foreground/30 hover:bg-muted-foreground/50",
 										)}
 										aria-label={`Go to testimonial ${index + 1}`}
 									/>
@@ -198,8 +198,8 @@ export function TestimonialsSection({
 								variant="outline"
 								size="icon"
 								onClick={() => {
-									goToNext()
-									setIsAutoRotating(false)
+									goToNext();
+									setIsAutoRotating(false);
 								}}
 								className="rounded-full"
 								aria-label="Next testimonial"
@@ -211,7 +211,7 @@ export function TestimonialsSection({
 				</BlurFade>
 			</div>
 		</section>
-	)
+	);
 }
 
 function TestimonialCard({ testimonial }: { testimonial: Testimonial }) {
@@ -233,9 +233,9 @@ function TestimonialCard({ testimonial }: { testimonial: Testimonial }) {
 					<div className="flex items-center gap-3">
 						<div className="size-10 rounded-full bg-primary/10 flex-center text-primary text-sm font-bold">
 							{testimonial.author
-								.split(' ')
-								.map(n => n[0])
-								.join('')}
+								.split(" ")
+								.map((n) => n[0])
+								.join("")}
 						</div>
 						<div>
 							<div className="font-semibold text-foreground">
@@ -260,5 +260,5 @@ function TestimonialCard({ testimonial }: { testimonial: Testimonial }) {
 				</div>
 			</div>
 		</div>
-	)
+	);
 }

@@ -1,9 +1,3 @@
-import { PageLayout } from '#components/layout/page-layout'
-import type { Metadata } from 'next'
-import Link from 'next/link'
-import { JsonLdScript } from '#components/seo/json-ld-script'
-import { createBreadcrumbJsonLd } from '#lib/seo/breadcrumbs'
-import { createPageMetadata } from '#lib/seo/page-metadata'
 import {
 	Building,
 	FileText,
@@ -11,83 +5,89 @@ import {
 	Mail,
 	Shield,
 	UserCog,
-	Wrench
-} from 'lucide-react'
+	Wrench,
+} from "lucide-react";
+import type { Metadata } from "next";
+import Link from "next/link";
+import { PageLayout } from "#components/layout/page-layout";
+import { JsonLdScript } from "#components/seo/json-ld-script";
+import { createBreadcrumbJsonLd } from "#lib/seo/breadcrumbs";
+import { createPageMetadata } from "#lib/seo/page-metadata";
 
 export const metadata: Metadata = createPageMetadata({
-	title: 'Support Center - Property Management Help',
+	title: "Support Center - Property Management Help",
 	description:
-		'Get help with TenantFlow. Contact support, browse FAQs, troubleshoot common issues, and find guides for landlords managing properties, leases, and tenants.',
-	path: '/support'
-})
+		"Get help with TenantFlow. Contact support, browse FAQs, troubleshoot common issues, and find guides for landlords managing properties, leases, and tenants.",
+	path: "/support",
+});
 
 const supportCategories = [
 	{
 		icon: FileText,
-		title: 'Leases & Documents',
+		title: "Leases & Documents",
 		description:
-			'Lease creation, e-signatures, renewals, document templates, and lease e-sign integration.',
+			"Lease creation, e-signatures, renewals, document templates, and lease e-sign integration.",
 		topics: [
-			'How do I create a new lease?',
-			'How does e-signing work?',
-			'Can I customize lease templates?',
-			'How do I renew a lease?'
-		]
+			"How do I create a new lease?",
+			"How does e-signing work?",
+			"Can I customize lease templates?",
+			"How do I renew a lease?",
+		],
 	},
 	{
 		icon: Wrench,
-		title: 'Maintenance Requests',
+		title: "Maintenance Requests",
 		description:
-			'Submitting requests, tracking progress, vendor assignment, and resolution.',
+			"Submitting requests, tracking progress, vendor assignment, and resolution.",
 		topics: [
-			'How do I submit a maintenance request?',
-			'How do I track my request status?',
-			'How are vendors assigned?',
-			'What counts as an emergency request?'
-		]
+			"How do I submit a maintenance request?",
+			"How do I track my request status?",
+			"How are vendors assigned?",
+			"What counts as an emergency request?",
+		],
 	},
 	{
 		icon: Building,
-		title: 'Properties & Units',
+		title: "Properties & Units",
 		description:
-			'Adding properties, managing units, occupancy tracking, and property settings.',
+			"Adding properties, managing units, occupancy tracking, and property settings.",
 		topics: [
-			'How do I add a new property?',
-			'How do I manage units?',
-			'How is occupancy calculated?',
-			'Can I deactivate a property?'
-		]
+			"How do I add a new property?",
+			"How do I manage units?",
+			"How is occupancy calculated?",
+			"Can I deactivate a property?",
+		],
 	},
 	{
 		icon: UserCog,
-		title: 'Account & Settings',
+		title: "Account & Settings",
 		description:
-			'Profile management, notification preferences, password changes, and user roles.',
+			"Profile management, notification preferences, password changes, and user roles.",
 		topics: [
-			'How do I change my password?',
-			'How do I update my notification settings?',
-			'How do I add a tenant record?',
-			'How do I reset two-factor authentication?'
-		]
+			"How do I change my password?",
+			"How do I update my notification settings?",
+			"How do I add a tenant record?",
+			"How do I reset two-factor authentication?",
+		],
 	},
 	{
 		icon: Shield,
-		title: 'Billing & Subscription',
+		title: "Billing & Subscription",
 		description:
-			'Plans, pricing, upgrades, invoices, and managing your TenantFlow subscription.',
+			"Plans, pricing, upgrades, invoices, and managing your TenantFlow subscription.",
 		topics: [
-			'How do I change my subscription plan?',
-			'How do I view past invoices?',
-			'How do I update my billing details?',
-			'How do I cancel my subscription?'
-		]
-	}
-]
+			"How do I change my subscription plan?",
+			"How do I view past invoices?",
+			"How do I update my billing details?",
+			"How do I cancel my subscription?",
+		],
+	},
+];
 
 export default function SupportPage() {
 	return (
 		<PageLayout>
-			<JsonLdScript schema={createBreadcrumbJsonLd('/support')} />
+			<JsonLdScript schema={createBreadcrumbJsonLd("/support")} />
 			<div className="mx-auto max-w-5xl px-6 section-spacing">
 				{/* Header */}
 				<div className="text-center mb-16">
@@ -100,7 +100,7 @@ export default function SupportPage() {
 
 				{/* Support Categories Grid */}
 				<div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-16">
-					{supportCategories.map(category => (
+					{supportCategories.map((category) => (
 						<div
 							key={category.title}
 							className="card-standard p-6 hover:border-primary/20 transition-colors"
@@ -119,7 +119,7 @@ export default function SupportPage() {
 								</div>
 							</div>
 							<ul className="space-y-2 ml-1">
-								{category.topics.map(topic => (
+								{category.topics.map((topic) => (
 									<li
 										key={topic}
 										className="text-sm text-muted-foreground flex items-start gap-2"
@@ -139,8 +139,8 @@ export default function SupportPage() {
 					<h2 className="typography-h3 mb-2">Need more help?</h2>
 					<p className="text-muted-foreground mb-6 max-w-lg mx-auto">
 						Our support team responds during US business hours, Monday through
-						Friday. Include your account email and a description of the issue
-						so we can route your request to the right person.
+						Friday. Include your account email and a description of the issue so
+						we can route your request to the right person.
 					</p>
 					<div className="flex flex-col sm:flex-row items-center justify-center gap-4">
 						<Link
@@ -161,5 +161,5 @@ export default function SupportPage() {
 				</div>
 			</div>
 		</PageLayout>
-	)
+	);
 }

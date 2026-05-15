@@ -5,69 +5,69 @@ import {
 	FileCogIcon,
 	FileIcon,
 	FileTextIcon,
-	FileVideoIcon
-} from 'lucide-react'
-import { createElement } from 'react'
-import type { ReactElement } from 'react'
+	FileVideoIcon,
+} from "lucide-react";
+import type { ReactElement } from "react";
+import { createElement } from "react";
 
 export function formatBytes(bytes: number): string {
-	if (bytes === 0) return '0 B'
-	const sizes = ['B', 'KB', 'MB', 'GB', 'TB']
-	const i = Math.floor(Math.log(bytes) / Math.log(1024))
-	return `${(bytes / 1024 ** i).toFixed(i ? 1 : 0)} ${sizes[i]}`
+	if (bytes === 0) return "0 B";
+	const sizes = ["B", "KB", "MB", "GB", "TB"];
+	const i = Math.floor(Math.log(bytes) / Math.log(1024));
+	return `${(bytes / 1024 ** i).toFixed(i ? 1 : 0)} ${sizes[i]}`;
 }
 
 export function getFileIcon(file: File): ReactElement {
-	const type = file.type
-	const extension = file.name.split('.').pop()?.toLowerCase() ?? ''
+	const type = file.type;
+	const extension = file.name.split(".").pop()?.toLowerCase() ?? "";
 
-	if (type.startsWith('video/')) {
-		return createElement(FileVideoIcon)
+	if (type.startsWith("video/")) {
+		return createElement(FileVideoIcon);
 	}
 
-	if (type.startsWith('audio/')) {
-		return createElement(FileAudioIcon)
+	if (type.startsWith("audio/")) {
+		return createElement(FileAudioIcon);
 	}
 
 	if (
-		type.startsWith('text/') ||
-		['txt', 'md', 'rtf', 'pdf'].includes(extension)
+		type.startsWith("text/") ||
+		["txt", "md", "rtf", "pdf"].includes(extension)
 	) {
-		return createElement(FileTextIcon)
+		return createElement(FileTextIcon);
 	}
 
 	if (
 		[
-			'html',
-			'css',
-			'js',
-			'jsx',
-			'ts',
-			'tsx',
-			'json',
-			'xml',
-			'php',
-			'py',
-			'rb',
-			'java',
-			'c',
-			'cpp',
-			'cs'
+			"html",
+			"css",
+			"js",
+			"jsx",
+			"ts",
+			"tsx",
+			"json",
+			"xml",
+			"php",
+			"py",
+			"rb",
+			"java",
+			"c",
+			"cpp",
+			"cs",
 		].includes(extension)
 	) {
-		return createElement(FileCodeIcon)
+		return createElement(FileCodeIcon);
 	}
 
-	if (['zip', 'rar', '7z', 'tar', 'gz', 'bz2'].includes(extension)) {
-		return createElement(FileArchiveIcon)
+	if (["zip", "rar", "7z", "tar", "gz", "bz2"].includes(extension)) {
+		return createElement(FileArchiveIcon);
 	}
 
 	if (
-		['exe', 'msi', 'app', 'apk', 'deb', 'rpm'].includes(extension) ||
-		type.startsWith('application/')
+		["exe", "msi", "app", "apk", "deb", "rpm"].includes(extension) ||
+		type.startsWith("application/")
 	) {
-		return createElement(FileCogIcon)
+		return createElement(FileCogIcon);
 	}
 
-	return createElement(FileIcon)
+	return createElement(FileIcon);
 }

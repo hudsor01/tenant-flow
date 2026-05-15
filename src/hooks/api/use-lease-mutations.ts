@@ -9,102 +9,101 @@
  * Signature mutations are in use-lease-signature-mutations.ts.
  */
 
-import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { logger } from '#lib/frontend-logger'
-import type { Lease } from '#types/core'
-import { createMutationCallbacks } from '#hooks/create-mutation-callbacks'
-import { tenantQueries } from './query-keys/tenant-keys'
-import { unitQueries } from './query-keys/unit-keys'
-
-import { leaseQueries } from './query-keys/lease-keys'
-import { leaseMutations } from './query-keys/lease-mutation-options'
-import { ownerDashboardKeys } from './use-owner-dashboard'
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { createMutationCallbacks } from "#hooks/create-mutation-callbacks";
+import { logger } from "#lib/frontend-logger";
+import type { Lease } from "#types/core";
+import { leaseQueries } from "./query-keys/lease-keys";
+import { leaseMutations } from "./query-keys/lease-mutation-options";
+import { tenantQueries } from "./query-keys/tenant-keys";
+import { unitQueries } from "./query-keys/unit-keys";
+import { ownerDashboardKeys } from "./use-owner-dashboard";
 
 /**
  * Mutation hook to delete a lease with optimistic removal
  */
 export function useDeleteLeaseOptimisticMutation(options?: {
-	onSuccess?: () => void
-	onError?: (error: Error) => void
+	onSuccess?: () => void;
+	onError?: (error: Error) => void;
 }) {
-	const queryClient = useQueryClient()
+	const queryClient = useQueryClient();
 
 	const callbacks = createMutationCallbacks<
 		string,
 		string,
 		{
-			previousDetail: Lease | undefined
+			previousDetail: Lease | undefined;
 			previousLists: [
 				readonly unknown[],
 				(
 					| {
-							data: Lease[]
-							total?: number
-							limit?: number
-							offset?: number
+							data: Lease[];
+							total?: number;
+							limit?: number;
+							offset?: number;
 					  }
 					| undefined
-				)
-			][]
+				),
+			][];
 		}
 	>(queryClient, {
 		invalidate: [
 			leaseQueries.lists(),
 			leaseQueries.stats().queryKey,
-			ownerDashboardKeys.all
+			ownerDashboardKeys.all,
 		],
-		errorContext: 'Delete lease',
+		errorContext: "Delete lease",
 		onSuccessExtra: () => {
-			logger.info('Lease deleted successfully')
-			options?.onSuccess?.()
+			logger.info("Lease deleted successfully");
+			options?.onSuccess?.();
 		},
 		optimistic: {
-			cancel: id => [leaseQueries.detail(id).queryKey, leaseQueries.lists()],
+			cancel: (id) => [leaseQueries.detail(id).queryKey, leaseQueries.lists()],
 			snapshot: (qc, id) => ({
 				previousDetail: qc.getQueryData<Lease>(
-					leaseQueries.detail(id).queryKey
+					leaseQueries.detail(id).queryKey,
 				),
 				previousLists: qc.getQueriesData<{
-					data: Lease[]
-					total?: number
-					limit?: number
-					offset?: number
-				}>({ queryKey: leaseQueries.lists() })
+					data: Lease[];
+					total?: number;
+					limit?: number;
+					offset?: number;
+				}>({ queryKey: leaseQueries.lists() }),
 			}),
 			apply: (qc, id) => {
 				qc.removeQueries({
-					queryKey: leaseQueries.detail(id).queryKey
-				})
+					queryKey: leaseQueries.detail(id).queryKey,
+				});
 				qc.setQueriesData<{
-					data: Lease[]
-					total?: number
-					limit?: number
-					offset?: number
-				}>({ queryKey: leaseQueries.lists() }, old =>
+					data: Lease[];
+					total?: number;
+					limit?: number;
+					offset?: number;
+				}>({ queryKey: leaseQueries.lists() }, (old) =>
 					old
 						? {
 								...old,
-								data: old.data.filter(lease => lease.id !== id),
-								total: (old.total ?? old.data.length) - 1
+								data: old.data.filter((lease) => lease.id !== id),
+								total: (old.total ?? old.data.length) - 1,
 							}
-						: old
-				)
+						: old,
+				);
 			},
 			rollback: (qc, context, id) => {
 				if (context.previousDetail) {
 					qc.setQueryData(
 						leaseQueries.detail(id).queryKey,
-						context.previousDetail
-					)
+						context.previousDetail,
+					);
 				}
 				if (context.previousLists) {
 					context.previousLists.forEach(([queryKey, data]) => {
-						qc.setQueryData(queryKey, data)
-					})
+						qc.setQueryData(queryKey, data);
+					});
 				}
-			}
-		}
-	})
+			},
+		},
+	});
 
 	return useMutation({
 		...leaseMutations.deleteOptimistic(),
@@ -112,19 +111,17 @@ export function useDeleteLeaseOptimisticMutation(options?: {
 		// Dual error handling: factory shows standard toast via handleMutationError;
 		// options.onError is for caller-specific side effects (e.g., navigation, dialog close).
 		onError: (err, vars, ctx) => {
-			callbacks.onError(err, vars, ctx)
-			options?.onError?.(
-				err instanceof Error ? err : new Error(String(err))
-			)
-		}
-	})
+			callbacks.onError(err, vars, ctx);
+			options?.onError?.(err instanceof Error ? err : new Error(String(err)));
+		},
+	});
 }
 
 /**
  * Create lease mutation
  */
 export function useCreateLeaseMutation() {
-	const queryClient = useQueryClient()
+	const queryClient = useQueryClient();
 
 	return useMutation({
 		...leaseMutations.create(),
@@ -133,19 +130,19 @@ export function useCreateLeaseMutation() {
 				leaseQueries.lists(),
 				tenantQueries.lists(),
 				unitQueries.lists(),
-				ownerDashboardKeys.all
+				ownerDashboardKeys.all,
 			],
-			successMessage: 'Lease created successfully',
-			errorContext: 'Create lease'
-		})
-	})
+			successMessage: "Lease created successfully",
+			errorContext: "Create lease",
+		}),
+	});
 }
 
 /**
  * Update lease mutation
  */
 export function useUpdateLeaseMutation() {
-	const queryClient = useQueryClient()
+	const queryClient = useQueryClient();
 
 	return useMutation({
 		...leaseMutations.update(),
@@ -154,16 +151,16 @@ export function useUpdateLeaseMutation() {
 				leaseQueries.lists(),
 				tenantQueries.lists(),
 				unitQueries.lists(),
-				ownerDashboardKeys.all
+				ownerDashboardKeys.all,
 			],
-			updateDetail: lease => ({
+			updateDetail: (lease) => ({
 				queryKey: leaseQueries.detail(lease.id).queryKey,
-				data: lease
+				data: lease,
 			}),
-			successMessage: 'Lease updated successfully',
-			errorContext: 'Update lease'
-		})
-	})
+			successMessage: "Lease updated successfully",
+			errorContext: "Update lease",
+		}),
+	});
 }
 
 /**
@@ -171,7 +168,7 @@ export function useUpdateLeaseMutation() {
  * Use useDeleteLeaseOptimisticMutation for optimistic updates
  */
 export function useDeleteLeaseMutation() {
-	const queryClient = useQueryClient()
+	const queryClient = useQueryClient();
 
 	return useMutation({
 		...leaseMutations.delete(),
@@ -180,12 +177,12 @@ export function useDeleteLeaseMutation() {
 				leaseQueries.lists(),
 				tenantQueries.lists(),
 				unitQueries.lists(),
-				ownerDashboardKeys.all
+				ownerDashboardKeys.all,
 			],
 			removeDetail: (_data, deletedId) =>
 				leaseQueries.detail(deletedId).queryKey,
-			successMessage: 'Lease deleted successfully',
-			errorContext: 'Delete lease'
-		})
-	})
+			successMessage: "Lease deleted successfully",
+			errorContext: "Delete lease",
+		}),
+	});
 }

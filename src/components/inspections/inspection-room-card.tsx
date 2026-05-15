@@ -1,106 +1,111 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
-import { ChevronDown, ChevronUp, Trash2, Camera } from 'lucide-react'
-import { Button } from '#components/ui/button'
-import { Label } from '#components/ui/label'
-import { Textarea } from '#components/ui/textarea'
+import { Camera, ChevronDown, ChevronUp, Trash2 } from "lucide-react";
+import { useState } from "react";
+import { Badge } from "#components/ui/badge";
+import { Button } from "#components/ui/button";
+import { Label } from "#components/ui/label";
 import {
 	Select,
 	SelectContent,
 	SelectItem,
 	SelectTrigger,
-	SelectValue
-} from '#components/ui/select'
-import { Badge } from '#components/ui/badge'
+	SelectValue,
+} from "#components/ui/select";
+import { Textarea } from "#components/ui/textarea";
 import {
+	useDeleteInspectionRoom,
 	useUpdateInspectionRoom,
-	useDeleteInspectionRoom
-} from '#hooks/api/use-inspection-room-mutations'
-import { InspectionPhotoUpload } from './inspection-photo-upload'
-import type { InspectionRoom } from '#types/sections/inspections'
+} from "#hooks/api/use-inspection-room-mutations";
+import type { InspectionRoom } from "#types/sections/inspections";
+import { InspectionPhotoUpload } from "./inspection-photo-upload";
 
 interface InspectionRoomCardProps {
-	room: InspectionRoom
-	inspectionId: string
+	room: InspectionRoom;
+	inspectionId: string;
 }
 
 const CONDITION_LABELS: Record<string, string> = {
-	excellent: 'Excellent',
-	good: 'Good',
-	fair: 'Fair',
-	poor: 'Poor',
-	damaged: 'Damaged'
-}
+	excellent: "Excellent",
+	good: "Good",
+	fair: "Fair",
+	poor: "Poor",
+	damaged: "Damaged",
+};
 
 const ROOM_TYPE_LABELS: Record<string, string> = {
-	bedroom: 'Bedroom',
-	bathroom: 'Bathroom',
-	kitchen: 'Kitchen',
-	living_room: 'Living Room',
-	dining_room: 'Dining Room',
-	garage: 'Garage',
-	outdoor: 'Outdoor',
-	other: 'Other'
-}
+	bedroom: "Bedroom",
+	bathroom: "Bathroom",
+	kitchen: "Kitchen",
+	living_room: "Living Room",
+	dining_room: "Dining Room",
+	garage: "Garage",
+	outdoor: "Outdoor",
+	other: "Other",
+};
 
 function conditionVariant(
-	rating: string
-): 'success' | 'info' | 'warning' | 'destructive' | 'outline' {
+	rating: string,
+): "success" | "info" | "warning" | "destructive" | "outline" {
 	switch (rating) {
-		case 'excellent':
-			return 'success'
-		case 'good':
-			return 'info'
-		case 'fair':
-			return 'warning'
-		case 'poor':
-			return 'destructive'
-		case 'damaged':
-			return 'destructive'
+		case "excellent":
+			return "success";
+		case "good":
+			return "info";
+		case "fair":
+			return "warning";
+		case "poor":
+			return "destructive";
+		case "damaged":
+			return "destructive";
 		default:
-			return 'outline'
+			return "outline";
 	}
 }
 
 export function InspectionRoomCard({
 	room,
-	inspectionId
+	inspectionId,
 }: InspectionRoomCardProps) {
-	const [isExpanded, setIsExpanded] = useState(true)
-	const [notes, setNotes] = useState(room.notes ?? '')
-	const [conditionRating, setConditionRating] = useState(
-		room.condition_rating
-	)
-	const [showPhotoUpload, setShowPhotoUpload] = useState(false)
+	const [isExpanded, setIsExpanded] = useState(true);
+	const [notes, setNotes] = useState(room.notes ?? "");
+	const [conditionRating, setConditionRating] = useState(room.condition_rating);
+	const [showPhotoUpload, setShowPhotoUpload] = useState(false);
 
-	const updateRoom = useUpdateInspectionRoom(inspectionId)
-	const deleteRoom = useDeleteInspectionRoom(inspectionId)
+	const updateRoom = useUpdateInspectionRoom(inspectionId);
+	const deleteRoom = useDeleteInspectionRoom(inspectionId);
 
 	function handleConditionChange(value: string) {
-		setConditionRating(value)
+		setConditionRating(value);
 		updateRoom.mutate({
 			roomId: room.id,
-			dto: { condition_rating: value as 'excellent' | 'good' | 'fair' | 'poor' | 'damaged' }
-		})
+			dto: {
+				condition_rating: value as
+					| "excellent"
+					| "good"
+					| "fair"
+					| "poor"
+					| "damaged",
+			},
+		});
 	}
 
 	function handleNotesBlur() {
-		if (notes !== (room.notes ?? '')) {
+		if (notes !== (room.notes ?? "")) {
 			updateRoom.mutate({
 				roomId: room.id,
-				dto: { notes: notes || null }
-			})
+				dto: { notes: notes || null },
+			});
 		}
 	}
 
 	function handleDelete() {
 		if (confirm(`Remove room "${room.room_name}"?`)) {
-			deleteRoom.mutate(room.id)
+			deleteRoom.mutate(room.id);
 		}
 	}
 
-	const photos = room.photos ?? []
+	const photos = room.photos ?? [];
 
 	return (
 		<div className="rounded-lg border bg-card">
@@ -109,8 +114,8 @@ export function InspectionRoomCard({
 				<div className="flex items-center gap-3 min-w-0">
 					<button
 						type="button"
-						onClick={() => setIsExpanded(v => !v)}
-						aria-label={isExpanded ? 'Collapse room' : 'Expand room'}
+						onClick={() => setIsExpanded((v) => !v)}
+						aria-label={isExpanded ? "Collapse room" : "Expand room"}
 						className="shrink-0 text-muted-foreground hover:text-foreground transition-colors"
 					>
 						{isExpanded ? (
@@ -186,7 +191,7 @@ export function InspectionRoomCard({
 						<Textarea
 							id={`notes-${room.id}`}
 							value={notes}
-							onChange={e => setNotes(e.target.value)}
+							onChange={(e) => setNotes(e.target.value)}
 							onBlur={handleNotesBlur}
 							placeholder="Describe the condition, any damage, or items to note..."
 							rows={3}
@@ -201,18 +206,18 @@ export function InspectionRoomCard({
 								type="button"
 								variant="outline"
 								size="sm"
-								onClick={() => setShowPhotoUpload(v => !v)}
+								onClick={() => setShowPhotoUpload((v) => !v)}
 								className="min-h-9"
 							>
 								<Camera className="w-4 h-4 mr-2" aria-hidden="true" />
-								{showPhotoUpload ? 'Hide Upload' : 'Add Photos'}
+								{showPhotoUpload ? "Hide Upload" : "Add Photos"}
 							</Button>
 						</div>
 
 						{/* Existing photos */}
 						{photos.length > 0 && (
 							<div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
-								{photos.map(photo => (
+								{photos.map((photo) => (
 									<div
 										key={photo.id}
 										className="aspect-square rounded-md bg-muted overflow-hidden relative group"
@@ -247,5 +252,5 @@ export function InspectionRoomCard({
 				</div>
 			)}
 		</div>
-	)
+	);
 }

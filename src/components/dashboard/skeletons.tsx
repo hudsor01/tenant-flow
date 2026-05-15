@@ -1,4 +1,4 @@
-import { Skeleton } from '#components/ui/skeleton'
+import { Skeleton } from "#components/ui/skeleton";
 
 /**
  * Dashboard Section Skeletons
@@ -35,7 +35,7 @@ export function StatsSkeleton() {
 				))}
 			</div>
 		</section>
-	)
+	);
 }
 
 /** Revenue chart skeleton - aligned with design-os 360px height */
@@ -61,7 +61,7 @@ export function ChartSkeleton() {
 				))}
 			</div>
 		</div>
-	)
+	);
 }
 
 /** Quick actions skeleton */
@@ -84,7 +84,7 @@ export function QuickActionsSkeleton() {
 				))}
 			</div>
 		</div>
-	)
+	);
 }
 
 /** Activity feed skeleton */
@@ -107,7 +107,7 @@ export function ActivitySkeleton() {
 				))}
 			</div>
 		</div>
-	)
+	);
 }
 
 /** Property performance table skeleton */
@@ -139,7 +139,7 @@ export function PropertyTableSkeleton() {
 				))}
 			</div>
 		</div>
-	)
+	);
 }
 
 /** Full dashboard skeleton */
@@ -166,5 +166,5 @@ export function DashboardSkeleton() {
 				</div>
 			</section>
 		</div>
-	)
+	);
 }

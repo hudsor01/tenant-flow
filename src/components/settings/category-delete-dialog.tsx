@@ -1,34 +1,34 @@
-'use client'
+"use client";
 
-import { useEffect, useState } from 'react'
-import { Loader2 } from 'lucide-react'
-import { Button } from '#components/ui/button'
+import { Loader2 } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { Button } from "#components/ui/button";
 import {
 	Dialog,
 	DialogContent,
 	DialogDescription,
 	DialogFooter,
 	DialogHeader,
-	DialogTitle
-} from '#components/ui/dialog'
+	DialogTitle,
+} from "#components/ui/dialog";
 import {
 	Select,
 	SelectContent,
 	SelectItem,
 	SelectTrigger,
-	SelectValue
-} from '#components/ui/select'
+	SelectValue,
+} from "#components/ui/select";
 import type {
 	DeleteWithReassignInput,
-	DocumentCategoryRow
-} from '#hooks/api/query-keys/document-category-keys'
+	DocumentCategoryRow,
+} from "#hooks/api/query-keys/document-category-keys";
 
 interface CategoryDeleteDialogProps {
-	target: DocumentCategoryRow | null
-	candidates: DocumentCategoryRow[]
-	onOpenChange: (open: boolean) => void
-	onSubmit: (input: DeleteWithReassignInput) => void
-	isPending: boolean
+	target: DocumentCategoryRow | null;
+	candidates: DocumentCategoryRow[];
+	onOpenChange: (open: boolean) => void;
+	onSubmit: (input: DeleteWithReassignInput) => void;
+	isPending: boolean;
 }
 
 export function CategoryDeleteDialog({
@@ -36,36 +36,34 @@ export function CategoryDeleteDialog({
 	candidates,
 	onOpenChange,
 	onSubmit,
-	isPending
+	isPending,
 }: CategoryDeleteDialogProps) {
-	const [reassignTo, setReassignTo] = useState('')
+	const [reassignTo, setReassignTo] = useState("");
 
 	// Default to the canonical 'other' fallback when the dialog opens
-	// against a NEW target. Cycle-3 M-1: only re-run on `target?.id`
-	// change — gating on the full `candidates` array would clobber the
-	// user's chosen reassign target if the categories list refetches
-	// mid-dialog (e.g., refetchOnWindowFocus). The fallback lookup
-	// reaches into the latest `candidates` reference at fire time, so
-	// we don't need it as a dep.
-	const targetId = target?.id
+	// against a NEW target. Re-run only on `target?.id` change — gating
+	// on the full `candidates` array would clobber the user's chosen
+	// reassign target if the categories list refetches mid-dialog
+	// (e.g., refetchOnWindowFocus). The ref pattern lets the effect read
+	// the latest `candidates` without being a re-run trigger.
+	const candidatesRef = useRef(candidates);
+	candidatesRef.current = candidates;
+
+	const targetId = target?.id;
 	useEffect(() => {
 		if (!targetId) {
-			setReassignTo('')
-			return
+			setReassignTo("");
+			return;
 		}
+		const latest = candidatesRef.current;
 		const fallback =
-			candidates.find(c => c.slug === 'other' && c.id !== targetId) ??
-			candidates.find(c => c.id !== targetId)
-		setReassignTo(fallback?.id ?? '')
-		// `candidates` intentionally NOT in deps — see comment above.
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [targetId])
+			latest.find((c) => c.slug === "other" && c.id !== targetId) ??
+			latest.find((c) => c.id !== targetId);
+		setReassignTo(fallback?.id ?? "");
+	}, [targetId]);
 
 	const canSubmit =
-		!isPending &&
-		!!target &&
-		!!reassignTo &&
-		reassignTo !== target.id
+		!isPending && !!target && !!reassignTo && reassignTo !== target.id;
 
 	return (
 		<Dialog open={target !== null} onOpenChange={onOpenChange}>
@@ -73,9 +71,9 @@ export function CategoryDeleteDialog({
 				<DialogHeader>
 					<DialogTitle>Delete &ldquo;{target?.label}&rdquo;</DialogTitle>
 					<DialogDescription>
-						Documents currently tagged with this category will be reassigned
-						to the category you pick below. This change is atomic — every
-						affected document is updated in a single transaction.
+						Documents currently tagged with this category will be reassigned to
+						the category you pick below. This change is atomic — every affected
+						document is updated in a single transaction.
 					</DialogDescription>
 				</DialogHeader>
 				<div className="space-y-1">
@@ -91,8 +89,8 @@ export function CategoryDeleteDialog({
 						</SelectTrigger>
 						<SelectContent>
 							{candidates
-								.filter(c => c.id !== target?.id)
-								.map(c => (
+								.filter((c) => c.id !== target?.id)
+								.map((c) => (
 									<SelectItem key={c.id} value={c.id}>
 										{c.label}
 									</SelectItem>
@@ -107,8 +105,8 @@ export function CategoryDeleteDialog({
 					<Button
 						variant="destructive"
 						onClick={() => {
-							if (!target || !reassignTo) return
-							onSubmit({ from_id: target.id, to_id: reassignTo })
+							if (!target || !reassignTo) return;
+							onSubmit({ from_id: target.id, to_id: reassignTo });
 						}}
 						disabled={!canSubmit}
 					>
@@ -123,5 +121,5 @@ export function CategoryDeleteDialog({
 				</DialogFooter>
 			</DialogContent>
 		</Dialog>
-	)
+	);
 }

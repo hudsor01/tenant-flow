@@ -1,25 +1,25 @@
-import type { ElementType } from 'react'
-import Link from 'next/link'
 import {
-	TrendingUp,
-	TrendingDown,
-	Wallet,
 	ArrowRight,
 	Building2,
+	CreditCard,
 	FileText,
 	Receipt,
-	CreditCard
-} from 'lucide-react'
-import { BlurFade } from '#components/ui/blur-fade'
-import { formatCents } from '#lib/utils/currency'
+	TrendingDown,
+	TrendingUp,
+	Wallet,
+} from "lucide-react";
+import Link from "next/link";
+import type { ElementType } from "react";
+import { BlurFade } from "#components/ui/blur-fade";
+import { formatCents } from "#lib/utils/currency";
 
 interface QuickLinkCardProps {
-	href: string
-	icon: ElementType
-	title: string
-	description: string
-	value?: string
-	trend?: 'up' | 'down' | 'neutral'
+	href: string;
+	icon: ElementType;
+	title: string;
+	description: string;
+	value?: string;
+	trend?: "up" | "down" | "neutral";
 }
 
 function QuickLinkCard({
@@ -28,7 +28,7 @@ function QuickLinkCard({
 	title,
 	description,
 	value,
-	trend
+	trend,
 }: QuickLinkCardProps) {
 	return (
 		<Link
@@ -46,28 +46,28 @@ function QuickLinkCard({
 			{value && (
 				<div className="flex items-center gap-2">
 					<span className="text-lg font-semibold tabular-nums">{value}</span>
-					{trend === 'up' && (
+					{trend === "up" && (
 						<TrendingUp className="w-4 h-4 text-emerald-600" />
 					)}
-					{trend === 'down' && (
+					{trend === "down" && (
 						<TrendingDown className="w-4 h-4 text-red-600" />
 					)}
 				</div>
 			)}
 		</Link>
-	)
+	);
 }
 
 interface FinancialsQuickLinksProps {
-	netIncome: number
-	totalRevenue: number
-	totalExpenses: number
+	netIncome: number;
+	totalRevenue: number;
+	totalExpenses: number;
 }
 
 export function FinancialsQuickLinks({
 	netIncome,
 	totalRevenue,
-	totalExpenses
+	totalExpenses,
 }: FinancialsQuickLinksProps) {
 	return (
 		<BlurFade delay={0.35} inView>
@@ -81,7 +81,7 @@ export function FinancialsQuickLinks({
 					title="Income Statement"
 					description="Revenue, expenses, and net income breakdown"
 					value={formatCents(netIncome)}
-					trend={netIncome > 0 ? 'up' : netIncome < 0 ? 'down' : 'neutral'}
+					trend={netIncome > 0 ? "up" : netIncome < 0 ? "down" : "neutral"}
 				/>
 				<QuickLinkCard
 					href="/financials/cash-flow"
@@ -119,6 +119,5 @@ export function FinancialsQuickLinks({
 				/>
 			</div>
 		</BlurFade>
-	)
+	);
 }
-

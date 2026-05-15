@@ -1,10 +1,9 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
-import { useQuery } from '@tanstack/react-query'
-import { tenantQueries } from '#hooks/api/query-keys/tenant-keys'
-import { useDeleteTenantMutation } from '#hooks/api/use-tenant-mutations'
+import { useQuery } from "@tanstack/react-query";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
+import { Tenants } from "#components/tenants/tenants";
 import {
 	AlertDialog,
 	AlertDialogAction,
@@ -13,74 +12,79 @@ import {
 	AlertDialogDescription,
 	AlertDialogFooter,
 	AlertDialogHeader,
-	AlertDialogTitle
-} from '#components/ui/alert-dialog'
-import { Tenants } from '#components/tenants/tenants'
+	AlertDialogTitle,
+} from "#components/ui/alert-dialog";
+import { tenantQueries } from "#hooks/api/query-keys/tenant-keys";
+import { useDeleteTenantMutation } from "#hooks/api/use-tenant-mutations";
 import {
 	transformToTenantItem,
-	transformToTenantSectionDetail
-} from './components/tenant-transforms'
-import { TenantsLoadingSkeleton } from './components/tenants-loading-skeleton'
+	transformToTenantSectionDetail,
+} from "./components/tenant-transforms";
+import { TenantsLoadingSkeleton } from "./components/tenants-loading-skeleton";
 
 export default function TenantsPage() {
-	const router = useRouter()
-	const [selectedTenantId, setSelectedTenantId] = useState<string | null>(
-		null
-	)
-	const [tenantToDelete, setTenantToDelete] = useState<string | null>(null)
+	const router = useRouter();
+	const [selectedTenantId, setSelectedTenantId] = useState<string | null>(null);
+	const [tenantToDelete, setTenantToDelete] = useState<string | null>(null);
 
 	// Fetch tenants list
-	const { data: tenantsResponse, isLoading, error } = useQuery(tenantQueries.list())
-	const rawTenants = tenantsResponse?.data ?? []
+	const {
+		data: tenantsResponse,
+		isLoading,
+		error,
+	} = useQuery(tenantQueries.list());
+	const rawTenants = tenantsResponse?.data ?? [];
 
-	const totalPaidByTenant = new Map<string, number>()
-	const tenants = rawTenants.map(tenant => transformToTenantItem(tenant, totalPaidByTenant))
+	const totalPaidByTenant = new Map<string, number>();
+	const tenants = rawTenants.map((tenant) =>
+		transformToTenantItem(tenant, totalPaidByTenant),
+	);
 
 	// Get selected tenant detail
 	const selectedTenant = (() => {
-		if (!selectedTenantId) return undefined
-		const raw = rawTenants.find(t => t.id === selectedTenantId)
+		if (!selectedTenantId) return undefined;
+		const raw = rawTenants.find((t) => t.id === selectedTenantId);
 		return raw
 			? transformToTenantSectionDetail(raw, totalPaidByTenant)
-			: undefined
-	})()
+			: undefined;
+	})();
 
 	// Delete mutation — consolidated hook with active-lease guard
-	const { mutate: deleteTenant } = useDeleteTenantMutation()
+	const { mutate: deleteTenant } = useDeleteTenantMutation();
 
 	// Callbacks
 	const handleViewTenant = (tenantId: string) => {
-		setSelectedTenantId(tenantId)
-	}
+		setSelectedTenantId(tenantId);
+	};
 
 	const handleEditTenant = (tenantId: string) => {
-			router.push(`/tenants/${tenantId}/edit`)
-		}
+		router.push(`/tenants/${tenantId}/edit`);
+	};
 
 	const confirmDeleteTenant = () => {
 		if (tenantToDelete) {
-			deleteTenant(tenantToDelete)
-			setTenantToDelete(null)
+			deleteTenant(tenantToDelete);
+			setTenantToDelete(null);
 		}
-	}
+	};
 
-	const handleContactTenant = (tenantId: string, method: 'email' | 'phone') => {
-			const tenant = rawTenants.find(t => t.id === tenantId)
-			if (!tenant) return
+	const handleContactTenant = (tenantId: string, method: "email" | "phone") => {
+		const tenant = rawTenants.find((t) => t.id === tenantId);
+		if (!tenant) return;
 
-			if (method === 'email' && tenant.email) {
-				window.location.href = `mailto:${tenant.email}`
-			} else if (method === 'phone' && tenant.phone) {
-				window.location.href = `tel:${tenant.phone}`
-			}
+		if (method === "email" && tenant.email) {
+			window.location.href = `mailto:${tenant.email}`;
+		} else if (method === "phone" && tenant.phone) {
+			window.location.href = `tel:${tenant.phone}`;
 		}
+	};
 
 	const handleViewLease = (leaseId: string) => {
-			router.push(`/leases/${leaseId}`)
-		}
+		router.push(`/leases/${leaseId}`);
+	};
 
 	if (isLoading) {
-		return <TenantsLoadingSkeleton />
+		return <TenantsLoadingSkeleton />;
 	}
 
 	if (error) {
@@ -91,11 +95,11 @@ export default function TenantsPage() {
 						Error Loading Tenants
 					</h2>
 					<p className="text-muted-foreground">
-						{error instanceof Error ? error.message : 'Failed to load tenants'}
+						{error instanceof Error ? error.message : "Failed to load tenants"}
 					</p>
 				</div>
 			</div>
-		)
+		);
 	}
 
 	return (
@@ -111,15 +115,15 @@ export default function TenantsPage() {
 
 			<AlertDialog
 				open={tenantToDelete !== null}
-				onOpenChange={open => !open && setTenantToDelete(null)}
+				onOpenChange={(open) => !open && setTenantToDelete(null)}
 			>
 				<AlertDialogContent>
 					<AlertDialogHeader>
 						<AlertDialogTitle>Delete Tenant</AlertDialogTitle>
 						<AlertDialogDescription>
 							This will mark the tenant as inactive and remove them from active
-							listings. Their data will be retained for legal compliance. Are you
-							sure you want to continue?
+							listings. Their data will be retained for legal compliance. Are
+							you sure you want to continue?
 						</AlertDialogDescription>
 					</AlertDialogHeader>
 					<AlertDialogFooter>
@@ -134,5 +138,5 @@ export default function TenantsPage() {
 				</AlertDialogContent>
 			</AlertDialog>
 		</>
-	)
+	);
 }

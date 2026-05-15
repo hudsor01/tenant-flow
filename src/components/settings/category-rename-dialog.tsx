@@ -1,53 +1,51 @@
-'use client'
+"use client";
 
-import { useEffect, useState } from 'react'
-import { Loader2 } from 'lucide-react'
-import { Button } from '#components/ui/button'
+import { Loader2 } from "lucide-react";
+import { useEffect, useState } from "react";
+import { Button } from "#components/ui/button";
 import {
 	Dialog,
 	DialogContent,
 	DialogDescription,
 	DialogFooter,
 	DialogHeader,
-	DialogTitle
-} from '#components/ui/dialog'
-import { Input } from '#components/ui/input'
+	DialogTitle,
+} from "#components/ui/dialog";
+import { Input } from "#components/ui/input";
 import type {
 	DocumentCategoryRow,
-	UpdateDocumentCategoryInput
-} from '#hooks/api/query-keys/document-category-keys'
+	UpdateDocumentCategoryInput,
+} from "#hooks/api/query-keys/document-category-keys";
 
-const LABEL_MAX = 80
+const LABEL_MAX = 80;
 
 interface CategoryRenameDialogProps {
-	target: DocumentCategoryRow | null
-	onOpenChange: (open: boolean) => void
-	onSubmit: (input: UpdateDocumentCategoryInput) => void
-	isPending: boolean
+	target: DocumentCategoryRow | null;
+	onOpenChange: (open: boolean) => void;
+	onSubmit: (input: UpdateDocumentCategoryInput) => void;
+	isPending: boolean;
 }
 
 export function CategoryRenameDialog({
 	target,
 	onOpenChange,
 	onSubmit,
-	isPending
+	isPending,
 }: CategoryRenameDialogProps) {
-	const [label, setLabel] = useState('')
+	const [label, setLabel] = useState("");
 
 	useEffect(() => {
-		setLabel(target?.label ?? '')
-	}, [target])
+		setLabel(target?.label ?? "");
+	}, [target]);
 
-	const trimmedLabel = label.trim()
+	const trimmedLabel = label.trim();
 	// Cycle-1 M-2: trim BOTH sides — the DB CHECK only enforces
 	// length(trim(label)), so a stored label could include incidental
 	// whitespace. Comparing trimmed-vs-untrimmed would falsely enable
 	// Save on a no-op rename.
-	const trimmedExisting = target?.label.trim() ?? ''
+	const trimmedExisting = target?.label.trim() ?? "";
 	const canSubmit =
-		!isPending &&
-		trimmedLabel.length > 0 &&
-		trimmedLabel !== trimmedExisting
+		!isPending && trimmedLabel.length > 0 && trimmedLabel !== trimmedExisting;
 
 	return (
 		<Dialog open={target !== null} onOpenChange={onOpenChange}>
@@ -67,7 +65,7 @@ export function CategoryRenameDialog({
 						id="rename-label"
 						value={label}
 						maxLength={LABEL_MAX}
-						onChange={e => setLabel(e.target.value)}
+						onChange={(e) => setLabel(e.target.value)}
 						autoFocus
 					/>
 				</div>
@@ -77,8 +75,8 @@ export function CategoryRenameDialog({
 					</Button>
 					<Button
 						onClick={() => {
-							if (!target) return
-							onSubmit({ id: target.id, label: trimmedLabel })
+							if (!target) return;
+							onSubmit({ id: target.id, label: trimmedLabel });
 						}}
 						disabled={!canSubmit}
 					>
@@ -93,5 +91,5 @@ export function CategoryRenameDialog({
 				</DialogFooter>
 			</DialogContent>
 		</Dialog>
-	)
+	);
 }

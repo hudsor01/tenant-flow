@@ -7,13 +7,13 @@
  *   - a function that maps a raw CSV row dict to the schema's input shape
  */
 
-import Papa from 'papaparse'
-import type { z } from 'zod'
-import type { BulkImportParseResult } from './types'
+import Papa from "papaparse";
+import type { z } from "zod";
+import type { BulkImportParseResult } from "./types";
 
-export const CSV_MAX_ROWS = 100
-export const CSV_ACCEPTED_MIME_TYPES = ['text/csv', 'application/csv']
-export const CSV_MAX_FILE_SIZE_BYTES = 5 * 1024 * 1024 // 5 MB
+export const CSV_MAX_ROWS = 100;
+export const CSV_ACCEPTED_MIME_TYPES = ["text/csv", "application/csv"];
+export const CSV_MAX_FILE_SIZE_BYTES = 5 * 1024 * 1024; // 5 MB
 
 // CSV RFC 4180: fields containing quotes, commas, CR, or LF must be
 // wrapped in double-quotes, and internal quotes must be doubled. We
@@ -21,49 +21,49 @@ export const CSV_MAX_FILE_SIZE_BYTES = 5 * 1024 * 1024 // 5 MB
 // embedded `"` or the output is unparseable (papaparse would read
 // `"She said "hi""` as malformed tokens).
 function escapeCell(cell: string): string {
-	return `"${cell.replace(/"/g, '""')}"`
+	return `"${cell.replace(/"/g, '""')}"`;
 }
 
 export function buildCsvTemplate(
 	headers: readonly string[],
-	rows: readonly (readonly string[])[]
+	rows: readonly (readonly string[])[],
 ): string {
-	const headerRow = headers.map(escapeCell).join(',')
-	const dataRows = rows.map(row => row.map(escapeCell).join(','))
-	return [headerRow, ...dataRows].join('\n')
+	const headerRow = headers.map(escapeCell).join(",");
+	const dataRows = rows.map((row) => row.map(escapeCell).join(","));
+	return [headerRow, ...dataRows].join("\n");
 }
 
 export function triggerCsvDownload(content: string, filename: string): void {
-	const blob = new Blob([content], { type: 'text/csv;charset=utf-8;' })
-	const url = URL.createObjectURL(blob)
-	const link = document.createElement('a')
-	link.setAttribute('href', url)
-	link.setAttribute('download', filename)
+	const blob = new Blob([content], { type: "text/csv;charset=utf-8;" });
+	const url = URL.createObjectURL(blob);
+	const link = document.createElement("a");
+	link.setAttribute("href", url);
+	link.setAttribute("download", filename);
 	// Firefox + Safari require the anchor to be in the DOM for the click to
 	// dispatch a download. `sr-only` hides it without an inline style (the
 	// prior `link.style.visibility = 'hidden'` tripped the CLAUDE.md rule).
-	link.className = 'sr-only'
-	document.body.appendChild(link)
+	link.className = "sr-only";
+	document.body.appendChild(link);
 	try {
-		link.click()
+		link.click();
 	} finally {
-		document.body.removeChild(link)
-		URL.revokeObjectURL(url)
+		document.body.removeChild(link);
+		URL.revokeObjectURL(url);
 	}
 }
 
 export function getFileValidationError(file: File): string | null {
 	const hasValidType =
-		CSV_ACCEPTED_MIME_TYPES.includes(file.type) || file.name.endsWith('.csv')
-	if (!hasValidType) return 'Please select a CSV file (.csv)'
+		CSV_ACCEPTED_MIME_TYPES.includes(file.type) || file.name.endsWith(".csv");
+	if (!hasValidType) return "Please select a CSV file (.csv)";
 	if (file.size > CSV_MAX_FILE_SIZE_BYTES)
-		return 'File size must be less than 5MB'
-	return null
+		return "File size must be less than 5MB";
+	return null;
 }
 
 export interface ParseOptions<TOutput> {
 	/** Zod schema the mapped row is validated against. */
-	schema: z.ZodType<TOutput>
+	schema: z.ZodType<TOutput>;
 	/**
 	 * Maps a raw CSV row (headers normalized to lowercase_snake) to the
 	 * schema's input shape. Return type is `unknown` — the schema's
@@ -72,7 +72,7 @@ export interface ParseOptions<TOutput> {
 	 * Return `undefined` to skip the row entirely (rare; usually you want
 	 * the schema to fail so the user sees a row-level error instead).
 	 */
-	mapRow: (raw: Record<string, string>) => unknown
+	mapRow: (raw: Record<string, string>) => unknown;
 }
 
 /**
@@ -86,13 +86,14 @@ export interface ParseOptions<TOutput> {
  */
 export function parseCsvWithSchema<TOutput>(
 	csvText: string,
-	options: ParseOptions<TOutput>
+	options: ParseOptions<TOutput>,
 ): BulkImportParseResult<TOutput> {
 	// Papa handles CRLF and quoted fields, but does NOT strip a UTF-8 BOM
 	// from the first header. Excel on Windows exports CSV with a BOM, which
 	// would leak into the first header name and silently break the first
 	// column. Strip it up front.
-	const normalized = csvText.charCodeAt(0) === 0xfeff ? csvText.slice(1) : csvText
+	const normalized =
+		csvText.charCodeAt(0) === 0xfeff ? csvText.slice(1) : csvText;
 
 	const { data, errors: parseErrors } = Papa.parse<Record<string, string>>(
 		normalized,
@@ -100,10 +101,14 @@ export function parseCsvWithSchema<TOutput>(
 			header: true,
 			skipEmptyLines: true,
 			transformHeader: (h: string) =>
-				h.replace(/^\uFEFF/, '').trim().toLowerCase().replace(/\s+/g, '_'),
-			transform: (value: string) => value.trim()
-		}
-	)
+				h
+					.replace(/^\uFEFF/, "")
+					.trim()
+					.toLowerCase()
+					.replace(/\s+/g, "_"),
+			transform: (value: string) => value.trim(),
+		},
+	);
 
 	// Surface malformed-CSV errors (mismatched quotes, bad delimiters) as a
 	// synthetic "row 0" entry so the validate step can render them alongside
@@ -114,15 +119,15 @@ export function parseCsvWithSchema<TOutput>(
 	// emits for empty/whitespace-only input (there's nothing to delimit).
 	const malformedCsvErrors = parseErrors
 		.filter(
-			err =>
-				err.code !== 'TooFewFields' &&
-				err.code !== 'TooManyFields' &&
-				err.code !== 'UndetectableDelimiter'
+			(err) =>
+				err.code !== "TooFewFields" &&
+				err.code !== "TooManyFields" &&
+				err.code !== "UndetectableDelimiter",
 		)
-		.map(err => ({
-			field: 'csv',
-			message: err.message
-		}))
+		.map((err) => ({
+			field: "csv",
+			message: err.message,
+		}));
 
 	if (data.length === 0) {
 		if (malformedCsvErrors.length > 0) {
@@ -132,56 +137,56 @@ export function parseCsvWithSchema<TOutput>(
 						row: 0,
 						data: {},
 						errors: malformedCsvErrors,
-						parsed: null
-					}
+						parsed: null,
+					},
 				],
 				tooManyRows: false,
-				totalRowCount: 0
-			}
+				totalRowCount: 0,
+			};
 		}
-		return { rows: [], tooManyRows: false, totalRowCount: 0 }
+		return { rows: [], tooManyRows: false, totalRowCount: 0 };
 	}
 
-	const tooManyRows = data.length > CSV_MAX_ROWS
-	const totalRowCount = data.length
-	const rowsToValidate = data.slice(0, CSV_MAX_ROWS)
+	const tooManyRows = data.length > CSV_MAX_ROWS;
+	const totalRowCount = data.length;
+	const rowsToValidate = data.slice(0, CSV_MAX_ROWS);
 
 	const rows = rowsToValidate.map((rawRow, index) => {
 		// Reported row = CSV line number. Header is line 1 so the first data
 		// row is line 2.
-		const csvLine = index + 2
-		const mapped = options.mapRow(rawRow)
+		const csvLine = index + 2;
+		const mapped = options.mapRow(rawRow);
 		if (mapped === undefined) {
 			return {
 				row: csvLine,
 				data: rawRow,
-				errors: [{ field: 'unknown', message: 'Row is empty or invalid.' }],
-				parsed: null
-			}
+				errors: [{ field: "unknown", message: "Row is empty or invalid." }],
+				parsed: null,
+			};
 		}
 
-		const result = options.schema.safeParse(mapped)
+		const result = options.schema.safeParse(mapped);
 		if (result.success) {
 			return {
 				row: csvLine,
 				data: rawRow,
 				errors: [],
-				parsed: result.data
-			}
+				parsed: result.data,
+			};
 		}
 
-		const fieldErrors = result.error.issues.map(issue => ({
-			field: issue.path.join('.') || 'unknown',
-			message: issue.message
-		}))
+		const fieldErrors = result.error.issues.map((issue) => ({
+			field: issue.path.join(".") || "unknown",
+			message: issue.message,
+		}));
 
 		return {
 			row: csvLine,
 			data: rawRow,
 			errors: fieldErrors,
-			parsed: null
-		}
-	})
+			parsed: null,
+		};
+	});
 
-	return { rows, tooManyRows, totalRowCount }
+	return { rows, tooManyRows, totalRowCount };
 }

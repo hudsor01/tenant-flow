@@ -1,28 +1,28 @@
-import { FileText, Check, AlertTriangle, Clock } from 'lucide-react'
+import { AlertTriangle, Check, Clock, FileText } from "lucide-react";
 
 interface LeasesStatCardsProps {
-	totalLeases: number
-	activeLeases: number
-	expiringLeases: number
-	pendingLeases: number
+	totalLeases: number;
+	activeLeases: number;
+	expiringLeases: number;
+	pendingLeases: number;
 }
 
 export function LeasesStatCards({
 	totalLeases,
 	activeLeases,
 	expiringLeases,
-	pendingLeases
+	pendingLeases,
 }: LeasesStatCardsProps) {
 	const cards = [
-		{ label: 'Total Leases', value: totalLeases, icon: FileText },
-		{ label: 'Active', value: activeLeases, icon: Check },
-		{ label: 'Expiring Soon', value: expiringLeases, icon: AlertTriangle },
-		{ label: 'Pending', value: pendingLeases, icon: Clock }
-	]
+		{ label: "Total Leases", value: totalLeases, icon: FileText },
+		{ label: "Active", value: activeLeases, icon: Check },
+		{ label: "Expiring Soon", value: expiringLeases, icon: AlertTriangle },
+		{ label: "Pending", value: pendingLeases, icon: Clock },
+	];
 
 	return (
 		<div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-			{cards.map(card => (
+			{cards.map((card) => (
 				<div
 					key={card.label}
 					className="bg-card border border-border rounded-sm p-4 hover:border-primary/30 hover:shadow-md transition-all group"
@@ -39,5 +39,5 @@ export function LeasesStatCards({
 				</div>
 			))}
 		</div>
-	)
+	);
 }

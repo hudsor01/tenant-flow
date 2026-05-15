@@ -1,4 +1,4 @@
-import { expect, type Page } from '@playwright/test'
+import { expect, type Page } from "@playwright/test";
 
 /**
  * UI element validation helper utilities for E2E testing
@@ -9,9 +9,11 @@ import { expect, type Page } from '@playwright/test'
  */
 export async function verifyTableRenders(
 	page: Page,
-	tableRole: string = 'table'
+	tableRole: string = "table",
 ): Promise<void> {
-	await expect(page.getByRole(tableRole as any)).toBeVisible({ timeout: 10000 })
+	await expect(page.getByRole(tableRole as any)).toBeVisible({
+		timeout: 10000,
+	});
 }
 
 /**
@@ -19,16 +21,16 @@ export async function verifyTableRenders(
  */
 export async function verifyTableHasRows(
 	page: Page,
-	minRows: number = 1
+	minRows: number = 1,
 ): Promise<void> {
 	// Wait for table to load
 	await page.waitForSelector('[role="row"]', {
-		state: 'visible',
-		timeout: 10000
-	})
+		state: "visible",
+		timeout: 10000,
+	});
 
-	const rows = await page.getByRole('row').count()
-	expect(rows).toBeGreaterThanOrEqual(minRows)
+	const rows = await page.getByRole("row").count();
+	expect(rows).toBeGreaterThanOrEqual(minRows);
 }
 
 /**
@@ -36,12 +38,12 @@ export async function verifyTableHasRows(
  */
 export async function verifyTableHeaders(
 	page: Page,
-	headers: string[]
+	headers: string[],
 ): Promise<void> {
 	for (const header of headers) {
 		await expect(
-			page.getByRole('columnheader', { name: new RegExp(header, 'i') })
-		).toBeVisible()
+			page.getByRole("columnheader", { name: new RegExp(header, "i") }),
+		).toBeVisible();
 	}
 }
 
@@ -50,11 +52,11 @@ export async function verifyTableHeaders(
  */
 export async function verifyTableRowContains(
 	page: Page,
-	text: string
+	text: string,
 ): Promise<void> {
 	await expect(
-		page.getByRole('row').filter({ hasText: new RegExp(text, 'i') })
-	).toBeVisible()
+		page.getByRole("row").filter({ hasText: new RegExp(text, "i") }),
+	).toBeVisible();
 }
 
 /**
@@ -63,13 +65,13 @@ export async function verifyTableRowContains(
 export async function getTableRowCount(page: Page): Promise<number> {
 	// Wait for table to load
 	await page.waitForSelector('[role="row"]', {
-		state: 'visible',
-		timeout: 10000
-	})
+		state: "visible",
+		timeout: 10000,
+	});
 
 	// Subtract 1 for header row
-	const rowCount = await page.getByRole('row').count()
-	return Math.max(0, rowCount - 1)
+	const rowCount = await page.getByRole("row").count();
+	return Math.max(0, rowCount - 1);
 }
 
 /**
@@ -77,16 +79,16 @@ export async function getTableRowCount(page: Page): Promise<number> {
  */
 export async function verifyChartRenders(
 	page: Page,
-	chartSelector: string
+	chartSelector: string,
 ): Promise<void> {
-	await expect(page.locator(chartSelector)).toBeVisible({ timeout: 10000 })
+	await expect(page.locator(chartSelector)).toBeVisible({ timeout: 10000 });
 }
 
 /**
  * Verify a chart canvas element renders
  */
 export async function verifyCanvasChartRenders(page: Page): Promise<void> {
-	await expect(page.locator('canvas')).toBeVisible({ timeout: 10000 })
+	await expect(page.locator("canvas")).toBeVisible({ timeout: 10000 });
 }
 
 /**
@@ -95,26 +97,26 @@ export async function verifyCanvasChartRenders(page: Page): Promise<void> {
  */
 export async function verifySVGChartRenders(
 	page: Page,
-	chartLabel?: string
+	chartLabel?: string,
 ): Promise<void> {
 	if (chartLabel) {
 		await expect(
 			page
-				.locator('svg')
-				.filter({ has: page.getByText(new RegExp(chartLabel, 'i')) })
-		).toBeVisible({ timeout: 10000 })
+				.locator("svg")
+				.filter({ has: page.getByText(new RegExp(chartLabel, "i")) }),
+		).toBeVisible({ timeout: 10000 });
 	} else {
 		// Look for chart container SVGs (recharts, visx) or any svg with chart-like attributes
 		const chartSvg = page
-			.locator('.recharts-surface')
-			.or(page.locator('svg.recharts-surface'))
+			.locator(".recharts-surface")
+			.or(page.locator("svg.recharts-surface"))
 			.or(page.locator('[class*="chart"] svg'))
 			.or(
-				page.locator('svg[viewBox]').first() // Fallback: first SVG with viewBox attribute
-			)
+				page.locator("svg[viewBox]").first(), // Fallback: first SVG with viewBox attribute
+			);
 
-		const count = await chartSvg.count()
-		expect(count).toBeGreaterThan(0)
+		const count = await chartSvg.count();
+		expect(count).toBeGreaterThan(0);
 	}
 }
 
@@ -123,16 +125,16 @@ export async function verifySVGChartRenders(
  */
 export async function verifyCardRenders(
 	page: Page,
-	cardText: string
+	cardText: string,
 ): Promise<void> {
 	// Look for card by text content
 	await expect(
 		page
 			.locator('[role="region"]')
-			.filter({ hasText: new RegExp(cardText, 'i') })
-			.or(page.locator('.card').filter({ hasText: new RegExp(cardText, 'i') }))
-			.or(page.getByText(new RegExp(cardText, 'i')))
-	).toBeVisible({ timeout: 10000 })
+			.filter({ hasText: new RegExp(cardText, "i") })
+			.or(page.locator(".card").filter({ hasText: new RegExp(cardText, "i") }))
+			.or(page.getByText(new RegExp(cardText, "i"))),
+	).toBeVisible({ timeout: 10000 });
 }
 
 /**
@@ -141,23 +143,23 @@ export async function verifyCardRenders(
 export async function verifyStatCard(
 	page: Page,
 	label: string,
-	value?: string
+	value?: string,
 ): Promise<void> {
 	const cardLocator = page
 		.locator('[data-testid*="stat-card"]')
-		.or(page.locator('.stat-card'))
-		.or(page.locator('[role="region"]'))
+		.or(page.locator(".stat-card"))
+		.or(page.locator('[role="region"]'));
 
 	// Verify label
 	await expect(
-		cardLocator.filter({ hasText: new RegExp(label, 'i') })
-	).toBeVisible()
+		cardLocator.filter({ hasText: new RegExp(label, "i") }),
+	).toBeVisible();
 
 	// Verify value if provided
 	if (value) {
 		await expect(
-			cardLocator.filter({ hasText: new RegExp(value, 'i') })
-		).toBeVisible()
+			cardLocator.filter({ hasText: new RegExp(value, "i") }),
+		).toBeVisible();
 	}
 }
 
@@ -167,21 +169,23 @@ export async function verifyStatCard(
  */
 export async function verifyButtonExists(
 	page: Page,
-	buttonName: string
+	buttonName: string,
 ): Promise<void> {
-	const button = page.getByRole('button', { name: new RegExp(buttonName, 'i') })
-	const link = page.getByRole('link', { name: new RegExp(buttonName, 'i') })
+	const button = page.getByRole("button", {
+		name: new RegExp(buttonName, "i"),
+	});
+	const link = page.getByRole("link", { name: new RegExp(buttonName, "i") });
 
 	// Check if either button or link is visible
-	const buttonVisible = (await button.count()) > 0
-	const linkVisible = (await link.count()) > 0
+	const buttonVisible = (await button.count()) > 0;
+	const linkVisible = (await link.count()) > 0;
 
 	if (buttonVisible) {
-		await expect(button).toBeVisible({ timeout: 10000 })
+		await expect(button).toBeVisible({ timeout: 10000 });
 	} else if (linkVisible) {
-		await expect(link).toBeVisible({ timeout: 10000 })
+		await expect(link).toBeVisible({ timeout: 10000 });
 	} else {
-		throw new Error(`Could not find button or link with name: ${buttonName}`)
+		throw new Error(`Could not find button or link with name: ${buttonName}`);
 	}
 }
 
@@ -190,13 +194,13 @@ export async function verifyButtonExists(
  */
 export async function verifyLinkExists(
 	page: Page,
-	linkName: string
+	linkName: string,
 ): Promise<void> {
 	await expect(
-		page.getByRole('link', { name: new RegExp(linkName, 'i') })
+		page.getByRole("link", { name: new RegExp(linkName, "i") }),
 	).toBeVisible({
-		timeout: 10000
-	})
+		timeout: 10000,
+	});
 }
 
 /**
@@ -204,13 +208,13 @@ export async function verifyLinkExists(
  */
 export async function verifyIconVisible(
 	page: Page,
-	iconName: string
+	iconName: string,
 ): Promise<void> {
 	await expect(
 		page
 			.locator(`[data-testid="${iconName}-icon"]`)
-			.or(page.locator(`[aria-label*="${iconName}"]`))
-	).toBeVisible()
+			.or(page.locator(`[aria-label*="${iconName}"]`)),
+	).toBeVisible();
 }
 
 /**
@@ -218,9 +222,9 @@ export async function verifyIconVisible(
  */
 export async function takePageScreenshot(
 	page: Page,
-	name: string
+	name: string,
 ): Promise<void> {
-	await page.screenshot({ path: `screenshots/${name}.png`, fullPage: true })
+	await page.screenshot({ path: `screenshots/${name}.png`, fullPage: true });
 }
 
 /**
@@ -229,10 +233,10 @@ export async function takePageScreenshot(
 export async function takeElementScreenshot(
 	page: Page,
 	selector: string,
-	name: string
+	name: string,
 ): Promise<void> {
-	const element = page.locator(selector)
-	await element.screenshot({ path: `screenshots/${name}.png` })
+	const element = page.locator(selector);
+	await element.screenshot({ path: `screenshots/${name}.png` });
 }
 
 /**
@@ -240,11 +244,11 @@ export async function takeElementScreenshot(
  */
 export async function verifyEmptyState(
 	page: Page,
-	message: string
+	message: string,
 ): Promise<void> {
-	await expect(page.getByText(new RegExp(message, 'i'))).toBeVisible({
-		timeout: 10000
-	})
+	await expect(page.getByText(new RegExp(message, "i"))).toBeVisible({
+		timeout: 10000,
+	});
 }
 
 /**
@@ -255,8 +259,8 @@ export async function verifyLoadingSpinner(page: Page): Promise<void> {
 		page
 			.locator('[data-testid="loading"]')
 			.or(page.locator('[aria-label*="loading"]'))
-			.or(page.locator('.animate-spin'))
-	).toBeVisible({ timeout: 5000 })
+			.or(page.locator(".animate-spin")),
+	).toBeVisible({ timeout: 5000 });
 }
 
 /**
@@ -269,8 +273,8 @@ export async function verifyLoadingComplete(page: Page): Promise<void> {
 		page
 			.locator('[data-testid="loading"]')
 			.or(page.locator('[aria-label*="loading"]'))
-			.or(page.locator('.animate-spin'))
-	).toHaveCount(0, { timeout: 15000 })
+			.or(page.locator(".animate-spin")),
+	).toHaveCount(0, { timeout: 15000 });
 }
 
 /**
@@ -278,19 +282,21 @@ export async function verifyLoadingComplete(page: Page): Promise<void> {
  */
 export async function verifyBadge(
 	page: Page,
-	badgeText: string
+	badgeText: string,
 ): Promise<void> {
 	await expect(
 		page
 			.locator('[data-testid*="badge"]')
-			.filter({ hasText: new RegExp(badgeText, 'i') })
+			.filter({ hasText: new RegExp(badgeText, "i") })
 			.or(
-				page.locator('.badge').filter({ hasText: new RegExp(badgeText, 'i') })
+				page.locator(".badge").filter({ hasText: new RegExp(badgeText, "i") }),
 			)
 			.or(
-				page.getByRole('status').filter({ hasText: new RegExp(badgeText, 'i') })
-			)
-	).toBeVisible()
+				page
+					.getByRole("status")
+					.filter({ hasText: new RegExp(badgeText, "i") }),
+			),
+	).toBeVisible();
 }
 
 /**
@@ -301,8 +307,8 @@ export async function verifyPaginationExists(page: Page): Promise<void> {
 		page
 			.locator('[role="navigation"][aria-label*="pagination"]')
 			.or(page.locator('[data-testid="pagination"]'))
-			.or(page.getByRole('button', { name: /next|previous|page/i }))
-	).toBeVisible()
+			.or(page.getByRole("button", { name: /next|previous|page/i })),
+	).toBeVisible();
 }
 
 /**
@@ -311,10 +317,10 @@ export async function verifyPaginationExists(page: Page): Promise<void> {
 export async function verifySearchInputExists(page: Page): Promise<void> {
 	await expect(
 		page
-			.getByRole('searchbox')
+			.getByRole("searchbox")
 			.or(page.getByPlaceholder(/search/i))
-			.or(page.locator('input[type="search"]'))
-	).toBeVisible()
+			.or(page.locator('input[type="search"]')),
+	).toBeVisible();
 }
 
 /**
@@ -322,13 +328,13 @@ export async function verifySearchInputExists(page: Page): Promise<void> {
  */
 export async function verifyFilterExists(
 	page: Page,
-	filterName: string
+	filterName: string,
 ): Promise<void> {
 	await expect(
 		page
-			.getByRole('combobox', { name: new RegExp(filterName, 'i') })
-			.or(page.getByLabel(new RegExp(filterName, 'i')))
-	).toBeVisible()
+			.getByRole("combobox", { name: new RegExp(filterName, "i") })
+			.or(page.getByLabel(new RegExp(filterName, "i"))),
+	).toBeVisible();
 }
 
 /**
@@ -337,18 +343,18 @@ export async function verifyFilterExists(
 export async function verifyHeading(
 	page: Page,
 	text: string,
-	level?: 1 | 2 | 3 | 4 | 5 | 6
+	level?: 1 | 2 | 3 | 4 | 5 | 6,
 ): Promise<void> {
 	if (level) {
 		await expect(
-			page.getByRole('heading', { level, name: new RegExp(text, 'i') })
-		).toBeVisible({ timeout: 10000 })
+			page.getByRole("heading", { level, name: new RegExp(text, "i") }),
+		).toBeVisible({ timeout: 10000 });
 	} else {
 		await expect(
-			page.getByRole('heading', { name: new RegExp(text, 'i') })
+			page.getByRole("heading", { name: new RegExp(text, "i") }),
 		).toBeVisible({
-			timeout: 10000
-		})
+			timeout: 10000,
+		});
 	}
 }
 
@@ -357,10 +363,10 @@ export async function verifyHeading(
  */
 export async function verifyElementsVisible(
 	page: Page,
-	selectors: string[]
+	selectors: string[],
 ): Promise<void> {
 	for (const selector of selectors) {
-		await expect(page.locator(selector)).toBeVisible({ timeout: 10000 })
+		await expect(page.locator(selector)).toBeVisible({ timeout: 10000 });
 	}
 }
 
@@ -370,9 +376,9 @@ export async function verifyElementsVisible(
 export async function verifyElementContainsText(
 	page: Page,
 	selector: string,
-	text: string
+	text: string,
 ): Promise<void> {
-	await expect(page.locator(selector)).toContainText(new RegExp(text, 'i'))
+	await expect(page.locator(selector)).toContainText(new RegExp(text, "i"));
 }
 
 /**
@@ -380,14 +386,14 @@ export async function verifyElementContainsText(
  */
 export async function verifyBreadcrumbs(
 	page: Page,
-	breadcrumbs: string[]
+	breadcrumbs: string[],
 ): Promise<void> {
 	const nav = page
 		.locator('[aria-label*="breadcrumb"]')
-		.or(page.locator('[data-testid="breadcrumb"]'))
+		.or(page.locator('[data-testid="breadcrumb"]'));
 
 	for (const crumb of breadcrumbs) {
-		await expect(nav.getByText(new RegExp(crumb, 'i'))).toBeVisible()
+		await expect(nav.getByText(new RegExp(crumb, "i"))).toBeVisible();
 	}
 }
 
@@ -397,14 +403,14 @@ export async function verifyBreadcrumbs(
 export async function verifyAlert(page: Page, message: string): Promise<void> {
 	await expect(
 		page
-			.getByRole('alert')
-			.filter({ hasText: new RegExp(message, 'i') })
+			.getByRole("alert")
+			.filter({ hasText: new RegExp(message, "i") })
 			.or(
 				page
 					.locator('[role="status"]')
-					.filter({ hasText: new RegExp(message, 'i') })
-			)
-	).toBeVisible({ timeout: 10000 })
+					.filter({ hasText: new RegExp(message, "i") }),
+			),
+	).toBeVisible({ timeout: 10000 });
 }
 
 /**
@@ -412,17 +418,17 @@ export async function verifyAlert(page: Page, message: string): Promise<void> {
  */
 export async function verifyActiveTab(
 	page: Page,
-	tabName: string
+	tabName: string,
 ): Promise<void> {
 	await expect(
-		page.getByRole('tab', { name: new RegExp(tabName, 'i'), selected: true })
-	).toBeVisible()
+		page.getByRole("tab", { name: new RegExp(tabName, "i"), selected: true }),
+	).toBeVisible();
 }
 
 /**
  * Click a tab
  */
 export async function clickTab(page: Page, tabName: string): Promise<void> {
-	await page.getByRole('tab', { name: new RegExp(tabName, 'i') }).click()
-	await page.waitForLoadState('domcontentloaded')
+	await page.getByRole("tab", { name: new RegExp(tabName, "i") }).click();
+	await page.waitForLoadState("domcontentloaded");
 }

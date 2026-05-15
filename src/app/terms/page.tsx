@@ -1,20 +1,20 @@
-import { PageLayout } from '#components/layout/page-layout'
-import type { Metadata } from 'next'
-import { JsonLdScript } from '#components/seo/json-ld-script'
-import { createBreadcrumbJsonLd } from '#lib/seo/breadcrumbs'
-import { createPageMetadata } from '#lib/seo/page-metadata'
+import type { Metadata } from "next";
+import { PageLayout } from "#components/layout/page-layout";
+import { JsonLdScript } from "#components/seo/json-ld-script";
+import { createBreadcrumbJsonLd } from "#lib/seo/breadcrumbs";
+import { createPageMetadata } from "#lib/seo/page-metadata";
 
 export const metadata: Metadata = createPageMetadata({
-	title: 'Terms of Service',
+	title: "Terms of Service",
 	description:
-		'TenantFlow Terms of Service. Review the terms and conditions governing use of our property management platform, billing, and user obligations.',
-	path: '/terms'
-})
+		"TenantFlow Terms of Service. Review the terms and conditions governing use of our property management platform, billing, and user obligations.",
+	path: "/terms",
+});
 
 export default function TermsPage() {
 	return (
 		<PageLayout>
-			<JsonLdScript schema={createBreadcrumbJsonLd('/terms')} />
+			<JsonLdScript schema={createBreadcrumbJsonLd("/terms")} />
 			<div className="mx-auto min-h-screen max-w-4xl px-6 section-spacing">
 				<h1 className="mb-8 typography-h1">Terms of Service</h1>
 				<p className="mb-6 text-muted-foreground">Last Updated: May 11, 2026</p>
@@ -105,7 +105,7 @@ export default function TermsPage() {
 						<h3 className="mb-3 typography-h4">4.1 Subscription Plans</h3>
 						<p>
 							TenantFlow offers various subscription plans with different
-							features and pricing. Current plans and pricing are available at{' '}
+							features and pricing. Current plans and pricing are available at{" "}
 							<a
 								href="https://tenantflow.app/pricing"
 								className="text-primary underline"
@@ -302,7 +302,8 @@ export default function TermsPage() {
 						<p>The Service integrates with third-party services including:</p>
 						<ul className="mb-4 ml-6 list-disc space-y-2">
 							<li>
-								<strong>Stripe:</strong> Payment processing for TenantFlow subscriptions
+								<strong>Stripe:</strong> Payment processing for TenantFlow
+								subscriptions
 							</li>
 							<li>
 								<strong>Google OAuth:</strong> Authentication services
@@ -395,13 +396,13 @@ export default function TermsPage() {
 
 						<h3 className="mb-3 typography-h4">11.1 Informal Resolution</h3>
 						<p>
-							If you have a dispute with TenantFlow, please contact us at{' '}
+							If you have a dispute with TenantFlow, please contact us at{" "}
 							<a
 								href="mailto:support@tenantflow.app"
 								className="text-primary underline"
 							>
 								support@tenantflow.app
-							</a>{' '}
+							</a>{" "}
 							to resolve the matter informally.
 						</p>
 
@@ -488,7 +489,7 @@ export default function TermsPage() {
 						<p>For questions about these Terms, contact us:</p>
 						<div className="mt-4 rounded-lg bg-muted p-6">
 							<p className="mb-2">
-								<strong>Email:</strong>{' '}
+								<strong>Email:</strong>{" "}
 								<a
 									href="mailto:legal@tenantflow.app"
 									className="text-primary underline"
@@ -497,7 +498,7 @@ export default function TermsPage() {
 								</a>
 							</p>
 							<p className="mb-2">
-								<strong>Support:</strong>{' '}
+								<strong>Support:</strong>{" "}
 								<a
 									href="mailto:support@tenantflow.app"
 									className="text-primary underline"
@@ -527,5 +528,5 @@ export default function TermsPage() {
 				</div>
 			</div>
 		</PageLayout>
-	)
+	);
 }

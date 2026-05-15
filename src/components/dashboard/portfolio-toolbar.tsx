@@ -1,23 +1,23 @@
-'use client'
+"use client";
 
-import { LayoutGrid, List, Search, X } from 'lucide-react'
-import { Input } from '#components/ui/input'
+import { LayoutGrid, List, Search, X } from "lucide-react";
+import { Input } from "#components/ui/input";
 import {
 	Select,
 	SelectContent,
 	SelectItem,
 	SelectTrigger,
-	SelectValue
-} from '#components/ui/select'
+	SelectValue,
+} from "#components/ui/select";
 
 interface PortfolioToolbarProps {
-	searchQuery: string
-	onSearchChange: (value: string) => void
-	statusFilter: string
-	onStatusFilterChange: (value: string) => void
-	viewMode: 'table' | 'grid'
-	onViewModeChange: (mode: 'table' | 'grid') => void
-	onClearFilters: () => void
+	searchQuery: string;
+	onSearchChange: (value: string) => void;
+	statusFilter: string;
+	onStatusFilterChange: (value: string) => void;
+	viewMode: "table" | "grid";
+	onViewModeChange: (mode: "table" | "grid") => void;
+	onClearFilters: () => void;
 }
 
 export function PortfolioToolbar({
@@ -27,9 +27,9 @@ export function PortfolioToolbar({
 	onStatusFilterChange,
 	viewMode,
 	onViewModeChange,
-	onClearFilters
+	onClearFilters,
 }: PortfolioToolbarProps) {
-	const hasActiveFilters = searchQuery || statusFilter !== 'all'
+	const hasActiveFilters = searchQuery || statusFilter !== "all";
 
 	return (
 		<div className="px-4 py-3 border-b border-border flex items-center gap-3">
@@ -39,7 +39,7 @@ export function PortfolioToolbar({
 				<Input
 					placeholder="Search properties..."
 					value={searchQuery}
-					onChange={e => onSearchChange(e.target.value)}
+					onChange={(e) => onSearchChange(e.target.value)}
 					className="pl-9 h-9"
 				/>
 			</div>
@@ -71,19 +71,19 @@ export function PortfolioToolbar({
 				{/* View Toggle - using view-toggle utility for consistent styling */}
 				<div className="view-toggle" role="group" aria-label="View mode">
 					<button
-						onClick={() => onViewModeChange('grid')}
+						onClick={() => onViewModeChange("grid")}
 						className="view-toggle-button"
-						data-active={viewMode === 'grid'}
-						aria-pressed={viewMode === 'grid'}
+						data-active={viewMode === "grid"}
+						aria-pressed={viewMode === "grid"}
 					>
 						<LayoutGrid className="w-4 h-4" aria-hidden="true" />
 						<span className="hidden sm:inline">Grid</span>
 					</button>
 					<button
-						onClick={() => onViewModeChange('table')}
+						onClick={() => onViewModeChange("table")}
 						className="view-toggle-button"
-						data-active={viewMode === 'table'}
-						aria-pressed={viewMode === 'table'}
+						data-active={viewMode === "table"}
+						aria-pressed={viewMode === "table"}
 					>
 						<List className="w-4 h-4" aria-hidden="true" />
 						<span className="hidden sm:inline">Table</span>
@@ -91,5 +91,5 @@ export function PortfolioToolbar({
 				</div>
 			</div>
 		</div>
-	)
+	);
 }

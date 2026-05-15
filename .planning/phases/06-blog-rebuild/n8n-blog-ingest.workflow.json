@@ -1,150 +1,159 @@
 {
-  "name": "blog-ingest-content-factory",
-  "active": false,
-  "description": "Phase 6 / BLOG-03 — full LLM content factory feeding the n8n-blog-ingest Edge Function. Pipeline: webhook brief -> Claude Sonnet 4.5 outline -> Claude Sonnet 4.5 draft -> JS preflight gates -> HMAC-signed HTTP POST to /functions/v1/n8n-blog-ingest. See .planning/phases/06-blog-rebuild/N8N-FLOW.md for the runbook.",
-  "nodes": [
-    {
-      "id": "webhook-trigger",
-      "name": "Webhook (manual brief)",
-      "type": "n8n-nodes-base.webhook",
-      "position": [200, 300],
-      "parameters": {
-        "httpMethod": "POST",
-        "path": "blog-ingest-trigger",
-        "responseMode": "lastNode"
-      }
-    },
-    {
-      "id": "anthropic-outline",
-      "name": "Claude: outline",
-      "type": "n8n-nodes-langchain.anthropic",
-      "position": [420, 300],
-      "parameters": {
-        "model": "claude-sonnet-4-5",
-        "messages": [
-          {
-            "role": "system",
-            "content": "You are a content strategist for TenantFlow blog (landlords with 1-15 rentals). Generate an outline for a post about {{ $json.topic }}. Required structure: H1 title (matches the topic verbatim or near-verbatim), Intro 100-150 words mentioning 'landlords' naturally, 4-7 H2 sections with one-line summaries each (every H2 must mention landlords), FAQ section header (3-5 Q/A pairs about the topic), 'What Comes Next' section header (TenantFlow product positioning, 1 mention max of 'DocuSeal'). Constraints: Use ONLY these categories: lease-law, tax-prep, tenant-screening, maintenance, software-vault. The persona is 'landlords' (NEVER 'property owners'). The slug regex is ^[a-z][a-z0-9]*(-[a-z0-9]+)*$ — must start with a letter. If the brief includes canonical_url, pass it through unmodified."
-          },
-          {
-            "role": "user",
-            "content": "Brief: {{ JSON.stringify($json) }}"
-          }
-        ]
-      }
-    },
-    {
-      "id": "anthropic-draft",
-      "name": "Claude: draft",
-      "type": "n8n-nodes-langchain.anthropic",
-      "position": [640, 300],
-      "parameters": {
-        "model": "claude-sonnet-4-5",
-        "messages": [
-          {
-            "role": "system",
-            "content": "Write the full blog post following the outline. Output JSON ONLY (no preamble): {title, slug, excerpt (80-200 chars; landlord-aware), content (markdown; 1,500-2,200 words; H2s match outline), category (from brief), meta_description (50-160 chars), canonical_url (optional; only if brief.canonical_url present; pass through verbatim)}. Hard constraints: 1,500-2,200 words total. Every H2 section mentions 'landlords'. Max 1 mention of 'DocuSeal' anywhere in content. Do NOT use any of these banned phrases (case-insensitive): rent collection, online rent, autopay, auto-pay, tenant portal, automated rent, collect rent, rent processing, pay rent online, online payments, online rent payment, rent collection software, tenants can pay, pay rent through, automated workflow, rent tracking, mobile app access, record rent, paid rent, pay rent. Slug MUST start with a lowercase letter (regex ^[a-z][a-z0-9]*(-[a-z0-9]+)*$). If brief.canonical_url is present, output it verbatim."
-          },
-          {
-            "role": "user",
-            "content": "Outline: {{ $node['Claude: outline'].json.text }}\nBrief: {{ JSON.stringify($input.first().json) }}"
-          }
-        ]
-      }
-    },
-    {
-      "id": "preflight-gates",
-      "name": "Preflight gates (JS)",
-      "type": "n8n-nodes-base.function",
-      "position": [860, 300],
-      "parameters": {
-        "functionCode": "// Re-run the 9 gates client-side. Defense-in-depth: the n8n-blog-ingest Edge Function and the DB validate_blog_post trigger run the same gates.\nconst payload = JSON.parse($input.first().json.text);\nconst BANLIST = ['rent collection','online rent','autopay','auto-pay','tenant portal','automated rent','collect rent','rent processing','pay rent online','online payments','online rent payment','rent collection software','tenants can pay','pay rent through','automated workflow','rent tracking','mobile app access','record rent','paid rent','pay rent'];\nconst SLUG = /^[a-z][a-z0-9]*(-[a-z0-9]+)*$/;\nconst CATS = ['lease-law','tax-prep','tenant-screening','maintenance','software-vault'];\nconst failures = [];\nconst wc = (payload.content||'').trim().split(/\\s+/).filter(Boolean).length;\nif (wc < 1200 || wc > 3000) failures.push({gate:'word_count', message:String(wc)});\nconst h2 = ((payload.content||'').match(/^## /gm)||[]).length;\nif (h2 < 4 || h2 > 10) failures.push({gate:'h2_count', message:String(h2)});\nif (!/landlord/i.test(payload.content||'')) failures.push({gate:'persona_phrase', message:'missing'});\nif (!SLUG.test(payload.slug||'') || (payload.slug||'').length<3 || (payload.slug||'').length>120) failures.push({gate:'slug_pattern', message:payload.slug});\nif (!payload.meta_description || payload.meta_description.length < 50 || payload.meta_description.length > 160) failures.push({gate:'meta_length', message:String(payload.meta_description && payload.meta_description.length)});\nif (!payload.excerpt || payload.excerpt.length < 80 || payload.excerpt.length > 200) failures.push({gate:'excerpt_length', message:String(payload.excerpt && payload.excerpt.length)});\nif (!CATS.includes(payload.category)) failures.push({gate:'category', message:payload.category});\nconst lower = (payload.content||'').toLowerCase();\nfor (const p of BANLIST) { if (lower.includes(p)) { failures.push({gate:'banlist', message:p}); break; } }\nconst doc = ((payload.content||'').match(/DocuSeal/gi)||[]).length;\nif (doc > 1) failures.push({gate:'docuseal_mention', message:String(doc)});\nif (payload.canonical_url !== undefined && typeof payload.canonical_url === 'string') { if (!payload.canonical_url.startsWith('/') && !payload.canonical_url.startsWith('https://')) failures.push({gate:'canonical_url_format', message:payload.canonical_url}); }\nreturn [{json: {ok: failures.length===0, payload, gate_failures: failures}}];"
-      }
-    },
-    {
-      "id": "branch-ok",
-      "name": "IF preflight ok",
-      "type": "n8n-nodes-base.if",
-      "position": [1080, 300],
-      "parameters": {
-        "conditions": {
-          "boolean": [
-            {
-              "value1": "={{ $json.ok }}",
-              "value2": true
-            }
-          ]
-        }
-      }
-    },
-    {
-      "id": "http-ingest",
-      "name": "POST to n8n-blog-ingest",
-      "type": "n8n-nodes-base.httpRequest",
-      "position": [1300, 240],
-      "parameters": {
-        "method": "POST",
-        "url": "={{ $env.SUPABASE_FUNCTIONS_URL }}/n8n-blog-ingest",
-        "sendHeaders": true,
-        "headerParameters": {
-          "parameters": [
-            { "name": "Content-Type", "value": "application/json" },
-            { "name": "apikey", "value": "={{ $env.SUPABASE_PUBLISHABLE_KEY }}" },
-            { "name": "Authorization", "value": "=Bearer {{ $env.SUPABASE_PUBLISHABLE_KEY }}" },
-            { "name": "x-n8n-signature", "value": "={{ $crypto.createHmac('sha256', $env.N8N_WEBHOOK_SECRET).update(JSON.stringify($json.payload)).digest('hex') }}" }
-          ]
-        },
-        "sendBody": true,
-        "specifyBody": "json",
-        "jsonBody": "={{ JSON.stringify($json.payload) }}",
-        "options": {
-          "response": {
-            "response": {
-              "fullResponse": true
-            }
-          }
-        }
-      }
-    },
-    {
-      "id": "branch-201",
-      "name": "IF status 201",
-      "type": "n8n-nodes-base.if",
-      "position": [1520, 240],
-      "parameters": {
-        "conditions": {
-          "number": [
-            {
-              "value1": "={{ $json.statusCode }}",
-              "operation": "equal",
-              "value2": 201
-            }
-          ]
-        }
-      }
-    }
-  ],
-  "connections": {
-    "Webhook (manual brief)": {
-      "main": [[{ "node": "Claude: outline", "type": "main", "index": 0 }]]
-    },
-    "Claude: outline": {
-      "main": [[{ "node": "Claude: draft", "type": "main", "index": 0 }]]
-    },
-    "Claude: draft": {
-      "main": [[{ "node": "Preflight gates (JS)", "type": "main", "index": 0 }]]
-    },
-    "Preflight gates (JS)": {
-      "main": [[{ "node": "IF preflight ok", "type": "main", "index": 0 }]]
-    },
-    "IF preflight ok": {
-      "main": [
-        [{ "node": "POST to n8n-blog-ingest", "type": "main", "index": 0 }],
-        []
-      ]
-    },
-    "POST to n8n-blog-ingest": {
-      "main": [[{ "node": "IF status 201", "type": "main", "index": 0 }]]
-    }
-  }
+	"name": "blog-ingest-content-factory",
+	"active": false,
+	"description": "Phase 6 / BLOG-03 — full LLM content factory feeding the n8n-blog-ingest Edge Function. Pipeline: webhook brief -> Claude Sonnet 4.5 outline -> Claude Sonnet 4.5 draft -> JS preflight gates -> HMAC-signed HTTP POST to /functions/v1/n8n-blog-ingest. See .planning/phases/06-blog-rebuild/N8N-FLOW.md for the runbook.",
+	"nodes": [
+		{
+			"id": "webhook-trigger",
+			"name": "Webhook (manual brief)",
+			"type": "n8n-nodes-base.webhook",
+			"position": [200, 300],
+			"parameters": {
+				"httpMethod": "POST",
+				"path": "blog-ingest-trigger",
+				"responseMode": "lastNode"
+			}
+		},
+		{
+			"id": "anthropic-outline",
+			"name": "Claude: outline",
+			"type": "n8n-nodes-langchain.anthropic",
+			"position": [420, 300],
+			"parameters": {
+				"model": "claude-sonnet-4-5",
+				"messages": [
+					{
+						"role": "system",
+						"content": "You are a content strategist for TenantFlow blog (landlords with 1-15 rentals). Generate an outline for a post about {{ $json.topic }}. Required structure: H1 title (matches the topic verbatim or near-verbatim), Intro 100-150 words mentioning 'landlords' naturally, 4-7 H2 sections with one-line summaries each (every H2 must mention landlords), FAQ section header (3-5 Q/A pairs about the topic), 'What Comes Next' section header (TenantFlow product positioning, 1 mention max of 'DocuSeal'). Constraints: Use ONLY these categories: lease-law, tax-prep, tenant-screening, maintenance, software-vault. The persona is 'landlords' (NEVER 'property owners'). The slug regex is ^[a-z][a-z0-9]*(-[a-z0-9]+)*$ — must start with a letter. If the brief includes canonical_url, pass it through unmodified."
+					},
+					{
+						"role": "user",
+						"content": "Brief: {{ JSON.stringify($json) }}"
+					}
+				]
+			}
+		},
+		{
+			"id": "anthropic-draft",
+			"name": "Claude: draft",
+			"type": "n8n-nodes-langchain.anthropic",
+			"position": [640, 300],
+			"parameters": {
+				"model": "claude-sonnet-4-5",
+				"messages": [
+					{
+						"role": "system",
+						"content": "Write the full blog post following the outline. Output JSON ONLY (no preamble): {title, slug, excerpt (80-200 chars; landlord-aware), content (markdown; 1,500-2,200 words; H2s match outline), category (from brief), meta_description (50-160 chars), canonical_url (optional; only if brief.canonical_url present; pass through verbatim)}. Hard constraints: 1,500-2,200 words total. Every H2 section mentions 'landlords'. Max 1 mention of 'DocuSeal' anywhere in content. Do NOT use any of these banned phrases (case-insensitive): rent collection, online rent, autopay, auto-pay, tenant portal, automated rent, collect rent, rent processing, pay rent online, online payments, online rent payment, rent collection software, tenants can pay, pay rent through, automated workflow, rent tracking, mobile app access, record rent, paid rent, pay rent. Slug MUST start with a lowercase letter (regex ^[a-z][a-z0-9]*(-[a-z0-9]+)*$). If brief.canonical_url is present, output it verbatim."
+					},
+					{
+						"role": "user",
+						"content": "Outline: {{ $node['Claude: outline'].json.text }}\nBrief: {{ JSON.stringify($input.first().json) }}"
+					}
+				]
+			}
+		},
+		{
+			"id": "preflight-gates",
+			"name": "Preflight gates (JS)",
+			"type": "n8n-nodes-base.function",
+			"position": [860, 300],
+			"parameters": {
+				"functionCode": "// Re-run the 9 gates client-side. Defense-in-depth: the n8n-blog-ingest Edge Function and the DB validate_blog_post trigger run the same gates.\nconst payload = JSON.parse($input.first().json.text);\nconst BANLIST = ['rent collection','online rent','autopay','auto-pay','tenant portal','automated rent','collect rent','rent processing','pay rent online','online payments','online rent payment','rent collection software','tenants can pay','pay rent through','automated workflow','rent tracking','mobile app access','record rent','paid rent','pay rent'];\nconst SLUG = /^[a-z][a-z0-9]*(-[a-z0-9]+)*$/;\nconst CATS = ['lease-law','tax-prep','tenant-screening','maintenance','software-vault'];\nconst failures = [];\nconst wc = (payload.content||'').trim().split(/\\s+/).filter(Boolean).length;\nif (wc < 1200 || wc > 3000) failures.push({gate:'word_count', message:String(wc)});\nconst h2 = ((payload.content||'').match(/^## /gm)||[]).length;\nif (h2 < 4 || h2 > 10) failures.push({gate:'h2_count', message:String(h2)});\nif (!/landlord/i.test(payload.content||'')) failures.push({gate:'persona_phrase', message:'missing'});\nif (!SLUG.test(payload.slug||'') || (payload.slug||'').length<3 || (payload.slug||'').length>120) failures.push({gate:'slug_pattern', message:payload.slug});\nif (!payload.meta_description || payload.meta_description.length < 50 || payload.meta_description.length > 160) failures.push({gate:'meta_length', message:String(payload.meta_description && payload.meta_description.length)});\nif (!payload.excerpt || payload.excerpt.length < 80 || payload.excerpt.length > 200) failures.push({gate:'excerpt_length', message:String(payload.excerpt && payload.excerpt.length)});\nif (!CATS.includes(payload.category)) failures.push({gate:'category', message:payload.category});\nconst lower = (payload.content||'').toLowerCase();\nfor (const p of BANLIST) { if (lower.includes(p)) { failures.push({gate:'banlist', message:p}); break; } }\nconst doc = ((payload.content||'').match(/DocuSeal/gi)||[]).length;\nif (doc > 1) failures.push({gate:'docuseal_mention', message:String(doc)});\nif (payload.canonical_url !== undefined && typeof payload.canonical_url === 'string') { if (!payload.canonical_url.startsWith('/') && !payload.canonical_url.startsWith('https://')) failures.push({gate:'canonical_url_format', message:payload.canonical_url}); }\nreturn [{json: {ok: failures.length===0, payload, gate_failures: failures}}];"
+			}
+		},
+		{
+			"id": "branch-ok",
+			"name": "IF preflight ok",
+			"type": "n8n-nodes-base.if",
+			"position": [1080, 300],
+			"parameters": {
+				"conditions": {
+					"boolean": [
+						{
+							"value1": "={{ $json.ok }}",
+							"value2": true
+						}
+					]
+				}
+			}
+		},
+		{
+			"id": "http-ingest",
+			"name": "POST to n8n-blog-ingest",
+			"type": "n8n-nodes-base.httpRequest",
+			"position": [1300, 240],
+			"parameters": {
+				"method": "POST",
+				"url": "={{ $env.SUPABASE_FUNCTIONS_URL }}/n8n-blog-ingest",
+				"sendHeaders": true,
+				"headerParameters": {
+					"parameters": [
+						{ "name": "Content-Type", "value": "application/json" },
+						{
+							"name": "apikey",
+							"value": "={{ $env.SUPABASE_PUBLISHABLE_KEY }}"
+						},
+						{
+							"name": "Authorization",
+							"value": "=Bearer {{ $env.SUPABASE_PUBLISHABLE_KEY }}"
+						},
+						{
+							"name": "x-n8n-signature",
+							"value": "={{ $crypto.createHmac('sha256', $env.N8N_WEBHOOK_SECRET).update(JSON.stringify($json.payload)).digest('hex') }}"
+						}
+					]
+				},
+				"sendBody": true,
+				"specifyBody": "json",
+				"jsonBody": "={{ JSON.stringify($json.payload) }}",
+				"options": {
+					"response": {
+						"response": {
+							"fullResponse": true
+						}
+					}
+				}
+			}
+		},
+		{
+			"id": "branch-201",
+			"name": "IF status 201",
+			"type": "n8n-nodes-base.if",
+			"position": [1520, 240],
+			"parameters": {
+				"conditions": {
+					"number": [
+						{
+							"value1": "={{ $json.statusCode }}",
+							"operation": "equal",
+							"value2": 201
+						}
+					]
+				}
+			}
+		}
+	],
+	"connections": {
+		"Webhook (manual brief)": {
+			"main": [[{ "node": "Claude: outline", "type": "main", "index": 0 }]]
+		},
+		"Claude: outline": {
+			"main": [[{ "node": "Claude: draft", "type": "main", "index": 0 }]]
+		},
+		"Claude: draft": {
+			"main": [[{ "node": "Preflight gates (JS)", "type": "main", "index": 0 }]]
+		},
+		"Preflight gates (JS)": {
+			"main": [[{ "node": "IF preflight ok", "type": "main", "index": 0 }]]
+		},
+		"IF preflight ok": {
+			"main": [
+				[{ "node": "POST to n8n-blog-ingest", "type": "main", "index": 0 }],
+				[]
+			]
+		},
+		"POST to n8n-blog-ingest": {
+			"main": [[{ "node": "IF status 201", "type": "main", "index": 0 }]]
+		}
+	}
 }

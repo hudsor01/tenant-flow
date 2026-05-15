@@ -1,23 +1,23 @@
-import { BlurFade } from '#components/ui/blur-fade'
-import { LazySection } from '#components/ui/lazy-section'
-import { SectionSkeleton } from '#components/ui/section-skeleton'
-import { BentoCard, BentoGrid } from '#components/ui/bento-grid'
 import {
 	Building,
+	FileText,
 	FolderArchive,
+	PieChart,
 	Users,
 	Wrench,
-	FileText,
-	PieChart
-} from 'lucide-react'
+} from "lucide-react";
+import { BentoCard, BentoGrid } from "#components/ui/bento-grid";
+import { BlurFade } from "#components/ui/blur-fade";
+import { LazySection } from "#components/ui/lazy-section";
+import { SectionSkeleton } from "#components/ui/section-skeleton";
 import {
+	AnalyticsPreview,
+	LeaseDocuments,
+	MaintenanceBoard,
 	PropertyGrid,
 	TenantListBackground,
-	MaintenanceBoard,
-	LeaseDocuments,
-	AnalyticsPreview,
-	VaultPreview
-} from './feature-backgrounds'
+	VaultPreview,
+} from "./feature-backgrounds";
 
 export function BentoFeaturesSection() {
 	return (
@@ -30,7 +30,7 @@ export function BentoFeaturesSection() {
 					<BlurFade delay={0.3} inView>
 						<div className="text-center mb-16 space-y-6">
 							<h2 className="text-4xl lg:text-5xl font-bold tracking-tight text-foreground">
-								Everything you need to{' '}
+								Everything you need to{" "}
 								<span className="hero-highlight">manage properties</span>
 							</h2>
 							<p className="text-muted-foreground text-lg leading-relaxed max-w-3xl mx-auto">
@@ -99,5 +99,5 @@ export function BentoFeaturesSection() {
 				</div>
 			</section>
 		</LazySection>
-	)
+	);
 }

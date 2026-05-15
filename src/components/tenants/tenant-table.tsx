@@ -1,27 +1,27 @@
-'use client'
+"use client";
 
-import { useRef, useState } from 'react'
-import { useVirtualizer } from '@tanstack/react-virtual'
-import { Checkbox } from '#components/ui/checkbox'
-import { Button } from '#components/ui/button'
-import type { TenantItem } from '#types/sections/tenants'
+import { useVirtualizer } from "@tanstack/react-virtual";
+import { useRef, useState } from "react";
+import { Button } from "#components/ui/button";
+import { Checkbox } from "#components/ui/checkbox";
+import type { TenantItem } from "#types/sections/tenants";
 import {
 	SortableHeader,
 	type SortDirection,
-	type SortField
-} from './tenant-table-helpers'
-import { TenantTableRow } from './tenant-table-row'
+	type SortField,
+} from "./tenant-table-helpers";
+import { TenantTableRow } from "./tenant-table-row";
 
 interface TenantTableProps {
-	tenants: TenantItem[]
-	selectedIds: Set<string>
-	onSelectChange: (ids: string[]) => void
-	onSelectAll: () => void
-	onDeselectAll: () => void
-	onView: (id: string) => void
-	onEdit: (id: string) => void
-	onDelete: (id: string) => void
-	onViewLease: (leaseId: string) => void
+	tenants: TenantItem[];
+	selectedIds: Set<string>;
+	onSelectChange: (ids: string[]) => void;
+	onSelectAll: () => void;
+	onDeselectAll: () => void;
+	onView: (id: string) => void;
+	onEdit: (id: string) => void;
+	onDelete: (id: string) => void;
+	onViewLease: (leaseId: string) => void;
 }
 
 export function TenantTable({
@@ -33,107 +33,110 @@ export function TenantTable({
 	onView,
 	onEdit,
 	onDelete,
-	onViewLease
+	onViewLease,
 }: TenantTableProps) {
-	const [sortField, setSortField] = useState<SortField>(null)
-	const [sortDirection, setSortDirection] = useState<SortDirection>(null)
-	const [pageIndex, setPageIndex] = useState(0)
-	const pageSize = 10
+	const [sortField, setSortField] = useState<SortField>(null);
+	const [sortDirection, setSortDirection] = useState<SortDirection>(null);
+	const [pageIndex, setPageIndex] = useState(0);
+	const pageSize = 10;
 
 	const handleSort = (field: SortField) => {
 		if (sortField === field) {
-			if (sortDirection === 'asc') {
-				setSortDirection('desc')
-			} else if (sortDirection === 'desc') {
-				setSortField(null)
-				setSortDirection(null)
+			if (sortDirection === "asc") {
+				setSortDirection("desc");
+			} else if (sortDirection === "desc") {
+				setSortField(null);
+				setSortDirection(null);
 			}
 		} else {
-			setSortField(field)
-			setSortDirection('asc')
+			setSortField(field);
+			setSortDirection("asc");
 		}
-	}
+	};
 
 	const sortedTenants = (() => {
-		if (!sortField || !sortDirection) return tenants
+		if (!sortField || !sortDirection) return tenants;
 
 		return [...tenants].sort((a, b) => {
-			let aVal: string = ''
-			let bVal: string = ''
+			let aVal: string = "";
+			let bVal: string = "";
 
 			switch (sortField) {
-				case 'fullName':
-					aVal = a.fullName
-					bVal = b.fullName
-					break
-				case 'email':
-					aVal = a.email
-					bVal = b.email
-					break
-				case 'property':
-					aVal = a.currentProperty || ''
-					bVal = b.currentProperty || ''
-					break
-				case 'leaseStatus':
-					aVal = a.leaseStatus || ''
-					bVal = b.leaseStatus || ''
-					break
+				case "fullName":
+					aVal = a.fullName;
+					bVal = b.fullName;
+					break;
+				case "email":
+					aVal = a.email;
+					bVal = b.email;
+					break;
+				case "property":
+					aVal = a.currentProperty || "";
+					bVal = b.currentProperty || "";
+					break;
+				case "leaseStatus":
+					aVal = a.leaseStatus || "";
+					bVal = b.leaseStatus || "";
+					break;
 			}
 
-			const comparison = aVal.localeCompare(bVal)
-			return sortDirection === 'asc' ? comparison : -comparison
-		})
-	})()
+			const comparison = aVal.localeCompare(bVal);
+			return sortDirection === "asc" ? comparison : -comparison;
+		});
+	})();
 
 	const paginatedTenants = sortedTenants.slice(
 		pageIndex * pageSize,
-		(pageIndex + 1) * pageSize
-	)
+		(pageIndex + 1) * pageSize,
+	);
 
-	const totalPages = Math.ceil(sortedTenants.length / pageSize)
+	const totalPages = Math.ceil(sortedTenants.length / pageSize);
 
 	const allSelected =
 		paginatedTenants.length > 0 &&
-		paginatedTenants.every(t => selectedIds.has(t.id))
+		paginatedTenants.every((t) => selectedIds.has(t.id));
 	const someSelected =
-		paginatedTenants.some(t => selectedIds.has(t.id)) && !allSelected
+		paginatedTenants.some((t) => selectedIds.has(t.id)) && !allSelected;
 
 	const handleSelectAll = () => {
 		if (allSelected) {
-			onDeselectAll()
+			onDeselectAll();
 		} else {
-			onSelectAll()
+			onSelectAll();
 		}
-	}
+	};
 
 	const handleSelectOne = (id: string) => {
-		const newIds = new Set(selectedIds)
+		const newIds = new Set(selectedIds);
 		if (newIds.has(id)) {
-			newIds.delete(id)
+			newIds.delete(id);
 		} else {
-			newIds.add(id)
+			newIds.add(id);
 		}
-		onSelectChange(Array.from(newIds))
-	}
+		onSelectChange(Array.from(newIds));
+	};
 
-	const tableScrollRef = useRef<HTMLDivElement>(null)
+	const tableScrollRef = useRef<HTMLDivElement>(null);
 	const rowVirtualizer = useVirtualizer({
 		count: paginatedTenants.length,
 		getScrollElement: () => tableScrollRef.current,
 		estimateSize: () => 56,
 		overscan: 5,
-	})
+	});
 
 	return (
 		<div className="w-full">
-			<div ref={tableScrollRef} className="overflow-auto max-h-[calc(100vh-400px)]">
+			<div
+				ref={tableScrollRef}
+				className="overflow-auto max-h-[calc(100vh-400px)]"
+			>
 				<table className="w-full">
 					<thead className="border-b border-border bg-muted/50 sticky top-0 z-10">
 						<tr>
 							<th className="w-10 px-4 py-2">
 								<Checkbox
 									checked={
-										allSelected ? true : someSelected ? 'indeterminate' : false
+										allSelected ? true : someSelected ? "indeterminate" : false
 									}
 									onCheckedChange={handleSelectAll}
 									aria-label="Select all"
@@ -184,9 +187,15 @@ export function TenantTable({
 							<th className="w-20 px-4 py-2"></th>
 						</tr>
 					</thead>
-					<tbody className="divide-y divide-border" style={{ height: `${rowVirtualizer.getTotalSize()}px`, position: 'relative' }}>
-						{rowVirtualizer.getVirtualItems().map(virtualRow => {
-							const tenant = paginatedTenants[virtualRow.index]!
+					<tbody
+						className="divide-y divide-border"
+						style={{
+							height: `${rowVirtualizer.getTotalSize()}px`,
+							position: "relative",
+						}}
+					>
+						{rowVirtualizer.getVirtualItems().map((virtualRow) => {
+							const tenant = paginatedTenants[virtualRow.index]!;
 							return (
 								<TenantTableRow
 									key={tenant.id}
@@ -198,7 +207,7 @@ export function TenantTable({
 									onDelete={onDelete}
 									onViewLease={onViewLease}
 								/>
-							)
+							);
 						})}
 					</tbody>
 				</table>
@@ -208,8 +217,8 @@ export function TenantTable({
 			{totalPages > 1 && (
 				<div className="flex items-center justify-between px-4 py-2 border-t border-border">
 					<p className="text-sm text-muted-foreground">
-						Showing {pageIndex * pageSize + 1} to{' '}
-						{Math.min((pageIndex + 1) * pageSize, sortedTenants.length)} of{' '}
+						Showing {pageIndex * pageSize + 1} to{" "}
+						{Math.min((pageIndex + 1) * pageSize, sortedTenants.length)} of{" "}
 						{sortedTenants.length}
 					</p>
 					<div className="flex items-center gap-2">
@@ -235,5 +244,5 @@ export function TenantTable({
 				</div>
 			)}
 		</div>
-	)
+	);
 }

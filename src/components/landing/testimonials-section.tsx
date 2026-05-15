@@ -1,33 +1,33 @@
-'use client'
+"use client";
 
-import { useState, useEffect } from 'react'
-import { cn } from '#lib/utils'
-import { BlurFade } from '#components/ui/blur-fade'
-import { LazySection } from '#components/ui/lazy-section'
-import { SectionSkeleton } from '#components/ui/section-skeleton'
-import { Star } from 'lucide-react'
-import { testimonials } from './features-data'
+import { Star } from "lucide-react";
+import { useEffect, useState } from "react";
+import { BlurFade } from "#components/ui/blur-fade";
+import { LazySection } from "#components/ui/lazy-section";
+import { SectionSkeleton } from "#components/ui/section-skeleton";
+import { cn } from "#lib/utils";
+import { testimonials } from "./features-data";
 
 // Phase 67 (v2.7) gates this section on `testimonials.length`. While
 // the array is empty (no verified customer quotes yet), the section
 // renders nothing rather than fabricated copy.
 export function TestimonialsSection() {
-	const [currentTestimonial, setCurrentTestimonial] = useState(0)
+	const [currentTestimonial, setCurrentTestimonial] = useState(0);
 
 	useEffect(() => {
-		if (testimonials.length === 0) return
+		if (testimonials.length === 0) return;
 		const interval = setInterval(() => {
-			setCurrentTestimonial(prev => (prev + 1) % testimonials.length)
-		}, 5000)
-		return () => clearInterval(interval)
-	}, [])
+			setCurrentTestimonial((prev) => (prev + 1) % testimonials.length);
+		}, 5000);
+		return () => clearInterval(interval);
+	}, []);
 
 	if (testimonials.length === 0) {
-		return null
+		return null;
 	}
 
-	const t = testimonials[currentTestimonial] ?? testimonials[0]
-	if (!t) return null
+	const t = testimonials[currentTestimonial] ?? testimonials[0];
+	if (!t) return null;
 
 	return (
 		<LazySection
@@ -56,9 +56,9 @@ export function TestimonialsSection() {
 									<div className="flex-center space-x-4">
 										<div className="size-12 rounded-full bg-primary/10 flex-center text-primary font-bold">
 											{t.author
-												.split(' ')
-												.map(n => n[0])
-												.join('')}
+												.split(" ")
+												.map((n) => n[0])
+												.join("")}
 										</div>
 										<div className="text-left">
 											<div className="font-semibold text-foreground">
@@ -77,10 +77,10 @@ export function TestimonialsSection() {
 												key={testimonial.author}
 												onClick={() => setCurrentTestimonial(index)}
 												className={cn(
-													'size-2 rounded-full transition-colors duration-300',
+													"size-2 rounded-full transition-colors duration-300",
 													index === currentTestimonial
-														? 'bg-primary'
-														: 'bg-muted-foreground/30'
+														? "bg-primary"
+														: "bg-muted-foreground/30",
 												)}
 											/>
 										))}
@@ -92,5 +92,5 @@ export function TestimonialsSection() {
 				</div>
 			</section>
 		</LazySection>
-	)
+	);
 }

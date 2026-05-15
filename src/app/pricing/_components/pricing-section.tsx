@@ -1,5 +1,5 @@
-import { BentoPricingSection } from '#components/pricing/bento-pricing-section'
+import { BentoPricingSection } from "#components/pricing/bento-pricing-section";
 
 export function PricingSection() {
-	return <BentoPricingSection defaultBillingCycle="monthly" />
+	return <BentoPricingSection defaultBillingCycle="monthly" />;
 }

@@ -1,16 +1,15 @@
-'use client'
+"use client";
 
-import { Spinner } from '#components/ui/loading-spinner'
-import { useMutation } from '@tanstack/react-query'
-import { useRouter, useSearchParams } from 'next/navigation'
-import { useEffect, useRef, useState } from 'react'
+import { useMutation } from "@tanstack/react-query";
+import { Mail, RefreshCw } from "lucide-react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useEffect, useRef, useState } from "react";
 
-import { Alert, AlertDescription } from '#components/ui/alert'
-import { Button } from '#components/ui/button'
-import { CardLayout } from '#components/ui/card-layout'
-
-import { createClient } from '#lib/supabase/client'
-import { Mail, RefreshCw } from 'lucide-react'
+import { Alert, AlertDescription } from "#components/ui/alert";
+import { Button } from "#components/ui/button";
+import { CardLayout } from "#components/ui/card-layout";
+import { Spinner } from "#components/ui/loading-spinner";
+import { createClient } from "#lib/supabase/client";
 
 /**
  * Post-Checkout Page
@@ -24,85 +23,85 @@ import { Mail, RefreshCw } from 'lucide-react'
  * 4. User can explicitly click "Resend" to trigger a magic link if needed
  */
 export default function PostCheckoutPage() {
-	const searchParams = useSearchParams()
-	const router = useRouter()
-	const [email, setEmail] = useState<string>('')
-	const fetchRef = useRef(false)
+	const searchParams = useSearchParams();
+	const router = useRouter();
+	const [email, setEmail] = useState<string>("");
+	const fetchRef = useRef(false);
 
 	// Fetch customer email from checkout session (no magic link auto-send)
 	const {
 		mutate: fetchEmail,
 		isPending: isFetchingEmail,
 		isError: isFetchError,
-		error: fetchError
+		error: fetchError,
 	} = useMutation({
 		mutationFn: async (sessionId: string) => {
-			const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+			const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 			const response = await fetch(
 				`${supabaseUrl}/functions/v1/stripe-checkout-session`,
 				{
-					method: 'POST',
-					headers: { 'Content-Type': 'application/json' },
-					body: JSON.stringify({ sessionId })
-				}
-			)
+					method: "POST",
+					headers: { "Content-Type": "application/json" },
+					body: JSON.stringify({ sessionId }),
+				},
+			);
 
 			if (!response.ok) {
-				throw new Error('Failed to retrieve checkout session')
+				throw new Error("Failed to retrieve checkout session");
 			}
 
 			const session = (await response.json()) as {
-				customer_email: string | null
-			}
-			const customerEmail = session.customer_email
+				customer_email: string | null;
+			};
+			const customerEmail = session.customer_email;
 
 			if (!customerEmail) {
-				throw new Error('No email found in checkout session')
+				throw new Error("No email found in checkout session");
 			}
 
-			return customerEmail
+			return customerEmail;
 		},
 		onSuccess: (customerEmail: string) => {
-			setEmail(customerEmail)
-		}
-	})
+			setEmail(customerEmail);
+		},
+	});
 
 	// Fetch email once on mount
 	useEffect(() => {
-		const sessionId = searchParams.get('session_id')
+		const sessionId = searchParams.get("session_id");
 		if (sessionId && !fetchRef.current) {
-			fetchRef.current = true
-			fetchEmail(sessionId)
+			fetchRef.current = true;
+			fetchEmail(sessionId);
 		}
-	}, [searchParams, fetchEmail])
+	}, [searchParams, fetchEmail]);
 
 	// AUTH-10: Resend magic link only on explicit user action (not auto-send)
 	const {
 		mutate: resendMagicLink,
 		isPending: isResending,
 		isSuccess: resendSuccess,
-		isError: isResendError
+		isError: isResendError,
 	} = useMutation({
 		mutationFn: async (targetEmail: string) => {
-			const supabase = createClient()
+			const supabase = createClient();
 			const { error } = await supabase.auth.signInWithOtp({
 				email: targetEmail,
 				options: {
-					emailRedirectTo: `${window.location.origin}/dashboard`
-				}
-			})
+					emailRedirectTo: `${window.location.origin}/dashboard`,
+				},
+			});
 
 			if (error) {
-				throw error
+				throw error;
 			}
-		}
-	})
+		},
+	});
 
 	const handleResend = () => {
 		if (email) {
-			resendMagicLink(email)
+			resendMagicLink(email);
 		}
-	}
+	};
 
 	if (isFetchingEmail) {
 		return (
@@ -117,16 +116,16 @@ export default function PostCheckoutPage() {
 					</div>
 				</CardLayout>
 			</div>
-		)
+		);
 	}
 
-	if (isFetchError || !searchParams.get('session_id')) {
+	if (isFetchError || !searchParams.get("session_id")) {
 		const errorMessage =
 			fetchError instanceof Error
 				? fetchError.message
-				: !searchParams.get('session_id')
-					? 'Invalid checkout session'
-					: 'Failed to retrieve checkout details'
+				: !searchParams.get("session_id")
+					? "Invalid checkout session"
+					: "Failed to retrieve checkout details";
 
 		return (
 			<div className="flex min-h-screen items-center justify-center p-4">
@@ -137,15 +136,15 @@ export default function PostCheckoutPage() {
 				>
 					<div className="space-y-4">
 						<div className="flex gap-2">
-							<Button variant="outline" onClick={() => router.push('/')}>
+							<Button variant="outline" onClick={() => router.push("/")}>
 								Go Home
 							</Button>
-							<Button onClick={() => router.push('/pricing')}>Try Again</Button>
+							<Button onClick={() => router.push("/pricing")}>Try Again</Button>
 						</div>
 					</div>
 				</CardLayout>
 			</div>
-		)
+		);
 	}
 
 	return (
@@ -199,7 +198,7 @@ export default function PostCheckoutPage() {
 						<Button
 							variant="ghost"
 							className="w-full"
-							onClick={() => router.push('/')}
+							onClick={() => router.push("/")}
 						>
 							Go to Homepage
 						</Button>
@@ -207,5 +206,5 @@ export default function PostCheckoutPage() {
 				</div>
 			</CardLayout>
 		</div>
-	)
+	);
 }

@@ -1,6 +1,6 @@
-import { PageLoader } from '#components/ui/loading-spinner'
+import { PageLoader } from "#components/ui/loading-spinner";
 
 // Global App Loading State
 export default function AppLoading() {
-	return <PageLoader text="Loading TenantFlow..." />
+	return <PageLoader text="Loading TenantFlow..." />;
 }

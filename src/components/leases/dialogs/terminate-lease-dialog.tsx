@@ -1,5 +1,7 @@
-'use client'
+"use client";
 
+import { AlertTriangle } from "lucide-react";
+import { toast } from "sonner";
 import {
 	AlertDialog,
 	AlertDialogAction,
@@ -8,39 +10,37 @@ import {
 	AlertDialogDescription,
 	AlertDialogFooter,
 	AlertDialogHeader,
-	AlertDialogTitle
-} from '#components/ui/alert-dialog'
-import { useTerminateLeaseMutation } from '#hooks/api/use-lease-lifecycle-mutations'
-import { handleMutationError } from '#lib/mutation-error-handler'
-import type { Lease } from '#types/core'
-import { AlertTriangle } from 'lucide-react'
-import { toast } from 'sonner'
+	AlertDialogTitle,
+} from "#components/ui/alert-dialog";
+import { useTerminateLeaseMutation } from "#hooks/api/use-lease-lifecycle-mutations";
+import { handleMutationError } from "#lib/mutation-error-handler";
+import type { Lease } from "#types/core";
 
 interface TerminateLeaseDialogProps {
-	open: boolean
-	onOpenChange: (open: boolean) => void
-	lease: Lease
-	onSuccess?: () => void
+	open: boolean;
+	onOpenChange: (open: boolean) => void;
+	lease: Lease;
+	onSuccess?: () => void;
 }
 
 export function TerminateLeaseDialog({
 	open,
 	onOpenChange,
 	lease,
-	onSuccess
+	onSuccess,
 }: TerminateLeaseDialogProps) {
-	const terminateLease = useTerminateLeaseMutation()
+	const terminateLease = useTerminateLeaseMutation();
 
 	const handleConfirm = async () => {
 		try {
-			await terminateLease.mutateAsync(lease.id)
-			toast.success('Lease terminated successfully')
-			onSuccess?.()
-			onOpenChange(false)
+			await terminateLease.mutateAsync(lease.id);
+			toast.success("Lease terminated successfully");
+			onSuccess?.();
+			onOpenChange(false);
 		} catch (error) {
-			handleMutationError(error, 'Terminate lease')
+			handleMutationError(error, "Terminate lease");
 		}
-	}
+	};
 
 	return (
 		<AlertDialog open={open} onOpenChange={onOpenChange}>
@@ -78,10 +78,10 @@ export function TerminateLeaseDialog({
 						disabled={terminateLease.isPending}
 						className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
 					>
-						{terminateLease.isPending ? 'Terminating...' : 'Terminate Lease'}
+						{terminateLease.isPending ? "Terminating..." : "Terminate Lease"}
 					</AlertDialogAction>
 				</AlertDialogFooter>
 			</AlertDialogContent>
 		</AlertDialog>
-	)
+	);
 }

@@ -1,27 +1,27 @@
-import { Suspense } from 'react'
-import { Skeleton } from '#components/ui/skeleton'
-import { InspectionDetailClient } from '#components/inspections/inspection-detail.client'
+import { Suspense } from "react";
+import { InspectionDetailClient } from "#components/inspections/inspection-detail.client";
+import { Skeleton } from "#components/ui/skeleton";
 
 async function InspectionDetailWrapper({
-	params
+	params,
 }: {
-	params: Promise<{ id: string }>
+	params: Promise<{ id: string }>;
 }) {
-	const { id } = await params
-	return <InspectionDetailClient id={id} />
+	const { id } = await params;
+	return <InspectionDetailClient id={id} />;
 }
 
 export default async function InspectionDetailPage({
-	params
+	params,
 }: {
-	params: Promise<{ id: string }>
+	params: Promise<{ id: string }>;
 }) {
-	const resolvedParams = await params
+	const resolvedParams = await params;
 	return (
 		<div className="space-y-8">
 			<Suspense fallback={<Skeleton className="h-96 w-full" />}>
 				<InspectionDetailWrapper params={Promise.resolve(resolvedParams)} />
 			</Suspense>
 		</div>
-	)
+	);
 }

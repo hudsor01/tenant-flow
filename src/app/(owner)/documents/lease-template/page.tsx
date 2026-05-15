@@ -1,12 +1,12 @@
+import { FileText } from "lucide-react";
+import { LeaseTemplateBuilder } from "#components/leases/template/lease-template-builder.client";
 import {
 	Card,
 	CardContent,
 	CardDescription,
 	CardHeader,
-	CardTitle
-} from '#components/ui/card'
-import { FileText } from 'lucide-react'
-import { LeaseTemplateBuilder } from '#components/leases/template/lease-template-builder.client'
+	CardTitle,
+} from "#components/ui/card";
 
 export default function LeaseTemplatePage() {
 	return (
@@ -70,5 +70,5 @@ export default function LeaseTemplatePage() {
 
 			<LeaseTemplateBuilder />
 		</div>
-	)
+	);
 }

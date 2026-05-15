@@ -1,27 +1,27 @@
-import { Users, Check, Clock, AlertCircle } from 'lucide-react'
+import { AlertCircle, Check, Clock, Users } from "lucide-react";
+import { BlurFade } from "#components/ui/blur-fade";
+import { BorderBeam } from "#components/ui/border-beam";
+import { NumberTicker } from "#components/ui/number-ticker";
 import {
 	Stat,
+	StatDescription,
+	StatIndicator,
 	StatLabel,
 	StatValue,
-	StatIndicator,
-	StatDescription
-} from '#components/ui/stat'
-import { BorderBeam } from '#components/ui/border-beam'
-import { BlurFade } from '#components/ui/blur-fade'
-import { NumberTicker } from '#components/ui/number-ticker'
+} from "#components/ui/stat";
 
 interface TenantStatsProps {
-	totalTenants: number
-	activeTenants: number
-	pendingTenants: number
-	endedTenants: number
+	totalTenants: number;
+	activeTenants: number;
+	pendingTenants: number;
+	endedTenants: number;
 }
 
 export function TenantStats({
 	totalTenants,
 	activeTenants,
 	pendingTenants,
-	endedTenants
+	endedTenants,
 }: TenantStatsProps) {
 	return (
 		<div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
@@ -91,5 +91,5 @@ export function TenantStats({
 				</Stat>
 			</BlurFade>
 		</div>
-	)
+	);
 }

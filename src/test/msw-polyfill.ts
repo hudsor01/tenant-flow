@@ -1,23 +1,31 @@
 /**
  * Polyfill web streams for MSW in jsdom environment.
- * Must run as a separate setupFile BEFORE unit-setup.ts
- * because ESM static imports are hoisted above runtime code.
+ * Must run as a separate setupFile BEFORE unit-setup.ts because ESM
+ * static imports are hoisted above runtime code.
+ *
+ * Uses Object.defineProperty rather than `globalThis.X = X` because
+ * Node's `node:stream/web` types don't structurally match DOM's
+ * lib.dom.d.ts stream types — direct assignment would require either a
+ * `@ts-expect-error` suppression or `as unknown as` cast (banned per
+ * CLAUDE.md). defineProperty's value parameter is `unknown` so neither
+ * is needed.
  */
 import {
-	TransformStream,
 	ReadableStream,
-	WritableStream
-} from 'node:stream/web'
+	TransformStream,
+	WritableStream,
+} from "node:stream/web";
 
-if (typeof globalThis.TransformStream === 'undefined') {
-	// @ts-expect-error -- polyfill for jsdom
-	globalThis.TransformStream = TransformStream
+function polyfill(name: string, value: unknown) {
+	if (typeof (globalThis as Record<string, unknown>)[name] === "undefined") {
+		Object.defineProperty(globalThis, name, {
+			value,
+			writable: true,
+			configurable: true,
+		});
+	}
 }
-if (typeof globalThis.ReadableStream === 'undefined') {
-	// @ts-expect-error -- polyfill for jsdom
-	globalThis.ReadableStream = ReadableStream
-}
-if (typeof globalThis.WritableStream === 'undefined') {
-	// @ts-expect-error -- polyfill for jsdom
-	globalThis.WritableStream = WritableStream
-}
+
+polyfill("TransformStream", TransformStream);
+polyfill("ReadableStream", ReadableStream);
+polyfill("WritableStream", WritableStream);

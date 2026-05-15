@@ -1,4 +1,4 @@
-import { Skeleton } from '#components/ui/skeleton'
+import { Skeleton } from "#components/ui/skeleton";
 
 export function FinancialAnalyticsSkeleton() {
 	return (
@@ -50,5 +50,5 @@ export function FinancialAnalyticsSkeleton() {
 				</div>
 			</div>
 		</div>
-	)
+	);
 }

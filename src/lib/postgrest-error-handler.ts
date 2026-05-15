@@ -15,8 +15,8 @@
  * ```
  */
 
-import * as Sentry from '@sentry/nextjs'
-import type { PostgrestError } from '@supabase/supabase-js'
+import * as Sentry from "@sentry/nextjs";
+import type { PostgrestError } from "@supabase/supabase-js";
 
 /**
  * Handle a PostgREST error by capturing to Sentry and throwing.
@@ -28,7 +28,7 @@ import type { PostgrestError } from '@supabase/supabase-js'
  */
 export function handlePostgrestError(
 	error: PostgrestError,
-	domain: string
+	domain: string,
 ): never {
 	Sentry.captureException(
 		new Error(`PostgREST error in ${domain}: ${error.message}`),
@@ -37,10 +37,10 @@ export function handlePostgrestError(
 				code: error.code,
 				details: error.details,
 				hint: error.hint,
-				domain
-			}
-		}
-	)
+				domain,
+			},
+		},
+	);
 
-	throw error
+	throw error;
 }

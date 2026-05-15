@@ -1,15 +1,15 @@
-import type { Metadata } from 'next'
-import { Button } from '#components/ui/button'
-import { PageLayout } from '#components/layout/page-layout'
-import { CheckCircle } from 'lucide-react'
-import Link from 'next/link'
-import { Suspense } from 'react'
+import { CheckCircle } from "lucide-react";
+import type { Metadata } from "next";
+import Link from "next/link";
+import { Suspense } from "react";
+import { PageLayout } from "#components/layout/page-layout";
+import { Button } from "#components/ui/button";
 
 // Transactional Stripe-result page — no SEO value, duplicates `/pricing/success`.
 // robots.ts also disallows `/stripe/*` for defense in depth.
 export const metadata: Metadata = {
 	robots: { index: false, follow: false },
-}
+};
 
 function SuccessContent() {
 	return (
@@ -50,7 +50,7 @@ function SuccessContent() {
 				</div>
 			</div>
 		</PageLayout>
-	)
+	);
 }
 
 export default function SuccessPage() {
@@ -68,5 +68,5 @@ export default function SuccessPage() {
 		>
 			<SuccessContent />
 		</Suspense>
-	)
+	);
 }

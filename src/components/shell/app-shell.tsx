@@ -1,188 +1,230 @@
-'use client'
-
-import type { ReactNode } from 'react'
-import { useEffect, useRef, useState } from 'react'
+"use client";
 
 import {
-	Home,
-	Building2,
-	Users,
-	ClipboardList,
-	Wrench,
 	BarChart3,
-	FileText,
-	Receipt,
-	FilePlus,
-	FileCheck,
-	FolderArchive,
 	Bell,
+	Building2,
+	ClipboardList,
+	FileCheck,
+	FilePlus,
+	FileText,
+	FolderArchive,
+	HelpCircle,
+	Home,
+	Receipt,
 	Settings,
-	HelpCircle
-} from 'lucide-react'
-import { usePathname, useRouter } from 'next/navigation'
-import { QuickActionsDock } from './quick-actions-dock'
-import { generateBreadcrumbs } from '#lib/breadcrumbs'
-import { useSupabaseUser } from '#hooks/api/use-auth'
-import { useSignOutMutation } from '#hooks/api/use-auth-mutations'
-import { usePropertyList } from '#hooks/api/use-properties'
-import { useTenantList } from '#hooks/api/use-tenant'
-import { AppShellSidebar } from './app-shell-sidebar'
-import { AppShellHeader } from './app-shell-header'
-import { AppShellSearch } from './app-shell-search'
+	Users,
+	Wrench,
+} from "lucide-react";
+import { usePathname, useRouter } from "next/navigation";
+import type { ReactNode } from "react";
+import { useEffect, useRef, useState } from "react";
+import { useSupabaseUser } from "#hooks/api/use-auth";
+import { useSignOutMutation } from "#hooks/api/use-auth-mutations";
+import { usePropertyList } from "#hooks/api/use-properties";
+import { useTenantList } from "#hooks/api/use-tenant";
+import { generateBreadcrumbs } from "#lib/breadcrumbs";
+import { AppShellHeader } from "./app-shell-header";
+import { AppShellSearch } from "./app-shell-search";
+import { AppShellSidebar } from "./app-shell-sidebar";
+import { QuickActionsDock } from "./quick-actions-dock";
 
 export interface AppShellProps {
-	children: ReactNode
-	showQuickActionsDock?: boolean
+	children: ReactNode;
+	showQuickActionsDock?: boolean;
 }
 
-export function AppShell({ children, showQuickActionsDock = true }: AppShellProps) {
-	const [sidebarOpen, setSidebarOpen] = useState(false)
-	const [commandOpen, setCommandOpen] = useState(false)
-	const triggerRef = useRef<HTMLButtonElement>(null)
-	const sidebarRef = useRef<HTMLElement>(null)
-	const pathname = usePathname()
-	const breadcrumbs = generateBreadcrumbs(pathname)
-	const { data: user } = useSupabaseUser()
-	const signOutMutation = useSignOutMutation()
-	const router = useRouter()
-	const { data: properties } = usePropertyList({ limit: 6 })
-	const { data: tenantsResponse } = useTenantList(1, 6)
+export function AppShell({
+	children,
+	showQuickActionsDock = true,
+}: AppShellProps) {
+	const [sidebarOpen, setSidebarOpen] = useState(false);
+	const [commandOpen, setCommandOpen] = useState(false);
+	const triggerRef = useRef<HTMLButtonElement>(null);
+	const sidebarRef = useRef<HTMLElement>(null);
+	const pathname = usePathname();
+	const breadcrumbs = generateBreadcrumbs(pathname);
+	const { data: user } = useSupabaseUser();
+	const signOutMutation = useSignOutMutation();
+	const router = useRouter();
+	const { data: properties } = usePropertyList({ limit: 6 });
+	const { data: tenantsResponse } = useTenantList(1, 6);
 
 	// Get user initials
-	const userName = user?.user_metadata?.full_name || user?.email || 'User'
-	const userEmail = user?.email || ''
+	const userName = user?.user_metadata?.full_name || user?.email || "User";
+	const userEmail = user?.email || "";
 	const userInitials = userName
-		.split(' ')
+		.split(" ")
 		.map((n: string) => n[0])
-		.join('')
+		.join("")
 		.toUpperCase()
-		.slice(0, 2)
+		.slice(0, 2);
 
 	const tenantItems = (() => {
-		const tenants = tenantsResponse?.data ?? []
-		return tenants.map(tenant => {
+		const tenants = tenantsResponse?.data ?? [];
+		return tenants.map((tenant) => {
 			const fullName =
 				tenant.name ||
 				(tenant.first_name && tenant.last_name
 					? `${tenant.first_name} ${tenant.last_name}`.trim()
-					: tenant.first_name || tenant.last_name || 'Unknown')
+					: tenant.first_name || tenant.last_name || "Unknown");
 			return {
 				id: tenant.id,
 				label: fullName,
-				subtitle: tenant.email ?? '',
-				href: `/tenants/${tenant.id}`
-			}
-		})
-	})()
+				subtitle: tenant.email ?? "",
+				href: `/tenants/${tenant.id}`,
+			};
+		});
+	})();
 
-	const propertyItems = (properties ?? []).map(property => ({
+	const propertyItems = (properties ?? []).map((property) => ({
 		id: property.id,
 		label: property.name,
-		subtitle: [property.city, property.state].filter(Boolean).join(', '),
-		href: `/properties/${property.id}`
-	}))
+		subtitle: [property.city, property.state].filter(Boolean).join(", "),
+		href: `/properties/${property.id}`,
+	}));
 
 	const commandGroups = [
-			{
-				heading: 'Navigation',
-				items: [
-					{ label: 'Dashboard', href: '/dashboard', icon: Home },
-					{ label: 'Properties', href: '/properties', icon: Building2 },
-					{ label: 'Tenants', href: '/tenants', icon: Users },
-					{ label: 'Leases', href: '/leases', icon: ClipboardList },
-					{ label: 'Maintenance', href: '/maintenance', icon: Wrench },
-					{ label: 'Documents', href: '/documents/vault', icon: FolderArchive }
-				]
-			},
-			{
-				heading: 'Analytics & Reports',
-				items: [
-					{ label: 'Analytics Overview', href: '/analytics/overview', icon: BarChart3 },
-					{ label: 'Financial Analytics', href: '/analytics/financial', icon: BarChart3 },
-					{ label: 'Property Performance', href: '/analytics/property-performance', icon: BarChart3 },
-					{ label: 'Leases Analytics', href: '/analytics/leases', icon: BarChart3 },
-					{ label: 'Maintenance Analytics', href: '/analytics/maintenance', icon: BarChart3 },
-					{ label: 'Occupancy Analytics', href: '/analytics/occupancy', icon: BarChart3 },
-					{ label: 'Reports', href: '/reports', icon: FileText },
-					{ label: 'Generate Report', href: '/reports/generate', icon: FileText }
-				]
-			},
-			{
-				heading: 'Financials',
-				items: [
-					{ label: 'Financials', href: '/financials', icon: Receipt },
-					{ label: 'Income Statement', href: '/financials/income-statement', icon: Receipt },
-					{ label: 'Cash Flow', href: '/financials/cash-flow', icon: Receipt },
-					{ label: 'Balance Sheet', href: '/financials/balance-sheet', icon: Receipt },
-					{ label: 'Tax Documents', href: '/financials/tax-documents', icon: Receipt }
-				]
-			},
-			{
-				heading: 'Templates',
-				items: [
-					{ label: 'Generate Lease', href: '/leases/new', icon: FilePlus },
-					{ label: 'Lease Template', href: '/documents/lease-template', icon: FileCheck }
-				]
-			}
-	]
+		{
+			heading: "Navigation",
+			items: [
+				{ label: "Dashboard", href: "/dashboard", icon: Home },
+				{ label: "Properties", href: "/properties", icon: Building2 },
+				{ label: "Tenants", href: "/tenants", icon: Users },
+				{ label: "Leases", href: "/leases", icon: ClipboardList },
+				{ label: "Maintenance", href: "/maintenance", icon: Wrench },
+				{ label: "Documents", href: "/documents/vault", icon: FolderArchive },
+			],
+		},
+		{
+			heading: "Analytics & Reports",
+			items: [
+				{
+					label: "Analytics Overview",
+					href: "/analytics/overview",
+					icon: BarChart3,
+				},
+				{
+					label: "Financial Analytics",
+					href: "/analytics/financial",
+					icon: BarChart3,
+				},
+				{
+					label: "Property Performance",
+					href: "/analytics/property-performance",
+					icon: BarChart3,
+				},
+				{
+					label: "Leases Analytics",
+					href: "/analytics/leases",
+					icon: BarChart3,
+				},
+				{
+					label: "Maintenance Analytics",
+					href: "/analytics/maintenance",
+					icon: BarChart3,
+				},
+				{
+					label: "Occupancy Analytics",
+					href: "/analytics/occupancy",
+					icon: BarChart3,
+				},
+				{ label: "Reports", href: "/reports", icon: FileText },
+				{ label: "Generate Report", href: "/reports/generate", icon: FileText },
+			],
+		},
+		{
+			heading: "Financials",
+			items: [
+				{ label: "Financials", href: "/financials", icon: Receipt },
+				{
+					label: "Income Statement",
+					href: "/financials/income-statement",
+					icon: Receipt,
+				},
+				{ label: "Cash Flow", href: "/financials/cash-flow", icon: Receipt },
+				{
+					label: "Balance Sheet",
+					href: "/financials/balance-sheet",
+					icon: Receipt,
+				},
+				{
+					label: "Tax Documents",
+					href: "/financials/tax-documents",
+					icon: Receipt,
+				},
+			],
+		},
+		{
+			heading: "Templates",
+			items: [
+				{ label: "Generate Lease", href: "/leases/new", icon: FilePlus },
+				{
+					label: "Lease Template",
+					href: "/documents/lease-template",
+					icon: FileCheck,
+				},
+			],
+		},
+	];
 
 	const commandActions = [
-		{ label: 'Notifications', href: '/settings?tab=notifications', icon: Bell },
-		{ label: 'Settings', href: '/settings', icon: Settings },
-		{ label: 'Profile', href: '/profile', icon: Settings },
-		{ label: 'Help & Support', href: '/help', icon: HelpCircle }
-	]
+		{ label: "Notifications", href: "/settings?tab=notifications", icon: Bell },
+		{ label: "Settings", href: "/settings", icon: Settings },
+		{ label: "Profile", href: "/profile", icon: Settings },
+		{ label: "Help & Support", href: "/help", icon: HelpCircle },
+	];
 
 	useEffect(() => {
 		const onKeyDown = (event: KeyboardEvent) => {
-			if (event.key.toLowerCase() === 'k' && (event.metaKey || event.ctrlKey)) {
-				event.preventDefault()
-				setCommandOpen(prev => !prev)
+			if (event.key.toLowerCase() === "k" && (event.metaKey || event.ctrlKey)) {
+				event.preventDefault();
+				setCommandOpen((prev) => !prev);
 			}
-		}
+		};
 
-		window.addEventListener('keydown', onKeyDown)
-		return () => window.removeEventListener('keydown', onKeyDown)
-	}, [])
+		window.addEventListener("keydown", onKeyDown);
+		return () => window.removeEventListener("keydown", onKeyDown);
+	}, []);
 
 	const closeSidebar = () => {
-		setSidebarOpen(false)
-		triggerRef.current?.focus()
-	}
+		setSidebarOpen(false);
+		triggerRef.current?.focus();
+	};
 
 	// Escape key handler + focus trap for mobile sidebar
 	useEffect(() => {
-		if (!sidebarOpen) return
+		if (!sidebarOpen) return;
 		const handleKeyDown = (e: KeyboardEvent) => {
-			if (e.key === 'Escape') {
-				setSidebarOpen(false)
-				triggerRef.current?.focus()
-				return
+			if (e.key === "Escape") {
+				setSidebarOpen(false);
+				triggerRef.current?.focus();
+				return;
 			}
-			if (e.key === 'Tab' && sidebarRef.current) {
+			if (e.key === "Tab" && sidebarRef.current) {
 				const focusable = sidebarRef.current.querySelectorAll<HTMLElement>(
-					'a[href], button:not([disabled]), input:not([disabled]), [tabindex]:not([tabindex="-1"])'
-				)
-				if (focusable.length === 0) return
-				const first = focusable[0]!
-				const last = focusable[focusable.length - 1]!
+					'a[href], button:not([disabled]), input:not([disabled]), [tabindex]:not([tabindex="-1"])',
+				);
+				if (focusable.length === 0) return;
+				const first = focusable[0]!;
+				const last = focusable[focusable.length - 1]!;
 				if (e.shiftKey && document.activeElement === first) {
-					e.preventDefault()
-					last.focus()
+					e.preventDefault();
+					last.focus();
 				} else if (!e.shiftKey && document.activeElement === last) {
-					e.preventDefault()
-					first.focus()
+					e.preventDefault();
+					first.focus();
 				}
 			}
-		}
-		window.addEventListener('keydown', handleKeyDown)
-		return () => window.removeEventListener('keydown', handleKeyDown)
-	}, [sidebarOpen])
+		};
+		window.addEventListener("keydown", handleKeyDown);
+		return () => window.removeEventListener("keydown", handleKeyDown);
+	}, [sidebarOpen]);
 
 	const handleCommandSelect = (href: string) => {
-		setCommandOpen(false)
-		router.push(href)
-	}
+		setCommandOpen(false);
+		router.push(href);
+	};
 
 	return (
 		<div className="min-h-screen bg-background">
@@ -244,5 +286,5 @@ export function AppShell({ children, showQuickActionsDock = true }: AppShellProp
 				onSignOut={() => signOutMutation.mutate()}
 			/>
 		</div>
-	)
+	);
 }

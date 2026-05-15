@@ -1,20 +1,18 @@
-'use client'
+"use client";
 
-import { Field, FieldError, FieldLabel } from '#components/ui/field'
+import { Mail, Phone, User } from "lucide-react";
+import type { ChangeEvent } from "react";
+import { Field, FieldError, FieldLabel } from "#components/ui/field";
 import {
 	InputGroup,
 	InputGroupAddon,
-	InputGroupInput
-} from '#components/ui/input-group'
-import {
-	addTenantSchema
-} from '#lib/validation/tenants'
-import { Mail, Phone, User } from 'lucide-react'
-import type { ChangeEvent } from 'react'
-import type { AddTenantFormApi } from './add-tenant-form-types'
+	InputGroupInput,
+} from "#components/ui/input-group";
+import { addTenantSchema } from "#lib/validation/tenants";
+import type { AddTenantFormApi } from "./add-tenant-form-types";
 
 interface AddTenantInfoFieldsProps {
-	form: AddTenantFormApi
+	form: AddTenantFormApi;
 }
 
 export function AddTenantInfoFields({ form }: AddTenantInfoFieldsProps) {
@@ -29,10 +27,10 @@ export function AddTenantInfoFields({ form }: AddTenantInfoFieldsProps) {
 				<form.Field
 					name="first_name"
 					validators={{
-						onChange: addTenantSchema.shape.first_name
+						onChange: addTenantSchema.shape.first_name,
 					}}
 				>
-					{field => (
+					{(field) => (
 						<Field>
 							<FieldLabel htmlFor="first_name">First Name</FieldLabel>
 							<InputGroup>
@@ -57,10 +55,10 @@ export function AddTenantInfoFields({ form }: AddTenantInfoFieldsProps) {
 				<form.Field
 					name="last_name"
 					validators={{
-						onChange: addTenantSchema.shape.last_name
+						onChange: addTenantSchema.shape.last_name,
 					}}
 				>
-					{field => (
+					{(field) => (
 						<Field>
 							<FieldLabel htmlFor="last_name">Last Name</FieldLabel>
 							<InputGroup>
@@ -86,10 +84,10 @@ export function AddTenantInfoFields({ form }: AddTenantInfoFieldsProps) {
 			<form.Field
 				name="email"
 				validators={{
-					onChange: addTenantSchema.shape.email
+					onChange: addTenantSchema.shape.email,
 				}}
 			>
-				{field => (
+				{(field) => (
 					<Field>
 						<FieldLabel htmlFor="email">Email Address</FieldLabel>
 						<InputGroup>
@@ -117,7 +115,7 @@ export function AddTenantInfoFields({ form }: AddTenantInfoFieldsProps) {
 			</form.Field>
 
 			<form.Field name="phone">
-				{field => (
+				{(field) => (
 					<Field>
 						<FieldLabel htmlFor="phone">Phone Number (Optional)</FieldLabel>
 						<InputGroup>
@@ -140,5 +138,5 @@ export function AddTenantInfoFields({ form }: AddTenantInfoFieldsProps) {
 				)}
 			</form.Field>
 		</div>
-	)
+	);
 }

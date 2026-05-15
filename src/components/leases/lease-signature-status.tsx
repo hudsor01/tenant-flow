@@ -1,21 +1,21 @@
-'use client'
+"use client";
 
-import { AlertCircle, CheckCircle2, Clock, PenLine, Send } from 'lucide-react'
-import { Badge } from '#components/ui/badge'
-import { Card, CardContent, CardHeader, CardTitle } from '#components/ui/card'
-import { Skeleton } from '#components/ui/skeleton'
-import { cn } from '#lib/utils'
-import { useLeaseSignatureStatus } from '#hooks/api/use-lease'
-import type { SignatureStatus } from '#hooks/api/query-keys/lease-keys'
+import { AlertCircle, CheckCircle2, Clock, PenLine, Send } from "lucide-react";
+import { Badge } from "#components/ui/badge";
+import { Card, CardContent, CardHeader, CardTitle } from "#components/ui/card";
+import { Skeleton } from "#components/ui/skeleton";
+import type { SignatureStatus } from "#hooks/api/query-keys/lease-keys";
+import { useLeaseSignatureStatus } from "#hooks/api/use-lease";
 import {
+	LEASE_SIGNATURE_ERROR_CODES,
 	LEASE_SIGNATURE_ERROR_MESSAGES,
-	LEASE_SIGNATURE_ERROR_CODES
-} from '#lib/constants/lease-signature-errors'
+} from "#lib/constants/lease-signature-errors";
+import { cn } from "#lib/utils";
 
 interface LeaseSignatureStatusProps {
-	leaseId: string
-	className?: string
-	compact?: boolean
+	leaseId: string;
+	className?: string;
+	compact?: boolean;
 }
 
 /**
@@ -25,18 +25,18 @@ interface LeaseSignatureStatusProps {
 export function LeaseSignatureStatus({
 	leaseId,
 	className,
-	compact = false
+	compact = false,
 }: LeaseSignatureStatusProps) {
-	const { data: status, isLoading, error } = useLeaseSignatureStatus(leaseId)
+	const { data: status, isLoading, error } = useLeaseSignatureStatus(leaseId);
 
 	if (isLoading) {
-		return <SignatureStatusSkeleton compact={compact} />
+		return <SignatureStatusSkeleton compact={compact} />;
 	}
 
 	if (error) {
 		return (
 			<Card
-				className={cn('border-destructive/50', className)}
+				className={cn("border-destructive/50", className)}
 				data-testid="signature-status-error"
 			>
 				<CardContent className="py-4">
@@ -52,20 +52,20 @@ export function LeaseSignatureStatus({
 					</div>
 				</CardContent>
 			</Card>
-		)
+		);
 	}
 
 	if (!status) {
-		return null
+		return null;
 	}
 
 	if (compact) {
 		return (
-			<CompactSignatureStatus status={status} className={className ?? ''} />
-		)
+			<CompactSignatureStatus status={status} className={className ?? ""} />
+		);
 	}
 
-	return <FullSignatureStatus status={status} className={className ?? ''} />
+	return <FullSignatureStatus status={status} className={className ?? ""} />;
 }
 
 function SignatureStatusSkeleton({ compact }: { compact: boolean }) {
@@ -75,7 +75,7 @@ function SignatureStatusSkeleton({ compact }: { compact: boolean }) {
 				<Skeleton className="h-5 w-24" />
 				<Skeleton className="h-5 w-24" />
 			</div>
-		)
+		);
 	}
 
 	return (
@@ -90,18 +90,18 @@ function SignatureStatusSkeleton({ compact }: { compact: boolean }) {
 				</div>
 			</CardContent>
 		</Card>
-	)
+	);
 }
 
 function CompactSignatureStatus({
 	status,
-	className
+	className,
 }: {
-	status: SignatureStatus
-	className?: string
+	status: SignatureStatus;
+	className?: string;
 }) {
 	return (
-		<div className={cn('flex items-center gap-2 flex-wrap', className)}>
+		<div className={cn("flex items-center gap-2 flex-wrap", className)}>
 			<SignatureBadge
 				label="Owner"
 				signed={status.owner_signed}
@@ -113,44 +113,44 @@ function CompactSignatureStatus({
 				signedAt={status.tenant_signed_at}
 			/>
 		</div>
-	)
+	);
 }
 
 function FullSignatureStatus({
 	status,
-	className
+	className,
 }: {
-	status: SignatureStatus
-	className?: string
+	status: SignatureStatus;
+	className?: string;
 }) {
 	const getStatusIcon = () => {
 		if (status.both_signed) {
-			return <CheckCircle2 className="h-5 w-5 text-success" />
+			return <CheckCircle2 className="h-5 w-5 text-success" />;
 		}
 		if (status.sent_for_signature_at) {
-			return <Clock className="h-5 w-5 text-warning" />
+			return <Clock className="h-5 w-5 text-warning" />;
 		}
-		return <PenLine className="h-5 w-5 text-muted-foreground" />
-	}
+		return <PenLine className="h-5 w-5 text-muted-foreground" />;
+	};
 
 	const getStatusText = () => {
 		if (status.both_signed) {
-			return 'Fully Signed'
+			return "Fully Signed";
 		}
 		if (status.owner_signed && !status.tenant_signed) {
-			return 'Awaiting Tenant Signature'
+			return "Awaiting Tenant Signature";
 		}
 		if (!status.owner_signed && status.tenant_signed) {
-			return 'Awaiting Owner Signature'
+			return "Awaiting Owner Signature";
 		}
 		if (status.sent_for_signature_at) {
-			return 'Awaiting Signatures'
+			return "Awaiting Signatures";
 		}
-		return 'Draft - Not Sent'
-	}
+		return "Draft - Not Sent";
+	};
 
 	return (
-		<Card className={cn('', className)} data-testid="signature-status">
+		<Card className={cn("", className)} data-testid="signature-status">
 			<CardHeader className="pb-3">
 				<CardTitle className="flex items-center gap-2 text-base">
 					{getStatusIcon()}
@@ -161,8 +161,8 @@ function FullSignatureStatus({
 				<div className="flex-between">
 					<span className="text-muted-foreground">Overall Status</span>
 					<Badge
-						variant={status.both_signed ? 'default' : 'secondary'}
-						className={cn(status.both_signed && 'bg-success hover:bg-success')}
+						variant={status.both_signed ? "default" : "secondary"}
+						className={cn(status.both_signed && "bg-success hover:bg-success")}
 					>
 						{getStatusText()}
 					</Badge>
@@ -185,29 +185,29 @@ function FullSignatureStatus({
 					<div className="flex items-center gap-2 text-caption pt-2 border-t">
 						<Send className="h-3 w-3" />
 						<span>
-							Sent for signature on{' '}
+							Sent for signature on{" "}
 							{new Date(status.sent_for_signature_at).toLocaleDateString()}
 						</span>
 					</div>
 				)}
 			</CardContent>
 		</Card>
-	)
+	);
 }
 
 function SignatureBadge({
 	label,
 	signed,
-	signedAt
+	signedAt,
 }: {
-	label: string
-	signed: boolean
-	signedAt: string | null
+	label: string;
+	signed: boolean;
+	signedAt: string | null;
 }) {
 	return (
 		<Badge
-			variant={signed ? 'default' : 'outline'}
-			className={cn('gap-1', signed && 'bg-success hover:bg-success')}
+			variant={signed ? "default" : "outline"}
+			className={cn("gap-1", signed && "bg-success hover:bg-success")}
 			title={
 				signedAt
 					? `Signed on ${new Date(signedAt).toLocaleString()}`
@@ -221,17 +221,17 @@ function SignatureBadge({
 			)}
 			{label}
 		</Badge>
-	)
+	);
 }
 
 function SignatureRow({
 	label,
 	signed,
-	signedAt
+	signedAt,
 }: {
-	label: string
-	signed: boolean
-	signedAt: string | null
+	label: string;
+	signed: boolean;
+	signedAt: string | null;
 }) {
 	return (
 		<div className="flex-between py-2 px-3 rounded-md bg-muted/50">
@@ -252,7 +252,7 @@ function SignatureRow({
 				)}
 			</div>
 		</div>
-	)
+	);
 }
 
-export { SignatureBadge, SignatureRow }
+export { SignatureBadge, SignatureRow };

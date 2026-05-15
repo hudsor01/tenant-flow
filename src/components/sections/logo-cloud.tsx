@@ -1,12 +1,10 @@
-/* eslint-disable color-tokens/no-hex-colors -- Brand colors for third-party logos */
-
-import { cn } from '#lib/utils'
-import { BlurFade } from '#components/ui/blur-fade'
+import { BlurFade } from "#components/ui/blur-fade";
+import { cn } from "#lib/utils";
 
 interface LogoCloudProps {
-	className?: string
-	title?: string
-	subtitle?: string
+	className?: string;
+	title?: string;
+	subtitle?: string;
 }
 
 /**
@@ -15,44 +13,44 @@ interface LogoCloudProps {
  */
 export function LogoCloud({
 	className,
-	title = 'Trusted integrations',
-	subtitle = 'Connect to the tools your portfolio already runs on'
+	title = "Trusted integrations",
+	subtitle = "Connect to the tools your portfolio already runs on",
 }: LogoCloudProps) {
 	const integrations = [
 		{
-			name: 'Stripe',
-			description: 'Payments',
+			name: "Stripe",
+			description: "Payments",
 			logo: StripeLogo,
-			width: 'w-24'
+			width: "w-24",
 		},
 		{
-			name: 'Supabase',
-			description: 'Database',
+			name: "Supabase",
+			description: "Database",
 			logo: SupabaseWordmark,
-			width: 'w-28'
+			width: "w-28",
 		},
 		{
-			name: 'Vercel',
-			description: 'Hosting',
+			name: "Vercel",
+			description: "Hosting",
 			logo: VercelWordmark,
-			width: 'w-24'
+			width: "w-24",
 		},
 		{
-			name: 'DocuSeal',
-			description: 'E-Signatures',
+			name: "DocuSeal",
+			description: "E-Signatures",
 			logo: DocuSealLogo,
-			width: 'w-24'
+			width: "w-24",
 		},
 		{
-			name: 'Resend',
-			description: 'Email',
+			name: "Resend",
+			description: "Email",
 			logo: ResendLogo,
-			width: 'w-20'
-		}
-	]
+			width: "w-20",
+		},
+	];
 
 	return (
-		<section className={cn('pb-6', className)}>
+		<section className={cn("pb-6", className)}>
 			<div className="max-w-7xl mx-auto px-6 lg:px-8">
 				<BlurFade delay={0.1} inView>
 					<div className="text-center mb-8">
@@ -72,8 +70,8 @@ export function LogoCloud({
 								<div className="group relative flex flex-col items-center gap-2">
 									<div
 										className={cn(
-											'h-8 flex items-center justify-center opacity-90 hover:opacity-100 transition-opacity duration-300',
-											integration.width
+											"h-8 flex items-center justify-center opacity-90 hover:opacity-100 transition-opacity duration-300",
+											integration.width,
 										)}
 									>
 										<integration.logo className="h-full w-full" />
@@ -88,7 +86,7 @@ export function LogoCloud({
 				</BlurFade>
 			</div>
 		</section>
-	)
+	);
 }
 
 // SVG Logo Components
@@ -107,7 +105,7 @@ function StripeLogo({ className }: { className?: string }) {
 				fill="#635BFF"
 			/>
 		</svg>
-	)
+	);
 }
 
 function SupabaseWordmark({ className }: { className?: string }) {
@@ -167,7 +165,7 @@ function SupabaseWordmark({ className }: { className?: string }) {
 				</linearGradient>
 			</defs>
 		</svg>
-	)
+	);
 }
 
 function VercelWordmark({ className }: { className?: string }) {
@@ -191,7 +189,7 @@ function VercelWordmark({ className }: { className?: string }) {
 				Vercel
 			</text>
 		</svg>
-	)
+	);
 }
 
 function DocuSealLogo({ className }: { className?: string }) {
@@ -202,7 +200,7 @@ function DocuSealLogo({ className }: { className?: string }) {
 			fill="none"
 			xmlns="http://www.w3.org/2000/svg"
 		>
-		<text
+			<text
 				x="0"
 				y="22"
 				fontFamily="system-ui, -apple-system, sans-serif"
@@ -213,7 +211,7 @@ function DocuSealLogo({ className }: { className?: string }) {
 				DocuSeal
 			</text>
 		</svg>
-	)
+	);
 }
 
 function ResendLogo({ className }: { className?: string }) {
@@ -224,7 +222,7 @@ function ResendLogo({ className }: { className?: string }) {
 			fill="none"
 			xmlns="http://www.w3.org/2000/svg"
 		>
-		<text
+			<text
 				x="0"
 				y="20"
 				fontFamily="system-ui, -apple-system, sans-serif"
@@ -235,7 +233,7 @@ function ResendLogo({ className }: { className?: string }) {
 				Resend
 			</text>
 		</svg>
-	)
+	);
 }
 
-export default LogoCloud
+export default LogoCloud;

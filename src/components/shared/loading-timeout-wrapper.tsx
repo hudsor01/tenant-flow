@@ -1,17 +1,17 @@
-'use client'
+"use client";
 
-import { useEffect, useState, type ReactNode } from 'react'
-import { AlertCircle } from 'lucide-react'
-import { Button } from '#components/ui/button'
-import { Skeleton } from '#components/ui/skeleton'
+import { AlertCircle } from "lucide-react";
+import { type ReactNode, useEffect, useState } from "react";
+import { Button } from "#components/ui/button";
+import { Skeleton } from "#components/ui/skeleton";
 
 interface LoadingTimeoutWrapperProps {
-	children: ReactNode
-	isLoading: boolean
-	error?: Error | null
-	onRetry?: () => void
-	loadingMessage?: string
-	timeoutMs?: number
+	children: ReactNode;
+	isLoading: boolean;
+	error?: Error | null;
+	onRetry?: () => void;
+	loadingMessage?: string;
+	timeoutMs?: number;
 }
 
 /**
@@ -26,27 +26,27 @@ export function LoadingTimeoutWrapper({
 	isLoading,
 	error,
 	onRetry,
-	loadingMessage = 'Loading...',
-	timeoutMs = 3000
+	loadingMessage = "Loading...",
+	timeoutMs = 3000,
 }: LoadingTimeoutWrapperProps) {
-	const [hasTimedOut, setHasTimedOut] = useState(false)
+	const [hasTimedOut, setHasTimedOut] = useState(false);
 
 	useEffect(() => {
 		if (!isLoading) {
 			// Reset timeout state when loading completes
-			setHasTimedOut(false)
-			return
+			setHasTimedOut(false);
+			return;
 		}
 
 		// Set timeout for loading state
 		const timeoutId = setTimeout(() => {
-			setHasTimedOut(true)
-		}, timeoutMs)
+			setHasTimedOut(true);
+		}, timeoutMs);
 
 		return () => {
-			clearTimeout(timeoutId)
-		}
-	}, [isLoading, timeoutMs])
+			clearTimeout(timeoutId);
+		};
+	}, [isLoading, timeoutMs]);
 
 	// Show error state if there's an explicit error
 	if (error) {
@@ -54,7 +54,7 @@ export function LoadingTimeoutWrapper({
 			<div className="flex flex-col items-center justify-center p-8 text-center">
 				<AlertCircle className="size-12 text-destructive mb-4" />
 				<h3 className="typography-large mb-2">
-					{error.message || 'Failed to load data'}
+					{error.message || "Failed to load data"}
 				</h3>
 				<p className="text-sm text-muted-foreground mb-4">
 					Please try again or contact support if the problem persists.
@@ -63,7 +63,7 @@ export function LoadingTimeoutWrapper({
 					Retry
 				</Button>
 			</div>
-		)
+		);
 	}
 
 	// Show timeout error if loading has exceeded the timeout
@@ -81,7 +81,7 @@ export function LoadingTimeoutWrapper({
 					Retry
 				</Button>
 			</div>
-		)
+		);
 	}
 
 	// Show loading skeleton
@@ -98,9 +98,9 @@ export function LoadingTimeoutWrapper({
 				<Skeleton className="h-24 w-full" />
 				<Skeleton className="h-16 w-3/4" />
 			</div>
-		)
+		);
 	}
 
 	// Show content when not loading and no error
-	return <>{children}</>
+	return <>{children}</>;
 }

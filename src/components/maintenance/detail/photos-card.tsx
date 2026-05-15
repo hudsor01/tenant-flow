@@ -1,141 +1,144 @@
-'use client'
+"use client";
 
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { Camera, Loader2, Plus, Trash2 } from "lucide-react";
+import { useRef, useState } from "react";
+import { toast } from "sonner";
+import { Button } from "#components/ui/button";
 import {
 	Card,
 	CardContent,
 	CardDescription,
 	CardHeader,
-	CardTitle
-} from '#components/ui/card'
-import { Button } from '#components/ui/button'
+	CardTitle,
+} from "#components/ui/card";
 import {
 	Dialog,
 	DialogContent,
 	DialogTitle,
-	DialogTrigger
-} from '#components/ui/dialog'
-import { Skeleton } from '#components/ui/skeleton'
+	DialogTrigger,
+} from "#components/ui/dialog";
+import { Skeleton } from "#components/ui/skeleton";
 import {
+	maintenanceMutations,
 	maintenanceQueries,
-	maintenanceMutations
-} from '#hooks/api/query-keys/maintenance-keys'
-import { Camera, Plus, Trash2, Loader2 } from 'lucide-react'
-import { useRef, useState } from 'react'
-import { toast } from 'sonner'
+} from "#hooks/api/query-keys/maintenance-keys";
 
 interface PhotosCardProps {
-	requestId: string
+	requestId: string;
 }
 
 const ACCEPTED_MIME_TYPES = [
-	'image/jpeg',
-	'image/png',
-	'image/webp',
-	'video/mp4',
-	'video/quicktime'
-]
-const MAX_FILE_SIZE_BYTES = 25 * 1024 * 1024 // 25 MB per file
+	"image/jpeg",
+	"image/png",
+	"image/webp",
+	"video/mp4",
+	"video/quicktime",
+];
+const MAX_FILE_SIZE_BYTES = 25 * 1024 * 1024; // 25 MB per file
 
 export function PhotosCard({ requestId }: PhotosCardProps) {
-	const queryClient = useQueryClient()
-	const fileInputRef = useRef<HTMLInputElement>(null)
-	const [selectedIndex, setSelectedIndex] = useState<number | null>(null)
+	const queryClient = useQueryClient();
+	const fileInputRef = useRef<HTMLInputElement>(null);
+	const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
 
 	const { data: photos, isLoading } = useQuery(
-		maintenanceQueries.photos(requestId)
-	)
+		maintenanceQueries.photos(requestId),
+	);
 
 	const uploadMutation = useMutation({
 		...maintenanceMutations.uploadPhoto(),
 		onSuccess: () => {
 			queryClient.invalidateQueries({
-				queryKey: maintenanceQueries.photos(requestId).queryKey
-			})
-		}
-	})
+				queryKey: maintenanceQueries.photos(requestId).queryKey,
+			});
+		},
+	});
 
 	const deleteMutation = useMutation({
 		...maintenanceMutations.deletePhoto(),
 		onSuccess: () => {
 			queryClient.invalidateQueries({
-				queryKey: maintenanceQueries.photos(requestId).queryKey
-			})
-		}
-	})
+				queryKey: maintenanceQueries.photos(requestId).queryKey,
+			});
+		},
+	});
 
 	const handleFilesSelected = async (fileList: FileList | null) => {
-		if (!fileList || fileList.length === 0) return
+		if (!fileList || fileList.length === 0) return;
 
-		const files = Array.from(fileList)
-		const valid: File[] = []
-		const rejected: string[] = []
+		const files = Array.from(fileList);
+		const valid: File[] = [];
+		const rejected: string[] = [];
 
 		// Partition files into valid/rejected so one bad file doesn't block the
 		// rest of a multi-file selection from uploading.
 		for (const file of files) {
 			if (!ACCEPTED_MIME_TYPES.includes(file.type)) {
-				rejected.push(`${file.name} — unsupported type`)
+				rejected.push(`${file.name} — unsupported type`);
 			} else if (file.size > MAX_FILE_SIZE_BYTES) {
-				rejected.push(`${file.name} — exceeds 25 MB`)
+				rejected.push(`${file.name} — exceeds 25 MB`);
 			} else {
-				valid.push(file)
+				valid.push(file);
 			}
 		}
 
 		if (rejected.length > 0) {
-			toast.error(`Skipped ${rejected.length} file${rejected.length === 1 ? '' : 's'}`, {
-				description: rejected.join('\n')
-			})
+			toast.error(
+				`Skipped ${rejected.length} file${rejected.length === 1 ? "" : "s"}`,
+				{
+					description: rejected.join("\n"),
+				},
+			);
 		}
 
-		let uploaded = 0
-		const failures: string[] = []
+		let uploaded = 0;
+		const failures: string[] = [];
 		for (const file of valid) {
 			try {
-				await uploadMutation.mutateAsync({ requestId, file })
-				uploaded++
+				await uploadMutation.mutateAsync({ requestId, file });
+				uploaded++;
 			} catch (err) {
 				failures.push(
-					`${file.name}: ${err instanceof Error ? err.message : 'unknown error'}`
-				)
+					`${file.name}: ${err instanceof Error ? err.message : "unknown error"}`,
+				);
 			}
 		}
 
 		if (uploaded > 0) {
-			toast.success(`Uploaded ${uploaded} file${uploaded === 1 ? '' : 's'}`)
+			toast.success(`Uploaded ${uploaded} file${uploaded === 1 ? "" : "s"}`);
 		}
 		if (failures.length > 0) {
 			toast.error(`Failed to upload ${failures.length} file(s)`, {
-				description: failures.join('\n')
-			})
+				description: failures.join("\n"),
+			});
 		}
 
 		// Reset the input so re-selecting the same file re-triggers change.
-		if (fileInputRef.current) fileInputRef.current.value = ''
-	}
+		if (fileInputRef.current) fileInputRef.current.value = "";
+	};
 
 	const handleDelete = async (photoId: string, storagePath: string) => {
 		try {
-			await deleteMutation.mutateAsync({ photoId, storagePath })
-			toast.success('Photo removed')
-			setSelectedIndex(null)
+			await deleteMutation.mutateAsync({ photoId, storagePath });
+			toast.success("Photo removed");
+			setSelectedIndex(null);
 		} catch (err) {
-			toast.error('Failed to remove photo', {
-				description: err instanceof Error ? err.message : 'Please try again.'
-			})
+			toast.error("Failed to remove photo", {
+				description: err instanceof Error ? err.message : "Please try again.",
+			});
 		}
-	}
+	};
 
-	const photoCount = photos?.length ?? 0
-	const isUploading = uploadMutation.isPending
+	const photoCount = photos?.length ?? 0;
+	const isUploading = uploadMutation.isPending;
 
 	return (
 		<Card>
 			<CardHeader className="flex flex-row items-start justify-between space-y-0 gap-3">
 				<div>
 					<CardTitle className="text-base">
-						Photos &amp; videos{photoCount > 0 ? ` (${photoCount})` : ''}
+						Photos &amp; videos{photoCount > 0 ? ` (${photoCount})` : ""}
 					</CardTitle>
 					<CardDescription>
 						Attach before/after photos, videos of the issue, or receipts.
@@ -163,8 +166,8 @@ export function PhotosCard({ requestId }: PhotosCardProps) {
 					ref={fileInputRef}
 					type="file"
 					multiple
-					accept={ACCEPTED_MIME_TYPES.join(',')}
-					onChange={e => handleFilesSelected(e.target.files)}
+					accept={ACCEPTED_MIME_TYPES.join(",")}
+					onChange={(e) => handleFilesSelected(e.target.files)}
 					className="sr-only"
 					aria-label="Upload maintenance photos or videos"
 				/>
@@ -193,8 +196,8 @@ export function PhotosCard({ requestId }: PhotosCardProps) {
 				) : (
 					<div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
 						{photos?.map((photo, index) => {
-							const isVideo = photo.mime_type.startsWith('video/')
-							const url = photo.signed_url
+							const isVideo = photo.mime_type.startsWith("video/");
+							const url = photo.signed_url;
 							if (!url) {
 								// Signed URL generation failed (e.g. RLS gap or network).
 								// Render a placeholder tile so owners still see the file
@@ -207,13 +210,13 @@ export function PhotosCard({ requestId }: PhotosCardProps) {
 									>
 										{photo.file_name}
 									</div>
-								)
+								);
 							}
 							return (
 								<Dialog
 									key={photo.id}
 									open={selectedIndex === index}
-									onOpenChange={open => setSelectedIndex(open ? index : null)}
+									onOpenChange={(open) => setSelectedIndex(open ? index : null)}
 								>
 									<DialogTrigger asChild>
 										<button
@@ -268,16 +271,16 @@ export function PhotosCard({ requestId }: PhotosCardProps) {
 												className="text-destructive hover:text-destructive hover:bg-destructive/10"
 											>
 												<Trash2 className="size-4 mr-2" />
-												{deleteMutation.isPending ? 'Removing...' : 'Remove'}
+												{deleteMutation.isPending ? "Removing..." : "Remove"}
 											</Button>
 										</div>
 									</DialogContent>
 								</Dialog>
-							)
+							);
 						})}
 					</div>
 				)}
 			</CardContent>
 		</Card>
-	)
+	);
 }

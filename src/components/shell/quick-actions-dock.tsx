@@ -1,34 +1,51 @@
-import { Plus, FileText, Wrench, Bell, type LucideIcon } from 'lucide-react'
-import Link from 'next/link'
+import { Bell, FileText, type LucideIcon, Plus, Wrench } from "lucide-react";
+import Link from "next/link";
 
 export interface QuickAction {
-	id: string
-	label: string
-	icon: LucideIcon
-	href: string
+	id: string;
+	label: string;
+	icon: LucideIcon;
+	href: string;
 }
 
 export interface QuickActionsDockProps {
-	actions?: QuickAction[]
-	className?: string
+	actions?: QuickAction[];
+	className?: string;
 }
 
 const defaultActions: QuickAction[] = [
-	{ id: 'add-property', label: 'Add Property', icon: Plus, href: '/properties/new' },
-	{ id: 'new-lease', label: 'New Lease', icon: FileText, href: '/leases/new' },
-	{ id: 'maintenance', label: 'Maintenance', icon: Wrench, href: '/maintenance/new' },
-	{ id: 'notifications', label: 'Notifications', icon: Bell, href: '/settings?tab=notifications' }
-]
+	{
+		id: "add-property",
+		label: "Add Property",
+		icon: Plus,
+		href: "/properties/new",
+	},
+	{ id: "new-lease", label: "New Lease", icon: FileText, href: "/leases/new" },
+	{
+		id: "maintenance",
+		label: "Maintenance",
+		icon: Wrench,
+		href: "/maintenance/new",
+	},
+	{
+		id: "notifications",
+		label: "Notifications",
+		icon: Bell,
+		href: "/settings?tab=notifications",
+	},
+];
 
 export function QuickActionsDock({
 	actions = defaultActions,
-	className = ''
+	className = "",
 }: QuickActionsDockProps) {
 	return (
-		<div className={`fixed bottom-6 left-1/2 -translate-x-1/2 z-50 hidden lg:block lg:left-[calc(50%+7rem)] ${className}`}>
+		<div
+			className={`fixed bottom-6 left-1/2 -translate-x-1/2 z-50 hidden lg:block lg:left-[calc(50%+7rem)] ${className}`}
+		>
 			<div className="flex items-center gap-2 px-4 py-3 bg-card/80 backdrop-blur-md border border-border rounded-2xl shadow-lg">
-				{actions.map(action => {
-					const Icon = action.icon
+				{actions.map((action) => {
+					const Icon = action.icon;
 					return (
 						<Link
 							key={action.id}
@@ -42,9 +59,9 @@ export function QuickActionsDock({
 								{action.label}
 							</span>
 						</Link>
-					)
+					);
 				})}
 			</div>
 		</div>
-	)
+	);
 }

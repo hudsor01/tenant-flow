@@ -1,18 +1,18 @@
-'use client'
+"use client";
 
+import { Download, FileText, Image as ImageIcon, Trash2 } from "lucide-react";
+import { Button } from "#components/ui/button";
 import {
 	Dialog,
 	DialogContent,
 	DialogTitle,
-	DialogTrigger
-} from '#components/ui/dialog'
-import { Button } from '#components/ui/button'
-import { Download, FileText, Image as ImageIcon, Trash2 } from 'lucide-react'
-import type { DocumentRow as DocumentRowData } from '#hooks/api/query-keys/document-keys'
-import { formatBytes } from '#lib/format-bytes'
+	DialogTrigger,
+} from "#components/ui/dialog";
+import type { DocumentRow as DocumentRowData } from "#hooks/api/query-keys/document-keys";
+import { formatBytes } from "#lib/format-bytes";
 
 function isImage(mime: string | null | undefined): boolean {
-	return !!mime && mime.startsWith('image/')
+	return !!mime && mime.startsWith("image/");
 }
 
 // Post-Phase-61 invariant: `document_type` is a categorical enum (lease,
@@ -20,21 +20,21 @@ function isImage(mime: string | null | undefined): boolean {
 // `mime_type`. The pre-migration MIME-in-document_type fallback was
 // removed when migration 20260425172604 added the CHECK constraint and
 // coerced any out-of-band rows to 'other'.
-type MimeResolvable = Pick<DocumentRowData, 'mime_type'>
+type MimeResolvable = Pick<DocumentRowData, "mime_type">;
 
 function resolveMime(doc: MimeResolvable): string | null {
-	return doc.mime_type ?? null
+	return doc.mime_type ?? null;
 }
 
 interface DocumentRowProps {
-	doc: DocumentRowData
-	isOpen: boolean
-	onOpenChange: (open: boolean) => void
+	doc: DocumentRowData;
+	isOpen: boolean;
+	onOpenChange: (open: boolean) => void;
 	/** Absent on read-only surfaces (e.g. the global vault). When omitted
 	 *  the Remove button is hidden — vault deletion happens on the entity
 	 *  detail page so list-cache invalidation stays scoped. */
-	onDelete?: (doc: DocumentRowData) => void
-	isDeleting?: boolean
+	onDelete?: (doc: DocumentRowData) => void;
+	isDeleting?: boolean;
 }
 
 export function DocumentRow({
@@ -42,11 +42,11 @@ export function DocumentRow({
 	isOpen,
 	onOpenChange,
 	onDelete,
-	isDeleting = false
+	isDeleting = false,
 }: DocumentRowProps) {
-	const mime = resolveMime(doc)
-	const Icon = isImage(mime) ? ImageIcon : FileText
-	const displayName = doc.title ?? doc.file_path
+	const mime = resolveMime(doc);
+	const Icon = isImage(mime) ? ImageIcon : FileText;
+	const displayName = doc.title ?? doc.file_path;
 
 	return (
 		<li className="py-3">
@@ -69,25 +69,20 @@ export function DocumentRow({
 									{displayName}
 								</p>
 								<p className="truncate text-xs text-muted-foreground">
-									{formatBytes(doc.file_size)} ·{' '}
+									{formatBytes(doc.file_size)} ·{" "}
 									{doc.created_at
-										? new Date(doc.created_at).toLocaleDateString('en-US', {
-												month: 'short',
-												day: 'numeric',
-												year: 'numeric'
+										? new Date(doc.created_at).toLocaleDateString("en-US", {
+												month: "short",
+												day: "numeric",
+												year: "numeric",
 											})
-										: '—'}
+										: "—"}
 								</p>
 							</div>
 						</button>
 					</DialogTrigger>
 					{doc.signed_url ? (
-						<Button
-							size="sm"
-							variant="ghost"
-							asChild
-							className="shrink-0"
-						>
+						<Button size="sm" variant="ghost" asChild className="shrink-0">
 							<a
 								href={doc.signed_url}
 								download={displayName}
@@ -100,11 +95,11 @@ export function DocumentRow({
 				</div>
 				<DialogContent
 					className="max-w-4xl p-2"
-					onInteractOutside={e => {
-						if (isDeleting) e.preventDefault()
+					onInteractOutside={(e) => {
+						if (isDeleting) e.preventDefault();
 					}}
-					onEscapeKeyDown={e => {
-						if (isDeleting) e.preventDefault()
+					onEscapeKeyDown={(e) => {
+						if (isDeleting) e.preventDefault();
 					}}
 				>
 					<DialogTitle className="sr-only">{displayName}</DialogTitle>
@@ -147,12 +142,12 @@ export function DocumentRow({
 								className="text-destructive hover:text-destructive hover:bg-destructive/10"
 							>
 								<Trash2 className="size-4 mr-2" />
-								{isDeleting ? 'Removing...' : 'Remove'}
+								{isDeleting ? "Removing..." : "Remove"}
 							</Button>
 						)}
 					</div>
 				</DialogContent>
 			</Dialog>
 		</li>
-	)
+	);
 }

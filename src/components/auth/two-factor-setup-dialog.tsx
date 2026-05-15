@@ -1,176 +1,178 @@
-'use client'
+"use client";
 
-import { Button } from '#components/ui/button'
+import { Loader2, ShieldOff } from "lucide-react";
+import { useEffect, useState } from "react";
+import { toast } from "sonner";
+import { Button } from "#components/ui/button";
 import {
 	Dialog,
 	DialogContent,
 	DialogDescription,
 	DialogFooter,
 	DialogHeader,
-	DialogTitle
-} from '#components/ui/dialog'
-import { useMfaEnrollMutation, useMfaVerifyMutation, useMfaUnenrollMutation } from '#hooks/api/use-mfa'
-import { logger } from '#lib/frontend-logger'
-import { Loader2, ShieldOff } from 'lucide-react'
-import { useState, useEffect } from 'react'
-import { toast } from 'sonner'
-import { QrStep, VerifyStep, SuccessStep } from './two-factor-setup-steps'
+	DialogTitle,
+} from "#components/ui/dialog";
+import {
+	useMfaEnrollMutation,
+	useMfaUnenrollMutation,
+	useMfaVerifyMutation,
+} from "#hooks/api/use-mfa";
+import { logger } from "#lib/frontend-logger";
+import { QrStep, SuccessStep, VerifyStep } from "./two-factor-setup-steps";
 
 interface TwoFactorSetupDialogProps {
-	open: boolean
-	onOpenChange: (open: boolean) => void
-	onSuccess?: () => void
+	open: boolean;
+	onOpenChange: (open: boolean) => void;
+	onSuccess?: () => void;
 }
 
-type SetupStep = 'qr' | 'verify' | 'success'
+type SetupStep = "qr" | "verify" | "success";
 
 export function TwoFactorSetupDialog({
 	open,
 	onOpenChange,
-	onSuccess
+	onSuccess,
 }: TwoFactorSetupDialogProps) {
-	const enrollMfa = useMfaEnrollMutation()
-	const verifyMfa = useMfaVerifyMutation()
+	const enrollMfa = useMfaEnrollMutation();
+	const verifyMfa = useMfaVerifyMutation();
 
 	// MutationObserver#updateResult builds a fresh result object on every
 	// notify, but the bound `mutate` / `reset` methods (and `isPending`
 	// primitive) are stable. Destructure them so effect deps don't re-fire
 	// every render — that loop trips React error #185.
-	const { mutate: enrollMutate, reset: resetEnrollMfa } = enrollMfa
-	const { reset: resetVerifyMfa } = verifyMfa
-	const enrollPending = enrollMfa.isPending
+	const { mutate: enrollMutate, reset: resetEnrollMfa } = enrollMfa;
+	const { reset: resetVerifyMfa } = verifyMfa;
+	const enrollPending = enrollMfa.isPending;
 
-	const [step, setStep] = useState<SetupStep>('qr')
-	const [verifyCode, setVerifyCode] = useState('')
+	const [step, setStep] = useState<SetupStep>("qr");
+	const [verifyCode, setVerifyCode] = useState("");
 	const [enrollmentData, setEnrollmentData] = useState<{
-		factorId: string
-		qrCode: string
-		secret: string
-	} | null>(null)
+		factorId: string;
+		qrCode: string;
+		secret: string;
+	} | null>(null);
 
 	// Start enrollment when dialog opens
 	useEffect(() => {
 		if (open && !enrollmentData && !enrollPending) {
 			enrollMutate(undefined, {
-				onSuccess: data => {
+				onSuccess: (data) => {
 					setEnrollmentData({
 						factorId: data.factorId,
 						qrCode: data.qrCode,
-						secret: data.secret
-					})
-				}
-			})
+						secret: data.secret,
+					});
+				},
+			});
 		}
-	}, [open, enrollmentData, enrollPending, enrollMutate])
+	}, [open, enrollmentData, enrollPending, enrollMutate]);
 
 	// Reset state when dialog closes
 	useEffect(() => {
 		if (!open) {
-			setStep('qr')
-			setVerifyCode('')
-			setEnrollmentData(null)
-			resetEnrollMfa()
-			resetVerifyMfa()
+			setStep("qr");
+			setVerifyCode("");
+			setEnrollmentData(null);
+			resetEnrollMfa();
+			resetVerifyMfa();
 		}
-	}, [open, resetEnrollMfa, resetVerifyMfa])
+	}, [open, resetEnrollMfa, resetVerifyMfa]);
 
 	const handleCopySecret = async () => {
 		if (enrollmentData?.secret) {
-			await navigator.clipboard.writeText(enrollmentData.secret)
-			toast.success('Secret copied to clipboard')
+			await navigator.clipboard.writeText(enrollmentData.secret);
+			toast.success("Secret copied to clipboard");
 		}
-	}
+	};
 
 	const handleVerify = async () => {
-		if (!enrollmentData?.factorId || verifyCode.length !== 6) return
+		if (!enrollmentData?.factorId || verifyCode.length !== 6) return;
 
 		try {
 			await verifyMfa.mutateAsync({
 				factorId: enrollmentData.factorId,
-				code: verifyCode
-			})
-			setStep('success')
+				code: verifyCode,
+			});
+			setStep("success");
 		} catch (error) {
-			logger.error('MFA verification failed', {
-				action: 'mfa_verify',
+			logger.error("MFA verification failed", {
+				action: "mfa_verify",
 				metadata: {
-					error: error instanceof Error ? error.message : 'Unknown error'
-				}
-			})
-			setVerifyCode('')
+					error: error instanceof Error ? error.message : "Unknown error",
+				},
+			});
+			setVerifyCode("");
 		}
-	}
+	};
 
 	const handleComplete = () => {
-		onOpenChange(false)
-		onSuccess?.()
-	}
+		onOpenChange(false);
+		onSuccess?.();
+	};
 
-	const isLoading = enrollMfa.isPending || verifyMfa.isPending
+	const isLoading = enrollMfa.isPending || verifyMfa.isPending;
 
 	return (
 		<Dialog open={open} onOpenChange={onOpenChange}>
 			<DialogContent className="sm:max-w-[480px]" intent="edit">
-				{step === 'qr' && (
+				{step === "qr" && (
 					<QrStep
 						enrollmentData={enrollmentData}
 						enrollPending={enrollMfa.isPending}
 						enrollError={enrollMfa.error}
 						isLoading={isLoading}
 						onCopySecret={handleCopySecret}
-						onContinue={() => setStep('verify')}
+						onContinue={() => setStep("verify")}
 						onCancel={() => onOpenChange(false)}
 					/>
 				)}
 
-				{step === 'verify' && (
+				{step === "verify" && (
 					<VerifyStep
 						verifyCode={verifyCode}
 						onVerifyCodeChange={setVerifyCode}
 						verifyPending={verifyMfa.isPending}
 						verifyError={verifyMfa.error}
 						onVerify={handleVerify}
-						onBack={() => setStep('qr')}
+						onBack={() => setStep("qr")}
 					/>
 				)}
 
-				{step === 'success' && (
-					<SuccessStep onComplete={handleComplete} />
-				)}
+				{step === "success" && <SuccessStep onComplete={handleComplete} />}
 			</DialogContent>
 		</Dialog>
-	)
+	);
 }
 
 interface DisableTwoFactorDialogProps {
-	open: boolean
-	onOpenChange: (open: boolean) => void
-	factorId: string
-	onSuccess?: () => void
+	open: boolean;
+	onOpenChange: (open: boolean) => void;
+	factorId: string;
+	onSuccess?: () => void;
 }
 
 export function DisableTwoFactorDialog({
 	open,
 	onOpenChange,
 	factorId,
-	onSuccess
+	onSuccess,
 }: DisableTwoFactorDialogProps) {
-	const unenrollMfa = useMfaUnenrollMutation()
+	const unenrollMfa = useMfaUnenrollMutation();
 
 	const handleDisable = async () => {
 		try {
-			await unenrollMfa.mutateAsync(factorId)
-			onOpenChange(false)
-			onSuccess?.()
+			await unenrollMfa.mutateAsync(factorId);
+			onOpenChange(false);
+			onSuccess?.();
 		} catch (error) {
-			logger.error('Failed to disable 2FA', {
-				action: 'mfa_unenroll',
+			logger.error("Failed to disable 2FA", {
+				action: "mfa_unenroll",
 				metadata: {
-					error: error instanceof Error ? error.message : 'Unknown error'
-				}
-			})
+					error: error instanceof Error ? error.message : "Unknown error",
+				},
+			});
 		}
-	}
+	};
 
 	return (
 		<Dialog open={open} onOpenChange={onOpenChange}>
@@ -206,11 +208,11 @@ export function DisableTwoFactorDialog({
 								Disabling...
 							</>
 						) : (
-							'Disable 2FA'
+							"Disable 2FA"
 						)}
 					</Button>
 				</DialogFooter>
 			</DialogContent>
 		</Dialog>
-	)
+	);
 }

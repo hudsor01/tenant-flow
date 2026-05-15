@@ -1,20 +1,20 @@
-'use client'
+"use client";
 
-import { useEffect, useRef, useState } from 'react'
-import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { toast } from 'sonner'
-import { createClient } from '#lib/supabase/client'
-import { getCachedUser } from '#lib/supabase/get-cached-user'
-import { templateDefinitionQueries } from '#hooks/api/query-keys/template-definition-keys'
-import type { DynamicField } from './dynamic-form'
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useEffect, useRef, useState } from "react";
+import { toast } from "sonner";
+import { templateDefinitionQueries } from "#hooks/api/query-keys/template-definition-keys";
+import { createClient } from "#lib/supabase/client";
+import { getCachedUser } from "#lib/supabase/get-cached-user";
+import type { DynamicField } from "./dynamic-form";
 
 /**
  * Generic form interface that works with TanStack Form's strict typing.
  * Uses a more flexible approach to handle dynamic field access.
  */
 interface FormLike {
-	setFieldValue: (name: never, value: unknown) => void
-	state: { values: Record<string, unknown> }
+	setFieldValue: (name: never, value: unknown) => void;
+	state: { values: Record<string, unknown> };
 }
 
 /**
@@ -27,78 +27,78 @@ interface FormLike {
 export function useTemplateDefinition(
 	templateKey: string,
 	baseFields: DynamicField[],
-	form?: FormLike
+	form?: FormLike,
 ) {
-	const [customFields, setCustomFields] = useState<DynamicField[]>([])
-	const [isSaving, setIsSaving] = useState(false)
-	const queryClient = useQueryClient()
-	const loadedKeyRef = useRef<string | null>(null)
+	const [customFields, setCustomFields] = useState<DynamicField[]>([]);
+	const [isSaving, setIsSaving] = useState(false);
+	const queryClient = useQueryClient();
+	const loadedKeyRef = useRef<string | null>(null);
 
 	const { data, isPending } = useQuery(
-		templateDefinitionQueries.byTemplateKey(templateKey)
-	)
+		templateDefinitionQueries.byTemplateKey(templateKey),
+	);
 
 	// Sync loaded data to local editing state (once per templateKey)
 	useEffect(() => {
 		if (data !== undefined && loadedKeyRef.current !== templateKey) {
-			setCustomFields(data)
-			loadedKeyRef.current = templateKey
+			setCustomFields(data);
+			loadedKeyRef.current = templateKey;
 		}
-	}, [data, templateKey])
+	}, [data, templateKey]);
 
 	useEffect(() => {
-		if (!form) return
-		customFields.forEach(field => {
-			if (form.state.values[field.name] !== undefined) return
+		if (!form) return;
+		customFields.forEach((field) => {
+			if (form.state.values[field.name] !== undefined) return;
 			const defaultValue =
-				field.type === 'checkbox'
+				field.type === "checkbox"
 					? false
-					: field.type === 'select'
-						? field.options?.[0]?.value ?? ''
-						: ''
+					: field.type === "select"
+						? (field.options?.[0]?.value ?? "")
+						: "";
 			// Cast to never for dynamic field names (TanStack Form requires exact field types)
-			form.setFieldValue(field.name as never, defaultValue)
-		})
-	}, [customFields, form])
+			form.setFieldValue(field.name as never, defaultValue);
+		});
+	}, [customFields, form]);
 
-	const allFields = [...baseFields, ...customFields]
+	const allFields = [...baseFields, ...customFields];
 
 	const save = async () => {
-		setIsSaving(true)
+		setIsSaving(true);
 		try {
-			const user = await getCachedUser()
+			const user = await getCachedUser();
 			if (!user) {
-				toast.error('Failed to save template definition')
-				return
+				toast.error("Failed to save template definition");
+				return;
 			}
 
-			const supabase = createClient()
+			const supabase = createClient();
 			const { error } = await supabase
-				.from('document_template_definitions')
+				.from("document_template_definitions")
 				.upsert(
 					{
 						owner_user_id: user.id,
 						template_key: templateKey,
-						custom_fields: customFields
+						custom_fields: customFields,
 					},
-					{ onConflict: 'owner_user_id,template_key' }
-				)
+					{ onConflict: "owner_user_id,template_key" },
+				);
 
 			if (error) {
-				toast.error('Failed to save template definition')
-				return
+				toast.error("Failed to save template definition");
+				return;
 			}
 
-			toast.success('Template definition saved')
+			toast.success("Template definition saved");
 			queryClient.invalidateQueries({
-				queryKey: templateDefinitionQueries.all()
-			})
+				queryKey: templateDefinitionQueries.all(),
+			});
 		} catch {
-			toast.error('Failed to save template definition')
+			toast.error("Failed to save template definition");
 		} finally {
-			setIsSaving(false)
+			setIsSaving(false);
 		}
-	}
+	};
 
 	return {
 		customFields,
@@ -106,6 +106,6 @@ export function useTemplateDefinition(
 		fields: allFields,
 		isLoading: isPending,
 		isSaving,
-		save
-	}
+		save,
+	};
 }

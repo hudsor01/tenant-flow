@@ -1,5 +1,5 @@
-import { Skeleton } from '#components/ui/skeleton'
-import { BlurFade } from '#components/ui/blur-fade'
+import { BlurFade } from "#components/ui/blur-fade";
+import { Skeleton } from "#components/ui/skeleton";
 
 export function LeasesPageSkeleton() {
 	return (
@@ -17,7 +17,7 @@ export function LeasesPageSkeleton() {
 
 			{/* Stats Skeleton */}
 			<div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-				{[1, 2, 3, 4].map(i => (
+				{[1, 2, 3, 4].map((i) => (
 					<div key={i} className="bg-card border border-border rounded-sm p-4">
 						<Skeleton className="h-4 w-24 mb-2" />
 						<div className="flex items-end justify-between">
@@ -35,7 +35,7 @@ export function LeasesPageSkeleton() {
 					<Skeleton className="h-9 w-32 rounded-sm" />
 				</div>
 				<div className="divide-y divide-border">
-					{[1, 2, 3, 4, 5].map(i => (
+					{[1, 2, 3, 4, 5].map((i) => (
 						<div key={i} className="px-4 py-3 flex items-center gap-4">
 							<Skeleton className="h-4 w-4" />
 							<Skeleton className="h-5 w-32" />
@@ -50,5 +50,5 @@ export function LeasesPageSkeleton() {
 				</div>
 			</div>
 		</div>
-	)
+	);
 }

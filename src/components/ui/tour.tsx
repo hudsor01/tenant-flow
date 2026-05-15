@@ -1,6 +1,6 @@
-'use client'
+"use client";
 
-'use no memo'
+"use no memo";
 
 import {
 	autoUpdate,
@@ -12,10 +12,20 @@ import {
 	arrow as onArrow,
 	type Placement,
 	shift,
-	useFloating
-} from '@floating-ui/react-dom'
-import { Direction as RadixDirection, Slot } from 'radix-ui'
-import { ChevronLeft, ChevronRight, X } from 'lucide-react'
+	useFloating,
+} from "@floating-ui/react-dom";
+import { ChevronLeft, ChevronRight, X } from "lucide-react";
+import { Direction as RadixDirection, Slot } from "radix-ui";
+import type {
+	ComponentProps,
+	ComponentRef,
+	ReactElement,
+	FocusEvent as ReactFocusEvent,
+	MouseEvent as ReactMouseEvent,
+	ReactNode,
+	PointerEvent as ReactPointerEvent,
+	RefObject,
+} from "react";
 import {
 	createContext,
 	useCallback,
@@ -24,122 +34,112 @@ import {
 	useMemo,
 	useRef,
 	useState,
-	useSyncExternalStore
-} from 'react'
-import type {
-	ComponentProps,
-	ComponentRef,
-	FocusEvent as ReactFocusEvent,
-	MouseEvent as ReactMouseEvent,
-	PointerEvent as ReactPointerEvent,
-	ReactElement,
-	ReactNode,
-	RefObject
-} from 'react'
-import { createPortal } from 'react-dom'
-import { Button } from '#components/ui/button'
-import { useComposedRefs } from '#lib/compose-refs'
-import { cn } from '#lib/utils'
-import { useAsRef } from '#hooks/use-as-ref'
-import { useIsomorphicLayoutEffect } from '#hooks/use-isomorphic-layout-effect'
-import { useLazyRef } from '#hooks/use-lazy-ref'
+	useSyncExternalStore,
+} from "react";
+import { createPortal } from "react-dom";
+import { Button } from "#components/ui/button";
+import { useAsRef } from "#hooks/use-as-ref";
+import { useIsomorphicLayoutEffect } from "#hooks/use-isomorphic-layout-effect";
+import { useLazyRef } from "#hooks/use-lazy-ref";
+import { useComposedRefs } from "#lib/compose-refs";
+import { cn } from "#lib/utils";
 
-const ROOT_NAME = 'Tour'
-const PORTAL_NAME = 'TourPortal'
-const STEP_NAME = 'TourStep'
-const ARROW_NAME = 'TourArrow'
-const HEADER_NAME = 'TourHeader'
-const TITLE_NAME = 'TourTitle'
-const DESCRIPTION_NAME = 'TourDescription'
-const CLOSE_NAME = 'TourClose'
-const PREV_NAME = 'TourPrev'
-const NEXT_NAME = 'TourNext'
-const SKIP_NAME = 'TourSkip'
-const FOOTER_NAME = 'TourFooter'
+const ROOT_NAME = "Tour";
+const PORTAL_NAME = "TourPortal";
+const STEP_NAME = "TourStep";
+const ARROW_NAME = "TourArrow";
+const HEADER_NAME = "TourHeader";
+const TITLE_NAME = "TourTitle";
+const DESCRIPTION_NAME = "TourDescription";
+const CLOSE_NAME = "TourClose";
+const PREV_NAME = "TourPrev";
+const NEXT_NAME = "TourNext";
+const SKIP_NAME = "TourSkip";
+const FOOTER_NAME = "TourFooter";
 
-const POINTER_DOWN_OUTSIDE = 'tour.pointerDownOutside'
-const INTERACT_OUTSIDE = 'tour.interactOutside'
-const OPEN_AUTO_FOCUS = 'tour.openAutoFocus'
-const CLOSE_AUTO_FOCUS = 'tour.closeAutoFocus'
-const EVENT_OPTIONS = { bubbles: false, cancelable: true }
+const POINTER_DOWN_OUTSIDE = "tour.pointerDownOutside";
+const INTERACT_OUTSIDE = "tour.interactOutside";
+const OPEN_AUTO_FOCUS = "tour.openAutoFocus";
+const CLOSE_AUTO_FOCUS = "tour.closeAutoFocus";
+const EVENT_OPTIONS = { bubbles: false, cancelable: true };
 
-const _SIDE_OPTIONS = ['top', 'right', 'bottom', 'left'] as const
-const _ALIGN_OPTIONS = ['start', 'center', 'end'] as const
+const _SIDE_OPTIONS = ["top", "right", "bottom", "left"] as const;
+const _ALIGN_OPTIONS = ["start", "center", "end"] as const;
 
-const DEFAULT_ALIGN_OFFSET = 0
-const DEFAULT_SIDE_OFFSET = 16
-const DEFAULT_SPOTLIGHT_PADDING = 4
+const DEFAULT_ALIGN_OFFSET = 0;
+const DEFAULT_SIDE_OFFSET = 16;
+const DEFAULT_SPOTLIGHT_PADDING = 4;
 
-type Side = (typeof _SIDE_OPTIONS)[number]
-type Align = (typeof _ALIGN_OPTIONS)[number]
-type Direction = 'ltr' | 'rtl'
+type Side = (typeof _SIDE_OPTIONS)[number];
+type Align = (typeof _ALIGN_OPTIONS)[number];
+type Direction = "ltr" | "rtl";
 
 interface ScrollOffset {
-	top?: number
-	bottom?: number
-	left?: number
-	right?: number
+	top?: number;
+	bottom?: number;
+	left?: number;
+	right?: number;
 }
 
-type Boundary = Element | null
+type Boundary = Element | null;
 
-interface DivProps extends ComponentProps<'div'> {
-	asChild?: boolean
+interface DivProps extends ComponentProps<"div"> {
+	asChild?: boolean;
 }
 
-type StepElement = ComponentRef<typeof TourStep>
-type CloseElement = ComponentRef<typeof TourClose>
-type PrevElement = ComponentRef<typeof TourPrev>
-type NextElement = ComponentRef<typeof TourNext>
-type SkipElement = ComponentRef<typeof TourSkip>
-type FooterElement = ComponentRef<typeof TourFooter>
+type StepElement = ComponentRef<typeof TourStep>;
+type CloseElement = ComponentRef<typeof TourClose>;
+type PrevElement = ComponentRef<typeof TourPrev>;
+type NextElement = ComponentRef<typeof TourNext>;
+type SkipElement = ComponentRef<typeof TourSkip>;
+type FooterElement = ComponentRef<typeof TourFooter>;
 
 const OPPOSITE_SIDE: Record<Side, Side> = {
-	top: 'bottom',
-	right: 'left',
-	bottom: 'top',
-	left: 'right'
-}
+	top: "bottom",
+	right: "left",
+	bottom: "top",
+	left: "right",
+};
 
 /**
  * @see https://github.com/radix-ui/primitives/blob/main/packages/react/focus-guards/src/focus-guards.tsx
  */
-let focusGuardCount = 0
+let focusGuardCount = 0;
 
 function createFocusGuard() {
-	const element = document.createElement('span')
-	element.setAttribute('data-tour-focus-guard', '')
-	element.tabIndex = 0
-	element.style.outline = 'none'
-	element.style.opacity = '0'
-	element.style.position = 'fixed'
-	element.style.pointerEvents = 'none'
-	return element
+	const element = document.createElement("span");
+	element.setAttribute("data-tour-focus-guard", "");
+	element.tabIndex = 0;
+	element.style.outline = "none";
+	element.style.opacity = "0";
+	element.style.position = "fixed";
+	element.style.pointerEvents = "none";
+	return element;
 }
 
 function useFocusGuards() {
 	useEffect(() => {
-		const edgeGuards = document.querySelectorAll('[data-tour-focus-guard]')
+		const edgeGuards = document.querySelectorAll("[data-tour-focus-guard]");
 		document.body.insertAdjacentElement(
-			'afterbegin',
-			edgeGuards[0] ?? createFocusGuard()
-		)
+			"afterbegin",
+			edgeGuards[0] ?? createFocusGuard(),
+		);
 		document.body.insertAdjacentElement(
-			'beforeend',
-			edgeGuards[1] ?? createFocusGuard()
-		)
-		focusGuardCount++
+			"beforeend",
+			edgeGuards[1] ?? createFocusGuard(),
+		);
+		focusGuardCount++;
 
 		return () => {
 			if (focusGuardCount === 1) {
-				const guards = document.querySelectorAll('[data-tour-focus-guard]')
+				const guards = document.querySelectorAll("[data-tour-focus-guard]");
 				for (const node of guards) {
-					node.remove()
+					node.remove();
 				}
 			}
-			focusGuardCount--
-		}
-	}, [])
+			focusGuardCount--;
+		};
+	}, []);
 }
 
 function useFocusTrap(
@@ -147,429 +147,427 @@ function useFocusTrap(
 	enabled: boolean,
 	tourOpen: boolean,
 	onOpenAutoFocus?: (event: OpenAutoFocusEvent) => void,
-	onCloseAutoFocus?: (event: CloseAutoFocusEvent) => void
+	onCloseAutoFocus?: (event: CloseAutoFocusEvent) => void,
 ) {
-	const lastFocusedElementRef = useRef<HTMLElement | null>(null)
-	const onOpenAutoFocusRef = useAsRef(onOpenAutoFocus)
-	const onCloseAutoFocusRef = useAsRef(onCloseAutoFocus)
-	const tourOpenRef = useAsRef(tourOpen)
+	const lastFocusedElementRef = useRef<HTMLElement | null>(null);
+	const onOpenAutoFocusRef = useAsRef(onOpenAutoFocus);
+	const onCloseAutoFocusRef = useAsRef(onCloseAutoFocus);
+	const tourOpenRef = useAsRef(tourOpen);
 
 	useEffect(() => {
-		if (!enabled) return
+		if (!enabled) return;
 
-		const container = containerRef.current
-		if (!container) return
+		const container = containerRef.current;
+		if (!container) return;
 
 		const previouslyFocusedElement =
-			document.activeElement as HTMLElement | null
+			document.activeElement as HTMLElement | null;
 
 		function getTabbableCandidates() {
-			if (!container) return []
+			if (!container) return [];
 
-			const nodes: HTMLElement[] = []
+			const nodes: HTMLElement[] = [];
 			const walker = document.createTreeWalker(
 				container,
 				NodeFilter.SHOW_ELEMENT,
 				{
 					acceptNode: (node: Element) => {
-						const element = node as HTMLElement
+						const element = node as HTMLElement;
 						const isHiddenInput =
-							element.tagName === 'INPUT' &&
-							(element as HTMLInputElement).type === 'hidden'
-						if (element.hidden || isHiddenInput) return NodeFilter.FILTER_SKIP
+							element.tagName === "INPUT" &&
+							(element as HTMLInputElement).type === "hidden";
+						if (element.hidden || isHiddenInput) return NodeFilter.FILTER_SKIP;
 						return element.tabIndex >= 0
 							? NodeFilter.FILTER_ACCEPT
-							: NodeFilter.FILTER_SKIP
-					}
-				}
-			)
+							: NodeFilter.FILTER_SKIP;
+					},
+				},
+			);
 			while (walker.nextNode()) {
-				nodes.push(walker.currentNode as HTMLElement)
+				nodes.push(walker.currentNode as HTMLElement);
 			}
-			return nodes
+			return nodes;
 		}
 
 		function getTabbableEdges() {
-			const candidates = getTabbableCandidates()
-			const first = candidates[0]
-			const last = candidates[candidates.length - 1]
-			return [first, last] as const
+			const candidates = getTabbableCandidates();
+			const first = candidates[0];
+			const last = candidates[candidates.length - 1];
+			return [first, last] as const;
 		}
 
 		function onFocusIn(event: FocusEvent) {
-			if (!container) return
+			if (!container) return;
 
-			const target = event.target as HTMLElement | null
+			const target = event.target as HTMLElement | null;
 			if (container.contains(target)) {
-				lastFocusedElementRef.current = target
+				lastFocusedElementRef.current = target;
 			} else {
 				const elementToFocus =
-					lastFocusedElementRef.current ?? getTabbableCandidates()[0]
-				elementToFocus?.focus({ preventScroll: true })
+					lastFocusedElementRef.current ?? getTabbableCandidates()[0];
+				elementToFocus?.focus({ preventScroll: true });
 			}
 		}
 
 		function onKeyDown(event: KeyboardEvent) {
-			if (event.key !== 'Tab' || event.altKey || event.ctrlKey || event.metaKey)
-				return
+			if (event.key !== "Tab" || event.altKey || event.ctrlKey || event.metaKey)
+				return;
 
-			const [first, last] = getTabbableEdges()
-			const hasTabbableElements = first && last
+			const [first, last] = getTabbableEdges();
+			const hasTabbableElements = first && last;
 
 			if (!hasTabbableElements) {
-				if (document.activeElement === container) event.preventDefault()
-				return
+				if (document.activeElement === container) event.preventDefault();
+				return;
 			}
 
 			if (!event.shiftKey && document.activeElement === last) {
-				event.preventDefault()
-				first?.focus({ preventScroll: true })
+				event.preventDefault();
+				first?.focus({ preventScroll: true });
 			} else if (event.shiftKey && document.activeElement === first) {
-				event.preventDefault()
-				last?.focus({ preventScroll: true })
+				event.preventDefault();
+				last?.focus({ preventScroll: true });
 			}
 		}
 
-		const openAutoFocusEvent = new CustomEvent(OPEN_AUTO_FOCUS, EVENT_OPTIONS)
+		const openAutoFocusEvent = new CustomEvent(OPEN_AUTO_FOCUS, EVENT_OPTIONS);
 		if (onOpenAutoFocusRef.current) {
 			container.addEventListener(
 				OPEN_AUTO_FOCUS,
 				onOpenAutoFocusRef.current as EventListener,
-				{ once: true }
-			)
+				{ once: true },
+			);
 		}
-		container.dispatchEvent(openAutoFocusEvent)
+		container.dispatchEvent(openAutoFocusEvent);
 
 		if (!openAutoFocusEvent.defaultPrevented) {
-			const tabbableCandidates = getTabbableCandidates()
+			const tabbableCandidates = getTabbableCandidates();
 			if (tabbableCandidates.length > 0) {
-				tabbableCandidates[0]?.focus({ preventScroll: true })
+				tabbableCandidates[0]?.focus({ preventScroll: true });
 			} else {
-				container.focus({ preventScroll: true })
+				container.focus({ preventScroll: true });
 			}
 		}
 
-		document.addEventListener('focusin', onFocusIn)
-		container.addEventListener('keydown', onKeyDown)
+		document.addEventListener("focusin", onFocusIn);
+		container.addEventListener("keydown", onKeyDown);
 
 		return () => {
-			document.removeEventListener('focusin', onFocusIn)
-			container.removeEventListener('keydown', onKeyDown)
+			document.removeEventListener("focusin", onFocusIn);
+			container.removeEventListener("keydown", onKeyDown);
 
-			// eslint-disable-next-line react-hooks/exhaustive-deps -- useAsRef keeps ref in sync with current value
 			if (!tourOpenRef.current) {
 				setTimeout(() => {
 					const closeAutoFocusEvent = new CustomEvent(
 						CLOSE_AUTO_FOCUS,
-						EVENT_OPTIONS
-					)
+						EVENT_OPTIONS,
+					);
 					if (onCloseAutoFocusRef.current) {
 						container.addEventListener(
 							CLOSE_AUTO_FOCUS,
 							onCloseAutoFocusRef.current as EventListener,
-							{ once: true }
-						)
+							{ once: true },
+						);
 					}
-					container.dispatchEvent(closeAutoFocusEvent)
+					container.dispatchEvent(closeAutoFocusEvent);
 
 					if (!closeAutoFocusEvent.defaultPrevented) {
 						if (
 							previouslyFocusedElement &&
 							document.body.contains(previouslyFocusedElement)
 						) {
-							previouslyFocusedElement.focus({ preventScroll: true })
+							previouslyFocusedElement.focus({ preventScroll: true });
 						}
 					}
 
 					if (onCloseAutoFocusRef.current) {
 						container.removeEventListener(
 							CLOSE_AUTO_FOCUS,
-							// eslint-disable-next-line react-hooks/exhaustive-deps -- useAsRef keeps ref in sync
-							onCloseAutoFocusRef.current as EventListener
-						)
+							onCloseAutoFocusRef.current as EventListener,
+						);
 					}
-				}, 0)
+				}, 0);
 			}
-		}
+		};
 	}, [
 		containerRef,
 		enabled,
 		onOpenAutoFocusRef,
 		onCloseAutoFocusRef,
-		tourOpenRef
-	])
+		tourOpenRef,
+	]);
 }
 
 function getDataState(open: boolean): string {
-	return open ? 'open' : 'closed'
+	return open ? "open" : "closed";
 }
 
 interface StepData {
-	target: string | RefObject<HTMLElement> | HTMLElement
-	align?: Align | undefined
-	alignOffset?: number | undefined
-	side?: Side | undefined
-	sideOffset?: number | undefined
-	collisionBoundary?: Boundary | Boundary[] | undefined
-	collisionPadding?: number | Partial<Record<Side, number>> | undefined
-	arrowPadding?: number | undefined
-	sticky?: 'partial' | 'always' | undefined
-	hideWhenDetached?: boolean | undefined
-	avoidCollisions?: boolean | undefined
-	onStepEnter?: (() => void) | undefined
-	onStepLeave?: (() => void) | undefined
-	required?: boolean | undefined
+	target: string | RefObject<HTMLElement> | HTMLElement;
+	align?: Align | undefined;
+	alignOffset?: number | undefined;
+	side?: Side | undefined;
+	sideOffset?: number | undefined;
+	collisionBoundary?: Boundary | Boundary[] | undefined;
+	collisionPadding?: number | Partial<Record<Side, number>> | undefined;
+	arrowPadding?: number | undefined;
+	sticky?: "partial" | "always" | undefined;
+	hideWhenDetached?: boolean | undefined;
+	avoidCollisions?: boolean | undefined;
+	onStepEnter?: (() => void) | undefined;
+	onStepLeave?: (() => void) | undefined;
+	required?: boolean | undefined;
 }
 
 interface StoreState {
-	open: boolean
-	value: number
-	steps: StepData[]
-	maskPath: string
-	spotlightRect: { x: number; y: number; width: number; height: number } | null
+	open: boolean;
+	value: number;
+	steps: StepData[];
+	maskPath: string;
+	spotlightRect: { x: number; y: number; width: number; height: number } | null;
 }
 
 interface Store {
-	subscribe: (callback: () => void) => () => void
-	getState: () => StoreState
+	subscribe: (callback: () => void) => () => void;
+	getState: () => StoreState;
 	setState: <K extends keyof StoreState>(
 		key: K,
 		value: StoreState[K],
-		opts?: unknown
-	) => void
-	notify: () => void
-	addStep: (stepData: StepData) => { id: string; index: number }
-	removeStep: (id: string) => void
+		opts?: unknown,
+	) => void;
+	notify: () => void;
+	addStep: (stepData: StepData) => { id: string; index: number };
+	removeStep: (id: string) => void;
 }
 
 function useStore<T>(
 	selector: (state: StoreState) => T,
-	ogStore?: Store | null
+	ogStore?: Store | null,
 ): T {
-	const contextStore = useContext(StoreContext)
+	const contextStore = useContext(StoreContext);
 
-	const store = ogStore ?? contextStore
+	const store = ogStore ?? contextStore;
 
 	if (!store) {
-		throw new Error(`\`useStore\` must be used within \`${ROOT_NAME}\``)
+		throw new Error(`\`useStore\` must be used within \`${ROOT_NAME}\``);
 	}
 
 	const getSnapshot = useCallback(
 		() => selector(store.getState()),
-		[store, selector]
-	)
+		[store, selector],
+	);
 
-	return useSyncExternalStore(store.subscribe, getSnapshot, getSnapshot)
+	return useSyncExternalStore(store.subscribe, getSnapshot, getSnapshot);
 }
 
 function getTargetElement(
-	target: string | RefObject<HTMLElement> | HTMLElement
+	target: string | RefObject<HTMLElement> | HTMLElement,
 ): HTMLElement | null {
-	if (typeof target === 'string') {
-		return document.querySelector(target)
+	if (typeof target === "string") {
+		return document.querySelector(target);
 	}
-	if (target && 'current' in target) {
-		return target.current
+	if (target && "current" in target) {
+		return target.current;
 	}
 	if (target instanceof HTMLElement) {
-		return target
+		return target;
 	}
-	return null
+	return null;
 }
 
 function getDefaultScrollBehavior(): ScrollBehavior {
-	if (typeof window === 'undefined') return 'smooth'
-	return window.matchMedia('(prefers-reduced-motion: reduce)').matches
-		? 'auto'
-		: 'smooth'
+	if (typeof window === "undefined") return "smooth";
+	return window.matchMedia("(prefers-reduced-motion: reduce)").matches
+		? "auto"
+		: "smooth";
 }
 
 function onScrollToElement(
 	element: HTMLElement,
 	scrollBehavior: ScrollBehavior = getDefaultScrollBehavior(),
-	scrollOffset?: ScrollOffset
+	scrollOffset?: ScrollOffset,
 ) {
 	const offset: Required<ScrollOffset> = {
 		top: 100,
 		bottom: 100,
 		left: 0,
 		right: 0,
-		...scrollOffset
-	}
-	const rect = element.getBoundingClientRect()
-	const viewportHeight = window.innerHeight
-	const viewportWidth = window.innerWidth
+		...scrollOffset,
+	};
+	const rect = element.getBoundingClientRect();
+	const viewportHeight = window.innerHeight;
+	const viewportWidth = window.innerWidth;
 
 	const isInViewport =
 		rect.top >= offset.top &&
 		rect.bottom <= viewportHeight - offset.bottom &&
 		rect.left >= offset.left &&
-		rect.right <= viewportWidth - offset.right
+		rect.right <= viewportWidth - offset.right;
 
 	if (!isInViewport) {
-		const elementTop = rect.top + window.scrollY
-		const scrollTop = elementTop - offset.top
+		const elementTop = rect.top + window.scrollY;
+		const scrollTop = elementTop - offset.top;
 
 		window.scrollTo({
 			top: Math.max(0, scrollTop),
-			behavior: scrollBehavior
-		})
+			behavior: scrollBehavior,
+		});
 	}
 }
 
 function getSideAndAlignFromPlacement(placement: Placement): [Side, Align] {
-	const [side, align = 'center'] = placement.split('-') as [Side, Align?]
-	return [side, align]
+	const [side, align = "center"] = placement.split("-") as [Side, Align?];
+	return [side, align];
 }
 
 function getPlacement(side: Side, align: Align): Placement {
-	if (align === 'center') {
-		return side as Placement
+	if (align === "center") {
+		return side as Placement;
 	}
-	return `${side}-${align}` as Placement
+	return `${side}-${align}` as Placement;
 }
 
 function updateMask(
 	store: Store,
 	targetElement: HTMLElement,
-	padding: number = DEFAULT_SPOTLIGHT_PADDING
+	padding: number = DEFAULT_SPOTLIGHT_PADDING,
 ) {
-	const clientRect = targetElement.getBoundingClientRect()
-	const viewportWidth = window.innerWidth
-	const viewportHeight = window.innerHeight
+	const clientRect = targetElement.getBoundingClientRect();
+	const viewportWidth = window.innerWidth;
+	const viewportHeight = window.innerHeight;
 
-	const x = Math.max(0, clientRect.left - padding)
-	const y = Math.max(0, clientRect.top - padding)
-	const width = Math.min(viewportWidth - x, clientRect.width + padding * 2)
-	const height = Math.min(viewportHeight - y, clientRect.height + padding * 2)
+	const x = Math.max(0, clientRect.left - padding);
+	const y = Math.max(0, clientRect.top - padding);
+	const width = Math.min(viewportWidth - x, clientRect.width + padding * 2);
+	const height = Math.min(viewportHeight - y, clientRect.height + padding * 2);
 
-	const path = `polygon(0% 0%, 0% 100%, ${x}px 100%, ${x}px ${y}px, ${x + width}px ${y}px, ${x + width}px ${y + height}px, ${x}px ${y + height}px, ${x}px 100%, 100% 100%, 100% 0%)`
-	store.setState('maskPath', path)
-	store.setState('spotlightRect', { x, y, width, height })
+	const path = `polygon(0% 0%, 0% 100%, ${x}px 100%, ${x}px ${y}px, ${x + width}px ${y}px, ${x + width}px ${y + height}px, ${x}px ${y + height}px, ${x}px 100%, 100% 100%, 100% 0%)`;
+	store.setState("maskPath", path);
+	store.setState("spotlightRect", { x, y, width, height });
 }
 
-const StoreContext = createContext<Store | null>(null)
+const StoreContext = createContext<Store | null>(null);
 
 function useStoreContext(consumerName: string) {
-	const context = useContext(StoreContext)
+	const context = useContext(StoreContext);
 	if (!context) {
-		throw new Error(`\`${consumerName}\` must be used within \`${ROOT_NAME}\``)
+		throw new Error(`\`${consumerName}\` must be used within \`${ROOT_NAME}\``);
 	}
-	return context
+	return context;
 }
 
 interface TourContextValue {
-	dir: Direction
-	alignOffset: number
-	sideOffset: number
-	spotlightPadding: number
-	dismissible: boolean
-	modal: boolean
-	stepFooter?: ReactElement | undefined
-	onPointerDownOutside?: ((event: PointerDownOutsideEvent) => void) | undefined
-	onInteractOutside?: ((event: InteractOutsideEvent) => void) | undefined
-	onOpenAutoFocus?: ((event: OpenAutoFocusEvent) => void) | undefined
-	onCloseAutoFocus?: ((event: CloseAutoFocusEvent) => void) | undefined
+	dir: Direction;
+	alignOffset: number;
+	sideOffset: number;
+	spotlightPadding: number;
+	dismissible: boolean;
+	modal: boolean;
+	stepFooter?: ReactElement | undefined;
+	onPointerDownOutside?: ((event: PointerDownOutsideEvent) => void) | undefined;
+	onInteractOutside?: ((event: InteractOutsideEvent) => void) | undefined;
+	onOpenAutoFocus?: ((event: OpenAutoFocusEvent) => void) | undefined;
+	onCloseAutoFocus?: ((event: CloseAutoFocusEvent) => void) | undefined;
 }
 
-const TourContext = createContext<TourContextValue | null>(null)
+const TourContext = createContext<TourContextValue | null>(null);
 
 function useTourContext(consumerName: string) {
-	const context = useContext(TourContext)
+	const context = useContext(TourContext);
 	if (!context) {
-		throw new Error(`\`${consumerName}\` must be used within \`${ROOT_NAME}\``)
+		throw new Error(`\`${consumerName}\` must be used within \`${ROOT_NAME}\``);
 	}
-	return context
+	return context;
 }
 
 interface StepContextValue {
-	arrowX?: number | undefined
-	arrowY?: number | undefined
-	placedAlign: Align
-	placedSide: Side
-	shouldHideArrow: boolean
-	onArrowChange: (arrow: HTMLSpanElement | null) => void
-	onFooterChange: (footer: FooterElement | null) => void
+	arrowX?: number | undefined;
+	arrowY?: number | undefined;
+	placedAlign: Align;
+	placedSide: Side;
+	shouldHideArrow: boolean;
+	onArrowChange: (arrow: HTMLSpanElement | null) => void;
+	onFooterChange: (footer: FooterElement | null) => void;
 }
 
-const StepContext = createContext<StepContextValue | null>(null)
+const StepContext = createContext<StepContextValue | null>(null);
 
 function useStepContext(consumerName: string) {
-	const context = useContext(StepContext)
+	const context = useContext(StepContext);
 	if (!context) {
-		throw new Error(`\`${consumerName}\` must be used within \`${STEP_NAME}\``)
+		throw new Error(`\`${consumerName}\` must be used within \`${STEP_NAME}\``);
 	}
-	return context
+	return context;
 }
 
-const DefaultFooterContext = createContext(false)
+const DefaultFooterContext = createContext(false);
 
 interface PortalContextValue {
-	portal: HTMLElement | null
-	onPortalChange: (node: HTMLElement | null) => void
+	portal: HTMLElement | null;
+	onPortalChange: (node: HTMLElement | null) => void;
 }
 
-const PortalContext = createContext<PortalContextValue | null>(null)
+const PortalContext = createContext<PortalContextValue | null>(null);
 
 function usePortalContext(consumerName: string) {
-	const context = useContext(PortalContext)
+	const context = useContext(PortalContext);
 	if (!context) {
-		throw new Error(`\`${consumerName}\` must be used within \`${ROOT_NAME}\``)
+		throw new Error(`\`${consumerName}\` must be used within \`${ROOT_NAME}\``);
 	}
-	return context
+	return context;
 }
 
 function useScrollLock(enabled: boolean) {
 	useEffect(() => {
-		if (!enabled) return
+		if (!enabled) return;
 
-		const originalStyle = window.getComputedStyle(document.body).overflow
+		const originalStyle = window.getComputedStyle(document.body).overflow;
 		const scrollbarWidth =
-			window.innerWidth - document.documentElement.clientWidth
+			window.innerWidth - document.documentElement.clientWidth;
 
-		document.body.style.overflow = 'hidden'
+		document.body.style.overflow = "hidden";
 		if (scrollbarWidth > 0) {
-			document.body.style.paddingRight = `${scrollbarWidth}px`
+			document.body.style.paddingRight = `${scrollbarWidth}px`;
 		}
 
 		return () => {
-			document.body.style.overflow = originalStyle
-			document.body.style.paddingRight = ''
-		}
-	}, [enabled])
+			document.body.style.overflow = originalStyle;
+			document.body.style.paddingRight = "";
+		};
+	}, [enabled]);
 }
 
-type PointerDownOutsideEvent = CustomEvent<{ originalEvent: PointerEvent }>
+type PointerDownOutsideEvent = CustomEvent<{ originalEvent: PointerEvent }>;
 type InteractOutsideEvent = CustomEvent<{
-	originalEvent: PointerEvent | FocusEvent
-}>
-type OpenAutoFocusEvent = CustomEvent<Record<string, never>>
-type CloseAutoFocusEvent = CustomEvent<Record<string, never>>
+	originalEvent: PointerEvent | FocusEvent;
+}>;
+type OpenAutoFocusEvent = CustomEvent<Record<string, never>>;
+type CloseAutoFocusEvent = CustomEvent<Record<string, never>>;
 
 interface TourProps extends DivProps {
-	open?: boolean
-	defaultOpen?: boolean
-	onOpenChange?: (open: boolean) => void
-	value?: number
-	defaultValue?: number
-	onValueChange?: (step: number) => void
-	onComplete?: () => void
-	onSkip?: () => void
-	onEscapeKeyDown?: (event: KeyboardEvent) => void
-	onPointerDownOutside?: (event: PointerDownOutsideEvent) => void
-	onInteractOutside?: (event: InteractOutsideEvent) => void
-	onOpenAutoFocus?: (event: OpenAutoFocusEvent) => void
-	onCloseAutoFocus?: (event: CloseAutoFocusEvent) => void
-	dir?: Direction
-	alignOffset?: number
-	sideOffset?: number
-	spotlightPadding?: number
-	autoScroll?: boolean
-	scrollBehavior?: ScrollBehavior
-	scrollOffset?: ScrollOffset
-	dismissible?: boolean
-	modal?: boolean
-	stepFooter?: ReactElement
+	open?: boolean;
+	defaultOpen?: boolean;
+	onOpenChange?: (open: boolean) => void;
+	value?: number;
+	defaultValue?: number;
+	onValueChange?: (step: number) => void;
+	onComplete?: () => void;
+	onSkip?: () => void;
+	onEscapeKeyDown?: (event: KeyboardEvent) => void;
+	onPointerDownOutside?: (event: PointerDownOutsideEvent) => void;
+	onInteractOutside?: (event: InteractOutsideEvent) => void;
+	onOpenAutoFocus?: (event: OpenAutoFocusEvent) => void;
+	onCloseAutoFocus?: (event: CloseAutoFocusEvent) => void;
+	dir?: Direction;
+	alignOffset?: number;
+	sideOffset?: number;
+	spotlightPadding?: number;
+	autoScroll?: boolean;
+	scrollBehavior?: ScrollBehavior;
+	scrollOffset?: ScrollOffset;
+	dismissible?: boolean;
+	modal?: boolean;
+	stepFooter?: ReactElement;
 }
 
 function Tour(props: TourProps) {
@@ -599,24 +597,24 @@ function Tour(props: TourProps) {
 		stepFooter,
 		asChild,
 		...rootProps
-	} = props
+	} = props;
 
-	const dir = RadixDirection.useDirection(dirProp)
+	const dir = RadixDirection.useDirection(dirProp);
 
-	const [portal, setPortal] = useState<HTMLElement | null>(null)
-	const prevOpenRef = useRef<boolean | undefined>(undefined)
-	const previouslyFocusedElementRef = useRef<HTMLElement | null>(null)
+	const [portal, setPortal] = useState<HTMLElement | null>(null);
+	const prevOpenRef = useRef<boolean | undefined>(undefined);
+	const previouslyFocusedElementRef = useRef<HTMLElement | null>(null);
 
 	const stateRef = useLazyRef<StoreState>(() => ({
 		open: openProp ?? defaultOpen,
 		value: valueProp ?? defaultValue,
 		steps: [],
-		maskPath: '',
-		spotlightRect: null
-	}))
-	const listenersRef = useLazyRef<Set<() => void>>(() => new Set())
-	const stepIdsMapRef = useLazyRef<Map<string, number>>(() => new Map())
-	const stepIdCounterRef = useLazyRef(() => ({ current: 0 }))
+		maskPath: "",
+		spotlightRect: null,
+	}));
+	const listenersRef = useLazyRef<Set<() => void>>(() => new Set());
+	const stepIdsMapRef = useLazyRef<Map<string, number>>(() => new Map());
+	const stepIdCounterRef = useLazyRef(() => ({ current: 0 }));
 	const propsRef = useAsRef({
 		valueProp,
 		onOpenChange,
@@ -627,29 +625,29 @@ function Tour(props: TourProps) {
 		onCloseAutoFocus,
 		autoScroll,
 		scrollBehavior,
-		scrollOffset
-	})
+		scrollOffset,
+	});
 
 	const store: Store = useMemo(
 		() => ({
-			subscribe: cb => {
-				listenersRef.current.add(cb)
-				return () => listenersRef.current.delete(cb)
+			subscribe: (cb) => {
+				listenersRef.current.add(cb);
+				return () => listenersRef.current.delete(cb);
 			},
 			getState: () => {
-				return stateRef.current
+				return stateRef.current;
 			},
 			setState: (key, value) => {
-				if (Object.is(stateRef.current[key], value)) return
-				stateRef.current[key] = value
+				if (Object.is(stateRef.current[key], value)) return;
+				stateRef.current[key] = value;
 
-				if (key === 'open' && typeof value === 'boolean') {
-					propsRef.current.onOpenChange?.(value)
+				if (key === "open" && typeof value === "boolean") {
+					propsRef.current.onOpenChange?.(value);
 
 					if (value) {
 						if (stateRef.current.steps.length > 0) {
 							if (stateRef.current.value >= stateRef.current.steps.length) {
-								store.setState('value', 0)
+								store.setState("value", 0);
 							}
 						}
 					} else {
@@ -657,148 +655,148 @@ function Tour(props: TourProps) {
 							stateRef.current.value <
 							(stateRef.current.steps.length || 0) - 1
 						) {
-							propsRef.current.onSkip?.()
+							propsRef.current.onSkip?.();
 						}
 					}
-				} else if (key === 'value' && typeof value === 'number') {
-					const prevStep = stateRef.current.steps[stateRef.current.value]
-					const nextStep = stateRef.current.steps[value]
+				} else if (key === "value" && typeof value === "number") {
+					const prevStep = stateRef.current.steps[stateRef.current.value];
+					const nextStep = stateRef.current.steps[value];
 
-					prevStep?.onStepLeave?.()
-					nextStep?.onStepEnter?.()
+					prevStep?.onStepLeave?.();
+					nextStep?.onStepEnter?.();
 
 					if (value >= stateRef.current.steps.length) {
-						propsRef.current.onComplete?.()
+						propsRef.current.onComplete?.();
 
 						if (propsRef.current.valueProp !== undefined) {
-							propsRef.current.onValueChange?.(value)
+							propsRef.current.onValueChange?.(value);
 						}
 
-						store.setState('open', false)
-						return
+						store.setState("open", false);
+						return;
 					}
 
 					if (propsRef.current.valueProp !== undefined) {
-						propsRef.current.onValueChange?.(value)
-						return
+						propsRef.current.onValueChange?.(value);
+						return;
 					}
 
-					propsRef.current.onValueChange?.(value)
+					propsRef.current.onValueChange?.(value);
 
 					if (nextStep && propsRef.current.autoScroll) {
-						const targetElement = getTargetElement(nextStep.target)
+						const targetElement = getTargetElement(nextStep.target);
 						if (targetElement) {
 							onScrollToElement(
 								targetElement,
 								propsRef.current.scrollBehavior,
-								propsRef.current.scrollOffset
-							)
+								propsRef.current.scrollOffset,
+							);
 						}
 					}
 				}
 
-				store.notify()
+				store.notify();
 			},
 			notify: () => {
 				listenersRef.current.forEach((l: () => void) => {
-					l()
-				})
+					l();
+				});
 			},
-			addStep: stepData => {
-				const id = `step-${stepIdCounterRef.current.current++}`
-				const index = stateRef.current.steps.length
-				stepIdsMapRef.current.set(id, index)
-				stateRef.current.steps = [...stateRef.current.steps, stepData]
-				store.notify()
-				return { id, index }
+			addStep: (stepData) => {
+				const id = `step-${stepIdCounterRef.current.current++}`;
+				const index = stateRef.current.steps.length;
+				stepIdsMapRef.current.set(id, index);
+				stateRef.current.steps = [...stateRef.current.steps, stepData];
+				store.notify();
+				return { id, index };
 			},
-			removeStep: id => {
-				const index = stepIdsMapRef.current.get(id)
-				if (index === undefined) return
+			removeStep: (id) => {
+				const index = stepIdsMapRef.current.get(id);
+				if (index === undefined) return;
 
 				stateRef.current.steps = stateRef.current.steps.filter(
-					(_: StepData, i: number) => i !== index
-				)
+					(_: StepData, i: number) => i !== index,
+				);
 
-				stepIdsMapRef.current.delete(id)
+				stepIdsMapRef.current.delete(id);
 
 				for (const [stepId, stepIndex] of stepIdsMapRef.current.entries()) {
 					if (stepIndex > index) {
-						stepIdsMapRef.current.set(stepId, stepIndex - 1)
+						stepIdsMapRef.current.set(stepId, stepIndex - 1);
 					}
 				}
 
-				store.notify()
-			}
+				store.notify();
+			},
 		}),
-		[stateRef, listenersRef, stepIdsMapRef, stepIdCounterRef, propsRef]
-	)
+		[stateRef, listenersRef, stepIdsMapRef, stepIdCounterRef, propsRef],
+	);
 
-	const open = useStore(state => state.open, store)
+	const open = useStore((state) => state.open, store);
 
 	useEffect(() => {
 		function onKeyDown(event: KeyboardEvent) {
-			if (open && event.key === 'Escape') {
+			if (open && event.key === "Escape") {
 				if (propsRef.current.onEscapeKeyDown) {
-					propsRef.current.onEscapeKeyDown(event)
-					if (event.defaultPrevented) return
+					propsRef.current.onEscapeKeyDown(event);
+					if (event.defaultPrevented) return;
 				}
-				store.setState('open', false)
+				store.setState("open", false);
 			}
 		}
 
-		document.addEventListener('keydown', onKeyDown)
-		return () => document.removeEventListener('keydown', onKeyDown)
-	}, [store, open, propsRef])
+		document.addEventListener("keydown", onKeyDown);
+		return () => document.removeEventListener("keydown", onKeyDown);
+	}, [store, open, propsRef]);
 
 	useIsomorphicLayoutEffect(() => {
-		const wasOpen = prevOpenRef.current
+		const wasOpen = prevOpenRef.current;
 
 		if (open && !wasOpen) {
 			previouslyFocusedElementRef.current =
-				document.activeElement as HTMLElement | null
+				document.activeElement as HTMLElement | null;
 		} else if (!open && wasOpen) {
 			setTimeout(() => {
-				const container = portal ?? document.body
+				const container = portal ?? document.body;
 				const closeAutoFocusEvent = new CustomEvent(
 					CLOSE_AUTO_FOCUS,
-					EVENT_OPTIONS
-				)
+					EVENT_OPTIONS,
+				);
 
 				if (propsRef.current.onCloseAutoFocus) {
 					container.addEventListener(
 						CLOSE_AUTO_FOCUS,
 						propsRef.current.onCloseAutoFocus as EventListener,
-						{ once: true }
-					)
+						{ once: true },
+					);
 				}
-				container.dispatchEvent(closeAutoFocusEvent)
+				container.dispatchEvent(closeAutoFocusEvent);
 
 				if (!closeAutoFocusEvent.defaultPrevented) {
-					const elementToFocus = previouslyFocusedElementRef.current
+					const elementToFocus = previouslyFocusedElementRef.current;
 					if (elementToFocus && document.body.contains(elementToFocus)) {
-						elementToFocus.focus({ preventScroll: true })
+						elementToFocus.focus({ preventScroll: true });
 					}
 				}
 
-				previouslyFocusedElementRef.current = null
-			}, 0)
+				previouslyFocusedElementRef.current = null;
+			}, 0);
 		}
 
-		prevOpenRef.current = open
-	}, [open, portal, propsRef])
+		prevOpenRef.current = open;
+	}, [open, portal, propsRef]);
 
 	useIsomorphicLayoutEffect(() => {
 		if (openProp !== undefined) {
-			store.setState('open', openProp)
+			store.setState("open", openProp);
 		}
-	}, [openProp, store])
+	}, [openProp, store]);
 
 	useIsomorphicLayoutEffect(() => {
 		if (valueProp !== undefined) {
-			store.setState('value', valueProp)
+			store.setState("value", valueProp);
 		}
-	}, [valueProp, store])
+	}, [valueProp, store]);
 
 	const contextValue = useMemo<TourContextValue>(
 		() => ({
@@ -812,7 +810,7 @@ function Tour(props: TourProps) {
 			onPointerDownOutside,
 			onInteractOutside,
 			onOpenAutoFocus,
-			onCloseAutoFocus
+			onCloseAutoFocus,
 		}),
 		[
 			dir,
@@ -825,21 +823,21 @@ function Tour(props: TourProps) {
 			onPointerDownOutside,
 			onInteractOutside,
 			onOpenAutoFocus,
-			onCloseAutoFocus
-		]
-	)
+			onCloseAutoFocus,
+		],
+	);
 
 	const portalContextValue = useMemo<PortalContextValue>(
 		() => ({
 			portal,
-			onPortalChange: setPortal
+			onPortalChange: setPortal,
 		}),
-		[portal]
-	)
+		[portal],
+	);
 
-	useScrollLock(open && modal)
+	useScrollLock(open && modal);
 
-	const RootPrimitive = asChild ? Slot.Slot : 'div'
+	const RootPrimitive = asChild ? Slot.Slot : "div";
 
 	return (
 		<StoreContext.Provider value={store}>
@@ -849,38 +847,38 @@ function Tour(props: TourProps) {
 				</PortalContext.Provider>
 			</TourContext.Provider>
 		</StoreContext.Provider>
-	)
+	);
 }
 
 interface TourStepProps extends DivProps {
-	target: string | RefObject<HTMLElement> | HTMLElement
-	side?: Side
-	sideOffset?: number
-	align?: Align
-	alignOffset?: number
-	collisionBoundary?: Boundary | Boundary[]
-	collisionPadding?: number | Partial<Record<Side, number>>
-	arrowPadding?: number
-	sticky?: 'partial' | 'always'
-	hideWhenDetached?: boolean
-	avoidCollisions?: boolean
-	required?: boolean
-	forceMount?: boolean
-	onStepEnter?: () => void
-	onStepLeave?: () => void
+	target: string | RefObject<HTMLElement> | HTMLElement;
+	side?: Side;
+	sideOffset?: number;
+	align?: Align;
+	alignOffset?: number;
+	collisionBoundary?: Boundary | Boundary[];
+	collisionPadding?: number | Partial<Record<Side, number>>;
+	arrowPadding?: number;
+	sticky?: "partial" | "always";
+	hideWhenDetached?: boolean;
+	avoidCollisions?: boolean;
+	required?: boolean;
+	forceMount?: boolean;
+	onStepEnter?: () => void;
+	onStepLeave?: () => void;
 }
 
 function TourStep(props: TourStepProps) {
 	const {
 		target,
-		side = 'bottom',
+		side = "bottom",
 		sideOffset,
-		align = 'center',
+		align = "center",
 		alignOffset,
 		collisionBoundary = [],
 		collisionPadding = 0,
 		arrowPadding = 0,
-		sticky = 'partial',
+		sticky = "partial",
 		hideWhenDetached = false,
 		avoidCollisions = true,
 		required = false,
@@ -895,26 +893,26 @@ function TourStep(props: TourStepProps) {
 		style,
 		asChild,
 		...stepProps
-	} = props
+	} = props;
 
-	const store = useStoreContext(STEP_NAME)
+	const store = useStoreContext(STEP_NAME);
 
-	const [arrow, setArrow] = useState<HTMLSpanElement | null>(null)
-	const [footer, setFooter] = useState<FooterElement | null>(null)
+	const [arrow, setArrow] = useState<HTMLSpanElement | null>(null);
+	const [footer, setFooter] = useState<FooterElement | null>(null);
 
-	const stepRef = useRef<StepElement | null>(null)
-	const stepIdRef = useRef<string>('')
-	const stepOrderRef = useRef<number>(-1)
-	const isPointerInsideReactTreeRef = useRef(false)
-	const isFocusInsideReactTreeRef = useRef(false)
+	const stepRef = useRef<StepElement | null>(null);
+	const stepIdRef = useRef<string>("");
+	const stepOrderRef = useRef<number>(-1);
+	const isPointerInsideReactTreeRef = useRef(false);
+	const isFocusInsideReactTreeRef = useRef(false);
 
-	const open = useStore(state => state.open)
-	const value = useStore(state => state.value)
-	const steps = useStore(state => state.steps)
-	const context = useTourContext(STEP_NAME)
+	const open = useStore((state) => state.open);
+	const value = useStore((state) => state.value);
+	const steps = useStore((state) => state.steps);
+	const context = useTourContext(STEP_NAME);
 
-	const resolvedSideOffset = sideOffset ?? context.sideOffset
-	const resolvedAlignOffset = alignOffset ?? context.alignOffset
+	const resolvedSideOffset = sideOffset ?? context.sideOffset;
+	const resolvedAlignOffset = alignOffset ?? context.alignOffset;
 
 	useIsomorphicLayoutEffect(() => {
 		const { id, index } = store.addStep({
@@ -931,14 +929,14 @@ function TourStep(props: TourStepProps) {
 			avoidCollisions,
 			onStepEnter,
 			onStepLeave,
-			required
-		})
-		stepIdRef.current = id
-		stepOrderRef.current = index
+			required,
+		});
+		stepIdRef.current = id;
+		stepOrderRef.current = index;
 
 		return () => {
-			store.removeStep(stepIdRef.current)
-		}
+			store.removeStep(stepIdRef.current);
+		};
 	}, [
 		target,
 		side,
@@ -953,54 +951,54 @@ function TourStep(props: TourStepProps) {
 		required,
 		onStepEnter,
 		onStepLeave,
-		store
-	])
+		store,
+	]);
 
-	const stepData = steps[value]
-	const targetElement = stepData ? getTargetElement(stepData.target) : null
+	const stepData = steps[value];
+	const targetElement = stepData ? getTargetElement(stepData.target) : null;
 
-	const isCurrentStep = stepOrderRef.current === value
+	const isCurrentStep = stepOrderRef.current === value;
 
 	const middleware = useMemo(() => {
-		if (!stepData) return []
+		if (!stepData) return [];
 
-		const mainAxisOffset = stepData.sideOffset ?? resolvedSideOffset
-		const crossAxisOffset = stepData.alignOffset ?? resolvedAlignOffset
+		const mainAxisOffset = stepData.sideOffset ?? resolvedSideOffset;
+		const crossAxisOffset = stepData.alignOffset ?? resolvedAlignOffset;
 
 		const padding =
-			typeof stepData.collisionPadding === 'number'
+			typeof stepData.collisionPadding === "number"
 				? stepData.collisionPadding
 				: {
 						top: stepData.collisionPadding?.top ?? 0,
 						right: stepData.collisionPadding?.right ?? 0,
 						bottom: stepData.collisionPadding?.bottom ?? 0,
-						left: stepData.collisionPadding?.left ?? 0
-					}
+						left: stepData.collisionPadding?.left ?? 0,
+					};
 
 		const boundary = Array.isArray(stepData.collisionBoundary)
 			? stepData.collisionBoundary
 			: stepData.collisionBoundary
 				? [stepData.collisionBoundary]
-				: []
-		const hasExplicitBoundaries = boundary.length > 0
+				: [];
+		const hasExplicitBoundaries = boundary.length > 0;
 
 		const detectOverflowOptions = {
 			padding,
 			boundary: boundary.filter((b): b is Element => b !== null),
-			altBoundary: hasExplicitBoundaries
-		}
+			altBoundary: hasExplicitBoundaries,
+		};
 
 		return [
 			offset({
 				mainAxis: mainAxisOffset,
-				alignmentAxis: crossAxisOffset
+				alignmentAxis: crossAxisOffset,
 			}),
 			stepData.avoidCollisions &&
 				shift({
 					mainAxis: true,
 					crossAxis: false,
-					...(stepData.sticky === 'partial' ? { limiter: limitShift() } : {}),
-					...detectOverflowOptions
+					...(stepData.sticky === "partial" ? { limiter: limitShift() } : {}),
+					...detectOverflowOptions,
 				}),
 			stepData.avoidCollisions && flip({ ...detectOverflowOptions }),
 			arrow &&
@@ -1008,44 +1006,45 @@ function TourStep(props: TourStepProps) {
 					element: arrow,
 					...(stepData.arrowPadding !== undefined
 						? { padding: stepData.arrowPadding }
-						: {})
+						: {}),
 				}),
 			stepData.hideWhenDetached &&
 				hide({
-					strategy: 'referenceHidden',
-					...detectOverflowOptions
-				})
-		].filter(Boolean) as Middleware[]
-	}, [stepData, resolvedSideOffset, resolvedAlignOffset, arrow])
+					strategy: "referenceHidden",
+					...detectOverflowOptions,
+				}),
+		].filter(Boolean) as Middleware[];
+	}, [stepData, resolvedSideOffset, resolvedAlignOffset, arrow]);
 
 	const placement = getPlacement(
 		stepData?.side ?? side,
-		stepData?.align ?? align
-	)
+		stepData?.align ?? align,
+	);
 
 	const {
 		refs,
 		floatingStyles,
 		placement: finalPlacement,
-		middlewareData
+		middlewareData,
 	} = useFloating({
 		placement,
 		middleware,
-		strategy: 'fixed',
+		strategy: "fixed",
 		whileElementsMounted: autoUpdate,
 		elements: {
-			reference: targetElement
-		}
-	})
+			reference: targetElement,
+		},
+	});
 
-	const composedRef = useComposedRefs(refs.setFloating, stepRef)
+	const composedRef = useComposedRefs(refs.setFloating, stepRef);
 
-	const [placedSide, placedAlign] = getSideAndAlignFromPlacement(finalPlacement)
+	const [placedSide, placedAlign] =
+		getSideAndAlignFromPlacement(finalPlacement);
 
-	const arrowX = middlewareData.arrow?.x
-	const arrowY = middlewareData.arrow?.y
-	const cannotCenterArrow = middlewareData.arrow?.centerOffset !== 0
-	const isHidden = hideWhenDetached && middlewareData.hide?.referenceHidden
+	const arrowX = middlewareData.arrow?.x;
+	const arrowY = middlewareData.arrow?.y;
+	const cannotCenterArrow = middlewareData.arrow?.centerOffset !== 0;
+	const isHidden = hideWhenDetached && middlewareData.hide?.referenceHidden;
 
 	const stepContextValue = useMemo<StepContextValue>(
 		() => ({
@@ -1055,104 +1054,104 @@ function TourStep(props: TourStepProps) {
 			placedSide,
 			shouldHideArrow: cannotCenterArrow,
 			onArrowChange: setArrow,
-			onFooterChange: setFooter
+			onFooterChange: setFooter,
 		}),
-		[arrowX, arrowY, placedSide, placedAlign, cannotCenterArrow]
-	)
+		[arrowX, arrowY, placedSide, placedAlign, cannotCenterArrow],
+	);
 
 	useEffect(() => {
 		if (open && targetElement && isCurrentStep) {
-			updateMask(store, targetElement, context.spotlightPadding)
+			updateMask(store, targetElement, context.spotlightPadding);
 
-			let rafId: number | null = null
+			let rafId: number | null = null;
 
 			function onResize() {
 				if (targetElement) {
-					updateMask(store, targetElement, context.spotlightPadding)
+					updateMask(store, targetElement, context.spotlightPadding);
 				}
 			}
 
 			function onScroll() {
-				if (rafId !== null) return
+				if (rafId !== null) return;
 				rafId = requestAnimationFrame(() => {
 					if (targetElement) {
-						updateMask(store, targetElement, context.spotlightPadding)
+						updateMask(store, targetElement, context.spotlightPadding);
 					}
-					rafId = null
-				})
+					rafId = null;
+				});
 			}
 
-			window.addEventListener('resize', onResize)
-			window.addEventListener('scroll', onScroll, { passive: true })
+			window.addEventListener("resize", onResize);
+			window.addEventListener("scroll", onScroll, { passive: true });
 			return () => {
-				window.removeEventListener('resize', onResize)
-				window.removeEventListener('scroll', onScroll)
+				window.removeEventListener("resize", onResize);
+				window.removeEventListener("scroll", onScroll);
 				if (rafId !== null) {
-					cancelAnimationFrame(rafId)
+					cancelAnimationFrame(rafId);
 				}
-			}
+			};
 		}
-		return undefined
-	}, [open, targetElement, isCurrentStep, store, context.spotlightPadding])
+		return undefined;
+	}, [open, targetElement, isCurrentStep, store, context.spotlightPadding]);
 
 	useEffect(() => {
-		if (!open || !isCurrentStep) return
+		if (!open || !isCurrentStep) return;
 
-		const stepElement = stepRef.current
-		if (!stepElement) return
+		const stepElement = stepRef.current;
+		if (!stepElement) return;
 
-		const ownerDocument = stepElement.ownerDocument
+		const ownerDocument = stepElement.ownerDocument;
 
 		function onPointerDown(event: PointerEvent) {
 			if (event.target && !isPointerInsideReactTreeRef.current) {
 				const pointerDownOutsideEvent = new CustomEvent(POINTER_DOWN_OUTSIDE, {
 					...EVENT_OPTIONS,
-					detail: { originalEvent: event }
-				})
+					detail: { originalEvent: event },
+				});
 
-				context.onPointerDownOutside?.(pointerDownOutsideEvent)
+				context.onPointerDownOutside?.(pointerDownOutsideEvent);
 
 				const interactOutsideEvent = new CustomEvent(INTERACT_OUTSIDE, {
 					...EVENT_OPTIONS,
-					detail: { originalEvent: event }
-				})
-				context.onInteractOutside?.(interactOutsideEvent)
+					detail: { originalEvent: event },
+				});
+				context.onInteractOutside?.(interactOutsideEvent);
 
 				if (
 					!pointerDownOutsideEvent.defaultPrevented &&
 					!interactOutsideEvent.defaultPrevented &&
 					context.dismissible
 				) {
-					store.setState('open', false)
+					store.setState("open", false);
 				}
 			}
 
-			isPointerInsideReactTreeRef.current = false
+			isPointerInsideReactTreeRef.current = false;
 		}
 
 		const timerId = window.setTimeout(() => {
-			ownerDocument.addEventListener('pointerdown', onPointerDown)
-		}, 0)
+			ownerDocument.addEventListener("pointerdown", onPointerDown);
+		}, 0);
 
 		return () => {
-			window.clearTimeout(timerId)
-			ownerDocument.removeEventListener('pointerdown', onPointerDown)
-		}
-	}, [open, isCurrentStep, store, context])
+			window.clearTimeout(timerId);
+			ownerDocument.removeEventListener("pointerdown", onPointerDown);
+		};
+	}, [open, isCurrentStep, store, context]);
 
 	useEffect(() => {
-		if (!open || !isCurrentStep) return
+		if (!open || !isCurrentStep) return;
 
-		const stepElement = stepRef.current
-		if (!stepElement) return
+		const stepElement = stepRef.current;
+		if (!stepElement) return;
 
-		const ownerDocument = stepElement.ownerDocument
+		const ownerDocument = stepElement.ownerDocument;
 
 		function onFocusIn(event: FocusEvent) {
-			const target = event.target as HTMLElement
+			const target = event.target as HTMLElement;
 
-			const isFocusInStep = stepElement?.contains(target)
-			const isFocusInTarget = targetElement?.contains(target)
+			const isFocusInStep = stepElement?.contains(target);
+			const isFocusInTarget = targetElement?.contains(target);
 
 			if (
 				event.target &&
@@ -1162,96 +1161,96 @@ function TourStep(props: TourStepProps) {
 			) {
 				const interactOutsideEvent = new CustomEvent(INTERACT_OUTSIDE, {
 					...EVENT_OPTIONS,
-					detail: { originalEvent: event }
-				})
+					detail: { originalEvent: event },
+				});
 
-				context.onInteractOutside?.(interactOutsideEvent)
+				context.onInteractOutside?.(interactOutsideEvent);
 
 				if (!interactOutsideEvent.defaultPrevented && context.dismissible) {
-					store.setState('open', false)
+					store.setState("open", false);
 				}
 			}
 		}
 
-		ownerDocument.addEventListener('focusin', onFocusIn)
+		ownerDocument.addEventListener("focusin", onFocusIn);
 
 		return () => {
-			ownerDocument.removeEventListener('focusin', onFocusIn)
-		}
-	}, [open, isCurrentStep, store, context, targetElement])
+			ownerDocument.removeEventListener("focusin", onFocusIn);
+		};
+	}, [open, isCurrentStep, store, context, targetElement]);
 
 	const onPointerDownCapture = useCallback(
 		(event: ReactPointerEvent<StepElement>) => {
-			onPointerDownCaptureProp?.(event)
-			isPointerInsideReactTreeRef.current = true
+			onPointerDownCaptureProp?.(event);
+			isPointerInsideReactTreeRef.current = true;
 		},
-		[onPointerDownCaptureProp]
-	)
+		[onPointerDownCaptureProp],
+	);
 
 	const onFocusCapture = useCallback(
 		(event: ReactFocusEvent<StepElement>) => {
-			onFocusCaptureProp?.(event)
-			isFocusInsideReactTreeRef.current = true
+			onFocusCaptureProp?.(event);
+			isFocusInsideReactTreeRef.current = true;
 		},
-		[onFocusCaptureProp]
-	)
+		[onFocusCaptureProp],
+	);
 
 	const onBlurCapture = useCallback(
 		(event: ReactFocusEvent<StepElement>) => {
-			onBlurCaptureProp?.(event)
-			isFocusInsideReactTreeRef.current = false
+			onBlurCaptureProp?.(event);
+			isFocusInsideReactTreeRef.current = false;
 		},
-		[onBlurCaptureProp]
-	)
+		[onBlurCaptureProp],
+	);
 
 	useEffect(() => {
-		if (!open || !isCurrentStep || !targetElement) return
+		if (!open || !isCurrentStep || !targetElement) return;
 
 		function onTargetPointerDownCapture() {
-			isPointerInsideReactTreeRef.current = true
+			isPointerInsideReactTreeRef.current = true;
 		}
 
 		function onTargetFocusCapture() {
-			isFocusInsideReactTreeRef.current = true
+			isFocusInsideReactTreeRef.current = true;
 		}
 
 		function onTargetBlurCapture() {
-			isFocusInsideReactTreeRef.current = false
+			isFocusInsideReactTreeRef.current = false;
 		}
 
 		targetElement.addEventListener(
-			'pointerdown',
+			"pointerdown",
 			onTargetPointerDownCapture,
-			true
-		)
-		targetElement.addEventListener('focus', onTargetFocusCapture, true)
-		targetElement.addEventListener('blur', onTargetBlurCapture, true)
+			true,
+		);
+		targetElement.addEventListener("focus", onTargetFocusCapture, true);
+		targetElement.addEventListener("blur", onTargetBlurCapture, true);
 
 		return () => {
 			targetElement.removeEventListener(
-				'pointerdown',
+				"pointerdown",
 				onTargetPointerDownCapture,
-				true
-			)
-			targetElement.removeEventListener('focus', onTargetFocusCapture, true)
-			targetElement.removeEventListener('blur', onTargetBlurCapture, true)
-		}
-	}, [open, isCurrentStep, targetElement])
+				true,
+			);
+			targetElement.removeEventListener("focus", onTargetFocusCapture, true);
+			targetElement.removeEventListener("blur", onTargetBlurCapture, true);
+		};
+	}, [open, isCurrentStep, targetElement]);
 
-	useFocusGuards()
+	useFocusGuards();
 	useFocusTrap(
 		stepRef,
 		open && isCurrentStep,
 		open,
 		context.onOpenAutoFocus,
-		context.onCloseAutoFocus
-	)
+		context.onCloseAutoFocus,
+	);
 
 	if (!open || !stepData || (!targetElement && !forceMount) || !isCurrentStep) {
-		return null
+		return null;
 	}
 
-	const StepPrimitive = asChild ? Slot.Slot : 'div'
+	const StepPrimitive = asChild ? Slot.Slot : "div";
 
 	return (
 		<StepContext.Provider value={stepContextValue}>
@@ -1267,14 +1266,14 @@ function TourStep(props: TourStepProps) {
 				onFocusCapture={onFocusCapture}
 				onBlurCapture={onBlurCapture}
 				className={cn(
-					'fixed z-50 flex w-80 flex-col gap-4 rounded-lg border bg-popover p-4 text-popover-foreground shadow-md outline-none',
-					className
+					"fixed z-50 flex w-80 flex-col gap-4 rounded-lg border bg-popover p-4 text-popover-foreground shadow-md outline-none",
+					className,
 				)}
 				style={{
 					...style,
 					...floatingStyles,
-					visibility: isHidden ? 'hidden' : undefined,
-					pointerEvents: isHidden ? 'none' : undefined
+					visibility: isHidden ? "hidden" : undefined,
+					pointerEvents: isHidden ? "none" : undefined,
 				}}
 			>
 				{children}
@@ -1285,11 +1284,11 @@ function TourStep(props: TourStepProps) {
 				)}
 			</StepPrimitive>
 		</StepContext.Provider>
-	)
+	);
 }
 
 interface TourSpotlightProps extends DivProps {
-	forceMount?: boolean
+	forceMount?: boolean;
 }
 
 function TourSpotlight(props: TourSpotlightProps) {
@@ -1299,14 +1298,14 @@ function TourSpotlight(props: TourSpotlightProps) {
 		style,
 		forceMount = false,
 		...backdropProps
-	} = props
+	} = props;
 
-	const open = useStore(state => state.open)
-	const maskPath = useStore(state => state.maskPath)
+	const open = useStore((state) => state.open);
+	const maskPath = useStore((state) => state.maskPath);
 
-	if (!open && !forceMount) return null
+	if (!open && !forceMount) return null;
 
-	const SpotlightPrimitive = asChild ? Slot.Slot : 'div'
+	const SpotlightPrimitive = asChild ? Slot.Slot : "div";
 
 	return (
 		<SpotlightPrimitive
@@ -1314,31 +1313,31 @@ function TourSpotlight(props: TourSpotlightProps) {
 			data-state={getDataState(open)}
 			{...backdropProps}
 			className={cn(
-				'data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 fixed inset-0 z-50 bg-black/80 data-[state=closed]:animate-out data-[state=open]:animate-in',
-				className
+				"data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 fixed inset-0 z-50 bg-black/80 data-[state=closed]:animate-out data-[state=open]:animate-in",
+				className,
 			)}
 			style={{
 				clipPath: maskPath,
-				...style
+				...style,
 			}}
 		/>
-	)
+	);
 }
 
 interface TourSpotlightRingProps extends DivProps {
-	forceMount?: boolean
+	forceMount?: boolean;
 }
 
 function TourSpotlightRing(props: TourSpotlightRingProps) {
-	const { asChild, className, style, forceMount = false, ...ringProps } = props
+	const { asChild, className, style, forceMount = false, ...ringProps } = props;
 
-	const open = useStore(state => state.open)
-	const spotlightRect = useStore(state => state.spotlightRect)
+	const open = useStore((state) => state.open);
+	const spotlightRect = useStore((state) => state.spotlightRect);
 
-	if (!open && !forceMount) return null
-	if (!spotlightRect) return null
+	if (!open && !forceMount) return null;
+	if (!spotlightRect) return null;
 
-	const RingPrimitive = asChild ? Slot.Slot : 'div'
+	const RingPrimitive = asChild ? Slot.Slot : "div";
 
 	return (
 		<RingPrimitive
@@ -1346,54 +1345,54 @@ function TourSpotlightRing(props: TourSpotlightRingProps) {
 			data-state={getDataState(open)}
 			{...ringProps}
 			className={cn(
-				'pointer-events-none fixed z-50 border-ring ring-[3px] ring-ring/50',
-				className
+				"pointer-events-none fixed z-50 border-ring ring-[3px] ring-ring/50",
+				className,
 			)}
 			style={{
 				left: spotlightRect.x,
 				top: spotlightRect.y,
 				width: spotlightRect.width,
 				height: spotlightRect.height,
-				...style
+				...style,
 			}}
 		/>
-	)
+	);
 }
 
 interface TourPortalProps {
-	children?: ReactNode
-	container?: HTMLElement | null
+	children?: ReactNode;
+	container?: HTMLElement | null;
 }
 
 function TourPortal(props: TourPortalProps) {
-	const { children, container } = props
+	const { children, container } = props;
 
-	const portalContext = usePortalContext(PORTAL_NAME)
+	const portalContext = usePortalContext(PORTAL_NAME);
 
-	const [mounted, setMounted] = useState(false)
+	const [mounted, setMounted] = useState(false);
 
 	useIsomorphicLayoutEffect(() => {
-		setMounted(true)
+		setMounted(true);
 
-		const node = container ?? document.body
+		const node = container ?? document.body;
 
-		portalContext?.onPortalChange(node)
+		portalContext?.onPortalChange(node);
 		return () => {
-			portalContext?.onPortalChange(null)
-		}
-	}, [container, portalContext])
+			portalContext?.onPortalChange(null);
+		};
+	}, [container, portalContext]);
 
-	if (!mounted) return null
+	if (!mounted) return null;
 
-	const portalContainer = container ?? portalContext?.portal ?? document.body
+	const portalContainer = container ?? portalContext?.portal ?? document.body;
 
-	return createPortal(children, portalContainer)
+	return createPortal(children, portalContainer);
 }
 
-interface TourArrowProps extends ComponentProps<'svg'> {
-	width?: number
-	height?: number
-	asChild?: boolean
+interface TourArrowProps extends ComponentProps<"svg"> {
+	width?: number;
+	height?: number;
+	asChild?: boolean;
 }
 
 function TourArrow(props: TourArrowProps) {
@@ -1404,17 +1403,17 @@ function TourArrow(props: TourArrowProps) {
 		children,
 		asChild,
 		...arrowProps
-	} = props
+	} = props;
 
-	const stepContext = useStepContext(ARROW_NAME)
-	const baseSide = OPPOSITE_SIDE[stepContext.placedSide]
+	const stepContext = useStepContext(ARROW_NAME);
+	const baseSide = OPPOSITE_SIDE[stepContext.placedSide];
 
 	return (
 		<span
 			ref={stepContext.onArrowChange}
 			data-slot="tour-arrow"
 			style={{
-				position: 'absolute',
+				position: "absolute",
 				left:
 					stepContext.arrowX !== undefined
 						? `${stepContext.arrowX}px`
@@ -1425,18 +1424,18 @@ function TourArrow(props: TourArrowProps) {
 						: undefined,
 				[baseSide]: 0,
 				transformOrigin: {
-					top: '',
-					right: '0 0',
-					bottom: 'center 0',
-					left: '100% 0'
+					top: "",
+					right: "0 0",
+					bottom: "center 0",
+					left: "100% 0",
 				}[stepContext.placedSide],
 				transform: {
-					top: 'translateY(100%)',
-					right: 'translateY(50%) rotate(90deg) translateX(-50%)',
-					bottom: 'rotate(180deg)',
-					left: 'translateY(50%) rotate(-90deg) translateX(50%)'
+					top: "translateY(100%)",
+					right: "translateY(50%) rotate(90deg) translateX(-50%)",
+					bottom: "rotate(180deg)",
+					left: "translateY(50%) rotate(-90deg) translateX(50%)",
 				}[stepContext.placedSide],
-				visibility: stepContext.shouldHideArrow ? 'hidden' : undefined
+				visibility: stepContext.shouldHideArrow ? "hidden" : undefined,
 			}}
 		>
 			<svg
@@ -1445,20 +1444,20 @@ function TourArrow(props: TourArrowProps) {
 				width={width}
 				height={height}
 				{...arrowProps}
-				className={cn('block fill-popover stroke-border', className)}
+				className={cn("block fill-popover stroke-border", className)}
 			>
 				{asChild ? children : <polygon points="0,0 30,0 15,10" />}
 			</svg>
 		</span>
-	)
+	);
 }
 
 function TourHeader(props: DivProps) {
-	const { asChild, className, ...headerProps } = props
+	const { asChild, className, ...headerProps } = props;
 
-	const context = useTourContext(HEADER_NAME)
+	const context = useTourContext(HEADER_NAME);
 
-	const HeaderPrimitive = asChild ? Slot.Slot : 'div'
+	const HeaderPrimitive = asChild ? Slot.Slot : "div";
 
 	return (
 		<HeaderPrimitive
@@ -1466,19 +1465,19 @@ function TourHeader(props: DivProps) {
 			dir={context.dir}
 			{...headerProps}
 			className={cn(
-				'flex flex-col gap-1.5 text-center sm:text-left',
-				className
+				"flex flex-col gap-1.5 text-center sm:text-left",
+				className,
 			)}
 		/>
-	)
+	);
 }
 
 function TourTitle(props: DivProps) {
-	const { asChild, className, ...titleProps } = props
+	const { asChild, className, ...titleProps } = props;
 
-	const context = useTourContext(TITLE_NAME)
+	const context = useTourContext(TITLE_NAME);
 
-	const TitlePrimitive = asChild ? Slot.Slot : 'div'
+	const TitlePrimitive = asChild ? Slot.Slot : "div";
 
 	return (
 		<TitlePrimitive
@@ -1486,32 +1485,32 @@ function TourTitle(props: DivProps) {
 			dir={context.dir}
 			{...titleProps}
 			className={cn(
-				'font-semibold text-lg leading-none tracking-tight',
-				className
+				"font-semibold text-lg leading-none tracking-tight",
+				className,
 			)}
 		/>
-	)
+	);
 }
 
 function TourDescription(props: DivProps) {
-	const { asChild, className, ...descriptionProps } = props
+	const { asChild, className, ...descriptionProps } = props;
 
-	const context = useTourContext(DESCRIPTION_NAME)
+	const context = useTourContext(DESCRIPTION_NAME);
 
-	const DescriptionPrimitive = asChild ? Slot.Slot : 'div'
+	const DescriptionPrimitive = asChild ? Slot.Slot : "div";
 
 	return (
 		<DescriptionPrimitive
 			data-slot="tour-description"
 			dir={context.dir}
 			{...descriptionProps}
-			className={cn('text-muted-foreground text-sm', className)}
+			className={cn("text-muted-foreground text-sm", className)}
 		/>
-	)
+	);
 }
 
-interface TourCloseProps extends ComponentProps<'button'> {
-	asChild?: boolean
+interface TourCloseProps extends ComponentProps<"button"> {
+	asChild?: boolean;
 }
 
 function TourClose(props: TourCloseProps) {
@@ -1520,21 +1519,21 @@ function TourClose(props: TourCloseProps) {
 		className,
 		onClick: onClickProp,
 		...closeButtonProps
-	} = props
+	} = props;
 
-	const store = useStoreContext(CLOSE_NAME)
+	const store = useStoreContext(CLOSE_NAME);
 
 	const onClick = useCallback(
 		(event: ReactMouseEvent<CloseElement>) => {
-			onClickProp?.(event)
-			if (event.defaultPrevented) return
+			onClickProp?.(event);
+			if (event.defaultPrevented) return;
 
-			store.setState('open', false)
+			store.setState("open", false);
 		},
-		[store, onClickProp]
-	)
+		[store, onClickProp],
+	);
 
-	const ClosePrimitive = asChild ? Slot.Slot : 'button'
+	const ClosePrimitive = asChild ? Slot.Slot : "button";
 
 	return (
 		<ClosePrimitive
@@ -1542,33 +1541,33 @@ function TourClose(props: TourCloseProps) {
 			aria-label="Close tour"
 			className={cn(
 				"absolute top-4 right-4 rounded-xs opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-hidden focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none [&_svg:not([class*='size-'])]:size-4 [&_svg]:pointer-events-none [&_svg]:shrink-0",
-				className
+				className,
 			)}
 			onClick={onClick}
 			{...closeButtonProps}
 		>
 			<X className="size-4" />
 		</ClosePrimitive>
-	)
+	);
 }
 
 function TourPrev(props: ComponentProps<typeof Button>) {
-	const { children, onClick: onClickProp, ...prevButtonProps } = props
+	const { children, onClick: onClickProp, ...prevButtonProps } = props;
 
-	const store = useStoreContext(PREV_NAME)
-	const value = useStore(state => state.value)
+	const store = useStoreContext(PREV_NAME);
+	const value = useStore((state) => state.value);
 
 	const onClick = useCallback(
 		(event: ReactMouseEvent<PrevElement>) => {
-			onClickProp?.(event)
-			if (event.defaultPrevented) return
+			onClickProp?.(event);
+			if (event.defaultPrevented) return;
 
 			if (value > 0) {
-				store.setState('value', value - 1)
+				store.setState("value", value - 1);
 			}
 		},
-		[value, store, onClickProp]
-	)
+		[value, store, onClickProp],
+	);
 
 	return (
 		<Button
@@ -1587,26 +1586,26 @@ function TourPrev(props: ComponentProps<typeof Button>) {
 				</>
 			)}
 		</Button>
-	)
+	);
 }
 
 function TourNext(props: ComponentProps<typeof Button>) {
-	const { children, onClick: onClickProp, ...nextButtonProps } = props
-	const store = useStoreContext(NEXT_NAME)
-	const value = useStore(state => state.value)
-	const steps = useStore(state => state.steps)
+	const { children, onClick: onClickProp, ...nextButtonProps } = props;
+	const store = useStoreContext(NEXT_NAME);
+	const value = useStore((state) => state.value);
+	const steps = useStore((state) => state.steps);
 
-	const isLastStep = value === steps.length - 1
+	const isLastStep = value === steps.length - 1;
 
 	const onClick = useCallback(
 		(event: ReactMouseEvent<NextElement>) => {
-			onClickProp?.(event)
-			if (event.defaultPrevented) return
+			onClickProp?.(event);
+			if (event.defaultPrevented) return;
 
-			store.setState('value', value + 1)
+			store.setState("value", value + 1);
 		},
-		[value, store, onClickProp]
-	)
+		[value, store, onClickProp],
+	);
 
 	return (
 		<Button
@@ -1618,28 +1617,28 @@ function TourNext(props: ComponentProps<typeof Button>) {
 		>
 			{children ?? (
 				<>
-					{isLastStep ? 'Finish' : 'Next'}
+					{isLastStep ? "Finish" : "Next"}
 					{!isLastStep && <ChevronRight />}
 				</>
 			)}
 		</Button>
-	)
+	);
 }
 
 function TourSkip(props: ComponentProps<typeof Button>) {
-	const { children, onClick: onClickProp, ...skipButtonProps } = props
+	const { children, onClick: onClickProp, ...skipButtonProps } = props;
 
-	const store = useStoreContext(SKIP_NAME)
+	const store = useStoreContext(SKIP_NAME);
 
 	const onClick = useCallback(
 		(event: ReactMouseEvent<SkipElement>) => {
-			onClickProp?.(event)
-			if (event.defaultPrevented) return
+			onClickProp?.(event);
+			if (event.defaultPrevented) return;
 
-			store.setState('open', false)
+			store.setState("open", false);
 		},
-		[store, onClickProp]
-	)
+		[store, onClickProp],
+	);
 
 	return (
 		<Button
@@ -1650,13 +1649,13 @@ function TourSkip(props: ComponentProps<typeof Button>) {
 			{...skipButtonProps}
 			onClick={onClick}
 		>
-			{children ?? 'Skip'}
+			{children ?? "Skip"}
 		</Button>
-	)
+	);
 }
 
 interface TourStepCounterProps extends DivProps {
-	format?: (current: number, total: number) => string
+	format?: (current: number, total: number) => string;
 }
 
 function TourStepCounter(props: TourStepCounterProps) {
@@ -1666,37 +1665,37 @@ function TourStepCounter(props: TourStepCounterProps) {
 		className,
 		children,
 		...stepCounterProps
-	} = props
+	} = props;
 
-	const value = useStore(state => state.value)
-	const steps = useStore(state => state.steps)
+	const value = useStore((state) => state.value);
+	const steps = useStore((state) => state.steps);
 
-	const StepCounterPrimitive = asChild ? Slot.Slot : 'div'
+	const StepCounterPrimitive = asChild ? Slot.Slot : "div";
 
 	return (
 		<StepCounterPrimitive
 			data-slot="tour-step-counter"
 			{...stepCounterProps}
-			className={cn('text-muted-foreground text-sm', className)}
+			className={cn("text-muted-foreground text-sm", className)}
 		>
 			{children ?? format(value + 1, steps.length)}
 		</StepCounterPrimitive>
-	)
+	);
 }
 
 function TourFooter(props: DivProps) {
-	const { asChild, className, ref, ...footerProps } = props
+	const { asChild, className, ref, ...footerProps } = props;
 
-	const stepContext = useStepContext(FOOTER_NAME)
-	const hasDefaultFooter = useContext(DefaultFooterContext)
-	const context = useTourContext(FOOTER_NAME)
+	const stepContext = useStepContext(FOOTER_NAME);
+	const hasDefaultFooter = useContext(DefaultFooterContext);
+	const context = useTourContext(FOOTER_NAME);
 
 	const composedRef = useComposedRefs(
 		ref,
-		hasDefaultFooter ? undefined : stepContext.onFooterChange
-	)
+		hasDefaultFooter ? undefined : stepContext.onFooterChange,
+	);
 
-	const FooterPrimitive = asChild ? Slot.Slot : 'div'
+	const FooterPrimitive = asChild ? Slot.Slot : "div";
 
 	return (
 		<FooterPrimitive
@@ -1705,29 +1704,29 @@ function TourFooter(props: DivProps) {
 			{...footerProps}
 			ref={composedRef}
 			className={cn(
-				'flex flex-col-reverse gap-2 sm:flex-row sm:justify-end',
-				className
+				"flex flex-col-reverse gap-2 sm:flex-row sm:justify-end",
+				className,
 			)}
 		/>
-	)
+	);
 }
 
 export {
 	Tour,
+	TourArrow,
+	TourClose,
+	TourDescription,
+	TourFooter,
+	TourHeader,
+	TourNext,
 	TourPortal,
+	TourPrev,
+	//
+	type TourProps,
+	TourSkip,
 	TourSpotlight,
 	TourSpotlightRing,
 	TourStep,
-	TourArrow,
-	TourHeader,
-	TourTitle,
-	TourDescription,
-	TourClose,
-	TourPrev,
-	TourNext,
-	TourSkip,
 	TourStepCounter,
-	TourFooter,
-	//
-	type TourProps
-}
+	TourTitle,
+};

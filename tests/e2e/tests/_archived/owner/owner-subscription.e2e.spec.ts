@@ -1,5 +1,5 @@
-import { test, expect } from '@playwright/test'
-import { ROUTES } from '../constants/routes'
+import { expect, test } from "@playwright/test";
+import { ROUTES } from "../constants/routes";
 
 /**
  * Owner Subscription Flow E2E Tests
@@ -19,288 +19,290 @@ import { ROUTES } from '../constants/routes'
  * so we can only test up to the redirect point in E2E tests.
  */
 
-test.describe('Owner Subscription Flow', () => {
-	test.describe('1. Pricing Page Display', () => {
-		test('should display pricing page with all plan tiers', async ({
-			page
+test.describe("Owner Subscription Flow", () => {
+	test.describe("1. Pricing Page Display", () => {
+		test("should display pricing page with all plan tiers", async ({
+			page,
 		}) => {
-			await page.goto(ROUTES.PRICING)
+			await page.goto(ROUTES.PRICING);
 
 			// Verify page title - "Simple, transparent pricing for every portfolio"
-			await expect(page.locator('h1')).toContainText(/portfolio/i, {
-				timeout: 10000
-			})
+			await expect(page.locator("h1")).toContainText(/portfolio/i, {
+				timeout: 10000,
+			});
 
 			// Verify pricing plans are displayed (Starter, Growth, MAX)
-			await expect(page.locator('text=/starter/i').first()).toBeVisible({
-				timeout: 10000
-			})
-			await expect(page.locator('text=/growth/i').first()).toBeVisible({
-				timeout: 10000
-			})
-			await expect(page.locator('text=/max/i').first()).toBeVisible({
-				timeout: 10000
-			})
-		})
+			await expect(page.locator("text=/starter/i").first()).toBeVisible({
+				timeout: 10000,
+			});
+			await expect(page.locator("text=/growth/i").first()).toBeVisible({
+				timeout: 10000,
+			});
+			await expect(page.locator("text=/max/i").first()).toBeVisible({
+				timeout: 10000,
+			});
+		});
 
-		test('should display monthly and yearly billing toggle', async ({
-			page
+		test("should display monthly and yearly billing toggle", async ({
+			page,
 		}) => {
-			await page.goto(ROUTES.PRICING)
+			await page.goto(ROUTES.PRICING);
 
 			// Look for billing cycle toggle - using switch pattern
-			const monthlyLabel = page.locator('label:has-text("Monthly")')
-			const annualLabel = page.locator('label:has-text("Annual")')
+			const monthlyLabel = page.locator('label:has-text("Monthly")');
+			const annualLabel = page.locator('label:has-text("Annual")');
 
-			await expect(monthlyLabel.first()).toBeVisible({ timeout: 10000 })
-			await expect(annualLabel.first()).toBeVisible({ timeout: 10000 })
-		})
+			await expect(monthlyLabel.first()).toBeVisible({ timeout: 10000 });
+			await expect(annualLabel.first()).toBeVisible({ timeout: 10000 });
+		});
 
-		test('should toggle between monthly and yearly pricing', async ({
-			page
+		test("should toggle between monthly and yearly pricing", async ({
+			page,
 		}) => {
-			await page.goto(ROUTES.PRICING)
-			await page.waitForLoadState('domcontentloaded')
+			await page.goto(ROUTES.PRICING);
+			await page.waitForLoadState("domcontentloaded");
 
 			// Find the billing toggle switch
-			const billingToggle = page.locator('#billing-toggle')
+			const billingToggle = page.locator("#billing-toggle");
 
 			if (await billingToggle.isVisible().catch(() => false)) {
 				// Click to toggle to yearly
-				await billingToggle.click()
+				await billingToggle.click();
 
 				// Verify toggle state changed
-				await expect(billingToggle).toBeChecked({ timeout: 5000 })
+				await expect(billingToggle).toBeChecked({ timeout: 5000 });
 			}
-		})
+		});
 
-		test('should display plan features for each tier', async ({ page }) => {
-			await page.goto(ROUTES.PRICING)
+		test("should display plan features for each tier", async ({ page }) => {
+			await page.goto(ROUTES.PRICING);
 
 			// Look for plan cards with pricing - check for price display
-			const priceElements = page.locator('text=/\\$\\d+/')
-			const count = await priceElements.count()
+			const priceElements = page.locator("text=/\\$\\d+/");
+			const count = await priceElements.count();
 
 			// Should have multiple pricing elements (Starter, Growth, Max)
-			expect(count).toBeGreaterThan(0)
-		})
+			expect(count).toBeGreaterThan(0);
+		});
 
 		test('should show "Most Popular" badge on Growth plan', async ({
-			page
+			page,
 		}) => {
-			await page.goto(ROUTES.PRICING)
+			await page.goto(ROUTES.PRICING);
 
 			// Look for popular badge - may or may not be visible based on product config
-			const popularBadge = page.locator('text=/popular|recommended/i')
-			const count = await popularBadge.count()
+			const popularBadge = page.locator("text=/popular|recommended/i");
+			const count = await popularBadge.count();
 
 			// Test passes if badge exists or doesn't (product config dependent)
-			expect(count).toBeGreaterThanOrEqual(0)
-		})
-	})
+			expect(count).toBeGreaterThanOrEqual(0);
+		});
+	});
 
-	test.describe('2. Plan Selection & Checkout Navigation', () => {
-		test('should redirect to Stripe checkout when selecting Starter plan', async ({
-			page
+	test.describe("2. Plan Selection & Checkout Navigation", () => {
+		test("should redirect to Stripe checkout when selecting Starter plan", async ({
+			page,
 		}) => {
 			// Navigate directly (authenticated via storageState)
-			await page.goto(ROUTES.PRICING)
-			await page.waitForLoadState('domcontentloaded')
+			await page.goto(ROUTES.PRICING);
+			await page.waitForLoadState("domcontentloaded");
 
 			// Find and click the Starter plan button
 			const starterButton = page
 				.locator('button:has-text("Subscribe to Starter")')
-				.first()
+				.first();
 
 			if (await starterButton.isVisible().catch(() => false)) {
 				// Start waiting for navigation before clicking
 				const navigationPromise = page.waitForURL(
 					/checkout\.stripe\.com|\/pricing/,
-					{ timeout: 30000 }
-				)
-				await starterButton.click()
+					{ timeout: 30000 },
+				);
+				await starterButton.click();
 
 				// Wait for redirect to Stripe checkout
-				await navigationPromise
+				await navigationPromise;
 
 				// Should redirect to Stripe hosted checkout
-				const parsedUrl = new URL(page.url())
+				const parsedUrl = new URL(page.url());
 				expect(
-					parsedUrl.hostname === 'checkout.stripe.com' ||
-						parsedUrl.pathname.includes('/pricing')
-				).toBeTruthy()
+					parsedUrl.hostname === "checkout.stripe.com" ||
+						parsedUrl.pathname.includes("/pricing"),
+				).toBeTruthy();
 			}
-		})
+		});
 
-		test('should redirect to Stripe checkout when selecting Growth plan', async ({
-			page
+		test("should redirect to Stripe checkout when selecting Growth plan", async ({
+			page,
 		}) => {
-			await page.goto(ROUTES.PRICING)
-			await page.waitForLoadState('domcontentloaded')
+			await page.goto(ROUTES.PRICING);
+			await page.waitForLoadState("domcontentloaded");
 
 			// Find and click the Growth plan button
 			const growthButton = page
 				.locator('button:has-text("Subscribe to Growth")')
-				.first()
+				.first();
 
 			if (await growthButton.isVisible().catch(() => false)) {
 				const navigationPromise = page.waitForURL(
 					/checkout\.stripe\.com|\/pricing/,
-					{ timeout: 30000 }
-				)
-				await growthButton.click()
-				await navigationPromise
+					{ timeout: 30000 },
+				);
+				await growthButton.click();
+				await navigationPromise;
 
-				const parsedUrl = new URL(page.url())
+				const parsedUrl = new URL(page.url());
 				expect(
-					parsedUrl.hostname === 'checkout.stripe.com' ||
-						parsedUrl.pathname.includes('/pricing')
-				).toBeTruthy()
+					parsedUrl.hostname === "checkout.stripe.com" ||
+						parsedUrl.pathname.includes("/pricing"),
+				).toBeTruthy();
 			}
-		})
+		});
 
-		test('should redirect to contact for MAX/Enterprise plan', async ({
-			page
+		test("should redirect to contact for MAX/Enterprise plan", async ({
+			page,
 		}) => {
-			await page.goto(ROUTES.PRICING)
-			await page.waitForLoadState('domcontentloaded')
+			await page.goto(ROUTES.PRICING);
+			await page.waitForLoadState("domcontentloaded");
 
 			// Find MAX plan contact button
-			const maxButton = page.locator('button:has-text("Contact Sales")').first()
+			const maxButton = page
+				.locator('button:has-text("Contact Sales")')
+				.first();
 
 			if (await maxButton.isVisible().catch(() => false)) {
-				await maxButton.click()
-				await page.waitForTimeout(2000)
+				await maxButton.click();
+				await page.waitForTimeout(2000);
 
 				// Should navigate to contact page
-				expect(page.url()).toContain('/contact')
+				expect(page.url()).toContain("/contact");
 			}
-		})
+		});
 
-		test('should show auth dialog for unauthenticated users', async ({
-			page
+		test("should show auth dialog for unauthenticated users", async ({
+			page,
 		}) => {
 			// Go to pricing page WITHOUT logging in
-			await page.goto(ROUTES.PRICING)
-			await page.waitForLoadState('domcontentloaded')
+			await page.goto(ROUTES.PRICING);
+			await page.waitForLoadState("domcontentloaded");
 
 			// Try to subscribe to Starter
 			const subscribeButton = page
 				.locator('button:has-text("Subscribe to Starter")')
-				.first()
+				.first();
 
 			if (await subscribeButton.isVisible().catch(() => false)) {
-				await subscribeButton.click()
-				await page.waitForTimeout(3000)
+				await subscribeButton.click();
+				await page.waitForTimeout(3000);
 
 				// Should show auth dialog or redirect to login
-				const isLoginPage = page.url().includes('/login')
+				const isLoginPage = page.url().includes("/login");
 				const hasAuthDialog = await page
 					.locator('[role="dialog"]')
 					.isVisible()
-					.catch(() => false)
+					.catch(() => false);
 				const hasLoginForm = await page
 					.locator('input[type="email"], input[name="email"]')
 					.isVisible()
-					.catch(() => false)
+					.catch(() => false);
 
-				expect(isLoginPage || hasAuthDialog || hasLoginForm).toBeTruthy()
+				expect(isLoginPage || hasAuthDialog || hasLoginForm).toBeTruthy();
 			}
-		})
-	})
+		});
+	});
 
-	test.describe('3. Stripe Hosted Checkout Flow', () => {
+	test.describe("3. Stripe Hosted Checkout Flow", () => {
 		// Auth provided via storageState - no beforeEach login needed
 
-		test('should show loading state when initiating checkout', async ({
-			page
+		test("should show loading state when initiating checkout", async ({
+			page,
 		}) => {
-			await page.goto(ROUTES.PRICING)
-			await page.waitForLoadState('domcontentloaded')
+			await page.goto(ROUTES.PRICING);
+			await page.waitForLoadState("domcontentloaded");
 
 			const starterButton = page
 				.locator('button:has-text("Subscribe to Starter")')
-				.first()
+				.first();
 
 			if (await starterButton.isVisible().catch(() => false)) {
 				// Click and check for loading state
-				await starterButton.click()
+				await starterButton.click();
 
 				// Should show processing/loading state
 				const hasLoadingState = await page
-					.locator('text=/processing|loading|creating/i')
+					.locator("text=/processing|loading|creating/i")
 					.isVisible()
-					.catch(() => false)
+					.catch(() => false);
 				const buttonDisabled = await starterButton
 					.isDisabled()
-					.catch(() => false)
+					.catch(() => false);
 
 				// Either loading text or disabled button indicates processing
-				expect(hasLoadingState || buttonDisabled).toBeTruthy()
+				expect(hasLoadingState || buttonDisabled).toBeTruthy();
 			}
-		})
+		});
 
-		test('should create checkout session and redirect', async ({ page }) => {
-			await page.goto(ROUTES.PRICING)
-			await page.waitForLoadState('domcontentloaded')
+		test("should create checkout session and redirect", async ({ page }) => {
+			await page.goto(ROUTES.PRICING);
+			await page.waitForLoadState("domcontentloaded");
 
 			const growthButton = page
 				.locator('button:has-text("Subscribe to Growth")')
-				.first()
+				.first();
 
 			if (await growthButton.isVisible().catch(() => false)) {
 				// Listen for the navigation
 				const responsePromise = page
 					.waitForResponse(
-						response =>
-							response.url().includes('/stripe/create-checkout-session'),
-						{ timeout: 30000 }
+						(response) =>
+							response.url().includes("/stripe/create-checkout-session"),
+						{ timeout: 30000 },
 					)
-					.catch(() => null)
+					.catch(() => null);
 
-				await growthButton.click()
+				await growthButton.click();
 
-				const response = await responsePromise
+				const response = await responsePromise;
 				if (response) {
-					expect(response.status()).toBe(200)
+					expect(response.status()).toBe(200);
 				}
 			}
-		})
-	})
+		});
+	});
 
-	test.describe('4. Subscription Success & Complete Pages', () => {
-		test('should display success page', async ({ page }) => {
-			await page.goto(ROUTES.PRICING_SUCCESS)
-			await page.waitForLoadState('domcontentloaded')
+	test.describe("4. Subscription Success & Complete Pages", () => {
+		test("should display success page", async ({ page }) => {
+			await page.goto(ROUTES.PRICING_SUCCESS);
+			await page.waitForLoadState("domcontentloaded");
 
 			// Verify success page content
 			await expect(
-				page.locator('text=/success|welcome|thank you|subscription/i').first()
-			).toBeVisible({ timeout: 10000 })
-		})
+				page.locator("text=/success|welcome|thank you|subscription/i").first(),
+			).toBeVisible({ timeout: 10000 });
+		});
 
-		test('should display complete page with session info', async ({ page }) => {
+		test("should display complete page with session info", async ({ page }) => {
 			// Complete page requires session_id parameter
-			await page.goto('/pricing/complete?session_id=test_session')
-			await page.waitForLoadState('domcontentloaded')
+			await page.goto("/pricing/complete?session_id=test_session");
+			await page.waitForLoadState("domcontentloaded");
 
 			// Should show payment status or error for invalid session
 			const hasStatusContent = await page
-				.locator('text=/payment|status|error|invalid/i')
+				.locator("text=/payment|status|error|invalid/i")
 				.first()
 				.isVisible()
-				.catch(() => false)
-			expect(hasStatusContent).toBeTruthy()
-		})
+				.catch(() => false);
+			expect(hasStatusContent).toBeTruthy();
+		});
 
-		test('should show subscription status in dashboard settings', async ({
-			page
+		test("should show subscription status in dashboard settings", async ({
+			page,
 		}) => {
-			await page.goto(ROUTES.DASHBOARD_SETTINGS)
-			await page.waitForLoadState('domcontentloaded')
+			await page.goto(ROUTES.DASHBOARD_SETTINGS);
+			await page.waitForLoadState("domcontentloaded");
 
 			// Look for subscription/billing section
-			const billingSection = page.locator('text=/billing|subscription|plan/i')
+			const billingSection = page.locator("text=/billing|subscription|plan/i");
 
 			if (
 				await billingSection
@@ -308,36 +310,36 @@ test.describe('Owner Subscription Flow', () => {
 					.isVisible()
 					.catch(() => false)
 			) {
-				await expect(billingSection.first()).toBeVisible()
+				await expect(billingSection.first()).toBeVisible();
 			}
-		})
-	})
+		});
+	});
 
-	test.describe('5. Subscription Management', () => {
+	test.describe("5. Subscription Management", () => {
 		// Auth provided via storageState - no beforeEach login needed
 
-		test('should display current subscription details', async ({ page }) => {
-			await page.goto(ROUTES.DASHBOARD_SETTINGS)
-			await page.waitForLoadState('domcontentloaded')
+		test("should display current subscription details", async ({ page }) => {
+			await page.goto(ROUTES.DASHBOARD_SETTINGS);
+			await page.waitForLoadState("domcontentloaded");
 
 			// Look for subscription info
 			const subscriptionInfo = page
-				.locator('text=/subscription|billing|plan/i')
-				.first()
+				.locator("text=/subscription|billing|plan/i")
+				.first();
 
 			if (await subscriptionInfo.isVisible().catch(() => false)) {
-				await expect(subscriptionInfo).toBeVisible()
+				await expect(subscriptionInfo).toBeVisible();
 			}
-		})
+		});
 
-		test('should allow accessing Stripe Customer Portal', async ({ page }) => {
-			await page.goto(ROUTES.DASHBOARD_SETTINGS)
-			await page.waitForLoadState('domcontentloaded')
+		test("should allow accessing Stripe Customer Portal", async ({ page }) => {
+			await page.goto(ROUTES.DASHBOARD_SETTINGS);
+			await page.waitForLoadState("domcontentloaded");
 
 			// Look for manage subscription button
 			const manageButton = page.locator(
-				'button:has-text("Manage"), button:has-text("Billing"), a:has-text("Manage")'
-			)
+				'button:has-text("Manage"), button:has-text("Billing"), a:has-text("Manage")',
+			);
 
 			if (
 				await manageButton
@@ -346,163 +348,168 @@ test.describe('Owner Subscription Flow', () => {
 					.catch(() => false)
 			) {
 				// Click should redirect to Stripe Customer Portal
-				await manageButton.first().click()
+				await manageButton.first().click();
 
 				// Wait for potential redirect
-				await page.waitForTimeout(3000)
+				await page.waitForTimeout(3000);
 
 				// Either opens new tab or redirects to Stripe
-				const portalUrl = new URL(page.url())
+				const portalUrl = new URL(page.url());
 				const isStripePortal =
-					portalUrl.hostname === 'stripe.com' ||
-					portalUrl.hostname === 'billing.stripe.com' ||
-					portalUrl.hostname.endsWith('.stripe.com')
+					portalUrl.hostname === "stripe.com" ||
+					portalUrl.hostname === "billing.stripe.com" ||
+					portalUrl.hostname.endsWith(".stripe.com");
 
 				// If not redirected, might be in a new tab or modal
-				expect(isStripePortal || portalUrl.pathname.includes('/settings')).toBeTruthy()
+				expect(
+					isStripePortal || portalUrl.pathname.includes("/settings"),
+				).toBeTruthy();
 			}
-		})
-	})
+		});
+	});
 
-	test.describe('6. Error Scenarios', () => {
-		test('should handle checkout creation failure gracefully', async ({
-			page
+	test.describe("6. Error Scenarios", () => {
+		test("should handle checkout creation failure gracefully", async ({
+			page,
 		}) => {
-			await page.goto(ROUTES.PRICING)
-			await page.waitForLoadState('domcontentloaded')
+			await page.goto(ROUTES.PRICING);
+			await page.waitForLoadState("domcontentloaded");
 
 			// Mock a failed checkout session creation by intercepting the API
-			await page.route('**/stripe/create-checkout-session', route => {
+			await page.route("**/stripe/create-checkout-session", (route) => {
 				route.fulfill({
 					status: 500,
-					body: JSON.stringify({ error: 'Failed to create checkout session' })
-				})
-			})
+					body: JSON.stringify({ error: "Failed to create checkout session" }),
+				});
+			});
 
 			const starterButton = page
 				.locator('button:has-text("Subscribe to Starter")')
-				.first()
+				.first();
 
 			if (await starterButton.isVisible().catch(() => false)) {
-				await starterButton.click()
-				await page.waitForTimeout(3000)
+				await starterButton.click();
+				await page.waitForTimeout(3000);
 
 				// Should show error message via toast or inline
 				const hasError = await page
-					.locator('text=/error|failed|try again/i')
+					.locator("text=/error|failed|try again/i")
 					.isVisible()
-					.catch(() => false)
-				expect(hasError).toBeTruthy()
+					.catch(() => false);
+				expect(hasError).toBeTruthy();
 			}
-		})
+		});
 
-		test('should prevent double submission', async ({ page }) => {
-			await page.goto(ROUTES.PRICING)
-			await page.waitForLoadState('domcontentloaded')
+		test("should prevent double submission", async ({ page }) => {
+			await page.goto(ROUTES.PRICING);
+			await page.waitForLoadState("domcontentloaded");
 
 			const starterButton = page
 				.locator('button:has-text("Subscribe to Starter")')
-				.first()
+				.first();
 
 			if (await starterButton.isVisible().catch(() => false)) {
 				// Click multiple times quickly
-				await starterButton.click()
-				await starterButton.click().catch(() => {}) // Second click may be blocked
+				await starterButton.click();
+				await starterButton.click().catch(() => {}); // Second click may be blocked
 
 				// Button should be disabled after first click
-				await page.waitForTimeout(1000)
+				await page.waitForTimeout(1000);
 
-				const isDisabled = await starterButton.isDisabled().catch(() => false)
-				expect(isDisabled).toBeTruthy()
+				const isDisabled = await starterButton.isDisabled().catch(() => false);
+				expect(isDisabled).toBeTruthy();
 			}
-		})
+		});
 
-		test('should handle rate limiting', async ({ page }) => {
-			await page.goto(ROUTES.PRICING)
-			await page.waitForLoadState('domcontentloaded')
+		test("should handle rate limiting", async ({ page }) => {
+			await page.goto(ROUTES.PRICING);
+			await page.waitForLoadState("domcontentloaded");
 
 			// Mock rate limit response
-			await page.route('**/stripe/create-checkout-session', route => {
+			await page.route("**/stripe/create-checkout-session", (route) => {
 				route.fulfill({
 					status: 429,
-					body: JSON.stringify({ error: 'Too many requests' })
-				})
-			})
+					body: JSON.stringify({ error: "Too many requests" }),
+				});
+			});
 
 			const starterButton = page
 				.locator('button:has-text("Subscribe to Starter")')
-				.first()
+				.first();
 
 			if (await starterButton.isVisible().catch(() => false)) {
-				await starterButton.click()
-				await page.waitForTimeout(2000)
+				await starterButton.click();
+				await page.waitForTimeout(2000);
 
 				// Should show rate limit message
 				const hasRateLimitError = await page
-					.locator('text=/too many|wait|try again/i')
+					.locator("text=/too many|wait|try again/i")
 					.isVisible()
-					.catch(() => false)
-				expect(hasRateLimitError).toBeTruthy()
+					.catch(() => false);
+				expect(hasRateLimitError).toBeTruthy();
 			}
-		})
-	})
+		});
+	});
 
-	test.describe('7. Security & Compliance', () => {
-		test('should display secure checkout indicator on pricing page', async ({
-			page
+	test.describe("7. Security & Compliance", () => {
+		test("should display secure checkout indicator on pricing page", async ({
+			page,
 		}) => {
-			await page.goto(ROUTES.PRICING)
-			await page.waitForLoadState('domcontentloaded')
+			await page.goto(ROUTES.PRICING);
+			await page.waitForLoadState("domcontentloaded");
 
 			// Look for secure checkout indicators (trust badges, SSL mentions)
 			const secureIndicator = page.locator(
-				'text=/secure|ssl|encrypted|stripe|pci/i, [class*="shield"], svg[class*="lock"]'
-			)
+				'text=/secure|ssl|encrypted|stripe|pci/i, [class*="shield"], svg[class*="lock"]',
+			);
 
 			// May or may not be visible depending on design
-			const count = await secureIndicator.count()
-			expect(count).toBeGreaterThanOrEqual(0)
-		})
+			const count = await secureIndicator.count();
+			expect(count).toBeGreaterThanOrEqual(0);
+		});
 
-		test('should not expose Stripe price IDs in visible DOM', async ({
-			page
+		test("should not expose Stripe price IDs in visible DOM", async ({
+			page,
 		}) => {
-			await page.goto(ROUTES.PRICING)
-			await page.waitForLoadState('domcontentloaded')
+			await page.goto(ROUTES.PRICING);
+			await page.waitForLoadState("domcontentloaded");
 
 			// Get visible text content
-			const bodyText = (await page.locator('body').textContent()) || ''
+			const bodyText = (await page.locator("body").textContent()) || "";
 
 			// Stripe price IDs should not be visible to users
-			expect(bodyText).not.toMatch(/price_[a-zA-Z0-9]{20,}/)
-		})
+			expect(bodyText).not.toMatch(/price_[a-zA-Z0-9]{20,}/);
+		});
 
-		test('should use HTTPS for Stripe redirect', async ({ page }) => {
-			await page.goto(ROUTES.PRICING)
-			await page.waitForLoadState('domcontentloaded')
+		test("should use HTTPS for Stripe redirect", async ({ page }) => {
+			await page.goto(ROUTES.PRICING);
+			await page.waitForLoadState("domcontentloaded");
 
 			const growthButton = page
 				.locator('button:has-text("Subscribe to Growth")')
-				.first()
+				.first();
 
 			if (await growthButton.isVisible().catch(() => false)) {
 				// Track where we get redirected to
-				let redirectUrl = ''
-				page.on('request', request => {
-					const reqUrl = new URL(request.url())
-					if (reqUrl.hostname === 'checkout.stripe.com' || reqUrl.hostname.endsWith('.stripe.com')) {
-						redirectUrl = request.url()
+				let redirectUrl = "";
+				page.on("request", (request) => {
+					const reqUrl = new URL(request.url());
+					if (
+						reqUrl.hostname === "checkout.stripe.com" ||
+						reqUrl.hostname.endsWith(".stripe.com")
+					) {
+						redirectUrl = request.url();
 					}
-				})
+				});
 
-				await growthButton.click()
-				await page.waitForTimeout(5000)
+				await growthButton.click();
+				await page.waitForTimeout(5000);
 
 				// If redirected to Stripe, should be HTTPS
 				if (redirectUrl) {
-					expect(redirectUrl).toMatch(/^https:\/\//)
+					expect(redirectUrl).toMatch(/^https:\/\//);
 				}
 			}
-		})
-	})
-})
+		});
+	});
+});

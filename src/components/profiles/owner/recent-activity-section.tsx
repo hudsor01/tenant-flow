@@ -1,11 +1,11 @@
-'use client'
+"use client";
 
-import { Building2, Calendar, Edit, Shield } from 'lucide-react'
-import { BlurFade } from '#components/ui/blur-fade'
-import { useRouter } from 'next/navigation'
+import { Building2, Calendar, Edit, Shield } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { BlurFade } from "#components/ui/blur-fade";
 
 export function RecentActivitySection() {
-	const router = useRouter()
+	const router = useRouter();
 
 	return (
 		<BlurFade delay={0.9} inView>
@@ -14,7 +14,7 @@ export function RecentActivitySection() {
 					<h3 className="text-lg font-semibold">Recent Activity</h3>
 					<button
 						type="button"
-						onClick={() => router.push('/activity')}
+						onClick={() => router.push("/activity")}
 						className="text-sm font-medium text-primary hover:underline"
 					>
 						View All
@@ -81,5 +81,5 @@ export function RecentActivitySection() {
 				</div>
 			</section>
 		</BlurFade>
-	)
+	);
 }

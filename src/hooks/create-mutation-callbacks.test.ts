@@ -1,315 +1,322 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { QueryClient } from '@tanstack/react-query'
+import { QueryClient } from "@tanstack/react-query";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
-const mockToastSuccess = vi.hoisted(() => vi.fn())
-const mockHandleMutationError = vi.hoisted(() => vi.fn())
-const mockHandleMutationSuccess = vi.hoisted(() => vi.fn())
+const mockToastSuccess = vi.hoisted(() => vi.fn());
+const mockHandleMutationError = vi.hoisted(() => vi.fn());
+const mockHandleMutationSuccess = vi.hoisted(() => vi.fn());
 
-vi.mock('sonner', () => ({
-	toast: { success: mockToastSuccess }
-}))
+vi.mock("sonner", () => ({
+	toast: { success: mockToastSuccess },
+}));
 
-vi.mock('#lib/mutation-error-handler', () => ({
+vi.mock("#lib/mutation-error-handler", () => ({
 	handleMutationError: mockHandleMutationError,
-	handleMutationSuccess: mockHandleMutationSuccess
-}))
+	handleMutationSuccess: mockHandleMutationSuccess,
+}));
 
-import { createMutationCallbacks } from './create-mutation-callbacks'
+import { createMutationCallbacks } from "./create-mutation-callbacks";
 
 function createTestQueryClient(): QueryClient {
-	const qc = new QueryClient({ defaultOptions: { queries: { retry: false } } })
-	vi.spyOn(qc, 'invalidateQueries')
-	vi.spyOn(qc, 'setQueryData')
-	vi.spyOn(qc, 'removeQueries')
-	vi.spyOn(qc, 'cancelQueries')
-	vi.spyOn(qc, 'getQueryData')
-	vi.spyOn(qc, 'getQueriesData')
-	return qc
+	const qc = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+	vi.spyOn(qc, "invalidateQueries");
+	vi.spyOn(qc, "setQueryData");
+	vi.spyOn(qc, "removeQueries");
+	vi.spyOn(qc, "cancelQueries");
+	vi.spyOn(qc, "getQueryData");
+	vi.spyOn(qc, "getQueriesData");
+	return qc;
 }
 
-describe('createMutationCallbacks', () => {
-	let qc: QueryClient
+describe("createMutationCallbacks", () => {
+	let qc: QueryClient;
 
 	beforeEach(() => {
-		vi.clearAllMocks()
-		qc = createTestQueryClient()
-	})
+		vi.clearAllMocks();
+		qc = createTestQueryClient();
+	});
 
-	describe('Tier 1 + Tier 2 (standard callbacks)', () => {
-		it('onSuccess calls invalidateQueries for each key in invalidate array', () => {
+	describe("Tier 1 + Tier 2 (standard callbacks)", () => {
+		it("onSuccess calls invalidateQueries for each key in invalidate array", () => {
 			const callbacks = createMutationCallbacks(qc, {
-				invalidate: [['a'], ['b', 'c']],
-				errorContext: 'Test'
-			})
+				invalidate: [["a"], ["b", "c"]],
+				errorContext: "Test",
+			});
 
-			callbacks.onSuccess({ id: '1' }, undefined)
+			callbacks.onSuccess({ id: "1" }, undefined);
 
-			expect(qc.invalidateQueries).toHaveBeenCalledTimes(2)
-			expect(qc.invalidateQueries).toHaveBeenCalledWith({ queryKey: ['a'] })
-			expect(qc.invalidateQueries).toHaveBeenCalledWith({ queryKey: ['b', 'c'] })
-		})
+			expect(qc.invalidateQueries).toHaveBeenCalledTimes(2);
+			expect(qc.invalidateQueries).toHaveBeenCalledWith({ queryKey: ["a"] });
+			expect(qc.invalidateQueries).toHaveBeenCalledWith({
+				queryKey: ["b", "c"],
+			});
+		});
 
-		it('onSuccess calls toast.success with successMessage when provided', () => {
-			const callbacks = createMutationCallbacks(qc, {
-				invalidate: [],
-				successMessage: 'Created!',
-				errorContext: 'Test'
-			})
-
-			callbacks.onSuccess({ id: '1' }, undefined)
-
-			expect(mockToastSuccess).toHaveBeenCalledWith('Created!')
-		})
-
-		it('onSuccess does NOT call toast when successMessage is omitted', () => {
+		it("onSuccess calls toast.success with successMessage when provided", () => {
 			const callbacks = createMutationCallbacks(qc, {
 				invalidate: [],
-				errorContext: 'Test'
-			})
+				successMessage: "Created!",
+				errorContext: "Test",
+			});
 
-			callbacks.onSuccess({ id: '1' }, undefined)
+			callbacks.onSuccess({ id: "1" }, undefined);
 
-			expect(mockToastSuccess).not.toHaveBeenCalled()
-		})
+			expect(mockToastSuccess).toHaveBeenCalledWith("Created!");
+		});
 
-		it('onError calls handleMutationError with error and errorContext', () => {
+		it("onSuccess does NOT call toast when successMessage is omitted", () => {
 			const callbacks = createMutationCallbacks(qc, {
 				invalidate: [],
-				errorContext: 'Create widget'
-			})
+				errorContext: "Test",
+			});
 
-			const err = new Error('fail')
-			callbacks.onError(err)
+			callbacks.onSuccess({ id: "1" }, undefined);
 
-			expect(mockHandleMutationError).toHaveBeenCalledWith(err, 'Create widget')
-		})
+			expect(mockToastSuccess).not.toHaveBeenCalled();
+		});
 
-		it('onSuccess calls setQueryData when updateDetail config is provided (Tier 2)', () => {
-			const callbacks = createMutationCallbacks<{ id: string }>(
-				qc,
-				{
-					invalidate: [],
-					errorContext: 'Test',
-					updateDetail: (data) => ({
-						queryKey: ['items', data.id],
-						data
-					})
-				}
-			)
+		it("onError calls handleMutationError with error and errorContext", () => {
+			const callbacks = createMutationCallbacks(qc, {
+				invalidate: [],
+				errorContext: "Create widget",
+			});
 
-			const data = { id: '42' }
-			callbacks.onSuccess(data, undefined)
+			const err = new Error("fail");
+			callbacks.onError(err);
 
-			expect(qc.setQueryData).toHaveBeenCalledWith(['items', '42'], data)
-		})
+			expect(mockHandleMutationError).toHaveBeenCalledWith(
+				err,
+				"Create widget",
+			);
+		});
 
-		it('onSuccess calls removeQueries when removeDetail config is provided', () => {
+		it("onSuccess calls setQueryData when updateDetail config is provided (Tier 2)", () => {
+			const callbacks = createMutationCallbacks<{ id: string }>(qc, {
+				invalidate: [],
+				errorContext: "Test",
+				updateDetail: (data) => ({
+					queryKey: ["items", data.id],
+					data,
+				}),
+			});
+
+			const data = { id: "42" };
+			callbacks.onSuccess(data, undefined);
+
+			expect(qc.setQueryData).toHaveBeenCalledWith(["items", "42"], data);
+		});
+
+		it("onSuccess calls removeQueries when removeDetail config is provided", () => {
 			const callbacks = createMutationCallbacks<
 				{ id: string },
 				{ deletedId: string }
 			>(qc, {
 				invalidate: [],
-				errorContext: 'Test',
-				removeDetail: (_data, vars) => ['items', vars.deletedId]
-			})
+				errorContext: "Test",
+				removeDetail: (_data, vars) => ["items", vars.deletedId],
+			});
 
-			callbacks.onSuccess({ id: '1' }, { deletedId: '99' })
+			callbacks.onSuccess({ id: "1" }, { deletedId: "99" });
 
 			expect(qc.removeQueries).toHaveBeenCalledWith({
-				queryKey: ['items', '99']
-			})
-		})
+				queryKey: ["items", "99"],
+			});
+		});
 
-		it('onSuccess calls onSuccessExtra callback after standard operations', () => {
-			const extra = vi.fn()
+		it("onSuccess calls onSuccessExtra callback after standard operations", () => {
+			const extra = vi.fn();
 			const callbacks = createMutationCallbacks(qc, {
-				invalidate: [['a']],
-				successMessage: 'Done',
-				errorContext: 'Test',
-				onSuccessExtra: extra
-			})
+				invalidate: [["a"]],
+				successMessage: "Done",
+				errorContext: "Test",
+				onSuccessExtra: extra,
+			});
 
-			const data = { id: '1' }
-			callbacks.onSuccess(data, undefined)
+			const data = { id: "1" };
+			callbacks.onSuccess(data, undefined);
 
-			expect(extra).toHaveBeenCalledWith(data)
-			expect(qc.invalidateQueries).toHaveBeenCalled()
-			expect(mockToastSuccess).toHaveBeenCalled()
-		})
+			expect(extra).toHaveBeenCalledWith(data);
+			expect(qc.invalidateQueries).toHaveBeenCalled();
+			expect(mockToastSuccess).toHaveBeenCalled();
+		});
 
-		it('onSuccess calls handleMutationSuccess instead of toast.success when broadcastSuccess is true', () => {
+		it("onSuccess calls handleMutationSuccess instead of toast.success when broadcastSuccess is true", () => {
 			const callbacks = createMutationCallbacks(qc, {
 				invalidate: [],
-				successMessage: 'Saved!',
-				errorContext: 'Save item',
-				broadcastSuccess: true
-			})
+				successMessage: "Saved!",
+				errorContext: "Save item",
+				broadcastSuccess: true,
+			});
 
-			callbacks.onSuccess({ id: '1' }, undefined)
+			callbacks.onSuccess({ id: "1" }, undefined);
 
-			expect(mockHandleMutationSuccess).toHaveBeenCalledWith('Save item', 'Saved!')
-			expect(mockToastSuccess).not.toHaveBeenCalled()
-		})
-	})
+			expect(mockHandleMutationSuccess).toHaveBeenCalledWith(
+				"Save item",
+				"Saved!",
+			);
+			expect(mockToastSuccess).not.toHaveBeenCalled();
+		});
+	});
 
-	describe('Tier 3 (optimistic callbacks)', () => {
-		it('onMutate calls cancelQueries for each cancel key', async () => {
+	describe("Tier 3 (optimistic callbacks)", () => {
+		it("onMutate calls cancelQueries for each cancel key", async () => {
 			const callbacks = createMutationCallbacks<
 				{ id: string },
 				{ id: string },
 				Record<string, unknown>
 			>(qc, {
 				invalidate: [],
-				errorContext: 'Test',
+				errorContext: "Test",
 				optimistic: {
-					cancel: [['a'], ['b']],
+					cancel: [["a"], ["b"]],
 					snapshot: () => ({}),
-					rollback: () => undefined
-				}
-			})
+					rollback: () => undefined,
+				},
+			});
 
-			await callbacks.onMutate({ id: '1' })
+			await callbacks.onMutate({ id: "1" });
 
-			expect(qc.cancelQueries).toHaveBeenCalledTimes(2)
-			expect(qc.cancelQueries).toHaveBeenCalledWith({ queryKey: ['a'] })
-			expect(qc.cancelQueries).toHaveBeenCalledWith({ queryKey: ['b'] })
-		})
+			expect(qc.cancelQueries).toHaveBeenCalledTimes(2);
+			expect(qc.cancelQueries).toHaveBeenCalledWith({ queryKey: ["a"] });
+			expect(qc.cancelQueries).toHaveBeenCalledWith({ queryKey: ["b"] });
+		});
 
-		it('onMutate calls snapshot function and returns its result as context', async () => {
-			const snapshotResult = { prev: 'data' }
+		it("onMutate calls snapshot function and returns its result as context", async () => {
+			const snapshotResult = { prev: "data" };
 			const callbacks = createMutationCallbacks<
 				{ id: string },
 				{ id: string },
 				{ prev: string }
 			>(qc, {
 				invalidate: [],
-				errorContext: 'Test',
+				errorContext: "Test",
 				optimistic: {
 					cancel: [],
 					snapshot: () => snapshotResult,
-					rollback: () => undefined
-				}
-			})
+					rollback: () => undefined,
+				},
+			});
 
-			const context = await callbacks.onMutate({ id: '1' })
-			expect(context).toBe(snapshotResult)
-		})
+			const context = await callbacks.onMutate({ id: "1" });
+			expect(context).toBe(snapshotResult);
+		});
 
-		it('onMutate calls apply function with queryClient and variables when provided', async () => {
-			const applyFn = vi.fn()
+		it("onMutate calls apply function with queryClient and variables when provided", async () => {
+			const applyFn = vi.fn();
 			const callbacks = createMutationCallbacks<
 				{ id: string },
 				{ id: string },
 				Record<string, unknown>
 			>(qc, {
 				invalidate: [],
-				errorContext: 'Test',
+				errorContext: "Test",
 				optimistic: {
 					cancel: [],
 					snapshot: () => ({}),
 					rollback: () => undefined,
-					apply: applyFn
-				}
-			})
+					apply: applyFn,
+				},
+			});
 
-			const vars = { id: '1' }
-			await callbacks.onMutate(vars)
+			const vars = { id: "1" };
+			await callbacks.onMutate(vars);
 
-			expect(applyFn).toHaveBeenCalledWith(qc, vars)
-		})
+			expect(applyFn).toHaveBeenCalledWith(qc, vars);
+		});
 
-		it('onError calls rollback with queryClient and context when optimistic config provided', () => {
-			const rollbackFn = vi.fn()
+		it("onError calls rollback with queryClient and context when optimistic config provided", () => {
+			const rollbackFn = vi.fn();
 			const callbacks = createMutationCallbacks<
 				{ id: string },
 				{ id: string },
 				{ old: boolean }
 			>(qc, {
 				invalidate: [],
-				errorContext: 'Opt test',
+				errorContext: "Opt test",
 				optimistic: {
 					cancel: [],
 					snapshot: () => ({ old: true }),
-					rollback: rollbackFn
-				}
-			})
+					rollback: rollbackFn,
+				},
+			});
 
-			const ctx = { old: true }
-			const vars = { id: '1' }
-			callbacks.onError(new Error('fail'), vars, ctx)
+			const ctx = { old: true };
+			const vars = { id: "1" };
+			callbacks.onError(new Error("fail"), vars, ctx);
 
-			expect(rollbackFn).toHaveBeenCalledWith(qc, ctx, vars)
+			expect(rollbackFn).toHaveBeenCalledWith(qc, ctx, vars);
 			expect(mockHandleMutationError).toHaveBeenCalledWith(
 				expect.any(Error),
-				'Opt test'
-			)
-		})
+				"Opt test",
+			);
+		});
 
-		it('onSettled calls invalidateQueries for all invalidate keys', () => {
+		it("onSettled calls invalidateQueries for all invalidate keys", () => {
 			const callbacks = createMutationCallbacks<
 				{ id: string },
 				{ id: string },
 				Record<string, unknown>
 			>(qc, {
-				invalidate: [['x'], ['y', 'z']],
-				errorContext: 'Test',
+				invalidate: [["x"], ["y", "z"]],
+				errorContext: "Test",
 				optimistic: {
 					cancel: [],
 					snapshot: () => ({}),
-					rollback: () => undefined
-				}
-			})
+					rollback: () => undefined,
+				},
+			});
 
-			callbacks.onSettled(undefined, undefined, { id: 'test' })
+			callbacks.onSettled(undefined, undefined, { id: "test" });
 
-			expect(qc.invalidateQueries).toHaveBeenCalledTimes(2)
-			expect(qc.invalidateQueries).toHaveBeenCalledWith({ queryKey: ['x'] })
-			expect(qc.invalidateQueries).toHaveBeenCalledWith({ queryKey: ['y', 'z'] })
-		})
+			expect(qc.invalidateQueries).toHaveBeenCalledTimes(2);
+			expect(qc.invalidateQueries).toHaveBeenCalledWith({ queryKey: ["x"] });
+			expect(qc.invalidateQueries).toHaveBeenCalledWith({
+				queryKey: ["y", "z"],
+			});
+		});
 
-		it('when optimistic config provided, onSuccess does NOT invalidate (onSettled handles it)', () => {
+		it("when optimistic config provided, onSuccess does NOT invalidate (onSettled handles it)", () => {
 			const callbacks = createMutationCallbacks<
 				{ id: string },
 				{ id: string },
 				Record<string, unknown>
 			>(qc, {
-				invalidate: [['a']],
-				errorContext: 'Test',
+				invalidate: [["a"]],
+				errorContext: "Test",
 				optimistic: {
 					cancel: [],
 					snapshot: () => ({}),
-					rollback: () => undefined
-				}
-			})
+					rollback: () => undefined,
+				},
+			});
 
-			callbacks.onSuccess({ id: '1' })
+			callbacks.onSuccess({ id: "1" });
 
-			expect(qc.invalidateQueries).not.toHaveBeenCalled()
-		})
+			expect(qc.invalidateQueries).not.toHaveBeenCalled();
+		});
 
-		it('onMutate resolves cancel as function when cancel is a function', async () => {
-			const cancelFn = vi.fn().mockReturnValue([['dynamic', '1']])
+		it("onMutate resolves cancel as function when cancel is a function", async () => {
+			const cancelFn = vi.fn().mockReturnValue([["dynamic", "1"]]);
 			const callbacks = createMutationCallbacks<
 				{ id: string },
 				{ id: string },
 				Record<string, unknown>
 			>(qc, {
 				invalidate: [],
-				errorContext: 'Test',
+				errorContext: "Test",
 				optimistic: {
 					cancel: cancelFn,
 					snapshot: () => ({}),
-					rollback: () => undefined
-				}
-			})
+					rollback: () => undefined,
+				},
+			});
 
-			const vars = { id: '1' }
-			await callbacks.onMutate(vars)
+			const vars = { id: "1" };
+			await callbacks.onMutate(vars);
 
-			expect(cancelFn).toHaveBeenCalledWith(vars)
+			expect(cancelFn).toHaveBeenCalledWith(vars);
 			expect(qc.cancelQueries).toHaveBeenCalledWith({
-				queryKey: ['dynamic', '1']
-			})
-		})
-	})
-})
+				queryKey: ["dynamic", "1"],
+			});
+		});
+	});
+});

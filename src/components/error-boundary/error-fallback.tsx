@@ -1,12 +1,12 @@
-'use client'
+"use client";
 
-import { Button } from '#components/ui/button'
-import { Home, RefreshCw } from 'lucide-react'
-import Link from 'next/link'
+import { Home, RefreshCw } from "lucide-react";
+import Link from "next/link";
+import { Button } from "#components/ui/button";
 
 interface ErrorFallbackProps {
-	error: Error & { digest?: string }
-	reset: () => void
+	error: Error & { digest?: string };
+	reset: () => void;
 }
 
 // Sentry reporting is owned by the route-level `error.tsx` / `global-error.tsx`
@@ -32,5 +32,5 @@ export function ErrorFallback({ error: _error, reset }: ErrorFallbackProps) {
 				</Button>
 			</div>
 		</div>
-	)
+	);
 }

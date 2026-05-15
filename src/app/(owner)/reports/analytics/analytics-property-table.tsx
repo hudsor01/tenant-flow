@@ -1,14 +1,14 @@
-import { Card } from '#components/ui/card'
-import type { OccupancyMetrics } from '#types/reports'
+import { Card } from "#components/ui/card";
+import type { OccupancyMetrics } from "#types/reports";
 
-const formatPercent = (value: number) => `${value.toFixed(1)}%`
+const formatPercent = (value: number) => `${value.toFixed(1)}%`;
 
 interface AnalyticsPropertyTableProps {
-	occupancyMetrics: OccupancyMetrics
+	occupancyMetrics: OccupancyMetrics;
 }
 
 export function AnalyticsPropertyTable({
-	occupancyMetrics
+	occupancyMetrics,
 }: AnalyticsPropertyTableProps) {
 	return (
 		<Card className="@container/card">
@@ -30,7 +30,7 @@ export function AnalyticsPropertyTable({
 							</tr>
 						</thead>
 						<tbody>
-							{occupancyMetrics.byProperty.map(property => (
+							{occupancyMetrics.byProperty.map((property) => (
 								<tr
 									key={property.propertyName}
 									className="border-b hover:bg-muted/30 transition-colors"
@@ -62,5 +62,5 @@ export function AnalyticsPropertyTable({
 				</div>
 			</div>
 		</Card>
-	)
+	);
 }

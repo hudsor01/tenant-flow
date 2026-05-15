@@ -11,9 +11,9 @@
  * are skipped so that banned-phrase string literals used in assertions do not
  * trigger a false positive.
  */
-import { readdirSync, readFileSync } from 'node:fs'
-import { join, relative } from 'node:path'
-import { describe, expect, it } from 'vitest'
+import { readdirSync, readFileSync } from "node:fs";
+import { join, relative } from "node:path";
+import { describe, expect, it } from "vitest";
 
 // Feature-claim phrases that describe surfaces that no longer exist
 // (rent collection, tenant portal, autopay). Any occurrence is a
@@ -21,21 +21,21 @@ import { describe, expect, it } from 'vitest'
 // 20260418183608 and the marketing copy must reflect the new shape.
 // Matched case-insensitively.
 const BANNED_PHRASES = [
-	'rent collection',
-	'online rent',
-	'autopay',
-	'auto-pay',
-	'tenant portal',
-	'automated rent',
-	'collect rent',
-	'rent processing',
-	'pay rent online',
-	'online payments',
-	'online rent payment',
-	'rent collection software',
-	'tenants can pay',
-	'pay rent through'
-] as const
+	"rent collection",
+	"online rent",
+	"autopay",
+	"auto-pay",
+	"tenant portal",
+	"automated rent",
+	"collect rent",
+	"rent processing",
+	"pay rent online",
+	"online payments",
+	"online rent payment",
+	"rent collection software",
+	"tenants can pay",
+	"pay rent through",
+] as const;
 
 // Feature claims for capabilities the product does NOT ship. These are
 // outright false advertising — TenantFlow has no tenant screening, no
@@ -43,17 +43,17 @@ const BANNED_PHRASES = [
 // Matched case-insensitively. If a future product genuinely ships any of
 // these, remove the corresponding entry.
 const BANNED_FEATURE_CLAIMS = [
-	'tenant screening',
-	'automated workflow',
-	'rent tracking',
-	'mobile app access',
-	'record rent',
-	'paid rent',
-	'pay rent',
-	'rent processing',
-	'process rent',
-	'tenant invitation'
-] as const
+	"tenant screening",
+	"automated workflow",
+	"rent tracking",
+	"mobile app access",
+	"record rent",
+	"paid rent",
+	"pay rent",
+	"rent processing",
+	"process rent",
+	"tenant invitation",
+] as const;
 
 // Fabricated-identity / fabricated-team copy. Pass 7 of the perfect-PR
 // loop deleted the about/page.tsx "Meet the Team" section that listed
@@ -63,12 +63,12 @@ const BANNED_FEATURE_CLAIMS = [
 // Properties) and a fake HQ + phone number on the contact page. Until
 // real attribution data exists, these phrases are banned outright.
 const BANNED_FABRICATED_IDENTITY_CLAIMS = [
-	'meet the team',
-	'team behind tenantflow',
-	'engineers, designers, and property management experts',
-	'our team of engineers',
-	'our diverse team'
-] as const
+	"meet the team",
+	"team behind tenantflow",
+	"engineers, designers, and property management experts",
+	"our team of engineers",
+	"our diverse team",
+] as const;
 
 // Dead plan names that don't exist in PRICING_PLANS. The real plans are
 // Trial / Starter / Growth / Max at $0 / $19 / $49 / $149 (Phase 5 Option A).
@@ -81,168 +81,175 @@ const BANNED_FABRICATED_IDENTITY_CLAIMS = [
 // price, so those entries are removed; the "up to 50 units" entry stays because
 // no real tier offers 50 units (Starter caps at 25, Growth at 100).
 const BANNED_STALE_PLAN_REFS = [
-	'professional plan',
-	'enterprise plan',
-	'up to 50 units'
-] as const
+	"professional plan",
+	"enterprise plan",
+	"up to 50 units",
+] as const;
 
 // SLA-shaped phrases (response-time commitments) Phase 67 demolished
 // because no documented SLA exists. The codebase commits to "during US
 // business hours, Monday through Friday" — anything more specific is
 // unsubstantiated. Add new variants here as they appear.
 const BANNED_SLA_CLAIMS = [
-	'within 4 hours',
-	'within 24 hours',
-	'within 48 hours',
-	'within an hour',
-	'within minutes',
-	'in minutes',
-	'4-hour response',
-	'24-hour response',
-	'24-48h',
-	'24/48 hour',
-	'< 1 hour',
-	'in under 5 minutes',
-	'in under 10 minutes',
-	'in under a minute',
-	'under a minute',
-	'in seconds',
-	'a few minutes',
-	'a few seconds',
-	'few clicks',
-	'response time guarantee',
-	'guaranteed response',
-	'fast response time',
-	'fastest resolution',
-	'fastest response',
-	'instant setup',
-	'instant onboarding',
-	'24/7 priority support',
-	'24/7 dedicated support',
-	'24/7 phone',
-	'24/7 chat'
-] as const
+	"within 4 hours",
+	"within 24 hours",
+	"within 48 hours",
+	"within an hour",
+	"within minutes",
+	"in minutes",
+	"4-hour response",
+	"24-hour response",
+	"24-48h",
+	"24/48 hour",
+	"< 1 hour",
+	"in under 5 minutes",
+	"in under 10 minutes",
+	"in under a minute",
+	"under a minute",
+	"in seconds",
+	"a few minutes",
+	"a few seconds",
+	"few clicks",
+	"response time guarantee",
+	"guaranteed response",
+	"fast response time",
+	"fastest resolution",
+	"fastest response",
+	"instant setup",
+	"instant onboarding",
+	"24/7 priority support",
+	"24/7 dedicated support",
+	"24/7 phone",
+	"24/7 chat",
+] as const;
 
 // Vague superlatives that imply unsubstantiated quality claims. Replace
 // with concrete capability descriptions (named tools, real shipped
 // features, documented integrations).
 const BANNED_SUPERLATIVES = [
-	'best-in-class',
-	'industry-leading',
-	'world-class',
-	'enterprise-grade',
-	'perfect for',
-	'intuitive interface',
-	'no training required',
-	'requires no training',
-	'no learning curve',
-	'zero learning curve',
-	'cutting-edge',
-	'state-of-the-art',
-	'game-changer',
-	'game-changing',
-	'revolutionary',
-	'next-generation',
-	'next-gen',
-	'breakthrough',
-	'push boundaries',
-	'real-time',
-	'realtime',
-	'in real time',
-	'no technical skills',
-	'no technical knowledge',
-	'no coding required',
-	'no setup required',
-	'zero setup',
-	'zero configuration',
-	'powerful tools',
-	'any size portfolio',
-	'fits any portfolio',
-	'fits any size'
-] as const
+	"best-in-class",
+	"industry-leading",
+	"world-class",
+	"enterprise-grade",
+	"perfect for",
+	"intuitive interface",
+	"no training required",
+	"requires no training",
+	"no learning curve",
+	"zero learning curve",
+	"cutting-edge",
+	"state-of-the-art",
+	"game-changer",
+	"game-changing",
+	"revolutionary",
+	"next-generation",
+	"next-gen",
+	"breakthrough",
+	"push boundaries",
+	"real-time",
+	"realtime",
+	"in real time",
+	"no technical skills",
+	"no technical knowledge",
+	"no coding required",
+	"no setup required",
+	"zero setup",
+	"zero configuration",
+	"powerful tools",
+	"any size portfolio",
+	"fits any portfolio",
+	"fits any size",
+] as const;
 
 // Numeric / dollar / SLA / guarantee claims that v2.7 Phase 67 removed
 // because we couldn't substantiate them. Reintroducing any of these
 // phrases is a regression — if a future page genuinely needs to cite
 // a number, it must come with a documented methodology.
 const BANNED_NUMERIC_CLAIMS = [
-	'$30,000',
-	'$2,400',
-	'$2.4k',
-	'40% noi',
-	'47% noi',
-	'45% noi',
-	'noi by 40',
-	'noi by 47',
-	'noi by 45',
-	'noi increase',
-	'reduce vacancy by',
-	'vacancy by 65',
-	'vacancy by 70',
-	'maintenance costs by 32',
-	'maintenance costs by 35',
-	'automate 80%',
-	'80% of tasks',
-	'roi in 30 days',
-	'roi in 60 days',
-	'roi in 90 days',
-	'roi within 90 days',
-	'90-day roi',
-	'60-day roi',
-	'roi within 2.3',
-	'money-back guarantee',
-	'money back guarantee',
-	'60-day money',
-	'99.9% uptime',
-	'soc 2 type ii',
-	'bank-level security',
-	'bank-level encryption',
-	'10,000+ property',
-	'10,000+ managers',
-	'2,500+ user',
-	'25 hrs saved',
-	'20+ hours per week',
-	'25+ hours per week',
-	'4.9/5',
-	'98.7%'
-] as const
+	"$30,000",
+	"$2,400",
+	"$2.4k",
+	"40% noi",
+	"47% noi",
+	"45% noi",
+	"noi by 40",
+	"noi by 47",
+	"noi by 45",
+	"noi increase",
+	"reduce vacancy by",
+	"vacancy by 65",
+	"vacancy by 70",
+	"maintenance costs by 32",
+	"maintenance costs by 35",
+	"automate 80%",
+	"80% of tasks",
+	"roi in 30 days",
+	"roi in 60 days",
+	"roi in 90 days",
+	"roi within 90 days",
+	"90-day roi",
+	"60-day roi",
+	"roi within 2.3",
+	"money-back guarantee",
+	"money back guarantee",
+	"60-day money",
+	"99.9% uptime",
+	"soc 2 type ii",
+	"bank-level security",
+	"bank-level encryption",
+	"10,000+ property",
+	"10,000+ managers",
+	"2,500+ user",
+	"25 hrs saved",
+	"20+ hours per week",
+	"25+ hours per week",
+	"4.9/5",
+	"98.7%",
+] as const;
 
 // Explicit marketing surfaces (kept as a stable allowlist — catches files that
 // might not match the components walker, e.g. /app/pages, config, SEO helpers).
 const MARKETING_FILES = [
-	'src/app/page.tsx',
-	'src/app/marketing-home.tsx',
-	'src/app/pricing/page.tsx',
-	'src/app/pricing/pricing-content.tsx',
-	'src/app/features/page.tsx',
-	'src/app/features/features-client.tsx',
-	'src/app/faq/page.tsx',
-	'src/app/blog/page.tsx',
-	'src/app/support/page.tsx',
-	'src/app/about/page.tsx',
-	'src/app/help/page.tsx',
-	'src/app/(auth)/login/page.tsx',
-	'src/app/(auth)/login/layout.tsx',
-	'src/app/auth/confirm-email/confirm-email-states.tsx',
-	'src/app/opengraph-image.tsx',
-	'src/app/compare/[competitor]/page.tsx',
-	'src/app/compare/[competitor]/compare-data.ts',
-	'src/data/faqs.ts',
-	'src/data/testimonials.ts',
-	'src/config/pricing.ts',
-	'src/lib/generate-metadata.ts'
-] as const
+	"src/app/page.tsx",
+	"src/app/marketing-home.tsx",
+	"src/app/pricing/page.tsx",
+	"src/app/pricing/pricing-content.tsx",
+	"src/app/features/page.tsx",
+	"src/app/features/features-client.tsx",
+	"src/app/faq/page.tsx",
+	"src/app/blog/page.tsx",
+	"src/app/support/page.tsx",
+	"src/app/about/page.tsx",
+	"src/app/help/page.tsx",
+	"src/app/(auth)/login/page.tsx",
+	"src/app/(auth)/login/layout.tsx",
+	"src/app/auth/confirm-email/confirm-email-states.tsx",
+	"src/app/opengraph-image.tsx",
+	"src/app/compare/[competitor]/page.tsx",
+	"src/app/compare/[competitor]/compare-data.ts",
+	"src/data/faqs.ts",
+	"src/data/testimonials.ts",
+	"src/config/pricing.ts",
+	"src/lib/generate-metadata.ts",
+] as const;
 
 function isTestPath(relPath: string): boolean {
 	return (
-		relPath.includes('/__tests__/') ||
-		relPath.includes('.test.') ||
-		relPath.includes('.spec.') ||
-		relPath.endsWith('.d.ts')
-	)
+		relPath.includes("/__tests__/") ||
+		relPath.includes(".test.") ||
+		relPath.includes(".spec.") ||
+		relPath.endsWith(".d.ts")
+	);
 }
 
-type BanlistKind = 'phrases' | 'numeric' | 'feature' | 'stale_plan' | 'sla' | 'superlative' | 'fabricated_identity'
+type BanlistKind =
+	| "phrases"
+	| "numeric"
+	| "feature"
+	| "stale_plan"
+	| "sla"
+	| "superlative"
+	| "fabricated_identity";
 
 // Educational / third-party-expense content where banned phrases legitimately
 // appear. Exemptions are scoped per-banlist so the file still gets scanned by
@@ -261,220 +268,221 @@ type BanlistKind = 'phrases' | 'numeric' | 'feature' | 'stale_plan' | 'sla' | 's
 // OUTSIDE the TenantFlow product (3rd-party services, IRS terms, lease
 // document body, academic content, etc.).
 const BANLIST_EXEMPTIONS: Record<string, readonly BanlistKind[]> = {
-	'src/app/resources/landlord-tax-deduction-tracker/tax-deduction-data.ts': [
-		'numeric',
-		'feature'
+	"src/app/resources/landlord-tax-deduction-tracker/tax-deduction-data.ts": [
+		"numeric",
+		"feature",
 	],
-	'src/lib/templates/lease-template.ts': ['feature'],
+	"src/lib/templates/lease-template.ts": ["feature"],
 	// security-policy is a documented vulnerability disclosure timeline
 	// ("acknowledge within 24 hours", "assess within 72 hours", "90-day
 	// coordinated disclosure"), not a marketing claim. The SLAs map to a
 	// real public process at /security-policy and at .well-known/security.txt.
-	'src/app/security-policy/page.tsx': ['sla'],
+	"src/app/security-policy/page.tsx": ["sla"],
 	// query-config.ts uses 'realtime' as a TanStack Query cache-tier
 	// identifier (refetch every 30s) — internal infrastructure, not a
 	// marketing claim. The banlist targets user-facing copy.
-	'src/lib/constants/query-config.ts': ['superlative']
-}
+	"src/lib/constants/query-config.ts": ["superlative"],
+};
 
 function isExemptFromBanlist(relPath: string, kind: BanlistKind): boolean {
-	const normalized = relPath.replace(/\\/g, '/')
-	return BANLIST_EXEMPTIONS[normalized]?.includes(kind) ?? false
+	const normalized = relPath.replace(/\\/g, "/");
+	return BANLIST_EXEMPTIONS[normalized]?.includes(kind) ?? false;
 }
 
 function walkSourceFiles(root: string): string[] {
-	const entries = readdirSync(root, { recursive: true, withFileTypes: true })
-	const files: string[] = []
+	const entries = readdirSync(root, { recursive: true, withFileTypes: true });
+	const files: string[] = [];
 	for (const entry of entries) {
-		if (!entry.isFile()) continue
-		const parentPath = (entry as { parentPath?: string; path?: string }).parentPath ??
+		if (!entry.isFile()) continue;
+		const parentPath =
+			(entry as { parentPath?: string; path?: string }).parentPath ??
 			(entry as { path?: string }).path ??
-			''
-		const absPath = join(parentPath, entry.name)
-		if (!/\.(ts|tsx)$/.test(entry.name)) continue
-		if (isTestPath(absPath)) continue
-		files.push(absPath)
+			"";
+		const absPath = join(parentPath, entry.name);
+		if (!/\.(ts|tsx)$/.test(entry.name)) continue;
+		if (isTestPath(absPath)) continue;
+		files.push(absPath);
 	}
-	return files
+	return files;
 }
 
 function scanFileForBannedPhrases(absPath: string, relPath: string) {
-	if (isExemptFromBanlist(relPath, 'phrases')) return
-	const content = readFileSync(absPath, 'utf8').toLowerCase()
+	if (isExemptFromBanlist(relPath, "phrases")) return;
+	const content = readFileSync(absPath, "utf8").toLowerCase();
 	describe(relPath, () => {
 		for (const phrase of BANNED_PHRASES) {
 			it(`must not mention "${phrase}"`, () => {
 				expect(
 					content,
-					`${relPath} contains banned phrase "${phrase}" — tenant portal + rent collection features were removed`
-				).not.toContain(phrase.toLowerCase())
-			})
+					`${relPath} contains banned phrase "${phrase}" — tenant portal + rent collection features were removed`,
+				).not.toContain(phrase.toLowerCase());
+			});
 		}
-	})
+	});
 }
 
 function scanFileForBannedNumericClaims(absPath: string, relPath: string) {
-	if (isExemptFromBanlist(relPath, 'numeric')) return
-	const content = readFileSync(absPath, 'utf8').toLowerCase()
+	if (isExemptFromBanlist(relPath, "numeric")) return;
+	const content = readFileSync(absPath, "utf8").toLowerCase();
 	describe(`${relPath} (numeric claims)`, () => {
 		for (const phrase of BANNED_NUMERIC_CLAIMS) {
 			it(`must not mention "${phrase}"`, () => {
 				expect(
 					content,
-					`${relPath} contains banned numeric claim "${phrase}" — Phase 67 removed unsubstantiated marketing numbers`
-				).not.toContain(phrase.toLowerCase())
-			})
+					`${relPath} contains banned numeric claim "${phrase}" — Phase 67 removed unsubstantiated marketing numbers`,
+				).not.toContain(phrase.toLowerCase());
+			});
 		}
-	})
+	});
 }
 
 function scanFileForBannedFeatureClaims(absPath: string, relPath: string) {
-	if (isExemptFromBanlist(relPath, 'feature')) return
-	const content = readFileSync(absPath, 'utf8').toLowerCase()
+	if (isExemptFromBanlist(relPath, "feature")) return;
+	const content = readFileSync(absPath, "utf8").toLowerCase();
 	describe(`${relPath} (feature claims)`, () => {
 		for (const phrase of BANNED_FEATURE_CLAIMS) {
 			it(`must not mention "${phrase}"`, () => {
 				expect(
 					content,
-					`${relPath} contains banned feature claim "${phrase}" — these capabilities do not ship in the current product`
-				).not.toContain(phrase.toLowerCase())
-			})
+					`${relPath} contains banned feature claim "${phrase}" — these capabilities do not ship in the current product`,
+				).not.toContain(phrase.toLowerCase());
+			});
 		}
-	})
+	});
 }
 
 function scanFileForStalePlanRefs(absPath: string, relPath: string) {
-	if (isExemptFromBanlist(relPath, 'stale_plan')) return
-	const content = readFileSync(absPath, 'utf8').toLowerCase()
+	if (isExemptFromBanlist(relPath, "stale_plan")) return;
+	const content = readFileSync(absPath, "utf8").toLowerCase();
 	describe(`${relPath} (stale plan refs)`, () => {
 		for (const phrase of BANNED_STALE_PLAN_REFS) {
 			it(`must not mention "${phrase}"`, () => {
 				expect(
 					content,
-					`${relPath} contains stale plan reference "${phrase}" — source plan name and price from getAllPricingPlans()/getPricingPlan() instead`
-				).not.toContain(phrase.toLowerCase())
-			})
+					`${relPath} contains stale plan reference "${phrase}" — source plan name and price from getAllPricingPlans()/getPricingPlan() instead`,
+				).not.toContain(phrase.toLowerCase());
+			});
 		}
-	})
+	});
 }
 
 function scanFileForSlaClaims(absPath: string, relPath: string) {
-	if (isExemptFromBanlist(relPath, 'sla')) return
-	const content = readFileSync(absPath, 'utf8').toLowerCase()
+	if (isExemptFromBanlist(relPath, "sla")) return;
+	const content = readFileSync(absPath, "utf8").toLowerCase();
 	describe(`${relPath} (SLA claims)`, () => {
 		for (const phrase of BANNED_SLA_CLAIMS) {
 			it(`must not mention "${phrase}"`, () => {
 				expect(
 					content,
-					`${relPath} contains banned SLA claim "${phrase}" — no documented response-time commitment exists; use "during US business hours, Monday through Friday" instead`
-				).not.toContain(phrase.toLowerCase())
-			})
+					`${relPath} contains banned SLA claim "${phrase}" — no documented response-time commitment exists; use "during US business hours, Monday through Friday" instead`,
+				).not.toContain(phrase.toLowerCase());
+			});
 		}
-	})
+	});
 }
 
 function scanFileForSuperlatives(absPath: string, relPath: string) {
-	if (isExemptFromBanlist(relPath, 'superlative')) return
-	const content = readFileSync(absPath, 'utf8').toLowerCase()
+	if (isExemptFromBanlist(relPath, "superlative")) return;
+	const content = readFileSync(absPath, "utf8").toLowerCase();
 	describe(`${relPath} (superlatives)`, () => {
 		for (const phrase of BANNED_SUPERLATIVES) {
 			it(`must not mention "${phrase}"`, () => {
 				expect(
 					content,
-					`${relPath} contains banned superlative "${phrase}" — replace with concrete capability descriptions (named tools, shipped features, documented integrations)`
-				).not.toContain(phrase.toLowerCase())
-			})
+					`${relPath} contains banned superlative "${phrase}" — replace with concrete capability descriptions (named tools, shipped features, documented integrations)`,
+				).not.toContain(phrase.toLowerCase());
+			});
 		}
-	})
+	});
 }
 
 function scanFileForFabricatedIdentities(absPath: string, relPath: string) {
-	if (isExemptFromBanlist(relPath, 'fabricated_identity')) return
-	const content = readFileSync(absPath, 'utf8').toLowerCase()
+	if (isExemptFromBanlist(relPath, "fabricated_identity")) return;
+	const content = readFileSync(absPath, "utf8").toLowerCase();
 	describe(`${relPath} (fabricated identities)`, () => {
 		for (const phrase of BANNED_FABRICATED_IDENTITY_CLAIMS) {
 			it(`must not mention "${phrase}"`, () => {
 				expect(
 					content,
-					`${relPath} contains banned fabricated-identity claim "${phrase}" — invented team members / testimonials / contact details are banned until real attribution data is available`
-				).not.toContain(phrase.toLowerCase())
-			})
+					`${relPath} contains banned fabricated-identity claim "${phrase}" — invented team members / testimonials / contact details are banned until real attribution data is available`,
+				).not.toContain(phrase.toLowerCase());
+			});
 		}
-	})
+	});
 }
 
-describe('Marketing copy: landlord-only product', () => {
-	const cwd = process.cwd()
+describe("Marketing copy: landlord-only product", () => {
+	const cwd = process.cwd();
 	for (const relPath of MARKETING_FILES) {
-		scanFileForBannedPhrases(join(cwd, relPath), relPath)
+		scanFileForBannedPhrases(join(cwd, relPath), relPath);
 	}
-})
+});
 
-describe('Marketing copy: numeric claims (v2.7 Phase 67)', () => {
-	const cwd = process.cwd()
+describe("Marketing copy: numeric claims (v2.7 Phase 67)", () => {
+	const cwd = process.cwd();
 	for (const relPath of MARKETING_FILES) {
-		scanFileForBannedNumericClaims(join(cwd, relPath), relPath)
+		scanFileForBannedNumericClaims(join(cwd, relPath), relPath);
 	}
-})
+});
 
-describe('Component copy: landlord-only product (REQ-52-06)', () => {
-	const cwd = process.cwd()
-	const componentsRoot = join(cwd, 'src', 'components')
+describe("Component copy: landlord-only product (REQ-52-06)", () => {
+	const cwd = process.cwd();
+	const componentsRoot = join(cwd, "src", "components");
 	for (const absPath of walkSourceFiles(componentsRoot)) {
-		scanFileForBannedPhrases(absPath, relative(cwd, absPath))
+		scanFileForBannedPhrases(absPath, relative(cwd, absPath));
 	}
-})
+});
 
-describe('Component copy: numeric claims (v2.7 Phase 67)', () => {
-	const cwd = process.cwd()
-	const componentsRoot = join(cwd, 'src', 'components')
+describe("Component copy: numeric claims (v2.7 Phase 67)", () => {
+	const cwd = process.cwd();
+	const componentsRoot = join(cwd, "src", "components");
 	for (const absPath of walkSourceFiles(componentsRoot)) {
-		scanFileForBannedNumericClaims(absPath, relative(cwd, absPath))
+		scanFileForBannedNumericClaims(absPath, relative(cwd, absPath));
 	}
-})
+});
 
-describe('Marketing copy: feature claims (v2.7 Phase 67)', () => {
-	const cwd = process.cwd()
+describe("Marketing copy: feature claims (v2.7 Phase 67)", () => {
+	const cwd = process.cwd();
 	for (const relPath of MARKETING_FILES) {
-		scanFileForBannedFeatureClaims(join(cwd, relPath), relPath)
+		scanFileForBannedFeatureClaims(join(cwd, relPath), relPath);
 	}
-})
+});
 
-describe('Component copy: feature claims (v2.7 Phase 67)', () => {
-	const cwd = process.cwd()
-	const componentsRoot = join(cwd, 'src', 'components')
+describe("Component copy: feature claims (v2.7 Phase 67)", () => {
+	const cwd = process.cwd();
+	const componentsRoot = join(cwd, "src", "components");
 	for (const absPath of walkSourceFiles(componentsRoot)) {
-		scanFileForBannedFeatureClaims(absPath, relative(cwd, absPath))
+		scanFileForBannedFeatureClaims(absPath, relative(cwd, absPath));
 	}
-})
+});
 
 // Cycle-4 C-2: extend the guard to every page under src/app/** so authenticated
 // routes (billing, settings, dashboard) can't ship stale marketing copy. The
 // previous component-only walker missed `(owner)/billing/plans/page.tsx` which
 // was claiming "Rent tracking" as a paid feature on the live trial-banner CTA.
-describe('App routes: landlord-only product (cycle-4 C-2)', () => {
-	const cwd = process.cwd()
-	const appRoot = join(cwd, 'src', 'app')
+describe("App routes: landlord-only product (cycle-4 C-2)", () => {
+	const cwd = process.cwd();
+	const appRoot = join(cwd, "src", "app");
 	for (const absPath of walkSourceFiles(appRoot)) {
-		scanFileForBannedPhrases(absPath, relative(cwd, absPath))
+		scanFileForBannedPhrases(absPath, relative(cwd, absPath));
 	}
-})
+});
 
-describe('App routes: numeric claims (cycle-4 C-2)', () => {
-	const cwd = process.cwd()
-	const appRoot = join(cwd, 'src', 'app')
+describe("App routes: numeric claims (cycle-4 C-2)", () => {
+	const cwd = process.cwd();
+	const appRoot = join(cwd, "src", "app");
 	for (const absPath of walkSourceFiles(appRoot)) {
-		scanFileForBannedNumericClaims(absPath, relative(cwd, absPath))
+		scanFileForBannedNumericClaims(absPath, relative(cwd, absPath));
 	}
-})
+});
 
-describe('App routes: feature claims (cycle-4 C-2)', () => {
-	const cwd = process.cwd()
-	const appRoot = join(cwd, 'src', 'app')
+describe("App routes: feature claims (cycle-4 C-2)", () => {
+	const cwd = process.cwd();
+	const appRoot = join(cwd, "src", "app");
 	for (const absPath of walkSourceFiles(appRoot)) {
-		scanFileForBannedFeatureClaims(absPath, relative(cwd, absPath))
+		scanFileForBannedFeatureClaims(absPath, relative(cwd, absPath));
 	}
-})
+});
 
 // Cycle-5 C-1: stale plan-name / unit-cap guard. Catches the failure mode
 // where a hand-coded "Professional / Up to 50 units" block ships to
@@ -484,28 +492,28 @@ describe('App routes: feature claims (cycle-4 C-2)', () => {
 // competitor prices reference values like $29 / $19.95 in compare-data.ts —
 // the regression risk is hand-coded TenantFlow-side stale tier prices, which
 // the per-file Phase 4 carve-out grep guards in 05-VALIDATION.md already cover.
-describe('Marketing copy: stale plan refs (cycle-5 C-1)', () => {
-	const cwd = process.cwd()
+describe("Marketing copy: stale plan refs (cycle-5 C-1)", () => {
+	const cwd = process.cwd();
 	for (const relPath of MARKETING_FILES) {
-		scanFileForStalePlanRefs(join(cwd, relPath), relPath)
+		scanFileForStalePlanRefs(join(cwd, relPath), relPath);
 	}
-})
+});
 
-describe('Component copy: stale plan refs (cycle-5 C-1)', () => {
-	const cwd = process.cwd()
-	const componentsRoot = join(cwd, 'src', 'components')
+describe("Component copy: stale plan refs (cycle-5 C-1)", () => {
+	const cwd = process.cwd();
+	const componentsRoot = join(cwd, "src", "components");
 	for (const absPath of walkSourceFiles(componentsRoot)) {
-		scanFileForStalePlanRefs(absPath, relative(cwd, absPath))
+		scanFileForStalePlanRefs(absPath, relative(cwd, absPath));
 	}
-})
+});
 
-describe('App routes: stale plan refs (cycle-5 C-1)', () => {
-	const cwd = process.cwd()
-	const appRoot = join(cwd, 'src', 'app')
+describe("App routes: stale plan refs (cycle-5 C-1)", () => {
+	const cwd = process.cwd();
+	const appRoot = join(cwd, "src", "app");
 	for (const absPath of walkSourceFiles(appRoot)) {
-		scanFileForStalePlanRefs(absPath, relative(cwd, absPath))
+		scanFileForStalePlanRefs(absPath, relative(cwd, absPath));
 	}
-})
+});
 
 // Cycle-6 C-1: extend the guard to src/lib/**. The trigger was the dead
 // BILLING_PLANS block in src/lib/constants/billing.ts (deleted in the same
@@ -514,133 +522,133 @@ describe('App routes: stale plan refs (cycle-5 C-1)', () => {
 // (`monthly: 49`), but it does catch banned phrases and stale plan-name
 // strings — closing the surface for future regressions shaped like the
 // cycle-1..5 findings.
-describe('Lib: landlord-only product (cycle-6 C-1)', () => {
-	const cwd = process.cwd()
-	const libRoot = join(cwd, 'src', 'lib')
+describe("Lib: landlord-only product (cycle-6 C-1)", () => {
+	const cwd = process.cwd();
+	const libRoot = join(cwd, "src", "lib");
 	for (const absPath of walkSourceFiles(libRoot)) {
-		scanFileForBannedPhrases(absPath, relative(cwd, absPath))
+		scanFileForBannedPhrases(absPath, relative(cwd, absPath));
 	}
-})
+});
 
-describe('Lib: numeric claims (cycle-6 C-1)', () => {
-	const cwd = process.cwd()
-	const libRoot = join(cwd, 'src', 'lib')
+describe("Lib: numeric claims (cycle-6 C-1)", () => {
+	const cwd = process.cwd();
+	const libRoot = join(cwd, "src", "lib");
 	for (const absPath of walkSourceFiles(libRoot)) {
-		scanFileForBannedNumericClaims(absPath, relative(cwd, absPath))
+		scanFileForBannedNumericClaims(absPath, relative(cwd, absPath));
 	}
-})
+});
 
-describe('Lib: feature claims (cycle-6 C-1)', () => {
-	const cwd = process.cwd()
-	const libRoot = join(cwd, 'src', 'lib')
+describe("Lib: feature claims (cycle-6 C-1)", () => {
+	const cwd = process.cwd();
+	const libRoot = join(cwd, "src", "lib");
 	for (const absPath of walkSourceFiles(libRoot)) {
-		scanFileForBannedFeatureClaims(absPath, relative(cwd, absPath))
+		scanFileForBannedFeatureClaims(absPath, relative(cwd, absPath));
 	}
-})
+});
 
-describe('Lib: stale plan refs (cycle-6 C-1)', () => {
-	const cwd = process.cwd()
-	const libRoot = join(cwd, 'src', 'lib')
+describe("Lib: stale plan refs (cycle-6 C-1)", () => {
+	const cwd = process.cwd();
+	const libRoot = join(cwd, "src", "lib");
 	for (const absPath of walkSourceFiles(libRoot)) {
-		scanFileForStalePlanRefs(absPath, relative(cwd, absPath))
+		scanFileForStalePlanRefs(absPath, relative(cwd, absPath));
 	}
-})
+});
 
 // Perfect-PR loop pass 4: catch SLA-shaped "within N hours" commitments and
 // vague superlatives like "best-in-class" / "industry-leading". Both classes
 // of claim slipped through the prior banlists because they don't match any
 // dollar / percentage / plan-name pattern.
-describe('Marketing copy: SLA claims (loop pass 4)', () => {
-	const cwd = process.cwd()
+describe("Marketing copy: SLA claims (loop pass 4)", () => {
+	const cwd = process.cwd();
 	for (const relPath of MARKETING_FILES) {
-		scanFileForSlaClaims(join(cwd, relPath), relPath)
+		scanFileForSlaClaims(join(cwd, relPath), relPath);
 	}
-})
+});
 
-describe('Component copy: SLA claims (loop pass 4)', () => {
-	const cwd = process.cwd()
-	const componentsRoot = join(cwd, 'src', 'components')
+describe("Component copy: SLA claims (loop pass 4)", () => {
+	const cwd = process.cwd();
+	const componentsRoot = join(cwd, "src", "components");
 	for (const absPath of walkSourceFiles(componentsRoot)) {
-		scanFileForSlaClaims(absPath, relative(cwd, absPath))
+		scanFileForSlaClaims(absPath, relative(cwd, absPath));
 	}
-})
+});
 
-describe('App routes: SLA claims (loop pass 4)', () => {
-	const cwd = process.cwd()
-	const appRoot = join(cwd, 'src', 'app')
+describe("App routes: SLA claims (loop pass 4)", () => {
+	const cwd = process.cwd();
+	const appRoot = join(cwd, "src", "app");
 	for (const absPath of walkSourceFiles(appRoot)) {
-		scanFileForSlaClaims(absPath, relative(cwd, absPath))
+		scanFileForSlaClaims(absPath, relative(cwd, absPath));
 	}
-})
+});
 
-describe('Lib: SLA claims (loop pass 4)', () => {
-	const cwd = process.cwd()
-	const libRoot = join(cwd, 'src', 'lib')
+describe("Lib: SLA claims (loop pass 4)", () => {
+	const cwd = process.cwd();
+	const libRoot = join(cwd, "src", "lib");
 	for (const absPath of walkSourceFiles(libRoot)) {
-		scanFileForSlaClaims(absPath, relative(cwd, absPath))
+		scanFileForSlaClaims(absPath, relative(cwd, absPath));
 	}
-})
+});
 
-describe('Marketing copy: superlatives (loop pass 4)', () => {
-	const cwd = process.cwd()
+describe("Marketing copy: superlatives (loop pass 4)", () => {
+	const cwd = process.cwd();
 	for (const relPath of MARKETING_FILES) {
-		scanFileForSuperlatives(join(cwd, relPath), relPath)
+		scanFileForSuperlatives(join(cwd, relPath), relPath);
 	}
-})
+});
 
-describe('Component copy: superlatives (loop pass 4)', () => {
-	const cwd = process.cwd()
-	const componentsRoot = join(cwd, 'src', 'components')
+describe("Component copy: superlatives (loop pass 4)", () => {
+	const cwd = process.cwd();
+	const componentsRoot = join(cwd, "src", "components");
 	for (const absPath of walkSourceFiles(componentsRoot)) {
-		scanFileForSuperlatives(absPath, relative(cwd, absPath))
+		scanFileForSuperlatives(absPath, relative(cwd, absPath));
 	}
-})
+});
 
-describe('App routes: superlatives (loop pass 4)', () => {
-	const cwd = process.cwd()
-	const appRoot = join(cwd, 'src', 'app')
+describe("App routes: superlatives (loop pass 4)", () => {
+	const cwd = process.cwd();
+	const appRoot = join(cwd, "src", "app");
 	for (const absPath of walkSourceFiles(appRoot)) {
-		scanFileForSuperlatives(absPath, relative(cwd, absPath))
+		scanFileForSuperlatives(absPath, relative(cwd, absPath));
 	}
-})
+});
 
-describe('Lib: superlatives (loop pass 4)', () => {
-	const cwd = process.cwd()
-	const libRoot = join(cwd, 'src', 'lib')
+describe("Lib: superlatives (loop pass 4)", () => {
+	const cwd = process.cwd();
+	const libRoot = join(cwd, "src", "lib");
 	for (const absPath of walkSourceFiles(libRoot)) {
-		scanFileForSuperlatives(absPath, relative(cwd, absPath))
+		scanFileForSuperlatives(absPath, relative(cwd, absPath));
 	}
-})
+});
 
 // Loop pass 8: catch fabricated team / testimonial / identity copy that
 // would re-introduce the deleted "Meet the Team" surface or its peers.
-describe('Marketing copy: fabricated identities (loop pass 8)', () => {
-	const cwd = process.cwd()
+describe("Marketing copy: fabricated identities (loop pass 8)", () => {
+	const cwd = process.cwd();
 	for (const relPath of MARKETING_FILES) {
-		scanFileForFabricatedIdentities(join(cwd, relPath), relPath)
+		scanFileForFabricatedIdentities(join(cwd, relPath), relPath);
 	}
-})
+});
 
-describe('Component copy: fabricated identities (loop pass 8)', () => {
-	const cwd = process.cwd()
-	const componentsRoot = join(cwd, 'src', 'components')
+describe("Component copy: fabricated identities (loop pass 8)", () => {
+	const cwd = process.cwd();
+	const componentsRoot = join(cwd, "src", "components");
 	for (const absPath of walkSourceFiles(componentsRoot)) {
-		scanFileForFabricatedIdentities(absPath, relative(cwd, absPath))
+		scanFileForFabricatedIdentities(absPath, relative(cwd, absPath));
 	}
-})
+});
 
-describe('App routes: fabricated identities (loop pass 8)', () => {
-	const cwd = process.cwd()
-	const appRoot = join(cwd, 'src', 'app')
+describe("App routes: fabricated identities (loop pass 8)", () => {
+	const cwd = process.cwd();
+	const appRoot = join(cwd, "src", "app");
 	for (const absPath of walkSourceFiles(appRoot)) {
-		scanFileForFabricatedIdentities(absPath, relative(cwd, absPath))
+		scanFileForFabricatedIdentities(absPath, relative(cwd, absPath));
 	}
-})
+});
 
-describe('Lib: fabricated identities (loop pass 8)', () => {
-	const cwd = process.cwd()
-	const libRoot = join(cwd, 'src', 'lib')
+describe("Lib: fabricated identities (loop pass 8)", () => {
+	const cwd = process.cwd();
+	const libRoot = join(cwd, "src", "lib");
 	for (const absPath of walkSourceFiles(libRoot)) {
-		scanFileForFabricatedIdentities(absPath, relative(cwd, absPath))
+		scanFileForFabricatedIdentities(absPath, relative(cwd, absPath));
 	}
-})
+});

@@ -1,46 +1,48 @@
-'use client'
+"use client";
 
-import { useQuery } from '@tanstack/react-query'
-import { analyticsQueries } from '#hooks/api/use-analytics'
-import { RefreshableAnalytics } from '#app/(owner)/analytics/refreshable-analytics'
-import { ExportButtons } from '#components/shared/export-buttons'
-import { BlurFade } from '#components/ui/blur-fade'
-import { BarChart3, FileDown, PieChart } from 'lucide-react'
-import { OwnerPaymentSummary } from '#components/analytics/owner-payment-summary'
-import dynamic from 'next/dynamic'
-import { EMPTY_PAYMENT_SUMMARY } from '#types/api-contracts'
-import { ChartLoadingSkeleton } from '#components/shared/chart-loading-skeleton'
+import { useQuery } from "@tanstack/react-query";
+import { BarChart3, FileDown, PieChart } from "lucide-react";
+import dynamic from "next/dynamic";
+import { RefreshableAnalytics } from "#app/(owner)/analytics/refreshable-analytics";
+import { OwnerPaymentSummary } from "#components/analytics/owner-payment-summary";
+import { ChartLoadingSkeleton } from "#components/shared/chart-loading-skeleton";
+import { ExportButtons } from "#components/shared/export-buttons";
+import { BlurFade } from "#components/ui/blur-fade";
+import { analyticsQueries } from "#hooks/api/use-analytics";
+import { EMPTY_PAYMENT_SUMMARY } from "#types/api-contracts";
 
 const RevenueExpenseChart = dynamic(
-	() => import('./revenue-expense-chart').then(mod => mod.RevenueExpenseChart),
-	{ ssr: false, loading: () => <ChartLoadingSkeleton /> }
-)
+	() =>
+		import("./revenue-expense-chart").then((mod) => mod.RevenueExpenseChart),
+	{ ssr: false, loading: () => <ChartLoadingSkeleton /> },
+);
 
 const NetOperatingIncomeChart = dynamic(
-	() =>
-		import('./financial-charts').then(mod => mod.NetOperatingIncomeChart),
-	{ ssr: false, loading: () => <ChartLoadingSkeleton /> }
-)
+	() => import("./financial-charts").then((mod) => mod.NetOperatingIncomeChart),
+	{ ssr: false, loading: () => <ChartLoadingSkeleton /> },
+);
 
 const BillingTimelineChart = dynamic(
-	() =>
-		import('./financial-charts').then(mod => mod.BillingTimelineChart),
-	{ ssr: false, loading: () => <ChartLoadingSkeleton /> }
-)
-import { FinancialAnalyticsSkeleton } from './_components/financial-analytics-skeleton'
-import { FinancialOverviewStats } from './_components/financial-overview-stats'
-import { BreakdownList } from './_components/breakdown-list'
-import { LeaseTable } from './_components/lease-table'
-import { InvoiceSummaryList } from './_components/invoice-summary-list'
+	() => import("./financial-charts").then((mod) => mod.BillingTimelineChart),
+	{ ssr: false, loading: () => <ChartLoadingSkeleton /> },
+);
+
+import { BreakdownList } from "./_components/breakdown-list";
+import { FinancialAnalyticsSkeleton } from "./_components/financial-analytics-skeleton";
+import { FinancialOverviewStats } from "./_components/financial-overview-stats";
+import { InvoiceSummaryList } from "./_components/invoice-summary-list";
+import { LeaseTable } from "./_components/lease-table";
 
 export default function FinancialAnalyticsPage() {
-	const { data, isLoading, isError } = useQuery(analyticsQueries.financialPageData())
+	const { data, isLoading, isError } = useQuery(
+		analyticsQueries.financialPageData(),
+	);
 	const { data: paymentSummary = EMPTY_PAYMENT_SUMMARY } = useQuery(
-		analyticsQueries.ownerPaymentSummary()
-	)
+		analyticsQueries.ownerPaymentSummary(),
+	);
 
 	if (isLoading) {
-		return <FinancialAnalyticsSkeleton />
+		return <FinancialAnalyticsSkeleton />;
 	}
 
 	if (isError) {
@@ -62,7 +64,7 @@ export default function FinancialAnalyticsPage() {
 					</button>
 				</div>
 			</div>
-		)
+		);
 	}
 
 	const {
@@ -70,18 +72,18 @@ export default function FinancialAnalyticsPage() {
 			totalRevenue: 0,
 			totalExpenses: 0,
 			netIncome: 0,
-			cashFlow: 0
+			cashFlow: 0,
 		},
 		breakdown = { revenue: [], expenses: [] },
 		netOperatingIncome = [],
 		billingInsights = {
 			points: [],
-			totals: { invoiced: 0, paid: 0, overdue: 0 }
+			totals: { invoiced: 0, paid: 0, overdue: 0 },
 		},
 		invoiceSummary = [],
 		monthlyMetrics = [],
-		leaseAnalytics = []
-	} = data || {}
+		leaseAnalytics = [],
+	} = data || {};
 
 	return (
 		<RefreshableAnalytics cooldownSeconds={30}>
@@ -90,9 +92,7 @@ export default function FinancialAnalyticsPage() {
 				<BlurFade delay={0.1} inView>
 					<div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-6">
 						<div>
-							<h1 className="typography-h1">
-								Financial Analytics
-							</h1>
+							<h1 className="typography-h1">Financial Analytics</h1>
 							<p className="text-muted-foreground">
 								Track revenue, profitability, and portfolio cash flow in real
 								time.
@@ -152,7 +152,10 @@ export default function FinancialAnalyticsPage() {
 									</div>
 									<PieChart className="w-5 h-5 text-muted-foreground" />
 								</div>
-								<BreakdownList title="Revenue Sources" rows={breakdown.revenue} />
+								<BreakdownList
+									title="Revenue Sources"
+									rows={breakdown.revenue}
+								/>
 							</div>
 						</BlurFade>
 
@@ -249,5 +252,5 @@ export default function FinancialAnalyticsPage() {
 				</div>
 			</div>
 		</RefreshableAnalytics>
-	)
+	);
 }

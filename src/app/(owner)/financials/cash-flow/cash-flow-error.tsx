@@ -1,8 +1,8 @@
-import { ArrowDownCircle } from 'lucide-react'
+import { ArrowDownCircle } from "lucide-react";
 
 interface CashFlowErrorProps {
-	error: Error | null
-	onRetry: () => void
+	error: Error | null;
+	onRetry: () => void;
 }
 
 export function CashFlowError({ error, onRetry }: CashFlowErrorProps) {
@@ -16,7 +16,7 @@ export function CashFlowError({ error, onRetry }: CashFlowErrorProps) {
 					Failed to Load Cash Flow
 				</h2>
 				<p className="text-muted-foreground mb-6">
-					{error instanceof Error ? error.message : 'An error occurred'}
+					{error instanceof Error ? error.message : "An error occurred"}
 				</p>
 				<button
 					onClick={onRetry}
@@ -26,5 +26,5 @@ export function CashFlowError({ error, onRetry }: CashFlowErrorProps) {
 				</button>
 			</div>
 		</div>
-	)
+	);
 }

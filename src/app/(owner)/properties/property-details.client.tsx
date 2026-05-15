@@ -1,10 +1,14 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
-import { Badge } from '#components/ui/badge'
-import { Button } from '#components/ui/button'
-import { ButtonGroup } from '#components/ui/button-group'
-import { Card, CardContent, CardHeader, CardTitle } from '#components/ui/card'
+import { Building, Edit, MapPin, Trash2 } from "lucide-react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
+import { toast } from "sonner";
+import { DocumentsSection } from "#components/documents/documents-section";
+import { PropertyImageGallery } from "#components/properties/property-image-gallery";
+import { PropertyPerformanceSection } from "#components/properties/property-performance-section";
+import { PropertyUnitsTable } from "#components/properties/property-units-table";
 import {
 	AlertDialog,
 	AlertDialogAction,
@@ -13,21 +17,17 @@ import {
 	AlertDialogDescription,
 	AlertDialogFooter,
 	AlertDialogHeader,
-	AlertDialogTitle
-} from '#components/ui/alert-dialog'
-import type { Property } from '#types/core'
-import { Building, Edit, MapPin, Trash2 } from 'lucide-react'
-import Link from 'next/link'
-import { useRouter } from 'next/navigation'
-import { DocumentsSection } from '#components/documents/documents-section'
-import { PropertyImageGallery } from '#components/properties/property-image-gallery'
-import { PropertyPerformanceSection } from '#components/properties/property-performance-section'
-import { PropertyUnitsTable } from '#components/properties/property-units-table'
-import { useDeletePropertyMutation } from '#hooks/api/use-property-mutations'
-import { toast } from 'sonner'
+	AlertDialogTitle,
+} from "#components/ui/alert-dialog";
+import { Badge } from "#components/ui/badge";
+import { Button } from "#components/ui/button";
+import { ButtonGroup } from "#components/ui/button-group";
+import { Card, CardContent, CardHeader, CardTitle } from "#components/ui/card";
+import { useDeletePropertyMutation } from "#hooks/api/use-property-mutations";
+import type { Property } from "#types/core";
 
 interface PropertyDetailsProps {
-	property: Property
+	property: Property;
 }
 
 /**
@@ -40,32 +40,32 @@ interface PropertyDetailsProps {
  * - Property images gallery
  */
 export function PropertyDetails({ property }: PropertyDetailsProps) {
-	const [deleteOpen, setDeleteOpen] = useState(false)
-	const router = useRouter()
-	const deletePropertyMutation = useDeletePropertyMutation()
+	const [deleteOpen, setDeleteOpen] = useState(false);
+	const router = useRouter();
+	const deletePropertyMutation = useDeletePropertyMutation();
 
 	const handleDelete = async () => {
 		try {
-			await deletePropertyMutation.mutateAsync(property.id)
-			toast.success('Property deleted successfully')
-			router.push('/properties')
+			await deletePropertyMutation.mutateAsync(property.id);
+			toast.success("Property deleted successfully");
+			router.push("/properties");
 		} catch {
-			toast.error('Failed to delete property. Please try again.')
+			toast.error("Failed to delete property. Please try again.");
 		}
-	}
+	};
 
 	const getStatusBadgeClass = (status: string | null) => {
 		switch (status?.toLowerCase()) {
-			case 'active':
-				return 'bg-success/10 text-success'
-			case 'inactive':
-				return 'bg-muted text-muted-foreground'
-			case 'sold':
-				return 'bg-info/10 text-info'
+			case "active":
+				return "bg-success/10 text-success";
+			case "inactive":
+				return "bg-muted text-muted-foreground";
+			case "sold":
+				return "bg-info/10 text-info";
 			default:
-				return 'bg-success/10 text-success'
+				return "bg-success/10 text-success";
 		}
-	}
+	};
 
 	return (
 		<div className="space-y-6">
@@ -76,7 +76,7 @@ export function PropertyDetails({ property }: PropertyDetailsProps) {
 					<div className="flex items-center gap-2 mt-1 text-muted-foreground">
 						<MapPin className="size-4 shrink-0" />
 						<span>
-							{property.address_line1}, {property.city}, {property.state}{' '}
+							{property.address_line1}, {property.city}, {property.state}{" "}
 							{property.postal_code}
 						</span>
 					</div>
@@ -85,8 +85,8 @@ export function PropertyDetails({ property }: PropertyDetailsProps) {
 						<span className="flex items-center gap-1.5">
 							<Building className="size-3.5" />
 							<span className="capitalize">
-								{property.property_type?.toLowerCase().replace(/_/g, ' ') ||
-									'Not specified'}
+								{property.property_type?.toLowerCase().replace(/_/g, " ") ||
+									"Not specified"}
 							</span>
 						</span>
 						<span className="text-border">·</span>
@@ -94,17 +94,17 @@ export function PropertyDetails({ property }: PropertyDetailsProps) {
 							variant="outline"
 							className={`border-0 text-xs px-2 py-0 ${getStatusBadgeClass(property.status)}`}
 						>
-							{property.status || 'Active'}
+							{property.status || "Active"}
 						</Badge>
 						{property.created_at && (
 							<>
 								<span className="text-border">·</span>
 								<span>
-									Added{' '}
-									{new Date(property.created_at).toLocaleDateString('en-US', {
-										year: 'numeric',
-										month: 'short',
-										day: 'numeric'
+									Added{" "}
+									{new Date(property.created_at).toLocaleDateString("en-US", {
+										year: "numeric",
+										month: "short",
+										day: "numeric",
 									})}
 								</span>
 							</>
@@ -137,7 +137,7 @@ export function PropertyDetails({ property }: PropertyDetailsProps) {
 			<PropertyUnitsTable
 				propertyId={property.id}
 				propertyName={property.name}
-				propertyType={property.property_type ?? ''}
+				propertyType={property.property_type ?? ""}
 			/>
 
 			{/* Property Images Gallery */}
@@ -170,11 +170,11 @@ export function PropertyDetails({ property }: PropertyDetailsProps) {
 							onClick={handleDelete}
 							className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
 						>
-							{deletePropertyMutation.isPending ? 'Deleting...' : 'Delete'}
+							{deletePropertyMutation.isPending ? "Deleting..." : "Delete"}
 						</AlertDialogAction>
 					</AlertDialogFooter>
 				</AlertDialogContent>
 			</AlertDialog>
 		</div>
-	)
+	);
 }

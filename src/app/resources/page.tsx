@@ -1,10 +1,3 @@
-import type { Metadata } from 'next'
-
-import { PageLayout } from '#components/layout/page-layout'
-import { JsonLdScript } from '#components/seo/json-ld-script'
-import { Badge } from '#components/ui/badge'
-import { Button } from '#components/ui/button'
-
 import {
 	ArrowRight,
 	BookOpen,
@@ -14,89 +7,94 @@ import {
 	Mail,
 	MessageCircle,
 	Scale,
-	Table
-} from 'lucide-react'
-import Link from 'next/link'
-import { createBreadcrumbJsonLd } from '#lib/seo/breadcrumbs'
-import { createPageMetadata } from '#lib/seo/page-metadata'
+	Table,
+} from "lucide-react";
+import type { Metadata } from "next";
+import Link from "next/link";
+import { PageLayout } from "#components/layout/page-layout";
+import { JsonLdScript } from "#components/seo/json-ld-script";
+import { Badge } from "#components/ui/badge";
+import { Button } from "#components/ui/button";
+import { createBreadcrumbJsonLd } from "#lib/seo/breadcrumbs";
+import { createPageMetadata } from "#lib/seo/page-metadata";
 
 export const metadata: Metadata = createPageMetadata({
-	title: 'Free Landlord Resources — Templates & Tools',
+	title: "Free Landlord Resources — Templates & Tools",
 	description:
-		'Free downloadable property management templates: seasonal maintenance checklists, tax deduction trackers, security deposit law guides for landlords.',
-	path: '/resources'
-})
+		"Free downloadable property management templates: seasonal maintenance checklists, tax deduction trackers, security deposit law guides for landlords.",
+	path: "/resources",
+});
 
 const mainResources = [
 	{
 		icon: <HelpCircle className="size-8" />,
-		title: 'Help Center',
+		title: "Help Center",
 		description:
-			'Setup guides for the document vault, leases, maintenance, and team billing.',
-		href: '/help',
-		color: 'bg-muted border-border',
-		iconColor: 'text-muted-foreground'
+			"Setup guides for the document vault, leases, maintenance, and team billing.",
+		href: "/help",
+		color: "bg-muted border-border",
+		iconColor: "text-muted-foreground",
 	},
 	{
 		icon: <BookOpen className="size-8" />,
-		title: 'Blog',
+		title: "Blog",
 		description:
-			'Property management workflow notes from the team, posted as we ship.',
-		href: '/blog',
-		color: 'bg-primary/10 border-primary/20',
-		iconColor: 'text-primary'
+			"Property management workflow notes from the team, posted as we ship.",
+		href: "/blog",
+		color: "bg-primary/10 border-primary/20",
+		iconColor: "text-primary",
 	},
 	{
 		icon: <MessageCircle className="size-8" />,
-		title: 'FAQ',
+		title: "FAQ",
 		description:
-			'Common questions about TenantFlow — features, plans, security, and migrating in.',
-		href: '/faq',
-		color: 'bg-success/10 border-success/20',
-		iconColor: 'text-success'
+			"Common questions about TenantFlow — features, plans, security, and migrating in.",
+		href: "/faq",
+		color: "bg-success/10 border-success/20",
+		iconColor: "text-success",
 	},
 	{
 		icon: <Mail className="size-8" />,
-		title: 'Contact Support',
+		title: "Contact Support",
 		description:
-			'Email the team. Responses during US business hours, Monday through Friday.',
-		href: '/contact',
-		color: 'bg-warning/10 border-warning/20',
-		iconColor: 'text-warning dark:text-warning'
-	}
-]
+			"Email the team. Responses during US business hours, Monday through Friday.",
+		href: "/contact",
+		color: "bg-warning/10 border-warning/20",
+		iconColor: "text-warning dark:text-warning",
+	},
+];
 
 const downloadResources = [
 	{
 		icon: <ClipboardCheck className="size-6" />,
-		title: 'Seasonal Maintenance Checklist',
+		title: "Seasonal Maintenance Checklist",
 		description:
-			'Season-by-season checklist covering HVAC, plumbing, electrical, and exterior inspections.',
-		href: '/resources/seasonal-maintenance-checklist',
-		badge: 'Checklist'
+			"Season-by-season checklist covering HVAC, plumbing, electrical, and exterior inspections.",
+		href: "/resources/seasonal-maintenance-checklist",
+		badge: "Checklist",
 	},
 	{
 		icon: <Table className="size-6" />,
-		title: 'Tax Deduction Tracker',
+		title: "Tax Deduction Tracker",
 		description:
-			'Track every deductible expense year-round, organized by IRS Schedule E categories.',
-		href: '/resources/landlord-tax-deduction-tracker',
-		badge: 'Spreadsheet'
+			"Track every deductible expense year-round, organized by IRS Schedule E categories.",
+		href: "/resources/landlord-tax-deduction-tracker",
+		badge: "Spreadsheet",
 	},
 	{
 		icon: <Scale className="size-6" />,
-		title: 'Security Deposit Reference Card',
+		title: "Security Deposit Reference Card",
 		description:
-			'Deposit limits, return deadlines, and documentation requirements for all 50 states.',
-		href: '/resources/security-deposit-reference-card',
-		badge: 'Guide'
-	}
-]
+			"Deposit limits, return deadlines, and documentation requirements for all 50 states.",
+		href: "/resources/security-deposit-reference-card",
+		badge: "Guide",
+	},
+];
 
 export default function ResourcesPage() {
 	return (
 		<PageLayout>
-			<JsonLdScript schema={createBreadcrumbJsonLd('/resources')} />
+			<JsonLdScript schema={createBreadcrumbJsonLd("/resources")} />
 
 			{/* Hero Section */}
 			<section className="relative pb-16 overflow-hidden">
@@ -107,7 +105,7 @@ export default function ResourcesPage() {
 				<div className="max-w-7xl mx-auto px-6 lg:px-8 relative z-10">
 					<div className="text-center max-w-4xl mx-auto space-y-8">
 						<h1 className="text-5xl lg:text-7xl font-bold tracking-tight leading-[1.1] text-foreground">
-							Resources for{' '}
+							Resources for{" "}
 							<span className="text-foreground font-semibold">landlords</span>
 						</h1>
 
@@ -132,7 +130,7 @@ export default function ResourcesPage() {
 					</div>
 
 					<div className="grid md:grid-cols-2 gap-8">
-						{mainResources.map(resource => (
+						{mainResources.map((resource) => (
 							<Link
 								key={resource.title}
 								href={resource.href}
@@ -184,7 +182,7 @@ export default function ResourcesPage() {
 					</div>
 
 					<div className="grid md:grid-cols-3 gap-6">
-						{downloadResources.map(resource => (
+						{downloadResources.map((resource) => (
 							<Link
 								key={resource.title}
 								href={resource.href}
@@ -221,7 +219,7 @@ export default function ResourcesPage() {
 				<div className="max-w-6xl mx-auto px-6 lg:px-8 relative z-10">
 					<div className="text-center space-y-8">
 						<h2 className="text-4xl lg:text-5xl font-bold tracking-tight leading-tight text-foreground">
-							Still have questions?{' '}
+							Still have questions?{" "}
 							<span className="text-foreground font-semibold">
 								Reach the team
 							</span>
@@ -256,5 +254,5 @@ export default function ResourcesPage() {
 				</div>
 			</section>
 		</PageLayout>
-	)
+	);
 }

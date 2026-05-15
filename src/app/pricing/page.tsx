@@ -1,52 +1,51 @@
-import type { Metadata } from 'next'
-
-import { PageLayout } from '#components/layout/page-layout'
-import { JsonLdScript } from '#components/seo/json-ld-script'
-import { Badge } from '#components/ui/badge'
-import { CheckCircle2 } from 'lucide-react'
-import { TestimonialsSection } from '#components/sections/testimonials-section'
-import { realTestimonials } from '../../data/testimonials'
-import { LeadCaptureModal } from '#components/marketing/lead-capture-modal'
-import { StickyConversionCta } from '#components/marketing/sticky-conversion-cta'
-import { createBreadcrumbJsonLd } from '#lib/seo/breadcrumbs'
-import { createFaqJsonLd } from '#lib/seo/faq-schema'
-import { createPageMetadata } from '#lib/seo/page-metadata'
-import { createProductJsonLd } from '#lib/seo/product-schema'
-import { PricingSection } from './_components/pricing-section'
+import { CheckCircle2 } from "lucide-react";
+import type { Metadata } from "next";
+import { PageLayout } from "#components/layout/page-layout";
+import { LeadCaptureModal } from "#components/marketing/lead-capture-modal";
+import { StickyConversionCta } from "#components/marketing/sticky-conversion-cta";
+import { TestimonialsSection } from "#components/sections/testimonials-section";
+import { JsonLdScript } from "#components/seo/json-ld-script";
+import { Badge } from "#components/ui/badge";
+import { createBreadcrumbJsonLd } from "#lib/seo/breadcrumbs";
+import { createFaqJsonLd } from "#lib/seo/faq-schema";
+import { createPageMetadata } from "#lib/seo/page-metadata";
+import { createProductJsonLd } from "#lib/seo/product-schema";
+import { realTestimonials } from "../../data/testimonials";
+import { PricingSection } from "./_components/pricing-section";
 import {
 	PricingCtaSection,
 	PricingFaqSection,
 	PricingStatsGrid,
-	pricingFaqs
-} from './pricing-content'
+	pricingFaqs,
+} from "./pricing-content";
 
 // ISR — pricing copy + JSON-LD are static; refresh once an hour to pick up
 // any pricing-content.tsx edits without a full redeploy.
-export const revalidate = 3600
+export const revalidate = 3600;
 
 export const metadata: Metadata = createPageMetadata({
-	title: 'Property Management Software Pricing | Plans from $19/mo',
+	title: "Property Management Software Pricing | Plans from $19/mo",
 	description:
-		'Property management software for landlords with 1–15 rentals. Starter ($19/mo, 5 properties), Growth ($49/mo, 20 properties), Max ($149/mo, unlimited properties). 14-day free trial, no credit card required.',
-	path: '/pricing',
-	ogImage: '/api/og/pricing'
-})
+		"Property management software for landlords with 1–15 rentals. Starter ($19/mo, 5 properties), Growth ($49/mo, 20 properties), Max ($149/mo, unlimited properties). 14-day free trial, no credit card required.",
+	path: "/pricing",
+	ogImage: "/api/og/pricing",
+});
 
 export default async function PricingPage() {
 	const faqJsonLd = createFaqJsonLd(
-		pricingFaqs.map(faq => ({ question: faq.question, answer: faq.answer }))
-	)
-	const breadcrumbJsonLd = createBreadcrumbJsonLd('/pricing')
+		pricingFaqs.map((faq) => ({ question: faq.question, answer: faq.answer })),
+	);
+	const breadcrumbJsonLd = createBreadcrumbJsonLd("/pricing");
 	const productJsonLd = createProductJsonLd({
-		name: 'TenantFlow Property Management Software',
+		name: "TenantFlow Property Management Software",
 		description:
-			'Professional property management software for landlords with 1–15 rentals. Starter $19/mo (5 properties), Growth $49/mo (20 properties), Max $149/mo (unlimited properties). 14-day free trial, no credit card required.',
+			"Professional property management software for landlords with 1–15 rentals. Starter $19/mo (5 properties), Growth $49/mo (20 properties), Max $149/mo (unlimited properties). 14-day free trial, no credit card required.",
 		offers: [
-			{ name: 'Starter', price: '19.00' },
-			{ name: 'Growth', price: '49.00' },
-			{ name: 'Max', price: '149.00' }
-		]
-	})
+			{ name: "Starter", price: "19.00" },
+			{ name: "Growth", price: "49.00" },
+			{ name: "Max", price: "149.00" },
+		],
+	});
 
 	return (
 		<PageLayout>
@@ -65,7 +64,7 @@ export default async function PricingPage() {
 							Built for landlords — 14-day free trial, no credit card
 						</Badge>
 						<h1 className="text-balance typography-h1 tracking-tight text-foreground sm:text-5xl lg:text-6xl">
-							Simple, transparent pricing for{' '}
+							Simple, transparent pricing for{" "}
 							<span className="hero-highlight">every portfolio</span>
 						</h1>
 						<p className="mx-auto max-w-2xl text-balance text-lg text-muted-foreground">
@@ -102,5 +101,5 @@ export default async function PricingPage() {
 			<StickyConversionCta />
 			<LeadCaptureModal />
 		</PageLayout>
-	)
+	);
 }

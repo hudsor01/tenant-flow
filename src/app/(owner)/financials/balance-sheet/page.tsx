@@ -1,149 +1,150 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
-import { Building2, Wallet, CreditCard, Download } from 'lucide-react'
-import { Button } from '#components/ui/button'
+import { Building2, CreditCard, Download, Wallet } from "lucide-react";
+import { useState } from "react";
+import { BlurFade } from "#components/ui/blur-fade";
+import { BorderBeam } from "#components/ui/border-beam";
+import { Button } from "#components/ui/button";
 import {
 	Select,
 	SelectContent,
 	SelectItem,
 	SelectTrigger,
-	SelectValue
-} from '#components/ui/select'
-import { BlurFade } from '#components/ui/blur-fade'
-import { BorderBeam } from '#components/ui/border-beam'
+	SelectValue,
+} from "#components/ui/select";
 import {
 	Stat,
+	StatDescription,
+	StatIndicator,
 	StatLabel,
 	StatValue,
-	StatIndicator,
-	StatDescription
-} from '#components/ui/stat'
-import { formatDate } from '#lib/formatters/date'
-import { useBalanceSheet } from '#hooks/api/use-financials'
-import { BalanceSection } from './balance-section'
-import { EquitySection } from './equity-section'
-import { BalanceEquationCheck } from './balance-equation-check'
-import { BalanceSheetSkeleton } from './balance-sheet-skeleton'
-import { BalanceSheetError } from './balance-sheet-error'
+} from "#components/ui/stat";
+import { useBalanceSheet } from "#hooks/api/use-financials";
+import { formatDate } from "#lib/formatters/date";
+import { BalanceEquationCheck } from "./balance-equation-check";
+import { BalanceSection } from "./balance-section";
+import { BalanceSheetError } from "./balance-sheet-error";
+import { BalanceSheetSkeleton } from "./balance-sheet-skeleton";
+import { EquitySection } from "./equity-section";
 
 export default function BalanceSheetPage() {
-	const [year, setYear] = useState('2024')
-	const [month, setMonth] = useState('12')
+	const [year, setYear] = useState("2024");
+	const [month, setMonth] = useState("12");
 
-	const asOfDate = `${year}-${month}-${new Date(parseInt(year, 10), parseInt(month, 10), 0).getDate()}`
-	const { data, isLoading, error, refetch } = useBalanceSheet(asOfDate)
-	const balanceData = data?.data
+	const asOfDate = `${year}-${month}-${new Date(parseInt(year, 10), parseInt(month, 10), 0).getDate()}`;
+	const { data, isLoading, error, refetch } = useBalanceSheet(asOfDate);
+	const balanceData = data?.data;
 
 	const assetsItems = (() => {
-		if (!balanceData) return []
+		if (!balanceData) return [];
 		return [
 			{
-				label: 'Current Assets',
+				label: "Current Assets",
 				items: [
-					{ name: 'Cash', amount: balanceData.assets.currentAssets.cash },
+					{ name: "Cash", amount: balanceData.assets.currentAssets.cash },
 					{
-						name: 'Accounts Receivable',
-						amount: balanceData.assets.currentAssets.accountsReceivable
+						name: "Accounts Receivable",
+						amount: balanceData.assets.currentAssets.accountsReceivable,
 					},
 					{
-						name: 'Security Deposits',
-						amount: balanceData.assets.currentAssets.security_deposits
-					}
+						name: "Security Deposits",
+						amount: balanceData.assets.currentAssets.security_deposits,
+					},
 				],
 				subtotal:
 					balanceData.assets.currentAssets.cash +
 					balanceData.assets.currentAssets.accountsReceivable +
-					balanceData.assets.currentAssets.security_deposits
+					balanceData.assets.currentAssets.security_deposits,
 			},
 			{
-				label: 'Fixed Assets',
+				label: "Fixed Assets",
 				items: [
 					{
-						name: 'Property Values',
-						amount: balanceData.assets.fixedAssets.propertyValues
+						name: "Property Values",
+						amount: balanceData.assets.fixedAssets.propertyValues,
 					},
 					{
-						name: 'Accumulated Depreciation',
-						amount: -balanceData.assets.fixedAssets.accumulatedDepreciation
+						name: "Accumulated Depreciation",
+						amount: -balanceData.assets.fixedAssets.accumulatedDepreciation,
 					},
 					{
-						name: 'Net Property Value',
-						amount: balanceData.assets.fixedAssets.netPropertyValue
-					}
+						name: "Net Property Value",
+						amount: balanceData.assets.fixedAssets.netPropertyValue,
+					},
 				],
-				subtotal: balanceData.assets.fixedAssets.netPropertyValue
-			}
-		]
-	})()
+				subtotal: balanceData.assets.fixedAssets.netPropertyValue,
+			},
+		];
+	})();
 
 	const liabilitiesItems = (() => {
-		if (!balanceData) return []
+		if (!balanceData) return [];
 		return [
 			{
-				label: 'Current Liabilities',
+				label: "Current Liabilities",
 				items: [
 					{
-						name: 'Accounts Payable',
-						amount: balanceData.liabilities.currentLiabilities.accountsPayable
+						name: "Accounts Payable",
+						amount: balanceData.liabilities.currentLiabilities.accountsPayable,
 					},
 					{
-						name: 'Security Deposit Liability',
+						name: "Security Deposit Liability",
 						amount:
 							balanceData.liabilities.currentLiabilities
-								.security_depositLiability
+								.security_depositLiability,
 					},
 					{
-						name: 'Accrued Expenses',
-						amount: balanceData.liabilities.currentLiabilities.accruedExpenses
-					}
+						name: "Accrued Expenses",
+						amount: balanceData.liabilities.currentLiabilities.accruedExpenses,
+					},
 				],
 				subtotal:
 					balanceData.liabilities.currentLiabilities.accountsPayable +
 					balanceData.liabilities.currentLiabilities.security_depositLiability +
-					balanceData.liabilities.currentLiabilities.accruedExpenses
+					balanceData.liabilities.currentLiabilities.accruedExpenses,
 			},
 			{
-				label: 'Long-Term Liabilities',
+				label: "Long-Term Liabilities",
 				items: [
 					{
-						name: 'Mortgages Payable',
-						amount: balanceData.liabilities.longTermLiabilities.mortgagesPayable
-					}
+						name: "Mortgages Payable",
+						amount:
+							balanceData.liabilities.longTermLiabilities.mortgagesPayable,
+					},
 				],
-				subtotal: balanceData.liabilities.longTermLiabilities.mortgagesPayable
-			}
-		]
-	})()
+				subtotal: balanceData.liabilities.longTermLiabilities.mortgagesPayable,
+			},
+		];
+	})();
 
 	const equityItems = (() => {
-		if (!balanceData) return []
+		if (!balanceData) return [];
 		return [
-			{ name: 'Owner Capital', amount: balanceData.equity.ownerCapital },
+			{ name: "Owner Capital", amount: balanceData.equity.ownerCapital },
 			{
-				name: 'Retained Earnings',
-				amount: balanceData.equity.retainedEarnings
+				name: "Retained Earnings",
+				amount: balanceData.equity.retainedEarnings,
 			},
 			{
-				name: 'Current Period Income',
-				amount: balanceData.equity.currentPeriodIncome
-			}
-		]
-	})()
+				name: "Current Period Income",
+				amount: balanceData.equity.currentPeriodIncome,
+			},
+		];
+	})();
 
-	const totalAssets = balanceData?.assets.totalAssets || 0
-	const totalLiabilities = balanceData?.liabilities.totalLiabilities || 0
-	const totalEquity = balanceData?.equity.totalEquity || 0
-	const isBalanced = balanceData?.balanceCheck !== false
+	const totalAssets = balanceData?.assets.totalAssets || 0;
+	const totalLiabilities = balanceData?.liabilities.totalLiabilities || 0;
+	const totalEquity = balanceData?.equity.totalEquity || 0;
+	const isBalanced = balanceData?.balanceCheck !== false;
 
 	if (isLoading) {
-		return <BalanceSheetSkeleton />
+		return <BalanceSheetSkeleton />;
 	}
 
 	if (error) {
 		return (
 			<BalanceSheetError error={error} onRetryAction={() => void refetch()} />
-		)
+		);
 	}
 
 	return (
@@ -154,7 +155,7 @@ export default function BalanceSheetPage() {
 					<div>
 						<h1 className="typography-h1">Balance Sheet</h1>
 						<p className="text-muted-foreground">
-							As of {formatDate(asOfDate, { style: 'long' })}
+							As of {formatDate(asOfDate, { style: "long" })}
 						</p>
 					</div>
 					<div className="flex gap-2">
@@ -287,5 +288,5 @@ export default function BalanceSheetPage() {
 				</div>
 			</BlurFade>
 		</div>
-	)
+	);
 }

@@ -1,4 +1,4 @@
-'use client'
+"use client";
 
 import {
 	AlertDialog,
@@ -8,18 +8,18 @@ import {
 	AlertDialogDescription,
 	AlertDialogFooter,
 	AlertDialogHeader,
-	AlertDialogTitle
-} from '#components/ui/alert-dialog'
+	AlertDialogTitle,
+} from "#components/ui/alert-dialog";
 
 interface ConfirmDialogProps {
-	open: boolean
-	onOpenChange: (open: boolean) => void
-	title: string
-	description: string
-	confirmText?: string
-	confirmVariant?: 'default' | 'destructive'
-	onConfirm: () => void
-	loading?: boolean
+	open: boolean;
+	onOpenChange: (open: boolean) => void;
+	title: string;
+	description: string;
+	confirmText?: string;
+	confirmVariant?: "default" | "destructive";
+	onConfirm: () => void;
+	loading?: boolean;
 }
 
 export function ConfirmDialog({
@@ -27,10 +27,10 @@ export function ConfirmDialog({
 	onOpenChange,
 	title,
 	description,
-	confirmText = 'Confirm',
-	confirmVariant = 'destructive',
+	confirmText = "Confirm",
+	confirmVariant = "destructive",
 	onConfirm,
-	loading = false
+	loading = false,
 }: ConfirmDialogProps) {
 	return (
 		<AlertDialog open={open} onOpenChange={onOpenChange}>
@@ -45,15 +45,15 @@ export function ConfirmDialog({
 						onClick={onConfirm}
 						disabled={loading}
 						className={
-							confirmVariant === 'destructive'
-								? 'bg-destructive text-destructive-foreground hover:bg-destructive/90'
-								: ''
+							confirmVariant === "destructive"
+								? "bg-destructive text-destructive-foreground hover:bg-destructive/90"
+								: ""
 						}
 					>
-						{loading ? 'Processing...' : confirmText}
+						{loading ? "Processing..." : confirmText}
 					</AlertDialogAction>
 				</AlertDialogFooter>
 			</AlertDialogContent>
 		</AlertDialog>
-	)
+	);
 }

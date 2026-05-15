@@ -1,102 +1,109 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
 import {
-	Home,
-	Building2,
-	Users,
-	FileText,
-	Wrench,
 	BarChart3,
-	Receipt,
-	Settings,
+	Building2,
 	ChevronDown,
 	ChevronUp,
-	FilePlus,
+	ClipboardList,
 	FileCheck,
+	FilePlus,
+	FileText,
 	FolderArchive,
 	HelpCircle,
+	Home,
 	Keyboard,
-	ClipboardList,
-	type LucideIcon
-} from 'lucide-react'
-import Link from 'next/link'
-import { usePathname } from 'next/navigation'
+	type LucideIcon,
+	Receipt,
+	Settings,
+	Users,
+	Wrench,
+} from "lucide-react";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { useState } from "react";
 
 export interface NavigationItem {
-	label: string
-	href: string
-	icon: LucideIcon
-	children?: { label: string; href: string }[]
+	label: string;
+	href: string;
+	icon: LucideIcon;
+	children?: { label: string; href: string }[];
 }
 
 export interface DocumentItem {
-	label: string
-	href: string
-	icon: LucideIcon
+	label: string;
+	href: string;
+	icon: LucideIcon;
 }
 
 interface MainNavProps {
-	onNavigate?: () => void
+	onNavigate?: () => void;
 }
 
 // Core navigation items
 const coreItems: NavigationItem[] = [
-	{ label: 'Dashboard', href: '/dashboard', icon: Home },
-	{ label: 'Properties', href: '/properties', icon: Building2 },
-	{ label: 'Tenants', href: '/tenants', icon: Users },
-	{ label: 'Leases', href: '/leases', icon: ClipboardList },
-	{ label: 'Maintenance', href: '/maintenance', icon: Wrench },
-	{ label: 'Documents', href: '/documents/vault', icon: FolderArchive }
-]
+	{ label: "Dashboard", href: "/dashboard", icon: Home },
+	{ label: "Properties", href: "/properties", icon: Building2 },
+	{ label: "Tenants", href: "/tenants", icon: Users },
+	{ label: "Leases", href: "/leases", icon: ClipboardList },
+	{ label: "Maintenance", href: "/maintenance", icon: Wrench },
+	{ label: "Documents", href: "/documents/vault", icon: FolderArchive },
+];
 
 // Collapsible sections
 const analyticsItems: NavigationItem[] = [
 	{
-		label: 'Analytics',
-		href: '/analytics',
+		label: "Analytics",
+		href: "/analytics",
 		icon: BarChart3,
 		children: [
-			{ label: 'Overview', href: '/analytics/overview' },
-			{ label: 'Financial', href: '/analytics/financial' },
-			{ label: 'Property Performance', href: '/analytics/property-performance' }
+			{ label: "Overview", href: "/analytics/overview" },
+			{ label: "Financial", href: "/analytics/financial" },
+			{
+				label: "Property Performance",
+				href: "/analytics/property-performance",
+			},
 			// Domain-specific analytics (Leases, Maintenance, Occupancy) are now
 			// available via "Insights" tabs on their respective main pages
-		]
+		],
 	},
 	{
-		label: 'Reports',
-		href: '/reports',
+		label: "Reports",
+		href: "/reports",
 		icon: FileText,
-		children: [{ label: 'Generate Reports', href: '/reports/generate' }]
+		children: [{ label: "Generate Reports", href: "/reports/generate" }],
 	},
 	{
-		label: 'Financials',
-		href: '/financials',
+		label: "Financials",
+		href: "/financials",
 		icon: Receipt,
 		children: [
-			{ label: 'Income Statement', href: '/financials/income-statement' },
-			{ label: 'Cash Flow', href: '/financials/cash-flow' },
-			{ label: 'Balance Sheet', href: '/financials/balance-sheet' },
-			{ label: 'Tax Documents', href: '/financials/tax-documents' }
-		]
-	}
-]
+			{ label: "Income Statement", href: "/financials/income-statement" },
+			{ label: "Cash Flow", href: "/financials/cash-flow" },
+			{ label: "Balance Sheet", href: "/financials/balance-sheet" },
+			{ label: "Tax Documents", href: "/financials/tax-documents" },
+		],
+	},
+];
 
 // Document items
 const documentItems: DocumentItem[] = [
-	{ label: 'Generate Lease', href: '/leases/new', icon: FilePlus },
-	{ label: 'Lease Template', href: '/documents/lease-template', icon: FileCheck }
-]
+	{ label: "Generate Lease", href: "/leases/new", icon: FilePlus },
+	{
+		label: "Lease Template",
+		href: "/documents/lease-template",
+		icon: FileCheck,
+	},
+];
 
 // Settings menu with upward dropdown
 function SettingsMenu({ onNavigate }: { onNavigate: () => void }) {
-	const [isOpen, setIsOpen] = useState(false)
+	const [isOpen, setIsOpen] = useState(false);
 
 	const handleLinkClick = () => {
-		setIsOpen(false)
-		onNavigate()
-	}
+		setIsOpen(false);
+		onNavigate();
+	};
 
 	return (
 		<div className="mt-auto pt-4 border-t border-border relative">
@@ -140,51 +147,51 @@ function SettingsMenu({ onNavigate }: { onNavigate: () => void }) {
 			{/* Settings button */}
 			<button
 				onClick={() => setIsOpen(!isOpen)}
-				className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-sm text-foreground hover:bg-muted transition-colors ${isOpen ? 'bg-muted' : ''}`}
+				className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-sm text-foreground hover:bg-muted transition-colors ${isOpen ? "bg-muted" : ""}`}
 			>
 				<div className="flex items-center gap-3">
 					<Settings className="w-5 h-5 text-muted-foreground" />
 					Settings
 				</div>
 				<ChevronUp
-					className={`w-4 h-4 text-muted-foreground transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`}
+					className={`w-4 h-4 text-muted-foreground transition-transform duration-200 ${isOpen ? "rotate-180" : ""}`}
 				/>
 			</button>
 		</div>
-	)
+	);
 }
 
 export function MainNav({ onNavigate }: MainNavProps) {
-	const [expandedItems, setExpandedItems] = useState<Set<string>>(new Set())
-	const pathname = usePathname()
+	const [expandedItems, setExpandedItems] = useState<Set<string>>(new Set());
+	const pathname = usePathname();
 
 	// Always define a handler function (noop if not provided)
 	const handleNavigate = () => {
-		onNavigate?.()
-	}
+		onNavigate?.();
+	};
 
 	const isActive = (href: string) => {
-		if (href === '/dashboard') return pathname === '/dashboard'
-		return pathname.startsWith(href)
-	}
+		if (href === "/dashboard") return pathname === "/dashboard";
+		return pathname.startsWith(href);
+	};
 
 	const toggleExpanded = (label: string) => {
-		setExpandedItems(prev => {
-			const next = new Set(prev)
+		setExpandedItems((prev) => {
+			const next = new Set(prev);
 			if (next.has(label)) {
-				next.delete(label)
+				next.delete(label);
 			} else {
-				next.add(label)
+				next.add(label);
 			}
-			return next
-		})
-	}
+			return next;
+		});
+	};
 
 	const renderNavItem = (item: NavigationItem) => {
-		const hasChildren = item.children && item.children.length > 0
-		const isExpanded = expandedItems.has(item.label)
-		const active = isActive(item.href)
-		const Icon = item.icon
+		const hasChildren = item.children && item.children.length > 0;
+		const isExpanded = expandedItems.has(item.label);
+		const active = isActive(item.href);
+		const Icon = item.icon;
 
 		if (hasChildren) {
 			return (
@@ -199,42 +206,42 @@ export function MainNav({ onNavigate }: MainNavProps) {
 						</div>
 						<ChevronDown
 							className={`w-4 h-4 text-muted-foreground transition-transform duration-200 ${
-								isExpanded ? 'rotate-180' : ''
+								isExpanded ? "rotate-180" : ""
 							}`}
 						/>
 					</button>
 					<div
 						className={`overflow-hidden transition-all duration-200 ${
-							isExpanded ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'
+							isExpanded ? "max-h-96 opacity-100" : "max-h-0 opacity-0"
 						}`}
 					>
 						<div className="ml-8 py-1 space-y-0.5">
-							{item.children!.map(child => {
-								const childActive = pathname === child.href
+							{item.children!.map((child) => {
+								const childActive = pathname === child.href;
 								return (
 									<Link
 										key={child.href}
 										href={child.href}
 										onClick={handleNavigate}
-										aria-current={childActive ? 'page' : undefined}
+										aria-current={childActive ? "page" : undefined}
 										className={`
 											w-full flex items-center gap-3 px-3 py-2 rounded-lg
 											text-sm transition-colors
 											${
 												childActive
-													? 'text-primary font-medium bg-primary/5'
-													: 'text-muted-foreground hover:text-foreground hover:bg-muted'
+													? "text-primary font-medium bg-primary/5"
+													: "text-muted-foreground hover:text-foreground hover:bg-muted"
 											}
 										`}
 									>
 										{child.label}
 									</Link>
-								)
+								);
 							})}
 						</div>
 					</div>
 				</div>
-			)
+			);
 		}
 
 		return (
@@ -242,18 +249,22 @@ export function MainNav({ onNavigate }: MainNavProps) {
 				key={item.href}
 				href={item.href}
 				onClick={handleNavigate}
-				aria-current={active ? 'page' : undefined}
+				aria-current={active ? "page" : undefined}
 				className={`
 					w-full flex items-center gap-3 px-3 py-2.5 rounded-lg
 					text-sm font-medium transition-colors
-					${active ? 'bg-primary/10 text-primary' : 'text-foreground hover:bg-muted'}
+					${active ? "bg-primary/10 text-primary" : "text-foreground hover:bg-muted"}
 				`}
 			>
-				<Icon className={active ? 'w-5 h-5 text-primary' : 'w-5 h-5 text-muted-foreground'} />
+				<Icon
+					className={
+						active ? "w-5 h-5 text-primary" : "w-5 h-5 text-muted-foreground"
+					}
+				/>
 				{item.label}
 			</Link>
-		)
-	}
+		);
+	};
 
 	return (
 		<nav className="flex-1 flex flex-col px-3 py-2 overflow-y-auto">
@@ -271,8 +282,8 @@ export function MainNav({ onNavigate }: MainNavProps) {
 					Templates
 				</p>
 				<div className="space-y-0.5">
-					{documentItems.map(item => {
-						const Icon = item.icon
+					{documentItems.map((item) => {
+						const Icon = item.icon;
 						return (
 							<Link
 								key={item.href}
@@ -283,7 +294,7 @@ export function MainNav({ onNavigate }: MainNavProps) {
 								<Icon className="w-5 h-5 text-muted-foreground" />
 								{item.label}
 							</Link>
-						)
+						);
 					})}
 				</div>
 			</div>
@@ -291,5 +302,5 @@ export function MainNav({ onNavigate }: MainNavProps) {
 			{/* Settings with upward dropdown */}
 			<SettingsMenu onNavigate={handleNavigate} />
 		</nav>
-	)
+	);
 }

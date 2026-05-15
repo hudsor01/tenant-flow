@@ -1,6 +1,6 @@
-'use client'
+"use client";
 
-import { useEffect } from 'react'
+import { useEffect } from "react";
 
 /**
  * Warns user before navigating away from a page with unsaved form data.
@@ -10,14 +10,14 @@ import { useEffect } from 'react'
  */
 export function useUnsavedChangesWarning(isDirty: boolean) {
 	useEffect(() => {
-		if (!isDirty) return
+		if (!isDirty) return;
 
 		const handler = (e: BeforeUnloadEvent) => {
-			e.preventDefault()
+			e.preventDefault();
 			// Modern browsers show their own generic message regardless of returnValue
-		}
+		};
 
-		window.addEventListener('beforeunload', handler)
-		return () => window.removeEventListener('beforeunload', handler)
-	}, [isDirty])
+		window.addEventListener("beforeunload", handler);
+		return () => window.removeEventListener("beforeunload", handler);
+	}, [isDirty]);
 }

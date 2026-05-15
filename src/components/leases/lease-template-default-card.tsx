@@ -1,22 +1,22 @@
-'use client'
+"use client";
 
-import { FileText, Star, Eye, Download, Edit } from 'lucide-react'
-import { BlurFade } from '#components/ui/blur-fade'
-import type { LeaseTemplate } from './lease-template-types'
-import { CLAUSE_LABELS, formatTemplateDate } from './lease-template-types'
+import { Download, Edit, Eye, FileText, Star } from "lucide-react";
+import { BlurFade } from "#components/ui/blur-fade";
+import type { LeaseTemplate } from "./lease-template-types";
+import { CLAUSE_LABELS, formatTemplateDate } from "./lease-template-types";
 
 interface LeaseTemplateDefaultCardProps {
-	template: LeaseTemplate
-	onPreviewTemplate: (templateId: string) => void
-	onDownloadTemplate: (templateId: string) => void
-	onEditTemplate: (templateId: string) => void
+	template: LeaseTemplate;
+	onPreviewTemplate: (templateId: string) => void;
+	onDownloadTemplate: (templateId: string) => void;
+	onEditTemplate: (templateId: string) => void;
 }
 
 export function LeaseTemplateDefaultCard({
 	template,
 	onPreviewTemplate,
 	onDownloadTemplate,
-	onEditTemplate
+	onEditTemplate,
 }: LeaseTemplateDefaultCardProps) {
 	return (
 		<BlurFade delay={0.3} inView>
@@ -33,9 +33,7 @@ export function LeaseTemplateDefaultCard({
 								</div>
 								<div>
 									<div className="flex items-center gap-2">
-										<h3 className="text-lg font-medium">
-											{template.name}
-										</h3>
+										<h3 className="text-lg font-medium">{template.name}</h3>
 										<span className="inline-flex items-center gap-1 px-2 py-0.5 text-xs font-medium bg-primary/10 text-primary rounded-full">
 											<Star className="w-3 h-3" />
 											Default
@@ -47,18 +45,14 @@ export function LeaseTemplateDefaultCard({
 									<div className="flex items-center gap-4 mt-3">
 										<span className="text-xs text-muted-foreground">
 											{template.leaseTerm === 1
-												? 'Month-to-month'
+												? "Month-to-month"
 												: `${template.leaseTerm} month term`}
 										</span>
-										<span className="text-xs text-muted-foreground">
-											•
-										</span>
+										<span className="text-xs text-muted-foreground">•</span>
 										<span className="text-xs text-muted-foreground">
 											{template.usageCount} leases created
 										</span>
-										<span className="text-xs text-muted-foreground">
-											•
-										</span>
+										<span className="text-xs text-muted-foreground">•</span>
 										<span className="text-xs text-muted-foreground">
 											Updated {formatTemplateDate(template.lastUpdated)}
 										</span>
@@ -90,7 +84,7 @@ export function LeaseTemplateDefaultCard({
 							</div>
 						</div>
 						<div className="flex flex-wrap gap-2 mt-4">
-							{template.clauses.map(clause => (
+							{template.clauses.map((clause) => (
 								<span
 									key={clause}
 									className="inline-flex items-center px-2.5 py-1 text-xs bg-muted rounded-full"
@@ -103,5 +97,5 @@ export function LeaseTemplateDefaultCard({
 				</div>
 			</div>
 		</BlurFade>
-	)
+	);
 }

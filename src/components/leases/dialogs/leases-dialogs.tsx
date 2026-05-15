@@ -1,20 +1,20 @@
-import { RenewLeaseDialog } from './renew-lease-dialog'
-import { TerminateLeaseDialog } from './terminate-lease-dialog'
-import { ConfirmDialog } from '#components/ui/confirm-dialog'
-import type { Lease } from '#types/core'
+import { ConfirmDialog } from "#components/ui/confirm-dialog";
+import type { Lease } from "#types/core";
+import { RenewLeaseDialog } from "./renew-lease-dialog";
+import { TerminateLeaseDialog } from "./terminate-lease-dialog";
 
 interface LeasesDialogsProps {
-	selectedLease: Lease | null
-	showRenewDialog: boolean
-	showTerminateDialog: boolean
-	showDeleteDialog: boolean
-	isDeleting: boolean
-	onRenewOpenChange: (open: boolean) => void
-	onTerminateOpenChange: (open: boolean) => void
-	onDeleteOpenChange: (open: boolean) => void
-	onRenewSuccess: () => void
-	onTerminateSuccess: () => void
-	onDeleteConfirm: () => void
+	selectedLease: Lease | null;
+	showRenewDialog: boolean;
+	showTerminateDialog: boolean;
+	showDeleteDialog: boolean;
+	isDeleting: boolean;
+	onRenewOpenChange: (open: boolean) => void;
+	onTerminateOpenChange: (open: boolean) => void;
+	onDeleteOpenChange: (open: boolean) => void;
+	onRenewSuccess: () => void;
+	onTerminateSuccess: () => void;
+	onDeleteConfirm: () => void;
 }
 
 export function LeasesDialogs({
@@ -28,9 +28,9 @@ export function LeasesDialogs({
 	onDeleteOpenChange,
 	onRenewSuccess,
 	onTerminateSuccess,
-	onDeleteConfirm
+	onDeleteConfirm,
 }: LeasesDialogsProps) {
-	if (!selectedLease) return null
+	if (!selectedLease) return null;
 
 	return (
 		<>
@@ -56,5 +56,5 @@ export function LeasesDialogs({
 				loading={isDeleting}
 			/>
 		</>
-	)
+	);
 }

@@ -1,5 +1,5 @@
-import { PageLayout } from '#components/layout/page-layout'
-import { NotFoundPage } from '#components/shared/not-found-page'
+import { PageLayout } from "#components/layout/page-layout";
+import { NotFoundPage } from "#components/shared/not-found-page";
 
 // Public 404: renders the marketing navbar + footer so a signed-out
 // visitor who mistypes a URL can recover into Features / Pricing /
@@ -10,5 +10,5 @@ export default function NotFound() {
 		<PageLayout>
 			<NotFoundPage dashboardHref="/" />
 		</PageLayout>
-	)
+	);
 }

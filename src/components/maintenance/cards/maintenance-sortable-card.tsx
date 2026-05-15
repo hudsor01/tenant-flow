@@ -1,20 +1,20 @@
-'use client'
+"use client";
 
-import { useSortable } from '@dnd-kit/sortable'
-import { CSS } from '@dnd-kit/utilities'
-import { MaintenanceCard } from './maintenance-card'
-import type { MaintenanceDisplayRequest } from '#types/sections/maintenance'
+import { useSortable } from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
+import type { MaintenanceDisplayRequest } from "#types/sections/maintenance";
+import { MaintenanceCard } from "./maintenance-card";
 
 interface MaintenanceSortableCardProps {
-	request: MaintenanceDisplayRequest
-	columnId: string
-	onView?: (id: string) => void
+	request: MaintenanceDisplayRequest;
+	columnId: string;
+	onView?: (id: string) => void;
 }
 
 export function MaintenanceSortableCard({
 	request,
 	columnId,
-	onView
+	onView,
 }: MaintenanceSortableCardProps) {
 	const {
 		attributes,
@@ -22,21 +22,21 @@ export function MaintenanceSortableCard({
 		setNodeRef,
 		transform,
 		transition,
-		isDragging
+		isDragging,
 	} = useSortable({
 		id: request.id,
 		data: {
-			type: 'maintenance-request',
+			type: "maintenance-request",
 			request,
-			columnId
-		}
-	})
+			columnId,
+		},
+	});
 
 	const style = {
 		transform: CSS.Transform.toString(transform),
 		transition,
-		cursor: isDragging ? 'grabbing' : 'grab'
-	}
+		cursor: isDragging ? "grabbing" : "grab",
+	};
 
 	return (
 		<div ref={setNodeRef} style={style} {...attributes} {...listeners}>
@@ -46,5 +46,5 @@ export function MaintenanceSortableCard({
 				onView={onView}
 			/>
 		</div>
-	)
+	);
 }

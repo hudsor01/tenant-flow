@@ -2,8 +2,8 @@
  * Navigation store tests to ensure routing state aligns with production usage.
  */
 
-import { describe, it, expect, beforeEach } from 'vitest'
-import { useNavigationStore } from '#stores/navigation-store'
+import { beforeEach, describe, expect, it } from "vitest";
+import { useNavigationStore } from "#stores/navigation-store";
 
 const resetNavigationStore = () => {
 	useNavigationStore.setState({
@@ -11,86 +11,86 @@ const resetNavigationStore = () => {
 		breadcrumbs: [],
 		navigationHistory: [],
 		activeRoute: null,
-		activeSection: null
-	})
-}
+		activeSection: null,
+	});
+};
 
-describe('navigation store', () => {
+describe("navigation store", () => {
 	beforeEach(() => {
-		resetNavigationStore()
-	})
+		resetNavigationStore();
+	});
 
-	it('toggles the mobile menu state consistently', () => {
-		const store = useNavigationStore.getState()
-		expect(store.isMobileMenuOpen).toBe(false)
+	it("toggles the mobile menu state consistently", () => {
+		const store = useNavigationStore.getState();
+		expect(store.isMobileMenuOpen).toBe(false);
 
-		store.toggleMobileMenu()
-		expect(useNavigationStore.getState().isMobileMenuOpen).toBe(true)
+		store.toggleMobileMenu();
+		expect(useNavigationStore.getState().isMobileMenuOpen).toBe(true);
 
-		store.closeMobileMenu()
-		expect(useNavigationStore.getState().isMobileMenuOpen).toBe(false)
-	})
+		store.closeMobileMenu();
+		expect(useNavigationStore.getState().isMobileMenuOpen).toBe(false);
+	});
 
-	it('manages breadcrumbs array', () => {
-		const store = useNavigationStore.getState()
+	it("manages breadcrumbs array", () => {
+		const store = useNavigationStore.getState();
 		// Suppress TypeScript error for internal API
 		const setBreadcrumbs = (
 			store as {
 				setBreadcrumbs?: (
-					breadcrumbs: Array<{ label: string; href: string }>
-				) => void
+					breadcrumbs: Array<{ label: string; href: string }>,
+				) => void;
 			}
-		).setBreadcrumbs
-		const { addBreadcrumb, clearBreadcrumbs } = store
+		).setBreadcrumbs;
+		const { addBreadcrumb, clearBreadcrumbs } = store;
 
 		if (setBreadcrumbs) {
-			setBreadcrumbs([{ label: 'Dashboard', href: '/' }])
+			setBreadcrumbs([{ label: "Dashboard", href: "/" }]);
 		}
-		addBreadcrumb({ label: 'Leases', href: '/leases' })
+		addBreadcrumb({ label: "Leases", href: "/leases" });
 
-		let state = useNavigationStore.getState()
-		expect(state.breadcrumbs).toHaveLength(2)
-		expect(state.breadcrumbs[1]?.label).toBe('Leases')
+		let state = useNavigationStore.getState();
+		expect(state.breadcrumbs).toHaveLength(2);
+		expect(state.breadcrumbs[1]?.label).toBe("Leases");
 
-		clearBreadcrumbs()
-		state = useNavigationStore.getState()
-		expect(state.breadcrumbs).toHaveLength(0)
-	})
+		clearBreadcrumbs();
+		state = useNavigationStore.getState();
+		expect(state.breadcrumbs).toHaveLength(0);
+	});
 
-	it('tracks active route and navigation history', () => {
-		const { setActiveRoute } = useNavigationStore.getState()
-		setActiveRoute('/', 'overview')
-		setActiveRoute('/leases', 'leases')
+	it("tracks active route and navigation history", () => {
+		const { setActiveRoute } = useNavigationStore.getState();
+		setActiveRoute("/", "overview");
+		setActiveRoute("/leases", "leases");
 
-		const state = useNavigationStore.getState()
-		expect(state.activeRoute).toBe('/leases')
-		expect(state.activeSection).toBe('leases')
-		expect(state.navigationHistory).toEqual(['/', '/leases'])
-		expect(state.canGoBack).toBe(true)
-	})
+		const state = useNavigationStore.getState();
+		expect(state.activeRoute).toBe("/leases");
+		expect(state.activeSection).toBe("leases");
+		expect(state.navigationHistory).toEqual(["/", "/leases"]);
+		expect(state.canGoBack).toBe(true);
+	});
 
-	it('goes back to the previous history entry', () => {
-		const { addToHistory, goBack } = useNavigationStore.getState()
-		addToHistory('/dashboard')
-		addToHistory('/leases')
-		addToHistory('/leases/create')
+	it("goes back to the previous history entry", () => {
+		const { addToHistory, goBack } = useNavigationStore.getState();
+		addToHistory("/dashboard");
+		addToHistory("/leases");
+		addToHistory("/leases/create");
 
-		const previousRoute = goBack()
-		expect(previousRoute).toBe('/leases')
-		expect(useNavigationStore.getState().activeRoute).toBe('/leases')
+		const previousRoute = goBack();
+		expect(previousRoute).toBe("/leases");
+		expect(useNavigationStore.getState().activeRoute).toBe("/leases");
 		expect(useNavigationStore.getState().navigationHistory).toEqual([
-			'/dashboard',
-			'/leases'
-		])
-	})
+			"/dashboard",
+			"/leases",
+		]);
+	});
 
-	it('clears navigation history', () => {
-		const { addToHistory, clearHistory } = useNavigationStore.getState()
-		addToHistory('/dashboard')
-		addToHistory('/leases')
-		clearHistory()
+	it("clears navigation history", () => {
+		const { addToHistory, clearHistory } = useNavigationStore.getState();
+		addToHistory("/dashboard");
+		addToHistory("/leases");
+		clearHistory();
 
-		expect(useNavigationStore.getState().navigationHistory).toHaveLength(0)
-		expect(useNavigationStore.getState().canGoBack).toBe(false)
-	})
-})
+		expect(useNavigationStore.getState().navigationHistory).toHaveLength(0);
+		expect(useNavigationStore.getState().canGoBack).toBe(false);
+	});
+});

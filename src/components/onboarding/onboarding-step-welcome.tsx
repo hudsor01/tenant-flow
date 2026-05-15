@@ -1,11 +1,11 @@
-'use client'
+"use client";
 
-import { Building2 } from 'lucide-react'
-import { Button } from '#components/ui/button'
+import { Building2 } from "lucide-react";
+import { Button } from "#components/ui/button";
 
 interface OnboardingStepWelcomeProps {
-	onNext: () => void
-	onSkip: () => void
+	onNext: () => void;
+	onSkip: () => void;
 }
 
 /**
@@ -13,7 +13,7 @@ interface OnboardingStepWelcomeProps {
  */
 export function OnboardingStepWelcome({
 	onNext,
-	onSkip
+	onSkip,
 }: OnboardingStepWelcomeProps) {
 	return (
 		<div className="flex flex-col items-center text-center gap-6 py-4">
@@ -31,11 +31,7 @@ export function OnboardingStepWelcome({
 			</div>
 
 			<div className="flex flex-col gap-2 w-full max-w-xs">
-				<Button
-					type="button"
-					onClick={onNext}
-					className="min-h-11 w-full"
-				>
+				<Button type="button" onClick={onNext} className="min-h-11 w-full">
 					Get Started
 				</Button>
 				<Button
@@ -48,5 +44,5 @@ export function OnboardingStepWelcome({
 				</Button>
 			</div>
 		</div>
-	)
+	);
 }

@@ -1,5 +1,5 @@
-import Link from 'next/link'
-import { Home } from 'lucide-react'
+import { Home } from "lucide-react";
+import Link from "next/link";
 
 // Sitewide footer links double as the primary internal-link distributor —
 // every marketing surface should appear here at least once so PageRank
@@ -7,65 +7,65 @@ import { Home } from 'lucide-react'
 // 3-link footer (Terms/Privacy/Help) as the largest internal-linking gap
 // on the site.
 const FOOTER_SECTIONS: ReadonlyArray<{
-	heading: string
-	links: ReadonlyArray<{ label: string; href: string; external?: boolean }>
+	heading: string;
+	links: ReadonlyArray<{ label: string; href: string; external?: boolean }>;
 }> = [
 	{
-		heading: 'Product',
+		heading: "Product",
 		links: [
-			{ label: 'Features', href: '/features' },
-			{ label: 'Pricing', href: '/pricing' },
-			{ label: 'Compare', href: '/compare' },
-			{ label: 'Resources', href: '/resources' },
+			{ label: "Features", href: "/features" },
+			{ label: "Pricing", href: "/pricing" },
+			{ label: "Compare", href: "/compare" },
+			{ label: "Resources", href: "/resources" },
 		],
 	},
 	{
-		heading: 'Company',
+		heading: "Company",
 		links: [
-			{ label: 'About', href: '/about' },
-			{ label: 'Blog', href: '/blog' },
-			{ label: 'Contact', href: '/contact' },
-			{ label: 'Support', href: '/support' },
+			{ label: "About", href: "/about" },
+			{ label: "Blog", href: "/blog" },
+			{ label: "Contact", href: "/contact" },
+			{ label: "Support", href: "/support" },
 		],
 	},
 	{
-		heading: 'Resources',
+		heading: "Resources",
 		links: [
-			{ label: 'Help Center', href: '/help' },
-			{ label: 'FAQ', href: '/faq' },
-			{ label: 'RSS Feed', href: '/feed.xml', external: true },
+			{ label: "Help Center", href: "/help" },
+			{ label: "FAQ", href: "/faq" },
+			{ label: "RSS Feed", href: "/feed.xml", external: true },
 		],
 	},
 	{
-		heading: 'Legal',
+		heading: "Legal",
 		links: [
-			{ label: 'Terms of Service', href: '/terms' },
-			{ label: 'Privacy Policy', href: '/privacy' },
-			{ label: 'Security Policy', href: '/security-policy' },
-			{ label: 'Sitemap', href: '/sitemap.xml', external: true },
+			{ label: "Terms of Service", href: "/terms" },
+			{ label: "Privacy Policy", href: "/privacy" },
+			{ label: "Security Policy", href: "/security-policy" },
+			{ label: "Sitemap", href: "/sitemap.xml", external: true },
 		],
 	},
-]
+];
 
 export default function Footer() {
 	return (
 		<footer className="bg-background border-t border-border py-12 mt-16">
 			<div className="max-w-7xl mx-auto px-6 lg:px-8">
 				<div className="grid grid-cols-2 gap-8 md:grid-cols-4 mb-8">
-					{FOOTER_SECTIONS.map(section => (
+					{FOOTER_SECTIONS.map((section) => (
 						<nav key={section.heading} aria-label={section.heading}>
 							<h2 className="text-sm font-semibold text-foreground mb-4">
 								{section.heading}
 							</h2>
 							<ul className="space-y-2 text-sm text-muted-foreground">
-								{section.links.map(link => (
+								{section.links.map((link) => (
 									<li key={link.href}>
 										<Link
 											href={link.href}
 											{...(link.external
 												? {
-														target: '_blank',
-														rel: 'noopener noreferrer',
+														target: "_blank",
+														rel: "noopener noreferrer",
 													}
 												: {})}
 											className="hover:text-foreground transition-colors"
@@ -103,5 +103,5 @@ export default function Footer() {
 				</div>
 			</div>
 		</footer>
-	)
+	);
 }

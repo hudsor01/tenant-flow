@@ -1,20 +1,23 @@
-import { Download, Calendar } from 'lucide-react'
+import { Calendar, Download } from "lucide-react";
+import { BlurFade } from "#components/ui/blur-fade";
+import { Button } from "#components/ui/button";
 import {
 	Select,
 	SelectContent,
 	SelectItem,
 	SelectTrigger,
-	SelectValue
-} from '#components/ui/select'
-import { Button } from '#components/ui/button'
-import { BlurFade } from '#components/ui/blur-fade'
+	SelectValue,
+} from "#components/ui/select";
 
 interface FinancialsHeaderProps {
-	year: string
-	onYearChange: (value: string) => void
+	year: string;
+	onYearChange: (value: string) => void;
 }
 
-export function FinancialsHeader({ year, onYearChange }: FinancialsHeaderProps) {
+export function FinancialsHeader({
+	year,
+	onYearChange,
+}: FinancialsHeaderProps) {
 	return (
 		<BlurFade delay={0.1} inView>
 			<div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-6">
@@ -43,5 +46,5 @@ export function FinancialsHeader({ year, onYearChange }: FinancialsHeaderProps) 
 				</div>
 			</div>
 		</BlurFade>
-	)
+	);
 }

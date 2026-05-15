@@ -1,5 +1,7 @@
-'use client'
+"use client";
 
+import { useQuery } from "@tanstack/react-query";
+import { AlertCircle, UserPlus } from "lucide-react";
 /**
  * Lease Creation Wizard - Step 1: Selection
  * Property, Unit, and Tenant selection with cascading filters
@@ -10,123 +12,161 @@
  * - Auto-populate rent/deposit from selected unit
  * - Inline tenant record creation form
  */
-import { useState } from 'react'
-import { useQuery } from '@tanstack/react-query'
-import { createClient } from '#lib/supabase/client'
-import { Label } from '#components/ui/label'
+import { useState } from "react";
 import {
 	Combobox,
 	ComboboxAnchor,
-	ComboboxInput,
-	ComboboxTrigger,
 	ComboboxContent,
 	ComboboxEmpty,
-	ComboboxItem
-} from '#components/ui/combobox'
-import { Skeleton } from '#components/ui/skeleton'
+	ComboboxInput,
+	ComboboxItem,
+	ComboboxTrigger,
+} from "#components/ui/combobox";
 import {
 	Empty,
-	EmptyHeader,
-	EmptyTitle,
 	EmptyDescription,
-	EmptyMedia
-} from '#components/ui/empty'
-import { AlertCircle, UserPlus } from 'lucide-react'
-import { propertyQueries } from '#hooks/api/query-keys/property-keys'
-import { unitQueries } from '#hooks/api/query-keys/unit-keys'
-import { tenantQueries } from '#hooks/api/query-keys/tenant-keys'
-import { InlineTenantInvite, TenantModeToggle } from './selection-step-filters'
-import type { SelectionStepData } from '#lib/validation/lease-wizard.schemas'
+	EmptyHeader,
+	EmptyMedia,
+	EmptyTitle,
+} from "#components/ui/empty";
+import { Label } from "#components/ui/label";
+import { Skeleton } from "#components/ui/skeleton";
+import { propertyQueries } from "#hooks/api/query-keys/property-keys";
+import { tenantQueries } from "#hooks/api/query-keys/tenant-keys";
+import { unitQueries } from "#hooks/api/query-keys/unit-keys";
+import { createClient } from "#lib/supabase/client";
+import type { SelectionStepData } from "#lib/validation/lease-wizard.schemas";
 import type {
 	Property as SharedProperty,
-	Unit as SharedUnit
-} from '#types/core'
+	Unit as SharedUnit,
+} from "#types/core";
+import { InlineTenantInvite, TenantModeToggle } from "./selection-step-filters";
 
 interface SelectionStepProps {
-	data: Partial<SelectionStepData>
-	onChange: (data: Partial<SelectionStepData>) => void
-	onUnitSelected?: (rentAmount: number | null) => void
+	data: Partial<SelectionStepData>;
+	onChange: (data: Partial<SelectionStepData>) => void;
+	onUnitSelected?: (rentAmount: number | null) => void;
 }
 
 // Use Pick to get minimal fields from shared types
-type Property = Pick<SharedProperty, 'id' | 'name' | 'address_line1' | 'city' | 'state'>
-type Unit = Pick<SharedUnit, 'id' | 'unit_number' | 'property_id' | 'rent_amount'>
+type Property = Pick<
+	SharedProperty,
+	"id" | "name" | "address_line1" | "city" | "state"
+>;
+type Unit = Pick<
+	SharedUnit,
+	"id" | "unit_number" | "property_id" | "rent_amount"
+>;
 
 // Tenant API response - the API returns tenant with user info joined
 // This is the shape of the API response, not a duplicate of shared types
 interface Tenant {
-	id: string
-	first_name: string
-	last_name: string
-	email: string
+	id: string;
+	first_name: string;
+	last_name: string;
+	email: string;
 }
 
-export function SelectionStep({ data, onChange, onUnitSelected }: SelectionStepProps) {
-	const [inviteMode, setInviteMode] = useState(false)
+export function SelectionStep({
+	data,
+	onChange,
+	onUnitSelected,
+}: SelectionStepProps) {
+	const [inviteMode, setInviteMode] = useState(false);
 
-	const { data: properties, isLoading: propertiesLoading, error: propertiesError } = useQuery({
-		queryKey: [...propertyQueries.all(), 'list'],
+	const {
+		data: properties,
+		isLoading: propertiesLoading,
+		error: propertiesError,
+	} = useQuery({
+		queryKey: [...propertyQueries.all(), "list"],
 		queryFn: async () => {
-			const supabase = createClient()
-			const { data: rows, error } = await supabase.from('properties').select('id, name, address_line1, city, state').neq('status', 'inactive').order('name')
-			if (error) throw error
-			return (rows ?? []) as Property[]
-		}
-	})
-
-	const { data: units, isLoading: unitsLoading, error: unitsError } = useQuery({
-		queryKey: [...unitQueries.all(), 'by-property', data.property_id, 'available'],
-		queryFn: async () => {
-			const supabase = createClient()
-			const { data: rows, error } = await supabase.from('units').select('id, unit_number, property_id, rent_amount').eq('property_id', data.property_id ?? '').eq('status', 'available').order('unit_number')
-			if (error) throw error
-			return (rows ?? []) as Unit[]
-		},
-		enabled: !!data.property_id
-	})
-
-	const { data: tenants, isLoading: tenantsLoading, error: tenantsError } = useQuery({
-		queryKey: [...tenantQueries.all(), 'list-for-lease'],
-		queryFn: async () => {
-			const supabase = createClient()
+			const supabase = createClient();
 			const { data: rows, error } = await supabase
-				.from('tenants')
+				.from("properties")
+				.select("id, name, address_line1, city, state")
+				.neq("status", "inactive")
+				.order("name");
+			if (error) throw error;
+			return (rows ?? []) as Property[];
+		},
+	});
+
+	const {
+		data: units,
+		isLoading: unitsLoading,
+		error: unitsError,
+	} = useQuery({
+		queryKey: [
+			...unitQueries.all(),
+			"by-property",
+			data.property_id,
+			"available",
+		],
+		queryFn: async () => {
+			const supabase = createClient();
+			const { data: rows, error } = await supabase
+				.from("units")
+				.select("id, unit_number, property_id, rent_amount")
+				.eq("property_id", data.property_id ?? "")
+				.eq("status", "available")
+				.order("unit_number");
+			if (error) throw error;
+			return (rows ?? []) as Unit[];
+		},
+		enabled: !!data.property_id,
+	});
+
+	const {
+		data: tenants,
+		isLoading: tenantsLoading,
+		error: tenantsError,
+	} = useQuery({
+		queryKey: [...tenantQueries.all(), "list-for-lease"],
+		queryFn: async () => {
+			const supabase = createClient();
+			const { data: rows, error } = await supabase
+				.from("tenants")
 				.select(
-					'id, first_name, last_name, email, users!tenants_user_id_fkey(first_name, last_name, email)'
+					"id, first_name, last_name, email, users!tenants_user_id_fkey(first_name, last_name, email)",
 				)
-				.neq('status', 'inactive')
-			if (error) throw error
+				.neq("status", "inactive");
+			if (error) throw error;
 			return (rows ?? [])
-				.map(row => {
-					const user = row.users as unknown as
-						| { first_name: string | null; last_name: string | null; email: string | null }
-						| null
+				.map((row) => {
+					const user = row.users as unknown as {
+						first_name: string | null;
+						last_name: string | null;
+						email: string | null;
+					} | null;
 					return {
 						id: row.id,
-						first_name: row.first_name ?? user?.first_name ?? '',
-						last_name: row.last_name ?? user?.last_name ?? '',
-						email: row.email ?? user?.email ?? ''
-					} satisfies Tenant
+						first_name: row.first_name ?? user?.first_name ?? "",
+						last_name: row.last_name ?? user?.last_name ?? "",
+						email: row.email ?? user?.email ?? "",
+					} satisfies Tenant;
 				})
-				.sort((a, b) => a.last_name.localeCompare(b.last_name))
-		}
-	})
+				.sort((a, b) => a.last_name.localeCompare(b.last_name));
+		},
+	});
 
 	const handlePropertyChange = (propertyId: string) => {
-		const newData: Partial<SelectionStepData> = { property_id: propertyId }
-		if (data.primary_tenant_id) { newData.primary_tenant_id = data.primary_tenant_id }
-		onChange(newData)
-	}
+		const newData: Partial<SelectionStepData> = { property_id: propertyId };
+		if (data.primary_tenant_id) {
+			newData.primary_tenant_id = data.primary_tenant_id;
+		}
+		onChange(newData);
+	};
 
 	const handleUnitChange = (unitId: string) => {
-		onChange({ ...data, unit_id: unitId })
-		const selectedUnit = units?.find(u => u.id === unitId)
-		onUnitSelected?.(selectedUnit?.rent_amount ?? null)
-	}
+		onChange({ ...data, unit_id: unitId });
+		const selectedUnit = units?.find((u) => u.id === unitId);
+		onUnitSelected?.(selectedUnit?.rent_amount ?? null);
+	};
 
 	const handleTenantChange = (tenantId: string) => {
-		onChange({ ...data, primary_tenant_id: tenantId })
-	}
+		onChange({ ...data, primary_tenant_id: tenantId });
+	};
 
 	return (
 		<div className="space-y-6">
@@ -149,14 +189,17 @@ export function SelectionStep({ data, onChange, onUnitSelected }: SelectionStepP
 							Failed to load properties: {propertiesError.message}
 						</div>
 					) : (
-						<Combobox value={data.property_id ?? ''} onValueChange={handlePropertyChange}>
+						<Combobox
+							value={data.property_id ?? ""}
+							onValueChange={handlePropertyChange}
+						>
 							<ComboboxAnchor id="property">
 								<ComboboxInput placeholder="Search properties..." autoFocus />
 								<ComboboxTrigger />
 							</ComboboxAnchor>
 							<ComboboxContent>
 								<ComboboxEmpty>No properties found</ComboboxEmpty>
-								{properties?.map(property => (
+								{properties?.map((property) => (
 									<ComboboxItem key={property.id} value={property.id}>
 										{property.name} - {property.address_line1}, {property.city}
 									</ComboboxItem>
@@ -187,16 +230,19 @@ export function SelectionStep({ data, onChange, onUnitSelected }: SelectionStepP
 							No available units for this property
 						</div>
 					) : (
-						<Combobox value={data.unit_id ?? ''} onValueChange={handleUnitChange}>
+						<Combobox
+							value={data.unit_id ?? ""}
+							onValueChange={handleUnitChange}
+						>
 							<ComboboxAnchor id="unit">
 								<ComboboxInput placeholder="Search units..." />
 								<ComboboxTrigger />
 							</ComboboxAnchor>
 							<ComboboxContent>
 								<ComboboxEmpty>No units found</ComboboxEmpty>
-								{units?.map(unit => (
+								{units?.map((unit) => (
 									<ComboboxItem key={unit.id} value={unit.id}>
-										{unit.unit_number || 'Main Unit'}
+										{unit.unit_number || "Main Unit"}
 									</ComboboxItem>
 								))}
 							</ComboboxContent>
@@ -208,11 +254,17 @@ export function SelectionStep({ data, onChange, onUnitSelected }: SelectionStepP
 				<div className="space-y-2">
 					<div className="flex items-center justify-between">
 						<Label htmlFor="tenant">Primary Tenant *</Label>
-						<TenantModeToggle inviteMode={inviteMode} onToggle={() => setInviteMode(!inviteMode)} />
+						<TenantModeToggle
+							inviteMode={inviteMode}
+							onToggle={() => setInviteMode(!inviteMode)}
+						/>
 					</div>
 
 					{inviteMode ? (
-						<InlineTenantInvite propertyId={data.property_id} onToggleMode={() => setInviteMode(false)} />
+						<InlineTenantInvite
+							propertyId={data.property_id}
+							onToggleMode={() => setInviteMode(false)}
+						/>
 					) : tenantsLoading ? (
 						<Skeleton className="h-10 w-full" />
 					) : tenantsError ? (
@@ -223,7 +275,9 @@ export function SelectionStep({ data, onChange, onUnitSelected }: SelectionStepP
 					) : tenants?.length === 0 ? (
 						<Empty>
 							<EmptyHeader>
-								<EmptyMedia variant="icon"><UserPlus /></EmptyMedia>
+								<EmptyMedia variant="icon">
+									<UserPlus />
+								</EmptyMedia>
 								<EmptyTitle>No Tenants Available</EmptyTitle>
 								<EmptyDescription>
 									{data.property_id
@@ -233,14 +287,17 @@ export function SelectionStep({ data, onChange, onUnitSelected }: SelectionStepP
 							</EmptyHeader>
 						</Empty>
 					) : (
-						<Combobox value={data.primary_tenant_id ?? ''} onValueChange={handleTenantChange}>
+						<Combobox
+							value={data.primary_tenant_id ?? ""}
+							onValueChange={handleTenantChange}
+						>
 							<ComboboxAnchor id="tenant">
 								<ComboboxInput placeholder="Search tenants..." />
 								<ComboboxTrigger />
 							</ComboboxAnchor>
 							<ComboboxContent>
 								<ComboboxEmpty>No tenants found</ComboboxEmpty>
-								{tenants?.map(tenant => (
+								{tenants?.map((tenant) => (
 									<ComboboxItem key={tenant.id} value={tenant.id}>
 										{tenant.first_name} {tenant.last_name} ({tenant.email})
 									</ComboboxItem>
@@ -251,5 +308,5 @@ export function SelectionStep({ data, onChange, onUnitSelected }: SelectionStepP
 				</div>
 			</div>
 		</div>
-	)
+	);
 }

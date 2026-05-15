@@ -1,4 +1,4 @@
-import * as Sentry from '@sentry/nextjs'
+import * as Sentry from "@sentry/nextjs";
 
 /**
  * Guards against undefined owner_user_id in mutation functions.
@@ -8,10 +8,10 @@ import * as Sentry from '@sentry/nextjs'
 export function requireOwnerUserId(userId: string | undefined): string {
 	if (!userId) {
 		Sentry.captureMessage(
-			'owner_user_id undefined in mutation -- user may not be authenticated',
-			{ level: 'warning' }
-		)
-		throw new Error('Unable to save. Please refresh and try again.')
+			"owner_user_id undefined in mutation -- user may not be authenticated",
+			{ level: "warning" },
+		);
+		throw new Error("Unable to save. Please refresh and try again.");
 	}
-	return userId
+	return userId;
 }

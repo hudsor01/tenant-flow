@@ -1,20 +1,20 @@
-'use client'
+"use client";
 
-import { cn } from '#lib/utils'
-import { ChevronDown } from 'lucide-react'
-import { useRef, useState } from 'react'
+import { ChevronDown } from "lucide-react";
+import { useRef, useState } from "react";
+import { cn } from "#lib/utils";
 
 interface FaqItem {
-	question: string
-	answer: string
+	question: string;
+	answer: string;
 }
 
 interface FaqsAccordionProps {
-	title?: string
-	description?: string
-	category?: string
-	faqs: FaqItem[]
-	defaultOpenIndex?: number | null
+	title?: string;
+	description?: string;
+	category?: string;
+	faqs: FaqItem[];
+	defaultOpenIndex?: number | null;
 }
 
 export function FaqsAccordion({
@@ -22,13 +22,13 @@ export function FaqsAccordion({
 	description,
 	category,
 	faqs,
-	defaultOpenIndex = null
+	defaultOpenIndex = null,
 }: FaqsAccordionProps) {
-	const [openIndex, setOpenIndex] = useState<number | null>(defaultOpenIndex)
+	const [openIndex, setOpenIndex] = useState<number | null>(defaultOpenIndex);
 
 	const toggleAccordion = (index: number) => {
-		setOpenIndex(openIndex === index ? null : index)
-	}
+		setOpenIndex(openIndex === index ? null : index);
+	};
 
 	return (
 		<section className="mb-16">
@@ -54,7 +54,7 @@ export function FaqsAccordion({
 			{/* FAQ Items */}
 			<div className="space-y-4">
 				{faqs.map((faq, index) => {
-					const isOpen = openIndex === index
+					const isOpen = openIndex === index;
 
 					return (
 						<FaqItem
@@ -63,21 +63,21 @@ export function FaqsAccordion({
 							isOpen={isOpen}
 							onToggle={() => toggleAccordion(index)}
 						/>
-					)
+					);
 				})}
 			</div>
 		</section>
-	)
+	);
 }
 
 interface FaqItemProps {
-	faq: FaqItem
-	isOpen: boolean
-	onToggle: () => void
+	faq: FaqItem;
+	isOpen: boolean;
+	onToggle: () => void;
 }
 
 function FaqItem({ faq, isOpen, onToggle }: FaqItemProps) {
-	const contentRef = useRef<HTMLDivElement>(null)
+	const contentRef = useRef<HTMLDivElement>(null);
 
 	return (
 		<div className="group overflow-hidden rounded-lg border border-border bg-card transition-all hover:border-primary/50 hover:shadow-lg">
@@ -90,8 +90,8 @@ function FaqItem({ faq, isOpen, onToggle }: FaqItemProps) {
 				</h3>
 				<ChevronDown
 					className={cn(
-						'size-5 text-muted-foreground shrink-0 transition-transform [transition-duration:var(--duration-fast)]',
-						isOpen && 'rotate-180'
+						"size-5 text-muted-foreground shrink-0 transition-transform [transition-duration:var(--duration-fast)]",
+						isOpen && "rotate-180",
 					)}
 				/>
 			</button>
@@ -99,8 +99,8 @@ function FaqItem({ faq, isOpen, onToggle }: FaqItemProps) {
 			<div
 				ref={contentRef}
 				className={cn(
-					'grid transition-all [transition-duration:var(--duration-normal)] ease-in-out',
-					isOpen ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'
+					"grid transition-all [transition-duration:var(--duration-normal)] ease-in-out",
+					isOpen ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0",
 				)}
 			>
 				<div className="overflow-hidden">
@@ -114,5 +114,5 @@ function FaqItem({ faq, isOpen, onToggle }: FaqItemProps) {
 				</div>
 			</div>
 		</div>
-	)
+	);
 }

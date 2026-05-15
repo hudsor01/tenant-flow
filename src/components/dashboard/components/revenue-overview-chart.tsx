@@ -1,31 +1,31 @@
-'use client'
+"use client";
 
-import { Area, AreaChart, CartesianGrid, XAxis, YAxis } from 'recharts'
+import { Area, AreaChart, CartesianGrid, XAxis, YAxis } from "recharts";
 import {
 	Card,
 	CardContent,
 	CardDescription,
 	CardHeader,
-	CardTitle
-} from '#components/ui/card'
+	CardTitle,
+} from "#components/ui/card";
 import {
 	ChartContainer,
 	ChartTooltip,
-	ChartTooltipContent
-} from '#components/ui/chart'
-import { chartConfig } from '../dashboard-types'
+	ChartTooltipContent,
+} from "#components/ui/chart";
+import { chartConfig } from "../dashboard-types";
 
 interface RevenueTrendPoint {
-	month: string
-	revenue: number
+	month: string;
+	revenue: number;
 }
 
 interface RevenueOverviewChartProps {
-	revenueTrend: RevenueTrendPoint[]
+	revenueTrend: RevenueTrendPoint[];
 }
 
 export function RevenueOverviewChart({
-	revenueTrend
+	revenueTrend,
 }: RevenueOverviewChartProps) {
 	return (
 		<Card className="lg:col-span-3" data-tour="charts-section">
@@ -36,9 +36,9 @@ export function RevenueOverviewChart({
 			<CardContent>
 				<ChartContainer config={chartConfig} className="h-[400px] w-full">
 					<AreaChart
-						data={revenueTrend.map(point => ({
+						data={revenueTrend.map((point) => ({
 							month: point.month,
-							revenue: point.revenue / 100
+							revenue: point.revenue / 100,
 						}))}
 						margin={{ top: 10, right: 10, left: 0, bottom: 0 }}
 					>
@@ -67,16 +67,16 @@ export function RevenueOverviewChart({
 							tickLine={false}
 							axisLine={false}
 							tickMargin={8}
-							tickFormatter={value => `$${(value / 1000).toFixed(0)}k`}
+							tickFormatter={(value) => `$${(value / 1000).toFixed(0)}k`}
 						/>
 						<ChartTooltip
 							cursor={false}
 							content={
 								<ChartTooltipContent
-									labelFormatter={value => value}
-									formatter={value => [
+									labelFormatter={(value) => value}
+									formatter={(value) => [
 										`$${Number(value).toLocaleString()}`,
-										'Revenue'
+										"Revenue",
 									]}
 								/>
 							}
@@ -92,5 +92,5 @@ export function RevenueOverviewChart({
 				</ChartContainer>
 			</CardContent>
 		</Card>
-	)
+	);
 }

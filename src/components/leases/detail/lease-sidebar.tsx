@@ -1,25 +1,25 @@
-import { Card, CardContent, CardHeader, CardTitle } from '#components/ui/card'
-import { Button } from '#components/ui/button'
-import { Home, User, Building } from 'lucide-react'
-import Link from 'next/link'
-import { LeaseSignatureStatus } from '#components/leases/lease-signature-status'
-import type { Lease } from '#types/core'
+import { Building, Home, User } from "lucide-react";
+import Link from "next/link";
+import { LeaseSignatureStatus } from "#components/leases/lease-signature-status";
+import { Button } from "#components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "#components/ui/card";
+import type { Lease } from "#types/core";
 
 interface UnitInfo {
-	id: string
-	property_id: string
-	unit_number?: string | null | undefined
+	id: string;
+	property_id: string;
+	unit_number?: string | null | undefined;
 }
 
 interface LeaseSidebarProps {
-	lease: Lease
-	unit: UnitInfo | null | undefined
+	lease: Lease;
+	unit: UnitInfo | null | undefined;
 }
 
 export function LeaseSidebar({ lease, unit }: LeaseSidebarProps) {
-	const isDraft = lease.lease_status === 'draft'
-	const isPendingSignature = lease.lease_status === 'pending_signature'
-	const isActive = lease.lease_status === 'active'
+	const isDraft = lease.lease_status === "draft";
+	const isPendingSignature = lease.lease_status === "pending_signature";
+	const isActive = lease.lease_status === "active";
 
 	return (
 		<div className="space-y-4">
@@ -59,5 +59,5 @@ export function LeaseSidebar({ lease, unit }: LeaseSidebarProps) {
 				</CardContent>
 			</Card>
 		</div>
-	)
+	);
 }

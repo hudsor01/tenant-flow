@@ -1,0 +1,5 @@
+# Well-known Supabase local-dev demo anon JWT (iss: supabase-demo).
+# Every Supabase local install ships with this same key — it's the
+# documented fallback for `supabase start`, not a real secret.
+# https://supabase.com/docs/guides/local-development
+tests/e2e/playwright.config.ts:jwt:35

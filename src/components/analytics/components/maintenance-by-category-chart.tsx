@@ -1,13 +1,13 @@
-import { PieChart } from 'lucide-react'
-import { BlurFade } from '#components/ui/blur-fade'
-import type { MaintenanceCategory } from '../analytics-types'
+import { PieChart } from "lucide-react";
+import { BlurFade } from "#components/ui/blur-fade";
+import type { MaintenanceCategory } from "../analytics-types";
 
 interface MaintenanceByCategoryChartProps {
-	data: MaintenanceCategory[]
+	data: MaintenanceCategory[];
 }
 
 export function MaintenanceByCategoryChart({
-	data
+	data,
 }: MaintenanceByCategoryChartProps) {
 	return (
 		<BlurFade delay={1} inView>
@@ -17,7 +17,9 @@ export function MaintenanceByCategoryChart({
 						<h3 className="font-medium text-foreground">
 							Maintenance by Category
 						</h3>
-						<p className="text-sm text-muted-foreground">Request distribution</p>
+						<p className="text-sm text-muted-foreground">
+							Request distribution
+						</p>
 					</div>
 					<PieChart className="w-5 h-5 text-muted-foreground" />
 				</div>
@@ -51,5 +53,5 @@ export function MaintenanceByCategoryChart({
 				</div>
 			</div>
 		</BlurFade>
-	)
+	);
 }

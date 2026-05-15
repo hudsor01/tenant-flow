@@ -1,4 +1,4 @@
-import { defineConfig, devices } from '@playwright/test'
+import { defineConfig, devices } from "@playwright/test";
 
 /**
  * Playwright configuration for production monitoring tests
@@ -12,21 +12,21 @@ import { defineConfig, devices } from '@playwright/test'
  */
 
 const PROD_FRONTEND_URL =
-	process.env.PROD_FRONTEND_URL || 'https://tenantflow.app'
+	process.env.PROD_FRONTEND_URL || "https://tenantflow.app";
 
 export default defineConfig({
 	// ===================
 	// Test Organization
 	// ===================
-	testDir: './tests',
-	testMatch: ['**/production/**/*.spec.ts', '**/smoke/**/*.spec.ts'],
+	testDir: "./tests",
+	testMatch: ["**/production/**/*.spec.ts", "**/smoke/**/*.spec.ts"],
 
 	// ===================
 	// Timeouts (more lenient for production)
 	// ===================
 	timeout: 60_000, // 60s per test
 	expect: {
-		timeout: 10_000 // 10s for assertions
+		timeout: 10_000, // 10s for assertions
 	},
 
 	// ===================
@@ -41,8 +41,8 @@ export default defineConfig({
 	// Reporters
 	// ===================
 	reporter: [
-		['list', { printSteps: true }],
-		['json', { outputFile: 'test-results/prod-results.json' }]
+		["list", { printSteps: true }],
+		["json", { outputFile: "test-results/prod-results.json" }],
 	],
 
 	// ===================
@@ -52,25 +52,25 @@ export default defineConfig({
 		baseURL: PROD_FRONTEND_URL,
 
 		// Recording options
-		trace: 'retain-on-failure',
-		screenshot: 'only-on-failure',
-		video: 'retain-on-failure',
+		trace: "retain-on-failure",
+		screenshot: "only-on-failure",
+		video: "retain-on-failure",
 
 		// Action timeouts
 		actionTimeout: 15_000,
 		navigationTimeout: 45_000,
 
 		// Consistency across runs
-		locale: 'en-US',
-		timezoneId: 'America/Chicago',
+		locale: "en-US",
+		timezoneId: "America/Chicago",
 		viewport: { width: 1280, height: 720 },
 
 		headless: true,
 
 		// Production header for monitoring
 		extraHTTPHeaders: {
-			'x-playwright-test': 'production-monitoring'
-		}
+			"x-playwright-test": "production-monitoring",
+		},
 	},
 
 	// ===================
@@ -78,11 +78,11 @@ export default defineConfig({
 	// ===================
 	projects: [
 		{
-			name: 'production-chromium',
+			name: "production-chromium",
 			use: {
-				...devices['Desktop Chrome']
-			}
-		}
+				...devices["Desktop Chrome"],
+			},
+		},
 	],
 
 	// ===================
@@ -92,5 +92,5 @@ export default defineConfig({
 	// ===================
 	// Output
 	// ===================
-	outputDir: 'test-results/production/'
-})
+	outputDir: "test-results/production/",
+});

@@ -1,15 +1,6 @@
-'use client'
+"use client";
 
-import { Button } from '#components/ui/button'
-import {
-	Card,
-	CardContent,
-	CardDescription,
-	CardHeader,
-	CardTitle
-} from '#components/ui/card'
-import { Skeleton } from '#components/ui/skeleton'
-import { Download, Users } from 'lucide-react'
+import { Download, Users } from "lucide-react";
 import {
 	CartesianGrid,
 	Line,
@@ -17,41 +8,50 @@ import {
 	ResponsiveContainer,
 	Tooltip,
 	XAxis,
-	YAxis
-} from 'recharts'
-import { formatPercent, safeFormatPercent } from '../reports-utils'
+	YAxis,
+} from "recharts";
+import { Button } from "#components/ui/button";
+import {
+	Card,
+	CardContent,
+	CardDescription,
+	CardHeader,
+	CardTitle,
+} from "#components/ui/card";
+import { Skeleton } from "#components/ui/skeleton";
+import { formatPercent, safeFormatPercent } from "../reports-utils";
 
 interface TenantReportData {
 	summary: {
-		totalTenants: number
-		activeLeases: number
-		leasesExpiringNext90: number
-		onTimePaymentRate: number
-	}
+		totalTenants: number;
+		activeLeases: number;
+		leasesExpiringNext90: number;
+		onTimePaymentRate: number;
+	};
 	paymentHistory: Array<{
-		month: string
-		onTimeRate: number
-	}>
+		month: string;
+		onTimeRate: number;
+	}>;
 	leaseExpirations: Array<{
-		leaseId: string
-		propertyName: string
-		unitLabel: string
-		endDate: string
-	}>
+		leaseId: string;
+		propertyName: string;
+		unitLabel: string;
+		endDate: string;
+	}>;
 }
 
 interface TenantReportSectionProps {
-	data: TenantReportData | undefined
-	isLoading: boolean
-	isExporting: boolean
-	onExport: () => void
+	data: TenantReportData | undefined;
+	isLoading: boolean;
+	isExporting: boolean;
+	onExport: () => void;
 }
 
 export function TenantReportSection({
 	data,
 	isLoading,
 	isExporting,
-	onExport
+	onExport,
 }: TenantReportSectionProps) {
 	return (
 		<section className="flex flex-col gap-4">
@@ -151,13 +151,15 @@ export function TenantReportSection({
 									No leases expiring in the next 90 days.
 								</p>
 							) : (
-								data.leaseExpirations.map(expiration => (
+								data.leaseExpirations.map((expiration) => (
 									<div
 										key={expiration.leaseId}
 										className="flex items-center justify-between rounded-sm border border-border px-3 py-2 text-sm"
 									>
 										<div>
-											<div className="font-medium">{expiration.propertyName}</div>
+											<div className="font-medium">
+												{expiration.propertyName}
+											</div>
 											<div className="text-muted-foreground">
 												{expiration.unitLabel}
 											</div>
@@ -171,5 +173,5 @@ export function TenantReportSection({
 				</>
 			) : null}
 		</section>
-	)
+	);
 }

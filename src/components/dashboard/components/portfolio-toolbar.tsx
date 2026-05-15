@@ -1,23 +1,23 @@
-'use client'
+"use client";
 
-import { LayoutGrid, List, Search } from 'lucide-react'
-import { Input } from '#components/ui/input'
+import { LayoutGrid, List, Search } from "lucide-react";
+import { Input } from "#components/ui/input";
 import {
 	Select,
 	SelectContent,
 	SelectItem,
 	SelectTrigger,
-	SelectValue
-} from '#components/ui/select'
+	SelectValue,
+} from "#components/ui/select";
 
 interface PortfolioToolbarProps {
-	searchQuery: string
-	onSearchChange: (value: string) => void
-	statusFilter: string
-	onStatusFilterChange: (value: string) => void
-	viewMode: 'table' | 'grid'
-	onViewModeChange: (mode: 'table' | 'grid') => void
-	onClearFilters: () => void
+	searchQuery: string;
+	onSearchChange: (value: string) => void;
+	statusFilter: string;
+	onStatusFilterChange: (value: string) => void;
+	viewMode: "table" | "grid";
+	onViewModeChange: (mode: "table" | "grid") => void;
+	onClearFilters: () => void;
 }
 
 export function PortfolioToolbar({
@@ -27,9 +27,9 @@ export function PortfolioToolbar({
 	onStatusFilterChange,
 	viewMode,
 	onViewModeChange,
-	onClearFilters
+	onClearFilters,
 }: PortfolioToolbarProps) {
-	const hasActiveFilters = searchQuery || statusFilter !== 'all'
+	const hasActiveFilters = searchQuery || statusFilter !== "all";
 
 	return (
 		<div className="px-4 py-3 border-b border-border flex items-center gap-3">
@@ -39,7 +39,7 @@ export function PortfolioToolbar({
 				<Input
 					placeholder="Search properties..."
 					value={searchQuery}
-					onChange={e => onSearchChange(e.target.value)}
+					onChange={(e) => onSearchChange(e.target.value)}
 					className="pl-9 h-9"
 				/>
 			</div>
@@ -69,22 +69,22 @@ export function PortfolioToolbar({
 
 				<div className="flex items-center gap-1 p-1 bg-muted rounded-lg">
 					<button
-						onClick={() => onViewModeChange('grid')}
+						onClick={() => onViewModeChange("grid")}
 						className={`flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-md transition-colors ${
-							viewMode === 'grid'
-								? 'bg-background text-foreground shadow-sm'
-								: 'text-muted-foreground hover:text-foreground'
+							viewMode === "grid"
+								? "bg-background text-foreground shadow-sm"
+								: "text-muted-foreground hover:text-foreground"
 						}`}
 					>
 						<LayoutGrid className="w-4 h-4" />
 						Grid
 					</button>
 					<button
-						onClick={() => onViewModeChange('table')}
+						onClick={() => onViewModeChange("table")}
 						className={`flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-md transition-colors ${
-							viewMode === 'table'
-								? 'bg-background text-foreground shadow-sm'
-								: 'text-muted-foreground hover:text-foreground'
+							viewMode === "table"
+								? "bg-background text-foreground shadow-sm"
+								: "text-muted-foreground hover:text-foreground"
 						}`}
 					>
 						<List className="w-4 h-4" />
@@ -93,5 +93,5 @@ export function PortfolioToolbar({
 				</div>
 			</div>
 		</div>
-	)
+	);
 }

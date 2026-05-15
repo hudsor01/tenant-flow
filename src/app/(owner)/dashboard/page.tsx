@@ -1,44 +1,52 @@
-'use client'
+"use client";
 
-import { Suspense, useEffect } from 'react'
-import { useRouter, useSearchParams } from 'next/navigation'
-import { toast } from 'sonner'
-import { ErrorBoundary } from '#components/error-boundary/error-boundary'
-import { Dashboard } from '#components/dashboard/dashboard'
-import { ExpiringLeasesWidget } from '#components/dashboard/expiring-leases-widget'
-import { OwnerOnboardingTour } from '#components/tours/owner-onboarding-tour'
-import { OnboardingWizard } from '#components/onboarding/onboarding-wizard'
+import { useRouter, useSearchParams } from "next/navigation";
+import { Suspense, useEffect } from "react";
+import { toast } from "sonner";
+import { Dashboard } from "#components/dashboard/dashboard";
+import { ExpiringLeasesWidget } from "#components/dashboard/expiring-leases-widget";
+import { ErrorBoundary } from "#components/error-boundary/error-boundary";
+import { OnboardingWizard } from "#components/onboarding/onboarding-wizard";
+import { OwnerOnboardingTour } from "#components/tours/owner-onboarding-tour";
 import {
-	useDashboardStats,
 	useDashboardCharts,
-	usePropertyPerformance
-} from '#hooks/api/use-dashboard-hooks'
-import { DashboardLoadingSkeleton } from './components/dashboard-loading-skeleton'
-import { DashboardEmptyState } from './components/dashboard-empty-state'
-import '../dashboard.css'
+	useDashboardStats,
+	usePropertyPerformance,
+} from "#hooks/api/use-dashboard-hooks";
+import { DashboardEmptyState } from "./components/dashboard-empty-state";
+import { DashboardLoadingSkeleton } from "./components/dashboard-loading-skeleton";
+import "../dashboard.css";
 
 /**
  * Dashboard Content - Wires API hooks to Dashboard UI component
  */
 function DashboardContent() {
-	const router = useRouter()
-	const searchParams = useSearchParams()
+	const router = useRouter();
+	const searchParams = useSearchParams();
 
 	// Return-journey toast: detect ?billing=updated after Stripe Customer Portal return
 	useEffect(() => {
-		if (searchParams.get('billing') === 'updated') {
-			toast.success('Subscription updated')
-			const url = new URL(window.location.href)
-			url.searchParams.delete('billing')
-			window.history.replaceState({}, '', url.toString())
+		if (searchParams.get("billing") === "updated") {
+			toast.success("Subscription updated");
+			const url = new URL(window.location.href);
+			url.searchParams.delete("billing");
+			window.history.replaceState({}, "", url.toString());
 		}
-	}, [searchParams])
+	}, [searchParams]);
 
 	// API Hooks
-	const { data: statsData, isLoading: statsLoading, isError: statsError } = useDashboardStats()
-	const { data: chartsData, isLoading: chartsLoading, isError: chartsError } = useDashboardCharts()
+	const {
+		data: statsData,
+		isLoading: statsLoading,
+		isError: statsError,
+	} = useDashboardStats();
+	const {
+		data: chartsData,
+		isLoading: chartsLoading,
+		isError: chartsError,
+	} = useDashboardCharts();
 	const { data: performanceData, isLoading: performanceLoading } =
-		usePropertyPerformance()
+		usePropertyPerformance();
 
 	// Transform stats to design-os format
 	const metrics = (() => {
@@ -54,11 +62,11 @@ function DashboardContent() {
 				activeLeases: 0,
 				expiringLeases: 0,
 				openMaintenanceRequests: 0,
-				collectionRate: 0
-			}
+				collectionRate: 0,
+			};
 		}
 
-		const stats = statsData.stats
+		const stats = statsData.stats;
 		return {
 			totalRevenue: (stats.revenue?.monthly ?? 0) * 100, // Convert to cents
 			revenueChange: statsData.metricTrends?.monthlyRevenue?.percentChange ?? 0,
@@ -71,25 +79,25 @@ function DashboardContent() {
 			activeLeases: stats.leases?.active ?? 0,
 			expiringLeases: stats.leases?.expiringSoon ?? 0,
 			openMaintenanceRequests: stats.maintenance?.open ?? 0,
-			collectionRate: 0 // Not available in current API
-		}
-	})()
+			collectionRate: 0, // Not available in current API
+		};
+	})();
 
 	// Transform revenue trends
 	const revenueTrend = (() => {
-		if (!chartsData?.timeSeries?.monthlyRevenue) return []
+		if (!chartsData?.timeSeries?.monthlyRevenue) return [];
 
-		return chartsData.timeSeries.monthlyRevenue.map(point => ({
+		return chartsData.timeSeries.monthlyRevenue.map((point) => ({
 			month: point.date,
-			revenue: point.value * 100 // Convert to cents
-		}))
-	})()
+			revenue: point.value * 100, // Convert to cents
+		}));
+	})();
 
 	// Transform property performance
 	const propertyPerformance = (() => {
-		if (!performanceData) return []
+		if (!performanceData) return [];
 
-		return performanceData.map(prop => ({
+		return performanceData.map((prop) => ({
 			id: prop.property_id,
 			name: prop.property,
 			address: prop.address_line1,
@@ -97,38 +105,41 @@ function DashboardContent() {
 			occupiedUnits: prop.occupiedUnits,
 			occupancyRate: prop.occupancyRate,
 			monthlyRevenue: prop.monthlyRevenue * 100, // Convert to cents
-			openMaintenance: 0 // Not in current API response
-		}))
-	})()
+			openMaintenance: 0, // Not in current API response
+		}));
+	})();
 
 	// Navigation callbacks
 	const onAddProperty = () => {
-		router.push('/properties/new')
-	}
+		router.push("/properties/new");
+	};
 
 	const onCreateLease = () => {
-		router.push('/leases/new')
-	}
+		router.push("/leases/new");
+	};
 
 	const onAddTenant = () => {
-		router.push('/tenants/new')
-	}
+		router.push("/tenants/new");
+	};
 
 	const onCreateMaintenanceRequest = () => {
-		router.push('/maintenance/new')
-	}
+		router.push("/maintenance/new");
+	};
 
 	// Loading state
-	const isLoading = statsLoading || chartsLoading || performanceLoading
+	const isLoading = statsLoading || chartsLoading || performanceLoading;
 
 	if (isLoading) {
-		return <DashboardLoadingSkeleton />
+		return <DashboardLoadingSkeleton />;
 	}
 
 	// Error state - show actionable error instead of misleading empty state
 	if (statsError || chartsError) {
 		return (
-			<div data-testid="dashboard-stats" className="flex flex-1 items-center justify-center p-6">
+			<div
+				data-testid="dashboard-stats"
+				className="flex flex-1 items-center justify-center p-6"
+			>
 				<div className="text-center py-16 max-w-md">
 					<p className="text-lg font-medium text-foreground mb-2">
 						Unable to load dashboard data
@@ -145,17 +156,17 @@ function DashboardContent() {
 					</button>
 				</div>
 			</div>
-		)
+		);
 	}
 
 	// Check for empty state
 	const isEmpty =
 		!statsData?.stats ||
 		((statsData.stats.properties?.total ?? 0) === 0 &&
-			(statsData.stats.tenants?.total ?? 0) === 0)
+			(statsData.stats.tenants?.total ?? 0) === 0);
 
 	if (isEmpty) {
-		return <DashboardEmptyState />
+		return <DashboardEmptyState />;
 	}
 
 	return (
@@ -173,7 +184,7 @@ function DashboardContent() {
 				<ExpiringLeasesWidget />
 			</div>
 		</div>
-	)
+	);
 }
 
 /**
@@ -208,5 +219,5 @@ export default function DashboardPage() {
 				</ErrorBoundary>
 			</div>
 		</>
-	)
+	);
 }

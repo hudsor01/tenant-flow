@@ -1,25 +1,25 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
-import { Label } from '#components/ui/label'
-import { Input } from '#components/ui/input'
-import { Button } from '#components/ui/button'
-import { Loader2, UserPlus } from 'lucide-react'
-import { toast } from 'sonner'
-import { useCreateTenantMutation } from '#hooks/api/use-tenant-mutations'
-import { handleMutationError } from '#lib/mutation-error-handler'
-import type { TenantCreate } from '#lib/validation/tenants'
+import { Loader2, UserPlus } from "lucide-react";
+import { useState } from "react";
+import { toast } from "sonner";
+import { Button } from "#components/ui/button";
+import { Input } from "#components/ui/input";
+import { Label } from "#components/ui/label";
+import { useCreateTenantMutation } from "#hooks/api/use-tenant-mutations";
+import { handleMutationError } from "#lib/mutation-error-handler";
+import type { TenantCreate } from "#lib/validation/tenants";
 
 interface InlineFormData {
-	first_name: string
-	last_name: string
-	email: string
-	phone: string
+	first_name: string;
+	last_name: string;
+	email: string;
+	phone: string;
 }
 
 interface InlineTenantInviteProps {
-	propertyId: string | undefined
-	onToggleMode: () => void
+	propertyId: string | undefined;
+	onToggleMode: () => void;
 }
 
 /**
@@ -28,19 +28,19 @@ interface InlineTenantInviteProps {
  */
 export function InlineTenantInvite({
 	propertyId: _propertyId,
-	onToggleMode
+	onToggleMode,
 }: InlineTenantInviteProps) {
 	const [form, setForm] = useState<InlineFormData>({
-		first_name: '',
-		last_name: '',
-		email: '',
-		phone: ''
-	})
-	const createTenant = useCreateTenantMutation()
-	const isSubmitting = createTenant.isPending
+		first_name: "",
+		last_name: "",
+		email: "",
+		phone: "",
+	});
+	const createTenant = useCreateTenantMutation();
+	const isSubmitting = createTenant.isPending;
 
 	const handleAddTenant = async () => {
-		if (!form.first_name || !form.last_name || !form.email) return
+		if (!form.first_name || !form.last_name || !form.email) return;
 
 		try {
 			const payload: TenantCreate = {
@@ -48,20 +48,20 @@ export function InlineTenantInvite({
 				first_name: form.first_name,
 				last_name: form.last_name,
 				name: `${form.first_name} ${form.last_name}`.trim(),
-				...(form.phone ? { phone: form.phone } : {})
-			}
+				...(form.phone ? { phone: form.phone } : {}),
+			};
 
-			await createTenant.mutateAsync(payload)
+			await createTenant.mutateAsync(payload);
 
-			toast.success('Tenant added')
-			onToggleMode()
-			setForm({ first_name: '', last_name: '', email: '', phone: '' })
+			toast.success("Tenant added");
+			onToggleMode();
+			setForm({ first_name: "", last_name: "", email: "", phone: "" });
 		} catch (error) {
-			handleMutationError(error, 'Add tenant')
+			handleMutationError(error, "Add tenant");
 		}
-	}
+	};
 
-	const isFormValid = form.first_name && form.last_name && form.email
+	const isFormValid = form.first_name && form.last_name && form.email;
 
 	return (
 		<div className="space-y-3 rounded-md border border-border p-4">
@@ -71,8 +71,8 @@ export function InlineTenantInvite({
 					<Input
 						id="invite_first_name"
 						value={form.first_name}
-						onChange={e =>
-							setForm(f => ({ ...f, first_name: e.target.value }))
+						onChange={(e) =>
+							setForm((f) => ({ ...f, first_name: e.target.value }))
 						}
 						placeholder="Jane"
 					/>
@@ -82,8 +82,8 @@ export function InlineTenantInvite({
 					<Input
 						id="invite_last_name"
 						value={form.last_name}
-						onChange={e =>
-							setForm(f => ({ ...f, last_name: e.target.value }))
+						onChange={(e) =>
+							setForm((f) => ({ ...f, last_name: e.target.value }))
 						}
 						placeholder="Doe"
 					/>
@@ -96,9 +96,7 @@ export function InlineTenantInvite({
 						id="invite_email"
 						type="email"
 						value={form.email}
-						onChange={e =>
-							setForm(f => ({ ...f, email: e.target.value }))
-						}
+						onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))}
 						placeholder="jane@example.com"
 					/>
 				</div>
@@ -108,9 +106,7 @@ export function InlineTenantInvite({
 						id="invite_phone"
 						type="tel"
 						value={form.phone}
-						onChange={e =>
-							setForm(f => ({ ...f, phone: e.target.value }))
-						}
+						onChange={(e) => setForm((f) => ({ ...f, phone: e.target.value }))}
 						placeholder="(555) 123-4567"
 					/>
 				</div>
@@ -134,25 +130,20 @@ export function InlineTenantInvite({
 				)}
 			</Button>
 		</div>
-	)
+	);
 }
 
 export function TenantModeToggle({
 	inviteMode,
-	onToggle
+	onToggle,
 }: {
-	inviteMode: boolean
-	onToggle: () => void
+	inviteMode: boolean;
+	onToggle: () => void;
 }) {
 	return (
-		<Button
-			type="button"
-			variant="ghost"
-			size="sm"
-			onClick={onToggle}
-		>
+		<Button type="button" variant="ghost" size="sm" onClick={onToggle}>
 			{inviteMode ? (
-				'Existing Tenant'
+				"Existing Tenant"
 			) : (
 				<>
 					<UserPlus className="mr-1.5 h-3.5 w-3.5" />
@@ -160,5 +151,5 @@ export function TenantModeToggle({
 				</>
 			)}
 		</Button>
-	)
+	);
 }

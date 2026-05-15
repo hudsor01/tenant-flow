@@ -1,116 +1,118 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
-import { Card, CardContent, CardHeader, CardTitle } from '#components/ui/card'
-import { Button } from '#components/ui/button'
-import { Input } from '#components/ui/input'
-import { Label } from '#components/ui/label'
+import { Plus, Save, Trash2 } from "lucide-react";
+import { useState } from "react";
+import { Button } from "#components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "#components/ui/card";
+import { Input } from "#components/ui/input";
+import { Label } from "#components/ui/label";
 import {
 	Select,
 	SelectContent,
 	SelectItem,
 	SelectTrigger,
-	SelectValue
-} from '#components/ui/select'
-import { Plus, Save, Trash2 } from 'lucide-react'
-import type { DynamicField } from './dynamic-form'
+	SelectValue,
+} from "#components/ui/select";
+import type { DynamicField } from "./dynamic-form";
 
-const fieldTypes: Array<DynamicField['type']> = [
-	'text',
-	'email',
-	'tel',
-	'number',
-	'date',
-	'textarea',
-	'select',
-	'checkbox'
-]
+const fieldTypes: Array<DynamicField["type"]> = [
+	"text",
+	"email",
+	"tel",
+	"number",
+	"date",
+	"textarea",
+	"select",
+	"checkbox",
+];
 
 /** Regex for valid field names: alphanumeric and underscores, starting with letter */
-const VALID_FIELD_NAME_PATTERN = /^[a-zA-Z][a-zA-Z0-9_]*$/
+const VALID_FIELD_NAME_PATTERN = /^[a-zA-Z][a-zA-Z0-9_]*$/;
 
 /** Generate a unique field name using timestamp to avoid collisions */
 function generateUniqueFieldName(): string {
-	return `customField_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`
+	return `customField_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
 }
 
 /** Validate a field name for uniqueness and format */
 function validateFieldName(
 	name: string,
 	existingNames: string[],
-	currentIndex: number
+	currentIndex: number,
 ): string | null {
 	if (!name.trim()) {
-		return 'Field key is required'
+		return "Field key is required";
 	}
 	if (!VALID_FIELD_NAME_PATTERN.test(name)) {
-		return 'Field key must start with a letter and contain only letters, numbers, and underscores'
+		return "Field key must start with a letter and contain only letters, numbers, and underscores";
 	}
 	const isDuplicate = existingNames.some(
-		(existingName, idx) => idx !== currentIndex && existingName === name
-	)
+		(existingName, idx) => idx !== currentIndex && existingName === name,
+	);
 	if (isDuplicate) {
-		return 'Field key must be unique'
+		return "Field key must be unique";
 	}
-	return null
+	return null;
 }
 
 interface FormBuilderPanelProps {
-	fields: DynamicField[]
-	onChange: (fields: DynamicField[]) => void
-	onSave: () => Promise<void>
-	isSaving: boolean
+	fields: DynamicField[];
+	onChange: (fields: DynamicField[]) => void;
+	onSave: () => Promise<void>;
+	isSaving: boolean;
 }
 
 export function FormBuilderPanel({
 	fields,
 	onChange,
 	onSave,
-	isSaving
+	isSaving,
 }: FormBuilderPanelProps) {
-	const [fieldErrors, setFieldErrors] = useState<Record<number, string | null>>({})
+	const [fieldErrors, setFieldErrors] = useState<Record<number, string | null>>(
+		{},
+	);
 
 	const handleAdd = () => {
 		onChange([
 			...fields,
 			{
 				name: generateUniqueFieldName(),
-				label: 'New field',
-				type: 'text',
-				section: 'Custom fields',
-				fullWidth: true
-			}
-		])
-	}
+				label: "New field",
+				type: "text",
+				section: "Custom fields",
+				fullWidth: true,
+			},
+		]);
+	};
 
 	const updateField = <K extends keyof DynamicField>(
 		index: number,
 		key: K,
-		value: DynamicField[K]
+		value: DynamicField[K],
 	) => {
-		if (key === 'name' && typeof value === 'string') {
-			const existingNames = fields.map(f => f.name)
-			const error = validateFieldName(value, existingNames, index)
-			setFieldErrors(prev => ({ ...prev, [index]: error }))
+		if (key === "name" && typeof value === "string") {
+			const existingNames = fields.map((f) => f.name);
+			const error = validateFieldName(value, existingNames, index);
+			setFieldErrors((prev) => ({ ...prev, [index]: error }));
 		}
 
 		onChange(
 			fields.map((field, idx) =>
-				idx === index ? { ...field, [key]: value } : field
-			)
-		)
-	}
+				idx === index ? { ...field, [key]: value } : field,
+			),
+		);
+	};
 
 	const removeField = (index: number) => {
-		onChange(fields.filter((_, idx) => idx !== index))
-	}
+		onChange(fields.filter((_, idx) => idx !== index));
+	};
 
 	const parseOptions = (value: string) =>
 		value
-			.split(',')
-			.map(option => option.trim())
+			.split(",")
+			.map((option) => option.trim())
 			.filter(Boolean)
-			.map(option => ({ value: option, label: option }))
+			.map((option) => ({ value: option, label: option }));
 
 	return (
 		<Card>
@@ -122,17 +124,13 @@ export function FormBuilderPanel({
 					</p>
 				</div>
 				<div className="flex items-center gap-2">
-					<Button
-						type="button"
-						variant="outline"
-						onClick={handleAdd}
-					>
+					<Button type="button" variant="outline" onClick={handleAdd}>
 						<Plus className="mr-2 size-4" />
 						Add field
 					</Button>
 					<Button type="button" onClick={onSave} disabled={isSaving}>
 						<Save className="mr-2 size-4" />
-						{isSaving ? 'Saving...' : 'Save'}
+						{isSaving ? "Saving..." : "Save"}
 					</Button>
 				</div>
 			</CardHeader>
@@ -143,7 +141,10 @@ export function FormBuilderPanel({
 					</p>
 				) : null}
 				{fields.map((field, index) => (
-					<div key={`builder-field-${index}`} className="space-y-3 rounded border p-4">
+					<div
+						key={`builder-field-${index}`}
+						className="space-y-3 rounded border p-4"
+					>
 						<div className="flex items-center justify-between">
 							<p className="text-sm font-semibold">Custom field {index + 1}</p>
 							<Button
@@ -160,8 +161,8 @@ export function FormBuilderPanel({
 								<Label>Label</Label>
 								<Input
 									value={field.label}
-									onChange={event =>
-										updateField(index, 'label', event.target.value)
+									onChange={(event) =>
+										updateField(index, "label", event.target.value)
 									}
 								/>
 							</div>
@@ -169,28 +170,30 @@ export function FormBuilderPanel({
 								<Label>Field key</Label>
 								<Input
 									value={field.name}
-									onChange={event =>
-										updateField(index, 'name', event.target.value)
+									onChange={(event) =>
+										updateField(index, "name", event.target.value)
 									}
-									className={fieldErrors[index] ? 'border-destructive' : ''}
+									className={fieldErrors[index] ? "border-destructive" : ""}
 								/>
 								{fieldErrors[index] ? (
-									<p className="text-xs text-destructive">{fieldErrors[index]}</p>
+									<p className="text-xs text-destructive">
+										{fieldErrors[index]}
+									</p>
 								) : null}
 							</div>
 							<div className="space-y-2">
 								<Label>Type</Label>
 								<Select
 									value={field.type}
-									onValueChange={value =>
-										updateField(index, 'type', value as DynamicField['type'])
+									onValueChange={(value) =>
+										updateField(index, "type", value as DynamicField["type"])
 									}
 								>
 									<SelectTrigger>
 										<SelectValue placeholder="Select type" />
 									</SelectTrigger>
 									<SelectContent>
-										{fieldTypes.map(type => (
+										{fieldTypes.map((type) => (
 											<SelectItem key={type} value={type}>
 												{type}
 											</SelectItem>
@@ -201,20 +204,27 @@ export function FormBuilderPanel({
 							<div className="space-y-2">
 								<Label>Section</Label>
 								<Input
-									value={field.section ?? ''}
-									onChange={event =>
-										updateField(index, 'section', event.target.value)
+									value={field.section ?? ""}
+									onChange={(event) =>
+										updateField(index, "section", event.target.value)
 									}
 									placeholder="Custom fields"
 								/>
 							</div>
-							{field.type === 'select' ? (
+							{field.type === "select" ? (
 								<div className="space-y-2 sm:col-span-2">
 									<Label>Options (comma-separated)</Label>
 									<Input
-										value={field.options?.map(option => option.value).join(', ') ?? ''}
-										onChange={event =>
-											updateField(index, 'options', parseOptions(event.target.value))
+										value={
+											field.options?.map((option) => option.value).join(", ") ??
+											""
+										}
+										onChange={(event) =>
+											updateField(
+												index,
+												"options",
+												parseOptions(event.target.value),
+											)
 										}
 									/>
 								</div>
@@ -224,5 +234,5 @@ export function FormBuilderPanel({
 				))}
 			</CardContent>
 		</Card>
-	)
+	);
 }

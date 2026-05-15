@@ -12,17 +12,17 @@
  * TenantFlow plan type enumeration
  * Maps to Supabase PlanType enum
  */
-export type PlanType = 'FREETRIAL' | 'STARTER' | 'GROWTH' | 'TENANTFLOW_MAX'
+export type PlanType = "FREETRIAL" | "STARTER" | "GROWTH" | "TENANTFLOW_MAX";
 
 /**
  * Billing period type for subscriptions
  */
-export type BillingPeriod = 'monthly' | 'annual'
+export type BillingPeriod = "monthly" | "annual";
 
 /**
  * Alias for compatibility
  */
-export type BillingInterval = BillingPeriod
+export type BillingInterval = BillingPeriod;
 
 // Webhook Integration Types
 
@@ -30,53 +30,53 @@ export type BillingInterval = BillingPeriod
  * Webhook event types that TenantFlow processes
  */
 export type StripeWebhookEventType =
-	| 'customer.subscription.created'
-	| 'customer.subscription.updated'
-	| 'customer.subscription.deleted'
-	| 'invoice.payment_succeeded'
-	| 'invoice.payment_failed'
-	| 'customer.updated'
-	| 'payment_method.attached'
-	| 'payment_method.detached'
+	| "customer.subscription.created"
+	| "customer.subscription.updated"
+	| "customer.subscription.deleted"
+	| "invoice.payment_succeeded"
+	| "invoice.payment_failed"
+	| "customer.updated"
+	| "payment_method.attached"
+	| "payment_method.detached";
 
 /**
  * Webhook event interface for TenantFlow processing
  * Uses official Stripe.Event as base
  */
 export interface StripeWebhookEvent {
-	id: string
-	type: StripeWebhookEventType
+	id: string;
+	type: StripeWebhookEventType;
 	data: {
-		object: unknown
-		previous_attributes?: Record<string, unknown>
-	}
+		object: unknown;
+		previous_attributes?: Record<string, unknown>;
+	};
 }
 
 /**
  * Webhook notification for frontend display
  */
 export interface WebhookNotification {
-	id: string
-	type: 'success' | 'error' | 'info' | 'warning'
-	title: string
-	message: string
-	timestamp: Date
-	metadata?: Record<string, unknown>
+	id: string;
+	type: "success" | "error" | "info" | "warning";
+	title: string;
+	message: string;
+	timestamp: Date;
+	metadata?: Record<string, unknown>;
 }
 
 /**
  * Webhook processor function type
  */
 export type WebhookProcessorFunction = (
-	event: StripeWebhookEvent
-) => Promise<WebhookNotification[]>
+	event: StripeWebhookEvent,
+) => Promise<WebhookNotification[]>;
 
 /**
  * Webhook processor configuration
  */
 export interface StripeWebhookProcessor {
-	event: StripeWebhookEventType
-	processor: WebhookProcessorFunction
+	event: StripeWebhookEventType;
+	processor: WebhookProcessorFunction;
 }
 
 // Native Stripe Types Usage Guide
@@ -98,25 +98,25 @@ export interface StripeWebhookProcessor {
 
 // Frontend Stripe Product Types
 export interface StripePrice {
-	id: string
-	unit_amount: number
-	currency: string
+	id: string;
+	unit_amount: number;
+	currency: string;
 	recurring: {
-		interval: 'month' | 'year'
-		interval_count: number
-	} | null
+		interval: "month" | "year";
+		interval_count: number;
+	} | null;
 }
 
 export interface StripeProductWithPricing {
-	id: string
-	name: string
-	description: string | null
-	metadata: Record<string, string>
+	id: string;
+	name: string;
+	description: string | null;
+	metadata: Record<string, string>;
 	prices: {
-		monthly: StripePrice | null
-		annual: StripePrice | null
-	}
-	defaultPrice: StripePrice | null
+		monthly: StripePrice | null;
+		annual: StripePrice | null;
+	};
+	defaultPrice: StripePrice | null;
 }
 
 // Tenant Payment Types
@@ -125,23 +125,23 @@ export interface StripeProductWithPricing {
  * Parameters for creating a Stripe Customer for a Tenant
  */
 export interface CreateTenantCustomerParams {
-	tenant_id: string
-	email?: string
-	name?: string
-	phone?: string
-	metadata?: Record<string, string>
+	tenant_id: string;
+	email?: string;
+	name?: string;
+	phone?: string;
+	metadata?: Record<string, string>;
 }
 
 /**
  * Parameters for attaching a payment method to a Tenant's Stripe Customer
  */
 export interface AttachPaymentMethodParams {
-	tenant_id: string
-	paymentMethodId: string
-	setAsDefault?: boolean
+	tenant_id: string;
+	paymentMethodId: string;
+	setAsDefault?: boolean;
 }
 
-import type { Json } from './supabase'
+import type { Json } from "./supabase";
 
 /**
  * Enumerates Stripe Identity verification session states we care about.
@@ -149,34 +149,34 @@ import type { Json } from './supabase'
  * states in the future.
  */
 export type IdentityVerificationStatus =
-	| 'created'
-	| 'processing'
-	| 'requires_input'
-	| 'verified'
-	| 'canceled'
-	| 'expired'
-	| 'redacted'
-	| (string & {})
+	| "created"
+	| "processing"
+	| "requires_input"
+	| "verified"
+	| "canceled"
+	| "expired"
+	| "redacted"
+	| (string & {});
 
 /**
  * Represents the identity verification status we store on the user.
  * This type is shared between backend controllers and frontend queries.
  */
 export interface IdentityVerificationRecord {
-	sessionId: string | null
-	status: IdentityVerificationStatus | null
-	verifiedAt: string | null
-	lastError: string | null
-	data: Json | null
+	sessionId: string | null;
+	status: IdentityVerificationStatus | null;
+	verifiedAt: string | null;
+	lastError: string | null;
+	data: Json | null;
 }
 
 /**
  * Payload returned when creating or resuming a verification session.
  */
 export interface IdentityVerificationSessionPayload {
-	sessionId: string
-	clientSecret: string
-	status: IdentityVerificationStatus
+	sessionId: string;
+	clientSecret: string;
+	status: IdentityVerificationStatus;
 }
 
 /**
@@ -184,8 +184,8 @@ export interface IdentityVerificationSessionPayload {
  */
 
 export interface SubscriptionData {
-	status: string
-	planName: string
-	currentPeriodEnd: string
-	cancelAtPeriodEnd: boolean
+	status: string;
+	planName: string;
+	currentPeriodEnd: string;
+	cancelAtPeriodEnd: boolean;
 }

@@ -10,31 +10,27 @@
  * - BLOG_TO_COMPETITOR: blog slug -> competitor slug (derived from compare-data.ts)
  */
 
-import { COMPETITORS } from '#app/compare/[competitor]/compare-data'
+import { COMPETITORS } from "#app/compare/[competitor]/compare-data";
 
 /**
  * Maps resource page route segments to arrays of related blog post slugs.
  */
 export const RESOURCE_TO_BLOGS: Record<string, string[]> = {
-	'seasonal-maintenance-checklist': [
-		'preventive-maintenance-checklist-rental-properties-seasonal-guide',
+	"seasonal-maintenance-checklist": [
+		"preventive-maintenance-checklist-rental-properties-seasonal-guide",
 	],
-	'landlord-tax-deduction-tracker': [
-		'landlord-tax-deductions-missing-2025',
-	],
-	'security-deposit-reference-card': [
-		'security-deposit-laws-by-state-2025',
-	],
-}
+	"landlord-tax-deduction-tracker": ["landlord-tax-deductions-missing-2025"],
+	"security-deposit-reference-card": ["security-deposit-laws-by-state-2025"],
+};
 
 /**
  * Reverse map: blog post slug -> resource route segment.
  */
 export const BLOG_TO_RESOURCE: Record<string, string> = Object.fromEntries(
 	Object.entries(RESOURCE_TO_BLOGS).flatMap(([resource, blogs]) =>
-		blogs.map(blog => [blog, resource])
-	)
-)
+		blogs.map((blog) => [blog, resource]),
+	),
+);
 
 /**
  * Reverse map: blog post slug -> competitor slug.
@@ -42,5 +38,5 @@ export const BLOG_TO_RESOURCE: Record<string, string> = Object.fromEntries(
 export const BLOG_TO_COMPETITOR: Record<string, string> = Object.fromEntries(
 	Object.values(COMPETITORS)
 		.filter((c): c is typeof c & { blogSlug: string } => Boolean(c.blogSlug))
-		.map(c => [c.blogSlug, c.slug])
-)
+		.map((c) => [c.blogSlug, c.slug]),
+);

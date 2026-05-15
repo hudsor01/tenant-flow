@@ -1,7 +1,7 @@
-import Stripe from 'stripe'
-import { captureWebhookWarning, logEvent } from '../../_shared/errors.ts'
-import { priceIdToTier } from '../../_shared/plan-tier.ts'
-import type { SupabaseAdmin } from './types.ts'
+import Stripe from "stripe";
+import { captureWebhookWarning, logEvent } from "../../_shared/errors.ts";
+import { priceIdToTier } from "../../_shared/plan-tier.ts";
+import type { SupabaseAdmin } from "./types.ts";
 
 /**
  * Handle customer.subscription.created and customer.subscription.updated.
@@ -10,55 +10,64 @@ import type { SupabaseAdmin } from './types.ts'
  * (pre-PR #596) is gone — the leases table no longer has Stripe columns.
  */
 export async function handleCustomerSubscriptionUpdated(
-  supabase: SupabaseAdmin,
-  _stripe: Stripe,
-  event: Stripe.Event,
+	supabase: SupabaseAdmin,
+	_stripe: Stripe,
+	event: Stripe.Event,
 ): Promise<void> {
-  const sub = event.data.object as Stripe.Subscription
-  const customerId = typeof sub.customer === 'string' ? sub.customer : sub.customer.id
+	const sub = event.data.object as Stripe.Subscription;
+	const customerId =
+		typeof sub.customer === "string" ? sub.customer : sub.customer.id;
 
-  const { data: user } = await supabase
-    .from('users')
-    .select('id')
-    .eq('stripe_customer_id', customerId)
-    .maybeSingle()
+	const { data: user } = await supabase
+		.from("users")
+		.select("id")
+		.eq("stripe_customer_id", customerId)
+		.maybeSingle();
 
-  if (!user) {
-    captureWebhookWarning('[WEBHOOK] subscription matches no user', { sub_id: sub.id, customer_id: customerId })
-    return
-  }
+	if (!user) {
+		captureWebhookWarning("[WEBHOOK] subscription matches no user", {
+			sub_id: sub.id,
+			customer_id: customerId,
+		});
+		return;
+	}
 
-  const priceId = sub.items.data[0]?.price.id ?? null
-  const planLookup = sub.items.data[0]?.price.lookup_key ?? null
-  // Resolve to a canonical tier slug so the plan-limit triggers see a value
-  // they recognize. See checkout-session-completed.ts for the rationale.
-  const tier = priceIdToTier(planLookup) ?? priceIdToTier(priceId)
+	const priceId = sub.items.data[0]?.price.id ?? null;
+	const planLookup = sub.items.data[0]?.price.lookup_key ?? null;
+	// Resolve to a canonical tier slug so the plan-limit triggers see a value
+	// they recognize. See checkout-session-completed.ts for the rationale.
+	const tier = priceIdToTier(planLookup) ?? priceIdToTier(priceId);
 
-  // Capture metadata.source for admin analytics if present on the subscription
-  // (subscription_data.metadata propagates from checkout; also set directly
-  // here so late-arriving subscription.updated events still fill it in).
-  const source = typeof sub.metadata?.['source'] === 'string'
-    ? sub.metadata['source']
-    : null
+	// Capture metadata.source for admin analytics if present on the subscription
+	// (subscription_data.metadata propagates from checkout; also set directly
+	// here so late-arriving subscription.updated events still fill it in).
+	const source =
+		typeof sub.metadata?.["source"] === "string"
+			? sub.metadata["source"]
+			: null;
 
-  const updatePayload: Record<string, unknown> = {
-    subscription_id: sub.id,
-    subscription_status: sub.status,
-    subscription_plan: tier ?? planLookup ?? priceId,
-    subscription_current_period_end: sub.current_period_end
-      ? new Date(sub.current_period_end * 1000).toISOString()
-      : null,
-    subscription_cancel_at_period_end: sub.cancel_at_period_end ?? false,
-    subscription_updated_at: new Date().toISOString(),
-  }
-  if (source) updatePayload.subscription_source = source
+	const updatePayload: Record<string, unknown> = {
+		subscription_id: sub.id,
+		subscription_status: sub.status,
+		subscription_plan: tier ?? planLookup ?? priceId,
+		subscription_current_period_end: sub.current_period_end
+			? new Date(sub.current_period_end * 1000).toISOString()
+			: null,
+		subscription_cancel_at_period_end: sub.cancel_at_period_end ?? false,
+		subscription_updated_at: new Date().toISOString(),
+	};
+	if (source) updatePayload.subscription_source = source;
 
-  const { error: userUpdateError } = await supabase
-    .from('users')
-    .update(updatePayload)
-    .eq('id', user.id)
+	const { error: userUpdateError } = await supabase
+		.from("users")
+		.update(updatePayload)
+		.eq("id", user.id);
 
-  if (userUpdateError) throw userUpdateError
+	if (userUpdateError) throw userUpdateError;
 
-  logEvent('[WEBHOOK] Updated owner subscription', { user_id: user.id, status: sub.status, sub_id: sub.id })
+	logEvent("[WEBHOOK] Updated owner subscription", {
+		user_id: user.id,
+		status: sub.status,
+		sub_id: sub.id,
+	});
 }

@@ -1,93 +1,99 @@
-import { useMutation, useQuery, useQueryClient, mutationOptions } from '@tanstack/react-query'
-import type { Database } from '#types/supabase'
-
-import { createClient } from '#lib/supabase/client'
-import { getCachedUser } from '#lib/supabase/get-cached-user'
-import { mutationKeys } from './mutation-keys'
+import {
+	mutationOptions,
+	useMutation,
+	useQuery,
+	useQueryClient,
+} from "@tanstack/react-query";
 import {
 	handleMutationError,
-	handleMutationSuccess
-} from '#lib/mutation-error-handler'
+	handleMutationSuccess,
+} from "#lib/mutation-error-handler";
+
+import { createClient } from "#lib/supabase/client";
+import { getCachedUser } from "#lib/supabase/get-cached-user";
+import type { Database } from "#types/supabase";
+import { mutationKeys } from "./mutation-keys";
 import {
+	mapDbRowToPreferences,
+	type OwnerNotificationSettings,
 	ownerNotificationSettingsKeys,
 	ownerNotificationSettingsQueries,
-	mapDbRowToPreferences,
-	type OwnerNotificationSettings
-} from './query-keys/owner-notification-settings-keys'
-
+} from "./query-keys/owner-notification-settings-keys";
 
 export type OwnerNotificationSettingsUpdate = Partial<
-	Omit<OwnerNotificationSettings, 'categories'>
+	Omit<OwnerNotificationSettings, "categories">
 > & {
-	categories?: Partial<OwnerNotificationSettings['categories']>
-}
+	categories?: Partial<OwnerNotificationSettings["categories"]>;
+};
 
 type NotificationSettingsRow =
-	Database['public']['Tables']['notification_settings']['Row']
+	Database["public"]["Tables"]["notification_settings"]["Row"];
 
 const ownerNotificationSettingsMutationFactories = {
 	update: () =>
 		mutationOptions({
 			mutationKey: mutationKeys.ownerNotificationSettings.update,
 			mutationFn: async (
-				updates: OwnerNotificationSettingsUpdate
+				updates: OwnerNotificationSettingsUpdate,
 			): Promise<OwnerNotificationSettings> => {
-				const supabase = createClient()
-				const user = await getCachedUser()
-				if (!user) throw new Error('Not authenticated')
+				const supabase = createClient();
+				const user = await getCachedUser();
+				if (!user) throw new Error("Not authenticated");
 
-				const dbUpdate: Partial<NotificationSettingsRow> = {}
+				const dbUpdate: Partial<NotificationSettingsRow> = {};
 
-				if (updates.email !== undefined) dbUpdate.email = updates.email
-				if (updates.inApp !== undefined) dbUpdate.in_app = updates.inApp
-				if (updates.push !== undefined) dbUpdate.push = updates.push
-				if (updates.sms !== undefined) dbUpdate.sms = updates.sms
+				if (updates.email !== undefined) dbUpdate.email = updates.email;
+				if (updates.inApp !== undefined) dbUpdate.in_app = updates.inApp;
+				if (updates.push !== undefined) dbUpdate.push = updates.push;
+				if (updates.sms !== undefined) dbUpdate.sms = updates.sms;
 				if (updates.categories?.maintenance !== undefined)
-					dbUpdate.maintenance = updates.categories.maintenance
+					dbUpdate.maintenance = updates.categories.maintenance;
 				if (updates.categories?.leases !== undefined)
-					dbUpdate.leases = updates.categories.leases
+					dbUpdate.leases = updates.categories.leases;
 				if (updates.categories?.general !== undefined)
-					dbUpdate.general = updates.categories.general
-				dbUpdate.updated_at = new Date().toISOString()
+					dbUpdate.general = updates.categories.general;
+				dbUpdate.updated_at = new Date().toISOString();
 
 				const { data, error } = await supabase
-					.from('notification_settings')
-					.upsert({ user_id: user.id, ...dbUpdate }, { onConflict: 'user_id' })
+					.from("notification_settings")
+					.upsert({ user_id: user.id, ...dbUpdate }, { onConflict: "user_id" })
 					.select()
-					.single()
+					.single();
 
-				if (error) throw error
+				if (error) throw error;
 
-				return mapDbRowToPreferences(data)
-			}
-		})
-}
+				return mapDbRowToPreferences(data);
+			},
+		}),
+};
 
 export function useOwnerNotificationSettings() {
-	return useQuery(ownerNotificationSettingsQueries.detail())
+	return useQuery(ownerNotificationSettingsQueries.detail());
 }
 
 export function useUpdateOwnerNotificationSettingsMutation() {
-	const queryClient = useQueryClient()
+	const queryClient = useQueryClient();
 
 	return useMutation({
 		...ownerNotificationSettingsMutationFactories.update(),
-		onMutate: async updates => {
-			await queryClient.cancelQueries({ queryKey: ownerNotificationSettingsKeys.all })
+		onMutate: async (updates) => {
+			await queryClient.cancelQueries({
+				queryKey: ownerNotificationSettingsKeys.all,
+			});
 
 			const previous = queryClient.getQueryData<OwnerNotificationSettings>(
-				ownerNotificationSettingsKeys.all
-			)
+				ownerNotificationSettingsKeys.all,
+			);
 
 			if (previous) {
 				queryClient.setQueryData<OwnerNotificationSettings>(
 					ownerNotificationSettingsKeys.all,
 					(
-						old: OwnerNotificationSettings | undefined
+						old: OwnerNotificationSettings | undefined,
 					): OwnerNotificationSettings | undefined => {
-						if (!old) return undefined
+						if (!old) return undefined;
 
-						const { categories: updatedCategories, ...restUpdates } = updates
+						const { categories: updatedCategories, ...restUpdates } = updates;
 
 						return {
 							...old,
@@ -98,32 +104,38 @@ export function useUpdateOwnerNotificationSettingsMutation() {
 											updatedCategories.maintenance ??
 											old.categories.maintenance,
 										leases: updatedCategories.leases ?? old.categories.leases,
-										general: updatedCategories.general ?? old.categories.general
+										general:
+											updatedCategories.general ?? old.categories.general,
 									}
-								: old.categories
-						}
-					}
-				)
+								: old.categories,
+						};
+					},
+				);
 			}
 
-			return { previous }
+			return { previous };
 		},
 		onError: (error, _variables, context) => {
 			if (context?.previous) {
-				queryClient.setQueryData(ownerNotificationSettingsKeys.all, context.previous)
+				queryClient.setQueryData(
+					ownerNotificationSettingsKeys.all,
+					context.previous,
+				);
 			}
 
-			handleMutationError(error, 'Update notification settings')
+			handleMutationError(error, "Update notification settings");
 		},
-		onSuccess: data => {
-			queryClient.setQueryData(ownerNotificationSettingsKeys.all, data)
+		onSuccess: (data) => {
+			queryClient.setQueryData(ownerNotificationSettingsKeys.all, data);
 			handleMutationSuccess(
-				'Update notification settings',
-				'Your notification preferences have been saved'
-			)
+				"Update notification settings",
+				"Your notification preferences have been saved",
+			);
 		},
 		onSettled: () => {
-			queryClient.invalidateQueries({ queryKey: ownerNotificationSettingsKeys.all })
-		}
-	})
+			queryClient.invalidateQueries({
+				queryKey: ownerNotificationSettingsKeys.all,
+			});
+		},
+	});
 }

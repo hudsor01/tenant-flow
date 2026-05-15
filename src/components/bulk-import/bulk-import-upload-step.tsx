@@ -1,58 +1,58 @@
-'use client'
+"use client";
 
-import { Button } from '#components/ui/button'
-import { FileUpload } from '#components/ui/file-upload/file-upload'
-import { FileUploadDropzone } from '#components/ui/file-upload/file-upload-dropzone'
-import { FileUploadTrigger } from '#components/ui/file-upload/file-upload-actions'
-import { Download, FileSpreadsheet, CheckCircle2, Upload } from 'lucide-react'
-import { createLogger } from '#lib/frontend-logger'
+import { CheckCircle2, Download, FileSpreadsheet, Upload } from "lucide-react";
+import { Button } from "#components/ui/button";
+import { FileUpload } from "#components/ui/file-upload/file-upload";
+import { FileUploadTrigger } from "#components/ui/file-upload/file-upload-actions";
+import { FileUploadDropzone } from "#components/ui/file-upload/file-upload-dropzone";
+import { createLogger } from "#lib/frontend-logger";
 import {
 	buildCsvTemplate,
-	triggerCsvDownload,
+	CSV_MAX_FILE_SIZE_BYTES,
 	getFileValidationError,
-	CSV_MAX_FILE_SIZE_BYTES
-} from './parse-csv-with-schema'
-import type { BulkImportConfig } from './types'
+	triggerCsvDownload,
+} from "./parse-csv-with-schema";
+import type { BulkImportConfig } from "./types";
 
-const logger = createLogger({ component: 'BulkImportUploadStep' })
+const logger = createLogger({ component: "BulkImportUploadStep" });
 
 interface BulkImportUploadStepProps<T> {
-	config: BulkImportConfig<T>
-	onFileSelect: (file: File) => void
+	config: BulkImportConfig<T>;
+	onFileSelect: (file: File) => void;
 }
 
 export function BulkImportUploadStep<T>({
 	config,
-	onFileSelect
+	onFileSelect,
 }: BulkImportUploadStepProps<T>) {
 	const downloadTemplate = () => {
 		const csvContent = buildCsvTemplate(
 			config.templateHeaders,
-			config.templateSampleRows
-		)
-		triggerCsvDownload(csvContent, config.templateFilename)
-		logger.info('CSV template downloaded', {
-			entity: config.entityLabel.plural
-		})
-	}
+			config.templateSampleRows,
+		);
+		triggerCsvDownload(csvContent, config.templateFilename);
+		logger.info("CSV template downloaded", {
+			entity: config.entityLabel.plural,
+		});
+	};
 
 	const handleFileAccept = (file: File) => {
 		// Size + type only — file names can contain PII (e.g.
 		// "tenants_smith_family.csv"). The logger feeds Sentry/PostHog.
-		logger.info('CSV file accepted', {
+		logger.info("CSV file accepted", {
 			size: file.size,
 			type: file.type,
-			entity: config.entityLabel.plural
-		})
-		onFileSelect(file)
-	}
+			entity: config.entityLabel.plural,
+		});
+		onFileSelect(file);
+	};
 
 	const handleFileReject = (_file: File, message: string) => {
-		logger.warn('CSV file rejected', {
+		logger.warn("CSV file rejected", {
 			reason: message,
-			entity: config.entityLabel.plural
-		})
-	}
+			entity: config.entityLabel.plural,
+		});
+	};
 
 	return (
 		<div className="space-y-5">
@@ -105,9 +105,9 @@ export function BulkImportUploadStep<T>({
 						variant="outline"
 						size="sm"
 						className="gap-2 hover:bg-primary/5 hover:border-primary/40 transition-all"
-						onClick={e => {
-							e.stopPropagation()
-							downloadTemplate()
+						onClick={(e) => {
+							e.stopPropagation();
+							downloadTemplate();
 						}}
 					>
 						<Download className="size-3.5" />
@@ -153,5 +153,5 @@ export function BulkImportUploadStep<T>({
 				</div>
 			</div>
 		</div>
-	)
+	);
 }

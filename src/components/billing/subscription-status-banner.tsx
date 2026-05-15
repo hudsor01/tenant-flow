@@ -1,8 +1,8 @@
-'use client'
+"use client";
 
-import { AlertTriangle, Clock, Info, Lock } from 'lucide-react'
-import Link from 'next/link'
-import { useSubscriptionStatus } from '#hooks/api/use-billing'
+import { AlertTriangle, Clock, Info, Lock } from "lucide-react";
+import Link from "next/link";
+import { useSubscriptionStatus } from "#hooks/api/use-billing";
 
 /**
  * SubscriptionStatusBanner — shows warning/lock banner for subscription issues.
@@ -16,9 +16,9 @@ import { useSubscriptionStatus } from '#hooks/api/use-billing'
  * Include in owner layout to show across all owner pages.
  */
 export function SubscriptionStatusBanner() {
-	const { data: subscription, isLoading } = useSubscriptionStatus()
+	const { data: subscription, isLoading } = useSubscriptionStatus();
 
-	if (isLoading) return null
+	if (isLoading) return null;
 
 	// No subscription at all — user needs to subscribe
 	if (!subscription || subscription.subscriptionStatus === null) {
@@ -35,23 +35,23 @@ export function SubscriptionStatusBanner() {
 					View plans
 				</Link>
 			</div>
-		)
+		);
 	}
 
-	const status = subscription.subscriptionStatus
+	const status = subscription.subscriptionStatus;
 
 	// Trialing: days-remaining banner with upgrade CTA. Fall back to a generic
 	// trial-active message if trial_ends_at is missing (data gap we still want
 	// to surface rather than render nothing).
-	if (status === 'trialing') {
-		const daysLeft = calculateDaysRemaining(subscription.trialEndsAt)
-		const dayWord = daysLeft === 1 ? 'day' : 'days'
+	if (status === "trialing") {
+		const daysLeft = calculateDaysRemaining(subscription.trialEndsAt);
+		const dayWord = daysLeft === 1 ? "day" : "days";
 		const message =
 			daysLeft === null
 				? "You're on a free trial — upgrade to keep access."
 				: daysLeft <= 0
-					? 'Your trial ended. Upgrade to keep access.'
-					: `${daysLeft} ${dayWord} left in your trial — upgrade to keep access.`
+					? "Your trial ended. Upgrade to keep access."
+					: `${daysLeft} ${dayWord} left in your trial — upgrade to keep access.`;
 
 		return (
 			<div className="flex items-center gap-3 rounded-lg border border-indigo-300 bg-indigo-50 px-4 py-3 text-sm text-indigo-800 dark:border-indigo-700 dark:bg-indigo-950/50 dark:text-indigo-200">
@@ -64,16 +64,16 @@ export function SubscriptionStatusBanner() {
 					Upgrade
 				</Link>
 			</div>
-		)
+		);
 	}
 
 	// Active subscriptions need no banner
-	if (status === 'active') {
-		return null
+	if (status === "active") {
+		return null;
 	}
 
 	// Past due: yellow warning
-	if (status === 'past_due') {
+	if (status === "past_due") {
 		return (
 			<div className="flex items-center gap-3 rounded-lg border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-800 dark:border-amber-700 dark:bg-amber-950/50 dark:text-amber-200">
 				<AlertTriangle className="size-5 shrink-0" />
@@ -88,7 +88,7 @@ export function SubscriptionStatusBanner() {
 					Update billing
 				</Link>
 			</div>
-		)
+		);
 	}
 
 	// Unpaid, canceled, cancelled: red lock banner
@@ -96,8 +96,8 @@ export function SubscriptionStatusBanner() {
 		<div className="flex items-center gap-3 rounded-lg border border-red-300 bg-red-50 px-4 py-3 text-sm text-red-800 dark:border-red-700 dark:bg-red-950/50 dark:text-red-200">
 			<Lock className="size-5 shrink-0" />
 			<p className="flex-1">
-				Your subscription is inactive. Premium features are disabled until
-				your subscription is renewed.
+				Your subscription is inactive. Premium features are disabled until your
+				subscription is renewed.
 			</p>
 			<Link
 				href="/owner/billing"
@@ -106,13 +106,13 @@ export function SubscriptionStatusBanner() {
 				Reactivate
 			</Link>
 		</div>
-	)
+	);
 }
 
 function calculateDaysRemaining(trialEndsAt: string | null): number | null {
-	if (!trialEndsAt) return null
-	const endMs = Date.parse(trialEndsAt)
-	if (Number.isNaN(endMs)) return null
-	const diffMs = endMs - Date.now()
-	return Math.ceil(diffMs / (1000 * 60 * 60 * 24))
+	if (!trialEndsAt) return null;
+	const endMs = Date.parse(trialEndsAt);
+	if (Number.isNaN(endMs)) return null;
+	const diffMs = endMs - Date.now();
+	return Math.ceil(diffMs / (1000 * 60 * 60 * 24));
 }

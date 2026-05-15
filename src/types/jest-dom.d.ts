@@ -8,9 +8,9 @@
  *
  * Remove this file when @testing-library/jest-dom ships Vitest 4.x-compatible types.
  */
-import type { TestingLibraryMatchers } from '@testing-library/jest-dom/matchers'
+import type { TestingLibraryMatchers } from "@testing-library/jest-dom/matchers";
 
-declare module 'vitest' {
+declare module "vitest" {
 	interface Matchers<T = unknown>
 		extends TestingLibraryMatchers<typeof expect.stringContaining, T> {}
 }

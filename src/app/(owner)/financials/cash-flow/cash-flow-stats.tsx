@@ -1,24 +1,24 @@
-import { ArrowUpCircle, ArrowDownCircle, Wallet } from 'lucide-react'
-import { BlurFade } from '#components/ui/blur-fade'
-import { BorderBeam } from '#components/ui/border-beam'
+import { ArrowDownCircle, ArrowUpCircle, Wallet } from "lucide-react";
+import { BlurFade } from "#components/ui/blur-fade";
+import { BorderBeam } from "#components/ui/border-beam";
 import {
 	Stat,
+	StatDescription,
+	StatIndicator,
 	StatLabel,
 	StatValue,
-	StatIndicator,
-	StatDescription
-} from '#components/ui/stat'
+} from "#components/ui/stat";
 
 interface CashFlowStatsProps {
-	totalInflows: number
-	totalOutflows: number
-	netCashFlow: number
+	totalInflows: number;
+	totalOutflows: number;
+	netCashFlow: number;
 }
 
 export function CashFlowStats({
 	totalInflows,
 	totalOutflows,
-	netCashFlow
+	netCashFlow,
 }: CashFlowStatsProps) {
 	return (
 		<div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
@@ -66,9 +66,9 @@ export function CashFlowStats({
 					)}
 					<StatLabel>Net Cash Flow</StatLabel>
 					<StatValue
-						className={`flex items-baseline ${netCashFlow >= 0 ? '' : 'text-destructive'}`}
+						className={`flex items-baseline ${netCashFlow >= 0 ? "" : "text-destructive"}`}
 					>
-						{netCashFlow >= 0 ? '+' : '-'}$
+						{netCashFlow >= 0 ? "+" : "-"}$
 						{Math.abs(Math.floor(netCashFlow)).toLocaleString()}
 					</StatValue>
 					<StatIndicator variant="icon" color="primary">
@@ -78,5 +78,5 @@ export function CashFlowStats({
 				</Stat>
 			</BlurFade>
 		</div>
-	)
+	);
 }

@@ -1,80 +1,80 @@
-'use client'
+"use client";
 
-import dynamic from 'next/dynamic'
-import { Button } from '#components/ui/button'
-import {
-	Dialog,
-	DialogContent,
-	DialogHeader,
-	DialogTitle,
-	DialogTrigger
-} from '#components/ui/dialog'
-import { Input } from '#components/ui/input'
-import { Label } from '#components/ui/label'
-import {
-	Select,
-	SelectContent,
-	SelectItem,
-	SelectTrigger,
-	SelectValue
-} from '#components/ui/select'
-import { DataTable } from '#components/data-table/data-table'
-import { DataTableToolbar } from '#components/data-table/data-table-toolbar'
-import { unitColumns, type UnitRow } from './columns'
-import { useCreateUnitMutation } from '#hooks/api/use-unit'
-import { propertyQueries } from '#hooks/api/query-keys/property-keys'
-import { unitQueries } from '#hooks/api/query-keys/unit-keys'
-import { ownerDashboardKeys } from '#hooks/api/use-owner-dashboard'
-import type { UnitInput } from '#lib/validation/units'
-import { useQuery, useQueryClient } from '@tanstack/react-query'
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
 	getCoreRowModel,
 	getFilteredRowModel,
 	getPaginationRowModel,
 	getSortedRowModel,
-	useReactTable
-} from '@tanstack/react-table'
-import { DoorOpen, Plus } from 'lucide-react'
-import { useRef } from 'react'
-import { toast } from 'sonner'
+	useReactTable,
+} from "@tanstack/react-table";
+import { DoorOpen, Plus } from "lucide-react";
+import dynamic from "next/dynamic";
+import { useRef } from "react";
+import { toast } from "sonner";
+import { DataTable } from "#components/data-table/data-table";
+import { DataTableToolbar } from "#components/data-table/data-table-toolbar";
+import { Button } from "#components/ui/button";
+import {
+	Dialog,
+	DialogContent,
+	DialogHeader,
+	DialogTitle,
+	DialogTrigger,
+} from "#components/ui/dialog";
+import { Input } from "#components/ui/input";
+import { Label } from "#components/ui/label";
+import {
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+	SelectValue,
+} from "#components/ui/select";
+import { propertyQueries } from "#hooks/api/query-keys/property-keys";
+import { unitQueries } from "#hooks/api/query-keys/unit-keys";
+import { ownerDashboardKeys } from "#hooks/api/use-owner-dashboard";
+import { useCreateUnitMutation } from "#hooks/api/use-unit";
+import type { UnitInput } from "#lib/validation/units";
+import { type UnitRow, unitColumns } from "./columns";
 
 // Dynamic import: ChartAreaInteractive is heavy (~40KB), defer loading until needed
 const ChartAreaInteractive = dynamic(
 	() =>
-		import('#components/dashboard/chart-area-interactive').then(
-			mod => mod.ChartAreaInteractive
+		import("#components/dashboard/chart-area-interactive").then(
+			(mod) => mod.ChartAreaInteractive,
 		),
 	{
 		loading: () => (
 			<div className="h-[300px] rounded-lg border bg-card shadow-sm animate-pulse" />
 		),
-		ssr: false // Chart renders client-side only
-	}
-)
+		ssr: false, // Chart renders client-side only
+	},
+);
 
 export default function UnitsPage() {
 	// Use modern hook with pagination
 	const { data: unitsResponse, isLoading } = useQuery(
 		unitQueries.list({
 			limit: 100,
-			offset: 0
-		})
-	)
+			offset: 0,
+		}),
+	);
 
-	const { data: propertiesResponse } = useQuery(propertyQueries.list())
+	const { data: propertiesResponse } = useQuery(propertyQueries.list());
 
 	// Use backend RPC functions for statistics - NO CLIENT-SIDE CALCULATIONS
-	const { data: unitsStats } = useQuery(unitQueries.stats())
+	const { data: unitsStats } = useQuery(unitQueries.stats());
 
-	const units = (unitsResponse?.data || []) as UnitRow[]
-	const properties = propertiesResponse?.data || []
+	const units = (unitsResponse?.data || []) as UnitRow[];
+	const properties = propertiesResponse?.data || [];
 
 	// Use backend statistics directly - trust the database calculations
-	const totalUnits = unitsStats?.total ?? 0
-	const occupiedCount = unitsStats?.occupied ?? 0
-	const vacantCount = unitsStats?.vacant ?? 0
-	const maintenanceCount = unitsStats?.maintenance ?? 0
-	const occupancyRate = unitsStats?.occupancyRate ?? 0
+	const totalUnits = unitsStats?.total ?? 0;
+	const occupiedCount = unitsStats?.occupied ?? 0;
+	const vacantCount = unitsStats?.vacant ?? 0;
+	const maintenanceCount = unitsStats?.maintenance ?? 0;
+	const occupancyRate = unitsStats?.occupancyRate ?? 0;
 
 	// Setup TanStack Table with DiceUI DataTable
 	const table = useReactTable({
@@ -86,10 +86,10 @@ export default function UnitsPage() {
 		getSortedRowModel: getSortedRowModel(),
 		initialState: {
 			pagination: {
-				pageSize: 25
-			}
-		}
-	})
+				pageSize: 25,
+			},
+		},
+	});
 
 	return (
 		<div className="flex flex-col gap-4 py-4 md:gap-6 md:py-6">
@@ -172,38 +172,38 @@ export default function UnitsPage() {
 				</div>
 			</div>
 		</div>
-	)
+	);
 }
 
 interface NewUnitButtonProps {
-	properties?: Array<{ id: string; name: string }>
+	properties?: Array<{ id: string; name: string }>;
 }
 
 function NewUnitButton({ properties }: NewUnitButtonProps) {
-	const qc = useQueryClient()
-	const create = useCreateUnitMutation()
-	const closeButtonRef = useRef<HTMLButtonElement>(null)
+	const qc = useQueryClient();
+	const create = useCreateUnitMutation();
+	const closeButtonRef = useRef<HTMLButtonElement>(null);
 
 	async function onSubmit(form: HTMLFormElement) {
 		try {
-			const fd = new FormData(form)
+			const fd = new FormData(form);
 			await create.mutateAsync({
-				unit_number: String(fd.get('unit_number') || ''),
-				bedrooms: Number(fd.get('bedrooms') || 0),
-				bathrooms: Number(fd.get('bathrooms') || 0),
-				rent_amount: Number(fd.get('rent') || 0),
-				property_id: String(fd.get('property_id') || ''),
-				rent_currency: 'USD',
-				rent_period: 'monthly',
-				status: 'available'
-			} satisfies UnitInput)
-			qc.invalidateQueries({ queryKey: ownerDashboardKeys.analytics.stats() })
-			toast.success('Unit created successfully')
-			closeButtonRef.current?.click()
+				unit_number: String(fd.get("unit_number") || ""),
+				bedrooms: Number(fd.get("bedrooms") || 0),
+				bathrooms: Number(fd.get("bathrooms") || 0),
+				rent_amount: Number(fd.get("rent") || 0),
+				property_id: String(fd.get("property_id") || ""),
+				rent_currency: "USD",
+				rent_period: "monthly",
+				status: "available",
+			} satisfies UnitInput);
+			qc.invalidateQueries({ queryKey: ownerDashboardKeys.analytics.stats() });
+			toast.success("Unit created successfully");
+			closeButtonRef.current?.click();
 		} catch (error) {
-			toast.error('Failed to create unit', {
-				description: error instanceof Error ? error.message : 'Unknown error'
-			})
+			toast.error("Failed to create unit", {
+				description: error instanceof Error ? error.message : "Unknown error",
+			});
 		}
 	}
 
@@ -221,9 +221,9 @@ function NewUnitButton({ properties }: NewUnitButtonProps) {
 				</DialogHeader>
 				<form
 					className="grid gap-4"
-					onSubmit={e => {
-						e.preventDefault()
-						onSubmit(e.target as HTMLFormElement)
+					onSubmit={(e) => {
+						e.preventDefault();
+						onSubmit(e.target as HTMLFormElement);
 					}}
 				>
 					<div className="grid grid-cols-2 gap-2">
@@ -243,7 +243,7 @@ function NewUnitButton({ properties }: NewUnitButtonProps) {
 									<SelectValue placeholder="Select property" />
 								</SelectTrigger>
 								<SelectContent>
-									{properties?.map(property => (
+									{properties?.map((property) => (
 										<SelectItem key={property.id} value={property.id}>
 											{property.name}
 										</SelectItem>
@@ -290,11 +290,11 @@ function NewUnitButton({ properties }: NewUnitButtonProps) {
 							Cancel
 						</Button>
 						<Button type="submit" disabled={create.isPending}>
-							{create.isPending ? 'Creating...' : 'Add Unit'}
+							{create.isPending ? "Creating..." : "Add Unit"}
 						</Button>
 					</div>
 				</form>
 			</DialogContent>
 		</Dialog>
-	)
+	);
 }

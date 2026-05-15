@@ -1,36 +1,36 @@
-import { Badge } from '#components/ui/badge'
+import { TrendingUp } from "lucide-react";
+import { Badge } from "#components/ui/badge";
 import {
 	Card,
 	CardAction,
 	CardDescription,
 	CardFooter,
 	CardHeader,
-	CardTitle
-} from '#components/ui/card'
-import { Skeleton } from '#components/ui/skeleton'
-import { TrendingUp } from 'lucide-react'
-import type { ReportPaymentAnalytics, OccupancyMetrics } from '#types/reports'
-import { formatCurrency } from '#lib/utils/currency'
+	CardTitle,
+} from "#components/ui/card";
+import { Skeleton } from "#components/ui/skeleton";
+import { formatCurrency } from "#lib/utils/currency";
+import type { OccupancyMetrics, ReportPaymentAnalytics } from "#types/reports";
 
 const formatWholeAmount = (value: number) =>
-	formatCurrency(value, { minimumFractionDigits: 0, maximumFractionDigits: 0 })
+	formatCurrency(value, { minimumFractionDigits: 0, maximumFractionDigits: 0 });
 
-const formatPercent = (value: number) => `${value.toFixed(1)}%`
+const formatPercent = (value: number) => `${value.toFixed(1)}%`;
 
 interface AnalyticsStatsRowProps {
-	paymentAnalytics: ReportPaymentAnalytics | undefined
-	occupancyMetrics: OccupancyMetrics | undefined
-	paymentsLoading: boolean
-	occupancyLoading: boolean
+	paymentAnalytics: ReportPaymentAnalytics | undefined;
+	occupancyMetrics: OccupancyMetrics | undefined;
+	paymentsLoading: boolean;
+	occupancyLoading: boolean;
 }
 
 export function AnalyticsStatsRow({
 	paymentAnalytics,
 	occupancyMetrics,
 	paymentsLoading,
-	occupancyLoading
+	occupancyLoading,
 }: AnalyticsStatsRowProps) {
-	const isLoading = paymentsLoading || occupancyLoading
+	const isLoading = paymentsLoading || occupancyLoading;
 
 	return (
 		<div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
@@ -60,7 +60,9 @@ export function AnalyticsStatsRow({
 							<div className="line-clamp-1 flex gap-2 font-medium">
 								Successful collections <TrendingUp className="size-4" />
 							</div>
-							<div className="text-muted-foreground">All successful payments</div>
+							<div className="text-muted-foreground">
+								All successful payments
+							</div>
 						</CardFooter>
 					</Card>
 
@@ -73,7 +75,7 @@ export function AnalyticsStatsRow({
 										? (paymentAnalytics.successfulPayments /
 												paymentAnalytics.totalPayments) *
 												100
-										: 0
+										: 0,
 								)}
 							</CardTitle>
 							<CardAction>
@@ -88,7 +90,7 @@ export function AnalyticsStatsRow({
 								Strong performance <TrendingUp className="size-4" />
 							</div>
 							<div className="text-muted-foreground">
-								{paymentAnalytics?.successfulPayments || 0} of{' '}
+								{paymentAnalytics?.successfulPayments || 0} of{" "}
 								{paymentAnalytics?.totalPayments || 0} payments
 							</div>
 						</CardFooter>
@@ -112,7 +114,7 @@ export function AnalyticsStatsRow({
 								Portfolio health <TrendingUp className="size-4" />
 							</div>
 							<div className="text-muted-foreground">
-								{occupancyMetrics?.occupiedUnits || 0} of{' '}
+								{occupancyMetrics?.occupiedUnits || 0} of{" "}
 								{occupancyMetrics?.totalUnits || 0} units occupied
 							</div>
 						</CardFooter>
@@ -127,7 +129,7 @@ export function AnalyticsStatsRow({
 										? (paymentAnalytics.paymentsByMethod.ach /
 												paymentAnalytics.totalPayments) *
 												100
-										: 0
+										: 0,
 								)}
 							</CardTitle>
 							<CardAction>
@@ -141,13 +143,11 @@ export function AnalyticsStatsRow({
 							<div className="line-clamp-1 flex gap-2 font-medium">
 								Cost savings <TrendingUp className="size-4" />
 							</div>
-							<div className="text-muted-foreground">
-								Bank transfer vs card
-							</div>
+							<div className="text-muted-foreground">Bank transfer vs card</div>
 						</CardFooter>
 					</Card>
 				</>
 			)}
 		</div>
-	)
+	);
 }

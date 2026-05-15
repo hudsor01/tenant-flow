@@ -9,39 +9,39 @@
  * - PostgREST direct via supabase-js (no apiRequest calls)
  */
 
-import { queryOptions, mutationOptions } from '@tanstack/react-query'
-import { createClient } from '#lib/supabase/client'
-import { getCachedUser } from '#lib/supabase/get-cached-user'
-import { handlePostgrestError } from '#lib/postgrest-error-handler'
-import { requireOwnerUserId } from '#lib/require-owner-user-id'
-import { sanitizeSearchInput } from '#lib/sanitize-search'
-import { QUERY_CACHE_TIMES } from '#lib/constants/query-config'
-import { mutationKeys } from '../mutation-keys'
-import type { PaginatedResponse } from '#types/api-contracts'
-import type { Unit } from '#types/core'
-import type { UnitStats } from '#types/stats'
-import type { UnitInput, UnitUpdate } from '#lib/validation/units'
+import { mutationOptions, queryOptions } from "@tanstack/react-query";
+import { QUERY_CACHE_TIMES } from "#lib/constants/query-config";
+import { handlePostgrestError } from "#lib/postgrest-error-handler";
+import { requireOwnerUserId } from "#lib/require-owner-user-id";
+import { sanitizeSearchInput } from "#lib/sanitize-search";
+import { createClient } from "#lib/supabase/client";
+import { getCachedUser } from "#lib/supabase/get-cached-user";
+import type { UnitInput, UnitUpdate } from "#lib/validation/units";
+import type { PaginatedResponse } from "#types/api-contracts";
+import type { Unit } from "#types/core";
+import type { UnitStats } from "#types/stats";
+import { mutationKeys } from "../mutation-keys";
 
 /**
  * Unit query filters
  */
 export interface UnitFilters {
-	property_id?: string
-	status?: 'available' | 'occupied' | 'maintenance' | 'reserved'
-	search?: string
-	limit?: number
-	offset?: number
+	property_id?: string;
+	status?: "available" | "occupied" | "maintenance" | "reserved";
+	search?: string;
+	limit?: number;
+	offset?: number;
 }
 
 const UNIT_SELECT_COLUMNS =
-	'id, property_id, owner_user_id, unit_number, bedrooms, bathrooms, square_feet, rent_amount, rent_currency, rent_period, status, created_at, updated_at'
+	"id, property_id, owner_user_id, unit_number, bedrooms, bathrooms, square_feet, rent_amount, rent_currency, rent_period, status, created_at, updated_at";
 
 /**
  * Unit query factory
  */
 export const unitQueries = {
-	all: () => ['units'] as const,
-	lists: () => [...unitQueries.all(), 'list'] as const,
+	all: () => ["units"] as const,
+	lists: () => [...unitQueries.all(), "list"] as const,
 
 	/**
 	 * Unit list with optional filters
@@ -51,38 +51,38 @@ export const unitQueries = {
 		queryOptions({
 			queryKey: [...unitQueries.lists(), filters ?? {}],
 			queryFn: async (): Promise<PaginatedResponse<Unit>> => {
-				const supabase = createClient()
-				const limit = filters?.limit ?? 50
-				const offset = filters?.offset ?? 0
+				const supabase = createClient();
+				const limit = filters?.limit ?? 50;
+				const offset = filters?.offset ?? 0;
 
 				let q = supabase
-					.from('units')
-					.select(UNIT_SELECT_COLUMNS, { count: 'exact' })
-					.order('created_at', { ascending: false })
+					.from("units")
+					.select(UNIT_SELECT_COLUMNS, { count: "exact" })
+					.order("created_at", { ascending: false });
 
 				// Filter inactive by default unless a specific status is requested
 				if (filters?.status) {
-					q = q.eq('status', filters.status)
+					q = q.eq("status", filters.status);
 				} else {
-					q = q.neq('status', 'inactive')
+					q = q.neq("status", "inactive");
 				}
 
 				if (filters?.property_id) {
-					q = q.eq('property_id', filters.property_id)
+					q = q.eq("property_id", filters.property_id);
 				}
 
 				if (filters?.search) {
-					const safe = sanitizeSearchInput(filters.search)
+					const safe = sanitizeSearchInput(filters.search);
 					if (safe) {
-						q = q.ilike('unit_number', `%${safe}%`)
+						q = q.ilike("unit_number", `%${safe}%`);
 					}
 				}
 
-				q = q.range(offset, offset + limit - 1)
+				q = q.range(offset, offset + limit - 1);
 
-				const { data, error, count } = await q
+				const { data, error, count } = await q;
 
-				if (error) handlePostgrestError(error, 'units')
+				if (error) handlePostgrestError(error, "units");
 
 				return {
 					data: (data as Unit[]) ?? [],
@@ -91,11 +91,11 @@ export const unitQueries = {
 						page: Math.floor(offset / limit) + 1,
 						limit,
 						total: count ?? 0,
-						totalPages: Math.ceil((count ?? 0) / limit)
-					}
-				}
+						totalPages: Math.ceil((count ?? 0) / limit),
+					},
+				};
 			},
-			...QUERY_CACHE_TIMES.DETAIL
+			...QUERY_CACHE_TIMES.DETAIL,
 		}),
 
 	/**
@@ -104,25 +104,25 @@ export const unitQueries = {
 	 */
 	listByProperty: (property_id: string) =>
 		queryOptions({
-			queryKey: [...unitQueries.lists(), 'by-property', property_id],
+			queryKey: [...unitQueries.lists(), "by-property", property_id],
 			queryFn: async (): Promise<Unit[]> => {
-				const supabase = createClient()
+				const supabase = createClient();
 				const { data, error } = await supabase
-					.from('units')
+					.from("units")
 					.select(UNIT_SELECT_COLUMNS)
-					.eq('property_id', property_id)
-					.neq('status', 'inactive')
-					.order('unit_number', { ascending: true })
+					.eq("property_id", property_id)
+					.neq("status", "inactive")
+					.order("unit_number", { ascending: true });
 
-				if (error) handlePostgrestError(error, 'units')
+				if (error) handlePostgrestError(error, "units");
 
-				return (data as Unit[]) ?? []
+				return (data as Unit[]) ?? [];
 			},
 			...QUERY_CACHE_TIMES.DETAIL,
-			enabled: !!property_id
+			enabled: !!property_id,
 		}),
 
-	details: () => [...unitQueries.all(), 'detail'] as const,
+	details: () => [...unitQueries.all(), "detail"] as const,
 
 	/**
 	 * Single unit by ID
@@ -131,19 +131,19 @@ export const unitQueries = {
 		queryOptions({
 			queryKey: [...unitQueries.details(), id],
 			queryFn: async (): Promise<Unit> => {
-				const supabase = createClient()
+				const supabase = createClient();
 				const { data, error } = await supabase
-					.from('units')
+					.from("units")
 					.select(UNIT_SELECT_COLUMNS)
-					.eq('id', id)
-					.single()
+					.eq("id", id)
+					.single();
 
-				if (error) handlePostgrestError(error, 'units')
+				if (error) handlePostgrestError(error, "units");
 
-				return data as Unit
+				return data as Unit;
 			},
 			...QUERY_CACHE_TIMES.DETAIL,
-			enabled: !!id
+			enabled: !!id,
 		}),
 
 	/**
@@ -152,22 +152,22 @@ export const unitQueries = {
 	 */
 	byProperty: (property_id: string) =>
 		queryOptions({
-			queryKey: [...unitQueries.all(), 'by-property', property_id],
+			queryKey: [...unitQueries.all(), "by-property", property_id],
 			queryFn: async (): Promise<Unit[]> => {
-				const supabase = createClient()
+				const supabase = createClient();
 				const { data, error } = await supabase
-					.from('units')
+					.from("units")
 					.select(UNIT_SELECT_COLUMNS)
-					.eq('property_id', property_id)
-					.neq('status', 'inactive')
-					.order('unit_number', { ascending: true })
+					.eq("property_id", property_id)
+					.neq("status", "inactive")
+					.order("unit_number", { ascending: true });
 
-				if (error) handlePostgrestError(error, 'units')
+				if (error) handlePostgrestError(error, "units");
 
-				return (data as Unit[]) ?? []
+				return (data as Unit[]) ?? [];
 			},
 			...QUERY_CACHE_TIMES.DETAIL,
-			enabled: !!property_id
+			enabled: !!property_id,
 		}),
 
 	/**
@@ -176,52 +176,65 @@ export const unitQueries = {
 	 */
 	stats: () =>
 		queryOptions({
-			queryKey: [...unitQueries.all(), 'stats'],
+			queryKey: [...unitQueries.all(), "stats"],
 			queryFn: async (): Promise<UnitStats> => {
-				const supabase = createClient()
+				const supabase = createClient();
 
-				const [totalResult, occupiedResult, availableResult, maintenanceResult, rentResult] =
-					await Promise.all([
-						supabase
-							.from('units')
-							.select('id', { count: 'exact', head: true })
-							.neq('status', 'inactive'),
-						supabase
-							.from('units')
-							.select('id', { count: 'exact', head: true })
-							.eq('status', 'occupied'),
-						supabase
-							.from('units')
-							.select('id', { count: 'exact', head: true })
-							.eq('status', 'available'),
-						supabase
-							.from('units')
-							.select('id', { count: 'exact', head: true })
-							.eq('status', 'maintenance'),
-						supabase
-							.from('units')
-							.select('rent_amount')
-							.neq('status', 'inactive')
-					])
+				const [
+					totalResult,
+					occupiedResult,
+					availableResult,
+					maintenanceResult,
+					rentResult,
+				] = await Promise.all([
+					supabase
+						.from("units")
+						.select("id", { count: "exact", head: true })
+						.neq("status", "inactive"),
+					supabase
+						.from("units")
+						.select("id", { count: "exact", head: true })
+						.eq("status", "occupied"),
+					supabase
+						.from("units")
+						.select("id", { count: "exact", head: true })
+						.eq("status", "available"),
+					supabase
+						.from("units")
+						.select("id", { count: "exact", head: true })
+						.eq("status", "maintenance"),
+					supabase
+						.from("units")
+						.select("rent_amount")
+						.neq("status", "inactive"),
+				]);
 
-				if (totalResult.error) handlePostgrestError(totalResult.error, 'units')
-				if (occupiedResult.error) handlePostgrestError(occupiedResult.error, 'units')
-				if (availableResult.error) handlePostgrestError(availableResult.error, 'units')
-				if (maintenanceResult.error) handlePostgrestError(maintenanceResult.error, 'units')
-				if (rentResult.error) handlePostgrestError(rentResult.error, 'units')
+				if (totalResult.error) handlePostgrestError(totalResult.error, "units");
+				if (occupiedResult.error)
+					handlePostgrestError(occupiedResult.error, "units");
+				if (availableResult.error)
+					handlePostgrestError(availableResult.error, "units");
+				if (maintenanceResult.error)
+					handlePostgrestError(maintenanceResult.error, "units");
+				if (rentResult.error) handlePostgrestError(rentResult.error, "units");
 
-				const total = totalResult.count ?? 0
-				const occupied = occupiedResult.count ?? 0
-				const available = availableResult.count ?? 0
-				const maintenance = maintenanceResult.count ?? 0
-				const vacant = available
-				const occupancyRate = total > 0 ? Math.round((occupied / total) * 100) : 0
+				const total = totalResult.count ?? 0;
+				const occupied = occupiedResult.count ?? 0;
+				const available = availableResult.count ?? 0;
+				const maintenance = maintenanceResult.count ?? 0;
+				const vacant = available;
+				const occupancyRate =
+					total > 0 ? Math.round((occupied / total) * 100) : 0;
 
 				const rentAmounts = (rentResult.data ?? []).map(
-					(r: { rent_amount: number | null }) => r.rent_amount ?? 0
-				)
-				const totalActualRent = rentAmounts.reduce((sum: number, amt: number) => sum + amt, 0)
-				const averageRent = rentAmounts.length > 0 ? totalActualRent / rentAmounts.length : 0
+					(r: { rent_amount: number | null }) => r.rent_amount ?? 0,
+				);
+				const totalActualRent = rentAmounts.reduce(
+					(sum: number, amt: number) => sum + amt,
+					0,
+				);
+				const averageRent =
+					rentAmounts.length > 0 ? totalActualRent / rentAmounts.length : 0;
 
 				return {
 					total,
@@ -233,33 +246,33 @@ export const unitQueries = {
 					occupancyRate,
 					occupancyChange: 0,
 					totalPotentialRent: totalActualRent,
-					totalActualRent
-				}
+					totalActualRent,
+				};
 			},
 			...QUERY_CACHE_TIMES.DETAIL,
-			gcTime: 30 * 60 * 1000
-		})
-}
+			gcTime: 30 * 60 * 1000,
+		}),
+};
 
 export const unitMutations = {
 	create: () =>
 		mutationOptions({
 			mutationKey: mutationKeys.units.create,
 			mutationFn: async (data: UnitInput): Promise<Unit> => {
-				const supabase = createClient()
-				const user = await getCachedUser()
-				const ownerId = requireOwnerUserId(user?.id)
+				const supabase = createClient();
+				const user = await getCachedUser();
+				const ownerId = requireOwnerUserId(user?.id);
 
 				const { data: created, error } = await supabase
-					.from('units')
+					.from("units")
 					.insert({ ...data, owner_user_id: ownerId })
 					.select()
-					.single()
+					.single();
 
-				if (error) handlePostgrestError(error, 'units')
+				if (error) handlePostgrestError(error, "units");
 
-				return created as Unit
-			}
+				return created as Unit;
+			},
 		}),
 
 	update: () =>
@@ -268,38 +281,38 @@ export const unitMutations = {
 			mutationFn: async ({
 				id,
 				data,
-				version
+				version,
 			}: {
-				id: string
-				data: UnitUpdate
-				version?: number
+				id: string;
+				data: UnitUpdate;
+				version?: number;
 			}): Promise<Unit> => {
-				const supabase = createClient()
-				const updatePayload = version ? { ...data, version } : { ...data }
+				const supabase = createClient();
+				const updatePayload = version ? { ...data, version } : { ...data };
 				const { data: updated, error } = await supabase
-					.from('units')
+					.from("units")
 					.update(updatePayload)
-					.eq('id', id)
+					.eq("id", id)
 					.select()
-					.single()
+					.single();
 
-				if (error) handlePostgrestError(error, 'units')
+				if (error) handlePostgrestError(error, "units");
 
-				return updated as Unit
-			}
+				return updated as Unit;
+			},
 		}),
 
 	delete: () =>
 		mutationOptions({
 			mutationKey: mutationKeys.units.delete,
 			mutationFn: async (id: string): Promise<void> => {
-				const supabase = createClient()
+				const supabase = createClient();
 				const { error } = await supabase
-					.from('units')
-					.update({ status: 'inactive' })
-					.eq('id', id)
+					.from("units")
+					.update({ status: "inactive" })
+					.eq("id", id);
 
-				if (error) handlePostgrestError(error, 'units')
-			}
-		})
-}
+				if (error) handlePostgrestError(error, "units");
+			},
+		}),
+};

@@ -1,26 +1,26 @@
-'use client'
+"use client";
 
-import { createPortal } from 'react-dom'
-import { useEffect } from 'react'
-import { X } from 'lucide-react'
-import { Button } from '#components/ui/button'
-import type { TenantSectionDetail } from '#types/sections/tenants'
+import { X } from "lucide-react";
+import { useEffect } from "react";
+import { createPortal } from "react-dom";
+import { Button } from "#components/ui/button";
+import type { TenantSectionDetail } from "#types/sections/tenants";
 import {
+	AccountInfoSection,
 	ContactSection,
 	CurrentLeaseSection,
-	RecentPaymentsSection,
 	LeaseHistorySection,
-	AccountInfoSection
-} from './tenant-detail-sheet-tabs'
+	RecentPaymentsSection,
+} from "./tenant-detail-sheet-tabs";
 
 interface TenantDetailSheetProps {
-	tenant: TenantSectionDetail | null
-	isOpen: boolean
-	onOpenChange: (open: boolean) => void
-	onEdit: (tenantId: string) => void
-	onContact: (tenantId: string, method: 'email' | 'phone') => void
-	onViewLease: (leaseId: string) => void
-	onViewPaymentHistory?: (tenantId: string) => void
+	tenant: TenantSectionDetail | null;
+	isOpen: boolean;
+	onOpenChange: (open: boolean) => void;
+	onEdit: (tenantId: string) => void;
+	onContact: (tenantId: string, method: "email" | "phone") => void;
+	onViewLease: (leaseId: string) => void;
+	onViewPaymentHistory?: (tenantId: string) => void;
 }
 
 export function TenantDetailSheet({
@@ -30,29 +30,29 @@ export function TenantDetailSheet({
 	onEdit,
 	onContact,
 	onViewLease,
-	onViewPaymentHistory
+	onViewPaymentHistory,
 }: TenantDetailSheetProps) {
 	useEffect(() => {
 		if (isOpen) {
 			const handleEscape = (e: KeyboardEvent) => {
-				if (e.key === 'Escape') {
-					onOpenChange(false)
+				if (e.key === "Escape") {
+					onOpenChange(false);
 				}
-			}
-			document.addEventListener('keydown', handleEscape)
-			document.body.style.overflow = 'hidden'
+			};
+			document.addEventListener("keydown", handleEscape);
+			document.body.style.overflow = "hidden";
 			return () => {
-				document.removeEventListener('keydown', handleEscape)
-				document.body.style.overflow = ''
-			}
+				document.removeEventListener("keydown", handleEscape);
+				document.body.style.overflow = "";
+			};
 		}
 		return () => {
-			document.body.style.overflow = ''
-		}
-	}, [isOpen, onOpenChange])
+			document.body.style.overflow = "";
+		};
+	}, [isOpen, onOpenChange]);
 
-	if (!isOpen || !tenant) return null
-	if (typeof window === 'undefined') return null
+	if (!isOpen || !tenant) return null;
+	if (typeof window === "undefined") return null;
 
 	return createPortal(
 		<>
@@ -66,7 +66,7 @@ export function TenantDetailSheet({
 				role="dialog"
 				aria-label={`${tenant.fullName} tenant profile`}
 				className="fixed inset-y-2 right-2 z-50 h-auto w-3/4 overflow-y-auto rounded-lg border-l ring ring-fg/5 bg-overlay text-overlay-fg shadow-lg sm:max-w-80 entering:slide-in-from-right entering:fade-in entering:animate-in entering:duration-500 exiting:slide-out-to-right-80 exiting:fade-in exiting:animate-out exiting:duration-300 flex flex-col"
-				style={{ maxWidth: '28rem' }}
+				style={{ maxWidth: "28rem" }}
 			>
 				{/* Header */}
 				<div className="relative space-y-1 p-6 pb-3">
@@ -94,16 +94,25 @@ export function TenantDetailSheet({
 								Emergency Contact
 							</h3>
 							<div className="p-4 rounded-lg bg-muted/50 border border-border">
-								<p className="font-medium text-foreground">{tenant.emergencyContactName}</p>
-								<p className="text-sm text-muted-foreground">{tenant.emergencyContactRelationship}</p>
+								<p className="font-medium text-foreground">
+									{tenant.emergencyContactName}
+								</p>
+								<p className="text-sm text-muted-foreground">
+									{tenant.emergencyContactRelationship}
+								</p>
 								{tenant.emergencyContactPhone && (
-									<p className="text-sm text-muted-foreground mt-1">{tenant.emergencyContactPhone}</p>
+									<p className="text-sm text-muted-foreground mt-1">
+										{tenant.emergencyContactPhone}
+									</p>
 								)}
 							</div>
 						</section>
 					)}
 					{onViewPaymentHistory && (
-						<RecentPaymentsSection tenant={tenant} onViewPaymentHistory={onViewPaymentHistory} />
+						<RecentPaymentsSection
+							tenant={tenant}
+							onViewPaymentHistory={onViewPaymentHistory}
+						/>
 					)}
 					<LeaseHistorySection tenant={tenant} onViewLease={onViewLease} />
 					<AccountInfoSection tenant={tenant} />
@@ -119,6 +128,6 @@ export function TenantDetailSheet({
 				</div>
 			</div>
 		</>,
-		document.body
-	)
+		document.body,
+	);
 }

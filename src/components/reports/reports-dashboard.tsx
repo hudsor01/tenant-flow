@@ -1,14 +1,14 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
-import { Plus } from 'lucide-react'
-import { BlurFade } from '#components/ui/blur-fade'
-import type { ReportsDashboardProps } from './types'
-import { ReportsStatsRow } from './reports-stats-row'
-import { ReportsQuickActions } from './reports-quick-actions'
-import { ReportsTypeGrid } from './reports-type-grid'
-import { ReportsRecentTable } from './reports-recent-table'
-import { ReportsScheduledList } from './reports-scheduled-list'
+import { Plus } from "lucide-react";
+import { useState } from "react";
+import { BlurFade } from "#components/ui/blur-fade";
+import { ReportsQuickActions } from "./reports-quick-actions";
+import { ReportsRecentTable } from "./reports-recent-table";
+import { ReportsScheduledList } from "./reports-scheduled-list";
+import { ReportsStatsRow } from "./reports-stats-row";
+import { ReportsTypeGrid } from "./reports-type-grid";
+import type { ReportsDashboardProps } from "./types";
 
 export function ReportsDashboard({
 	reportTypes,
@@ -20,16 +20,16 @@ export function ReportsDashboard({
 	onDownloadReport,
 	onDeleteReport: _onDeleteReport,
 	onToggleSchedule,
-	onEditSchedule
+	onEditSchedule,
 }: ReportsDashboardProps) {
 	const [selectedCategory, setSelectedCategory] = useState<
-		'all' | 'financial' | 'operations'
-	>('all')
+		"all" | "financial" | "operations"
+	>("all");
 
 	const filteredTypes =
-		selectedCategory === 'all'
+		selectedCategory === "all"
 			? reportTypes
-			: reportTypes.filter(t => t.category === selectedCategory)
+			: reportTypes.filter((t) => t.category === selectedCategory);
 
 	return (
 		<div className="p-6 lg:p-8 bg-background min-h-full">
@@ -75,5 +75,5 @@ export function ReportsDashboard({
 				onEditSchedule={onEditSchedule}
 			/>
 		</div>
-	)
+	);
 }

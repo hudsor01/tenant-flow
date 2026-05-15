@@ -12,56 +12,55 @@
  * These tests validate the success display logic pattern independently.
  */
 
-import type { ReactNode } from 'react'
-
 import {
 	QueryClient,
 	QueryClientProvider,
-	useMutation
-} from '@tanstack/react-query'
-import { describe, it, expect, vi, beforeEach } from 'vitest'
-import * as fc from 'fast-check'
-import { toast } from 'sonner'
-import { renderHook, waitFor } from '@testing-library/react'
-import type { AddTenantRequest } from '#lib/validation/tenants'
+	useMutation,
+} from "@tanstack/react-query";
+import { renderHook, waitFor } from "@testing-library/react";
+import * as fc from "fast-check";
+import type { ReactNode } from "react";
+import { toast } from "sonner";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import type { AddTenantRequest } from "#lib/validation/tenants";
 
 // Mock dependencies
-vi.mock('sonner', () => ({
+vi.mock("sonner", () => ({
 	toast: {
 		success: vi.fn(),
-		error: vi.fn()
-	}
-}))
+		error: vi.fn(),
+	},
+}));
 
 // Helper to create a query client for each test
 function createTestQueryClient() {
 	return new QueryClient({
 		defaultOptions: {
 			queries: { retry: false },
-			mutations: { retry: false }
-		}
-	})
+			mutations: { retry: false },
+		},
+	});
 }
 
 // Wrapper component for hooks
 function createWrapper() {
-	const queryClient = createTestQueryClient()
+	const queryClient = createTestQueryClient();
 	return ({ children }: { children: ReactNode }) => (
 		<QueryClientProvider client={queryClient}> {children} </QueryClientProvider>
-	)
+	);
 }
 
 // Response type matching the backend
 interface AddTenantResponse {
-	success: boolean
-	tenant_id: string
-	message: string
+	success: boolean;
+	tenant_id: string;
+	message: string;
 }
 
-describe('AddTenantForm - Success Toast Property Tests', () => {
+describe("AddTenantForm - Success Toast Property Tests", () => {
 	beforeEach(() => {
-		vi.clearAllMocks()
-	})
+		vi.clearAllMocks();
+	});
 
 	/**
 	 * Property 11: Success Toast Display
@@ -77,7 +76,7 @@ describe('AddTenantForm - Success Toast Property Tests', () => {
 	 *
 	 * We test this by simulating the mutation's success handling directly.
 	 */
-	it('should display success toast for any successful add', async () => {
+	it("should display success toast for any successful add", async () => {
 		await fc.assert(
 			fc.asyncProperty(
 				// Generate various valid tenant data combinations
@@ -85,45 +84,45 @@ describe('AddTenantForm - Success Toast Property Tests', () => {
 					email: fc.emailAddress(),
 					first_name: fc
 						.string({ minLength: 1, maxLength: 50 })
-						.filter(s => s.trim().length > 0),
+						.filter((s) => s.trim().length > 0),
 					last_name: fc
 						.string({ minLength: 1, maxLength: 50 })
-						.filter(s => s.trim().length > 0),
+						.filter((s) => s.trim().length > 0),
 					phone: fc.option(fc.string({ minLength: 10, maxLength: 15 }), {
-						nil: undefined
+						nil: undefined,
 					}),
 					property_id: fc.uuid(),
-					unit_id: fc.option(fc.uuid(), { nil: undefined })
+					unit_id: fc.option(fc.uuid(), { nil: undefined }),
 				}),
-				async data => {
+				async (data) => {
 					// Clear all mocks before each property test iteration
-					vi.clearAllMocks()
+					vi.clearAllMocks();
 
 					// Mock success response
 					const mockResponse: AddTenantResponse = {
 						success: true,
 						tenant_id: fc.sample(fc.uuid(), 1)[0] as string,
-						message: 'Tenant added successfully'
-					}
+						message: "Tenant added successfully",
+					};
 
 					// Create a mutation that mimics the form's success handling behavior
 					const { result } = renderHook(
 						() =>
 							useMutation({
 								mutationFn: async (
-									_payload: AddTenantRequest
+									_payload: AddTenantRequest,
 								): Promise<AddTenantResponse> => {
-									return mockResponse
+									return mockResponse;
 								},
 								onSuccess: (_response, variables) => {
 									// This is the same success handling logic as in the form
-									toast.success('Tenant added', {
-										description: `${variables.tenantData.first_name} ${variables.tenantData.last_name} is now in your tenant records.`
-									})
-								}
+									toast.success("Tenant added", {
+										description: `${variables.tenantData.first_name} ${variables.tenantData.last_name} is now in your tenant records.`,
+									});
+								},
 							}),
-						{ wrapper: createWrapper() }
-					)
+						{ wrapper: createWrapper() },
+					);
 
 					// Execute the mutation with the generated data
 					const payload: AddTenantRequest = {
@@ -131,56 +130,56 @@ describe('AddTenantForm - Success Toast Property Tests', () => {
 							email: data.email,
 							first_name: data.first_name,
 							last_name: data.last_name,
-							...(data.phone && { phone: data.phone })
+							...(data.phone && { phone: data.phone }),
 						},
 						leaseData: {
 							property_id: data.property_id,
-							...(data.unit_id && { unit_id: data.unit_id })
-						}
-					}
+							...(data.unit_id && { unit_id: data.unit_id }),
+						},
+					};
 
-					result.current.mutate(payload)
+					result.current.mutate(payload);
 
 					// Assert: toast.success was called
 					await waitFor(
 						() => {
-							expect(toast.success).toHaveBeenCalled()
+							expect(toast.success).toHaveBeenCalled();
 						},
-						{ timeout: 2000 }
-					)
+						{ timeout: 2000 },
+					);
 
 					// Verify the success toast was called with proper structure
-					const successCalls = vi.mocked(toast.success).mock.calls
-					expect(successCalls.length).toBeGreaterThan(0)
+					const successCalls = vi.mocked(toast.success).mock.calls;
+					expect(successCalls.length).toBeGreaterThan(0);
 
 					// Check that the first argument is a string (the title)
 					const [title, options] = successCalls[0] as [
 						string,
-						{ description: string }
-					]
-					expect(typeof title).toBe('string')
-					expect(title).toBe('Tenant added')
+						{ description: string },
+					];
+					expect(typeof title).toBe("string");
+					expect(title).toBe("Tenant added");
 
 					// Check that options contain a description
-					expect(options).toBeDefined()
-					expect(options.description).toBeDefined()
-					expect(typeof options.description).toBe('string')
+					expect(options).toBeDefined();
+					expect(options.description).toBeDefined();
+					expect(typeof options.description).toBe("string");
 
 					// Verify the description includes the tenant's name
-					expect(options.description).toContain(data.first_name)
-					expect(options.description).toContain(data.last_name)
+					expect(options.description).toContain(data.first_name);
+					expect(options.description).toContain(data.last_name);
 
 					// Verify the description mentions the landlord-only record semantics
-					const description = options.description.toLowerCase()
-					expect(description).toContain('records')
+					const description = options.description.toLowerCase();
+					expect(description).toContain("records");
 
 					// Verify toast.error was NOT called on success
-					expect(toast.error).not.toHaveBeenCalled()
-				}
+					expect(toast.error).not.toHaveBeenCalled();
+				},
 			),
-			{ numRuns: 100 }
-		)
-	})
+			{ numRuns: 100 },
+		);
+	});
 
 	/**
 	 * Property 11 (Edge Case): Success Toast with Special Characters
@@ -188,7 +187,7 @@ describe('AddTenantForm - Success Toast Property Tests', () => {
 	 * Verify that the success toast correctly displays tenant names
 	 * even when they contain special characters, unicode, or unusual formatting.
 	 */
-	it('should display success toast with special character names', async () => {
+	it("should display success toast with special character names", async () => {
 		await fc.assert(
 			fc.asyncProperty(
 				// Generate names with special characters
@@ -196,97 +195,97 @@ describe('AddTenantForm - Success Toast Property Tests', () => {
 					email: fc.emailAddress(),
 					first_name: fc.oneof(
 						fc.constant("O'Brien"),
-						fc.constant('José'),
-						fc.constant('François'),
-						fc.constant('Müller'),
-						fc.constant('李'),
-						fc.constant('Nguyễn'),
-						fc.constant('Al-Rahman'),
-						fc.constant('van der Berg')
+						fc.constant("José"),
+						fc.constant("François"),
+						fc.constant("Müller"),
+						fc.constant("李"),
+						fc.constant("Nguyễn"),
+						fc.constant("Al-Rahman"),
+						fc.constant("van der Berg"),
 					),
 					last_name: fc.oneof(
 						fc.constant("O'Connor"),
-						fc.constant('García'),
-						fc.constant('Dupont'),
-						fc.constant('Schmidt'),
-						fc.constant('明'),
-						fc.constant('Trần'),
-						fc.constant('Al-Sayed'),
-						fc.constant('de la Cruz')
+						fc.constant("García"),
+						fc.constant("Dupont"),
+						fc.constant("Schmidt"),
+						fc.constant("明"),
+						fc.constant("Trần"),
+						fc.constant("Al-Sayed"),
+						fc.constant("de la Cruz"),
 					),
-					property_id: fc.uuid()
+					property_id: fc.uuid(),
 				}),
-				async data => {
+				async (data) => {
 					// Clear all mocks before each property test iteration
-					vi.clearAllMocks()
+					vi.clearAllMocks();
 
 					const mockResponse: AddTenantResponse = {
 						success: true,
 						tenant_id: fc.sample(fc.uuid(), 1)[0] as string,
-						message: 'Tenant added successfully'
-					}
+						message: "Tenant added successfully",
+					};
 
 					// Create a mutation that mimics the form's behavior
 					const { result } = renderHook(
 						() =>
 							useMutation({
 								mutationFn: async (
-									_payload: AddTenantRequest
+									_payload: AddTenantRequest,
 								): Promise<AddTenantResponse> => {
-									return mockResponse
+									return mockResponse;
 								},
 								onSuccess: (_response, variables) => {
-									toast.success('Tenant added', {
-										description: `${variables.tenantData.first_name} ${variables.tenantData.last_name} is now in your tenant records.`
-									})
-								}
+									toast.success("Tenant added", {
+										description: `${variables.tenantData.first_name} ${variables.tenantData.last_name} is now in your tenant records.`,
+									});
+								},
 							}),
-						{ wrapper: createWrapper() }
-					)
+						{ wrapper: createWrapper() },
+					);
 
 					// Execute the mutation with the generated data
 					const payload: AddTenantRequest = {
 						tenantData: {
 							email: data.email,
 							first_name: data.first_name,
-							last_name: data.last_name
+							last_name: data.last_name,
 						},
 						leaseData: {
-							property_id: data.property_id
-						}
-					}
+							property_id: data.property_id,
+						},
+					};
 
-					result.current.mutate(payload)
+					result.current.mutate(payload);
 
 					// Assert: toast.success was called
 					await waitFor(
 						() => {
-							expect(toast.success).toHaveBeenCalled()
+							expect(toast.success).toHaveBeenCalled();
 						},
-						{ timeout: 2000 }
-					)
+						{ timeout: 2000 },
+					);
 
 					// Verify the success toast includes the special character names correctly
-					const successCalls = vi.mocked(toast.success).mock.calls
-					expect(successCalls.length).toBeGreaterThan(0)
+					const successCalls = vi.mocked(toast.success).mock.calls;
+					expect(successCalls.length).toBeGreaterThan(0);
 
 					const [_title, options] = successCalls[0] as [
 						string,
-						{ description: string }
-					]
+						{ description: string },
+					];
 
 					// Verify the names are included exactly as provided
-					expect(options.description).toContain(data.first_name)
-					expect(options.description).toContain(data.last_name)
+					expect(options.description).toContain(data.first_name);
+					expect(options.description).toContain(data.last_name);
 
 					// Verify the full name appears in the description
-					const expectedNameInDescription = `${data.first_name} ${data.last_name}`
-					expect(options.description).toContain(expectedNameInDescription)
-				}
+					const expectedNameInDescription = `${data.first_name} ${data.last_name}`;
+					expect(options.description).toContain(expectedNameInDescription);
+				},
 			),
-			{ numRuns: 50 }
-		)
-	})
+			{ numRuns: 50 },
+		);
+	});
 
 	/**
 	 * Property 11 (Invariant): Success Toast Never Shows Error
@@ -294,7 +293,7 @@ describe('AddTenantForm - Success Toast Property Tests', () => {
 	 * Verify that when the mutation succeeds, only toast.success is called
 	 * and toast.error is never called.
 	 */
-	it('should never display error toast on successful add', async () => {
+	it("should never display error toast on successful add", async () => {
 		await fc.assert(
 			fc.asyncProperty(
 				// Generate minimal valid data
@@ -302,78 +301,78 @@ describe('AddTenantForm - Success Toast Property Tests', () => {
 					email: fc.emailAddress(),
 					first_name: fc
 						.string({ minLength: 1, maxLength: 20 })
-						.filter(s => s.trim().length > 0),
+						.filter((s) => s.trim().length > 0),
 					last_name: fc
 						.string({ minLength: 1, maxLength: 20 })
-						.filter(s => s.trim().length > 0),
-					property_id: fc.uuid()
+						.filter((s) => s.trim().length > 0),
+					property_id: fc.uuid(),
 				}),
-				async data => {
+				async (data) => {
 					// Clear all mocks before each property test iteration
-					vi.clearAllMocks()
+					vi.clearAllMocks();
 
 					const mockResponse: AddTenantResponse = {
 						success: true,
 						tenant_id: fc.sample(fc.uuid(), 1)[0] as string,
-						message: 'Tenant added successfully'
-					}
+						message: "Tenant added successfully",
+					};
 
 					// Create a mutation that mimics the form's behavior
 					const { result } = renderHook(
 						() =>
 							useMutation({
 								mutationFn: async (
-									_payload: AddTenantRequest
+									_payload: AddTenantRequest,
 								): Promise<AddTenantResponse> => {
-									return mockResponse
+									return mockResponse;
 								},
 								onSuccess: (_response, variables) => {
-									toast.success('Tenant added', {
-										description: `${variables.tenantData.first_name} ${variables.tenantData.last_name} is now in your tenant records.`
-									})
+									toast.success("Tenant added", {
+										description: `${variables.tenantData.first_name} ${variables.tenantData.last_name} is now in your tenant records.`,
+									});
 								},
 								onError: (err: unknown) => {
-									toast.error('Failed to add tenant', {
+									toast.error("Failed to add tenant", {
 										description:
 											err instanceof Error
 												? err.message
-												: 'Please try again or contact support.'
-									})
-								}
+												: "Please try again or contact support.",
+									});
+								},
 							}),
-						{ wrapper: createWrapper() }
-					)
+						{ wrapper: createWrapper() },
+					);
 
 					// Execute the mutation with the generated data
 					const payload: AddTenantRequest = {
 						tenantData: {
 							email: data.email,
 							first_name: data.first_name,
-							last_name: data.last_name
+							last_name: data.last_name,
 						},
 						leaseData: {
-							property_id: data.property_id
-						}
-					}
+							property_id: data.property_id,
+						},
+					};
 
-					result.current.mutate(payload)
+					result.current.mutate(payload);
 
 					// Assert: toast.success was called
 					await waitFor(
 						() => {
-							expect(toast.success).toHaveBeenCalled()
+							expect(toast.success).toHaveBeenCalled();
 						},
-						{ timeout: 2000 }
-					)
+						{ timeout: 2000 },
+					);
 
 					// Verify toast.error was NEVER called
-					expect(toast.error).not.toHaveBeenCalled()
+					expect(toast.error).not.toHaveBeenCalled();
 
 					// Verify toast.success was called exactly once
-					expect(vi.mocked(toast.success).mock.calls.length).toBe(1)
-				}
+					expect(vi.mocked(toast.success).mock.calls.length).toBe(1);
+				},
 			),
-			{ numRuns: 100 }
-		)
-	})
-})
+			{ numRuns: 100 },
+		);
+	});
+});

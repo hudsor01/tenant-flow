@@ -1,18 +1,18 @@
-import { BlurFade } from '#components/ui/blur-fade'
-import { formatCents } from '#lib/utils/currency'
+import { BlurFade } from "#components/ui/blur-fade";
+import { formatCents } from "#lib/utils/currency";
 
 interface PreviousPeriod {
-	netIncome: number
-	changePercent: number
+	netIncome: number;
+	changePercent: number;
 }
 
 interface IncomeStatementPageNetSummaryProps {
-	totalRevenue: number
-	totalExpenses: number
-	netIncome: number
-	grossProfit?: number | undefined
-	operatingIncome?: number | undefined
-	previousPeriod?: PreviousPeriod | undefined
+	totalRevenue: number;
+	totalExpenses: number;
+	netIncome: number;
+	grossProfit?: number | undefined;
+	operatingIncome?: number | undefined;
+	previousPeriod?: PreviousPeriod | undefined;
 }
 
 export function IncomeStatementPageNetSummary({
@@ -21,14 +21,12 @@ export function IncomeStatementPageNetSummary({
 	netIncome,
 	grossProfit,
 	operatingIncome,
-	previousPeriod
+	previousPeriod,
 }: IncomeStatementPageNetSummaryProps) {
 	return (
 		<BlurFade delay={0.4} inView>
 			<div className="bg-card border border-border rounded-lg p-6">
-				<h3 className="font-medium text-foreground mb-4">
-					Net Income Summary
-				</h3>
+				<h3 className="font-medium text-foreground mb-4">Net Income Summary</h3>
 				<div className="space-y-3">
 					<div className="flex justify-between py-2 border-b border-border">
 						<span className="text-sm text-foreground">Total Revenue</span>
@@ -64,9 +62,9 @@ export function IncomeStatementPageNetSummary({
 				<div className="flex items-center justify-between p-4 mt-4 bg-primary/5 rounded-lg">
 					<span className="font-medium text-foreground">Net Income</span>
 					<span
-						className={`text-xl font-bold tabular-nums ${netIncome >= 0 ? 'text-emerald-600' : 'text-destructive'}`}
+						className={`text-xl font-bold tabular-nums ${netIncome >= 0 ? "text-emerald-600" : "text-destructive"}`}
 					>
-						{netIncome >= 0 ? '+' : ''}
+						{netIncome >= 0 ? "+" : ""}
 						{formatCents(netIncome * 100)}
 					</span>
 				</div>
@@ -81,9 +79,9 @@ export function IncomeStatementPageNetSummary({
 								{formatCents(previousPeriod.netIncome * 100)}
 							</span>
 							<span
-								className={`text-sm font-medium ${previousPeriod.changePercent >= 0 ? 'text-emerald-600' : 'text-destructive'}`}
+								className={`text-sm font-medium ${previousPeriod.changePercent >= 0 ? "text-emerald-600" : "text-destructive"}`}
 							>
-								({previousPeriod.changePercent >= 0 ? '+' : ''}
+								({previousPeriod.changePercent >= 0 ? "+" : ""}
 								{previousPeriod.changePercent.toFixed(1)}%)
 							</span>
 						</div>
@@ -91,5 +89,5 @@ export function IncomeStatementPageNetSummary({
 				)}
 			</div>
 		</BlurFade>
-	)
+	);
 }

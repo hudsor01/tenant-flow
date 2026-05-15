@@ -1,22 +1,21 @@
-'use client'
+"use client";
 
-import { ArrowRight, Lock } from 'lucide-react'
-import Link from 'next/link'
-
-import { Badge } from '#components/ui/badge'
-import { Button } from '#components/ui/button'
-import { PageLayout } from '#components/layout/page-layout'
-import { HeroDashboardMockup } from '#components/sections/hero-dashboard-mockup'
-import { LogoCloud } from '#components/sections/logo-cloud'
-import { HowItWorks } from '#components/sections/how-it-works'
-import { HomeFaq } from '#components/sections/home-faq'
-import { LazySection } from '#components/ui/lazy-section'
-import { SectionSkeleton } from '#components/ui/section-skeleton'
-import FeaturesSectionDemo from '#components/sections/features-section'
-import { StatsShowcase } from '#components/sections/stats-showcase'
-import { TestimonialsSection } from '#components/sections/testimonials-section'
-import { PremiumCta } from '#components/sections/premium-cta'
-import { realTestimonials } from '../data/testimonials'
+import { ArrowRight, Lock } from "lucide-react";
+import Link from "next/link";
+import { PageLayout } from "#components/layout/page-layout";
+import FeaturesSectionDemo from "#components/sections/features-section";
+import { HeroDashboardMockup } from "#components/sections/hero-dashboard-mockup";
+import { HomeFaq } from "#components/sections/home-faq";
+import { HowItWorks } from "#components/sections/how-it-works";
+import { LogoCloud } from "#components/sections/logo-cloud";
+import { PremiumCta } from "#components/sections/premium-cta";
+import { StatsShowcase } from "#components/sections/stats-showcase";
+import { TestimonialsSection } from "#components/sections/testimonials-section";
+import { Badge } from "#components/ui/badge";
+import { Button } from "#components/ui/button";
+import { LazySection } from "#components/ui/lazy-section";
+import { SectionSkeleton } from "#components/ui/section-skeleton";
+import { realTestimonials } from "../data/testimonials";
 
 export default function MarketingHomePage() {
 	return (
@@ -41,14 +40,14 @@ export default function MarketingHomePage() {
 										Landlord-only · Tenants never log in
 									</Badge>
 									<h1 className="text-3xl sm:text-5xl lg:text-6xl xl:text-7xl font-bold text-foreground tracking-tight leading-[1.05] text-balance">
-										Ditch the{' '}
+										Ditch the{" "}
 										<span className="hero-highlight">spreadsheet</span>
 									</h1>
 
 									<p className="text-xl text-muted-foreground leading-relaxed max-w-lg">
-										The operations tool for landlords with 1–15 rentals.
-										Track properties, leases, and maintenance in one place —
-										tenants stay off the platform.
+										The operations tool for landlords with 1–15 rentals. Track
+										properties, leases, and maintenance in one place — tenants
+										stay off the platform.
 									</p>
 								</div>
 
@@ -59,13 +58,19 @@ export default function MarketingHomePage() {
 											<ArrowRight className="ml-2 size-4" />
 										</Link>
 									</Button>
-									<Button asChild variant="outline" size="lg" className="w-full sm:w-auto">
+									<Button
+										asChild
+										variant="outline"
+										size="lg"
+										className="w-full sm:w-auto"
+									>
 										<Link href="/pricing">View Pricing</Link>
 									</Button>
 								</div>
 
 								<p className="text-muted-foreground text-sm">
-									Built for landlords with 1–15 rentals. 14-day free trial, no credit card.
+									Built for landlords with 1–15 rentals. 14-day free trial, no
+									credit card.
 								</p>
 							</div>
 
@@ -134,5 +139,5 @@ export default function MarketingHomePage() {
 				<PremiumCta />
 			</LazySection>
 		</PageLayout>
-	)
+	);
 }

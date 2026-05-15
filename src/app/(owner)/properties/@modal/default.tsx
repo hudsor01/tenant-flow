@@ -6,5 +6,5 @@
  * intercepting route, this returns null (no modal).
  */
 export default function Default() {
-	return null
+	return null;
 }

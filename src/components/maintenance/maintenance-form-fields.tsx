@@ -1,43 +1,43 @@
-import type { ChangeEvent } from 'react'
+import type { ChangeEvent } from "react";
 
-import { Field, FieldError, FieldLabel } from '#components/ui/field'
-import { Input } from '#components/ui/input'
+import { Field, FieldError, FieldLabel } from "#components/ui/field";
+import { Input } from "#components/ui/input";
 import {
 	Select,
 	SelectContent,
 	SelectItem,
 	SelectTrigger,
-	SelectValue
-} from '#components/ui/select'
-import { Textarea } from '#components/ui/textarea'
-import type { MaintenancePriority, Property, Unit } from '#types/core'
-import { MAINTENANCE_PRIORITY_OPTIONS } from '#lib/constants/status-types'
-import type { useMaintenanceForm } from '#hooks/use-maintenance-form'
+	SelectValue,
+} from "#components/ui/select";
+import { Textarea } from "#components/ui/textarea";
+import type { useMaintenanceForm } from "#hooks/use-maintenance-form";
+import { MAINTENANCE_PRIORITY_OPTIONS } from "#lib/constants/status-types";
+import type { MaintenancePriority, Property, Unit } from "#types/core";
 
 interface MaintenanceFormFieldsProps {
-	form: ReturnType<typeof useMaintenanceForm>
-	propertiesData: Property[] | undefined
-	unitsByProperty: Map<string, Unit[]>
+	form: ReturnType<typeof useMaintenanceForm>;
+	propertiesData: Property[] | undefined;
+	unitsByProperty: Map<string, Unit[]>;
 }
 
 export function MaintenanceFormFields({
 	form,
 	propertiesData,
-	unitsByProperty
+	unitsByProperty,
 }: MaintenanceFormFieldsProps) {
-	const unitLabelId = 'maintenance-unit-label'
+	const unitLabelId = "maintenance-unit-label";
 
 	return (
 		<>
 			{/* Unit Selection */}
 			<form.Field name="unit_id">
-				{field => (
+				{(field) => (
 					<Field>
 						<FieldLabel id={unitLabelId} htmlFor="unit_id">
 							Unit *
 						</FieldLabel>
 						<Select
-							value={field.state.value ?? ''}
+							value={field.state.value ?? ""}
 							onValueChange={field.handleChange}
 						>
 							<SelectTrigger
@@ -49,9 +49,8 @@ export function MaintenanceFormFields({
 							</SelectTrigger>
 							<SelectContent>
 								{propertiesData?.map((property: Property) => {
-									const propertyUnits =
-										unitsByProperty.get(property.id) ?? []
-									if (propertyUnits.length === 0) return null
+									const propertyUnits = unitsByProperty.get(property.id) ?? [];
+									if (propertyUnits.length === 0) return null;
 									return (
 										<div key={property.id}>
 											<div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground">
@@ -63,14 +62,12 @@ export function MaintenanceFormFields({
 												</SelectItem>
 											))}
 										</div>
-									)
+									);
 								})}
 							</SelectContent>
 						</Select>
 						{(field.state.meta.errors?.length ?? 0) > 0 && (
-							<FieldError>
-								{String(field.state.meta.errors[0])}
-							</FieldError>
+							<FieldError>{String(field.state.meta.errors[0])}</FieldError>
 						)}
 					</Field>
 				)}
@@ -78,23 +75,21 @@ export function MaintenanceFormFields({
 
 			{/* Tenant ID */}
 			<form.Field name="tenant_id">
-				{field => (
+				{(field) => (
 					<Field>
 						<FieldLabel htmlFor="tenant_id">Tenant ID *</FieldLabel>
 						<Input
 							id="tenant_id"
 							name="tenant_id"
 							placeholder="Tenant ID"
-							value={field.state.value ?? ''}
+							value={field.state.value ?? ""}
 							onChange={(e: ChangeEvent<HTMLInputElement>) =>
 								field.handleChange(e.target.value)
 							}
 							onBlur={field.handleBlur}
 						/>
 						{(field.state.meta.errors?.length ?? 0) > 0 && (
-							<FieldError>
-								{String(field.state.meta.errors[0])}
-							</FieldError>
+							<FieldError>{String(field.state.meta.errors[0])}</FieldError>
 						)}
 					</Field>
 				)}
@@ -102,23 +97,21 @@ export function MaintenanceFormFields({
 
 			{/* Title Field */}
 			<form.Field name="title">
-				{field => (
+				{(field) => (
 					<Field>
 						<FieldLabel htmlFor="title">Title *</FieldLabel>
 						<Input
 							id="title"
 							name="title"
 							placeholder="Kitchen faucet leak"
-							value={field.state.value ?? ''}
+							value={field.state.value ?? ""}
 							onChange={(e: ChangeEvent<HTMLInputElement>) =>
 								field.handleChange(e.target.value)
 							}
 							onBlur={field.handleBlur}
 						/>
 						{(field.state.meta.errors?.length ?? 0) > 0 && (
-							<FieldError>
-								{String(field.state.meta.errors[0])}
-							</FieldError>
+							<FieldError>{String(field.state.meta.errors[0])}</FieldError>
 						)}
 					</Field>
 				)}
@@ -126,7 +119,7 @@ export function MaintenanceFormFields({
 
 			{/* Description Field */}
 			<form.Field name="description">
-				{field => (
+				{(field) => (
 					<Field>
 						<FieldLabel htmlFor="description">Description *</FieldLabel>
 						<Textarea
@@ -134,16 +127,14 @@ export function MaintenanceFormFields({
 							name="description"
 							placeholder="Describe the issue in detail"
 							rows={4}
-							value={field.state.value ?? ''}
+							value={field.state.value ?? ""}
 							onChange={(e: ChangeEvent<HTMLTextAreaElement>) =>
 								field.handleChange(e.target.value)
 							}
 							onBlur={field.handleBlur}
 						/>
 						{(field.state.meta.errors?.length ?? 0) > 0 && (
-							<FieldError>
-								{String(field.state.meta.errors[0])}
-							</FieldError>
+							<FieldError>{String(field.state.meta.errors[0])}</FieldError>
 						)}
 					</Field>
 				)}
@@ -151,11 +142,11 @@ export function MaintenanceFormFields({
 
 			{/* Priority Field */}
 			<form.Field name="priority">
-				{field => (
+				{(field) => (
 					<Field>
 						<FieldLabel htmlFor="priority">Priority *</FieldLabel>
 						<Select
-							value={field.state.value ?? ''}
+							value={field.state.value ?? ""}
 							onValueChange={(value: string) =>
 								field.handleChange(value as MaintenancePriority)
 							}
@@ -164,7 +155,7 @@ export function MaintenanceFormFields({
 								<SelectValue placeholder="Select priority level" />
 							</SelectTrigger>
 							<SelectContent>
-								{MAINTENANCE_PRIORITY_OPTIONS.map(option => (
+								{MAINTENANCE_PRIORITY_OPTIONS.map((option) => (
 									<SelectItem key={option.value} value={option.value}>
 										{option.label}
 									</SelectItem>
@@ -172,9 +163,7 @@ export function MaintenanceFormFields({
 							</SelectContent>
 						</Select>
 						{(field.state.meta.errors?.length ?? 0) > 0 && (
-							<FieldError>
-								{String(field.state.meta.errors[0])}
-							</FieldError>
+							<FieldError>{String(field.state.meta.errors[0])}</FieldError>
 						)}
 					</Field>
 				)}
@@ -182,7 +171,7 @@ export function MaintenanceFormFields({
 
 			{/* Estimated Cost Field */}
 			<form.Field name="estimated_cost">
-				{field => (
+				{(field) => (
 					<Field>
 						<FieldLabel htmlFor="estimated_cost">
 							Estimated Cost (optional)
@@ -194,16 +183,14 @@ export function MaintenanceFormFields({
 							min="0"
 							step="0.01"
 							placeholder="0.00"
-							value={field.state.value ?? ''}
+							value={field.state.value ?? ""}
 							onChange={(e: ChangeEvent<HTMLInputElement>) =>
 								field.handleChange(e.target.value)
 							}
 							onBlur={field.handleBlur}
 						/>
 						{(field.state.meta.errors?.length ?? 0) > 0 && (
-							<FieldError>
-								{String(field.state.meta.errors[0])}
-							</FieldError>
+							<FieldError>{String(field.state.meta.errors[0])}</FieldError>
 						)}
 					</Field>
 				)}
@@ -211,7 +198,7 @@ export function MaintenanceFormFields({
 
 			{/* Scheduled Date Field */}
 			<form.Field name="scheduled_date">
-				{field => (
+				{(field) => (
 					<Field>
 						<FieldLabel htmlFor="scheduled_date">
 							Scheduled Date (optional)
@@ -220,20 +207,18 @@ export function MaintenanceFormFields({
 							id="scheduled_date"
 							name="scheduled_date"
 							type="date"
-							value={field.state.value ?? ''}
+							value={field.state.value ?? ""}
 							onChange={(e: ChangeEvent<HTMLInputElement>) =>
 								field.handleChange(e.target.value)
 							}
 							onBlur={field.handleBlur}
 						/>
 						{(field.state.meta.errors?.length ?? 0) > 0 && (
-							<FieldError>
-								{String(field.state.meta.errors[0])}
-							</FieldError>
+							<FieldError>{String(field.state.meta.errors[0])}</FieldError>
 						)}
 					</Field>
 				)}
 			</form.Field>
 		</>
-	)
+	);
 }

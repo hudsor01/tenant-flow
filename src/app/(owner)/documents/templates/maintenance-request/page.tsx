@@ -1,5 +1,5 @@
-import { FileText } from 'lucide-react'
-import { MaintenanceRequestTemplate } from '../components/maintenance-request-template.client'
+import { FileText } from "lucide-react";
+import { MaintenanceRequestTemplate } from "../components/maintenance-request-template.client";
 
 export default function MaintenanceRequestTemplatePage() {
 	return (
@@ -20,5 +20,5 @@ export default function MaintenanceRequestTemplatePage() {
 
 			<MaintenanceRequestTemplate />
 		</div>
-	)
+	);
 }

@@ -1,20 +1,20 @@
-import { Check, X } from 'lucide-react'
-import { formatCents } from '#lib/utils/currency'
+import { Check, X } from "lucide-react";
+import { formatCents } from "#lib/utils/currency";
 
 export function BalanceEquationCheck({
 	totalAssets,
 	totalLiabilities,
 	totalEquity,
-	isBalanced
+	isBalanced,
 }: {
-	totalAssets: number
-	totalLiabilities: number
-	totalEquity: number
-	isBalanced: boolean
+	totalAssets: number;
+	totalLiabilities: number;
+	totalEquity: number;
+	isBalanced: boolean;
 }) {
 	return (
 		<div
-			className={`p-4 rounded-lg border mb-6 ${isBalanced ? 'bg-emerald-50 dark:bg-emerald-950/30 border-emerald-200 dark:border-emerald-800' : 'bg-red-50 dark:bg-red-950/30 border-red-200 dark:border-red-800'}`}
+			className={`p-4 rounded-lg border mb-6 ${isBalanced ? "bg-emerald-50 dark:bg-emerald-950/30 border-emerald-200 dark:border-emerald-800" : "bg-red-50 dark:bg-red-950/30 border-red-200 dark:border-red-800"}`}
 		>
 			<div className="flex flex-wrap items-center justify-center gap-4 text-sm">
 				<span className="font-medium">
@@ -41,5 +41,5 @@ export function BalanceEquationCheck({
 				)}
 			</div>
 		</div>
-	)
+	);
 }

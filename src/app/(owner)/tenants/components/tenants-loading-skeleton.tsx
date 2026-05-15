@@ -1,4 +1,4 @@
-import { Skeleton } from '#components/ui/skeleton'
+import { Skeleton } from "#components/ui/skeleton";
 
 export function TenantsLoadingSkeleton() {
 	return (
@@ -13,18 +13,18 @@ export function TenantsLoadingSkeleton() {
 			</div>
 			{/* Stats skeleton */}
 			<div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-				{[1, 2, 3, 4].map(i => (
+				{[1, 2, 3, 4].map((i) => (
 					<Skeleton key={i} className="h-28 rounded-lg" />
 				))}
 			</div>
 			{/* Quick actions skeleton */}
 			<div className="flex gap-3">
-				{[1, 2, 3, 4].map(i => (
+				{[1, 2, 3, 4].map((i) => (
 					<Skeleton key={i} className="h-16 w-40 rounded-lg" />
 				))}
 			</div>
 			{/* Table skeleton */}
 			<Skeleton className="h-96 rounded-lg" />
 		</div>
-	)
+	);
 }

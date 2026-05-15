@@ -1,7 +1,5 @@
-'use client'
+"use client";
 
-import { Card } from '#components/ui/card'
-import { Skeleton } from '#components/ui/skeleton'
 import {
 	Bar,
 	BarChart,
@@ -9,18 +7,20 @@ import {
 	ResponsiveContainer,
 	Tooltip,
 	XAxis,
-	YAxis
-} from 'recharts'
-import type { ReportPaymentAnalytics } from '#types/reports'
+	YAxis,
+} from "recharts";
+import { Card } from "#components/ui/card";
+import { Skeleton } from "#components/ui/skeleton";
+import type { ReportPaymentAnalytics } from "#types/reports";
 
 interface AnalyticsPaymentMethodsChartProps {
-	paymentAnalytics: ReportPaymentAnalytics | undefined
-	isLoading: boolean
+	paymentAnalytics: ReportPaymentAnalytics | undefined;
+	isLoading: boolean;
 }
 
 export function AnalyticsPaymentMethodsChart({
 	paymentAnalytics,
-	isLoading
+	isLoading,
 }: AnalyticsPaymentMethodsChartProps) {
 	return (
 		<Card className="@container/card">
@@ -38,33 +38,30 @@ export function AnalyticsPaymentMethodsChart({
 						<BarChart
 							data={[
 								{
-									name: 'Card',
-									count: paymentAnalytics.paymentsByMethod.card
+									name: "Card",
+									count: paymentAnalytics.paymentsByMethod.card,
 								},
 								{
-									name: 'ACH',
-									count: paymentAnalytics.paymentsByMethod.ach
-								}
+									name: "ACH",
+									count: paymentAnalytics.paymentsByMethod.ach,
+								},
 							]}
 						>
-							<CartesianGrid
-								strokeDasharray="3 3"
-								className="stroke-muted"
-							/>
+							<CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
 							<XAxis
 								dataKey="name"
 								className="text-xs"
-								tick={{ fill: 'var(--color-muted-foreground)' }}
+								tick={{ fill: "var(--color-muted-foreground)" }}
 							/>
 							<YAxis
 								className="text-xs"
-								tick={{ fill: 'var(--color-muted-foreground)' }}
+								tick={{ fill: "var(--color-muted-foreground)" }}
 							/>
 							<Tooltip
 								contentStyle={{
-									backgroundColor: 'var(--color-background)',
-									border: '1px solid var(--color-border)',
-									borderRadius: '2px'
+									backgroundColor: "var(--color-background)",
+									border: "1px solid var(--color-border)",
+									borderRadius: "2px",
 								}}
 							/>
 							<Bar dataKey="count" fill="var(--chart-2)" />
@@ -77,5 +74,5 @@ export function AnalyticsPaymentMethodsChart({
 				)}
 			</div>
 		</Card>
-	)
+	);
 }

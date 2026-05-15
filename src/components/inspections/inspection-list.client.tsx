@@ -1,51 +1,53 @@
-'use client'
+"use client";
 
-import { Plus, ClipboardList } from 'lucide-react'
-import Link from 'next/link'
-import { useInspections } from '#hooks/api/use-inspections'
-import { Button } from '#components/ui/button'
-import { Badge } from '#components/ui/badge'
-import { Skeleton } from '#components/ui/skeleton'
-import { formatDate } from '#lib/formatters/date'
-import type { InspectionListItem } from '#types/sections/inspections'
+import { ClipboardList, Plus } from "lucide-react";
+import Link from "next/link";
+import { Badge } from "#components/ui/badge";
+import { Button } from "#components/ui/button";
+import { Skeleton } from "#components/ui/skeleton";
+import { useInspections } from "#hooks/api/use-inspections";
+import { formatDate } from "#lib/formatters/date";
+import type { InspectionListItem } from "#types/sections/inspections";
 
-function statusBadgeVariant(status: string): 'default' | 'secondary' | 'outline' | 'destructive' {
+function statusBadgeVariant(
+	status: string,
+): "default" | "secondary" | "outline" | "destructive" {
 	switch (status) {
-		case 'pending':
-			return 'secondary'
-		case 'in_progress':
-			return 'default'
-		case 'completed':
-			return 'outline'
-		case 'tenant_reviewing':
-			return 'secondary'
-		case 'finalized':
-			return 'outline'
+		case "pending":
+			return "secondary";
+		case "in_progress":
+			return "default";
+		case "completed":
+			return "outline";
+		case "tenant_reviewing":
+			return "secondary";
+		case "finalized":
+			return "outline";
 		default:
-			return 'secondary'
+			return "secondary";
 	}
 }
 
 function statusLabel(status: string): string {
 	switch (status) {
-		case 'pending':
-			return 'Pending'
-		case 'in_progress':
-			return 'In Progress'
-		case 'completed':
-			return 'Completed'
-		case 'tenant_reviewing':
-			return 'Tenant Reviewing'
-		case 'finalized':
-			return 'Finalized'
+		case "pending":
+			return "Pending";
+		case "in_progress":
+			return "In Progress";
+		case "completed":
+			return "Completed";
+		case "tenant_reviewing":
+			return "Tenant Reviewing";
+		case "finalized":
+			return "Finalized";
 		default:
-			return status
+			return status;
 	}
 }
 
 function InspectionRow({ inspection }: { inspection: InspectionListItem }) {
 	const typeLabel =
-		inspection.inspection_type === 'move_in' ? 'Move-In' : 'Move-Out'
+		inspection.inspection_type === "move_in" ? "Move-In" : "Move-Out";
 
 	return (
 		<Link
@@ -66,13 +68,13 @@ function InspectionRow({ inspection }: { inspection: InspectionListItem }) {
 				<div className="flex items-center gap-2 text-xs text-muted-foreground">
 					<span>{typeLabel}</span>
 					<span>·</span>
-					<span>{inspection.room_count} room{inspection.room_count !== 1 ? 's' : ''}</span>
+					<span>
+						{inspection.room_count} room{inspection.room_count !== 1 ? "s" : ""}
+					</span>
 					{inspection.scheduled_date && (
 						<>
 							<span>·</span>
-							<span>
-								Scheduled {formatDate(inspection.scheduled_date)}
-							</span>
+							<span>Scheduled {formatDate(inspection.scheduled_date)}</span>
 						</>
 					)}
 				</div>
@@ -86,18 +88,20 @@ function InspectionRow({ inspection }: { inspection: InspectionListItem }) {
 				</Badge>
 			</div>
 		</Link>
-	)
+	);
 }
 
 export function InspectionListClient() {
-	const { data: inspections, isLoading, error } = useInspections()
+	const { data: inspections, isLoading, error } = useInspections();
 
 	return (
 		<div className="space-y-6">
 			{/* Header */}
 			<div className="flex items-start justify-between gap-4">
 				<div>
-					<h1 className="text-2xl font-semibold text-foreground">Inspections</h1>
+					<h1 className="text-2xl font-semibold text-foreground">
+						Inspections
+					</h1>
 					<p className="text-muted-foreground text-sm mt-1">
 						Move-in and move-out inspection reports
 					</p>
@@ -155,12 +159,12 @@ export function InspectionListClient() {
 
 				{!isLoading && !error && inspections && inspections.length > 0 && (
 					<div>
-						{inspections.map(inspection => (
+						{inspections.map((inspection) => (
 							<InspectionRow key={inspection.id} inspection={inspection} />
 						))}
 					</div>
 				)}
 			</div>
 		</div>
-	)
+	);
 }

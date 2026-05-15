@@ -1,48 +1,61 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
-import { Button } from '#components/ui/button'
-import { Label } from '#components/ui/label'
+import { useState } from "react";
+import { Button } from "#components/ui/button";
+import { Label } from "#components/ui/label";
 import {
 	Select,
 	SelectContent,
 	SelectItem,
 	SelectTrigger,
-	SelectValue
-} from '#components/ui/select'
-import { useCreateInspectionRoom } from '#hooks/api/use-inspection-room-mutations'
+	SelectValue,
+} from "#components/ui/select";
+import { useCreateInspectionRoom } from "#hooks/api/use-inspection-room-mutations";
 
 export const ROOM_TYPES = [
-	{ value: 'bedroom', label: 'Bedroom' },
-	{ value: 'bathroom', label: 'Bathroom' },
-	{ value: 'kitchen', label: 'Kitchen' },
-	{ value: 'living_room', label: 'Living Room' },
-	{ value: 'dining_room', label: 'Dining Room' },
-	{ value: 'garage', label: 'Garage' },
-	{ value: 'outdoor', label: 'Outdoor' },
-	{ value: 'other', label: 'Other' }
-]
+	{ value: "bedroom", label: "Bedroom" },
+	{ value: "bathroom", label: "Bathroom" },
+	{ value: "kitchen", label: "Kitchen" },
+	{ value: "living_room", label: "Living Room" },
+	{ value: "dining_room", label: "Dining Room" },
+	{ value: "garage", label: "Garage" },
+	{ value: "outdoor", label: "Outdoor" },
+	{ value: "other", label: "Other" },
+];
 
 interface AddRoomFormProps {
-	inspectionId: string
-	onCancel: () => void
+	inspectionId: string;
+	onCancel: () => void;
 }
 
 export function AddRoomForm({ inspectionId, onCancel }: AddRoomFormProps) {
-	const [roomName, setRoomName] = useState('')
-	const [roomType, setRoomType] = useState('other')
-	const [conditionRating, setConditionRating] = useState('good')
-	const createRoom = useCreateInspectionRoom()
+	const [roomName, setRoomName] = useState("");
+	const [roomType, setRoomType] = useState("other");
+	const [conditionRating, setConditionRating] = useState("good");
+	const createRoom = useCreateInspectionRoom();
 
 	async function handleSubmit(e: React.FormEvent) {
-		e.preventDefault()
+		e.preventDefault();
 		await createRoom.mutateAsync({
 			inspection_id: inspectionId,
 			room_name: roomName,
-			room_type: roomType as 'bedroom' | 'bathroom' | 'kitchen' | 'living_room' | 'dining_room' | 'garage' | 'outdoor' | 'other',
-			condition_rating: conditionRating as 'excellent' | 'good' | 'fair' | 'poor' | 'damaged'
-		})
-		onCancel()
+			room_type: roomType as
+				| "bedroom"
+				| "bathroom"
+				| "kitchen"
+				| "living_room"
+				| "dining_room"
+				| "garage"
+				| "outdoor"
+				| "other",
+			condition_rating: conditionRating as
+				| "excellent"
+				| "good"
+				| "fair"
+				| "poor"
+				| "damaged",
+		});
+		onCancel();
 	}
 
 	return (
@@ -59,7 +72,7 @@ export function AddRoomForm({ inspectionId, onCancel }: AddRoomFormProps) {
 						id="room-name"
 						type="text"
 						value={roomName}
-						onChange={e => setRoomName(e.target.value)}
+						onChange={(e) => setRoomName(e.target.value)}
 						placeholder="e.g. Master Bedroom"
 						required
 						className="h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
@@ -73,7 +86,7 @@ export function AddRoomForm({ inspectionId, onCancel }: AddRoomFormProps) {
 							<SelectValue />
 						</SelectTrigger>
 						<SelectContent>
-							{ROOM_TYPES.map(t => (
+							{ROOM_TYPES.map((t) => (
 								<SelectItem key={t.value} value={t.value}>
 									{t.label}
 								</SelectItem>
@@ -106,7 +119,7 @@ export function AddRoomForm({ inspectionId, onCancel }: AddRoomFormProps) {
 					disabled={!roomName || createRoom.isPending}
 					className="min-h-9"
 				>
-					{createRoom.isPending ? 'Adding...' : 'Add Room'}
+					{createRoom.isPending ? "Adding..." : "Add Room"}
 				</Button>
 				<Button
 					type="button"
@@ -119,5 +132,5 @@ export function AddRoomForm({ inspectionId, onCancel }: AddRoomFormProps) {
 				</Button>
 			</div>
 		</form>
-	)
+	);
 }

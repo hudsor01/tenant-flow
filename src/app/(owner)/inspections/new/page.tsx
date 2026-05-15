@@ -1,10 +1,10 @@
-import type { Metadata } from 'next'
-import { NewInspectionForm } from '#components/inspections/new-inspection-form.client'
+import type { Metadata } from "next";
+import { NewInspectionForm } from "#components/inspections/new-inspection-form.client";
 
 export const metadata: Metadata = {
-	title: 'New Inspection',
-	description: 'Create a new move-in or move-out property inspection'
-}
+	title: "New Inspection",
+	description: "Create a new move-in or move-out property inspection",
+};
 
 export default function NewInspectionPage() {
 	return (
@@ -17,5 +17,5 @@ export default function NewInspectionPage() {
 			</div>
 			<NewInspectionForm />
 		</div>
-	)
+	);
 }

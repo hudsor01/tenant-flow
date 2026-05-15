@@ -1,26 +1,26 @@
-'use client'
+"use client";
 
-import { use } from 'react'
-import { LeaseForm } from '#components/leases/lease-form'
-import { RouteModal } from '#components/ui/route-modal'
-import { Skeleton } from '#components/ui/skeleton'
-import { leaseQueries } from '#hooks/api/query-keys/lease-keys'
-import { useQuery } from '@tanstack/react-query'
-import { notFound } from 'next/navigation'
+import { useQuery } from "@tanstack/react-query";
+import { notFound } from "next/navigation";
+import { use } from "react";
+import { LeaseForm } from "#components/leases/lease-form";
+import { RouteModal } from "#components/ui/route-modal";
+import { Skeleton } from "#components/ui/skeleton";
+import { leaseQueries } from "#hooks/api/query-keys/lease-keys";
 
 /**
  * Edit Lease Modal (Intercepting Route)
  */
 export default function EditLeaseModal({
-	params
+	params,
 }: {
-	params: Promise<{ id: string }>
+	params: Promise<{ id: string }>;
 }) {
-	const { id } = use(params)
-	const { data: lease, isLoading, error } = useQuery(leaseQueries.detail(id))
+	const { id } = use(params);
+	const { data: lease, isLoading, error } = useQuery(leaseQueries.detail(id));
 
 	if (error) {
-		notFound()
+		notFound();
 	}
 
 	return (
@@ -40,5 +40,5 @@ export default function EditLeaseModal({
 				) : null}
 			</div>
 		</RouteModal>
-	)
+	);
 }

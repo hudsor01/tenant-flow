@@ -1,67 +1,66 @@
-import type { ReactNode } from 'react'
-
-import { BlurFade } from '#components/ui/blur-fade'
-import { cn } from '#lib/utils'
 import {
 	DollarSign,
 	FolderArchive,
 	HelpCircle,
 	LayoutDashboard,
 	Terminal,
-	Zap
-} from 'lucide-react'
+	Zap,
+} from "lucide-react";
+import type { ReactNode } from "react";
+import { BlurFade } from "#components/ui/blur-fade";
+import { cn } from "#lib/utils";
 
 interface FeaturesSectionDemoProps {
-	className?: string
+	className?: string;
 }
 
 export default function FeaturesSectionDemo({
-	className
+	className,
 }: FeaturesSectionDemoProps) {
 	const features = [
 		{
-			title: 'Property Management',
+			title: "Property Management",
 			description:
-				'Track leases, renewals, and maintenance in one place — Starter handles up to 5 properties, Growth up to 20, Max unlimited.',
-			icon: <Terminal />
+				"Track leases, renewals, and maintenance in one place — Starter handles up to 5 properties, Growth up to 20, Max unlimited.",
+			icon: <Terminal />,
 		},
 		{
-			title: 'Fast Setup',
+			title: "Fast Setup",
 			description:
-				'Import your portfolio via CSV and start tracking the same day. No long onboarding, no implementation team required.',
-			icon: <Zap />
+				"Import your portfolio via CSV and start tracking the same day. No long onboarding, no implementation team required.",
+			icon: <Zap />,
 		},
 		{
-			title: 'Transparent Pricing',
+			title: "Transparent Pricing",
 			description:
 				"Three plans that scale with your portfolio. No hidden fees, no contracts, no charge for tenant accounts that don't exist.",
-			icon: <DollarSign />
+			icon: <DollarSign />,
 		},
 		{
-			title: 'Multi-Property Dashboard',
+			title: "Multi-Property Dashboard",
 			description:
-				'Manage your entire portfolio from one unified dashboard with revenue, occupancy, and maintenance metrics.',
-			icon: <LayoutDashboard />
+				"Manage your entire portfolio from one unified dashboard with revenue, occupancy, and maintenance metrics.",
+			icon: <LayoutDashboard />,
 		},
 		{
-			title: 'Email Support',
+			title: "Email Support",
 			description:
-				'Email support on every plan. Phone and priority support on Growth and Max. No tenant tickets to triage.',
-			icon: <HelpCircle />
+				"Email support on every plan. Phone and priority support on Growth and Max. No tenant tickets to triage.",
+			icon: <HelpCircle />,
 		},
 		{
-			title: 'Document Vault',
+			title: "Document Vault",
 			description:
-				'Per-entity storage with global search, multi-select filters, date-range, and tax-season zip downloads. Custom categories per landlord.',
-			icon: <FolderArchive />
-		}
-	]
+				"Per-entity storage with global search, multi-select filters, date-range, and tax-season zip downloads. Custom categories per landlord.",
+			icon: <FolderArchive />,
+		},
+	];
 
 	return (
 		<section
 			className={cn(
-				'section-spacing relative overflow-hidden bg-transparent',
-				className
+				"section-spacing relative overflow-hidden bg-transparent",
+				className,
 			)}
 		>
 			<div className="container px-(--spacing-4) mx-auto relative z-10">
@@ -80,7 +79,7 @@ export default function FeaturesSectionDemo({
 
 				<div
 					className={cn(
-						'grid gap-8 md:grid-cols-2 lg:grid-cols-3 relative z-10'
+						"grid gap-8 md:grid-cols-2 lg:grid-cols-3 relative z-10",
 					)}
 				>
 					{features.map((feature, index) => (
@@ -91,13 +90,13 @@ export default function FeaturesSectionDemo({
 				</div>
 			</div>
 		</section>
-	)
+	);
 }
 
 interface FeatureProps {
-	title: string
-	description: string
-	icon: ReactNode
+	title: string;
+	description: string;
+	icon: ReactNode;
 }
 
 const Feature = ({ title, description, icon }: FeatureProps) => {
@@ -148,5 +147,5 @@ const Feature = ({ title, description, icon }: FeatureProps) => {
 			{/* Subtle hover gradient overlay */}
 			<div className="absolute inset-0 opacity-0 group-hover/feature:opacity-100 bg-primary/3 rounded pointer-events-none transition-opacity duration-500" />
 		</div>
-	)
-}
+	);
+};

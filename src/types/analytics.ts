@@ -5,425 +5,425 @@
 
 // Base analytics data point
 export interface AnalyticsDataPoint {
-	label: string
-	value: number
-	timestamp?: string
-	metadata?: Record<string, unknown>
+	label: string;
+	value: number;
+	timestamp?: string;
+	metadata?: Record<string, unknown>;
 }
 
 // Time-series analytics
 export interface TimeSeriesDataPoint {
-	date: string
-	value: number
-	label?: string
+	date: string;
+	value: number;
+	label?: string;
 }
 
 // Analytics trend indicator
 export interface MetricTrend {
-	current: number
-	previous: number | null
-	change: number // Absolute change
-	percentChange: number // Percentage change
-	trend: 'up' | 'down' | 'stable' // Direction derived from change sign
+	current: number;
+	previous: number | null;
+	change: number; // Absolute change
+	percentChange: number; // Percentage change
+	trend: "up" | "down" | "stable"; // Direction derived from change sign
 }
 
 // Common analytics metric summary
 export interface MetricSummary {
-	label: string
-	value: number
-	trend?: MetricTrend
+	label: string;
+	value: number;
+	trend?: MetricTrend;
 	comparison?: {
-		period: string
-		percentChange: number
-	}
+		period: string;
+		percentChange: number;
+	};
 }
 
 // Common analytics breakdown row
 export interface AnalyticsBreakdownRow {
-	label: string
-	value: number
-	percentage?: number | null
-	change?: number | null
-	trend?: 'up' | 'down' | 'stable'
+	label: string;
+	value: number;
+	percentage?: number | null;
+	change?: number | null;
+	trend?: "up" | "down" | "stable";
 }
 
 // Analytics response with breakdown
 export interface AnalyticsBreakdown {
-	items: AnalyticsBreakdownRow[]
-	total: number
-	summary?: MetricSummary
+	items: AnalyticsBreakdownRow[];
+	total: number;
+	summary?: MetricSummary;
 }
 
 // Analytics time-series response
 export interface TimeSeriesResponse {
-	dataPoints: TimeSeriesDataPoint[]
+	dataPoints: TimeSeriesDataPoint[];
 	summary: {
-		min: number
-		max: number
-		average: number
-		total: number
-	}
+		min: number;
+		max: number;
+		average: number;
+		total: number;
+	};
 	period: {
-		start: string
-		end: string
-	}
+		start: string;
+		end: string;
+	};
 }
 
 // Analytics pagination response
 export interface AnalyticsPaginatedResponse<T> {
-	items: T[]
-	total: number
-	page: number
-	pageSize: number
-	hasMore: boolean
+	items: T[];
+	total: number;
+	page: number;
+	pageSize: number;
+	hasMore: boolean;
 }
 
 // Analytics chart data structure
 export interface ChartDataPoint {
-	x: string | number
-	y: number
-	label?: string
-	metadata?: Record<string, unknown>
+	x: string | number;
+	y: number;
+	label?: string;
+	metadata?: Record<string, unknown>;
 }
 
 // Analytics event/activity
 export interface AnalyticsEvent {
-	eventType: string
-	entityType: string
-	entityId: string
-	userId?: string
-	timestamp: string
-	metadata?: Record<string, unknown>
+	eventType: string;
+	entityType: string;
+	entityId: string;
+	userId?: string;
+	timestamp: string;
+	metadata?: Record<string, unknown>;
 }
 
 // Analytics filter options
 export interface AnalyticsFilterOptions {
-	dateFrom?: string
-	dateTo?: string
-	period?: 'day' | 'week' | 'month' | 'quarter' | 'year' | 'custom'
-	limit?: number
-	offset?: number
-	sortBy?: string
-	sortOrder?: 'asc' | 'desc'
+	dateFrom?: string;
+	dateTo?: string;
+	period?: "day" | "week" | "month" | "quarter" | "year" | "custom";
+	limit?: number;
+	offset?: number;
+	sortBy?: string;
+	sortOrder?: "asc" | "desc";
 }
 
 // Analytics aggregation options
 export interface AggregationOptions {
-	granularity: 'daily' | 'weekly' | 'monthly' | 'quarterly' | 'yearly'
-	metric: string
-	groupBy?: string
+	granularity: "daily" | "weekly" | "monthly" | "quarterly" | "yearly";
+	metric: string;
+	groupBy?: string;
 }
 
 // Common analytics page response structure
 export interface AnalyticsPageResponse<T extends Record<string, unknown>> {
-	metrics: T
-	timestamp: string
+	metrics: T;
+	timestamp: string;
 	period?: {
-		start: string
-		end: string
-	}
+		start: string;
+		end: string;
+	};
 }
 
 // Comparison metrics
 export interface ComparisonMetric {
-	current: number
-	previous: number
-	change: number
-	percentChange: number
-	trend: 'up' | 'down' | 'stable'
+	current: number;
+	previous: number;
+	change: number;
+	percentChange: number;
+	trend: "up" | "down" | "stable";
 }
 
 // Analytics summary snapshot
 export interface AnalyticsSummary {
-	totalCount: number
-	activeCount: number
-	inactiveCount: number
-	changePercent: number
-	trend: 'up' | 'down' | 'stable'
+	totalCount: number;
+	activeCount: number;
+	inactiveCount: number;
+	changePercent: number;
+	trend: "up" | "down" | "stable";
 }
 
 export interface FinancialMetricSummary {
-	totalRevenue: number
-	totalExpenses: number
-	netIncome: number
-	cashFlow: number
-	revenueTrend?: number | null
-	expenseTrend?: number | null
-	profitMargin?: number | null
+	totalRevenue: number;
+	totalExpenses: number;
+	netIncome: number;
+	cashFlow: number;
+	revenueTrend?: number | null;
+	expenseTrend?: number | null;
+	profitMargin?: number | null;
 }
 
 export interface FinancialBreakdownRow {
-	label: string
-	value: number
-	percentage?: number | null
-	change?: number | null
+	label: string;
+	value: number;
+	percentage?: number | null;
+	change?: number | null;
 }
 
 export interface RevenueExpenseBreakdown {
-	revenue: FinancialBreakdownRow[]
-	expenses: FinancialBreakdownRow[]
+	revenue: FinancialBreakdownRow[];
+	expenses: FinancialBreakdownRow[];
 	totals: {
-		revenue: number
-		expenses: number
-		netIncome: number
-	}
+		revenue: number;
+		expenses: number;
+		netIncome: number;
+	};
 }
 
 export interface NetOperatingIncomeByProperty {
-	property_id: string
-	propertyName: string
-	noi: number
-	revenue: number
-	expenses: number
-	margin: number
+	property_id: string;
+	propertyName: string;
+	noi: number;
+	revenue: number;
+	expenses: number;
+	margin: number;
 }
 
 export interface FinancialOverviewSnapshot {
 	overview: {
-		totalRevenue: number
-		totalExpenses: number
-		netIncome: number
-		accountsReceivable: number
-		accountsPayable: number
-	}
+		totalRevenue: number;
+		totalExpenses: number;
+		netIncome: number;
+		accountsReceivable: number;
+		accountsPayable: number;
+	};
 	highlights: Array<{
-		label: string
-		value: number
-		trend?: number | null
-	}>
+		label: string;
+		value: number;
+		trend?: number | null;
+	}>;
 }
 
 export interface BillingInsightsTimelinePoint {
-	period: string
-	invoiced: number
-	paid: number
-	overdue: number
+	period: string;
+	invoiced: number;
+	paid: number;
+	overdue: number;
 }
 
 export interface BillingInsightsTimeline {
-	points: BillingInsightsTimelinePoint[]
+	points: BillingInsightsTimelinePoint[];
 	totals: {
-		invoiced: number
-		paid: number
-		overdue: number
-	}
+		invoiced: number;
+		paid: number;
+		overdue: number;
+	};
 }
 
 export interface ExpenseCategorySummary {
-	category: string
-	amount: number
-	percentage: number
+	category: string;
+	amount: number;
+	percentage: number;
 }
 
 export interface ExpenseSummaryResponse {
-	categories: ExpenseCategorySummary[]
+	categories: ExpenseCategorySummary[];
 	monthlyTotals: Array<{
-		month: string
-		amount: number
-	}>
+		month: string;
+		amount: number;
+	}>;
 	totals: {
-		amount: number
-		monthlyAverage: number
-		yearOverYearChange?: number | null
-	}
+		amount: number;
+		monthlyAverage: number;
+		yearOverYearChange?: number | null;
+	};
 }
 
 export interface InvoiceStatusSummary {
-	status: string
-	count: number
-	amount: number
+	status: string;
+	count: number;
+	amount: number;
 }
 
 export interface MonthlyFinancialMetric {
-	month: string
-	revenue: number
-	expenses: number
-	netIncome: number
-	cashFlow: number
+	month: string;
+	revenue: number;
+	expenses: number;
+	netIncome: number;
+	cashFlow: number;
 }
 
 export interface LeaseFinancialSummary {
-	totalLeases: number
-	activeLeases: number
-	expiringSoon: number
-	totalrent_amount: number
-	averageLeaseValue: number
+	totalLeases: number;
+	activeLeases: number;
+	expiringSoon: number;
+	totalrent_amount: number;
+	averageLeaseValue: number;
 }
 
 export interface LeaseFinancialInsight {
-	lease_id: string
-	propertyName: string
-	tenantName: string
-	rent_amount: number
-	outstandingBalance: number
-	profitabilityScore?: number | null
+	lease_id: string;
+	propertyName: string;
+	tenantName: string;
+	rent_amount: number;
+	outstandingBalance: number;
+	profitabilityScore?: number | null;
 }
 
 export interface FinancialAnalyticsPageResponse {
-	metrics: FinancialMetricSummary
-	breakdown: RevenueExpenseBreakdown
-	netOperatingIncome: NetOperatingIncomeByProperty[]
-	financialOverview: FinancialOverviewSnapshot
-	billingInsights: BillingInsightsTimeline
-	expenseSummary: ExpenseSummaryResponse
-	invoiceSummary: InvoiceStatusSummary[]
-	monthlyMetrics: MonthlyFinancialMetric[]
-	leaseSummary: LeaseFinancialSummary
-	leaseAnalytics: LeaseFinancialInsight[]
+	metrics: FinancialMetricSummary;
+	breakdown: RevenueExpenseBreakdown;
+	netOperatingIncome: NetOperatingIncomeByProperty[];
+	financialOverview: FinancialOverviewSnapshot;
+	billingInsights: BillingInsightsTimeline;
+	expenseSummary: ExpenseSummaryResponse;
+	invoiceSummary: InvoiceStatusSummary[];
+	monthlyMetrics: MonthlyFinancialMetric[];
+	leaseSummary: LeaseFinancialSummary;
+	leaseAnalytics: LeaseFinancialInsight[];
 }
 
 export interface LeaseLifecyclePoint {
-	period: string
-	renewals: number
-	expirations: number
-	noticesGiven: number
+	period: string;
+	renewals: number;
+	expirations: number;
+	noticesGiven: number;
 }
 
 export interface LeaseStatusBreakdown {
-	status: string
-	count: number
-	percentage: number
+	status: string;
+	count: number;
+	percentage: number;
 }
 
 export interface LeaseAnalyticsPageResponse {
-	metrics: LeaseFinancialSummary
-	profitability: LeaseFinancialInsight[]
-	lifecycle: LeaseLifecyclePoint[]
-	statusBreakdown: LeaseStatusBreakdown[]
+	metrics: LeaseFinancialSummary;
+	profitability: LeaseFinancialInsight[];
+	lifecycle: LeaseLifecyclePoint[];
+	statusBreakdown: LeaseStatusBreakdown[];
 }
 
 export interface MaintenanceMetricSummary {
-	openRequests: number
-	inProgressRequests: number
-	completedRequests: number
-	averageResponseTimeHours: number
-	totalCost: number
+	openRequests: number;
+	inProgressRequests: number;
+	completedRequests: number;
+	averageResponseTimeHours: number;
+	totalCost: number;
 }
 
 export interface MaintenanceCostBreakdownEntry {
-	category: string
-	amount: number
-	percentage: number
+	category: string;
+	amount: number;
+	percentage: number;
 }
 
 export interface MaintenanceTrendPoint {
-	period: string
-	completed: number
-	pending: number
-	avgResolutionTime: number
+	period: string;
+	completed: number;
+	pending: number;
+	avgResolutionTime: number;
 }
 
 export interface MaintenanceCategoryBreakdown {
-	category: string
-	count: number
+	category: string;
+	count: number;
 }
 
 export interface MaintenanceAnalyticsPageResponse {
-	metrics: MaintenanceMetricSummary
-	costBreakdown: MaintenanceCostBreakdownEntry[]
-	trends: MaintenanceTrendPoint[]
-	categoryBreakdown: MaintenanceCategoryBreakdown[]
+	metrics: MaintenanceMetricSummary;
+	costBreakdown: MaintenanceCostBreakdownEntry[];
+	trends: MaintenanceTrendPoint[];
+	categoryBreakdown: MaintenanceCategoryBreakdown[];
 }
 
 export interface OccupancyMetricSummary {
-	currentOccupancy: number
-	averageVacancyDays: number
-	seasonalPeakOccupancy: number
-	trend: number
+	currentOccupancy: number;
+	averageVacancyDays: number;
+	seasonalPeakOccupancy: number;
+	trend: number;
 }
 
 export interface OccupancyTrendPoint {
-	period: string
-	occupancyRate: number
-	occupiedUnits: number
-	totalUnits: number
+	period: string;
+	occupancyRate: number;
+	occupiedUnits: number;
+	totalUnits: number;
 }
 
 export interface VacancyAnalysisEntry {
-	property_id: string
-	propertyName: string
-	vacancyDays: number
-	turnovers: number
-	notes?: string
+	property_id: string;
+	propertyName: string;
+	vacancyDays: number;
+	turnovers: number;
+	notes?: string;
 }
 
 export interface OccupancyAnalyticsPageResponse {
-	metrics: OccupancyMetricSummary
-	trends: OccupancyTrendPoint[]
-	vacancyAnalysis: VacancyAnalysisEntry[]
+	metrics: OccupancyMetricSummary;
+	trends: OccupancyTrendPoint[];
+	vacancyAnalysis: VacancyAnalysisEntry[];
 }
 
 export interface PropertyPerformanceEntry {
-	property_id: string
-	propertyName: string
-	occupancyRate: number
-	monthlyRevenue: number
-	annualRevenue: number
-	totalUnits: number
-	occupiedUnits: number
-	vacantUnits: number
-	address?: string
-	status?: string
-	property_type?: string
-	trend: 'up' | 'down' | 'stable'
-	trendPercentage: number
+	property_id: string;
+	propertyName: string;
+	occupancyRate: number;
+	monthlyRevenue: number;
+	annualRevenue: number;
+	totalUnits: number;
+	occupiedUnits: number;
+	vacantUnits: number;
+	address?: string;
+	status?: string;
+	property_type?: string;
+	trend: "up" | "down" | "stable";
+	trendPercentage: number;
 }
 
 // Alias for backwards compatibility
-export type PropertyPerformanceData = PropertyPerformanceEntry
+export type PropertyPerformanceData = PropertyPerformanceEntry;
 
 export interface PropertyPerformanceSummary {
-	totalProperties: number
-	totalUnits: number
-	occupiedUnits: number
-	averageOccupancy: number
-	totalRevenue: number
-	bestPerformer?: string
-	worstPerformer?: string
+	totalProperties: number;
+	totalUnits: number;
+	occupiedUnits: number;
+	averageOccupancy: number;
+	totalRevenue: number;
+	bestPerformer?: string;
+	worstPerformer?: string;
 }
 
 export interface PropertyUnitDetail {
-	property_id: string
-	unit_id: string
-	unit_number: string
-	status: string
-	bedrooms?: number | null
-	bathrooms?: number | null
-	rent?: number | null
-	square_feet?: number | null
+	property_id: string;
+	unit_id: string;
+	unit_number: string;
+	status: string;
+	bedrooms?: number | null;
+	bathrooms?: number | null;
+	rent?: number | null;
+	square_feet?: number | null;
 }
 
 export interface UnitStatisticEntry {
-	label: string
-	value: number
-	trend?: number | null
+	label: string;
+	value: number;
+	trend?: number | null;
 }
 
 export interface VisitorAnalyticsPoint {
-	period: string
-	visits: number
-	inquiries: number
-	conversions: number
+	period: string;
+	visits: number;
+	inquiries: number;
+	conversions: number;
 }
 
 export interface VisitorAnalyticsSummary {
-	totalVisits: number
-	totalInquiries: number
-	totalConversions: number
-	conversionRate: number
+	totalVisits: number;
+	totalInquiries: number;
+	totalConversions: number;
+	conversionRate: number;
 }
 
 export interface VisitorAnalyticsResponse {
-	summary: VisitorAnalyticsSummary
-	timeline: VisitorAnalyticsPoint[]
+	summary: VisitorAnalyticsSummary;
+	timeline: VisitorAnalyticsPoint[];
 }
 
 export interface PropertyPerformancePageResponse {
-	metrics: PropertyPerformanceSummary
-	performance: PropertyPerformanceEntry[]
-	units: PropertyUnitDetail[]
-	unitStats: UnitStatisticEntry[]
-	visitorAnalytics: VisitorAnalyticsResponse
+	metrics: PropertyPerformanceSummary;
+	performance: PropertyPerformanceEntry[];
+	units: PropertyUnitDetail[];
+	unitStats: UnitStatisticEntry[];
+	visitorAnalytics: VisitorAnalyticsResponse;
 }
 
 /**
@@ -434,14 +434,14 @@ export interface PropertyPerformancePageResponse {
  * before returning. UI renders with single-decimal formatting.
  */
 export interface DeliverabilityStats {
-	templateTag: string
-	sent: number
-	delivered: number
-	opened: number
-	bounced: number
-	complained: number
-	bouncePercent: number // 0..100
-	complaintPercent: number // 0..100
+	templateTag: string;
+	sent: number;
+	delivered: number;
+	opened: number;
+	bounced: number;
+	complained: number;
+	bouncePercent: number; // 0..100
+	complaintPercent: number; // 0..100
 }
 
 /**
@@ -452,11 +452,11 @@ export interface DeliverabilityStats {
  * (null when denominator is zero).
  */
 export interface GateConversionStats {
-	feature: string
-	gateHits: number
-	distinctUsersHit: number
-	upgradesFromGate: number
-	conversionRate: number | null
+	feature: string;
+	gateHits: number;
+	distinctUsersHit: number;
+	upgradesFromGate: number;
+	conversionRate: number | null;
 }
 
 /**
@@ -464,10 +464,7 @@ export interface GateConversionStats {
  * `onboarding_funnel_events.step_name` CHECK constraint in
  * supabase/migrations/20260415193247_onboarding_funnel_events_schema.sql.
  */
-export type FunnelStepName =
-	| 'signup'
-	| 'first_property'
-	| 'first_tenant'
+export type FunnelStepName = "signup" | "first_property" | "first_tenant";
 
 /**
  * Single funnel step summary returned by `get_funnel_stats`.
@@ -481,13 +478,13 @@ export type FunnelStepName =
  * and whenever no cohort members reached the step.
  */
 export interface FunnelStep {
-	step: FunnelStepName
-	stepOrder: number
-	count: number
-	conversionRateFromPrior: number | null
-	conversionRateFromSignup: number | null
-	medianDaysFromPrior: number | null
-	medianDaysFromSignup: number | null
+	step: FunnelStepName;
+	stepOrder: number;
+	count: number;
+	conversionRateFromPrior: number | null;
+	conversionRateFromSignup: number | null;
+	medianDaysFromPrior: number | null;
+	medianDaysFromSignup: number | null;
 }
 
 /**
@@ -502,10 +499,9 @@ export interface FunnelStep {
  * admin UI header ("owners who signed up between ...").
  */
 export interface FunnelStats {
-	from: string // ISO timestamptz
-	to: string // ISO timestamptz
-	cohortLabel: string
-	mediansComputedAt: string // ISO timestamptz
-	steps: FunnelStep[]
+	from: string; // ISO timestamptz
+	to: string; // ISO timestamptz
+	cohortLabel: string;
+	mediansComputedAt: string; // ISO timestamptz
+	steps: FunnelStep[];
 }
-

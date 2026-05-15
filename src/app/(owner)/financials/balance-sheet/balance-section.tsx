@@ -1,19 +1,19 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
-import type { ElementType } from 'react'
-import { ChevronDown, ChevronRight } from 'lucide-react'
-import { Button } from '#components/ui/button'
-import { formatCents } from '#lib/utils/currency'
-import type { FinancialLineItem } from '#types/financial-statements'
+import { ChevronDown, ChevronRight } from "lucide-react";
+import type { ElementType } from "react";
+import { useState } from "react";
+import { Button } from "#components/ui/button";
+import { formatCents } from "#lib/utils/currency";
+import type { FinancialLineItem } from "#types/financial-statements";
 
 export interface BalanceSectionProps {
-	title: string
-	icon: ElementType
-	items: { label: string; items: FinancialLineItem[]; subtotal: number }[]
-	total: number
-	totalLabel: string
-	colorClass: string
+	title: string;
+	icon: ElementType;
+	items: { label: string; items: FinancialLineItem[]; subtotal: number }[];
+	total: number;
+	totalLabel: string;
+	colorClass: string;
 }
 
 export function BalanceSection({
@@ -22,13 +22,13 @@ export function BalanceSection({
 	items,
 	total,
 	totalLabel,
-	colorClass
+	colorClass,
 }: BalanceSectionProps) {
-	const [expanded, setExpanded] = useState<Record<string, boolean>>({})
+	const [expanded, setExpanded] = useState<Record<string, boolean>>({});
 
 	const toggleExpanded = (label: string) => {
-		setExpanded(prev => ({ ...prev, [label]: !prev[label] }))
-	}
+		setExpanded((prev) => ({ ...prev, [label]: !prev[label] }));
+	};
 
 	return (
 		<div className="bg-card border border-border rounded-lg overflow-hidden">
@@ -39,7 +39,7 @@ export function BalanceSection({
 				<h3 className="font-medium text-foreground">{title}</h3>
 			</div>
 			<div className="divide-y divide-border">
-				{items.map(section => (
+				{items.map((section) => (
 					<div key={section.label}>
 						<Button
 							variant="ghost"
@@ -69,7 +69,7 @@ export function BalanceSection({
 											{item.name}
 										</span>
 										<span
-											className={`text-sm tabular-nums ${item.amount < 0 ? 'text-red-600' : ''}`}
+											className={`text-sm tabular-nums ${item.amount < 0 ? "text-red-600" : ""}`}
 										>
 											{formatCents(item.amount * 100)}
 										</span>
@@ -89,5 +89,5 @@ export function BalanceSection({
 				</div>
 			</div>
 		</div>
-	)
+	);
 }

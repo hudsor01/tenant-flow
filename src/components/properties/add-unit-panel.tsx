@@ -1,42 +1,42 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
-import { Button } from '#components/ui/button'
-import { Field, FieldError, FieldLabel } from '#components/ui/field'
-import { Input } from '#components/ui/input'
+import { useForm } from "@tanstack/react-form";
+import { DollarSign, Loader2 } from "lucide-react";
+import { useState } from "react";
+import { toast } from "sonner";
+import { Button } from "#components/ui/button";
+import { Field, FieldError, FieldLabel } from "#components/ui/field";
+import { Input } from "#components/ui/input";
 import {
 	InputGroup,
 	InputGroupAddon,
-	InputGroupInput
-} from '#components/ui/input-group'
+	InputGroupInput,
+} from "#components/ui/input-group";
 import {
 	Select,
 	SelectContent,
 	SelectItem,
 	SelectTrigger,
-	SelectValue
-} from '#components/ui/select'
+	SelectValue,
+} from "#components/ui/select";
 import {
 	Sheet,
 	SheetContent,
 	SheetDescription,
 	SheetFooter,
 	SheetHeader,
-	SheetTitle
-} from '#components/ui/sheet'
-import { useCreateUnitMutation } from '#hooks/api/use-unit'
-import { useCurrentUser } from '#hooks/use-current-user'
-import { useForm } from '@tanstack/react-form'
-import { cn } from '#lib/utils'
-import { DollarSign, Loader2 } from 'lucide-react'
-import { toast } from 'sonner'
+	SheetTitle,
+} from "#components/ui/sheet";
+import { useCreateUnitMutation } from "#hooks/api/use-unit";
+import { useCurrentUser } from "#hooks/use-current-user";
+import { cn } from "#lib/utils";
 
 interface AddUnitPanelProps {
-	propertyId: string
-	propertyName: string
-	open: boolean
-	onOpenChange: (open: boolean) => void
-	onSuccess?: () => void
+	propertyId: string;
+	propertyName: string;
+	open: boolean;
+	onOpenChange: (open: boolean) => void;
+	onSuccess?: () => void;
 }
 
 /**
@@ -50,60 +50,60 @@ export function AddUnitPanel({
 	propertyName,
 	open,
 	onOpenChange,
-	onSuccess
+	onSuccess,
 }: AddUnitPanelProps) {
-	const [isSubmitting, setIsSubmitting] = useState(false)
-	const { isLoading: isAuthLoading } = useCurrentUser()
-	const createUnitMutation = useCreateUnitMutation()
+	const [isSubmitting, setIsSubmitting] = useState(false);
+	const { isLoading: isAuthLoading } = useCurrentUser();
+	const createUnitMutation = useCreateUnitMutation();
 
 	const form = useForm({
 		defaultValues: {
-			unit_number: '',
-			bedrooms: '1',
-			bathrooms: '1',
-			square_feet: '',
-			rent_amount: '',
-			status: 'available' as 'available' | 'maintenance'
+			unit_number: "",
+			bedrooms: "1",
+			bathrooms: "1",
+			square_feet: "",
+			rent_amount: "",
+			status: "available" as "available" | "maintenance",
 		},
 		onSubmit: async ({ value }) => {
-			setIsSubmitting(true)
+			setIsSubmitting(true);
 			try {
 				// Validate required fields
 				if (!value.unit_number?.trim()) {
-					toast.error('Unit number is required')
-					setIsSubmitting(false)
-					return
+					toast.error("Unit number is required");
+					setIsSubmitting(false);
+					return;
 				}
 
 				if (!value.rent_amount?.trim()) {
-					toast.error('Monthly rent is required')
-					setIsSubmitting(false)
-					return
+					toast.error("Monthly rent is required");
+					setIsSubmitting(false);
+					return;
 				}
 
-				const bedrooms = Number.parseInt(value.bedrooms, 10)
-				const bathrooms = Number.parseFloat(value.bathrooms)
-				const rent_amount = Number.parseFloat(value.rent_amount)
+				const bedrooms = Number.parseInt(value.bedrooms, 10);
+				const bathrooms = Number.parseFloat(value.bathrooms);
+				const rent_amount = Number.parseFloat(value.rent_amount);
 				const square_feet = value.square_feet
 					? Number.parseInt(value.square_feet, 10)
-					: null
+					: null;
 
 				if (!Number.isFinite(bedrooms) || bedrooms < 0) {
-					toast.error('Bedrooms must be a valid positive number')
-					setIsSubmitting(false)
-					return
+					toast.error("Bedrooms must be a valid positive number");
+					setIsSubmitting(false);
+					return;
 				}
 
 				if (!Number.isFinite(bathrooms) || bathrooms < 0) {
-					toast.error('Bathrooms must be a valid positive number')
-					setIsSubmitting(false)
-					return
+					toast.error("Bathrooms must be a valid positive number");
+					setIsSubmitting(false);
+					return;
 				}
 
 				if (!Number.isFinite(rent_amount) || rent_amount <= 0) {
-					toast.error('Rent must be a valid positive number')
-					setIsSubmitting(false)
-					return
+					toast.error("Rent must be a valid positive number");
+					setIsSubmitting(false);
+					return;
 				}
 
 				await createUnitMutation.mutateAsync({
@@ -113,22 +113,22 @@ export function AddUnitPanel({
 					bathrooms,
 					square_feet: square_feet ?? undefined,
 					rent_amount,
-					rent_currency: 'USD',
-					rent_period: 'monthly',
-					status: value.status
-				})
+					rent_currency: "USD",
+					rent_period: "monthly",
+					status: value.status,
+				});
 
 				// Reset form
-				form.reset()
-				onOpenChange(false)
-				onSuccess?.()
+				form.reset();
+				onOpenChange(false);
+				onSuccess?.();
 			} catch {
 				// Error is handled by mutation
 			} finally {
-				setIsSubmitting(false)
+				setIsSubmitting(false);
 			}
-		}
-	})
+		},
+	});
 
 	return (
 		<Sheet open={open} onOpenChange={onOpenChange}>
@@ -139,15 +139,15 @@ export function AddUnitPanel({
 				</SheetHeader>
 
 				<form
-					onSubmit={e => {
-						e.preventDefault()
-						form.handleSubmit()
+					onSubmit={(e) => {
+						e.preventDefault();
+						form.handleSubmit();
 					}}
 					className="flex flex-col gap-6 p-4"
 				>
 					{/* Unit Number */}
 					<form.Field name="unit_number">
-						{field => (
+						{(field) => (
 							<Field>
 								<FieldLabel htmlFor="unit_number">
 									Unit Number/Identifier *
@@ -156,7 +156,7 @@ export function AddUnitPanel({
 									id="unit_number"
 									placeholder="e.g., 101, A1, Suite 200"
 									value={field.state.value}
-									onChange={e => field.handleChange(e.target.value)}
+									onChange={(e) => field.handleChange(e.target.value)}
 									autoFocus
 								/>
 								{field.state.meta.errors.length > 0 && (
@@ -169,7 +169,7 @@ export function AddUnitPanel({
 					{/* Bedrooms and Bathrooms */}
 					<div className="grid grid-cols-2 gap-4">
 						<form.Field name="bedrooms">
-							{field => (
+							{(field) => (
 								<Field>
 									<FieldLabel htmlFor="bedrooms">Bedrooms *</FieldLabel>
 									<Input
@@ -177,14 +177,14 @@ export function AddUnitPanel({
 										type="number"
 										min="0"
 										value={field.state.value}
-										onChange={e => field.handleChange(e.target.value)}
+										onChange={(e) => field.handleChange(e.target.value)}
 									/>
 								</Field>
 							)}
 						</form.Field>
 
 						<form.Field name="bathrooms">
-							{field => (
+							{(field) => (
 								<Field>
 									<FieldLabel htmlFor="bathrooms">Bathrooms *</FieldLabel>
 									<Input
@@ -193,7 +193,7 @@ export function AddUnitPanel({
 										min="0"
 										step="0.5"
 										value={field.state.value}
-										onChange={e => field.handleChange(e.target.value)}
+										onChange={(e) => field.handleChange(e.target.value)}
 									/>
 								</Field>
 							)}
@@ -202,7 +202,7 @@ export function AddUnitPanel({
 
 					{/* Square Feet */}
 					<form.Field name="square_feet">
-						{field => (
+						{(field) => (
 							<Field>
 								<FieldLabel htmlFor="square_feet">
 									Square Feet (Optional)
@@ -213,7 +213,7 @@ export function AddUnitPanel({
 									min="0"
 									placeholder="e.g., 850"
 									value={field.state.value}
-									onChange={e => field.handleChange(e.target.value)}
+									onChange={(e) => field.handleChange(e.target.value)}
 								/>
 							</Field>
 						)}
@@ -221,7 +221,7 @@ export function AddUnitPanel({
 
 					{/* Monthly Rent */}
 					<form.Field name="rent_amount">
-						{field => (
+						{(field) => (
 							<Field>
 								<FieldLabel htmlFor="rent_amount">Monthly Rent *</FieldLabel>
 								<InputGroup>
@@ -235,7 +235,7 @@ export function AddUnitPanel({
 										step="0.01"
 										placeholder="0.00"
 										value={field.state.value}
-										onChange={e => field.handleChange(e.target.value)}
+										onChange={(e) => field.handleChange(e.target.value)}
 									/>
 								</InputGroup>
 							</Field>
@@ -244,13 +244,13 @@ export function AddUnitPanel({
 
 					{/* Initial Status */}
 					<form.Field name="status">
-						{field => (
+						{(field) => (
 							<Field>
 								<FieldLabel htmlFor="status">Initial Status *</FieldLabel>
 								<Select
 									value={field.state.value}
-									onValueChange={value =>
-										field.handleChange(value as 'available' | 'maintenance')
+									onValueChange={(value) =>
+										field.handleChange(value as "available" | "maintenance")
 									}
 								>
 									<SelectTrigger>
@@ -280,7 +280,7 @@ export function AddUnitPanel({
 						<Button
 							type="submit"
 							disabled={isSubmitting || isAuthLoading}
-							className={cn(isAuthLoading && 'animate-pulse')}
+							className={cn(isAuthLoading && "animate-pulse")}
 						>
 							{isSubmitting ? (
 								<>
@@ -288,12 +288,12 @@ export function AddUnitPanel({
 									Creating...
 								</>
 							) : (
-								'Create Unit'
+								"Create Unit"
 							)}
 						</Button>
 					</SheetFooter>
 				</form>
 			</SheetContent>
 		</Sheet>
-	)
+	);
 }

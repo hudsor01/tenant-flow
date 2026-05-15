@@ -1,15 +1,15 @@
-import { cache } from 'react'
-import { notFound } from 'next/navigation'
-import { createClient as createServerClient } from '#lib/supabase/server'
-import { createClient as createSupabaseClient } from '@supabase/supabase-js'
-import { env } from '#env'
-import { createLogger } from '#lib/frontend-logger'
-import type { Metadata } from 'next'
-import { JsonLdScript } from '#components/seo/json-ld-script'
-import { createArticleJsonLd } from '#lib/seo/article-schema'
-import { createBreadcrumbJsonLd } from '#lib/seo/breadcrumbs'
-import { BlogPostBreadcrumb } from '#components/blog/blog-post-breadcrumb'
-import BlogPostPage from './blog-post-page'
+import { createClient as createSupabaseClient } from "@supabase/supabase-js";
+import type { Metadata } from "next";
+import { notFound } from "next/navigation";
+import { cache } from "react";
+import { BlogPostBreadcrumb } from "#components/blog/blog-post-breadcrumb";
+import { JsonLdScript } from "#components/seo/json-ld-script";
+import { env } from "#env";
+import { createLogger } from "#lib/frontend-logger";
+import { createArticleJsonLd } from "#lib/seo/article-schema";
+import { createBreadcrumbJsonLd } from "#lib/seo/breadcrumbs";
+import { createClient as createServerClient } from "#lib/supabase/server";
+import BlogPostPage from "./blog-post-page";
 
 // Phase 6 (BLOG-02): restore ISR with `generateStaticParams` returning the
 // published slug set. `dynamicParams = false` makes any slug not in the
@@ -18,13 +18,13 @@ import BlogPostPage from './blog-post-page'
 // guarantee in dev mode. Newly-published posts are picked up on next
 // Vercel build (frequent given content cadence); known slugs serve from
 // the 5-minute revalidate cache for editorial updates.
-export const dynamicParams = false
-export const revalidate = 300
+export const dynamicParams = false;
+export const revalidate = 300;
 
-const logger = createLogger({ component: 'BlogPost' })
+const logger = createLogger({ component: "BlogPost" });
 
 interface Props {
-	params: Promise<{ slug: string }>
+	params: Promise<{ slug: string }>;
 }
 
 /**
@@ -42,91 +42,94 @@ interface Props {
 export async function generateStaticParams() {
 	const supabase = createSupabaseClient(
 		env.NEXT_PUBLIC_SUPABASE_URL,
-		env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY
-	)
+		env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY,
+	);
 	const { data, error } = await supabase
-		.from('blogs')
-		.select('slug')
-		.eq('status', 'published')
+		.from("blogs")
+		.select("slug")
+		.eq("status", "published");
 
 	if (error) {
-		logger.error('generateStaticParams failed', {
-			action: 'generateStaticParams',
-			route: '/blog/[slug]',
+		logger.error("generateStaticParams failed", {
+			action: "generateStaticParams",
+			route: "/blog/[slug]",
 			metadata: { error: error.message, code: error.code },
-		})
-		return []
+		});
+		return [];
 	}
 
-	return (data ?? []).map(({ slug }) => ({ slug }))
+	return (data ?? []).map(({ slug }) => ({ slug }));
 }
 
 /** Deduplicated blog post query — shared by generateMetadata and Page */
 const getBlogPost = cache(async (slug: string) => {
-	const supabase = await createServerClient()
+	const supabase = await createServerClient();
 
 	// Race against 5s timeout to prevent Supabase cold-start hangs
 	// (80-398s observed in Sentry).
-	let timer: ReturnType<typeof setTimeout> | undefined
+	let timer: ReturnType<typeof setTimeout> | undefined;
 	const timeout = new Promise<never>((_, reject) => {
-		timer = setTimeout(() => reject(new Error('Blog post query timed out')), 5000)
-	})
+		timer = setTimeout(
+			() => reject(new Error("Blog post query timed out")),
+			5000,
+		);
+	});
 	const query = supabase
-		.from('blogs')
+		.from("blogs")
 		.select(
-			'title, slug, published_at, updated_at, featured_image, content, reading_time, category, meta_description, excerpt, tags, canonical_url'
+			"title, slug, published_at, updated_at, featured_image, content, reading_time, category, meta_description, excerpt, tags, canonical_url",
 		)
-		.eq('slug', slug)
-		.eq('status', 'published')
-		.single()
+		.eq("slug", slug)
+		.eq("status", "published")
+		.single();
 
 	try {
-		const { data, error } = await Promise.race([query, timeout])
+		const { data, error } = await Promise.race([query, timeout]);
 		if (error) {
 			// PGRST116 = "Results contain 0 rows" from .single() — genuine miss.
 			// Any other code is a real DB problem; throw so Next.js error boundary
 			// surfaces a 500 instead of a misleading 404.
-			if (error.code === 'PGRST116') return null
-			logger.error('Blog post query failed', {
-				action: 'getBlogPost',
+			if (error.code === "PGRST116") return null;
+			logger.error("Blog post query failed", {
+				action: "getBlogPost",
 				route: `/blog/${slug}`,
 				metadata: { error: error.message, code: error.code },
-			})
-			throw new Error('Blog post query failed')
+			});
+			throw new Error("Blog post query failed");
 		}
-		return data
+		return data;
 	} catch (err) {
 		// Re-log timeout errors with context before bubbling to error boundary.
-		if (err instanceof Error && err.message === 'Blog post query timed out') {
-			logger.error('Blog post query timed out', {
-				action: 'getBlogPost',
+		if (err instanceof Error && err.message === "Blog post query timed out") {
+			logger.error("Blog post query timed out", {
+				action: "getBlogPost",
 				route: `/blog/${slug}`,
 				metadata: {},
-			})
+			});
 		}
-		throw err
+		throw err;
 	} finally {
-		if (timer) clearTimeout(timer)
+		if (timer) clearTimeout(timer);
 	}
-})
+});
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-	const { slug } = await params
-	const post = await getBlogPost(slug)
+	const { slug } = await params;
+	const post = await getBlogPost(slug);
 
 	if (!post) {
-		notFound()
+		notFound();
 	}
 
-	const description = post.meta_description || post.excerpt
-	const ogImageUrl = `/api/og/blog/${slug}`
+	const description = post.meta_description || post.excerpt;
+	const ogImageUrl = `/api/og/blog/${slug}`;
 
 	// Blocker-#1 fix: `post.canonical_url` (Plan 06-01 column) lands here in
 	// the framework-emitted `<head>` via `Metadata.alternates.canonical`.
 	// When non-null the post points elsewhere (e.g. brief #10 →
 	// `/compare/buildium`); when null, fall back to the post's own URL so
 	// every published post always has a canonical reference.
-	const canonical = post.canonical_url ?? `/blog/${slug}`
+	const canonical = post.canonical_url ?? `/blog/${slug}`;
 
 	return {
 		// `title.absolute` opts out of the parent layout's `'%s | TenantFlow'`
@@ -137,7 +140,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 		openGraph: {
 			title: post.title,
 			description,
-			type: 'article',
+			type: "article",
 			publishedTime: post.published_at ?? undefined,
 			modifiedTime: post.updated_at ?? post.published_at ?? undefined,
 			section: post.category ?? undefined,
@@ -155,12 +158,12 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 					alt: post.title,
 				},
 			],
-			siteName: 'TenantFlow',
+			siteName: "TenantFlow",
 		},
 		twitter: {
-			card: 'summary_large_image',
-			site: '@tenantflow',
-			creator: '@tenantflow',
+			card: "summary_large_image",
+			site: "@tenantflow",
+			creator: "@tenantflow",
 			title: post.title,
 			description,
 			images: [ogImageUrl],
@@ -168,28 +171,28 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 		alternates: {
 			canonical,
 		},
-	}
+	};
 }
 
 export default async function Page({ params }: Props) {
-	const { slug } = await params
-	const post = await getBlogPost(slug)
-	if (!post) notFound()
+	const { slug } = await params;
+	const post = await getBlogPost(slug);
+	if (!post) notFound();
 
 	const wordCount = post?.content
 		? post.content.trim().split(/\s+/).length
-		: undefined
+		: undefined;
 
 	const categorySlug = post?.category
-		? post.category.toLowerCase().replace(/\s+/g, '-')
-		: ''
+		? post.category.toLowerCase().replace(/\s+/g, "-")
+		: "";
 
 	const breadcrumbSchema = post
 		? createBreadcrumbJsonLd(`/blog/category/${categorySlug}/${slug}`, {
 				[categorySlug]: post.category ?? categorySlug,
 				[slug]: post.title ?? slug,
 			})
-		: null
+		: null;
 
 	// Article schema only emits when we have a real published_at — Google's
 	// Article rich-result eligibility requires datePublished, and faking
@@ -207,21 +210,19 @@ export default async function Page({ params }: Props) {
 					// Schema author follows the visible byline so the entity matches —
 					// `authorType: 'Organization'` because a team/brand isn't a
 					// schema.org `Person`.
-					authorName: 'TenantFlow Team',
-					authorType: 'Organization',
+					authorName: "TenantFlow Team",
+					authorType: "Organization",
 					image: post.featured_image ?? undefined,
 					wordCount,
 					keywords: Array.isArray(post.tags)
-						? post.tags.filter(
-								(t): t is string => typeof t === 'string'
-							)
+						? post.tags.filter((t): t is string => typeof t === "string")
 						: undefined,
 					description: post.meta_description ?? post.excerpt ?? undefined,
 					timeRequired: post.reading_time
 						? `PT${post.reading_time}M`
 						: undefined,
 				})
-			: null
+			: null;
 
 	return (
 		<>
@@ -230,5 +231,5 @@ export default async function Page({ params }: Props) {
 			<BlogPostBreadcrumb title={post.title} category={post.category} />
 			<BlogPostPage post={post} slug={slug} />
 		</>
-	)
+	);
 }

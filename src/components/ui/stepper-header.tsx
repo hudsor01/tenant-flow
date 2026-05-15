@@ -1,41 +1,41 @@
-'use client'
+"use client";
 
-import type { ComponentProps, ReactNode } from 'react'
-import { Slot } from 'radix-ui'
-import { Check } from 'lucide-react'
-import { cn } from '#lib/utils'
+import { Check } from "lucide-react";
+import { Slot } from "radix-ui";
+import type { ComponentProps, ReactNode } from "react";
+import { cn } from "#lib/utils";
 import {
 	CONTENT_NAME,
+	type DataState,
 	DESCRIPTION_NAME,
+	type DivProps,
 	INDICATOR_NAME,
 	SEPARATOR_NAME,
 	TITLE_NAME,
 	useStepperContext,
 	useStepperItemContext,
 	useStore,
-	type DivProps,
-	type DataState
-} from './stepper-context'
-import { getId, getDataState } from './stepper-utils'
+} from "./stepper-context";
+import { getDataState, getId } from "./stepper-utils";
 
-interface StepperIndicatorProps extends Omit<DivProps, 'children'> {
-	children?: ReactNode | ((dataState: DataState) => ReactNode)
+interface StepperIndicatorProps extends Omit<DivProps, "children"> {
+	children?: ReactNode | ((dataState: DataState) => ReactNode);
 }
 
 function StepperIndicator(props: StepperIndicatorProps) {
-	const { className, children, asChild, ref, ...indicatorProps } = props
-	const context = useStepperContext(INDICATOR_NAME)
-	const itemContext = useStepperItemContext(INDICATOR_NAME)
-	const value = useStore(state => state.value)
-	const itemValue = itemContext.value
-	const stepState = useStore(state => state.steps.get(itemValue))
-	const steps = useStore(state => state.steps)
+	const { className, children, asChild, ref, ...indicatorProps } = props;
+	const context = useStepperContext(INDICATOR_NAME);
+	const itemContext = useStepperItemContext(INDICATOR_NAME);
+	const value = useStore((state) => state.value);
+	const itemValue = itemContext.value;
+	const stepState = useStore((state) => state.steps.get(itemValue));
+	const steps = useStore((state) => state.steps);
 
-	const stepPosition = Array.from(steps.keys()).indexOf(itemValue) + 1
+	const stepPosition = Array.from(steps.keys()).indexOf(itemValue) + 1;
 
-	const dataState = getDataState(value, itemValue, stepState, steps)
+	const dataState = getDataState(value, itemValue, stepState, steps);
 
-	const IndicatorPrimitive = asChild ? Slot.Slot : 'div'
+	const IndicatorPrimitive = asChild ? Slot.Slot : "div";
 
 	return (
 		<IndicatorPrimitive
@@ -45,25 +45,25 @@ function StepperIndicator(props: StepperIndicatorProps) {
 			{...indicatorProps}
 			ref={ref}
 			className={cn(
-				'flex size-7 shrink-0 items-center justify-center rounded-full border-2 border-muted bg-background font-medium text-muted-foreground text-sm transition-colors data-[state=active]:border-primary data-[state=completed]:border-primary data-[state=active]:bg-primary data-[state=completed]:bg-primary data-[state=active]:text-primary-foreground data-[state=completed]:text-primary-foreground',
-				className
+				"flex size-7 shrink-0 items-center justify-center rounded-full border-2 border-muted bg-background font-medium text-muted-foreground text-sm transition-colors data-[state=active]:border-primary data-[state=completed]:border-primary data-[state=active]:bg-primary data-[state=completed]:bg-primary data-[state=active]:text-primary-foreground data-[state=completed]:text-primary-foreground",
+				className,
 			)}
 		>
-			{typeof children === 'function' ? (
+			{typeof children === "function" ? (
 				children(dataState)
 			) : children ? (
 				children
-			) : dataState === 'completed' ? (
+			) : dataState === "completed" ? (
 				<Check className="size-4" />
 			) : (
 				stepPosition
 			)}
 		</IndicatorPrimitive>
-	)
+	);
 }
 
 interface StepperSeparatorProps extends DivProps {
-	forceMount?: boolean
+	forceMount?: boolean;
 }
 
 function StepperSeparator(props: StepperSeparatorProps) {
@@ -73,20 +73,20 @@ function StepperSeparator(props: StepperSeparatorProps) {
 		forceMount = false,
 		ref,
 		...separatorProps
-	} = props
+	} = props;
 
-	const context = useStepperContext(SEPARATOR_NAME)
-	const itemContext = useStepperItemContext(SEPARATOR_NAME)
-	const value = useStore(state => state.value)
-	const orientation = context.orientation
+	const context = useStepperContext(SEPARATOR_NAME);
+	const itemContext = useStepperItemContext(SEPARATOR_NAME);
+	const value = useStore((state) => state.value);
+	const orientation = context.orientation;
 
-	const steps = useStore(state => state.steps)
-	const stepIndex = Array.from(steps.keys()).indexOf(itemContext.value)
+	const steps = useStore((state) => state.steps);
+	const stepIndex = Array.from(steps.keys()).indexOf(itemContext.value);
 
-	const isLastStep = stepIndex === steps.size - 1
+	const isLastStep = stepIndex === steps.size - 1;
 
 	if (isLastStep && !forceMount) {
-		return null
+		return null;
 	}
 
 	const dataState = getDataState(
@@ -94,10 +94,10 @@ function StepperSeparator(props: StepperSeparatorProps) {
 		itemContext.value,
 		itemContext.stepState,
 		steps,
-		'separator'
-	)
+		"separator",
+	);
 
-	const SeparatorPrimitive = asChild ? Slot.Slot : 'div'
+	const SeparatorPrimitive = asChild ? Slot.Slot : "div";
 
 	return (
 		<SeparatorPrimitive
@@ -111,27 +111,27 @@ function StepperSeparator(props: StepperSeparatorProps) {
 			{...separatorProps}
 			ref={ref}
 			className={cn(
-				'bg-border transition-colors data-[state=active]:bg-primary data-[state=completed]:bg-primary',
-				orientation === 'horizontal' ? 'h-px flex-1' : 'h-10 w-px',
-				className
+				"bg-border transition-colors data-[state=active]:bg-primary data-[state=completed]:bg-primary",
+				orientation === "horizontal" ? "h-px flex-1" : "h-10 w-px",
+				className,
 			)}
 		/>
-	)
+	);
 }
 
-interface StepperTitleProps extends ComponentProps<'span'> {
-	asChild?: boolean
+interface StepperTitleProps extends ComponentProps<"span"> {
+	asChild?: boolean;
 }
 
 function StepperTitle(props: StepperTitleProps) {
-	const { className, asChild, ref, ...titleProps } = props
+	const { className, asChild, ref, ...titleProps } = props;
 
-	const context = useStepperContext(TITLE_NAME)
-	const itemContext = useStepperItemContext(TITLE_NAME)
+	const context = useStepperContext(TITLE_NAME);
+	const itemContext = useStepperItemContext(TITLE_NAME);
 
-	const titleId = getId(context.id, 'title', itemContext.value)
+	const titleId = getId(context.id, "title", itemContext.value);
 
-	const TitlePrimitive = asChild ? Slot.Slot : 'span'
+	const TitlePrimitive = asChild ? Slot.Slot : "span";
 
 	return (
 		<TitlePrimitive
@@ -140,23 +140,23 @@ function StepperTitle(props: StepperTitleProps) {
 			dir={context.dir}
 			{...titleProps}
 			ref={ref}
-			className={cn('font-medium text-sm', className)}
+			className={cn("font-medium text-sm", className)}
 		/>
-	)
+	);
 }
 
-interface StepperDescriptionProps extends ComponentProps<'span'> {
-	asChild?: boolean
+interface StepperDescriptionProps extends ComponentProps<"span"> {
+	asChild?: boolean;
 }
 
 function StepperDescription(props: StepperDescriptionProps) {
-	const { className, asChild, ref, ...descriptionProps } = props
-	const context = useStepperContext(DESCRIPTION_NAME)
-	const itemContext = useStepperItemContext(DESCRIPTION_NAME)
+	const { className, asChild, ref, ...descriptionProps } = props;
+	const context = useStepperContext(DESCRIPTION_NAME);
+	const itemContext = useStepperItemContext(DESCRIPTION_NAME);
 
-	const descriptionId = getId(context.id, 'description', itemContext.value)
+	const descriptionId = getId(context.id, "description", itemContext.value);
 
-	const DescriptionPrimitive = asChild ? Slot.Slot : 'span'
+	const DescriptionPrimitive = asChild ? Slot.Slot : "span";
 
 	return (
 		<DescriptionPrimitive
@@ -165,14 +165,14 @@ function StepperDescription(props: StepperDescriptionProps) {
 			dir={context.dir}
 			{...descriptionProps}
 			ref={ref}
-			className={cn('text-muted-foreground text-xs', className)}
+			className={cn("text-muted-foreground text-xs", className)}
 		/>
-	)
+	);
 }
 
 interface StepperContentProps extends DivProps {
-	value: string
-	forceMount?: boolean
+	value: string;
+	forceMount?: boolean;
 }
 
 function StepperContent(props: StepperContentProps) {
@@ -183,17 +183,17 @@ function StepperContent(props: StepperContentProps) {
 		ref,
 		className,
 		...contentProps
-	} = props
+	} = props;
 
-	const context = useStepperContext(CONTENT_NAME)
-	const value = useStore(state => state.value)
+	const context = useStepperContext(CONTENT_NAME);
+	const value = useStore((state) => state.value);
 
-	const contentId = getId(context.id, 'content', valueProp)
-	const triggerId = getId(context.id, 'trigger', valueProp)
+	const contentId = getId(context.id, "content", valueProp);
+	const triggerId = getId(context.id, "trigger", valueProp);
 
-	if (valueProp !== value && !forceMount) return null
+	if (valueProp !== value && !forceMount) return null;
 
-	const ContentPrimitive = asChild ? Slot.Slot : 'div'
+	const ContentPrimitive = asChild ? Slot.Slot : "div";
 
 	return (
 		<ContentPrimitive
@@ -204,15 +204,15 @@ function StepperContent(props: StepperContentProps) {
 			dir={context.dir}
 			{...contentProps}
 			ref={ref}
-			className={cn('flex-1 outline-none', className)}
+			className={cn("flex-1 outline-none", className)}
 		/>
-	)
+	);
 }
 
 export {
+	StepperContent,
+	StepperDescription,
 	StepperIndicator,
 	StepperSeparator,
 	StepperTitle,
-	StepperDescription,
-	StepperContent
-}
+};

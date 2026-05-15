@@ -3,8 +3,8 @@
 // Includes CORS headers via getCorsHeaders() — returns empty headers for non-browser
 // requests (webhooks), so the dependency is harmless for all callers.
 
-import * as Sentry from '@sentry/deno'
-import { getCorsHeaders } from './cors.ts'
+import * as Sentry from "@sentry/deno";
+import { getCorsHeaders } from "./cors.ts";
 
 /**
  * Create a JSON error response with generic message.
@@ -12,43 +12,42 @@ import { getCorsHeaders } from './cors.ts'
  * Never exposes internal error details to the client.
  */
 export function errorResponse(
-  req: Request,
-  status: number,
-  error: unknown,
-  context?: Record<string, unknown>,
+	req: Request,
+	status: number,
+	error: unknown,
+	context?: Record<string, unknown>,
 ): Response {
-  const message = error instanceof Error ? error.message : String(error)
+	const message = error instanceof Error ? error.message : String(error);
 
-  // Structured console logging for observability
-  console.error(JSON.stringify({
-    level: 'error',
-    status,
-    message,
-    url: req.url,
-    method: req.method,
-    ...context,
-  }))
+	// Structured console logging for observability
+	console.error(
+		JSON.stringify({
+			level: "error",
+			status,
+			message,
+			url: req.url,
+			method: req.method,
+			...context,
+		}),
+	);
 
-  // Sentry logging (handles missing DSN gracefully)
-  Sentry.captureException(error, {
-    extra: {
-      url: req.url,
-      method: req.method,
-      status,
-      ...context,
-    },
-  })
+	// Sentry logging (handles missing DSN gracefully)
+	Sentry.captureException(error, {
+		extra: {
+			url: req.url,
+			method: req.method,
+			status,
+			...context,
+		},
+	});
 
-  return new Response(
-    JSON.stringify({ error: 'An error occurred' }),
-    {
-      status,
-      headers: {
-        'Content-Type': 'application/json',
-        ...getCorsHeaders(req),
-      },
-    },
-  )
+	return new Response(JSON.stringify({ error: "An error occurred" }), {
+		status,
+		headers: {
+			"Content-Type": "application/json",
+			...getCorsHeaders(req),
+		},
+	});
 }
 
 /**
@@ -57,20 +56,22 @@ export function errorResponse(
  * Does NOT create a Response -- callers handle control flow themselves.
  */
 export function captureWebhookError(
-  error: unknown,
-  extra: Record<string, unknown>,
+	error: unknown,
+	extra: Record<string, unknown>,
 ): void {
-  const message = error instanceof Error ? error.message : String(error)
+	const message = error instanceof Error ? error.message : String(error);
 
-  console.error(JSON.stringify({
-    level: 'error',
-    message,
-    ...extra,
-  }))
+	console.error(
+		JSON.stringify({
+			level: "error",
+			message,
+			...extra,
+		}),
+	);
 
-  Sentry.captureException(error, {
-    extra,
-  })
+	Sentry.captureException(error, {
+		extra,
+	});
 }
 
 /**
@@ -79,11 +80,11 @@ export function captureWebhookError(
  * Lower-volume than info — fires a discrete Sentry event (counts toward quota).
  */
 export function captureWebhookWarning(
-  message: string,
-  extra?: Record<string, unknown>,
+	message: string,
+	extra?: Record<string, unknown>,
 ): void {
-  console.warn(JSON.stringify({ level: 'warning', message, ...(extra ?? {}) }))
-  Sentry.captureMessage(message, { level: 'warning', extra })
+	console.warn(JSON.stringify({ level: "warning", message, ...(extra ?? {}) }));
+	Sentry.captureMessage(message, { level: "warning", extra });
 }
 
 /**
@@ -94,14 +95,14 @@ export function captureWebhookWarning(
  * email send confirmations. Replaces most ad-hoc console.log calls.
  */
 export function logEvent(
-  message: string,
-  data?: Record<string, unknown>,
+	message: string,
+	data?: Record<string, unknown>,
 ): void {
-  console.log(JSON.stringify({ level: 'info', message, ...(data ?? {}) }))
-  Sentry.addBreadcrumb({
-    category: 'edge-function',
-    level: 'info',
-    message,
-    data,
-  })
+	console.log(JSON.stringify({ level: "info", message, ...(data ?? {}) }));
+	Sentry.addBreadcrumb({
+		category: "edge-function",
+		level: "info",
+		message,
+		data,
+	});
 }

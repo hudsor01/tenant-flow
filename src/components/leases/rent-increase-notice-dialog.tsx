@@ -1,9 +1,9 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
-import { toast } from 'sonner'
-import { FileText } from 'lucide-react'
-import { Button } from '#components/ui/button'
+import { FileText } from "lucide-react";
+import { useState } from "react";
+import { toast } from "sonner";
+import { Button } from "#components/ui/button";
 import {
 	Dialog,
 	DialogContent,
@@ -11,39 +11,39 @@ import {
 	DialogFooter,
 	DialogHeader,
 	DialogTitle,
-	DialogTrigger
-} from '#components/ui/dialog'
-import { Input } from '#components/ui/input'
-import { Label } from '#components/ui/label'
-import { Textarea } from '#components/ui/textarea'
-import { callGeneratePdfFromHtml } from '#hooks/api/use-report-mutations'
-import { formatCurrency } from '#lib/utils/currency'
-import type { Lease } from '#types/core'
+	DialogTrigger,
+} from "#components/ui/dialog";
+import { Input } from "#components/ui/input";
+import { Label } from "#components/ui/label";
+import { Textarea } from "#components/ui/textarea";
+import { callGeneratePdfFromHtml } from "#hooks/api/use-report-mutations";
+import { formatCurrency } from "#lib/utils/currency";
+import type { Lease } from "#types/core";
 
 function escapeHtml(text: string): string {
 	return text
-		.replace(/&/g, '&amp;')
-		.replace(/</g, '&lt;')
-		.replace(/>/g, '&gt;')
-		.replace(/"/g, '&quot;')
-		.replace(/'/g, '&#39;')
+		.replace(/&/g, "&amp;")
+		.replace(/</g, "&lt;")
+		.replace(/>/g, "&gt;")
+		.replace(/"/g, "&quot;")
+		.replace(/'/g, "&#39;");
 }
 
 interface RentIncreaseNoticeDialogProps {
-	lease: Lease
-	tenantName: string | null
-	propertyAddress: string | null
+	lease: Lease;
+	tenantName: string | null;
+	propertyAddress: string | null;
 }
 
 function buildNoticeHtml(params: {
-	tenantName: string
-	propertyAddress: string
-	ownerName: string
-	currentRent: number
-	newRent: number
-	effectiveDate: string
-	reason: string
-	noticeDate: string
+	tenantName: string;
+	propertyAddress: string;
+	ownerName: string;
+	currentRent: number;
+	newRent: number;
+	effectiveDate: string;
+	reason: string;
+	noticeDate: string;
 }): string {
 	const {
 		tenantName,
@@ -53,17 +53,16 @@ function buildNoticeHtml(params: {
 		newRent,
 		effectiveDate,
 		reason,
-		noticeDate
-	} = params
-	const increase = newRent - currentRent
+		noticeDate,
+	} = params;
+	const increase = newRent - currentRent;
 	const increasePercent =
-		currentRent > 0 ? ((increase / currentRent) * 100).toFixed(1) : '0.0'
+		currentRent > 0 ? ((increase / currentRent) * 100).toFixed(1) : "0.0";
 
 	const reasonBlock = reason.trim()
 		? `<p><strong>Reason for increase:</strong> ${escapeHtml(reason)}</p>`
-		: ''
+		: "";
 
-	// eslint-disable-next-line color-tokens/no-hex-colors -- Static HTML for StirlingPDF (third-party PDF renderer); Tailwind tokens don't resolve in this context
 	return `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -128,79 +127,82 @@ function buildNoticeHtml(params: {
     <div class="signature-line">Tenant signature / date</div>
   </div>
 </body>
-</html>`
+</html>`;
 }
 
 export function RentIncreaseNoticeDialog({
 	lease,
 	tenantName,
-	propertyAddress
+	propertyAddress,
 }: RentIncreaseNoticeDialogProps) {
-	const [open, setOpen] = useState(false)
-	const [newRent, setNewRent] = useState<string>('')
-	const [effectiveDate, setEffectiveDate] = useState<string>('')
-	const [reason, setReason] = useState<string>('')
-	const [isSubmitting, setIsSubmitting] = useState(false)
+	const [open, setOpen] = useState(false);
+	const [newRent, setNewRent] = useState<string>("");
+	const [effectiveDate, setEffectiveDate] = useState<string>("");
+	const [reason, setReason] = useState<string>("");
+	const [isSubmitting, setIsSubmitting] = useState(false);
 
-	const currentRent = lease.rent_amount
+	const currentRent = lease.rent_amount;
 
 	const handleGenerate = async () => {
-		const parsedRent = Number(newRent)
+		const parsedRent = Number(newRent);
 		if (!Number.isFinite(parsedRent) || parsedRent <= 0) {
-			toast.error('Enter a valid new monthly rent amount.')
-			return
+			toast.error("Enter a valid new monthly rent amount.");
+			return;
 		}
 		if (parsedRent <= currentRent) {
-			toast.error('New rent must be higher than the current rent.')
-			return
+			toast.error("New rent must be higher than the current rent.");
+			return;
 		}
 		if (!effectiveDate) {
-			toast.error('Choose an effective date for the increase.')
-			return
+			toast.error("Choose an effective date for the increase.");
+			return;
 		}
 
-		setIsSubmitting(true)
+		setIsSubmitting(true);
 		try {
 			// Parse YYYY-MM-DD input as local time (appending T00:00:00) so that
 			// landlords in negative-UTC-offset timezones don't see the PDF show
 			// the previous calendar day. `new Date('2026-05-01')` is UTC midnight;
 			// `new Date('2026-05-01T00:00:00')` is local midnight.
-			const effectiveDateLocal = new Date(`${effectiveDate}T00:00:00`)
+			const effectiveDateLocal = new Date(`${effectiveDate}T00:00:00`);
 			const html = buildNoticeHtml({
-				tenantName: tenantName ?? 'Tenant',
-				propertyAddress: propertyAddress ?? 'Property',
-				ownerName: 'Property Owner',
+				tenantName: tenantName ?? "Tenant",
+				propertyAddress: propertyAddress ?? "Property",
+				ownerName: "Property Owner",
 				currentRent,
 				newRent: parsedRent,
-				effectiveDate: effectiveDateLocal.toLocaleDateString('en-US', {
-					year: 'numeric',
-					month: 'long',
-					day: 'numeric'
+				effectiveDate: effectiveDateLocal.toLocaleDateString("en-US", {
+					year: "numeric",
+					month: "long",
+					day: "numeric",
 				}),
 				reason,
-				noticeDate: new Date().toLocaleDateString('en-US', {
-					year: 'numeric',
-					month: 'long',
-					day: 'numeric'
-				})
-			})
-			await callGeneratePdfFromHtml(html, `rent-increase-notice-${lease.id.slice(0, 8)}.pdf`)
-			toast.success('Notice generated', {
-				description: 'Review the PDF and deliver it to your tenant.'
-			})
-			setOpen(false)
-			setNewRent('')
-			setEffectiveDate('')
-			setReason('')
+				noticeDate: new Date().toLocaleDateString("en-US", {
+					year: "numeric",
+					month: "long",
+					day: "numeric",
+				}),
+			});
+			await callGeneratePdfFromHtml(
+				html,
+				`rent-increase-notice-${lease.id.slice(0, 8)}.pdf`,
+			);
+			toast.success("Notice generated", {
+				description: "Review the PDF and deliver it to your tenant.",
+			});
+			setOpen(false);
+			setNewRent("");
+			setEffectiveDate("");
+			setReason("");
 		} catch (error) {
-			toast.error('Failed to generate notice', {
+			toast.error("Failed to generate notice", {
 				description:
-					error instanceof Error ? error.message : 'Please try again.'
-			})
+					error instanceof Error ? error.message : "Please try again.",
+			});
 		} finally {
-			setIsSubmitting(false)
+			setIsSubmitting(false);
 		}
-	}
+	};
 
 	return (
 		<Dialog open={open} onOpenChange={setOpen}>
@@ -233,7 +235,7 @@ export function RentIncreaseNoticeDialog({
 							inputMode="decimal"
 							placeholder={String(currentRent)}
 							value={newRent}
-							onChange={e => setNewRent(e.target.value)}
+							onChange={(e) => setNewRent(e.target.value)}
 						/>
 					</div>
 					<div className="space-y-2">
@@ -242,7 +244,7 @@ export function RentIncreaseNoticeDialog({
 							id="effective-date"
 							type="date"
 							value={effectiveDate}
-							onChange={e => setEffectiveDate(e.target.value)}
+							onChange={(e) => setEffectiveDate(e.target.value)}
 						/>
 					</div>
 					<div className="space-y-2">
@@ -251,20 +253,24 @@ export function RentIncreaseNoticeDialog({
 							id="reason"
 							placeholder="e.g. Market rate adjustment, property tax increase..."
 							value={reason}
-							onChange={e => setReason(e.target.value)}
+							onChange={(e) => setReason(e.target.value)}
 							rows={3}
 						/>
 					</div>
 				</div>
 				<DialogFooter>
-					<Button variant="outline" onClick={() => setOpen(false)} disabled={isSubmitting}>
+					<Button
+						variant="outline"
+						onClick={() => setOpen(false)}
+						disabled={isSubmitting}
+					>
 						Cancel
 					</Button>
 					<Button onClick={handleGenerate} disabled={isSubmitting}>
-						{isSubmitting ? 'Generating...' : 'Generate PDF'}
+						{isSubmitting ? "Generating..." : "Generate PDF"}
 					</Button>
 				</DialogFooter>
 			</DialogContent>
 		</Dialog>
-	)
+	);
 }

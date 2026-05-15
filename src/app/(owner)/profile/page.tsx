@@ -8,99 +8,98 @@
  * - View account statistics (properties, units, Stripe status)
  */
 
-'use client'
+"use client";
 
-import { useState, useRef, type ChangeEvent } from 'react'
-import { Button } from '#components/ui/button'
-import { BlurFade } from '#components/ui/blur-fade'
-import { ChangePasswordDialog } from '#components/auth/change-password-dialog'
-import { useProfile } from '#hooks/api/use-profile'
-import {
-	useUpdateProfileMutation,
-	useUpdatePhoneMutation
-} from '#hooks/api/use-profile-mutations'
-import {
-	useUploadAvatarMutation,
-	useRemoveAvatarMutation
-} from '#hooks/api/use-profile-avatar-mutations'
-import { useSignOutMutation } from '#hooks/api/use-auth-mutations'
-import { useRouter } from 'next/navigation'
-import { toast } from 'sonner'
-
+import { useRouter } from "next/navigation";
+import { type ChangeEvent, useRef, useState } from "react";
+import { toast } from "sonner";
+import { ChangePasswordDialog } from "#components/auth/change-password-dialog";
+import { PaymentSettingsSection } from "#components/profiles/owner/payment-settings-section";
+import { PersonalInfoSection } from "#components/profiles/owner/personal-info-section";
+import { ProfileCard } from "#components/profiles/owner/profile-card";
 // Components
-import { ProfileSkeleton } from '#components/profiles/owner/profile-skeleton'
-import { ProfileCard } from '#components/profiles/owner/profile-card'
-import { PersonalInfoSection } from '#components/profiles/owner/personal-info-section'
-import { PaymentSettingsSection } from '#components/profiles/owner/payment-settings-section'
-import { SecuritySection } from '#components/profiles/owner/security-section'
-import { QuickLinksSection } from '#components/profiles/owner/quick-links-section'
-import { RecentActivitySection } from '#components/profiles/owner/recent-activity-section'
+import { ProfileSkeleton } from "#components/profiles/owner/profile-skeleton";
+import { QuickLinksSection } from "#components/profiles/owner/quick-links-section";
+import { RecentActivitySection } from "#components/profiles/owner/recent-activity-section";
+import { SecuritySection } from "#components/profiles/owner/security-section";
+import { BlurFade } from "#components/ui/blur-fade";
+import { Button } from "#components/ui/button";
+import { useSignOutMutation } from "#hooks/api/use-auth-mutations";
+import { useProfile } from "#hooks/api/use-profile";
+import {
+	useRemoveAvatarMutation,
+	useUploadAvatarMutation,
+} from "#hooks/api/use-profile-avatar-mutations";
+import {
+	useUpdatePhoneMutation,
+	useUpdateProfileMutation,
+} from "#hooks/api/use-profile-mutations";
 
 export default function OwnerProfilePage() {
-	const router = useRouter()
-	const fileInputRef = useRef<HTMLInputElement>(null)
-	const [isEditing, setIsEditing] = useState(false)
+	const router = useRouter();
+	const fileInputRef = useRef<HTMLInputElement>(null);
+	const [isEditing, setIsEditing] = useState(false);
 	const [showChangePasswordDialog, setShowChangePasswordDialog] =
-		useState(false)
+		useState(false);
 	const [formData, setFormData] = useState({
-		first_name: '',
-		last_name: '',
-		phone: ''
-	})
+		first_name: "",
+		last_name: "",
+		phone: "",
+	});
 
 	// Queries
-	const { data: profile, isLoading, error } = useProfile()
+	const { data: profile, isLoading, error } = useProfile();
 
 	// Mutations
-	const updateProfile = useUpdateProfileMutation()
-	const uploadAvatar = useUploadAvatarMutation()
-	const removeAvatar = useRemoveAvatarMutation()
-	const updatePhone = useUpdatePhoneMutation()
-	const signOut = useSignOutMutation()
+	const updateProfile = useUpdateProfileMutation();
+	const uploadAvatar = useUploadAvatarMutation();
+	const removeAvatar = useRemoveAvatarMutation();
+	const updatePhone = useUpdatePhoneMutation();
+	const signOut = useSignOutMutation();
 
 	// Initialize form data when profile loads
 	useState(() => {
 		if (profile) {
 			setFormData({
-				first_name: profile.first_name || '',
-				last_name: profile.last_name || '',
-				phone: profile.phone || ''
-			})
+				first_name: profile.first_name || "",
+				last_name: profile.last_name || "",
+				phone: profile.phone || "",
+			});
 		}
-	})
+	});
 
 	const handleEditClick = () => {
 		if (profile) {
 			setFormData({
-				first_name: profile.first_name || '',
-				last_name: profile.last_name || '',
-				phone: profile.phone || ''
-			})
+				first_name: profile.first_name || "",
+				last_name: profile.last_name || "",
+				phone: profile.phone || "",
+			});
 		}
-		setIsEditing(true)
-	}
+		setIsEditing(true);
+	};
 
 	const handleCancelEdit = () => {
 		if (profile) {
 			setFormData({
-				first_name: profile.first_name || '',
-				last_name: profile.last_name || '',
-				phone: profile.phone || ''
-			})
+				first_name: profile.first_name || "",
+				last_name: profile.last_name || "",
+				phone: profile.phone || "",
+			});
 		}
-		setIsEditing(false)
-	}
+		setIsEditing(false);
+	};
 
 	const handleSaveProfile = async () => {
-		if (!profile) return
+		if (!profile) return;
 
 		// Validate phone format if provided
 		if (formData.phone && formData.phone.trim()) {
-			const phoneRegex = /^\+?[\d\s\-()]+$/
-			const digitsOnly = formData.phone.replace(/\D/g, '')
+			const phoneRegex = /^\+?[\d\s\-()]+$/;
+			const digitsOnly = formData.phone.replace(/\D/g, "");
 			if (!phoneRegex.test(formData.phone) || digitsOnly.length < 10) {
-				toast.error('Please enter a valid phone number (at least 10 digits)')
-				return
+				toast.error("Please enter a valid phone number (at least 10 digits)");
+				return;
 			}
 		}
 
@@ -109,66 +108,66 @@ export default function OwnerProfilePage() {
 				first_name: formData.first_name,
 				last_name: formData.last_name,
 				email: profile.email,
-				phone: formData.phone || null
-			})
-			setIsEditing(false)
+				phone: formData.phone || null,
+			});
+			setIsEditing(false);
 		} catch {
 			// Error handled by mutation
 		}
-	}
+	};
 
 	const handleAvatarClick = () => {
-		fileInputRef.current?.click()
-	}
+		fileInputRef.current?.click();
+	};
 
 	const handleAvatarChange = async (e: ChangeEvent<HTMLInputElement>) => {
-		const file = e.target.files?.[0]
-		if (!file) return
+		const file = e.target.files?.[0];
+		if (!file) return;
 
 		// Validate file type
-		const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp']
+		const allowedTypes = ["image/jpeg", "image/png", "image/gif", "image/webp"];
 		if (!allowedTypes.includes(file.type)) {
-			toast.error('Please select an image file (JPEG, PNG, GIF, or WebP)')
-			return
+			toast.error("Please select an image file (JPEG, PNG, GIF, or WebP)");
+			return;
 		}
 
 		// Validate file size (5MB max)
 		if (file.size > 5 * 1024 * 1024) {
-			toast.error('Image must be less than 5MB')
-			return
+			toast.error("Image must be less than 5MB");
+			return;
 		}
 
 		try {
-			await uploadAvatar.mutateAsync(file)
+			await uploadAvatar.mutateAsync(file);
 		} catch {
 			// Error handled by mutation
 		}
 
 		// Reset input
 		if (fileInputRef.current) {
-			fileInputRef.current.value = ''
+			fileInputRef.current.value = "";
 		}
-	}
+	};
 
 	const handleRemoveAvatar = async () => {
 		try {
-			await removeAvatar.mutateAsync()
+			await removeAvatar.mutateAsync();
 		} catch {
 			// Error handled by mutation
 		}
-	}
+	};
 
 	const handleSignOut = async () => {
 		try {
-			await signOut.mutateAsync()
-			router.push('/login')
+			await signOut.mutateAsync();
+			router.push("/login");
 		} catch {
 			// Error handled by mutation
 		}
-	}
+	};
 
 	if (isLoading) {
-		return <ProfileSkeleton />
+		return <ProfileSkeleton />;
 	}
 
 	if (error || !profile) {
@@ -186,14 +185,14 @@ export default function OwnerProfilePage() {
 					</Button>
 				</div>
 			</div>
-		)
+		);
 	}
 
 	const isPending =
 		updateProfile.isPending ||
 		uploadAvatar.isPending ||
 		removeAvatar.isPending ||
-		updatePhone.isPending
+		updatePhone.isPending;
 
 	return (
 		<div className="space-y-6">
@@ -229,7 +228,7 @@ export default function OwnerProfilePage() {
 							email: profile.email,
 							phone: profile.phone,
 							full_name: profile.full_name,
-							status: profile.status
+							status: profile.status,
 						}}
 						isEditing={isEditing}
 						isPending={isPending}
@@ -237,7 +236,9 @@ export default function OwnerProfilePage() {
 						onEditClick={handleEditClick}
 						onCancelEdit={handleCancelEdit}
 						onSaveProfile={handleSaveProfile}
-						onFormChange={data => setFormData(prev => ({ ...prev, ...data }))}
+						onFormChange={(data) =>
+							setFormData((prev) => ({ ...prev, ...data }))
+						}
 					/>
 
 					{profile.owner_profile && (
@@ -262,5 +263,5 @@ export default function OwnerProfilePage() {
 				onOpenChange={setShowChangePasswordDialog}
 			/>
 		</div>
-	)
+	);
 }

@@ -1,26 +1,26 @@
-'use client'
+"use client";
 
-import { ClipboardCheck, Download, FileText, Table } from 'lucide-react'
-import { type FormEvent, useRef, useState } from 'react'
-import { toast } from 'sonner'
+import { ClipboardCheck, Download, FileText, Table } from "lucide-react";
+import { type FormEvent, useRef, useState } from "react";
+import { toast } from "sonner";
 
-import { Button } from '#components/ui/button'
-import { createClient } from '#lib/supabase/client'
+import { Button } from "#components/ui/button";
+import { createClient } from "#lib/supabase/client";
 
-type ResourceType = 'checklist' | 'guide' | 'spreadsheet'
+type ResourceType = "checklist" | "guide" | "spreadsheet";
 
 interface LeadMagnetCtaProps {
-	title: string
-	description: string
-	resourceType: ResourceType
-	downloadUrl: string
+	title: string;
+	description: string;
+	resourceType: ResourceType;
+	downloadUrl: string;
 }
 
 const resourceIcons: Record<ResourceType, typeof Download> = {
 	checklist: ClipboardCheck,
 	guide: FileText,
 	spreadsheet: Table,
-}
+};
 
 export function LeadMagnetCta({
 	title,
@@ -28,25 +28,25 @@ export function LeadMagnetCta({
 	resourceType,
 	downloadUrl,
 }: LeadMagnetCtaProps) {
-	const inputRef = useRef<HTMLInputElement>(null)
-	const [unlocked, setUnlocked] = useState(false)
-	const Icon = resourceIcons[resourceType]
+	const inputRef = useRef<HTMLInputElement>(null);
+	const [unlocked, setUnlocked] = useState(false);
+	const Icon = resourceIcons[resourceType];
 
 	function handleSubmit(e: FormEvent<HTMLFormElement>) {
-		e.preventDefault()
-		const email = inputRef.current?.value?.trim()
-		if (!email) return
+		e.preventDefault();
+		const email = inputRef.current?.value?.trim();
+		if (!email) return;
 
 		// Fire-and-forget: subscribe to newsletter but don't block download
-		const supabase = createClient()
+		const supabase = createClient();
 		supabase.functions
-			.invoke('newsletter-subscribe', { body: { email } })
+			.invoke("newsletter-subscribe", { body: { email } })
 			.catch(() => {
 				// Non-fatal — download still unlocked
-			})
+			});
 
-		setUnlocked(true)
-		toast.success('Your download is ready below.')
+		setUnlocked(true);
+		toast.success("Your download is ready below.");
 	}
 
 	return (
@@ -83,12 +83,10 @@ export function LeadMagnetCta({
 							required
 							className="flex-1 rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
 						/>
-						<Button type="submit">
-							Get Free Download
-						</Button>
+						<Button type="submit">Get Free Download</Button>
 					</form>
 				)}
 			</div>
 		</div>
-	)
+	);
 }

@@ -1,4 +1,4 @@
-import { Skeleton } from '#components/ui/skeleton'
+import { Skeleton } from "#components/ui/skeleton";
 
 export function PropertiesLoadingSkeleton() {
 	return (
@@ -16,12 +16,12 @@ export function PropertiesLoadingSkeleton() {
 			</div>
 			{/* Stats skeleton */}
 			<div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-				{[1, 2, 3, 4].map(i => (
+				{[1, 2, 3, 4].map((i) => (
 					<Skeleton key={i} className="h-28 rounded-lg" />
 				))}
 			</div>
 			{/* Portfolio skeleton */}
 			<Skeleton className="h-96 rounded-lg" />
 		</div>
-	)
+	);
 }

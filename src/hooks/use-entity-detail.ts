@@ -7,8 +7,8 @@
  *   return useQuery({ ...detailOptions, placeholderData: () => { ... } })
  */
 
-import { useQuery, useQueryClient } from '@tanstack/react-query'
-import type { QueryKey, UseQueryOptions } from '@tanstack/react-query'
+import type { QueryKey, UseQueryOptions } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 
 /**
  * Config accepted by useEntityDetail. The queryOptions field accepts
@@ -16,11 +16,14 @@ import type { QueryKey, UseQueryOptions } from '@tanstack/react-query'
  */
 export interface EntityDetailConfig {
 	/** Return value from a queryOptions() factory — spread into useQuery */
-	queryOptions: { queryKey: QueryKey; queryFn?: unknown } & Record<string, unknown>
+	queryOptions: { queryKey: QueryKey; queryFn?: unknown } & Record<
+		string,
+		unknown
+	>;
 	/** Query key prefix to search list caches for placeholderData */
-	listQueryKey?: readonly unknown[]
+	listQueryKey?: readonly unknown[];
 	/** Entity ID to match within list cache data */
-	id: string
+	id: string;
 }
 
 /**
@@ -29,29 +32,29 @@ export interface EntityDetailConfig {
  */
 function findInListCaches<T extends { id: string }>(
 	listCaches: [QueryKey, ({ data?: T[] } | T[]) | undefined][],
-	id: string
+	id: string,
 ): T | undefined {
 	for (const [, cached] of listCaches) {
-		if (!cached) continue
+		if (!cached) continue;
 
 		// Handle PaginatedResponse shape: { data: T[] }
 		if (
 			!Array.isArray(cached) &&
-			typeof cached === 'object' &&
-			'data' in cached &&
+			typeof cached === "object" &&
+			"data" in cached &&
 			Array.isArray(cached.data)
 		) {
-			const item = cached.data.find(entry => entry.id === id)
-			if (item) return item
+			const item = cached.data.find((entry) => entry.id === id);
+			if (item) return item;
 		}
 
 		// Handle plain array shape: T[]
 		if (Array.isArray(cached)) {
-			const item = cached.find(entry => entry.id === id)
-			if (item) return item
+			const item = cached.find((entry) => entry.id === id);
+			if (item) return item;
 		}
 	}
-	return undefined
+	return undefined;
 }
 
 /**
@@ -60,12 +63,12 @@ function findInListCaches<T extends { id: string }>(
  * to enable instant detail views from list-to-detail navigation.
  */
 export function useEntityDetail<T extends { id: string }>(
-	config: EntityDetailConfig
+	config: EntityDetailConfig,
 ) {
 	// Always call useQueryClient unconditionally (React Compiler requires stable hook calls)
-	const queryClient = useQueryClient()
+	const queryClient = useQueryClient();
 
-	const { queryOptions: opts, listQueryKey, id } = config
+	const { queryOptions: opts, listQueryKey, id } = config;
 
 	// Build placeholderData function conditionally, but call useQuery unconditionally
 	// to satisfy react-hooks/rules-of-hooks
@@ -73,11 +76,11 @@ export function useEntityDetail<T extends { id: string }>(
 		? () =>
 				findInListCaches<T>(
 					queryClient.getQueriesData<{ data?: T[] } | T[]>({
-						queryKey: listQueryKey
+						queryKey: listQueryKey,
 					}),
-					id
+					id,
 				)
-		: undefined
+		: undefined;
 
 	// Cast required: TanStack Query's UseQueryOptions has contravariant queryFn generics.
 	// When a queryOptions() return value is spread through EntityDetailConfig's
@@ -87,6 +90,6 @@ export function useEntityDetail<T extends { id: string }>(
 	// (2) T extends { id: string } so NonFunctionGuard<T> = T (never a function).
 	return useQuery({
 		...opts,
-		...(placeholderData ? { placeholderData } : {})
-	} as UseQueryOptions<T, Error, T, QueryKey>)
+		...(placeholderData ? { placeholderData } : {}),
+	} as UseQueryOptions<T, Error, T, QueryKey>);
 }

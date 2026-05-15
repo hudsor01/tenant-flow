@@ -1,18 +1,18 @@
-import type { Metadata } from 'next'
-
-import { PageLayout } from '#components/layout/page-layout'
-import { Button } from '#components/ui/button'
-import { CardLayout } from '#components/ui/card-layout'
-import { createPageMetadata } from '#lib/seo/page-metadata'
-import { ArrowLeft, Home, MessageCircle, XCircle } from 'lucide-react'
-import Link from 'next/link'
+import { ArrowLeft, Home, MessageCircle, XCircle } from "lucide-react";
+import type { Metadata } from "next";
+import Link from "next/link";
+import { PageLayout } from "#components/layout/page-layout";
+import { Button } from "#components/ui/button";
+import { CardLayout } from "#components/ui/card-layout";
+import { createPageMetadata } from "#lib/seo/page-metadata";
 
 export const metadata: Metadata = createPageMetadata({
-	title: 'Checkout Cancelled',
-	description: 'Your TenantFlow checkout was cancelled. No payment was processed.',
-	path: '/pricing/cancel',
-	noindex: true
-})
+	title: "Checkout Cancelled",
+	description:
+		"Your TenantFlow checkout was cancelled. No payment was processed.",
+	path: "/pricing/cancel",
+	noindex: true,
+});
 
 export default function CheckoutCancelPage() {
 	return (
@@ -67,8 +67,8 @@ export default function CheckoutCancelPage() {
 
 						<div className="border-t pt-6">
 							<p className="mb-4 text-muted-foreground">
-								Still have questions about our pricing or need help choosing
-								the right plan?
+								Still have questions about our pricing or need help choosing the
+								right plan?
 							</p>
 							<div className="flex flex-col items-center justify-center gap-4 sm:flex-row">
 								<Link href="/contact">
@@ -88,5 +88,5 @@ export default function CheckoutCancelPage() {
 				</CardLayout>
 			</div>
 		</PageLayout>
-	)
+	);
 }

@@ -1,24 +1,24 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
-import { Shield, CheckCircle } from 'lucide-react'
-import { BlurFade } from '#components/ui/blur-fade'
-import { BorderBeam } from '#components/ui/border-beam'
-import { useMfaStatus, useMfaFactors } from '#hooks/api/use-mfa'
+import { CheckCircle, Shield } from "lucide-react";
+import { useState } from "react";
 import {
+	DisableTwoFactorDialog,
 	TwoFactorSetupDialog,
-	DisableTwoFactorDialog
-} from '#components/auth/two-factor-setup-dialog'
+} from "#components/auth/two-factor-setup-dialog";
+import { BlurFade } from "#components/ui/blur-fade";
+import { BorderBeam } from "#components/ui/border-beam";
+import { useMfaFactors, useMfaStatus } from "#hooks/api/use-mfa";
 
 export function TwoFactorSection() {
-	const { data: mfaStatus } = useMfaStatus()
-	const { data: mfaFactors } = useMfaFactors()
+	const { data: mfaStatus } = useMfaStatus();
+	const { data: mfaFactors } = useMfaFactors();
 
-	const [show2FASetup, setShow2FASetup] = useState(false)
-	const [show2FADisable, setShow2FADisable] = useState(false)
+	const [show2FASetup, setShow2FASetup] = useState(false);
+	const [show2FADisable, setShow2FADisable] = useState(false);
 
-	const is2FAEnabled = mfaStatus?.isMfaEnabled ?? false
-	const verifiedFactor = mfaFactors?.find(f => f.status === 'verified')
+	const is2FAEnabled = mfaStatus?.isMfaEnabled ?? false;
+	const verifiedFactor = mfaFactors?.find((f) => f.status === "verified");
 
 	return (
 		<>
@@ -94,5 +94,5 @@ export function TwoFactorSection() {
 				/>
 			)}
 		</>
-	)
+	);
 }

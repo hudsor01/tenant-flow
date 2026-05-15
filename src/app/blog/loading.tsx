@@ -1,6 +1,6 @@
-import Link from 'next/link'
-import { PageLayout } from '#components/layout/page-layout'
-import { BlogLoadingSkeleton } from '#components/shared/blog-loading-skeleton'
+import Link from "next/link";
+import { PageLayout } from "#components/layout/page-layout";
+import { BlogLoadingSkeleton } from "#components/shared/blog-loading-skeleton";
 import {
 	Breadcrumb,
 	BreadcrumbItem,
@@ -8,7 +8,7 @@ import {
 	BreadcrumbList,
 	BreadcrumbPage,
 	BreadcrumbSeparator,
-} from '#components/ui/breadcrumb'
+} from "#components/ui/breadcrumb";
 
 /**
  * Route-scoped Next.js streaming loading UI for /blog.
@@ -58,5 +58,5 @@ export default function BlogLoading() {
 				</div>
 			</section>
 		</PageLayout>
-	)
+	);
 }

@@ -1,36 +1,36 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
-import { Button } from '#components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '#components/ui/card'
+import { useQuery } from "@tanstack/react-query";
+import { Home, Plus } from "lucide-react";
+import { useState } from "react";
+import { toast } from "sonner";
+import { BulkImportDialog } from "#components/bulk-import/bulk-import-dialog";
+import { Button } from "#components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "#components/ui/card";
+import { Skeleton } from "#components/ui/skeleton";
 import {
 	Table,
 	TableBody,
 	TableHead,
 	TableHeader,
-	TableRow
-} from '#components/ui/table'
-import { Skeleton } from '#components/ui/skeleton'
-import { unitQueries } from '#hooks/api/query-keys/unit-keys'
-import { useDeleteUnitMutation } from '#hooks/api/use-unit'
-import type { Unit } from '#types/core'
-import { SINGLE_UNIT_PROPERTY_TYPES } from '#lib/constants/status-types'
-import type { PropertyType } from '#lib/constants/status-types'
-import { useQuery } from '@tanstack/react-query'
-import { Home, Plus } from 'lucide-react'
-import { toast } from 'sonner'
-import { AddUnitPanel } from './add-unit-panel'
-import { EditUnitPanel } from './edit-unit-panel'
-import { UnitTableRow } from './property-units-table-row'
-import { SingleUnitNoData, SingleUnitCard } from './property-units-single-view'
-import { UnitDeleteDialog } from './property-units-delete-dialog'
-import { BulkImportDialog } from '#components/bulk-import/bulk-import-dialog'
-import { unitBulkImportConfig } from '#components/units/bulk-import-config'
+	TableRow,
+} from "#components/ui/table";
+import { unitBulkImportConfig } from "#components/units/bulk-import-config";
+import { unitQueries } from "#hooks/api/query-keys/unit-keys";
+import { useDeleteUnitMutation } from "#hooks/api/use-unit";
+import type { PropertyType } from "#lib/constants/status-types";
+import { SINGLE_UNIT_PROPERTY_TYPES } from "#lib/constants/status-types";
+import type { Unit } from "#types/core";
+import { AddUnitPanel } from "./add-unit-panel";
+import { EditUnitPanel } from "./edit-unit-panel";
+import { UnitDeleteDialog } from "./property-units-delete-dialog";
+import { SingleUnitCard, SingleUnitNoData } from "./property-units-single-view";
+import { UnitTableRow } from "./property-units-table-row";
 
 interface PropertyUnitsTableProps {
-	propertyId: string
-	propertyName: string
-	propertyType?: string
+	propertyId: string;
+	propertyName: string;
+	propertyType?: string;
 }
 
 /**
@@ -45,38 +45,38 @@ interface PropertyUnitsTableProps {
 export function PropertyUnitsTable({
 	propertyId,
 	propertyName,
-	propertyType
+	propertyType,
 }: PropertyUnitsTableProps) {
-	const [addUnitOpen, setAddUnitOpen] = useState(false)
-	const [editingUnit, setEditingUnit] = useState<Unit | null>(null)
-	const [deletingUnit, setDeletingUnit] = useState<Unit | null>(null)
+	const [addUnitOpen, setAddUnitOpen] = useState(false);
+	const [editingUnit, setEditingUnit] = useState<Unit | null>(null);
+	const [deletingUnit, setDeletingUnit] = useState<Unit | null>(null);
 
 	const {
 		data: units,
 		isLoading,
-		isError
+		isError,
 	} = useQuery({
 		...unitQueries.byProperty(propertyId),
-		enabled: !!propertyId
-	})
+		enabled: !!propertyId,
+	});
 
-	const deleteUnitMutation = useDeleteUnitMutation()
+	const deleteUnitMutation = useDeleteUnitMutation();
 
 	const handleDeleteUnit = async () => {
-		if (!deletingUnit) return
+		if (!deletingUnit) return;
 
 		try {
-			await deleteUnitMutation.mutateAsync(deletingUnit.id)
-			setDeletingUnit(null)
+			await deleteUnitMutation.mutateAsync(deletingUnit.id);
+			setDeletingUnit(null);
 		} catch {
-			toast.error('Failed to delete unit')
+			toast.error("Failed to delete unit");
 		}
-	}
+	};
 
 	const isSingleUnit = SINGLE_UNIT_PROPERTY_TYPES.includes(
-		(propertyType ?? '') as PropertyType
-	)
-	const unitList = units ?? []
+		(propertyType ?? "") as PropertyType,
+	);
+	const unitList = units ?? [];
 
 	// Loading skeleton
 	if (isLoading) {
@@ -92,7 +92,7 @@ export function PropertyUnitsTable({
 					<Skeleton className="h-16 w-full" />
 				</CardContent>
 			</Card>
-		)
+		);
 	}
 
 	// Error state
@@ -111,12 +111,12 @@ export function PropertyUnitsTable({
 					</p>
 				</CardContent>
 			</Card>
-		)
+		);
 	}
 
 	// Single-unit property type: compact card view
 	if (isSingleUnit) {
-		const unit = unitList[0]
+		const unit = unitList[0];
 
 		if (!unit) {
 			// Legacy data: single-unit property without auto-created unit
@@ -127,7 +127,7 @@ export function PropertyUnitsTable({
 					addUnitOpen={addUnitOpen}
 					onAddUnitOpenChange={setAddUnitOpen}
 				/>
-			)
+			);
 		}
 
 		return (
@@ -138,7 +138,7 @@ export function PropertyUnitsTable({
 				onEditUnit={setEditingUnit}
 				onEditUnitClose={() => setEditingUnit(null)}
 			/>
-		)
+		);
 	}
 
 	// Multi-unit property type: full table view
@@ -198,7 +198,7 @@ export function PropertyUnitsTable({
 									</TableRow>
 								</TableHeader>
 								<TableBody>
-									{unitList.map(unit => (
+									{unitList.map((unit) => (
 										<UnitTableRow
 											key={unit.id}
 											unit={unit}
@@ -227,8 +227,8 @@ export function PropertyUnitsTable({
 					unit={editingUnit}
 					propertyName={propertyName}
 					open={!!editingUnit}
-					onOpenChange={open => {
-						if (!open) setEditingUnit(null)
+					onOpenChange={(open) => {
+						if (!open) setEditingUnit(null);
 					}}
 				/>
 			)}
@@ -241,5 +241,5 @@ export function PropertyUnitsTable({
 				onCancel={() => setDeletingUnit(null)}
 			/>
 		</>
-	)
+	);
 }

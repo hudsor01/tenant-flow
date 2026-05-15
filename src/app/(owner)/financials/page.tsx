@@ -1,54 +1,54 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
+import { useState } from "react";
 import {
 	useFinancialOverview,
-	useMonthlyMetrics
-} from '#hooks/api/use-financials'
-import { FinancialsLoading } from './financials-loading'
-import { FinancialsError } from './financials-error'
-import { FinancialsHeader } from './financials-header'
-import { FinancialsSummaryStats } from './financials-summary-stats'
-import { FinancialsQuickLinks } from './financials-quick-links'
-import { FinancialsHighlights } from './financials-highlights'
+	useMonthlyMetrics,
+} from "#hooks/api/use-financials";
+import { FinancialsError } from "./financials-error";
+import { FinancialsHeader } from "./financials-header";
+import { FinancialsHighlights } from "./financials-highlights";
+import { FinancialsLoading } from "./financials-loading";
+import { FinancialsQuickLinks } from "./financials-quick-links";
+import { FinancialsSummaryStats } from "./financials-summary-stats";
 
 export default function FinancialsPage() {
-	const [year, setYear] = useState(new Date().getFullYear().toString())
+	const [year, setYear] = useState(new Date().getFullYear().toString());
 
-	const { data: overview, isLoading, error, refetch } = useFinancialOverview()
-	const { data: monthlyMetrics } = useMonthlyMetrics()
+	const { data: overview, isLoading, error, refetch } = useFinancialOverview();
+	const { data: monthlyMetrics } = useMonthlyMetrics();
 
 	const recentMonths = (() => {
-		if (!monthlyMetrics || monthlyMetrics.length < 2) return null
+		if (!monthlyMetrics || monthlyMetrics.length < 2) return null;
 		const sorted = [...monthlyMetrics].sort((a, b) =>
-			a.month.localeCompare(b.month)
-		)
-		const current = sorted[sorted.length - 1]
-		const previous = sorted[sorted.length - 2]
-		if (!current || !previous) return null
+			a.month.localeCompare(b.month),
+		);
+		const current = sorted[sorted.length - 1];
+		const previous = sorted[sorted.length - 2];
+		if (!current || !previous) return null;
 
 		const revenueChange =
 			previous.revenue > 0
 				? ((current.revenue - previous.revenue) / previous.revenue) * 100
-				: 0
+				: 0;
 		const expenseChange =
 			previous.expenses > 0
 				? ((current.expenses - previous.expenses) / previous.expenses) * 100
-				: 0
+				: 0;
 
-		return { revenueChange, expenseChange, current, previous }
-	})()
+		return { revenueChange, expenseChange, current, previous };
+	})();
 
-	const totalRevenue = overview?.overview?.total_revenue ?? 0
-	const totalExpenses = overview?.overview?.total_expenses ?? 0
-	const netIncome = overview?.overview?.net_income ?? 0
-	const accountsReceivable = overview?.overview?.accounts_receivable ?? 0
+	const totalRevenue = overview?.overview?.total_revenue ?? 0;
+	const totalExpenses = overview?.overview?.total_expenses ?? 0;
+	const netIncome = overview?.overview?.net_income ?? 0;
+	const accountsReceivable = overview?.overview?.accounts_receivable ?? 0;
 
 	const profitMargin =
-		totalRevenue > 0 ? ((netIncome / totalRevenue) * 100).toFixed(1) : '0.0'
+		totalRevenue > 0 ? ((netIncome / totalRevenue) * 100).toFixed(1) : "0.0";
 
 	if (isLoading) {
-		return <FinancialsLoading />
+		return <FinancialsLoading />;
 	}
 
 	if (error) {
@@ -57,7 +57,7 @@ export default function FinancialsPage() {
 				error={error instanceof Error ? error : null}
 				onRetry={() => void refetch()}
 			/>
-		)
+		);
 	}
 
 	return (
@@ -81,5 +81,5 @@ export default function FinancialsPage() {
 
 			<FinancialsHighlights highlights={overview?.highlights ?? []} />
 		</div>
-	)
+	);
 }

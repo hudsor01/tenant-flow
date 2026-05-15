@@ -5,5 +5,5 @@
  * This prevents errors when navigating directly to pages without intercepting.
  */
 export default function Default() {
-	return null
+	return null;
 }

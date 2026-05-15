@@ -1,54 +1,54 @@
 import {
 	AlertCircle,
+	AlertTriangle,
 	CheckCircle2,
 	FileCheck,
+	FileText,
 	X,
-	AlertTriangle,
-	FileText
-} from 'lucide-react'
-import { cn } from '#lib/utils'
-import type { ParsedRow } from '#types/api-contracts'
-import { Badge } from '#components/ui/badge'
-import { formatBytes } from '#lib/format-bytes'
+} from "lucide-react";
+import { Badge } from "#components/ui/badge";
+import { formatBytes } from "#lib/format-bytes";
+import { cn } from "#lib/utils";
+import type { ParsedRow } from "#types/api-contracts";
 
 interface BulkImportValidateStepProps<T> {
-	file: File
+	file: File;
 	parseResult: {
-		rows: ParsedRow<T>[]
-		tooManyRows: boolean
-		totalRowCount: number
-	} | null
-	templateHeaders: readonly string[]
+		rows: ParsedRow<T>[];
+		tooManyRows: boolean;
+		totalRowCount: number;
+	} | null;
+	templateHeaders: readonly string[];
 	/** Set when the parser produced a synthetic `row: 0` entry indicating
 	 *  the whole CSV file is malformed (mismatched quotes, wrong delimiter,
 	 *  unsupported encoding). Renders a distinct CSV-level banner. */
-	csvMalformed?: boolean
+	csvMalformed?: boolean;
 }
 
 // Headers render as "Unit Number" rather than "unit_number" — same display
 // ruleset the Supabase dashboard uses for column names.
 function headerToLabel(header: string): string {
 	return header
-		.split('_')
-		.map(part => (part ? part[0]!.toUpperCase() + part.slice(1) : part))
-		.join(' ')
+		.split("_")
+		.map((part) => (part ? part[0]!.toUpperCase() + part.slice(1) : part))
+		.join(" ");
 }
 
 export function BulkImportValidateStep<T>({
 	file,
 	parseResult,
 	templateHeaders,
-	csvMalformed
+	csvMalformed,
 }: BulkImportValidateStepProps<T>) {
-	const parsedData = parseResult?.rows ?? []
-	const errorCount = parsedData.filter(row => row.errors.length > 0).length
-	const validCount = parsedData.length - errorCount
-	const hasErrors = errorCount > 0
+	const parsedData = parseResult?.rows ?? [];
+	const errorCount = parsedData.filter((row) => row.errors.length > 0).length;
+	const validCount = parsedData.length - errorCount;
+	const hasErrors = errorCount > 0;
 
 	// Budget four preview columns + the status column. Users who want the
 	// full row inspect the CSV file directly; a 10-column table doesn't fit
 	// the dialog width on anything smaller than a desktop.
-	const previewHeaders = templateHeaders.slice(0, 4)
+	const previewHeaders = templateHeaders.slice(0, 4);
 
 	return (
 		<div className="space-y-5">
@@ -84,8 +84,8 @@ export function BulkImportValidateStep<T>({
 							Your CSV file is malformed
 						</p>
 						<p className="text-xs text-muted-foreground mt-0.5">
-							Check for unclosed quotes, wrong delimiter (must be a comma),
-							or unsupported encoding. Re-save as CSV UTF-8 and try again.
+							Check for unclosed quotes, wrong delimiter (must be a comma), or
+							unsupported encoding. Re-save as CSV UTF-8 and try again.
 						</p>
 					</div>
 				</div>
@@ -100,7 +100,8 @@ export function BulkImportValidateStep<T>({
 							Too many rows
 						</p>
 						<p className="text-xs text-muted-foreground mt-0.5">
-							Your CSV has {parseResult.totalRowCount} rows. Maximum is 100 rows per import. Only the first 100 rows are shown.
+							Your CSV has {parseResult.totalRowCount} rows. Maximum is 100 rows
+							per import. Only the first 100 rows are shown.
 						</p>
 					</div>
 				</div>
@@ -110,8 +111,8 @@ export function BulkImportValidateStep<T>({
 			<div className="grid grid-cols-2 gap-3">
 				<div
 					className={cn(
-						'card-standard p-3 flex items-center gap-3',
-						validCount > 0 ? 'bg-success/5 border-success/20' : 'bg-muted/30'
+						"card-standard p-3 flex items-center gap-3",
+						validCount > 0 ? "bg-success/5 border-success/20" : "bg-muted/30",
 					)}
 				>
 					<div className="icon-container-sm bg-success/10 text-success">
@@ -124,16 +125,18 @@ export function BulkImportValidateStep<T>({
 				</div>
 				<div
 					className={cn(
-						'card-standard p-3 flex items-center gap-3',
-						hasErrors ? 'bg-destructive/5 border-destructive/20' : 'bg-muted/30'
+						"card-standard p-3 flex items-center gap-3",
+						hasErrors
+							? "bg-destructive/5 border-destructive/20"
+							: "bg-muted/30",
 					)}
 				>
 					<div
 						className={cn(
-							'icon-container-sm',
+							"icon-container-sm",
 							hasErrors
-								? 'bg-destructive/10 text-destructive'
-								: 'bg-muted text-muted-foreground'
+								? "bg-destructive/10 text-destructive"
+								: "bg-muted text-muted-foreground",
 						)}
 					>
 						<AlertTriangle className="size-4" />
@@ -141,8 +144,8 @@ export function BulkImportValidateStep<T>({
 					<div>
 						<p
 							className={cn(
-								'text-lg font-bold',
-								hasErrors ? 'text-destructive' : 'text-muted-foreground'
+								"text-lg font-bold",
+								hasErrors ? "text-destructive" : "text-muted-foreground",
 							)}
 						>
 							{errorCount}
@@ -158,10 +161,11 @@ export function BulkImportValidateStep<T>({
 					<AlertCircle className="size-4 text-destructive shrink-0 mt-0.5" />
 					<div>
 						<p className="typography-small text-destructive">
-							{errorCount} row{errorCount > 1 ? 's' : ''} have errors
+							{errorCount} row{errorCount > 1 ? "s" : ""} have errors
 						</p>
 						<p className="text-xs text-muted-foreground mt-0.5">
-							Fix errors in your CSV and re-upload. All rows must be valid before importing.
+							Fix errors in your CSV and re-upload. All rows must be valid
+							before importing.
 						</p>
 					</div>
 				</div>
@@ -188,7 +192,7 @@ export function BulkImportValidateStep<T>({
 									<th className="px-4 py-3 text-left font-semibold text-xs uppercase tracking-wider text-muted-foreground w-16">
 										Row
 									</th>
-									{previewHeaders.map(header => (
+									{previewHeaders.map((header) => (
 										<th
 											key={header}
 											className="px-4 py-3 text-left font-semibold text-xs uppercase tracking-wider text-muted-foreground"
@@ -202,40 +206,43 @@ export function BulkImportValidateStep<T>({
 								</tr>
 							</thead>
 							<tbody className="divide-y divide-border/50">
-								{parsedData.map(row => (
+								{parsedData.map((row) => (
 									<tr
 										key={row.row}
 										className={cn(
-											'transition-colors',
+											"transition-colors",
 											row.errors.length > 0
-												? 'bg-destructive/5 hover:bg-destructive/10'
-												: 'hover:bg-muted/30'
+												? "bg-destructive/5 hover:bg-destructive/10"
+												: "hover:bg-muted/30",
 										)}
 									>
 										<td className="px-4 py-3 text-muted-foreground font-mono text-xs">
 											#{row.row}
 										</td>
-										{previewHeaders.map(header => {
-											const value = row.data[header]
-											const empty = !value
+										{previewHeaders.map((header) => {
+											const value = row.data[header];
+											const empty = !value;
 											return (
 												<td
 													key={header}
 													className={cn(
-														'px-4 py-3 max-w-48 truncate',
-														empty && 'text-muted-foreground italic'
+														"px-4 py-3 max-w-48 truncate",
+														empty && "text-muted-foreground italic",
 													)}
 													title={empty ? undefined : value}
 												>
-													{empty ? '\u2014' : value}
+													{empty ? "\u2014" : value}
 												</td>
-											)
+											);
 										})}
 										<td className="px-4 py-3">
 											{row.errors.length > 0 ? (
 												<div className="space-y-1">
 													{row.errors.map((err, i) => (
-														<div key={i} className="flex items-center gap-1.5 text-xs text-destructive">
+														<div
+															key={i}
+															className="flex items-center gap-1.5 text-xs text-destructive"
+														>
 															<X className="size-3 shrink-0" />
 															<span className="font-medium">{err.field}:</span>
 															<span>{err.message}</span>
@@ -273,5 +280,5 @@ export function BulkImportValidateStep<T>({
 				</div>
 			)}
 		</div>
-	)
+	);
 }

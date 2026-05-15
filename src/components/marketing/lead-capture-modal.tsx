@@ -1,10 +1,10 @@
-'use client'
+"use client";
 
-import { Mail } from 'lucide-react'
-import { useEffect, useRef, useState, type FormEvent } from 'react'
-import { useMutation } from '@tanstack/react-query'
-import { toast } from 'sonner'
-
+import { useMutation } from "@tanstack/react-query";
+import { Mail } from "lucide-react";
+import { type FormEvent, useEffect, useRef, useState } from "react";
+import { toast } from "sonner";
+import { Button } from "#components/ui/button";
 import {
 	Dialog,
 	DialogBody,
@@ -13,20 +13,19 @@ import {
 	DialogFooter,
 	DialogHeader,
 	DialogTitle,
-} from '#components/ui/dialog'
-import { Button } from '#components/ui/button'
-import { Input } from '#components/ui/input'
-import { createClient } from '#lib/supabase/client'
-import { handleMutationError } from '#lib/mutation-error-handler'
+} from "#components/ui/dialog";
+import { Input } from "#components/ui/input";
+import { handleMutationError } from "#lib/mutation-error-handler";
+import { createClient } from "#lib/supabase/client";
 
 interface LeadCaptureModalProps {
-	scrollPercentTrigger?: number
-	enableExitIntent?: boolean
+	scrollPercentTrigger?: number;
+	enableExitIntent?: boolean;
 }
 
 // Shown once per session — never re-show on the same browser tab, never
 // re-show after a successful subscribe.
-const SESSION_KEY = 'tenantflow-lead-modal-shown'
+const SESSION_KEY = "tenantflow-lead-modal-shown";
 
 /**
  * Lead-capture modal that triggers on exit-intent (desktop only) OR
@@ -42,84 +41,88 @@ export function LeadCaptureModal({
 	scrollPercentTrigger = 70,
 	enableExitIntent = true,
 }: LeadCaptureModalProps) {
-	const [open, setOpen] = useState(false)
-	const [enabled, setEnabled] = useState(false)
-	const inputRef = useRef<HTMLInputElement>(null)
-	const shownThisSession = useRef(false)
+	const [open, setOpen] = useState(false);
+	const [enabled, setEnabled] = useState(false);
+	const inputRef = useRef<HTMLInputElement>(null);
+	const shownThisSession = useRef(false);
 
 	useEffect(() => {
-		if (process.env.NEXT_PUBLIC_LEAD_CAPTURE_MODAL !== 'on') return
-		if (window.sessionStorage.getItem(SESSION_KEY) === 'true') return
-		setEnabled(true)
-	}, [])
+		if (process.env.NEXT_PUBLIC_LEAD_CAPTURE_MODAL !== "on") return;
+		if (window.sessionStorage.getItem(SESSION_KEY) === "true") return;
+		setEnabled(true);
+	}, []);
 
 	useEffect(() => {
-		if (!enabled) return
+		if (!enabled) return;
 
 		function trigger() {
-			if (shownThisSession.current) return
-			shownThisSession.current = true
-			window.sessionStorage.setItem(SESSION_KEY, 'true')
-			setOpen(true)
+			if (shownThisSession.current) return;
+			shownThisSession.current = true;
+			window.sessionStorage.setItem(SESSION_KEY, "true");
+			setOpen(true);
 		}
 
 		function onScroll() {
-			const doc = document.documentElement
-			const scrollable = doc.scrollHeight - window.innerHeight
-			if (scrollable <= 0) return
-			const pct = (window.scrollY / scrollable) * 100
-			if (pct >= scrollPercentTrigger) trigger()
+			const doc = document.documentElement;
+			const scrollable = doc.scrollHeight - window.innerHeight;
+			if (scrollable <= 0) return;
+			const pct = (window.scrollY / scrollable) * 100;
+			if (pct >= scrollPercentTrigger) trigger();
 		}
 
 		function onMouseLeave(e: MouseEvent) {
 			// Exit-intent: mouse leaves the viewport from the top edge.
 			// Skip on touch devices (no real `mouseleave` semantics).
-			if (e.clientY <= 0 && window.matchMedia('(hover: hover)').matches) {
-				trigger()
+			if (e.clientY <= 0 && window.matchMedia("(hover: hover)").matches) {
+				trigger();
 			}
 		}
 
-		window.addEventListener('scroll', onScroll, { passive: true })
+		window.addEventListener("scroll", onScroll, { passive: true });
 		if (enableExitIntent) {
-			document.addEventListener('mouseleave', onMouseLeave)
+			document.addEventListener("mouseleave", onMouseLeave);
 		}
 
 		return () => {
-			window.removeEventListener('scroll', onScroll)
+			window.removeEventListener("scroll", onScroll);
 			if (enableExitIntent) {
-				document.removeEventListener('mouseleave', onMouseLeave)
+				document.removeEventListener("mouseleave", onMouseLeave);
 			}
-		}
-	}, [enabled, scrollPercentTrigger, enableExitIntent])
+		};
+	}, [enabled, scrollPercentTrigger, enableExitIntent]);
 
 	const mutation = useMutation({
 		mutationFn: async (email: string) => {
-			const supabase = createClient()
+			const supabase = createClient();
 			const { error } = await supabase.functions.invoke(
-				'newsletter-subscribe',
+				"newsletter-subscribe",
 				{ body: { email } },
-			)
-			if (error) throw error
+			);
+			if (error) throw error;
 		},
 		onSuccess: () => {
-			toast.success('Subscribed! Check your inbox.')
-			setOpen(false)
+			toast.success("Subscribed! Check your inbox.");
+			setOpen(false);
 		},
-		onError: err =>
-			handleMutationError(err, 'Lead capture subscribe', 'Could not subscribe. Please try again.'),
-	})
+		onError: (err) =>
+			handleMutationError(
+				err,
+				"Lead capture subscribe",
+				"Could not subscribe. Please try again.",
+			),
+	});
 
 	function handleSubmit(e: FormEvent<HTMLFormElement>) {
-		e.preventDefault()
+		e.preventDefault();
 		// Guard against touch double-tap: the submit button's `disabled`
 		// flag from React's render cycle isn't reliable for a second
 		// synchronous event fired before re-render.
-		if (mutation.isPending) return
-		const email = inputRef.current?.value?.trim()
-		if (email) mutation.mutate(email)
+		if (mutation.isPending) return;
+		const email = inputRef.current?.value?.trim();
+		if (email) mutation.mutate(email);
 	}
 
-	if (!enabled) return null
+	if (!enabled) return null;
 
 	return (
 		<Dialog open={open} onOpenChange={setOpen}>
@@ -154,11 +157,11 @@ export function LeadCaptureModal({
 							No thanks
 						</Button>
 						<Button type="submit" disabled={mutation.isPending}>
-							{mutation.isPending ? 'Subscribing…' : 'Send me the guide'}
+							{mutation.isPending ? "Subscribing…" : "Send me the guide"}
 						</Button>
 					</DialogFooter>
 				</form>
 			</DialogContent>
 		</Dialog>
-	)
+	);
 }

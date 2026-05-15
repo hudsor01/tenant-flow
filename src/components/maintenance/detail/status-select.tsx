@@ -1,33 +1,33 @@
-'use client'
+"use client";
 
 import {
 	Select,
 	SelectContent,
 	SelectItem,
 	SelectTrigger,
-	SelectValue
-} from '#components/ui/select'
-import { useMaintenanceRequestUpdateMutation } from '#hooks/api/use-maintenance'
-import { createLogger } from '#lib/frontend-logger'
-import type { MaintenanceStatus } from '#types/core'
+	SelectValue,
+} from "#components/ui/select";
+import { useMaintenanceRequestUpdateMutation } from "#hooks/api/use-maintenance";
+import { createLogger } from "#lib/frontend-logger";
+import type { MaintenanceStatus } from "#types/core";
 
-const logger = createLogger({ component: 'StatusSelect' })
+const logger = createLogger({ component: "StatusSelect" });
 
 interface StatusSelectProps {
-	currentStatus: MaintenanceStatus
-	maintenanceId: string
-	onSuccess: () => void
+	currentStatus: MaintenanceStatus;
+	maintenanceId: string;
+	onSuccess: () => void;
 }
 
 export function StatusSelect({
 	currentStatus,
 	maintenanceId,
-	onSuccess
+	onSuccess,
 }: StatusSelectProps) {
-	const updateMutation = useMaintenanceRequestUpdateMutation()
+	const updateMutation = useMaintenanceRequestUpdateMutation();
 
 	const handleStatusChange = async (newStatus: MaintenanceStatus) => {
-		if (newStatus === currentStatus) return
+		if (newStatus === currentStatus) return;
 
 		try {
 			await updateMutation.mutateAsync({
@@ -35,19 +35,19 @@ export function StatusSelect({
 				data: {
 					status: newStatus,
 					completed_at:
-						newStatus === 'completed' ? new Date().toISOString() : undefined
-				}
-			})
-			onSuccess()
+						newStatus === "completed" ? new Date().toISOString() : undefined,
+				},
+			});
+			onSuccess();
 		} catch (error) {
-			logger.error('Failed to update status', { error })
+			logger.error("Failed to update status", { error });
 		}
-	}
+	};
 
 	return (
 		<Select
 			value={currentStatus}
-			onValueChange={v => handleStatusChange(v as MaintenanceStatus)}
+			onValueChange={(v) => handleStatusChange(v as MaintenanceStatus)}
 		>
 			<SelectTrigger className="w-40" aria-label="Change status">
 				<SelectValue />
@@ -60,5 +60,5 @@ export function StatusSelect({
 				<SelectItem value="cancelled">Cancelled</SelectItem>
 			</SelectContent>
 		</Select>
-	)
+	);
 }

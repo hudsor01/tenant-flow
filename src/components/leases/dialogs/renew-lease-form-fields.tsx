@@ -1,45 +1,57 @@
-import { Button } from '#components/ui/button'
-import { Input } from '#components/ui/input'
-import { Label } from '#components/ui/label'
-import { formatCurrency } from '#lib/utils/currency'
-import { addMonths, format, parseISO } from 'date-fns'
-import { Calendar, DollarSign, Info, TrendingUp } from 'lucide-react'
+import { addMonths, format, parseISO } from "date-fns";
+import { Calendar, DollarSign, Info, TrendingUp } from "lucide-react";
+import { Button } from "#components/ui/button";
+import { Input } from "#components/ui/input";
+import { Label } from "#components/ui/label";
+import { formatCurrency } from "#lib/utils/currency";
 
 interface CurrentLeaseInfoProps {
-	currentRent: number
-	endDate: string | null
+	currentRent: number;
+	endDate: string | null;
 }
 
-export function CurrentLeaseInfo({ currentRent, endDate }: CurrentLeaseInfoProps) {
+export function CurrentLeaseInfo({
+	currentRent,
+	endDate,
+}: CurrentLeaseInfoProps) {
 	return (
 		<div className="rounded-lg border border-separator bg-fill-tertiary p-4">
-			<h4 className="text-sm font-semibold text-label-primary mb-2">Current Lease</h4>
+			<h4 className="text-sm font-semibold text-label-primary mb-2">
+				Current Lease
+			</h4>
 			<div className="space-y-1 text-sm text-label-secondary">
 				<div className="flex justify-between">
 					<span>Current Rent:</span>
-					<span className="font-medium text-label-primary">{formatCurrency(currentRent)}/mo</span>
+					<span className="font-medium text-label-primary">
+						{formatCurrency(currentRent)}/mo
+					</span>
 				</div>
 				{endDate && (
 					<div className="flex justify-between">
 						<span>Ends:</span>
 						<span className="font-medium text-label-primary">
-							{format(parseISO(endDate), 'MMM d, yyyy')}
+							{format(parseISO(endDate), "MMM d, yyyy")}
 						</span>
 					</div>
 				)}
 			</div>
 		</div>
-	)
+	);
 }
 
 interface DateSelectorProps {
-	newEndDate: string
-	leaseEndDate: string | null
-	onDateChange: (date: string) => void
-	onQuickDate: (months: number) => void
+	newEndDate: string;
+	leaseEndDate: string | null;
+	onDateChange: (date: string) => void;
+	onQuickDate: (months: number) => void;
 }
 
-export function DateSelector({ newEndDate, leaseEndDate, onDateChange, onQuickDate }: DateSelectorProps) {
+export function DateSelector({
+	newEndDate,
+	leaseEndDate,
+	onDateChange,
+	onQuickDate,
+}: DateSelectorProps) {
 	return (
 		<div className="space-y-3">
 			<Label
@@ -54,10 +66,10 @@ export function DateSelector({ newEndDate, leaseEndDate, onDateChange, onQuickDa
 					id="end-date"
 					type="date"
 					value={newEndDate}
-					onChange={e => onDateChange(e.target.value)}
+					onChange={(e) => onDateChange(e.target.value)}
 					min={
 						leaseEndDate
-							? format(addMonths(parseISO(leaseEndDate), 1), 'yyyy-MM-dd')
+							? format(addMonths(parseISO(leaseEndDate), 1), "yyyy-MM-dd")
 							: undefined
 					}
 					className="flex-1"
@@ -65,27 +77,42 @@ export function DateSelector({ newEndDate, leaseEndDate, onDateChange, onQuickDa
 			</div>
 			{leaseEndDate && (
 				<div className="flex gap-2">
-					<Button type="button" variant="outline" size="sm" onClick={() => onQuickDate(6)}>
+					<Button
+						type="button"
+						variant="outline"
+						size="sm"
+						onClick={() => onQuickDate(6)}
+					>
 						+6 months
 					</Button>
-					<Button type="button" variant="outline" size="sm" onClick={() => onQuickDate(12)}>
+					<Button
+						type="button"
+						variant="outline"
+						size="sm"
+						onClick={() => onQuickDate(12)}
+					>
 						+12 months
 					</Button>
-					<Button type="button" variant="outline" size="sm" onClick={() => onQuickDate(24)}>
+					<Button
+						type="button"
+						variant="outline"
+						size="sm"
+						onClick={() => onQuickDate(24)}
+					>
 						+24 months
 					</Button>
 				</div>
 			)}
 		</div>
-	)
+	);
 }
 
 interface RentAdjustmentProps {
-	showRentIncrease: boolean
-	currentRent: number
-	newRentAmount: string
-	onToggle: () => void
-	onRentChange: (value: string) => void
+	showRentIncrease: boolean;
+	currentRent: number;
+	newRentAmount: string;
+	onToggle: () => void;
+	onRentChange: (value: string) => void;
 }
 
 export function RentAdjustment({
@@ -93,11 +120,12 @@ export function RentAdjustment({
 	currentRent,
 	newRentAmount,
 	onToggle,
-	onRentChange
+	onRentChange,
 }: RentAdjustmentProps) {
-	const newRent = newRentAmount ? Number(newRentAmount) : currentRent
-	const rentIncreaseAmount = newRent - currentRent
-	const rentIncreasePercent = currentRent > 0 ? (rentIncreaseAmount / currentRent) * 100 : 0
+	const newRent = newRentAmount ? Number(newRentAmount) : currentRent;
+	const rentIncreaseAmount = newRent - currentRent;
+	const rentIncreasePercent =
+		currentRent > 0 ? (rentIncreaseAmount / currentRent) * 100 : 0;
 
 	return (
 		<div className="space-y-3">
@@ -106,7 +134,7 @@ export function RentAdjustment({
 					Rent Adjustment
 				</Label>
 				<Button type="button" variant="outline" size="sm" onClick={onToggle}>
-					{showRentIncrease ? 'Keep Same' : 'Adjust Rent'}
+					{showRentIncrease ? "Keep Same" : "Adjust Rent"}
 				</Button>
 			</div>
 			{showRentIncrease && (
@@ -114,14 +142,16 @@ export function RentAdjustment({
 					<div className="flex items-center gap-4">
 						<DollarSign className="size-5 text-label-tertiary shrink-0" />
 						<div className="flex-1 relative">
-							<span className="absolute left-3 top-1/2 translate-y-[-50%] text-sm text-label-tertiary">$</span>
+							<span className="absolute left-3 top-1/2 translate-y-[-50%] text-sm text-label-tertiary">
+								$
+							</span>
 							<Input
 								id="new-rent"
 								type="number"
 								min="0"
 								step="1"
 								value={newRentAmount}
-								onChange={e => onRentChange(e.target.value)}
+								onChange={(e) => onRentChange(e.target.value)}
 								placeholder={currentRent.toString()}
 								className="pl-7"
 							/>
@@ -131,21 +161,31 @@ export function RentAdjustment({
 						<div className="rounded-lg bg-fill-tertiary p-3">
 							<div className="flex items-center gap-2 mb-2">
 								<TrendingUp className="size-4 text-accent-main" />
-								<span className="typography-small text-label-primary">Rent Change</span>
+								<span className="typography-small text-label-primary">
+									Rent Change
+								</span>
 							</div>
 							<div className="space-y-1 text-sm">
 								<div className="flex justify-between">
 									<span className="text-label-secondary">Current:</span>
-									<span className="font-medium text-label-primary">{formatCurrency(currentRent)}/mo</span>
+									<span className="font-medium text-label-primary">
+										{formatCurrency(currentRent)}/mo
+									</span>
 								</div>
 								<div className="flex justify-between">
 									<span className="text-label-secondary">New:</span>
-									<span className="font-medium text-label-primary">{formatCurrency(newRent)}/mo</span>
+									<span className="font-medium text-label-primary">
+										{formatCurrency(newRent)}/mo
+									</span>
 								</div>
 								<div className="flex justify-between pt-1 mt-1 border-t border-separator">
 									<span className="text-label-secondary">Change:</span>
-									<span className={`font-semibold ${rentIncreaseAmount >= 0 ? 'text-accent-main' : 'text-error-main'}`}>
-										{rentIncreaseAmount >= 0 ? '+' : ''}{formatCurrency(rentIncreaseAmount)} ({rentIncreasePercent.toFixed(1)}%)
+									<span
+										className={`font-semibold ${rentIncreaseAmount >= 0 ? "text-accent-main" : "text-error-main"}`}
+									>
+										{rentIncreaseAmount >= 0 ? "+" : ""}
+										{formatCurrency(rentIncreaseAmount)} (
+										{rentIncreasePercent.toFixed(1)}%)
 									</span>
 								</div>
 							</div>
@@ -157,10 +197,11 @@ export function RentAdjustment({
 				<div className="flex items-start gap-2 rounded-lg bg-fill-tertiary p-3">
 					<Info className="size-4 text-accent-main shrink-0 mt-0.5" />
 					<p className="text-xs text-label-secondary">
-						New lease will maintain current rent of {formatCurrency(currentRent)}/month
+						New lease will maintain current rent of{" "}
+						{formatCurrency(currentRent)}/month
 					</p>
 				</div>
 			)}
 		</div>
-	)
+	);
 }

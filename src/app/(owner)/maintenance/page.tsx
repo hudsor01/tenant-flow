@@ -1,12 +1,12 @@
-import type { Metadata } from 'next'
-import { MaintenanceViewClient } from '#components/maintenance/maintenance-view.client'
+import type { Metadata } from "next";
+import { MaintenanceViewClient } from "#components/maintenance/maintenance-view.client";
 
 export const metadata: Metadata = {
-	title: 'Maintenance Requests',
+	title: "Maintenance Requests",
 	description:
-		'Stay on top of maintenance requests and keep residents updated on progress'
-}
+		"Stay on top of maintenance requests and keep residents updated on progress",
+};
 
 export default function MaintenancePage() {
-	return <MaintenanceViewClient />
+	return <MaintenanceViewClient />;
 }

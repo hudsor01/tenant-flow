@@ -1,9 +1,6 @@
-'use client'
+"use client";
 
-import type {
-	LeaseLifecyclePoint,
-	LeaseStatusBreakdown
-} from '#types/analytics'
+import { FileText } from "lucide-react";
 import {
 	Area,
 	AreaChart,
@@ -12,52 +9,55 @@ import {
 	CartesianGrid,
 	Tooltip,
 	XAxis,
-	YAxis
-} from 'recharts'
+	YAxis,
+} from "recharts";
 
 import {
+	type ChartConfig,
 	ChartContainer,
 	ChartTooltipContent,
-	type ChartConfig
-} from '#components/ui/chart'
+} from "#components/ui/chart";
 import {
 	Empty,
 	EmptyDescription,
 	EmptyHeader,
 	EmptyMedia,
-	EmptyTitle
-} from '#components/ui/empty'
-import { FileText } from 'lucide-react'
+	EmptyTitle,
+} from "#components/ui/empty";
+import type {
+	LeaseLifecyclePoint,
+	LeaseStatusBreakdown,
+} from "#types/analytics";
 
 const lifecycleConfig = {
 	renewals: {
-		label: 'Renewals',
-		color: 'oklch(0.65 0.14 150)'
+		label: "Renewals",
+		color: "oklch(0.65 0.14 150)",
 	},
 	expirations: {
-		label: 'Expirations',
-		color: 'oklch(0.68 0.12 30)'
+		label: "Expirations",
+		color: "oklch(0.68 0.12 30)",
 	},
 	notices: {
-		label: 'Notices',
-		color: 'oklch(0.72 0.09 220)'
-	}
-} satisfies ChartConfig
+		label: "Notices",
+		color: "oklch(0.72 0.09 220)",
+	},
+} satisfies ChartConfig;
 
 const statusConfig = {
 	percentage: {
-		label: 'Share',
-		color: 'oklch(0.58 0.16 140)'
-	}
-} satisfies ChartConfig
+		label: "Share",
+		color: "oklch(0.58 0.16 140)",
+	},
+} satisfies ChartConfig;
 
 type LeaseLifecycleChartProps = {
-	points: LeaseLifecyclePoint[]
-}
+	points: LeaseLifecyclePoint[];
+};
 
 type LeaseStatusChartProps = {
-	breakdown: LeaseStatusBreakdown[]
-}
+	breakdown: LeaseStatusBreakdown[];
+};
 
 export function LeaseLifecycleChart({ points }: LeaseLifecycleChartProps) {
 	if (!points || !Array.isArray(points) || points.length === 0) {
@@ -73,15 +73,15 @@ export function LeaseLifecycleChart({ points }: LeaseLifecycleChartProps) {
 					</EmptyDescription>
 				</EmptyHeader>
 			</Empty>
-		)
+		);
 	}
 
-	const chartData = points.map(point => ({
+	const chartData = points.map((point) => ({
 		period: point.period,
 		renewals: point.renewals,
 		expirations: point.expirations,
-		notices: point.noticesGiven
-	}))
+		notices: point.noticesGiven,
+	}));
 
 	return (
 		<ChartContainer className="h-75" config={lifecycleConfig}>
@@ -113,7 +113,7 @@ export function LeaseLifecycleChart({ points }: LeaseLifecycleChartProps) {
 				/>
 			</AreaChart>
 		</ChartContainer>
-	)
+	);
 }
 
 export function LeaseStatusChart({ breakdown }: LeaseStatusChartProps) {
@@ -130,13 +130,13 @@ export function LeaseStatusChart({ breakdown }: LeaseStatusChartProps) {
 					</EmptyDescription>
 				</EmptyHeader>
 			</Empty>
-		)
+		);
 	}
 
-	const chartData = breakdown.map(item => ({
+	const chartData = breakdown.map((item) => ({
 		status: item.status,
-		percentage: Number(item.percentage.toFixed?.(2) ?? item.percentage)
-	}))
+		percentage: Number(item.percentage.toFixed?.(2) ?? item.percentage),
+	}));
 
 	return (
 		<ChartContainer className="h-75" config={statusConfig}>
@@ -152,5 +152,5 @@ export function LeaseStatusChart({ breakdown }: LeaseStatusChartProps) {
 				/>
 			</BarChart>
 		</ChartContainer>
-	)
+	);
 }

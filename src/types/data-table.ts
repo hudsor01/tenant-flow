@@ -1,65 +1,64 @@
-import type { FC, SVGProps } from 'react'
+import type { ColumnSort, Row, RowData } from "@tanstack/react-table";
+import type { FC, SVGProps } from "react";
+import type { DataTableConfig } from "#config/data-table";
 
-import type { ColumnSort, Row, RowData } from '@tanstack/react-table'
-import type { DataTableConfig } from '#config/data-table'
-
-declare module '@tanstack/react-table' {
+declare module "@tanstack/react-table" {
 	interface TableMeta<TData extends RowData> {
-		queryKeys?: QueryKeys
-		readOnly?: boolean
+		queryKeys?: QueryKeys;
+		readOnly?: boolean;
 		// Phantom field to satisfy linter - this type is required by module augmentation
-		_phantom?: TData
+		_phantom?: TData;
 	}
 
 	interface ColumnMeta<TData extends RowData, TValue> {
 		// Phantom fields to satisfy linter - these types are required by module augmentation
-		_phantom?: [TData, TValue]
-		label?: string
-		placeholder?: string
-		variant?: FilterVariant
-		options?: Option[]
-		range?: [number, number]
-		unit?: string
-		icon?: FC<SVGProps<SVGSVGElement>>
+		_phantom?: [TData, TValue];
+		label?: string;
+		placeholder?: string;
+		variant?: FilterVariant;
+		options?: Option[];
+		range?: [number, number];
+		unit?: string;
+		icon?: FC<SVGProps<SVGSVGElement>>;
 	}
 }
 
 export interface QueryKeys {
-	page: string
-	perPage: string
-	sort: string
-	filters: string
-	joinOperator: string
+	page: string;
+	perPage: string;
+	sort: string;
+	filters: string;
+	joinOperator: string;
 }
 
 export interface Option {
-	label: string
-	value: string
-	count?: number
-	icon?: FC<SVGProps<SVGSVGElement>>
+	label: string;
+	value: string;
+	count?: number;
+	icon?: FC<SVGProps<SVGSVGElement>>;
 }
 
-export type FilterOperator = DataTableConfig['operators'][number]
-export type FilterVariant = DataTableConfig['filterVariants'][number]
-export type JoinOperator = DataTableConfig['joinOperators'][number]
+export type FilterOperator = DataTableConfig["operators"][number];
+export type FilterVariant = DataTableConfig["filterVariants"][number];
+export type JoinOperator = DataTableConfig["joinOperators"][number];
 
-export interface ExtendedColumnSort<TData> extends Omit<ColumnSort, 'id'> {
-	id: Extract<keyof TData, string>
+export interface ExtendedColumnSort<TData> extends Omit<ColumnSort, "id"> {
+	id: Extract<keyof TData, string>;
 }
 
 export interface FilterItemSchema {
-	id: string
-	value: string | string[]
-	variant: FilterVariant
-	operator: FilterOperator
-	filterId: string
+	id: string;
+	value: string | string[];
+	variant: FilterVariant;
+	operator: FilterOperator;
+	filterId: string;
 }
 
 export interface ExtendedColumnFilter<TData> extends FilterItemSchema {
-	id: Extract<keyof TData, string>
+	id: Extract<keyof TData, string>;
 }
 
 export interface DataTableRowAction<TData> {
-	row: Row<TData>
-	variant: 'update' | 'delete'
+	row: Row<TData>;
+	variant: "update" | "delete";
 }

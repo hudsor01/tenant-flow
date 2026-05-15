@@ -11,84 +11,84 @@
  * - Modals: detail sheet
  */
 
-import { create } from 'zustand'
+import { create } from "zustand";
 
 export type TenantStatusFilter =
-	| 'all'
-	| 'active'
-	| 'pending_signature'
-	| 'ended'
-	| 'terminated'
+	| "all"
+	| "active"
+	| "pending_signature"
+	| "ended"
+	| "terminated";
 
 export interface TenantsState {
 	// View state
-	viewMode: 'table' | 'grid'
+	viewMode: "table" | "grid";
 
 	// Filter state
-	searchQuery: string
-	statusFilter: TenantStatusFilter
+	searchQuery: string;
+	statusFilter: TenantStatusFilter;
 
 	// Selection state
-	selectedIds: Set<string>
+	selectedIds: Set<string>;
 
 	// Modal state
-	isDetailSheetOpen: boolean
+	isDetailSheetOpen: boolean;
 }
 
 export interface TenantsActions {
 	// View actions
-	setViewMode: (mode: 'table' | 'grid') => void
+	setViewMode: (mode: "table" | "grid") => void;
 
 	// Filter actions
-	setSearchQuery: (query: string) => void
-	setStatusFilter: (filter: TenantStatusFilter) => void
-	clearFilters: () => void
+	setSearchQuery: (query: string) => void;
+	setStatusFilter: (filter: TenantStatusFilter) => void;
+	clearFilters: () => void;
 
 	// Selection actions
-	setSelectedIds: (ids: string[]) => void
-	selectAll: (ids: string[]) => void
-	clearSelection: () => void
+	setSelectedIds: (ids: string[]) => void;
+	selectAll: (ids: string[]) => void;
+	clearSelection: () => void;
 
 	// Modal actions
-	openDetailSheet: () => void
-	closeDetailSheet: () => void
-	setDetailSheetOpen: (open: boolean) => void
+	openDetailSheet: () => void;
+	closeDetailSheet: () => void;
+	setDetailSheetOpen: (open: boolean) => void;
 
 	// Reset store
-	reset: () => void
+	reset: () => void;
 }
 
 const initialState: TenantsState = {
-	viewMode: 'table',
-	searchQuery: '',
-	statusFilter: 'all',
+	viewMode: "table",
+	searchQuery: "",
+	statusFilter: "all",
 	selectedIds: new Set(),
-	isDetailSheetOpen: false
-}
+	isDetailSheetOpen: false,
+};
 
 export const useTenantsStore = create<TenantsState & TenantsActions>(
 	(set, _get) => ({
 		...initialState,
 
 		// View actions
-		setViewMode: mode => set({ viewMode: mode }),
+		setViewMode: (mode) => set({ viewMode: mode }),
 
 		// Filter actions
-		setSearchQuery: query => set({ searchQuery: query }),
+		setSearchQuery: (query) => set({ searchQuery: query }),
 
-		setStatusFilter: filter => set({ statusFilter: filter }),
+		setStatusFilter: (filter) => set({ statusFilter: filter }),
 
 		clearFilters: () => {
 			set({
-				searchQuery: '',
-				statusFilter: 'all'
-			})
+				searchQuery: "",
+				statusFilter: "all",
+			});
 		},
 
 		// Selection actions
-		setSelectedIds: ids => set({ selectedIds: new Set(ids) }),
+		setSelectedIds: (ids) => set({ selectedIds: new Set(ids) }),
 
-		selectAll: ids => set({ selectedIds: new Set(ids) }),
+		selectAll: (ids) => set({ selectedIds: new Set(ids) }),
 
 		clearSelection: () => set({ selectedIds: new Set() }),
 
@@ -97,43 +97,43 @@ export const useTenantsStore = create<TenantsState & TenantsActions>(
 
 		closeDetailSheet: () => set({ isDetailSheetOpen: false }),
 
-		setDetailSheetOpen: open => set({ isDetailSheetOpen: open }),
+		setDetailSheetOpen: (open) => set({ isDetailSheetOpen: open }),
 
 		// Reset store
-		reset: () => set(initialState)
-	})
-)
+		reset: () => set(initialState),
+	}),
+);
 
 /**
  * Selector hooks for optimized re-renders
  */
 export const useTenantsView = () =>
-	useTenantsStore(state => ({
+	useTenantsStore((state) => ({
 		viewMode: state.viewMode,
-		setViewMode: state.setViewMode
-	}))
+		setViewMode: state.setViewMode,
+	}));
 
 export const useTenantsFilters = () =>
-	useTenantsStore(state => ({
+	useTenantsStore((state) => ({
 		searchQuery: state.searchQuery,
 		statusFilter: state.statusFilter,
 		setSearchQuery: state.setSearchQuery,
 		setStatusFilter: state.setStatusFilter,
-		clearFilters: state.clearFilters
-	}))
+		clearFilters: state.clearFilters,
+	}));
 
 export const useTenantsSelection = () =>
-	useTenantsStore(state => ({
+	useTenantsStore((state) => ({
 		selectedIds: state.selectedIds,
 		setSelectedIds: state.setSelectedIds,
 		selectAll: state.selectAll,
-		clearSelection: state.clearSelection
-	}))
+		clearSelection: state.clearSelection,
+	}));
 
 export const useTenantsModals = () =>
-	useTenantsStore(state => ({
+	useTenantsStore((state) => ({
 		isDetailSheetOpen: state.isDetailSheetOpen,
 		openDetailSheet: state.openDetailSheet,
 		closeDetailSheet: state.closeDetailSheet,
-		setDetailSheetOpen: state.setDetailSheetOpen
-	}))
+		setDetailSheetOpen: state.setDetailSheetOpen,
+	}));

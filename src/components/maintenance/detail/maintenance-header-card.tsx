@@ -1,49 +1,49 @@
-'use client'
+"use client";
 
-import { Badge } from '#components/ui/badge'
-import { Button } from '#components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '#components/ui/card'
-import { formatCurrency } from '#lib/utils/currency'
 import {
 	Calendar,
 	DollarSign,
 	Download,
 	Edit2,
 	MapPin,
-	Wrench
-} from 'lucide-react'
-import Link from 'next/link'
-import type { MaintenanceStatus, MaintenancePriority } from '#types/core'
-import { STATUS_CONFIG, PRIORITY_CONFIG } from './maintenance-utils'
-import { StatusSelect } from './status-select'
-import { ScheduleDialog } from './schedule-dialog'
+	Wrench,
+} from "lucide-react";
+import Link from "next/link";
+import { Badge } from "#components/ui/badge";
+import { Button } from "#components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "#components/ui/card";
+import { formatCurrency } from "#lib/utils/currency";
+import type { MaintenancePriority, MaintenanceStatus } from "#types/core";
+import { PRIORITY_CONFIG, STATUS_CONFIG } from "./maintenance-utils";
+import { ScheduleDialog } from "./schedule-dialog";
+import { StatusSelect } from "./status-select";
 
 interface PropertyInfo {
-	name?: string | null
+	name?: string | null;
 }
 
 interface UnitInfo {
-	unit_number?: string | null
+	unit_number?: string | null;
 }
 
 interface MaintenanceRequest {
-	id: string
-	title?: string | null
-	description?: string | null
-	status: string
-	priority: string
-	scheduled_date?: string | null
-	estimated_cost?: number | null
-	actual_cost?: number | null
+	id: string;
+	title?: string | null;
+	description?: string | null;
+	status: string;
+	priority: string;
+	scheduled_date?: string | null;
+	estimated_cost?: number | null;
+	actual_cost?: number | null;
 }
 
 interface MaintenanceHeaderCardProps {
-	request: MaintenanceRequest
-	property?: PropertyInfo | null | undefined
-	unit?: UnitInfo | null | undefined
-	totalExpenses: number
-	onRefresh: () => void
-	onExport: () => void
+	request: MaintenanceRequest;
+	property?: PropertyInfo | null | undefined;
+	unit?: UnitInfo | null | undefined;
+	totalExpenses: number;
+	onRefresh: () => void;
+	onExport: () => void;
 }
 
 export function MaintenanceHeaderCard({
@@ -52,13 +52,13 @@ export function MaintenanceHeaderCard({
 	unit,
 	totalExpenses,
 	onRefresh,
-	onExport
+	onExport,
 }: MaintenanceHeaderCardProps) {
 	const statusConfig =
-		STATUS_CONFIG[request.status as MaintenanceStatus] ?? STATUS_CONFIG.open
+		STATUS_CONFIG[request.status as MaintenanceStatus] ?? STATUS_CONFIG.open;
 	const priorityConfig =
 		PRIORITY_CONFIG[request.priority as MaintenancePriority] ??
-		PRIORITY_CONFIG.normal
+		PRIORITY_CONFIG.normal;
 
 	return (
 		<Card>
@@ -66,7 +66,7 @@ export function MaintenanceHeaderCard({
 				<div className="space-y-2">
 					<CardTitle className="flex items-center gap-2 text-xl">
 						<Wrench className="size-5 text-primary" />
-						{request.title ?? request.description ?? 'Maintenance Request'}
+						{request.title ?? request.description ?? "Maintenance Request"}
 					</CardTitle>
 					<div className="flex flex-wrap gap-2">
 						<Badge className={`${statusConfig.className} gap-1`}>
@@ -102,7 +102,7 @@ export function MaintenanceHeaderCard({
 						Description
 					</h2>
 					<p className="text-sm leading-relaxed">
-						{request.description || 'No description provided.'}
+						{request.description || "No description provided."}
 					</p>
 				</section>
 
@@ -114,7 +114,7 @@ export function MaintenanceHeaderCard({
 							Location
 						</div>
 						<p className="mt-1 font-medium">
-							{property?.name ?? 'Unassigned property'}
+							{property?.name ?? "Unassigned property"}
 						</p>
 						{unit && (
 							<p className="text-sm text-muted-foreground">
@@ -137,13 +137,13 @@ export function MaintenanceHeaderCard({
 						</div>
 						<p className="mt-1 font-medium">
 							{request.scheduled_date
-								? new Date(request.scheduled_date).toLocaleDateString('en-US', {
-										weekday: 'long',
-										year: 'numeric',
-										month: 'long',
-										day: 'numeric'
+								? new Date(request.scheduled_date).toLocaleDateString("en-US", {
+										weekday: "long",
+										year: "numeric",
+										month: "long",
+										day: "numeric",
 									})
-								: 'Not scheduled'}
+								: "Not scheduled"}
 						</p>
 					</div>
 				</section>
@@ -158,7 +158,7 @@ export function MaintenanceHeaderCard({
 						<p className="mt-1 font-medium text-lg">
 							{request.estimated_cost
 								? formatCurrency(request.estimated_cost)
-								: '-'}
+								: "-"}
 						</p>
 					</div>
 					<div className="rounded-lg border bg-muted/30 p-4">
@@ -167,7 +167,7 @@ export function MaintenanceHeaderCard({
 							Actual Cost
 						</div>
 						<p className="mt-1 font-medium text-lg">
-							{request.actual_cost ? formatCurrency(request.actual_cost) : '-'}
+							{request.actual_cost ? formatCurrency(request.actual_cost) : "-"}
 						</p>
 					</div>
 					<div className="rounded-lg border bg-muted/30 p-4">
@@ -176,11 +176,11 @@ export function MaintenanceHeaderCard({
 							Total Expenses
 						</div>
 						<p className="mt-1 font-medium text-lg">
-							{totalExpenses > 0 ? formatCurrency(totalExpenses) : '-'}
+							{totalExpenses > 0 ? formatCurrency(totalExpenses) : "-"}
 						</p>
 					</div>
 				</section>
 			</CardContent>
 		</Card>
-	)
+	);
 }

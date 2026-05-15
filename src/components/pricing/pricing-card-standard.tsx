@@ -1,157 +1,155 @@
-'use client'
+"use client";
 
-import NumberFlow from '@number-flow/react'
-import { Button } from '#components/ui/button'
-import { OwnerSubscribeDialog } from './owner-subscribe-dialog'
+import NumberFlow from "@number-flow/react";
+import { useMutation } from "@tanstack/react-query";
 import {
 	ArrowRight,
 	BadgeCheck,
 	ChevronDown,
 	Loader2,
-	MessageSquare
-} from 'lucide-react'
-import { useState } from 'react'
+	MessageSquare,
+} from "lucide-react";
+import { useState } from "react";
+import { toast } from "sonner";
+import { Button } from "#components/ui/button";
+import { createLogger } from "#lib/frontend-logger";
+import { checkoutRateLimiter } from "#lib/security";
 import {
 	createCheckoutSession,
-	isUserAuthenticated
-} from '#lib/stripe/stripe-client'
-import { checkoutRateLimiter } from '#lib/security'
-import { useMutation } from '@tanstack/react-query'
-import { toast } from 'sonner'
-import { createLogger } from '#lib/frontend-logger'
-import { cn } from '#lib/utils'
+	isUserAuthenticated,
+} from "#lib/stripe/stripe-client";
+import { cn } from "#lib/utils";
+import { OwnerSubscribeDialog } from "./owner-subscribe-dialog";
 
-const logger = createLogger({ component: 'PricingCardStandard' })
+const logger = createLogger({ component: "PricingCardStandard" });
 
 interface PricingPlan {
-	id: string
-	name: string
-	description: string
+	id: string;
+	name: string;
+	description: string;
 	price: {
-		monthly: number
-		yearly: number
-	}
-	annualTotal: number
-	features: string[]
-	popular: boolean
-	stripeMonthlyPriceId?: string | null
-	stripeAnnualPriceId?: string | null
+		monthly: number;
+		yearly: number;
+	};
+	annualTotal: number;
+	features: string[];
+	popular: boolean;
+	stripeMonthlyPriceId?: string | null;
+	stripeAnnualPriceId?: string | null;
 }
 
 interface PricingCardStandardProps {
-	plan: PricingPlan
-	billingCycle: 'monthly' | 'yearly'
-	variant: 'starter' | 'enterprise'
-	className?: string
+	plan: PricingPlan;
+	billingCycle: "monthly" | "yearly";
+	variant: "starter" | "enterprise";
+	className?: string;
 }
 
 export function PricingCardStandard({
 	plan,
 	billingCycle,
 	variant,
-	className
+	className,
 }: PricingCardStandardProps) {
-	const [subscribeDialogOpen, setSubscribeDialogOpen] = useState(false)
-	const [showAllFeatures, setShowAllFeatures] = useState(false)
-	const isEnterprise = variant === 'enterprise'
+	const [subscribeDialogOpen, setSubscribeDialogOpen] = useState(false);
+	const [showAllFeatures, setShowAllFeatures] = useState(false);
+	const isEnterprise = variant === "enterprise";
 
 	const subscriptionMutation = useMutation({
 		mutationFn: async (overrides?: {
-			customerEmail?: string
-			tenant_id?: string
+			customerEmail?: string;
+			tenant_id?: string;
 		}) => {
 			if (isEnterprise) {
-				window.location.href = '/contact'
-				return { success: true }
+				window.location.href = "/contact";
+				return { success: true };
 			}
 
 			if (!checkoutRateLimiter.canMakeRequest()) {
 				throw new Error(
-					'Too many requests. Please wait a moment before trying again.'
-				)
+					"Too many requests. Please wait a moment before trying again.",
+				);
 			}
 
 			if (!overrides?.tenant_id) {
-				const authenticated = await isUserAuthenticated()
+				const authenticated = await isUserAuthenticated();
 				if (!authenticated) {
-					window.location.href = '/login'
-					throw new Error('Please sign in or create an account to subscribe')
+					window.location.href = "/login";
+					throw new Error("Please sign in or create an account to subscribe");
 				}
 			}
 
 			const stripePriceId =
-				billingCycle === 'yearly'
+				billingCycle === "yearly"
 					? plan.stripeAnnualPriceId
-					: plan.stripeMonthlyPriceId
+					: plan.stripeMonthlyPriceId;
 
 			if (!stripePriceId) {
-				throw new Error(
-					`No ${billingCycle} price configured for ${plan.name}`
-				)
+				throw new Error(`No ${billingCycle} price configured for ${plan.name}`);
 			}
 
-			toast.loading('Creating checkout session...', { id: 'checkout' })
+			toast.loading("Creating checkout session...", { id: "checkout" });
 
 			const result = await createCheckoutSession({
 				priceId: stripePriceId,
 				planName: plan.name,
 				...(overrides?.customerEmail && {
-					customerEmail: overrides.customerEmail
+					customerEmail: overrides.customerEmail,
 				}),
-				...(overrides?.tenant_id && { tenant_id: overrides.tenant_id })
-			})
+				...(overrides?.tenant_id && { tenant_id: overrides.tenant_id }),
+			});
 
 			if (!result.url) {
-				throw new Error('Failed to create checkout session')
+				throw new Error("Failed to create checkout session");
 			}
 
-			window.location.href = result.url
-			return { success: true }
+			window.location.href = result.url;
+			return { success: true };
 		},
 		onError: (error: Error) => {
-			logger.error('Checkout failed', {
-				metadata: { error: error.message }
-			})
+			logger.error("Checkout failed", {
+				metadata: { error: error.message },
+			});
 			toast.error(
-				error.message || 'Failed to start checkout. Please try again.'
-			)
+				error.message || "Failed to start checkout. Please try again.",
+			);
 		},
 		onSettled: () => {
-			toast.dismiss('checkout')
-		}
-	})
+			toast.dismiss("checkout");
+		},
+	});
 
 	const handleSubscribe = async () => {
-		if (subscriptionMutation.isPending) return
+		if (subscriptionMutation.isPending) return;
 
 		if (isEnterprise) {
-			await subscriptionMutation.mutateAsync({})
-			return
+			await subscriptionMutation.mutateAsync({});
+			return;
 		}
 
-		const authenticated = await isUserAuthenticated()
+		const authenticated = await isUserAuthenticated();
 		if (!authenticated) {
-			setSubscribeDialogOpen(true)
-			return
+			setSubscribeDialogOpen(true);
+			return;
 		}
 
-		await subscriptionMutation.mutateAsync({})
-	}
+		await subscriptionMutation.mutateAsync({});
+	};
 
-	const currentPrice = plan.price[billingCycle]
-	const initialFeatureCount = 6
+	const currentPrice = plan.price[billingCycle];
+	const initialFeatureCount = 6;
 	const displayFeatures = showAllFeatures
 		? plan.features
-		: plan.features.slice(0, initialFeatureCount)
-	const hiddenFeatureCount = plan.features.length - initialFeatureCount
+		: plan.features.slice(0, initialFeatureCount);
+	const hiddenFeatureCount = plan.features.length - initialFeatureCount;
 
 	return (
 		<>
 			<div
 				className={cn(
-					'h-full rounded-2xl border border-border/50 bg-card p-6 flex flex-col',
-					'hover:border-primary/30 hover:shadow-lg transition-all duration-300',
-					className
+					"h-full rounded-2xl border border-border/50 bg-card p-6 flex flex-col",
+					"hover:border-primary/30 hover:shadow-lg transition-all duration-300",
+					className,
 				)}
 			>
 				{/* Header */}
@@ -169,22 +167,20 @@ export function PricingCardStandard({
 						<NumberFlow
 							className="text-3xl font-bold text-foreground"
 							format={{
-								style: 'currency',
-								currency: 'USD',
-								maximumFractionDigits: 0
+								style: "currency",
+								currency: "USD",
+								maximumFractionDigits: 0,
 							}}
 							value={currentPrice}
 						/>
 						<span className="text-sm text-muted-foreground">/mo</span>
 					</div>
 					<p className="text-xs text-muted-foreground mt-1">
-						{billingCycle === 'yearly'
-							? `Billed annually`
-							: 'Billed monthly'}
+						{billingCycle === "yearly" ? `Billed annually` : "Billed monthly"}
 					</p>
 					{/* CONS-10: per-card savings — monthly × 2 (2 months free
 					    on annual). Phase 5 math: Starter $38 / Max $298. */}
-					{billingCycle === 'yearly' && plan.price.monthly > 0 && (
+					{billingCycle === "yearly" && plan.price.monthly > 0 && (
 						<p className="text-xs font-semibold text-success mt-1">
 							Save ${plan.price.monthly * 2}/year
 						</p>
@@ -193,7 +189,7 @@ export function PricingCardStandard({
 
 				{/* Features */}
 				<div className="space-y-2.5 mb-6 flex-1">
-					{displayFeatures.map(feature => (
+					{displayFeatures.map((feature) => (
 						<div
 							key={feature}
 							className="flex items-start gap-2 text-sm text-muted-foreground"
@@ -210,12 +206,12 @@ export function PricingCardStandard({
 						>
 							<ChevronDown
 								className={cn(
-									'size-3 transition-transform duration-200',
-									showAllFeatures && 'rotate-180'
+									"size-3 transition-transform duration-200",
+									showAllFeatures && "rotate-180",
 								)}
 							/>
 							{showAllFeatures
-								? 'Show less'
+								? "Show less"
 								: `+${hiddenFeatureCount} more features`}
 						</button>
 					)}
@@ -223,13 +219,13 @@ export function PricingCardStandard({
 
 				{/* CTA */}
 				<Button
-					variant={isEnterprise ? 'outline' : 'default'}
+					variant={isEnterprise ? "outline" : "default"}
 					size="lg"
 					className={cn(
-						'w-full group transition-all duration-300',
+						"w-full group transition-all duration-300",
 						isEnterprise
-							? 'hover:bg-primary/5 hover:border-primary/50'
-							: 'bg-foreground text-background hover:bg-foreground/90'
+							? "hover:bg-primary/5 hover:border-primary/50"
+							: "bg-foreground text-background hover:bg-foreground/90",
 					)}
 					disabled={subscriptionMutation.isPending}
 					onClick={handleSubscribe}
@@ -262,12 +258,12 @@ export function PricingCardStandard({
 					onComplete={async ({ email, tenant_id }) => {
 						await subscriptionMutation.mutateAsync({
 							customerEmail: email,
-							...(tenant_id && { tenant_id })
-						})
-						setSubscribeDialogOpen(false)
+							...(tenant_id && { tenant_id }),
+						});
+						setSubscribeDialogOpen(false);
 					}}
 				/>
 			)}
 		</>
-	)
+	);
 }

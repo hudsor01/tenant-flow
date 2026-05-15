@@ -1,4 +1,4 @@
-import Link from 'next/link'
+import Link from "next/link";
 import {
 	Breadcrumb,
 	BreadcrumbItem,
@@ -6,10 +6,10 @@ import {
 	BreadcrumbList,
 	BreadcrumbPage,
 	BreadcrumbSeparator,
-} from '#components/ui/breadcrumb'
+} from "#components/ui/breadcrumb";
 
 export interface CompareBreadcrumbProps {
-	competitorName: string
+	competitorName: string;
 }
 
 /**
@@ -41,5 +41,5 @@ export function CompareBreadcrumb({ competitorName }: CompareBreadcrumbProps) {
 				</BreadcrumbList>
 			</Breadcrumb>
 		</div>
-	)
+	);
 }

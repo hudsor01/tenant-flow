@@ -1,52 +1,53 @@
-'use client'
+"use client";
 
-import * as Sentry from '@sentry/nextjs'
-import { createLogger } from '#lib/frontend-logger'
-import type { DehydratedState, DefaultOptions } from '@tanstack/react-query'
+import * as Sentry from "@sentry/nextjs";
+import type { PostgrestError } from "@supabase/supabase-js";
+import type { DefaultOptions, DehydratedState } from "@tanstack/react-query";
 import {
+	focusManager,
 	HydrationBoundary,
 	keepPreviousData,
+	onlineManager,
 	QueryClient,
 	QueryClientProvider,
-	focusManager,
-	onlineManager
-} from '@tanstack/react-query'
-import type { Persister } from '@tanstack/react-query-persist-client'
-import { PersistQueryClientProvider } from '@tanstack/react-query-persist-client'
-import type { ReactNode } from 'react'
-import { useEffect, useState } from 'react'
-import type { PostgrestError } from '@supabase/supabase-js'
-import { createQueryErrorHandlers } from './query-error-handler'
+} from "@tanstack/react-query";
+import type { Persister } from "@tanstack/react-query-persist-client";
+import { PersistQueryClientProvider } from "@tanstack/react-query-persist-client";
+import type { ReactNode } from "react";
+import { useEffect, useState } from "react";
+import { createLogger } from "#lib/frontend-logger";
+import { createQueryErrorHandlers } from "./query-error-handler";
 
 function isClientError(error: unknown): boolean {
 	if (
-		typeof error === 'object' &&
+		typeof error === "object" &&
 		error !== null &&
-		'code' in error &&
-		'message' in error &&
-		'details' in error
+		"code" in error &&
+		"message" in error &&
+		"details" in error
 	) {
-		const postgrestError = error as PostgrestError
-		return /^4/.test(postgrestError.code ?? '')
+		const postgrestError = error as PostgrestError;
+		return /^4/.test(postgrestError.code ?? "");
 	}
-	return false
+	return false;
 }
-import { buildPersistOptions, createIdbPersister } from './query-persistence'
 
-const logger = createLogger({ component: 'QueryProvider' })
-const queryErrorHandlers = createQueryErrorHandlers(logger)
+import { buildPersistOptions, createIdbPersister } from "./query-persistence";
+
+const logger = createLogger({ component: "QueryProvider" });
+const queryErrorHandlers = createQueryErrorHandlers(logger);
 
 interface QueryProviderProps {
-	children: ReactNode
-	dehydratedState?: DehydratedState
+	children: ReactNode;
+	dehydratedState?: DehydratedState;
 }
 
 export function QueryProvider({
 	children,
-	dehydratedState
+	dehydratedState,
 }: QueryProviderProps) {
-	const [persister, setPersister] = useState<Persister | null>(null)
-	const [isPersistenceReady, setIsPersistenceReady] = useState(false)
+	const [persister, setPersister] = useState<Persister | null>(null);
+	const [isPersistenceReady, setIsPersistenceReady] = useState(false);
 	const [queryClient] = useState(
 		() =>
 			new QueryClient({
@@ -67,176 +68,176 @@ export function QueryProvider({
 
 						// Smart refetch behavior
 						refetchOnWindowFocus: true,
-						refetchOnReconnect: 'always',
+						refetchOnReconnect: "always",
 						refetchOnMount: true,
 
 						// Network mode for offline support
-						networkMode: 'online',
+						networkMode: "online",
 
 						// Throw errors in render (better error boundaries)
 						throwOnError: false,
 
 						// Keep previous data during refetch (official v5 helper)
-						placeholderData: keepPreviousData
+						placeholderData: keepPreviousData,
 					},
 					mutations: {
 						// Network mode
-						networkMode: 'online',
+						networkMode: "online",
 
 						// Global mutation cache
 						gcTime: 5 * 60 * 1000,
 
 						// Global mutation events
 						onSuccess: queryErrorHandlers.onMutationSuccess,
-						onError: queryErrorHandlers.onMutationError
-					}
-				}
-			})
-	)
+						onError: queryErrorHandlers.onMutationError,
+					},
+				},
+			}),
+	);
 
 	// Configure focus and online managers for advanced UX
 	useEffect(() => {
 		// Focus manager: refetch queries when window regains focus
-		focusManager.setEventListener(handleFocus => {
-			if (typeof window !== 'undefined') {
-				const handleFocusIn = () => handleFocus(true)
-				const handleFocusOut = () => handleFocus(false)
+		focusManager.setEventListener((handleFocus) => {
+			if (typeof window !== "undefined") {
+				const handleFocusIn = () => handleFocus(true);
+				const handleFocusOut = () => handleFocus(false);
 
-				window.addEventListener('focus', handleFocusIn)
-				window.addEventListener('blur', handleFocusOut)
+				window.addEventListener("focus", handleFocusIn);
+				window.addEventListener("blur", handleFocusOut);
 
 				return () => {
-					window.removeEventListener('focus', handleFocusIn)
-					window.removeEventListener('blur', handleFocusOut)
-				}
+					window.removeEventListener("focus", handleFocusIn);
+					window.removeEventListener("blur", handleFocusOut);
+				};
 			}
-			return () => {} // No-op cleanup for SSR
-		})
+			return () => {}; // No-op cleanup for SSR
+		});
 
 		// Online manager: pause/resume queries based on network status
-		onlineManager.setEventListener(setOnline => {
-			if (typeof window !== 'undefined') {
-				const handleOnline = () => setOnline(true)
-				const handleOffline = () => setOnline(false)
+		onlineManager.setEventListener((setOnline) => {
+			if (typeof window !== "undefined") {
+				const handleOnline = () => setOnline(true);
+				const handleOffline = () => setOnline(false);
 
-				window.addEventListener('online', handleOnline)
-				window.addEventListener('offline', handleOffline)
+				window.addEventListener("online", handleOnline);
+				window.addEventListener("offline", handleOffline);
 
 				// Set initial online status
-				setOnline(navigator.onLine)
+				setOnline(navigator.onLine);
 
 				return () => {
-					window.removeEventListener('online', handleOnline)
-					window.removeEventListener('offline', handleOffline)
-				}
+					window.removeEventListener("online", handleOnline);
+					window.removeEventListener("offline", handleOffline);
+				};
 			}
-			return () => {} // No-op cleanup for SSR
-		})
-	}, [])
+			return () => {}; // No-op cleanup for SSR
+		});
+	}, []);
 
 	useEffect(() => {
-		if (typeof window === 'undefined') {
-			return
+		if (typeof window === "undefined") {
+			return;
 		}
 
-		let cancelled = false
+		let cancelled = false;
 
 		const initializePersister = async () => {
-			const idbPersister = await createIdbPersister(logger, QUERY_CACHE_KEY)
-			if (cancelled) return
+			const idbPersister = await createIdbPersister(logger, QUERY_CACHE_KEY);
+			if (cancelled) return;
 
 			if (idbPersister) {
-				setPersister(idbPersister)
-				setIsPersistenceReady(true)
-				return
+				setPersister(idbPersister);
+				setIsPersistenceReady(true);
+				return;
 			}
 
-			setIsPersistenceReady(false)
-		}
+			setIsPersistenceReady(false);
+		};
 
-		void initializePersister()
+		void initializePersister();
 
 		return () => {
-			cancelled = true
-		}
-	}, [])
+			cancelled = true;
+		};
+	}, []);
 
 	useEffect(() => {
 		if (
-			typeof window === 'undefined' ||
-			process.env.NODE_ENV === 'production'
+			typeof window === "undefined" ||
+			process.env.NODE_ENV === "production"
 		) {
-			return
+			return;
 		}
 
-		const defaults = queryClient.getDefaultOptions()
+		const defaults = queryClient.getDefaultOptions();
 		window.__TENANTFLOW_QUERY_DEFAULTS__ = defaults as Pick<
 			DefaultOptions,
-			'queries' | 'mutations'
-		>
-		window.__TENANTFLOW_QUERY_CLIENT__ = queryClient
-		window.__TENANTFLOW_QUERY_CACHE_KEY__ = QUERY_CACHE_KEY
+			"queries" | "mutations"
+		>;
+		window.__TENANTFLOW_QUERY_CLIENT__ = queryClient;
+		window.__TENANTFLOW_QUERY_CACHE_KEY__ = QUERY_CACHE_KEY;
 
 		return () => {
-			delete window.__TENANTFLOW_QUERY_DEFAULTS__
-			delete window.__TENANTFLOW_QUERY_CLIENT__
-			delete window.__TENANTFLOW_QUERY_CACHE_KEY__
-		}
-	}, [queryClient])
+			delete window.__TENANTFLOW_QUERY_DEFAULTS__;
+			delete window.__TENANTFLOW_QUERY_CLIENT__;
+			delete window.__TENANTFLOW_QUERY_CACHE_KEY__;
+		};
+	}, [queryClient]);
 
 	// Capture query and mutation errors to Sentry
 	useEffect(() => {
 		// Capture query errors to Sentry (skip expected 4xx client errors)
-		const queryUnsubscribe = queryClient.getQueryCache().subscribe(event => {
-			if (event.type === 'updated' && event.query.state.status === 'error') {
-				const error = event.query.state.error
+		const queryUnsubscribe = queryClient.getQueryCache().subscribe((event) => {
+			if (event.type === "updated" && event.query.state.status === "error") {
+				const error = event.query.state.error;
 				// 4xx errors are expected (auth errors, validation, not found) - not bugs
-				if (isClientError(error)) return
+				if (isClientError(error)) return;
 				Sentry.captureException(error, {
-					tags: { source: 'react-query' },
+					tags: { source: "react-query" },
 					contexts: {
 						react_query: {
 							queryKey: JSON.stringify(event.query.queryKey),
-							queryHash: event.query.queryHash
-						}
-					}
-				})
+							queryHash: event.query.queryHash,
+						},
+					},
+				});
 			}
-		})
+		});
 
 		// Capture mutation errors to Sentry (skip expected 4xx client errors)
 		const mutationUnsubscribe = queryClient
 			.getMutationCache()
-			.subscribe(event => {
+			.subscribe((event) => {
 				if (
-					event.type === 'updated' &&
-					event.mutation.state.status === 'error'
+					event.type === "updated" &&
+					event.mutation.state.status === "error"
 				) {
-					const error = event.mutation.state.error
+					const error = event.mutation.state.error;
 					// 4xx errors are expected (validation, conflicts) - not bugs
-					if (isClientError(error)) return
+					if (isClientError(error)) return;
 					Sentry.captureException(error, {
-						tags: { source: 'react-query-mutation' },
+						tags: { source: "react-query-mutation" },
 						contexts: {
 							react_query: {
 								mutationKey: event.mutation.options.mutationKey
 									? JSON.stringify(event.mutation.options.mutationKey)
-									: undefined
-							}
-						}
-					})
+									: undefined,
+							},
+						},
+					});
 				}
-			})
+			});
 
 		return () => {
-			queryUnsubscribe()
-			mutationUnsubscribe()
-		}
-	}, [queryClient])
+			queryUnsubscribe();
+			mutationUnsubscribe();
+		};
+	}, [queryClient]);
 
 	const hydrateContent = (
-			<HydrationBoundary state={dehydratedState}>{children}</HydrationBoundary>
-		)
+		<HydrationBoundary state={dehydratedState}>{children}</HydrationBoundary>
+	);
 
 	if (persister && isPersistenceReady) {
 		return (
@@ -245,12 +246,12 @@ export function QueryProvider({
 				persistOptions={buildPersistOptions({
 					persister,
 					maxAge: QUERY_CACHE_MAX_AGE,
-					buster: QUERY_CACHE_BUSTER
+					buster: QUERY_CACHE_BUSTER,
 				})}
 			>
 				{hydrateContent}
 			</PersistQueryClientProvider>
-		)
+		);
 	}
 
 	// Conditional rendering based on persister availability
@@ -258,20 +259,20 @@ export function QueryProvider({
 		<QueryClientProvider client={queryClient}>
 			{hydrateContent}
 		</QueryClientProvider>
-	)
+	);
 }
 
-const QUERY_CACHE_KEY = 'tenantflow-query-cache'
-const QUERY_CACHE_BUSTER = 'tenantflow-cache-v1'
-const QUERY_CACHE_MAX_AGE = 1000 * 60 * 60 * 24 // 24 hours
+const QUERY_CACHE_KEY = "tenantflow-query-cache";
+const QUERY_CACHE_BUSTER = "tenantflow-cache-v1";
+const QUERY_CACHE_MAX_AGE = 1000 * 60 * 60 * 24; // 24 hours
 
 declare global {
 	interface Window {
 		__TENANTFLOW_QUERY_DEFAULTS__?: Pick<
 			DefaultOptions,
-			'queries' | 'mutations'
-		>
-		__TENANTFLOW_QUERY_CLIENT__?: QueryClient
-		__TENANTFLOW_QUERY_CACHE_KEY__?: string
+			"queries" | "mutations"
+		>;
+		__TENANTFLOW_QUERY_CLIENT__?: QueryClient;
+		__TENANTFLOW_QUERY_CACHE_KEY__?: string;
 	}
 }

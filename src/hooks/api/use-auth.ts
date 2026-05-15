@@ -1,4 +1,4 @@
-'use client'
+"use client";
 
 /**
  * Auth Query Hooks & Query Options
@@ -10,14 +10,13 @@
  * React 19 + TanStack Query v5 patterns
  */
 
-import { queryOptions, useQuery, useQueryClient } from '@tanstack/react-query'
-
-import { createClient } from '#lib/supabase/client'
-import { getCachedUser } from '#lib/supabase/get-cached-user'
-import { QUERY_CACHE_TIMES } from '#lib/constants/query-config'
-import { logger } from '#lib/frontend-logger'
-import type { Session, User as SupabaseUser } from '@supabase/supabase-js'
-import type { AuthSession } from '#types/auth'
+import type { Session, User as SupabaseUser } from "@supabase/supabase-js";
+import { queryOptions, useQuery, useQueryClient } from "@tanstack/react-query";
+import { QUERY_CACHE_TIMES } from "#lib/constants/query-config";
+import { logger } from "#lib/frontend-logger";
+import { createClient } from "#lib/supabase/client";
+import { getCachedUser } from "#lib/supabase/get-cached-user";
+import type { AuthSession } from "#types/auth";
 
 // NOTE: No module-level Supabase client — each mutation/query creates its own
 // to avoid persisting a single client across requests (AUTH-06)
@@ -27,9 +26,9 @@ import type { AuthSession } from '#types/auth'
  * Distinct from AuthUser in shared types which is the Supabase auth user
  */
 export interface UserWithStripe {
-	id: string
-	email: string
-	stripe_customer_id: string | null
+	id: string;
+	email: string;
+	stripe_customer_id: string | null;
 }
 
 /**
@@ -37,21 +36,21 @@ export interface UserWithStripe {
  * Hierarchical pattern for selective cache invalidation
  */
 export const authKeys = {
-	all: ['auth'] as const,
-	session: () => [...authKeys.all, 'session'] as const,
-	user: () => [...authKeys.all, 'user'] as const,
-	signoutCheck: ['auth', 'signout-check'] as const,
+	all: ["auth"] as const,
+	session: () => [...authKeys.all, "session"] as const,
+	user: () => [...authKeys.all, "user"] as const,
+	signoutCheck: ["auth", "signout-check"] as const,
 	// User with Stripe data from database
-	me: () => ['user', 'me'] as const,
+	me: () => ["user", "me"] as const,
 	// Account deletion status (GDPR)
-	deletionStatus: () => [...authKeys.all, 'deletion-status'] as const,
+	deletionStatus: () => [...authKeys.all, "deletion-status"] as const,
 	// Supabase auth-specific keys
 	supabase: {
-		all: ['supabase-auth'] as const,
-		user: () => ['supabase-auth', 'user'] as const,
-		session: () => ['supabase-auth', 'session'] as const
-	}
-}
+		all: ["supabase-auth"] as const,
+		user: () => ["supabase-auth", "user"] as const,
+		session: () => ["supabase-auth", "session"] as const,
+	},
+};
 
 /**
  * Auth query factory
@@ -60,7 +59,7 @@ export const authQueries = {
 	/**
 	 * Base key for all auth queries
 	 */
-	all: () => ['auth'] as const,
+	all: () => ["auth"] as const,
 
 	/**
 	 * Auth session query
@@ -69,13 +68,13 @@ export const authQueries = {
 		queryOptions({
 			queryKey: authKeys.session(),
 			queryFn: async (): Promise<AuthSession | null> => {
-				const supabase = createClient()
-				const { data, error } = await supabase.auth.getSession()
-				if (error) throw error
-				return data.session as AuthSession | null
+				const supabase = createClient();
+				const { data, error } = await supabase.auth.getSession();
+				if (error) throw error;
+				return data.session as AuthSession | null;
 			},
 			...QUERY_CACHE_TIMES.DETAIL,
-			retry: false // Auth failures shouldn't retry
+			retry: false, // Auth failures shouldn't retry
 		}),
 
 	/**
@@ -85,22 +84,22 @@ export const authQueries = {
 		queryOptions({
 			queryKey: authKeys.me(),
 			queryFn: async (): Promise<UserWithStripe> => {
-				const supabase = createClient()
-				const user = await getCachedUser()
-				if (!user) throw new Error('Not authenticated')
+				const supabase = createClient();
+				const user = await getCachedUser();
+				if (!user) throw new Error("Not authenticated");
 				const { data, error } = await supabase
-					.from('users')
-					.select('id, email, stripe_customer_id')
-					.eq('id', user.id)
-					.single()
-				if (error) throw error
+					.from("users")
+					.select("id, email, stripe_customer_id")
+					.eq("id", user.id)
+					.single();
+				if (error) throw error;
 				return {
 					id: data.id,
 					email: data.email,
-					stripe_customer_id: data.stripe_customer_id
-				}
+					stripe_customer_id: data.stripe_customer_id,
+				};
 			},
-			...QUERY_CACHE_TIMES.DETAIL
+			...QUERY_CACHE_TIMES.DETAIL,
 		}),
 
 	/**
@@ -110,10 +109,10 @@ export const authQueries = {
 		queryOptions({
 			queryKey: authKeys.supabase.user(),
 			queryFn: async () => {
-				const user = await getCachedUser()
-				return user
+				const user = await getCachedUser();
+				return user;
 			},
-			...QUERY_CACHE_TIMES.DETAIL
+			...QUERY_CACHE_TIMES.DETAIL,
 		}),
 
 	/**
@@ -123,82 +122,82 @@ export const authQueries = {
 		queryOptions({
 			queryKey: authKeys.supabase.session(),
 			queryFn: async () => {
-				const supabase = createClient()
+				const supabase = createClient();
 				const {
 					data: { session },
-					error
-				} = await supabase.auth.getSession()
-				if (error) throw error
-				return session
+					error,
+				} = await supabase.auth.getSession();
+				if (error) throw error;
+				return session;
 			},
-			...QUERY_CACHE_TIMES.DETAIL
-		})
-}
+			...QUERY_CACHE_TIMES.DETAIL,
+		}),
+};
 
 /**
  * Enhanced cache invalidation utilities
  */
 export function useAuthCacheUtils() {
-	const queryClient = useQueryClient()
+	const queryClient = useQueryClient();
 
 	return {
 		// Invalidate all auth-related queries
 		invalidateAuth: () => {
-			queryClient.invalidateQueries({ queryKey: authKeys.all })
+			queryClient.invalidateQueries({ queryKey: authKeys.all });
 		},
 
 		// Invalidate specific auth query types
 		invalidateSession: () => {
-			queryClient.invalidateQueries({ queryKey: authKeys.session() })
+			queryClient.invalidateQueries({ queryKey: authKeys.session() });
 		},
 
 		invalidateUser: () => {
-			queryClient.invalidateQueries({ queryKey: authKeys.user() })
+			queryClient.invalidateQueries({ queryKey: authKeys.user() });
 		},
 
 		// Clear auth data and all dependent queries
 		clearAuthData: () => {
 			// Get current user ID before clearing
 			const currentUserId = queryClient.getQueryData<SupabaseUser>(
-				authKeys.user()
-			)?.id
+				authKeys.user(),
+			)?.id;
 
 			// Set auth data to null across all namespaces
-			queryClient.setQueryData(authKeys.session(), null)
-			queryClient.setQueryData(authKeys.user(), null)
-			queryClient.setQueryData(authKeys.me(), null)
+			queryClient.setQueryData(authKeys.session(), null);
+			queryClient.setQueryData(authKeys.user(), null);
+			queryClient.setQueryData(authKeys.me(), null);
 
 			// Invalidate all auth-related queries (covers authKeys.all namespace)
-			queryClient.invalidateQueries({ queryKey: authKeys.all })
+			queryClient.invalidateQueries({ queryKey: authKeys.all });
 			// Also invalidate supabase-auth namespace
-			queryClient.invalidateQueries({ queryKey: authKeys.supabase.all })
+			queryClient.invalidateQueries({ queryKey: authKeys.supabase.all });
 
 			// Invalidate all user-scoped queries (those containing the userId in their key)
 			// This prevents cross-user data leakage without indiscriminately clearing public data
 			if (currentUserId) {
 				queryClient.invalidateQueries({
-					predicate: query => {
+					predicate: (query) => {
 						// Check if query key contains the user ID
-						return query.queryKey.some(key => key === currentUserId)
-					}
-				})
+						return query.queryKey.some((key) => key === currentUserId);
+					},
+				});
 			}
 
 			// Clear localStorage cache to ensure fresh start
-			if (typeof window !== 'undefined') {
+			if (typeof window !== "undefined") {
 				try {
-					localStorage.removeItem('REACT_QUERY_OFFLINE_CACHE')
-					logger.info('Cleared auth cache and user-scoped queries on logout', {
-						action: 'clear_auth_cache',
-						metadata: { userId: currentUserId }
-					})
+					localStorage.removeItem("REACT_QUERY_OFFLINE_CACHE");
+					logger.info("Cleared auth cache and user-scoped queries on logout", {
+						action: "clear_auth_cache",
+						metadata: { userId: currentUserId },
+					});
 				} catch (error) {
-					logger.warn('Failed to clear offline cache', {
-						action: 'clear_offline_cache_failed',
+					logger.warn("Failed to clear offline cache", {
+						action: "clear_offline_cache_failed",
 						metadata: {
-							error: error instanceof Error ? error.message : String(error)
-						}
-					})
+							error: error instanceof Error ? error.message : String(error),
+						},
+					});
 				}
 			}
 		},
@@ -207,10 +206,10 @@ export function useAuthCacheUtils() {
 		refreshAuthState: async () => {
 			await Promise.all([
 				queryClient.invalidateQueries({ queryKey: authKeys.session() }),
-				queryClient.invalidateQueries({ queryKey: authKeys.user() })
-			])
-		}
-	}
+				queryClient.invalidateQueries({ queryKey: authKeys.user() }),
+			]);
+		},
+	};
 }
 
 /**
@@ -218,22 +217,22 @@ export function useAuthCacheUtils() {
  * Lightweight hook that doesn't trigger additional requests
  */
 export function useCurrentUser() {
-	const queryClient = useQueryClient()
+	const queryClient = useQueryClient();
 	const sessionData = queryClient.getQueryData(authKeys.session()) as
 		| Session
 		| null
-		| undefined
+		| undefined;
 	const userData = queryClient.getQueryData(authKeys.user()) as
 		| SupabaseUser
 		| null
-		| undefined
+		| undefined;
 
 	return {
 		user: userData || sessionData?.user || null,
 		user_id: userData?.id || sessionData?.user?.id || null,
 		session: sessionData,
-		isAuthenticated: !!(userData || sessionData?.user)
-	}
+		isAuthenticated: !!(userData || sessionData?.user),
+	};
 }
 
 /**
@@ -245,7 +244,7 @@ export function useCurrentUser() {
  * - stripe_customer_id: Stripe customer ID (null if none)
  */
 export function useUser() {
-	return useQuery(authQueries.user())
+	return useQuery(authQueries.user());
 }
 
 /**
@@ -256,5 +255,5 @@ export function useUser() {
  * For user data with Stripe info, use useUser() instead.
  */
 export function useSupabaseUser() {
-	return useQuery(authQueries.supabaseUser())
+	return useQuery(authQueries.supabaseUser());
 }

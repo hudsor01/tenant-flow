@@ -1,25 +1,29 @@
-'use client'
+"use client";
 
-import Image from 'next/image'
-import { Building2, Eye, MapPin, Pencil, Trash2, Wrench } from 'lucide-react'
-import { Button } from '#components/ui/button'
-import { Badge } from '#components/ui/badge'
-import { Tooltip, TooltipContent, TooltipTrigger } from '#components/ui/tooltip'
-import { Checkbox } from '#components/ui/checkbox'
-import { cn } from '#lib/utils'
-import type { PropertyItem } from './types'
-import { formatCurrency } from '#lib/utils/currency'
-import type { ColumnId } from './property-table-types'
-import { formatPropertyType } from './property-table-types'
+import { Building2, Eye, MapPin, Pencil, Trash2, Wrench } from "lucide-react";
+import Image from "next/image";
+import { Badge } from "#components/ui/badge";
+import { Button } from "#components/ui/button";
+import { Checkbox } from "#components/ui/checkbox";
+import {
+	Tooltip,
+	TooltipContent,
+	TooltipTrigger,
+} from "#components/ui/tooltip";
+import { cn } from "#lib/utils";
+import { formatCurrency } from "#lib/utils/currency";
+import type { ColumnId } from "./property-table-types";
+import { formatPropertyType } from "./property-table-types";
+import type { PropertyItem } from "./types";
 
 interface PropertyTableRowProps {
-	property: PropertyItem
-	isSelected: boolean
-	visibleColumns: Set<ColumnId>
-	onSelectRow: (id: string) => void
-	onView: ((id: string) => void) | undefined
-	onEdit: ((id: string) => void) | undefined
-	onDelete: ((id: string) => void) | undefined
+	property: PropertyItem;
+	isSelected: boolean;
+	visibleColumns: Set<ColumnId>;
+	onSelectRow: (id: string) => void;
+	onView: ((id: string) => void) | undefined;
+	onEdit: ((id: string) => void) | undefined;
+	onDelete: ((id: string) => void) | undefined;
 }
 
 export function PropertyTableRow({
@@ -29,15 +33,15 @@ export function PropertyTableRow({
 	onSelectRow,
 	onView,
 	onEdit,
-	onDelete
+	onDelete,
 }: PropertyTableRowProps) {
-	const isColumnVisible = (columnId: ColumnId) => visibleColumns.has(columnId)
+	const isColumnVisible = (columnId: ColumnId) => visibleColumns.has(columnId);
 
 	return (
 		<tr
 			className={cn(
-				'hover:bg-muted/30 transition-colors',
-				isSelected && 'bg-primary/5'
+				"hover:bg-muted/30 transition-colors",
+				isSelected && "bg-primary/5",
 			)}
 		>
 			<td className="px-4 py-3">
@@ -46,7 +50,7 @@ export function PropertyTableRow({
 					onCheckedChange={() => onSelectRow(property.id)}
 				/>
 			</td>
-			{isColumnVisible('property') && (
+			{isColumnVisible("property") && (
 				<td className="px-4 py-3">
 					<div className="flex items-center gap-3">
 						<div className="w-10 h-10 rounded-sm overflow-hidden bg-muted shrink-0">
@@ -73,7 +77,7 @@ export function PropertyTableRow({
 					</div>
 				</td>
 			)}
-			{isColumnVisible('address') && (
+			{isColumnVisible("address") && (
 				<td className="px-4 py-3 hidden md:table-cell">
 					<div className="flex items-center gap-1.5 text-sm text-muted-foreground">
 						<MapPin className="w-3.5 h-3.5 shrink-0" />
@@ -83,25 +87,25 @@ export function PropertyTableRow({
 					</div>
 				</td>
 			)}
-			{isColumnVisible('units') && (
+			{isColumnVisible("units") && (
 				<td className="px-4 py-3">
 					<span className="text-sm font-medium text-foreground">
 						{property.occupiedUnits}/{property.totalUnits}
 					</span>
 				</td>
 			)}
-			{isColumnVisible('occupancy') && (
+			{isColumnVisible("occupancy") && (
 				<td className="px-4 py-3">
 					<div className="flex items-center gap-2">
 						<div className="w-16 h-2 bg-muted rounded-full overflow-hidden">
 							<div
 								className={cn(
-									'h-full rounded-full',
+									"h-full rounded-full",
 									property.occupancyRate === 100
-										? 'bg-emerald-500'
+										? "bg-emerald-500"
 										: property.occupancyRate >= 80
-											? 'bg-blue-500'
-											: 'bg-amber-500'
+											? "bg-blue-500"
+											: "bg-amber-500",
 								)}
 								style={{ width: `${property.occupancyRate}%` }}
 							/>
@@ -112,7 +116,7 @@ export function PropertyTableRow({
 					</div>
 				</td>
 			)}
-			{isColumnVisible('status') && (
+			{isColumnVisible("status") && (
 				<td className="px-4 py-3">
 					<div className="flex items-center gap-1">
 						{property.availableUnits > 0 && (
@@ -144,7 +148,7 @@ export function PropertyTableRow({
 					</div>
 				</td>
 			)}
-			{isColumnVisible('revenue') && (
+			{isColumnVisible("revenue") && (
 				<td className="px-4 py-3 hidden lg:table-cell">
 					<span className="text-sm font-medium text-emerald-600 dark:text-emerald-400">
 						{formatCurrency(property.monthlyRevenue)}
@@ -198,5 +202,5 @@ export function PropertyTableRow({
 				</div>
 			</td>
 		</tr>
-	)
+	);
 }

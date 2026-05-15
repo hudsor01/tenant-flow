@@ -1,12 +1,12 @@
-import Link from 'next/link'
-import { ArrowRight, Check } from 'lucide-react'
-import { Button } from '#components/ui/button'
+import { ArrowRight, Check } from "lucide-react";
+import Link from "next/link";
+import { Button } from "#components/ui/button";
 
 const benefits = [
-	'Free 14-day trial',
-	'No credit card required',
-	'CSV import covers your whole portfolio',
-]
+	"Free 14-day trial",
+	"No credit card required",
+	"CSV import covers your whole portfolio",
+];
 
 export function BlogInlineCta() {
 	return (
@@ -19,10 +19,11 @@ export function BlogInlineCta() {
 					Managing rentals shouldn&apos;t be this hard
 				</h3>
 				<p className="text-muted-foreground leading-relaxed">
-					Track leases, maintenance, and tenants in one platform. Replace your spreadsheets and Dropbox folders with a single document vault.
+					Track leases, maintenance, and tenants in one platform. Replace your
+					spreadsheets and Dropbox folders with a single document vault.
 				</p>
 				<div className="flex flex-wrap gap-4 text-sm text-muted-foreground">
-					{benefits.map(b => (
+					{benefits.map((b) => (
 						<span key={b} className="flex items-center gap-1.5">
 							<Check className="size-4 text-primary" />
 							{b}
@@ -39,5 +40,5 @@ export function BlogInlineCta() {
 				</div>
 			</div>
 		</div>
-	)
+	);
 }

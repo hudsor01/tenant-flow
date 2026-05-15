@@ -3,17 +3,21 @@
  * Query keys in query-keys/property-keys.ts.
  */
 
-import { useQuery } from '@tanstack/react-query'
+import { useQuery } from "@tanstack/react-query";
 
-import { useEntityDetail } from '#hooks/use-entity-detail'
-import { QUERY_CACHE_TIMES } from '#lib/constants/query-config'
-import type { PaginatedResponse } from '#types/api-contracts'
-import type { Property } from '#types/core'
-import { propertyQueries, type PropertyFilters } from './query-keys/property-keys'
-import { propertyStatsQueries } from './query-keys/property-stats-keys'
+import { useEntityDetail } from "#hooks/use-entity-detail";
+import { QUERY_CACHE_TIMES } from "#lib/constants/query-config";
+import type { PaginatedResponse } from "#types/api-contracts";
+import type { Property } from "#types/core";
+import {
+	type PropertyFilters,
+	propertyQueries,
+} from "./query-keys/property-keys";
+import { propertyStatsQueries } from "./query-keys/property-stats-keys";
 
 /** Stable select function for TanStack Query optimization */
-const selectPaginatedData = <T>(response: PaginatedResponse<T>): T[] => response.data
+const selectPaginatedData = <T>(response: PaginatedResponse<T>): T[] =>
+	response.data;
 
 /**
  * Hook to fetch property by ID
@@ -23,8 +27,8 @@ export function useProperty(id: string) {
 	return useEntityDetail<Property>({
 		queryOptions: propertyQueries.detail(id),
 		listQueryKey: propertyQueries.lists(),
-		id
-	})
+		id,
+	});
 }
 
 /**
@@ -32,37 +36,37 @@ export function useProperty(id: string) {
  * Optimizations: notifyOnChangeProps, stable select, structuralSharing
  */
 export function usePropertyList(params?: {
-	search?: string | null
-	limit?: number
-	offset?: number
+	search?: string | null;
+	limit?: number;
+	offset?: number;
 }) {
-	const { search = null, limit = 50, offset = 0 } = params || {}
+	const { search = null, limit = 50, offset = 0 } = params || {};
 
 	const filters: PropertyFilters = {
 		...(search ? { search } : {}),
 		limit,
-		offset
-	}
+		offset,
+	};
 
-	const listQuery = propertyQueries.list(filters)
+	const listQuery = propertyQueries.list(filters);
 
 	return useQuery({
 		...listQuery,
 		...QUERY_CACHE_TIMES.LIST,
 		select: selectPaginatedData,
 		structuralSharing: true,
-		notifyOnChangeProps: ['data', 'error', 'isPending', 'isFetching']
-	})
+		notifyOnChangeProps: ["data", "error", "isPending", "isFetching"],
+	});
 }
 
 export function usePropertiesWithUnits() {
-	return useQuery(propertyQueries.withUnits())
+	return useQuery(propertyQueries.withUnits());
 }
 
 export function usePropertyStats() {
-	return useQuery(propertyStatsQueries.stats())
+	return useQuery(propertyStatsQueries.stats());
 }
 
 export function usePropertyImages(property_id: string) {
-	return useQuery(propertyQueries.images(property_id))
+	return useQuery(propertyQueries.images(property_id));
 }

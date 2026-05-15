@@ -1,35 +1,35 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
-import { Download } from 'lucide-react'
-import { Button } from '#components/ui/button'
+import { Download } from "lucide-react";
+import { useState } from "react";
+import { IncomeStatementBreakdownCards } from "#components/financials/income-statement-breakdown-cards";
+import { IncomeStatementMonthlyTrend } from "#components/financials/income-statement-monthly-trend";
+import { IncomeStatementPropertyTable } from "#components/financials/income-statement-property-table";
+import { IncomeStatementSummaryStats } from "#components/financials/income-statement-summary-stats";
+import { BlurFade } from "#components/ui/blur-fade";
+import { Button } from "#components/ui/button";
 import {
 	Select,
 	SelectContent,
 	SelectItem,
 	SelectTrigger,
-	SelectValue
-} from '#components/ui/select'
-import { BlurFade } from '#components/ui/blur-fade'
-import { IncomeStatementSummaryStats } from '#components/financials/income-statement-summary-stats'
-import { IncomeStatementBreakdownCards } from '#components/financials/income-statement-breakdown-cards'
-import { IncomeStatementMonthlyTrend } from '#components/financials/income-statement-monthly-trend'
-import { IncomeStatementPropertyTable } from '#components/financials/income-statement-property-table'
-import { formatCurrency } from '#lib/utils/currency'
+	SelectValue,
+} from "#components/ui/select";
+import { formatCurrency } from "#lib/utils/currency";
 import type {
-	IncomeStatementRevenueBreakdown,
 	IncomeStatementExpenseBreakdown,
+	IncomeStatementRevenueBreakdown,
+	MonthlyData,
 	PropertyPL,
-	MonthlyData
-} from '#types/financial-statements'
+} from "#types/financial-statements";
 
 interface IncomeStatementProps {
-	revenue: IncomeStatementRevenueBreakdown
-	expenses: IncomeStatementExpenseBreakdown
-	netIncome: number
-	byProperty: PropertyPL[]
-	byMonth: MonthlyData[]
-	onExport?: () => void
+	revenue: IncomeStatementRevenueBreakdown;
+	expenses: IncomeStatementExpenseBreakdown;
+	netIncome: number;
+	byProperty: PropertyPL[];
+	byMonth: MonthlyData[];
+	onExport?: () => void;
 }
 
 export function IncomeStatement({
@@ -38,52 +38,52 @@ export function IncomeStatement({
 	netIncome,
 	byProperty,
 	byMonth,
-	onExport
+	onExport,
 }: IncomeStatementProps) {
-	const [dateRange, setDateRange] = useState('this_year')
+	const [dateRange, setDateRange] = useState("this_year");
 
-	const profitMargin = ((netIncome / revenue.total) * 100).toFixed(1)
+	const profitMargin = ((netIncome / revenue.total) * 100).toFixed(1);
 
 	const revenueItems = [
 		{
-			label: 'Rent Collected',
+			label: "Rent Collected",
 			amount: revenue.rentCollected,
-			percentage: ((revenue.rentCollected / revenue.total) * 100).toFixed(1)
+			percentage: ((revenue.rentCollected / revenue.total) * 100).toFixed(1),
 		},
 		{
-			label: 'Late Fees',
+			label: "Late Fees",
 			amount: revenue.lateFees,
-			percentage: ((revenue.lateFees / revenue.total) * 100).toFixed(1)
+			percentage: ((revenue.lateFees / revenue.total) * 100).toFixed(1),
 		},
 		{
-			label: 'Other Income',
+			label: "Other Income",
 			amount: revenue.otherIncome,
-			percentage: ((revenue.otherIncome / revenue.total) * 100).toFixed(1)
-		}
-	]
+			percentage: ((revenue.otherIncome / revenue.total) * 100).toFixed(1),
+		},
+	];
 
 	const expenseItems = [
 		{
-			label: 'Maintenance',
+			label: "Maintenance",
 			amount: expenses.maintenance,
-			percentage: ((expenses.maintenance / expenses.total) * 100).toFixed(1)
+			percentage: ((expenses.maintenance / expenses.total) * 100).toFixed(1),
 		},
 		{
-			label: 'Platform Fees',
+			label: "Platform Fees",
 			amount: expenses.platformFees,
-			percentage: ((expenses.platformFees / expenses.total) * 100).toFixed(1)
+			percentage: ((expenses.platformFees / expenses.total) * 100).toFixed(1),
 		},
 		{
-			label: 'Processing Fees',
+			label: "Processing Fees",
 			amount: expenses.processingFees,
-			percentage: ((expenses.processingFees / expenses.total) * 100).toFixed(1)
+			percentage: ((expenses.processingFees / expenses.total) * 100).toFixed(1),
 		},
 		{
-			label: 'Other Expenses',
+			label: "Other Expenses",
 			amount: expenses.otherExpenses,
-			percentage: ((expenses.otherExpenses / expenses.total) * 100).toFixed(1)
-		}
-	]
+			percentage: ((expenses.otherExpenses / expenses.total) * 100).toFixed(1),
+		},
+	];
 
 	return (
 		<div className="p-6 lg:p-8 bg-background min-h-full">
@@ -140,5 +140,5 @@ export function IncomeStatement({
 				formatCurrency={formatCurrency}
 			/>
 		</div>
-	)
+	);
 }

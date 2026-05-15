@@ -12,14 +12,14 @@
  * contradict the intent of the `< 1024` boundary.
  */
 
-const KB = 1024
-const MB = KB * KB
+const KB = 1024;
+const MB = KB * KB;
 
 export function formatBytes(bytes: number | null | undefined): string {
-	if (bytes === null || bytes === undefined) return '\u2014'
-	if (bytes === 0) return '0 B'
-	if (bytes < KB) return `${bytes} B`
-	const roundedKb = Math.round(bytes / KB)
-	if (roundedKb < KB) return `${roundedKb} KB`
-	return `${(bytes / MB).toFixed(1)} MB`
+	if (bytes === null || bytes === undefined) return "\u2014";
+	if (bytes === 0) return "0 B";
+	if (bytes < KB) return `${bytes} B`;
+	const roundedKb = Math.round(bytes / KB);
+	if (roundedKb < KB) return `${roundedKb} KB`;
+	return `${(bytes / MB).toFixed(1)} MB`;
 }

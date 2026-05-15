@@ -1,25 +1,25 @@
-'use client'
+"use client";
 
+import { Download, RefreshCw } from "lucide-react";
+import { Button } from "#components/ui/button";
 import {
 	Card,
 	CardContent,
 	CardDescription,
 	CardHeader,
-	CardTitle
-} from '#components/ui/card'
-import { Button } from '#components/ui/button'
-import { Download, RefreshCw } from 'lucide-react'
+	CardTitle,
+} from "#components/ui/card";
 
 interface PdfPreviewPanelProps {
-	isGenerating: boolean
-	dataUrl: string | null
-	onGenerate: () => void
+	isGenerating: boolean;
+	dataUrl: string | null;
+	onGenerate: () => void;
 }
 
 export function PdfPreviewPanel({
 	isGenerating,
 	dataUrl,
-	onGenerate
+	onGenerate,
 }: PdfPreviewPanelProps) {
 	return (
 		<Card className="shadow-sm">
@@ -66,5 +66,5 @@ export function PdfPreviewPanel({
 				)}
 			</CardContent>
 		</Card>
-	)
+	);
 }

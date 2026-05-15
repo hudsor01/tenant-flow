@@ -1,5 +1,5 @@
-import { FileText } from 'lucide-react'
-import { TenantNoticeTemplate } from '../components/tenant-notice-template.client'
+import { FileText } from "lucide-react";
+import { TenantNoticeTemplate } from "../components/tenant-notice-template.client";
 
 export default function TenantNoticeTemplatePage() {
 	return (
@@ -10,8 +10,7 @@ export default function TenantNoticeTemplatePage() {
 					<div>
 						<h1 className="typography-h2 tracking-tight">Tenant Notice</h1>
 						<p className="text-muted-foreground">
-							Create compliant late rent, lease violation, or move-out
-							notices.
+							Create compliant late rent, lease violation, or move-out notices.
 						</p>
 					</div>
 				</div>
@@ -19,5 +18,5 @@ export default function TenantNoticeTemplatePage() {
 
 			<TenantNoticeTemplate />
 		</div>
-	)
+	);
 }

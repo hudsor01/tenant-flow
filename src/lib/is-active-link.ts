@@ -11,6 +11,6 @@
  * short-circuit is also critical — without it, every route would match root.
  */
 export function isActiveLink(href: string, pathname: string): boolean {
-	if (href === '/') return pathname === '/'
-	return pathname === href || pathname.startsWith(`${href}/`)
+	if (href === "/") return pathname === "/";
+	return pathname === href || pathname.startsWith(`${href}/`);
 }

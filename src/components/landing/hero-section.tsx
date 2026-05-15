@@ -1,7 +1,7 @@
-import Link from 'next/link'
-import { ArrowRight, Check } from 'lucide-react'
-import { Button } from '#components/ui/button'
-import { BlurFade } from '#components/ui/blur-fade'
+import { ArrowRight, Check } from "lucide-react";
+import Link from "next/link";
+import { BlurFade } from "#components/ui/blur-fade";
+import { Button } from "#components/ui/button";
 
 export function HeroSection() {
 	return (
@@ -13,16 +13,16 @@ export function HeroSection() {
 				<BlurFade delay={0.1} inView>
 					<div className="text-center max-w-5xl mx-auto space-y-8">
 						<h1 className="text-5xl lg:text-7xl font-bold tracking-tight leading-tight">
-							<span className="text-foreground">
-								Run your rentals from a
-							</span>{' '}
+							<span className="text-foreground">Run your rentals from a</span>{" "}
 							<span className="hero-highlight">single document vault</span>
 						</h1>
 
 						<p className="text-muted-foreground leading-relaxed max-w-3xl mx-auto text-xl font-medium">
-							Per-entity storage with global search, multi-select filters, date-range, and tax-season zip downloads.{' '}
+							Per-entity storage with global search, multi-select filters,
+							date-range, and tax-season zip downloads.{" "}
 							<span className="text-foreground font-semibold">
-								Lease e-sign on Growth and Max plans. Tenants are records, never users.
+								Lease e-sign on Growth and Max plans. Tenants are records, never
+								users.
 							</span>
 						</p>
 
@@ -60,5 +60,5 @@ export function HeroSection() {
 				</BlurFade>
 			</div>
 		</section>
-	)
+	);
 }

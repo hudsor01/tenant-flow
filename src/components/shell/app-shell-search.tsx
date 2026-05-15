@@ -1,9 +1,6 @@
-import type { User } from '@supabase/supabase-js'
-import {
-	Building2,
-	Users,
-	LogOut
-} from 'lucide-react'
+import type { User } from "@supabase/supabase-js";
+import type { LucideIcon } from "lucide-react";
+import { Building2, LogOut, Users } from "lucide-react";
 import {
 	CommandDialog,
 	CommandEmpty,
@@ -12,38 +9,37 @@ import {
 	CommandItem,
 	CommandList,
 	CommandSeparator,
-	CommandShortcut
-} from '#components/ui/command'
-import type { LucideIcon } from 'lucide-react'
+	CommandShortcut,
+} from "#components/ui/command";
 
 interface SearchItem {
-	id: string
-	label: string
-	subtitle: string
-	href: string
+	id: string;
+	label: string;
+	subtitle: string;
+	href: string;
 }
 
 interface CommandGroupData {
-	heading: string
-	items: { label: string; href: string; icon: LucideIcon }[]
+	heading: string;
+	items: { label: string; href: string; icon: LucideIcon }[];
 }
 
 interface CommandAction {
-	label: string
-	href: string
-	icon: LucideIcon
+	label: string;
+	href: string;
+	icon: LucideIcon;
 }
 
 interface AppShellSearchProps {
-	open: boolean
-	onOpenChange: (open: boolean) => void
-	propertyItems: SearchItem[]
-	tenantItems: SearchItem[]
-	commandGroups: CommandGroupData[]
-	commandActions: CommandAction[]
-	user: User | null | undefined
-	onSelect: (href: string) => void
-	onSignOut: () => void
+	open: boolean;
+	onOpenChange: (open: boolean) => void;
+	propertyItems: SearchItem[];
+	tenantItems: SearchItem[];
+	commandGroups: CommandGroupData[];
+	commandActions: CommandAction[];
+	user: User | null | undefined;
+	onSelect: (href: string) => void;
+	onSignOut: () => void;
 }
 
 export function AppShellSearch({
@@ -55,20 +51,16 @@ export function AppShellSearch({
 	commandActions,
 	user,
 	onSelect,
-	onSignOut
+	onSignOut,
 }: AppShellSearchProps) {
 	return (
-		<CommandDialog
-			open={open}
-			onOpenChange={onOpenChange}
-			className="max-w-xl"
-		>
+		<CommandDialog open={open} onOpenChange={onOpenChange} className="max-w-xl">
 			<CommandInput placeholder="Search pages and actions..." />
 			<CommandList>
 				<CommandEmpty>No results found.</CommandEmpty>
 				{propertyItems.length > 0 && (
 					<CommandGroup heading="Recent Properties">
-						{propertyItems.map(item => (
+						{propertyItems.map((item) => (
 							<CommandItem
 								key={item.id}
 								value={`${item.label} ${item.subtitle}`}
@@ -87,7 +79,7 @@ export function AppShellSearch({
 				)}
 				{tenantItems.length > 0 && (
 					<CommandGroup heading="Recent Tenants">
-						{tenantItems.map(item => (
+						{tenantItems.map((item) => (
 							<CommandItem
 								key={item.id}
 								value={`${item.label} ${item.subtitle}`}
@@ -104,13 +96,10 @@ export function AppShellSearch({
 						))}
 					</CommandGroup>
 				)}
-				{commandGroups.map(group => (
+				{commandGroups.map((group) => (
 					<CommandGroup key={group.heading} heading={group.heading}>
-						{group.items.map(item => (
-							<CommandItem
-								key={item.href}
-								onSelect={() => onSelect(item.href)}
-							>
+						{group.items.map((item) => (
+							<CommandItem key={item.href} onSelect={() => onSelect(item.href)}>
 								<item.icon className="w-4 h-4 text-muted-foreground" />
 								<span>{item.label}</span>
 							</CommandItem>
@@ -119,7 +108,7 @@ export function AppShellSearch({
 				))}
 				<CommandSeparator />
 				<CommandGroup heading="Account & Support">
-					{commandActions.map(action => (
+					{commandActions.map((action) => (
 						<CommandItem
 							key={action.href}
 							onSelect={() => onSelect(action.href)}
@@ -131,8 +120,8 @@ export function AppShellSearch({
 					{user && (
 						<CommandItem
 							onSelect={() => {
-								onOpenChange(false)
-								onSignOut()
+								onOpenChange(false);
+								onSignOut();
 							}}
 						>
 							<LogOut className="w-4 h-4 text-muted-foreground" />
@@ -143,5 +132,5 @@ export function AppShellSearch({
 				</CommandGroup>
 			</CommandList>
 		</CommandDialog>
-	)
+	);
 }

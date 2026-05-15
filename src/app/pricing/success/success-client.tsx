@@ -1,46 +1,46 @@
-'use client'
+"use client";
 
-import { CustomerPortalButton } from '#components/pricing/customer-portal'
-import { Button } from '#components/ui/button'
-import { CardLayout } from '#components/ui/card-layout'
-import { subscriptionStatusQueries } from '#hooks/api/query-keys/subscription-verification-keys'
-import { useQuery } from '@tanstack/react-query'
-import { CheckCircle, Home } from 'lucide-react'
-import Link from 'next/link'
-import { useSearchParams } from 'next/navigation'
-import { useEffect } from 'react'
-import { toast } from 'sonner'
+import { useQuery } from "@tanstack/react-query";
+import { CheckCircle, Home } from "lucide-react";
+import Link from "next/link";
+import { useSearchParams } from "next/navigation";
+import { useEffect } from "react";
+import { toast } from "sonner";
+import { CustomerPortalButton } from "#components/pricing/customer-portal";
+import { Button } from "#components/ui/button";
+import { CardLayout } from "#components/ui/card-layout";
+import { subscriptionStatusQueries } from "#hooks/api/query-keys/subscription-verification-keys";
 
 export function SuccessClient() {
-	const searchParams = useSearchParams()
-	const sessionId = searchParams?.get('session_id') ?? null
+	const searchParams = useSearchParams();
+	const sessionId = searchParams?.get("session_id") ?? null;
 
 	const {
 		data: verificationData,
 		isLoading: isVerifying,
 		error: verificationError,
-		isSuccess
-	} = useQuery(subscriptionStatusQueries.verifySession(sessionId))
+		isSuccess,
+	} = useQuery(subscriptionStatusQueries.verifySession(sessionId));
 
-	const subscription = verificationData?.subscription
+	const subscription = verificationData?.subscription;
 
 	useEffect(() => {
 		if (isSuccess && subscription) {
-			toast.success('Payment successful! Welcome to your new plan.')
+			toast.success("Payment successful! Welcome to your new plan.");
 		}
-	}, [isSuccess, subscription])
+	}, [isSuccess, subscription]);
 
 	useEffect(() => {
 		if (verificationError) {
-			toast.error('Failed to verify payment')
+			toast.error("Failed to verify payment");
 		}
-	}, [verificationError])
+	}, [verificationError]);
 
 	useEffect(() => {
 		if (!sessionId) {
-			toast.error('No session ID found')
+			toast.error("No session ID found");
 		}
-	}, [sessionId])
+	}, [sessionId]);
 
 	if (isVerifying) {
 		return (
@@ -58,7 +58,7 @@ export function SuccessClient() {
 					</div>
 				</CardLayout>
 			</div>
-		)
+		);
 	}
 
 	return (
@@ -99,11 +99,8 @@ export function SuccessClient() {
 
 					<div className="border-t pt-6">
 						<p className="text-muted-foreground">
-							Need help?{' '}
-							<Link
-								href="/contact"
-								className="text-primary hover:underline"
-							>
+							Need help?{" "}
+							<Link href="/contact" className="text-primary hover:underline">
 								Contact our support team
 							</Link>
 						</p>
@@ -111,5 +108,5 @@ export function SuccessClient() {
 				</div>
 			</CardLayout>
 		</div>
-	)
+	);
 }

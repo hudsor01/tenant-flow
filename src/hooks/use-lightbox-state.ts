@@ -1,5 +1,4 @@
-import { useQueryState, parseAsInteger, parseAsBoolean } from 'nuqs'
-
+import { parseAsBoolean, parseAsInteger, useQueryState } from "nuqs";
 
 /**
  * Hook to manage lightbox state with URL parameters
@@ -9,26 +8,26 @@ import { useQueryState, parseAsInteger, parseAsBoolean } from 'nuqs'
  */
 export function useLightboxState(initialIndex: number = 0) {
 	const [lightboxOpen, setLightboxOpen] = useQueryState(
-		'lightbox',
-		parseAsBoolean.withDefault(false)
-	)
+		"lightbox",
+		parseAsBoolean.withDefault(false),
+	);
 	const [currentIndex, setCurrentIndex] = useQueryState(
-		'image',
-		parseAsInteger.withDefault(initialIndex)
-	)
+		"image",
+		parseAsInteger.withDefault(initialIndex),
+	);
 
 	const open = () => {
-		setLightboxOpen(true)
-	}
+		setLightboxOpen(true);
+	};
 
 	const close = () => {
-		setLightboxOpen(false)
-	}
+		setLightboxOpen(false);
+	};
 
 	const goToImage = (index: number) => {
-			setCurrentIndex(index)
-			setLightboxOpen(true)
-		}
+		setCurrentIndex(index);
+		setLightboxOpen(true);
+	};
 
 	return {
 		isOpen: lightboxOpen,
@@ -36,6 +35,6 @@ export function useLightboxState(initialIndex: number = 0) {
 		open,
 		close,
 		goToImage,
-		setIndex: setCurrentIndex
-	}
+		setIndex: setCurrentIndex,
+	};
 }

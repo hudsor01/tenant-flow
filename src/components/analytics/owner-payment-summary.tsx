@@ -2,13 +2,13 @@ import {
 	Card,
 	CardDescription,
 	CardHeader,
-	CardTitle
-} from '#components/ui/card'
-import { formatCents } from '#lib/utils/currency'
-import type { OwnerPaymentSummaryResponse } from '#types/api-contracts'
+	CardTitle,
+} from "#components/ui/card";
+import { formatCents } from "#lib/utils/currency";
+import type { OwnerPaymentSummaryResponse } from "#types/api-contracts";
 
 interface OwnerPaymentSummaryProps {
-	summary: OwnerPaymentSummaryResponse | null
+	summary: OwnerPaymentSummaryResponse | null;
 }
 
 export function OwnerPaymentSummary({ summary }: OwnerPaymentSummaryProps) {
@@ -16,8 +16,8 @@ export function OwnerPaymentSummary({ summary }: OwnerPaymentSummaryProps) {
 		lateFeeTotal: 0,
 		unpaidTotal: 0,
 		unpaidCount: 0,
-		tenantCount: 0
-	}
+		tenantCount: 0,
+	};
 
 	return (
 		<div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -50,5 +50,5 @@ export function OwnerPaymentSummary({ summary }: OwnerPaymentSummaryProps) {
 				</CardHeader>
 			</Card>
 		</div>
-	)
+	);
 }

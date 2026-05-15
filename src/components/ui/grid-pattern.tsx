@@ -1,23 +1,23 @@
-'use client'
+"use client";
 
-import type { SVGProps } from 'react'
-import { useId } from 'react'
+import type { SVGProps } from "react";
+import { useId } from "react";
 
-import { cn } from '#lib/utils'
+import { cn } from "#lib/utils";
 
 interface GridPatternProps extends SVGProps<SVGSVGElement> {
-	width?: number
-	height?: number
-	x?: number
-	y?: number
-	squares?: Array<[x: number, y: number]>
-	strokeDasharray?: string
-	className?: string
-	variant?: 'default' | 'subtle' | 'bold' | 'primary' | 'accent'
-	animated?: boolean
-	opacity?: number
-	patternId?: string
-	[key: string]: unknown
+	width?: number;
+	height?: number;
+	x?: number;
+	y?: number;
+	squares?: Array<[x: number, y: number]>;
+	strokeDasharray?: string;
+	className?: string;
+	variant?: "default" | "subtle" | "bold" | "primary" | "accent";
+	animated?: boolean;
+	opacity?: number;
+	patternId?: string;
+	[key: string]: unknown;
 }
 
 export function GridPattern({
@@ -25,49 +25,47 @@ export function GridPattern({
 	height = 40,
 	x = -1,
 	y = -1,
-	strokeDasharray = '0',
+	strokeDasharray = "0",
 	squares,
 	className,
-	variant = 'default',
+	variant = "default",
 	animated = false,
 	opacity = 0.3,
 	patternId,
 	...props
 }: GridPatternProps) {
-	const reactId = useId()
+	const reactId = useId();
 	// Use provided patternId for stable hydration, or fall back to useId()
-	const id = patternId ?? `grid-pattern-${reactId.replace(/:/g, '')}`
+	const id = patternId ?? `grid-pattern-${reactId.replace(/:/g, "")}`;
 
 	// Style variants for different visual approaches
 	const variantStyles = {
 		default:
-			'fill-[color-mix(in oklab,var(--color-label-primary) 25%, transparent)] stroke-[color-mix(in oklab,var(--color-label-primary) 25%, transparent)]',
+			"fill-[color-mix(in oklab,var(--color-label-primary) 25%, transparent)] stroke-[color-mix(in oklab,var(--color-label-primary) 25%, transparent)]",
 		subtle:
-			'fill-[color-mix(in oklab,var(--color-label-primary) 15%, transparent)] stroke-[color-mix(in oklab,var(--color-label-primary) 15%, transparent)]',
-		bold: 'fill-[color-mix(in oklab,var(--color-label-primary) 45%, transparent)] stroke-[color-mix(in oklab,var(--color-label-primary) 45%, transparent)]',
+			"fill-[color-mix(in oklab,var(--color-label-primary) 15%, transparent)] stroke-[color-mix(in oklab,var(--color-label-primary) 15%, transparent)]",
+		bold: "fill-[color-mix(in oklab,var(--color-label-primary) 45%, transparent)] stroke-[color-mix(in oklab,var(--color-label-primary) 45%, transparent)]",
 		primary:
-			'fill-[color-mix(in oklab,var(--color-primary) 35%, transparent)] stroke-[color-mix(in oklab,var(--color-primary) 40%, transparent)]',
+			"fill-[color-mix(in oklab,var(--color-primary) 35%, transparent)] stroke-[color-mix(in oklab,var(--color-primary) 40%, transparent)]",
 		accent:
-			'fill-[color-mix(in oklab,var(--color-accent) 35%, transparent)] stroke-[color-mix(in oklab,var(--color-accent) 40%, transparent)]'
-	}
+			"fill-[color-mix(in oklab,var(--color-accent) 35%, transparent)] stroke-[color-mix(in oklab,var(--color-accent) 40%, transparent)]",
+	};
 
-	const selectedStyle = variantStyles[variant]
-	const finalOpacity = Math.max(0, Math.min(1, opacity))
+	const selectedStyle = variantStyles[variant];
+	const finalOpacity = Math.max(0, Math.min(1, opacity));
 
 	return (
 		<svg
 			aria-hidden="true"
 			className={cn(
-				'pointer-events-none absolute inset-0 h-full w-full',
+				"pointer-events-none absolute inset-0 h-full w-full",
 				selectedStyle,
-				animated && 'animate-pulse',
-				className
+				animated && "animate-pulse",
+				className,
 			)}
 			style={{
 				opacity: finalOpacity,
-				animationDuration: animated
-					? '500ms'
-					: undefined
+				animationDuration: animated ? "500ms" : undefined,
 			}}
 			{...props}
 		>
@@ -106,19 +104,17 @@ export function GridPattern({
 							x={x * width + 1}
 							y={y * height + 1}
 							className={cn(
-								'transition-all ease-out',
-								animated && 'animate-pulse'
+								"transition-all ease-out",
+								animated && "animate-pulse",
 							)}
 							style={{
 								animationDelay: animated ? `${(x + y) * 100}ms` : undefined,
-								animationDuration: animated
-									? '200ms'
-									: undefined
+								animationDuration: animated ? "200ms" : undefined,
 							}}
 						/>
 					))}
 				</svg>
 			)}
 		</svg>
-	)
+	);
 }

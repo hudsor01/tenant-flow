@@ -1,15 +1,15 @@
-'use client'
+"use client";
 
-import { createPortal } from 'react-dom'
-import { Pencil, Trash2, X } from 'lucide-react'
-import { Button } from '#components/ui/button'
+import { Pencil, Trash2, X } from "lucide-react";
+import { createPortal } from "react-dom";
+import { Button } from "#components/ui/button";
 
 export interface PropertyActionBarProps {
-	selectedCount: number
-	totalCount: number
-	onClear: () => void
-	onBulkEdit?: () => void
-	onBulkDelete?: () => void
+	selectedCount: number;
+	totalCount: number;
+	onClear: () => void;
+	onBulkEdit?: () => void;
+	onBulkDelete?: () => void;
 }
 
 /**
@@ -30,12 +30,12 @@ export function PropertyActionBar({
 	totalCount,
 	onClear,
 	onBulkEdit,
-	onBulkDelete
+	onBulkDelete,
 }: PropertyActionBarProps) {
-	if (selectedCount === 0) return null
+	if (selectedCount === 0) return null;
 
-	const portalRoot = typeof document !== 'undefined' ? document.body : null
-	if (!portalRoot) return null
+	const portalRoot = typeof document !== "undefined" ? document.body : null;
+	if (!portalRoot) return null;
 
 	return createPortal(
 		<div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 animate-in fade-in slide-in-from-bottom-4 duration-300">
@@ -77,6 +77,6 @@ export function PropertyActionBar({
 				</div>
 			</div>
 		</div>,
-		portalRoot
-	)
+		portalRoot,
+	);
 }

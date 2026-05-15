@@ -11,33 +11,29 @@
  * Admin-only RPC — non-admin callers receive an 'Unauthorized' PostgREST
  * error, never stats.
  */
-import { queryOptions } from '@tanstack/react-query'
-import { createClient } from '#lib/supabase/client'
-import { handlePostgrestError } from '#lib/postgrest-error-handler'
-import type {
-	FunnelStats,
-	FunnelStep,
-	FunnelStepName
-} from '#types/analytics'
+import { queryOptions } from "@tanstack/react-query";
+import { handlePostgrestError } from "#lib/postgrest-error-handler";
+import { createClient } from "#lib/supabase/client";
+import type { FunnelStats, FunnelStep, FunnelStepName } from "#types/analytics";
 
 // Matches the CHECK constraint in 20260415193247_onboarding_funnel_events_schema.sql.
 const ALLOWED_STEPS: readonly FunnelStepName[] = [
-	'signup',
-	'first_property',
-	'first_tenant'
-] as const
+	"signup",
+	"first_property",
+	"first_tenant",
+] as const;
 
 function isFunnelStepName(value: unknown): value is FunnelStepName {
 	return (
-		typeof value === 'string' &&
+		typeof value === "string" &&
 		(ALLOWED_STEPS as readonly string[]).includes(value)
-	)
+	);
 }
 
 function numberOrNull(value: unknown): number | null {
-	if (value === null || value === undefined) return null
-	const n = Number(value)
-	return Number.isFinite(n) ? n : null
+	if (value === null || value === undefined) return null;
+	const n = Number(value);
+	return Number.isFinite(n) ? n : null;
 }
 
 /**
@@ -46,44 +42,42 @@ function numberOrNull(value: unknown): number | null {
  * — the DB CHECK constraint is authoritative).
  */
 export function mapFunnelStats(raw: Record<string, unknown>): FunnelStats {
-	const stepsRaw = Array.isArray(raw.steps) ? raw.steps : []
+	const stepsRaw = Array.isArray(raw.steps) ? raw.steps : [];
 	const steps: FunnelStep[] = stepsRaw
 		.map((s): FunnelStep | null => {
-			if (!s || typeof s !== 'object') return null
-			const row = s as Record<string, unknown>
-			if (!isFunnelStepName(row.step)) return null
+			if (!s || typeof s !== "object") return null;
+			const row = s as Record<string, unknown>;
+			if (!isFunnelStepName(row.step)) return null;
 			return {
 				step: row.step,
 				stepOrder: Number(row.step_order ?? 0),
 				count: Number(row.count ?? 0),
 				conversionRateFromPrior: numberOrNull(row.conversion_rate_from_prior),
-				conversionRateFromSignup: numberOrNull(
-					row.conversion_rate_from_signup
-				),
+				conversionRateFromSignup: numberOrNull(row.conversion_rate_from_signup),
 				medianDaysFromPrior: numberOrNull(row.median_days_from_prior),
-				medianDaysFromSignup: numberOrNull(row.median_days_from_signup)
-			}
+				medianDaysFromSignup: numberOrNull(row.median_days_from_signup),
+			};
 		})
 		.filter((s): s is FunnelStep => s !== null)
-		.sort((a, b) => a.stepOrder - b.stepOrder)
+		.sort((a, b) => a.stepOrder - b.stepOrder);
 
 	return {
-		from: typeof raw.from === 'string' ? raw.from : '',
-		to: typeof raw.to === 'string' ? raw.to : '',
-		cohortLabel: typeof raw.cohort_label === 'string' ? raw.cohort_label : '',
+		from: typeof raw.from === "string" ? raw.from : "",
+		to: typeof raw.to === "string" ? raw.to : "",
+		cohortLabel: typeof raw.cohort_label === "string" ? raw.cohort_label : "",
 		mediansComputedAt:
-			typeof raw.medians_computed_at === 'string'
+			typeof raw.medians_computed_at === "string"
 				? raw.medians_computed_at
-				: '',
-		steps
-	}
+				: "",
+		steps,
+	};
 }
 
 export const funnelKeys = {
-	all: ['funnel'] as const,
+	all: ["funnel"] as const,
 	stats: (from: string, to: string) =>
-		[...funnelKeys.all, 'stats', from, to] as const
-}
+		[...funnelKeys.all, "stats", from, to] as const,
+};
 
 export const funnelQueries = {
 	/**
@@ -94,19 +88,19 @@ export const funnelQueries = {
 		queryOptions({
 			queryKey: funnelKeys.stats(from, to),
 			queryFn: async (): Promise<FunnelStats | null> => {
-				const supabase = createClient()
-				const { data, error } = await supabase.rpc('get_funnel_stats', {
+				const supabase = createClient();
+				const { data, error } = await supabase.rpc("get_funnel_stats", {
 					p_from: from,
-					p_to: to
-				})
-				if (error) handlePostgrestError(error, 'funnel-stats')
-				if (!data || typeof data !== 'object' || Array.isArray(data)) {
-					return null
+					p_to: to,
+				});
+				if (error) handlePostgrestError(error, "funnel-stats");
+				if (!data || typeof data !== "object" || Array.isArray(data)) {
+					return null;
 				}
-				return mapFunnelStats(data as Record<string, unknown>)
+				return mapFunnelStats(data as Record<string, unknown>);
 			},
 			staleTime: 5 * 60 * 1000,
 			gcTime: 10 * 60 * 1000,
-			retry: false
-		})
-}
+			retry: false,
+		}),
+};

@@ -1,25 +1,25 @@
-'use client'
+"use client";
 
-import * as Sentry from '@sentry/nextjs'
-import { useEffect } from 'react'
+import * as Sentry from "@sentry/nextjs";
+import { useEffect } from "react";
 
-import { ErrorFallback } from '#components/error-boundary/error-fallback'
+import { ErrorFallback } from "#components/error-boundary/error-fallback";
 
-import './globals.css'
+import "./globals.css";
 
 export default function GlobalError({
 	error,
-	reset
+	reset,
 }: {
-	error: Error & { digest?: string }
-	reset: () => void
+	error: Error & { digest?: string };
+	reset: () => void;
 }) {
 	useEffect(() => {
 		Sentry.captureException(error, {
-			tags: { boundary: 'global-error' },
-			extra: { digest: error.digest }
-		})
-	}, [error])
+			tags: { boundary: "global-error" },
+			extra: { digest: error.digest },
+		});
+	}, [error]);
 
 	return (
 		<html lang="en">
@@ -27,5 +27,5 @@ export default function GlobalError({
 				<ErrorFallback error={error} reset={reset} />
 			</body>
 		</html>
-	)
+	);
 }

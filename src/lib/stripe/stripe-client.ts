@@ -6,15 +6,16 @@
  * are created via Supabase Edge Functions and the browser is redirected
  * to checkout.stripe.com. No Stripe.js bundle is required.
  */
-import { createClient } from '#lib/supabase/client'
-import { ERROR_MESSAGES } from '#lib/constants/error-messages'
+
+import { ERROR_MESSAGES } from "#lib/constants/error-messages";
+import { createClient } from "#lib/supabase/client";
 
 interface CreateCheckoutSessionRequest {
-	priceId: string
-	planName: string
-	description?: string
-	customerEmail?: string
-	tenant_id?: string
+	priceId: string;
+	planName: string;
+	description?: string;
+	customerEmail?: string;
+	tenant_id?: string;
 	/**
 	 * Paywall attribution tag from the upgrade CTA that sent the user here
 	 * (e.g. 'esign_gate', 'reports_gate'). Forwarded to Stripe Checkout as
@@ -22,68 +23,67 @@ interface CreateCheckoutSessionRequest {
 	 * Derived from the current URL's ?source= query param by
 	 * `startCheckoutFromUrl` — pass explicitly to override.
 	 */
-	source?: string
+	source?: string;
 }
 
 interface CreateCheckoutSessionResponse {
-	sessionId: string
-	url: string
+	sessionId: string;
+	url: string;
 }
 
 /**
  * Create a Stripe checkout session via Supabase Edge Function
  */
 export async function createCheckoutSession(
-	request: CreateCheckoutSessionRequest
+	request: CreateCheckoutSessionRequest,
 ): Promise<CreateCheckoutSessionResponse> {
-	const supabase = createClient()
+	const supabase = createClient();
 
 	// getSession() reads from local cache (no network call).
 	// The Edge Function validates the JWT server-side — no need for getUser() here.
-	const { data: { session } } = await supabase.auth.getSession()
+	const {
+		data: { session },
+	} = await supabase.auth.getSession();
 
 	const headers: Record<string, string> = {
-		'Content-Type': 'application/json'
-	}
+		"Content-Type": "application/json",
+	};
 
 	if (session?.access_token) {
-		headers['Authorization'] = `Bearer ${session.access_token}`
+		headers["Authorization"] = `Bearer ${session.access_token}`;
 	}
 
-	const user = session?.user
+	const user = session?.user;
 
-	const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-	const response = await fetch(
-		`${supabaseUrl}/functions/v1/stripe-checkout`,
-		{
-			method: 'POST',
-			headers,
-			body: JSON.stringify({
-				priceId: request.priceId,
-				price_id: request.priceId,
-				productName: request.planName,
-				tenant_id: request.tenant_id || user?.id || 'pending_signup',
-				domain: window.location.origin,
-				description: request.description,
-				isSubscription: true,
-				customerEmail: request.customerEmail || user?.email || undefined,
-				...(request.source ? { source: request.source } : {})
-			})
-		}
-	)
+	const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+	const response = await fetch(`${supabaseUrl}/functions/v1/stripe-checkout`, {
+		method: "POST",
+		headers,
+		body: JSON.stringify({
+			priceId: request.priceId,
+			price_id: request.priceId,
+			productName: request.planName,
+			tenant_id: request.tenant_id || user?.id || "pending_signup",
+			domain: window.location.origin,
+			description: request.description,
+			isSubscription: true,
+			customerEmail: request.customerEmail || user?.email || undefined,
+			...(request.source ? { source: request.source } : {}),
+		}),
+	});
 
 	if (!response.ok) {
 		const errorData = await response.json().catch(() => ({
-			error: `HTTP ${response.status}: ${response.statusText}`
-		}))
-		throw new Error(errorData.error || 'Failed to create checkout session')
+			error: `HTTP ${response.status}: ${response.statusText}`,
+		}));
+		throw new Error(errorData.error || "Failed to create checkout session");
 	}
 
-	const data = await response.json()
+	const data = await response.json();
 	return {
 		sessionId: data.sessionId || data.id,
-		url: data.url
-	}
+		url: data.url,
+	};
 }
 
 /**
@@ -91,31 +91,31 @@ export async function createCheckoutSession(
  * SECURITY: Uses getUser() to validate authentication
  */
 export async function isUserAuthenticated(): Promise<boolean> {
-	const supabase = createClient()
+	const supabase = createClient();
 
 	const {
 		data: { user },
-		error
-	} = await supabase.auth.getUser()
-	return !error && !!user
+		error,
+	} = await supabase.auth.getUser();
+	return !error && !!user;
 }
 
 /**
  * Get authenticated user info
  */
 export async function getCurrentUser() {
-	const supabase = createClient()
+	const supabase = createClient();
 
 	const {
 		data: { user },
-		error
-	} = await supabase.auth.getUser()
+		error,
+	} = await supabase.auth.getUser();
 
 	if (error || !user) {
-		throw new Error(ERROR_MESSAGES.USER_NOT_AUTHENTICATED)
+		throw new Error(ERROR_MESSAGES.USER_NOT_AUTHENTICATED);
 	}
 
-	return user
+	return user;
 }
 
 /**
@@ -123,43 +123,45 @@ export async function getCurrentUser() {
  * Official Stripe pattern: customer self-service portal
  */
 export async function createCustomerPortalSession(
-	returnUrl: string
+	returnUrl: string,
 ): Promise<{ url: string }> {
-	const supabase = createClient()
+	const supabase = createClient();
 
 	// getSession() reads from local cache (no network call).
 	// The Edge Function validates the JWT server-side.
-	const { data: { session } } = await supabase.auth.getSession()
+	const {
+		data: { session },
+	} = await supabase.auth.getSession();
 
 	if (!session?.access_token) {
-		throw new Error(ERROR_MESSAGES.SESSION_EXPIRED)
+		throw new Error(ERROR_MESSAGES.SESSION_EXPIRED);
 	}
 
 	// Call stripe-billing-portal Edge Function
-	const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+	const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 	const response = await fetch(
 		`${supabaseUrl}/functions/v1/stripe-billing-portal`,
 		{
-			method: 'POST',
+			method: "POST",
 			headers: {
-				'Content-Type': 'application/json',
-				Authorization: `Bearer ${session.access_token}`
+				"Content-Type": "application/json",
+				Authorization: `Bearer ${session.access_token}`,
 			},
 			body: JSON.stringify({
-				returnUrl
-			})
-		}
-	)
+				returnUrl,
+			}),
+		},
+	);
 
 	if (!response.ok) {
 		const errorData = await response.json().catch(() => ({
-			error: `HTTP ${response.status}: ${response.statusText}`
-		}))
+			error: `HTTP ${response.status}: ${response.statusText}`,
+		}));
 		throw new Error(
-			errorData.error || 'Failed to create billing portal session'
-		)
+			errorData.error || "Failed to create billing portal session",
+		);
 	}
 
-	const data = await response.json()
-	return { url: data.url }
+	const data = await response.json();
+	return { url: data.url };
 }

@@ -1,23 +1,23 @@
-'use client'
+"use client";
 
-import type { ChangeEvent, InputHTMLAttributes, Ref } from 'react'
-import { useState } from 'react'
+import { Check, X } from "lucide-react";
+import { Popover } from "radix-ui";
+import type { ChangeEvent, InputHTMLAttributes, Ref } from "react";
+import { useState } from "react";
+import { cn } from "#lib/utils";
 
-import { cn } from '#lib/utils'
-import { Popover } from 'radix-ui'
-import { Check, X } from 'lucide-react'
-
-export interface PasswordStrengthProps extends InputHTMLAttributes<HTMLInputElement> {
-	label?: string
-	showStrengthIndicator?: boolean
-	minLength?: number
-	ref?: Ref<HTMLInputElement>
+export interface PasswordStrengthProps
+	extends InputHTMLAttributes<HTMLInputElement> {
+	label?: string;
+	showStrengthIndicator?: boolean;
+	minLength?: number;
+	ref?: Ref<HTMLInputElement>;
 }
 
 interface StrengthRule {
-	id: string
-	label: string
-	test: (value: string) => boolean
+	id: string;
+	label: string;
+	test: (value: string) => boolean;
 }
 
 function PasswordStrength({
@@ -29,54 +29,54 @@ function PasswordStrength({
 	ref,
 	...props
 }: PasswordStrengthProps) {
-	const [password, setPassword] = useState('')
-	const [isFocused, setIsFocused] = useState(false)
-	const inputId = id || 'password-strength'
+	const [password, setPassword] = useState("");
+	const [isFocused, setIsFocused] = useState(false);
+	const inputId = id || "password-strength";
 
 	const rules: StrengthRule[] = [
 		{
-			id: 'min-length',
+			id: "min-length",
 			label: `Minimum ${minLength} characters`,
-			test: val => val.length >= minLength
+			test: (val) => val.length >= minLength,
 		},
 		{
-			id: 'lowercase',
-			label: 'Contains lowercase letter',
-			test: val => /[a-z]/.test(val)
+			id: "lowercase",
+			label: "Contains lowercase letter",
+			test: (val) => /[a-z]/.test(val),
 		},
 		{
-			id: 'uppercase',
-			label: 'Contains uppercase letter',
-			test: val => /[A-Z]/.test(val)
+			id: "uppercase",
+			label: "Contains uppercase letter",
+			test: (val) => /[A-Z]/.test(val),
 		},
 		{
-			id: 'numbers',
-			label: 'Contains number',
-			test: val => /\d/.test(val)
+			id: "numbers",
+			label: "Contains number",
+			test: (val) => /\d/.test(val),
 		},
 		{
-			id: 'special',
-			label: 'Contains special character',
-			test: val => /[^A-Za-z0-9]/.test(val)
-		}
-	]
+			id: "special",
+			label: "Contains special character",
+			test: (val) => /[^A-Za-z0-9]/.test(val),
+		},
+	];
 
-	const passedRules = rules.filter(rule => rule.test(password))
-	const strength = (passedRules.length / rules.length) * 100
+	const passedRules = rules.filter((rule) => rule.test(password));
+	const strength = (passedRules.length / rules.length) * 100;
 
 	const getStrengthColor = () => {
-		if (strength === 0) return 'bg-(--color-fill-primary)'
-		if (strength <= 20) return 'bg-destructive'
-		if (strength <= 40) return 'bg-accent'
-		if (strength <= 60) return 'bg-accent'
-		if (strength <= 80) return 'bg-(--color-accent-main)'
-		return 'bg-(--color-accent-main)'
-	}
+		if (strength === 0) return "bg-(--color-fill-primary)";
+		if (strength <= 20) return "bg-destructive";
+		if (strength <= 40) return "bg-accent";
+		if (strength <= 60) return "bg-accent";
+		if (strength <= 80) return "bg-(--color-accent-main)";
+		return "bg-(--color-accent-main)";
+	};
 
 	const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
-		setPassword(e.target.value)
-		props.onChange?.(e)
-	}
+		setPassword(e.target.value);
+		props.onChange?.(e);
+	};
 
 	return (
 		<div className="w-full">
@@ -96,8 +96,8 @@ function PasswordStrength({
 						type="password"
 						autoComplete="new-password"
 						className={cn(
-							'flex h-10 w-full rounded-[var(--radius-md)] border border-(--color-separator) bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-(--color-label-tertiary) focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50',
-							className
+							"flex h-10 w-full rounded-[var(--radius-md)] border border-(--color-separator) bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-(--color-label-tertiary) focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50",
+							className,
 						)}
 						ref={ref}
 						value={password}
@@ -112,7 +112,7 @@ function PasswordStrength({
 					<Popover.Content
 						className="z-50 w-80 rounded-[var(--radius-lg)] bg-popover p-4 shadow-[var(--shadow-md)] border border-(--color-separator)"
 						sideOffset={5}
-						onOpenAutoFocus={e => e.preventDefault()}
+						onOpenAutoFocus={(e) => e.preventDefault()}
 					>
 						{/* Strength indicator bars */}
 						<div className="flex gap-[var(--spacing-1)] h-[var(--spacing-2)]">
@@ -121,10 +121,10 @@ function PasswordStrength({
 									key={i}
 									data-tokens="applied"
 									className={cn(
-										'flex-1 rounded-full transition-all duration-[var(--duration-standard)]',
+										"flex-1 rounded-full transition-all duration-[var(--duration-standard)]",
 										i < Math.ceil(passedRules.length)
 											? getStrengthColor()
-											: 'bg-(--color-fill-primary) opacity-50'
+											: "bg-(--color-fill-primary) opacity-50",
 									)}
 								/>
 							))}
@@ -135,15 +135,15 @@ function PasswordStrength({
 						</h4>
 
 						<ul className="space-y-[var(--spacing-2)] text-sm">
-							{rules.map(rule => {
-								const passed = rule.test(password)
+							{rules.map((rule) => {
+								const passed = rule.test(password);
 								return (
 									<li
 										key={rule.id}
 										data-tokens="applied"
 										className={cn(
-											'flex items-center gap-x-[var(--spacing-2)] transition-colors',
-											passed ? 'text-accent' : 'text-(--color-label-tertiary)'
+											"flex items-center gap-x-[var(--spacing-2)] transition-colors",
+											passed ? "text-accent" : "text-(--color-label-tertiary)",
 										)}
 									>
 										{passed ? (
@@ -153,14 +153,14 @@ function PasswordStrength({
 										)}
 										<span>{rule.label}</span>
 									</li>
-								)
+								);
 							})}
 						</ul>
 					</Popover.Content>
 				</Popover.Portal>
 			</Popover.Root>
 		</div>
-	)
+	);
 }
 
-export { PasswordStrength }
+export { PasswordStrength };

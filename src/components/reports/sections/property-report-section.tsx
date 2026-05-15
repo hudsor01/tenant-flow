@@ -1,15 +1,6 @@
-'use client'
+"use client";
 
-import { Button } from '#components/ui/button'
-import {
-	Card,
-	CardContent,
-	CardHeader,
-	CardDescription,
-	CardTitle
-} from '#components/ui/card'
-import { Skeleton } from '#components/ui/skeleton'
-import { Building2, Download } from 'lucide-react'
+import { Building2, Download } from "lucide-react";
 import {
 	Bar,
 	BarChart,
@@ -17,34 +8,43 @@ import {
 	ResponsiveContainer,
 	Tooltip,
 	XAxis,
-	YAxis
-} from 'recharts'
-import { formatPercent, safeFormatPercent } from '../reports-utils'
+	YAxis,
+} from "recharts";
+import { Button } from "#components/ui/button";
+import {
+	Card,
+	CardContent,
+	CardDescription,
+	CardHeader,
+	CardTitle,
+} from "#components/ui/card";
+import { Skeleton } from "#components/ui/skeleton";
+import { formatPercent, safeFormatPercent } from "../reports-utils";
 
 interface PropertyReportData {
 	summary: {
-		totalProperties: number
-		totalUnits: number
-		occupancyRate: number
-	}
+		totalProperties: number;
+		totalUnits: number;
+		occupancyRate: number;
+	};
 	byProperty: Array<{
-		propertyName: string
-		occupancyRate: number
-	}>
+		propertyName: string;
+		occupancyRate: number;
+	}>;
 }
 
 interface PropertyReportSectionProps {
-	data: PropertyReportData | undefined
-	isLoading: boolean
-	isExporting: boolean
-	onExport: () => void
+	data: PropertyReportData | undefined;
+	isLoading: boolean;
+	isExporting: boolean;
+	onExport: () => void;
 }
 
 export function PropertyReportSection({
 	data,
 	isLoading,
 	isExporting,
-	onExport
+	onExport,
 }: PropertyReportSectionProps) {
 	return (
 		<section className="flex flex-col gap-4">
@@ -123,5 +123,5 @@ export function PropertyReportSection({
 				</>
 			) : null}
 		</section>
-	)
+	);
 }

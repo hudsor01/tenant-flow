@@ -1,23 +1,28 @@
-import Link from 'next/link'
-import { ArrowRight, Check, X, Minus, Plus } from 'lucide-react'
-import { Button } from '#components/ui/button'
-import type { CompetitorData, FeatureSupport } from '#types/sections/compare'
+import { ArrowRight, Check, Minus, Plus, X } from "lucide-react";
+import Link from "next/link";
+import { Button } from "#components/ui/button";
+import type { CompetitorData, FeatureSupport } from "#types/sections/compare";
 
 function FeatureIcon({ support }: { support: FeatureSupport }) {
 	switch (support) {
-		case 'yes':
-			return <Check className="size-5 text-green-600" />
-		case 'no':
-			return <X className="size-5 text-red-400" />
-		case 'partial':
-			return <Minus className="size-5 text-amber-500" />
-		case 'addon':
-			return <Plus className="size-5 text-blue-500" />
-		case 'na':
+		case "yes":
+			return <Check className="size-5 text-green-600" />;
+		case "no":
+			return <X className="size-5 text-red-400" />;
+		case "partial":
+			return <Minus className="size-5 text-amber-500" />;
+		case "addon":
+			return <Plus className="size-5 text-blue-500" />;
+		case "na":
 			// CONS-07: neutral framing for "by design" feature absences
 			// (ACH/Payment, HOA Management) — these are positioning
 			// choices on the landlord-only platform, not gaps.
-			return <Minus className="size-5 text-muted-foreground" aria-label="Not applicable" />
+			return (
+				<Minus
+					className="size-5 text-muted-foreground"
+					aria-label="Not applicable"
+				/>
+			);
 	}
 }
 
@@ -37,24 +42,20 @@ export function PricingComparison({ data }: { data: CompetitorData }) {
 							Transparent, flat-rate pricing
 						</p>
 						<div className="space-y-4">
-							{data.tenantflowPricing.map(tier => (
+							{data.tenantflowPricing.map((tier) => (
 								<div
 									key={tier.name}
 									className="flex items-center justify-between border-b border-border pb-3"
 								>
 									<div>
-										<p className="font-medium text-foreground">
-											{tier.name}
-										</p>
+										<p className="font-medium text-foreground">{tier.name}</p>
 										{tier.note && (
 											<p className="text-sm text-muted-foreground">
 												{tier.note}
 											</p>
 										)}
 									</div>
-									<p className="text-lg font-bold text-primary">
-										{tier.price}
-									</p>
+									<p className="text-lg font-bold text-primary">{tier.price}</p>
 								</div>
 							))}
 						</div>
@@ -67,19 +68,15 @@ export function PricingComparison({ data }: { data: CompetitorData }) {
 						<h3 className="text-xl font-bold text-foreground mb-1">
 							{data.name}
 						</h3>
-						<p className="text-sm text-muted-foreground mb-6">
-							{data.bestFor}
-						</p>
+						<p className="text-sm text-muted-foreground mb-6">{data.bestFor}</p>
 						<div className="space-y-4">
-							{data.competitorPricing.map(tier => (
+							{data.competitorPricing.map((tier) => (
 								<div
 									key={tier.name}
 									className="flex items-center justify-between border-b border-border pb-3"
 								>
 									<div>
-										<p className="font-medium text-foreground">
-											{tier.name}
-										</p>
+										<p className="font-medium text-foreground">{tier.name}</p>
 										{tier.note && (
 											<p className="text-sm text-muted-foreground">
 												{tier.note}
@@ -96,7 +93,7 @@ export function PricingComparison({ data }: { data: CompetitorData }) {
 				</div>
 			</div>
 		</section>
-	)
+	);
 }
 
 export function FeatureTable({ data }: { data: CompetitorData }) {
@@ -125,20 +122,14 @@ export function FeatureTable({ data }: { data: CompetitorData }) {
 							{data.features.map((feature, i) => (
 								<tr
 									key={feature.name}
-									className={
-										i % 2 === 0
-											? 'bg-background'
-											: 'bg-muted/20'
-									}
+									className={i % 2 === 0 ? "bg-background" : "bg-muted/20"}
 								>
 									<td className="p-4 font-medium text-foreground">
 										{feature.name}
 									</td>
 									<td className="p-4 text-center">
 										<div className="flex flex-col items-center gap-1">
-											<FeatureIcon
-												support={feature.tenantflow}
-											/>
+											<FeatureIcon support={feature.tenantflow} />
 											{feature.tenantflowNote && (
 												<span className="text-xs text-muted-foreground">
 													{feature.tenantflowNote}
@@ -148,9 +139,7 @@ export function FeatureTable({ data }: { data: CompetitorData }) {
 									</td>
 									<td className="p-4 text-center">
 										<div className="flex flex-col items-center gap-1">
-											<FeatureIcon
-												support={feature.competitor}
-											/>
+											<FeatureIcon support={feature.competitor} />
 											{feature.competitorNote && (
 												<span className="text-xs text-muted-foreground">
 													{feature.competitorNote}
@@ -165,7 +154,7 @@ export function FeatureTable({ data }: { data: CompetitorData }) {
 				</div>
 			</div>
 		</section>
-	)
+	);
 }
 
 export function WhySwitchSection({ data }: { data: CompetitorData }) {
@@ -178,11 +167,8 @@ export function WhySwitchSection({ data }: { data: CompetitorData }) {
 							Why Switch to TenantFlow
 						</h2>
 						<ul className="space-y-4">
-							{data.whySwitch.map(reason => (
-								<li
-									key={reason}
-									className="flex gap-3 text-muted-foreground"
-								>
+							{data.whySwitch.map((reason) => (
+								<li key={reason} className="flex gap-3 text-muted-foreground">
 									<Check className="size-5 text-green-600 mt-0.5 shrink-0" />
 									<span>{reason}</span>
 								</li>
@@ -194,11 +180,8 @@ export function WhySwitchSection({ data }: { data: CompetitorData }) {
 							Where {data.name} Excels
 						</h2>
 						<ul className="space-y-4">
-							{data.competitorStrengths.map(strength => (
-								<li
-									key={strength}
-									className="flex gap-3 text-muted-foreground"
-								>
+							{data.competitorStrengths.map((strength) => (
+								<li key={strength} className="flex gap-3 text-muted-foreground">
 									<Check className="size-5 text-blue-500 mt-0.5 shrink-0" />
 									<span>{strength}</span>
 								</li>
@@ -208,7 +191,7 @@ export function WhySwitchSection({ data }: { data: CompetitorData }) {
 				</div>
 			</div>
 		</section>
-	)
+	);
 }
 
 export function BottomCta({ data }: { data: CompetitorData }) {
@@ -223,8 +206,7 @@ export function BottomCta({ data }: { data: CompetitorData }) {
 						href={`/blog/${data.blogSlug}`}
 						className="text-primary hover:text-primary/80 font-medium transition-colors"
 					>
-						Read our full TenantFlow vs {data.name} comparison
-						article
+						Read our full TenantFlow vs {data.name} comparison article
 						<ArrowRight className="inline size-4 ml-1" />
 					</Link>
 				</div>
@@ -237,7 +219,8 @@ export function BottomCta({ data }: { data: CompetitorData }) {
 							Ready to make the switch?
 						</h2>
 						<p className="text-lg text-muted-foreground mb-8">
-							Manage your rentals with the document vault, lease e-sign, and reports built for landlords. Start your 14-day free trial today.
+							Manage your rentals with the document vault, lease e-sign, and
+							reports built for landlords. Start your 14-day free trial today.
 						</p>
 						<div className="flex flex-col sm:flex-row gap-4 justify-center">
 							<Button size="lg" className="px-8" asChild>
@@ -256,5 +239,5 @@ export function BottomCta({ data }: { data: CompetitorData }) {
 				</div>
 			</section>
 		</>
-	)
+	);
 }

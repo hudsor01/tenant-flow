@@ -1,140 +1,138 @@
-'use client'
+"use client";
 
-import NumberFlow from '@number-flow/react'
-import { Button } from '#components/ui/button'
-import { Badge } from '#components/ui/badge'
-import { OwnerSubscribeDialog } from './owner-subscribe-dialog'
+import NumberFlow from "@number-flow/react";
+import { useMutation } from "@tanstack/react-query";
 import {
 	ArrowRight,
 	BadgeCheck,
 	Loader2,
 	Shield,
-	Sparkles
-} from 'lucide-react'
-import { useState } from 'react'
+	Sparkles,
+} from "lucide-react";
+import { useState } from "react";
+import { toast } from "sonner";
+import { Badge } from "#components/ui/badge";
+import { Button } from "#components/ui/button";
+import { createLogger } from "#lib/frontend-logger";
+import { checkoutRateLimiter } from "#lib/security";
 import {
 	createCheckoutSession,
-	isUserAuthenticated
-} from '#lib/stripe/stripe-client'
-import { checkoutRateLimiter } from '#lib/security'
-import { useMutation } from '@tanstack/react-query'
-import { toast } from 'sonner'
-import { createLogger } from '#lib/frontend-logger'
-import { cn } from '#lib/utils'
+	isUserAuthenticated,
+} from "#lib/stripe/stripe-client";
+import { cn } from "#lib/utils";
+import { OwnerSubscribeDialog } from "./owner-subscribe-dialog";
 
-const logger = createLogger({ component: 'PricingCardFeatured' })
+const logger = createLogger({ component: "PricingCardFeatured" });
 
 interface PricingPlan {
-	id: string
-	name: string
-	description: string
+	id: string;
+	name: string;
+	description: string;
 	price: {
-		monthly: number
-		yearly: number
-	}
-	annualTotal: number
-	features: string[]
-	popular: boolean
-	stripeMonthlyPriceId?: string | null
-	stripeAnnualPriceId?: string | null
+		monthly: number;
+		yearly: number;
+	};
+	annualTotal: number;
+	features: string[];
+	popular: boolean;
+	stripeMonthlyPriceId?: string | null;
+	stripeAnnualPriceId?: string | null;
 }
 
 interface PricingCardFeaturedProps {
-	plan: PricingPlan
-	billingCycle: 'monthly' | 'yearly'
-	className?: string
+	plan: PricingPlan;
+	billingCycle: "monthly" | "yearly";
+	className?: string;
 }
 
 export function PricingCardFeatured({
 	plan,
 	billingCycle,
-	className
+	className,
 }: PricingCardFeaturedProps) {
-	const [subscribeDialogOpen, setSubscribeDialogOpen] = useState(false)
+	const [subscribeDialogOpen, setSubscribeDialogOpen] = useState(false);
 
 	const subscriptionMutation = useMutation({
 		mutationFn: async (overrides?: {
-			customerEmail?: string
-			tenant_id?: string
+			customerEmail?: string;
+			tenant_id?: string;
 		}) => {
 			if (!checkoutRateLimiter.canMakeRequest()) {
 				throw new Error(
-					'Too many requests. Please wait a moment before trying again.'
-				)
+					"Too many requests. Please wait a moment before trying again.",
+				);
 			}
 
 			if (!overrides?.tenant_id) {
-				const authenticated = await isUserAuthenticated()
+				const authenticated = await isUserAuthenticated();
 				if (!authenticated) {
-					window.location.href = '/login'
-					throw new Error('Please sign in or create an account to subscribe')
+					window.location.href = "/login";
+					throw new Error("Please sign in or create an account to subscribe");
 				}
 			}
 
 			const stripePriceId =
-				billingCycle === 'yearly'
+				billingCycle === "yearly"
 					? plan.stripeAnnualPriceId
-					: plan.stripeMonthlyPriceId
+					: plan.stripeMonthlyPriceId;
 
 			if (!stripePriceId) {
-				throw new Error(
-					`No ${billingCycle} price configured for ${plan.name}`
-				)
+				throw new Error(`No ${billingCycle} price configured for ${plan.name}`);
 			}
 
-			toast.loading('Creating checkout session...', { id: 'checkout' })
+			toast.loading("Creating checkout session...", { id: "checkout" });
 
 			const result = await createCheckoutSession({
 				priceId: stripePriceId,
 				planName: plan.name,
 				...(overrides?.customerEmail && {
-					customerEmail: overrides.customerEmail
+					customerEmail: overrides.customerEmail,
 				}),
-				...(overrides?.tenant_id && { tenant_id: overrides.tenant_id })
-			})
+				...(overrides?.tenant_id && { tenant_id: overrides.tenant_id }),
+			});
 
 			if (!result.url) {
-				throw new Error('Failed to create checkout session')
+				throw new Error("Failed to create checkout session");
 			}
 
-			window.location.href = result.url
-			return { success: true }
+			window.location.href = result.url;
+			return { success: true };
 		},
 		onError: (error: Error) => {
-			logger.error('Checkout failed', {
-				metadata: { error: error.message }
-			})
+			logger.error("Checkout failed", {
+				metadata: { error: error.message },
+			});
 			toast.error(
-				error.message || 'Failed to start checkout. Please try again.'
-			)
+				error.message || "Failed to start checkout. Please try again.",
+			);
 		},
 		onSettled: () => {
-			toast.dismiss('checkout')
-		}
-	})
+			toast.dismiss("checkout");
+		},
+	});
 
 	const handleSubscribe = async () => {
-		if (subscriptionMutation.isPending) return
+		if (subscriptionMutation.isPending) return;
 
-		const authenticated = await isUserAuthenticated()
+		const authenticated = await isUserAuthenticated();
 		if (!authenticated) {
-			setSubscribeDialogOpen(true)
-			return
+			setSubscribeDialogOpen(true);
+			return;
 		}
 
-		await subscriptionMutation.mutateAsync({})
-	}
+		await subscriptionMutation.mutateAsync({});
+	};
 
-	const currentPrice = plan.price[billingCycle]
-	const monthlyEquivalent = plan.price.monthly
+	const currentPrice = plan.price[billingCycle];
+	const monthlyEquivalent = plan.price.monthly;
 
 	return (
 		<>
 			<div
 				className={cn(
-					'relative h-full rounded-2xl p-[2px] bg-gradient-to-br from-primary via-accent to-primary',
-					'animate-gradient-x',
-					className
+					"relative h-full rounded-2xl p-[2px] bg-gradient-to-br from-primary via-accent to-primary",
+					"animate-gradient-x",
+					className,
 				)}
 			>
 				{/* Most Popular Badge — CONS-05: top-0 + -translate-y-1/2 keeps the
@@ -159,7 +157,7 @@ export function PricingCardFeatured({
 
 					{/* Price */}
 					<div className="text-center mb-6">
-						{billingCycle === 'yearly' && (
+						{billingCycle === "yearly" && (
 							<div className="text-muted-foreground line-through text-lg mb-1">
 								${monthlyEquivalent}/mo
 							</div>
@@ -168,24 +166,24 @@ export function PricingCardFeatured({
 							<NumberFlow
 								className="text-5xl font-bold text-foreground"
 								format={{
-									style: 'currency',
-									currency: 'USD',
-									maximumFractionDigits: 0
+									style: "currency",
+									currency: "USD",
+									maximumFractionDigits: 0,
 								}}
 								value={currentPrice}
 							/>
 							<span className="text-muted-foreground font-medium">
-								/{billingCycle === 'yearly' ? 'mo' : 'month'}
+								/{billingCycle === "yearly" ? "mo" : "month"}
 							</span>
 						</div>
 						<p className="text-sm text-muted-foreground mt-1">
-							{billingCycle === 'yearly'
+							{billingCycle === "yearly"
 								? `Billed annually ($${plan.annualTotal}/year)`
-								: 'Billed monthly'}
+								: "Billed monthly"}
 						</p>
 						{/* CONS-10: per-card savings — monthly × 2 (2 months free
 						    on annual). Phase 5 math: Growth $98. */}
-						{billingCycle === 'yearly' && plan.price.monthly > 0 && (
+						{billingCycle === "yearly" && plan.price.monthly > 0 && (
 							<p className="text-sm font-semibold text-success mt-1">
 								Save ${plan.price.monthly * 2}/year
 							</p>
@@ -204,7 +202,7 @@ export function PricingCardFeatured({
 
 					{/* Features - 2 column grid for featured card */}
 					<div className="grid grid-cols-2 gap-x-6 gap-y-3 mb-8 flex-1">
-						{plan.features.map(feature => (
+						{plan.features.map((feature) => (
 							<div
 								key={feature}
 								className="flex items-start gap-2 text-sm text-muted-foreground"
@@ -254,11 +252,11 @@ export function PricingCardFeatured({
 				onComplete={async ({ email, tenant_id }) => {
 					await subscriptionMutation.mutateAsync({
 						customerEmail: email,
-						...(tenant_id && { tenant_id })
-					})
-					setSubscribeDialogOpen(false)
+						...(tenant_id && { tenant_id }),
+					});
+					setSubscribeDialogOpen(false);
 				}}
 			/>
 		</>
-	)
+	);
 }

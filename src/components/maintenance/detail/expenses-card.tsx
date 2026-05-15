@@ -1,27 +1,27 @@
+import { DollarSign } from "lucide-react";
 import {
 	Card,
 	CardContent,
 	CardDescription,
 	CardHeader,
-	CardTitle
-} from '#components/ui/card'
-import { formatCurrency } from '#lib/utils/currency'
-import { DollarSign } from 'lucide-react'
-import type { ExpenseRecord } from '#types/core'
-import { AddExpenseDialog } from './add-expense-dialog'
+	CardTitle,
+} from "#components/ui/card";
+import { formatCurrency } from "#lib/utils/currency";
+import type { ExpenseRecord } from "#types/core";
+import { AddExpenseDialog } from "./add-expense-dialog";
 
 interface ExpensesCardProps {
-	maintenanceId: string
-	expenses: ExpenseRecord[]
-	onRefresh: () => void
+	maintenanceId: string;
+	expenses: ExpenseRecord[];
+	onRefresh: () => void;
 }
 
 export function ExpensesCard({
 	maintenanceId,
 	expenses,
-	onRefresh
+	onRefresh,
 }: ExpensesCardProps) {
-	const totalExpenses = expenses.reduce((sum, e) => sum + (e.amount ?? 0), 0)
+	const totalExpenses = expenses.reduce((sum, e) => sum + (e.amount ?? 0), 0);
 
 	return (
 		<Card>
@@ -32,10 +32,7 @@ export function ExpensesCard({
 						Track costs associated with this request
 					</CardDescription>
 				</div>
-				<AddExpenseDialog
-					maintenanceId={maintenanceId}
-					onSuccess={onRefresh}
-				/>
+				<AddExpenseDialog maintenanceId={maintenanceId} onSuccess={onRefresh} />
 			</CardHeader>
 			<CardContent>
 				{expenses.length === 0 ? (
@@ -45,19 +42,19 @@ export function ExpensesCard({
 					</div>
 				) : (
 					<div className="space-y-3">
-						{expenses.map(expense => (
+						{expenses.map((expense) => (
 							<div
 								key={expense.id}
 								className="flex items-center justify-between p-3 rounded-lg border bg-muted/20"
 							>
 								<div>
 									<p className="font-medium">
-										{expense.vendor_name || 'Unknown Vendor'}
+										{expense.vendor_name || "Unknown Vendor"}
 									</p>
 									<p className="text-sm text-muted-foreground">
 										{expense.expense_date
 											? new Date(expense.expense_date).toLocaleDateString()
-											: 'No date'}
+											: "No date"}
 									</p>
 								</div>
 								<p className="font-medium">
@@ -67,11 +64,13 @@ export function ExpensesCard({
 						))}
 						<div className="flex items-center justify-between pt-3 border-t">
 							<p className="font-medium">Total</p>
-							<p className="font-bold text-lg">{formatCurrency(totalExpenses)}</p>
+							<p className="font-bold text-lg">
+								{formatCurrency(totalExpenses)}
+							</p>
 						</div>
 					</div>
 				)}
 			</CardContent>
 		</Card>
-	)
+	);
 }

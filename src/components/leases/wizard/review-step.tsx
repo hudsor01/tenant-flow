@@ -2,41 +2,42 @@
  * Lease Creation Wizard - Step 4: Review
  * Summary of all entered data before submission
  */
-import { Badge } from '#components/ui/badge'
-import { Separator } from '#components/ui/separator'
-import { formatCents } from '#lib/utils/currency'
-import { formatDate, getOrdinalSuffix } from '#lib/formatters/date'
+
 import {
-	CheckCircle2,
-	Home,
-	User,
 	Calendar,
+	CheckCircle2,
 	DollarSign,
+	FileText,
+	Home,
 	PawPrint,
+	User,
 	Zap,
-	FileText
-} from 'lucide-react'
-import type { LeaseWizardData } from '#lib/validation/lease-wizard.schemas'
+} from "lucide-react";
+import { Badge } from "#components/ui/badge";
+import { Separator } from "#components/ui/separator";
+import { formatDate, getOrdinalSuffix } from "#lib/formatters/date";
+import { formatCents } from "#lib/utils/currency";
+import type { LeaseWizardData } from "#lib/validation/lease-wizard.schemas";
 
 // Format cents to currency, returning '-' for null/undefined
 const formatCentsOrDash = (cents?: number | null) =>
-	typeof cents === 'number' ? formatCents(cents) : '-'
+	typeof cents === "number" ? formatCents(cents) : "-";
 
 interface ReviewStepProps {
-	data: Partial<LeaseWizardData>
-	propertyName?: string | undefined
-	unitNumber?: string | undefined
-	tenantName?: string | undefined
+	data: Partial<LeaseWizardData>;
+	propertyName?: string | undefined;
+	unitNumber?: string | undefined;
+	tenantName?: string | undefined;
 }
 
 export function ReviewStep({
 	data,
 	propertyName,
 	unitNumber,
-	tenantName
+	tenantName,
 }: ReviewStepProps) {
 	const formatLeaseDate = (dateStr: string | undefined) =>
-		dateStr ? formatDate(dateStr, { style: 'long' }) || '-' : '-'
+		dateStr ? formatDate(dateStr, { style: "long" }) || "-" : "-";
 
 	return (
 		<div className="space-y-6">
@@ -56,19 +57,19 @@ export function ReviewStep({
 				<div className="grid grid-cols-2 gap-4 pl-6">
 					<div>
 						<p className="text-sm text-muted-foreground">Property</p>
-						<p className="font-medium">{propertyName || 'Not selected'}</p>
+						<p className="font-medium">{propertyName || "Not selected"}</p>
 					</div>
 					<div>
 						<p className="text-sm text-muted-foreground">Unit</p>
-						<p className="font-medium">{unitNumber || 'Not selected'}</p>
+						<p className="font-medium">{unitNumber || "Not selected"}</p>
 					</div>
 					<div>
 						<p className="text-sm text-muted-foreground">Tenant</p>
-						<p className="font-medium">{tenantName || 'Not selected'}</p>
+						<p className="font-medium">{tenantName || "Not selected"}</p>
 					</div>
 					<div>
 						<p className="text-sm text-muted-foreground">Governing State</p>
-						<p className="font-medium">{data.governing_state || 'TX'}</p>
+						<p className="font-medium">{data.governing_state || "TX"}</p>
 					</div>
 				</div>
 			</div>
@@ -119,7 +120,7 @@ export function ReviewStep({
 						<p className="font-medium">
 							{data.payment_day
 								? `${data.payment_day}${getOrdinalSuffix(data.payment_day)} of month`
-								: '-'}
+								: "-"}
 						</p>
 					</div>
 					<div>
@@ -127,7 +128,7 @@ export function ReviewStep({
 						<p className="font-medium">
 							{data.grace_period_days !== undefined
 								? `${data.grace_period_days} days`
-								: '-'}
+								: "-"}
 						</p>
 					</div>
 					<div>
@@ -151,7 +152,7 @@ export function ReviewStep({
 					<div>
 						<p className="text-sm text-muted-foreground">Max Occupants</p>
 						<p className="font-medium">
-							{data.max_occupants || 'Not specified'}
+							{data.max_occupants || "Not specified"}
 						</p>
 					</div>
 					<div>
@@ -197,9 +198,9 @@ export function ReviewStep({
 						</p>
 						<div className="flex flex-wrap gap-1">
 							{data.utilities_included?.length ? (
-								data.utilities_included.map(u => (
+								data.utilities_included.map((u) => (
 									<Badge key={u} variant="outline" className="capitalize">
-										{u.replace('_', ' ')}
+										{u.replace("_", " ")}
 									</Badge>
 								))
 							) : (
@@ -213,9 +214,9 @@ export function ReviewStep({
 						</p>
 						<div className="flex flex-wrap gap-1">
 							{data.tenant_responsible_utilities?.length ? (
-								data.tenant_responsible_utilities.map(u => (
+								data.tenant_responsible_utilities.map((u) => (
 									<Badge key={u} variant="secondary" className="capitalize">
-										{u.replace('_', ' ')}
+										{u.replace("_", " ")}
 									</Badge>
 								))
 							) : (
@@ -251,8 +252,8 @@ export function ReviewStep({
 							<CheckCircle2
 								className={`h-4 w-4 ${
 									data.lead_paint_disclosure_acknowledged
-										? 'text-green-500'
-										: 'text-amber-500'
+										? "text-green-500"
+										: "text-amber-500"
 								}`}
 							/>
 							<h4 className="font-medium">Lead Paint Disclosure</h4>
@@ -270,5 +271,5 @@ export function ReviewStep({
 				</>
 			)}
 		</div>
-	)
+	);
 }

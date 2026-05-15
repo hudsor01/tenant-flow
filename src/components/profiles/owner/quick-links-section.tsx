@@ -1,11 +1,11 @@
-'use client'
+"use client";
 
-import { ExternalLink, Mail, Settings, Shield } from 'lucide-react'
-import { BlurFade } from '#components/ui/blur-fade'
-import { useRouter } from 'next/navigation'
+import { ExternalLink, Mail, Settings, Shield } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { BlurFade } from "#components/ui/blur-fade";
 
 export function QuickLinksSection() {
-	const router = useRouter()
+	const router = useRouter();
 
 	return (
 		<BlurFade delay={0.75} inView>
@@ -15,7 +15,7 @@ export function QuickLinksSection() {
 				<div className="grid gap-3 sm:grid-cols-4">
 					<button
 						type="button"
-						onClick={() => router.push('/settings')}
+						onClick={() => router.push("/settings")}
 						className="flex flex-col items-center gap-2 rounded-lg border p-4 text-center transition-colors hover:bg-muted/50 hover:border-primary/50 group"
 					>
 						<div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 text-primary group-hover:bg-primary group-hover:text-primary-foreground transition-colors">
@@ -31,7 +31,7 @@ export function QuickLinksSection() {
 
 					<button
 						type="button"
-						onClick={() => router.push('/settings?tab=billing')}
+						onClick={() => router.push("/settings?tab=billing")}
 						className="flex flex-col items-center gap-2 rounded-lg border p-4 text-center transition-colors hover:bg-muted/50 hover:border-primary/50 group"
 					>
 						<div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 text-primary group-hover:bg-primary group-hover:text-primary-foreground transition-colors">
@@ -47,7 +47,7 @@ export function QuickLinksSection() {
 
 					<button
 						type="button"
-						onClick={() => router.push('/settings?tab=security')}
+						onClick={() => router.push("/settings?tab=security")}
 						className="flex flex-col items-center gap-2 rounded-lg border p-4 text-center transition-colors hover:bg-muted/50 hover:border-primary/50 group"
 					>
 						<div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 text-primary group-hover:bg-primary group-hover:text-primary-foreground transition-colors">
@@ -63,7 +63,7 @@ export function QuickLinksSection() {
 
 					<button
 						type="button"
-						onClick={() => router.push('/settings?tab=notifications')}
+						onClick={() => router.push("/settings?tab=notifications")}
 						className="flex flex-col items-center gap-2 rounded-lg border p-4 text-center transition-colors hover:bg-muted/50 hover:border-primary/50 group"
 					>
 						<div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 text-primary group-hover:bg-primary group-hover:text-primary-foreground transition-colors">
@@ -79,5 +79,5 @@ export function QuickLinksSection() {
 				</div>
 			</section>
 		</BlurFade>
-	)
+	);
 }

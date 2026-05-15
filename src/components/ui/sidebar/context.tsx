@@ -1,45 +1,43 @@
-'use client'
+"use client";
 
-import { createContext, useContext, useEffect, useState } from 'react'
-import type { ComponentProps, CSSProperties } from 'react'
-import { TooltipProvider } from '#components/ui/tooltip'
-import { useMediaQuery } from '#hooks/use-media-query'
-import { cn } from '#lib/utils'
+import type { ComponentProps, CSSProperties } from "react";
+import { createContext, useContext, useEffect, useState } from "react";
+import { TooltipProvider } from "#components/ui/tooltip";
+import { useMediaQuery } from "#hooks/use-media-query";
+import { cn } from "#lib/utils";
 
-export const SIDEBAR_COOKIE_NAME = 'sidebar_state'
-export const SIDEBAR_COOKIE_MAX_AGE = 60 * 60 * 24 * 7
-export const SIDEBAR_WIDTH = '16rem'
-export const SIDEBAR_WIDTH_MOBILE = '18rem'
-export const SIDEBAR_WIDTH_ICON = '3rem'
-export const SIDEBAR_KEYBOARD_SHORTCUT = 'b'
+export const SIDEBAR_COOKIE_NAME = "sidebar_state";
+export const SIDEBAR_COOKIE_MAX_AGE = 60 * 60 * 24 * 7;
+export const SIDEBAR_WIDTH = "16rem";
+export const SIDEBAR_WIDTH_MOBILE = "18rem";
+export const SIDEBAR_WIDTH_ICON = "3rem";
+export const SIDEBAR_KEYBOARD_SHORTCUT = "b";
 
 export interface SidebarContextProps {
-	state: 'expanded' | 'collapsed'
-	open: boolean
-	setOpen: (open: boolean) => void
-	openMobile: boolean
-	setOpenMobile: (open: boolean) => void
-	isMobile: boolean
-	toggleSidebar: () => void
+	state: "expanded" | "collapsed";
+	open: boolean;
+	setOpen: (open: boolean) => void;
+	openMobile: boolean;
+	setOpenMobile: (open: boolean) => void;
+	isMobile: boolean;
+	toggleSidebar: () => void;
 }
 
-export const SidebarContext = createContext<SidebarContextProps | null>(
-	null
-)
+export const SidebarContext = createContext<SidebarContextProps | null>(null);
 
 export function useSidebar(): SidebarContextProps {
-	const context = useContext(SidebarContext)
+	const context = useContext(SidebarContext);
 	if (!context) {
-		throw new Error('useSidebar must be used within a SidebarProvider.')
+		throw new Error("useSidebar must be used within a SidebarProvider.");
 	}
 
-	return context
+	return context;
 }
 
-export interface SidebarProviderProps extends ComponentProps<'div'> {
-	defaultOpen?: boolean
-	open?: boolean
-	onOpenChange?: (open: boolean) => void
+export interface SidebarProviderProps extends ComponentProps<"div"> {
+	defaultOpen?: boolean;
+	open?: boolean;
+	onOpenChange?: (open: boolean) => void;
 }
 
 export function SidebarProvider({
@@ -51,45 +49,45 @@ export function SidebarProvider({
 	children,
 	...props
 }: SidebarProviderProps) {
-	const isMobile = useMediaQuery('(max-width: 767px)')
-	const [openMobile, setOpenMobile] = useState(false)
+	const isMobile = useMediaQuery("(max-width: 767px)");
+	const [openMobile, setOpenMobile] = useState(false);
 
 	// Read initial state from cookie to prevent SSR hydration mismatch
 	const getInitialOpenState = () => {
-		if (typeof window === 'undefined') {
-			return defaultOpen // Server-side default
+		if (typeof window === "undefined") {
+			return defaultOpen; // Server-side default
 		}
 		try {
 			const cookieValue = document.cookie
-				.split('; ')
+				.split("; ")
 				.find((row) => row.startsWith(`${SIDEBAR_COOKIE_NAME}=`))
-				?.split('=')[1]
-			return cookieValue ? cookieValue === 'true' : defaultOpen
+				?.split("=")[1];
+			return cookieValue ? cookieValue === "true" : defaultOpen;
 		} catch {
-			return defaultOpen
+			return defaultOpen;
 		}
-	}
+	};
 
 	// This is the internal state of the sidebar.
 	// We use openProp and setOpenProp for control from outside the component.
-	const [_open, _setOpen] = useState(getInitialOpenState)
-	const open = openProp ?? _open
+	const [_open, _setOpen] = useState(getInitialOpenState);
+	const open = openProp ?? _open;
 	const setOpen = (value: boolean | ((value: boolean) => boolean)) => {
-			const openState = typeof value === 'function' ? value(open) : value
-			if (setOpenProp) {
-				setOpenProp(openState)
-			} else {
-				_setOpen(openState)
-			}
-
-			// This sets the cookie to keep the sidebar state.
-			document.cookie = `${SIDEBAR_COOKIE_NAME}=${openState}; path=/; max-age=${SIDEBAR_COOKIE_MAX_AGE}; SameSite=Lax; Secure`
+		const openState = typeof value === "function" ? value(open) : value;
+		if (setOpenProp) {
+			setOpenProp(openState);
+		} else {
+			_setOpen(openState);
 		}
+
+		// This sets the cookie to keep the sidebar state.
+		document.cookie = `${SIDEBAR_COOKIE_NAME}=${openState}; path=/; max-age=${SIDEBAR_COOKIE_MAX_AGE}; SameSite=Lax; Secure`;
+	};
 
 	// Helper to toggle the sidebar.
 	const toggleSidebar = () => {
-		return isMobile ? setOpenMobile((o) => !o) : setOpen((o) => !o)
-	}
+		return isMobile ? setOpenMobile((o) => !o) : setOpen((o) => !o);
+	};
 
 	// Adds a keyboard shortcut to toggle the sidebar.
 	useEffect(() => {
@@ -98,28 +96,28 @@ export function SidebarProvider({
 				event.key === SIDEBAR_KEYBOARD_SHORTCUT &&
 				(event.metaKey || event.ctrlKey)
 			) {
-				event.preventDefault()
-				toggleSidebar()
+				event.preventDefault();
+				toggleSidebar();
 			}
-		}
+		};
 
-		window.addEventListener('keydown', handleKeyDown)
-		return () => window.removeEventListener('keydown', handleKeyDown)
-	})
+		window.addEventListener("keydown", handleKeyDown);
+		return () => window.removeEventListener("keydown", handleKeyDown);
+	});
 
 	// We add a state so that we can do data-state="expanded" or "collapsed".
 	// This makes it easier to style the sidebar with Tailwind classes.
-	const state: 'expanded' | 'collapsed' = open ? 'expanded' : 'collapsed'
+	const state: "expanded" | "collapsed" = open ? "expanded" : "collapsed";
 
-	const contextValue: SidebarContextProps = ({
-			state,
-			open,
-			setOpen,
-			isMobile,
-			openMobile,
-			setOpenMobile,
-			toggleSidebar
-		})
+	const contextValue: SidebarContextProps = {
+		state,
+		open,
+		setOpen,
+		isMobile,
+		openMobile,
+		setOpenMobile,
+		toggleSidebar,
+	};
 
 	return (
 		<SidebarContext.Provider value={contextValue}>
@@ -127,14 +125,14 @@ export function SidebarProvider({
 				<div
 					style={
 						{
-							'--sidebar-width': SIDEBAR_WIDTH,
-							'--sidebar-width-icon': SIDEBAR_WIDTH_ICON,
-							...style
+							"--sidebar-width": SIDEBAR_WIDTH,
+							"--sidebar-width-icon": SIDEBAR_WIDTH_ICON,
+							...style,
 						} as CSSProperties
 					}
 					className={cn(
-						'group/sidebar-wrapper has-data-[variant=inset]:bg-sidebar flex min-h-svh w-full',
-						className
+						"group/sidebar-wrapper has-data-[variant=inset]:bg-sidebar flex min-h-svh w-full",
+						className,
 					)}
 					{...props}
 				>
@@ -142,5 +140,5 @@ export function SidebarProvider({
 				</div>
 			</TooltipProvider>
 		</SidebarContext.Provider>
-	)
+	);
 }

@@ -1,18 +1,18 @@
-'use client'
+"use client";
 
-import type { ReactNode } from 'react'
-import { Card, CardContent, CardHeader, CardTitle } from '#components/ui/card'
-import { Button } from '#components/ui/button'
-import { Download, Eye } from 'lucide-react'
+import { Download, Eye } from "lucide-react";
+import type { ReactNode } from "react";
+import { Button } from "#components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "#components/ui/card";
 
 interface TemplatePreviewPanelProps {
-	title: string
-	previewUrl: string | null
-	isGenerating: boolean
-	isExporting: boolean
-	onPreview: () => void
-	onExport: () => void
-	children?: ReactNode
+	title: string;
+	previewUrl: string | null;
+	isGenerating: boolean;
+	isExporting: boolean;
+	onPreview: () => void;
+	onExport: () => void;
+	children?: ReactNode;
 }
 
 export function TemplatePreviewPanel({
@@ -22,7 +22,7 @@ export function TemplatePreviewPanel({
 	isExporting,
 	onPreview,
 	onExport,
-	children
+	children,
 }: TemplatePreviewPanelProps) {
 	return (
 		<Card className="h-full">
@@ -38,7 +38,7 @@ export function TemplatePreviewPanel({
 							disabled={isGenerating}
 						>
 							<Eye className="mr-2 size-4" />
-							{isGenerating ? 'Generating...' : 'Preview PDF'}
+							{isGenerating ? "Generating..." : "Preview PDF"}
 						</Button>
 						<Button
 							type="button"
@@ -47,7 +47,7 @@ export function TemplatePreviewPanel({
 							disabled={isExporting}
 						>
 							<Download className="mr-2 size-4" />
-							{isExporting ? 'Exporting...' : 'Export PDF'}
+							{isExporting ? "Exporting..." : "Export PDF"}
 						</Button>
 					</div>
 				</CardTitle>
@@ -67,5 +67,5 @@ export function TemplatePreviewPanel({
 				)}
 			</CardContent>
 		</Card>
-	)
+	);
 }

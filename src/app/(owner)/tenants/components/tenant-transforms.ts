@@ -1,28 +1,24 @@
-import type { TenantWithLeaseInfo } from '#types/core'
-import type { LeaseStatus } from '#types/core'
-import type {
-	TenantItem,
-	TenantSectionDetail
-} from '#types/sections/tenants'
+import type { LeaseStatus, TenantWithLeaseInfo } from "#types/core";
+import type { TenantItem, TenantSectionDetail } from "#types/sections/tenants";
 
 type TenantPaymentStatus = NonNullable<
-	TenantSectionDetail['paymentHistory']
->[number]['status']
+	TenantSectionDetail["paymentHistory"]
+>[number]["status"];
 
 export function normalizePaymentStatus(
-	status: string | null | undefined
+	status: string | null | undefined,
 ): TenantPaymentStatus {
-	const normalized = status?.toLowerCase()
+	const normalized = status?.toLowerCase();
 	if (
-		normalized === 'pending' ||
-		normalized === 'processing' ||
-		normalized === 'succeeded' ||
-		normalized === 'failed' ||
-		normalized === 'cancelled'
+		normalized === "pending" ||
+		normalized === "processing" ||
+		normalized === "succeeded" ||
+		normalized === "failed" ||
+		normalized === "cancelled"
 	) {
-		return normalized
+		return normalized;
 	}
-	return 'processing'
+	return "processing";
 }
 
 /**
@@ -30,30 +26,30 @@ export function normalizePaymentStatus(
  */
 export function transformToTenantItem(
 	tenant: TenantWithLeaseInfo,
-	totalPaidByTenant?: Map<string, number>
+	totalPaidByTenant?: Map<string, number>,
 ): TenantItem {
 	const displayName =
 		tenant.name ||
 		(tenant.first_name && tenant.last_name
 			? `${tenant.first_name} ${tenant.last_name}`.trim()
-			: tenant.first_name || tenant.last_name || 'Unknown')
+			: tenant.first_name || tenant.last_name || "Unknown");
 
 	// Map API status to design-os LeaseStatus
-	let leaseStatus: LeaseStatus | undefined
+	let leaseStatus: LeaseStatus | undefined;
 	if (tenant.lease_status) {
-		const status = String(tenant.lease_status).toLowerCase()
-		if (status === 'active') leaseStatus = 'active'
-		else if (status === 'pending' || status === 'pending_signature')
-			leaseStatus = 'pending_signature'
-		else if (status === 'expired' || status === 'ended') leaseStatus = 'ended'
-		else if (status === 'terminated') leaseStatus = 'terminated'
-		else if (status === 'draft') leaseStatus = 'draft'
+		const status = String(tenant.lease_status).toLowerCase();
+		if (status === "active") leaseStatus = "active";
+		else if (status === "pending" || status === "pending_signature")
+			leaseStatus = "pending_signature";
+		else if (status === "expired" || status === "ended") leaseStatus = "ended";
+		else if (status === "terminated") leaseStatus = "terminated";
+		else if (status === "draft") leaseStatus = "draft";
 	}
 
 	return {
 		id: tenant.id,
 		fullName: displayName,
-		email: tenant.email ?? '',
+		email: tenant.email ?? "",
 		...(tenant.phone ? { phone: tenant.phone } : {}),
 		...(tenant.property?.name ? { currentProperty: tenant.property.name } : {}),
 		...(tenant.unit?.unit_number
@@ -61,8 +57,8 @@ export function transformToTenantItem(
 			: {}),
 		...(leaseStatus ? { leaseStatus } : {}),
 		...(tenant.currentLease?.id ? { leaseId: tenant.currentLease.id } : {}),
-		totalPaid: totalPaidByTenant?.get(tenant.id) ?? 0
-	}
+		totalPaid: totalPaidByTenant?.get(tenant.id) ?? 0,
+	};
 }
 
 /**
@@ -71,9 +67,9 @@ export function transformToTenantItem(
 export function transformToTenantSectionDetail(
 	tenant: TenantWithLeaseInfo,
 	totalPaidByTenant?: Map<string, number>,
-	paymentHistory?: TenantSectionDetail['paymentHistory']
+	paymentHistory?: TenantSectionDetail["paymentHistory"],
 ): TenantSectionDetail {
-	const base = transformToTenantItem(tenant, totalPaidByTenant)
+	const base = transformToTenantItem(tenant, totalPaidByTenant);
 
 	return {
 		...base,
@@ -94,13 +90,13 @@ export function transformToTenantSectionDetail(
 			? {
 					currentLease: {
 						id: tenant.currentLease.id,
-						propertyName: tenant.property?.name ?? '',
-						unitNumber: tenant.unit?.unit_number ?? '',
+						propertyName: tenant.property?.name ?? "",
+						unitNumber: tenant.unit?.unit_number ?? "",
 						startDate: tenant.currentLease.start_date,
 						endDate: tenant.currentLease.end_date,
-						rentAmount: (tenant.currentLease.rent_amount ?? 0) * 100 // Convert to cents
-					}
+						rentAmount: (tenant.currentLease.rent_amount ?? 0) * 100, // Convert to cents
+					},
 				}
-			: {})
-	}
+			: {}),
+	};
 }

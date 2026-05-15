@@ -1,91 +1,91 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
-import { useDropzone } from 'react-dropzone'
-import { Upload, X, CheckCircle } from 'lucide-react'
-import { Button } from '#components/ui/button'
-import { createClient } from '#lib/supabase/client'
-import { useRecordInspectionPhoto } from '#hooks/api/use-inspection-photo-mutations'
-import { toast } from 'sonner'
+import { CheckCircle, Upload, X } from "lucide-react";
+import { useState } from "react";
+import { useDropzone } from "react-dropzone";
+import { toast } from "sonner";
+import { Button } from "#components/ui/button";
+import { useRecordInspectionPhoto } from "#hooks/api/use-inspection-photo-mutations";
+import { createClient } from "#lib/supabase/client";
 
 interface InspectionPhotoUploadProps {
-	inspectionId: string
-	roomId: string
-	onUploadComplete?: () => void
+	inspectionId: string;
+	roomId: string;
+	onUploadComplete?: () => void;
 }
 
 interface FileUploadState {
-	file: File
-	objectUrl: string
-	status: 'pending' | 'uploading' | 'success' | 'error'
-	error?: string
+	file: File;
+	objectUrl: string;
+	status: "pending" | "uploading" | "success" | "error";
+	error?: string;
 }
 
 export function InspectionPhotoUpload({
 	inspectionId,
 	roomId,
-	onUploadComplete
+	onUploadComplete,
 }: InspectionPhotoUploadProps) {
-	const [files, setFiles] = useState<FileUploadState[]>([])
-	const [isUploading, setIsUploading] = useState(false)
-	const recordPhoto = useRecordInspectionPhoto(inspectionId)
+	const [files, setFiles] = useState<FileUploadState[]>([]);
+	const [isUploading, setIsUploading] = useState(false);
+	const recordPhoto = useRecordInspectionPhoto(inspectionId);
 
 	const onDrop = (acceptedFiles: File[]) => {
-		const newFiles = acceptedFiles.map(file => ({
+		const newFiles = acceptedFiles.map((file) => ({
 			file,
 			objectUrl: URL.createObjectURL(file),
-			status: 'pending' as const
-		}))
-		setFiles(prev => [...prev, ...newFiles])
-	}
+			status: "pending" as const,
+		}));
+		setFiles((prev) => [...prev, ...newFiles]);
+	};
 
 	const { getRootProps, getInputProps, isDragActive } = useDropzone({
 		onDrop,
 		accept: {
-			'image/jpeg': [],
-			'image/jpg': [],
-			'image/png': [],
-			'image/webp': []
+			"image/jpeg": [],
+			"image/jpg": [],
+			"image/png": [],
+			"image/webp": [],
 		},
 		maxSize: 10 * 1024 * 1024, // 10MB
-		multiple: true
-	})
+		multiple: true,
+	});
 
 	function removeFile(index: number) {
-		setFiles(prev => {
-			const file = prev[index]
-			if (file) URL.revokeObjectURL(file.objectUrl)
-			return prev.filter((_, i) => i !== index)
-		})
+		setFiles((prev) => {
+			const file = prev[index];
+			if (file) URL.revokeObjectURL(file.objectUrl);
+			return prev.filter((_, i) => i !== index);
+		});
 	}
 
 	async function handleUpload() {
-		if (files.length === 0) return
+		if (files.length === 0) return;
 
-		const supabase = createClient()
-		setIsUploading(true)
+		const supabase = createClient();
+		setIsUploading(true);
 
-		const pendingFiles = files.filter(f => f.status === 'pending')
+		const pendingFiles = files.filter((f) => f.status === "pending");
 
 		const results = await Promise.allSettled(
 			pendingFiles.map(async (fileState, idx) => {
-				const { file } = fileState
-				const fileExt = file.name.split('.').pop() ?? 'jpg'
-				const fileName = `${crypto.randomUUID()}.${fileExt}`
-				const storagePath = `${inspectionId}/${roomId}/${fileName}`
+				const { file } = fileState;
+				const fileExt = file.name.split(".").pop() ?? "jpg";
+				const fileName = `${crypto.randomUUID()}.${fileExt}`;
+				const storagePath = `${inspectionId}/${roomId}/${fileName}`;
 
 				// Mark as uploading
-				setFiles(prev =>
+				setFiles((prev) =>
 					prev.map((f, i) =>
-						i === idx ? { ...f, status: 'uploading' as const } : f
-					)
-				)
+						i === idx ? { ...f, status: "uploading" as const } : f,
+					),
+				);
 
 				const { error: uploadError } = await supabase.storage
-					.from('inspection-photos')
-					.upload(storagePath, file, { cacheControl: '3600', upsert: false })
+					.from("inspection-photos")
+					.upload(storagePath, file, { cacheControl: "3600", upsert: false });
 
-				if (uploadError) throw uploadError
+				if (uploadError) throw uploadError;
 
 				// Record the photo in the database
 				await recordPhoto.mutateAsync({
@@ -94,43 +94,45 @@ export function InspectionPhotoUpload({
 					storage_path: storagePath,
 					file_name: file.name,
 					file_size: file.size,
-					mime_type: file.type
-				})
+					mime_type: file.type,
+				});
 
 				// Mark as success
-				setFiles(prev =>
+				setFiles((prev) =>
 					prev.map((f, i) =>
-						i === idx ? { ...f, status: 'success' as const } : f
-					)
-				)
-			})
-		)
+						i === idx ? { ...f, status: "success" as const } : f,
+					),
+				);
+			}),
+		);
 
-		const successCount = results.filter(r => r.status === 'fulfilled').length
-		const errorCount = results.filter(r => r.status === 'rejected').length
+		const successCount = results.filter((r) => r.status === "fulfilled").length;
+		const errorCount = results.filter((r) => r.status === "rejected").length;
 
 		if (successCount > 0 && errorCount === 0) {
-			toast.success(`${successCount} photo${successCount > 1 ? 's' : ''} uploaded`)
+			toast.success(
+				`${successCount} photo${successCount > 1 ? "s" : ""} uploaded`,
+			);
 			// Clean up object URLs and clear successful uploads after a delay
 			setTimeout(() => {
-				setFiles(prev => {
-					const successFiles = prev.filter(f => f.status === 'success')
-					for (const f of successFiles) URL.revokeObjectURL(f.objectUrl)
-					const remaining = prev.filter(f => f.status !== 'success')
-					return remaining
-				})
-				onUploadComplete?.()
-			}, 1500)
+				setFiles((prev) => {
+					const successFiles = prev.filter((f) => f.status === "success");
+					for (const f of successFiles) URL.revokeObjectURL(f.objectUrl);
+					const remaining = prev.filter((f) => f.status !== "success");
+					return remaining;
+				});
+				onUploadComplete?.();
+			}, 1500);
 		} else if (errorCount > 0) {
 			toast.error(
-				`${errorCount} photo${errorCount > 1 ? 's' : ''} failed to upload`
-			)
+				`${errorCount} photo${errorCount > 1 ? "s" : ""} failed to upload`,
+			);
 		}
 
-		setIsUploading(false)
+		setIsUploading(false);
 	}
 
-	const pendingCount = files.filter(f => f.status === 'pending').length
+	const pendingCount = files.filter((f) => f.status === "pending").length;
 
 	return (
 		<div className="space-y-3">
@@ -139,8 +141,8 @@ export function InspectionPhotoUpload({
 				{...getRootProps()}
 				className={`border-2 border-dashed rounded-lg p-6 text-center cursor-pointer transition-colors ${
 					isDragActive
-						? 'border-primary bg-primary/5'
-						: 'border-border hover:border-primary/50 hover:bg-muted/30'
+						? "border-primary bg-primary/5"
+						: "border-border hover:border-primary/50 hover:bg-muted/30"
 				}`}
 			>
 				<input {...getInputProps()} />
@@ -150,8 +152,8 @@ export function InspectionPhotoUpload({
 				/>
 				<p className="text-sm text-muted-foreground">
 					{isDragActive
-						? 'Drop photos here'
-						: 'Drag photos here or click to select'}
+						? "Drop photos here"
+						: "Drag photos here or click to select"}
 				</p>
 				<p className="text-xs text-muted-foreground mt-1">
 					JPEG, PNG, WebP up to 10MB each
@@ -172,12 +174,12 @@ export function InspectionPhotoUpload({
 								className="w-full h-full object-cover"
 							/>
 							{/* Status overlay */}
-							{fileState.status === 'uploading' && (
+							{fileState.status === "uploading" && (
 								<div className="absolute inset-0 bg-black/40 flex items-center justify-center">
 									<div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
 								</div>
 							)}
-							{fileState.status === 'success' && (
+							{fileState.status === "success" && (
 								<div className="absolute inset-0 bg-black/20 flex items-center justify-center">
 									<CheckCircle
 										className="w-6 h-6 text-white"
@@ -186,7 +188,7 @@ export function InspectionPhotoUpload({
 								</div>
 							)}
 							{/* Remove button */}
-							{fileState.status === 'pending' && (
+							{fileState.status === "pending" && (
 								<button
 									type="button"
 									onClick={() => removeFile(index)}
@@ -211,10 +213,10 @@ export function InspectionPhotoUpload({
 					className="min-h-9"
 				>
 					{isUploading
-						? 'Uploading...'
-						: `Upload ${pendingCount} photo${pendingCount > 1 ? 's' : ''}`}
+						? "Uploading..."
+						: `Upload ${pendingCount} photo${pendingCount > 1 ? "s" : ""}`}
 				</Button>
 			)}
 		</div>
-	)
+	);
 }
