@@ -20,6 +20,20 @@ const TERMS_LAST_UPDATED = "2026-05-11";
 const PRIVACY_LAST_UPDATED = "2026-05-11";
 const SECURITY_POLICY_LAST_UPDATED = "2026-05-11";
 
+// "Last meaningful copy refresh" for the static marketing/company/compare/
+// resource pages. These pages don't have visible "Last Updated" lines
+// like the legal pages, but they DO change in coordinated copy waves
+// (pricing refreshes, feature reframings, brand updates). Bump this
+// constant — together with whatever copy change triggered it — whenever
+// the marketing surface changes materially. Leaving it stale is worse
+// than fake-fresh: Google compares the lastmod to the rendered page
+// content and degrades trust in the entire sitemap on disagreement.
+//
+// Battle-test Session 5 (P3) flagged that sparse lastmod coverage looked
+// unintentional; this constant + per-page entries below close that gap
+// without resorting to file-mtime ("today" on every commit) noise.
+const STATIC_PAGES_LAST_UPDATED = "2026-05-15";
+
 // `changeFrequency` is no longer consulted by Google as of 2023, and the
 // `lastmod` field is the only freshness signal that still affects crawl
 // scheduling. We omit `changeFrequency` from every entry below — emitting
@@ -41,26 +55,33 @@ const SECURITY_POLICY_LAST_UPDATED = "2026-05-11";
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 	const baseUrl = env.NEXT_PUBLIC_APP_URL || "https://tenantflow.app";
 
-	// High-priority marketing pages. No `lastModified` — content is
-	// hand-edited and the file's mtime would not reflect copy edits made
-	// in the same commit as a code-only change. The hub pages below DO
-	// derive lastmod from the most recent post; static landing pages
-	// don't have an equivalent signal.
+	// High-priority marketing pages. `lastModified` comes from
+	// `STATIC_PAGES_LAST_UPDATED` (single source of truth for the static
+	// marketing surface — bumped manually with each copy refresh wave).
 	const marketingPages: MetadataRoute.Sitemap = [
-		{ url: baseUrl, priority: 1.0 },
-		{ url: `${baseUrl}/features`, priority: 0.9 },
-		{ url: `${baseUrl}/pricing`, priority: 0.9 },
+		{ url: baseUrl, lastModified: STATIC_PAGES_LAST_UPDATED, priority: 1.0 },
+		{
+			url: `${baseUrl}/features`,
+			lastModified: STATIC_PAGES_LAST_UPDATED,
+			priority: 0.9,
+		},
+		{
+			url: `${baseUrl}/pricing`,
+			lastModified: STATIC_PAGES_LAST_UPDATED,
+			priority: 0.9,
+		},
 	];
 
-	// Comparison and resource detail pages — same reasoning. The
-	// per-competitor copy lives in `compare-data.ts`; if anyone touches
-	// it they should also bump a constant here. For now, omit lastmod.
+	// Comparison pages share the same refresh cadence as marketing copy.
+	// Per-competitor data lives in `src/data/compare-data.ts`; bump
+	// `STATIC_PAGES_LAST_UPDATED` when that file gets a material edit.
 	const comparePages: MetadataRoute.Sitemap = [
 		"buildium",
 		"appfolio",
 		"rentredi",
 	].map((competitor) => ({
 		url: `${baseUrl}/compare/${competitor}`,
+		lastModified: STATIC_PAGES_LAST_UPDATED,
 		priority: 0.8,
 	}));
 
@@ -70,15 +91,36 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 		"security-deposit-reference-card",
 	].map((resource) => ({
 		url: `${baseUrl}/resources/${resource}`,
+		lastModified: STATIC_PAGES_LAST_UPDATED,
 		priority: 0.7,
 	}));
 
 	const companyPages: MetadataRoute.Sitemap = [
-		{ url: `${baseUrl}/about`, priority: 0.7 },
-		{ url: `${baseUrl}/contact`, priority: 0.7 },
-		{ url: `${baseUrl}/faq`, priority: 0.6 },
-		{ url: `${baseUrl}/help`, priority: 0.6 },
-		{ url: `${baseUrl}/support`, priority: 0.6 },
+		{
+			url: `${baseUrl}/about`,
+			lastModified: STATIC_PAGES_LAST_UPDATED,
+			priority: 0.7,
+		},
+		{
+			url: `${baseUrl}/contact`,
+			lastModified: STATIC_PAGES_LAST_UPDATED,
+			priority: 0.7,
+		},
+		{
+			url: `${baseUrl}/faq`,
+			lastModified: STATIC_PAGES_LAST_UPDATED,
+			priority: 0.6,
+		},
+		{
+			url: `${baseUrl}/help`,
+			lastModified: STATIC_PAGES_LAST_UPDATED,
+			priority: 0.6,
+		},
+		{
+			url: `${baseUrl}/support`,
+			lastModified: STATIC_PAGES_LAST_UPDATED,
+			priority: 0.6,
+		},
 	];
 
 	// Legal pages — real lastmod from constants above. The visible
@@ -194,15 +236,20 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 		// blog freshness signal until the next ISR rebuild succeeds.
 	}
 
+	// Hub freshness derives from the most recent post (honest signal of
+	// what changed on the URL). If the DB lookup failed or the table is
+	// empty, fall back to the static-pages constant so the URL still
+	// ships with a lastmod — sparse coverage was the P3 finding from
+	// battle-test Session 5.
 	const contentHubs: MetadataRoute.Sitemap = [
 		{
 			url: `${baseUrl}/blog`,
-			lastModified: blogHubLastModified,
+			lastModified: blogHubLastModified ?? STATIC_PAGES_LAST_UPDATED,
 			priority: 0.8,
 		},
 		{
 			url: `${baseUrl}/resources`,
-			lastModified: resourcesHubLastModified,
+			lastModified: resourcesHubLastModified ?? STATIC_PAGES_LAST_UPDATED,
 			priority: 0.7,
 		},
 	];

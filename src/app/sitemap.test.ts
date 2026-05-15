@@ -144,16 +144,16 @@ describe("sitemap()", () => {
 		}
 	});
 
-	it("Test 4: static landing pages omit lastModified (no faked freshness)", async () => {
-		// Per Google's sitemap docs (last updated 2025-12-10): a stale or
-		// "always-now" lastmod teaches Google to ignore the field. The
-		// honest signal is "no lastmod" when we can't point to a real
-		// underlying timestamp. Marketing/company pages have no DB-backed
-		// timestamp so they emit no `lastModified`.
+	it("Test 4: static landing pages share STATIC_PAGES_LAST_UPDATED lastmod", async () => {
+		// Battle-test Session 5 (P3) flagged 16/19 sitemap URLs missing
+		// lastmod — sparse coverage looked unintentional. The marketing/
+		// company/compare/resource pages now share a manually-maintained
+		// `STATIC_PAGES_LAST_UPDATED` constant. Bumped together with each
+		// copy-refresh wave to stay verifiable.
 		const { default: sitemap } = await import("./sitemap");
 		const entries = await sitemap();
 
-		const noLastModUrls = [
+		const sharedLastmodUrls = [
 			"https://tenantflow.app",
 			"https://tenantflow.app/features",
 			"https://tenantflow.app/pricing",
@@ -162,11 +162,27 @@ describe("sitemap()", () => {
 			"https://tenantflow.app/faq",
 			"https://tenantflow.app/help",
 			"https://tenantflow.app/support",
+			"https://tenantflow.app/compare/buildium",
+			"https://tenantflow.app/compare/appfolio",
+			"https://tenantflow.app/compare/rentredi",
+			"https://tenantflow.app/resources/seasonal-maintenance-checklist",
+			"https://tenantflow.app/resources/landlord-tax-deduction-tracker",
+			"https://tenantflow.app/resources/security-deposit-reference-card",
 		];
-		for (const url of noLastModUrls) {
+
+		const firstLastmod = entries.find(
+			(e) => e.url === "https://tenantflow.app",
+		)?.lastModified;
+		expect(firstLastmod, "homepage lastmod must be set").toBeDefined();
+		expect(String(firstLastmod)).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+
+		for (const url of sharedLastmodUrls) {
 			const entry = entries.find((e) => e.url === url);
 			expect(entry, `entry for ${url} should exist`).toBeDefined();
-			expect(entry!.lastModified).toBeUndefined();
+			expect(
+				entry!.lastModified,
+				`${url} should share the static lastmod`,
+			).toBe(firstLastmod);
 		}
 	});
 

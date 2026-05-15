@@ -251,27 +251,26 @@ export function BillingSettings() {
 									)}
 								</>
 							)}
-							{hasUnknownPriceId && (
+							{/* Active without a known plan — covers two paths:
+							    (1) stripePriceId present but unknown to the local
+							        pricing config (legacy/comp plan ID), and
+							    (2) no stripePriceId at all (synthetic/internal
+							        accounts waiting on billing webhook sync).
+							    Single helpful message for both. Sentry-warns the
+							    unknown-priceId variant for ops follow-up. */}
+							{isActive && !currentPlan && status === "active" && (
 								<p className="text-sm text-muted-foreground mt-1">
-									Subscription details unavailable.{" "}
+									Your account has active access. Plan details will sync
+									shortly.{" "}
 									<Link
 										href="/contact"
 										className="text-primary hover:underline underline-offset-4"
 									>
 										Contact support
 									</Link>{" "}
-									to confirm your plan.
+									if this persists.
 								</p>
 							)}
-							{isActive &&
-								!stripePriceId &&
-								!currentPlan &&
-								status === "active" && (
-									<p className="text-sm text-muted-foreground mt-1">
-										Your account has active access. Plan details will appear
-										here once billing syncs.
-									</p>
-								)}
 							{status === "trialing" && !currentPlan && !stripePriceId && (
 								<p className="text-sm text-muted-foreground mt-1">
 									Your trial is active.{" "}

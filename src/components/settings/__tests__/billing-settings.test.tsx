@@ -161,7 +161,7 @@ describe("BillingSettings empty-state branches", () => {
 		expect(screen.getByText("Active subscription")).toBeInTheDocument();
 		expect(screen.getByText("Active")).toBeInTheDocument();
 		expect(
-			screen.getByText(/Subscription details unavailable/),
+			screen.getByText(/Plan details will sync shortly/),
 		).toBeInTheDocument();
 		expect(
 			screen.getByRole("link", { name: /Contact support/ }),

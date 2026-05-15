@@ -10,7 +10,15 @@ type PersistOptions = {
 	buster: string;
 };
 
-const AUTH_QUERY_KEY = "auth";
+// Auth-namespace prefixes that must NEVER be persisted across reloads.
+// Both `authKeys.all` ("auth") and `authKeys.supabase.all` ("supabase-auth")
+// hold session/user data — persisting either lets a stale session survive
+// a cookie clear, causing the marketing navbar to render the signed-in
+// branch for a freshly-cleared visitor (battle-test Session 5, P3-1).
+const NON_PERSISTED_QUERY_NAMESPACES: ReadonlySet<string> = new Set([
+	"auth",
+	"supabase-auth",
+]);
 
 const isSerializable = (data: unknown) => {
 	try {
@@ -36,7 +44,7 @@ const shouldDehydrateQuery = (query: Query) => {
 	}
 
 	const queryKey = query.queryKey[0] as string | undefined;
-	if (queryKey === AUTH_QUERY_KEY) {
+	if (queryKey && NON_PERSISTED_QUERY_NAMESPACES.has(queryKey)) {
 		return false;
 	}
 
