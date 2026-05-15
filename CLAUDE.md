@@ -24,7 +24,7 @@ TenantFlow — landlord-only property management SaaS. No rent payment facilitat
 - **Frontend**: Next.js 16 + React 19 + TailwindCSS 4 + TanStack Query / Form + Zustand (`localhost:3050`)
 - **Backend**: Supabase (PostgREST + RPCs + Edge Functions in `supabase/functions/`) + Stripe
 - **Monitoring**: Sentry (Next.js SDK, source maps, tunnel `/monitoring`)
-- **Package manager**: pnpm 11.x, Node 24.x
+- **Package manager**: pnpm 10.x, Node 24.x
 - **Hosting**: Vercel (deploys from `main` only)
 - **React Compiler**: enabled
 

@@ -19,7 +19,7 @@ Owners manage properties/units/leases. Tenants pay rent, submit maintenance requ
 | TanStack Form | Form state | Zod schemas for validation |
 | Zustand | Client UI state | Not server state |
 | nuqs | URL state | Query params |
-| pnpm 11 | Package manager | Never use npm/yarn |
+| pnpm 10 | Package manager | Never use npm/yarn |
 | Tailwind CSS v4 | Styling | Utilities only, no inline styles |
 
 ## Key Commands

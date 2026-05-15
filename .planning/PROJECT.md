@@ -108,7 +108,7 @@ Every public claim on tenantflow.app must map to working code, and every visual 
 - Next.js 16 + React 19 + TailwindCSS 4 + TanStack Query/Form + Zustand
 - Supabase (PostgREST + RPCs + Edge Functions + RLS) + Stripe subscriptions
 - React Compiler enabled. Server Components by default.
-- pnpm 11 / Node 24. Hosted on Vercel (deploys from main only).
+- pnpm 10 / Node 24. Hosted on Vercel (deploys from main only).
 - Sentry for monitoring; tunnel `/monitoring`.
 
 **Design token authority:** `src/app/globals.css` is the canonical source. The `@theme` block defines color (oklch), spacing, typography, radius, shadow, duration, easing scales. Status colors (`--color-{success,warning,info,destructive}`) handle all semantic states. Chart colors (`--color-chart-{1..5}`) handle data viz. CLAUDE.md zero-tolerance rules forbid: `any` types, barrel files, inline styles, hex/rgb colors, `bg-white`, `bg-text-muted` (use `text-muted-foreground`), `@radix-ui/react-icons` (lucide-react only), emojis in UI code.

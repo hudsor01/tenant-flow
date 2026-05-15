@@ -20,7 +20,7 @@ Property management platform for independent landlords and small property manage
 | Document signing | DocuSeal |
 | Monitoring | Sentry (Next.js SDK + source maps + tunnel route) |
 | Hosting | Vercel (frontend), Supabase (backend), deploys from `main` only |
-| Package manager | pnpm 11.x, Node 24.x |
+| Package manager | pnpm 10.x, Node 24.x |
 
 Architecture is intentionally backend-light: the Next.js app talks to Supabase directly via PostgREST. There is no custom API server. Edge Functions (Deno) handle webhooks (Stripe, DocuSeal, Resend) and operations that need privileged access.
 
