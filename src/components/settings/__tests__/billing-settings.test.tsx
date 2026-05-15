@@ -337,7 +337,7 @@ describe("BillingSettings empty-state branches", () => {
 		).toBeInTheDocument();
 		expect(screen.getByRole("link", { name: /Sign in again/ })).toHaveAttribute(
 			"href",
-			"/login",
+			"/login?redirect=%2Fsettings%3Ftab%3Dbilling",
 		);
 		// "No plan" empty-state must NOT render alongside the error.
 		expect(screen.queryByText("No plan")).not.toBeInTheDocument();

@@ -231,7 +231,7 @@ export function BillingSettings() {
 							<>
 								Your session appears to have expired.{" "}
 								<Link
-									href="/login"
+									href="/login?redirect=%2Fsettings%3Ftab%3Dbilling"
 									className="text-primary hover:underline underline-offset-4"
 								>
 									Sign in again
