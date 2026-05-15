@@ -1,33 +1,33 @@
-import { Button } from '#components/ui/button'
+import { CheckCircle2, Copy, Loader2, Shield } from "lucide-react";
+import { Button } from "#components/ui/button";
 import {
 	DialogBody,
 	DialogDescription,
 	DialogFooter,
 	DialogHeader,
-	DialogTitle
-} from '#components/ui/dialog'
+	DialogTitle,
+} from "#components/ui/dialog";
 import {
 	InputOTP,
 	InputOTPGroup,
+	InputOTPSeparator,
 	InputOTPSlot,
-	InputOTPSeparator
-} from '#components/ui/input-otp'
-import { CheckCircle2, Copy, Loader2, Shield } from 'lucide-react'
+} from "#components/ui/input-otp";
 
 interface EnrollmentData {
-	factorId: string
-	qrCode: string
-	secret: string
+	factorId: string;
+	qrCode: string;
+	secret: string;
 }
 
 interface QrStepProps {
-	enrollmentData: EnrollmentData | null
-	enrollPending: boolean
-	enrollError: unknown
-	isLoading: boolean
-	onCopySecret: () => void
-	onContinue: () => void
-	onCancel: () => void
+	enrollmentData: EnrollmentData | null;
+	enrollPending: boolean;
+	enrollError: unknown;
+	isLoading: boolean;
+	onCopySecret: () => void;
+	onContinue: () => void;
+	onCancel: () => void;
 }
 
 export function QrStep({
@@ -37,7 +37,7 @@ export function QrStep({
 	isLoading,
 	onCopySecret,
 	onContinue,
-	onCancel
+	onCancel,
 }: QrStepProps) {
 	return (
 		<>
@@ -47,8 +47,8 @@ export function QrStep({
 					Set Up Two-Factor Authentication
 				</DialogTitle>
 				<DialogDescription>
-					Scan the QR code with your authenticator app (Google
-					Authenticator, Authy, etc.)
+					Scan the QR code with your authenticator app (Google Authenticator,
+					Authy, etc.)
 				</DialogDescription>
 			</DialogHeader>
 			<DialogBody className="space-y-6">
@@ -116,16 +116,16 @@ export function QrStep({
 				</Button>
 			</DialogFooter>
 		</>
-	)
+	);
 }
 
 interface VerifyStepProps {
-	verifyCode: string
-	onVerifyCodeChange: (code: string) => void
-	verifyPending: boolean
-	verifyError: unknown
-	onVerify: () => void
-	onBack: () => void
+	verifyCode: string;
+	onVerifyCodeChange: (code: string) => void;
+	verifyPending: boolean;
+	verifyError: unknown;
+	onVerify: () => void;
+	onBack: () => void;
 }
 
 export function VerifyStep({
@@ -134,7 +134,7 @@ export function VerifyStep({
 	verifyPending,
 	verifyError,
 	onVerify,
-	onBack
+	onBack,
 }: VerifyStepProps) {
 	return (
 		<>
@@ -144,8 +144,7 @@ export function VerifyStep({
 					Verify Your Code
 				</DialogTitle>
 				<DialogDescription>
-					Enter the 6-digit code from your authenticator app to complete
-					setup
+					Enter the 6-digit code from your authenticator app to complete setup
 				</DialogDescription>
 			</DialogHeader>
 			<DialogBody className="space-y-6">
@@ -199,16 +198,16 @@ export function VerifyStep({
 							Verifying...
 						</>
 					) : (
-						'Verify & Enable'
+						"Verify & Enable"
 					)}
 				</Button>
 			</DialogFooter>
 		</>
-	)
+	);
 }
 
 interface SuccessStepProps {
-	onComplete: () => void
+	onComplete: () => void;
 }
 
 export function SuccessStep({ onComplete }: SuccessStepProps) {
@@ -228,8 +227,7 @@ export function SuccessStep({ onComplete }: SuccessStepProps) {
 					<div className="space-y-2">
 						<p className="font-medium">Your account is now more secure</p>
 						<p className="text-sm text-muted-foreground">
-							You&apos;ll need your authenticator app to sign in from now
-							on.
+							You&apos;ll need your authenticator app to sign in from now on.
 						</p>
 					</div>
 				</div>
@@ -240,5 +238,5 @@ export function SuccessStep({ onComplete }: SuccessStepProps) {
 				</Button>
 			</DialogFooter>
 		</>
-	)
+	);
 }

@@ -1,29 +1,29 @@
-'use client'
+"use client";
 
-import { Field, FieldError, FieldLabel } from '#components/ui/field'
-import { Input } from '#components/ui/input'
+import { Field, FieldError, FieldLabel } from "#components/ui/field";
+import { Input } from "#components/ui/input";
 import {
 	Select,
 	SelectContent,
 	SelectItem,
 	SelectTrigger,
-	SelectValue
-} from '#components/ui/select'
-import type { LeaseFormApi } from './lease-form-types'
+	SelectValue,
+} from "#components/ui/select";
+import type { LeaseFormApi } from "./lease-form-types";
 
 interface LeaseFormFinancialFieldsProps {
-	form: LeaseFormApi
+	form: LeaseFormApi;
 }
 
 export function LeaseFormFinancialFields({
-	form
+	form,
 }: LeaseFormFinancialFieldsProps) {
 	return (
 		<>
 			{/* Rent Amount and Security Deposit */}
 			<div className="grid gap-4 md:grid-cols-2">
 				<form.Field name="rent_amount">
-					{field => (
+					{(field) => (
 						<Field>
 							<FieldLabel htmlFor="rent_amount">Monthly Rent *</FieldLabel>
 							<Input
@@ -32,9 +32,9 @@ export function LeaseFormFinancialFields({
 								min="0"
 								step="0.01"
 								value={field.state.value}
-								onChange={e => {
-									const v = e.target.value
-									field.handleChange(v === '' ? 0 : parseFloat(v))
+								onChange={(e) => {
+									const v = e.target.value;
+									field.handleChange(v === "" ? 0 : parseFloat(v));
 								}}
 							/>
 							{field.state.meta.errors.length > 0 && (
@@ -45,7 +45,7 @@ export function LeaseFormFinancialFields({
 				</form.Field>
 
 				<form.Field name="security_deposit">
-					{field => (
+					{(field) => (
 						<Field>
 							<FieldLabel htmlFor="security_deposit">
 								Security Deposit *
@@ -56,9 +56,9 @@ export function LeaseFormFinancialFields({
 								min="0"
 								step="0.01"
 								value={field.state.value}
-								onChange={e => {
-									const v = e.target.value
-									field.handleChange(v === '' ? 0 : parseFloat(v))
+								onChange={(e) => {
+									const v = e.target.value;
+									field.handleChange(v === "" ? 0 : parseFloat(v));
 								}}
 							/>
 							{field.state.meta.errors.length > 0 && (
@@ -71,7 +71,7 @@ export function LeaseFormFinancialFields({
 
 			{/* Lease Status */}
 			<form.Field name="lease_status">
-				{field => (
+				{(field) => (
 					<Field>
 						<FieldLabel htmlFor="lease_status">Status *</FieldLabel>
 						<Select
@@ -98,7 +98,7 @@ export function LeaseFormFinancialFields({
 			{/* Currency and Payment Day */}
 			<div className="grid gap-4 md:grid-cols-2">
 				<form.Field name="rent_currency">
-					{field => (
+					{(field) => (
 						<Field>
 							<FieldLabel htmlFor="rent_currency">Currency *</FieldLabel>
 							<Select
@@ -123,7 +123,7 @@ export function LeaseFormFinancialFields({
 				</form.Field>
 
 				<form.Field name="payment_day">
-					{field => (
+					{(field) => (
 						<Field>
 							<FieldLabel htmlFor="payment_day">Payment Day *</FieldLabel>
 							<Input
@@ -132,9 +132,9 @@ export function LeaseFormFinancialFields({
 								min="1"
 								max="31"
 								value={field.state.value}
-								onChange={e => {
-									const v = e.target.value
-									field.handleChange(v === '' ? 1 : parseInt(v, 10))
+								onChange={(e) => {
+									const v = e.target.value;
+									field.handleChange(v === "" ? 1 : parseInt(v, 10));
 								}}
 							/>
 							{field.state.meta.errors.length > 0 && (
@@ -145,5 +145,5 @@ export function LeaseFormFinancialFields({
 				</form.Field>
 			</div>
 		</>
-	)
+	);
 }

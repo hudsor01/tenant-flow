@@ -1,15 +1,15 @@
-'use client'
+"use client";
 
-import { useInView } from 'react-intersection-observer'
-import type { ReactNode } from 'react'
+import type { ReactNode } from "react";
+import { useInView } from "react-intersection-observer";
 
 interface LazySectionProps {
-	children: ReactNode
-	fallback?: ReactNode
-	threshold?: number
-	triggerOnce?: boolean
-	minHeight?: number
-	className?: string
+	children: ReactNode;
+	fallback?: ReactNode;
+	threshold?: number;
+	triggerOnce?: boolean;
+	minHeight?: number;
+	className?: string;
 }
 
 /**
@@ -29,12 +29,12 @@ export function LazySection({
 	threshold = 0.1,
 	triggerOnce = true,
 	minHeight,
-	className
+	className,
 }: LazySectionProps) {
 	const { ref, inView } = useInView({
 		threshold,
-		triggerOnce
-	})
+		triggerOnce,
+	});
 
 	return (
 		<div
@@ -44,5 +44,5 @@ export function LazySection({
 		>
 			{inView ? children : fallback}
 		</div>
-	)
+	);
 }

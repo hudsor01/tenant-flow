@@ -1,155 +1,161 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
-import { useYearEndSummary, use1099Summary } from '#hooks/api/use-reports'
-import { useDownloadYearEndPdf } from '#hooks/api/use-report-mutations'
-import { YearEndReportSection } from '#components/reports/sections/year-end-report-section'
+import { ChevronLeft, Download, FileText, Loader2 } from "lucide-react";
+import Link from "next/link";
+import { useState } from "react";
+import { toast } from "sonner";
+import { YearEndReportSection } from "#components/reports/sections/year-end-report-section";
+import { Button } from "#components/ui/button";
 import {
 	Select,
 	SelectContent,
 	SelectItem,
 	SelectTrigger,
-	SelectValue
-} from '#components/ui/select'
-import { FileText, ChevronLeft, Download, Loader2 } from 'lucide-react'
-import Link from 'next/link'
-import { Button } from '#components/ui/button'
-import { toast } from 'sonner'
+	SelectValue,
+} from "#components/ui/select";
+import { useDownloadYearEndPdf } from "#hooks/api/use-report-mutations";
+import { use1099Summary, useYearEndSummary } from "#hooks/api/use-reports";
 
 function buildYearOptions(): number[] {
-	const currentYear = new Date().getFullYear()
-	const years: number[] = []
+	const currentYear = new Date().getFullYear();
+	const years: number[] = [];
 	for (let y = currentYear; y >= currentYear - 5; y--) {
-		years.push(y)
+		years.push(y);
 	}
-	return years
+	return years;
 }
 
 function downloadCsv(rows: Record<string, unknown>[], filename: string) {
 	if (rows.length === 0) {
-		toast.error('No data to download')
-		return
+		toast.error("No data to download");
+		return;
 	}
-	const firstRow = rows[0]
-	if (!firstRow) return
-	const headers = Object.keys(firstRow)
+	const firstRow = rows[0];
+	if (!firstRow) return;
+	const headers = Object.keys(firstRow);
 	const csv = [
-		headers.join(','),
-		...rows.map(row =>
+		headers.join(","),
+		...rows.map((row) =>
 			headers
-				.map(h => {
-					const val = String(row[h] ?? '')
-					return val.includes(',') ? `"${val}"` : val
+				.map((h) => {
+					const val = String(row[h] ?? "");
+					return val.includes(",") ? `"${val}"` : val;
 				})
-				.join(',')
-		)
-	].join('\n')
+				.join(","),
+		),
+	].join("\n");
 
-	const blob = new Blob([csv], { type: 'text/csv' })
-	const url = URL.createObjectURL(blob)
-	const a = document.createElement('a')
-	a.href = url
-	a.download = filename
-	document.body.appendChild(a)
-	a.click()
-	document.body.removeChild(a)
-	setTimeout(() => URL.revokeObjectURL(url), 100)
+	const blob = new Blob([csv], { type: "text/csv" });
+	const url = URL.createObjectURL(blob);
+	const a = document.createElement("a");
+	a.href = url;
+	a.download = filename;
+	document.body.appendChild(a);
+	a.click();
+	document.body.removeChild(a);
+	setTimeout(() => URL.revokeObjectURL(url), 100);
 }
 
 export default function YearEndReportsPage() {
-	const years = buildYearOptions()
-	const [selectedYear, setSelectedYear] = useState<number>(years[0] ?? new Date().getFullYear())
-	const [isExportingYearEnd, setIsExportingYearEnd] = useState(false)
-	const [isExporting1099, setIsExporting1099] = useState(false)
+	const years = buildYearOptions();
+	const [selectedYear, setSelectedYear] = useState<number>(
+		years[0] ?? new Date().getFullYear(),
+	);
+	const [isExportingYearEnd, setIsExportingYearEnd] = useState(false);
+	const [isExporting1099, setIsExporting1099] = useState(false);
 
 	const { data: yearEndResponse, isLoading: isLoadingYearEnd } =
-		useYearEndSummary(selectedYear)
+		useYearEndSummary(selectedYear);
 	const { data: data1099Response, isLoading: isLoading1099 } =
-		use1099Summary(selectedYear)
+		use1099Summary(selectedYear);
 
-	const downloadPdfMutation = useDownloadYearEndPdf()
+	const downloadPdfMutation = useDownloadYearEndPdf();
 
-	const hasData = yearEndResponse && (
-		yearEndResponse.grossRentalIncome > 0 ||
-		yearEndResponse.operatingExpenses > 0 ||
-		yearEndResponse.byProperty.length > 0
-	)
+	const hasData =
+		yearEndResponse &&
+		(yearEndResponse.grossRentalIncome > 0 ||
+			yearEndResponse.operatingExpenses > 0 ||
+			yearEndResponse.byProperty.length > 0);
 
 	const handleDownloadYearEndCsv = () => {
-		if (!yearEndResponse) return
-		setIsExportingYearEnd(true)
+		if (!yearEndResponse) return;
+		setIsExportingYearEnd(true);
 		try {
 			const overviewRows = [
-				{ section: 'Overview', item: 'Tax Year', value: String(yearEndResponse.year) },
 				{
-					section: 'Overview',
-					item: 'Gross Rental Income',
-					value: yearEndResponse.grossRentalIncome.toFixed(2)
+					section: "Overview",
+					item: "Tax Year",
+					value: String(yearEndResponse.year),
 				},
 				{
-					section: 'Overview',
-					item: 'Operating Expenses',
-					value: yearEndResponse.operatingExpenses.toFixed(2)
+					section: "Overview",
+					item: "Gross Rental Income",
+					value: yearEndResponse.grossRentalIncome.toFixed(2),
 				},
 				{
-					section: 'Overview',
-					item: 'Net Income',
-					value: yearEndResponse.netIncome.toFixed(2)
-				}
-			]
-			const propertyRows = yearEndResponse.byProperty.map(p => ({
-				section: 'By Property',
+					section: "Overview",
+					item: "Operating Expenses",
+					value: yearEndResponse.operatingExpenses.toFixed(2),
+				},
+				{
+					section: "Overview",
+					item: "Net Income",
+					value: yearEndResponse.netIncome.toFixed(2),
+				},
+			];
+			const propertyRows = yearEndResponse.byProperty.map((p) => ({
+				section: "By Property",
 				item: p.propertyName,
 				income: p.income.toFixed(2),
 				expenses: p.expenses.toFixed(2),
 				net: p.netIncome.toFixed(2),
-				value: ''
-			}))
-			const categoryRows = yearEndResponse.expenseByCategory.map(c => ({
-				section: 'Expense Categories',
+				value: "",
+			}));
+			const categoryRows = yearEndResponse.expenseByCategory.map((c) => ({
+				section: "Expense Categories",
 				item: c.category,
 				value: c.amount.toFixed(2),
-				income: '',
-				expenses: '',
-				net: ''
-			}))
+				income: "",
+				expenses: "",
+				net: "",
+			}));
 			downloadCsv(
 				[...overviewRows, ...propertyRows, ...categoryRows],
-				`year-end-${selectedYear}.csv`
-			)
+				`year-end-${selectedYear}.csv`,
+			);
 		} finally {
-			setIsExportingYearEnd(false)
+			setIsExportingYearEnd(false);
 		}
-	}
+	};
 
 	const handleDownload1099Csv = () => {
-		if (!data1099Response) return
-		setIsExporting1099(true)
+		if (!data1099Response) return;
+		setIsExporting1099(true);
 		try {
 			if (data1099Response.recipients.length === 0) {
 				downloadCsv(
 					[
 						{
-							message: `No vendors met the $${data1099Response.threshold} 1099-NEC threshold for ${selectedYear}`
-						}
+							message: `No vendors met the $${data1099Response.threshold} 1099-NEC threshold for ${selectedYear}`,
+						},
 					],
-					`1099-${selectedYear}.csv`
-				)
-				return
+					`1099-${selectedYear}.csv`,
+				);
+				return;
 			}
-			const rows = data1099Response.recipients.map(r => ({
+			const rows = data1099Response.recipients.map((r) => ({
 				vendor_name: r.vendorName,
 				total_paid: r.totalPaid.toFixed(2),
 				job_count: String(r.jobCount),
 				year: String(selectedYear),
 				threshold: String(data1099Response.threshold),
-				requires_1099: 'Yes'
-			}))
-			downloadCsv(rows, `1099-${selectedYear}.csv`)
+				requires_1099: "Yes",
+			}));
+			downloadCsv(rows, `1099-${selectedYear}.csv`);
 		} finally {
-			setIsExporting1099(false)
+			setIsExporting1099(false);
 		}
-	}
+	};
 
 	return (
 		<div className="p-6 lg:p-8 bg-background min-h-full">
@@ -167,20 +173,21 @@ export default function YearEndReportsPage() {
 							Year-End Reports
 						</h1>
 						<p className="text-sm text-muted-foreground">
-							Annual income, expenses, and 1099-NEC vendor data for tax preparation
+							Annual income, expenses, and 1099-NEC vendor data for tax
+							preparation
 						</p>
 					</div>
 				</div>
 				<div className="flex items-center gap-2">
 					<Select
 						value={String(selectedYear)}
-						onValueChange={v => setSelectedYear(parseInt(v, 10))}
+						onValueChange={(v) => setSelectedYear(parseInt(v, 10))}
 					>
 						<SelectTrigger className="w-32 h-11">
 							<SelectValue placeholder="Year" />
 						</SelectTrigger>
 						<SelectContent>
-							{years.map(y => (
+							{years.map((y) => (
 								<SelectItem key={y} value={String(y)}>
 									{y}
 								</SelectItem>
@@ -193,7 +200,9 @@ export default function YearEndReportsPage() {
 						size="sm"
 						className="gap-1.5 min-h-11"
 						onClick={() => downloadPdfMutation.mutate(selectedYear)}
-						disabled={downloadPdfMutation.isPending || isLoadingYearEnd || !hasData}
+						disabled={
+							downloadPdfMutation.isPending || isLoadingYearEnd || !hasData
+						}
 						aria-label="Download year-end report as PDF"
 					>
 						{downloadPdfMutation.isPending ? (
@@ -201,7 +210,7 @@ export default function YearEndReportsPage() {
 						) : (
 							<Download className="size-4" />
 						)}
-						{downloadPdfMutation.isPending ? 'Generating...' : 'Download PDF'}
+						{downloadPdfMutation.isPending ? "Generating..." : "Download PDF"}
 					</Button>
 				</div>
 			</div>
@@ -220,5 +229,5 @@ export default function YearEndReportsPage() {
 				/>
 			</div>
 		</div>
-	)
+	);
 }

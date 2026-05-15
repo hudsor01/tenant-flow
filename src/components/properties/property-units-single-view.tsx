@@ -1,27 +1,30 @@
-'use client'
+"use client";
 
-import { Badge } from '#components/ui/badge'
-import { Button } from '#components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '#components/ui/card'
-import type { Unit, UnitStatus } from '#types/core'
-import { Bath, Bed, DollarSign, Home, Pencil, Ruler } from 'lucide-react'
-import { cn } from '#lib/utils'
-import { statusConfig, formatUnitCurrency } from './property-units-table-config'
-import { AddUnitPanel } from './add-unit-panel'
-import { EditUnitPanel } from './edit-unit-panel'
+import { Bath, Bed, DollarSign, Home, Pencil, Ruler } from "lucide-react";
+import { Badge } from "#components/ui/badge";
+import { Button } from "#components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "#components/ui/card";
+import { cn } from "#lib/utils";
+import type { Unit, UnitStatus } from "#types/core";
+import { AddUnitPanel } from "./add-unit-panel";
+import { EditUnitPanel } from "./edit-unit-panel";
+import {
+	formatUnitCurrency,
+	statusConfig,
+} from "./property-units-table-config";
 
 interface SingleUnitNoDataProps {
-	propertyId: string
-	propertyName: string
-	addUnitOpen: boolean
-	onAddUnitOpenChange: (open: boolean) => void
+	propertyId: string;
+	propertyName: string;
+	addUnitOpen: boolean;
+	onAddUnitOpenChange: (open: boolean) => void;
 }
 
 export function SingleUnitNoData({
 	propertyId,
 	propertyName,
 	addUnitOpen,
-	onAddUnitOpenChange
+	onAddUnitOpenChange,
 }: SingleUnitNoDataProps) {
 	return (
 		<>
@@ -34,7 +37,7 @@ export function SingleUnitNoData({
 				</CardHeader>
 				<CardContent>
 					<p className="text-sm text-muted-foreground">
-						No unit configured yet.{' '}
+						No unit configured yet.{" "}
 						<button
 							type="button"
 							onClick={() => onAddUnitOpenChange(true)}
@@ -52,15 +55,15 @@ export function SingleUnitNoData({
 				onOpenChange={onAddUnitOpenChange}
 			/>
 		</>
-	)
+	);
 }
 
 interface SingleUnitCardProps {
-	unit: Unit
-	propertyName: string
-	editingUnit: Unit | null
-	onEditUnit: (unit: Unit) => void
-	onEditUnitClose: () => void
+	unit: Unit;
+	propertyName: string;
+	editingUnit: Unit | null;
+	onEditUnit: (unit: Unit) => void;
+	onEditUnitClose: () => void;
 }
 
 export function SingleUnitCard({
@@ -68,11 +71,11 @@ export function SingleUnitCard({
 	propertyName,
 	editingUnit,
 	onEditUnit,
-	onEditUnitClose
+	onEditUnitClose,
 }: SingleUnitCardProps) {
-	const status = (unit.status as UnitStatus) || 'available'
-	const config = statusConfig[status]
-	const StatusIcon = config.icon
+	const status = (unit.status as UnitStatus) || "available";
+	const config = statusConfig[status];
+	const StatusIcon = config.icon;
 
 	return (
 		<>
@@ -112,13 +115,13 @@ export function SingleUnitCard({
 							<DollarSign className="size-4 text-muted-foreground" />
 							{unit.rent_amount > 0
 								? `${formatUnitCurrency(unit.rent_amount)}/mo`
-								: 'Rent not set'}
+								: "Rent not set"}
 						</span>
 						<Badge
 							variant="outline"
 							className={cn(
-								'flex items-center gap-1.5 w-fit border-0',
-								config.className
+								"flex items-center gap-1.5 w-fit border-0",
+								config.className,
 							)}
 						>
 							<StatusIcon className="size-3" />
@@ -133,11 +136,11 @@ export function SingleUnitCard({
 					unit={editingUnit}
 					propertyName={propertyName}
 					open={!!editingUnit}
-					onOpenChange={open => {
-						if (!open) onEditUnitClose()
+					onOpenChange={(open) => {
+						if (!open) onEditUnitClose();
 					}}
 				/>
 			)}
 		</>
-	)
+	);
 }

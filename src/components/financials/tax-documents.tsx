@@ -1,101 +1,103 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
 import {
-	FileText,
-	Download,
-	Clock,
-	CheckCircle,
 	Calendar,
-	Search
-} from 'lucide-react'
-import { Button } from '#components/ui/button'
-import { Input } from '#components/ui/input'
+	CheckCircle,
+	Clock,
+	Download,
+	FileText,
+	Search,
+} from "lucide-react";
+import { useState } from "react";
+import { BlurFade } from "#components/ui/blur-fade";
+import { Button } from "#components/ui/button";
+import { Input } from "#components/ui/input";
 import {
 	Select,
 	SelectContent,
 	SelectItem,
 	SelectTrigger,
-	SelectValue
-} from '#components/ui/select'
-import { BlurFade } from '#components/ui/blur-fade'
-import { formatDate } from '#lib/formatters/date'
+	SelectValue,
+} from "#components/ui/select";
+import { formatDate } from "#lib/formatters/date";
 
 interface TaxDocument {
-	id: string
-	name: string
-	year: number
-	status: 'ready' | 'pending' | 'filed'
-	downloadUrl?: string
-	estimatedDate?: string
+	id: string;
+	name: string;
+	year: number;
+	status: "ready" | "pending" | "filed";
+	downloadUrl?: string;
+	estimatedDate?: string;
 }
 
 interface TaxDocumentsProps {
-	documents: TaxDocument[]
-	onDownload?: (documentId: string) => void
+	documents: TaxDocument[];
+	onDownload?: (documentId: string) => void;
 }
 
 export function TaxDocuments({ documents, onDownload }: TaxDocumentsProps) {
-	const [yearFilter, setYearFilter] = useState<'all' | number>('all')
+	const [yearFilter, setYearFilter] = useState<"all" | number>("all");
 	const [statusFilter, setStatusFilter] = useState<
-		'all' | 'ready' | 'pending' | 'filed'
-	>('all')
-	const [searchQuery, setSearchQuery] = useState('')
+		"all" | "ready" | "pending" | "filed"
+	>("all");
+	const [searchQuery, setSearchQuery] = useState("");
 
-	const years = [...new Set(documents.map(d => d.year))].sort((a, b) => b - a)
+	const years = [...new Set(documents.map((d) => d.year))].sort(
+		(a, b) => b - a,
+	);
 
-	const filteredDocuments = documents.filter(doc => {
-		if (yearFilter !== 'all' && doc.year !== yearFilter) return false
-		if (statusFilter !== 'all' && doc.status !== statusFilter) return false
+	const filteredDocuments = documents.filter((doc) => {
+		if (yearFilter !== "all" && doc.year !== yearFilter) return false;
+		if (statusFilter !== "all" && doc.status !== statusFilter) return false;
 		if (
 			searchQuery &&
-			!(doc.name ?? '').toLowerCase().includes(searchQuery.toLowerCase())
+			!(doc.name ?? "").toLowerCase().includes(searchQuery.toLowerCase())
 		)
-			return false
-		return true
-	})
+			return false;
+		return true;
+	});
 
 	const documentsByYear = filteredDocuments.reduce(
 		(acc, doc) => {
-			const yearDocs = acc[doc.year] ?? []
-			yearDocs.push(doc)
-			acc[doc.year] = yearDocs
-			return acc
+			const yearDocs = acc[doc.year] ?? [];
+			yearDocs.push(doc);
+			acc[doc.year] = yearDocs;
+			return acc;
 		},
-		{} as Record<number, TaxDocument[]>
-	)
+		{} as Record<number, TaxDocument[]>,
+	);
 
 	const statusConfig = {
 		ready: {
 			icon: CheckCircle,
-			label: 'Ready',
+			label: "Ready",
 			className:
-				'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300',
-			iconClass: 'text-emerald-600'
+				"bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300",
+			iconClass: "text-emerald-600",
 		},
 		pending: {
 			icon: Clock,
-			label: 'Pending',
+			label: "Pending",
 			className:
-				'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300',
-			iconClass: 'text-amber-600'
+				"bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300",
+			iconClass: "text-amber-600",
 		},
 		filed: {
 			icon: CheckCircle,
-			label: 'Filed',
+			label: "Filed",
 			className:
-				'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300',
-			iconClass: 'text-blue-600'
-		}
-	}
+				"bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300",
+			iconClass: "text-blue-600",
+		},
+	};
 
-	const readyCount = documents.filter(d => d.status === 'ready').length
-	const pendingCount = documents.filter(d => d.status === 'pending').length
-	const filedCount = documents.filter(d => d.status === 'filed').length
+	const readyCount = documents.filter((d) => d.status === "ready").length;
+	const pendingCount = documents.filter((d) => d.status === "pending").length;
+	const filedCount = documents.filter((d) => d.status === "filed").length;
 
 	const handleYearChange = (value: string) => {
-		setYearFilter(value === 'all' ? 'all' : Number(value))
-	}
+		setYearFilter(value === "all" ? "all" : Number(value));
+	};
 
 	return (
 		<div className="p-6 lg:p-8 bg-background min-h-full">
@@ -117,12 +119,12 @@ export function TaxDocuments({ documents, onDownload }: TaxDocumentsProps) {
 					<Button
 						variant="outline"
 						onClick={() =>
-							setStatusFilter(statusFilter === 'ready' ? 'all' : 'ready')
+							setStatusFilter(statusFilter === "ready" ? "all" : "ready")
 						}
 						className={`w-full p-4 h-auto rounded-lg text-left justify-start ${
-							statusFilter === 'ready'
-								? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-950/30'
-								: ''
+							statusFilter === "ready"
+								? "border-emerald-500 bg-emerald-50 dark:bg-emerald-950/30"
+								: ""
 						}`}
 					>
 						<div className="flex items-center gap-3">
@@ -143,12 +145,12 @@ export function TaxDocuments({ documents, onDownload }: TaxDocumentsProps) {
 					<Button
 						variant="outline"
 						onClick={() =>
-							setStatusFilter(statusFilter === 'pending' ? 'all' : 'pending')
+							setStatusFilter(statusFilter === "pending" ? "all" : "pending")
 						}
 						className={`w-full p-4 h-auto rounded-lg text-left justify-start ${
-							statusFilter === 'pending'
-								? 'border-amber-500 bg-amber-50 dark:bg-amber-950/30'
-								: ''
+							statusFilter === "pending"
+								? "border-amber-500 bg-amber-50 dark:bg-amber-950/30"
+								: ""
 						}`}
 					>
 						<div className="flex items-center gap-3">
@@ -169,12 +171,12 @@ export function TaxDocuments({ documents, onDownload }: TaxDocumentsProps) {
 					<Button
 						variant="outline"
 						onClick={() =>
-							setStatusFilter(statusFilter === 'filed' ? 'all' : 'filed')
+							setStatusFilter(statusFilter === "filed" ? "all" : "filed")
 						}
 						className={`w-full p-4 h-auto rounded-lg text-left justify-start ${
-							statusFilter === 'filed'
-								? 'border-blue-500 bg-blue-50 dark:bg-blue-950/30'
-								: ''
+							statusFilter === "filed"
+								? "border-blue-500 bg-blue-50 dark:bg-blue-950/30"
+								: ""
 						}`}
 					>
 						<div className="flex items-center gap-3">
@@ -200,20 +202,17 @@ export function TaxDocuments({ documents, onDownload }: TaxDocumentsProps) {
 							type="text"
 							placeholder="Search documents..."
 							value={searchQuery}
-							onChange={e => setSearchQuery(e.target.value)}
+							onChange={(e) => setSearchQuery(e.target.value)}
 							className="pl-10"
 						/>
 					</div>
-					<Select
-						value={String(yearFilter)}
-						onValueChange={handleYearChange}
-					>
+					<Select value={String(yearFilter)} onValueChange={handleYearChange}>
 						<SelectTrigger className="w-[130px]">
 							<SelectValue placeholder="All Years" />
 						</SelectTrigger>
 						<SelectContent>
 							<SelectItem value="all">All Years</SelectItem>
-							{years.map(year => (
+							{years.map((year) => (
 								<SelectItem key={year} value={String(year)}>
 									{year}
 								</SelectItem>
@@ -242,8 +241,8 @@ export function TaxDocuments({ documents, onDownload }: TaxDocumentsProps) {
 								</div>
 								<div className="divide-y divide-border">
 									{docs.map((doc, idx) => {
-										const status = statusConfig[doc.status]
-										const StatusIcon = status.icon
+										const status = statusConfig[doc.status];
+										const StatusIcon = status.icon;
 										return (
 											<BlurFade
 												key={doc.id}
@@ -257,7 +256,7 @@ export function TaxDocuments({ documents, onDownload }: TaxDocumentsProps) {
 														</div>
 														<div>
 															<p className="text-sm font-medium">{doc.name}</p>
-															{doc.status === 'pending' &&
+															{doc.status === "pending" &&
 																doc.estimatedDate && (
 																	<p className="text-xs text-muted-foreground">
 																		Expected: {formatDate(doc.estimatedDate)}
@@ -272,7 +271,7 @@ export function TaxDocuments({ documents, onDownload }: TaxDocumentsProps) {
 															<StatusIcon className="w-3.5 h-3.5" />
 															{status.label}
 														</span>
-														{doc.status !== 'pending' && (
+														{doc.status !== "pending" && (
 															<Button
 																variant="ghost"
 																size="icon"
@@ -285,7 +284,7 @@ export function TaxDocuments({ documents, onDownload }: TaxDocumentsProps) {
 													</div>
 												</div>
 											</BlurFade>
-										)
+										);
 									})}
 								</div>
 							</div>
@@ -301,13 +300,13 @@ export function TaxDocuments({ documents, onDownload }: TaxDocumentsProps) {
 						</div>
 						<h3 className="text-lg font-medium mb-1">No documents found</h3>
 						<p className="text-sm text-muted-foreground">
-							{searchQuery || statusFilter !== 'all' || yearFilter !== 'all'
-								? 'Try adjusting your filters to see more results.'
-								: 'Tax documents will appear here as they become available.'}
+							{searchQuery || statusFilter !== "all" || yearFilter !== "all"
+								? "Try adjusting your filters to see more results."
+								: "Tax documents will appear here as they become available."}
 						</p>
 					</div>
 				</BlurFade>
 			)}
 		</div>
-	)
+	);
 }

@@ -1,9 +1,9 @@
-import { LeaseDetails } from '#components/leases/detail/lease-details.client'
+import { LeaseDetails } from "#components/leases/detail/lease-details.client";
 
 export default async function LeaseDetailPage({
-	params
-}: PageProps<'/leases/[id]'>) {
-	const { id } = await params
+	params,
+}: PageProps<"/leases/[id]">) {
+	const { id } = await params;
 	return (
 		<div className="space-y-10">
 			<div className="space-y-2">
@@ -14,5 +14,5 @@ export default async function LeaseDetailPage({
 			</div>
 			<LeaseDetails id={id} />
 		</div>
-	)
+	);
 }

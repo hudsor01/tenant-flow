@@ -1,4 +1,4 @@
-'use client'
+"use client";
 
 import {
 	Cell,
@@ -6,8 +6,8 @@ import {
 	FunnelChart,
 	LabelList,
 	ResponsiveContainer,
-	Tooltip
-} from 'recharts'
+	Tooltip,
+} from "recharts";
 
 /**
  * Row shape consumed by the funnel chart. Kept local (not exported from
@@ -16,9 +16,9 @@ import {
  * next/dynamic + ssr:false.
  */
 export interface FunnelRendererDatum {
-	name: string
-	value: number
-	isLowConversion: boolean
+	name: string;
+	value: number;
+	isLowConversion: boolean;
 }
 
 /**
@@ -34,28 +34,24 @@ export function FunnelRenderer({ data }: { data: FunnelRendererDatum[] }) {
 		<ResponsiveContainer width="100%" height={320}>
 			<FunnelChart>
 				<Tooltip />
-				<Funnel
-					dataKey="value"
-					data={data}
-					isAnimationActive={false}
-				>
+				<Funnel dataKey="value" data={data} isAnimationActive={false}>
 					<LabelList
 						position="right"
 						dataKey="name"
 						fill="var(--color-foreground)"
 					/>
-					{data.map(entry => (
+					{data.map((entry) => (
 						<Cell
 							key={entry.name}
 							fill={
 								entry.isLowConversion
-									? 'var(--color-destructive)'
-									: 'var(--color-primary)'
+									? "var(--color-destructive)"
+									: "var(--color-primary)"
 							}
 						/>
 					))}
 				</Funnel>
 			</FunnelChart>
 		</ResponsiveContainer>
-	)
+	);
 }

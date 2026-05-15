@@ -1,5 +1,5 @@
-import { PropertyForm } from '#components/properties/property-form.client'
-import { MobilePropertyForm } from '#components/properties/property-form.mobile'
+import { PropertyForm } from "#components/properties/property-form.client";
+import { MobilePropertyForm } from "#components/properties/property-form.mobile";
 
 /**
  * New Property Page - Server Component
@@ -26,5 +26,5 @@ export default async function NewPropertyPage() {
 				<MobilePropertyForm mode="create" />
 			</div>
 		</div>
-	)
+	);
 }

@@ -1,83 +1,83 @@
-'use client'
+"use client";
 
-import { useEffect, useState } from 'react'
-import type { FormEvent } from 'react'
-import { Phone } from 'lucide-react'
+import { Phone } from "lucide-react";
+import type { FormEvent } from "react";
+import { useEffect, useState } from "react";
 
-import { Button } from '#components/ui/button'
-import { CardLayout } from '#components/ui/card-layout'
-import { Field, FieldLabel } from '#components/ui/field'
-import { Skeleton } from '#components/ui/skeleton'
+import { Button } from "#components/ui/button";
+import { CardLayout } from "#components/ui/card-layout";
+import { Field, FieldLabel } from "#components/ui/field";
+import { Skeleton } from "#components/ui/skeleton";
 import {
 	useDeleteOwnerEmergencyContactMutation,
 	useOwnerEmergencyContact,
-	useUpdateOwnerEmergencyContactMutation
-} from '#hooks/api/use-owner-emergency-contact'
+	useUpdateOwnerEmergencyContactMutation,
+} from "#hooks/api/use-owner-emergency-contact";
 
 interface FormState {
-	name: string
-	phone: string
-	relationship: string
+	name: string;
+	phone: string;
+	relationship: string;
 }
 
-const EMPTY_FORM: FormState = { name: '', phone: '', relationship: '' }
+const EMPTY_FORM: FormState = { name: "", phone: "", relationship: "" };
 
 export function OwnerEmergencyContactSection() {
-	const { data: contact, isLoading } = useOwnerEmergencyContact()
-	const updateMutation = useUpdateOwnerEmergencyContactMutation()
-	const deleteMutation = useDeleteOwnerEmergencyContactMutation()
+	const { data: contact, isLoading } = useOwnerEmergencyContact();
+	const updateMutation = useUpdateOwnerEmergencyContactMutation();
+	const deleteMutation = useDeleteOwnerEmergencyContactMutation();
 
-	const [isEditing, setIsEditing] = useState(false)
-	const [formData, setFormData] = useState<FormState>(EMPTY_FORM)
+	const [isEditing, setIsEditing] = useState(false);
+	const [formData, setFormData] = useState<FormState>(EMPTY_FORM);
 
 	useEffect(() => {
 		// Guard against the global refetchOnWindowFocus + onMutate-driven cache
 		// writes clobbering the user's typed input mid-edit. Mirrors the
 		// precedent at category-delete-dialog.tsx (gates resync on edit-state).
-		if (!contact || isEditing) return
+		if (!contact || isEditing) return;
 		setFormData({
-			name: contact.name ?? '',
-			phone: contact.phone ?? '',
-			relationship: contact.relationship ?? ''
-		})
-	}, [contact, isEditing])
+			name: contact.name ?? "",
+			phone: contact.phone ?? "",
+			relationship: contact.relationship ?? "",
+		});
+	}, [contact, isEditing]);
 
 	const hasExistingContact = Boolean(
-		contact?.name || contact?.phone || contact?.relationship
-	)
+		contact?.name || contact?.phone || contact?.relationship,
+	);
 
 	const handleChange = (field: keyof FormState, value: string) => {
-		setFormData(prev => ({ ...prev, [field]: value }))
-	}
+		setFormData((prev) => ({ ...prev, [field]: value }));
+	};
 
 	const handleSave = async (e: FormEvent) => {
-		e.preventDefault()
+		e.preventDefault();
 		await updateMutation.mutateAsync({
 			name: formData.name.trim() || null,
 			phone: formData.phone.trim() || null,
-			relationship: formData.relationship.trim() || null
-		})
-		setIsEditing(false)
-	}
+			relationship: formData.relationship.trim() || null,
+		});
+		setIsEditing(false);
+	};
 
 	const handleCancel = () => {
 		if (contact) {
 			setFormData({
-				name: contact.name ?? '',
-				phone: contact.phone ?? '',
-				relationship: contact.relationship ?? ''
-			})
+				name: contact.name ?? "",
+				phone: contact.phone ?? "",
+				relationship: contact.relationship ?? "",
+			});
 		} else {
-			setFormData(EMPTY_FORM)
+			setFormData(EMPTY_FORM);
 		}
-		setIsEditing(false)
-	}
+		setIsEditing(false);
+	};
 
 	const handleDelete = async () => {
-		await deleteMutation.mutateAsync()
-		setFormData(EMPTY_FORM)
-		setIsEditing(false)
-	}
+		await deleteMutation.mutateAsync();
+		setFormData(EMPTY_FORM);
+		setIsEditing(false);
+	};
 
 	if (isLoading) {
 		return (
@@ -91,12 +91,12 @@ export function OwnerEmergencyContactSection() {
 					<Skeleton className="h-10 w-2/3" />
 				</div>
 			</CardLayout>
-		)
+		);
 	}
 
-	const isSaving = updateMutation.isPending
-	const isDeleting = deleteMutation.isPending
-	const isDisabled = !isEditing || isSaving || isDeleting
+	const isSaving = updateMutation.isPending;
+	const isDeleting = deleteMutation.isPending;
+	const isDisabled = !isEditing || isSaving || isDeleting;
 
 	return (
 		<CardLayout
@@ -112,7 +112,7 @@ export function OwnerEmergencyContactSection() {
 							className="input w-full"
 							placeholder="Full name"
 							value={formData.name}
-							onChange={e => handleChange('name', e.target.value)}
+							onChange={(e) => handleChange("name", e.target.value)}
 							disabled={isDisabled}
 							required={isEditing}
 						/>
@@ -125,7 +125,7 @@ export function OwnerEmergencyContactSection() {
 							className="input w-full"
 							placeholder="e.g., Spouse, Parent"
 							value={formData.relationship}
-							onChange={e => handleChange('relationship', e.target.value)}
+							onChange={(e) => handleChange("relationship", e.target.value)}
 							disabled={isDisabled}
 						/>
 					</Field>
@@ -143,7 +143,7 @@ export function OwnerEmergencyContactSection() {
 						className="input w-full"
 						placeholder="(555) 123-4567"
 						value={formData.phone}
-						onChange={e => handleChange('phone', e.target.value)}
+						onChange={(e) => handleChange("phone", e.target.value)}
 						disabled={isDisabled}
 						required={isEditing}
 					/>
@@ -164,8 +164,8 @@ export function OwnerEmergencyContactSection() {
 								onClick={() => setIsEditing(true)}
 							>
 								{hasExistingContact
-									? 'Edit Emergency Contact'
-									: 'Add Emergency Contact'}
+									? "Edit Emergency Contact"
+									: "Add Emergency Contact"}
 							</Button>
 							{hasExistingContact ? (
 								<Button
@@ -174,14 +174,14 @@ export function OwnerEmergencyContactSection() {
 									onClick={handleDelete}
 									disabled={isDeleting}
 								>
-									{isDeleting ? 'Removing…' : 'Remove Contact'}
+									{isDeleting ? "Removing…" : "Remove Contact"}
 								</Button>
 							) : null}
 						</>
 					) : (
 						<>
 							<Button type="submit" disabled={isSaving}>
-								{isSaving ? 'Saving…' : 'Save Contact'}
+								{isSaving ? "Saving…" : "Save Contact"}
 							</Button>
 							<Button
 								type="button"
@@ -196,5 +196,5 @@ export function OwnerEmergencyContactSection() {
 				</div>
 			</form>
 		</CardLayout>
-	)
+	);
 }

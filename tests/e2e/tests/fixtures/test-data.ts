@@ -7,40 +7,40 @@
  * while allowing per-test customization.
  */
 
-import { faker } from '@faker-js/faker'
+import { faker } from "@faker-js/faker";
 
 // Local test data contracts (kept narrow to the fields used in E2E flows)
 export interface TenantInput {
-	first_name: string
-	last_name: string
-	email: string
-	phone: string
-	emergency_contact: string
-	avatarUrl: string | null
-	user_id: string | null
+	first_name: string;
+	last_name: string;
+	email: string;
+	phone: string;
+	emergency_contact: string;
+	avatarUrl: string | null;
+	user_id: string | null;
 }
 
 export interface PropertyInput {
-	name: string
-	address: string
-	city: string
-	state: string
-	postal_code: string
-	property_type: string
-	units: number
-	description?: string
-	yearBuilt?: number
+	name: string;
+	address: string;
+	city: string;
+	state: string;
+	postal_code: string;
+	property_type: string;
+	units: number;
+	description?: string;
+	yearBuilt?: number;
 }
 
 export interface LeaseInput {
-	tenant_id: string
-	property_id: string
-	unit_id: string
-	start_date: string
-	end_date: string
-	rent_amount: number
-	security_deposit: number
-	status: string
+	tenant_id: string;
+	property_id: string;
+	unit_id: string;
+	start_date: string;
+	end_date: string;
+	rent_amount: number;
+	security_deposit: number;
+	status: string;
 }
 
 /**
@@ -48,8 +48,8 @@ export interface LeaseInput {
  * Creates realistic tenant data with unique identifiers
  */
 export const createTenant = (overrides?: Partial<TenantInput>): TenantInput => {
-	const first_name = faker.person.firstName()
-	const last_name = faker.person.lastName()
+	const first_name = faker.person.firstName();
+	const last_name = faker.person.lastName();
 
 	return {
 		first_name,
@@ -57,82 +57,82 @@ export const createTenant = (overrides?: Partial<TenantInput>): TenantInput => {
 		email: faker.internet
 			.email({
 				firstName: first_name.toLowerCase(),
-				lastName: last_name.toLowerCase()
+				lastName: last_name.toLowerCase(),
 			})
 			.toLowerCase(),
 		phone: faker.phone.number(),
 		emergency_contact: `${faker.person.fullName()} - ${faker.phone.number()}`,
 		avatarUrl: null,
 		user_id: null,
-		...overrides
-	}
-}
+		...overrides,
+	};
+};
 
 /**
  * Property Factory
  * Creates realistic property data
  */
 export const createProperty = (
-	overrides?: Partial<PropertyInput>
+	overrides?: Partial<PropertyInput>,
 ): PropertyInput => {
 	return {
 		name: `${faker.location.streetAddress()} Apartments`,
 		address: faker.location.streetAddress(),
 		city: faker.location.city(),
 		state: faker.location.state({ abbreviated: true }),
-		postal_code: faker.location.zipCode('#####'),
+		postal_code: faker.location.zipCode("#####"),
 		property_type: faker.helpers.arrayElement([
-			'apartment',
-			'house',
-			'condo',
-			'townhouse'
+			"apartment",
+			"house",
+			"condo",
+			"townhouse",
 		]),
 		units: faker.number.int({ min: 4, max: 24 }),
 		description: faker.lorem.paragraph(),
 		yearBuilt: faker.number.int({ min: 1950, max: 2024 }),
-		...overrides
-	}
-}
+		...overrides,
+	};
+};
 
 /**
  * Lease Factory
  * Creates realistic lease agreements
  */
 export const createLease = (overrides?: Partial<LeaseInput>): LeaseInput => {
-	const start_date = faker.date.soon({ days: 30 })
-	const end_date = new Date(start_date)
-	end_date.setFullYear(end_date.getFullYear() + 1) // 1 year lease
+	const start_date = faker.date.soon({ days: 30 });
+	const end_date = new Date(start_date);
+	end_date.setFullYear(end_date.getFullYear() + 1); // 1 year lease
 
 	return {
-		tenant_id: '', // Must be provided
-		property_id: '', // Must be provided
-		unit_id: '', // Must be provided
+		tenant_id: "", // Must be provided
+		property_id: "", // Must be provided
+		unit_id: "", // Must be provided
 		start_date: start_date.toISOString(),
 		end_date: end_date.toISOString(),
 		rent_amount: faker.number.int({ min: 800, max: 3000 }),
 		security_deposit: faker.number.int({ min: 800, max: 3000 }),
-		status: 'active',
-		...overrides
-	}
-}
+		status: "active",
+		...overrides,
+	};
+};
 
 /**
  * Unique Test Identifiers
  * Helps avoid conflicts when tests run in parallel
  */
-export const generateTestId = (prefix: string = 'test'): string => {
-	return `${prefix}-${Date.now()}-${faker.string.alphanumeric(6)}`
-}
+export const generateTestId = (prefix: string = "test"): string => {
+	return `${prefix}-${Date.now()}-${faker.string.alphanumeric(6)}`;
+};
 
 /**
  * Test Email Generator
  * Creates emails that can be traced back to tests
  */
 export const generateTestEmail = (username?: string): string => {
-	const user = username || faker.internet.username().toLowerCase()
-	const timestamp = Date.now()
-	return `test-${user}-${timestamp}@tenantflow.test`
-}
+	const user = username || faker.internet.username().toLowerCase();
+	const timestamp = Date.now();
+	return `test-${user}-${timestamp}@tenantflow.test`;
+};
 
 /**
  * Preset Test Data
@@ -144,8 +144,8 @@ export const presets = {
 	 */
 	newTenant: (): TenantInput =>
 		createTenant({
-			email: generateTestEmail('new-tenant'),
-			emergency_contact: 'Emergency Contact - (555) 911-0000'
+			email: generateTestEmail("new-tenant"),
+			emergency_contact: "Emergency Contact - (555) 911-0000",
 		}),
 
 	/**
@@ -153,7 +153,7 @@ export const presets = {
 	 */
 	activeTenant: (): TenantInput =>
 		createTenant({
-			email: generateTestEmail('active-tenant')
+			email: generateTestEmail("active-tenant"),
 		}),
 
 	/**
@@ -161,7 +161,7 @@ export const presets = {
 	 */
 	leavingTenant: (): TenantInput =>
 		createTenant({
-			email: generateTestEmail('leaving-tenant')
+			email: generateTestEmail("leaving-tenant"),
 		}),
 
 	/**
@@ -169,9 +169,9 @@ export const presets = {
 	 */
 	smallProperty: (): PropertyInput =>
 		createProperty({
-			name: 'Parkview Apartments',
+			name: "Parkview Apartments",
 			units: 8,
-			property_type: 'apartment'
+			property_type: "apartment",
 		}),
 
 	/**
@@ -179,9 +179,9 @@ export const presets = {
 	 */
 	largeProperty: (): PropertyInput =>
 		createProperty({
-			name: 'Downtown Tower',
+			name: "Downtown Tower",
 			units: 120,
-			property_type: 'apartment'
+			property_type: "apartment",
 		}),
 
 	/**
@@ -191,7 +191,7 @@ export const presets = {
 		createProperty({
 			name: faker.location.streetAddress(),
 			units: 1,
-			property_type: 'house'
+			property_type: "house",
 		}),
 
 	/**
@@ -200,7 +200,7 @@ export const presets = {
 	standardLease: (
 		tenant_id: string,
 		property_id: string,
-		unit_id: string
+		unit_id: string,
 	): LeaseInput =>
 		createLease({
 			tenant_id,
@@ -208,7 +208,7 @@ export const presets = {
 			unit_id,
 			rent_amount: 1500,
 			security_deposit: 1500,
-			status: 'active'
+			status: "active",
 		}),
 
 	/**
@@ -217,11 +217,11 @@ export const presets = {
 	monthToMonth: (
 		tenant_id: string,
 		property_id: string,
-		unit_id: string
+		unit_id: string,
 	): LeaseInput => {
-		const start_date = new Date()
-		const end_date = new Date(start_date)
-		end_date.setMonth(end_date.getMonth() + 1)
+		const start_date = new Date();
+		const end_date = new Date(start_date);
+		end_date.setMonth(end_date.getMonth() + 1);
 
 		return createLease({
 			tenant_id,
@@ -231,10 +231,10 @@ export const presets = {
 			end_date: end_date.toISOString(),
 			rent_amount: 1200,
 			security_deposit: 600,
-			status: 'active'
-		})
-	}
-}
+			status: "active",
+		});
+	},
+};
 
 /**
  * Batch Data Creation
@@ -246,10 +246,10 @@ export const batch = {
 
 	properties: (
 		count: number,
-		overrides?: Partial<PropertyInput>
+		overrides?: Partial<PropertyInput>,
 	): PropertyInput[] =>
-		Array.from({ length: count }, () => createProperty(overrides))
-}
+		Array.from({ length: count }, () => createProperty(overrides)),
+};
 
 /**
  * Realistic Test Scenarios
@@ -262,7 +262,7 @@ export const scenarios = {
 	newApplication: () => ({
 		tenant: presets.newTenant(),
 		property: presets.smallProperty(),
-		moveInDate: faker.date.soon({ days: 30 }).toISOString()
+		moveInDate: faker.date.soon({ days: 30 }).toISOString(),
 	}),
 
 	/**
@@ -273,12 +273,12 @@ export const scenarios = {
 		property: presets.smallProperty(),
 		currentLease: {
 			rent_amount: 1500,
-			security_deposit: 1500
+			security_deposit: 1500,
 		},
 		renewalTerms: {
 			rent_amount: 1550, // 3.3% increase
-			security_deposit: 1500
-		}
+			security_deposit: 1500,
+		},
 	}),
 
 	/**
@@ -286,6 +286,6 @@ export const scenarios = {
 	 */
 	propertyWithTenants: (tenantCount: number = 5) => ({
 		property: presets.largeProperty(),
-		tenants: batch.tenants(tenantCount)
-	})
-}
+		tenants: batch.tenants(tenantCount),
+	}),
+};

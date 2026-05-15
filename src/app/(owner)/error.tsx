@@ -1,9 +1,9 @@
-'use client'
+"use client";
 
-import * as Sentry from '@sentry/nextjs'
-import { useEffect } from 'react'
+import * as Sentry from "@sentry/nextjs";
+import { useEffect } from "react";
 
-import { ErrorPage } from '#components/shared/error-page'
+import { ErrorPage } from "#components/shared/error-page";
 
 /**
  * Error boundary for owner dashboard routes
@@ -12,17 +12,19 @@ import { ErrorPage } from '#components/shared/error-page'
  */
 export default function DashboardError({
 	error,
-	reset
+	reset,
 }: {
-	error: Error & { digest?: string }
-	reset: () => void
+	error: Error & { digest?: string };
+	reset: () => void;
 }) {
 	useEffect(() => {
 		Sentry.captureException(error, {
-			tags: { boundary: 'owner-dashboard-error' },
-			extra: { digest: error.digest }
-		})
-	}, [error])
+			tags: { boundary: "owner-dashboard-error" },
+			extra: { digest: error.digest },
+		});
+	}, [error]);
 
-	return <ErrorPage error={error} resetAction={reset} dashboardHref="/dashboard" />
+	return (
+		<ErrorPage error={error} resetAction={reset} dashboardHref="/dashboard" />
+	);
 }

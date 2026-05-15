@@ -1,10 +1,10 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
-import type { FormEvent } from 'react'
-import { Button } from '#components/ui/button'
-import { Input } from '#components/ui/input'
-import { Textarea } from '#components/ui/textarea'
+import { DollarSign, Plus } from "lucide-react";
+import type { FormEvent } from "react";
+import { useState } from "react";
+import { toast } from "sonner";
+import { Button } from "#components/ui/button";
 import {
 	Dialog,
 	DialogContent,
@@ -12,64 +12,64 @@ import {
 	DialogFooter,
 	DialogHeader,
 	DialogTitle,
-	DialogTrigger
-} from '#components/ui/dialog'
-import { Field, FieldLabel } from '#components/ui/field'
-import { createLogger } from '#lib/frontend-logger'
-import { createClient } from '#lib/supabase/client'
-import { DollarSign, Plus } from 'lucide-react'
-import { toast } from 'sonner'
+	DialogTrigger,
+} from "#components/ui/dialog";
+import { Field, FieldLabel } from "#components/ui/field";
+import { Input } from "#components/ui/input";
+import { Textarea } from "#components/ui/textarea";
+import { createLogger } from "#lib/frontend-logger";
+import { createClient } from "#lib/supabase/client";
 
-const logger = createLogger({ component: 'AddExpenseDialog' })
+const logger = createLogger({ component: "AddExpenseDialog" });
 
 interface AddExpenseDialogProps {
-	maintenanceId: string
-	onSuccess: () => void
+	maintenanceId: string;
+	onSuccess: () => void;
 }
 
 export function AddExpenseDialog({
 	maintenanceId,
-	onSuccess
+	onSuccess,
 }: AddExpenseDialogProps) {
-	const [open, setOpen] = useState(false)
-	const [isSubmitting, setIsSubmitting] = useState(false)
-	const [vendorName, setVendorName] = useState('')
-	const [amount, setAmount] = useState('')
+	const [open, setOpen] = useState(false);
+	const [isSubmitting, setIsSubmitting] = useState(false);
+	const [vendorName, setVendorName] = useState("");
+	const [amount, setAmount] = useState("");
 	const [expenseDate, setExpenseDate] = useState(
-		new Date().toISOString().split('T')[0]
-	)
-	const [description, setDescription] = useState('')
+		new Date().toISOString().split("T")[0],
+	);
+	const [description, setDescription] = useState("");
 
 	const handleSubmit = async (e: FormEvent) => {
-		e.preventDefault()
+		e.preventDefault();
 		if (!amount || parseFloat(amount) <= 0) {
-			toast.error('Please enter a valid amount')
-			return
+			toast.error("Please enter a valid amount");
+			return;
 		}
 
-		setIsSubmitting(true)
+		setIsSubmitting(true);
 		try {
-			const supabase = createClient()
-			const { error } = await supabase.from('expenses').insert({
+			const supabase = createClient();
+			const { error } = await supabase.from("expenses").insert({
 				maintenance_request_id: maintenanceId,
 				vendor_name: vendorName || null,
 				amount: parseFloat(amount),
-				expense_date: expenseDate
-			})
-			if (error) throw error
-			toast.success('Expense added successfully')
-			setOpen(false)
-			setVendorName('')
-			setAmount('')
-			setDescription('')
-			onSuccess()
+				expense_date: expenseDate,
+			});
+			if (error) throw error;
+			toast.success("Expense added successfully");
+			setOpen(false);
+			setVendorName("");
+			setAmount("");
+			setDescription("");
+			onSuccess();
 		} catch (error) {
-			logger.error('Failed to add expense', { error })
-			toast.error('Failed to add expense')
+			logger.error("Failed to add expense", { error });
+			toast.error("Failed to add expense");
 		} finally {
-			setIsSubmitting(false)
+			setIsSubmitting(false);
 		}
-	}
+	};
 
 	return (
 		<Dialog open={open} onOpenChange={setOpen}>
@@ -93,7 +93,7 @@ export function AddExpenseDialog({
 							id="vendor"
 							placeholder="e.g., ABC Plumbing"
 							value={vendorName}
-							onChange={e => setVendorName(e.target.value)}
+							onChange={(e) => setVendorName(e.target.value)}
 						/>
 					</Field>
 					<Field>
@@ -108,7 +108,7 @@ export function AddExpenseDialog({
 								placeholder="0.00"
 								className="pl-9"
 								value={amount}
-								onChange={e => setAmount(e.target.value)}
+								onChange={(e) => setAmount(e.target.value)}
 								required
 							/>
 						</div>
@@ -119,7 +119,7 @@ export function AddExpenseDialog({
 							id="expense_date"
 							type="date"
 							value={expenseDate}
-							onChange={e => setExpenseDate(e.target.value)}
+							onChange={(e) => setExpenseDate(e.target.value)}
 							required
 						/>
 					</Field>
@@ -130,7 +130,7 @@ export function AddExpenseDialog({
 							placeholder="Brief description of the expense"
 							rows={2}
 							value={description}
-							onChange={e => setDescription(e.target.value)}
+							onChange={(e) => setDescription(e.target.value)}
 						/>
 					</Field>
 					<DialogFooter>
@@ -142,11 +142,11 @@ export function AddExpenseDialog({
 							Cancel
 						</Button>
 						<Button type="submit" disabled={isSubmitting}>
-							{isSubmitting ? 'Adding...' : 'Add Expense'}
+							{isSubmitting ? "Adding..." : "Add Expense"}
 						</Button>
 					</DialogFooter>
 				</form>
 			</DialogContent>
 		</Dialog>
-	)
+	);
 }

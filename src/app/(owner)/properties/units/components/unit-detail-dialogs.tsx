@@ -1,32 +1,36 @@
+import { BedDouble, DollarSign, Ruler, ShowerHead } from "lucide-react";
+import { Button } from "#components/ui/button";
 import {
 	Dialog,
 	DialogContent,
 	DialogDescription,
 	DialogFooter,
 	DialogHeader,
-	DialogTitle
-} from '#components/ui/dialog'
-import { Label } from '#components/ui/label'
-import { Input } from '#components/ui/input'
-import { Button } from '#components/ui/button'
+	DialogTitle,
+} from "#components/ui/dialog";
+import { Input } from "#components/ui/input";
+import { Label } from "#components/ui/label";
 import {
 	Select,
 	SelectContent,
 	SelectItem,
 	SelectTrigger,
-	SelectValue
-} from '#components/ui/select'
-import { BedDouble, DollarSign, Ruler, ShowerHead } from 'lucide-react'
-import type { UnitRowWithRelations as UnitRow, UnitStatus } from '#types/core'
-import { UnitStatusBadge } from './unit-status-badge'
+	SelectValue,
+} from "#components/ui/select";
+import type { UnitRowWithRelations as UnitRow, UnitStatus } from "#types/core";
+import { UnitStatusBadge } from "./unit-status-badge";
 
 interface UnitViewDialogProps {
-	unit: UnitRow
-	open: boolean
-	onOpenChange: (open: boolean) => void
+	unit: UnitRow;
+	open: boolean;
+	onOpenChange: (open: boolean) => void;
 }
 
-export function UnitViewDialog({ unit, open, onOpenChange }: UnitViewDialogProps) {
+export function UnitViewDialog({
+	unit,
+	open,
+	onOpenChange,
+}: UnitViewDialogProps) {
 	return (
 		<Dialog open={open} onOpenChange={onOpenChange}>
 			<DialogContent className="sm:max-w-2xl">
@@ -63,16 +67,20 @@ export function UnitViewDialog({ unit, open, onOpenChange }: UnitViewDialogProps
 				</div>
 			</DialogContent>
 		</Dialog>
-	)
+	);
 }
 
 interface UnitEditDialogProps {
-	unit: UnitRow
-	open: boolean
-	onOpenChange: (open: boolean) => void
+	unit: UnitRow;
+	open: boolean;
+	onOpenChange: (open: boolean) => void;
 }
 
-export function UnitEditDialog({ unit, open, onOpenChange }: UnitEditDialogProps) {
+export function UnitEditDialog({
+	unit,
+	open,
+	onOpenChange,
+}: UnitEditDialogProps) {
 	return (
 		<Dialog open={open} onOpenChange={onOpenChange}>
 			<DialogContent className="sm:max-w-lg">
@@ -83,21 +91,21 @@ export function UnitEditDialog({ unit, open, onOpenChange }: UnitEditDialogProps
 				<div className="space-y-4">
 					<div>
 						<Label>Unit Number</Label>
-						<Input value={unit.unit_number || ''} disabled />
+						<Input value={unit.unit_number || ""} disabled />
 					</div>
 					<div className="grid grid-cols-2 gap-4">
 						<div>
 							<Label>Bedrooms</Label>
-							<Input type="number" value={unit.bedrooms ?? ''} disabled />
+							<Input type="number" value={unit.bedrooms ?? ""} disabled />
 						</div>
 						<div>
 							<Label>Bathrooms</Label>
-							<Input type="number" value={unit.bathrooms ?? ''} disabled />
+							<Input type="number" value={unit.bathrooms ?? ""} disabled />
 						</div>
 					</div>
 					<div>
 						<Label>Square Feet</Label>
-						<Input type="number" value={unit.square_feet || ''} disabled />
+						<Input type="number" value={unit.square_feet || ""} disabled />
 					</div>
 					<div>
 						<Label>Rent Amount</Label>
@@ -106,7 +114,9 @@ export function UnitEditDialog({ unit, open, onOpenChange }: UnitEditDialogProps
 					<div>
 						<Label>Status</Label>
 						<Select value={unit.status} disabled>
-							<SelectTrigger><SelectValue /></SelectTrigger>
+							<SelectTrigger>
+								<SelectValue />
+							</SelectTrigger>
 							<SelectContent>
 								<SelectItem value="OCCUPIED">Occupied</SelectItem>
 								<SelectItem value="available">Vacant</SelectItem>
@@ -117,9 +127,11 @@ export function UnitEditDialog({ unit, open, onOpenChange }: UnitEditDialogProps
 					</div>
 				</div>
 				<DialogFooter>
-					<Button variant="outline" onClick={() => onOpenChange(false)}>Close</Button>
+					<Button variant="outline" onClick={() => onOpenChange(false)}>
+						Close
+					</Button>
 				</DialogFooter>
 			</DialogContent>
 		</Dialog>
-	)
+	);
 }

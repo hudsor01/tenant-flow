@@ -1,17 +1,17 @@
-'use client'
+"use client";
 
-import { Button } from '#components/ui/button'
-import { CardLayout } from '#components/ui/card-layout'
-import { Shield } from 'lucide-react'
+import { Shield } from "lucide-react";
+import { Button } from "#components/ui/button";
+import { CardLayout } from "#components/ui/card-layout";
 
 interface AccountSecuritySectionProps {
-	lastSignInAt: string | undefined
-	onChangePassword: () => void
+	lastSignInAt: string | undefined;
+	onChangePassword: () => void;
 }
 
 export function AccountSecuritySection({
 	lastSignInAt,
-	onChangePassword
+	onChangePassword,
 }: AccountSecuritySectionProps) {
 	return (
 		<CardLayout
@@ -25,10 +25,10 @@ export function AccountSecuritySection({
 						<div>
 							<p className="font-medium">Password</p>
 							<p className="text-muted-foreground">
-								Last changed:{' '}
+								Last changed:{" "}
 								{lastSignInAt
 									? new Date(lastSignInAt).toLocaleDateString()
-									: 'Never'}
+									: "Never"}
 							</p>
 						</div>
 					</div>
@@ -38,5 +38,5 @@ export function AccountSecuritySection({
 				</div>
 			</div>
 		</CardLayout>
-	)
+	);
 }

@@ -1,22 +1,22 @@
-import { ArrowRight } from 'lucide-react'
-import type { ElementType, ReactNode } from 'react'
-import Link from 'next/link'
-import { Button } from '#components/ui/button'
-import { cn } from '#lib/utils'
+import { ArrowRight } from "lucide-react";
+import Link from "next/link";
+import type { ElementType, ReactNode } from "react";
+import { Button } from "#components/ui/button";
+import { cn } from "#lib/utils";
 
 interface BentoGridProps {
-	children: ReactNode
-	className?: string
+	children: ReactNode;
+	className?: string;
 }
 
 interface BentoCardProps {
-	name: string
-	className?: string
-	background: ReactNode
-	Icon: ElementType
-	description: string
-	href: string
-	cta: string
+	name: string;
+	className?: string;
+	background: ReactNode;
+	Icon: ElementType;
+	description: string;
+	href: string;
+	cta: string;
 }
 
 /**
@@ -32,14 +32,14 @@ const BentoGrid = ({ children, className }: BentoGridProps) => {
 	return (
 		<div
 			className={cn(
-				'grid grid-cols-1 md:grid-cols-3 auto-rows-[18rem] gap-1',
-				className
+				"grid grid-cols-1 md:grid-cols-3 auto-rows-[18rem] gap-1",
+				className,
 			)}
 		>
 			{children}
 		</div>
-	)
-}
+	);
+};
 
 const BentoCard = ({
 	name,
@@ -48,14 +48,14 @@ const BentoCard = ({
 	Icon,
 	description,
 	href,
-	cta
+	cta,
 }: BentoCardProps) => (
 	<div
 		className={cn(
-			'group relative flex flex-col justify-end overflow-hidden rounded-xl',
-			'bg-card border border-border',
-			'transition-all duration-300 hover:border-primary/40 hover:shadow-xl',
-			className
+			"group relative flex flex-col justify-end overflow-hidden rounded-xl",
+			"bg-card border border-border",
+			"transition-all duration-300 hover:border-primary/40 hover:shadow-xl",
+			className,
 		)}
 	>
 		{/* Background content - positioned absolutely */}
@@ -88,6 +88,6 @@ const BentoCard = ({
 		{/* Hover tint */}
 		<div className="pointer-events-none absolute inset-0 transition-colors duration-300 group-hover:bg-primary/[0.03]" />
 	</div>
-)
+);
 
-export { BentoCard, BentoGrid }
+export { BentoCard, BentoGrid };

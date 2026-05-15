@@ -1,44 +1,40 @@
-import { Card, CardContent } from '#components/ui/card'
-import { Calendar, User, Building } from 'lucide-react'
-import { cn } from '#lib/utils'
-import { formatDate } from '#lib/formatters/date'
-import { getDaysUntilExpiry } from './lease-detail-utils'
-import type { Lease } from '#types/core'
+import { Building, Calendar, User } from "lucide-react";
+import { Card, CardContent } from "#components/ui/card";
+import { formatDate } from "#lib/formatters/date";
+import { cn } from "#lib/utils";
+import type { Lease } from "#types/core";
+import { getDaysUntilExpiry } from "./lease-detail-utils";
 
 interface TenantInfo {
-	email?: string | null | undefined
-	first_name?: string | null | undefined
-	last_name?: string | null | undefined
-	name?: string | null | undefined
+	email?: string | null | undefined;
+	first_name?: string | null | undefined;
+	last_name?: string | null | undefined;
+	name?: string | null | undefined;
 }
 
 interface UnitInfo {
-	unit_number?: string | null | undefined
-	bedrooms?: number | null | undefined
-	bathrooms?: number | null | undefined
-	square_feet?: number | null | undefined
-	property_id: string
+	unit_number?: string | null | undefined;
+	bedrooms?: number | null | undefined;
+	bathrooms?: number | null | undefined;
+	square_feet?: number | null | undefined;
+	property_id: string;
 }
 
 interface LeaseDetailsTabProps {
-	lease: Lease
-	tenant: TenantInfo | null | undefined
-	unit: UnitInfo | null | undefined
+	lease: Lease;
+	tenant: TenantInfo | null | undefined;
+	unit: UnitInfo | null | undefined;
 }
 
-export function LeaseDetailsTab({
-	lease,
-	tenant,
-	unit
-}: LeaseDetailsTabProps) {
-	const daysUntilExpiry = getDaysUntilExpiry(lease.end_date)
+export function LeaseDetailsTab({ lease, tenant, unit }: LeaseDetailsTabProps) {
+	const daysUntilExpiry = getDaysUntilExpiry(lease.end_date);
 	const isExpiringSoon =
-		daysUntilExpiry !== null && daysUntilExpiry > 0 && daysUntilExpiry <= 30
+		daysUntilExpiry !== null && daysUntilExpiry > 0 && daysUntilExpiry <= 30;
 
 	const tenantFullName =
 		tenant?.first_name || tenant?.last_name
-			? `${tenant?.first_name ?? ''} ${tenant?.last_name ?? ''}`.trim()
-			: tenant?.name
+			? `${tenant?.first_name ?? ""} ${tenant?.last_name ?? ""}`.trim()
+			: tenant?.name;
 
 	return (
 		<Card>
@@ -57,17 +53,17 @@ export function LeaseDetailsTab({
 							{daysUntilExpiry !== null && (
 								<p
 									className={cn(
-										'text-sm',
+										"text-sm",
 										isExpiringSoon
-											? 'text-orange-600 dark:text-orange-400'
-											: 'text-muted-foreground'
+											? "text-orange-600 dark:text-orange-400"
+											: "text-muted-foreground",
 									)}
 								>
 									{daysUntilExpiry > 0
 										? `${daysUntilExpiry} days remaining`
 										: daysUntilExpiry === 0
-											? 'Expires today'
-											: 'Expired'}
+											? "Expires today"
+											: "Expired"}
 								</p>
 							)}
 						</div>
@@ -85,7 +81,7 @@ export function LeaseDetailsTab({
 								<User className="w-5 h-5 text-primary" />
 							</div>
 							<div>
-								<p className="font-medium">{tenantFullName || 'Unknown'}</p>
+								<p className="font-medium">{tenantFullName || "Unknown"}</p>
 								<p className="text-sm text-muted-foreground">{tenant.email}</p>
 							</div>
 						</div>
@@ -112,7 +108,7 @@ export function LeaseDetailsTab({
 									{unit.bedrooms} bed, {unit.bathrooms} bath
 									{unit.square_feet
 										? ` | ${unit.square_feet.toLocaleString()} sq ft`
-										: ''}
+										: ""}
 								</p>
 							</div>
 						</div>
@@ -124,5 +120,5 @@ export function LeaseDetailsTab({
 				</section>
 			</CardContent>
 		</Card>
-	)
+	);
 }

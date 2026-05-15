@@ -1,30 +1,30 @@
-'use client'
+"use client";
 
-import { use } from 'react'
-import { MaintenanceForm } from '#components/maintenance/maintenance-form.client'
-import { RouteModal } from '#components/ui/route-modal'
-import { Skeleton } from '#components/ui/skeleton'
-import { maintenanceQueries } from '#hooks/api/query-keys/maintenance-keys'
-import { useQuery } from '@tanstack/react-query'
-import { notFound } from 'next/navigation'
+import { useQuery } from "@tanstack/react-query";
+import { notFound } from "next/navigation";
+import { use } from "react";
+import { MaintenanceForm } from "#components/maintenance/maintenance-form.client";
+import { RouteModal } from "#components/ui/route-modal";
+import { Skeleton } from "#components/ui/skeleton";
+import { maintenanceQueries } from "#hooks/api/query-keys/maintenance-keys";
 
 /**
  * Edit Maintenance Request Modal (Intercepting Route)
  */
 export default function EditMaintenanceModal({
-	params
+	params,
 }: {
-	params: Promise<{ id: string }>
+	params: Promise<{ id: string }>;
 }) {
-	const { id } = use(params)
+	const { id } = use(params);
 	const {
 		data: request,
 		isLoading,
-		error
-	} = useQuery(maintenanceQueries.detail(id))
+		error,
+	} = useQuery(maintenanceQueries.detail(id));
 
 	if (error) {
-		notFound()
+		notFound();
 	}
 
 	return (
@@ -38,5 +38,5 @@ export default function EditMaintenanceModal({
 				<MaintenanceForm mode="edit" request={request} />
 			) : null}
 		</RouteModal>
-	)
+	);
 }

@@ -1,80 +1,88 @@
-'use client'
+"use client";
 
-import { Button } from '#components/ui/button'
-import { CardLayout } from '#components/ui/card-layout'
-import { LoadingDots } from '#components/ui/loading-spinner'
-import { subscriptionStatusQueries } from '#hooks/api/query-keys/subscription-verification-keys'
-import { useQuery } from '@tanstack/react-query'
-import { CheckCircle, ExternalLink, XCircle } from 'lucide-react'
-import Link from 'next/link'
-import { useSearchParams } from 'next/navigation'
+import { useQuery } from "@tanstack/react-query";
+import { CheckCircle, ExternalLink, XCircle } from "lucide-react";
+import Link from "next/link";
+import { useSearchParams } from "next/navigation";
+import { Button } from "#components/ui/button";
+import { CardLayout } from "#components/ui/card-layout";
+import { LoadingDots } from "#components/ui/loading-spinner";
+import { subscriptionStatusQueries } from "#hooks/api/query-keys/subscription-verification-keys";
 
 // Map status to CSS class name (uses classes from globals.css)
 const getStatusClass = (status: string): string => {
 	const statusMap: Record<string, string> = {
-		active: 'status-active',
-		PENDING: 'status-pending',
-		INACTIVE: 'status-inactive',
-		OVERDUE: 'status-overdue',
-		complete: 'status-complete',
-		error: 'status-error'
-	}
-	return statusMap[status] || 'status-inactive'
-}
+		active: "status-active",
+		PENDING: "status-pending",
+		INACTIVE: "status-inactive",
+		OVERDUE: "status-overdue",
+		complete: "status-complete",
+		error: "status-error",
+	};
+	return statusMap[status] || "status-inactive";
+};
 
 export default function CompleteClient() {
-	const searchParams = useSearchParams()
-	const sessionId = searchParams.get('session_id')
+	const searchParams = useSearchParams();
+	const sessionId = searchParams.get("session_id");
 
 	// Use TanStack Query for session status
 	const {
 		data: sessionData,
 		isLoading,
-		error: sessionError
-	} = useQuery(subscriptionStatusQueries.sessionStatus(sessionId))
+		error: sessionError,
+	} = useQuery(subscriptionStatusQueries.sessionStatus(sessionId));
 
 	// Derived state based on query results
 	const getDisplayState = () => {
 		if (!sessionId) {
 			return {
-				text: 'Invalid session - missing session ID',
-				status: 'error',
-				icon: <XCircle className="size-6 text-destructive" aria-hidden="true" />
-			}
+				text: "Invalid session - missing session ID",
+				status: "error",
+				icon: (
+					<XCircle className="size-6 text-destructive" aria-hidden="true" />
+				),
+			};
 		}
 
 		if (sessionError) {
 			return {
-				text: 'Error retrieving payment status',
-				status: 'error',
-				icon: <XCircle className="size-6 text-destructive" aria-hidden="true" />
-			}
+				text: "Error retrieving payment status",
+				status: "error",
+				icon: (
+					<XCircle className="size-6 text-destructive" aria-hidden="true" />
+				),
+			};
 		}
 
-		if (sessionData?.status === 'complete') {
+		if (sessionData?.status === "complete") {
 			return {
-				text: 'Payment succeeded',
-				status: 'complete',
-				icon: <CheckCircle className="size-6 text-success" aria-hidden="true" />
-			}
+				text: "Payment succeeded",
+				status: "complete",
+				icon: (
+					<CheckCircle className="size-6 text-success" aria-hidden="true" />
+				),
+			};
 		} else if (sessionData) {
 			return {
-				text: 'Something went wrong, please try again.',
-				status: 'error',
-				icon: <XCircle className="size-6 text-destructive" aria-hidden="true" />
-			}
+				text: "Something went wrong, please try again.",
+				status: "error",
+				icon: (
+					<XCircle className="size-6 text-destructive" aria-hidden="true" />
+				),
+			};
 		}
 
 		// Loading state
 		return {
-			text: '',
-			status: '',
-			icon: null
-		}
-	}
+			text: "",
+			status: "",
+			icon: null,
+		};
+	};
 
-	const { text, status, icon } = getDisplayState()
-	const loading = isLoading && !!sessionId
+	const { text, status, icon } = getDisplayState();
+	const loading = isLoading && !!sessionId;
 
 	if (loading) {
 		return (
@@ -85,13 +93,11 @@ export default function CompleteClient() {
 				>
 					<div className="flex-col-center space-y-4">
 						<LoadingDots size="lg" variant="primary" />
-						<p className="text-muted-foreground">
-							Checking payment status...
-						</p>
+						<p className="text-muted-foreground">Checking payment status...</p>
 					</div>
 				</CardLayout>
 			</div>
-		)
+		);
 	}
 
 	return (
@@ -108,7 +114,7 @@ export default function CompleteClient() {
 							{/* Status Icon */}
 							<div
 								id="status-icon"
-								className={`size-16 rounded-full flex-center mx-auto mb-6 ${status ? getStatusClass(status) : ''}`}
+								className={`size-16 rounded-full flex-center mx-auto mb-6 ${status ? getStatusClass(status) : ""}`}
 							>
 								{icon}
 							</div>
@@ -134,7 +140,7 @@ export default function CompleteClient() {
 													id="intent-id"
 													className="text-right py-2 text-foreground font-mono text-sm"
 												>
-													{sessionData?.payment_intent_id || 'N/A'}
+													{sessionData?.payment_intent_id || "N/A"}
 												</td>
 											</tr>
 											<tr className="border-b border-border last:border-b-0">
@@ -145,7 +151,7 @@ export default function CompleteClient() {
 													id="intent-status"
 													className="text-right py-2 text-foreground capitalize"
 												>
-													{sessionData?.status || 'Unknown'}
+													{sessionData?.status || "Unknown"}
 												</td>
 											</tr>
 											<tr className="border-b border-border last:border-b-0">
@@ -156,7 +162,7 @@ export default function CompleteClient() {
 													id="session-status"
 													className="text-right py-2 text-foreground capitalize"
 												>
-													{sessionData?.payment_status || 'Unknown'}
+													{sessionData?.payment_status || "Unknown"}
 												</td>
 											</tr>
 											<tr className="border-b border-border last:border-b-0">
@@ -167,7 +173,7 @@ export default function CompleteClient() {
 													id="payment-intent-status"
 													className="text-right py-2 text-foreground capitalize"
 												>
-													{sessionData?.payment_intent_status || 'Unknown'}
+													{sessionData?.payment_intent_status || "Unknown"}
 												</td>
 											</tr>
 										</tbody>
@@ -200,7 +206,7 @@ export default function CompleteClient() {
 					</CardLayout>
 
 					{/* Success Message */}
-					{sessionData?.status === 'complete' && (
+					{sessionData?.status === "complete" && (
 						<div className="text-center mt-8">
 							<p className="text-muted-foreground">
 								Welcome to TenantFlow! Your subscription is now active.
@@ -213,5 +219,5 @@ export default function CompleteClient() {
 				</div>
 			</div>
 		</div>
-	)
+	);
 }

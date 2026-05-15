@@ -1,21 +1,21 @@
-import { TrendingUp, TrendingDown, Wrench, Calendar } from 'lucide-react'
-import { BlurFade } from '#components/ui/blur-fade'
-import { BorderBeam } from '#components/ui/border-beam'
-import { NumberTicker } from '#components/ui/number-ticker'
+import { Calendar, TrendingDown, TrendingUp, Wrench } from "lucide-react";
+import { BlurFade } from "#components/ui/blur-fade";
+import { BorderBeam } from "#components/ui/border-beam";
+import { NumberTicker } from "#components/ui/number-ticker";
 import {
 	Stat,
+	StatDescription,
+	StatIndicator,
 	StatLabel,
 	StatValue,
-	StatIndicator,
-	StatDescription
-} from '#components/ui/stat'
+} from "#components/ui/stat";
 
 interface ExpenseStatsProps {
-	totalExpenses: number
-	monthlyAvg: number
-	maintenanceTotal: number
-	maintenancePercent: string
-	yoyChange: number | null
+	totalExpenses: number;
+	monthlyAvg: number;
+	maintenanceTotal: number;
+	maintenancePercent: string;
+	yoyChange: number | null;
 }
 
 export function ExpenseStats({
@@ -23,7 +23,7 @@ export function ExpenseStats({
 	monthlyAvg,
 	maintenanceTotal,
 	maintenancePercent,
-	yoyChange
+	yoyChange,
 }: ExpenseStatsProps) {
 	return (
 		<div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
@@ -90,21 +90,21 @@ export function ExpenseStats({
 				<Stat className="relative overflow-hidden">
 					<StatLabel>YoY Change</StatLabel>
 					<StatValue
-						className={`flex items-baseline gap-0.5 ${yoyChange !== null && yoyChange > 0 ? 'text-red-600 dark:text-red-400' : 'text-emerald-600 dark:text-emerald-400'}`}
+						className={`flex items-baseline gap-0.5 ${yoyChange !== null && yoyChange > 0 ? "text-red-600 dark:text-red-400" : "text-emerald-600 dark:text-emerald-400"}`}
 					>
 						{yoyChange !== null ? (
 							<>
-								{yoyChange > 0 ? '+' : ''}
+								{yoyChange > 0 ? "+" : ""}
 								{yoyChange.toFixed(1)}%
 							</>
 						) : (
-							'--'
+							"--"
 						)}
 					</StatValue>
 					<StatIndicator
 						variant="icon"
 						color={
-							yoyChange !== null && yoyChange > 0 ? 'destructive' : 'success'
+							yoyChange !== null && yoyChange > 0 ? "destructive" : "success"
 						}
 					>
 						{yoyChange !== null && yoyChange > 0 ? (
@@ -117,5 +117,5 @@ export function ExpenseStats({
 				</Stat>
 			</BlurFade>
 		</div>
-	)
+	);
 }

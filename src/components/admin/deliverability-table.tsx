@@ -1,36 +1,36 @@
-'use client'
+"use client";
 
-import { Mail } from 'lucide-react'
+import { Mail } from "lucide-react";
+import {
+	Empty,
+	EmptyDescription,
+	EmptyHeader,
+	EmptyMedia,
+	EmptyTitle,
+} from "#components/ui/empty";
 import {
 	Table,
 	TableBody,
 	TableCell,
 	TableHead,
 	TableHeader,
-	TableRow
-} from '#components/ui/table'
-import {
-	Empty,
-	EmptyDescription,
-	EmptyHeader,
-	EmptyMedia,
-	EmptyTitle
-} from '#components/ui/empty'
-import type { DeliverabilityStats } from '#types/analytics'
-import { cn } from '#lib/utils'
+	TableRow,
+} from "#components/ui/table";
+import { cn } from "#lib/utils";
+import type { DeliverabilityStats } from "#types/analytics";
 
 // Operational thresholds. The Resend default send-block triggers at 5%
 // bounce rate; 0.1% is the widely cited complaint-rate ceiling (SES,
 // Postmark, and Resend docs all converge on this number).
-const BOUNCE_WARN_PERCENT = 5
-const COMPLAINT_WARN_PERCENT = 0.1
+const BOUNCE_WARN_PERCENT = 5;
+const COMPLAINT_WARN_PERCENT = 0.1;
 
 function formatPercent(value: number): string {
-	return `${value.toFixed(2)}%`
+	return `${value.toFixed(2)}%`;
 }
 
 function formatCount(value: number): string {
-	return new Intl.NumberFormat('en-US').format(value)
+	return new Intl.NumberFormat("en-US").format(value);
 }
 
 export function DeliverabilityTable({ data }: { data: DeliverabilityStats[] }) {
@@ -47,12 +47,12 @@ export function DeliverabilityTable({ data }: { data: DeliverabilityStats[] }) {
 					</EmptyDescription>
 				</EmptyHeader>
 			</Empty>
-		)
+		);
 	}
 
 	// Sort by bounce rate descending — worst-performing template surfaces
 	// first so admins triage operational problems without scrolling.
-	const sorted = [...data].sort((a, b) => b.bouncePercent - a.bouncePercent)
+	const sorted = [...data].sort((a, b) => b.bouncePercent - a.bouncePercent);
 
 	return (
 		<div className="rounded-md border border-border bg-background">
@@ -68,7 +68,7 @@ export function DeliverabilityTable({ data }: { data: DeliverabilityStats[] }) {
 					</TableRow>
 				</TableHeader>
 				<TableBody>
-					{sorted.map(row => (
+					{sorted.map((row) => (
 						<TableRow key={row.templateTag}>
 							<TableCell className="font-medium text-foreground">
 								{row.templateTag}
@@ -84,20 +84,20 @@ export function DeliverabilityTable({ data }: { data: DeliverabilityStats[] }) {
 							</TableCell>
 							<TableCell
 								className={cn(
-									'text-right',
+									"text-right",
 									row.bouncePercent > BOUNCE_WARN_PERCENT
-										? 'text-destructive'
-										: 'text-muted-foreground'
+										? "text-destructive"
+										: "text-muted-foreground",
 								)}
 							>
 								{formatPercent(row.bouncePercent)}
 							</TableCell>
 							<TableCell
 								className={cn(
-									'text-right',
+									"text-right",
 									row.complaintPercent > COMPLAINT_WARN_PERCENT
-										? 'text-destructive'
-										: 'text-muted-foreground'
+										? "text-destructive"
+										: "text-muted-foreground",
 								)}
 							>
 								{formatPercent(row.complaintPercent)}
@@ -107,5 +107,5 @@ export function DeliverabilityTable({ data }: { data: DeliverabilityStats[] }) {
 				</TableBody>
 			</Table>
 		</div>
-	)
+	);
 }

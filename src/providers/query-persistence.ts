@@ -1,133 +1,133 @@
-import type { createLogger } from '#lib/frontend-logger'
-import type { Query } from '@tanstack/react-query'
-import type { Persister } from '@tanstack/react-query-persist-client'
+import type { Query } from "@tanstack/react-query";
+import type { Persister } from "@tanstack/react-query-persist-client";
+import type { createLogger } from "#lib/frontend-logger";
 
-type Logger = ReturnType<typeof createLogger>
+type Logger = ReturnType<typeof createLogger>;
 
 type PersistOptions = {
-	persister: Persister
-	maxAge: number
-	buster: string
-}
+	persister: Persister;
+	maxAge: number;
+	buster: string;
+};
 
-const AUTH_QUERY_KEY = 'auth'
+const AUTH_QUERY_KEY = "auth";
 
 const isSerializable = (data: unknown) => {
 	try {
-		JSON.stringify(data)
-		return true
+		JSON.stringify(data);
+		return true;
 	} catch {
-		return false
+		return false;
 	}
-}
+};
 
 const shouldDehydrateQuery = (query: Query) => {
-	const queryState = query.state
+	const queryState = query.state;
 
 	if (
-		queryState.status === 'pending' ||
-		queryState.fetchStatus === 'fetching'
+		queryState.status === "pending" ||
+		queryState.fetchStatus === "fetching"
 	) {
-		return false
+		return false;
 	}
 
-	if (queryState.status === 'error') {
-		return false
+	if (queryState.status === "error") {
+		return false;
 	}
 
-	const queryKey = query.queryKey[0] as string | undefined
+	const queryKey = query.queryKey[0] as string | undefined;
 	if (queryKey === AUTH_QUERY_KEY) {
-		return false
+		return false;
 	}
 
 	if (queryState.data && !isSerializable(queryState.data)) {
-		return false
+		return false;
 	}
 
-	return queryState.status === 'success' && queryState.data !== null
-}
+	return queryState.status === "success" && queryState.data !== null;
+};
 
 export const buildPersistOptions = ({
 	persister,
 	maxAge,
-	buster
+	buster,
 }: PersistOptions) => {
 	return {
 		persister,
 		maxAge,
 		buster,
 		dehydrateOptions: {
-			shouldDehydrateQuery
-		}
-	}
-}
+			shouldDehydrateQuery,
+		},
+	};
+};
 
 export const createIdbPersister = async (
 	logger: Logger,
-	cacheKey: string
+	cacheKey: string,
 ): Promise<Persister | null> => {
 	try {
-		const { del, get, set } = await import('idb-keyval')
+		const { del, get, set } = await import("idb-keyval");
 
 		const idbPersister: Persister = {
 			persistClient: async (client: unknown) => {
 				try {
-					await set(cacheKey, client)
+					await set(cacheKey, client);
 				} catch (error) {
-					logger.error('IndexedDB persist failed - cache not saved', {
-						action: 'persist_client_error',
+					logger.error("IndexedDB persist failed - cache not saved", {
+						action: "persist_client_error",
 						metadata: {
 							error: error instanceof Error ? error.message : String(error),
-							errorType: error instanceof Error ? error.name : 'Unknown'
-						}
-					})
+							errorType: error instanceof Error ? error.name : "Unknown",
+						},
+					});
 				}
 			},
 			restoreClient: async () => {
 				try {
-					const cached = await get(cacheKey)
+					const cached = await get(cacheKey);
 					if (cached === undefined) {
-						logger.info('IndexedDB cache miss - no cached data found')
+						logger.info("IndexedDB cache miss - no cached data found");
 					}
-					return cached
+					return cached;
 				} catch (error) {
-					logger.error('IndexedDB restore failed - treating as cache miss', {
-						action: 'restore_client_error',
+					logger.error("IndexedDB restore failed - treating as cache miss", {
+						action: "restore_client_error",
 						metadata: {
 							error: error instanceof Error ? error.message : String(error),
-							errorType: error instanceof Error ? error.name : 'Unknown',
-							isError: true
-						}
-					})
-					return undefined
+							errorType: error instanceof Error ? error.name : "Unknown",
+							isError: true,
+						},
+					});
+					return undefined;
 				}
 			},
 			removeClient: async () => {
 				try {
-					await del(cacheKey)
+					await del(cacheKey);
 				} catch (error) {
-					logger.error('IndexedDB remove failed - cache may be stale', {
-						action: 'remove_client_error',
+					logger.error("IndexedDB remove failed - cache may be stale", {
+						action: "remove_client_error",
 						metadata: {
 							error: error instanceof Error ? error.message : String(error),
-							errorType: error instanceof Error ? error.name : 'Unknown'
-						}
-					})
+							errorType: error instanceof Error ? error.name : "Unknown",
+						},
+					});
 				}
-			}
-		}
+			},
+		};
 
-		return idbPersister
+		return idbPersister;
 	} catch (error) {
 		logger.warn(
-			'Failed to initialize IndexedDB persistence - falling back to in-memory cache',
+			"Failed to initialize IndexedDB persistence - falling back to in-memory cache",
 			{
-				action: 'init_persister_error',
+				action: "init_persister_error",
 				metadata: {
-					error: error instanceof Error ? error.message : String(error)
-				}
-			}
-		)
-		return null
+					error: error instanceof Error ? error.message : String(error),
+				},
+			},
+		);
+		return null;
 	}
-}
+};

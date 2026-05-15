@@ -1,6 +1,6 @@
-import { AppShell } from '#components/shell/app-shell'
-import { SubscriptionStatusBanner } from '#components/billing/subscription-status-banner'
-import type { ReactNode } from 'react'
+import type { ReactNode } from "react";
+import { SubscriptionStatusBanner } from "#components/billing/subscription-status-banner";
+import { AppShell } from "#components/shell/app-shell";
 
 /**
  * Owner Dashboard Layout
@@ -14,14 +14,14 @@ import type { ReactNode } from 'react'
  * Auth is handled by proxy.ts - this is purely presentational.
  */
 export async function OwnerDashboardLayout({
-	children
+	children,
 }: {
-	children: ReactNode
+	children: ReactNode;
 }) {
 	return (
 		<AppShell>
 			<SubscriptionStatusBanner />
 			{children}
 		</AppShell>
-	)
+	);
 }

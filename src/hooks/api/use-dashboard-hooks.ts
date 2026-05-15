@@ -1,4 +1,4 @@
-'use client'
+"use client";
 
 /**
  * Dashboard Derived Hooks
@@ -11,74 +11,75 @@
  * React 19 + TanStack Query v5 patterns
  */
 
-import { useQuery, useSuspenseQuery } from '@tanstack/react-query'
+import { useQuery, useSuspenseQuery } from "@tanstack/react-query";
+import type { PropertyPerformance } from "#types/core";
 import {
 	DASHBOARD_BASE_QUERY_OPTIONS,
-	dashboardFinancialQueries,
-	type DashboardStatsData,
-	type DashboardChartsData,
 	type DashboardActivityData,
+	type DashboardChartsData,
+	type DashboardStatsData,
+	dashboardFinancialQueries,
 	type FinancialTimeRange,
-	type OwnerDashboardData
-} from './use-owner-dashboard'
-import type { PropertyPerformance } from '#types/core'
+	type OwnerDashboardData,
+} from "./use-owner-dashboard";
 
 const selectStats = (data: OwnerDashboardData): DashboardStatsData => ({
 	stats: data.stats,
-	metricTrends: data.metricTrends
-})
+	metricTrends: data.metricTrends,
+});
 
 const selectCharts = (data: OwnerDashboardData): DashboardChartsData => ({
-	timeSeries: data.timeSeries
-})
+	timeSeries: data.timeSeries,
+});
 
 const selectActivity = (data: OwnerDashboardData): DashboardActivityData => ({
-	activities: data.activity
-})
+	activities: data.activity,
+});
 
-const selectPropertyPerformance = (data: OwnerDashboardData): PropertyPerformance[] =>
-	data.propertyPerformance
+const selectPropertyPerformance = (
+	data: OwnerDashboardData,
+): PropertyPerformance[] => data.propertyPerformance;
 
 export function useDashboardStatsSuspense() {
 	return useSuspenseQuery({
 		...DASHBOARD_BASE_QUERY_OPTIONS,
-		select: selectStats
-	})
+		select: selectStats,
+	});
 }
 
 export function useDashboardStats() {
 	return useQuery({
 		...DASHBOARD_BASE_QUERY_OPTIONS,
-		select: selectStats
-	})
+		select: selectStats,
+	});
 }
 
 export function useDashboardChartsSuspense() {
 	return useSuspenseQuery({
 		...DASHBOARD_BASE_QUERY_OPTIONS,
-		select: selectCharts
-	})
+		select: selectCharts,
+	});
 }
 
 export function useDashboardCharts() {
 	return useQuery({
 		...DASHBOARD_BASE_QUERY_OPTIONS,
-		select: selectCharts
-	})
+		select: selectCharts,
+	});
 }
 
 export function useDashboardActivitySuspense() {
 	return useSuspenseQuery({
 		...DASHBOARD_BASE_QUERY_OPTIONS,
-		select: selectActivity
-	})
+		select: selectActivity,
+	});
 }
 
 export function useDashboardActivity() {
 	return useQuery({
 		...DASHBOARD_BASE_QUERY_OPTIONS,
-		select: selectActivity
-	})
+		select: selectActivity,
+	});
 }
 
 /**
@@ -87,8 +88,8 @@ export function useDashboardActivity() {
 export function usePropertyPerformanceSuspense() {
 	return useSuspenseQuery({
 		...DASHBOARD_BASE_QUERY_OPTIONS,
-		select: selectPropertyPerformance
-	})
+		select: selectPropertyPerformance,
+	});
 }
 
 /**
@@ -97,19 +98,21 @@ export function usePropertyPerformanceSuspense() {
 export function usePropertyPerformance() {
 	return useQuery({
 		...DASHBOARD_BASE_QUERY_OPTIONS,
-		select: selectPropertyPerformance
-	})
+		select: selectPropertyPerformance,
+	});
 }
 
 // Re-export types for existing consumers
-export type { FinancialChartDatum, FinancialTimeRange } from './use-owner-dashboard'
+export type {
+	FinancialChartDatum,
+	FinancialTimeRange,
+} from "./use-owner-dashboard";
 
 /**
  * Revenue/expense chart data fetched from the financial analytics RPC.
  * Uses server-calculated revenue/expense/netIncome so the chart reflects
  * actual expenses instead of placeholders.
  */
-export function useFinancialChartData(timeRange: FinancialTimeRange = '6m') {
-	return useQuery(dashboardFinancialQueries.chartData(timeRange))
+export function useFinancialChartData(timeRange: FinancialTimeRange = "6m") {
+	return useQuery(dashboardFinancialQueries.chartData(timeRange));
 }
-

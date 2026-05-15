@@ -1,31 +1,33 @@
-'use client'
+"use client";
 
-import { Clock, Pause, Play, Settings } from 'lucide-react'
-import { BlurFade } from '#components/ui/blur-fade'
-import type { ScheduledReport } from './types'
+import { Clock, Pause, Play, Settings } from "lucide-react";
+import { BlurFade } from "#components/ui/blur-fade";
+import type { ScheduledReport } from "./types";
 
 function formatRelativeDate(dateString: string): string {
-	const date = new Date(dateString)
-	const now = new Date()
-	const diffMs = date.getTime() - now.getTime()
-	const diffDays = Math.ceil(diffMs / (1000 * 60 * 60 * 24))
+	const date = new Date(dateString);
+	const now = new Date();
+	const diffMs = date.getTime() - now.getTime();
+	const diffDays = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
 
-	if (diffDays === 0) return 'Today'
-	if (diffDays === 1) return 'Tomorrow'
-	if (diffDays < 7) return `In ${diffDays} days`
-	return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+	if (diffDays === 0) return "Today";
+	if (diffDays === 1) return "Tomorrow";
+	if (diffDays < 7) return `In ${diffDays} days`;
+	return date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
 }
 
 interface ReportsScheduledListProps {
-	scheduledReports: ScheduledReport[]
-	onToggleSchedule: ((scheduleId: string, enabled: boolean) => void) | undefined
-	onEditSchedule: ((scheduleId: string) => void) | undefined
+	scheduledReports: ScheduledReport[];
+	onToggleSchedule:
+		| ((scheduleId: string, enabled: boolean) => void)
+		| undefined;
+	onEditSchedule: ((scheduleId: string) => void) | undefined;
 }
 
 export function ReportsScheduledList({
 	scheduledReports,
 	onToggleSchedule,
-	onEditSchedule
+	onEditSchedule,
 }: ReportsScheduledListProps) {
 	return (
 		<BlurFade delay={1.1} inView>
@@ -52,17 +54,19 @@ export function ReportsScheduledList({
 									<div
 										className={`w-10 h-10 rounded-lg flex items-center justify-center ${
 											schedule.enabled
-												? 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400'
-												: 'bg-muted text-muted-foreground'
+												? "bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400"
+												: "bg-muted text-muted-foreground"
 										}`}
 									>
 										<Clock className="w-5 h-5" />
 									</div>
 									<div>
-										<p className="font-medium text-foreground">{schedule.name}</p>
+										<p className="font-medium text-foreground">
+											{schedule.name}
+										</p>
 										<p className="text-sm text-muted-foreground">
 											{schedule.schedule.charAt(0).toUpperCase() +
-												schedule.schedule.slice(1)}{' '}
+												schedule.schedule.slice(1)}{" "}
 											• Next: {formatRelativeDate(schedule.nextRun)}
 										</p>
 									</div>
@@ -75,11 +79,13 @@ export function ReportsScheduledList({
 										onClick={() =>
 											onToggleSchedule?.(schedule.id, !schedule.enabled)
 										}
-										aria-label={schedule.enabled ? 'Pause schedule' : 'Resume schedule'}
+										aria-label={
+											schedule.enabled ? "Pause schedule" : "Resume schedule"
+										}
 										className={`p-2 rounded-lg transition-colors ${
 											schedule.enabled
-												? 'bg-emerald-100 dark:bg-emerald-900/30'
-												: 'bg-muted'
+												? "bg-emerald-100 dark:bg-emerald-900/30"
+												: "bg-muted"
 										}`}
 									>
 										{schedule.enabled ? (
@@ -102,5 +108,5 @@ export function ReportsScheduledList({
 				</div>
 			</div>
 		</BlurFade>
-	)
+	);
 }

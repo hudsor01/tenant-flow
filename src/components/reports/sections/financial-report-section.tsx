@@ -1,15 +1,6 @@
-'use client'
+"use client";
 
-import { Button } from '#components/ui/button'
-import {
-	Card,
-	CardContent,
-	CardDescription,
-	CardHeader,
-	CardTitle
-} from '#components/ui/card'
-import { Skeleton } from '#components/ui/skeleton'
-import { Download, Home } from 'lucide-react'
+import { Download, Home } from "lucide-react";
 import {
 	Area,
 	AreaChart,
@@ -18,36 +9,45 @@ import {
 	ResponsiveContainer,
 	Tooltip,
 	XAxis,
-	YAxis
-} from 'recharts'
-import { formatMoney, formatPercent, safeFormatMoney } from '../reports-utils'
+	YAxis,
+} from "recharts";
+import { Button } from "#components/ui/button";
+import {
+	Card,
+	CardContent,
+	CardDescription,
+	CardHeader,
+	CardTitle,
+} from "#components/ui/card";
+import { Skeleton } from "#components/ui/skeleton";
+import { formatMoney, formatPercent, safeFormatMoney } from "../reports-utils";
 
 interface FinancialReportData {
 	summary: {
-		totalIncome: number
-		totalExpenses: number
-		netIncome: number
-		rentRollOccupancyRate: number
-	}
+		totalIncome: number;
+		totalExpenses: number;
+		netIncome: number;
+		rentRollOccupancyRate: number;
+	};
 	monthly: Array<{
-		month: string
-		income: number
-		expenses: number
-	}>
+		month: string;
+		income: number;
+		expenses: number;
+	}>;
 }
 
 interface FinancialReportSectionProps {
-	data: FinancialReportData | undefined
-	isLoading: boolean
-	isExporting: boolean
-	onExport: () => void
+	data: FinancialReportData | undefined;
+	isLoading: boolean;
+	isExporting: boolean;
+	onExport: () => void;
 }
 
 export function FinancialReportSection({
 	data,
 	isLoading,
 	isExporting,
-	onExport
+	onExport,
 }: FinancialReportSectionProps) {
 	return (
 		<section className="flex flex-col gap-4">
@@ -160,7 +160,7 @@ export function FinancialReportSection({
 									<CartesianGrid strokeDasharray="3 3" />
 									<XAxis dataKey="month" />
 									<YAxis
-										tickFormatter={value => formatMoney(Number(value))}
+										tickFormatter={(value) => formatMoney(Number(value))}
 									/>
 									<Tooltip formatter={safeFormatMoney} />
 									<Legend />
@@ -185,5 +185,5 @@ export function FinancialReportSection({
 				</>
 			) : null}
 		</section>
-	)
+	);
 }

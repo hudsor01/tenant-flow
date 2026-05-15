@@ -1,44 +1,43 @@
-'use client'
+"use client";
 
-import { useState, useEffect } from 'react'
-import Link from 'next/link'
-import { ArrowRight } from 'lucide-react'
-import { Button } from '#components/ui/button'
-import { cn } from '#lib/utils'
-import { PageLayout } from '#components/layout/page-layout'
-import { LogoCloud } from '#components/sections/logo-cloud'
-import { ComparisonTable } from '#components/sections/comparison-table'
-import { LazySection } from '#components/ui/lazy-section'
-import { SectionSkeleton } from '#components/ui/section-skeleton'
-
+import { ArrowRight } from "lucide-react";
+import Link from "next/link";
+import { useEffect, useState } from "react";
+import { BentoFeaturesSection } from "#components/landing/bento-features-section";
+import { FeatureCallouts } from "#components/landing/feature-callouts";
+import { FinalCtaSection } from "#components/landing/final-cta-section";
 // Page sections
-import { HeroSection } from '#components/landing/hero-section'
-import { FeatureCallouts } from '#components/landing/feature-callouts'
-import { TestimonialsSection } from '#components/landing/testimonials-section'
-import { BentoFeaturesSection } from '#components/landing/bento-features-section'
-import { ResultsProofSection } from '#components/landing/results-proof-section'
-import { FinalCtaSection } from '#components/landing/final-cta-section'
+import { HeroSection } from "#components/landing/hero-section";
+import { ResultsProofSection } from "#components/landing/results-proof-section";
+import { TestimonialsSection } from "#components/landing/testimonials-section";
+import { PageLayout } from "#components/layout/page-layout";
+import { ComparisonTable } from "#components/sections/comparison-table";
+import { LogoCloud } from "#components/sections/logo-cloud";
+import { Button } from "#components/ui/button";
+import { LazySection } from "#components/ui/lazy-section";
+import { SectionSkeleton } from "#components/ui/section-skeleton";
+import { cn } from "#lib/utils";
 
 export default function FeaturesClient() {
-	const [stickyCtaVisible, setStickyCtaVisible] = useState(false)
+	const [stickyCtaVisible, setStickyCtaVisible] = useState(false);
 
 	useEffect(() => {
 		const handleScroll = () => {
-			setStickyCtaVisible(window.scrollY > 800)
-		}
-		window.addEventListener('scroll', handleScroll)
-		return () => window.removeEventListener('scroll', handleScroll)
-	}, [])
+			setStickyCtaVisible(window.scrollY > 800);
+		};
+		window.addEventListener("scroll", handleScroll);
+		return () => window.removeEventListener("scroll", handleScroll);
+	}, []);
 
 	return (
 		<PageLayout>
 			{/* Sticky CTA */}
 			<div
 				className={cn(
-					'fixed top-4 right-4 z-50 transition-all duration-500 transform',
+					"fixed top-4 right-4 z-50 transition-all duration-500 transform",
 					stickyCtaVisible
-						? 'translate-y-0 opacity-100'
-						: '-translate-y-2 opacity-0 pointer-events-none'
+						? "translate-y-0 opacity-100"
+						: "-translate-y-2 opacity-0 pointer-events-none",
 				)}
 			>
 				<Button
@@ -73,5 +72,5 @@ export default function FeaturesClient() {
 
 			<FinalCtaSection />
 		</PageLayout>
-	)
+	);
 }

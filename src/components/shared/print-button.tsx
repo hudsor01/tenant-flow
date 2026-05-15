@@ -1,7 +1,7 @@
-'use client'
+"use client";
 
-import { Printer } from 'lucide-react'
-import { Button } from '#components/ui/button'
+import { Printer } from "lucide-react";
+import { Button } from "#components/ui/button";
 
 export function PrintButton() {
 	return (
@@ -13,5 +13,5 @@ export function PrintButton() {
 			<Printer className="size-4 mr-2" />
 			Print / Save as PDF
 		</Button>
-	)
+	);
 }

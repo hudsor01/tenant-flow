@@ -1,8 +1,8 @@
-import { AlertTriangle } from 'lucide-react'
+import { AlertTriangle } from "lucide-react";
 
 interface FinancialsErrorProps {
-	error: Error | null
-	onRetry: () => void
+	error: Error | null;
+	onRetry: () => void;
 }
 
 export function FinancialsError({ error, onRetry }: FinancialsErrorProps) {
@@ -16,7 +16,7 @@ export function FinancialsError({ error, onRetry }: FinancialsErrorProps) {
 					Failed to Load Financial Overview
 				</h2>
 				<p className="text-muted-foreground mb-6">
-					{error instanceof Error ? error.message : 'An error occurred'}
+					{error instanceof Error ? error.message : "An error occurred"}
 				</p>
 				<button
 					onClick={onRetry}
@@ -26,5 +26,5 @@ export function FinancialsError({ error, onRetry }: FinancialsErrorProps) {
 				</button>
 			</div>
 		</div>
-	)
+	);
 }

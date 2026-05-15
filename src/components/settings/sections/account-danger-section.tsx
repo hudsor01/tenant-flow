@@ -1,7 +1,7 @@
-'use client'
+"use client";
 
-import { GdprDataActions } from '#components/settings/gdpr-data-actions'
+import { GdprDataActions } from "#components/settings/gdpr-data-actions";
 
 export function AccountDangerSection() {
-	return <GdprDataActions variant="standalone" />
+	return <GdprDataActions variant="standalone" />;
 }

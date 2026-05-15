@@ -1,16 +1,16 @@
-'use client'
+"use client";
 
-import { Key, Shield } from 'lucide-react'
-import { Button } from '#components/ui/button'
-import { BlurFade } from '#components/ui/blur-fade'
-import { useRouter } from 'next/navigation'
+import { Key, Shield } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { BlurFade } from "#components/ui/blur-fade";
+import { Button } from "#components/ui/button";
 
 interface SecuritySectionProps {
-	onChangePassword: () => void
+	onChangePassword: () => void;
 }
 
 export function SecuritySection({ onChangePassword }: SecuritySectionProps) {
-	const router = useRouter()
+	const router = useRouter();
 
 	return (
 		<BlurFade delay={0.6} inView>
@@ -49,7 +49,7 @@ export function SecuritySection({ onChangePassword }: SecuritySectionProps) {
 							<Button
 								variant="ghost"
 								size="sm"
-								onClick={() => router.push('/settings?tab=security')}
+								onClick={() => router.push("/settings?tab=security")}
 							>
 								Setup
 							</Button>
@@ -58,5 +58,5 @@ export function SecuritySection({ onChangePassword }: SecuritySectionProps) {
 				</div>
 			</section>
 		</BlurFade>
-	)
+	);
 }

@@ -1,4 +1,4 @@
-import { expect, type Page, type Locator } from '@playwright/test'
+import { expect, type Locator, type Page } from "@playwright/test";
 
 /**
  * Form interaction helper utilities for E2E testing
@@ -10,9 +10,9 @@ import { expect, type Page, type Locator } from '@playwright/test'
 export async function fillTextInput(
 	page: Page,
 	label: string,
-	value: string
+	value: string,
 ): Promise<void> {
-	await page.getByLabel(new RegExp(label, 'i')).fill(value)
+	await page.getByLabel(new RegExp(label, "i")).fill(value);
 }
 
 /**
@@ -21,9 +21,9 @@ export async function fillTextInput(
 export async function fillTextInputByPlaceholder(
 	page: Page,
 	placeholder: string,
-	value: string
+	value: string,
 ): Promise<void> {
-	await page.getByPlaceholder(new RegExp(placeholder, 'i')).fill(value)
+	await page.getByPlaceholder(new RegExp(placeholder, "i")).fill(value);
 }
 
 /**
@@ -32,9 +32,9 @@ export async function fillTextInputByPlaceholder(
 export async function fillTextInputByTestId(
 	page: Page,
 	testId: string,
-	value: string
+	value: string,
 ): Promise<void> {
-	await page.getByTestId(testId).fill(value)
+	await page.getByTestId(testId).fill(value);
 }
 
 /**
@@ -43,9 +43,9 @@ export async function fillTextInputByTestId(
 export async function selectOption(
 	page: Page,
 	label: string,
-	option: string
+	option: string,
 ): Promise<void> {
-	await page.getByLabel(new RegExp(label, 'i')).selectOption(option)
+	await page.getByLabel(new RegExp(label, "i")).selectOption(option);
 }
 
 /**
@@ -54,26 +54,26 @@ export async function selectOption(
 export async function selectComboboxOption(
 	page: Page,
 	label: string,
-	option: string
+	option: string,
 ): Promise<void> {
 	// Click the combobox trigger
-	await page.getByRole('combobox', { name: new RegExp(label, 'i') }).click()
+	await page.getByRole("combobox", { name: new RegExp(label, "i") }).click();
 
 	// Wait for options to appear
 	await page.waitForSelector('[role="option"]', {
-		state: 'visible',
-		timeout: 2000
-	})
+		state: "visible",
+		timeout: 2000,
+	});
 
 	// Click the desired option
-	await page.getByRole('option', { name: new RegExp(option, 'i') }).click()
+	await page.getByRole("option", { name: new RegExp(option, "i") }).click();
 }
 
 /**
  * Check a checkbox by its label
  */
 export async function clickCheckbox(page: Page, label: string): Promise<void> {
-	await page.getByLabel(new RegExp(label, 'i')).check()
+	await page.getByLabel(new RegExp(label, "i")).check();
 }
 
 /**
@@ -81,9 +81,9 @@ export async function clickCheckbox(page: Page, label: string): Promise<void> {
  */
 export async function uncheckCheckbox(
 	page: Page,
-	label: string
+	label: string,
 ): Promise<void> {
-	await page.getByLabel(new RegExp(label, 'i')).uncheck()
+	await page.getByLabel(new RegExp(label, "i")).uncheck();
 }
 
 /**
@@ -91,9 +91,9 @@ export async function uncheckCheckbox(
  */
 export async function clickRadioButton(
 	page: Page,
-	label: string
+	label: string,
 ): Promise<void> {
-	await page.getByLabel(new RegExp(label, 'i')).check()
+	await page.getByLabel(new RegExp(label, "i")).check();
 }
 
 /**
@@ -101,9 +101,9 @@ export async function clickRadioButton(
  */
 export async function submitForm(
 	page: Page,
-	buttonText: string = 'Submit'
+	buttonText: string = "Submit",
 ): Promise<void> {
-	await page.getByRole('button', { name: new RegExp(buttonText, 'i') }).click()
+	await page.getByRole("button", { name: new RegExp(buttonText, "i") }).click();
 }
 
 /**
@@ -111,11 +111,11 @@ export async function submitForm(
  */
 export async function verifyValidationError(
 	page: Page,
-	errorMessage: string
+	errorMessage: string,
 ): Promise<void> {
-	await expect(page.getByText(new RegExp(errorMessage, 'i'))).toBeVisible({
-		timeout: 3000
-	})
+	await expect(page.getByText(new RegExp(errorMessage, "i"))).toBeVisible({
+		timeout: 3000,
+	});
 }
 
 /**
@@ -123,12 +123,12 @@ export async function verifyValidationError(
  */
 export async function verifyValidationErrors(
 	page: Page,
-	errorMessages: string[]
+	errorMessages: string[],
 ): Promise<void> {
 	for (const message of errorMessages) {
-		await expect(page.getByText(new RegExp(message, 'i'))).toBeVisible({
-			timeout: 3000
-		})
+		await expect(page.getByText(new RegExp(message, "i"))).toBeVisible({
+			timeout: 3000,
+		});
 	}
 }
 
@@ -138,10 +138,10 @@ export async function verifyValidationErrors(
 export async function verifyFieldValue(
 	page: Page,
 	label: string,
-	expectedValue: string
+	expectedValue: string,
 ): Promise<void> {
-	const field = page.getByLabel(new RegExp(label, 'i'))
-	await expect(field).toHaveValue(expectedValue)
+	const field = page.getByLabel(new RegExp(label, "i"));
+	await expect(field).toHaveValue(expectedValue);
 }
 
 /**
@@ -149,12 +149,12 @@ export async function verifyFieldValue(
  */
 export async function verifySubmitButtonDisabled(
 	page: Page,
-	buttonText: string = 'Submit'
+	buttonText: string = "Submit",
 ): Promise<void> {
-	const submitButton = page.getByRole('button', {
-		name: new RegExp(buttonText, 'i')
-	})
-	await expect(submitButton).toBeDisabled()
+	const submitButton = page.getByRole("button", {
+		name: new RegExp(buttonText, "i"),
+	});
+	await expect(submitButton).toBeDisabled();
 }
 
 /**
@@ -162,19 +162,19 @@ export async function verifySubmitButtonDisabled(
  */
 export async function verifySubmitButtonEnabled(
 	page: Page,
-	buttonText: string = 'Submit'
+	buttonText: string = "Submit",
 ): Promise<void> {
-	const submitButton = page.getByRole('button', {
-		name: new RegExp(buttonText, 'i')
-	})
-	await expect(submitButton).toBeEnabled()
+	const submitButton = page.getByRole("button", {
+		name: new RegExp(buttonText, "i"),
+	});
+	await expect(submitButton).toBeEnabled();
 }
 
 /**
  * Clear a text input by its label
  */
 export async function clearTextInput(page: Page, label: string): Promise<void> {
-	await page.getByLabel(new RegExp(label, 'i')).clear()
+	await page.getByLabel(new RegExp(label, "i")).clear();
 }
 
 /**
@@ -183,10 +183,10 @@ export async function clearTextInput(page: Page, label: string): Promise<void> {
 export async function fillDateInput(
 	page: Page,
 	label: string,
-	date: string
+	date: string,
 ): Promise<void> {
 	// Date format should be YYYY-MM-DD
-	await page.getByLabel(new RegExp(label, 'i')).fill(date)
+	await page.getByLabel(new RegExp(label, "i")).fill(date);
 }
 
 /**
@@ -195,9 +195,9 @@ export async function fillDateInput(
 export async function fillNumberInput(
 	page: Page,
 	label: string,
-	value: number
+	value: number,
 ): Promise<void> {
-	await page.getByLabel(new RegExp(label, 'i')).fill(value.toString())
+	await page.getByLabel(new RegExp(label, "i")).fill(value.toString());
 }
 
 /**
@@ -206,10 +206,10 @@ export async function fillNumberInput(
 export async function uploadFile(
 	page: Page,
 	label: string,
-	filePath: string
+	filePath: string,
 ): Promise<void> {
-	const fileInput = page.getByLabel(new RegExp(label, 'i'))
-	await fileInput.setInputFiles(filePath)
+	const fileInput = page.getByLabel(new RegExp(label, "i"));
+	await fileInput.setInputFiles(filePath);
 }
 
 /**
@@ -217,19 +217,19 @@ export async function uploadFile(
  */
 export async function fillForm(
 	page: Page,
-	formData: Record<string, string | number | boolean>
+	formData: Record<string, string | number | boolean>,
 ): Promise<void> {
 	for (const [label, value] of Object.entries(formData)) {
-		if (typeof value === 'boolean') {
+		if (typeof value === "boolean") {
 			if (value) {
-				await clickCheckbox(page, label)
+				await clickCheckbox(page, label);
 			} else {
-				await uncheckCheckbox(page, label)
+				await uncheckCheckbox(page, label);
 			}
-		} else if (typeof value === 'number') {
-			await fillNumberInput(page, label, value)
+		} else if (typeof value === "number") {
+			await fillNumberInput(page, label, value);
 		} else {
-			await fillTextInput(page, label, value)
+			await fillTextInput(page, label, value);
 		}
 	}
 }
@@ -242,9 +242,9 @@ export async function verifyFormLoading(page: Page): Promise<void> {
 	const loadingIndicator = page
 		.locator('[data-testid="form-loading"]')
 		.or(page.locator('form [aria-busy="true"]'))
-		.or(page.locator('form .animate-spin'))
+		.or(page.locator("form .animate-spin"));
 
-	await expect(loadingIndicator).toBeVisible({ timeout: 5000 })
+	await expect(loadingIndicator).toBeVisible({ timeout: 5000 });
 }
 
 /**
@@ -253,12 +253,12 @@ export async function verifyFormLoading(page: Page): Promise<void> {
 export async function waitForFormSubmission(page: Page): Promise<void> {
 	// Wait for loading state to disappear
 	await page.waitForSelector('[data-testid="form-loading"]', {
-		state: 'hidden',
-		timeout: 10000
-	})
+		state: "hidden",
+		timeout: 10000,
+	});
 
 	// Wait for network to be idle
-	await page.waitForLoadState('networkidle', { timeout: 10000 })
+	await page.waitForLoadState("networkidle", { timeout: 10000 });
 }
 
 /**
@@ -266,10 +266,10 @@ export async function waitForFormSubmission(page: Page): Promise<void> {
  */
 export async function verifyRequiredField(
 	page: Page,
-	label: string
+	label: string,
 ): Promise<void> {
-	const field = page.getByLabel(new RegExp(label, 'i'))
-	await expect(field).toHaveAttribute('required', '')
+	const field = page.getByLabel(new RegExp(label, "i"));
+	await expect(field).toHaveAttribute("required", "");
 }
 
 /**
@@ -278,8 +278,8 @@ export async function verifyRequiredField(
 export async function fillTextArea(
 	page: Page,
 	label: string,
-	value: string
+	value: string,
 ): Promise<void> {
-	const textarea = page.getByLabel(new RegExp(label, 'i'))
-	await textarea.fill(value)
+	const textarea = page.getByLabel(new RegExp(label, "i"));
+	await textarea.fill(value);
 }

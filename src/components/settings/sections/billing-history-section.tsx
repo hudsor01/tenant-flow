@@ -1,13 +1,13 @@
-'use client'
+"use client";
 
-import { CheckCircle, Loader2 } from 'lucide-react'
-import { BlurFade } from '#components/ui/blur-fade'
-import { useBillingHistory } from '#hooks/api/use-billing'
-import { useBillingPortalMutation } from '#hooks/api/use-billing-mutations'
+import { CheckCircle, Loader2 } from "lucide-react";
+import { BlurFade } from "#components/ui/blur-fade";
+import { useBillingHistory } from "#hooks/api/use-billing";
+import { useBillingPortalMutation } from "#hooks/api/use-billing-mutations";
 
 export function BillingHistorySection() {
-	const { data: paymentHistory } = useBillingHistory()
-	const createPortalSession = useBillingPortalMutation()
+	const { data: paymentHistory } = useBillingHistory();
+	const createPortalSession = useBillingPortalMutation();
 
 	return (
 		<BlurFade delay={0.35} inView>
@@ -21,12 +21,12 @@ export function BillingHistorySection() {
 						{paymentHistory.slice(0, 5).map(
 							(
 								invoice: {
-									id: string
-									created_at: string
-									amount: number
-									status: string
+									id: string;
+									created_at: string;
+									amount: number;
+									status: string;
 								},
-								idx: number
+								idx: number,
 							) => (
 								<BlurFade key={invoice.id} delay={0.4 + idx * 0.05} inView>
 									<div className="flex items-center justify-between p-3 rounded-lg border hover:bg-muted/30 transition-colors">
@@ -36,8 +36,8 @@ export function BillingHistorySection() {
 											</span>
 											<span className="text-sm text-muted-foreground">
 												{new Date(invoice.created_at).toLocaleDateString(
-													'en-US',
-													{ month: 'short', day: 'numeric', year: 'numeric' }
+													"en-US",
+													{ month: "short", day: "numeric", year: "numeric" },
 												)}
 											</span>
 										</div>
@@ -55,7 +55,7 @@ export function BillingHistorySection() {
 										</div>
 									</div>
 								</BlurFade>
-							)
+							),
 						)}
 					</div>
 				) : (
@@ -79,12 +79,12 @@ export function BillingHistorySection() {
 									Loading...
 								</span>
 							) : (
-								'View All Invoices'
+								"View All Invoices"
 							)}
 						</button>
 					</div>
 				)}
 			</section>
 		</BlurFade>
-	)
+	);
 }

@@ -8,48 +8,47 @@
  * React 19 + TanStack Query v5 patterns
  */
 
-import { useMutation, useQueryClient } from '@tanstack/react-query'
-
-import { inspectionQueries } from './query-keys/inspection-keys'
-import { inspectionMutations } from './query-keys/inspection-mutation-options'
-import { createMutationCallbacks } from '#hooks/create-mutation-callbacks'
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { createMutationCallbacks } from "#hooks/create-mutation-callbacks";
+import { inspectionQueries } from "./query-keys/inspection-keys";
+import { inspectionMutations } from "./query-keys/inspection-mutation-options";
 
 /**
  * Create a new inspection
  */
 export function useCreateInspection() {
-	const queryClient = useQueryClient()
+	const queryClient = useQueryClient();
 
 	return useMutation({
 		...inspectionMutations.create(),
 		...createMutationCallbacks(queryClient, {
 			invalidate: [inspectionQueries.lists()],
-			successMessage: 'Inspection created successfully',
-			errorContext: 'Create inspection',
-			broadcastSuccess: true
-		})
-	})
+			successMessage: "Inspection created successfully",
+			errorContext: "Create inspection",
+			broadcastSuccess: true,
+		}),
+	});
 }
 
 /**
  * Update an existing inspection
  */
 export function useUpdateInspection(id: string) {
-	const queryClient = useQueryClient()
+	const queryClient = useQueryClient();
 
 	return useMutation({
 		...inspectionMutations.update(id),
 		...createMutationCallbacks(queryClient, {
 			invalidate: [inspectionQueries.lists()],
-			updateDetail: updated => ({
+			updateDetail: (updated) => ({
 				queryKey: inspectionQueries.detailQuery(id).queryKey,
-				data: updated
+				data: updated,
 			}),
-			successMessage: 'Inspection updated',
-			errorContext: 'Update inspection',
-			broadcastSuccess: true
-		})
-	})
+			successMessage: "Inspection updated",
+			errorContext: "Update inspection",
+			broadcastSuccess: true,
+		}),
+	});
 }
 
 /**
@@ -57,20 +56,20 @@ export function useUpdateInspection(id: string) {
  * Validates all rooms have a condition_rating before updating status to 'completed'.
  */
 export function useCompleteInspection(id: string) {
-	const queryClient = useQueryClient()
+	const queryClient = useQueryClient();
 
 	return useMutation({
 		...inspectionMutations.complete(id),
 		...createMutationCallbacks(queryClient, {
 			invalidate: [
 				inspectionQueries.detailQuery(id).queryKey,
-				inspectionQueries.lists()
+				inspectionQueries.lists(),
 			],
-			successMessage: 'Inspection marked as complete',
-			errorContext: 'Complete inspection',
-			broadcastSuccess: true
-		})
-	})
+			successMessage: "Inspection marked as complete",
+			errorContext: "Complete inspection",
+			broadcastSuccess: true,
+		}),
+	});
 }
 
 /**
@@ -78,20 +77,20 @@ export function useCompleteInspection(id: string) {
  * Pure DB status update -- email notification handled by n8n/DB webhook in Phase 56.
  */
 export function useSubmitForTenantReview(id: string) {
-	const queryClient = useQueryClient()
+	const queryClient = useQueryClient();
 
 	return useMutation({
 		...inspectionMutations.submitForReview(id),
 		...createMutationCallbacks(queryClient, {
 			invalidate: [
 				inspectionQueries.detailQuery(id).queryKey,
-				inspectionQueries.lists()
+				inspectionQueries.lists(),
 			],
-			successMessage: 'Sent to tenant for review',
-			errorContext: 'Submit for review',
-			broadcastSuccess: true
-		})
-	})
+			successMessage: "Sent to tenant for review",
+			errorContext: "Submit for review",
+			broadcastSuccess: true,
+		}),
+	});
 }
 
 /**
@@ -100,35 +99,35 @@ export function useSubmitForTenantReview(id: string) {
  * DocuSeal is used for leases (Phase 55), not inspection reviews.
  */
 export function useTenantReview(id: string) {
-	const queryClient = useQueryClient()
+	const queryClient = useQueryClient();
 
 	return useMutation({
 		...inspectionMutations.tenantReview(id),
 		...createMutationCallbacks(queryClient, {
 			invalidate: [
 				inspectionQueries.detailQuery(id).queryKey,
-				inspectionQueries.lists()
+				inspectionQueries.lists(),
 			],
-			successMessage: 'Inspection reviewed and signed',
-			errorContext: 'Tenant review',
-			broadcastSuccess: true
-		})
-	})
+			successMessage: "Inspection reviewed and signed",
+			errorContext: "Tenant review",
+			broadcastSuccess: true,
+		}),
+	});
 }
 
 /**
  * Delete an inspection
  */
 export function useDeleteInspection() {
-	const queryClient = useQueryClient()
+	const queryClient = useQueryClient();
 
 	return useMutation({
 		...inspectionMutations.delete(),
 		...createMutationCallbacks(queryClient, {
 			invalidate: [inspectionQueries.lists()],
-			successMessage: 'Inspection deleted',
-			errorContext: 'Delete inspection',
-			broadcastSuccess: true
-		})
-	})
+			successMessage: "Inspection deleted",
+			errorContext: "Delete inspection",
+			broadcastSuccess: true,
+		}),
+	});
 }

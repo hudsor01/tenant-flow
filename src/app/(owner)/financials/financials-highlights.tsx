@@ -1,18 +1,20 @@
-import { BlurFade } from '#components/ui/blur-fade'
-import { formatCents } from '#lib/utils/currency'
+import { BlurFade } from "#components/ui/blur-fade";
+import { formatCents } from "#lib/utils/currency";
 
 interface Highlight {
-	label: string
-	value: number
-	trend: number | null
+	label: string;
+	value: number;
+	trend: number | null;
 }
 
 interface FinancialsHighlightsProps {
-	highlights: Highlight[]
+	highlights: Highlight[];
 }
 
-export function FinancialsHighlights({ highlights }: FinancialsHighlightsProps) {
-	if (highlights.length === 0) return null
+export function FinancialsHighlights({
+	highlights,
+}: FinancialsHighlightsProps) {
+	if (highlights.length === 0) return null;
 
 	return (
 		<BlurFade delay={0.4} inView>
@@ -22,12 +24,9 @@ export function FinancialsHighlights({ highlights }: FinancialsHighlightsProps) 
 				</h3>
 				<div className="grid grid-cols-1 md:grid-cols-3 gap-6">
 					{highlights.map((highlight, index) => (
-						<div
-							key={index}
-							className="text-center p-4 bg-muted/30 rounded-lg"
-						>
+						<div key={index} className="text-center p-4 bg-muted/30 rounded-lg">
 							<p className="text-2xl font-semibold tabular-nums">
-								{typeof highlight.value === 'number' && highlight.value > 1000
+								{typeof highlight.value === "number" && highlight.value > 1000
 									? formatCents(highlight.value)
 									: highlight.value}
 							</p>
@@ -36,9 +35,9 @@ export function FinancialsHighlights({ highlights }: FinancialsHighlightsProps) 
 							</p>
 							{highlight.trend !== null && highlight.trend !== undefined && (
 								<p
-									className={`text-xs mt-1 ${highlight.trend >= 0 ? 'text-emerald-600' : 'text-destructive'}`}
+									className={`text-xs mt-1 ${highlight.trend >= 0 ? "text-emerald-600" : "text-destructive"}`}
 								>
-									{highlight.trend >= 0 ? '+' : ''}
+									{highlight.trend >= 0 ? "+" : ""}
 									{highlight.trend.toFixed(1)}%
 								</p>
 							)}
@@ -47,5 +46,5 @@ export function FinancialsHighlights({ highlights }: FinancialsHighlightsProps) 
 				</div>
 			</div>
 		</BlurFade>
-	)
+	);
 }

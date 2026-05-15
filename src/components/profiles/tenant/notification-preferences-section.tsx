@@ -1,29 +1,29 @@
-'use client'
+"use client";
 
-import { CardLayout } from '#components/ui/card-layout'
-import { ToggleSwitch } from '#components/ui/toggle-switch'
-import { Bell } from 'lucide-react'
+import { Bell } from "lucide-react";
+import { CardLayout } from "#components/ui/card-layout";
+import { ToggleSwitch } from "#components/ui/toggle-switch";
 
 interface NotificationPreferences {
-	rentReminders?: boolean
-	maintenanceUpdates?: boolean
-	propertyNotices?: boolean
+	rentReminders?: boolean;
+	maintenanceUpdates?: boolean;
+	propertyNotices?: boolean;
 }
 
 interface NotificationPreferencesSectionProps {
-	preferences: NotificationPreferences | undefined
-	isLoading: boolean
-	isSaving: boolean
-	onToggle: (key: string, value: boolean) => void
+	preferences: NotificationPreferences | undefined;
+	isLoading: boolean;
+	isSaving: boolean;
+	onToggle: (key: string, value: boolean) => void;
 }
 
 export function NotificationPreferencesSection({
 	preferences,
 	isLoading,
 	isSaving,
-	onToggle
+	onToggle,
 }: NotificationPreferencesSectionProps) {
-	const isDisabled = isLoading || isSaving
+	const isDisabled = isLoading || isSaving;
 
 	return (
 		<CardLayout
@@ -37,7 +37,7 @@ export function NotificationPreferencesSection({
 					description="Get notified before rent is due"
 					checked={preferences?.rentReminders ?? true}
 					disabled={isDisabled}
-					onChange={checked => onToggle('rentReminders', checked)}
+					onChange={(checked) => onToggle("rentReminders", checked)}
 				/>
 
 				<ToggleSwitch
@@ -46,7 +46,7 @@ export function NotificationPreferencesSection({
 					description="Updates on your maintenance requests"
 					checked={preferences?.maintenanceUpdates ?? true}
 					disabled={isDisabled}
-					onChange={checked => onToggle('maintenanceUpdates', checked)}
+					onChange={(checked) => onToggle("maintenanceUpdates", checked)}
 				/>
 
 				<ToggleSwitch
@@ -55,9 +55,9 @@ export function NotificationPreferencesSection({
 					description="Important announcements and updates"
 					checked={preferences?.propertyNotices ?? true}
 					disabled={isDisabled}
-					onChange={checked => onToggle('propertyNotices', checked)}
+					onChange={(checked) => onToggle("propertyNotices", checked)}
 				/>
 			</div>
 		</CardLayout>
-	)
+	);
 }

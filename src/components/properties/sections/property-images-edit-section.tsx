@@ -1,12 +1,12 @@
-import { PropertyImageGallery } from '../property-image-gallery'
-import { PropertyImageDropzone } from '../property-image-dropzone'
+import { PropertyImageDropzone } from "../property-image-dropzone";
+import { PropertyImageGallery } from "../property-image-gallery";
 
 interface PropertyImagesEditSectionProps {
-	propertyId: string
+	propertyId: string;
 }
 
 export function PropertyImagesEditSection({
-	propertyId
+	propertyId,
 }: PropertyImagesEditSectionProps) {
 	return (
 		<div className="space-y-4 border rounded-lg p-6">
@@ -23,5 +23,5 @@ export function PropertyImagesEditSection({
 				<PropertyImageDropzone propertyId={propertyId} />
 			</div>
 		</div>
-	)
+	);
 }

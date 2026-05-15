@@ -1,36 +1,36 @@
-'use client'
+"use client";
 
-import { Field, FieldError, FieldLabel } from '#components/ui/field'
-import { Input } from '#components/ui/input'
+import { DollarSign } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { Button } from "#components/ui/button";
+import { Field, FieldError, FieldLabel } from "#components/ui/field";
+import { Input } from "#components/ui/input";
 import {
 	InputGroup,
 	InputGroupAddon,
-	InputGroupInput
-} from '#components/ui/input-group'
+	InputGroupInput,
+} from "#components/ui/input-group";
 import {
 	Select,
 	SelectContent,
 	SelectItem,
 	SelectTrigger,
-	SelectValue
-} from '#components/ui/select'
-import { Button } from '#components/ui/button'
-import { cn } from '#lib/utils'
-import type { UnitFormApi } from './unit-form-types'
-import { DollarSign } from 'lucide-react'
-import { useRouter } from 'next/navigation'
+	SelectValue,
+} from "#components/ui/select";
+import { cn } from "#lib/utils";
+import type { UnitFormApi } from "./unit-form-types";
 
 interface Property {
-	id: string
-	name: string
+	id: string;
+	name: string;
 }
 
 interface UnitFormFieldsProps {
-	form: UnitFormApi
-	properties: Property[] | undefined
-	mode: 'create' | 'edit'
-	isSubmitting: boolean
-	isAuthLoading?: boolean
+	form: UnitFormApi;
+	properties: Property[] | undefined;
+	mode: "create" | "edit";
+	isSubmitting: boolean;
+	isAuthLoading?: boolean;
 }
 
 export function UnitFormFields({
@@ -38,15 +38,15 @@ export function UnitFormFields({
 	properties,
 	mode,
 	isSubmitting,
-	isAuthLoading
+	isAuthLoading,
 }: UnitFormFieldsProps) {
-	const router = useRouter()
+	const router = useRouter();
 
 	return (
 		<>
 			<div className="grid gap-4 md:grid-cols-2">
 				<form.Field name="property_id">
-					{field => (
+					{(field) => (
 						<Field>
 							<FieldLabel htmlFor="property_id">Property *</FieldLabel>
 							<Select
@@ -57,7 +57,7 @@ export function UnitFormFields({
 									<SelectValue placeholder="Select a property" />
 								</SelectTrigger>
 								<SelectContent>
-									{properties?.map(property => (
+									{properties?.map((property) => (
 										<SelectItem key={property.id} value={property.id}>
 											{property.name}
 										</SelectItem>
@@ -72,14 +72,14 @@ export function UnitFormFields({
 				</form.Field>
 
 				<form.Field name="unit_number">
-					{field => (
+					{(field) => (
 						<Field>
 							<FieldLabel htmlFor="unit_number">Unit Number *</FieldLabel>
 							<Input
 								id="unit_number"
 								placeholder="e.g., 101, A1"
 								value={field.state.value}
-								onChange={e => field.handleChange(e.target.value)}
+								onChange={(e) => field.handleChange(e.target.value)}
 							/>
 							{field.state.meta.errors.length > 0 && (
 								<FieldError>{field.state.meta.errors[0]}</FieldError>
@@ -91,7 +91,7 @@ export function UnitFormFields({
 
 			<div className="grid gap-4 md:grid-cols-3">
 				<form.Field name="bedrooms">
-					{field => (
+					{(field) => (
 						<Field>
 							<FieldLabel htmlFor="bedrooms">Bedrooms *</FieldLabel>
 							<Input
@@ -99,14 +99,14 @@ export function UnitFormFields({
 								type="number"
 								min="0"
 								value={field.state.value}
-								onChange={e => field.handleChange(e.target.value)}
+								onChange={(e) => field.handleChange(e.target.value)}
 							/>
 						</Field>
 					)}
 				</form.Field>
 
 				<form.Field name="bathrooms">
-					{field => (
+					{(field) => (
 						<Field>
 							<FieldLabel htmlFor="bathrooms">Bathrooms *</FieldLabel>
 							<Input
@@ -115,14 +115,14 @@ export function UnitFormFields({
 								min="0"
 								step="0.5"
 								value={field.state.value}
-								onChange={e => field.handleChange(e.target.value)}
+								onChange={(e) => field.handleChange(e.target.value)}
 							/>
 						</Field>
 					)}
 				</form.Field>
 
 				<form.Field name="square_feet">
-					{field => (
+					{(field) => (
 						<Field>
 							<FieldLabel htmlFor="square_feet">Square Feet</FieldLabel>
 							<Input
@@ -131,7 +131,7 @@ export function UnitFormFields({
 								min="0"
 								placeholder="Optional"
 								value={field.state.value}
-								onChange={e => field.handleChange(e.target.value)}
+								onChange={(e) => field.handleChange(e.target.value)}
 							/>
 						</Field>
 					)}
@@ -140,7 +140,7 @@ export function UnitFormFields({
 
 			<div className="grid gap-4 md:grid-cols-2">
 				<form.Field name="rent_amount">
-					{field => (
+					{(field) => (
 						<Field>
 							<FieldLabel htmlFor="rent">Monthly Rent *</FieldLabel>
 							<InputGroup>
@@ -154,7 +154,7 @@ export function UnitFormFields({
 									step="0.01"
 									placeholder="0.00"
 									value={field.state.value}
-									onChange={e => field.handleChange(e.target.value)}
+									onChange={(e) => field.handleChange(e.target.value)}
 								/>
 							</InputGroup>
 						</Field>
@@ -162,19 +162,19 @@ export function UnitFormFields({
 				</form.Field>
 
 				<form.Field name="status">
-					{field => (
+					{(field) => (
 						<Field>
 							<FieldLabel htmlFor="status">Status *</FieldLabel>
 							<Select
 								value={field.state.value}
-								onValueChange={value => {
+								onValueChange={(value) => {
 									field.handleChange(
 										value as
-											| 'available'
-											| 'occupied'
-											| 'maintenance'
-											| 'reserved'
-									)
+											| "available"
+											| "occupied"
+											| "maintenance"
+											| "reserved",
+									);
 								}}
 							>
 								<SelectTrigger>
@@ -204,17 +204,17 @@ export function UnitFormFields({
 				<Button
 					type="submit"
 					disabled={isSubmitting || isAuthLoading}
-					className={cn(isAuthLoading && 'animate-pulse')}
+					className={cn(isAuthLoading && "animate-pulse")}
 				>
 					{isSubmitting
-						? mode === 'create'
-							? 'Creating...'
-							: 'Saving...'
-						: mode === 'create'
-							? 'Create Unit'
-							: 'Save Changes'}
+						? mode === "create"
+							? "Creating..."
+							: "Saving..."
+						: mode === "create"
+							? "Create Unit"
+							: "Save Changes"}
 				</Button>
 			</div>
 		</>
-	)
+	);
 }

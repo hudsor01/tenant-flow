@@ -1,40 +1,33 @@
-'use client'
+"use client";
 
-import {
-	CheckCircle,
-	Edit,
-	Loader2,
-	Mail,
-	Phone,
-	User
-} from 'lucide-react'
-import { Button } from '#components/ui/button'
-import { Input } from '#components/ui/input'
-import { Label } from '#components/ui/label'
-import { BlurFade } from '#components/ui/blur-fade'
+import { CheckCircle, Edit, Loader2, Mail, Phone, User } from "lucide-react";
+import { BlurFade } from "#components/ui/blur-fade";
+import { Button } from "#components/ui/button";
+import { Input } from "#components/ui/input";
+import { Label } from "#components/ui/label";
 
 interface ProfileData {
-	email: string
-	phone?: string | null
-	full_name: string
-	status: string
+	email: string;
+	phone?: string | null;
+	full_name: string;
+	status: string;
 }
 
 interface FormData {
-	first_name: string
-	last_name: string
-	phone: string
+	first_name: string;
+	last_name: string;
+	phone: string;
 }
 
 interface PersonalInfoSectionProps {
-	profile: ProfileData
-	isEditing: boolean
-	isPending: boolean
-	formData: FormData
-	onEditClick: () => void
-	onCancelEdit: () => void
-	onSaveProfile: () => void
-	onFormChange: (data: Partial<FormData>) => void
+	profile: ProfileData;
+	isEditing: boolean;
+	isPending: boolean;
+	formData: FormData;
+	onEditClick: () => void;
+	onCancelEdit: () => void;
+	onSaveProfile: () => void;
+	onFormChange: (data: Partial<FormData>) => void;
 }
 
 export function PersonalInfoSection({
@@ -45,7 +38,7 @@ export function PersonalInfoSection({
 	onEditClick,
 	onCancelEdit,
 	onSaveProfile,
-	onFormChange
+	onFormChange,
 }: PersonalInfoSectionProps) {
 	return (
 		<BlurFade delay={0.3} inView>
@@ -72,9 +65,7 @@ export function PersonalInfoSection({
 								<Input
 									id="first_name"
 									value={formData.first_name}
-									onChange={e =>
-										onFormChange({ first_name: e.target.value })
-									}
+									onChange={(e) => onFormChange({ first_name: e.target.value })}
 									disabled={isPending}
 								/>
 							</div>
@@ -83,9 +74,7 @@ export function PersonalInfoSection({
 								<Input
 									id="last_name"
 									value={formData.last_name}
-									onChange={e =>
-										onFormChange({ last_name: e.target.value })
-									}
+									onChange={(e) => onFormChange({ last_name: e.target.value })}
 									disabled={isPending}
 								/>
 							</div>
@@ -117,9 +106,7 @@ export function PersonalInfoSection({
 									type="tel"
 									placeholder="(555) 123-4567"
 									value={formData.phone}
-									onChange={e =>
-										onFormChange({ phone: e.target.value })
-									}
+									onChange={(e) => onFormChange({ phone: e.target.value })}
 									disabled={isPending}
 								/>
 							</div>
@@ -133,7 +120,7 @@ export function PersonalInfoSection({
 										Saving...
 									</>
 								) : (
-									'Save Changes'
+									"Save Changes"
 								)}
 							</Button>
 							<Button
@@ -179,7 +166,7 @@ export function PersonalInfoSection({
 								<div className="flex items-center gap-2">
 									<Phone className="h-4 w-4 text-muted-foreground" />
 									<p className="text-sm font-medium">
-										{profile.phone || 'Not set'}
+										{profile.phone || "Not set"}
 									</p>
 								</div>
 							</div>
@@ -202,5 +189,5 @@ export function PersonalInfoSection({
 				)}
 			</section>
 		</BlurFade>
-	)
+	);
 }

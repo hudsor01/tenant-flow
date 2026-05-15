@@ -1,5 +1,5 @@
-import { PropertyForm } from '#components/properties/property-form.client'
-import { RouteModal } from '#components/ui/route-modal'
+import { PropertyForm } from "#components/properties/property-form.client";
+import { RouteModal } from "#components/ui/route-modal";
 
 /**
  * New Property Modal (Intercepting Route)
@@ -18,5 +18,5 @@ export default function NewPropertyModal() {
 		<RouteModal intent="create" className="max-w-3xl">
 			<PropertyForm mode="create" showSuccessState={false} />
 		</RouteModal>
-	)
+	);
 }

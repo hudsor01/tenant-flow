@@ -1,50 +1,49 @@
-'use client'
+"use client";
 
-
-import type { ChangeEvent } from 'react'
-import { Input } from '#components/ui/input'
-import { Label } from '#components/ui/label'
-import { Card, CardContent, CardHeader, CardTitle } from '#components/ui/card'
-import { toast } from 'sonner'
-import type { BrandingInfo } from './template-types'
+import type { ChangeEvent } from "react";
+import { toast } from "sonner";
+import { Card, CardContent, CardHeader, CardTitle } from "#components/ui/card";
+import { Input } from "#components/ui/input";
+import { Label } from "#components/ui/label";
+import type { BrandingInfo } from "./template-types";
 
 /** Maximum logo file size (500KB) */
-const MAX_LOGO_SIZE = 500 * 1024
+const MAX_LOGO_SIZE = 500 * 1024;
 
 /** Allowed logo file types */
-const ALLOWED_LOGO_TYPES = ['image/png', 'image/jpeg', 'image/svg+xml']
+const ALLOWED_LOGO_TYPES = ["image/png", "image/jpeg", "image/svg+xml"];
 
 interface BrandingEditorProps {
-	branding: BrandingInfo
-	onChange: (branding: BrandingInfo) => void
+	branding: BrandingInfo;
+	onChange: (branding: BrandingInfo) => void;
 }
 
 export function BrandingEditor({ branding, onChange }: BrandingEditorProps) {
 	const handleLogoUpload = (event: ChangeEvent<HTMLInputElement>) => {
-			const file = event.target.files?.[0]
-			if (!file) return
+		const file = event.target.files?.[0];
+		if (!file) return;
 
-			if (file.size > MAX_LOGO_SIZE) {
-				toast.error('Logo must be under 500KB')
-				event.target.value = ''
-				return
-			}
-
-			if (!ALLOWED_LOGO_TYPES.includes(file.type)) {
-				toast.error('Logo must be PNG, JPEG, or SVG')
-				event.target.value = ''
-				return
-			}
-
-			const reader = new FileReader()
-			reader.onload = () => {
-				onChange({
-					...branding,
-					logoUrl: typeof reader.result === 'string' ? reader.result : null
-				})
-			}
-			reader.readAsDataURL(file)
+		if (file.size > MAX_LOGO_SIZE) {
+			toast.error("Logo must be under 500KB");
+			event.target.value = "";
+			return;
 		}
+
+		if (!ALLOWED_LOGO_TYPES.includes(file.type)) {
+			toast.error("Logo must be PNG, JPEG, or SVG");
+			event.target.value = "";
+			return;
+		}
+
+		const reader = new FileReader();
+		reader.onload = () => {
+			onChange({
+				...branding,
+				logoUrl: typeof reader.result === "string" ? reader.result : null,
+			});
+		};
+		reader.readAsDataURL(file);
+	};
 
 	return (
 		<Card>
@@ -57,7 +56,7 @@ export function BrandingEditor({ branding, onChange }: BrandingEditorProps) {
 					<Input
 						id="company-name"
 						value={branding.companyName}
-						onChange={event =>
+						onChange={(event) =>
 							onChange({ ...branding, companyName: event.target.value })
 						}
 						placeholder="Property Management LLC"
@@ -70,10 +69,10 @@ export function BrandingEditor({ branding, onChange }: BrandingEditorProps) {
 							id="brand-color"
 							type="color"
 							value={branding.primaryColor}
-							onChange={event =>
+							onChange={(event) =>
 								onChange({
 									...branding,
-									primaryColor: event.target.value
+									primaryColor: event.target.value,
 								})
 							}
 							className="h-10 w-16 p-1"
@@ -105,5 +104,5 @@ export function BrandingEditor({ branding, onChange }: BrandingEditorProps) {
 				</div>
 			</CardContent>
 		</Card>
-	)
+	);
 }

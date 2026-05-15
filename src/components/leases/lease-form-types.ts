@@ -1,23 +1,23 @@
 import type {
-	FormValidateOrFn,
 	FormAsyncValidateOrFn,
-	ReactFormExtendedApi
-} from '@tanstack/react-form'
+	FormValidateOrFn,
+	ReactFormExtendedApi,
+} from "@tanstack/react-form";
 
 /**
  * Form values for the lease create/edit form.
  * Defined once here and shared between lease-form.tsx and its field sub-components.
  */
 export interface LeaseFormValues {
-	unit_id: string
-	primary_tenant_id: string
-	start_date: string
-	end_date: string
-	rent_amount: number
-	security_deposit: number
-	rent_currency: string
-	payment_day: number
-	lease_status: string
+	unit_id: string;
+	primary_tenant_id: string;
+	start_date: string;
+	end_date: string;
+	rent_amount: number;
+	security_deposit: number;
+	rent_currency: string;
+	payment_day: number;
+	lease_status: string;
 }
 
 /**
@@ -38,4 +38,4 @@ export type LeaseFormApi = ReactFormExtendedApi<
 	undefined | FormAsyncValidateOrFn<LeaseFormValues>,
 	undefined | FormAsyncValidateOrFn<LeaseFormValues>,
 	unknown
->
+>;

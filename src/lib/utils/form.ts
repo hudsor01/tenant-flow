@@ -8,8 +8,8 @@
  * @returns First error message or empty string
  */
 export function getFieldErrorMessage(errors: unknown[] | undefined): string {
-	if (!errors?.[0]) return ''
-	return typeof errors[0] === 'string'
+	if (!errors?.[0]) return "";
+	return typeof errors[0] === "string"
 		? errors[0]
-		: (errors[0] as { message?: string })?.message || ''
+		: (errors[0] as { message?: string })?.message || "";
 }

@@ -1,37 +1,38 @@
-'use client'
+"use client";
 
-import { useEffect, useState } from 'react'
-import { useLoadingStore } from '#stores/loading-store'
-import { LoadingSpinner } from '#components/ui/loading-spinner'
+import { useEffect, useState } from "react";
+import { LoadingSpinner } from "#components/ui/loading-spinner";
+import { useLoadingStore } from "#stores/loading-store";
 
-const MIN_VISIBLE_MS = 120
+const MIN_VISIBLE_MS = 120;
 
 export function GlobalLoadingIndicator() {
-	const { isLoading, activeOperationCount, globalProgress } = useLoadingStore()
-	const [visible, setVisible] = useState(isLoading)
+	const { isLoading, activeOperationCount, globalProgress } = useLoadingStore();
+	const [visible, setVisible] = useState(isLoading);
 	const [lastShownAt, setLastShownAt] = useState<number | null>(
-		isLoading ? Date.now() : null
-	)
+		isLoading ? Date.now() : null,
+	);
 
 	useEffect(() => {
 		if (isLoading) {
-			setVisible(true)
-			setLastShownAt(Date.now())
-			return
+			setVisible(true);
+			setLastShownAt(Date.now());
+			return;
 		}
 
-		const now = Date.now()
-		const elapsed = lastShownAt ? now - lastShownAt : MIN_VISIBLE_MS
-		const remaining = Math.max(0, MIN_VISIBLE_MS - elapsed)
-		const timer = setTimeout(() => setVisible(false), remaining)
-		return () => clearTimeout(timer)
-	}, [isLoading, lastShownAt])
+		const now = Date.now();
+		const elapsed = lastShownAt ? now - lastShownAt : MIN_VISIBLE_MS;
+		const remaining = Math.max(0, MIN_VISIBLE_MS - elapsed);
+		const timer = setTimeout(() => setVisible(false), remaining);
+		return () => clearTimeout(timer);
+	}, [isLoading, lastShownAt]);
 
-	const label = activeOperationCount > 1
-		? `${activeOperationCount} actions in progress`
-		: 'Loading\u2026'
+	const label =
+		activeOperationCount > 1
+			? `${activeOperationCount} actions in progress`
+			: "Loading\u2026";
 
-	if (!visible) return null
+	if (!visible) return null;
 
 	return (
 		<div
@@ -49,5 +50,5 @@ export function GlobalLoadingIndicator() {
 				)}
 			</div>
 		</div>
-	)
+	);
 }

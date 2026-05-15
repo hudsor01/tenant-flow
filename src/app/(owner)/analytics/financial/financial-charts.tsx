@@ -1,10 +1,7 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
-import type {
-	BillingInsightsTimeline,
-	NetOperatingIncomeByProperty
-} from '#types/analytics'
+import { TrendingUp } from "lucide-react";
+import { useState } from "react";
 import {
 	Bar,
 	BarChart,
@@ -12,46 +9,51 @@ import {
 	Line,
 	LineChart,
 	XAxis,
-	YAxis
-} from 'recharts'
+	YAxis,
+} from "recharts";
 
 import {
+	type ChartConfig,
 	ChartContainer,
 	ChartLegend,
 	ChartLegendContent,
 	ChartTooltip,
 	ChartTooltipContent,
-	type ChartConfig
-} from '#components/ui/chart'
+} from "#components/ui/chart";
 import {
 	Empty,
 	EmptyDescription,
 	EmptyHeader,
 	EmptyMedia,
-	EmptyTitle
-} from '#components/ui/empty'
+	EmptyTitle,
+} from "#components/ui/empty";
 import {
 	Select,
 	SelectContent,
 	SelectItem,
 	SelectTrigger,
-	SelectValue
-} from '#components/ui/select'
-import { TrendingUp } from 'lucide-react'
+	SelectValue,
+} from "#components/ui/select";
+import type {
+	BillingInsightsTimeline,
+	NetOperatingIncomeByProperty,
+} from "#types/analytics";
 
 const billingTimelineConfig = {
-	invoiced: { label: 'Invoiced', color: 'oklch(0.72 0.08 45)' },
-	paid: { label: 'Paid', color: 'oklch(0.55 0.18 140)' },
-	overdue: { label: 'Overdue', color: 'oklch(0.72 0.15 30)' }
-} satisfies ChartConfig
+	invoiced: { label: "Invoiced", color: "oklch(0.72 0.08 45)" },
+	paid: { label: "Paid", color: "oklch(0.55 0.18 140)" },
+	overdue: { label: "Overdue", color: "oklch(0.72 0.15 30)" },
+} satisfies ChartConfig;
 
 const noiConfig = {
-	noi: { label: 'NOI', color: 'oklch(0.68 0.1 255)' }
-} satisfies ChartConfig
+	noi: { label: "NOI", color: "oklch(0.68 0.1 255)" },
+} satisfies ChartConfig;
 
-type NetOperatingIncomeChartProps = { data: NetOperatingIncomeByProperty[] }
+type NetOperatingIncomeChartProps = { data: NetOperatingIncomeByProperty[] };
 
-export function NetOperatingIncomeChart({ data }: NetOperatingIncomeChartProps) {
+export function NetOperatingIncomeChart({
+	data,
+}: NetOperatingIncomeChartProps) {
 	if (!data || data.length === 0) {
 		return (
 			<Empty className="py-12">
@@ -65,13 +67,13 @@ export function NetOperatingIncomeChart({ data }: NetOperatingIncomeChartProps) 
 					</EmptyDescription>
 				</EmptyHeader>
 			</Empty>
-		)
+		);
 	}
 
-	const chartData = data.map(item => ({
+	const chartData = data.map((item) => ({
 		property: item.propertyName,
-		noi: item.noi
-	}))
+		noi: item.noi,
+	}));
 
 	return (
 		<ChartContainer className="aspect-auto h-80 w-full" config={noiConfig}>
@@ -88,36 +90,40 @@ export function NetOperatingIncomeChart({ data }: NetOperatingIncomeChartProps) 
 					tickMargin={8}
 				/>
 				<YAxis tickLine={false} axisLine={false} />
-				<ChartTooltip cursor={false} content={<ChartTooltipContent hideLabel />} />
+				<ChartTooltip
+					cursor={false}
+					content={<ChartTooltipContent hideLabel />}
+				/>
 				<Bar dataKey="noi" fill="var(--color-noi)" radius={[6, 6, 0, 0]} />
 			</BarChart>
 		</ChartContainer>
-	)
+	);
 }
 
-type BillingTimelineChartProps = { data: BillingInsightsTimeline }
+type BillingTimelineChartProps = { data: BillingInsightsTimeline };
 
 export function BillingTimelineChart({ data }: BillingTimelineChartProps) {
-	const [timeRange, setTimeRange] = useState('all')
+	const [timeRange, setTimeRange] = useState("all");
 
 	const chartData = (() => {
-		const timeline = data?.points ?? []
-		if (!timeline.length) return []
-		return timeline.map(point => ({
+		const timeline = data?.points ?? [];
+		if (!timeline.length) return [];
+		return timeline.map((point) => ({
 			period: point.period,
 			invoiced: point.invoiced,
 			paid: point.paid,
-			overdue: point.overdue
-		}))
-	})()
+			overdue: point.overdue,
+		}));
+	})();
 
 	const filteredData = (() => {
-		if (timeRange === 'all' || chartData.length <= 3) return chartData
-		const periods = timeRange === '3m' ? 3 : timeRange === '6m' ? 6 : chartData.length
-		return chartData.slice(-periods)
-	})()
+		if (timeRange === "all" || chartData.length <= 3) return chartData;
+		const periods =
+			timeRange === "3m" ? 3 : timeRange === "6m" ? 6 : chartData.length;
+		return chartData.slice(-periods);
+	})();
 
-	const timeline = data?.points ?? []
+	const timeline = data?.points ?? [];
 	if (!timeline.length) {
 		return (
 			<Empty className="py-12">
@@ -131,7 +137,7 @@ export function BillingTimelineChart({ data }: BillingTimelineChartProps) {
 					</EmptyDescription>
 				</EmptyHeader>
 			</Empty>
-		)
+		);
 	}
 
 	return (
@@ -150,18 +156,53 @@ export function BillingTimelineChart({ data }: BillingTimelineChartProps) {
 					</Select>
 				</div>
 			)}
-			<ChartContainer className="aspect-auto h-80 w-full" config={billingTimelineConfig}>
+			<ChartContainer
+				className="aspect-auto h-80 w-full"
+				config={billingTimelineConfig}
+			>
 				<LineChart data={filteredData}>
 					<CartesianGrid vertical={false} />
-					<XAxis dataKey="period" tickLine={false} axisLine={false} tickMargin={8} minTickGap={32} />
+					<XAxis
+						dataKey="period"
+						tickLine={false}
+						axisLine={false}
+						tickMargin={8}
+						minTickGap={32}
+					/>
 					<YAxis tickLine={false} axisLine={false} />
-					<ChartTooltip cursor={false} content={<ChartTooltipContent labelFormatter={value => value} indicator="line" />} />
-					<Line type="natural" dataKey="invoiced" stroke="var(--color-invoiced)" strokeWidth={2} dot={false} />
-					<Line type="natural" dataKey="paid" stroke="var(--color-paid)" strokeWidth={2} dot={false} />
-					<Line type="natural" dataKey="overdue" stroke="var(--color-overdue)" strokeWidth={2} dot={false} />
+					<ChartTooltip
+						cursor={false}
+						content={
+							<ChartTooltipContent
+								labelFormatter={(value) => value}
+								indicator="line"
+							/>
+						}
+					/>
+					<Line
+						type="natural"
+						dataKey="invoiced"
+						stroke="var(--color-invoiced)"
+						strokeWidth={2}
+						dot={false}
+					/>
+					<Line
+						type="natural"
+						dataKey="paid"
+						stroke="var(--color-paid)"
+						strokeWidth={2}
+						dot={false}
+					/>
+					<Line
+						type="natural"
+						dataKey="overdue"
+						stroke="var(--color-overdue)"
+						strokeWidth={2}
+						dot={false}
+					/>
 					<ChartLegend content={<ChartLegendContent />} />
 				</LineChart>
 			</ChartContainer>
 		</div>
-	)
+	);
 }

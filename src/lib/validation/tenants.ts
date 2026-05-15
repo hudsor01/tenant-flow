@@ -11,18 +11,18 @@
  * Zod 4 throws "Unrecognized key" errors for non-existent keys.
  */
 
-import { z } from 'zod'
-import { uuidSchema, requiredString, phoneSchema } from './common'
-import { VALIDATION_LIMITS } from '#lib/constants/billing'
+import { z } from "zod";
+import { VALIDATION_LIMITS } from "#lib/constants/billing";
+import { phoneSchema, requiredString, uuidSchema } from "./common";
 
 // Tenant status enum validation
 export const tenantStatusSchema = z.enum([
-	'active',
-	'inactive',
-	'pending',
-	'SUSPENDED',
-	'DELETED'
-])
+	"active",
+	"inactive",
+	"pending",
+	"SUSPENDED",
+	"DELETED",
+]);
 
 // Active-set tenant statuses (excludes SUSPENDED/DELETED which are system
 // states, not user-set). Use this for any UI surface that lets an owner
@@ -30,12 +30,12 @@ export const tenantStatusSchema = z.enum([
 // tuple so consumers can `z.enum(TENANT_ACTIVE_STATUSES)` without
 // duplicating the list.
 export const TENANT_ACTIVE_STATUSES = [
-	'active',
-	'inactive',
-	'pending',
-	'moved_out'
-] as const
-export type TenantActiveStatus = (typeof TENANT_ACTIVE_STATUSES)[number]
+	"active",
+	"inactive",
+	"pending",
+	"moved_out",
+] as const;
+export type TenantActiveStatus = (typeof TENANT_ACTIVE_STATUSES)[number];
 
 // Base tenant input schema (matches landlord-managed tenants table).
 // Contact fields live directly on the row; user_id is optional because
@@ -47,22 +47,17 @@ export const tenantInputSchema = z.object({
 
 	first_name: z
 		.string()
-		.max(100, 'First name cannot exceed 100 characters')
+		.max(100, "First name cannot exceed 100 characters")
 		.optional(),
 
 	last_name: z
 		.string()
-		.max(100, 'Last name cannot exceed 100 characters')
+		.max(100, "Last name cannot exceed 100 characters")
 		.optional(),
 
-	name: z
-		.string()
-		.max(200, 'Name cannot exceed 200 characters')
-		.optional(),
+	name: z.string().max(200, "Name cannot exceed 200 characters").optional(),
 
-	email: z
-		.email({ message: 'Valid email is required' })
-		.optional(),
+	email: z.email({ message: "Valid email is required" }).optional(),
 
 	phone: phoneSchema.optional(),
 
@@ -72,35 +67,35 @@ export const tenantInputSchema = z.object({
 
 	emergency_contact_name: z
 		.string()
-		.max(100, 'Emergency contact name cannot exceed 100 characters')
+		.max(100, "Emergency contact name cannot exceed 100 characters")
 		.optional(),
 
 	emergency_contact_phone: phoneSchema.optional(),
 
 	emergency_contact_relationship: z
 		.string()
-		.max(50, 'Emergency contact relationship cannot exceed 50 characters')
+		.max(50, "Emergency contact relationship cannot exceed 50 characters")
 		.optional(),
 
 	identity_verified: z.boolean().optional(),
 
 	ssn_last_four: z
 		.string()
-		.regex(/^\d{4}$/, 'SSN last four must be 4 digits')
-		.optional()
-})
+		.regex(/^\d{4}$/, "SSN last four must be 4 digits")
+		.optional(),
+});
 
 // Full tenant schema (includes server-generated fields)
 export const tenantSchema = tenantInputSchema.extend({
 	id: uuidSchema,
 	created_at: z.string(),
-	updated_at: z.string()
-})
+	updated_at: z.string(),
+});
 
 // Tenant update schema (partial input)
 export const tenantUpdateSchema = tenantInputSchema.partial().extend({
-	id: uuidSchema.optional()
-})
+	id: uuidSchema.optional(),
+});
 
 // Tenant query schema (for search/filtering)
 export const tenantQuerySchema = z.object({
@@ -109,62 +104,62 @@ export const tenantQuerySchema = z.object({
 	identity_verified: z.boolean().optional(),
 	created_after: z.string().optional(),
 	created_before: z.string().optional(),
-	sort_by: z.enum(['created_at', 'user_id', 'identity_verified']).optional(),
-	sort_order: z.enum(['asc', 'desc']).optional().default('asc'),
+	sort_by: z.enum(["created_at", "user_id", "identity_verified"]).optional(),
+	sort_order: z.enum(["asc", "desc"]).optional().default("asc"),
 	page: z.coerce.number().int().positive().default(1),
 	limit: z.coerce
 		.number()
 		.int()
 		.positive()
 		.max(VALIDATION_LIMITS.API_QUERY_MAX_LIMIT)
-		.default(20)
-})
+		.default(20),
+});
 
 // Tenant creation schema
 // stripe_customer_id is optional/nullable to match DB (set by Stripe integration, not user)
-export const tenantCreateSchema = tenantInputSchema
+export const tenantCreateSchema = tenantInputSchema;
 
 // Aliases for request schemas (used in DTOs)
-export const createTenantRequestSchema = tenantCreateSchema
-export const updateTenantRequestSchema = tenantUpdateSchema
+export const createTenantRequestSchema = tenantCreateSchema;
+export const updateTenantRequestSchema = tenantUpdateSchema;
 
 // Payment reminder schema
 export const sendPaymentReminderSchema = z.object({
 	tenant_id: uuidSchema,
-	lease_id: uuidSchema.optional()
-})
+	lease_id: uuidSchema.optional(),
+});
 
 // Emergency contact validation schema (single source of truth)
 export const emergencyContactSchema = z.object({
 	name: z
 		.string()
-		.min(1, 'Emergency contact name is required')
-		.max(100, 'Emergency contact name cannot exceed 100 characters'),
+		.min(1, "Emergency contact name is required")
+		.max(100, "Emergency contact name cannot exceed 100 characters"),
 	phone: phoneSchema,
 	relationship: z
 		.string()
-		.min(1, 'Emergency contact relationship is required')
-		.max(50, 'Emergency contact relationship cannot exceed 50 characters')
-})
+		.min(1, "Emergency contact relationship is required")
+		.max(50, "Emergency contact relationship cannot exceed 50 characters"),
+});
 
 // Alias for user profile updates (same structure)
-export const updateEmergencyContactSchema = emergencyContactSchema
+export const updateEmergencyContactSchema = emergencyContactSchema;
 
 // Tenant verification schema
 export const tenantVerificationSchema = z.object({
 	identity_verified: z.boolean(),
-	verification_date: z.string().optional()
-})
+	verification_date: z.string().optional(),
+});
 
 // Export types
-export type TenantInput = z.infer<typeof tenantInputSchema>
-export type Tenant = z.infer<typeof tenantSchema>
-export type TenantUpdate = z.infer<typeof tenantUpdateSchema>
-export type TenantQuery = z.infer<typeof tenantQuerySchema>
-export type TenantCreate = z.infer<typeof tenantCreateSchema>
-export type EmergencyContact = z.infer<typeof emergencyContactSchema>
-export type UpdateEmergencyContact = EmergencyContact // Alias for user profile updates
-export type TenantVerification = z.infer<typeof tenantVerificationSchema>
+export type TenantInput = z.infer<typeof tenantInputSchema>;
+export type Tenant = z.infer<typeof tenantSchema>;
+export type TenantUpdate = z.infer<typeof tenantUpdateSchema>;
+export type TenantQuery = z.infer<typeof tenantQuerySchema>;
+export type TenantCreate = z.infer<typeof tenantCreateSchema>;
+export type EmergencyContact = z.infer<typeof emergencyContactSchema>;
+export type UpdateEmergencyContact = EmergencyContact; // Alias for user profile updates
+export type TenantVerification = z.infer<typeof tenantVerificationSchema>;
 
 // Frontend-specific form schemas
 export const tenantFormSchema = z.object({
@@ -182,8 +177,8 @@ export const tenantFormSchema = z.object({
 	ssn_last_four: z
 		.string()
 		.regex(/^\d{4}$/)
-		.optional()
-})
+		.optional(),
+});
 
 // Frontend-specific form schema for tenant updates (user_id not required)
 export const tenantFormUpdateSchema = z.object({
@@ -196,8 +191,8 @@ export const tenantFormUpdateSchema = z.object({
 	ssn_last_four: z
 		.string()
 		.regex(/^\d{4}$/)
-		.optional()
-})
+		.optional(),
+});
 
 // Transform functions for form data
 export const transformTenantFormData = (data: TenantFormData) => ({
@@ -213,76 +208,82 @@ export const transformTenantFormData = (data: TenantFormData) => ({
 	emergency_contact_relationship:
 		data.emergency_contact_relationship || undefined,
 	identity_verified: data.identity_verified,
-	ssn_last_four: data.ssn_last_four || undefined
-})
+	ssn_last_four: data.ssn_last_four || undefined,
+});
 
-export type TenantFormData = z.infer<typeof tenantFormSchema>
-export type TransformedTenantData = ReturnType<typeof transformTenantFormData>
+export type TenantFormData = z.infer<typeof tenantFormSchema>;
+export type TransformedTenantData = ReturnType<typeof transformTenantFormData>;
 
 // Schema for adding a tenant to the platform (NO lease required)
 // Flat structure - used for simple validation
 export const addTenantSchema = z.object({
-	email: z.email({ message: 'Valid email is required' }),
-	first_name: z.string().trim().min(1, 'First name is required').max(100),
-	last_name: z.string().trim().min(1, 'Last name is required').max(100),
+	email: z.email({ message: "Valid email is required" }),
+	first_name: z.string().trim().min(1, "First name is required").max(100),
+	last_name: z.string().trim().min(1, "Last name is required").max(100),
 	phone: phoneSchema.optional(),
 	// Property is OPTIONAL - tenant can be added without a property assignment
 	// Property/unit assignment can be done later when creating a lease
 	property_id: uuidSchema.optional(),
-	unit_id: uuidSchema.optional()
-})
+	unit_id: uuidSchema.optional(),
+});
 
 // Nested structure - matches backend DTO (InviteWithLeaseDto)
 // Used for API requests
 export const addTenantRequestSchema = z.object({
 	tenantData: z.object({
-		email: z.email({ message: 'Valid email is required' }),
-		first_name: z.string().trim().min(1, 'First name is required').max(100),
-		last_name: z.string().trim().min(1, 'Last name is required').max(100),
-		phone: phoneSchema.optional()
+		email: z.email({ message: "Valid email is required" }),
+		first_name: z.string().trim().min(1, "First name is required").max(100),
+		last_name: z.string().trim().min(1, "Last name is required").max(100),
+		phone: phoneSchema.optional(),
 	}),
 	// Property assignment is OPTIONAL - can add tenant without assigning to property
 	leaseData: z
 		.object({
 			property_id: uuidSchema.optional(),
-			unit_id: uuidSchema.optional()
+			unit_id: uuidSchema.optional(),
 		})
-		.optional()
-})
+		.optional(),
+});
 
 // Schema for inviting tenant to sign a specific lease
 export const inviteToSignLeaseSchema = z.object({
 	lease_id: uuidSchema,
-	email: z.email({ message: 'Valid email is required' }),
+	email: z.email({ message: "Valid email is required" }),
 	message: z
 		.string()
-		.max(1000, 'Message cannot exceed 1000 characters')
-		.optional()
-})
+		.max(1000, "Message cannot exceed 1000 characters")
+		.optional(),
+});
 
-export type AddTenant = z.infer<typeof addTenantSchema>
-export type AddTenantRequest = z.infer<typeof addTenantRequestSchema>
-export type InviteToSignLease = z.infer<typeof inviteToSignLeaseSchema>
+export type AddTenant = z.infer<typeof addTenantSchema>;
+export type AddTenantRequest = z.infer<typeof addTenantRequestSchema>;
+export type InviteToSignLease = z.infer<typeof inviteToSignLeaseSchema>;
 
 // Bulk operation schemas
 export const bulkDeleteTenantsSchema = z.object({
-	ids: z.array(uuidSchema).min(1, 'At least one tenant ID is required').max(100, 'Cannot delete more than 100 tenants at once')
-})
+	ids: z
+		.array(uuidSchema)
+		.min(1, "At least one tenant ID is required")
+		.max(100, "Cannot delete more than 100 tenants at once"),
+});
 
 export const bulkUpdateTenantsSchema = z.object({
-	updates: z.array(
-		z.object({
-			id: uuidSchema,
-			data: tenantUpdateSchema
-		})
-	).min(1, 'At least one update is required').max(100, 'Cannot update more than 100 tenants at once')
-})
+	updates: z
+		.array(
+			z.object({
+				id: uuidSchema,
+				data: tenantUpdateSchema,
+			}),
+		)
+		.min(1, "At least one update is required")
+		.max(100, "Cannot update more than 100 tenants at once"),
+});
 
 // Tenant activation schema (used by public invitation acceptance endpoints)
 export const activateTenantSchema = z.object({
-	authuser_id: uuidSchema
-})
+	authuser_id: uuidSchema,
+});
 
-export type BulkDeleteTenants = z.infer<typeof bulkDeleteTenantsSchema>
-export type BulkUpdateTenants = z.infer<typeof bulkUpdateTenantsSchema>
-export type ActivateTenant = z.infer<typeof activateTenantSchema>
+export type BulkDeleteTenants = z.infer<typeof bulkDeleteTenantsSchema>;
+export type BulkUpdateTenants = z.infer<typeof bulkUpdateTenantsSchema>;
+export type ActivateTenant = z.infer<typeof activateTenantSchema>;

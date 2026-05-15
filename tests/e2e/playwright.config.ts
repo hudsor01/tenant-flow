@@ -1,7 +1,7 @@
-import { defineConfig, devices } from '@playwright/test'
-import path from 'path'
-import { fileURLToPath } from 'url'
-import dotenv from 'dotenv'
+import { defineConfig, devices } from "@playwright/test";
+import dotenv from "dotenv";
+import path from "path";
+import { fileURLToPath } from "url";
 
 /**
  * Playwright Configuration - TenantFlow E2E Tests
@@ -17,29 +17,37 @@ import dotenv from 'dotenv'
  */
 
 // ESM-compatible __dirname
-const __dirname = path.dirname(fileURLToPath(import.meta.url))
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 // Load .env.test for test environment variables
 // Use override: true to ensure local Supabase URLs
-dotenv.config({ path: path.join(__dirname, '.env.test'), override: true })
+dotenv.config({ path: path.join(__dirname, ".env.test"), override: true });
 
 // Dedicated test port to avoid conflicts with development servers
-const TEST_FRONTEND_PORT = 3050
-const TEST_FRONTEND_URL = `http://localhost:${TEST_FRONTEND_PORT}`
+const TEST_FRONTEND_PORT = 3050;
+const TEST_FRONTEND_URL = `http://localhost:${TEST_FRONTEND_PORT}`;
 
 // Local Supabase configuration (from .env.test)
-const LOCAL_SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || 'http://127.0.0.1:54321'
-const LOCAL_SUPABASE_PUBLISHABLE_KEY = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24iLCJleHAiOjE5ODM4MTI5OTZ9.CRXP1A7WOeoJeXxjNni43kdQwgnWNReilDMblYTn_I0'
+const LOCAL_SUPABASE_URL =
+	process.env.NEXT_PUBLIC_SUPABASE_URL || "http://127.0.0.1:54321";
+const LOCAL_SUPABASE_PUBLISHABLE_KEY =
+	process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ||
+	"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24iLCJleHAiOjE5ODM4MTI5OTZ9.CRXP1A7WOeoJeXxjNni43kdQwgnWNReilDMblYTn_I0";
 
-const OWNER_AUTH_FILE = path.join(__dirname, 'playwright/.auth/owner.json')
+const OWNER_AUTH_FILE = path.join(__dirname, "playwright/.auth/owner.json");
 
 export default defineConfig({
 	// ===================
 	// Test Organization
 	// ===================
-	testDir: './tests',
-	testMatch: ['**/*.e2e.spec.ts', '**/*.spec.ts'],
-	testIgnore: ['**/staging/**', '**/production/**', '**/fixtures/**', '**/_archived/**'],
+	testDir: "./tests",
+	testMatch: ["**/*.e2e.spec.ts", "**/*.spec.ts"],
+	testIgnore: [
+		"**/staging/**",
+		"**/production/**",
+		"**/fixtures/**",
+		"**/_archived/**",
+	],
 
 	// ===================
 	// Timeouts
@@ -49,8 +57,8 @@ export default defineConfig({
 		timeout: 5_000, // 5s for assertions
 		toHaveScreenshot: {
 			maxDiffPixels: 100,
-			animations: 'disabled'
-		}
+			animations: "disabled",
+		},
 	},
 
 	// ===================
@@ -68,14 +76,14 @@ export default defineConfig({
 	// ===================
 	reporter: process.env.CI
 		? [
-				['github'],
-				['html', { open: 'never', outputFolder: 'playwright-report' }],
-				['json', { outputFile: 'test-results/results.json' }],
-				['junit', { outputFile: 'test-results/junit.xml' }]
+				["github"],
+				["html", { open: "never", outputFolder: "playwright-report" }],
+				["json", { outputFile: "test-results/results.json" }],
+				["junit", { outputFile: "test-results/junit.xml" }],
 			]
 		: [
-				['list', { printSteps: true }],
-				['html', { open: 'on-failure', outputFolder: 'playwright-report' }]
+				["list", { printSteps: true }],
+				["html", { open: "on-failure", outputFolder: "playwright-report" }],
 			],
 
 	// ===================
@@ -91,21 +99,21 @@ export default defineConfig({
 		bypassCSP: true,
 
 		// Recording options
-		trace: 'on-first-retry',
-		screenshot: 'only-on-failure',
-		video: 'retain-on-failure',
+		trace: "on-first-retry",
+		screenshot: "only-on-failure",
+		video: "retain-on-failure",
 
 		// Action timeouts
 		actionTimeout: 10_000,
 		navigationTimeout: 30_000,
 
 		// Consistency across runs
-		locale: 'en-US',
-		timezoneId: 'America/Chicago',
+		locale: "en-US",
+		timezoneId: "America/Chicago",
 		viewport: { width: 1280, height: 720 },
 
 		// Always headless (use --headed flag to override)
-		headless: true
+		headless: true,
 
 		// Note: Removed x-playwright-test header - not in CORS allowed headers
 	},
@@ -120,91 +128,87 @@ export default defineConfig({
 		// SETUP: Authenticate owner via API (runs first)
 		// ─────────────────────────────────────────
 		{
-			name: 'setup-owner',
+			name: "setup-owner",
 			testMatch: /auth-api\.setup\.ts/,
-			retries: 2
+			retries: 2,
 		},
 
 		// ─────────────────────────────────────────
 		// OWNER: Owner dashboard tests (authenticated)
 		// ─────────────────────────────────────────
 		{
-			name: 'owner',
+			name: "owner",
 			use: {
-				...devices['Desktop Chrome'],
-				storageState: OWNER_AUTH_FILE
+				...devices["Desktop Chrome"],
+				storageState: OWNER_AUTH_FILE,
 			},
-			dependencies: ['setup-owner'],
-			testMatch: ['**/owner/**/*.spec.ts']
+			dependencies: ["setup-owner"],
+			testMatch: ["**/owner/**/*.spec.ts"],
 		},
 
 		// ─────────────────────────────────────────
 		// CHROMIUM: Other authenticated tests
 		// ─────────────────────────────────────────
 		{
-			name: 'chromium',
+			name: "chromium",
 			use: {
-				...devices['Desktop Chrome'],
-				storageState: OWNER_AUTH_FILE
+				...devices["Desktop Chrome"],
+				storageState: OWNER_AUTH_FILE,
 			},
-			dependencies: ['setup-owner'],
-			testIgnore: [
-				'**/*.setup.ts',
-				'**/public/**',
-				'**/owner/**'
-			]
+			dependencies: ["setup-owner"],
+			testIgnore: ["**/*.setup.ts", "**/public/**", "**/owner/**"],
 		},
 
 		// ─────────────────────────────────────────
 		// SMOKE: Critical path tests (no auth - tests login flow)
 		// ─────────────────────────────────────────
 		{
-			name: 'smoke',
+			name: "smoke",
 			use: {
-				...devices['Desktop Chrome'],
-				storageState: { cookies: [], origins: [] } // No auth - tests login flow
+				...devices["Desktop Chrome"],
+				storageState: { cookies: [], origins: [] }, // No auth - tests login flow
 			},
-			testMatch: ['**/smoke/**/*.spec.ts'],
-			testIgnore: ['**/minimal.smoke.spec.ts'] // This test requires pre-auth, runs in chromium project
+			testMatch: ["**/smoke/**/*.spec.ts"],
+			testIgnore: ["**/minimal.smoke.spec.ts"], // This test requires pre-auth, runs in chromium project
 		},
 
 		// ─────────────────────────────────────────
 		// PUBLIC: No auth required
 		// ─────────────────────────────────────────
 		{
-			name: 'public',
+			name: "public",
 			use: {
-				...devices['Desktop Chrome'],
-				storageState: { cookies: [], origins: [] } // Explicitly no auth
+				...devices["Desktop Chrome"],
+				storageState: { cookies: [], origins: [] }, // Explicitly no auth
 			},
-			testMatch: ['**/public/**/*.spec.ts', '**/*public*.spec.ts']
+			testMatch: ["**/public/**/*.spec.ts", "**/*public*.spec.ts"],
 		},
 
 		// ─────────────────────────────────────────
 		// FIREFOX: Cross-browser testing (owner tests only)
 		// ─────────────────────────────────────────
 		{
-			name: 'firefox',
+			name: "firefox",
 			use: {
-				...devices['Desktop Firefox'],
-				storageState: OWNER_AUTH_FILE
+				...devices["Desktop Firefox"],
+				storageState: OWNER_AUTH_FILE,
 			},
-			dependencies: ['setup-owner'],
-			testMatch: ['**/owner/**/*.spec.ts'] // Owner tests for cross-browser
+			dependencies: ["setup-owner"],
+			testMatch: ["**/owner/**/*.spec.ts"], // Owner tests for cross-browser
 		},
 
 		// ─────────────────────────────────────────
 		// MOBILE: Responsive testing (owner tests only)
 		// ─────────────────────────────────────────
 		{
-			name: 'mobile-chrome',
+			name: "mobile-chrome",
 			use: {
-				...devices['Pixel 5'],
-				storageState: OWNER_AUTH_FILE
+				...devices["Pixel 5"],
+				storageState: OWNER_AUTH_FILE,
 			},
-			dependencies: ['setup-owner'],
-			testMatch: ['**/owner/**/*.spec.ts'] // Owner tests for responsive
-		}
+			dependencies: ["setup-owner"],
+			testMatch: ["**/owner/**/*.spec.ts"], // Owner tests for responsive
+		},
 	],
 
 	// ===================
@@ -219,20 +223,20 @@ export default defineConfig({
 			url: TEST_FRONTEND_URL,
 			timeout: 120_000,
 			reuseExistingServer: !process.env.CI,
-			stdout: 'pipe',
-			stderr: 'pipe',
-			cwd: path.resolve(__dirname, '../..'),
+			stdout: "pipe",
+			stderr: "pipe",
+			cwd: path.resolve(__dirname, "../.."),
 			env: {
 				NEXT_PUBLIC_SUPABASE_URL: LOCAL_SUPABASE_URL,
 				NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: LOCAL_SUPABASE_PUBLISHABLE_KEY,
 				NEXT_PUBLIC_APP_URL: TEST_FRONTEND_URL,
-				NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: 'pk_test_placeholder'
-			}
-		}
+				NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: "pk_test_placeholder",
+			},
+		},
 	],
 
 	// ===================
 	// Output
 	// ===================
-	outputDir: 'test-results/'
-})
+	outputDir: "test-results/",
+});

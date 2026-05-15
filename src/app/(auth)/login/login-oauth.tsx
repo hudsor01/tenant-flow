@@ -1,37 +1,37 @@
-'use client'
+"use client";
 
-import { GoogleButton } from '#components/auth/google-button'
-import { createLogger } from '#lib/frontend-logger'
-import { createClient } from '#lib/supabase/client'
-import { useState } from 'react'
+import { useState } from "react";
+import { GoogleButton } from "#components/auth/google-button";
+import { createLogger } from "#lib/frontend-logger";
+import { createClient } from "#lib/supabase/client";
 
-const logger = createLogger({ component: 'LoginOAuth' })
+const logger = createLogger({ component: "LoginOAuth" });
 
 export function LoginOAuth() {
-	const [isGoogleLoading, setIsGoogleLoading] = useState(false)
+	const [isGoogleLoading, setIsGoogleLoading] = useState(false);
 
 	const handleGoogleLogin = async () => {
-		setIsGoogleLoading(true)
+		setIsGoogleLoading(true);
 		try {
-			const supabase = createClient()
-			const redirectUrl = `${process.env.NEXT_PUBLIC_APP_URL || window.location.origin}/auth/callback`
+			const supabase = createClient();
+			const redirectUrl = `${process.env.NEXT_PUBLIC_APP_URL || window.location.origin}/auth/callback`;
 
 			const { error } = await supabase.auth.signInWithOAuth({
-				provider: 'google',
-				options: { redirectTo: redirectUrl }
-			})
+				provider: "google",
+				options: { redirectTo: redirectUrl },
+			});
 
 			if (error) {
-				logger.error('[GOOGLE_LOGIN_FAILED]', { error: error.message })
+				logger.error("[GOOGLE_LOGIN_FAILED]", { error: error.message });
 			}
 		} catch (error) {
-			logger.error('[GOOGLE_LOGIN_ERROR]', {
-				error: error instanceof Error ? error.message : String(error)
-			})
+			logger.error("[GOOGLE_LOGIN_ERROR]", {
+				error: error instanceof Error ? error.message : String(error),
+			});
 		} finally {
-			setIsGoogleLoading(false)
+			setIsGoogleLoading(false);
 		}
-	}
+	};
 
 	return (
 		<>
@@ -55,5 +55,5 @@ export function LoginOAuth() {
 				className="w-full"
 			/>
 		</>
-	)
+	);
 }

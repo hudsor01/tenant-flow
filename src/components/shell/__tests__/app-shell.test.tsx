@@ -10,334 +10,380 @@
  * - Breadcrumbs
  */
 
-import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { render, screen, within, fireEvent } from '@testing-library/react'
-import userEvent from '@testing-library/user-event'
-import { AppShell } from '../app-shell'
+import { fireEvent, render, screen, within } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import { AppShell } from "../app-shell";
 
 // Mock next/navigation
-const mockPathname = vi.fn().mockReturnValue('/dashboard')
+const mockPathname = vi.fn().mockReturnValue("/dashboard");
 const mockRouter = {
 	push: vi.fn(),
-	back: vi.fn()
-}
-vi.mock('next/navigation', () => ({
+	back: vi.fn(),
+};
+vi.mock("next/navigation", () => ({
 	usePathname: () => mockPathname(),
-	useRouter: () => mockRouter
-}))
+	useRouter: () => mockRouter,
+}));
 
 // Mock auth hooks
 const mockUser = {
-	id: 'test-user-id',
-	email: 'owner@example.com',
+	id: "test-user-id",
+	email: "owner@example.com",
 	user_metadata: {
-		full_name: 'Jane Smith'
-	}
-}
-const mockSignOutMutation = { mutate: vi.fn() }
+		full_name: "Jane Smith",
+	},
+};
+const mockSignOutMutation = { mutate: vi.fn() };
 
-vi.mock('#hooks/api/use-auth', () => ({
-	useSupabaseUser: () => ({ data: mockUser })
-}))
+vi.mock("#hooks/api/use-auth", () => ({
+	useSupabaseUser: () => ({ data: mockUser }),
+}));
 
-vi.mock('#hooks/api/use-auth-mutations', () => ({
-	useSignOutMutation: () => mockSignOutMutation
-}))
+vi.mock("#hooks/api/use-auth-mutations", () => ({
+	useSignOutMutation: () => mockSignOutMutation,
+}));
 
 // Mock property and tenant list hooks
 const mockProperties = [
-	{ id: 'prop-1', name: 'Sunset Apartments', city: 'Los Angeles', state: 'CA' },
-	{ id: 'prop-2', name: 'Ocean View', city: 'San Diego', state: 'CA' }
-]
+	{ id: "prop-1", name: "Sunset Apartments", city: "Los Angeles", state: "CA" },
+	{ id: "prop-2", name: "Ocean View", city: "San Diego", state: "CA" },
+];
 
 const mockTenants = [
-	{ id: 'tenant-1', first_name: 'John', last_name: 'Doe', email: 'john@example.com' },
-	{ id: 'tenant-2', first_name: 'Sarah', last_name: 'Wilson', email: 'sarah@example.com' }
-]
+	{
+		id: "tenant-1",
+		first_name: "John",
+		last_name: "Doe",
+		email: "john@example.com",
+	},
+	{
+		id: "tenant-2",
+		first_name: "Sarah",
+		last_name: "Wilson",
+		email: "sarah@example.com",
+	},
+];
 
-vi.mock('#hooks/api/use-properties', () => ({
-	usePropertyList: () => ({ data: mockProperties })
-}))
+vi.mock("#hooks/api/use-properties", () => ({
+	usePropertyList: () => ({ data: mockProperties }),
+}));
 
-vi.mock('#hooks/api/use-tenant', () => ({
-	useTenantList: () => ({ data: { data: mockTenants } })
-}))
+vi.mock("#hooks/api/use-tenant", () => ({
+	useTenantList: () => ({ data: { data: mockTenants } }),
+}));
 
 // Mock MainNav component
-vi.mock('../main-nav', () => ({
+vi.mock("../main-nav", () => ({
 	MainNav: ({ onNavigate }: { onNavigate: () => void }) => (
 		<nav data-testid="main-nav">
 			<button onClick={onNavigate} type="button">
 				Mock Nav Item
 			</button>
 		</nav>
-	)
-}))
+	),
+}));
 
 // Mock QuickActionsDock component
-vi.mock('../quick-actions-dock', () => ({
-	QuickActionsDock: () => <div data-testid="quick-actions-dock">Quick Actions</div>
-}))
+vi.mock("../quick-actions-dock", () => ({
+	QuickActionsDock: () => (
+		<div data-testid="quick-actions-dock">Quick Actions</div>
+	),
+}));
 
 // Mock GlobalSyncIndicator to avoid needing QueryClientProvider
-vi.mock('#components/ui/global-sync-indicator', () => ({
-	GlobalSyncIndicator: () => <div data-testid="global-sync-indicator">Saved</div>
-}))
+vi.mock("#components/ui/global-sync-indicator", () => ({
+	GlobalSyncIndicator: () => (
+		<div data-testid="global-sync-indicator">Saved</div>
+	),
+}));
 
 // Mock scrollIntoView for command palette (JSDOM doesn't support it)
 beforeAll(() => {
-	Element.prototype.scrollIntoView = vi.fn()
-})
+	Element.prototype.scrollIntoView = vi.fn();
+});
 
-describe('AppShell', () => {
+describe("AppShell", () => {
 	beforeEach(() => {
-		vi.clearAllMocks()
-		mockPathname.mockReturnValue('/dashboard')
-	})
+		vi.clearAllMocks();
+		mockPathname.mockReturnValue("/dashboard");
+	});
 
-	describe('basic rendering', () => {
-		it('should render children content', () => {
+	describe("basic rendering", () => {
+		it("should render children content", () => {
 			render(
 				<AppShell>
 					<div data-testid="child-content">Child Content</div>
-				</AppShell>
-			)
+				</AppShell>,
+			);
 
-			expect(screen.getByTestId('child-content')).toBeInTheDocument()
-		})
+			expect(screen.getByTestId("child-content")).toBeInTheDocument();
+		});
 
-		it('should render TenantFlow logo', () => {
-			render(<AppShell>Content</AppShell>)
+		it("should render TenantFlow logo", () => {
+			render(<AppShell>Content</AppShell>);
 
-			expect(screen.getByText('TenantFlow')).toBeInTheDocument()
-		})
+			expect(screen.getByText("TenantFlow")).toBeInTheDocument();
+		});
 
-		it('should render MainNav component', () => {
-			render(<AppShell>Content</AppShell>)
+		it("should render MainNav component", () => {
+			render(<AppShell>Content</AppShell>);
 
-			expect(screen.getByTestId('main-nav')).toBeInTheDocument()
-		})
+			expect(screen.getByTestId("main-nav")).toBeInTheDocument();
+		});
 
-		it('should render search button', () => {
-			render(<AppShell>Content</AppShell>)
+		it("should render search button", () => {
+			render(<AppShell>Content</AppShell>);
 
-			expect(screen.getByText('Search...')).toBeInTheDocument()
-		})
+			expect(screen.getByText("Search...")).toBeInTheDocument();
+		});
 
-		it('should render keyboard shortcut hint', () => {
-			render(<AppShell>Content</AppShell>)
+		it("should render keyboard shortcut hint", () => {
+			render(<AppShell>Content</AppShell>);
 
-			expect(screen.getByText('K')).toBeInTheDocument()
-		})
-	})
+			expect(screen.getByText("K")).toBeInTheDocument();
+		});
+	});
 
-	describe('quick actions dock', () => {
-		it('should render QuickActionsDock by default', () => {
-			render(<AppShell>Content</AppShell>)
+	describe("quick actions dock", () => {
+		it("should render QuickActionsDock by default", () => {
+			render(<AppShell>Content</AppShell>);
 
-			expect(screen.getByTestId('quick-actions-dock')).toBeInTheDocument()
-		})
+			expect(screen.getByTestId("quick-actions-dock")).toBeInTheDocument();
+		});
 
-		it('should not render QuickActionsDock when showQuickActionsDock is false', () => {
-			render(<AppShell showQuickActionsDock={false}>Content</AppShell>)
+		it("should not render QuickActionsDock when showQuickActionsDock is false", () => {
+			render(<AppShell showQuickActionsDock={false}>Content</AppShell>);
 
-			expect(screen.queryByTestId('quick-actions-dock')).not.toBeInTheDocument()
-		})
-	})
+			expect(
+				screen.queryByTestId("quick-actions-dock"),
+			).not.toBeInTheDocument();
+		});
+	});
 
-	describe('sidebar behavior', () => {
-		it('should toggle sidebar when mobile menu button is clicked', async () => {
-			const user = userEvent.setup()
-			const { container } = render(<AppShell>Content</AppShell>)
+	describe("sidebar behavior", () => {
+		it("should toggle sidebar when mobile menu button is clicked", async () => {
+			const user = userEvent.setup();
+			const { container } = render(<AppShell>Content</AppShell>);
 
 			// Find the mobile menu button by its specific class
-			const menuButton = container.querySelector('button.p-2.rounded-md.hover\\:bg-muted.lg\\:hidden')
-			expect(menuButton).toBeInTheDocument()
+			const menuButton = container.querySelector(
+				"button.p-2.rounded-md.hover\\:bg-muted.lg\\:hidden",
+			);
+			expect(menuButton).toBeInTheDocument();
 
-			await user.click(menuButton as HTMLElement)
+			await user.click(menuButton as HTMLElement);
 
 			// Sidebar should be visible (role switches to dialog when open)
-			const sidebar = screen.getByRole('dialog')
-			expect(sidebar.className).toContain('translate-x-0')
-		})
+			const sidebar = screen.getByRole("dialog");
+			expect(sidebar.className).toContain("translate-x-0");
+		});
 
-		it('should close sidebar when close button is clicked', async () => {
-			const user = userEvent.setup()
-			const { container } = render(<AppShell>Content</AppShell>)
+		it("should close sidebar when close button is clicked", async () => {
+			const user = userEvent.setup();
+			const { container } = render(<AppShell>Content</AppShell>);
 
 			// Open sidebar first using the menu button
-			const menuButton = container.querySelector('button.p-2.rounded-md.hover\\:bg-muted.lg\\:hidden')
-			await user.click(menuButton as HTMLElement)
+			const menuButton = container.querySelector(
+				"button.p-2.rounded-md.hover\\:bg-muted.lg\\:hidden",
+			);
+			await user.click(menuButton as HTMLElement);
 
 			// Find close button (X icon) in the sidebar by its class
-			const closeButton = screen.getByRole('button', { name: /close navigation menu/i })
-			await user.click(closeButton)
+			const closeButton = screen.getByRole("button", {
+				name: /close navigation menu/i,
+			});
+			await user.click(closeButton);
 
 			// Sidebar should be hidden again
-			const sidebar = screen.getByRole('complementary')
-			expect(sidebar.className).toContain('-translate-x-full')
-		})
+			const sidebar = screen.getByRole("complementary");
+			expect(sidebar.className).toContain("-translate-x-full");
+		});
 
-		it('should close sidebar when overlay is clicked', async () => {
-			const user = userEvent.setup()
-			const { container } = render(<AppShell>Content</AppShell>)
+		it("should close sidebar when overlay is clicked", async () => {
+			const user = userEvent.setup();
+			const { container } = render(<AppShell>Content</AppShell>);
 
 			// Open sidebar first
-			const menuButton = container.querySelector('button.p-2.rounded-md.hover\\:bg-muted.lg\\:hidden')
-			await user.click(menuButton as HTMLElement)
+			const menuButton = container.querySelector(
+				"button.p-2.rounded-md.hover\\:bg-muted.lg\\:hidden",
+			);
+			await user.click(menuButton as HTMLElement);
 
 			// Click overlay
-			const overlay = container.querySelector('.fixed.inset-0.z-40')
-			expect(overlay).toBeInTheDocument()
-			await user.click(overlay as HTMLElement)
+			const overlay = container.querySelector(".fixed.inset-0.z-40");
+			expect(overlay).toBeInTheDocument();
+			await user.click(overlay as HTMLElement);
 
 			// Sidebar should be hidden
-			const sidebar = screen.getByRole('complementary')
-			expect(sidebar.className).toContain('-translate-x-full')
-		})
+			const sidebar = screen.getByRole("complementary");
+			expect(sidebar.className).toContain("-translate-x-full");
+		});
 
-		it('should close sidebar when nav item is clicked', async () => {
-			const user = userEvent.setup()
-			const { container } = render(<AppShell>Content</AppShell>)
+		it("should close sidebar when nav item is clicked", async () => {
+			const user = userEvent.setup();
+			const { container } = render(<AppShell>Content</AppShell>);
 
 			// Open sidebar
-			const menuButton = container.querySelector('button.p-2.rounded-md.hover\\:bg-muted.lg\\:hidden')
-			await user.click(menuButton as HTMLElement)
+			const menuButton = container.querySelector(
+				"button.p-2.rounded-md.hover\\:bg-muted.lg\\:hidden",
+			);
+			await user.click(menuButton as HTMLElement);
 
 			// Click nav item (mock nav has a button)
-			const navButton = screen.getByRole('button', { name: 'Mock Nav Item' })
-			await user.click(navButton)
+			const navButton = screen.getByRole("button", { name: "Mock Nav Item" });
+			await user.click(navButton);
 
 			// Sidebar should be hidden
-			const sidebar = screen.getByRole('complementary')
-			expect(sidebar.className).toContain('-translate-x-full')
-		})
-	})
+			const sidebar = screen.getByRole("complementary");
+			expect(sidebar.className).toContain("-translate-x-full");
+		});
+	});
 
-	describe('user profile', () => {
-		it('should display user initials', () => {
-			render(<AppShell>Content</AppShell>)
+	describe("user profile", () => {
+		it("should display user initials", () => {
+			render(<AppShell>Content</AppShell>);
 
 			// "Jane Smith" -> "JS"
-			expect(screen.getByText('JS')).toBeInTheDocument()
-		})
+			expect(screen.getByText("JS")).toBeInTheDocument();
+		});
 
-		it('should display user name in dropdown', async () => {
-			const user = userEvent.setup()
-			render(<AppShell>Content</AppShell>)
+		it("should display user name in dropdown", async () => {
+			const user = userEvent.setup();
+			render(<AppShell>Content</AppShell>);
 
-			const avatarButton = screen.getByRole('button', { name: /user menu/i })
-			await user.click(avatarButton)
+			const avatarButton = screen.getByRole("button", { name: /user menu/i });
+			await user.click(avatarButton);
 
-			expect(screen.getByText('Jane Smith')).toBeInTheDocument()
-		})
+			expect(screen.getByText("Jane Smith")).toBeInTheDocument();
+		});
 
-		it('should display user email in dropdown', async () => {
-			const user = userEvent.setup()
-			render(<AppShell>Content</AppShell>)
+		it("should display user email in dropdown", async () => {
+			const user = userEvent.setup();
+			render(<AppShell>Content</AppShell>);
 
-			const avatarButton = screen.getByRole('button', { name: /user menu/i })
-			await user.click(avatarButton)
+			const avatarButton = screen.getByRole("button", { name: /user menu/i });
+			await user.click(avatarButton);
 
-			expect(screen.getByText('owner@example.com')).toBeInTheDocument()
-		})
+			expect(screen.getByText("owner@example.com")).toBeInTheDocument();
+		});
 
-		it('should show dropdown menu on profile button click', async () => {
-			const user = userEvent.setup()
-			const { container } = render(<AppShell>Content</AppShell>)
+		it("should show dropdown menu on profile button click", async () => {
+			const user = userEvent.setup();
+			const { container } = render(<AppShell>Content</AppShell>);
 
 			// Find the dropdown trigger by its aria-haspopup attribute
-			const dropdownTrigger = container.querySelector('button[aria-haspopup="menu"]')
-			expect(dropdownTrigger).toBeInTheDocument()
-			await user.click(dropdownTrigger as HTMLElement)
+			const dropdownTrigger = container.querySelector(
+				'button[aria-haspopup="menu"]',
+			);
+			expect(dropdownTrigger).toBeInTheDocument();
+			await user.click(dropdownTrigger as HTMLElement);
 
-			expect(screen.getByRole('menuitem', { name: /settings/i })).toBeInTheDocument()
-			expect(screen.getByRole('menuitem', { name: /profile/i })).toBeInTheDocument()
-			expect(screen.getByRole('menuitem', { name: /sign out/i })).toBeInTheDocument()
-		})
+			expect(
+				screen.getByRole("menuitem", { name: /settings/i }),
+			).toBeInTheDocument();
+			expect(
+				screen.getByRole("menuitem", { name: /profile/i }),
+			).toBeInTheDocument();
+			expect(
+				screen.getByRole("menuitem", { name: /sign out/i }),
+			).toBeInTheDocument();
+		});
 
-		it('should call signOut when Sign out is clicked', async () => {
-			const user = userEvent.setup()
-			const { container } = render(<AppShell>Content</AppShell>)
+		it("should call signOut when Sign out is clicked", async () => {
+			const user = userEvent.setup();
+			const { container } = render(<AppShell>Content</AppShell>);
 
 			// Open dropdown
-			const dropdownTrigger = container.querySelector('button[aria-haspopup="menu"]')
-			await user.click(dropdownTrigger as HTMLElement)
+			const dropdownTrigger = container.querySelector(
+				'button[aria-haspopup="menu"]',
+			);
+			await user.click(dropdownTrigger as HTMLElement);
 
 			// Click sign out
-			const signOutItem = screen.getByRole('menuitem', { name: /sign out/i })
-			await user.click(signOutItem)
+			const signOutItem = screen.getByRole("menuitem", { name: /sign out/i });
+			await user.click(signOutItem);
 
-			expect(mockSignOutMutation.mutate).toHaveBeenCalledTimes(1)
-		})
-	})
+			expect(mockSignOutMutation.mutate).toHaveBeenCalledTimes(1);
+		});
+	});
 
-	describe('header', () => {
-		it('should render notifications link', () => {
-			const { container } = render(<AppShell>Content</AppShell>)
+	describe("header", () => {
+		it("should render notifications link", () => {
+			const { container } = render(<AppShell>Content</AppShell>);
 
 			// Find the link with Bell icon
-			const notificationsLink = container.querySelector('a[href="/settings?tab=notifications"]')
-			expect(notificationsLink).toBeInTheDocument()
-		})
-	})
+			const notificationsLink = container.querySelector(
+				'a[href="/settings?tab=notifications"]',
+			);
+			expect(notificationsLink).toBeInTheDocument();
+		});
+	});
 
-	describe('breadcrumbs', () => {
-		it('should render breadcrumbs for nested paths', () => {
-			mockPathname.mockReturnValue('/properties/123')
-			render(<AppShell>Content</AppShell>)
+	describe("breadcrumbs", () => {
+		it("should render breadcrumbs for nested paths", () => {
+			mockPathname.mockReturnValue("/properties/123");
+			render(<AppShell>Content</AppShell>);
 
 			// Breadcrumbs now always visible (aria-label="Breadcrumb")
-			const breadcrumbNav = screen.getByRole('navigation', { name: 'Breadcrumb' })
-			expect(breadcrumbNav).toBeInTheDocument()
+			const breadcrumbNav = screen.getByRole("navigation", {
+				name: "Breadcrumb",
+			});
+			expect(breadcrumbNav).toBeInTheDocument();
 
 			// Check for breadcrumb labels within the breadcrumb nav
 			// The breadcrumb utility generates "Properties > 123" for /properties/123
-			expect(within(breadcrumbNav).getByText('Properties')).toBeInTheDocument()
-		})
+			expect(within(breadcrumbNav).getByText("Properties")).toBeInTheDocument();
+		});
 
-		it('should render breadcrumb links for parent paths', () => {
-			mockPathname.mockReturnValue('/properties/123')
-			render(<AppShell>Content</AppShell>)
+		it("should render breadcrumb links for parent paths", () => {
+			mockPathname.mockReturnValue("/properties/123");
+			render(<AppShell>Content</AppShell>);
 
-			const breadcrumbNav = screen.getByRole('navigation', { name: 'Breadcrumb' })
-			const propertiesLink = within(breadcrumbNav).getByRole('link', {
-				name: 'Properties'
-			})
-			expect(propertiesLink).toHaveAttribute('href', '/properties')
-		})
-	})
+			const breadcrumbNav = screen.getByRole("navigation", {
+				name: "Breadcrumb",
+			});
+			const propertiesLink = within(breadcrumbNav).getByRole("link", {
+				name: "Properties",
+			});
+			expect(propertiesLink).toHaveAttribute("href", "/properties");
+		});
+	});
 
-	describe('command palette', () => {
-		it('should open command palette when search button is clicked', async () => {
-			const user = userEvent.setup()
-			render(<AppShell>Content</AppShell>)
+	describe("command palette", () => {
+		it("should open command palette when search button is clicked", async () => {
+			const user = userEvent.setup();
+			render(<AppShell>Content</AppShell>);
 
 			// Click the search button
-			const searchButton = screen.getByText('Search...')
-			await user.click(searchButton)
+			const searchButton = screen.getByText("Search...");
+			await user.click(searchButton);
 
 			// Command palette should be open
-			expect(screen.getByPlaceholderText('Search pages and actions...')).toBeInTheDocument()
-		})
+			expect(
+				screen.getByPlaceholderText("Search pages and actions..."),
+			).toBeInTheDocument();
+		});
 
-		it('should show navigation groups in command palette', async () => {
-			const user = userEvent.setup()
-			render(<AppShell>Content</AppShell>)
+		it("should show navigation groups in command palette", async () => {
+			const user = userEvent.setup();
+			render(<AppShell>Content</AppShell>);
 
 			// Open command palette
-			const searchButton = screen.getByText('Search...')
-			await user.click(searchButton)
+			const searchButton = screen.getByText("Search...");
+			await user.click(searchButton);
 
 			// Check for group headings (some text may appear multiple times)
-			expect(screen.getByText('Navigation')).toBeInTheDocument()
-			expect(screen.getByText('Analytics & Reports')).toBeInTheDocument()
+			expect(screen.getByText("Navigation")).toBeInTheDocument();
+			expect(screen.getByText("Analytics & Reports")).toBeInTheDocument();
 			// "Financials" appears in both sidebar nav and command palette - use getAllByText
-			expect(screen.getAllByText('Financials').length).toBeGreaterThanOrEqual(1)
+			expect(screen.getAllByText("Financials").length).toBeGreaterThanOrEqual(
+				1,
+			);
 			// v2.4 Phase 60 renamed the legacy "Documents" command-palette
 			// heading to "Templates" — the new top-level "Documents" core
 			// nav item points at /documents/vault.
-			expect(screen.getAllByText('Templates').length).toBeGreaterThanOrEqual(1)
+			expect(screen.getAllByText("Templates").length).toBeGreaterThanOrEqual(1);
 			// Cycle-3 L5: /documents/vault must be reachable from cmd+K
 			// Navigation group. MainNav is mocked at the top of this file
 			// so the only "Documents" in the DOM comes from the cmd+K
@@ -345,96 +391,102 @@ describe('AppShell', () => {
 			// future regression that adds the entry to a different group
 			// (e.g., moves it from Navigation → Templates) would still
 			// satisfy `>= 1` but fail this stricter assertion.
-			expect(screen.getAllByText('Documents')).toHaveLength(1)
-		})
+			expect(screen.getAllByText("Documents")).toHaveLength(1);
+		});
 
-		it('should show recent properties in command palette', async () => {
-			const user = userEvent.setup()
-			render(<AppShell>Content</AppShell>)
-
-			// Open command palette
-			const searchButton = screen.getByText('Search...')
-			await user.click(searchButton)
-
-			expect(screen.getByText('Recent Properties')).toBeInTheDocument()
-			expect(screen.getByText('Sunset Apartments')).toBeInTheDocument()
-			expect(screen.getByText('Ocean View')).toBeInTheDocument()
-		})
-
-		it('should show recent tenants in command palette', async () => {
-			const user = userEvent.setup()
-			render(<AppShell>Content</AppShell>)
+		it("should show recent properties in command palette", async () => {
+			const user = userEvent.setup();
+			render(<AppShell>Content</AppShell>);
 
 			// Open command palette
-			const searchButton = screen.getByText('Search...')
-			await user.click(searchButton)
+			const searchButton = screen.getByText("Search...");
+			await user.click(searchButton);
 
-			expect(screen.getByText('Recent Tenants')).toBeInTheDocument()
-			expect(screen.getByText('John Doe')).toBeInTheDocument()
-			expect(screen.getByText('Sarah Wilson')).toBeInTheDocument()
-		})
+			expect(screen.getByText("Recent Properties")).toBeInTheDocument();
+			expect(screen.getByText("Sunset Apartments")).toBeInTheDocument();
+			expect(screen.getByText("Ocean View")).toBeInTheDocument();
+		});
 
-		it('should show Account & Support section in command palette', async () => {
-			const user = userEvent.setup()
-			render(<AppShell>Content</AppShell>)
-
-			// Open command palette
-			const searchButton = screen.getByText('Search...')
-			await user.click(searchButton)
-
-			expect(screen.getByText('Account & Support')).toBeInTheDocument()
-			expect(screen.getByText('Notifications')).toBeInTheDocument()
-			expect(screen.getByText('Help & Support')).toBeInTheDocument()
-		})
-
-		it('should close command palette and navigate when item is selected', async () => {
-			const user = userEvent.setup()
-			render(<AppShell>Content</AppShell>)
+		it("should show recent tenants in command palette", async () => {
+			const user = userEvent.setup();
+			render(<AppShell>Content</AppShell>);
 
 			// Open command palette
-			const searchButton = screen.getByText('Search...')
-			await user.click(searchButton)
+			const searchButton = screen.getByText("Search...");
+			await user.click(searchButton);
+
+			expect(screen.getByText("Recent Tenants")).toBeInTheDocument();
+			expect(screen.getByText("John Doe")).toBeInTheDocument();
+			expect(screen.getByText("Sarah Wilson")).toBeInTheDocument();
+		});
+
+		it("should show Account & Support section in command palette", async () => {
+			const user = userEvent.setup();
+			render(<AppShell>Content</AppShell>);
+
+			// Open command palette
+			const searchButton = screen.getByText("Search...");
+			await user.click(searchButton);
+
+			expect(screen.getByText("Account & Support")).toBeInTheDocument();
+			expect(screen.getByText("Notifications")).toBeInTheDocument();
+			expect(screen.getByText("Help & Support")).toBeInTheDocument();
+		});
+
+		it("should close command palette and navigate when item is selected", async () => {
+			const user = userEvent.setup();
+			render(<AppShell>Content</AppShell>);
+
+			// Open command palette
+			const searchButton = screen.getByText("Search...");
+			await user.click(searchButton);
 
 			// Click on Dashboard navigation item
-			const dashboardItem = screen.getByRole('option', { name: /dashboard/i })
-			await user.click(dashboardItem)
+			const dashboardItem = screen.getByRole("option", { name: /dashboard/i });
+			await user.click(dashboardItem);
 
-			expect(mockRouter.push).toHaveBeenCalledWith('/dashboard')
-		})
+			expect(mockRouter.push).toHaveBeenCalledWith("/dashboard");
+		});
 
-		it('should open command palette with keyboard shortcut', async () => {
-			render(<AppShell>Content</AppShell>)
+		it("should open command palette with keyboard shortcut", async () => {
+			render(<AppShell>Content</AppShell>);
 
 			// Simulate Cmd+K (or Ctrl+K)
-			fireEvent.keyDown(window, { key: 'k', metaKey: true })
+			fireEvent.keyDown(window, { key: "k", metaKey: true });
 
 			// Command palette should be open
-			expect(screen.getByPlaceholderText('Search pages and actions...')).toBeInTheDocument()
-		})
+			expect(
+				screen.getByPlaceholderText("Search pages and actions..."),
+			).toBeInTheDocument();
+		});
 
-		it('should close command palette with keyboard shortcut', async () => {
-			render(<AppShell>Content</AppShell>)
+		it("should close command palette with keyboard shortcut", async () => {
+			render(<AppShell>Content</AppShell>);
 
 			// Open command palette
-			fireEvent.keyDown(window, { key: 'k', metaKey: true })
+			fireEvent.keyDown(window, { key: "k", metaKey: true });
 
 			// Verify it's open
-			expect(screen.getByPlaceholderText('Search pages and actions...')).toBeInTheDocument()
+			expect(
+				screen.getByPlaceholderText("Search pages and actions..."),
+			).toBeInTheDocument();
 
 			// Toggle it closed
-			fireEvent.keyDown(window, { key: 'k', metaKey: true })
+			fireEvent.keyDown(window, { key: "k", metaKey: true });
 
 			// Command palette should be closed
-			expect(screen.queryByPlaceholderText('Search pages and actions...')).not.toBeInTheDocument()
-		})
-	})
+			expect(
+				screen.queryByPlaceholderText("Search pages and actions..."),
+			).not.toBeInTheDocument();
+		});
+	});
 
-	describe('sidebar tour attribute', () => {
-		it('should have data-tour attribute for sidebar', () => {
-			render(<AppShell>Content</AppShell>)
+	describe("sidebar tour attribute", () => {
+		it("should have data-tour attribute for sidebar", () => {
+			render(<AppShell>Content</AppShell>);
 
-			const sidebar = screen.getByRole('complementary')
-			expect(sidebar).toHaveAttribute('data-tour', 'sidebar-nav')
-		})
-	})
-})
+			const sidebar = screen.getByRole("complementary");
+			expect(sidebar).toHaveAttribute("data-tour", "sidebar-nav");
+		});
+	});
+});

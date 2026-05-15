@@ -1,32 +1,32 @@
-import type { ComponentProps, ReactNode, Ref } from 'react'
+import type { ComponentProps, ReactNode, Ref } from "react";
 
-import { Button } from '#components/ui/button'
-import { ButtonLoader } from '#components/ui/loading-spinner'
-import { cn } from '#lib/utils'
+import { Button } from "#components/ui/button";
+import { ButtonLoader } from "#components/ui/loading-spinner";
+import { cn } from "#lib/utils";
 
 interface GoogleButtonProps extends ComponentProps<typeof Button> {
-	isLoading?: boolean
-	loadingText?: string
-	children?: ReactNode
-	showTrustIndicators?: boolean
-	mode?: 'login' | 'signup'
-	ref?: Ref<HTMLButtonElement>
+	isLoading?: boolean;
+	loadingText?: string;
+	children?: ReactNode;
+	showTrustIndicators?: boolean;
+	mode?: "login" | "signup";
+	ref?: Ref<HTMLButtonElement>;
 }
 
 export function GoogleButton({
 	className,
 	isLoading = false,
-	loadingText = 'Connecting...',
-	children = 'Continue with Google',
+	loadingText = "Connecting...",
+	children = "Continue with Google",
 	showTrustIndicators = false,
-	mode = 'login',
+	mode = "login",
 	ref,
 	...props
 }: GoogleButtonProps) {
 	const defaultText =
-		mode === 'signup' ? 'Continue with Google' : 'Sign in with Google'
+		mode === "signup" ? "Continue with Google" : "Sign in with Google";
 	const defaultLoadingText =
-		mode === 'signup' ? 'Creating your account...' : 'Signing you in...'
+		mode === "signup" ? "Creating your account..." : "Signing you in...";
 
 	return (
 		<div className="w-full">
@@ -36,17 +36,17 @@ export function GoogleButton({
 				variant="outline"
 				size="lg"
 				className={cn(
-					'border border-input bg-background hover:bg-accent hover:text-accent-foreground h-11 rounded-md px-8',
-					'w-full relative overflow-hidden group',
-					'transition-all duration-200 ease-out',
-					'hover:bg-linear-to-r hover:from-primary/5 hover:to-accent/5 dark:hover:from-primary/10 dark:hover:to-accent/10',
-					'hover:shadow-lg hover:shadow-primary/10 hover:scale-[1.02]',
-					'active:scale-[0.98] active:shadow-md',
-					'border-2 border-border hover:border-primary dark:hover:border-primary',
-					'focus:ring-2 focus:ring-primary/20 focus:ring-offset-2 dark:focus:ring-offset-background',
-					'disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:scale-100 disabled:hover:shadow-none',
-					isLoading && 'animate-pulse',
-					className
+					"border border-input bg-background hover:bg-accent hover:text-accent-foreground h-11 rounded-md px-8",
+					"w-full relative overflow-hidden group",
+					"transition-all duration-200 ease-out",
+					"hover:bg-linear-to-r hover:from-primary/5 hover:to-accent/5 dark:hover:from-primary/10 dark:hover:to-accent/10",
+					"hover:shadow-lg hover:shadow-primary/10 hover:scale-[1.02]",
+					"active:scale-[0.98] active:shadow-md",
+					"border-2 border-border hover:border-primary dark:hover:border-primary",
+					"focus:ring-2 focus:ring-primary/20 focus:ring-offset-2 dark:focus:ring-offset-background",
+					"disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:scale-100 disabled:hover:shadow-none",
+					isLoading && "animate-pulse",
+					className,
 				)}
 				disabled={isLoading || props.disabled}
 				{...props}
@@ -62,9 +62,9 @@ export function GoogleButton({
 					<div className="flex flex-col items-start">
 						<span
 							className={cn(
-								'font-semibold text-foreground group-hover:text-foreground',
-								'transition-colors duration-150',
-								'text-base leading-normal'
+								"font-semibold text-foreground group-hover:text-foreground",
+								"transition-colors duration-150",
+								"text-base leading-normal",
 							)}
 						>
 							{isLoading
@@ -82,9 +82,9 @@ export function GoogleButton({
 				{/* Enhanced gradient hover effect */}
 				<div
 					className={cn(
-						'absolute inset-0 bg-linear-to-r from-primary/5 via-accent/5 to-primary/5',
-						'opacity-0 group-hover:opacity-100',
-						'transition-opacity duration-200'
+						"absolute inset-0 bg-linear-to-r from-primary/5 via-accent/5 to-primary/5",
+						"opacity-0 group-hover:opacity-100",
+						"transition-opacity duration-200",
 					)}
 				/>
 			</Button>
@@ -106,7 +106,7 @@ export function GoogleButton({
 				</div>
 			)}
 		</div>
-	)
+	);
 }
 
 /**
@@ -141,6 +141,6 @@ function HighResGoogleIcon() {
 				d="M43.611,20.083H42V20H24v8h11.303c-0.792,2.237-2.231,4.166-4.087,5.571c0.001-0.001,0.002-0.001,0.003-0.002l6.19,5.238C36.971,39.205,44,34,44,24C44,22.659,43.862,21.35,43.611,20.083z"
 			/>
 		</svg>
-	)
+	);
 }
 /* eslint-enable color-tokens/no-hex-colors */

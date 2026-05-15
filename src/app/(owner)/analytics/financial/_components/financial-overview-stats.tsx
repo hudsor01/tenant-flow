@@ -1,22 +1,24 @@
-import { DollarSign, TrendingUp, BarChart3 } from 'lucide-react'
-import { BlurFade } from '#components/ui/blur-fade'
-import { BorderBeam } from '#components/ui/border-beam'
+import { BarChart3, DollarSign, TrendingUp } from "lucide-react";
+import { AnimatedTrendIndicator } from "#components/ui/animated-trend-indicator";
+import { BlurFade } from "#components/ui/blur-fade";
+import { BorderBeam } from "#components/ui/border-beam";
+import { NumberTicker } from "#components/ui/number-ticker";
 import {
 	Stat,
-	StatLabel,
-	StatValue,
 	StatIndicator,
-	StatTrend
-} from '#components/ui/stat'
-import { NumberTicker } from '#components/ui/number-ticker'
-import { AnimatedTrendIndicator } from '#components/ui/animated-trend-indicator'
-import type { FinancialMetricSummary } from '#types/analytics'
+	StatLabel,
+	StatTrend,
+	StatValue,
+} from "#components/ui/stat";
+import type { FinancialMetricSummary } from "#types/analytics";
 
 interface FinancialOverviewStatsProps {
-	metrics: FinancialMetricSummary
+	metrics: FinancialMetricSummary;
 }
 
-export function FinancialOverviewStats({ metrics }: FinancialOverviewStatsProps) {
+export function FinancialOverviewStats({
+	metrics,
+}: FinancialOverviewStatsProps) {
 	return (
 		<div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
 			<BlurFade delay={0.2} inView>
@@ -30,15 +32,16 @@ export function FinancialOverviewStats({ metrics }: FinancialOverviewStatsProps)
 					<StatLabel>Total Revenue</StatLabel>
 					<StatValue className="flex items-baseline gap-0.5 text-emerald-600 dark:text-emerald-400">
 						<span className="text-lg">$</span>
-						<NumberTicker
-							value={metrics.totalRevenue / 100}
-							duration={1500}
-						/>
+						<NumberTicker value={metrics.totalRevenue / 100} duration={1500} />
 					</StatValue>
 					<StatIndicator variant="icon" color="success">
 						<DollarSign />
 					</StatIndicator>
-					<StatTrend trend={metrics.revenueTrend && metrics.revenueTrend >= 0 ? 'up' : 'down'}>
+					<StatTrend
+						trend={
+							metrics.revenueTrend && metrics.revenueTrend >= 0 ? "up" : "down"
+						}
+					>
 						<AnimatedTrendIndicator
 							value={metrics.revenueTrend ?? 0}
 							size="sm"
@@ -54,15 +57,16 @@ export function FinancialOverviewStats({ metrics }: FinancialOverviewStatsProps)
 					<StatLabel>Net Income</StatLabel>
 					<StatValue className="flex items-baseline gap-0.5">
 						<span className="text-lg">$</span>
-						<NumberTicker
-							value={metrics.netIncome / 100}
-							duration={1500}
-						/>
+						<NumberTicker value={metrics.netIncome / 100} duration={1500} />
 					</StatValue>
 					<StatIndicator variant="icon" color="primary">
 						<TrendingUp />
 					</StatIndicator>
-					<StatTrend trend={metrics.profitMargin && metrics.profitMargin >= 0 ? 'up' : 'down'}>
+					<StatTrend
+						trend={
+							metrics.profitMargin && metrics.profitMargin >= 0 ? "up" : "down"
+						}
+					>
 						<AnimatedTrendIndicator
 							value={metrics.profitMargin ?? 0}
 							size="sm"
@@ -87,7 +91,11 @@ export function FinancialOverviewStats({ metrics }: FinancialOverviewStatsProps)
 					<StatIndicator variant="icon" color="info">
 						<BarChart3 />
 					</StatIndicator>
-					<StatTrend trend={metrics.expenseTrend && metrics.expenseTrend >= 0 ? 'up' : 'down'}>
+					<StatTrend
+						trend={
+							metrics.expenseTrend && metrics.expenseTrend >= 0 ? "up" : "down"
+						}
+					>
 						<AnimatedTrendIndicator
 							value={metrics.expenseTrend ?? 0}
 							size="sm"
@@ -108,7 +116,11 @@ export function FinancialOverviewStats({ metrics }: FinancialOverviewStatsProps)
 					<StatIndicator variant="icon" color="success">
 						<DollarSign />
 					</StatIndicator>
-					<StatTrend trend={metrics.revenueTrend && metrics.revenueTrend >= 0 ? 'up' : 'down'}>
+					<StatTrend
+						trend={
+							metrics.revenueTrend && metrics.revenueTrend >= 0 ? "up" : "down"
+						}
+					>
 						<AnimatedTrendIndicator
 							value={metrics.revenueTrend ?? 0}
 							size="sm"
@@ -119,5 +131,5 @@ export function FinancialOverviewStats({ metrics }: FinancialOverviewStatsProps)
 				</Stat>
 			</BlurFade>
 		</div>
-	)
+	);
 }

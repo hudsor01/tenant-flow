@@ -4,22 +4,22 @@
  * to reduce boilerplate in component tests.
  */
 
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import type { RenderOptions, RenderResult } from '@testing-library/react'
-import { render as rtlRender } from '@testing-library/react'
-import type { ReactElement, ReactNode } from 'react'
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import type { RenderOptions, RenderResult } from "@testing-library/react";
+import { render as rtlRender } from "@testing-library/react";
+import type { ReactElement, ReactNode } from "react";
 
 /**
  * Custom render options extending RTL's RenderOptions
  */
-interface CustomRenderOptions extends Omit<RenderOptions, 'wrapper'> {
-	wrapper?: RenderOptions['wrapper']
+interface CustomRenderOptions extends Omit<RenderOptions, "wrapper"> {
+	wrapper?: RenderOptions["wrapper"];
 	queryClientConfig?: {
 		defaultOptions?: {
-			queries?: Record<string, unknown>
-			mutations?: Record<string, unknown>
-		}
-	}
+			queries?: Record<string, unknown>;
+			mutations?: Record<string, unknown>;
+		};
+	};
 }
 
 /**
@@ -32,13 +32,13 @@ export function createTestQueryClient() {
 			queries: {
 				retry: false,
 				gcTime: 0,
-				staleTime: 0
+				staleTime: 0,
 			},
 			mutations: {
-				retry: false
-			}
-		}
-	})
+				retry: false,
+			},
+		},
+	});
 }
 
 /**
@@ -66,32 +66,32 @@ export function createTestQueryClient() {
  */
 export function render(
 	ui: ReactElement,
-	options?: CustomRenderOptions
+	options?: CustomRenderOptions,
 ): RenderResult {
 	const {
 		queryClientConfig,
 		wrapper: userWrapper,
 		...renderOptions
-	} = options || {}
+	} = options || {};
 
 	const queryClient = queryClientConfig
 		? new QueryClient(queryClientConfig)
-		: createTestQueryClient()
+		: createTestQueryClient();
 
 	function Wrapper({ children }: { children: ReactNode }) {
 		const content = (
 			<QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
-		)
+		);
 
 		if (!userWrapper) {
-			return content
+			return content;
 		}
 
-		const UserWrapper = userWrapper
-		return <UserWrapper>{content}</UserWrapper>
+		const UserWrapper = userWrapper;
+		return <UserWrapper>{content}</UserWrapper>;
 	}
 
-	return rtlRender(ui, { wrapper: Wrapper, ...renderOptions })
+	return rtlRender(ui, { wrapper: Wrapper, ...renderOptions });
 }
 
 /**
@@ -112,13 +112,13 @@ export function render(
  * })
  */
 export function createTestWrapper(queryClient?: QueryClient) {
-	const client = queryClient || createTestQueryClient()
+	const client = queryClient || createTestQueryClient();
 
 	const Wrapper = ({ children }: { children: ReactNode }) => (
 		<QueryClientProvider client={client}>{children}</QueryClientProvider>
-	)
+	);
 
-	return { Wrapper, queryClient: client }
+	return { Wrapper, queryClient: client };
 }
 
 // Note: Import directly from @testing-library/react and @testing-library/user-event

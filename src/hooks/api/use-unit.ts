@@ -15,26 +15,25 @@ import {
 	useMutation,
 	usePrefetchQuery,
 	useQuery,
-	useQueryClient
-} from '@tanstack/react-query'
-import type { Unit } from '#types/core'
-import type { PaginatedResponse } from '#types/api-contracts'
-import { QUERY_CACHE_TIMES } from '#lib/constants/query-config'
-import { useEntityDetail } from '#hooks/use-entity-detail'
-import { createMutationCallbacks } from '#hooks/create-mutation-callbacks'
-
+	useQueryClient,
+} from "@tanstack/react-query";
+import { createMutationCallbacks } from "#hooks/create-mutation-callbacks";
+import { useEntityDetail } from "#hooks/use-entity-detail";
+import { QUERY_CACHE_TIMES } from "#lib/constants/query-config";
+import type { PaginatedResponse } from "#types/api-contracts";
+import type { Unit } from "#types/core";
+import { leaseQueries } from "./query-keys/lease-keys";
+import { propertyQueries } from "./query-keys/property-keys";
 // Import query keys from separate file to avoid circular dependency
-import { unitQueries } from './query-keys/unit-keys'
-import { unitMutations } from './query-keys/unit-keys'
-import { propertyQueries } from './query-keys/property-keys'
-import { leaseQueries } from './query-keys/lease-keys'
-import { ownerDashboardKeys } from './use-owner-dashboard'
+import { unitMutations, unitQueries } from "./query-keys/unit-keys";
+import { ownerDashboardKeys } from "./use-owner-dashboard";
 
 /**
  * Extract data array from paginated response
  * Stable reference for TanStack Query select optimization
  */
-const selectPaginatedData = <T>(response: PaginatedResponse<T>): T[] => response.data
+const selectPaginatedData = <T>(response: PaginatedResponse<T>): T[] =>
+	response.data;
 
 /**
  * Hook to fetch unit by ID
@@ -44,8 +43,8 @@ export function useUnit(id: string) {
 	return useEntityDetail<Unit>({
 		queryOptions: unitQueries.detail(id),
 		listQueryKey: unitQueries.lists(),
-		id
-	})
+		id,
+	});
 }
 
 /**
@@ -62,8 +61,8 @@ export function useUnitsByProperty(property_id: string) {
 		gcTime: 30 * 60 * 1000, // 30 minutes cache time
 		structuralSharing: true,
 		// Only re-render when these properties change
-		notifyOnChangeProps: ['data', 'error', 'isPending', 'isFetching']
-	})
+		notifyOnChangeProps: ["data", "error", "isPending", "isFetching"],
+	});
 }
 
 /**
@@ -83,15 +82,15 @@ export function useUnitList(filters?: Parameters<typeof unitQueries.list>[0]) {
 		select: selectPaginatedData,
 		structuralSharing: true,
 		// Only re-render when these properties change
-		notifyOnChangeProps: ['data', 'error', 'isPending', 'isFetching']
-	})
+		notifyOnChangeProps: ["data", "error", "isPending", "isFetching"],
+	});
 }
 
 /**
  * Hook to fetch unit statistics
  */
 export function useUnitStats() {
-	return useQuery(unitQueries.stats())
+	return useQuery(unitQueries.stats());
 }
 
 /**
@@ -99,7 +98,7 @@ export function useUnitStats() {
  * Convenience hook for lease/maintenance forms
  */
 export function useVacantUnits() {
-	return useUnitList({ status: 'available' })
+	return useUnitList({ status: "available" });
 }
 
 /**
@@ -107,7 +106,7 @@ export function useVacantUnits() {
  * Convenience hook for general dropdowns/selects
  */
 export function useAllUnits() {
-	return useUnitList()
+	return useUnitList();
 }
 
 /**
@@ -118,14 +117,14 @@ export function useAllUnits() {
  * queryClient.prefetchQuery(unitQueries.detail(id))
  */
 export function usePrefetchUnitDetail(id: string) {
-	usePrefetchQuery(unitQueries.detail(id))
+	usePrefetchQuery(unitQueries.detail(id));
 }
 
 /**
  * Create unit mutation
  */
 export function useCreateUnitMutation() {
-	const queryClient = useQueryClient()
+	const queryClient = useQueryClient();
 
 	return useMutation({
 		...unitMutations.create(),
@@ -133,19 +132,19 @@ export function useCreateUnitMutation() {
 			invalidate: [
 				unitQueries.lists(),
 				propertyQueries.lists(),
-				ownerDashboardKeys.all
+				ownerDashboardKeys.all,
 			],
-			successMessage: 'Unit created successfully',
-			errorContext: 'Create unit'
-		})
-	})
+			successMessage: "Unit created successfully",
+			errorContext: "Create unit",
+		}),
+	});
 }
 
 /**
  * Update unit mutation
  */
 export function useUpdateUnitMutation() {
-	const queryClient = useQueryClient()
+	const queryClient = useQueryClient();
 
 	return useMutation({
 		...unitMutations.update(),
@@ -154,23 +153,23 @@ export function useUpdateUnitMutation() {
 				unitQueries.lists(),
 				propertyQueries.lists(),
 				leaseQueries.lists(),
-				ownerDashboardKeys.all
+				ownerDashboardKeys.all,
 			],
-			updateDetail: unit => ({
+			updateDetail: (unit) => ({
 				queryKey: unitQueries.detail(unit.id).queryKey,
-				data: unit
+				data: unit,
 			}),
-			successMessage: 'Unit updated successfully',
-			errorContext: 'Update unit'
-		})
-	})
+			successMessage: "Unit updated successfully",
+			errorContext: "Update unit",
+		}),
+	});
 }
 
 /**
  * Delete unit mutation
  */
 export function useDeleteUnitMutation() {
-	const queryClient = useQueryClient()
+	const queryClient = useQueryClient();
 
 	return useMutation({
 		...unitMutations.delete(),
@@ -179,12 +178,12 @@ export function useDeleteUnitMutation() {
 				unitQueries.lists(),
 				propertyQueries.lists(),
 				leaseQueries.lists(),
-				ownerDashboardKeys.all
+				ownerDashboardKeys.all,
 			],
 			removeDetail: (_data, deletedId) =>
 				unitQueries.detail(deletedId).queryKey,
-			successMessage: 'Unit deleted successfully',
-			errorContext: 'Delete unit'
-		})
-	})
+			successMessage: "Unit deleted successfully",
+			errorContext: "Delete unit",
+		}),
+	});
 }

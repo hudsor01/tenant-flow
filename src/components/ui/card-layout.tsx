@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react'
+import type { ReactNode } from "react";
 
 import {
 	Card,
@@ -6,29 +6,29 @@ import {
 	CardDescription,
 	CardFooter,
 	CardHeader,
-	CardTitle
-} from '#components/ui/card'
-import { Skeleton } from '#components/ui/skeleton'
-import { cn } from '#lib/utils'
+	CardTitle,
+} from "#components/ui/card";
+import { Skeleton } from "#components/ui/skeleton";
+import { cn } from "#lib/utils";
 
 interface CardLayoutProps {
-	title: string
-	description?: string
-	children?: ReactNode
-	footer?: ReactNode
-	className?: string
-	isLoading?: boolean
-	error?: string | null
+	title: string;
+	description?: string;
+	children?: ReactNode;
+	footer?: ReactNode;
+	className?: string;
+	isLoading?: boolean;
+	error?: string | null;
 }
 
 interface CardLayoutSectionProps {
-	children: ReactNode
-	className?: string
+	children: ReactNode;
+	className?: string;
 }
 
 const CardLayoutSection = ({ children, className }: CardLayoutSectionProps) => (
-	<div className={cn('space-y-4', className)}>{children}</div>
-)
+	<div className={cn("space-y-4", className)}>{children}</div>
+);
 
 const CardLayoutSkeleton = () => (
 	<Card>
@@ -45,7 +45,7 @@ const CardLayoutSkeleton = () => (
 			<Skeleton className="h-10 w-32" />
 		</CardFooter>
 	</Card>
-)
+);
 
 const CardLayoutError = ({ message }: { message: string }) => (
 	<Card>
@@ -54,7 +54,7 @@ const CardLayoutError = ({ message }: { message: string }) => (
 			<CardDescription>{message}</CardDescription>
 		</CardHeader>
 	</Card>
-)
+);
 
 const CardLayout = ({
 	title,
@@ -63,18 +63,18 @@ const CardLayout = ({
 	footer,
 	className,
 	isLoading,
-	error
+	error,
 }: CardLayoutProps) => {
 	if (error) {
-		return <CardLayoutError message={error} />
+		return <CardLayoutError message={error} />;
 	}
 
 	if (isLoading) {
-		return <CardLayoutSkeleton />
+		return <CardLayoutSkeleton />;
 	}
 
 	return (
-		<Card className={cn('w-full', className)}>
+		<Card className={cn("w-full", className)}>
 			<CardHeader>
 				<CardTitle>{title}</CardTitle>
 				{description && <CardDescription>{description}</CardDescription>}
@@ -84,7 +84,7 @@ const CardLayout = ({
 			</CardContent>
 			{footer && <CardFooter>{footer}</CardFooter>}
 		</Card>
-	)
-}
+	);
+};
 
-export { CardLayout, CardLayoutError, CardLayoutSection, CardLayoutSkeleton }
+export { CardLayout, CardLayoutError, CardLayoutSection, CardLayoutSkeleton };

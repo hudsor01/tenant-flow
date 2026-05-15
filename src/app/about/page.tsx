@@ -1,19 +1,3 @@
-import type { Metadata } from 'next'
-
-import { PageLayout } from '#components/layout/page-layout'
-import { HeroSection } from '#components/sections/hero-section'
-import { JsonLdScript } from '#components/seo/json-ld-script'
-import { BlurFade } from '#components/ui/blur-fade'
-import { Button } from '#components/ui/button'
-import {
-	Item,
-	ItemContent,
-	ItemDescription,
-	ItemGroup,
-	ItemMedia,
-	ItemSeparator,
-	ItemTitle
-} from '#components/ui/item'
 import {
 	ArrowRight,
 	Bolt,
@@ -26,41 +10,56 @@ import {
 	Sprout,
 	Target,
 	Users,
-	Zap
-} from 'lucide-react'
-import Link from 'next/link'
-import { createBreadcrumbJsonLd } from '#lib/seo/breadcrumbs'
-import { createPageMetadata } from '#lib/seo/page-metadata'
+	Zap,
+} from "lucide-react";
+import type { Metadata } from "next";
+import Link from "next/link";
+import { PageLayout } from "#components/layout/page-layout";
+import { HeroSection } from "#components/sections/hero-section";
+import { JsonLdScript } from "#components/seo/json-ld-script";
+import { BlurFade } from "#components/ui/blur-fade";
+import { Button } from "#components/ui/button";
+import {
+	Item,
+	ItemContent,
+	ItemDescription,
+	ItemGroup,
+	ItemMedia,
+	ItemSeparator,
+	ItemTitle,
+} from "#components/ui/item";
+import { createBreadcrumbJsonLd } from "#lib/seo/breadcrumbs";
+import { createPageMetadata } from "#lib/seo/page-metadata";
 
 const stats = [
-	{ number: 'Vault', label: 'Per-entity document storage', Icon: Building2 },
-	{ number: 'E-Sign', label: 'Lease e-signing', Icon: Users },
-	{ number: 'RLS', label: 'Postgres-level data isolation', Icon: Bolt },
-	{ number: '14-day', label: 'Free trial, no credit card', Icon: LifeBuoy }
-]
+	{ number: "Vault", label: "Per-entity document storage", Icon: Building2 },
+	{ number: "E-Sign", label: "Lease e-signing", Icon: Users },
+	{ number: "RLS", label: "Postgres-level data isolation", Icon: Bolt },
+	{ number: "14-day", label: "Free trial, no credit card", Icon: LifeBuoy },
+];
 
 export const metadata: Metadata = createPageMetadata({
-	title: 'About | Our Mission',
+	title: "About | Our Mission",
 	description:
-		'TenantFlow is a landlord-only property management platform with a per-entity document vault, lease e-signing, and tax-ready reports.',
-	path: '/about'
-})
+		"TenantFlow is a landlord-only property management platform with a per-entity document vault, lease e-signing, and tax-ready reports.",
+	path: "/about",
+});
 
 export default function AboutPage() {
 	return (
 		<PageLayout>
-			<JsonLdScript schema={createBreadcrumbJsonLd('/about')} />
+			<JsonLdScript schema={createBreadcrumbJsonLd("/about")} />
 
 			{/* Hero Section */}
 			<HeroSection
 				title="Property management"
 				titleHighlight="built for landlords"
 				subtitle="One platform for property records, leases, maintenance, and the document vault. Tenants are records you keep for your own tracking — never users on the platform."
-				primaryCta={{ label: 'Start Free Trial', href: '/pricing' }}
-				secondaryCta={{ label: 'Contact Sales', href: '/contact' }}
+				primaryCta={{ label: "Start Free Trial", href: "/pricing" }}
+				secondaryCta={{ label: "Contact Sales", href: "/contact" }}
 				image={{
-					src: 'https://images.unsplash.com/photo-1522071820081-009f0129c71c?q=80&w=2070&auto=format&fit=crop',
-					alt: 'Professional team collaborating on property management solutions'
+					src: "https://images.unsplash.com/photo-1522071820081-009f0129c71c?q=80&w=2070&auto=format&fit=crop",
+					alt: "Professional team collaborating on property management solutions",
 				}}
 			/>
 
@@ -75,9 +74,9 @@ export default function AboutPage() {
 								</h2>
 								<div className="space-y-4">
 									<p className="text-xl text-muted-foreground leading-relaxed">
-										To empower landlords with the tools they need to
-										grow their business, reduce operational overhead, and
-										provide exceptional service to their tenants.
+										To empower landlords with the tools they need to grow their
+										business, reduce operational overhead, and provide
+										exceptional service to their tenants.
 									</p>
 									<p className="text-base text-muted-foreground leading-relaxed">
 										We believe property management should be streamlined,
@@ -122,8 +121,8 @@ export default function AboutPage() {
 								<ItemContent>
 									<ItemTitle>Built on a modern stack</ItemTitle>
 									<ItemDescription>
-										TenantFlow ships on Next.js, React 19, Supabase, and
-										Stripe. The whole stack is documented and current.
+										TenantFlow ships on Next.js, React 19, Supabase, and Stripe.
+										The whole stack is documented and current.
 									</ItemDescription>
 								</ItemContent>
 							</Item>
@@ -152,7 +151,8 @@ export default function AboutPage() {
 								<ItemContent>
 									<ItemTitle>Security & Privacy</ItemTitle>
 									<ItemDescription>
-										Postgres row-level security per landlord, encrypted at rest, GDPR-compliant deletion flow.
+										Postgres row-level security per landlord, encrypted at rest,
+										GDPR-compliant deletion flow.
 									</ItemDescription>
 								</ItemContent>
 							</Item>
@@ -216,7 +216,8 @@ export default function AboutPage() {
 								What ships in the box
 							</h2>
 							<p className="text-xl text-muted-foreground leading-relaxed">
-								Every plan starts with the document vault and lease e-sign on Growth and Max.
+								Every plan starts with the document vault and lease e-sign on
+								Growth and Max.
 							</p>
 						</div>
 
@@ -245,14 +246,15 @@ export default function AboutPage() {
 					<BlurFade delay={1.0} inView>
 						<div className="text-center space-y-8">
 							<h2 className="text-4xl lg:text-5xl font-bold tracking-tight leading-tight text-foreground">
-								Ready to{' '}
+								Ready to{" "}
 								<span className="hero-highlight">
 									simplify property management
 								</span>
 								?
 							</h2>
 							<p className="text-xl text-muted-foreground leading-relaxed max-w-2xl mx-auto">
-								Centralize your portfolio with the document vault, lease e-sign on Growth and Max, and tax-ready reports.
+								Centralize your portfolio with the document vault, lease e-sign
+								on Growth and Max, and tax-ready reports.
 							</p>
 							<div className="flex flex-col sm:flex-row gap-4 justify-center">
 								<Button asChild size="lg" className="group">
@@ -266,13 +268,13 @@ export default function AboutPage() {
 								</Button>
 							</div>
 							<p className="text-muted-foreground">
-								No setup fees • Postgres RLS isolation • 14-day free trial • Cancel
-								anytime
+								No setup fees • Postgres RLS isolation • 14-day free trial •
+								Cancel anytime
 							</p>
 						</div>
 					</BlurFade>
 				</div>
 			</section>
 		</PageLayout>
-	)
+	);
 }

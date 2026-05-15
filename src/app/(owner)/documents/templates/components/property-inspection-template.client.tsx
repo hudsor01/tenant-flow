@@ -1,218 +1,218 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
-import type { ChangeEvent } from 'react'
-import { Card, CardContent, CardHeader, CardTitle } from '#components/ui/card'
-import { Badge } from '#components/ui/badge'
-import { BrandingEditor } from './branding-editor'
-import { CustomFieldsEditor } from './custom-fields-editor'
-import { ClausesEditor } from './clauses-editor'
-import { TemplatePreviewPanel } from './template-preview-panel'
-import { useTemplatePdf } from './use-template-pdf'
-import { DynamicForm, type DynamicField } from './dynamic-form'
-import { FormBuilderPanel } from './form-builder-panel'
-import { useTemplateDefinition } from './template-definition'
-import type { BrandingInfo, ClauseItem, CustomField } from './template-types'
-import { PhotoEvidenceCard } from './photo-evidence-card'
-import { useForm } from '@tanstack/react-form'
-import { z } from 'zod'
-import { propertyInspectionSchema } from './template-schemas'
+import { useForm } from "@tanstack/react-form";
+import type { ChangeEvent } from "react";
+import { useState } from "react";
+import { z } from "zod";
+import { Badge } from "#components/ui/badge";
+import { Card, CardContent, CardHeader, CardTitle } from "#components/ui/card";
+import { BrandingEditor } from "./branding-editor";
+import { ClausesEditor } from "./clauses-editor";
+import { CustomFieldsEditor } from "./custom-fields-editor";
+import { type DynamicField, DynamicForm } from "./dynamic-form";
+import { FormBuilderPanel } from "./form-builder-panel";
+import { PhotoEvidenceCard } from "./photo-evidence-card";
+import { useTemplateDefinition } from "./template-definition";
+import { TemplatePreviewPanel } from "./template-preview-panel";
+import { propertyInspectionSchema } from "./template-schemas";
+import type { BrandingInfo, ClauseItem, CustomField } from "./template-types";
+import { useTemplatePdf } from "./use-template-pdf";
 
 const defaultBranding: BrandingInfo = {
-	companyName: 'TenantFlow Properties',
+	companyName: "TenantFlow Properties",
 	logoUrl: null,
-	primaryColor: 'oklch(0.35 0.08 250)'
-}
+	primaryColor: "oklch(0.35 0.08 250)",
+};
 
 const defaultChecklist = [
-	{ label: 'Walls and ceilings', status: false },
-	{ label: 'Flooring', status: false },
-	{ label: 'Windows and locks', status: false },
-	{ label: 'Appliances', status: false },
-	{ label: 'Smoke detectors', status: false }
-]
+	{ label: "Walls and ceilings", status: false },
+	{ label: "Flooring", status: false },
+	{ label: "Windows and locks", status: false },
+	{ label: "Appliances", status: false },
+	{ label: "Smoke detectors", status: false },
+];
 
 const defaultClauses: ClauseItem[] = [
 	{
-		id: 'ca-1',
-		text: 'California Civil Code 1950.5 disclosure included.'
-	}
-]
+		id: "ca-1",
+		text: "California Civil Code 1950.5 disclosure included.",
+	},
+];
 
 export function PropertyInspectionTemplate() {
-	const [branding, setBranding] = useState(defaultBranding)
+	const [branding, setBranding] = useState(defaultBranding);
 	const form = useForm({
 		defaultValues: {
-			propertyName: 'Sunset Villas',
-			propertyAddress: '123 Market Street, San Francisco, CA 94105',
-			inspectionType: 'pre',
-			inspectionDate: '2025-01-01',
-			inspectorName: 'Jordan Miles',
-			notes: 'Utilities tested, keys handed off, move-in condition documented.',
-			checklist: defaultChecklist
+			propertyName: "Sunset Villas",
+			propertyAddress: "123 Market Street, San Francisco, CA 94105",
+			inspectionType: "pre",
+			inspectionDate: "2025-01-01",
+			inspectorName: "Jordan Miles",
+			notes: "Utilities tested, keys handed off, move-in condition documented.",
+			checklist: defaultChecklist,
 		},
 		validators: {
 			onBlur: ({ value }) => {
-				const result = propertyInspectionSchema.safeParse(value)
+				const result = propertyInspectionSchema.safeParse(value);
 				if (!result.success) {
-					return z.treeifyError(result.error)
+					return z.treeifyError(result.error);
 				}
-				return undefined
+				return undefined;
 			},
 			onSubmitAsync: ({ value }) => {
-				const result = propertyInspectionSchema.safeParse(value)
+				const result = propertyInspectionSchema.safeParse(value);
 				if (!result.success) {
-					return z.treeifyError(result.error)
+					return z.treeifyError(result.error);
 				}
-				return undefined
-			}
-		}
-	})
-	const [photos, setPhotos] = useState<{ url: string; name: string }[]>(
-		[]
-	)
-	const [customFields, setCustomFields] = useState<CustomField[]>([])
-	const [clauses, setClauses] = useState<ClauseItem[]>(defaultClauses)
+				return undefined;
+			},
+		},
+	});
+	const [photos, setPhotos] = useState<{ url: string; name: string }[]>([]);
+	const [customFields, setCustomFields] = useState<CustomField[]>([]);
+	const [clauses, setClauses] = useState<ClauseItem[]>(defaultClauses);
 
 	const baseFields: DynamicField[] = [
-			{
-				name: 'propertyName',
-				label: 'Property name',
-				type: 'text',
-				section: 'Inspection details'
-			},
-			{
-				name: 'inspectionDate',
-				label: 'Inspection date',
-				type: 'date',
-				section: 'Inspection details'
-			},
-			{
-				name: 'inspectionType',
-				label: 'Inspection type',
-				type: 'select',
-				section: 'Inspection details',
-				options: [
-					{ value: 'pre', label: 'Pre move-in' },
-					{ value: 'post', label: 'Post move-out' }
-				]
-			},
-			{
-				name: 'inspectorName',
-				label: 'Inspector name',
-				type: 'text',
-				section: 'Inspection details'
-			},
-			{
-				name: 'propertyAddress',
-				label: 'Property address',
-				type: 'text',
-				section: 'Inspection details',
-				fullWidth: true
-			},
-			{
-				name: 'notes',
-				label: 'Condition notes',
-				type: 'textarea',
-				section: 'Inspection details',
-				fullWidth: true
-			},
-			{
-				name: 'checklist',
-				label: 'Checklist items',
-				type: 'list',
-				section: 'Checklist',
-				fullWidth: true,
-				itemLabel: 'Checklist item',
-				addLabel: 'Add checklist item',
-				itemFields: [
-					{ key: 'label', label: 'Item', type: 'text' },
-					{ key: 'status', label: 'Completed', type: 'checkbox' }
-				]
-			}
-		]
+		{
+			name: "propertyName",
+			label: "Property name",
+			type: "text",
+			section: "Inspection details",
+		},
+		{
+			name: "inspectionDate",
+			label: "Inspection date",
+			type: "date",
+			section: "Inspection details",
+		},
+		{
+			name: "inspectionType",
+			label: "Inspection type",
+			type: "select",
+			section: "Inspection details",
+			options: [
+				{ value: "pre", label: "Pre move-in" },
+				{ value: "post", label: "Post move-out" },
+			],
+		},
+		{
+			name: "inspectorName",
+			label: "Inspector name",
+			type: "text",
+			section: "Inspection details",
+		},
+		{
+			name: "propertyAddress",
+			label: "Property address",
+			type: "text",
+			section: "Inspection details",
+			fullWidth: true,
+		},
+		{
+			name: "notes",
+			label: "Condition notes",
+			type: "textarea",
+			section: "Inspection details",
+			fullWidth: true,
+		},
+		{
+			name: "checklist",
+			label: "Checklist items",
+			type: "list",
+			section: "Checklist",
+			fullWidth: true,
+			itemLabel: "Checklist item",
+			addLabel: "Add checklist item",
+			itemFields: [
+				{ key: "label", label: "Item", type: "text" },
+				{ key: "status", label: "Completed", type: "checkbox" },
+			],
+		},
+	];
 
 	const {
 		fields,
 		customFields: builderFields,
 		setCustomFields: setBuilderFields,
 		isSaving: isSavingFields,
-		save: saveFields
-	} = useTemplateDefinition('property-inspection', baseFields, form as never)
+		save: saveFields,
+	} = useTemplateDefinition("property-inspection", baseFields, form as never);
 
 	const getPayload = () => {
-		const values = form.state.values as Record<string, unknown>
-		const dynamicFields = builderFields.map(field => ({
+		const values = form.state.values as Record<string, unknown>;
+		const dynamicFields = builderFields.map((field) => ({
 			label: field.label,
 			value:
-				field.type === 'checkbox'
+				field.type === "checkbox"
 					? values[field.name]
-						? 'Yes'
-						: 'No'
-					: String(values[field.name] ?? '')
-		}))
+						? "Yes"
+						: "No"
+					: String(values[field.name] ?? ""),
+		}));
 		return {
-			templateTitle: 'Property Inspection Report',
-			state: 'CA',
+			templateTitle: "Property Inspection Report",
+			state: "CA",
 			branding,
 			customFields,
 			clauses,
 			data: {
 				property: {
 					name: values.propertyName,
-					address: values.propertyAddress
+					address: values.propertyAddress,
 				},
 				inspection: {
 					type:
-						values.inspectionType === 'pre' ? 'Pre move-in' : 'Post move-out',
+						values.inspectionType === "pre" ? "Pre move-in" : "Post move-out",
 					date: values.inspectionDate,
 					inspector: values.inspectorName,
-					notes: values.notes
+					notes: values.notes,
 				},
 				checklist: values.checklist ?? [],
 				photos,
-				dynamicFields
-			}
-		}
-	}
+				dynamicFields,
+			},
+		};
+	};
 
 	const {
 		previewUrl,
 		isGeneratingPreview,
 		isExporting,
 		handlePreview,
-		handleExport
-	} = useTemplatePdf('property-inspection', getPayload)
+		handleExport,
+	} = useTemplatePdf("property-inspection", getPayload);
 
-	const handlePhotoUpload = async (
-		event: ChangeEvent<HTMLInputElement>
-	) => {
-		const files = Array.from(event.target.files ?? [])
-		if (files.length === 0) return
+	const handlePhotoUpload = async (event: ChangeEvent<HTMLInputElement>) => {
+		const files = Array.from(event.target.files ?? []);
+		if (files.length === 0) return;
 
 		const uploaded = await Promise.all(
-			files.map(file =>
-				new Promise<{ url: string; name: string }>(resolve => {
-					const reader = new FileReader()
-					reader.onload = () => {
-						resolve({
-							url: typeof reader.result === 'string' ? reader.result : '',
-							name: file.name
-						})
-					}
-					reader.readAsDataURL(file)
-				})
-			)
-		)
+			files.map(
+				(file) =>
+					new Promise<{ url: string; name: string }>((resolve) => {
+						const reader = new FileReader();
+						reader.onload = () => {
+							resolve({
+								url: typeof reader.result === "string" ? reader.result : "",
+								name: file.name,
+							});
+						};
+						reader.readAsDataURL(file);
+					}),
+			),
+		);
 
-		setPhotos(current => [...current, ...uploaded.filter(photo => photo.url)])
-	}
+		setPhotos((current) => [
+			...current,
+			...uploaded.filter((photo) => photo.url),
+		]);
+	};
 
 	const removePhoto = (index: number) => {
-		setPhotos(current => current.filter((_, idx) => idx !== index))
-	}
+		setPhotos((current) => current.filter((_, idx) => idx !== index));
+	};
 
-	const inspectionType = form.state.values.inspectionType as 'pre' | 'post'
+	const inspectionType = form.state.values.inspectionType as "pre" | "post";
 
 	return (
 		<div className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
@@ -227,7 +227,11 @@ export function PropertyInspectionTemplate() {
 					</CardContent>
 				</Card>
 
-				<PhotoEvidenceCard photos={photos} onUpload={handlePhotoUpload} onRemove={removePhoto} />
+				<PhotoEvidenceCard
+					photos={photos}
+					onUpload={handlePhotoUpload}
+					onRemove={removePhoto}
+				/>
 
 				<CustomFieldsEditor fields={customFields} onChange={setCustomFields} />
 				<ClausesEditor clauses={clauses} onChange={setClauses} />
@@ -249,26 +253,30 @@ export function PropertyInspectionTemplate() {
 			>
 				<div className="space-y-3">
 					<div className="flex items-center gap-2">
-					<Badge variant="outline">
-						{inspectionType === 'pre' ? 'Pre move-in' : 'Post move-out'}
-					</Badge>
-					<span className="text-sm text-muted-foreground">
-						{form.state.values.inspectionDate} •{' '}
-						{form.state.values.inspectorName}
-					</span>
-				</div>
-				<p className="text-sm text-muted-foreground">
-					{form.state.values.propertyName} —{' '}
-					{form.state.values.propertyAddress}
-				</p>
+						<Badge variant="outline">
+							{inspectionType === "pre" ? "Pre move-in" : "Post move-out"}
+						</Badge>
+						<span className="text-sm text-muted-foreground">
+							{form.state.values.inspectionDate} •{" "}
+							{form.state.values.inspectorName}
+						</span>
+					</div>
+					<p className="text-sm text-muted-foreground">
+						{form.state.values.propertyName} —{" "}
+						{form.state.values.propertyAddress}
+					</p>
 					<ul className="grid gap-2 text-sm">
-						{(form.state.values.checklist as Array<{ label: string; status: boolean }> | undefined)
+						{(
+							form.state.values.checklist as
+								| Array<{ label: string; status: boolean }>
+								| undefined
+						)
 							?.slice(0, 5)
-							.map(item => (
+							.map((item) => (
 								<li key={item.label} className="flex items-center gap-2">
 									<span
 										className={`h-2 w-2 rounded-full ${
-											item.status ? 'bg-primary' : 'bg-muted-foreground'
+											item.status ? "bg-primary" : "bg-muted-foreground"
 										}`}
 									/>
 									{item.label}
@@ -278,5 +286,5 @@ export function PropertyInspectionTemplate() {
 				</div>
 			</TemplatePreviewPanel>
 		</div>
-	)
+	);
 }

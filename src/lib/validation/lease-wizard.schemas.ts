@@ -5,115 +5,115 @@
  * These schemas validate each step independently and provide a combined
  * schema for the final submission.
  */
-import { z } from 'zod'
+import { z } from "zod";
+import { VALIDATION_LIMITS } from "#lib/constants/billing";
 import {
-	uuidSchema,
+	nonNegativeNumberSchema,
 	positiveNumberSchema,
-	nonNegativeNumberSchema
-} from './common'
-import { VALIDATION_LIMITS } from '#lib/constants/billing'
+	uuidSchema,
+} from "./common";
 
 /**
  * US State codes for governing law selection
  */
 export const usStateSchema = z.enum([
-	'AL',
-	'AK',
-	'AZ',
-	'AR',
-	'CA',
-	'CO',
-	'CT',
-	'DE',
-	'FL',
-	'GA',
-	'HI',
-	'ID',
-	'IL',
-	'IN',
-	'IA',
-	'KS',
-	'KY',
-	'LA',
-	'ME',
-	'MD',
-	'MA',
-	'MI',
-	'MN',
-	'MS',
-	'MO',
-	'MT',
-	'NE',
-	'NV',
-	'NH',
-	'NJ',
-	'NM',
-	'NY',
-	'NC',
-	'ND',
-	'OH',
-	'OK',
-	'OR',
-	'PA',
-	'RI',
-	'SC',
-	'SD',
-	'TN',
-	'TX',
-	'UT',
-	'VT',
-	'VA',
-	'WA',
-	'WV',
-	'WI',
-	'WY',
-	'DC'
-])
+	"AL",
+	"AK",
+	"AZ",
+	"AR",
+	"CA",
+	"CO",
+	"CT",
+	"DE",
+	"FL",
+	"GA",
+	"HI",
+	"ID",
+	"IL",
+	"IN",
+	"IA",
+	"KS",
+	"KY",
+	"LA",
+	"ME",
+	"MD",
+	"MA",
+	"MI",
+	"MN",
+	"MS",
+	"MO",
+	"MT",
+	"NE",
+	"NV",
+	"NH",
+	"NJ",
+	"NM",
+	"NY",
+	"NC",
+	"ND",
+	"OH",
+	"OK",
+	"OR",
+	"PA",
+	"RI",
+	"SC",
+	"SD",
+	"TN",
+	"TX",
+	"UT",
+	"VT",
+	"VA",
+	"WA",
+	"WV",
+	"WI",
+	"WY",
+	"DC",
+]);
 
 /**
  * Common utility types for lease agreements
  */
 export const utilityTypeSchema = z.enum([
-	'electricity',
-	'gas',
-	'water',
-	'sewer',
-	'trash',
-	'internet',
-	'cable',
-	'lawn_care',
-	'pest_control',
-	'hoa_fees'
-])
+	"electricity",
+	"gas",
+	"water",
+	"sewer",
+	"trash",
+	"internet",
+	"cable",
+	"lawn_care",
+	"pest_control",
+	"hoa_fees",
+]);
 
 /**
  * Date string validation (YYYY-MM-DD format)
  */
 const dateStringSchema = z
 	.string()
-	.regex(/^\d{4}-\d{2}-\d{2}$/, 'Date must be in YYYY-MM-DD format')
-	.refine(val => {
-		const date = new Date(`${val}T00:00:00.000Z`)
-		if (isNaN(date.getTime())) return false
-		const [year, month, day] = val.split('-').map(Number)
+	.regex(/^\d{4}-\d{2}-\d{2}$/, "Date must be in YYYY-MM-DD format")
+	.refine((val) => {
+		const date = new Date(`${val}T00:00:00.000Z`);
+		if (isNaN(date.getTime())) return false;
+		const [year, month, day] = val.split("-").map(Number);
 		return (
 			date.getUTCFullYear() === year &&
 			date.getUTCMonth() + 1 === month &&
 			date.getUTCDate() === day
-		)
-	}, 'Invalid date')
+		);
+	}, "Invalid date");
 
 /**
  * Step 1: Property, Unit, and Tenant Selection
  * Validates: Requirements 2.1, 2.2, 2.3, 2.4, 2.5
  */
 export const selectionStepSchema = z.object({
-	property_id: uuidSchema.describe('Selected property'),
-	unit_id: uuidSchema.describe('Selected unit within the property'),
-	primary_tenant_id: uuidSchema.describe('Primary tenant for the lease')
-})
+	property_id: uuidSchema.describe("Selected property"),
+	unit_id: uuidSchema.describe("Selected unit within the property"),
+	primary_tenant_id: uuidSchema.describe("Primary tenant for the lease"),
+});
 
-export type SelectionStepData = z.infer<typeof selectionStepSchema>
+export type SelectionStepData = z.infer<typeof selectionStepSchema>;
 
 /**
  * Step 2: Lease Terms (dates and financial details)
@@ -121,66 +121,66 @@ export type SelectionStepData = z.infer<typeof selectionStepSchema>
  */
 export const termsStepSchema = z
 	.object({
-		start_date: dateStringSchema.describe('Lease start date'),
-		end_date: dateStringSchema.describe('Lease end date'),
+		start_date: dateStringSchema.describe("Lease start date"),
+		end_date: dateStringSchema.describe("Lease end date"),
 		rent_amount: positiveNumberSchema
 			.max(
 				VALIDATION_LIMITS.RENT_MAXIMUM_VALUE,
-				'Rent amount seems unrealistic'
+				"Rent amount seems unrealistic",
 			)
-			.describe('Monthly rent in cents'),
+			.describe("Monthly rent in cents"),
 		security_deposit: nonNegativeNumberSchema
 			.max(
 				VALIDATION_LIMITS.RENT_MAXIMUM_VALUE,
-				'Security deposit seems unrealistic'
+				"Security deposit seems unrealistic",
 			)
-			.describe('Security deposit in cents'),
+			.describe("Security deposit in cents"),
 		payment_day: z
 			.number()
-			.int('Payment day must be a whole number')
-			.min(1, 'Payment day must be between 1 and 31')
-			.max(31, 'Payment day must be between 1 and 31')
+			.int("Payment day must be a whole number")
+			.min(1, "Payment day must be between 1 and 31")
+			.max(31, "Payment day must be between 1 and 31")
 			.default(1)
-			.describe('Day of month rent is due'),
+			.describe("Day of month rent is due"),
 		grace_period_days: z
 			.number()
-			.int('Grace period must be a whole number')
-			.min(0, 'Grace period cannot be negative')
-			.max(30, 'Grace period cannot exceed 30 days')
+			.int("Grace period must be a whole number")
+			.min(0, "Grace period cannot be negative")
+			.max(30, "Grace period cannot exceed 30 days")
 			.default(3)
-			.describe('Days after due date before late fee applies'),
+			.describe("Days after due date before late fee applies"),
 		late_fee_amount: nonNegativeNumberSchema
 			.max(
 				VALIDATION_LIMITS.RENT_MAXIMUM_VALUE,
-				'Late fee amount seems unrealistic'
+				"Late fee amount seems unrealistic",
 			)
 			.default(0)
-			.describe('Late fee amount in cents')
+			.describe("Late fee amount in cents"),
 	})
 	.refine(
-		data => {
-			const start = new Date(`${data.start_date}T00:00:00.000Z`)
-			const end = new Date(`${data.end_date}T00:00:00.000Z`)
-			return end > start
+		(data) => {
+			const start = new Date(`${data.start_date}T00:00:00.000Z`);
+			const end = new Date(`${data.end_date}T00:00:00.000Z`);
+			return end > start;
 		},
 		{
-			message: 'End date must be after start date',
-			path: ['end_date']
-		}
-	)
+			message: "End date must be after start date",
+			path: ["end_date"],
+		},
+	);
 
-export type TermsStepData = z.infer<typeof termsStepSchema>
+export type TermsStepData = z.infer<typeof termsStepSchema>;
 
 /**
  * Validates start date is not in the past (for new leases)
  * Property 5: Start date validation
  */
 export const validateStartDateNotInPast = (startDate: string): boolean => {
-	const today = new Date()
-	today.setUTCHours(0, 0, 0, 0)
-	const start = new Date(`${startDate}T00:00:00.000Z`)
-	return start >= today
-}
+	const today = new Date();
+	today.setUTCHours(0, 0, 0, 0);
+	const start = new Date(`${startDate}T00:00:00.000Z`);
+	return start >= today;
+};
 
 /**
  * Step 3: Lease Details (occupancy, pets, utilities, disclosures)
@@ -190,70 +190,70 @@ export const leaseDetailsStepSchema = z
 	.object({
 		max_occupants: z
 			.number()
-			.int('Maximum occupants must be a whole number')
-			.min(1, 'At least 1 occupant required')
-			.max(20, 'Maximum occupants cannot exceed 20')
+			.int("Maximum occupants must be a whole number")
+			.min(1, "At least 1 occupant required")
+			.max(20, "Maximum occupants cannot exceed 20")
 			.optional()
-			.describe('Maximum number of occupants allowed'),
+			.describe("Maximum number of occupants allowed"),
 		pets_allowed: z
 			.boolean()
 			.default(false)
-			.describe('Whether pets are allowed'),
+			.describe("Whether pets are allowed"),
 		pet_deposit: nonNegativeNumberSchema
 			.max(
 				VALIDATION_LIMITS.RENT_MAXIMUM_VALUE,
-				'Pet deposit seems unrealistic'
+				"Pet deposit seems unrealistic",
 			)
 			.optional()
-			.describe('One-time pet deposit in cents'),
+			.describe("One-time pet deposit in cents"),
 		pet_rent: nonNegativeNumberSchema
-			.max(VALIDATION_LIMITS.RENT_MAXIMUM_VALUE, 'Pet rent seems unrealistic')
+			.max(VALIDATION_LIMITS.RENT_MAXIMUM_VALUE, "Pet rent seems unrealistic")
 			.optional()
-			.describe('Monthly pet rent in cents'),
+			.describe("Monthly pet rent in cents"),
 		utilities_included: z
 			.array(z.string())
 			.default([])
-			.describe('Utilities included in rent'),
+			.describe("Utilities included in rent"),
 		tenant_responsible_utilities: z
 			.array(z.string())
 			.default([])
-			.describe('Utilities tenant is responsible for'),
+			.describe("Utilities tenant is responsible for"),
 		property_rules: z
 			.string()
-			.max(5000, 'Property rules cannot exceed 5000 characters')
+			.max(5000, "Property rules cannot exceed 5000 characters")
 			.optional()
-			.describe('Additional property rules and restrictions'),
+			.describe("Additional property rules and restrictions"),
 		property_built_before_1978: z
 			.boolean()
 			.default(false)
 			.describe(
-				'Whether property was built before 1978 (lead paint disclosure)'
+				"Whether property was built before 1978 (lead paint disclosure)",
 			),
 		lead_paint_disclosure_acknowledged: z
 			.boolean()
 			.optional()
-			.describe('Tenant acknowledged lead paint disclosure'),
+			.describe("Tenant acknowledged lead paint disclosure"),
 		governing_state: usStateSchema
-			.default('TX')
-			.describe('State whose laws govern the lease')
+			.default("TX")
+			.describe("State whose laws govern the lease"),
 	})
 	.refine(
-		data => {
+		(data) => {
 			// Property 8: Lead paint disclosure requirement
 			// If property built before 1978, lead paint disclosure must be acknowledged
 			if (data.property_built_before_1978) {
-				return data.lead_paint_disclosure_acknowledged === true
+				return data.lead_paint_disclosure_acknowledged === true;
 			}
-			return true
+			return true;
 		},
 		{
 			message:
-				'Lead paint disclosure acknowledgment is required for properties built before 1978',
-			path: ['lead_paint_disclosure_acknowledged']
-		}
-	)
+				"Lead paint disclosure acknowledgment is required for properties built before 1978",
+			path: ["lead_paint_disclosure_acknowledged"],
+		},
+	);
 
-export type LeaseDetailsStepData = z.infer<typeof leaseDetailsStepSchema>
+export type LeaseDetailsStepData = z.infer<typeof leaseDetailsStepSchema>;
 
 /**
  * Base lease wizard object schema (without refinements)
@@ -270,7 +270,7 @@ const leaseWizardBaseSchema = z.object({
 	end_date: dateStringSchema,
 	rent_amount: positiveNumberSchema.max(VALIDATION_LIMITS.RENT_MAXIMUM_VALUE),
 	security_deposit: nonNegativeNumberSchema.max(
-		VALIDATION_LIMITS.RENT_MAXIMUM_VALUE
+		VALIDATION_LIMITS.RENT_MAXIMUM_VALUE,
 	),
 	payment_day: z.number().int().min(1).max(31).default(1),
 	grace_period_days: z.number().int().min(0).max(30).default(3),
@@ -288,11 +288,11 @@ const leaseWizardBaseSchema = z.object({
 	property_rules: z.string().max(5000).optional(),
 	property_built_before_1978: z.boolean().default(false),
 	lead_paint_disclosure_acknowledged: z.boolean().optional(),
-	governing_state: usStateSchema.default('TX'),
+	governing_state: usStateSchema.default("TX"),
 
 	// Status (always draft for new leases)
-	lease_status: z.literal('draft').default('draft')
-})
+	lease_status: z.literal("draft").default("draft"),
+});
 
 /**
  * Complete lease creation wizard data with validation refinements
@@ -300,31 +300,31 @@ const leaseWizardBaseSchema = z.object({
  */
 export const leaseWizardSchema = leaseWizardBaseSchema
 	.refine(
-		data => {
-			const start = new Date(`${data.start_date}T00:00:00.000Z`)
-			const end = new Date(`${data.end_date}T00:00:00.000Z`)
-			return end > start
+		(data) => {
+			const start = new Date(`${data.start_date}T00:00:00.000Z`);
+			const end = new Date(`${data.end_date}T00:00:00.000Z`);
+			return end > start;
 		},
 		{
-			message: 'End date must be after start date',
-			path: ['end_date']
-		}
+			message: "End date must be after start date",
+			path: ["end_date"],
+		},
 	)
 	.refine(
-		data => {
+		(data) => {
 			if (data.property_built_before_1978) {
-				return data.lead_paint_disclosure_acknowledged === true
+				return data.lead_paint_disclosure_acknowledged === true;
 			}
-			return true
+			return true;
 		},
 		{
 			message:
-				'Lead paint disclosure acknowledgment is required for properties built before 1978',
-			path: ['lead_paint_disclosure_acknowledged']
-		}
-	)
+				"Lead paint disclosure acknowledgment is required for properties built before 1978",
+			path: ["lead_paint_disclosure_acknowledged"],
+		},
+	);
 
-export type LeaseWizardData = z.infer<typeof leaseWizardSchema>
+export type LeaseWizardData = z.infer<typeof leaseWizardSchema>;
 
 /**
  * Create lease request schema (sent to backend)
@@ -335,15 +335,15 @@ export type LeaseWizardData = z.infer<typeof leaseWizardSchema>
  */
 export const createLeaseWizardRequestSchema = leaseWizardBaseSchema
 	.omit({
-		lease_status: true
+		lease_status: true,
 	})
 	.extend({
-		rent_currency: z.string().length(3).default('USD')
-	})
+		rent_currency: z.string().length(3).default("USD"),
+	});
 
 export type CreateLeaseWizardRequest = z.infer<
 	typeof createLeaseWizardRequestSchema
->
+>;
 
 /**
  * Signature status response schema
@@ -351,11 +351,11 @@ export type CreateLeaseWizardRequest = z.infer<
 export const signatureStatusResponseSchema = z.object({
 	lease_id: uuidSchema,
 	status: z.enum([
-		'draft',
-		'pending_signature',
-		'active',
-		'ended',
-		'terminated'
+		"draft",
+		"pending_signature",
+		"active",
+		"ended",
+		"terminated",
 	]),
 	owner_signed: z.boolean(),
 	owner_signed_at: z.string().nullable(),
@@ -363,48 +363,48 @@ export const signatureStatusResponseSchema = z.object({
 	tenant_signed_at: z.string().nullable(),
 	sent_for_signature_at: z.string().nullable(),
 	both_signed: z.boolean(),
-	docuseal_submission_id: z.string().nullable()
-})
+	docuseal_submission_id: z.string().nullable(),
+});
 
 export type SignatureStatusResponse = z.infer<
 	typeof signatureStatusResponseSchema
->
+>;
 
 /**
  * Wizard step identifiers
  */
-export type WizardStep = 'selection' | 'terms' | 'details' | 'review'
+export type WizardStep = "selection" | "terms" | "details" | "review";
 
 /**
  * Wizard form state (partial data during wizard flow)
  */
 export interface WizardFormState {
-	currentStep: WizardStep
-	selection: Partial<SelectionStepData>
-	terms: Partial<TermsStepData>
-	details: Partial<LeaseDetailsStepData>
-	isSubmitting: boolean
-	error: string | null
+	currentStep: WizardStep;
+	selection: Partial<SelectionStepData>;
+	terms: Partial<TermsStepData>;
+	details: Partial<LeaseDetailsStepData>;
+	isSubmitting: boolean;
+	error: string | null;
 }
 
 /**
  * Initial wizard state
  */
 export const initialWizardState: WizardFormState = {
-	currentStep: 'selection',
+	currentStep: "selection",
 	selection: {},
 	terms: {
 		payment_day: 1,
 		grace_period_days: 3,
-		late_fee_amount: 0
+		late_fee_amount: 0,
 	},
 	details: {
 		pets_allowed: false,
 		utilities_included: [],
 		tenant_responsible_utilities: [],
 		property_built_before_1978: false,
-		governing_state: 'TX'
+		governing_state: "TX",
 	},
 	isSubmitting: false,
-	error: null
-}
+	error: null,
+};

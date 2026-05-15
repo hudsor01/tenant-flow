@@ -1,30 +1,27 @@
-'use client'
+"use client";
 
-import { useSuspenseQuery } from '@tanstack/react-query'
-import { analyticsQueries } from '#hooks/api/use-analytics'
-import { Skeleton } from '#components/ui/skeleton'
-import { BlurFade } from '#components/ui/blur-fade'
-import { DataTable } from '#components/data-table/data-table'
-import { DataTableToolbar } from '#components/data-table/data-table-toolbar'
-import { useDataTable } from '#hooks/use-data-table'
-import type { ColumnDef } from '@tanstack/react-table'
-import { TrendingUp, DollarSign, Wrench } from 'lucide-react'
-
-import dynamic from 'next/dynamic'
-import type { MaintenanceCategoryBreakdown } from '#types/analytics'
-import { ChartLoadingSkeleton } from '#components/shared/chart-loading-skeleton'
+import { useSuspenseQuery } from "@tanstack/react-query";
+import type { ColumnDef } from "@tanstack/react-table";
+import { DollarSign, TrendingUp, Wrench } from "lucide-react";
+import dynamic from "next/dynamic";
+import { DataTable } from "#components/data-table/data-table";
+import { DataTableToolbar } from "#components/data-table/data-table-toolbar";
+import { ChartLoadingSkeleton } from "#components/shared/chart-loading-skeleton";
+import { BlurFade } from "#components/ui/blur-fade";
+import { Skeleton } from "#components/ui/skeleton";
+import { analyticsQueries } from "#hooks/api/use-analytics";
+import { useDataTable } from "#hooks/use-data-table";
+import type { MaintenanceCategoryBreakdown } from "#types/analytics";
 
 const MaintenanceTrendChart = dynamic(
-	() =>
-		import('./maintenance-charts').then(mod => mod.MaintenanceTrendChart),
-	{ ssr: false, loading: () => <ChartLoadingSkeleton /> }
-)
+	() => import("./maintenance-charts").then((mod) => mod.MaintenanceTrendChart),
+	{ ssr: false, loading: () => <ChartLoadingSkeleton /> },
+);
 
 const MaintenanceCostChart = dynamic(
-	() =>
-		import('./maintenance-charts').then(mod => mod.MaintenanceCostChart),
-	{ ssr: false, loading: () => <ChartLoadingSkeleton /> }
-)
+	() => import("./maintenance-charts").then((mod) => mod.MaintenanceCostChart),
+	{ ssr: false, loading: () => <ChartLoadingSkeleton /> },
+);
 
 export function MaintenanceInsightsSkeleton() {
 	return (
@@ -47,41 +44,39 @@ export function MaintenanceInsightsSkeleton() {
 				<Skeleton className="h-64 w-full" />
 			</div>
 		</div>
-	)
+	);
 }
 
 function CategoryBreakdownTable({
-	entries
+	entries,
 }: {
-	entries: MaintenanceCategoryBreakdown[]
+	entries: MaintenanceCategoryBreakdown[];
 }) {
 	const columns: ColumnDef<MaintenanceCategoryBreakdown>[] = [
-			{
-				accessorKey: 'category',
-				header: 'Category',
-				meta: {
-					label: 'Category',
-					variant: 'text',
-					placeholder: 'Search category...'
-				},
-				enableColumnFilter: true,
-				cell: ({ row }) => (
-					<span className="font-medium">{row.original.category}</span>
-				)
+		{
+			accessorKey: "category",
+			header: "Category",
+			meta: {
+				label: "Category",
+				variant: "text",
+				placeholder: "Search category...",
 			},
-			{
-				accessorKey: 'count',
-				header: 'Count',
-				meta: {
-					label: 'Count',
-					variant: 'number'
-				},
-				enableColumnFilter: true,
-				cell: ({ row }) => (
-					<div className="text-right">{row.original.count}</div>
-				)
-			}
-		]
+			enableColumnFilter: true,
+			cell: ({ row }) => (
+				<span className="font-medium">{row.original.category}</span>
+			),
+		},
+		{
+			accessorKey: "count",
+			header: "Count",
+			meta: {
+				label: "Count",
+				variant: "number",
+			},
+			enableColumnFilter: true,
+			cell: ({ row }) => <div className="text-right">{row.original.count}</div>,
+		},
+	];
 
 	const { table } = useDataTable({
 		data: entries,
@@ -91,30 +86,30 @@ function CategoryBreakdownTable({
 		initialState: {
 			pagination: {
 				pageIndex: 0,
-				pageSize: 8
-			}
-		}
-	})
+				pageSize: 8,
+			},
+		},
+	});
 
 	if (!entries.length) {
 		return (
 			<div className="text-center text-muted-foreground py-8">
 				No category breakdown data available
 			</div>
-		)
+		);
 	}
 
 	return (
 		<DataTable table={table}>
 			<DataTableToolbar table={table} />
 		</DataTable>
-	)
+	);
 }
 
 export function MaintenanceInsightsSection() {
-	const { data } = useSuspenseQuery(analyticsQueries.maintenancePageData())
+	const { data } = useSuspenseQuery(analyticsQueries.maintenancePageData());
 
-	const { trends = [], costBreakdown = [], categoryBreakdown = [] } = data
+	const { trends = [], costBreakdown = [], categoryBreakdown = [] } = data;
 
 	return (
 		<div className="space-y-6">
@@ -167,5 +162,5 @@ export function MaintenanceInsightsSection() {
 				</div>
 			</BlurFade>
 		</div>
-	)
+	);
 }

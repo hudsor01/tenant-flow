@@ -1,38 +1,36 @@
-'use client'
+"use client";
 
-import {
-	leaseTemplateSchema
-} from '#lib/templates/lease-template'
-import type { USState } from '#types/lease-generator.types'
+import { Info } from "lucide-react";
+import { Badge } from "#components/ui/badge";
 import {
 	Card,
 	CardContent,
 	CardDescription,
 	CardHeader,
-	CardTitle
-} from '#components/ui/card'
-import { Badge } from '#components/ui/badge'
-import { Checkbox } from '#components/ui/checkbox'
+	CardTitle,
+} from "#components/ui/card";
+import { Checkbox } from "#components/ui/checkbox";
 import {
 	Tooltip,
 	TooltipContent,
-	TooltipTrigger
-} from '#components/ui/tooltip'
-import { Info } from 'lucide-react'
-import { cn } from '#lib/utils'
+	TooltipTrigger,
+} from "#components/ui/tooltip";
+import { leaseTemplateSchema } from "#lib/templates/lease-template";
+import { cn } from "#lib/utils";
+import type { USState } from "#types/lease-generator.types";
 
 interface ClauseSelectorProps {
-	selectedClauses: string[]
-	onToggleClause: (id: string) => void
-	recommendedClauses: Set<string>
-	state: USState
+	selectedClauses: string[];
+	onToggleClause: (id: string) => void;
+	recommendedClauses: Set<string>;
+	state: USState;
 }
 
 export function ClauseSelector({
 	selectedClauses,
 	onToggleClause,
 	recommendedClauses,
-	state
+	state,
 }: ClauseSelectorProps) {
 	return (
 		<Card className="shadow-sm">
@@ -44,7 +42,7 @@ export function ClauseSelector({
 				</CardDescription>
 			</CardHeader>
 			<CardContent className="space-y-5">
-				{leaseTemplateSchema.sections.map(section => (
+				{leaseTemplateSchema.sections.map((section) => (
 					<div key={section.id} className="space-y-3">
 						<div>
 							<h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
@@ -53,15 +51,17 @@ export function ClauseSelector({
 							<p className="text-caption">{section.description}</p>
 						</div>
 						<div className="space-y-2">
-							{section.clauses.map(clause => {
-								const selected = selectedClauses.includes(clause.id)
-								const recommended = recommendedClauses.has(clause.id)
+							{section.clauses.map((clause) => {
+								const selected = selectedClauses.includes(clause.id);
+								const recommended = recommendedClauses.has(clause.id);
 								return (
 									<div
 										key={clause.id}
 										className={cn(
-											'rounded-lg border p-3 transition-colors',
-											selected ? 'border-primary bg-primary/5' : 'border-border'
+											"rounded-lg border p-3 transition-colors",
+											selected
+												? "border-primary bg-primary/5"
+												: "border-border",
 										)}
 									>
 										<div className="flex items-start justify-between gap-2">
@@ -101,12 +101,12 @@ export function ClauseSelector({
 											</Tooltip>
 										</div>
 									</div>
-								)
+								);
 							})}
 						</div>
 					</div>
 				))}
 			</CardContent>
 		</Card>
-	)
+	);
 }

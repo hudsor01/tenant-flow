@@ -1,22 +1,22 @@
-'use client'
+"use client";
 
-import { useSuspenseQuery } from '@tanstack/react-query'
-import { analyticsQueries } from '#hooks/api/use-analytics'
-import { Skeleton } from '#components/ui/skeleton'
-import { BlurFade } from '#components/ui/blur-fade'
-import dynamic from 'next/dynamic'
-import { TrendingUp, Building2 } from 'lucide-react'
-import { ChartLoadingSkeleton } from '#components/shared/chart-loading-skeleton'
+import { useSuspenseQuery } from "@tanstack/react-query";
+import { Building2, TrendingUp } from "lucide-react";
+import dynamic from "next/dynamic";
+import { ChartLoadingSkeleton } from "#components/shared/chart-loading-skeleton";
+import { BlurFade } from "#components/ui/blur-fade";
+import { Skeleton } from "#components/ui/skeleton";
+import { analyticsQueries } from "#hooks/api/use-analytics";
 
 const OccupancyTrendChart = dynamic(
-	() => import('./property-charts').then(mod => mod.OccupancyTrendChart),
-	{ ssr: false, loading: () => <ChartLoadingSkeleton /> }
-)
+	() => import("./property-charts").then((mod) => mod.OccupancyTrendChart),
+	{ ssr: false, loading: () => <ChartLoadingSkeleton /> },
+);
 
 const VacancySummaryList = dynamic(
-	() => import('./property-charts').then(mod => mod.VacancySummaryList),
-	{ ssr: false, loading: () => <ChartLoadingSkeleton /> }
-)
+	() => import("./property-charts").then((mod) => mod.VacancySummaryList),
+	{ ssr: false, loading: () => <ChartLoadingSkeleton /> },
+);
 
 export function PropertyInsightsSkeleton() {
 	return (
@@ -38,13 +38,13 @@ export function PropertyInsightsSkeleton() {
 				</div>
 			</div>
 		</div>
-	)
+	);
 }
 
 export function PropertyInsightsSection() {
-	const { data } = useSuspenseQuery(analyticsQueries.occupancyPageData())
+	const { data } = useSuspenseQuery(analyticsQueries.occupancyPageData());
 
-	const { trends = [], vacancyAnalysis = [] } = data
+	const { trends = [], vacancyAnalysis = [] } = data;
 
 	return (
 		<div className="space-y-6">
@@ -54,7 +54,9 @@ export function PropertyInsightsSection() {
 					<div className="bg-card border border-border rounded-lg p-6">
 						<div className="flex items-center justify-between mb-6">
 							<div>
-								<h3 className="font-medium text-foreground">Occupancy trends</h3>
+								<h3 className="font-medium text-foreground">
+									Occupancy trends
+								</h3>
 								<p className="text-sm text-muted-foreground">
 									Portfolio occupancy rate over time
 								</p>
@@ -69,7 +71,9 @@ export function PropertyInsightsSection() {
 					<div className="bg-card border border-border rounded-lg p-6">
 						<div className="flex items-center justify-between mb-6">
 							<div>
-								<h3 className="font-medium text-foreground">Vacancy hotspots</h3>
+								<h3 className="font-medium text-foreground">
+									Vacancy hotspots
+								</h3>
 								<p className="text-sm text-muted-foreground">
 									Properties with highest vacancy days
 								</p>
@@ -81,5 +85,5 @@ export function PropertyInsightsSection() {
 				</BlurFade>
 			</div>
 		</div>
-	)
+	);
 }

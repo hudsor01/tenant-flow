@@ -1,27 +1,27 @@
-'use client'
+"use client";
 
-import { type ChangeEvent } from 'react'
-import { Field, FieldError, FieldLabel } from '#components/ui/field'
-import { Input } from '#components/ui/input'
+import { type ChangeEvent } from "react";
+import { Field, FieldError, FieldLabel } from "#components/ui/field";
+import { Input } from "#components/ui/input";
 import {
 	Select,
 	SelectContent,
 	SelectItem,
 	SelectTrigger,
-	SelectValue
-} from '#components/ui/select'
-import type { PropertyType } from '#types/core'
-import type { PropertyFormApi } from '../property-form-types'
+	SelectValue,
+} from "#components/ui/select";
+import type { PropertyType } from "#types/core";
+import type { PropertyFormApi } from "../property-form-types";
 
 interface PropertyInfoSectionProps {
-	form: PropertyFormApi
+	form: PropertyFormApi;
 }
 
 export function PropertyInfoSection({ form }: PropertyInfoSectionProps) {
 	return (
 		<>
 			<form.Field name="name">
-				{field => (
+				{(field) => (
 					<Field>
 						<FieldLabel htmlFor="name">Property Name *</FieldLabel>
 						<Input
@@ -44,7 +44,7 @@ export function PropertyInfoSection({ form }: PropertyInfoSectionProps) {
 			</form.Field>
 
 			<form.Field name="property_type">
-				{field => (
+				{(field) => (
 					<Field>
 						<FieldLabel htmlFor="property_type">Property Type *</FieldLabel>
 						<input
@@ -76,5 +76,5 @@ export function PropertyInfoSection({ form }: PropertyInfoSectionProps) {
 				)}
 			</form.Field>
 		</>
-	)
+	);
 }

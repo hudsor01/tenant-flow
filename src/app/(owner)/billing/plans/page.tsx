@@ -1,31 +1,35 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
-import { Settings, ArrowLeft } from 'lucide-react'
-import Link from 'next/link'
-import { useSearchParams } from 'next/navigation'
-import { toast } from 'sonner'
-import { Button } from '#components/ui/button'
-import { Skeleton } from '#components/ui/skeleton'
-import { PlanCard, type Plan, type PlanFeature } from '#components/billing/plan-card'
-import { UpgradeDialog } from '#components/billing/upgrade-dialog'
+import { ArrowLeft, Settings } from "lucide-react";
+import Link from "next/link";
+import { useSearchParams } from "next/navigation";
+import { useState } from "react";
+import { toast } from "sonner";
+import {
+	type Plan,
+	PlanCard,
+	type PlanFeature,
+} from "#components/billing/plan-card";
+import { UpgradeDialog } from "#components/billing/upgrade-dialog";
+import { Button } from "#components/ui/button";
+import { Skeleton } from "#components/ui/skeleton";
+import { getAllPricingPlans, type PricingConfig } from "#config/pricing";
+import { useSubscriptionStatus } from "#hooks/api/use-billing";
 import {
 	createCheckoutSession,
-	createCustomerPortalSession
-} from '#lib/stripe/stripe-client'
-import { cn } from '#lib/utils'
-import { useSubscriptionStatus } from '#hooks/api/use-billing'
-import { getAllPricingPlans, type PricingConfig } from '#config/pricing'
+	createCustomerPortalSession,
+} from "#lib/stripe/stripe-client";
+import { cn } from "#lib/utils";
 
-const TIER_BY_PLAN_ID: Record<PricingConfig['planId'], number> = {
+const TIER_BY_PLAN_ID: Record<PricingConfig["planId"], number> = {
 	trial: 0,
 	starter: 1,
 	growth: 2,
-	max: 3
-}
+	max: 3,
+};
 
 function toPlanFeatures(features: readonly string[]): PlanFeature[] {
-	return features.map(name => ({ name, included: true }))
+	return features.map((name) => ({ name, included: true }));
 }
 
 function toBillingPlan(config: PricingConfig): Plan {
@@ -36,107 +40,112 @@ function toBillingPlan(config: PricingConfig): Plan {
 		price: config.price.monthly,
 		priceId: config.stripePriceIds.monthly,
 		tier: TIER_BY_PLAN_ID[config.planId],
-		features: toPlanFeatures(config.features)
-	}
+		features: toPlanFeatures(config.features),
+	};
 }
 
-const PLANS: Plan[] = getAllPricingPlans().map(toBillingPlan)
+const PLANS: Plan[] = getAllPricingPlans().map(toBillingPlan);
 
 export default function BillingPlansPage() {
-	const [isLoading, setIsLoading] = useState(false)
-	const [loadingPlanId, setLoadingPlanId] = useState<string | null>(null)
-	const [dialogOpen, setDialogOpen] = useState(false)
-	const [selectedPlan, setSelectedPlan] = useState<Plan | null>(null)
-	const searchParams = useSearchParams()
-	const source = searchParams?.get('source') ?? undefined
+	const [isLoading, setIsLoading] = useState(false);
+	const [loadingPlanId, setLoadingPlanId] = useState<string | null>(null);
+	const [dialogOpen, setDialogOpen] = useState(false);
+	const [selectedPlan, setSelectedPlan] = useState<Plan | null>(null);
+	const searchParams = useSearchParams();
+	const source = searchParams?.get("source") ?? undefined;
 
-	const { data: subscriptionStatus, isLoading: subscriptionLoading } = useSubscriptionStatus()
+	const { data: subscriptionStatus, isLoading: subscriptionLoading } =
+		useSubscriptionStatus();
 	const hasActiveSubscription =
-		subscriptionStatus?.subscriptionStatus === 'active' ||
-		subscriptionStatus?.subscriptionStatus === 'trialing'
-	const currentPlan = hasActiveSubscription && subscriptionStatus?.stripePriceId
-		? PLANS.find(p => p.priceId === subscriptionStatus.stripePriceId) ?? null
-		: null
-	const hasSubscription = currentPlan !== null
+		subscriptionStatus?.subscriptionStatus === "active" ||
+		subscriptionStatus?.subscriptionStatus === "trialing";
+	const currentPlan =
+		hasActiveSubscription && subscriptionStatus?.stripePriceId
+			? (PLANS.find((p) => p.priceId === subscriptionStatus.stripePriceId) ??
+				null)
+			: null;
+	const hasSubscription = currentPlan !== null;
 
 	const handlePlanSelect = (plan: Plan) => {
-		setSelectedPlan(plan)
-		setDialogOpen(true)
-	}
+		setSelectedPlan(plan);
+		setDialogOpen(true);
+	};
 
 	const handleConfirmPlanChange = async (plan: Plan) => {
-		setLoadingPlanId(plan.id)
-		setIsLoading(true)
+		setLoadingPlanId(plan.id);
+		setIsLoading(true);
 
 		try {
 			if (hasSubscription) {
-				const returnUrl = `${window.location.origin}/billing/plans`
-				const { url } = await createCustomerPortalSession(returnUrl)
-				window.location.href = url
+				const returnUrl = `${window.location.origin}/billing/plans`;
+				const { url } = await createCustomerPortalSession(returnUrl);
+				window.location.href = url;
 			} else {
 				if (!plan.priceId) {
-					toast.error('This plan is not available for purchase')
-					setDialogOpen(false)
-					return
+					toast.error("This plan is not available for purchase");
+					setDialogOpen(false);
+					return;
 				}
 
-				toast.loading('Creating checkout session...', { id: 'checkout' })
+				toast.loading("Creating checkout session...", { id: "checkout" });
 
 				const { url } = await createCheckoutSession({
 					priceId: plan.priceId,
 					planName: plan.name,
 					description: plan.description,
-					...(source ? { source } : {})
-				})
+					...(source ? { source } : {}),
+				});
 
-				toast.dismiss('checkout')
+				toast.dismiss("checkout");
 
 				if (url) {
-					window.location.href = url
+					window.location.href = url;
 				} else {
-					throw new Error('No checkout URL returned')
+					throw new Error("No checkout URL returned");
 				}
 			}
 		} catch (error) {
 			const message =
-				error instanceof Error ? error.message : 'An error occurred'
-			toast.error(message)
-			setDialogOpen(false)
+				error instanceof Error ? error.message : "An error occurred";
+			toast.error(message);
+			setDialogOpen(false);
 		} finally {
-			setIsLoading(false)
-			setLoadingPlanId(null)
+			setIsLoading(false);
+			setLoadingPlanId(null);
 		}
-	}
+	};
 
 	const handleManageSubscription = async () => {
-		setIsLoading(true)
+		setIsLoading(true);
 
 		try {
-			const returnUrl = `${window.location.origin}/billing/plans`
-			const { url } = await createCustomerPortalSession(returnUrl)
-			window.location.href = url
+			const returnUrl = `${window.location.origin}/billing/plans`;
+			const { url } = await createCustomerPortalSession(returnUrl);
+			window.location.href = url;
 		} catch (error) {
 			const message =
-				error instanceof Error ? error.message : 'Failed to open billing portal'
-			toast.error(message)
+				error instanceof Error
+					? error.message
+					: "Failed to open billing portal";
+			toast.error(message);
 		} finally {
-			setIsLoading(false)
+			setIsLoading(false);
 		}
-	}
+	};
 
 	const handleDialogClose = () => {
 		if (!isLoading) {
-			setDialogOpen(false)
-			setSelectedPlan(null)
+			setDialogOpen(false);
+			setSelectedPlan(null);
 		}
-	}
+	};
 
 	if (subscriptionLoading) {
 		return (
 			<div className="container max-w-7xl py-8">
 				<Skeleton className="h-96 w-full" />
 			</div>
-		)
+		);
 	}
 
 	return (
@@ -158,7 +167,7 @@ export default function BillingPlansPage() {
 						<p className="text-muted-foreground mt-1">
 							{hasSubscription
 								? `You are currently on the ${currentPlan?.name} plan`
-								: 'Choose a plan that fits your needs'}
+								: "Choose a plan that fits your needs"}
 						</p>
 					</div>
 
@@ -189,7 +198,7 @@ export default function BillingPlansPage() {
 							</p>
 							<p className="text-sm text-muted-foreground">
 								{currentPlan.price === 0
-									? 'Free'
+									? "Free"
 									: `$${currentPlan.price}/month`}
 							</p>
 						</div>
@@ -199,16 +208,16 @@ export default function BillingPlansPage() {
 
 			<div
 				className={cn(
-					'grid gap-6',
-					'grid-cols-1 sm:grid-cols-2 lg:grid-cols-4'
+					"grid gap-6",
+					"grid-cols-1 sm:grid-cols-2 lg:grid-cols-4",
 				)}
 			>
-				{PLANS.map(plan => (
+				{PLANS.map((plan) => (
 					<PlanCard
 						key={plan.id}
 						plan={plan}
 						isCurrentPlan={plan.id === currentPlan?.id}
-						isMostPopular={plan.id === 'growth'}
+						isMostPopular={plan.id === "growth"}
 						currentTier={currentPlan?.tier ?? null}
 						onSelect={handlePlanSelect}
 						isLoading={loadingPlanId === plan.id}
@@ -218,7 +227,7 @@ export default function BillingPlansPage() {
 
 			<div className="mt-12 text-center">
 				<p className="text-sm text-muted-foreground">
-					Need help choosing a plan?{' '}
+					Need help choosing a plan?{" "}
 					<Link
 						href="/contact"
 						className="text-primary hover:underline underline-offset-4"
@@ -239,5 +248,5 @@ export default function BillingPlansPage() {
 				onConfirm={handleConfirmPlanChange}
 			/>
 		</div>
-	)
+	);
 }

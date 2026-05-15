@@ -7,87 +7,87 @@
  * - Integrates with logging and error reporting systems
  */
 
-import { create } from 'zustand'
-import { createLogger } from '#lib/frontend-logger'
+import { create } from "zustand";
+import { createLogger } from "#lib/frontend-logger";
 
-const logger = createLogger({ component: 'ErrorBoundaryStore' })
+const logger = createLogger({ component: "ErrorBoundaryStore" });
 
 export interface ErrorState {
-	hasError: boolean
-	error?: Error
-	errorId?: string
-	timestamp?: Date
-	context?: string
+	hasError: boolean;
+	error?: Error;
+	errorId?: string;
+	timestamp?: Date;
+	context?: string;
 }
 
 export interface ErrorBoundaryState {
 	// Current error state
-	errorState: ErrorState
+	errorState: ErrorState;
 
 	// Actions
-	setError: (error: Error, context?: string) => void
-	clearError: () => void
-	resetError: () => void
+	setError: (error: Error, context?: string) => void;
+	clearError: () => void;
+	resetError: () => void;
 
 	// Computed properties
-	isInErrorState: boolean
+	isInErrorState: boolean;
 }
 
 const initialErrorState: ErrorState = {
-	hasError: false
-}
+	hasError: false,
+};
 
 export const useErrorBoundaryStore = create<ErrorBoundaryState>((set, get) => ({
 	errorState: initialErrorState,
 
 	setError: (error: Error, context?: string) => {
-		const errorId = `error_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+		const errorId = `error_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 
-		logger.error('Error boundary caught error', {
-			action: 'error_boundary_set_error',
+		logger.error("Error boundary caught error", {
+			action: "error_boundary_set_error",
 			metadata: {
 				errorId,
 				error: error.message,
 				stack: error.stack,
-				context
-			}
-		})
+				context,
+			},
+		});
 
 		const newErrorState: ErrorState = {
 			hasError: true,
 			error,
 			errorId,
-			timestamp: new Date()
-		}
+			timestamp: new Date(),
+		};
 
 		if (context) {
-			newErrorState.context = context
+			newErrorState.context = context;
 		}
 
-		set({ errorState: newErrorState })
+		set({ errorState: newErrorState });
 	},
 
 	clearError: () => {
-		const currentState = get().errorState
+		const currentState = get().errorState;
 
 		if (currentState.hasError) {
-			logger.info('Error boundary cleared error', {
-				action: 'error_boundary_clear_error',
+			logger.info("Error boundary cleared error", {
+				action: "error_boundary_clear_error",
 				metadata: {
 					errorId: currentState.errorId,
-					context: currentState.context
-				}
-			})
+					context: currentState.context,
+				},
+			});
 		}
 
-		set({ errorState: initialErrorState })
+		set({ errorState: initialErrorState });
 	},
 
 	resetError: () => {
-		get().clearError()
+		get().clearError();
 	},
 
 	get isInErrorState() {
-		return get().errorState.hasError
-	}
-}))
+		return get().errorState.hasError;
+	},
+}));

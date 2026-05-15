@@ -1,23 +1,26 @@
-'use client'
+"use client";
 
-import { ArrowLeft } from 'lucide-react'
-import Link from 'next/link'
-import { use } from 'react'
-
-import { Button } from '#components/ui/button'
-import { Skeleton } from '#components/ui/skeleton'
-import { PropertyForm } from '#components/properties/property-form.client'
-import { MobilePropertyForm } from '#components/properties/property-form.mobile'
-import { propertyQueries } from '#hooks/api/query-keys/property-keys'
-import { useQuery } from '@tanstack/react-query'
+import { useQuery } from "@tanstack/react-query";
+import { ArrowLeft } from "lucide-react";
+import Link from "next/link";
+import { use } from "react";
+import { PropertyForm } from "#components/properties/property-form.client";
+import { MobilePropertyForm } from "#components/properties/property-form.mobile";
+import { Button } from "#components/ui/button";
+import { Skeleton } from "#components/ui/skeleton";
+import { propertyQueries } from "#hooks/api/query-keys/property-keys";
 
 export default function EditPropertyPage({
-	params
+	params,
 }: {
-	params: Promise<{ id: string }>
+	params: Promise<{ id: string }>;
 }) {
-	const { id } = use(params)
-	const { data: property, isLoading, error } = useQuery(propertyQueries.detail(id))
+	const { id } = use(params);
+	const {
+		data: property,
+		isLoading,
+		error,
+	} = useQuery(propertyQueries.detail(id));
 
 	if (isLoading) {
 		return (
@@ -31,7 +34,7 @@ export default function EditPropertyPage({
 				</div>
 				<Skeleton className="h-96 w-full rounded-xl" />
 			</div>
-		)
+		);
 	}
 
 	if (error) {
@@ -42,11 +45,11 @@ export default function EditPropertyPage({
 						Error Loading Property
 					</h2>
 					<p className="text-muted-foreground">
-						{error instanceof Error ? error.message : 'Failed to load property'}
+						{error instanceof Error ? error.message : "Failed to load property"}
 					</p>
 				</div>
 			</div>
-		)
+		);
 	}
 
 	if (!property) {
@@ -54,7 +57,7 @@ export default function EditPropertyPage({
 			<div className="space-y-6">
 				<p className="text-muted-foreground">Property not found</p>
 			</div>
-		)
+		);
 	}
 
 	return (
@@ -80,5 +83,5 @@ export default function EditPropertyPage({
 				showSuccessState={true}
 			/>
 		</div>
-	)
+	);
 }

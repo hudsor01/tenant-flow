@@ -1,7 +1,5 @@
-'use client'
+"use client";
 
-import { Card } from '#components/ui/card'
-import { Skeleton } from '#components/ui/skeleton'
 import {
 	CartesianGrid,
 	Line,
@@ -9,20 +7,22 @@ import {
 	ResponsiveContainer,
 	Tooltip,
 	XAxis,
-	YAxis
-} from 'recharts'
-import type { OccupancyMetrics } from '#types/reports'
+	YAxis,
+} from "recharts";
+import { Card } from "#components/ui/card";
+import { Skeleton } from "#components/ui/skeleton";
+import type { OccupancyMetrics } from "#types/reports";
 
-const formatPercent = (value: number) => `${value.toFixed(1)}%`
+const formatPercent = (value: number) => `${value.toFixed(1)}%`;
 
 interface AnalyticsOccupancyChartProps {
-	occupancyMetrics: OccupancyMetrics | undefined
-	isLoading: boolean
+	occupancyMetrics: OccupancyMetrics | undefined;
+	isLoading: boolean;
 }
 
 export function AnalyticsOccupancyChart({
 	occupancyMetrics,
-	isLoading
+	isLoading,
 }: AnalyticsOccupancyChartProps) {
 	return (
 		<Card className="@container/card">
@@ -38,37 +38,34 @@ export function AnalyticsOccupancyChart({
 				) : occupancyMetrics && occupancyMetrics.byProperty.length > 0 ? (
 					<ResponsiveContainer width="100%" height={256}>
 						<LineChart data={occupancyMetrics.byProperty}>
-							<CartesianGrid
-								strokeDasharray="3 3"
-								className="stroke-muted"
-							/>
+							<CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
 							<XAxis
 								dataKey="propertyName"
 								className="text-xs"
-								tick={{ fill: 'var(--color-muted-foreground)' }}
+								tick={{ fill: "var(--color-muted-foreground)" }}
 								angle={-45}
 								textAnchor="end"
 								height={80}
 							/>
 							<YAxis
 								className="text-xs"
-								tick={{ fill: 'var(--color-muted-foreground)' }}
+								tick={{ fill: "var(--color-muted-foreground)" }}
 								domain={[0, 100]}
 								tickFormatter={formatPercent}
 							/>
 							<Tooltip
 								contentStyle={{
-									backgroundColor: 'var(--color-background)',
-									border: '1px solid var(--color-border)',
-									borderRadius: '2px'
+									backgroundColor: "var(--color-background)",
+									border: "1px solid var(--color-border)",
+									borderRadius: "2px",
 								}}
-								formatter={value => {
+								formatter={(value) => {
 									const numericValue = Array.isArray(value)
 										? Number(value[0])
-										: Number(value)
+										: Number(value);
 									return formatPercent(
-										Number.isFinite(numericValue) ? numericValue : 0
-									)
+										Number.isFinite(numericValue) ? numericValue : 0,
+									);
 								}}
 							/>
 							<Line
@@ -87,5 +84,5 @@ export function AnalyticsOccupancyChart({
 				)}
 			</div>
 		</Card>
-	)
+	);
 }

@@ -1,12 +1,13 @@
-import { cache } from 'react'
-import { notFound } from 'next/navigation'
-import Link from 'next/link'
-import type { Metadata } from 'next'
-import { createClient } from '#lib/supabase/server'
-import { createPageMetadata } from '#lib/seo/page-metadata'
-import { JsonLdScript } from '#components/seo/json-ld-script'
-import { createBreadcrumbJsonLd } from '#lib/seo/breadcrumbs'
-import { PageLayout } from '#components/layout/page-layout'
+import type { Metadata } from "next";
+import Link from "next/link";
+import { notFound } from "next/navigation";
+import { cache } from "react";
+import { BlogCard } from "#components/blog/blog-card";
+import { BlogPagination } from "#components/blog/blog-pagination";
+import { NewsletterSignup } from "#components/blog/newsletter-signup";
+import { PageLayout } from "#components/layout/page-layout";
+import { JsonLdScript } from "#components/seo/json-ld-script";
+import { BlogEmptyState } from "#components/shared/blog-empty-state";
 import {
 	Breadcrumb,
 	BreadcrumbItem,
@@ -14,51 +15,50 @@ import {
 	BreadcrumbList,
 	BreadcrumbPage,
 	BreadcrumbSeparator,
-} from '#components/ui/breadcrumb'
-import { BlogCard } from '#components/blog/blog-card'
-import { BlogPagination } from '#components/blog/blog-pagination'
-import { BlogEmptyState } from '#components/shared/blog-empty-state'
-import { NewsletterSignup } from '#components/blog/newsletter-signup'
-import type { BlogListItem } from '#hooks/api/query-keys/blog-keys'
+} from "#components/ui/breadcrumb";
+import type { BlogListItem } from "#hooks/api/query-keys/blog-keys";
+import { createBreadcrumbJsonLd } from "#lib/seo/breadcrumbs";
+import { createPageMetadata } from "#lib/seo/page-metadata";
+import { createClient } from "#lib/supabase/server";
 
-const PAGE_LIMIT = 9
+const PAGE_LIMIT = 9;
 
 const BLOG_LIST_COLUMNS =
-	'id, title, slug, excerpt, published_at, category, reading_time, featured_image, author_user_id, status, tags'
+	"id, title, slug, excerpt, published_at, category, reading_time, featured_image, author_user_id, status, tags";
 
 interface CategoryPageProps {
-	params: Promise<{ category: string }>
-	searchParams: Promise<Record<string, string | string[] | undefined>>
+	params: Promise<{ category: string }>;
+	searchParams: Promise<Record<string, string | string[] | undefined>>;
 }
 
 interface ValidCategory {
-	name: string
-	slug: string
-	post_count: number
+	name: string;
+	slug: string;
+	post_count: number;
 }
 
 /** Deduplicated category validation — shared by generateMetadata and Page */
 const getValidCategory = cache(
 	async (slug: string): Promise<ValidCategory | null> => {
-		const supabase = await createClient()
-		const { data } = await supabase.rpc('get_blog_categories')
+		const supabase = await createClient();
+		const { data } = await supabase.rpc("get_blog_categories");
 		return (
-			((data ?? []) as ValidCategory[]).find(c => c.slug === slug) ?? null
-		)
-	}
-)
+			((data ?? []) as ValidCategory[]).find((c) => c.slug === slug) ?? null
+		);
+	},
+);
 
 export async function generateMetadata({
 	params,
 	searchParams,
 }: CategoryPageProps): Promise<Metadata> {
-	const { category } = await params
-	const search = await searchParams
-	const page = Number(search.page) || 1
+	const { category } = await params;
+	const search = await searchParams;
+	const page = Number(search.page) || 1;
 
-	const validCategory = await getValidCategory(category)
+	const validCategory = await getValidCategory(category);
 	if (!validCategory) {
-		return { title: 'Category Not Found | TenantFlow' }
+		return { title: "Category Not Found | TenantFlow" };
 	}
 
 	return createPageMetadata({
@@ -66,35 +66,35 @@ export async function generateMetadata({
 		description: `Browse TenantFlow blog posts about ${validCategory.name.toLowerCase()}. Expert insights and practical guides for landlords.`,
 		path: `/blog/category/${category}`,
 		noindex: page > 1,
-	})
+	});
 }
 
 export default async function BlogCategoryPage({
 	params,
 	searchParams,
 }: CategoryPageProps) {
-	const { category } = await params
-	const search = await searchParams
-	const page = Math.max(1, Number(search.page) || 1)
-	const offset = (page - 1) * PAGE_LIMIT
+	const { category } = await params;
+	const search = await searchParams;
+	const page = Math.max(1, Number(search.page) || 1);
+	const offset = (page - 1) * PAGE_LIMIT;
 
-	const validCategory = await getValidCategory(category)
+	const validCategory = await getValidCategory(category);
 	if (!validCategory) {
-		notFound()
+		notFound();
 	}
 
-	const supabase = await createClient()
+	const supabase = await createClient();
 	const postsResult = await supabase
-		.from('blogs')
-		.select(BLOG_LIST_COLUMNS, { count: 'exact' })
-		.eq('status', 'published')
-		.eq('category', validCategory.name)
-		.order('published_at', { ascending: false })
-		.range(offset, offset + PAGE_LIMIT - 1)
+		.from("blogs")
+		.select(BLOG_LIST_COLUMNS, { count: "exact" })
+		.eq("status", "published")
+		.eq("category", validCategory.name)
+		.order("published_at", { ascending: false })
+		.range(offset, offset + PAGE_LIMIT - 1);
 
-	const posts = (postsResult.data ?? []) as BlogListItem[]
-	const total = postsResult.count ?? 0
-	const totalPages = Math.max(1, Math.ceil(total / PAGE_LIMIT))
+	const posts = (postsResult.data ?? []) as BlogListItem[];
+	const total = postsResult.count ?? 0;
+	const totalPages = Math.max(1, Math.ceil(total / PAGE_LIMIT));
 
 	return (
 		<PageLayout>
@@ -132,7 +132,7 @@ export default async function BlogCategoryPage({
 						{validCategory.name}
 					</h1>
 					<p className="mt-4 text-lg text-muted-foreground">
-						{total} article{total === 1 ? '' : 's'} on{' '}
+						{total} article{total === 1 ? "" : "s"} on{" "}
 						{validCategory.name.toLowerCase()}.
 					</p>
 				</div>
@@ -145,15 +145,12 @@ export default async function BlogCategoryPage({
 					) : (
 						<>
 							<div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-								{posts.map(post => (
+								{posts.map((post) => (
 									<BlogCard key={post.id} post={post} />
 								))}
 							</div>
 							{totalPages > 1 && (
-								<BlogPagination
-									totalPages={totalPages}
-									className="mt-8"
-								/>
+								<BlogPagination totalPages={totalPages} className="mt-8" />
 							)}
 						</>
 					)}
@@ -166,5 +163,5 @@ export default async function BlogCategoryPage({
 				</div>
 			</section>
 		</PageLayout>
-	)
+	);
 }

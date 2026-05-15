@@ -1,22 +1,22 @@
-'use client'
+"use client";
 
-import { Search, LayoutGrid, List } from 'lucide-react'
-import { Input } from '#components/ui/input'
-import { cn } from '#lib/utils'
+import { LayoutGrid, List, Search } from "lucide-react";
+import { Input } from "#components/ui/input";
+import { cn } from "#lib/utils";
 
-type StatusFilter = 'all' | 'occupied' | 'available' | 'maintenance'
-type ViewMode = 'grid' | 'table'
+type StatusFilter = "all" | "occupied" | "available" | "maintenance";
+type ViewMode = "grid" | "table";
 
 interface PropertyToolbarProps {
-	searchQuery: string
-	statusFilter: StatusFilter
-	typeFilter: string
-	viewMode: ViewMode
-	filteredCount: number
-	onSearchChange: (value: string) => void
-	onStatusFilterChange: (filter: StatusFilter) => void
-	onTypeFilterChange: (type: string) => void
-	onViewModeChange: (mode: ViewMode) => void
+	searchQuery: string;
+	statusFilter: StatusFilter;
+	typeFilter: string;
+	viewMode: ViewMode;
+	filteredCount: number;
+	onSearchChange: (value: string) => void;
+	onStatusFilterChange: (filter: StatusFilter) => void;
+	onTypeFilterChange: (type: string) => void;
+	onViewModeChange: (mode: ViewMode) => void;
 }
 
 export function PropertyToolbar({
@@ -28,7 +28,7 @@ export function PropertyToolbar({
 	onSearchChange,
 	onStatusFilterChange,
 	onTypeFilterChange,
-	onViewModeChange
+	onViewModeChange,
 }: PropertyToolbarProps) {
 	return (
 		<div className="px-4 py-3 border-b border-border flex items-center gap-3 flex-wrap">
@@ -39,7 +39,7 @@ export function PropertyToolbar({
 					type="search"
 					placeholder="Search properties..."
 					value={searchQuery}
-					onChange={e => onSearchChange(e.target.value)}
+					onChange={(e) => onSearchChange(e.target.value)}
 					className="pl-9 h-10 focus:shadow-sm transition-shadow"
 					aria-label="Search properties by name, address, or city"
 				/>
@@ -47,7 +47,7 @@ export function PropertyToolbar({
 
 			<select
 				value={statusFilter}
-				onChange={e => onStatusFilterChange(e.target.value as StatusFilter)}
+				onChange={(e) => onStatusFilterChange(e.target.value as StatusFilter)}
 				className="appearance-none px-3 py-2 text-sm bg-background border border-border rounded-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary cursor-pointer transition-all h-9"
 				aria-label="Filter by status"
 			>
@@ -59,7 +59,7 @@ export function PropertyToolbar({
 
 			<select
 				value={typeFilter}
-				onChange={e => onTypeFilterChange(e.target.value)}
+				onChange={(e) => onTypeFilterChange(e.target.value)}
 				className="appearance-none px-3 py-2 text-sm bg-background border border-border rounded-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary cursor-pointer transition-all h-9"
 				aria-label="Filter by property type"
 			>
@@ -75,7 +75,7 @@ export function PropertyToolbar({
 			{/* RIGHT: Count + View Toggle */}
 			<div className="flex items-center gap-3 ml-auto">
 				<span className="text-sm text-muted-foreground hidden sm:block tabular-nums">
-					{filteredCount} {filteredCount === 1 ? 'property' : 'properties'}
+					{filteredCount} {filteredCount === 1 ? "property" : "properties"}
 				</span>
 
 				<div
@@ -84,30 +84,30 @@ export function PropertyToolbar({
 					aria-label="View mode"
 				>
 					<button
-						onClick={() => onViewModeChange('table')}
+						onClick={() => onViewModeChange("table")}
 						className={cn(
-							'flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium transition-colors min-h-9',
-							viewMode === 'table'
-								? 'bg-background text-foreground shadow-sm'
-								: 'text-muted-foreground hover:text-foreground'
+							"flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium transition-colors min-h-9",
+							viewMode === "table"
+								? "bg-background text-foreground shadow-sm"
+								: "text-muted-foreground hover:text-foreground",
 						)}
 						role="tab"
-						aria-selected={viewMode === 'table'}
+						aria-selected={viewMode === "table"}
 						aria-label="Switch to table view"
 					>
 						<List className="w-4 h-4" />
 						Table
 					</button>
 					<button
-						onClick={() => onViewModeChange('grid')}
+						onClick={() => onViewModeChange("grid")}
 						className={cn(
-							'flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium transition-colors min-h-9',
-							viewMode === 'grid'
-								? 'bg-background text-foreground shadow-sm'
-								: 'text-muted-foreground hover:text-foreground'
+							"flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium transition-colors min-h-9",
+							viewMode === "grid"
+								? "bg-background text-foreground shadow-sm"
+								: "text-muted-foreground hover:text-foreground",
 						)}
 						role="tab"
-						aria-selected={viewMode === 'grid'}
+						aria-selected={viewMode === "grid"}
 						aria-label="Switch to grid view"
 					>
 						<LayoutGrid className="w-4 h-4" />
@@ -116,5 +116,5 @@ export function PropertyToolbar({
 				</div>
 			</div>
 		</div>
-	)
+	);
 }

@@ -1,52 +1,52 @@
-'use client'
+"use client";
 
 import {
+	Check,
+	ChevronDown,
+	Eye,
 	Mail,
-	Phone,
 	MapPin,
 	Pencil,
+	Phone,
 	Trash2,
-	Eye,
-	ChevronDown,
-	Check
-} from 'lucide-react'
-import { createLogger } from '#lib/frontend-logger'
-import type { TenantItem } from '#types/sections/tenants'
-import type { LeaseStatus } from '#types/core'
-import { BlurFade } from '#components/ui/blur-fade'
-import { BorderBeam } from '#components/ui/border-beam'
+} from "lucide-react";
+import { BlurFade } from "#components/ui/blur-fade";
+import { BorderBeam } from "#components/ui/border-beam";
+import { createLogger } from "#lib/frontend-logger";
+import type { LeaseStatus } from "#types/core";
+import type { TenantItem } from "#types/sections/tenants";
 
-const logger = createLogger({ component: 'TenantGrid' })
+const logger = createLogger({ component: "TenantGrid" });
 
 interface TenantGridProps {
-	tenants: TenantItem[]
-	selectedIds: Set<string>
-	onSelectChange: (ids: string[]) => void
-	onView: (id: string) => void
-	onEdit: (id: string) => void
-	onDelete: (id: string) => void
-	onContact: (id: string, method: 'email' | 'phone') => void
+	tenants: TenantItem[];
+	selectedIds: Set<string>;
+	onSelectChange: (ids: string[]) => void;
+	onView: (id: string) => void;
+	onEdit: (id: string) => void;
+	onDelete: (id: string) => void;
+	onContact: (id: string, method: "email" | "phone") => void;
 }
 
 interface StatusDropdownProps {
-	value: LeaseStatus | undefined
-	onChange: (value: LeaseStatus) => void
+	value: LeaseStatus | undefined;
+	onChange: (value: LeaseStatus) => void;
 }
 
 function StatusDropdown({ value, onChange }: StatusDropdownProps) {
 	const statusLabels: Record<LeaseStatus, string> = {
-		draft: 'Draft',
-		pending_signature: 'Pending',
-		active: 'Active',
-		ended: 'Ended',
-		terminated: 'Terminated'
-	}
+		draft: "Draft",
+		pending_signature: "Pending",
+		active: "Active",
+		ended: "Ended",
+		terminated: "Terminated",
+	};
 
 	return (
 		<div className="relative">
 			<select
-				value={value || 'active'}
-				onChange={e => onChange(e.target.value as LeaseStatus)}
+				value={value || "active"}
+				onChange={(e) => onChange(e.target.value as LeaseStatus)}
 				className="appearance-none w-full px-2 py-1 text-xs bg-muted border border-transparent hover:border-border focus:border-primary rounded text-foreground focus:outline-none focus:ring-1 focus:ring-primary/20 cursor-pointer transition-all"
 			>
 				{Object.entries(statusLabels).map(([key, label]) => (
@@ -57,18 +57,18 @@ function StatusDropdown({ value, onChange }: StatusDropdownProps) {
 			</select>
 			<ChevronDown className="absolute right-1 top-1/2 -translate-y-1/2 w-3 h-3 text-muted-foreground pointer-events-none" />
 		</div>
-	)
+	);
 }
 
 interface TenantCardProps {
-	tenant: TenantItem
-	isSelected: boolean
-	onSelect: () => void
-	onView: () => void
-	onEdit: () => void
-	onDelete: () => void
-	onContact: (method: 'email' | 'phone') => void
-	index: number
+	tenant: TenantItem;
+	isSelected: boolean;
+	onSelect: () => void;
+	onView: () => void;
+	onEdit: () => void;
+	onDelete: () => void;
+	onContact: (method: "email" | "phone") => void;
+	index: number;
 }
 
 function TenantCard({
@@ -79,15 +79,15 @@ function TenantCard({
 	onEdit,
 	onDelete,
 	onContact,
-	index
+	index,
 }: TenantCardProps) {
-	const isActive = tenant.leaseStatus === 'active'
+	const isActive = tenant.leaseStatus === "active";
 
 	return (
 		<BlurFade delay={0.05 + index * 0.03} inView>
 			<div
 				className={`bg-card border rounded-lg p-4 transition-all hover:shadow-md relative overflow-hidden ${
-					isSelected ? 'border-primary ring-2 ring-primary/20' : 'border-border'
+					isSelected ? "border-primary ring-2 ring-primary/20" : "border-border"
 				}`}
 			>
 				{/* Active tenant gets a subtle BorderBeam */}
@@ -126,8 +126,11 @@ function TenantCard({
 					<div className="w-24">
 						<StatusDropdown
 							value={tenant.leaseStatus}
-							onChange={value =>
-								logger.info('Status change', { tenantId: tenant.id, newStatus: value })
+							onChange={(value) =>
+								logger.info("Status change", {
+									tenantId: tenant.id,
+									newStatus: value,
+								})
 							}
 						/>
 					</div>
@@ -136,7 +139,7 @@ function TenantCard({
 				{/* Contact Info */}
 				<div className="space-y-2 mb-4">
 					<button
-						onClick={() => onContact('email')}
+						onClick={() => onContact("email")}
 						className="flex items-center gap-2 text-sm text-muted-foreground hover:text-primary transition-colors w-full group"
 					>
 						<Mail className="w-3.5 h-3.5 flex-shrink-0 group-hover:scale-110 transition-transform" />
@@ -144,7 +147,7 @@ function TenantCard({
 					</button>
 					{tenant.phone && (
 						<button
-							onClick={() => onContact('phone')}
+							onClick={() => onContact("phone")}
 							className="flex items-center gap-2 text-sm text-muted-foreground hover:text-primary transition-colors w-full group"
 						>
 							<Phone className="w-3.5 h-3.5 flex-shrink-0 group-hover:scale-110 transition-transform" />
@@ -195,7 +198,7 @@ function TenantCard({
 				</div>
 			</div>
 		</BlurFade>
-	)
+	);
 }
 
 export function TenantGrid({
@@ -205,17 +208,17 @@ export function TenantGrid({
 	onView,
 	onEdit,
 	onDelete,
-	onContact
+	onContact,
 }: TenantGridProps) {
 	const toggleSelect = (id: string) => {
-		const newSelected = new Set(selectedIds)
+		const newSelected = new Set(selectedIds);
 		if (newSelected.has(id)) {
-			newSelected.delete(id)
+			newSelected.delete(id);
 		} else {
-			newSelected.add(id)
+			newSelected.add(id);
 		}
-		onSelectChange(Array.from(newSelected))
-	}
+		onSelectChange(Array.from(newSelected));
+	};
 
 	return (
 		<div className="p-4 overflow-auto max-h-[calc(100vh-400px)] grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
@@ -229,9 +232,9 @@ export function TenantGrid({
 					onView={() => onView(tenant.id)}
 					onEdit={() => onEdit(tenant.id)}
 					onDelete={() => onDelete(tenant.id)}
-					onContact={method => onContact(tenant.id, method)}
+					onContact={(method) => onContact(tenant.id, method)}
 				/>
 			))}
 		</div>
-	)
+	);
 }

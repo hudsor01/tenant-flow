@@ -1,9 +1,9 @@
-'use client'
+"use client";
 
-import type { ComponentProps } from 'react'
-import { Tabs as TabsPrimitive } from 'radix-ui'
+import { Tabs as TabsPrimitive } from "radix-ui";
+import type { ComponentProps } from "react";
 
-import { cn } from '#lib/utils'
+import { cn } from "#lib/utils";
 
 function Tabs({
 	className,
@@ -11,10 +11,10 @@ function Tabs({
 }: ComponentProps<typeof TabsPrimitive.Root>) {
 	return (
 		<TabsPrimitive.Root
-			className={cn('flex flex-col gap-2', className)}
+			className={cn("flex flex-col gap-2", className)}
 			{...props}
 		/>
-	)
+	);
 }
 
 function TabsList({
@@ -24,12 +24,12 @@ function TabsList({
 	return (
 		<TabsPrimitive.List
 			className={cn(
-				'bg-muted text-muted-foreground inline-flex h-11 w-fit items-center justify-center rounded-lg p-[3px]',
-				className
+				"bg-muted text-muted-foreground inline-flex h-11 w-fit items-center justify-center rounded-lg p-[3px]",
+				className,
 			)}
 			{...props}
 		/>
-	)
+	);
 }
 
 function TabsTrigger({
@@ -41,16 +41,16 @@ function TabsTrigger({
 			className={cn(
 				"inline-flex h-[calc(100%-1px)] flex-1 items-center justify-center gap-1.5 rounded-md border border-transparent px-2 py-1 typography-small whitespace-nowrap transition-all duration-200 focus-visible:ring-[3px] focus-visible:outline-1 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
 				// Inactive state - muted colors
-				'text-muted-foreground hover:text-foreground hover:bg-muted/50',
+				"text-muted-foreground hover:text-foreground hover:bg-muted/50",
 				// Active state - primary blue matching sidebar
-				'data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md data-[state=active]:font-semibold',
+				"data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md data-[state=active]:font-semibold",
 				// Focus styles
-				'focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:outline-ring',
-				className
+				"focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:outline-ring",
+				className,
 			)}
 			{...props}
 		/>
-	)
+	);
 }
 
 function TabsContent({
@@ -59,10 +59,10 @@ function TabsContent({
 }: ComponentProps<typeof TabsPrimitive.Content>) {
 	return (
 		<TabsPrimitive.Content
-			className={cn('flex-1 outline-none', className)}
+			className={cn("flex-1 outline-none", className)}
 			{...props}
 		/>
-	)
+	);
 }
 
-export { Tabs, TabsContent, TabsList, TabsTrigger }
+export { Tabs, TabsContent, TabsList, TabsTrigger };

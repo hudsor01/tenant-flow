@@ -1,12 +1,10 @@
-import { createPageMetadata } from '#lib/seo/page-metadata'
-import { PageLayout } from '#components/layout/page-layout'
-import { HeroSection } from '#components/sections/hero-section'
-import { Button } from '#components/ui/button'
-import { CardLayout } from '#components/ui/card-layout'
-import { JsonLdScript } from '#components/seo/json-ld-script'
-import { createBreadcrumbJsonLd } from '#lib/seo/breadcrumbs'
-import Link from 'next/link'
-import { cn } from '#lib/utils'
+import { ArrowRight, Mail, MessageCircle, Phone } from "lucide-react";
+import Link from "next/link";
+import { PageLayout } from "#components/layout/page-layout";
+import { HeroSection } from "#components/sections/hero-section";
+import { JsonLdScript } from "#components/seo/json-ld-script";
+import { Button } from "#components/ui/button";
+import { CardLayout } from "#components/ui/card-layout";
 import {
 	Item,
 	ItemActions,
@@ -15,34 +13,37 @@ import {
 	ItemGroup,
 	ItemMedia,
 	ItemSeparator,
-	ItemTitle
-} from '#components/ui/item'
-import { ArrowRight, Mail, MessageCircle, Phone } from 'lucide-react'
+	ItemTitle,
+} from "#components/ui/item";
+import { createBreadcrumbJsonLd } from "#lib/seo/breadcrumbs";
+import { createPageMetadata } from "#lib/seo/page-metadata";
+import { cn } from "#lib/utils";
 
 export const metadata = createPageMetadata({
-	title: 'Help Center — Property Management Support & Guides',
-	description: 'Get help with TenantFlow property management software. Browse setup guides, feature tutorials, and support resources for landlords.',
-	path: '/help',
-})
+	title: "Help Center — Property Management Support & Guides",
+	description:
+		"Get help with TenantFlow property management software. Browse setup guides, feature tutorials, and support resources for landlords.",
+	path: "/help",
+});
 
 export default function HelpPage() {
 	return (
 		<PageLayout>
-			<JsonLdScript schema={createBreadcrumbJsonLd('/help')} />
+			<JsonLdScript schema={createBreadcrumbJsonLd("/help")} />
 			{/* Hero Section */}
 			<HeroSection
 				title="We're here to help"
 				titleHighlight="when you need us"
 				subtitle="Email support on every plan, with priority and phone support on Growth and Max. Browse the help center below for setup, billing, document vault, and lease e-sign questions."
 				primaryCta={{
-					label: 'See Pricing',
-					href: '/pricing'
+					label: "See Pricing",
+					href: "/pricing",
 				}}
-				secondaryCta={{ label: 'Contact Sales', href: '/contact' }}
+				secondaryCta={{ label: "Contact Sales", href: "/contact" }}
 				trustSignals="Email support on every plan • Priority and phone support on Growth and Max"
 				image={{
-					src: 'https://images.unsplash.com/photo-1556761175-b413da4baf72?q=80&w=2074&auto=format&fit=crop',
-					alt: 'TenantFlow support team helping landlords with their portfolios'
+					src: "https://images.unsplash.com/photo-1556761175-b413da4baf72?q=80&w=2074&auto=format&fit=crop",
+					alt: "TenantFlow support team helping landlords with their portfolios",
 				}}
 			/>
 
@@ -50,11 +51,10 @@ export default function HelpPage() {
 			<section className="section-spacing">
 				<div className="max-w-6xl mx-auto px-6 lg:px-8">
 					<div className="text-center mb-16">
-						<h2 className="typography-h1 mb-4">
-							Pick the channel that fits
-						</h2>
+						<h2 className="typography-h1 mb-4">Pick the channel that fits</h2>
 						<p className="text-xl text-muted-foreground">
-							Email support on every plan. Phone and priority support on Growth and Max.
+							Email support on every plan. Phone and priority support on Growth
+							and Max.
 						</p>
 					</div>
 
@@ -65,11 +65,11 @@ export default function HelpPage() {
 							</ItemMedia>
 							<ItemContent>
 								<ItemTitle>Email Support</ItemTitle>
-								<ItemDescription>
-									Available on every plan
-								</ItemDescription>
+								<ItemDescription>Available on every plan</ItemDescription>
 								<div className="mt-2">
-									<p className="text-muted-foreground">support@tenantflow.app</p>
+									<p className="text-muted-foreground">
+										support@tenantflow.app
+									</p>
 								</div>
 							</ItemContent>
 							<ItemActions>
@@ -87,12 +87,11 @@ export default function HelpPage() {
 							</ItemMedia>
 							<ItemContent>
 								<ItemTitle>Phone Support</ItemTitle>
-								<ItemDescription>
-									Growth and Max plans
-								</ItemDescription>
+								<ItemDescription>Growth and Max plans</ItemDescription>
 								<div className="mt-2">
 									<p className="text-muted-foreground">
-										Talk to a real person about onboarding, billing, or feature questions
+										Talk to a real person about onboarding, billing, or feature
+										questions
 									</p>
 								</div>
 							</ItemContent>
@@ -116,7 +115,8 @@ export default function HelpPage() {
 								</ItemDescription>
 								<div className="mt-2">
 									<p className="text-muted-foreground">
-										Walk through your portfolio with our team and pick the right plan
+										Walk through your portfolio with our team and pick the right
+										plan
 									</p>
 								</div>
 							</ItemContent>
@@ -143,34 +143,34 @@ export default function HelpPage() {
 					<div className="grid md:grid-cols-2 gap-6">
 						{[
 							{
-								title: 'Set up the document vault',
+								title: "Set up the document vault",
 								description:
-									'Per-entity uploads, custom categories, search, filters, and tax-season zip exports — everything the vault does in one walkthrough',
-								badge: 'Most Popular',
-								badgeColor: 'bg-primary/10 text-primary'
+									"Per-entity uploads, custom categories, search, filters, and tax-season zip exports — everything the vault does in one walkthrough",
+								badge: "Most Popular",
+								badgeColor: "bg-primary/10 text-primary",
 							},
 							{
-								title: 'Send a lease for e-signature',
+								title: "Send a lease for e-signature",
 								description:
-									'How lease e-sign integrates with your workflow on the Growth and Max plans, plus monthly volume limits',
-								badge: 'Lease Workflow',
-								badgeColor: 'bg-accent/10 text-accent'
+									"How lease e-sign integrates with your workflow on the Growth and Max plans, plus monthly volume limits",
+								badge: "Lease Workflow",
+								badgeColor: "bg-accent/10 text-accent",
 							},
 							{
-								title: 'Run reports for tax season',
+								title: "Run reports for tax season",
 								description:
-									'Generate CPA-ready financial reports and bulk-download every receipt and tax document by entity',
-								badge: 'Tax Time',
-								badgeColor: 'bg-primary/10 text-primary'
+									"Generate CPA-ready financial reports and bulk-download every receipt and tax document by entity",
+								badge: "Tax Time",
+								badgeColor: "bg-primary/10 text-primary",
 							},
 							{
-								title: 'Manage your team and billing',
+								title: "Manage your team and billing",
 								description:
-									'Invite team members, switch plans, update payment methods, and export account data',
-								badge: 'Account',
-								badgeColor: 'bg-accent/10 text-accent'
-							}
-						].map(resource => (
+									"Invite team members, switch plans, update payment methods, and export account data",
+								badge: "Account",
+								badgeColor: "bg-accent/10 text-accent",
+							},
+						].map((resource) => (
 							<CardLayout
 								key={resource.title}
 								title={resource.title}
@@ -179,8 +179,8 @@ export default function HelpPage() {
 							>
 								<span
 									className={cn(
-										'inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium',
-										resource.badgeColor
+										"inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium",
+										resource.badgeColor,
 									)}
 								>
 									{resource.badge}
@@ -198,7 +198,8 @@ export default function HelpPage() {
 						Ready to centralize your portfolio?
 					</h2>
 					<p className="text-xl text-primary-foreground/90 mb-8">
-						Replace spreadsheets, Dropbox, and email with a single landlord-only platform. Our team is here to help you migrate and get going.
+						Replace spreadsheets, Dropbox, and email with a single landlord-only
+						platform. Our team is here to help you migrate and get going.
 					</p>
 					<div className="flex flex-col sm:flex-row gap-4 justify-center">
 						<Button size="lg" variant="secondary" className="px-8" asChild>
@@ -219,5 +220,5 @@ export default function HelpPage() {
 				</div>
 			</section>
 		</PageLayout>
-	)
+	);
 }

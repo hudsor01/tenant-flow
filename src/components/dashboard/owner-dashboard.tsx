@@ -1,23 +1,22 @@
-'use client'
+"use client";
 
-
-import { useRouter } from 'next/navigation'
-import { Dashboard } from './dashboard'
-import { Skeleton } from '#components/ui/skeleton'
+import { Home } from "lucide-react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {
 	Empty,
+	EmptyContent,
+	EmptyDescription,
 	EmptyMedia,
 	EmptyTitle,
-	EmptyDescription,
-	EmptyContent
-} from '#components/ui/empty'
+} from "#components/ui/empty";
+import { Skeleton } from "#components/ui/skeleton";
 import {
-	useDashboardStats,
 	useDashboardCharts,
-	usePropertyPerformance
-} from '#hooks/api/use-dashboard-hooks'
-import { Home } from 'lucide-react'
-import Link from 'next/link'
+	useDashboardStats,
+	usePropertyPerformance,
+} from "#hooks/api/use-dashboard-hooks";
+import { Dashboard } from "./dashboard";
 
 /**
  * Dashboard Loading Skeleton
@@ -86,7 +85,7 @@ function DashboardLoadingSkeleton() {
 				</div>
 			</div>
 		</div>
-	)
+	);
 }
 
 /**
@@ -111,7 +110,7 @@ function DashboardEmptyState() {
 				</Link>
 			</EmptyContent>
 		</Empty>
-	)
+	);
 }
 
 /**
@@ -121,13 +120,13 @@ function DashboardEmptyState() {
  * revenue trends, and quick actions for property owners.
  */
 export function OwnerDashboard() {
-	const router = useRouter()
+	const router = useRouter();
 
 	// API Hooks
-	const { data: statsData, isLoading: statsLoading } = useDashboardStats()
-	const { data: chartsData, isLoading: chartsLoading } = useDashboardCharts()
+	const { data: statsData, isLoading: statsLoading } = useDashboardStats();
+	const { data: chartsData, isLoading: chartsLoading } = useDashboardCharts();
 	const { data: performanceData, isLoading: performanceLoading } =
-		usePropertyPerformance()
+		usePropertyPerformance();
 
 	// Transform stats to design-os format
 	const metrics = (() => {
@@ -143,11 +142,11 @@ export function OwnerDashboard() {
 				activeLeases: 0,
 				expiringLeases: 0,
 				openMaintenanceRequests: 0,
-				collectionRate: 0
-			}
+				collectionRate: 0,
+			};
 		}
 
-		const stats = statsData.stats
+		const stats = statsData.stats;
 		return {
 			totalRevenue: (stats.revenue?.monthly ?? 0) * 100, // Convert to cents
 			revenueChange: statsData.metricTrends?.monthlyRevenue?.percentChange ?? 0,
@@ -160,25 +159,25 @@ export function OwnerDashboard() {
 			activeLeases: stats.leases?.active ?? 0,
 			expiringLeases: stats.leases?.expiringSoon ?? 0,
 			openMaintenanceRequests: stats.maintenance?.open ?? 0,
-			collectionRate: 0 // Not available in current API
-		}
-	})()
+			collectionRate: 0, // Not available in current API
+		};
+	})();
 
 	// Transform revenue trends
 	const revenueTrend = (() => {
-		if (!chartsData?.timeSeries?.monthlyRevenue) return []
+		if (!chartsData?.timeSeries?.monthlyRevenue) return [];
 
-		return chartsData.timeSeries.monthlyRevenue.map(point => ({
+		return chartsData.timeSeries.monthlyRevenue.map((point) => ({
 			month: point.date,
-			revenue: point.value * 100 // Convert to cents
-		}))
-	})()
+			revenue: point.value * 100, // Convert to cents
+		}));
+	})();
 
 	// Transform property performance
 	const propertyPerformance = (() => {
-		if (!performanceData) return []
+		if (!performanceData) return [];
 
-		return performanceData.map(prop => ({
+		return performanceData.map((prop) => ({
 			id: prop.property_id,
 			name: prop.property,
 			address: prop.address_line1,
@@ -186,42 +185,42 @@ export function OwnerDashboard() {
 			occupiedUnits: prop.occupiedUnits,
 			occupancyRate: prop.occupancyRate,
 			monthlyRevenue: prop.monthlyRevenue * 100, // Convert to cents
-			openMaintenance: 0 // Not in current API response
-		}))
-	})()
+			openMaintenance: 0, // Not in current API response
+		}));
+	})();
 
 	// Navigation callbacks
 	const onAddProperty = () => {
-		router.push('/properties/new')
-	}
+		router.push("/properties/new");
+	};
 
 	const onCreateLease = () => {
-		router.push('/leases/new')
-	}
+		router.push("/leases/new");
+	};
 
 	const onAddTenant = () => {
-		router.push('/tenants/new')
-	}
+		router.push("/tenants/new");
+	};
 
 	const onCreateMaintenanceRequest = () => {
-		router.push('/maintenance/new')
-	}
+		router.push("/maintenance/new");
+	};
 
 	// Loading state
-	const isLoading = statsLoading || chartsLoading || performanceLoading
+	const isLoading = statsLoading || chartsLoading || performanceLoading;
 
 	if (isLoading) {
-		return <DashboardLoadingSkeleton />
+		return <DashboardLoadingSkeleton />;
 	}
 
 	// Check for empty state
 	const isEmpty =
 		!statsData?.stats ||
 		((statsData.stats.properties?.total ?? 0) === 0 &&
-			(statsData.stats.tenants?.total ?? 0) === 0)
+			(statsData.stats.tenants?.total ?? 0) === 0);
 
 	if (isEmpty) {
-		return <DashboardEmptyState />
+		return <DashboardEmptyState />;
 	}
 
 	return (
@@ -236,5 +235,5 @@ export function OwnerDashboard() {
 				onCreateMaintenanceRequest={onCreateMaintenanceRequest}
 			/>
 		</div>
-	)
+	);
 }

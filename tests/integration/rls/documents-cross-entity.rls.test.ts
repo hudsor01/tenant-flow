@@ -14,20 +14,20 @@
  * surfaces.
  */
 
-import { createTestClient, getTestCredentials } from '../setup/supabase-client'
-import type { SupabaseClient } from '@supabase/supabase-js'
+import type { SupabaseClient } from "@supabase/supabase-js";
+import { createTestClient, getTestCredentials } from "../setup/supabase-client";
 
-const BUCKET = 'tenant-documents'
+const BUCKET = "tenant-documents";
 
 interface Fixture {
-	property: { id: string } | null
-	lease: { id: string } | null
-	tenant: { id: string } | null
-	maintenanceRequest: { id: string } | null
-	inspection: { id: string } | null
-	unit: { id: string } | null
+	property: { id: string } | null;
+	lease: { id: string } | null;
+	tenant: { id: string } | null;
+	maintenanceRequest: { id: string } | null;
+	inspection: { id: string } | null;
+	unit: { id: string } | null;
 	// Uploaded storage paths for cleanup.
-	uploadedPaths: string[]
+	uploadedPaths: string[];
 }
 
 function emptyFixture(): Fixture {
@@ -38,79 +38,79 @@ function emptyFixture(): Fixture {
 		maintenanceRequest: null,
 		inspection: null,
 		unit: null,
-		uploadedPaths: []
-	}
+		uploadedPaths: [],
+	};
 }
 
 async function createFixtures(
 	client: SupabaseClient,
 	ownerId: string,
-	label: string
+	label: string,
 ): Promise<Fixture> {
-	const fix = emptyFixture()
+	const fix = emptyFixture();
 
 	const { data: p } = await client
-		.from('properties')
+		.from("properties")
 		.insert({
 			name: `Phase-59 ${label} Property`,
-			address_line1: '1 Test St',
-			city: 'Testville',
-			state: 'CA',
-			postal_code: '94105',
-			country: 'US',
-			property_type: 'APARTMENT',
-			owner_user_id: ownerId
+			address_line1: "1 Test St",
+			city: "Testville",
+			state: "CA",
+			postal_code: "94105",
+			country: "US",
+			property_type: "APARTMENT",
+			owner_user_id: ownerId,
 		})
-		.select('id')
-		.single()
-	fix.property = p ? { id: p.id } : null
+		.select("id")
+		.single();
+	fix.property = p ? { id: p.id } : null;
 
 	if (fix.property) {
 		const { data: u } = await client
-			.from('units')
+			.from("units")
 			.insert({
 				property_id: fix.property.id,
 				unit_number: `P59-${label}-101`,
 				bedrooms: 1,
 				bathrooms: 1,
 				rent_amount: 1500,
-				owner_user_id: ownerId
+				owner_user_id: ownerId,
 			})
-			.select('id')
-			.single()
-		fix.unit = u ? { id: u.id } : null
+			.select("id")
+			.single();
+		fix.unit = u ? { id: u.id } : null;
 	}
 
 	const { data: t } = await client
-		.from('tenants')
+		.from("tenants")
 		.insert({
 			email: `phase59-${label.toLowerCase()}-${Date.now()}@example.com`,
-			first_name: 'Phase',
+			first_name: "Phase",
 			last_name: `Tester-${label}`,
-			owner_user_id: ownerId
+			owner_user_id: ownerId,
 		})
-		.select('id')
-		.single()
-	fix.tenant = t ? { id: t.id } : null
+		.select("id")
+		.single();
+	fix.tenant = t ? { id: t.id } : null;
 
 	if (fix.unit && fix.tenant) {
 		const { data: l } = await client
-			.from('leases')
+			.from("leases")
 			.insert({
 				unit_id: fix.unit.id,
 				primary_tenant_id: fix.tenant.id,
-				start_date: '2026-05-01',
-				end_date: '2027-04-30',
+				start_date: "2026-05-01",
+				end_date: "2027-04-30",
 				rent_amount: 1800,
 				security_deposit: 1800,
 				payment_day: 1,
-				lease_status: 'draft',
-				rent_currency: 'USD',
-				owner_user_id: ownerId
+				lease_status: "draft",
+				rent_currency: "USD",
+				owner_user_id: ownerId,
 			})
-			.select('id')
-			.single()
-		fix.lease = l ? { id: l.id } : null
+			.select("id")
+			.single();
+		fix.lease = l ? { id: l.id } : null;
 	}
 
 	if (fix.unit && fix.tenant) {
@@ -118,21 +118,24 @@ async function createFixtures(
 		// not property_id — the table descends from units, not properties.
 		// priority enum: 'low' | 'normal' | 'high' | 'urgent'.
 		const { data: m, error: mErr } = await client
-			.from('maintenance_requests')
+			.from("maintenance_requests")
 			.insert({
 				unit_id: fix.unit.id,
 				tenant_id: fix.tenant.id,
 				title: `Phase-59 ${label} Maintenance`,
-				description: 'Integration test fixture',
-				status: 'open',
-				priority: 'normal',
-				owner_user_id: ownerId
+				description: "Integration test fixture",
+				status: "open",
+				priority: "normal",
+				owner_user_id: ownerId,
 			})
-			.select('id')
-			.single()
+			.select("id")
+			.single();
 		if (mErr)
-			console.warn(`maintenance_request insert failed for ${label}:`, mErr.message)
-		fix.maintenanceRequest = m ? { id: m.id } : null
+			console.warn(
+				`maintenance_request insert failed for ${label}:`,
+				mErr.message,
+			);
+		fix.maintenanceRequest = m ? { id: m.id } : null;
 	}
 
 	if (fix.property && fix.lease) {
@@ -140,86 +143,100 @@ async function createFixtures(
 		// .property_id are both NOT NULL; unit_id is optional.
 		// Defaults: inspection_type='move_in', status='pending'.
 		const { data: insp, error: inspErr } = await client
-			.from('inspections')
+			.from("inspections")
 			.insert({
 				lease_id: fix.lease.id,
 				property_id: fix.property.id,
 				unit_id: fix.unit?.id ?? null,
-				owner_user_id: ownerId
+				owner_user_id: ownerId,
 			})
-			.select('id')
-			.single()
+			.select("id")
+			.single();
 		if (inspErr)
-			console.warn(`inspection insert failed for ${label}:`, inspErr.message)
-		fix.inspection = insp ? { id: insp.id } : null
+			console.warn(`inspection insert failed for ${label}:`, inspErr.message);
+		fix.inspection = insp ? { id: insp.id } : null;
 	}
 
-	return fix
+	return fix;
 }
 
 async function cleanupFixtures(client: SupabaseClient, fix: Fixture) {
 	if (fix.uploadedPaths.length > 0) {
-		await client.storage.from(BUCKET).remove(fix.uploadedPaths).catch(() => {})
+		await client.storage
+			.from(BUCKET)
+			.remove(fix.uploadedPaths)
+			.catch(() => {});
 	}
 	if (fix.inspection) {
-		await client.from('inspections').delete().eq('id', fix.inspection.id)
+		await client.from("inspections").delete().eq("id", fix.inspection.id);
 	}
 	if (fix.maintenanceRequest) {
-		await client.from('maintenance_requests').delete().eq('id', fix.maintenanceRequest.id)
+		await client
+			.from("maintenance_requests")
+			.delete()
+			.eq("id", fix.maintenanceRequest.id);
 	}
-	if (fix.lease) await client.from('leases').delete().eq('id', fix.lease.id)
-	if (fix.tenant) await client.from('tenants').delete().eq('id', fix.tenant.id)
-	if (fix.unit) await client.from('units').delete().eq('id', fix.unit.id)
-	if (fix.property) await client.from('properties').delete().eq('id', fix.property.id)
+	if (fix.lease) await client.from("leases").delete().eq("id", fix.lease.id);
+	if (fix.tenant) await client.from("tenants").delete().eq("id", fix.tenant.id);
+	if (fix.unit) await client.from("units").delete().eq("id", fix.unit.id);
+	if (fix.property)
+		await client.from("properties").delete().eq("id", fix.property.id);
 }
 
-describe('Documents cross-entity storage RLS', () => {
-	let clientA: SupabaseClient
-	let clientB: SupabaseClient
-	let ownerAId: string
-	let ownerBId: string
-	let fixA: Fixture = emptyFixture()
-	let fixB: Fixture = emptyFixture()
+describe("Documents cross-entity storage RLS", () => {
+	let clientA: SupabaseClient;
+	let clientB: SupabaseClient;
+	let ownerAId: string;
+	let ownerBId: string;
+	let fixA: Fixture = emptyFixture();
+	let fixB: Fixture = emptyFixture();
 
 	beforeAll(async () => {
-		const { ownerA, ownerB } = getTestCredentials()
-		clientA = await createTestClient(ownerA.email, ownerA.password)
-		clientB = await createTestClient(ownerB.email, ownerB.password)
-		const { data: { user: uA } } = await clientA.auth.getUser()
-		const { data: { user: uB } } = await clientB.auth.getUser()
-		ownerAId = uA!.id
-		ownerBId = uB!.id
+		const { ownerA, ownerB } = getTestCredentials();
+		clientA = await createTestClient(ownerA.email, ownerA.password);
+		clientB = await createTestClient(ownerB.email, ownerB.password);
+		const {
+			data: { user: uA },
+		} = await clientA.auth.getUser();
+		const {
+			data: { user: uB },
+		} = await clientB.auth.getUser();
+		ownerAId = uA!.id;
+		ownerBId = uB!.id;
 
-		fixA = await createFixtures(clientA, ownerAId, 'A')
-		fixB = await createFixtures(clientB, ownerBId, 'B')
+		fixA = await createFixtures(clientA, ownerAId, "A");
+		fixB = await createFixtures(clientB, ownerBId, "B");
 
 		// Fail the suite loudly if any fixture failed to create.
 		// Cycle-3 audit caught this: a silent `fix.X = null` previously
 		// made downstream `if (!id) return` branches skip with zero
 		// assertions, which Vitest counted as PASSED.
-		for (const [label, f] of [['A', fixA], ['B', fixB]] as const) {
+		for (const [label, f] of [
+			["A", fixA],
+			["B", fixB],
+		] as const) {
 			for (const key of [
-				'property',
-				'unit',
-				'tenant',
-				'lease',
-				'maintenanceRequest',
-				'inspection'
+				"property",
+				"unit",
+				"tenant",
+				"lease",
+				"maintenanceRequest",
+				"inspection",
 			] as const) {
 				expect(
 					f[key],
-					`owner ${label} fixture "${key}" failed to create — check prior test data leaks or RLS drift`
-				).not.toBeNull()
+					`owner ${label} fixture "${key}" failed to create — check prior test data leaks or RLS drift`,
+				).not.toBeNull();
 			}
 		}
-	})
+	});
 
 	afterAll(async () => {
-		await cleanupFixtures(clientA, fixA)
-		await cleanupFixtures(clientB, fixB)
-		await clientA.auth.signOut()
-		await clientB.auth.signOut()
-	})
+		await cleanupFixtures(clientA, fixA);
+		await cleanupFixtures(clientB, fixB);
+		await clientA.auth.signOut();
+		await clientB.auth.signOut();
+	});
 
 	// Helper: upload a document to ownerA's entity, verify ownerB can't access it.
 	// `beforeAll` already asserts every fixture ID is non-null, so the non-null
@@ -227,30 +244,30 @@ describe('Documents cross-entity storage RLS', () => {
 	// the suite before any `it()` ran.
 	async function assertCrossOwnerIsolation(
 		entityType:
-			| 'property'
-			| 'lease'
-			| 'tenant'
-			| 'maintenance_request'
-			| 'inspection',
-		entityIdGetter: (f: Fixture) => string | undefined
+			| "property"
+			| "lease"
+			| "tenant"
+			| "maintenance_request"
+			| "inspection",
+		entityIdGetter: (f: Fixture) => string | undefined,
 	) {
-		const idA = entityIdGetter(fixA)!
+		const idA = entityIdGetter(fixA)!;
 
-		const path = `${entityType}/${idA}/${Date.now()}-test.pdf`
+		const path = `${entityType}/${idA}/${Date.now()}-test.pdf`;
 		// Minimal valid PDF payload — the bucket's MIME allowlist accepts
 		// application/pdf, and an actual PDF magic-byte header means every
 		// environment (including stricter ones that sniff) accepts it.
-		const pdfBlob = new Blob(['%PDF-1.4\n%%EOF'], { type: 'application/pdf' })
+		const pdfBlob = new Blob(["%PDF-1.4\n%%EOF"], { type: "application/pdf" });
 		const { error: upErr } = await clientA.storage
 			.from(BUCKET)
-			.upload(path, pdfBlob, { contentType: 'application/pdf' })
-		expect(upErr).toBeNull()
-		fixA.uploadedPaths.push(path)
+			.upload(path, pdfBlob, { contentType: "application/pdf" });
+		expect(upErr).toBeNull();
+		fixA.uploadedPaths.push(path);
 
 		// ownerB cannot see it via list
-		const prefix = `${entityType}/${idA}`
-		const { data: listedByB } = await clientB.storage.from(BUCKET).list(prefix)
-		expect(listedByB ?? []).toHaveLength(0)
+		const prefix = `${entityType}/${idA}`;
+		const { data: listedByB } = await clientB.storage.from(BUCKET).list(prefix);
+		expect(listedByB ?? []).toHaveLength(0);
 
 		// ownerB cannot download/signed-url it. createSignedUrl is the one
 		// storage API that returns an explicit error on RLS block (list
@@ -259,77 +276,79 @@ describe('Documents cross-entity storage RLS', () => {
 		// change that starts returning data with no error on denied paths.
 		const { data: signedB, error: signErr } = await clientB.storage
 			.from(BUCKET)
-			.createSignedUrl(path, 60)
-		expect(signedB).toBeNull()
-		expect(signErr).not.toBeNull()
+			.createSignedUrl(path, 60);
+		expect(signedB).toBeNull();
+		expect(signErr).not.toBeNull();
 
 		// ownerB cannot delete it — if this returned data with non-empty
 		// array it would mean RLS let them through.
-		const { data: removedB } = await clientB.storage.from(BUCKET).remove([path])
-		expect(removedB ?? []).toHaveLength(0)
+		const { data: removedB } = await clientB.storage
+			.from(BUCKET)
+			.remove([path]);
+		expect(removedB ?? []).toHaveLength(0);
 
 		// ownerA can still see it
-		const { data: listedByA } = await clientA.storage.from(BUCKET).list(prefix)
-		expect(listedByA?.length ?? 0).toBeGreaterThan(0)
+		const { data: listedByA } = await clientA.storage.from(BUCKET).list(prefix);
+		expect(listedByA?.length ?? 0).toBeGreaterThan(0);
 	}
 
-	it('property branch — ownerB cannot access ownerA uploads', async () => {
-		await assertCrossOwnerIsolation('property', f => f.property?.id)
-	})
+	it("property branch — ownerB cannot access ownerA uploads", async () => {
+		await assertCrossOwnerIsolation("property", (f) => f.property?.id);
+	});
 
-	it('lease branch — ownerB cannot access ownerA uploads', async () => {
-		await assertCrossOwnerIsolation('lease', f => f.lease?.id)
-	})
+	it("lease branch — ownerB cannot access ownerA uploads", async () => {
+		await assertCrossOwnerIsolation("lease", (f) => f.lease?.id);
+	});
 
-	it('tenant branch — ownerB cannot access ownerA uploads', async () => {
-		await assertCrossOwnerIsolation('tenant', f => f.tenant?.id)
-	})
+	it("tenant branch — ownerB cannot access ownerA uploads", async () => {
+		await assertCrossOwnerIsolation("tenant", (f) => f.tenant?.id);
+	});
 
-	it('maintenance_request branch — ownerB cannot access ownerA uploads', async () => {
+	it("maintenance_request branch — ownerB cannot access ownerA uploads", async () => {
 		await assertCrossOwnerIsolation(
-			'maintenance_request',
-			f => f.maintenanceRequest?.id
-		)
-	})
+			"maintenance_request",
+			(f) => f.maintenanceRequest?.id,
+		);
+	});
 
-	it('inspection branch — ownerB cannot access ownerA uploads (Phase 62)', async () => {
-		await assertCrossOwnerIsolation('inspection', f => f.inspection?.id)
-	})
+	it("inspection branch — ownerB cannot access ownerA uploads (Phase 62)", async () => {
+		await assertCrossOwnerIsolation("inspection", (f) => f.inspection?.id);
+	});
 
 	// Parameterize the path-guard tests across every entity type. A future
 	// migration that accidentally drops the array_length or UUID regex on
 	// just one branch should fail CI instead of silently allowing path
 	// traversal on that branch.
 	const entityBranches = [
-		{ type: 'property' as const, getId: (f: Fixture) => f.property?.id },
-		{ type: 'lease' as const, getId: (f: Fixture) => f.lease?.id },
-		{ type: 'tenant' as const, getId: (f: Fixture) => f.tenant?.id },
+		{ type: "property" as const, getId: (f: Fixture) => f.property?.id },
+		{ type: "lease" as const, getId: (f: Fixture) => f.lease?.id },
+		{ type: "tenant" as const, getId: (f: Fixture) => f.tenant?.id },
 		{
-			type: 'maintenance_request' as const,
-			getId: (f: Fixture) => f.maintenanceRequest?.id
+			type: "maintenance_request" as const,
+			getId: (f: Fixture) => f.maintenanceRequest?.id,
 		},
-		{ type: 'inspection' as const, getId: (f: Fixture) => f.inspection?.id }
-	]
+		{ type: "inspection" as const, getId: (f: Fixture) => f.inspection?.id },
+	];
 
 	for (const { type, getId } of entityBranches) {
 		it(`${type}: rejects upload with off-convention path segments (3-segment)`, async () => {
 			// `beforeAll` asserts fixtures; non-null unwrap is safe.
-			const id = getId(fixA)!
-			const badPath = `${type}/${id}/sub/${Date.now()}-evil.pdf`
-			const pdf = new Blob(['%PDF-1.4\n%%EOF'], { type: 'application/pdf' })
+			const id = getId(fixA)!;
+			const badPath = `${type}/${id}/sub/${Date.now()}-evil.pdf`;
+			const pdf = new Blob(["%PDF-1.4\n%%EOF"], { type: "application/pdf" });
 			const { error } = await clientA.storage
 				.from(BUCKET)
-				.upload(badPath, pdf, { contentType: 'application/pdf' })
-			expect(error).not.toBeNull()
-		})
+				.upload(badPath, pdf, { contentType: "application/pdf" });
+			expect(error).not.toBeNull();
+		});
 
 		it(`${type}: rejects upload with non-UUID entity_id segment`, async () => {
-			const badPath = `${type}/not-a-uuid/${Date.now()}-evil.pdf`
-			const pdf = new Blob(['%PDF-1.4\n%%EOF'], { type: 'application/pdf' })
+			const badPath = `${type}/not-a-uuid/${Date.now()}-evil.pdf`;
+			const pdf = new Blob(["%PDF-1.4\n%%EOF"], { type: "application/pdf" });
 			const { error } = await clientA.storage
 				.from(BUCKET)
-				.upload(badPath, pdf, { contentType: 'application/pdf' })
-			expect(error).not.toBeNull()
-		})
+				.upload(badPath, pdf, { contentType: "application/pdf" });
+			expect(error).not.toBeNull();
+		});
 	}
-})
+});

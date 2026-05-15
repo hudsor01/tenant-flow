@@ -1,9 +1,18 @@
-'use client'
+"use client";
 
-import type { ReactNode } from 'react'
-import { FileText, DollarSign, Building2, Wrench, Calendar, TrendingUp, Receipt, Users } from 'lucide-react'
-import { BlurFade } from '#components/ui/blur-fade'
-import type { ReportType } from './types'
+import {
+	Building2,
+	Calendar,
+	DollarSign,
+	FileText,
+	Receipt,
+	TrendingUp,
+	Users,
+	Wrench,
+} from "lucide-react";
+import type { ReactNode } from "react";
+import { BlurFade } from "#components/ui/blur-fade";
+import type { ReportType } from "./types";
 
 const iconMap: Record<string, ReactNode> = {
 	DollarSign: <DollarSign className="w-6 h-6" />,
@@ -13,21 +22,21 @@ const iconMap: Record<string, ReactNode> = {
 	Calendar: <Calendar className="w-6 h-6" />,
 	TrendingUp: <TrendingUp className="w-6 h-6" />,
 	Receipt: <Receipt className="w-6 h-6" />,
-	Users: <Users className="w-6 h-6" />
-}
+	Users: <Users className="w-6 h-6" />,
+};
 
 interface ReportsTypeGridProps {
-	filteredTypes: ReportType[]
-	selectedCategory: 'all' | 'financial' | 'operations'
-	onCategoryChange: (category: 'all' | 'financial' | 'operations') => void
-	onGenerateReport: ((typeId: string) => void) | undefined
+	filteredTypes: ReportType[];
+	selectedCategory: "all" | "financial" | "operations";
+	onCategoryChange: (category: "all" | "financial" | "operations") => void;
+	onGenerateReport: ((typeId: string) => void) | undefined;
 }
 
 export function ReportsTypeGrid({
 	filteredTypes,
 	selectedCategory,
 	onCategoryChange,
-	onGenerateReport
+	onGenerateReport,
 }: ReportsTypeGridProps) {
 	return (
 		<>
@@ -35,25 +44,25 @@ export function ReportsTypeGrid({
 			<BlurFade delay={0.6} inView>
 				<div className="flex items-center gap-2 mb-6">
 					<div className="flex items-center gap-1 p-1 bg-muted rounded-lg">
-						{(['all', 'financial', 'operations'] as const).map(cat => (
+						{(["all", "financial", "operations"] as const).map((cat) => (
 							<button
 								key={cat}
 								onClick={() => onCategoryChange(cat)}
 								className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${
 									selectedCategory === cat
-										? 'bg-background text-foreground shadow-sm'
-										: 'text-muted-foreground hover:text-foreground'
+										? "bg-background text-foreground shadow-sm"
+										: "text-muted-foreground hover:text-foreground"
 								}`}
 							>
-								{cat === 'all'
-									? 'All Reports'
+								{cat === "all"
+									? "All Reports"
 									: cat.charAt(0).toUpperCase() + cat.slice(1)}
 							</button>
 						))}
 					</div>
 					<span className="ml-auto text-sm text-muted-foreground">
-						{filteredTypes.length}{' '}
-						{filteredTypes.length === 1 ? 'template' : 'templates'}
+						{filteredTypes.length}{" "}
+						{filteredTypes.length === 1 ? "template" : "templates"}
 					</span>
 				</div>
 			</BlurFade>
@@ -67,30 +76,32 @@ export function ReportsTypeGrid({
 								<div className="flex items-start justify-between mb-4">
 									<div
 										className={`w-12 h-12 rounded-lg flex items-center justify-center ${
-											type.category === 'financial'
-												? 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400'
-												: 'bg-primary/10 text-primary'
+											type.category === "financial"
+												? "bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400"
+												: "bg-primary/10 text-primary"
 										}`}
 									>
 										{iconMap[type.icon] || <FileText className="w-6 h-6" />}
 									</div>
 									<span
 										className={`text-xs px-2 py-1 rounded-full ${
-											type.category === 'financial'
-												? 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300'
-												: 'bg-muted text-muted-foreground'
+											type.category === "financial"
+												? "bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300"
+												: "bg-muted text-muted-foreground"
 										}`}
 									>
 										{type.category}
 									</span>
 								</div>
-								<h3 className="font-medium text-foreground mb-1">{type.name}</h3>
+								<h3 className="font-medium text-foreground mb-1">
+									{type.name}
+								</h3>
 								<p className="text-sm text-muted-foreground mb-4 line-clamp-2">
 									{type.description}
 								</p>
 								<div className="flex items-center justify-between">
 									<div className="flex items-center gap-1">
-										{type.formats.map(fmt => (
+										{type.formats.map((fmt) => (
 											<span
 												key={fmt}
 												className="text-xs px-1.5 py-0.5 bg-muted rounded text-muted-foreground uppercase"
@@ -112,5 +123,5 @@ export function ReportsTypeGrid({
 				</div>
 			</BlurFade>
 		</>
-	)
+	);
 }

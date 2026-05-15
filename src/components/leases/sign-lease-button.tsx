@@ -1,9 +1,8 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
-import { PenLine, CheckCircle2, AlertCircle } from 'lucide-react'
-import { toast } from 'sonner'
-import { Button } from '#components/ui/button'
+import { AlertCircle, CheckCircle2, PenLine } from "lucide-react";
+import { useState } from "react";
+import { toast } from "sonner";
 import {
 	AlertDialog,
 	AlertDialogAction,
@@ -13,23 +12,27 @@ import {
 	AlertDialogFooter,
 	AlertDialogHeader,
 	AlertDialogTitle,
-	AlertDialogTrigger
-} from '#components/ui/alert-dialog'
-import { Checkbox } from '#components/ui/checkbox'
-import { Label } from '#components/ui/label'
-import { useSignLeaseAsOwnerMutation, useSignLeaseAsTenantMutation } from '#hooks/api/use-lease-signature-mutations'
-import { cn } from '#lib/utils'
+	AlertDialogTrigger,
+} from "#components/ui/alert-dialog";
+import { Button } from "#components/ui/button";
+import { Checkbox } from "#components/ui/checkbox";
+import { Label } from "#components/ui/label";
+import {
+	useSignLeaseAsOwnerMutation,
+	useSignLeaseAsTenantMutation,
+} from "#hooks/api/use-lease-signature-mutations";
+import { cn } from "#lib/utils";
 
-type SignerRole = 'owner' | 'tenant'
+type SignerRole = "owner" | "tenant";
 
 interface SignLeaseButtonProps {
-	leaseId: string
-	role: SignerRole
-	disabled?: boolean
-	alreadySigned?: boolean
-	className?: string
-	variant?: 'default' | 'outline' | 'secondary' | 'ghost'
-	size?: 'default' | 'sm' | 'lg' | 'icon'
+	leaseId: string;
+	role: SignerRole;
+	disabled?: boolean;
+	alreadySigned?: boolean;
+	className?: string;
+	variant?: "default" | "outline" | "secondary" | "ghost";
+	size?: "default" | "sm" | "lg" | "icon";
 }
 
 /**
@@ -42,38 +45,38 @@ export function SignLeaseButton({
 	disabled = false,
 	alreadySigned = false,
 	className,
-	variant = 'default',
-	size = 'default'
+	variant = "default",
+	size = "default",
 }: SignLeaseButtonProps) {
-	const [agreed, setAgreed] = useState(false)
-	const [open, setOpen] = useState(false)
-	const signAsOwner = useSignLeaseAsOwnerMutation()
-	const signAsTenant = useSignLeaseAsTenantMutation()
+	const [agreed, setAgreed] = useState(false);
+	const [open, setOpen] = useState(false);
+	const signAsOwner = useSignLeaseAsOwnerMutation();
+	const signAsTenant = useSignLeaseAsTenantMutation();
 
-	const mutation = role === 'owner' ? signAsOwner : signAsTenant
+	const mutation = role === "owner" ? signAsOwner : signAsTenant;
 
 	const handleSign = async () => {
 		if (!agreed) {
-			toast.error('Please agree to the terms before signing')
-			return
+			toast.error("Please agree to the terms before signing");
+			return;
 		}
 
 		try {
-			await mutation.mutateAsync(leaseId)
-			toast.success('Lease signed successfully', {
-				description: 'Your signature has been recorded.',
-				icon: <CheckCircle2 className="h-4 w-4 text-success" />
-			})
-			setOpen(false)
-			setAgreed(false)
+			await mutation.mutateAsync(leaseId);
+			toast.success("Lease signed successfully", {
+				description: "Your signature has been recorded.",
+				icon: <CheckCircle2 className="h-4 w-4 text-success" />,
+			});
+			setOpen(false);
+			setAgreed(false);
 		} catch (error) {
-			toast.error('Failed to sign lease', {
+			toast.error("Failed to sign lease", {
 				description:
-					error instanceof Error ? error.message : 'Please try again.',
-				icon: <AlertCircle className="h-4 w-4 text-destructive" />
-			})
+					error instanceof Error ? error.message : "Please try again.",
+				icon: <AlertCircle className="h-4 w-4 text-destructive" />,
+			});
 		}
-	}
+	};
 
 	if (alreadySigned) {
 		return (
@@ -81,15 +84,15 @@ export function SignLeaseButton({
 				variant="outline"
 				size={size}
 				disabled
-				className={cn('gap-2 text-success border-success/20', className)}
+				className={cn("gap-2 text-success border-success/20", className)}
 			>
 				<CheckCircle2 className="h-4 w-4" />
 				Signed
 			</Button>
-		)
+		);
 	}
 
-	const roleLabel = role === 'owner' ? 'Owner' : 'Tenant'
+	const roleLabel = role === "owner" ? "Owner" : "Tenant";
 
 	return (
 		<AlertDialog open={open} onOpenChange={setOpen}>
@@ -98,7 +101,7 @@ export function SignLeaseButton({
 					variant={variant}
 					size={size}
 					disabled={disabled}
-					className={cn('gap-2', className)}
+					className={cn("gap-2", className)}
 					data-testid={`sign-lease-${role}-button`}
 				>
 					<PenLine className="h-4 w-4" />
@@ -110,7 +113,7 @@ export function SignLeaseButton({
 					<AlertDialogTitle>Sign Lease Agreement</AlertDialogTitle>
 					<AlertDialogDescription className="space-y-3">
 						<p>
-							You are about to electronically sign this lease agreement as the{' '}
+							You are about to electronically sign this lease agreement as the{" "}
 							<strong>{roleLabel.toLowerCase()}</strong>.
 						</p>
 						<p>
@@ -127,7 +130,7 @@ export function SignLeaseButton({
 					<Checkbox
 						id="agree-terms"
 						checked={agreed}
-						onCheckedChange={checked => setAgreed(checked === true)}
+						onCheckedChange={(checked) => setAgreed(checked === true)}
 					/>
 					<Label
 						htmlFor="agree-terms"
@@ -143,15 +146,15 @@ export function SignLeaseButton({
 						Cancel
 					</AlertDialogCancel>
 					<AlertDialogAction
-						onClick={e => {
-							e.preventDefault()
-							handleSign()
+						onClick={(e) => {
+							e.preventDefault();
+							handleSign();
 						}}
 						disabled={!agreed || mutation.isPending}
 						className="gap-2"
 					>
 						{mutation.isPending ? (
-							'Signing...'
+							"Signing..."
 						) : (
 							<>
 								<PenLine className="h-4 w-4" />
@@ -162,16 +165,16 @@ export function SignLeaseButton({
 				</AlertDialogFooter>
 			</AlertDialogContent>
 		</AlertDialog>
-	)
+	);
 }
 
 interface SignLeaseActionsProps {
-	leaseId: string
-	role: SignerRole
-	ownerSigned: boolean
-	tenantSigned: boolean
-	isPendingSignature: boolean
-	className?: string
+	leaseId: string;
+	role: SignerRole;
+	ownerSigned: boolean;
+	tenantSigned: boolean;
+	isPendingSignature: boolean;
+	className?: string;
 }
 
 /**
@@ -183,24 +186,24 @@ export function SignLeaseActions({
 	ownerSigned,
 	tenantSigned,
 	isPendingSignature,
-	className
+	className,
 }: SignLeaseActionsProps) {
-	const hasSigned = role === 'owner' ? ownerSigned : tenantSigned
-	const bothSigned = ownerSigned && tenantSigned
+	const hasSigned = role === "owner" ? ownerSigned : tenantSigned;
+	const bothSigned = ownerSigned && tenantSigned;
 
 	// If both signed, show completed state
 	if (bothSigned) {
 		return (
-			<div className={cn('flex items-center gap-2 text-success', className)}>
+			<div className={cn("flex items-center gap-2 text-success", className)}>
 				<CheckCircle2 className="h-5 w-5" />
 				<span className="font-medium">Lease Fully Signed</span>
 			</div>
-		)
+		);
 	}
 
 	// If not in pending signature state, don't show sign button
 	if (!isPendingSignature) {
-		return null
+		return null;
 	}
 
 	return (
@@ -208,7 +211,7 @@ export function SignLeaseActions({
 			leaseId={leaseId}
 			role={role}
 			alreadySigned={hasSigned}
-			className={className ?? ''}
+			className={className ?? ""}
 		/>
-	)
+	);
 }

@@ -1,5 +1,5 @@
-import { UnitForm } from '#components/units/unit-form.client'
-import { RouteModal } from '#components/ui/route-modal'
+import { RouteModal } from "#components/ui/route-modal";
+import { UnitForm } from "#components/units/unit-form.client";
 
 /**
  * New Unit Modal (Intercepting Route)
@@ -18,5 +18,5 @@ export default function NewUnitModal() {
 				<UnitForm mode="create" />
 			</div>
 		</RouteModal>
-	)
+	);
 }

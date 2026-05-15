@@ -1,4 +1,4 @@
-'use client'
+"use client";
 
 /**
  * Leases Page
@@ -7,44 +7,43 @@
  * See stores/leases-store.ts for state structure.
  */
 
-import { useEffect, Suspense } from 'react'
-import { Plus } from 'lucide-react'
-import { useLeaseList } from '#hooks/api/use-lease'
-import { useDeleteLeaseMutation } from '#hooks/api/use-lease-mutations'
-import { useRouter, useSearchParams } from 'next/navigation'
-import Link from 'next/link'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '#components/ui/tabs'
-import { BlurFade } from '#components/ui/blur-fade'
+import { FileText, Plus } from "lucide-react";
+import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";
+import { Suspense, useEffect } from "react";
 import {
 	LeaseInsightsSection,
-	LeaseInsightsSkeleton
-} from '#components/analytics/lease-insights-section'
+	LeaseInsightsSkeleton,
+} from "#components/analytics/lease-insights-section";
+import { BulkImportDialog } from "#components/bulk-import/bulk-import-dialog";
+import { leaseBulkImportConfig } from "#components/leases/bulk-import-config";
+import { LeasesDialogs } from "#components/leases/dialogs/leases-dialogs";
 
 import {
-	transformLease,
+	type LeaseDisplay,
 	type LeaseWithNestedRelations,
-	type LeaseDisplay
-} from '#components/leases/table/lease-utils'
-import { LeasesPageSkeleton } from '#components/leases/table/leases-page-skeleton'
+	transformLease,
+} from "#components/leases/table/lease-utils";
+import { LeasesPageSkeleton } from "#components/leases/table/leases-page-skeleton";
+import { LeasesTable } from "#components/leases/table/leases-table";
+import { BlurFade } from "#components/ui/blur-fade";
 import {
 	Empty,
 	EmptyDescription,
 	EmptyHeader,
 	EmptyMedia,
-	EmptyTitle
-} from '#components/ui/empty'
-import { FileText } from 'lucide-react'
-import { LeasesTable } from '#components/leases/table/leases-table'
-import { LeasesStatCards } from './leases-stat-cards'
-import { LeasesDialogs } from '#components/leases/dialogs/leases-dialogs'
-import { useLeasesStore } from '#stores/leases-store'
-import { BulkImportDialog } from '#components/bulk-import/bulk-import-dialog'
-import { leaseBulkImportConfig } from '#components/leases/bulk-import-config'
+	EmptyTitle,
+} from "#components/ui/empty";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "#components/ui/tabs";
+import { useLeaseList } from "#hooks/api/use-lease";
+import { useDeleteLeaseMutation } from "#hooks/api/use-lease-mutations";
+import { useLeasesStore } from "#stores/leases-store";
+import { LeasesStatCards } from "./leases-stat-cards";
 
 export default function LeasesPage() {
-	const router = useRouter()
-	const searchParams = useSearchParams()
-	const tabFromUrl = searchParams.get('tab') ?? 'overview'
+	const router = useRouter();
+	const searchParams = useSearchParams();
+	const tabFromUrl = searchParams.get("tab") ?? "overview";
 
 	// Get state and actions from Zustand store
 	const {
@@ -72,76 +71,93 @@ export default function LeasesPage() {
 		openTerminateDialog,
 		closeRenewDialog,
 		closeTerminateDialog,
-		closeDeleteDialog
-	} = useLeasesStore()
+		closeDeleteDialog,
+	} = useLeasesStore();
 
 	// Sync URL tab with store when URL changes
 	useEffect(() => {
-		setActiveTab(tabFromUrl)
-	}, [tabFromUrl, setActiveTab])
+		setActiveTab(tabFromUrl);
+	}, [tabFromUrl, setActiveTab]);
 
 	const handleTabChange = (value: string) => {
-		setActiveTab(value)
-		const params = new URLSearchParams(searchParams.toString())
-		if (value === 'overview') params.delete('tab')
-		else params.set('tab', value)
-		router.replace(`/leases${params.toString() ? `?${params.toString()}` : ''}`, { scroll: false })
-	}
+		setActiveTab(value);
+		const params = new URLSearchParams(searchParams.toString());
+		if (value === "overview") params.delete("tab");
+		else params.set("tab", value);
+		router.replace(
+			`/leases${params.toString() ? `?${params.toString()}` : ""}`,
+			{ scroll: false },
+		);
+	};
 
-	const { data: leasesResponse, isLoading, error } = useLeaseList({ limit: 50, offset: 0 })
-	const deleteLeaseMutation = useDeleteLeaseMutation()
+	const {
+		data: leasesResponse,
+		isLoading,
+		error,
+	} = useLeaseList({ limit: 50, offset: 0 });
+	const deleteLeaseMutation = useDeleteLeaseMutation();
 
-	const rawLeases = leasesResponse?.data ?? []
+	const rawLeases = leasesResponse?.data ?? [];
 
 	const leases: LeaseDisplay[] = (() => {
-		return rawLeases.map(lease =>
-			transformLease(lease as LeaseWithNestedRelations)
-		)
-	})()
+		return rawLeases.map((lease) =>
+			transformLease(lease as LeaseWithNestedRelations),
+		);
+	})();
 
-	const totalLeases = leases.length
-	const activeLeases = leases.filter(l => l.status === 'active').length
-	const expiringLeases = leases.filter(l => l.status === 'expiring').length
+	const totalLeases = leases.length;
+	const activeLeases = leases.filter((l) => l.status === "active").length;
+	const expiringLeases = leases.filter((l) => l.status === "expiring").length;
 	const pendingLeases = leases.filter(
-		l => l.status === 'pending_signature'
-	).length
+		(l) => l.status === "pending_signature",
+	).length;
 
-	const filteredLeases = leases.filter(l => {
+	const filteredLeases = leases.filter((l) => {
 		if (searchQuery) {
-			const query = searchQuery.toLowerCase()
-			if (!(l.tenantName ?? '').toLowerCase().includes(query) && !(l.propertyName ?? '').toLowerCase().includes(query)) return false
+			const query = searchQuery.toLowerCase();
+			if (
+				!(l.tenantName ?? "").toLowerCase().includes(query) &&
+				!(l.propertyName ?? "").toLowerCase().includes(query)
+			)
+				return false;
 		}
-		if (statusFilter !== 'all' && l.status !== statusFilter) return false
-		return true
-	})
+		if (statusFilter !== "all" && l.status !== statusFilter) return false;
+		return true;
+	});
 
 	const sortedLeases = [...filteredLeases].sort((a, b) => {
 		const cmp: Record<string, number> = {
 			tenant: a.tenantName.localeCompare(b.tenantName),
 			property: a.propertyName.localeCompare(b.propertyName),
-			startDate: new Date(a.startDate).getTime() - new Date(b.startDate).getTime(),
+			startDate:
+				new Date(a.startDate).getTime() - new Date(b.startDate).getTime(),
 			endDate: new Date(a.endDate).getTime() - new Date(b.endDate).getTime(),
 			rent: a.rentAmount - b.rentAmount,
-			status: a.status.localeCompare(b.status)
-		}
-		return sortDirection === 'asc' ? (cmp[sortField] ?? 0) : -(cmp[sortField] ?? 0)
-	})
+			status: a.status.localeCompare(b.status),
+		};
+		return sortDirection === "asc"
+			? (cmp[sortField] ?? 0)
+			: -(cmp[sortField] ?? 0);
+	});
 
-	const totalPages = Math.ceil(sortedLeases.length / itemsPerPage)
-	const paginatedLeases = sortedLeases.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
+	const totalPages = Math.ceil(sortedLeases.length / itemsPerPage);
+	const paginatedLeases = sortedLeases.slice(
+		(currentPage - 1) * itemsPerPage,
+		currentPage * itemsPerPage,
+	);
 
-	const handleView = (id: string) => router.push(`/leases/${id}`)
-	const handleEdit = (id: string) => router.push(`/leases/${id}/edit`)
+	const handleView = (id: string) => router.push(`/leases/${id}`);
+	const handleEdit = (id: string) => router.push(`/leases/${id}/edit`);
 
 	const handleRenew = (lease: LeaseDisplay) => {
-		openRenewDialog(lease.original)
-	}
+		openRenewDialog(lease.original);
+	};
 
 	const handleTerminate = (lease: LeaseDisplay) => {
-		openTerminateDialog(lease.original)
-	}
+		openTerminateDialog(lease.original);
+	};
 
-	if (isLoading) return <LeasesPageSkeleton />
+	if (isLoading) return <LeasesPageSkeleton />;
 
 	if (error) {
 		return (
@@ -151,11 +167,11 @@ export default function LeasesPage() {
 						Error Loading Leases
 					</h2>
 					<p className="text-muted-foreground">
-						{error instanceof Error ? error.message : 'Failed to load leases'}
+						{error instanceof Error ? error.message : "Failed to load leases"}
 					</p>
 				</div>
 			</div>
-		)
+		);
 	}
 
 	if (leases.length === 0)
@@ -168,7 +184,8 @@ export default function LeasesPage() {
 					<EmptyHeader>
 						<EmptyTitle>No leases yet</EmptyTitle>
 						<EmptyDescription>
-							Create a lease between one of your properties and a tenant record to start tracking dates, rent, and deposits.
+							Create a lease between one of your properties and a tenant record
+							to start tracking dates, rent, and deposits.
 						</EmptyDescription>
 					</EmptyHeader>
 					<div className="flex items-center gap-3 mt-2">
@@ -182,7 +199,7 @@ export default function LeasesPage() {
 					</div>
 				</Empty>
 			</BlurFade>
-		)
+		);
 
 	return (
 		<div className="p-6 lg:p-8 bg-background min-h-full">
@@ -217,7 +234,11 @@ export default function LeasesPage() {
 				pendingLeases={pendingLeases}
 			/>
 
-			<Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
+			<Tabs
+				value={activeTab}
+				onValueChange={handleTabChange}
+				className="w-full"
+			>
 				<TabsList className="mb-4">
 					<TabsTrigger value="overview">Overview</TabsTrigger>
 					<TabsTrigger value="insights">Insights</TabsTrigger>
@@ -238,7 +259,9 @@ export default function LeasesPage() {
 						onSearchChange={setSearchQuery}
 						onStatusFilterChange={setStatusFilter}
 						onSort={toggleSort}
-						onToggleSelectAll={() => toggleSelectAll(sortedLeases.map(l => l.id))}
+						onToggleSelectAll={() =>
+							toggleSelectAll(sortedLeases.map((l) => l.id))
+						}
 						onToggleSelect={toggleSelect}
 						onPageChange={setCurrentPage}
 						onView={handleView}
@@ -262,24 +285,24 @@ export default function LeasesPage() {
 				showTerminateDialog={showTerminateDialog}
 				showDeleteDialog={showDeleteDialog}
 				isDeleting={deleteLeaseMutation.isPending}
-				onRenewOpenChange={open => {
-					if (!open) closeRenewDialog()
+				onRenewOpenChange={(open) => {
+					if (!open) closeRenewDialog();
 				}}
-				onTerminateOpenChange={open => {
-					if (!open) closeTerminateDialog()
+				onTerminateOpenChange={(open) => {
+					if (!open) closeTerminateDialog();
 				}}
-				onDeleteOpenChange={open => {
-					if (!open) closeDeleteDialog()
+				onDeleteOpenChange={(open) => {
+					if (!open) closeDeleteDialog();
 				}}
 				onRenewSuccess={closeRenewDialog}
 				onTerminateSuccess={closeTerminateDialog}
 				onDeleteConfirm={() => {
 					if (selectedLease) {
-						deleteLeaseMutation.mutate(selectedLease.id)
+						deleteLeaseMutation.mutate(selectedLease.id);
 					}
-					closeDeleteDialog()
+					closeDeleteDialog();
 				}}
 			/>
 		</div>
-	)
+	);
 }

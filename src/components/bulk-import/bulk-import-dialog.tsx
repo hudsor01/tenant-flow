@@ -1,22 +1,22 @@
-'use client'
+"use client";
 
-import { Button } from '#components/ui/button'
+import { FileUp } from "lucide-react";
+import { useCallback, useState } from "react";
+import { Button } from "#components/ui/button";
 import {
 	Dialog,
 	DialogContent,
 	DialogDescription,
 	DialogHeader,
-	DialogTitle
-} from '#components/ui/dialog'
-import { FileUp } from 'lucide-react'
-import { useCallback, useState } from 'react'
-import { BulkImportStepper } from './bulk-import-stepper'
-import type { ImportStep } from '#types/api-contracts'
-import type { BulkImportConfig } from './types'
+	DialogTitle,
+} from "#components/ui/dialog";
+import type { ImportStep } from "#types/api-contracts";
+import { BulkImportStepper } from "./bulk-import-stepper";
+import type { BulkImportConfig } from "./types";
 
 interface BulkImportDialogProps<T> {
-	config: BulkImportConfig<T>
-	triggerLabel?: string
+	config: BulkImportConfig<T>;
+	triggerLabel?: string;
 }
 
 /**
@@ -27,30 +27,30 @@ interface BulkImportDialogProps<T> {
  */
 export function BulkImportDialog<T>({
 	config,
-	triggerLabel = 'Bulk Import'
+	triggerLabel = "Bulk Import",
 }: BulkImportDialogProps<T>) {
-	const [open, setOpen] = useState(false)
-	const [currentStep, setCurrentStep] = useState<ImportStep>('upload')
-	const [importPending, setImportPending] = useState(false)
+	const [open, setOpen] = useState(false);
+	const [currentStep, setCurrentStep] = useState<ImportStep>("upload");
+	const [importPending, setImportPending] = useState(false);
 
 	const handleOpenChange = (isOpen: boolean) => {
-		if (!isOpen && importPending) return
-		setOpen(isOpen)
+		if (!isOpen && importPending) return;
+		setOpen(isOpen);
 		if (!isOpen) {
-			setCurrentStep('upload')
+			setCurrentStep("upload");
 		}
-	}
+	};
 
 	const handleInteractOutside = useCallback(
 		(e: Event) => {
-			if (importPending) e.preventDefault()
+			if (importPending) e.preventDefault();
 		},
-		[importPending]
-	)
+		[importPending],
+	);
 
 	// Memoize so the stepper's auto-close `useEffect` doesn't tear down
 	// and recreate the 5-second timer on every parent re-render.
-	const handleComplete = useCallback(() => setOpen(false), [])
+	const handleComplete = useCallback(() => setOpen(false), []);
 
 	return (
 		<>
@@ -68,12 +68,15 @@ export function BulkImportDialog<T>({
 				<DialogContent
 					className="sm:max-w-3xl max-h-[90vh] overflow-y-auto"
 					onInteractOutside={handleInteractOutside}
-					onEscapeKeyDown={e => { if (importPending) e.preventDefault() }}
+					onEscapeKeyDown={(e) => {
+						if (importPending) e.preventDefault();
+					}}
 				>
 					<DialogHeader>
 						<DialogTitle>Import {config.entityLabel.plural}</DialogTitle>
 						<DialogDescription>
-							Upload a CSV file to add multiple {config.entityLabel.plural.toLowerCase()} at once.
+							Upload a CSV file to add multiple{" "}
+							{config.entityLabel.plural.toLowerCase()} at once.
 						</DialogDescription>
 					</DialogHeader>
 
@@ -87,5 +90,5 @@ export function BulkImportDialog<T>({
 				</DialogContent>
 			</Dialog>
 		</>
-	)
+	);
 }

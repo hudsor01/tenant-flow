@@ -15,276 +15,276 @@
  * @vitest-environment jsdom
  */
 
-import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { renderHook, waitFor } from '@testing-library/react'
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import type { ReactNode } from 'react'
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { renderHook, waitFor } from "@testing-library/react";
+import type { ReactNode } from "react";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import { createQueryChain } from "#test/mocks/supabase-query-mock";
 import {
+	useExpiringLeases,
 	useLease,
 	useLeaseList,
-	useLeaseStats,
-	useExpiringLeases,
 	useLeaseSignatureStatus,
+	useLeaseStats,
+	usePrefetchLeaseDetail,
 	useSignedDocumentUrl,
-	usePrefetchLeaseDetail
-} from '../use-lease'
+} from "../use-lease";
+import {
+	useRenewLeaseMutation,
+	useTerminateLeaseMutation,
+} from "../use-lease-lifecycle-mutations";
 import {
 	useCreateLeaseMutation,
+	useDeleteLeaseMutation,
 	useUpdateLeaseMutation,
-	useDeleteLeaseMutation
-} from '../use-lease-mutations'
+} from "../use-lease-mutations";
 import {
-	useTerminateLeaseMutation,
-	useRenewLeaseMutation
-} from '../use-lease-lifecycle-mutations'
-import {
+	useCancelSignatureRequestMutation,
 	useSendLeaseForSignatureMutation,
 	useSignLeaseAsOwnerMutation,
 	useSignLeaseAsTenantMutation,
-	useCancelSignatureRequestMutation
-} from '../use-lease-signature-mutations'
-import { createQueryChain } from '#test/mocks/supabase-query-mock'
+} from "../use-lease-signature-mutations";
 
 // Mock logger
-vi.mock('#lib/frontend-logger', () => ({
+vi.mock("#lib/frontend-logger", () => ({
 	logger: {
 		info: vi.fn(),
 		error: vi.fn(),
 		warn: vi.fn(),
-		debug: vi.fn()
+		debug: vi.fn(),
 	},
 	createLogger: () => ({
 		info: vi.fn(),
 		error: vi.fn(),
 		warn: vi.fn(),
-		debug: vi.fn()
-	})
-}))
+		debug: vi.fn(),
+	}),
+}));
 
 // Mock toast
-vi.mock('sonner', () => ({
+vi.mock("sonner", () => ({
 	toast: {
 		success: vi.fn(),
-		error: vi.fn()
-	}
-}))
+		error: vi.fn(),
+	},
+}));
 
 // Mock Sentry (used by handlePostgrestError + handleMutationError)
-vi.mock('@sentry/nextjs', () => ({
+vi.mock("@sentry/nextjs", () => ({
 	captureException: vi.fn(),
 	captureMessage: vi.fn(),
-	addBreadcrumb: vi.fn()
-}))
+	addBreadcrumb: vi.fn(),
+}));
 
 // Mock useUser hook
-vi.mock('#hooks/api/use-auth', () => ({
+vi.mock("#hooks/api/use-auth", () => ({
 	useUser: () => ({
-		data: { id: 'user-123', email: 'owner@example.com' }
-	})
-}))
+		data: { id: "user-123", email: "owner@example.com" },
+	}),
+}));
 
 // Supabase mock with configurable from() responses
-const supabaseFromMock = vi.fn()
-const supabaseRpcMock = vi.fn()
-const supabaseAuthGetUserMock = vi.fn()
-const supabaseAuthGetSessionMock = vi.fn()
+const supabaseFromMock = vi.fn();
+const supabaseRpcMock = vi.fn();
+const supabaseAuthGetUserMock = vi.fn();
+const supabaseAuthGetSessionMock = vi.fn();
 
-vi.mock('#lib/supabase/client', () => ({
+vi.mock("#lib/supabase/client", () => ({
 	createClient: () => ({
 		from: supabaseFromMock,
 		rpc: supabaseRpcMock,
 		auth: {
 			getUser: supabaseAuthGetUserMock,
-			getSession: supabaseAuthGetSessionMock
-		}
-	})
-}))
+			getSession: supabaseAuthGetSessionMock,
+		},
+	}),
+}));
 
 // Mock getCachedUser for RPC-based stats queries
-vi.mock('#lib/supabase/get-cached-user', () => ({
+vi.mock("#lib/supabase/get-cached-user", () => ({
 	getCachedUser: vi.fn(() =>
-		Promise.resolve({ id: 'user-123', email: 'owner@example.com' })
-	)
-}))
+		Promise.resolve({ id: "user-123", email: "owner@example.com" }),
+	),
+}));
 
 // Mock global fetch for Edge Function calls
-const fetchMock = vi.fn()
+const fetchMock = vi.fn();
 
 // Wrapper for hooks
 function createWrapper() {
 	const queryClient = new QueryClient({
 		defaultOptions: {
 			queries: { retry: false },
-			mutations: { retry: false }
-		}
-	})
+			mutations: { retry: false },
+		},
+	});
 
 	return function Wrapper({ children }: { children: ReactNode }) {
 		return (
 			<QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
-		)
-	}
+		);
+	};
 }
 
 // Set up global fetch mock before tests
-vi.stubGlobal('fetch', fetchMock)
+vi.stubGlobal("fetch", fetchMock);
 
 // Sample lease data matching DB schema
 const mockLease = {
-	id: 'lease-123',
-	unit_id: 'unit-456',
-	primary_tenant_id: 'tenant-789',
-	owner_user_id: 'user-123',
-	start_date: '2024-01-01',
-	end_date: '2025-01-01',
+	id: "lease-123",
+	unit_id: "unit-456",
+	primary_tenant_id: "tenant-789",
+	owner_user_id: "user-123",
+	start_date: "2024-01-01",
+	end_date: "2025-01-01",
 	rent_amount: 1500,
-	rent_currency: 'USD',
+	rent_currency: "USD",
 	security_deposit: 1500,
 	payment_day: 1,
-	lease_status: 'active',
-	created_at: '2024-01-01T00:00:00Z',
-	updated_at: '2024-01-01T00:00:00Z'
-}
+	lease_status: "active",
+	created_at: "2024-01-01T00:00:00Z",
+	updated_at: "2024-01-01T00:00:00Z",
+};
 
 const mockSignatureStatus = {
-	id: 'lease-123',
-	lease_status: 'pending_signature',
-	owner_signed_at: '2024-01-15T10:00:00Z',
+	id: "lease-123",
+	lease_status: "pending_signature",
+	owner_signed_at: "2024-01-15T10:00:00Z",
 	tenant_signed_at: null,
-	sent_for_signature_at: '2024-01-14T10:00:00Z'
-}
+	sent_for_signature_at: "2024-01-14T10:00:00Z",
+};
 
-describe('Query Hooks', () => {
+describe("Query Hooks", () => {
 	beforeEach(() => {
-		vi.clearAllMocks()
+		vi.clearAllMocks();
 
 		supabaseAuthGetUserMock.mockResolvedValue({
-			data: { user: { id: 'user-123' } }
-		})
+			data: { user: { id: "user-123" } },
+		});
 
 		supabaseAuthGetSessionMock.mockResolvedValue({
-			data: { session: { access_token: 'mock-token' } }
-		})
+			data: { session: { access_token: "mock-token" } },
+		});
 
 		fetchMock.mockResolvedValue({
 			ok: true,
 			json: async () => ({ success: true }),
-		})
+		});
 
 		// Default: from('leases') returns a query chain with mock lease data
 		supabaseFromMock.mockImplementation((table: string) => {
-			if (table === 'leases') {
-				return createQueryChain({ data: mockLease, count: 1 })
+			if (table === "leases") {
+				return createQueryChain({ data: mockLease, count: 1 });
 			}
-			return createQueryChain({ data: null })
-		})
-	})
+			return createQueryChain({ data: null });
+		});
+	});
 
-	describe('useLease', () => {
-		it('should query leases table by ID', async () => {
-			const { result } = renderHook(() => useLease('lease-123'), {
-				wrapper: createWrapper()
-			})
+	describe("useLease", () => {
+		it("should query leases table by ID", async () => {
+			const { result } = renderHook(() => useLease("lease-123"), {
+				wrapper: createWrapper(),
+			});
 
 			await waitFor(() => {
-				expect(result.current.isSuccess || result.current.isError).toBe(true)
-			})
+				expect(result.current.isSuccess || result.current.isError).toBe(true);
+			});
 
-			expect(supabaseFromMock).toHaveBeenCalledWith('leases')
-		})
+			expect(supabaseFromMock).toHaveBeenCalledWith("leases");
+		});
 
-		it('should not fetch when ID is empty', () => {
-			const { result } = renderHook(() => useLease(''), {
-				wrapper: createWrapper()
-			})
+		it("should not fetch when ID is empty", () => {
+			const { result } = renderHook(() => useLease(""), {
+				wrapper: createWrapper(),
+			});
 
-			expect(result.current.isFetching).toBe(false)
-		})
-	})
+			expect(result.current.isFetching).toBe(false);
+		});
+	});
 
-	describe('useLeaseList', () => {
-		it('should query leases with count for list', async () => {
+	describe("useLeaseList", () => {
+		it("should query leases with count for list", async () => {
 			supabaseFromMock.mockImplementation((table: string) => {
-				if (table === 'leases') {
-					return createQueryChain({ data: [mockLease], count: 1 })
+				if (table === "leases") {
+					return createQueryChain({ data: [mockLease], count: 1 });
 				}
-				return createQueryChain({ data: null })
-			})
+				return createQueryChain({ data: null });
+			});
 
 			const { result } = renderHook(() => useLeaseList(), {
-				wrapper: createWrapper()
-			})
+				wrapper: createWrapper(),
+			});
 
 			await waitFor(() => {
-				expect(result.current.isSuccess || result.current.isError).toBe(true)
-			})
+				expect(result.current.isSuccess || result.current.isError).toBe(true);
+			});
 
-			expect(supabaseFromMock).toHaveBeenCalledWith('leases')
-		})
+			expect(supabaseFromMock).toHaveBeenCalledWith("leases");
+		});
 
-		it('should query leases with filters when provided', async () => {
+		it("should query leases with filters when provided", async () => {
 			supabaseFromMock.mockImplementation((table: string) => {
-				if (table === 'leases') {
-					return createQueryChain({ data: [], count: 0 })
+				if (table === "leases") {
+					return createQueryChain({ data: [], count: 0 });
 				}
-				return createQueryChain({ data: null })
-			})
+				return createQueryChain({ data: null });
+			});
 
 			const { result } = renderHook(
-				() => useLeaseList({ status: 'active', limit: 25, offset: 10 }),
-				{ wrapper: createWrapper() }
-			)
+				() => useLeaseList({ status: "active", limit: 25, offset: 10 }),
+				{ wrapper: createWrapper() },
+			);
 
 			await waitFor(() => {
-				expect(result.current.isSuccess || result.current.isError).toBe(true)
-			})
+				expect(result.current.isSuccess || result.current.isError).toBe(true);
+			});
 
-			expect(supabaseFromMock).toHaveBeenCalledWith('leases')
-		})
-	})
+			expect(supabaseFromMock).toHaveBeenCalledWith("leases");
+		});
+	});
 
-	describe('useExpiringLeases', () => {
-		it('should query leases expiring within default 30 days', async () => {
+	describe("useExpiringLeases", () => {
+		it("should query leases expiring within default 30 days", async () => {
 			supabaseFromMock.mockImplementation((table: string) => {
-				if (table === 'leases') {
-					return createQueryChain({ data: [mockLease] })
+				if (table === "leases") {
+					return createQueryChain({ data: [mockLease] });
 				}
-				return createQueryChain({ data: null })
-			})
+				return createQueryChain({ data: null });
+			});
 
 			const { result } = renderHook(() => useExpiringLeases(), {
-				wrapper: createWrapper()
-			})
+				wrapper: createWrapper(),
+			});
 
 			await waitFor(() => {
-				expect(result.current.isSuccess || result.current.isError).toBe(true)
-			})
+				expect(result.current.isSuccess || result.current.isError).toBe(true);
+			});
 
-			expect(supabaseFromMock).toHaveBeenCalledWith('leases')
-		})
+			expect(supabaseFromMock).toHaveBeenCalledWith("leases");
+		});
 
-		it('should query leases expiring within custom days', async () => {
+		it("should query leases expiring within custom days", async () => {
 			supabaseFromMock.mockImplementation((table: string) => {
-				if (table === 'leases') {
-					return createQueryChain({ data: [] })
+				if (table === "leases") {
+					return createQueryChain({ data: [] });
 				}
-				return createQueryChain({ data: null })
-			})
+				return createQueryChain({ data: null });
+			});
 
 			const { result } = renderHook(() => useExpiringLeases(60), {
-				wrapper: createWrapper()
-			})
+				wrapper: createWrapper(),
+			});
 
 			await waitFor(() => {
-				expect(result.current.isSuccess || result.current.isError).toBe(true)
-			})
+				expect(result.current.isSuccess || result.current.isError).toBe(true);
+			});
 
-			expect(supabaseFromMock).toHaveBeenCalledWith('leases')
-		})
-	})
+			expect(supabaseFromMock).toHaveBeenCalledWith("leases");
+		});
+	});
 
-	describe('useLeaseStats', () => {
-		it('should call get_lease_stats RPC for aggregated counts', async () => {
+	describe("useLeaseStats", () => {
+		it("should call get_lease_stats RPC for aggregated counts", async () => {
 			supabaseRpcMock.mockResolvedValue({
 				data: {
 					totalLeases: 10,
@@ -294,424 +294,434 @@ describe('Query Hooks', () => {
 					expiringLeases: 1,
 					totalMonthlyRent: 5000,
 					averageRent: 1000,
-					total_security_deposits: 2500
+					total_security_deposits: 2500,
 				},
-				error: null
-			})
+				error: null,
+			});
 
 			const { result } = renderHook(() => useLeaseStats(), {
-				wrapper: createWrapper()
-			})
+				wrapper: createWrapper(),
+			});
 
 			await waitFor(() => {
-				expect(result.current.isSuccess || result.current.isError).toBe(true)
-			})
+				expect(result.current.isSuccess || result.current.isError).toBe(true);
+			});
 
-			expect(supabaseRpcMock).toHaveBeenCalledWith('get_lease_stats', {
-				p_user_id: 'user-123'
-			})
-		})
-	})
+			expect(supabaseRpcMock).toHaveBeenCalledWith("get_lease_stats", {
+				p_user_id: "user-123",
+			});
+		});
+	});
 
-	describe('useLeaseSignatureStatus', () => {
-		it('should query signature status columns from leases table', async () => {
+	describe("useLeaseSignatureStatus", () => {
+		it("should query signature status columns from leases table", async () => {
 			supabaseFromMock.mockImplementation((table: string) => {
-				if (table === 'leases') {
-					return createQueryChain({ data: mockSignatureStatus })
+				if (table === "leases") {
+					return createQueryChain({ data: mockSignatureStatus });
 				}
-				return createQueryChain({ data: null })
-			})
+				return createQueryChain({ data: null });
+			});
 
 			const { result } = renderHook(
-				() => useLeaseSignatureStatus('lease-123'),
-				{ wrapper: createWrapper() }
-			)
+				() => useLeaseSignatureStatus("lease-123"),
+				{ wrapper: createWrapper() },
+			);
 
 			await waitFor(() => {
-				expect(result.current.isSuccess || result.current.isError).toBe(true)
-			})
+				expect(result.current.isSuccess || result.current.isError).toBe(true);
+			});
 
-			expect(supabaseFromMock).toHaveBeenCalledWith('leases')
-		})
+			expect(supabaseFromMock).toHaveBeenCalledWith("leases");
+		});
 
-		it('should not fetch when lease ID is empty', () => {
-			const { result } = renderHook(() => useLeaseSignatureStatus(''), {
-				wrapper: createWrapper()
-			})
+		it("should not fetch when lease ID is empty", () => {
+			const { result } = renderHook(() => useLeaseSignatureStatus(""), {
+				wrapper: createWrapper(),
+			});
 
-			expect(result.current.isFetching).toBe(false)
-		})
-	})
+			expect(result.current.isFetching).toBe(false);
+		});
+	});
 
-	describe('useSignedDocumentUrl', () => {
-		it('should query docuseal_submission_id from leases table via PostgREST', async () => {
+	describe("useSignedDocumentUrl", () => {
+		it("should query docuseal_submission_id from leases table via PostgREST", async () => {
 			supabaseFromMock.mockImplementation((table: string) => {
-				if (table === 'leases') {
+				if (table === "leases") {
 					return createQueryChain({
 						data: {
-							docuseal_submission_id: 'sub-999',
-							owner_signed_at: '2024-01-15T10:00:00Z',
-							tenant_signed_at: '2024-01-16T10:00:00Z'
-						}
-					})
+							docuseal_submission_id: "sub-999",
+							owner_signed_at: "2024-01-15T10:00:00Z",
+							tenant_signed_at: "2024-01-16T10:00:00Z",
+						},
+					});
 				}
-				return createQueryChain({ data: null })
-			})
+				return createQueryChain({ data: null });
+			});
 
-			const { result } = renderHook(() => useSignedDocumentUrl('lease-123'), {
-				wrapper: createWrapper()
-			})
+			const { result } = renderHook(() => useSignedDocumentUrl("lease-123"), {
+				wrapper: createWrapper(),
+			});
 
 			await waitFor(() => {
-				expect(result.current.isSuccess || result.current.isError).toBe(true)
-			})
+				expect(result.current.isSuccess || result.current.isError).toBe(true);
+			});
 
-			expect(supabaseFromMock).toHaveBeenCalledWith('leases')
-		})
+			expect(supabaseFromMock).toHaveBeenCalledWith("leases");
+		});
 
-		it('should not fetch when disabled', () => {
+		it("should not fetch when disabled", () => {
 			const { result } = renderHook(
-				() => useSignedDocumentUrl('lease-123', false),
-				{ wrapper: createWrapper() }
-			)
+				() => useSignedDocumentUrl("lease-123", false),
+				{ wrapper: createWrapper() },
+			);
 
-			expect(result.current.isFetching).toBe(false)
-		})
-	})
-})
+			expect(result.current.isFetching).toBe(false);
+		});
+	});
+});
 
-describe('Mutation Hooks', () => {
+describe("Mutation Hooks", () => {
 	beforeEach(() => {
-		vi.clearAllMocks()
+		vi.clearAllMocks();
 
 		supabaseAuthGetUserMock.mockResolvedValue({
-			data: { user: { id: 'user-123' } }
-		})
+			data: { user: { id: "user-123" } },
+		});
 
 		supabaseAuthGetSessionMock.mockResolvedValue({
-			data: { session: { access_token: 'mock-token' } }
-		})
+			data: { session: { access_token: "mock-token" } },
+		});
 
 		// Default fetch mock for Edge Function calls
 		fetchMock.mockResolvedValue({
 			ok: true,
 			json: async () => ({ success: true }),
-		})
+		});
 
 		supabaseFromMock.mockImplementation((table: string) => {
-			if (table === 'leases') {
-				return createQueryChain({ data: mockLease })
+			if (table === "leases") {
+				return createQueryChain({ data: mockLease });
 			}
-			return createQueryChain({ data: null })
-		})
-	})
+			return createQueryChain({ data: null });
+		});
+	});
 
-	describe('useCreateLeaseMutation', () => {
-		it('should insert into leases table via PostgREST', async () => {
+	describe("useCreateLeaseMutation", () => {
+		it("should insert into leases table via PostgREST", async () => {
 			const { result } = renderHook(() => useCreateLeaseMutation(), {
-				wrapper: createWrapper()
-			})
+				wrapper: createWrapper(),
+			});
 
 			await result.current.mutateAsync({
-				unit_id: 'unit-456',
-				primary_tenant_id: 'tenant-789',
-				start_date: '2024-01-01',
-				end_date: '2025-01-01',
+				unit_id: "unit-456",
+				primary_tenant_id: "tenant-789",
+				start_date: "2024-01-01",
+				end_date: "2025-01-01",
 				rent_amount: 1500,
-				rent_currency: 'USD',
+				rent_currency: "USD",
 				security_deposit: 1500,
 				payment_day: 1,
-				tenant_ids: ['tenant-789'],
-				lease_status: 'draft'
-			})
+				tenant_ids: ["tenant-789"],
+				lease_status: "draft",
+			});
 
-			expect(supabaseFromMock).toHaveBeenCalledWith('leases')
-		})
-	})
+			expect(supabaseFromMock).toHaveBeenCalledWith("leases");
+		});
+	});
 
-	describe('useUpdateLeaseMutation', () => {
-		it('should update leases table via PostgREST', async () => {
-			const updatedLease = { ...mockLease, rent_amount: 1600 }
+	describe("useUpdateLeaseMutation", () => {
+		it("should update leases table via PostgREST", async () => {
+			const updatedLease = { ...mockLease, rent_amount: 1600 };
 			supabaseFromMock.mockImplementation((table: string) => {
-				if (table === 'leases') {
-					return createQueryChain({ data: updatedLease })
+				if (table === "leases") {
+					return createQueryChain({ data: updatedLease });
 				}
-				return createQueryChain({ data: null })
-			})
+				return createQueryChain({ data: null });
+			});
 
 			const { result } = renderHook(() => useUpdateLeaseMutation(), {
-				wrapper: createWrapper()
-			})
+				wrapper: createWrapper(),
+			});
 
 			await result.current.mutateAsync({
-				id: 'lease-123',
-				data: { rent_amount: 1600 }
-			})
-
-			expect(supabaseFromMock).toHaveBeenCalledWith('leases')
-		})
-
-		it('should include version when provided', async () => {
-			const updatedLease = { ...mockLease, rent_amount: 1600 }
-			supabaseFromMock.mockImplementation((table: string) => {
-				if (table === 'leases') {
-					return createQueryChain({ data: updatedLease })
-				}
-				return createQueryChain({ data: null })
-			})
-
-			const { result } = renderHook(() => useUpdateLeaseMutation(), {
-				wrapper: createWrapper()
-			})
-
-			await result.current.mutateAsync({
-				id: 'lease-123',
+				id: "lease-123",
 				data: { rent_amount: 1600 },
-				version: 5
-			})
+			});
 
-			expect(supabaseFromMock).toHaveBeenCalledWith('leases')
-		})
-	})
+			expect(supabaseFromMock).toHaveBeenCalledWith("leases");
+		});
 
-	describe('useDeleteLeaseMutation', () => {
-		it('should soft-delete via status update in leases table', async () => {
-			const { result } = renderHook(() => useDeleteLeaseMutation(), {
-				wrapper: createWrapper()
-			})
-
-			await result.current.mutateAsync('lease-123')
-
-			expect(supabaseFromMock).toHaveBeenCalledWith('leases')
-		})
-	})
-
-	describe('useTerminateLeaseMutation', () => {
-		it('should update lease_status to terminated in leases table', async () => {
-			const terminatedLease = { ...mockLease, lease_status: 'terminated' }
+		it("should include version when provided", async () => {
+			const updatedLease = { ...mockLease, rent_amount: 1600 };
 			supabaseFromMock.mockImplementation((table: string) => {
-				if (table === 'leases') {
-					return createQueryChain({ data: terminatedLease })
+				if (table === "leases") {
+					return createQueryChain({ data: updatedLease });
 				}
-				return createQueryChain({ data: null })
-			})
+				return createQueryChain({ data: null });
+			});
+
+			const { result } = renderHook(() => useUpdateLeaseMutation(), {
+				wrapper: createWrapper(),
+			});
+
+			await result.current.mutateAsync({
+				id: "lease-123",
+				data: { rent_amount: 1600 },
+				version: 5,
+			});
+
+			expect(supabaseFromMock).toHaveBeenCalledWith("leases");
+		});
+	});
+
+	describe("useDeleteLeaseMutation", () => {
+		it("should soft-delete via status update in leases table", async () => {
+			const { result } = renderHook(() => useDeleteLeaseMutation(), {
+				wrapper: createWrapper(),
+			});
+
+			await result.current.mutateAsync("lease-123");
+
+			expect(supabaseFromMock).toHaveBeenCalledWith("leases");
+		});
+	});
+
+	describe("useTerminateLeaseMutation", () => {
+		it("should update lease_status to terminated in leases table", async () => {
+			const terminatedLease = { ...mockLease, lease_status: "terminated" };
+			supabaseFromMock.mockImplementation((table: string) => {
+				if (table === "leases") {
+					return createQueryChain({ data: terminatedLease });
+				}
+				return createQueryChain({ data: null });
+			});
 
 			const { result } = renderHook(() => useTerminateLeaseMutation(), {
-				wrapper: createWrapper()
-			})
+				wrapper: createWrapper(),
+			});
 
-			await result.current.mutateAsync('lease-123')
+			await result.current.mutateAsync("lease-123");
 
-			expect(supabaseFromMock).toHaveBeenCalledWith('leases')
-		})
-	})
+			expect(supabaseFromMock).toHaveBeenCalledWith("leases");
+		});
+	});
 
-	describe('useRenewLeaseMutation', () => {
-		it('should update end_date in leases table', async () => {
-			const renewedLease = { ...mockLease, end_date: '2026-01-01' }
+	describe("useRenewLeaseMutation", () => {
+		it("should update end_date in leases table", async () => {
+			const renewedLease = { ...mockLease, end_date: "2026-01-01" };
 			supabaseFromMock.mockImplementation((table: string) => {
-				if (table === 'leases') {
-					return createQueryChain({ data: renewedLease })
+				if (table === "leases") {
+					return createQueryChain({ data: renewedLease });
 				}
-				return createQueryChain({ data: null })
-			})
+				return createQueryChain({ data: null });
+			});
 
 			const { result } = renderHook(() => useRenewLeaseMutation(), {
-				wrapper: createWrapper()
-			})
+				wrapper: createWrapper(),
+			});
 
 			await result.current.mutateAsync({
-				id: 'lease-123',
-				data: { end_date: '2026-01-01' }
-			})
+				id: "lease-123",
+				data: { end_date: "2026-01-01" },
+			});
 
-			expect(supabaseFromMock).toHaveBeenCalledWith('leases')
-		})
-	})
+			expect(supabaseFromMock).toHaveBeenCalledWith("leases");
+		});
+	});
 
-	describe('useSendLeaseForSignatureMutation', () => {
-		it('should call docuseal Edge Function with send-for-signature action', async () => {
+	describe("useSendLeaseForSignatureMutation", () => {
+		it("should call docuseal Edge Function with send-for-signature action", async () => {
 			const { result } = renderHook(() => useSendLeaseForSignatureMutation(), {
-				wrapper: createWrapper()
-			})
+				wrapper: createWrapper(),
+			});
 
 			await result.current.mutateAsync({
-				leaseId: 'lease-123',
-				message: 'Please sign this lease',
+				leaseId: "lease-123",
+				message: "Please sign this lease",
 				missingFields: {
-					immediate_family_members: 'John, Jane',
-					landlord_notice_address: '123 Main St'
-				}
-			})
+					immediate_family_members: "John, Jane",
+					landlord_notice_address: "123 Main St",
+				},
+			});
 
 			expect(fetchMock).toHaveBeenCalledWith(
-				expect.stringContaining('/functions/v1/docuseal'),
+				expect.stringContaining("/functions/v1/docuseal"),
 				expect.objectContaining({
-					method: 'POST',
-					body: expect.stringContaining('"action":"send-for-signature"')
-				})
-			)
+					method: "POST",
+					body: expect.stringContaining('"action":"send-for-signature"'),
+				}),
+			);
 			expect(fetchMock).toHaveBeenCalledWith(
 				expect.anything(),
 				expect.objectContaining({
-					body: expect.stringContaining('"leaseId":"lease-123"')
-				})
-			)
-		})
-	})
+					body: expect.stringContaining('"leaseId":"lease-123"'),
+				}),
+			);
+		});
+	});
 
-	describe('useSignLeaseAsOwnerMutation', () => {
-		it('should call docuseal Edge Function with sign-owner action', async () => {
+	describe("useSignLeaseAsOwnerMutation", () => {
+		it("should call docuseal Edge Function with sign-owner action", async () => {
 			const { result } = renderHook(() => useSignLeaseAsOwnerMutation(), {
-				wrapper: createWrapper()
-			})
+				wrapper: createWrapper(),
+			});
 
-			await result.current.mutateAsync('lease-123')
+			await result.current.mutateAsync("lease-123");
 
 			expect(fetchMock).toHaveBeenCalledWith(
-				expect.stringContaining('/functions/v1/docuseal'),
+				expect.stringContaining("/functions/v1/docuseal"),
 				expect.objectContaining({
-					method: 'POST',
-					body: expect.stringContaining('"action":"sign-owner"')
-				})
-			)
-		})
-	})
+					method: "POST",
+					body: expect.stringContaining('"action":"sign-owner"'),
+				}),
+			);
+		});
+	});
 
-	describe('useSignLeaseAsTenantMutation', () => {
-		it('should call docuseal Edge Function with sign-tenant action', async () => {
+	describe("useSignLeaseAsTenantMutation", () => {
+		it("should call docuseal Edge Function with sign-tenant action", async () => {
 			const { result } = renderHook(() => useSignLeaseAsTenantMutation(), {
-				wrapper: createWrapper()
-			})
+				wrapper: createWrapper(),
+			});
 
-			await result.current.mutateAsync('lease-123')
+			await result.current.mutateAsync("lease-123");
 
 			expect(fetchMock).toHaveBeenCalledWith(
-				expect.stringContaining('/functions/v1/docuseal'),
+				expect.stringContaining("/functions/v1/docuseal"),
 				expect.objectContaining({
-					method: 'POST',
-					body: expect.stringContaining('"action":"sign-tenant"')
-				})
-			)
-		})
-	})
+					method: "POST",
+					body: expect.stringContaining('"action":"sign-tenant"'),
+				}),
+			);
+		});
+	});
 
-	describe('useCancelSignatureRequestMutation', () => {
-		it('should call docuseal Edge Function with cancel action', async () => {
+	describe("useCancelSignatureRequestMutation", () => {
+		it("should call docuseal Edge Function with cancel action", async () => {
 			const { result } = renderHook(() => useCancelSignatureRequestMutation(), {
-				wrapper: createWrapper()
-			})
+				wrapper: createWrapper(),
+			});
 
-			await result.current.mutateAsync('lease-123')
+			await result.current.mutateAsync("lease-123");
 
 			expect(fetchMock).toHaveBeenCalledWith(
-				expect.stringContaining('/functions/v1/docuseal'),
+				expect.stringContaining("/functions/v1/docuseal"),
 				expect.objectContaining({
-					method: 'POST',
-					body: expect.stringContaining('"action":"cancel"')
-				})
-			)
-		})
-	})
-})
+					method: "POST",
+					body: expect.stringContaining('"action":"cancel"'),
+				}),
+			);
+		});
+	});
+});
 
-describe('Utility Hooks', () => {
+describe("Utility Hooks", () => {
 	beforeEach(() => {
-		vi.clearAllMocks()
+		vi.clearAllMocks();
 
 		supabaseAuthGetUserMock.mockResolvedValue({
-			data: { user: { id: 'user-123' } }
-		})
+			data: { user: { id: "user-123" } },
+		});
 
 		supabaseAuthGetSessionMock.mockResolvedValue({
-			data: { session: { access_token: 'mock-token' } }
-		})
+			data: { session: { access_token: "mock-token" } },
+		});
 
 		fetchMock.mockResolvedValue({
 			ok: true,
 			json: async () => ({ success: true }),
-		})
+		});
 
 		supabaseFromMock.mockImplementation((table: string) => {
-			if (table === 'leases') {
-				return createQueryChain({ data: mockLease })
+			if (table === "leases") {
+				return createQueryChain({ data: mockLease });
 			}
-			return createQueryChain({ data: null })
-		})
-	})
+			return createQueryChain({ data: null });
+		});
+	});
 
-	describe('usePrefetchLeaseDetail', () => {
-		it('should be a declarative prefetch hook', () => {
-			const { result } = renderHook(() => usePrefetchLeaseDetail('lease-123'), {
-				wrapper: createWrapper()
-			})
+	describe("usePrefetchLeaseDetail", () => {
+		it("should be a declarative prefetch hook", () => {
+			const { result } = renderHook(() => usePrefetchLeaseDetail("lease-123"), {
+				wrapper: createWrapper(),
+			});
 
-			expect(result.current).toBeUndefined()
-		})
-	})
-})
+			expect(result.current).toBeUndefined();
+		});
+	});
+});
 
-describe('Error Handling', () => {
+describe("Error Handling", () => {
 	beforeEach(() => {
-		vi.clearAllMocks()
+		vi.clearAllMocks();
 
 		supabaseAuthGetUserMock.mockResolvedValue({
-			data: { user: { id: 'user-123' } }
-		})
+			data: { user: { id: "user-123" } },
+		});
 
 		supabaseAuthGetSessionMock.mockResolvedValue({
-			data: { session: { access_token: 'mock-token' } }
-		})
+			data: { session: { access_token: "mock-token" } },
+		});
 
 		fetchMock.mockResolvedValue({
 			ok: true,
 			json: async () => ({ success: true }),
-		})
-	})
+		});
+	});
 
-	it('should handle PostgREST errors in query hooks', async () => {
+	it("should handle PostgREST errors in query hooks", async () => {
 		supabaseFromMock.mockImplementation(() =>
 			createQueryChain({
 				data: null,
-				error: { code: 'PGRST116', message: 'Not found', details: null, hint: null }
-			})
-		)
+				error: {
+					code: "PGRST116",
+					message: "Not found",
+					details: null,
+					hint: null,
+				},
+			}),
+		);
 
-		const { result } = renderHook(() => useLease('lease-123'), {
-			wrapper: createWrapper()
-		})
+		const { result } = renderHook(() => useLease("lease-123"), {
+			wrapper: createWrapper(),
+		});
 
 		await waitFor(() => {
-			expect(result.current.isError).toBe(true)
-		})
-	})
+			expect(result.current.isError).toBe(true);
+		});
+	});
 
-	it('should handle network errors', async () => {
+	it("should handle network errors", async () => {
 		supabaseFromMock.mockImplementation(() => {
-			throw new Error('Network error')
-		})
+			throw new Error("Network error");
+		});
 
-		const { result } = renderHook(() => useLease('lease-123'), {
-			wrapper: createWrapper()
-		})
+		const { result } = renderHook(() => useLease("lease-123"), {
+			wrapper: createWrapper(),
+		});
 
 		await waitFor(() => {
-			expect(result.current.isError).toBe(true)
-		})
-	})
+			expect(result.current.isError).toBe(true);
+		});
+	});
 
-	it('should handle mutation errors from PostgREST', async () => {
+	it("should handle mutation errors from PostgREST", async () => {
 		supabaseFromMock.mockImplementation(() =>
 			createQueryChain({
 				data: null,
-				error: { code: '42501', message: 'Permission denied', details: null, hint: null }
-			})
-		)
+				error: {
+					code: "42501",
+					message: "Permission denied",
+					details: null,
+					hint: null,
+				},
+			}),
+		);
 
 		const { result } = renderHook(() => useDeleteLeaseMutation(), {
-			wrapper: createWrapper()
-		})
+			wrapper: createWrapper(),
+		});
 
-		await expect(result.current.mutateAsync('lease-123')).rejects.toBeTruthy()
-	})
-})
+		await expect(result.current.mutateAsync("lease-123")).rejects.toBeTruthy();
+	});
+});

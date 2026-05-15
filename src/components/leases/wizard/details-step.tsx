@@ -1,77 +1,77 @@
-'use client'
+"use client";
 
-import { Label } from '#components/ui/label'
-import { Input } from '#components/ui/input'
-import { Textarea } from '#components/ui/textarea'
-import { Checkbox } from '#components/ui/checkbox'
-import { Switch } from '#components/ui/switch'
+import { AlertTriangle } from "lucide-react";
+import { Checkbox } from "#components/ui/checkbox";
+import { Input } from "#components/ui/input";
+import { Label } from "#components/ui/label";
 import {
 	Select,
 	SelectContent,
 	SelectItem,
 	SelectTrigger,
-	SelectValue
-} from '#components/ui/select'
-import { AlertTriangle } from 'lucide-react'
-import type { LeaseDetailsStepData } from '#lib/validation/lease-wizard.schemas'
+	SelectValue,
+} from "#components/ui/select";
+import { Switch } from "#components/ui/switch";
+import { Textarea } from "#components/ui/textarea";
+import type { LeaseDetailsStepData } from "#lib/validation/lease-wizard.schemas";
 
 interface DetailsStepProps {
-	data: Partial<LeaseDetailsStepData>
-	onChange: (data: Partial<LeaseDetailsStepData>) => void
+	data: Partial<LeaseDetailsStepData>;
+	onChange: (data: Partial<LeaseDetailsStepData>) => void;
 }
 
 const UTILITY_OPTIONS = [
-	{ value: 'electricity', label: 'Electricity' },
-	{ value: 'gas', label: 'Gas' },
-	{ value: 'water', label: 'Water' },
-	{ value: 'sewer', label: 'Sewer' },
-	{ value: 'trash', label: 'Trash' },
-	{ value: 'internet', label: 'Internet' },
-	{ value: 'cable', label: 'Cable' },
-	{ value: 'lawn_care', label: 'Lawn Care' },
-	{ value: 'pest_control', label: 'Pest Control' },
-	{ value: 'hoa_fees', label: 'HOA Fees' }
-]
+	{ value: "electricity", label: "Electricity" },
+	{ value: "gas", label: "Gas" },
+	{ value: "water", label: "Water" },
+	{ value: "sewer", label: "Sewer" },
+	{ value: "trash", label: "Trash" },
+	{ value: "internet", label: "Internet" },
+	{ value: "cable", label: "Cable" },
+	{ value: "lawn_care", label: "Lawn Care" },
+	{ value: "pest_control", label: "Pest Control" },
+	{ value: "hoa_fees", label: "HOA Fees" },
+];
 
 const US_STATES = [
-	{ value: 'TX', label: 'Texas' },
-	{ value: 'CA', label: 'California' },
-	{ value: 'FL', label: 'Florida' },
-	{ value: 'NY', label: 'New York' },
-	{ value: 'IL', label: 'Illinois' },
-	{ value: 'PA', label: 'Pennsylvania' },
-	{ value: 'OH', label: 'Ohio' },
-	{ value: 'GA', label: 'Georgia' },
-	{ value: 'NC', label: 'North Carolina' },
-	{ value: 'MI', label: 'Michigan' }
-]
+	{ value: "TX", label: "Texas" },
+	{ value: "CA", label: "California" },
+	{ value: "FL", label: "Florida" },
+	{ value: "NY", label: "New York" },
+	{ value: "IL", label: "Illinois" },
+	{ value: "PA", label: "Pennsylvania" },
+	{ value: "OH", label: "Ohio" },
+	{ value: "GA", label: "Georgia" },
+	{ value: "NC", label: "North Carolina" },
+	{ value: "MI", label: "Michigan" },
+];
 
 export function DetailsStep({ data, onChange }: DetailsStepProps) {
 	const handleChange = <K extends keyof LeaseDetailsStepData>(
 		field: K,
-		value: LeaseDetailsStepData[K]
+		value: LeaseDetailsStepData[K],
 	) => {
-		onChange({ ...data, [field]: value })
-	}
+		onChange({ ...data, [field]: value });
+	};
 
 	const toggleUtility = (
-		field: 'utilities_included' | 'tenant_responsible_utilities',
-		utility: string
+		field: "utilities_included" | "tenant_responsible_utilities",
+		utility: string,
 	) => {
-		const current = data[field] || []
+		const current = data[field] || [];
 		const updated = current.includes(utility)
-			? current.filter(u => u !== utility)
-			: [...current, utility]
-		handleChange(field, updated)
-	}
+			? current.filter((u) => u !== utility)
+			: [...current, utility];
+		handleChange(field, updated);
+	};
 
 	const centsToDisplay = (cents: number | undefined) =>
-		cents === undefined ? '' : (cents / 100).toFixed(2)
+		cents === undefined ? "" : (cents / 100).toFixed(2);
 
 	const dollarsToCents = (dollars: string) => {
-		const num = parseFloat(dollars)
-		return isNaN(num) ? undefined : Math.round(num * 100)
-	}
+		const num = parseFloat(dollars);
+		return isNaN(num) ? undefined : Math.round(num * 100);
+	};
 
 	return (
 		<div className="space-y-6">
@@ -94,11 +94,11 @@ export function DetailsStep({ data, onChange }: DetailsStepProps) {
 							min="1"
 							max="20"
 							placeholder="2"
-							value={data.max_occupants || ''}
-							onChange={e =>
+							value={data.max_occupants || ""}
+							onChange={(e) =>
 								handleChange(
-									'max_occupants',
-									parseInt(e.target.value, 10) || undefined
+									"max_occupants",
+									parseInt(e.target.value, 10) || undefined,
 								)
 							}
 						/>
@@ -106,11 +106,11 @@ export function DetailsStep({ data, onChange }: DetailsStepProps) {
 					<div className="space-y-2">
 						<Label htmlFor="governing_state">Governing State</Label>
 						<Select
-							value={data.governing_state || 'TX'}
-							onValueChange={value =>
+							value={data.governing_state || "TX"}
+							onValueChange={(value) =>
 								handleChange(
-									'governing_state',
-									value as LeaseDetailsStepData['governing_state']
+									"governing_state",
+									value as LeaseDetailsStepData["governing_state"],
 								)
 							}
 						>
@@ -118,7 +118,7 @@ export function DetailsStep({ data, onChange }: DetailsStepProps) {
 								<SelectValue placeholder="Select state" />
 							</SelectTrigger>
 							<SelectContent>
-								{US_STATES.map(state => (
+								{US_STATES.map((state) => (
 									<SelectItem key={state.value} value={state.value}>
 										{state.label}
 									</SelectItem>
@@ -136,7 +136,9 @@ export function DetailsStep({ data, onChange }: DetailsStepProps) {
 						<Switch
 							id="pets_allowed"
 							checked={data.pets_allowed || false}
-							onCheckedChange={checked => handleChange('pets_allowed', checked)}
+							onCheckedChange={(checked) =>
+								handleChange("pets_allowed", checked)
+							}
 						/>
 						<Label htmlFor="pets_allowed">Pets Allowed</Label>
 					</div>
@@ -153,8 +155,8 @@ export function DetailsStep({ data, onChange }: DetailsStepProps) {
 								min="0"
 								placeholder="300.00"
 								value={centsToDisplay(data.pet_deposit ?? undefined)}
-								onChange={e =>
-									handleChange('pet_deposit', dollarsToCents(e.target.value))
+								onChange={(e) =>
+									handleChange("pet_deposit", dollarsToCents(e.target.value))
 								}
 							/>
 						</div>
@@ -167,8 +169,8 @@ export function DetailsStep({ data, onChange }: DetailsStepProps) {
 								min="0"
 								placeholder="25.00"
 								value={centsToDisplay(data.pet_rent ?? undefined)}
-								onChange={e =>
-									handleChange('pet_rent', dollarsToCents(e.target.value))
+								onChange={(e) =>
+									handleChange("pet_rent", dollarsToCents(e.target.value))
 								}
 							/>
 						</div>
@@ -182,15 +184,15 @@ export function DetailsStep({ data, onChange }: DetailsStepProps) {
 					<div className="space-y-3">
 						<Label>Included in Rent</Label>
 						<div className="space-y-2">
-							{UTILITY_OPTIONS.map(utility => (
+							{UTILITY_OPTIONS.map((utility) => (
 								<div key={utility.value} className="flex items-center gap-2">
 									<Checkbox
 										id={`included-${utility.value}`}
 										checked={(data.utilities_included || []).includes(
-											utility.value
+											utility.value,
 										)}
 										onCheckedChange={() =>
-											toggleUtility('utilities_included', utility.value)
+											toggleUtility("utilities_included", utility.value)
 										}
 									/>
 									<Label
@@ -206,17 +208,17 @@ export function DetailsStep({ data, onChange }: DetailsStepProps) {
 					<div className="space-y-3">
 						<Label>Tenant Responsible</Label>
 						<div className="space-y-2">
-							{UTILITY_OPTIONS.map(utility => (
+							{UTILITY_OPTIONS.map((utility) => (
 								<div key={utility.value} className="flex items-center gap-2">
 									<Checkbox
 										id={`tenant-${utility.value}`}
 										checked={(data.tenant_responsible_utilities || []).includes(
-											utility.value
+											utility.value,
 										)}
 										onCheckedChange={() =>
 											toggleUtility(
-												'tenant_responsible_utilities',
-												utility.value
+												"tenant_responsible_utilities",
+												utility.value,
 											)
 										}
 									/>
@@ -239,8 +241,8 @@ export function DetailsStep({ data, onChange }: DetailsStepProps) {
 					id="property_rules"
 					placeholder="Enter any additional property rules or restrictions..."
 					rows={4}
-					value={data.property_rules || ''}
-					onChange={e => handleChange('property_rules', e.target.value)}
+					value={data.property_rules || ""}
+					onChange={(e) => handleChange("property_rules", e.target.value)}
 				/>
 			</div>
 
@@ -258,8 +260,8 @@ export function DetailsStep({ data, onChange }: DetailsStepProps) {
 							<Checkbox
 								id="property_built_before_1978"
 								checked={data.property_built_before_1978 || false}
-								onCheckedChange={checked =>
-									handleChange('property_built_before_1978', !!checked)
+								onCheckedChange={(checked) =>
+									handleChange("property_built_before_1978", !!checked)
 								}
 							/>
 							<Label
@@ -275,10 +277,10 @@ export function DetailsStep({ data, onChange }: DetailsStepProps) {
 								<Checkbox
 									id="lead_paint_disclosure_acknowledged"
 									checked={data.lead_paint_disclosure_acknowledged || false}
-									onCheckedChange={checked =>
+									onCheckedChange={(checked) =>
 										handleChange(
-											'lead_paint_disclosure_acknowledged',
-											!!checked
+											"lead_paint_disclosure_acknowledged",
+											!!checked,
 										)
 									}
 								/>
@@ -295,5 +297,5 @@ export function DetailsStep({ data, onChange }: DetailsStepProps) {
 				</div>
 			</div>
 		</div>
-	)
+	);
 }

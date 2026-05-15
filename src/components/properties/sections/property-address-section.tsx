@@ -1,26 +1,26 @@
-'use client'
+"use client";
 
-import { type ChangeEvent } from 'react'
-import { Field, FieldError, FieldLabel } from '#components/ui/field'
-import { Input } from '#components/ui/input'
+import { type ChangeEvent } from "react";
+import { Field, FieldError, FieldLabel } from "#components/ui/field";
+import { Input } from "#components/ui/input";
 import {
 	Select,
 	SelectContent,
 	SelectItem,
 	SelectTrigger,
-	SelectValue
-} from '#components/ui/select'
-import type { PropertyFormApi } from '../property-form-types'
+	SelectValue,
+} from "#components/ui/select";
+import type { PropertyFormApi } from "../property-form-types";
 
 interface PropertyAddressSectionProps {
-	form: PropertyFormApi
+	form: PropertyFormApi;
 }
 
 export function PropertyAddressSection({ form }: PropertyAddressSectionProps) {
 	return (
 		<>
 			<form.Field name="address_line1">
-				{field => (
+				{(field) => (
 					<Field>
 						<FieldLabel htmlFor="address_line1">Address *</FieldLabel>
 						<Input
@@ -42,7 +42,7 @@ export function PropertyAddressSection({ form }: PropertyAddressSectionProps) {
 			</form.Field>
 
 			<form.Field name="address_line2">
-				{field => (
+				{(field) => (
 					<Field>
 						<FieldLabel htmlFor="address_line2">
 							Address Line 2 (Optional)
@@ -63,7 +63,7 @@ export function PropertyAddressSection({ form }: PropertyAddressSectionProps) {
 
 			<div className="grid grid-cols-1 gap-4 md:grid-cols-3">
 				<form.Field name="city">
-					{field => (
+					{(field) => (
 						<Field>
 							<FieldLabel htmlFor="city">City *</FieldLabel>
 							<Input
@@ -85,7 +85,7 @@ export function PropertyAddressSection({ form }: PropertyAddressSectionProps) {
 				</form.Field>
 
 				<form.Field name="state">
-					{field => (
+					{(field) => (
 						<Field>
 							<FieldLabel htmlFor="state">State *</FieldLabel>
 							<Input
@@ -108,7 +108,7 @@ export function PropertyAddressSection({ form }: PropertyAddressSectionProps) {
 				</form.Field>
 
 				<form.Field name="postal_code">
-					{field => (
+					{(field) => (
 						<Field>
 							<FieldLabel htmlFor="postal_code">ZIP Code *</FieldLabel>
 							<Input
@@ -132,7 +132,7 @@ export function PropertyAddressSection({ form }: PropertyAddressSectionProps) {
 			</div>
 
 			<form.Field name="country">
-				{field => (
+				{(field) => (
 					<Field>
 						<FieldLabel htmlFor="country">Country *</FieldLabel>
 						<Select
@@ -151,5 +151,5 @@ export function PropertyAddressSection({ form }: PropertyAddressSectionProps) {
 				)}
 			</form.Field>
 		</>
-	)
+	);
 }

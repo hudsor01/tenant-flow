@@ -1,23 +1,25 @@
-import { Loader2 } from 'lucide-react'
-import { Progress } from '#components/ui/progress'
+import { Loader2 } from "lucide-react";
+import { Progress } from "#components/ui/progress";
 import type {
 	BulkImportResult,
 	ImportProgress,
-	ParsedRow
-} from '#types/api-contracts'
-import { BulkImportResultPanel } from './bulk-import-result-panel'
+	ParsedRow,
+} from "#types/api-contracts";
+import { BulkImportResultPanel } from "./bulk-import-result-panel";
 
 interface BulkImportConfirmStepProps {
-	entityLabel: { singular: string; plural: string }
-	isImporting: boolean
-	importProgress: ImportProgress | null
-	result: BulkImportResult | null
-	cumulative: { imported: number; failed: number; totalAttempted: number }
-	retryCount: number
-	parseResult:
-		| { rows: ParsedRow<unknown>[]; tooManyRows: boolean; totalRowCount: number }
-		| null
-	onRetryFailed?: () => void
+	entityLabel: { singular: string; plural: string };
+	isImporting: boolean;
+	importProgress: ImportProgress | null;
+	result: BulkImportResult | null;
+	cumulative: { imported: number; failed: number; totalAttempted: number };
+	retryCount: number;
+	parseResult: {
+		rows: ParsedRow<unknown>[];
+		tooManyRows: boolean;
+		totalRowCount: number;
+	} | null;
+	onRetryFailed?: () => void;
 }
 
 export function BulkImportConfirmStep({
@@ -28,19 +30,22 @@ export function BulkImportConfirmStep({
 	cumulative,
 	retryCount,
 	parseResult,
-	onRetryFailed
+	onRetryFailed,
 }: BulkImportConfirmStepProps) {
-	const singularLower = entityLabel.singular.toLowerCase()
-	const pluralLower = entityLabel.plural.toLowerCase()
+	const singularLower = entityLabel.singular.toLowerCase();
+	const pluralLower = entityLabel.plural.toLowerCase();
 	const progressPercent = importProgress
 		? (importProgress.current / importProgress.total) * 100
-		: 0
+		: 0;
 
 	// Only the first successful batch auto-closes. Once retryCount > 0 the
 	// dialog stays open; surface a subtle hint on the first batch so the
 	// user knows a close is coming.
 	const willAutoClose =
-		result !== null && retryCount === 0 && result.success && result.imported > 0
+		result !== null &&
+		retryCount === 0 &&
+		result.success &&
+		result.imported > 0;
 
 	return (
 		<div className="space-y-5">
@@ -56,11 +61,13 @@ export function BulkImportConfirmStep({
 							<Loader2 className="size-5 animate-spin" />
 						</div>
 						<div className="flex-1">
-							<p className="text-sm font-semibold">Importing {pluralLower}...</p>
+							<p className="text-sm font-semibold">
+								Importing {pluralLower}...
+							</p>
 							<p className="text-xs text-muted-foreground mt-0.5">
 								{importProgress
 									? `Importing ${singularLower} ${importProgress.current} of ${importProgress.total}`
-									: 'Preparing import...'}
+									: "Preparing import..."}
 							</p>
 						</div>
 						{importProgress && (
@@ -116,5 +123,5 @@ export function BulkImportConfirmStep({
 				</div>
 			)}
 		</div>
-	)
+	);
 }

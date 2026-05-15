@@ -1,20 +1,20 @@
-import { MaintenanceDetails } from '#components/maintenance/detail/maintenance-details.client'
-import { Suspense } from 'react'
-import { Skeleton } from '#components/ui/skeleton'
+import { Suspense } from "react";
+import { MaintenanceDetails } from "#components/maintenance/detail/maintenance-details.client";
+import { Skeleton } from "#components/ui/skeleton";
 
 async function MaintenanceDetailsWrapper({
-	params
+	params,
 }: {
-	params: Promise<{ id: string }>
+	params: Promise<{ id: string }>;
 }) {
-	const { id } = await params
-	return <MaintenanceDetails id={id} />
+	const { id } = await params;
+	return <MaintenanceDetails id={id} />;
 }
 
 export default async function MaintenanceDetailPage({
-	params
-}: PageProps<'/maintenance/[id]'>) {
-	const resolvedParams = await params
+	params,
+}: PageProps<"/maintenance/[id]">) {
+	const resolvedParams = await params;
 	return (
 		<div className="space-y-10">
 			<div className="space-y-2">
@@ -27,5 +27,5 @@ export default async function MaintenanceDetailPage({
 				<MaintenanceDetailsWrapper params={Promise.resolve(resolvedParams)} />
 			</Suspense>
 		</div>
-	)
+	);
 }

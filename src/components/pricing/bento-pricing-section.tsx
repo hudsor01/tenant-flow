@@ -1,46 +1,46 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
-import { PricingCardFeatured } from './pricing-card-featured'
-import { PricingCardStandard } from './pricing-card-standard'
-import { PricingComparisonTable } from './pricing-comparison-table'
-import { Switch } from '#components/ui/switch'
-import { Label } from '#components/ui/label'
-import { getAllPricingPlans } from '#config/pricing'
-import { Building2, Users, Shield } from 'lucide-react'
+import { Building2, Shield, Users } from "lucide-react";
+import { useState } from "react";
+import { Label } from "#components/ui/label";
+import { Switch } from "#components/ui/switch";
+import { getAllPricingPlans } from "#config/pricing";
+import { PricingCardFeatured } from "./pricing-card-featured";
+import { PricingCardStandard } from "./pricing-card-standard";
+import { PricingComparisonTable } from "./pricing-comparison-table";
 
 interface BentoPricingSectionProps {
-	defaultBillingCycle?: 'monthly' | 'yearly'
+	defaultBillingCycle?: "monthly" | "yearly";
 }
 
 export function BentoPricingSection({
-	defaultBillingCycle = 'monthly'
+	defaultBillingCycle = "monthly",
 }: BentoPricingSectionProps) {
-	const [billingCycle, setBillingCycle] = useState<'monthly' | 'yearly'>(
-		defaultBillingCycle
-	)
+	const [billingCycle, setBillingCycle] = useState<"monthly" | "yearly">(
+		defaultBillingCycle,
+	);
 
 	// Get pricing plans from config
 	const allPlans = getAllPricingPlans()
-		.filter(plan => plan.planId !== 'trial')
-		.map(plan => ({
+		.filter((plan) => plan.planId !== "trial")
+		.map((plan) => ({
 			id: plan.planId,
 			name: plan.name,
 			description: plan.description,
 			price: {
 				monthly: plan.price.monthly,
-				yearly: Math.round((plan.price.annual / 12) * 100) / 100
+				yearly: Math.round((plan.price.annual / 12) * 100) / 100,
 			},
 			annualTotal: plan.price.annual,
 			features: [...plan.features],
-			popular: plan.planId === 'growth',
+			popular: plan.planId === "growth",
 			stripeMonthlyPriceId: plan.stripePriceIds.monthly,
-			stripeAnnualPriceId: plan.stripePriceIds.annual
-		}))
+			stripeAnnualPriceId: plan.stripePriceIds.annual,
+		}));
 
-	const starterPlan = allPlans.find(p => p.id === 'starter')
-	const growthPlan = allPlans.find(p => p.id === 'growth')
-	const maxPlan = allPlans.find(p => p.id === 'max')
+	const starterPlan = allPlans.find((p) => p.id === "starter");
+	const growthPlan = allPlans.find((p) => p.id === "growth");
+	const maxPlan = allPlans.find((p) => p.id === "max");
 
 	return (
 		<div className="w-full">
@@ -49,19 +49,22 @@ export function BentoPricingSection({
 				<div className="flex items-center gap-2 text-sm text-muted-foreground">
 					<Building2 className="size-4 text-primary" />
 					<span>
-						<strong className="text-foreground">Document vault</strong> on every plan
+						<strong className="text-foreground">Document vault</strong> on every
+						plan
 					</span>
 				</div>
 				<div className="flex items-center gap-2 text-sm text-muted-foreground">
 					<Users className="size-4 text-primary" />
 					<span>
-						<strong className="text-foreground">Landlord-only</strong> (no tenant logins)
+						<strong className="text-foreground">Landlord-only</strong> (no
+						tenant logins)
 					</span>
 				</div>
 				<div className="flex items-center gap-2 text-sm text-muted-foreground">
 					<Shield className="size-4 text-success" />
 					<span>
-						<strong className="text-foreground">14-day</strong> free trial, no credit card
+						<strong className="text-foreground">14-day</strong> free trial, no
+						credit card
 					</span>
 				</div>
 			</div>
@@ -71,27 +74,27 @@ export function BentoPricingSection({
 				<Label
 					htmlFor="billing-toggle"
 					className={`text-sm font-medium transition-colors cursor-pointer ${
-						billingCycle === 'monthly'
-							? 'text-foreground'
-							: 'text-muted-foreground'
+						billingCycle === "monthly"
+							? "text-foreground"
+							: "text-muted-foreground"
 					}`}
 				>
 					Monthly
 				</Label>
 				<Switch
 					id="billing-toggle"
-					checked={billingCycle === 'yearly'}
-					onCheckedChange={checked =>
-						setBillingCycle(checked ? 'yearly' : 'monthly')
+					checked={billingCycle === "yearly"}
+					onCheckedChange={(checked) =>
+						setBillingCycle(checked ? "yearly" : "monthly")
 					}
 					className="data-[state=checked]:bg-primary"
 				/>
 				<Label
 					htmlFor="billing-toggle"
 					className={`text-sm font-medium transition-colors cursor-pointer ${
-						billingCycle === 'yearly'
-							? 'text-foreground'
-							: 'text-muted-foreground'
+						billingCycle === "yearly"
+							? "text-foreground"
+							: "text-muted-foreground"
 					}`}
 				>
 					Annual
@@ -142,5 +145,5 @@ export function BentoPricingSection({
 				<PricingComparisonTable className="mt-12" />
 			</div>
 		</div>
-	)
+	);
 }

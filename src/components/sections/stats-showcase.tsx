@@ -1,10 +1,10 @@
-import { BlurFade } from '#components/ui/blur-fade'
-import { BorderBeam } from '#components/ui/border-beam'
-import { NumberTicker } from '#components/ui/number-ticker'
-import { cn } from '#lib/utils'
+import { BlurFade } from "#components/ui/blur-fade";
+import { BorderBeam } from "#components/ui/border-beam";
+import { NumberTicker } from "#components/ui/number-ticker";
+import { cn } from "#lib/utils";
 
 interface StatsShowcaseProps {
-	className?: string
+	className?: string;
 }
 
 export function StatsShowcase({ className }: StatsShowcaseProps) {
@@ -15,39 +15,39 @@ export function StatsShowcase({ className }: StatsShowcaseProps) {
 	const stats = [
 		{
 			value: 5,
-			label: 'Entity Branches',
-			description: 'Property, lease, tenant, maintenance, inspection',
-			suffix: '',
-			prefix: ''
+			label: "Entity Branches",
+			description: "Property, lease, tenant, maintenance, inspection",
+			suffix: "",
+			prefix: "",
 		},
 		{
 			value: 7,
-			label: 'Default Categories',
-			description: 'Plus unlimited custom categories per landlord',
-			suffix: '',
-			prefix: ''
+			label: "Default Categories",
+			description: "Plus unlimited custom categories per landlord",
+			suffix: "",
+			prefix: "",
 		},
 		{
 			value: 500,
-			label: 'Tax-Season Bulk Zip',
-			description: 'Up to 500 docs per zip export',
-			suffix: '',
-			prefix: ''
+			label: "Tax-Season Bulk Zip",
+			description: "Up to 500 docs per zip export",
+			suffix: "",
+			prefix: "",
 		},
 		{
 			value: 14,
-			label: 'Day Free Trial',
-			description: 'No credit card required',
-			suffix: '',
-			prefix: ''
-		}
-	]
+			label: "Day Free Trial",
+			description: "No credit card required",
+			suffix: "",
+			prefix: "",
+		},
+	];
 
 	return (
 		<section
 			className={cn(
-				'section-spacing relative overflow-hidden bg-transparent',
-				className
+				"section-spacing relative overflow-hidden bg-transparent",
+				className,
 			)}
 		>
 			<div className="container px-4 mx-auto relative z-10">
@@ -58,7 +58,8 @@ export function StatsShowcase({ className }: StatsShowcaseProps) {
 							<span className="text-primary block">workflows</span>
 						</h2>
 						<p className="text-xl text-muted-foreground leading-relaxed">
-							Every feature ships against a real owner workflow — from upload to tax-season export.
+							Every feature ships against a real owner workflow — from upload to
+							tax-season export.
 						</p>
 					</BlurFade>
 				</div>
@@ -123,5 +124,5 @@ export function StatsShowcase({ className }: StatsShowcaseProps) {
 				</div>
 			</div>
 		</section>
-	)
+	);
 }

@@ -1,77 +1,81 @@
-'use client'
+"use client";
 
-import { Button } from '#components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '#components/ui/card'
-import { useQuery, useQueryClient, useSuspenseQuery } from '@tanstack/react-query'
-import { maintenanceQueries } from '#hooks/api/query-keys/maintenance-keys'
-import { propertyQueries } from '#hooks/api/query-keys/property-keys'
-import { unitQueries } from '#hooks/api/query-keys/unit-keys'
-import { createClient } from '#lib/supabase/client'
-import { useRouter } from 'next/navigation'
-import { toast } from 'sonner'
-import { useDeleteMaintenanceRequest } from '#hooks/api/use-maintenance'
-import { callGeneratePdfFromHtml } from '#hooks/api/use-report-mutations'
-import { formatCurrency } from '#lib/utils/currency'
-import { buildWorkOrderHtml } from './work-order-template'
-import type { ExpenseRecord } from '#types/core'
-import { useState } from 'react'
-
-import { User, Edit2, Trash2, Printer, Loader2 } from 'lucide-react'
-
-import { MaintenanceHeaderCard } from './maintenance-header-card'
-import { ExpensesCard } from './expenses-card'
-import { PhotosCard } from './photos-card'
-import { TimelineCard } from './timeline-card'
-import { generateTimeline } from './maintenance-utils'
-import { DocumentsSection } from '#components/documents/documents-section'
+import {
+	useQuery,
+	useQueryClient,
+	useSuspenseQuery,
+} from "@tanstack/react-query";
+import { Edit2, Loader2, Printer, Trash2, User } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
+import { toast } from "sonner";
+import { DocumentsSection } from "#components/documents/documents-section";
+import { Button } from "#components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "#components/ui/card";
+import { maintenanceQueries } from "#hooks/api/query-keys/maintenance-keys";
+import { propertyQueries } from "#hooks/api/query-keys/property-keys";
+import { unitQueries } from "#hooks/api/query-keys/unit-keys";
+import { useDeleteMaintenanceRequest } from "#hooks/api/use-maintenance";
+import { callGeneratePdfFromHtml } from "#hooks/api/use-report-mutations";
+import { createClient } from "#lib/supabase/client";
+import { formatCurrency } from "#lib/utils/currency";
+import type { ExpenseRecord } from "#types/core";
+import { ExpensesCard } from "./expenses-card";
+import { MaintenanceHeaderCard } from "./maintenance-header-card";
+import { generateTimeline } from "./maintenance-utils";
+import { PhotosCard } from "./photos-card";
+import { TimelineCard } from "./timeline-card";
+import { buildWorkOrderHtml } from "./work-order-template";
 
 interface MaintenanceDetailsProps {
-	id: string
+	id: string;
 }
 
 export function MaintenanceDetails({ id }: MaintenanceDetailsProps) {
-	const router = useRouter()
-	const queryClient = useQueryClient()
-	const deleteMutation = useDeleteMaintenanceRequest()
-	const { data: request } = useSuspenseQuery(maintenanceQueries.detail(id))
-	const { data: propertiesResponse } = useSuspenseQuery(propertyQueries.list())
-	const { data: unitsResponse } = useSuspenseQuery(unitQueries.list())
+	const router = useRouter();
+	const queryClient = useQueryClient();
+	const deleteMutation = useDeleteMaintenanceRequest();
+	const { data: request } = useSuspenseQuery(maintenanceQueries.detail(id));
+	const { data: propertiesResponse } = useSuspenseQuery(propertyQueries.list());
+	const { data: unitsResponse } = useSuspenseQuery(unitQueries.list());
 
 	const { data: expensesData } = useQuery({
-		queryKey: [...maintenanceQueries.all(), id, 'expenses'],
+		queryKey: [...maintenanceQueries.all(), id, "expenses"],
 		queryFn: async () => {
-			const supabase = createClient()
+			const supabase = createClient();
 			const { data, error } = await supabase
-				.from('expenses')
+				.from("expenses")
 				.select(
-					'id, amount, expense_date, vendor_name, maintenance_request_id, status'
+					"id, amount, expense_date, vendor_name, maintenance_request_id, status",
 				)
 				// Filter soft-deleted rows so the maintenance detail page agrees
 				// with the rest of the app (expenseQueries.* + expenses page).
-				.neq('status', 'inactive')
-				.eq('maintenance_request_id', id)
-			if (error) throw error
-			return (data ?? []) as ExpenseRecord[]
+				.neq("status", "inactive")
+				.eq("maintenance_request_id", id);
+			if (error) throw error;
+			return (data ?? []) as ExpenseRecord[];
 		},
-		enabled: !!id
-	})
+		enabled: !!id,
+	});
 
-	const units = unitsResponse?.data ?? []
-	const properties = propertiesResponse?.data ?? []
-	const expenses = expensesData ?? []
+	const units = unitsResponse?.data ?? [];
+	const properties = propertiesResponse?.data ?? [];
+	const expenses = expensesData ?? [];
 
-	const unit = units.find(u => u.id === request?.unit_id)
-	const property = properties.find(p => p.id === unit?.property_id)
+	const unit = units.find((u) => u.id === request?.unit_id);
+	const property = properties.find((p) => p.id === unit?.property_id);
 
 	const handleRefresh = () => {
 		queryClient.invalidateQueries({
-			queryKey: maintenanceQueries.detail(id).queryKey
-		})
-		queryClient.invalidateQueries({ queryKey: [...maintenanceQueries.all(), id, 'expenses'] })
-	}
+			queryKey: maintenanceQueries.detail(id).queryKey,
+		});
+		queryClient.invalidateQueries({
+			queryKey: [...maintenanceQueries.all(), id, "expenses"],
+		});
+	};
 
 	const handleExport = () => {
-		if (!request) return
+		if (!request) return;
 
 		const exportData = {
 			id: request.id,
@@ -79,65 +83,64 @@ export function MaintenanceDetails({ id }: MaintenanceDetailsProps) {
 			description: request.description,
 			status: request.status,
 			priority: request.priority,
-			property: property?.name ?? 'Unknown',
-			unit: unit?.unit_number ?? 'Unknown',
+			property: property?.name ?? "Unknown",
+			unit: unit?.unit_number ?? "Unknown",
 			created_at: request.created_at,
 			scheduled_date: request.scheduled_date,
 			completed_at: request.completed_at,
 			estimated_cost: request.estimated_cost,
 			actual_cost: request.actual_cost,
-			expenses: expenses.map(e => ({
+			expenses: expenses.map((e) => ({
 				vendor: e.vendor_name,
 				amount: e.amount,
-				date: e.expense_date
-			}))
-		}
+				date: e.expense_date,
+			})),
+		};
 
 		const blob = new Blob([JSON.stringify(exportData, null, 2)], {
-			type: 'application/json'
-		})
-		const url = URL.createObjectURL(blob)
-		const a = document.createElement('a')
-		a.href = url
-		a.download = `maintenance-${id}.json`
-		a.click()
-		URL.revokeObjectURL(url)
-		toast.success('Export downloaded')
-	}
+			type: "application/json",
+		});
+		const url = URL.createObjectURL(blob);
+		const a = document.createElement("a");
+		a.href = url;
+		a.download = `maintenance-${id}.json`;
+		a.click();
+		URL.revokeObjectURL(url);
+		toast.success("Export downloaded");
+	};
 
-	const timeline = generateTimeline(request)
-	const totalExpenses = expenses.reduce((sum, e) => sum + (e.amount ?? 0), 0)
+	const timeline = generateTimeline(request);
+	const totalExpenses = expenses.reduce((sum, e) => sum + (e.amount ?? 0), 0);
 
-	const [isGeneratingPdf, setIsGeneratingPdf] = useState(false)
+	const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
 	const handleDownloadWorkOrder = async () => {
-		if (!request) return
-		setIsGeneratingPdf(true)
+		if (!request) return;
+		setIsGeneratingPdf(true);
 		try {
 			const html = buildWorkOrderHtml({
 				request,
 				propertyName: property?.name ?? null,
 				unitNumber: unit?.unit_number ?? null,
-				expenses: expenses.map(e => ({
-					vendor_name: e.vendor_name ?? 'Vendor',
+				expenses: expenses.map((e) => ({
+					vendor_name: e.vendor_name ?? "Vendor",
 					amount: formatCurrency(e.amount ?? 0),
-					expense_date: e.expense_date ?? ''
+					expense_date: e.expense_date ?? "",
 				})),
-				totalExpenses: formatCurrency(totalExpenses)
-			})
+				totalExpenses: formatCurrency(totalExpenses),
+			});
 			await callGeneratePdfFromHtml(
 				html,
-				`work-order-${request.id.slice(0, 8)}.pdf`
-			)
-			toast.success('Work order PDF downloaded')
+				`work-order-${request.id.slice(0, 8)}.pdf`,
+			);
+			toast.success("Work order PDF downloaded");
 		} catch (err) {
-			toast.error('Failed to generate work order', {
-				description:
-					err instanceof Error ? err.message : 'Please try again.'
-			})
+			toast.error("Failed to generate work order", {
+				description: err instanceof Error ? err.message : "Please try again.",
+			});
 		} finally {
-			setIsGeneratingPdf(false)
+			setIsGeneratingPdf(false);
 		}
-	}
+	};
 
 	return (
 		<div className="grid gap-6 lg:grid-cols-3">
@@ -235,9 +238,14 @@ export function MaintenanceDetails({ id }: MaintenanceDetailsProps) {
 							className="w-full justify-start gap-2 text-destructive hover:text-destructive"
 							disabled={deleteMutation.isPending}
 							onClick={async () => {
-								if (!confirm('Are you sure you want to delete this maintenance request? This cannot be undone.')) return
-								await deleteMutation.mutateAsync(id)
-								router.push('/maintenance')
+								if (
+									!confirm(
+										"Are you sure you want to delete this maintenance request? This cannot be undone.",
+									)
+								)
+									return;
+								await deleteMutation.mutateAsync(id);
+								router.push("/maintenance");
 							}}
 						>
 							<Trash2 className="size-4" />
@@ -247,5 +255,5 @@ export function MaintenanceDetails({ id }: MaintenanceDetailsProps) {
 				</Card>
 			</div>
 		</div>
-	)
+	);
 }

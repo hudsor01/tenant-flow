@@ -1,22 +1,22 @@
-'use client'
+"use client";
 
-import { Users, UserPlus } from 'lucide-react'
-import { useRouter } from 'next/navigation'
-import { createLogger } from '#lib/frontend-logger'
-import type { TenantsProps } from '#types/sections/tenants'
-import { useTenantsStore } from '#stores/tenants-store'
-import { TenantTable } from './tenant-table'
-import { TenantGrid } from './tenant-grid'
-import { TenantDetailSheet } from './tenant-detail-sheet'
-import { TenantActionBar } from './tenant-action-bar'
-import { TenantStats } from './tenant-stats'
-import { TenantQuickActions } from './tenant-quick-actions'
-import { TenantToolbar } from './tenant-toolbar'
-import { BlurFade } from '#components/ui/blur-fade'
-import { BulkImportDialog } from '#components/bulk-import/bulk-import-dialog'
-import { tenantBulkImportConfig } from './bulk-import-config'
+import { UserPlus, Users } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { BulkImportDialog } from "#components/bulk-import/bulk-import-dialog";
+import { BlurFade } from "#components/ui/blur-fade";
+import { createLogger } from "#lib/frontend-logger";
+import { useTenantsStore } from "#stores/tenants-store";
+import type { TenantsProps } from "#types/sections/tenants";
+import { tenantBulkImportConfig } from "./bulk-import-config";
+import { TenantActionBar } from "./tenant-action-bar";
+import { TenantDetailSheet } from "./tenant-detail-sheet";
+import { TenantGrid } from "./tenant-grid";
+import { TenantQuickActions } from "./tenant-quick-actions";
+import { TenantStats } from "./tenant-stats";
+import { TenantTable } from "./tenant-table";
+import { TenantToolbar } from "./tenant-toolbar";
 
-const logger = createLogger({ component: 'Tenants' })
+const logger = createLogger({ component: "Tenants" });
 
 export function Tenants({
 	tenants,
@@ -25,9 +25,9 @@ export function Tenants({
 	onEditTenant,
 	onContactTenant,
 	onViewLease,
-	onViewPaymentHistory
+	onViewPaymentHistory,
 }: TenantsProps) {
-	const router = useRouter()
+	const router = useRouter();
 
 	const {
 		viewMode,
@@ -43,66 +43,72 @@ export function Tenants({
 		clearSelection,
 		isDetailSheetOpen,
 		openDetailSheet,
-		setDetailSheetOpen
-	} = useTenantsStore()
+		setDetailSheetOpen,
+	} = useTenantsStore();
 
 	const handleAddClick = () => {
-		router.push('/tenants/new')
-	}
+		router.push("/tenants/new");
+	};
 
 	// Calculate summary stats
-	const totalTenants = tenants.length
-	const activeTenants = tenants.filter(t => t.leaseStatus === 'active').length
+	const totalTenants = tenants.length;
+	const activeTenants = tenants.filter(
+		(t) => t.leaseStatus === "active",
+	).length;
 	const pendingTenants = tenants.filter(
-		t => t.leaseStatus === 'pending_signature'
-	).length
-	const endedTenants = tenants.filter(t => t.leaseStatus === 'ended').length
+		(t) => t.leaseStatus === "pending_signature",
+	).length;
+	const endedTenants = tenants.filter((t) => t.leaseStatus === "ended").length;
 
 	// Filter tenants
-	const filteredTenants = tenants.filter(t => {
+	const filteredTenants = tenants.filter((t) => {
 		if (searchQuery) {
-			const query = searchQuery.toLowerCase()
-			const fullName = t.fullName ?? ''
-			const email = t.email ?? ''
+			const query = searchQuery.toLowerCase();
+			const fullName = t.fullName ?? "";
+			const email = t.email ?? "";
 			if (
 				!fullName.toLowerCase().includes(query) &&
 				!email.toLowerCase().includes(query)
 			) {
-				return false
+				return false;
 			}
 		}
-		if (statusFilter !== 'all' && t.leaseStatus !== statusFilter) {
-			return false
+		if (statusFilter !== "all" && t.leaseStatus !== statusFilter) {
+			return false;
 		}
-		return true
-	})
+		return true;
+	});
 
 	const handleSelectChange = (ids: string[]) => {
-		setSelectedIds(ids)
-	}
+		setSelectedIds(ids);
+	};
 
 	const handleSelectAll = () => {
-		selectAll(filteredTenants.map(t => t.id))
-	}
+		selectAll(filteredTenants.map((t) => t.id));
+	};
 
 	const handleDeselectAll = () => {
-		clearSelection()
-	}
+		clearSelection();
+	};
 
 	const handleBulkDelete = () => {
-		logger.info('Bulk delete initiated', { selectedIds: Array.from(selectedIds) })
-		clearSelection()
-	}
+		logger.info("Bulk delete initiated", {
+			selectedIds: Array.from(selectedIds),
+		});
+		clearSelection();
+	};
 
 	const handleBulkExport = () => {
-		logger.info('Bulk export initiated', { selectedIds: Array.from(selectedIds) })
-		clearSelection()
-	}
+		logger.info("Bulk export initiated", {
+			selectedIds: Array.from(selectedIds),
+		});
+		clearSelection();
+	};
 
 	const handleViewTenant = (tenantId: string) => {
-		onViewTenant(tenantId)
-		openDetailSheet()
-	}
+		onViewTenant(tenantId);
+		openDetailSheet();
+	};
 
 	if (tenants.length === 0) {
 		return (
@@ -116,7 +122,8 @@ export function Tenants({
 							No tenants yet
 						</h2>
 						<p className="text-muted-foreground mb-6">
-							Tenants are records you keep for your own tracking — they don&apos;t log in. Add one to start building a lease.
+							Tenants are records you keep for your own tracking — they
+							don&apos;t log in. Add one to start building a lease.
 						</p>
 						<button
 							onClick={handleAddClick}
@@ -128,7 +135,7 @@ export function Tenants({
 					</div>
 				</BlurFade>
 			</div>
-		)
+		);
 	}
 
 	return (
@@ -181,7 +188,7 @@ export function Tenants({
 					/>
 
 					{/* Content Area */}
-					{viewMode === 'table' ? (
+					{viewMode === "table" ? (
 						<TenantTable
 							tenants={filteredTenants}
 							selectedIds={selectedIds}
@@ -190,7 +197,9 @@ export function Tenants({
 							onDeselectAll={handleDeselectAll}
 							onView={handleViewTenant}
 							onEdit={onEditTenant}
-							onDelete={id => logger.info('Delete tenant requested', { tenantId: id })}
+							onDelete={(id) =>
+								logger.info("Delete tenant requested", { tenantId: id })
+							}
 							onViewLease={onViewLease}
 						/>
 					) : (
@@ -200,7 +209,9 @@ export function Tenants({
 							onSelectChange={handleSelectChange}
 							onView={handleViewTenant}
 							onEdit={onEditTenant}
-							onDelete={id => logger.info('Delete tenant requested', { tenantId: id })}
+							onDelete={(id) =>
+								logger.info("Delete tenant requested", { tenantId: id })
+							}
 							onContact={onContactTenant}
 						/>
 					)}
@@ -240,5 +251,5 @@ export function Tenants({
 				{...(onViewPaymentHistory ? { onViewPaymentHistory } : {})}
 			/>
 		</div>
-	)
+	);
 }

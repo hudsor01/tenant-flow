@@ -1,23 +1,22 @@
-import type { ReactNode } from 'react'
-
-import { cn } from '#lib/utils'
 import {
+	ArrowDownRight,
+	ArrowUpRight,
+	Bell,
 	Building,
+	ChevronRight,
 	DollarSign,
 	FileSignature,
 	FolderArchive,
 	TrendingUp,
 	Users,
 	Wrench,
-	Bell,
-	ChevronRight,
-	ArrowUpRight,
-	ArrowDownRight
-} from 'lucide-react'
+} from "lucide-react";
+import type { ReactNode } from "react";
+import { cn } from "#lib/utils";
 
 export function HeroDashboardMockup({ className }: { className?: string }) {
 	return (
-		<div className={cn('relative', className)}>
+		<div className={cn("relative", className)}>
 			<div className="relative rounded-2xl overflow-hidden shadow-2xl border border-border bg-card">
 				<div className="flex items-center gap-2 px-4 py-3 bg-muted/50 border-b border-border">
 					<div className="flex gap-1.5">
@@ -102,15 +101,15 @@ export function HeroDashboardMockup({ className }: { className?: string }) {
 										<div
 											key={i}
 											className={cn(
-												'rounded-sm flex-1 transition-all duration-500',
-												i === 11 ? 'bg-primary' : 'bg-primary/40'
+												"rounded-sm flex-1 transition-all duration-500",
+												i === 11 ? "bg-primary" : "bg-primary/40",
 											)}
 											style={{
 												height: `${height}%`,
-												animationDelay: `${i * 50}ms`
+												animationDelay: `${i * 50}ms`,
 											}}
 										/>
-									)
+									),
 								)}
 							</div>
 							<div className="flex justify-between mt-2 text-xs text-muted-foreground">
@@ -184,11 +183,21 @@ export function HeroDashboardMockup({ className }: { className?: string }) {
 			<div className="absolute -top-4 -right-4 size-24 bg-primary/20 rounded-full blur-3xl" />
 			<div className="absolute -bottom-4 -left-4 size-32 bg-primary/10 rounded-full blur-3xl" />
 		</div>
-	)
+	);
 }
 
-function StatCard({ label, value, trend, trendUp, icon }: {
-	label: string; value: string; trend: string; trendUp: boolean; icon: ReactNode
+function StatCard({
+	label,
+	value,
+	trend,
+	trendUp,
+	icon,
+}: {
+	label: string;
+	value: string;
+	trend: string;
+	trendUp: boolean;
+	icon: ReactNode;
 }) {
 	return (
 		<div className="card-standard p-2.5 hover:border-primary/20 transition-colors">
@@ -198,8 +207,8 @@ function StatCard({ label, value, trend, trendUp, icon }: {
 				</div>
 				<span
 					className={cn(
-						'text-xs flex items-center gap-0.5',
-						trendUp ? 'text-success' : 'text-destructive'
+						"text-xs flex items-center gap-0.5",
+						trendUp ? "text-success" : "text-destructive",
 					)}
 				>
 					{trendUp ? (
@@ -213,17 +222,25 @@ function StatCard({ label, value, trend, trendUp, icon }: {
 			<div className="text-lg font-bold text-foreground">{value}</div>
 			<div className="text-xs text-muted-foreground">{label}</div>
 		</div>
-	)
+	);
 }
 
-function QuickAction({ icon, label, badge, badgeColor }: {
-	icon: ReactNode; label: string; badge?: string; badgeColor?: 'warning' | 'info' | 'success'
+function QuickAction({
+	icon,
+	label,
+	badge,
+	badgeColor,
+}: {
+	icon: ReactNode;
+	label: string;
+	badge?: string;
+	badgeColor?: "warning" | "info" | "success";
 }) {
 	const badgeColors = {
-		warning: 'bg-warning/10 text-warning',
-		info: 'bg-info/10 text-info',
-		success: 'bg-success/10 text-success'
-	}
+		warning: "bg-warning/10 text-warning",
+		info: "bg-info/10 text-info",
+		success: "bg-success/10 text-success",
+	};
 
 	return (
 		<button
@@ -239,8 +256,8 @@ function QuickAction({ icon, label, badge, badgeColor }: {
 			{badge ? (
 				<span
 					className={cn(
-						'text-xs px-2 py-0.5 rounded-full',
-						badgeColors[badgeColor || 'info']
+						"text-xs px-2 py-0.5 rounded-full",
+						badgeColors[badgeColor || "info"],
 					)}
 				>
 					{badge}
@@ -249,17 +266,29 @@ function QuickAction({ icon, label, badge, badgeColor }: {
 				<ChevronRight className="size-3.5 text-muted-foreground group-hover:text-primary transition-colors" />
 			)}
 		</button>
-	)
+	);
 }
 
-function ActivityItem({ avatar, name, action, amount, time, status }: {
-	avatar: string; name: string; action: string; amount: string; time: string; status: 'success' | 'warning' | 'info'
+function ActivityItem({
+	avatar,
+	name,
+	action,
+	amount,
+	time,
+	status,
+}: {
+	avatar: string;
+	name: string;
+	action: string;
+	amount: string;
+	time: string;
+	status: "success" | "warning" | "info";
 }) {
 	const statusColors = {
-		success: 'bg-success/10 text-success',
-		warning: 'bg-warning/10 text-warning',
-		info: 'bg-info/10 text-info'
-	}
+		success: "bg-success/10 text-success",
+		warning: "bg-warning/10 text-warning",
+		info: "bg-info/10 text-info",
+	};
 
 	return (
 		<div className="flex items-center gap-3 p-2 rounded-lg hover:bg-muted/50 transition-colors">
@@ -273,11 +302,11 @@ function ActivityItem({ avatar, name, action, amount, time, status }: {
 				</div>
 			</div>
 			<span
-				className={cn('text-xs px-2 py-0.5 rounded-full', statusColors[status])}
+				className={cn("text-xs px-2 py-0.5 rounded-full", statusColors[status])}
 			>
 				{amount}
 			</span>
 			<span className="text-xs text-muted-foreground">{time}</span>
 		</div>
-	)
+	);
 }

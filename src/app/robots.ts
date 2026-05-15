@@ -1,6 +1,6 @@
-import type { MetadataRoute } from 'next'
+import type { MetadataRoute } from "next";
 
-import { getSiteUrl } from '#lib/generate-metadata'
+import { getSiteUrl } from "#lib/generate-metadata";
 
 // Private + transactional surface area that should never appear in the
 // SERP. No trailing slashes — `/dashboard` blocks both `/dashboard` and
@@ -10,27 +10,27 @@ import { getSiteUrl } from '#lib/generate-metadata'
 // the bidirectional drift guard (additions or removals here surface in
 // the test without a parallel hardcoded list).
 export const PRIVATE_PATHS = [
-	'/admin',
-	'/api',
-	'/auth/callback',
-	'/auth/confirm-email',
-	'/auth/post-checkout',
-	'/auth/select-role',
-	'/auth/signout',
-	'/auth/update-password',
-	'/dashboard',
-	'/tenant',
-	'/owner',
-	'/settings',
-	'/profile',
-	'/billing',
-	'/_next/data',
-	'/monitoring',
+	"/admin",
+	"/api",
+	"/auth/callback",
+	"/auth/confirm-email",
+	"/auth/post-checkout",
+	"/auth/select-role",
+	"/auth/signout",
+	"/auth/update-password",
+	"/dashboard",
+	"/tenant",
+	"/owner",
+	"/settings",
+	"/profile",
+	"/billing",
+	"/_next/data",
+	"/monitoring",
 	// Stripe + checkout result pages — duplicate of `/pricing/cancel`
 	// and `/pricing/success`, no unique content, soft-404 risk.
-	'/stripe',
-	'/pricing/complete',
-] as const satisfies readonly string[]
+	"/stripe",
+	"/pricing/complete",
+] as const satisfies readonly string[];
 
 // AI-content user agents listed in the canonical vendor docs. Per the
 // best-practices brief (May 2026): the marketing surface is intentionally
@@ -51,24 +51,24 @@ export const PRIVATE_PATHS = [
 // the bidirectional drift guard (additions or removals here surface in
 // the test without a parallel hardcoded list).
 export const AI_USER_AGENTS = [
-	'GPTBot',
-	'OAI-SearchBot',
-	'ChatGPT-User',
-	'Google-Extended',
-	'ClaudeBot',
-	'Claude-User',
-	'Claude-SearchBot',
-	'Applebot-Extended',
-	'CCBot',
-	'PerplexityBot',
-	'Perplexity-User',
-	'Amazonbot',
-] as const satisfies readonly string[]
+	"GPTBot",
+	"OAI-SearchBot",
+	"ChatGPT-User",
+	"Google-Extended",
+	"ClaudeBot",
+	"Claude-User",
+	"Claude-SearchBot",
+	"Applebot-Extended",
+	"CCBot",
+	"PerplexityBot",
+	"Perplexity-User",
+	"Amazonbot",
+] as const satisfies readonly string[];
 
 export default function robots(): MetadataRoute.Robots {
 	// `MetadataRoute.Robots.rules[].disallow` is a mutable string[]; spread
 	// the readonly arrays onto fresh ones to satisfy Next.js's type.
-	const privatePaths = [...PRIVATE_PATHS]
+	const privatePaths = [...PRIVATE_PATHS];
 
 	// Explicitly allow the discovery files some bots treat as a safe
 	// fetch list. Most crawlers honor `Allow:` paths even when the path
@@ -77,34 +77,29 @@ export default function robots(): MetadataRoute.Robots {
 	// `Allow:`. Listing the LLM and reader entry points by name is
 	// belt-and-suspenders.
 	const discoveryAllowPaths = [
-		'/llms.txt',
-		'/llms-full.txt',
-		'/feed.xml',
-		'/sitemap.xml',
-		'/.well-known/security.txt',
-	]
+		"/llms.txt",
+		"/llms-full.txt",
+		"/feed.xml",
+		"/sitemap.xml",
+		"/.well-known/security.txt",
+	];
 
-	const aiBotRules = AI_USER_AGENTS.map(userAgent => ({
+	const aiBotRules = AI_USER_AGENTS.map((userAgent) => ({
 		userAgent,
-		allow: ['/', ...discoveryAllowPaths],
+		allow: ["/", ...discoveryAllowPaths],
 		disallow: [...privatePaths],
-	}))
+	}));
 
 	return {
 		rules: [
 			{
-				userAgent: '*',
-				allow: [
-					'/',
-					'/_next/static/',
-					'/_next/image/',
-					...discoveryAllowPaths,
-				],
+				userAgent: "*",
+				allow: ["/", "/_next/static/", "/_next/image/", ...discoveryAllowPaths],
 				disallow: privatePaths,
 			},
 			...aiBotRules,
 		],
 		sitemap: `${getSiteUrl()}/sitemap.xml`,
 		host: getSiteUrl(),
-	}
+	};
 }

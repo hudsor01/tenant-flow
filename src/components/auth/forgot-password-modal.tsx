@@ -1,59 +1,58 @@
-'use client'
+"use client";
 
-import type { FormEvent } from 'react'
-
-import { Alert, AlertDescription } from '#components/ui/alert'
-import { Button } from '#components/ui/button'
+import { CheckCircle2, Info, Mail } from "lucide-react";
+import type { FormEvent } from "react";
+import { useState } from "react";
+import { Alert, AlertDescription } from "#components/ui/alert";
+import { Button } from "#components/ui/button";
 import {
 	Dialog,
 	DialogContent,
 	DialogDescription,
 	DialogHeader,
-	DialogTitle
-} from '#components/ui/dialog'
-import { Input } from '#components/ui/input'
-import { Label } from '#components/ui/label'
-import { Spinner } from '#components/ui/loading-spinner'
-import { useSupabasePasswordResetMutation } from '#hooks/api/use-auth-mutations'
-import { CheckCircle2, Info, Mail } from 'lucide-react'
-import { useState } from 'react'
+	DialogTitle,
+} from "#components/ui/dialog";
+import { Input } from "#components/ui/input";
+import { Label } from "#components/ui/label";
+import { Spinner } from "#components/ui/loading-spinner";
+import { useSupabasePasswordResetMutation } from "#hooks/api/use-auth-mutations";
 
 interface ForgotPasswordModalProps {
-	open: boolean
-	onOpenChange: (open: boolean) => void
+	open: boolean;
+	onOpenChange: (open: boolean) => void;
 }
 
 export function ForgotPasswordModal({
 	open,
-	onOpenChange
+	onOpenChange,
 }: ForgotPasswordModalProps) {
-	const [email, setEmail] = useState('')
-	const [isSubmitted, setIsSubmitted] = useState(false)
+	const [email, setEmail] = useState("");
+	const [isSubmitted, setIsSubmitted] = useState(false);
 
-	const resetPasswordMutation = useSupabasePasswordResetMutation()
+	const resetPasswordMutation = useSupabasePasswordResetMutation();
 
 	// Reset state when modal closes
 	const handleOpenChange = (open: boolean) => {
 		if (!open) {
-			setEmail('')
-			setIsSubmitted(false)
-			resetPasswordMutation.reset()
+			setEmail("");
+			setIsSubmitted(false);
+			resetPasswordMutation.reset();
 		}
-		onOpenChange(open)
-	}
+		onOpenChange(open);
+	};
 
 	const handleSubmit = async (e: FormEvent) => {
-		e.preventDefault()
+		e.preventDefault();
 		if (email) {
 			resetPasswordMutation.mutate(email, {
 				onSuccess: () => setIsSubmitted(true),
 				onError: () => {
 					// Display generic message without leaking email existence
-					setIsSubmitted(true)
-				}
-			})
+					setIsSubmitted(true);
+				},
+			});
 		}
-	}
+	};
 
 	return (
 		<Dialog open={open} onOpenChange={handleOpenChange}>
@@ -83,7 +82,7 @@ export function ForgotPasswordModal({
 										placeholder="Enter your email"
 										autoComplete="email"
 										value={email}
-										onChange={e => setEmail(e.target.value)}
+										onChange={(e) => setEmail(e.target.value)}
 										className="pl-[var(--spacing-9)]"
 										required
 										disabled={resetPasswordMutation.isPending}
@@ -122,7 +121,7 @@ export function ForgotPasswordModal({
 											Sending...
 										</>
 									) : (
-										'Send Instructions'
+										"Send Instructions"
 									)}
 								</Button>
 							</div>
@@ -167,8 +166,8 @@ export function ForgotPasswordModal({
 								<Button
 									variant="outline"
 									onClick={() => {
-										setIsSubmitted(false)
-										resetPasswordMutation.reset()
+										setIsSubmitted(false);
+										resetPasswordMutation.reset();
 									}}
 									className="flex-1"
 								>
@@ -186,5 +185,5 @@ export function ForgotPasswordModal({
 				)}
 			</DialogContent>
 		</Dialog>
-	)
+	);
 }

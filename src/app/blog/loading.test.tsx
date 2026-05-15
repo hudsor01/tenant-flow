@@ -8,32 +8,32 @@
  * @vitest-environment jsdom
  */
 
-import { describe, it, expect, vi } from 'vitest'
-import { render, screen } from '@testing-library/react'
+import { render, screen } from "@testing-library/react";
+import { describe, expect, it, vi } from "vitest";
 
-vi.mock('next/link', () => ({
+vi.mock("next/link", () => ({
 	default: ({
 		children,
 		href,
 		...props
 	}: {
-		children: React.ReactNode
-		href: string
-		className?: string
+		children: React.ReactNode;
+		href: string;
+		className?: string;
 	}) => (
 		<a href={href} {...props}>
 			{children}
 		</a>
 	),
-}))
+}));
 
-vi.mock('#components/layout/page-layout', () => ({
+vi.mock("#components/layout/page-layout", () => ({
 	PageLayout: ({ children }: { children: React.ReactNode }) => (
 		<div data-testid="page-layout">{children}</div>
 	),
-}))
+}));
 
-vi.mock('#components/shared/blog-loading-skeleton', () => ({
+vi.mock("#components/shared/blog-loading-skeleton", () => ({
 	BlogLoadingSkeleton: () => (
 		<div
 			data-testid="blog-loading-skeleton"
@@ -41,47 +41,47 @@ vi.mock('#components/shared/blog-loading-skeleton', () => ({
 			aria-label="Loading content"
 		/>
 	),
-}))
+}));
 
-import BlogLoading from './loading'
+import BlogLoading from "./loading";
 
-describe('BlogLoading (route-scoped streaming UI for /blog)', () => {
-	it('renders inside PageLayout chrome', () => {
-		render(<BlogLoading />)
-		expect(screen.getByTestId('page-layout')).toBeInTheDocument()
-	})
+describe("BlogLoading (route-scoped streaming UI for /blog)", () => {
+	it("renders inside PageLayout chrome", () => {
+		render(<BlogLoading />);
+		expect(screen.getByTestId("page-layout")).toBeInTheDocument();
+	});
 
-	it('renders multiple BlogLoadingSkeleton instances in a grid', () => {
-		render(<BlogLoading />)
-		const skeletons = screen.getAllByRole('status', {
+	it("renders multiple BlogLoadingSkeleton instances in a grid", () => {
+		render(<BlogLoading />);
+		const skeletons = screen.getAllByRole("status", {
 			name: /loading content/i,
-		})
-		expect(skeletons.length).toBeGreaterThanOrEqual(6)
-	})
+		});
+		expect(skeletons.length).toBeGreaterThanOrEqual(6);
+	});
 
 	it('does NOT render empty-state copy ("No posts" / "More posts coming soon")', () => {
-		render(<BlogLoading />)
+		render(<BlogLoading />);
 		expect(
-			screen.queryByText(/no posts found|more posts coming soon/i)
-		).not.toBeInTheDocument()
-	})
+			screen.queryByText(/no posts found|more posts coming soon/i),
+		).not.toBeInTheDocument();
+	});
 
-	it('does NOT render BlogCard, NewsletterSignup, or Software Comparisons heading', () => {
-		render(<BlogLoading />)
-		expect(screen.queryByTestId('blog-card')).not.toBeInTheDocument()
-		expect(screen.queryByTestId('newsletter-signup')).not.toBeInTheDocument()
+	it("does NOT render BlogCard, NewsletterSignup, or Software Comparisons heading", () => {
+		render(<BlogLoading />);
+		expect(screen.queryByTestId("blog-card")).not.toBeInTheDocument();
+		expect(screen.queryByTestId("newsletter-signup")).not.toBeInTheDocument();
 		expect(
-			screen.queryByRole('heading', { name: /software comparisons/i })
-		).not.toBeInTheDocument()
-	})
+			screen.queryByRole("heading", { name: /software comparisons/i }),
+		).not.toBeInTheDocument();
+	});
 
-	it('renders breadcrumb landmark with Home → Blog navigation chrome', () => {
-		render(<BlogLoading />)
-		const breadcrumbNav = screen.getByRole('navigation', {
+	it("renders breadcrumb landmark with Home → Blog navigation chrome", () => {
+		render(<BlogLoading />);
+		const breadcrumbNav = screen.getByRole("navigation", {
 			name: /breadcrumb/i,
-		})
-		expect(breadcrumbNav).toBeInTheDocument()
-		expect(breadcrumbNav).toHaveTextContent(/home/i)
-		expect(breadcrumbNav).toHaveTextContent(/blog/i)
-	})
-})
+		});
+		expect(breadcrumbNav).toBeInTheDocument();
+		expect(breadcrumbNav).toHaveTextContent(/home/i);
+		expect(breadcrumbNav).toHaveTextContent(/blog/i);
+	});
+});

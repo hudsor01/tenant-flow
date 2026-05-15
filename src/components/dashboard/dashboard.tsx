@@ -1,43 +1,44 @@
-'use client'
+"use client";
 
 /**
  * Uses Zustand store for state management (useDashboardStore).
  * See stores/dashboard-store.ts for state structure.
  */
 
-import dynamic from 'next/dynamic'
-import type { DashboardProps } from '#types/sections/dashboard'
+import dynamic from "next/dynamic";
+import { ChartLoadingSkeleton } from "#components/shared/chart-loading-skeleton";
+import type { DashboardProps } from "#types/sections/dashboard";
 import {
 	formatDashboardCurrency,
-	quickActions,
 	type PortfolioRow,
-	type QuickActionType
-} from './dashboard-types'
-import { ChartLoadingSkeleton } from '#components/shared/chart-loading-skeleton'
+	type QuickActionType,
+	quickActions,
+} from "./dashboard-types";
 
 const RevenueOverviewChart = dynamic(
 	() =>
-		import('./components/revenue-overview-chart').then(
-			mod => mod.RevenueOverviewChart
+		import("./components/revenue-overview-chart").then(
+			(mod) => mod.RevenueOverviewChart,
 		),
-	{ ssr: false, loading: () => <ChartLoadingSkeleton /> }
-)
+	{ ssr: false, loading: () => <ChartLoadingSkeleton /> },
+);
+
 import {
 	Card,
 	CardContent,
 	CardDescription,
 	CardHeader,
-	CardTitle
-} from '#components/ui/card'
-import { PortfolioToolbar } from './components/portfolio-toolbar'
-import { PortfolioTable } from './components/portfolio-table'
-import { PortfolioGrid } from './components/portfolio-grid'
-import { PortfolioPagination } from './components/portfolio-pagination'
+	CardTitle,
+} from "#components/ui/card";
 import {
-	useDashboardStore,
 	type DashboardSortField,
-	type DashboardStatusFilter
-} from '#stores/dashboard-store'
+	type DashboardStatusFilter,
+	useDashboardStore,
+} from "#stores/dashboard-store";
+import { PortfolioGrid } from "./components/portfolio-grid";
+import { PortfolioPagination } from "./components/portfolio-pagination";
+import { PortfolioTable } from "./components/portfolio-table";
+import { PortfolioToolbar } from "./components/portfolio-toolbar";
 
 export function Dashboard({
 	metrics,
@@ -47,13 +48,13 @@ export function Dashboard({
 	onCreateLease,
 	onAddTenant,
 	onRecordPayment,
-	onCreateMaintenanceRequest
+	onCreateMaintenanceRequest,
 }: DashboardProps & {
-	onAddProperty?: () => void
-	onCreateLease?: () => void
-	onAddTenant?: () => void
-	onRecordPayment?: () => void
-	onCreateMaintenanceRequest?: () => void
+	onAddProperty?: () => void;
+	onCreateLease?: () => void;
+	onAddTenant?: () => void;
+	onRecordPayment?: () => void;
+	onCreateMaintenanceRequest?: () => void;
 }) {
 	// Get state and actions from Zustand store
 	const {
@@ -69,11 +70,11 @@ export function Dashboard({
 		currentPage,
 		setCurrentPage,
 		itemsPerPage,
-		clearFilters
-	} = useDashboardStore()
+		clearFilters,
+	} = useDashboardStore();
 
 	// Transform property performance into portfolio overview rows
-	const portfolioData: PortfolioRow[] = propertyPerformance.map(prop => ({
+	const portfolioData: PortfolioRow[] = propertyPerformance.map((prop) => ({
 		id: prop.id,
 		property: prop.name,
 		address: prop.address,
@@ -81,77 +82,77 @@ export function Dashboard({
 		tenant: prop.occupiedUnits > 0 ? `${prop.occupiedUnits} tenants` : null,
 		leaseStatus:
 			prop.occupancyRate === 100
-				? 'active'
+				? "active"
 				: prop.occupancyRate >= 80
-					? 'expiring'
-					: 'vacant',
+					? "expiring"
+					: "vacant",
 		leaseEnd: null,
 		rent: prop.monthlyRevenue,
-		maintenanceOpen: 0 // Not in current API response
-	}))
+		maintenanceOpen: 0, // Not in current API response
+	}));
 
 	// Filter and sort data
 	const filteredData = portfolioData
-		.filter(row => {
+		.filter((row) => {
 			if (searchQuery) {
-				const query = searchQuery.toLowerCase()
+				const query = searchQuery.toLowerCase();
 				if (
-					!(row.property ?? '').toLowerCase().includes(query) &&
-					!(row.address ?? '').toLowerCase().includes(query)
+					!(row.property ?? "").toLowerCase().includes(query) &&
+					!(row.address ?? "").toLowerCase().includes(query)
 				) {
-					return false
+					return false;
 				}
 			}
-			if (statusFilter !== 'all' && row.leaseStatus !== statusFilter) {
-				return false
+			if (statusFilter !== "all" && row.leaseStatus !== statusFilter) {
+				return false;
 			}
-			return true
+			return true;
 		})
 		.sort((a, b) => {
-			let comparison = 0
+			let comparison = 0;
 			switch (sortField) {
-				case 'property':
-					comparison = a.property.localeCompare(b.property)
-					break
-				case 'rent':
-					comparison = a.rent - b.rent
-					break
-				case 'units':
-					comparison = a.units.occupied - b.units.occupied
-					break
-				case 'status':
-					comparison = a.leaseStatus.localeCompare(b.leaseStatus)
-					break
+				case "property":
+					comparison = a.property.localeCompare(b.property);
+					break;
+				case "rent":
+					comparison = a.rent - b.rent;
+					break;
+				case "units":
+					comparison = a.units.occupied - b.units.occupied;
+					break;
+				case "status":
+					comparison = a.leaseStatus.localeCompare(b.leaseStatus);
+					break;
 			}
-			return sortDirection === 'asc' ? comparison : -comparison
-		})
+			return sortDirection === "asc" ? comparison : -comparison;
+		});
 
 	// Pagination
-	const totalPages = Math.ceil(filteredData.length / itemsPerPage)
+	const totalPages = Math.ceil(filteredData.length / itemsPerPage);
 	const paginatedData = filteredData.slice(
 		(currentPage - 1) * itemsPerPage,
-		currentPage * itemsPerPage
-	)
+		currentPage * itemsPerPage,
+	);
 
 	const handleAction = (action: QuickActionType) => {
 		switch (action) {
-			case 'addProperty':
-				onAddProperty?.()
-				break
-			case 'createLease':
-				onCreateLease?.()
-				break
-			case 'addTenant':
-				onAddTenant?.()
-				break
-			case 'recordPayment':
-				onRecordPayment?.()
-				break
-			case 'createRequest':
-				onCreateMaintenanceRequest?.()
-				break
+			case "addProperty":
+				onAddProperty?.();
+				break;
+			case "createLease":
+				onCreateLease?.();
+				break;
+			case "addTenant":
+				onAddTenant?.();
+				break;
+			case "recordPayment":
+				onRecordPayment?.();
+				break;
+			case "createRequest":
+				onCreateMaintenanceRequest?.();
+				break;
 		}
-	}
+	};
 
 	return (
 		<div className="flex flex-1 flex-col gap-6 p-6">
@@ -159,7 +160,7 @@ export function Dashboard({
 			<div data-testid="dashboard-stats">
 				<h1 className="typography-h1">Dashboard</h1>
 				<p className="text-sm text-muted-foreground">
-					{metrics.occupiedUnits} of {metrics.totalUnits} units occupied ·{' '}
+					{metrics.occupiedUnits} of {metrics.totalUnits} units occupied ·{" "}
 					{formatDashboardCurrency(metrics.totalRevenue)} this month
 				</p>
 			</div>
@@ -173,7 +174,7 @@ export function Dashboard({
 						<CardDescription>Common tasks</CardDescription>
 					</CardHeader>
 					<CardContent className="grid gap-3">
-						{quickActions.map(action => (
+						{quickActions.map((action) => (
 							<button
 								key={action.action}
 								className="flex h-auto items-center gap-3 p-3 text-left border border-border rounded-lg hover:bg-muted/50 transition-colors"
@@ -200,7 +201,7 @@ export function Dashboard({
 					searchQuery={searchQuery}
 					onSearchChange={setSearchQuery}
 					statusFilter={statusFilter}
-					onStatusFilterChange={value =>
+					onStatusFilterChange={(value) =>
 						setStatusFilter(value as DashboardStatusFilter)
 					}
 					viewMode={viewMode}
@@ -208,12 +209,12 @@ export function Dashboard({
 					onClearFilters={clearFilters}
 				/>
 
-				{viewMode === 'table' ? (
+				{viewMode === "table" ? (
 					<PortfolioTable
 						data={paginatedData}
 						sortField={sortField}
 						sortDirection={sortDirection}
-						onSort={field => handleSort(field as DashboardSortField)}
+						onSort={(field) => handleSort(field as DashboardSortField)}
 					/>
 				) : (
 					<PortfolioGrid data={paginatedData} />
@@ -243,5 +244,5 @@ export function Dashboard({
 				)}
 			</div>
 		</div>
-	)
+	);
 }

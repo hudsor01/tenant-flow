@@ -1,76 +1,76 @@
-'use client'
+"use client";
 
-import { useEffect, useState } from 'react'
-import { Download, AlertTriangle } from 'lucide-react'
-import { Skeleton } from '#components/ui/skeleton'
-import { BlurFade } from '#components/ui/blur-fade'
-import { Button } from '#components/ui/button'
-import { useExpenseSummary } from '#hooks/api/use-financials'
-import { useExpenses } from '#hooks/api/use-expense-mutations'
-import { ExpenseStats } from './_components/expense-stats'
-import { ExpenseCategoryBreakdown } from './_components/expense-category-breakdown'
-import { ExpenseTable } from './_components/expense-table'
+import { AlertTriangle, Download } from "lucide-react";
+import { useEffect, useState } from "react";
+import { BlurFade } from "#components/ui/blur-fade";
+import { Button } from "#components/ui/button";
+import { Skeleton } from "#components/ui/skeleton";
+import { useExpenses } from "#hooks/api/use-expense-mutations";
+import { useExpenseSummary } from "#hooks/api/use-financials";
+import { ExpenseCategoryBreakdown } from "./_components/expense-category-breakdown";
+import { ExpenseStats } from "./_components/expense-stats";
+import { ExpenseTable } from "./_components/expense-table";
 
 export default function ExpensesPage() {
-	const [searchQuery, setSearchQuery] = useState('')
-	const [categoryFilter, setCategoryFilter] = useState('all')
-	const [currentPage, setCurrentPage] = useState(1)
-	const itemsPerPage = 15
+	const [searchQuery, setSearchQuery] = useState("");
+	const [categoryFilter, setCategoryFilter] = useState("all");
+	const [currentPage, setCurrentPage] = useState(1);
+	const itemsPerPage = 15;
 
-	const { data: expenses, isLoading, error, refetch } = useExpenses()
-	const { data: summary, isLoading: summaryLoading } = useExpenseSummary()
+	const { data: expenses, isLoading, error, refetch } = useExpenses();
+	const { data: summary, isLoading: summaryLoading } = useExpenseSummary();
 
 	const filteredExpenses = (() => {
-		if (!expenses) return []
-		return expenses.filter(expense => {
-			if (categoryFilter !== 'all' && expense.category !== categoryFilter) {
-				return false
+		if (!expenses) return [];
+		return expenses.filter((expense) => {
+			if (categoryFilter !== "all" && expense.category !== categoryFilter) {
+				return false;
 			}
 			if (searchQuery) {
-				const query = searchQuery.toLowerCase()
+				const query = searchQuery.toLowerCase();
 				if (
 					!expense.description?.toLowerCase().includes(query) &&
 					!expense.vendor_name?.toLowerCase().includes(query) &&
 					!expense.property_name?.toLowerCase().includes(query)
 				) {
-					return false
+					return false;
 				}
 			}
-			return true
-		})
-	})()
+			return true;
+		});
+	})();
 
-	const totalPages = Math.ceil(filteredExpenses.length / itemsPerPage)
+	const totalPages = Math.ceil(filteredExpenses.length / itemsPerPage);
 	const paginatedExpenses = filteredExpenses.slice(
 		(currentPage - 1) * itemsPerPage,
-		currentPage * itemsPerPage
-	)
+		currentPage * itemsPerPage,
+	);
 
 	useEffect(() => {
-		setCurrentPage(1)
-	}, [searchQuery, categoryFilter])
+		setCurrentPage(1);
+	}, []);
 
 	const clearFilters = () => {
-		setSearchQuery('')
-		setCategoryFilter('all')
-	}
+		setSearchQuery("");
+		setCategoryFilter("all");
+	};
 
-	const totalExpenses = summary?.total_amount ?? 0
-	const monthlyAvg = summary?.monthly_average ?? 0
-	const yoyChange = summary?.year_over_year_change ?? null
+	const totalExpenses = summary?.total_amount ?? 0;
+	const monthlyAvg = summary?.monthly_average ?? 0;
+	const yoyChange = summary?.year_over_year_change ?? null;
 
 	const maintenanceTotal = (() => {
-		if (!summary?.categories) return 0
+		if (!summary?.categories) return 0;
 		const maintenance = summary.categories.find(
-			c => c.category === 'maintenance'
-		)
-		return maintenance?.amount ?? 0
-	})()
+			(c) => c.category === "maintenance",
+		);
+		return maintenance?.amount ?? 0;
+	})();
 
 	const maintenancePercent =
 		totalExpenses > 0
 			? ((maintenanceTotal / totalExpenses) * 100).toFixed(1)
-			: '0'
+			: "0";
 
 	if (isLoading || summaryLoading) {
 		return (
@@ -83,18 +83,18 @@ export default function ExpensesPage() {
 					<Skeleton className="h-10 w-24" />
 				</div>
 				<div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-					{[1, 2, 3, 4].map(i => (
+					{[1, 2, 3, 4].map((i) => (
 						<Skeleton key={i} className="h-24 rounded-lg" />
 					))}
 				</div>
 				<Skeleton className="h-12 w-full mb-4 rounded-lg" />
 				<div className="space-y-2">
-					{[1, 2, 3, 4, 5].map(i => (
+					{[1, 2, 3, 4, 5].map((i) => (
 						<Skeleton key={i} className="h-14 rounded-lg" />
 					))}
 				</div>
 			</div>
-		)
+		);
 	}
 
 	if (error) {
@@ -108,7 +108,7 @@ export default function ExpensesPage() {
 						Failed to Load Expenses
 					</h2>
 					<p className="text-muted-foreground mb-6">
-						{error instanceof Error ? error.message : 'An error occurred'}
+						{error instanceof Error ? error.message : "An error occurred"}
 					</p>
 					<button
 						onClick={() => void refetch()}
@@ -118,7 +118,7 @@ export default function ExpensesPage() {
 					</button>
 				</div>
 			</div>
-		)
+		);
 	}
 
 	return (
@@ -165,5 +165,5 @@ export default function ExpensesPage() {
 				onClearFilters={clearFilters}
 			/>
 		</div>
-	)
+	);
 }

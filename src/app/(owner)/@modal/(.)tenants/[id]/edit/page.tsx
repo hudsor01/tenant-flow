@@ -1,9 +1,9 @@
-import { RouteModal } from '#components/ui/route-modal'
-import { TenantEditForm } from '#app/(owner)/tenants/components/tenant-edit-form.client'
-import { notFound } from 'next/navigation'
-import { createLogger } from '#lib/frontend-logger'
+import { notFound } from "next/navigation";
+import { TenantEditForm } from "#app/(owner)/tenants/components/tenant-edit-form.client";
+import { RouteModal } from "#components/ui/route-modal";
+import { createLogger } from "#lib/frontend-logger";
 
-const logger = createLogger({ component: 'EditTenantModal' })
+const logger = createLogger({ component: "EditTenantModal" });
 
 /**
  * Edit Tenant Modal (Intercepting Route)
@@ -14,16 +14,16 @@ const logger = createLogger({ component: 'EditTenantModal' })
  * create/edit forms share the same fields.
  */
 export default async function EditTenantModal({
-	params
+	params,
 }: {
-	params: Promise<{ id: string }>
+	params: Promise<{ id: string }>;
 }) {
 	try {
-		const { id } = await params
+		const { id } = await params;
 
 		// Validate id parameter
 		if (!id?.trim()) {
-			notFound()
+			notFound();
 		}
 
 		return (
@@ -33,12 +33,12 @@ export default async function EditTenantModal({
 			>
 				<TenantEditForm id={id.trim()} />
 			</RouteModal>
-		)
+		);
 	} catch (error) {
-		logger.error('Failed to load tenant edit modal', {
+		logger.error("Failed to load tenant edit modal", {
 			message: error instanceof Error ? error.message : String(error),
-			stack: error instanceof Error ? error.stack : undefined
-		})
-		notFound()
+			stack: error instanceof Error ? error.stack : undefined,
+		});
+		notFound();
 	}
 }

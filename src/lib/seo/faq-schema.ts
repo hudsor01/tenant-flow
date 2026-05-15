@@ -1,8 +1,8 @@
-import type { FAQPage } from 'schema-dts'
+import type { FAQPage } from "schema-dts";
 
 interface FaqItem {
-	question: string
-	answer: string
+	question: string;
+	answer: string;
 }
 
 /**
@@ -11,14 +11,14 @@ interface FaqItem {
  */
 export function createFaqJsonLd(items: FaqItem[]): FAQPage {
 	return {
-		'@type': 'FAQPage',
-		mainEntity: items.map(item => ({
-			'@type': 'Question' as const,
+		"@type": "FAQPage",
+		mainEntity: items.map((item) => ({
+			"@type": "Question" as const,
 			name: item.question,
 			acceptedAnswer: {
-				'@type': 'Answer' as const,
-				text: item.answer
-			}
-		}))
-	}
+				"@type": "Answer" as const,
+				text: item.answer,
+			},
+		})),
+	};
 }

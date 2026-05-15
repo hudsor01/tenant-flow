@@ -1,10 +1,10 @@
-import type { Thing, WithContext } from 'schema-dts'
+import type { Thing, WithContext } from "schema-dts";
 
 /** Object-shaped schema types only (excludes string leaf variants from schema-dts) */
-type ThingObject = Exclude<Thing, string>
+type ThingObject = Exclude<Thing, string>;
 
 interface JsonLdScriptProps {
-	schema: ThingObject | WithContext<ThingObject>
+	schema: ThingObject | WithContext<ThingObject>;
 }
 
 /**
@@ -14,17 +14,20 @@ interface JsonLdScriptProps {
  * Server Component -- no 'use client' directive needed.
  */
 export function JsonLdScript({ schema }: JsonLdScriptProps) {
-	const hasContext = '@context' in schema
+	const hasContext = "@context" in schema;
 	const jsonString = hasContext
 		? JSON.stringify(schema)
-		: JSON.stringify({ '@context': 'https://schema.org', ...(schema as Record<string, unknown>) })
+		: JSON.stringify({
+				"@context": "https://schema.org",
+				...(schema as Record<string, unknown>),
+			});
 
 	return (
 		<script
 			type="application/ld+json"
 			dangerouslySetInnerHTML={{
-				__html: jsonString.replace(/</g, '\\u003c')
+				__html: jsonString.replace(/</g, "\\u003c"),
 			}}
 		/>
-	)
+	);
 }

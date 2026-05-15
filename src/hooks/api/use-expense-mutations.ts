@@ -6,12 +6,16 @@
  * This file re-exports keys for backward compatibility and provides thin hooks.
  */
 
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { financialMutations, expenseKeys, expenseQueries, financialTaxQueries } from './query-keys/expense-keys'
-import { financialKeys } from './query-keys/financial-keys'
-import { ownerDashboardKeys } from './use-owner-dashboard'
-import { createMutationCallbacks } from '#hooks/create-mutation-callbacks'
-
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { createMutationCallbacks } from "#hooks/create-mutation-callbacks";
+import {
+	expenseKeys,
+	expenseQueries,
+	financialMutations,
+	financialTaxQueries,
+} from "./query-keys/expense-keys";
+import { financialKeys } from "./query-keys/financial-keys";
+import { ownerDashboardKeys } from "./use-owner-dashboard";
 
 /**
  * Returns the active (non-soft-deleted) expense list. Bounded by
@@ -23,27 +27,27 @@ import { createMutationCallbacks } from '#hooks/create-mutation-callbacks'
 export function useExpenses(options?: { enabled?: boolean }) {
 	return useQuery({
 		...expenseQueries.list(options),
-		select: page => page.data
-	})
+		select: (page) => page.data,
+	});
 }
 
 export function useExpensesByProperty(
 	propertyId: string,
-	options?: { enabled?: boolean }
+	options?: { enabled?: boolean },
 ) {
-	return useQuery(expenseQueries.byProperty(propertyId, options))
+	return useQuery(expenseQueries.byProperty(propertyId, options));
 }
 
 export function useExpensesByDateRange(
 	startDate: string,
 	endDate: string,
-	options?: { enabled?: boolean }
+	options?: { enabled?: boolean },
 ) {
-	return useQuery(expenseQueries.byDateRange(startDate, endDate, options))
+	return useQuery(expenseQueries.byDateRange(startDate, endDate, options));
 }
 
 export function useCreateExpenseMutation() {
-	const queryClient = useQueryClient()
+	const queryClient = useQueryClient();
 
 	return useMutation({
 		...financialMutations.createExpense(),
@@ -57,25 +61,25 @@ export function useCreateExpenseMutation() {
 			// surfaces expense numbers (today's get_dashboard_stats does not,
 			// but the convention prevents drift).
 			invalidate: [expenseKeys.all, financialKeys.all, ownerDashboardKeys.all],
-			errorContext: 'Create expense'
-		})
-	})
+			errorContext: "Create expense",
+		}),
+	});
 }
 
 export function useDeleteExpenseMutation() {
-	const queryClient = useQueryClient()
+	const queryClient = useQueryClient();
 
 	return useMutation({
 		...financialMutations.deleteExpense(),
 		...createMutationCallbacks(queryClient, {
 			// Same cross-domain fanout as create — see useCreateExpenseMutation.
 			invalidate: [expenseKeys.all, financialKeys.all, ownerDashboardKeys.all],
-			errorContext: 'Delete expense'
-		})
-	})
+			errorContext: "Delete expense",
+		}),
+	});
 }
 
 export function useTaxDocuments(taxYear?: number) {
-	const year = taxYear ?? new Date().getFullYear()
-	return useQuery(financialTaxQueries.taxDocuments(year))
+	const year = taxYear ?? new Date().getFullYear();
+	return useQuery(financialTaxQueries.taxDocuments(year));
 }

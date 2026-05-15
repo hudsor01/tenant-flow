@@ -46,338 +46,335 @@
  *         surfaces both as 42501.
  */
 
-import { createTestClient, getTestCredentials } from '../setup/supabase-client'
-import type { SupabaseClient } from '@supabase/supabase-js'
+import type { SupabaseClient } from "@supabase/supabase-js";
+import { createTestClient, getTestCredentials } from "../setup/supabase-client";
 
-const PROBE_PROPERTY_NAME_PREFIX = 'RLS-probe-users-priv-'
+const PROBE_PROPERTY_NAME_PREFIX = "RLS-probe-users-priv-";
 
 interface SafeUserSnapshot {
-	phone: string | null
-	emergency_contact_name: string | null
-	emergency_contact_phone: string | null
-	emergency_contact_relationship: string | null
+	phone: string | null;
+	emergency_contact_name: string | null;
+	emergency_contact_phone: string | null;
+	emergency_contact_relationship: string | null;
 }
 
 /** Type guard for the Supabase Storage error shape that exposes statusCode. */
 function isStorageStatusError(
-	value: unknown
+	value: unknown,
 ): value is { statusCode: string | number; message?: string } {
 	return (
-		typeof value === 'object' &&
+		typeof value === "object" &&
 		value !== null &&
-		'statusCode' in value &&
-		((typeof (value as { statusCode: unknown }).statusCode === 'string') ||
-			(typeof (value as { statusCode: unknown }).statusCode === 'number'))
-	)
+		"statusCode" in value &&
+		(typeof (value as { statusCode: unknown }).statusCode === "string" ||
+			typeof (value as { statusCode: unknown }).statusCode === "number")
+	);
 }
 
-describe('P0 security hardening — public.users + sign_lease + property-images storage', () => {
-	let clientA: SupabaseClient
-	let clientB: SupabaseClient
-	let ownerAId: string
-	let ownerBId: string
-	let savedSafeProfile: SafeUserSnapshot | null = null
-	const insertedPropertyIds: string[] = []
-	const uploadedStoragePaths: string[] = []
+describe("P0 security hardening — public.users + sign_lease + property-images storage", () => {
+	let clientA: SupabaseClient;
+	let clientB: SupabaseClient;
+	let ownerAId: string;
+	let ownerBId: string;
+	let savedSafeProfile: SafeUserSnapshot | null = null;
+	const insertedPropertyIds: string[] = [];
+	const uploadedStoragePaths: string[] = [];
 
 	beforeAll(async () => {
-		const { ownerA, ownerB } = getTestCredentials()
-		clientA = await createTestClient(ownerA.email, ownerA.password)
-		clientB = await createTestClient(ownerB.email, ownerB.password)
+		const { ownerA, ownerB } = getTestCredentials();
+		clientA = await createTestClient(ownerA.email, ownerA.password);
+		clientB = await createTestClient(ownerB.email, ownerB.password);
 		const {
-			data: { user: uA }
-		} = await clientA.auth.getUser()
+			data: { user: uA },
+		} = await clientA.auth.getUser();
 		const {
-			data: { user: uB }
-		} = await clientB.auth.getUser()
-		ownerAId = uA!.id
-		ownerBId = uB!.id
+			data: { user: uB },
+		} = await clientB.auth.getUser();
+		ownerAId = uA!.id;
+		ownerBId = uB!.id;
 
 		// Snapshot the safe-update columns so we can restore them after the
 		// tests, even if a probe-write test crashes mid-flight. Keeping the
 		// snapshot at suite scope (not test scope) means a single restore in
 		// afterAll covers any orphan probe values.
 		const { data: snap } = await clientA
-			.from('users')
+			.from("users")
 			.select(
-				'phone, emergency_contact_name, emergency_contact_phone, emergency_contact_relationship'
+				"phone, emergency_contact_name, emergency_contact_phone, emergency_contact_relationship",
 			)
-			.eq('id', ownerAId)
-			.single()
+			.eq("id", ownerAId)
+			.single();
 		savedSafeProfile = snap
 			? {
 					phone: snap.phone ?? null,
 					emergency_contact_name: snap.emergency_contact_name ?? null,
 					emergency_contact_phone: snap.emergency_contact_phone ?? null,
 					emergency_contact_relationship:
-						snap.emergency_contact_relationship ?? null
+						snap.emergency_contact_relationship ?? null,
 				}
-			: null
+			: null;
 
 		// Sweep any orphan probe properties from prior crashed runs so the
 		// inserted-property cleanup converges. afterAll only knows about
 		// IDs the test pushed before crashing.
 		const { data: orphanProps } = await clientA
-			.from('properties')
-			.select('id')
-			.eq('owner_user_id', ownerAId)
-			.like('name', `${PROBE_PROPERTY_NAME_PREFIX}%`)
+			.from("properties")
+			.select("id")
+			.eq("owner_user_id", ownerAId)
+			.like("name", `${PROBE_PROPERTY_NAME_PREFIX}%`);
 		for (const p of orphanProps ?? []) {
-			await clientA.from('properties').delete().eq('id', p.id)
+			await clientA.from("properties").delete().eq("id", p.id);
 		}
-	})
+	});
 
 	afterAll(async () => {
 		// Best-effort cleanup for storage objects this run uploaded.
 		for (const path of uploadedStoragePaths) {
-			await clientA.storage.from('property-images').remove([path])
+			await clientA.storage.from("property-images").remove([path]);
 		}
 		// Best-effort cleanup for any properties this run created.
 		for (const id of insertedPropertyIds) {
-			await clientA.from('properties').delete().eq('id', id)
+			await clientA.from("properties").delete().eq("id", id);
 		}
 		// Restore the safe profile columns back to the pre-suite values so
 		// repeated runs don't drift the synthetic owner's profile.
 		if (savedSafeProfile) {
-			await clientA
-				.from('users')
-				.update(savedSafeProfile)
-				.eq('id', ownerAId)
+			await clientA.from("users").update(savedSafeProfile).eq("id", ownerAId);
 		}
-	})
+	});
 
 	async function ensureProbeProperty(): Promise<string> {
 		const { data: prop, error: propErr } = await clientA
-			.from('properties')
+			.from("properties")
 			.insert({
 				name: `${PROBE_PROPERTY_NAME_PREFIX}${Date.now()}`,
-				address_line1: '1 Test Way',
-				city: 'Test',
-				state: 'CA',
-				postal_code: '90001',
+				address_line1: "1 Test Way",
+				city: "Test",
+				state: "CA",
+				postal_code: "90001",
 				owner_user_id: ownerAId,
-				property_type: 'single_family'
+				property_type: "single_family",
 			})
-			.select('id')
-			.single()
-		if (propErr) throw propErr
-		insertedPropertyIds.push(prop!.id)
-		return prop!.id
+			.select("id")
+			.single();
+		if (propErr) throw propErr;
+		insertedPropertyIds.push(prop!.id);
+		return prop!.id;
 	}
 
 	// --- P0-1 ---------------------------------------------------------
 
-	describe('P0-1: privileged columns on public.users are not writable from authenticated', () => {
-		it('rejects self-promotion to admin (is_admin)', async () => {
+	describe("P0-1: privileged columns on public.users are not writable from authenticated", () => {
+		it("rejects self-promotion to admin (is_admin)", async () => {
 			const { error } = await clientA
-				.from('users')
+				.from("users")
 				.update({ is_admin: true })
-				.eq('id', ownerAId)
-				.select()
-			expect(error).not.toBeNull()
-			expect(error!.code).toBe('42501')
-		})
+				.eq("id", ownerAId)
+				.select();
+			expect(error).not.toBeNull();
+			expect(error!.code).toBe("42501");
+		});
 
-		it('rejects self-flipping subscription_status', async () => {
+		it("rejects self-flipping subscription_status", async () => {
 			const { error } = await clientA
-				.from('users')
-				.update({ subscription_status: 'active' })
-				.eq('id', ownerAId)
-				.select()
-			expect(error).not.toBeNull()
-			expect(error!.code).toBe('42501')
-		})
+				.from("users")
+				.update({ subscription_status: "active" })
+				.eq("id", ownerAId)
+				.select();
+			expect(error).not.toBeNull();
+			expect(error!.code).toBe("42501");
+		});
 
-		it('rejects self-write of stripe_customer_id (billing-portal hijack vector)', async () => {
+		it("rejects self-write of stripe_customer_id (billing-portal hijack vector)", async () => {
 			const { error } = await clientA
-				.from('users')
-				.update({ stripe_customer_id: 'cus_attacker_supplied' })
-				.eq('id', ownerAId)
-				.select()
-			expect(error).not.toBeNull()
-			expect(error!.code).toBe('42501')
-		})
+				.from("users")
+				.update({ stripe_customer_id: "cus_attacker_supplied" })
+				.eq("id", ownerAId)
+				.select();
+			expect(error).not.toBeNull();
+			expect(error!.code).toBe("42501");
+		});
 
-		it('rejects self-write of subscription_plan', async () => {
+		it("rejects self-write of subscription_plan", async () => {
 			const { error } = await clientA
-				.from('users')
-				.update({ subscription_plan: 'max' })
-				.eq('id', ownerAId)
-				.select()
-			expect(error).not.toBeNull()
-			expect(error!.code).toBe('42501')
-		})
+				.from("users")
+				.update({ subscription_plan: "max" })
+				.eq("id", ownerAId)
+				.select();
+			expect(error).not.toBeNull();
+			expect(error!.code).toBe("42501");
+		});
 
-		it('rejects self-write of trial_ends_at (extend-trial-forever vector)', async () => {
+		it("rejects self-write of trial_ends_at (extend-trial-forever vector)", async () => {
 			const { error } = await clientA
-				.from('users')
-				.update({ trial_ends_at: '2099-01-01T00:00:00Z' })
-				.eq('id', ownerAId)
-				.select()
-			expect(error).not.toBeNull()
-			expect(error!.code).toBe('42501')
-		})
+				.from("users")
+				.update({ trial_ends_at: "2099-01-01T00:00:00Z" })
+				.eq("id", ownerAId)
+				.select();
+			expect(error).not.toBeNull();
+			expect(error!.code).toBe("42501");
+		});
 
-		it('rejects self-write of email (drift between auth.users and public.users)', async () => {
+		it("rejects self-write of email (drift between auth.users and public.users)", async () => {
 			const { error } = await clientA
-				.from('users')
-				.update({ email: 'attacker-rewrite@example.com' })
-				.eq('id', ownerAId)
-				.select()
-			expect(error).not.toBeNull()
-			expect(error!.code).toBe('42501')
-		})
+				.from("users")
+				.update({ email: "attacker-rewrite@example.com" })
+				.eq("id", ownerAId)
+				.select();
+			expect(error).not.toBeNull();
+			expect(error!.code).toBe("42501");
+		});
 
-		it('rejects self-write of `status` column (P1-A — soft-delete-flag vector)', async () => {
+		it("rejects self-write of `status` column (P1-A — soft-delete-flag vector)", async () => {
 			const { error } = await clientA
-				.from('users')
-				.update({ status: 'inactive' })
-				.eq('id', ownerAId)
-				.select()
-			expect(error).not.toBeNull()
-			expect(error!.code).toBe('42501')
-		})
+				.from("users")
+				.update({ status: "inactive" })
+				.eq("id", ownerAId)
+				.select();
+			expect(error).not.toBeNull();
+			expect(error!.code).toBe("42501");
+		});
 
-		it('still allows safe self-updates (phone) — UX must not regress', async () => {
-			const probe = '(555) 123-4567'
+		it("still allows safe self-updates (phone) — UX must not regress", async () => {
+			const probe = "(555) 123-4567";
 			const { error: writeError } = await clientA
-				.from('users')
+				.from("users")
 				.update({ phone: probe })
-				.eq('id', ownerAId)
-			expect(writeError).toBeNull()
+				.eq("id", ownerAId);
+			expect(writeError).toBeNull();
 
 			const { data: after } = await clientA
-				.from('users')
-				.select('phone')
-				.eq('id', ownerAId)
-				.single()
-			expect(after?.phone).toBe(probe)
+				.from("users")
+				.select("phone")
+				.eq("id", ownerAId)
+				.single();
+			expect(after?.phone).toBe(probe);
 			// afterAll restores the original snapshot — no per-test restore.
-		})
+		});
 
-		it('still allows safe self-update of emergency_contact_* columns', async () => {
+		it("still allows safe self-update of emergency_contact_* columns", async () => {
 			const { error: writeError } = await clientA
-				.from('users')
+				.from("users")
 				.update({
-					emergency_contact_name: 'Probe Name',
-					emergency_contact_phone: '(555) 999-0000',
-					emergency_contact_relationship: 'spouse'
+					emergency_contact_name: "Probe Name",
+					emergency_contact_phone: "(555) 999-0000",
+					emergency_contact_relationship: "spouse",
 				})
-				.eq('id', ownerAId)
-			expect(writeError).toBeNull()
+				.eq("id", ownerAId);
+			expect(writeError).toBeNull();
 			// afterAll restores the original snapshot.
-		})
-	})
+		});
+	});
 
 	// --- P0-B ---------------------------------------------------------
 
-	describe('P0-B: INSERT and DELETE on public.users from authenticated are revoked', () => {
-		it('rejects INSERT on public.users (was the delete-then-insert escalation path)', async () => {
+	describe("P0-B: INSERT and DELETE on public.users from authenticated are revoked", () => {
+		it("rejects INSERT on public.users (was the delete-then-insert escalation path)", async () => {
 			const { error } = await clientA
-				.from('users')
+				.from("users")
 				.insert({
 					id: ownerAId, // would conflict with own row, but rejected before that check
-					email: 'attacker-reinsert@example.com',
+					email: "attacker-reinsert@example.com",
 					is_admin: true,
-					full_name: 'Attacker'
+					full_name: "Attacker",
 				})
-				.select()
-			expect(error).not.toBeNull()
-			expect(error!.code).toBe('42501')
-		})
+				.select();
+			expect(error).not.toBeNull();
+			expect(error!.code).toBe("42501");
+		});
 
-		it('rejects DELETE on public.users (the first half of the delete-then-insert path)', async () => {
+		it("rejects DELETE on public.users (the first half of the delete-then-insert path)", async () => {
 			const { error } = await clientA
-				.from('users')
+				.from("users")
 				.delete()
-				.eq('id', ownerAId)
-				.select()
-			expect(error).not.toBeNull()
-			expect(error!.code).toBe('42501')
-		})
-	})
+				.eq("id", ownerAId)
+				.select();
+			expect(error).not.toBeNull();
+			expect(error!.code).toBe("42501");
+		});
+	});
 
 	// --- P0-2 ---------------------------------------------------------
 
-	describe('P0-2: sign_lease_and_check_activation is not callable from authenticated', () => {
-		it('PostgREST returns permission-denied — EXECUTE is revoked', async () => {
-			const { error } = await clientA.rpc('sign_lease_and_check_activation', {
-				p_lease_id: '00000000-0000-0000-0000-000000000000',
-				p_signer_type: 'owner',
-				p_signature_ip: '127.0.0.1',
+	describe("P0-2: sign_lease_and_check_activation is not callable from authenticated", () => {
+		it("PostgREST returns permission-denied — EXECUTE is revoked", async () => {
+			const { error } = await clientA.rpc("sign_lease_and_check_activation", {
+				p_lease_id: "00000000-0000-0000-0000-000000000000",
+				p_signer_type: "owner",
+				p_signature_ip: "127.0.0.1",
 				p_signed_at: new Date().toISOString(),
-				p_signature_method: 'in_app'
-			})
-			expect(error).not.toBeNull()
+				p_signature_method: "in_app",
+			});
+			expect(error).not.toBeNull();
 			// PostgREST surfaces a revoked EXECUTE on a SECURITY DEFINER
 			// function as 42501 in current versions; older versions returned
 			// 42883 / PGRST202. Accept any of the three so the test pins
 			// "function is no longer reachable from authenticated", not a
 			// specific error-code string.
-			expect(['42501', '42883', 'PGRST202']).toContain(error!.code)
-		})
-	})
+			expect(["42501", "42883", "PGRST202"]).toContain(error!.code);
+		});
+	});
 
 	// --- P0-3 ---------------------------------------------------------
 
-	describe('P0-3: property-images storage requires path-ownership', () => {
-		it('owner can upload into a folder for a property they own', async () => {
-			const propertyId = await ensureProbeProperty()
-			const path = `${propertyId}/probe-${Date.now()}.jpg`
+	describe("P0-3: property-images storage requires path-ownership", () => {
+		it("owner can upload into a folder for a property they own", async () => {
+			const propertyId = await ensureProbeProperty();
+			const path = `${propertyId}/probe-${Date.now()}.jpg`;
 			const { error: upErr } = await clientA.storage
-				.from('property-images')
-				.upload(path, new Blob(['probe'], { type: 'image/jpeg' }))
-			expect(upErr).toBeNull()
-			uploadedStoragePaths.push(path)
-		})
+				.from("property-images")
+				.upload(path, new Blob(["probe"], { type: "image/jpeg" }));
+			expect(upErr).toBeNull();
+			uploadedStoragePaths.push(path);
+		});
 
-		it('owner B cannot upload into owner A property folder (was the P0-3 hole)', async () => {
+		it("owner B cannot upload into owner A property folder (was the P0-3 hole)", async () => {
 			// Reuse the owned property from the previous test if available;
 			// otherwise create one. Either way, the folder UUID resolves to a
 			// property ownerA owns, which is what makes the cross-owner check
 			// meaningful.
 			const targetPropertyId =
 				insertedPropertyIds[insertedPropertyIds.length - 1] ??
-				(await ensureProbeProperty())
+				(await ensureProbeProperty());
 
-			const path = `${targetPropertyId}/cross-owner-${Date.now()}.jpg`
+			const path = `${targetPropertyId}/cross-owner-${Date.now()}.jpg`;
 			const { error } = await clientB.storage
-				.from('property-images')
-				.upload(path, new Blob(['attack'], { type: 'image/jpeg' }))
-			expect(error).not.toBeNull()
+				.from("property-images")
+				.upload(path, new Blob(["attack"], { type: "image/jpeg" }));
+			expect(error).not.toBeNull();
 
 			// Pin the SHAPE of the rejection: storage returns a 4xx with an
 			// RLS / unauthorized message. Loose `.toBeTruthy()` would also
 			// pass on a transient network error, which would mask a real
 			// regression.
 			if (isStorageStatusError(error)) {
-				const status = String(error.statusCode)
-				expect(['400', '403']).toContain(status)
-				expect(error.message ?? '').toMatch(
-					/row-level security|unauthorized|new row violates|policy/i
-				)
+				const status = String(error.statusCode);
+				expect(["400", "403"]).toContain(status);
+				expect(error.message ?? "").toMatch(
+					/row-level security|unauthorized|new row violates|policy/i,
+				);
 			} else {
 				// Even if statusCode isn't surfaced (older client versions),
 				// the message must mention the RLS rejection shape.
 				expect(error!.message).toMatch(
-					/row-level security|unauthorized|new row violates|policy/i
-				)
+					/row-level security|unauthorized|new row violates|policy/i,
+				);
 			}
-		})
+		});
 
-		it('owner B cannot upload into a folder whose uuid does not exist (no implicit allow)', async () => {
-			const fakeFolder = '00000000-0000-0000-0000-000000000001'
-			const path = `${fakeFolder}/orphan-${Date.now()}.jpg`
+		it("owner B cannot upload into a folder whose uuid does not exist (no implicit allow)", async () => {
+			const fakeFolder = "00000000-0000-0000-0000-000000000001";
+			const path = `${fakeFolder}/orphan-${Date.now()}.jpg`;
 			const { error } = await clientB.storage
-				.from('property-images')
-				.upload(path, new Blob(['orphan'], { type: 'image/jpeg' }))
-			expect(error).not.toBeNull()
-		})
-	})
+				.from("property-images")
+				.upload(path, new Blob(["orphan"], { type: "image/jpeg" }));
+			expect(error).not.toBeNull();
+		});
+	});
 
 	// --- Sanity ------------------------------------------------------
 
-	it('ownerA and ownerB are distinct test accounts (test setup sanity)', () => {
-		expect(ownerAId).not.toBe(ownerBId)
-	})
-})
+	it("ownerA and ownerB are distinct test accounts (test setup sanity)", () => {
+		expect(ownerAId).not.toBe(ownerBId);
+	});
+});

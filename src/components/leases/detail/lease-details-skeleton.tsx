@@ -1,4 +1,4 @@
-import { Skeleton } from '#components/ui/skeleton'
+import { Skeleton } from "#components/ui/skeleton";
 
 export function LeaseDetailsSkeleton() {
 	return (
@@ -11,7 +11,7 @@ export function LeaseDetailsSkeleton() {
 				</div>
 			</div>
 			<div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-				{[1, 2, 3, 4].map(i => (
+				{[1, 2, 3, 4].map((i) => (
 					<Skeleton key={i} className="h-24" />
 				))}
 			</div>
@@ -25,5 +25,5 @@ export function LeaseDetailsSkeleton() {
 				</div>
 			</div>
 		</div>
-	)
+	);
 }

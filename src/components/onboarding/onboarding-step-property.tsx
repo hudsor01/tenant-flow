@@ -1,58 +1,65 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
-import { Building2 } from 'lucide-react'
-import { Button } from '#components/ui/button'
-import { Input } from '#components/ui/input'
-import { Label } from '#components/ui/label'
+import { Building2 } from "lucide-react";
+import { useState } from "react";
+import { Button } from "#components/ui/button";
+import { Input } from "#components/ui/input";
+import { Label } from "#components/ui/label";
 import {
 	Select,
 	SelectContent,
 	SelectItem,
 	SelectTrigger,
-	SelectValue
-} from '#components/ui/select'
-import { useCreatePropertyMutation } from '#hooks/api/use-property-mutations'
-import type { PropertyCreate } from '#lib/validation/properties'
+	SelectValue,
+} from "#components/ui/select";
+import { useCreatePropertyMutation } from "#hooks/api/use-property-mutations";
+import type { PropertyCreate } from "#lib/validation/properties";
 
 interface OnboardingStepPropertyProps {
-	onNext: () => void
-	onSkip: () => void
+	onNext: () => void;
+	onSkip: () => void;
 }
 
 const PROPERTY_TYPES = [
-	{ value: 'SINGLE_FAMILY', label: 'Single Family' },
-	{ value: 'MULTI_UNIT', label: 'Multi Unit' },
-	{ value: 'APARTMENT', label: 'Apartment' },
-	{ value: 'CONDO', label: 'Condo' },
-	{ value: 'TOWNHOUSE', label: 'Townhouse' },
-	{ value: 'COMMERCIAL', label: 'Commercial' },
-	{ value: 'OTHER', label: 'Other' }
-] as const
+	{ value: "SINGLE_FAMILY", label: "Single Family" },
+	{ value: "MULTI_UNIT", label: "Multi Unit" },
+	{ value: "APARTMENT", label: "Apartment" },
+	{ value: "CONDO", label: "Condo" },
+	{ value: "TOWNHOUSE", label: "Townhouse" },
+	{ value: "COMMERCIAL", label: "Commercial" },
+	{ value: "OTHER", label: "Other" },
+] as const;
 
-type PropertyTypeValue = typeof PROPERTY_TYPES[number]['value']
+type PropertyTypeValue = (typeof PROPERTY_TYPES)[number]["value"];
 
 /**
  * Property step - simplified property creation form in the onboarding wizard
  */
 export function OnboardingStepProperty({
 	onNext,
-	onSkip
+	onSkip,
 }: OnboardingStepPropertyProps) {
-	const createProperty = useCreatePropertyMutation()
+	const createProperty = useCreatePropertyMutation();
 
-	const [name, setName] = useState('')
-	const [addressLine1, setAddressLine1] = useState('')
-	const [city, setCity] = useState('')
-	const [state, setState] = useState('')
-	const [postalCode, setPostalCode] = useState('')
-	const [propertyType, setPropertyType] = useState<PropertyTypeValue>('SINGLE_FAMILY')
+	const [name, setName] = useState("");
+	const [addressLine1, setAddressLine1] = useState("");
+	const [city, setCity] = useState("");
+	const [state, setState] = useState("");
+	const [postalCode, setPostalCode] = useState("");
+	const [propertyType, setPropertyType] =
+		useState<PropertyTypeValue>("SINGLE_FAMILY");
 
 	const handleSubmit = async (e: React.FormEvent) => {
-		e.preventDefault()
+		e.preventDefault();
 
-		if (!name.trim() || !addressLine1.trim() || !city.trim() || !state.trim() || !postalCode.trim()) {
-			return
+		if (
+			!name.trim() ||
+			!addressLine1.trim() ||
+			!city.trim() ||
+			!state.trim() ||
+			!postalCode.trim()
+		) {
+			return;
 		}
 
 		const propertyData: PropertyCreate = {
@@ -61,17 +68,17 @@ export function OnboardingStepProperty({
 			city: city.trim(),
 			state: state.trim().toUpperCase(),
 			postal_code: postalCode.trim(),
-			country: 'US',
+			country: "US",
 			property_type: propertyType,
-			status: 'active'
-		}
+			status: "active",
+		};
 
 		createProperty.mutate(propertyData, {
 			onSuccess: () => {
-				onNext()
-			}
-		})
-	}
+				onNext();
+			},
+		});
+	};
 
 	return (
 		<div className="flex flex-col gap-4">
@@ -93,7 +100,7 @@ export function OnboardingStepProperty({
 					<Input
 						id="onboarding-property-name"
 						value={name}
-						onChange={e => setName(e.target.value)}
+						onChange={(e) => setName(e.target.value)}
 						placeholder="e.g. Maple Street House"
 						required
 						className="h-11"
@@ -104,13 +111,13 @@ export function OnboardingStepProperty({
 					<Label htmlFor="onboarding-property-type">Property Type</Label>
 					<Select
 						value={propertyType}
-						onValueChange={val => setPropertyType(val as PropertyTypeValue)}
+						onValueChange={(val) => setPropertyType(val as PropertyTypeValue)}
 					>
 						<SelectTrigger id="onboarding-property-type" className="h-11">
 							<SelectValue placeholder="Select type" />
 						</SelectTrigger>
 						<SelectContent>
-							{PROPERTY_TYPES.map(type => (
+							{PROPERTY_TYPES.map((type) => (
 								<SelectItem key={type.value} value={type.value}>
 									{type.label}
 								</SelectItem>
@@ -124,7 +131,7 @@ export function OnboardingStepProperty({
 					<Input
 						id="onboarding-property-address"
 						value={addressLine1}
-						onChange={e => setAddressLine1(e.target.value)}
+						onChange={(e) => setAddressLine1(e.target.value)}
 						placeholder="e.g. 123 Maple Street"
 						required
 						className="h-11"
@@ -137,7 +144,7 @@ export function OnboardingStepProperty({
 						<Input
 							id="onboarding-property-city"
 							value={city}
-							onChange={e => setCity(e.target.value)}
+							onChange={(e) => setCity(e.target.value)}
 							placeholder="Austin"
 							required
 							className="h-11"
@@ -148,7 +155,7 @@ export function OnboardingStepProperty({
 						<Input
 							id="onboarding-property-state"
 							value={state}
-							onChange={e => setState(e.target.value)}
+							onChange={(e) => setState(e.target.value)}
 							placeholder="TX"
 							maxLength={2}
 							required
@@ -160,7 +167,7 @@ export function OnboardingStepProperty({
 						<Input
 							id="onboarding-property-zip"
 							value={postalCode}
-							onChange={e => setPostalCode(e.target.value)}
+							onChange={(e) => setPostalCode(e.target.value)}
 							placeholder="78701"
 							maxLength={10}
 							required
@@ -175,7 +182,7 @@ export function OnboardingStepProperty({
 						disabled={createProperty.isPending}
 						className="min-h-11 flex-1"
 					>
-						{createProperty.isPending ? 'Saving...' : 'Add Property'}
+						{createProperty.isPending ? "Saving..." : "Add Property"}
 					</Button>
 					<Button
 						type="button"
@@ -188,5 +195,5 @@ export function OnboardingStepProperty({
 				</div>
 			</form>
 		</div>
-	)
+	);
 }

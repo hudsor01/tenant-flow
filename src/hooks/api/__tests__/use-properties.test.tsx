@@ -10,53 +10,53 @@
  * @vitest-environment jsdom
  */
 
-import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { renderHook, waitFor } from '@testing-library/react'
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import type { ReactNode } from 'react'
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { renderHook, waitFor } from "@testing-library/react";
+import type { ReactNode } from "react";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import { createQueryChain } from "#test/mocks/supabase-query-mock";
 import {
-	useProperty,
-	usePropertyList,
 	usePropertiesWithUnits,
+	useProperty,
+	usePropertyImages,
+	usePropertyList,
 	usePropertyStats,
-	usePropertyImages
-} from '../use-properties'
+} from "../use-properties";
 import {
 	useMarkPropertySoldMutation,
-	usePrefetchPropertyDetail
-} from '../use-property-mutations'
-import { createQueryChain } from '#test/mocks/supabase-query-mock'
+	usePrefetchPropertyDetail,
+} from "../use-property-mutations";
 
 // Mock logger
-vi.mock('#lib/frontend-logger', () => ({
+vi.mock("#lib/frontend-logger", () => ({
 	logger: {
 		info: vi.fn(),
 		error: vi.fn(),
 		warn: vi.fn(),
-		debug: vi.fn()
+		debug: vi.fn(),
 	},
 	createLogger: () => ({
 		info: vi.fn(),
 		error: vi.fn(),
 		warn: vi.fn(),
-		debug: vi.fn()
-	})
-}))
+		debug: vi.fn(),
+	}),
+}));
 
 // Mock Sentry
-vi.mock('@sentry/nextjs', () => ({
+vi.mock("@sentry/nextjs", () => ({
 	captureException: vi.fn(),
 	captureMessage: vi.fn(),
-	addBreadcrumb: vi.fn()
-}))
+	addBreadcrumb: vi.fn(),
+}));
 
 // Mock sonner toast
-vi.mock('sonner', () => ({
+vi.mock("sonner", () => ({
 	toast: {
 		success: vi.fn(),
-		error: vi.fn()
-	}
-}))
+		error: vi.fn(),
+	},
+}));
 
 // Supabase mock primitives using vi.hoisted() to avoid initialization errors
 const {
@@ -71,7 +71,7 @@ const {
 	mockGetUser,
 	mockRpc,
 	mockStorageFrom,
-	mockGetPublicUrl
+	mockGetPublicUrl,
 } = vi.hoisted(() => ({
 	mockFrom: vi.fn(),
 	mockSelect: vi.fn(),
@@ -84,278 +84,306 @@ const {
 	mockGetUser: vi.fn(),
 	mockRpc: vi.fn(),
 	mockStorageFrom: vi.fn(),
-	mockGetPublicUrl: vi.fn()
-}))
+	mockGetPublicUrl: vi.fn(),
+}));
 
-vi.mock('#lib/supabase/client', () => ({
+vi.mock("#lib/supabase/client", () => ({
 	createClient: () => ({
 		from: mockFrom,
 		rpc: mockRpc,
 		auth: {
-			getUser: mockGetUser
+			getUser: mockGetUser,
 		},
 		storage: {
-			from: mockStorageFrom
-		}
-	})
-}))
+			from: mockStorageFrom,
+		},
+	}),
+}));
 
 // Wrapper for hooks
 function createWrapper() {
 	const queryClient = new QueryClient({
 		defaultOptions: {
 			queries: { retry: false },
-			mutations: { retry: false }
-		}
-	})
+			mutations: { retry: false },
+		},
+	});
 
 	return function Wrapper({ children }: { children: ReactNode }) {
 		return (
 			<QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
-		)
-	}
+		);
+	};
 }
 
 // Sample property data
 const mockProperty = {
-	id: 'prop-123',
-	owner_user_id: 'user-1',
-	name: 'Test Property',
-	address_line1: '123 Main St',
+	id: "prop-123",
+	owner_user_id: "user-1",
+	name: "Test Property",
+	address_line1: "123 Main St",
 	address_line2: null,
-	city: 'Test City',
-	state: 'CA',
-	postal_code: '12345',
-	country: 'US',
-	property_type: 'SINGLE_FAMILY',
-	status: 'active',
+	city: "Test City",
+	state: "CA",
+	postal_code: "12345",
+	country: "US",
+	property_type: "SINGLE_FAMILY",
+	status: "active",
 	stripe_connected_account_id: null,
 	date_sold: null,
 	sale_price: null,
-	created_at: '2024-01-01T00:00:00Z',
-	updated_at: '2024-01-01T00:00:00Z'
-}
+	created_at: "2024-01-01T00:00:00Z",
+	updated_at: "2024-01-01T00:00:00Z",
+};
 
-describe('Query Hooks', () => {
+describe("Query Hooks", () => {
 	beforeEach(() => {
-		vi.clearAllMocks()
+		vi.clearAllMocks();
 
-		mockGetUser.mockResolvedValue({ data: { user: { id: 'user-1' } } })
-		mockRpc.mockResolvedValue({ data: null, error: null })
-	})
+		mockGetUser.mockResolvedValue({ data: { user: { id: "user-1" } } });
+		mockRpc.mockResolvedValue({ data: null, error: null });
+	});
 
-	describe('useProperty', () => {
-		it('should fetch property by ID using supabase.from', async () => {
-			mockFrom.mockReturnValue(createQueryChain({ data: mockProperty, error: null }))
+	describe("useProperty", () => {
+		it("should fetch property by ID using supabase.from", async () => {
+			mockFrom.mockReturnValue(
+				createQueryChain({ data: mockProperty, error: null }),
+			);
 
-			const { result } = renderHook(() => useProperty('prop-123'), {
-				wrapper: createWrapper()
-			})
+			const { result } = renderHook(() => useProperty("prop-123"), {
+				wrapper: createWrapper(),
+			});
 
 			await waitFor(() => {
-				expect(result.current.isSuccess || result.current.isError).toBe(true)
-			})
+				expect(result.current.isSuccess || result.current.isError).toBe(true);
+			});
 
-			expect(mockFrom).toHaveBeenCalledWith('properties')
-		})
+			expect(mockFrom).toHaveBeenCalledWith("properties");
+		});
 
-		it('should not fetch when ID is empty', () => {
-			const { result } = renderHook(() => useProperty(''), {
-				wrapper: createWrapper()
-			})
+		it("should not fetch when ID is empty", () => {
+			const { result } = renderHook(() => useProperty(""), {
+				wrapper: createWrapper(),
+			});
 
-			expect(result.current.isFetching).toBe(false)
-		})
-	})
+			expect(result.current.isFetching).toBe(false);
+		});
+	});
 
-	describe('usePropertyList', () => {
-		it('should fetch property list using supabase.from', async () => {
-			mockFrom.mockReturnValue(createQueryChain({
-				data: [mockProperty],
-				error: null,
-				count: 1
-			}))
+	describe("usePropertyList", () => {
+		it("should fetch property list using supabase.from", async () => {
+			mockFrom.mockReturnValue(
+				createQueryChain({
+					data: [mockProperty],
+					error: null,
+					count: 1,
+				}),
+			);
 
 			const { result } = renderHook(() => usePropertyList(), {
-				wrapper: createWrapper()
-			})
+				wrapper: createWrapper(),
+			});
 
 			await waitFor(() => {
-				expect(result.current.isSuccess || result.current.isError).toBe(true)
-			})
+				expect(result.current.isSuccess || result.current.isError).toBe(true);
+			});
 
-			expect(mockFrom).toHaveBeenCalledWith('properties')
-		})
+			expect(mockFrom).toHaveBeenCalledWith("properties");
+		});
 
-		it('should select data array from response', async () => {
-			mockFrom.mockReturnValue(createQueryChain({
-				data: [mockProperty],
-				error: null,
-				count: 1
-			}))
+		it("should select data array from response", async () => {
+			mockFrom.mockReturnValue(
+				createQueryChain({
+					data: [mockProperty],
+					error: null,
+					count: 1,
+				}),
+			);
 
 			const { result } = renderHook(() => usePropertyList(), {
-				wrapper: createWrapper()
-			})
+				wrapper: createWrapper(),
+			});
 
 			await waitFor(() => {
-				expect(result.current.isSuccess).toBe(true)
-			})
+				expect(result.current.isSuccess).toBe(true);
+			});
 
-			expect(result.current.data).toEqual([mockProperty])
-		})
-	})
+			expect(result.current.data).toEqual([mockProperty]);
+		});
+	});
 
-	describe('usePropertiesWithUnits', () => {
-		it('should query properties with units using supabase.from', async () => {
-			const propertyWithUnits = { ...mockProperty, units: [] }
-			mockFrom.mockReturnValue(createQueryChain({ data: [propertyWithUnits], error: null }))
+	describe("usePropertiesWithUnits", () => {
+		it("should query properties with units using supabase.from", async () => {
+			const propertyWithUnits = { ...mockProperty, units: [] };
+			mockFrom.mockReturnValue(
+				createQueryChain({ data: [propertyWithUnits], error: null }),
+			);
 
 			const { result } = renderHook(() => usePropertiesWithUnits(), {
-				wrapper: createWrapper()
-			})
+				wrapper: createWrapper(),
+			});
 
 			await waitFor(() => {
-				expect(result.current.isSuccess || result.current.isError).toBe(true)
-			})
+				expect(result.current.isSuccess || result.current.isError).toBe(true);
+			});
 
-			expect(mockFrom).toHaveBeenCalledWith('properties')
-		})
-	})
+			expect(mockFrom).toHaveBeenCalledWith("properties");
+		});
+	});
 
-	describe('usePropertyStats', () => {
-		it('should aggregate stats from multiple PostgREST queries', async () => {
+	describe("usePropertyStats", () => {
+		it("should aggregate stats from multiple PostgREST queries", async () => {
 			// Stats uses three parallel queries to: properties (active), properties (total), units (occupied)
-			const headResult = { data: null, error: null, count: 5 }
-			mockHead.mockResolvedValue(headResult)
+			const headResult = { data: null, error: null, count: 5 };
+			mockHead.mockResolvedValue(headResult);
 
-			const chain: Record<string, ReturnType<typeof vi.fn>> = {}
-			chain.select = mockSelect
-			chain.eq = mockEq
-			chain.neq = mockNeq
+			const chain: Record<string, ReturnType<typeof vi.fn>> = {};
+			chain.select = mockSelect;
+			chain.eq = mockEq;
+			chain.neq = mockNeq;
 
-			mockSelect.mockReturnValue(chain)
-			mockEq.mockResolvedValue(headResult)
-			mockNeq.mockResolvedValue(headResult)
+			mockSelect.mockReturnValue(chain);
+			mockEq.mockResolvedValue(headResult);
+			mockNeq.mockResolvedValue(headResult);
 
-			mockFrom.mockReturnValue({ select: mockSelect })
+			mockFrom.mockReturnValue({ select: mockSelect });
 
 			const { result } = renderHook(() => usePropertyStats(), {
-				wrapper: createWrapper()
-			})
+				wrapper: createWrapper(),
+			});
 
 			await waitFor(() => {
-				expect(result.current.isSuccess || result.current.isError).toBe(true)
-			})
+				expect(result.current.isSuccess || result.current.isError).toBe(true);
+			});
 
-			expect(mockFrom).toHaveBeenCalledWith('properties')
-		})
-	})
-})
+			expect(mockFrom).toHaveBeenCalledWith("properties");
+		});
+	});
+});
 
-describe('Mutation Hooks', () => {
+describe("Mutation Hooks", () => {
 	beforeEach(() => {
-		vi.clearAllMocks()
-		mockGetUser.mockResolvedValue({ data: { user: { id: 'user-1' } } })
-	})
+		vi.clearAllMocks();
+		mockGetUser.mockResolvedValue({ data: { user: { id: "user-1" } } });
+	});
 
-	describe('useMarkPropertySoldMutation', () => {
-		it('should update property status to sold via PostgREST', async () => {
-			const chain: Record<string, ReturnType<typeof vi.fn>> = {}
-			chain.update = mockUpdate
-			chain.eq = mockEq
-			chain.select = mockSelect
-			chain.single = mockSingle
+	describe("useMarkPropertySoldMutation", () => {
+		it("should update property status to sold via PostgREST", async () => {
+			const chain: Record<string, ReturnType<typeof vi.fn>> = {};
+			chain.update = mockUpdate;
+			chain.eq = mockEq;
+			chain.select = mockSelect;
+			chain.single = mockSingle;
 
-			mockUpdate.mockReturnValue(chain)
-			mockEq.mockReturnValue(chain)
-			mockSelect.mockReturnValue(chain)
+			mockUpdate.mockReturnValue(chain);
+			mockEq.mockReturnValue(chain);
+			mockSelect.mockReturnValue(chain);
 			mockSingle.mockResolvedValue({
-				data: { ...mockProperty, status: 'sold', date_sold: '2024-06-15T00:00:00.000Z', sale_price: 500000 },
-				error: null
-			})
+				data: {
+					...mockProperty,
+					status: "sold",
+					date_sold: "2024-06-15T00:00:00.000Z",
+					sale_price: 500000,
+				},
+				error: null,
+			});
 
-			mockFrom.mockReturnValue({ update: mockUpdate })
+			mockFrom.mockReturnValue({ update: mockUpdate });
 
 			const { result } = renderHook(() => useMarkPropertySoldMutation(), {
-				wrapper: createWrapper()
-			})
+				wrapper: createWrapper(),
+			});
 
-			const saleDate = new Date('2024-06-15')
+			const saleDate = new Date("2024-06-15");
 			const mutationResult = await result.current.mutateAsync({
-				id: 'prop-123',
+				id: "prop-123",
 				dateSold: saleDate,
-				salePrice: 500000
-			})
+				salePrice: 500000,
+			});
 
-			expect(mockFrom).toHaveBeenCalledWith('properties')
+			expect(mockFrom).toHaveBeenCalledWith("properties");
 			expect(mockUpdate).toHaveBeenCalledWith(
 				expect.objectContaining({
-					status: 'sold',
+					status: "sold",
 					date_sold: saleDate.toISOString(),
-					sale_price: 500000
-				})
-			)
-			expect(mutationResult).toEqual({ success: true, message: 'Property marked as sold' })
-		})
-	})
-})
+					sale_price: 500000,
+				}),
+			);
+			expect(mutationResult).toEqual({
+				success: true,
+				message: "Property marked as sold",
+			});
+		});
+	});
+});
 
-describe('Utility Hooks', () => {
+describe("Utility Hooks", () => {
 	beforeEach(() => {
-		vi.clearAllMocks()
-		mockGetUser.mockResolvedValue({ data: { user: { id: 'user-1' } } })
-	})
+		vi.clearAllMocks();
+		mockGetUser.mockResolvedValue({ data: { user: { id: "user-1" } } });
+	});
 
-	describe('usePrefetchPropertyDetail', () => {
-		it('should be a declarative prefetch hook', () => {
-			const { result } = renderHook(() => usePrefetchPropertyDetail('prop-123'), {
-				wrapper: createWrapper()
-			})
+	describe("usePrefetchPropertyDetail", () => {
+		it("should be a declarative prefetch hook", () => {
+			const { result } = renderHook(
+				() => usePrefetchPropertyDetail("prop-123"),
+				{
+					wrapper: createWrapper(),
+				},
+			);
 
-			expect(result.current).toBeUndefined()
-		})
-	})
+			expect(result.current).toBeUndefined();
+		});
+	});
 
-	describe('usePropertyImages', () => {
+	describe("usePropertyImages", () => {
 		beforeEach(() => {
-			const imageChain: Record<string, ReturnType<typeof vi.fn>> = {}
-			imageChain.eq = mockEq
-			imageChain.order = mockOrder
+			const imageChain: Record<string, ReturnType<typeof vi.fn>> = {};
+			imageChain.eq = mockEq;
+			imageChain.order = mockOrder;
 
-			mockSelect.mockReturnValue(imageChain)
-			mockEq.mockReturnValue({ order: mockOrder })
+			mockSelect.mockReturnValue(imageChain);
+			mockEq.mockReturnValue({ order: mockOrder });
 			mockOrder.mockResolvedValue({
-				data: [{ id: 'img-1', property_id: 'prop-123', image_url: 'http://example.com/img.jpg', display_order: 0 }],
-				error: null
-			})
+				data: [
+					{
+						id: "img-1",
+						property_id: "prop-123",
+						image_url: "http://example.com/img.jpg",
+						display_order: 0,
+					},
+				],
+				error: null,
+			});
 
 			mockStorageFrom.mockReturnValue({
-				getPublicUrl: mockGetPublicUrl
-			})
-			mockGetPublicUrl.mockReturnValue({ data: { publicUrl: 'https://cdn.example.com/img.jpg' } })
-		})
+				getPublicUrl: mockGetPublicUrl,
+			});
+			mockGetPublicUrl.mockReturnValue({
+				data: { publicUrl: "https://cdn.example.com/img.jpg" },
+			});
+		});
 
-		it('should not fetch when property_id is empty', () => {
-			const { result } = renderHook(() => usePropertyImages(''), {
-				wrapper: createWrapper()
-			})
+		it("should not fetch when property_id is empty", () => {
+			const { result } = renderHook(() => usePropertyImages(""), {
+				wrapper: createWrapper(),
+			});
 
-			expect(result.current.isFetching).toBe(false)
-		})
+			expect(result.current.isFetching).toBe(false);
+		});
 
-		it('should query property_images table when property_id is provided', async () => {
-			mockFrom.mockReturnValue({ select: mockSelect })
+		it("should query property_images table when property_id is provided", async () => {
+			mockFrom.mockReturnValue({ select: mockSelect });
 
-			const { result } = renderHook(() => usePropertyImages('prop-123'), {
-				wrapper: createWrapper()
-			})
+			const { result } = renderHook(() => usePropertyImages("prop-123"), {
+				wrapper: createWrapper(),
+			});
 
 			await waitFor(() => {
-				expect(result.current.isSuccess || result.current.isError).toBe(true)
-			})
+				expect(result.current.isSuccess || result.current.isError).toBe(true);
+			});
 
-			expect(mockFrom).toHaveBeenCalledWith('property_images')
-		})
-	})
-})
+			expect(mockFrom).toHaveBeenCalledWith("property_images");
+		});
+	});
+});

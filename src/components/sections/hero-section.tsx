@@ -1,10 +1,10 @@
-'use client'
+"use client";
 
-import { Button } from '#components/ui/button'
-import type { HeroSectionProps } from '#types/frontend'
-import { ArrowRight } from 'lucide-react'
-import Image from 'next/image'
-import { useRouter } from 'next/navigation'
+import { ArrowRight } from "lucide-react";
+import Image from "next/image";
+import { useRouter } from "next/navigation";
+import { Button } from "#components/ui/button";
+import type { HeroSectionProps } from "#types/frontend";
 
 export function HeroSection({
 	trustBadge,
@@ -14,9 +14,9 @@ export function HeroSection({
 	primaryCta,
 	secondaryCta,
 	trustSignals,
-	image
+	image,
 }: HeroSectionProps) {
-	const router = useRouter()
+	const router = useRouter();
 
 	return (
 		<section className="relative flex-1 flex flex-col">
@@ -41,28 +41,28 @@ export function HeroSection({
 					<div
 						className={
 							image
-								? 'grid grid-cols-1 lg:grid-cols-2 gap-16 items-center min-h-150'
-								: 'flex flex-col items-center justify-center min-h-100 text-center'
+								? "grid grid-cols-1 lg:grid-cols-2 gap-16 items-center min-h-150"
+								: "flex flex-col items-center justify-center min-h-100 text-center"
 						}
 					>
 						{/* Content */}
 						<div
 							className={
 								image
-									? 'flex flex-col justify-center space-y-8'
-									: 'flex flex-col items-center space-y-8 max-w-4xl'
+									? "flex flex-col justify-center space-y-8"
+									: "flex flex-col items-center space-y-8 max-w-4xl"
 							}
 						>
 							<div className="space-y-6">
 								<h1 className="text-responsive-display-xl font-bold text-foreground tracking-tight leading-[1.1]">
-									{title}{' '}
+									{title}{" "}
 									{titleHighlight && (
 										<span className="hero-highlight">{titleHighlight}</span>
 									)}
 								</h1>
 
 								<p
-									className={`text-xl text-muted-foreground leading-relaxed ${image ? 'max-w-lg' : 'max-w-2xl'}`}
+									className={`text-xl text-muted-foreground leading-relaxed ${image ? "max-w-lg" : "max-w-2xl"}`}
 								>
 									{subtitle}
 								</p>
@@ -82,7 +82,9 @@ export function HeroSection({
 							</div>
 
 							{trustSignals && (
-								<p className="text-muted-foreground font-medium">{trustSignals}</p>
+								<p className="text-muted-foreground font-medium">
+									{trustSignals}
+								</p>
 							)}
 						</div>
 
@@ -107,5 +109,5 @@ export function HeroSection({
 				</div>
 			</div>
 		</section>
-	)
+	);
 }

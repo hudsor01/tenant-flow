@@ -8,135 +8,133 @@
  * @vitest-environment jsdom
  */
 
-import type { ReactElement, ReactNode } from 'react'
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
-import { render, screen } from '@testing-library/react'
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { vi } from 'vitest'
-import '@testing-library/jest-dom/vitest'
-import AddTenantModal from './page'
+import { render, screen } from "@testing-library/react";
+import type { ReactElement, ReactNode } from "react";
+import { vi } from "vitest";
+import "@testing-library/jest-dom/vitest";
+import AddTenantModal from "./page";
 
 // Mock the RouteModal component to avoid router dependencies
 // We need to import the real Dialog components to provide proper context
-vi.mock('#components/ui/route-modal', async () => {
-	const actual = await vi.importActual<typeof import('#components/ui/dialog')>(
-		'#components/ui/dialog'
-	)
+vi.mock("#components/ui/route-modal", async () => {
+	const actual = await vi.importActual<typeof import("#components/ui/dialog")>(
+		"#components/ui/dialog",
+	);
 	return {
 		RouteModal: ({ children }: { children: ReactNode }) => (
 			<actual.Dialog open={true}>
 				<actual.DialogContent>{children} </actual.DialogContent>
 			</actual.Dialog>
-		)
-	}
-})
+		),
+	};
+});
 
 // Mock the AddTenantForm component
-vi.mock('#components/tenants/add-tenant-form', () => ({
-	AddTenantForm: () => <div>Form </div>
-}))
+vi.mock("#components/tenants/add-tenant-form", () => ({
+	AddTenantForm: () => <div>Form </div>,
+}));
 
 // Mock the queries (colocated in use-* files)
-vi.mock('#hooks/api/use-properties', () => ({
+vi.mock("#hooks/api/use-properties", () => ({
 	propertyQueries: {
 		list: () => ({
-			queryKey: ['properties'],
-			queryFn: vi.fn().mockResolvedValue({ data: [] })
-		})
-	}
-}))
+			queryKey: ["properties"],
+			queryFn: vi.fn().mockResolvedValue({ data: [] }),
+		}),
+	},
+}));
 
-vi.mock('#hooks/api/use-unit', () => ({
+vi.mock("#hooks/api/use-unit", () => ({
 	unitQueries: {
 		list: () => ({
-			queryKey: ['units'],
-			queryFn: vi.fn().mockResolvedValue({ data: [] })
-		})
-	}
-}))
+			queryKey: ["units"],
+			queryFn: vi.fn().mockResolvedValue({ data: [] }),
+		}),
+	},
+}));
 
 function renderWithQueryClient(ui: ReactElement) {
 	const queryClient = new QueryClient({
 		defaultOptions: {
 			queries: { retry: false },
-			mutations: { retry: false }
-		}
-	})
+			mutations: { retry: false },
+		},
+	});
 	return render(
-		<QueryClientProvider client={queryClient}> {ui} </QueryClientProvider>
-	)
+		<QueryClientProvider client={queryClient}> {ui} </QueryClientProvider>,
+	);
 }
 
-describe('AddTenantModal', () => {
+describe("AddTenantModal", () => {
 	beforeEach(() => {
-		vi.clearAllMocks()
-	})
+		vi.clearAllMocks();
+	});
 
-	describe('Dialog Accessibility', () => {
+	describe("Dialog Accessibility", () => {
 		/**
 		 * Requirement 2.1: Dialog must include DialogTitle component
 		 */
-		it('should render DialogTitle component', () => {
-			renderWithQueryClient(<AddTenantModal />)
+		it("should render DialogTitle component", () => {
+			renderWithQueryClient(<AddTenantModal />);
 
 			// DialogTitle should be present with the correct text
-			const title = screen.getByText('Add Tenant')
-			expect(title).toBeInTheDocument()
-		})
+			const title = screen.getByText("Add Tenant");
+			expect(title).toBeInTheDocument();
+		});
 
 		/**
 		 * Requirement 2.2: Dialog must include DialogDescription component
 		 */
-		it('should render DialogDescription component', () => {
-			renderWithQueryClient(<AddTenantModal />)
+		it("should render DialogDescription component", () => {
+			renderWithQueryClient(<AddTenantModal />);
 
 			// DialogDescription should be present with the correct text
-			const description = screen.getByText(
-				/Add a tenant record/
-			)
-			expect(description).toBeInTheDocument()
-		})
+			const description = screen.getByText(/Add a tenant record/);
+			expect(description).toBeInTheDocument();
+		});
 
 		/**
 		 * Requirement 2.5: Dialog should not produce console warnings
 		 * This test verifies that no accessibility warnings are logged
 		 */
-		it('should not log accessibility warnings to console', () => {
-			const consoleWarnSpy = vi.spyOn(console, 'warn')
-			const consoleErrorSpy = vi.spyOn(console, 'error')
+		it("should not log accessibility warnings to console", () => {
+			const consoleWarnSpy = vi.spyOn(console, "warn");
+			const consoleErrorSpy = vi.spyOn(console, "error");
 
-			renderWithQueryClient(<AddTenantModal />)
+			renderWithQueryClient(<AddTenantModal />);
 
 			// Filter for accessibility-related warnings
-			const accessibilityWarnings = consoleWarnSpy.mock.calls.filter(call => {
-				return call.some(arg => {
+			const accessibilityWarnings = consoleWarnSpy.mock.calls.filter((call) => {
+				return call.some((arg) => {
 					return (
-						typeof arg === 'string' &&
-						(arg.includes('aria-') ||
-							arg.includes('DialogTitle') ||
-							arg.includes('DialogDescription') ||
-							arg.includes('accessibility'))
-					)
-				})
-			})
+						typeof arg === "string" &&
+						(arg.includes("aria-") ||
+							arg.includes("DialogTitle") ||
+							arg.includes("DialogDescription") ||
+							arg.includes("accessibility"))
+					);
+				});
+			});
 
-			const accessibilityErrors = consoleErrorSpy.mock.calls.filter(call => {
-				return call.some(arg => {
+			const accessibilityErrors = consoleErrorSpy.mock.calls.filter((call) => {
+				return call.some((arg) => {
 					return (
-						typeof arg === 'string' &&
-						(arg.includes('aria-') ||
-							arg.includes('DialogTitle') ||
-							arg.includes('DialogDescription') ||
-							arg.includes('accessibility'))
-					)
-				})
-			})
+						typeof arg === "string" &&
+						(arg.includes("aria-") ||
+							arg.includes("DialogTitle") ||
+							arg.includes("DialogDescription") ||
+							arg.includes("accessibility"))
+					);
+				});
+			});
 
-			expect(accessibilityWarnings).toHaveLength(0)
-			expect(accessibilityErrors).toHaveLength(0)
+			expect(accessibilityWarnings).toHaveLength(0);
+			expect(accessibilityErrors).toHaveLength(0);
 
-			consoleWarnSpy.mockRestore()
-			consoleErrorSpy.mockRestore()
-		})
-	})
-})
+			consoleWarnSpy.mockRestore();
+			consoleErrorSpy.mockRestore();
+		});
+	});
+});

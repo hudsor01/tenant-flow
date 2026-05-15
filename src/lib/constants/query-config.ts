@@ -18,7 +18,7 @@ export const QUERY_CACHE_TIMES = {
 	 */
 	DETAIL: {
 		staleTime: 5 * 60 * 1000, // 5 minutes
-		gcTime: 10 * 60 * 1000 // 10 minutes
+		gcTime: 10 * 60 * 1000, // 10 minutes
 	},
 
 	/**
@@ -27,7 +27,7 @@ export const QUERY_CACHE_TIMES = {
 	 */
 	LIST: {
 		staleTime: 10 * 60 * 1000, // 10 minutes
-		gcTime: 30 * 60 * 1000 // 30 minutes
+		gcTime: 30 * 60 * 1000, // 30 minutes
 	},
 
 	/**
@@ -36,7 +36,7 @@ export const QUERY_CACHE_TIMES = {
 	 */
 	STATS: {
 		staleTime: 3 * 60 * 1000, // 3 minutes – reduces refetch churn
-		gcTime: 5 * 60 * 1000 // 5 minutes
+		gcTime: 5 * 60 * 1000, // 5 minutes
 	},
 
 	/**
@@ -45,7 +45,7 @@ export const QUERY_CACHE_TIMES = {
 	 */
 	ANALYTICS: {
 		staleTime: 15 * 60 * 1000, // 15 minutes
-		gcTime: 30 * 60 * 1000 // 30 minutes
+		gcTime: 30 * 60 * 1000, // 30 minutes
 	},
 
 	/**
@@ -55,7 +55,7 @@ export const QUERY_CACHE_TIMES = {
 	REALTIME: {
 		staleTime: 0, // Always stale, refetch on mount
 		refetchInterval: 30 * 1000, // 30 seconds
-		gcTime: 5 * 60 * 1000 // 5 minutes
+		gcTime: 5 * 60 * 1000, // 5 minutes
 	},
 
 	/**
@@ -64,7 +64,7 @@ export const QUERY_CACHE_TIMES = {
 	 */
 	SECURITY: {
 		staleTime: 2 * 60 * 1000, // 2 minutes
-		gcTime: 5 * 60 * 1000 // 5 minutes
+		gcTime: 5 * 60 * 1000, // 5 minutes
 	},
 
 	/**
@@ -73,6 +73,6 @@ export const QUERY_CACHE_TIMES = {
 	 */
 	BLOG: {
 		staleTime: 2 * 60 * 1000, // 2 minutes
-		gcTime: 10 * 60 * 1000 // 10 minutes
-	}
-} as const
+		gcTime: 10 * 60 * 1000, // 10 minutes
+	},
+} as const;

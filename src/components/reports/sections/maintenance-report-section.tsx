@@ -1,15 +1,6 @@
-'use client'
+"use client";
 
-import { Button } from '#components/ui/button'
-import {
-	Card,
-	CardContent,
-	CardDescription,
-	CardHeader,
-	CardTitle
-} from '#components/ui/card'
-import { Skeleton } from '#components/ui/skeleton'
-import { Download, TriangleAlert, Wrench } from 'lucide-react'
+import { Download, TriangleAlert, Wrench } from "lucide-react";
 import {
 	Bar,
 	BarChart,
@@ -19,43 +10,52 @@ import {
 	ResponsiveContainer,
 	Tooltip,
 	XAxis,
-	YAxis
-} from 'recharts'
-import { formatMoney, safeFormatMoney } from '../reports-utils'
+	YAxis,
+} from "recharts";
+import { Button } from "#components/ui/button";
+import {
+	Card,
+	CardContent,
+	CardDescription,
+	CardHeader,
+	CardTitle,
+} from "#components/ui/card";
+import { Skeleton } from "#components/ui/skeleton";
+import { formatMoney, safeFormatMoney } from "../reports-utils";
 
 interface MaintenanceReportData {
 	summary: {
-		totalRequests: number
-		openRequests: number
-		totalCost: number
-	}
+		totalRequests: number;
+		openRequests: number;
+		totalCost: number;
+	};
 	byStatus: Array<{
-		status: string
-		count: number
-	}>
+		status: string;
+		count: number;
+	}>;
 	monthlyCost: Array<{
-		month: string
-		cost: number
-	}>
+		month: string;
+		cost: number;
+	}>;
 	vendorPerformance: Array<{
-		vendorName: string
-		jobs: number
-		totalSpend: number
-	}>
+		vendorName: string;
+		jobs: number;
+		totalSpend: number;
+	}>;
 }
 
 interface MaintenanceReportSectionProps {
-	data: MaintenanceReportData | undefined
-	isLoading: boolean
-	isExporting: boolean
-	onExport: () => void
+	data: MaintenanceReportData | undefined;
+	isLoading: boolean;
+	isExporting: boolean;
+	onExport: () => void;
 }
 
 export function MaintenanceReportSection({
 	data,
 	isLoading,
 	isExporting,
-	onExport
+	onExport,
 }: MaintenanceReportSectionProps) {
 	return (
 		<section className="flex flex-col gap-4">
@@ -154,7 +154,9 @@ export function MaintenanceReportSection({
 					<Card>
 						<CardHeader>
 							<CardTitle>Vendor Performance</CardTitle>
-							<CardDescription>Total spend by maintenance vendor</CardDescription>
+							<CardDescription>
+								Total spend by maintenance vendor
+							</CardDescription>
 						</CardHeader>
 						<CardContent className="space-y-2">
 							{data.vendorPerformance.length === 0 ? (
@@ -163,7 +165,7 @@ export function MaintenanceReportSection({
 									No vendor spend recorded in this period.
 								</div>
 							) : (
-								data.vendorPerformance.map(vendor => (
+								data.vendorPerformance.map((vendor) => (
 									<div
 										key={vendor.vendorName}
 										className="flex items-center justify-between rounded-sm border border-border px-3 py-2 text-sm"
@@ -183,5 +185,5 @@ export function MaintenanceReportSection({
 				</>
 			) : null}
 		</section>
-	)
+	);
 }

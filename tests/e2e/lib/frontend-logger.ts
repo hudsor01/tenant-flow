@@ -8,89 +8,89 @@
 
 // TypeScript interfaces for structured logging
 export interface LogContext {
-	component?: string
-	action?: string
-	user_id?: string
-	sessionId?: string
-	requestId?: string
-	lease_id?: string
-	metadata?: Record<string, unknown>
-	[key: string]: unknown
+	component?: string;
+	action?: string;
+	user_id?: string;
+	sessionId?: string;
+	requestId?: string;
+	lease_id?: string;
+	metadata?: Record<string, unknown>;
+	[key: string]: unknown;
 }
 
 export interface LogEntry {
-	level: LogLevel
-	message: string
-	context?: LogContext
-	timestamp: string
-	args?: unknown[]
+	level: LogLevel;
+	message: string;
+	context?: LogContext;
+	timestamp: string;
+	args?: unknown[];
 }
 
-export type LogLevel = 'DEBUG' | 'INFO' | 'WARN' | 'ERROR'
+export type LogLevel = "DEBUG" | "INFO" | "WARN" | "ERROR";
 
 // Environment checks
-const isDevelopment = () => process.env['NODE_ENV'] === 'development'
-const isClient = () => typeof window !== 'undefined'
+const isDevelopment = () => process.env["NODE_ENV"] === "development";
+const isClient = () => typeof window !== "undefined";
 const devConsole: Partial<Console> | undefined =
-	typeof globalThis !== 'undefined'
-		? (globalThis['console'] as Console | undefined)
-		: undefined
+	typeof globalThis !== "undefined"
+		? (globalThis["console"] as Console | undefined)
+		: undefined;
 
 // Safe timestamp for Next.js Server Components
 // Server-side logs skip timestamps to avoid Next.js 15 prerender errors
 // (new Date() before uncached data access breaks Server Components)
-const getTimestamp = () => (isClient() ? new Date().toISOString() : '')
+const getTimestamp = () => (isClient() ? new Date().toISOString() : "");
 
 /**
  * Safe JSON stringify with circular reference handling
  */
 const safeStringify = (obj: unknown): string => {
 	try {
-		return JSON.stringify(obj, null, 2)
+		return JSON.stringify(obj, null, 2);
 	} catch {
-		return String(obj)
+		return String(obj);
 	}
-}
+};
 
 /**
  * Development-only console logger
  * This is the ONLY place console methods are used
  */
 const developmentConsoleFallback = (entry: LogEntry) => {
-	if (!isDevelopment()) return
+	if (!isDevelopment()) return;
 
-	const timestamp = entry.timestamp
+	const timestamp = entry.timestamp;
 	const contextStr = entry.context?.component
 		? `[${entry.context.component}]`
-		: ''
-	const message = `${timestamp} [${entry.level}]${contextStr} ${entry.message}`
+		: "";
+	const message = `${timestamp} [${entry.level}]${contextStr} ${entry.message}`;
 
 	// Serialize metadata for readable console output
 	const metadataStr = entry.context?.metadata
 		? safeStringify(entry.context.metadata)
-		: ''
+		: "";
 
 	// Only use console in development as absolute last resort
 	switch (entry.level) {
-		case 'DEBUG':
-		case 'INFO':
-			devConsole?.info?.(message, metadataStr, ...(entry.args || []))
-			break
-		case 'WARN':
-			devConsole?.warn?.(message, metadataStr, ...(entry.args || []))
-			break
-		case 'ERROR':
-			devConsole?.error?.(message, metadataStr, ...(entry.args || []))
-			break
+		case "DEBUG":
+		case "INFO":
+			devConsole?.info?.(message, metadataStr, ...(entry.args || []));
+			break;
+		case "WARN":
+			devConsole?.warn?.(message, metadataStr, ...(entry.args || []));
+			break;
+		case "ERROR":
+			devConsole?.error?.(message, metadataStr, ...(entry.args || []));
+			break;
 	}
-}
+};
 
 /**
  * Core logging function - delegates to the development console logger
  */
 const logEntry = (entry: LogEntry) => {
-	developmentConsoleFallback(entry)
-}
+	developmentConsoleFallback(entry);
+};
 
 /**
  * Create a contextual logger for a specific component
@@ -102,50 +102,50 @@ export const createLogger = (defaultContext?: LogContext) => {
 			// Debug logs only in development
 			if (isDevelopment()) {
 				const entry: LogEntry = {
-					level: 'DEBUG',
+					level: "DEBUG",
 					message,
 					context: { ...defaultContext, ...context },
 					timestamp: getTimestamp(),
-					args
-				}
-				logEntry(entry)
+					args,
+				};
+				logEntry(entry);
 			}
 		},
 		info: (message: string, context?: LogContext, ...args: unknown[]) => {
 			const entry: LogEntry = {
-				level: 'INFO',
+				level: "INFO",
 				message,
 				context: { ...defaultContext, ...context },
 				timestamp: getTimestamp(),
-				args
-			}
-			logEntry(entry)
+				args,
+			};
+			logEntry(entry);
 		},
 		warn: (message: string, context?: LogContext, ...args: unknown[]) => {
 			const entry: LogEntry = {
-				level: 'WARN',
+				level: "WARN",
 				message,
 				context: { ...defaultContext, ...context },
 				timestamp: getTimestamp(),
-				args
-			}
-			logEntry(entry)
+				args,
+			};
+			logEntry(entry);
 		},
 		error: (message: string, context?: LogContext, ...args: unknown[]) => {
 			const entry: LogEntry = {
-				level: 'ERROR',
+				level: "ERROR",
 				message,
 				context: { ...defaultContext, ...context },
 				timestamp: getTimestamp(),
-				args
-			}
-			logEntry(entry)
-		}
-	}
-}
+				args,
+			};
+			logEntry(entry);
+		},
+	};
+};
 
 /**
  * Default logger instance
  * Use this for quick logging without component context
  */
-export const logger = createLogger()
+export const logger = createLogger();

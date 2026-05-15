@@ -1,15 +1,15 @@
-import { Building2 } from 'lucide-react'
-import { BlurFade } from '#components/ui/blur-fade'
-import type { PropertyPL } from '#types/financial-statements'
+import { Building2 } from "lucide-react";
+import { BlurFade } from "#components/ui/blur-fade";
+import type { PropertyPL } from "#types/financial-statements";
 
 interface IncomeStatementPropertyTableProps {
-	byProperty: PropertyPL[]
-	formatCurrency: (amount: number) => string
+	byProperty: PropertyPL[];
+	formatCurrency: (amount: number) => string;
 }
 
 export function IncomeStatementPropertyTable({
 	byProperty,
-	formatCurrency
+	formatCurrency,
 }: IncomeStatementPropertyTableProps) {
 	return (
 		<BlurFade delay={0.8} inView>
@@ -69,7 +69,7 @@ export function IncomeStatementPropertyTable({
 										</td>
 										<td className="p-4 text-right">
 											<span
-												className={`text-sm font-medium ${prop.occupancyRate >= 95 ? 'text-emerald-600' : prop.occupancyRate >= 85 ? 'text-amber-600' : 'text-red-600'}`}
+												className={`text-sm font-medium ${prop.occupancyRate >= 95 ? "text-emerald-600" : prop.occupancyRate >= 85 ? "text-amber-600" : "text-red-600"}`}
 											>
 												{prop.occupancyRate}%
 											</span>
@@ -82,5 +82,5 @@ export function IncomeStatementPropertyTable({
 				</div>
 			</div>
 		</BlurFade>
-	)
+	);
 }

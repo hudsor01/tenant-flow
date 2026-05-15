@@ -1,8 +1,8 @@
-import { setupServer } from 'msw/node'
-import { afterAll, afterEach, beforeAll } from 'vitest'
-import { handlers } from './handlers'
+import { setupServer } from "msw/node";
+import { afterAll, afterEach, beforeAll } from "vitest";
+import { handlers } from "./handlers";
 
-export const server = setupServer(...handlers)
+export const server = setupServer(...handlers);
 
 /**
  * Opt-in MSW server lifecycle for tests that want network-level interception.
@@ -35,7 +35,7 @@ export const server = setupServer(...handlers)
  * ```
  */
 export function enableMswServer() {
-	beforeAll(() => server.listen({ onUnhandledRequest: 'bypass' }))
-	afterEach(() => server.resetHandlers())
-	afterAll(() => server.close())
+	beforeAll(() => server.listen({ onUnhandledRequest: "bypass" }));
+	afterEach(() => server.resetHandlers());
+	afterAll(() => server.close());
 }

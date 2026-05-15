@@ -1,33 +1,33 @@
-'use client'
+"use client";
 
-import { Check, Sparkles } from 'lucide-react'
-import { Badge } from '#components/ui/badge'
-import { Button } from '#components/ui/button'
-import { Card, CardContent, CardFooter, CardHeader } from '#components/ui/card'
-import { cn } from '#lib/utils'
+import { Check, Sparkles } from "lucide-react";
+import { Badge } from "#components/ui/badge";
+import { Button } from "#components/ui/button";
+import { Card, CardContent, CardFooter, CardHeader } from "#components/ui/card";
+import { cn } from "#lib/utils";
 
 export interface PlanFeature {
-	name: string
-	included: boolean
+	name: string;
+	included: boolean;
 }
 
 export interface Plan {
-	id: string
-	name: string
-	description: string
-	price: number
-	priceId: string | null
-	features: PlanFeature[]
-	tier: number
+	id: string;
+	name: string;
+	description: string;
+	price: number;
+	priceId: string | null;
+	features: PlanFeature[];
+	tier: number;
 }
 
 interface PlanCardProps {
-	plan: Plan
-	isCurrentPlan: boolean
-	isMostPopular: boolean
-	currentTier: number | null
-	onSelect: (plan: Plan) => void
-	isLoading?: boolean
+	plan: Plan;
+	isCurrentPlan: boolean;
+	isMostPopular: boolean;
+	currentTier: number | null;
+	onSelect: (plan: Plan) => void;
+	isLoading?: boolean;
 }
 
 export function PlanCard({
@@ -36,27 +36,27 @@ export function PlanCard({
 	isMostPopular,
 	currentTier,
 	onSelect,
-	isLoading = false
+	isLoading = false,
 }: PlanCardProps) {
-	const isUpgrade = currentTier !== null && plan.tier > currentTier
-	const isDowngrade = currentTier !== null && plan.tier < currentTier
+	const isUpgrade = currentTier !== null && plan.tier > currentTier;
+	const isDowngrade = currentTier !== null && plan.tier < currentTier;
 
 	const getCtaLabel = () => {
-		if (isCurrentPlan) return 'Current Plan'
-		if (currentTier === null) return 'Get Started'
-		if (isUpgrade) return 'Upgrade'
-		if (isDowngrade) return 'Downgrade'
-		return 'Select'
-	}
+		if (isCurrentPlan) return "Current Plan";
+		if (currentTier === null) return "Get Started";
+		if (isUpgrade) return "Upgrade";
+		if (isDowngrade) return "Downgrade";
+		return "Select";
+	};
 
-	const ctaLabel = getCtaLabel()
+	const ctaLabel = getCtaLabel();
 
 	return (
 		<Card
-			variant={isMostPopular ? 'pricingPopular' : 'pricing'}
+			variant={isMostPopular ? "pricingPopular" : "pricing"}
 			className={cn(
-				'relative flex flex-col',
-				isCurrentPlan && 'border-primary/50 bg-primary/5'
+				"relative flex flex-col",
+				isCurrentPlan && "border-primary/50 bg-primary/5",
 			)}
 		>
 			{/* Badges */}
@@ -98,20 +98,22 @@ export function PlanCard({
 
 				{/* Features */}
 				<ul className="space-y-3">
-					{plan.features.map(feature => (
+					{plan.features.map((feature) => (
 						<li
 							key={feature.name}
 							className={cn(
-								'flex items-start gap-2 text-sm',
+								"flex items-start gap-2 text-sm",
 								feature.included
-									? 'text-foreground'
-									: 'text-muted-foreground/60 line-through'
+									? "text-foreground"
+									: "text-muted-foreground/60 line-through",
 							)}
 						>
 							<Check
 								className={cn(
-									'size-4 shrink-0 mt-0.5',
-									feature.included ? 'text-success' : 'text-muted-foreground/40'
+									"size-4 shrink-0 mt-0.5",
+									feature.included
+										? "text-success"
+										: "text-muted-foreground/40",
 								)}
 							/>
 							<span>{feature.name}</span>
@@ -123,16 +125,16 @@ export function PlanCard({
 			<CardFooter className="pt-4">
 				<Button
 					variant={
-						isCurrentPlan ? 'outline' : isMostPopular ? 'default' : 'outline'
+						isCurrentPlan ? "outline" : isMostPopular ? "default" : "outline"
 					}
 					size="lg"
 					className="w-full min-h-11"
 					disabled={isCurrentPlan || isLoading}
 					onClick={() => onSelect(plan)}
 				>
-					{isLoading ? 'Loading...' : ctaLabel}
+					{isLoading ? "Loading..." : ctaLabel}
 				</Button>
 			</CardFooter>
 		</Card>
-	)
+	);
 }

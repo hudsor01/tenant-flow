@@ -1,4 +1,4 @@
-'use client'
+"use client";
 
 import {
 	Table,
@@ -6,38 +6,38 @@ import {
 	TableCell,
 	TableHead,
 	TableHeader,
-	TableRow
-} from '#components/ui/table'
-import type { PortfolioRow } from '../dashboard-types'
-import { formatDashboardCurrency } from '../dashboard-types'
+	TableRow,
+} from "#components/ui/table";
+import type { PortfolioRow } from "../dashboard-types";
+import { formatDashboardCurrency } from "../dashboard-types";
 
 interface PortfolioTableProps {
-	data: PortfolioRow[]
-	sortField: string
-	sortDirection: 'asc' | 'desc'
-	onSort: (field: string) => void
+	data: PortfolioRow[];
+	sortField: string;
+	sortDirection: "asc" | "desc";
+	onSort: (field: string) => void;
 }
 
 function SortIndicator({
 	field,
 	sortField,
-	sortDirection
+	sortDirection,
 }: {
-	field: string
-	sortField: string
-	sortDirection: 'asc' | 'desc'
+	field: string;
+	sortField: string;
+	sortDirection: "asc" | "desc";
 }) {
-	if (sortField !== field) return null
+	if (sortField !== field) return null;
 	return (
-		<span className="ml-1 text-xs">{sortDirection === 'asc' ? '↑' : '↓'}</span>
-	)
+		<span className="ml-1 text-xs">{sortDirection === "asc" ? "↑" : "↓"}</span>
+	);
 }
 
 export function PortfolioTable({
 	data,
 	sortField,
 	sortDirection,
-	onSort
+	onSort,
 }: PortfolioTableProps) {
 	return (
 		<Table>
@@ -45,7 +45,7 @@ export function PortfolioTable({
 				<TableRow>
 					<TableHead
 						className="cursor-pointer hover:bg-muted/50"
-						onClick={() => onSort('property')}
+						onClick={() => onSort("property")}
 					>
 						Property
 						<SortIndicator
@@ -56,7 +56,7 @@ export function PortfolioTable({
 					</TableHead>
 					<TableHead
 						className="cursor-pointer hover:bg-muted/50"
-						onClick={() => onSort('units')}
+						onClick={() => onSort("units")}
 					>
 						Units
 						<SortIndicator
@@ -68,7 +68,7 @@ export function PortfolioTable({
 					<TableHead>Tenants</TableHead>
 					<TableHead
 						className="cursor-pointer hover:bg-muted/50"
-						onClick={() => onSort('status')}
+						onClick={() => onSort("status")}
 					>
 						Lease Status
 						<SortIndicator
@@ -79,7 +79,7 @@ export function PortfolioTable({
 					</TableHead>
 					<TableHead
 						className="text-right cursor-pointer hover:bg-muted/50"
-						onClick={() => onSort('rent')}
+						onClick={() => onSort("rent")}
 					>
 						Monthly Rent
 						<SortIndicator
@@ -93,12 +93,14 @@ export function PortfolioTable({
 				</TableRow>
 			</TableHeader>
 			<TableBody>
-				{data.map(row => (
+				{data.map((row) => (
 					<TableRow key={row.id} className="group">
 						<TableCell>
 							<div>
 								<div className="font-medium">{row.property}</div>
-								<div className="text-xs text-muted-foreground">{row.address}</div>
+								<div className="text-xs text-muted-foreground">
+									{row.address}
+								</div>
 							</div>
 						</TableCell>
 						<TableCell>
@@ -119,16 +121,16 @@ export function PortfolioTable({
 						<TableCell>
 							<span
 								className={
-									row.leaseStatus === 'active'
-										? 'text-sm font-medium text-foreground'
-										: row.leaseStatus === 'expiring'
-											? 'text-sm font-medium text-amber-600 dark:text-amber-500'
-											: 'text-sm text-muted-foreground'
+									row.leaseStatus === "active"
+										? "text-sm font-medium text-foreground"
+										: row.leaseStatus === "expiring"
+											? "text-sm font-medium text-amber-600 dark:text-amber-500"
+											: "text-sm text-muted-foreground"
 								}
 							>
-								{row.leaseStatus === 'active' && 'Active'}
-								{row.leaseStatus === 'expiring' && 'Expiring Soon'}
-								{row.leaseStatus === 'vacant' && 'Vacant'}
+								{row.leaseStatus === "active" && "Active"}
+								{row.leaseStatus === "expiring" && "Expiring Soon"}
+								{row.leaseStatus === "vacant" && "Vacant"}
 							</span>
 						</TableCell>
 						<TableCell className="text-right tabular-nums">
@@ -154,5 +156,5 @@ export function PortfolioTable({
 				))}
 			</TableBody>
 		</Table>
-	)
+	);
 }

@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react'
+import type { ReactNode } from "react";
 
 /**
  * Standardized Modal Layout for CRUD Routes
@@ -13,15 +13,15 @@ import type { ReactNode } from 'react'
  */
 export default function ModalLayout({
 	children,
-	modal
+	modal,
 }: {
-	children: ReactNode
-	modal: ReactNode
+	children: ReactNode;
+	modal: ReactNode;
 }) {
 	return (
 		<>
 			{children}
 			{modal}
 		</>
-	)
+	);
 }

@@ -1,144 +1,145 @@
-'use client'
+"use client";
 
-import { ForgotPasswordModal } from '#components/auth/forgot-password-modal'
-import { MfaVerificationDialog } from '#components/auth/mfa-verification-dialog'
-import { authKeys } from '#hooks/api/use-auth'
-import { createLogger } from '#lib/frontend-logger'
-import { createClient } from '#lib/supabase/client'
-import { useQueryClient } from '@tanstack/react-query'
-import { Building2, Home, Lock, Smartphone, Zap } from 'lucide-react'
-import Image from 'next/image'
-import Link from 'next/link'
-import { useRouter, useSearchParams } from 'next/navigation'
-import { Suspense, useEffect, useState } from 'react'
-import { LoginForm } from './login-form'
-import { LoginOAuth } from './login-oauth'
+import { useQueryClient } from "@tanstack/react-query";
+import { Building2, Home, Lock, Smartphone, Zap } from "lucide-react";
+import Image from "next/image";
+import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";
+import { Suspense, useEffect, useState } from "react";
+import { ForgotPasswordModal } from "#components/auth/forgot-password-modal";
+import { MfaVerificationDialog } from "#components/auth/mfa-verification-dialog";
+import { authKeys } from "#hooks/api/use-auth";
+import { createLogger } from "#lib/frontend-logger";
+import { createClient } from "#lib/supabase/client";
+import { LoginForm } from "./login-form";
+import { LoginOAuth } from "./login-oauth";
 
-const logger = createLogger({ component: 'LoginPage' })
+const logger = createLogger({ component: "LoginPage" });
 
 const HERO_STATS = [
-	{ value: 'Vault', lines: ['Document', 'Storage'] },
-	{ value: 'DocuSeal', lines: ['Lease', 'E-sign'] },
-	{ value: 'Reports', lines: ['Tax-ready', 'Exports'] }
-]
+	{ value: "Vault", lines: ["Document", "Storage"] },
+	{ value: "DocuSeal", lines: ["Lease", "E-sign"] },
+	{ value: "Reports", lines: ["Tax-ready", "Exports"] },
+];
 
 /** AUTH-12: Prevent open redirect attacks including protocol-relative URLs. */
 function isValidRedirect(redirect: string): boolean {
-	if (!redirect.startsWith('/') || redirect.startsWith('//')) return false
+	if (!redirect.startsWith("/") || redirect.startsWith("//")) return false;
 	try {
-		const url = new URL(redirect, window.location.origin)
-		return url.hostname === window.location.hostname
-	} catch { return false }
+		const url = new URL(redirect, window.location.origin);
+		return url.hostname === window.location.hostname;
+	} catch {
+		return false;
+	}
 }
 
 function LoginPageContent() {
-	const [authError, setAuthError] = useState<string | null>(null)
-	const [forgotPasswordOpen, setForgotPasswordOpen] = useState(false)
-	const [showMfaDialog, setShowMfaDialog] = useState(false)
-	const [mfaFactorId, setMfaFactorId] = useState<string | null>(null)
-	const [pendingRedirect, setPendingRedirect] = useState<string | null>(null)
-	const [isSubmitting, setIsSubmitting] = useState(false)
+	const [authError, setAuthError] = useState<string | null>(null);
+	const [forgotPasswordOpen, setForgotPasswordOpen] = useState(false);
+	const [showMfaDialog, setShowMfaDialog] = useState(false);
+	const [mfaFactorId, setMfaFactorId] = useState<string | null>(null);
+	const [pendingRedirect, setPendingRedirect] = useState<string | null>(null);
+	const [isSubmitting, setIsSubmitting] = useState(false);
 
-	const router = useRouter()
-	const searchParams = useSearchParams()
-	const queryClient = useQueryClient()
+	const router = useRouter();
+	const searchParams = useSearchParams();
+	const queryClient = useQueryClient();
 
 	// Handle OAuth error from URL params
 	useEffect(() => {
-		if (!searchParams) return
-		const error = searchParams.get('error')
-		if (error === 'oauth_failed') {
-			router.replace('/login')
+		if (!searchParams) return;
+		const error = searchParams.get("error");
+		if (error === "oauth_failed") {
+			router.replace("/login");
 		}
-	}, [searchParams, router])
+	}, [searchParams, router]);
 
 	const handleCredentialSubmit = async (value: {
-		email: string
-		password: string
+		email: string;
+		password: string;
 	}) => {
-		setAuthError(null)
-		setIsSubmitting(true)
+		setAuthError(null);
+		setIsSubmitting(true);
 
 		try {
-			const supabase = createClient()
+			const supabase = createClient();
 			const { data, error } = await supabase.auth.signInWithPassword({
 				email: value.email,
-				password: value.password
-			})
+				password: value.password,
+			});
 
 			if (error) {
-				logger.error('[LOGIN_FAILED]', { error: error.message })
-				if (error.message.includes('Email not confirmed')) {
-					router.push('/auth/confirm-email')
-					throw new Error('Please confirm your email before signing in.')
+				logger.error("[LOGIN_FAILED]", { error: error.message });
+				if (error.message.includes("Email not confirmed")) {
+					router.push("/auth/confirm-email");
+					throw new Error("Please confirm your email before signing in.");
 				}
 				throw new Error(
-					error.message === 'Invalid login credentials'
-						? 'Invalid email or password.'
-						: error.message
-				)
+					error.message === "Invalid login credentials"
+						? "Invalid email or password."
+						: error.message,
+				);
 			}
 
 			if (data.session?.user) {
-				logger.info('[LOGIN_SUCCESS]', { userId: data.session.user.id })
+				logger.info("[LOGIN_SUCCESS]", { userId: data.session.user.id });
 
 				// CRITICAL: Update query cache BEFORE navigating to prevent race condition
-				queryClient.setQueryData(authKeys.session(), data.session)
-				queryClient.setQueryData(authKeys.user(), data.session.user)
+				queryClient.setQueryData(authKeys.session(), data.session);
+				queryClient.setQueryData(authKeys.user(), data.session.user);
 
-				const redirectTo = searchParams?.get('redirect')
-				let destination = '/dashboard'
+				const redirectTo = searchParams?.get("redirect");
+				let destination = "/dashboard";
 
 				if (redirectTo && isValidRedirect(redirectTo)) {
-					destination = redirectTo
+					destination = redirectTo;
 				}
 
 				// Check if MFA verification is required
 				const { data: aalData } =
-					await supabase.auth.mfa.getAuthenticatorAssuranceLevel()
+					await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
 
-				if (
-					aalData?.nextLevel === 'aal2' &&
-					aalData?.currentLevel !== 'aal2'
-				) {
-					logger.info('[MFA_REQUIRED]', { userId: data.session.user.id })
-					const { data: factorsData } = await supabase.auth.mfa.listFactors()
+				if (aalData?.nextLevel === "aal2" && aalData?.currentLevel !== "aal2") {
+					logger.info("[MFA_REQUIRED]", { userId: data.session.user.id });
+					const { data: factorsData } = await supabase.auth.mfa.listFactors();
 					const totpFactor = factorsData?.totp?.find(
-						f => f.status === 'verified'
-					)
+						(f) => f.status === "verified",
+					);
 
 					if (totpFactor) {
-						setPendingRedirect(destination)
-						setMfaFactorId(totpFactor.id)
-						setShowMfaDialog(true)
-						return
+						setPendingRedirect(destination);
+						setMfaFactorId(totpFactor.id);
+						setShowMfaDialog(true);
+						return;
 					}
 				}
 
-				logger.info('[LOGIN_REDIRECT]', { destination })
-				router.push(destination)
+				logger.info("[LOGIN_REDIRECT]", { destination });
+				router.push(destination);
 			}
 		} catch (error) {
 			const message =
-				error instanceof Error ? error.message : 'Please try again'
-			setAuthError(message)
+				error instanceof Error ? error.message : "Please try again";
+			setAuthError(message);
 		} finally {
-			setIsSubmitting(false)
+			setIsSubmitting(false);
 		}
-	}
+	};
 
 	const handleMfaSuccess = () => {
-		logger.info('[MFA_VERIFIED]', { destination: pendingRedirect })
-		setShowMfaDialog(false)
-		if (pendingRedirect) router.push(pendingRedirect)
-	}
+		logger.info("[MFA_VERIFIED]", { destination: pendingRedirect });
+		setShowMfaDialog(false);
+		if (pendingRedirect) router.push(pendingRedirect);
+	};
 
 	const handleMfaCancel = async () => {
-		const supabase = createClient()
-		await supabase.auth.signOut()
-		setShowMfaDialog(false); setMfaFactorId(null); setPendingRedirect(null)
-		setAuthError('Two-factor authentication is required to sign in.')
-	}
+		const supabase = createClient();
+		await supabase.auth.signOut();
+		setShowMfaDialog(false);
+		setMfaFactorId(null);
+		setPendingRedirect(null);
+		setAuthError("Two-factor authentication is required to sign in.");
+	};
 
 	return (
 		<>
@@ -146,7 +147,14 @@ function LoginPageContent() {
 				{/* Image Section - Hidden on mobile */}
 				<div className="relative hidden lg:flex lg:w-1/2 min-h-screen overflow-hidden">
 					<div className="absolute inset-0 transform scale-105">
-						<Image src="https://images.unsplash.com/photo-1582407947304-fd86f028f716?auto=format&fit=crop&w=2340&q=80" alt="Modern apartment building" fill sizes="50vw" className="object-cover" priority />
+						<Image
+							src="https://images.unsplash.com/photo-1582407947304-fd86f028f716?auto=format&fit=crop&w=2340&q=80"
+							alt="Modern apartment building"
+							fill
+							sizes="50vw"
+							className="object-cover"
+							priority
+						/>
 					</div>
 					<div className="absolute inset-0 bg-black/25" />
 					<div className="absolute inset-0 flex-center">
@@ -158,17 +166,25 @@ function LoginPageContent() {
 										<Home className="size-8 text-primary-foreground" />
 									</div>
 								</div>
-								<h2 className="text-foreground font-bold text-xl">Welcome back</h2>
+								<h2 className="text-foreground font-bold text-xl">
+									Welcome back
+								</h2>
 								<p className="text-muted-foreground max-w-md mx-auto text-base">
-									Sign in to manage your properties, leases, maintenance, and the document vault.
+									Sign in to manage your properties, leases, maintenance, and
+									the document vault.
 								</p>
 								<div className="grid grid-cols-3 gap-6 pt-6">
-									{HERO_STATS.map(stat => (
+									{HERO_STATS.map((stat) => (
 										<div key={stat.value} className="text-center">
-											<div className="text-foreground font-bold mb-1 text-base">{stat.value}</div>
+											<div className="text-foreground font-bold mb-1 text-base">
+												{stat.value}
+											</div>
 											<div className="text-muted-foreground text-xs font-medium">
 												{stat.lines.map((line, i, arr) => (
-													<span key={line}>{line}{i < arr.length - 1 && <br />}</span>
+													<span key={line}>
+														{line}
+														{i < arr.length - 1 && <br />}
+													</span>
 												))}
 											</div>
 										</div>
@@ -190,14 +206,23 @@ function LoginPageContent() {
 							</div>
 							<div className="space-y-2">
 								<h1 className="typography-h3 text-foreground">Welcome back</h1>
-								<p className="text-muted-foreground text-sm">Sign in to manage your properties, leases, and the document vault.</p>
+								<p className="text-muted-foreground text-sm">
+									Sign in to manage your properties, leases, and the document
+									vault.
+								</p>
 							</div>
 						</div>
 						<div className="bg-muted/50 rounded-lg p-4 space-y-2 text-sm border border-border/50">
 							<p className="text-muted-foreground">
-								<strong className="text-foreground">New to TenantFlow?</strong>{' '}
-								<Link href="/pricing" className="text-primary hover:underline font-medium">View plans</Link>{' '}
-								— TenantFlow is landlord-only, so tenants don&apos;t need an account.
+								<strong className="text-foreground">New to TenantFlow?</strong>{" "}
+								<Link
+									href="/pricing"
+									className="text-primary hover:underline font-medium"
+								>
+									View plans
+								</Link>{" "}
+								— TenantFlow is landlord-only, so tenants don&apos;t need an
+								account.
 							</p>
 						</div>
 
@@ -207,7 +232,7 @@ function LoginPageContent() {
 							isSubmitting={isSubmitting}
 							onSubmit={handleCredentialSubmit}
 							onForgotPassword={() => setForgotPasswordOpen(true)}
-							onCreateAccount={() => router.push('/pricing')}
+							onCreateAccount={() => router.push("/pricing")}
 						/>
 
 						{/* OAuth */}
@@ -258,7 +283,7 @@ function LoginPageContent() {
 				/>
 			)}
 		</>
-	)
+	);
 }
 
 function LoginFallback() {
@@ -273,7 +298,7 @@ function LoginFallback() {
 				</span>
 			</div>
 		</div>
-	)
+	);
 }
 
 export default function LoginPage() {
@@ -281,5 +306,5 @@ export default function LoginPage() {
 		<Suspense fallback={<LoginFallback />}>
 			<LoginPageContent />
 		</Suspense>
-	)
+	);
 }

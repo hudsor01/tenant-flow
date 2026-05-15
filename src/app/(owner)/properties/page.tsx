@@ -1,22 +1,19 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
-import { Suspense } from 'react'
-import { useRouter, useSearchParams } from 'next/navigation'
 import {
-	useQuery,
-	useQueries,
 	useMutation,
-	useQueryClient
-} from '@tanstack/react-query'
-import { toast } from 'sonner'
-import { propertyQueries } from '#hooks/api/query-keys/property-keys'
-import { unitQueries } from '#hooks/api/query-keys/unit-keys'
-import { ownerDashboardKeys } from '#hooks/api/use-owner-dashboard'
-import { createClient } from '#lib/supabase/client'
-import { handleMutationError } from '#lib/mutation-error-handler'
-import type { Unit } from '#types/core'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '#components/ui/tabs'
+	useQueries,
+	useQuery,
+	useQueryClient,
+} from "@tanstack/react-query";
+import { useRouter, useSearchParams } from "next/navigation";
+import { Suspense, useState } from "react";
+import { toast } from "sonner";
+import {
+	PropertyInsightsSection,
+	PropertyInsightsSkeleton,
+} from "#components/analytics/property-insights-section";
+import { Properties } from "#components/properties/properties";
 import {
 	AlertDialog,
 	AlertDialogAction,
@@ -25,140 +22,146 @@ import {
 	AlertDialogDescription,
 	AlertDialogFooter,
 	AlertDialogHeader,
-	AlertDialogTitle
-} from '#components/ui/alert-dialog'
-import { Properties } from '#components/properties/properties'
+	AlertDialogTitle,
+} from "#components/ui/alert-dialog";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "#components/ui/tabs";
+import { propertyQueries } from "#hooks/api/query-keys/property-keys";
+import { unitQueries } from "#hooks/api/query-keys/unit-keys";
+import { ownerDashboardKeys } from "#hooks/api/use-owner-dashboard";
+import { handleMutationError } from "#lib/mutation-error-handler";
+import { createClient } from "#lib/supabase/client";
+import type { Unit } from "#types/core";
+import { PropertiesLoadingSkeleton } from "./components/properties-loading-skeleton";
 import {
-	PropertyInsightsSection,
-	PropertyInsightsSkeleton
-} from '#components/analytics/property-insights-section'
-import { transformToPropertyItem, calculateSummary } from './components/property-transforms'
-import { PropertiesLoadingSkeleton } from './components/properties-loading-skeleton'
+	calculateSummary,
+	transformToPropertyItem,
+} from "./components/property-transforms";
 
 export default function PropertiesPage() {
-	const router = useRouter()
-	const searchParams = useSearchParams()
-	const queryClient = useQueryClient()
-	const [propertyToDelete, setPropertyToDelete] = useState<string | null>(
-		null
-	)
+	const router = useRouter();
+	const searchParams = useSearchParams();
+	const queryClient = useQueryClient();
+	const [propertyToDelete, setPropertyToDelete] = useState<string | null>(null);
 
 	// Tab state from URL
-	const tabFromUrl = searchParams.get('tab') || 'overview'
-	const [activeTab, setActiveTab] = useState(tabFromUrl)
+	const tabFromUrl = searchParams.get("tab") || "overview";
+	const [activeTab, setActiveTab] = useState(tabFromUrl);
 
 	const handleTabChange = (value: string) => {
-		setActiveTab(value)
-		const url = new URL(window.location.href)
-		if (value === 'overview') {
-			url.searchParams.delete('tab')
+		setActiveTab(value);
+		const url = new URL(window.location.href);
+		if (value === "overview") {
+			url.searchParams.delete("tab");
 		} else {
-			url.searchParams.set('tab', value)
+			url.searchParams.set("tab", value);
 		}
-		router.replace(url.pathname + url.search, { scroll: false })
-	}
+		router.replace(url.pathname + url.search, { scroll: false });
+	};
 
 	// Fetch properties
-	const { data: propertiesResponse, isLoading, error } = useQuery(
-		propertyQueries.list()
-	)
-	const rawProperties = propertiesResponse?.data ?? []
+	const {
+		data: propertiesResponse,
+		isLoading,
+		error,
+	} = useQuery(propertyQueries.list());
+	const rawProperties = propertiesResponse?.data ?? [];
 
 	// Fetch all units for all properties using useQueries
 	const unitsQueriesResults = useQueries({
-		queries: rawProperties.map(p => ({
+		queries: rawProperties.map((p) => ({
 			...unitQueries.listByProperty(p.id),
-			enabled: !!p.id
-		}))
-	})
+			enabled: !!p.id,
+		})),
+	});
 
 	// Extract stable data from units queries
-	const unitsData = unitsQueriesResults.map(result => result.data)
+	const unitsData = unitsQueriesResults.map((result) => result.data);
 
 	// Get units map by property ID
 	const unitsMap = (() => {
-		const map: Record<string, Unit[]> = {}
+		const map: Record<string, Unit[]> = {};
 		rawProperties.forEach((p, i) => {
-			map[p.id] = unitsData[i] ?? []
-		})
-		return map
-	})()
+			map[p.id] = unitsData[i] ?? [];
+		});
+		return map;
+	})();
 
 	// Fetch images for all properties using useQueries
 	const imagesQueriesResults = useQueries({
-		queries: rawProperties.map(p => ({
+		queries: rawProperties.map((p) => ({
 			...propertyQueries.images(p.id),
-			enabled: !!p.id
-		}))
-	})
+			enabled: !!p.id,
+		})),
+	});
 
 	// Extract stable data from images queries
-	const imagesData = imagesQueriesResults.map(result => result.data)
+	const imagesData = imagesQueriesResults.map((result) => result.data);
 
 	const imagesMap = (() => {
-		const map: Record<string, string | undefined> = {}
+		const map: Record<string, string | undefined> = {};
 		rawProperties.forEach((p, i) => {
-			const images = imagesData[i]
-			map[p.id] = images?.[0]?.image_url
-		})
-		return map
-	})()
+			const images = imagesData[i];
+			map[p.id] = images?.[0]?.image_url;
+		});
+		return map;
+	})();
 
 	// Transform to design-os format
-	const properties = rawProperties.map(p =>
-				transformToPropertyItem(p, unitsMap[p.id], imagesMap[p.id])
-			)
+	const properties = rawProperties.map((p) =>
+		transformToPropertyItem(p, unitsMap[p.id], imagesMap[p.id]),
+	);
 
 	// Calculate summary (use API total for accurate count across pages)
-	const summary = ({
-			...calculateSummary(properties),
-			totalProperties: propertiesResponse?.total ?? properties.length
-		})
+	const summary = {
+		...calculateSummary(properties),
+		totalProperties: propertiesResponse?.total ?? properties.length,
+	};
 
 	// Delete mutation -- soft-delete: set status to 'inactive'
 	const { mutate: deleteProperty } = useMutation({
 		mutationFn: async (propertyId: string) => {
-			const supabase = createClient()
+			const supabase = createClient();
 			const { error } = await supabase
-				.from('properties')
-				.update({ status: 'inactive' })
-				.eq('id', propertyId)
-			if (error) throw error
+				.from("properties")
+				.update({ status: "inactive" })
+				.eq("id", propertyId);
+			if (error) throw error;
 		},
 		onSuccess: () => {
-			toast.success('Property deleted')
-			queryClient.invalidateQueries({ queryKey: propertyQueries.all() })
-			queryClient.invalidateQueries({ queryKey: ownerDashboardKeys.all })
+			toast.success("Property deleted");
+			queryClient.invalidateQueries({ queryKey: propertyQueries.all() });
+			queryClient.invalidateQueries({ queryKey: ownerDashboardKeys.all });
 		},
-		onError: err => handleMutationError(err, 'Delete property', 'Failed to delete property')
-	})
+		onError: (err) =>
+			handleMutationError(err, "Delete property", "Failed to delete property"),
+	});
 
 	// Callbacks
 	const handleAddProperty = () => {
-		router.push('/properties/new')
-	}
+		router.push("/properties/new");
+	};
 
 	const handlePropertyClick = (propertyId: string) => {
-			router.push(`/properties/${propertyId}`)
-		}
+		router.push(`/properties/${propertyId}`);
+	};
 
 	const handlePropertyEdit = (propertyId: string) => {
-			router.push(`/properties/${propertyId}/edit`)
-		}
+		router.push(`/properties/${propertyId}/edit`);
+	};
 
 	const handlePropertyDelete = (propertyId: string) => {
-			setPropertyToDelete(propertyId)
-		}
+		setPropertyToDelete(propertyId);
+	};
 
 	const confirmDelete = () => {
 		if (propertyToDelete) {
-			deleteProperty(propertyToDelete)
-			setPropertyToDelete(null)
+			deleteProperty(propertyToDelete);
+			setPropertyToDelete(null);
 		}
-	}
+	};
 
 	if (isLoading) {
-		return <PropertiesLoadingSkeleton />
+		return <PropertiesLoadingSkeleton />;
 	}
 
 	if (error) {
@@ -169,11 +172,13 @@ export default function PropertiesPage() {
 						Error Loading Properties
 					</h2>
 					<p className="text-muted-foreground">
-						{error instanceof Error ? error.message : 'Failed to load properties'}
+						{error instanceof Error
+							? error.message
+							: "Failed to load properties"}
 					</p>
 				</div>
 			</div>
-		)
+		);
 	}
 
 	return (
@@ -233,5 +238,5 @@ export default function PropertiesPage() {
 				</AlertDialogContent>
 			</AlertDialog>
 		</>
-	)
+	);
 }

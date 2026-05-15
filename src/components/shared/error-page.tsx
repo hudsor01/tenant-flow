@@ -1,13 +1,13 @@
-'use client'
+"use client";
 
-import { Button } from '#components/ui/button'
-import { AlertCircle, Home, RefreshCw } from 'lucide-react'
-import Link from 'next/link'
+import { AlertCircle, Home, RefreshCw } from "lucide-react";
+import Link from "next/link";
+import { Button } from "#components/ui/button";
 
 interface ErrorPageProps {
-	error: Error & { digest?: string }
-	resetAction: () => void
-	dashboardHref?: string
+	error: Error & { digest?: string };
+	resetAction: () => void;
+	dashboardHref?: string;
 }
 
 // Sentry reporting is owned by the route-level `error.tsx` boundaries that
@@ -16,7 +16,7 @@ interface ErrorPageProps {
 export function ErrorPage({
 	error: _error,
 	resetAction,
-	dashboardHref = '/dashboard'
+	dashboardHref = "/dashboard",
 }: ErrorPageProps) {
 	return (
 		<div className="flex min-h-[400px] w-full items-center justify-center p-8">
@@ -42,5 +42,5 @@ export function ErrorPage({
 				</div>
 			</div>
 		</div>
-	)
+	);
 }

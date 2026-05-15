@@ -1,25 +1,25 @@
-'use client'
+"use client";
 
-import { CheckCircle, Upload, Loader2, X } from 'lucide-react'
-import { cn } from '#lib/utils'
-import type { DropzoneInputProps, DropzoneRootProps } from 'react-dropzone'
+import { CheckCircle, Loader2, Upload, X } from "lucide-react";
+import type { DropzoneInputProps, DropzoneRootProps } from "react-dropzone";
+import { cn } from "#lib/utils";
 
-export type FileUploadStatus = 'pending' | 'uploading' | 'success' | 'error'
+export type FileUploadStatus = "pending" | "uploading" | "success" | "error";
 
 export interface FileWithStatus {
-	file: File
-	status: FileUploadStatus
-	error?: string
-	objectUrl: string
+	file: File;
+	status: FileUploadStatus;
+	error?: string;
+	objectUrl: string;
 }
 
 interface PropertyImagesCreateSectionProps {
-	getRootProps: () => DropzoneRootProps
-	getInputProps: () => DropzoneInputProps
-	isDragActive: boolean
-	uploadingImages: boolean
-	filesWithStatus: FileWithStatus[]
-	onRemoveFile: (index: number) => void
+	getRootProps: () => DropzoneRootProps;
+	getInputProps: () => DropzoneInputProps;
+	isDragActive: boolean;
+	uploadingImages: boolean;
+	filesWithStatus: FileWithStatus[];
+	onRemoveFile: (index: number) => void;
 }
 
 export function PropertyImagesCreateSection({
@@ -28,7 +28,7 @@ export function PropertyImagesCreateSection({
 	isDragActive,
 	uploadingImages,
 	filesWithStatus,
-	onRemoveFile
+	onRemoveFile,
 }: PropertyImagesCreateSectionProps) {
 	return (
 		<div className="space-y-4 border rounded-lg p-6">
@@ -41,11 +41,11 @@ export function PropertyImagesCreateSection({
 			<div
 				{...getRootProps()}
 				className={cn(
-					'border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors',
+					"border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors",
 					isDragActive
-						? 'border-primary bg-primary/5'
-						: 'border-muted-foreground/25 hover:border-primary/50',
-					uploadingImages && 'pointer-events-none opacity-60'
+						? "border-primary bg-primary/5"
+						: "border-muted-foreground/25 hover:border-primary/50",
+					uploadingImages && "pointer-events-none opacity-60",
 				)}
 			>
 				<input {...getInputProps()} disabled={uploadingImages} />
@@ -54,8 +54,8 @@ export function PropertyImagesCreateSection({
 						<Upload className="mx-auto h-12 w-12 text-muted-foreground" />
 						<p className="text-sm font-medium">
 							{isDragActive
-								? 'Drop images here...'
-								: 'Drag & drop images here, or click to browse'}
+								? "Drop images here..."
+								: "Drag & drop images here, or click to browse"}
 						</p>
 						<p className="text-xs text-muted-foreground">
 							JPG, PNG, WebP, or GIF (max 10MB each)
@@ -68,8 +68,8 @@ export function PropertyImagesCreateSection({
 						</p>
 						<p className="text-xs text-muted-foreground">
 							{uploadingImages
-								? 'Uploading...'
-								: 'Click or drag to add more (max 10 total)'}
+								? "Uploading..."
+								: "Click or drag to add more (max 10 total)"}
 						</p>
 					</div>
 				)}
@@ -88,12 +88,12 @@ export function PropertyImagesCreateSection({
 								className="w-full h-full object-cover"
 							/>
 
-							{status === 'pending' && (
+							{status === "pending" && (
 								<button
 									type="button"
-									onClick={e => {
-										e.stopPropagation()
-										onRemoveFile(index)
+									onClick={(e) => {
+										e.stopPropagation();
+										onRemoveFile(index);
 									}}
 									className="absolute top-1 right-1 bg-destructive text-destructive-foreground rounded-full w-6 h-6 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
 									aria-label="Remove image"
@@ -102,21 +102,21 @@ export function PropertyImagesCreateSection({
 								</button>
 							)}
 
-							{status !== 'pending' && (
+							{status !== "pending" && (
 								<div className="absolute inset-0 bg-black/50 flex items-center justify-center">
-									{status === 'uploading' && (
+									{status === "uploading" && (
 										<div className="flex flex-col items-center gap-2 text-white">
 											<Loader2 className="h-6 w-6 animate-spin" />
 											<span className="text-xs font-medium">Uploading...</span>
 										</div>
 									)}
-									{status === 'success' && (
+									{status === "success" && (
 										<div className="flex flex-col items-center gap-2 text-green-400">
 											<CheckCircle className="h-6 w-6" />
 											<span className="text-xs font-medium">Uploaded</span>
 										</div>
 									)}
-									{status === 'error' && (
+									{status === "error" && (
 										<div className="flex flex-col items-center gap-2 text-red-400">
 											<X className="h-6 w-6" />
 											<span className="text-xs font-medium">Failed</span>
@@ -133,5 +133,5 @@ export function PropertyImagesCreateSection({
 				</div>
 			)}
 		</div>
-	)
+	);
 }

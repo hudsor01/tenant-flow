@@ -1,71 +1,71 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
-import { Button } from '#components/ui/button'
-import { Label } from '#components/ui/label'
-import { Input } from '#components/ui/input'
+import { useRouter } from "next/navigation";
+import { useState } from "react";
+import { Button } from "#components/ui/button";
+import { Input } from "#components/ui/input";
+import { Label } from "#components/ui/label";
 import {
 	Select,
 	SelectContent,
 	SelectItem,
 	SelectTrigger,
-	SelectValue
-} from '#components/ui/select'
-import { useCreateInspection } from '#hooks/api/use-inspection-mutations'
-import { useCurrentUser } from '#hooks/use-current-user'
-import { cn } from '#lib/utils'
-import { useLeaseList } from '#hooks/api/use-lease'
-import type { CreateInspectionInput } from '#lib/validation/inspections'
-import type { LeaseWithRelations } from '#types/relations'
+	SelectValue,
+} from "#components/ui/select";
+import { useCreateInspection } from "#hooks/api/use-inspection-mutations";
+import { useLeaseList } from "#hooks/api/use-lease";
+import { useCurrentUser } from "#hooks/use-current-user";
+import { cn } from "#lib/utils";
+import type { CreateInspectionInput } from "#lib/validation/inspections";
+import type { LeaseWithRelations } from "#types/relations";
 
 export function NewInspectionForm() {
-	const router = useRouter()
-	const { isLoading: isAuthLoading } = useCurrentUser()
-	const createInspection = useCreateInspection()
+	const router = useRouter();
+	const { isLoading: isAuthLoading } = useCurrentUser();
+	const createInspection = useCreateInspection();
 	const { data: leasesResponse, isLoading: loadingLeases } = useLeaseList({
-		status: 'active',
-		limit: 100
-	})
+		status: "active",
+		limit: 100,
+	});
 
-	const leases = (leasesResponse?.data ?? []) as LeaseWithRelations[]
+	const leases = (leasesResponse?.data ?? []) as LeaseWithRelations[];
 
-	const [leaseId, setLeaseId] = useState('')
-	const [inspectionType, setInspectionType] = useState<'move_in' | 'move_out'>('move_in')
-	const [scheduledDate, setScheduledDate] = useState('')
+	const [leaseId, setLeaseId] = useState("");
+	const [inspectionType, setInspectionType] = useState<"move_in" | "move_out">(
+		"move_in",
+	);
+	const [scheduledDate, setScheduledDate] = useState("");
 
-	const selectedLease = leases.find(l => l.id === leaseId)
+	const selectedLease = leases.find((l) => l.id === leaseId);
 
 	async function handleSubmit(e: React.FormEvent) {
-		e.preventDefault()
+		e.preventDefault();
 
-		if (!leaseId || !selectedLease) return
+		if (!leaseId || !selectedLease) return;
 
 		// Get property_id from the unit's property relationship
-		const propertyId = selectedLease.unit?.property?.id
-		if (!propertyId) return
+		const propertyId = selectedLease.unit?.property?.id;
+		if (!propertyId) return;
 
 		const dto: CreateInspectionInput = {
 			lease_id: leaseId,
 			property_id: propertyId,
 			unit_id: selectedLease.unit?.id ?? null,
 			inspection_type: inspectionType,
-			scheduled_date: scheduledDate || null
-		}
+			scheduled_date: scheduledDate || null,
+		};
 
-		const result = await createInspection.mutateAsync(dto)
-		const newId = (result as { id?: string }).id
+		const result = await createInspection.mutateAsync(dto);
+		const newId = (result as { id?: string }).id;
 		if (newId) {
-			router.push(`/inspections/${newId}`)
+			router.push(`/inspections/${newId}`);
 		}
 	}
 
 	function getLeaseLabel(lease: LeaseWithRelations): string {
-		const propertyName = lease.unit?.property?.name ?? 'Property'
-		const unitNumber = lease.unit?.unit_number
-		return unitNumber
-			? `${propertyName} — Unit ${unitNumber}`
-			: propertyName
+		const propertyName = lease.unit?.property?.name ?? "Property";
+		const unitNumber = lease.unit?.unit_number;
+		return unitNumber ? `${propertyName} — Unit ${unitNumber}` : propertyName;
 	}
 
 	return (
@@ -81,7 +81,7 @@ export function NewInspectionForm() {
 					<SelectTrigger id="lease" className="w-full">
 						<SelectValue
 							placeholder={
-								loadingLeases ? 'Loading leases...' : 'Select a lease'
+								loadingLeases ? "Loading leases..." : "Select a lease"
 							}
 						/>
 					</SelectTrigger>
@@ -91,7 +91,7 @@ export function NewInspectionForm() {
 								No active leases found
 							</SelectItem>
 						)}
-						{leases.map(lease => (
+						{leases.map((lease) => (
 							<SelectItem key={lease.id} value={lease.id}>
 								{getLeaseLabel(lease)}
 							</SelectItem>
@@ -105,7 +105,7 @@ export function NewInspectionForm() {
 				<Label htmlFor="inspection-type">Inspection type</Label>
 				<Select
 					value={inspectionType}
-					onValueChange={(v) => setInspectionType(v as 'move_in' | 'move_out')}
+					onValueChange={(v) => setInspectionType(v as "move_in" | "move_out")}
 				>
 					<SelectTrigger id="inspection-type" className="w-full">
 						<SelectValue />
@@ -124,7 +124,7 @@ export function NewInspectionForm() {
 					id="scheduled-date"
 					type="date"
 					value={scheduledDate}
-					onChange={e => setScheduledDate(e.target.value)}
+					onChange={(e) => setScheduledDate(e.target.value)}
 				/>
 			</div>
 
@@ -133,9 +133,9 @@ export function NewInspectionForm() {
 				<Button
 					type="submit"
 					disabled={!leaseId || createInspection.isPending || isAuthLoading}
-					className={cn('min-h-11', isAuthLoading && 'animate-pulse')}
+					className={cn("min-h-11", isAuthLoading && "animate-pulse")}
 				>
-					{createInspection.isPending ? 'Creating...' : 'Create Inspection'}
+					{createInspection.isPending ? "Creating..." : "Create Inspection"}
 				</Button>
 				<Button
 					type="button"
@@ -147,5 +147,5 @@ export function NewInspectionForm() {
 				</Button>
 			</div>
 		</form>
-	)
+	);
 }

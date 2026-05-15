@@ -1,46 +1,46 @@
-import { expect, test } from '@playwright/test'
+import { expect, test } from "@playwright/test";
 
-test.describe('TenantFlow Health Check', () => {
-	test('Frontend should be accessible', async ({ page }) => {
-		await page.goto('/')
+test.describe("TenantFlow Health Check", () => {
+	test("Frontend should be accessible", async ({ page }) => {
+		await page.goto("/");
 
 		// Check if page loads
-		await expect(page).toHaveTitle(/TenantFlow/)
+		await expect(page).toHaveTitle(/TenantFlow/);
 
 		// Check for main navigation
-		const nav = page.locator('nav')
-		await expect(nav).toBeVisible()
-	})
+		const nav = page.locator("nav");
+		await expect(nav).toBeVisible();
+	});
 
-	test('Supabase connection should work', async ({ page }) => {
+	test("Supabase connection should work", async ({ page }) => {
 		// Allow forcing this test to run in dev by setting E2E_FORCE_RUN=true
-		const forceRun = process.env.E2E_FORCE_RUN === 'true'
+		const forceRun = process.env.E2E_FORCE_RUN === "true";
 		test.skip(
 			!process.env.NEXT_PUBLIC_SUPABASE_URL && !forceRun,
-			'Supabase URL not configured for smoke test'
-		)
+			"Supabase URL not configured for smoke test",
+		);
 
 		// Test if Supabase connection works via frontend page
-		await page.goto('/')
+		await page.goto("/");
 
 		// Check if page loads without Supabase errors
-		const errors: string[] = []
-		page.on('console', msg => {
-			if (msg.type() === 'error') {
-				errors.push(msg.text())
+		const errors: string[] = [];
+		page.on("console", (msg) => {
+			if (msg.type() === "error") {
+				errors.push(msg.text());
 			}
-		})
+		});
 
 		// Wait for page to stabilize
-		await page.waitForTimeout(1000)
+		await page.waitForTimeout(1000);
 
 		// Verify no Supabase-related errors
 		const hasSupabaseError = errors.some(
-			err =>
-				err.toLowerCase().includes('supabase') ||
-				err.toLowerCase().includes('auth')
-		)
+			(err) =>
+				err.toLowerCase().includes("supabase") ||
+				err.toLowerCase().includes("auth"),
+		);
 
-		expect(hasSupabaseError).toBe(false)
-	})
-})
+		expect(hasSupabaseError).toBe(false);
+	});
+});

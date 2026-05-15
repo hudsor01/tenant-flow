@@ -1,25 +1,25 @@
-import { ArrowUpCircle, ArrowDownCircle } from 'lucide-react'
-import { BlurFade } from '#components/ui/blur-fade'
-import { formatCents } from '#lib/utils/currency'
+import { ArrowDownCircle, ArrowUpCircle } from "lucide-react";
+import { BlurFade } from "#components/ui/blur-fade";
+import { formatCents } from "#lib/utils/currency";
 
 interface FlowItem {
-	category: string
-	amount: number
-	percentage: number
+	category: string;
+	amount: number;
+	percentage: number;
 }
 
 interface CashFlowBreakdownProps {
-	inflowItems: FlowItem[]
-	outflowItems: FlowItem[]
-	totalInflows: number
-	totalOutflows: number
+	inflowItems: FlowItem[];
+	outflowItems: FlowItem[];
+	totalInflows: number;
+	totalOutflows: number;
 }
 
 export function CashFlowBreakdown({
 	inflowItems,
 	outflowItems,
 	totalInflows,
-	totalOutflows
+	totalOutflows,
 }: CashFlowBreakdownProps) {
 	return (
 		<BlurFade delay={0.35} inView>
@@ -31,7 +31,7 @@ export function CashFlowBreakdown({
 						Cash Inflows
 					</h3>
 					<div className="space-y-4">
-						{inflowItems.map(item => (
+						{inflowItems.map((item) => (
 							<div key={item.category}>
 								<div className="flex items-center justify-between mb-1">
 									<span className="text-sm text-foreground">
@@ -77,7 +77,7 @@ export function CashFlowBreakdown({
 						Cash Outflows
 					</h3>
 					<div className="space-y-4">
-						{outflowItems.map(item => (
+						{outflowItems.map((item) => (
 							<div key={item.category}>
 								<div className="flex items-center justify-between mb-1">
 									<span className="text-sm text-foreground">
@@ -117,5 +117,5 @@ export function CashFlowBreakdown({
 				</div>
 			</div>
 		</BlurFade>
-	)
+	);
 }

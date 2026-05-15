@@ -1,9 +1,9 @@
-import { Building2, Users, DollarSign, Home } from 'lucide-react'
-import { formatCurrency } from '#lib/utils/currency'
-import type { PropertiesSummary } from './types'
+import { Building2, DollarSign, Home, Users } from "lucide-react";
+import { formatCurrency } from "#lib/utils/currency";
+import type { PropertiesSummary } from "./types";
 
 interface PropertyStatsSectionProps {
-	summary: PropertiesSummary
+	summary: PropertiesSummary;
 }
 
 export function PropertyStatsSection({ summary }: PropertyStatsSectionProps) {
@@ -73,7 +73,9 @@ export function PropertyStatsSection({ summary }: PropertyStatsSectionProps) {
 							{summary.totalUnits > 0 && (
 								<p className="text-xs text-muted-foreground">
 									{formatCurrency(
-										Math.round(summary.totalMonthlyRevenue / summary.totalUnits)
+										Math.round(
+											summary.totalMonthlyRevenue / summary.totalUnits,
+										),
 									)}
 									/unit avg
 								</p>
@@ -86,5 +88,5 @@ export function PropertyStatsSection({ summary }: PropertyStatsSectionProps) {
 				</div>
 			</div>
 		</section>
-	)
+	);
 }

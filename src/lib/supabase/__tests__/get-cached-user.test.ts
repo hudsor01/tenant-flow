@@ -1,157 +1,151 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 // ── Hoisted mocks ──────────────────────────────────────────
 
 const { mockGetUser } = vi.hoisted(() => ({
 	mockGetUser: vi.fn(),
-}))
+}));
 
 const { mockCreateBrowserClient } = vi.hoisted(() => ({
 	mockCreateBrowserClient: vi.fn(() => ({
 		auth: { getUser: mockGetUser },
 	})),
-}))
+}));
 
 // ── Module mocks ───────────────────────────────────────────
 
-vi.mock('@supabase/ssr', () => ({
+vi.mock("@supabase/ssr", () => ({
 	createBrowserClient: mockCreateBrowserClient,
-}))
+}));
 
-vi.mock('#env', () => ({
+vi.mock("#env", () => ({
 	env: {
-		NEXT_PUBLIC_SUPABASE_URL: 'http://localhost:54321',
-		NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: 'mock-anon-key',
+		NEXT_PUBLIC_SUPABASE_URL: "http://localhost:54321",
+		NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: "mock-anon-key",
 	},
-}))
+}));
 
-import { getCachedUser, setQueryClientRef } from '../get-cached-user'
-import type { QueryClient } from '@tanstack/react-query'
+import type { QueryClient } from "@tanstack/react-query";
+import { getCachedUser, setQueryClientRef } from "../get-cached-user";
 
 // ── Tests ──────────────────────────────────────────────────
 
-describe('getCachedUser', () => {
+describe("getCachedUser", () => {
 	const mockUser = {
-		id: 'user-123',
-		email: 'test@example.com',
+		id: "user-123",
+		email: "test@example.com",
 		app_metadata: {},
 		user_metadata: {},
-		aud: 'authenticated',
-		created_at: '2024-01-01',
-	}
+		aud: "authenticated",
+		created_at: "2024-01-01",
+	};
 
 	beforeEach(() => {
-		vi.clearAllMocks()
+		vi.clearAllMocks();
 		// Reset the module-level queryClientRef by setting it to null
-		setQueryClientRef(null as unknown as QueryClient)
+		setQueryClientRef(null as unknown as QueryClient);
 
 		mockGetUser.mockResolvedValue({
 			data: { user: mockUser },
 			error: null,
-		})
-	})
+		});
+	});
 
-	it('returns user from supabase.auth.getUser() when no QueryClient is set', async () => {
-		const user = await getCachedUser()
+	it("returns user from supabase.auth.getUser() when no QueryClient is set", async () => {
+		const user = await getCachedUser();
 
-		expect(user).toEqual(mockUser)
-		expect(mockGetUser).toHaveBeenCalledOnce()
-	})
+		expect(user).toEqual(mockUser);
+		expect(mockGetUser).toHaveBeenCalledOnce();
+	});
 
-	it('uses getUser() and not getSession() for server-validated auth', async () => {
-		await getCachedUser()
+	it("uses getUser() and not getSession() for server-validated auth", async () => {
+		await getCachedUser();
 
 		// Verify getUser was called (security requirement per CLAUDE.md)
-		expect(mockGetUser).toHaveBeenCalledOnce()
-	})
+		expect(mockGetUser).toHaveBeenCalledOnce();
+	});
 
-	it('returns null when getUser() returns no user', async () => {
+	it("returns null when getUser() returns no user", async () => {
 		mockGetUser.mockResolvedValue({
 			data: { user: null },
 			error: null,
-		})
+		});
 
-		const user = await getCachedUser()
+		const user = await getCachedUser();
 
-		expect(user).toBeNull()
-	})
+		expect(user).toBeNull();
+	});
 
-	it('returns null when getUser() returns an error', async () => {
+	it("returns null when getUser() returns an error", async () => {
 		mockGetUser.mockResolvedValue({
 			data: { user: null },
-			error: { message: 'invalid session' },
-		})
+			error: { message: "invalid session" },
+		});
 
-		const user = await getCachedUser()
+		const user = await getCachedUser();
 
-		expect(user).toBeNull()
-	})
+		expect(user).toBeNull();
+	});
 
-	it('returns cached user from QueryClient when available', async () => {
+	it("returns cached user from QueryClient when available", async () => {
 		const mockQueryClient = {
 			getQueryData: vi.fn().mockReturnValue(mockUser),
-		} as unknown as QueryClient
+		} as unknown as QueryClient;
 
-		setQueryClientRef(mockQueryClient)
+		setQueryClientRef(mockQueryClient);
 
-		const user = await getCachedUser()
+		const user = await getCachedUser();
 
-		expect(user).toEqual(mockUser)
-		expect(mockQueryClient.getQueryData).toHaveBeenCalledWith([
-			'auth',
-			'user',
-		])
+		expect(user).toEqual(mockUser);
+		expect(mockQueryClient.getQueryData).toHaveBeenCalledWith(["auth", "user"]);
 		// Should NOT call supabase.auth.getUser() when cache hit
-		expect(mockGetUser).not.toHaveBeenCalled()
-	})
+		expect(mockGetUser).not.toHaveBeenCalled();
+	});
 
-	it('falls back to getUser() when QueryClient cache returns null', async () => {
+	it("falls back to getUser() when QueryClient cache returns null", async () => {
 		const mockQueryClient = {
 			getQueryData: vi.fn().mockReturnValue(null),
-		} as unknown as QueryClient
+		} as unknown as QueryClient;
 
-		setQueryClientRef(mockQueryClient)
+		setQueryClientRef(mockQueryClient);
 
-		const user = await getCachedUser()
+		const user = await getCachedUser();
 
-		expect(user).toEqual(mockUser)
-		expect(mockQueryClient.getQueryData).toHaveBeenCalledWith([
-			'auth',
-			'user',
-		])
-		expect(mockGetUser).toHaveBeenCalledOnce()
-	})
+		expect(user).toEqual(mockUser);
+		expect(mockQueryClient.getQueryData).toHaveBeenCalledWith(["auth", "user"]);
+		expect(mockGetUser).toHaveBeenCalledOnce();
+	});
 
-	it('falls back to getUser() when QueryClient cache returns undefined', async () => {
+	it("falls back to getUser() when QueryClient cache returns undefined", async () => {
 		const mockQueryClient = {
 			getQueryData: vi.fn().mockReturnValue(undefined),
-		} as unknown as QueryClient
+		} as unknown as QueryClient;
 
-		setQueryClientRef(mockQueryClient)
+		setQueryClientRef(mockQueryClient);
 
-		const user = await getCachedUser()
+		const user = await getCachedUser();
 
-		expect(user).toEqual(mockUser)
-		expect(mockGetUser).toHaveBeenCalledOnce()
-	})
-})
+		expect(user).toEqual(mockUser);
+		expect(mockGetUser).toHaveBeenCalledOnce();
+	});
+});
 
-describe('setQueryClientRef', () => {
-	it('sets the QueryClient reference used by getCachedUser', async () => {
+describe("setQueryClientRef", () => {
+	it("sets the QueryClient reference used by getCachedUser", async () => {
 		const mockQueryClient = {
 			getQueryData: vi.fn().mockReturnValue({
-				id: 'cached-user',
-				email: 'cached@example.com',
+				id: "cached-user",
+				email: "cached@example.com",
 			}),
-		} as unknown as QueryClient
+		} as unknown as QueryClient;
 
-		setQueryClientRef(mockQueryClient)
+		setQueryClientRef(mockQueryClient);
 
-		const user = await getCachedUser()
+		const user = await getCachedUser();
 
 		expect(user).toEqual({
-			id: 'cached-user',
-			email: 'cached@example.com',
-		})
-	})
-})
+			id: "cached-user",
+			email: "cached@example.com",
+		});
+	});
+});

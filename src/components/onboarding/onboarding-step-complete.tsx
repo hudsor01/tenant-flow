@@ -1,16 +1,18 @@
-'use client'
+"use client";
 
-import { CheckCircle2 } from 'lucide-react'
-import { Button } from '#components/ui/button'
+import { CheckCircle2 } from "lucide-react";
+import { Button } from "#components/ui/button";
 
 interface OnboardingStepCompleteProps {
-	onDone: () => void
+	onDone: () => void;
 }
 
 /**
  * Complete step - celebration screen shown when onboarding wizard finishes
  */
-export function OnboardingStepComplete({ onDone }: OnboardingStepCompleteProps) {
+export function OnboardingStepComplete({
+	onDone,
+}: OnboardingStepCompleteProps) {
 	return (
 		<div className="flex flex-col items-center text-center gap-6 py-4">
 			<div className="flex items-center justify-center w-16 h-16 rounded-full bg-success/10">
@@ -33,5 +35,5 @@ export function OnboardingStepComplete({ onDone }: OnboardingStepCompleteProps) 
 				Go to Dashboard
 			</Button>
 		</div>
-	)
+	);
 }

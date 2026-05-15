@@ -8,11 +8,11 @@
  */
 
 export interface Testimonial {
-	quote: string
-	author: string
-	title: string
-	company: string
-	avatar?: string
-	metric?: string
-	metricLabel?: string
+	quote: string;
+	author: string;
+	title: string;
+	company: string;
+	avatar?: string;
+	metric?: string;
+	metricLabel?: string;
 }

@@ -1,4 +1,4 @@
-'use client'
+"use client";
 
 /**
  * Dashboard Filters Compact Variant
@@ -7,25 +7,25 @@
  * Renders a condensed dropdown-based UI for date range selection and export.
  */
 
-import { Calendar, Download, FileText, ChevronDown } from 'lucide-react'
-import { Button } from '#components/ui/button'
+import { Calendar, ChevronDown, Download, FileText } from "lucide-react";
+import { Button } from "#components/ui/button";
 import {
 	DropdownMenu,
 	DropdownMenuContent,
 	DropdownMenuItem,
-	DropdownMenuTrigger
-} from '#components/ui/dropdown-menu'
-import type { DateRangePreset } from './dashboard-filters-utils'
-import { getPresetLabel } from './dashboard-filters-utils'
+	DropdownMenuTrigger,
+} from "#components/ui/dropdown-menu";
+import type { DateRangePreset } from "./dashboard-filters-utils";
+import { getPresetLabel } from "./dashboard-filters-utils";
 
 interface DashboardFiltersCompactProps {
-	activePreset: DateRangePreset
-	disabled: boolean
-	hasExportData: boolean
-	isExporting: 'csv' | 'pdf' | null
-	onPresetChange: (preset: DateRangePreset) => void
-	onExportCSV: () => void
-	onExportPDF: () => void
+	activePreset: DateRangePreset;
+	disabled: boolean;
+	hasExportData: boolean;
+	isExporting: "csv" | "pdf" | null;
+	onPresetChange: (preset: DateRangePreset) => void;
+	onExportCSV: () => void;
+	onExportPDF: () => void;
 }
 
 /**
@@ -39,7 +39,7 @@ export function DashboardFiltersCompact({
 	isExporting,
 	onPresetChange,
 	onExportCSV,
-	onExportPDF
+	onExportPDF,
 }: DashboardFiltersCompactProps) {
 	return (
 		<div className="flex items-center gap-2">
@@ -60,19 +60,19 @@ export function DashboardFiltersCompact({
 					</Button>
 				</DropdownMenuTrigger>
 				<DropdownMenuContent align="end">
-					<DropdownMenuItem onClick={() => onPresetChange('7d')}>
+					<DropdownMenuItem onClick={() => onPresetChange("7d")}>
 						Last 7 days
 					</DropdownMenuItem>
-					<DropdownMenuItem onClick={() => onPresetChange('30d')}>
+					<DropdownMenuItem onClick={() => onPresetChange("30d")}>
 						Last 30 days
 					</DropdownMenuItem>
-					<DropdownMenuItem onClick={() => onPresetChange('90d')}>
+					<DropdownMenuItem onClick={() => onPresetChange("90d")}>
 						Last 90 days
 					</DropdownMenuItem>
-					<DropdownMenuItem onClick={() => onPresetChange('6m')}>
+					<DropdownMenuItem onClick={() => onPresetChange("6m")}>
 						Last 6 months
 					</DropdownMenuItem>
-					<DropdownMenuItem onClick={() => onPresetChange('1y')}>
+					<DropdownMenuItem onClick={() => onPresetChange("1y")}>
 						Last year
 					</DropdownMenuItem>
 				</DropdownMenuContent>
@@ -94,14 +94,14 @@ export function DashboardFiltersCompact({
 				<DropdownMenuContent align="end">
 					<DropdownMenuItem
 						onClick={onExportCSV}
-						disabled={isExporting === 'csv'}
+						disabled={isExporting === "csv"}
 					>
 						<FileText className="h-4 w-4 mr-2" aria-hidden="true" />
 						Export CSV
 					</DropdownMenuItem>
 					<DropdownMenuItem
 						onClick={onExportPDF}
-						disabled={isExporting === 'pdf'}
+						disabled={isExporting === "pdf"}
 					>
 						<FileText className="h-4 w-4 mr-2" aria-hidden="true" />
 						Export PDF
@@ -109,5 +109,5 @@ export function DashboardFiltersCompact({
 				</DropdownMenuContent>
 			</DropdownMenu>
 		</div>
-	)
+	);
 }

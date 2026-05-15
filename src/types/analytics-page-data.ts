@@ -10,39 +10,39 @@ import type {
 	LeaseLifecyclePoint,
 	MaintenanceAnalyticsPageResponse,
 	OccupancyAnalyticsPageResponse,
-	PropertyPerformancePageResponse
-} from './analytics'
+	PropertyPerformancePageResponse,
+} from "./analytics";
 
 export interface ResponseTimeEntry {
-	category: string
-	averageHours: number
-	minHours: number
-	maxHours: number
-	count: number
+	category: string;
+	averageHours: number;
+	minHours: number;
+	maxHours: number;
+	count: number;
 }
 
 export interface PreventiveMaintenanceEntry {
-	type: string
-	scheduledCount: number
-	completedCount: number
-	complianceRate: number
+	type: string;
+	scheduledCount: number;
+	completedCount: number;
+	complianceRate: number;
 }
 
 export interface OccupancyPropertyPerformance {
-	property_id: string
-	propertyName: string
-	occupancyRate: number
-	revenue: number
-	expenses: number
-	netIncome: number
-	maintenanceScore: number
+	property_id: string;
+	propertyName: string;
+	occupancyRate: number;
+	revenue: number;
+	expenses: number;
+	netIncome: number;
+	maintenanceScore: number;
 }
 
 export interface SeasonalPatternEntry {
-	month: string
-	occupancyRate: number
-	turnoverRate: number
-	avgRentChange: number
+	month: string;
+	occupancyRate: number;
+	turnoverRate: number;
+	avgRentChange: number;
 }
 
 /**
@@ -50,20 +50,20 @@ export interface SeasonalPatternEntry {
  * Aggregates all financial analytics data for the financial analytics page
  */
 export interface FinancialAnalyticsPageData {
-	metrics: FinancialAnalyticsPageResponse['metrics']
-	breakdown: FinancialAnalyticsPageResponse['breakdown']
-	netOperatingIncome: FinancialAnalyticsPageResponse['netOperatingIncome']
-	billingInsights: FinancialAnalyticsPageResponse['billingInsights']
-	invoiceSummary: FinancialAnalyticsPageResponse['invoiceSummary']
-	monthlyMetrics: FinancialAnalyticsPageResponse['monthlyMetrics']
-	leaseAnalytics: FinancialAnalyticsPageResponse['leaseAnalytics']
+	metrics: FinancialAnalyticsPageResponse["metrics"];
+	breakdown: FinancialAnalyticsPageResponse["breakdown"];
+	netOperatingIncome: FinancialAnalyticsPageResponse["netOperatingIncome"];
+	billingInsights: FinancialAnalyticsPageResponse["billingInsights"];
+	invoiceSummary: FinancialAnalyticsPageResponse["invoiceSummary"];
+	monthlyMetrics: FinancialAnalyticsPageResponse["monthlyMetrics"];
+	leaseAnalytics: FinancialAnalyticsPageResponse["leaseAnalytics"];
 }
 
 export interface VacancyTrendPoint {
-	period: string
-	vacancyRate: number
-	turnovers: number
-	avgVacancyDays: number
+	period: string;
+	vacancyRate: number;
+	turnovers: number;
+	avgVacancyDays: number;
 }
 
 /**
@@ -71,20 +71,20 @@ export interface VacancyTrendPoint {
  * Aggregates all lease analytics data for the lease analytics page
  */
 export interface LeaseAnalyticsPageData {
-	metrics: LeaseAnalyticsPageResponse['metrics']
-	profitability: LeaseAnalyticsPageResponse['profitability']
-	renewalRates: LeaseLifecyclePoint[]
-	vacancyTrends: VacancyTrendPoint[]
-	leaseDistribution: LeaseAnalyticsPageResponse['statusBreakdown']
+	metrics: LeaseAnalyticsPageResponse["metrics"];
+	profitability: LeaseAnalyticsPageResponse["profitability"];
+	renewalRates: LeaseLifecyclePoint[];
+	vacancyTrends: VacancyTrendPoint[];
+	leaseDistribution: LeaseAnalyticsPageResponse["statusBreakdown"];
 	// Aliases for page compatibility
-	lifecycle: LeaseLifecyclePoint[]
-	statusBreakdown: LeaseAnalyticsPageResponse['statusBreakdown']
+	lifecycle: LeaseLifecyclePoint[];
+	statusBreakdown: LeaseAnalyticsPageResponse["statusBreakdown"];
 }
 
 export interface MaintenanceCostEntry {
-	category: string
-	amount: number
-	percentage: number
+	category: string;
+	amount: number;
+	percentage: number;
 }
 
 /**
@@ -92,13 +92,13 @@ export interface MaintenanceCostEntry {
  * Aggregates all maintenance analytics data for the maintenance insights page
  */
 export interface MaintenanceInsightsPageData {
-	metrics: MaintenanceAnalyticsPageResponse['metrics']
-	categoryBreakdown: MaintenanceAnalyticsPageResponse['categoryBreakdown']
-	costTrends: MaintenanceAnalyticsPageResponse['trends']
-	costBreakdown: MaintenanceCostEntry[]
-	trends: MaintenanceAnalyticsPageResponse['trends']
-	responseTimes: ResponseTimeEntry[]
-	preventiveMaintenance: PreventiveMaintenanceEntry[]
+	metrics: MaintenanceAnalyticsPageResponse["metrics"];
+	categoryBreakdown: MaintenanceAnalyticsPageResponse["categoryBreakdown"];
+	costTrends: MaintenanceAnalyticsPageResponse["trends"];
+	costBreakdown: MaintenanceCostEntry[];
+	trends: MaintenanceAnalyticsPageResponse["trends"];
+	responseTimes: ResponseTimeEntry[];
+	preventiveMaintenance: PreventiveMaintenanceEntry[];
 }
 
 /**
@@ -106,48 +106,48 @@ export interface MaintenanceInsightsPageData {
  * Aggregates all occupancy analytics data for the occupancy analytics page
  */
 export interface OccupancyAnalyticsPageData {
-	metrics: OccupancyAnalyticsPageResponse['metrics']
-	trends: OccupancyAnalyticsPageResponse['trends']
-	propertyPerformance: OccupancyPropertyPerformance[]
-	seasonalPatterns: SeasonalPatternEntry[]
-	vacancyAnalysis: OccupancyAnalyticsPageResponse['vacancyAnalysis']
+	metrics: OccupancyAnalyticsPageResponse["metrics"];
+	trends: OccupancyAnalyticsPageResponse["trends"];
+	propertyPerformance: OccupancyPropertyPerformance[];
+	seasonalPatterns: SeasonalPatternEntry[];
+	vacancyAnalysis: OccupancyAnalyticsPageResponse["vacancyAnalysis"];
 }
 
 export interface FinancialOverviewSummary {
-	totalRevenue: number
-	totalExpenses: number
-	netIncome: number
-	revenueChange: number
-	expenseChange: number
-	avgRoi: number
+	totalRevenue: number;
+	totalExpenses: number;
+	netIncome: number;
+	revenueChange: number;
+	expenseChange: number;
+	avgRoi: number;
 }
 
 export interface MaintenanceOverviewSummary {
-	openRequests: number
-	avgResponseTime: number
-	completedThisMonth: number
-	costThisMonth: number
+	openRequests: number;
+	avgResponseTime: number;
+	completedThisMonth: number;
+	costThisMonth: number;
 }
 
 export interface OccupancyOverviewSummary {
-	currentRate: number
-	vacantUnits: number
-	upcomingLeaseEnds: number
-	rateChange: number
+	currentRate: number;
+	vacantUnits: number;
+	upcomingLeaseEnds: number;
+	rateChange: number;
 }
 
 export interface LeaseOverviewSummary {
-	activeLeases: number
-	expiringIn30Days: number
-	renewalRate: number
-	avgLeaseLength: number
+	activeLeases: number;
+	expiringIn30Days: number;
+	renewalRate: number;
+	avgLeaseLength: number;
 }
 
 export interface VisitorOverviewSummary {
-	totalVisitors: number
-	pageViews: number
-	avgSessionDuration: number
-	bounceRate: number
+	totalVisitors: number;
+	pageViews: number;
+	avgSessionDuration: number;
+	bounceRate: number;
 }
 
 /**
@@ -155,64 +155,64 @@ export interface VisitorOverviewSummary {
  * Aggregates summary data for the analytics overview page
  */
 export interface AnalyticsPageData {
-	financial: FinancialOverviewSummary
-	maintenance: MaintenanceOverviewSummary
-	occupancy: OccupancyOverviewSummary
-	lease: LeaseOverviewSummary
-	visitor: VisitorOverviewSummary
+	financial: FinancialOverviewSummary;
+	maintenance: MaintenanceOverviewSummary;
+	occupancy: OccupancyOverviewSummary;
+	lease: LeaseOverviewSummary;
+	visitor: VisitorOverviewSummary;
 }
 
 export interface PropertyMetricsSummary {
-	totalProperties: number
-	totalUnits: number
-	occupiedUnits: number
-	avgOccupancyRate: number
-	averageOccupancy: number
-	totalMonthlyRevenue: number
-	totalRevenue: number
-	bestPerformer: string | null
+	totalProperties: number;
+	totalUnits: number;
+	occupiedUnits: number;
+	avgOccupancyRate: number;
+	averageOccupancy: number;
+	totalMonthlyRevenue: number;
+	totalRevenue: number;
+	bestPerformer: string | null;
 }
 
 export interface UnitStatsSummary {
-	totalUnits: number
-	occupiedUnits: number
-	vacantUnits: number
-	avgRent: number
+	totalUnits: number;
+	occupiedUnits: number;
+	vacantUnits: number;
+	avgRent: number;
 }
 
 export interface PropertyPerformanceDetail {
-	property_id: string
-	propertyName: string
-	units: number
-	totalUnits: number
-	occupiedUnits: number
-	vacantUnits: number
-	occupancyRate: number
-	monthlyRevenue: number
-	annualRevenue: number
-	maintenanceScore: number
+	property_id: string;
+	propertyName: string;
+	units: number;
+	totalUnits: number;
+	occupiedUnits: number;
+	vacantUnits: number;
+	occupancyRate: number;
+	monthlyRevenue: number;
+	annualRevenue: number;
+	maintenanceScore: number;
 }
 
 export interface LeasesPageUnitDetail {
-	unit_id: string
-	unit_number: string
-	unitNumber: string
-	property_id: string
-	propertyName: string
-	status: string
-	monthlyRent: number
-	rent: number | null
-	bedrooms: number | null
-	bathrooms: number | null
-	tenant_id: string | null
-	tenantName: string | null
+	unit_id: string;
+	unit_number: string;
+	unitNumber: string;
+	property_id: string;
+	propertyName: string;
+	status: string;
+	monthlyRent: number;
+	rent: number | null;
+	bedrooms: number | null;
+	bathrooms: number | null;
+	tenant_id: string | null;
+	tenantName: string | null;
 }
 
 export interface PropertyRevenueTrend {
-	period: string
-	revenue: number
-	expenses: number
-	netIncome: number
+	period: string;
+	revenue: number;
+	expenses: number;
+	netIncome: number;
 }
 
 /**
@@ -220,44 +220,45 @@ export interface PropertyRevenueTrend {
  * Aggregates all property performance analytics data
  * Extends PropertyPerformancePageResponse with additional local types
  */
-export interface PropertyPerformancePageData extends PropertyPerformancePageResponse {
+export interface PropertyPerformancePageData
+	extends PropertyPerformancePageResponse {
 	// Additional fields for analytics-page-data compatibility
-	revenueTrends: PropertyRevenueTrend[]
+	revenueTrends: PropertyRevenueTrend[];
 }
 
 export interface LeasesPageLeaseItem {
-	id: string
-	tenant_id: string
-	primary_tenant_id: string | null
-	tenantName: string
-	property_id: string
-	propertyName: string
-	unit_id: string
-	unitNumber: string
-	startDate: string
-	endDate: string
-	monthlyRent: number
-	status: string
+	id: string;
+	tenant_id: string;
+	primary_tenant_id: string | null;
+	tenantName: string;
+	property_id: string;
+	propertyName: string;
+	unit_id: string;
+	unitNumber: string;
+	startDate: string;
+	endDate: string;
+	monthlyRent: number;
+	status: string;
 }
 
 export interface LeasesPageTenantItem {
-	id: string
-	fullName: string
-	email: string
-	phone: string | null
+	id: string;
+	fullName: string;
+	email: string;
+	phone: string | null;
 }
 
 export interface LeasesPagePropertyItem {
-	id: string
-	name: string
-	address: string
+	id: string;
+	name: string;
+	address: string;
 }
 
 export interface LeaseMetricsSummary {
-	totalLeases: number
-	activeLeases: number
-	expiringLeases: number
-	avgMonthlyRent: number
+	totalLeases: number;
+	activeLeases: number;
+	expiringLeases: number;
+	avgMonthlyRent: number;
 }
 
 /**
@@ -265,8 +266,8 @@ export interface LeaseMetricsSummary {
  * Aggregates all lease data for the leases page
  */
 export interface LeasesPageData {
-	leases: LeasesPageLeaseItem[]
-	tenants: LeasesPageTenantItem[]
-	properties: LeasesPagePropertyItem[]
-	metrics: LeaseMetricsSummary
+	leases: LeasesPageLeaseItem[];
+	tenants: LeasesPageTenantItem[];
+	properties: LeasesPagePropertyItem[];
+	metrics: LeaseMetricsSummary;
 }

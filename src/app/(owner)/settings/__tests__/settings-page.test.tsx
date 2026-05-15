@@ -3,118 +3,117 @@
  * Task Group 11: Settings Implementation
  */
 
-import type { ChangeEvent, ReactElement } from 'react'
-
-import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { render, screen, waitFor } from '@testing-library/react'
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import userEvent from '@testing-library/user-event'
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { render, screen, waitFor } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
+import type { ChangeEvent, ReactElement } from "react";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 // Mock next/navigation
-vi.mock('next/navigation', () => ({
+vi.mock("next/navigation", () => ({
 	useSearchParams: () => ({
-		get: vi.fn().mockReturnValue(null)
+		get: vi.fn().mockReturnValue(null),
 	}),
 	useRouter: () => ({
 		push: vi.fn(),
-		replace: vi.fn()
-	})
-}))
+		replace: vi.fn(),
+	}),
+}));
 
 // Mock Supabase client
-vi.mock('#lib/supabase/client', () => ({
+vi.mock("#lib/supabase/client", () => ({
 	createClient: () => ({
 		auth: {
 			getUser: vi.fn().mockResolvedValue({
-				data: { user: { id: 'user-123', email: 'owner@example.com' } },
-				error: null
+				data: { user: { id: "user-123", email: "owner@example.com" } },
+				error: null,
 			}),
 			updateUser: vi.fn().mockResolvedValue({ error: null }),
-			signInWithPassword: vi.fn().mockResolvedValue({ error: null })
+			signInWithPassword: vi.fn().mockResolvedValue({ error: null }),
 		},
 		from: vi.fn().mockReturnValue({
 			select: vi.fn().mockReturnValue({
 				eq: vi.fn().mockReturnValue({
 					single: vi.fn().mockResolvedValue({
 						data: {
-							first_name: 'Test',
-							last_name: 'Owner',
-							email: 'owner@example.com',
-							phone: '555-1234'
+							first_name: "Test",
+							last_name: "Owner",
+							email: "owner@example.com",
+							phone: "555-1234",
 						},
-						error: null
+						error: null,
 					}),
 					maybeSingle: vi.fn().mockResolvedValue({
 						data: {
-							business_name: 'Test Business',
-							business_type: 'individual'
+							business_name: "Test Business",
+							business_type: "individual",
 						},
-						error: null
+						error: null,
 					}),
 					order: vi.fn().mockReturnValue({
 						data: [],
-						error: null
-					})
+						error: null,
+					}),
 				}),
 				order: vi.fn().mockResolvedValue({
 					data: [],
-					error: null
-				})
-			})
-		})
-	})
-}))
+					error: null,
+				}),
+			}),
+		}),
+	}),
+}));
 
 // Mock preferences store
-vi.mock('#providers/preferences-provider', () => ({
-	usePreferencesStore: vi.fn(selector => {
+vi.mock("#providers/preferences-provider", () => ({
+	usePreferencesStore: vi.fn((selector) => {
 		const state = {
-			themeMode: 'system' as const,
-			setThemeMode: vi.fn()
-		}
-		return selector(state)
+			themeMode: "system" as const,
+			setThemeMode: vi.fn(),
+		};
+		return selector(state);
 	}),
 	useDataDensity: () => ({
-		dataDensity: 'comfortable' as const,
-		setDataDensity: vi.fn()
-	})
-}))
+		dataDensity: "comfortable" as const,
+		setDataDensity: vi.fn(),
+	}),
+}));
 
 // Mock billing hooks (subscription status and billing history). The
 // stripePriceId here must match a real Stripe price in PRICING_PLANS so
 // BillingSettings can resolve the plan card from #config/pricing — point at
 // Growth (price_1TVTaIP3WCR53SdoqnUe1Inv).
-vi.mock('#hooks/api/use-billing', () => ({
+vi.mock("#hooks/api/use-billing", () => ({
 	useSubscriptionStatus: () => ({
 		data: {
-			subscriptionStatus: 'active',
-			stripePriceId: 'price_1TVTaIP3WCR53SdoqnUe1Inv',
-			currentPeriodEnd: '2026-06-01T00:00:00.000Z',
-			stripeCustomerId: 'cus_test',
+			subscriptionStatus: "active",
+			stripePriceId: "price_1TVTaIP3WCR53SdoqnUe1Inv",
+			currentPeriodEnd: "2026-06-01T00:00:00.000Z",
+			stripeCustomerId: "cus_test",
 			cancelAtPeriodEnd: false,
-			trialEndsAt: null
+			trialEndsAt: null,
 		},
-		isLoading: false
+		isLoading: false,
 	}),
 	useBillingHistory: () => ({
 		data: [
 			{
-				id: 'inv_123',
-				created_at: '2024-01-15',
+				id: "inv_123",
+				created_at: "2024-01-15",
 				amount: 4900,
-				status: 'succeeded'
-			}
+				status: "succeeded",
+			},
 		],
-		isLoading: false
+		isLoading: false,
 	}),
 	useBillingPortalMutation: () => ({
 		mutate: vi.fn(),
-		isPending: false
-	})
-}))
+		isPending: false,
+	}),
+}));
 
 // Mock notification settings hooks
-vi.mock('#hooks/api/use-owner-notification-settings', () => ({
+vi.mock("#hooks/api/use-owner-notification-settings", () => ({
 	useOwnerNotificationSettings: () => ({
 		data: {
 			email: true,
@@ -124,80 +123,82 @@ vi.mock('#hooks/api/use-owner-notification-settings', () => ({
 			categories: {
 				maintenance: true,
 				leases: true,
-				general: true
-			}
+				general: true,
+			},
 		},
-		isLoading: false
+		isLoading: false,
 	}),
 	useUpdateOwnerNotificationSettingsMutation: () => ({
 		mutate: vi.fn(),
-		isPending: false
-	})
-}))
+		isPending: false,
+	}),
+}));
 
 // Mock sessions hook
-vi.mock('#hooks/api/use-sessions', () => ({
+vi.mock("#hooks/api/use-sessions", () => ({
 	useUserSessions: () => ({
 		data: [
 			{
-				id: 'session-1',
-				browser: 'Chrome',
-				os: 'macOS',
-				device: 'desktop',
+				id: "session-1",
+				browser: "Chrome",
+				os: "macOS",
+				device: "desktop",
 				is_current: true,
-				updated_at: '2024-01-15T10:00:00Z'
+				updated_at: "2024-01-15T10:00:00Z",
 			},
 			{
-				id: 'session-2',
-				browser: 'Safari',
-				os: 'iOS',
-				device: 'mobile',
+				id: "session-2",
+				browser: "Safari",
+				os: "iOS",
+				device: "mobile",
 				is_current: false,
-				updated_at: '2024-01-14T15:30:00Z'
-			}
+				updated_at: "2024-01-14T15:30:00Z",
+			},
 		],
-		isLoading: false
+		isLoading: false,
 	}),
 	useRevokeSessionMutation: () => ({
 		mutate: vi.fn(),
-		isPending: false
-	})
-}))
+		isPending: false,
+	}),
+}));
 
 // Mock MFA hooks
-vi.mock('#hooks/api/use-mfa', () => ({
+vi.mock("#hooks/api/use-mfa", () => ({
 	useMfaStatus: () => ({
 		data: { isMfaEnabled: false },
-		isLoading: false
+		isLoading: false,
 	}),
 	useMfaFactors: () => ({
 		data: [],
-		isLoading: false
-	})
-}))
+		isLoading: false,
+	}),
+}));
 
 // Mock 2FA dialogs
-vi.mock('#components/auth/two-factor-setup-dialog', () => ({
+vi.mock("#components/auth/two-factor-setup-dialog", () => ({
 	TwoFactorSetupDialog: ({ open }: { open: boolean }) =>
 		open ? <div data-testid="2fa-setup-dialog">2FA Setup Dialog</div> : null,
 	DisableTwoFactorDialog: ({ open }: { open: boolean }) =>
-		open ? <div data-testid="2fa-disable-dialog">2FA Disable Dialog</div> : null
-}))
+		open ? (
+			<div data-testid="2fa-disable-dialog">2FA Disable Dialog</div>
+		) : null,
+}));
 
 // Mock password strength component
-vi.mock('#components/auth/password-strength', () => ({
+vi.mock("#components/auth/password-strength", () => ({
 	PasswordStrength: ({
 		id,
 		placeholder,
 		value,
 		onChange,
-		disabled
+		disabled,
 	}: {
-		id: string
-		placeholder: string
-		value: string
-		onChange: (e: ChangeEvent<HTMLInputElement>) => void
-		disabled: boolean
+		id: string;
+		placeholder: string;
+		value: string;
+		onChange: (e: ChangeEvent<HTMLInputElement>) => void;
+		disabled: boolean;
 	}) => (
 		<input
 			id={id}
@@ -207,351 +208,357 @@ vi.mock('#components/auth/password-strength', () => ({
 			disabled={disabled}
 			data-testid="password-strength"
 		/>
-	)
-}))
-
+	),
+}));
 
 // Mock fetch for stripe-billing-portal Edge Function calls
-vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
-	ok: true,
-	json: () => Promise.resolve({ url: 'https://billing.stripe.com/session' })
-}))
+vi.stubGlobal(
+	"fetch",
+	vi.fn().mockResolvedValue({
+		ok: true,
+		json: () => Promise.resolve({ url: "https://billing.stripe.com/session" }),
+	}),
+);
 
 // Mock formatCurrency
-vi.mock('#lib/utils/currency', () => ({
-	formatCurrency: (amount: number) => `$${amount.toFixed(2)}`
-}))
+vi.mock("#lib/utils/currency", () => ({
+	formatCurrency: (amount: number) => `$${amount.toFixed(2)}`,
+}));
 
 function createTestQueryClient() {
 	return new QueryClient({
 		defaultOptions: {
 			queries: { retry: false, gcTime: 0 },
-			mutations: { retry: false }
-		}
-	})
+			mutations: { retry: false },
+		},
+	});
 }
 
 function renderWithProviders(component: ReactElement) {
-	const queryClient = createTestQueryClient()
+	const queryClient = createTestQueryClient();
 
 	return render(
-		<QueryClientProvider client={queryClient}>{component}</QueryClientProvider>
-	)
+		<QueryClientProvider client={queryClient}>{component}</QueryClientProvider>,
+	);
 }
 
-describe('Settings Page', () => {
+describe("Settings Page", () => {
 	beforeEach(() => {
-		vi.clearAllMocks()
-	})
+		vi.clearAllMocks();
+	});
 
-	it('renders settings page with navigation tabs', async () => {
-		const SettingsPage = (await import('../page')).default
+	it("renders settings page with navigation tabs", async () => {
+		const SettingsPage = (await import("../page")).default;
 
-		renderWithProviders(<SettingsPage />)
+		renderWithProviders(<SettingsPage />);
 
 		// Check page title
 		expect(
-			screen.getByRole('heading', { name: 'Settings' })
-		).toBeInTheDocument()
+			screen.getByRole("heading", { name: "Settings" }),
+		).toBeInTheDocument();
 
 		// Check navigation tabs exist
-		expect(screen.getByRole('button', { name: /General/i })).toBeInTheDocument()
 		expect(
-			screen.getByRole('button', { name: /Notifications/i })
-		).toBeInTheDocument()
+			screen.getByRole("button", { name: /General/i }),
+		).toBeInTheDocument();
 		expect(
-			screen.getByRole('button', { name: /Security/i })
-		).toBeInTheDocument()
-		expect(screen.getByRole('button', { name: /Billing/i })).toBeInTheDocument()
-	})
+			screen.getByRole("button", { name: /Notifications/i }),
+		).toBeInTheDocument();
+		expect(
+			screen.getByRole("button", { name: /Security/i }),
+		).toBeInTheDocument();
+		expect(
+			screen.getByRole("button", { name: /Billing/i }),
+		).toBeInTheDocument();
+	});
 
-	it('displays General tab content by default', async () => {
-		const SettingsPage = (await import('../page')).default
+	it("displays General tab content by default", async () => {
+		const SettingsPage = (await import("../page")).default;
 
-		renderWithProviders(<SettingsPage />)
+		renderWithProviders(<SettingsPage />);
 
 		// Check for General settings header
 		await waitFor(() => {
 			expect(
-				screen.getByRole('heading', { name: 'General Settings' })
-			).toBeInTheDocument()
-		})
+				screen.getByRole("heading", { name: "General Settings" }),
+			).toBeInTheDocument();
+		});
 
 		// Check for Contact Info section (Business Profile section removed with Stripe Connect)
-		expect(screen.getByText('Contact Info')).toBeInTheDocument()
-		expect(screen.getByLabelText('Contact Email')).toBeInTheDocument()
-		expect(screen.getByLabelText('Phone Number')).toBeInTheDocument()
+		expect(screen.getByText("Contact Info")).toBeInTheDocument();
+		expect(screen.getByLabelText("Contact Email")).toBeInTheDocument();
+		expect(screen.getByLabelText("Phone Number")).toBeInTheDocument();
 
 		// Check for Preferences section
-		expect(screen.getByText('Preferences')).toBeInTheDocument()
-		expect(screen.getByText('Theme')).toBeInTheDocument()
-		expect(screen.getByText('Data Density')).toBeInTheDocument()
-		expect(screen.getByText('Timezone')).toBeInTheDocument()
-		expect(screen.getByText('Language')).toBeInTheDocument()
-	})
+		expect(screen.getByText("Preferences")).toBeInTheDocument();
+		expect(screen.getByText("Theme")).toBeInTheDocument();
+		expect(screen.getByText("Data Density")).toBeInTheDocument();
+		expect(screen.getByText("Timezone")).toBeInTheDocument();
+		expect(screen.getByText("Language")).toBeInTheDocument();
+	});
 
-	it('switches to Notifications tab when clicked', async () => {
-		const SettingsPage = (await import('../page')).default
-		const user = userEvent.setup()
+	it("switches to Notifications tab when clicked", async () => {
+		const SettingsPage = (await import("../page")).default;
+		const user = userEvent.setup();
 
-		renderWithProviders(<SettingsPage />)
+		renderWithProviders(<SettingsPage />);
 
 		// Click on Notifications tab
-		const notificationsTab = screen.getByRole('button', {
-			name: /Notifications/i
-		})
-		await user.click(notificationsTab)
+		const notificationsTab = screen.getByRole("button", {
+			name: /Notifications/i,
+		});
+		await user.click(notificationsTab);
 
 		// Check for Notification Settings content
 		await waitFor(() => {
 			expect(
-				screen.getByRole('heading', { name: 'Notification Settings' })
-			).toBeInTheDocument()
-		})
+				screen.getByRole("heading", { name: "Notification Settings" }),
+			).toBeInTheDocument();
+		});
 
 		// Check for notification channels
-		expect(screen.getByText('Email Notifications')).toBeInTheDocument()
-		expect(screen.getByText('SMS Notifications')).toBeInTheDocument()
-		expect(screen.getByText('Push Notifications')).toBeInTheDocument()
-		expect(screen.getByText('In-App Notifications')).toBeInTheDocument()
+		expect(screen.getByText("Email Notifications")).toBeInTheDocument();
+		expect(screen.getByText("SMS Notifications")).toBeInTheDocument();
+		expect(screen.getByText("Push Notifications")).toBeInTheDocument();
+		expect(screen.getByText("In-App Notifications")).toBeInTheDocument();
 
 		// Check for notification categories
-		expect(screen.getByText('Notification Categories')).toBeInTheDocument()
-		expect(screen.getByText('Maintenance Requests')).toBeInTheDocument()
-		expect(screen.getByText('Lease Updates')).toBeInTheDocument()
-		expect(screen.getByText('General Notifications')).toBeInTheDocument()
-	})
+		expect(screen.getByText("Notification Categories")).toBeInTheDocument();
+		expect(screen.getByText("Maintenance Requests")).toBeInTheDocument();
+		expect(screen.getByText("Lease Updates")).toBeInTheDocument();
+		expect(screen.getByText("General Notifications")).toBeInTheDocument();
+	});
 
-	it('switches to Security tab when clicked', async () => {
-		const SettingsPage = (await import('../page')).default
-		const user = userEvent.setup()
+	it("switches to Security tab when clicked", async () => {
+		const SettingsPage = (await import("../page")).default;
+		const user = userEvent.setup();
 
-		renderWithProviders(<SettingsPage />)
+		renderWithProviders(<SettingsPage />);
 
 		// Click on Security tab
-		const securityTab = screen.getByRole('button', { name: /Security/i })
-		await user.click(securityTab)
+		const securityTab = screen.getByRole("button", { name: /Security/i });
+		await user.click(securityTab);
 
 		// Check for Security Settings content
 		await waitFor(() => {
 			expect(
-				screen.getByRole('heading', { name: 'Security Settings' })
-			).toBeInTheDocument()
-		})
+				screen.getByRole("heading", { name: "Security Settings" }),
+			).toBeInTheDocument();
+		});
 
 		// Check for Password section
-		expect(screen.getByText('Password')).toBeInTheDocument()
-		expect(screen.getByLabelText('Current Password')).toBeInTheDocument()
-		expect(screen.getByLabelText('New Password')).toBeInTheDocument()
-		expect(screen.getByLabelText('Confirm New Password')).toBeInTheDocument()
+		expect(screen.getByText("Password")).toBeInTheDocument();
+		expect(screen.getByLabelText("Current Password")).toBeInTheDocument();
+		expect(screen.getByLabelText("New Password")).toBeInTheDocument();
+		expect(screen.getByLabelText("Confirm New Password")).toBeInTheDocument();
 
 		// Check for 2FA section
-		expect(screen.getByText('Two-Factor Authentication')).toBeInTheDocument()
-		expect(screen.getByText('2FA is Not Enabled')).toBeInTheDocument()
-		expect(screen.getByRole('button', { name: /Enable/i })).toBeInTheDocument()
+		expect(screen.getByText("Two-Factor Authentication")).toBeInTheDocument();
+		expect(screen.getByText("2FA is Not Enabled")).toBeInTheDocument();
+		expect(screen.getByRole("button", { name: /Enable/i })).toBeInTheDocument();
 
 		// Check for Active Sessions section
-		expect(screen.getByText('Active Sessions')).toBeInTheDocument()
-	})
+		expect(screen.getByText("Active Sessions")).toBeInTheDocument();
+	});
 
-	it('switches to Billing tab when clicked', async () => {
-		const SettingsPage = (await import('../page')).default
-		const user = userEvent.setup()
+	it("switches to Billing tab when clicked", async () => {
+		const SettingsPage = (await import("../page")).default;
+		const user = userEvent.setup();
 
-		renderWithProviders(<SettingsPage />)
+		renderWithProviders(<SettingsPage />);
 
 		// Click on Billing tab
-		const billingTab = screen.getByRole('button', { name: /Billing/i })
-		await user.click(billingTab)
+		const billingTab = screen.getByRole("button", { name: /Billing/i });
+		await user.click(billingTab);
 
 		// Check for Billing Settings content
 		await waitFor(() => {
 			expect(
-				screen.getByRole('heading', { name: 'Billing & Subscription' })
-			).toBeInTheDocument()
-		})
+				screen.getByRole("heading", { name: "Billing & Subscription" }),
+			).toBeInTheDocument();
+		});
 
 		// Check for Current Plan section
-		expect(screen.getByText('Current Plan')).toBeInTheDocument()
-		expect(screen.getByText('Growth')).toBeInTheDocument()
-		expect(screen.getByText('Active')).toBeInTheDocument()
+		expect(screen.getByText("Current Plan")).toBeInTheDocument();
+		expect(screen.getByText("Growth")).toBeInTheDocument();
+		expect(screen.getByText("Active")).toBeInTheDocument();
 
 		// Check for Billing History section
-		expect(screen.getByText('Billing History')).toBeInTheDocument()
+		expect(screen.getByText("Billing History")).toBeInTheDocument();
 
 		// Check for Danger Zone
-		expect(screen.getByText('Danger Zone')).toBeInTheDocument()
-	})
+		expect(screen.getByText("Danger Zone")).toBeInTheDocument();
+	});
 
-	it('displays active sessions with current session badge', async () => {
-		const SettingsPage = (await import('../page')).default
-		const user = userEvent.setup()
+	it("displays active sessions with current session badge", async () => {
+		const SettingsPage = (await import("../page")).default;
+		const user = userEvent.setup();
 
-		renderWithProviders(<SettingsPage />)
+		renderWithProviders(<SettingsPage />);
 
 		// Navigate to Security tab
-		const securityTab = screen.getByRole('button', { name: /Security/i })
-		await user.click(securityTab)
+		const securityTab = screen.getByRole("button", { name: /Security/i });
+		await user.click(securityTab);
 
 		await waitFor(() => {
-			expect(screen.getByText('Active Sessions')).toBeInTheDocument()
-		})
+			expect(screen.getByText("Active Sessions")).toBeInTheDocument();
+		});
 
 		// Check for current session
-		expect(screen.getByText(/Chrome on macOS/)).toBeInTheDocument()
-		expect(screen.getByText('Current')).toBeInTheDocument()
+		expect(screen.getByText(/Chrome on macOS/)).toBeInTheDocument();
+		expect(screen.getByText("Current")).toBeInTheDocument();
 
 		// Check for other session
-		expect(screen.getByText(/Safari on iOS/)).toBeInTheDocument()
-	})
+		expect(screen.getByText(/Safari on iOS/)).toBeInTheDocument();
+	});
 
-	it('opens 2FA setup dialog when Enable button is clicked', async () => {
-		const SettingsPage = (await import('../page')).default
-		const user = userEvent.setup()
+	it("opens 2FA setup dialog when Enable button is clicked", async () => {
+		const SettingsPage = (await import("../page")).default;
+		const user = userEvent.setup();
 
-		renderWithProviders(<SettingsPage />)
+		renderWithProviders(<SettingsPage />);
 
 		// Navigate to Security tab
-		const securityTab = screen.getByRole('button', { name: /Security/i })
-		await user.click(securityTab)
+		const securityTab = screen.getByRole("button", { name: /Security/i });
+		await user.click(securityTab);
 
 		await waitFor(() => {
-			expect(screen.getByText('Two-Factor Authentication')).toBeInTheDocument()
-		})
+			expect(screen.getByText("Two-Factor Authentication")).toBeInTheDocument();
+		});
 
 		// Click Enable 2FA button
-		const enableButton = screen.getByRole('button', { name: /Enable/i })
-		await user.click(enableButton)
+		const enableButton = screen.getByRole("button", { name: /Enable/i });
+		await user.click(enableButton);
 
 		// Check that dialog is shown
 		await waitFor(() => {
-			expect(screen.getByTestId('2fa-setup-dialog')).toBeInTheDocument()
-		})
-	})
+			expect(screen.getByTestId("2fa-setup-dialog")).toBeInTheDocument();
+		});
+	});
 
-	it('shows password match validation feedback', async () => {
-		const SettingsPage = (await import('../page')).default
-		const user = userEvent.setup()
+	it("shows password match validation feedback", async () => {
+		const SettingsPage = (await import("../page")).default;
+		const user = userEvent.setup();
 
-		renderWithProviders(<SettingsPage />)
+		renderWithProviders(<SettingsPage />);
 
 		// Navigate to Security tab
-		const securityTab = screen.getByRole('button', { name: /Security/i })
-		await user.click(securityTab)
+		const securityTab = screen.getByRole("button", { name: /Security/i });
+		await user.click(securityTab);
 
 		await waitFor(() => {
-			expect(screen.getByLabelText('Confirm New Password')).toBeInTheDocument()
-		})
+			expect(screen.getByLabelText("Confirm New Password")).toBeInTheDocument();
+		});
 
 		// Type in passwords
-		const newPasswordInput = screen.getByTestId('password-strength')
-		const confirmPasswordInput = screen.getByLabelText('Confirm New Password')
+		const newPasswordInput = screen.getByTestId("password-strength");
+		const confirmPasswordInput = screen.getByLabelText("Confirm New Password");
 
-		await user.type(newPasswordInput, 'Password123!')
-		await user.type(confirmPasswordInput, 'Different456!')
+		await user.type(newPasswordInput, "Password123!");
+		await user.type(confirmPasswordInput, "Different456!");
 
 		// Check for mismatch message
 		await waitFor(() => {
-			expect(screen.getByText('Passwords do not match')).toBeInTheDocument()
-		})
-	})
+			expect(screen.getByText("Passwords do not match")).toBeInTheDocument();
+		});
+	});
 
-	it('displays subscription information in Billing tab', async () => {
-		const SettingsPage = (await import('../page')).default
-		const user = userEvent.setup()
+	it("displays subscription information in Billing tab", async () => {
+		const SettingsPage = (await import("../page")).default;
+		const user = userEvent.setup();
 
-		renderWithProviders(<SettingsPage />)
+		renderWithProviders(<SettingsPage />);
 
 		// Navigate to Billing tab
-		const billingTab = screen.getByRole('button', { name: /Billing/i })
-		await user.click(billingTab)
+		const billingTab = screen.getByRole("button", { name: /Billing/i });
+		await user.click(billingTab);
 
 		await waitFor(() => {
-			expect(screen.getByText('Growth')).toBeInTheDocument()
-		})
+			expect(screen.getByText("Growth")).toBeInTheDocument();
+		});
 
 		// Check subscription details (Growth plan: $49/mo, up to 100 units)
-		expect(screen.getByText('$49')).toBeInTheDocument()
-		expect(screen.getByText('/month')).toBeInTheDocument()
-		expect(screen.getByText(/Up to 100 units/)).toBeInTheDocument()
-	})
+		expect(screen.getByText("$49")).toBeInTheDocument();
+		expect(screen.getByText("/month")).toBeInTheDocument();
+		expect(screen.getByText(/Up to 100 units/)).toBeInTheDocument();
+	});
 
-	it('has proper touch targets for mobile responsiveness', async () => {
-		const SettingsPage = (await import('../page')).default
+	it("has proper touch targets for mobile responsiveness", async () => {
+		const SettingsPage = (await import("../page")).default;
 
-		renderWithProviders(<SettingsPage />)
+		renderWithProviders(<SettingsPage />);
 
 		// Check that navigation buttons have min-h-11 (44px touch targets)
 		const navButtons = screen
-			.getAllByRole('button')
-			.filter(button =>
-				['General', 'Notifications', 'Security', 'Billing'].some(label =>
-					button.textContent?.includes(label)
-				)
-			)
+			.getAllByRole("button")
+			.filter((button) =>
+				["General", "Notifications", "Security", "Billing"].some((label) =>
+					button.textContent?.includes(label),
+				),
+			);
 
-		navButtons.forEach(button => {
-			expect(button.className).toContain('min-h-11')
-		})
-	})
+		navButtons.forEach((button) => {
+			expect(button.className).toContain("min-h-11");
+		});
+	});
 
-	it('uses semantic color tokens for status badges', async () => {
-		const SettingsPage = (await import('../page')).default
-		const user = userEvent.setup()
+	it("uses semantic color tokens for status badges", async () => {
+		const SettingsPage = (await import("../page")).default;
+		const user = userEvent.setup();
 
-		renderWithProviders(<SettingsPage />)
+		renderWithProviders(<SettingsPage />);
 
 		// Navigate to Billing tab
-		const billingTab = screen.getByRole('button', { name: /Billing/i })
-		await user.click(billingTab)
+		const billingTab = screen.getByRole("button", { name: /Billing/i });
+		await user.click(billingTab);
 
 		await waitFor(() => {
-			const activeBadge = screen.getByText('Active')
+			const activeBadge = screen.getByText("Active");
 			// Check that the badge uses emerald color scheme for success state
-			expect(activeBadge.className).toContain('bg-emerald')
-		})
-	})
-})
+			expect(activeBadge.className).toContain("bg-emerald");
+		});
+	});
+});
 
-describe('Settings Page - Light/Dark Mode', () => {
-	it('respects theme preference from preferences store', async () => {
-		const SettingsPage = (await import('../page')).default
+describe("Settings Page - Light/Dark Mode", () => {
+	it("respects theme preference from preferences store", async () => {
+		const SettingsPage = (await import("../page")).default;
 
-		renderWithProviders(<SettingsPage />)
+		renderWithProviders(<SettingsPage />);
 
 		await waitFor(() => {
 			// The theme select should show the current preference
-			expect(screen.getByText('Theme')).toBeInTheDocument()
-		})
+			expect(screen.getByText("Theme")).toBeInTheDocument();
+		});
 
 		// There should be at least one combobox (Select) in the settings
-		const comboboxes = screen.getAllByRole('combobox')
-		expect(comboboxes.length).toBeGreaterThan(0)
-	})
-})
+		const comboboxes = screen.getAllByRole("combobox");
+		expect(comboboxes.length).toBeGreaterThan(0);
+	});
+});
 
-describe('Settings Page - Mobile Responsiveness', () => {
-	it('navigation tabs stack horizontally on mobile', async () => {
-		const SettingsPage = (await import('../page')).default
+describe("Settings Page - Mobile Responsiveness", () => {
+	it("navigation tabs stack horizontally on mobile", async () => {
+		const SettingsPage = (await import("../page")).default;
 
-		renderWithProviders(<SettingsPage />)
+		renderWithProviders(<SettingsPage />);
 
 		// Check that the nav container uses flex with overflow for mobile
-		const nav = screen.getByRole('navigation')
-		expect(nav).toBeInTheDocument()
+		const nav = screen.getByRole("navigation");
+		expect(nav).toBeInTheDocument();
 
 		// Check the nav has proper classes for mobile horizontal scroll
-		const navContainer = nav.querySelector('.flex')
-		expect(navContainer).toBeInTheDocument()
-	})
+		const navContainer = nav.querySelector(".flex");
+		expect(navContainer).toBeInTheDocument();
+	});
 
-	it('page has proper padding for different screen sizes', async () => {
-		const SettingsPage = (await import('../page')).default
+	it("page has proper padding for different screen sizes", async () => {
+		const SettingsPage = (await import("../page")).default;
 
-		const { container } = renderWithProviders(<SettingsPage />)
+		const { container } = renderWithProviders(<SettingsPage />);
 
 		// Check that the main container uses spacing utilities
-		const mainContainer = container.querySelector('.space-y-6')
-		expect(mainContainer).toBeInTheDocument()
-	})
-})
+		const mainContainer = container.querySelector(".space-y-6");
+		expect(mainContainer).toBeInTheDocument();
+	});
+});

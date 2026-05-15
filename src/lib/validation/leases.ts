@@ -11,94 +11,94 @@
  * Zod 4 throws "Unrecognized key" errors for non-existent keys.
  */
 
-import { z } from 'zod'
+import { z } from "zod";
+import { VALIDATION_LIMITS } from "#lib/constants/billing";
 import {
-	uuidSchema,
-	requiredString,
+	nonNegativeNumberSchema,
 	positiveNumberSchema,
-	nonNegativeNumberSchema
-} from './common'
-import { VALIDATION_LIMITS } from '#lib/constants/billing'
+	requiredString,
+	uuidSchema,
+} from "./common";
 
 // Lease status enum validation
 // Workflow: draft -> pending_signature -> active -> ended/terminated
 export const lease_statusSchema = z.enum([
-	'draft', // Owner creating/editing terms
-	'pending_signature', // Sent to tenant for signing
-	'active', // Both parties signed, billing active
-	'ended', // Natural end of lease term
-	'terminated' // Early termination
-])
+	"draft", // Owner creating/editing terms
+	"pending_signature", // Sent to tenant for signing
+	"active", // Both parties signed, billing active
+	"ended", // Natural end of lease term
+	"terminated", // Early termination
+]);
 
 // Lease payment day validation (1-31 for day of month)
 export const paymentDaySchema = z
 	.number()
-	.int('Payment day must be a whole number')
-	.min(1, 'Payment day must be between 1 and 31')
-	.max(31, 'Payment day must be between 1 and 31')
+	.int("Payment day must be a whole number")
+	.min(1, "Payment day must be between 1 and 31")
+	.max(31, "Payment day must be between 1 and 31");
 
 // Base lease input schema (matches database exactly)
 export const leaseInputSchema = z.object({
 	unit_id: uuidSchema,
 	primary_tenant_id: uuidSchema,
 
-	start_date: z.string().min(1, 'Start date is required'),
-	end_date: z.string().min(1, 'End date is required'),
+	start_date: z.string().min(1, "Start date is required"),
+	end_date: z.string().min(1, "End date is required"),
 
 	rent_amount: positiveNumberSchema.max(
 		VALIDATION_LIMITS.RENT_MAXIMUM_VALUE,
-		'Rent amount seems unrealistic'
+		"Rent amount seems unrealistic",
 	),
 
 	rent_currency: z
 		.string()
-		.min(3, 'Currency code must be 3 characters')
-		.max(3, 'Currency code must be 3 characters')
-		.default('USD'),
+		.min(3, "Currency code must be 3 characters")
+		.max(3, "Currency code must be 3 characters")
+		.default("USD"),
 
 	security_deposit: nonNegativeNumberSchema.max(
 		VALIDATION_LIMITS.RENT_MAXIMUM_VALUE,
-		'Security deposit seems unrealistic'
+		"Security deposit seems unrealistic",
 	),
 
 	payment_day: paymentDaySchema,
 
 	grace_period_days: z
 		.number()
-		.int('Grace period must be a whole number')
-		.min(0, 'Grace period cannot be negative')
-		.max(30, 'Grace period cannot exceed 30 days')
+		.int("Grace period must be a whole number")
+		.min(0, "Grace period cannot be negative")
+		.max(30, "Grace period cannot exceed 30 days")
 		.optional(),
 
 	late_fee_amount: nonNegativeNumberSchema
 		.max(
 			VALIDATION_LIMITS.RENT_MAXIMUM_VALUE,
-			'Late fee amount seems unrealistic'
+			"Late fee amount seems unrealistic",
 		)
 		.optional(),
 
 	late_fee_days: z
 		.number()
-		.int('Late fee days must be a whole number')
-		.min(0, 'Late fee days cannot be negative')
-		.max(30, 'Late fee days cannot exceed 30 days')
+		.int("Late fee days must be a whole number")
+		.min(0, "Late fee days cannot be negative")
+		.max(30, "Late fee days cannot exceed 30 days")
 		.optional(),
 
-	lease_status: lease_statusSchema.default('draft')
-})
+	lease_status: lease_statusSchema.default("draft"),
+});
 
 // Full lease schema (includes server-generated fields)
 export const leaseSchema = leaseInputSchema.extend({
 	id: uuidSchema,
 	created_at: z.string(),
-	updated_at: z.string()
-})
+	updated_at: z.string(),
+});
 
 // Lease update schema (partial input)
 export const leaseUpdateSchema = leaseInputSchema.partial().extend({
 	id: uuidSchema.optional(),
-	lease_status: lease_statusSchema.optional()
-})
+	lease_status: lease_statusSchema.optional(),
+});
 
 // Lease query schema (for search/filtering)
 export const leaseQuerySchema = z.object({
@@ -115,85 +115,85 @@ export const leaseQuerySchema = z.object({
 	has_auto_pay: z.boolean().optional(),
 	sort_by: z
 		.enum([
-			'start_date',
-			'end_date',
-			'rent_amount',
-			'created_at',
-			'lease_status'
+			"start_date",
+			"end_date",
+			"rent_amount",
+			"created_at",
+			"lease_status",
 		])
 		.optional(),
-	sort_order: z.enum(['asc', 'desc']).optional().default('asc'),
+	sort_order: z.enum(["asc", "desc"]).optional().default("asc"),
 	page: z.coerce.number().int().positive().default(1),
 	limit: z.coerce
 		.number()
 		.int()
 		.positive()
 		.max(VALIDATION_LIMITS.API_QUERY_MAX_LIMIT)
-		.default(20)
-})
+		.default(20),
+});
 
 // Lease creation schema (for API requests)
 // New leases start in 'draft' status until sent for signature
 // Note: Only omit fields that exist in leaseInputSchema (Zod 4 throws for non-existent keys)
 export const leaseCreateSchema = leaseInputSchema
 	.omit({
-		lease_status: true
+		lease_status: true,
 	})
 	.extend({
-		tenant_ids: z.array(uuidSchema).min(1, 'At least one tenant is required'),
-		lease_status: lease_statusSchema.default('draft')
-	})
+		tenant_ids: z.array(uuidSchema).min(1, "At least one tenant is required"),
+		lease_status: lease_statusSchema.default("draft"),
+	});
 
 // Lease termination schema
 export const leaseTerminationSchema = z.object({
-	termination_date: z.string().min(1, 'Termination date is required'),
+	termination_date: z.string().min(1, "Termination date is required"),
 	termination_reason: z
 		.string()
-		.min(1, 'Termination reason is required')
-		.max(500, 'Termination reason cannot exceed 500 characters'),
+		.min(1, "Termination reason is required")
+		.max(500, "Termination reason cannot exceed 500 characters"),
 	final_inspection_date: z.string().optional(),
 	final_inspection_notes: z
 		.string()
-		.max(2000, 'Inspection notes cannot exceed 2000 characters')
+		.max(2000, "Inspection notes cannot exceed 2000 characters")
 		.optional(),
-	outstanding_amount: nonNegativeNumberSchema.default(0)
-})
+	outstanding_amount: nonNegativeNumberSchema.default(0),
+});
 
 // Lease renewal schema
 export const leaseRenewalSchema = z.object({
-	new_end_date: z.string().min(1, 'New end date is required'),
+	new_end_date: z.string().min(1, "New end date is required"),
 	new_rent_amount: positiveNumberSchema.max(
 		VALIDATION_LIMITS.RENT_MAXIMUM_VALUE,
-		'New rent amount seems unrealistic'
+		"New rent amount seems unrealistic",
 	),
 	renewal_notes: z
 		.string()
-		.max(2000, 'Renewal notes cannot exceed 2000 characters')
-		.optional()
-})
+		.max(2000, "Renewal notes cannot exceed 2000 characters")
+		.optional(),
+});
 
 // Lease payment schedule schema
 export const leasePaymentScheduleSchema = z.object({
-	frequency: z.enum(['monthly', 'quarterly', 'annually']),
-	next_payment_date: z.string().min(1, 'Next payment date is required'),
-	is_active: z.boolean().default(true)
-})
+	frequency: z.enum(["monthly", "quarterly", "annually"]),
+	next_payment_date: z.string().min(1, "Next payment date is required"),
+	is_active: z.boolean().default(true),
+});
 
 // Schema for sending lease for signature
 export const sendForSignatureSchema = z.object({
 	lease_id: uuidSchema,
 	message: z
 		.string()
-		.max(1000, 'Message cannot exceed 1000 characters')
-		.optional()
-})
+		.max(1000, "Message cannot exceed 1000 characters")
+		.optional(),
+});
 
 // Schema for signing a lease
 export const signLeaseSchema = z.object({
 	lease_id: uuidSchema,
 	signature_ip: z.string().optional(), // Captured server-side
-	agreed_to_terms: z.literal(true, 'You must agree to the lease terms')
-})
+	agreed_to_terms: z.literal(true, "You must agree to the lease terms"),
+});
 
 // Schema for lease with signature info (response)
 export const leaseWithSignatureSchema = leaseInputSchema.extend({
@@ -205,23 +205,23 @@ export const leaseWithSignatureSchema = leaseInputSchema.extend({
 	tenant_signed_at: z.string().nullable().optional(),
 	tenant_signature_ip: z.string().nullable().optional(),
 	sent_for_signature_at: z.string().nullable().optional(),
-	docuseal_submission_id: z.string().nullable().optional()
-})
+	docuseal_submission_id: z.string().nullable().optional(),
+});
 
 // Export types
-export type SendForSignature = z.infer<typeof sendForSignatureSchema>
-export type SignLease = z.infer<typeof signLeaseSchema>
-export type LeaseWithSignature = z.infer<typeof leaseWithSignatureSchema>
+export type SendForSignature = z.infer<typeof sendForSignatureSchema>;
+export type SignLease = z.infer<typeof signLeaseSchema>;
+export type LeaseWithSignature = z.infer<typeof leaseWithSignatureSchema>;
 
 // Export types
-export type LeaseInput = z.infer<typeof leaseInputSchema>
-export type Lease = z.infer<typeof leaseSchema>
-export type LeaseUpdate = z.infer<typeof leaseUpdateSchema>
-export type LeaseQuery = z.infer<typeof leaseQuerySchema>
-export type LeaseCreate = z.infer<typeof leaseCreateSchema>
-export type LeaseTermination = z.infer<typeof leaseTerminationSchema>
-export type LeaseRenewal = z.infer<typeof leaseRenewalSchema>
-export type LeasePaymentSchedule = z.infer<typeof leasePaymentScheduleSchema>
+export type LeaseInput = z.infer<typeof leaseInputSchema>;
+export type Lease = z.infer<typeof leaseSchema>;
+export type LeaseUpdate = z.infer<typeof leaseUpdateSchema>;
+export type LeaseQuery = z.infer<typeof leaseQuerySchema>;
+export type LeaseCreate = z.infer<typeof leaseCreateSchema>;
+export type LeaseTermination = z.infer<typeof leaseTerminationSchema>;
+export type LeaseRenewal = z.infer<typeof leaseRenewalSchema>;
+export type LeasePaymentSchedule = z.infer<typeof leasePaymentScheduleSchema>;
 
 // Frontend-specific form schemas
 export const leaseFormSchema = z.object({
@@ -229,17 +229,17 @@ export const leaseFormSchema = z.object({
 	primary_tenant_id: requiredString,
 	start_date: requiredString,
 	end_date: requiredString,
-	rent_amount: z.string().min(1, 'Rent amount is required'),
+	rent_amount: z.string().min(1, "Rent amount is required"),
 	security_deposit: z.string().optional(),
-	payment_day: z.string().min(1, 'Payment day is required'),
+	payment_day: z.string().min(1, "Payment day is required"),
 	grace_period_days: z.string().optional(),
 	late_fee_amount: z.string().optional(),
-	late_fee_days: z.string().optional()
-})
+	late_fee_days: z.string().optional(),
+});
 
 export const leaseCreateFormSchema = leaseFormSchema.extend({
-	tenant_ids: z.array(uuidSchema).min(1, 'At least one tenant is required')
-})
+	tenant_ids: z.array(uuidSchema).min(1, "At least one tenant is required"),
+});
 
 // Transform functions for form data
 export const transformLeaseFormData = (data: LeaseFormData) => ({
@@ -260,16 +260,19 @@ export const transformLeaseFormData = (data: LeaseFormData) => ({
 		: undefined,
 	late_fee_days: data.late_fee_days
 		? parseInt(data.late_fee_days, 10)
-		: undefined
-})
+		: undefined,
+});
 
-export type LeaseFormData = z.infer<typeof leaseFormSchema>
-export type LeaseCreateFormData = z.infer<typeof leaseCreateFormSchema>
-export type TransformedLeaseData = ReturnType<typeof transformLeaseFormData>
+export type LeaseFormData = z.infer<typeof leaseFormSchema>;
+export type LeaseCreateFormData = z.infer<typeof leaseCreateFormSchema>;
+export type TransformedLeaseData = ReturnType<typeof transformLeaseFormData>;
 
 // Schema for rejecting/declining a lease signature request
 export const rejectLeaseSchema = z.object({
-	message: z.string().max(1000, 'Rejection message cannot exceed 1000 characters').optional()
-})
+	message: z
+		.string()
+		.max(1000, "Rejection message cannot exceed 1000 characters")
+		.optional(),
+});
 
-export type RejectLease = z.infer<typeof rejectLeaseSchema>
+export type RejectLease = z.infer<typeof rejectLeaseSchema>;

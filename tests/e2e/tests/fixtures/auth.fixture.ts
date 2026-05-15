@@ -1,8 +1,8 @@
-import { test as base, type Page } from '@playwright/test'
-import path from 'path'
-import { fileURLToPath } from 'url'
+import { test as base, type Page } from "@playwright/test";
+import path from "path";
+import { fileURLToPath } from "url";
 
-const __dirname = path.dirname(fileURLToPath(import.meta.url))
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 /**
  * Worker-scoped authentication fixture for parallel test execution
@@ -26,8 +26,8 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
 // Worker-scoped fixtures for parallel test isolation
 export type AuthFixtures = {
-	authenticatedPage: Page
-}
+	authenticatedPage: Page;
+};
 
 export const test = base.extend<object, AuthFixtures>({
 	authenticatedPage: [
@@ -35,26 +35,29 @@ export const test = base.extend<object, AuthFixtures>({
 			// Get worker-specific auth file
 			// In multi-worker scenarios, each worker could use a different account
 			// For now, all workers use the same owner account
-			const authFile = path.join(__dirname, '../../playwright/.auth/owner.json')
+			const authFile = path.join(
+				__dirname,
+				"../../playwright/.auth/owner.json",
+			);
 
 			// Create isolated browser context with auth state
 			const context = await browser.newContext({
-				storageState: authFile
-			})
+				storageState: authFile,
+			});
 
 			// Create page in authenticated context
-			const page = await context.newPage()
+			const page = await context.newPage();
 
 			// Provide page to test
-			await use(page)
+			await use(page);
 
 			// Cleanup: Close page and context after test
-			await page.close()
-			await context.close()
+			await page.close();
+			await context.close();
 		},
-		{ scope: 'worker' }
-	]
-})
+		{ scope: "worker" },
+	],
+});
 
 /**
  * Alternative fixture for multiple role support

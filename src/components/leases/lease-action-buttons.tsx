@@ -1,6 +1,11 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
+import { Eye, MoreVertical, PenLine, RotateCcw, Trash2, X } from "lucide-react";
+import { useState } from "react";
+import { toast } from "sonner";
+import { RenewLeaseDialog } from "#components/leases/dialogs/renew-lease-dialog";
+import { TerminateLeaseDialog } from "#components/leases/dialogs/terminate-lease-dialog";
+import { SendForSignatureButton } from "#components/leases/send-for-signature-button";
 import {
 	AlertDialog,
 	AlertDialogAction,
@@ -9,97 +14,86 @@ import {
 	AlertDialogDescription,
 	AlertDialogFooter,
 	AlertDialogHeader,
-	AlertDialogTitle
-} from '#components/ui/alert-dialog'
-import { Badge } from '#components/ui/badge'
-import { Button } from '#components/ui/button'
+	AlertDialogTitle,
+} from "#components/ui/alert-dialog";
+import { Badge } from "#components/ui/badge";
+import { Button } from "#components/ui/button";
+import {
+	Dialog,
+	DialogBody,
+	DialogContent,
+	DialogDescription,
+	DialogHeader,
+	DialogTitle,
+} from "#components/ui/dialog";
 import {
 	DropdownMenu,
 	DropdownMenuContent,
 	DropdownMenuItem,
 	DropdownMenuSeparator,
-	DropdownMenuTrigger
-} from '#components/ui/dropdown-menu'
-import {
-	Dialog,
-	DialogContent,
-	DialogHeader,
-	DialogTitle,
-	DialogDescription,
-	DialogBody
-} from '#components/ui/dialog'
-import type { Lease } from '#types/core'
-import { Input } from '#components/ui/input'
-import { Label } from '#components/ui/label'
-import { RenewLeaseDialog } from '#components/leases/dialogs/renew-lease-dialog'
-import { TerminateLeaseDialog } from '#components/leases/dialogs/terminate-lease-dialog'
-import { SendForSignatureButton } from '#components/leases/send-for-signature-button'
-import {
-	Eye,
-	MoreVertical,
-	PenLine,
-	RotateCcw,
-	Trash2,
-	X
-} from 'lucide-react'
-import { useDeleteLeaseOptimisticMutation } from '#hooks/api/use-lease-mutations'
-import { useSignLeaseAsOwnerMutation } from '#hooks/api/use-lease-signature-mutations'
-import { handleMutationError } from '#lib/mutation-error-handler'
-import { toast } from 'sonner'
+	DropdownMenuTrigger,
+} from "#components/ui/dropdown-menu";
+import { Input } from "#components/ui/input";
+import { Label } from "#components/ui/label";
+import { useDeleteLeaseOptimisticMutation } from "#hooks/api/use-lease-mutations";
+import { useSignLeaseAsOwnerMutation } from "#hooks/api/use-lease-signature-mutations";
+import { handleMutationError } from "#lib/mutation-error-handler";
+import type { Lease } from "#types/core";
 
 interface LeaseActionButtonsProps {
-	lease: Lease
+	lease: Lease;
 }
 
 export function LeaseActionButtons({ lease }: LeaseActionButtonsProps) {
-	const signAsOwner = useSignLeaseAsOwnerMutation()
-	const [showDeleteDialog, setShowDeleteDialog] = useState(false)
-	const [showViewDialog, setShowViewDialog] = useState(false)
-	const [showRenewDialog, setShowRenewDialog] = useState(false)
-	const [showTerminateDialog, setShowTerminateDialog] = useState(false)
+	const signAsOwner = useSignLeaseAsOwnerMutation();
+	const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+	const [showViewDialog, setShowViewDialog] = useState(false);
+	const [showRenewDialog, setShowRenewDialog] = useState(false);
+	const [showTerminateDialog, setShowTerminateDialog] = useState(false);
 	const deleteLease = useDeleteLeaseOptimisticMutation({
 		onSuccess: () => {
-			toast.success('Lease deleted successfully')
-			setShowDeleteDialog(false)
+			toast.success("Lease deleted successfully");
+			setShowDeleteDialog(false);
 		},
-		onError: err => handleMutationError(err, 'Delete lease', 'Failed to delete lease')
-	})
+		onError: (err) =>
+			handleMutationError(err, "Delete lease", "Failed to delete lease"),
+	});
 
-	const isDraft = lease.lease_status === 'draft'
-	const isPendingSignature = lease.lease_status === 'pending_signature'
-	const ownerHasSigned = !!lease.owner_signed_at
+	const isDraft = lease.lease_status === "draft";
+	const isPendingSignature = lease.lease_status === "pending_signature";
+	const ownerHasSigned = !!lease.owner_signed_at;
 
 	const handleSignAsOwner = async () => {
 		try {
-			await signAsOwner.mutateAsync(lease.id)
-			toast.success('Lease signed successfully')
+			await signAsOwner.mutateAsync(lease.id);
+			toast.success("Lease signed successfully");
 		} catch {
-			toast.error('Failed to sign lease')
+			toast.error("Failed to sign lease");
 		}
-	}
+	};
 
 	const getStatusBadge = (status: string) => {
 		const variants: Record<
 			string,
-			'default' | 'secondary' | 'destructive' | 'outline'
+			"default" | "secondary" | "destructive" | "outline"
 		> = {
-			active: 'default',
-			EXPIRED: 'destructive',
-			TERMINATED: 'secondary',
-			DRAFT: 'outline',
-			pending_signature: 'secondary'
-		}
+			active: "default",
+			EXPIRED: "destructive",
+			TERMINATED: "secondary",
+			DRAFT: "outline",
+			pending_signature: "secondary",
+		};
 
 		const labels: Record<string, string> = {
-			pending_signature: 'Pending Signature'
-		}
+			pending_signature: "Pending Signature",
+		};
 
 		return (
-			<Badge variant={variants[status] || 'outline'}>
+			<Badge variant={variants[status] || "outline"}>
 				{labels[status] || status}
 			</Badge>
-		)
-	}
+		);
+	};
 
 	return (
 		<div className="flex items-center gap-2">
@@ -136,13 +130,13 @@ export function LeaseActionButtons({ lease }: LeaseActionButtonsProps) {
 								className="gap-2"
 							>
 								<PenLine className="size-4" />
-								{signAsOwner.isPending ? 'Signing...' : 'Sign as Owner'}
+								{signAsOwner.isPending ? "Signing..." : "Sign as Owner"}
 							</DropdownMenuItem>
 							<DropdownMenuSeparator />
 						</>
 					)}
 
-					{lease.lease_status === 'active' && (
+					{lease.lease_status === "active" && (
 						<>
 							<DropdownMenuItem
 								onClick={() => setShowRenewDialog(true)}
@@ -190,7 +184,7 @@ export function LeaseActionButtons({ lease }: LeaseActionButtonsProps) {
 							disabled={deleteLease.isPending}
 							className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
 						>
-							{deleteLease.isPending ? 'Deleting...' : 'Delete'}
+							{deleteLease.isPending ? "Deleting..." : "Delete"}
 						</AlertDialogAction>
 					</AlertDialogFooter>
 				</AlertDialogContent>
@@ -211,7 +205,7 @@ export function LeaseActionButtons({ lease }: LeaseActionButtonsProps) {
 						</div>
 						<div>
 							<Label>End Date</Label>
-							<Input type="date" value={lease.end_date || ''} disabled />
+							<Input type="date" value={lease.end_date || ""} disabled />
 						</div>
 						<div>
 							<Label>Rent Amount</Label>
@@ -230,7 +224,7 @@ export function LeaseActionButtons({ lease }: LeaseActionButtonsProps) {
 			</Dialog>
 
 			{/* Renew Lease Dialog */}
-			{showRenewDialog && lease.lease_status === 'active' && (
+			{showRenewDialog && lease.lease_status === "active" && (
 				<RenewLeaseDialog
 					open={showRenewDialog}
 					onOpenChange={setShowRenewDialog}
@@ -240,7 +234,7 @@ export function LeaseActionButtons({ lease }: LeaseActionButtonsProps) {
 			)}
 
 			{/* Terminate Lease Dialog */}
-			{showTerminateDialog && lease.lease_status === 'active' && (
+			{showTerminateDialog && lease.lease_status === "active" && (
 				<TerminateLeaseDialog
 					open={showTerminateDialog}
 					onOpenChange={setShowTerminateDialog}
@@ -249,5 +243,5 @@ export function LeaseActionButtons({ lease }: LeaseActionButtonsProps) {
 				/>
 			)}
 		</div>
-	)
+	);
 }

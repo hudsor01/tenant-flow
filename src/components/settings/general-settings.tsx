@@ -1,91 +1,91 @@
-'use client'
+"use client";
 
-import { useEffect, useState } from 'react'
-import { Mail, Smartphone, Loader2 } from 'lucide-react'
-import { BlurFade } from '#components/ui/blur-fade'
-import { Skeleton } from '#components/ui/skeleton'
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { Loader2, Mail, Smartphone } from "lucide-react";
+import { useEffect, useState } from "react";
+import { toast } from "sonner";
+import { BlurFade } from "#components/ui/blur-fade";
+import { Skeleton } from "#components/ui/skeleton";
+import { profileKeys, useProfile } from "#hooks/api/use-profile";
+import { createClient } from "#lib/supabase/client";
+import { getCachedUser } from "#lib/supabase/get-cached-user";
 import {
+	useDataDensity,
 	usePreferencesStore,
-	useDataDensity
-} from '#providers/preferences-provider'
-import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { toast } from 'sonner'
-import { createClient } from '#lib/supabase/client'
-import { getCachedUser } from '#lib/supabase/get-cached-user'
-import { profileKeys, useProfile } from '#hooks/api/use-profile'
-import type { ThemeMode } from '#types/domain'
-import type { DataDensity } from '#stores/preferences-store'
-import { OwnerEmergencyContactSection } from './owner-emergency-contact-section'
+} from "#providers/preferences-provider";
+import type { DataDensity } from "#stores/preferences-store";
+import type { ThemeMode } from "#types/domain";
+import { OwnerEmergencyContactSection } from "./owner-emergency-contact-section";
 
 export function GeneralSettings() {
-	const themeMode = usePreferencesStore(state => state.themeMode)
-	const setThemeMode = usePreferencesStore(state => state.setThemeMode)
-	const { dataDensity, setDataDensity } = useDataDensity()
+	const themeMode = usePreferencesStore((state) => state.themeMode);
+	const setThemeMode = usePreferencesStore((state) => state.setThemeMode);
+	const { dataDensity, setDataDensity } = useDataDensity();
 
 	// Fetch current user profile via shared hook
-	const { data: profile, isLoading: profileLoading } = useProfile()
+	const { data: profile, isLoading: profileLoading } = useProfile();
 
-	const [contactEmail, setContactEmail] = useState('')
-	const [phone, setPhone] = useState('')
-	const [timezone, setTimezone] = useState('America/Chicago')
-	const [language, setLanguage] = useState('en-US')
+	const [contactEmail, setContactEmail] = useState("");
+	const [phone, setPhone] = useState("");
+	const [timezone, setTimezone] = useState("America/Chicago");
+	const [language, setLanguage] = useState("en-US");
 
 	// Update form when data loads
 	useEffect(() => {
 		if (profile?.email) {
-			setContactEmail(profile.email)
+			setContactEmail(profile.email);
 		}
 		if (profile?.phone) {
-			setPhone(profile.phone)
+			setPhone(profile.phone);
 		}
-	}, [profile])
+	}, [profile]);
 
-	const queryClient = useQueryClient()
+	const queryClient = useQueryClient();
 
 	// Update profile mutation
 	const updateProfile = useMutation({
 		mutationFn: async (updates: { phone?: string; email?: string }) => {
-			const supabase = createClient()
-			const user = await getCachedUser()
-			if (!user) throw new Error('Not authenticated')
+			const supabase = createClient();
+			const user = await getCachedUser();
+			if (!user) throw new Error("Not authenticated");
 			const { error } = await supabase
-				.from('users')
+				.from("users")
 				.update(updates)
-				.eq('id', user.id)
-			if (error) throw error
+				.eq("id", user.id);
+			if (error) throw error;
 		},
 		onSuccess: () => {
-			queryClient.invalidateQueries({ queryKey: profileKeys.all })
-			toast.success('Profile updated successfully')
+			queryClient.invalidateQueries({ queryKey: profileKeys.all });
+			toast.success("Profile updated successfully");
 		},
-		onError: error => {
+		onError: (error) => {
 			toast.error(
-				error instanceof Error ? error.message : 'Failed to update profile'
-			)
-		}
-	})
+				error instanceof Error ? error.message : "Failed to update profile",
+			);
+		},
+	});
 
 	const handleThemeChange = (value: string) => {
-		setThemeMode(value as ThemeMode)
-	}
+		setThemeMode(value as ThemeMode);
+	};
 
 	const handleDensityChange = (value: string) => {
-		setDataDensity(value as DataDensity)
-	}
+		setDataDensity(value as DataDensity);
+	};
 
 	const handleSaveChanges = () => {
-		const updates: { phone?: string; email?: string } = {}
+		const updates: { phone?: string; email?: string } = {};
 		if (phone !== profile?.phone) {
-			updates.phone = phone
+			updates.phone = phone;
 		}
 		if (Object.keys(updates).length > 0) {
-			updateProfile.mutate(updates)
+			updateProfile.mutate(updates);
 		} else {
-			toast.info('No changes to save')
+			toast.info("No changes to save");
 		}
-	}
+	};
 
-	const isLoading = profileLoading
+	const isLoading = profileLoading;
 
 	if (isLoading) {
 		return (
@@ -94,7 +94,7 @@ export function GeneralSettings() {
 				<Skeleton className="h-64 rounded-lg" />
 				<Skeleton className="h-48 rounded-lg" />
 			</div>
-		)
+		);
 	}
 
 	return (
@@ -126,7 +126,7 @@ export function GeneralSettings() {
 									id="contactEmail"
 									type="email"
 									value={contactEmail}
-									onChange={e => setContactEmail(e.target.value)}
+									onChange={(e) => setContactEmail(e.target.value)}
 									placeholder="contact@example.com"
 									className="h-10 flex-1 rounded-lg border bg-background px-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
 								/>
@@ -143,7 +143,7 @@ export function GeneralSettings() {
 									id="phone"
 									type="tel"
 									value={phone}
-									onChange={e => setPhone(e.target.value)}
+									onChange={(e) => setPhone(e.target.value)}
 									placeholder="(555) 123-4567"
 									className="h-10 flex-1 rounded-lg border bg-background px-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
 								/>
@@ -166,7 +166,7 @@ export function GeneralSettings() {
 							<label className="text-sm font-medium">Theme</label>
 							<select
 								value={themeMode}
-								onChange={e => handleThemeChange(e.target.value)}
+								onChange={(e) => handleThemeChange(e.target.value)}
 								className="h-10 rounded-lg border bg-background px-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
 							>
 								<option value="system">System</option>
@@ -180,7 +180,7 @@ export function GeneralSettings() {
 							<label className="text-sm font-medium">Data Density</label>
 							<select
 								value={dataDensity}
-								onChange={e => handleDensityChange(e.target.value)}
+								onChange={(e) => handleDensityChange(e.target.value)}
 								className="h-10 rounded-lg border bg-background px-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
 							>
 								<option value="compact">Compact</option>
@@ -197,7 +197,7 @@ export function GeneralSettings() {
 							<label className="text-sm font-medium">Timezone</label>
 							<select
 								value={timezone}
-								onChange={e => setTimezone(e.target.value)}
+								onChange={(e) => setTimezone(e.target.value)}
 								className="h-10 rounded-lg border bg-background px-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
 							>
 								<option value="America/Los_Angeles">
@@ -214,7 +214,7 @@ export function GeneralSettings() {
 							<label className="text-sm font-medium">Language</label>
 							<select
 								value={language}
-								onChange={e => setLanguage(e.target.value)}
+								onChange={(e) => setLanguage(e.target.value)}
 								className="h-10 rounded-lg border bg-background px-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
 							>
 								<option value="en-US">English (US)</option>
@@ -240,7 +240,7 @@ export function GeneralSettings() {
 								Saving...
 							</span>
 						) : (
-							'Save Changes'
+							"Save Changes"
 						)}
 					</button>
 				</div>
@@ -251,5 +251,5 @@ export function GeneralSettings() {
 				<OwnerEmergencyContactSection />
 			</BlurFade>
 		</div>
-	)
+	);
 }

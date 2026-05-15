@@ -1,4 +1,4 @@
-'use client'
+"use client";
 
 import {
 	AlertDialog,
@@ -8,37 +8,37 @@ import {
 	AlertDialogDescription,
 	AlertDialogFooter,
 	AlertDialogHeader,
-	AlertDialogTitle
-} from '#components/ui/alert-dialog'
-import type { Unit } from '#types/core'
+	AlertDialogTitle,
+} from "#components/ui/alert-dialog";
+import type { Unit } from "#types/core";
 
 interface UnitDeleteDialogProps {
-	deletingUnit: Unit | null
-	isPending: boolean
-	onConfirm: () => void
-	onCancel: () => void
+	deletingUnit: Unit | null;
+	isPending: boolean;
+	onConfirm: () => void;
+	onCancel: () => void;
 }
 
 export function UnitDeleteDialog({
 	deletingUnit,
 	isPending,
 	onConfirm,
-	onCancel
+	onCancel,
 }: UnitDeleteDialogProps) {
 	return (
 		<AlertDialog
 			open={!!deletingUnit}
-			onOpenChange={open => {
-				if (!open) onCancel()
+			onOpenChange={(open) => {
+				if (!open) onCancel();
 			}}
 		>
 			<AlertDialogContent>
 				<AlertDialogHeader>
 					<AlertDialogTitle>Delete Unit?</AlertDialogTitle>
 					<AlertDialogDescription>
-						Are you sure you want to delete unit{' '}
-						<strong>{deletingUnit?.unit_number}</strong>? This action cannot
-						be undone.
+						Are you sure you want to delete unit{" "}
+						<strong>{deletingUnit?.unit_number}</strong>? This action cannot be
+						undone.
 					</AlertDialogDescription>
 				</AlertDialogHeader>
 				<AlertDialogFooter>
@@ -47,10 +47,10 @@ export function UnitDeleteDialog({
 						onClick={onConfirm}
 						className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
 					>
-						{isPending ? 'Deleting...' : 'Delete'}
+						{isPending ? "Deleting..." : "Delete"}
 					</AlertDialogAction>
 				</AlertDialogFooter>
 			</AlertDialogContent>
 		</AlertDialog>
-	)
+	);
 }

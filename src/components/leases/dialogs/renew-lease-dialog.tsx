@@ -5,100 +5,110 @@
  * Interface for renewing leases with optional rent increases
  */
 
-'use client'
+"use client";
 
-import type { FormEvent } from 'react'
+import { addMonths, addYears, format, isAfter, parseISO } from "date-fns";
+import type { FormEvent } from "react";
+import { useState } from "react";
+import { toast } from "sonner";
+import { Button } from "#components/ui/button";
 import {
 	Dialog,
+	DialogBody,
 	DialogContent,
+	DialogDescription,
+	DialogFooter,
 	DialogHeader,
 	DialogTitle,
-	DialogDescription,
-	DialogBody,
-	DialogFooter
-} from '#components/ui/dialog'
-import { Button } from '#components/ui/button'
-import { useRenewLeaseMutation } from '#hooks/api/use-lease-lifecycle-mutations'
-import { handleMutationError } from '#lib/mutation-error-handler'
-import type { Lease } from '#types/core'
-import { addMonths, addYears, format, isAfter, parseISO } from 'date-fns'
-import { useState } from 'react'
-import { toast } from 'sonner'
-import { CurrentLeaseInfo, DateSelector, RentAdjustment } from './renew-lease-form-fields'
+} from "#components/ui/dialog";
+import { useRenewLeaseMutation } from "#hooks/api/use-lease-lifecycle-mutations";
+import { handleMutationError } from "#lib/mutation-error-handler";
+import type { Lease } from "#types/core";
+import {
+	CurrentLeaseInfo,
+	DateSelector,
+	RentAdjustment,
+} from "./renew-lease-form-fields";
 
 interface RenewLeaseDialogProps {
-	open: boolean
-	onOpenChange: (open: boolean) => void
-	lease: Lease
-	onSuccess?: () => void
+	open: boolean;
+	onOpenChange: (open: boolean) => void;
+	lease: Lease;
+	onSuccess?: () => void;
 }
 
 export function RenewLeaseDialog({
 	open,
 	onOpenChange,
 	lease,
-	onSuccess
+	onSuccess,
 }: RenewLeaseDialogProps) {
-	const renewLease = useRenewLeaseMutation()
+	const renewLease = useRenewLeaseMutation();
 	const defaultNewEndDate = lease.end_date
-		? format(addYears(parseISO(lease.end_date), 1), 'yyyy-MM-dd')
-		: format(addYears(new Date(), 1), 'yyyy-MM-dd')
+		? format(addYears(parseISO(lease.end_date), 1), "yyyy-MM-dd")
+		: format(addYears(new Date(), 1), "yyyy-MM-dd");
 
-	const [newEndDate, setNewEndDate] = useState<string>(defaultNewEndDate)
-	const [newRentAmount, setNewRentAmount] = useState<string>('')
-	const [showRentIncrease, setShowRentIncrease] = useState(false)
+	const [newEndDate, setNewEndDate] = useState<string>(defaultNewEndDate);
+	const [newRentAmount, setNewRentAmount] = useState<string>("");
+	const [showRentIncrease, setShowRentIncrease] = useState(false);
 
-	const currentRent = lease.rent_amount || 0
+	const currentRent = lease.rent_amount || 0;
 
 	const handleSubmit = async (e: FormEvent) => {
-		e.preventDefault()
+		e.preventDefault();
 		if (!newEndDate) {
-			toast.error('Please select an end date')
-			return
+			toast.error("Please select an end date");
+			return;
 		}
-		if (lease.end_date && !isAfter(parseISO(newEndDate), parseISO(lease.end_date))) {
-			toast.error('New end date must be after current end date')
-			return
+		if (
+			lease.end_date &&
+			!isAfter(parseISO(newEndDate), parseISO(lease.end_date))
+		) {
+			toast.error("New end date must be after current end date");
+			return;
 		}
 		if (showRentIncrease) {
-			const rentValue = Number(newRentAmount)
+			const rentValue = Number(newRentAmount);
 			if (!rentValue || rentValue <= 0) {
-				toast.error('Please enter a valid rent amount')
-				return
+				toast.error("Please enter a valid rent amount");
+				return;
 			}
 		}
 		try {
-			await renewLease.mutateAsync({ id: lease.id, data: { end_date: newEndDate } })
-			toast.success('Lease renewed successfully')
-			onSuccess?.()
-			onOpenChange(false)
-			setNewEndDate(defaultNewEndDate)
-			setNewRentAmount('')
-			setShowRentIncrease(false)
+			await renewLease.mutateAsync({
+				id: lease.id,
+				data: { end_date: newEndDate },
+			});
+			toast.success("Lease renewed successfully");
+			onSuccess?.();
+			onOpenChange(false);
+			setNewEndDate(defaultNewEndDate);
+			setNewRentAmount("");
+			setShowRentIncrease(false);
 		} catch (error) {
-			handleMutationError(error, 'Renew lease')
+			handleMutationError(error, "Renew lease");
 		}
-	}
+	};
 
 	const handleQuickDate = (months: number) => {
-		if (!lease.end_date) return
-		const newDate = addMonths(parseISO(lease.end_date), months)
-		setNewEndDate(format(newDate, 'yyyy-MM-dd'))
-	}
+		if (!lease.end_date) return;
+		const newDate = addMonths(parseISO(lease.end_date), months);
+		setNewEndDate(format(newDate, "yyyy-MM-dd"));
+	};
 
 	const handleDialogChange = (isOpen: boolean) => {
 		if (!isOpen) {
-			setNewEndDate(defaultNewEndDate)
-			setNewRentAmount('')
-			setShowRentIncrease(false)
+			setNewEndDate(defaultNewEndDate);
+			setNewRentAmount("");
+			setShowRentIncrease(false);
 		}
-		onOpenChange(isOpen)
-	}
+		onOpenChange(isOpen);
+	};
 
 	const handleRentToggle = () => {
-		setShowRentIncrease(!showRentIncrease)
-		if (showRentIncrease) setNewRentAmount('')
-	}
+		setShowRentIncrease(!showRentIncrease);
+		if (showRentIncrease) setNewRentAmount("");
+	};
 
 	return (
 		<Dialog open={open} onOpenChange={handleDialogChange}>
@@ -112,7 +122,10 @@ export function RenewLeaseDialog({
 					</DialogHeader>
 					<DialogBody>
 						<div className="space-y-6 mt-4">
-							<CurrentLeaseInfo currentRent={currentRent} endDate={lease.end_date} />
+							<CurrentLeaseInfo
+								currentRent={currentRent}
+								endDate={lease.end_date}
+							/>
 							<DateSelector
 								newEndDate={newEndDate}
 								leaseEndDate={lease.end_date}
@@ -129,15 +142,20 @@ export function RenewLeaseDialog({
 						</div>
 					</DialogBody>
 					<DialogFooter>
-						<Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={renewLease.isPending}>
+						<Button
+							type="button"
+							variant="outline"
+							onClick={() => onOpenChange(false)}
+							disabled={renewLease.isPending}
+						>
 							Cancel
 						</Button>
 						<Button type="submit" disabled={renewLease.isPending}>
-							{renewLease.isPending ? 'Renewing...' : 'Renew Lease'}
+							{renewLease.isPending ? "Renewing..." : "Renew Lease"}
 						</Button>
 					</DialogFooter>
 				</form>
 			</DialogContent>
 		</Dialog>
-	)
+	);
 }

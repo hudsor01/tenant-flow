@@ -1,7 +1,7 @@
-import { getJsonLd } from '#lib/generate-metadata'
+import { getJsonLd } from "#lib/generate-metadata";
 
 export default function SeoJsonLd() {
-	const schemas = getJsonLd()
+	const schemas = getJsonLd();
 
 	return (
 		<>
@@ -10,10 +10,10 @@ export default function SeoJsonLd() {
 					key={`schema-${index}`}
 					type="application/ld+json"
 					dangerouslySetInnerHTML={{
-						__html: JSON.stringify(schema).replace(/</g, '\\u003c')
+						__html: JSON.stringify(schema).replace(/</g, "\\u003c"),
 					}}
 				/>
 			))}
 		</>
-	)
+	);
 }

@@ -5,24 +5,16 @@
  * Component implementations are extracted into ./components/ for maintainability.
  */
 
-import { DataTableColumnHeader } from '#components/data-table/data-table-column-header'
-import type {
-	UnitRowWithRelations,
-	UnitStatus
-} from '#types/core'
+import { DataTableColumnHeader } from "#components/data-table/data-table-column-header";
+import type { UnitRowWithRelations, UnitStatus } from "#types/core";
 
-export type UnitRow = UnitRowWithRelations
-import type { ColumnDef } from '@tanstack/react-table'
-import {
-	Bath,
-	Bed,
-	MapPin,
-	Maximize2
-} from 'lucide-react'
+export type UnitRow = UnitRowWithRelations;
 
+import type { ColumnDef } from "@tanstack/react-table";
+import { Bath, Bed, MapPin, Maximize2 } from "lucide-react";
+import { UnitActions } from "./components/unit-actions";
 // Import extracted components
-import { UnitStatusBadge, statusConfig } from './components/unit-status-badge'
-import { UnitActions } from './components/unit-actions'
+import { statusConfig, UnitStatusBadge } from "./components/unit-status-badge";
 
 /**
  * Column definitions for the units data table
@@ -30,22 +22,22 @@ import { UnitActions } from './components/unit-actions'
  */
 export const unitColumns: ColumnDef<UnitRowWithRelations>[] = [
 	{
-		accessorKey: 'unit_number',
+		accessorKey: "unit_number",
 		header: ({ column }) => (
 			<DataTableColumnHeader column={column} label="Unit Details" />
 		),
 		meta: {
-			label: 'Unit',
-			variant: 'text',
-			placeholder: 'Search units...'
+			label: "Unit",
+			variant: "text",
+			placeholder: "Search units...",
 		},
 		enableColumnFilter: true,
 		cell: ({ row }) => {
-			const unit: UnitRow = row.original
+			const unit: UnitRow = row.original;
 			return (
 				<div className="flex flex-col gap-1 py-2">
 					<div className="font-bold text-foreground">
-						Unit {row.getValue('unit_number')}
+						Unit {row.getValue("unit_number")}
 					</div>
 					{unit.property && (
 						<div className="text-muted-foreground text-xs">
@@ -54,125 +46,125 @@ export const unitColumns: ColumnDef<UnitRowWithRelations>[] = [
 						</div>
 					)}
 				</div>
-			)
+			);
 		},
 		size: 160,
-		enableHiding: false
+		enableHiding: false,
 	},
 	{
-		accessorKey: 'bedrooms',
+		accessorKey: "bedrooms",
 		header: ({ column }) => (
 			<DataTableColumnHeader column={column} label="Bedrooms" />
 		),
 		meta: {
-			label: 'Bedrooms',
-			variant: 'range',
-			range: [0, 10]
+			label: "Bedrooms",
+			variant: "range",
+			range: [0, 10],
 		},
 		enableColumnFilter: true,
 		cell: ({ row }) => {
-			const bedrooms = row.getValue('bedrooms') as number
+			const bedrooms = row.getValue("bedrooms") as number;
 			return (
 				<div className="flex items-center gap-1">
 					<Bed className="size-3 text-muted-foreground" />
 					<span className="font-medium">{bedrooms}</span>
 				</div>
-			)
+			);
 		},
-		size: 100
+		size: 100,
 	},
 	{
-		accessorKey: 'bathrooms',
+		accessorKey: "bathrooms",
 		header: ({ column }) => (
 			<DataTableColumnHeader column={column} label="Bathrooms" />
 		),
 		meta: {
-			label: 'Bathrooms',
-			variant: 'range',
-			range: [0, 10]
+			label: "Bathrooms",
+			variant: "range",
+			range: [0, 10],
 		},
 		enableColumnFilter: true,
 		cell: ({ row }) => {
-			const bathrooms = row.getValue('bathrooms') as number
+			const bathrooms = row.getValue("bathrooms") as number;
 			return (
 				<div className="flex items-center gap-1">
 					<Bath className="size-3 text-muted-foreground" />
 					<span className="font-medium">{bathrooms}</span>
 				</div>
-			)
+			);
 		},
-		size: 100
+		size: 100,
 	},
 	{
-		accessorKey: 'square_feet',
+		accessorKey: "square_feet",
 		header: ({ column }) => (
 			<DataTableColumnHeader column={column} label="Size" />
 		),
 		cell: ({ row }) => {
-			const sqft = row.getValue('square_feet') as number | null
-			if (!sqft) return <span className="text-muted-foreground">-</span>
+			const sqft = row.getValue("square_feet") as number | null;
+			if (!sqft) return <span className="text-muted-foreground">-</span>;
 			return (
 				<div className="flex items-center gap-1">
 					<Maximize2 className="size-3 text-muted-foreground" />
 					<span className="text-xs">{sqft.toLocaleString()} ft²</span>
 				</div>
-			)
+			);
 		},
-		size: 100
+		size: 100,
 	},
 	{
-		accessorKey: 'rent_amount',
+		accessorKey: "rent_amount",
 		header: ({ column }) => (
 			<DataTableColumnHeader column={column} label="Rent" />
 		),
 		meta: {
-			label: 'Rent',
-			variant: 'range',
+			label: "Rent",
+			variant: "range",
 			range: [0, 10000],
-			unit: '$'
+			unit: "$",
 		},
 		enableColumnFilter: true,
 		cell: ({ row }) => {
-			const rent = parseFloat(row.getValue('rent_amount'))
-			const rentFormatted = new Intl.NumberFormat('en-US', {
-				style: 'currency',
-				currency: 'USD',
-				minimumFractionDigits: 0
-			}).format(rent)
+			const rent = parseFloat(row.getValue("rent_amount"));
+			const rentFormatted = new Intl.NumberFormat("en-US", {
+				style: "currency",
+				currency: "USD",
+				minimumFractionDigits: 0,
+			}).format(rent);
 
 			return (
 				<div className="text-right space-y-1 py-2">
 					<div className="font-bold text-foreground">{rentFormatted}</div>
 					<div className="text-muted-foreground text-xs">per month</div>
 				</div>
-			)
+			);
 		},
-		size: 120
+		size: 120,
 	},
 	{
-		accessorKey: 'status',
+		accessorKey: "status",
 		header: ({ column }) => (
 			<DataTableColumnHeader column={column} label="Status" />
 		),
 		meta: {
-			label: 'Status',
-			variant: 'select',
+			label: "Status",
+			variant: "select",
 			options: [
-				{ label: 'Occupied', value: 'occupied' },
-				{ label: 'Vacant', value: 'available' },
-				{ label: 'Maintenance', value: 'maintenance' },
-				{ label: 'Reserved', value: 'reserved' }
-			]
+				{ label: "Occupied", value: "occupied" },
+				{ label: "Vacant", value: "available" },
+				{ label: "Maintenance", value: "maintenance" },
+				{ label: "Reserved", value: "reserved" },
+			],
 		},
 		enableColumnFilter: true,
 		cell: ({ row }) => {
-			const unit: UnitRow = row.original
-			const status = row.getValue('status') as UnitStatus
+			const unit: UnitRow = row.original;
+			const status = row.getValue("status") as UnitStatus;
 
 			return (
 				<div className="space-y-2 py-2">
 					<UnitStatusBadge status={status} />
-					{unit.tenant && status === 'occupied' && (
+					{unit.tenant && status === "occupied" && (
 						<div className="space-y-1">
 							<div className="font-medium text-foreground text-sm">
 								{unit.tenant.name}
@@ -183,20 +175,20 @@ export const unitColumns: ColumnDef<UnitRowWithRelations>[] = [
 						</div>
 					)}
 				</div>
-			)
+			);
 		},
 		filterFn: (row, id, value) => {
-			return value.includes(row.getValue(id))
+			return value.includes(row.getValue(id));
 		},
 		sortingFn: (rowA, rowB) => {
-			const statusA = rowA.getValue('status') as UnitStatus
-			const statusB = rowB.getValue('status') as UnitStatus
-			return statusConfig[statusA].priority - statusConfig[statusB].priority
+			const statusA = rowA.getValue("status") as UnitStatus;
+			const statusB = rowB.getValue("status") as UnitStatus;
+			return statusConfig[statusA].priority - statusConfig[statusB].priority;
 		},
-		size: 200
+		size: 200,
 	},
 	{
-		id: 'actions',
+		id: "actions",
 		header: () => (
 			<div className="text-center font-semibold text-muted-foreground">
 				Actions
@@ -205,6 +197,6 @@ export const unitColumns: ColumnDef<UnitRowWithRelations>[] = [
 		cell: ({ row }) => <UnitActions unit={row.original} />,
 		enableSorting: false,
 		enableHiding: false,
-		size: 80
-	}
-]
+		size: 80,
+	},
+];

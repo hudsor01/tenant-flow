@@ -1,26 +1,26 @@
-'use client'
+"use client";
 
-import { Button } from '#components/ui/button'
-import { createLogger } from '#lib/frontend-logger'
-import type { Property, Unit } from '#types/core'
-import { useForm } from '@tanstack/react-form'
-import { UserPlus } from 'lucide-react'
-import { useRouter } from 'next/navigation'
-import { useEffect, useState } from 'react'
-import { toast } from 'sonner'
-import { useUnsavedChangesWarning } from '#hooks/use-unsaved-changes'
-import { useCreateTenantMutation } from '#hooks/api/use-tenant-mutations'
-import { handleMutationError } from '#lib/mutation-error-handler'
-import type { TenantCreate } from '#lib/validation/tenants'
-import { AddTenantInfoFields } from './add-tenant-info-fields'
-import { AddTenantPropertyFields } from './add-tenant-property-fields'
+import { useForm } from "@tanstack/react-form";
+import { UserPlus } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import { toast } from "sonner";
+import { Button } from "#components/ui/button";
+import { useCreateTenantMutation } from "#hooks/api/use-tenant-mutations";
+import { useUnsavedChangesWarning } from "#hooks/use-unsaved-changes";
+import { createLogger } from "#lib/frontend-logger";
+import { handleMutationError } from "#lib/mutation-error-handler";
+import type { TenantCreate } from "#lib/validation/tenants";
+import type { Property, Unit } from "#types/core";
+import { AddTenantInfoFields } from "./add-tenant-info-fields";
+import { AddTenantPropertyFields } from "./add-tenant-property-fields";
 
-const logger = createLogger({ component: 'AddTenantForm' })
+const logger = createLogger({ component: "AddTenantForm" });
 
 interface AddTenantFormProps {
-	properties: Property[]
-	units: Unit[]
-	onSuccess?: () => void
+	properties: Property[];
+	units: Unit[];
+	onSuccess?: () => void;
 }
 
 /**
@@ -41,21 +41,21 @@ interface AddTenantFormProps {
 export function AddTenantForm({
 	properties,
 	units,
-	onSuccess
+	onSuccess,
 }: AddTenantFormProps) {
-	const router = useRouter()
-	const [selectedPropertyId, setSelectedPropertyId] = useState('')
-	const createTenant = useCreateTenantMutation()
-	const isSubmitting = createTenant.isPending
+	const router = useRouter();
+	const [selectedPropertyId, setSelectedPropertyId] = useState("");
+	const createTenant = useCreateTenantMutation();
+	const isSubmitting = createTenant.isPending;
 
 	const form = useForm({
 		defaultValues: {
-			email: '',
-			first_name: '',
-			last_name: '',
-			phone: '',
-			property_id: '',
-			unit_id: ''
+			email: "",
+			first_name: "",
+			last_name: "",
+			phone: "",
+			property_id: "",
+			unit_id: "",
 		},
 		onSubmit: async ({ value }) => {
 			try {
@@ -65,44 +65,44 @@ export function AddTenantForm({
 					first_name: value.first_name,
 					last_name: value.last_name,
 					name: `${value.first_name} ${value.last_name}`.trim(),
-					...(value.phone ? { phone: value.phone } : {})
-				}
+					...(value.phone ? { phone: value.phone } : {}),
+				};
 
-				await createTenant.mutateAsync(payload)
+				await createTenant.mutateAsync(payload);
 
-				logger.info('Tenant added', { email: value.email })
-				toast.success('Tenant added')
+				logger.info("Tenant added", { email: value.email });
+				toast.success("Tenant added");
 
-				onSuccess?.()
-				router.push('/tenants')
-				router.refresh()
+				onSuccess?.();
+				router.push("/tenants");
+				router.refresh();
 			} catch (error) {
-				logger.error('Failed to add tenant', {
-					error: error instanceof Error ? error.message : String(error)
-				})
-				handleMutationError(error, 'Add tenant')
+				logger.error("Failed to add tenant", {
+					error: error instanceof Error ? error.message : String(error),
+				});
+				handleMutationError(error, "Add tenant");
 			}
-		}
-	})
+		},
+	});
 
 	// Warn before navigating away with unsaved form data
-	useUnsavedChangesWarning(form.state.isDirty)
+	useUnsavedChangesWarning(form.state.isDirty);
 
 	// Filter units based on selected property
 	const availableUnits = units.filter(
-		unit => unit.property_id === selectedPropertyId
-	)
+		(unit) => unit.property_id === selectedPropertyId,
+	);
 
 	// Auto-select the first unit if only one exists
 	useEffect(() => {
 		if (
 			availableUnits.length === 1 &&
-			!form.getFieldValue('unit_id') &&
+			!form.getFieldValue("unit_id") &&
 			availableUnits[0]
 		) {
-			form.setFieldValue('unit_id', availableUnits[0].id)
+			form.setFieldValue("unit_id", availableUnits[0].id);
 		}
-	}, [availableUnits, form])
+	}, [availableUnits, form]);
 
 	return (
 		<div className="space-y-6">
@@ -122,7 +122,7 @@ export function AddTenantForm({
 					Cancel
 				</Button>
 				<form.Subscribe
-					selector={state => [state.canSubmit, state.isSubmitting]}
+					selector={(state) => [state.canSubmit, state.isSubmitting]}
 				>
 					{([canSubmit, isFormSubmitting]) => (
 						<Button
@@ -131,11 +131,13 @@ export function AddTenantForm({
 							onClick={form.handleSubmit}
 						>
 							<UserPlus className="size-4 mr-2" />
-							{isSubmitting || isFormSubmitting ? 'Adding tenant...' : 'Add Tenant'}
+							{isSubmitting || isFormSubmitting
+								? "Adding tenant..."
+								: "Add Tenant"}
 						</Button>
 					)}
 				</form.Subscribe>
 			</div>
 		</div>
-	)
+	);
 }

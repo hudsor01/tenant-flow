@@ -1,4 +1,4 @@
-import { UnitForm } from '#components/units/unit-form.client'
+import { UnitForm } from "#components/units/unit-form.client";
 
 /**
  * New Unit Page (Full-Page Fallback)
@@ -16,5 +16,5 @@ export default async function NewUnitPage() {
 			</div>
 			<UnitForm mode="create" />
 		</div>
-	)
+	);
 }

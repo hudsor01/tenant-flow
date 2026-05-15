@@ -1,67 +1,62 @@
-'use client'
+"use client";
 
-import { useEffect, useMemo, useRef, useState } from 'react'
-import { useQuery } from '@tanstack/react-query'
-import {
-	useQueryState,
-	parseAsString,
-	parseAsInteger,
-	parseAsArrayOf
-} from 'nuqs'
-import {
-	Card,
-	CardContent,
-	CardHeader,
-	CardTitle
-} from '#components/ui/card'
-import { Input } from '#components/ui/input'
-import {
-	Select,
-	SelectContent,
-	SelectItem,
-	SelectTrigger,
-	SelectValue
-} from '#components/ui/select'
-import { Button } from '#components/ui/button'
-import { Skeleton } from '#components/ui/skeleton'
-import { DateRangePicker } from '#components/shared/date-range-picker'
-import { MultiSelectChips } from '#components/shared/multi-select-chips'
-import {
-	DOCUMENT_ENTITY_TYPES,
-	type DocumentEntityType,
-	type DocumentRow as DocumentRowData
-} from '#hooks/api/query-keys/document-keys'
-import {
-	documentSearchQueries,
-	expandDateBoundary,
-	SEARCH_PAGE_SIZE
-} from '#hooks/api/query-keys/document-search-keys'
-import { type DocumentCategory } from '#lib/validation/documents'
-import { useDocumentCategories } from '#hooks/api/use-document-categories'
-import { DocumentRow } from './document-row'
-import { createClient } from '#lib/supabase/client'
-import { toast } from 'sonner'
+import { useQuery } from "@tanstack/react-query";
 import {
 	AlertTriangle,
 	Download,
 	FolderArchive,
 	Loader2,
-	Search
-} from 'lucide-react'
+	Search,
+} from "lucide-react";
+import {
+	parseAsArrayOf,
+	parseAsInteger,
+	parseAsString,
+	useQueryState,
+} from "nuqs";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { toast } from "sonner";
+import { DateRangePicker } from "#components/shared/date-range-picker";
+import { MultiSelectChips } from "#components/shared/multi-select-chips";
+import { Button } from "#components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "#components/ui/card";
+import { Input } from "#components/ui/input";
+import {
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+	SelectValue,
+} from "#components/ui/select";
+import { Skeleton } from "#components/ui/skeleton";
+import {
+	DOCUMENT_ENTITY_TYPES,
+	type DocumentEntityType,
+	type DocumentRow as DocumentRowData,
+} from "#hooks/api/query-keys/document-keys";
+import {
+	documentSearchQueries,
+	expandDateBoundary,
+	SEARCH_PAGE_SIZE,
+} from "#hooks/api/query-keys/document-search-keys";
+import { useDocumentCategories } from "#hooks/api/use-document-categories";
+import { createClient } from "#lib/supabase/client";
+import { type DocumentCategory } from "#lib/validation/documents";
+import { DocumentRow } from "./document-row";
 
 // Phase 64: hard cap on bulk-download. Mirrors MAX_DOCS_PER_REQUEST in
 // the download-documents-zip Edge Function — keep them in lockstep.
-const BULK_DOWNLOAD_MAX = 500
+const BULK_DOWNLOAD_MAX = 500;
 
 const ENTITY_TYPE_LABELS: Record<DocumentEntityType, string> = {
-	property: 'Property',
-	lease: 'Lease',
-	tenant: 'Tenant',
-	maintenance_request: 'Maintenance request',
-	inspection: 'Inspection'
-}
+	property: "Property",
+	lease: "Lease",
+	tenant: "Tenant",
+	maintenance_request: "Maintenance request",
+	inspection: "Inspection",
+};
 
-const ANY_ENTITY = '__any__'
+const ANY_ENTITY = "__any__";
 
 // Sentinel must not collide with any real taxonomy value, otherwise a
 // URL like `?entity=__any__` would silently render as "All types"
@@ -70,8 +65,8 @@ const ANY_ENTITY = '__any__'
 // producing a confusing UX in prod.
 if ((DOCUMENT_ENTITY_TYPES as readonly string[]).includes(ANY_ENTITY)) {
 	throw new Error(
-		'ANY_ENTITY sentinel collides with a real DOCUMENT_ENTITY_TYPES value'
-	)
+		"ANY_ENTITY sentinel collides with a real DOCUMENT_ENTITY_TYPES value",
+	);
 }
 
 // Phase 65: category filter options now come from the per-owner
@@ -86,25 +81,25 @@ if ((DOCUMENT_ENTITY_TYPES as readonly string[]).includes(ANY_ENTITY)) {
 // Round-trips through getFullYear/getMonth/getDate to reject overflow
 // inputs like `2026-13-99` (which JS otherwise wraps to April 9, 2027).
 function parseLocalYmd(input: string | null): Date | undefined {
-	if (!input) return undefined
-	const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(input)
-	if (!m) return undefined
-	const y = Number(m[1])
-	const mo = Number(m[2])
-	const day = Number(m[3])
-	const d = new Date(y, mo - 1, day)
-	if (Number.isNaN(d.getTime())) return undefined
+	if (!input) return undefined;
+	const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(input);
+	if (!m) return undefined;
+	const y = Number(m[1]);
+	const mo = Number(m[2]);
+	const day = Number(m[3]);
+	const d = new Date(y, mo - 1, day);
+	if (Number.isNaN(d.getTime())) return undefined;
 	if (d.getFullYear() !== y || d.getMonth() !== mo - 1 || d.getDate() !== day) {
-		return undefined
+		return undefined;
 	}
-	return d
+	return d;
 }
 
 // Format a Date as local-zone YYYY-MM-DD. Pairs with parseLocalYmd for
 // round-trip stability across timezones.
 function formatLocalYmd(d: Date): string {
-	const pad = (n: number) => String(n).padStart(2, '0')
-	return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate())
+	const pad = (n: number) => String(n).padStart(2, "0");
+	return d.getFullYear() + "-" + pad(d.getMonth() + 1) + "-" + pad(d.getDate());
 }
 
 export function DocumentsVaultClient() {
@@ -113,37 +108,39 @@ export function DocumentsVaultClient() {
 	// so refining a search doesn't pollute the back-stack — pressing Back
 	// from the vault should leave the page, not walk through every filter
 	// tweak. Page navigation IS a meaningful event and stays push.
-	const FILTER_HISTORY = { history: 'replace' as const }
+	const FILTER_HISTORY = { history: "replace" as const };
 	const [queryParam, setQueryParam] = useQueryState(
-		'q',
-		parseAsString.withDefault('').withOptions(FILTER_HISTORY)
-	)
+		"q",
+		parseAsString.withDefault("").withOptions(FILTER_HISTORY),
+	);
 	const [entityParam, setEntityParam] = useQueryState(
-		'entity',
-		parseAsString.withDefault(ANY_ENTITY).withOptions(FILTER_HISTORY)
-	)
+		"entity",
+		parseAsString.withDefault(ANY_ENTITY).withOptions(FILTER_HISTORY),
+	);
 	// Phase 63: multi-select. Default empty array → "no filter".
 	const [categoriesParam, setCategoriesParam] = useQueryState(
-		'categories',
-		parseAsArrayOf(parseAsString, ',').withDefault([]).withOptions(FILTER_HISTORY)
-	)
+		"categories",
+		parseAsArrayOf(parseAsString, ",")
+			.withDefault([])
+			.withOptions(FILTER_HISTORY),
+	);
 	// Phase 63: ISO date strings (`YYYY-MM-DD` form).
 	const [fromParam, setFromParam] = useQueryState(
-		'from',
-		parseAsString.withDefault('').withOptions(FILTER_HISTORY)
-	)
+		"from",
+		parseAsString.withDefault("").withOptions(FILTER_HISTORY),
+	);
 	const [toParam, setToParam] = useQueryState(
-		'to',
-		parseAsString.withDefault('').withOptions(FILTER_HISTORY)
-	)
+		"to",
+		parseAsString.withDefault("").withOptions(FILTER_HISTORY),
+	);
 	const [pageParam, setPageParam] = useQueryState(
-		'page',
-		parseAsInteger.withDefault(0)
-	)
+		"page",
+		parseAsInteger.withDefault(0),
+	);
 
 	// Local input mirrors the URL search param but debounces before
 	// committing — we don't want a query-fire on every keystroke.
-	const [searchInput, setSearchInput] = useState(queryParam)
+	const [searchInput, setSearchInput] = useState(queryParam);
 
 	// Sync searchInput when queryParam changes externally (browser back,
 	// shared link landing). Without this, the debounce useEffect below
@@ -151,31 +148,31 @@ export function DocumentsVaultClient() {
 	// back into the URL. The debounce's `searchInput !== queryParam`
 	// guard short-circuits when both are equal, so there's no loop.
 	useEffect(() => {
-		setSearchInput(queryParam)
-	}, [queryParam])
+		setSearchInput(queryParam);
+	}, [queryParam]);
 
 	useEffect(() => {
 		const id = window.setTimeout(() => {
 			if (searchInput !== queryParam) {
-				void setQueryParam(searchInput || null)
+				void setQueryParam(searchInput || null);
 				// Reset to page 0 when the query changes — current page may
 				// be out of bounds for the new result set.
-				void setPageParam(null)
+				void setPageParam(null);
 			}
-		}, 300)
-		return () => window.clearTimeout(id)
-	}, [searchInput, queryParam, setQueryParam, setPageParam])
+		}, 300);
+		return () => window.clearTimeout(id);
+	}, [searchInput, queryParam, setQueryParam, setPageParam]);
 
 	// Validate the URL-supplied entity filter against the known set so a
 	// bookmarked or attacker-tampered `?entity=banana` degrades to "All
 	// types" instead of being passed unchecked into the RPC. Memoise so
 	// the queryKey stays stable.
 	const entityType = useMemo<DocumentEntityType | undefined>(() => {
-		if (entityParam === ANY_ENTITY) return undefined
+		if (entityParam === ANY_ENTITY) return undefined;
 		return (DOCUMENT_ENTITY_TYPES as readonly string[]).includes(entityParam)
 			? (entityParam as DocumentEntityType)
-			: undefined
-	}, [entityParam])
+			: undefined;
+	}, [entityParam]);
 
 	// Phase 63: multi-select category. Drop unknown values from the URL
 	// array (partial reject — `?categories=lease,banana` keeps `lease`,
@@ -187,58 +184,56 @@ export function DocumentsVaultClient() {
 	// so `useMemo([categoriesParam])` would re-run the filter on every
 	// render. Joining the array gives a stable string identity — same
 	// content, same key, no wasted work.
-	const {
-		categories: ownedCategories,
-		isLoading: categoriesLoading
-	} = useDocumentCategories()
+	const { categories: ownedCategories, isLoading: categoriesLoading } =
+		useDocumentCategories();
 	const categoryOptions = useMemo(
 		() =>
-			ownedCategories.map(c => ({
+			ownedCategories.map((c) => ({
 				value: c.slug,
-				label: c.label
+				label: c.label,
 			})),
-		[ownedCategories]
-	)
+		[ownedCategories],
+	);
 	const ownedSlugSet = useMemo(
-		() => new Set(ownedCategories.map(c => c.slug)),
-		[ownedCategories]
-	)
-	const ownedSlugKey = Array.from(ownedSlugSet).sort().join(',')
-	const categoriesKey = categoriesParam.join(',')
+		() => new Set(ownedCategories.map((c) => c.slug)),
+		[ownedCategories],
+	);
+	const ownedSlugKey = Array.from(ownedSlugSet).sort().join(",");
+	const categoriesKey = categoriesParam.join(",");
 	const categories = useMemo<DocumentCategory[]>(() => {
 		// Don't scrub URL slugs while categories are still loading — we'd
 		// false-reject every value and clear the user's filter on first
 		// render. Treat empty owned-set as "pass through" until the hook
 		// settles.
 		if (ownedSlugKey.length === 0) {
-			return categoriesKey.split(',').filter(Boolean) as DocumentCategory[]
+			return categoriesKey.split(",").filter(Boolean) as DocumentCategory[];
 		}
-		const requested = new Set(categoriesKey.split(',').filter(Boolean))
-		return Array.from(requested).filter(c => ownedSlugSet.has(c))
-	}, [categoriesKey, ownedSlugSet, ownedSlugKey])
+		const requested = new Set(categoriesKey.split(",").filter(Boolean));
+		return Array.from(requested).filter((c) => ownedSlugSet.has(c));
+	}, [categoriesKey, ownedSlugSet, ownedSlugKey]);
 
 	// Phase 63: date-range. Parse the URL YYYY-MM-DD into a local-zone
 	// Date for the picker. The factory expands these to local-zone
 	// start/end-of-day ISO timestamps when calling the RPC.
-	const fromDate = useMemo(() => parseLocalYmd(fromParam), [fromParam])
-	const toDate = useMemo(() => parseLocalYmd(toParam), [toParam])
+	const fromDate = useMemo(() => parseLocalYmd(fromParam), [fromParam]);
+	const toDate = useMemo(() => parseLocalYmd(toParam), [toParam]);
 
 	// When the URL value is rejected by a guard, scrub it from the URL
 	// so the address bar matches what the UI is actually filtering by.
 	// Single effect for all four filters so adding a fifth stays a
 	// one-line change.
-	const entityRejected = entityParam !== ANY_ENTITY && entityType === undefined
+	const entityRejected = entityParam !== ANY_ENTITY && entityType === undefined;
 	const categoriesNeedScrub =
-		categoriesParam.length > 0 && categories.length !== categoriesParam.length
-	const fromRejected = fromParam !== '' && fromDate === undefined
-	const toRejected = toParam !== '' && toDate === undefined
+		categoriesParam.length > 0 && categories.length !== categoriesParam.length;
+	const fromRejected = fromParam !== "" && fromDate === undefined;
+	const toRejected = toParam !== "" && toDate === undefined;
 	useEffect(() => {
-		if (entityRejected) void setEntityParam(null)
+		if (entityRejected) void setEntityParam(null);
 		if (categoriesNeedScrub) {
-			void setCategoriesParam(categories.length > 0 ? categories : null)
+			void setCategoriesParam(categories.length > 0 ? categories : null);
 		}
-		if (fromRejected) void setFromParam(null)
-		if (toRejected) void setToParam(null)
+		if (fromRejected) void setFromParam(null);
+		if (toRejected) void setToParam(null);
 	}, [
 		entityRejected,
 		categoriesNeedScrub,
@@ -248,8 +243,8 @@ export function DocumentsVaultClient() {
 		setEntityParam,
 		setCategoriesParam,
 		setFromParam,
-		setToParam
-	])
+		setToParam,
+	]);
 
 	const { data, isLoading, isFetching, isError, refetch } = useQuery(
 		documentSearchQueries.list({
@@ -258,74 +253,77 @@ export function DocumentsVaultClient() {
 			...(categories.length > 0 ? { categories } : {}),
 			...(fromParam ? { from: fromParam } : {}),
 			...(toParam ? { to: toParam } : {}),
-			page: pageParam
-		})
-	)
+			page: pageParam,
+		}),
+	);
 
-	const totalCount = data?.totalCount ?? 0
-	const pageStart = pageParam * SEARCH_PAGE_SIZE
-	const pageEnd = pageStart + (data?.rows.length ?? 0)
-	const hasNextPage = pageEnd < totalCount
-	const hasPrevPage = pageParam > 0
+	const totalCount = data?.totalCount ?? 0;
+	const pageStart = pageParam * SEARCH_PAGE_SIZE;
+	const pageEnd = pageStart + (data?.rows.length ?? 0);
+	const hasNextPage = pageEnd < totalCount;
+	const hasPrevPage = pageParam > 0;
 	// Defer the "Showing X-Y" header during pagination refetches so the
 	// stale page-0 row count doesn't display "Showing 51-100 of 51"
 	// momentarily after clicking Next.
-	const showRangeHeader = totalCount > 0 && !isFetching
+	const showRangeHeader = totalCount > 0 && !isFetching;
 
 	// Phase 64: bulk-download-as-zip. POSTs the current filter set to
 	// the download-documents-zip Edge Function which re-runs
 	// search_documents server-side under the caller's JWT (RLS-scoped
 	// to their own docs) and streams a zip back. Disabled when the
 	// match exceeds the per-request cap or no docs match.
-	const [isDownloading, setIsDownloading] = useState(false)
+	const [isDownloading, setIsDownloading] = useState(false);
 	// Mutable ref companion to `isDownloading` — the React state value is
 	// captured in the click-handler closure at render time, so a fast
 	// double-click that fires before React commits the next render would
 	// see `isDownloading === false` in BOTH closures and bypass the
 	// state-based guard. A ref updates synchronously and reads the same
 	// value across closures, closing that gap.
-	const downloadInFlightRef = useRef(false)
+	const downloadInFlightRef = useRef(false);
 	const canDownload =
-		totalCount > 0 && totalCount <= BULK_DOWNLOAD_MAX && !isDownloading
+		totalCount > 0 && totalCount <= BULK_DOWNLOAD_MAX && !isDownloading;
 	async function handleBulkDownload() {
-		if (downloadInFlightRef.current) return
-		downloadInFlightRef.current = true
-		setIsDownloading(true)
+		if (downloadInFlightRef.current) return;
+		downloadInFlightRef.current = true;
+		setIsDownloading(true);
 		try {
-			const supabase = createClient()
-			const { data: sessionData } = await supabase.auth.getSession()
-			const token = sessionData.session?.access_token
+			const supabase = createClient();
+			const { data: sessionData } = await supabase.auth.getSession();
+			const token = sessionData.session?.access_token;
 			if (!token) {
-				toast.error('Sign in to download documents.')
-				return
+				toast.error("Sign in to download documents.");
+				return;
 			}
-			const baseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-			const res = await fetch(`${baseUrl}/functions/v1/download-documents-zip`, {
-				method: 'POST',
-				headers: {
-					Authorization: `Bearer ${token}`,
-					'Content-Type': 'application/json'
+			const baseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+			const res = await fetch(
+				`${baseUrl}/functions/v1/download-documents-zip`,
+				{
+					method: "POST",
+					headers: {
+						Authorization: `Bearer ${token}`,
+						"Content-Type": "application/json",
+					},
+					body: JSON.stringify({
+						query: queryParam || null,
+						entityType: entityType ?? null,
+						categories: categories.length > 0 ? categories : null,
+						// Mirror documentSearchQueries.list expansion so the
+						// bulk-download path queries the SAME row set the user
+						// just saw counted in the UI. Expansion runs in the
+						// browser's local zone (the only place we know the
+						// user's timezone) and the Edge Function passes the
+						// resulting ISO timestamps through to the RPC unchanged.
+						from: expandDateBoundary(fromParam || undefined, false),
+						to: expandDateBoundary(toParam || undefined, true),
+					}),
 				},
-				body: JSON.stringify({
-					query: queryParam || null,
-					entityType: entityType ?? null,
-					categories: categories.length > 0 ? categories : null,
-					// Mirror documentSearchQueries.list expansion so the
-					// bulk-download path queries the SAME row set the user
-					// just saw counted in the UI. Expansion runs in the
-					// browser's local zone (the only place we know the
-					// user's timezone) and the Edge Function passes the
-					// resulting ISO timestamps through to the RPC unchanged.
-					from: expandDateBoundary(fromParam || undefined, false),
-					to: expandDateBoundary(toParam || undefined, true)
-				})
-			})
+			);
 			if (!res.ok) {
 				const body = (await res
 					.json()
-					.catch(() => ({ error: res.statusText }))) as { error?: string }
-				toast.error(body.error ?? 'Download failed')
-				return
+					.catch(() => ({ error: res.statusText }))) as { error?: string };
+				toast.error(body.error ?? "Download failed");
+				return;
 			}
 			// NOTE: res.blob() buffers the entire zip in memory before
 			// triggering the download. The Edge Function streams server-
@@ -335,26 +333,26 @@ export function DocumentsVaultClient() {
 			// v2.7 if power-user feedback warrants it.
 			if (totalCount > 100) {
 				console.warn(
-					`bulk download buffering ${totalCount} documents in memory; large archives may strain low-spec browsers`
-				)
+					`bulk download buffering ${totalCount} documents in memory; large archives may strain low-spec browsers`,
+				);
 			}
-			const blob = await res.blob()
-			const url = URL.createObjectURL(blob)
-			const today = new Date().toISOString().slice(0, 10)
-			const a = document.createElement('a')
-			a.href = url
-			a.download = `tenantflow-documents-${today}.zip`
-			document.body.appendChild(a)
-			a.click()
-			a.remove()
-			URL.revokeObjectURL(url)
+			const blob = await res.blob();
+			const url = URL.createObjectURL(blob);
+			const today = new Date().toISOString().slice(0, 10);
+			const a = document.createElement("a");
+			a.href = url;
+			a.download = `tenantflow-documents-${today}.zip`;
+			document.body.appendChild(a);
+			a.click();
+			a.remove();
+			URL.revokeObjectURL(url);
 		} catch (err) {
 			toast.error(
-				err instanceof Error ? err.message : 'Download failed unexpectedly.'
-			)
+				err instanceof Error ? err.message : "Download failed unexpectedly.",
+			);
 		} finally {
-			downloadInFlightRef.current = false
-			setIsDownloading(false)
+			downloadInFlightRef.current = false;
+			setIsDownloading(false);
 		}
 	}
 
@@ -370,10 +368,10 @@ export function DocumentsVaultClient() {
 		!!data &&
 		data.rows.length === 0 &&
 		totalCount > 0 &&
-		pageParam > 0
+		pageParam > 0;
 	useEffect(() => {
-		if (isOutOfBounds) void setPageParam(null)
-	}, [isOutOfBounds, setPageParam])
+		if (isOutOfBounds) void setPageParam(null);
+	}, [isOutOfBounds, setPageParam]);
 
 	return (
 		<div className="container mx-auto space-y-6 py-6">
@@ -400,15 +398,15 @@ export function DocumentsVaultClient() {
 								placeholder="Search by title, description, or tag..."
 								className="pl-9"
 								value={searchInput}
-								onChange={e => setSearchInput(e.target.value)}
+								onChange={(e) => setSearchInput(e.target.value)}
 								aria-label="Search documents"
 							/>
 						</div>
 						<Select
 							value={entityParam}
-							onValueChange={value => {
-								void setEntityParam(value === ANY_ENTITY ? null : value)
-								void setPageParam(null)
+							onValueChange={(value) => {
+								void setEntityParam(value === ANY_ENTITY ? null : value);
+								void setPageParam(null);
 							}}
 						>
 							<SelectTrigger aria-label="Filter by entity type">
@@ -416,7 +414,7 @@ export function DocumentsVaultClient() {
 							</SelectTrigger>
 							<SelectContent>
 								<SelectItem value={ANY_ENTITY}>All types</SelectItem>
-								{DOCUMENT_ENTITY_TYPES.map(type => (
+								{DOCUMENT_ENTITY_TYPES.map((type) => (
 									<SelectItem key={type} value={type}>
 										{ENTITY_TYPE_LABELS[type]}
 									</SelectItem>
@@ -426,26 +424,22 @@ export function DocumentsVaultClient() {
 						<MultiSelectChips<DocumentCategory>
 							options={categoryOptions}
 							value={categories}
-							onChange={next => {
-								void setCategoriesParam(next.length > 0 ? next : null)
-								void setPageParam(null)
+							onChange={(next) => {
+								void setCategoriesParam(next.length > 0 ? next : null);
+								void setPageParam(null);
 							}}
-							placeholder={
-								categoriesLoading ? 'Loading…' : 'All categories'
-							}
+							placeholder={categoriesLoading ? "Loading…" : "All categories"}
 							aria-label="Filter by category"
 							disabled={categoriesLoading}
 						/>
 						<DateRangePicker
 							value={{ from: fromDate, to: toDate }}
-							onChange={range => {
+							onChange={(range) => {
 								void setFromParam(
-									range.from ? formatLocalYmd(range.from) : null
-								)
-								void setToParam(
-									range.to ? formatLocalYmd(range.to) : null
-								)
-								void setPageParam(null)
+									range.from ? formatLocalYmd(range.from) : null,
+								);
+								void setToParam(range.to ? formatLocalYmd(range.to) : null);
+								void setPageParam(null);
 							}}
 							placeholder="Any date"
 							aria-label="Filter by date range"
@@ -458,8 +452,8 @@ export function DocumentsVaultClient() {
 				<CardHeader className="flex flex-row items-center justify-between space-y-0">
 					<CardTitle className="text-base flex items-center gap-2">
 						{totalCount > 0
-							? `${totalCount} document${totalCount === 1 ? '' : 's'}`
-							: 'Results'}
+							? `${totalCount} document${totalCount === 1 ? "" : "s"}`
+							: "Results"}
 						{isFetching && !isLoading && (
 							<Loader2
 								className="size-4 animate-spin text-muted-foreground"
@@ -478,7 +472,7 @@ export function DocumentsVaultClient() {
 								size="sm"
 								variant="outline"
 								onClick={() => {
-									void handleBulkDownload()
+									void handleBulkDownload();
 								}}
 								disabled={!canDownload}
 								title={
@@ -489,7 +483,10 @@ export function DocumentsVaultClient() {
 							>
 								{isDownloading ? (
 									<>
-										<Loader2 className="size-4 mr-2 animate-spin" aria-hidden="true" />
+										<Loader2
+											className="size-4 mr-2 animate-spin"
+											aria-hidden="true"
+										/>
 										Preparing zip...
 									</>
 								) : (
@@ -514,7 +511,13 @@ export function DocumentsVaultClient() {
 							icon={<AlertTriangle className="size-8 text-destructive" />}
 							title="We couldn't load your documents."
 							action={
-								<Button size="sm" variant="outline" onClick={() => { void refetch() }}>
+								<Button
+									size="sm"
+									variant="outline"
+									onClick={() => {
+										void refetch();
+									}}
+								>
 									Try again
 								</Button>
 							}
@@ -523,20 +526,28 @@ export function DocumentsVaultClient() {
 						<EmptyState
 							icon={<FolderArchive className="size-8 opacity-50" />}
 							title={
-								queryParam || entityType || categories.length > 0 || fromParam || toParam
-									? 'No documents match your search.'
-									: 'No documents uploaded yet.'
+								queryParam ||
+								entityType ||
+								categories.length > 0 ||
+								fromParam ||
+								toParam
+									? "No documents match your search."
+									: "No documents uploaded yet."
 							}
 							subtitle={
-								queryParam || entityType || categories.length > 0 || fromParam || toParam
-									? 'Try a different keyword or filter.'
-									: 'Open a property, lease, tenant, maintenance request, or inspection to upload your first document.'
+								queryParam ||
+								entityType ||
+								categories.length > 0 ||
+								fromParam ||
+								toParam
+									? "Try a different keyword or filter."
+									: "Open a property, lease, tenant, maintenance request, or inspection to upload your first document."
 							}
 						/>
 					) : (
 						<>
 							<ul className="divide-y divide-border">
-								{data.rows.map(doc => (
+								{data.rows.map((doc) => (
 									<DocumentVaultRow key={doc.id} doc={doc} />
 								))}
 							</ul>
@@ -546,18 +557,23 @@ export function DocumentsVaultClient() {
 										size="sm"
 										variant="outline"
 										disabled={!hasPrevPage}
-										onClick={() => { void setPageParam(pageParam - 1) }}
+										onClick={() => {
+											void setPageParam(pageParam - 1);
+										}}
 									>
 										Previous
 									</Button>
 									<span className="text-xs text-muted-foreground">
-										Page {pageParam + 1} of {Math.ceil(totalCount / SEARCH_PAGE_SIZE)}
+										Page {pageParam + 1} of{" "}
+										{Math.ceil(totalCount / SEARCH_PAGE_SIZE)}
 									</span>
 									<Button
 										size="sm"
 										variant="outline"
 										disabled={!hasNextPage}
-										onClick={() => { void setPageParam(pageParam + 1) }}
+										onClick={() => {
+											void setPageParam(pageParam + 1);
+										}}
 									>
 										Next
 									</Button>
@@ -568,27 +584,27 @@ export function DocumentsVaultClient() {
 				</CardContent>
 			</Card>
 		</div>
-	)
+	);
 }
 
 // Vault rows reuse the per-entity DocumentRow but omit `onDelete` —
 // the vault is a read view; deletion happens on the entity detail
 // page so list-cache invalidation stays scoped to that entity.
 function DocumentVaultRow({ doc }: { doc: DocumentRowData }) {
-	const [isOpen, setIsOpen] = useState(false)
-	return <DocumentRow doc={doc} isOpen={isOpen} onOpenChange={setIsOpen} />
+	const [isOpen, setIsOpen] = useState(false);
+	return <DocumentRow doc={doc} isOpen={isOpen} onOpenChange={setIsOpen} />;
 }
 
 function EmptyState({
 	icon,
 	title,
 	subtitle,
-	action
+	action,
 }: {
-	icon: React.ReactNode
-	title: string
-	subtitle?: string
-	action?: React.ReactNode
+	icon: React.ReactNode;
+	title: string;
+	subtitle?: string;
+	action?: React.ReactNode;
 }) {
 	return (
 		<div className="text-center py-12 text-muted-foreground space-y-3">
@@ -597,5 +613,5 @@ function EmptyState({
 			{subtitle && <p className="text-xs">{subtitle}</p>}
 			{action}
 		</div>
-	)
+	);
 }

@@ -1,31 +1,31 @@
-'use client'
+"use client";
 
 import {
+	Clock,
+	Copy,
+	Download,
+	Edit,
+	Eye,
 	FileText,
 	MoreVertical,
-	Edit,
-	Copy,
-	Trash2,
 	Star,
-	Clock,
-	Download,
-	Eye
-} from 'lucide-react'
-import { BlurFade } from '#components/ui/blur-fade'
-import type { LeaseTemplate } from './lease-template-types'
-import { CLAUSE_LABELS, formatTemplateDate } from './lease-template-types'
+	Trash2,
+} from "lucide-react";
+import { BlurFade } from "#components/ui/blur-fade";
+import type { LeaseTemplate } from "./lease-template-types";
+import { CLAUSE_LABELS, formatTemplateDate } from "./lease-template-types";
 
 interface LeaseTemplateCardProps {
-	template: LeaseTemplate
-	index: number
-	openMenuId: string | null
-	onMenuToggle: (templateId: string | null) => void
-	onPreviewTemplate: (templateId: string) => void
-	onEditTemplate: (templateId: string) => void
-	onDuplicateTemplate: (templateId: string) => void
-	onSetDefault: (templateId: string) => void
-	onDownloadTemplate: (templateId: string) => void
-	onDeleteTemplate: (templateId: string) => void
+	template: LeaseTemplate;
+	index: number;
+	openMenuId: string | null;
+	onMenuToggle: (templateId: string | null) => void;
+	onPreviewTemplate: (templateId: string) => void;
+	onEditTemplate: (templateId: string) => void;
+	onDuplicateTemplate: (templateId: string) => void;
+	onSetDefault: (templateId: string) => void;
+	onDownloadTemplate: (templateId: string) => void;
+	onDeleteTemplate: (templateId: string) => void;
 }
 
 export function LeaseTemplateCard({
@@ -38,7 +38,7 @@ export function LeaseTemplateCard({
 	onDuplicateTemplate,
 	onSetDefault,
 	onDownloadTemplate,
-	onDeleteTemplate
+	onDeleteTemplate,
 }: LeaseTemplateCardProps) {
 	return (
 		<BlurFade delay={0.45 + index * 0.05} inView>
@@ -70,8 +70,8 @@ export function LeaseTemplateCard({
 								<div className="py-1">
 									<button
 										onClick={() => {
-											onPreviewTemplate(template.id)
-											onMenuToggle(null)
+											onPreviewTemplate(template.id);
+											onMenuToggle(null);
 										}}
 										className="w-full flex items-center gap-2 px-4 py-2 text-sm hover:bg-muted transition-colors"
 									>
@@ -80,8 +80,8 @@ export function LeaseTemplateCard({
 									</button>
 									<button
 										onClick={() => {
-											onEditTemplate(template.id)
-											onMenuToggle(null)
+											onEditTemplate(template.id);
+											onMenuToggle(null);
 										}}
 										className="w-full flex items-center gap-2 px-4 py-2 text-sm hover:bg-muted transition-colors"
 									>
@@ -90,8 +90,8 @@ export function LeaseTemplateCard({
 									</button>
 									<button
 										onClick={() => {
-											onDuplicateTemplate(template.id)
-											onMenuToggle(null)
+											onDuplicateTemplate(template.id);
+											onMenuToggle(null);
 										}}
 										className="w-full flex items-center gap-2 px-4 py-2 text-sm hover:bg-muted transition-colors"
 									>
@@ -100,8 +100,8 @@ export function LeaseTemplateCard({
 									</button>
 									<button
 										onClick={() => {
-											onSetDefault(template.id)
-											onMenuToggle(null)
+											onSetDefault(template.id);
+											onMenuToggle(null);
 										}}
 										className="w-full flex items-center gap-2 px-4 py-2 text-sm hover:bg-muted transition-colors"
 									>
@@ -110,8 +110,8 @@ export function LeaseTemplateCard({
 									</button>
 									<button
 										onClick={() => {
-											onDownloadTemplate(template.id)
-											onMenuToggle(null)
+											onDownloadTemplate(template.id);
+											onMenuToggle(null);
 										}}
 										className="w-full flex items-center gap-2 px-4 py-2 text-sm hover:bg-muted transition-colors"
 									>
@@ -121,8 +121,8 @@ export function LeaseTemplateCard({
 									<div className="border-t border-border my-1" />
 									<button
 										onClick={() => {
-											onDeleteTemplate(template.id)
-											onMenuToggle(null)
+											onDeleteTemplate(template.id);
+											onMenuToggle(null);
 										}}
 										className="w-full flex items-center gap-2 px-4 py-2 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors"
 									>
@@ -137,7 +137,7 @@ export function LeaseTemplateCard({
 				<div className="flex items-center gap-3 mt-3 text-xs text-muted-foreground">
 					<span>
 						{template.leaseTerm === 1
-							? 'Month-to-month'
+							? "Month-to-month"
 							: `${template.leaseTerm}mo`}
 					</span>
 					<span>•</span>
@@ -149,7 +149,7 @@ export function LeaseTemplateCard({
 					</span>
 				</div>
 				<div className="flex flex-wrap gap-1.5 mt-3">
-					{template.clauses.slice(0, 4).map(clause => (
+					{template.clauses.slice(0, 4).map((clause) => (
 						<span
 							key={clause}
 							className="inline-flex items-center px-2 py-0.5 text-xs bg-muted rounded-full"
@@ -165,5 +165,5 @@ export function LeaseTemplateCard({
 				</div>
 			</div>
 		</BlurFade>
-	)
+	);
 }

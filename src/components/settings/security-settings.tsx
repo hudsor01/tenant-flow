@@ -1,19 +1,19 @@
-'use client'
+"use client";
 
-import { BlurFade } from '#components/ui/blur-fade'
-import { Skeleton } from '#components/ui/skeleton'
-import { useMfaStatus } from '#hooks/api/use-mfa'
-import { useUserSessions } from '#hooks/api/use-sessions'
-import { PasswordSection } from '#components/settings/sections/password-section'
-import { TwoFactorSection } from '#components/settings/sections/two-factor-section'
-import { ActiveSessionsSection } from '#components/settings/sections/active-sessions-section'
-import { AccountDangerSection } from '#components/settings/sections/account-danger-section'
+import { AccountDangerSection } from "#components/settings/sections/account-danger-section";
+import { ActiveSessionsSection } from "#components/settings/sections/active-sessions-section";
+import { PasswordSection } from "#components/settings/sections/password-section";
+import { TwoFactorSection } from "#components/settings/sections/two-factor-section";
+import { BlurFade } from "#components/ui/blur-fade";
+import { Skeleton } from "#components/ui/skeleton";
+import { useMfaStatus } from "#hooks/api/use-mfa";
+import { useUserSessions } from "#hooks/api/use-sessions";
 
 export function SecuritySettings() {
-	const { isLoading: mfaLoading } = useMfaStatus()
-	const { isLoading: sessionsLoading } = useUserSessions()
+	const { isLoading: mfaLoading } = useMfaStatus();
+	const { isLoading: sessionsLoading } = useUserSessions();
 
-	const isLoading = mfaLoading || sessionsLoading
+	const isLoading = mfaLoading || sessionsLoading;
 
 	if (isLoading) {
 		return (
@@ -23,7 +23,7 @@ export function SecuritySettings() {
 				<Skeleton className="h-32 rounded-lg" />
 				<Skeleton className="h-48 rounded-lg" />
 			</div>
-		)
+		);
 	}
 
 	return (
@@ -42,5 +42,5 @@ export function SecuritySettings() {
 			<ActiveSessionsSection />
 			<AccountDangerSection />
 		</div>
-	)
+	);
 }

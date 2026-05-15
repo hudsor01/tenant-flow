@@ -14,13 +14,13 @@
  * `rehype-sanitize` are pure Node libs with no DOM-only dependencies,
  * so they render identically in both passes.
  */
-import ReactMarkdown from 'react-markdown'
-import remarkGfm from 'remark-gfm'
-import rehypeRaw from 'rehype-raw'
-import rehypeSanitize from 'rehype-sanitize'
+import ReactMarkdown from "react-markdown";
+import rehypeRaw from "rehype-raw";
+import rehypeSanitize from "rehype-sanitize";
+import remarkGfm from "remark-gfm";
 
 interface MarkdownContentProps {
-	content: string
+	content: string;
 }
 
 export default function MarkdownContent({ content }: MarkdownContentProps) {
@@ -31,5 +31,5 @@ export default function MarkdownContent({ content }: MarkdownContentProps) {
 		>
 			{content}
 		</ReactMarkdown>
-	)
+	);
 }

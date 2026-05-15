@@ -5,32 +5,35 @@
  * Split from use-inspection-mutations.ts for the 300-line file size rule.
  */
 
-import { useMutation, useQueryClient } from '@tanstack/react-query'
-import type { UpdateInspectionRoomInput } from '#lib/validation/inspections'
-
-import { inspectionQueries } from './query-keys/inspection-keys'
-import { inspectionMutations } from './query-keys/inspection-mutation-options'
-import { createClient } from '#lib/supabase/client'
-import { handlePostgrestError } from '#lib/postgrest-error-handler'
-import { handleMutationError, handleMutationSuccess } from '#lib/mutation-error-handler'
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import {
+	handleMutationError,
+	handleMutationSuccess,
+} from "#lib/mutation-error-handler";
+import { handlePostgrestError } from "#lib/postgrest-error-handler";
+import { createClient } from "#lib/supabase/client";
+import type { UpdateInspectionRoomInput } from "#lib/validation/inspections";
+import { inspectionQueries } from "./query-keys/inspection-keys";
+import { inspectionMutations } from "./query-keys/inspection-mutation-options";
 
 /**
  * Add a room to an inspection
  */
 export function useCreateInspectionRoom() {
-	const queryClient = useQueryClient()
+	const queryClient = useQueryClient();
 
 	return useMutation({
 		...inspectionMutations.createRoom(),
 		onSuccess: (_, variables) => {
 			queryClient.invalidateQueries({
-				queryKey: inspectionQueries.detailQuery(variables.inspection_id).queryKey
-			})
+				queryKey: inspectionQueries.detailQuery(variables.inspection_id)
+					.queryKey,
+			});
 		},
 		onError: (error) => {
-			handleMutationError(error, 'Add inspection room')
-		}
-	})
+			handleMutationError(error, "Add inspection room");
+		},
+	});
 }
 
 /**
@@ -39,33 +42,33 @@ export function useCreateInspectionRoom() {
  * roomId at creation time, but this hook receives { roomId, dto } as variables.
  */
 export function useUpdateInspectionRoom(inspectionId: string) {
-	const queryClient = useQueryClient()
+	const queryClient = useQueryClient();
 
 	return useMutation({
 		mutationFn: async ({
 			roomId,
-			dto
+			dto,
 		}: {
-			roomId: string
-			dto: UpdateInspectionRoomInput
+			roomId: string;
+			dto: UpdateInspectionRoomInput;
 		}) => {
-			const supabase = createClient()
+			const supabase = createClient();
 			const { error } = await supabase
-				.from('inspection_rooms')
+				.from("inspection_rooms")
 				.update(dto)
-				.eq('id', roomId)
+				.eq("id", roomId);
 
-			if (error) handlePostgrestError(error, 'inspection_rooms')
+			if (error) handlePostgrestError(error, "inspection_rooms");
 		},
 		onSuccess: () => {
 			queryClient.invalidateQueries({
-				queryKey: inspectionQueries.detailQuery(inspectionId).queryKey
-			})
+				queryKey: inspectionQueries.detailQuery(inspectionId).queryKey,
+			});
 		},
 		onError: (error) => {
-			handleMutationError(error, 'Update inspection room')
-		}
-	})
+			handleMutationError(error, "Update inspection room");
+		},
+	});
 }
 
 /**
@@ -74,18 +77,18 @@ export function useUpdateInspectionRoom(inspectionId: string) {
  * Attempts storage cleanup for each photo (non-blocking).
  */
 export function useDeleteInspectionRoom(inspectionId: string) {
-	const queryClient = useQueryClient()
+	const queryClient = useQueryClient();
 
 	return useMutation({
 		...inspectionMutations.deleteRoom(),
 		onSuccess: () => {
 			queryClient.invalidateQueries({
-				queryKey: inspectionQueries.detailQuery(inspectionId).queryKey
-			})
-			handleMutationSuccess('Delete room', 'Room removed')
+				queryKey: inspectionQueries.detailQuery(inspectionId).queryKey,
+			});
+			handleMutationSuccess("Delete room", "Room removed");
 		},
 		onError: (error) => {
-			handleMutationError(error, 'Delete inspection room')
-		}
-	})
+			handleMutationError(error, "Delete inspection room");
+		},
+	});
 }

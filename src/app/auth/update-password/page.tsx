@@ -8,51 +8,47 @@
  * We detect this and show an error state with a recovery option.
  */
 
-'use client'
+"use client";
 
-import { UpdatePasswordForm } from '#components/auth/update-password-form'
-import { ForgotPasswordModal } from '#components/auth/forgot-password-modal'
-import { GridPattern } from '#components/ui/grid-pattern'
-import { Button } from '#components/ui/button'
-import { AlertTriangle, ArrowRight } from 'lucide-react'
-import Image from 'next/image'
-import Link from 'next/link'
-import { useEffect, useState } from 'react'
+import { AlertTriangle, ArrowRight } from "lucide-react";
+import Image from "next/image";
+import Link from "next/link";
+import { useEffect, useState } from "react";
+import { ForgotPasswordModal } from "#components/auth/forgot-password-modal";
+import { UpdatePasswordForm } from "#components/auth/update-password-form";
+import { Button } from "#components/ui/button";
+import { GridPattern } from "#components/ui/grid-pattern";
 
-type PageState = 'loading' | 'valid' | 'error'
+type PageState = "loading" | "valid" | "error";
 
 function useResetTokenStatus(): { state: PageState; errorMessage: string } {
-	const [state, setState] = useState<PageState>('loading')
-	const [errorMessage, setErrorMessage] = useState('')
+	const [state, setState] = useState<PageState>("loading");
+	const [errorMessage, setErrorMessage] = useState("");
 
 	useEffect(() => {
 		// Supabase appends error info to the URL hash when a reset link is invalid/expired
 		// e.g. #error=access_denied&error_description=...
-		const hash = window.location.hash.substring(1)
-		const params = new URLSearchParams(hash)
-		const error = params.get('error')
-		const errorDescription = params.get('error_description')
+		const hash = window.location.hash.substring(1);
+		const params = new URLSearchParams(hash);
+		const error = params.get("error");
+		const errorDescription = params.get("error_description");
 
 		if (error) {
 			const message =
-				errorDescription?.replace(/\+/g, ' ') ||
-				'This link has expired or is invalid.'
-			setErrorMessage(message)
-			setState('error')
+				errorDescription?.replace(/\+/g, " ") ||
+				"This link has expired or is invalid.";
+			setErrorMessage(message);
+			setState("error");
 		} else {
-			setState('valid')
+			setState("valid");
 		}
-	}, [])
+	}, []);
 
-	return { state, errorMessage }
+	return { state, errorMessage };
 }
 
-function ExpiredLinkContent({
-	errorMessage
-}: {
-	errorMessage: string
-}) {
-	const [forgotPasswordOpen, setForgotPasswordOpen] = useState(false)
+function ExpiredLinkContent({ errorMessage }: { errorMessage: string }) {
+	const [forgotPasswordOpen, setForgotPasswordOpen] = useState(false);
 
 	return (
 		<>
@@ -100,11 +96,11 @@ function ExpiredLinkContent({
 				onOpenChange={setForgotPasswordOpen}
 			/>
 		</>
-	)
+	);
 }
 
 export default function UpdatePasswordPage() {
-	const { state, errorMessage } = useResetTokenStatus()
+	const { state, errorMessage } = useResetTokenStatus();
 
 	return (
 		<div className="relative min-h-screen flex flex-col lg:flex-row">
@@ -160,7 +156,7 @@ export default function UpdatePasswordPage() {
 								</div>
 							</div>
 
-							{state === 'error' ? (
+							{state === "error" ? (
 								<>
 									<h2 className="text-foreground font-bold text-3xl">
 										Reset Link Issue
@@ -225,22 +221,22 @@ export default function UpdatePasswordPage() {
 						</Link>
 					</div>
 
-					{state === 'loading' && (
+					{state === "loading" && (
 						<div className="flex-center py-20">
 							<div className="size-10 rounded-full border-4 border-primary border-t-transparent animate-spin" />
 						</div>
 					)}
 
-					{state === 'valid' && <UpdatePasswordForm />}
+					{state === "valid" && <UpdatePasswordForm />}
 
-					{state === 'error' && (
+					{state === "error" && (
 						<ExpiredLinkContent errorMessage={errorMessage} />
 					)}
 
 					{/* Footer */}
 					<div className="text-center pt-4">
 						<p className="text-muted-foreground">
-							Remember your password?{' '}
+							Remember your password?{" "}
 							<Link
 								href="/login"
 								className="text-primary hover:underline font-medium"
@@ -252,5 +248,5 @@ export default function UpdatePasswordPage() {
 				</div>
 			</div>
 		</div>
-	)
+	);
 }

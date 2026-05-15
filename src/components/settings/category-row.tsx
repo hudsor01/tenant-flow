@@ -1,21 +1,21 @@
-'use client'
+"use client";
 
-import { useSortable } from '@dnd-kit/sortable'
-import { CSS } from '@dnd-kit/utilities'
-import { GripVertical, Pencil, Trash2 } from 'lucide-react'
-import { Button } from '#components/ui/button'
+import { useSortable } from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
+import { GripVertical, Pencil, Trash2 } from "lucide-react";
+import { Button } from "#components/ui/button";
 import {
 	Tooltip,
 	TooltipContent,
 	TooltipProvider,
-	TooltipTrigger
-} from '#components/ui/tooltip'
-import type { DocumentCategoryRow } from '#hooks/api/query-keys/document-category-keys'
+	TooltipTrigger,
+} from "#components/ui/tooltip";
+import type { DocumentCategoryRow } from "#hooks/api/query-keys/document-category-keys";
 
 interface CategoryRowProps {
-	category: DocumentCategoryRow
-	onEdit: (c: DocumentCategoryRow) => void
-	onDelete: (c: DocumentCategoryRow) => void
+	category: DocumentCategoryRow;
+	onEdit: (c: DocumentCategoryRow) => void;
+	onDelete: (c: DocumentCategoryRow) => void;
 }
 
 /**
@@ -24,13 +24,19 @@ interface CategoryRowProps {
  * delete button (the RPC also rejects server-side as defense-in-depth).
  */
 export function CategoryRow({ category, onEdit, onDelete }: CategoryRowProps) {
-	const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
-		useSortable({ id: category.id })
+	const {
+		attributes,
+		listeners,
+		setNodeRef,
+		transform,
+		transition,
+		isDragging,
+	} = useSortable({ id: category.id });
 	const style = {
 		transform: CSS.Transform.toString(transform),
 		transition,
-		opacity: isDragging ? 0.6 : 1
-	}
+		opacity: isDragging ? 0.6 : 1,
+	};
 	return (
 		<li
 			ref={setNodeRef}
@@ -99,5 +105,5 @@ export function CategoryRow({ category, onEdit, onDelete }: CategoryRowProps) {
 				</Button>
 			)}
 		</li>
-	)
+	);
 }

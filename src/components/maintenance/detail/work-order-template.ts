@@ -1,41 +1,41 @@
 /* eslint-disable color-tokens/no-hex-colors -- Static HTML served to StirlingPDF (third-party PDF renderer); Tailwind design tokens don't resolve in this rendering context. */
 
-import type { MaintenanceRequest } from '#types/core'
+import type { MaintenanceRequest } from "#types/core";
 
 interface WorkOrderExpense {
-	vendor_name: string
-	amount: string
-	expense_date: string
+	vendor_name: string;
+	amount: string;
+	expense_date: string;
 }
 
 interface WorkOrderInput {
-	request: MaintenanceRequest
-	propertyName: string | null
-	unitNumber: string | null
-	expenses: WorkOrderExpense[]
-	totalExpenses: string
+	request: MaintenanceRequest;
+	propertyName: string | null;
+	unitNumber: string | null;
+	expenses: WorkOrderExpense[];
+	totalExpenses: string;
 }
 
 function escapeHtml(text: string | null | undefined): string {
-	if (text === null || text === undefined) return ''
+	if (text === null || text === undefined) return "";
 	return String(text)
-		.replace(/&/g, '&amp;')
-		.replace(/</g, '&lt;')
-		.replace(/>/g, '&gt;')
-		.replace(/"/g, '&quot;')
-		.replace(/'/g, '&#39;')
+		.replace(/&/g, "&amp;")
+		.replace(/</g, "&lt;")
+		.replace(/>/g, "&gt;")
+		.replace(/"/g, "&quot;")
+		.replace(/'/g, "&#39;");
 }
 
 function formatDate(iso: string | null | undefined): string {
-	if (!iso) return '—'
+	if (!iso) return "—";
 	try {
-		return new Date(iso).toLocaleDateString('en-US', {
-			year: 'numeric',
-			month: 'long',
-			day: 'numeric'
-		})
+		return new Date(iso).toLocaleDateString("en-US", {
+			year: "numeric",
+			month: "long",
+			day: "numeric",
+		});
 	} catch {
-		return '—'
+		return "—";
 	}
 }
 
@@ -47,18 +47,18 @@ function formatDate(iso: string | null | undefined): string {
  * eslint-disabled above, consistent with rent-increase-notice-dialog.tsx.
  */
 export function buildWorkOrderHtml(input: WorkOrderInput): string {
-	const { request, propertyName, unitNumber, expenses, totalExpenses } = input
-	const hasExpenses = expenses.length > 0
+	const { request, propertyName, unitNumber, expenses, totalExpenses } = input;
+	const hasExpenses = expenses.length > 0;
 
 	const expenseRows = expenses
 		.map(
-			e => `<tr>
+			(e) => `<tr>
   <td>${escapeHtml(formatDate(e.expense_date))}</td>
   <td>${escapeHtml(e.vendor_name)}</td>
   <td style="text-align:right;">${escapeHtml(e.amount)}</td>
-</tr>`
+</tr>`,
 		)
-		.join('')
+		.join("");
 
 	return `<!DOCTYPE html>
 <html lang="en">
@@ -91,23 +91,23 @@ export function buildWorkOrderHtml(input: WorkOrderInput): string {
   <div class="grid">
     <div>
       <div class="field-label">Title</div>
-      <div class="field-value">${escapeHtml(request.title ?? request.description ?? '—')}</div>
+      <div class="field-value">${escapeHtml(request.title ?? request.description ?? "—")}</div>
     </div>
     <div>
       <div class="field-label">Status</div>
-      <div class="field-value">${escapeHtml(request.status ?? '—')}</div>
+      <div class="field-value">${escapeHtml(request.status ?? "—")}</div>
     </div>
     <div>
       <div class="field-label">Priority</div>
-      <div class="field-value">${escapeHtml(request.priority ?? '—')}</div>
+      <div class="field-value">${escapeHtml(request.priority ?? "—")}</div>
     </div>
     <div>
       <div class="field-label">Property</div>
-      <div class="field-value">${escapeHtml(propertyName ?? '—')}</div>
+      <div class="field-value">${escapeHtml(propertyName ?? "—")}</div>
     </div>
     <div>
       <div class="field-label">Unit</div>
-      <div class="field-value">${escapeHtml(unitNumber ?? '—')}</div>
+      <div class="field-value">${escapeHtml(unitNumber ?? "—")}</div>
     </div>
     <div>
       <div class="field-label">Reported</div>
@@ -123,12 +123,12 @@ export function buildWorkOrderHtml(input: WorkOrderInput): string {
     </div>
     <div>
       <div class="field-label">Assigned to</div>
-      <div class="field-value">${escapeHtml(request.assigned_to ?? '—')}</div>
+      <div class="field-value">${escapeHtml(request.assigned_to ?? "—")}</div>
     </div>
   </div>
 
   <div class="section-title">Description</div>
-  <div class="description">${escapeHtml(request.description ?? '—')}</div>
+  <div class="description">${escapeHtml(request.description ?? "—")}</div>
 
   ${
 		hasExpenses
@@ -145,7 +145,7 @@ export function buildWorkOrderHtml(input: WorkOrderInput): string {
       </tr>
     </tfoot>
   </table>`
-			: ''
+			: ""
 	}
 
   <div class="signature">
@@ -153,5 +153,5 @@ export function buildWorkOrderHtml(input: WorkOrderInput): string {
     <div class="signature-line">Property owner signature / date</div>
   </div>
 </body>
-</html>`
+</html>`;
 }

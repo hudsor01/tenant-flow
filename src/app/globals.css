@@ -1,5 +1,5 @@
-@import 'tailwindcss';
-@import 'tw-animate-css';
+@import "tailwindcss";
+@import "tw-animate-css";
 @plugin "@tailwindcss/typography";
 
 @source "..*.{ts,tsx}";
@@ -18,12 +18,13 @@
 	   ========================================================================== */
 
 	/* Font Stacks */
-	--font-sans: var(--font-sans), system-ui, -apple-system, BlinkMacSystemFont,
-		'Segoe UI', Roboto, sans-serif;
-	--font-display: var(--font-display), 'Playfair Display', Georgia,
-		'Times New Roman', serif;
-	--font-mono: var(--font-geist-mono), ui-monospace, 'SF Mono', 'Cascadia Code',
-		monospace;
+	--font-sans:
+		var(--font-sans), system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+		Roboto, sans-serif;
+	--font-display:
+		var(--font-display), "Playfair Display", Georgia, "Times New Roman", serif;
+	--font-mono:
+		var(--font-geist-mono), ui-monospace, "SF Mono", "Cascadia Code", monospace;
 
 	/* ============================================================================
 	   Typography Scale - 5-Level Hierarchy
@@ -36,41 +37,49 @@
 	   ========================================================================== */
 
 	/* Level 1: Display - Marketing/Hero (impactful, fluid) */
-	--text-display-hero: clamp(3rem, 8vw, 5rem);      /* 48-80px - main hero */
-	--text-display-lg: clamp(2.5rem, 6vw, 4rem);      /* 40-64px - secondary hero */
-	--text-display: clamp(2rem, 5vw, 3rem);           /* 32-48px - feature headlines */
-	--text-display-sm: clamp(1.5rem, 3.5vw, 2.25rem); /* 24-36px - section intros */
+	--text-display-hero: clamp(3rem, 8vw, 5rem); /* 48-80px - main hero */
+	--text-display-lg: clamp(2.5rem, 6vw, 4rem); /* 40-64px - secondary hero */
+	--text-display: clamp(2rem, 5vw, 3rem); /* 32-48px - feature headlines */
+	--text-display-sm: clamp(
+		1.5rem,
+		3.5vw,
+		2.25rem
+	); /* 24-36px - section intros */
 
 	/* Level 2: Title - App headings (clear, readable) */
-	--text-title-1: clamp(1.5rem, 3vw, 1.875rem);     /* 24-30px - page titles */
-	--text-title-2: clamp(1.25rem, 2.5vw, 1.5rem);    /* 20-24px - section headings */
-	--text-title-3: clamp(1rem, 2vw, 1.25rem);        /* 16-20px - card titles */
-	--text-title-4: clamp(0.875rem, 1.5vw, 1rem);     /* 14-16px - subsections */
+	--text-title-1: clamp(1.5rem, 3vw, 1.875rem); /* 24-30px - page titles */
+	--text-title-2: clamp(
+		1.25rem,
+		2.5vw,
+		1.5rem
+	); /* 20-24px - section headings */
+	--text-title-3: clamp(1rem, 2vw, 1.25rem); /* 16-20px - card titles */
+	--text-title-4: clamp(0.875rem, 1.5vw, 1rem); /* 14-16px - subsections */
 
 	/* Level 3: Body - Content text (optimized for reading) */
-	--text-base: 1rem;       /* 16px - standard body */
-	--text-lg: 1.125rem;     /* 18px - lead paragraphs */
-	--text-xl: 1.25rem;      /* 20px - emphasized content */
+	--text-base: 1rem; /* 16px - standard body */
+	--text-lg: 1.125rem; /* 18px - lead paragraphs */
+	--text-xl: 1.25rem; /* 20px - emphasized content */
 
 	/* Level 4: Small - Secondary UI text */
-	--text-sm: 0.875rem;     /* 14px - UI labels, secondary */
-	--text-xs: 0.75rem;      /* 12px - small labels, badges */
+	--text-sm: 0.875rem; /* 14px - UI labels, secondary */
+	--text-xs: 0.75rem; /* 12px - small labels, badges */
 
 	/* Level 5: Caption - Metadata/tertiary */
 	--text-caption: 0.6875rem; /* 11px - timestamps, hints */
 
 	/* Stats & Data Display - Tabular, impactful */
-	--text-stat-sm: 1.5rem;  /* 24px - compact stats */
-	--text-stat: 2rem;       /* 32px - standard stats */
-	--text-stat-lg: 2.5rem;  /* 40px - featured stats */
-	--text-stat-xl: 3.5rem;  /* 56px - hero stats */
+	--text-stat-sm: 1.5rem; /* 24px - compact stats */
+	--text-stat: 2rem; /* 32px - standard stats */
+	--text-stat-lg: 2.5rem; /* 40px - featured stats */
+	--text-stat-xl: 3.5rem; /* 56px - hero stats */
 
 	/* Extended sizes (backwards compatibility) */
-	--text-2xl: 1.5rem;      /* 24px */
-	--text-3xl: 1.875rem;    /* 30px */
-	--text-4xl: 2.25rem;     /* 36px */
-	--text-5xl: 3rem;        /* 48px */
-	--text-6xl: 3.75rem;     /* 60px */
+	--text-2xl: 1.5rem; /* 24px */
+	--text-3xl: 1.875rem; /* 30px */
+	--text-4xl: 2.25rem; /* 36px */
+	--text-5xl: 3rem; /* 48px */
+	--text-6xl: 3.75rem; /* 60px */
 
 	/* Legacy display sizes (mapped for compatibility) */
 	--text-display-2xl: 5rem;
@@ -81,23 +90,23 @@
 	   Line Heights - Optimized for Readability
 	   ============================================================================ */
 	--leading-none: 1;
-	--leading-display: 1.1;   /* Hero headlines */
-	--leading-tight: 1.2;     /* Large titles */
-	--leading-snug: 1.35;     /* Standard headings */
-	--leading-normal: 1.5;    /* Body text */
-	--leading-relaxed: 1.7;   /* Long-form reading */
-	--leading-loose: 2;       /* Extra breathing room */
+	--leading-display: 1.1; /* Hero headlines */
+	--leading-tight: 1.2; /* Large titles */
+	--leading-snug: 1.35; /* Standard headings */
+	--leading-normal: 1.5; /* Body text */
+	--leading-relaxed: 1.7; /* Long-form reading */
+	--leading-loose: 2; /* Extra breathing room */
 
 	/* ============================================================================
 	   Letter Spacing - Refined for Impact
 	   ============================================================================ */
-	--tracking-tightest: -0.04em;  /* Hero display */
-	--tracking-tighter: -0.025em;  /* Large display */
-	--tracking-tight: -0.015em;    /* Headings */
-	--tracking-normal: 0;          /* Body */
-	--tracking-wide: 0.02em;       /* UI labels */
-	--tracking-wider: 0.05em;      /* Uppercase labels */
-	--tracking-widest: 0.1em;      /* All-caps headings */
+	--tracking-tightest: -0.04em; /* Hero display */
+	--tracking-tighter: -0.025em; /* Large display */
+	--tracking-tight: -0.015em; /* Headings */
+	--tracking-normal: 0; /* Body */
+	--tracking-wide: 0.02em; /* UI labels */
+	--tracking-wider: 0.05em; /* Uppercase labels */
+	--tracking-widest: 0.1em; /* All-caps headings */
 
 	/* ============================================================================
 	   Animation Durations - UI/UX Standards
@@ -145,13 +154,13 @@
 	--color-card-foreground: oklch(0.2 0.02 245);
 	--color-border: oklch(0.88 0.01 245);
 	--color-border-secondary: oklch(0.8 0.01 245);
-	--color-input: oklch(0.80 0.015 245);
+	--color-input: oklch(0.8 0.015 245);
 	--color-ring: oklch(0.5 0.2 257);
 	--color-primary: oklch(0.54 0.23 257);
 	--color-primary-foreground: oklch(0.98 0.01 255);
 	--color-secondary: oklch(95.46% 3.51 246.58);
 	--color-secondary-foreground: oklch(0.2 0 0);
-	--color-accent: oklch(0.60 0.17 160);
+	--color-accent: oklch(0.6 0.17 160);
 	--color-accent-foreground: oklch(0.98 0.01 160);
 	--color-accent-main: oklch(0.65 0.23 260);
 	--color-accent-85: oklch(0.65 0.23 260 / 85%);
@@ -365,7 +374,7 @@
 		-webkit-font-smoothing: antialiased;
 		-moz-osx-font-smoothing: grayscale;
 		text-rendering: optimizeLegibility;
-		font-feature-settings: 'kern', 'liga', 'calt';
+		font-feature-settings: "kern", "liga", "calt";
 		font-kerning: normal;
 	}
 
@@ -373,14 +382,19 @@
 		color: var(--color-foreground);
 		background-color: var(--color-background);
 		font-feature-settings:
-			'rlig' 1,
-			'calt' 1;
+			"rlig" 1,
+			"calt" 1;
 	}
 
 	/* ============================================================================
 	   Heading Hierarchy - Premium Typography
 	   ============================================================================ */
-	h1, h2, h3, h4, h5, h6 {
+	h1,
+	h2,
+	h3,
+	h4,
+	h5,
+	h6 {
 		font-family: var(--font-sans);
 		font-weight: var(--font-weight-semibold);
 		color: var(--color-foreground);
@@ -445,7 +459,7 @@
 		line-height: var(--leading-relaxed);
 	}
 
-	a:not([role='button']):not(.button):not([class*='button']) {
+	a:not([role="button"]):not(.button):not([class*="button"]) {
 		color: var(--color-primary);
 		text-decoration: underline;
 		text-decoration-color: transparent;
@@ -453,7 +467,7 @@
 		transition: all var(--duration-200) var(--ease-out);
 	}
 
-	a:not([role='button']):not(.button):not([class*='button']):hover {
+	a:not([role="button"]):not(.button):not([class*="button"]):hover {
 		text-decoration-color: currentColor;
 		color: color-mix(in oklch, var(--color-primary) 80%, transparent);
 	}
@@ -470,8 +484,8 @@
 
 	code {
 		font-family:
-			ui-monospace, SFMono-Regular, 'SF Mono', Monaco, Consolas,
-			'Liberation Mono', 'Courier New', monospace;
+			ui-monospace, SFMono-Regular, "SF Mono", Monaco, Consolas,
+			"Liberation Mono", "Courier New", monospace;
 		font-size: 0.875em;
 		padding: 0.125rem 0.25rem;
 		border-radius: var(--radius-sm);
@@ -481,8 +495,8 @@
 
 	pre {
 		font-family:
-			ui-monospace, SFMono-Regular, 'SF Mono', Monaco, Consolas,
-			'Liberation Mono', 'Courier New', monospace;
+			ui-monospace, SFMono-Regular, "SF Mono", Monaco, Consolas,
+			"Liberation Mono", "Courier New", monospace;
 		font-size: 0.875rem;
 		line-height: 1.5;
 		padding: 1rem;
@@ -610,7 +624,7 @@
 		--color-primary-foreground: oklch(0.18 0.01 250);
 		--color-secondary: oklch(0.28 0.01 250);
 		--color-secondary-foreground: oklch(0.9 0.01 250);
-		--color-accent: oklch(0.70 0.17 160);
+		--color-accent: oklch(0.7 0.17 160);
 		--color-accent-foreground: oklch(0.15 0.02 160);
 		--color-accent-main: oklch(0.7 0.23 259);
 		--color-accent-85: oklch(0.7 0.23 259 / 85%);
@@ -633,7 +647,7 @@
 }
 
 .hero-highlight::after {
-	content: '';
+	content: "";
 	position: absolute;
 	left: 0;
 	right: 0;
@@ -889,15 +903,15 @@
 	border-bottom: 1px solid var(--color-border);
 }
 
-.dashboard-panel-header[data-variant='activity'] {
+.dashboard-panel-header[data-variant="activity"] {
 	background: color-mix(in oklch, var(--color-primary) 3%, transparent);
 }
 
-.dashboard-panel-header[data-variant='performance'] {
+.dashboard-panel-header[data-variant="performance"] {
 	background: color-mix(in oklch, var(--color-warning) 3%, transparent);
 }
 
-.dashboard-panel-header[data-variant='actions'] {
+.dashboard-panel-header[data-variant="actions"] {
 	background: color-mix(in oklch, var(--color-success) 3%, transparent);
 }
 
@@ -919,11 +933,11 @@
 }
 
 /* Dashboard panel density modes */
-.dashboard-panel[data-density='compact'] .dashboard-panel-header {
+.dashboard-panel[data-density="compact"] .dashboard-panel-header {
 	padding: var(--spacing-3) var(--spacing-4);
 }
 
-.dashboard-panel[data-density='compact'] .dashboard-panel-body {
+.dashboard-panel[data-density="compact"] .dashboard-panel-body {
 	padding: var(--spacing-3) var(--spacing-4);
 }
 
@@ -950,7 +964,7 @@
 	transform: translateY(-2px);
 }
 
-.dashboard-stat-card[data-variant='warning']:hover {
+.dashboard-stat-card[data-variant="warning"]:hover {
 	border-color: color-mix(
 		in oklch,
 		var(--color-warning) 30%,
@@ -1014,17 +1028,17 @@
 		box-shadow var(--duration-fast) ease-out;
 }
 
-.view-toggle-button[data-active='true'] {
+.view-toggle-button[data-active="true"] {
 	background: var(--color-background);
 	color: var(--color-foreground);
 	box-shadow: var(--shadow-sm);
 }
 
-.view-toggle-button[data-active='false'] {
+.view-toggle-button[data-active="false"] {
 	color: var(--color-muted-foreground);
 }
 
-.view-toggle-button[data-active='false']:hover {
+.view-toggle-button[data-active="false"]:hover {
 	color: var(--color-foreground);
 }
 
@@ -1457,7 +1471,7 @@
 
 	.btn,
 	button,
-	[role='button'] {
+	[role="button"] {
 		min-height: var(--touch-target-min);
 		min-width: var(--touch-target-min);
 		padding: var(--touch-target-padding);

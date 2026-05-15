@@ -7,23 +7,21 @@
  * settings UI. 5-min staleTime — categories change rarely.
  */
 
-import { useQuery } from '@tanstack/react-query'
+import { useQuery } from "@tanstack/react-query";
 import {
+	type DocumentCategoryRow,
 	documentCategoryQueries,
-	type DocumentCategoryRow
-} from '#hooks/api/query-keys/document-category-keys'
+} from "#hooks/api/query-keys/document-category-keys";
 
 export function useDocumentCategories(): {
-	categories: DocumentCategoryRow[]
-	isLoading: boolean
-	isError: boolean
+	categories: DocumentCategoryRow[];
+	isLoading: boolean;
+	isError: boolean;
 } {
-	const { data, isLoading, isError } = useQuery(
-		documentCategoryQueries.list()
-	)
+	const { data, isLoading, isError } = useQuery(documentCategoryQueries.list());
 	return {
 		categories: data ?? [],
 		isLoading,
-		isError
-	}
+		isError,
+	};
 }

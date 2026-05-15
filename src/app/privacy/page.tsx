@@ -1,20 +1,20 @@
-import { PageLayout } from '#components/layout/page-layout'
-import type { Metadata } from 'next'
-import { JsonLdScript } from '#components/seo/json-ld-script'
-import { createBreadcrumbJsonLd } from '#lib/seo/breadcrumbs'
-import { createPageMetadata } from '#lib/seo/page-metadata'
+import type { Metadata } from "next";
+import { PageLayout } from "#components/layout/page-layout";
+import { JsonLdScript } from "#components/seo/json-ld-script";
+import { createBreadcrumbJsonLd } from "#lib/seo/breadcrumbs";
+import { createPageMetadata } from "#lib/seo/page-metadata";
 
 export const metadata: Metadata = createPageMetadata({
-	title: 'Privacy Policy - Data Protection & User Rights',
+	title: "Privacy Policy - Data Protection & User Rights",
 	description:
-		'TenantFlow Privacy Policy. Learn how we collect, use, and safeguard your data, including tenant records, payment information, and account activity.',
-	path: '/privacy'
-})
+		"TenantFlow Privacy Policy. Learn how we collect, use, and safeguard your data, including tenant records, payment information, and account activity.",
+	path: "/privacy",
+});
 
 export default function PrivacyPage() {
 	return (
 		<PageLayout>
-			<JsonLdScript schema={createBreadcrumbJsonLd('/privacy')} />
+			<JsonLdScript schema={createBreadcrumbJsonLd("/privacy")} />
 			<div className="mx-auto min-h-screen max-w-4xl px-6 section-spacing">
 				<h1 className="mb-8 typography-h1">Privacy Policy</h1>
 				<p className="mb-6 text-muted-foreground">Last Updated: May 11, 2026</p>
@@ -223,8 +223,8 @@ export default function PrivacyPage() {
 								(HTTPS/TLS) and at rest (AES-256)
 							</li>
 							<li>
-								<strong>Access Controls:</strong> row-level access control
-								and multi-factor authentication options
+								<strong>Access Controls:</strong> row-level access control and
+								multi-factor authentication options
 							</li>
 							<li>
 								<strong>Secure Infrastructure:</strong> Hosted on SOC 2
@@ -281,7 +281,7 @@ export default function PrivacyPage() {
 						<h3 className="mb-3 typography-h4">7.1 Access and Portability</h3>
 						<p>
 							You can access and export your data at any time through your
-							account settings or by contacting us at{' '}
+							account settings or by contacting us at{" "}
 							<a
 								href="mailto:privacy@tenantflow.app"
 								className="text-primary underline"
@@ -405,7 +405,7 @@ export default function PrivacyPage() {
 						</p>
 						<div className="mt-4 rounded-lg bg-muted p-6">
 							<p className="mb-2">
-								<strong>Email:</strong>{' '}
+								<strong>Email:</strong>{" "}
 								<a
 									href="mailto:privacy@tenantflow.app"
 									className="text-primary underline"
@@ -414,7 +414,7 @@ export default function PrivacyPage() {
 								</a>
 							</p>
 							<p className="mb-2">
-								<strong>Support:</strong>{' '}
+								<strong>Support:</strong>{" "}
 								<a
 									href="mailto:support@tenantflow.app"
 									className="text-primary underline"
@@ -452,7 +452,7 @@ export default function PrivacyPage() {
 							</li>
 						</ul>
 						<p>
-							To exercise these rights, email{' '}
+							To exercise these rights, email{" "}
 							<a
 								href="mailto:privacy@tenantflow.app"
 								className="text-primary underline"
@@ -469,12 +469,12 @@ export default function PrivacyPage() {
 						</p>
 						<p className="mt-4">
 							<strong>TenantFlow</strong> is a property management software
-							platform designed to help landlords efficiently manage
-							properties, tenants, leases, and financial operations.
+							platform designed to help landlords efficiently manage properties,
+							tenants, leases, and financial operations.
 						</p>
 					</div>
 				</div>
 			</div>
 		</PageLayout>
-	)
+	);
 }

@@ -1,30 +1,30 @@
-import { DollarSign, Clock, FileSpreadsheet, Check } from 'lucide-react'
-import { BlurFade } from '#components/ui/blur-fade'
-import { NumberTicker } from '#components/ui/number-ticker'
-import { BorderBeam } from '#components/ui/border-beam'
+import { Check, Clock, DollarSign, FileSpreadsheet } from "lucide-react";
+import { BlurFade } from "#components/ui/blur-fade";
+import { BorderBeam } from "#components/ui/border-beam";
+import { NumberTicker } from "#components/ui/number-ticker";
 import {
 	Stat,
+	StatDescription,
+	StatIndicator,
 	StatLabel,
 	StatValue,
-	StatIndicator,
-	StatDescription
-} from '#components/ui/stat'
-import type { ReportType, RecentReport, ScheduledReport } from './types'
+} from "#components/ui/stat";
+import type { RecentReport, ReportType, ScheduledReport } from "./types";
 
 interface ReportsStatsRowProps {
-	reportTypes: ReportType[]
-	recentReports: RecentReport[]
-	scheduledReports: ScheduledReport[]
+	reportTypes: ReportType[];
+	recentReports: RecentReport[];
+	scheduledReports: ScheduledReport[];
 }
 
 export function ReportsStatsRow({
 	reportTypes,
 	recentReports,
-	scheduledReports
+	scheduledReports,
 }: ReportsStatsRowProps) {
-	const financialTypes = reportTypes.filter(t => t.category === 'financial')
-	const totalReports = recentReports.length
-	const scheduledCount = scheduledReports.filter(s => s.enabled).length
+	const financialTypes = reportTypes.filter((t) => t.category === "financial");
+	const totalReports = recentReports.length;
+	const scheduledCount = scheduledReports.filter((s) => s.enabled).length;
 
 	return (
 		<div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
@@ -86,5 +86,5 @@ export function ReportsStatsRow({
 				</Stat>
 			</BlurFade>
 		</div>
-	)
+	);
 }

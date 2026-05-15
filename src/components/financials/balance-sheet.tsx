@@ -1,56 +1,56 @@
-'use client'
+"use client";
 
 import {
 	Building2,
-	Wallet,
+	Check,
 	CreditCard,
 	Download,
-	Check,
-	X
-} from 'lucide-react'
-import { Button } from '#components/ui/button'
-import { BlurFade } from '#components/ui/blur-fade'
-import { NumberTicker } from '#components/ui/number-ticker'
-import { BorderBeam } from '#components/ui/border-beam'
+	Wallet,
+	X,
+} from "lucide-react";
+import { BlurFade } from "#components/ui/blur-fade";
+import { BorderBeam } from "#components/ui/border-beam";
+import { Button } from "#components/ui/button";
+import { NumberTicker } from "#components/ui/number-ticker";
 import {
 	Stat,
+	StatDescription,
+	StatIndicator,
 	StatLabel,
 	StatValue,
-	StatIndicator,
-	StatDescription
-} from '#components/ui/stat'
-import { formatCurrency } from '#lib/utils/currency'
-import { formatDate } from '#lib/formatters/date'
-import type { FinancialLineItem } from '#types/financial-statements'
-import { BalanceSection } from './balance-sheet-sections'
+} from "#components/ui/stat";
+import { formatDate } from "#lib/formatters/date";
+import { formatCurrency } from "#lib/utils/currency";
+import type { FinancialLineItem } from "#types/financial-statements";
+import { BalanceSection } from "./balance-sheet-sections";
 
 interface Assets {
-	current: FinancialLineItem[]
-	totalCurrent: number
-	fixed: FinancialLineItem[]
-	totalFixed: number
-	totalAssets: number
+	current: FinancialLineItem[];
+	totalCurrent: number;
+	fixed: FinancialLineItem[];
+	totalFixed: number;
+	totalAssets: number;
 }
 
 interface Liabilities {
-	current: FinancialLineItem[]
-	totalCurrent: number
-	longTerm: FinancialLineItem[]
-	totalLongTerm: number
-	totalLiabilities: number
+	current: FinancialLineItem[];
+	totalCurrent: number;
+	longTerm: FinancialLineItem[];
+	totalLongTerm: number;
+	totalLiabilities: number;
 }
 
 interface Equity {
-	items: FinancialLineItem[]
-	totalEquity: number
+	items: FinancialLineItem[];
+	totalEquity: number;
 }
 
 interface BalanceSheetProps {
-	asOfDate: string
-	assets: Assets
-	liabilities: Liabilities
-	equity: Equity
-	onExport?: () => void
+	asOfDate: string;
+	assets: Assets;
+	liabilities: Liabilities;
+	equity: Equity;
+	onExport?: () => void;
 }
 
 export function BalanceSheet({
@@ -58,10 +58,10 @@ export function BalanceSheet({
 	assets,
 	liabilities,
 	equity,
-	onExport
+	onExport,
 }: BalanceSheetProps) {
 	const isBalanced =
-		assets.totalAssets === liabilities.totalLiabilities + equity.totalEquity
+		assets.totalAssets === liabilities.totalLiabilities + equity.totalEquity;
 
 	return (
 		<div className="p-6 lg:p-8 bg-background min-h-full">
@@ -69,9 +69,11 @@ export function BalanceSheet({
 			<BlurFade delay={0.1} inView>
 				<div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-6">
 					<div>
-						<h1 className="text-2xl font-semibold text-foreground">Balance Sheet</h1>
+						<h1 className="text-2xl font-semibold text-foreground">
+							Balance Sheet
+						</h1>
 						<p className="text-muted-foreground">
-							As of {formatDate(asOfDate, { style: 'long' })}
+							As of {formatDate(asOfDate, { style: "long" })}
 						</p>
 					</div>
 					<Button variant="outline" onClick={onExport}>
@@ -85,13 +87,20 @@ export function BalanceSheet({
 			<div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
 				<BlurFade delay={0.2} inView>
 					<Stat className="relative overflow-hidden">
-						<BorderBeam size={100} duration={10} colorFrom="hsl(142 76% 36%)" colorTo="hsl(142 76% 36% / 0.3)" />
+						<BorderBeam
+							size={100}
+							duration={10}
+							colorFrom="hsl(142 76% 36%)"
+							colorTo="hsl(142 76% 36% / 0.3)"
+						/>
 						<StatLabel>Total Assets</StatLabel>
 						<StatValue className="flex items-baseline gap-0.5 text-emerald-600 dark:text-emerald-400">
 							<span className="text-lg">$</span>
 							<NumberTicker value={assets.totalAssets / 100} duration={1500} />
 						</StatValue>
-						<StatIndicator variant="icon" color="success"><Building2 /></StatIndicator>
+						<StatIndicator variant="icon" color="success">
+							<Building2 />
+						</StatIndicator>
 						<StatDescription>what you own</StatDescription>
 					</Stat>
 				</BlurFade>
@@ -100,21 +109,33 @@ export function BalanceSheet({
 						<StatLabel>Total Liabilities</StatLabel>
 						<StatValue className="flex items-baseline gap-0.5 text-red-600 dark:text-red-400">
 							<span className="text-lg">$</span>
-							<NumberTicker value={liabilities.totalLiabilities / 100} duration={1500} />
+							<NumberTicker
+								value={liabilities.totalLiabilities / 100}
+								duration={1500}
+							/>
 						</StatValue>
-						<StatIndicator variant="icon" color="destructive"><CreditCard /></StatIndicator>
+						<StatIndicator variant="icon" color="destructive">
+							<CreditCard />
+						</StatIndicator>
 						<StatDescription>what you owe</StatDescription>
 					</Stat>
 				</BlurFade>
 				<BlurFade delay={0.4} inView>
 					<Stat className="relative overflow-hidden">
-						<BorderBeam size={100} duration={12} colorFrom="hsl(var(--primary))" colorTo="hsl(var(--primary)/0.3)" />
+						<BorderBeam
+							size={100}
+							duration={12}
+							colorFrom="hsl(var(--primary))"
+							colorTo="hsl(var(--primary)/0.3)"
+						/>
 						<StatLabel>Total Equity</StatLabel>
 						<StatValue className="flex items-baseline gap-0.5">
 							<span className="text-lg">$</span>
 							<NumberTicker value={equity.totalEquity / 100} duration={1500} />
 						</StatValue>
-						<StatIndicator variant="icon" color="primary"><Wallet /></StatIndicator>
+						<StatIndicator variant="icon" color="primary">
+							<Wallet />
+						</StatIndicator>
 						<StatDescription>net worth</StatDescription>
 					</Stat>
 				</BlurFade>
@@ -122,13 +143,21 @@ export function BalanceSheet({
 
 			{/* Balance Equation Check */}
 			<BlurFade delay={0.45} inView>
-				<div className={`p-4 rounded-lg border mb-6 ${isBalanced ? 'bg-emerald-50 dark:bg-emerald-950/30 border-emerald-200 dark:border-emerald-800' : 'bg-red-50 dark:bg-red-950/30 border-red-200 dark:border-red-800'}`}>
+				<div
+					className={`p-4 rounded-lg border mb-6 ${isBalanced ? "bg-emerald-50 dark:bg-emerald-950/30 border-emerald-200 dark:border-emerald-800" : "bg-red-50 dark:bg-red-950/30 border-red-200 dark:border-red-800"}`}
+				>
 					<div className="flex items-center justify-center gap-4 text-sm">
-						<span className="font-medium">Assets ({formatCurrency(assets.totalAssets)})</span>
+						<span className="font-medium">
+							Assets ({formatCurrency(assets.totalAssets)})
+						</span>
 						<span className="text-muted-foreground">=</span>
-						<span className="font-medium">Liabilities ({formatCurrency(liabilities.totalLiabilities)})</span>
+						<span className="font-medium">
+							Liabilities ({formatCurrency(liabilities.totalLiabilities)})
+						</span>
 						<span className="text-muted-foreground">+</span>
-						<span className="font-medium">Equity ({formatCurrency(equity.totalEquity)})</span>
+						<span className="font-medium">
+							Equity ({formatCurrency(equity.totalEquity)})
+						</span>
 						{isBalanced ? (
 							<span className="text-emerald-600 font-medium inline-flex items-center gap-1">
 								<Check className="size-4" aria-hidden="true" />
@@ -150,8 +179,16 @@ export function BalanceSheet({
 					title="Assets"
 					icon={Building2}
 					items={[
-						{ label: 'Current Assets', items: assets.current, subtotal: assets.totalCurrent },
-						{ label: 'Fixed Assets', items: assets.fixed, subtotal: assets.totalFixed }
+						{
+							label: "Current Assets",
+							items: assets.current,
+							subtotal: assets.totalCurrent,
+						},
+						{
+							label: "Fixed Assets",
+							items: assets.fixed,
+							subtotal: assets.totalFixed,
+						},
 					]}
 					total={assets.totalAssets}
 					totalLabel="Total Assets"
@@ -163,8 +200,16 @@ export function BalanceSheet({
 						title="Liabilities"
 						icon={CreditCard}
 						items={[
-							{ label: 'Current Liabilities', items: liabilities.current, subtotal: liabilities.totalCurrent },
-							{ label: 'Long-Term Liabilities', items: liabilities.longTerm, subtotal: liabilities.totalLongTerm }
+							{
+								label: "Current Liabilities",
+								items: liabilities.current,
+								subtotal: liabilities.totalCurrent,
+							},
+							{
+								label: "Long-Term Liabilities",
+								items: liabilities.longTerm,
+								subtotal: liabilities.totalLongTerm,
+							},
 						]}
 						total={liabilities.totalLiabilities}
 						totalLabel="Total Liabilities"
@@ -182,7 +227,9 @@ export function BalanceSheet({
 									<BlurFade key={idx} delay={0.75 + idx * 0.03} inView>
 										<div className="flex items-center justify-between p-4 hover:bg-muted/30 transition-colors">
 											<span className="text-sm">{item.name}</span>
-											<span className="text-sm font-medium">{formatCurrency(item.amount)}</span>
+											<span className="text-sm font-medium">
+												{formatCurrency(item.amount)}
+											</span>
 										</div>
 									</BlurFade>
 								))}
@@ -190,7 +237,9 @@ export function BalanceSheet({
 							<div className="p-4 bg-muted/30 border-t border-border">
 								<div className="flex items-center justify-between">
 									<span className="text-sm font-semibold">Total Equity</span>
-									<span className="text-lg font-bold text-primary">{formatCurrency(equity.totalEquity)}</span>
+									<span className="text-lg font-bold text-primary">
+										{formatCurrency(equity.totalEquity)}
+									</span>
 								</div>
 							</div>
 						</div>
@@ -198,5 +247,5 @@ export function BalanceSheet({
 				</div>
 			</div>
 		</div>
-	)
+	);
 }

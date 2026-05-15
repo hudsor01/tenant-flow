@@ -1,36 +1,36 @@
-import type { Metadata } from 'next'
-import { redirect } from 'next/navigation'
-import { createClient } from '#lib/supabase/server'
+import type { Metadata } from "next";
+import { redirect } from "next/navigation";
+import { createClient } from "#lib/supabase/server";
 
 // Auth-walled, admin-only. Block search engines from indexing admin pages.
 export const metadata: Metadata = {
-	robots: { index: false, follow: false }
-}
+	robots: { index: false, follow: false },
+};
 
 // Admin route-group layout. Second of three defense-in-depth layers
 // (proxy.ts, this layout, DB-level is_admin() in RPCs).
 export default async function AdminLayout({
-	children
+	children,
 }: {
-	children: React.ReactNode
+	children: React.ReactNode;
 }) {
-	const supabase = await createClient()
+	const supabase = await createClient();
 	const {
-		data: { user }
-	} = await supabase.auth.getUser()
+		data: { user },
+	} = await supabase.auth.getUser();
 
 	if (!user) {
-		redirect('/login?redirect=/admin/analytics')
+		redirect("/login?redirect=/admin/analytics");
 	}
 
 	const { data: row } = await supabase
-		.from('users')
-		.select('is_admin')
-		.eq('id', user.id)
-		.maybeSingle()
+		.from("users")
+		.select("is_admin")
+		.eq("id", user.id)
+		.maybeSingle();
 
 	if (!row?.is_admin) {
-		redirect('/dashboard')
+		redirect("/dashboard");
 	}
 
 	return (
@@ -42,5 +42,5 @@ export default async function AdminLayout({
 			</header>
 			<main>{children}</main>
 		</div>
-	)
+	);
 }

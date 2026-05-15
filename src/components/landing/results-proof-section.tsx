@@ -1,7 +1,7 @@
-import { BlurFade } from '#components/ui/blur-fade'
-import { LazySection } from '#components/ui/lazy-section'
-import { SectionSkeleton } from '#components/ui/section-skeleton'
-import { FolderArchive, FileSignature, Search, Download } from 'lucide-react'
+import { Download, FileSignature, FolderArchive, Search } from "lucide-react";
+import { BlurFade } from "#components/ui/blur-fade";
+import { LazySection } from "#components/ui/lazy-section";
+import { SectionSkeleton } from "#components/ui/section-skeleton";
 
 // Phase 67 cleanup: replaced unsubstantiated marketing numbers with
 // feature counts that map directly to shipped product capabilities.
@@ -10,25 +10,25 @@ import { FolderArchive, FileSignature, Search, Download } from 'lucide-react'
 const stats = [
 	{
 		icon: FolderArchive,
-		value: '5',
-		label: 'Entity branches in the vault'
+		value: "5",
+		label: "Entity branches in the vault",
 	},
 	{
 		icon: Search,
-		value: 'Global',
-		label: 'Full-text search across docs'
+		value: "Global",
+		label: "Full-text search across docs",
 	},
 	{
 		icon: Download,
-		value: '500',
-		label: 'Tax-season zip cap'
+		value: "500",
+		label: "Tax-season zip cap",
 	},
 	{
 		icon: FileSignature,
-		value: 'Growth+',
-		label: 'Lease e-sign tier'
-	}
-]
+		value: "Growth+",
+		label: "Lease e-sign tier",
+	},
+];
 
 export function ResultsProofSection() {
 	return (
@@ -44,12 +44,13 @@ export function ResultsProofSection() {
 								What ships in the box
 							</h2>
 							<p className="text-muted-foreground text-lg max-w-3xl mx-auto">
-								Every plan starts with the document vault. Higher tiers unlock more e-sign volume, more storage, and team-member seats.
+								Every plan starts with the document vault. Higher tiers unlock
+								more e-sign volume, more storage, and team-member seats.
 							</p>
 						</div>
 
 						<div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8 mb-12">
-							{stats.map(stat => (
+							{stats.map((stat) => (
 								<div key={stat.label} className="text-center group">
 									<div className="icon-container-lg bg-primary/10 text-primary mx-auto mb-4 shadow-lg group-hover:scale-110 transition-transform duration-300">
 										<stat.icon className="size-8" />
@@ -65,5 +66,5 @@ export function ResultsProofSection() {
 				</div>
 			</section>
 		</LazySection>
-	)
+	);
 }

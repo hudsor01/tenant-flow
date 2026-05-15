@@ -1,5 +1,5 @@
-import { FileText } from 'lucide-react'
-import { PropertyInspectionTemplate } from '../components/property-inspection-template.client'
+import { FileText } from "lucide-react";
+import { PropertyInspectionTemplate } from "../components/property-inspection-template.client";
 
 export default function PropertyInspectionTemplatePage() {
 	return (
@@ -21,5 +21,5 @@ export default function PropertyInspectionTemplatePage() {
 
 			<PropertyInspectionTemplate />
 		</div>
-	)
+	);
 }

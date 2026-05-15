@@ -1,18 +1,18 @@
-import { ArrowUpRight, ArrowDownRight } from 'lucide-react'
-import { BlurFade } from '#components/ui/blur-fade'
+import { ArrowDownRight, ArrowUpRight } from "lucide-react";
+import { BlurFade } from "#components/ui/blur-fade";
 
 interface BreakdownItem {
-	label: string
-	amount: number
-	percentage: string
+	label: string;
+	amount: number;
+	percentage: string;
 }
 
 interface IncomeStatementBreakdownCardsProps {
-	revenueItems: BreakdownItem[]
-	expenseItems: BreakdownItem[]
-	revenueTotal: number
-	expensesTotal: number
-	formatCurrency: (amount: number) => string
+	revenueItems: BreakdownItem[];
+	expenseItems: BreakdownItem[];
+	revenueTotal: number;
+	expensesTotal: number;
+	formatCurrency: (amount: number) => string;
 }
 
 export function IncomeStatementBreakdownCards({
@@ -20,7 +20,7 @@ export function IncomeStatementBreakdownCards({
 	expenseItems,
 	revenueTotal,
 	expensesTotal,
-	formatCurrency
+	formatCurrency,
 }: IncomeStatementBreakdownCardsProps) {
 	return (
 		<div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
@@ -37,7 +37,9 @@ export function IncomeStatementBreakdownCards({
 								<div className="flex items-center justify-between py-2 border-b border-border last:border-0">
 									<div className="flex items-center gap-3">
 										<div className="w-2 h-2 rounded-full bg-emerald-500" />
-										<span className="text-sm text-foreground">{item.label}</span>
+										<span className="text-sm text-foreground">
+											{item.label}
+										</span>
 									</div>
 									<div className="flex items-center gap-4">
 										<span className="text-sm text-muted-foreground">
@@ -75,7 +77,9 @@ export function IncomeStatementBreakdownCards({
 								<div className="flex items-center justify-between py-2 border-b border-border last:border-0">
 									<div className="flex items-center gap-3">
 										<div className="w-2 h-2 rounded-full bg-red-500" />
-										<span className="text-sm text-foreground">{item.label}</span>
+										<span className="text-sm text-foreground">
+											{item.label}
+										</span>
 									</div>
 									<div className="flex items-center gap-4">
 										<span className="text-sm text-muted-foreground">
@@ -100,5 +104,5 @@ export function IncomeStatementBreakdownCards({
 				</div>
 			</BlurFade>
 		</div>
-	)
+	);
 }

@@ -1,10 +1,9 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
-import type { FormEvent } from 'react'
-import { Button } from '#components/ui/button'
-import { Input } from '#components/ui/input'
-import { Textarea } from '#components/ui/textarea'
+import { Pencil, Plus } from "lucide-react";
+import type { FormEvent } from "react";
+import { useState } from "react";
+import { Button } from "#components/ui/button";
 import {
 	Dialog,
 	DialogContent,
@@ -13,58 +12,66 @@ import {
 	DialogHeader,
 	DialogTitle,
 	DialogTrigger,
-} from '#components/ui/dialog'
-import { Field, FieldLabel } from '#components/ui/field'
+} from "#components/ui/dialog";
+import { Field, FieldLabel } from "#components/ui/field";
+import { Input } from "#components/ui/input";
 import {
 	Select,
 	SelectContent,
 	SelectItem,
 	SelectTrigger,
 	SelectValue,
-} from '#components/ui/select'
-import { useCreateVendorMutation, useUpdateVendorMutation } from '#hooks/api/use-vendor'
-import { useCurrentUser } from '#hooks/use-current-user'
-import { cn } from '#lib/utils'
-import type { Vendor, VendorCreateInput } from '#types/domain'
-import { Plus, Pencil } from 'lucide-react'
+} from "#components/ui/select";
+import { Textarea } from "#components/ui/textarea";
+import {
+	useCreateVendorMutation,
+	useUpdateVendorMutation,
+} from "#hooks/api/use-vendor";
+import { useCurrentUser } from "#hooks/use-current-user";
+import { cn } from "#lib/utils";
+import type { Vendor, VendorCreateInput } from "#types/domain";
 
 const TRADES = [
-	{ value: 'plumbing', label: 'Plumbing' },
-	{ value: 'electrical', label: 'Electrical' },
-	{ value: 'hvac', label: 'HVAC' },
-	{ value: 'carpentry', label: 'Carpentry' },
-	{ value: 'painting', label: 'Painting' },
-	{ value: 'landscaping', label: 'Landscaping' },
-	{ value: 'appliance', label: 'Appliance Repair' },
-	{ value: 'general', label: 'General Contractor' },
-	{ value: 'other', label: 'Other' },
-] as const
+	{ value: "plumbing", label: "Plumbing" },
+	{ value: "electrical", label: "Electrical" },
+	{ value: "hvac", label: "HVAC" },
+	{ value: "carpentry", label: "Carpentry" },
+	{ value: "painting", label: "Painting" },
+	{ value: "landscaping", label: "Landscaping" },
+	{ value: "appliance", label: "Appliance Repair" },
+	{ value: "general", label: "General Contractor" },
+	{ value: "other", label: "Other" },
+] as const;
 
 interface VendorFormDialogProps {
-	vendor?: Vendor
-	onSuccess?: () => void
+	vendor?: Vendor;
+	onSuccess?: () => void;
 }
 
 export function VendorFormDialog({ vendor, onSuccess }: VendorFormDialogProps) {
-	const [open, setOpen] = useState(false)
-	const isEditing = !!vendor
+	const [open, setOpen] = useState(false);
+	const isEditing = !!vendor;
 
-	const { isLoading: isAuthLoading } = useCurrentUser()
-	const createMutation = useCreateVendorMutation()
-	const updateMutation = useUpdateVendorMutation()
+	const { isLoading: isAuthLoading } = useCurrentUser();
+	const createMutation = useCreateVendorMutation();
+	const updateMutation = useUpdateVendorMutation();
 
-	const [name, setName] = useState(vendor?.name ?? '')
-	const [email, setEmail] = useState(vendor?.email ?? '')
-	const [phone, setPhone] = useState(vendor?.phone ?? '')
-	const [trade, setTrade] = useState<VendorCreateInput['trade']>(vendor?.trade ?? 'general')
-	const [hourlyRate, setHourlyRate] = useState(vendor?.hourly_rate ? String(vendor.hourly_rate) : '')
-	const [notes, setNotes] = useState(vendor?.notes ?? '')
+	const [name, setName] = useState(vendor?.name ?? "");
+	const [email, setEmail] = useState(vendor?.email ?? "");
+	const [phone, setPhone] = useState(vendor?.phone ?? "");
+	const [trade, setTrade] = useState<VendorCreateInput["trade"]>(
+		vendor?.trade ?? "general",
+	);
+	const [hourlyRate, setHourlyRate] = useState(
+		vendor?.hourly_rate ? String(vendor.hourly_rate) : "",
+	);
+	const [notes, setNotes] = useState(vendor?.notes ?? "");
 
-	const isSubmitting = createMutation.isPending || updateMutation.isPending
+	const isSubmitting = createMutation.isPending || updateMutation.isPending;
 
 	const handleSubmit = async (e: FormEvent) => {
-		e.preventDefault()
-		if (!name.trim()) return
+		e.preventDefault();
+		if (!name.trim()) return;
 
 		const data: VendorCreateInput = {
 			name: name.trim(),
@@ -73,33 +80,33 @@ export function VendorFormDialog({ vendor, onSuccess }: VendorFormDialogProps) {
 			...(phone.trim() ? { phone: phone.trim() } : {}),
 			...(hourlyRate ? { hourly_rate: parseFloat(hourlyRate) } : {}),
 			...(notes.trim() ? { notes: notes.trim() } : {}),
-		}
+		};
 
 		if (isEditing && vendor) {
 			updateMutation.mutate(
 				{ id: vendor.id, data },
 				{
 					onSuccess: () => {
-						setOpen(false)
-						onSuccess?.()
+						setOpen(false);
+						onSuccess?.();
 					},
 				},
-			)
+			);
 		} else {
 			createMutation.mutate(data, {
 				onSuccess: () => {
-					setOpen(false)
-					setName('')
-					setEmail('')
-					setPhone('')
-					setTrade('general')
-					setHourlyRate('')
-					setNotes('')
-					onSuccess?.()
+					setOpen(false);
+					setName("");
+					setEmail("");
+					setPhone("");
+					setTrade("general");
+					setHourlyRate("");
+					setNotes("");
+					onSuccess?.();
 				},
-			})
+			});
 		}
-	}
+	};
 
 	return (
 		<Dialog open={open} onOpenChange={setOpen}>
@@ -118,11 +125,11 @@ export function VendorFormDialog({ vendor, onSuccess }: VendorFormDialogProps) {
 			</DialogTrigger>
 			<DialogContent className="max-w-lg">
 				<DialogHeader>
-					<DialogTitle>{isEditing ? 'Edit Vendor' : 'Add Vendor'}</DialogTitle>
+					<DialogTitle>{isEditing ? "Edit Vendor" : "Add Vendor"}</DialogTitle>
 					<DialogDescription>
 						{isEditing
-							? 'Update vendor details.'
-							: 'Add a new contractor or vendor to your roster.'}
+							? "Update vendor details."
+							: "Add a new contractor or vendor to your roster."}
 					</DialogDescription>
 				</DialogHeader>
 				<form onSubmit={handleSubmit} className="space-y-4">
@@ -131,7 +138,7 @@ export function VendorFormDialog({ vendor, onSuccess }: VendorFormDialogProps) {
 						<Input
 							id="vendor-name"
 							value={name}
-							onChange={e => setName(e.target.value)}
+							onChange={(e) => setName(e.target.value)}
 							placeholder="Acme Plumbing"
 							required
 							className="h-11"
@@ -144,7 +151,7 @@ export function VendorFormDialog({ vendor, onSuccess }: VendorFormDialogProps) {
 								id="vendor-email"
 								type="email"
 								value={email}
-								onChange={e => setEmail(e.target.value)}
+								onChange={(e) => setEmail(e.target.value)}
 								placeholder="vendor@example.com"
 								className="h-11"
 							/>
@@ -155,7 +162,7 @@ export function VendorFormDialog({ vendor, onSuccess }: VendorFormDialogProps) {
 								id="vendor-phone"
 								type="tel"
 								value={phone}
-								onChange={e => setPhone(e.target.value)}
+								onChange={(e) => setPhone(e.target.value)}
 								placeholder="(555) 000-0000"
 								className="h-11"
 							/>
@@ -166,13 +173,13 @@ export function VendorFormDialog({ vendor, onSuccess }: VendorFormDialogProps) {
 							<FieldLabel htmlFor="vendor-trade">Trade *</FieldLabel>
 							<Select
 								value={trade}
-								onValueChange={v => setTrade(v as VendorCreateInput['trade'])}
+								onValueChange={(v) => setTrade(v as VendorCreateInput["trade"])}
 							>
 								<SelectTrigger id="vendor-trade" className="h-11">
 									<SelectValue placeholder="Select trade" />
 								</SelectTrigger>
 								<SelectContent>
-									{TRADES.map(t => (
+									{TRADES.map((t) => (
 										<SelectItem key={t.value} value={t.value}>
 											{t.label}
 										</SelectItem>
@@ -188,7 +195,7 @@ export function VendorFormDialog({ vendor, onSuccess }: VendorFormDialogProps) {
 								min="0"
 								step="0.01"
 								value={hourlyRate}
-								onChange={e => setHourlyRate(e.target.value)}
+								onChange={(e) => setHourlyRate(e.target.value)}
 								placeholder="85.00"
 								className="h-11"
 							/>
@@ -199,31 +206,35 @@ export function VendorFormDialog({ vendor, onSuccess }: VendorFormDialogProps) {
 						<Textarea
 							id="vendor-notes"
 							value={notes}
-							onChange={e => setNotes(e.target.value)}
+							onChange={(e) => setNotes(e.target.value)}
 							placeholder="Specializations, availability, or other notes..."
 							rows={3}
 						/>
 					</Field>
 					<DialogFooter>
-						<Button type="button" variant="outline" onClick={() => setOpen(false)}>
+						<Button
+							type="button"
+							variant="outline"
+							onClick={() => setOpen(false)}
+						>
 							Cancel
 						</Button>
 						<Button
 							type="submit"
 							disabled={isSubmitting || !name.trim() || isAuthLoading}
-							className={cn(isAuthLoading && 'animate-pulse')}
+							className={cn(isAuthLoading && "animate-pulse")}
 						>
 							{isSubmitting
 								? isEditing
-									? 'Saving...'
-									: 'Adding...'
+									? "Saving..."
+									: "Adding..."
 								: isEditing
-									? 'Save Changes'
-									: 'Add Vendor'}
+									? "Save Changes"
+									: "Add Vendor"}
 						</Button>
 					</DialogFooter>
 				</form>
 			</DialogContent>
 		</Dialog>
-	)
+	);
 }

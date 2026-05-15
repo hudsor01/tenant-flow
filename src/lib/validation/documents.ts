@@ -18,7 +18,7 @@
  * `?categories=lease,insurance` against the user's own categories).
  */
 
-import { z } from 'zod'
+import { z } from "zod";
 
 /**
  * Slugs of the seven categories every owner is seeded with on signup.
@@ -28,16 +28,16 @@ import { z } from 'zod'
  * verifies this list matches the seeded rows.
  */
 export const DEFAULT_CATEGORY_SLUGS = [
-	'lease',
-	'receipt',
-	'tax_return',
-	'inspection_report',
-	'maintenance_invoice',
-	'insurance',
-	'other'
-] as const
+	"lease",
+	"receipt",
+	"tax_return",
+	"inspection_report",
+	"maintenance_invoice",
+	"insurance",
+	"other",
+] as const;
 
-export type DefaultCategorySlug = (typeof DEFAULT_CATEGORY_SLUGS)[number]
+export type DefaultCategorySlug = (typeof DEFAULT_CATEGORY_SLUGS)[number];
 
 /**
  * Human-readable labels for the seven default slugs. Used as the
@@ -45,14 +45,14 @@ export type DefaultCategorySlug = (typeof DEFAULT_CATEGORY_SLUGS)[number]
  * map doesn't know about (e.g. mid-deletion races, optimistic UI).
  */
 export const DEFAULT_CATEGORY_LABELS: Record<DefaultCategorySlug, string> = {
-	lease: 'Lease',
-	receipt: 'Receipt',
-	tax_return: 'Tax return',
-	inspection_report: 'Inspection report',
-	maintenance_invoice: 'Maintenance invoice',
-	insurance: 'Insurance',
-	other: 'Other'
-}
+	lease: "Lease",
+	receipt: "Receipt",
+	tax_return: "Tax return",
+	inspection_report: "Inspection report",
+	maintenance_invoice: "Maintenance invoice",
+	insurance: "Insurance",
+	other: "Other",
+};
 
 /**
  * Slug shape — any non-empty lowercase-snake_case string up to 50 chars.
@@ -62,9 +62,9 @@ export const documentCategorySlugSchema = z
 	.string()
 	.regex(/^[a-z0-9_]+$/)
 	.min(1)
-	.max(50)
+	.max(50);
 
-export type DocumentCategorySlug = z.infer<typeof documentCategorySlugSchema>
+export type DocumentCategorySlug = z.infer<typeof documentCategorySlugSchema>;
 
 /**
  * Document category slugs are now arbitrary strings, validated at
@@ -73,7 +73,7 @@ export type DocumentCategorySlug = z.infer<typeof documentCategorySlugSchema>
  * below; callers that just need to pass the slug through (RPC
  * params, mapper boundaries) can use the slug type directly.
  */
-export type DocumentCategory = DocumentCategorySlug
+export type DocumentCategory = DocumentCategorySlug;
 
 /**
  * Build a runtime Zod enum from the user's actual category slug set.
@@ -84,8 +84,8 @@ export type DocumentCategory = DocumentCategorySlug
  * list is empty so loading-state callers don't trip false negatives.
  */
 export function makeCategorySchema(
-	allowedSlugs: readonly string[]
+	allowedSlugs: readonly string[],
 ): z.ZodType<string> {
-	if (allowedSlugs.length === 0) return documentCategorySlugSchema
-	return z.enum(allowedSlugs as [string, ...string[]])
+	if (allowedSlugs.length === 0) return documentCategorySlugSchema;
+	return z.enum(allowedSlugs as [string, ...string[]]);
 }

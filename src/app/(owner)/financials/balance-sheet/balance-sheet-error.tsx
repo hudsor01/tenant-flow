@@ -1,14 +1,14 @@
-'use client'
+"use client";
 
-import { CreditCard } from 'lucide-react'
-import { Button } from '#components/ui/button'
+import { CreditCard } from "lucide-react";
+import { Button } from "#components/ui/button";
 
 export function BalanceSheetError({
 	error,
-	onRetryAction
+	onRetryAction,
 }: {
-	error: unknown
-	onRetryAction: () => void
+	error: unknown;
+	onRetryAction: () => void;
 }) {
 	return (
 		<div className="p-6 lg:p-8 bg-background min-h-full">
@@ -20,12 +20,10 @@ export function BalanceSheetError({
 					Failed to Load Balance Sheet
 				</h2>
 				<p className="text-muted-foreground mb-6">
-					{error instanceof Error ? error.message : 'An error occurred'}
+					{error instanceof Error ? error.message : "An error occurred"}
 				</p>
-				<Button onClick={onRetryAction}>
-					Try Again
-				</Button>
+				<Button onClick={onRetryAction}>Try Again</Button>
 			</div>
 		</div>
-	)
+	);
 }

@@ -1,24 +1,24 @@
-'use client'
+"use client";
 
-import type { ReactNode } from 'react'
+import { useRouter } from "next/navigation";
 
-import { VisuallyHidden } from 'radix-ui'
-import { useRouter } from 'next/navigation'
+import { VisuallyHidden } from "radix-ui";
+import type { ReactNode } from "react";
 
 import {
 	Dialog,
 	DialogContent,
+	type DialogIntent,
 	DialogTitle,
-	type DialogIntent
-} from '#components/ui/dialog'
-import { cn } from '#lib/utils'
+} from "#components/ui/dialog";
+import { cn } from "#lib/utils";
 
 interface RouteModalProps {
-	children: ReactNode
-	className?: string
-	intent?: DialogIntent
+	children: ReactNode;
+	className?: string;
+	intent?: DialogIntent;
 	/** Accessible title for screen readers (visually hidden) */
-	accessibleTitle?: string
+	accessibleTitle?: string;
 }
 
 /**
@@ -41,31 +41,31 @@ export function RouteModal({
 	children,
 	className,
 	intent,
-	accessibleTitle
+	accessibleTitle,
 }: RouteModalProps) {
-	const router = useRouter()
+	const router = useRouter();
 
 	const handleOpenChange = (open: boolean) => {
 		if (!open) {
-			router.back()
+			router.back();
 		}
-	}
+	};
 
 	// Generate default title based on intent for accessibility
 	const defaultTitle =
-		intent === 'create'
-			? 'Create new item'
-			: intent === 'edit'
-				? 'Edit item'
-				: intent === 'delete'
-					? 'Delete item'
-					: 'Modal dialog'
+		intent === "create"
+			? "Create new item"
+			: intent === "edit"
+				? "Edit item"
+				: intent === "delete"
+					? "Delete item"
+					: "Modal dialog";
 
 	return (
 		<Dialog open onOpenChange={handleOpenChange}>
 			<DialogContent
 				intent={intent}
-				className={cn('max-h-[90vh] overflow-y-auto', className)}
+				className={cn("max-h-[90vh] overflow-y-auto", className)}
 			>
 				{/* Visually hidden title for screen reader accessibility */}
 				<VisuallyHidden.Root asChild>
@@ -74,5 +74,5 @@ export function RouteModal({
 				{children}
 			</DialogContent>
 		</Dialog>
-	)
+	);
 }

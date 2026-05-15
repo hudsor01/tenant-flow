@@ -1,40 +1,47 @@
-'use client'
+"use client";
 
-import type {
-	OccupancyTrendPoint,
-	VacancyAnalysisEntry
-} from '#types/analytics'
-import { Area, AreaChart, CartesianGrid, Tooltip, XAxis, YAxis } from 'recharts'
-
-import { Badge } from '#components/ui/badge'
+import { Building2 } from "lucide-react";
 import {
+	Area,
+	AreaChart,
+	CartesianGrid,
+	Tooltip,
+	XAxis,
+	YAxis,
+} from "recharts";
+
+import { Badge } from "#components/ui/badge";
+import {
+	type ChartConfig,
 	ChartContainer,
 	ChartTooltipContent,
-	type ChartConfig
-} from '#components/ui/chart'
+} from "#components/ui/chart";
 import {
 	Empty,
 	EmptyDescription,
 	EmptyHeader,
 	EmptyMedia,
-	EmptyTitle
-} from '#components/ui/empty'
-import { Building2 } from 'lucide-react'
+	EmptyTitle,
+} from "#components/ui/empty";
+import type {
+	OccupancyTrendPoint,
+	VacancyAnalysisEntry,
+} from "#types/analytics";
 
 const occupancyConfig = {
 	occupancyRate: {
-		label: 'Occupancy Rate',
-		color: 'oklch(0.65 0.13 210)'
-	}
-} satisfies ChartConfig
+		label: "Occupancy Rate",
+		color: "oklch(0.65 0.13 210)",
+	},
+} satisfies ChartConfig;
 
 type OccupancyTrendChartProps = {
-	data: OccupancyTrendPoint[]
-}
+	data: OccupancyTrendPoint[];
+};
 
 type VacancyListProps = {
-	entries: VacancyAnalysisEntry[]
-}
+	entries: VacancyAnalysisEntry[];
+};
 
 export function OccupancyTrendChart({ data }: OccupancyTrendChartProps) {
 	if (!data.length) {
@@ -50,15 +57,15 @@ export function OccupancyTrendChart({ data }: OccupancyTrendChartProps) {
 					</EmptyDescription>
 				</EmptyHeader>
 			</Empty>
-		)
+		);
 	}
 
-	const chartData = data.map(point => ({
+	const chartData = data.map((point) => ({
 		period: point.period,
 		occupancyRate: Number(
-			point.occupancyRate.toFixed?.(2) ?? point.occupancyRate
-		)
-	}))
+			point.occupancyRate.toFixed?.(2) ?? point.occupancyRate,
+		),
+	}));
 
 	return (
 		<ChartContainer className="h-75" config={occupancyConfig}>
@@ -76,7 +83,7 @@ export function OccupancyTrendChart({ data }: OccupancyTrendChartProps) {
 				/>
 			</AreaChart>
 		</ChartContainer>
-	)
+	);
 }
 
 export function VacancySummaryList({ entries }: VacancyListProps) {
@@ -93,12 +100,12 @@ export function VacancySummaryList({ entries }: VacancyListProps) {
 					</EmptyDescription>
 				</EmptyHeader>
 			</Empty>
-		)
+		);
 	}
 
 	return (
 		<div className="space-y-3">
-			{entries.slice(0, 8).map(entry => (
+			{entries.slice(0, 8).map((entry) => (
 				<div
 					key={entry.property_id}
 					className="flex-between rounded-lg border px-3 py-2 text-sm"
@@ -120,5 +127,5 @@ export function VacancySummaryList({ entries }: VacancyListProps) {
 				</div>
 			))}
 		</div>
-	)
+	);
 }

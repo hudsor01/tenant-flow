@@ -1,5 +1,5 @@
-import { redirect } from 'next/navigation'
+import { redirect } from "next/navigation";
 
 export default function AnalyticsIndexPage() {
-	redirect('/analytics/overview')
+	redirect("/analytics/overview");
 }

@@ -5,19 +5,19 @@
  * Passes the initial state to the client SidebarProvider.
  */
 
-import { cookies } from 'next/headers'
-import { SidebarProvider } from '#components/ui/sidebar/context'
-import type { CSSProperties, ReactNode } from 'react'
+import { cookies } from "next/headers";
+import type { CSSProperties, ReactNode } from "react";
+import { SidebarProvider } from "#components/ui/sidebar/context";
 
-const SIDEBAR_COOKIE_NAME = 'sidebar_state'
+const SIDEBAR_COOKIE_NAME = "sidebar_state";
 
 interface ServerSidebarProviderProps {
-	defaultOpen?: boolean
-	open?: boolean
-	onOpenChange?: (open: boolean) => void
-	className?: string
-	style?: CSSProperties
-	children: ReactNode
+	defaultOpen?: boolean;
+	open?: boolean;
+	onOpenChange?: (open: boolean) => void;
+	className?: string;
+	style?: CSSProperties;
+	children: ReactNode;
 }
 
 /**
@@ -34,28 +34,28 @@ export async function ServerSidebarProvider({
 	...props
 }: ServerSidebarProviderProps) {
 	// Read cookie on server
-	let initialOpen = defaultOpen
+	let initialOpen = defaultOpen;
 	try {
-		const cookieStore = await cookies()
-		const sidebarCookie = cookieStore.get(SIDEBAR_COOKIE_NAME)?.value
+		const cookieStore = await cookies();
+		const sidebarCookie = cookieStore.get(SIDEBAR_COOKIE_NAME)?.value;
 
 		// Parse cookie value, fallback to defaultOpen
 		if (sidebarCookie) {
 			// Only accept 'true' or 'false' as valid values
-			if (sidebarCookie === 'true') {
-				initialOpen = true
-			} else if (sidebarCookie === 'false') {
-				initialOpen = false
+			if (sidebarCookie === "true") {
+				initialOpen = true;
+			} else if (sidebarCookie === "false") {
+				initialOpen = false;
 			}
 			// If cookie exists but has invalid value, keep defaultOpen
 		}
 	} catch {
 		// If cookies API fails, use defaultOpen
-		initialOpen = defaultOpen
+		initialOpen = defaultOpen;
 	}
 
 	// Use cookie value as defaultOpen, but allow explicit open prop to override
-	const effectiveDefaultOpen = openProp !== undefined ? openProp : initialOpen
+	const effectiveDefaultOpen = openProp !== undefined ? openProp : initialOpen;
 
 	return (
 		<SidebarProvider
@@ -68,5 +68,5 @@ export async function ServerSidebarProvider({
 		>
 			{children}
 		</SidebarProvider>
-	)
+	);
 }

@@ -1,76 +1,79 @@
-'use client'
+"use client";
 
-import { DollarSign, TrendingDown, TrendingUp } from 'lucide-react'
-import { Empty, EmptyDescription, EmptyTitle } from '#components/ui/empty'
-import { useEffect, useState } from 'react'
-import { Area, AreaChart, CartesianGrid, XAxis, YAxis } from 'recharts'
-
+import { DollarSign, TrendingDown, TrendingUp } from "lucide-react";
+import { useEffect, useState } from "react";
+import { Area, AreaChart, CartesianGrid, XAxis, YAxis } from "recharts";
 import {
 	Card,
 	CardContent,
 	CardDescription,
 	CardHeader,
-	CardTitle
-} from '#components/ui/card'
-import type { ChartConfig } from '#components/ui/chart'
+	CardTitle,
+} from "#components/ui/card";
+import type { ChartConfig } from "#components/ui/chart";
 import {
 	ChartContainer,
 	ChartTooltip,
-	ChartTooltipContent
-} from '#components/ui/chart'
+	ChartTooltipContent,
+} from "#components/ui/chart";
+import { Empty, EmptyDescription, EmptyTitle } from "#components/ui/empty";
 import {
 	Select,
 	SelectContent,
 	SelectItem,
 	SelectTrigger,
-	SelectValue
-} from '#components/ui/select'
-import { ToggleGroup, ToggleGroupItem } from '#components/ui/toggle-group'
+	SelectValue,
+} from "#components/ui/select";
+import { ToggleGroup, ToggleGroupItem } from "#components/ui/toggle-group";
 import {
+	type FinancialTimeRange,
 	useFinancialChartData,
-	type FinancialTimeRange
-} from '#hooks/api/use-dashboard-hooks'
-import { useMediaQuery } from '#hooks/use-media-query'
-import { cn } from '#lib/utils'
+} from "#hooks/api/use-dashboard-hooks";
+import { useMediaQuery } from "#hooks/use-media-query";
+import { cn } from "#lib/utils";
 
-export const description = 'Revenue vs Expenses Chart - Dashboard Focal Point'
+export const description = "Revenue vs Expenses Chart - Dashboard Focal Point";
 
 const chartConfig = {
 	revenue: {
-		label: 'Revenue',
-		color: 'var(--color-chart-1)'
+		label: "Revenue",
+		color: "var(--color-chart-1)",
 	},
 	expenses: {
-		label: 'Expenses',
-		color: 'var(--color-chart-2)'
-	}
-} satisfies ChartConfig
+		label: "Expenses",
+		color: "var(--color-chart-2)",
+	},
+} satisfies ChartConfig;
 
 export function ChartAreaInteractive({
-	className
+	className,
 }: {
-	className?: string
+	className?: string;
 } = {}) {
-	const [timeRange, setTimeRange] = useState<FinancialTimeRange>('6m')
-	const isMobile = useMediaQuery('(max-width: 767px)')
+	const [timeRange, setTimeRange] = useState<FinancialTimeRange>("6m");
+	const isMobile = useMediaQuery("(max-width: 767px)");
 
-	const { data: chartData, isLoading, error } = useFinancialChartData(timeRange)
+	const {
+		data: chartData,
+		isLoading,
+		error,
+	} = useFinancialChartData(timeRange);
 
 	useEffect(() => {
-		if (isMobile && timeRange === '1y') {
-			setTimeRange('6m')
+		if (isMobile && timeRange === "1y") {
+			setTimeRange("6m");
 		}
-	}, [isMobile, timeRange, setTimeRange])
+	}, [isMobile, timeRange]);
 
 	const totalRevenue =
-		chartData?.reduce((sum, item) => sum + item.revenue, 0) || 0
+		chartData?.reduce((sum, item) => sum + item.revenue, 0) || 0;
 	const totalExpenses =
-		chartData?.reduce((sum, item) => sum + item.expenses, 0) || 0
-	const netProfit = totalRevenue - totalExpenses
-	const profitMargin = totalRevenue > 0 ? (netProfit / totalRevenue) * 100 : 0
+		chartData?.reduce((sum, item) => sum + item.expenses, 0) || 0;
+	const netProfit = totalRevenue - totalExpenses;
+	const profitMargin = totalRevenue > 0 ? (netProfit / totalRevenue) * 100 : 0;
 
 	return (
-		<Card className={cn('', className)}>
+		<Card className={cn("", className)}>
 			<CardHeader className="flex items-center gap-2 space-y-0 border-b py-5 sm:flex-row">
 				<div className="grid flex-1 gap-1 text-center sm:text-left">
 					<CardTitle className="flex items-center gap-2">
@@ -85,7 +88,9 @@ export function ChartAreaInteractive({
 					{isMobile ? (
 						<Select
 							value={timeRange}
-							onValueChange={value => setTimeRange(value as FinancialTimeRange)}
+							onValueChange={(value) =>
+								setTimeRange(value as FinancialTimeRange)
+							}
 						>
 							<SelectTrigger
 								className="w-40 rounded-lg sm:ml-auto"
@@ -112,7 +117,7 @@ export function ChartAreaInteractive({
 						<ToggleGroup
 							type="single"
 							value={timeRange}
-							onValueChange={value =>
+							onValueChange={(value) =>
 								value && setTimeRange(value as FinancialTimeRange)
 							}
 							className="ml-auto flex gap-2"
@@ -168,8 +173,8 @@ export function ChartAreaInteractive({
 					<p className="text-muted-foreground">Net Profit</p>
 					<p
 						className={cn(
-							'flex items-center gap-1 typography-large',
-							netProfit >= 0 ? 'text-success' : 'text-warning'
+							"flex items-center gap-1 typography-large",
+							netProfit >= 0 ? "text-success" : "text-warning",
 						)}
 					>
 						{netProfit >= 0 ? (
@@ -184,8 +189,8 @@ export function ChartAreaInteractive({
 					<p className="text-muted-foreground">Profit Margin</p>
 					<p
 						className={cn(
-							'typography-large',
-							profitMargin >= 0 ? 'text-success' : 'text-warning'
+							"typography-large",
+							profitMargin >= 0 ? "text-success" : "text-warning",
 						)}
 					>
 						{profitMargin.toFixed(1)}%
@@ -208,8 +213,8 @@ export function ChartAreaInteractive({
 						</p>
 					</div>
 				) : !chartData ||
-				  !Array.isArray(chartData) ||
-				  chartData.length === 0 ? (
+					!Array.isArray(chartData) ||
+					chartData.length === 0 ? (
 					<Empty className="h-75 flex-center">
 						<EmptyTitle>No data available</EmptyTitle>
 						<EmptyDescription>
@@ -260,16 +265,16 @@ export function ChartAreaInteractive({
 								tickLine={false}
 								axisLine={false}
 								tickMargin={8}
-								tickFormatter={value => `$${(value / 1000).toFixed(0)}k`}
+								tickFormatter={(value) => `$${(value / 1000).toFixed(0)}k`}
 							/>
 							<ChartTooltip
 								cursor={false}
 								content={
 									<ChartTooltipContent
-										labelFormatter={value => value}
+										labelFormatter={(value) => value}
 										formatter={(value, name) => [
 											`$${Number(value).toLocaleString()}`,
-											name === 'revenue' ? 'Revenue' : 'Expenses'
+											name === "revenue" ? "Revenue" : "Expenses",
 										]}
 										indicator="dot"
 									/>
@@ -294,5 +299,5 @@ export function ChartAreaInteractive({
 				)}
 			</CardContent>
 		</Card>
-	)
+	);
 }

@@ -1,7 +1,7 @@
-'use client'
+"use client";
 
-import { Button } from '#components/ui/button'
-import { Checkbox } from '#components/ui/checkbox'
+import { Button } from "#components/ui/button";
+import { Checkbox } from "#components/ui/checkbox";
 import {
 	Dialog,
 	DialogBody,
@@ -9,25 +9,25 @@ import {
 	DialogDescription,
 	DialogFooter,
 	DialogHeader,
-	DialogTitle
-} from '#components/ui/dialog'
-import type { PropertyType } from './types'
-import type { PropertyStatus } from '#types/core'
+	DialogTitle,
+} from "#components/ui/dialog";
+import type { PropertyStatus } from "#types/core";
+import type { PropertyType } from "./types";
 
 interface PropertyBulkEditDialogProps {
-	open: boolean
-	selectedCount: number
-	bulkEditStatus: PropertyStatus
-	bulkEditType: PropertyType
-	applyBulkStatus: boolean
-	applyBulkType: boolean
-	isSaving: boolean
-	onOpenChange: (open: boolean) => void
-	onStatusChange: (status: PropertyStatus) => void
-	onTypeChange: (type: PropertyType) => void
-	onApplyStatusChange: (apply: boolean) => void
-	onApplyTypeChange: (apply: boolean) => void
-	onSubmit: () => void
+	open: boolean;
+	selectedCount: number;
+	bulkEditStatus: PropertyStatus;
+	bulkEditType: PropertyType;
+	applyBulkStatus: boolean;
+	applyBulkType: boolean;
+	isSaving: boolean;
+	onOpenChange: (open: boolean) => void;
+	onStatusChange: (status: PropertyStatus) => void;
+	onTypeChange: (type: PropertyType) => void;
+	onApplyStatusChange: (apply: boolean) => void;
+	onApplyTypeChange: (apply: boolean) => void;
+	onSubmit: () => void;
 }
 
 export function PropertyBulkEditDialog({
@@ -43,7 +43,7 @@ export function PropertyBulkEditDialog({
 	onTypeChange,
 	onApplyStatusChange,
 	onApplyTypeChange,
-	onSubmit
+	onSubmit,
 }: PropertyBulkEditDialogProps) {
 	return (
 		<Dialog open={open} onOpenChange={onOpenChange}>
@@ -51,8 +51,8 @@ export function PropertyBulkEditDialog({
 				<DialogHeader>
 					<DialogTitle>Bulk edit properties</DialogTitle>
 					<DialogDescription>
-						Apply changes to {selectedCount}{' '}
-						{selectedCount === 1 ? 'property' : 'properties'}.
+						Apply changes to {selectedCount}{" "}
+						{selectedCount === 1 ? "property" : "properties"}.
 					</DialogDescription>
 				</DialogHeader>
 				<DialogBody>
@@ -60,7 +60,7 @@ export function PropertyBulkEditDialog({
 						<div className="flex items-start gap-3">
 							<Checkbox
 								checked={applyBulkStatus}
-								onCheckedChange={checked =>
+								onCheckedChange={(checked) =>
 									onApplyStatusChange(Boolean(checked))
 								}
 								aria-label="Apply status"
@@ -76,7 +76,7 @@ export function PropertyBulkEditDialog({
 									id="bulk-status"
 									disabled={!applyBulkStatus}
 									value={bulkEditStatus}
-									onChange={e =>
+									onChange={(e) =>
 										onStatusChange(e.target.value as PropertyStatus)
 									}
 									className="w-full appearance-none px-3 py-2 text-sm bg-background border border-border rounded-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary cursor-pointer transition-all h-9 disabled:opacity-50 disabled:cursor-not-allowed"
@@ -91,7 +91,9 @@ export function PropertyBulkEditDialog({
 						<div className="flex items-start gap-3">
 							<Checkbox
 								checked={applyBulkType}
-								onCheckedChange={checked => onApplyTypeChange(Boolean(checked))}
+								onCheckedChange={(checked) =>
+									onApplyTypeChange(Boolean(checked))
+								}
 								aria-label="Apply property type"
 							/>
 							<div className="flex-1 space-y-2">
@@ -105,9 +107,7 @@ export function PropertyBulkEditDialog({
 									id="bulk-type"
 									disabled={!applyBulkType}
 									value={bulkEditType}
-									onChange={e =>
-										onTypeChange(e.target.value as PropertyType)
-									}
+									onChange={(e) => onTypeChange(e.target.value as PropertyType)}
 									className="w-full appearance-none px-3 py-2 text-sm bg-background border border-border rounded-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary cursor-pointer transition-all h-9 disabled:opacity-50 disabled:cursor-not-allowed"
 								>
 									<option value="single_family">Single Family</option>
@@ -133,10 +133,10 @@ export function PropertyBulkEditDialog({
 						onClick={onSubmit}
 						disabled={isSaving || (!applyBulkStatus && !applyBulkType)}
 					>
-						{isSaving ? 'Applying...' : `Apply to ${selectedCount}`}
+						{isSaving ? "Applying..." : `Apply to ${selectedCount}`}
 					</Button>
 				</DialogFooter>
 			</DialogContent>
 		</Dialog>
-	)
+	);
 }

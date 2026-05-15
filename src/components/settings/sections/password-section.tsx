@@ -1,61 +1,61 @@
-'use client'
+"use client";
 
-import type { FormEvent } from 'react'
-import { useState } from 'react'
-import { Eye, EyeOff, Loader2, AlertTriangle, CheckCircle } from 'lucide-react'
-import { BlurFade } from '#components/ui/blur-fade'
-import { useMutation } from '@tanstack/react-query'
-import { toast } from 'sonner'
-import { createClient } from '#lib/supabase/client'
-import { getCachedUser } from '#lib/supabase/get-cached-user'
+import { useMutation } from "@tanstack/react-query";
+import { AlertTriangle, CheckCircle, Eye, EyeOff, Loader2 } from "lucide-react";
+import type { FormEvent } from "react";
+import { useState } from "react";
+import { toast } from "sonner";
+import { BlurFade } from "#components/ui/blur-fade";
+import { createClient } from "#lib/supabase/client";
+import { getCachedUser } from "#lib/supabase/get-cached-user";
 
 export function PasswordSection() {
-	const supabase = createClient()
-	const [showCurrentPassword, setShowCurrentPassword] = useState(false)
-	const [currentPassword, setCurrentPassword] = useState('')
-	const [newPassword, setNewPassword] = useState('')
-	const [confirmPassword, setConfirmPassword] = useState('')
+	const supabase = createClient();
+	const [showCurrentPassword, setShowCurrentPassword] = useState(false);
+	const [currentPassword, setCurrentPassword] = useState("");
+	const [newPassword, setNewPassword] = useState("");
+	const [confirmPassword, setConfirmPassword] = useState("");
 
 	const updatePassword = useMutation({
 		mutationFn: async () => {
 			if (newPassword !== confirmPassword) {
-				throw new Error('Passwords do not match')
+				throw new Error("Passwords do not match");
 			}
 			if (newPassword.length < 8) {
-				throw new Error('Password must be at least 8 characters')
+				throw new Error("Password must be at least 8 characters");
 			}
 
-			const user = await getCachedUser()
-			if (!user?.email) throw new Error('Unable to verify user')
+			const user = await getCachedUser();
+			if (!user?.email) throw new Error("Unable to verify user");
 
 			const { error: signInError } = await supabase.auth.signInWithPassword({
 				email: user.email,
-				password: currentPassword
-			})
-			if (signInError) throw new Error('Current password is incorrect')
+				password: currentPassword,
+			});
+			if (signInError) throw new Error("Current password is incorrect");
 
 			const { error } = await supabase.auth.updateUser({
-				password: newPassword
-			})
-			if (error) throw error
+				password: newPassword,
+			});
+			if (error) throw error;
 		},
 		onSuccess: () => {
-			toast.success('Password updated successfully')
-			setCurrentPassword('')
-			setNewPassword('')
-			setConfirmPassword('')
+			toast.success("Password updated successfully");
+			setCurrentPassword("");
+			setNewPassword("");
+			setConfirmPassword("");
 		},
-		onError: error => {
+		onError: (error) => {
 			toast.error(
-				error instanceof Error ? error.message : 'Failed to update password'
-			)
-		}
-	})
+				error instanceof Error ? error.message : "Failed to update password",
+			);
+		},
+	});
 
 	const handlePasswordSubmit = (e: FormEvent) => {
-		e.preventDefault()
-		updatePassword.mutate()
-	}
+		e.preventDefault();
+		updatePassword.mutate();
+	};
 
 	return (
 		<BlurFade delay={0.15} inView>
@@ -72,10 +72,10 @@ export function PasswordSection() {
 						<div className="relative">
 							<input
 								id="currentPassword"
-								type={showCurrentPassword ? 'text' : 'password'}
+								type={showCurrentPassword ? "text" : "password"}
 								placeholder="Enter current password"
 								value={currentPassword}
-								onChange={e => setCurrentPassword(e.target.value)}
+								onChange={(e) => setCurrentPassword(e.target.value)}
 								autoComplete="current-password"
 								className="h-10 w-full rounded-lg border bg-background px-3 pr-10 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
 							/>
@@ -84,7 +84,7 @@ export function PasswordSection() {
 								onClick={() => setShowCurrentPassword(!showCurrentPassword)}
 								className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
 								aria-label={
-									showCurrentPassword ? 'Hide password' : 'Show password'
+									showCurrentPassword ? "Hide password" : "Show password"
 								}
 							>
 								{showCurrentPassword ? (
@@ -106,7 +106,7 @@ export function PasswordSection() {
 							type="password"
 							placeholder="Enter new password"
 							value={newPassword}
-							onChange={e => setNewPassword(e.target.value)}
+							onChange={(e) => setNewPassword(e.target.value)}
 							disabled={updatePassword.isPending}
 							className="h-10 rounded-lg border bg-background px-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
 						/>
@@ -125,7 +125,7 @@ export function PasswordSection() {
 							type="password"
 							placeholder="Confirm new password"
 							value={confirmPassword}
-							onChange={e => setConfirmPassword(e.target.value)}
+							onChange={(e) => setConfirmPassword(e.target.value)}
 							autoComplete="new-password"
 							className="h-10 rounded-lg border bg-background px-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
 						/>
@@ -164,12 +164,12 @@ export function PasswordSection() {
 									Updating...
 								</span>
 							) : (
-								'Update Password'
+								"Update Password"
 							)}
 						</button>
 					</div>
 				</form>
 			</section>
 		</BlurFade>
-	)
+	);
 }

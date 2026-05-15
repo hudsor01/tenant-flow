@@ -1,26 +1,26 @@
-import { Field, FieldError, FieldLabel } from '#components/ui/field'
-import { LoadingSpinner } from '#components/ui/loading-spinner'
+import { Field, FieldError, FieldLabel } from "#components/ui/field";
+import { LoadingSpinner } from "#components/ui/loading-spinner";
 import {
 	Select,
 	SelectContent,
 	SelectItem,
 	SelectTrigger,
-	SelectValue
-} from '#components/ui/select'
-import type { Property, Unit } from '#types/core'
-import type { LeaseFormApi } from './lease-form-types'
+	SelectValue,
+} from "#components/ui/select";
+import type { Property, Unit } from "#types/core";
+import type { LeaseFormApi } from "./lease-form-types";
 
 interface LeaseFormPropertyUnitFieldsProps {
-	form: LeaseFormApi
-	properties: Property[]
-	propertiesIsLoading: boolean
-	propertiesIsError: boolean
-	propertiesError: Error | null
-	units: Unit[]
-	unitsIsError: boolean
-	unitsError: Error | null
-	selectedPropertyId: string
-	onPropertyChange: (propertyId: string) => void
+	form: LeaseFormApi;
+	properties: Property[];
+	propertiesIsLoading: boolean;
+	propertiesIsError: boolean;
+	propertiesError: Error | null;
+	units: Unit[];
+	unitsIsError: boolean;
+	unitsError: Error | null;
+	selectedPropertyId: string;
+	onPropertyChange: (propertyId: string) => void;
 }
 
 export function LeaseFormPropertyUnitFields({
@@ -33,7 +33,7 @@ export function LeaseFormPropertyUnitFields({
 	unitsIsError,
 	unitsError,
 	selectedPropertyId,
-	onPropertyChange
+	onPropertyChange,
 }: LeaseFormPropertyUnitFieldsProps) {
 	return (
 		<>
@@ -43,9 +43,9 @@ export function LeaseFormPropertyUnitFields({
 					<FieldLabel htmlFor="property-select">Property *</FieldLabel>
 					<Select
 						value={selectedPropertyId}
-						onValueChange={value => {
-							onPropertyChange(value)
-							form.setFieldValue('unit_id', '')
+						onValueChange={(value) => {
+							onPropertyChange(value);
+							form.setFieldValue("unit_id", "");
 						}}
 						disabled={propertiesIsError}
 					>
@@ -75,7 +75,7 @@ export function LeaseFormPropertyUnitFields({
 				{propertiesIsError && (
 					<p className="text-sm text-destructive mt-2">
 						Failed to load properties
-						{propertiesError ? `: ${propertiesError.message}` : ''}. Please
+						{propertiesError ? `: ${propertiesError.message}` : ""}. Please
 						refresh to retry.
 					</p>
 				)}
@@ -84,13 +84,13 @@ export function LeaseFormPropertyUnitFields({
 			{unitsIsError && (
 				<p className="text-sm text-destructive mt-2">
 					Failed to load units for the selected property.
-					{unitsError ? ` ${unitsError.message}` : ''} Please retry.
+					{unitsError ? ` ${unitsError.message}` : ""} Please retry.
 				</p>
 			)}
 
 			{/* Unit Selection */}
 			<form.Field name="unit_id">
-				{field => (
+				{(field) => (
 					<Field>
 						<FieldLabel htmlFor="unit_id">Unit *</FieldLabel>
 						<Select
@@ -102,7 +102,7 @@ export function LeaseFormPropertyUnitFields({
 								<SelectValue placeholder="Select unit" />
 							</SelectTrigger>
 							<SelectContent>
-								{units.map(unit => (
+								{units.map((unit) => (
 									<SelectItem key={unit.id} value={unit.id}>
 										{unit.unit_number}
 									</SelectItem>
@@ -116,5 +116,5 @@ export function LeaseFormPropertyUnitFields({
 				)}
 			</form.Field>
 		</>
-	)
+	);
 }

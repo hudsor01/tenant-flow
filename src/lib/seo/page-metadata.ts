@@ -1,13 +1,13 @@
-import type { Metadata } from 'next'
+import type { Metadata } from "next";
 
-import { getSiteUrl } from '#lib/generate-metadata'
+import { getSiteUrl } from "#lib/generate-metadata";
 
 interface PageMetadataConfig {
-	title: string
-	description: string
-	path: string
-	noindex?: boolean
-	ogImage?: string
+	title: string;
+	description: string;
+	path: string;
+	noindex?: boolean;
+	ogImage?: string;
 }
 
 /**
@@ -15,46 +15,46 @@ interface PageMetadataConfig {
  * Generates canonical URL, OG tags, and Twitter card from minimal config.
  */
 export function createPageMetadata(config: PageMetadataConfig): Metadata {
-	const { title, description, path, noindex, ogImage } = config
-	const siteUrl = getSiteUrl()
-	const normalizedPath = path.startsWith('/') ? path : `/${path}`
-	const canonicalUrl = `${siteUrl}${normalizedPath}`
+	const { title, description, path, noindex, ogImage } = config;
+	const siteUrl = getSiteUrl();
+	const normalizedPath = path.startsWith("/") ? path : `/${path}`;
+	const canonicalUrl = `${siteUrl}${normalizedPath}`;
 	const normalizedOgImage = ogImage
 		? /^https?:\/\//.test(ogImage)
 			? ogImage
-			: `${siteUrl}${ogImage.startsWith('/') ? ogImage : `/${ogImage}`}`
-		: undefined
+			: `${siteUrl}${ogImage.startsWith("/") ? ogImage : `/${ogImage}`}`
+		: undefined;
 	const imageUrl =
-		normalizedOgImage ?? `${siteUrl}/images/property-management-og.jpg`
+		normalizedOgImage ?? `${siteUrl}/images/property-management-og.jpg`;
 
 	return {
 		title,
 		description,
 		alternates: {
-			canonical: canonicalUrl
+			canonical: canonicalUrl,
 		},
 		openGraph: {
 			title,
 			description,
 			url: canonicalUrl,
-			siteName: 'TenantFlow',
-			type: 'website',
-			locale: 'en_US',
+			siteName: "TenantFlow",
+			type: "website",
+			locale: "en_US",
 			images: [
 				{
 					url: imageUrl,
 					width: 1200,
 					height: 630,
-					alt: `${title} | TenantFlow`
-				}
-			]
+					alt: `${title} | TenantFlow`,
+				},
+			],
 		},
 		twitter: {
-			card: 'summary_large_image',
+			card: "summary_large_image",
 			title,
 			description,
-			images: [imageUrl]
+			images: [imageUrl],
 		},
-		...(noindex ? { robots: 'noindex, follow' } : {})
-	}
+		...(noindex ? { robots: "noindex, follow" } : {}),
+	};
 }

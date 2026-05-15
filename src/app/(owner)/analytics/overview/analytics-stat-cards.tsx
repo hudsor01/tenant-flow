@@ -1,27 +1,27 @@
-import { BlurFade } from '#components/ui/blur-fade'
-import { NumberTicker } from '#components/ui/number-ticker'
-import { BorderBeam } from '#components/ui/border-beam'
+import { Building2, DollarSign, Users, Wrench } from "lucide-react";
+import { AnimatedTrendIndicator } from "#components/ui/animated-trend-indicator";
+import { BlurFade } from "#components/ui/blur-fade";
+import { BorderBeam } from "#components/ui/border-beam";
+import { NumberTicker } from "#components/ui/number-ticker";
 import {
 	Stat,
-	StatLabel,
-	StatValue,
+	StatDescription,
 	StatIndicator,
+	StatLabel,
 	StatTrend,
-	StatDescription
-} from '#components/ui/stat'
-import { AnimatedTrendIndicator } from '#components/ui/animated-trend-indicator'
-import { Building2, DollarSign, Users, Wrench } from 'lucide-react'
+	StatValue,
+} from "#components/ui/stat";
 
 interface AnalyticsStatCardsProps {
-	occupancyRate: number
-	occupancyChange: number
-	activeTenants: number
-	tenantsChange: number
-	monthlyRevenue: number
-	revenueGrowth: number
-	avgRoi: number
-	openMaintenance: number
-	maintenanceChange: number
+	occupancyRate: number;
+	occupancyChange: number;
+	activeTenants: number;
+	tenantsChange: number;
+	monthlyRevenue: number;
+	revenueGrowth: number;
+	avgRoi: number;
+	openMaintenance: number;
+	maintenanceChange: number;
 }
 
 export function AnalyticsStatCards({
@@ -33,7 +33,7 @@ export function AnalyticsStatCards({
 	revenueGrowth,
 	avgRoi,
 	openMaintenance,
-	maintenanceChange
+	maintenanceChange,
 }: AnalyticsStatCardsProps) {
 	return (
 		<div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
@@ -47,14 +47,22 @@ export function AnalyticsStatCards({
 					/>
 					<StatLabel>Occupancy Rate</StatLabel>
 					<StatValue className="flex items-baseline gap-0.5">
-						<NumberTicker value={occupancyRate} duration={1500} decimalPlaces={1} />
+						<NumberTicker
+							value={occupancyRate}
+							duration={1500}
+							decimalPlaces={1}
+						/>
 						<span className="text-lg">%</span>
 					</StatValue>
 					<StatIndicator variant="icon" color="primary">
 						<Building2 />
 					</StatIndicator>
-					<StatTrend trend={occupancyChange >= 0 ? 'up' : 'down'}>
-						<AnimatedTrendIndicator value={occupancyChange} size="sm" delay={500} />
+					<StatTrend trend={occupancyChange >= 0 ? "up" : "down"}>
+						<AnimatedTrendIndicator
+							value={occupancyChange}
+							size="sm"
+							delay={500}
+						/>
 						<span className="text-muted-foreground">vs last period</span>
 					</StatTrend>
 				</Stat>
@@ -95,13 +103,15 @@ export function AnalyticsStatCards({
 						<DollarSign />
 					</StatIndicator>
 					<StatTrend trend="up">
-						<AnimatedTrendIndicator value={revenueGrowth} size="sm" delay={600} />
+						<AnimatedTrendIndicator
+							value={revenueGrowth}
+							size="sm"
+							delay={600}
+						/>
 						<span className="text-muted-foreground">growth</span>
 					</StatTrend>
 					{avgRoi > 0 && (
-						<StatDescription>
-							{avgRoi.toFixed(1)}% ROI
-						</StatDescription>
+						<StatDescription>{avgRoi.toFixed(1)}% ROI</StatDescription>
 					)}
 				</Stat>
 			</BlurFade>
@@ -137,5 +147,5 @@ export function AnalyticsStatCards({
 				</Stat>
 			</BlurFade>
 		</div>
-	)
+	);
 }

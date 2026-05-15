@@ -1,4 +1,4 @@
-import { Skeleton } from '#components/ui/skeleton'
+import { Skeleton } from "#components/ui/skeleton";
 
 /**
  * Owner Routes Loading State
@@ -62,5 +62,5 @@ export default function OwnerLoading() {
 				</div>
 			</div>
 		</div>
-	)
+	);
 }

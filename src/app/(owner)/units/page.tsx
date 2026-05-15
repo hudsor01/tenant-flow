@@ -1,5 +1,12 @@
-'use client'
+"use client";
 
+import { useQuery } from "@tanstack/react-query";
+import type { ColumnDef } from "@tanstack/react-table";
+import { Edit, Home, MoreVertical, Trash2 } from "lucide-react";
+import Link from "next/link";
+import { useState } from "react";
+import { DataTable } from "#components/data-table/data-table";
+import { DataTableToolbar } from "#components/data-table/data-table-toolbar";
 import {
 	AlertDialog,
 	AlertDialogAction,
@@ -8,171 +15,164 @@ import {
 	AlertDialogDescription,
 	AlertDialogFooter,
 	AlertDialogHeader,
-	AlertDialogTitle
-} from '#components/ui/alert-dialog'
-import { Badge } from '#components/ui/badge'
-import { Button } from '#components/ui/button'
+	AlertDialogTitle,
+} from "#components/ui/alert-dialog";
+import { Badge } from "#components/ui/badge";
+import { Button } from "#components/ui/button";
 import {
 	DropdownMenu,
 	DropdownMenuContent,
 	DropdownMenuItem,
 	DropdownMenuLabel,
 	DropdownMenuSeparator,
-	DropdownMenuTrigger
-} from '#components/ui/dropdown-menu'
+	DropdownMenuTrigger,
+} from "#components/ui/dropdown-menu";
 import {
 	Empty,
 	EmptyDescription,
 	EmptyHeader,
 	EmptyMedia,
-	EmptyTitle
-} from '#components/ui/empty'
-import { Skeleton } from '#components/ui/skeleton'
-import { DataTable } from '#components/data-table/data-table'
-import { DataTableToolbar } from '#components/data-table/data-table-toolbar'
-import { useQuery } from '@tanstack/react-query'
-import { useDeleteUnitMutation } from '#hooks/api/use-unit'
-import { unitQueries } from '#hooks/api/query-keys/unit-keys'
-import { useDataTable } from '#hooks/use-data-table'
-import type { Unit } from '#types/core'
-import type { ColumnDef } from '@tanstack/react-table'
-import { Edit, Home, MoreVertical, Trash2 } from 'lucide-react'
-import { useState } from 'react'
-import Link from 'next/link'
+	EmptyTitle,
+} from "#components/ui/empty";
+import { Skeleton } from "#components/ui/skeleton";
+import { unitQueries } from "#hooks/api/query-keys/unit-keys";
+import { useDeleteUnitMutation } from "#hooks/api/use-unit";
+import { useDataTable } from "#hooks/use-data-table";
+import type { Unit } from "#types/core";
 
 export default function UnitsPage() {
-	const [deleteunit_id, setDeleteunit_id] = useState<string | null>(null)
-	const deleteUnitMutation = useDeleteUnitMutation()
+	const [deleteunit_id, setDeleteunit_id] = useState<string | null>(null);
+	const deleteUnitMutation = useDeleteUnitMutation();
 
 	// Fetch all units (filtering handled by DataTable)
 	const {
 		data: unitsResponse,
 		isLoading,
-		error
-	} = useQuery(unitQueries.list({ limit: 100 }))
+		error,
+	} = useQuery(unitQueries.list({ limit: 100 }));
 
-	const units = unitsResponse?.data ?? []
+	const units = unitsResponse?.data ?? [];
 
 	const handleDeleteClick = (unit_id: string) => {
-		setDeleteunit_id(unit_id)
-	}
+		setDeleteunit_id(unit_id);
+	};
 
 	const handleDeleteConfirm = () => {
 		if (deleteunit_id) {
 			deleteUnitMutation.mutate(deleteunit_id, {
 				onSuccess: () => {
-					setDeleteunit_id(null)
-				}
-			})
+					setDeleteunit_id(null);
+				},
+			});
 		}
-	}
+	};
 
-	const getStatusBadge = (status: Unit['status']) => {
+	const getStatusBadge = (status: Unit["status"]) => {
 		const variants: Record<
-			Unit['status'],
-			'default' | 'secondary' | 'destructive' | 'outline'
+			Unit["status"],
+			"default" | "secondary" | "destructive" | "outline"
 		> = {
-			available: 'secondary',
-			occupied: 'default',
-			maintenance: 'destructive',
-			reserved: 'outline'
-		}
+			available: "secondary",
+			occupied: "default",
+			maintenance: "destructive",
+			reserved: "outline",
+		};
 
-		const labels: Record<Unit['status'], string> = {
-			available: 'Available',
-			occupied: 'Occupied',
-			maintenance: 'Maintenance',
-			reserved: 'Reserved'
-		}
+		const labels: Record<Unit["status"], string> = {
+			available: "Available",
+			occupied: "Occupied",
+			maintenance: "Maintenance",
+			reserved: "Reserved",
+		};
 
-		return <Badge variant={variants[status]}>{labels[status]}</Badge>
-	}
+		return <Badge variant={variants[status]}>{labels[status]}</Badge>;
+	};
 
 	const columns: ColumnDef<Unit>[] = [
 		{
-			accessorKey: 'unit_number',
-			header: 'Unit Number',
+			accessorKey: "unit_number",
+			header: "Unit Number",
 			meta: {
-				label: 'Unit Number',
-				variant: 'text',
-				placeholder: 'Search unit number...'
+				label: "Unit Number",
+				variant: "text",
+				placeholder: "Search unit number...",
 			},
 			enableColumnFilter: true,
 			cell: ({ row }) => (
 				<span className="font-medium">{row.original.unit_number}</span>
-			)
+			),
 		},
 		{
-			accessorKey: 'property_id',
-			header: 'Property',
+			accessorKey: "property_id",
+			header: "Property",
 			cell: ({ row }) => (
 				<span className="text-muted-foreground">
 					Property ID: {row.original.property_id.substring(0, 8)}...
 				</span>
-			)
+			),
 		},
 		{
-			accessorKey: 'bedrooms',
-			header: 'Bedrooms',
+			accessorKey: "bedrooms",
+			header: "Bedrooms",
 			meta: {
-				label: 'Bedrooms',
-				variant: 'number'
+				label: "Bedrooms",
+				variant: "number",
 			},
-			enableColumnFilter: true
+			enableColumnFilter: true,
 		},
 		{
-			accessorKey: 'bathrooms',
-			header: 'Bathrooms',
+			accessorKey: "bathrooms",
+			header: "Bathrooms",
 			meta: {
-				label: 'Bathrooms',
-				variant: 'number'
+				label: "Bathrooms",
+				variant: "number",
 			},
-			enableColumnFilter: true
+			enableColumnFilter: true,
 		},
 		{
-			accessorKey: 'square_feet',
-			header: 'Square Feet',
+			accessorKey: "square_feet",
+			header: "Square Feet",
 			meta: {
-				label: 'Square Feet',
-				variant: 'number'
+				label: "Square Feet",
+				variant: "number",
 			},
 			enableColumnFilter: true,
 			cell: ({ row }) =>
-				row.original.square_feet ? `${row.original.square_feet} sq ft` : '-'
+				row.original.square_feet ? `${row.original.square_feet} sq ft` : "-",
 		},
 		{
-			accessorKey: 'rent_amount',
-			header: 'Rent',
+			accessorKey: "rent_amount",
+			header: "Rent",
 			meta: {
-				label: 'Rent Amount',
-				variant: 'number'
+				label: "Rent Amount",
+				variant: "number",
 			},
 			enableColumnFilter: true,
 			cell: ({ row }) =>
 				row.original.rent_amount
 					? `$${row.original.rent_amount.toLocaleString()}/mo`
-					: '-'
+					: "-",
 		},
 		{
-			accessorKey: 'status',
-			header: 'Status',
+			accessorKey: "status",
+			header: "Status",
 			meta: {
-				label: 'Status',
-				variant: 'select',
+				label: "Status",
+				variant: "select",
 				options: [
-					{ label: 'Available', value: 'available' },
-					{ label: 'Occupied', value: 'occupied' },
-					{ label: 'Maintenance', value: 'maintenance' },
-					{ label: 'Reserved', value: 'reserved' }
-				]
+					{ label: "Available", value: "available" },
+					{ label: "Occupied", value: "occupied" },
+					{ label: "Maintenance", value: "maintenance" },
+					{ label: "Reserved", value: "reserved" },
+				],
 			},
 			enableColumnFilter: true,
-			cell: ({ row }) => getStatusBadge(row.original.status)
+			cell: ({ row }) => getStatusBadge(row.original.status),
 		},
 		{
-			id: 'actions',
+			id: "actions",
 			cell: ({ row }) => {
-				const unit = row.original
+				const unit = row.original;
 				return (
 					<DropdownMenu>
 						<DropdownMenuTrigger asChild>
@@ -199,10 +199,10 @@ export default function UnitsPage() {
 							</DropdownMenuItem>
 						</DropdownMenuContent>
 					</DropdownMenu>
-				)
-			}
-		}
-	]
+				);
+			},
+		},
+	];
 
 	const { table } = useDataTable({
 		data: units,
@@ -212,10 +212,10 @@ export default function UnitsPage() {
 		initialState: {
 			pagination: {
 				pageIndex: 0,
-				pageSize: 10
-			}
-		}
-	})
+				pageSize: 10,
+			},
+		},
+	});
 
 	if (error) {
 		return (
@@ -225,11 +225,11 @@ export default function UnitsPage() {
 						Error Loading Units
 					</h2>
 					<p className="text-muted-foreground">
-						{error instanceof Error ? error.message : 'Failed to load units'}
+						{error instanceof Error ? error.message : "Failed to load units"}
 					</p>
 				</div>
 			</div>
-		)
+		);
 	}
 
 	if (isLoading) {
@@ -250,7 +250,7 @@ export default function UnitsPage() {
 					<Skeleton className="h-12 w-full" />
 				</div>
 			</div>
-		)
+		);
 	}
 
 	return (
@@ -307,11 +307,11 @@ export default function UnitsPage() {
 							disabled={deleteUnitMutation.isPending}
 							className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
 						>
-							{deleteUnitMutation.isPending ? 'Deleting...' : 'Delete'}
+							{deleteUnitMutation.isPending ? "Deleting..." : "Delete"}
 						</AlertDialogAction>
 					</AlertDialogFooter>
 				</AlertDialogContent>
 			</AlertDialog>
 		</div>
-	)
+	);
 }

@@ -14,12 +14,11 @@
  * ```
  */
 
-import * as Sentry from '@sentry/nextjs'
+import * as Sentry from "@sentry/nextjs";
+import { toast } from "sonner";
+import { createLogger } from "#lib/frontend-logger";
 
-import { createLogger } from '#lib/frontend-logger'
-import { toast } from 'sonner'
-
-const logger = createLogger({ component: 'MutationErrorHandler' })
+const logger = createLogger({ component: "MutationErrorHandler" });
 
 /**
  * Coerce an unknown error to an Error instance so `Sentry.captureException`
@@ -29,39 +28,39 @@ const logger = createLogger({ component: 'MutationErrorHandler' })
  * original shape on `cause`) so Sentry can inspect the underlying payload.
  */
 function toError(error: unknown, fallback: string): Error {
-	if (error instanceof Error) return error
-	if (typeof error === 'string') return new Error(error)
-	const obj = error as Record<string, unknown> | null
+	if (error instanceof Error) return error;
+	if (typeof error === "string") return new Error(error);
+	const obj = error as Record<string, unknown> | null;
 	const message =
-		(typeof obj?.message === 'string' && obj.message) ||
-		(typeof (obj?.payload as Record<string, unknown>)?.message === 'string' &&
+		(typeof obj?.message === "string" && obj.message) ||
+		(typeof (obj?.payload as Record<string, unknown>)?.message === "string" &&
 			((obj?.payload as Record<string, unknown>).message as string)) ||
-		fallback
-	return obj ? new Error(message, { cause: obj }) : new Error(message)
+		fallback;
+	return obj ? new Error(message, { cause: obj }) : new Error(message);
 }
 
 /**
  * Extract user-friendly error message from various error types
  */
 function extractErrorMessage(error: unknown): string {
-	if (error instanceof Error) return error.message
-	if (typeof error === 'string') return error
+	if (error instanceof Error) return error.message;
+	if (typeof error === "string") return error;
 
 	// Handle objects with message property (including nested payload.message)
-	const obj = error as Record<string, unknown> | null
+	const obj = error as Record<string, unknown> | null;
 	const message =
-		obj?.message ?? (obj?.payload as Record<string, unknown>)?.message
-	if (typeof message === 'string') return message
+		obj?.message ?? (obj?.payload as Record<string, unknown>)?.message;
+	if (typeof message === "string") return message;
 
-	return 'An unexpected error occurred'
+	return "An unexpected error occurred";
 }
 
 /**
  * Get HTTP status code from error if available
  */
 function getErrorStatus(error: unknown): number | undefined {
-	const status = (error as Record<string, unknown>)?.status
-	return typeof status === 'number' ? status : undefined
+	const status = (error as Record<string, unknown>)?.status;
+	return typeof status === "number" ? status : undefined;
 }
 
 /**
@@ -74,11 +73,11 @@ function getErrorStatus(error: unknown): number | undefined {
 export function handleMutationError(
 	error: unknown,
 	context: string,
-	customMessage?: string
+	customMessage?: string,
 ): void {
-	const message = extractErrorMessage(error)
-	const status = getErrorStatus(error)
-	const action = context.toLowerCase().replace(/\s+/g, '_')
+	const message = extractErrorMessage(error);
+	const status = getErrorStatus(error);
+	const action = context.toLowerCase().replace(/\s+/g, "_");
 
 	// Route the real error (with stack + class) to Sentry. Using
 	// `captureException` here is intentional — `logger.error` would
@@ -86,33 +85,33 @@ export function handleMutationError(
 	// the same failure.
 	Sentry.captureException(toError(error, `${context} failed`), {
 		tags: { mutation: action },
-		extra: { context, status, message }
-	})
+		extra: { context, status, message },
+	});
 
 	// Breadcrumb trail for the next captured event (free — does not fire
 	// its own Sentry event). Replaces the prior `logger.error` call which
 	// emitted a duplicate `captureMessage` for every mutation error.
 	Sentry.addBreadcrumb({
-		category: 'mutation',
-		level: 'error',
+		category: "mutation",
+		level: "error",
 		message: `${context} failed`,
 		data: {
 			action,
 			error: message,
 			status,
-			errorType: error instanceof Error ? error.constructor.name : typeof error
-		}
-	})
-	if (process.env.NODE_ENV !== 'production') {
+			errorType: error instanceof Error ? error.constructor.name : typeof error,
+		},
+	});
+	if (process.env.NODE_ENV !== "production") {
 		console.error(`[mutation] ${context} failed`, {
 			action,
 			error: message,
-			status
-		})
+			status,
+		});
 	}
 
 	// Show user-friendly toast notification
-	const displayMessage = customMessage || message
+	const displayMessage = customMessage || message;
 
 	// Plan-limit detection — fired by the BEFORE-INSERT triggers
 	// `enforce_property_plan_limit` / `enforce_unit_plan_limit`. The PG
@@ -122,20 +121,21 @@ export function handleMutationError(
 	// (`_shared/tier-gate.ts`) return a 402 response with `upgrade_url` in
 	// the body and are surfaced through their own per-feature handlers — they
 	// do NOT pass through this function.
-	const errObj = error as Record<string, unknown> | null
-	const pgHint = typeof errObj?.hint === 'string' ? errObj.hint : undefined
-	const pgDetails = typeof errObj?.details === 'string' ? errObj.details : undefined
-	const isPlanLimit = pgHint === 'plan_limit_exceeded'
+	const errObj = error as Record<string, unknown> | null;
+	const pgHint = typeof errObj?.hint === "string" ? errObj.hint : undefined;
+	const pgDetails =
+		typeof errObj?.details === "string" ? errObj.details : undefined;
+	const isPlanLimit = pgHint === "plan_limit_exceeded";
 
 	// Source attribution for analytics — DETAIL is JSON-encoded by the
 	// trigger's `format(...)` call. Treat parse failures as a soft default
 	// rather than blocking the toast.
-	let upgradeSource = 'plan_limit_gate'
+	let upgradeSource = "plan_limit_gate";
 	if (pgDetails) {
 		try {
-			const parsed = JSON.parse(pgDetails) as Record<string, unknown>
-			if (typeof parsed.upgrade_source === 'string') {
-				upgradeSource = parsed.upgrade_source
+			const parsed = JSON.parse(pgDetails) as Record<string, unknown>;
+			if (typeof parsed.upgrade_source === "string") {
+				upgradeSource = parsed.upgrade_source;
 			}
 		} catch {
 			/* DETAIL wasn't JSON; keep default tag */
@@ -144,35 +144,35 @@ export function handleMutationError(
 
 	// Customize toast based on status code
 	if (status === 409) {
-		toast.error('Conflict', {
+		toast.error("Conflict", {
 			description:
-				displayMessage || 'This item already exists or has been modified'
-		})
+				displayMessage || "This item already exists or has been modified",
+		});
 	} else if (isPlanLimit) {
-		toast.error('Plan limit reached', {
+		toast.error("Plan limit reached", {
 			description: displayMessage,
 			action: {
-				label: 'Upgrade',
+				label: "Upgrade",
 				onClick: () => {
-					window.location.href = `/billing/plans?source=${encodeURIComponent(upgradeSource)}`
-				}
-			}
-		})
+					window.location.href = `/billing/plans?source=${encodeURIComponent(upgradeSource)}`;
+				},
+			},
+		});
 	} else if (status === 403) {
-		toast.error('Access Denied', {
+		toast.error("Access Denied", {
 			description:
-				displayMessage || 'You do not have permission to perform this action'
-		})
+				displayMessage || "You do not have permission to perform this action",
+		});
 	} else if (status === 404) {
-		toast.error('Not Found', {
-			description: displayMessage || 'The requested item could not be found'
-		})
+		toast.error("Not Found", {
+			description: displayMessage || "The requested item could not be found",
+		});
 	} else if (status && status >= 500) {
-		toast.error('Server Error', {
-			description: 'Our servers encountered an issue. Please try again later.'
-		})
+		toast.error("Server Error", {
+			description: "Our servers encountered an issue. Please try again later.",
+		});
 	} else {
-		toast.error(displayMessage)
+		toast.error(displayMessage);
 	}
 }
 
@@ -184,9 +184,9 @@ export function handleMutationError(
  */
 export function handleMutationSuccess(context: string, message?: string): void {
 	logger.info(`${context} succeeded`, {
-		action: context.toLowerCase().replace(/\s+/g, '_'),
-		metadata: { success: true }
-	})
+		action: context.toLowerCase().replace(/\s+/g, "_"),
+		metadata: { success: true },
+	});
 
-	toast.success(message || `${context} completed successfully`)
+	toast.success(message || `${context} completed successfully`);
 }

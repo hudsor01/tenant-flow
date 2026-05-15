@@ -1,55 +1,55 @@
-'use client'
+"use client";
 
-import { Button } from '#components/ui/button'
+import { AlertCircle, Download, FileText } from "lucide-react";
+import { Badge } from "#components/ui/badge";
+import { Button } from "#components/ui/button";
 import {
 	Card,
 	CardContent,
 	CardDescription,
 	CardHeader,
-	CardTitle
-} from '#components/ui/card'
-import { Skeleton } from '#components/ui/skeleton'
+	CardTitle,
+} from "#components/ui/card";
+import { Skeleton } from "#components/ui/skeleton";
 import {
 	Table,
 	TableBody,
 	TableCell,
 	TableHead,
 	TableHeader,
-	TableRow
-} from '#components/ui/table'
-import { Badge } from '#components/ui/badge'
-import { Download, FileText, AlertCircle } from 'lucide-react'
-import type { YearEndSummary, Year1099Summary } from '#types/reports'
+	TableRow,
+} from "#components/ui/table";
+import type { Year1099Summary, YearEndSummary } from "#types/reports";
 
 function formatMoney(amount: number): string {
-	return new Intl.NumberFormat('en-US', {
-		style: 'currency',
-		currency: 'USD',
+	return new Intl.NumberFormat("en-US", {
+		style: "currency",
+		currency: "USD",
 		minimumFractionDigits: 2,
-		maximumFractionDigits: 2
-	}).format(amount)
+		maximumFractionDigits: 2,
+	}).format(amount);
 }
 
 interface YearEndReportSectionProps {
-	year: number
-	yearEndData: YearEndSummary | undefined
-	data1099: Year1099Summary | undefined
-	isLoadingYearEnd: boolean
-	isLoading1099: boolean
-	onDownloadYearEndCsv: () => void
-	onDownload1099Csv: () => void
-	isExportingYearEnd: boolean
-	isExporting1099: boolean
+	year: number;
+	yearEndData: YearEndSummary | undefined;
+	data1099: Year1099Summary | undefined;
+	isLoadingYearEnd: boolean;
+	isLoading1099: boolean;
+	onDownloadYearEndCsv: () => void;
+	onDownload1099Csv: () => void;
+	isExportingYearEnd: boolean;
+	isExporting1099: boolean;
 }
 
 function SummaryCard({
 	label,
 	value,
-	isLoading
+	isLoading,
 }: {
-	label: string
-	value: string
-	isLoading: boolean
+	label: string;
+	value: string;
+	isLoading: boolean;
 }) {
 	return (
 		<Card>
@@ -62,7 +62,7 @@ function SummaryCard({
 				<p className="text-sm text-muted-foreground mt-1">{label}</p>
 			</CardContent>
 		</Card>
-	)
+	);
 }
 
 export function YearEndReportSection({
@@ -74,7 +74,7 @@ export function YearEndReportSection({
 	onDownloadYearEndCsv,
 	onDownload1099Csv,
 	isExportingYearEnd,
-	isExporting1099
+	isExporting1099,
 }: YearEndReportSectionProps) {
 	return (
 		<section className="flex flex-col gap-6">
@@ -98,24 +98,28 @@ export function YearEndReportSection({
 						className="gap-1.5 min-h-11"
 					>
 						<Download className="size-4" />
-						{isExportingYearEnd ? 'Exporting...' : 'Download CSV'}
+						{isExportingYearEnd ? "Exporting..." : "Download CSV"}
 					</Button>
 				</div>
 
 				<div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
 					<SummaryCard
 						label="Gross Rental Income"
-						value={yearEndData ? formatMoney(yearEndData.grossRentalIncome) : '$0.00'}
+						value={
+							yearEndData ? formatMoney(yearEndData.grossRentalIncome) : "$0.00"
+						}
 						isLoading={isLoadingYearEnd}
 					/>
 					<SummaryCard
 						label="Operating Expenses"
-						value={yearEndData ? formatMoney(yearEndData.operatingExpenses) : '$0.00'}
+						value={
+							yearEndData ? formatMoney(yearEndData.operatingExpenses) : "$0.00"
+						}
 						isLoading={isLoadingYearEnd}
 					/>
 					<SummaryCard
 						label="Net Income"
-						value={yearEndData ? formatMoney(yearEndData.netIncome) : '$0.00'}
+						value={yearEndData ? formatMoney(yearEndData.netIncome) : "$0.00"}
 						isLoading={isLoadingYearEnd}
 					/>
 				</div>
@@ -125,7 +129,9 @@ export function YearEndReportSection({
 					<Card>
 						<CardHeader className="pb-3">
 							<CardTitle className="text-base">By Property</CardTitle>
-							<CardDescription>Income and expenses for each property in {year}</CardDescription>
+							<CardDescription>
+								Income and expenses for each property in {year}
+							</CardDescription>
 						</CardHeader>
 						<CardContent>
 							{isLoadingYearEnd ? (
@@ -145,9 +151,11 @@ export function YearEndReportSection({
 										</TableRow>
 									</TableHeader>
 									<TableBody>
-										{yearEndData?.byProperty.map(p => (
+										{yearEndData?.byProperty.map((p) => (
 											<TableRow key={p.propertyId}>
-												<TableCell className="font-medium">{p.propertyName}</TableCell>
+												<TableCell className="font-medium">
+													{p.propertyName}
+												</TableCell>
 												<TableCell className="text-right text-emerald-600">
 													{formatMoney(p.income)}
 												</TableCell>
@@ -156,7 +164,9 @@ export function YearEndReportSection({
 												</TableCell>
 												<TableCell
 													className={`text-right font-medium ${
-														p.netIncome >= 0 ? 'text-emerald-600' : 'text-red-500'
+														p.netIncome >= 0
+															? "text-emerald-600"
+															: "text-red-500"
 													}`}
 												>
 													{formatMoney(p.netIncome)}
@@ -171,11 +181,14 @@ export function YearEndReportSection({
 				)}
 
 				{/* Expense Categories */}
-				{(isLoadingYearEnd || (yearEndData?.expenseByCategory.length ?? 0) > 0) && (
+				{(isLoadingYearEnd ||
+					(yearEndData?.expenseByCategory.length ?? 0) > 0) && (
 					<Card>
 						<CardHeader className="pb-3">
 							<CardTitle className="text-base">Expense Breakdown</CardTitle>
-							<CardDescription>Operating expenses by category for {year}</CardDescription>
+							<CardDescription>
+								Operating expenses by category for {year}
+							</CardDescription>
 						</CardHeader>
 						<CardContent>
 							{isLoadingYearEnd ? (
@@ -220,7 +233,8 @@ export function YearEndReportSection({
 							1099-NEC Vendors ({year})
 						</h2>
 						<p className="text-sm text-muted-foreground">
-							Vendors paid ${data1099?.threshold ?? 600}+ — may require 1099-NEC filing
+							Vendors paid ${data1099?.threshold ?? 600}+ — may require 1099-NEC
+							filing
 						</p>
 					</div>
 					<Button
@@ -231,7 +245,7 @@ export function YearEndReportSection({
 						className="gap-1.5 min-h-11"
 					>
 						<Download className="size-4" />
-						{isExporting1099 ? 'Exporting...' : 'Download CSV'}
+						{isExporting1099 ? "Exporting..." : "Download CSV"}
 					</Button>
 				</div>
 
@@ -245,7 +259,8 @@ export function YearEndReportSection({
 							</div>
 						) : (data1099?.recipients.length ?? 0) === 0 ? (
 							<p className="text-sm text-muted-foreground text-center py-4">
-								No vendors exceeded the ${data1099?.threshold ?? 600} threshold in {year}.
+								No vendors exceeded the ${data1099?.threshold ?? 600} threshold
+								in {year}.
 							</p>
 						) : (
 							<Table>
@@ -260,13 +275,18 @@ export function YearEndReportSection({
 								<TableBody>
 									{data1099?.recipients.map((r, i) => (
 										<TableRow key={i}>
-											<TableCell className="font-medium">{r.vendorName}</TableCell>
+											<TableCell className="font-medium">
+												{r.vendorName}
+											</TableCell>
 											<TableCell className="text-right">{r.jobCount}</TableCell>
 											<TableCell className="text-right font-medium">
 												{formatMoney(r.totalPaid)}
 											</TableCell>
 											<TableCell className="text-right">
-												<Badge variant="outline" className="text-amber-600 border-amber-300">
+												<Badge
+													variant="outline"
+													className="text-amber-600 border-amber-300"
+												>
 													1099 Required
 												</Badge>
 											</TableCell>
@@ -279,5 +299,5 @@ export function YearEndReportSection({
 				</Card>
 			</div>
 		</section>
-	)
+	);
 }

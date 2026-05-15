@@ -3,62 +3,62 @@
  * These are domain types shared between frontend and backend
  */
 
-export type ActivityPriority = 'low' | 'medium' | 'high'
+export type ActivityPriority = "low" | "medium" | "high";
 
 export type ActivityType =
-	| 'payment'
-	| 'maintenance'
-	| 'leases'
-	| 'tenants'
-	| 'properties'
-	| 'units'
-	| 'billing'
-	| 'auth'
+	| "payment"
+	| "maintenance"
+	| "leases"
+	| "tenants"
+	| "properties"
+	| "units"
+	| "billing"
+	| "auth";
 
-export type ActivityStatus = 'pending' | 'COMPLETED' | 'FAILED' | 'CANCELLED'
+export type ActivityStatus = "pending" | "COMPLETED" | "FAILED" | "CANCELLED";
 
 /**
  * Strongly typed metadata for activities
  */
 export interface ActivityMetadata {
-	propertyName?: string
-	unit_number?: string | number
-	amount?: string | number
-	status?: ActivityStatus
-	tenantName?: string
-	leaseEndDate?: string
-	maintenanceType?: string
-	paymentMethod?: string
-	[key: string]: string | number | boolean | null | undefined
+	propertyName?: string;
+	unit_number?: string | number;
+	amount?: string | number;
+	status?: ActivityStatus;
+	tenantName?: string;
+	leaseEndDate?: string;
+	maintenanceType?: string;
+	paymentMethod?: string;
+	[key: string]: string | number | boolean | null | undefined;
 }
 
 /**
  * Core activity item interface
  */
 export interface ActivityItem {
-	id: string
-	user_id: string
-	userName?: string
-	action: string
-	entityType: string
-	entityId: string
-	entityName: string
-	metadata?: Record<string, string | number | boolean | null>
-	created_at: string
-	priority?: ActivityPriority
-	type?: ActivityType
-	description?: string
-	timestamp?: string
+	id: string;
+	user_id: string;
+	userName?: string;
+	action: string;
+	entityType: string;
+	entityId: string;
+	entityName: string;
+	metadata?: Record<string, string | number | boolean | null>;
+	created_at: string;
+	priority?: ActivityPriority;
+	type?: ActivityType;
+	description?: string;
+	timestamp?: string;
 }
 
 /**
  * Activity with enhanced typing
  */
 export type Activity = ActivityItem & {
-	entityType: string
-	metadata?: ActivityMetadata
-	priority?: ActivityPriority
-}
+	entityType: string;
+	metadata?: ActivityMetadata;
+	priority?: ActivityPriority;
+};
 
 /**
  * Dashboard activity from optimized RPC function
@@ -66,17 +66,17 @@ export type Activity = ActivityItem & {
  * in the type declaration, but returns NULL values at runtime
  */
 export interface DashboardActivity {
-	id: string
-	activity_type: 'leases' | 'payment' | 'maintenance' | 'units'
-	entity_id: string
-	property_id: string | null
-	tenant_id: string | null
-	unit_id: string | null
-	owner_id: string | null
-	status: string | null
-	priority: string | null
-	action: string
-	amount: number | null
-	activity_timestamp: string
-	details: Record<string, unknown>
+	id: string;
+	activity_type: "leases" | "payment" | "maintenance" | "units";
+	entity_id: string;
+	property_id: string | null;
+	tenant_id: string | null;
+	unit_id: string | null;
+	owner_id: string | null;
+	status: string | null;
+	priority: string | null;
+	action: string;
+	amount: number | null;
+	activity_timestamp: string;
+	details: Record<string, unknown>;
 }

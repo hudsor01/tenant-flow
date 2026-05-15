@@ -1,70 +1,70 @@
-'use client'
+"use client";
 
-import { Button } from '#components/ui/button'
-import { CardLayout } from '#components/ui/card-layout'
-import { Field, FieldError, FieldLabel } from '#components/ui/field'
+import { useForm } from "@tanstack/react-form";
+import { useSuspenseQuery } from "@tanstack/react-query";
+import { Phone, Save, User } from "lucide-react";
+import { useRouter } from "next/navigation";
+import type { ChangeEvent, FormEvent } from "react";
+import { toast } from "sonner";
+import { z } from "zod";
+import { Button } from "#components/ui/button";
+import { CardLayout } from "#components/ui/card-layout";
+import { Field, FieldError, FieldLabel } from "#components/ui/field";
 import {
 	InputGroup,
 	InputGroupAddon,
-	InputGroupInput
-} from '#components/ui/input-group'
-import { useUpdateTenantMutation } from '#hooks/api/use-tenant-mutations'
-import { tenantQueries } from '#hooks/api/query-keys/tenant-keys'
-import { handleMutationError } from '#lib/mutation-error-handler'
-import { tenantUpdateSchema } from '#lib/validation/tenants'
-import { useForm } from '@tanstack/react-form'
-import { useSuspenseQuery } from '@tanstack/react-query'
-import { Phone, Save, User } from 'lucide-react'
-import { useRouter } from 'next/navigation'
-import type { ChangeEvent, FormEvent } from 'react'
-import { toast } from 'sonner'
-import { z } from 'zod'
+	InputGroupInput,
+} from "#components/ui/input-group";
+import { tenantQueries } from "#hooks/api/query-keys/tenant-keys";
+import { useUpdateTenantMutation } from "#hooks/api/use-tenant-mutations";
+import { handleMutationError } from "#lib/mutation-error-handler";
+import { tenantUpdateSchema } from "#lib/validation/tenants";
 
 export interface TenantEditFormProps {
-	id: string
+	id: string;
 }
 
 export function TenantEditForm({ id }: TenantEditFormProps) {
-	const { data: tenant } = useSuspenseQuery(tenantQueries.detail(id))
-	const router = useRouter()
-	const updateMutation = useUpdateTenantMutation()
+	const { data: tenant } = useSuspenseQuery(tenantQueries.detail(id));
+	const router = useRouter();
+	const updateMutation = useUpdateTenantMutation();
 
 	const form = useForm({
 		defaultValues: {
-			emergency_contact_name: tenant?.emergency_contact_name || '',
-			emergency_contact_phone: tenant?.emergency_contact_phone || '',
+			emergency_contact_name: tenant?.emergency_contact_name || "",
+			emergency_contact_phone: tenant?.emergency_contact_phone || "",
 			emergency_contact_relationship:
-				tenant?.emergency_contact_relationship || ''
+				tenant?.emergency_contact_relationship || "",
 		},
 		onSubmit: async ({ value }) => {
 			try {
 				const updateData = {
 					emergency_contact_name: value.emergency_contact_name,
 					emergency_contact_phone: value.emergency_contact_phone,
-					emergency_contact_relationship: value.emergency_contact_relationship
-				}
-				await updateMutation.mutateAsync({ id, data: updateData })
-				toast.success('Tenant updated successfully')
-				router.push(`/tenants/${id}`)
+					emergency_contact_relationship: value.emergency_contact_relationship,
+				};
+				await updateMutation.mutateAsync({ id, data: updateData });
+				toast.success("Tenant updated successfully");
+				router.push(`/tenants/${id}`);
 			} catch (error) {
-				handleMutationError(error, 'Update tenant')
+				handleMutationError(error, "Update tenant");
 			}
 		},
 		validators: {
 			onChange: ({ value }) => {
-				const result = tenantUpdateSchema.safeParse(value)
+				const result = tenantUpdateSchema.safeParse(value);
 				if (!result.success) {
-					return z.treeifyError(result.error)
+					return z.treeifyError(result.error);
 				}
-				return undefined
-			}
-		}
-	})
+				return undefined;
+			},
+		},
+	});
 
 	const handleSubmit = (e: FormEvent) => {
-		e.preventDefault()
-		form.handleSubmit()
-	}
+		e.preventDefault();
+		form.handleSubmit();
+	};
 
 	const footer = (
 		<div className="flex justify-end gap-4 pt-6 border-t">
@@ -77,10 +77,10 @@ export function TenantEditForm({ id }: TenantEditFormProps) {
 				className="flex items-center gap-2"
 			>
 				<Save className="size-4" />
-				{updateMutation.isPending ? 'Saving...' : 'Save Changes'}
+				{updateMutation.isPending ? "Saving..." : "Save Changes"}
 			</Button>
 		</div>
-	)
+	);
 
 	return (
 		<CardLayout
@@ -91,7 +91,7 @@ export function TenantEditForm({ id }: TenantEditFormProps) {
 			<form onSubmit={handleSubmit} className="space-y-6">
 				{/* Emergency Contact Name */}
 				<form.Field name="emergency_contact_name">
-					{field => (
+					{(field) => (
 						<Field>
 							<FieldLabel htmlFor="emergency_contact_name">
 								Emergency Contact Name
@@ -119,7 +119,7 @@ export function TenantEditForm({ id }: TenantEditFormProps) {
 
 				{/* Emergency Contact Phone */}
 				<form.Field name="emergency_contact_phone">
-					{field => (
+					{(field) => (
 						<Field>
 							<FieldLabel htmlFor="emergency_contact_phone">
 								Emergency Contact Phone
@@ -148,7 +148,7 @@ export function TenantEditForm({ id }: TenantEditFormProps) {
 
 				{/* Emergency Contact Relationship */}
 				<form.Field name="emergency_contact_relationship">
-					{field => (
+					{(field) => (
 						<Field>
 							<FieldLabel htmlFor="emergency_contact_relationship">
 								Relationship
@@ -172,5 +172,5 @@ export function TenantEditForm({ id }: TenantEditFormProps) {
 				</form.Field>
 			</form>
 		</CardLayout>
-	)
+	);
 }

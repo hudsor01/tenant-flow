@@ -1,184 +1,177 @@
-'use client'
+"use client";
 
-import {
-	createContext,
-	useContext,
-	useSyncExternalStore
-} from 'react'
-import type { RefObject } from 'react'
-import { useLazyRef } from '#hooks/use-lazy-ref'
+import type { RefObject } from "react";
+import { createContext, useContext, useSyncExternalStore } from "react";
+import { useLazyRef } from "#hooks/use-lazy-ref";
 import type {
+	FileUploadInternalPropsRef,
 	Store,
 	StoreAction,
 	StoreState,
-	FileUploadInternalPropsRef
-} from './types'
-import { ROOT_NAME } from './types'
+} from "./types";
+import { ROOT_NAME } from "./types";
 
-const StoreContext = createContext<Store | null>(null)
+const StoreContext = createContext<Store | null>(null);
 
-export { StoreContext }
+export { StoreContext };
 
 export function useStoreContext(consumerName: string): Store {
-	const context = useContext(StoreContext)
+	const context = useContext(StoreContext);
 	if (!context) {
-		throw new Error(`\`${consumerName}\` must be used within \`${ROOT_NAME}\``)
+		throw new Error(`\`${consumerName}\` must be used within \`${ROOT_NAME}\``);
 	}
-	return context
+	return context;
 }
 
 export function useStore<T>(selector: (state: StoreState) => T): T {
-	const store = useStoreContext('useStore')
+	const store = useStoreContext("useStore");
 
 	const lastValueRef = useLazyRef<{ value: T; state: StoreState } | null>(
-		() => null
-	)
+		() => null,
+	);
 
 	const getSnapshot = () => {
-		const state = store.getState()
-		const prevValue = lastValueRef.current
+		const state = store.getState();
+		const prevValue = lastValueRef.current;
 
 		if (prevValue && prevValue.state === state) {
-			return prevValue.value
+			return prevValue.value;
 		}
 
-		const nextValue = selector(state)
-		lastValueRef.current = { value: nextValue, state }
-		return nextValue
-	}
+		const nextValue = selector(state);
+		lastValueRef.current = { value: nextValue, state };
+		return nextValue;
+	};
 
-	return useSyncExternalStore(store.subscribe, getSnapshot, getSnapshot)
+	return useSyncExternalStore(store.subscribe, getSnapshot, getSnapshot);
 }
 
 export function createStoreReducer(
-	files: Map<File, import('./types').FileState>,
+	files: Map<File, import("./types").FileState>,
 	urlCache: WeakMap<File, string>,
-	propsRef: RefObject<FileUploadInternalPropsRef>
+	propsRef: RefObject<FileUploadInternalPropsRef>,
 ) {
-	return function reducer(
-		state: StoreState,
-		action: StoreAction
-	): StoreState {
+	return function reducer(state: StoreState, action: StoreAction): StoreState {
 		switch (action.type) {
-			case 'ADD_FILES': {
+			case "ADD_FILES": {
 				for (const file of action.files) {
 					files.set(file, {
 						file,
 						progress: 0,
-						status: 'idle'
-					})
+						status: "idle",
+					});
 				}
 
 				if (propsRef.current?.onValueChange) {
 					const fileList = Array.from(files.values()).map(
-						(fileState) => fileState.file
-					)
-					propsRef.current.onValueChange(fileList)
+						(fileState) => fileState.file,
+					);
+					propsRef.current.onValueChange(fileList);
 				}
-				return { ...state, files }
+				return { ...state, files };
 			}
 
-			case 'SET_FILES': {
-				const newFileSet = new Set(action.files)
+			case "SET_FILES": {
+				const newFileSet = new Set(action.files);
 				for (const existingFile of files.keys()) {
 					if (!newFileSet.has(existingFile)) {
-						files.delete(existingFile)
+						files.delete(existingFile);
 					}
 				}
 
 				for (const file of action.files) {
-					const existingState = files.get(file)
+					const existingState = files.get(file);
 					if (!existingState) {
 						files.set(file, {
 							file,
 							progress: 0,
-							status: 'idle'
-						})
+							status: "idle",
+						});
 					}
 				}
-				return { ...state, files }
+				return { ...state, files };
 			}
 
-			case 'SET_PROGRESS': {
-				const fileState = files.get(action.file)
+			case "SET_PROGRESS": {
+				const fileState = files.get(action.file);
 				if (fileState) {
 					files.set(action.file, {
 						...fileState,
 						progress: action.progress,
-						status: 'uploading'
-					})
+						status: "uploading",
+					});
 				}
-				return { ...state, files }
+				return { ...state, files };
 			}
 
-			case 'SET_SUCCESS': {
-				const fileState = files.get(action.file)
+			case "SET_SUCCESS": {
+				const fileState = files.get(action.file);
 				if (fileState) {
 					files.set(action.file, {
 						...fileState,
 						progress: 100,
-						status: 'success'
-					})
+						status: "success",
+					});
 				}
-				return { ...state, files }
+				return { ...state, files };
 			}
 
-			case 'SET_ERROR': {
-				const fileState = files.get(action.file)
+			case "SET_ERROR": {
+				const fileState = files.get(action.file);
 				if (fileState) {
 					files.set(action.file, {
 						...fileState,
 						error: action.error,
-						status: 'error'
-					})
+						status: "error",
+					});
 				}
-				return { ...state, files }
+				return { ...state, files };
 			}
 
-			case 'REMOVE_FILE': {
-				const cachedUrl = urlCache.get(action.file)
+			case "REMOVE_FILE": {
+				const cachedUrl = urlCache.get(action.file);
 				if (cachedUrl) {
-					URL.revokeObjectURL(cachedUrl)
-					urlCache.delete(action.file)
+					URL.revokeObjectURL(cachedUrl);
+					urlCache.delete(action.file);
 				}
 
-				files.delete(action.file)
+				files.delete(action.file);
 
 				if (propsRef.current?.onValueChange) {
 					const fileList = Array.from(files.values()).map(
-						(fileState) => fileState.file
-					)
-					propsRef.current.onValueChange(fileList)
+						(fileState) => fileState.file,
+					);
+					propsRef.current.onValueChange(fileList);
 				}
-				return { ...state, files }
+				return { ...state, files };
 			}
 
-			case 'SET_DRAG_OVER': {
-				return { ...state, dragOver: action.dragOver }
+			case "SET_DRAG_OVER": {
+				return { ...state, dragOver: action.dragOver };
 			}
 
-			case 'SET_INVALID': {
-				return { ...state, invalid: action.invalid }
+			case "SET_INVALID": {
+				return { ...state, invalid: action.invalid };
 			}
 
-			case 'CLEAR': {
+			case "CLEAR": {
 				for (const file of files.keys()) {
-					const cachedUrl = urlCache.get(file)
+					const cachedUrl = urlCache.get(file);
 					if (cachedUrl) {
-						URL.revokeObjectURL(cachedUrl)
-						urlCache.delete(file)
+						URL.revokeObjectURL(cachedUrl);
+						urlCache.delete(file);
 					}
 				}
 
-				files.clear()
+				files.clear();
 				if (propsRef.current?.onValueChange) {
-					propsRef.current.onValueChange([])
+					propsRef.current.onValueChange([]);
 				}
-				return { ...state, files, invalid: false }
+				return { ...state, files, invalid: false };
 			}
 
 			default:
-				return state
+				return state;
 		}
-	}
+	};
 }

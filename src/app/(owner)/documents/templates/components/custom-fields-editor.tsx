@@ -1,36 +1,39 @@
-'use client'
+"use client";
 
-import { Button } from '#components/ui/button'
-import { Input } from '#components/ui/input'
-import { Label } from '#components/ui/label'
-import { Card, CardContent, CardHeader, CardTitle } from '#components/ui/card'
-import { Plus, Trash2 } from 'lucide-react'
-import type { CustomField } from './template-types'
+import { Plus, Trash2 } from "lucide-react";
+import { Button } from "#components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "#components/ui/card";
+import { Input } from "#components/ui/input";
+import { Label } from "#components/ui/label";
+import type { CustomField } from "./template-types";
 
 interface CustomFieldsEditorProps {
-	fields: CustomField[]
-	onChange: (fields: CustomField[]) => void
+	fields: CustomField[];
+	onChange: (fields: CustomField[]) => void;
 }
 
-export function CustomFieldsEditor({ fields, onChange }: CustomFieldsEditorProps) {
+export function CustomFieldsEditor({
+	fields,
+	onChange,
+}: CustomFieldsEditorProps) {
 	const handleAdd = () => {
-		onChange([...fields, { label: '', value: '' }])
-	}
+		onChange([...fields, { label: "", value: "" }]);
+	};
 
 	const handleUpdate = (
 		index: number,
 		key: keyof CustomField,
-		value: string
+		value: string,
 	) => {
 		const next = fields.map((field, idx) =>
-			idx === index ? { ...field, [key]: value } : field
-		)
-		onChange(next)
-	}
+			idx === index ? { ...field, [key]: value } : field,
+		);
+		onChange(next);
+	};
 
 	const handleRemove = (index: number) => {
-		onChange(fields.filter((_, idx) => idx !== index))
-	}
+		onChange(fields.filter((_, idx) => idx !== index));
+	};
 
 	return (
 		<Card>
@@ -65,15 +68,15 @@ export function CustomFieldsEditor({ fields, onChange }: CustomFieldsEditorProps
 							<Input
 								placeholder="Label"
 								value={field.label}
-								onChange={event =>
-									handleUpdate(index, 'label', event.target.value)
+								onChange={(event) =>
+									handleUpdate(index, "label", event.target.value)
 								}
 							/>
 							<Input
 								placeholder="Value"
 								value={field.value}
-								onChange={event =>
-									handleUpdate(index, 'value', event.target.value)
+								onChange={(event) =>
+									handleUpdate(index, "value", event.target.value)
 								}
 							/>
 						</div>
@@ -81,5 +84,5 @@ export function CustomFieldsEditor({ fields, onChange }: CustomFieldsEditorProps
 				))}
 			</CardContent>
 		</Card>
-	)
+	);
 }

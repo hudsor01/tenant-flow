@@ -1,40 +1,40 @@
-'use client'
+"use client";
 
-import type { MouseEvent } from 'react'
-import { Slot } from 'radix-ui'
+import { Slot } from "radix-ui";
+import type { MouseEvent } from "react";
 import {
+	type ButtonProps,
 	NEXT_NAME,
 	PREV_NAME,
 	useStore,
 	useStoreContext,
-	type ButtonProps
-} from './stepper-context'
+} from "./stepper-context";
 
 function StepperPrev(props: ButtonProps) {
-	const { asChild, disabled, ...prevProps } = props
+	const { asChild, disabled, ...prevProps } = props;
 
-	const store = useStoreContext(PREV_NAME)
-	const value = useStore(state => state.value)
-	const steps = useStore(state => state.steps)
+	const store = useStoreContext(PREV_NAME);
+	const value = useStore((state) => state.value);
+	const steps = useStore((state) => state.steps);
 
-	const stepKeys = Array.from(steps.keys())
-	const currentIndex = value ? stepKeys.indexOf(value) : -1
-	const isDisabled = disabled || currentIndex <= 0
+	const stepKeys = Array.from(steps.keys());
+	const currentIndex = value ? stepKeys.indexOf(value) : -1;
+	const isDisabled = disabled || currentIndex <= 0;
 
-	const handlePrevClick = prevProps.onClick
+	const handlePrevClick = prevProps.onClick;
 	const onClick = async (event: MouseEvent<HTMLButtonElement>) => {
-		handlePrevClick?.(event)
-		if (event.defaultPrevented || isDisabled) return
+		handlePrevClick?.(event);
+		if (event.defaultPrevented || isDisabled) return;
 
-		const prevIndex = Math.max(currentIndex - 1, 0)
-		const prevStepValue = stepKeys[prevIndex]
+		const prevIndex = Math.max(currentIndex - 1, 0);
+		const prevStepValue = stepKeys[prevIndex];
 
 		if (prevStepValue) {
-			store.setState('value', prevStepValue)
+			store.setState("value", prevStepValue);
 		}
-	}
+	};
 
-	const PrevPrimitive = asChild ? Slot.Slot : 'button'
+	const PrevPrimitive = asChild ? Slot.Slot : "button";
 
 	return (
 		<PrevPrimitive
@@ -44,34 +44,34 @@ function StepperPrev(props: ButtonProps) {
 			{...prevProps}
 			onClick={onClick}
 		/>
-	)
+	);
 }
 
 function StepperNext(props: ButtonProps) {
-	const { asChild, disabled, ...nextProps } = props
+	const { asChild, disabled, ...nextProps } = props;
 
-	const store = useStoreContext(NEXT_NAME)
-	const value = useStore(state => state.value)
-	const steps = useStore(state => state.steps)
+	const store = useStoreContext(NEXT_NAME);
+	const value = useStore((state) => state.value);
+	const steps = useStore((state) => state.steps);
 
-	const stepKeys = Array.from(steps.keys())
-	const currentIndex = value ? stepKeys.indexOf(value) : -1
-	const isDisabled = disabled || currentIndex >= stepKeys.length - 1
+	const stepKeys = Array.from(steps.keys());
+	const currentIndex = value ? stepKeys.indexOf(value) : -1;
+	const isDisabled = disabled || currentIndex >= stepKeys.length - 1;
 
-	const handleNextClick = nextProps.onClick
+	const handleNextClick = nextProps.onClick;
 	const onClick = async (event: MouseEvent<HTMLButtonElement>) => {
-		handleNextClick?.(event)
-		if (event.defaultPrevented || isDisabled) return
+		handleNextClick?.(event);
+		if (event.defaultPrevented || isDisabled) return;
 
-		const nextIndex = Math.min(currentIndex + 1, stepKeys.length - 1)
-		const nextStepValue = stepKeys[nextIndex]
+		const nextIndex = Math.min(currentIndex + 1, stepKeys.length - 1);
+		const nextStepValue = stepKeys[nextIndex];
 
 		if (nextStepValue) {
-			await store.setStateWithValidation(nextStepValue, 'next')
+			await store.setStateWithValidation(nextStepValue, "next");
 		}
-	}
+	};
 
-	const NextPrimitive = asChild ? Slot.Slot : 'button'
+	const NextPrimitive = asChild ? Slot.Slot : "button";
 
 	return (
 		<NextPrimitive
@@ -81,7 +81,7 @@ function StepperNext(props: ButtonProps) {
 			{...nextProps}
 			onClick={onClick}
 		/>
-	)
+	);
 }
 
-export { StepperPrev, StepperNext }
+export { StepperNext, StepperPrev };

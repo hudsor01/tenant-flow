@@ -6,134 +6,141 @@
  * creating leases, and recording payments.
  */
 
-import { describe, it, expect } from 'vitest'
-import { render, screen } from '@testing-library/react'
-import { QuickActionsDock, type QuickAction } from '../quick-actions-dock'
-import { Plus, FileText, Wrench } from 'lucide-react'
+import { render, screen } from "@testing-library/react";
+import { FileText, Plus, Wrench } from "lucide-react";
+import { describe, expect, it } from "vitest";
+import { type QuickAction, QuickActionsDock } from "../quick-actions-dock";
 
-describe('QuickActionsDock', () => {
-	describe('default actions', () => {
-		it('should render all default quick actions', () => {
-			render(<QuickActionsDock />)
+describe("QuickActionsDock", () => {
+	describe("default actions", () => {
+		it("should render all default quick actions", () => {
+			render(<QuickActionsDock />);
 
-			expect(screen.getByLabelText('Add Property')).toBeInTheDocument()
-			expect(screen.getByLabelText('New Lease')).toBeInTheDocument()
-			expect(screen.getByLabelText('Maintenance')).toBeInTheDocument()
-			expect(screen.getByLabelText('Notifications')).toBeInTheDocument()
-		})
+			expect(screen.getByLabelText("Add Property")).toBeInTheDocument();
+			expect(screen.getByLabelText("New Lease")).toBeInTheDocument();
+			expect(screen.getByLabelText("Maintenance")).toBeInTheDocument();
+			expect(screen.getByLabelText("Notifications")).toBeInTheDocument();
+		});
 
-		it('should render correct hrefs for default actions', () => {
-			render(<QuickActionsDock />)
+		it("should render correct hrefs for default actions", () => {
+			render(<QuickActionsDock />);
 
-			expect(screen.getByLabelText('Add Property')).toHaveAttribute(
-				'href',
-				'/properties/new'
-			)
-			expect(screen.getByLabelText('New Lease')).toHaveAttribute(
-				'href',
-				'/leases/new'
-			)
-			expect(screen.getByLabelText('Maintenance')).toHaveAttribute(
-				'href',
-				'/maintenance/new'
-			)
-			expect(screen.getByLabelText('Notifications')).toHaveAttribute(
-				'href',
-				'/settings?tab=notifications'
-			)
-		})
-	})
+			expect(screen.getByLabelText("Add Property")).toHaveAttribute(
+				"href",
+				"/properties/new",
+			);
+			expect(screen.getByLabelText("New Lease")).toHaveAttribute(
+				"href",
+				"/leases/new",
+			);
+			expect(screen.getByLabelText("Maintenance")).toHaveAttribute(
+				"href",
+				"/maintenance/new",
+			);
+			expect(screen.getByLabelText("Notifications")).toHaveAttribute(
+				"href",
+				"/settings?tab=notifications",
+			);
+		});
+	});
 
-	describe('custom actions', () => {
-		it('should render custom actions when provided', () => {
+	describe("custom actions", () => {
+		it("should render custom actions when provided", () => {
 			const customActions: QuickAction[] = [
-				{ id: 'custom-1', label: 'Custom Action', icon: Plus, href: '/custom' }
-			]
+				{ id: "custom-1", label: "Custom Action", icon: Plus, href: "/custom" },
+			];
 
-			render(<QuickActionsDock actions={customActions} />)
+			render(<QuickActionsDock actions={customActions} />);
 
-			expect(screen.getByLabelText('Custom Action')).toBeInTheDocument()
-			expect(screen.getByLabelText('Custom Action')).toHaveAttribute(
-				'href',
-				'/custom'
-			)
-		})
+			expect(screen.getByLabelText("Custom Action")).toBeInTheDocument();
+			expect(screen.getByLabelText("Custom Action")).toHaveAttribute(
+				"href",
+				"/custom",
+			);
+		});
 
-		it('should only render custom actions, not defaults', () => {
+		it("should only render custom actions, not defaults", () => {
 			const customActions: QuickAction[] = [
-				{ id: 'custom-1', label: 'Custom Only', icon: Plus, href: '/custom' }
-			]
+				{ id: "custom-1", label: "Custom Only", icon: Plus, href: "/custom" },
+			];
 
-			render(<QuickActionsDock actions={customActions} />)
+			render(<QuickActionsDock actions={customActions} />);
 
-			expect(screen.getByLabelText('Custom Only')).toBeInTheDocument()
-			expect(screen.queryByLabelText('Add Property')).not.toBeInTheDocument()
-		})
+			expect(screen.getByLabelText("Custom Only")).toBeInTheDocument();
+			expect(screen.queryByLabelText("Add Property")).not.toBeInTheDocument();
+		});
 
-		it('should render multiple custom actions', () => {
+		it("should render multiple custom actions", () => {
 			const customActions: QuickAction[] = [
-				{ id: 'action-1', label: 'First Action', icon: Plus, href: '/first' },
-				{ id: 'action-2', label: 'Second Action', icon: FileText, href: '/second' },
-				{ id: 'action-3', label: 'Third Action', icon: Wrench, href: '/third' }
-			]
+				{ id: "action-1", label: "First Action", icon: Plus, href: "/first" },
+				{
+					id: "action-2",
+					label: "Second Action",
+					icon: FileText,
+					href: "/second",
+				},
+				{ id: "action-3", label: "Third Action", icon: Wrench, href: "/third" },
+			];
 
-			render(<QuickActionsDock actions={customActions} />)
+			render(<QuickActionsDock actions={customActions} />);
 
-			expect(screen.getByLabelText('First Action')).toBeInTheDocument()
-			expect(screen.getByLabelText('Second Action')).toBeInTheDocument()
-			expect(screen.getByLabelText('Third Action')).toBeInTheDocument()
-		})
-	})
+			expect(screen.getByLabelText("First Action")).toBeInTheDocument();
+			expect(screen.getByLabelText("Second Action")).toBeInTheDocument();
+			expect(screen.getByLabelText("Third Action")).toBeInTheDocument();
+		});
+	});
 
-	describe('styling and accessibility', () => {
-		it('should have aria-label on each action for accessibility', () => {
-			render(<QuickActionsDock />)
+	describe("styling and accessibility", () => {
+		it("should have aria-label on each action for accessibility", () => {
+			render(<QuickActionsDock />);
 
-			const links = screen.getAllByRole('link')
+			const links = screen.getAllByRole("link");
 			for (const link of links) {
-				expect(link).toHaveAttribute('aria-label')
+				expect(link).toHaveAttribute("aria-label");
 			}
-		})
+		});
 
-		it('should apply custom className when provided', () => {
-			const { container } = render(<QuickActionsDock className="custom-class" />)
+		it("should apply custom className when provided", () => {
+			const { container } = render(
+				<QuickActionsDock className="custom-class" />,
+			);
 
-			const wrapper = container.firstChild as HTMLElement
-			expect(wrapper.className).toContain('custom-class')
-		})
+			const wrapper = container.firstChild as HTMLElement;
+			expect(wrapper.className).toContain("custom-class");
+		});
 
-		it('should render tooltips for each action', () => {
-			render(<QuickActionsDock />)
+		it("should render tooltips for each action", () => {
+			render(<QuickActionsDock />);
 
 			// Tooltips are rendered as spans inside each link
-			expect(screen.getByText('Add Property')).toBeInTheDocument()
-			expect(screen.getByText('New Lease')).toBeInTheDocument()
-			expect(screen.getByText('Maintenance')).toBeInTheDocument()
-			expect(screen.getByText('Notifications')).toBeInTheDocument()
-		})
-	})
+			expect(screen.getByText("Add Property")).toBeInTheDocument();
+			expect(screen.getByText("New Lease")).toBeInTheDocument();
+			expect(screen.getByText("Maintenance")).toBeInTheDocument();
+			expect(screen.getByText("Notifications")).toBeInTheDocument();
+		});
+	});
 
-	describe('responsive behavior', () => {
-		it('should have lg:block class for desktop visibility', () => {
-			const { container } = render(<QuickActionsDock />)
+	describe("responsive behavior", () => {
+		it("should have lg:block class for desktop visibility", () => {
+			const { container } = render(<QuickActionsDock />);
 
-			const wrapper = container.firstChild as HTMLElement
-			expect(wrapper.className).toContain('lg:block')
-		})
+			const wrapper = container.firstChild as HTMLElement;
+			expect(wrapper.className).toContain("lg:block");
+		});
 
-		it('should have hidden class for mobile', () => {
-			const { container } = render(<QuickActionsDock />)
+		it("should have hidden class for mobile", () => {
+			const { container } = render(<QuickActionsDock />);
 
-			const wrapper = container.firstChild as HTMLElement
-			expect(wrapper.className).toContain('hidden')
-		})
-	})
+			const wrapper = container.firstChild as HTMLElement;
+			expect(wrapper.className).toContain("hidden");
+		});
+	});
 
-	describe('empty actions', () => {
-		it('should render empty dock with no actions', () => {
-			render(<QuickActionsDock actions={[]} />)
+	describe("empty actions", () => {
+		it("should render empty dock with no actions", () => {
+			render(<QuickActionsDock actions={[]} />);
 
-			expect(screen.queryAllByRole('link')).toHaveLength(0)
-		})
-	})
-})
+			expect(screen.queryAllByRole("link")).toHaveLength(0);
+		});
+	});
+});

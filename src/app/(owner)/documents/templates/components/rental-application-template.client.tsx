@@ -1,158 +1,161 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
-import { Card, CardContent, CardHeader, CardTitle } from '#components/ui/card'
-import { Badge } from '#components/ui/badge'
-import { BrandingEditor } from './branding-editor'
-import { CustomFieldsEditor } from './custom-fields-editor'
-import { ClausesEditor } from './clauses-editor'
-import { TemplatePreviewPanel } from './template-preview-panel'
-import { useTemplatePdf } from './use-template-pdf'
-import { DynamicForm, type DynamicField } from './dynamic-form'
-import { FormBuilderPanel } from './form-builder-panel'
-import { useTemplateDefinition } from './template-definition'
-import type { BrandingInfo, ClauseItem, CustomField } from './template-types'
-import { useForm } from '@tanstack/react-form'
-import { z } from 'zod'
-import { rentalApplicationSchema } from './template-schemas'
+import { useForm } from "@tanstack/react-form";
+import { useState } from "react";
+import { z } from "zod";
+import { Badge } from "#components/ui/badge";
+import { Card, CardContent, CardHeader, CardTitle } from "#components/ui/card";
+import { BrandingEditor } from "./branding-editor";
+import { ClausesEditor } from "./clauses-editor";
+import { CustomFieldsEditor } from "./custom-fields-editor";
+import { type DynamicField, DynamicForm } from "./dynamic-form";
+import { FormBuilderPanel } from "./form-builder-panel";
+import { useTemplateDefinition } from "./template-definition";
+import { TemplatePreviewPanel } from "./template-preview-panel";
+import { rentalApplicationSchema } from "./template-schemas";
+import type { BrandingInfo, ClauseItem, CustomField } from "./template-types";
+import { useTemplatePdf } from "./use-template-pdf";
 
 const defaultBranding: BrandingInfo = {
-	companyName: 'TenantFlow Properties',
+	companyName: "TenantFlow Properties",
 	logoUrl: null,
-	primaryColor: 'oklch(0.35 0.08 250)'
-}
+	primaryColor: "oklch(0.35 0.08 250)",
+};
 
 export function RentalApplicationTemplate() {
-	const [branding, setBranding] = useState(defaultBranding)
+	const [branding, setBranding] = useState(defaultBranding);
 	const form = useForm({
 		defaultValues: {
-			applicantName: 'Taylor Morgan',
-			email: 'taylor.morgan@email.com',
-			phone: '(415) 555-1200',
-			currentAddress: '456 Pine Street, San Francisco, CA 94108',
-			employer: 'Pacific Design Co.',
-			monthlyIncome: '6500',
-			notes: 'Applicant requests move-in by February 1st.',
+			applicantName: "Taylor Morgan",
+			email: "taylor.morgan@email.com",
+			phone: "(415) 555-1200",
+			currentAddress: "456 Pine Street, San Francisco, CA 94108",
+			employer: "Pacific Design Co.",
+			monthlyIncome: "6500",
+			notes: "Applicant requests move-in by February 1st.",
 			backgroundCheck: true,
 			references: [
-				{ name: 'Morgan Lee', relationship: 'Previous landlord', phone: '' }
-			]
+				{ name: "Morgan Lee", relationship: "Previous landlord", phone: "" },
+			],
 		},
 		validators: {
 			onBlur: ({ value }) => {
-				const result = rentalApplicationSchema.safeParse(value)
+				const result = rentalApplicationSchema.safeParse(value);
 				if (!result.success) {
-					return z.treeifyError(result.error)
+					return z.treeifyError(result.error);
 				}
-				return undefined
+				return undefined;
 			},
 			onSubmitAsync: ({ value }) => {
-				const result = rentalApplicationSchema.safeParse(value)
+				const result = rentalApplicationSchema.safeParse(value);
 				if (!result.success) {
-					return z.treeifyError(result.error)
+					return z.treeifyError(result.error);
 				}
-				return undefined
-			}
-		}
-	})
-	const [customFields, setCustomFields] = useState<CustomField[]>([])
-	const [clauses, setClauses] = useState<ClauseItem[]>([{
-		id: 'state-clause-1',
-		text: 'Application fee disclosures provided.'
-	}])
+				return undefined;
+			},
+		},
+	});
+	const [customFields, setCustomFields] = useState<CustomField[]>([]);
+	const [clauses, setClauses] = useState<ClauseItem[]>([
+		{
+			id: "state-clause-1",
+			text: "Application fee disclosures provided.",
+		},
+	]);
 
 	const baseFields: DynamicField[] = [
-			{
-				name: 'applicantName',
-				label: 'Applicant name',
-				type: 'text',
-				section: 'Applicant details'
-			},
-			{
-				name: 'email',
-				label: 'Email',
-				type: 'email',
-				section: 'Applicant details'
-			},
-			{
-				name: 'phone',
-				label: 'Phone',
-				type: 'tel',
-				section: 'Applicant details'
-			},
-			{
-				name: 'employer',
-				label: 'Employer',
-				type: 'text',
-				section: 'Applicant details'
-			},
-			{
-				name: 'monthlyIncome',
-				label: 'Monthly income',
-				type: 'number',
-				section: 'Applicant details',
-				placeholder: '$'
-			},
-			{
-				name: 'currentAddress',
-				label: 'Current address',
-				type: 'text',
-				section: 'Applicant details',
-				fullWidth: true
-			},
-			{
-				name: 'backgroundCheck',
-				label: 'Background check consent',
-				type: 'checkbox',
-				section: 'Screening',
-				fullWidth: true,
-				description: 'Include authorization for a third-party screening provider.'
-			},
-			{
-				name: 'notes',
-				label: 'Additional notes',
-				type: 'textarea',
-				section: 'Screening',
-				fullWidth: true
-			},
-			{
-				name: 'references',
-				label: 'References',
-				type: 'list',
-				section: 'References',
-				fullWidth: true,
-				itemLabel: 'Reference',
-				addLabel: 'Add reference',
-				itemFields: [
-					{ key: 'name', label: 'Name', type: 'text' },
-					{ key: 'relationship', label: 'Relationship', type: 'text' },
-					{ key: 'phone', label: 'Phone', type: 'text' }
-				]
-			}
-		]
+		{
+			name: "applicantName",
+			label: "Applicant name",
+			type: "text",
+			section: "Applicant details",
+		},
+		{
+			name: "email",
+			label: "Email",
+			type: "email",
+			section: "Applicant details",
+		},
+		{
+			name: "phone",
+			label: "Phone",
+			type: "tel",
+			section: "Applicant details",
+		},
+		{
+			name: "employer",
+			label: "Employer",
+			type: "text",
+			section: "Applicant details",
+		},
+		{
+			name: "monthlyIncome",
+			label: "Monthly income",
+			type: "number",
+			section: "Applicant details",
+			placeholder: "$",
+		},
+		{
+			name: "currentAddress",
+			label: "Current address",
+			type: "text",
+			section: "Applicant details",
+			fullWidth: true,
+		},
+		{
+			name: "backgroundCheck",
+			label: "Background check consent",
+			type: "checkbox",
+			section: "Screening",
+			fullWidth: true,
+			description:
+				"Include authorization for a third-party screening provider.",
+		},
+		{
+			name: "notes",
+			label: "Additional notes",
+			type: "textarea",
+			section: "Screening",
+			fullWidth: true,
+		},
+		{
+			name: "references",
+			label: "References",
+			type: "list",
+			section: "References",
+			fullWidth: true,
+			itemLabel: "Reference",
+			addLabel: "Add reference",
+			itemFields: [
+				{ key: "name", label: "Name", type: "text" },
+				{ key: "relationship", label: "Relationship", type: "text" },
+				{ key: "phone", label: "Phone", type: "text" },
+			],
+		},
+	];
 
 	const {
 		fields,
 		customFields: builderFields,
 		setCustomFields: setBuilderFields,
 		isSaving: isSavingFields,
-		save: saveFields
-	} = useTemplateDefinition('rental-application', baseFields, form as never)
+		save: saveFields,
+	} = useTemplateDefinition("rental-application", baseFields, form as never);
 
 	const getPayload = () => {
-		const values = form.state.values as Record<string, unknown>
-		const dynamicFields = builderFields.map(field => ({
+		const values = form.state.values as Record<string, unknown>;
+		const dynamicFields = builderFields.map((field) => ({
 			label: field.label,
 			value:
-				field.type === 'checkbox'
+				field.type === "checkbox"
 					? values[field.name]
-						? 'Yes'
-						: 'No'
-					: String(values[field.name] ?? '')
-		}))
+						? "Yes"
+						: "No"
+					: String(values[field.name] ?? ""),
+		}));
 		return {
-			templateTitle: 'Rental Application',
-			state: 'CA',
+			templateTitle: "Rental Application",
+			state: "CA",
 			branding,
 			customFields,
 			clauses,
@@ -161,30 +164,30 @@ export function RentalApplicationTemplate() {
 					name: values.applicantName,
 					email: values.email,
 					phone: values.phone,
-					currentAddress: values.currentAddress
+					currentAddress: values.currentAddress,
 				},
 				employment: {
 					employer: values.employer,
-					monthlyIncome: values.monthlyIncome
+					monthlyIncome: values.monthlyIncome,
 				},
 				references: values.references ?? [],
 				backgroundCheck: {
 					consent: values.backgroundCheck,
-					provider: 'TransUnion SmartMove'
+					provider: "TransUnion SmartMove",
 				},
 				notes: values.notes,
-				dynamicFields
-			}
-		}
-	}
+				dynamicFields,
+			},
+		};
+	};
 
 	const {
 		previewUrl,
 		isGeneratingPreview,
 		isExporting,
 		handlePreview,
-		handleExport
-	} = useTemplatePdf('rental-application', getPayload)
+		handleExport,
+	} = useTemplatePdf("rental-application", getPayload);
 
 	return (
 		<div className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
@@ -232,11 +235,11 @@ export function RentalApplicationTemplate() {
 						Monthly income: ${form.state.values.monthlyIncome}
 					</p>
 					<p className="text-sm">
-						Background check:{' '}
-						{form.state.values.backgroundCheck ? 'Authorized' : 'Pending'}
+						Background check:{" "}
+						{form.state.values.backgroundCheck ? "Authorized" : "Pending"}
 					</p>
 				</div>
 			</TemplatePreviewPanel>
 		</div>
-	)
+	);
 }

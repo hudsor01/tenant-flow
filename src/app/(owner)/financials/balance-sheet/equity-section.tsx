@@ -1,13 +1,13 @@
-import { Wallet } from 'lucide-react'
-import { formatCents } from '#lib/utils/currency'
-import type { FinancialLineItem } from '#types/financial-statements'
+import { Wallet } from "lucide-react";
+import { formatCents } from "#lib/utils/currency";
+import type { FinancialLineItem } from "#types/financial-statements";
 
 export function EquitySection({
 	items,
-	totalEquity
+	totalEquity,
 }: {
-	items: FinancialLineItem[]
-	totalEquity: number
+	items: FinancialLineItem[];
+	totalEquity: number;
 }) {
 	return (
 		<div className="bg-card border border-border rounded-lg overflow-hidden">
@@ -37,5 +37,5 @@ export function EquitySection({
 				</div>
 			</div>
 		</div>
-	)
+	);
 }

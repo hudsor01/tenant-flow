@@ -1,18 +1,18 @@
 // Shared auth validation for Supabase Edge Functions.
 // Extracts Bearer token from Authorization header and validates via getUser().
 
-import type { SupabaseClient, User } from '@supabase/supabase-js'
+import type { SupabaseClient, User } from "@supabase/supabase-js";
 
 interface AuthResult {
-  user: User
-  token: string
+	user: User;
+	token: string;
 }
 
 interface AuthError {
-  user: null
-  token: null
-  error: string
-  status: 401
+	user: null;
+	token: null;
+	error: string;
+	status: 401;
 }
 
 /**
@@ -27,20 +27,29 @@ interface AuthError {
  *   const { user } = auth
  */
 export async function validateBearerAuth(
-  req: Request,
-  supabase: SupabaseClient,
+	req: Request,
+	supabase: SupabaseClient,
 ): Promise<AuthResult | AuthError> {
-  const authHeader = req.headers.get('Authorization') ?? req.headers.get('authorization')
-  if (!authHeader?.startsWith('Bearer ')) {
-    return { user: null, token: null, error: 'Missing authorization header', status: 401 }
-  }
+	const authHeader =
+		req.headers.get("Authorization") ?? req.headers.get("authorization");
+	if (!authHeader?.startsWith("Bearer ")) {
+		return {
+			user: null,
+			token: null,
+			error: "Missing authorization header",
+			status: 401,
+		};
+	}
 
-  const token = authHeader.slice(7) // 'Bearer '.length === 7
-  const { data: { user }, error: authError } = await supabase.auth.getUser(token)
+	const token = authHeader.slice(7); // 'Bearer '.length === 7
+	const {
+		data: { user },
+		error: authError,
+	} = await supabase.auth.getUser(token);
 
-  if (authError || !user) {
-    return { user: null, token: null, error: 'Not authenticated', status: 401 }
-  }
+	if (authError || !user) {
+		return { user: null, token: null, error: "Not authenticated", status: 401 };
+	}
 
-  return { user, token }
+	return { user, token };
 }

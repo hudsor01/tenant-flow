@@ -1,89 +1,91 @@
-'use client'
+"use client";
 
-import type { KeyboardEvent } from 'react'
-
-import { cn } from '#lib/utils'
-import { isActiveLink } from '#lib/is-active-link'
-import { ChevronDown } from 'lucide-react'
-import Link from 'next/link'
-import { useRef, useState } from 'react'
-import type { NavItem } from './types'
+import { ChevronDown } from "lucide-react";
+import Link from "next/link";
+import type { KeyboardEvent } from "react";
+import { useRef, useState } from "react";
+import { isActiveLink } from "#lib/is-active-link";
+import { cn } from "#lib/utils";
+import type { NavItem } from "./types";
 
 interface NavbarDesktopNavProps {
-	navItems: NavItem[]
-	pathname: string
+	navItems: NavItem[];
+	pathname: string;
 }
 
-export function NavbarDesktopNav({ navItems, pathname }: NavbarDesktopNavProps) {
-	const [openDropdown, setOpenDropdown] = useState<string | null>(null)
-	const closeTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+export function NavbarDesktopNav({
+	navItems,
+	pathname,
+}: NavbarDesktopNavProps) {
+	const [openDropdown, setOpenDropdown] = useState<string | null>(null);
+	const closeTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
 	const handleDropdownOpen = (itemName: string) => {
 		if (closeTimeoutRef.current) {
-			clearTimeout(closeTimeoutRef.current)
-			closeTimeoutRef.current = null
+			clearTimeout(closeTimeoutRef.current);
+			closeTimeoutRef.current = null;
 		}
-		setOpenDropdown(itemName)
-	}
+		setOpenDropdown(itemName);
+	};
 
 	const handleDropdownClose = () => {
 		closeTimeoutRef.current = setTimeout(() => {
-			setOpenDropdown(null)
-			closeTimeoutRef.current = null
-		}, 150)
-	}
+			setOpenDropdown(null);
+			closeTimeoutRef.current = null;
+		}, 150);
+	};
 
 	const handleKeyDown = (
 		event: KeyboardEvent,
 		item: NavItem,
-		dropdownIndex?: number
+		dropdownIndex?: number,
 	) => {
-		if (!item.hasDropdown || !item.dropdownItems) return
+		if (!item.hasDropdown || !item.dropdownItems) return;
 
-		const currentIndex = dropdownIndex ?? -1
-		const maxIndex = item.dropdownItems.length - 1
+		const currentIndex = dropdownIndex ?? -1;
+		const maxIndex = item.dropdownItems.length - 1;
 
 		switch (event.key) {
-			case 'Escape':
-				setOpenDropdown(null)
-				event.preventDefault()
-				break
-			case 'ArrowDown':
-				event.preventDefault()
+			case "Escape":
+				setOpenDropdown(null);
+				event.preventDefault();
+				break;
+			case "ArrowDown":
+				event.preventDefault();
 				if (openDropdown !== item.name) {
-					setOpenDropdown(item.name)
+					setOpenDropdown(item.name);
 				} else if (currentIndex < maxIndex) {
-					const nextIndex = currentIndex + 1
+					const nextIndex = currentIndex + 1;
 					const nextEl = document.querySelector(
-						`[data-dropdown-item="${item.name}-${nextIndex}"]`
-					) as HTMLElement
-					nextEl?.focus()
+						`[data-dropdown-item="${item.name}-${nextIndex}"]`,
+					) as HTMLElement;
+					nextEl?.focus();
 				}
-				break
-			case 'ArrowUp':
-				event.preventDefault()
+				break;
+			case "ArrowUp":
+				event.preventDefault();
 				if (currentIndex > 0) {
-					const prevIndex = currentIndex - 1
+					const prevIndex = currentIndex - 1;
 					const prevEl = document.querySelector(
-						`[data-dropdown-item="${item.name}-${prevIndex}"]`
-					) as HTMLElement
-					prevEl?.focus()
+						`[data-dropdown-item="${item.name}-${prevIndex}"]`,
+					) as HTMLElement;
+					prevEl?.focus();
 				} else {
-					setOpenDropdown(null)
+					setOpenDropdown(null);
 				}
-				break
-			case 'Enter':
+				break;
+			case "Enter":
 				if (openDropdown === item.name && currentIndex === -1) {
-					event.preventDefault()
-					setOpenDropdown(null)
+					event.preventDefault();
+					setOpenDropdown(null);
 				}
-				break
+				break;
 		}
-	}
+	};
 
 	return (
 		<div className="hidden md:flex items-center gap-1">
-			{navItems.map(item => (
+			{navItems.map((item) => (
 				<div
 					key={item.name}
 					className="relative"
@@ -92,19 +94,21 @@ export function NavbarDesktopNav({ navItems, pathname }: NavbarDesktopNavProps) 
 				>
 					<Link
 						href={item.href}
-						onKeyDown={e => handleKeyDown(e, item)}
-						aria-current={isActiveLink(item.href, pathname) ? 'page' : undefined}
+						onKeyDown={(e) => handleKeyDown(e, item)}
+						aria-current={
+							isActiveLink(item.href, pathname) ? "page" : undefined
+						}
 						className={cn(
-							'flex items-center px-4 py-2 text-foreground/70 hover:text-foreground font-medium text-base rounded-lg transition-colors duration-fast',
-							isActiveLink(item.href, pathname) && 'text-foreground'
+							"flex items-center px-4 py-2 text-foreground/70 hover:text-foreground font-medium text-base rounded-lg transition-colors duration-fast",
+							isActiveLink(item.href, pathname) && "text-foreground",
 						)}
 					>
 						{item.name}
 						{item.hasDropdown && (
 							<ChevronDown
 								className={cn(
-									'ml-1 size-3.5 transition-transform duration-fast',
-									openDropdown === item.name && 'rotate-180'
+									"ml-1 size-3.5 transition-transform duration-fast",
+									openDropdown === item.name && "rotate-180",
 								)}
 							/>
 						)}
@@ -122,8 +126,12 @@ export function NavbarDesktopNav({ navItems, pathname }: NavbarDesktopNavProps) 
 									key={dropdownItem.name}
 									href={dropdownItem.href}
 									data-dropdown-item={`${item.name}-${index}`}
-									onKeyDown={e => handleKeyDown(e, item, index)}
-									aria-current={isActiveLink(dropdownItem.href, pathname) ? 'page' : undefined}
+									onKeyDown={(e) => handleKeyDown(e, item, index)}
+									aria-current={
+										isActiveLink(dropdownItem.href, pathname)
+											? "page"
+											: undefined
+									}
 									className="block px-4 py-2.5 text-foreground/70 hover:text-foreground hover:bg-muted/50 transition-colors duration-fast text-base"
 								>
 									{dropdownItem.name}
@@ -134,5 +142,5 @@ export function NavbarDesktopNav({ navItems, pathname }: NavbarDesktopNavProps) 
 				</div>
 			))}
 		</div>
-	)
+	);
 }

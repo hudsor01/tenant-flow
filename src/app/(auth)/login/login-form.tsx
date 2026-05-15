@@ -1,24 +1,24 @@
-'use client'
+"use client";
 
-import { Button } from '#components/ui/button'
-import { Field, FieldError, FieldLabel } from '#components/ui/field'
+import { useForm } from "@tanstack/react-form";
+import { Eye, EyeOff, Mail } from "lucide-react";
+import { useState } from "react";
+import { Button } from "#components/ui/button";
+import { Field, FieldError, FieldLabel } from "#components/ui/field";
 import {
 	InputGroup,
 	InputGroupAddon,
-	InputGroupInput
-} from '#components/ui/input-group'
-import { getFieldErrorMessage } from '#lib/utils/form'
-import { loginZodSchema } from '#lib/validation/auth'
-import { useForm } from '@tanstack/react-form'
-import { Eye, EyeOff, Mail } from 'lucide-react'
-import { useState } from 'react'
+	InputGroupInput,
+} from "#components/ui/input-group";
+import { getFieldErrorMessage } from "#lib/utils/form";
+import { loginZodSchema } from "#lib/validation/auth";
 
 interface LoginFormProps {
-	authError: string | null
-	isSubmitting: boolean
-	onSubmit: (values: { email: string; password: string }) => Promise<void>
-	onForgotPassword: () => void
-	onCreateAccount: () => void
+	authError: string | null;
+	isSubmitting: boolean;
+	onSubmit: (values: { email: string; password: string }) => Promise<void>;
+	onForgotPassword: () => void;
+	onCreateAccount: () => void;
 }
 
 export function LoginForm({
@@ -26,23 +26,23 @@ export function LoginForm({
 	isSubmitting,
 	onSubmit,
 	onForgotPassword,
-	onCreateAccount
+	onCreateAccount,
 }: LoginFormProps) {
-	const [showPassword, setShowPassword] = useState(false)
+	const [showPassword, setShowPassword] = useState(false);
 
 	const form = useForm({
-		defaultValues: { email: '', password: '' },
+		defaultValues: { email: "", password: "" },
 		validators: { onSubmit: loginZodSchema },
 		onSubmit: async ({ value }) => {
-			await onSubmit(value)
-		}
-	})
+			await onSubmit(value);
+		},
+	});
 
 	return (
 		<form
-			onSubmit={e => {
-				e.preventDefault()
-				form.handleSubmit()
+			onSubmit={(e) => {
+				e.preventDefault();
+				form.handleSubmit();
 			}}
 			className="space-y-5"
 		>
@@ -57,7 +57,7 @@ export function LoginForm({
 
 			{/* Email Field */}
 			<form.Field name="email">
-				{field => (
+				{(field) => (
 					<Field>
 						<FieldLabel htmlFor="email">Email address</FieldLabel>
 						<InputGroup>
@@ -72,7 +72,7 @@ export function LoginForm({
 								autoComplete="email"
 								autoFocus
 								value={field.state.value}
-								onChange={e => field.handleChange(e.target.value)}
+								onChange={(e) => field.handleChange(e.target.value)}
 								onBlur={field.handleBlur}
 								disabled={isSubmitting || form.state.isSubmitting}
 								aria-invalid={field.state.meta.errors.length > 0}
@@ -89,18 +89,18 @@ export function LoginForm({
 
 			{/* Password Field */}
 			<form.Field name="password">
-				{field => (
+				{(field) => (
 					<Field>
 						<FieldLabel htmlFor="password">Password</FieldLabel>
 						<InputGroup>
 							<InputGroupInput
 								id="password"
 								data-testid="password-input"
-								type={showPassword ? 'text' : 'password'}
+								type={showPassword ? "text" : "password"}
 								placeholder="Enter your password"
 								autoComplete="current-password"
 								value={field.state.value}
-								onChange={e => field.handleChange(e.target.value)}
+								onChange={(e) => field.handleChange(e.target.value)}
 								onBlur={field.handleBlur}
 								disabled={isSubmitting || form.state.isSubmitting}
 								aria-invalid={field.state.meta.errors.length > 0}
@@ -114,7 +114,7 @@ export function LoginForm({
 								>
 									{showPassword ? <EyeOff /> : <Eye />}
 									<span className="sr-only">
-										{showPassword ? 'Hide' : 'Show'} password
+										{showPassword ? "Hide" : "Show"} password
 									</span>
 								</button>
 							</InputGroupAddon>
@@ -135,9 +135,7 @@ export function LoginForm({
 				className="w-full h-11 typography-small"
 				disabled={isSubmitting || form.state.isSubmitting}
 			>
-				{isSubmitting || form.state.isSubmitting
-					? 'Signing in...'
-					: 'Sign In'}
+				{isSubmitting || form.state.isSubmitting ? "Signing in..." : "Sign In"}
 			</Button>
 
 			{/* Footer Links */}
@@ -160,5 +158,5 @@ export function LoginForm({
 				</button>
 			</div>
 		</form>
-	)
+	);
 }

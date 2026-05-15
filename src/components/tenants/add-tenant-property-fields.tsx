@@ -1,21 +1,21 @@
-import { Field, FieldError, FieldLabel } from '#components/ui/field'
+import { Building2, Home } from "lucide-react";
+import { Field, FieldError, FieldLabel } from "#components/ui/field";
 import {
 	Select,
 	SelectContent,
 	SelectItem,
 	SelectTrigger,
-	SelectValue
-} from '#components/ui/select'
-import type { Property, Unit } from '#types/core'
-import { Building2, Home } from 'lucide-react'
-import type { AddTenantFormApi } from './add-tenant-form-types'
+	SelectValue,
+} from "#components/ui/select";
+import type { Property, Unit } from "#types/core";
+import type { AddTenantFormApi } from "./add-tenant-form-types";
 
 interface AddTenantPropertyFieldsProps {
-	form: AddTenantFormApi
-	properties: Property[]
-	availableUnits: Unit[]
-	selectedPropertyId: string
-	onPropertyChange: (propertyId: string) => void
+	form: AddTenantFormApi;
+	properties: Property[];
+	availableUnits: Unit[];
+	selectedPropertyId: string;
+	onPropertyChange: (propertyId: string) => void;
 }
 
 export function AddTenantPropertyFields({
@@ -23,7 +23,7 @@ export function AddTenantPropertyFields({
 	properties,
 	availableUnits,
 	selectedPropertyId,
-	onPropertyChange
+	onPropertyChange,
 }: AddTenantPropertyFieldsProps) {
 	if (properties.length === 0) {
 		return (
@@ -34,7 +34,7 @@ export function AddTenantPropertyFields({
 					them to properties later.
 				</p>
 			</div>
-		)
+		);
 	}
 
 	return (
@@ -49,22 +49,22 @@ export function AddTenantPropertyFields({
 			</p>
 
 			<form.Field name="property_id">
-				{field => (
+				{(field) => (
 					<Field>
 						<FieldLabel htmlFor="property_id">Property</FieldLabel>
 						<Select
 							value={field.state.value}
-							onValueChange={value => {
-								field.handleChange(value)
-								onPropertyChange(value)
-								form.setFieldValue('unit_id', '')
+							onValueChange={(value) => {
+								field.handleChange(value);
+								onPropertyChange(value);
+								form.setFieldValue("unit_id", "");
 							}}
 						>
 							<SelectTrigger id="property_id">
 								<SelectValue placeholder="Select a property (optional)" />
 							</SelectTrigger>
 							<SelectContent>
-								{properties.map(property => (
+								{properties.map((property) => (
 									<SelectItem key={property.id} value={property.id}>
 										<div className="flex items-center gap-2">
 											<Home className="size-4" />
@@ -82,7 +82,7 @@ export function AddTenantPropertyFields({
 			{/* Only show unit field if property has multiple units */}
 			{selectedPropertyId && availableUnits.length > 1 && (
 				<form.Field name="unit_id">
-					{field => (
+					{(field) => (
 						<Field>
 							<FieldLabel htmlFor="unit_id">Unit (Optional)</FieldLabel>
 							<Select
@@ -93,7 +93,7 @@ export function AddTenantPropertyFields({
 									<SelectValue placeholder="Select a unit" />
 								</SelectTrigger>
 								<SelectContent>
-									{availableUnits.map(unit => (
+									{availableUnits.map((unit) => (
 										<SelectItem key={unit.id} value={unit.id}>
 											{unit.unit_number}
 										</SelectItem>
@@ -110,10 +110,10 @@ export function AddTenantPropertyFields({
 			{selectedPropertyId && availableUnits.length <= 1 && (
 				<p className="text-muted-foreground text-sm">
 					{availableUnits.length === 0
-						? 'This property has no units configured.'
-						: 'Single-unit property - unit will be assigned automatically.'}
+						? "This property has no units configured."
+						: "Single-unit property - unit will be assigned automatically."}
 				</p>
 			)}
 		</div>
-	)
+	);
 }

@@ -4,17 +4,17 @@
  * Based on shadcn/ui documentation: https://ui.shadcn.com/docs/components/switch
  */
 
-import type { LucideIcon } from 'lucide-react'
-import { Label } from '#components/ui/label'
-import { Switch } from '#components/ui/switch'
+import type { LucideIcon } from "lucide-react";
+import { Label } from "#components/ui/label";
+import { Switch } from "#components/ui/switch";
 
 interface ToggleSwitchProps {
-	icon: LucideIcon
-	label: string
-	description: string
-	checked: boolean
-	disabled?: boolean
-	onChange: (checked: boolean) => void
+	icon: LucideIcon;
+	label: string;
+	description: string;
+	checked: boolean;
+	disabled?: boolean;
+	onChange: (checked: boolean) => void;
 }
 
 export function ToggleSwitch({
@@ -23,9 +23,9 @@ export function ToggleSwitch({
 	description,
 	checked,
 	disabled = false,
-	onChange
+	onChange,
 }: ToggleSwitchProps) {
-	const id = `toggle-${label.toLowerCase().replace(/\s+/g, '-')}`
+	const id = `toggle-${label.toLowerCase().replace(/\s+/g, "-")}`;
 
 	return (
 		<div className="flex-between p-4 border rounded-lg">
@@ -45,5 +45,5 @@ export function ToggleSwitch({
 				disabled={disabled}
 			/>
 		</div>
-	)
+	);
 }

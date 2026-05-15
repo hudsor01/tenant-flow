@@ -1,7 +1,7 @@
-import { useEffect, useRef } from 'react'
-import type { Ref, RefCallback } from 'react'
+import type { Ref, RefCallback } from "react";
+import { useEffect, useRef } from "react";
 
-type PossibleRef<T> = Ref<T> | undefined
+type PossibleRef<T> = Ref<T> | undefined;
 
 /**
  * Set a given ref to a given value
@@ -9,12 +9,12 @@ type PossibleRef<T> = Ref<T> | undefined
  */
 
 function setRef<T>(ref: PossibleRef<T>, value: T) {
-	if (typeof ref === 'function') {
-		return ref(value)
+	if (typeof ref === "function") {
+		return ref(value);
 	}
 
 	if (ref !== null && ref !== undefined) {
-		ref.current = value
+		ref.current = value;
 	}
 }
 
@@ -23,15 +23,15 @@ function setRef<T>(ref: PossibleRef<T>, value: T) {
  * Accepts callback refs and RefObject(s)
  */
 function composeRefs<T>(...refs: PossibleRef<T>[]): RefCallback<T> {
-	return node => {
-		let hasCleanup = false
-		const cleanups = refs.map(ref => {
-			const cleanup = setRef(ref, node)
-			if (!hasCleanup && typeof cleanup === 'function') {
-				hasCleanup = true
+	return (node) => {
+		let hasCleanup = false;
+		const cleanups = refs.map((ref) => {
+			const cleanup = setRef(ref, node);
+			if (!hasCleanup && typeof cleanup === "function") {
+				hasCleanup = true;
 			}
-			return cleanup
-		})
+			return cleanup;
+		});
 
 		// React <19 will log an error to the console if a callback ref returns a
 		// value. We don't use ref cleanups internally so this will only happen if a
@@ -40,17 +40,17 @@ function composeRefs<T>(...refs: PossibleRef<T>[]): RefCallback<T> {
 		if (hasCleanup) {
 			return () => {
 				for (let i = 0; i < cleanups.length; i++) {
-					const cleanup = cleanups[i]
-					if (typeof cleanup === 'function') {
-						cleanup()
+					const cleanup = cleanups[i];
+					if (typeof cleanup === "function") {
+						cleanup();
 					} else {
-						setRef(refs[i], null)
+						setRef(refs[i], null);
 					}
 				}
-			}
+			};
 		}
-		return undefined
-	}
+		return undefined;
+	};
 }
 
 /**
@@ -59,12 +59,12 @@ function composeRefs<T>(...refs: PossibleRef<T>[]): RefCallback<T> {
  */
 function useComposedRefs<T>(...refs: PossibleRef<T>[]): RefCallback<T> {
 	// Store refs in a ref to avoid dependency array issues with rest parameters
-	const refsRef = useRef(refs)
+	const refsRef = useRef(refs);
 	useEffect(() => {
-		refsRef.current = refs
-	})
+		refsRef.current = refs;
+	});
 
-	return (node: T) => composeRefs(...refsRef.current)(node)
+	return (node: T) => composeRefs(...refsRef.current)(node);
 }
 
-export { composeRefs, useComposedRefs }
+export { composeRefs, useComposedRefs };

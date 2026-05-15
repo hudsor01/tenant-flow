@@ -3,16 +3,16 @@
  * queryOptions() factories for identity verification domain.
  */
 
-import { queryOptions } from '@tanstack/react-query'
-import { createClient } from '#lib/supabase/client'
-import { getCachedUser } from '#lib/supabase/get-cached-user'
-import { QUERY_CACHE_TIMES } from '#lib/constants/query-config'
-import type { IdentityVerificationRecord } from '#types/stripe'
+import { queryOptions } from "@tanstack/react-query";
+import { QUERY_CACHE_TIMES } from "#lib/constants/query-config";
+import { createClient } from "#lib/supabase/client";
+import { getCachedUser } from "#lib/supabase/get-cached-user";
+import type { IdentityVerificationRecord } from "#types/stripe";
 
 export const identityVerificationKeys = {
-	all: ['identityVerification'] as const,
-	status: () => [...identityVerificationKeys.all, 'status'] as const
-}
+	all: ["identityVerification"] as const,
+	status: () => [...identityVerificationKeys.all, "status"] as const,
+};
 
 export const identityVerificationQueries = {
 	/**
@@ -22,28 +22,28 @@ export const identityVerificationQueries = {
 		queryOptions({
 			queryKey: identityVerificationKeys.status(),
 			queryFn: async (): Promise<IdentityVerificationRecord> => {
-				const supabase = createClient()
-				const user = await getCachedUser()
-				if (!user) throw new Error('Not authenticated')
+				const supabase = createClient();
+				const user = await getCachedUser();
+				if (!user) throw new Error("Not authenticated");
 
 				const { data, error } = await supabase
-					.from('users')
+					.from("users")
 					.select(
-						'identity_verification_status, identity_verification_session_id, identity_verification_data, identity_verification_error, identity_verified_at'
+						"identity_verification_status, identity_verification_session_id, identity_verification_data, identity_verification_error, identity_verified_at",
 					)
-					.eq('id', user.id)
-					.single()
+					.eq("id", user.id)
+					.single();
 
-				if (error) throw error
+				if (error) throw error;
 
 				return {
 					sessionId: data.identity_verification_session_id,
 					status: data.identity_verification_status,
 					verifiedAt: data.identity_verified_at,
 					lastError: data.identity_verification_error,
-					data: data.identity_verification_data
-				}
+					data: data.identity_verification_data,
+				};
 			},
-			...QUERY_CACHE_TIMES.SECURITY
-		})
-}
+			...QUERY_CACHE_TIMES.SECURITY,
+		}),
+};

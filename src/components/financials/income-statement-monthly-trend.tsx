@@ -1,14 +1,14 @@
-import { BlurFade } from '#components/ui/blur-fade'
-import type { MonthlyData } from '#types/financial-statements'
+import { BlurFade } from "#components/ui/blur-fade";
+import type { MonthlyData } from "#types/financial-statements";
 
 interface IncomeStatementMonthlyTrendProps {
-	byMonth: MonthlyData[]
+	byMonth: MonthlyData[];
 }
 
 export function IncomeStatementMonthlyTrend({
-	byMonth
+	byMonth,
 }: IncomeStatementMonthlyTrendProps) {
-	const maxNetIncome = Math.max(...byMonth.map(d => d.netIncome))
+	const maxNetIncome = Math.max(...byMonth.map((d) => d.netIncome));
 
 	return (
 		<BlurFade delay={0.7} inView>
@@ -24,7 +24,7 @@ export function IncomeStatementMonthlyTrend({
 									<div
 										className="w-full bg-emerald-500 rounded-t transition-all"
 										style={{
-											height: `${(data.netIncome / maxNetIncome) * 120}px`
+											height: `${(data.netIncome / maxNetIncome) * 120}px`,
 										}}
 									/>
 								</div>
@@ -43,5 +43,5 @@ export function IncomeStatementMonthlyTrend({
 				</div>
 			</div>
 		</BlurFade>
-	)
+	);
 }

@@ -1,4 +1,4 @@
-import { Skeleton } from '#components/ui/skeleton'
+import { Skeleton } from "#components/ui/skeleton";
 
 export function BalanceSheetSkeleton() {
 	return (
@@ -15,15 +15,15 @@ export function BalanceSheetSkeleton() {
 				</div>
 			</div>
 			<div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-				{[1, 2, 3].map(i => (
+				{[1, 2, 3].map((i) => (
 					<Skeleton key={i} className="h-28 rounded-lg" />
 				))}
 			</div>
 			<div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-				{[1, 2].map(i => (
+				{[1, 2].map((i) => (
 					<Skeleton key={i} className="h-80 rounded-lg" />
 				))}
 			</div>
 		</div>
-	)
+	);
 }

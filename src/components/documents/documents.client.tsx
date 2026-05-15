@@ -1,13 +1,13 @@
-import { Button } from '#components/ui/button'
+import { ArrowRight, Download, Eye, FileText } from "lucide-react";
+import Link from "next/link";
+import { Button } from "#components/ui/button";
 import {
 	Card,
 	CardContent,
 	CardDescription,
 	CardHeader,
-	CardTitle
-} from '#components/ui/card'
-import { ArrowRight, Download, Eye, FileText } from 'lucide-react'
-import Link from 'next/link'
+	CardTitle,
+} from "#components/ui/card";
 
 export default function DocumentsClient() {
 	return (
@@ -74,7 +74,9 @@ export default function DocumentsClient() {
 					</CardHeader>
 					<CardContent className="space-y-4">
 						<div className="space-y-2 text-muted-foreground">
-							<p>Include every room, fixture, and appliance with photo proof:</p>
+							<p>
+								Include every room, fixture, and appliance with photo proof:
+							</p>
 							<ul className="list-disc space-y-1 pl-4">
 								<li>Move-in/move-out checklist builder</li>
 								<li>Photo uploads and notes</li>
@@ -244,5 +246,5 @@ export default function DocumentsClient() {
 				</CardContent>
 			</Card>
 		</div>
-	)
+	);
 }

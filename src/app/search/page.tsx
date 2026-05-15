@@ -1,23 +1,24 @@
-import { createPageMetadata } from '#lib/seo/page-metadata'
-import { PageLayout } from '#components/layout/page-layout'
-import { Badge } from '#components/ui/badge'
-import { Button } from '#components/ui/button'
+import { FileText, Filter, FolderOpen, Search, Users } from "lucide-react";
+import { PageLayout } from "#components/layout/page-layout";
+import { Badge } from "#components/ui/badge";
+import { Button } from "#components/ui/button";
 import {
 	Card,
 	CardContent,
 	CardDescription,
 	CardHeader,
-	CardTitle
-} from '#components/ui/card'
-import { Input } from '#components/ui/input'
-import { FileText, Filter, FolderOpen, Search, Users } from 'lucide-react'
+	CardTitle,
+} from "#components/ui/card";
+import { Input } from "#components/ui/input";
+import { createPageMetadata } from "#lib/seo/page-metadata";
 
 export const metadata = createPageMetadata({
-	title: 'Search',
-	description: 'Search properties, tenants, leases, and documents across your TenantFlow portfolio.',
-	path: '/search',
+	title: "Search",
+	description:
+		"Search properties, tenants, leases, and documents across your TenantFlow portfolio.",
+	path: "/search",
 	noindex: true,
-})
+});
 
 export default function SearchPage() {
 	return (
@@ -169,5 +170,5 @@ export default function SearchPage() {
 				</Card>
 			</div>
 		</PageLayout>
-	)
+	);
 }

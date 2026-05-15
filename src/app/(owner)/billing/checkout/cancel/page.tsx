@@ -1,22 +1,22 @@
-import type { Metadata } from 'next'
-import Link from 'next/link'
-import { XCircle } from 'lucide-react'
+import { XCircle } from "lucide-react";
+import type { Metadata } from "next";
+import Link from "next/link";
 
-import { Button } from '#components/ui/button'
+import { Button } from "#components/ui/button";
 import {
 	Card,
 	CardContent,
 	CardDescription,
 	CardFooter,
 	CardHeader,
-	CardTitle
-} from '#components/ui/card'
+	CardTitle,
+} from "#components/ui/card";
 
 export const metadata: Metadata = {
-	title: 'Checkout Cancelled',
-	description: 'Your checkout was cancelled',
-	robots: 'noindex, nofollow'
-}
+	title: "Checkout Cancelled",
+	description: "Your checkout was cancelled",
+	robots: "noindex, nofollow",
+};
 
 export default function CheckoutCancelPage() {
 	return (
@@ -47,5 +47,5 @@ export default function CheckoutCancelPage() {
 				</CardFooter>
 			</Card>
 		</div>
-	)
+	);
 }

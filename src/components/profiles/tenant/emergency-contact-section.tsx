@@ -1,29 +1,28 @@
-'use client'
+"use client";
 
-import type { FormEvent } from 'react'
-
-import { Button } from '#components/ui/button'
-import { CardLayout } from '#components/ui/card-layout'
-import { Field, FieldLabel } from '#components/ui/field'
-import { Phone } from 'lucide-react'
+import { Phone } from "lucide-react";
+import type { FormEvent } from "react";
+import { Button } from "#components/ui/button";
+import { CardLayout } from "#components/ui/card-layout";
+import { Field, FieldLabel } from "#components/ui/field";
 
 interface EmergencyContactFormData {
-	name: string
-	relationship: string
-	phone: string
+	name: string;
+	relationship: string;
+	phone: string;
 }
 
 interface EmergencyContactSectionProps {
-	formData: EmergencyContactFormData
-	hasExistingContact: boolean
-	isEditing: boolean
-	isLoading: boolean
-	isSaving: boolean
-	onEditToggle: (editing: boolean) => void
-	onChange: (field: keyof EmergencyContactFormData, value: string) => void
-	onSave: (e: FormEvent) => void
-	onCancel: () => void
-	onDelete: () => void
+	formData: EmergencyContactFormData;
+	hasExistingContact: boolean;
+	isEditing: boolean;
+	isLoading: boolean;
+	isSaving: boolean;
+	onEditToggle: (editing: boolean) => void;
+	onChange: (field: keyof EmergencyContactFormData, value: string) => void;
+	onSave: (e: FormEvent) => void;
+	onCancel: () => void;
+	onDelete: () => void;
 }
 
 export function EmergencyContactSection({
@@ -36,9 +35,9 @@ export function EmergencyContactSection({
 	onChange,
 	onSave,
 	onCancel,
-	onDelete
+	onDelete,
 }: EmergencyContactSectionProps) {
-	const isDisabled = !isEditing || isLoading || isSaving
+	const isDisabled = !isEditing || isLoading || isSaving;
 
 	return (
 		<CardLayout
@@ -54,7 +53,7 @@ export function EmergencyContactSection({
 							className="input w-full"
 							placeholder="Full name"
 							value={formData.name}
-							onChange={e => onChange('name', e.target.value)}
+							onChange={(e) => onChange("name", e.target.value)}
 							disabled={isDisabled}
 							required
 						/>
@@ -67,7 +66,7 @@ export function EmergencyContactSection({
 							className="input w-full"
 							placeholder="e.g., Spouse, Parent"
 							value={formData.relationship}
-							onChange={e => onChange('relationship', e.target.value)}
+							onChange={(e) => onChange("relationship", e.target.value)}
 							disabled={isDisabled}
 						/>
 					</Field>
@@ -85,7 +84,7 @@ export function EmergencyContactSection({
 						className="input w-full"
 						placeholder="(555) 123-4567"
 						value={formData.phone}
-						onChange={e => onChange('phone', e.target.value)}
+						onChange={(e) => onChange("phone", e.target.value)}
 						disabled={isDisabled}
 						required
 					/>
@@ -107,8 +106,8 @@ export function EmergencyContactSection({
 								disabled={isLoading}
 							>
 								{hasExistingContact
-									? 'Edit Emergency Contact'
-									: 'Add Emergency Contact'}
+									? "Edit Emergency Contact"
+									: "Add Emergency Contact"}
 							</Button>
 							{hasExistingContact && (
 								<Button
@@ -124,7 +123,7 @@ export function EmergencyContactSection({
 					) : (
 						<>
 							<Button type="submit" disabled={isLoading || isSaving}>
-								{isSaving ? 'Saving...' : 'Save Contact'}
+								{isSaving ? "Saving..." : "Save Contact"}
 							</Button>
 							<Button
 								type="button"
@@ -139,5 +138,5 @@ export function EmergencyContactSection({
 				</div>
 			</form>
 		</CardLayout>
-	)
+	);
 }

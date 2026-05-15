@@ -1,15 +1,15 @@
-'use client'
+"use client";
 
-import { Button } from '#components/ui/button'
 import {
 	AlertTriangle,
 	ArrowRight,
 	CheckCircle2,
 	Loader2,
-	Mail
-} from 'lucide-react'
-import Image from 'next/image'
-import Link from 'next/link'
+	Mail,
+} from "lucide-react";
+import Image from "next/image";
+import Link from "next/link";
+import { Button } from "#components/ui/button";
 
 export function ConfirmEmailImagePanel() {
 	return (
@@ -54,14 +54,15 @@ export function ConfirmEmailImagePanel() {
 							You&apos;re Almost There!
 						</h2>
 						<p className="text-muted-foreground text-lg leading-relaxed">
-							Just one more step to unlock your dashboard, document vault, and lease workflow.
+							Just one more step to unlock your dashboard, document vault, and
+							lease workflow.
 						</p>
 						<div className="grid grid-cols-3 gap-6 pt-6">
 							{[
-								{ value: 'Vault', label: ['Document', 'Storage'] },
-								{ value: 'DocuSeal', label: ['Lease', 'E-sign'] },
-								{ value: 'Reports', label: ['Tax-ready', 'Exports'] }
-							].map(stat => (
+								{ value: "Vault", label: ["Document", "Storage"] },
+								{ value: "DocuSeal", label: ["Lease", "E-sign"] },
+								{ value: "Reports", label: ["Tax-ready", "Exports"] },
+							].map((stat) => (
 								<div key={stat.value} className="text-center group">
 									<div className="text-foreground font-bold text-2xl mb-1">
 										{stat.value}
@@ -78,7 +79,7 @@ export function ConfirmEmailImagePanel() {
 				</div>
 			</div>
 		</div>
-	)
+	);
 }
 
 export function ConfirmEmailMobileLogo() {
@@ -106,7 +107,7 @@ export function ConfirmEmailMobileLogo() {
 				</span>
 			</div>
 		</div>
-	)
+	);
 }
 
 export function ConfirmEmailErrorBanner() {
@@ -123,7 +124,7 @@ export function ConfirmEmailErrorBanner() {
 				</p>
 			</div>
 		</div>
-	)
+	);
 }
 
 export function ConfirmEmailHeader() {
@@ -141,7 +142,7 @@ export function ConfirmEmailHeader() {
 				</p>
 			</div>
 		</div>
-	)
+	);
 }
 
 export function ConfirmEmailInstructions() {
@@ -155,20 +156,20 @@ export function ConfirmEmailInstructions() {
 				{[
 					{
 						step: 1,
-						title: 'Check your email inbox',
-						desc: "Don't forget to check your spam folder"
+						title: "Check your email inbox",
+						desc: "Don't forget to check your spam folder",
 					},
 					{
 						step: 2,
-						title: 'Click the confirmation link',
-						desc: 'The link expires in 24 hours'
+						title: "Click the confirmation link",
+						desc: "The link expires in 24 hours",
 					},
 					{
 						step: 3,
-						title: 'Start managing properties',
-						desc: "You'll be redirected to your dashboard"
-					}
-				].map(item => (
+						title: "Start managing properties",
+						desc: "You'll be redirected to your dashboard",
+					},
+				].map((item) => (
 					<li key={item.step} className="flex items-start gap-3">
 						<span className="shrink-0 size-7 bg-primary/20 text-primary rounded-full flex-center text-sm font-bold">
 							{item.step}
@@ -181,21 +182,21 @@ export function ConfirmEmailInstructions() {
 				))}
 			</ol>
 		</div>
-	)
+	);
 }
 
 interface ConfirmEmailActionsProps {
-	isResending: boolean
-	isDisabled: boolean
-	buttonText: string
-	onResend: () => void
+	isResending: boolean;
+	isDisabled: boolean;
+	buttonText: string;
+	onResend: () => void;
 }
 
 export function ConfirmEmailActions({
 	isResending,
 	isDisabled,
 	buttonText,
-	onResend
+	onResend,
 }: ConfirmEmailActionsProps) {
 	return (
 		<div className="space-y-4">
@@ -227,7 +228,7 @@ export function ConfirmEmailActions({
 				</Button>
 			</div>
 		</div>
-	)
+	);
 }
 
 export function ConfirmEmailFooter() {
@@ -235,7 +236,7 @@ export function ConfirmEmailFooter() {
 		<>
 			<div className="pt-6 border-t border-border">
 				<p className="text-muted-foreground text-center">
-					Need help?{' '}
+					Need help?{" "}
 					<Link
 						href="mailto:support@tenantflow.app"
 						className="text-primary hover:underline font-medium"
@@ -255,5 +256,5 @@ export function ConfirmEmailFooter() {
 				</div>
 			</div>
 		</>
-	)
+	);
 }

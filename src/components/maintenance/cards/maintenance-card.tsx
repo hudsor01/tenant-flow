@@ -1,95 +1,94 @@
-'use client'
+"use client";
 
-import type { MouseEvent } from 'react'
-
-import { Clock, MapPin, MoreHorizontal, User } from 'lucide-react'
-import Link from 'next/link'
-import type { MaintenancePriority } from '#types/core'
-import type { MaintenanceDisplayRequest } from '#types/sections/maintenance'
-import { BorderBeam } from '#components/ui/border-beam'
+import { Clock, MapPin, MoreHorizontal, User } from "lucide-react";
+import Link from "next/link";
+import type { MouseEvent } from "react";
+import { BorderBeam } from "#components/ui/border-beam";
+import type { MaintenancePriority } from "#types/core";
+import type { MaintenanceDisplayRequest } from "#types/sections/maintenance";
 
 function getDaysOpen(timestamp: string | null | undefined): number {
-	if (!timestamp) return 0
-	const date = new Date(timestamp)
-	const now = new Date()
-	const diff = now.getTime() - date.getTime()
-	return Math.floor(diff / (1000 * 60 * 60 * 24))
+	if (!timestamp) return 0;
+	const date = new Date(timestamp);
+	const now = new Date();
+	const diff = now.getTime() - date.getTime();
+	return Math.floor(diff / (1000 * 60 * 60 * 24));
 }
 
 function getAgingDisplay(timestamp: string | null | undefined) {
-	const days = getDaysOpen(timestamp)
+	const days = getDaysOpen(timestamp);
 
 	if (days <= 3) {
 		return {
-			label: days === 0 ? 'Today' : days === 1 ? '1 day' : `${days} days`,
-			className: 'bg-success/10 text-success'
-		}
+			label: days === 0 ? "Today" : days === 1 ? "1 day" : `${days} days`,
+			className: "bg-success/10 text-success",
+		};
 	} else if (days <= 7) {
 		return {
 			label: `${days} days`,
-			className: 'bg-warning/10 text-warning'
-		}
+			className: "bg-warning/10 text-warning",
+		};
 	} else if (days <= 14) {
 		return {
 			label: `${days} days`,
 			className:
-				'bg-orange-100 text-orange-700 dark:bg-orange-500/20 dark:text-orange-400'
-		}
+				"bg-orange-100 text-orange-700 dark:bg-orange-500/20 dark:text-orange-400",
+		};
 	} else {
 		return {
 			label: `${days} days`,
-			className: 'bg-destructive/10 text-destructive'
-		}
+			className: "bg-destructive/10 text-destructive",
+		};
 	}
 }
 
 function getPriorityBadge(priority: MaintenancePriority | string) {
-	const normalizedPriority = priority?.toLowerCase() as MaintenancePriority
+	const normalizedPriority = priority?.toLowerCase() as MaintenancePriority;
 	const config: Record<string, string> = {
-		low: 'bg-muted text-muted-foreground',
-		medium: 'bg-primary/10 text-primary',
-		normal: 'bg-primary/10 text-primary',
-		high: 'bg-warning/10 text-warning',
-		urgent: 'bg-destructive/10 text-destructive'
-	}
+		low: "bg-muted text-muted-foreground",
+		medium: "bg-primary/10 text-primary",
+		normal: "bg-primary/10 text-primary",
+		high: "bg-warning/10 text-warning",
+		urgent: "bg-destructive/10 text-destructive",
+	};
 
 	return (
 		<span
 			className={`px-2 py-0.5 rounded-full text-xs font-medium capitalize ${config[normalizedPriority] ?? config.low}`}
 		>
-			{priority?.toLowerCase() ?? 'low'}
+			{priority?.toLowerCase() ?? "low"}
 		</span>
-	)
+	);
 }
 
 interface MaintenanceCardProps {
-	request: MaintenanceDisplayRequest
-	isDragging?: boolean
-	onView?: ((id: string) => void) | undefined
+	request: MaintenanceDisplayRequest;
+	isDragging?: boolean;
+	onView?: ((id: string) => void) | undefined;
 }
 
 export function MaintenanceCard({
 	request,
 	isDragging,
-	onView
+	onView,
 }: MaintenanceCardProps) {
-	const aging = getAgingDisplay(request.created_at)
-	const isUrgent = request.priority?.toLowerCase() === 'urgent'
-	const propertyName = request.property?.name ?? 'Unknown Property'
-	const unitNumber = request.unit?.name ?? request.unit_id ?? ''
-	const tenantName = request.tenant?.name
+	const aging = getAgingDisplay(request.created_at);
+	const isUrgent = request.priority?.toLowerCase() === "urgent";
+	const propertyName = request.property?.name ?? "Unknown Property";
+	const unitNumber = request.unit?.name ?? request.unit_id ?? "";
+	const tenantName = request.tenant?.name;
 
 	const handleClick = (e: MouseEvent) => {
 		if (onView) {
-			e.preventDefault()
-			onView(request.id)
+			e.preventDefault();
+			onView(request.id);
 		}
-	}
+	};
 
 	const cardContent = (
 		<div
 			className={`w-full bg-card border border-border rounded-lg p-4 text-left hover:border-primary/50 hover:shadow-sm transition-all group relative overflow-hidden ${
-				isDragging ? 'opacity-50 shadow-lg' : ''
+				isDragging ? "opacity-50 shadow-lg" : ""
 			}`}
 		>
 			{isUrgent && (
@@ -107,9 +106,9 @@ export function MaintenanceCard({
 					{request.title ?? request.description}
 				</h4>
 				<button
-					onClick={e => {
-						e.stopPropagation()
-						e.preventDefault()
+					onClick={(e) => {
+						e.stopPropagation();
+						e.preventDefault();
 					}}
 					className="p-1 rounded hover:bg-muted opacity-0 group-hover:opacity-100 transition-opacity shrink-0"
 					aria-label="More options"
@@ -150,19 +149,19 @@ export function MaintenanceCard({
 				</div>
 			)}
 		</div>
-	)
+	);
 
 	if (onView) {
 		return (
 			<button onClick={handleClick} className="w-full">
 				{cardContent}
 			</button>
-		)
+		);
 	}
 
 	return (
 		<Link href={`/maintenance/${request.id}`} className="block">
 			{cardContent}
 		</Link>
-	)
+	);
 }

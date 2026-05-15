@@ -1,56 +1,55 @@
-'use client'
+"use client";
 
-
-import DOMPurify from 'dompurify'
+import DOMPurify from "dompurify";
+import { FileText } from "lucide-react";
 import {
 	Card,
 	CardContent,
 	CardDescription,
 	CardHeader,
-	CardTitle
-} from '#components/ui/card'
-import { FileText } from 'lucide-react'
+	CardTitle,
+} from "#components/ui/card";
 
 interface PreviewPanelProps {
-	html: string
+	html: string;
 }
 
 export function PreviewPanel({ html }: PreviewPanelProps) {
 	// Sanitize HTML to prevent XSS attacks
 	const sanitizedHtml = (() => {
-		if (typeof window === 'undefined') return html
+		if (typeof window === "undefined") return html;
 		return DOMPurify.sanitize(html, {
 			ALLOWED_TAGS: [
-				'p',
-				'div',
-				'span',
-				'br',
-				'strong',
-				'em',
-				'u',
-				'h1',
-				'h2',
-				'h3',
-				'h4',
-				'h5',
-				'h6',
-				'ul',
-				'ol',
-				'li',
-				'table',
-				'thead',
-				'tbody',
-				'tr',
-				'th',
-				'td'
+				"p",
+				"div",
+				"span",
+				"br",
+				"strong",
+				"em",
+				"u",
+				"h1",
+				"h2",
+				"h3",
+				"h4",
+				"h5",
+				"h6",
+				"ul",
+				"ol",
+				"li",
+				"table",
+				"thead",
+				"tbody",
+				"tr",
+				"th",
+				"td",
 			],
-			ALLOWED_ATTR: ['class', 'style'],
+			ALLOWED_ATTR: ["class", "style"],
 			ADD_ATTR: [],
 			ALLOW_DATA_ATTR: false,
-			FORBID_TAGS: ['script', 'iframe', 'embed', 'object', 'form'],
-			FORBID_ATTR: ['onerror', 'onload', 'onclick', 'onmouseover']
-		})
-	})()
+			FORBID_TAGS: ["script", "iframe", "embed", "object", "form"],
+			FORBID_ATTR: ["onerror", "onload", "onclick", "onmouseover"],
+		});
+	})();
 
 	return (
 		<Card className="shadow-sm">
@@ -69,5 +68,5 @@ export function PreviewPanel({ html }: PreviewPanelProps) {
 				/>
 			</CardContent>
 		</Card>
-	)
+	);
 }

@@ -1,4 +1,4 @@
-import type { Testimonial } from '#types/sections/marketing'
+import type { Testimonial } from "#types/sections/marketing";
 
 // Real testimonials with author-written quotes. Authors approved use of
 // their likeness and the product team drafted these quotes on their
@@ -25,15 +25,15 @@ export const realTestimonials: Testimonial[] = [
 	{
 		quote:
 			"Tax season used to mean a week of digging through email threads and Dropbox folders. Now I pull every receipt, lease, and inspection report out of the vault in an afternoon. My CPA actually thanked me this year.",
-		author: 'Janet Shur',
-		title: 'Landlord',
-		company: '8 properties',
+		author: "Janet Shur",
+		title: "Landlord",
+		company: "8 properties",
 	},
 	{
 		quote:
 			"Once you hit double-digit rentals, spreadsheets stop working. TenantFlow keeps every lease, maintenance request, and vendor invoice in one place. I stopped losing things, and that alone paid for it.",
-		author: 'Jacob Lear',
-		title: 'Landlord',
-		company: '13 properties',
+		author: "Jacob Lear",
+		title: "Landlord",
+		company: "13 properties",
 	},
-]
+];

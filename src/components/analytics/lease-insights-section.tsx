@@ -1,29 +1,28 @@
-'use client'
+"use client";
 
-import { useSuspenseQuery } from '@tanstack/react-query'
-import { analyticsQueries } from '#hooks/api/use-analytics'
-import { Skeleton } from '#components/ui/skeleton'
-import { BlurFade } from '#components/ui/blur-fade'
-import { DataTable } from '#components/data-table/data-table'
-import { DataTableToolbar } from '#components/data-table/data-table-toolbar'
-import { useDataTable } from '#hooks/use-data-table'
-import type { ColumnDef } from '@tanstack/react-table'
-import { formatCurrency, formatNumber } from '#lib/utils/currency'
-import { Calendar, DollarSign, BarChart3 } from 'lucide-react'
-
-import dynamic from 'next/dynamic'
-import type { LeaseFinancialInsight } from '#types/analytics'
-import { ChartLoadingSkeleton } from '#components/shared/chart-loading-skeleton'
+import { useSuspenseQuery } from "@tanstack/react-query";
+import type { ColumnDef } from "@tanstack/react-table";
+import { BarChart3, Calendar, DollarSign } from "lucide-react";
+import dynamic from "next/dynamic";
+import { DataTable } from "#components/data-table/data-table";
+import { DataTableToolbar } from "#components/data-table/data-table-toolbar";
+import { ChartLoadingSkeleton } from "#components/shared/chart-loading-skeleton";
+import { BlurFade } from "#components/ui/blur-fade";
+import { Skeleton } from "#components/ui/skeleton";
+import { analyticsQueries } from "#hooks/api/use-analytics";
+import { useDataTable } from "#hooks/use-data-table";
+import { formatCurrency, formatNumber } from "#lib/utils/currency";
+import type { LeaseFinancialInsight } from "#types/analytics";
 
 const LeaseLifecycleChart = dynamic(
-	() => import('./lease-charts').then(mod => mod.LeaseLifecycleChart),
-	{ ssr: false, loading: () => <ChartLoadingSkeleton /> }
-)
+	() => import("./lease-charts").then((mod) => mod.LeaseLifecycleChart),
+	{ ssr: false, loading: () => <ChartLoadingSkeleton /> },
+);
 
 const LeaseStatusChart = dynamic(
-	() => import('./lease-charts').then(mod => mod.LeaseStatusChart),
-	{ ssr: false, loading: () => <ChartLoadingSkeleton /> }
-)
+	() => import("./lease-charts").then((mod) => mod.LeaseStatusChart),
+	{ ssr: false, loading: () => <ChartLoadingSkeleton /> },
+);
 
 export function LeaseInsightsSkeleton() {
 	return (
@@ -46,92 +45,92 @@ export function LeaseInsightsSkeleton() {
 				<Skeleton className="h-64 w-full" />
 			</div>
 		</div>
-	)
+	);
 }
 
 function ProfitabilityTable({ leases }: { leases: LeaseFinancialInsight[] }) {
 	const columns: ColumnDef<LeaseFinancialInsight>[] = [
-			{
-				accessorKey: 'lease_id',
-				header: 'Lease',
-				meta: {
-					label: 'Lease ID',
-					variant: 'text',
-					placeholder: 'Search lease...'
-				},
-				enableColumnFilter: true,
-				cell: ({ row }) => (
-					<span className="font-medium">{row.original.lease_id}</span>
-				)
+		{
+			accessorKey: "lease_id",
+			header: "Lease",
+			meta: {
+				label: "Lease ID",
+				variant: "text",
+				placeholder: "Search lease...",
 			},
-			{
-				accessorKey: 'tenantName',
-				header: 'Tenant',
-				meta: {
-					label: 'Tenant',
-					variant: 'text',
-					placeholder: 'Search tenant...'
-				},
-				enableColumnFilter: true
+			enableColumnFilter: true,
+			cell: ({ row }) => (
+				<span className="font-medium">{row.original.lease_id}</span>
+			),
+		},
+		{
+			accessorKey: "tenantName",
+			header: "Tenant",
+			meta: {
+				label: "Tenant",
+				variant: "text",
+				placeholder: "Search tenant...",
 			},
-			{
-				accessorKey: 'propertyName',
-				header: 'Property',
-				meta: {
-					label: 'Property',
-					variant: 'text',
-					placeholder: 'Search property...'
-				},
-				enableColumnFilter: true
+			enableColumnFilter: true,
+		},
+		{
+			accessorKey: "propertyName",
+			header: "Property",
+			meta: {
+				label: "Property",
+				variant: "text",
+				placeholder: "Search property...",
 			},
-			{
-				accessorKey: 'rent_amount',
-				header: 'Monthly rent',
-				meta: {
-					label: 'Monthly Rent',
-					variant: 'number'
-				},
-				enableColumnFilter: true,
-				cell: ({ row }) => (
-					<div className="text-right">
-						{formatCurrency(row.original.rent_amount)}
-					</div>
-				)
+			enableColumnFilter: true,
+		},
+		{
+			accessorKey: "rent_amount",
+			header: "Monthly rent",
+			meta: {
+				label: "Monthly Rent",
+				variant: "number",
 			},
-			{
-				accessorKey: 'outstandingBalance',
-				header: 'Outstanding',
-				meta: {
-					label: 'Outstanding Balance',
-					variant: 'number'
-				},
-				enableColumnFilter: true,
-				cell: ({ row }) => (
-					<div className="text-right">
-						{formatCurrency(row.original.outstandingBalance)}
-					</div>
-				)
+			enableColumnFilter: true,
+			cell: ({ row }) => (
+				<div className="text-right">
+					{formatCurrency(row.original.rent_amount)}
+				</div>
+			),
+		},
+		{
+			accessorKey: "outstandingBalance",
+			header: "Outstanding",
+			meta: {
+				label: "Outstanding Balance",
+				variant: "number",
 			},
-			{
-				accessorKey: 'profitabilityScore',
-				header: 'Score',
-				meta: {
-					label: 'Profitability Score',
-					variant: 'number'
-				},
-				enableColumnFilter: true,
-				cell: ({ row }) => (
-					<div className="text-right">
-						{row.original.profitabilityScore !== null &&
-						row.original.profitabilityScore !== undefined
-							? formatNumber(row.original.profitabilityScore, {
-									maximumFractionDigits: 1
-								})
-							: '-'}
-					</div>
-				)
-			}
-		]
+			enableColumnFilter: true,
+			cell: ({ row }) => (
+				<div className="text-right">
+					{formatCurrency(row.original.outstandingBalance)}
+				</div>
+			),
+		},
+		{
+			accessorKey: "profitabilityScore",
+			header: "Score",
+			meta: {
+				label: "Profitability Score",
+				variant: "number",
+			},
+			enableColumnFilter: true,
+			cell: ({ row }) => (
+				<div className="text-right">
+					{row.original.profitabilityScore !== null &&
+					row.original.profitabilityScore !== undefined
+						? formatNumber(row.original.profitabilityScore, {
+								maximumFractionDigits: 1,
+							})
+						: "-"}
+				</div>
+			),
+		},
+	];
 
 	const { table } = useDataTable({
 		data: leases,
@@ -141,30 +140,30 @@ function ProfitabilityTable({ leases }: { leases: LeaseFinancialInsight[] }) {
 		initialState: {
 			pagination: {
 				pageIndex: 0,
-				pageSize: 8
-			}
-		}
-	})
+				pageSize: 8,
+			},
+		},
+	});
 
 	if (!leases.length) {
 		return (
 			<div className="text-center text-muted-foreground py-8">
 				No lease profitability data available
 			</div>
-		)
+		);
 	}
 
 	return (
 		<DataTable table={table}>
 			<DataTableToolbar table={table} />
 		</DataTable>
-	)
+	);
 }
 
 export function LeaseInsightsSection() {
-	const { data } = useSuspenseQuery(analyticsQueries.leasePageData())
+	const { data } = useSuspenseQuery(analyticsQueries.leasePageData());
 
-	const { profitability = [], lifecycle = [], statusBreakdown = [] } = data
+	const { profitability = [], lifecycle = [], statusBreakdown = [] } = data;
 
 	return (
 		<div className="space-y-6">
@@ -189,7 +188,9 @@ export function LeaseInsightsSection() {
 					<div className="bg-card border border-border rounded-lg p-6">
 						<div className="flex items-center justify-between mb-6">
 							<div>
-								<h3 className="font-medium text-foreground">Status breakdown</h3>
+								<h3 className="font-medium text-foreground">
+									Status breakdown
+								</h3>
 								<p className="text-sm text-muted-foreground">
 									Distribution of lease states
 								</p>
@@ -206,7 +207,9 @@ export function LeaseInsightsSection() {
 				<div className="bg-card border border-border rounded-lg p-6">
 					<div className="flex items-center justify-between mb-6">
 						<div>
-							<h3 className="font-medium text-foreground">Lease profitability</h3>
+							<h3 className="font-medium text-foreground">
+								Lease profitability
+							</h3>
 							<p className="text-sm text-muted-foreground">
 								Revenue contribution and outstanding balances
 							</p>
@@ -217,5 +220,5 @@ export function LeaseInsightsSection() {
 				</div>
 			</BlurFade>
 		</div>
-	)
+	);
 }

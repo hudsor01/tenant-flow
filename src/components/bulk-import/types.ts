@@ -19,19 +19,19 @@
  *     successful import (covers dashboards + list views).
  */
 
-import type { QueryKey } from '@tanstack/react-query'
-import type { ParsedRow } from '#types/api-contracts'
+import type { QueryKey } from "@tanstack/react-query";
+import type { ParsedRow } from "#types/api-contracts";
 
 export interface BulkImportParseResult<T> {
-	rows: ParsedRow<T>[]
-	tooManyRows: boolean
-	totalRowCount: number
+	rows: ParsedRow<T>[];
+	tooManyRows: boolean;
+	totalRowCount: number;
 }
 
 export interface BulkImportConfig<TInsert> {
-	entityLabel: { singular: string; plural: string }
-	templateFilename: string
-	templateHeaders: readonly string[]
+	entityLabel: { singular: string; plural: string };
+	templateFilename: string;
+	templateHeaders: readonly string[];
 	/**
 	 * Each sample row is a plain string tuple — same length as
 	 * templateHeaders. Enforced via a length-check in the unit tests for
@@ -40,10 +40,10 @@ export interface BulkImportConfig<TInsert> {
 	 * inference collapses readonly arrays to `readonly string[]` through
 	 * the config factory return type.
 	 */
-	templateSampleRows: readonly (readonly string[])[]
-	requiredFields: string
-	optionalFields?: string
-	parseAndValidate: (csvText: string) => BulkImportParseResult<TInsert>
-	insertRow: (row: TInsert) => Promise<{ error: Error | null }>
-	invalidateKeys: QueryKey[]
+	templateSampleRows: readonly (readonly string[])[];
+	requiredFields: string;
+	optionalFields?: string;
+	parseAndValidate: (csvText: string) => BulkImportParseResult<TInsert>;
+	insertRow: (row: TInsert) => Promise<{ error: Error | null }>;
+	invalidateKeys: QueryKey[];
 }

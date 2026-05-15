@@ -1,10 +1,11 @@
-'use client'
+"use client";
 
-import Link from 'next/link'
-import { useState } from 'react'
-import { ColumnDef } from '@tanstack/react-table'
-import { useQueryClient } from '@tanstack/react-query'
-import { Button } from '#components/ui/button'
+import { useQueryClient } from "@tanstack/react-query";
+import { ColumnDef } from "@tanstack/react-table";
+import { Clock, MapPin, Trash2 } from "lucide-react";
+import Link from "next/link";
+import { useState } from "react";
+import { toast } from "sonner";
 import {
 	AlertDialog,
 	AlertDialogAction,
@@ -14,48 +15,44 @@ import {
 	AlertDialogFooter,
 	AlertDialogHeader,
 	AlertDialogTitle,
-	AlertDialogTrigger
-} from '#components/ui/alert-dialog'
-import { Clock, MapPin, Trash2 } from 'lucide-react'
-import { toast } from 'sonner'
-import type {
-	MaintenanceStatus,
-	MaintenancePriority
-} from '#types/core'
-import type { MaintenanceDisplayRequest } from '#types/sections/maintenance'
-import { createClient } from '#lib/supabase/client'
-import { maintenanceQueries } from '#hooks/api/query-keys/maintenance-keys'
+	AlertDialogTrigger,
+} from "#components/ui/alert-dialog";
+import { Button } from "#components/ui/button";
+import { maintenanceQueries } from "#hooks/api/query-keys/maintenance-keys";
+import { createClient } from "#lib/supabase/client";
+import type { MaintenancePriority, MaintenanceStatus } from "#types/core";
+import type { MaintenanceDisplayRequest } from "#types/sections/maintenance";
 
 // Status badge styling aligned with design-os
 function getStatusBadge(status: MaintenanceStatus | string) {
-	const normalizedStatus = status?.toLowerCase()
+	const normalizedStatus = status?.toLowerCase();
 	const config: Record<string, { className: string; label: string }> = {
 		open: {
-			className: 'bg-orange-500/10 text-orange-600 dark:text-orange-400',
-			label: 'Open'
+			className: "bg-orange-500/10 text-orange-600 dark:text-orange-400",
+			label: "Open",
 		},
 		in_progress: {
-			className: 'bg-primary/10 text-primary',
-			label: 'In Progress'
+			className: "bg-primary/10 text-primary",
+			label: "In Progress",
 		},
 		completed: {
-			className: 'bg-green-500/10 text-green-600 dark:text-green-400',
-			label: 'Completed'
+			className: "bg-green-500/10 text-green-600 dark:text-green-400",
+			label: "Completed",
 		},
 		on_hold: {
-			className: 'bg-muted text-muted-foreground',
-			label: 'On Hold'
+			className: "bg-muted text-muted-foreground",
+			label: "On Hold",
 		},
 		cancelled: {
-			className: 'bg-muted text-muted-foreground',
-			label: 'Cancelled'
-		}
-	}
+			className: "bg-muted text-muted-foreground",
+			label: "Cancelled",
+		},
+	};
 
 	const badge = config[normalizedStatus] ?? {
-		className: 'bg-muted text-muted-foreground',
-		label: status
-	}
+		className: "bg-muted text-muted-foreground",
+		label: status,
+	};
 
 	return (
 		<span
@@ -63,39 +60,39 @@ function getStatusBadge(status: MaintenanceStatus | string) {
 		>
 			{badge.label}
 		</span>
-	)
+	);
 }
 
 // Priority badge styling aligned with design-os
 function getPriorityBadge(priority: MaintenancePriority | string) {
-	const normalizedPriority = priority?.toLowerCase()
+	const normalizedPriority = priority?.toLowerCase();
 	const config: Record<string, { className: string; label: string }> = {
 		low: {
-			className: 'bg-muted text-muted-foreground',
-			label: 'Low'
+			className: "bg-muted text-muted-foreground",
+			label: "Low",
 		},
 		medium: {
-			className: 'bg-primary/10 text-primary',
-			label: 'Medium'
+			className: "bg-primary/10 text-primary",
+			label: "Medium",
 		},
 		normal: {
-			className: 'bg-primary/10 text-primary',
-			label: 'Normal'
+			className: "bg-primary/10 text-primary",
+			label: "Normal",
 		},
 		high: {
-			className: 'bg-orange-500/10 text-orange-600 dark:text-orange-400',
-			label: 'High'
+			className: "bg-orange-500/10 text-orange-600 dark:text-orange-400",
+			label: "High",
 		},
 		urgent: {
-			className: 'bg-destructive/10 text-destructive',
-			label: 'Urgent'
-		}
-	}
+			className: "bg-destructive/10 text-destructive",
+			label: "Urgent",
+		},
+	};
 
 	const badge = config[normalizedPriority] ?? {
-		className: 'bg-muted text-muted-foreground',
-		label: priority
-	}
+		className: "bg-muted text-muted-foreground",
+		label: priority,
+	};
 
 	return (
 		<span
@@ -103,37 +100,37 @@ function getPriorityBadge(priority: MaintenancePriority | string) {
 		>
 			{badge.label}
 		</span>
-	)
+	);
 }
 
 // Calculate days open for aging display
 function getDaysOpen(timestamp: string | null | undefined): number {
-	if (!timestamp) return 0
-	const date = new Date(timestamp)
-	const now = new Date()
-	const diff = now.getTime() - date.getTime()
-	return Math.floor(diff / (1000 * 60 * 60 * 24))
+	if (!timestamp) return 0;
+	const date = new Date(timestamp);
+	const now = new Date();
+	const diff = now.getTime() - date.getTime();
+	return Math.floor(diff / (1000 * 60 * 60 * 24));
 }
 
 function getAgingBadge(timestamp: string | null | undefined) {
-	const days = getDaysOpen(timestamp)
+	const days = getDaysOpen(timestamp);
 
-	let className: string
-	let label: string
+	let className: string;
+	let label: string;
 
 	if (days <= 3) {
-		className = 'bg-green-500/10 text-green-600 dark:text-green-400'
-		label = days === 0 ? 'Today' : days === 1 ? '1 day' : `${days} days`
+		className = "bg-green-500/10 text-green-600 dark:text-green-400";
+		label = days === 0 ? "Today" : days === 1 ? "1 day" : `${days} days`;
 	} else if (days <= 7) {
-		className = 'bg-orange-500/10 text-orange-600 dark:text-orange-400'
-		label = `${days} days`
+		className = "bg-orange-500/10 text-orange-600 dark:text-orange-400";
+		label = `${days} days`;
 	} else if (days <= 14) {
 		className =
-			'bg-orange-100 text-orange-700 dark:bg-orange-500/20 dark:text-orange-400'
-		label = `${days} days`
+			"bg-orange-100 text-orange-700 dark:bg-orange-500/20 dark:text-orange-400";
+		label = `${days} days`;
 	} else {
-		className = 'bg-destructive/10 text-destructive'
-		label = `${days} days`
+		className = "bg-destructive/10 text-destructive";
+		label = `${days} days`;
 	}
 
 	return (
@@ -143,15 +140,15 @@ function getAgingBadge(timestamp: string | null | undefined) {
 			<Clock className="w-3 h-3" />
 			{label}
 		</div>
-	)
+	);
 }
 
 export const columns: ColumnDef<MaintenanceDisplayRequest>[] = [
 	{
-		accessorKey: 'title',
-		header: 'Request',
+		accessorKey: "title",
+		header: "Request",
 		cell: ({ row }) => {
-			const request = row.original
+			const request = row.original;
 			return (
 				<Link
 					href={`/maintenance/${request.id}`}
@@ -164,16 +161,16 @@ export const columns: ColumnDef<MaintenanceDisplayRequest>[] = [
 						{getAgingBadge(request.created_at)}
 					</div>
 				</Link>
-			)
-		}
+			);
+		},
 	},
 	{
-		accessorKey: 'properties',
-		header: 'Location',
+		accessorKey: "properties",
+		header: "Location",
 		cell: ({ row }) => {
-			const request = row.original
-			const propertyName = request.property?.name ?? 'Unassigned'
-			const unitName = request.unit?.name
+			const request = row.original;
+			const propertyName = request.property?.name ?? "Unassigned";
+			const unitName = request.unit?.name;
 
 			return (
 				<div className="flex items-center gap-1.5 text-sm text-muted-foreground">
@@ -183,57 +180,57 @@ export const columns: ColumnDef<MaintenanceDisplayRequest>[] = [
 						{unitName && ` · Unit ${unitName}`}
 					</span>
 				</div>
-			)
-		}
+			);
+		},
 	},
 	{
-		accessorKey: 'status',
-		header: 'Status',
-		cell: ({ row }) => getStatusBadge(row.getValue('status') as string)
+		accessorKey: "status",
+		header: "Status",
+		cell: ({ row }) => getStatusBadge(row.getValue("status") as string),
 	},
 	{
-		accessorKey: 'priority',
-		header: 'Priority',
-		cell: ({ row }) => getPriorityBadge(row.getValue('priority') as string)
+		accessorKey: "priority",
+		header: "Priority",
+		cell: ({ row }) => getPriorityBadge(row.getValue("priority") as string),
 	},
 	{
-		id: 'actions',
-		header: 'Actions',
-		cell: ({ row }) => <MaintenanceActionsCell request={row.original} />
-	}
-]
+		id: "actions",
+		header: "Actions",
+		cell: ({ row }) => <MaintenanceActionsCell request={row.original} />,
+	},
+];
 
 function MaintenanceActionsCell({
-	request
+	request,
 }: {
-	request: MaintenanceDisplayRequest
+	request: MaintenanceDisplayRequest;
 }) {
-	const queryClient = useQueryClient()
-	const [isDeleting, setIsDeleting] = useState(false)
+	const queryClient = useQueryClient();
+	const [isDeleting, setIsDeleting] = useState(false);
 
 	const handleDelete = async () => {
-		setIsDeleting(true)
+		setIsDeleting(true);
 		try {
-			const supabase = createClient()
+			const supabase = createClient();
 			const { error } = await supabase
-				.from('maintenance_requests')
+				.from("maintenance_requests")
 				.delete()
-				.eq('id', request.id)
-			if (error) throw error
-			toast.success('Request deleted')
+				.eq("id", request.id);
+			if (error) throw error;
+			toast.success("Request deleted");
 
 			await Promise.all([
 				queryClient.invalidateQueries({ queryKey: maintenanceQueries.lists() }),
 				queryClient.invalidateQueries({
-					queryKey: maintenanceQueries.stats().queryKey
-				})
-			])
+					queryKey: maintenanceQueries.stats().queryKey,
+				}),
+			]);
 		} catch {
-			toast.error('Failed to delete')
+			toast.error("Failed to delete");
 		} finally {
-			setIsDeleting(false)
+			setIsDeleting(false);
 		}
-	}
+	};
 
 	return (
 		<div className="flex items-center gap-2">
@@ -267,11 +264,11 @@ function MaintenanceActionsCell({
 							className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
 							onClick={handleDelete}
 						>
-							{isDeleting ? 'Deleting...' : 'Delete'}
+							{isDeleting ? "Deleting..." : "Delete"}
 						</AlertDialogAction>
 					</AlertDialogFooter>
 				</AlertDialogContent>
 			</AlertDialog>
 		</div>
-	)
+	);
 }

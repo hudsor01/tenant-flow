@@ -1,8 +1,8 @@
-import { describe, test, expect } from 'vitest'
-import { render, screen } from '@testing-library/react'
-import { Button } from '#components/ui/button'
-import { Badge } from '#components/ui/badge'
-import Link from 'next/link'
+import { render, screen } from "@testing-library/react";
+import Link from "next/link";
+import { describe, expect, test } from "vitest";
+import { Badge } from "#components/ui/badge";
+import { Button } from "#components/ui/button";
 
 /**
  * Mobile-First Responsive Design Tests
@@ -10,18 +10,18 @@ import Link from 'next/link'
  * Tests for responsive typography, spacing, touch targets, and layout adaptations
  */
 
-describe('Mobile-First Responsive Design', () => {
-	describe('Touch Targets', () => {
-		test('buttons have minimum 44px touch target height', () => {
-			render(<Button>Click me</Button>)
+describe("Mobile-First Responsive Design", () => {
+	describe("Touch Targets", () => {
+		test("buttons have minimum 44px touch target height", () => {
+			render(<Button>Click me</Button>);
 
-			const button = screen.getByRole('button')
+			const button = screen.getByRole("button");
 
 			// Check that the button has touch-friendly min-height class (min-h-11 = 2.75rem = 44px)
-			expect(button).toHaveClass('min-h-11')
-		})
+			expect(button).toHaveClass("min-h-11");
+		});
 
-		test('links with touch-target class have adequate touch area', () => {
+		test("links with touch-target class have adequate touch area", () => {
 			render(
 				<nav>
 					<Link
@@ -30,121 +30,121 @@ describe('Mobile-First Responsive Design', () => {
 					>
 						Test Link
 					</Link>
-				</nav>
-			)
+				</nav>,
+			);
 
-			const link = screen.getByRole('link')
-			expect(link).toHaveClass('touch-target', 'min-h-11')
-		})
+			const link = screen.getByRole("link");
+			expect(link).toHaveClass("touch-target", "min-h-11");
+		});
 
-		test('badges have adequate touch targets for interactive use', () => {
-			render(<Badge>Interactive Badge</Badge>)
+		test("badges have adequate touch targets for interactive use", () => {
+			render(<Badge>Interactive Badge</Badge>);
 
-			const badge = screen.getByText('Interactive Badge')
+			const badge = screen.getByText("Interactive Badge");
 
 			// Check that badges have adequate padding classes
-			expect(badge).toHaveClass('px-2', 'py-0.5')
-		})
-	})
+			expect(badge).toHaveClass("px-2", "py-0.5");
+		});
+	});
 
-	describe('Responsive Typography', () => {
-		test('heading scales appropriately with clamp functions', () => {
+	describe("Responsive Typography", () => {
+		test("heading scales appropriately with clamp functions", () => {
 			render(
 				<div>
 					<h1 className="text-4xl font-black">Dashboard</h1>
 					<h2 className="text-2xl">Section Title</h2>
 					<p className="text-base">Body text</p>
-				</div>
-			)
+				</div>,
+			);
 
-			const h1 = screen.getByRole('heading', { level: 1 })
-			const h2 = screen.getByRole('heading', { level: 2 })
-			const p = screen.getByText('Body text')
+			const h1 = screen.getByRole("heading", { level: 1 });
+			const h2 = screen.getByRole("heading", { level: 2 });
+			const p = screen.getByText("Body text");
 
 			// Check that clamp functions are applied (computed styles will show resolved values)
-			expect(h1).toBeInTheDocument()
-			expect(h2).toBeInTheDocument()
-			expect(p).toBeInTheDocument()
-		})
-	})
+			expect(h1).toBeInTheDocument();
+			expect(h2).toBeInTheDocument();
+			expect(p).toBeInTheDocument();
+		});
+	});
 
-	describe('Responsive Spacing', () => {
-		test('container uses responsive padding utilities', () => {
+	describe("Responsive Spacing", () => {
+		test("container uses responsive padding utilities", () => {
 			render(
 				<div className="px-(--layout-container-padding-x) py-(--layout-content-padding)">
 					<div>Content</div>
-				</div>
-			)
+				</div>,
+			);
 
-			const container = screen.getByText('Content').parentElement
+			const container = screen.getByText("Content").parentElement;
 			// Check that the container uses CSS custom properties for responsive padding
 			expect(container).toHaveClass(
-				'px-(--layout-container-padding-x)',
-				'py-(--layout-content-padding)'
-			)
-		})
+				"px-(--layout-container-padding-x)",
+				"py-(--layout-content-padding)",
+			);
+		});
 
-		test('grid layouts adapt to mobile screens', () => {
+		test("grid layouts adapt to mobile screens", () => {
 			render(
 				<div className="dashboard-cards-container">
 					<div>Card 1</div>
 					<div>Card 2</div>
 					<div>Card 3</div>
-				</div>
-			)
+				</div>,
+			);
 
-			const container = screen.getByText('Card 1').parentElement
-			expect(container).toHaveClass('dashboard-cards-container')
-		})
-	})
+			const container = screen.getByText("Card 1").parentElement;
+			expect(container).toHaveClass("dashboard-cards-container");
+		});
+	});
 
-	describe('Mobile Layout Adaptations', () => {
-		test('sidebar becomes mobile drawer on small screens', () => {
+	describe("Mobile Layout Adaptations", () => {
+		test("sidebar becomes mobile drawer on small screens", () => {
 			// This would require mocking the useIsMobile hook
 			// For now, we test that the hook exists and components respond
-			expect(true).toBe(true) // Placeholder test
-		})
+			expect(true).toBe(true); // Placeholder test
+		});
 
-		test('content stacks vertically on mobile', () => {
+		test("content stacks vertically on mobile", () => {
 			render(
 				<div className="flex flex-col md:flex-row gap-4">
 					<div>Left</div>
 					<div>Right</div>
-				</div>
-			)
+				</div>,
+			);
 
-			const container = screen.getByText('Left').parentElement
-			expect(container).toHaveClass('flex-col', 'md:flex-row')
-		})
-	})
+			const container = screen.getByText("Left").parentElement;
+			expect(container).toHaveClass("flex-col", "md:flex-row");
+		});
+	});
 
-	describe('Progressive Enhancement', () => {
-		test('components work without JavaScript', () => {
+	describe("Progressive Enhancement", () => {
+		test("components work without JavaScript", () => {
 			// Test that critical content is available in initial HTML
 			render(
 				<nav>
 					<Link href="/dashboard">Dashboard</Link>
 					<Link href="/properties">Properties</Link>
-				</nav>
-			)
+				</nav>,
+			);
 
-			expect(screen.getByRole('link', { name: 'Dashboard' })).toHaveAttribute(
-				'href',
-				'/dashboard'
-			)
-			expect(screen.getByRole('link', { name: 'Properties' })).toHaveAttribute(
-				'href',
-				'/properties'
-			)
-		})
+			expect(screen.getByRole("link", { name: "Dashboard" })).toHaveAttribute(
+				"href",
+				"/dashboard",
+			);
+			expect(screen.getByRole("link", { name: "Properties" })).toHaveAttribute(
+				"href",
+				"/properties",
+			);
+		});
 
-		test('focus management works for keyboard navigation', () => {
-			render(<Button>Focusable Button</Button>)
+		test("focus management works for keyboard navigation", () => {
+			render(<Button>Focusable Button</Button>);
 
-			const button = screen.getByRole('button')
-			button.focus()
+			const button = screen.getByRole("button");
+			button.focus();
 
-			expect(button).toHaveFocus()
-		})
-	})
-})
+			expect(button).toHaveFocus();
+		});
+	});
+});

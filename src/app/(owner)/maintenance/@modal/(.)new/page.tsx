@@ -1,5 +1,5 @@
-import { MaintenanceForm } from '#components/maintenance/maintenance-form.client'
-import { RouteModal } from '#components/ui/route-modal'
+import { MaintenanceForm } from "#components/maintenance/maintenance-form.client";
+import { RouteModal } from "#components/ui/route-modal";
 
 /**
  * New Maintenance Request Modal (Intercepting Route)
@@ -12,5 +12,5 @@ export default function NewMaintenanceModal() {
 		>
 			<MaintenanceForm mode="create" />
 		</RouteModal>
-	)
+	);
 }

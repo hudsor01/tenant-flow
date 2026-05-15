@@ -1,75 +1,75 @@
-'use client'
+"use client";
 
-import { cn } from '#lib/utils'
-import { useTheme } from 'next-themes'
-import { useToast } from '#hooks/use-toast'
-import type { ToasterProps } from 'sonner'
-import { Toaster as Sonner, toast as sonnerToast } from 'sonner'
-import { useEffect } from 'react'
+import { useTheme } from "next-themes";
+import { useEffect } from "react";
+import type { ToasterProps } from "sonner";
+import { Toaster as Sonner, toast as sonnerToast } from "sonner";
+import { useToast } from "#hooks/use-toast";
+import { cn } from "#lib/utils";
 
 const Toaster = ({ className, toastOptions, ...props }: ToasterProps) => {
-	const { theme } = useTheme()
-	const { toasts, removeToast } = useToast()
+	const { theme } = useTheme();
+	const { toasts, removeToast } = useToast();
 
-	const resolvedTheme = (theme ?? 'system') as NonNullable<
-		ToasterProps['theme']
-	>
+	const resolvedTheme = (theme ?? "system") as NonNullable<
+		ToasterProps["theme"]
+	>;
 
 	// Sync store toasts with sonner
 	useEffect(() => {
-		toasts.forEach(storeToast => {
+		toasts.forEach((storeToast) => {
 			// Check if this toast is already shown by sonner
 			const existingToast = document.querySelector(
-				`[data-toast-id="${storeToast.id}"]`
-			)
+				`[data-toast-id="${storeToast.id}"]`,
+			);
 			if (!existingToast) {
 				const toastFn =
-					storeToast.type === 'error'
+					storeToast.type === "error"
 						? sonnerToast.error
-						: storeToast.type === 'success'
+						: storeToast.type === "success"
 							? sonnerToast.success
-							: storeToast.type === 'warning'
+							: storeToast.type === "warning"
 								? sonnerToast.warning
-								: sonnerToast
+								: sonnerToast;
 
-				toastFn(storeToast.title || storeToast.description || '', {
+				toastFn(storeToast.title || storeToast.description || "", {
 					id: storeToast.id,
 					description: storeToast.description,
 					duration: storeToast.duration || 4000,
-					onDismiss: () => removeToast(storeToast.id)
-				})
+					onDismiss: () => removeToast(storeToast.id),
+				});
 			}
-		})
-	}, [toasts, removeToast])
+		});
+	}, [toasts, removeToast]);
 
 	return (
 		<Sonner
 			theme={resolvedTheme}
-			className={cn('toaster group', className)}
+			className={cn("toaster group", className)}
 			toastOptions={{
 				duration: toastOptions?.duration ?? 4000,
 				...toastOptions,
-				className: cn('sonner-toast', toastOptions?.className),
+				className: cn("sonner-toast", toastOptions?.className),
 				classNames: {
 					...toastOptions?.classNames,
-					title: cn('sonner-toast__title', toastOptions?.classNames?.title),
+					title: cn("sonner-toast__title", toastOptions?.classNames?.title),
 					description: cn(
-						'sonner-toast__description',
-						toastOptions?.classNames?.description
+						"sonner-toast__description",
+						toastOptions?.classNames?.description,
 					),
 					actionButton: cn(
-						'sonner-toast__action',
-						toastOptions?.classNames?.actionButton
+						"sonner-toast__action",
+						toastOptions?.classNames?.actionButton,
 					),
 					cancelButton: cn(
-						'sonner-toast__cancel',
-						toastOptions?.classNames?.cancelButton
-					)
-				}
+						"sonner-toast__cancel",
+						toastOptions?.classNames?.cancelButton,
+					),
+				},
 			}}
 			{...props}
 		/>
-	)
-}
+	);
+};
 
-export { Toaster }
+export { Toaster };

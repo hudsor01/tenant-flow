@@ -1,23 +1,23 @@
-import { Bell, ChevronRight, Menu } from 'lucide-react'
-import Link from 'next/link'
-import type { User } from '@supabase/supabase-js'
-import { GlobalSyncIndicator } from '#components/ui/global-sync-indicator'
-import { UserProfileMenu } from './user-profile-menu'
+import type { User } from "@supabase/supabase-js";
+import { Bell, ChevronRight, Menu } from "lucide-react";
+import Link from "next/link";
+import { GlobalSyncIndicator } from "#components/ui/global-sync-indicator";
+import { UserProfileMenu } from "./user-profile-menu";
 
 interface Breadcrumb {
-	label: string
-	href?: string
+	label: string;
+	href?: string;
 }
 
 interface AppShellHeaderProps {
-	triggerRef: React.RefObject<HTMLButtonElement | null>
-	onSidebarOpen: () => void
-	breadcrumbs: Breadcrumb[]
-	user: User | null | undefined
-	userInitials: string
-	userName: string
-	userEmail: string
-	onSignOut: () => void
+	triggerRef: React.RefObject<HTMLButtonElement | null>;
+	onSidebarOpen: () => void;
+	breadcrumbs: Breadcrumb[];
+	user: User | null | undefined;
+	userInitials: string;
+	userName: string;
+	userEmail: string;
+	onSignOut: () => void;
 }
 
 export function AppShellHeader({
@@ -28,7 +28,7 @@ export function AppShellHeader({
 	userInitials,
 	userName,
 	userEmail,
-	onSignOut
+	onSignOut,
 }: AppShellHeaderProps) {
 	return (
 		<header className="sticky top-0 z-30 flex items-center justify-between px-4 lg:px-6 h-14 bg-card border-b border-border">
@@ -44,78 +44,85 @@ export function AppShellHeader({
 				</button>
 
 				{/* Breadcrumbs */}
-				{breadcrumbs.length > 0 && (() => {
-					const firstCrumb = breadcrumbs[0]!
-					const lastCrumb = breadcrumbs[breadcrumbs.length - 1]!
-					return (
-					<nav aria-label="Breadcrumb" className="flex items-center gap-1 text-sm">
-						{/* First crumb always visible */}
-						<div className="flex items-center gap-1">
-							{firstCrumb.href ? (
-								<Link
-									href={firstCrumb.href}
-									className="text-muted-foreground hover:text-foreground transition-colors"
-								>
-									{firstCrumb.label}
-								</Link>
-							) : (
-								<span className="text-foreground font-medium">
-									{firstCrumb.label}
-								</span>
-							)}
-						</div>
+				{breadcrumbs.length > 0 &&
+					(() => {
+						const firstCrumb = breadcrumbs[0]!;
+						const lastCrumb = breadcrumbs[breadcrumbs.length - 1]!;
+						return (
+							<nav
+								aria-label="Breadcrumb"
+								className="flex items-center gap-1 text-sm"
+							>
+								{/* First crumb always visible */}
+								<div className="flex items-center gap-1">
+									{firstCrumb.href ? (
+										<Link
+											href={firstCrumb.href}
+											className="text-muted-foreground hover:text-foreground transition-colors"
+										>
+											{firstCrumb.label}
+										</Link>
+									) : (
+										<span className="text-foreground font-medium">
+											{firstCrumb.label}
+										</span>
+									)}
+								</div>
 
-						{/* Middle crumbs: hidden on mobile, visible on sm+ */}
-						{breadcrumbs.length > 2 && (
-							<>
-								<span className="hidden sm:contents">
-									{breadcrumbs.slice(1, -1).map((crumb, index) => (
-										<div key={index + 1} className="flex items-center gap-1">
-											<ChevronRight className="w-3.5 h-3.5 text-muted-foreground" />
-											{crumb.href ? (
-												<Link
-													href={crumb.href}
-													className="text-muted-foreground hover:text-foreground transition-colors"
+								{/* Middle crumbs: hidden on mobile, visible on sm+ */}
+								{breadcrumbs.length > 2 && (
+									<>
+										<span className="hidden sm:contents">
+											{breadcrumbs.slice(1, -1).map((crumb, index) => (
+												<div
+													key={index + 1}
+													className="flex items-center gap-1"
 												>
-													{crumb.label}
-												</Link>
-											) : (
-												<span className="text-foreground font-medium">
-													{crumb.label}
-												</span>
-											)}
-										</div>
-									))}
-								</span>
-								{/* Collapsed indicator: visible on mobile only */}
-								<span className="flex items-center gap-1 sm:hidden">
-									<ChevronRight className="size-3.5 text-muted-foreground" />
-									<span className="text-muted-foreground">...</span>
-								</span>
-							</>
-						)}
-
-						{/* Last crumb (when more than 1) */}
-						{breadcrumbs.length > 1 && lastCrumb && (
-							<div className="flex items-center gap-1">
-								<ChevronRight className="w-3.5 h-3.5 text-muted-foreground" />
-								{lastCrumb.href ? (
-									<Link
-										href={lastCrumb.href}
-										className="text-muted-foreground hover:text-foreground transition-colors"
-									>
-										{lastCrumb.label}
-									</Link>
-								) : (
-									<span className="text-foreground font-medium truncate max-w-[150px] sm:max-w-none">
-										{lastCrumb.label}
-									</span>
+													<ChevronRight className="w-3.5 h-3.5 text-muted-foreground" />
+													{crumb.href ? (
+														<Link
+															href={crumb.href}
+															className="text-muted-foreground hover:text-foreground transition-colors"
+														>
+															{crumb.label}
+														</Link>
+													) : (
+														<span className="text-foreground font-medium">
+															{crumb.label}
+														</span>
+													)}
+												</div>
+											))}
+										</span>
+										{/* Collapsed indicator: visible on mobile only */}
+										<span className="flex items-center gap-1 sm:hidden">
+											<ChevronRight className="size-3.5 text-muted-foreground" />
+											<span className="text-muted-foreground">...</span>
+										</span>
+									</>
 								)}
-							</div>
-						)}
-					</nav>
-					)
-				})()}
+
+								{/* Last crumb (when more than 1) */}
+								{breadcrumbs.length > 1 && lastCrumb && (
+									<div className="flex items-center gap-1">
+										<ChevronRight className="w-3.5 h-3.5 text-muted-foreground" />
+										{lastCrumb.href ? (
+											<Link
+												href={lastCrumb.href}
+												className="text-muted-foreground hover:text-foreground transition-colors"
+											>
+												{lastCrumb.label}
+											</Link>
+										) : (
+											<span className="text-foreground font-medium truncate max-w-[150px] sm:max-w-none">
+												{lastCrumb.label}
+											</span>
+										)}
+									</div>
+								)}
+							</nav>
+						);
+					})()}
 			</div>
 
 			{/* Right side - sync status, notifications, user */}
@@ -142,5 +149,5 @@ export function AppShellHeader({
 				)}
 			</div>
 		</header>
-	)
+	);
 }

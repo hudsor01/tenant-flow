@@ -1,82 +1,85 @@
-'use client'
+"use client";
 
-import { Button } from '#components/ui/button'
+import { BarChart3, Calendar, FileText } from "lucide-react";
+import dynamic from "next/dynamic";
+import Link from "next/link";
+import { useState } from "react";
+import { toast } from "sonner";
+import { DateRangeSelector } from "#components/reports/sections/date-range-selector";
+import { ChartLoadingSkeleton } from "#components/shared/chart-loading-skeleton";
+import { Button } from "#components/ui/button";
+import { callGeneratePdfFromHtml } from "#hooks/api/use-report-mutations";
 import {
 	useFinancialReport,
 	useMaintenanceReport,
 	usePropertyReport,
-	useTenantReport
-} from '#hooks/api/use-reports'
-import { callGeneratePdfFromHtml } from '#hooks/api/use-report-mutations'
-import { BarChart3, FileText, Calendar } from 'lucide-react'
-import Link from 'next/link'
-import { useState } from 'react'
-import { toast } from 'sonner'
-import dynamic from 'next/dynamic'
-import { DateRangeSelector } from '#components/reports/sections/date-range-selector'
-import { ChartLoadingSkeleton } from '#components/shared/chart-loading-skeleton'
+	useTenantReport,
+} from "#hooks/api/use-reports";
 
 const FinancialReportSection = dynamic(
 	() =>
-		import('#components/reports/sections/financial-report-section').then(
-			mod => mod.FinancialReportSection
+		import("#components/reports/sections/financial-report-section").then(
+			(mod) => mod.FinancialReportSection,
 		),
-	{ ssr: false, loading: () => <ChartLoadingSkeleton /> }
-)
+	{ ssr: false, loading: () => <ChartLoadingSkeleton /> },
+);
 
 const MaintenanceReportSection = dynamic(
 	() =>
-		import('#components/reports/sections/maintenance-report-section').then(
-			mod => mod.MaintenanceReportSection
+		import("#components/reports/sections/maintenance-report-section").then(
+			(mod) => mod.MaintenanceReportSection,
 		),
-	{ ssr: false, loading: () => <ChartLoadingSkeleton /> }
-)
+	{ ssr: false, loading: () => <ChartLoadingSkeleton /> },
+);
 
 const PropertyReportSection = dynamic(
 	() =>
-		import('#components/reports/sections/property-report-section').then(
-			mod => mod.PropertyReportSection
+		import("#components/reports/sections/property-report-section").then(
+			(mod) => mod.PropertyReportSection,
 		),
-	{ ssr: false, loading: () => <ChartLoadingSkeleton /> }
-)
+	{ ssr: false, loading: () => <ChartLoadingSkeleton /> },
+);
 
 const TenantReportSection = dynamic(
 	() =>
-		import('#components/reports/sections/tenant-report-section').then(
-			mod => mod.TenantReportSection
+		import("#components/reports/sections/tenant-report-section").then(
+			(mod) => mod.TenantReportSection,
 		),
-	{ ssr: false, loading: () => <ChartLoadingSkeleton /> }
-)
+	{ ssr: false, loading: () => <ChartLoadingSkeleton /> },
+);
+
+import { Download } from "lucide-react";
+import { getDefaultDateRange } from "#components/reports/reports-utils";
 import {
 	Empty,
 	EmptyDescription,
 	EmptyHeader,
 	EmptyMedia,
-	EmptyTitle
-} from '#components/ui/empty'
-import { Download } from 'lucide-react'
-import { getDefaultDateRange } from '#components/reports/reports-utils'
+	EmptyTitle,
+} from "#components/ui/empty";
 
 /* eslint-disable color-tokens/no-hex-colors -- PDF HTML content uses inline styles intentionally; not rendered by the browser */
 function buildReportPdfHtml(
 	title: string,
 	startDate: string,
 	endDate: string,
-	payload: unknown
+	payload: unknown,
 ): string {
-	const rows = payload !== null && typeof payload === 'object'
-		? Object.entries(payload as Record<string, unknown>)
-		: []
+	const rows =
+		payload !== null && typeof payload === "object"
+			? Object.entries(payload as Record<string, unknown>)
+			: [];
 	const tableRows = rows
 		.map(([key, value]) => {
-			const displayValue = value === null || value === undefined
-				? ''
-				: typeof value === 'object'
-					? JSON.stringify(value)
-					: String(value)
-			return `<tr><td style="border:1px solid #ccc;padding:6px 10px;font-weight:500">${key}</td><td style="border:1px solid #ccc;padding:6px 10px">${displayValue}</td></tr>`
+			const displayValue =
+				value === null || value === undefined
+					? ""
+					: typeof value === "object"
+						? JSON.stringify(value)
+						: String(value);
+			return `<tr><td style="border:1px solid #ccc;padding:6px 10px;font-weight:500">${key}</td><td style="border:1px solid #ccc;padding:6px 10px">${displayValue}</td></tr>`;
 		})
-		.join('')
+		.join("");
 	return `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -94,53 +97,53 @@ function buildReportPdfHtml(
     <tbody>${tableRows}</tbody>
   </table>
 </body>
-</html>`
+</html>`;
 }
 /* eslint-enable color-tokens/no-hex-colors */
 
 export default function ReportsPage() {
-	const defaultRange = getDefaultDateRange()
-	const [startDate, setStartDate] = useState(defaultRange.start)
-	const [endDate, setEndDate] = useState(defaultRange.end)
-	const [isExporting, setIsExporting] = useState<string | null>(null)
+	const defaultRange = getDefaultDateRange();
+	const [startDate, setStartDate] = useState(defaultRange.start);
+	const [endDate, setEndDate] = useState(defaultRange.end);
+	const [isExporting, setIsExporting] = useState<string | null>(null);
 
 	const { data: financialReport, isLoading: financialLoading } =
-		useFinancialReport(startDate, endDate)
+		useFinancialReport(startDate, endDate);
 	const { data: propertyReport, isLoading: propertyLoading } =
-		usePropertyReport(startDate, endDate)
+		usePropertyReport(startDate, endDate);
 	const { data: tenantReport, isLoading: tenantLoading } = useTenantReport(
 		startDate,
-		endDate
-	)
+		endDate,
+	);
 	const { data: maintenanceReport, isLoading: maintenanceLoading } =
-		useMaintenanceReport(startDate, endDate)
+		useMaintenanceReport(startDate, endDate);
 
 	const hasAnyData =
-		financialReport || propertyReport || tenantReport || maintenanceReport
+		financialReport || propertyReport || tenantReport || maintenanceReport;
 
 	const handlePdfExport = async (
 		reportKey: string,
 		title: string,
-		payload: unknown
+		payload: unknown,
 	) => {
-		setIsExporting(reportKey)
+		setIsExporting(reportKey);
 		try {
-			const filename = `${reportKey}-${startDate}-${endDate}.pdf`
-			const html = buildReportPdfHtml(title, startDate, endDate, payload)
-			await callGeneratePdfFromHtml(html, filename)
-			toast.success('Report exported')
+			const filename = `${reportKey}-${startDate}-${endDate}.pdf`;
+			const html = buildReportPdfHtml(title, startDate, endDate, payload);
+			await callGeneratePdfFromHtml(html, filename);
+			toast.success("Report exported");
 		} catch {
-			toast.error('Failed to export report')
+			toast.error("Failed to export report");
 		} finally {
-			setIsExporting(null)
+			setIsExporting(null);
 		}
-	}
+	};
 
 	const handleResetDateRange = () => {
-		const range = getDefaultDateRange()
-		setStartDate(range.start)
-		setEndDate(range.end)
-	}
+		const range = getDefaultDateRange();
+		setStartDate(range.start);
+		setEndDate(range.end);
+	};
 
 	return (
 		<div className="p-6 lg:p-8 bg-background min-h-full">
@@ -211,39 +214,43 @@ export default function ReportsPage() {
 						<FinancialReportSection
 							data={financialReport}
 							isLoading={financialLoading}
-							isExporting={isExporting === 'financial'}
+							isExporting={isExporting === "financial"}
 							onExport={() =>
-								handlePdfExport('financial', 'Financial Report', financialReport)
+								handlePdfExport(
+									"financial",
+									"Financial Report",
+									financialReport,
+								)
 							}
 						/>
 
 						<PropertyReportSection
 							data={propertyReport}
 							isLoading={propertyLoading}
-							isExporting={isExporting === 'properties'}
+							isExporting={isExporting === "properties"}
 							onExport={() =>
-								handlePdfExport('properties', 'Property Report', propertyReport)
+								handlePdfExport("properties", "Property Report", propertyReport)
 							}
 						/>
 
 						<TenantReportSection
 							data={tenantReport}
 							isLoading={tenantLoading}
-							isExporting={isExporting === 'tenants'}
+							isExporting={isExporting === "tenants"}
 							onExport={() =>
-								handlePdfExport('tenants', 'Tenant Report', tenantReport)
+								handlePdfExport("tenants", "Tenant Report", tenantReport)
 							}
 						/>
 
 						<MaintenanceReportSection
 							data={maintenanceReport}
 							isLoading={maintenanceLoading}
-							isExporting={isExporting === 'maintenance'}
+							isExporting={isExporting === "maintenance"}
 							onExport={() =>
 								handlePdfExport(
-									'maintenance',
-									'Maintenance Report',
-									maintenanceReport
+									"maintenance",
+									"Maintenance Report",
+									maintenanceReport,
 								)
 							}
 						/>
@@ -251,5 +258,5 @@ export default function ReportsPage() {
 				)}
 			</div>
 		</div>
-	)
+	);
 }

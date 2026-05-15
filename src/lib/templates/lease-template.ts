@@ -1,82 +1,79 @@
-import type {
-	LeaseFormData,
-	USState
-} from '#types/lease-generator.types'
-import { formatCurrency } from '../../lib/utils/currency'
-import { formatDate } from '#lib/formatters/date'
+import { formatDate } from "#lib/formatters/date";
+import type { LeaseFormData, USState } from "#types/lease-generator.types";
+import { formatCurrency } from "../../lib/utils/currency";
 
 export interface LeaseTemplateClause {
-	id: string
-	title: string
-	description: string
-	tooltip: string
-	defaultSelected: boolean
-	body: string
-	stateLimitation?: USState[]
-	requiresOption?: 'includeStateDisclosures' | 'includeFederalDisclosures'
+	id: string;
+	title: string;
+	description: string;
+	tooltip: string;
+	defaultSelected: boolean;
+	body: string;
+	stateLimitation?: USState[];
+	requiresOption?: "includeStateDisclosures" | "includeFederalDisclosures";
 }
 
 export interface LeaseTemplateSection {
-	id: string
-	title: string
-	description: string
-	clauses: LeaseTemplateClause[]
+	id: string;
+	title: string;
+	description: string;
+	clauses: LeaseTemplateClause[];
 }
 
 export interface LeaseTemplateStateRule {
-	state: USState
-	stateName: string
-	notices: string[]
-	recommendedClauses?: string[]
+	state: USState;
+	stateName: string;
+	notices: string[];
+	recommendedClauses?: string[];
 }
 
 export interface LeaseTemplateSchema {
-	version: string
-	sections: LeaseTemplateSection[]
-	stateRules: Record<USState, LeaseTemplateStateRule>
-	federalNotices: string[]
-	glossary: Record<string, string>
+	version: string;
+	sections: LeaseTemplateSection[];
+	stateRules: Record<USState, LeaseTemplateStateRule>;
+	federalNotices: string[];
+	glossary: Record<string, string>;
 }
 
 export interface CustomClause {
-	id: string
-	title: string
-	body: string
+	id: string;
+	title: string;
+	body: string;
 }
 
 export interface LeaseTemplateSelections {
-	state: USState
-	selectedClauses: string[]
-	includeStateDisclosures: boolean
-	includeFederalDisclosures: boolean
-	customClauses?: CustomClause[]
+	state: USState;
+	selectedClauses: string[];
+	includeStateDisclosures: boolean;
+	includeFederalDisclosures: boolean;
+	customClauses?: CustomClause[];
 }
 
 export interface LeaseTemplateContext {
-	ownerName: string
-	ownerAddress: string
-	tenantNames: string
-	propertyAddress: string
-	propertyState: USState
-	rent_amountCents: number
-	rent_amountFormatted: string
-	rentDueDay: number
-	rentDueDayOrdinal: string
-	security_depositCents: number
-	security_depositFormatted: string
-	leasestart_dateISO: string
-	leaseEndDateISO?: string
-	leasestart_dateFormatted: string
-	leaseEndDateFormatted?: string
-	late_fee_amountCents?: number
-	late_fee_amountFormatted?: string
-	gracePeriodDays?: number
-	formattedDateGenerated: string
+	ownerName: string;
+	ownerAddress: string;
+	tenantNames: string;
+	propertyAddress: string;
+	propertyState: USState;
+	rent_amountCents: number;
+	rent_amountFormatted: string;
+	rentDueDay: number;
+	rentDueDayOrdinal: string;
+	security_depositCents: number;
+	security_depositFormatted: string;
+	leasestart_dateISO: string;
+	leaseEndDateISO?: string;
+	leasestart_dateFormatted: string;
+	leaseEndDateFormatted?: string;
+	late_fee_amountCents?: number;
+	late_fee_amountFormatted?: string;
+	gracePeriodDays?: number;
+	formattedDateGenerated: string;
 }
 
 export interface LeaseTemplatePreviewRequest {
-	selections: LeaseTemplateSelections
-	context: LeaseTemplateContext
+	selections: LeaseTemplateSelections;
+	context: LeaseTemplateContext;
 }
 
 /**
@@ -84,80 +81,80 @@ export interface LeaseTemplatePreviewRequest {
  */
 function escapeHtml(unsafe: string): string {
 	return unsafe
-		.replace(/&/g, '&amp;')
-		.replace(/</g, '&lt;')
-		.replace(/>/g, '&gt;')
-		.replace(/"/g, '&quot;')
-		.replace(/'/g, '&#039;')
+		.replace(/&/g, "&amp;")
+		.replace(/</g, "&lt;")
+		.replace(/>/g, "&gt;")
+		.replace(/"/g, "&quot;")
+		.replace(/'/g, "&#039;");
 }
 
 export const stateNames: Record<USState, string> = {
-	AL: 'Alabama',
-	AK: 'Alaska',
-	AZ: 'Arizona',
-	AR: 'Arkansas',
-	CA: 'California',
-	CO: 'Colorado',
-	CT: 'Connecticut',
-	DE: 'Delaware',
-	FL: 'Florida',
-	GA: 'Georgia',
-	HI: 'Hawaii',
-	ID: 'Idaho',
-	IL: 'Illinois',
-	IN: 'Indiana',
-	IA: 'Iowa',
-	KS: 'Kansas',
-	KY: 'Kentucky',
-	LA: 'Louisiana',
-	ME: 'Maine',
-	MD: 'Maryland',
-	MA: 'Massachusetts',
-	MI: 'Michigan',
-	MN: 'Minnesota',
-	MS: 'Mississippi',
-	MO: 'Missouri',
-	MT: 'Montana',
-	NE: 'Nebraska',
-	NV: 'Nevada',
-	NH: 'New Hampshire',
-	NJ: 'New Jersey',
-	NM: 'New Mexico',
-	NY: 'New York',
-	NC: 'North Carolina',
-	ND: 'North Dakota',
-	OH: 'Ohio',
-	OK: 'Oklahoma',
-	OR: 'Oregon',
-	PA: 'Pennsylvania',
-	RI: 'Rhode Island',
-	SC: 'South Carolina',
-	SD: 'South Dakota',
-	TN: 'Tennessee',
-	TX: 'Texas',
-	UT: 'Utah',
-	VT: 'Vermont',
-	VA: 'Virginia',
-	WA: 'Washington',
-	WV: 'West Virginia',
-	WI: 'Wisconsin',
-	WY: 'Wyoming',
-	DC: 'District of Columbia'
-}
+	AL: "Alabama",
+	AK: "Alaska",
+	AZ: "Arizona",
+	AR: "Arkansas",
+	CA: "California",
+	CO: "Colorado",
+	CT: "Connecticut",
+	DE: "Delaware",
+	FL: "Florida",
+	GA: "Georgia",
+	HI: "Hawaii",
+	ID: "Idaho",
+	IL: "Illinois",
+	IN: "Indiana",
+	IA: "Iowa",
+	KS: "Kansas",
+	KY: "Kentucky",
+	LA: "Louisiana",
+	ME: "Maine",
+	MD: "Maryland",
+	MA: "Massachusetts",
+	MI: "Michigan",
+	MN: "Minnesota",
+	MS: "Mississippi",
+	MO: "Missouri",
+	MT: "Montana",
+	NE: "Nebraska",
+	NV: "Nevada",
+	NH: "New Hampshire",
+	NJ: "New Jersey",
+	NM: "New Mexico",
+	NY: "New York",
+	NC: "North Carolina",
+	ND: "North Dakota",
+	OH: "Ohio",
+	OK: "Oklahoma",
+	OR: "Oregon",
+	PA: "Pennsylvania",
+	RI: "Rhode Island",
+	SC: "South Carolina",
+	SD: "South Dakota",
+	TN: "Tennessee",
+	TX: "Texas",
+	UT: "Utah",
+	VT: "Vermont",
+	VA: "Virginia",
+	WA: "Washington",
+	WV: "West Virginia",
+	WI: "Wisconsin",
+	WY: "Wyoming",
+	DC: "District of Columbia",
+};
 
 function formatOrdinal(input: number) {
-	const suffixes = ['th', 'st', 'nd', 'rd']
-	const v = input % 100
-	const suffix = suffixes[(v - 20) % 10] || suffixes[v] || suffixes[0]
-	return `${input}${suffix}`
+	const suffixes = ["th", "st", "nd", "rd"];
+	const v = input % 100;
+	const suffix = suffixes[(v - 20) % 10] || suffixes[v] || suffixes[0];
+	return `${input}${suffix}`;
 }
 
 const DEFAULT_CONTEXT: LeaseTemplateContext = {
-	ownerName: 'Owner Name',
-	ownerAddress: '123 Main Street, Suite 200, Austin, TX 78701',
-	tenantNames: 'Tenant One; Tenant Two',
-	propertyAddress: '456 Elm Street, Austin, TX 78701',
-	propertyState: 'TX',
+	ownerName: "Owner Name",
+	ownerAddress: "123 Main Street, Suite 200, Austin, TX 78701",
+	tenantNames: "Tenant One; Tenant Two",
+	propertyAddress: "456 Elm Street, Austin, TX 78701",
+	propertyState: "TX",
 	rent_amountCents: 180000,
 	rent_amountFormatted: formatCurrency(180000),
 	rentDueDay: 1,
@@ -169,344 +166,346 @@ const DEFAULT_CONTEXT: LeaseTemplateContext = {
 	late_fee_amountCents: 5000,
 	late_fee_amountFormatted: formatCurrency(5000),
 	gracePeriodDays: 5,
-	formattedDateGenerated: formatDate(new Date().toISOString())
-}
+	formattedDateGenerated: formatDate(new Date().toISOString()),
+};
 
 export const leaseTemplateSchema: LeaseTemplateSchema = {
-	version: '2.0',
+	version: "2.0",
 	sections: [
 		{
-			id: 'parties',
-			title: 'Parties & Premises',
+			id: "parties",
+			title: "Parties & Premises",
 			description:
-				'Identifies the parties entering into the agreement and the property covered by the lease.',
+				"Identifies the parties entering into the agreement and the property covered by the lease.",
 			clauses: [
 				{
-					id: 'parties-introduction',
-					title: 'Lease Introduction',
+					id: "parties-introduction",
+					title: "Lease Introduction",
 					description:
-						'Introduces the Owner and Tenant along with the effective date of the agreement.',
+						"Introduces the Owner and Tenant along with the effective date of the agreement.",
 					tooltip:
-						'This clause formally states who is entering into the lease and establishes the official name of the agreement.',
+						"This clause formally states who is entering into the lease and establishes the official name of the agreement.",
 					defaultSelected: true,
-					body: `<p>This Residential Lease Agreement ("Agreement") is entered into on {{formattedDateGenerated}} between <strong>{{ownerName}}</strong> ("Owner") and <strong>{{tenantNames}}</strong> ("Tenant").</p>`
+					body: `<p>This Residential Lease Agreement ("Agreement") is entered into on {{formattedDateGenerated}} between <strong>{{ownerName}}</strong> ("Owner") and <strong>{{tenantNames}}</strong> ("Tenant").</p>`,
 				},
 				{
-					id: 'property-description',
-					title: 'Premises Description',
+					id: "property-description",
+					title: "Premises Description",
 					description:
-						'Describes the physical property and what is included in the lease.',
+						"Describes the physical property and what is included in the lease.",
 					tooltip:
-						'Defines the exact property being rented to avoid disputes over what is included.',
+						"Defines the exact property being rented to avoid disputes over what is included.",
 					defaultSelected: true,
-					body: `<p>The Owner leases to the Tenant the residential premises located at <strong>{{propertyAddress}}</strong> (the "Premises") together with all improvements, fixtures, and appurtenances.</p>`
+					body: `<p>The Owner leases to the Tenant the residential premises located at <strong>{{propertyAddress}}</strong> (the "Premises") together with all improvements, fixtures, and appurtenances.</p>`,
 				},
 				{
-					id: 'occupancy-limit',
-					title: 'Occupancy Limit',
+					id: "occupancy-limit",
+					title: "Occupancy Limit",
 					description:
-						'Specifies who may reside at the premises and limits subletting.',
+						"Specifies who may reside at the premises and limits subletting.",
 					tooltip:
-						'Helps prevent unauthorized occupants and protects against overcrowding violations.',
+						"Helps prevent unauthorized occupants and protects against overcrowding violations.",
 					defaultSelected: true,
-					body: `<p>Occupancy of the Premises is limited to the Tenant(s) named above and their immediate family. No other persons may reside at the Premises without the prior written consent of the Owner.</p>`
-				}
-			]
+					body: `<p>Occupancy of the Premises is limited to the Tenant(s) named above and their immediate family. No other persons may reside at the Premises without the prior written consent of the Owner.</p>`,
+				},
+			],
 		},
 		{
-			id: 'financial',
-			title: 'Financial Terms',
+			id: "financial",
+			title: "Financial Terms",
 			description:
-				'Sets out the rent, deposits, fees, and payment schedules required under the lease.',
+				"Sets out the rent, deposits, fees, and payment schedules required under the lease.",
 			clauses: [
 				{
-					id: 'rent-payment',
-					title: 'Rent Payment Schedule',
-					description: 'Defines rent amount, due date, and payment method.',
+					id: "rent-payment",
+					title: "Rent Payment Schedule",
+					description: "Defines rent amount, due date, and payment method.",
 					tooltip:
-						'Provides the legally enforceable rent obligations including grace periods and accepted payment methods.',
+						"Provides the legally enforceable rent obligations including grace periods and accepted payment methods.",
 					defaultSelected: true,
-					body: `<p>Tenant agrees to pay monthly rent of <strong>{{rent_amountFormatted}}</strong>, due on the <strong>{{rentDueDayOrdinal}}</strong> day of each month by 5:00 PM. Rent shall be paid via electronic transfer or other method approved by the Owner.</p>`
+					body: `<p>Tenant agrees to pay monthly rent of <strong>{{rent_amountFormatted}}</strong>, due on the <strong>{{rentDueDayOrdinal}}</strong> day of each month by 5:00 PM. Rent shall be paid via electronic transfer or other method approved by the Owner.</p>`,
 				},
 				{
-					id: 'late-fee',
-					title: 'Late Fees & Grace Period',
+					id: "late-fee",
+					title: "Late Fees & Grace Period",
 					description:
-						'Explains when late fees apply and grace period duration.',
+						"Explains when late fees apply and grace period duration.",
 					tooltip:
-						'Late fees must comply with state law; this clause sets enforceable rules to encourage timely payments.',
+						"Late fees must comply with state law; this clause sets enforceable rules to encourage timely payments.",
 					defaultSelected: true,
-					body: `<p>If rent is not received within {{gracePeriodDays}} days after the due date, a late fee of <strong>{{late_fee_amountFormatted}}</strong> may be assessed. Continued non-payment may result in additional remedies permitted by law.</p>`
+					body: `<p>If rent is not received within {{gracePeriodDays}} days after the due date, a late fee of <strong>{{late_fee_amountFormatted}}</strong> may be assessed. Continued non-payment may result in additional remedies permitted by law.</p>`,
 				},
 				{
-					id: 'security-deposit',
-					title: 'Security Deposit',
-					description: 'Details deposit amount and return conditions.',
+					id: "security-deposit",
+					title: "Security Deposit",
+					description: "Details deposit amount and return conditions.",
 					tooltip:
-						'Security deposit rules are heavily regulated; this clause reflects the base requirement for most states.',
+						"Security deposit rules are heavily regulated; this clause reflects the base requirement for most states.",
 					defaultSelected: true,
-					body: `<p>Tenant has paid a security deposit of <strong>{{security_depositFormatted}}</strong> upon execution of this Agreement. The deposit shall be held to secure Tenant’s performance and will be returned less lawful deductions within the time period prescribed by {{stateName}} law.</p>`
-				}
-			]
+					body: `<p>Tenant has paid a security deposit of <strong>{{security_depositFormatted}}</strong> upon execution of this Agreement. The deposit shall be held to secure Tenant’s performance and will be returned less lawful deductions within the time period prescribed by {{stateName}} law.</p>`,
+				},
+			],
 		},
 		{
-			id: 'use-and-care',
-			title: 'Use, Care & Maintenance',
+			id: "use-and-care",
+			title: "Use, Care & Maintenance",
 			description:
-				'Allocates maintenance responsibilities and establishes rules of conduct.',
+				"Allocates maintenance responsibilities and establishes rules of conduct.",
 			clauses: [
 				{
-					id: 'maintenance-responsibilities',
-					title: 'Maintenance Responsibilities',
+					id: "maintenance-responsibilities",
+					title: "Maintenance Responsibilities",
 					description:
-						'Outlines the responsibilities for upkeep and repairs for Owner and Tenant.',
+						"Outlines the responsibilities for upkeep and repairs for Owner and Tenant.",
 					tooltip:
-						'Clarifies who must handle routine maintenance and prevents disputes over repairs.',
+						"Clarifies who must handle routine maintenance and prevents disputes over repairs.",
 					defaultSelected: true,
-					body: `<p>Tenant shall maintain the Premises in a clean and sanitary condition and promptly notify Owner of conditions requiring repair. Owner will maintain major structural, plumbing, heating, and electrical systems in good working order.</p>`
+					body: `<p>Tenant shall maintain the Premises in a clean and sanitary condition and promptly notify Owner of conditions requiring repair. Owner will maintain major structural, plumbing, heating, and electrical systems in good working order.</p>`,
 				},
 				{
-					id: 'utilities',
-					title: 'Utilities & Services',
+					id: "utilities",
+					title: "Utilities & Services",
 					description:
-						'Specifies who pays for utilities and services related to the property.',
+						"Specifies who pays for utilities and services related to the property.",
 					tooltip:
-						'Important to clarify utility obligations up front to avoid billing disputes or service interruptions.',
+						"Important to clarify utility obligations up front to avoid billing disputes or service interruptions.",
 					defaultSelected: true,
-					body: `<p>The Tenant is responsible for all utilities and services supplied to the Premises, except where otherwise required by law. Owner shall ensure utility services are active on the commencement date.</p>`
+					body: `<p>The Tenant is responsible for all utilities and services supplied to the Premises, except where otherwise required by law. Owner shall ensure utility services are active on the commencement date.</p>`,
 				},
 				{
-					id: 'owner-entry',
-					title: 'Owner Entry Rights',
+					id: "owner-entry",
+					title: "Owner Entry Rights",
 					description:
-						'Provides notice requirements and acceptable reasons for Owner entry.',
+						"Provides notice requirements and acceptable reasons for Owner entry.",
 					tooltip:
-						'Most states mandate advance notice for non-emergency entry; this clause mirrors typical statutory requirements.',
+						"Most states mandate advance notice for non-emergency entry; this clause mirrors typical statutory requirements.",
 					defaultSelected: true,
-					body: `<p>Owner may enter the Premises upon providing reasonable notice (at least 24 hours except in emergencies) for repairs, inspections, or to show the Premises to prospective tenants or buyers.</p>`
-				}
-			]
+					body: `<p>Owner may enter the Premises upon providing reasonable notice (at least 24 hours except in emergencies) for repairs, inspections, or to show the Premises to prospective tenants or buyers.</p>`,
+				},
+			],
 		},
 		{
-			id: 'policy',
-			title: 'Policies & Rules',
-			description: 'Covers pets, smoking, guests, and other house rules.',
+			id: "policy",
+			title: "Policies & Rules",
+			description: "Covers pets, smoking, guests, and other house rules.",
 			clauses: [
 				{
-					id: 'pet-policy',
-					title: 'Pet Policy',
+					id: "pet-policy",
+					title: "Pet Policy",
 					description:
-						'States whether pets are permitted and applicable terms.',
+						"States whether pets are permitted and applicable terms.",
 					tooltip:
-						'Pet policies should be explicit to avoid unapproved animals and detail deposits or fees.',
+						"Pet policies should be explicit to avoid unapproved animals and detail deposits or fees.",
 					defaultSelected: true,
-					body: `<p>Pets are permitted only with prior written consent of the Owner. Approved pets may require an additional deposit or monthly fee as allowed by law. Service and assistance animals are accommodated in accordance with federal and state regulations.</p>`
+					body: `<p>Pets are permitted only with prior written consent of the Owner. Approved pets may require an additional deposit or monthly fee as allowed by law. Service and assistance animals are accommodated in accordance with federal and state regulations.</p>`,
 				},
 				{
-					id: 'smoking-policy',
-					title: 'Smoking Policy',
+					id: "smoking-policy",
+					title: "Smoking Policy",
 					description:
-						'Sets restrictions on smoking within the property and common areas.',
+						"Sets restrictions on smoking within the property and common areas.",
 					tooltip:
-						'Clarifies smoking rules and provides grounds for addressing violations.',
+						"Clarifies smoking rules and provides grounds for addressing violations.",
 					defaultSelected: false,
-					body: `<p>Smoking, including vaping and electronic cigarettes, is not permitted inside the Premises. Designated outdoor areas may be used provided smoke does not infiltrate the building or disturb neighbors.</p>`
+					body: `<p>Smoking, including vaping and electronic cigarettes, is not permitted inside the Premises. Designated outdoor areas may be used provided smoke does not infiltrate the building or disturb neighbors.</p>`,
 				},
 				{
-					id: 'guest-policy',
-					title: 'Guest Policy',
+					id: "guest-policy",
+					title: "Guest Policy",
 					description:
-						'Sets limits on guest stays to prevent unauthorized long-term occupants.',
+						"Sets limits on guest stays to prevent unauthorized long-term occupants.",
 					tooltip:
-						'Helps differentiate between guests and unapproved occupants, protecting against subletting without consent.',
+						"Helps differentiate between guests and unapproved occupants, protecting against subletting without consent.",
 					defaultSelected: false,
-					body: `<p>Guests staying more than 14 cumulative days in a calendar year must receive written approval from Owner. Tenant remains fully responsible for guests’ conduct and compliance with this Agreement.</p>`
-				}
-			]
+					body: `<p>Guests staying more than 14 cumulative days in a calendar year must receive written approval from Owner. Tenant remains fully responsible for guests’ conduct and compliance with this Agreement.</p>`,
+				},
+			],
 		},
 		{
-			id: 'compliance',
-			title: 'Legal Compliance',
+			id: "compliance",
+			title: "Legal Compliance",
 			description:
-				'Addresses legal compliance, default remedies, and disclosure obligations.',
+				"Addresses legal compliance, default remedies, and disclosure obligations.",
 			clauses: [
 				{
-					id: 'default-remedies',
-					title: 'Default & Remedies',
+					id: "default-remedies",
+					title: "Default & Remedies",
 					description:
-						'Explains what happens if tenant violates the lease or fails to pay rent.',
+						"Explains what happens if tenant violates the lease or fails to pay rent.",
 					tooltip:
 						"Outlines the steps Owner may take upon default and protects Owner's right to enforce the lease.",
 					defaultSelected: true,
-					body: `<p>Failure to pay rent or abide by this Agreement constitutes a default. Owner may pursue all remedies permitted by {{stateName}} law, including termination and eviction, after providing any required notices.</p>`
+					body: `<p>Failure to pay rent or abide by this Agreement constitutes a default. Owner may pursue all remedies permitted by {{stateName}} law, including termination and eviction, after providing any required notices.</p>`,
 				},
 				{
-					id: 'lead-paint-disclosure',
-					title: 'Lead-Based Paint Disclosure',
+					id: "lead-paint-disclosure",
+					title: "Lead-Based Paint Disclosure",
 					description:
-						'Includes federally required information for properties built before 1978.',
+						"Includes federally required information for properties built before 1978.",
 					tooltip:
-						'Federal law mandates disclosure for pre-1978 housing; include when applicable.',
+						"Federal law mandates disclosure for pre-1978 housing; include when applicable.",
 					defaultSelected: false,
-					requiresOption: 'includeFederalDisclosures',
-					body: `<p><strong>Lead Warning Statement:</strong> Housing built before 1978 may contain lead-based paint. Exposure to lead dust or chips can cause health problems, especially in children and pregnant women. Tenant acknowledges receipt of the EPA pamphlet “Protect Your Family From Lead in Your Home.”</p>`
+					requiresOption: "includeFederalDisclosures",
+					body: `<p><strong>Lead Warning Statement:</strong> Housing built before 1978 may contain lead-based paint. Exposure to lead dust or chips can cause health problems, especially in children and pregnant women. Tenant acknowledges receipt of the EPA pamphlet “Protect Your Family From Lead in Your Home.”</p>`,
 				},
 				{
-					id: 'state-specific-disclosures',
-					title: 'State-Specific Disclosures',
+					id: "state-specific-disclosures",
+					title: "State-Specific Disclosures",
 					description:
-						'Includes notices required under the selected state’s law.',
+						"Includes notices required under the selected state’s law.",
 					tooltip:
-						'Many states require specific language covering mold, bedbugs, flooding, and other hazards.',
+						"Many states require specific language covering mold, bedbugs, flooding, and other hazards.",
 					defaultSelected: true,
-					requiresOption: 'includeStateDisclosures',
-					body: `<p><strong>State Disclosures:</strong> The Tenant acknowledges the additional disclosures and acknowledgements required by {{stateName}} law, set forth in the attached addendum.</p>`
-				}
-			]
-		}
+					requiresOption: "includeStateDisclosures",
+					body: `<p><strong>State Disclosures:</strong> The Tenant acknowledges the additional disclosures and acknowledgements required by {{stateName}} law, set forth in the attached addendum.</p>`,
+				},
+			],
+		},
 	],
 	stateRules: {
 		CA: {
-			state: 'CA',
+			state: "CA",
 			stateName: stateNames.CA,
 			notices: [
-				'California Civil Code §1950.5 limits residential security deposits to two months’ rent for unfurnished units.',
-				'California requires a written disclosure if the property is within one mile of a former military base that handled munitions.',
-				'Tenants in California must receive notice before pesticide application inside the unit.'
+				"California Civil Code §1950.5 limits residential security deposits to two months’ rent for unfurnished units.",
+				"California requires a written disclosure if the property is within one mile of a former military base that handled munitions.",
+				"Tenants in California must receive notice before pesticide application inside the unit.",
 			],
-			recommendedClauses: ['state-specific-disclosures', 'late-fee']
+			recommendedClauses: ["state-specific-disclosures", "late-fee"],
 		},
 		NY: {
-			state: 'NY',
+			state: "NY",
 			stateName: stateNames.NY,
 			notices: [
-				'New York General Obligations Law limits late fees to $50 or 5% of monthly rent, whichever is less.',
-				'Security deposits must be returned within 14 days of lease termination with an itemized receipt.',
-				'Rent-stabilized units require additional rider disclosures under DHCR regulations.'
+				"New York General Obligations Law limits late fees to $50 or 5% of monthly rent, whichever is less.",
+				"Security deposits must be returned within 14 days of lease termination with an itemized receipt.",
+				"Rent-stabilized units require additional rider disclosures under DHCR regulations.",
 			],
-			recommendedClauses: ['state-specific-disclosures']
+			recommendedClauses: ["state-specific-disclosures"],
 		},
 		IL: {
-			state: 'IL',
+			state: "IL",
 			stateName: stateNames.IL,
 			notices: [
-				'Chicago Residential Property Owner and Tenant Ordinance imposes additional duties if the property is located within Chicago city limits.',
-				'Security deposits must be held in a federally insured account in Illinois municipalities over 5,000 residents.',
-				'Mold disclosure and pamphlet delivery are recommended for older multifamily properties.'
+				"Chicago Residential Property Owner and Tenant Ordinance imposes additional duties if the property is located within Chicago city limits.",
+				"Security deposits must be held in a federally insured account in Illinois municipalities over 5,000 residents.",
+				"Mold disclosure and pamphlet delivery are recommended for older multifamily properties.",
 			],
-			recommendedClauses: ['state-specific-disclosures']
+			recommendedClauses: ["state-specific-disclosures"],
 		},
 		TX: {
-			state: 'TX',
+			state: "TX",
 			stateName: stateNames.TX,
 			notices: [
-				'Texas Property Code §92.109 requires property owners to provide written notice of security deposit deductions within 30 days of move-out.',
-				'Property owners must provide smoke detector and carbon monoxide detector disclosures at lease signing (Texas Property Code §92.151, §92.157).',
-				'Texas Property Code §92.052 requires property owners to provide contact information for the property owner or manager.',
-				'Window and door lock requirements must be disclosed if not compliant with Texas Property Code §92.151-§92.154.'
+				"Texas Property Code §92.109 requires property owners to provide written notice of security deposit deductions within 30 days of move-out.",
+				"Property owners must provide smoke detector and carbon monoxide detector disclosures at lease signing (Texas Property Code §92.151, §92.157).",
+				"Texas Property Code §92.052 requires property owners to provide contact information for the property owner or manager.",
+				"Window and door lock requirements must be disclosed if not compliant with Texas Property Code §92.151-§92.154.",
 			],
 			recommendedClauses: [
-				'state-specific-disclosures',
-				'late-fee',
-				'owner-entry'
-			]
-		}
+				"state-specific-disclosures",
+				"late-fee",
+				"owner-entry",
+			],
+		},
 	} as Record<USState, LeaseTemplateStateRule>,
 	federalNotices: [
-		'The Fair Housing Act prohibits discrimination on the basis of race, color, religion, sex, familial status, national origin, or disability.',
-		'Tenants are entitled to reasonable accommodations for disabilities under the Americans with Disabilities Act (ADA) and Section 504 of the Rehabilitation Act.'
+		"The Fair Housing Act prohibits discrimination on the basis of race, color, religion, sex, familial status, national origin, or disability.",
+		"Tenants are entitled to reasonable accommodations for disabilities under the Americans with Disabilities Act (ADA) and Section 504 of the Rehabilitation Act.",
 	],
 	glossary: {
-		'Security Deposit':
-			'Money held by the Owner to cover unpaid rent or damage beyond normal wear and tear.',
-		'Grace Period':
-			'The number of days after the due date during which rent can be paid without triggering a late fee.',
+		"Security Deposit":
+			"Money held by the Owner to cover unpaid rent or damage beyond normal wear and tear.",
+		"Grace Period":
+			"The number of days after the due date during which rent can be paid without triggering a late fee.",
 		Premises:
-			'The rental property, including fixtures and any areas granted for the tenant’s exclusive use.',
+			"The rental property, including fixtures and any areas granted for the tenant’s exclusive use.",
 		Default:
-			'A violation of a lease obligation that may give rise to eviction or other remedies.',
-		'Notice to Enter':
-			'Advance notice required before the Owner may lawfully enter the rental unit.'
-	}
-}
+			"A violation of a lease obligation that may give rise to eviction or other remedies.",
+		"Notice to Enter":
+			"Advance notice required before the Owner may lawfully enter the rental unit.",
+	},
+};
 
 function resolveToken(context: LeaseTemplateContext, token: string): string {
-	const path = token.split('.')
-	let current: unknown = context
+	const path = token.split(".");
+	let current: unknown = context;
 	for (const segment of path) {
 		if (
 			current &&
-			typeof current === 'object' &&
+			typeof current === "object" &&
 			Object.hasOwn(current as Record<string, unknown>, segment)
 		) {
-			current = (current as Record<string, unknown>)[segment]
+			current = (current as Record<string, unknown>)[segment];
 		} else {
-			return ''
+			return "";
 		}
 	}
-	return current === null || current === undefined ? '' : String(current)
+	return current === null || current === undefined ? "" : String(current);
 }
 
 function interpolate(template: string, context: LeaseTemplateContext) {
 	return template.replace(/\{\{([^}]+)\}\}/g, (_, expression: string) => {
-		const token = expression.trim()
-		if (token === 'stateName') {
-			return stateNames[context.propertyState] || context.propertyState
+		const token = expression.trim();
+		if (token === "stateName") {
+			return stateNames[context.propertyState] || context.propertyState;
 		}
-		return resolveToken(context, token)
-	})
+		return resolveToken(context, token);
+	});
 }
 
 function buildClauseHtml(
 	clause: LeaseTemplateClause,
-	context: LeaseTemplateContext
+	context: LeaseTemplateContext,
 ) {
-	return `<article data-clause="${escapeHtml(clause.id)}" class="lease-clause"><h3>${escapeHtml(clause.title)}</h3>${interpolate(clause.body, context)}</article>`
+	return `<article data-clause="${escapeHtml(clause.id)}" class="lease-clause"><h3>${escapeHtml(clause.title)}</h3>${interpolate(clause.body, context)}</article>`;
 }
 
 function renderCustomClauses(customClauses: CustomClause[] | undefined) {
-	if (!customClauses?.length) return ''
+	if (!customClauses?.length) return "";
 	return customClauses
 		.map(
-			clause => `<article data-clause="${escapeHtml(clause.id)}" class="lease-clause">
+			(
+				clause,
+			) => `<article data-clause="${escapeHtml(clause.id)}" class="lease-clause">
       <h3>${escapeHtml(clause.title)}</h3>
-      <p>${escapeHtml(clause.body)}</p>`
+      <p>${escapeHtml(clause.body)}</p>`,
 		)
-		.join('')
+		.join("");
 }
 
 function renderSection(
 	section: LeaseTemplateSection,
 	selections: LeaseTemplateSelections,
-	context: LeaseTemplateContext
+	context: LeaseTemplateContext,
 ) {
-	const included = section.clauses.filter(clause => {
+	const included = section.clauses.filter((clause) => {
 		if (
 			clause.stateLimitation &&
 			!clause.stateLimitation.includes(selections.state)
 		) {
-			return false
+			return false;
 		}
 		if (
-			clause.requiresOption === 'includeStateDisclosures' &&
+			clause.requiresOption === "includeStateDisclosures" &&
 			!selections.includeStateDisclosures
 		) {
-			return false
+			return false;
 		}
 		if (
-			clause.requiresOption === 'includeFederalDisclosures' &&
+			clause.requiresOption === "includeFederalDisclosures" &&
 			!selections.includeFederalDisclosures
 		) {
-			return false
+			return false;
 		}
-		return selections.selectedClauses.includes(clause.id)
-	})
+		return selections.selectedClauses.includes(clause.id);
+	});
 
-	if (!included.length) return ''
+	if (!included.length) return "";
 
 	const clausesHtml = included
-		.map(clause => buildClauseHtml(clause, context))
-		.join('')
+		.map((clause) => buildClauseHtml(clause, context))
+		.join("");
 
 	return `<section id="${section.id}" class="lease-section">
 	<header class="lease-section-header">
@@ -514,54 +513,56 @@ function renderSection(
 		<p>${section.description}</p>
 	</header>
 	${clausesHtml}
-</section>`
+</section>`;
 }
 
 function renderStateNotices(
 	selections: LeaseTemplateSelections,
-	schema: LeaseTemplateSchema
+	schema: LeaseTemplateSchema,
 ) {
-	if (!selections.includeStateDisclosures) return ''
-	const rules = schema.stateRules[selections.state]
-	if (!rules || !rules.notices.length) return ''
-	const noticeItems = rules.notices.map(notice => `<li>${notice}</li>`).join('')
+	if (!selections.includeStateDisclosures) return "";
+	const rules = schema.stateRules[selections.state];
+	if (!rules || !rules.notices.length) return "";
+	const noticeItems = rules.notices
+		.map((notice) => `<li>${notice}</li>`)
+		.join("");
 	return `<section class="lease-section">
 	<header class="lease-section-header">
 		<h2>State Notices</h2>
 		<p>Required disclosures and recommendations for ${rules.stateName}</p>
 	</header>
 	<ul class="legal-list">${noticeItems}</ul>
-</section>`
+</section>`;
 }
 
 function renderFederalNotices(schema: LeaseTemplateSchema) {
-	if (!schema.federalNotices.length) return ''
+	if (!schema.federalNotices.length) return "";
 	const list = schema.federalNotices
-		.map(notice => `<li>${notice}</li>`)
-		.join('')
+		.map((notice) => `<li>${notice}</li>`)
+		.join("");
 	return `<section class="lease-section">
 	<header class="lease-section-header">
 		<h2>Federal Notices</h2>
 		<p>Important federal disclosures that apply to residential leases</p>
 	</header>
 	<ul class="legal-list">${list}</ul>
-</section>`
+</section>`;
 }
 
 export function renderLeaseHtmlBody(
 	schema: LeaseTemplateSchema,
 	selections: LeaseTemplateSelections,
-	context: LeaseTemplateContext
+	context: LeaseTemplateContext,
 ) {
 	const sectionHtml = schema.sections
-		.map(section => renderSection(section, selections, context))
-		.join('')
+		.map((section) => renderSection(section, selections, context))
+		.join("");
 
-	const customHtml = renderCustomClauses(selections.customClauses)
-	const stateHtml = renderStateNotices(selections, schema)
+	const customHtml = renderCustomClauses(selections.customClauses);
+	const stateHtml = renderStateNotices(selections, schema);
 	const federalHtml = selections.includeFederalDisclosures
 		? renderFederalNotices(schema)
-		: ''
+		: "";
 
 	return `<div class="lease-document">
 	<header class="lease-header">
@@ -574,15 +575,15 @@ export function renderLeaseHtmlBody(
 	${customHtml}
 	${stateHtml}
 	${federalHtml}
-</div>`
+</div>`;
 }
 
 export function renderLeaseHtmlDocument(
 	schema: LeaseTemplateSchema,
 	selections: LeaseTemplateSelections,
-	context: LeaseTemplateContext
+	context: LeaseTemplateContext,
 ) {
-	const body = renderLeaseHtmlBody(schema, selections, context)
+	const body = renderLeaseHtmlBody(schema, selections, context);
 	return `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -656,45 +657,45 @@ export function renderLeaseHtmlDocument(
 <body>
 	${body}
 </body>
-</html>`
+</html>`;
 }
 
 export function getDefaultSelections(
 	schema: LeaseTemplateSchema,
-	state: USState
+	state: USState,
 ): LeaseTemplateSelections {
-	const selectedClauses = schema.sections.flatMap(section =>
+	const selectedClauses = schema.sections.flatMap((section) =>
 		section.clauses
-			.filter(clause => clause.defaultSelected)
-			.map(clause => clause.id)
-	)
+			.filter((clause) => clause.defaultSelected)
+			.map((clause) => clause.id),
+	);
 
 	return {
 		state,
 		selectedClauses,
 		includeStateDisclosures: true,
 		includeFederalDisclosures: true,
-		customClauses: []
-	}
+		customClauses: [],
+	};
 }
 
 export function createDefaultContext(
-	overrides?: Partial<LeaseTemplateContext>
+	overrides?: Partial<LeaseTemplateContext>,
 ) {
 	return {
 		...DEFAULT_CONTEXT,
 		...overrides,
 		rent_amountFormatted: formatCurrency(
-			overrides?.rent_amountCents ?? DEFAULT_CONTEXT.rent_amountCents
+			overrides?.rent_amountCents ?? DEFAULT_CONTEXT.rent_amountCents,
 		),
 		security_depositFormatted: formatCurrency(
-			overrides?.security_depositCents ?? DEFAULT_CONTEXT.security_depositCents
+			overrides?.security_depositCents ?? DEFAULT_CONTEXT.security_depositCents,
 		),
 		rentDueDayOrdinal: formatOrdinal(
-			overrides?.rentDueDay ?? DEFAULT_CONTEXT.rentDueDay
+			overrides?.rentDueDay ?? DEFAULT_CONTEXT.rentDueDay,
 		),
 		leasestart_dateFormatted: formatDate(
-			overrides?.leasestart_dateISO ?? DEFAULT_CONTEXT.leasestart_dateISO
+			overrides?.leasestart_dateISO ?? DEFAULT_CONTEXT.leasestart_dateISO,
 		),
 		...(overrides?.leaseEndDateISO
 			? { leaseEndDateFormatted: formatDate(overrides.leaseEndDateISO) }
@@ -702,21 +703,21 @@ export function createDefaultContext(
 		late_fee_amountFormatted: formatCurrency(
 			overrides?.late_fee_amountCents ??
 				DEFAULT_CONTEXT.late_fee_amountCents ??
-				0
-		)
-	}
+				0,
+		),
+	};
 }
 
 export function createContextFromLeaseData(
-	leaseData: LeaseFormData
+	leaseData: LeaseFormData,
 ): LeaseTemplateContext {
-	const tenantNames = leaseData.tenants.map(tenant => tenant.name).join('; ')
-	const ownerAddress = `${leaseData.owner.address.street}, ${leaseData.owner.address.city}, ${leaseData.owner.address.state} ${leaseData.owner.address.postal_code}`
+	const tenantNames = leaseData.tenants.map((tenant) => tenant.name).join("; ");
+	const ownerAddress = `${leaseData.owner.address.street}, ${leaseData.owner.address.city}, ${leaseData.owner.address.state} ${leaseData.owner.address.postal_code}`;
 	const propertyAddress = `${leaseData.property.address.street}${
 		leaseData.property.address.unit
 			? `, ${leaseData.property.address.unit}`
-			: ''
-	}, ${leaseData.property.address.city}, ${leaseData.property.address.state} ${leaseData.property.address.postal_code}`
+			: ""
+	}, ${leaseData.property.address.city}, ${leaseData.property.address.state} ${leaseData.property.address.postal_code}`;
 
 	const overrides: Partial<LeaseTemplateContext> = {
 		ownerName: leaseData.owner.name,
@@ -728,18 +729,18 @@ export function createContextFromLeaseData(
 		security_depositCents: leaseData.leaseTerms.security_deposit.amount,
 		rentDueDay: leaseData.leaseTerms.dueDate,
 		leasestart_dateISO: leaseData.leaseTerms.start_date,
-		formattedDateGenerated: formatDate(new Date().toISOString())
-	}
+		formattedDateGenerated: formatDate(new Date().toISOString()),
+	};
 
 	if (leaseData.leaseTerms.end_date) {
-		overrides.leaseEndDateISO = leaseData.leaseTerms.end_date
+		overrides.leaseEndDateISO = leaseData.leaseTerms.end_date;
 	}
 	if (leaseData.leaseTerms.lateFee?.amount) {
-		overrides.late_fee_amountCents = leaseData.leaseTerms.lateFee.amount
+		overrides.late_fee_amountCents = leaseData.leaseTerms.lateFee.amount;
 	}
 	if (leaseData.leaseTerms.lateFee?.gracePeriod) {
-		overrides.gracePeriodDays = leaseData.leaseTerms.lateFee.gracePeriod
+		overrides.gracePeriodDays = leaseData.leaseTerms.lateFee.gracePeriod;
 	}
 
-	return createDefaultContext(overrides)
+	return createDefaultContext(overrides);
 }

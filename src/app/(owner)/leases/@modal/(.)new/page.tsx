@@ -1,5 +1,5 @@
-import { LeaseForm } from '#components/leases/lease-form'
-import { RouteModal } from '#components/ui/route-modal'
+import { LeaseForm } from "#components/leases/lease-form";
+import { RouteModal } from "#components/ui/route-modal";
 
 /**
  * New Lease Modal (Intercepting Route)
@@ -20,5 +20,5 @@ export default function NewLeaseModal() {
 				<LeaseForm mode="create" />
 			</div>
 		</RouteModal>
-	)
+	);
 }

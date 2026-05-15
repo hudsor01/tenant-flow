@@ -1,39 +1,39 @@
-'use client'
+"use client";
 
-import { useId } from 'react'
-import type { Dispatch, InputHTMLAttributes, SetStateAction } from 'react'
+import type { Dispatch, InputHTMLAttributes, SetStateAction } from "react";
+import { useId } from "react";
 import {
 	Card,
 	CardContent,
 	CardDescription,
 	CardHeader,
-	CardTitle
-} from '#components/ui/card'
-import { Checkbox } from '#components/ui/checkbox'
-import { Input } from '#components/ui/input'
-import { cn } from '#lib/utils'
+	CardTitle,
+} from "#components/ui/card";
+import { Checkbox } from "#components/ui/checkbox";
+import { Input } from "#components/ui/input";
+import { cn } from "#lib/utils";
 
 export interface LeaseBuilderInputs {
-	ownerName: string
-	ownerAddress: string
-	tenantNames: string
-	propertyAddress: string
-	rent_amount: string
-	security_deposit: string
-	rentDueDay: string
-	leasestart_date: string
-	leaseEndDate: string
-	late_fee_amount: string
-	gracePeriodDays: string
+	ownerName: string;
+	ownerAddress: string;
+	tenantNames: string;
+	propertyAddress: string;
+	rent_amount: string;
+	security_deposit: string;
+	rentDueDay: string;
+	leasestart_date: string;
+	leaseEndDate: string;
+	late_fee_amount: string;
+	gracePeriodDays: string;
 }
 
 interface ConfigurationPanelProps {
-	builderInputs: LeaseBuilderInputs
-	onChange: Dispatch<SetStateAction<LeaseBuilderInputs>>
-	includeStateDisclosures: boolean
-	onToggleStateDisclosures: () => void
-	includeFederalDisclosures: boolean
-	onToggleFederalDisclosures: () => void
+	builderInputs: LeaseBuilderInputs;
+	onChange: Dispatch<SetStateAction<LeaseBuilderInputs>>;
+	includeStateDisclosures: boolean;
+	onToggleStateDisclosures: () => void;
+	includeFederalDisclosures: boolean;
+	onToggleFederalDisclosures: () => void;
 }
 
 export function ConfigurationPanel({
@@ -42,7 +42,7 @@ export function ConfigurationPanel({
 	includeStateDisclosures,
 	onToggleStateDisclosures,
 	includeFederalDisclosures,
-	onToggleFederalDisclosures
+	onToggleFederalDisclosures,
 }: ConfigurationPanelProps) {
 	return (
 		<Card className="shadow-sm">
@@ -56,47 +56,50 @@ export function ConfigurationPanel({
 				<LabeledInput
 					label="owner"
 					value={builderInputs.ownerName}
-					onChange={event =>
-						onChange(prev => ({ ...prev, ownerName: event.target.value }))
+					onChange={(event) =>
+						onChange((prev) => ({ ...prev, ownerName: event.target.value }))
 					}
 				/>
 				<LabeledInput
 					label="owner address"
 					value={builderInputs.ownerAddress}
-					onChange={event =>
-						onChange(prev => ({ ...prev, ownerAddress: event.target.value }))
+					onChange={(event) =>
+						onChange((prev) => ({ ...prev, ownerAddress: event.target.value }))
 					}
 				/>
 				<LabeledInput
 					label="Tenant names"
 					helpText="Separate multiple tenants with semicolons"
 					value={builderInputs.tenantNames}
-					onChange={event =>
-						onChange(prev => ({ ...prev, tenantNames: event.target.value }))
+					onChange={(event) =>
+						onChange((prev) => ({ ...prev, tenantNames: event.target.value }))
 					}
 				/>
 				<LabeledInput
 					label="Premises address"
 					value={builderInputs.propertyAddress}
-					onChange={event =>
-						onChange(prev => ({ ...prev, propertyAddress: event.target.value }))
+					onChange={(event) =>
+						onChange((prev) => ({
+							...prev,
+							propertyAddress: event.target.value,
+						}))
 					}
 				/>
 				<div className="grid grid-cols-2 gap-3">
 					<LabeledInput
 						label="Rent (USD)"
 						value={builderInputs.rent_amount}
-						onChange={event =>
-							onChange(prev => ({ ...prev, rent_amount: event.target.value }))
+						onChange={(event) =>
+							onChange((prev) => ({ ...prev, rent_amount: event.target.value }))
 						}
 					/>
 					<LabeledInput
 						label="Deposit (USD)"
 						value={builderInputs.security_deposit}
-						onChange={event =>
-							onChange(prev => ({
+						onChange={(event) =>
+							onChange((prev) => ({
 								...prev,
-								security_deposit: event.target.value
+								security_deposit: event.target.value,
 							}))
 						}
 					/>
@@ -106,18 +109,18 @@ export function ConfigurationPanel({
 						label="Rent due day"
 						type="number"
 						value={builderInputs.rentDueDay}
-						onChange={event =>
-							onChange(prev => ({ ...prev, rentDueDay: event.target.value }))
+						onChange={(event) =>
+							onChange((prev) => ({ ...prev, rentDueDay: event.target.value }))
 						}
 					/>
 					<LabeledInput
 						label="Grace period (days)"
 						type="number"
 						value={builderInputs.gracePeriodDays}
-						onChange={event =>
-							onChange(prev => ({
+						onChange={(event) =>
+							onChange((prev) => ({
 								...prev,
-								gracePeriodDays: event.target.value
+								gracePeriodDays: event.target.value,
 							}))
 						}
 					/>
@@ -127,10 +130,10 @@ export function ConfigurationPanel({
 						label="Lease start"
 						type="date"
 						value={builderInputs.leasestart_date}
-						onChange={event =>
-							onChange(prev => ({
+						onChange={(event) =>
+							onChange((prev) => ({
 								...prev,
-								leasestart_date: event.target.value
+								leasestart_date: event.target.value,
 							}))
 						}
 					/>
@@ -138,16 +141,22 @@ export function ConfigurationPanel({
 						label="Lease end"
 						type="date"
 						value={builderInputs.leaseEndDate}
-						onChange={event =>
-							onChange(prev => ({ ...prev, leaseEndDate: event.target.value }))
+						onChange={(event) =>
+							onChange((prev) => ({
+								...prev,
+								leaseEndDate: event.target.value,
+							}))
 						}
 					/>
 				</div>
 				<LabeledInput
 					label="Late fee (USD)"
 					value={builderInputs.late_fee_amount}
-					onChange={event =>
-						onChange(prev => ({ ...prev, late_fee_amount: event.target.value }))
+					onChange={(event) =>
+						onChange((prev) => ({
+							...prev,
+							late_fee_amount: event.target.value,
+						}))
 					}
 				/>
 
@@ -177,17 +186,17 @@ export function ConfigurationPanel({
 				</div>
 			</CardContent>
 		</Card>
-	)
+	);
 }
 
 function LabeledInput(
 	props: InputHTMLAttributes<HTMLInputElement> & {
-		label: string
-		helpText?: string
-	}
+		label: string;
+		helpText?: string;
+	},
 ) {
-	const { label, helpText, ...inputProps } = props
-	const id = useId()
+	const { label, helpText, ...inputProps } = props;
+	const id = useId();
 	return (
 		<div className="space-y-1 text-xs">
 			<label htmlFor={id} className="font-medium text-muted-foreground">
@@ -196,9 +205,9 @@ function LabeledInput(
 			<Input
 				id={id}
 				{...inputProps}
-				className={cn('h-9 text-sm', inputProps.className)}
+				className={cn("h-9 text-sm", inputProps.className)}
 			/>
 			{helpText ? <p className="text-muted-foreground/80">{helpText}</p> : null}
 		</div>
-	)
+	);
 }

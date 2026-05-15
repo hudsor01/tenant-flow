@@ -1,45 +1,45 @@
-'use client'
+"use client";
 
-import { DollarSign } from 'lucide-react'
+import { DollarSign } from "lucide-react";
+import {
+	Empty,
+	EmptyDescription,
+	EmptyHeader,
+	EmptyMedia,
+	EmptyTitle,
+} from "#components/ui/empty";
 import {
 	Table,
 	TableBody,
 	TableCell,
 	TableHead,
 	TableHeader,
-	TableRow
-} from '#components/ui/table'
-import {
-	Empty,
-	EmptyDescription,
-	EmptyHeader,
-	EmptyMedia,
-	EmptyTitle
-} from '#components/ui/empty'
-import type { GateConversionStats } from '#types/analytics'
-import { cn } from '#lib/utils'
+	TableRow,
+} from "#components/ui/table";
+import { cn } from "#lib/utils";
+import type { GateConversionStats } from "#types/analytics";
 
 // A paywall that fails to convert ≥10% of the users who hit it is almost
 // certainly not pulling its weight. v2.0 Phase 45's battle-proven bar is
 // 5 upgrades / 7 days — conversion_rate matters more than absolute counts.
-const LOW_CONVERSION_THRESHOLD = 0.1
+const LOW_CONVERSION_THRESHOLD = 0.1;
 
 const FEATURE_LABELS: Record<string, string> = {
-	esign: 'E-signature (DocuSeal)',
-	premium_reports: 'Premium reports',
-}
+	esign: "E-signature (DocuSeal)",
+	premium_reports: "Premium reports",
+};
 
 function formatCount(value: number): string {
-	return new Intl.NumberFormat('en-US').format(value)
+	return new Intl.NumberFormat("en-US").format(value);
 }
 
 function formatRate(value: number | null): string {
-	if (value === null) return '—'
-	return `${(value * 100).toFixed(1)}%`
+	if (value === null) return "—";
+	return `${(value * 100).toFixed(1)}%`;
 }
 
 export function GateConversionTable({ data }: { data: GateConversionStats[] }) {
-	if (data.length === 0 || data.every(row => row.gateHits === 0)) {
+	if (data.length === 0 || data.every((row) => row.gateHits === 0)) {
 		return (
 			<Empty>
 				<EmptyHeader>
@@ -48,18 +48,19 @@ export function GateConversionTable({ data }: { data: GateConversionStats[] }) {
 					</EmptyMedia>
 					<EmptyTitle>No paywall events yet</EmptyTitle>
 					<EmptyDescription>
-						Rows appear here once Free-tier users hit a gated feature. The v2.0 Phase 45
-						bar is ≥5 upgrades with <code>metadata.source = esign_gate</code> in any
-						rolling 7-day window.
+						Rows appear here once Free-tier users hit a gated feature. The v2.0
+						Phase 45 bar is ≥5 upgrades with{" "}
+						<code>metadata.source = esign_gate</code> in any rolling 7-day
+						window.
 					</EmptyDescription>
 				</EmptyHeader>
 			</Empty>
-		)
+		);
 	}
 
 	// Sort by total hits descending — the paywall with the most traffic is
 	// the most important to optimize.
-	const sorted = [...data].sort((a, b) => b.gateHits - a.gateHits)
+	const sorted = [...data].sort((a, b) => b.gateHits - a.gateHits);
 
 	return (
 		<div className="rounded-md border border-border bg-background">
@@ -74,7 +75,7 @@ export function GateConversionTable({ data }: { data: GateConversionStats[] }) {
 					</TableRow>
 				</TableHeader>
 				<TableBody>
-					{sorted.map(row => (
+					{sorted.map((row) => (
 						<TableRow key={row.feature}>
 							<TableCell className="font-medium text-foreground">
 								{FEATURE_LABELS[row.feature] ?? row.feature}
@@ -90,11 +91,11 @@ export function GateConversionTable({ data }: { data: GateConversionStats[] }) {
 							</TableCell>
 							<TableCell
 								className={cn(
-									'text-right',
+									"text-right",
 									row.conversionRate !== null &&
 										row.conversionRate < LOW_CONVERSION_THRESHOLD
-										? 'text-destructive'
-										: 'text-muted-foreground'
+										? "text-destructive"
+										: "text-muted-foreground",
 								)}
 							>
 								{formatRate(row.conversionRate)}
@@ -104,5 +105,5 @@ export function GateConversionTable({ data }: { data: GateConversionStats[] }) {
 				</TableBody>
 			</Table>
 		</div>
-	)
+	);
 }

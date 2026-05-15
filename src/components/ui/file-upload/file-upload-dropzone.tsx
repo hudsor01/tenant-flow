@@ -1,18 +1,18 @@
-'use client'
+"use client";
 
-import { Slot } from 'radix-ui'
+import { Slot } from "radix-ui";
 import type {
 	ClipboardEvent,
 	DragEvent,
 	KeyboardEvent,
-	MouseEvent
-} from 'react'
-import { cn } from '#lib/utils'
-import { useAsRef } from '#hooks/use-as-ref'
-import { useFileUploadContext } from './context'
-import { useStore, useStoreContext } from './store'
-import type { FileUploadDropzoneProps } from './types'
-import { DROPZONE_NAME } from './types'
+	MouseEvent,
+} from "react";
+import { useAsRef } from "#hooks/use-as-ref";
+import { cn } from "#lib/utils";
+import { useFileUploadContext } from "./context";
+import { useStore, useStoreContext } from "./store";
+import type { FileUploadDropzoneProps } from "./types";
+import { DROPZONE_NAME } from "./types";
 
 export function FileUploadDropzone(props: FileUploadDropzoneProps) {
 	const {
@@ -26,12 +26,12 @@ export function FileUploadDropzone(props: FileUploadDropzoneProps) {
 		onPaste: onPasteProp,
 		onKeyDown: onKeyDownProp,
 		...dropzoneProps
-	} = props
+	} = props;
 
-	const context = useFileUploadContext(DROPZONE_NAME)
-	const store = useStoreContext(DROPZONE_NAME)
-	const dragOver = useStore((state) => state.dragOver)
-	const invalid = useStore((state) => state.invalid)
+	const context = useFileUploadContext(DROPZONE_NAME);
+	const store = useStoreContext(DROPZONE_NAME);
+	const dragOver = useStore((state) => state.dragOver);
+	const invalid = useStore((state) => state.invalid);
 
 	const propsRef = useAsRef({
 		onClick: onClickProp,
@@ -40,131 +40,131 @@ export function FileUploadDropzone(props: FileUploadDropzoneProps) {
 		onDragLeave: onDragLeaveProp,
 		onDrop: onDropProp,
 		onPaste: onPasteProp,
-		onKeyDown: onKeyDownProp
-	})
+		onKeyDown: onKeyDownProp,
+	});
 
 	const onClick = (event: MouseEvent<HTMLDivElement>) => {
-		propsRef.current.onClick?.(event)
+		propsRef.current.onClick?.(event);
 
-		if (event.defaultPrevented) return
+		if (event.defaultPrevented) return;
 
-		const target = event.target
+		const target = event.target;
 
 		const isFromTrigger =
 			target instanceof HTMLElement &&
-			target.closest('[data-slot="file-upload-trigger"]')
+			target.closest('[data-slot="file-upload-trigger"]');
 
 		if (!isFromTrigger) {
-			context.inputRef.current?.click()
+			context.inputRef.current?.click();
 		}
-	}
+	};
 
 	const onDragOver = (event: DragEvent<HTMLDivElement>) => {
-		propsRef.current.onDragOver?.(event)
+		propsRef.current.onDragOver?.(event);
 
-		if (event.defaultPrevented) return
+		if (event.defaultPrevented) return;
 
-		event.preventDefault()
-		store.dispatch({ type: 'SET_DRAG_OVER', dragOver: true })
-	}
+		event.preventDefault();
+		store.dispatch({ type: "SET_DRAG_OVER", dragOver: true });
+	};
 
 	const onDragEnter = (event: DragEvent<HTMLDivElement>) => {
-		propsRef.current.onDragEnter?.(event)
+		propsRef.current.onDragEnter?.(event);
 
-		if (event.defaultPrevented) return
+		if (event.defaultPrevented) return;
 
-		event.preventDefault()
-		store.dispatch({ type: 'SET_DRAG_OVER', dragOver: true })
-	}
+		event.preventDefault();
+		store.dispatch({ type: "SET_DRAG_OVER", dragOver: true });
+	};
 
 	const onDragLeave = (event: DragEvent<HTMLDivElement>) => {
-		propsRef.current.onDragLeave?.(event)
+		propsRef.current.onDragLeave?.(event);
 
-		if (event.defaultPrevented) return
+		if (event.defaultPrevented) return;
 
-		const relatedTarget = event.relatedTarget
+		const relatedTarget = event.relatedTarget;
 		if (
 			relatedTarget &&
 			relatedTarget instanceof Node &&
 			event.currentTarget.contains(relatedTarget)
 		) {
-			return
+			return;
 		}
 
-		event.preventDefault()
-		store.dispatch({ type: 'SET_DRAG_OVER', dragOver: false })
-	}
+		event.preventDefault();
+		store.dispatch({ type: "SET_DRAG_OVER", dragOver: false });
+	};
 
 	const onDrop = (event: DragEvent<HTMLDivElement>) => {
-		propsRef.current.onDrop?.(event)
+		propsRef.current.onDrop?.(event);
 
-		if (event.defaultPrevented) return
+		if (event.defaultPrevented) return;
 
-		event.preventDefault()
-		store.dispatch({ type: 'SET_DRAG_OVER', dragOver: false })
+		event.preventDefault();
+		store.dispatch({ type: "SET_DRAG_OVER", dragOver: false });
 
-		const files = Array.from(event.dataTransfer.files)
-		const inputElement = context.inputRef.current
-		if (!inputElement) return
+		const files = Array.from(event.dataTransfer.files);
+		const inputElement = context.inputRef.current;
+		if (!inputElement) return;
 
-		const dataTransfer = new DataTransfer()
+		const dataTransfer = new DataTransfer();
 		for (const file of files) {
-			dataTransfer.items.add(file)
+			dataTransfer.items.add(file);
 		}
 
-		inputElement.files = dataTransfer.files
-		inputElement.dispatchEvent(new Event('change', { bubbles: true }))
-	}
+		inputElement.files = dataTransfer.files;
+		inputElement.dispatchEvent(new Event("change", { bubbles: true }));
+	};
 
 	const onPaste = (event: ClipboardEvent<HTMLDivElement>) => {
-		propsRef.current.onPaste?.(event)
+		propsRef.current.onPaste?.(event);
 
-		if (event.defaultPrevented) return
+		if (event.defaultPrevented) return;
 
-		event.preventDefault()
-		store.dispatch({ type: 'SET_DRAG_OVER', dragOver: false })
+		event.preventDefault();
+		store.dispatch({ type: "SET_DRAG_OVER", dragOver: false });
 
-		const items = event.clipboardData?.items
-		if (!items) return
+		const items = event.clipboardData?.items;
+		if (!items) return;
 
-		const files: File[] = []
+		const files: File[] = [];
 		for (let i = 0; i < items.length; i++) {
-			const item = items[i]
-			if (item?.kind === 'file') {
-				const file = item.getAsFile()
+			const item = items[i];
+			if (item?.kind === "file") {
+				const file = item.getAsFile();
 				if (file) {
-					files.push(file)
+					files.push(file);
 				}
 			}
 		}
 
-		if (files.length === 0) return
+		if (files.length === 0) return;
 
-		const inputElement = context.inputRef.current
-		if (!inputElement) return
+		const inputElement = context.inputRef.current;
+		if (!inputElement) return;
 
-		const dataTransfer = new DataTransfer()
+		const dataTransfer = new DataTransfer();
 		for (const file of files) {
-			dataTransfer.items.add(file)
+			dataTransfer.items.add(file);
 		}
 
-		inputElement.files = dataTransfer.files
-		inputElement.dispatchEvent(new Event('change', { bubbles: true }))
-	}
+		inputElement.files = dataTransfer.files;
+		inputElement.dispatchEvent(new Event("change", { bubbles: true }));
+	};
 
 	const onKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
-		propsRef.current.onKeyDown?.(event)
+		propsRef.current.onKeyDown?.(event);
 
 		if (
 			!event.defaultPrevented &&
-			(event.key === 'Enter' || event.key === ' ')
+			(event.key === "Enter" || event.key === " ")
 		) {
-			event.preventDefault()
-			context.inputRef.current?.click()
+			event.preventDefault();
+			context.inputRef.current?.click();
 		}
-	}
+	};
 
-	const DropzonePrimitive = asChild ? Slot.Slot : 'div'
+	const DropzonePrimitive = asChild ? Slot.Slot : "div";
 
 	return (
 		<DropzonePrimitive
@@ -173,16 +173,16 @@ export function FileUploadDropzone(props: FileUploadDropzoneProps) {
 			aria-controls={`${context.inputId} ${context.listId}`}
 			aria-disabled={context.disabled}
 			aria-invalid={invalid}
-			data-disabled={context.disabled ? '' : undefined}
-			data-dragging={dragOver ? '' : undefined}
-			data-invalid={invalid ? '' : undefined}
+			data-disabled={context.disabled ? "" : undefined}
+			data-dragging={dragOver ? "" : undefined}
+			data-invalid={invalid ? "" : undefined}
 			data-slot="file-upload-dropzone"
 			dir={context.dir}
 			tabIndex={context.disabled ? undefined : 0}
 			{...dropzoneProps}
 			className={cn(
-				'relative flex select-none flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed p-6 outline-none transition-colors hover:bg-accent/30 focus-visible:border-ring/50 data-disabled:pointer-events-none data-dragging:border-primary/30 data-invalid:border-destructive data-dragging:bg-accent/30 data-invalid:ring-destructive/20',
-				className
+				"relative flex select-none flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed p-6 outline-none transition-colors hover:bg-accent/30 focus-visible:border-ring/50 data-disabled:pointer-events-none data-dragging:border-primary/30 data-invalid:border-destructive data-dragging:bg-accent/30 data-invalid:ring-destructive/20",
+				className,
 			)}
 			onClick={onClick}
 			onDragEnter={onDragEnter}
@@ -192,5 +192,5 @@ export function FileUploadDropzone(props: FileUploadDropzoneProps) {
 			onKeyDown={onKeyDown}
 			onPaste={onPaste}
 		/>
-	)
+	);
 }

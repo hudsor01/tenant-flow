@@ -1,12 +1,12 @@
+import { Home } from "lucide-react";
+import Link from "next/link";
 import {
 	Empty,
+	EmptyContent,
+	EmptyDescription,
 	EmptyMedia,
 	EmptyTitle,
-	EmptyDescription,
-	EmptyContent
-} from '#components/ui/empty'
-import { Home } from 'lucide-react'
-import Link from 'next/link'
+} from "#components/ui/empty";
 
 /**
  * Dashboard Empty State
@@ -21,8 +21,8 @@ export function DashboardEmptyState() {
 				</EmptyMedia>
 				<EmptyTitle>Welcome to TenantFlow</EmptyTitle>
 				<EmptyDescription>
-					Get started by adding your first property, then add tenants and
-					create leases to begin tracking your portfolio.
+					Get started by adding your first property, then add tenants and create
+					leases to begin tracking your portfolio.
 				</EmptyDescription>
 				<EmptyContent>
 					<Link
@@ -35,5 +35,5 @@ export function DashboardEmptyState() {
 				</EmptyContent>
 			</Empty>
 		</div>
-	)
+	);
 }

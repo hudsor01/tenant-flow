@@ -1,4 +1,4 @@
-import Link from 'next/link'
+import Link from "next/link";
 import {
 	Breadcrumb,
 	BreadcrumbItem,
@@ -6,11 +6,11 @@ import {
 	BreadcrumbList,
 	BreadcrumbPage,
 	BreadcrumbSeparator,
-} from '#components/ui/breadcrumb'
+} from "#components/ui/breadcrumb";
 
 export interface BlogPostBreadcrumbProps {
-	title: string
-	category: string | null
+	title: string;
+	category: string | null;
 }
 
 /**
@@ -23,10 +23,13 @@ export interface BlogPostBreadcrumbProps {
  * `BlogPostPage` uses to build the `/blog/category/<slug>` link in the meta
  * bar, so the breadcrumb and the category-name link cannot drift.
  */
-export function BlogPostBreadcrumb({ title, category }: BlogPostBreadcrumbProps) {
+export function BlogPostBreadcrumb({
+	title,
+	category,
+}: BlogPostBreadcrumbProps) {
 	const categorySlug = category
-		? category.toLowerCase().replace(/\s+/g, '-')
-		: null
+		? category.toLowerCase().replace(/\s+/g, "-")
+		: null;
 
 	return (
 		<div className="max-w-4xl mx-auto px-6 lg:px-8 pt-6">
@@ -62,5 +65,5 @@ export function BlogPostBreadcrumb({ title, category }: BlogPostBreadcrumbProps)
 				</BreadcrumbList>
 			</Breadcrumb>
 		</div>
-	)
+	);
 }

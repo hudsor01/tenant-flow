@@ -1,4 +1,4 @@
-import { redirect } from 'next/navigation'
+import { redirect } from "next/navigation";
 
 /**
  * Billing Settings Page Redirect
@@ -7,5 +7,5 @@ import { redirect } from 'next/navigation'
  * The billing functionality is now integrated into the main Settings page.
  */
 export default function BillingSettingsPage() {
-	redirect('/settings?tab=billing')
+	redirect("/settings?tab=billing");
 }

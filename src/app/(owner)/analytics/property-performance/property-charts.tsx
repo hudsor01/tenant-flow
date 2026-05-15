@@ -1,9 +1,6 @@
-'use client'
+"use client";
 
-import type {
-	PropertyPerformanceEntry,
-	VisitorAnalyticsResponse
-} from '#types/analytics'
+import { Building2 } from "lucide-react";
 import {
 	Bar,
 	BarChart,
@@ -13,56 +10,59 @@ import {
 	LineChart,
 	Tooltip,
 	XAxis,
-	YAxis
-} from 'recharts'
+	YAxis,
+} from "recharts";
 
 import {
+	type ChartConfig,
 	ChartContainer,
 	ChartTooltipContent,
-	type ChartConfig
-} from '#components/ui/chart'
+} from "#components/ui/chart";
 import {
 	Empty,
 	EmptyDescription,
 	EmptyHeader,
 	EmptyMedia,
-	EmptyTitle
-} from '#components/ui/empty'
-import { Building2 } from 'lucide-react'
+	EmptyTitle,
+} from "#components/ui/empty";
+import type {
+	PropertyPerformanceEntry,
+	VisitorAnalyticsResponse,
+} from "#types/analytics";
 
 const occupancyConfig = {
 	occupancy: {
-		label: 'Occupancy %',
-		color: 'oklch(0.62 0.12 240)'
+		label: "Occupancy %",
+		color: "oklch(0.62 0.12 240)",
 	},
 	revenue: {
-		label: 'Monthly Revenue',
-		color: 'oklch(0.68 0.14 150)'
-	}
-} satisfies ChartConfig
+		label: "Monthly Revenue",
+		color: "oklch(0.68 0.14 150)",
+	},
+} satisfies ChartConfig;
 
 const visitorConfig = {
 	visits: {
-		label: 'Visits',
-		color: 'oklch(0.73 0.08 40)'
+		label: "Visits",
+		color: "oklch(0.73 0.08 40)",
 	},
 	inquiries: {
-		label: 'Inquiries',
-		color: 'oklch(0.6 0.16 120)'
+		label: "Inquiries",
+		color: "oklch(0.6 0.16 120)",
 	},
 	conversions: {
-		label: 'Applications',
-		color: 'oklch(0.67 0.14 180)'
-	}
-} satisfies ChartConfig
+		label: "Applications",
+		color: "oklch(0.67 0.14 180)",
+	},
+} satisfies ChartConfig;
 
 type PropertyOccupancyChartProps = {
-	data: PropertyPerformanceEntry[]
-}
+	data: PropertyPerformanceEntry[];
+};
 
 type VisitorAnalyticsChartProps = {
-	data: VisitorAnalyticsResponse
-}
+	data: VisitorAnalyticsResponse;
+};
 
 export function PropertyOccupancyChart({ data }: PropertyOccupancyChartProps) {
 	if (!data.length) {
@@ -78,14 +78,14 @@ export function PropertyOccupancyChart({ data }: PropertyOccupancyChartProps) {
 					</EmptyDescription>
 				</EmptyHeader>
 			</Empty>
-		)
+		);
 	}
 
-	const chartData = data.map(item => ({
+	const chartData = data.map((item) => ({
 		property: item.propertyName,
 		occupancy: Number(item.occupancyRate?.toFixed?.(1) ?? item.occupancyRate),
-		revenue: item.monthlyRevenue
-	}))
+		revenue: item.monthlyRevenue,
+	}));
 
 	return (
 		<ChartContainer className="h-80" config={occupancyConfig}>
@@ -123,7 +123,7 @@ export function PropertyOccupancyChart({ data }: PropertyOccupancyChartProps) {
 				/>
 			</BarChart>
 		</ChartContainer>
-	)
+	);
 }
 
 export function VisitorAnalyticsChart({ data }: VisitorAnalyticsChartProps) {
@@ -140,15 +140,15 @@ export function VisitorAnalyticsChart({ data }: VisitorAnalyticsChartProps) {
 					</EmptyDescription>
 				</EmptyHeader>
 			</Empty>
-		)
+		);
 	}
 
-	const chartData = data.timeline.map(point => ({
+	const chartData = data.timeline.map((point) => ({
 		period: point.period,
 		visits: point.visits,
 		inquiries: point.inquiries,
-		conversions: point.conversions
-	}))
+		conversions: point.conversions,
+	}));
 
 	return (
 		<ChartContainer className="h-80" config={visitorConfig}>
@@ -181,5 +181,5 @@ export function VisitorAnalyticsChart({ data }: VisitorAnalyticsChartProps) {
 				/>
 			</LineChart>
 		</ChartContainer>
-	)
+	);
 }

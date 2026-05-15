@@ -1,18 +1,18 @@
-'use client'
+"use client";
 
-import { Building2, CheckCircle, ExternalLink } from 'lucide-react'
-import { Button } from '#components/ui/button'
-import { BlurFade } from '#components/ui/blur-fade'
-import { useRouter } from 'next/navigation'
+import { Building2, CheckCircle, ExternalLink } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { BlurFade } from "#components/ui/blur-fade";
+import { Button } from "#components/ui/button";
 
 interface PaymentSettingsSectionProps {
-	stripeConnected: boolean
+	stripeConnected: boolean;
 }
 
 export function PaymentSettingsSection({
-	stripeConnected
+	stripeConnected,
 }: PaymentSettingsSectionProps) {
-	const router = useRouter()
+	const router = useRouter();
 
 	return (
 		<BlurFade delay={0.55} inView>
@@ -35,7 +35,7 @@ export function PaymentSettingsSection({
 						<Button
 							variant="outline"
 							size="sm"
-							onClick={() => router.push('/settings/billing')}
+							onClick={() => router.push("/settings/billing")}
 						>
 							<ExternalLink className="h-3 w-3 mr-2" />
 							Manage
@@ -54,12 +54,12 @@ export function PaymentSettingsSection({
 								</p>
 							</div>
 						</div>
-						<Button size="sm" onClick={() => router.push('/settings/billing')}>
+						<Button size="sm" onClick={() => router.push("/settings/billing")}>
 							Connect Now
 						</Button>
 					</div>
 				)}
 			</section>
 		</BlurFade>
-	)
+	);
 }

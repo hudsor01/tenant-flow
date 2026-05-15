@@ -1,11 +1,11 @@
-'use client'
+"use client";
 
-import { CheckCircle } from 'lucide-react'
-import { useRouter } from 'next/navigation'
-import { Button } from '#components/ui/button'
+import { CheckCircle } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { Button } from "#components/ui/button";
 
 export function PropertyFormSuccessState() {
-	const router = useRouter()
+	const router = useRouter();
 
 	return (
 		<div className="flex flex-col items-center justify-center space-y-4 text-center">
@@ -14,9 +14,9 @@ export function PropertyFormSuccessState() {
 			<p className="text-muted-foreground">
 				Your property has been successfully added to your portfolio.
 			</p>
-			<Button onClick={() => router.push('/properties')}>
+			<Button onClick={() => router.push("/properties")}>
 				Return to Properties
 			</Button>
 		</div>
-	)
+	);
 }

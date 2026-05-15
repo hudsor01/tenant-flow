@@ -1,20 +1,20 @@
-import { BlurFade } from '#components/ui/blur-fade'
-import { Button } from '#components/ui/button'
-import { GlowingEffect } from '#components/ui/glowing-effect'
-import { cn } from '#lib/utils'
-import { ArrowRight, Check, Clock, MessageCircle } from 'lucide-react'
-import Link from 'next/link'
+import { ArrowRight, Check, Clock, MessageCircle } from "lucide-react";
+import Link from "next/link";
+import { BlurFade } from "#components/ui/blur-fade";
+import { Button } from "#components/ui/button";
+import { GlowingEffect } from "#components/ui/glowing-effect";
+import { cn } from "#lib/utils";
 
 interface PremiumCtaProps {
-	className?: string
+	className?: string;
 }
 
 export function PremiumCta({ className }: PremiumCtaProps) {
 	return (
 		<section
 			className={cn(
-				'section-spacing relative overflow-hidden bg-transparent',
-				className
+				"section-spacing relative overflow-hidden bg-transparent",
+				className,
 			)}
 		>
 			<div className="container px-4 mx-auto relative z-10">
@@ -38,9 +38,11 @@ export function PremiumCta({ className }: PremiumCtaProps) {
 					{/* Value Proposition */}
 					<BlurFade delay={0.2} inView>
 						<p className="text-responsive-h1 text-muted-foreground leading-relaxed mb-10 max-w-4xl mx-auto font-light">
-							Run your rentals from one place — with the document vault as your single source of truth.
+							Run your rentals from one place — with the document vault as your
+							single source of truth.
 							<span className="block mt-3 text-foreground font-medium">
-								Your 14-day free trial includes the full document vault, lease e-sign on Growth and Max, and every report you need at tax time.
+								Your 14-day free trial includes the full document vault, lease
+								e-sign on Growth and Max, and every report you need at tax time.
 							</span>
 						</p>
 					</BlurFade>
@@ -115,5 +117,5 @@ export function PremiumCta({ className }: PremiumCtaProps) {
 				</div>
 			</div>
 		</section>
-	)
+	);
 }

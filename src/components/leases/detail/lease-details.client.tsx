@@ -1,62 +1,69 @@
-'use client'
+"use client";
 
-import { Card, CardContent } from '#components/ui/card'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '#components/ui/tabs'
-import { useQuery } from '@tanstack/react-query'
-import { leaseQueries } from '#hooks/api/query-keys/lease-keys'
-import { tenantQueries } from '#hooks/api/query-keys/tenant-keys'
-import { useUnitList } from '#hooks/api/use-unit'
-import { useCancelSignatureRequestMutation } from '#hooks/api/use-lease-signature-mutations'
-import { createLogger } from '#lib/frontend-logger'
-import { DocumentsSection } from '#components/documents/documents-section'
+import { useQuery } from "@tanstack/react-query";
 import {
 	AlertTriangle,
-	DollarSign,
-	CreditCard,
 	CalendarDays,
-	Clock
-} from 'lucide-react'
-
-import { LeaseDetailsSkeleton } from './lease-details-skeleton'
-import { LeaseHeader } from './lease-header'
-import { formatCurrency } from '#lib/utils/currency'
-import { getOrdinalSuffix } from '#lib/formatters/date'
-import { generateTimelineEvents } from './lease-detail-utils'
-import { LeaseDetailsTab } from './lease-details-tab'
-import { LeaseTimelineTab } from './lease-timeline-tab'
-import { LeaseTermsTab } from './lease-terms-tab'
-import { LeaseSidebar } from './lease-sidebar'
+	Clock,
+	CreditCard,
+	DollarSign,
+} from "lucide-react";
+import { DocumentsSection } from "#components/documents/documents-section";
+import { Card, CardContent } from "#components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "#components/ui/tabs";
+import { leaseQueries } from "#hooks/api/query-keys/lease-keys";
+import { tenantQueries } from "#hooks/api/query-keys/tenant-keys";
+import { useCancelSignatureRequestMutation } from "#hooks/api/use-lease-signature-mutations";
+import { useUnitList } from "#hooks/api/use-unit";
+import { getOrdinalSuffix } from "#lib/formatters/date";
+import { createLogger } from "#lib/frontend-logger";
+import { formatCurrency } from "#lib/utils/currency";
+import { generateTimelineEvents } from "./lease-detail-utils";
+import { LeaseDetailsSkeleton } from "./lease-details-skeleton";
+import { LeaseDetailsTab } from "./lease-details-tab";
+import { LeaseHeader } from "./lease-header";
+import { LeaseSidebar } from "./lease-sidebar";
+import { LeaseTermsTab } from "./lease-terms-tab";
+import { LeaseTimelineTab } from "./lease-timeline-tab";
 
 interface LeaseDetailsProps {
-	id: string
+	id: string;
 }
 
-const logger = createLogger({ component: 'LeaseDetails' })
+const logger = createLogger({ component: "LeaseDetails" });
 
 export function LeaseDetails({ id }: LeaseDetailsProps) {
-	const { data: lease, isLoading, isError, error } = useQuery(leaseQueries.detail(id))
-	const cancelSignature = useCancelSignatureRequestMutation()
+	const {
+		data: lease,
+		isLoading,
+		isError,
+		error,
+	} = useQuery(leaseQueries.detail(id));
+	const cancelSignature = useCancelSignatureRequestMutation();
 
-	const { data: tenantsResponse } = useQuery(tenantQueries.list())
-	const { data: units } = useUnitList()
+	const { data: tenantsResponse } = useQuery(tenantQueries.list());
+	const { data: units } = useUnitList();
 
 	const tenant = tenantsResponse?.data?.find(
-		t => t.id === lease?.primary_tenant_id
-	)
-	const unit = units?.find(u => u.id === lease?.unit_id)
+		(t) => t.id === lease?.primary_tenant_id,
+	);
+	const unit = units?.find((u) => u.id === lease?.unit_id);
 
 	if (isLoading) {
-		return <LeaseDetailsSkeleton />
+		return <LeaseDetailsSkeleton />;
 	}
 
 	if (isError || !lease) {
-		logger.error('Failed to load lease details', { action: 'loadLeaseDetails', error })
+		logger.error("Failed to load lease details", {
+			action: "loadLeaseDetails",
+			error,
+		});
 
 		// Determine error message based on error type
-		const is404 = error && 'status' in error && error.status === 404
+		const is404 = error && "status" in error && error.status === 404;
 		const errorMessage = is404
-			? 'This lease does not exist or you do not have permission to view it.'
-			: 'Something went wrong while loading this lease. Please refresh and try again.'
+			? "This lease does not exist or you do not have permission to view it."
+			: "Something went wrong while loading this lease. Please refresh and try again.";
 
 		return (
 			<Card className="border-destructive/50 bg-destructive/10">
@@ -68,14 +75,14 @@ export function LeaseDetails({ id }: LeaseDetailsProps) {
 					<p className="text-muted-foreground">{errorMessage}</p>
 				</CardContent>
 			</Card>
-		)
+		);
 	}
 
 	const handleCancelSignature = async () => {
-		await cancelSignature.mutateAsync(lease.id)
-	}
+		await cancelSignature.mutateAsync(lease.id);
+	};
 
-	const timelineEvents = generateTimelineEvents(lease)
+	const timelineEvents = generateTimelineEvents(lease);
 
 	return (
 		<div className="space-y-6">
@@ -125,7 +132,7 @@ export function LeaseDetails({ id }: LeaseDetailsProps) {
 								<p className="text-xl font-semibold">
 									{lease.payment_day
 										? `${lease.payment_day}${getOrdinalSuffix(lease.payment_day)} of month`
-										: 'N/A'}
+										: "N/A"}
 								</p>
 							</CardContent>
 						</Card>
@@ -138,7 +145,7 @@ export function LeaseDetails({ id }: LeaseDetailsProps) {
 								<p className="text-xl font-semibold">
 									{lease.grace_period_days
 										? `${lease.grace_period_days} days`
-										: 'None'}
+										: "None"}
 								</p>
 							</CardContent>
 						</Card>
@@ -172,5 +179,5 @@ export function LeaseDetails({ id }: LeaseDetailsProps) {
 
 			<DocumentsSection entityType="lease" entityId={lease.id} />
 		</div>
-	)
+	);
 }

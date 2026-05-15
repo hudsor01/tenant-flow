@@ -1,25 +1,25 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
-import { ArrowUp, ArrowDown, Check, X, Loader2 } from 'lucide-react'
-import { Button } from '#components/ui/button'
+import { ArrowDown, ArrowUp, Check, Loader2, X } from "lucide-react";
+import { useState } from "react";
+import type { Plan, PlanFeature } from "#components/billing/plan-card";
+import { Button } from "#components/ui/button";
 import {
 	Dialog,
 	DialogContent,
 	DialogDescription,
 	DialogFooter,
 	DialogHeader,
-	DialogTitle
-} from '#components/ui/dialog'
-import { cn } from '#lib/utils'
-import type { Plan, PlanFeature } from '#components/billing/plan-card'
+	DialogTitle,
+} from "#components/ui/dialog";
+import { cn } from "#lib/utils";
 
 interface UpgradeDialogProps {
-	targetPlan: Plan | null
-	currentPlan: Plan | null
-	isOpen: boolean
-	onClose: () => void
-	onConfirm: (plan: Plan) => Promise<void>
+	targetPlan: Plan | null;
+	currentPlan: Plan | null;
+	isOpen: boolean;
+	onClose: () => void;
+	onConfirm: (plan: Plan) => Promise<void>;
 }
 
 export function UpgradeDialog({
@@ -27,90 +27,90 @@ export function UpgradeDialog({
 	currentPlan,
 	isOpen,
 	onClose,
-	onConfirm
+	onConfirm,
 }: UpgradeDialogProps) {
-	const [isLoading, setIsLoading] = useState(false)
+	const [isLoading, setIsLoading] = useState(false);
 
-	if (!targetPlan) return null
+	if (!targetPlan) return null;
 
 	const isUpgrade =
-		currentPlan === null || targetPlan.tier > (currentPlan?.tier ?? 0)
+		currentPlan === null || targetPlan.tier > (currentPlan?.tier ?? 0);
 	const isDowngrade =
-		currentPlan !== null && targetPlan.tier < currentPlan.tier
-	const isNewSubscription = currentPlan === null
+		currentPlan !== null && targetPlan.tier < currentPlan.tier;
+	const isNewSubscription = currentPlan === null;
 
 	const getPriceDifference = () => {
-		if (!currentPlan) return targetPlan.price
-		return targetPlan.price - currentPlan.price
-	}
+		if (!currentPlan) return targetPlan.price;
+		return targetPlan.price - currentPlan.price;
+	};
 
-	const priceDifference = getPriceDifference()
+	const priceDifference = getPriceDifference();
 
 	const getFeatureChanges = (): {
-		gained: PlanFeature[]
-		lost: PlanFeature[]
+		gained: PlanFeature[];
+		lost: PlanFeature[];
 	} => {
 		if (!currentPlan) {
 			return {
-				gained: targetPlan.features.filter(f => f.included),
-				lost: []
-			}
+				gained: targetPlan.features.filter((f) => f.included),
+				lost: [],
+			};
 		}
 
 		const currentIncluded = new Set(
-			currentPlan.features.filter(f => f.included).map(f => f.name)
-		)
+			currentPlan.features.filter((f) => f.included).map((f) => f.name),
+		);
 		const targetIncluded = new Set(
-			targetPlan.features.filter(f => f.included).map(f => f.name)
-		)
+			targetPlan.features.filter((f) => f.included).map((f) => f.name),
+		);
 
 		const gained = targetPlan.features.filter(
-			f => f.included && !currentIncluded.has(f.name)
-		)
+			(f) => f.included && !currentIncluded.has(f.name),
+		);
 		const lost = currentPlan.features.filter(
-			f => f.included && !targetIncluded.has(f.name)
-		)
+			(f) => f.included && !targetIncluded.has(f.name),
+		);
 
-		return { gained, lost }
-	}
+		return { gained, lost };
+	};
 
-	const { gained, lost } = getFeatureChanges()
+	const { gained, lost } = getFeatureChanges();
 
 	const handleConfirm = async () => {
-		setIsLoading(true)
+		setIsLoading(true);
 		try {
-			await onConfirm(targetPlan)
+			await onConfirm(targetPlan);
 		} finally {
-			setIsLoading(false)
+			setIsLoading(false);
 		}
-	}
+	};
 
 	const getDialogTitle = () => {
-		if (isNewSubscription) return `Subscribe to ${targetPlan.name}`
-		if (isUpgrade) return `Upgrade to ${targetPlan.name}`
-		if (isDowngrade) return `Downgrade to ${targetPlan.name}`
-		return `Switch to ${targetPlan.name}`
-	}
+		if (isNewSubscription) return `Subscribe to ${targetPlan.name}`;
+		if (isUpgrade) return `Upgrade to ${targetPlan.name}`;
+		if (isDowngrade) return `Downgrade to ${targetPlan.name}`;
+		return `Switch to ${targetPlan.name}`;
+	};
 
 	const getDialogDescription = () => {
 		if (isNewSubscription) {
-			return 'Start your subscription and unlock all features.'
+			return "Start your subscription and unlock all features.";
 		}
 		if (isUpgrade) {
-			return 'Get access to more features and higher limits.'
+			return "Get access to more features and higher limits.";
 		}
-		return 'Your plan will be downgraded at the end of your current billing period.'
-	}
+		return "Your plan will be downgraded at the end of your current billing period.";
+	};
 
 	const getConfirmButtonText = () => {
-		if (isLoading) return 'Processing...'
-		if (isNewSubscription) return 'Start Subscription'
-		if (isUpgrade) return 'Confirm Upgrade'
-		return 'Confirm Downgrade'
-	}
+		if (isLoading) return "Processing...";
+		if (isNewSubscription) return "Start Subscription";
+		if (isUpgrade) return "Confirm Upgrade";
+		return "Confirm Downgrade";
+	};
 
 	return (
-		<Dialog open={isOpen} onOpenChange={open => !open && onClose()}>
+		<Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
 			<DialogContent className="sm:max-w-md">
 				<DialogHeader>
 					<DialogTitle className="flex items-center gap-2">
@@ -130,7 +130,7 @@ export function UpgradeDialog({
 						<div className="flex items-center justify-between">
 							<span className="text-sm text-muted-foreground">New price</span>
 							<span className="text-lg font-bold">
-								{targetPlan.price === 0 ? 'Free' : `$${targetPlan.price}/mo`}
+								{targetPlan.price === 0 ? "Free" : `$${targetPlan.price}/mo`}
 							</span>
 						</div>
 						{currentPlan && (
@@ -140,15 +140,15 @@ export function UpgradeDialog({
 								</span>
 								<span
 									className={cn(
-										'text-sm font-medium',
-										priceDifference > 0 && 'text-warning',
-										priceDifference < 0 && 'text-success',
-										priceDifference === 0 && 'text-muted-foreground'
+										"text-sm font-medium",
+										priceDifference > 0 && "text-warning",
+										priceDifference < 0 && "text-success",
+										priceDifference === 0 && "text-muted-foreground",
 									)}
 								>
-									{priceDifference > 0 && '+'}
+									{priceDifference > 0 && "+"}
 									{priceDifference === 0
-										? 'No change'
+										? "No change"
 										: `$${priceDifference}/mo`}
 								</span>
 							</div>
@@ -159,10 +159,10 @@ export function UpgradeDialog({
 					{gained.length > 0 && (
 						<div>
 							<h4 className="text-sm font-medium text-foreground mb-2">
-								{isNewSubscription ? 'What you get' : 'Features you gain'}
+								{isNewSubscription ? "What you get" : "Features you gain"}
 							</h4>
 							<ul className="space-y-1.5">
-								{gained.map(feature => (
+								{gained.map((feature) => (
 									<li
 										key={feature.name}
 										className="flex items-center gap-2 text-sm text-success"
@@ -182,7 +182,7 @@ export function UpgradeDialog({
 								Features you lose
 							</h4>
 							<ul className="space-y-1.5">
-								{lost.map(feature => (
+								{lost.map((feature) => (
 									<li
 										key={feature.name}
 										className="flex items-center gap-2 text-sm text-destructive"
@@ -199,8 +199,8 @@ export function UpgradeDialog({
 					{currentPlan && (
 						<p className="text-xs text-muted-foreground">
 							{isUpgrade
-								? 'Your card will be charged the prorated difference immediately.'
-								: 'Your current features will remain active until the end of your billing period.'}
+								? "Your card will be charged the prorated difference immediately."
+								: "Your current features will remain active until the end of your billing period."}
 						</p>
 					)}
 				</div>
@@ -215,7 +215,7 @@ export function UpgradeDialog({
 						Cancel
 					</Button>
 					<Button
-						variant={isDowngrade ? 'outline' : 'default'}
+						variant={isDowngrade ? "outline" : "default"}
 						onClick={handleConfirm}
 						disabled={isLoading}
 						className="min-h-11"
@@ -226,5 +226,5 @@ export function UpgradeDialog({
 				</DialogFooter>
 			</DialogContent>
 		</Dialog>
-	)
+	);
 }

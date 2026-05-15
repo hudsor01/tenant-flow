@@ -1,13 +1,13 @@
-'use client'
+"use client";
 
-import { ChevronLeft, ChevronRight } from 'lucide-react'
+import { ChevronLeft, ChevronRight } from "lucide-react";
 
 interface PortfolioPaginationProps {
-	currentPage: number
-	totalPages: number
-	totalItems: number
-	itemsPerPage: number
-	onPageChange: (page: number) => void
+	currentPage: number;
+	totalPages: number;
+	totalItems: number;
+	itemsPerPage: number;
+	onPageChange: (page: number) => void;
 }
 
 export function PortfolioPagination({
@@ -15,12 +15,12 @@ export function PortfolioPagination({
 	totalPages,
 	totalItems,
 	itemsPerPage,
-	onPageChange
+	onPageChange,
 }: PortfolioPaginationProps) {
-	if (totalPages <= 1) return null
+	if (totalPages <= 1) return null;
 
-	const startItem = (currentPage - 1) * itemsPerPage + 1
-	const endItem = Math.min(currentPage * itemsPerPage, totalItems)
+	const startItem = (currentPage - 1) * itemsPerPage + 1;
+	const endItem = Math.min(currentPage * itemsPerPage, totalItems);
 
 	return (
 		<div className="px-4 py-3 border-t border-border flex items-center justify-between">
@@ -35,14 +35,14 @@ export function PortfolioPagination({
 				>
 					<ChevronLeft className="w-4 h-4" />
 				</button>
-				{Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
+				{Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
 					<button
 						key={page}
 						onClick={() => onPageChange(page)}
 						className={`min-w-8 h-8 px-2 text-sm font-medium rounded-md transition-colors ${
 							page === currentPage
-								? 'bg-primary text-primary-foreground'
-								: 'hover:bg-muted text-muted-foreground'
+								? "bg-primary text-primary-foreground"
+								: "hover:bg-muted text-muted-foreground"
 						}`}
 					>
 						{page}
@@ -57,5 +57,5 @@ export function PortfolioPagination({
 				</button>
 			</div>
 		</div>
-	)
+	);
 }

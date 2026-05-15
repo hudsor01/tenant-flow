@@ -1,24 +1,24 @@
-import { Search, Sparkles, X } from 'lucide-react'
-import Link from 'next/link'
-import { MainNav } from './main-nav'
+import { Search, Sparkles, X } from "lucide-react";
+import Link from "next/link";
+import { MainNav } from "./main-nav";
 
 interface AppShellSidebarProps {
-	sidebarRef: React.RefObject<HTMLElement | null>
-	sidebarOpen: boolean
-	closeSidebar: () => void
-	onCommandOpen: () => void
+	sidebarRef: React.RefObject<HTMLElement | null>;
+	sidebarOpen: boolean;
+	closeSidebar: () => void;
+	onCommandOpen: () => void;
 }
 
 export function AppShellSidebar({
 	sidebarRef,
 	sidebarOpen,
 	closeSidebar,
-	onCommandOpen
+	onCommandOpen,
 }: AppShellSidebarProps) {
 	return (
 		<aside
 			ref={sidebarRef}
-			role={sidebarOpen ? 'dialog' : undefined}
+			role={sidebarOpen ? "dialog" : undefined}
 			aria-modal={sidebarOpen ? true : undefined}
 			data-tour="sidebar-nav"
 			className={`
@@ -26,12 +26,15 @@ export function AppShellSidebar({
 				border-r border-border
 				transform transition-transform duration-200 ease-out
 				lg:translate-x-0 flex flex-col
-				${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}
+				${sidebarOpen ? "translate-x-0" : "-translate-x-full"}
 			`}
 		>
 			{/* Logo */}
 			<div className="flex items-center gap-3 px-4 h-14 shrink-0">
-				<Link href="/dashboard" className="flex items-center gap-3 rounded-lg focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none hover:opacity-80 transition-opacity">
+				<Link
+					href="/dashboard"
+					className="flex items-center gap-3 rounded-lg focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none hover:opacity-80 transition-opacity"
+				>
 					<div className="flex items-center justify-center w-8 h-8 rounded-lg bg-primary">
 						<Sparkles className="w-4 h-4 text-primary-foreground" />
 					</div>
@@ -65,5 +68,5 @@ export function AppShellSidebar({
 			{/* Navigation */}
 			<MainNav onNavigate={closeSidebar} />
 		</aside>
-	)
+	);
 }

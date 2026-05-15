@@ -1,9 +1,10 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
-import type { FormEvent } from 'react'
-import { Button } from '#components/ui/button'
-import { Input } from '#components/ui/input'
+import { Calendar } from "lucide-react";
+import type { FormEvent } from "react";
+import { useState } from "react";
+import { toast } from "sonner";
+import { Button } from "#components/ui/button";
 import {
 	Dialog,
 	DialogContent,
@@ -11,58 +12,57 @@ import {
 	DialogFooter,
 	DialogHeader,
 	DialogTitle,
-	DialogTrigger
-} from '#components/ui/dialog'
-import { Field, FieldLabel } from '#components/ui/field'
-import { useMaintenanceRequestUpdateMutation } from '#hooks/api/use-maintenance'
-import { createLogger } from '#lib/frontend-logger'
-import { Calendar } from 'lucide-react'
-import { toast } from 'sonner'
+	DialogTrigger,
+} from "#components/ui/dialog";
+import { Field, FieldLabel } from "#components/ui/field";
+import { Input } from "#components/ui/input";
+import { useMaintenanceRequestUpdateMutation } from "#hooks/api/use-maintenance";
+import { createLogger } from "#lib/frontend-logger";
 
-const logger = createLogger({ component: 'ScheduleDialog' })
+const logger = createLogger({ component: "ScheduleDialog" });
 
 interface ScheduleDialogProps {
-	maintenanceId: string
-	currentDate?: string | null | undefined
-	onSuccess: () => void
+	maintenanceId: string;
+	currentDate?: string | null | undefined;
+	onSuccess: () => void;
 }
 
 export function ScheduleDialog({
 	maintenanceId,
 	currentDate,
-	onSuccess
+	onSuccess,
 }: ScheduleDialogProps) {
-	const [open, setOpen] = useState(false)
-	const updateMutation = useMaintenanceRequestUpdateMutation()
+	const [open, setOpen] = useState(false);
+	const updateMutation = useMaintenanceRequestUpdateMutation();
 	const [scheduledDate, setScheduledDate] = useState(
-		currentDate ? new Date(currentDate).toISOString().split('T')[0] : ''
-	)
+		currentDate ? new Date(currentDate).toISOString().split("T")[0] : "",
+	);
 
 	const handleSubmit = async (e: FormEvent) => {
-		e.preventDefault()
+		e.preventDefault();
 		if (!scheduledDate) {
-			toast.error('Please select a date')
-			return
+			toast.error("Please select a date");
+			return;
 		}
 
 		try {
 			await updateMutation.mutateAsync({
 				id: maintenanceId,
-				data: { scheduled_date: scheduledDate }
-			})
-			setOpen(false)
-			onSuccess()
+				data: { scheduled_date: scheduledDate },
+			});
+			setOpen(false);
+			onSuccess();
 		} catch (error) {
-			logger.error('Failed to schedule work', { error })
+			logger.error("Failed to schedule work", { error });
 		}
-	}
+	};
 
 	return (
 		<Dialog open={open} onOpenChange={setOpen}>
 			<DialogTrigger asChild>
 				<Button variant="outline" size="sm" className="gap-1.5">
 					<Calendar className="size-4" />
-					{currentDate ? 'Reschedule' : 'Schedule'}
+					{currentDate ? "Reschedule" : "Schedule"}
 				</Button>
 			</DialogTrigger>
 			<DialogContent>
@@ -79,8 +79,8 @@ export function ScheduleDialog({
 							id="schedule_date"
 							type="date"
 							value={scheduledDate}
-							onChange={e => setScheduledDate(e.target.value)}
-							min={new Date().toISOString().split('T')[0]}
+							onChange={(e) => setScheduledDate(e.target.value)}
+							min={new Date().toISOString().split("T")[0]}
 							required
 						/>
 					</Field>
@@ -93,11 +93,11 @@ export function ScheduleDialog({
 							Cancel
 						</Button>
 						<Button type="submit" disabled={updateMutation.isPending}>
-							{updateMutation.isPending ? 'Saving...' : 'Save'}
+							{updateMutation.isPending ? "Saving..." : "Save"}
 						</Button>
 					</DialogFooter>
 				</form>
 			</DialogContent>
 		</Dialog>
-	)
+	);
 }

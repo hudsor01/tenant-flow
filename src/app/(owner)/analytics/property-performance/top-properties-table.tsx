@@ -1,72 +1,71 @@
-'use client'
+"use client";
 
-
-import type { ColumnDef } from '@tanstack/react-table'
-import { DataTable } from '#components/data-table/data-table'
-import { DataTableToolbar } from '#components/data-table/data-table-toolbar'
-import { useDataTable } from '#hooks/use-data-table'
+import type { ColumnDef } from "@tanstack/react-table";
+import { DataTable } from "#components/data-table/data-table";
+import { DataTableToolbar } from "#components/data-table/data-table-toolbar";
+import { useDataTable } from "#hooks/use-data-table";
 import {
 	formatCurrency,
 	formatNumber,
-	formatPercentage
-} from '#lib/utils/currency'
-import type { PropertyPerformanceEntry } from '#types/analytics'
+	formatPercentage,
+} from "#lib/utils/currency";
+import type { PropertyPerformanceEntry } from "#types/analytics";
 
 export function TopPropertiesTable({
-	properties
+	properties,
 }: {
-	properties: PropertyPerformanceEntry[]
+	properties: PropertyPerformanceEntry[];
 }) {
 	const columns: ColumnDef<PropertyPerformanceEntry>[] = [
-			{
-				accessorKey: 'propertyName',
-				header: 'Property',
-				meta: {
-					label: 'Property Name',
-					variant: 'text',
-					placeholder: 'Search property...'
-				},
-				enableColumnFilter: true
+		{
+			accessorKey: "propertyName",
+			header: "Property",
+			meta: {
+				label: "Property Name",
+				variant: "text",
+				placeholder: "Search property...",
 			},
-			{
-				accessorKey: 'occupancyRate',
-				header: 'Occupancy',
-				meta: {
-					label: 'Occupancy Rate',
-					variant: 'number'
-				},
-				enableColumnFilter: true,
-				cell: ({ row }) => (
-					<div className="text-right">
-						{formatPercentage(row.original.occupancyRate)}
-					</div>
-				)
+			enableColumnFilter: true,
+		},
+		{
+			accessorKey: "occupancyRate",
+			header: "Occupancy",
+			meta: {
+				label: "Occupancy Rate",
+				variant: "number",
 			},
-			{
-				id: 'units',
-				header: 'Units',
-				cell: ({ row }) => (
-					<div className="text-right">
-						{formatNumber(row.original.occupiedUnits)}/
-						{formatNumber(row.original.totalUnits)}
-					</div>
-				)
+			enableColumnFilter: true,
+			cell: ({ row }) => (
+				<div className="text-right">
+					{formatPercentage(row.original.occupancyRate)}
+				</div>
+			),
+		},
+		{
+			id: "units",
+			header: "Units",
+			cell: ({ row }) => (
+				<div className="text-right">
+					{formatNumber(row.original.occupiedUnits)}/
+					{formatNumber(row.original.totalUnits)}
+				</div>
+			),
+		},
+		{
+			accessorKey: "monthlyRevenue",
+			header: "Monthly revenue",
+			meta: {
+				label: "Monthly Revenue",
+				variant: "number",
 			},
-			{
-				accessorKey: 'monthlyRevenue',
-				header: 'Monthly revenue',
-				meta: {
-					label: 'Monthly Revenue',
-					variant: 'number'
-				},
-				enableColumnFilter: true,
-				cell: ({ row }) => (
-					<div className="text-right">
-						{formatCurrency(row.original.monthlyRevenue)}
-					</div>
-				)
-			}
-		]
+			enableColumnFilter: true,
+			cell: ({ row }) => (
+				<div className="text-right">
+					{formatCurrency(row.original.monthlyRevenue)}
+				</div>
+			),
+		},
+	];
 
 	const { table } = useDataTable({
 		data: properties,
@@ -76,22 +75,22 @@ export function TopPropertiesTable({
 		initialState: {
 			pagination: {
 				pageIndex: 0,
-				pageSize: 6
-			}
-		}
-	})
+				pageSize: 6,
+			},
+		},
+	});
 
 	if (!properties.length) {
 		return (
 			<div className="text-center text-muted-foreground py-8">
 				No property data available
 			</div>
-		)
+		);
 	}
 
 	return (
 		<DataTable table={table}>
 			<DataTableToolbar table={table} />
 		</DataTable>
-	)
+	);
 }

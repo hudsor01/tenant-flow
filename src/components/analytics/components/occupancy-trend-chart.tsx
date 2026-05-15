@@ -1,9 +1,9 @@
-import { TrendingUp } from 'lucide-react'
-import { BlurFade } from '#components/ui/blur-fade'
-import type { OccupancyTrend } from '../analytics-types'
+import { TrendingUp } from "lucide-react";
+import { BlurFade } from "#components/ui/blur-fade";
+import type { OccupancyTrend } from "../analytics-types";
 
 interface OccupancyTrendChartProps {
-	data: OccupancyTrend[]
+	data: OccupancyTrend[];
 }
 
 export function OccupancyTrendChart({ data }: OccupancyTrendChartProps) {
@@ -30,7 +30,7 @@ export function OccupancyTrendChart({ data }: OccupancyTrendChartProps) {
 								>
 									<div
 										className="absolute inset-x-0 bottom-0 bg-emerald-500 rounded-t"
-										style={{ height: '100%' }}
+										style={{ height: "100%" }}
 									/>
 									<span className="absolute -top-6 left-1/2 -translate-x-1/2 text-xs font-medium text-foreground">
 										{item.rate}%
@@ -45,5 +45,5 @@ export function OccupancyTrendChart({ data }: OccupancyTrendChartProps) {
 				</div>
 			</div>
 		</BlurFade>
-	)
+	);
 }

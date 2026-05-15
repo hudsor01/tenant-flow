@@ -1,6 +1,8 @@
-'use client'
+"use client";
 
-import { Button } from '#components/ui/button'
+import { Loader2, Shield } from "lucide-react";
+import { useState } from "react";
+import { Button } from "#components/ui/button";
 import {
 	Dialog,
 	DialogBody,
@@ -8,25 +10,23 @@ import {
 	DialogDescription,
 	DialogFooter,
 	DialogHeader,
-	DialogTitle
-} from '#components/ui/dialog'
+	DialogTitle,
+} from "#components/ui/dialog";
 import {
 	InputOTP,
 	InputOTPGroup,
+	InputOTPSeparator,
 	InputOTPSlot,
-	InputOTPSeparator
-} from '#components/ui/input-otp'
-import { createClient } from '#lib/supabase/client'
-import { logger } from '#lib/frontend-logger'
-import { Loader2, Shield } from 'lucide-react'
-import { useState } from 'react'
+} from "#components/ui/input-otp";
+import { logger } from "#lib/frontend-logger";
+import { createClient } from "#lib/supabase/client";
 
 interface MfaVerificationDialogProps {
-	open: boolean
-	onOpenChange: (open: boolean) => void
-	factorId: string
-	onSuccess: () => void
-	onCancel: () => void
+	open: boolean;
+	onOpenChange: (open: boolean) => void;
+	factorId: string;
+	onSuccess: () => void;
+	onCancel: () => void;
 }
 
 /**
@@ -38,73 +38,73 @@ export function MfaVerificationDialog({
 	onOpenChange,
 	factorId,
 	onSuccess,
-	onCancel
+	onCancel,
 }: MfaVerificationDialogProps) {
-	const [code, setCode] = useState('')
-	const [isVerifying, setIsVerifying] = useState(false)
-	const [error, setError] = useState<string | null>(null)
+	const [code, setCode] = useState("");
+	const [isVerifying, setIsVerifying] = useState(false);
+	const [error, setError] = useState<string | null>(null);
 
 	const handleVerify = async () => {
-		if (code.length !== 6) return
+		if (code.length !== 6) return;
 
-		setIsVerifying(true)
-		setError(null)
+		setIsVerifying(true);
+		setError(null);
 
 		try {
-			const supabase = createClient()
+			const supabase = createClient();
 
 			// Create a challenge
 			const { data: challengeData, error: challengeError } =
-				await supabase.auth.mfa.challenge({ factorId })
+				await supabase.auth.mfa.challenge({ factorId });
 
 			if (challengeError) {
-				throw challengeError
+				throw challengeError;
 			}
 
 			// Verify the code
 			const { error: verifyError } = await supabase.auth.mfa.verify({
 				factorId,
 				challengeId: challengeData.id,
-				code
-			})
+				code,
+			});
 
 			if (verifyError) {
-				throw verifyError
+				throw verifyError;
 			}
 
-			logger.info('MFA verification successful during login')
-			onSuccess()
+			logger.info("MFA verification successful during login");
+			onSuccess();
 		} catch (err) {
-			logger.error('MFA verification failed during login', {
-				action: 'mfa_login_verify',
+			logger.error("MFA verification failed during login", {
+				action: "mfa_login_verify",
 				metadata: {
-					error: err instanceof Error ? err.message : 'Unknown error'
-				}
-			})
-			setError('Invalid code. Please try again.')
-			setCode('')
+					error: err instanceof Error ? err.message : "Unknown error",
+				},
+			});
+			setError("Invalid code. Please try again.");
+			setCode("");
 		} finally {
-			setIsVerifying(false)
+			setIsVerifying(false);
 		}
-	}
+	};
 
 	const handleCancel = () => {
-		setCode('')
-		setError(null)
-		onCancel()
-	}
+		setCode("");
+		setError(null);
+		onCancel();
+	};
 
 	// Auto-submit when 6 digits are entered
 	const handleCodeChange = (value: string) => {
-		setCode(value)
-		setError(null)
+		setCode(value);
+		setError(null);
 		if (value.length === 6) {
 			// Small delay to show the completed input before verifying
 			setTimeout(() => {
-				handleVerify()
-			}, 100)
+				handleVerify();
+			}, 100);
 		}
-	}
+	};
 
 	return (
 		<Dialog open={open} onOpenChange={onOpenChange}>
@@ -176,11 +176,11 @@ export function MfaVerificationDialog({
 								Verifying...
 							</>
 						) : (
-							'Verify'
+							"Verify"
 						)}
 					</Button>
 				</DialogFooter>
 			</DialogContent>
 		</Dialog>
-	)
+	);
 }

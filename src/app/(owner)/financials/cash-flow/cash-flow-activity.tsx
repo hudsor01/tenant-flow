@@ -1,16 +1,16 @@
-import { BlurFade } from '#components/ui/blur-fade'
-import { formatCents } from '#lib/utils/currency'
+import { BlurFade } from "#components/ui/blur-fade";
+import { formatCents } from "#lib/utils/currency";
 
 interface CashFlowActivityProps {
-	netOperatingCash: number
-	netInvestingCash: number
-	netFinancingCash: number
+	netOperatingCash: number;
+	netInvestingCash: number;
+	netFinancingCash: number;
 }
 
 export function CashFlowActivity({
 	netOperatingCash,
 	netInvestingCash,
-	netFinancingCash
+	netFinancingCash,
 }: CashFlowActivityProps) {
 	return (
 		<BlurFade delay={0.4} inView>
@@ -46,5 +46,5 @@ export function CashFlowActivity({
 				</div>
 			</div>
 		</BlurFade>
-	)
+	);
 }

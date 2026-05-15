@@ -1,10 +1,10 @@
-'use server'
+"use server";
 
-import * as Sentry from '@sentry/nextjs'
-import { createServerClient, type CookieOptions } from '@supabase/ssr'
-import { cookies } from 'next/headers'
-import { redirect } from 'next/navigation'
-import { env } from '#env'
+import * as Sentry from "@sentry/nextjs";
+import { type CookieOptions, createServerClient } from "@supabase/ssr";
+import { cookies } from "next/headers";
+import { redirect } from "next/navigation";
+import { env } from "#env";
 
 /**
  * Server Action: Sign out user
@@ -19,7 +19,7 @@ import { env } from '#env'
  * - Handles session cleanup server-side
  */
 export async function signOut() {
-	const cookieStore = await cookies()
+	const cookieStore = await cookies();
 
 	const supabase = createServerClient(
 		env.NEXT_PUBLIC_SUPABASE_URL,
@@ -27,39 +27,39 @@ export async function signOut() {
 		{
 			cookies: {
 				getAll() {
-					return cookieStore.getAll()
+					return cookieStore.getAll();
 				},
 				setAll(
 					cookiesToSet: {
-						name: string
-						value: string
-						options: CookieOptions
-					}[]
+						name: string;
+						value: string;
+						options: CookieOptions;
+					}[],
 				) {
 					try {
 						cookiesToSet.forEach(({ name, value, options }) =>
-							cookieStore.set(name, value, options)
-						)
+							cookieStore.set(name, value, options),
+						);
 					} catch {
 						// Ignore errors (server component context)
 					}
-				}
-			}
-		}
-	)
+				},
+			},
+		},
+	);
 
 	try {
-		const { error } = await supabase.auth.signOut()
+		const { error } = await supabase.auth.signOut();
 		if (error) {
 			Sentry.captureException(error, {
-				tags: { action: 'signOut' }
-			})
+				tags: { action: "signOut" },
+			});
 		}
 	} catch (err) {
 		// Log unexpected errors but still redirect so the user isn't stuck.
 		// `redirect()` below throws NEXT_REDIRECT which is the intended
 		// control flow — we don't catch THAT one because it's outside this try.
-		Sentry.captureException(err, { tags: { action: 'signOut' } })
+		Sentry.captureException(err, { tags: { action: "signOut" } });
 	}
-	redirect('/login')
+	redirect("/login");
 }

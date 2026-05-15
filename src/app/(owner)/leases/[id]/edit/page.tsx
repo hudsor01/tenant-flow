@@ -1,18 +1,18 @@
-'use client'
+"use client";
 
-import { use } from 'react'
-import { LeaseForm } from '#components/leases/lease-form'
-import { Skeleton } from '#components/ui/skeleton'
-import { leaseQueries } from '#hooks/api/query-keys/lease-keys'
-import { useQuery } from '@tanstack/react-query'
+import { useQuery } from "@tanstack/react-query";
+import { use } from "react";
+import { LeaseForm } from "#components/leases/lease-form";
+import { Skeleton } from "#components/ui/skeleton";
+import { leaseQueries } from "#hooks/api/query-keys/lease-keys";
 
 interface LeaseEditPageProps {
-	params: Promise<{ id: string }>
+	params: Promise<{ id: string }>;
 }
 
 export default function LeaseEditPage({ params }: LeaseEditPageProps) {
-	const { id } = use(params)
-	const { data: lease, isLoading, error } = useQuery(leaseQueries.detail(id))
+	const { id } = use(params);
+	const { data: lease, isLoading, error } = useQuery(leaseQueries.detail(id));
 
 	if (isLoading) {
 		return (
@@ -23,7 +23,7 @@ export default function LeaseEditPage({ params }: LeaseEditPageProps) {
 				</div>
 				<Skeleton className="h-96 w-full rounded-xl" />
 			</div>
-		)
+		);
 	}
 
 	if (error) {
@@ -34,11 +34,11 @@ export default function LeaseEditPage({ params }: LeaseEditPageProps) {
 						Error Loading Lease
 					</h2>
 					<p className="text-muted-foreground">
-						{error instanceof Error ? error.message : 'Failed to load lease'}
+						{error instanceof Error ? error.message : "Failed to load lease"}
 					</p>
 				</div>
 			</div>
-		)
+		);
 	}
 
 	if (!lease) {
@@ -46,7 +46,7 @@ export default function LeaseEditPage({ params }: LeaseEditPageProps) {
 			<div className="mx-auto w-full max-w-4xl space-y-10">
 				<p className="text-muted-foreground">Lease not found</p>
 			</div>
-		)
+		);
 	}
 
 	return (
@@ -63,11 +63,11 @@ export default function LeaseEditPage({ params }: LeaseEditPageProps) {
 				lease={lease}
 				onSuccess={() => {
 					// Navigate back after successful update
-					if (typeof window !== 'undefined') {
-						window.history.back()
+					if (typeof window !== "undefined") {
+						window.history.back();
 					}
 				}}
 			/>
 		</div>
-	)
+	);
 }

@@ -1,11 +1,15 @@
-import { Badge } from '#components/ui/badge'
-import { formatNumber, formatPercentage } from '#lib/utils/currency'
-import type { UnitStatisticEntry } from '#types/analytics'
+import { Badge } from "#components/ui/badge";
+import { formatNumber, formatPercentage } from "#lib/utils/currency";
+import type { UnitStatisticEntry } from "#types/analytics";
 
-export function PortfolioKPIs({ unitStats }: { unitStats: UnitStatisticEntry[] }) {
+export function PortfolioKPIs({
+	unitStats,
+}: {
+	unitStats: UnitStatisticEntry[];
+}) {
 	return (
 		<div className="space-y-3">
-			{unitStats.slice(0, 6).map(stat => (
+			{unitStats.slice(0, 6).map((stat) => (
 				<div
 					key={stat.label}
 					className="flex items-center justify-between rounded-lg border px-3 py-2 text-sm"
@@ -15,7 +19,7 @@ export function PortfolioKPIs({ unitStats }: { unitStats: UnitStatisticEntry[] }
 						{formatNumber(stat.value)}
 						{stat.trend !== null && stat.trend !== undefined && (
 							<Badge
-								variant={stat.trend >= 0 ? 'outline' : 'destructive'}
+								variant={stat.trend >= 0 ? "outline" : "destructive"}
 								className="ml-2"
 							>
 								{formatPercentage(Math.abs(stat.trend))}
@@ -25,5 +29,5 @@ export function PortfolioKPIs({ unitStats }: { unitStats: UnitStatisticEntry[] }
 				</div>
 			))}
 		</div>
-	)
+	);
 }

@@ -1,12 +1,12 @@
-import type { CSSProperties } from 'react'
+import type { CSSProperties } from "react";
 
-import { Card, CardContent, CardHeader } from '#components/ui/card'
-import { Skeleton } from '#components/ui/skeleton'
-import { cn } from '#lib/utils'
+import { Card, CardContent, CardHeader } from "#components/ui/card";
+import { Skeleton } from "#components/ui/skeleton";
+import { cn } from "#lib/utils";
 
 interface PropertyCardSkeletonProps {
-	className?: string
-	style?: CSSProperties
+	className?: string;
+	style?: CSSProperties;
 }
 
 /**
@@ -15,13 +15,13 @@ interface PropertyCardSkeletonProps {
  */
 export function PropertyCardSkeleton({
 	className,
-	style
+	style,
 }: PropertyCardSkeletonProps) {
 	return (
 		<Card
 			className={cn(
-				'card-standard overflow-hidden animate-in fade-in slide-in-from-bottom-4',
-				className
+				"card-standard overflow-hidden animate-in fade-in slide-in-from-bottom-4",
+				className,
 			)}
 			style={style}
 			data-testid="property-card-skeleton"
@@ -80,7 +80,7 @@ export function PropertyCardSkeleton({
 				<Skeleton className="h-9 w-full rounded-md" />
 			</CardContent>
 		</Card>
-	)
+	);
 }
 
 /**
@@ -97,5 +97,5 @@ export function PropertyGridSkeleton({ count = 6 }: { count?: number }) {
 				/>
 			))}
 		</div>
-	)
+	);
 }

@@ -4,20 +4,20 @@
  * Follows Supabase Auth-first architecture
  */
 
-'use client'
+"use client";
 
-import { createLogger } from '#lib/frontend-logger'
-import type { FormProgressData } from '#types/core'
-import { startTransition, useDeferredValue, useEffect, useState } from 'react'
+import { startTransition, useDeferredValue, useEffect, useState } from "react";
+import { createLogger } from "#lib/frontend-logger";
+import type { FormProgressData } from "#types/core";
 
-const logger = createLogger({ component: 'FormProgressHook' })
+const logger = createLogger({ component: "FormProgressHook" });
 
-type FormType = 'signup' | 'login' | 'reset' | 'contact'
+type FormType = "signup" | "login" | "reset" | "contact";
 
 interface FormProgressState {
-	data: FormProgressData | null
-	isLoading: boolean
-	error: string | null
+	data: FormProgressData | null;
+	isLoading: boolean;
+	error: string | null;
 }
 
 /**
@@ -28,102 +28,102 @@ function useFormProgress(formType: FormType) {
 	const [state, setState] = useState<FormProgressState>({
 		data: null,
 		isLoading: true,
-		error: null
-	})
+		error: null,
+	});
 
 	// Load draft on mount - React 19 pattern: no setTimeout needed
 	// The effect runs after hydration completes automatically
 	useEffect(() => {
-		let active = true
+		let active = true;
 
 		// Ensure we're on the client side (check is fast, no setTimeout needed)
-		if (typeof window === 'undefined') return
+		if (typeof window === "undefined") return;
 
 		try {
-			const savedData = localStorage.getItem(`form-progress-${formType}`)
-			const data = savedData ? JSON.parse(savedData) : null
+			const savedData = localStorage.getItem(`form-progress-${formType}`);
+			const data = savedData ? JSON.parse(savedData) : null;
 
 			// Only update if component is still mounted
 			if (active) {
-				setState(prev => ({
+				setState((prev) => ({
 					...prev,
 					data,
-					isLoading: false
-				}))
+					isLoading: false,
+				}));
 			}
 		} catch (error) {
 			// Only update if component is still mounted
 			if (active) {
-				setState(prev => ({
+				setState((prev) => ({
 					...prev,
 					error:
-						error instanceof Error ? error.message : 'Failed to load draft',
-					isLoading: false
-				}))
+						error instanceof Error ? error.message : "Failed to load draft",
+					isLoading: false,
+				}));
 			}
 		}
 
 		return () => {
-			active = false
-		}
-	}, [formType])
+			active = false;
+		};
+	}, [formType]);
 
 	// Save progress function with local storage (excludes sensitive data)
 	const saveProgress = async (data: FormProgressData): Promise<void> => {
 		try {
 			// Skip if no meaningful data to save
-			if (!data.email && !data.name) return
+			if (!data.email && !data.name) return;
 
 			// Security: Never save passwords locally
-			const safeData = { ...data }
-			delete safeData.password
-			delete safeData.confirmPassword
+			const safeData = { ...data };
+			delete safeData.password;
+			delete safeData.confirmPassword;
 
 			// Save to localStorage
 			localStorage.setItem(
 				`form-progress-${formType}`,
-				JSON.stringify(safeData)
-			)
+				JSON.stringify(safeData),
+			);
 
-			setState(prev => ({
+			setState((prev) => ({
 				...prev,
 				data: safeData,
-				error: null
-			}))
+				error: null,
+			}));
 		} catch (error) {
 			// Graceful degradation - don't break the form
-			logger.warn('Failed to save form progress', {
-				action: 'form_progress_save_failed',
+			logger.warn("Failed to save form progress", {
+				action: "form_progress_save_failed",
 				metadata: {
 					formType,
 					hasEmail: !!data.email,
 					hasName: !!data.name,
-					error: error instanceof Error ? error.message : String(error)
-				}
-			})
-			setState(prev => ({
+					error: error instanceof Error ? error.message : String(error),
+				},
+			});
+			setState((prev) => ({
 				...prev,
 				error:
-					error instanceof Error ? error.message : 'Failed to save progress'
-			}))
+					error instanceof Error ? error.message : "Failed to save progress",
+			}));
 		}
-	}
+	};
 
 	// Clear progress (on successful submission)
 	const clearProgress = () => {
-		localStorage.removeItem(`form-progress-${formType}`)
-		setState(prev => ({
+		localStorage.removeItem(`form-progress-${formType}`);
+		setState((prev) => ({
 			...prev,
 			data: null,
-			error: null
-		}))
-	}
+			error: null,
+		}));
+	};
 
 	return {
 		...state,
 		saveProgress,
-		clearProgress
-	}
+		clearProgress,
+	};
 }
 
 /**
@@ -133,21 +133,21 @@ function useFormProgress(formType: FormType) {
 export function useFormWithProgress<T extends FormProgressData>(
 	formType: FormType,
 	onSubmit: (data: T) => Promise<void>,
-	defaultValues: T
+	defaultValues: T,
 ) {
-	const progress = useFormProgress(formType)
-	const [formData, setFormData] = useState<T>(defaultValues) // Start with clean defaults
-	const [isSubmitting, setIsSubmitting] = useState(false)
-	const [submitError, setSubmitError] = useState<string | null>(null)
-	const [isHydrated, setIsHydrated] = useState(false)
+	const progress = useFormProgress(formType);
+	const [formData, setFormData] = useState<T>(defaultValues); // Start with clean defaults
+	const [isSubmitting, setIsSubmitting] = useState(false);
+	const [submitError, setSubmitError] = useState<string | null>(null);
+	const [isHydrated, setIsHydrated] = useState(false);
 
 	// Mark as hydrated on client
 	useEffect(() => {
-		setIsHydrated(true)
-	}, [])
+		setIsHydrated(true);
+	}, []);
 
 	// React 19: Use deferred values for non-urgent updates
-	const deferredFormData = useDeferredValue(formData)
+	const deferredFormData = useDeferredValue(formData);
 
 	// Auto-save progress when form data changes (deferred) - only after hydration, excluding passwords
 	useEffect(() => {
@@ -158,40 +158,40 @@ export function useFormWithProgress<T extends FormProgressData>(
 		) {
 			startTransition(() => {
 				// Security: Never auto-save passwords
-				const safeData = { ...deferredFormData }
-				delete safeData.password
-				delete safeData.confirmPassword
-				progress.saveProgress(safeData)
-			})
+				const safeData = { ...deferredFormData };
+				delete safeData.password;
+				delete safeData.confirmPassword;
+				progress.saveProgress(safeData);
+			});
 		}
-	}, [deferredFormData, progress, isHydrated])
+	}, [deferredFormData, progress, isHydrated]);
 
 	// Restore progress data when loaded - only after hydration
 	useEffect(() => {
 		if (isHydrated && progress.data && !progress.isLoading) {
-			setFormData(prev => ({ ...prev, ...progress.data }))
+			setFormData((prev) => ({ ...prev, ...progress.data }));
 		}
-	}, [progress.data, progress.isLoading, isHydrated])
+	}, [progress.data, progress.isLoading, isHydrated]);
 
 	const handleSubmit = async (data: T) => {
-		setIsSubmitting(true)
-		setSubmitError(null)
+		setIsSubmitting(true);
+		setSubmitError(null);
 
 		try {
-			await onSubmit(data)
-			progress.clearProgress()
+			await onSubmit(data);
+			progress.clearProgress();
 		} catch (error) {
 			setSubmitError(
-				error instanceof Error ? error.message : 'Submission failed'
-			)
+				error instanceof Error ? error.message : "Submission failed",
+			);
 		} finally {
-			setIsSubmitting(false)
+			setIsSubmitting(false);
 		}
-	}
+	};
 
 	const updateField = <K extends keyof T>(field: K, value: T[K]) => {
-		setFormData(prev => ({ ...prev, [field]: value }))
-	}
+		setFormData((prev) => ({ ...prev, [field]: value }));
+	};
 
 	return {
 		formData,
@@ -203,7 +203,7 @@ export function useFormWithProgress<T extends FormProgressData>(
 		progress: {
 			isLoading: progress.isLoading,
 			error: progress.error,
-			hasData: !!progress.data
-		}
-	}
+			hasData: !!progress.data,
+		},
+	};
 }

@@ -1,27 +1,27 @@
-import { TrendingUp, TrendingDown, DollarSign, Clock } from 'lucide-react'
-import { BlurFade } from '#components/ui/blur-fade'
-import { NumberTicker } from '#components/ui/number-ticker'
-import { BorderBeam } from '#components/ui/border-beam'
+import { Clock, DollarSign, TrendingDown, TrendingUp } from "lucide-react";
+import { BlurFade } from "#components/ui/blur-fade";
+import { BorderBeam } from "#components/ui/border-beam";
+import { NumberTicker } from "#components/ui/number-ticker";
 import {
 	Stat,
+	StatDescription,
+	StatIndicator,
 	StatLabel,
 	StatValue,
-	StatIndicator,
-	StatDescription
-} from '#components/ui/stat'
+} from "#components/ui/stat";
 
 interface RecentMonths {
-	revenueChange: number
-	expenseChange: number
+	revenueChange: number;
+	expenseChange: number;
 }
 
 interface FinancialsSummaryStatsProps {
-	totalRevenue: number
-	totalExpenses: number
-	netIncome: number
-	accountsReceivable: number
-	profitMargin: string
-	recentMonths: RecentMonths | null
+	totalRevenue: number;
+	totalExpenses: number;
+	netIncome: number;
+	accountsReceivable: number;
+	profitMargin: string;
+	recentMonths: RecentMonths | null;
 }
 
 export function FinancialsSummaryStats({
@@ -30,7 +30,7 @@ export function FinancialsSummaryStats({
 	netIncome,
 	accountsReceivable,
 	profitMargin,
-	recentMonths
+	recentMonths,
 }: FinancialsSummaryStatsProps) {
 	return (
 		<div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
@@ -57,8 +57,8 @@ export function FinancialsSummaryStats({
 					</StatIndicator>
 					<StatDescription>
 						{recentMonths
-							? `${recentMonths.revenueChange >= 0 ? '+' : ''}${recentMonths.revenueChange.toFixed(1)}% vs last month`
-							: 'year to date'}
+							? `${recentMonths.revenueChange >= 0 ? "+" : ""}${recentMonths.revenueChange.toFixed(1)}% vs last month`
+							: "year to date"}
 					</StatDescription>
 				</Stat>
 			</BlurFade>
@@ -78,8 +78,8 @@ export function FinancialsSummaryStats({
 					</StatIndicator>
 					<StatDescription>
 						{recentMonths
-							? `${recentMonths.expenseChange >= 0 ? '+' : ''}${recentMonths.expenseChange.toFixed(1)}% vs last month`
-							: 'operating costs'}
+							? `${recentMonths.expenseChange >= 0 ? "+" : ""}${recentMonths.expenseChange.toFixed(1)}% vs last month`
+							: "operating costs"}
 					</StatDescription>
 				</Stat>
 			</BlurFade>
@@ -96,9 +96,9 @@ export function FinancialsSummaryStats({
 					)}
 					<StatLabel>Net Income</StatLabel>
 					<StatValue
-						className={`flex items-baseline gap-0.5 ${netIncome >= 0 ? '' : 'text-destructive'}`}
+						className={`flex items-baseline gap-0.5 ${netIncome >= 0 ? "" : "text-destructive"}`}
 					>
-						<span className="text-lg">{netIncome >= 0 ? '$' : '-$'}</span>
+						<span className="text-lg">{netIncome >= 0 ? "$" : "-$"}</span>
 						<NumberTicker
 							value={Math.abs(Math.floor(netIncome / 100))}
 							duration={1500}
@@ -136,5 +136,5 @@ export function FinancialsSummaryStats({
 				</Stat>
 			</BlurFade>
 		</div>
-	)
+	);
 }

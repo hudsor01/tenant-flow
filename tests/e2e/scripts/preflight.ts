@@ -10,188 +10,189 @@
  */
 
 interface CheckResult {
-	name: string
-	status: 'pass' | 'fail' | 'warn'
-	message: string
+	name: string;
+	status: "pass" | "fail" | "warn";
+	message: string;
 }
 
-const results: CheckResult[] = []
+const results: CheckResult[] = [];
 
 function check(
 	name: string,
 	condition: boolean,
 	failMessage: string,
-	warnOnly = false
+	warnOnly = false,
 ): void {
 	if (condition) {
-		results.push({ name, status: 'pass', message: 'OK' })
+		results.push({ name, status: "pass", message: "OK" });
 	} else {
 		results.push({
 			name,
-			status: warnOnly ? 'warn' : 'fail',
-			message: failMessage
-		})
+			status: warnOnly ? "warn" : "fail",
+			message: failMessage,
+		});
 	}
 }
 
 async function checkUrl(
 	name: string,
 	url: string,
-	warnOnly = false
+	warnOnly = false,
 ): Promise<void> {
 	try {
-		const controller = new AbortController()
-		const timeout = setTimeout(() => controller.abort(), 5000)
-		const response = await fetch(url, { signal: controller.signal })
-		clearTimeout(timeout)
+		const controller = new AbortController();
+		const timeout = setTimeout(() => controller.abort(), 5000);
+		const response = await fetch(url, { signal: controller.signal });
+		clearTimeout(timeout);
 		check(
 			name,
 			response.ok || response.status < 500,
 			`${url} returned ${response.status}`,
-			warnOnly
-		)
+			warnOnly,
+		);
 	} catch (error) {
-		const message = error instanceof Error ? error.message : String(error)
-		check(name, false, `${url} unreachable: ${message}`, warnOnly)
+		const message = error instanceof Error ? error.message : String(error);
+		check(name, false, `${url} unreachable: ${message}`, warnOnly);
 	}
 }
 
 async function main(): Promise<void> {
-	console.log('\n🔍 E2E Test Preflight Check\n')
-	console.log('='.repeat(60))
+	console.log("\n🔍 E2E Test Preflight Check\n");
+	console.log("=".repeat(60));
 
 	// === Required Environment Variables ===
-	console.log('\n📋 Environment Variables\n')
+	console.log("\n📋 Environment Variables\n");
 
 	check(
-		'E2E_OWNER_EMAIL',
+		"E2E_OWNER_EMAIL",
 		!!process.env.E2E_OWNER_EMAIL,
-		'Missing E2E_OWNER_EMAIL - set in .env'
-	)
+		"Missing E2E_OWNER_EMAIL - set in .env",
+	);
 
 	check(
-		'E2E_OWNER_PASSWORD',
+		"E2E_OWNER_PASSWORD",
 		!!process.env.E2E_OWNER_PASSWORD,
-		'Missing E2E_OWNER_PASSWORD - set in .env'
-	)
+		"Missing E2E_OWNER_PASSWORD - set in .env",
+	);
 
 	check(
-		'NEXT_PUBLIC_SUPABASE_URL',
+		"NEXT_PUBLIC_SUPABASE_URL",
 		!!process.env.NEXT_PUBLIC_SUPABASE_URL,
-		'Missing NEXT_PUBLIC_SUPABASE_URL - required for auth'
-	)
+		"Missing NEXT_PUBLIC_SUPABASE_URL - required for auth",
+	);
 
 	check(
-		'NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY',
+		"NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY",
 		!!process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY,
-		'Missing NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY - required for auth'
-	)
+		"Missing NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY - required for auth",
+	);
 
 	// Optional but useful
 	check(
-		'E2E_TENANT_EMAIL',
+		"E2E_TENANT_EMAIL",
 		!!process.env.E2E_TENANT_EMAIL,
-		'Missing - tenant portal tests will be skipped',
-		true // warn only
-	)
+		"Missing - tenant portal tests will be skipped",
+		true, // warn only
+	);
 
 	// === Supabase Auth Check ===
-	console.log('\n🔐 Supabase Authentication\n')
+	console.log("\n🔐 Supabase Authentication\n");
 
-	const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-	const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY
-	const email = process.env.E2E_OWNER_EMAIL
-	const password = process.env.E2E_OWNER_PASSWORD
+	const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+	const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
+	const email = process.env.E2E_OWNER_EMAIL;
+	const password = process.env.E2E_OWNER_PASSWORD;
 
 	if (supabaseUrl && supabaseKey && email && password) {
 		try {
 			const response = await fetch(
 				`${supabaseUrl}/auth/v1/token?grant_type=password`,
 				{
-					method: 'POST',
+					method: "POST",
 					headers: {
 						apikey: supabaseKey,
-						'Content-Type': 'application/json'
+						"Content-Type": "application/json",
 					},
-					body: JSON.stringify({ email, password })
-				}
-			)
+					body: JSON.stringify({ email, password }),
+				},
+			);
 
 			if (response.ok) {
-				const data = await response.json()
-				check('Supabase Auth', true, 'OK')
+				const data = await response.json();
+				check("Supabase Auth", true, "OK");
 				check(
-					'User ID present',
+					"User ID present",
 					!!data.user?.id,
-					'Auth succeeded but no user ID returned'
-				)
+					"Auth succeeded but no user ID returned",
+				);
 			} else {
-				const error = await response.text()
-				check('Supabase Auth', false, `Login failed: ${error}`)
+				const error = await response.text();
+				check("Supabase Auth", false, `Login failed: ${error}`);
 			}
 		} catch (error) {
-			const message = error instanceof Error ? error.message : String(error)
-			check('Supabase Auth', false, `Auth request failed: ${message}`)
+			const message = error instanceof Error ? error.message : String(error);
+			check("Supabase Auth", false, `Auth request failed: ${message}`);
 		}
 	} else {
-		check('Supabase Auth', false, 'Skipped - missing env vars')
+		check("Supabase Auth", false, "Skipped - missing env vars");
 	}
 
 	// === Server Connectivity (optional - webServer will start them) ===
-	console.log('\n🌐 Server Connectivity (optional - Playwright auto-starts)\n')
+	console.log("\n🌐 Server Connectivity (optional - Playwright auto-starts)\n");
 
-	const frontendUrl = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:3050'
+	const frontendUrl =
+		process.env.PLAYWRIGHT_BASE_URL || "http://localhost:3050";
 
-	await checkUrl('Frontend', frontendUrl, true)
+	await checkUrl("Frontend", frontendUrl, true);
 
 	// === Print Results ===
-	console.log('\n' + '='.repeat(60))
-	console.log('\n📊 Results\n')
+	console.log("\n" + "=".repeat(60));
+	console.log("\n📊 Results\n");
 
-	let passed = 0
-	let failed = 0
-	let warned = 0
+	let passed = 0;
+	let failed = 0;
+	let warned = 0;
 
 	for (const result of results) {
 		const icon =
-			result.status === 'pass' ? '✅' : result.status === 'warn' ? '⚠️ ' : '❌'
+			result.status === "pass" ? "✅" : result.status === "warn" ? "⚠️ " : "❌";
 		const color =
-			result.status === 'pass'
-				? '\x1b[32m'
-				: result.status === 'warn'
-					? '\x1b[33m'
-					: '\x1b[31m'
-		const reset = '\x1b[0m'
-		console.log(`${icon} ${color}${result.name}${reset}: ${result.message}`)
+			result.status === "pass"
+				? "\x1b[32m"
+				: result.status === "warn"
+					? "\x1b[33m"
+					: "\x1b[31m";
+		const reset = "\x1b[0m";
+		console.log(`${icon} ${color}${result.name}${reset}: ${result.message}`);
 
-		if (result.status === 'pass') passed++
-		else if (result.status === 'warn') warned++
-		else failed++
+		if (result.status === "pass") passed++;
+		else if (result.status === "warn") warned++;
+		else failed++;
 	}
 
-	console.log('\n' + '='.repeat(60))
+	console.log("\n" + "=".repeat(60));
 	console.log(
-		`\n✅ Passed: ${passed}  ⚠️  Warnings: ${warned}  ❌ Failed: ${failed}\n`
-	)
+		`\n✅ Passed: ${passed}  ⚠️  Warnings: ${warned}  ❌ Failed: ${failed}\n`,
+	);
 
 	if (failed > 0) {
 		console.log(
-			'❌ Preflight checks failed. Fix the issues above before running tests.\n'
-		)
-		console.log('📖 See TESTING.md for setup instructions.\n')
-		process.exit(1)
+			"❌ Preflight checks failed. Fix the issues above before running tests.\n",
+		);
+		console.log("📖 See TESTING.md for setup instructions.\n");
+		process.exit(1);
 	} else if (warned > 0) {
 		console.log(
-			'⚠️  Some checks have warnings. Tests may skip certain scenarios.\n'
-		)
-		process.exit(0)
+			"⚠️  Some checks have warnings. Tests may skip certain scenarios.\n",
+		);
+		process.exit(0);
 	} else {
-		console.log('✅ All preflight checks passed. Ready to run tests!\n')
-		process.exit(0)
+		console.log("✅ All preflight checks passed. Ready to run tests!\n");
+		process.exit(0);
 	}
 }
 
-main().catch(error => {
-	console.error('Preflight script error:', error)
-	process.exit(1)
-})
+main().catch((error) => {
+	console.error("Preflight script error:", error);
+	process.exit(1);
+});

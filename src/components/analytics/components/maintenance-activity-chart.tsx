@@ -1,24 +1,26 @@
-import { Wrench } from 'lucide-react'
-import { BlurFade } from '#components/ui/blur-fade'
-import type { MaintenanceTrend } from '../analytics-types'
+import { Wrench } from "lucide-react";
+import { BlurFade } from "#components/ui/blur-fade";
+import type { MaintenanceTrend } from "../analytics-types";
 
 interface MaintenanceActivityChartProps {
-	data: MaintenanceTrend[]
+	data: MaintenanceTrend[];
 }
 
 export function MaintenanceActivityChart({
-	data
+	data,
 }: MaintenanceActivityChartProps) {
 	const maxMaintenance = Math.max(
-		...data.map(d => Math.max(d.opened, d.completed))
-	)
+		...data.map((d) => Math.max(d.opened, d.completed)),
+	);
 
 	return (
 		<BlurFade delay={0.8} inView>
 			<div className="bg-card border border-border rounded-lg p-6">
 				<div className="flex items-center justify-between mb-6">
 					<div>
-						<h3 className="font-medium text-foreground">Maintenance Activity</h3>
+						<h3 className="font-medium text-foreground">
+							Maintenance Activity
+						</h3>
 						<p className="text-sm text-muted-foreground">
 							Opened vs completed requests
 						</p>
@@ -34,13 +36,13 @@ export function MaintenanceActivityChart({
 									<div
 										className="flex-1 bg-amber-500 rounded-t transition-all hover:bg-amber-500/80"
 										style={{
-											height: `${(item.opened / maxMaintenance) * 120}px`
+											height: `${(item.opened / maxMaintenance) * 120}px`,
 										}}
 									/>
 									<div
 										className="flex-1 bg-emerald-500 rounded-t transition-all hover:bg-emerald-500/80"
 										style={{
-											height: `${(item.completed / maxMaintenance) * 120}px`
+											height: `${(item.completed / maxMaintenance) * 120}px`,
 										}}
 									/>
 								</div>
@@ -64,5 +66,5 @@ export function MaintenanceActivityChart({
 				</div>
 			</div>
 		</BlurFade>
-	)
+	);
 }

@@ -1,16 +1,16 @@
+import { Badge } from "#components/ui/badge";
 import {
 	Card,
 	CardContent,
+	CardDescription,
 	CardHeader,
 	CardTitle,
-	CardDescription
-} from '#components/ui/card'
-import { Badge } from '#components/ui/badge'
-import { formatCurrency } from '#lib/utils/currency'
-import type { Lease } from '#types/core'
+} from "#components/ui/card";
+import { formatCurrency } from "#lib/utils/currency";
+import type { Lease } from "#types/core";
 
 interface LeaseTermsTabProps {
-	lease: Lease
+	lease: Lease;
 }
 
 export function LeaseTermsTab({ lease }: LeaseTermsTabProps) {
@@ -32,12 +32,12 @@ export function LeaseTermsTab({ lease }: LeaseTermsTabProps) {
 							<p className="font-medium">
 								{lease.late_fee_amount
 									? `${formatCurrency(lease.late_fee_amount)} after ${lease.late_fee_days || 0} days`
-									: 'None'}
+									: "None"}
 							</p>
 						</div>
 						<div className="p-3 rounded-lg border">
 							<p className="text-sm text-muted-foreground">Currency</p>
-							<p className="font-medium">{lease.rent_currency || 'USD'}</p>
+							<p className="font-medium">{lease.rent_currency || "USD"}</p>
 						</div>
 					</div>
 				</section>
@@ -58,10 +58,10 @@ export function LeaseTermsTab({ lease }: LeaseTermsTabProps) {
 							<div className="p-3 rounded-lg border">
 								<p className="text-sm text-muted-foreground">Pets</p>
 								<p className="font-medium">
-									{lease.pets_allowed ? 'Allowed' : 'Not Allowed'}
+									{lease.pets_allowed ? "Allowed" : "Not Allowed"}
 									{lease.pets_allowed && lease.pet_deposit && (
 										<span className="text-muted-foreground">
-											{' '}
+											{" "}
 											(${lease.pet_deposit} deposit)
 										</span>
 									)}
@@ -86,7 +86,7 @@ export function LeaseTermsTab({ lease }: LeaseTermsTabProps) {
 											Included in Rent
 										</p>
 										<div className="flex flex-wrap gap-1">
-											{lease.utilities_included.map(util => (
+											{lease.utilities_included.map((util) => (
 												<Badge
 													key={util}
 													variant="secondary"
@@ -105,7 +105,7 @@ export function LeaseTermsTab({ lease }: LeaseTermsTabProps) {
 											Tenant Responsible
 										</p>
 										<div className="flex flex-wrap gap-1">
-											{lease.tenant_responsible_utilities.map(util => (
+											{lease.tenant_responsible_utilities.map((util) => (
 												<Badge
 													key={util}
 													variant="outline"
@@ -134,13 +134,13 @@ export function LeaseTermsTab({ lease }: LeaseTermsTabProps) {
 							<p className="text-sm text-amber-700 dark:text-amber-300 mt-1">
 								Property built before 1978.
 								{lease.lead_paint_disclosure_acknowledged
-									? ' Disclosure acknowledged by tenant.'
-									: ' Acknowledgment pending.'}
+									? " Disclosure acknowledged by tenant."
+									: " Acknowledgment pending."}
 							</p>
 						</div>
 					</section>
 				)}
 			</CardContent>
 		</Card>
-	)
+	);
 }

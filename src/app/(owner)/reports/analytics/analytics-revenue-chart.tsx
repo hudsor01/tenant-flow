@@ -1,7 +1,5 @@
-'use client'
+"use client";
 
-import { Card } from '#components/ui/card'
-import { Skeleton } from '#components/ui/skeleton'
 import {
 	Area,
 	AreaChart,
@@ -10,22 +8,24 @@ import {
 	ResponsiveContainer,
 	Tooltip,
 	XAxis,
-	YAxis
-} from 'recharts'
-import type { RevenueData } from '#types/reports'
-import { formatCurrency } from '#lib/utils/currency'
+	YAxis,
+} from "recharts";
+import { Card } from "#components/ui/card";
+import { Skeleton } from "#components/ui/skeleton";
+import { formatCurrency } from "#lib/utils/currency";
+import type { RevenueData } from "#types/reports";
 
 const formatWholeAmount = (value: number) =>
-	formatCurrency(value, { minimumFractionDigits: 0, maximumFractionDigits: 0 })
+	formatCurrency(value, { minimumFractionDigits: 0, maximumFractionDigits: 0 });
 
 interface AnalyticsRevenueChartProps {
-	revenueData: RevenueData[] | undefined
-	isLoading: boolean
+	revenueData: RevenueData[] | undefined;
+	isLoading: boolean;
 }
 
 export function AnalyticsRevenueChart({
 	revenueData,
-	isLoading
+	isLoading,
 }: AnalyticsRevenueChartProps) {
 	return (
 		<Card className="@container/card">
@@ -71,26 +71,26 @@ export function AnalyticsRevenueChart({
 							<XAxis
 								dataKey="month"
 								className="text-xs"
-								tick={{ fill: 'var(--color-muted-foreground)' }}
+								tick={{ fill: "var(--color-muted-foreground)" }}
 							/>
 							<YAxis
 								className="text-xs"
-								tick={{ fill: 'var(--color-muted-foreground)' }}
+								tick={{ fill: "var(--color-muted-foreground)" }}
 								tickFormatter={formatWholeAmount}
 							/>
 							<Tooltip
 								contentStyle={{
-									backgroundColor: 'var(--color-background)',
-									border: '1px solid var(--color-border)',
-									borderRadius: '2px'
+									backgroundColor: "var(--color-background)",
+									border: "1px solid var(--color-border)",
+									borderRadius: "2px",
 								}}
-								formatter={value => {
+								formatter={(value) => {
 									const numericValue = Array.isArray(value)
 										? Number(value[0])
-										: Number(value)
+										: Number(value);
 									return formatWholeAmount(
-										Number.isFinite(numericValue) ? numericValue : 0
-									)
+										Number.isFinite(numericValue) ? numericValue : 0,
+									);
 								}}
 							/>
 							<Legend />
@@ -119,5 +119,5 @@ export function AnalyticsRevenueChart({
 				)}
 			</div>
 		</Card>
-	)
+	);
 }

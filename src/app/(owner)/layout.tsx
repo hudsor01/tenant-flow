@@ -1,15 +1,15 @@
-export const dynamic = 'force-dynamic'
+export const dynamic = "force-dynamic";
 
-import type { Metadata } from 'next'
-import { OwnerDashboardLayout } from './owner-dashboard-layout'
-import ModalLayout from '#components/layout/modal-layout'
-import type { ReactNode } from 'react'
+import type { Metadata } from "next";
+import type { ReactNode } from "react";
+import ModalLayout from "#components/layout/modal-layout";
+import { OwnerDashboardLayout } from "./owner-dashboard-layout";
 
 // Auth-walled. Block search engines from indexing dashboard pages even if
 // they bypass robots.txt or follow internal links.
 export const metadata: Metadata = {
-	robots: { index: false, follow: false }
-}
+	robots: { index: false, follow: false },
+};
 
 /**
  * Owner Dashboard Layout (Next.js 16 Pattern)
@@ -26,14 +26,14 @@ export const metadata: Metadata = {
  */
 export default function OwnerLayout({
 	children,
-	modal
+	modal,
 }: {
-	children: ReactNode
-	modal?: ReactNode
+	children: ReactNode;
+	modal?: ReactNode;
 }) {
 	return (
 		<OwnerDashboardLayout>
 			<ModalLayout modal={modal}>{children}</ModalLayout>
 		</OwnerDashboardLayout>
-	)
+	);
 }

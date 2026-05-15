@@ -1,12 +1,11 @@
-import type { CSSProperties } from 'react'
-
-import type { Column } from '@tanstack/react-table'
-import { dataTableConfig } from '#config/data-table'
+import type { Column } from "@tanstack/react-table";
+import type { CSSProperties } from "react";
+import { dataTableConfig } from "#config/data-table";
 import type {
 	ExtendedColumnFilter,
 	FilterOperator,
-	FilterVariant
-} from '#types/data-table'
+	FilterVariant,
+} from "#types/data-table";
 
 /**
  * Generates CSS styles for pinned table columns
@@ -17,33 +16,33 @@ import type {
  */
 export function getCommonPinningStyles<TData>({
 	column,
-	withBorder = false
+	withBorder = false,
 }: {
-	column: Column<TData>
-	withBorder?: boolean
+	column: Column<TData>;
+	withBorder?: boolean;
 }): CSSProperties {
-	const isPinned = column.getIsPinned()
+	const isPinned = column.getIsPinned();
 	const isLastLeftPinnedColumn =
-		isPinned === 'left' && column.getIsLastColumn('left')
+		isPinned === "left" && column.getIsLastColumn("left");
 	const isFirstRightPinnedColumn =
-		isPinned === 'right' && column.getIsFirstColumn('right')
+		isPinned === "right" && column.getIsFirstColumn("right");
 
 	return {
 		boxShadow: withBorder
 			? isLastLeftPinnedColumn
-				? '-4px 0 4px -4px var(--border) inset'
+				? "-4px 0 4px -4px var(--border) inset"
 				: isFirstRightPinnedColumn
-					? '4px 0 4px -4px var(--border) inset'
+					? "4px 0 4px -4px var(--border) inset"
 					: undefined
 			: undefined,
-		left: isPinned === 'left' ? `${column.getStart('left')}px` : undefined,
-		right: isPinned === 'right' ? `${column.getAfter('right')}px` : undefined,
+		left: isPinned === "left" ? `${column.getStart("left")}px` : undefined,
+		right: isPinned === "right" ? `${column.getAfter("right")}px` : undefined,
 		opacity: isPinned ? 0.97 : 1,
-		position: isPinned ? 'sticky' : 'relative',
-		background: isPinned ? 'var(--background)' : 'var(--background)',
+		position: isPinned ? "sticky" : "relative",
+		background: isPinned ? "var(--background)" : "var(--background)",
 		width: column.getSize(),
-		zIndex: isPinned ? 1 : undefined
-	}
+		zIndex: isPinned ? 1 : undefined,
+	};
 }
 
 /**
@@ -64,10 +63,10 @@ export function getFilterOperators(filterVariant: FilterVariant) {
 		dateRange: dataTableConfig.dateOperators,
 		boolean: dataTableConfig.booleanOperators,
 		select: dataTableConfig.selectOperators,
-		multiSelect: dataTableConfig.multiSelectOperators
-	}
+		multiSelect: dataTableConfig.multiSelectOperators,
+	};
 
-	return operatorMap[filterVariant] ?? dataTableConfig.textOperators
+	return operatorMap[filterVariant] ?? dataTableConfig.textOperators;
 }
 
 /**
@@ -77,9 +76,9 @@ export function getFilterOperators(filterVariant: FilterVariant) {
  * @returns Default operator value for the variant
  */
 export function getDefaultFilterOperator(filterVariant: FilterVariant) {
-	const operators = getFilterOperators(filterVariant)
+	const operators = getFilterOperators(filterVariant);
 
-	return operators[0]?.value ?? (filterVariant === 'text' ? 'iLike' : 'eq')
+	return operators[0]?.value ?? (filterVariant === "text" ? "iLike" : "eq");
 }
 
 /**
@@ -89,16 +88,16 @@ export function getDefaultFilterOperator(filterVariant: FilterVariant) {
  * @returns Only filters with valid values (non-empty, or isEmpty/isNotEmpty operators)
  */
 export function getValidFilters<TData>(
-	filters: ExtendedColumnFilter<TData>[]
+	filters: ExtendedColumnFilter<TData>[],
 ): ExtendedColumnFilter<TData>[] {
 	return filters.filter(
-		filter =>
-			filter.operator === 'isEmpty' ||
-			filter.operator === 'isNotEmpty' ||
+		(filter) =>
+			filter.operator === "isEmpty" ||
+			filter.operator === "isNotEmpty" ||
 			(Array.isArray(filter.value)
 				? filter.value.length > 0
-				: filter.value !== '' &&
+				: filter.value !== "" &&
 					filter.value !== null &&
-					filter.value !== undefined)
-	)
+					filter.value !== undefined),
+	);
 }

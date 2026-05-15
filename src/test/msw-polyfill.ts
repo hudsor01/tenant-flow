@@ -4,20 +4,20 @@
  * because ESM static imports are hoisted above runtime code.
  */
 import {
-	TransformStream,
 	ReadableStream,
-	WritableStream
-} from 'node:stream/web'
+	TransformStream,
+	WritableStream,
+} from "node:stream/web";
 
-if (typeof globalThis.TransformStream === 'undefined') {
+if (typeof globalThis.TransformStream === "undefined") {
 	// @ts-expect-error -- polyfill for jsdom
-	globalThis.TransformStream = TransformStream
+	globalThis.TransformStream = TransformStream;
 }
-if (typeof globalThis.ReadableStream === 'undefined') {
+if (typeof globalThis.ReadableStream === "undefined") {
 	// @ts-expect-error -- polyfill for jsdom
-	globalThis.ReadableStream = ReadableStream
+	globalThis.ReadableStream = ReadableStream;
 }
-if (typeof globalThis.WritableStream === 'undefined') {
+if (typeof globalThis.WritableStream === "undefined") {
 	// @ts-expect-error -- polyfill for jsdom
-	globalThis.WritableStream = WritableStream
+	globalThis.WritableStream = WritableStream;
 }

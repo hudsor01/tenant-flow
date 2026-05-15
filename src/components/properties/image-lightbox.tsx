@@ -1,25 +1,25 @@
-'use client'
+"use client";
 
-import { useEffect } from 'react'
-import Image from 'next/image'
-import type { Tables } from '#types/supabase'
+import { ChevronLeft, ChevronRight, X } from "lucide-react";
+import Image from "next/image";
+import { useEffect } from "react";
+import { Button } from "#components/ui/button";
 import {
 	Dialog,
-	DialogContent,
 	DialogClose,
+	DialogContent,
+	DialogDescription,
 	DialogTitle,
-	DialogDescription
-} from '#components/ui/dialog'
-import { Button } from '#components/ui/button'
-import { ChevronLeft, ChevronRight, X } from 'lucide-react'
+} from "#components/ui/dialog";
+import type { Tables } from "#types/supabase";
 
 interface ImageLightboxProps {
-	images: Tables<'property_images'>[]
-	initialIndex?: number
-	currentIndex?: number
-	open: boolean
-	onClose: () => void
-	onIndexChange?: (index: number) => void
+	images: Tables<"property_images">[];
+	initialIndex?: number;
+	currentIndex?: number;
+	open: boolean;
+	onClose: () => void;
+	onIndexChange?: (index: number) => void;
 }
 
 export function ImageLightbox({
@@ -28,47 +28,49 @@ export function ImageLightbox({
 	currentIndex: controlledIndex,
 	open,
 	onClose,
-	onIndexChange
+	onIndexChange,
 }: ImageLightboxProps) {
 	// Use controlled index if provided (for URL state), otherwise use initialIndex
-	const currentIndex = controlledIndex ?? initialIndex
+	const currentIndex = controlledIndex ?? initialIndex;
 
 	const handlePrevious = () => {
-		const newIndex = currentIndex === 0 ? images.length - 1 : currentIndex - 1
-		onIndexChange?.(newIndex)
-	}
+		const newIndex = currentIndex === 0 ? images.length - 1 : currentIndex - 1;
+		onIndexChange?.(newIndex);
+	};
 
 	const handleNext = () => {
-		const newIndex = currentIndex === images.length - 1 ? 0 : currentIndex + 1
-		onIndexChange?.(newIndex)
-	}
+		const newIndex = currentIndex === images.length - 1 ? 0 : currentIndex + 1;
+		onIndexChange?.(newIndex);
+	};
 
 	// Handle keyboard navigation
 	useEffect(() => {
-		if (!open) return
+		if (!open) return;
 
 		const handleKeyDown = (e: KeyboardEvent) => {
-			if (e.key === 'ArrowLeft') {
-				e.preventDefault()
-				const prevIndex = currentIndex === 0 ? images.length - 1 : currentIndex - 1
-				onIndexChange?.(prevIndex)
-			} else if (e.key === 'ArrowRight') {
-				e.preventDefault()
-				const nextIndex = currentIndex === images.length - 1 ? 0 : currentIndex + 1
-				onIndexChange?.(nextIndex)
-			} else if (e.key === 'Escape') {
-				onClose()
+			if (e.key === "ArrowLeft") {
+				e.preventDefault();
+				const prevIndex =
+					currentIndex === 0 ? images.length - 1 : currentIndex - 1;
+				onIndexChange?.(prevIndex);
+			} else if (e.key === "ArrowRight") {
+				e.preventDefault();
+				const nextIndex =
+					currentIndex === images.length - 1 ? 0 : currentIndex + 1;
+				onIndexChange?.(nextIndex);
+			} else if (e.key === "Escape") {
+				onClose();
 			}
-		}
+		};
 
-		window.addEventListener('keydown', handleKeyDown)
-		return () => window.removeEventListener('keydown', handleKeyDown)
-	}, [open, currentIndex, images.length, onIndexChange, onClose])
+		window.addEventListener("keydown", handleKeyDown);
+		return () => window.removeEventListener("keydown", handleKeyDown);
+	}, [open, currentIndex, images.length, onIndexChange, onClose]);
 
-	if (images.length === 0) return null
+	if (images.length === 0) return null;
 
-	const currentImage = images[currentIndex]
-	if (!currentImage) return null
+	const currentImage = images[currentIndex];
+	if (!currentImage) return null;
 
 	return (
 		<Dialog open={open} onOpenChange={onClose}>
@@ -105,7 +107,7 @@ export function ImageLightbox({
 								variant="ghost"
 								size="icon"
 								className={
-									'absolute top-1/2 -translate-y-1/2 left-4 bg-black/50 hover:bg-black/70 text-white rounded-full transition-colors'
+									"absolute top-1/2 -translate-y-1/2 left-4 bg-black/50 hover:bg-black/70 text-white rounded-full transition-colors"
 								}
 								onClick={handlePrevious}
 								aria-label="Previous image"
@@ -118,7 +120,7 @@ export function ImageLightbox({
 								variant="ghost"
 								size="icon"
 								className={
-									'absolute top-1/2 -translate-y-1/2 right-4 bg-black/50 hover:bg-black/70 text-white rounded-full transition-colors'
+									"absolute top-1/2 -translate-y-1/2 right-4 bg-black/50 hover:bg-black/70 text-white rounded-full transition-colors"
 								}
 								onClick={handleNext}
 								aria-label="Next image"
@@ -135,5 +137,5 @@ export function ImageLightbox({
 				</div>
 			</DialogContent>
 		</Dialog>
-	)
+	);
 }

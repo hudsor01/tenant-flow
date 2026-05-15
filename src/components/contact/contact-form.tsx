@@ -1,61 +1,61 @@
-'use client'
+"use client";
 
-import { Button } from '#components/ui/button'
-import { useFormWithProgress } from '#hooks/use-form-progress'
-import { createLogger } from '#lib/frontend-logger'
-import type { ContactFormRequest } from '#types/domain'
-import { Check, Mail } from 'lucide-react'
-import type { FormEvent } from 'react'
-import { useState } from 'react'
-import { ContactFormFields } from './contact-form-fields'
+import { Check, Mail } from "lucide-react";
+import type { FormEvent } from "react";
+import { useState } from "react";
+import { Button } from "#components/ui/button";
+import { useFormWithProgress } from "#hooks/use-form-progress";
+import { createLogger } from "#lib/frontend-logger";
+import type { ContactFormRequest } from "#types/domain";
+import { ContactFormFields } from "./contact-form-fields";
 
-const logger = createLogger({ component: 'ContactForm' })
+const logger = createLogger({ component: "ContactForm" });
 
 interface ContactFormProps {
-	className?: string
+	className?: string;
 }
 
-export function ContactForm({ className = '' }: ContactFormProps) {
-	const [submitMessage, setSubmitMessage] = useState<string | null>(null)
-	const [errors, setErrors] = useState<Record<string, string>>({})
+export function ContactForm({ className = "" }: ContactFormProps) {
+	const [submitMessage, setSubmitMessage] = useState<string | null>(null);
+	const [errors, setErrors] = useState<Record<string, string>>({});
 
 	// Validation function - must be declared before useFormWithProgress
 	const validateForm = (data: ContactFormRequest): boolean => {
-		const newErrors: Record<string, string> = {}
+		const newErrors: Record<string, string> = {};
 
 		if (!data.name.trim()) {
-			newErrors.name = 'Name is required'
+			newErrors.name = "Name is required";
 		} else if (data.name.trim().length < 2) {
-			newErrors.name = 'Name must be at least 2 characters'
+			newErrors.name = "Name must be at least 2 characters";
 		}
 
-		const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+		const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 		if (!data.email.trim()) {
-			newErrors.email = 'Email is required'
+			newErrors.email = "Email is required";
 		} else if (!emailRegex.test(data.email)) {
-			newErrors.email = 'Please enter a valid email address'
+			newErrors.email = "Please enter a valid email address";
 		}
 
 		if (data.phone && data.phone.trim()) {
-			const phoneRegex = /^[\d\s()+-]+$/
+			const phoneRegex = /^[\d\s()+-]+$/;
 			if (!phoneRegex.test(data.phone)) {
-				newErrors.phone = 'Please enter a valid phone number'
+				newErrors.phone = "Please enter a valid phone number";
 			}
 		}
 
 		if (!data.subject) {
-			newErrors.subject = "Please select what you're interested in"
+			newErrors.subject = "Please select what you're interested in";
 		}
 
 		if (!data.message.trim()) {
-			newErrors.message = 'Message is required'
+			newErrors.message = "Message is required";
 		} else if (data.message.trim().length < 10) {
-			newErrors.message = 'Message must be at least 10 characters'
+			newErrors.message = "Message must be at least 10 characters";
 		}
 
-		setErrors(newErrors)
-		return Object.keys(newErrors).length === 0
-	}
+		setErrors(newErrors);
+		return Object.keys(newErrors).length === 0;
+	};
 
 	const {
 		formData,
@@ -63,59 +63,59 @@ export function ContactForm({ className = '' }: ContactFormProps) {
 		handleSubmit: handleFormSubmit,
 		isSubmitting,
 		submitError,
-		isHydrated
+		isHydrated,
 	} = useFormWithProgress<ContactFormRequest>(
-		'contact',
+		"contact",
 		async (data: ContactFormRequest) => {
 			if (!validateForm(data)) {
-				throw new Error('Please check your input')
+				throw new Error("Please check your input");
 			}
 
-			logger.info('Contact form submitted', {
-				action: 'contact_form_submit',
-				metadata: { email: data.email, subject: data.subject }
-			})
+			logger.info("Contact form submitted", {
+				action: "contact_form_submit",
+				metadata: { email: data.email, subject: data.subject },
+			});
 
 			setSubmitMessage(
-				"Thank you for reaching out! We've received your message and will get back to you during US business hours, Monday through Friday."
-			)
+				"Thank you for reaching out! We've received your message and will get back to you during US business hours, Monday through Friday.",
+			);
 		},
 		{
-			name: '',
-			email: '',
-			subject: '',
-			message: '',
-			type: 'sales',
-			company: '',
-			phone: ''
-		}
-	)
+			name: "",
+			email: "",
+			subject: "",
+			message: "",
+			type: "sales",
+			company: "",
+			phone: "",
+		},
+	);
 
 	const handleSubmit = async (e: FormEvent) => {
-		e.preventDefault()
-		setErrors({})
+		e.preventDefault();
+		setErrors({});
 
 		try {
-			await handleFormSubmit(formData)
+			await handleFormSubmit(formData);
 		} catch (error) {
-			logger.error('Form submission error', {
-				action: 'contact_form_submit_failed',
+			logger.error("Form submission error", {
+				action: "contact_form_submit_failed",
 				metadata: {
 					hasName: !!formData.name,
 					hasEmail: !!formData.email,
 					hasSubject: !!formData.subject,
-					error: error instanceof Error ? error.message : String(error)
-				}
-			})
+					error: error instanceof Error ? error.message : String(error),
+				},
+			});
 		}
-	}
+	};
 
 	const handleInputChange = (
 		field: keyof ContactFormRequest,
-		value: string
+		value: string,
 	) => {
-		updateField(field, value)
-	}
+		updateField(field, value);
+	};
 
 	if (submitMessage) {
 		return (
@@ -144,7 +144,7 @@ export function ContactForm({ className = '' }: ContactFormProps) {
 					</div>
 				</div>
 			</section>
-		)
+		);
 	}
 
 	return (
@@ -158,7 +158,7 @@ export function ContactForm({ className = '' }: ContactFormProps) {
 					className="absolute inset-0 bg-cover bg-center"
 					style={{
 						backgroundImage:
-							"url('https://images.unsplash.com/photo-1512917774080-9991f1c4c750?q=80&w=2070&auto=format&fit=crop')"
+							"url('https://images.unsplash.com/photo-1512917774080-9991f1c4c750?q=80&w=2070&auto=format&fit=crop')",
 					}}
 				/>
 				<div className="absolute inset-0 bg-linear-to-br from-background/30 via-transparent to-background/20" />
@@ -201,7 +201,9 @@ export function ContactForm({ className = '' }: ContactFormProps) {
 
 					{!isHydrated && (
 						<div className="mb-4 p-3 bg-muted rounded-md">
-							<p className="text-muted-foreground">Restoring your progress...</p>
+							<p className="text-muted-foreground">
+								Restoring your progress...
+							</p>
 						</div>
 					)}
 
@@ -224,7 +226,7 @@ export function ContactForm({ className = '' }: ContactFormProps) {
 							size="lg"
 							className="w-full bg-primary hover:bg-primary/90 text-primary-foreground"
 						>
-							{isSubmitting ? 'Sending...' : 'Send Message'}
+							{isSubmitting ? "Sending..." : "Send Message"}
 						</Button>
 
 						<p className="text-center text-muted-foreground">
@@ -234,5 +236,5 @@ export function ContactForm({ className = '' }: ContactFormProps) {
 				</div>
 			</div>
 		</section>
-	)
+	);
 }

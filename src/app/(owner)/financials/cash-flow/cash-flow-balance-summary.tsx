@@ -1,17 +1,17 @@
-import { ArrowRight } from 'lucide-react'
-import { BlurFade } from '#components/ui/blur-fade'
-import { formatCents } from '#lib/utils/currency'
+import { ArrowRight } from "lucide-react";
+import { BlurFade } from "#components/ui/blur-fade";
+import { formatCents } from "#lib/utils/currency";
 
 interface CashFlowBalanceSummaryProps {
-	openingBalance: number
-	netCashFlow: number
-	closingBalance: number
+	openingBalance: number;
+	netCashFlow: number;
+	closingBalance: number;
 }
 
 export function CashFlowBalanceSummary({
 	openingBalance,
 	netCashFlow,
-	closingBalance
+	closingBalance,
 }: CashFlowBalanceSummaryProps) {
 	return (
 		<BlurFade delay={0.15} inView>
@@ -29,9 +29,9 @@ export function CashFlowBalanceSummary({
 					<div className="flex-1 text-center">
 						<p className="text-sm text-muted-foreground mb-1">Net Cash Flow</p>
 						<p
-							className={`text-2xl font-semibold tabular-nums ${netCashFlow >= 0 ? 'text-emerald-600' : 'text-red-600'}`}
+							className={`text-2xl font-semibold tabular-nums ${netCashFlow >= 0 ? "text-emerald-600" : "text-red-600"}`}
 						>
-							{netCashFlow >= 0 ? '+' : ''}
+							{netCashFlow >= 0 ? "+" : ""}
 							{formatCents(netCashFlow * 100)}
 						</p>
 					</div>
@@ -47,5 +47,5 @@ export function CashFlowBalanceSummary({
 				</div>
 			</div>
 		</BlurFade>
-	)
+	);
 }

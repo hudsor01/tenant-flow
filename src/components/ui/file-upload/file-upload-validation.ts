@@ -1,20 +1,20 @@
-import type { FileUploadProps } from './types'
+import type { FileUploadProps } from "./types";
 
 interface ValidationCallbacks {
-	onFileValidate?: FileUploadProps['onFileValidate']
-	onFileReject?: FileUploadProps['onFileReject']
+	onFileValidate?: FileUploadProps["onFileValidate"];
+	onFileReject?: FileUploadProps["onFileReject"];
 }
 
 interface ValidationOptions {
-	acceptTypes: string[] | null
-	maxSize?: number | undefined
-	maxFiles?: number | undefined
-	currentFileCount: number
+	acceptTypes: string[] | null;
+	maxSize?: number | undefined;
+	maxFiles?: number | undefined;
+	currentFileCount: number;
 }
 
 interface ValidationResult {
-	acceptedFiles: File[]
-	isInvalid: boolean
+	acceptedFiles: File[];
+	isInvalid: boolean;
 }
 
 /**
@@ -24,31 +24,31 @@ function applyMaxFilesLimit(
 	files: File[],
 	maxFiles: number,
 	currentCount: number,
-	callbacks: ValidationCallbacks
+	callbacks: ValidationCallbacks,
 ): { filesToProcess: File[]; isInvalid: boolean } {
-	const remainingSlotCount = Math.max(0, maxFiles - currentCount)
+	const remainingSlotCount = Math.max(0, maxFiles - currentCount);
 
 	if (remainingSlotCount >= files.length) {
-		return { filesToProcess: files, isInvalid: false }
+		return { filesToProcess: files, isInvalid: false };
 	}
 
-	const filesToProcess = files.slice(0, remainingSlotCount)
-	const rejectedFiles = files.slice(remainingSlotCount)
+	const filesToProcess = files.slice(0, remainingSlotCount);
+	const rejectedFiles = files.slice(remainingSlotCount);
 
 	for (const file of rejectedFiles) {
-		let rejectionMessage = `Maximum ${maxFiles} files allowed`
+		let rejectionMessage = `Maximum ${maxFiles} files allowed`;
 
 		if (callbacks.onFileValidate) {
-			const validationMessage = callbacks.onFileValidate(file)
+			const validationMessage = callbacks.onFileValidate(file);
 			if (validationMessage) {
-				rejectionMessage = validationMessage
+				rejectionMessage = validationMessage;
 			}
 		}
 
-		callbacks.onFileReject?.(file, rejectionMessage)
+		callbacks.onFileReject?.(file, rejectionMessage);
 	}
 
-	return { filesToProcess, isInvalid: true }
+	return { filesToProcess, isInvalid: true };
 }
 
 /**
@@ -58,30 +58,29 @@ function applyMaxFilesLimit(
 function validateFile(
 	file: File,
 	acceptTypes: string[] | null,
-	maxSize: number | undefined
+	maxSize: number | undefined,
 ): string | null {
 	if (acceptTypes) {
-		const fileType = file.type
-		const fileExtension = `.${file.name.split('.').pop()}`
+		const fileType = file.type;
+		const fileExtension = `.${file.name.split(".").pop()}`;
 
 		if (
 			!acceptTypes.some(
 				(type) =>
 					type === fileType ||
 					type === fileExtension ||
-					(type.includes('/*') &&
-						fileType.startsWith(type.replace('/*', '/')))
+					(type.includes("/*") && fileType.startsWith(type.replace("/*", "/"))),
 			)
 		) {
-			return 'File type not accepted'
+			return "File type not accepted";
 		}
 	}
 
 	if (maxSize && file.size > maxSize) {
-		return 'File too large'
+		return "File too large";
 	}
 
-	return null
+	return null;
 }
 
 /**
@@ -93,42 +92,46 @@ function validateFile(
 export function validateFiles(
 	originalFiles: File[],
 	options: ValidationOptions,
-	callbacks: ValidationCallbacks
+	callbacks: ValidationCallbacks,
 ): ValidationResult {
-	let filesToProcess = [...originalFiles]
-	let isInvalid = false
+	let filesToProcess = [...originalFiles];
+	let isInvalid = false;
 
 	if (options.maxFiles) {
 		const result = applyMaxFilesLimit(
 			filesToProcess,
 			options.maxFiles,
 			options.currentFileCount,
-			callbacks
-		)
-		filesToProcess = result.filesToProcess
-		isInvalid = result.isInvalid
+			callbacks,
+		);
+		filesToProcess = result.filesToProcess;
+		isInvalid = result.isInvalid;
 	}
 
-	const acceptedFiles: File[] = []
+	const acceptedFiles: File[] = [];
 
 	for (const file of filesToProcess) {
 		if (callbacks.onFileValidate) {
-			const validationMessage = callbacks.onFileValidate(file)
+			const validationMessage = callbacks.onFileValidate(file);
 			if (validationMessage) {
-				callbacks.onFileReject?.(file, validationMessage)
-				isInvalid = true
-				continue
+				callbacks.onFileReject?.(file, validationMessage);
+				isInvalid = true;
+				continue;
 			}
 		}
 
-		const rejectionMessage = validateFile(file, options.acceptTypes, options.maxSize)
+		const rejectionMessage = validateFile(
+			file,
+			options.acceptTypes,
+			options.maxSize,
+		);
 		if (rejectionMessage) {
-			callbacks.onFileReject?.(file, rejectionMessage)
-			isInvalid = true
+			callbacks.onFileReject?.(file, rejectionMessage);
+			isInvalid = true;
 		} else {
-			acceptedFiles.push(file)
+			acceptedFiles.push(file);
 		}
 	}
 
-	return { acceptedFiles, isInvalid }
+	return { acceptedFiles, isInvalid };
 }

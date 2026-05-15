@@ -1,22 +1,22 @@
-'use client'
+"use client";
 
-import { Button } from '#components/ui/button'
+import { Calendar } from "lucide-react";
+import { Button } from "#components/ui/button";
 import {
 	Card,
 	CardContent,
 	CardDescription,
 	CardHeader,
-	CardTitle
-} from '#components/ui/card'
-import { Input } from '#components/ui/input'
-import { Calendar } from 'lucide-react'
+	CardTitle,
+} from "#components/ui/card";
+import { Input } from "#components/ui/input";
 
 interface DateRangeSelectorProps {
-	startDate: string
-	endDate: string
-	onStartDateChange: (date: string) => void
-	onEndDateChange: (date: string) => void
-	onReset: () => void
+	startDate: string;
+	endDate: string;
+	onStartDateChange: (date: string) => void;
+	onEndDateChange: (date: string) => void;
+	onReset: () => void;
 }
 
 export function DateRangeSelector({
@@ -24,7 +24,7 @@ export function DateRangeSelector({
 	endDate,
 	onStartDateChange,
 	onEndDateChange,
-	onReset
+	onReset,
 }: DateRangeSelectorProps) {
 	return (
 		<Card className="mb-6">
@@ -46,7 +46,7 @@ export function DateRangeSelector({
 						id="start"
 						type="date"
 						value={startDate}
-						onChange={event => onStartDateChange(event.target.value)}
+						onChange={(event) => onStartDateChange(event.target.value)}
 					/>
 				</div>
 				<div className="flex flex-col gap-2">
@@ -57,7 +57,7 @@ export function DateRangeSelector({
 						id="end"
 						type="date"
 						value={endDate}
-						onChange={event => onEndDateChange(event.target.value)}
+						onChange={(event) => onEndDateChange(event.target.value)}
 					/>
 				</div>
 				<Button variant="outline" onClick={onReset}>
@@ -65,5 +65,5 @@ export function DateRangeSelector({
 				</Button>
 			</CardContent>
 		</Card>
-	)
+	);
 }

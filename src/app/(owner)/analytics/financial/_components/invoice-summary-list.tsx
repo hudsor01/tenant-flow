@@ -1,18 +1,20 @@
-import { BlurFade } from '#components/ui/blur-fade'
-import { Badge } from '#components/ui/badge'
-import { formatCurrency } from '#lib/utils/currency'
+import { Badge } from "#components/ui/badge";
+import { BlurFade } from "#components/ui/blur-fade";
+import { formatCurrency } from "#lib/utils/currency";
 
 interface InvoiceStatusRow {
-	status: string
-	count: number
-	amount: number
+	status: string;
+	count: number;
+	amount: number;
 }
 
 interface InvoiceSummaryListProps {
-	invoiceSummary: InvoiceStatusRow[]
+	invoiceSummary: InvoiceStatusRow[];
 }
 
-export function InvoiceSummaryList({ invoiceSummary }: InvoiceSummaryListProps) {
+export function InvoiceSummaryList({
+	invoiceSummary,
+}: InvoiceSummaryListProps) {
 	return (
 		<div className="space-y-4">
 			{invoiceSummary.map((status, index) => (
@@ -29,5 +31,5 @@ export function InvoiceSummaryList({ invoiceSummary }: InvoiceSummaryListProps) 
 				</BlurFade>
 			))}
 		</div>
-	)
+	);
 }

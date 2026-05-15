@@ -1,17 +1,17 @@
-'use client'
+"use client";
 
+import { useQuery } from "@tanstack/react-query";
+import { AddTenantForm } from "#components/tenants/add-tenant-form";
 import {
 	Card,
 	CardContent,
 	CardDescription,
 	CardHeader,
-	CardTitle
-} from '#components/ui/card'
-import { Skeleton } from '#components/ui/skeleton'
-import { AddTenantForm } from '#components/tenants/add-tenant-form'
-import { propertyQueries } from '#hooks/api/query-keys/property-keys'
-import { unitQueries } from '#hooks/api/query-keys/unit-keys'
-import { useQuery } from '@tanstack/react-query'
+	CardTitle,
+} from "#components/ui/card";
+import { Skeleton } from "#components/ui/skeleton";
+import { propertyQueries } from "#hooks/api/query-keys/property-keys";
+import { unitQueries } from "#hooks/api/query-keys/unit-keys";
 
 /**
  * Add Tenant Page (Full Page Fallback)
@@ -21,15 +21,15 @@ import { useQuery } from '@tanstack/react-query'
  */
 export default function AddTenantPage() {
 	const { data: propertiesResponse, isLoading: propertiesLoading } = useQuery(
-		propertyQueries.list()
-	)
+		propertyQueries.list(),
+	);
 	const { data: unitsResponse, isLoading: unitsLoading } = useQuery(
-		unitQueries.list()
-	)
-	const properties = propertiesResponse?.data ?? []
-	const units = unitsResponse?.data ?? []
+		unitQueries.list(),
+	);
+	const properties = propertiesResponse?.data ?? [];
+	const units = unitsResponse?.data ?? [];
 
-	const isLoading = propertiesLoading || unitsLoading
+	const isLoading = propertiesLoading || unitsLoading;
 
 	if (isLoading) {
 		return (
@@ -41,14 +41,14 @@ export default function AddTenantPage() {
 					</CardHeader>
 					<CardContent>
 						<div className="space-y-4">
-							{[1, 2, 3, 4].map(i => (
+							{[1, 2, 3, 4].map((i) => (
 								<Skeleton key={i} className="h-10 w-full" />
 							))}
 						</div>
 					</CardContent>
 				</Card>
 			</div>
-		)
+		);
 	}
 
 	return (
@@ -57,8 +57,8 @@ export default function AddTenantPage() {
 				<CardHeader>
 					<CardTitle>Add Tenant</CardTitle>
 					<CardDescription>
-						Add a tenant record. You can assign them to a property now or
-						attach them to a lease later.
+						Add a tenant record. You can assign them to a property now or attach
+						them to a lease later.
 					</CardDescription>
 				</CardHeader>
 				<CardContent>
@@ -66,5 +66,5 @@ export default function AddTenantPage() {
 				</CardContent>
 			</Card>
 		</div>
-	)
+	);
 }

@@ -1,15 +1,15 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
-import { useDebouncedCallback } from '#hooks/use-debounced-callback'
-import { Building2, Phone, Mail, DollarSign, Search, Trash2 } from 'lucide-react'
-import { useVendors, useDeleteVendorMutation } from '#hooks/api/use-vendor'
-import type { Vendor, VendorFilters } from '#types/domain'
-import { VendorFormDialog } from '#components/maintenance/vendor-form-dialog'
-import { Input } from '#components/ui/input'
-import { Button } from '#components/ui/button'
-import { Badge } from '#components/ui/badge'
-import { Card, CardContent, CardHeader } from '#components/ui/card'
+import {
+	Building2,
+	DollarSign,
+	Mail,
+	Phone,
+	Search,
+	Trash2,
+} from "lucide-react";
+import { useState } from "react";
+import { VendorFormDialog } from "#components/maintenance/vendor-form-dialog";
 import {
 	AlertDialog,
 	AlertDialogAction,
@@ -20,30 +20,37 @@ import {
 	AlertDialogHeader,
 	AlertDialogTitle,
 	AlertDialogTrigger,
-} from '#components/ui/alert-dialog'
+} from "#components/ui/alert-dialog";
+import { Badge } from "#components/ui/badge";
+import { Button } from "#components/ui/button";
+import { Card, CardContent, CardHeader } from "#components/ui/card";
+import { Input } from "#components/ui/input";
 import {
 	Select,
 	SelectContent,
 	SelectItem,
 	SelectTrigger,
 	SelectValue,
-} from '#components/ui/select'
-import { Skeleton } from '#components/ui/skeleton'
+} from "#components/ui/select";
+import { Skeleton } from "#components/ui/skeleton";
+import { useDeleteVendorMutation, useVendors } from "#hooks/api/use-vendor";
+import { useDebouncedCallback } from "#hooks/use-debounced-callback";
+import type { Vendor, VendorFilters } from "#types/domain";
 
 const TRADE_LABELS: Record<string, string> = {
-	plumbing: 'Plumbing',
-	electrical: 'Electrical',
-	hvac: 'HVAC',
-	carpentry: 'Carpentry',
-	painting: 'Painting',
-	landscaping: 'Landscaping',
-	appliance: 'Appliance Repair',
-	general: 'General Contractor',
-	other: 'Other',
-}
+	plumbing: "Plumbing",
+	electrical: "Electrical",
+	hvac: "HVAC",
+	carpentry: "Carpentry",
+	painting: "Painting",
+	landscaping: "Landscaping",
+	appliance: "Appliance Repair",
+	general: "General Contractor",
+	other: "Other",
+};
 
 function VendorCard({ vendor }: { vendor: Vendor }) {
-	const deleteMutation = useDeleteVendorMutation()
+	const deleteMutation = useDeleteVendorMutation();
 
 	return (
 		<Card className="relative">
@@ -72,9 +79,9 @@ function VendorCard({ vendor }: { vendor: Vendor }) {
 								<AlertDialogHeader>
 									<AlertDialogTitle>Remove vendor?</AlertDialogTitle>
 									<AlertDialogDescription>
-										This will remove <strong>{vendor.name}</strong> from your vendor list.
-										Existing maintenance requests with this vendor will retain their
-										assignment.
+										This will remove <strong>{vendor.name}</strong> from your
+										vendor list. Existing maintenance requests with this vendor
+										will retain their assignment.
 									</AlertDialogDescription>
 								</AlertDialogHeader>
 								<AlertDialogFooter>
@@ -111,11 +118,13 @@ function VendorCard({ vendor }: { vendor: Vendor }) {
 					</div>
 				)}
 				{vendor.notes && (
-					<p className="text-xs text-muted-foreground line-clamp-2 pt-1">{vendor.notes}</p>
+					<p className="text-xs text-muted-foreground line-clamp-2 pt-1">
+						{vendor.notes}
+					</p>
 				)}
 			</CardContent>
 		</Card>
-	)
+	);
 }
 
 function VendorsSkeleton() {
@@ -134,26 +143,26 @@ function VendorsSkeleton() {
 				</Card>
 			))}
 		</div>
-	)
+	);
 }
 
 export function VendorsPageClient() {
-	const [search, setSearch] = useState('')
-	const [debouncedSearch, setDebouncedSearch] = useState('')
+	const [search, setSearch] = useState("");
+	const [debouncedSearch, setDebouncedSearch] = useState("");
 	const debouncedSetSearch = useDebouncedCallback((value: string) => {
-		setDebouncedSearch(value)
-	}, 300)
-	const [tradeFilter, setTradeFilter] = useState<string>('all')
+		setDebouncedSearch(value);
+	}, 300);
+	const [tradeFilter, setTradeFilter] = useState<string>("all");
 
 	const filters: VendorFilters = {
 		...(debouncedSearch ? { search: debouncedSearch } : {}),
-		...(tradeFilter !== 'all' ? { trade: tradeFilter } : {}),
-	}
+		...(tradeFilter !== "all" ? { trade: tradeFilter } : {}),
+	};
 
-	const { data, isLoading } = useVendors(filters)
+	const { data, isLoading } = useVendors(filters);
 
-	const vendors = data?.data ?? []
-	const total = data?.total ?? 0
+	const vendors = data?.data ?? [];
+	const total = data?.total ?? 0;
 
 	return (
 		<div className="space-y-6 p-6">
@@ -163,7 +172,9 @@ export function VendorsPageClient() {
 					<div>
 						<h1 className="text-2xl font-bold">Vendors</h1>
 						<p className="text-sm text-muted-foreground">
-							{total > 0 ? `${total} vendor${total !== 1 ? 's' : ''}` : 'No vendors yet'}
+							{total > 0
+								? `${total} vendor${total !== 1 ? "s" : ""}`
+								: "No vendors yet"}
 						</p>
 					</div>
 				</div>
@@ -175,9 +186,9 @@ export function VendorsPageClient() {
 					<Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
 					<Input
 						value={search}
-						onChange={e => {
-							setSearch(e.target.value)
-							debouncedSetSearch(e.target.value)
+						onChange={(e) => {
+							setSearch(e.target.value);
+							debouncedSetSearch(e.target.value);
 						}}
 						placeholder="Search vendors..."
 						className="pl-9 h-11"
@@ -204,24 +215,24 @@ export function VendorsPageClient() {
 				<div className="flex flex-col items-center justify-center py-16 text-center">
 					<Building2 className="size-12 text-muted-foreground/40 mb-4" />
 					<h3 className="font-semibold text-lg">
-						{search || tradeFilter !== 'all'
-							? 'No vendors match your filters'
-							: 'No vendors yet'}
+						{search || tradeFilter !== "all"
+							? "No vendors match your filters"
+							: "No vendors yet"}
 					</h3>
 					<p className="text-sm text-muted-foreground mt-1 mb-6">
-						{search || tradeFilter !== 'all'
-							? 'Try different search terms or filters.'
-							: 'Add your first vendor to start tracking contractors.'}
+						{search || tradeFilter !== "all"
+							? "Try different search terms or filters."
+							: "Add your first vendor to start tracking contractors."}
 					</p>
-					{!search && tradeFilter === 'all' && <VendorFormDialog />}
+					{!search && tradeFilter === "all" && <VendorFormDialog />}
 				</div>
 			) : (
 				<div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-					{vendors.map(vendor => (
+					{vendors.map((vendor) => (
 						<VendorCard key={vendor.id} vendor={vendor} />
 					))}
 				</div>
 			)}
 		</div>
-	)
+	);
 }

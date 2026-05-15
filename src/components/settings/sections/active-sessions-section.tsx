@@ -1,53 +1,53 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
-import { User, LogOut, Loader2 } from 'lucide-react'
+import { Loader2, LogOut, User } from "lucide-react";
+import { useState } from "react";
 
-import { BlurFade } from '#components/ui/blur-fade'
-import { ConfirmDialog } from '#components/ui/confirm-dialog'
+import { BlurFade } from "#components/ui/blur-fade";
+import { ConfirmDialog } from "#components/ui/confirm-dialog";
 import {
+	useRevokeSessionMutation,
 	useUserSessions,
-	useRevokeSessionMutation
-} from '#hooks/api/use-sessions'
+} from "#hooks/api/use-sessions";
 
 interface PendingRevoke {
-	id: string
-	isCurrent: boolean
-	deviceLabel: string
+	id: string;
+	isCurrent: boolean;
+	deviceLabel: string;
 }
 
 export function ActiveSessionsSection() {
-	const { data: sessions } = useUserSessions()
-	const revokeSession = useRevokeSessionMutation()
+	const { data: sessions } = useUserSessions();
+	const revokeSession = useRevokeSessionMutation();
 
 	const [pendingRevoke, setPendingRevoke] = useState<PendingRevoke | null>(
-		null
-	)
-	const [bulkOpen, setBulkOpen] = useState(false)
-	const [bulkPending, setBulkPending] = useState(false)
+		null,
+	);
+	const [bulkOpen, setBulkOpen] = useState(false);
+	const [bulkPending, setBulkPending] = useState(false);
 
-	const otherSessions = (sessions ?? []).filter(s => !s.is_current)
+	const otherSessions = (sessions ?? []).filter((s) => !s.is_current);
 
 	const requestRevoke = (
 		sessionId: string,
 		isCurrent: boolean,
-		deviceLabel: string
+		deviceLabel: string,
 	) => {
-		setPendingRevoke({ id: sessionId, isCurrent, deviceLabel })
-	}
+		setPendingRevoke({ id: sessionId, isCurrent, deviceLabel });
+	};
 
 	const confirmRevoke = () => {
-		if (!pendingRevoke) return
+		if (!pendingRevoke) return;
 		revokeSession.mutate(
 			{ id: pendingRevoke.id, isCurrent: pendingRevoke.isCurrent },
 			{
-				onSettled: () => setPendingRevoke(null)
-			}
-		)
-	}
+				onSettled: () => setPendingRevoke(null),
+			},
+		);
+	};
 
 	const confirmBulkRevoke = async () => {
-		setBulkPending(true)
+		setBulkPending(true);
 		try {
 			// Sequentially revoke so optimistic state updates land in order.
 			// Each iteration is try/caught so a single rejection doesn't abort
@@ -56,16 +56,16 @@ export function ActiveSessionsSection() {
 			// onError already surfaces a toast per failure; we just keep going.
 			for (const s of otherSessions) {
 				try {
-					await revokeSession.mutateAsync({ id: s.id, isCurrent: false })
+					await revokeSession.mutateAsync({ id: s.id, isCurrent: false });
 				} catch {
 					// toast already raised by mutation onError; continue draining.
 				}
 			}
 		} finally {
-			setBulkPending(false)
-			setBulkOpen(false)
+			setBulkPending(false);
+			setBulkOpen(false);
 		}
-	}
+	};
 
 	return (
 		<BlurFade delay={0.35} inView>
@@ -88,16 +88,16 @@ export function ActiveSessionsSection() {
 				<div className="space-y-3">
 					{sessions && sessions.length > 0 ? (
 						sessions.map((session, idx) => {
-							const deviceLabel = `${session.browser || 'Unknown Browser'} on ${
-								session.os || 'Unknown OS'
-							}`
+							const deviceLabel = `${session.browser || "Unknown Browser"} on ${
+								session.os || "Unknown OS"
+							}`;
 							return (
 								<BlurFade key={session.id} delay={0.4 + idx * 0.05} inView>
 									<div
 										className={`flex items-center justify-between p-3 rounded-lg border ${
 											session.is_current
-												? 'bg-primary/5 border-primary/20'
-												: 'hover:bg-muted/30'
+												? "bg-primary/5 border-primary/20"
+												: "hover:bg-muted/30"
 										} transition-colors`}
 									>
 										<div className="flex items-center gap-3">
@@ -112,12 +112,12 @@ export function ActiveSessionsSection() {
 													)}
 												</p>
 												<p className="text-xs text-muted-foreground">
-													{session.device === 'mobile'
-														? 'Mobile'
-														: session.device === 'tablet'
-															? 'Tablet'
-															: 'Desktop'}{' '}
-													· Last active:{' '}
+													{session.device === "mobile"
+														? "Mobile"
+														: session.device === "tablet"
+															? "Tablet"
+															: "Desktop"}{" "}
+													· Last active:{" "}
 													{new Date(session.updated_at).toLocaleDateString()}
 												</p>
 											</div>
@@ -127,15 +127,15 @@ export function ActiveSessionsSection() {
 												requestRevoke(
 													session.id,
 													session.is_current,
-													deviceLabel
+													deviceLabel,
 												)
 											}
 											disabled={revokeSession.isPending || bulkPending}
 											className="p-2 rounded-lg hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors disabled:opacity-50"
 											aria-label={
 												session.is_current
-													? 'Sign out this device (you will be signed out)'
-													: 'Sign out this device'
+													? "Sign out this device (you will be signed out)"
+													: "Sign out this device"
 											}
 										>
 											{revokeSession.isPending ? (
@@ -146,7 +146,7 @@ export function ActiveSessionsSection() {
 										</button>
 									</div>
 								</BlurFade>
-							)
+							);
 						})
 					) : (
 						<p className="text-sm text-muted-foreground text-center py-4">
@@ -158,21 +158,21 @@ export function ActiveSessionsSection() {
 
 			<ConfirmDialog
 				open={pendingRevoke !== null}
-				onOpenChange={open => {
-					if (!open) setPendingRevoke(null)
+				onOpenChange={(open) => {
+					if (!open) setPendingRevoke(null);
 				}}
 				title={
 					pendingRevoke?.isCurrent
-						? 'Sign out of this device?'
-						: 'Sign out the other device?'
+						? "Sign out of this device?"
+						: "Sign out the other device?"
 				}
 				description={
 					pendingRevoke?.isCurrent
 						? `You are about to sign yourself out of ${pendingRevoke.deviceLabel}. You'll need to log in again to continue.`
-						: `Sign out of ${pendingRevoke?.deviceLabel ?? 'this device'}? The session will be revoked immediately and that device will need to log in again.`
+						: `Sign out of ${pendingRevoke?.deviceLabel ?? "this device"}? The session will be revoked immediately and that device will need to log in again.`
 				}
 				confirmText={
-					pendingRevoke?.isCurrent ? 'Sign me out' : 'Revoke session'
+					pendingRevoke?.isCurrent ? "Sign me out" : "Revoke session"
 				}
 				onConfirm={confirmRevoke}
 				loading={revokeSession.isPending}
@@ -180,17 +180,17 @@ export function ActiveSessionsSection() {
 
 			<ConfirmDialog
 				open={bulkOpen}
-				onOpenChange={open => {
-					if (!open && !bulkPending) setBulkOpen(false)
+				onOpenChange={(open) => {
+					if (!open && !bulkPending) setBulkOpen(false);
 				}}
 				title="Sign out all other devices?"
-				description={`This will revoke ${otherSessions.length} other ${otherSessions.length === 1 ? 'session' : 'sessions'} immediately. Each device will need to log in again.`}
+				description={`This will revoke ${otherSessions.length} other ${otherSessions.length === 1 ? "session" : "sessions"} immediately. Each device will need to log in again.`}
 				confirmText="Sign out all others"
 				onConfirm={() => {
-					void confirmBulkRevoke()
+					void confirmBulkRevoke();
 				}}
 				loading={bulkPending}
 			/>
 		</BlurFade>
-	)
+	);
 }

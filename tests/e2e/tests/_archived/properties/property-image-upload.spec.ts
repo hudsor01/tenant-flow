@@ -1,25 +1,24 @@
-import { test, expect } from '@playwright/test'
-import path from 'path'
-import { fileURLToPath } from 'url'
-import { dirname } from 'path'
-import fs from 'fs'
+import { expect, test } from "@playwright/test";
+import fs from "fs";
+import path, { dirname } from "path";
+import { fileURLToPath } from "url";
 
-const __filename = fileURLToPath(import.meta.url)
-const __dirname = dirname(__filename)
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
-test.describe('Property Image Upload', () => {
-	const baseUrl = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:3050'
-	let testImagePath: string
-	let testImagePaths: string[]
+test.describe("Property Image Upload", () => {
+	const baseUrl = process.env.PLAYWRIGHT_BASE_URL || "http://localhost:3050";
+	let testImagePath: string;
+	let testImagePaths: string[];
 
 	test.beforeAll(() => {
 		// Create test images (1x1 PNG files with different colors)
-		const testImagesDir = path.join(__dirname, '../../fixtures/images')
+		const testImagesDir = path.join(__dirname, "../../fixtures/images");
 		if (!fs.existsSync(testImagesDir)) {
-			fs.mkdirSync(testImagesDir, { recursive: true })
+			fs.mkdirSync(testImagesDir, { recursive: true });
 		}
 
-		testImagePath = path.join(testImagesDir, 'test-property-image.png')
+		testImagePath = path.join(testImagesDir, "test-property-image.png");
 
 		// Create a minimal PNG file (1x1 red pixel)
 		const pngData = Buffer.from([
@@ -28,322 +27,351 @@ test.describe('Property Image Upload', () => {
 			0x08, 0x02, 0x00, 0x00, 0x00, 0x90, 0x77, 0x53, 0xde, 0x00, 0x00, 0x00,
 			0x0c, 0x49, 0x44, 0x41, 0x54, 0x08, 0xd7, 0x63, 0xf8, 0xcf, 0xc0, 0x00,
 			0x00, 0x03, 0x01, 0x01, 0x00, 0x18, 0xdd, 0x8d, 0xb4, 0x00, 0x00, 0x00,
-			0x00, 0x49, 0x45, 0x4e, 0x44, 0xae, 0x42, 0x60, 0x82
-		])
+			0x00, 0x49, 0x45, 0x4e, 0x44, 0xae, 0x42, 0x60, 0x82,
+		]);
 
-		fs.writeFileSync(testImagePath, pngData)
+		fs.writeFileSync(testImagePath, pngData);
 
 		// Create additional test images for creation test
 		testImagePaths = [
-			path.join(testImagesDir, 'test-property-front.png'),
-			path.join(testImagesDir, 'test-property-side.png'),
-			path.join(testImagesDir, 'test-property-back.png')
-		]
+			path.join(testImagesDir, "test-property-front.png"),
+			path.join(testImagesDir, "test-property-side.png"),
+			path.join(testImagesDir, "test-property-back.png"),
+		];
 
-		testImagePaths.forEach(imagePath => {
-			fs.writeFileSync(imagePath, pngData)
-		})
-	})
+		testImagePaths.forEach((imagePath) => {
+			fs.writeFileSync(imagePath, pngData);
+		});
+	});
 
 	// No beforeEach needed — the chromium project injects storageState: OWNER_AUTH_FILE
 	// before every test. Adding loginAsOwner() here causes a double-auth loop:
 	// storageState already sets auth cookies → /login redirects to /dashboard → timeout.
 
-	test('should create property with images during creation (NEW FEATURE)', async ({
-		page
+	test("should create property with images during creation (NEW FEATURE)", async ({
+		page,
 	}) => {
 		// Navigate to property creation page
-		await page.goto(`${baseUrl}/properties/new`, { waitUntil: 'domcontentloaded' })
+		await page.goto(`${baseUrl}/properties/new`, {
+			waitUntil: "domcontentloaded",
+		});
 
 		// Verify we're on the create page (this also waits for the page to be interactive)
-		await expect(page.getByRole('heading', { name: /add new property/i })).toBeVisible()
+		await expect(
+			page.getByRole("heading", { name: /add new property/i }),
+		).toBeVisible();
 
 		// Wait for form to be fully interactive
-		await expect(page.getByLabel(/property name/i).first()).toBeVisible()
+		await expect(page.getByLabel(/property name/i).first()).toBeVisible();
 
 		// Fill out required property fields (click first, then fill to ensure focus)
-		const nameInput = page.getByLabel(/property name/i).first()
-		await nameInput.click()
-		await nameInput.fill('E2E Test Property with Images')
+		const nameInput = page.getByLabel(/property name/i).first();
+		await nameInput.click();
+		await nameInput.fill("E2E Test Property with Images");
 
-		const addressInput = page.getByLabel(/address/i).first()
-		await addressInput.click()
-		await addressInput.fill('789 Creation Test Blvd')
+		const addressInput = page.getByLabel(/address/i).first();
+		await addressInput.click();
+		await addressInput.fill("789 Creation Test Blvd");
 
-		const cityInput = page.getByLabel(/city/i).first()
-		await cityInput.click()
-		await cityInput.fill('Los Angeles')
+		const cityInput = page.getByLabel(/city/i).first();
+		await cityInput.click();
+		await cityInput.fill("Los Angeles");
 
-		const stateInput = page.getByLabel(/state/i).first()
-		await stateInput.click()
-		await stateInput.fill('CA')
+		const stateInput = page.getByLabel(/state/i).first();
+		await stateInput.click();
+		await stateInput.fill("CA");
 
-		const zipInput = page.getByLabel(/zip/i).first()
-		await zipInput.click()
-		await zipInput.fill('90001')
+		const zipInput = page.getByLabel(/zip/i).first();
+		await zipInput.click();
+		await zipInput.fill("90001");
 
 		// Upload multiple test images before submitting (use first() to target desktop form only)
-		const fileInput = page.locator('input[type="file"]').first()
-		await fileInput.setInputFiles(testImagePaths)
+		const fileInput = page.locator('input[type="file"]').first();
+		await fileInput.setInputFiles(testImagePaths);
 
 		// Verify files are selected - check for file count indicator or preview
-		await page.waitForFunction(() => document.querySelector('img[src^="blob:"]') !== null)
-		const fileCountText = await page.textContent('body')
-		const hasFileIndicator = fileCountText?.includes('3 image') ||
-		                        fileCountText?.includes('selected') ||
-		                        (await page.locator('img[src^="blob:"]').count()) === 3
+		await page.waitForFunction(
+			() => document.querySelector('img[src^="blob:"]') !== null,
+		);
+		const fileCountText = await page.textContent("body");
+		const hasFileIndicator =
+			fileCountText?.includes("3 image") ||
+			fileCountText?.includes("selected") ||
+			(await page.locator('img[src^="blob:"]').count()) === 3;
 
-		expect(hasFileIndicator).toBeTruthy()
+		expect(hasFileIndicator).toBeTruthy();
 
 		// Submit the form
-		const button = page.getByRole('button', { name: /create property/i })
-		await button.click()
+		const button = page.getByRole("button", { name: /create property/i });
+		await button.click();
 
 		// Wait for property creation AND image upload to complete (toast appears)
 		await expect(
-			page.getByText(/Property created|image\(s\) uploaded|successfully/i).first()
-		).toBeVisible({ timeout: 15000 })
+			page
+				.getByText(/Property created|image\(s\) uploaded|successfully/i)
+				.first(),
+		).toBeVisible({ timeout: 15000 });
 
 		// Wait for upload overlay statuses to complete (uploading -> success/error)
-		await expect(page.getByText('Uploading...')).not.toBeVisible({ timeout: 10000 })
+		await expect(page.getByText("Uploading...")).not.toBeVisible({
+			timeout: 10000,
+		});
 
 		// Verify success toast appeared
-		const successToast = page.getByText(/Property created with|image\(s\)|3 image/i).first()
-		await expect(successToast).toBeVisible()
+		const successToast = page
+			.getByText(/Property created with|image\(s\)|3 image/i)
+			.first();
+		await expect(successToast).toBeVisible();
 
 		// Navigate to properties list to verify creation
-		await page.goto(`${baseUrl}/properties`)
-		await page.waitForLoadState('domcontentloaded')
+		await page.goto(`${baseUrl}/properties`);
+		await page.waitForLoadState("domcontentloaded");
 
 		// Switch to grid view if currently in table view (Zustand persists view mode)
-		const gridButton = page.getByRole('button', { name: /grid/i })
+		const gridButton = page.getByRole("button", { name: /grid/i });
 		if (await gridButton.isVisible({ timeout: 2000 }).catch(() => false)) {
-			await gridButton.click()
-			await expect(page.locator('[data-testid="property-card"]').first()).toBeVisible()
+			await gridButton.click();
+			await expect(
+				page.locator('[data-testid="property-card"]').first(),
+			).toBeVisible();
 		}
 
 		// Find the newly created property card (use first() to handle duplicate names from repeated test runs)
-		const newPropertyCard = page.locator('[data-testid="property-card"]').filter({
-			hasText: 'E2E Test Property with Images'
-		}).first()
+		const newPropertyCard = page
+			.locator('[data-testid="property-card"]')
+			.filter({
+				hasText: "E2E Test Property with Images",
+			})
+			.first();
 
-		await expect(newPropertyCard).toBeVisible()
+		await expect(newPropertyCard).toBeVisible();
 
 		// Verify the card has an image (not just placeholder)
-		const cardImage = newPropertyCard.locator('img').first()
-		const imgSrc = await cardImage.getAttribute('src')
+		const cardImage = newPropertyCard.locator("img").first();
+		const imgSrc = await cardImage.getAttribute("src");
 
 		// Image should be from Supabase storage or Next.js image proxy (not just building icon)
-		expect(imgSrc).toBeTruthy()
-	})
+		expect(imgSrc).toBeTruthy();
+	});
 
-	test('should upload image and display it on property card', async ({
-		page
+	test("should upload image and display it on property card", async ({
+		page,
 	}) => {
 		// Navigate to /properties
-		await page.goto(`${baseUrl}/properties`)
-		await page.waitForLoadState('domcontentloaded')
+		await page.goto(`${baseUrl}/properties`);
+		await page.waitForLoadState("domcontentloaded");
 
 		// Find existing property card
-		const propertyCards = page.locator('[data-testid="property-card"]')
-		const cardCount = await propertyCards.count()
+		const propertyCards = page.locator('[data-testid="property-card"]');
+		const cardCount = await propertyCards.count();
 
 		if (cardCount === 0) {
 			// Create a new property first
-			await page.getByRole('button', { name: /add.*property/i }).click()
-			await page.waitForLoadState('domcontentloaded')
-			await expect(page.getByRole('heading', { name: /add new property/i })).toBeVisible()
+			await page.getByRole("button", { name: /add.*property/i }).click();
+			await page.waitForLoadState("domcontentloaded");
+			await expect(
+				page.getByRole("heading", { name: /add new property/i }),
+			).toBeVisible();
 
 			// Fill the form
-			const nameInput = page.getByLabel(/property name/i).first()
-			await nameInput.click()
-			await nameInput.fill('Test Property for Images')
-			const addrInput = page.getByLabel(/address/i).first()
-			await addrInput.click()
-			await addrInput.fill('123 Test Street')
-			const cityInput = page.getByLabel(/city/i).first()
-			await cityInput.click()
-			await cityInput.fill('San Francisco')
-			const stateInput = page.getByLabel(/state/i).first()
-			await stateInput.click()
-			await stateInput.fill('CA')
-			const zipInput = page.getByLabel(/zip/i).first()
-			await zipInput.click()
-			await zipInput.fill('94102')
+			const nameInput = page.getByLabel(/property name/i).first();
+			await nameInput.click();
+			await nameInput.fill("Test Property for Images");
+			const addrInput = page.getByLabel(/address/i).first();
+			await addrInput.click();
+			await addrInput.fill("123 Test Street");
+			const cityInput = page.getByLabel(/city/i).first();
+			await cityInput.click();
+			await cityInput.fill("San Francisco");
+			const stateInput = page.getByLabel(/state/i).first();
+			await stateInput.click();
+			await stateInput.fill("CA");
+			const zipInput = page.getByLabel(/zip/i).first();
+			await zipInput.click();
+			await zipInput.fill("94102");
 
 			// Submit
-			await page.getByRole('button', { name: /create property/i }).click()
-			await page.waitForLoadState('domcontentloaded')
+			await page.getByRole("button", { name: /create property/i }).click();
+			await page.waitForLoadState("domcontentloaded");
 		}
 
 		// Get the first property card
-		const propertyCard = propertyCards.first()
-		await expect(propertyCard).toBeVisible()
+		const propertyCard = propertyCards.first();
+		await expect(propertyCard).toBeVisible();
 
 		// Click View Details button WITHIN the first property card (property-select-card uses button not link)
-		const viewDetailsBtn = propertyCard.getByRole('button', {
-			name: /view details/i
-		})
+		const viewDetailsBtn = propertyCard.getByRole("button", {
+			name: /view details/i,
+		});
 		await Promise.all([
 			page.waitForURL(/\/properties\/[a-f0-9-]+$/),
-			viewDetailsBtn.click()
-		])
-		await page.waitForLoadState('domcontentloaded')
+			viewDetailsBtn.click(),
+		]);
+		await page.waitForLoadState("domcontentloaded");
 
 		// Verify we're on the property details page (URL has property ID)
-		expect(page.url()).toMatch(/\/properties\/[a-f0-9-]+/)
+		expect(page.url()).toMatch(/\/properties\/[a-f0-9-]+/);
 
 		// Click Edit button to go to edit page - wait for navigation
-		const editLink = page.getByRole('link', { name: /edit/i }).first()
-		await Promise.all([page.waitForURL(/\/edit$/), editLink.click()])
-		await page.waitForLoadState('domcontentloaded')
+		const editLink = page.getByRole("link", { name: /edit/i }).first();
+		await Promise.all([page.waitForURL(/\/edit$/), editLink.click()]);
+		await page.waitForLoadState("domcontentloaded");
 
 		// Verify we're on the edit page
-		expect(page.url()).toContain('/edit')
+		expect(page.url()).toContain("/edit");
 
 		// Scroll to Property Images section
-		const propertyImagesSection = page.getByRole('heading', {
-			name: /property images/i
-		})
-		await propertyImagesSection.scrollIntoViewIfNeeded()
-		await expect(propertyImagesSection).toBeVisible()
+		const propertyImagesSection = page.getByRole("heading", {
+			name: /property images/i,
+		});
+		await propertyImagesSection.scrollIntoViewIfNeeded();
+		await expect(propertyImagesSection).toBeVisible();
 
 		// Upload a test image using PropertyImageUpload dropzone (use first() to avoid mobile duplicate)
-		const fileInput = page.locator('input[type="file"]').first()
-		await fileInput.setInputFiles(testImagePath)
+		const fileInput = page.locator('input[type="file"]').first();
+		await fileInput.setInputFiles(testImagePath);
 
 		// Wait for auto-upload to complete (compression + upload happens automatically)
 		// Wait for upload to complete
 		await page.waitForFunction(
 			() => {
 				const uploaded =
-					document.body.textContent?.includes('Uploaded!') ||
-					document.body.textContent?.includes('Image uploaded successfully')
+					document.body.textContent?.includes("Uploaded!") ||
+					document.body.textContent?.includes("Image uploaded successfully");
 				const noActiveUploads =
-					!document.body.textContent?.includes('Compressing...') &&
-					!document.body.textContent?.includes('Uploading...')
-				return uploaded || noActiveUploads
+					!document.body.textContent?.includes("Compressing...") &&
+					!document.body.textContent?.includes("Uploading...");
+				return uploaded || noActiveUploads;
 			},
-			{ timeout: 10000 }
-		)
+			{ timeout: 10000 },
+		);
 
 		// Verify the image appears in the gallery (look for img tag or "Primary" badge)
 		const gallery = page
 			.locator('[class*="grid"]')
-			.filter({ has: page.locator('img') })
-		const primaryBadge = page.getByText('Primary')
+			.filter({ has: page.locator("img") });
+		const primaryBadge = page.getByText("Primary");
 
 		// Either the gallery shows images or the Primary badge appears
 		const imageUploaded =
-			(await gallery.count()) > 0 || (await primaryBadge.count()) > 0
-		expect(imageUploaded).toBeTruthy()
+			(await gallery.count()) > 0 || (await primaryBadge.count()) > 0;
+		expect(imageUploaded).toBeTruthy();
 
 		// Navigate back to /properties
-		await page.goto(`${baseUrl}/properties`)
-		await page.waitForLoadState('domcontentloaded')
-		await expect(page.locator('[data-testid="property-card"]').first()).toBeVisible()
+		await page.goto(`${baseUrl}/properties`);
+		await page.waitForLoadState("domcontentloaded");
+		await expect(
+			page.locator('[data-testid="property-card"]').first(),
+		).toBeVisible();
 
 		// Verify the uploaded image now appears on the property card
-		const cardWithImage = page.locator('[data-testid="property-card"]').first()
-		await expect(cardWithImage).toBeVisible()
+		const cardWithImage = page.locator('[data-testid="property-card"]').first();
+		await expect(cardWithImage).toBeVisible();
 
 		// Check if there's an actual image (not placeholder)
-		const cardImage = cardWithImage.locator('img')
-		const hasImage = (await cardImage.count()) > 0
+		const cardImage = cardWithImage.locator("img");
+		const hasImage = (await cardImage.count()) > 0;
 
 		if (hasImage) {
-			const imgSrc = await cardImage.getAttribute('src')
-			expect(imgSrc).toBeTruthy()
+			const imgSrc = await cardImage.getAttribute("src");
+			expect(imgSrc).toBeTruthy();
 		} else {
 			// Check if Building2 placeholder is shown (acceptable if no images)
-			const placeholder = cardWithImage.locator('svg')
-			expect(await placeholder.count()).toBeGreaterThan(0)
+			const placeholder = cardWithImage.locator("svg");
+			expect(await placeholder.count()).toBeGreaterThan(0);
 		}
-	})
+	});
 
-	test('should show compression statistics during upload', async ({ page }) => {
+	test("should show compression statistics during upload", async ({ page }) => {
 		// Navigate to a property edit page
-		await page.goto(`${baseUrl}/properties`)
-		await page.waitForLoadState('domcontentloaded')
+		await page.goto(`${baseUrl}/properties`);
+		await page.waitForLoadState("domcontentloaded");
 
-		const propertyCard = page.locator('[data-testid="property-card"]').first()
+		const propertyCard = page.locator('[data-testid="property-card"]').first();
 
 		if ((await propertyCard.count()) > 0) {
 			// Navigate to details with navigation wait (property-select-card uses button not link)
-			const viewDetailsBtn = propertyCard.getByRole('button', {
-				name: /view details/i
-			})
+			const viewDetailsBtn = propertyCard.getByRole("button", {
+				name: /view details/i,
+			});
 			await Promise.all([
 				page.waitForURL(/\/properties\/[a-f0-9-]+$/),
-				viewDetailsBtn.click()
-			])
-			await page.waitForLoadState('domcontentloaded')
+				viewDetailsBtn.click(),
+			]);
+			await page.waitForLoadState("domcontentloaded");
 
 			// Click Edit with proper wait for navigation
-			const editLink = page.getByRole('link', { name: /edit/i }).first()
-			await Promise.all([page.waitForURL(/\/edit$/), editLink.click()])
-			await page.waitForLoadState('domcontentloaded')
+			const editLink = page.getByRole("link", { name: /edit/i }).first();
+			await Promise.all([page.waitForURL(/\/edit$/), editLink.click()]);
+			await page.waitForLoadState("domcontentloaded");
 
 			// Scroll to images section
-			const imagesSection = page.getByRole('heading', {
-				name: /property images/i
-			})
-			await imagesSection.scrollIntoViewIfNeeded()
+			const imagesSection = page.getByRole("heading", {
+				name: /property images/i,
+			});
+			await imagesSection.scrollIntoViewIfNeeded();
 
 			// Upload image (use first() to avoid mobile duplicate)
-			const fileInput = page.locator('input[type="file"]').first()
-			await fileInput.setInputFiles(testImagePath)
+			const fileInput = page.locator('input[type="file"]').first();
+			await fileInput.setInputFiles(testImagePath);
 
 			// Wait for file to appear in the UI
-			await page.waitForFunction(() => document.querySelector('img[src^="blob:"], [class*="preview"]') !== null, { timeout: 5000 }).catch(() => {})
+			await page
+				.waitForFunction(
+					() =>
+						document.querySelector('img[src^="blob:"], [class*="preview"]') !==
+						null,
+					{ timeout: 5000 },
+				)
+				.catch(() => {});
 
 			// Verify file was selected (compression may show "smaller" stats)
 			const fileSelected = page
-				.locator('text=test-property-image')
-				.or(page.locator('[class*="preview"]'))
-			expect(await fileSelected.count()).toBeGreaterThanOrEqual(0)
+				.locator("text=test-property-image")
+				.or(page.locator('[class*="preview"]'));
+			expect(await fileSelected.count()).toBeGreaterThanOrEqual(0);
 		}
-	})
+	});
 
-	test('should navigate to property edit page successfully', async ({
-		page
+	test("should navigate to property edit page successfully", async ({
+		page,
 	}) => {
-		await page.goto(`${baseUrl}/properties`)
-		await page.waitForLoadState('domcontentloaded')
+		await page.goto(`${baseUrl}/properties`);
+		await page.waitForLoadState("domcontentloaded");
 
-		const propertyCard = page.locator('[data-testid="property-card"]').first()
+		const propertyCard = page.locator('[data-testid="property-card"]').first();
 
 		if ((await propertyCard.count()) > 0) {
 			// Click View Details with navigation wait (property-select-card uses button not link)
-			const viewDetailsBtn = propertyCard.getByRole('button', {
-				name: /view details/i
-			})
+			const viewDetailsBtn = propertyCard.getByRole("button", {
+				name: /view details/i,
+			});
 			await Promise.all([
 				page.waitForURL(/\/properties\/[a-f0-9-]+$/),
-				viewDetailsBtn.click()
-			])
-			await page.waitForLoadState('domcontentloaded')
+				viewDetailsBtn.click(),
+			]);
+			await page.waitForLoadState("domcontentloaded");
 
 			// Verify details page loaded (URL has property ID)
-			expect(page.url()).toMatch(/\/properties\/[a-f0-9-]+/)
+			expect(page.url()).toMatch(/\/properties\/[a-f0-9-]+/);
 
 			// Click Edit with proper wait for navigation
-			const editLink = page.getByRole('link', { name: /edit/i }).first()
-			await Promise.all([page.waitForURL(/\/edit$/), editLink.click()])
-			await page.waitForLoadState('domcontentloaded')
+			const editLink = page.getByRole("link", { name: /edit/i }).first();
+			await Promise.all([page.waitForURL(/\/edit$/), editLink.click()]);
+			await page.waitForLoadState("domcontentloaded");
 
 			// Verify edit page loaded
-			expect(page.url()).toContain('/edit')
+			expect(page.url()).toContain("/edit");
 
 			// Verify Property Images section exists
-			const imagesSection = page.getByRole('heading', {
-				name: /property images/i
-			})
-			await expect(imagesSection).toBeVisible()
+			const imagesSection = page.getByRole("heading", {
+				name: /property images/i,
+			});
+			await expect(imagesSection).toBeVisible();
 
 			// Verify upload dropzone exists
-			const dropzone = page.locator('input[type="file"]').first()
-			await expect(dropzone).toBeAttached()
+			const dropzone = page.locator('input[type="file"]').first();
+			await expect(dropzone).toBeAttached();
 		}
-	})
-})
+	});
+});

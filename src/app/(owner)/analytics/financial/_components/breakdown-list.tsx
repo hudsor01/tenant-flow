@@ -1,11 +1,11 @@
-import Link from 'next/link'
-import { formatCurrency } from '#lib/utils/currency'
-import type { FinancialBreakdownRow } from '#types/analytics'
-import { TrendPill } from './trend-pill'
+import Link from "next/link";
+import { formatCurrency } from "#lib/utils/currency";
+import type { FinancialBreakdownRow } from "#types/analytics";
+import { TrendPill } from "./trend-pill";
 
 interface BreakdownListProps {
-	title: string
-	rows: FinancialBreakdownRow[]
+	title: string;
+	rows: FinancialBreakdownRow[];
 }
 
 export function BreakdownList({ title, rows }: BreakdownListProps) {
@@ -21,7 +21,7 @@ export function BreakdownList({ title, rows }: BreakdownListProps) {
 				</Link>
 			</div>
 			<div className="space-y-3">
-				{rows.slice(0, 5).map(item => (
+				{rows.slice(0, 5).map((item) => (
 					<div
 						key={`${title}-${item.label}`}
 						className="flex items-center justify-between"
@@ -37,5 +37,5 @@ export function BreakdownList({ title, rows }: BreakdownListProps) {
 				))}
 			</div>
 		</div>
-	)
+	);
 }

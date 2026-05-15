@@ -1,4 +1,4 @@
-import { MaintenanceForm } from '#components/maintenance/maintenance-form.client'
+import { MaintenanceForm } from "#components/maintenance/maintenance-form.client";
 
 export default async function NewMaintenanceRequestPage() {
 	return (
@@ -13,5 +13,5 @@ export default async function NewMaintenanceRequestPage() {
 			</div>
 			<MaintenanceForm mode="create" />
 		</div>
-	)
+	);
 }

@@ -1,42 +1,42 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
-import { createLogger } from '#lib/frontend-logger'
 import {
+	AlertCircle,
+	Calendar,
+	Download,
 	FileText,
+	Loader2,
+	RefreshCw,
 	TrendingDown,
 	TrendingUp,
-	Calendar,
-	AlertCircle,
-	RefreshCw,
-	Download,
-	Loader2
-} from 'lucide-react'
-import { Skeleton } from '#components/ui/skeleton'
-import { Button } from '#components/ui/button'
-import { BlurFade } from '#components/ui/blur-fade'
+} from "lucide-react";
+import { useState } from "react";
+import { BlurFade } from "#components/ui/blur-fade";
+import { Button } from "#components/ui/button";
 import {
 	Select,
 	SelectContent,
 	SelectItem,
 	SelectTrigger,
-	SelectValue
-} from '#components/ui/select'
-import { useTaxDocuments } from '#hooks/api/use-expense-mutations'
-import { useDownloadTaxDocumentPdf } from '#hooks/api/use-report-mutations'
-import { formatCents } from '#lib/utils/currency'
+	SelectValue,
+} from "#components/ui/select";
+import { Skeleton } from "#components/ui/skeleton";
+import { useTaxDocuments } from "#hooks/api/use-expense-mutations";
+import { useDownloadTaxDocumentPdf } from "#hooks/api/use-report-mutations";
+import { createLogger } from "#lib/frontend-logger";
+import { formatCents } from "#lib/utils/currency";
 
-const logger = createLogger({ component: 'TaxDocumentsPage' })
+const logger = createLogger({ component: "TaxDocumentsPage" });
 
 const TAX_YEARS = Array.from(
 	{ length: 5 },
-	(_, i) => new Date().getFullYear() - i
-)
+	(_, i) => new Date().getFullYear() - i,
+);
 
 export default function TaxDocumentsPage() {
-	const [taxYear, setTaxYear] = useState(new Date().getFullYear())
-	const { data, isLoading, error, refetch } = useTaxDocuments(taxYear)
-	const downloadPdfMutation = useDownloadTaxDocumentPdf()
+	const [taxYear, setTaxYear] = useState(new Date().getFullYear());
+	const { data, isLoading, error, refetch } = useTaxDocuments(taxYear);
+	const downloadPdfMutation = useDownloadTaxDocumentPdf();
 
 	if (isLoading) {
 		return (
@@ -49,21 +49,21 @@ export default function TaxDocumentsPage() {
 					<Skeleton className="h-10 w-32" />
 				</div>
 				<div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
-					{[1, 2, 3].map(i => (
+					{[1, 2, 3].map((i) => (
 						<Skeleton key={i} className="h-24 rounded-lg" />
 					))}
 				</div>
 				<div className="space-y-4">
-					{[1, 2, 3].map(i => (
+					{[1, 2, 3].map((i) => (
 						<Skeleton key={i} className="h-16 rounded-lg" />
 					))}
 				</div>
 			</div>
-		)
+		);
 	}
 
 	if (error) {
-		logger.error('Failed to load tax documents', { error })
+		logger.error("Failed to load tax documents", { error });
 		return (
 			<div className="p-6 lg:p-8 bg-background min-h-full">
 				<div className="flex items-center gap-2 mb-6">
@@ -72,9 +72,13 @@ export default function TaxDocumentsPage() {
 				<div className="rounded-lg border border-destructive/30 bg-destructive/10 p-6 flex flex-col items-center gap-4 text-center">
 					<AlertCircle className="size-10 text-destructive" />
 					<div>
-						<p className="font-medium text-destructive">Failed to load tax documents</p>
+						<p className="font-medium text-destructive">
+							Failed to load tax documents
+						</p>
 						<p className="text-sm text-muted-foreground mt-1">
-							{error instanceof Error ? error.message : 'An unexpected error occurred'}
+							{error instanceof Error
+								? error.message
+								: "An unexpected error occurred"}
 						</p>
 					</div>
 					<Button variant="outline" onClick={() => refetch()}>
@@ -83,14 +87,14 @@ export default function TaxDocumentsPage() {
 					</Button>
 				</div>
 			</div>
-		)
+		);
 	}
 
-	const hasData = data && (
-		data.totals.totalIncome > 0 ||
-		data.totals.totalDeductions > 0 ||
-		data.expenseCategories.length > 0
-	)
+	const hasData =
+		data &&
+		(data.totals.totalIncome > 0 ||
+			data.totals.totalDeductions > 0 ||
+			data.expenseCategories.length > 0);
 
 	return (
 		<div className="p-6 lg:p-8 bg-background min-h-full">
@@ -106,13 +110,13 @@ export default function TaxDocumentsPage() {
 					<div className="flex items-center gap-2">
 						<Select
 							value={taxYear.toString()}
-							onValueChange={v => setTaxYear(parseInt(v, 10))}
+							onValueChange={(v) => setTaxYear(parseInt(v, 10))}
 						>
 							<SelectTrigger className="w-[130px]">
 								<SelectValue />
 							</SelectTrigger>
 							<SelectContent>
-								{TAX_YEARS.map(y => (
+								{TAX_YEARS.map((y) => (
 									<SelectItem key={y} value={y.toString()}>
 										{y}
 									</SelectItem>
@@ -133,7 +137,7 @@ export default function TaxDocumentsPage() {
 							) : (
 								<Download className="size-4" />
 							)}
-							{downloadPdfMutation.isPending ? 'Generating...' : 'Download PDF'}
+							{downloadPdfMutation.isPending ? "Generating..." : "Download PDF"}
 						</Button>
 					</div>
 				</div>
@@ -165,7 +169,9 @@ export default function TaxDocumentsPage() {
 										<p className="text-xl font-semibold tabular-nums">
 											{formatCents(data.totals.totalIncome)}
 										</p>
-										<p className="text-sm text-muted-foreground">Gross Income</p>
+										<p className="text-sm text-muted-foreground">
+											Gross Income
+										</p>
 									</div>
 								</div>
 							</div>
@@ -179,7 +185,9 @@ export default function TaxDocumentsPage() {
 										<p className="text-xl font-semibold tabular-nums">
 											{formatCents(data.totals.totalDeductions)}
 										</p>
-										<p className="text-sm text-muted-foreground">Total Deductions</p>
+										<p className="text-sm text-muted-foreground">
+											Total Deductions
+										</p>
 									</div>
 								</div>
 							</div>
@@ -193,7 +201,9 @@ export default function TaxDocumentsPage() {
 										<p className="text-xl font-semibold tabular-nums">
 											{formatCents(data.totals.netTaxableIncome)}
 										</p>
-										<p className="text-sm text-muted-foreground">Net Taxable Income</p>
+										<p className="text-sm text-muted-foreground">
+											Net Taxable Income
+										</p>
 									</div>
 								</div>
 							</div>
@@ -211,15 +221,15 @@ export default function TaxDocumentsPage() {
 								</div>
 								<div className="divide-y divide-border">
 									{data.expenseCategories
-										.filter(cat => cat.deductible)
-										.map(cat => (
+										.filter((cat) => cat.deductible)
+										.map((cat) => (
 											<div
 												key={cat.category}
 												className="flex items-center justify-between p-4"
 											>
 												<div>
 													<p className="text-sm font-medium capitalize">
-														{cat.category.replace(/_/g, ' ')}
+														{cat.category.replace(/_/g, " ")}
 													</p>
 													{cat.notes && (
 														<p className="text-xs text-muted-foreground">
@@ -252,7 +262,7 @@ export default function TaxDocumentsPage() {
 									</h3>
 								</div>
 								<div className="divide-y divide-border">
-									{data.propertyDepreciation.map(prop => (
+									{data.propertyDepreciation.map((prop) => (
 										<div
 											key={prop.property_id}
 											className="flex items-center justify-between p-4"
@@ -270,7 +280,8 @@ export default function TaxDocumentsPage() {
 													{formatCents(prop.annualDepreciation)}/yr
 												</p>
 												<p className="text-xs text-muted-foreground">
-													Accumulated: {formatCents(prop.accumulatedDepreciation)}
+													Accumulated:{" "}
+													{formatCents(prop.accumulatedDepreciation)}
 												</p>
 											</div>
 										</div>
@@ -282,5 +293,5 @@ export default function TaxDocumentsPage() {
 				</>
 			)}
 		</div>
-	)
+	);
 }

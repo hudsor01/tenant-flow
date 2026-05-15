@@ -1,22 +1,22 @@
-'use client'
+"use client";
 
-import Link from 'next/link'
+import Link from "next/link";
 import {
 	DropdownMenu,
 	DropdownMenuContent,
 	DropdownMenuItem,
 	DropdownMenuLabel,
 	DropdownMenuSeparator,
-	DropdownMenuTrigger
-} from '#components/ui/dropdown-menu'
+	DropdownMenuTrigger,
+} from "#components/ui/dropdown-menu";
 
 interface UserProfileMenuProps {
-	userInitials: string
-	userName: string
-	userEmail: string
-	profileHref: string
-	settingsHref: string
-	onSignOut: () => void
+	userInitials: string;
+	userName: string;
+	userEmail: string;
+	profileHref: string;
+	settingsHref: string;
+	onSignOut: () => void;
 }
 
 export function UserProfileMenu({
@@ -25,7 +25,7 @@ export function UserProfileMenu({
 	userEmail,
 	profileHref,
 	settingsHref,
-	onSignOut
+	onSignOut,
 }: UserProfileMenuProps) {
 	return (
 		<DropdownMenu>
@@ -42,7 +42,9 @@ export function UserProfileMenu({
 			<DropdownMenuContent align="end" className="w-56">
 				<DropdownMenuLabel className="font-normal">
 					<span className="block text-sm font-medium">{userName}</span>
-					<span className="block text-xs text-muted-foreground truncate">{userEmail}</span>
+					<span className="block text-xs text-muted-foreground truncate">
+						{userEmail}
+					</span>
 				</DropdownMenuLabel>
 				<DropdownMenuSeparator />
 				<DropdownMenuItem asChild>
@@ -52,10 +54,8 @@ export function UserProfileMenu({
 					<Link href={settingsHref}>Settings</Link>
 				</DropdownMenuItem>
 				<DropdownMenuSeparator />
-				<DropdownMenuItem onClick={onSignOut}>
-					Sign out
-				</DropdownMenuItem>
+				<DropdownMenuItem onClick={onSignOut}>Sign out</DropdownMenuItem>
 			</DropdownMenuContent>
 		</DropdownMenu>
-	)
+	);
 }

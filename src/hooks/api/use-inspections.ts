@@ -8,16 +8,16 @@
  * React 19 + TanStack Query v5 patterns
  */
 
-import { useQuery } from '@tanstack/react-query'
-import type { Inspection } from '#types/sections/inspections'
-import { useEntityDetail } from '#hooks/use-entity-detail'
-import { inspectionQueries } from './query-keys/inspection-keys'
+import { useQuery } from "@tanstack/react-query";
+import { useEntityDetail } from "#hooks/use-entity-detail";
+import type { Inspection } from "#types/sections/inspections";
+import { inspectionQueries } from "./query-keys/inspection-keys";
 
 /**
  * Hook to fetch all inspections for the current owner
  */
 export function useInspections() {
-	return useQuery(inspectionQueries.list())
+	return useQuery(inspectionQueries.list());
 }
 
 /**
@@ -26,6 +26,6 @@ export function useInspections() {
 export function useInspection(id: string) {
 	return useEntityDetail<Inspection>({
 		queryOptions: inspectionQueries.detailQuery(id),
-		id
-	})
+		id,
+	});
 }

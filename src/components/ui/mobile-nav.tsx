@@ -1,73 +1,78 @@
-'use client'
+"use client";
 
-import type { ComponentType } from 'react'
-import { useTransition } from 'react'
+import { Building2, Home, LogOut, Menu, Users, Wrench } from "lucide-react";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import type { ComponentType } from "react";
+import { useTransition } from "react";
 
-import { Building2, Home, LogOut, Menu, Users, Wrench } from 'lucide-react'
-import Link from 'next/link'
-import { usePathname } from 'next/navigation'
-
-import { signOut } from '#app/actions/auth'
-import { Button } from '#components/ui/button'
-import { Sheet, SheetContent, SheetTrigger } from '#components/ui/sheet'
-import { cn } from '#lib/utils'
+import { signOut } from "#app/actions/auth";
+import { Button } from "#components/ui/button";
+import { Sheet, SheetContent, SheetTrigger } from "#components/ui/sheet";
+import { cn } from "#lib/utils";
 
 interface MobileNavItem {
-	label: string
-	href: string
-	icon: ComponentType<{ className?: string }>
+	label: string;
+	href: string;
+	icon: ComponentType<{ className?: string }>;
 }
 
 const MOBILE_NAV_ITEMS: MobileNavItem[] = [
-	{ label: 'Dashboard', href: '/', icon: Home },
-	{ label: 'Properties', href: '/properties', icon: Building2 },
-	{ label: 'Tenants', href: '/tenants', icon: Users },
-	{ label: 'Maintenance', href: '/maintenance', icon: Wrench }
-]
+	{ label: "Dashboard", href: "/", icon: Home },
+	{ label: "Properties", href: "/properties", icon: Building2 },
+	{ label: "Tenants", href: "/tenants", icon: Users },
+	{ label: "Maintenance", href: "/maintenance", icon: Wrench },
+];
 
-function NavItem({ item, isActive }: { item: MobileNavItem; isActive: boolean }) {
-	const Icon = item.icon
+function NavItem({
+	item,
+	isActive,
+}: {
+	item: MobileNavItem;
+	isActive: boolean;
+}) {
+	const Icon = item.icon;
 
 	return (
 		<Link
 			href={item.href}
 			className={cn(
-				'flex h-14 w-16 flex-col items-center justify-center rounded-lg text-xs font-medium transition-colors',
+				"flex h-14 w-16 flex-col items-center justify-center rounded-lg text-xs font-medium transition-colors",
 				isActive
-					? 'text-primary bg-primary/10'
-					: 'text-muted-foreground hover:text-foreground'
+					? "text-primary bg-primary/10"
+					: "text-muted-foreground hover:text-foreground",
 			)}
 			aria-label={`${item.label} navigation`}
-			aria-current={isActive ? 'page' : undefined}
+			aria-current={isActive ? "page" : undefined}
 		>
 			<Icon className="size-5 mb-1" aria-hidden />
 			<span>{item.label}</span>
 		</Link>
-	)
+	);
 }
 
 export function MobileNav() {
-	const pathname = usePathname()
-	const [isPending, startTransition] = useTransition()
+	const pathname = usePathname();
+	const [isPending, startTransition] = useTransition();
 
 	const activeIndex = (() => {
 		// First, try to find an exact match
 		const exactMatchIndex = MOBILE_NAV_ITEMS.findIndex(
-			item => pathname === item.href
-		)
-		if (exactMatchIndex !== -1) return exactMatchIndex
+			(item) => pathname === item.href,
+		);
+		if (exactMatchIndex !== -1) return exactMatchIndex;
 
 		// If no exact match, find the first prefix match
-		return MOBILE_NAV_ITEMS.findIndex(item =>
-			pathname.startsWith(`${item.href}/`)
-		)
-	})()
+		return MOBILE_NAV_ITEMS.findIndex((item) =>
+			pathname.startsWith(`${item.href}/`),
+		);
+	})();
 
 	const handleSignOut = () => {
 		startTransition(async () => {
-			await signOut()
-		})
-	}
+			await signOut();
+		});
+	};
 
 	return (
 		<div className="fixed inset-x-0 bottom-0 z-50 border-t border-border bg-background md:hidden">
@@ -94,28 +99,28 @@ export function MobileNav() {
 					<SheetContent side="bottom" className="h-[60vh] px-0">
 						<div className="flex flex-col h-full">
 							<div className="flex-1 space-y-2 p-4">
-								{MOBILE_NAV_ITEMS.map(item => {
-									const Icon = item.icon
+								{MOBILE_NAV_ITEMS.map((item) => {
+									const Icon = item.icon;
 									const isActive =
 										pathname === item.href ||
-										pathname.startsWith(`${item.href}/`)
+										pathname.startsWith(`${item.href}/`);
 									return (
 										<Link
 											key={item.href}
 											href={item.href}
 											className={cn(
-												'flex items-center gap-3 px-4 py-3 typography-small rounded-lg transition-colors',
+												"flex items-center gap-3 px-4 py-3 typography-small rounded-lg transition-colors",
 												isActive
-													? 'text-primary bg-primary/10'
-													: 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
+													? "text-primary bg-primary/10"
+													: "text-muted-foreground hover:text-foreground hover:bg-muted/50",
 											)}
 											aria-label={`${item.label} navigation`}
-											aria-current={isActive ? 'page' : undefined}
+											aria-current={isActive ? "page" : undefined}
 										>
 											<Icon className="size-4" aria-hidden />
 											{item.label}
 										</Link>
-									)
+									);
 								})}
 							</div>
 
@@ -129,7 +134,7 @@ export function MobileNav() {
 									aria-label="Sign out"
 								>
 									<LogOut className="size-4" aria-hidden />
-									{isPending ? 'Signing out...' : 'Sign Out'}
+									{isPending ? "Signing out..." : "Sign Out"}
 								</Button>
 							</div>
 						</div>
@@ -137,5 +142,5 @@ export function MobileNav() {
 				</Sheet>
 			</div>
 		</div>
-	)
+	);
 }

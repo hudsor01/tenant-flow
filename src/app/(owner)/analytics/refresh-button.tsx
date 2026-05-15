@@ -1,15 +1,15 @@
-'use client'
+"use client";
 
-import { Button } from '#components/ui/button'
-import { handleMutationError } from '#lib/mutation-error-handler'
-import { RefreshCw } from 'lucide-react'
-import { useEffect, useRef, useState } from 'react'
-import { toast } from 'sonner'
+import { RefreshCw } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { toast } from "sonner";
+import { Button } from "#components/ui/button";
+import { handleMutationError } from "#lib/mutation-error-handler";
 
 interface RefreshButtonProps {
-	onRefresh: () => Promise<void>
-	cooldownSeconds?: number
-	className?: string
+	onRefresh: () => Promise<void>;
+	cooldownSeconds?: number;
+	className?: string;
 }
 
 /**
@@ -27,65 +27,65 @@ interface RefreshButtonProps {
 export function RefreshButton({
 	onRefresh,
 	cooldownSeconds = 30,
-	className
+	className,
 }: RefreshButtonProps) {
-	const [isRefreshing, setIsRefreshing] = useState(false)
-	const [cooldownRemaining, setCooldownRemaining] = useState(0)
-	const intervalRef = useRef<NodeJS.Timeout | null>(null)
+	const [isRefreshing, setIsRefreshing] = useState(false);
+	const [cooldownRemaining, setCooldownRemaining] = useState(0);
+	const intervalRef = useRef<NodeJS.Timeout | null>(null);
 
 	// Cleanup interval on unmount to prevent memory leaks
 	useEffect(() => {
 		return () => {
 			if (intervalRef.current) {
-				clearInterval(intervalRef.current)
-				intervalRef.current = null
+				clearInterval(intervalRef.current);
+				intervalRef.current = null;
 			}
-		}
-	}, [])
+		};
+	}, []);
 
 	const handleRefresh = async () => {
 		if (isRefreshing || cooldownRemaining > 0) {
 			if (cooldownRemaining > 0) {
 				toast.warning(
-					`Please wait ${cooldownRemaining}s before refreshing again`
-				)
+					`Please wait ${cooldownRemaining}s before refreshing again`,
+				);
 			}
-			return
+			return;
 		}
 
 		try {
-			setIsRefreshing(true)
-			await onRefresh()
-			toast.success('Data refreshed successfully')
+			setIsRefreshing(true);
+			await onRefresh();
+			toast.success("Data refreshed successfully");
 
 			// Start cooldown
-			setCooldownRemaining(cooldownSeconds)
+			setCooldownRemaining(cooldownSeconds);
 
 			// Clear any existing interval before creating new one
 			if (intervalRef.current) {
-				clearInterval(intervalRef.current)
+				clearInterval(intervalRef.current);
 			}
 
 			intervalRef.current = setInterval(() => {
-				setCooldownRemaining(prev => {
+				setCooldownRemaining((prev) => {
 					if (prev <= 1) {
 						if (intervalRef.current) {
-							clearInterval(intervalRef.current)
-							intervalRef.current = null
+							clearInterval(intervalRef.current);
+							intervalRef.current = null;
 						}
-						return 0
+						return 0;
 					}
-					return prev - 1
-				})
-			}, 1000)
+					return prev - 1;
+				});
+			}, 1000);
 		} catch (error) {
-			handleMutationError(error, 'Refresh data')
+			handleMutationError(error, "Refresh data");
 		} finally {
-			setIsRefreshing(false)
+			setIsRefreshing(false);
 		}
-	}
+	};
 
-	const isDisabled = isRefreshing || cooldownRemaining > 0
+	const isDisabled = isRefreshing || cooldownRemaining > 0;
 
 	return (
 		<Button
@@ -95,12 +95,12 @@ export function RefreshButton({
 			disabled={isDisabled}
 			className={className}
 		>
-			<RefreshCw className={`size-4 ${isRefreshing ? 'animate-spin' : ''}`} />
+			<RefreshCw className={`size-4 ${isRefreshing ? "animate-spin" : ""}`} />
 			{isRefreshing
-				? 'Refreshing...'
+				? "Refreshing..."
 				: cooldownRemaining > 0
 					? `Wait ${cooldownRemaining}s`
-					: 'Refresh'}
+					: "Refresh"}
 		</Button>
-	)
+	);
 }

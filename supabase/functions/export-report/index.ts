@@ -3,208 +3,262 @@
 // Authenticates via JWT bearer token — no anon access.
 // PDF format: delegates to generate-pdf Edge Function (StirlingPDF via k3s).
 
-import { validateBearerAuth } from '../_shared/auth.ts'
-import { getCorsHeaders, getJsonHeaders, handleCorsOptions } from '../_shared/cors.ts'
-import { validateEnv } from '../_shared/env.ts'
-import { errorResponse, captureWebhookError } from '../_shared/errors.ts'
-import { escapeHtml } from '../_shared/escape-html.ts'
-import { createAdminClient } from '../_shared/supabase-client.ts'
-import { checkTierEntitlement, GROWTH_AND_MAX_PLANS } from '../_shared/tier-gate.ts'
+import { validateBearerAuth } from "../_shared/auth.ts";
+import {
+	getCorsHeaders,
+	getJsonHeaders,
+	handleCorsOptions,
+} from "../_shared/cors.ts";
+import { validateEnv } from "../_shared/env.ts";
+import { captureWebhookError, errorResponse } from "../_shared/errors.ts";
+import { escapeHtml } from "../_shared/escape-html.ts";
+import { createAdminClient } from "../_shared/supabase-client.ts";
+import {
+	checkTierEntitlement,
+	GROWTH_AND_MAX_PLANS,
+} from "../_shared/tier-gate.ts";
 
 // Report types gated behind Growth/Max (REQ-46-02).
 // Free-tier keeps basic reports (maintenance, default revenue trends) so the
 // product is usable without upgrading; tax-prep + year-end reports require paid.
 const PREMIUM_REPORT_TYPES: ReadonlySet<string> = new Set([
-  'year-end',
-  '1099',
-  'financial',
-  'income-statement',
-  'cash-flow',
-])
+	"year-end",
+	"1099",
+	"financial",
+	"income-statement",
+	"cash-flow",
+]);
 
 Deno.serve(async (req: Request) => {
-  const optionsResponse = handleCorsOptions(req)
-  if (optionsResponse) return optionsResponse
+	const optionsResponse = handleCorsOptions(req);
+	if (optionsResponse) return optionsResponse;
 
-  let env: Record<string, string>
-  try {
-    env = validateEnv({
-      required: ['SUPABASE_URL', 'SUPABASE_SERVICE_ROLE_KEY'],
-    })
-  } catch (err) {
-    return errorResponse(req, 500, err, { action: 'env_validation' })
-  }
+	let env: Record<string, string>;
+	try {
+		env = validateEnv({
+			required: ["SUPABASE_URL", "SUPABASE_SERVICE_ROLE_KEY"],
+		});
+	} catch (err) {
+		return errorResponse(req, 500, err, { action: "env_validation" });
+	}
 
-  try {
-    // Authenticate
-    const supabaseUrl = env.SUPABASE_URL
-    const supabase = createAdminClient(supabaseUrl, env.SUPABASE_SERVICE_ROLE_KEY)
+	try {
+		// Authenticate
+		const supabaseUrl = env.SUPABASE_URL;
+		const supabase = createAdminClient(
+			supabaseUrl,
+			env.SUPABASE_SERVICE_ROLE_KEY,
+		);
 
-    const auth = await validateBearerAuth(req, supabase)
-    if ('error' in auth) {
-      return new Response(JSON.stringify({ error: auth.error }), {
-        status: auth.status,
-        headers: getJsonHeaders(req),
-      })
-    }
-    const { user, token } = auth
+		const auth = await validateBearerAuth(req, supabase);
+		if ("error" in auth) {
+			return new Response(JSON.stringify({ error: auth.error }), {
+				status: auth.status,
+				headers: getJsonHeaders(req),
+			});
+		}
+		const { user, token } = auth;
 
-    const url = new URL(req.url)
-    const reportType = url.searchParams.get('type') ?? 'financial'
-    const format = url.searchParams.get('format') ?? 'csv'
-    const year = parseInt(url.searchParams.get('year') ?? String(new Date().getFullYear()))
+		const url = new URL(req.url);
+		const reportType = url.searchParams.get("type") ?? "financial";
+		const format = url.searchParams.get("format") ?? "csv";
+		const year = parseInt(
+			url.searchParams.get("year") ?? String(new Date().getFullYear()),
+		);
 
-    // REQ-46-01: gate premium report types behind Growth/Max tier.
-    // Returns 402 with upgrade_url on the free tier; records a row in
-    // public.gate_events so admin analytics can attribute conversions.
-    if (PREMIUM_REPORT_TYPES.has(reportType)) {
-      const entitlementBlock = await checkTierEntitlement(req, supabase, user.id, {
-        feature: 'premium_reports',
-        upgrade_source: 'reports_gate',
-        entitled_plans: GROWTH_AND_MAX_PLANS,
-      })
-      if (entitlementBlock) return entitlementBlock
-    }
+		// REQ-46-01: gate premium report types behind Growth/Max tier.
+		// Returns 402 with upgrade_url on the free tier; records a row in
+		// public.gate_events so admin analytics can attribute conversions.
+		if (PREMIUM_REPORT_TYPES.has(reportType)) {
+			const entitlementBlock = await checkTierEntitlement(
+				req,
+				supabase,
+				user.id,
+				{
+					feature: "premium_reports",
+					upgrade_source: "reports_gate",
+					entitled_plans: GROWTH_AND_MAX_PLANS,
+				},
+			);
+			if (entitlementBlock) return entitlementBlock;
+		}
 
-    // Fetch data based on report type
-    let rows: Record<string, unknown>[] = []
-    let filename = `report-${reportType}-${year}`
+		// Fetch data based on report type
+		let rows: Record<string, unknown>[] = [];
+		let filename = `report-${reportType}-${year}`;
 
-    if (reportType === 'year-end' || reportType === 'financial') {
-      const { data } = await supabase.rpc('get_financial_overview', { p_user_id: user.id })
-      rows = flattenToRows(data)
-      filename = `year-end-${year}`
-    } else if (reportType === '1099') {
-      const { data } = await supabase.rpc('get_billing_insights', { owner_id_param: user.id })
-      rows = flattenToRows(data)
-      filename = `1099-vendors-${year}`
-    } else if (reportType === 'maintenance') {
-      const { data } = await supabase.rpc('get_maintenance_analytics', { user_id: user.id })
-      rows = flattenToRows(data)
-      filename = `maintenance-report-${year}`
-    } else {
-      const { data } = await supabase.rpc('get_revenue_trends_optimized', {
-        p_user_id: user.id,
-        p_months: 12
-      })
-      rows = Array.isArray(data) ? (data as Record<string, unknown>[]) : []
-      filename = `revenue-report-${year}`
-    }
+		if (reportType === "year-end" || reportType === "financial") {
+			const { data } = await supabase.rpc("get_financial_overview", {
+				p_user_id: user.id,
+			});
+			rows = flattenToRows(data);
+			filename = `year-end-${year}`;
+		} else if (reportType === "1099") {
+			const { data } = await supabase.rpc("get_billing_insights", {
+				owner_id_param: user.id,
+			});
+			rows = flattenToRows(data);
+			filename = `1099-vendors-${year}`;
+		} else if (reportType === "maintenance") {
+			const { data } = await supabase.rpc("get_maintenance_analytics", {
+				user_id: user.id,
+			});
+			rows = flattenToRows(data);
+			filename = `maintenance-report-${year}`;
+		} else {
+			const { data } = await supabase.rpc("get_revenue_trends_optimized", {
+				p_user_id: user.id,
+				p_months: 12,
+			});
+			rows = Array.isArray(data) ? (data as Record<string, unknown>[]) : [];
+			filename = `revenue-report-${year}`;
+		}
 
-    // PDF format: delegate to generate-pdf Edge Function (StirlingPDF on k3s)
-    if (format === 'pdf') {
-      const htmlContent = buildReportHtml(rows, reportType, year)
-      const generatePdfUrl = `${supabaseUrl}/functions/v1/generate-pdf`
+		// PDF format: delegate to generate-pdf Edge Function (StirlingPDF on k3s)
+		if (format === "pdf") {
+			const htmlContent = buildReportHtml(rows, reportType, year);
+			const generatePdfUrl = `${supabaseUrl}/functions/v1/generate-pdf`;
 
-      const pdfResponse = await fetch(generatePdfUrl, {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ html: htmlContent, filename: `${filename}.pdf` }),
-      })
+			const pdfResponse = await fetch(generatePdfUrl, {
+				method: "POST",
+				headers: {
+					Authorization: `Bearer ${token}`,
+					"Content-Type": "application/json",
+				},
+				body: JSON.stringify({
+					html: htmlContent,
+					filename: `${filename}.pdf`,
+				}),
+			});
 
-      if (!pdfResponse.ok) {
-        const errText = await pdfResponse.text().catch(() => pdfResponse.statusText)
-        captureWebhookError(new Error('PDF generation failed'), { message: '[export-report] PDF generation failed', err_text: errText, status: pdfResponse.status })
-        return errorResponse(req, 502, new Error('PDF generation failed'), { action: 'export_report_pdf' })
-      }
+			if (!pdfResponse.ok) {
+				const errText = await pdfResponse
+					.text()
+					.catch(() => pdfResponse.statusText);
+				captureWebhookError(new Error("PDF generation failed"), {
+					message: "[export-report] PDF generation failed",
+					err_text: errText,
+					status: pdfResponse.status,
+				});
+				return errorResponse(req, 502, new Error("PDF generation failed"), {
+					action: "export_report_pdf",
+				});
+			}
 
-      const pdfBlob = await pdfResponse.arrayBuffer()
-      return new Response(pdfBlob, {
-        status: 200,
-        headers: {
-          ...getCorsHeaders(req),
-          'Content-Type': 'application/pdf',
-          'Content-Disposition': `attachment; filename="${filename}.pdf"`,
-        },
-      })
-    }
+			const pdfBlob = await pdfResponse.arrayBuffer();
+			return new Response(pdfBlob, {
+				status: 200,
+				headers: {
+					...getCorsHeaders(req),
+					"Content-Type": "application/pdf",
+					"Content-Disposition": `attachment; filename="${filename}.pdf"`,
+				},
+			});
+		}
 
-    const csv = rowsToCsv(rows)
+		const csv = rowsToCsv(rows);
 
-    if (format === 'xlsx') {
-      // Full XLSX binary requires a library — ship CSV-compatible content with .xlsx extension
-      // Excel opens CSV files natively
-      return new Response(csv, {
-        headers: {
-          ...getCorsHeaders(req),
-          'Content-Type': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-          'Content-Disposition': `attachment; filename="${filename}.xlsx"`,
-        }
-      })
-    }
+		if (format === "xlsx") {
+			// Full XLSX binary requires a library — ship CSV-compatible content with .xlsx extension
+			// Excel opens CSV files natively
+			return new Response(csv, {
+				headers: {
+					...getCorsHeaders(req),
+					"Content-Type":
+						"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+					"Content-Disposition": `attachment; filename="${filename}.xlsx"`,
+				},
+			});
+		}
 
-    // Default: CSV
-    return new Response(csv, {
-      headers: {
-        ...getCorsHeaders(req),
-        'Content-Type': 'text/csv',
-        'Content-Disposition': `attachment; filename="${filename}.csv"`,
-      }
-    })
-  } catch (err) {
-    return errorResponse(req, 500, err, { action: 'export_report' })
-  }
-})
+		// Default: CSV
+		return new Response(csv, {
+			headers: {
+				...getCorsHeaders(req),
+				"Content-Type": "text/csv",
+				"Content-Disposition": `attachment; filename="${filename}.csv"`,
+			},
+		});
+	} catch (err) {
+		return errorResponse(req, 500, err, { action: "export_report" });
+	}
+});
 
-function buildReportHtml(rows: Record<string, unknown>[], reportType: string, year: number): string {
-  const title = escapeHtml(`${reportType.replace(/-/g, ' ').toUpperCase()} REPORT — ${year}`)
-  const headers = rows.length > 0 ? Object.keys(rows[0]) : []
+function buildReportHtml(
+	rows: Record<string, unknown>[],
+	reportType: string,
+	year: number,
+): string {
+	const title = escapeHtml(
+		`${reportType.replace(/-/g, " ").toUpperCase()} REPORT — ${year}`,
+	);
+	const headers = rows.length > 0 ? Object.keys(rows[0]) : [];
 
-  const tableRows = rows.map(row =>
-    `<tr>${headers.map(h => {
-      const val = row[h]
-      return `<td style="border:1px solid #ccc;padding:6px 10px;">${val === null || val === undefined ? '' : escapeHtml(String(val))}</td>`
-    }).join('')}</tr>`
-  ).join('')
+	const tableRows = rows
+		.map(
+			(row) =>
+				`<tr>${headers
+					.map((h) => {
+						const val = row[h];
+						return `<td style="border:1px solid #ccc;padding:6px 10px;">${val === null || val === undefined ? "" : escapeHtml(String(val))}</td>`;
+					})
+					.join("")}</tr>`,
+		)
+		.join("");
 
-  const headerCells = headers.map(h =>
-    `<th style="border:1px solid #ccc;padding:6px 10px;background:#f0f0f0;text-align:left;">${escapeHtml(h)}</th>`
-  ).join('')
+	const headerCells = headers
+		.map(
+			(h) =>
+				`<th style="border:1px solid #ccc;padding:6px 10px;background:#f0f0f0;text-align:left;">${escapeHtml(h)}</th>`,
+		)
+		.join("");
 
-  return `<!DOCTYPE html>
+	return `<!DOCTYPE html>
 <html lang="en">
 <head><meta charset="UTF-8"><title>${title}</title></head>
 <body style="font-family:Arial,sans-serif;margin:32px;color:#222;">
   <h1 style="font-size:20px;margin-bottom:4px;">${title}</h1>
   <p style="color:#666;margin-bottom:16px;">Generated: ${new Date().toLocaleDateString()}</p>
-  ${rows.length === 0
-    ? '<p>No data available for this report.</p>'
-    : `<table style="border-collapse:collapse;width:100%;font-size:13px;">
+  ${
+		rows.length === 0
+			? "<p>No data available for this report.</p>"
+			: `<table style="border-collapse:collapse;width:100%;font-size:13px;">
         <thead><tr>${headerCells}</tr></thead>
         <tbody>${tableRows}</tbody>
       </table>`
-  }
+	}
 </body>
-</html>`
+</html>`;
 }
 
 function flattenToRows(data: unknown): Record<string, unknown>[] {
-  if (!data || typeof data !== 'object') return []
-  if (Array.isArray(data)) return data as Record<string, unknown>[]
-  // For object-shaped RPC results, convert to key-value rows
-  return Object.entries(data as Record<string, unknown>).map(([key, value]) => ({
-    metric: key,
-    value: typeof value === 'object' ? JSON.stringify(value) : value
-  }))
+	if (!data || typeof data !== "object") return [];
+	if (Array.isArray(data)) return data as Record<string, unknown>[];
+	// For object-shaped RPC results, convert to key-value rows
+	return Object.entries(data as Record<string, unknown>).map(
+		([key, value]) => ({
+			metric: key,
+			value: typeof value === "object" ? JSON.stringify(value) : value,
+		}),
+	);
 }
 
 function rowsToCsv(rows: Record<string, unknown>[]): string {
-  if (rows.length === 0) return 'No data available\n'
-  const headers = Object.keys(rows[0])
-  const csvRows = [
-    headers.join(','),
-    ...rows.map(row =>
-      headers.map(h => {
-        const val = row[h]
-        const str = val === null || val === undefined ? '' : String(val)
-        return str.includes(',') || str.includes('"') || str.includes('\n')
-          ? `"${str.replace(/"/g, '""')}"`
-          : str
-      }).join(',')
-    )
-  ]
-  return csvRows.join('\n')
+	if (rows.length === 0) return "No data available\n";
+	const headers = Object.keys(rows[0]);
+	const csvRows = [
+		headers.join(","),
+		...rows.map((row) =>
+			headers
+				.map((h) => {
+					const val = row[h];
+					const str = val === null || val === undefined ? "" : String(val);
+					return str.includes(",") || str.includes('"') || str.includes("\n")
+						? `"${str.replace(/"/g, '""')}"`
+						: str;
+				})
+				.join(","),
+		),
+	];
+	return csvRows.join("\n");
 }

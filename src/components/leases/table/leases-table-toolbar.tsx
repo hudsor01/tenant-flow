@@ -1,25 +1,25 @@
-'use client'
+"use client";
 
-import { Search, ChevronDown } from 'lucide-react'
-import type { StatusFilter } from '#stores/leases-store'
+import { ChevronDown, Search } from "lucide-react";
+import type { StatusFilter } from "#stores/leases-store";
 
 interface LeasesTableToolbarProps {
-	searchQuery: string
-	statusFilter: StatusFilter
-	onSearchChange: (value: string) => void
-	onStatusFilterChange: (filter: StatusFilter) => void
+	searchQuery: string;
+	statusFilter: StatusFilter;
+	onSearchChange: (value: string) => void;
+	onStatusFilterChange: (filter: StatusFilter) => void;
 }
 
 export function LeasesTableToolbar({
 	searchQuery,
 	statusFilter,
 	onSearchChange,
-	onStatusFilterChange
+	onStatusFilterChange,
 }: LeasesTableToolbarProps) {
 	const handleClear = () => {
-		onSearchChange('')
-		onStatusFilterChange('all')
-	}
+		onSearchChange("");
+		onStatusFilterChange("all");
+	};
 
 	return (
 		<div className="px-4 py-3 border-b border-border flex flex-col sm:flex-row sm:items-center gap-3">
@@ -30,14 +30,14 @@ export function LeasesTableToolbar({
 					type="text"
 					placeholder="Search leases..."
 					value={searchQuery}
-					onChange={e => onSearchChange(e.target.value)}
+					onChange={(e) => onSearchChange(e.target.value)}
 					className="w-full pl-9 pr-3 py-2 text-sm bg-background border border-border rounded-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all"
 				/>
 			</div>
 
 			{/* Right: Clear + Filter */}
 			<div className="flex items-center gap-2 sm:ml-auto">
-				{(searchQuery || statusFilter !== 'all') && (
+				{(searchQuery || statusFilter !== "all") && (
 					<button
 						onClick={handleClear}
 						className="px-3 py-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
@@ -48,7 +48,9 @@ export function LeasesTableToolbar({
 				<div className="relative">
 					<select
 						value={statusFilter}
-						onChange={e => onStatusFilterChange(e.target.value as StatusFilter)}
+						onChange={(e) =>
+							onStatusFilterChange(e.target.value as StatusFilter)
+						}
 						className="appearance-none pl-3 pr-8 py-2 text-sm bg-background border border-border rounded-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary cursor-pointer transition-all"
 					>
 						<option value="all">All Statuses</option>
@@ -62,5 +64,5 @@ export function LeasesTableToolbar({
 				</div>
 			</div>
 		</div>
-	)
+	);
 }

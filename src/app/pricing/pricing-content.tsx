@@ -1,62 +1,62 @@
+import { ArrowRight, Building, CheckCircle2, Clock, Star } from "lucide-react";
+import Link from "next/link";
 import {
 	Accordion,
 	AccordionContent,
 	AccordionItem,
-	AccordionTrigger
-} from '#components/ui/accordion'
-import { Button } from '#components/ui/button'
-import { Card } from '#components/ui/card'
-import { ArrowRight, Building, CheckCircle2, Clock, Star } from 'lucide-react'
-import Link from 'next/link'
+	AccordionTrigger,
+} from "#components/ui/accordion";
+import { Button } from "#components/ui/button";
+import { Card } from "#components/ui/card";
 
 const STATS = [
 	{
-		label: 'Document Vault',
-		value: 'Per-entity',
-		description: 'Property, lease, tenant, maintenance, inspection',
-		icon: Building
+		label: "Document Vault",
+		value: "Per-entity",
+		description: "Property, lease, tenant, maintenance, inspection",
+		icon: Building,
 	},
 	{
-		label: 'Bulk Download',
-		value: '500/zip',
-		description: 'Streaming zip export for tax season',
-		icon: Clock
+		label: "Bulk Download",
+		value: "500/zip",
+		description: "Streaming zip export for tax season",
+		icon: Clock,
 	},
 	{
-		label: 'Built For',
-		value: 'Landlords',
-		description: 'Tenants are records, never platform users',
-		icon: Star
-	}
-]
+		label: "Built For",
+		value: "Landlords",
+		description: "Tenants are records, never platform users",
+		icon: Star,
+	},
+];
 
 const FAQS = [
 	{
-		question: 'Can I change plans later?',
+		question: "Can I change plans later?",
 		answer:
-			'Yes! Upgrade or downgrade anytime. Changes take effect immediately and we prorate the difference.'
+			"Yes! Upgrade or downgrade anytime. Changes take effect immediately and we prorate the difference.",
 	},
 	{
-		question: 'What payment methods do you accept?',
+		question: "What payment methods do you accept?",
 		answer:
-			'We accept all major credit cards, debit cards, and ACH transfers. All payments are securely processed through Stripe.'
+			"We accept all major credit cards, debit cards, and ACH transfers. All payments are securely processed through Stripe.",
 	},
 	{
-		question: 'Is there a long-term contract?',
+		question: "Is there a long-term contract?",
 		answer:
-			'No contracts required. All plans are month-to-month. Cancel anytime with no penalties or fees.'
+			"No contracts required. All plans are month-to-month. Cancel anytime with no penalties or fees.",
 	},
 	{
-		question: 'What happens if I exceed my plan limits?',
+		question: "What happens if I exceed my plan limits?",
 		answer:
-			"We'll notify you when you're approaching your limits. You can upgrade anytime to accommodate growth."
+			"We'll notify you when you're approaching your limits. You can upgrade anytime to accommodate growth.",
 	},
 	{
-		question: 'Can I cancel any time?',
+		question: "Can I cancel any time?",
 		answer:
-			"Yes. Every plan is month-to-month with no contract. Cancel from the billing settings whenever you want; you'll keep access through the end of the current billing period."
-	}
-]
+			"Yes. Every plan is month-to-month with no contract. Cancel from the billing settings whenever you want; you'll keep access through the end of the current billing period.",
+	},
+];
 
 export function PricingStatsGrid() {
 	return (
@@ -88,7 +88,7 @@ export function PricingStatsGrid() {
 				</div>
 			</div>
 		</section>
-	)
+	);
 }
 
 export function PricingFaqSection() {
@@ -155,7 +155,7 @@ export function PricingFaqSection() {
 				</div>
 			</div>
 		</section>
-	)
+	);
 }
 
 export function PricingCtaSection() {
@@ -168,9 +168,9 @@ export function PricingCtaSection() {
 							Ready to centralize your portfolio?
 						</h2>
 						<p className="text-base leading-relaxed text-muted-foreground sm:text-lg">
-							Start with the records and document vault built for self-managing owners,
-							then add teammates and integrations as your portfolio grows.
-							Your data carries across every plan.
+							Start with the records and document vault built for self-managing
+							owners, then add teammates and integrations as your portfolio
+							grows. Your data carries across every plan.
 						</p>
 						<div className="flex flex-col gap-3 sm:flex-row sm:items-center">
 							<Button size="lg" className="px-8" asChild>
@@ -187,18 +187,18 @@ export function PricingCtaSection() {
 					<div className="flex flex-col justify-center gap-5 rounded-2xl border border-dashed border-primary/30 bg-primary/5 p-6 text-left">
 						{[
 							{
-								title: '14-day trial, all features',
-								desc: 'Add properties, upload documents, generate and e-sign leases — keep everything when you subscribe.'
+								title: "14-day trial, all features",
+								desc: "Add properties, upload documents, generate and e-sign leases — keep everything when you subscribe.",
 							},
 							{
-								title: 'Billing that flexes with you',
-								desc: 'Switch plans whenever you want. Monthly and annual billing are available on every tier.'
+								title: "Billing that flexes with you",
+								desc: "Switch plans whenever you want. Monthly and annual billing are available on every tier.",
 							},
 							{
-								title: 'Guided onboarding',
-								desc: 'CSV import covers properties, units, tenants, and leases. Existing PDFs and receipts upload directly into the document vault.'
-							}
-						].map(item => (
+								title: "Guided onboarding",
+								desc: "CSV import covers properties, units, tenants, and leases. Existing PDFs and receipts upload directly into the document vault.",
+							},
+						].map((item) => (
 							<div key={item.title} className="flex items-start gap-3">
 								<CheckCircle2 className="mt-1 h-5 w-5 text-success" />
 								<div>
@@ -211,7 +211,7 @@ export function PricingCtaSection() {
 				</div>
 			</div>
 		</section>
-	)
+	);
 }
 
-export { FAQS as pricingFaqs }
+export { FAQS as pricingFaqs };

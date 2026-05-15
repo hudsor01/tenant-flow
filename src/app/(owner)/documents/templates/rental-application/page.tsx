@@ -1,5 +1,5 @@
-import { FileText } from 'lucide-react'
-import { RentalApplicationTemplate } from '../components/rental-application-template.client'
+import { FileText } from "lucide-react";
+import { RentalApplicationTemplate } from "../components/rental-application-template.client";
 
 export default function RentalApplicationTemplatePage() {
 	return (
@@ -8,9 +8,7 @@ export default function RentalApplicationTemplatePage() {
 				<div className="flex items-center gap-3">
 					<FileText className="hidden size-10 text-primary sm:block" />
 					<div>
-						<h1 className="typography-h2 tracking-tight">
-							Rental Application
-						</h1>
+						<h1 className="typography-h2 tracking-tight">Rental Application</h1>
 						<p className="text-muted-foreground">
 							Collect tenant applications and include background check
 							authorizations.
@@ -21,5 +19,5 @@ export default function RentalApplicationTemplatePage() {
 
 			<RentalApplicationTemplate />
 		</div>
-	)
+	);
 }

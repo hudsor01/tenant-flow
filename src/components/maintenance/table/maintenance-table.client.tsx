@@ -1,16 +1,12 @@
-'use client'
+"use client";
 
-import Link from 'next/link'
-import { Button } from '#components/ui/button'
-import {
-	Card,
-	CardContent,
-	CardDescription,
-	CardHeader,
-	CardTitle
-} from '#components/ui/card'
-import { DataTable } from '#components/data-table/data-table'
-import { DataTableToolbar } from '#components/data-table/data-table-toolbar'
+import type { ColumnDef } from "@tanstack/react-table";
+import { Plus, Trash2 } from "lucide-react";
+import Link from "next/link";
+import { useOptimistic, useState, useTransition } from "react";
+import { toast } from "sonner";
+import { DataTable } from "#components/data-table/data-table";
+import { DataTableToolbar } from "#components/data-table/data-table-toolbar";
 import {
 	AlertDialog,
 	AlertDialogAction,
@@ -20,67 +16,71 @@ import {
 	AlertDialogFooter,
 	AlertDialogHeader,
 	AlertDialogTitle,
-	AlertDialogTrigger
-} from '#components/ui/alert-dialog'
-import { Plus, Trash2 } from 'lucide-react'
-import { useOptimistic, useState, useTransition } from 'react'
-import { toast } from 'sonner'
-import type { ColumnDef } from '@tanstack/react-table'
-import type { MaintenanceDisplayRequest } from '#types/sections/maintenance'
-import { createLogger } from '#lib/frontend-logger'
-import { createClient } from '#lib/supabase/client'
-import { useDataTable } from '#hooks/use-data-table'
+	AlertDialogTrigger,
+} from "#components/ui/alert-dialog";
+import { Button } from "#components/ui/button";
+import {
+	Card,
+	CardContent,
+	CardDescription,
+	CardHeader,
+	CardTitle,
+} from "#components/ui/card";
+import { useDataTable } from "#hooks/use-data-table";
+import { createLogger } from "#lib/frontend-logger";
+import { createClient } from "#lib/supabase/client";
+import type { MaintenanceDisplayRequest } from "#types/sections/maintenance";
 
-const logger = createLogger({ component: 'MaintenanceTableClient' })
+const logger = createLogger({ component: "MaintenanceTableClient" });
 
 interface MaintenanceTableClientProps {
-	columns: ColumnDef<MaintenanceDisplayRequest>[]
-	initialRequests: MaintenanceDisplayRequest[]
+	columns: ColumnDef<MaintenanceDisplayRequest>[];
+	initialRequests: MaintenanceDisplayRequest[];
 }
 
 export function MaintenanceTableClient({
 	columns,
-	initialRequests
+	initialRequests,
 }: MaintenanceTableClientProps) {
-	const [isPending, startTransition] = useTransition()
-	const [deletingId, setDeletingId] = useState<string | null>(null)
+	const [isPending, startTransition] = useTransition();
+	const [deletingId, setDeletingId] = useState<string | null>(null);
 	const [optimisticRequests, removeOptimistic] = useOptimistic(
 		initialRequests,
-		(state, requestId: string) => state.filter(r => r.id !== requestId)
-	)
+		(state, requestId: string) => state.filter((r) => r.id !== requestId),
+	);
 
 	const handleDelete = (requestId: string, requestTitle: string) => {
-		setDeletingId(requestId)
+		setDeletingId(requestId);
 		startTransition(async () => {
-			removeOptimistic(requestId)
+			removeOptimistic(requestId);
 			try {
-				const supabase = createClient()
+				const supabase = createClient();
 				const { error } = await supabase
-					.from('maintenance_requests')
+					.from("maintenance_requests")
 					.delete()
-					.eq('id', requestId)
-				if (error) throw error
-				toast.success(`Request "${requestTitle}" deleted`)
+					.eq("id", requestId);
+				if (error) throw error;
+				toast.success(`Request "${requestTitle}" deleted`);
 			} catch (error) {
-				logger.error('Delete failed', {
-					action: 'handleDelete',
-					metadata: { requestId, error }
-				})
-				toast.error('Failed to delete request')
+				logger.error("Delete failed", {
+					action: "handleDelete",
+					metadata: { requestId, error },
+				});
+				toast.error("Failed to delete request");
 				// Optimistic update will auto-rollback on error
 			} finally {
-				setDeletingId(null)
+				setDeletingId(null);
 			}
-		})
-	}
+		});
+	};
 
 	// Add delete action column
 	const columnsWithActions: ColumnDef<MaintenanceDisplayRequest>[] = [
 		...columns,
 		{
-			id: 'actions',
+			id: "actions",
 			cell: ({ row }) => {
-				const request = row.original
+				const request = row.original;
 				return (
 					<div className="flex items-center justify-end gap-1">
 						<Button asChild size="sm" variant="ghost">
@@ -119,17 +119,17 @@ export function MaintenanceTableClient({
 										className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
 									>
 										{isPending && deletingId === request.id
-											? 'Deleting...'
-											: 'Delete'}
+											? "Deleting..."
+											: "Delete"}
 									</AlertDialogAction>
 								</AlertDialogFooter>
 							</AlertDialogContent>
 						</AlertDialog>
 					</div>
-				)
-			}
-		}
-	]
+				);
+			},
+		},
+	];
 
 	const { table } = useDataTable({
 		data: optimisticRequests,
@@ -139,10 +139,10 @@ export function MaintenanceTableClient({
 		initialState: {
 			pagination: {
 				pageIndex: 0,
-				pageSize: 10
-			}
-		}
-	})
+				pageSize: 10,
+			},
+		},
+	});
 
 	return (
 		<Card>
@@ -166,5 +166,5 @@ export function MaintenanceTableClient({
 				</DataTable>
 			</CardContent>
 		</Card>
-	)
+	);
 }

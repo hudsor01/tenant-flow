@@ -1,33 +1,27 @@
-'use client'
+"use client";
 
-import { Suspense } from 'react'
-import {
-	BarChart3,
-	LayoutGrid,
-	List,
-	Plus,
-	Search
-} from 'lucide-react'
-import Link from 'next/link'
-import { BlurFade } from '#components/ui/blur-fade'
+import { BarChart3, LayoutGrid, List, Plus, Search } from "lucide-react";
+import Link from "next/link";
+import { Suspense } from "react";
 import {
 	MaintenanceInsightsSection,
-	MaintenanceInsightsSkeleton
-} from '#components/analytics/maintenance-insights-section'
-import { MaintenanceKanban } from './kanban/maintenance-kanban.client'
-import { MaintenanceTableClient } from './table/maintenance-table.client'
-import { columns } from './table/columns'
-import type { MaintenanceDisplayRequest } from '#types/sections/maintenance'
+	MaintenanceInsightsSkeleton,
+} from "#components/analytics/maintenance-insights-section";
+import { BlurFade } from "#components/ui/blur-fade";
+import type { MaintenanceDisplayRequest } from "#types/sections/maintenance";
+import { MaintenanceKanban } from "./kanban/maintenance-kanban.client";
+import { columns } from "./table/columns";
+import { MaintenanceTableClient } from "./table/maintenance-table.client";
 
-type ViewType = 'kanban' | 'table'
+type ViewType = "kanban" | "table";
 
 interface MaintenanceOverviewTabProps {
-	searchQuery: string
-	onSearchChange: (value: string) => void
-	currentView: ViewType
-	onViewChange: (view: ViewType) => void
-	filteredRequests: MaintenanceDisplayRequest[]
-	onViewAnalytics: () => void
+	searchQuery: string;
+	onSearchChange: (value: string) => void;
+	currentView: ViewType;
+	onViewChange: (view: ViewType) => void;
+	filteredRequests: MaintenanceDisplayRequest[];
+	onViewAnalytics: () => void;
 }
 
 export function MaintenanceOverviewTab({
@@ -36,7 +30,7 @@ export function MaintenanceOverviewTab({
 	currentView,
 	onViewChange,
 	filteredRequests,
-	onViewAnalytics
+	onViewAnalytics,
 }: MaintenanceOverviewTabProps) {
 	return (
 		<>
@@ -52,9 +46,7 @@ export function MaintenanceOverviewTab({
 						</div>
 						<div className="text-left">
 							<div className="text-sm font-medium">New Request</div>
-							<div className="text-xs text-muted-foreground">
-								Create ticket
-							</div>
+							<div className="text-xs text-muted-foreground">Create ticket</div>
 						</div>
 					</Link>
 					<button
@@ -66,9 +58,7 @@ export function MaintenanceOverviewTab({
 						</div>
 						<div className="text-left">
 							<div className="text-sm font-medium">Analytics</div>
-							<div className="text-xs text-muted-foreground">
-								View insights
-							</div>
+							<div className="text-xs text-muted-foreground">View insights</div>
 						</div>
 					</button>
 				</div>
@@ -85,7 +75,7 @@ export function MaintenanceOverviewTab({
 								type="text"
 								placeholder="Search requests..."
 								value={searchQuery}
-								onChange={e => onSearchChange(e.target.value)}
+								onChange={(e) => onSearchChange(e.target.value)}
 								className="w-full pl-9 pr-3 py-2 text-sm bg-background border border-border rounded-lg text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all h-9"
 							/>
 						</div>
@@ -94,7 +84,7 @@ export function MaintenanceOverviewTab({
 						<div className="flex items-center gap-3 ml-auto">
 							{searchQuery && (
 								<button
-									onClick={() => onSearchChange('')}
+									onClick={() => onSearchChange("")}
 									className="text-sm text-muted-foreground hover:text-foreground"
 								>
 									Clear
@@ -103,22 +93,22 @@ export function MaintenanceOverviewTab({
 
 							<div className="flex items-center gap-1 p-1 bg-muted rounded-lg">
 								<button
-									onClick={() => onViewChange('kanban')}
+									onClick={() => onViewChange("kanban")}
 									className={`flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-md transition-colors ${
-										currentView === 'kanban'
-											? 'bg-background text-foreground shadow-sm'
-											: 'text-muted-foreground hover:text-foreground'
+										currentView === "kanban"
+											? "bg-background text-foreground shadow-sm"
+											: "text-muted-foreground hover:text-foreground"
 									}`}
 								>
 									<LayoutGrid className="w-4 h-4" />
 									Kanban
 								</button>
 								<button
-									onClick={() => onViewChange('table')}
+									onClick={() => onViewChange("table")}
 									className={`flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-md transition-colors ${
-										currentView === 'table'
-											? 'bg-background text-foreground shadow-sm'
-											: 'text-muted-foreground hover:text-foreground'
+										currentView === "table"
+											? "bg-background text-foreground shadow-sm"
+											: "text-muted-foreground hover:text-foreground"
 									}`}
 								>
 									<List className="w-4 h-4" />
@@ -132,7 +122,7 @@ export function MaintenanceOverviewTab({
 
 			{/* Content */}
 			<BlurFade delay={0.4} inView>
-				{currentView === 'kanban' ? (
+				{currentView === "kanban" ? (
 					<MaintenanceKanban initialRequests={filteredRequests} />
 				) : (
 					<div className="overflow-auto max-h-[calc(100vh-420px)]">
@@ -144,7 +134,7 @@ export function MaintenanceOverviewTab({
 				)}
 			</BlurFade>
 		</>
-	)
+	);
 }
 
 export function MaintenanceInsightsTab() {
@@ -152,5 +142,5 @@ export function MaintenanceInsightsTab() {
 		<Suspense fallback={<MaintenanceInsightsSkeleton />}>
 			<MaintenanceInsightsSection />
 		</Suspense>
-	)
+	);
 }

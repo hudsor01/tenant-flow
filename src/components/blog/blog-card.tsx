@@ -1,11 +1,11 @@
-import Link from 'next/link'
-import Image from 'next/image'
-import { cn } from '#lib/utils'
-import type { BlogListItem } from '#hooks/api/query-keys/blog-keys'
+import Image from "next/image";
+import Link from "next/link";
+import type { BlogListItem } from "#hooks/api/query-keys/blog-keys";
+import { cn } from "#lib/utils";
 
 interface BlogCardProps {
-	post: BlogListItem
-	className?: string
+	post: BlogListItem;
+	className?: string;
 }
 
 export function BlogCard({ post, className }: BlogCardProps) {
@@ -13,8 +13,8 @@ export function BlogCard({ post, className }: BlogCardProps) {
 		<Link
 			href={`/blog/${post.slug}`}
 			className={cn(
-				'group flex flex-col overflow-hidden rounded-lg border bg-card transition-all duration-200 hover:-translate-y-1 hover:shadow-lg',
-				className
+				"group flex flex-col overflow-hidden rounded-lg border bg-card transition-all duration-200 hover:-translate-y-1 hover:shadow-lg",
+				className,
 			)}
 		>
 			<div className="relative aspect-[16/10] overflow-hidden">
@@ -49,5 +49,5 @@ export function BlogCard({ post, className }: BlogCardProps) {
 				)}
 			</div>
 		</Link>
-	)
+	);
 }

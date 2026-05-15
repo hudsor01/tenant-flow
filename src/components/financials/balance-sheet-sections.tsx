@@ -1,21 +1,21 @@
-'use client'
+"use client";
 
-import type { ElementType } from 'react'
-import { useState } from 'react'
-import { ChevronDown, ChevronRight } from 'lucide-react'
-import { Button } from '#components/ui/button'
-import { BlurFade } from '#components/ui/blur-fade'
-import { formatCurrency } from '#lib/utils/currency'
-import type { FinancialLineItem } from '#types/financial-statements'
+import { ChevronDown, ChevronRight } from "lucide-react";
+import type { ElementType } from "react";
+import { useState } from "react";
+import { BlurFade } from "#components/ui/blur-fade";
+import { Button } from "#components/ui/button";
+import { formatCurrency } from "#lib/utils/currency";
+import type { FinancialLineItem } from "#types/financial-statements";
 
 interface BalanceSectionProps {
-	title: string
-	icon: ElementType
-	items: { label: string; items: FinancialLineItem[]; subtotal: number }[]
-	total: number
-	totalLabel: string
-	colorClass: string
-	delay: number
+	title: string;
+	icon: ElementType;
+	items: { label: string; items: FinancialLineItem[]; subtotal: number }[];
+	total: number;
+	totalLabel: string;
+	colorClass: string;
+	delay: number;
 }
 
 export function BalanceSection({
@@ -25,9 +25,9 @@ export function BalanceSection({
 	total,
 	totalLabel,
 	colorClass,
-	delay
+	delay,
 }: BalanceSectionProps) {
-	const [expanded, setExpanded] = useState<Record<string, boolean>>({})
+	const [expanded, setExpanded] = useState<Record<string, boolean>>({});
 
 	return (
 		<BlurFade delay={delay} inView>
@@ -44,9 +44,9 @@ export function BalanceSection({
 							<Button
 								variant="ghost"
 								onClick={() =>
-									setExpanded(prev => ({
+									setExpanded((prev) => ({
 										...prev,
-										[section.label]: !prev[section.label]
+										[section.label]: !prev[section.label],
 									}))
 								}
 								className="w-full flex items-center justify-between p-4 h-auto rounded-none"
@@ -72,7 +72,7 @@ export function BalanceSection({
 													{item.name}
 												</span>
 												<span
-													className={`text-sm ${item.amount < 0 ? 'text-red-600' : ''}`}
+													className={`text-sm ${item.amount < 0 ? "text-red-600" : ""}`}
 												>
 													{formatCurrency(item.amount)}
 												</span>
@@ -94,5 +94,5 @@ export function BalanceSection({
 				</div>
 			</div>
 		</BlurFade>
-	)
+	);
 }
