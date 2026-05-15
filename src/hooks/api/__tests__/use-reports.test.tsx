@@ -12,12 +12,12 @@ import { createElement } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
 	reportsKeys,
-	use1099Summary,
 	useFinancialReport,
 	useMaintenanceReport,
 	useMonthlyRevenue,
 	useOccupancyMetrics,
 	usePaymentAnalytics,
+	useReport1099Summary,
 	useYearEndSummary,
 } from "../use-reports";
 
@@ -417,7 +417,7 @@ describe("useYearEndSummary", () => {
 	});
 });
 
-describe("use1099Summary", () => {
+describe("useReport1099Summary", () => {
 	beforeEach(() => {
 		vi.clearAllMocks();
 		mockGetCachedUser.mockResolvedValue({ id: "user-1" });
@@ -438,7 +438,7 @@ describe("use1099Summary", () => {
 			error: null,
 		});
 
-		const { result } = renderHook(() => use1099Summary(2024), {
+		const { result } = renderHook(() => useReport1099Summary(2024), {
 			wrapper: createWrapper(),
 		});
 
@@ -458,7 +458,7 @@ describe("use1099Summary", () => {
 	it("returns defaults when no user", async () => {
 		mockGetCachedUser.mockResolvedValue(null);
 
-		const { result } = renderHook(() => use1099Summary(2024), {
+		const { result } = renderHook(() => useReport1099Summary(2024), {
 			wrapper: createWrapper(),
 		});
 

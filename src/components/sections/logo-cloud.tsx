@@ -1,5 +1,3 @@
-/* eslint-disable color-tokens/no-hex-colors -- Brand colors for third-party logos */
-
 import { BlurFade } from "#components/ui/blur-fade";
 import { cn } from "#lib/utils";
 

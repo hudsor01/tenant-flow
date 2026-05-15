@@ -63,7 +63,6 @@ function buildNoticeHtml(params: {
 		? `<p><strong>Reason for increase:</strong> ${escapeHtml(reason)}</p>`
 		: "";
 
-	// eslint-disable-next-line color-tokens/no-hex-colors -- Static HTML for StirlingPDF (third-party PDF renderer); Tailwind tokens don't resolve in this context
 	return `<!DOCTYPE html>
 <html lang="en">
 <head>

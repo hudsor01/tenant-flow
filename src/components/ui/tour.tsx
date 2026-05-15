@@ -256,7 +256,6 @@ function useFocusTrap(
 			document.removeEventListener("focusin", onFocusIn);
 			container.removeEventListener("keydown", onKeyDown);
 
-			// eslint-disable-next-line react-hooks/exhaustive-deps -- useAsRef keeps ref in sync with current value
 			if (!tourOpenRef.current) {
 				setTimeout(() => {
 					const closeAutoFocusEvent = new CustomEvent(
@@ -284,7 +283,6 @@ function useFocusTrap(
 					if (onCloseAutoFocusRef.current) {
 						container.removeEventListener(
 							CLOSE_AUTO_FOCUS,
-							// eslint-disable-next-line react-hooks/exhaustive-deps -- useAsRef keeps ref in sync
 							onCloseAutoFocusRef.current as EventListener,
 						);
 					}

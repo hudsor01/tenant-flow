@@ -34,7 +34,6 @@ const playfairDisplay = Playfair_Display({
 // values, not CSS — Tailwind tokens / CSS custom properties don't apply.
 // The previous `var(--color-info)` rendered as a literal string and was
 // silently ignored by browsers. Hex matches `--color-primary` (#2563eb).
-/* eslint-disable color-tokens/no-hex-colors -- HTML meta attribute values cannot reference CSS variables */
 export const viewport: Viewport = {
 	width: "device-width",
 	initialScale: 1,
@@ -44,7 +43,6 @@ export const viewport: Viewport = {
 		{ media: "(prefers-color-scheme: dark)", color: "#1e3a8a" },
 	],
 };
-/* eslint-enable color-tokens/no-hex-colors */
 
 export async function generateMetadata(): Promise<Metadata> {
 	const metadata = await generateSiteMetadata();
@@ -79,7 +77,6 @@ export default async function RootLayout({
 				<meta name="apple-mobile-web-app-status-bar-style" content="default" />
 				<meta name="apple-mobile-web-app-title" content="TenantFlow" />
 				<meta name="application-name" content="TenantFlow" />
-				{/* eslint-disable-next-line color-tokens/no-hex-colors -- HTML meta attribute values cannot reference CSS variables */}
 				<meta name="msapplication-TileColor" content="#2563eb" />
 				{/* Blog discovery: every RSS-aware reader (Feedly, NetNewsWire,
 				    Slack/Discord bots, AI crawlers fetching fresh content) checks

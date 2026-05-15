@@ -114,7 +114,6 @@ export function GoogleButton({
  * Uses proper Google brand colors and proportions
  * Google brand colors must be preserved exactly as specified
  */
-/* eslint-disable color-tokens/no-hex-colors */
 function HighResGoogleIcon() {
 	return (
 		<svg
@@ -143,4 +142,3 @@ function HighResGoogleIcon() {
 		</svg>
 	);
 }
-/* eslint-enable color-tokens/no-hex-colors */

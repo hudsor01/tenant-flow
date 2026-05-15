@@ -13,7 +13,7 @@ interface StringFieldApi {
 }
 
 interface SubscribeFormFieldsProps {
-	// biome-ignore lint/suspicious/noExplicitAny: TanStack Form's generic signature is too complex for extracted components
+	// biome-ignore lint/suspicious/noExplicitAny: TanStack Form's FieldComponent has 12 generic parameters; propagating them through extracted form sections would explode the API surface. Field shape is type-checked inside each callback.
 	form: { Field: React.ComponentType<any> };
 	isSubmitting: boolean;
 }

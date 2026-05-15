@@ -1,7 +1,7 @@
 "use client";
 
 import { Loader2 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Button } from "#components/ui/button";
 import {
 	Dialog,
@@ -41,25 +41,26 @@ export function CategoryDeleteDialog({
 	const [reassignTo, setReassignTo] = useState("");
 
 	// Default to the canonical 'other' fallback when the dialog opens
-	// against a NEW target. Cycle-3 M-1: only re-run on `target?.id`
-	// change — gating on the full `candidates` array would clobber the
-	// user's chosen reassign target if the categories list refetches
-	// mid-dialog (e.g., refetchOnWindowFocus). The fallback lookup
-	// reaches into the latest `candidates` reference at fire time, so
-	// we don't need it as a dep.
+	// against a NEW target. Re-run only on `target?.id` change — gating
+	// on the full `candidates` array would clobber the user's chosen
+	// reassign target if the categories list refetches mid-dialog
+	// (e.g., refetchOnWindowFocus). The ref pattern lets the effect read
+	// the latest `candidates` without being a re-run trigger.
+	const candidatesRef = useRef(candidates);
+	candidatesRef.current = candidates;
+
 	const targetId = target?.id;
 	useEffect(() => {
 		if (!targetId) {
 			setReassignTo("");
 			return;
 		}
+		const latest = candidatesRef.current;
 		const fallback =
-			candidates.find((c) => c.slug === "other" && c.id !== targetId) ??
-			candidates.find((c) => c.id !== targetId);
+			latest.find((c) => c.slug === "other" && c.id !== targetId) ??
+			latest.find((c) => c.id !== targetId);
 		setReassignTo(fallback?.id ?? "");
-		// `candidates` intentionally NOT in deps — see comment above.
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [targetId, candidates.find]);
+	}, [targetId]);
 
 	const canSubmit =
 		!isPending && !!target && !!reassignTo && reassignTo !== target.id;

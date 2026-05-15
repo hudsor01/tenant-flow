@@ -15,10 +15,8 @@ describe("authKeys structure", () => {
 	});
 
 	it("authKeys.me is a function returning an array", () => {
-		// biome-ignore lint/suspicious/noExplicitAny: TanStack Form generics
-		const me = authKeys.me as any as () => readonly string[];
-		expect(typeof me).toBe("function");
-		expect(me()).toEqual(["user", "me"]);
+		expect(typeof authKeys.me).toBe("function");
+		expect(authKeys.me()).toEqual(["user", "me"]);
 	});
 
 	it('authKeys.supabase.all equals ["supabase-auth"]', () => {

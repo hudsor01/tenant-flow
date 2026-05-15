@@ -1,4 +1,3 @@
-/* eslint-disable color-tokens/no-hex-colors -- PDF document uses inline CSS for StirlingPDF, not Tailwind */
 import type { TemplatePreviewOptions } from "./template-types";
 
 /**

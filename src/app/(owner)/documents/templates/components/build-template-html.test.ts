@@ -1,4 +1,3 @@
-/* eslint-disable color-tokens/no-hex-colors -- test data for PDF generation, not UI colors */
 import { describe, expect, it } from "vitest";
 import { buildTemplateHtml } from "./build-template-html";
 import type { TemplatePreviewOptions } from "./template-types";

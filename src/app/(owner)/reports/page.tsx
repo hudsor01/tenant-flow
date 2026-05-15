@@ -58,7 +58,6 @@ import {
 	EmptyTitle,
 } from "#components/ui/empty";
 
-/* eslint-disable color-tokens/no-hex-colors -- PDF HTML content uses inline styles intentionally; not rendered by the browser */
 function buildReportPdfHtml(
 	title: string,
 	startDate: string,
@@ -99,7 +98,6 @@ function buildReportPdfHtml(
 </body>
 </html>`;
 }
-/* eslint-enable color-tokens/no-hex-colors */
 
 export default function ReportsPage() {
 	const defaultRange = getDefaultDateRange();

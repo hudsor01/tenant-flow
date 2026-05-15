@@ -1,5 +1,3 @@
-/* eslint-disable color-tokens/no-hex-colors -- Static HTML served to StirlingPDF (third-party PDF renderer); Tailwind design tokens don't resolve in this rendering context. */
-
 import type { MaintenanceRequest } from "#types/core";
 
 interface WorkOrderExpense {
@@ -43,8 +41,8 @@ function formatDate(iso: string | null | undefined): string {
  * Build printable work-order HTML for the generate-pdf Edge Function.
  *
  * StirlingPDF (the downstream renderer) doesn't understand Tailwind CSS
- * variables, so we use static hex colors here. Hex colors are file-level
- * eslint-disabled above, consistent with rent-increase-notice-dialog.tsx.
+ * variables, so we use static hex colors here. Hex colors are required because StirlingPDF does not resolve
+ * design tokens, consistent with rent-increase-notice-dialog.tsx.
  */
 export function buildWorkOrderHtml(input: WorkOrderInput): string {
 	const { request, propertyName, unitNumber, expenses, totalExpenses } = input;

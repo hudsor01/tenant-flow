@@ -60,7 +60,6 @@ export function QrStep({
 					<>
 						<div className="flex-center">
 							{/* bg-white intentional: QR codes require true white background for scanning */}
-							{/* eslint-disable-next-line color-tokens/no-bg-white */}
 							<div className="rounded-lg border bg-white p-4">
 								<img
 									src={enrollmentData.qrCode}

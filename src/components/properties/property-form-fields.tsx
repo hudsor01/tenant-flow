@@ -2,7 +2,7 @@ import { Input } from "#components/ui/input";
 import { Label } from "#components/ui/label";
 
 interface AcquisitionDetailsSectionProps {
-	// biome-ignore lint/suspicious/noExplicitAny: TanStack Form's generic signature is too complex for extracted components
+	// biome-ignore lint/suspicious/noExplicitAny: TanStack Form's FieldComponent has 12 generic parameters (TFormData, TOnMount, TOnChange, TOnChangeAsync, TOnBlur, TOnBlurAsync, TOnSubmit, TOnSubmitAsync, TOnDynamic, TOnDynamicAsync, TOnServer, TSubmitMeta) — propagating those through every extracted form section would explode the API surface. The actual field shape is type-checked inside each form.Field callback below.
 	form: { Field: React.ComponentType<any> };
 }
 

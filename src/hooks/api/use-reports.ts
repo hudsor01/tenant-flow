@@ -271,7 +271,6 @@ export function useYearEndSummary(year: number) {
 	return useQuery(reportAnalyticsQueries.yearEnd(year));
 }
 
-export function use1099Summary(year: number) {
-	// biome-ignore lint/correctness/useHookAtTopLevel: function IS a hook; React naming convention `use[A-Z]` doesn't allow `use1099` (digit after `use`), but the tax-form term "1099" is the canonical name and renaming the public API would churn every caller.
+export function useReport1099Summary(year: number) {
 	return useQuery(reportAnalyticsQueries.report1099(year));
 }

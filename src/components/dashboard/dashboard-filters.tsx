@@ -37,7 +37,6 @@ import {
 	getDateRangeFromPreset,
 } from "./dashboard-filters-utils";
 
-/* eslint-disable color-tokens/no-hex-colors -- PDF HTML content uses inline styles intentionally; not rendered by the browser */
 function buildDashboardPdfHtml(
 	stats: Record<string, unknown>,
 	propCount: number,
@@ -72,7 +71,6 @@ function buildDashboardPdfHtml(
 </body>
 </html>`;
 }
-/* eslint-enable color-tokens/no-hex-colors */
 
 /**
  * Dashboard Filters - Date range picker and export controls

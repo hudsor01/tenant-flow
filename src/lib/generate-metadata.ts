@@ -107,7 +107,6 @@ function createDefaultMetadata(): Metadata {
 					// CSS custom properties don't apply to HTML attribute
 					// values. Hex matches `--color-primary` so the pinned-tab
 					// icon stays brand-aligned.
-					// eslint-disable-next-line color-tokens/no-hex-colors -- HTML meta attribute values cannot reference CSS variables
 					color: "#2563eb",
 				},
 			],

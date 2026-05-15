@@ -14,7 +14,10 @@ import {
 	SelectValue,
 } from "#components/ui/select";
 import { useDownloadYearEndPdf } from "#hooks/api/use-report-mutations";
-import { use1099Summary, useYearEndSummary } from "#hooks/api/use-reports";
+import {
+	useReport1099Summary,
+	useYearEndSummary,
+} from "#hooks/api/use-reports";
 
 function buildYearOptions(): number[] {
 	const currentYear = new Date().getFullYear();
@@ -67,7 +70,7 @@ export default function YearEndReportsPage() {
 	const { data: yearEndResponse, isLoading: isLoadingYearEnd } =
 		useYearEndSummary(selectedYear);
 	const { data: data1099Response, isLoading: isLoading1099 } =
-		use1099Summary(selectedYear);
+		useReport1099Summary(selectedYear);
 
 	const downloadPdfMutation = useDownloadYearEndPdf();
 
