@@ -159,7 +159,7 @@ jobs:
 
       - name: Run E2E smoke tests
         if: github.event_name != 'pull_request' || github.actor != 'dependabot[bot]'
-        run: bunx playwright test --config tests/e2e/playwright.config.ts --project=smoke --project=public
+        run: bunx playwright test --config tests/e2e/playwright.config.ts --project=smoke --project=smoke-authenticated --project=public
         env:
           SKIP_ENV_VALIDATION: 'true'
           E2E_OWNER_EMAIL: ${{ secrets.E2E_OWNER_EMAIL }}

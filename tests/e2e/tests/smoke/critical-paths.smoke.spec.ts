@@ -1,51 +1,32 @@
-import { test, expect, type Page } from '@playwright/test'
-import { createLogger } from '../../lib/frontend-logger'
+import { test, expect } from '@playwright/test'
 
 /**
- * CRITICAL PATH SMOKE TESTS
+ * CRITICAL PATH SMOKE TESTS — Login Flow
  *
- * These tests MUST pass before any code can be merged.
- * They test the absolute critical user journeys that must work in production.
+ * The original critical-paths suite had 5 tests, 4 of which started by
+ * re-running `loginAsOwner()` through the UI. That hammered Supabase's
+ * ~45-sign-ins/minute auth rate limit on busy days (4+ PRs merging in
+ * quick succession), producing the "P0 Dashboard loads for owner" flake
+ * captured in MEMORY.md.
  *
- * Target: <30 seconds total execution time
- * Run: On every commit, before every deployment
+ * The 4 post-login tests moved to `authenticated-flows.smoke.spec.ts`,
+ * which reuses the existing `setup-owner` storageState (one Supabase
+ * Auth API call per CI run, not five UI logins). This file keeps only
+ * the test that genuinely exercises the login UI itself — it MUST stay
+ * un-authenticated.
  *
- * If these fail, STOP and fix immediately - nothing else matters.
+ * Project wiring: this file matches the `smoke` project
+ * (`storageState: { cookies: [], origins: [] }`); the authenticated
+ * sibling matches the `smoke-authenticated` project.
  */
 
 const BASE_URL = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:3050'
 const OWNER_EMAIL = process.env.E2E_OWNER_EMAIL || ''
 const OWNER_PASSWORD = process.env.E2E_OWNER_PASSWORD || ''
 const hasCredentials = Boolean(OWNER_EMAIL && OWNER_PASSWORD)
-const logger = createLogger({ component: 'CriticalPathsSmoke' })
 
-/**
- * Reusable login helper using reliable selectors
- * Uses click + fill pattern for TanStack Form controlled inputs
- */
-async function loginAsOwner(page: Page) {
-	await page.goto(`${BASE_URL}/login`)
-
-	const emailInput = page.locator('input#email')
-	const passwordInput = page.locator('input#password')
-	const submitButton = page.locator('button[type="submit"]')
-
-	// Click and fill (click ensures focus for controlled inputs)
-	await emailInput.click()
-	await emailInput.fill(OWNER_EMAIL)
-	await passwordInput.click()
-	await passwordInput.fill(OWNER_PASSWORD)
-
-	// Submit and wait for redirect
-	await submitButton.click()
-	await page.waitForURL(url => !url.pathname.includes('/login'), {
-		timeout: 15000
-	})
-}
-
-test.describe('🚨 CRITICAL PATH SMOKE TESTS 🚨', () => {
+test.describe('🚨 CRITICAL PATH SMOKE TESTS — Login Flow 🚨', () => {
 	test.skip(!hasCredentials, 'E2E_OWNER_EMAIL and E2E_OWNER_PASSWORD must be set')
-	test.describe.configure({ mode: 'serial' }) // Run in order
 
 	test('🔥 P0: Owner can login', async ({ page }) => {
 		// Navigate to login
@@ -107,160 +88,6 @@ test.describe('🚨 CRITICAL PATH SMOKE TESTS 🚨', () => {
 		// Verify we ended up on an authenticated page (dashboard or similar)
 		const currentUrl = page.url()
 		expect(currentUrl).not.toContain('/login')
-
-	})
-
-	test('🔥 P0: Dashboard loads for owner', async ({ page }) => {
-		await loginAsOwner(page)
-
-		// Navigate to dashboard
-		await page.goto(`${BASE_URL}/dashboard`)
-
-		// Verify dashboard loads — accept any of these as success. Empty state
-		// shows "Welcome to TenantFlow" instead of stats; full dashboard
-		// shows "Total Properties" or the wrapper [data-testid].
-		// Timeout of 20s accommodates cold Turbopack route compile in CI;
-		// first-hit /dashboard typically compiles in 5-15s on ubuntu-latest.
-		const dashboardLoaded = await Promise.race([
-			page
-				.locator('h1:has-text("Dashboard")')
-				.waitFor({ timeout: 20000 })
-				.then(() => true),
-			page
-				.locator('[data-testid="dashboard"]')
-				.waitFor({ timeout: 20000 })
-				.then(() => true),
-			page
-				.locator('[data-testid="dashboard-stats"]')
-				.waitFor({ timeout: 20000 })
-				.then(() => true),
-			page
-				.locator('text=Total Properties')
-				.waitFor({ timeout: 20000 })
-				.then(() => true),
-			page
-				.locator('text=Welcome to TenantFlow')
-				.waitFor({ timeout: 20000 })
-				.then(() => true)
-		]).catch(() => false)
-
-		expect(dashboardLoaded).toBeTruthy()
-	})
-
-	test('🔥 P0: Properties page loads', async ({ page, request }) => {
-		await loginAsOwner(page)
-
-		// Navigate to properties
-		await page.goto(`${BASE_URL}/properties`)
-
-		// Verify properties page loads - accept any of these as success
-		// Note: Empty state shows "No properties yet" instead of property list
-		// 20s per-selector timeout matches the dashboard test above — same
-		// cold Turbopack compile window applies.
-		const propertiesLoaded = await Promise.race([
-			page
-				.locator('h1:has-text("Properties")')
-				.waitFor({ timeout: 20000 })
-				.then(() => true),
-			page
-				.locator('button:has-text("New Property")')
-				.waitFor({ timeout: 20000 })
-				.then(() => true),
-			page
-				.locator('text=No properties yet')
-				.waitFor({ timeout: 20000 })
-				.then(() => true),
-			page
-				.locator('button:has-text("Add Your First Property")')
-				.waitFor({ timeout: 20000 })
-				.then(() => true)
-		]).catch(() => false)
-
-		expect(propertiesLoaded).toBeTruthy()
-	})
-
-	// API contract tests removed — NestJS backend deleted in Phase 57.
-	// Data now served via Supabase PostgREST from the Next.js app directly.
-
-	test('🔥 P0: Navigation works', async ({ page }) => {
-		await loginAsOwner(page)
-
-		// Test navigation to key pages
-		const pages = [
-			{ url: '/', name: 'Dashboard' },
-			{ url: '/properties', name: 'Properties' },
-			{ url: '/tenants', name: 'Tenants' },
-			{ url: '/leases', name: 'Leases' }
-		]
-
-		for (const testPage of pages) {
-			await page.goto(`${BASE_URL}${testPage.url}`)
-
-			// Wait for page to load - check for common elements
-			const pageLoaded = await Promise.race([
-				page
-					.locator('h1')
-					.first()
-					.waitFor({ timeout: 5000 })
-					.then(() => true),
-				page
-					.locator('main')
-					.waitFor({ timeout: 5000 })
-					.then(() => true)
-			]).catch(() => false)
-
-			if (!pageLoaded) {
-				throw new Error(
-					`🚨 NAVIGATION FAILED: ${testPage.name} page did not load\n` +
-						`URL: ${testPage.url}\n` +
-						`Current: ${page.url()}`
-				)
-			}
-		}
-	})
-
-	test('🔥 P0: No console errors on critical pages', async ({ page }) => {
-		const errors: string[] = []
-
-		page.on('pageerror', error => {
-			errors.push(`Page Error: ${error.message}`)
-		})
-
-		page.on('console', msg => {
-			if (msg.type() === 'error') {
-				errors.push(`Console Error: ${msg.text()}`)
-			}
-		})
-
-		await loginAsOwner(page)
-
-		// Visit critical pages
-		// Using 'domcontentloaded' instead of 'networkidle' to avoid timeout
-		// issues with Next.js dev server HMR and background polling
-		await page.goto(`${BASE_URL}/dashboard`)
-		await page.waitForLoadState('domcontentloaded')
-		await page.waitForTimeout(1000) // Allow time for initial JS execution
-
-		await page.goto(`${BASE_URL}/properties`)
-		await page.waitForLoadState('domcontentloaded')
-		await page.waitForTimeout(1000)
-
-		// Filter out known acceptable errors
-		const criticalErrors = errors.filter(
-			err =>
-				!err.includes('DevTools') &&
-				!err.includes('favicon') &&
-				!err.includes('webpack') &&
-				!err.includes('HMR')
-		)
-
-		if (criticalErrors.length > 0) {
-			logger.warn('⚠️  Console errors detected:', {
-				metadata: { criticalErrors }
-			})
-			// Don't fail the test, just warn
-			// In production, you might want to fail on any errors
-		}
 	})
 })
 
