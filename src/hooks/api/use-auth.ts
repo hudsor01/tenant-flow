@@ -257,3 +257,16 @@ export function useUser() {
 export function useSupabaseUser() {
 	return useQuery(authQueries.supabaseUser());
 }
+
+/**
+ * Get Supabase session (local cookie cache, no network round-trip).
+ *
+ * Use this for "is there a session?" UX gates (navbar CTAs, optimistic
+ * surfaces) where a server-validated JWT is not required. Reads from
+ * Supabase's local cookie cache via `getSession()` and skips the
+ * `/auth/v1/user` network call that `useSupabaseUser()` triggers on
+ * cache miss.
+ */
+export function useSupabaseSession() {
+	return useQuery(authQueries.supabaseSession());
+}

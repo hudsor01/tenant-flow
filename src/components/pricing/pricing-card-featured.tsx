@@ -15,10 +15,8 @@ import { Badge } from "#components/ui/badge";
 import { Button } from "#components/ui/button";
 import { createLogger } from "#lib/frontend-logger";
 import { checkoutRateLimiter } from "#lib/security";
-import {
-	createCheckoutSession,
-	isUserAuthenticated,
-} from "#lib/stripe/stripe-client";
+import { createCheckoutSession } from "#lib/stripe/stripe-client";
+import { createClient } from "#lib/supabase/client";
 import { cn } from "#lib/utils";
 import { OwnerSubscribeDialog } from "./owner-subscribe-dialog";
 
@@ -50,6 +48,12 @@ export function PricingCardFeatured({
 	billingCycle,
 	className,
 }: PricingCardFeaturedProps) {
+	// React Compiler bailout. MUST remain the first statement in the function
+	// body — a `const x = ...` line inserted above it silently disables the
+	// directive. NumberFlow 0.6.0 triggers a useMemo hook-count mismatch
+	// (React error #310) under the compiler's auto-memoization.
+	"use no memo";
+
 	const [subscribeDialogOpen, setSubscribeDialogOpen] = useState(false);
 
 	const subscriptionMutation = useMutation({
@@ -61,14 +65,6 @@ export function PricingCardFeatured({
 				throw new Error(
 					"Too many requests. Please wait a moment before trying again.",
 				);
-			}
-
-			if (!overrides?.tenant_id) {
-				const authenticated = await isUserAuthenticated();
-				if (!authenticated) {
-					window.location.href = "/login";
-					throw new Error("Please sign in or create an account to subscribe");
-				}
 			}
 
 			const stripePriceId =
@@ -114,8 +110,18 @@ export function PricingCardFeatured({
 	const handleSubscribe = async () => {
 		if (subscriptionMutation.isPending) return;
 
-		const authenticated = await isUserAuthenticated();
-		if (!authenticated) {
+		// Use getSession() — reads from local cookie cache, no network call,
+		// no silent dialog-open when getUser() returns false due to a transient
+		// auth-server hiccup. If a local session exists, attempt checkout; the
+		// Edge Function validates the JWT and surfaces a real error via toast
+		// if the session is rejected. If no local session, prompt new-visitor
+		// signup via the dialog.
+		const supabase = createClient();
+		const {
+			data: { session },
+		} = await supabase.auth.getSession();
+
+		if (!session) {
 			setSubscribeDialogOpen(true);
 			return;
 		}

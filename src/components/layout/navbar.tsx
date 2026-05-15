@@ -7,6 +7,7 @@ import { usePathname } from "next/navigation";
 import type { Ref } from "react";
 import { useEffect, useState } from "react";
 import { Button } from "#components/ui/button";
+import { useSupabaseSession } from "#hooks/api/use-auth";
 import { useNavigation } from "#hooks/use-navigation";
 import { cn } from "#lib/utils";
 import { NavbarDesktopNav } from "./navbar/navbar-desktop-nav";
@@ -27,6 +28,12 @@ export function Navbar({
 	const { isMobileMenuOpen, toggleMobileMenu, closeMobileMenu } =
 		useNavigation();
 	const pathname = usePathname();
+	// Session-only check — reads local cookie cache via getSession(), no
+	// network round-trip. `authResolved` guards the CTA slot to prevent a
+	// flash of unauthenticated state during initial hydration.
+	const { data: authSession, isPending: authPending } = useSupabaseSession();
+	const authResolved = !authPending;
+	const isAuthenticated = !!authSession;
 
 	useEffect(() => {
 		const handleScroll = () => {
@@ -71,15 +78,24 @@ export function Navbar({
 
 				<div className="flex items-center space-x-4">
 					<div className="hidden sm:flex items-center gap-3">
-						<Link
-							href="/login"
-							className="px-4 py-2 text-foreground/70 hover:text-foreground rounded-md border border-transparent hover:border-border/50 transition-colors duration-fast text-base font-medium"
-						>
-							Sign In
-						</Link>
-						<Button asChild size="default">
-							<Link href={ctaHref}>{ctaText}</Link>
-						</Button>
+						{authResolved &&
+							(isAuthenticated ? (
+								<Button asChild size="default">
+									<Link href="/dashboard">Dashboard</Link>
+								</Button>
+							) : (
+								<>
+									<Link
+										href="/login"
+										className="px-4 py-2 text-foreground/70 hover:text-foreground rounded-md border border-transparent hover:border-border/50 transition-colors duration-fast text-base font-medium"
+									>
+										Sign In
+									</Link>
+									<Button asChild size="default">
+										<Link href={ctaHref}>{ctaText}</Link>
+									</Button>
+								</>
+							))}
 					</div>
 
 					{/* Mobile Toggle */}
@@ -112,6 +128,8 @@ export function Navbar({
 				pathname={pathname}
 				ctaText={ctaText}
 				ctaHref={ctaHref}
+				isAuthenticated={isAuthenticated}
+				authResolved={authResolved}
 			/>
 		</nav>
 	);

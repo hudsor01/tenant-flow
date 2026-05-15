@@ -14,10 +14,8 @@ import { toast } from "sonner";
 import { Button } from "#components/ui/button";
 import { createLogger } from "#lib/frontend-logger";
 import { checkoutRateLimiter } from "#lib/security";
-import {
-	createCheckoutSession,
-	isUserAuthenticated,
-} from "#lib/stripe/stripe-client";
+import { createCheckoutSession } from "#lib/stripe/stripe-client";
+import { createClient } from "#lib/supabase/client";
 import { cn } from "#lib/utils";
 import { OwnerSubscribeDialog } from "./owner-subscribe-dialog";
 
@@ -51,6 +49,12 @@ export function PricingCardStandard({
 	variant,
 	className,
 }: PricingCardStandardProps) {
+	// React Compiler bailout. MUST remain the first statement in the function
+	// body — a `const x = ...` line inserted above it silently disables the
+	// directive. NumberFlow 0.6.0 triggers a useMemo hook-count mismatch
+	// (React error #310) under the compiler's auto-memoization.
+	"use no memo";
+
 	const [subscribeDialogOpen, setSubscribeDialogOpen] = useState(false);
 	const [showAllFeatures, setShowAllFeatures] = useState(false);
 	const isEnterprise = variant === "enterprise";
@@ -69,14 +73,6 @@ export function PricingCardStandard({
 				throw new Error(
 					"Too many requests. Please wait a moment before trying again.",
 				);
-			}
-
-			if (!overrides?.tenant_id) {
-				const authenticated = await isUserAuthenticated();
-				if (!authenticated) {
-					window.location.href = "/login";
-					throw new Error("Please sign in or create an account to subscribe");
-				}
 			}
 
 			const stripePriceId =
@@ -127,8 +123,17 @@ export function PricingCardStandard({
 			return;
 		}
 
-		const authenticated = await isUserAuthenticated();
-		if (!authenticated) {
+		// Use getSession() — reads from local cookie cache, no network call.
+		// Avoids the silent dialog-open path that hid CTA failures when
+		// getUser() failed for a transient reason. If no local session, prompt
+		// new-visitor signup; otherwise let the mutation hit the Edge Function
+		// (which JWT-validates and surfaces a real error via toast on failure).
+		const supabase = createClient();
+		const {
+			data: { session },
+		} = await supabase.auth.getSession();
+
+		if (!session) {
 			setSubscribeDialogOpen(true);
 			return;
 		}
