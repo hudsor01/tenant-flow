@@ -22,6 +22,7 @@ interface NavbarMobileMenuProps {
 	ctaText: string;
 	ctaHref: string;
 	isAuthenticated: boolean;
+	authResolved: boolean;
 }
 
 export function NavbarMobileMenu({
@@ -33,6 +34,7 @@ export function NavbarMobileMenu({
 	ctaText,
 	ctaHref,
 	isAuthenticated,
+	authResolved,
 }: NavbarMobileMenuProps) {
 	const [openDropdown, setOpenDropdown] = useState<string | null>(null);
 
@@ -103,34 +105,35 @@ export function NavbarMobileMenu({
 						{/* Divider */}
 						<div className="my-2 border-t border-border/50" />
 
-						{isAuthenticated ? (
-							<Link
-								href="/dashboard"
-								onClick={() => onClose()}
-								className="flex items-center justify-center w-full px-6 py-3 mt-2 bg-primary text-primary-foreground font-medium text-sm rounded-md hover:bg-primary/90 transition-colors duration-fast"
-							>
-								Dashboard
-								<ArrowRight className="ml-2 size-4" />
-							</Link>
-						) : (
-							<>
+						{authResolved &&
+							(isAuthenticated ? (
 								<Link
-									href="/login"
-									onClick={() => onClose()}
-									className="block px-4 py-3 text-foreground/70 hover:text-foreground hover:bg-muted/50 rounded-lg transition-colors duration-fast"
-								>
-									Sign In
-								</Link>
-								<Link
-									href={ctaHref}
+									href="/dashboard"
 									onClick={() => onClose()}
 									className="flex items-center justify-center w-full px-6 py-3 mt-2 bg-primary text-primary-foreground font-medium text-sm rounded-md hover:bg-primary/90 transition-colors duration-fast"
 								>
-									{ctaText}
+									Dashboard
 									<ArrowRight className="ml-2 size-4" />
 								</Link>
-							</>
-						)}
+							) : (
+								<>
+									<Link
+										href="/login"
+										onClick={() => onClose()}
+										className="block px-4 py-3 text-foreground/70 hover:text-foreground hover:bg-muted/50 rounded-lg transition-colors duration-fast"
+									>
+										Sign In
+									</Link>
+									<Link
+										href={ctaHref}
+										onClick={() => onClose()}
+										className="flex items-center justify-center w-full px-6 py-3 mt-2 bg-primary text-primary-foreground font-medium text-sm rounded-md hover:bg-primary/90 transition-colors duration-fast"
+									>
+										{ctaText}
+										<ArrowRight className="ml-2 size-4" />
+									</Link>
+								</>
+							))}
 					</nav>
 				</div>
 			</SheetContent>

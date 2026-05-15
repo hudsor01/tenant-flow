@@ -46,6 +46,20 @@ function formatNextBillingDate(currentPeriodEnd: string | null): string | null {
 	});
 }
 
+// Resolve the plan-card title so the heading never contradicts the status
+// badge (the prior "No plan" + "Active" bug). Cases ordered by specificity:
+// known plan → trial → active-without-plan (synthetic / sync-lag) → no plan.
+function resolvePlanTitle(
+	status: string | null,
+	isActive: boolean,
+	currentPlan: PricingConfig | null,
+): string {
+	if (isActive && currentPlan) return currentPlan.name;
+	if (status === "trialing") return "Free trial";
+	if (isActive) return "Active subscription";
+	return "No plan";
+}
+
 const STATUS_BADGE_VARIANTS = {
 	active: {
 		label: "Active",
@@ -211,13 +225,7 @@ export function BillingSettings() {
 						<div>
 							<div className="flex items-center gap-2 mb-1">
 								<h4 className="text-xl font-bold">
-									{isActive && currentPlan
-										? currentPlan.name
-										: status === "trialing"
-											? "Free trial"
-											: isActive
-												? "Active subscription"
-												: "No plan"}
+									{resolvePlanTitle(status, isActive, currentPlan)}
 								</h4>
 								<StatusBadge status={status} />
 							</div>

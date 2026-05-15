@@ -49,6 +49,10 @@ export function PricingCardStandard({
 	variant,
 	className,
 }: PricingCardStandardProps) {
+	// React Compiler bailout. MUST remain the first statement in the function
+	// body — a `const x = ...` line inserted above it silently disables the
+	// directive. NumberFlow 0.6.0 triggers a useMemo hook-count mismatch
+	// (React error #310) under the compiler's auto-memoization.
 	"use no memo";
 
 	const [subscribeDialogOpen, setSubscribeDialogOpen] = useState(false);
