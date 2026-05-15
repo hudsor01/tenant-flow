@@ -5,6 +5,7 @@
 		"ignoreUnknown": false,
 		"includes": [
 			"**",
+			"!dashboard.html",
 			"!supabase/templates/**",
 			"!supabase/functions/**",
 			"!**/*.generated.ts",
