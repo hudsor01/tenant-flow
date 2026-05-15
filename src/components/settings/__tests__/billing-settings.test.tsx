@@ -127,7 +127,7 @@ describe("BillingSettings empty-state branches", () => {
 		const BillingSettings = await getBillingSettings();
 		renderWithProviders(<BillingSettings />);
 
-		expect(screen.getByText("No plan")).toBeInTheDocument();
+		expect(screen.getByText("Free trial")).toBeInTheDocument();
 		expect(screen.getByText("Trial")).toBeInTheDocument();
 		expect(screen.getByText(/Your trial is active/)).toBeInTheDocument();
 		expect(screen.getByRole("link", { name: /Choose a plan/ })).toHaveAttribute(
@@ -158,7 +158,7 @@ describe("BillingSettings empty-state branches", () => {
 		const BillingSettings = await getBillingSettings();
 		renderWithProviders(<BillingSettings />);
 
-		expect(screen.getByText("No plan")).toBeInTheDocument();
+		expect(screen.getByText("Active subscription")).toBeInTheDocument();
 		expect(screen.getByText("Active")).toBeInTheDocument();
 		expect(
 			screen.getByText(/Subscription details unavailable/),

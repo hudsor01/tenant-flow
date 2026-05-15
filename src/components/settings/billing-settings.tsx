@@ -211,7 +211,13 @@ export function BillingSettings() {
 						<div>
 							<div className="flex items-center gap-2 mb-1">
 								<h4 className="text-xl font-bold">
-									{isActive && currentPlan ? currentPlan.name : "No plan"}
+									{isActive && currentPlan
+										? currentPlan.name
+										: status === "trialing"
+											? "Free trial"
+											: isActive
+												? "Active subscription"
+												: "No plan"}
 								</h4>
 								<StatusBadge status={status} />
 							</div>
@@ -249,6 +255,15 @@ export function BillingSettings() {
 									to confirm your plan.
 								</p>
 							)}
+							{isActive &&
+								!stripePriceId &&
+								!currentPlan &&
+								status === "active" && (
+									<p className="text-sm text-muted-foreground mt-1">
+										Your account has active access. Plan details will appear
+										here once billing syncs.
+									</p>
+								)}
 							{status === "trialing" && !currentPlan && !stripePriceId && (
 								<p className="text-sm text-muted-foreground mt-1">
 									Your trial is active.{" "}

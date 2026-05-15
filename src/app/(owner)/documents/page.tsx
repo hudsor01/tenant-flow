@@ -1,11 +1,10 @@
-import type { Metadata } from "next";
-import DocumentsClient from "#components/documents/documents.client";
+import { redirect } from "next/navigation";
 
-export const metadata: Metadata = {
-	title: "Documents",
-	description: "Manage property documents, leases, and files",
-};
-
+// /documents is the conceptual home for property documents — but the real
+// vault (search + filters + bulk download) lives at /documents/vault and
+// the sidebar/marketing surfaces all point there. Redirect to keep the
+// orphan path consistent with the pricing promise ("Document vault with
+// global search") rather than landing on a static templates index.
 export default function DocumentsPage() {
-	return <DocumentsClient />;
+	redirect("/documents/vault");
 }
