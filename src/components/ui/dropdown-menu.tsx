@@ -1,8 +1,7 @@
 'use client'
 
 import type { ComponentProps } from 'react'
-import type { CheckedState } from '@radix-ui/react-checkbox'
-import * as DropdownMenuPrimitive from '@radix-ui/react-dropdown-menu'
+import { type Checkbox, DropdownMenu as DropdownMenuPrimitive } from 'radix-ui'
 import { CheckIcon, ChevronRightIcon, CircleIcon } from 'lucide-react'
 
 import { cn } from '#lib/utils'
@@ -81,7 +80,7 @@ function DropdownMenuCheckboxItem({
 	ComponentProps<typeof DropdownMenuPrimitive.CheckboxItem>,
 	'checked'
 > & {
-	checked?: CheckedState
+	checked?: Checkbox.CheckedState
 }) {
 	return (
 		<DropdownMenuPrimitive.CheckboxItem

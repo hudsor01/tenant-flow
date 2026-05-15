@@ -6,7 +6,7 @@ import type {
 	KeyboardEvent as ReactKeyboardEvent,
 	MouseEvent
 } from 'react'
-import { Slot } from '@radix-ui/react-slot'
+import { Slot } from 'radix-ui'
 import { useComposedRefs } from '#lib/compose-refs'
 import { cn } from '#lib/utils'
 import {
@@ -172,7 +172,7 @@ function StepperTrigger(props: ButtonProps) {
 		else focusContext.onItemFocus(triggerId)
 	}
 
-	const TriggerPrimitive = asChild ? Slot : 'button'
+	const TriggerPrimitive = asChild ? Slot.Slot : 'button'
 
 	return (
 		<TriggerPrimitive

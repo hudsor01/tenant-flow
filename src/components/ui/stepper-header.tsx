@@ -1,7 +1,7 @@
 'use client'
 
 import type { ComponentProps, ReactNode } from 'react'
-import { Slot } from '@radix-ui/react-slot'
+import { Slot } from 'radix-ui'
 import { Check } from 'lucide-react'
 import { cn } from '#lib/utils'
 import {
@@ -35,7 +35,7 @@ function StepperIndicator(props: StepperIndicatorProps) {
 
 	const dataState = getDataState(value, itemValue, stepState, steps)
 
-	const IndicatorPrimitive = asChild ? Slot : 'div'
+	const IndicatorPrimitive = asChild ? Slot.Slot : 'div'
 
 	return (
 		<IndicatorPrimitive
@@ -97,7 +97,7 @@ function StepperSeparator(props: StepperSeparatorProps) {
 		'separator'
 	)
 
-	const SeparatorPrimitive = asChild ? Slot : 'div'
+	const SeparatorPrimitive = asChild ? Slot.Slot : 'div'
 
 	return (
 		<SeparatorPrimitive
@@ -131,7 +131,7 @@ function StepperTitle(props: StepperTitleProps) {
 
 	const titleId = getId(context.id, 'title', itemContext.value)
 
-	const TitlePrimitive = asChild ? Slot : 'span'
+	const TitlePrimitive = asChild ? Slot.Slot : 'span'
 
 	return (
 		<TitlePrimitive
@@ -156,7 +156,7 @@ function StepperDescription(props: StepperDescriptionProps) {
 
 	const descriptionId = getId(context.id, 'description', itemContext.value)
 
-	const DescriptionPrimitive = asChild ? Slot : 'span'
+	const DescriptionPrimitive = asChild ? Slot.Slot : 'span'
 
 	return (
 		<DescriptionPrimitive
@@ -193,7 +193,7 @@ function StepperContent(props: StepperContentProps) {
 
 	if (valueProp !== value && !forceMount) return null
 
-	const ContentPrimitive = asChild ? Slot : 'div'
+	const ContentPrimitive = asChild ? Slot.Slot : 'div'
 
 	return (
 		<ContentPrimitive

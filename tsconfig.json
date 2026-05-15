@@ -42,7 +42,6 @@
     "allowUnusedLabels": false,
     "allowUnreachableCode": false,
     "sourceMap": true,
-    "baseUrl": ".",
     "noEmit": true,
     "jsx": "react-jsx",
     "composite": false,

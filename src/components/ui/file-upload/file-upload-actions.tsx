@@ -1,6 +1,6 @@
 'use client'
 
-import { Slot } from '@radix-ui/react-slot'
+import { Slot } from 'radix-ui'
 import type { MouseEvent } from 'react'
 import { useAsRef } from '#hooks/use-as-ref'
 import { useFileUploadContext } from './context'
@@ -25,7 +25,7 @@ export function FileUploadTrigger(props: FileUploadTriggerProps) {
 		context.inputRef.current?.click()
 	}
 
-	const TriggerPrimitive = asChild ? Slot : 'button'
+	const TriggerPrimitive = asChild ? Slot.Slot : 'button'
 
 	return (
 		<TriggerPrimitive
@@ -67,7 +67,7 @@ export function FileUploadClear(props: FileUploadClearProps) {
 
 	if (!shouldRender) return null
 
-	const ClearPrimitive = asChild ? Slot : 'button'
+	const ClearPrimitive = asChild ? Slot.Slot : 'button'
 
 	return (
 		<ClearPrimitive

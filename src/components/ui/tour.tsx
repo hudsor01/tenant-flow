@@ -14,8 +14,7 @@ import {
 	shift,
 	useFloating
 } from '@floating-ui/react-dom'
-import { useDirection } from '@radix-ui/react-direction'
-import { Slot } from '@radix-ui/react-slot'
+import { Direction as RadixDirection, Slot } from 'radix-ui'
 import { ChevronLeft, ChevronRight, X } from 'lucide-react'
 import {
 	createContext,
@@ -602,7 +601,7 @@ function Tour(props: TourProps) {
 		...rootProps
 	} = props
 
-	const dir = useDirection(dirProp)
+	const dir = RadixDirection.useDirection(dirProp)
 
 	const [portal, setPortal] = useState<HTMLElement | null>(null)
 	const prevOpenRef = useRef<boolean | undefined>(undefined)
@@ -840,7 +839,7 @@ function Tour(props: TourProps) {
 
 	useScrollLock(open && modal)
 
-	const RootPrimitive = asChild ? Slot : 'div'
+	const RootPrimitive = asChild ? Slot.Slot : 'div'
 
 	return (
 		<StoreContext.Provider value={store}>
@@ -1252,7 +1251,7 @@ function TourStep(props: TourStepProps) {
 		return null
 	}
 
-	const StepPrimitive = asChild ? Slot : 'div'
+	const StepPrimitive = asChild ? Slot.Slot : 'div'
 
 	return (
 		<StepContext.Provider value={stepContextValue}>
@@ -1307,7 +1306,7 @@ function TourSpotlight(props: TourSpotlightProps) {
 
 	if (!open && !forceMount) return null
 
-	const SpotlightPrimitive = asChild ? Slot : 'div'
+	const SpotlightPrimitive = asChild ? Slot.Slot : 'div'
 
 	return (
 		<SpotlightPrimitive
@@ -1339,7 +1338,7 @@ function TourSpotlightRing(props: TourSpotlightRingProps) {
 	if (!open && !forceMount) return null
 	if (!spotlightRect) return null
 
-	const RingPrimitive = asChild ? Slot : 'div'
+	const RingPrimitive = asChild ? Slot.Slot : 'div'
 
 	return (
 		<RingPrimitive
@@ -1459,7 +1458,7 @@ function TourHeader(props: DivProps) {
 
 	const context = useTourContext(HEADER_NAME)
 
-	const HeaderPrimitive = asChild ? Slot : 'div'
+	const HeaderPrimitive = asChild ? Slot.Slot : 'div'
 
 	return (
 		<HeaderPrimitive
@@ -1479,7 +1478,7 @@ function TourTitle(props: DivProps) {
 
 	const context = useTourContext(TITLE_NAME)
 
-	const TitlePrimitive = asChild ? Slot : 'div'
+	const TitlePrimitive = asChild ? Slot.Slot : 'div'
 
 	return (
 		<TitlePrimitive
@@ -1499,7 +1498,7 @@ function TourDescription(props: DivProps) {
 
 	const context = useTourContext(DESCRIPTION_NAME)
 
-	const DescriptionPrimitive = asChild ? Slot : 'div'
+	const DescriptionPrimitive = asChild ? Slot.Slot : 'div'
 
 	return (
 		<DescriptionPrimitive
@@ -1535,7 +1534,7 @@ function TourClose(props: TourCloseProps) {
 		[store, onClickProp]
 	)
 
-	const ClosePrimitive = asChild ? Slot : 'button'
+	const ClosePrimitive = asChild ? Slot.Slot : 'button'
 
 	return (
 		<ClosePrimitive
@@ -1672,7 +1671,7 @@ function TourStepCounter(props: TourStepCounterProps) {
 	const value = useStore(state => state.value)
 	const steps = useStore(state => state.steps)
 
-	const StepCounterPrimitive = asChild ? Slot : 'div'
+	const StepCounterPrimitive = asChild ? Slot.Slot : 'div'
 
 	return (
 		<StepCounterPrimitive
@@ -1697,7 +1696,7 @@ function TourFooter(props: DivProps) {
 		hasDefaultFooter ? undefined : stepContext.onFooterChange
 	)
 
-	const FooterPrimitive = asChild ? Slot : 'div'
+	const FooterPrimitive = asChild ? Slot.Slot : 'div'
 
 	return (
 		<FooterPrimitive

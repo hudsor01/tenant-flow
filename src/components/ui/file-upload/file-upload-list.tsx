@@ -1,6 +1,6 @@
 'use client'
 
-import { Slot } from '@radix-ui/react-slot'
+import { Slot } from 'radix-ui'
 import { useId } from 'react'
 import { cn } from '#lib/utils'
 import { useFileUploadContext, FileUploadItemContext } from './context'
@@ -26,7 +26,7 @@ export function FileUploadList(props: FileUploadListProps) {
 
 	if (!shouldRender) return null
 
-	const ListPrimitive = asChild ? Slot : 'div'
+	const ListPrimitive = asChild ? Slot.Slot : 'div'
 
 	return (
 		<ListPrimitive
@@ -83,7 +83,7 @@ export function FileUploadItem(props: FileUploadItemProps) {
 				? 'Upload complete'
 				: 'Ready to upload'
 
-	const ItemPrimitive = asChild ? Slot : 'div'
+	const ItemPrimitive = asChild ? Slot.Slot : 'div'
 
 	return (
 		<FileUploadItemContext.Provider value={itemContext}>

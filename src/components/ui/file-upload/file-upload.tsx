@@ -1,7 +1,6 @@
 'use client'
 
-import { useDirection } from '@radix-ui/react-direction'
-import { Slot } from '@radix-ui/react-slot'
+import { Direction, Slot } from 'radix-ui'
 import { useEffect, useId, useRef } from 'react'
 import type { ChangeEvent } from 'react'
 import { cn } from '#lib/utils'
@@ -49,7 +48,7 @@ export function FileUpload(props: FileUploadProps) {
 	const listId = useId()
 	const labelId = useId()
 
-	const dir = useDirection(dirProp)
+	const dir = Direction.useDirection(dirProp)
 	const listeners = useLazyRef(() => new Set<() => void>()).current
 	const files = useLazyRef<Map<File, FileState>>(() => new Map()).current
 	const urlCache = useLazyRef(() => new WeakMap<File, string>()).current
@@ -235,7 +234,7 @@ export function FileUpload(props: FileUploadProps) {
 		urlCache
 	}
 
-	const RootPrimitive = asChild ? Slot : 'div'
+	const RootPrimitive = asChild ? Slot.Slot : 'div'
 
 	return (
 		<StoreContext.Provider value={store}>

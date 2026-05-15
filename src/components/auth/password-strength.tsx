@@ -4,7 +4,7 @@ import type { ChangeEvent, InputHTMLAttributes, Ref } from 'react'
 import { useState } from 'react'
 
 import { cn } from '#lib/utils'
-import * as Popover from '@radix-ui/react-popover'
+import { Popover } from 'radix-ui'
 import { Check, X } from 'lucide-react'
 
 export interface PasswordStrengthProps extends InputHTMLAttributes<HTMLInputElement> {
