@@ -9,16 +9,11 @@ import { useEffect, useState } from "react";
 import { Button } from "#components/ui/button";
 import { useSupabaseSession } from "#hooks/api/use-auth";
 import { useNavigation } from "#hooks/use-navigation";
+import { SUPABASE_AUTH_COOKIE_NAME } from "#lib/supabase/cookie-name";
 import { cn } from "#lib/utils";
 import { NavbarDesktopNav } from "./navbar/navbar-desktop-nav";
 import { NavbarMobileMenu } from "./navbar/navbar-mobile-menu";
 import { DEFAULT_NAV_ITEMS, type NavbarProps } from "./navbar/types";
-
-// Supabase prod project ref. Sync cookie probe in this component MUST stay
-// in lockstep with the cookie name used by @supabase/ssr (the project ref
-// is part of the cookie name). Mirrors the same string in `proxy.ts` and
-// `lib/stripe/stripe-client.ts`.
-const SUPABASE_AUTH_COOKIE = "sb-bshjmbshupiibfiewpxb-auth-token";
 
 export function Navbar({
 	className,
@@ -55,7 +50,7 @@ export function Navbar({
 	const authResolved = !hasAuthCookie || !authPending;
 
 	useEffect(() => {
-		setHasAuthCookie(document.cookie.includes(`${SUPABASE_AUTH_COOKIE}=`));
+		setHasAuthCookie(document.cookie.includes(`${SUPABASE_AUTH_COOKIE_NAME}=`));
 	}, []);
 
 	useEffect(() => {

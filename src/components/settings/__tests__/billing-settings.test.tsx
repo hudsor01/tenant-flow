@@ -315,4 +315,81 @@ describe("BillingSettings empty-state branches", () => {
 		).not.toBeInTheDocument();
 		expect(screen.queryByText("Current Plan")).not.toBeInTheDocument();
 	});
+
+	it("renders the auth-error branch with a Sign in again link", async () => {
+		// Battle-test Session 6 P2: when useSubscriptionStatus throws an
+		// auth error, the plan card must NOT silently fall through to
+		// "No plan" — it must surface the auth failure with a recovery path.
+		useSubscriptionStatusMock.mockReturnValue({
+			data: undefined,
+			isLoading: false,
+			isError: true,
+			error: new Error("Not authenticated"),
+			refetch: vi.fn(),
+		});
+		useUserMock.mockReturnValue({ data: undefined });
+
+		const BillingSettings = await getBillingSettings();
+		renderWithProviders(<BillingSettings />);
+
+		expect(
+			screen.getByText(/Your session appears to have expired/),
+		).toBeInTheDocument();
+		expect(screen.getByRole("link", { name: /Sign in again/ })).toHaveAttribute(
+			"href",
+			"/login",
+		);
+		// "No plan" empty-state must NOT render alongside the error.
+		expect(screen.queryByText("No plan")).not.toBeInTheDocument();
+		expect(
+			screen.queryByText(/Upgrade to unlock premium features/),
+		).not.toBeInTheDocument();
+	});
+
+	it("renders the generic-error branch with a working Retry button", async () => {
+		const refetchMock = vi.fn();
+		useSubscriptionStatusMock.mockReturnValue({
+			data: undefined,
+			isLoading: false,
+			isError: true,
+			error: new Error("PGRST116: network failure"),
+			refetch: refetchMock,
+		});
+		useUserMock.mockReturnValue({ data: undefined });
+
+		const BillingSettings = await getBillingSettings();
+		renderWithProviders(<BillingSettings />);
+
+		expect(
+			screen.getByText(/Subscription details unavailable/),
+		).toBeInTheDocument();
+		const retry = screen.getByRole("button", { name: /Retry/ });
+		expect(retry).toBeInTheDocument();
+		retry.click();
+		expect(refetchMock).toHaveBeenCalledTimes(1);
+		expect(
+			screen.getByRole("link", { name: /contact support/ }),
+		).toHaveAttribute("href", "/contact");
+	});
+
+	it("classifies non-Error thrown values via String() coercion", async () => {
+		// Defensive: TanStack Query can hold any thrown value, not just
+		// Error instances. The regex runs against String(statusError).
+		useSubscriptionStatusMock.mockReturnValue({
+			data: undefined,
+			isLoading: false,
+			isError: true,
+			error: "JWT expired",
+			refetch: vi.fn(),
+		});
+		useUserMock.mockReturnValue({ data: undefined });
+
+		const BillingSettings = await getBillingSettings();
+		renderWithProviders(<BillingSettings />);
+
+		// "JWT expired" matches the auth-error regex even as a raw string.
+		expect(
+			screen.getByText(/Your session appears to have expired/),
+		).toBeInTheDocument();
+	});
 });
