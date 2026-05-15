@@ -117,11 +117,12 @@ export default defineConfig({
 	// ===================
 	projects: [
 		// ─────────────────────────────────────────
-		// SETUP: Authenticate owner via API (runs first)
+		// SETUP: Authenticate owner via UI, save real browser storage state
 		// ─────────────────────────────────────────
 		{
 			name: 'setup-owner',
-			testMatch: /auth-api\.setup\.ts/,
+			use: { ...devices['Desktop Chrome'] },
+			testMatch: /auth-ui\.setup\.ts/,
 			retries: 2
 		},
 
