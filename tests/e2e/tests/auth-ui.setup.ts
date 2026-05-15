@@ -62,6 +62,40 @@ setup('authenticate as owner via UI', async ({ page }) => {
 		timeout: 20000
 	})
 
+	// Force navigation to /dashboard and wait until the page actually loads
+	// authenticated content. This guarantees the @supabase/ssr middleware
+	// has written all auth cookies (access + refresh + chunk0/1) to the
+	// browser jar before storageState reads it. Without this step, the
+	// initial post-login redirect may set only a subset of cookies (the
+	// ones that triggered the redirect), missing the chunked session cookie
+	// the dashboard needs.
+	await page.goto(`${baseUrl}/dashboard`)
+	await page.waitForLoadState('networkidle', { timeout: 30000 })
+
+	// Sanity check: confirm we're actually on /dashboard, not bounced back
+	// to /login or to /pricing (subscription gate). If we get bounced, the
+	// stored session won't be useful and dependent tests will fail with
+	// confusing "dashboard element not found" errors.
+	const finalUrl = page.url()
+	if (finalUrl.includes('/login')) {
+		throw new Error(
+			`setup-owner: session cookies invalid — landed on /login after login. URL: ${finalUrl}`
+		)
+	}
+	if (finalUrl.includes('/pricing')) {
+		throw new Error(
+			`setup-owner: subscription gate kicked us to /pricing. ` +
+				`Check synthetic account subscription_status. URL: ${finalUrl}`
+		)
+	}
+
+	const cookies = await page.context().cookies()
+	const authCookies = cookies.filter(c => c.name.startsWith('sb-'))
+	console.log(
+		`[setup-owner] Saving ${cookies.length} cookies (${authCookies.length} auth), ` +
+			`final URL: ${finalUrl}`
+	)
+
 	// Persist the real browser session (cookies + localStorage) so dependent
 	// projects can replay it without re-logging.
 	await page.context().storageState({ path: authFile })
