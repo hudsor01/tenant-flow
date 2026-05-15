@@ -123,9 +123,6 @@
 			"!**/*.d.ts",
 			"!**/supabase/functions/**",
 			"!**/supabase/migrations/**",
-			"!**/types/frontend-only.ts",
-			"!**/test/production-api.test.ts",
-			"!**/stripe-signing-secret.ts",
 			"!**/.env.local",
 			"!**/.env.development.local",
 			"!.github/**",
@@ -391,7 +388,7 @@
 			}
 		},
 		{
-			"includes": ["eslint.config.js", "*.config.js", "*.config.mjs"],
+			"includes": ["*.config.js", "*.config.mjs"],
 			"javascript": {
 				"globals": [
 					"onanimationend",
@@ -568,22 +565,6 @@
 		},
 		{
 			"includes": [
-				"**/tenants-table.client.tsx",
-				"**/data-table.tsx",
-				"**/use-data-table-instance.ts"
-			],
-			"linter": { "rules": {} }
-		},
-		{
-			"includes": [
-				"src/**/*.{ts,tsx}",
-				"!**/opengraph-image.*",
-				"!**/templates/lease-template.*"
-			],
-			"linter": { "rules": {} }
-		},
-		{
-			"includes": [
 				"src/**/*.{ts,tsx}",
 				"!**/*.test.*",
 				"!**/*.spec.*",
@@ -594,10 +575,6 @@
 				"!**/next.config.*"
 			],
 			"linter": { "rules": { "suspicious": { "noConsole": "warn" } } }
-		},
-		{
-			"includes": ["src/shared/lib/frontend-logger.ts"],
-			"linter": { "rules": { "suspicious": { "noConsole": "off" } } }
 		},
 		{
 			"includes": [
@@ -632,7 +609,15 @@
 								}
 							}
 						},
-						"noRestrictedImports": "error"
+						"noRestrictedImports": {
+							"level": "error",
+							"options": {
+								"paths": {
+									"jotai": "Jotai was replaced with Zustand. Use stores/app-store.ts instead.",
+									"framer-motion": "Framer Motion is not allowed. Use `motion` (v12 rename) instead."
+								}
+							}
+						}
 					},
 					"suspicious": {
 						"noPrototypeBuiltins": "error",
@@ -641,7 +626,6 @@
 				}
 			}
 		},
-		{ "includes": ["src/shared/types/security.ts"], "linter": { "rules": {} } },
 		{
 			"includes": ["tests/e2e/**/*.ts"],
 			"linter": {
