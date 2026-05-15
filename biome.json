@@ -561,15 +561,6 @@
 		},
 		{
 			"includes": [
-				"src/**/*.test.ts",
-				"src/**/*.test.tsx",
-				"src/**/*.spec.ts",
-				"src/**/*.spec.tsx"
-			],
-			"linter": { "rules": { "suspicious": { "noConsole": "error" } } }
-		},
-		{
-			"includes": [
 				"**/*.ts",
 				"**/*.tsx",
 				"!**/*.test.*",
