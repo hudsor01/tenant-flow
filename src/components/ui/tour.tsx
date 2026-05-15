@@ -14,7 +14,7 @@ import {
 	shift,
 	useFloating
 } from '@floating-ui/react-dom'
-import { Direction, Slot } from 'radix-ui'
+import { Direction as RadixDirection, Slot } from 'radix-ui'
 import { ChevronLeft, ChevronRight, X } from 'lucide-react'
 import {
 	createContext,
@@ -72,9 +72,6 @@ const DEFAULT_SPOTLIGHT_PADDING = 4
 
 type Side = (typeof _SIDE_OPTIONS)[number]
 type Align = (typeof _ALIGN_OPTIONS)[number]
-// @radix-ui/react-direction declares `Direction` internally but doesn't
-// export it as a type — only `useDirection` and `DirectionProvider` are
-// exposed. The local alias is necessary, not a shadow.
 type Direction = 'ltr' | 'rtl'
 
 interface ScrollOffset {
@@ -604,7 +601,7 @@ function Tour(props: TourProps) {
 		...rootProps
 	} = props
 
-	const dir = Direction.useDirection(dirProp)
+	const dir = RadixDirection.useDirection(dirProp)
 
 	const [portal, setPortal] = useState<HTMLElement | null>(null)
 	const prevOpenRef = useRef<boolean | undefined>(undefined)
