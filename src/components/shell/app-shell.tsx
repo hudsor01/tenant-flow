@@ -195,8 +195,11 @@ export function AppShell({
 						event.preventDefault();
 						return false;
 					}
-					// not open → suppress open if another modal is in front
+					// not open → suppress open if another modal is in front.
+					// preventDefault() so Firefox doesn't fall through to its
+					// built-in quick-find toolbar (cycle-4 review P3 nit).
 					if (document.querySelector('[role="dialog"][data-state="open"]')) {
+						event.preventDefault();
 						return prev;
 					}
 					event.preventDefault();
