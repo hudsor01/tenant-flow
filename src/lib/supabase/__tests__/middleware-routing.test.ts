@@ -132,7 +132,14 @@ function makeSupabaseResponse() {
 describe("proxy routing", () => {
 	beforeEach(() => {
 		vi.clearAllMocks();
-		mockUserRow = null;
+		// Default to the most-permissive happy path. Cycle-2 P3-2:
+		// previously the default was `null`, which silently routed any
+		// test that forgot to set `mockUserRow` through the gate-failure
+		// branch — easy to write a green test for the wrong reason.
+		// Tests exercising failure modes opt in via `mockUserRowError`
+		// or `mockUserRowThrow`; tests asserting missing-row behavior
+		// opt in by setting `mockUserRow = null` explicitly.
+		mockUserRow = { is_admin: false, subscription_status: "active" };
 		mockUserRowError = null;
 		mockUserRowThrow = null;
 	});
