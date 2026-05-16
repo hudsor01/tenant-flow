@@ -9,11 +9,10 @@ import { BlurFade } from "#components/ui/blur-fade";
 import { VALIDATION_LIMITS } from "#lib/constants/billing";
 import { createClient } from "#lib/supabase/client";
 import { getCachedUser } from "#lib/supabase/get-cached-user";
-
-// Mirrors registerZodSchema.password.regex in #lib/validation/auth.ts
-// (one rule across signup + settings password-change).
-const PASSWORD_COMPLEXITY_RE =
-	/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9])/;
+import {
+	PASSWORD_COMPLEXITY_MESSAGE,
+	PASSWORD_COMPLEXITY_RE,
+} from "#lib/validation/auth";
 
 export function PasswordSection() {
 	const supabase = createClient();
@@ -33,9 +32,7 @@ export function PasswordSection() {
 				);
 			}
 			if (!PASSWORD_COMPLEXITY_RE.test(newPassword)) {
-				throw new Error(
-					"Password must include uppercase, lowercase, a number, and a special character",
-				);
+				throw new Error(PASSWORD_COMPLEXITY_MESSAGE);
 			}
 
 			const user = await getCachedUser();
@@ -121,11 +118,13 @@ export function PasswordSection() {
 							value={newPassword}
 							onChange={(e) => setNewPassword(e.target.value)}
 							disabled={updatePassword.isPending}
+							autoComplete="new-password"
 							className="h-10 rounded-lg border bg-background px-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
 						/>
 						<p className="text-xs text-muted-foreground">
-							Must be at least 12 characters and include uppercase, lowercase, a
-							number, and a special character. Avoid reusing recent passwords.
+							Must be at least {VALIDATION_LIMITS.PASSWORD_MIN_LENGTH}{" "}
+							characters and include uppercase, lowercase, a number, and a
+							special character. Avoid reusing recent passwords.
 						</p>
 					</div>
 

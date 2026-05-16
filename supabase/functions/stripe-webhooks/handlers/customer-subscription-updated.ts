@@ -46,6 +46,22 @@ export async function handleCustomerSubscriptionUpdated(
 			? sub.metadata["source"]
 			: null;
 
+	// Session 11 P1 #3 + cycle-2 review:
+	// - For non-trialing statuses, clear trial_ends_at (the pre-Stripe
+	//   14-day signup-trial deadline; meaningless once Stripe is in
+	//   control). Matches the predicate in the cycle-5 backfill
+	//   migration: `subscription_status <> 'trialing'`.
+	// - For status === 'trialing' (Stripe-native trial window), persist
+	//   sub.trial_end so the Billing UI can render a real countdown.
+	//   Previously the unconditional null cleared the deadline and
+	//   SubscriptionStatusBanner fell back to "free trial — no end".
+	const trialEndsAtForPayload: string | null =
+		sub.status === "trialing"
+			? sub.trial_end
+				? new Date(sub.trial_end * 1000).toISOString()
+				: null
+			: null;
+
 	const updatePayload: Record<string, unknown> = {
 		subscription_id: sub.id,
 		subscription_status: sub.status,
@@ -55,15 +71,7 @@ export async function handleCustomerSubscriptionUpdated(
 			: null,
 		subscription_cancel_at_period_end: sub.cancel_at_period_end ?? false,
 		subscription_updated_at: new Date().toISOString(),
-		// Session 11 P1 #3: clear the pre-Stripe 14-day trial deadline once
-		// Stripe owns the subscription lifecycle. The trial_model migration
-		// (20260419230000) documented that trial_ends_at should be NULL
-		// "once user converts to a paid subscription", but no handler
-		// actually did the clear — past trial timestamps lingered on
-		// active accounts and confused the Billing UI gating logic.
-		// Stripe's own trial window (sub.status === 'trialing') is a
-		// separate concept tracked via subscription_status itself.
-		trial_ends_at: null,
+		trial_ends_at: trialEndsAtForPayload,
 	};
 	if (source) updatePayload.subscription_source = source;
 

@@ -15,7 +15,9 @@ import {
 } from "#components/ui/dialog";
 import { Field, FieldLabel } from "#components/ui/field";
 import { useChangePasswordMutation } from "#hooks/api/use-auth-mutations";
+import { VALIDATION_LIMITS } from "#lib/constants/billing";
 import { logger } from "#lib/frontend-logger";
+import { PASSWORD_COMPLEXITY_RE } from "#lib/validation/auth";
 
 interface ChangePasswordDialogProps {
 	open: boolean;
@@ -49,10 +51,16 @@ export function ChangePasswordDialog({
 	};
 
 	const validatePassword = (password: string): string[] => {
+		// Single source of truth: PASSWORD_COMPLEXITY_RE in
+		// #lib/validation/auth (used by signup + settings password-section
+		// + reset-password flow). Cycle-2 review caught three different
+		// rules across these surfaces; this dialog now uses the shared one.
 		const errors: string[] = [];
 
-		if (password.length < 8) {
-			errors.push("Password must be at least 8 characters long");
+		if (password.length < VALIDATION_LIMITS.PASSWORD_MIN_LENGTH) {
+			errors.push(
+				`Password must be at least ${VALIDATION_LIMITS.PASSWORD_MIN_LENGTH} characters long`,
+			);
 		}
 
 		if (!/[A-Z]/.test(password)) {
@@ -69,6 +77,16 @@ export function ChangePasswordDialog({
 
 		if (!/[^A-Za-z0-9]/.test(password)) {
 			errors.push("Password must contain at least one special character");
+		}
+
+		// Defense in depth: the four individual checks above are kept so the
+		// user gets specific per-rule messages. The shared regex also fires
+		// here so any future tightening (e.g. min length bump) propagates.
+		if (
+			password.length >= VALIDATION_LIMITS.PASSWORD_MIN_LENGTH &&
+			!PASSWORD_COMPLEXITY_RE.test(password)
+		) {
+			errors.push("Password does not meet complexity requirements");
 		}
 
 		return errors;
@@ -223,8 +241,9 @@ export function ChangePasswordDialog({
 								</button>
 							</div>
 							<p className="text-caption mt-[var(--spacing-1)]">
-								Must be at least 8 characters with uppercase, lowercase, number,
-								and special character
+								Must be at least {VALIDATION_LIMITS.PASSWORD_MIN_LENGTH}{" "}
+								characters with uppercase, lowercase, number, and special
+								character
 							</p>
 						</Field>
 

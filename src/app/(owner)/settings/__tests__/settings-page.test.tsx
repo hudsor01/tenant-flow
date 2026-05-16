@@ -266,6 +266,71 @@ describe("Settings Page", () => {
 		expect(screen.getByRole("tab", { name: /Billing/i })).toBeInTheDocument();
 	});
 
+	// Cycle-2 review P3-1: pin the WAI-ARIA tablist keyboard contract so
+	// future refactors can't silently regress the keyboard pattern.
+	describe("tablist keyboard navigation (cycle-2 P3-1)", () => {
+		it("active tab has tabIndex=0; inactive tabs have tabIndex=-1 (roving)", async () => {
+			const SettingsPage = (await import("../page")).default;
+			renderWithProviders(<SettingsPage />);
+
+			const generalTab = screen.getByRole("tab", { name: /General/i });
+			const securityTab = screen.getByRole("tab", { name: /Security/i });
+			expect(generalTab.getAttribute("tabindex")).toBe("0");
+			expect(securityTab.getAttribute("tabindex")).toBe("-1");
+		});
+
+		it("ArrowDown moves focus and activates the next tab", async () => {
+			const SettingsPage = (await import("../page")).default;
+			const user = userEvent.setup();
+			renderWithProviders(<SettingsPage />);
+
+			const generalTab = screen.getByRole("tab", { name: /General/i });
+			generalTab.focus();
+			await user.keyboard("{ArrowDown}");
+
+			const notificationsTab = screen.getByRole("tab", {
+				name: /Notifications/i,
+			});
+			expect(notificationsTab.getAttribute("aria-selected")).toBe("true");
+		});
+
+		it("ArrowUp wraps from the first tab to the last", async () => {
+			const SettingsPage = (await import("../page")).default;
+			const user = userEvent.setup();
+			renderWithProviders(<SettingsPage />);
+
+			const generalTab = screen.getByRole("tab", { name: /General/i });
+			generalTab.focus();
+			await user.keyboard("{ArrowUp}");
+
+			// 6 sections; "data" is last (id "My Data")
+			const lastTab = screen.getByRole("tab", { name: /My Data/i });
+			expect(lastTab.getAttribute("aria-selected")).toBe("true");
+		});
+
+		it("End jumps to the last tab; Home returns to the first", async () => {
+			const SettingsPage = (await import("../page")).default;
+			const user = userEvent.setup();
+			renderWithProviders(<SettingsPage />);
+
+			const generalTab = screen.getByRole("tab", { name: /General/i });
+			generalTab.focus();
+			await user.keyboard("{End}");
+			expect(
+				screen
+					.getByRole("tab", { name: /My Data/i })
+					.getAttribute("aria-selected"),
+			).toBe("true");
+
+			await user.keyboard("{Home}");
+			expect(
+				screen
+					.getByRole("tab", { name: /General/i })
+					.getAttribute("aria-selected"),
+			).toBe("true");
+		});
+	});
+
 	it("displays General tab content by default", async () => {
 		const SettingsPage = (await import("../page")).default;
 

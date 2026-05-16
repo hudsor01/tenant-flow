@@ -479,6 +479,51 @@ describe("AppShell", () => {
 				screen.queryByPlaceholderText("Search pages and actions..."),
 			).not.toBeInTheDocument();
 		});
+
+		// Cycle-2 review P3-2: Session 11 P2 #17 — Cmd+K must not open
+		// the command palette while another role=dialog is open (e.g. the
+		// onboarding wizard). Pin the suppression so future refactors
+		// can't regress it back to a stacked-dialog state.
+		it("does NOT open the command palette while another dialog[data-state=open] is mounted", () => {
+			const blockingDialog = document.createElement("div");
+			blockingDialog.setAttribute("role", "dialog");
+			blockingDialog.setAttribute("data-state", "open");
+			document.body.appendChild(blockingDialog);
+
+			try {
+				render(<AppShell>Content</AppShell>);
+
+				fireEvent.keyDown(window, { key: "k", metaKey: true });
+
+				expect(
+					screen.queryByPlaceholderText("Search pages and actions..."),
+				).not.toBeInTheDocument();
+			} finally {
+				blockingDialog.remove();
+			}
+		});
+
+		it("opens the command palette once the blocking dialog is removed", () => {
+			const blockingDialog = document.createElement("div");
+			blockingDialog.setAttribute("role", "dialog");
+			blockingDialog.setAttribute("data-state", "open");
+			document.body.appendChild(blockingDialog);
+
+			render(<AppShell>Content</AppShell>);
+
+			// First press is blocked.
+			fireEvent.keyDown(window, { key: "k", metaKey: true });
+			expect(
+				screen.queryByPlaceholderText("Search pages and actions..."),
+			).not.toBeInTheDocument();
+
+			// Remove the blocker, retry, palette opens.
+			blockingDialog.remove();
+			fireEvent.keyDown(window, { key: "k", metaKey: true });
+			expect(
+				screen.getByPlaceholderText("Search pages and actions..."),
+			).toBeInTheDocument();
+		});
 	});
 
 	describe("sidebar tour attribute", () => {

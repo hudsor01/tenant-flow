@@ -32,11 +32,13 @@ export function GlobalSyncIndicator({
 	const { isPending, count, operations } = usePendingMutations();
 
 	if (!isPending) {
-		// Session 11 P3 #30: the bare "Saved" pill in the app shell had
-		// no hover explanation. Users could not tell whether it meant
-		// last autosave, last sync, or session-restore state. Tooltip
-		// now states the literal invariant: every pending data change
-		// has reached the server.
+		// Session 11 P3 #30 + cycle-2 review: rely on `role="status"`
+		// live-region announcement for screen readers (the pill is
+		// purely informational, not a control — Enter/Space have
+		// nothing to do here). Sighted keyboard users discover the
+		// tooltip if they happen to hover. We deliberately do NOT add
+		// tabIndex={0} — cycle-2 reviewer caught that as introducing
+		// an inert tab stop on every authenticated page.
 		const savedTooltip = "All changes saved to TenantFlow.";
 		if (compact) {
 			return (
@@ -44,6 +46,8 @@ export function GlobalSyncIndicator({
 					<Tooltip>
 						<TooltipTrigger asChild>
 							<div
+								role="status"
+								aria-label={savedTooltip}
 								className={cn(
 									"flex items-center text-muted-foreground",
 									className,
@@ -66,10 +70,9 @@ export function GlobalSyncIndicator({
 					<TooltipTrigger asChild>
 						<div
 							role="status"
-							tabIndex={0}
 							aria-label={savedTooltip}
 							className={cn(
-								"flex items-center gap-1.5 text-muted-foreground rounded-md focus:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+								"flex items-center gap-1.5 text-muted-foreground",
 								className,
 							)}
 						>

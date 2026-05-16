@@ -28,17 +28,27 @@ export function MaintenanceFormFields({
 }: MaintenanceFormFieldsProps) {
 	const unitLabelId = "maintenance-unit-label";
 	const tenantLabelId = "maintenance-tenant-label";
-	// Tenant picker (Session 11 P2 #12, cycle-1 review): use the
-	// unpaginated allTenants() factory designed for dropdowns. The
-	// previous useTenantList(1, 200) call silently truncated owners
-	// with >200 tenants and returned rows in created_at-desc order.
-	// Sort alphabetically by full name for "select by name" UX.
+	// Tenant picker (Session 11 P2 #12, cycle-1 + cycle-2 review):
+	// useAllTenants() pages over all rows so the dropdown is truly
+	// unbounded (PostgREST max_rows = 1000 cap handled inside the
+	// factory). Sort alphabetically by full name; first_name and
+	// last_name are both string|null on TenantWithLeaseInfo, so the
+	// comparator coerces nulls to "" before joining (a literal "null"
+	// or "undefined" in a template literal would mis-sort).
 	const { data: allTenants } = useAllTenants();
-	const tenants = [...(allTenants ?? [])].sort((a, b) =>
-		`${a.first_name} ${a.last_name}`.localeCompare(
-			`${b.first_name} ${b.last_name}`,
-		),
-	);
+	const fullName = (t: NonNullable<typeof allTenants>[number]): string =>
+		`${t.first_name ?? ""} ${t.last_name ?? ""}`.trim();
+	const tenants = [...(allTenants ?? [])].sort((a, b) => {
+		const nameA = fullName(a);
+		const nameB = fullName(b);
+		// Push fully-empty rows (no first or last name) to the bottom;
+		// tiebreak by email when one side has a name and the other does not.
+		if (!nameA && !nameB)
+			return (a.email ?? a.id).localeCompare(b.email ?? b.id);
+		if (!nameA) return 1;
+		if (!nameB) return -1;
+		return nameA.localeCompare(nameB);
+	});
 
 	return (
 		<>
