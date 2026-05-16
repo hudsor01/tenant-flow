@@ -13,16 +13,35 @@ let mockUserRow: {
 	subscription_status?: string | null;
 	is_admin?: boolean;
 } | null = null;
+// Battle-test Session 8 P0: simulate the DB-query failure modes proxy.ts
+// must survive without surfacing 5xx to the user.
+//   - mockUserRowError: in-band PostgREST error path
+//   - mockUserRowThrow:  thrown error (connection-pool exhaustion etc.)
+let mockUserRowError: Error | null = null;
+let mockUserRowThrow: Error | null = null;
 vi.mock("@supabase/ssr", () => ({
 	createServerClient: () => ({
 		from: () => ({
 			select: () => ({
 				eq: () => ({
-					maybeSingle: async () => ({ data: mockUserRow, error: null }),
+					maybeSingle: async () => {
+						if (mockUserRowThrow) throw mockUserRowThrow;
+						if (mockUserRowError) {
+							return { data: null, error: mockUserRowError };
+						}
+						return { data: mockUserRow, error: null };
+					},
 				}),
 			}),
 		}),
 	}),
+}));
+
+const mockCaptureException = vi.fn();
+const mockCaptureMessage = vi.fn();
+vi.mock("@sentry/nextjs", () => ({
+	captureException: (...args: unknown[]) => mockCaptureException(...args),
+	captureMessage: (...args: unknown[]) => mockCaptureMessage(...args),
 }));
 
 vi.mock("#env", () => ({
@@ -115,7 +134,16 @@ function makeSupabaseResponse() {
 describe("proxy routing", () => {
 	beforeEach(() => {
 		vi.clearAllMocks();
-		mockUserRow = null;
+		// Default to the most-permissive happy path. Cycle-2 P3-2:
+		// previously the default was `null`, which silently routed any
+		// test that forgot to set `mockUserRow` through the gate-failure
+		// branch — easy to write a green test for the wrong reason.
+		// Tests exercising failure modes opt in via `mockUserRowError`
+		// or `mockUserRowThrow`; tests asserting missing-row behavior
+		// opt in by setting `mockUserRow = null` explicitly.
+		mockUserRow = { is_admin: false, subscription_status: "active" };
+		mockUserRowError = null;
+		mockUserRowThrow = null;
 	});
 
 	describe("public routes", () => {
@@ -185,6 +213,69 @@ describe("proxy routing", () => {
 
 			expect(NextResponse.redirect).not.toHaveBeenCalled();
 			expect(result).toBe(supabaseResponse);
+		});
+
+		it("redirects to /login when gate DB query throws on /admin/* (no 5xx, fail-secure re-auth)", async () => {
+			// Battle-test Session 8 P0: bursty RSC prefetches saturated
+			// Supabase, the gate await threw, middleware surfaced 500.
+			// Fix: catch the throw, Sentry-capture at `error` level, redirect
+			// to /login so the user re-auths and the next request re-queries
+			// the gate. This is fail-secure for both admins AND non-admins
+			// (cycle-1 P1: a real admin during a DB blip was being bounced
+			// to /pricing under the previous per-gate fail-secure approach).
+			mockUpdateSession.mockResolvedValue({
+				user: makeUser(),
+				supabaseResponse: makeSupabaseResponse(),
+			});
+			mockUserRowThrow = new Error("FetchError: connection reset");
+
+			await expect(
+				proxy(buildRequest("/admin/analytics")),
+			).resolves.toBeDefined();
+			expect(NextResponse.redirect).toHaveBeenCalledOnce();
+			const redirectUrl = (NextResponse.redirect as ReturnType<typeof vi.fn>)
+				.mock.calls[0]![0] as URL;
+			expect(redirectUrl.pathname).toBe("/login");
+			expect(redirectUrl.searchParams.get("redirect")).toBe("/admin/analytics");
+
+			expect(mockCaptureException).toHaveBeenCalledOnce();
+			const [capturedError, capturedContext] = mockCaptureException.mock
+				.calls[0] as [Error, { tags: Record<string, string>; level: string }];
+			expect(capturedError.message).toMatch(/connection reset/);
+			expect(capturedContext.tags).toMatchObject({
+				component: "proxy",
+				check: "user_gate",
+				path: "throw",
+			});
+			expect(capturedContext.level).toBe("error");
+		});
+
+		it("redirects to /login when gate returns in-band PostgREST error on /admin/* (warning level)", async () => {
+			mockUpdateSession.mockResolvedValue({
+				user: makeUser(),
+				supabaseResponse: makeSupabaseResponse(),
+			});
+			mockUserRowError = new Error("PGRST116: row not found");
+
+			await expect(
+				proxy(buildRequest("/admin/analytics")),
+			).resolves.toBeDefined();
+			expect(NextResponse.redirect).toHaveBeenCalledOnce();
+			const redirectUrl = (NextResponse.redirect as ReturnType<typeof vi.fn>)
+				.mock.calls[0]![0] as URL;
+			expect(redirectUrl.pathname).toBe("/login");
+
+			expect(mockCaptureException).toHaveBeenCalledOnce();
+			const [, capturedContext] = mockCaptureException.mock.calls[0] as [
+				Error,
+				{ tags: Record<string, string>; level: string },
+			];
+			expect(capturedContext.tags).toMatchObject({
+				component: "proxy",
+				check: "user_gate",
+				path: "in_band",
+			});
+			expect(capturedContext.level).toBe("warning");
 		});
 	});
 
@@ -292,6 +383,96 @@ describe("proxy routing", () => {
 
 			expect(NextResponse.redirect).not.toHaveBeenCalled();
 			expect(result).toBe(supabaseResponse);
+		});
+
+		it("redirects to /login (NOT /pricing) when gate DB query throws on /dashboard — admin-blip safe", async () => {
+			// Cycle-1 P1: previously a real admin without a Stripe subscription
+			// who hit a DB blip on /dashboard would be redirected to /pricing
+			// (subscription-gate fail-secure assumed not-admin). With the
+			// single-fetch redesign, gate failure → /login re-auth for ALL
+			// users, so admins are no longer trapped at /pricing.
+			mockUpdateSession.mockResolvedValue({
+				user: makeUser(),
+				supabaseResponse: makeSupabaseResponse(),
+			});
+			mockUserRowThrow = new Error("FetchError: connection pool exhausted");
+
+			await expect(proxy(buildRequest("/dashboard"))).resolves.toBeDefined();
+			expect(NextResponse.redirect).toHaveBeenCalledOnce();
+			const redirectUrl = (NextResponse.redirect as ReturnType<typeof vi.fn>)
+				.mock.calls[0]![0] as URL;
+			expect(redirectUrl.pathname).toBe("/login");
+			expect(redirectUrl.searchParams.get("redirect")).toBe("/dashboard");
+
+			expect(mockCaptureException).toHaveBeenCalledOnce();
+			const [, capturedContext] = mockCaptureException.mock.calls[0] as [
+				Error,
+				{ tags: Record<string, string>; level: string },
+			];
+			expect(capturedContext.tags.path).toBe("throw");
+			expect(capturedContext.level).toBe("error");
+		});
+
+		it("redirects to /login when gate returns in-band PostgREST error on /dashboard", async () => {
+			mockUpdateSession.mockResolvedValue({
+				user: makeUser(),
+				supabaseResponse: makeSupabaseResponse(),
+			});
+			mockUserRowError = new Error("PGRST301: JWT expired");
+
+			await expect(proxy(buildRequest("/dashboard"))).resolves.toBeDefined();
+			expect(NextResponse.redirect).toHaveBeenCalledOnce();
+			const redirectUrl = (NextResponse.redirect as ReturnType<typeof vi.fn>)
+				.mock.calls[0]![0] as URL;
+			expect(redirectUrl.pathname).toBe("/login");
+
+			expect(mockCaptureException).toHaveBeenCalledOnce();
+			const [, capturedContext] = mockCaptureException.mock.calls[0] as [
+				Error,
+				{ tags: Record<string, string>; level: string },
+			];
+			expect(capturedContext.tags.path).toBe("in_band");
+			expect(capturedContext.level).toBe("warning");
+		});
+
+		it("redirects to /login AND captures missing-row to Sentry when public.users row is absent", async () => {
+			// Cycle-2 P2-1 regression guard: an authenticated user with no
+			// public.users row triggers neither `result.error` nor a throw
+			// — it just resolves `{ data: null, error: null }`. Previously
+			// that path silently redirected to /login (gateRow === null
+			// branch) with zero Sentry signal, so a /login → /dashboard
+			// loop would have no observability. captureMessage was added
+			// to make the data-integrity bug visible.
+			mockUpdateSession.mockResolvedValue({
+				user: makeUser(),
+				supabaseResponse: makeSupabaseResponse(),
+			});
+			// Explicit opt-in: simulate the absent-row case.
+			mockUserRow = null;
+
+			await proxy(buildRequest("/dashboard"));
+
+			expect(NextResponse.redirect).toHaveBeenCalledOnce();
+			const redirectUrl = (NextResponse.redirect as ReturnType<typeof vi.fn>)
+				.mock.calls[0]![0] as URL;
+			expect(redirectUrl.pathname).toBe("/login");
+			expect(redirectUrl.searchParams.get("redirect")).toBe("/dashboard");
+
+			expect(mockCaptureMessage).toHaveBeenCalledOnce();
+			const [message, context] = mockCaptureMessage.mock.calls[0] as [
+				string,
+				{ tags: Record<string, string>; level: string },
+			];
+			expect(message).toMatch(/no public\.users row/);
+			expect(context.tags).toMatchObject({
+				component: "proxy",
+				check: "user_gate",
+				path: "missing_row",
+			});
+			expect(context.level).toBe("warning");
+			// Crucially: captureException should NOT fire — this isn't a
+			// thrown exception path.
+			expect(mockCaptureException).not.toHaveBeenCalled();
 		});
 	});
 
