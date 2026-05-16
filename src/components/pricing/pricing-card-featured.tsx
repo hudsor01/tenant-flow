@@ -178,9 +178,7 @@ export function PricingCardFeatured({
 								}}
 								value={currentPrice}
 							/>
-							<span className="text-muted-foreground font-medium">
-								/{billingCycle === "yearly" ? "mo" : "month"}
-							</span>
+							<span className="text-muted-foreground font-medium">/mo</span>
 						</div>
 						<p className="text-sm text-muted-foreground mt-1">
 							{billingCycle === "yearly"

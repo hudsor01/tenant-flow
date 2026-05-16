@@ -11,7 +11,7 @@ import { IncomeStatementPageStats } from "./income-statement-page-stats";
 
 export default function IncomeStatementPage() {
 	const [period, setPeriod] = useState("monthly");
-	const [year, setYear] = useState("2024");
+	const [year, setYear] = useState(String(new Date().getFullYear()));
 
 	const dateRange = (() => {
 		const yearNum = parseInt(year, 10);

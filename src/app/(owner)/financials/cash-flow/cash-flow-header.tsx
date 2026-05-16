@@ -46,9 +46,13 @@ export function CashFlowHeader({
 							<SelectValue />
 						</SelectTrigger>
 						<SelectContent>
-							<SelectItem value="2024">2024</SelectItem>
-							<SelectItem value="2023">2023</SelectItem>
-							<SelectItem value="2022">2022</SelectItem>
+							{Array.from({ length: 3 }, (_, i) =>
+								String(new Date().getFullYear() - i),
+							).map((y) => (
+								<SelectItem key={y} value={y}>
+									{y}
+								</SelectItem>
+							))}
 						</SelectContent>
 					</Select>
 					<button className="inline-flex items-center gap-2 px-4 py-2.5 bg-card border border-border hover:bg-muted text-foreground font-medium rounded-lg transition-colors">

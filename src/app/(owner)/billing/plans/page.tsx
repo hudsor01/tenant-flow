@@ -59,9 +59,12 @@ export default function BillingPlansPage() {
 	const hasActiveSubscription =
 		subscriptionStatus?.subscriptionStatus === "active" ||
 		subscriptionStatus?.subscriptionStatus === "trialing";
+	// `subscription_plan` can be a Stripe price_id OR a tier slug (per the
+	// Stripe webhook handler: `tier ?? planLookup ?? priceId`). Match both.
 	const currentPlan =
 		hasActiveSubscription && subscriptionStatus?.stripePriceId
 			? (PLANS.find((p) => p.priceId === subscriptionStatus.stripePriceId) ??
+				PLANS.find((p) => p.id === subscriptionStatus.stripePriceId) ??
 				null)
 			: null;
 	const hasSubscription = currentPlan !== null;

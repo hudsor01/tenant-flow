@@ -37,8 +37,22 @@ const TAB_VALUES: readonly SettingsTab[] = [
 	"data",
 ] as const;
 
+// URL-param aliases for tab values. Keeps deep-links working when external
+// links or docs use a kebab-case form that doesn't match the internal id
+// (Session 11 P2 #6: `?tab=my-data` fell through to General silently).
+const TAB_ALIASES: Record<string, SettingsTab> = {
+	"my-data": "data",
+};
+
 function isSettingsTab(value: string): value is SettingsTab {
 	return (TAB_VALUES as readonly string[]).includes(value);
+}
+
+function resolveTabParam(value: string | null): SettingsTab | null {
+	if (!value) return null;
+	if (isSettingsTab(value)) return value;
+	const aliased = TAB_ALIASES[value];
+	return aliased ?? null;
 }
 
 interface SettingsSection {
@@ -90,14 +104,14 @@ const sections: SettingsSection[] = [
 export default function SettingsPage() {
 	const searchParams = useSearchParams();
 	const router = useRouter();
-	const tabParam = searchParams.get("tab") as SettingsTab | null;
+	const tabParam = resolveTabParam(searchParams.get("tab"));
 	const [activeTab, setActiveTab] = useState<SettingsTab>(
-		tabParam && isSettingsTab(tabParam) ? tabParam : "general",
+		tabParam ?? "general",
 	);
 
 	// Update tab when URL changes
 	useEffect(() => {
-		if (tabParam && isSettingsTab(tabParam)) {
+		if (tabParam) {
 			setActiveTab(tabParam);
 		}
 	}, [tabParam]);

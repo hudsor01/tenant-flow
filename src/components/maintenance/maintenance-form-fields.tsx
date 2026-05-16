@@ -10,6 +10,7 @@ import {
 	SelectValue,
 } from "#components/ui/select";
 import { Textarea } from "#components/ui/textarea";
+import { useTenantList } from "#hooks/api/use-tenant";
 import type { useMaintenanceForm } from "#hooks/use-maintenance-form";
 import { MAINTENANCE_PRIORITY_OPTIONS } from "#lib/constants/status-types";
 import type { MaintenancePriority, Property, Unit } from "#types/core";
@@ -26,6 +27,13 @@ export function MaintenanceFormFields({
 	unitsByProperty,
 }: MaintenanceFormFieldsProps) {
 	const unitLabelId = "maintenance-unit-label";
+	const tenantLabelId = "maintenance-tenant-label";
+	// Tenant picker (Session 11 P2 #12): landlords don't memorize tenant
+	// UUIDs. Show a combobox listing the owner's tenants by name; the form
+	// state still holds the tenant.id so downstream API contracts are
+	// unchanged.
+	const { data: tenantsData } = useTenantList(1, 200);
+	const tenants = tenantsData?.data ?? [];
 
 	return (
 		<>
@@ -73,21 +81,38 @@ export function MaintenanceFormFields({
 				)}
 			</form.Field>
 
-			{/* Tenant ID */}
+			{/* Tenant — pick by name; form stores the tenant.id */}
 			<form.Field name="tenant_id">
 				{(field) => (
 					<Field>
-						<FieldLabel htmlFor="tenant_id">Tenant ID *</FieldLabel>
-						<Input
-							id="tenant_id"
-							name="tenant_id"
-							placeholder="Tenant ID"
+						<FieldLabel id={tenantLabelId} htmlFor="tenant_id">
+							Tenant *
+						</FieldLabel>
+						<Select
 							value={field.state.value ?? ""}
-							onChange={(e: ChangeEvent<HTMLInputElement>) =>
-								field.handleChange(e.target.value)
-							}
-							onBlur={field.handleBlur}
-						/>
+							onValueChange={field.handleChange}
+						>
+							<SelectTrigger
+								id="tenant_id"
+								aria-labelledby={tenantLabelId}
+								className="w-full justify-between"
+							>
+								<SelectValue placeholder="Select tenant" />
+							</SelectTrigger>
+							<SelectContent>
+								{tenants.length === 0 ? (
+									<div className="px-2 py-1.5 text-xs text-muted-foreground">
+										No tenants yet — add one from the Tenants tab first.
+									</div>
+								) : (
+									tenants.map((tenant) => (
+										<SelectItem key={tenant.id} value={tenant.id}>
+											{tenant.first_name} {tenant.last_name}
+										</SelectItem>
+									))
+								)}
+							</SelectContent>
+						</Select>
 						{(field.state.meta.errors?.length ?? 0) > 0 && (
 							<FieldError>{String(field.state.meta.errors[0])}</FieldError>
 						)}

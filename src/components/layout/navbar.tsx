@@ -41,13 +41,21 @@ export function Navbar({
 	// Session-only check — reads local cookie cache via getSession(), no
 	// network round-trip.
 	const { data: authSession, isPending: authPending } = useSupabaseSession();
-	const isAuthenticated = !!authSession;
-	// `authResolved` semantics:
-	//   - If we know there's no auth cookie at all, render immediately
-	//     (no point waiting on a query that will resolve to null anyway).
-	//   - Otherwise the cookie may be present-and-valid OR
-	//     present-and-stale; wait for the query before choosing a branch.
-	const authResolved = !hasAuthCookie || !authPending;
+	// Authentication decision:
+	//   - While the session query is pending, trust the cookie probe
+	//     (optimistic: cookie present → "Dashboard", absent → "Sign In").
+	//     Session 10/11 P1: waiting for the query to resolve stranded
+	//     signed-in users on marketing pages with no Dashboard CTA when
+	//     the query stayed pending.
+	//   - Once the query resolves, prefer its result (authoritative):
+	//     a stale/expired cookie that the server rejects will downgrade
+	//     the user to the signed-out state.
+	const isAuthenticated = authPending ? hasAuthCookie : !!authSession;
+	// `authResolved` is true once we know which branch to render.
+	// We always know after first paint: either the cookie is absent
+	// (signed-out fast-path) or the cookie is present (optimistic Dashboard
+	// pending query confirmation). No "spinner" gap on the navbar.
+	const authResolved = true;
 
 	useEffect(() => {
 		setHasAuthCookie(document.cookie.includes(`${SUPABASE_AUTH_COOKIE_NAME}=`));

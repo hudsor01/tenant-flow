@@ -15,17 +15,32 @@ import { useUser } from "#hooks/api/use-auth";
 import { useSubscriptionStatus } from "#hooks/api/use-billing";
 import { useBillingPortalMutation } from "#hooks/api/use-billing-mutations";
 
-function findPlanByStripePriceId(priceId: string | null): {
+// Resolve a plan from the `subscription_plan` column. The Stripe webhook
+// handlers write `subscription_plan: tier ?? planLookup ?? priceId`, so the
+// stored value can be a tier slug ("max", "growth", "starter", "trial"), a
+// Stripe price_id ("price_1TVT..."), or the raw price_id from Stripe — in
+// roughly that order of preference. Match all three forms so the Billing UI
+// never falls through to "No plan" just because the column happens to hold a
+// slug instead of a price_id (battle-test Session 10/11 P1: a paid user
+// with `subscription_plan = "max"` was mislabeled as "No plan" because the
+// lookup only recognized price_ids).
+function findPlanByPlanIdentifier(identifier: string | null): {
 	plan: PricingConfig | null;
 	period: "monthly" | "annual" | null;
 } {
-	if (!priceId) return { plan: null, period: null };
+	if (!identifier) return { plan: null, period: null };
 	for (const plan of getAllPricingPlans()) {
-		if (plan.stripePriceIds.monthly === priceId) {
+		if (plan.stripePriceIds.monthly === identifier) {
 			return { plan, period: "monthly" };
 		}
-		if (plan.stripePriceIds.annual === priceId) {
+		if (plan.stripePriceIds.annual === identifier) {
 			return { plan, period: "annual" };
+		}
+		// Tier-slug match. We don't know the period (slug doesn't encode
+		// month vs annual); leave it null and let downstream code render
+		// the plan name without a period qualifier.
+		if (plan.planId === identifier) {
+			return { plan, period: null };
 		}
 	}
 	return { plan: null, period: null };
@@ -152,7 +167,7 @@ export function BillingSettings() {
 	const isActive = status === "active" || status === "trialing";
 	const stripePriceId = subscriptionStatus?.stripePriceId ?? null;
 	const { plan: currentPlan, period: currentPeriod } =
-		findPlanByStripePriceId(stripePriceId);
+		findPlanByPlanIdentifier(stripePriceId);
 	const nextBillingDate = formatNextBillingDate(
 		subscriptionStatus?.currentPeriodEnd ?? null,
 	);

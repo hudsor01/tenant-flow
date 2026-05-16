@@ -34,9 +34,13 @@ export function FinancialsHeader({
 							<SelectValue />
 						</SelectTrigger>
 						<SelectContent>
-							<SelectItem value="2024">2024</SelectItem>
-							<SelectItem value="2023">2023</SelectItem>
-							<SelectItem value="2022">2022</SelectItem>
+							{Array.from({ length: 3 }, (_, i) =>
+								String(new Date().getFullYear() - i),
+							).map((y) => (
+								<SelectItem key={y} value={y}>
+									{y}
+								</SelectItem>
+							))}
 						</SelectContent>
 					</Select>
 					<Button variant="outline">
