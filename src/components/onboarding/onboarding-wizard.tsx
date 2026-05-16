@@ -129,8 +129,9 @@ export function OnboardingWizard() {
 					</div>
 					<VisuallyHidden.Root asChild>
 						<DialogDescription>
-							Multi-step onboarding wizard to add your first property and
-							complete account setup.
+							Set up your TenantFlow account by adding your first property. Use
+							Next to advance, Skip to skip a step, or close the dialog to
+							finish later.
 						</DialogDescription>
 					</VisuallyHidden.Root>
 				</DialogHeader>

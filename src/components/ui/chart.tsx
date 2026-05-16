@@ -70,8 +70,8 @@ function ChartContainer({
 	// the `aspect-video` flex child has its computed dimensions.
 	const [mounted, setMounted] = useState(false);
 	useEffect(() => {
-		const id = requestAnimationFrame(() => setMounted(true));
-		return () => cancelAnimationFrame(id);
+		const rafId = requestAnimationFrame(() => setMounted(true));
+		return () => cancelAnimationFrame(rafId);
 	}, []);
 
 	return (
