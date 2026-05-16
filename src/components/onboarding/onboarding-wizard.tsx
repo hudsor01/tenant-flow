@@ -12,10 +12,12 @@
  * Marks onboarding complete or skipped on close.
  */
 
+import { VisuallyHidden } from "radix-ui";
 import { useState } from "react";
 import {
 	Dialog,
 	DialogContent,
+	DialogDescription,
 	DialogHeader,
 	DialogTitle,
 } from "#components/ui/dialog";
@@ -125,6 +127,12 @@ export function OnboardingWizard() {
 						</DialogTitle>
 						<StepIndicator currentStep={currentStep} />
 					</div>
+					<VisuallyHidden.Root asChild>
+						<DialogDescription>
+							Multi-step onboarding wizard to add your first property and
+							complete account setup.
+						</DialogDescription>
+					</VisuallyHidden.Root>
 				</DialogHeader>
 
 				{currentStep === "welcome" && (
