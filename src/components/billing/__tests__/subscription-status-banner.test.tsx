@@ -19,6 +19,25 @@ describe("SubscriptionStatusBanner", () => {
 		expect(container.innerHTML).toBe("");
 	});
 
+	it("renders nothing when the subscription query errors (does not fall through to upsell)", () => {
+		// Battle-test Session 9 P1 regression guard: paid users with a
+		// transient subscription-query failure were seeing the blue
+		// "Start your subscription" upsell. Fix: skip the banner on
+		// isError. BillingSettings owns the explicit error UI surface.
+		mockUseSubscriptionStatus.mockReturnValue({
+			data: undefined,
+			isLoading: false,
+			isError: true,
+			error: new Error("PGRST301: JWT expired"),
+		});
+
+		const { container } = render(<SubscriptionStatusBanner />);
+		expect(container.innerHTML).toBe("");
+		expect(
+			screen.queryByText(/start your subscription/i),
+		).not.toBeInTheDocument();
+	});
+
 	it("renders blue info banner when subscription is null (no stripe customer)", () => {
 		mockUseSubscriptionStatus.mockReturnValue({
 			data: null,

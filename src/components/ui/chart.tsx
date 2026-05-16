@@ -59,15 +59,19 @@ function ChartContainer({
 	const chartId = `chart-${id || uniqueId.replace(/:/g, "")}`;
 
 	// Defer ResponsiveContainer mount until the parent div has been laid
-	// out, so Recharts never measures a zero-sized container on its first
-	// pass. Without this gate, Recharts logs "The width(-1) and height(-1)
-	// of chart should be greater than 0" to the console on every chart
-	// render (battle-test Session 8 flagged this as cosmetic console noise).
-	// The wrapper div retains its sizing classes so the layout reservation
-	// is unchanged — only the Recharts measurement is deferred one tick.
+	// out AND painted at least once, so Recharts never measures a zero-
+	// sized container on its first ResizeObserver callback. Battle-test
+	// Session 8 reported "The width(-1) and height(-1) of chart should be
+	// greater than 0" once per chart on dashboard mount; PR #722's
+	// useEffect-only gate wasn't enough — `useEffect` runs after first
+	// commit but before browser layout settles, so ResponsiveContainer's
+	// own measurement still caught a zero-sized parent in some flows.
+	// `requestAnimationFrame` waits for the next paint, by which point
+	// the `aspect-video` flex child has its computed dimensions.
 	const [mounted, setMounted] = useState(false);
 	useEffect(() => {
-		setMounted(true);
+		const rafId = requestAnimationFrame(() => setMounted(true));
+		return () => cancelAnimationFrame(rafId);
 	}, []);
 
 	return (

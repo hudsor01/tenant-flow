@@ -12,10 +12,12 @@
  * Marks onboarding complete or skipped on close.
  */
 
+import { VisuallyHidden } from "radix-ui";
 import { useState } from "react";
 import {
 	Dialog,
 	DialogContent,
+	DialogDescription,
 	DialogHeader,
 	DialogTitle,
 } from "#components/ui/dialog";
@@ -125,6 +127,13 @@ export function OnboardingWizard() {
 						</DialogTitle>
 						<StepIndicator currentStep={currentStep} />
 					</div>
+					<VisuallyHidden.Root asChild>
+						<DialogDescription>
+							Set up your TenantFlow account by adding your first property. Use
+							the primary action on each step to advance, the Skip option to
+							bypass a step, or close the dialog to finish later.
+						</DialogDescription>
+					</VisuallyHidden.Root>
 				</DialogHeader>
 
 				{currentStep === "welcome" && (

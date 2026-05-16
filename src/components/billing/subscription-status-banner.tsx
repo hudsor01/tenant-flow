@@ -16,11 +16,20 @@ import { useSubscriptionStatus } from "#hooks/api/use-billing";
  * Include in owner layout to show across all owner pages.
  */
 export function SubscriptionStatusBanner() {
-	const { data: subscription, isLoading } = useSubscriptionStatus();
+	const { data: subscription, isLoading, isError } = useSubscriptionStatus();
 
 	if (isLoading) return null;
 
-	// No subscription at all — user needs to subscribe
+	// Battle-test Session 9 P1: when the subscription query errors (auth
+	// hiccup, RLS rejection, transient DB), the previous fall-through
+	// rendered the "Start your subscription" banner to paid users —
+	// misleading them into thinking they had no subscription. Skip the
+	// banner on error; BillingSettings owns the explicit error UI.
+	if (isError) return null;
+
+	// No subscription at all — user needs to subscribe. Only render when
+	// the query SUCCEEDED with no subscription on file (genuine new-user
+	// state), not when the lookup couldn't resolve a status.
 	if (!subscription || subscription.subscriptionStatus === null) {
 		return (
 			<div className="flex items-center gap-3 rounded-lg border border-blue-300 bg-blue-50 px-4 py-3 text-sm text-blue-800 dark:border-blue-700 dark:bg-blue-950/50 dark:text-blue-200">
