@@ -55,10 +55,16 @@ import { updateSession } from "#lib/supabase/middleware";
 function buildRequest(pathname: string): NextRequest {
 	const url = new URL(pathname, "http://localhost:3050");
 	const cookieStore = new Map<string, { name: string; value: string }>();
+	const headerStore = new Map<string, string>();
 
 	return {
 		nextUrl: url,
 		url: url.toString(),
+		headers: {
+			get: (name: string) => headerStore.get(name.toLowerCase()) ?? null,
+			set: (name: string, value: string) =>
+				headerStore.set(name.toLowerCase(), value),
+		},
 		cookies: {
 			getAll: () => [...cookieStore.values()],
 			set: (name: string, value: string) => {
@@ -176,14 +182,17 @@ describe("updateSession", () => {
 		expect(result.supabaseResponse).toBeDefined();
 	});
 
-	it("coerces a thrown getUser() error to user:null and captures to Sentry", async () => {
+	it("coerces a thrown getUser() error to user:null and captures to Sentry at warning level for 4xx auth errors", async () => {
 		// Battle-test Session 7 P1: when supabase.auth.getUser() threw on a
 		// malformed JWT or transient auth-server error, the unhandled throw
 		// bubbled out of the proxy and Vercel surfaced it as a 503. The fix
 		// is to swallow the throw, mark the request unauthenticated, and let
 		// the caller proceed (it will redirect to /login or fall through to
 		// a public route).
-		mockGetUser.mockRejectedValue(new Error("AuthApiError: jwt malformed"));
+		const authError = Object.assign(new Error("AuthApiError: jwt malformed"), {
+			status: 401,
+		});
+		mockGetUser.mockRejectedValue(authError);
 
 		const request = buildRequest("/dashboard");
 		const result = await updateSession(request);
@@ -192,13 +201,57 @@ describe("updateSession", () => {
 		expect(result.supabaseResponse).toBeDefined();
 		expect(mockCaptureException).toHaveBeenCalledOnce();
 		const [capturedError, capturedContext] = mockCaptureException.mock
-			.calls[0] as [Error, { tags: Record<string, string>; level: string }];
+			.calls[0] as [
+			Error,
+			{
+				tags: Record<string, string>;
+				level: string;
+				extra: Record<string, unknown>;
+			},
+		];
 		expect(capturedError).toBeInstanceOf(Error);
 		expect(capturedError.message).toMatch(/jwt malformed/);
 		expect(capturedContext.tags).toMatchObject({
 			component: "supabase/middleware",
 			check: "auth_get_user",
 		});
+		// 4xx auth error → warning (routine, don't page)
 		expect(capturedContext.level).toBe("warning");
+		expect(capturedContext.extra.pathname).toBe("/dashboard");
+	});
+
+	it("escalates to error level on 5xx auth-server outage (worth paging on)", async () => {
+		// Real Supabase auth-server outage should NOT be hidden as a warning
+		// — the Sentry alert config can then page on `level:error` to surface
+		// the outage while routine 4xx JWT failures stay quiet.
+		const outageError = Object.assign(new Error("AuthRetryableFetchError"), {
+			status: 503,
+		});
+		mockGetUser.mockRejectedValue(outageError);
+
+		const request = buildRequest("/dashboard");
+		const result = await updateSession(request);
+
+		expect(result.user).toBeNull();
+		const [, capturedContext] = mockCaptureException.mock.calls[0] as [
+			Error,
+			{ level: string },
+		];
+		expect(capturedContext.level).toBe("error");
+	});
+
+	it("escalates to error level on network failures with no status code", async () => {
+		// fetch() network errors don't carry a `status` property — treat the
+		// same as 5xx (outage-like) so we don't silently degrade.
+		mockGetUser.mockRejectedValue(new Error("fetch failed"));
+
+		const request = buildRequest("/dashboard");
+		await updateSession(request);
+
+		const [, capturedContext] = mockCaptureException.mock.calls[0] as [
+			Error,
+			{ level: string },
+		];
+		expect(capturedContext.level).toBe("error");
 	});
 });

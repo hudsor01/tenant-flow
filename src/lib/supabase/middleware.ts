@@ -62,13 +62,29 @@ export async function updateSession(
 		// all mean "no validated user", and the caller will redirect to /login
 		// or pass through as public. Capture to Sentry so real outages are
 		// still visible, but don't let one bad request poison the response.
+		//
+		// Level discrimination: 4xx AuthApiError responses (malformed/expired
+		// JWT, rate-limit) are routine and stay at `warning` so they don't
+		// page on-call. Anything else — network errors with no `status`, or
+		// 5xx auth-server outages — escalates to `error` so a real Supabase
+		// outage gets the right alert weight.
+		const status =
+			error && typeof error === "object" && "status" in error
+				? (error as { status?: unknown }).status
+				: undefined;
+		const isClientAuthError =
+			typeof status === "number" && status >= 400 && status < 500;
 		Sentry.captureException(error, {
 			tags: {
 				component: "supabase/middleware",
 				check: "auth_get_user",
 			},
-			extra: { pathname: request.nextUrl.pathname },
-			level: "warning",
+			extra: {
+				pathname: request.nextUrl.pathname,
+				requestId: request.headers.get("x-vercel-id") ?? undefined,
+				userAgent: request.headers.get("user-agent") ?? undefined,
+			},
+			level: isClientAuthError ? "warning" : "error",
 		});
 	}
 
