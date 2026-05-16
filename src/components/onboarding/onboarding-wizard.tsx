@@ -130,8 +130,8 @@ export function OnboardingWizard() {
 					<VisuallyHidden.Root asChild>
 						<DialogDescription>
 							Set up your TenantFlow account by adding your first property. Use
-							Next to advance, Skip to skip a step, or close the dialog to
-							finish later.
+							the primary action on each step to advance, the Skip option to
+							bypass a step, or close the dialog to finish later.
 						</DialogDescription>
 					</VisuallyHidden.Root>
 				</DialogHeader>
