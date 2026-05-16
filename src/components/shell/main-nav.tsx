@@ -7,7 +7,6 @@ import {
 	ChevronUp,
 	ClipboardList,
 	FileCheck,
-	FilePlus,
 	FileText,
 	FolderArchive,
 	HelpCircle,
@@ -87,8 +86,11 @@ const analyticsItems: NavigationItem[] = [
 ];
 
 // Document items
+//
+// Session 11 P3 #36: "Generate Lease" used to live here and duplicated
+// the primary New Lease CTA on the Leases tab — same workflow surfaced
+// twice in the sidebar. Removed; users reach the wizard from /leases.
 const documentItems: DocumentItem[] = [
-	{ label: "Generate Lease", href: "/leases/new", icon: FilePlus },
 	{
 		label: "Lease Template",
 		href: "/documents/lease-template",

@@ -155,36 +155,61 @@ export default function SettingsPage() {
 
 			{/* Settings Layout */}
 			<div className="flex flex-col lg:flex-row gap-6">
-				{/* Sidebar Navigation */}
+				{/* Sidebar Navigation — semantic tablist for SR users
+				    (Session 11 P2 #7). Each button declares role="tab",
+				    aria-selected, and data-state so screen readers and
+				    drive-by lint tools both see the tab state. */}
 				<BlurFade delay={0.15} inView>
-					<nav className="lg:w-56 shrink-0">
+					<nav
+						className="lg:w-56 shrink-0"
+						role="tablist"
+						aria-orientation="vertical"
+						aria-label="Settings sections"
+					>
 						<div className="space-y-1">
-							{sections.map((section, index) => (
-								<BlurFade key={section.id} delay={0.2 + index * 0.05} inView>
-									<button
-										onClick={() => handleTabChange(section.id)}
-										className={`flex w-full min-h-11 items-center justify-between gap-3 rounded-lg px-3 py-2.5 text-sm transition-colors ${
-											activeTab === section.id
-												? "bg-primary text-primary-foreground"
-												: "text-muted-foreground hover:bg-muted hover:text-foreground"
-										}`}
-									>
-										<div className="flex items-center gap-3">
-											{section.icon}
-											<span>{section.label}</span>
-										</div>
-										<ChevronRight
-											className={`h-4 w-4 transition-transform ${activeTab === section.id ? "rotate-90" : ""}`}
-										/>
-									</button>
-								</BlurFade>
-							))}
+							{sections.map((section, index) => {
+								const isActive = activeTab === section.id;
+								return (
+									<BlurFade key={section.id} delay={0.2 + index * 0.05} inView>
+										<button
+											type="button"
+											role="tab"
+											aria-selected={isActive}
+											aria-controls={`settings-panel-${section.id}`}
+											id={`settings-tab-${section.id}`}
+											data-state={isActive ? "active" : "inactive"}
+											onClick={() => handleTabChange(section.id)}
+											className={`flex w-full min-h-11 items-center justify-between gap-3 rounded-lg px-3 py-2.5 text-sm transition-colors ${
+												isActive
+													? "bg-primary text-primary-foreground"
+													: "text-muted-foreground hover:bg-muted hover:text-foreground"
+											}`}
+										>
+											<div className="flex items-center gap-3">
+												{section.icon}
+												<span>{section.label}</span>
+											</div>
+											<ChevronRight
+												className={`h-4 w-4 transition-transform ${isActive ? "rotate-90" : ""}`}
+											/>
+										</button>
+									</BlurFade>
+								);
+							})}
 						</div>
 					</nav>
 				</BlurFade>
 
-				{/* Main Content */}
-				<div className="flex-1 min-w-0">{renderContent()}</div>
+				{/* Main Content — tabpanel wrapper provides the
+				    aria-labelledby anchor for the active tab. */}
+				<div
+					className="flex-1 min-w-0"
+					role="tabpanel"
+					id={`settings-panel-${activeTab}`}
+					aria-labelledby={`settings-tab-${activeTab}`}
+				>
+					{renderContent()}
+				</div>
 			</div>
 		</div>
 	);

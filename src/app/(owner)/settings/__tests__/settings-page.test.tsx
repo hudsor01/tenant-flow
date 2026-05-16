@@ -257,19 +257,13 @@ describe("Settings Page", () => {
 			screen.getByRole("heading", { name: "Settings" }),
 		).toBeInTheDocument();
 
-		// Check navigation tabs exist
+		// Check navigation tabs exist (Session 11 P2 #7: semantic tablist)
+		expect(screen.getByRole("tab", { name: /General/i })).toBeInTheDocument();
 		expect(
-			screen.getByRole("button", { name: /General/i }),
+			screen.getByRole("tab", { name: /Notifications/i }),
 		).toBeInTheDocument();
-		expect(
-			screen.getByRole("button", { name: /Notifications/i }),
-		).toBeInTheDocument();
-		expect(
-			screen.getByRole("button", { name: /Security/i }),
-		).toBeInTheDocument();
-		expect(
-			screen.getByRole("button", { name: /Billing/i }),
-		).toBeInTheDocument();
+		expect(screen.getByRole("tab", { name: /Security/i })).toBeInTheDocument();
+		expect(screen.getByRole("tab", { name: /Billing/i })).toBeInTheDocument();
 	});
 
 	it("displays General tab content by default", async () => {
@@ -304,7 +298,7 @@ describe("Settings Page", () => {
 		renderWithProviders(<SettingsPage />);
 
 		// Click on Notifications tab
-		const notificationsTab = screen.getByRole("button", {
+		const notificationsTab = screen.getByRole("tab", {
 			name: /Notifications/i,
 		});
 		await user.click(notificationsTab);
@@ -336,7 +330,7 @@ describe("Settings Page", () => {
 		renderWithProviders(<SettingsPage />);
 
 		// Click on Security tab
-		const securityTab = screen.getByRole("button", { name: /Security/i });
+		const securityTab = screen.getByRole("tab", { name: /Security/i });
 		await user.click(securityTab);
 
 		// Check for Security Settings content
@@ -368,7 +362,7 @@ describe("Settings Page", () => {
 		renderWithProviders(<SettingsPage />);
 
 		// Click on Billing tab
-		const billingTab = screen.getByRole("button", { name: /Billing/i });
+		const billingTab = screen.getByRole("tab", { name: /Billing/i });
 		await user.click(billingTab);
 
 		// Check for Billing Settings content
@@ -397,7 +391,7 @@ describe("Settings Page", () => {
 		renderWithProviders(<SettingsPage />);
 
 		// Navigate to Security tab
-		const securityTab = screen.getByRole("button", { name: /Security/i });
+		const securityTab = screen.getByRole("tab", { name: /Security/i });
 		await user.click(securityTab);
 
 		await waitFor(() => {
@@ -419,7 +413,7 @@ describe("Settings Page", () => {
 		renderWithProviders(<SettingsPage />);
 
 		// Navigate to Security tab
-		const securityTab = screen.getByRole("button", { name: /Security/i });
+		const securityTab = screen.getByRole("tab", { name: /Security/i });
 		await user.click(securityTab);
 
 		await waitFor(() => {
@@ -443,7 +437,7 @@ describe("Settings Page", () => {
 		renderWithProviders(<SettingsPage />);
 
 		// Navigate to Security tab
-		const securityTab = screen.getByRole("button", { name: /Security/i });
+		const securityTab = screen.getByRole("tab", { name: /Security/i });
 		await user.click(securityTab);
 
 		await waitFor(() => {
@@ -470,7 +464,7 @@ describe("Settings Page", () => {
 		renderWithProviders(<SettingsPage />);
 
 		// Navigate to Billing tab
-		const billingTab = screen.getByRole("button", { name: /Billing/i });
+		const billingTab = screen.getByRole("tab", { name: /Billing/i });
 		await user.click(billingTab);
 
 		await waitFor(() => {
@@ -488,17 +482,12 @@ describe("Settings Page", () => {
 
 		renderWithProviders(<SettingsPage />);
 
-		// Check that navigation buttons have min-h-11 (44px touch targets)
-		const navButtons = screen
-			.getAllByRole("button")
-			.filter((button) =>
-				["General", "Notifications", "Security", "Billing"].some((label) =>
-					button.textContent?.includes(label),
-				),
-			);
-
-		navButtons.forEach((button) => {
-			expect(button.className).toContain("min-h-11");
+		// Check that navigation tabs have min-h-11 (44px touch targets)
+		// Session 11 P2 #7: tabs are role="tab" inside a tablist
+		const navTabs = screen.getAllByRole("tab");
+		expect(navTabs.length).toBeGreaterThan(0);
+		navTabs.forEach((tab) => {
+			expect(tab.className).toContain("min-h-11");
 		});
 	});
 
@@ -509,7 +498,7 @@ describe("Settings Page", () => {
 		renderWithProviders(<SettingsPage />);
 
 		// Navigate to Billing tab
-		const billingTab = screen.getByRole("button", { name: /Billing/i });
+		const billingTab = screen.getByRole("tab", { name: /Billing/i });
 		await user.click(billingTab);
 
 		await waitFor(() => {
@@ -543,12 +532,12 @@ describe("Settings Page - Mobile Responsiveness", () => {
 
 		renderWithProviders(<SettingsPage />);
 
-		// Check that the nav container uses flex with overflow for mobile
-		const nav = screen.getByRole("navigation");
+		// Session 11 P2 #7: settings nav uses role="tablist" not "navigation"
+		const nav = screen.getByRole("tablist");
 		expect(nav).toBeInTheDocument();
 
-		// Check the nav has proper classes for mobile horizontal scroll
-		const navContainer = nav.querySelector(".flex");
+		// Check the tablist has proper classes for mobile horizontal scroll
+		const navContainer = nav.querySelector(".space-y-1");
 		expect(navContainer).toBeInTheDocument();
 	});
 

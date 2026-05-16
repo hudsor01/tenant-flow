@@ -111,8 +111,8 @@ export function PasswordSection() {
 							className="h-10 rounded-lg border bg-background px-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
 						/>
 						<p className="text-xs text-muted-foreground">
-							Must be at least 8 characters with uppercase, lowercase, and
-							numbers
+							Must be at least 12 characters and include uppercase, lowercase, a
+							number, and a special character. Avoid reusing recent passwords.
 						</p>
 					</div>
 

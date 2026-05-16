@@ -215,7 +215,11 @@ export default function BalanceSheetPage() {
 						/>
 						<StatLabel>Total Assets</StatLabel>
 						<StatValue className="flex items-baseline text-emerald-600 dark:text-emerald-400">
-							${Math.floor(totalAssets).toLocaleString()}
+							$
+							{totalAssets.toLocaleString("en-US", {
+								minimumFractionDigits: 2,
+								maximumFractionDigits: 2,
+							})}
 						</StatValue>
 						<StatIndicator variant="icon" color="success">
 							<Building2 />
@@ -228,7 +232,11 @@ export default function BalanceSheetPage() {
 					<Stat className="relative overflow-hidden">
 						<StatLabel>Total Liabilities</StatLabel>
 						<StatValue className="flex items-baseline text-red-600 dark:text-red-400">
-							${Math.floor(totalLiabilities).toLocaleString()}
+							$
+							{totalLiabilities.toLocaleString("en-US", {
+								minimumFractionDigits: 2,
+								maximumFractionDigits: 2,
+							})}
 						</StatValue>
 						<StatIndicator variant="icon" color="destructive">
 							<CreditCard />
@@ -249,7 +257,11 @@ export default function BalanceSheetPage() {
 						)}
 						<StatLabel>Total Equity</StatLabel>
 						<StatValue className="flex items-baseline">
-							${Math.floor(totalEquity).toLocaleString()}
+							$
+							{totalEquity.toLocaleString("en-US", {
+								minimumFractionDigits: 2,
+								maximumFractionDigits: 2,
+							})}
 						</StatValue>
 						<StatIndicator variant="icon" color="primary">
 							<Wallet />

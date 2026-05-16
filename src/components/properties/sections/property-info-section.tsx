@@ -47,12 +47,10 @@ export function PropertyInfoSection({ form }: PropertyInfoSectionProps) {
 				{(field) => (
 					<Field>
 						<FieldLabel htmlFor="property_type">Property Type *</FieldLabel>
-						<input
-							type="hidden"
-							name="property_type"
-							value={field.state.value}
-							readOnly
-						/>
+						{/* Session 11 P2 #19: dropped redundant <input type="hidden">.
+						    Submission goes through form.handleSubmit() (TanStack
+						    Form holds the value); the hidden input duplicated
+						    the field in the DOM with no consumer. */}
 						<Select
 							value={field.state.value}
 							onValueChange={(value: string) =>

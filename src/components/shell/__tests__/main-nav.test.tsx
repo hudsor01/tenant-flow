@@ -185,14 +185,12 @@ describe("MainNav", () => {
 			expect(screen.getByText("Templates")).toBeInTheDocument();
 		});
 
-		it("should render Generate Lease link", () => {
+		it("should NOT render Generate Lease link (Session 11 P3 #36: duplicate of Leases tab New Lease CTA)", () => {
 			render(<MainNav />);
 
-			const generateLeaseLink = screen.getByRole("link", {
-				name: /generate lease/i,
-			});
-			expect(generateLeaseLink).toBeInTheDocument();
-			expect(generateLeaseLink).toHaveAttribute("href", "/leases/new");
+			expect(
+				screen.queryByRole("link", { name: /generate lease/i }),
+			).not.toBeInTheDocument();
 		});
 
 		it("should render Lease Template link", () => {
@@ -330,15 +328,15 @@ describe("MainNav", () => {
 			expect(onNavigate).toHaveBeenCalledTimes(1);
 		});
 
-		it("should call onNavigate when document link is clicked", async () => {
+		it("should call onNavigate when a Templates link is clicked", async () => {
 			const user = userEvent.setup();
 			const onNavigate = vi.fn();
 			render(<MainNav onNavigate={onNavigate} />);
 
-			const generateLeaseLink = screen.getByRole("link", {
-				name: /generate lease/i,
+			const leaseTemplateLink = screen.getByRole("link", {
+				name: /lease template/i,
 			});
-			await user.click(generateLeaseLink);
+			await user.click(leaseTemplateLink);
 
 			expect(onNavigate).toHaveBeenCalledTimes(1);
 		});

@@ -32,7 +32,11 @@ export function CashFlowStats({
 					/>
 					<StatLabel>Total Inflows</StatLabel>
 					<StatValue className="flex items-baseline text-emerald-600 dark:text-emerald-400">
-						${Math.floor(totalInflows).toLocaleString()}
+						$
+						{totalInflows.toLocaleString("en-US", {
+							minimumFractionDigits: 2,
+							maximumFractionDigits: 2,
+						})}
 					</StatValue>
 					<StatIndicator variant="icon" color="success">
 						<ArrowUpCircle />
@@ -45,7 +49,11 @@ export function CashFlowStats({
 				<Stat className="relative overflow-hidden">
 					<StatLabel>Total Outflows</StatLabel>
 					<StatValue className="flex items-baseline text-red-600 dark:text-red-400">
-						${Math.floor(totalOutflows).toLocaleString()}
+						$
+						{totalOutflows.toLocaleString("en-US", {
+							minimumFractionDigits: 2,
+							maximumFractionDigits: 2,
+						})}
 					</StatValue>
 					<StatIndicator variant="icon" color="destructive">
 						<ArrowDownCircle />
@@ -69,7 +77,10 @@ export function CashFlowStats({
 						className={`flex items-baseline ${netCashFlow >= 0 ? "" : "text-destructive"}`}
 					>
 						{netCashFlow >= 0 ? "+" : "-"}$
-						{Math.abs(Math.floor(netCashFlow)).toLocaleString()}
+						{Math.abs(netCashFlow).toLocaleString("en-US", {
+							minimumFractionDigits: 2,
+							maximumFractionDigits: 2,
+						})}
 					</StatValue>
 					<StatIndicator variant="icon" color="primary">
 						<Wallet />

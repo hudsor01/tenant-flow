@@ -1,6 +1,6 @@
 "use client";
 
-import { AccountDangerSection } from "#components/settings/sections/account-danger-section";
+import Link from "next/link";
 import { ActiveSessionsSection } from "#components/settings/sections/active-sessions-section";
 import { PasswordSection } from "#components/settings/sections/password-section";
 import { TwoFactorSection } from "#components/settings/sections/two-factor-section";
@@ -40,7 +40,25 @@ export function SecuritySettings() {
 			<PasswordSection />
 			<TwoFactorSection />
 			<ActiveSessionsSection />
-			<AccountDangerSection />
+
+			{/* GDPR export + account-deletion live exclusively on the My
+			    Data tab now (Session 11 P2 #9: duplicating the danger
+			    affordance across Security and My Data increased the chance
+			    of mistaken clicks). Leave a pointer here. */}
+			<BlurFade delay={0.25} inView>
+				<section className="rounded-lg border bg-card p-4">
+					<p className="text-sm text-muted-foreground">
+						Account deletion and data export moved to the{" "}
+						<Link
+							href="/settings?tab=data"
+							className="text-primary hover:underline underline-offset-4"
+						>
+							My Data
+						</Link>{" "}
+						tab.
+					</p>
+				</section>
+			</BlurFade>
 		</div>
 	);
 }
