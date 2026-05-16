@@ -13,16 +13,32 @@ let mockUserRow: {
 	subscription_status?: string | null;
 	is_admin?: boolean;
 } | null = null;
+// Battle-test Session 8 P0: simulate the DB-query failure modes proxy.ts
+// must survive without surfacing 5xx to the user.
+//   - mockUserRowError: in-band PostgREST error path
+//   - mockUserRowThrow:  thrown error (connection-pool exhaustion etc.)
+let mockUserRowError: Error | null = null;
+let mockUserRowThrow: Error | null = null;
 vi.mock("@supabase/ssr", () => ({
 	createServerClient: () => ({
 		from: () => ({
 			select: () => ({
 				eq: () => ({
-					maybeSingle: async () => ({ data: mockUserRow, error: null }),
+					maybeSingle: async () => {
+						if (mockUserRowThrow) throw mockUserRowThrow;
+						if (mockUserRowError) {
+							return { data: null, error: mockUserRowError };
+						}
+						return { data: mockUserRow, error: null };
+					},
 				}),
 			}),
 		}),
 	}),
+}));
+
+vi.mock("@sentry/nextjs", () => ({
+	captureException: vi.fn(),
 }));
 
 vi.mock("#env", () => ({
@@ -116,6 +132,8 @@ describe("proxy routing", () => {
 	beforeEach(() => {
 		vi.clearAllMocks();
 		mockUserRow = null;
+		mockUserRowError = null;
+		mockUserRowThrow = null;
 	});
 
 	describe("public routes", () => {
@@ -185,6 +203,41 @@ describe("proxy routing", () => {
 
 			expect(NextResponse.redirect).not.toHaveBeenCalled();
 			expect(result).toBe(supabaseResponse);
+		});
+
+		it("redirects to /dashboard when admin-gate DB query throws (no 5xx)", async () => {
+			// Battle-test Session 8 P0: bursty RSC prefetches saturated
+			// Supabase, the admin-gate await threw, middleware surfaced 500.
+			// Fix: treat throw as "not admin" → redirect to /dashboard.
+			mockUpdateSession.mockResolvedValue({
+				user: makeUser(),
+				supabaseResponse: makeSupabaseResponse(),
+			});
+			mockUserRowThrow = new Error("FetchError: connection reset");
+
+			await expect(
+				proxy(buildRequest("/admin/analytics")),
+			).resolves.toBeDefined();
+			expect(NextResponse.redirect).toHaveBeenCalledOnce();
+			const redirectUrl = (NextResponse.redirect as ReturnType<typeof vi.fn>)
+				.mock.calls[0]![0] as URL;
+			expect(redirectUrl.pathname).toBe("/dashboard");
+		});
+
+		it("redirects to /dashboard when admin-gate returns in-band PostgREST error", async () => {
+			mockUpdateSession.mockResolvedValue({
+				user: makeUser(),
+				supabaseResponse: makeSupabaseResponse(),
+			});
+			mockUserRowError = new Error("PGRST116: row not found");
+
+			await expect(
+				proxy(buildRequest("/admin/analytics")),
+			).resolves.toBeDefined();
+			expect(NextResponse.redirect).toHaveBeenCalledOnce();
+			const redirectUrl = (NextResponse.redirect as ReturnType<typeof vi.fn>)
+				.mock.calls[0]![0] as URL;
+			expect(redirectUrl.pathname).toBe("/dashboard");
 		});
 	});
 
@@ -292,6 +345,39 @@ describe("proxy routing", () => {
 
 			expect(NextResponse.redirect).not.toHaveBeenCalled();
 			expect(result).toBe(supabaseResponse);
+		});
+
+		it("redirects to /pricing when subscription-gate DB query throws (no 5xx)", async () => {
+			// Battle-test Session 8 P0: under burst load the subscription-gate
+			// await threw and Vercel surfaced 500/503 to ~35% of `_rsc=…`
+			// prefetches. Fix: treat throw as "subscription status unknown" →
+			// fail-secure redirect to /pricing. User re-enters via checkout
+			// flow if they actually have an active subscription.
+			mockUpdateSession.mockResolvedValue({
+				user: makeUser(),
+				supabaseResponse: makeSupabaseResponse(),
+			});
+			mockUserRowThrow = new Error("FetchError: connection pool exhausted");
+
+			await expect(proxy(buildRequest("/dashboard"))).resolves.toBeDefined();
+			expect(NextResponse.redirect).toHaveBeenCalledOnce();
+			const redirectUrl = (NextResponse.redirect as ReturnType<typeof vi.fn>)
+				.mock.calls[0]![0] as URL;
+			expect(redirectUrl.pathname).toBe("/pricing");
+		});
+
+		it("redirects to /pricing when subscription-gate returns in-band PostgREST error", async () => {
+			mockUpdateSession.mockResolvedValue({
+				user: makeUser(),
+				supabaseResponse: makeSupabaseResponse(),
+			});
+			mockUserRowError = new Error("PGRST301: JWT expired");
+
+			await expect(proxy(buildRequest("/dashboard"))).resolves.toBeDefined();
+			expect(NextResponse.redirect).toHaveBeenCalledOnce();
+			const redirectUrl = (NextResponse.redirect as ReturnType<typeof vi.fn>)
+				.mock.calls[0]![0] as URL;
+			expect(redirectUrl.pathname).toBe("/pricing");
 		});
 	});
 

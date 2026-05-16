@@ -8,6 +8,7 @@ import type { ReactNode } from "react";
 import {
 	Dialog,
 	DialogContent,
+	DialogDescription,
 	type DialogIntent,
 	DialogTitle,
 } from "#components/ui/dialog";
@@ -61,15 +62,32 @@ export function RouteModal({
 					? "Delete item"
 					: "Modal dialog";
 
+	// Default description silences the Radix a11y warning ("DialogContent
+	// requires a DialogTitle for accessibility… consider providing a
+	// `Description`"). Caller-provided children render the real form/UI
+	// below; this is just the screen-reader landmark.
+	const defaultDescription =
+		intent === "create"
+			? "Form to create a new item."
+			: intent === "edit"
+				? "Form to edit the item."
+				: intent === "delete"
+					? "Confirmation to delete the item."
+					: "Modal content.";
+
 	return (
 		<Dialog open onOpenChange={handleOpenChange}>
 			<DialogContent
 				intent={intent}
 				className={cn("max-h-[90vh] overflow-y-auto", className)}
 			>
-				{/* Visually hidden title for screen reader accessibility */}
+				{/* Visually hidden title + description for screen reader
+				    accessibility and to satisfy Radix's a11y contract. */}
 				<VisuallyHidden.Root asChild>
 					<DialogTitle>{accessibleTitle ?? defaultTitle}</DialogTitle>
+				</VisuallyHidden.Root>
+				<VisuallyHidden.Root asChild>
+					<DialogDescription>{defaultDescription}</DialogDescription>
 				</VisuallyHidden.Root>
 				{children}
 			</DialogContent>

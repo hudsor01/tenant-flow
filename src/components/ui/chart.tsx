@@ -1,7 +1,7 @@
 "use client";
 
 import type { ComponentProps, ComponentType, ReactNode } from "react";
-import { createContext, useContext, useId } from "react";
+import { createContext, useContext, useEffect, useId, useState } from "react";
 import * as RechartsPrimitive from "recharts";
 
 import { cn } from "#lib/utils";
@@ -58,6 +58,18 @@ function ChartContainer({
 	const uniqueId = useId();
 	const chartId = `chart-${id || uniqueId.replace(/:/g, "")}`;
 
+	// Defer ResponsiveContainer mount until the parent div has been laid
+	// out, so Recharts never measures a zero-sized container on its first
+	// pass. Without this gate, Recharts logs "The width(-1) and height(-1)
+	// of chart should be greater than 0" to the console on every chart
+	// render (battle-test Session 8 flagged this as cosmetic console noise).
+	// The wrapper div retains its sizing classes so the layout reservation
+	// is unchanged — only the Recharts measurement is deferred one tick.
+	const [mounted, setMounted] = useState(false);
+	useEffect(() => {
+		setMounted(true);
+	}, []);
+
 	return (
 		<ChartContext.Provider value={{ config }}>
 			<div
@@ -69,9 +81,11 @@ function ChartContainer({
 				{...props}
 			>
 				<ChartStyle id={chartId} config={config} />
-				<RechartsPrimitive.ResponsiveContainer minWidth={1} minHeight={1}>
-					{children}
-				</RechartsPrimitive.ResponsiveContainer>
+				{mounted ? (
+					<RechartsPrimitive.ResponsiveContainer minWidth={1} minHeight={1}>
+						{children}
+					</RechartsPrimitive.ResponsiveContainer>
+				) : null}
 			</div>
 		</ChartContext.Provider>
 	);

@@ -89,23 +89,42 @@ export async function proxy(request: NextRequest): Promise<NextResponse> {
 				},
 			},
 		);
-		const { data: row, error } = await subClient
-			.from("users")
-			.select("is_admin")
-			.eq("id", user.id)
-			.maybeSingle();
 
-		// On DB error: fail loud with 500 rather than silently redirecting an
-		// admin away. Sentry's Next.js SDK captures the thrown error server-side.
-		if (error) {
-			Sentry.captureException(error, {
-				tags: { component: "proxy", check: "admin_gate" },
+		// `await` itself can throw on connection-pool exhaustion / network
+		// error (battle-test Session 8 P0: bursty RSC prefetches saturated
+		// Supabase, await threw → middleware 500 → Vercel served 500/503
+		// to ~35% of `_rsc=…` prefetches). Wrap the call so a transient DB
+		// failure becomes a fail-secure redirect, not a 5xx.
+		type AdminGateRow = { is_admin: boolean | null };
+		let adminRow: AdminGateRow | null = null;
+		try {
+			const result = await subClient
+				.from("users")
+				.select("is_admin")
+				.eq("id", user.id)
+				.maybeSingle<AdminGateRow>();
+			if (result.error) {
+				// Surface the in-band PostgREST error so Sentry sees it. Then
+				// fall through to the fail-secure branch below (treat as
+				// not-admin). Prior behavior threw and returned 500 to the
+				// user — Sentry capture stays, the user gets a redirect.
+				Sentry.captureException(result.error, {
+					tags: { component: "proxy", check: "admin_gate" },
+					extra: { userId: user.id, pathname },
+				});
+			} else {
+				adminRow = result.data;
+			}
+		} catch (caught) {
+			Sentry.captureException(caught, {
+				tags: { component: "proxy", check: "admin_gate", path: "throw" },
 				extra: { userId: user.id, pathname },
+				level: "error",
 			});
-			throw error;
+			// fall through to not-admin path
 		}
 
-		if (!row?.is_admin) {
+		if (!adminRow?.is_admin) {
 			return redirectWithCookies(
 				new URL("/dashboard", request.url),
 				supabaseResponse,
@@ -133,26 +152,48 @@ export async function proxy(request: NextRequest): Promise<NextResponse> {
 				},
 			},
 		);
-		const { data: row, error } = await subClient
-			.from("users")
-			.select("subscription_status, is_admin")
-			.eq("id", user.id)
-			.maybeSingle();
 
-		// Fail loud on DB error — silently redirecting admins to /pricing is
-		// the exact bug Sentry flagged. A 500 is the honest response when we
-		// can't determine subscription status.
-		if (error) {
-			Sentry.captureException(error, {
-				tags: { component: "proxy", check: "subscription_gate" },
+		// Same defensive pattern as the admin gate above — connection-pool
+		// exhaustion under burst load was causing the `await` to throw and
+		// surfacing 5xx to the user. Treat any DB failure (in-band or
+		// thrown) as "subscription status unknown" → redirect to /pricing.
+		// Sentry capture preserves observability; the redirect is the
+		// fail-secure outcome (the user re-enters via the pricing/checkout
+		// flow if they actually have an active subscription).
+		type SubGateRow = {
+			subscription_status: string | null;
+			is_admin: boolean | null;
+		};
+		let subRow: SubGateRow | null = null;
+		try {
+			const result = await subClient
+				.from("users")
+				.select("subscription_status, is_admin")
+				.eq("id", user.id)
+				.maybeSingle<SubGateRow>();
+			if (result.error) {
+				Sentry.captureException(result.error, {
+					tags: { component: "proxy", check: "subscription_gate" },
+					extra: { userId: user.id, pathname },
+				});
+			} else {
+				subRow = result.data;
+			}
+		} catch (caught) {
+			Sentry.captureException(caught, {
+				tags: {
+					component: "proxy",
+					check: "subscription_gate",
+					path: "throw",
+				},
 				extra: { userId: user.id, pathname },
+				level: "error",
 			});
-			throw error;
 		}
 
-		if (row?.is_admin) return supabaseResponse;
+		if (subRow?.is_admin) return supabaseResponse;
 
-		const status = row?.subscription_status as string | null | undefined;
+		const status = subRow?.subscription_status ?? null;
 		if (!status || !ACTIVE_SUBSCRIPTION_STATUSES.has(status)) {
 			return redirectWithCookies(
 				new URL("/pricing", request.url),
