@@ -34,6 +34,57 @@ export const sessionKeys = {
  * Exported so the revoke mutation can re-derive at fire time instead of
  * trusting a stale `is_current` flag from the listing.
  */
+/**
+ * Parse a User-Agent string into a coarse browser/os/device tuple for the
+ * Active Sessions UI. Session 12 browser-agent flagged the prior "Unknown
+ * Browser on Unknown OS" rendering — the auth.sessions row has the raw UA
+ * but the mapper used to leave it unparsed.
+ *
+ * Order matters: Edge/OPR override Chrome (their UA contains "Chrome/"),
+ * iOS overrides macOS for iPad-on-Safari (UA contains both "iPad" and
+ * "Mac OS"). Returns null for fields the parser can't identify rather
+ * than the literal "Unknown" string — the UI decides the fallback copy.
+ */
+export function parseUserAgent(uaRaw: string | null): {
+	browser: string | null;
+	os: string | null;
+	device: string | null;
+} {
+	if (!uaRaw) return { browser: null, os: null, device: null };
+	const ua = uaRaw;
+	let browser: string | null = null;
+	let os: string | null = null;
+	let device: string | null = null;
+
+	if (/\bEdg\//.test(ua)) browser = "Edge";
+	else if (/\bOPR\//.test(ua)) browser = "Opera";
+	else if (/\bFirefox\//.test(ua)) browser = "Firefox";
+	else if (/\bChrome\//.test(ua)) browser = "Chrome";
+	else if (/\bSafari\//.test(ua) && /\bVersion\//.test(ua)) browser = "Safari";
+
+	if (/\biPad\b/.test(ua)) {
+		os = "iPadOS";
+		device = "tablet";
+	} else if (/\biPhone\b/.test(ua)) {
+		os = "iOS";
+		device = "mobile";
+	} else if (/\bAndroid\b/.test(ua)) {
+		os = "Android";
+		device = /\bMobile\b/.test(ua) ? "mobile" : "tablet";
+	} else if (/\bMac OS X\b|\bMacintosh\b/.test(ua)) {
+		os = "macOS";
+		device = "desktop";
+	} else if (/\bWindows\b/.test(ua)) {
+		os = "Windows";
+		device = "desktop";
+	} else if (/\bLinux\b/.test(ua) || /\bX11\b/.test(ua)) {
+		os = "Linux";
+		device = "desktop";
+	}
+
+	return { browser, os, device };
+}
+
 export function decodeSessionIdFromAccessToken(
 	accessToken: string,
 ): string | null {
@@ -96,21 +147,22 @@ export const sessionQueries = {
 						ip: string | null;
 					}> | null) ?? [];
 
-				return rows.map((row) => ({
-					id: row.id,
-					user_id: row.user_id,
-					created_at: row.created_at,
-					updated_at: row.updated_at,
-					user_agent: row.user_agent,
-					ip: row.ip,
-					// Browser/OS/device parsing from user_agent is left to the UI layer
-					// (or a future enhancement) — the auth.sessions row doesn't carry
-					// these fields directly.
-					browser: null,
-					os: null,
-					device: null,
-					is_current: currentSessionId !== null && row.id === currentSessionId,
-				}));
+				return rows.map((row) => {
+					const ua = parseUserAgent(row.user_agent);
+					return {
+						id: row.id,
+						user_id: row.user_id,
+						created_at: row.created_at,
+						updated_at: row.updated_at,
+						user_agent: row.user_agent,
+						ip: row.ip,
+						browser: ua.browser,
+						os: ua.os,
+						device: ua.device,
+						is_current:
+							currentSessionId !== null && row.id === currentSessionId,
+					};
+				});
 			},
 			...QUERY_CACHE_TIMES.DETAIL,
 		}),

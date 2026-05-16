@@ -9,16 +9,22 @@ import { OwnerDashboardLayout } from "./owner-dashboard-layout";
 // if they bypass robots.txt or follow internal links. Also override
 // openGraph/twitter so shared dashboard URLs don't preview as the
 // marketing homepage default (Session 11 P2 #21).
+//
+// Session 12 P3: use Next.js metadata title templates so per-route
+// sub-layouts (analytics/*, financials/*, maintenance/new, etc.)
+// flow their `title` into og:title and twitter:title automatically.
+// The literal "TenantFlow Dashboard" fallback only fires if a child
+// route doesn't set its own title.
 export const metadata: Metadata = {
 	robots: { index: false, follow: false },
 	openGraph: {
-		title: "TenantFlow Dashboard",
+		title: { template: "%s | TenantFlow", default: "TenantFlow Dashboard" },
 		description: "Authenticated TenantFlow app — landlord dashboard.",
 		images: [],
 	},
 	twitter: {
 		card: "summary",
-		title: "TenantFlow Dashboard",
+		title: { template: "%s | TenantFlow", default: "TenantFlow Dashboard" },
 		description: "Authenticated TenantFlow app — landlord dashboard.",
 	},
 };

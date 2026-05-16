@@ -18,6 +18,7 @@ import { ForgotPasswordModal } from "#components/auth/forgot-password-modal";
 import { UpdatePasswordForm } from "#components/auth/update-password-form";
 import { Button } from "#components/ui/button";
 import { GridPattern } from "#components/ui/grid-pattern";
+import { VALIDATION_LIMITS } from "#lib/constants/billing";
 
 type PageState = "loading" | "valid" | "error";
 
@@ -180,7 +181,10 @@ export default function UpdatePasswordPage() {
 											Password tips:
 										</p>
 										<ul className="text-sm text-muted-foreground space-y-1">
-											<li>Use at least 6 characters</li>
+											<li>
+												Use at least {VALIDATION_LIMITS.PASSWORD_MIN_LENGTH}{" "}
+												characters
+											</li>
 											<li>Mix uppercase and lowercase letters</li>
 											<li>Include numbers and special characters</li>
 											<li>Avoid common words or patterns</li>

@@ -198,14 +198,18 @@ export function PricingCardFeatured({
 						)}
 					</div>
 
-					{/* Social Proof */}
+					{/* Social Proof — Session 12 P3: drop the hardcoded "1–15
+					    rentals" framing. Growth covers ~6–20 units; calling
+					    it "1–15" overlaps Starter and undersells Growth.
+					    Use the plan's own description so the badge stays in
+					    lockstep with #config/pricing. */}
 					<Badge
 						variant="trustIndicator"
 						size="trust"
 						className="w-full justify-center mb-6"
 					>
 						<BadgeCheck className="size-4" aria-hidden="true" />
-						Built for landlords with 1–15 rentals
+						{plan.description}
 					</Badge>
 
 					{/* Features - 2 column grid for featured card */}
