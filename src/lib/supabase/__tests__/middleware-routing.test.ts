@@ -38,8 +38,10 @@ vi.mock("@supabase/ssr", () => ({
 }));
 
 const mockCaptureException = vi.fn();
+const mockCaptureMessage = vi.fn();
 vi.mock("@sentry/nextjs", () => ({
 	captureException: (...args: unknown[]) => mockCaptureException(...args),
+	captureMessage: (...args: unknown[]) => mockCaptureMessage(...args),
 }));
 
 vi.mock("#env", () => ({
@@ -431,6 +433,46 @@ describe("proxy routing", () => {
 			];
 			expect(capturedContext.tags.path).toBe("in_band");
 			expect(capturedContext.level).toBe("warning");
+		});
+
+		it("redirects to /login AND captures missing-row to Sentry when public.users row is absent", async () => {
+			// Cycle-2 P2-1 regression guard: an authenticated user with no
+			// public.users row triggers neither `result.error` nor a throw
+			// — it just resolves `{ data: null, error: null }`. Previously
+			// that path silently redirected to /login (gateRow === null
+			// branch) with zero Sentry signal, so a /login → /dashboard
+			// loop would have no observability. captureMessage was added
+			// to make the data-integrity bug visible.
+			mockUpdateSession.mockResolvedValue({
+				user: makeUser(),
+				supabaseResponse: makeSupabaseResponse(),
+			});
+			// Explicit opt-in: simulate the absent-row case.
+			mockUserRow = null;
+
+			await proxy(buildRequest("/dashboard"));
+
+			expect(NextResponse.redirect).toHaveBeenCalledOnce();
+			const redirectUrl = (NextResponse.redirect as ReturnType<typeof vi.fn>)
+				.mock.calls[0]![0] as URL;
+			expect(redirectUrl.pathname).toBe("/login");
+			expect(redirectUrl.searchParams.get("redirect")).toBe("/dashboard");
+
+			expect(mockCaptureMessage).toHaveBeenCalledOnce();
+			const [message, context] = mockCaptureMessage.mock.calls[0] as [
+				string,
+				{ tags: Record<string, string>; level: string },
+			];
+			expect(message).toMatch(/no public\.users row/);
+			expect(context.tags).toMatchObject({
+				component: "proxy",
+				check: "user_gate",
+				path: "missing_row",
+			});
+			expect(context.level).toBe("warning");
+			// Crucially: captureException should NOT fire — this isn't a
+			// thrown exception path.
+			expect(mockCaptureException).not.toHaveBeenCalled();
 		});
 	});
 
