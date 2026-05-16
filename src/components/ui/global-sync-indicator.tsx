@@ -32,6 +32,12 @@ export function GlobalSyncIndicator({
 	const { isPending, count, operations } = usePendingMutations();
 
 	if (!isPending) {
+		// Session 11 P3 #30: the bare "Saved" pill in the app shell had
+		// no hover explanation. Users could not tell whether it meant
+		// last autosave, last sync, or session-restore state. Tooltip
+		// now states the literal invariant: every pending data change
+		// has reached the server.
+		const savedTooltip = "All changes saved to TenantFlow.";
 		if (compact) {
 			return (
 				<TooltipProvider>
@@ -47,7 +53,7 @@ export function GlobalSyncIndicator({
 							</div>
 						</TooltipTrigger>
 						<TooltipContent>
-							<p>All changes saved</p>
+							<p>{savedTooltip}</p>
 						</TooltipContent>
 					</Tooltip>
 				</TooltipProvider>
@@ -55,15 +61,24 @@ export function GlobalSyncIndicator({
 		}
 
 		return (
-			<div
-				className={cn(
-					"flex items-center gap-1.5 text-muted-foreground",
-					className,
-				)}
-			>
-				<Cloud className="h-4 w-4" />
-				<span className="text-xs">Saved</span>
-			</div>
+			<TooltipProvider>
+				<Tooltip>
+					<TooltipTrigger asChild>
+						<div
+							className={cn(
+								"flex items-center gap-1.5 text-muted-foreground",
+								className,
+							)}
+						>
+							<Cloud className="h-4 w-4" />
+							<span className="text-xs">Saved</span>
+						</div>
+					</TooltipTrigger>
+					<TooltipContent>
+						<p>{savedTooltip}</p>
+					</TooltipContent>
+				</Tooltip>
+			</TooltipProvider>
 		);
 	}
 

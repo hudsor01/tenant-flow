@@ -135,7 +135,7 @@ describe("AppShell", () => {
 		it("should render search button", () => {
 			render(<AppShell>Content</AppShell>);
 
-			expect(screen.getByText("Search...")).toBeInTheDocument();
+			expect(screen.getByText("Search pages and actions…")).toBeInTheDocument();
 		});
 
 		it("should render keyboard shortcut hint", () => {
@@ -356,7 +356,7 @@ describe("AppShell", () => {
 			render(<AppShell>Content</AppShell>);
 
 			// Click the search button
-			const searchButton = screen.getByText("Search...");
+			const searchButton = screen.getByText("Search pages and actions…");
 			await user.click(searchButton);
 
 			// Command palette should be open
@@ -370,7 +370,7 @@ describe("AppShell", () => {
 			render(<AppShell>Content</AppShell>);
 
 			// Open command palette
-			const searchButton = screen.getByText("Search...");
+			const searchButton = screen.getByText("Search pages and actions…");
 			await user.click(searchButton);
 
 			// Check for group headings (some text may appear multiple times)
@@ -399,7 +399,7 @@ describe("AppShell", () => {
 			render(<AppShell>Content</AppShell>);
 
 			// Open command palette
-			const searchButton = screen.getByText("Search...");
+			const searchButton = screen.getByText("Search pages and actions…");
 			await user.click(searchButton);
 
 			expect(screen.getByText("Recent Properties")).toBeInTheDocument();
@@ -412,7 +412,7 @@ describe("AppShell", () => {
 			render(<AppShell>Content</AppShell>);
 
 			// Open command palette
-			const searchButton = screen.getByText("Search...");
+			const searchButton = screen.getByText("Search pages and actions…");
 			await user.click(searchButton);
 
 			expect(screen.getByText("Recent Tenants")).toBeInTheDocument();
@@ -425,7 +425,7 @@ describe("AppShell", () => {
 			render(<AppShell>Content</AppShell>);
 
 			// Open command palette
-			const searchButton = screen.getByText("Search...");
+			const searchButton = screen.getByText("Search pages and actions…");
 			await user.click(searchButton);
 
 			expect(screen.getByText("Account & Support")).toBeInTheDocument();
@@ -438,7 +438,7 @@ describe("AppShell", () => {
 			render(<AppShell>Content</AppShell>);
 
 			// Open command palette
-			const searchButton = screen.getByText("Search...");
+			const searchButton = screen.getByText("Search pages and actions…");
 			await user.click(searchButton);
 
 			// Click on Dashboard navigation item

@@ -137,7 +137,9 @@ export default function TermsPage() {
 							</li>
 						</ul>
 
-						<h3 className="mb-3 typography-h4">4.3 Cancellation and Refunds</h3>
+						<h3 id="cancellation" className="mb-3 typography-h4 scroll-mt-24">
+							4.3 Cancellation and Refunds
+						</h3>
 						<ul className="mb-4 ml-6 list-disc space-y-2">
 							<li>
 								You may cancel your subscription at any time through account

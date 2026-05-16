@@ -51,14 +51,19 @@ export function AppShellSidebar({
 				</button>
 			</div>
 
-			{/* Command Palette Trigger */}
+			{/* Command Palette Trigger — Session 11 P3 #41: the bare
+			    "Search..." pill read as a search input but actually opens
+			    the cmdk command palette. Renamed + got an aria-label so
+			    users (and screen readers) understand this routes to the
+			    same surface ⌘K opens. */}
 			<div className="px-3 py-3">
 				<button
 					onClick={onCommandOpen}
+					aria-label="Open command palette (search pages and actions)"
 					className="w-full flex items-center gap-2 px-3 py-2 bg-muted/50 hover:bg-muted text-muted-foreground hover:text-foreground text-sm rounded-md border border-border transition-colors"
 				>
 					<Search className="w-4 h-4" />
-					<span className="flex-1 text-left">Search...</span>
+					<span className="flex-1 text-left">Search pages and actions…</span>
 					<kbd className="hidden sm:inline-flex items-center gap-0.5 px-1.5 py-0.5 text-xs bg-background border border-border rounded">
 						<span className="text-xs">&#8984;</span>K
 					</kbd>
