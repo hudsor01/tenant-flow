@@ -37,6 +37,12 @@ const PRIVATE_ROUTE_PREFIXES = [
 	"/units",
 ];
 
+/** Combined row read once per request and used by both gates. */
+type UserGateRow = {
+	is_admin: boolean | null;
+	subscription_status: string | null;
+};
+
 function isPrivateRoute(pathname: string): boolean {
 	return PRIVATE_ROUTE_PREFIXES.some(
 		(prefix) => pathname === prefix || pathname.startsWith(prefix + "/"),
@@ -76,124 +82,87 @@ export async function proxy(request: NextRequest): Promise<NextResponse> {
 		return redirectWithCookies(url, supabaseResponse);
 	}
 
+	// Single combined fetch for both gates. One DB round-trip instead of
+	// two, AND consistent failure handling — pre-fix, an admin's
+	// /admin/x request that errored out in the admin gate would fall
+	// through to the subscription gate on the NEXT request and risk
+	// redirecting the admin to /pricing despite their role. Co-locating
+	// admin + subscription state in one row read eliminates that drift.
+	//
+	// Failure modes (battle-test Session 8 P0):
+	//   - `await` throws (connection pool exhaustion under burst): catch
+	//     captures to Sentry at `error` level (page-worthy outage).
+	//   - in-band `result.error` (PostgREST 4xx/RLS/parse): captured at
+	//     `warning` level (per-request, typically recoverable).
+	// Either path leaves `gateRow` as null. The downstream "gate unknown"
+	// branch then redirects to /login?redirect=<original> — a fail-secure
+	// re-auth that doesn't pin admins at /pricing.
+	const subClient = createServerClient(
+		env.NEXT_PUBLIC_SUPABASE_URL,
+		env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY,
+		{
+			cookies: {
+				getAll: () => request.cookies.getAll(),
+				setAll: () => {},
+			},
+		},
+	);
+	let gateRow: UserGateRow | null = null;
+	try {
+		const result = await subClient
+			.from("users")
+			.select("is_admin, subscription_status")
+			.eq("id", user.id)
+			.maybeSingle<UserGateRow>();
+		if (result.error) {
+			Sentry.captureException(result.error, {
+				tags: { component: "proxy", check: "user_gate", path: "in_band" },
+				extra: { userId: user.id, pathname },
+				level: "warning",
+			});
+		} else {
+			gateRow = result.data;
+		}
+	} catch (caught) {
+		Sentry.captureException(caught, {
+			tags: { component: "proxy", check: "user_gate", path: "throw" },
+			extra: { userId: user.id, pathname },
+			level: "error",
+		});
+	}
+
+	// Gate failure → fail-secure re-auth. Sends the user back through the
+	// login flow; on success the next request re-queries the DB and the
+	// real role/subscription state takes effect. Avoids the bug where an
+	// admin during a DB blip would otherwise be redirected to /pricing.
+	if (gateRow === null) {
+		const url = request.nextUrl.clone();
+		url.pathname = "/login";
+		url.searchParams.set("redirect", pathname);
+		return redirectWithCookies(url, supabaseResponse);
+	}
+
 	// /admin/* is admin-only. The (admin) route group's layout.tsx performs a
 	// second server-side is_admin check against public.users.
-	if (pathname.startsWith("/admin")) {
-		const subClient = createServerClient(
-			env.NEXT_PUBLIC_SUPABASE_URL,
-			env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY,
-			{
-				cookies: {
-					getAll: () => request.cookies.getAll(),
-					setAll: () => {},
-				},
-			},
+	if (pathname.startsWith("/admin") && !gateRow.is_admin) {
+		return redirectWithCookies(
+			new URL("/dashboard", request.url),
+			supabaseResponse,
 		);
-
-		// `await` itself can throw on connection-pool exhaustion / network
-		// error (battle-test Session 8 P0: bursty RSC prefetches saturated
-		// Supabase, await threw → middleware 500 → Vercel served 500/503
-		// to ~35% of `_rsc=…` prefetches). Wrap the call so a transient DB
-		// failure becomes a fail-secure redirect, not a 5xx.
-		type AdminGateRow = { is_admin: boolean | null };
-		let adminRow: AdminGateRow | null = null;
-		try {
-			const result = await subClient
-				.from("users")
-				.select("is_admin")
-				.eq("id", user.id)
-				.maybeSingle<AdminGateRow>();
-			if (result.error) {
-				// Surface the in-band PostgREST error so Sentry sees it. Then
-				// fall through to the fail-secure branch below (treat as
-				// not-admin). Prior behavior threw and returned 500 to the
-				// user — Sentry capture stays, the user gets a redirect.
-				Sentry.captureException(result.error, {
-					tags: { component: "proxy", check: "admin_gate" },
-					extra: { userId: user.id, pathname },
-				});
-			} else {
-				adminRow = result.data;
-			}
-		} catch (caught) {
-			Sentry.captureException(caught, {
-				tags: { component: "proxy", check: "admin_gate", path: "throw" },
-				extra: { userId: user.id, pathname },
-				level: "error",
-			});
-			// fall through to not-admin path
-		}
-
-		if (!adminRow?.is_admin) {
-			return redirectWithCookies(
-				new URL("/dashboard", request.url),
-				supabaseResponse,
-			);
-		}
 	}
 
 	// Subscription gate: authenticated non-admin users need an active or trialing
 	// Stripe subscription to reach the dashboard. Allowlist /pricing and Stripe
-	// checkout paths so users can subscribe.
+	// checkout paths so users can subscribe. Admins bypass.
 	if (
+		!gateRow.is_admin &&
 		!pathname.startsWith("/admin") &&
 		!pathname.startsWith("/pricing") &&
 		!pathname.startsWith("/billing/checkout") &&
 		!pathname.startsWith("/billing/plans") &&
 		!pathname.startsWith("/auth/")
 	) {
-		const subClient = createServerClient(
-			env.NEXT_PUBLIC_SUPABASE_URL,
-			env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY,
-			{
-				cookies: {
-					getAll: () => request.cookies.getAll(),
-					setAll: () => {},
-				},
-			},
-		);
-
-		// Same defensive pattern as the admin gate above — connection-pool
-		// exhaustion under burst load was causing the `await` to throw and
-		// surfacing 5xx to the user. Treat any DB failure (in-band or
-		// thrown) as "subscription status unknown" → redirect to /pricing.
-		// Sentry capture preserves observability; the redirect is the
-		// fail-secure outcome (the user re-enters via the pricing/checkout
-		// flow if they actually have an active subscription).
-		type SubGateRow = {
-			subscription_status: string | null;
-			is_admin: boolean | null;
-		};
-		let subRow: SubGateRow | null = null;
-		try {
-			const result = await subClient
-				.from("users")
-				.select("subscription_status, is_admin")
-				.eq("id", user.id)
-				.maybeSingle<SubGateRow>();
-			if (result.error) {
-				Sentry.captureException(result.error, {
-					tags: { component: "proxy", check: "subscription_gate" },
-					extra: { userId: user.id, pathname },
-				});
-			} else {
-				subRow = result.data;
-			}
-		} catch (caught) {
-			Sentry.captureException(caught, {
-				tags: {
-					component: "proxy",
-					check: "subscription_gate",
-					path: "throw",
-				},
-				extra: { userId: user.id, pathname },
-				level: "error",
-			});
-		}
-
-		if (subRow?.is_admin) return supabaseResponse;
-
-		const status = subRow?.subscription_status ?? null;
+		const status = gateRow.subscription_status;
 		if (!status || !ACTIVE_SUBSCRIPTION_STATUSES.has(status)) {
 			return redirectWithCookies(
 				new URL("/pricing", request.url),

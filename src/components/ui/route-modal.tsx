@@ -20,6 +20,15 @@ interface RouteModalProps {
 	intent?: DialogIntent;
 	/** Accessible title for screen readers (visually hidden) */
 	accessibleTitle?: string;
+	/**
+	 * Optional accessible description (visually hidden). Render one when the
+	 * modal's purpose isn't obvious from the title alone — Radix wires it via
+	 * `aria-describedby`. When omitted we explicitly pass `aria-describedby=
+	 * undefined` to DialogContent so Radix doesn't log the missing-description
+	 * warning AND screen readers don't get a redundant restatement of the
+	 * title.
+	 */
+	accessibleDescription?: string;
 }
 
 /**
@@ -43,6 +52,7 @@ export function RouteModal({
 	className,
 	intent,
 	accessibleTitle,
+	accessibleDescription,
 }: RouteModalProps) {
 	const router = useRouter();
 
@@ -62,33 +72,29 @@ export function RouteModal({
 					? "Delete item"
 					: "Modal dialog";
 
-	// Default description silences the Radix a11y warning ("DialogContent
-	// requires a DialogTitle for accessibility… consider providing a
-	// `Description`"). Caller-provided children render the real form/UI
-	// below; this is just the screen-reader landmark.
-	const defaultDescription =
-		intent === "create"
-			? "Form to create a new item."
-			: intent === "edit"
-				? "Form to edit the item."
-				: intent === "delete"
-					? "Confirmation to delete the item."
-					: "Modal content.";
+	// Radix opts out of the missing-`aria-describedby` warning when the prop
+	// is explicitly passed as `undefined`. We do that whenever the caller
+	// hasn't supplied a real description, instead of emitting redundant
+	// screen-reader copy that just restates the title (cycle-1 P2).
+	const describedById = accessibleDescription ? "route-modal-desc" : undefined;
 
 	return (
 		<Dialog open onOpenChange={handleOpenChange}>
 			<DialogContent
 				intent={intent}
 				className={cn("max-h-[90vh] overflow-y-auto", className)}
+				aria-describedby={describedById}
 			>
-				{/* Visually hidden title + description for screen reader
-				    accessibility and to satisfy Radix's a11y contract. */}
 				<VisuallyHidden.Root asChild>
 					<DialogTitle>{accessibleTitle ?? defaultTitle}</DialogTitle>
 				</VisuallyHidden.Root>
-				<VisuallyHidden.Root asChild>
-					<DialogDescription>{defaultDescription}</DialogDescription>
-				</VisuallyHidden.Root>
+				{accessibleDescription && (
+					<VisuallyHidden.Root asChild>
+						<DialogDescription id={describedById}>
+							{accessibleDescription}
+						</DialogDescription>
+					</VisuallyHidden.Root>
+				)}
 				{children}
 			</DialogContent>
 		</Dialog>

@@ -37,8 +37,9 @@ vi.mock("@supabase/ssr", () => ({
 	}),
 }));
 
+const mockCaptureException = vi.fn();
 vi.mock("@sentry/nextjs", () => ({
-	captureException: vi.fn(),
+	captureException: (...args: unknown[]) => mockCaptureException(...args),
 }));
 
 vi.mock("#env", () => ({
@@ -205,10 +206,14 @@ describe("proxy routing", () => {
 			expect(result).toBe(supabaseResponse);
 		});
 
-		it("redirects to /dashboard when admin-gate DB query throws (no 5xx)", async () => {
+		it("redirects to /login when gate DB query throws on /admin/* (no 5xx, fail-secure re-auth)", async () => {
 			// Battle-test Session 8 P0: bursty RSC prefetches saturated
-			// Supabase, the admin-gate await threw, middleware surfaced 500.
-			// Fix: treat throw as "not admin" → redirect to /dashboard.
+			// Supabase, the gate await threw, middleware surfaced 500.
+			// Fix: catch the throw, Sentry-capture at `error` level, redirect
+			// to /login so the user re-auths and the next request re-queries
+			// the gate. This is fail-secure for both admins AND non-admins
+			// (cycle-1 P1: a real admin during a DB blip was being bounced
+			// to /pricing under the previous per-gate fail-secure approach).
 			mockUpdateSession.mockResolvedValue({
 				user: makeUser(),
 				supabaseResponse: makeSupabaseResponse(),
@@ -221,10 +226,22 @@ describe("proxy routing", () => {
 			expect(NextResponse.redirect).toHaveBeenCalledOnce();
 			const redirectUrl = (NextResponse.redirect as ReturnType<typeof vi.fn>)
 				.mock.calls[0]![0] as URL;
-			expect(redirectUrl.pathname).toBe("/dashboard");
+			expect(redirectUrl.pathname).toBe("/login");
+			expect(redirectUrl.searchParams.get("redirect")).toBe("/admin/analytics");
+
+			expect(mockCaptureException).toHaveBeenCalledOnce();
+			const [capturedError, capturedContext] = mockCaptureException.mock
+				.calls[0] as [Error, { tags: Record<string, string>; level: string }];
+			expect(capturedError.message).toMatch(/connection reset/);
+			expect(capturedContext.tags).toMatchObject({
+				component: "proxy",
+				check: "user_gate",
+				path: "throw",
+			});
+			expect(capturedContext.level).toBe("error");
 		});
 
-		it("redirects to /dashboard when admin-gate returns in-band PostgREST error", async () => {
+		it("redirects to /login when gate returns in-band PostgREST error on /admin/* (warning level)", async () => {
 			mockUpdateSession.mockResolvedValue({
 				user: makeUser(),
 				supabaseResponse: makeSupabaseResponse(),
@@ -237,7 +254,19 @@ describe("proxy routing", () => {
 			expect(NextResponse.redirect).toHaveBeenCalledOnce();
 			const redirectUrl = (NextResponse.redirect as ReturnType<typeof vi.fn>)
 				.mock.calls[0]![0] as URL;
-			expect(redirectUrl.pathname).toBe("/dashboard");
+			expect(redirectUrl.pathname).toBe("/login");
+
+			expect(mockCaptureException).toHaveBeenCalledOnce();
+			const [, capturedContext] = mockCaptureException.mock.calls[0] as [
+				Error,
+				{ tags: Record<string, string>; level: string },
+			];
+			expect(capturedContext.tags).toMatchObject({
+				component: "proxy",
+				check: "user_gate",
+				path: "in_band",
+			});
+			expect(capturedContext.level).toBe("warning");
 		});
 	});
 
@@ -347,12 +376,12 @@ describe("proxy routing", () => {
 			expect(result).toBe(supabaseResponse);
 		});
 
-		it("redirects to /pricing when subscription-gate DB query throws (no 5xx)", async () => {
-			// Battle-test Session 8 P0: under burst load the subscription-gate
-			// await threw and Vercel surfaced 500/503 to ~35% of `_rsc=…`
-			// prefetches. Fix: treat throw as "subscription status unknown" →
-			// fail-secure redirect to /pricing. User re-enters via checkout
-			// flow if they actually have an active subscription.
+		it("redirects to /login (NOT /pricing) when gate DB query throws on /dashboard — admin-blip safe", async () => {
+			// Cycle-1 P1: previously a real admin without a Stripe subscription
+			// who hit a DB blip on /dashboard would be redirected to /pricing
+			// (subscription-gate fail-secure assumed not-admin). With the
+			// single-fetch redesign, gate failure → /login re-auth for ALL
+			// users, so admins are no longer trapped at /pricing.
 			mockUpdateSession.mockResolvedValue({
 				user: makeUser(),
 				supabaseResponse: makeSupabaseResponse(),
@@ -363,10 +392,19 @@ describe("proxy routing", () => {
 			expect(NextResponse.redirect).toHaveBeenCalledOnce();
 			const redirectUrl = (NextResponse.redirect as ReturnType<typeof vi.fn>)
 				.mock.calls[0]![0] as URL;
-			expect(redirectUrl.pathname).toBe("/pricing");
+			expect(redirectUrl.pathname).toBe("/login");
+			expect(redirectUrl.searchParams.get("redirect")).toBe("/dashboard");
+
+			expect(mockCaptureException).toHaveBeenCalledOnce();
+			const [, capturedContext] = mockCaptureException.mock.calls[0] as [
+				Error,
+				{ tags: Record<string, string>; level: string },
+			];
+			expect(capturedContext.tags.path).toBe("throw");
+			expect(capturedContext.level).toBe("error");
 		});
 
-		it("redirects to /pricing when subscription-gate returns in-band PostgREST error", async () => {
+		it("redirects to /login when gate returns in-band PostgREST error on /dashboard", async () => {
 			mockUpdateSession.mockResolvedValue({
 				user: makeUser(),
 				supabaseResponse: makeSupabaseResponse(),
@@ -377,7 +415,15 @@ describe("proxy routing", () => {
 			expect(NextResponse.redirect).toHaveBeenCalledOnce();
 			const redirectUrl = (NextResponse.redirect as ReturnType<typeof vi.fn>)
 				.mock.calls[0]![0] as URL;
-			expect(redirectUrl.pathname).toBe("/pricing");
+			expect(redirectUrl.pathname).toBe("/login");
+
+			expect(mockCaptureException).toHaveBeenCalledOnce();
+			const [, capturedContext] = mockCaptureException.mock.calls[0] as [
+				Error,
+				{ tags: Record<string, string>; level: string },
+			];
+			expect(capturedContext.tags.path).toBe("in_band");
+			expect(capturedContext.level).toBe("warning");
 		});
 	});
 
