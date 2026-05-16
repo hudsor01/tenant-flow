@@ -5,9 +5,14 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const mockGetUser = vi.fn();
 const mockCreateServerClient = vi.fn();
+const mockCaptureException = vi.fn();
 
 vi.mock("@supabase/ssr", () => ({
 	createServerClient: (...args: unknown[]) => mockCreateServerClient(...args),
+}));
+
+vi.mock("@sentry/nextjs", () => ({
+	captureException: (...args: unknown[]) => mockCaptureException(...args),
 }));
 
 // Mock next/server for NextResponse.next and NextResponse.redirect
@@ -169,5 +174,31 @@ describe("updateSession", () => {
 
 		expect(result.user).toBeNull();
 		expect(result.supabaseResponse).toBeDefined();
+	});
+
+	it("coerces a thrown getUser() error to user:null and captures to Sentry", async () => {
+		// Battle-test Session 7 P1: when supabase.auth.getUser() threw on a
+		// malformed JWT or transient auth-server error, the unhandled throw
+		// bubbled out of the proxy and Vercel surfaced it as a 503. The fix
+		// is to swallow the throw, mark the request unauthenticated, and let
+		// the caller proceed (it will redirect to /login or fall through to
+		// a public route).
+		mockGetUser.mockRejectedValue(new Error("AuthApiError: jwt malformed"));
+
+		const request = buildRequest("/dashboard");
+		const result = await updateSession(request);
+
+		expect(result.user).toBeNull();
+		expect(result.supabaseResponse).toBeDefined();
+		expect(mockCaptureException).toHaveBeenCalledOnce();
+		const [capturedError, capturedContext] = mockCaptureException.mock
+			.calls[0] as [Error, { tags: Record<string, string>; level: string }];
+		expect(capturedError).toBeInstanceOf(Error);
+		expect(capturedError.message).toMatch(/jwt malformed/);
+		expect(capturedContext.tags).toMatchObject({
+			component: "supabase/middleware",
+			check: "auth_get_user",
+		});
+		expect(capturedContext.level).toBe("warning");
 	});
 });
