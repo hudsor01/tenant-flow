@@ -55,6 +55,15 @@ export async function handleCustomerSubscriptionUpdated(
 			: null,
 		subscription_cancel_at_period_end: sub.cancel_at_period_end ?? false,
 		subscription_updated_at: new Date().toISOString(),
+		// Session 11 P1 #3: clear the pre-Stripe 14-day trial deadline once
+		// Stripe owns the subscription lifecycle. The trial_model migration
+		// (20260419230000) documented that trial_ends_at should be NULL
+		// "once user converts to a paid subscription", but no handler
+		// actually did the clear — past trial timestamps lingered on
+		// active accounts and confused the Billing UI gating logic.
+		// Stripe's own trial window (sub.status === 'trialing') is a
+		// separate concept tracked via subscription_status itself.
+		trial_ends_at: null,
 	};
 	if (source) updatePayload.subscription_source = source;
 

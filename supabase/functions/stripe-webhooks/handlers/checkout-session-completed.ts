@@ -54,6 +54,12 @@ export async function handleCheckoutSessionCompleted(
 				: null,
 			subscription_cancel_at_period_end: sub.cancel_at_period_end ?? false,
 			subscription_updated_at: new Date().toISOString(),
+			// Session 11 P1 #3: see customer-subscription-updated.ts for
+			// the full rationale. Pre-Stripe 14-day trial_ends_at is cleared
+			// once Stripe owns the lifecycle so the Billing surface no
+			// longer reads a stale "trial expired N days ago" timestamp on
+			// converted-paying accounts.
+			trial_ends_at: null,
 		};
 		if (source) updatePayload.subscription_source = source;
 
