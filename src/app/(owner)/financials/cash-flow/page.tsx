@@ -12,7 +12,7 @@ import { CashFlowStats } from "./cash-flow-stats";
 
 export default function CashFlowPage() {
 	const [period, setPeriod] = useState("monthly");
-	const [year, setYear] = useState("2024");
+	const [year, setYear] = useState(String(new Date().getFullYear()));
 
 	const dateRange = (() => {
 		const currentDate = new Date();

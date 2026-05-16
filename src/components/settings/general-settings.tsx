@@ -161,10 +161,15 @@ export function GeneralSettings() {
 					</h3>
 
 					<div className="space-y-4">
-						{/* Theme */}
+						{/* Theme — Session 11 P3 #32: label associated via
+						    htmlFor/id so screen readers announce the field
+						    name and the rendered option matches themeMode. */}
 						<div className="grid gap-2">
-							<label className="text-sm font-medium">Theme</label>
+							<label htmlFor="preference-theme" className="text-sm font-medium">
+								Theme
+							</label>
 							<select
+								id="preference-theme"
 								value={themeMode}
 								onChange={(e) => handleThemeChange(e.target.value)}
 								className="h-10 rounded-lg border bg-background px-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
@@ -177,8 +182,14 @@ export function GeneralSettings() {
 
 						{/* Data Density */}
 						<div className="grid gap-2">
-							<label className="text-sm font-medium">Data Density</label>
+							<label
+								htmlFor="preference-density"
+								className="text-sm font-medium"
+							>
+								Data Density
+							</label>
 							<select
+								id="preference-density"
 								value={dataDensity}
 								onChange={(e) => handleDensityChange(e.target.value)}
 								className="h-10 rounded-lg border bg-background px-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
@@ -194,8 +205,14 @@ export function GeneralSettings() {
 
 						{/* Timezone */}
 						<div className="grid gap-2">
-							<label className="text-sm font-medium">Timezone</label>
+							<label
+								htmlFor="preference-timezone"
+								className="text-sm font-medium"
+							>
+								Timezone
+							</label>
 							<select
+								id="preference-timezone"
 								value={timezone}
 								onChange={(e) => setTimezone(e.target.value)}
 								className="h-10 rounded-lg border bg-background px-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
@@ -211,8 +228,14 @@ export function GeneralSettings() {
 
 						{/* Language */}
 						<div className="grid gap-2">
-							<label className="text-sm font-medium">Language</label>
+							<label
+								htmlFor="preference-language"
+								className="text-sm font-medium"
+							>
+								Language
+							</label>
 							<select
+								id="preference-language"
 								value={language}
 								onChange={(e) => setLanguage(e.target.value)}
 								className="h-10 rounded-lg border bg-background px-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"

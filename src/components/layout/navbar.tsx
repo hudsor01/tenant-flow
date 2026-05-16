@@ -41,13 +41,16 @@ export function Navbar({
 	// Session-only check — reads local cookie cache via getSession(), no
 	// network round-trip.
 	const { data: authSession, isPending: authPending } = useSupabaseSession();
-	const isAuthenticated = !!authSession;
-	// `authResolved` semantics:
-	//   - If we know there's no auth cookie at all, render immediately
-	//     (no point waiting on a query that will resolve to null anyway).
-	//   - Otherwise the cookie may be present-and-valid OR
-	//     present-and-stale; wait for the query before choosing a branch.
-	const authResolved = !hasAuthCookie || !authPending;
+	// Authentication decision:
+	//   - While the session query is pending, trust the cookie probe
+	//     (optimistic: cookie present → "Dashboard", absent → "Sign In").
+	//     Session 10/11 P1: waiting for the query to resolve stranded
+	//     signed-in users on marketing pages with no Dashboard CTA when
+	//     the query stayed pending.
+	//   - Once the query resolves, prefer its result (authoritative):
+	//     a stale/expired cookie that the server rejects will downgrade
+	//     the user to the signed-out state.
+	const isAuthenticated = authPending ? hasAuthCookie : !!authSession;
 
 	useEffect(() => {
 		setHasAuthCookie(document.cookie.includes(`${SUPABASE_AUTH_COOKIE_NAME}=`));
@@ -96,24 +99,23 @@ export function Navbar({
 
 				<div className="flex items-center space-x-4">
 					<div className="hidden sm:flex items-center gap-3">
-						{authResolved &&
-							(isAuthenticated ? (
+						{isAuthenticated ? (
+							<Button asChild size="default">
+								<Link href="/dashboard">Dashboard</Link>
+							</Button>
+						) : (
+							<>
+								<Link
+									href="/login"
+									className="px-4 py-2 text-foreground/70 hover:text-foreground rounded-md border border-transparent hover:border-border/50 transition-colors duration-fast text-base font-medium"
+								>
+									Sign In
+								</Link>
 								<Button asChild size="default">
-									<Link href="/dashboard">Dashboard</Link>
+									<Link href={ctaHref}>{ctaText}</Link>
 								</Button>
-							) : (
-								<>
-									<Link
-										href="/login"
-										className="px-4 py-2 text-foreground/70 hover:text-foreground rounded-md border border-transparent hover:border-border/50 transition-colors duration-fast text-base font-medium"
-									>
-										Sign In
-									</Link>
-									<Button asChild size="default">
-										<Link href={ctaHref}>{ctaText}</Link>
-									</Button>
-								</>
-							))}
+							</>
+						)}
 					</div>
 
 					{/* Mobile Toggle */}
@@ -147,7 +149,6 @@ export function Navbar({
 				ctaText={ctaText}
 				ctaHref={ctaHref}
 				isAuthenticated={isAuthenticated}
-				authResolved={authResolved}
 			/>
 		</nav>
 	);

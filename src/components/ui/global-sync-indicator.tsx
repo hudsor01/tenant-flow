@@ -32,12 +32,22 @@ export function GlobalSyncIndicator({
 	const { isPending, count, operations } = usePendingMutations();
 
 	if (!isPending) {
+		// Session 11 P3 #30 + cycle-2 review: rely on `role="status"`
+		// live-region announcement for screen readers (the pill is
+		// purely informational, not a control — Enter/Space have
+		// nothing to do here). Sighted keyboard users discover the
+		// tooltip if they happen to hover. We deliberately do NOT add
+		// tabIndex={0} — cycle-2 reviewer caught that as introducing
+		// an inert tab stop on every authenticated page.
+		const savedTooltip = "All changes saved to TenantFlow.";
 		if (compact) {
 			return (
 				<TooltipProvider>
 					<Tooltip>
 						<TooltipTrigger asChild>
 							<div
+								role="status"
+								aria-label={savedTooltip}
 								className={cn(
 									"flex items-center text-muted-foreground",
 									className,
@@ -47,7 +57,7 @@ export function GlobalSyncIndicator({
 							</div>
 						</TooltipTrigger>
 						<TooltipContent>
-							<p>All changes saved</p>
+							<p>{savedTooltip}</p>
 						</TooltipContent>
 					</Tooltip>
 				</TooltipProvider>
@@ -55,15 +65,26 @@ export function GlobalSyncIndicator({
 		}
 
 		return (
-			<div
-				className={cn(
-					"flex items-center gap-1.5 text-muted-foreground",
-					className,
-				)}
-			>
-				<Cloud className="h-4 w-4" />
-				<span className="text-xs">Saved</span>
-			</div>
+			<TooltipProvider>
+				<Tooltip>
+					<TooltipTrigger asChild>
+						<div
+							role="status"
+							aria-label={savedTooltip}
+							className={cn(
+								"flex items-center gap-1.5 text-muted-foreground",
+								className,
+							)}
+						>
+							<Cloud className="h-4 w-4" />
+							<span className="text-xs">Saved</span>
+						</div>
+					</TooltipTrigger>
+					<TooltipContent>
+						<p>{savedTooltip}</p>
+					</TooltipContent>
+				</Tooltip>
+			</TooltipProvider>
 		);
 	}
 

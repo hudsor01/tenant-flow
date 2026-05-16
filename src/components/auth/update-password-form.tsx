@@ -31,9 +31,14 @@ import {
 	InputGroupAddon,
 	InputGroupInput,
 } from "#components/ui/input-group";
+import { VALIDATION_LIMITS } from "#lib/constants/billing";
 import { handleMutationError } from "#lib/mutation-error-handler";
 import { createClient } from "#lib/supabase/client";
 import { cn } from "#lib/utils";
+import {
+	PASSWORD_COMPLEXITY_MESSAGE,
+	PASSWORD_COMPLEXITY_RE,
+} from "#lib/validation/auth";
 
 export function UpdatePasswordForm({
 	className,
@@ -50,8 +55,13 @@ export function UpdatePasswordForm({
 			if (password !== confirmPassword) {
 				throw new Error("Passwords do not match");
 			}
-			if (password.length < 6) {
-				throw new Error("Password must be at least 6 characters");
+			if (password.length < VALIDATION_LIMITS.PASSWORD_MIN_LENGTH) {
+				throw new Error(
+					`Password must be at least ${VALIDATION_LIMITS.PASSWORD_MIN_LENGTH} characters`,
+				);
+			}
+			if (!PASSWORD_COMPLEXITY_RE.test(password)) {
+				throw new Error(PASSWORD_COMPLEXITY_MESSAGE);
 			}
 			const supabaseClient = createClient();
 			const { error } = await supabaseClient.auth.updateUser({ password });
@@ -115,7 +125,7 @@ export function UpdatePasswordForm({
 									onChange={(e) => setPassword(e.target.value)}
 									disabled={updatePasswordMutation.isPending}
 									showStrengthIndicator={true}
-									minLength={6}
+									minLength={VALIDATION_LIMITS.PASSWORD_MIN_LENGTH}
 								/>
 								<FieldError />
 							</Field>
@@ -201,7 +211,8 @@ export function UpdatePasswordForm({
 								!password ||
 								!confirmPassword ||
 								password !== confirmPassword ||
-								password.length < 6
+								password.length < VALIDATION_LIMITS.PASSWORD_MIN_LENGTH ||
+								!PASSWORD_COMPLEXITY_RE.test(password)
 							}
 						>
 							{updatePasswordMutation.isPending ? (

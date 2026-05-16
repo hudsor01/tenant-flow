@@ -13,6 +13,16 @@ import { VALIDATION_LIMITS } from "#lib/constants/billing";
 
 // AUTH FORM VALIDATION SCHEMAS
 
+// Single source of truth for password complexity. Used by:
+//  - registerZodSchema, signupFormSchema (this file)
+//  - update-password-form.tsx, change-password-dialog.tsx, password-section.tsx
+// Cycle-2 review (PR #724) caught three different password rules across
+// these surfaces; consolidating here prevents drift.
+export const PASSWORD_COMPLEXITY_RE =
+	/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9])/;
+export const PASSWORD_COMPLEXITY_MESSAGE =
+	"Password must contain uppercase, lowercase, a number, and a special character";
+
 // Login form validation schema
 export const loginZodSchema = z.object({
 	email: z.email({ message: "Please enter a valid email address" }),
@@ -29,10 +39,7 @@ export const registerZodSchema = z
 				VALIDATION_LIMITS.PASSWORD_MIN_LENGTH,
 				`Password must be at least ${VALIDATION_LIMITS.PASSWORD_MIN_LENGTH} characters`,
 			)
-			.regex(
-				/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/,
-				"Password must contain uppercase, lowercase, and number",
-			),
+			.regex(PASSWORD_COMPLEXITY_RE, PASSWORD_COMPLEXITY_MESSAGE),
 		confirmPassword: z.string(),
 	})
 	.refine((data) => data.password === data.confirmPassword, {
@@ -53,10 +60,7 @@ export const signupFormSchema = z
 				VALIDATION_LIMITS.PASSWORD_MIN_LENGTH,
 				`Password must be at least ${VALIDATION_LIMITS.PASSWORD_MIN_LENGTH} characters`,
 			)
-			.regex(
-				/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/,
-				"Password must contain uppercase, lowercase, and number",
-			),
+			.regex(PASSWORD_COMPLEXITY_RE, PASSWORD_COMPLEXITY_MESSAGE),
 		confirmPassword: z.string(),
 	})
 	.refine((data) => data.password === data.confirmPassword, {

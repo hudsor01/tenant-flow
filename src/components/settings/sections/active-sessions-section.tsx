@@ -17,7 +17,11 @@ interface PendingRevoke {
 }
 
 export function ActiveSessionsSection() {
-	const { data: sessions } = useUserSessions();
+	const {
+		data: sessions,
+		isLoading: sessionsLoading,
+		isError: sessionsError,
+	} = useUserSessions();
 	const revokeSession = useRevokeSessionMutation();
 
 	const [pendingRevoke, setPendingRevoke] = useState<PendingRevoke | null>(
@@ -148,6 +152,15 @@ export function ActiveSessionsSection() {
 								</BlurFade>
 							);
 						})
+					) : sessionsLoading ? (
+						<p className="text-sm text-muted-foreground text-center py-4">
+							Loading sessions…
+						</p>
+					) : sessionsError ? (
+						<p className="text-sm text-muted-foreground text-center py-4">
+							Couldn&apos;t load your active sessions. Try refreshing the page
+							or signing in again.
+						</p>
 					) : (
 						<p className="text-sm text-muted-foreground text-center py-4">
 							No active sessions found

@@ -6,7 +6,6 @@ import {
 	Building2,
 	ClipboardList,
 	FileCheck,
-	FilePlus,
 	FileText,
 	FolderArchive,
 	HelpCircle,
@@ -16,6 +15,7 @@ import {
 	Users,
 	Wrench,
 } from "lucide-react";
+import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import type { ReactNode } from "react";
 import { useEffect, useRef, useState } from "react";
@@ -158,7 +158,11 @@ export function AppShell({
 		{
 			heading: "Templates",
 			items: [
-				{ label: "Generate Lease", href: "/leases/new", icon: FilePlus },
+				// Session 11 P3 #36: "Generate Lease" lived here AND in the
+				// sidebar Templates section AND on /leases as the New Lease CTA.
+				// Cycle 1 review caught that removing the sidebar entry alone
+				// left the same workflow discoverable via Cmd+K. Now there's
+				// one canonical entry point (the Leases tab's New Lease button).
 				{
 					label: "Lease Template",
 					href: "/documents/lease-template",
@@ -178,8 +182,29 @@ export function AppShell({
 	useEffect(() => {
 		const onKeyDown = (event: KeyboardEvent) => {
 			if (event.key.toLowerCase() === "k" && (event.metaKey || event.ctrlKey)) {
-				event.preventDefault();
-				setCommandOpen((prev) => !prev);
+				// Battle-test Session 11 P2 #17: Cmd+K used to open the
+				// command palette ON TOP of any open Radix Dialog (e.g. the
+				// onboarding wizard). Two stacked role="dialog" elements is
+				// confusing and breaks focus management. Suppress the shortcut
+				// when another modal already owns the page — but always allow
+				// the user to TOGGLE the command palette itself when it's
+				// already the one open.
+				setCommandOpen((prev) => {
+					if (prev) {
+						// already open → toggle closed regardless of other dialogs
+						event.preventDefault();
+						return false;
+					}
+					// not open → suppress open if another modal is in front.
+					// preventDefault() so Firefox doesn't fall through to its
+					// built-in quick-find toolbar (cycle-4 review P3 nit).
+					if (document.querySelector('[role="dialog"][data-state="open"]')) {
+						event.preventDefault();
+						return prev;
+					}
+					event.preventDefault();
+					return true;
+				});
 			}
 		};
 
@@ -268,11 +293,50 @@ export function AppShell({
 				{/* Page content */}
 				<main id="main-content" className="flex-1 bg-muted/30 pb-24 sm:pb-6">
 					<div className="p-4 lg:p-6">{children}</div>
+					{/* Minimal app-shell footer (Session 11 P2 #16): the
+					    marketing footer is too marketing-heavy for the
+					    authenticated surface; this thin row keeps Help /
+					    Support / Terms reachable without dominating the
+					    layout. */}
+					<footer className="border-t border-border/60 bg-background/40 px-4 lg:px-6 py-4">
+						<div className="flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-muted-foreground">
+							<p>&copy; {new Date().getFullYear()} TenantFlow</p>
+							<nav className="flex items-center gap-4" aria-label="App footer">
+								<Link
+									href="/help"
+									className="hover:text-foreground transition-colors"
+								>
+									Help
+								</Link>
+								<Link
+									href="/support"
+									className="hover:text-foreground transition-colors"
+								>
+									Support
+								</Link>
+								<Link
+									href="/terms"
+									className="hover:text-foreground transition-colors"
+								>
+									Terms
+								</Link>
+								<Link
+									href="/privacy"
+									className="hover:text-foreground transition-colors"
+								>
+									Privacy
+								</Link>
+							</nav>
+						</div>
+					</footer>
 				</main>
 			</div>
 
-			{/* Quick Actions Dock */}
-			{showQuickActionsDock && <QuickActionsDock />}
+			{/* Quick Actions Dock — hidden on form/create pages where it would
+			    overlap the primary submit button (Session 11 P2 #14). */}
+			{showQuickActionsDock && !/\/(new|edit)(?:\/|$)/.test(pathname) && (
+				<QuickActionsDock />
+			)}
 
 			<AppShellSearch
 				open={commandOpen}

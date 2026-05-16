@@ -16,7 +16,7 @@ import {
 	verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { Plus } from "lucide-react";
+import { AlertCircle, Plus } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import { Button } from "#components/ui/button";
@@ -41,7 +41,7 @@ import { CategoryRenameDialog } from "./category-rename-dialog";
 import { CategoryRow } from "./category-row";
 
 export function CategoriesSettings() {
-	const { categories, isLoading } = useDocumentCategories();
+	const { categories, isLoading, isError } = useDocumentCategories();
 	const queryClient = useQueryClient();
 
 	const sensors = useSensors(
@@ -175,6 +175,38 @@ export function CategoriesSettings() {
 					{[0, 1, 2, 3].map((i) => (
 						<Skeleton key={i} className="h-12 w-full" />
 					))}
+				</CardContent>
+			</Card>
+		);
+	}
+
+	// Session 11 P2 #8: surface a real error state. Previously a failed
+	// list query rendered an empty `<ul>` with no chrome — users could
+	// not tell the difference between "you have zero categories" (which
+	// is impossible since seven defaults are seeded on signup) and "the
+	// taxonomy fetch failed." Show an explicit error card with a retry.
+	if (isError) {
+		return (
+			<Card>
+				<CardHeader>
+					<CardTitle>Document categories</CardTitle>
+				</CardHeader>
+				<CardContent className="flex flex-col items-start gap-3 text-sm text-muted-foreground">
+					<div className="flex items-center gap-2 text-destructive">
+						<AlertCircle className="size-4" aria-hidden="true" />
+						<span>We couldn&apos;t load your document categories.</span>
+					</div>
+					<Button
+						size="sm"
+						variant="outline"
+						onClick={() =>
+							void queryClient.invalidateQueries({
+								queryKey: documentCategoryQueries.all(),
+							})
+						}
+					>
+						Retry
+					</Button>
 				</CardContent>
 			</Card>
 		);

@@ -183,24 +183,44 @@ export const tenantQueries = {
 
 	/**
 	 * All tenants (for dropdowns, selects, etc.)
-	 * Joins users for name/email display
+	 *
+	 * Truly unpaginated: PostgREST caps row counts at `max_rows = 1000`
+	 * (`supabase/config.toml`), so a single `.select(...)` silently
+	 * truncates above that. We page over `.range(from, to)` in 1000-row
+	 * chunks until the server returns a short page. Cycle-2 review of
+	 * PR #724 caught the prior single-call implementation as a 1000-row
+	 * cap masquerading as "all tenants".
 	 */
 	allTenants: () =>
 		queryOptions({
 			queryKey: [...tenantQueries.lists(), "all"],
 			queryFn: async (): Promise<TenantWithLeaseInfo[]> => {
 				const supabase = createClient();
-				const { data, error } = await supabase
-					.from("tenants")
-					.select(TENANT_WITH_LEASE_SELECT)
-					.neq("status", "inactive")
-					.order("created_at", { ascending: true });
+				const PAGE_SIZE = 1000;
+				const collected: TenantWithLeaseInfo[] = [];
+				let from = 0;
 
-				if (error) handlePostgrestError(error, "tenants");
+				while (true) {
+					const to = from + PAGE_SIZE - 1;
+					const { data, error } = await supabase
+						.from("tenants")
+						.select(TENANT_WITH_LEASE_SELECT)
+						.neq("status", "inactive")
+						.order("created_at", { ascending: true })
+						.range(from, to);
 
-				return (data ?? []).map((row: TenantPostgrestRow) =>
-					mapTenantRow(row),
-				) as TenantWithLeaseInfo[];
+					if (error) handlePostgrestError(error, "tenants");
+
+					const rows = (data ?? []).map((row: TenantPostgrestRow) =>
+						mapTenantRow(row),
+					) as TenantWithLeaseInfo[];
+					collected.push(...rows);
+
+					if (rows.length < PAGE_SIZE) break;
+					from += PAGE_SIZE;
+				}
+
+				return collected;
 			},
 			...QUERY_CACHE_TIMES.DETAIL,
 			gcTime: 30 * 60 * 1000,

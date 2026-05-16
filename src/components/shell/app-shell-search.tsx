@@ -131,6 +131,34 @@ export function AppShellSearch({
 					)}
 				</CommandGroup>
 			</CommandList>
+			{/* Session 11 P3 #38: previously the command palette gave no
+			    in-dialog hint about ↑↓ navigation or Esc-to-close. Surfaces
+			    them as a thin keyboard-shortcut footer the way Linear/
+			    Raycast/Vercel do. Kept aria-hidden — screen readers
+			    discover these via Tab/arrow focus, not visual text. */}
+			<div
+				className="border-t border-border px-3 py-2 flex items-center gap-4 text-xs text-muted-foreground"
+				aria-hidden="true"
+			>
+				<span className="flex items-center gap-1.5">
+					<kbd className="px-1.5 py-0.5 rounded border border-border bg-muted font-mono text-[10px]">
+						↑↓
+					</kbd>
+					Navigate
+				</span>
+				<span className="flex items-center gap-1.5">
+					<kbd className="px-1.5 py-0.5 rounded border border-border bg-muted font-mono text-[10px]">
+						↵
+					</kbd>
+					Select
+				</span>
+				<span className="flex items-center gap-1.5">
+					<kbd className="px-1.5 py-0.5 rounded border border-border bg-muted font-mono text-[10px]">
+						Esc
+					</kbd>
+					Close
+				</span>
+			</div>
 		</CommandDialog>
 	);
 }

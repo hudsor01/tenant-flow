@@ -22,11 +22,10 @@ export function OnboardingStepWelcome({
 			</div>
 
 			<div className="space-y-2">
-				<h2 className="text-xl font-semibold">Welcome to TenantFlow</h2>
+				<h2 className="text-xl font-semibold">Let&apos;s get you set up</h2>
 				<p className="text-sm text-muted-foreground max-w-sm">
-					Let us get you set up quickly. We will guide you through adding your
-					first property, connecting Stripe for payouts, and inviting your first
-					tenant.
+					We&apos;ll walk through adding your first property, connecting Stripe
+					for payouts, and inviting your first tenant — about two minutes.
 				</p>
 			</div>
 

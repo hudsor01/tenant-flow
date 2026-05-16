@@ -45,6 +45,16 @@ export async function handleCheckoutSessionCompleted(
 				? session.metadata["source"]
 				: null;
 
+		// Session 11 P1 #3 + cycle-2 review: preserve Stripe-native trial
+		// end timestamp; clear only the pre-Stripe signup-trial deadline.
+		// Mirrors customer-subscription-updated.ts.
+		const trialEndsAtForPayload: string | null =
+			sub.status === "trialing"
+				? sub.trial_end
+					? new Date(sub.trial_end * 1000).toISOString()
+					: null
+				: null;
+
 		const updatePayload: Record<string, unknown> = {
 			subscription_id: sub.id,
 			subscription_status: sub.status,
@@ -54,6 +64,7 @@ export async function handleCheckoutSessionCompleted(
 				: null,
 			subscription_cancel_at_period_end: sub.cancel_at_period_end ?? false,
 			subscription_updated_at: new Date().toISOString(),
+			trial_ends_at: trialEndsAtForPayload,
 		};
 		if (source) updatePayload.subscription_source = source;
 

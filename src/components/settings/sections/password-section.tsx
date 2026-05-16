@@ -6,8 +6,13 @@ import type { FormEvent } from "react";
 import { useState } from "react";
 import { toast } from "sonner";
 import { BlurFade } from "#components/ui/blur-fade";
+import { VALIDATION_LIMITS } from "#lib/constants/billing";
 import { createClient } from "#lib/supabase/client";
 import { getCachedUser } from "#lib/supabase/get-cached-user";
+import {
+	PASSWORD_COMPLEXITY_MESSAGE,
+	PASSWORD_COMPLEXITY_RE,
+} from "#lib/validation/auth";
 
 export function PasswordSection() {
 	const supabase = createClient();
@@ -21,8 +26,13 @@ export function PasswordSection() {
 			if (newPassword !== confirmPassword) {
 				throw new Error("Passwords do not match");
 			}
-			if (newPassword.length < 8) {
-				throw new Error("Password must be at least 8 characters");
+			if (newPassword.length < VALIDATION_LIMITS.PASSWORD_MIN_LENGTH) {
+				throw new Error(
+					`Password must be at least ${VALIDATION_LIMITS.PASSWORD_MIN_LENGTH} characters`,
+				);
+			}
+			if (!PASSWORD_COMPLEXITY_RE.test(newPassword)) {
+				throw new Error(PASSWORD_COMPLEXITY_MESSAGE);
 			}
 
 			const user = await getCachedUser();
@@ -108,11 +118,13 @@ export function PasswordSection() {
 							value={newPassword}
 							onChange={(e) => setNewPassword(e.target.value)}
 							disabled={updatePassword.isPending}
+							autoComplete="new-password"
 							className="h-10 rounded-lg border bg-background px-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
 						/>
 						<p className="text-xs text-muted-foreground">
-							Must be at least 8 characters with uppercase, lowercase, and
-							numbers
+							Must be at least {VALIDATION_LIMITS.PASSWORD_MIN_LENGTH}{" "}
+							characters and include uppercase, lowercase, a number, and a
+							special character. Avoid reusing recent passwords.
 						</p>
 					</div>
 
@@ -137,7 +149,8 @@ export function PasswordSection() {
 						)}
 						{confirmPassword &&
 							newPassword === confirmPassword &&
-							newPassword.length >= 8 && (
+							newPassword.length >= VALIDATION_LIMITS.PASSWORD_MIN_LENGTH &&
+							PASSWORD_COMPLEXITY_RE.test(newPassword) && (
 								<p className="text-xs text-primary flex items-center gap-1">
 									<CheckCircle className="h-3 w-3" />
 									Passwords match
@@ -154,7 +167,8 @@ export function PasswordSection() {
 								!newPassword ||
 								!confirmPassword ||
 								newPassword !== confirmPassword ||
-								newPassword.length < 8
+								newPassword.length < VALIDATION_LIMITS.PASSWORD_MIN_LENGTH ||
+								!PASSWORD_COMPLEXITY_RE.test(newPassword)
 							}
 							className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:pointer-events-none"
 						>

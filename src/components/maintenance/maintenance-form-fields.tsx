@@ -10,6 +10,7 @@ import {
 	SelectValue,
 } from "#components/ui/select";
 import { Textarea } from "#components/ui/textarea";
+import { useAllTenants } from "#hooks/api/use-tenant";
 import type { useMaintenanceForm } from "#hooks/use-maintenance-form";
 import { MAINTENANCE_PRIORITY_OPTIONS } from "#lib/constants/status-types";
 import type { MaintenancePriority, Property, Unit } from "#types/core";
@@ -26,6 +27,28 @@ export function MaintenanceFormFields({
 	unitsByProperty,
 }: MaintenanceFormFieldsProps) {
 	const unitLabelId = "maintenance-unit-label";
+	const tenantLabelId = "maintenance-tenant-label";
+	// Tenant picker (Session 11 P2 #12, cycle-1 + cycle-2 review):
+	// useAllTenants() pages over all rows so the dropdown is truly
+	// unbounded (PostgREST max_rows = 1000 cap handled inside the
+	// factory). Sort alphabetically by full name; first_name and
+	// last_name are both string|null on TenantWithLeaseInfo, so the
+	// comparator coerces nulls to "" before joining (a literal "null"
+	// or "undefined" in a template literal would mis-sort).
+	const { data: allTenants } = useAllTenants();
+	const fullName = (t: NonNullable<typeof allTenants>[number]): string =>
+		`${t.first_name ?? ""} ${t.last_name ?? ""}`.trim();
+	const tenants = [...(allTenants ?? [])].sort((a, b) => {
+		const nameA = fullName(a);
+		const nameB = fullName(b);
+		// Push fully-empty rows (no first or last name) to the bottom;
+		// tiebreak by email when one side has a name and the other does not.
+		if (!nameA && !nameB)
+			return (a.email ?? a.id).localeCompare(b.email ?? b.id);
+		if (!nameA) return 1;
+		if (!nameB) return -1;
+		return nameA.localeCompare(nameB);
+	});
 
 	return (
 		<>
@@ -73,21 +96,38 @@ export function MaintenanceFormFields({
 				)}
 			</form.Field>
 
-			{/* Tenant ID */}
+			{/* Tenant — pick by name; form stores the tenant.id */}
 			<form.Field name="tenant_id">
 				{(field) => (
 					<Field>
-						<FieldLabel htmlFor="tenant_id">Tenant ID *</FieldLabel>
-						<Input
-							id="tenant_id"
-							name="tenant_id"
-							placeholder="Tenant ID"
+						<FieldLabel id={tenantLabelId} htmlFor="tenant_id">
+							Tenant *
+						</FieldLabel>
+						<Select
 							value={field.state.value ?? ""}
-							onChange={(e: ChangeEvent<HTMLInputElement>) =>
-								field.handleChange(e.target.value)
-							}
-							onBlur={field.handleBlur}
-						/>
+							onValueChange={field.handleChange}
+						>
+							<SelectTrigger
+								id="tenant_id"
+								aria-labelledby={tenantLabelId}
+								className="w-full justify-between"
+							>
+								<SelectValue placeholder="Select tenant" />
+							</SelectTrigger>
+							<SelectContent>
+								{tenants.length === 0 ? (
+									<div className="px-2 py-1.5 text-xs text-muted-foreground">
+										No tenants yet — add one from the Tenants tab first.
+									</div>
+								) : (
+									tenants.map((tenant) => (
+										<SelectItem key={tenant.id} value={tenant.id}>
+											{tenant.first_name} {tenant.last_name}
+										</SelectItem>
+									))
+								)}
+							</SelectContent>
+						</Select>
 						{(field.state.meta.errors?.length ?? 0) > 0 && (
 							<FieldError>{String(field.state.meta.errors[0])}</FieldError>
 						)}

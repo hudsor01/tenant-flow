@@ -52,6 +52,7 @@ export function QuickActionsDock({
 							href={action.href}
 							className="group relative flex items-center justify-center w-10 h-10 rounded-full bg-muted/50 hover:bg-primary/10 hover:scale-110 transition-all duration-200 ease-out"
 							aria-label={action.label}
+							title={action.label}
 						>
 							<Icon className="w-5 h-5 text-muted-foreground group-hover:text-primary transition-colors" />
 							{/* Tooltip */}

@@ -10,8 +10,8 @@ import {
 	Shield,
 } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
-import type { ReactNode } from "react";
-import { useEffect, useState } from "react";
+import type { KeyboardEvent, ReactNode } from "react";
+import { useEffect, useRef, useState } from "react";
 import { AccountDataSection } from "#components/settings/account-data-section";
 import { BillingSettings } from "#components/settings/billing-settings";
 import { CategoriesSettings } from "#components/settings/categories-settings";
@@ -37,8 +37,22 @@ const TAB_VALUES: readonly SettingsTab[] = [
 	"data",
 ] as const;
 
+// URL-param aliases for tab values. Keeps deep-links working when external
+// links or docs use a kebab-case form that doesn't match the internal id
+// (Session 11 P2 #6: `?tab=my-data` fell through to General silently).
+const TAB_ALIASES: Record<string, SettingsTab> = {
+	"my-data": "data",
+};
+
 function isSettingsTab(value: string): value is SettingsTab {
 	return (TAB_VALUES as readonly string[]).includes(value);
+}
+
+function resolveTabParam(value: string | null): SettingsTab | null {
+	if (!value) return null;
+	if (isSettingsTab(value)) return value;
+	const aliased = TAB_ALIASES[value];
+	return aliased ?? null;
 }
 
 interface SettingsSection {
@@ -90,14 +104,15 @@ const sections: SettingsSection[] = [
 export default function SettingsPage() {
 	const searchParams = useSearchParams();
 	const router = useRouter();
-	const tabParam = searchParams.get("tab") as SettingsTab | null;
+	const tabParam = resolveTabParam(searchParams.get("tab"));
 	const [activeTab, setActiveTab] = useState<SettingsTab>(
-		tabParam && isSettingsTab(tabParam) ? tabParam : "general",
+		tabParam ?? "general",
 	);
+	const tabRefs = useRef<Array<HTMLButtonElement | null>>([]);
 
 	// Update tab when URL changes
 	useEffect(() => {
-		if (tabParam && isSettingsTab(tabParam)) {
+		if (tabParam) {
 			setActiveTab(tabParam);
 		}
 	}, [tabParam]);
@@ -106,6 +121,39 @@ export default function SettingsPage() {
 	const handleTabChange = (tab: SettingsTab) => {
 		setActiveTab(tab);
 		router.push(`/settings?tab=${tab}`, { scroll: false });
+	};
+
+	// WAI-ARIA Tabs keyboard pattern: ArrowUp/ArrowDown rotate focus
+	// through the vertical tablist; Home/End jump to the first/last
+	// tab. Roving tabindex below keeps a single Tab stop on the
+	// tablist (only the active tab has tabIndex=0). Cycle-1 review
+	// caught that declaring role=tablist without arrow-key handling
+	// was a half-implementation that confuses screen readers.
+	const handleTabKeyDown = (
+		event: KeyboardEvent<HTMLButtonElement>,
+		index: number,
+	) => {
+		let nextIndex: number | null = null;
+		switch (event.key) {
+			case "ArrowDown":
+				nextIndex = (index + 1) % sections.length;
+				break;
+			case "ArrowUp":
+				nextIndex = (index - 1 + sections.length) % sections.length;
+				break;
+			case "Home":
+				nextIndex = 0;
+				break;
+			case "End":
+				nextIndex = sections.length - 1;
+				break;
+		}
+		if (nextIndex === null) return;
+		event.preventDefault();
+		const nextSection = sections[nextIndex];
+		if (!nextSection) return;
+		handleTabChange(nextSection.id);
+		tabRefs.current[nextIndex]?.focus();
 	};
 
 	const renderContent = () => {
@@ -141,36 +189,67 @@ export default function SettingsPage() {
 
 			{/* Settings Layout */}
 			<div className="flex flex-col lg:flex-row gap-6">
-				{/* Sidebar Navigation */}
+				{/* Sidebar Navigation — semantic tablist for SR users
+				    (Session 11 P2 #7). Each button declares role="tab",
+				    aria-selected, and data-state so screen readers and
+				    drive-by lint tools both see the tab state. */}
+				{/* Single outer BlurFade for the tablist. Cycle-1 review
+				    caught that per-tab BlurFade wrappers nested between the
+				    tablist and its tabs broke the WAI-ARIA owns-relationship
+				    tree. Tabs are now direct DOM children of the tablist. */}
 				<BlurFade delay={0.15} inView>
-					<nav className="lg:w-56 shrink-0">
-						<div className="space-y-1">
-							{sections.map((section, index) => (
-								<BlurFade key={section.id} delay={0.2 + index * 0.05} inView>
-									<button
-										onClick={() => handleTabChange(section.id)}
-										className={`flex w-full min-h-11 items-center justify-between gap-3 rounded-lg px-3 py-2.5 text-sm transition-colors ${
-											activeTab === section.id
-												? "bg-primary text-primary-foreground"
-												: "text-muted-foreground hover:bg-muted hover:text-foreground"
-										}`}
-									>
-										<div className="flex items-center gap-3">
-											{section.icon}
-											<span>{section.label}</span>
-										</div>
-										<ChevronRight
-											className={`h-4 w-4 transition-transform ${activeTab === section.id ? "rotate-90" : ""}`}
-										/>
-									</button>
-								</BlurFade>
-							))}
-						</div>
+					<nav
+						className="lg:w-56 shrink-0 space-y-1"
+						role="tablist"
+						aria-orientation="vertical"
+						aria-label="Settings sections"
+					>
+						{sections.map((section, index) => {
+							const isActive = activeTab === section.id;
+							return (
+								<button
+									key={section.id}
+									type="button"
+									role="tab"
+									ref={(el) => {
+										tabRefs.current[index] = el;
+									}}
+									aria-selected={isActive}
+									aria-controls={`settings-panel-${section.id}`}
+									id={`settings-tab-${section.id}`}
+									data-state={isActive ? "active" : "inactive"}
+									tabIndex={isActive ? 0 : -1}
+									onClick={() => handleTabChange(section.id)}
+									onKeyDown={(e) => handleTabKeyDown(e, index)}
+									className={`flex w-full min-h-11 items-center justify-between gap-3 rounded-lg px-3 py-2.5 text-sm transition-colors ${
+										isActive
+											? "bg-primary text-primary-foreground"
+											: "text-muted-foreground hover:bg-muted hover:text-foreground"
+									}`}
+								>
+									<div className="flex items-center gap-3">
+										{section.icon}
+										<span>{section.label}</span>
+									</div>
+									<ChevronRight
+										className={`h-4 w-4 transition-transform ${isActive ? "rotate-90" : ""}`}
+									/>
+								</button>
+							);
+						})}
 					</nav>
 				</BlurFade>
 
-				{/* Main Content */}
-				<div className="flex-1 min-w-0">{renderContent()}</div>
+				{/* Main Content — tabpanel wrapper provides the
+				    aria-labelledby anchor for the active tab. */}
+				<div
+					className="flex-1 min-w-0"
+					role="tabpanel"
+					id={`settings-panel-${activeTab}`}
+					aria-labelledby={`settings-tab-${activeTab}`}
+				>
+					{renderContent()}
+				</div>
 			</div>
 		</div>
 	);

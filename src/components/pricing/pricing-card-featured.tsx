@@ -168,9 +168,13 @@ export function PricingCardFeatured({
 								${monthlyEquivalent}/mo
 							</div>
 						)}
-						<div className="flex items-baseline justify-center gap-2 whitespace-nowrap">
+						{/* Session 11 P3 #33: tightened gap-2 → gap-1 and added
+						    `inline-flex` on NumberFlow so its animated digit
+						    spans share a line. At text-5xl the prior gap-2
+						    pushed `$` onto its own row on narrow viewports. */}
+						<div className="flex items-baseline justify-center gap-1 whitespace-nowrap">
 							<NumberFlow
-								className="text-5xl font-bold text-foreground"
+								className="text-5xl font-bold text-foreground inline-flex items-baseline whitespace-nowrap"
 								format={{
 									style: "currency",
 									currency: "USD",
@@ -178,9 +182,7 @@ export function PricingCardFeatured({
 								}}
 								value={currentPrice}
 							/>
-							<span className="text-muted-foreground font-medium">
-								/{billingCycle === "yearly" ? "mo" : "month"}
-							</span>
+							<span className="text-muted-foreground font-medium">/mo</span>
 						</div>
 						<p className="text-sm text-muted-foreground mt-1">
 							{billingCycle === "yearly"

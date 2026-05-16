@@ -87,7 +87,14 @@ describe("Navbar — auth CTA branch", () => {
 		expect(screen.queryByRole("link", { name: /Dashboard/i })).toBeNull();
 	});
 
-	it("renders no CTA while the query is pending AND a cookie is present (defers to query for the signed-in branch)", async () => {
+	it("renders Dashboard optimistically when cookie is present and query is still pending", async () => {
+		// Session 10/11 P1: previously the navbar waited for the session
+		// query to resolve before rendering ANY auth CTA, stranding signed-
+		// in users on marketing pages whenever the query stayed pending.
+		// New behavior: trust the cookie probe during the pending window so
+		// the Dashboard CTA renders immediately. The query downgrades to
+		// signed-out only if the cookie is present AND the resolved session
+		// is null (stale/expired cookie).
 		setAuthCookie();
 		useSupabaseSessionMock.mockReturnValue({
 			data: undefined,
@@ -96,10 +103,28 @@ describe("Navbar — auth CTA branch", () => {
 
 		await renderNavbar();
 
-		// Mount runs useEffect → hasAuthCookie=true → authResolved gates on
-		// !authPending → renders nothing while the query is still pending.
-		expect(screen.queryByRole("link", { name: /Sign In/i })).toBeNull();
-		expect(screen.queryByRole("link", { name: /Get Started/i })).toBeNull();
+		expect(
+			screen.getByRole("link", { name: /Dashboard/i }),
+		).toBeInTheDocument();
+		expect(screen.queryByRole("link", { name: /^Sign In$/i })).toBeNull();
+	});
+
+	it("downgrades to signed-out when cookie is present but resolved session is null (stale cookie)", async () => {
+		// Authoritative downgrade path: cookie is present but the query
+		// resolved to no session (e.g., the cookie is stale or rejected by
+		// Supabase auth). Treat the user as signed-out.
+		setAuthCookie();
+		useSupabaseSessionMock.mockReturnValue({
+			data: null,
+			isPending: false,
+		});
+
+		await renderNavbar();
+
+		expect(screen.getByRole("link", { name: /Sign In/i })).toBeInTheDocument();
+		expect(
+			screen.getByRole("link", { name: /Get Started/i }),
+		).toBeInTheDocument();
 		expect(screen.queryByRole("link", { name: /Dashboard/i })).toBeNull();
 	});
 

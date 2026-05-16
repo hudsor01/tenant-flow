@@ -31,7 +31,14 @@ function StepperIndicator(props: StepperIndicatorProps) {
 	const stepState = useStore((state) => state.steps.get(itemValue));
 	const steps = useStore((state) => state.steps);
 
-	const stepPosition = Array.from(steps.keys()).indexOf(itemValue) + 1;
+	// Derive a PRIMITIVE position so useSyncExternalStore detects changes.
+	// Selecting `state.steps` returns the same Map reference even after
+	// in-place mutation, so React never re-renders and the position stays
+	// at 0 (Session 11 P2 #13: lease wizard showed "0 Selection / 0 Terms
+	// / 0 Details / 0 Review" instead of 1 / 2 / 3 / 4 on first paint).
+	const stepPosition = useStore(
+		(state) => Array.from(state.steps.keys()).indexOf(itemValue) + 1,
+	);
 
 	const dataState = getDataState(value, itemValue, stepState, steps);
 

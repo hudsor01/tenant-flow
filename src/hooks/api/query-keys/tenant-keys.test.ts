@@ -65,17 +65,26 @@ describe("tenantQueries.list", () => {
 
 describe("tenantQueries.allTenants", () => {
 	beforeEach(() => {
-		// Chain:
-		//   from → select → neq → order  (order is awaited — no range)
+		// Chain (cycle-2 PR #724 — now pages via .range() until PostgREST
+		// returns a short page; previously: from → select → neq → order):
+		//   from → select → neq → order → range
 		mockFrom.mockReturnValue({ select: mockSelect });
 		mockSelect.mockReturnValue({ neq: mockNeq });
 		mockNeq.mockReturnValue({ order: mockOrder });
-		mockOrder.mockResolvedValue({ data: [], error: null });
+		mockOrder.mockReturnValue({ range: mockRange });
+		mockRange.mockResolvedValue({ data: [], error: null });
 	});
 
 	it("filters out soft-deleted tenants via .neq('status', 'inactive')", async () => {
 		await tenantQueries.allTenants().queryFn?.({} as never);
 		expect(mockFrom).toHaveBeenCalledWith("tenants");
 		expect(mockNeq).toHaveBeenCalledWith("status", "inactive");
+	});
+
+	it("pages over .range() until a short page is returned", async () => {
+		// Empty response → exactly one .range(0, 999) call, then break.
+		await tenantQueries.allTenants().queryFn?.({} as never);
+		expect(mockRange).toHaveBeenCalledTimes(1);
+		expect(mockRange).toHaveBeenCalledWith(0, 999);
 	});
 });

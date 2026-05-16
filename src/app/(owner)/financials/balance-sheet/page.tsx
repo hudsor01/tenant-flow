@@ -28,8 +28,11 @@ import { BalanceSheetSkeleton } from "./balance-sheet-skeleton";
 import { EquitySection } from "./equity-section";
 
 export default function BalanceSheetPage() {
-	const [year, setYear] = useState("2024");
-	const [month, setMonth] = useState("12");
+	const now = new Date();
+	const [year, setYear] = useState(String(now.getFullYear()));
+	const [month, setMonth] = useState(
+		String(now.getMonth() + 1).padStart(2, "0"),
+	);
 
 	const asOfDate = `${year}-${month}-${new Date(parseInt(year, 10), parseInt(month, 10), 0).getDate()}`;
 	const { data, isLoading, error, refetch } = useBalanceSheet(asOfDate);
@@ -164,9 +167,13 @@ export default function BalanceSheetPage() {
 								<SelectValue />
 							</SelectTrigger>
 							<SelectContent>
-								<SelectItem value="2024">2024</SelectItem>
-								<SelectItem value="2023">2023</SelectItem>
-								<SelectItem value="2022">2022</SelectItem>
+								{Array.from({ length: 3 }, (_, i) =>
+									String(now.getFullYear() - i),
+								).map((y) => (
+									<SelectItem key={y} value={y}>
+										{y}
+									</SelectItem>
+								))}
 							</SelectContent>
 						</Select>
 						<Select value={month} onValueChange={setMonth}>
@@ -208,7 +215,11 @@ export default function BalanceSheetPage() {
 						/>
 						<StatLabel>Total Assets</StatLabel>
 						<StatValue className="flex items-baseline text-emerald-600 dark:text-emerald-400">
-							${Math.floor(totalAssets).toLocaleString()}
+							$
+							{totalAssets.toLocaleString("en-US", {
+								minimumFractionDigits: 2,
+								maximumFractionDigits: 2,
+							})}
 						</StatValue>
 						<StatIndicator variant="icon" color="success">
 							<Building2 />
@@ -221,7 +232,11 @@ export default function BalanceSheetPage() {
 					<Stat className="relative overflow-hidden">
 						<StatLabel>Total Liabilities</StatLabel>
 						<StatValue className="flex items-baseline text-red-600 dark:text-red-400">
-							${Math.floor(totalLiabilities).toLocaleString()}
+							$
+							{totalLiabilities.toLocaleString("en-US", {
+								minimumFractionDigits: 2,
+								maximumFractionDigits: 2,
+							})}
 						</StatValue>
 						<StatIndicator variant="icon" color="destructive">
 							<CreditCard />
@@ -242,7 +257,11 @@ export default function BalanceSheetPage() {
 						)}
 						<StatLabel>Total Equity</StatLabel>
 						<StatValue className="flex items-baseline">
-							${Math.floor(totalEquity).toLocaleString()}
+							$
+							{totalEquity.toLocaleString("en-US", {
+								minimumFractionDigits: 2,
+								maximumFractionDigits: 2,
+							})}
 						</StatValue>
 						<StatIndicator variant="icon" color="primary">
 							<Wallet />

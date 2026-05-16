@@ -101,17 +101,29 @@ export function PremiumCta({ className }: PremiumCtaProps) {
 								</div>
 							</div>
 
-							<div className="group flex flex-col items-center p-6 rounded bg-card/20 backdrop-blur-sm border border-border/30 hover:border-primary/30 hover:bg-card/40 transition-all duration-500">
+							{/* Session 11 P3 #39: "Cancel Anytime" now links to the
+							    cancellation clause in the Terms so prospects can
+							    confirm what cancellation actually entails (effects
+							    at end of billing period, no partial refunds, access
+							    retained until end of cycle). */}
+							<Link
+								href="/terms#cancellation"
+								className="group flex flex-col items-center p-6 rounded bg-card/20 backdrop-blur-sm border border-border/30 hover:border-primary/30 hover:bg-card/40 transition-all duration-500"
+							>
 								<Clock className="size-8 text-accent mb-4 group-hover:scale-110 transition-transform duration-500" />
 								<div className="text-center">
 									<div className="typography-large text-foreground mb-1">
 										Cancel Anytime
 									</div>
 									<div className="text-muted-foreground">
-										Month-to-month billing on every plan
+										Month-to-month billing.{" "}
+										<span className="underline underline-offset-2">
+											See cancellation terms
+										</span>
+										.
 									</div>
 								</div>
-							</div>
+							</Link>
 						</div>
 					</BlurFade>
 				</div>

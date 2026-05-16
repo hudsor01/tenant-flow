@@ -196,12 +196,12 @@ describe("BillingSettings empty-state branches", () => {
 		).toHaveAttribute("href", "/contact");
 
 		expect(captureMessageMock).toHaveBeenCalledWith(
-			"BillingSettings: stripePriceId did not match any PRICING_PLANS entry",
+			"BillingSettings: planIdentifier did not match any PRICING_PLANS entry",
 			expect.objectContaining({
 				level: "warning",
 				tags: { component: "BillingSettings" },
 				extra: {
-					stripePriceId: "price_1LegacyBeta00",
+					planIdentifier: "price_1LegacyBeta00",
 					subscriptionStatus: "active",
 				},
 			}),

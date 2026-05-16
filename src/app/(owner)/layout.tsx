@@ -5,10 +5,22 @@ import type { ReactNode } from "react";
 import ModalLayout from "#components/layout/modal-layout";
 import { OwnerDashboardLayout } from "./owner-dashboard-layout";
 
-// Auth-walled. Block search engines from indexing dashboard pages even if
-// they bypass robots.txt or follow internal links.
+// Auth-walled. Block search engines from indexing dashboard pages even
+// if they bypass robots.txt or follow internal links. Also override
+// openGraph/twitter so shared dashboard URLs don't preview as the
+// marketing homepage default (Session 11 P2 #21).
 export const metadata: Metadata = {
 	robots: { index: false, follow: false },
+	openGraph: {
+		title: "TenantFlow Dashboard",
+		description: "Authenticated TenantFlow app — landlord dashboard.",
+		images: [],
+	},
+	twitter: {
+		card: "summary",
+		title: "TenantFlow Dashboard",
+		description: "Authenticated TenantFlow app — landlord dashboard.",
+	},
 };
 
 /**
