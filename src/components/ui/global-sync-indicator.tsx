@@ -65,8 +65,11 @@ export function GlobalSyncIndicator({
 				<Tooltip>
 					<TooltipTrigger asChild>
 						<div
+							role="status"
+							tabIndex={0}
+							aria-label={savedTooltip}
 							className={cn(
-								"flex items-center gap-1.5 text-muted-foreground",
+								"flex items-center gap-1.5 text-muted-foreground rounded-md focus:outline-none focus-visible:ring-2 focus-visible:ring-ring",
 								className,
 							)}
 						>

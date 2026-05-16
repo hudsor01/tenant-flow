@@ -1,7 +1,6 @@
 import { Calendar, TrendingDown, TrendingUp, Wrench } from "lucide-react";
 import { BlurFade } from "#components/ui/blur-fade";
 import { BorderBeam } from "#components/ui/border-beam";
-import { NumberTicker } from "#components/ui/number-ticker";
 import {
 	Stat,
 	StatDescription,
@@ -9,6 +8,14 @@ import {
 	StatLabel,
 	StatValue,
 } from "#components/ui/stat";
+
+// Match financials-summary-stats: dollars, two decimals, no /100 mis-conversion.
+function formatUsd(value: number): string {
+	return value.toLocaleString("en-US", {
+		minimumFractionDigits: 2,
+		maximumFractionDigits: 2,
+	});
+}
 
 interface ExpenseStatsProps {
 	totalExpenses: number;
@@ -38,12 +45,8 @@ export function ExpenseStats({
 						/>
 					)}
 					<StatLabel>Total Expenses</StatLabel>
-					<StatValue className="flex items-baseline gap-0.5 text-red-600 dark:text-red-400">
-						<span className="text-lg">$</span>
-						<NumberTicker
-							value={Math.floor(totalExpenses / 100)}
-							duration={1500}
-						/>
+					<StatValue className="flex items-baseline text-red-600 dark:text-red-400">
+						${formatUsd(totalExpenses)}
 					</StatValue>
 					<StatIndicator variant="icon" color="destructive">
 						<TrendingDown />
@@ -55,12 +58,8 @@ export function ExpenseStats({
 			<BlurFade delay={0.2} inView>
 				<Stat className="relative overflow-hidden">
 					<StatLabel>Monthly Average</StatLabel>
-					<StatValue className="flex items-baseline gap-0.5">
-						<span className="text-lg">$</span>
-						<NumberTicker
-							value={Math.floor(monthlyAvg / 100)}
-							duration={1500}
-						/>
+					<StatValue className="flex items-baseline">
+						${formatUsd(monthlyAvg)}
 					</StatValue>
 					<StatIndicator variant="icon" color="primary">
 						<Calendar />
@@ -72,12 +71,8 @@ export function ExpenseStats({
 			<BlurFade delay={0.25} inView>
 				<Stat className="relative overflow-hidden">
 					<StatLabel>Maintenance</StatLabel>
-					<StatValue className="flex items-baseline gap-0.5 text-orange-600 dark:text-orange-400">
-						<span className="text-lg">$</span>
-						<NumberTicker
-							value={Math.floor(maintenanceTotal / 100)}
-							duration={1500}
-						/>
+					<StatValue className="flex items-baseline text-orange-600 dark:text-orange-400">
+						${formatUsd(maintenanceTotal)}
 					</StatValue>
 					<StatIndicator variant="icon" color="warning">
 						<Wrench />

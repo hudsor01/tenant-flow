@@ -30,8 +30,8 @@ export const registerZodSchema = z
 				`Password must be at least ${VALIDATION_LIMITS.PASSWORD_MIN_LENGTH} characters`,
 			)
 			.regex(
-				/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/,
-				"Password must contain uppercase, lowercase, and number",
+				/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9])/,
+				"Password must contain uppercase, lowercase, a number, and a special character",
 			),
 		confirmPassword: z.string(),
 	})
@@ -54,8 +54,8 @@ export const signupFormSchema = z
 				`Password must be at least ${VALIDATION_LIMITS.PASSWORD_MIN_LENGTH} characters`,
 			)
 			.regex(
-				/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/,
-				"Password must contain uppercase, lowercase, and number",
+				/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9])/,
+				"Password must contain uppercase, lowercase, a number, and a special character",
 			),
 		confirmPassword: z.string(),
 	})

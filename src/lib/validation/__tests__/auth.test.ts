@@ -45,8 +45,8 @@ describe("loginZodSchema", () => {
 describe("registerZodSchema", () => {
 	const validData = {
 		email: "user@example.com",
-		password: "Password1",
-		confirmPassword: "Password1",
+		password: "Password1!aa",
+		confirmPassword: "Password1!aa",
 	};
 	it("accepts valid registration data", () => {
 		expect(registerZodSchema.safeParse(validData).success).toBe(true);
@@ -64,12 +64,21 @@ describe("registerZodSchema", () => {
 			registerZodSchema.safeParse({ ...validData, email: "bad-email" }).success,
 		).toBe(false);
 	});
-	it("rejects password shorter than 8 characters", () => {
+	it("rejects password shorter than 12 characters", () => {
 		expect(
 			registerZodSchema.safeParse({
 				...validData,
-				password: "Ab1",
-				confirmPassword: "Ab1",
+				password: "Ab1!",
+				confirmPassword: "Ab1!",
+			}).success,
+		).toBe(false);
+	});
+	it("rejects password without special character", () => {
+		expect(
+			registerZodSchema.safeParse({
+				...validData,
+				password: "Password1aaa",
+				confirmPassword: "Password1aaa",
 			}).success,
 		).toBe(false);
 	});
@@ -116,8 +125,8 @@ describe("signupFormSchema", () => {
 		last_name: "Doe",
 		company: "Acme Corp",
 		email: "john@example.com",
-		password: "Password1",
-		confirmPassword: "Password1",
+		password: "Password1!aa",
+		confirmPassword: "Password1!aa",
 	};
 	it("accepts valid signup data", () => {
 		expect(signupFormSchema.safeParse(validData).success).toBe(true);

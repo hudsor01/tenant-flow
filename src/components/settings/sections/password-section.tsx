@@ -6,8 +6,14 @@ import type { FormEvent } from "react";
 import { useState } from "react";
 import { toast } from "sonner";
 import { BlurFade } from "#components/ui/blur-fade";
+import { VALIDATION_LIMITS } from "#lib/constants/billing";
 import { createClient } from "#lib/supabase/client";
 import { getCachedUser } from "#lib/supabase/get-cached-user";
+
+// Mirrors registerZodSchema.password.regex in #lib/validation/auth.ts
+// (one rule across signup + settings password-change).
+const PASSWORD_COMPLEXITY_RE =
+	/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9])/;
 
 export function PasswordSection() {
 	const supabase = createClient();
@@ -21,8 +27,15 @@ export function PasswordSection() {
 			if (newPassword !== confirmPassword) {
 				throw new Error("Passwords do not match");
 			}
-			if (newPassword.length < 8) {
-				throw new Error("Password must be at least 8 characters");
+			if (newPassword.length < VALIDATION_LIMITS.PASSWORD_MIN_LENGTH) {
+				throw new Error(
+					`Password must be at least ${VALIDATION_LIMITS.PASSWORD_MIN_LENGTH} characters`,
+				);
+			}
+			if (!PASSWORD_COMPLEXITY_RE.test(newPassword)) {
+				throw new Error(
+					"Password must include uppercase, lowercase, a number, and a special character",
+				);
 			}
 
 			const user = await getCachedUser();
@@ -137,7 +150,8 @@ export function PasswordSection() {
 						)}
 						{confirmPassword &&
 							newPassword === confirmPassword &&
-							newPassword.length >= 8 && (
+							newPassword.length >= VALIDATION_LIMITS.PASSWORD_MIN_LENGTH &&
+							PASSWORD_COMPLEXITY_RE.test(newPassword) && (
 								<p className="text-xs text-primary flex items-center gap-1">
 									<CheckCircle className="h-3 w-3" />
 									Passwords match
@@ -154,7 +168,8 @@ export function PasswordSection() {
 								!newPassword ||
 								!confirmPassword ||
 								newPassword !== confirmPassword ||
-								newPassword.length < 8
+								newPassword.length < VALIDATION_LIMITS.PASSWORD_MIN_LENGTH ||
+								!PASSWORD_COMPLEXITY_RE.test(newPassword)
 							}
 							className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:pointer-events-none"
 						>

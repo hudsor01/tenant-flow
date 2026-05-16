@@ -165,31 +165,36 @@ export function BillingSettings() {
 	const isLoading = statusLoading;
 	const status = subscriptionStatus?.subscriptionStatus ?? null;
 	const isActive = status === "active" || status === "trialing";
-	const stripePriceId = subscriptionStatus?.stripePriceId ?? null;
+	// `planIdentifier` is whatever the Stripe webhook last wrote to
+	// users.subscription_plan: a tier slug ('starter'/'growth'/'max') OR
+	// a Stripe price_id (`price_*`). Cycle-1 review caught the legacy
+	// name `stripePriceId` was misleading after #1+#2+#5 fixed the
+	// predicate to accept both shapes.
+	const planIdentifier = subscriptionStatus?.stripePriceId ?? null;
 	const { plan: currentPlan, period: currentPeriod } =
-		findPlanByPlanIdentifier(stripePriceId);
+		findPlanByPlanIdentifier(planIdentifier);
 	const nextBillingDate = formatNextBillingDate(
 		subscriptionStatus?.currentPeriodEnd ?? null,
 	);
-	const hasUnknownPriceId =
-		isActive && stripePriceId !== null && currentPlan === null;
+	const hasUnknownPlanIdentifier =
+		isActive && planIdentifier !== null && currentPlan === null;
 	const isResubscribeState =
 		status !== null && RESUBSCRIBE_STATUSES.has(status);
 	const hasStripeCustomer = Boolean(user?.stripe_customer_id);
 	const statusVariant = getStatusVariant(status);
 
 	useEffect(() => {
-		if (hasUnknownPriceId) {
+		if (hasUnknownPlanIdentifier) {
 			Sentry.captureMessage(
-				"BillingSettings: stripePriceId did not match any PRICING_PLANS entry",
+				"BillingSettings: planIdentifier did not match any PRICING_PLANS entry",
 				{
 					level: "warning",
 					tags: { component: "BillingSettings" },
-					extra: { stripePriceId, subscriptionStatus: status },
+					extra: { planIdentifier, subscriptionStatus: status },
 				},
 			);
 		}
-	}, [hasUnknownPriceId, stripePriceId, status]);
+	}, [hasUnknownPlanIdentifier, planIdentifier, status]);
 
 	const handlePrimaryAction = () => {
 		if (hasStripeCustomer) {

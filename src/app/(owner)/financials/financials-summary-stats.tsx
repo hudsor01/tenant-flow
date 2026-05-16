@@ -1,7 +1,6 @@
 import { Clock, DollarSign, TrendingDown, TrendingUp } from "lucide-react";
 import { BlurFade } from "#components/ui/blur-fade";
 import { BorderBeam } from "#components/ui/border-beam";
-import { NumberTicker } from "#components/ui/number-ticker";
 import {
 	Stat,
 	StatDescription,
@@ -9,6 +8,19 @@ import {
 	StatLabel,
 	StatValue,
 } from "#components/ui/stat";
+
+// Session 11 P2 #25, cycle-1 review #10: unify $0.00 format with
+// balance-sheet / cash-flow / income-statement cycle-2 fixes. Also
+// drops a pre-existing /100 mis-conversion: get_financial_overview
+// returns numeric(10,2) dollars (rent_amount × 12 from leases), but
+// the prior NumberTicker call divided by 100 and displayed revenue
+// 1/100th the actual amount.
+function formatUsd(value: number): string {
+	return value.toLocaleString("en-US", {
+		minimumFractionDigits: 2,
+		maximumFractionDigits: 2,
+	});
+}
 
 interface RecentMonths {
 	revenueChange: number;
@@ -45,12 +57,8 @@ export function FinancialsSummaryStats({
 						/>
 					)}
 					<StatLabel>Total Revenue</StatLabel>
-					<StatValue className="flex items-baseline gap-0.5 text-emerald-600 dark:text-emerald-400">
-						<span className="text-lg">$</span>
-						<NumberTicker
-							value={Math.floor(totalRevenue / 100)}
-							duration={1500}
-						/>
+					<StatValue className="flex items-baseline text-emerald-600 dark:text-emerald-400">
+						${formatUsd(totalRevenue)}
 					</StatValue>
 					<StatIndicator variant="icon" color="success">
 						<TrendingUp />
@@ -66,12 +74,8 @@ export function FinancialsSummaryStats({
 			<BlurFade delay={0.2} inView>
 				<Stat className="relative overflow-hidden">
 					<StatLabel>Total Expenses</StatLabel>
-					<StatValue className="flex items-baseline gap-0.5 text-red-600 dark:text-red-400">
-						<span className="text-lg">$</span>
-						<NumberTicker
-							value={Math.floor(totalExpenses / 100)}
-							duration={1500}
-						/>
+					<StatValue className="flex items-baseline text-red-600 dark:text-red-400">
+						${formatUsd(totalExpenses)}
 					</StatValue>
 					<StatIndicator variant="icon" color="destructive">
 						<TrendingDown />
@@ -96,13 +100,10 @@ export function FinancialsSummaryStats({
 					)}
 					<StatLabel>Net Income</StatLabel>
 					<StatValue
-						className={`flex items-baseline gap-0.5 ${netIncome >= 0 ? "" : "text-destructive"}`}
+						className={`flex items-baseline ${netIncome >= 0 ? "" : "text-destructive"}`}
 					>
-						<span className="text-lg">{netIncome >= 0 ? "$" : "-$"}</span>
-						<NumberTicker
-							value={Math.abs(Math.floor(netIncome / 100))}
-							duration={1500}
-						/>
+						{netIncome >= 0 ? "$" : "-$"}
+						{formatUsd(Math.abs(netIncome))}
 					</StatValue>
 					<StatIndicator variant="icon" color="primary">
 						<DollarSign />
@@ -122,12 +123,8 @@ export function FinancialsSummaryStats({
 						/>
 					)}
 					<StatLabel>Outstanding</StatLabel>
-					<StatValue className="flex items-baseline gap-0.5 text-amber-600 dark:text-amber-400">
-						<span className="text-lg">$</span>
-						<NumberTicker
-							value={Math.floor(accountsReceivable / 100)}
-							duration={1500}
-						/>
+					<StatValue className="flex items-baseline text-amber-600 dark:text-amber-400">
+						${formatUsd(accountsReceivable)}
 					</StatValue>
 					<StatIndicator variant="icon" color="warning">
 						<Clock />

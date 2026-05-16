@@ -10,7 +10,7 @@ import {
 	SelectValue,
 } from "#components/ui/select";
 import { Textarea } from "#components/ui/textarea";
-import { useTenantList } from "#hooks/api/use-tenant";
+import { useAllTenants } from "#hooks/api/use-tenant";
 import type { useMaintenanceForm } from "#hooks/use-maintenance-form";
 import { MAINTENANCE_PRIORITY_OPTIONS } from "#lib/constants/status-types";
 import type { MaintenancePriority, Property, Unit } from "#types/core";
@@ -28,12 +28,17 @@ export function MaintenanceFormFields({
 }: MaintenanceFormFieldsProps) {
 	const unitLabelId = "maintenance-unit-label";
 	const tenantLabelId = "maintenance-tenant-label";
-	// Tenant picker (Session 11 P2 #12): landlords don't memorize tenant
-	// UUIDs. Show a combobox listing the owner's tenants by name; the form
-	// state still holds the tenant.id so downstream API contracts are
-	// unchanged.
-	const { data: tenantsData } = useTenantList(1, 200);
-	const tenants = tenantsData?.data ?? [];
+	// Tenant picker (Session 11 P2 #12, cycle-1 review): use the
+	// unpaginated allTenants() factory designed for dropdowns. The
+	// previous useTenantList(1, 200) call silently truncated owners
+	// with >200 tenants and returned rows in created_at-desc order.
+	// Sort alphabetically by full name for "select by name" UX.
+	const { data: allTenants } = useAllTenants();
+	const tenants = [...(allTenants ?? [])].sort((a, b) =>
+		`${a.first_name} ${a.last_name}`.localeCompare(
+			`${b.first_name} ${b.last_name}`,
+		),
+	);
 
 	return (
 		<>

@@ -532,13 +532,13 @@ describe("Settings Page - Mobile Responsiveness", () => {
 
 		renderWithProviders(<SettingsPage />);
 
-		// Session 11 P2 #7: settings nav uses role="tablist" not "navigation"
+		// Session 11 P2 #7 + cycle-1 review: settings nav uses
+		// role="tablist" (not "navigation"); the spacing utility lives
+		// on the tablist itself now that the per-tab BlurFade wrapper
+		// was flattened.
 		const nav = screen.getByRole("tablist");
 		expect(nav).toBeInTheDocument();
-
-		// Check the tablist has proper classes for mobile horizontal scroll
-		const navContainer = nav.querySelector(".space-y-1");
-		expect(navContainer).toBeInTheDocument();
+		expect(nav.className).toContain("space-y-1");
 	});
 
 	it("page has proper padding for different screen sizes", async () => {

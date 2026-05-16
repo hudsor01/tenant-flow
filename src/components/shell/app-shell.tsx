@@ -6,7 +6,6 @@ import {
 	Building2,
 	ClipboardList,
 	FileCheck,
-	FilePlus,
 	FileText,
 	FolderArchive,
 	HelpCircle,
@@ -159,7 +158,11 @@ export function AppShell({
 		{
 			heading: "Templates",
 			items: [
-				{ label: "Generate Lease", href: "/leases/new", icon: FilePlus },
+				// Session 11 P3 #36: "Generate Lease" lived here AND in the
+				// sidebar Templates section AND on /leases as the New Lease CTA.
+				// Cycle 1 review caught that removing the sidebar entry alone
+				// left the same workflow discoverable via Cmd+K. Now there's
+				// one canonical entry point (the Leases tab's New Lease button).
 				{
 					label: "Lease Template",
 					href: "/documents/lease-template",

@@ -51,11 +51,6 @@ export function Navbar({
 	//     a stale/expired cookie that the server rejects will downgrade
 	//     the user to the signed-out state.
 	const isAuthenticated = authPending ? hasAuthCookie : !!authSession;
-	// `authResolved` is true once we know which branch to render.
-	// We always know after first paint: either the cookie is absent
-	// (signed-out fast-path) or the cookie is present (optimistic Dashboard
-	// pending query confirmation). No "spinner" gap on the navbar.
-	const authResolved = true;
 
 	useEffect(() => {
 		setHasAuthCookie(document.cookie.includes(`${SUPABASE_AUTH_COOKIE_NAME}=`));
@@ -104,24 +99,23 @@ export function Navbar({
 
 				<div className="flex items-center space-x-4">
 					<div className="hidden sm:flex items-center gap-3">
-						{authResolved &&
-							(isAuthenticated ? (
+						{isAuthenticated ? (
+							<Button asChild size="default">
+								<Link href="/dashboard">Dashboard</Link>
+							</Button>
+						) : (
+							<>
+								<Link
+									href="/login"
+									className="px-4 py-2 text-foreground/70 hover:text-foreground rounded-md border border-transparent hover:border-border/50 transition-colors duration-fast text-base font-medium"
+								>
+									Sign In
+								</Link>
 								<Button asChild size="default">
-									<Link href="/dashboard">Dashboard</Link>
+									<Link href={ctaHref}>{ctaText}</Link>
 								</Button>
-							) : (
-								<>
-									<Link
-										href="/login"
-										className="px-4 py-2 text-foreground/70 hover:text-foreground rounded-md border border-transparent hover:border-border/50 transition-colors duration-fast text-base font-medium"
-									>
-										Sign In
-									</Link>
-									<Button asChild size="default">
-										<Link href={ctaHref}>{ctaText}</Link>
-									</Button>
-								</>
-							))}
+							</>
+						)}
 					</div>
 
 					{/* Mobile Toggle */}
@@ -155,7 +149,6 @@ export function Navbar({
 				ctaText={ctaText}
 				ctaHref={ctaHref}
 				isAuthenticated={isAuthenticated}
-				authResolved={authResolved}
 			/>
 		</nav>
 	);
