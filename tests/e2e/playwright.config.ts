@@ -215,24 +215,37 @@ export default defineConfig({
 	// Web Server
 	// @see https://playwright.dev/docs/test-webserver
 	// ===================
+	// Local: `next dev --turbopack` (fast incremental rebuilds).
+	// CI:    `next build && next start` (pre-compiled, sub-second page
+	//        loads). PR #725 cycle-5 review traced ERR_ABORTED flakes
+	//        across persona-consistency + critical-paths to JIT-compile
+	//        contention — every route compiled on first request, 2-10s
+	//        per route, 2 parallel workers serialized on the compiler.
+	//        Switching CI to a production build eliminated the
+	//        compile-time variability that was eating test budgets.
 	webServer: [
-		{
-			// Frontend: rm -rf .next ensures fresh build with correct env vars
-			// rm .env.local prevents production config from overriding test config
-			command: `rm -rf .next && rm -f .env.local && bash -c "export NODE_ENV='test' && export SKIP_ENV_VALIDATION='true' && export NEXT_PUBLIC_SUPABASE_URL='${LOCAL_SUPABASE_URL}' && export NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY='${LOCAL_SUPABASE_PUBLISHABLE_KEY}' && export NEXT_PUBLIC_APP_URL='${TEST_FRONTEND_URL}' && export NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY='pk_test_placeholder' && exec npx next dev --turbopack --port ${TEST_FRONTEND_PORT}"`,
-			url: TEST_FRONTEND_URL,
-			timeout: 120_000,
-			reuseExistingServer: !process.env.CI,
-			stdout: "pipe",
-			stderr: "pipe",
-			cwd: path.resolve(__dirname, "../.."),
-			env: {
-				NEXT_PUBLIC_SUPABASE_URL: LOCAL_SUPABASE_URL,
-				NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: LOCAL_SUPABASE_PUBLISHABLE_KEY,
-				NEXT_PUBLIC_APP_URL: TEST_FRONTEND_URL,
-				NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: "pk_test_placeholder",
-			},
-		},
+		(() => {
+			const sharedEnv = `export NODE_ENV='${process.env.CI ? "production" : "test"}' && export SKIP_ENV_VALIDATION='true' && export NEXT_PUBLIC_SUPABASE_URL='${LOCAL_SUPABASE_URL}' && export NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY='${LOCAL_SUPABASE_PUBLISHABLE_KEY}' && export NEXT_PUBLIC_APP_URL='${TEST_FRONTEND_URL}' && export NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY='pk_test_placeholder'`;
+			const command = process.env.CI
+				? `rm -rf .next && rm -f .env.local && bash -c "${sharedEnv} && npx next build && exec npx next start --port ${TEST_FRONTEND_PORT}"`
+				: `rm -rf .next && rm -f .env.local && bash -c "${sharedEnv} && exec npx next dev --turbopack --port ${TEST_FRONTEND_PORT}"`;
+			return {
+				command,
+				url: TEST_FRONTEND_URL,
+				// CI needs longer warm-up — `next build` runs once before serve.
+				timeout: process.env.CI ? 240_000 : 120_000,
+				reuseExistingServer: !process.env.CI,
+				stdout: "pipe" as const,
+				stderr: "pipe" as const,
+				cwd: path.resolve(__dirname, "../.."),
+				env: {
+					NEXT_PUBLIC_SUPABASE_URL: LOCAL_SUPABASE_URL,
+					NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: LOCAL_SUPABASE_PUBLISHABLE_KEY,
+					NEXT_PUBLIC_APP_URL: TEST_FRONTEND_URL,
+					NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: "pk_test_placeholder",
+				},
+			};
+		})(),
 	],
 
 	// ===================
