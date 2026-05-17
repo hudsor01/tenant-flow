@@ -157,7 +157,12 @@ test.describe("Persona consistency — pricing page (COPY-02)", () => {
 	}) => {
 		await page.goto("/pricing");
 		const body = (await page.textContent("body")) ?? "";
-		expect(body).toContain("Built for landlords with 1–15 rentals");
+		// PR #725 renamed the hardcoded "1–15 rentals" badge to a
+		// per-plan `audienceTagline` field in `#config/pricing`. The
+		// featured slot renders Growth's tagline ("Built for 6–20 unit
+		// portfolios"); Starter and Max use their own. Test still pins
+		// segment-framing presence — just on the new shape.
+		expect(body).toContain("Built for 6–20 unit portfolios");
 	});
 
 	test("Pricing page metadata description references landlords", async ({
