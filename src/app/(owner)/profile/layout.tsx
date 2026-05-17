@@ -1,7 +1,10 @@
 import type { ReactNode } from "react";
 import { ownerPageMetadata } from "#lib/seo/owner-page-metadata";
 
-export const metadata = ownerPageMetadata("Profile");
+export const metadata = ownerPageMetadata(
+	"Profile",
+	"View and manage your account information",
+);
 
 export default function Layout({ children }: { children: ReactNode }) {
 	return <>{children}</>;
