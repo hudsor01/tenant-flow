@@ -32,6 +32,13 @@ const PUBLIC_PATHS = [
 ] as const;
 
 test.describe("Persona consistency — sitewide", () => {
+	// 16 sequential page.goto() per test against the next dev server. Each
+	// page is ~300-900ms on a cold compile in CI, so the default 30s test
+	// budget gets tight and intermittently aborts with ERR_ABORTED when the
+	// dev server is mid-compile. Bumped to 60s — the assertions themselves
+	// are sub-millisecond, the budget is purely network/compile time.
+	test.setTimeout(60_000);
+
 	test('No "property owners" persona word on any public marketing page', async ({
 		page,
 	}) => {
