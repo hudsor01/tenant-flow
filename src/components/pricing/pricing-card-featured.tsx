@@ -26,6 +26,10 @@ interface PricingPlan {
 	id: string;
 	name: string;
 	description: string;
+	/** Distinct from description — used by the social-proof badge below
+	 *  the price (PR #725 cycle-1 review). Same shape as PricingConfig
+	 *  in #config/pricing. */
+	audienceTagline: string;
 	price: {
 		monthly: number;
 		yearly: number;
@@ -198,14 +202,19 @@ export function PricingCardFeatured({
 						)}
 					</div>
 
-					{/* Social Proof */}
+					{/* Social-proof badge. Uses plan.audienceTagline (a
+					    short audience-targeting string) rather than
+					    plan.description (the longer subtitle shown next
+					    to the plan name) so the two don't render the
+					    same copy twice above the fold. PR #725 cycle-1
+					    review caught the duplication. */}
 					<Badge
 						variant="trustIndicator"
 						size="trust"
 						className="w-full justify-center mb-6"
 					>
 						<BadgeCheck className="size-4" aria-hidden="true" />
-						Built for landlords with 1–15 rentals
+						{plan.audienceTagline}
 					</Badge>
 
 					{/* Features - 2 column grid for featured card */}

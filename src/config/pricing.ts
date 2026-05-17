@@ -31,6 +31,13 @@ export interface PricingConfig {
 	readonly planId: PlanId;
 	readonly name: string;
 	readonly description: string;
+	/**
+	 * Short audience-targeting tagline for the social-proof badge on the
+	 * featured pricing card (PR #725 cycle-1 review). Distinct from
+	 * `description` (which is the longer subtitle next to the plan name)
+	 * so the same string isn't echoed twice above the fold.
+	 */
+	readonly audienceTagline: string;
 	readonly price: {
 		readonly monthly: number;
 		readonly annual: number;
@@ -58,6 +65,7 @@ export const PRICING_PLANS: Record<string, PricingConfig> = {
 		planId: "trial",
 		name: "Free Trial",
 		description: "Try every feature for 14 days before subscribing",
+		audienceTagline: "14-day full-feature trial",
 		price: {
 			monthly: 0,
 			annual: 0,
@@ -94,6 +102,7 @@ export const PRICING_PLANS: Record<string, PricingConfig> = {
 		planId: "starter",
 		name: "Starter",
 		description: "Ideal for landlords with 1–5 rentals",
+		audienceTagline: "Built for 1–5 unit portfolios",
 		price: {
 			monthly: 19,
 			annual: 190,
@@ -127,6 +136,7 @@ export const PRICING_PLANS: Record<string, PricingConfig> = {
 		planId: "growth",
 		name: "Growth",
 		description: "For growing portfolios that need advanced features",
+		audienceTagline: "Built for 6–20 unit portfolios",
 		price: {
 			monthly: 49,
 			annual: 490,
@@ -162,6 +172,7 @@ export const PRICING_PLANS: Record<string, PricingConfig> = {
 		name: "Max",
 		description:
 			"For landlords with 21+ rentals — unlimited scale and API access",
+		audienceTagline: "Built for 21+ unit portfolios",
 		price: {
 			monthly: 149,
 			annual: 1490,

@@ -32,6 +32,13 @@ const PUBLIC_PATHS = [
 ] as const;
 
 test.describe("Persona consistency — sitewide", () => {
+	// 16 sequential page.goto() per test against the next dev server. Each
+	// page is ~300-900ms on a cold compile in CI, so the default 30s test
+	// budget gets tight and intermittently aborts with ERR_ABORTED when the
+	// dev server is mid-compile. Bumped to 60s — the assertions themselves
+	// are sub-millisecond, the budget is purely network/compile time.
+	test.setTimeout(60_000);
+
 	test('No "property owners" persona word on any public marketing page', async ({
 		page,
 	}) => {
@@ -150,7 +157,12 @@ test.describe("Persona consistency — pricing page (COPY-02)", () => {
 	}) => {
 		await page.goto("/pricing");
 		const body = (await page.textContent("body")) ?? "";
-		expect(body).toContain("Built for landlords with 1–15 rentals");
+		// PR #725 renamed the hardcoded "1–15 rentals" badge to a
+		// per-plan `audienceTagline` field in `#config/pricing`. The
+		// featured slot renders Growth's tagline ("Built for 6–20 unit
+		// portfolios"); Starter and Max use their own. Test still pins
+		// segment-framing presence — just on the new shape.
+		expect(body).toContain("Built for 6–20 unit portfolios");
 	});
 
 	test("Pricing page metadata description references landlords", async ({

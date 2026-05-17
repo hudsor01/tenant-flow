@@ -331,9 +331,28 @@ export function BillingSettings() {
 										{formatUnitLimit(currentPlan.limits.units)} · Unlimited
 										tenant records
 									</p>
-									{nextBillingDate && (
+									{/* Session 12 P3: don't drop the row entirely when
+									    subscription_current_period_end is null — that reads as
+									    "missing" instead of "syncing". Surface a deferred
+									    helper string so the user knows it's pending. Cycle-1
+									    review added the Contact-support escape hatch so an
+									    indefinitely-stale webhook isn't masked as "still
+									    syncing" forever (mirrors the "Plan details will sync
+									    shortly" copy below). */}
+									{nextBillingDate ? (
 										<p className="text-xs text-muted-foreground mt-2">
 											Next billing date: {nextBillingDate}
+										</p>
+									) : (
+										<p className="text-xs text-muted-foreground mt-2">
+											Billing cycle syncing from Stripe…{" "}
+											<Link
+												href="/contact"
+												className="text-primary hover:underline underline-offset-4"
+											>
+												Contact support
+											</Link>{" "}
+											if this persists.
 										</p>
 									)}
 								</>

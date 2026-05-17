@@ -1,11 +1,11 @@
-import type { Metadata } from "next";
 import type { ReactNode } from "react";
+import { ownerPageMetadata } from "#lib/seo/owner-page-metadata";
 
-export const metadata: Metadata = {
-	title: "Settings",
-	description: "Manage account settings, notifications, security, and billing",
-};
+export const metadata = ownerPageMetadata(
+	"Settings",
+	"Manage account settings, notifications, security, and billing",
+);
 
-export default function SettingsLayout({ children }: { children: ReactNode }) {
+export default function Layout({ children }: { children: ReactNode }) {
 	return <>{children}</>;
 }

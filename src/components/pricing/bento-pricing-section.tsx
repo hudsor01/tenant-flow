@@ -27,6 +27,7 @@ export function BentoPricingSection({
 			id: plan.planId,
 			name: plan.name,
 			description: plan.description,
+			audienceTagline: plan.audienceTagline,
 			price: {
 				monthly: plan.price.monthly,
 				yearly: Math.round((plan.price.annual / 12) * 100) / 100,

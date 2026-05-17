@@ -1,11 +1,11 @@
-import type { Metadata } from "next";
 import type { ReactNode } from "react";
+import { ownerPageMetadata } from "#lib/seo/owner-page-metadata";
 
-export const metadata: Metadata = {
-	title: "Dashboard",
-	description: "Overview of your property portfolio, revenue, and activity",
-};
+export const metadata = ownerPageMetadata(
+	"Dashboard",
+	"Overview of your property portfolio, revenue, and activity",
+);
 
-export default function DashboardLayout({ children }: { children: ReactNode }) {
+export default function Layout({ children }: { children: ReactNode }) {
 	return <>{children}</>;
 }
