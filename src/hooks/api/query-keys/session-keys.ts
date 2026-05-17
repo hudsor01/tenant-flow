@@ -25,25 +25,22 @@ export const sessionKeys = {
 };
 
 /**
- * Decode the `session_id` claim from a Supabase access token. The token is a
- * JWT whose payload (base64url-encoded) includes the `auth.sessions.id` of
- * the issuing session. Returns null if the token is malformed or the claim
- * is missing — callers fall back to `is_current=false` for every row, which
- * the UI handles gracefully.
- *
- * Exported so the revoke mutation can re-derive at fire time instead of
- * trusting a stale `is_current` flag from the listing.
- */
-/**
  * Parse a User-Agent string into a coarse browser/os/device tuple for the
  * Active Sessions UI. Session 12 browser-agent flagged the prior "Unknown
  * Browser on Unknown OS" rendering — the auth.sessions row has the raw UA
  * but the mapper used to leave it unparsed.
  *
- * Order matters: Edge/OPR override Chrome (their UA contains "Chrome/"),
- * iOS overrides macOS for iPad-on-Safari (UA contains both "iPad" and
- * "Mac OS"). Returns null for fields the parser can't identify rather
- * than the literal "Unknown" string — the UI decides the fallback copy.
+ * Order matters:
+ * - Browsers: Edge (Edg/EdgA/EdgiOS) → Opera (OPR) → Firefox → Chrome →
+ *   Safari. Edge mobile (EdgA/EdgiOS) is matched explicitly so it doesn't
+ *   fall through to Chrome on Android or Safari on iOS (PR #725 cycle-1
+ *   review).
+ * - OS: iPad → iPhone → Android (mobile vs tablet via "Mobile" token) →
+ *   macOS → Windows → Linux. iPad gets first crack so iPadOS-as-Mac UAs
+ *   are routed correctly when the iPad token IS present.
+ *
+ * Returns null for fields the parser can't identify rather than the
+ * literal "Unknown" string — the UI decides the fallback copy.
  */
 export function parseUserAgent(uaRaw: string | null): {
 	browser: string | null;
@@ -56,7 +53,7 @@ export function parseUserAgent(uaRaw: string | null): {
 	let os: string | null = null;
 	let device: string | null = null;
 
-	if (/\bEdg\//.test(ua)) browser = "Edge";
+	if (/\bEdg(A|iOS)?\//.test(ua)) browser = "Edge";
 	else if (/\bOPR\//.test(ua)) browser = "Opera";
 	else if (/\bFirefox\//.test(ua)) browser = "Firefox";
 	else if (/\bChrome\//.test(ua)) browser = "Chrome";
@@ -85,6 +82,16 @@ export function parseUserAgent(uaRaw: string | null): {
 	return { browser, os, device };
 }
 
+/**
+ * Decode the `session_id` claim from a Supabase access token. The token is a
+ * JWT whose payload (base64url-encoded) includes the `auth.sessions.id` of
+ * the issuing session. Returns null if the token is malformed or the claim
+ * is missing — callers fall back to `is_current=false` for every row, which
+ * the UI handles gracefully.
+ *
+ * Exported so the revoke mutation can re-derive at fire time instead of
+ * trusting a stale `is_current` flag from the listing.
+ */
 export function decodeSessionIdFromAccessToken(
 	accessToken: string,
 ): string | null {

@@ -1,15 +1,8 @@
-import type { Metadata } from "next";
 import type { ReactNode } from "react";
+import { ownerPageMetadata } from "#lib/seo/owner-page-metadata";
 
-export const metadata: Metadata = {
-	title: "Financials",
-	description: "Financial overview, revenue, expenses, and profit analysis",
-};
+export const metadata = ownerPageMetadata("Financials");
 
-export default function FinancialsLayout({
-	children,
-}: {
-	children: ReactNode;
-}) {
+export default function Layout({ children }: { children: ReactNode }) {
 	return <>{children}</>;
 }

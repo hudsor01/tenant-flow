@@ -1,9 +1,7 @@
-import type { Metadata } from "next";
 import type { ReactNode } from "react";
+import { ownerPageMetadata } from "#lib/seo/owner-page-metadata";
 
-export const metadata: Metadata = {
-	title: "Lease Analytics",
-};
+export const metadata = ownerPageMetadata("Lease Analytics");
 
 export default function Layout({ children }: { children: ReactNode }) {
 	return <>{children}</>;
