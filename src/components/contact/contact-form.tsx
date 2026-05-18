@@ -165,7 +165,7 @@ export function ContactForm({ className = "" }: ContactFormProps) {
 
 				<div className="relative z-10 p-8 rounded-2xl backdrop-blur-lg bg-background/60 dark:bg-card/60 border border-border/20 shadow-2xl">
 					<h1 className="typography-h2 text-foreground lg:text-4xl">
-						Let&apos;s Talk About Your Properties
+						Let&apos;s talk about your properties
 					</h1>
 					<p className="mt-4 text-muted-foreground text-lg">
 						Whether you manage 5 or 500 units, we&apos;re here to help

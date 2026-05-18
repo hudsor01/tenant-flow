@@ -34,7 +34,11 @@ describe("createPageMetadata", () => {
 		expect(result.alternates?.canonical).toBe("https://tenantflow.app/faq");
 	});
 
-	it("OG title and description match input", () => {
+	it("OG title is brand-suffixed; description matches input", () => {
+		// openGraph.title doesn't inherit `title.template`, so we brand-suffix
+		// it in createPageMetadata to match the rendered doc title across all
+		// routes. AUDIT-1 (2026-05-18) caught the prior bare og:title on the
+		// homepage; the fix applies uniformly to every page.
 		const result = createPageMetadata({
 			title: "FAQ",
 			description: "Frequently asked questions",
@@ -42,8 +46,30 @@ describe("createPageMetadata", () => {
 		});
 
 		const og = result.openGraph as Record<string, unknown>;
-		expect(og.title).toBe("FAQ");
+		expect(og.title).toBe("FAQ | TenantFlow");
 		expect(og.description).toBe("Frequently asked questions");
+	});
+
+	it("absoluteTitle emits title.absolute with brand suffix (root segment)", () => {
+		// Root segment (`src/app/page.tsx`) sits at the same depth as the root
+		// layout, so `title.template` is NOT applied. Pages on the root
+		// segment opt into `absoluteTitle: true` to get the brand suffix
+		// rendered into <title>.
+		const result = createPageMetadata({
+			title: "Property Management Software for Independent Landlords",
+			description: "desc",
+			path: "/",
+			absoluteTitle: true,
+		});
+
+		expect(result.title).toEqual({
+			absolute:
+				"Property Management Software for Independent Landlords | TenantFlow",
+		});
+		const og = result.openGraph as Record<string, unknown>;
+		expect(og.title).toBe(
+			"Property Management Software for Independent Landlords | TenantFlow",
+		);
 	});
 
 	it("OG url matches canonical", () => {
@@ -101,6 +127,51 @@ describe("createPageMetadata", () => {
 		expect(result.alternates?.canonical).toBe("https://tenantflow.app/faq");
 		const og = result.openGraph as Record<string, unknown>;
 		expect(og.url).toBe("https://tenantflow.app/faq");
+	});
+
+	it("titles already containing 'TenantFlow' are NOT brand-suffixed (no duplicate)", () => {
+		// Defense-in-depth: if a future caller passes a title like
+		// "Contact TenantFlow Support", appending " | TenantFlow" would
+		// produce "Contact TenantFlow Support | TenantFlow" with a duplicate
+		// brand token. The helper detects the embedded brand and skips the
+		// suffix on og/twitter/image alt AND short-circuits `title.template`
+		// via `title.absolute` so the doc title doesn't double-brand either.
+		// Caught by AUDIT-1 cycle-2 review (2026-05-18). The `/compare/[competitor]`
+		// route is the real-world shape this protects against; today that route
+		// uses raw `Metadata` (not this helper), so the path below is hypothetical.
+		const result = createPageMetadata({
+			title: "TenantFlow vs Buildium",
+			description: "desc",
+			path: "/__hypothetical-branded__",
+		});
+
+		expect(result.title).toEqual({ absolute: "TenantFlow vs Buildium" });
+		const og = result.openGraph as Record<string, unknown>;
+		expect(og.title).toBe("TenantFlow vs Buildium");
+		const twitter = result.twitter as Record<string, unknown>;
+		expect(twitter.title).toBe("TenantFlow vs Buildium");
+		const ogImages = (result.openGraph as { images?: Array<{ alt: string }> })
+			.images;
+		expect(ogImages?.[0]?.alt).toBe("TenantFlow vs Buildium");
+	});
+
+	it("absoluteTitle + already-branded title: no duplicate brand in title.absolute", () => {
+		// Edge interaction: a hypothetical root-segment page whose title
+		// already contains "TenantFlow" should NOT double-brand. suffixed
+		// resolves to the bare title; title.absolute carries the bare
+		// title; doc title renders the bare brand mention without a
+		// trailing " | TenantFlow". Not exercised by any current caller
+		// but pinned so the guard interaction stays correct.
+		const result = createPageMetadata({
+			title: "TenantFlow vs Buildium",
+			description: "desc",
+			path: "/",
+			absoluteTitle: true,
+		});
+
+		expect(result.title).toEqual({ absolute: "TenantFlow vs Buildium" });
+		const og = result.openGraph as Record<string, unknown>;
+		expect(og.title).toBe("TenantFlow vs Buildium");
 	});
 
 	it("custom ogImage overrides default", () => {

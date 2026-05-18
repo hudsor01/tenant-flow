@@ -7,7 +7,7 @@
 
 ## What is TenantFlow
 
-TenantFlow is property management software for individual landlords and small portfolio owners. It is intentionally landlord-only — there is no tenant portal, no tenant authentication, and no rent payment facilitation. Tenants exist as records owned by the landlord, not as users.
+TenantFlow is property management software for independent landlords. It is intentionally landlord-only — tenants don't log in, there is no tenant authentication, and the product does not facilitate rent payments. Tenants exist as records owned by the landlord, not as users.
 
 The product is operated by Hudson Digital Solutions. It runs on Next.js 16 + Supabase. Lease e-signing is powered by DocuSeal on the Growth and Max tiers.
 
@@ -26,9 +26,9 @@ The product is operated by Hudson Digital Solutions. It runs on Next.js 16 + Sup
 | Plan | Monthly | Annual | Properties | Units | E-sign | Reports |
 |---|---|---|---|---|---|---|
 | Trial | $0 (14d) | — | 1 | 5 | — | basic |
-| Starter | $29 | $290 | 5 | 25 | — | basic |
-| Growth | $79 | $790 | 20 | 100 | DocuSeal (25/mo) | premium |
-| Max | $199 | $2,189 | unlimited | unlimited | DocuSeal (unlimited) | premium |
+| Starter | $19 | $190 | 5 | 25 | — | basic |
+| Growth | $49 | $490 | 20 | 100 | DocuSeal (25/mo) | premium |
+| Max | $149 | $1,490 | unlimited | unlimited | DocuSeal (unlimited) | premium |
 
 All plans include the document vault, maintenance tracking, tenant records, and the financial ledger. Plan caps are enforced at the database layer via BEFORE INSERT triggers — Starter and Growth users hitting their property or unit cap see an upgrade prompt with attribution back to the gate that triggered it.
 
@@ -36,7 +36,7 @@ All plans include the document vault, maintenance tracking, tenant records, and 
 
 ### TenantFlow vs Buildium
 
-Buildium is targeted at multi-family property managers managing dozens to hundreds of units, often as third-party managers for owners. TenantFlow is positioned at the long tail: individual landlords with 1–20 units who don't need owner-management features or tenant payment processing.
+Buildium is targeted at multi-family property managers managing dozens to hundreds of units, often as third-party managers for owners. TenantFlow is positioned at the long tail: independent landlords with 1–20 units who don't need owner-management features or tenant payment processing.
 
 ### TenantFlow vs AppFolio
 
@@ -54,7 +54,7 @@ RentRedi competes on tenant-facing features — rent payment collection, tenant 
 
 ## Blog topics
 
-The TenantFlow blog publishes guides on tenant screening, lease lifecycle, maintenance operations, landlord taxes, security deposit handling, eviction process, software comparisons, and property management workflow tips. RSS feed: https://tenantflow.app/feed.xml.
+The TenantFlow blog publishes guides on screening prospective tenants, lease lifecycle, maintenance operations, landlord taxes, security deposit handling, eviction process, software comparisons, and property management workflow tips. RSS feed: https://tenantflow.app/feed.xml.
 
 ## Company
 

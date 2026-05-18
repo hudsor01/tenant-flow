@@ -29,10 +29,11 @@ function createDefaultMetadata(): Metadata {
 		metadataBase: new URL(SITE_URL),
 		title: {
 			template: "%s | TenantFlow",
-			default: "TenantFlow — Property Management Software for Landlords",
+			default:
+				"TenantFlow — Property Management Software for Independent Landlords",
 		},
 		description:
-			"Property administration software built for independent landlords. Track leases, maintenance, tenants, and finances in one place. 14-day free trial.",
+			"Property management software built for independent landlords. Track leases, maintenance, tenants, and finances in one place. 14-day free trial.",
 		// `keywords` meta is ignored by Google (confirmed unchanged since
 		// the 2009 Search Central post) and Bing. Stripped — was dead
 		// bytes in every page <head>.
@@ -49,9 +50,10 @@ function createDefaultMetadata(): Metadata {
 			// localized content.
 		},
 		openGraph: {
-			title: "TenantFlow — Property Management Software for Landlords",
+			title:
+				"TenantFlow — Property Management Software for Independent Landlords",
 			description:
-				"All-in-one rental property administration. Track leases, maintenance, and tenants. Plans from $19/mo.",
+				"All-in-one property management software. Track leases, maintenance, and tenants. Plans from $19/mo.",
 			url: SITE_URL,
 			siteName: "TenantFlow",
 			type: "website",
@@ -75,9 +77,10 @@ function createDefaultMetadata(): Metadata {
 		},
 		twitter: {
 			card: "summary_large_image",
-			title: "TenantFlow — Property Management Software for Landlords",
+			title:
+				"TenantFlow — Property Management Software for Independent Landlords",
 			description:
-				"All-in-one rental property administration. Track leases, maintenance, and tenants. Plans from $19/mo.",
+				"All-in-one property management software. Track leases, maintenance, and tenants. Plans from $19/mo.",
 			site: "@tenantflow",
 			creator: "@tenantflow",
 			images: [`${SITE_URL}/images/property-management-og.jpg`],
@@ -141,7 +144,7 @@ export function getJsonLd() {
 		url: SITE_URL,
 		logo: `${SITE_URL}/tenant-flow-logo.png`,
 		description:
-			"Property administration software for independent landlords. Track leases, maintenance, and tenants. 14-day free trial.",
+			"Property management software for independent landlords. Track leases, maintenance, and tenants. 14-day free trial.",
 		foundingDate: "2024",
 		// E.164-formatted business line (Schema.org expects digits-only,
 		// hyphens optional). The previous vanity `+1-888-TENANT-1`
@@ -170,7 +173,7 @@ export function getJsonLd() {
 		applicationSubCategory: "Property Management Software",
 		operatingSystem: "Web Browser",
 		description:
-			"Property administration software for independent landlords. Track leases, maintenance, tenants, and financial reporting. 14-day free trial.",
+			"Property management software for independent landlords. Track leases, maintenance, tenants, and financial reporting. 14-day free trial.",
 		url: SITE_URL,
 		image: [
 			`${SITE_URL}/images/property-management-og.jpg`,

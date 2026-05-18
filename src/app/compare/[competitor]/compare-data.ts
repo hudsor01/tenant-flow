@@ -110,7 +110,7 @@ export const COMPETITORS: Record<string, CompetitorData> = {
 			"Modern, fast interface built on cloud-native technology",
 			"Per-entity document vault with global search included on every plan",
 			"14-day free trial with no credit card required",
-			"Purpose-built for individual landlords — admin, documents, and records without accounting bloat",
+			"Purpose-built for independent landlords — admin, documents, and records without accounting bloat",
 		],
 		competitorStrengths: [
 			"HOA and community association management features",

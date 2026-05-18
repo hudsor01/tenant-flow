@@ -26,7 +26,7 @@ export const revalidate = 3600;
 export const metadata: Metadata = createPageMetadata({
 	title: "Property Management Software Pricing | Plans from $19/mo",
 	description:
-		"Property management software for landlords. Starter ($19/mo, 5 properties), Growth ($49/mo, 20 properties), Max ($149/mo, unlimited properties). 14-day free trial, no credit card required.",
+		"Property management software for independent landlords. Starter ($19/mo, 5 properties), Growth ($49/mo, 20 properties), Max ($149/mo, unlimited properties). 14-day free trial, no credit card required.",
 	path: "/pricing",
 	ogImage: "/api/og/pricing",
 });
@@ -39,7 +39,7 @@ export default async function PricingPage() {
 	const productJsonLd = createProductJsonLd({
 		name: "TenantFlow Property Management Software",
 		description:
-			"Property administration software for independent landlords. Starter $19/mo (5 properties), Growth $49/mo (20 properties), Max $149/mo (unlimited properties). 14-day free trial, no credit card required.",
+			"Property management software for independent landlords. Starter $19/mo (5 properties), Growth $49/mo (20 properties), Max $149/mo (unlimited properties). 14-day free trial, no credit card required.",
 		offers: [
 			{ name: "Starter", price: "19.00" },
 			{ name: "Growth", price: "49.00" },
