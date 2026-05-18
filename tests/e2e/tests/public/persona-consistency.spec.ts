@@ -82,12 +82,15 @@ test.describe("Persona consistency — homepage hero (COPY-01 + COPY-03)", () =>
 		expect(body).not.toContain("tenants never have to log in");
 	});
 
-	test('Hero subhead contains "landlords with 1–15 rentals"', async ({
+	test('Hero subhead contains "landlords with small portfolios"', async ({
 		page,
 	}) => {
 		await page.goto("/");
 		const body = (await page.textContent("body")) ?? "";
-		expect(body).toContain("landlords with 1–15 rentals");
+		// PR #726 (Session 13 P1): scrubbed the "1–15 rentals" literal
+		// across the public surface. Test pins the new framing so the
+		// scrub doesn't get accidentally reverted on a future copy edit.
+		expect(body).toContain("landlords with small portfolios");
 	});
 
 	test('Hero subhead contains "tenants stay off the platform"', async ({
