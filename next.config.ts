@@ -128,6 +128,12 @@ export default withSentryConfig(nextConfig, {
 	tunnelRoute: "/monitoring",
 	bundleSizeOptimizations: {
 		excludeDebugStatements: true,
+		// Session Replay disabled in sentry.client.config.ts (PR #730).
+		// These flags let the Sentry webpack plugin DefinePlugin-strip
+		// replay branches that tree-shaking alone can't prove dead.
+		excludeReplayShadowDom: true,
+		excludeReplayIframe: true,
+		excludeReplayWorker: true,
 	},
 	// Release tracking
 	release: {

@@ -2,7 +2,8 @@
  * Sentry Client Configuration
  *
  * Configures Sentry for browser-side error tracking and performance monitoring.
- * Includes: Web Vitals, Session Replay, Network Requests, Assets
+ * Includes: Web Vitals (INP), Network Requests, User Feedback.
+ * Session Replay is intentionally disabled — see comment below.
  */
 import * as Sentry from "@sentry/nextjs";
 
@@ -15,24 +16,23 @@ Sentry.init({
 	// Performance Monitoring
 	tracesSampleRate: isProduction ? 0.2 : 1.0,
 
-	// Session Replay - capture user sessions for debugging
-	replaysSessionSampleRate: isProduction ? 0.1 : 0.5,
-	replaysOnErrorSampleRate: 1.0, // Always capture replays on errors
+	// Session Replay disabled. The replay integration registers a
+	// MutationObserver that walks every DOM change, snapshots canvases,
+	// and buffers events in IndexedDB. With maskAllText/Inputs the
+	// per-mutation cost climbs further. Long browser sessions (~2h+) on
+	// pages with continuous animation (gradients, marketing hero) trip
+	// Chrome 148's PartitionAlloc `va_size` CHECK and crash the
+	// renderer (live user crash logs, 2026-05-18). Replay was sampled
+	// at 10% prod, so most users never noticed — but the ones who did
+	// got a hard tab kill. We keep traces + INP + browser-API
+	// instrumentation (no MutationObserver footprint) and error
+	// capture; we lose nothing critical by dropping replay since
+	// marketing pages aren't where actionable session debugging
+	// happens, and authenticated pages had everything masked anyway.
+	replaysSessionSampleRate: 0,
+	replaysOnErrorSampleRate: 0,
 
 	integrations: [
-		// Session Replay. All three masks default to ON so the dashboard
-		// surface — tenant names, email addresses, lease amounts, property
-		// addresses — never reaches Sentry. Without these, replay records
-		// PII that we have no DPA to share with Sentry; flipping them to
-		// `false` would re-open a GDPR exposure for any EU user. Future
-		// callers that need a screen-share UX should add explicit
-		// `unmask: ['.selector']` rules rather than disable masking
-		// globally.
-		Sentry.replayIntegration({
-			maskAllText: true,
-			blockAllMedia: true,
-			maskAllInputs: true,
-		}),
 		// Browser Tracing for Web Vitals
 		Sentry.browserTracingIntegration({
 			enableInp: true, // Interaction to Next Paint
