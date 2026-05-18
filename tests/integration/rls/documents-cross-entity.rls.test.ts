@@ -234,8 +234,6 @@ describe("Documents cross-entity storage RLS", () => {
 	afterAll(async () => {
 		await cleanupFixtures(clientA, fixA);
 		await cleanupFixtures(clientB, fixB);
-		await clientA.auth.signOut();
-		await clientB.auth.signOut();
 	});
 
 	// Helper: upload a document to ownerA's entity, verify ownerB can't access it.

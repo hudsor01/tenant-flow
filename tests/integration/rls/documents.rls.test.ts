@@ -30,8 +30,6 @@ describe("Documents RLS — owner_user_id isolation", () => {
 		for (const id of testInsertedIds) {
 			await clientA.from("documents").delete().eq("id", id);
 		}
-		await clientA.auth.signOut();
-		await clientB.auth.signOut();
 	});
 
 	// ---------------------------------------------------------------------------

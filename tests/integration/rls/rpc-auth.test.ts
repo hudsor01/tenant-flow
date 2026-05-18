@@ -22,11 +22,6 @@ describe("RPC auth isolation — cross-user access denied", () => {
 		ownerBId = userB!.id;
 	});
 
-	afterAll(async () => {
-		await clientA.auth.signOut();
-		await clientB.auth.signOut();
-	});
-
 	// ---------------------------------------------------------------------------
 	// Helper: assert cross-user RPC call is rejected
 	// ---------------------------------------------------------------------------

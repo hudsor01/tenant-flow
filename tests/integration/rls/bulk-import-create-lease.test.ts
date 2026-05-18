@@ -153,8 +153,6 @@ describe("bulk_import_create_lease RPC", () => {
 		if (tenantB) await clientB.from("tenants").delete().eq("id", tenantB.id);
 		if (propertyB)
 			await clientB.from("properties").delete().eq("id", propertyB.id);
-		await clientA.auth.signOut();
-		await clientB.auth.signOut();
 	});
 
 	// ---------------------------------------------------------------------------

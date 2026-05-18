@@ -147,8 +147,6 @@ describe.skipIf(skipReason)(
 					.delete()
 					.in("id", seedIds);
 			}
-			await ownerClient?.auth.signOut();
-			await adminClient?.auth.signOut();
 		});
 
 		it("rejects non-admin caller with Unauthorized", async () => {

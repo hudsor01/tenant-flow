@@ -22,11 +22,6 @@ describe("Notification Settings RLS — cross-owner isolation", () => {
 		ownerBId = userB!.id;
 	});
 
-	afterAll(async () => {
-		await clientA.auth.signOut();
-		await clientB.auth.signOut();
-	});
-
 	// ---------------------------------------------------------------------------
 	// SELECT isolation — notification_settings scoped by user_id = auth.uid()
 	// ---------------------------------------------------------------------------

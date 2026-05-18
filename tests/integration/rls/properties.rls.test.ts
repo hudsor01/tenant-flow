@@ -31,8 +31,6 @@ describe("Properties RLS — cross-tenant isolation", () => {
 			await clientA.from("properties").delete().eq("id", id);
 			await clientB.from("properties").delete().eq("id", id);
 		}
-		await clientA.auth.signOut();
-		await clientB.auth.signOut();
 	});
 
 	// ---------------------------------------------------------------------------

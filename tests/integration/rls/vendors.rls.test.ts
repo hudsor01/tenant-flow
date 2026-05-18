@@ -31,8 +31,6 @@ describe("Vendors RLS — cross-tenant isolation", () => {
 			await clientA.from("vendors").delete().eq("id", id);
 			await clientB.from("vendors").delete().eq("id", id);
 		}
-		await clientA.auth.signOut();
-		await clientB.auth.signOut();
 	});
 
 	// ---------------------------------------------------------------------------

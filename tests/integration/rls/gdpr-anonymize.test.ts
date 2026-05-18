@@ -19,7 +19,6 @@ describe("GDPR Anonymization — account deletion cascade", () => {
 		// Safety restore: ensure deletion_requested_at is null for ownerA
 		// Use cancel_account_deletion RPC (SECURITY DEFINER, works regardless of RLS)
 		await clientA.rpc("cancel_account_deletion");
-		await clientA.auth.signOut();
 	});
 
 	// DB-04: GDPR anonymization cascade

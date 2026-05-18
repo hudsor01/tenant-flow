@@ -169,8 +169,6 @@ describe("search_documents RPC", () => {
 		}
 		if (propertyA)
 			await clientA.from("properties").delete().eq("id", propertyA.id);
-		await clientA.auth.signOut();
-		await clientB.auth.signOut();
 	});
 
 	// `search_documents` filters by auth.uid() server-side, so any row

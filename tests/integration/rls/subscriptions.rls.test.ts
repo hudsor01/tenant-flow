@@ -11,11 +11,6 @@ describe("Subscriptions RLS — cross-owner isolation", () => {
 		clientB = await createTestClient(ownerB.email, ownerB.password);
 	});
 
-	afterAll(async () => {
-		await clientA.auth.signOut();
-		await clientB.auth.signOut();
-	});
-
 	// ---------------------------------------------------------------------------
 	// SELECT isolation — stripe.subscriptions scoped by customer ID
 	// The subscriptions table lives in the stripe schema (not public).
