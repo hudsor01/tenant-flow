@@ -59,10 +59,10 @@ describe("BlogLoading (route-scoped streaming UI for /blog)", () => {
 		expect(skeletons.length).toBeGreaterThanOrEqual(6);
 	});
 
-	it('does NOT render empty-state copy ("No posts" / "Articles publish here")', () => {
+	it('does NOT render empty-state copy ("No posts" / "New articles appear here")', () => {
 		render(<BlogLoading />);
 		expect(
-			screen.queryByText(/no posts found|articles publish here/i),
+			screen.queryByText(/no posts found|new articles appear here/i),
 		).not.toBeInTheDocument();
 	});
 

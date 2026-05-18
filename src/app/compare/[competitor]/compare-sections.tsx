@@ -194,24 +194,14 @@ export function WhySwitchSection({ data }: { data: CompetitorData }) {
 	);
 }
 
-export function BottomCta({ data }: { data: CompetitorData }) {
+// `data` retained on the prop signature for the public API (callers
+// pass `competitor`); the deeper-dive blog CTA that previously consumed
+// `data.blogSlug` + `data.name` was removed pending publication of the
+// comparison post cohort (AUDIT-2 cycle-2). Restore once `data.blogSlug`
+// resolves to a published post.
+export function BottomCta({ data: _data }: { data: CompetitorData }) {
 	return (
 		<>
-			<section className="py-12">
-				<div className="max-w-4xl mx-auto px-6 lg:px-8 text-center">
-					<p className="text-sm text-muted-foreground mb-2">
-						Want a deeper dive?
-					</p>
-					<Link
-						href={`/blog/${data.blogSlug}`}
-						className="text-primary hover:text-primary/80 font-medium transition-colors"
-					>
-						Read our full TenantFlow vs {data.name} comparison article
-						<ArrowRight className="inline size-4 ml-1" />
-					</Link>
-				</div>
-			</section>
-
 			<section className="section-spacing">
 				<div className="max-w-3xl mx-auto px-6 lg:px-8 text-center">
 					<div className="p-10 bg-linear-to-br from-primary/10 via-primary/5 to-transparent border border-primary/20 rounded-2xl">
@@ -230,9 +220,7 @@ export function BottomCta({ data }: { data: CompetitorData }) {
 								</Link>
 							</Button>
 							<Button size="lg" variant="outline" asChild>
-								<Link href="/blog/best-property-management-software-2025-comparison">
-									See All Comparisons
-								</Link>
+								<Link href="/compare">See All Comparisons</Link>
 							</Button>
 						</div>
 					</div>

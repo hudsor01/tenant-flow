@@ -40,12 +40,26 @@ export async function generateMetadata({
 }: BlogPageProps): Promise<Metadata> {
 	const params = await searchParams;
 	const page = Number(params.page) || 1;
+
+	// Soft-404 guard: when zero posts are published, the page is a
+	// content-empty placeholder. Don't invite indexing of the empty
+	// state — Google reads the title/description as a content promise
+	// the body can't deliver. AUDIT-2 cycle-2 finding. The page itself
+	// stays accessible for RSS, direct links, and humans following the
+	// /resources mention; we just stop advertising it to crawlers
+	// until the first article cohort lands.
+	const supabase = await createClient();
+	const { count } = await supabase
+		.from("blogs")
+		.select("id", { count: "exact", head: true })
+		.eq("status", "published");
+
 	return createPageMetadata({
 		title: "Property Management Blog — Tips for Independent Landlords",
 		description:
 			"Operational guides for independent landlords: leases, maintenance, tax season, and the document vault.",
 		path: "/blog",
-		noindex: page > 1,
+		noindex: page > 1 || (count ?? 0) === 0,
 	});
 }
 
@@ -178,7 +192,7 @@ export default async function BlogPage({ searchParams }: BlogPageProps) {
 				<div className="mx-auto max-w-6xl px-6 lg:px-8">
 					<h2 className="mb-6 text-2xl font-bold">Insights &amp; Guides</h2>
 					{posts.length === 0 ? (
-						<BlogEmptyState message="Articles publish here as we write them. Subscribe below to follow along." />
+						<BlogEmptyState message="New articles appear here as we write them. Subscribe below to follow along." />
 					) : (
 						<>
 							<div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
