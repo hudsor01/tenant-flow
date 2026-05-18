@@ -178,12 +178,15 @@ export function PricingCardStandard({
 						<span className="text-sm text-muted-foreground">/mo</span>
 					</div>
 					{/* AUDIT-2 P2 (2026-05-18): show the explicit annual total
-					    ($X/year) alongside the per-month-equivalent. Without it
-					    the displayed `$Math.round(annual/12)/mo` + `Save $2N/year`
-					    invite an arithmetic mismatch ($16/mo × 12 = $192 ≠ the
-					    actual $190/yr canonical, because $190/12 = $15.83
-					    rounds up to $16). The featured card has shipped this
-					    format since PR #725; standard now matches. */}
+					    ($X/year) alongside the per-month-equivalent. The yearly
+					    per-month rate is stored as `annual/12` (e.g. $15.83 for
+					    Starter) and rendered via `formatCurrency({ maximumFractionDigits:
+					    0 })` which rounds to `$16/mo`. Without `($190/year)` next
+					    to it, "$16/mo" + "Save $38/year" reads as $16 × 12 = $192,
+					    which doesn't match the canonical $190 — the savings + the
+					    displayed monthly rate become arithmetically inconsistent.
+					    The featured card has shipped this format since PR #725;
+					    standard now matches. */}
 					<p className="text-xs text-muted-foreground mt-1">
 						{billingCycle === "yearly"
 							? `Billed annually ($${plan.annualTotal}/year)`

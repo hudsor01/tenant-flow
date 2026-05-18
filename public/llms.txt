@@ -30,7 +30,8 @@ Free downloadable tools landlords can use without signing up:
 
 ## Blog
 
-Long-form content on landlord operations and property management software:
+Long-form articles will publish at the URLs below as they ship. The
+RSS feed is live and returns an empty channel until the first post.
 
 - [Blog index](https://tenantflow.app/blog)
 - [RSS feed](https://tenantflow.app/feed.xml)
