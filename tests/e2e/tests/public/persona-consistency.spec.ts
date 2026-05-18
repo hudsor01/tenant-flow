@@ -198,6 +198,10 @@ test.describe("Persona consistency — compare pages (CONS-01)", () => {
 });
 
 test.describe("Persona consistency — DocuSeal de-amp (COPY-04, Wave 2)", () => {
+	// 16 sequential page.goto() in the site-wide mention-count test. Same
+	// 60s bump the sitewide + bulk-zip describes apply.
+	test.setTimeout(60_000);
+
 	// COPY-04 audits VISIBLE marketing copy, not the SoftwareApplication
 	// JSON-LD `featureList` (KEEP-AS-INFRASTRUCTURE per 04-RESEARCH.md) and
 	// not the Next.js RSC streaming payload — both are <script> content. Use
@@ -261,6 +265,12 @@ test.describe("Persona consistency — FAQ canon (COPY-05, Wave 2)", () => {
 });
 
 test.describe("Persona consistency — bulk-zip softening (COPY-06, Wave 2)", () => {
+	// 16 sequential page.goto() per test + per-page scrollTo + networkidle
+	// wait. Default 30s budget is tight under CI's `next start` mode where
+	// any RSC prefetch tail keeps networkidle from firing. Same 60s bump
+	// the sitewide describe applies (PR #725).
+	test.setTimeout(60_000);
+
 	test('Homepage contains "Tax-season zip exports" or "Tax-Season Bulk Zip"', async ({
 		page,
 	}) => {
