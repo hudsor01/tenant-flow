@@ -15,7 +15,7 @@ interface PageMetadataConfig {
 	 * segments — the root segment (`/` at `src/app/page.tsx`) sits at the
 	 * same depth as the root layout and Next.js does not apply the template
 	 * there. Without this opt-in the homepage would render
-	 * `<title>Property Management Software for Landlords</title>` with no
+	 * `<title>Property Management Software for Independent Landlords</title>` with no
 	 * brand suffix while every other page renders `... | TenantFlow`.
 	 *
 	 * Use `absoluteTitle: true` for any page sharing the root segment.
