@@ -209,6 +209,11 @@ const BANNED_NUMERIC_CLAIMS = [
 
 // Explicit marketing surfaces (kept as a stable allowlist — catches files that
 // might not match the components walker, e.g. /app/pages, config, SEO helpers).
+// Includes `public/llms.txt`, `public/llms-full.txt`, and `public/manifest.json`
+// because AI crawlers + PWA install prompts fetch them directly; AUDIT-1
+// cycle-2 found stale pricing ($29/$79/$199 vs canonical $19/$49/$149) and a
+// reference to the deleted "team behind TenantFlow" section in llms.txt that
+// the previous .ts-only walker couldn't see.
 const MARKETING_FILES = [
 	"src/app/page.tsx",
 	"src/app/marketing-home.tsx",
@@ -231,6 +236,9 @@ const MARKETING_FILES = [
 	"src/data/testimonials.ts",
 	"src/config/pricing.ts",
 	"src/lib/generate-metadata.ts",
+	"public/llms.txt",
+	"public/llms-full.txt",
+	"public/manifest.json",
 ] as const;
 
 function isTestPath(relPath: string): boolean {

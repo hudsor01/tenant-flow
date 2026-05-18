@@ -1,8 +1,8 @@
 # TenantFlow
 
-> Property management software for individual landlords and small property owners. Track leases, maintenance requests, tenant records, and financial reporting in one place. Landlord-only — no rent payment facilitation, no tenant portal accounts. 14-day free trial.
+> Property management software for independent landlords. Track leases, maintenance requests, tenant records, and financial reporting in one place. Landlord-only — tenants don't log in, the product does not facilitate rent payments. 14-day free trial.
 
-TenantFlow is a SaaS for landlords and small portfolio owners who want a single source of truth for their rental properties. The product centralizes lease documents (with DocuSeal e-signing on Growth and Max tiers), maintenance request tracking, tenant records, and tax-ready financial reporting. Pricing tiers are Starter ($29/mo), Growth ($79/mo), and Max ($199/mo).
+TenantFlow is a SaaS for independent landlords who want a single source of truth for their rental properties. The product centralizes lease documents (with DocuSeal e-signing on Growth and Max tiers), maintenance request tracking, tenant records, and tax-ready financial reporting. Pricing tiers are Starter ($19/mo), Growth ($49/mo), and Max ($149/mo).
 
 The site is operated by [Hudson Digital Solutions](https://hudsondigitalsolutions.com). The blog publishes practical landlord guides on screening, lease lifecycle, maintenance, taxes, and software comparisons.
 
@@ -10,7 +10,7 @@ The site is operated by [Hudson Digital Solutions](https://hudsondigitalsolution
 
 - [Features overview](https://tenantflow.app/features): the property, unit, lease, tenant, maintenance, and document modules.
 - [Pricing](https://tenantflow.app/pricing): plan caps, feature comparison, and a free 14-day trial across all tiers.
-- [About](https://tenantflow.app/about): mission and the team behind TenantFlow.
+- [About](https://tenantflow.app/about): product mission and positioning.
 
 ## Comparisons
 

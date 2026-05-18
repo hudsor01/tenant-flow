@@ -59,8 +59,8 @@ export function createPageMetadata(config: PageMetadataConfig): Metadata {
 	// `compare/[competitor]` dynamic route uses raw `Metadata` rather
 	// than `createPageMetadata` — but the guard keeps the helper
 	// regression-proof against future additions. Word-boundary match
-	// so "TenantFlowing" or "tenant-flow rivers" wouldn't accidentally
-	// suppress the suffix.
+	// so a suffixed string like "TenantFlowing" or a prefixed string
+	// like "aTenantFlow" wouldn't accidentally suppress the suffix.
 	const alreadyBranded = /\bTenantFlow\b/i.test(title);
 	const suffixed = alreadyBranded ? title : `${title} | TenantFlow`;
 
