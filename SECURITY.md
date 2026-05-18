@@ -80,7 +80,7 @@ Every storage bucket policy enforces folder-uuid → owner ID via `storage.folde
 
 - **CSP** in `vercel.json`: `script-src 'self' 'unsafe-inline' (nonce TBD)`, `frame-ancestors 'none'`, HSTS with `preload`.
 - **Markdown** rendering via `react-markdown` v9 + `rehype-raw` + `rehype-sanitize` (in that order).
-- **Sentry session replay** masks all text and blocks all media (GDPR alignment for EU users).
+- **Sentry session replay** is disabled (PR #730) — the integration's MutationObserver + IndexedDB persistence were implicated in Chrome 148 PartitionAlloc renderer crashes. PII surface is zero by construction now; error capture and performance tracing remain.
 
 ### GDPR
 
