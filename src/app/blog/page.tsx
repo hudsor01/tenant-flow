@@ -45,14 +45,22 @@ export async function generateMetadata({
 	// content-empty placeholder. Don't invite indexing of the empty
 	// state — Google reads the title/description as a content promise
 	// the body can't deliver. AUDIT-2 cycle-2 finding. The page itself
-	// stays accessible for RSS, direct links, and humans following the
-	// /resources mention; we just stop advertising it to crawlers
-	// until the first article cohort lands.
+	// stays accessible for RSS, direct links, and the sitemap; we just
+	// stop advertising it to crawlers until the first article cohort
+	// lands.
 	const supabase = await createClient();
-	const { count } = await supabase
+	const { count, error: countError } = await supabase
 		.from("blogs")
 		.select("id", { count: "exact", head: true })
 		.eq("status", "published");
+	if (countError) {
+		Sentry.captureException(countError, {
+			tags: { surface: "blog-index-metadata" },
+		});
+		// Fall through with `count` undefined — `(count ?? 0) === 0`
+		// fails closed to noindex, which is the safer SEO posture when
+		// we can't confirm whether content exists.
+	}
 
 	return createPageMetadata({
 		title: "Property Management Blog — Tips for Independent Landlords",

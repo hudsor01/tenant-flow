@@ -194,12 +194,12 @@ export function WhySwitchSection({ data }: { data: CompetitorData }) {
 	);
 }
 
-// `data` retained on the prop signature for the public API (callers
-// pass `competitor`); the deeper-dive blog CTA that previously consumed
-// `data.blogSlug` + `data.name` was removed pending publication of the
-// comparison post cohort (AUDIT-2 cycle-2). Restore once `data.blogSlug`
-// resolves to a published post.
-export function BottomCta({ data: _data }: { data: CompetitorData }) {
+// `data` prop dropped here in AUDIT-2 cycle-2: the deeper-dive blog
+// CTA that consumed `data.blogSlug` + `data.name` was removed pending
+// publication of the comparison post cohort, and nothing in the
+// remaining "Ready to make the switch?" block references the
+// competitor. Reintroduce the prop when restoring the deeper-dive CTA.
+export function BottomCta() {
 	return (
 		<>
 			<section className="section-spacing">
