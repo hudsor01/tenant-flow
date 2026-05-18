@@ -34,7 +34,13 @@ export default function MarketingHomePage() {
 									<Badge
 										variant="trustIndicator"
 										size="trust"
-										className="self-start mb-2"
+										// `whitespace-normal` + `text-left` override Badge's
+										// base `whitespace-nowrap` so the 35-char trust
+										// indicator wraps under ~360px viewports instead of
+										// forcing a 281px-wide pill that overflows the page.
+										// Surfaced by AUDIT-1 (2026-05-18). `max-w-full` keeps
+										// the badge inside the flex column on every breakpoint.
+										className="self-start mb-2 whitespace-normal text-left max-w-full"
 									>
 										<Lock className="size-4" aria-hidden="true" />
 										Landlord-only · Tenants never log in

@@ -34,7 +34,11 @@ describe("createPageMetadata", () => {
 		expect(result.alternates?.canonical).toBe("https://tenantflow.app/faq");
 	});
 
-	it("OG title and description match input", () => {
+	it("OG title is brand-suffixed; description matches input", () => {
+		// openGraph.title doesn't inherit `title.template`, so we brand-suffix
+		// it in createPageMetadata to match the rendered doc title across all
+		// routes. AUDIT-1 (2026-05-18) caught the prior bare og:title on the
+		// homepage; the fix applies uniformly to every page.
 		const result = createPageMetadata({
 			title: "FAQ",
 			description: "Frequently asked questions",
@@ -42,8 +46,30 @@ describe("createPageMetadata", () => {
 		});
 
 		const og = result.openGraph as Record<string, unknown>;
-		expect(og.title).toBe("FAQ");
+		expect(og.title).toBe("FAQ | TenantFlow");
 		expect(og.description).toBe("Frequently asked questions");
+	});
+
+	it("absoluteTitle emits title.absolute with brand suffix (root segment)", () => {
+		// Root segment (`src/app/page.tsx`) sits at the same depth as the root
+		// layout, so `title.template` is NOT applied. Pages on the root
+		// segment opt into `absoluteTitle: true` to get the brand suffix
+		// rendered into <title>.
+		const result = createPageMetadata({
+			title: "Property Management Software for Independent Landlords",
+			description: "desc",
+			path: "/",
+			absoluteTitle: true,
+		});
+
+		expect(result.title).toEqual({
+			absolute:
+				"Property Management Software for Independent Landlords | TenantFlow",
+		});
+		const og = result.openGraph as Record<string, unknown>;
+		expect(og.title).toBe(
+			"Property Management Software for Independent Landlords | TenantFlow",
+		);
 	});
 
 	it("OG url matches canonical", () => {

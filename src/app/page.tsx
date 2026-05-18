@@ -10,10 +10,15 @@ import MarketingHomePage from "./marketing-home";
 export const dynamic = "force-static";
 
 export const metadata: Metadata = createPageMetadata({
-	title: "Property Management Software for Landlords",
+	title: "Property Management Software for Independent Landlords",
 	description:
 		"All-in-one property administration software for landlords. Track leases, maintenance requests, tenant records, and finances in one place. 14-day free trial, no credit card required.",
 	path: "/",
+	// Root segment: Next.js does not apply the root layout's
+	// `title.template` here, so without `absoluteTitle` the homepage
+	// renders `<title>...</title>` with no ` | TenantFlow` suffix
+	// (caught by the AUDIT-1 browser-agent sweep, 2026-05-18).
+	absoluteTitle: true,
 });
 
 /**
