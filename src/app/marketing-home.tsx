@@ -45,9 +45,9 @@ export default function MarketingHomePage() {
 									</h1>
 
 									<p className="text-xl text-muted-foreground leading-relaxed max-w-lg">
-										The operations tool for landlords with 1–15 rentals. Track
-										properties, leases, and maintenance in one place — tenants
-										stay off the platform.
+										The operations tool for landlords with small portfolios.
+										Track properties, leases, and maintenance in one place —
+										tenants stay off the platform.
 									</p>
 								</div>
 
@@ -69,8 +69,8 @@ export default function MarketingHomePage() {
 								</div>
 
 								<p className="text-muted-foreground text-sm">
-									Built for landlords with 1–15 rentals. 14-day free trial, no
-									credit card.
+									Built for landlords with small portfolios. 14-day free trial,
+									no credit card.
 								</p>
 							</div>
 
