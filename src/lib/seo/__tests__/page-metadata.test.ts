@@ -134,14 +134,18 @@ describe("createPageMetadata", () => {
 		// "Contact TenantFlow Support", appending " | TenantFlow" would
 		// produce "Contact TenantFlow Support | TenantFlow" with a duplicate
 		// brand token. The helper detects the embedded brand and skips the
-		// suffix on og/twitter/image alt. Caught by AUDIT-1 cycle-2 review
-		// (2026-05-18).
+		// suffix on og/twitter/image alt AND short-circuits `title.template`
+		// via `title.absolute` so the doc title doesn't double-brand either.
+		// Caught by AUDIT-1 cycle-2 review (2026-05-18). The `/compare/[competitor]`
+		// route is the real-world shape this protects against; today that route
+		// uses raw `Metadata` (not this helper), so the path below is hypothetical.
 		const result = createPageMetadata({
 			title: "TenantFlow vs Buildium",
 			description: "desc",
-			path: "/compare/buildium",
+			path: "/__hypothetical-branded__",
 		});
 
+		expect(result.title).toEqual({ absolute: "TenantFlow vs Buildium" });
 		const og = result.openGraph as Record<string, unknown>;
 		expect(og.title).toBe("TenantFlow vs Buildium");
 		const twitter = result.twitter as Record<string, unknown>;

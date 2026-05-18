@@ -22,10 +22,9 @@ interface PageMetadataConfig {
 	 * For nested pages leave it off so the template is the single source
 	 * of truth for the suffix.
 	 *
-	 * Today the ONLY caller using this flag is `src/app/page.tsx`. Any
-	 * NEW file added under `src/app/*.tsx` (i.e. a sibling of
-	 * `page.tsx`/`layout.tsx`/`loading.tsx`) is also on the root segment
-	 * and MUST set `absoluteTitle: true` to render the brand suffix.
+	 * Today the ONLY caller is `src/app/page.tsx`. Any new file directly
+	 * under `src/app/` (not nested in a subdirectory) that exports
+	 * `metadata` is on the root segment and must set `absoluteTitle: true`.
 	 */
 	absoluteTitle?: boolean;
 }
@@ -55,17 +54,23 @@ export function createPageMetadata(config: PageMetadataConfig): Metadata {
 	// Defense-in-depth: if a caller ever passes a title that already
 	// contains the brand token (e.g. an idiomatic "TenantFlow vs X"
 	// pattern), appending " | TenantFlow" would render a duplicate
-	// brand in OG/Twitter previews. No current caller hits this — the
-	// `compare/[competitor]` dynamic route uses raw `Metadata` rather
-	// than `createPageMetadata` — but the guard keeps the helper
-	// regression-proof against future additions. Word-boundary match
-	// so a suffixed string like "TenantFlowing" or a prefixed string
-	// like "aTenantFlow" wouldn't accidentally suppress the suffix.
+	// brand. No current caller hits this — the `compare/[competitor]`
+	// dynamic route uses raw `Metadata` rather than `createPageMetadata`
+	// — but the guard keeps the helper regression-proof against future
+	// additions. Word-boundary match so a suffixed string like
+	// "TenantFlowing" or a prefixed string like "aTenantFlow" wouldn't
+	// accidentally suppress the suffix.
+	//
+	// When `alreadyBranded`, also short-circuit `title.template` via
+	// `title.absolute`. Otherwise a nested-segment caller would get
+	// clean OG/Twitter but Next.js would still template-prepend
+	// "| TenantFlow" on the doc title — producing a doubled brand only
+	// in `<title>`. Making the guard symmetric closes that gap.
 	const alreadyBranded = /\bTenantFlow\b/i.test(title);
 	const suffixed = alreadyBranded ? title : `${title} | TenantFlow`;
 
 	return {
-		title: absoluteTitle ? { absolute: suffixed } : title,
+		title: absoluteTitle || alreadyBranded ? { absolute: suffixed } : title,
 		description,
 		alternates: {
 			canonical: canonicalUrl,
