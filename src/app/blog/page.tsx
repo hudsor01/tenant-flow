@@ -41,9 +41,9 @@ export async function generateMetadata({
 	const params = await searchParams;
 	const page = Number(params.page) || 1;
 	return createPageMetadata({
-		title: "Property Management Blog — Tips for Landlords with 1–15 Rentals",
+		title: "Property Management Blog — Tips for Independent Landlords",
 		description:
-			"Operational guides for landlords with 1–15 rentals: leases, maintenance, tax season, and the document vault.",
+			"Operational guides for independent landlords: leases, maintenance, tax season, and the document vault.",
 		path: "/blog",
 		noindex: page > 1,
 	});
@@ -127,7 +127,7 @@ export default async function BlogPage({ searchParams }: BlogPageProps) {
 			<section className="section-spacing">
 				<div className="mx-auto max-w-4xl px-6 text-center lg:px-8">
 					<h1 className="text-responsive-display-xl font-bold tracking-tight">
-						The blog for landlords with 1–15 rentals
+						The blog for independent landlords
 					</h1>
 					<p className="mt-4 text-lg text-muted-foreground">
 						Operational guides for leases, maintenance, tax season, and the

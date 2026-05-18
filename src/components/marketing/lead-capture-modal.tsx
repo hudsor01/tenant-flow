@@ -134,7 +134,7 @@ export function LeadCaptureModal({
 					</DialogTitle>
 					<DialogDescription>
 						Monthly tips on leases, maintenance, and tax season — written for
-						landlords with 1–15 rentals.
+						independent landlords.
 					</DialogDescription>
 				</DialogHeader>
 				<form onSubmit={handleSubmit}>

@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
+import { Badge } from "#components/ui/badge";
 import { Button } from "#components/ui/button";
 import { createLogger } from "#lib/frontend-logger";
 import { checkoutRateLimiter } from "#lib/security";
@@ -25,6 +26,11 @@ interface PricingPlan {
 	id: string;
 	name: string;
 	description: string;
+	/** Short audience-targeting badge string. Same shape as
+	 *  PricingConfig in #config/pricing. PR #725 introduced this on the
+	 *  featured card; PR #726 (Session 13 #2) brings it to standard
+	 *  Starter/Max cards so all three tiers carry segment framing. */
+	audienceTagline: string;
 	price: {
 		monthly: number;
 		yearly: number;
@@ -191,6 +197,18 @@ export function PricingCardStandard({
 						</p>
 					)}
 				</div>
+
+				{/* Social-proof audience badge (PR #726 Session 13 #2: same
+				    treatment the featured card got in PR #725, but for
+				    Starter and Max so every tier carries segment framing). */}
+				<Badge
+					variant="trustIndicator"
+					size="trust"
+					className="w-full justify-center mb-6"
+				>
+					<BadgeCheck className="size-4" aria-hidden="true" />
+					{plan.audienceTagline}
+				</Badge>
 
 				{/* Features */}
 				<div className="space-y-2.5 mb-6 flex-1">
