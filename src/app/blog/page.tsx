@@ -178,7 +178,7 @@ export default async function BlogPage({ searchParams }: BlogPageProps) {
 				<div className="mx-auto max-w-6xl px-6 lg:px-8">
 					<h2 className="mb-6 text-2xl font-bold">Insights &amp; Guides</h2>
 					{posts.length === 0 ? (
-						<BlogEmptyState message="More posts coming soon." />
+						<BlogEmptyState message="Articles publish here as we write them — subscribe below to follow along." />
 					) : (
 						<>
 							<div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">

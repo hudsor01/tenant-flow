@@ -177,8 +177,17 @@ export function PricingCardStandard({
 						</span>
 						<span className="text-sm text-muted-foreground">/mo</span>
 					</div>
+					{/* AUDIT-2 P2 (2026-05-18): show the explicit annual total
+					    ($X/year) alongside the per-month-equivalent. Without it
+					    the displayed `$Math.round(annual/12)/mo` + `Save $2N/year`
+					    invite an arithmetic mismatch ($16/mo × 12 = $192 ≠ the
+					    actual $190/yr canonical, because $190/12 = $15.83
+					    rounds up to $16). The featured card has shipped this
+					    format since PR #725; standard now matches. */}
 					<p className="text-xs text-muted-foreground mt-1">
-						{billingCycle === "yearly" ? `Billed annually` : "Billed monthly"}
+						{billingCycle === "yearly"
+							? `Billed annually ($${plan.annualTotal}/year)`
+							: "Billed monthly"}
 					</p>
 					{/* CONS-10: per-card savings — monthly × 2 (2 months free
 					    on annual). Phase 5 math: Starter $38 / Max $298. */}

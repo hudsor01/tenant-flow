@@ -21,9 +21,12 @@ const FOOTER_SECTIONS: ReadonlyArray<{
 	},
 	{
 		heading: "Company",
+		// "Blog" link removed pending first article cohort (AUDIT-2,
+		// 2026-05-18). See `navbar/types.ts` Resources dropdown for the
+		// same rationale: don't promote /blog from sitewide chrome while
+		// the page renders an empty-state placeholder.
 		links: [
 			{ label: "About", href: "/about" },
-			{ label: "Blog", href: "/blog" },
 			{ label: "Contact", href: "/contact" },
 			{ label: "Support", href: "/support" },
 		],
