@@ -42,7 +42,7 @@ export default function RootPage() {
 		name: "TenantFlow",
 		url: siteUrl,
 		description:
-			"Property administration software for independent landlords. Track leases, maintenance, tenants, and finances in one place.",
+			"Property management software for independent landlords. Track leases, maintenance, tenants, and finances in one place.",
 		potentialAction: {
 			"@type": "SearchAction" as const,
 			target: `${siteUrl}/search?q={search_term_string}`,

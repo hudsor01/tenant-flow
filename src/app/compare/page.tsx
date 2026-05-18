@@ -14,7 +14,7 @@ import { COMPETITORS, VALID_COMPETITORS } from "./[competitor]/compare-data";
 export const revalidate = 3600;
 
 export const metadata: Metadata = createPageMetadata({
-	title: "Compare TenantFlow to Other Property Management Software",
+	title: "Compare to Other Property Management Software",
 	description:
 		"Side-by-side comparisons of TenantFlow against Buildium, AppFolio, RentRedi, and other landlord-focused property management platforms.",
 	path: "/compare",

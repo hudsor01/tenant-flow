@@ -129,6 +129,28 @@ describe("createPageMetadata", () => {
 		expect(og.url).toBe("https://tenantflow.app/faq");
 	});
 
+	it("titles already containing 'TenantFlow' are NOT brand-suffixed (no duplicate)", () => {
+		// Defense-in-depth: if a future caller passes a title like
+		// "Contact TenantFlow Support", appending " | TenantFlow" would
+		// produce "Contact TenantFlow Support | TenantFlow" with a duplicate
+		// brand token. The helper detects the embedded brand and skips the
+		// suffix on og/twitter/image alt. Caught by AUDIT-1 cycle-2 review
+		// (2026-05-18).
+		const result = createPageMetadata({
+			title: "TenantFlow vs Buildium",
+			description: "desc",
+			path: "/compare/buildium",
+		});
+
+		const og = result.openGraph as Record<string, unknown>;
+		expect(og.title).toBe("TenantFlow vs Buildium");
+		const twitter = result.twitter as Record<string, unknown>;
+		expect(twitter.title).toBe("TenantFlow vs Buildium");
+		const ogImages = (result.openGraph as { images?: Array<{ alt: string }> })
+			.images;
+		expect(ogImages?.[0]?.alt).toBe("TenantFlow vs Buildium");
+	});
+
 	it("custom ogImage overrides default", () => {
 		const result = createPageMetadata({
 			title: "FAQ",

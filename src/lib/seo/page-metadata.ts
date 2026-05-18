@@ -21,6 +21,11 @@ interface PageMetadataConfig {
 	 * Use `absoluteTitle: true` for any page sharing the root segment.
 	 * For nested pages leave it off so the template is the single source
 	 * of truth for the suffix.
+	 *
+	 * Today the ONLY caller using this flag is `src/app/page.tsx`. Any
+	 * NEW file added under `src/app/*.tsx` (i.e. a sibling of
+	 * `page.tsx`/`layout.tsx`/`loading.tsx`) is also on the root segment
+	 * and MUST set `absoluteTitle: true` to render the brand suffix.
 	 */
 	absoluteTitle?: boolean;
 }
@@ -46,7 +51,17 @@ export function createPageMetadata(config: PageMetadataConfig): Metadata {
 	// suffix here for consistency with the rendered <title>). For the doc
 	// title, `absoluteTitle` decides whether to short-circuit the template
 	// (root segment) or let the template apply the suffix (nested segments).
-	const suffixed = `${title} | TenantFlow`;
+	//
+	// Skip the suffix if the title already contains "TenantFlow" — e.g.
+	// `/contact` ("Contact TenantFlow Property Management Support") and
+	// `/compare` ("Compare TenantFlow to Other Property Management
+	// Software") would otherwise render `"... | TenantFlow"` with a
+	// duplicate brand token in OG/Twitter previews. The doc-title side
+	// has the same risk via `title.template`; those pages are renamed
+	// in this PR to drop the embedded "TenantFlow" so the suffix is
+	// additive everywhere.
+	const alreadyBranded = /TenantFlow/i.test(title);
+	const suffixed = alreadyBranded ? title : `${title} | TenantFlow`;
 
 	return {
 		title: absoluteTitle ? { absolute: suffixed } : title,
