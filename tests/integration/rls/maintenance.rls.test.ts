@@ -22,11 +22,6 @@ describe("Maintenance Requests RLS — cross-tenant isolation", () => {
 		ownerBId = userB!.id;
 	});
 
-	afterAll(async () => {
-		await clientA.auth.signOut();
-		await clientB.auth.signOut();
-	});
-
 	// ---------------------------------------------------------------------------
 	// SELECT isolation (existing tests)
 	// ---------------------------------------------------------------------------

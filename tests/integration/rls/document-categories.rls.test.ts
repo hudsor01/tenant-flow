@@ -84,8 +84,6 @@ describe("document_categories — owner isolation + slug validation", () => {
 		}
 		if (propertyA)
 			await clientA.from("properties").delete().eq("id", propertyA.id);
-		await clientA.auth.signOut();
-		await clientB.auth.signOut();
 	});
 
 	it("seeds the seven default slugs for every owner (lockstep with DEFAULT_CATEGORY_SLUGS)", async () => {

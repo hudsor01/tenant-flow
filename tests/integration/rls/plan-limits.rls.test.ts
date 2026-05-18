@@ -61,8 +61,6 @@ describe("Plan-limit enforcement triggers", () => {
 			.delete()
 			.like("name", `${PLAN_PROP_PREFIX}%`)
 			.eq("owner_user_id", ownerAId);
-
-		await clientA.auth.signOut();
 	});
 
 	const baseProperty = (name: string) => ({

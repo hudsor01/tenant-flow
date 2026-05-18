@@ -43,10 +43,6 @@ describe("get_funnel_stats — non-admin callers rejected", () => {
 		ownerClient = await createTestClient(ownerA.email, ownerA.password);
 	});
 
-	afterAll(async () => {
-		await ownerClient?.auth.signOut();
-	});
-
 	it("rejects authenticated non-admin OWNER with Unauthorized", async () => {
 		const { data, error } = await ownerClient.rpc("get_funnel_stats", {
 			p_from: new Date(Date.now() - 30 * 86_400_000).toISOString(),
@@ -115,7 +111,6 @@ describe.skipIf(skipReason)(
 				data: { user },
 			} = await ownerClient.auth.getUser();
 			ownerAId = user!.id;
-			await ownerClient.auth.signOut();
 
 			// Pre-cleanup: remove any funnel rows for this owner from prior runs so
 			// the happy-path assertions start from a known baseline. Trigger-driven
@@ -174,7 +169,6 @@ describe.skipIf(skipReason)(
 						.eq("step_name", k.step_name);
 				}
 			}
-			await adminClient?.auth.signOut();
 		});
 
 		it("returns 4-row steps array with valid aggregates on seeded cohort", async () => {

@@ -1,6 +1,5 @@
 "use client";
 
-import NumberFlow from "@number-flow/react";
 import { useMutation } from "@tanstack/react-query";
 import {
 	ArrowRight,
@@ -18,6 +17,7 @@ import { checkoutRateLimiter } from "#lib/security";
 import { createCheckoutSession } from "#lib/stripe/stripe-client";
 import { createClient } from "#lib/supabase/client";
 import { cn } from "#lib/utils";
+import { formatCurrency } from "#lib/utils/currency";
 import { OwnerSubscribeDialog } from "./owner-subscribe-dialog";
 
 const logger = createLogger({ component: "PricingCardFeatured" });
@@ -52,12 +52,6 @@ export function PricingCardFeatured({
 	billingCycle,
 	className,
 }: PricingCardFeaturedProps) {
-	// React Compiler bailout. MUST remain the first statement in the function
-	// body — a `const x = ...` line inserted above it silently disables the
-	// directive. NumberFlow 0.6.0 triggers a useMemo hook-count mismatch
-	// (React error #310) under the compiler's auto-memoization.
-	"use no memo";
-
 	const [subscribeDialogOpen, setSubscribeDialogOpen] = useState(false);
 
 	const subscriptionMutation = useMutation({
@@ -172,20 +166,13 @@ export function PricingCardFeatured({
 								${monthlyEquivalent}/mo
 							</div>
 						)}
-						{/* Session 11 P3 #33: tightened gap-2 → gap-1 and added
-						    `inline-flex` on NumberFlow so its animated digit
-						    spans share a line. At text-5xl the prior gap-2
-						    pushed `$` onto its own row on narrow viewports. */}
 						<div className="flex items-baseline justify-center gap-1 whitespace-nowrap">
-							<NumberFlow
-								className="text-5xl font-bold text-foreground inline-flex items-baseline whitespace-nowrap"
-								format={{
-									style: "currency",
-									currency: "USD",
+							<span className="text-5xl font-bold text-foreground inline-flex items-baseline whitespace-nowrap">
+								{formatCurrency(currentPrice, {
 									maximumFractionDigits: 0,
-								}}
-								value={currentPrice}
-							/>
+									minimumFractionDigits: 0,
+								})}
+							</span>
 							<span className="text-muted-foreground font-medium">/mo</span>
 						</div>
 						<p className="text-sm text-muted-foreground mt-1">

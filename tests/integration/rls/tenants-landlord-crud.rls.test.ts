@@ -38,8 +38,6 @@ describe("Tenants landlord-only CRUD (RLS)", () => {
 				// ignore
 			}
 		}
-		await clientA.auth.signOut();
-		await clientB.auth.signOut();
 	});
 
 	it("owner A can INSERT a landlord-managed tenant (no user_id)", async () => {

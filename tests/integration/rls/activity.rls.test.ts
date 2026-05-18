@@ -22,11 +22,6 @@ describe("Activity RLS — cross-tenant isolation", () => {
 		ownerBId = userB!.id;
 	});
 
-	afterAll(async () => {
-		await clientA.auth.signOut();
-		await clientB.auth.signOut();
-	});
-
 	// ---------------------------------------------------------------------------
 	// DB-01: activity.user_id NOT NULL + ON DELETE CASCADE
 	// ---------------------------------------------------------------------------

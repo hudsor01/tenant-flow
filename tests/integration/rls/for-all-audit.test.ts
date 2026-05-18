@@ -9,10 +9,6 @@ describe("FOR ALL policy audit — no FOR ALL policies on public/storage", () =>
 		client = await createTestClient(ownerA.email, ownerA.password);
 	});
 
-	afterAll(async () => {
-		await client.auth.signOut();
-	});
-
 	it("no FOR ALL policies exist for service_role on public or storage schemas", async () => {
 		// Use an RPC to query pg_policies (system catalog)
 		const { data, error } = await client.rpc("audit_for_all_policies", {

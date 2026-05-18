@@ -188,7 +188,6 @@ describe.skipIf(skipReason)("RLS non-empty smoke (v2.1 Phase 47)", () => {
 		if (seededUnitId) {
 			await serviceRoleClient.from("units").delete().eq("id", seededUnitId);
 		}
-		await ownerAClient.auth.signOut();
 	});
 
 	it("owner sees their seeded lease (blocks if RLS policy missing)", async () => {

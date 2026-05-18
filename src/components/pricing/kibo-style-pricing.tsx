@@ -1,6 +1,5 @@
 "use client";
 
-import NumberFlow from "@number-flow/react";
 import { useMutation } from "@tanstack/react-query";
 import { ArrowRight, BadgeCheck, Loader2 } from "lucide-react";
 import { useState } from "react";
@@ -22,6 +21,7 @@ import {
 	createCheckoutSession,
 	isUserAuthenticated,
 } from "#lib/stripe/stripe-client";
+import { formatCurrency } from "#lib/utils/currency";
 
 const logger = createLogger({ component: "KiboStylePricing" });
 
@@ -213,15 +213,12 @@ export function KiboStylePricing({
 									{typeof plan.price[frequency] === "number" ? (
 										<div className="space-y-1 text-left">
 											<div className="flex items-baseline gap-[var(--spacing-2)] text-left">
-												<NumberFlow
-													className="typography-h1 text-foreground"
-													format={{
-														style: "currency",
-														currency: "USD",
+												<span className="typography-h1 text-foreground">
+													{formatCurrency(plan.price[frequency] as number, {
 														maximumFractionDigits: 0,
-													}}
-													value={plan.price[frequency] as number}
-												/>
+														minimumFractionDigits: 0,
+													})}
+												</span>
 												<span className="typography-small uppercase tracking-wide text-muted-foreground">
 													/ {frequency}
 												</span>

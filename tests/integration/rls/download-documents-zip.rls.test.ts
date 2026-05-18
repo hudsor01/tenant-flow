@@ -174,8 +174,6 @@ describe("download-documents-zip Edge Function — owner isolation", () => {
 		}
 		if (propertyA)
 			await clientA.from("properties").delete().eq("id", propertyA.id);
-		await clientA.auth.signOut();
-		await clientB.auth.signOut();
 	});
 
 	it("ownerA can download a zip containing the sentinel doc", async (ctx) => {

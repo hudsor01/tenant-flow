@@ -9,10 +9,6 @@ describe("Error monitoring RPCs — access control", () => {
 		clientA = await createTestClient(ownerA.email, ownerA.password);
 	});
 
-	afterAll(async () => {
-		await clientA.auth.signOut();
-	});
-
 	it("rejects get_error_summary for non-admin user", async () => {
 		const { data, error } = await clientA.rpc("get_error_summary", {
 			hours_back: 24,

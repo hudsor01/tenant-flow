@@ -80,8 +80,6 @@ describe("Phase 66 category mutation RPCs", () => {
 		}
 		if (propertyA)
 			await clientA.from("properties").delete().eq("id", propertyA.id);
-		await clientA.auth.signOut();
-		await clientB.auth.signOut();
 	});
 
 	// Append a per-run suffix to slugs so re-runs against the same prod

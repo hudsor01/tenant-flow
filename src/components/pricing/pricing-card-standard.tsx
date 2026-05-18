@@ -1,6 +1,5 @@
 "use client";
 
-import NumberFlow from "@number-flow/react";
 import { useMutation } from "@tanstack/react-query";
 import {
 	ArrowRight,
@@ -18,6 +17,7 @@ import { checkoutRateLimiter } from "#lib/security";
 import { createCheckoutSession } from "#lib/stripe/stripe-client";
 import { createClient } from "#lib/supabase/client";
 import { cn } from "#lib/utils";
+import { formatCurrency } from "#lib/utils/currency";
 import { OwnerSubscribeDialog } from "./owner-subscribe-dialog";
 
 const logger = createLogger({ component: "PricingCardStandard" });
@@ -55,12 +55,6 @@ export function PricingCardStandard({
 	variant,
 	className,
 }: PricingCardStandardProps) {
-	// React Compiler bailout. MUST remain the first statement in the function
-	// body — a `const x = ...` line inserted above it silently disables the
-	// directive. NumberFlow 0.6.0 triggers a useMemo hook-count mismatch
-	// (React error #310) under the compiler's auto-memoization.
-	"use no memo";
-
 	const [subscribeDialogOpen, setSubscribeDialogOpen] = useState(false);
 	const [showAllFeatures, setShowAllFeatures] = useState(false);
 	const isEnterprise = variant === "enterprise";
@@ -175,15 +169,12 @@ export function PricingCardStandard({
 				    same line at narrow grid columns. */}
 				<div className="mb-6">
 					<div className="flex items-baseline gap-1 whitespace-nowrap">
-						<NumberFlow
-							className="text-3xl font-bold text-foreground"
-							format={{
-								style: "currency",
-								currency: "USD",
+						<span className="text-3xl font-bold text-foreground">
+							{formatCurrency(currentPrice, {
 								maximumFractionDigits: 0,
-							}}
-							value={currentPrice}
-						/>
+								minimumFractionDigits: 0,
+							})}
+						</span>
 						<span className="text-sm text-muted-foreground">/mo</span>
 					</div>
 					<p className="text-xs text-muted-foreground mt-1">

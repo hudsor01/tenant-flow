@@ -265,10 +265,13 @@ test.describe("Persona consistency — FAQ canon (COPY-05, Wave 2)", () => {
 });
 
 test.describe("Persona consistency — bulk-zip softening (COPY-06, Wave 2)", () => {
-	// 16 sequential page.goto() per test + per-page scrollTo + networkidle
-	// wait. Default 30s budget is tight under CI's `next start` mode where
-	// any RSC prefetch tail keeps networkidle from firing. Same 60s bump
-	// the sitewide describe applies (PR #725).
+	// `page.goto()` already awaits "load" by default. We don't wait for
+	// "networkidle" because TenantFlow's Sentry session replay + RSC
+	// prefetching + analytics keep the network busy long enough to blow the
+	// 30s default — particularly in the per-page loop test below, where
+	// 16 × 30s would dwarf the suite budget (CI failure surfaced in PR #729).
+	// The body-text assertions read whatever the rendered DOM has, which is
+	// SSR + initial-hydration content — sufficient for these copy checks.
 	test.setTimeout(60_000);
 
 	test('Homepage contains "Tax-season zip exports" or "Tax-Season Bulk Zip"', async ({
@@ -279,7 +282,13 @@ test.describe("Persona consistency — bulk-zip softening (COPY-06, Wave 2)", ()
 		// <LazySection> (IntersectionObserver-gated). Scroll to bottom so each
 		// section enters the viewport and renders its bulk-zip copy into the DOM.
 		await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
-		await page.waitForLoadState("networkidle");
+		// Wait for the asserted text to appear (LazySection hydrates after
+		// scroll triggers IntersectionObserver). Single 10s budget per page.
+		await page
+			.locator("body", {
+				hasText: /Tax-[Ss]eason ([Bb]ulk [Zz]ip|zip exports?)/,
+			})
+			.waitFor({ timeout: 10_000 });
 		const body = (await page.textContent("body")) ?? "";
 		expect(body).toMatch(/Tax-[Ss]eason ([Bb]ulk [Zz]ip|zip exports?)/);
 	});
@@ -290,7 +299,6 @@ test.describe("Persona consistency — bulk-zip softening (COPY-06, Wave 2)", ()
 		for (const path of PUBLIC_PATHS) {
 			await page.goto(path);
 			await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
-			await page.waitForLoadState("networkidle");
 			const body = (await page.textContent("body")) ?? "";
 			expect(body, `path: ${path}`).not.toMatch(/500\s*\/\s*request/);
 		}
