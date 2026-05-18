@@ -151,6 +151,25 @@ describe("createPageMetadata", () => {
 		expect(ogImages?.[0]?.alt).toBe("TenantFlow vs Buildium");
 	});
 
+	it("absoluteTitle + already-branded title: no duplicate brand in title.absolute", () => {
+		// Edge interaction: a hypothetical root-segment page whose title
+		// already contains "TenantFlow" should NOT double-brand. suffixed
+		// resolves to the bare title; title.absolute carries the bare
+		// title; doc title renders the bare brand mention without a
+		// trailing " | TenantFlow". Not exercised by any current caller
+		// but pinned so the guard interaction stays correct.
+		const result = createPageMetadata({
+			title: "TenantFlow vs Buildium",
+			description: "desc",
+			path: "/",
+			absoluteTitle: true,
+		});
+
+		expect(result.title).toEqual({ absolute: "TenantFlow vs Buildium" });
+		const og = result.openGraph as Record<string, unknown>;
+		expect(og.title).toBe("TenantFlow vs Buildium");
+	});
+
 	it("custom ogImage overrides default", () => {
 		const result = createPageMetadata({
 			title: "FAQ",

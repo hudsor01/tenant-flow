@@ -18,7 +18,7 @@ export const revalidate = 3600;
 export const metadata: Metadata = createPageMetadata({
 	title: "Property Management FAQ | Questions About Leases, Maintenance & More",
 	description:
-		"Answers to common landlord questions about lease management, the document vault, lease e-signing, maintenance tracking, and property administration. Get started with TenantFlow.",
+		"Answers to common landlord questions about lease management, the document vault, lease e-signing, maintenance tracking, and property management. Get started with TenantFlow.",
 	path: "/faq",
 });
 

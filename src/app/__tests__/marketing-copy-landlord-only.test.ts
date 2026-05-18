@@ -1,6 +1,6 @@
 /**
  * Marketing copy guard: tenant portal + rent-collection features were removed.
- * The product is now a landlord-only property administration SaaS.
+ * The product is now a landlord-only property management SaaS.
  *
  * This test scans marketing surfaces + every non-test file under `src/components/**`
  * for banned phrases that describe features that no longer exist (online rent

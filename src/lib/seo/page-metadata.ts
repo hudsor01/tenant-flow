@@ -52,16 +52,15 @@ export function createPageMetadata(config: PageMetadataConfig): Metadata {
 	// title, `absoluteTitle` decides whether to short-circuit the template
 	// (root segment) or let the template apply the suffix (nested segments).
 	//
-	// Skip the suffix if the title already contains "TenantFlow" — e.g.
-	// `/contact` ("Contact TenantFlow Property Management Support") and
-	// `/compare` ("Compare TenantFlow to Other Property Management
-	// Software") would otherwise render `"... | TenantFlow"` with a
-	// duplicate brand token in OG/Twitter previews. The doc-title side
-	// has the same risk via `title.template`; those pages are renamed
-	// in this PR to drop the embedded "TenantFlow" so the suffix is
-	// additive everywhere.
-	// Word-boundary match so a hypothetical title like "TenantFlowing" or
-	// "tenant-flow rivers" wouldn't accidentally suppress the suffix.
+	// Defense-in-depth: if a caller ever passes a title that already
+	// contains the brand token (e.g. an idiomatic "TenantFlow vs X"
+	// pattern), appending " | TenantFlow" would render a duplicate
+	// brand in OG/Twitter previews. No current caller hits this — the
+	// `compare/[competitor]` dynamic route uses raw `Metadata` rather
+	// than `createPageMetadata` — but the guard keeps the helper
+	// regression-proof against future additions. Word-boundary match
+	// so "TenantFlowing" or "tenant-flow rivers" wouldn't accidentally
+	// suppress the suffix.
 	const alreadyBranded = /\bTenantFlow\b/i.test(title);
 	const suffixed = alreadyBranded ? title : `${title} | TenantFlow`;
 
