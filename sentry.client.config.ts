@@ -2,7 +2,8 @@
  * Sentry Client Configuration
  *
  * Configures Sentry for browser-side error tracking and performance monitoring.
- * Includes: Web Vitals, Session Replay, Network Requests, Assets
+ * Includes: Web Vitals (INP), Network Requests, User Feedback.
+ * Session Replay is intentionally disabled — see comment below.
  */
 import * as Sentry from "@sentry/nextjs";
 
@@ -20,7 +21,7 @@ Sentry.init({
 	// and buffers events in IndexedDB. With maskAllText/Inputs the
 	// per-mutation cost climbs further. Long browser sessions (~2h+) on
 	// pages with continuous animation (gradients, marketing hero) trip
-	// Chrome 148's PartitionAlloc `av_size` CHECK and crash the
+	// Chrome 148's PartitionAlloc `va_size` CHECK and crash the
 	// renderer (live user crash logs, 2026-05-18). Replay was sampled
 	// at 10% prod, so most users never noticed — but the ones who did
 	// got a hard tab kill. We keep traces + INP + browser-API
