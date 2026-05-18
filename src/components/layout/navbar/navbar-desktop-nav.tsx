@@ -84,7 +84,7 @@ export function NavbarDesktopNav({
 	};
 
 	return (
-		<div className="hidden md:flex items-center gap-1">
+		<div className="hidden lg:flex items-center gap-1">
 			{navItems.map((item) => (
 				<div
 					key={item.name}
