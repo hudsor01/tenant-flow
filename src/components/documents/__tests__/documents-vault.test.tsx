@@ -194,7 +194,7 @@ describe("DocumentsVaultClient", () => {
 			isError: false,
 		});
 		renderVault();
-		expect(screen.getByText("Documents vault")).toBeInTheDocument();
+		expect(screen.getByText("Document Vault")).toBeInTheDocument();
 		expect(screen.getByLabelText(/search documents/i)).toBeInTheDocument();
 		expect(screen.getByLabelText(/filter by entity type/i)).toBeInTheDocument();
 	});
