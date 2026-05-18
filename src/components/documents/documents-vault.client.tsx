@@ -378,7 +378,7 @@ export function DocumentsVaultClient() {
 			<div className="flex items-center gap-3">
 				<FolderArchive className="size-8 text-primary" />
 				<div>
-					<h1 className="typography-h2">Documents vault</h1>
+					<h1 className="typography-h2">Document Vault</h1>
 					<p className="text-muted-foreground">
 						Every PDF or image attached to your portfolio, in one place.
 					</p>
