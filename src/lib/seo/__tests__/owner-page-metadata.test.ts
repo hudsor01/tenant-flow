@@ -1,31 +1,37 @@
 /**
  * ownerPageMetadata helper tests.
  *
- * Pins the contract added in PR #725 (cycle-1 review of P1 og:title
- * template) and PR #726 (Session 13 P2 — bake the " | TenantFlow"
- * suffix into the helper output so deep (owner) sub-route layouts
- * get the full title without depending on parent template merge,
- * which intermediate layouts clobber via shallow merge).
+ * Pins the canonical contract after PR #727 (Session 14 P1 fix):
+ * the " | TenantFlow" suffix is baked into ALL THREE title fields
+ * (document title, openGraph.title, twitter.title) directly by the
+ * helper. The parent (owner)/layout.tsx no longer sets any title
+ * template, so there's no propagation/double-application surface.
+ *
+ * History of the rule changes that landed here:
+ *   - PR #724/#725 relied on Next.js title.template propagation
+ *     from the (owner) parent. Broke on deep leaves (intermediate
+ *     shallow-merge clobbered the openGraph object) and required
+ *     the helper to bake suffix only into og/twitter (PR #726).
+ *   - PR #726's bake created a double-suffix on direct children of
+ *     (owner) because the parent template still applied to the
+ *     already-suffixed child string. And the document title still
+ *     missed deep leaves because Next.js title.template only
+ *     propagates one level (intermediate plain-string titles don't
+ *     re-export it).
+ *   - PR #727 removes templates entirely and bakes into all three
+ *     fields. Tests here pin that.
  */
 
 import { describe, expect, it } from "vitest";
 import { ownerPageMetadata } from "../owner-page-metadata";
 
 describe("ownerPageMetadata", () => {
-	it("sets the plain page title on the document title field", () => {
-		// The root `(owner)/layout.tsx` declares `title.template = "%s | TenantFlow"`,
-		// which Next.js handles specially for top-level `title` — it propagates
-		// across the metadata merge. So child layouts pass just the page name.
+	it("bakes ' | TenantFlow' suffix into the document title", () => {
 		const meta = ownerPageMetadata("Income Statement");
-		expect(meta.title).toBe("Income Statement");
+		expect(meta.title).toBe("Income Statement | TenantFlow");
 	});
 
 	it("bakes ' | TenantFlow' suffix into openGraph.title and twitter.title", () => {
-		// PR #726 P2 fix: intermediate layouts setting `openGraph: { title: "X" }`
-		// shallow-replace the parent's entire openGraph object, including its
-		// title.template. The helper now writes a complete ogTitle string so
-		// deep leaves don't depend on template propagation working through
-		// shallow merge.
 		const meta = ownerPageMetadata("Income Statement");
 		expect(meta.openGraph).toMatchObject({
 			title: "Income Statement | TenantFlow",
@@ -33,6 +39,16 @@ describe("ownerPageMetadata", () => {
 		expect(meta.twitter).toMatchObject({
 			title: "Income Statement | TenantFlow",
 		});
+	});
+
+	it("produces the SAME suffixed title across all three fields (no drift)", () => {
+		// Regression guard against the PR #726 era where doc title was
+		// plain and og/twitter were suffixed (different sources of truth).
+		const meta = ownerPageMetadata("Dashboard");
+		const og = meta.openGraph as { title?: unknown };
+		const tw = meta.twitter as { title?: unknown };
+		expect(meta.title).toBe(og.title);
+		expect(meta.title).toBe(tw.title);
 	});
 
 	it("omits description fields entirely when no description arg is provided", () => {
@@ -67,7 +83,7 @@ describe("ownerPageMetadata", () => {
 		// Guards against future regression if someone tries to template-substitute
 		// inside the title string. The helper does plain concatenation.
 		const meta = ownerPageMetadata("Tax & Compliance");
-		expect(meta.title).toBe("Tax & Compliance");
+		expect(meta.title).toBe("Tax & Compliance | TenantFlow");
 		expect(meta.openGraph).toMatchObject({
 			title: "Tax & Compliance | TenantFlow",
 		});
