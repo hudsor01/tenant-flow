@@ -60,7 +60,9 @@ export function createPageMetadata(config: PageMetadataConfig): Metadata {
 	// has the same risk via `title.template`; those pages are renamed
 	// in this PR to drop the embedded "TenantFlow" so the suffix is
 	// additive everywhere.
-	const alreadyBranded = /TenantFlow/i.test(title);
+	// Word-boundary match so a hypothetical title like "TenantFlowing" or
+	// "tenant-flow rivers" wouldn't accidentally suppress the suffix.
+	const alreadyBranded = /\bTenantFlow\b/i.test(title);
 	const suffixed = alreadyBranded ? title : `${title} | TenantFlow`;
 
 	return {
