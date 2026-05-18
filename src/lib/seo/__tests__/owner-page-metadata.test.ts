@@ -1,34 +1,57 @@
 /**
  * ownerPageMetadata helper tests.
  *
- * Pins the canonical contract after PR #727 (Session 14 P1 fix):
- * the " | TenantFlow" suffix is baked into ALL THREE title fields
- * (document title, openGraph.title, twitter.title) directly by the
- * helper. The parent (owner)/layout.tsx no longer sets any title
- * template, so there's no propagation/double-application surface.
+ * Pins the canonical contract after PR #727 cycle-1 review:
+ *   - meta.title is `{ absolute: "X | TenantFlow" }`. The `.absolute`
+ *     form opts out of every ancestor title.template — required
+ *     because the ROOT app/layout (via generateSiteMetadata) still
+ *     has `title.template = "%s | TenantFlow"`, which would
+ *     otherwise apply to a plain-string child title and produce
+ *     "X | TenantFlow | TenantFlow" in the browser tab.
+ *   - openGraph.title and twitter.title are plain strings. (owner)/
+ *     layout.tsx no longer sets openGraph.title.template or
+ *     twitter.title.template, and no ancestor template exists for
+ *     those fields, so the plain string is what users see.
  *
- * History of the rule changes that landed here:
- *   - PR #724/#725 relied on Next.js title.template propagation
- *     from the (owner) parent. Broke on deep leaves (intermediate
- *     shallow-merge clobbered the openGraph object) and required
- *     the helper to bake suffix only into og/twitter (PR #726).
- *   - PR #726's bake created a double-suffix on direct children of
- *     (owner) because the parent template still applied to the
- *     already-suffixed child string. And the document title still
- *     missed deep leaves because Next.js title.template only
- *     propagates one level (intermediate plain-string titles don't
- *     re-export it).
- *   - PR #727 removes templates entirely and bakes into all three
- *     fields. Tests here pin that.
+ * History:
+ *   - PR #724/#725: relied on title.template propagation. Broke
+ *     on deep leaves.
+ *   - PR #726: baked suffix into og/twitter only. Created double-
+ *     suffix on direct children of (owner) (parent template applied
+ *     to already-suffixed string) and still missed doc-title suffix
+ *     on deep leaves.
+ *   - PR #727 (this): removed (owner)'s openGraph/twitter templates;
+ *     baked suffix into all 3 fields; uses title.absolute to opt
+ *     out of the root title.template that still applies to the
+ *     document <title>.
  */
 
 import { describe, expect, it } from "vitest";
 import { ownerPageMetadata } from "../owner-page-metadata";
 
+// Narrow accessor for the title.absolute form. Next.js's Metadata
+// type is intentionally loose; this helper hides the cast surface.
+function readDocTitle(title: unknown): string | undefined {
+	if (typeof title === "string") return title;
+	if (title && typeof title === "object" && "absolute" in title) {
+		const candidate = (title as { absolute?: unknown }).absolute;
+		return typeof candidate === "string" ? candidate : undefined;
+	}
+	return undefined;
+}
+
 describe("ownerPageMetadata", () => {
-	it("bakes ' | TenantFlow' suffix into the document title", () => {
+	it("bakes ' | TenantFlow' suffix into the document title (via title.absolute)", () => {
 		const meta = ownerPageMetadata("Income Statement");
-		expect(meta.title).toBe("Income Statement | TenantFlow");
+		expect(readDocTitle(meta.title)).toBe("Income Statement | TenantFlow");
+	});
+
+	it("uses title.absolute form (opts out of ancestor title.template)", () => {
+		// Regression guard: PR #727 cycle-1 review caught that a
+		// plain-string `title` lets the ROOT app/layout title.template
+		// apply on top, producing a double-suffix. .absolute opts out.
+		const meta = ownerPageMetadata("Dashboard");
+		expect(meta.title).toEqual({ absolute: "Dashboard | TenantFlow" });
 	});
 
 	it("bakes ' | TenantFlow' suffix into openGraph.title and twitter.title", () => {
@@ -47,8 +70,8 @@ describe("ownerPageMetadata", () => {
 		const meta = ownerPageMetadata("Dashboard");
 		const og = meta.openGraph as { title?: unknown };
 		const tw = meta.twitter as { title?: unknown };
-		expect(meta.title).toBe(og.title);
-		expect(meta.title).toBe(tw.title);
+		expect(readDocTitle(meta.title)).toBe(og.title);
+		expect(readDocTitle(meta.title)).toBe(tw.title);
 	});
 
 	it("omits description fields entirely when no description arg is provided", () => {
@@ -83,7 +106,7 @@ describe("ownerPageMetadata", () => {
 		// Guards against future regression if someone tries to template-substitute
 		// inside the title string. The helper does plain concatenation.
 		const meta = ownerPageMetadata("Tax & Compliance");
-		expect(meta.title).toBe("Tax & Compliance | TenantFlow");
+		expect(readDocTitle(meta.title)).toBe("Tax & Compliance | TenantFlow");
 		expect(meta.openGraph).toMatchObject({
 			title: "Tax & Compliance | TenantFlow",
 		});

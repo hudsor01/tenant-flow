@@ -54,7 +54,18 @@ export function ownerPageMetadata(
 	const suffixed = `${title}${TITLE_SUFFIX}`;
 	const descPart = description ? { description } : {};
 	return {
-		title: suffixed,
+		// `title.absolute` opts out of every ancestor `title.template` —
+		// critical here because the ROOT app/layout (via
+		// generateSiteMetadata) still has `title.template = "%s | TenantFlow"`.
+		// PR #727 cycle-1 review caught that a plain-string `title: suffixed`
+		// would let the root template apply on top, producing
+		// "Dashboard | TenantFlow | TenantFlow" on every direct-child route.
+		// openGraph + twitter title fields are plain strings — neither has
+		// a remaining ancestor template now that (owner)/layout.tsx removed
+		// its own openGraph.title.template + twitter.title.template, so
+		// they don't need .absolute. Same suffix, same value across all
+		// three fields — pinned by the lockstep test.
+		title: { absolute: suffixed },
 		...descPart,
 		openGraph: { title: suffixed, ...descPart },
 		twitter: { title: suffixed, ...descPart },
