@@ -57,10 +57,13 @@ export function NewsletterSignup({ className }: NewsletterSignupProps) {
 		>
 			<div className="flex items-center gap-2">
 				<Mail className="h-5 w-5 text-primary" />
-				<h3 className="text-sm font-semibold">Stay updated</h3>
+				<h3 className="text-sm font-semibold">
+					Get the landlord operations guide
+				</h3>
 			</div>
 			<p className="text-sm text-muted-foreground">
-				Get the latest property management tips delivered to your inbox.
+				Monthly tips on leases, maintenance, and tax season — written for
+				independent landlords.
 			</p>
 			<form
 				onSubmit={handleSubmit}

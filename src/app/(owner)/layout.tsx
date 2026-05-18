@@ -6,25 +6,38 @@ import ModalLayout from "#components/layout/modal-layout";
 import { OwnerDashboardLayout } from "./owner-dashboard-layout";
 
 // Auth-walled. Block search engines from indexing dashboard pages even
-// if they bypass robots.txt or follow internal links. Also override
-// openGraph/twitter so shared dashboard URLs don't preview as the
-// marketing homepage default (Session 11 P2 #21).
+// if they bypass robots.txt or follow internal links.
 //
-// Session 12 P3: use Next.js metadata title templates so per-route
-// sub-layouts (analytics/*, financials/*, maintenance/new, etc.)
-// flow their `title` into og:title and twitter:title automatically.
-// The literal "TenantFlow Dashboard" fallback only fires if a child
-// route doesn't set its own title.
+// Session 14 (PR #727) removed the previous
+// `openGraph.title.template` / `twitter.title.template` from this
+// layout. Those local templates caused PR #726's helper-baked suffix
+// to be applied twice on direct children of (owner) (parent template
+// applied to the already-suffixed child string → "X | TenantFlow |
+// TenantFlow"). With them gone, the helper's plain-string output is
+// what users see in shared-link previews.
+//
+// The ROOT app/layout (generateSiteMetadata) still has
+// `title.template = "%s | TenantFlow"` for the document <title> tag,
+// which is used by /pricing, /blog, /compare/*, etc. — most owner
+// routes use ownerPageMetadata which writes `title.absolute` to opt
+// out of that root template (the suffix is already baked in).
+//
+// The `"TenantFlow Dashboard"` strings below are fallbacks for the
+// theoretical case of an owner route that doesn't set its own
+// metadata. Most routes call ownerPageMetadata; a few set
+// `metadata: { title: "..." }` directly with a plain string and
+// inherit the root title.template — those routes correctly receive
+// the suffix via the root, not via the (owner) layer.
 export const metadata: Metadata = {
 	robots: { index: false, follow: false },
 	openGraph: {
-		title: { template: "%s | TenantFlow", default: "TenantFlow Dashboard" },
+		title: "TenantFlow Dashboard",
 		description: "Authenticated TenantFlow app — landlord dashboard.",
 		images: [],
 	},
 	twitter: {
 		card: "summary",
-		title: { template: "%s | TenantFlow", default: "TenantFlow Dashboard" },
+		title: "TenantFlow Dashboard",
 		description: "Authenticated TenantFlow app — landlord dashboard.",
 	},
 };
