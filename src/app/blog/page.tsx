@@ -48,6 +48,14 @@ export async function generateMetadata({
 	// stays accessible for RSS, direct links, and the sitemap; we just
 	// stop advertising it to crawlers until the first article cohort
 	// lands.
+	//
+	// Note: this is a second DB round-trip per request (the body
+	// `BlogPage` separately fetches its own `count` via
+	// `{ count: "exact" }` on the posts query). On a fully-populated
+	// blog the duplicate cost is negligible; the alternative is
+	// hoisting a shared `cache()`-wrapped count, which trades clarity
+	// for the saved round-trip. Accepted as-is until the count is
+	// measured as actually expensive.
 	const supabase = await createClient();
 	const { count, error: countError } = await supabase
 		.from("blogs")

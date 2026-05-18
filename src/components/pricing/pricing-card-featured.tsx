@@ -163,7 +163,11 @@ export function PricingCardFeatured({
 					<div className="text-center mb-6">
 						{billingCycle === "yearly" && (
 							<div className="text-muted-foreground line-through text-lg mb-1">
-								${monthlyEquivalent}/mo
+								{formatCurrency(monthlyEquivalent, {
+									maximumFractionDigits: 0,
+									minimumFractionDigits: 0,
+								})}
+								/mo
 							</div>
 						)}
 						<div className="flex items-baseline justify-center gap-1 whitespace-nowrap">

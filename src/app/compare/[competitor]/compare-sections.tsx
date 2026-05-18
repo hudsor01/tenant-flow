@@ -201,31 +201,29 @@ export function WhySwitchSection({ data }: { data: CompetitorData }) {
 // competitor. Reintroduce the prop when restoring the deeper-dive CTA.
 export function BottomCta() {
 	return (
-		<>
-			<section className="section-spacing">
-				<div className="max-w-3xl mx-auto px-6 lg:px-8 text-center">
-					<div className="p-10 bg-linear-to-br from-primary/10 via-primary/5 to-transparent border border-primary/20 rounded-2xl">
-						<h2 className="text-3xl font-bold text-foreground mb-4">
-							Ready to make the switch?
-						</h2>
-						<p className="text-lg text-muted-foreground mb-8">
-							Manage your rentals with the document vault, lease e-sign, and
-							reports built for landlords. Start your 14-day free trial today.
-						</p>
-						<div className="flex flex-col sm:flex-row gap-4 justify-center">
-							<Button size="lg" className="px-8" asChild>
-								<Link href="/pricing">
-									Start Free Trial
-									<ArrowRight className="size-5 ml-2" />
-								</Link>
-							</Button>
-							<Button size="lg" variant="outline" asChild>
-								<Link href="/compare">See All Comparisons</Link>
-							</Button>
-						</div>
+		<section className="section-spacing">
+			<div className="max-w-3xl mx-auto px-6 lg:px-8 text-center">
+				<div className="p-10 bg-linear-to-br from-primary/10 via-primary/5 to-transparent border border-primary/20 rounded-2xl">
+					<h2 className="text-3xl font-bold text-foreground mb-4">
+						Ready to make the switch?
+					</h2>
+					<p className="text-lg text-muted-foreground mb-8">
+						Manage your rentals with the document vault, lease e-sign, and
+						reports built for landlords. Start your 14-day free trial today.
+					</p>
+					<div className="flex flex-col sm:flex-row gap-4 justify-center">
+						<Button size="lg" className="px-8" asChild>
+							<Link href="/pricing">
+								Start Free Trial
+								<ArrowRight className="size-5 ml-2" />
+							</Link>
+						</Button>
+						<Button size="lg" variant="outline" asChild>
+							<Link href="/compare">See All Comparisons</Link>
+						</Button>
 					</div>
 				</div>
-			</section>
-		</>
+			</div>
+		</section>
 	);
 }
