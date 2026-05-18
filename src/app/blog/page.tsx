@@ -40,12 +40,42 @@ export async function generateMetadata({
 }: BlogPageProps): Promise<Metadata> {
 	const params = await searchParams;
 	const page = Number(params.page) || 1;
+
+	// Soft-404 guard: when zero posts are published, the page is a
+	// content-empty placeholder. Don't invite indexing of the empty
+	// state — Google reads the title/description as a content promise
+	// the body can't deliver. AUDIT-2 cycle-2 finding. The page itself
+	// stays accessible for RSS, direct links, and the sitemap; we just
+	// stop advertising it to crawlers until the first article cohort
+	// lands.
+	//
+	// Note: this is a second DB round-trip per request (the body
+	// `BlogPage` separately fetches its own `count` via
+	// `{ count: "exact" }` on the posts query). On a fully-populated
+	// blog the duplicate cost is negligible; the alternative is
+	// hoisting a shared `cache()`-wrapped count, which trades clarity
+	// for the saved round-trip. Accepted as-is until the count is
+	// measured as actually expensive.
+	const supabase = await createClient();
+	const { count, error: countError } = await supabase
+		.from("blogs")
+		.select("id", { count: "exact", head: true })
+		.eq("status", "published");
+	if (countError) {
+		Sentry.captureException(countError, {
+			tags: { surface: "blog-index-metadata" },
+		});
+		// Fall through with `count` undefined — `(count ?? 0) === 0`
+		// fails closed to noindex, which is the safer SEO posture when
+		// we can't confirm whether content exists.
+	}
+
 	return createPageMetadata({
 		title: "Property Management Blog — Tips for Independent Landlords",
 		description:
 			"Operational guides for independent landlords: leases, maintenance, tax season, and the document vault.",
 		path: "/blog",
-		noindex: page > 1,
+		noindex: page > 1 || (count ?? 0) === 0,
 	});
 }
 
@@ -178,7 +208,7 @@ export default async function BlogPage({ searchParams }: BlogPageProps) {
 				<div className="mx-auto max-w-6xl px-6 lg:px-8">
 					<h2 className="mb-6 text-2xl font-bold">Insights &amp; Guides</h2>
 					{posts.length === 0 ? (
-						<BlogEmptyState message="More posts coming soon." />
+						<BlogEmptyState message="New articles appear here as we write them. Subscribe below to follow along." />
 					) : (
 						<>
 							<div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">

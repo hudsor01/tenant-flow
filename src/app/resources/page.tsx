@@ -1,6 +1,5 @@
 import {
 	ArrowRight,
-	BookOpen,
 	ClipboardCheck,
 	Download,
 	HelpCircle,
@@ -35,15 +34,8 @@ const mainResources = [
 		color: "bg-muted border-border",
 		iconColor: "text-muted-foreground",
 	},
-	{
-		icon: <BookOpen className="size-8" />,
-		title: "Blog",
-		description:
-			"Property management workflow notes from the team, posted as we ship.",
-		href: "/blog",
-		color: "bg-primary/10 border-primary/20",
-		iconColor: "text-primary",
-	},
+	// Blog tile removed in lockstep with the nav/footer deprioritization
+	// (AUDIT-2 cycle-1). Restore once the first article cohort publishes.
 	{
 		icon: <MessageCircle className="size-8" />,
 		title: "FAQ",
@@ -125,11 +117,11 @@ export default function ResourcesPage() {
 							Resource Center
 						</h2>
 						<p className="text-muted-foreground text-lg">
-							Help, FAQ, blog, and direct support
+							Help, FAQ, and direct support
 						</p>
 					</div>
 
-					<div className="grid md:grid-cols-2 gap-8">
+					<div className="grid md:grid-cols-3 gap-8">
 						{mainResources.map((resource) => (
 							<Link
 								key={resource.title}

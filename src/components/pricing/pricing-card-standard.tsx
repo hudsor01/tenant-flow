@@ -177,14 +177,33 @@ export function PricingCardStandard({
 						</span>
 						<span className="text-sm text-muted-foreground">/mo</span>
 					</div>
+					{/* AUDIT-2 P2 (2026-05-18): show the explicit annual total
+					    ($X/year) alongside the per-month-equivalent. The yearly
+					    per-month rate is stored as `annual/12` (e.g. $15.83 for
+					    Starter) and rendered via `formatCurrency({ maximumFractionDigits:
+					    0 })` which rounds to `$16/mo`. Without `($190/year)` next
+					    to it, "$16/mo" + "Save $38/year" reads as $16 × 12 = $192,
+					    which doesn't match the canonical $190 — the savings + the
+					    displayed monthly rate become arithmetically inconsistent.
+					    The featured card has shipped this format since PR #725;
+					    standard now matches. */}
 					<p className="text-xs text-muted-foreground mt-1">
-						{billingCycle === "yearly" ? `Billed annually` : "Billed monthly"}
+						{billingCycle === "yearly"
+							? `Billed annually (${formatCurrency(plan.annualTotal, { maximumFractionDigits: 0, minimumFractionDigits: 0 })}/year)`
+							: "Billed monthly"}
 					</p>
 					{/* CONS-10: per-card savings — monthly × 2 (2 months free
-					    on annual). Phase 5 math: Starter $38 / Max $298. */}
+					    on annual). Phase 5 math: Starter $38 / Max $298.
+					    formatCurrency so 4-digit savings render with thousands
+					    separator (AUDIT-2 cycle-2 P3). */}
 					{billingCycle === "yearly" && plan.price.monthly > 0 && (
 						<p className="text-xs font-semibold text-success mt-1">
-							Save ${plan.price.monthly * 2}/year
+							Save{" "}
+							{formatCurrency(plan.price.monthly * 2, {
+								maximumFractionDigits: 0,
+								minimumFractionDigits: 0,
+							})}
+							/year
 						</p>
 					)}
 				</div>

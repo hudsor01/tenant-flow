@@ -205,7 +205,7 @@ export default async function ComparePage({ params }: PageProps) {
 				slugs={[data.blogSlug]}
 				title="Read the Full Comparison"
 			/>
-			<BottomCta data={data} />
+			<BottomCta />
 			<StickyConversionCta
 				secondaryHref="#comparison"
 				secondaryLabel="See comparison"

@@ -163,7 +163,11 @@ export function PricingCardFeatured({
 					<div className="text-center mb-6">
 						{billingCycle === "yearly" && (
 							<div className="text-muted-foreground line-through text-lg mb-1">
-								${monthlyEquivalent}/mo
+								{formatCurrency(monthlyEquivalent, {
+									maximumFractionDigits: 0,
+									minimumFractionDigits: 0,
+								})}
+								/mo
 							</div>
 						)}
 						<div className="flex items-baseline justify-center gap-1 whitespace-nowrap">
@@ -177,14 +181,21 @@ export function PricingCardFeatured({
 						</div>
 						<p className="text-sm text-muted-foreground mt-1">
 							{billingCycle === "yearly"
-								? `Billed annually ($${plan.annualTotal}/year)`
+								? `Billed annually (${formatCurrency(plan.annualTotal, { maximumFractionDigits: 0, minimumFractionDigits: 0 })}/year)`
 								: "Billed monthly"}
 						</p>
 						{/* CONS-10: per-card savings — monthly × 2 (2 months free
-						    on annual). Phase 5 math: Growth $98. */}
+						    on annual). Phase 5 math: Growth $98. formatCurrency
+						    so future tiers crossing $1000 annual savings render
+						    with thousands separator (AUDIT-2 cycle-2 P3). */}
 						{billingCycle === "yearly" && plan.price.monthly > 0 && (
 							<p className="text-sm font-semibold text-success mt-1">
-								Save ${plan.price.monthly * 2}/year
+								Save{" "}
+								{formatCurrency(plan.price.monthly * 2, {
+									maximumFractionDigits: 0,
+									minimumFractionDigits: 0,
+								})}
+								/year
 							</p>
 						)}
 					</div>

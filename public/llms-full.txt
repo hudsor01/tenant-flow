@@ -52,9 +52,9 @@ RentRedi competes on tenant-facing features — rent payment collection, tenant 
 - **Landlord tax deduction tracker** — spreadsheet keyed to IRS schedules with auto-totaled categories.
 - **Security deposit reference card** — one-page summary of deposit limits, return deadlines, and required documentation per state.
 
-## Blog topics
+## Blog
 
-The TenantFlow blog publishes guides on screening prospective tenants, lease lifecycle, maintenance operations, landlord taxes, security deposit handling, eviction process, software comparisons, and property management workflow tips. RSS feed: https://tenantflow.app/feed.xml.
+The blog at https://tenantflow.app/blog is reserved for long-form articles on landlord operations and property management software. No articles have published yet; the RSS feed at https://tenantflow.app/feed.xml is live and returns an empty channel until the first post ships.
 
 ## Company
 

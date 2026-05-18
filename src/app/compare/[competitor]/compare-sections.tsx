@@ -194,50 +194,36 @@ export function WhySwitchSection({ data }: { data: CompetitorData }) {
 	);
 }
 
-export function BottomCta({ data }: { data: CompetitorData }) {
+// `data` prop dropped here in AUDIT-2 cycle-2: the deeper-dive blog
+// CTA that consumed `data.blogSlug` + `data.name` was removed pending
+// publication of the comparison post cohort, and nothing in the
+// remaining "Ready to make the switch?" block references the
+// competitor. Reintroduce the prop when restoring the deeper-dive CTA.
+export function BottomCta() {
 	return (
-		<>
-			<section className="py-12">
-				<div className="max-w-4xl mx-auto px-6 lg:px-8 text-center">
-					<p className="text-sm text-muted-foreground mb-2">
-						Want a deeper dive?
+		<section className="section-spacing">
+			<div className="max-w-3xl mx-auto px-6 lg:px-8 text-center">
+				<div className="p-10 bg-linear-to-br from-primary/10 via-primary/5 to-transparent border border-primary/20 rounded-2xl">
+					<h2 className="text-3xl font-bold text-foreground mb-4">
+						Ready to make the switch?
+					</h2>
+					<p className="text-lg text-muted-foreground mb-8">
+						Manage your rentals with the document vault, lease e-sign, and
+						reports built for landlords. Start your 14-day free trial today.
 					</p>
-					<Link
-						href={`/blog/${data.blogSlug}`}
-						className="text-primary hover:text-primary/80 font-medium transition-colors"
-					>
-						Read our full TenantFlow vs {data.name} comparison article
-						<ArrowRight className="inline size-4 ml-1" />
-					</Link>
-				</div>
-			</section>
-
-			<section className="section-spacing">
-				<div className="max-w-3xl mx-auto px-6 lg:px-8 text-center">
-					<div className="p-10 bg-linear-to-br from-primary/10 via-primary/5 to-transparent border border-primary/20 rounded-2xl">
-						<h2 className="text-3xl font-bold text-foreground mb-4">
-							Ready to make the switch?
-						</h2>
-						<p className="text-lg text-muted-foreground mb-8">
-							Manage your rentals with the document vault, lease e-sign, and
-							reports built for landlords. Start your 14-day free trial today.
-						</p>
-						<div className="flex flex-col sm:flex-row gap-4 justify-center">
-							<Button size="lg" className="px-8" asChild>
-								<Link href="/pricing">
-									Start Free Trial
-									<ArrowRight className="size-5 ml-2" />
-								</Link>
-							</Button>
-							<Button size="lg" variant="outline" asChild>
-								<Link href="/blog/best-property-management-software-2025-comparison">
-									See All Comparisons
-								</Link>
-							</Button>
-						</div>
+					<div className="flex flex-col sm:flex-row gap-4 justify-center">
+						<Button size="lg" className="px-8" asChild>
+							<Link href="/pricing">
+								Start Free Trial
+								<ArrowRight className="size-5 ml-2" />
+							</Link>
+						</Button>
+						<Button size="lg" variant="outline" asChild>
+							<Link href="/compare">See All Comparisons</Link>
+						</Button>
 					</div>
 				</div>
-			</section>
-		</>
+			</div>
+		</section>
 	);
 }

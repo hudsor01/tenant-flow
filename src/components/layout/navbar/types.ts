@@ -23,8 +23,13 @@ export const DEFAULT_NAV_ITEMS: NavItem[] = [
 		name: "Resources",
 		href: "/resources",
 		hasDropdown: true,
+		// Blog deferred from the global nav until the first cohort of
+		// articles publishes (AUDIT-2, 2026-05-18). The empty-state
+		// placeholder was leaking through to paid-ad traffic via this
+		// dropdown + the footer. The /blog URL remains accessible for
+		// direct visits, RSS, and crawlers; it just isn't promoted
+		// anywhere in chrome until content lands.
 		dropdownItems: [
-			{ name: "Blog", href: "/blog" },
 			{ name: "Free Resources", href: "/resources" },
 			{ name: "Help Center", href: "/help" },
 			{ name: "FAQ", href: "/faq" },
