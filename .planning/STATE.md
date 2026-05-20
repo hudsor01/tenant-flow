@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: verifying
-last_updated: "2026-05-14T19:59:30.000Z"
-last_activity: 2026-05-14
+status: completed
+last_updated: "2026-05-20T20:18:59.767Z"
+last_activity: 2026-05-20 -- Plan 07-01 complete (pricing-card-featured regression pins)
 progress:
   total_phases: 14
-  completed_phases: 4
-  total_plans: 17
-  completed_plans: 12
-  percent: 70
+  completed_phases: 5
+  total_plans: 19
+  completed_plans: 15
+  percent: 79
 ---
 
 # Project State
@@ -20,14 +20,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-08)
 
 **Core value:** Every public claim on tenantflow.app must map to working code, and every visual must align to canonical design tokens in `src/app/globals.css`.
-**Current focus:** Phase --phase — 1
+**Current focus:** Phase --phase — 07
 
 ## Current Position
 
-Phase: 3 (Routing & Legal-URL Aliases) — EXECUTING
-Plan: 01 of 01 — Tasks 1-3 committed (next.config.ts redirects, proxy.ts PUBLIC_ROUTES, e2e spec). Task 4 (post-deploy curl verification) awaits human verification after Vercel deploy.
-Status: Phase complete — ready for verification
-Last activity: 2026-05-14
+Phase: 07 (pricing-card-chrome) — EXECUTING
+Plan: 1 of 2 complete
+Status: Plan 07-01 complete; 07-02 pending
+Last activity: 2026-05-20 -- Plan 07-01 complete (pricing-card-featured regression pins)
 
 Progress: [███████░░░] 65%
 
@@ -57,6 +57,7 @@ Progress: [███████░░░] 65%
 | Phase 14 P02 | ~3min | 1 task | 2 files |
 | Phase 14 P03 | ~3min | 1 task | 2 files |
 | Phase 14 P04 | ~4min | 1 task | 2 files |
+| Phase 07 P01 | 8min | 1 tasks | 1 files |
 
 ## Locked Decisions (see PROJECT.md Key Decisions for full table)
 
@@ -87,9 +88,9 @@ None.
 
 ## Next Action
 
-Plan Phase 14 via `/gsd-plan-phase 14`.
+Execute Phase 7 Plan 02 (`07-02-PLAN.md`) — Standard-card CONS-09/10 + calculateAnnualSavings regression pins.
 
 ---
-*Last updated: 2026-05-14 after Phase 14 added*
+*Last updated: 2026-05-20 after Plan 07-01 complete*
 
-**Planned Phase:** 14 (battle-test-findings-remediation) — pending plan
+**Planned Phase:** 07 (pricing-card-chrome) — 2 plans — 2026-05-20T20:09:30.725Z
