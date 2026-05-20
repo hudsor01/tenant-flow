@@ -44,4 +44,31 @@ describe("NavbarDesktopNav", () => {
 		const pricing = screen.getByRole("link", { name: /^Pricing/ });
 		expect(pricing).toHaveAttribute("aria-current", "page");
 	});
+
+	it('marks Compare aria-current="page" on a /compare child route (CONS-03)', () => {
+		// Pins isActiveLink's descendant-route prefix branch
+		// (`pathname.startsWith(`${href}/`)`). A revert to a pure exact-match
+		// matcher (`pathname === href`) would fail here.
+		render(
+			<NavbarDesktopNav
+				navItems={DEFAULT_NAV_ITEMS}
+				pathname="/compare/yardi"
+			/>,
+		);
+		const compare = screen.getByRole("link", { name: /^Compare/ });
+		expect(compare).toHaveAttribute("aria-current", "page");
+	});
+
+	it("does not false-highlight Compare on a /compare-prefixed sibling (CONS-03)", () => {
+		// Pins the trailing-slash guard in isActiveLink's `startsWith` check —
+		// without the `/`, `/compareXYZ` would false-positive against `/compare`.
+		render(
+			<NavbarDesktopNav
+				navItems={DEFAULT_NAV_ITEMS}
+				pathname="/compare-tools"
+			/>,
+		);
+		const compare = screen.getByRole("link", { name: /^Compare/ });
+		expect(compare).not.toHaveAttribute("aria-current", "page");
+	});
 });
