@@ -8,16 +8,27 @@ import { env } from "#env";
 import { createLogger } from "#lib/frontend-logger";
 import { createArticleJsonLd } from "#lib/seo/article-schema";
 import { createBreadcrumbJsonLd } from "#lib/seo/breadcrumbs";
-import { createClient as createServerClient } from "#lib/supabase/server";
 import BlogPostPage from "./blog-post-page";
 
-// Phase 6 (BLOG-02): restore ISR with `generateStaticParams` returning the
-// published slug set. `dynamicParams = false` makes any slug not in the
-// build-time set return a real HTTP 404 — closes the soft-200 path that
-// Phase-1's `force-dynamic` + in-component `notFound()` couldn't reliably
-// guarantee in dev mode. Newly-published posts are picked up on next
-// Vercel build (frequent given content cadence); known slugs serve from
-// the 5-minute revalidate cache for editorial updates.
+// Phase 6 (BLOG-02): ISR with `generateStaticParams` enumerating the
+// published slug set. `dynamicParams = false` makes any slug outside that
+// set return a real HTTP 404 at the ROUTER level — before the page
+// component runs. This is the only reliable 404: in-component `notFound()`
+// soft-200s on a dynamic route (renders the 404 UI but commits HTTP 200
+// first while streaming).
+//
+// CRITICAL: this enforcement only works while `/blog/[slug]` stays a `●`
+// (SSG) route. Any `cookies()` / `headers()` call in the page or its data
+// helpers flips it to `ƒ` (Dynamic), which silently disables the static
+// 404 gate. `getBlogPost` below therefore MUST use the cookie-less client.
+// The `seo-smoke.spec.ts` "/blog/<bogus> returns real HTTP 404" e2e test
+// guards this — it fails if the route regresses to dynamic.
+//
+// Newly-published posts are picked up by a Vercel deploy triggered from the
+// n8n content workflow (HTTP Request → Vercel Deploy Hook after a
+// successful Publish to Supabase), keeping the static slug set current
+// without a soft-200 trade-off. Known slugs serve from the 5-minute
+// revalidate cache for editorial updates.
 export const dynamicParams = false;
 export const revalidate = 300;
 
@@ -29,8 +40,9 @@ interface Props {
 
 /**
  * Build-time slug enumeration. Returns ONLY published rows so a leaked
- * unpublished slug cannot mint a static page. ISR misses for unknown
- * slugs hit `notFound()` in the page component below.
+ * unpublished slug cannot mint a static page. With `dynamicParams = false`,
+ * any slug outside this set returns a real HTTP 404 at the router level —
+ * the page component never runs for unknown slugs.
  *
  * Uses a cookie-less anon-key client (not the `#lib/supabase/server`
  * cookie-aware client) because `generateStaticParams` runs at build time
@@ -40,30 +52,82 @@ interface Props {
  * public reads), so build-time enumeration matches request-time visibility.
  */
 export async function generateStaticParams() {
+	// The CI compile-check build (`checks` job in ci-cd.yml) runs
+	// `next build` with placeholder Supabase env
+	// (`NEXT_PUBLIC_SUPABASE_URL: https://placeholder.supabase.co`) to
+	// verify the build COMPILES, decoupled from live services. That host is
+	// unresolvable, so a query would `fetch failed`. Return [] for that
+	// build: it is never deployed, so an empty static set is harmless. The
+	// Vercel deploy build and the e2e build both run with real Supabase env
+	// and fall through to real enumeration below.
+	if (env.NEXT_PUBLIC_SUPABASE_URL.includes("placeholder")) {
+		return [];
+	}
+
 	const supabase = createSupabaseClient(
 		env.NEXT_PUBLIC_SUPABASE_URL,
 		env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY,
 	);
-	const { data, error } = await supabase
-		.from("blogs")
-		.select("slug")
-		.eq("status", "published");
 
-	if (error) {
-		logger.error("generateStaticParams failed", {
+	// Build-time enumeration is one network round-trip to Supabase, and CI
+	// build runners occasionally hit a transient `fetch failed`. Retry with
+	// linear backoff (3 attempts) so a single blip doesn't fail the build.
+	// Only a PERSISTENT failure throws — see the rationale below.
+	const MAX_ATTEMPTS = 3;
+	let lastError: { message: string; code?: string } | null = null;
+
+	for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
+		const { data, error } = await supabase
+			.from("blogs")
+			.select("slug")
+			.eq("status", "published");
+
+		if (!error) {
+			return (data ?? []).map(({ slug }) => ({ slug }));
+		}
+
+		lastError = error;
+		logger.error("generateStaticParams attempt failed", {
 			action: "generateStaticParams",
 			route: "/blog/[slug]",
-			metadata: { error: error.message, code: error.code },
+			metadata: { attempt, error: error.message, code: error.code },
 		});
-		return [];
+		if (attempt < MAX_ATTEMPTS) {
+			await new Promise((resolve) => setTimeout(resolve, attempt * 1000));
+		}
 	}
 
-	return (data ?? []).map(({ slug }) => ({ slug }));
+	// Persistent failure after retries: throw, do NOT return []. With
+	// `dynamicParams = false`, an empty static set means EVERY /blog/[slug]
+	// returns 404 — shipping that build silently 404s the entire published
+	// catalogue (Google then drops the indexed pages). A thrown error fails
+	// `next build` instead: the broken build never deploys and prod keeps
+	// serving the last-good build. The build is reproducible — a CI re-run
+	// clears a genuinely transient outage that outlasted the retries.
+	throw new Error(
+		`generateStaticParams: blogs query failed after ${MAX_ATTEMPTS} attempts (${lastError?.code}): ${lastError?.message}`,
+	);
 }
 
-/** Deduplicated blog post query — shared by generateMetadata and Page */
+/**
+ * Deduplicated blog post query — shared by generateMetadata and Page.
+ *
+ * MUST use the cookie-less anon-key client (NOT `#lib/supabase/server`).
+ * The cookie-aware client calls `cookies()` from `next/headers`, a Dynamic
+ * API that opts `/blog/[slug]` out of static generation — turning it into a
+ * `ƒ` (Dynamic) route. That silently defeats the `generateStaticParams` +
+ * `dynamicParams = false` 404 enforcement above: a dynamic route never
+ * builds a static slug set to gate against, so every unknown slug runs the
+ * page component and hits in-component `notFound()`, which soft-200s under
+ * dynamic streaming. The anon-key client keeps the route `●` (SSG) so
+ * unknown slugs 404 at the router level. Blog posts are public —
+ * `status='published'` is the anon RLS gate — so no session is needed.
+ */
 const getBlogPost = cache(async (slug: string) => {
-	const supabase = await createServerClient();
+	const supabase = createSupabaseClient(
+		env.NEXT_PUBLIC_SUPABASE_URL,
+		env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY,
+	);
 
 	// Race against 5s timeout to prevent Supabase cold-start hangs
 	// (80-398s observed in Sentry).
@@ -141,6 +205,14 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 			title: post.title,
 			description,
 			type: "article",
+			// og:url MUST be set explicitly. Next.js only emits
+			// <meta property="og:url"> when `openGraph.url` is present, and
+			// this page builds `openGraph` by hand rather than via
+			// `createPageMetadata` (which sets it). Mirror
+			// `alternates.canonical` so the OG canonical and the
+			// <link rel="canonical"> agree. Guarded by seo-smoke.spec.ts
+			// "/blog/[slug] has Article schema".
+			url: canonical,
 			publishedTime: post.published_at ?? undefined,
 			modifiedTime: post.updated_at ?? post.published_at ?? undefined,
 			section: post.category ?? undefined,
