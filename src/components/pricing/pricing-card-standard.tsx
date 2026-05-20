@@ -12,6 +12,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { Badge } from "#components/ui/badge";
 import { Button } from "#components/ui/button";
+import { calculateAnnualSavings } from "#config/pricing";
 import { createLogger } from "#lib/frontend-logger";
 import { checkoutRateLimiter } from "#lib/security";
 import { createCheckoutSession } from "#lib/stripe/stripe-client";
@@ -192,14 +193,14 @@ export function PricingCardStandard({
 							? `Billed annually (${formatCurrency(plan.annualTotal, { maximumFractionDigits: 0, minimumFractionDigits: 0 })}/year)`
 							: "Billed monthly"}
 					</p>
-					{/* CONS-10: per-card savings — monthly × 2 (2 months free
-					    on annual). Phase 5 math: Starter $38 / Max $298.
-					    formatCurrency so 4-digit savings render with thousands
-					    separator (AUDIT-2 cycle-2 P3). */}
+					{/* CONS-10: per-card savings — via calculateAnnualSavings
+					    (2 months free on annual). Phase 5 math: Starter $38 /
+					    Max $298. formatCurrency so 4-digit savings render with
+					    thousands separator (AUDIT-2 cycle-2 P3). */}
 					{billingCycle === "yearly" && plan.price.monthly > 0 && (
 						<p className="text-xs font-semibold text-success mt-1">
 							Save{" "}
-							{formatCurrency(plan.price.monthly * 2, {
+							{formatCurrency(calculateAnnualSavings(plan.price.monthly), {
 								maximumFractionDigits: 0,
 								minimumFractionDigits: 0,
 							})}

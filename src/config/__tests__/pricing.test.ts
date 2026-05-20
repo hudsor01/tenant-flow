@@ -2,8 +2,10 @@
  * calculateAnnualSavings unit tests — Phase 7 CONS-10 math pin.
  *
  * Pins the Phase 5 tier savings: Starter $38, Growth $98, Max $298.
- * The pricing cards inline `monthly * 2` (math-equivalent); this test
- * locks the canonical helper for any future caller.
+ * PricingCardFeatured and PricingCardStandard both render their per-card
+ * "Save $X/year" line via calculateAnnualSavings (WR-02 removed the
+ * duplicated inline `monthly * 2`), so this test directly guards the
+ * numbers the cards ship.
  */
 
 import { describe, expect, it } from "vitest";
