@@ -9,6 +9,7 @@
  */
 
 import { render, screen } from "@testing-library/react";
+import type { ComponentProps } from "react";
 import { describe, expect, it, vi } from "vitest";
 
 vi.mock("@tanstack/react-query", () => ({
@@ -37,7 +38,7 @@ vi.mock("../owner-subscribe-dialog", () => ({
 
 import { PricingCardFeatured } from "../pricing-card-featured";
 
-const growthPlan = {
+const growthPlan: ComponentProps<typeof PricingCardFeatured>["plan"] = {
 	id: "growth",
 	name: "Growth",
 	description: "For growing portfolios",
@@ -67,12 +68,10 @@ describe("PricingCardFeatured", () => {
 	});
 
 	it("Featured price-row container carries whitespace-nowrap (CONS-09)", () => {
-		const { container } = render(
-			<PricingCardFeatured plan={growthPlan} billingCycle="monthly" />,
-		);
-		const priceRow = container.querySelector(
-			".flex.items-baseline.justify-center",
-		);
+		render(<PricingCardFeatured plan={growthPlan} billingCycle="monthly" />);
+		// Anchor on the price text rather than a class-soup selector so the
+		// assertion survives layout refactors that add other flex wrappers.
+		const priceRow = screen.getByText("$49").closest("div");
 		expect(priceRow).toBeTruthy();
 		expect(priceRow).toHaveClass("whitespace-nowrap");
 	});
@@ -84,6 +83,8 @@ describe("PricingCardFeatured", () => {
 
 	it("hides the savings line on monthly (CONS-10)", () => {
 		render(<PricingCardFeatured plan={growthPlan} billingCycle="monthly" />);
-		expect(screen.queryByText(/\/year/)).toBeNull();
+		// Match the savings shape specifically so the assertion verifies the
+		// savings paragraph is gone, not just any incidental "/year" string.
+		expect(screen.queryByText(/Save\s+\$\d/)).toBeNull();
 	});
 });
