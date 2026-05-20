@@ -46,7 +46,7 @@ created: 2026-05-20
 
 | Task ID | Plan | Wave | Requirement | Threat Ref | Secure Behavior | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|------------|-----------------|-----------|-------------------|-------------|--------|
-| 7-01-01 | 01 | 1 | CONS-05, CONS-09 | T-07-01 / — | N/A — static marketing UI, no auth/data/input boundary | unit (render + className assertion) | `bun run test:unit -- --run src/components/pricing/__tests__/pricing-card-featured.test.tsx` | ❌ task creates it | ⬜ pending |
+| 7-01-01 | 01 | 1 | CONS-05, CONS-09, CONS-10 | T-07-01 / — | N/A — static marketing UI, no auth/data/input boundary | unit (render + className/text assertion) | `bun run test:unit -- --run src/components/pricing/__tests__/pricing-card-featured.test.tsx` | ❌ task creates it | ⬜ pending |
 | 7-02-01 | 02 | 1 | CONS-09, CONS-10 | T-07-02 / — | N/A — static marketing UI, no auth/data/input boundary | unit (render + text/className assertion) | `bun run test:unit -- --run src/components/pricing/__tests__/pricing-card-standard.test.tsx` | ❌ task creates it | ⬜ pending |
 | 7-02-02 | 02 | 1 | CONS-10 | T-07-02 / — | N/A — static marketing UI, no auth/data/input boundary | unit (render absence + pure-function math) | `bun run test:unit -- --run src/components/pricing/__tests__/bento-pricing-section.test.tsx src/config/__tests__/pricing.test.ts` | ❌ task creates it | ⬜ pending |
 
@@ -61,7 +61,7 @@ created: 2026-05-20
 No separate Wave 0 phase. Phase 7's deliverable IS the test infrastructure — each task creates its own test file as the task body, and verifies through it. The Vitest 4 + jsdom framework already exists (`vitest.config.ts`), `@testing-library/react` is already a dependency (used by `src/components/blog/blog-pagination.test.tsx`), so there is nothing to install.
 
 Test files created by this phase:
-- [ ] `src/components/pricing/__tests__/pricing-card-featured.test.tsx` — CONS-05 badge position + CONS-09 Featured price-row nowrap (Plan 07-01)
+- [ ] `src/components/pricing/__tests__/pricing-card-featured.test.tsx` — CONS-05 badge position + CONS-09 Featured price-row nowrap + CONS-10 Featured per-card savings ($98/year) (Plan 07-01)
 - [ ] `src/components/pricing/__tests__/pricing-card-standard.test.tsx` — CONS-09 Standard price-row nowrap + CONS-10 per-card savings (Starter + Max) (Plan 07-02)
 - [ ] `src/components/pricing/__tests__/bento-pricing-section.test.tsx` — CONS-10 global savings-badge removal (Plan 07-02)
 - [ ] `src/config/__tests__/pricing.test.ts` — `calculateAnnualSavings` math pin: $19→$38, $49→$98, $149→$298 (Plan 07-02)
@@ -91,3 +91,4 @@ These manual checks belong to `/gsd-verify-work`, not to plan execution — the 
 - [x] `nyquist_compliant: true` set in frontmatter
 
 **Approval:** approved 2026-05-20
+</content>

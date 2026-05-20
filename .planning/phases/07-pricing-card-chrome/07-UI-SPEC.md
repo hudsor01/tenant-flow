@@ -1,10 +1,11 @@
 ---
 phase: 7
 slug: pricing-card-chrome
-status: draft
+status: approved
 shadcn_initialized: true
 preset: "new-york / slate base / cssVariables (components.json)"
 created: 2026-05-20
+reviewed_at: 2026-05-20T00:00:00Z
 ---
 
 # Phase 7 — UI Design Contract

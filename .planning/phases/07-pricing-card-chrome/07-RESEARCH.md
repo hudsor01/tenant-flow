@@ -444,7 +444,7 @@ import { calculateAnnualSavings } from '#config/pricing'
 | A5 | Removing the global savings badge from the toggle row is preferable to keeping a per-tier-aware global indicator | CONS-10 Option D recommendation | MEDIUM — design opinion. Planner can override with Option E (composite badge summing all 3 = $434/yr). Either passes the audit; Option D is cleaner. |
 | A6 | `kibo-style-pricing.tsx` is dead code (zero importers) | Out of scope statement | LOW — verified via `grep -rn` 2026-05-10. Worst case: it's referenced by a code path researcher missed; flag for cleanup, don't touch in Phase 7. |
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **Should Option D (per-card savings) replace the global toggle badge or coexist with it?**
    - What we know: Audit-16 explicitly says "show the math or per-plan savings." Per-card satisfies that exactly.
@@ -567,3 +567,4 @@ Both plans share the test files written in Wave 0 — Plan 07-02 extends them ra
 ---
 
 *Phase 7 research complete: 2026-05-10. Ready for `/gsd-plan-phase 7` (or `/gsd-discuss-phase 7` if user wants to choose between Option D and Option E for CONS-10).*
+</content>
