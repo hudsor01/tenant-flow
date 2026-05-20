@@ -39,17 +39,32 @@ vi.mock("../owner-subscribe-dialog", () => ({
 import { BentoPricingSection } from "../bento-pricing-section";
 
 describe("BentoPricingSection", () => {
-	it("toggle bar renders no global 'Save $98' badge on yearly (CONS-10 — removed)", () => {
-		render(<BentoPricingSection defaultBillingCycle="yearly" />);
-		// the toggle row previously held a global "Save $98" badge labeled as an
-		// all-plans figure; CONS-10 removed it in favor of per-card savings lines.
-		// Per-card savings ("Save $98/year" on the Growth card) still render — so
-		// assert against the bare "Save $98" with no "/year" suffix, which only
-		// the deleted global badge produced.
-		const globalBadge = screen
-			.queryAllByText(/Save \$98/)
-			.filter((el) => !/\/year/.test(el.textContent ?? ""));
-		expect(globalBadge).toHaveLength(0);
+	it("renders exactly 3 per-card savings lines on yearly, none in the toggle bar (CONS-10)", () => {
+		const { container } = render(
+			<BentoPricingSection defaultBillingCycle="yearly" />,
+		);
+		// CONS-10 removed the misleading global "Save $X" badge from the
+		// billing-toggle row in favor of one per-card savings paragraph.
+		// Positive structural target: exactly 3 savings paragraphs render
+		// (Starter $38, Growth $98, Max $298). This fails if any per-card
+		// line goes missing (count drops below 3).
+		const savingsLines = Array.from(
+			container.querySelectorAll("p.text-success.font-semibold"),
+		).filter((el) => /Save\s+\$[\d,]+\/year/.test(el.textContent ?? ""));
+		expect(savingsLines).toHaveLength(3);
+		expect(savingsLines.map((el) => el.textContent)).toEqual(
+			expect.arrayContaining([
+				expect.stringMatching(/Save\s+\$38\/year/),
+				expect.stringMatching(/Save\s+\$98\/year/),
+				expect.stringMatching(/Save\s+\$298\/year/),
+			]),
+		);
+		// Negative target: the toggle-bar row must contain no savings text —
+		// fails if a global badge is re-added there.
+		const toggleRow = container
+			.querySelector("#billing-toggle")
+			?.closest("div");
+		expect(toggleRow?.textContent ?? "").not.toMatch(/Save\s+\$/);
 	});
 
 	it("renders the Monthly and Annual toggle labels", () => {
