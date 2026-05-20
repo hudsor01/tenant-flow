@@ -52,6 +52,18 @@ interface Props {
  * public reads), so build-time enumeration matches request-time visibility.
  */
 export async function generateStaticParams() {
+	// The CI compile-check build (`checks` job in ci-cd.yml) runs
+	// `next build` with placeholder Supabase env
+	// (`NEXT_PUBLIC_SUPABASE_URL: https://placeholder.supabase.co`) to
+	// verify the build COMPILES, decoupled from live services. That host is
+	// unresolvable, so a query would `fetch failed`. Return [] for that
+	// build: it is never deployed, so an empty static set is harmless. The
+	// Vercel deploy build and the e2e build both run with real Supabase env
+	// and fall through to real enumeration below.
+	if (env.NEXT_PUBLIC_SUPABASE_URL.includes("placeholder")) {
+		return [];
+	}
+
 	const supabase = createSupabaseClient(
 		env.NEXT_PUBLIC_SUPABASE_URL,
 		env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY,
