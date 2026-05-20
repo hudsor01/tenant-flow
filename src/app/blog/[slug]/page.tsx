@@ -56,30 +56,45 @@ export async function generateStaticParams() {
 		env.NEXT_PUBLIC_SUPABASE_URL,
 		env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY,
 	);
-	const { data, error } = await supabase
-		.from("blogs")
-		.select("slug")
-		.eq("status", "published");
 
-	if (error) {
-		// Fail the build — do NOT return []. With `dynamicParams = false`,
-		// an empty static set means EVERY /blog/[slug] returns 404, so
-		// shipping that build silently 404s the entire published catalogue
-		// (Google then drops the indexed pages). A thrown error fails
-		// `next build` instead: the broken build never deploys and prod
-		// keeps serving the last-good build. A transient Supabase failure
-		// resolves on CI retry — the build is reproducible.
-		logger.error("generateStaticParams failed", {
+	// Build-time enumeration is one network round-trip to Supabase, and CI
+	// build runners occasionally hit a transient `fetch failed`. Retry with
+	// linear backoff (3 attempts) so a single blip doesn't fail the build.
+	// Only a PERSISTENT failure throws — see the rationale below.
+	const MAX_ATTEMPTS = 3;
+	let lastError: { message: string; code?: string } | null = null;
+
+	for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
+		const { data, error } = await supabase
+			.from("blogs")
+			.select("slug")
+			.eq("status", "published");
+
+		if (!error) {
+			return (data ?? []).map(({ slug }) => ({ slug }));
+		}
+
+		lastError = error;
+		logger.error("generateStaticParams attempt failed", {
 			action: "generateStaticParams",
 			route: "/blog/[slug]",
-			metadata: { error: error.message, code: error.code },
+			metadata: { attempt, error: error.message, code: error.code },
 		});
-		throw new Error(
-			`generateStaticParams: blogs query failed (${error.code}): ${error.message}`,
-		);
+		if (attempt < MAX_ATTEMPTS) {
+			await new Promise((resolve) => setTimeout(resolve, attempt * 1000));
+		}
 	}
 
-	return (data ?? []).map(({ slug }) => ({ slug }));
+	// Persistent failure after retries: throw, do NOT return []. With
+	// `dynamicParams = false`, an empty static set means EVERY /blog/[slug]
+	// returns 404 — shipping that build silently 404s the entire published
+	// catalogue (Google then drops the indexed pages). A thrown error fails
+	// `next build` instead: the broken build never deploys and prod keeps
+	// serving the last-good build. The build is reproducible — a CI re-run
+	// clears a genuinely transient outage that outlasted the retries.
+	throw new Error(
+		`generateStaticParams: blogs query failed after ${MAX_ATTEMPTS} attempts (${lastError?.code}): ${lastError?.message}`,
+	);
 }
 
 /**
