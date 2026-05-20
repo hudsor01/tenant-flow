@@ -40,8 +40,9 @@ interface Props {
 
 /**
  * Build-time slug enumeration. Returns ONLY published rows so a leaked
- * unpublished slug cannot mint a static page. ISR misses for unknown
- * slugs hit `notFound()` in the page component below.
+ * unpublished slug cannot mint a static page. With `dynamicParams = false`,
+ * any slug outside this set returns a real HTTP 404 at the router level —
+ * the page component never runs for unknown slugs.
  *
  * Uses a cookie-less anon-key client (not the `#lib/supabase/server`
  * cookie-aware client) because `generateStaticParams` runs at build time
@@ -61,12 +62,21 @@ export async function generateStaticParams() {
 		.eq("status", "published");
 
 	if (error) {
+		// Fail the build — do NOT return []. With `dynamicParams = false`,
+		// an empty static set means EVERY /blog/[slug] returns 404, so
+		// shipping that build silently 404s the entire published catalogue
+		// (Google then drops the indexed pages). A thrown error fails
+		// `next build` instead: the broken build never deploys and prod
+		// keeps serving the last-good build. A transient Supabase failure
+		// resolves on CI retry — the build is reproducible.
 		logger.error("generateStaticParams failed", {
 			action: "generateStaticParams",
 			route: "/blog/[slug]",
 			metadata: { error: error.message, code: error.code },
 		});
-		return [];
+		throw new Error(
+			`generateStaticParams: blogs query failed (${error.code}): ${error.message}`,
+		);
 	}
 
 	return (data ?? []).map(({ slug }) => ({ slug }));
