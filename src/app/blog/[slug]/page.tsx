@@ -11,14 +11,19 @@ import { createBreadcrumbJsonLd } from "#lib/seo/breadcrumbs";
 import { createClient as createServerClient } from "#lib/supabase/server";
 import BlogPostPage from "./blog-post-page";
 
-// Phase 6 (BLOG-02): restore ISR with `generateStaticParams` returning the
-// published slug set. `dynamicParams = false` makes any slug not in the
-// build-time set return a real HTTP 404 — closes the soft-200 path that
-// Phase-1's `force-dynamic` + in-component `notFound()` couldn't reliably
-// guarantee in dev mode. Newly-published posts are picked up on next
-// Vercel build (frequent given content cadence); known slugs serve from
-// the 5-minute revalidate cache for editorial updates.
-export const dynamicParams = false;
+// ISR with on-demand fallback. `generateStaticParams` enumerates known
+// published slugs at build time so they prerender. `dynamicParams = true`
+// lets slugs published AFTER the last build still render — n8n's 2-hour
+// content cron produces posts faster than the Vercel deploy cadence, so
+// `dynamicParams = false` (the original Phase-6 BLOG-02 setting) caused
+// real 404s on every fresh post until the next manual redeploy. The
+// soft-200 risk that motivated `false` is handled instead by the
+// in-component `notFound()` call below: `getBlogPost(slug)` filters
+// `status='published'` (line ~83) and returns null for any unknown or
+// unpublished slug, at which point the page calls `notFound()` and Next
+// returns a real HTTP 404. Known slugs serve from the 5-minute revalidate
+// cache; unknown slugs render once on first request then cache.
+export const dynamicParams = true;
 export const revalidate = 300;
 
 const logger = createLogger({ component: "BlogPost" });
