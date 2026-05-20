@@ -449,3 +449,76 @@ describe("generateMetadata (server entry)", () => {
 		expect(mockServerNotFound).toHaveBeenCalled();
 	});
 });
+
+// ---------------------------------------------------------------------------
+// generateStaticParams — retry + fail-the-build behavior.
+//
+// The placeholder-env skip branch is exercised on every PR by the CI
+// `checks` job (it runs `next build` with
+// NEXT_PUBLIC_SUPABASE_URL=https://placeholder.supabase.co). These tests
+// cover the two branches that job cannot reach: transient-failure recovery,
+// and throw-after-persistent-failure (which fails the build instead of
+// shipping [] — a catalogue-wide 404 under dynamicParams=false).
+// ---------------------------------------------------------------------------
+
+/**
+ * Mock Supabase client whose successive `.from().select().eq()` chains each
+ * resolve to the next entry in `resultSequence` (the last entry repeats, so
+ * a one-element sequence models a persistent failure).
+ */
+function makeEnumClient(
+	resultSequence: Array<{
+		data: Array<{ slug: string }> | null;
+		error: { message: string; code: string } | null;
+	}>,
+) {
+	let attempt = 0;
+	return {
+		from: () => {
+			const result =
+				resultSequence[Math.min(attempt, resultSequence.length - 1)];
+			attempt += 1;
+			const builder = {
+				select: () => builder,
+				eq: () => Promise.resolve(result),
+			};
+			return builder;
+		},
+	};
+}
+
+describe("generateStaticParams (retry + fail-safe)", () => {
+	beforeEach(() => {
+		vi.clearAllMocks();
+	});
+
+	it("recovers when an early attempt fails and a later one succeeds", async () => {
+		mockSupabaseCreateClient.mockReturnValue(
+			makeEnumClient([
+				{ data: null, error: { message: "transient blip", code: "" } },
+				{ data: [{ slug: "recovered-post" }], error: null },
+			]),
+		);
+
+		const { generateStaticParams } = await import("./page");
+		const params = await generateStaticParams();
+
+		expect(params).toEqual([{ slug: "recovered-post" }]);
+	});
+
+	it("throws after the query fails every attempt — fails the build, not []", async () => {
+		mockSupabaseCreateClient.mockReturnValue(
+			makeEnumClient([
+				{
+					data: null,
+					error: { message: "supabase down", code: "PGRST500" },
+				},
+			]),
+		);
+
+		const { generateStaticParams } = await import("./page");
+		await expect(generateStaticParams()).rejects.toMatchObject({
+			message: expect.stringContaining("failed after 3 attempts"),
+		});
+	}, 10000);
+});
