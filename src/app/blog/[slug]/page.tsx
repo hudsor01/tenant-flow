@@ -168,6 +168,14 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 			title: post.title,
 			description,
 			type: "article",
+			// og:url MUST be set explicitly. Next.js only emits
+			// <meta property="og:url"> when `openGraph.url` is present, and
+			// this page builds `openGraph` by hand rather than via
+			// `createPageMetadata` (which sets it). Mirror
+			// `alternates.canonical` so the OG canonical and the
+			// <link rel="canonical"> agree. Guarded by seo-smoke.spec.ts
+			// "/blog/[slug] has Article schema".
+			url: canonical,
 			publishedTime: post.published_at ?? undefined,
 			modifiedTime: post.updated_at ?? post.published_at ?? undefined,
 			section: post.category ?? undefined,
