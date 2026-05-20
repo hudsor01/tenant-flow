@@ -145,7 +145,7 @@ Plans:
 3. Annual toggle reveals per-plan annual prices + math-correct savings figure backed by Phase 5's monthly + annual price values
 4. No new hex/rgb/`bg-white`/inline-ms tokens introduced
 
-**Plans:** 2 plans (parallel — wave 1; disjoint test files, zero files_modified overlap)
+**Plans:** 2 plans (parallel — wave 1; disjoint test files, zero `files_modified` overlap)
 
 Plans:
 - [x] 07-01-PLAN.md — Regression-pin CONS-05 (Most Popular badge top-0 -translate-y-1/2) + CONS-09 Featured price-row nowrap via pricing-card-featured.test.tsx
@@ -156,11 +156,17 @@ Plans:
 **Depends on**: Phase 4 (icon choice + dropdown destinations may depend on persona-aligned page list)
 **Requirements**: CONS-02, CONS-03, CONS-11
 **Branch**: `gsd/phase-8-nav-active-states`
+**Phase nature**: Test-and-verify. All three production fixes already shipped in commit `7540ebe48` (verified in 08-RESEARCH.md and re-confirmed at plan time against live source). The phase deliverable is 3 regression-pinning unit test files — no production-code change.
 **Success Criteria**:
 1. "Multi-Property Dashboard" feature card icon is one of `LayoutGrid`, `Building2`, `LayoutDashboard` (not back-arrow); icon visually communicates the feature
 2. On `/`, no nav link is incorrectly highlighted as active; `aria-current="page"` is correct
 3. Every Resources nav dropdown item navigates to a real URL (no `href="/#"`); keyboard activation works
 4. No new hex/rgb/`bg-white`/inline-ms tokens introduced
+
+**Plans:** 1 plan (single wave — 3 regression-test tasks, zero `files_modified` overlap)
+
+Plans:
+- [ ] 08-01-PLAN.md — Regression-pin CONS-02 (Multi-Property Dashboard card LayoutDashboard icon), CONS-03 (homepage `aria-current` wiring — negative on `/`, positive on `/compare`), CONS-11 (`DEFAULT_NAV_ITEMS` no placeholder href) via 3 new Vitest test files; no production-code change
 
 ### Phase 9: Page-Level Cleanup
 **Goal**: Legal-page "Last Updated" dates are honest + consistent; Trusted Integrations row renders all 5 logos at consistent visual weight; duplicate "Why Landlords Choose" table de-duplicated.
