@@ -149,7 +149,7 @@ Plans:
 
 Plans:
 - [x] 07-01-PLAN.md — Regression-pin CONS-05 (Most Popular badge top-0 -translate-y-1/2) + CONS-09 Featured price-row nowrap via pricing-card-featured.test.tsx
-- [ ] 07-02-PLAN.md — Regression-pin CONS-09 Standard price-row nowrap + CONS-10 per-card savings + global-badge removal + calculateAnnualSavings math (3 test files)
+- [x] 07-02-PLAN.md — Regression-pin CONS-09 Standard price-row nowrap + CONS-10 per-card savings + global-badge removal + calculateAnnualSavings math (3 test files)
 
 ### Phase 8: Nav, Active States & Dead Links
 **Goal**: Multi-Property Dashboard feature card uses correct lucide-react icon; `aria-current="page"` logic on homepage stops highlighting "Compare"; Resources nav dropdown items navigate to real URLs.
