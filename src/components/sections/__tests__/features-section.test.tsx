@@ -27,6 +27,9 @@ describe("FeaturesSectionDemo", () => {
 	});
 
 	it("Multi-Property Dashboard card does NOT render an arrow-left icon (CONS-02)", () => {
+		// Symptom pin, not a generic guard: this asserts only the exact audited
+		// regression (a back-arrow icon). Test 1's positive `svg.lucide-layout-dashboard`
+		// assertion is the generic wrong-icon guard — it fails for ANY wrong icon.
 		const { container } = render(<FeaturesSectionDemo />);
 		const heading = [...container.querySelectorAll("h3")].find(
 			(h) => h.textContent === "Multi-Property Dashboard",
