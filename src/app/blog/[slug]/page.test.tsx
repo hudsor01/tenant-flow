@@ -280,16 +280,22 @@ describe("BlogArticlePage", () => {
 // added in Plan 06-02 Task 2.
 // ---------------------------------------------------------------------------
 
-const mockServerCreateClient = vi.hoisted(() => vi.fn());
+// getBlogPost uses the cookie-less anon client (`@supabase/supabase-js`
+// createClient) — NOT `#lib/supabase/server` — so that `/blog/[slug]`
+// stays a `●` SSG route and `dynamicParams = false` enforces real 404s.
+// The mock therefore targets `@supabase/supabase-js`; `importOriginal`
+// keeps the module's other exports intact.
+const mockSupabaseCreateClient = vi.hoisted(() => vi.fn());
 const mockServerNotFound = vi.hoisted(() =>
 	vi.fn(() => {
 		throw new Error("NEXT_NOT_FOUND");
 	}),
 );
 
-vi.mock("#lib/supabase/server", () => ({
-	createClient: mockServerCreateClient,
-}));
+vi.mock("@supabase/supabase-js", async (importOriginal) => {
+	const actual = await importOriginal<Record<string, unknown>>();
+	return { ...actual, createClient: mockSupabaseCreateClient };
+});
 
 vi.mock("next/navigation", () => ({
 	notFound: mockServerNotFound,
@@ -319,7 +325,7 @@ interface BlogRow {
 	canonical_url: string | null;
 }
 
-function makeServerClient(row: BlogRow | null) {
+function makeSupabaseClient(row: BlogRow | null) {
 	const builder = {
 		select: vi.fn(() => builder),
 		eq: vi.fn(() => builder),
@@ -355,7 +361,7 @@ describe("generateMetadata (server entry)", () => {
 			tags: ["comparison"],
 			canonical_url: "/compare/buildium",
 		};
-		mockServerCreateClient.mockResolvedValue(makeServerClient(row));
+		mockSupabaseCreateClient.mockReturnValue(makeSupabaseClient(row));
 
 		const { generateMetadata } = await import("./page");
 		const metadata = await generateMetadata({
@@ -380,7 +386,7 @@ describe("generateMetadata (server entry)", () => {
 			tags: ["guide"],
 			canonical_url: null,
 		};
-		mockServerCreateClient.mockResolvedValue(makeServerClient(row));
+		mockSupabaseCreateClient.mockReturnValue(makeSupabaseClient(row));
 
 		const { generateMetadata } = await import("./page");
 		const metadata = await generateMetadata({
@@ -405,7 +411,7 @@ describe("generateMetadata (server entry)", () => {
 			tags: ["maintenance"],
 			canonical_url: null,
 		};
-		mockServerCreateClient.mockResolvedValue(makeServerClient(row));
+		mockSupabaseCreateClient.mockReturnValue(makeSupabaseClient(row));
 
 		const { generateMetadata } = await import("./page");
 		const metadata = await generateMetadata({
@@ -425,7 +431,7 @@ describe("generateMetadata (server entry)", () => {
 	});
 
 	it("calls notFound() when getBlogPost returns null", async () => {
-		mockServerCreateClient.mockResolvedValue(makeServerClient(null));
+		mockSupabaseCreateClient.mockReturnValue(makeSupabaseClient(null));
 
 		const { generateMetadata } = await import("./page");
 		await expect(
