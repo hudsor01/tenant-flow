@@ -1,9 +1,10 @@
 ---
 phase: 09-page-cleanup
-reviewed: 2026-05-21T02:20:02Z
+reviewed: 2026-05-20T00:00:00Z
 depth: deep
-files_reviewed: 2
+files_reviewed: 3
 files_reviewed_list:
+  - tests/e2e/tests/smoke/critical-paths.smoke.spec.ts
   - src/components/sections/__tests__/logo-cloud.test.tsx
   - src/app/__tests__/marketing-home.test.tsx
 findings:
@@ -16,79 +17,68 @@ status: clean
 
 # Phase 9: Code Review Report
 
-**Reviewed:** 2026-05-21T02:20:02Z
+**Reviewed:** 2026-05-20T00:00:00Z
 **Depth:** deep
+**Files Reviewed:** 3
 **Status:** clean
-**Files Reviewed:** 2
-**Cycle:** second consecutive perfect-PR review cycle
 
 ## Summary
 
-Independent second-cycle review of Phase 9 (page-cleanup). The prior cycle's
-verdict was NOT trusted — both files were re-verified at deep depth with fresh
-eyes against the same diff. Two Vitest 4 + jsdom regression-guard test files
-pin already-shipped CONS-13 (logo-cloud visual weight) and CONS-14
-(comparison-table de-dup) fixes. `git diff main` confirms the only non-planning
-changes in this phase are the two test files — no production code changed.
+Second consecutive perfect-PR review cycle for PR #737 (Phase 9, page-cleanup).
+All three files in the PR diff are test code — no production source changes. Each
+file was independently re-verified at deep depth with fresh eyes, tracing every
+assertion to its source target rather than trusting the prior cycle's verdict.
+Cross-file analysis covered the test-to-source contracts (`logo-cloud.tsx`,
+`marketing-home.tsx`, `features-client.tsx`, `blur-fade.tsx`, `page.tsx`) and the
+jsdom test-setup polyfills (`src/test/unit-setup.ts`).
 
-Verification performed this cycle:
+All reviewed files meet quality standards. No issues found.
 
-- **Cross-file source verification.** Read the three production sources the
-  tests pin and confirmed every assertion matches shipped source:
-  - `logo-cloud.tsx` line 73: wrapper class
-    `"h-8 flex items-center justify-center opacity-90 hover:opacity-100
-    transition-opacity duration-300"` — no `grayscale` token, exactly one
-    shared `opacity-90`. `integrations` array has exactly 5 entries with
-    descriptions Payments / Database / Hosting / E-Signatures / Email.
-  - `marketing-home.tsx`: no `ComparisonTable` import or render; CONS-14
-    removal-marker comment present at lines 119–121.
-  - `features-client.tsx`: imports `ComparisonTable` (line 14) and renders
-    `<ComparisonTable />` (line 70) — canonical kept instance confirmed.
-- **Mutation testing of every key assertion** (reasoned against the actual
-  source, confirming each guard fails on the regression it exists to catch):
-  - logo-cloud Test 2 — `/grayscale/` on `container.innerHTML` catches a
-    re-added bare `grayscale` OR `hover:grayscale-0` class. Holds.
-  - logo-cloud Test 3 — `.h-8.opacity-90` compound selector returns exactly 5
-    because `h-8` and `opacity-90` co-locate on the same wrapper `div` and the
-    array has 5 entries; an `opacity-95` edit or class-split drops the count
-    and fails. `opacity-80` → 0 pin catches the old faded value. The compound
-    scope correctly isolates against an unrelated bare `opacity-90`. Holds.
-  - marketing-home Tests 1–3 — import-scan, JSX-render scan, and CONS-14
-    comment pin. The `\b` word boundary and `<ComparisonTable\b` tag form
-    correctly avoid false-matching the unrelated `PricingComparisonTable`. The
-    realistic regression path (re-rendering the table) is caught by Test 2's
-    JSX scan, and the alias-resolve regex (`[^}]` spans newlines) catches
-    aliased re-adds — so the suite has no false-pass gap.
-- **Convention compliance.** No `any`, no `as unknown as`, no barrel imports
-  (`#components/...` direct paths). `@vitest-environment jsdom` correctly
-  present on the DOM-rendering `logo-cloud.test.tsx` and correctly absent on
-  the `readFileSync`-only `marketing-home.test.tsx`. Per `vitest.config.ts`,
-  both files match the `src/**/*.{test,spec}.{ts,tsx}` glob of the "unit"
-  project (default environment `jsdom`), so the source-scan test needs no
-  override and the DOM test's header is intentional documentation. No
-  `vi.mock` is used, so `vi.hoisted()` is not applicable. No emojis, no
-  commented-out code, no inline styles, no string-literal query keys, tab
-  indentation matches house style.
+### Verification notes
 
-All reviewed files meet quality standards. No issues found at any severity.
-This is the second consecutive zero-finding cycle for Phase 9 — the perfect-PR
-merge gate is satisfied.
+**`logo-cloud.test.tsx` (CONS-13 regression pin)** — The `.h-8.opacity-90` compound
+selector uniquely matches the five logo wrappers at `logo-cloud.tsx:73`, where
+`cn()` merges `h-8` and `opacity-90` onto a single element. `BlurFade` contributes
+only `opacity-0`/`opacity-100` to its own wrapper (`blur-fade.tsx` presets), never
+`opacity-90`/`opacity-80`, so the count of 5 and the `opacity-80` count of 0 are
+both robust. The `grayscale` `not.toMatch` against `container.innerHTML` is correct
+— no `grayscale` token exists anywhere in the component source. `IntersectionObserver`
+and `matchMedia` are polyfilled in `src/test/unit-setup.ts`, so `BlurFade` renders
+cleanly under jsdom. Direct import (not barrel), `@vitest-environment jsdom`
+declared, no `any` / `as unknown as`.
 
-### Notes (no action required)
+**`marketing-home.test.tsx` (CONS-14 regression pin)** — `readFileSync` source-text
+scan with correct relative path resolution (`__tests__/..` -> `marketing-home.tsx`;
+`__tests__/../features` -> `features-client.tsx`; both confirmed to exist). The `\b`
+word boundaries correctly exclude the unrelated `PricingComparisonTable`. The
+whole-file scans on lines 43/49 cover JSX usage and the alias re-add vector; the
+line-anchored import-scan regex (`/^import .+ from .+$/gm`) would not catch a
+multi-line `import { ... } from` statement, but the whole-file usage/alias scans
+backstop that case, so the regression pin holds with no false-confidence gap. The
+`/features` canonical instance is confirmed (`features-client.tsx:14` import +
+`:70` `<ComparisonTable />`), and the CONS-14 removal-marker comment exists at
+`marketing-home.tsx:119`.
 
-- The CONS-14 import-line scan (`^import .+ from .+$` with the `m` flag)
-  matches single-line imports only; a multiline non-aliased import would
-  escape that one assertion. This is not a gap — Test 2's `<ComparisonTable\b`
-  render scan and the alias-resolve regex backstop every regression that
-  actually re-adds the visible table. A non-aliased import with no render is
-  dead code that does not reintroduce the duplicate. Recorded for completeness.
-- The logo count is pinned at exactly 5. Adding a 6th integration logo without
-  removing one would fail the `.h-8.opacity-90` length-5 assertion — correct
-  behavior for a CONS-13 fidelity pin and consistent with the test's stated
-  intent.
+**`critical-paths.smoke.spec.ts` (Playwright e2e smoke)** — The diff corrects the
+`/` route label from `Dashboard` to `Homepage` (accurate: `src/app/page.tsx` ->
+`MarketingHomePage` renders the marketing homepage; the dashboard is exercised
+separately by the `Dashboard loads for owner` test at line 145). It raises per-page
+`waitFor` from 5s to 20s to match the sibling single-page tests, and adds an
+explicit `{ timeout: 120_000 }` budget via the valid 3-arg `test(title, options,
+body)` overload. The budget math holds: 4 pages x 20s per-page race = 80s worst
+case, comfortably inside 120s. All four loop routes exist (`/`, plus `/properties`,
+`/tenants`, `/leases` under `src/app/(owner)/`). `Promise.race` + `.catch(() =>
+false)` + the explicit `if (!pageLoaded)` throw leaves no false-confidence path.
+The shared-`page` `test.describe.serial` + `beforeAll`/`afterAll` pattern is intact
+and consistent with the Supabase Auth rate-limit rationale in the file header.
+Typed `Page` import from `@playwright/test`, no `any`.
+
+Convention compliance across all three files: no `any`, no `as unknown as`, no
+barrel imports, no emojis in code logic, no commented-out code. Unit tests use
+Vitest 4 + jsdom; the e2e file uses Playwright.
 
 ---
 
-_Reviewed: 2026-05-21T02:20:02Z_
+_Reviewed: 2026-05-20T00:00:00Z_
 _Reviewer: Claude (gsd-code-reviewer)_
 _Depth: deep_
