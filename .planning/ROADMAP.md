@@ -220,6 +220,14 @@ Plans:
 4. A drift-guard unit test codifies the no-token-drift rule; CI fails future PRs that introduce hex/rgb/`bg-white`/inline ms (no ESLint — the repo lints with Biome)
 5. Lint rule documented in `.planning/phases/<phase-id>/LINT-RULE.md` for future maintainers
 
+
+**Phase nature**: Mixed. TOKEN-01 + the `/resources` half of TOKEN-02 are ALREADY SHIPPED (`resources/page.tsx` rebuilt with canonical tokens) — verify-and-pin. The site-wide hex/`rgb`/`bg-white` audit found ZERO drift (all hex are D-03 legitimate exceptions; `bg-white` x1 = the 2FA QR-code container exception). The ONLY real production edits: ~19 inline `[NNN]ms` durations across 5 decorative loading components -> `--duration-*` tokens. TOKEN-03 is genuinely new: a `design-token-drift.test.ts` Vitest drift-guard (NOT ESLint — the repo lints with Biome) + `11-LINT-RULE.md`.
+
+**Plans:** 2 plans (sequential — wave 1 -> wave 2; 11-02's drift-guard goes green only after 11-01's inline-ms fixes land)
+
+Plans:
+- [ ] 11-01-PLAN.md — Tokenize the ~19 inline `[NNN]ms` durations in 5 loading components (grid-pattern, loading-spinner, chart/blog loading skeletons, blog-empty-state) to the numeric `--duration-*` scale + author the `/resources` token regression-pin test (TOKEN-01/02 verify-and-pin)
+- [ ] 11-02-PLAN.md — Author `design-token-drift.test.ts` (Vitest `unit`-project drift-guard scanning `src/components/**` + `src/app/**` for hex/`rgb`/`bg-white`/inline-ms against the 10-entry D-03 allowlist) + `11-LINT-RULE.md` documenting the mechanism (TOKEN-03)
 ### Phase 12: SEO Metadata, Schema & Content Cleanup
 **Goal**: Meta-title separator standardized; per-page Open Graph images for top routes; site-wide `Organization` + homepage `SoftwareApplication` JSON-LD; visible breadcrumbs on `/compare/*` (blog already covered in Phase 6); footer XML sitemap link; site-wide `aria-current="page"` audit.
 **Depends on**: Phases 4, 5, 6 (SEO copy depends on persona, pricing, blog being settled)
