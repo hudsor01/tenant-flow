@@ -243,6 +243,15 @@ Plans:
 7. Footer links to `/sitemap.xml`; `robots.txt` confirmed pointing at it
 8. No new hex/rgb/`bg-white`/inline-ms tokens introduced
 
+**Phase nature**: Mixed — mostly verify-and-pin (like Phases 7-11) with two pockets of real production work. SEO-01 (title separator drift) + SEO-02 (`/features` OG route) are genuinely-remaining; SEO-03/04/05/06 are shipped (verify-and-pin); SEO-07 needs one new consolidated audit test. PR #674 + Phase 6 already built the full SEO infrastructure.
+
+**Plans:** 3 plans (all wave 1 — zero `files_modified` overlap, fully parallel-eligible)
+
+Plans:
+- [ ] 12-01-PLAN.md — SEO-01 meta-title separator normalization: flip 8 drifting em-dash/hyphen title separators to the canonical pipe `|` (3 strings in `generate-metadata.ts` + 6 page files) + new `seo-title-separator-drift.test.ts` drift guard
+- [ ] 12-02-PLAN.md — SEO-02 `/features` OG image: new `src/app/api/og/features/route.tsx` edge route (copy `/api/og/pricing`, oklch only) + wire `ogImage` into `/features` metadata + metadata assertion test
+- [ ] 12-03-PLAN.md — SEO-03/04/05/06 verify-and-pin + new SEO-07 audit: `getJsonLd()` regression pin (SEO-03), `footer.test.tsx` sitemap-link pin (SEO-06), consolidated `seo-aria-current-audit.test.ts` (SEO-07); SEO-04/05 verified shipped (code inspection + existing tests)
+
 ### Phase 13: Performance & Conversion Polish
 **Goal**: Marketing pages use static generation + cache headers where eligible; sticky CTA on long pages; exit-intent / scroll-depth lead capture (gated behind feature flag for A/B testing).
 **Depends on**: Phases 4, 5, 6, 12 (perf optimization on a stable surface)
