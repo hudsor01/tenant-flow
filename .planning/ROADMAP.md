@@ -19,7 +19,7 @@ TenantFlow is a mature Next.js 16 + Supabase landlord-only SaaS (v2.6 shipped Ap
 - [ ] **Phase 7: Pricing-Card Chrome** — Most-Popular badge overlap, Starter subhead spacing, annual-toggle savings math (uses Phase 5's final tier numbers)
 - [x] **Phase 8: Nav, Active States & Dead Links** — Multi-Property Dashboard icon, `aria-current` on `/`, dead `href="/#"` in Resources dropdown
 - [ ] **Phase 9: Page-Level Cleanup** — Legal-page dates, faded Supabase logo, dup "Why Landlords Choose" table
-- [ ] **Phase 10: CTA & Conversion Standardization** — Canonical "Contact Sales" labels + styles, neutral compare-page framing, fix `/contact` default, testimonials (no headshots) + review badges + monitored inboxes
+- [x] **Phase 10: CTA & Conversion Standardization** — Canonical "Contact Sales" labels + styles, neutral compare-page framing, fix `/contact` default, testimonials (no headshots) + review badges + monitored inboxes
 - [ ] **Phase 11: Design-Token Alignment & Resources Page** — `/resources` neon-pink + decorative cards → tokens; codify no-hex/no-bg-white/no-inline-ms lint rule
 - [ ] **Phase 12: SEO Metadata, Schema & Content Cleanup** — Meta separator, per-page OG images, Organization + SoftwareApplication schema, blog slugs (post-Phase 6), breadcrumbs, footer sitemap link, sitewide `aria-current` audit
 - [ ] **Phase 13: Performance & Conversion Polish** — Static export + cache headers, sticky CTA on long pages, exit-intent / scroll-depth lead capture (PERF-01 server-render `/blog` already covered in Phase 6)
@@ -191,15 +191,22 @@ Plans:
 **Depends on**: Phase 4 (CTA copy + testimonials lean on persona terminology)
 **Requirements**: CONS-06, CONS-07, CONS-08, TRUST-01, TRUST-02, TRUST-03, TRUST-04
 **Branch**: `gsd/phase-10-cta-conversion`
+**Phase nature**: Verify-and-pin. All Phase 10 production code is ALREADY SHIPPED to `main` (PRs #694 + #695, verified in 10-RESEARCH.md). The phase deliverable is 5 new regression-pinning unit test files plus a documented TRUST-02 deferral — no production-code change. TRUST-01 reconciliation: REQUIREMENTS.md / success criterion 5 ask for "≥3" testimonials; reality ships exactly 2 real attributed testimonials (10-CONTEXT.md is stale — a follow-up un-deferred TRUST-01 and shipped 2). Fabricating a 3rd testimonial is rejected (violates the v1.0 honesty milestone); the plan pins `length >= 2` and records the 3rd as deferred until a real customer opts in. TRUST-02 (review badges) remains genuinely deferred — no G2/Capterra/Trustpilot listings exist; recorded as a documented deferral with no test and no fabricated badge.
 **Success Criteria**:
 1. Every sales-contact CTA across the site uses the label "Contact Sales" — no "Talk to Sales", "Schedule a walkthrough", or "Connect with sales" remaining
 2. CTA visual style: primary blue for "Start Free Trial"; one canonical secondary style for "Contact Sales"; Features-page top-nav has ONE CTA pill
 3. `/compare/*` ACH/Payment Processing + HOA Management rows use neutral "By design" / "Not applicable" treatment (non-destructive token, not red-✗)
 4. `/contact` "How did you hear about us?" defaults to "Please select" or "Search engine"
-5. ≥3 testimonials surface on homepage and/or `/pricing` with name + property count + quote (avatar = initials/geometric placeholder, no headshot)
-6. G2 / Capterra / Trustpilot review badges added if any reviews exist (or REQ documented as deferred)
+5. ≥3 testimonials surface on homepage and/or `/pricing` with name + property count + quote (avatar = initials/geometric placeholder, no headshot) — reconciled to 2 real attributed testimonials shipped + pinned; 3rd deferred until a real customer opts in (fabrication rejected)
+6. G2 / Capterra / Trustpilot review badges added if any reviews exist (or REQ documented as deferred) — TRUST-02 documented as deferred; no review listings exist
 7. Monitoring owner documented for `sales@tenantflow.app` and `security@tenantflow.app`
 8. No new hex/rgb/`bg-white`/inline-ms tokens introduced
+
+**Plans:** 2/2 plans complete
+
+Plans:
+- [x] 10-01-PLAN.md — Regression-pin CONS-06 (`cta-label-canonical.test.ts` — no killed CTA-label variants across 7 files, canonical "Contact Sales" present), CONS-07 (`compare-neutral-framing.test.tsx` — FeatureIcon `'na'` renders neutral muted Minus via exported FeatureTable, compare-data 4 `'na'` rows), CONS-08 (`contact-form-fields.test.tsx` — `/contact` "Please select" placeholder); 3 new Vitest test files, no production-code change
+- [x] 10-02-PLAN.md — Regression-pin TRUST-01/04 (`testimonials.test.ts` — ≥2 real attributed testimonials with name + property count + quote, no headshot/metric, TestimonialsSection empty-gate + real-quote render), TRUST-03/04 (`monitored-inboxes.test.ts` — `/security-policy` documents sales@ + security@ inboxes + SLAs) + TRUST-02 documented deferral in SUMMARY; 2 new Vitest test files, no production-code change
 
 ### Phase 11: Design-Token Alignment & Resources Page
 **Goal**: `/resources` Free Downloads tags + decorative card backgrounds use canonical tokens; site-wide audit replaces remaining hex/rgb/`bg-white`/inline-ms references; lint rule codified to fail future PRs.
@@ -260,7 +267,7 @@ Every phase's final success criterion is the design-token alignment check (no he
 - **CRIT-03 narrow scope (Phase 1) + PRICE-01..06 full scope (Phase 5).** Same pattern. Phase 1 unifies pricing across surfaces with "Custom" placeholder; Phase 5 ships final tier structure.
 - **CONS-12 removed from v1.0.** User decision: keep "Powered by Hudson Digital" footer. Audit recommendation overridden.
 - **COPY-02 = segment-specific framing, no fabricated count.** User originally asked for arbitrary "500+" count; switched to "Built for landlords with 1–15 rentals" after risk flag. Honest framing.
-- **TRUST-01 modified: name + property count + quote, no headshots.** User-supplied headshots unavailable; avatar fallback uses initials or geometric placeholder.
+- **TRUST-01 modified: name + property count + quote, no headshots.** User-supplied headshots unavailable; avatar fallback uses initials or geometric placeholder. Reconciled at Phase 10 plan time: requirement asks for "≥3", reality ships 2 real attributed testimonials; the 3rd is deferred until a real customer opts in — fabricating a 3rd is rejected per the honesty milestone.
 - **No standalone research phase.** `config.workflow.research = true` triggers per-phase research inside each `/gsd-plan-phase`. Heaviest research lands in Phase 4 (persona terminology), Phase 5 (competitor pricing), Phase 6 (n8n + blog SEO patterns).
 - **Major-version naming preserved.** Integer phases only (1–13); no decimals. User explicit instruction.
 
@@ -287,4 +294,4 @@ Plans:
 - [ ] 14-04-PLAN.md — D-04 blog skeleton ↔ empty-state precedence: create route-scoped `src/app/blog/loading.tsx` so Next.js streaming renders blog-themed skeleton chrome instead of generic site-wide PageLoader; `page.tsx` is read-only confirmatory (the grep must return zero skeleton matches — if not, 14-04 flags it as a 14-03 leak and stops); 5-case unit suite proves loading.tsx CONTENTS; runtime mutual exclusion is a Next.js streaming-boundary guarantee verified MANUAL-ONLY
 
 ---
-*Roadmap defined: 2026-05-08 after v1.0 Q&A. Replaces 11-phase fine-granularity draft after pricing restructure + blog rebuild scope additions. Phase 14 added 2026-05-14 from production battle test.*
+*Roadmap defined: 2026-05-08 after v1.0 Q&A. Replaces 11-phase fine-granularity draft after pricing restructure + blog rebuild scope additions. Phase 14 added 2026-05-14 from production battle test. Phase 10 plans added 2026-05-20.*

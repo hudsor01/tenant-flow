@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: ready_to_plan
-last_updated: "2026-05-21T00:40:36.185Z"
-last_activity: 2026-05-20
+last_updated: "2026-05-21T04:15:40.090Z"
+last_activity: 2026-05-21
 progress:
   total_phases: 14
-  completed_phases: 9
-  total_plans: 21
-  completed_plans: 18
-  percent: 64
+  completed_phases: 10
+  total_plans: 23
+  completed_plans: 20
+  percent: 71
 ---
 
 # Project State
@@ -20,16 +20,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-08)
 
 **Core value:** Every public claim on tenantflow.app must map to working code, and every visual must align to canonical design tokens in `src/app/globals.css`.
-**Current focus:** Phase 08 — nav-active-states
+**Current focus:** Phase 10 — cta-conversion
 
 ## Current Position
 
-Phase: 10
+Phase: 11
 Plan: Not started
 Status: Ready to plan
 Last activity: 2026-05-21
 
-Progress: [█████████░] 86%
+Progress: [█████████░] 87%
 
 ## Performance Metrics
 
@@ -61,6 +61,8 @@ Progress: [█████████░] 86%
 | Phase 07 P02 | ~7min | 2 tasks | 3 files |
 | Phase 08 P01 | 5min | 3 tasks | 3 files |
 | Phase 09 P01 | ~2min | 3 tasks | 2 files |
+| Phase 10 P01 | ~6min | 3 tasks | 3 files |
+| Phase 10 P02 | 8min | 3 tasks | 2 files |
 
 ## Locked Decisions (see PROJECT.md Key Decisions for full table)
 
@@ -80,6 +82,8 @@ Progress: [█████████░] 86%
 - Footer "Powered by Hudson Digital": KEPT
 - Social proof: "Built for landlords with 1–15 rentals" (not fabricated count)
 - Testimonials: real names + property counts + quotes, no headshots
+- TRUST-01: 2 real testimonials shipped + regression-pinned (`length >= 2`); 3rd deferred until a real customer opts in — fabricating a 3rd rejected per the honesty milestone
+- TRUST-02 review badges deferred — no G2/Capterra/Trustpilot listings exist; documented deferral, no test, no fabricated badge
 
 ## Blockers
 
@@ -91,9 +95,9 @@ None.
 
 ## Next Action
 
-Verify Phase 9 (`/gsd-verify-work 9`) — single plan complete (CONS-04/13/14 regression pins: legal-page date drift guard verified green, logo-cloud consistent visual weight, comparison-table de-duplication).
+Phase 10 (cta-conversion) complete — both plans shipped. Plan 10-01: CONS-06/07/08 regression pins (14 tests, 3 files). Plan 10-02: TRUST-01/03/04 regression pins (11 tests, 2 files) + TRUST-02 documented deferral. 25 regression-pin tests total, no production source touched. Ready for `/gsd-verify-work 10` and PR.
 
 ---
-*Last updated: 2026-05-21 after Plan 09-01 complete*
+*Last updated: 2026-05-20 after Plan 10-02 complete (Phase 10 done)*
 
-**Planned Phase:** 09 (page-cleanup) — 1 plans — 2026-05-21T00:37:22.988Z
+**Planned Phase:** 10 (cta-conversion) — 2 plans — 2026-05-21T04:01:37.757Z
