@@ -58,17 +58,25 @@ import { isActiveLink } from "#lib/is-active-link";
 // the same href; this is intentional and not double-marking distinct
 // targets). Deduping at the value level represents that invariant.
 //
-// The literal-union narrowing is preserved by deduping a `const`
-// tuple at the value level instead of widening to `string[]` via cast.
-const RAW_HREFS = [
-	"/",
-	...DEFAULT_NAV_ITEMS.flatMap((item) => [
-		item.href,
-		...(item.dropdownItems?.map((d) => d.href) ?? []),
+// Type note: `DEFAULT_NAV_ITEMS` is declared with `as const satisfies
+// readonly NavItem[]` (TS 4.9+ canonical pattern, stable through TS 6.0),
+// which propagates literal-typed `href`s through `.flatMap`. `NavHref`
+// resolves to the literal union (`"/" | "/features" | "/pricing" | …`),
+// so EXPECTED_ACTIVE typos are caught at TYPECHECK in addition to the
+// runtime route-loop assertion.
+const NAV_HREFS = Array.from(
+	new Set([
+		"/" as const,
+		...DEFAULT_NAV_ITEMS.flatMap((item) => [
+			item.href,
+			// `in` narrowing — `as const` produces a union of element shapes
+			// where only items declaring `dropdownItems` carry that property,
+			// so `?.` access requires explicit narrowing.
+			...("dropdownItems" in item ? item.dropdownItems.map((d) => d.href) : []),
+		]),
 	]),
-] as const;
-const NAV_HREFS = Array.from(new Set(RAW_HREFS));
-type NavHref = (typeof RAW_HREFS)[number];
+);
+type NavHref = (typeof NAV_HREFS)[number];
 
 // Route sample covering homepage, top-level marketing routes, a
 // dynamic subroute, and `/resources` (the duplicate-href route where

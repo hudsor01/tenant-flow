@@ -20,7 +20,11 @@ describe("DEFAULT_NAV_ITEMS", () => {
 
 	it("no dropdown item uses a placeholder href (CONS-11)", () => {
 		for (const item of DEFAULT_NAV_ITEMS) {
-			for (const sub of item.dropdownItems ?? []) {
+			// `in` narrowing — `as const satisfies` on `DEFAULT_NAV_ITEMS`
+			// produces a union where only items declaring `dropdownItems`
+			// carry that property.
+			if (!("dropdownItems" in item)) continue;
+			for (const sub of item.dropdownItems) {
 				expect(PLACEHOLDER_HREFS.has(sub.href)).toBe(false);
 				expect(sub.href.startsWith("/")).toBe(true);
 			}
@@ -34,8 +38,10 @@ describe("DEFAULT_NAV_ITEMS", () => {
 		expect(resources).toBeDefined();
 		expect(resources?.href).toBe("/resources");
 		// Resources is the dropdown owner — its dropdown must list real routes.
-		expect(resources?.dropdownItems?.length ?? 0).toBeGreaterThan(0);
-		for (const sub of resources?.dropdownItems ?? []) {
+		const dropdownItems =
+			resources && "dropdownItems" in resources ? resources.dropdownItems : [];
+		expect(dropdownItems.length).toBeGreaterThan(0);
+		for (const sub of dropdownItems) {
 			expect(sub.href.startsWith("/")).toBe(true);
 		}
 	});
