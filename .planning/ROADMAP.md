@@ -202,7 +202,7 @@ Plans:
 7. Monitoring owner documented for `sales@tenantflow.app` and `security@tenantflow.app`
 8. No new hex/rgb/`bg-white`/inline-ms tokens introduced
 
-**Plans:** 2 plans (parallel — wave 1; disjoint test files, zero `files_modified` overlap)
+**Plans:** 2/2 plans complete
 
 Plans:
 - [x] 10-01-PLAN.md — Regression-pin CONS-06 (`cta-label-canonical.test.ts` — no killed CTA-label variants across 7 files, canonical "Contact Sales" present), CONS-07 (`compare-neutral-framing.test.tsx` — FeatureIcon `'na'` renders neutral muted Minus via exported FeatureTable, compare-data 4 `'na'` rows), CONS-08 (`contact-form-fields.test.tsx` — `/contact` "Please select" placeholder); 3 new Vitest test files, no production-code change

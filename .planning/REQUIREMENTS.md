@@ -198,10 +198,10 @@ Updated by `gsd-roadmapper` during roadmap creation. See ROADMAP.md for canonica
 | CONS-06 | Phase 10 | Complete |
 | CONS-07 | Phase 10 | Complete |
 | CONS-08 | Phase 10 | Complete |
-| TRUST-01 | Phase 10 | Pending |
-| TRUST-02 | Phase 10 | Pending |
-| TRUST-03 | Phase 10 | Pending |
-| TRUST-04 | Phase 10 | Pending |
+| TRUST-01 | Phase 10 | Complete |
+| TRUST-02 | Phase 10 | Complete |
+| TRUST-03 | Phase 10 | Complete |
+| TRUST-04 | Phase 10 | Complete |
 | TOKEN-01 | Phase 11 | Pending |
 | TOKEN-02 | Phase 11 | Pending |
 | TOKEN-03 | Phase 11 | Pending |
