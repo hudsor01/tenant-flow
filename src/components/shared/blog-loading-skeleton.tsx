@@ -15,15 +15,15 @@ export function BlogLoadingSkeleton() {
 			/>
 			<div
 				className="h-4 rounded bg-muted animate-[text-reveal_1.8s_ease-in-out_infinite]"
-				style={{ width: "100%", animationDelay: "var(--duration-150)" }}
+				style={{ width: "100%", animationDelay: "var(--duration-100)" }}
 			/>
 			<div
 				className="h-4 rounded bg-muted animate-[text-reveal_1.8s_ease-in-out_infinite]"
-				style={{ width: "85%", animationDelay: "var(--duration-300)" }}
+				style={{ width: "85%", animationDelay: "var(--duration-200)" }}
 			/>
 			<div
 				className="h-4 rounded bg-muted animate-[text-reveal_1.8s_ease-in-out_infinite]"
-				style={{ width: "96%", animationDelay: "var(--duration-500)" }}
+				style={{ width: "96%", animationDelay: "var(--duration-300)" }}
 			/>
 			<div
 				className="h-4 rounded bg-muted animate-[text-reveal_1.8s_ease-in-out_infinite]"
