@@ -226,7 +226,7 @@ Plans:
 **Plans:** 2 plans (sequential — wave 1 -> wave 2; 11-02's drift-guard goes green only after 11-01's inline-ms fixes land)
 
 Plans:
-- [ ] 11-01-PLAN.md — Tokenize the ~19 inline `[NNN]ms` durations in 5 loading components (grid-pattern, loading-spinner, chart/blog loading skeletons, blog-empty-state) to the numeric `--duration-*` scale + author the `/resources` token regression-pin test (TOKEN-01/02 verify-and-pin)
+- [x] 11-01-PLAN.md — Tokenize the ~19 inline `[NNN]ms` durations in 5 loading components (grid-pattern, loading-spinner, chart/blog loading skeletons, blog-empty-state) to the numeric `--duration-*` scale + author the `/resources` token regression-pin test (TOKEN-01/02 verify-and-pin)
 - [ ] 11-02-PLAN.md — Author `design-token-drift.test.ts` (Vitest `unit`-project drift-guard scanning `src/components/**` + `src/app/**` for hex/`rgb`/`bg-white`/inline-ms against the 10-entry D-03 allowlist) + `11-LINT-RULE.md` documenting the mechanism (TOKEN-03)
 ### Phase 12: SEO Metadata, Schema & Content Cleanup
 **Goal**: Meta-title separator standardized; per-page Open Graph images for top routes; site-wide `Organization` + homepage `SoftwareApplication` JSON-LD; visible breadcrumbs on `/compare/*` (blog already covered in Phase 6); footer XML sitemap link; site-wide `aria-current="page"` audit.
