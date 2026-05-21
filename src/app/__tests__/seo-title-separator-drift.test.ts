@@ -31,16 +31,29 @@ const SPACED_SEPARATOR = / (?:[—–]|-) /;
 // single-quoted. The leading `(?<![\w$])` boundary scopes the match to the
 // `title:` key itself and rejects compound keys like `heroSubtitle:` /
 // `metaTitle:` whose values are body prose (where an em-dash is legitimate, not
-// a `<title>` separator). Backtick titles (e.g. `${title} | TenantFlow Blog`)
-// are dynamic and contain no spaced dash separator, so they are intentionally
-// not extracted by this regex.
+// a `<title>` separator).
 const TITLE_LITERAL = /(?<![\w$])title:\s*["']([^"'\n]+)["']/g;
+
+// Companion regex for backtick template-literal `title:` values (e.g.
+// `` title: `${name} | TenantFlow` ``). `${...}` segments are stripped before
+// running `SPACED_SEPARATOR` because interpolation expressions are dynamic
+// and never embed a literal `<title>` separator. The same `(?<![\w$])`
+// boundary protects against compound keys (`heroTitle`, `metaTitle`).
+const TITLE_BACKTICK = /(?<![\w$])title:\s*`([^`]+)`/g;
+
+function stripInterpolations(value: string): string {
+	return value.replace(/\$\{[^}]*\}/g, "");
+}
 
 function extractTitles(content: string): string[] {
 	const titles: string[] = [];
 	for (const match of content.matchAll(TITLE_LITERAL)) {
 		const value = match[1];
 		if (value !== undefined) titles.push(value);
+	}
+	for (const match of content.matchAll(TITLE_BACKTICK)) {
+		const value = match[1];
+		if (value !== undefined) titles.push(stripInterpolations(value));
 	}
 	return titles;
 }
@@ -107,4 +120,39 @@ describe("meta: separator detection regex", () => {
 		expect(SPACED_SEPARATOR.test("Quick-Reference Card")).toBe(false));
 	it("ignores hyphens inside a multi-hyphen word", () =>
 		expect(SPACED_SEPARATOR.test("All-in-one platform")).toBe(false));
+});
+
+describe("meta: backtick title extraction", () => {
+	it("extracts a static backtick title and catches an em-dash separator", () => {
+		const source = "const meta = { title: `Help Center — Guides` };";
+		const titles = extractTitles(source);
+		expect(titles).toContain("Help Center — Guides");
+		expect(titles.some((t) => SPACED_SEPARATOR.test(t))).toBe(true);
+	});
+
+	it("strips ${...} interpolations before testing the separator", () => {
+		// Real shape used by src/app/blog/category/[category]/page.tsx and
+		// src/app/compare/[competitor]/page.tsx — pure interpolation around
+		// a pipe-or-no-separator literal.
+		const source =
+			"const meta = { title: `${validCategory.name} Articles & Guides` };";
+		const titles = extractTitles(source);
+		// One title extracted (the literal remainder after stripping `${...}`).
+		expect(titles).toHaveLength(1);
+		expect(titles[0]).toBe(" Articles & Guides");
+		// No spaced em-dash in the literal remainder.
+		expect(titles.some((t) => SPACED_SEPARATOR.test(t))).toBe(false);
+	});
+
+	it("catches an em-dash in a hybrid backtick title", () => {
+		const source = "const meta = { title: `${name} — Quick Reference` };";
+		const titles = extractTitles(source);
+		expect(titles.some((t) => SPACED_SEPARATOR.test(t))).toBe(true);
+	});
+
+	it("rejects compound keys like metaTitle: `...`", () => {
+		const source = "const c = { metaTitle: `Foo — Bar` };";
+		const titles = extractTitles(source);
+		expect(titles).toHaveLength(0);
+	});
 });
