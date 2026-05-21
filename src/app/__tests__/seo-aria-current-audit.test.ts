@@ -49,19 +49,36 @@ import { isActiveLink } from "#lib/is-active-link";
 // `/contact`). The homepage `/` is not in the nav (the logo is not a
 // `DEFAULT_NAV_ITEMS` entry); we add it separately because the
 // audit's prefix-match guard still needs to exercise it.
+//
+// DEDUPED via `Set`: the Resources dropdown shares `href: '/resources'`
+// with its parent nav item, which would otherwise count the same URL
+// twice on `pathname === '/resources'` and trip the at-most-one
+// assertion even though the rendered DOM emits a single
+// `aria-current="page"` (one `<Link>` for the parent + one for the
+// dropdown item, both pointing at the same href — the deduplicated
+// list is what represents the unique URLs the nav can mark active).
 const NAV_HREFS = [
-	"/",
-	...DEFAULT_NAV_ITEMS.flatMap((item) => [
-		item.href,
-		...(item.dropdownItems?.map((d) => d.href) ?? []),
+	...new Set([
+		"/",
+		...DEFAULT_NAV_ITEMS.flatMap((item) => [
+			item.href,
+			...(item.dropdownItems?.map((d) => d.href) ?? []),
+		]),
 	]),
-] as const;
+] as readonly string[];
 type NavHref = (typeof NAV_HREFS)[number];
 
-// Route sample covering homepage, top-level marketing routes, and a
-// dynamic subroute. `/compare/buildium` is the explicit prefix-match
-// case (`/compare` should be active on the dynamic subroute).
-const ROUTES = ["/", "/pricing", "/features", "/compare/buildium"] as const;
+// Route sample covering homepage, top-level marketing routes, a
+// dynamic subroute, and `/resources` (the duplicate-href route where
+// the dropdown parent + child share `/resources` — covered explicitly
+// so a regression that breaks the duplicate-href dedup would be caught).
+const ROUTES = [
+	"/",
+	"/pricing",
+	"/features",
+	"/compare/buildium",
+	"/resources",
+] as const;
 type Route = (typeof ROUTES)[number];
 
 // Expected active nav href for each route. `null` means "no nav href
@@ -72,6 +89,7 @@ const EXPECTED_ACTIVE: Readonly<Record<Route, NavHref | null>> = {
 	"/pricing": "/pricing",
 	"/features": "/features",
 	"/compare/buildium": "/compare",
+	"/resources": "/resources",
 };
 
 describe("SEO-07 aria-current audit — marketing nav", () => {
