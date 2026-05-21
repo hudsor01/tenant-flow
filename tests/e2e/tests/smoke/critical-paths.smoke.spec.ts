@@ -203,7 +203,7 @@ test.describe
 		// within 20s but not always within 5s.
 		test("🔥 P0: Navigation works", { timeout: 120_000 }, async () => {
 			const pages = [
-				{ url: "/", name: "Dashboard" },
+				{ url: "/", name: "Homepage" },
 				{ url: "/properties", name: "Properties" },
 				{ url: "/tenants", name: "Tenants" },
 				{ url: "/leases", name: "Leases" },
