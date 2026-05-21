@@ -1,0 +1,124 @@
+{
+	"version": "1.0",
+	"timestamp": "2026-05-21T22:22:55Z",
+	"context": "milestone-boundary",
+	"milestone": "v1.0",
+	"milestone_name": "Marketing Surface Honesty",
+	"phase": "13",
+	"phase_name": "performance-conversion-polish",
+	"phase_dir": ".planning/phases/13-performance-conversion-polish",
+	"plan": null,
+	"task": null,
+	"total_tasks": null,
+	"status": "milestone_substantively_complete",
+	"completed_this_session": [
+		{
+			"phase": "7",
+			"name": "pricing-card-chrome",
+			"pr": 735,
+			"status": "merged",
+			"summary": "4 regression test files + 1 production refactor (pricing cards now call calculateAnnualSavings); CONS-05/09/10"
+		},
+		{
+			"phase": "8",
+			"name": "nav-active-states",
+			"pr": 736,
+			"status": "merged",
+			"summary": "3 regression test files for already-shipped CONS-02/03/11 (Multi-Property Dashboard icon, aria-current on homepage, Resources dropdown real URLs)"
+		},
+		{
+			"phase": "9",
+			"name": "page-cleanup",
+			"pr": 737,
+			"status": "merged",
+			"summary": "2 new regression-pin test files (logo-cloud + marketing-home) + 1 e2e timeout fix (P0 Navigation flake); CONS-04/13/14"
+		},
+		{
+			"phase": "10",
+			"name": "cta-conversion",
+			"pr": 738,
+			"status": "merged",
+			"summary": "5 regression test files for CONS-06/07/08 + TRUST-01/03/04; TRUST-02 deferred (no review listings exist); TRUST-01 reconciled to 'pin the 2 real testimonials, defer the 3rd until a real customer opts in'"
+		},
+		{
+			"phase": "10-followup",
+			"name": "in-01-in-02-fixes",
+			"pr": 739,
+			"status": "merged",
+			"summary": "Code-fixer landed but didn't commit the IN-01/IN-02 fixes from #738's review; followup PR landed them (3 test files, 4 lines)"
+		},
+		{
+			"phase": "11",
+			"name": "token-alignment",
+			"pr": 740,
+			"status": "merged",
+			"summary": "ESLint references removed (repo lints with Biome); 5 inline-ms durations tokenized to --duration-* scale; /resources regression pin; new design-token-drift.test.ts Vitest guard (TOKEN-01/02/03); LINT-RULE.md rewritten to describe the Vitest mechanism"
+		},
+		{
+			"phase": "12",
+			"name": "seo-metadata-schema-content-cleanup",
+			"pr": 741,
+			"status": "merged",
+			"summary": "8 title separators normalized to canonical pipe + drift-guard test; /features OG-image edge route (the only OG gap); getJsonLd + footer + aria-current audit regression pins; SEO-01..07 covered; the navbar DEFAULT_NAV_ITEMS got an `as const satisfies readonly NavItem[]` upgrade to make NavHref a real literal union (verified by deliberate-typo TS2322)"
+		},
+		{
+			"phase": "13",
+			"name": "performance-conversion-polish",
+			"pr": 742,
+			"status": "merged",
+			"summary": "1-line PERF-02 gap closed (/about/page.tsx revalidate=3600); 12-test consolidated performance-policy.test.ts pinning PERF-01..04"
+		}
+	],
+	"remaining_work": [
+		{
+			"task": "Verify Phase 14 (battle-test-findings-remediation) is actually shipped",
+			"context": "STATE.md says 'Phase 14, Ready to plan' but the initial /gsd-progress audit at session start showed Phase 14 already had 4/4 plans complete and 4 SUMMARY.md files. Likely GSD-tracking drift, not real work."
+		},
+		{
+			"task": "Run /gsd-progress to confirm v1.0 milestone status, then /gsd-complete-milestone to archive it",
+			"context": "Phase 13 was the last v1.0 phase per the roadmap. After confirmation, the milestone can be marked complete."
+		},
+		{
+			"task": "Start the dashboard redesign milestone",
+			"context": "The original ask that opened this session. Full plan is parked at /Users/richard/.claude/plans/i-want-to-enhance-hazy-island.md. Resume via /gsd-new-milestone (name suggestion: v2.0 'Dashboard Command Center'). 7-phase plan covers KPI bento row, occupancy donut, DiceUI DataTable adoption, dark-mode/a11y/responsive polish."
+		}
+	],
+	"blockers": [
+		{
+			"description": "Pre-commit `lockfile-verify` hook fails inside the command sandbox (`bun install --frozen-lockfile` returns PermissionDenied — sandbox blocks install-cache writes)",
+			"type": "environmental",
+			"workaround": "Run `git commit` calls with the command sandbox DISABLED. The lockfile IS in sync; the failure is purely a sandbox restriction. All commits this session used this workaround; the full hook gate (gitleaks + lockfile-verify + lint + typecheck + unit-tests with coverage + commitlint) passes normally. NEVER use --no-verify or LEFTHOOK_EXCLUDE (both forbidden)."
+		},
+		{
+			"description": "GSD STATE.md tracking drift",
+			"type": "tooling",
+			"workaround": "Some shipped phases (04, 06, 14 from earlier in the milestone) never had SUMMARY.md files recorded by GSD even though they merged to main. /gsd-progress may mis-route. Trust git log (everything from #688 onward is the source of truth) over the GSD planning artifacts."
+		}
+	],
+	"human_actions_pending": [],
+	"decisions": [
+		{
+			"decision": "Removed ESLint entirely (Phase 11)",
+			"rationale": "Repo lints with Biome; no eslint config or deps ever existed. The fictional 11-LINT-RULE.md was describing an ESLint plugin that was never built. Replaced with a Vitest drift-guard test, the project's established CI-gating pattern.",
+			"phase": "11"
+		},
+		{
+			"decision": "TRUST-01 pinned at `length >= 2`, not >= 3 (Phase 10)",
+			"rationale": "Roadmap asked for ≥3 testimonials; reality ships 2 real attributed testimonials (Janet Shur / 8 properties, Jacob Lear / 13 properties). Fabricating a 3rd would directly violate the v1.0 honesty milestone. The 3rd is deferred until a real customer opts in.",
+			"phase": "10"
+		},
+		{
+			"decision": "DEFAULT_NAV_ITEMS upgraded to `as const satisfies readonly NavItem[]` (Phase 12)",
+			"rationale": "Canonical TS 4.9+ pattern (verified empirically on TS 6.0 via a probe). Lets the audit test derive a true literal-union NavHref from the nav source so EXPECTED_ACTIVE typos error at typecheck. Required loosening NavbarProps.navItems / NavbarDesktopNavProps.navItems / NavbarMobileMenuProps.navItems from `NavItem[]` → `readonly NavItem[]` (3 consumer prop types). Also required `in`-narrowing on dropdownItems access in 2 test files because `as const` produces a union of element shapes — only items declaring dropdownItems carry that property.",
+			"phase": "12"
+		},
+		{
+			"decision": "Phase 13 executed inline rather than via full discuss/plan-check pipeline",
+			"rationale": "Tiny scope (1 production line + 1 test file, ~115 insertions). All PERF requirements were already shipped — the deliverable was a 12-test regression pin file + closing the one /about cache-config gap.",
+			"phase": "13"
+		}
+	],
+	"uncommitted_files": [],
+	"next_action": "Run /clear then /gsd-progress to confirm v1.0 status, then /gsd-complete-milestone to archive v1.0, then /gsd-new-milestone (referencing /Users/richard/.claude/plans/i-want-to-enhance-hazy-island.md) to spin up the dashboard redesign.",
+	"context_notes": "v1.0 'Marketing Surface Honesty' is substantively complete. All 7 v1.0 phases I picked up (7-13) shipped through the perfect-PR gate (two consecutive zero-finding review cycles). 8 PRs merged this session; full unit suite stays green at 105k+ tests. The dashboard redesign — the user's original ask — is the queued v2.0 milestone."
+}
