@@ -179,6 +179,13 @@ Plans:
 3. "Why Landlords Choose TenantFlow" table appears on EITHER homepage OR `/features` (not both); the chosen surface differentiates if both are kept
 4. No new hex/rgb/`bg-white`/inline-ms tokens introduced
 
+**Phase nature**: Verify-and-pin. All three production fixes (CONS-04/13/14) already shipped to `main` via PR #693 (`947299f19`, 2026-05-11) — verified in 09-RESEARCH.md and re-confirmed at plan time against live source. The phase deliverable is 2 new regression-pinning unit test files — no production-code change.
+
+**Plans:** 1 plan (single wave — 3 verify-and-pin test tasks, zero `files_modified` overlap)
+
+Plans:
+- [ ] 09-01-PLAN.md — Verify the existing CONS-04 sitemap legal-date drift guard stays green; create CONS-13 `logo-cloud.test.tsx` (no `grayscale`, 5 shared `opacity-90` wrappers) + CONS-14 `marketing-home.test.tsx` (homepage has no `<ComparisonTable>`, `/features` keeps it); no production-code change
+
 ### Phase 10: CTA & Conversion Standardization
 **Goal**: Canonical "Contact Sales" CTA label + style site-wide; neutral framing on `/compare/*` (no red-✗ for positioning choices); `/contact` form default fixed; testimonials section ships with real names + property counts + quotes (no headshots); review badges added if available; monitored inbox owners documented.
 **Depends on**: Phase 4 (CTA copy + testimonials lean on persona terminology)
