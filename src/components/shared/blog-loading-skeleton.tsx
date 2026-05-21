@@ -15,28 +15,28 @@ export function BlogLoadingSkeleton() {
 			/>
 			<div
 				className="h-4 rounded bg-muted animate-[text-reveal_1.8s_ease-in-out_infinite]"
-				style={{ width: "100%", animationDelay: "150ms" }}
+				style={{ width: "100%", animationDelay: "var(--duration-150)" }}
 			/>
 			<div
 				className="h-4 rounded bg-muted animate-[text-reveal_1.8s_ease-in-out_infinite]"
-				style={{ width: "85%", animationDelay: "300ms" }}
+				style={{ width: "85%", animationDelay: "var(--duration-300)" }}
 			/>
 			<div
 				className="h-4 rounded bg-muted animate-[text-reveal_1.8s_ease-in-out_infinite]"
-				style={{ width: "96%", animationDelay: "450ms" }}
+				style={{ width: "96%", animationDelay: "var(--duration-500)" }}
 			/>
 			<div
 				className="h-4 rounded bg-muted animate-[text-reveal_1.8s_ease-in-out_infinite]"
-				style={{ width: "78%", animationDelay: "600ms" }}
+				style={{ width: "78%", animationDelay: "var(--duration-500)" }}
 			/>
 			<div className="h-6" />
 			<div
 				className="h-4 rounded bg-muted animate-[text-reveal_1.8s_ease-in-out_infinite]"
-				style={{ width: "88%", animationDelay: "750ms" }}
+				style={{ width: "88%", animationDelay: "var(--duration-700)" }}
 			/>
 			<div
 				className="h-4 rounded bg-muted animate-[text-reveal_1.8s_ease-in-out_infinite]"
-				style={{ width: "65%", animationDelay: "900ms" }}
+				style={{ width: "65%", animationDelay: "var(--duration-1000)" }}
 			/>
 			<style>{`
 				@keyframes text-reveal {
