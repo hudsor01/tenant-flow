@@ -20,7 +20,7 @@ TenantFlow is a mature Next.js 16 + Supabase landlord-only SaaS (v2.6 shipped Ap
 - [x] **Phase 8: Nav, Active States & Dead Links** — Multi-Property Dashboard icon, `aria-current` on `/`, dead `href="/#"` in Resources dropdown
 - [ ] **Phase 9: Page-Level Cleanup** — Legal-page dates, faded Supabase logo, dup "Why Landlords Choose" table
 - [x] **Phase 10: CTA & Conversion Standardization** — Canonical "Contact Sales" labels + styles, neutral compare-page framing, fix `/contact` default, testimonials (no headshots) + review badges + monitored inboxes
-- [ ] **Phase 11: Design-Token Alignment & Resources Page** — `/resources` neon-pink + decorative cards → tokens; codify no-hex/no-bg-white/no-inline-ms lint rule
+- [x] **Phase 11: Design-Token Alignment & Resources Page** — `/resources` neon-pink + decorative cards → tokens; codify no-hex/no-bg-white/no-inline-ms lint rule (completed 2026-05-21)
 - [ ] **Phase 12: SEO Metadata, Schema & Content Cleanup** — Meta separator, per-page OG images, Organization + SoftwareApplication schema, blog slugs (post-Phase 6), breadcrumbs, footer sitemap link, sitewide `aria-current` audit
 - [ ] **Phase 13: Performance & Conversion Polish** — Static export + cache headers, sticky CTA on long pages, exit-intent / scroll-depth lead capture (PERF-01 server-render `/blog` already covered in Phase 6)
 
@@ -223,11 +223,11 @@ Plans:
 
 **Phase nature**: Mixed. TOKEN-01 + the `/resources` half of TOKEN-02 are ALREADY SHIPPED (`resources/page.tsx` rebuilt with canonical tokens) — verify-and-pin. The site-wide hex/`rgb`/`bg-white` audit found ZERO drift (all hex are D-03 legitimate exceptions; `bg-white` x1 = the 2FA QR-code container exception). The ONLY real production edits: ~19 inline `[NNN]ms` durations across 5 decorative loading components -> `--duration-*` tokens. TOKEN-03 is genuinely new: a `design-token-drift.test.ts` Vitest drift-guard (NOT ESLint — the repo lints with Biome) + `11-LINT-RULE.md`.
 
-**Plans:** 2 plans (sequential — wave 1 -> wave 2; 11-02's drift-guard goes green only after 11-01's inline-ms fixes land)
+**Plans:** 2/2 plans complete
 
 Plans:
 - [x] 11-01-PLAN.md — Tokenize the ~19 inline `[NNN]ms` durations in 5 loading components (grid-pattern, loading-spinner, chart/blog loading skeletons, blog-empty-state) to the numeric `--duration-*` scale + author the `/resources` token regression-pin test (TOKEN-01/02 verify-and-pin)
-- [ ] 11-02-PLAN.md — Author `design-token-drift.test.ts` (Vitest `unit`-project drift-guard scanning `src/components/**` + `src/app/**` for hex/`rgb`/`bg-white`/inline-ms against the 10-entry D-03 allowlist) + `11-LINT-RULE.md` documenting the mechanism (TOKEN-03)
+- [x] 11-02-PLAN.md — Author `design-token-drift.test.ts` (Vitest `unit`-project drift-guard scanning `src/components/**` + `src/app/**` for hex/`rgb`/`bg-white`/inline-ms against the 10-entry D-03 allowlist) + `11-LINT-RULE.md` documenting the mechanism (TOKEN-03)
 ### Phase 12: SEO Metadata, Schema & Content Cleanup
 **Goal**: Meta-title separator standardized; per-page Open Graph images for top routes; site-wide `Organization` + homepage `SoftwareApplication` JSON-LD; visible breadcrumbs on `/compare/*` (blog already covered in Phase 6); footer XML sitemap link; site-wide `aria-current="page"` audit.
 **Depends on**: Phases 4, 5, 6 (SEO copy depends on persona, pricing, blog being settled)
