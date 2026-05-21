@@ -102,10 +102,14 @@ Replaces the narrow CRIT-01 fix with a full data + UI + automation + content reb
 
 ### Trust & Conversion (TRUST)
 
-- [ ] **TRUST-01**: At least 3 real testimonials with names + property counts + quotes — NO HEADSHOTS (user-supplied unavailable; use initials/geometric placeholder for avatar). Surfaced on homepage and/or pricing page.
-- [ ] **TRUST-02**: G2 / Capterra / Trustpilot review badges added if any real reviews exist — competitor `/compare/*` pages cite Buildium's 4.5/5 making absence of TenantFlow's rating conspicuous.
-- [ ] **TRUST-03**: CTA labels canonicalized to "Contact Sales" — replace "Talk to Sales" / "Schedule a walkthrough" / "Connect with sales" everywhere.
-- [ ] **TRUST-04**: `sales@tenantflow.app` and `security@tenantflow.app` inboxes confirmed monitored before driving paid traffic; document monitoring owner.
+- [x] **TRUST-01
+**: At least 3 real testimonials with names + property counts + quotes — NO HEADSHOTS (user-supplied unavailable; use initials/geometric placeholder for avatar). Surfaced on homepage and/or pricing page.
+- [x] **TRUST-02
+**: G2 / Capterra / Trustpilot review badges added if any real reviews exist — competitor `/compare/*` pages cite Buildium's 4.5/5 making absence of TenantFlow's rating conspicuous.
+- [x] **TRUST-03
+**: CTA labels canonicalized to "Contact Sales" — replace "Talk to Sales" / "Schedule a walkthrough" / "Connect with sales" everywhere.
+- [x] **TRUST-04
+**: `sales@tenantflow.app` and `security@tenantflow.app` inboxes confirmed monitored before driving paid traffic; document monitoring owner.
 
 ### SEO & Accessibility (SEO)
 

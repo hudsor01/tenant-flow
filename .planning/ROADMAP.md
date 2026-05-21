@@ -19,7 +19,7 @@ TenantFlow is a mature Next.js 16 + Supabase landlord-only SaaS (v2.6 shipped Ap
 - [ ] **Phase 7: Pricing-Card Chrome** — Most-Popular badge overlap, Starter subhead spacing, annual-toggle savings math (uses Phase 5's final tier numbers)
 - [x] **Phase 8: Nav, Active States & Dead Links** — Multi-Property Dashboard icon, `aria-current` on `/`, dead `href="/#"` in Resources dropdown
 - [ ] **Phase 9: Page-Level Cleanup** — Legal-page dates, faded Supabase logo, dup "Why Landlords Choose" table
-- [ ] **Phase 10: CTA & Conversion Standardization** — Canonical "Contact Sales" labels + styles, neutral compare-page framing, fix `/contact` default, testimonials (no headshots) + review badges + monitored inboxes
+- [x] **Phase 10: CTA & Conversion Standardization** — Canonical "Contact Sales" labels + styles, neutral compare-page framing, fix `/contact` default, testimonials (no headshots) + review badges + monitored inboxes
 - [ ] **Phase 11: Design-Token Alignment & Resources Page** — `/resources` neon-pink + decorative cards → tokens; codify no-hex/no-bg-white/no-inline-ms lint rule
 - [ ] **Phase 12: SEO Metadata, Schema & Content Cleanup** — Meta separator, per-page OG images, Organization + SoftwareApplication schema, blog slugs (post-Phase 6), breadcrumbs, footer sitemap link, sitewide `aria-current` audit
 - [ ] **Phase 13: Performance & Conversion Polish** — Static export + cache headers, sticky CTA on long pages, exit-intent / scroll-depth lead capture (PERF-01 server-render `/blog` already covered in Phase 6)
@@ -206,7 +206,7 @@ Plans:
 
 Plans:
 - [x] 10-01-PLAN.md — Regression-pin CONS-06 (`cta-label-canonical.test.ts` — no killed CTA-label variants across 7 files, canonical "Contact Sales" present), CONS-07 (`compare-neutral-framing.test.tsx` — FeatureIcon `'na'` renders neutral muted Minus via exported FeatureTable, compare-data 4 `'na'` rows), CONS-08 (`contact-form-fields.test.tsx` — `/contact` "Please select" placeholder); 3 new Vitest test files, no production-code change
-- [ ] 10-02-PLAN.md — Regression-pin TRUST-01/04 (`testimonials.test.ts` — ≥2 real attributed testimonials with name + property count + quote, no headshot/metric, TestimonialsSection empty-gate + real-quote render), TRUST-03/04 (`monitored-inboxes.test.ts` — `/security-policy` documents sales@ + security@ inboxes + SLAs) + TRUST-02 documented deferral in SUMMARY; 2 new Vitest test files, no production-code change
+- [x] 10-02-PLAN.md — Regression-pin TRUST-01/04 (`testimonials.test.ts` — ≥2 real attributed testimonials with name + property count + quote, no headshot/metric, TestimonialsSection empty-gate + real-quote render), TRUST-03/04 (`monitored-inboxes.test.ts` — `/security-policy` documents sales@ + security@ inboxes + SLAs) + TRUST-02 documented deferral in SUMMARY; 2 new Vitest test files, no production-code change
 
 ### Phase 11: Design-Token Alignment & Resources Page
 **Goal**: `/resources` Free Downloads tags + decorative card backgrounds use canonical tokens; site-wide audit replaces remaining hex/rgb/`bg-white`/inline-ms references; lint rule codified to fail future PRs.
