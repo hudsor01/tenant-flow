@@ -1,6 +1,6 @@
 ---
 phase: 12-seo-metadata-schema-content-cleanup
-reviewed: 2026-05-21T16:20:00Z
+reviewed: 2026-05-21T21:35:00Z
 depth: deep
 files_reviewed: 9
 files_reviewed_list:
@@ -16,136 +16,177 @@ files_reviewed_list:
 findings:
   critical: 0
   warning: 0
-  info: 2
-  total: 2
+  info: 1
+  total: 1
 status: issues_found
 ---
 
-# Phase 12: Code Review Report (Re-Review — Cycle 2 Post-Fix)
+# Phase 12: Code Review Report (Re-Review — Cycle 2 Post-Fix Round 2)
 
-**Reviewed:** 2026-05-21T16:20:00Z
+**Reviewed:** 2026-05-21T21:35:00Z
 **Depth:** deep
 **Files Reviewed:** 9
-**Status:** issues_found (2 Info)
+**Status:** issues_found (1 Info)
 
 ## Summary
 
-Cycle-2 re-review covering the IN-01 fix pass (PR #741, commit `b9e7a4fb6`). The prior
-cycle flagged that the `NAV_HREFS` derivation from `DEFAULT_NAV_ITEMS` exposed the
-Resources parent + dropdown duplicate-href issue. The fix dedupes via `Set` and adds
-`/resources` to the `ROUTES` sample with `EXPECTED_ACTIVE['/resources'] = '/resources'`.
+Re-review covering the second cycle-2 fix pass (PR #741, Phase 12). Both prior
+Info findings (IN-01 misleading comment, IN-02 `NavHref` widening to `string`)
+were targeted in one commit. Verification:
 
-Verified end-to-end:
+- `bun run typecheck` is clean (exit 0).
+- `seo-aria-current-audit.test.ts` — 8/8 cases pass.
+- 279 tests across the other three reviewed test files pass.
+- No `any`, no `as unknown as`, no inline styles outside the documented
+  `@vercel/og` exception, no emojis, no `@radix-ui/react-icons`.
+- Prior IN-01 (misleading "single `aria-current`" comment) is correctly
+  resolved: the rewritten comment on `seo-aria-current-audit.test.ts:52-59`
+  honestly states the rendered DOM emits TWO `aria-current="page"` attributes
+  on `/resources` (parent `<Link>` + dropdown `<Link>`, same href), and that
+  the audit models the UNIQUE-URL invariant instead. Verified against
+  `navbar-desktop-nav.tsx:98,130` and `navbar-mobile-menu.tsx:56,88` — both
+  surfaces unconditionally emit `aria-current` from `isActiveLink(href,
+  pathname)` on parent and dropdown alike.
+- Dedup logic traced manually for all 5 routes — `/resources` filters to a
+  single `['/resources']` after the `Set` dedup, matching
+  `EXPECTED_ACTIVE['/resources']`.
+- The CONS-03 regression pin (`isActiveLink('/compare', '/') === false`),
+  breadcrumb-leaf cardinality, footer absence-of-aria-current, sitemap
+  external-link contract, E.164 phone format, OG-route shape (1200x630,
+  oklch-only, edge runtime, revalidate=3600), title-separator drift guard
+  (regex + meta-test cases) — all confirmed intact.
+- Cross-file integrity: `getSiteUrl()` is the single canonical site-URL
+  source consumed by `createDefaultMetadata`, `getJsonLd`, and
+  `page-metadata.createPageMetadata`. No drift between
+  `generate-metadata.ts` and the page metadata helper.
 
-- `bun run typecheck` clean.
-- `biome lint` clean on all 9 files.
-- `seo-aria-current-audit.test.ts` — 8/8 green (was 7/7).
-- 279 tests across the four other phase-12 unit test files pass.
-- Dedup logic walked manually against `isActiveLink` for all 5 routes:
-  - `/` → `['/']` ✓ matches `EXPECTED_ACTIVE['/']`.
-  - `/pricing` → `['/pricing']` ✓.
-  - `/features` → `['/features']` ✓.
-  - `/compare/buildium` → `['/compare']` (prefix-match via trailing-slash anchor) ✓.
-  - `/resources` → `['/resources']` (single entry after `Set` dedup) ✓.
-- Predicate-level coverage (`src/lib/__tests__/is-active-link.test.ts`, 5/5) confirmed
-  intact and independent — the predicate's trailing-slash and root-short-circuit
-  invariants are pinned there, not by this audit.
-- Navbar emission verified: parent + dropdown both compute
-  `isActiveLink('/resources', '/resources') === true` and emit `aria-current="page"` when
-  the Resources dropdown is open (verified against
-  `navbar-desktop-nav.tsx:98,130` and `navbar-mobile-menu.tsx:56,88`). The audit correctly
-  models this as a single URL the nav can mark active (UNIQUE-URL semantics), not a count
-  of DOM attributes.
-- E.164 phone (`+1-214-843-0779`), Organization + SoftwareApplication shape pin,
-  `AggregateOffer` + `featureList`, footer `/sitemap.xml` external link, OG-route
-  `revalidate = 3600` documentation, hex-free oklch literals, 1200x630 OG dimensions,
-  `vi.hoisted` spy in features page test — all confirmed regression-pinned.
-- Title-separator drift guard: regex still rejects compound keys (`metaTitle`,
-  `heroTitle`); backtick `${...}` stripping intact; canonical-pipe positive case green;
-  meta-tests cover positive + negative regex shapes.
-- No `any`, no `as unknown as`, no inline styles outside the documented `@vercel/og`
-  exception, no emojis, no `@radix-ui/react-icons`.
+One Info finding remains: the prior IN-02 fix attempt does NOT actually
+restore the literal-union narrowing of `NavHref`. The mechanism stated in
+the new comment (lines 62-63) — "literal-union narrowing is preserved by
+deduping a `const` tuple at the value level" — is contradicted by an
+independent isolated TypeScript 6 strict-mode compilation: a deliberately
+typo'd `EXPECTED_ACTIVE` value (e.g. `"/features": "/feauters"`) compiles
+with exit code 0. `NavHref` resolves to `string`, not a literal union.
 
-Two Info findings remain, both isolated to `seo-aria-current-audit.test.ts`. Neither is
-a functional regression. Both are correctness-polish on the new dedup code itself.
+The runtime safety net still catches typos (filter empty + non-null
+expected → `expect(expected).toBeNull()` fails), so this is a documentation
+accuracy issue, not a functional regression. But cycle-2's stated goal —
+"EXPECTED_ACTIVE's typecheck guard now catches typos again" — is not met.
 
 ## Info
 
-### IN-01: Comment self-contradicts on rendered-DOM aria-current count
+### IN-01: `NavHref` resolves to `string`, not a literal union — typecheck guard claim is false
 
-**File:** `src/app/__tests__/seo-aria-current-audit.test.ts:53-59`
+**File:** `src/app/__tests__/seo-aria-current-audit.test.ts:60-71`
 
-**Issue:** The new dedup comment says
+**Issue:** The new comment on lines 62-63 reads:
 
-> "...trip the at-most-one assertion **even though the rendered DOM emits a single
-> `aria-current="page"`** (one `<Link>` for the parent + one for the dropdown item, both
-> pointing at the same href...)"
+> The literal-union narrowing is preserved by deduping a `const` tuple at
+> the value level instead of widening to `string[]` via cast.
 
-The lead "single" claim contradicts the parenthetical, which correctly notes TWO `<Link>`
-elements with the same href both emit `aria-current="page"` when on `/resources` with the
-dropdown open. Confirmed against the navbar source:
+This describes an invariant that does not actually hold. `DEFAULT_NAV_ITEMS`
+in `src/components/layout/navbar/types.ts:17` is typed
+`export const DEFAULT_NAV_ITEMS: NavItem[]`, with `NavItem.href: string`.
+The spread `...DEFAULT_NAV_ITEMS.flatMap((item) => [item.href, ...])`
+therefore widens to `string[]` at the source — `item.href` is already
+`string`, not a literal. The outer `as const` on `RAW_HREFS` cannot narrow
+elements the source produced as `string`.
 
-- `navbar-desktop-nav.tsx:98` (parent) + `:130` (dropdown item) — both unconditionally
-  compute `aria-current` from `isActiveLink(href, pathname)`. When `pathname === '/resources'`
-  and the dropdown is rendered (`openDropdown === item.name`), both DOM nodes carry
-  `aria-current="page"`.
-- `navbar-mobile-menu.tsx:56` + `:88` — same pattern.
+Concretely:
 
-The audit's *logic* is fine — it tests unique URLs the nav can mark active, not unique
-DOM-attribute count — but the comment misrepresents what dedup is arguing against. A
-future reader is likely to follow the misleading lead claim and conclude dedup is
-addressing a single-element rendering invariant that does not exist.
+- `RAW_HREFS`'s type is approximately `readonly ["/", ...string[]]`.
+- `(typeof RAW_HREFS)[number]` resolves to `string`.
+- `NavHref = string`.
+- `Readonly<Record<Route, NavHref | null>>` accepts ANY string value, so a
+  typo in `EXPECTED_ACTIVE` (e.g. `"/feauters"`) typechecks fine.
 
-**Fix:**
+Independently reproduced under TypeScript 6 strict mode in an isolated
+project: a `EXPECTED_ACTIVE` mapping a `Route` to `"/feauters"` compiles
+with exit code 0. The same pattern applied to a hand-crafted const tuple
+(no spread from a `NavItem[]` source) DOES narrow correctly — the issue is
+specifically the source-side widening, not the dedup style.
+
+Runtime safety still applies. The audit's per-route assertion is
+`expect(active.length).toBeLessThanOrEqual(1)` followed by either
+`expect(active[0]).toBe(expected)` (when `active.length === 1`) or
+`expect(expected).toBeNull()` (when `active.length === 0`). A typo in
+`EXPECTED_ACTIVE` would land in the `expected non-null but active empty`
+branch and fail the `.toBeNull()` assertion. The regression is caught — it
+just fails with a less specific diagnostic than a typecheck error would
+give.
+
+The previous review's IN-02 (the fix being acted on) stated:
+
+> "Both `DEFAULT_NAV_ITEMS[i].href` and the dropdown hrefs are string
+> literals in `types.ts`, so the `as const` chain narrows correctly."
+
+That claim was incorrect. `types.ts` types the export as `NavItem[]`, so
+the literal values get widened to `string` at the declaration site before
+they ever reach the audit's spread. Acting on the incorrect claim with the
+current commit produces code that LOOKS like it preserves narrowing (the
+`as const` is there, `RAW_HREFS` is a const tuple) but doesn't.
+
+**Fix:** Either tighten types at the SOURCE to actually narrow, or drop the
+misleading claim. Option A is the higher-leverage choice because it also
+benefits any future caller that wants type-safe href routing (not just this
+audit).
+
+Option A — genuine literal-union narrowing (recommended):
 ```typescript
-// DEDUPED via `Set`: the Resources dropdown shares `href: '/resources'`
-// with its parent nav item. The rendered DOM emits TWO `aria-current="page"`
-// attributes on `/resources` when the dropdown is open (one for the parent
-// `<Link>` and one for the dropdown-item `<Link>`, both pointing at the same
-// href). That DOM-level multiplicity is a separate concern; this audit models
-// the nav as the SET of unique URLs it can mark active, so we dedupe here
-// and let the at-most-one assertion mean "at most one unique URL active per
-// route" — which is the semantically useful invariant for an a11y audit.
+// In src/components/layout/navbar/types.ts — replace the existing
+// DEFAULT_NAV_ITEMS export.
+export const DEFAULT_NAV_ITEMS = [
+  { name: "Features", href: "/features" },
+  { name: "Pricing", href: "/pricing" },
+  { name: "Compare", href: "/compare" },
+  { name: "About", href: "/about" },
+  {
+    name: "Resources",
+    href: "/resources",
+    hasDropdown: true,
+    dropdownItems: [
+      { name: "Free Resources", href: "/resources" },
+      { name: "Help Center", href: "/help" },
+      { name: "FAQ", href: "/faq" },
+      { name: "Contact", href: "/contact" },
+    ],
+  },
+] as const satisfies readonly NavItem[];
 ```
+With `as const satisfies readonly NavItem[]`, every `href` becomes a literal
+type while structurally still matching `NavItem`. The audit's `NavHref`
+then resolves to the real literal union, and a typo in `EXPECTED_ACTIVE`
+fails at compile time. Existing consumers that destructure
+`name`/`href`/`hasDropdown`/`dropdownItems` should be unaffected (literal
+types are assignable to `string`/`boolean`).
 
-### IN-02: `as readonly string[]` cast widens `NavHref` from a literal union to `string`, weakening `EXPECTED_ACTIVE` type-checking
-
-**File:** `src/app/__tests__/seo-aria-current-audit.test.ts:68-69`
-
-**Issue:** Before the dedup fix, `NAV_HREFS as const` gave `NavHref` a precise literal
-union (`'/' | '/features' | '/pricing' | '/compare' | '/about' | '/resources' | '/help'
-| '/faq' | '/contact'`). The new dedup pattern (`...new Set([...])`) widens the array
-expression to `string[]`, forcing the cast `as readonly string[]`, which makes
-`NavHref = string`.
-
-Consequently `EXPECTED_ACTIVE: Readonly<Record<Route, NavHref | null>>` no longer enforces
-that expected values are real nav hrefs — a typo like
-`EXPECTED_ACTIVE['/pricing'] = '/totaly-fake'` would typecheck without error. The runtime
-assertion still catches the typo (the route has no nav match → expected non-null → fail),
-so this is a defense-in-depth narrowing regression only, not a functional gap.
-
-**Fix:** Optional. Either accept runtime-only enforcement (current behavior is defensible)
-or recover literal types by deduping at the value level while keeping the literal-union
-type derived from the raw source:
-
+Option B — keep current shape, tell the truth:
 ```typescript
-const RAW_HREFS = [
-  "/",
-  ...DEFAULT_NAV_ITEMS.flatMap((item) => [
-    item.href,
-    ...(item.dropdownItems?.map((d) => d.href) ?? []),
+// Replace lines 60-71 in seo-aria-current-audit.test.ts:
+// Marketing-nav hrefs derived from `DEFAULT_NAV_ITEMS`. `DEFAULT_NAV_ITEMS`
+// is typed `NavItem[]` (href: string), so the spread elements widen and
+// `(typeof RAW_HREFS)[number]` resolves to `string`. `EXPECTED_ACTIVE`'s
+// value type does NOT catch typos at compile time — the runtime filter +
+// `expect(active[0]).toBe(expected)` / `expect(expected).toBeNull()` flow
+// is the regression net.
+const NAV_HREFS = Array.from(
+  new Set([
+    "/",
+    ...DEFAULT_NAV_ITEMS.flatMap((item) => [
+      item.href,
+      ...(item.dropdownItems?.map((d) => d.href) ?? []),
+    ]),
   ]),
-] as const;
-const NAV_HREFS: readonly (typeof RAW_HREFS)[number][] = [...new Set(RAW_HREFS)];
-type NavHref = (typeof RAW_HREFS)[number];
+);
+type NavHref = string;
 ```
-
-This keeps `NavHref` as the literal union so a future `EXPECTED_ACTIVE` typo fails at
-typecheck instead of only at runtime. Both `DEFAULT_NAV_ITEMS[i].href` and the dropdown
-hrefs are string literals in `types.ts`, so the `as const` chain narrows correctly.
+This drops the dead `as const` and `RAW_HREFS` aliasing so the code stops
+implying a guarantee it doesn't deliver. The `RAW_HREFS` const-tuple form
+in the current code is load-bearing for nothing else once narrowing is
+gone.
 
 ---
 
-_Reviewed: 2026-05-21T16:20:00Z_
+_Reviewed: 2026-05-21T21:35:00Z_
 _Reviewer: Claude (gsd-code-reviewer)_
 _Depth: deep_
