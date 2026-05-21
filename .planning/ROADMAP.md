@@ -184,7 +184,7 @@ Plans:
 **Plans:** 1 plan (single wave — 3 verify-and-pin test tasks, zero `files_modified` overlap)
 
 Plans:
-- [ ] 09-01-PLAN.md — Verify the existing CONS-04 sitemap legal-date drift guard stays green; create CONS-13 `logo-cloud.test.tsx` (no `grayscale`, 5 shared `opacity-90` wrappers) + CONS-14 `marketing-home.test.tsx` (homepage has no `<ComparisonTable>`, `/features` keeps it); no production-code change
+- [x] 09-01-PLAN.md — Verify the existing CONS-04 sitemap legal-date drift guard stays green; create CONS-13 `logo-cloud.test.tsx` (no `grayscale`, 5 shared `opacity-90` wrappers) + CONS-14 `marketing-home.test.tsx` (homepage has no `<ComparisonTable>`, `/features` keeps it); no production-code change
 
 ### Phase 10: CTA & Conversion Standardization
 **Goal**: Canonical "Contact Sales" CTA label + style site-wide; neutral framing on `/compare/*` (no red-✗ for positioning choices); `/contact` form default fixed; testimonials section ships with real names + property counts + quotes (no headshots); review badges added if available; monitored inbox owners documented.
