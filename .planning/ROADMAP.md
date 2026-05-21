@@ -205,7 +205,7 @@ Plans:
 **Plans:** 2 plans (parallel — wave 1; disjoint test files, zero `files_modified` overlap)
 
 Plans:
-- [ ] 10-01-PLAN.md — Regression-pin CONS-06 (`cta-label-canonical.test.ts` — no killed CTA-label variants across 7 files, canonical "Contact Sales" present), CONS-07 (`compare-neutral-framing.test.tsx` — FeatureIcon `'na'` renders neutral muted Minus via exported FeatureTable, compare-data 4 `'na'` rows), CONS-08 (`contact-form-fields.test.tsx` — `/contact` "Please select" placeholder); 3 new Vitest test files, no production-code change
+- [x] 10-01-PLAN.md — Regression-pin CONS-06 (`cta-label-canonical.test.ts` — no killed CTA-label variants across 7 files, canonical "Contact Sales" present), CONS-07 (`compare-neutral-framing.test.tsx` — FeatureIcon `'na'` renders neutral muted Minus via exported FeatureTable, compare-data 4 `'na'` rows), CONS-08 (`contact-form-fields.test.tsx` — `/contact` "Please select" placeholder); 3 new Vitest test files, no production-code change
 - [ ] 10-02-PLAN.md — Regression-pin TRUST-01/04 (`testimonials.test.ts` — ≥2 real attributed testimonials with name + property count + quote, no headshot/metric, TestimonialsSection empty-gate + real-quote render), TRUST-03/04 (`monitored-inboxes.test.ts` — `/security-policy` documents sales@ + security@ inboxes + SLAs) + TRUST-02 documented deferral in SUMMARY; 2 new Vitest test files, no production-code change
 
 ### Phase 11: Design-Token Alignment & Resources Page

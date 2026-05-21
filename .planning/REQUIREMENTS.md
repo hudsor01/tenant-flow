@@ -68,9 +68,9 @@ Replaces the narrow CRIT-01 fix with a full data + UI + automation + content reb
 **: Legal-page "Last Updated" dates standardized — Security Policy, Terms of Service, Privacy Policy must agree on most-recent revision date OR each page reflects its actual last revision (no future dates, no Oct-2025 stale entries).
 - [x] **CONS-05
 **: "Most Popular" badge on Growth pricing card no longer overlaps card border — adjust badge positioning, padding, or `--radius-*` so it sits cleanly on/above the card edge.
-- [ ] **CONS-06**: CTA button styling unified — Starter card CTA matches primary blue style; sales-contact buttons use the canonical "Contact Sales" label + a single secondary style; Features-page top-nav has ONE CTA pill (not duplicate "Start Free Trial" + "Get Started").
-- [ ] **CONS-07**: `/compare/buildium` (and other compare pages) re-frames positioning choices — replace red-✗ + "Landlord-only platform" for "ACH/Payment Processing" and "HOA Management" with neutral "By design" / "Not applicable" treatment using a non-destructive token.
-- [ ] **CONS-08**: `/contact` "How did you hear about us?" dropdown defaults to "Please select" or "Search engine" (not "Sales Outreach").
+- [x] **CONS-06**: CTA button styling unified — Starter card CTA matches primary blue style; sales-contact buttons use the canonical "Contact Sales" label + a single secondary style; Features-page top-nav has ONE CTA pill (not duplicate "Start Free Trial" + "Get Started").
+- [x] **CONS-07**: `/compare/buildium` (and other compare pages) re-frames positioning choices — replace red-✗ + "Landlord-only platform" for "ACH/Payment Processing" and "HOA Management" with neutral "By design" / "Not applicable" treatment using a non-destructive token.
+- [x] **CONS-08**: `/contact` "How did you hear about us?" dropdown defaults to "Please select" or "Search engine" (not "Sales Outreach").
 - [x] **CONS-09
 **: Pricing-page Starter subhead spacing fixed — sentence reads as one line; "/mo" stays adjacent to price, not on a new line.
 - [x] **CONS-10
@@ -191,9 +191,9 @@ Updated by `gsd-roadmapper` during roadmap creation. See ROADMAP.md for canonica
 | CONS-04 | Phase 9 | Pending |
 | CONS-13 | Phase 9 | Pending |
 | CONS-14 | Phase 9 | Pending |
-| CONS-06 | Phase 10 | Pending |
-| CONS-07 | Phase 10 | Pending |
-| CONS-08 | Phase 10 | Pending |
+| CONS-06 | Phase 10 | Complete |
+| CONS-07 | Phase 10 | Complete |
+| CONS-08 | Phase 10 | Complete |
 | TRUST-01 | Phase 10 | Pending |
 | TRUST-02 | Phase 10 | Pending |
 | TRUST-03 | Phase 10 | Pending |
