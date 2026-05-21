@@ -196,9 +196,14 @@ test.describe
 			expect(propertiesLoaded).toBeTruthy();
 		});
 
-		test("🔥 P0: Navigation works", async () => {
+		// 4-page loop: needs more than the default 30s per-test budget once
+		// each page is given the same 20s render allowance as the sibling
+		// single-page tests above. 5s per page flaked under CI cold-start
+		// (P0 Navigation works failure, PR #737) — the page renders well
+		// within 20s but not always within 5s.
+		test("🔥 P0: Navigation works", { timeout: 120_000 }, async () => {
 			const pages = [
-				{ url: "/", name: "Dashboard" },
+				{ url: "/", name: "Homepage" },
 				{ url: "/properties", name: "Properties" },
 				{ url: "/tenants", name: "Tenants" },
 				{ url: "/leases", name: "Leases" },
@@ -211,11 +216,11 @@ test.describe
 					page
 						.locator("h1")
 						.first()
-						.waitFor({ timeout: 5000 })
+						.waitFor({ timeout: 20000 })
 						.then(() => true),
 					page
 						.locator("main")
-						.waitFor({ timeout: 5000 })
+						.waitFor({ timeout: 20000 })
 						.then(() => true),
 				]).catch(() => false);
 
