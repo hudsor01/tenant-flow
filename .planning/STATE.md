@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-last_updated: "2026-05-21T17:17:51.984Z"
-last_activity: 2026-05-21 -- Phase 12 Plan 01 complete (SEO-01 title separators)
+last_updated: "2026-05-21T20:35:44.362Z"
+last_activity: 2026-05-21 -- Phase 12 Plan 03 complete (SEO-03/04/05/06 verify-and-pin + SEO-07 audit)
 progress:
   total_phases: 14
-  completed_phases: 10
+  completed_phases: 11
   total_plans: 28
-  completed_plans: 23
-  percent: 71
+  completed_plans: 25
+  percent: 89
 ---
 
 # Project State
@@ -25,11 +25,11 @@ See: .planning/PROJECT.md (updated 2026-05-08)
 ## Current Position
 
 Phase: 12
-Plan: 02 (next)
-Status: Executing — Plan 01 of 3 complete
-Last activity: 2026-05-21 -- Phase 12 Plan 01 complete (SEO-01 title separators)
+Plan: 03 complete — Phase 12 fully shipped (3 of 3 plans done)
+Status: Executing — Phase 12 complete, ready for ship/verify
+Last activity: 2026-05-21 -- Phase 12 Plan 03 complete (SEO-03/04/05/06 verify-and-pin + SEO-07 audit)
 
-Progress: [████████░░] 82%
+Progress: [█████████░] 89%
 
 ## Performance Metrics
 
@@ -66,6 +66,8 @@ Progress: [████████░░] 82%
 | Phase 11 P01 | ~5min | 3 tasks | 6 files |
 | Phase 11 P02 | ~4min | 2 tasks | 2 files |
 | Phase 12 P01 | ~12min | 3 tasks | 8 files |
+| Phase 12 P02 | ~6min | 2 tasks | 3 files |
+| Phase 12 P03 | ~8min | 3 tasks (+2 verify-only notes) | 3 files |
 
 ## Locked Decisions (see PROJECT.md Key Decisions for full table)
 
@@ -88,6 +90,9 @@ Progress: [████████░░] 82%
 - TRUST-01: 2 real testimonials shipped + regression-pinned (`length >= 2`); 3rd deferred until a real customer opts in — fabricating a 3rd rejected per the honesty milestone
 - TRUST-02 review badges deferred — no G2/Capterra/Trustpilot listings exist; documented deferral, no test, no fabricated badge
 - TOKEN-03 drift-guard is a Vitest unit test (`src/app/__tests__/design-token-drift.test.ts`), NOT an ESLint plugin — scans `src/components` + `src/app` for hex/rgb/bg-white/non-zero-inline-ms against a 10-entry per-pattern D-03 allowlist; runs in lefthook pre-commit + CI `checks` gate; mechanism documented in `11-LINT-RULE.md`
+- Phase 12 Plan 03 — SEO-03 accepted as shipped via Option 1 (site-wide JSON-LD emission is a superset of homepage emission); regression-pinned via mocked-env test, no code change
+- Phase 12 Plan 03 — SEO-04 verified by code inspection only; `/blog/[slug]/page.tsx` `generateStaticParams` reads DB `slug` column with `dynamicParams = false`, no timestamp generator exists; prod-hitting test deferred to the RLS integration suite (Phase 6 territory)
+- Phase 12 Plan 03 — SEO-07 audit file extension stays `.ts` (React.createElement for the two render() calls); bulk of the audit is pure-predicate via `isActiveLink`, so JSX is incidental
 
 ## Blockers
 
@@ -99,9 +104,9 @@ None.
 
 ## Next Action
 
-Phase 12 Plan 01 complete — SEO-01 done. All 8 drifting page `<title>` separators normalized to the canonical pipe ` | ` (3 in `generate-metadata.ts`, 6 page files); new `src/app/__tests__/seo-title-separator-drift.test.ts` (110 lines, 265 tests pass) pins the canonical separator and runs in lefthook pre-commit + CI `checks`. Next: execute Plan 12-02, then 12-03.
+Phase 12 complete — all 3 plans shipped. Plan 03 adds three new regression-pin tests (`src/lib/__tests__/generate-metadata.test.ts`, `src/components/layout/__tests__/footer.test.tsx`, `src/app/__tests__/seo-aria-current-audit.test.ts`) covering SEO-03/06/07; SEO-04/05 verified by code inspection + existing tests (no new code). Phase 12 ready for `/gsd-verify-work 12` then `/gsd-ship 12`.
 
 ---
-*Last updated: 2026-05-21 after Plan 12-01 complete (SEO-01 title separator normalization + drift guard)*
+*Last updated: 2026-05-21 after Plan 12-03 complete (SEO-03/04/05/06 verify-and-pin + SEO-07 audit)*
 
 **Planned Phase:** 12 (seo-metadata-schema-content-cleanup) — 3 plans — 2026-05-21T12:06:00.000Z

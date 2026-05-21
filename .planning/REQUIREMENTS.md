@@ -115,11 +115,11 @@ Replaces the narrow CRIT-01 fix with a full data + UI + automation + content reb
 
 - [x] **SEO-01**: Meta-title separator standardized across all pages — choose em-dash (—) OR pipe (|) for the title-template separator and apply consistently. Update `src/app/layout.tsx` and per-page metadata.
 - [x] **SEO-02**: Per-page Open Graph images for `/pricing`, `/features`, `/compare/[competitor]`, blog category pages, and at least the top blog posts (where applicable post-Blog-Rebuild).
-- [ ] **SEO-03**: Site-wide schema.org `Organization` JSON-LD in root layout; `SoftwareApplication` schema added to homepage for richer SERP snippets.
-- [ ] **SEO-04**: Blog post slugs cleaned — drop millisecond-timestamp slugs like `/blog/error-1778151609106`. Already covered by BLOG-02; this REQ tracks the SEO outcome.
-- [ ] **SEO-05**: Visible breadcrumbs on blog posts and `/compare/[competitor]` pages — JSON-LD breadcrumbs already exist on `/pricing`; render them in the UI as well. Blog portion already covered by BLOG-02.
-- [ ] **SEO-06**: Site-wide `aria-current="page"` audit — use the Compare-on-homepage bug as a starting symptom; verify nav, breadcrumbs, footer, and any active-link components throughout.
-- [ ] **SEO-07**: Footer links to XML sitemap; `robots.txt` confirmed pointing at `/sitemap.xml`.
+- [x] **SEO-03**: Site-wide schema.org `Organization` JSON-LD in root layout; `SoftwareApplication` schema added to homepage for richer SERP snippets.
+- [x] **SEO-04**: Blog post slugs cleaned — drop millisecond-timestamp slugs like `/blog/error-1778151609106`. Already covered by BLOG-02; this REQ tracks the SEO outcome.
+- [x] **SEO-05**: Visible breadcrumbs on blog posts and `/compare/[competitor]` pages — JSON-LD breadcrumbs already exist on `/pricing`; render them in the UI as well. Blog portion already covered by BLOG-02.
+- [x] **SEO-06**: Site-wide `aria-current="page"` audit — use the Compare-on-homepage bug as a starting symptom; verify nav, breadcrumbs, footer, and any active-link components throughout.
+- [x] **SEO-07**: Footer links to XML sitemap; `robots.txt` confirmed pointing at `/sitemap.xml`.
 
 ### Performance & Conversion Polish (PERF)
 
@@ -207,11 +207,11 @@ Updated by `gsd-roadmapper` during roadmap creation. See ROADMAP.md for canonica
 | TOKEN-03 | Phase 11 | Complete |
 | SEO-01 | Phase 12 | Complete |
 | SEO-02 | Phase 12 | Complete |
-| SEO-03 | Phase 12 | Pending |
-| SEO-04 | Phase 12 | Pending |
-| SEO-05 | Phase 12 | Pending |
-| SEO-06 | Phase 12 | Pending |
-| SEO-07 | Phase 12 | Pending |
+| SEO-03 | Phase 12 | Complete |
+| SEO-04 | Phase 12 | Complete |
+| SEO-05 | Phase 12 | Complete |
+| SEO-06 | Phase 12 | Complete |
+| SEO-07 | Phase 12 | Complete |
 | PERF-01 | Phase 13 | Pending |
 | PERF-02 | Phase 13 | Pending |
 | PERF-03 | Phase 13 | Pending |

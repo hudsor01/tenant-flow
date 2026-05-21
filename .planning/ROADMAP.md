@@ -21,7 +21,7 @@ TenantFlow is a mature Next.js 16 + Supabase landlord-only SaaS (v2.6 shipped Ap
 - [ ] **Phase 9: Page-Level Cleanup** — Legal-page dates, faded Supabase logo, dup "Why Landlords Choose" table
 - [x] **Phase 10: CTA & Conversion Standardization** — Canonical "Contact Sales" labels + styles, neutral compare-page framing, fix `/contact` default, testimonials (no headshots) + review badges + monitored inboxes
 - [x] **Phase 11: Design-Token Alignment & Resources Page** — `/resources` neon-pink + decorative cards → tokens; codify no-hex/no-bg-white/no-inline-ms lint rule (completed 2026-05-21)
-- [ ] **Phase 12: SEO Metadata, Schema & Content Cleanup** — Meta separator, per-page OG images, Organization + SoftwareApplication schema, blog slugs (post-Phase 6), breadcrumbs, footer sitemap link, sitewide `aria-current` audit
+- [x] **Phase 12: SEO Metadata, Schema & Content Cleanup** — Meta separator, per-page OG images, Organization + SoftwareApplication schema, blog slugs (post-Phase 6), breadcrumbs, footer sitemap link, sitewide `aria-current` audit
 - [ ] **Phase 13: Performance & Conversion Polish** — Static export + cache headers, sticky CTA on long pages, exit-intent / scroll-depth lead capture (PERF-01 server-render `/blog` already covered in Phase 6)
 
 ## Phase Details
@@ -245,12 +245,12 @@ Plans:
 
 **Phase nature**: Mixed — mostly verify-and-pin (like Phases 7-11) with two pockets of real production work. SEO-01 (title separator drift) + SEO-02 (`/features` OG route) are genuinely-remaining; SEO-03/04/05/06 are shipped (verify-and-pin); SEO-07 needs one new consolidated audit test. PR #674 + Phase 6 already built the full SEO infrastructure.
 
-**Plans:** 1/3 plans executed
+**Plans:** 3/3 plans complete
 
 Plans:
 - [x] 12-01-PLAN.md — SEO-01 meta-title separator normalization: flip 8 drifting em-dash/hyphen title separators to the canonical pipe `|` (3 strings in `generate-metadata.ts` + 6 page files) + new `seo-title-separator-drift.test.ts` drift guard
-- [ ] 12-02-PLAN.md — SEO-02 `/features` OG image: new `src/app/api/og/features/route.tsx` edge route (copy `/api/og/pricing`, oklch only) + wire `ogImage` into `/features` metadata + metadata assertion test
-- [ ] 12-03-PLAN.md — SEO-03/04/05/06 verify-and-pin + new SEO-07 audit: `getJsonLd()` regression pin (SEO-03), `footer.test.tsx` sitemap-link pin (SEO-06), consolidated `seo-aria-current-audit.test.ts` (SEO-07); SEO-04/05 verified shipped (code inspection + existing tests)
+- [x] 12-02-PLAN.md — SEO-02 `/features` OG image: new `src/app/api/og/features/route.tsx` edge route (copy `/api/og/pricing`, oklch only) + wire `ogImage` into `/features` metadata + metadata assertion test
+- [x] 12-03-PLAN.md — SEO-03/04/05/06 verify-and-pin + new SEO-07 audit: `getJsonLd()` regression pin (SEO-03), `footer.test.tsx` sitemap-link pin (SEO-06), consolidated `seo-aria-current-audit.test.ts` (SEO-07); SEO-04/05 verified shipped (code inspection + existing tests)
 
 ### Phase 13: Performance & Conversion Polish
 **Goal**: Marketing pages use static generation + cache headers where eligible; sticky CTA on long pages; exit-intent / scroll-depth lead capture (gated behind feature flag for A/B testing).
