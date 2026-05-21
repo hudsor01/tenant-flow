@@ -24,10 +24,11 @@ type DriftPattern = "hex" | "rgb" | "bgWhite" | "inlineMs";
 const DRIFT_PATTERNS: Record<DriftPattern, RegExp> = {
 	// #RGB / #RGBA / #RRGGBB / #RRGGBBAA at a word boundary
 	hex: /#(?:[0-9a-fA-F]{8}|[0-9a-fA-F]{6}|[0-9a-fA-F]{3,4})\b/g,
-	// \b blocks srgba( / vargba( false positives
-	rgb: /\brgba?\s*\(/gi,
-	// covers bg-white, bg-white/50, bg-white/[var(--x)]
-	bgWhite: /\bbg-white(?:\/(?:\d{1,3}|\[[^\]]+\]))?\b/g,
+	// (?<![\w-]) blocks srgba( / vargba( AND hyphen-prefixed var-rgb( false positives
+	rgb: /(?<![\w-])rgba?\s*\(/gi,
+	// covers bg-white, bg-white/50, bg-white/[var(--x)]. The trailing (?![\w-])
+	// rejects a following word char or hyphen so `bg-white-card` is NOT matched.
+	bgWhite: /\bbg-white(?:\/(?:\d{1,3}|\[[^\]]+\]))?(?![\w-])/g,
 	// catches BOTH Tailwind arbitrary values [animation-delay:200ms] AND JS string
 	// literals animationDelay: "200ms". [1-9]\d* excludes the 0ms zero-case
 	// (globals.css has no --duration-0; 0ms is a legitimate no-delay).
@@ -165,6 +166,10 @@ describe("drift regexes catch known drift (meta-test)", () => {
 		expect("bg-white/50".match(DRIFT_PATTERNS.bgWhite)).not.toBeNull());
 	it("inlineMs regex catches a non-zero ms literal", () =>
 		expect('"200ms"'.match(DRIFT_PATTERNS.inlineMs)).not.toBeNull());
+	it("inlineMs regex catches a Tailwind arbitrary-value ms class", () =>
+		expect(
+			"[animation-delay:200ms]".match(DRIFT_PATTERNS.inlineMs),
+		).not.toBeNull());
 	it("inlineMs regex IGNORES the 0ms zero-case", () =>
 		expect('"0ms"'.match(DRIFT_PATTERNS.inlineMs)).toBeNull());
 	it("hex scan keeps a hex inside a string literal", () =>
@@ -177,4 +182,15 @@ describe("drift regexes catch known drift (meta-test)", () => {
 				DRIFT_PATTERNS.hex,
 			),
 		).toBeNull());
+	it("HEX_ALIAS_PREFIXES filter suppresses a #components subpath-import specifier", () => {
+		const matches =
+			extractStringContent('import x from "#components/ui/button";').match(
+				DRIFT_PATTERNS.hex,
+			) ?? [];
+		expect(
+			matches.filter(
+				(m) => !HEX_ALIAS_PREFIXES.some((p) => m === p || m.startsWith(p)),
+			),
+		).toHaveLength(0);
+	});
 });
