@@ -61,9 +61,12 @@ describe("Resources page design tokens (TOKEN-01, TOKEN-02)", () => {
 	});
 
 	it("color gradients use color-mix token form", () => {
+		// Matches the token reference, not exact whitespace/punctuation, so a
+		// Biome/Prettier reflow or the non-arbitrary `in oklch` (space) form does
+		// not fail the regression pin — only a real loss of the token would.
 		expect(
 			SOURCE,
 			"TOKEN-02: /resources gradients must use color-mix over var(--color-primary)",
-		).toContain("color-mix(in_oklch,var(--color-primary)");
+		).toMatch(/color-mix\(\s*in[_ ]oklch\s*,\s*var\(--color-primary\)/);
 	});
 });
