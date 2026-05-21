@@ -23,6 +23,8 @@ TenantFlow is a mature Next.js 16 + Supabase landlord-only SaaS (v2.6 shipped Ap
 - [x] **Phase 11: Design-Token Alignment & Resources Page** — `/resources` neon-pink + decorative cards → tokens; codify no-hex/no-bg-white/no-inline-ms lint rule (completed 2026-05-21)
 - [x] **Phase 12: SEO Metadata, Schema & Content Cleanup** — Meta separator, per-page OG images, Organization + SoftwareApplication schema, blog slugs (post-Phase 6), breadcrumbs, footer sitemap link, sitewide `aria-current` audit
 - [x] **Phase 13: Performance & Conversion Polish** — Static export + cache headers, sticky CTA on long pages, exit-intent / scroll-depth lead capture (PERF-01 server-render `/blog` already covered in Phase 6) (completed 2026-05-21)
+- [x] **Phase 14: Battle Test Findings Remediation** — D-01..D-04 + multi-session battle-test followups: public 404 marketing layout, dead Stripe.js code removal, /blog 503 catch + Sentry, route-scoped /blog/loading.tsx; plus PRs #708/#718-#724 closing additional browser-agent findings (shipped 2026-05-14..2026-05-15)
+- [ ] **Phase 15: v1.0 Milestone Cleanup** — Close all audit gaps surfaced by `/gsd-audit-milestone`: retroactive VERIFICATION.md for Phases 4/5/6/14, traceability + checkbox sweep, remove `@stripe/react-stripe-js` dead peer-dep, Vitest worker-pool flakiness investigation, regression-pin `/blog` nav deferral
 
 ## Phase Details
 
@@ -309,6 +311,34 @@ Plans:
 - [ ] 14-02-PLAN.md — D-02 drop client-side Stripe.js load from `/pricing`: dead-code reality — `getStripe` has zero callers, so delete it from `src/lib/stripe/stripe-client.ts` and uninstall `@stripe/stripe-js` via `pnpm remove`. No new file. `grep -rn '@stripe/stripe-js' src/ package.json` returns zero matches everywhere
 - [ ] 14-03-PLAN.md — D-03 `/blog` Supabase fetch handles errors gracefully: wrap `Promise.all` in try/catch, route failures through `Sentry.captureException` with `tags: { surface: 'blog-index' }`, render empty-state on failure (never 5xx), 4 new tests covering result.error + Promise.all rejection paths
 - [ ] 14-04-PLAN.md — D-04 blog skeleton ↔ empty-state precedence: create route-scoped `src/app/blog/loading.tsx` so Next.js streaming renders blog-themed skeleton chrome instead of generic site-wide PageLoader; `page.tsx` is read-only confirmatory (the grep must return zero skeleton matches — if not, 14-04 flags it as a 14-03 leak and stops); 5-case unit suite proves loading.tsx CONTENTS; runtime mutual exclusion is a Next.js streaming-boundary guarantee verified MANUAL-ONLY
+
+### Phase 15: v1.0 Milestone Cleanup — close all audit gaps (doc drift, traceability, dead deps, deferred items)
+
+**Goal:** Close every outstanding item surfaced by `/gsd-audit-milestone` for v1.0 so the milestone can archive cleanly with truthful planning artifacts. Cleanup-only, no new product features.
+
+**Scope (from `.planning/v1.0-MILESTONE-AUDIT.md`):**
+1. **Doc drift (4 phases shipped without phase-level VERIFICATION.md):** Write retroactive `04-VERIFICATION.md`, `05-VERIFICATION.md`, `06-VERIFICATION.md`, `14-VERIFICATION.md` referencing shipped PRs (#688, #689, #690, #705+followups), the actual code on `main`, and the existing regression tests. Add the missing `06-01-SUMMARY.md` and `04-01-SUMMARY.md` placeholders linking to PR commits as evidence.
+2. **Traceability sweep:** Flip `REQUIREMENTS.md` traceability table status (Phase 1 / 3 / 4 / 5 / 6 entries currently "Pending") and body checkboxes (`[ ]` → `[x]`) for the ~26 reqs that actually shipped but never had their status updated.
+3. **Dead Stripe peer-dep:** `pnpm remove @stripe/react-stripe-js` so `@stripe/stripe-js` actually leaves `pnpm-lock.yaml`. Verify `grep -rn "@stripe/react-stripe-js" src/` is empty before and after. Tracked in `.planning/phases/14-battle-test-findings-remediation/deferred-items.md`.
+4. **Vitest worker-pool flakiness:** Investigate the ~15 unrelated flaky failures under the full 105k-test parallel run (worker timeouts; tests pass in isolation). Tune `vitest.config.ts` `pool` / `poolOptions` or split projects until full-suite green is reproducible. Tracked in `.planning/phases/12-seo-metadata-schema-content-cleanup/deferred-items.md`.
+5. **/blog nav deferral hardening:** The intentional suppression of `/blog` from `DEFAULT_NAV_ITEMS` is already pinned via comment (`src/components/layout/navbar/types.ts` lines 31-39) but has no regression test. Add a `nav-blog-suppression.test.ts` that asserts `/blog` is NOT in `DEFAULT_NAV_ITEMS` so the deferral stays load-bearing when content cohort lands.
+
+**Requirements:** None new (all v1.0 reqs are already shipped; this phase is corrective hygiene).
+
+**Depends on:** Phase 14 (and all prior). No code changes that would invalidate existing perfect-PR regression coverage.
+
+**Success criteria:**
+1. Every v1.0 phase has a `*-VERIFICATION.md` file with a 1-line cross-reference to its merged PR + the regression test(s) that pin its work.
+2. `REQUIREMENTS.md` traceability table shows **Complete** for all 55 reqs; body checkboxes are `[x]` site-wide.
+3. `package.json` no longer lists `@stripe/react-stripe-js`; `pnpm-lock.yaml` no longer references either `@stripe/*-stripe-js` package.
+4. `bunx vitest --run --project unit` produces zero flaky failures across 3 consecutive full-suite runs (or the flakes are root-caused + documented as deferred to v1.1 with a tracked issue).
+5. `src/components/layout/navbar/__tests__/nav-blog-suppression.test.ts` exists and pins the `/blog` absence; the existing source comment is preserved and now load-bearing-with-tests.
+6. No hex/rgb/`bg-white`/inline-ms introduced; drift-guard passes; full suite still green.
+
+**Plans:** 0 plans (run `/gsd-plan-phase 15` to break down)
+
+Plans:
+- [ ] TBD (run /gsd-plan-phase 15 to break down)
 
 ---
 *Roadmap defined: 2026-05-08 after v1.0 Q&A. Replaces 11-phase fine-granularity draft after pricing restructure + blog rebuild scope additions. Phase 14 added 2026-05-14 from production battle test. Phase 10 plans added 2026-05-20.*

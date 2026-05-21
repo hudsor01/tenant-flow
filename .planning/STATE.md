@@ -102,6 +102,7 @@ None.
 ## Roadmap Evolution
 
 - Phase 14 added: Battle Test Findings Remediation — close /blog 503, skeleton+empty precedence, Stripe.js noise on /pricing, public 404 lacks marketing nav
+- Phase 15 added (2026-05-21): v1.0 milestone cleanup — close all audit gaps surfaced by `/gsd-audit-milestone` (retroactive VERIFICATION.md for Phases 4/5/6/14, REQUIREMENTS.md traceability + checkbox sweep, remove `@stripe/react-stripe-js` dead peer-dep, Vitest worker-pool flakiness investigation, document `/blog` nav deferral)
 
 ## Next Action
 
