@@ -98,7 +98,7 @@ Replaces the narrow CRIT-01 fix with a full data + UI + automation + content reb
 
 - [ ] **TOKEN-01**: Resources page Free Downloads tags ("Checklist", "Spreadsheet", "Guide") use `globals.css` tokens — eliminate neon pink that clashes with the blue/teal/grey palette. Use `--color-{primary,accent,info}` or muted backgrounds with `text-foreground`.
 - [ ] **TOKEN-02**: `/resources` cards use consistent surface tokens — replace decorative grey/blue/mint/cream backgrounds with `bg-card` or `bg-muted` for visual coherence.
-- [ ] **TOKEN-03**: Site-wide audit for hex/rgb/named colors and inline ms durations in `src/components/**` and `src/app/**` — replace with `globals.css` token references. Codify a lint rule (custom ESLint plugin or stylelint) or CI check that fails future PRs introducing non-token values.
+- [ ] **TOKEN-03**: Site-wide audit for hex/rgb/named colors and inline ms durations in `src/components/**` and `src/app/**` — replace with `globals.css` token references. Codify a drift-guard unit test (the repo's established pattern — runs in CI) that fails future PRs introducing non-token values. No ESLint — the repo lints with Biome.
 
 ### Trust & Conversion (TRUST)
 

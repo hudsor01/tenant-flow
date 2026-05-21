@@ -217,7 +217,7 @@ Plans:
 1. `/resources` Free Downloads tags use `--color-{primary,accent,info}` or muted backgrounds (no neon pink)
 2. `/resources` cards use `bg-card` or `bg-muted` (no decorative grey/blue/mint/cream tints)
 3. Sitewide grep across `src/components/**` and `src/app/**` returns zero hex codes, zero `rgb(`, zero `bg-white`, zero inline `[NNN]ms`
-4. Custom ESLint plugin or stylelint config codifies the no-token-drift rule; CI fails future PRs that introduce hex/rgb/`bg-white`/inline ms
+4. A drift-guard unit test codifies the no-token-drift rule; CI fails future PRs that introduce hex/rgb/`bg-white`/inline ms (no ESLint — the repo lints with Biome)
 5. Lint rule documented in `.planning/phases/<phase-id>/LINT-RULE.md` for future maintainers
 
 ### Phase 12: SEO Metadata, Schema & Content Cleanup
