@@ -38,8 +38,11 @@ describe("LogoCloud — CONS-13 consistent logo weight", () => {
 
 	it("applies one shared opacity-90 class to every logo wrapper (CONS-13)", () => {
 		const { container } = render(<LogoCloud />);
-		// Exactly 5 logo wrappers carry the shared opacity-90 class.
-		expect(container.querySelectorAll(".opacity-90")).toHaveLength(5);
+		// Exactly 5 logo wrappers carry the shared opacity-90 class. Scoped to
+		// the `h-8` + `opacity-90` combination that uniquely identifies the
+		// logo wrapper, so the count stays robust if an unrelated future
+		// element (e.g. a BlurFade preset) introduces a bare `opacity-90`.
+		expect(container.querySelectorAll(".h-8.opacity-90")).toHaveLength(5);
 		// None carry the old faded value.
 		expect(container.querySelectorAll(".opacity-80")).toHaveLength(0);
 	});
