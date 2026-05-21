@@ -131,10 +131,19 @@ Subpath-import aliases (`#config/`, `#components/`, etc.) are additionally filte
 the `HEX_ALIAS_PREFIXES` list as forward-protection — they are never color literals even
 if they appear inside a string.
 
+Issue references that live **inside a string literal** (e.g. `toast("see ticket #725")`,
+`{"Fixed in PR #404"}`) have the same 3/4-digit shape as a hex color, so the comment-only
+mitigation does not cover them. They are additionally filtered via the `HEX_ISSUE_REF`
+guard: a hex-shaped token preceded — within the same string — by an issue-ref keyword
+(`PR`, `pull request`, `issue`, `ticket`, `bug`, `fix`) is dropped. A genuine 3/4-digit
+hex color (`fill="#abc"`) is never preceded by those keywords and is still caught. The
+`#NNN`-in-string-literal boundary is pinned by dedicated meta-tests in the drift-guard.
+
 The residual limitation: a hex-shaped string literal that is genuinely **not** a color
-(for example, a fictional `"#222"` used as test data inside a non-test source file) would
-be a false positive. No such case exists in the codebase today. If one ever fires, either
-move the value or add a scoped `DRIFT_EXEMPTIONS` entry with a justification.
+and is **not** preceded by an issue-ref keyword (for example, a fictional bare `"#222"`
+used as test data inside a non-test source file) would still be a false positive. No such
+case exists in the codebase today. If one ever fires, either move the value or add a
+scoped `DRIFT_EXEMPTIONS` entry with a justification.
 
 The `rgb`, `bgWhite`, and `inlineMs` patterns scan the raw file text; the audit confirmed
 they produce no false positives in the current codebase.

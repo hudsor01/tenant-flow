@@ -47,6 +47,23 @@ function extractStringContent(content: string): string {
 	return (content.match(STRING_LITERAL) ?? []).join("\n");
 }
 
+// Issue-reference guard. A `#NNN` / `#NNNN` issue ref (e.g. `PR #725`, `ticket #404`)
+// has the SAME shape as a 3/4-digit hex color, so it false-positives the hex regex when
+// it lives inside a string literal (a toast message, JSX text, etc.) rather than a
+// comment. A genuine color literal is preceded by a CSS/SVG color context
+// (`fill="#fff"`, `color:#222`, `: "#abc"`), never by an issue-ref keyword. This regex
+// matches a hex-shaped token that is preceded — within the same string — by an issue-ref
+// keyword (`PR`, `pull request`, `issue`, `ticket`, `bug`, `fix`) and optional words.
+// Such matches are dropped from the hex result set. Genuine 3/4-digit hex colors
+// (`fill="#abc"`) are NOT preceded by these keywords and remain caught.
+const HEX_ISSUE_REF =
+	/\b(?:PR|pull request|issue|ticket|bug|fix(?:ed|es)?)\b[^"'`#]*#(?:[0-9a-fA-F]{3,4})\b/gi;
+
+function isIssueRefMatch(stringContent: string, hexMatch: string): boolean {
+	const refs = stringContent.match(HEX_ISSUE_REF) ?? [];
+	return refs.some((ref) => ref.endsWith(hexMatch));
+}
+
 // Subpath-import aliases (package.json#imports) start with '#' + a word and would
 // false-positive the 3-4-digit hex shape. They are never color literals.
 const HEX_ALIAS_PREFIXES = [
@@ -86,7 +103,7 @@ const DRIFT_EXEMPTIONS: Record<string, readonly DriftPattern[]> = {
 	"src/components/auth/google-button.tsx": ["hex"],
 	// QR-code container, QR scanners require literal white regardless of theme.
 	// Genuine D-03-class exception surfaced by the Phase 11 audit (11-RESEARCH.md Q2);
-	// line 62 of the file carries the in-code justification comment.
+	// line 63 of the file carries the bg-white usage (line 62 is its justification comment).
 	"src/components/auth/two-factor-setup-steps.tsx": ["bgWhite"],
 } as const;
 
@@ -141,9 +158,12 @@ for (const root of ["src/components", "src/app"]) {
 							pattern === "hex"
 								? rawMatches.filter(
 										(m) =>
+											// drop #config/#components/... subpath-import specifiers
 											!HEX_ALIAS_PREFIXES.some(
 												(p) => m === p || m.startsWith(p),
-											),
+											) &&
+											// drop #NNN/#NNNN issue refs inside string literals
+											!isIssueRefMatch(scanText, m),
 									)
 								: rawMatches;
 						expect(
@@ -192,5 +212,36 @@ describe("drift regexes catch known drift (meta-test)", () => {
 				(m) => !HEX_ALIAS_PREFIXES.some((p) => m === p || m.startsWith(p)),
 			),
 		).toHaveLength(0);
+	});
+	it("issue-ref filter drops a #NNN issue ref inside a string literal", () => {
+		// `toast("see ticket #725")` — the hex regex matches `#725`, but the
+		// issue-ref guard drops it. Without the guard this would be a false positive.
+		const scan = extractStringContent('toast("see ticket #725")');
+		const matches = (scan.match(DRIFT_PATTERNS.hex) ?? []).filter(
+			(m) => !isIssueRefMatch(scan, m),
+		);
+		expect(matches).toHaveLength(0);
+	});
+	it("issue-ref filter drops a #NNNN issue ref (e.g. PR #4040) inside a string literal", () => {
+		const scan = extractStringContent('const msg = "Fixed in PR #4040";');
+		const matches = (scan.match(DRIFT_PATTERNS.hex) ?? []).filter(
+			(m) => !isIssueRefMatch(scan, m),
+		);
+		expect(matches).toHaveLength(0);
+	});
+	it("issue-ref filter still catches a genuine 3-digit hex color in the same string", () => {
+		// `#abc` has no issue-ref keyword preceding it — it must survive the filter.
+		const scan = extractStringContent('const fill = "#abc";');
+		const matches = (scan.match(DRIFT_PATTERNS.hex) ?? []).filter(
+			(m) => !isIssueRefMatch(scan, m),
+		);
+		expect(matches).toEqual(["#abc"]);
+	});
+	it("issue-ref filter still catches a genuine 6-digit hex color, not an issue ref", () => {
+		const scan = extractStringContent('const fill = "#2563eb";');
+		const matches = (scan.match(DRIFT_PATTERNS.hex) ?? []).filter(
+			(m) => !isIssueRefMatch(scan, m),
+		);
+		expect(matches).toEqual(["#2563eb"]);
 	});
 });
