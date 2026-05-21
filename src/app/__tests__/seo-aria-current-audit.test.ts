@@ -39,18 +39,22 @@ vi.mock("next/link", () => ({
 
 import { CompareBreadcrumb } from "#components/compare/compare-breadcrumb";
 import Footer from "#components/layout/footer";
+import { DEFAULT_NAV_ITEMS } from "#components/layout/navbar/types";
 import { isActiveLink } from "#lib/is-active-link";
 
-// Marketing-nav hrefs — these are the surfaces that drive
-// `aria-current="page"` via `isActiveLink` in navbar-desktop-nav /
-// navbar-mobile-menu. Mirrors the hrefs in those components.
+// Marketing-nav hrefs — derived from `DEFAULT_NAV_ITEMS` (the single
+// source of truth used by `navbar-desktop-nav` + `navbar-mobile-menu`)
+// so the audit stays in lockstep with the real nav. Includes parent
+// hrefs PLUS dropdown items (e.g. `/resources`, `/help`, `/faq`,
+// `/contact`). The homepage `/` is not in the nav (the logo is not a
+// `DEFAULT_NAV_ITEMS` entry); we add it separately because the
+// audit's prefix-match guard still needs to exercise it.
 const NAV_HREFS = [
 	"/",
-	"/pricing",
-	"/features",
-	"/compare",
-	"/about",
-	"/blog",
+	...DEFAULT_NAV_ITEMS.flatMap((item) => [
+		item.href,
+		...(item.dropdownItems?.map((d) => d.href) ?? []),
+	]),
 ] as const;
 type NavHref = (typeof NAV_HREFS)[number];
 
