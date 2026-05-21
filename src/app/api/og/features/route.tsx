@@ -8,7 +8,7 @@ import { ImageResponse } from "@vercel/og";
 // long-lived `Cache-Control` header that `@vercel/og` sets internally on
 // `ImageResponse` plus Vercel's edge network defaults. The `revalidate`
 // export is kept here as documentation of the intended cache horizon and
-// to stay in lockstep with the sibling `/api/og/features/route.tsx`.
+// to stay in lockstep with the sibling `/api/og/pricing/route.tsx`.
 export const runtime = "edge";
 export const revalidate = 3600;
 
@@ -42,7 +42,7 @@ export function GET() {
 					opacity: 0.85,
 				}}
 			>
-				Pricing
+				Features
 			</div>
 			<div
 				style={{
@@ -60,7 +60,7 @@ export function GET() {
 						display: "flex",
 					}}
 				>
-					Property management plans from $19/mo
+					Document vault, lease e-signing & maintenance
 				</div>
 				<div
 					style={{
@@ -71,7 +71,7 @@ export function GET() {
 						display: "flex",
 					}}
 				>
-					14-day free trial. No credit card required.
+					Everything landlords need to administer rental properties.
 				</div>
 			</div>
 			<div

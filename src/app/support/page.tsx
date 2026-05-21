@@ -15,7 +15,7 @@ import { createBreadcrumbJsonLd } from "#lib/seo/breadcrumbs";
 import { createPageMetadata } from "#lib/seo/page-metadata";
 
 export const metadata: Metadata = createPageMetadata({
-	title: "Support Center - Property Management Help",
+	title: "Support Center | Property Management Help",
 	description:
 		"Get help with TenantFlow. Contact support, browse FAQs, troubleshoot common issues, and find guides for landlords managing properties, leases, and tenants.",
 	path: "/support",

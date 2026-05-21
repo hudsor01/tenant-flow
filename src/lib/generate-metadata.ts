@@ -30,7 +30,7 @@ function createDefaultMetadata(): Metadata {
 		title: {
 			template: "%s | TenantFlow",
 			default:
-				"TenantFlow — Property Management Software for Independent Landlords",
+				"TenantFlow | Property Management Software for Independent Landlords",
 		},
 		description:
 			"Property management software built for independent landlords. Track leases, maintenance, tenants, and finances in one place. 14-day free trial.",
@@ -51,7 +51,7 @@ function createDefaultMetadata(): Metadata {
 		},
 		openGraph: {
 			title:
-				"TenantFlow — Property Management Software for Independent Landlords",
+				"TenantFlow | Property Management Software for Independent Landlords",
 			description:
 				"All-in-one property management software. Track leases, maintenance, and tenants. Plans from $19/mo.",
 			url: SITE_URL,
@@ -78,7 +78,7 @@ function createDefaultMetadata(): Metadata {
 		twitter: {
 			card: "summary_large_image",
 			title:
-				"TenantFlow — Property Management Software for Independent Landlords",
+				"TenantFlow | Property Management Software for Independent Landlords",
 			description:
 				"All-in-one property management software. Track leases, maintenance, and tenants. Plans from $19/mo.",
 			site: "@tenantflow",

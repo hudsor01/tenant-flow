@@ -9,7 +9,7 @@ import { cn } from "#lib/utils";
 import type { NavItem } from "./types";
 
 interface NavbarDesktopNavProps {
-	navItems: NavItem[];
+	navItems: readonly NavItem[];
 	pathname: string;
 }
 

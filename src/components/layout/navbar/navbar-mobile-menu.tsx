@@ -17,7 +17,7 @@ interface NavbarMobileMenuProps {
 	isOpen: boolean;
 	onOpenChange: (open: boolean) => void;
 	onClose: () => void;
-	navItems: NavItem[];
+	navItems: readonly NavItem[];
 	pathname: string;
 	ctaText: string;
 	ctaHref: string;

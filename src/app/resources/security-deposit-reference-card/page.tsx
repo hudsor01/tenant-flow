@@ -11,7 +11,7 @@ import { createBreadcrumbJsonLd } from "#lib/seo/breadcrumbs";
 import { createPageMetadata } from "#lib/seo/page-metadata";
 
 export const metadata: Metadata = createPageMetadata({
-	title: "Security Deposit Laws by State - Quick Reference Card",
+	title: "Security Deposit Laws by State | Quick Reference Card",
 	description:
 		"Free printable security deposit reference card with deposit limits, return deadlines, and required documentation for all 50 states plus DC.",
 	path: "/resources/security-deposit-reference-card",

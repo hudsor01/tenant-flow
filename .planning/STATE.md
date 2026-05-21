@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: ready_to_plan
-last_updated: 2026-05-21T15:28:02.693Z
-last_activity: 2026-05-21
+last_updated: 2026-05-21T20:42:48.706Z
+last_activity: 2026-05-21 -- Phase 12 Plan 03 complete (SEO-03/04/05/06 verify-and-pin + SEO-07 audit)
 progress:
   total_phases: 14
-  completed_phases: 10
-  total_plans: 25
-  completed_plans: 22
-  percent: 71
-stopped_at: Phase 11 complete (2/2) — ready to discuss Phase 14
+  completed_phases: 11
+  total_plans: 28
+  completed_plans: 25
+  percent: 79
+stopped_at: Phase 12 complete (3/3) — ready to discuss Phase 14
 ---
 
 # Project State
@@ -30,7 +30,7 @@ Plan: Not started
 Status: Ready to plan
 Last activity: 2026-05-21
 
-Progress: [█████████░] 88%
+Progress: [█████████░] 89%
 
 ## Performance Metrics
 
@@ -66,6 +66,9 @@ Progress: [█████████░] 88%
 | Phase 10 P02 | 8min | 3 tasks | 2 files |
 | Phase 11 P01 | ~5min | 3 tasks | 6 files |
 | Phase 11 P02 | ~4min | 2 tasks | 2 files |
+| Phase 12 P01 | ~12min | 3 tasks | 8 files |
+| Phase 12 P02 | ~6min | 2 tasks | 3 files |
+| Phase 12 P03 | ~8min | 3 tasks (+2 verify-only notes) | 3 files |
 
 ## Locked Decisions (see PROJECT.md Key Decisions for full table)
 
@@ -88,6 +91,9 @@ Progress: [█████████░] 88%
 - TRUST-01: 2 real testimonials shipped + regression-pinned (`length >= 2`); 3rd deferred until a real customer opts in — fabricating a 3rd rejected per the honesty milestone
 - TRUST-02 review badges deferred — no G2/Capterra/Trustpilot listings exist; documented deferral, no test, no fabricated badge
 - TOKEN-03 drift-guard is a Vitest unit test (`src/app/__tests__/design-token-drift.test.ts`), NOT an ESLint plugin — scans `src/components` + `src/app` for hex/rgb/bg-white/non-zero-inline-ms against a 10-entry per-pattern D-03 allowlist; runs in lefthook pre-commit + CI `checks` gate; mechanism documented in `11-LINT-RULE.md`
+- Phase 12 Plan 03 — SEO-03 accepted as shipped via Option 1 (site-wide JSON-LD emission is a superset of homepage emission); regression-pinned via mocked-env test, no code change
+- Phase 12 Plan 03 — SEO-04 verified by code inspection only; `/blog/[slug]/page.tsx` `generateStaticParams` reads DB `slug` column with `dynamicParams = false`, no timestamp generator exists; prod-hitting test deferred to the RLS integration suite (Phase 6 territory)
+- Phase 12 Plan 03 — SEO-07 audit file extension stays `.ts` (React.createElement for the two render() calls); bulk of the audit is pure-predicate via `isActiveLink`, so JSX is incidental
 
 ## Blockers
 
@@ -99,9 +105,9 @@ None.
 
 ## Next Action
 
-Phase 11 (token-alignment) complete — both plans shipped. Plan 11-02 authored the TOKEN-03 drift-guard (`src/app/__tests__/design-token-drift.test.ts`, 180 lines, passes green at 2701 tests) and the `11-LINT-RULE.md` mechanism doc. TOKEN-01/02/03 all satisfied. Next: `/gsd-verify-work 11` then `/gsd-ship 11` (perfect-PR gate).
+Phase 12 complete — all 3 plans shipped. Plan 03 adds three new regression-pin tests (`src/lib/__tests__/generate-metadata.test.ts`, `src/components/layout/__tests__/footer.test.tsx`, `src/app/__tests__/seo-aria-current-audit.test.ts`) covering SEO-03/06/07; SEO-04/05 verified by code inspection + existing tests (no new code). Phase 12 ready for `/gsd-verify-work 12` then `/gsd-ship 12`.
 
 ---
-*Last updated: 2026-05-21 after Plan 11-02 complete (TOKEN-03 drift-guard test + 11-LINT-RULE.md — Phase 11 done)*
+*Last updated: 2026-05-21 after Plan 12-03 complete (SEO-03/04/05/06 verify-and-pin + SEO-07 audit)*
 
-**Planned Phase:** 11 (token-alignment) — 2 plans — 2026-05-21T14:49:45.285Z
+**Planned Phase:** 12 (seo-metadata-schema-content-cleanup) — 3 plans — 2026-05-21T12:06:00.000Z
