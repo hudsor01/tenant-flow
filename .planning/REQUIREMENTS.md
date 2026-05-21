@@ -60,8 +60,10 @@ Replaces the narrow CRIT-01 fix with a full data + UI + automation + content reb
 ### Consistency — Visual & Copy (CONS)
 
 - [ ] **CONS-01**: Persona language unified across all marketing pages — final persona word selected during `/gsd-plan-phase 4` via per-phase researcher who surveys comparable B2B SaaS terminology and recommends. Lean direction: owner-operator framing (avoid bare "landlord" per user feedback). After selection, global find-and-replace across hero, About, meta descriptions, FAQ, and headlines.
-- [ ] **CONS-02**: "Multi-Property Dashboard" feature card uses correct `lucide-react` icon (e.g. `LayoutGrid` / `Building2` / `LayoutDashboard`) — currently a back-arrow.
-- [ ] **CONS-03**: Active-nav state on homepage stops highlighting "Compare" — fix `aria-current="page"` logic so `/` highlights the appropriate link (or none).
+- [x] **CONS-02
+**: "Multi-Property Dashboard" feature card uses correct `lucide-react` icon (e.g. `LayoutGrid` / `Building2` / `LayoutDashboard`) — currently a back-arrow.
+- [x] **CONS-03
+**: Active-nav state on homepage stops highlighting "Compare" — fix `aria-current="page"` logic so `/` highlights the appropriate link (or none).
 - [ ] **CONS-04**: Legal-page "Last Updated" dates standardized — Security Policy, Terms of Service, Privacy Policy must agree on most-recent revision date OR each page reflects its actual last revision (no future dates, no Oct-2025 stale entries).
 - [x] **CONS-05
 **: "Most Popular" badge on Growth pricing card no longer overlaps card border — adjust badge positioning, padding, or `--radius-*` so it sits cleanly on/above the card edge.
@@ -72,7 +74,8 @@ Replaces the narrow CRIT-01 fix with a full data + UI + automation + content reb
 **: Pricing-page Starter subhead spacing fixed — sentence reads as one line; "/mo" stays adjacent to price, not on a new line.
 - [x] **CONS-10
 **: Annual toggle savings figure is correct and explainable — math matches a real per-plan calc post-pricing-restructure (Phase 7 ships after PRICE phase). Either a single composite "Save $X/year" backed by math, or per-plan savings shown on each card.
-- [ ] **CONS-11**: Resources nav dropdown items navigate to real URLs — replace `href="/#"` with the actual destination route(s); ensure keyboard navigation activates them.
+- [x] **CONS-11
+**: Resources nav dropdown items navigate to real URLs — replace `href="/#"` with the actual destination route(s); ensure keyboard navigation activates them.
 - [ ] **CONS-13**: Trusted Integrations row renders all 5 logos (Stripe, Vercel, DocuSeal, Resend, Supabase) at consistent visual weight — fix faded Supabase logo (export issue or stuck hover state).
 - [ ] **CONS-14**: Duplicate "Why Landlords Choose TenantFlow" comparison table de-duplicated — remove from one of homepage or `/features`, or differentiate so they don't read as accidental copy-paste.
 

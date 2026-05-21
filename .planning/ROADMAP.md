@@ -17,7 +17,7 @@ TenantFlow is a mature Next.js 16 + Supabase landlord-only SaaS (v2.6 shipped Ap
 - [ ] **Phase 5: Pricing Restructure** — Revenue audit + competitor analysis + new tier proposal + Stripe migration + propagate everywhere. Replaces CRIT-03 placeholder with final tier structure
 - [ ] **Phase 6: Blog Rebuild + n8n Redesign** — Database cleanup + server-rendered `/blog` UI rebuild + n8n workflow redesign + initial persona-aligned content set
 - [ ] **Phase 7: Pricing-Card Chrome** — Most-Popular badge overlap, Starter subhead spacing, annual-toggle savings math (uses Phase 5's final tier numbers)
-- [ ] **Phase 8: Nav, Active States & Dead Links** — Multi-Property Dashboard icon, `aria-current` on `/`, dead `href="/#"` in Resources dropdown
+- [x] **Phase 8: Nav, Active States & Dead Links** — Multi-Property Dashboard icon, `aria-current` on `/`, dead `href="/#"` in Resources dropdown
 - [ ] **Phase 9: Page-Level Cleanup** — Legal-page dates, faded Supabase logo, dup "Why Landlords Choose" table
 - [ ] **Phase 10: CTA & Conversion Standardization** — Canonical "Contact Sales" labels + styles, neutral compare-page framing, fix `/contact` default, testimonials (no headshots) + review badges + monitored inboxes
 - [ ] **Phase 11: Design-Token Alignment & Resources Page** — `/resources` neon-pink + decorative cards → tokens; codify no-hex/no-bg-white/no-inline-ms lint rule
@@ -145,7 +145,7 @@ Plans:
 3. Annual toggle reveals per-plan annual prices + math-correct savings figure backed by Phase 5's monthly + annual price values
 4. No new hex/rgb/`bg-white`/inline-ms tokens introduced
 
-**Plans:** 2 plans (parallel — wave 1; disjoint test files, zero files_modified overlap)
+**Plans:** 2 plans (parallel — wave 1; disjoint test files, zero `files_modified` overlap)
 
 Plans:
 - [x] 07-01-PLAN.md — Regression-pin CONS-05 (Most Popular badge top-0 -translate-y-1/2) + CONS-09 Featured price-row nowrap via pricing-card-featured.test.tsx
@@ -156,11 +156,17 @@ Plans:
 **Depends on**: Phase 4 (icon choice + dropdown destinations may depend on persona-aligned page list)
 **Requirements**: CONS-02, CONS-03, CONS-11
 **Branch**: `gsd/phase-8-nav-active-states`
+**Phase nature**: Test-and-verify. All three production fixes already shipped in commit `7540ebe48` (verified in 08-RESEARCH.md and re-confirmed at plan time against live source). The phase deliverable is 3 regression-pinning unit test files — no production-code change.
 **Success Criteria**:
 1. "Multi-Property Dashboard" feature card icon is one of `LayoutGrid`, `Building2`, `LayoutDashboard` (not back-arrow); icon visually communicates the feature
 2. On `/`, no nav link is incorrectly highlighted as active; `aria-current="page"` is correct
 3. Every Resources nav dropdown item navigates to a real URL (no `href="/#"`); keyboard activation works
 4. No new hex/rgb/`bg-white`/inline-ms tokens introduced
+
+**Plans:** 1 plan (single wave — 3 regression-test tasks, zero `files_modified` overlap)
+
+Plans:
+- [x] 08-01-PLAN.md — Regression-pin CONS-02 (Multi-Property Dashboard card LayoutDashboard icon), CONS-03 (homepage `aria-current` wiring — negative on `/`, positive on `/compare`), CONS-11 (`DEFAULT_NAV_ITEMS` no placeholder href) via 3 new Vitest test files; no production-code change
 
 ### Phase 9: Page-Level Cleanup
 **Goal**: Legal-page "Last Updated" dates are honest + consistent; Trusted Integrations row renders all 5 logos at consistent visual weight; duplicate "Why Landlords Choose" table de-duplicated.
