@@ -1,17 +1,16 @@
 ---
 gsd_state_version: 1.0
 milestone: v1.0
-milestone_name: milestone
-status: ready_to_plan
-last_updated: 2026-05-21T22:07:04.417Z
-last_activity: 2026-05-21 -- Phase 12 Plan 03 complete (SEO-03/04/05/06 verify-and-pin + SEO-07 audit)
+milestone_name: Milestone Cleanup — close all audit gaps
+status: planning
+last_updated: "2026-05-21T23:19:22.110Z"
+last_activity: 2026-05-21
 progress:
-  total_phases: 14
+  total_phases: 16
   completed_phases: 11
   total_plans: 28
   completed_plans: 26
-  percent: 79
-stopped_at: Phase 13 complete (1/0) — ready to discuss Phase 14
+  percent: 69
 ---
 
 # Project State
@@ -21,16 +20,16 @@ stopped_at: Phase 13 complete (1/0) — ready to discuss Phase 14
 See: .planning/PROJECT.md (updated 2026-05-08)
 
 **Core value:** Every public claim on tenantflow.app must map to working code, and every visual must align to canonical design tokens in `src/app/globals.css`.
-**Current focus:** Phase 14 — battle test findings remediation
+**Current focus:** Phase 15 — v1.0 milestone cleanup (close all audit gaps before archiving v1.0)
 
 ## Current Position
 
-Phase: 14
-Plan: Not started
+Phase: 15
+Plan: Not started (context gathered, ready to plan)
 Status: Ready to plan
-Last activity: 2026-05-21
+Last activity: 2026-05-21 — Phase 15 CONTEXT.md committed (`92735e29d`); v1.0 audit doc + roadmap entry shipped
 
-Progress: [█████████░] 89%
+Progress: [██████████] 100% (v1.0 substantively shipped; Phase 15 is cleanup paperwork)
 
 ## Performance Metrics
 
@@ -106,9 +105,11 @@ None.
 
 ## Next Action
 
-Phase 12 complete — all 3 plans shipped. Plan 03 adds three new regression-pin tests (`src/lib/__tests__/generate-metadata.test.ts`, `src/components/layout/__tests__/footer.test.tsx`, `src/app/__tests__/seo-aria-current-audit.test.ts`) covering SEO-03/06/07; SEO-04/05 verified by code inspection + existing tests (no new code). Phase 12 ready for `/gsd-verify-work 12` then `/gsd-ship 12`.
+`/gsd-plan-phase 15` — break Phase 15 into the 5 parallel plans locked in `15-CONTEXT.md` (15-01 retro-VERIFICATIONs for Phases 4/5/6/14, 15-02 REQUIREMENTS.md traceability sweep, 15-03 `pnpm remove @stripe/react-stripe-js`, 15-04 Vitest pool flakiness investigate+fix, 15-05 `/blog` nav suppression source-scan + render regression-pin).
+
+After Phase 15 ships through perfect-PR: `/gsd-complete-milestone v1.0` to archive, then `/gsd-new-milestone` for v2.0 dashboard redesign (plan parked at `/Users/richard/.claude/plans/i-want-to-enhance-hazy-island.md`).
 
 ---
-*Last updated: 2026-05-21 after Plan 12-03 complete (SEO-03/04/05/06 verify-and-pin + SEO-07 audit)*
+*Last updated: 2026-05-21 after Phase 15 CONTEXT committed (`92735e29d`); v1.0 milestone audit doc shipped*
 
-**Planned Phase:** 12 (seo-metadata-schema-content-cleanup) — 3 plans — 2026-05-21T12:06:00.000Z
+**Planned Phase:** 15 (v1.0-milestone-cleanup) — 5 plans queued — 2026-05-21T23:19:22.000Z
