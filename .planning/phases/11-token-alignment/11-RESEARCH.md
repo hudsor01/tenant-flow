@@ -525,7 +525,7 @@ for (const root of ["src/components", "src/app"]) {
 | A3 | `bg-black/N` and `text-white` are out of scope (D-02 lists only four patterns) | Pitfall 3 | LOW — D-02 is explicit about the four drift patterns; `bg-black` is a deliberate scrim pattern. |
 | A4 | The drift-guard test belongs in the `unit` Vitest project (not `component`) | TOKEN-03 design | LOW — it is a pure filesystem scan with no DOM; `unit` project's `include` glob matches `src/**/*.test.ts`. |
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **How should the `0ms` zero-case be handled in both the fix and the drift-guard regex?**
    - What we know: Several occurrences are `0ms` (the first item in a stagger sequence — a legitimate "no delay"). `globals.css` has no `--duration-0` token.
