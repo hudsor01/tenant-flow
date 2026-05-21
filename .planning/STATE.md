@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-last_updated: "2026-05-21T17:12:17.769Z"
-last_activity: 2026-05-21 -- Phase 12 planning complete
+last_updated: "2026-05-21T17:17:51.984Z"
+last_activity: 2026-05-21 -- Phase 12 Plan 01 complete (SEO-01 title separators)
 progress:
   total_phases: 14
   completed_phases: 10
   total_plans: 28
-  completed_plans: 22
+  completed_plans: 23
   percent: 71
 ---
 
@@ -24,12 +24,12 @@ See: .planning/PROJECT.md (updated 2026-05-08)
 
 ## Current Position
 
-Phase: 14
-Plan: Not started
-Status: Ready to execute
-Last activity: 2026-05-21 -- Phase 12 planning complete
+Phase: 12
+Plan: 02 (next)
+Status: Executing — Plan 01 of 3 complete
+Last activity: 2026-05-21 -- Phase 12 Plan 01 complete (SEO-01 title separators)
 
-Progress: [█████████░] 88%
+Progress: [████████░░] 82%
 
 ## Performance Metrics
 
@@ -65,6 +65,7 @@ Progress: [█████████░] 88%
 | Phase 10 P02 | 8min | 3 tasks | 2 files |
 | Phase 11 P01 | ~5min | 3 tasks | 6 files |
 | Phase 11 P02 | ~4min | 2 tasks | 2 files |
+| Phase 12 P01 | ~12min | 3 tasks | 8 files |
 
 ## Locked Decisions (see PROJECT.md Key Decisions for full table)
 
@@ -98,9 +99,9 @@ None.
 
 ## Next Action
 
-Phase 11 (token-alignment) complete — both plans shipped. Plan 11-02 authored the TOKEN-03 drift-guard (`src/app/__tests__/design-token-drift.test.ts`, 180 lines, passes green at 2701 tests) and the `11-LINT-RULE.md` mechanism doc. TOKEN-01/02/03 all satisfied. Next: `/gsd-verify-work 11` then `/gsd-ship 11` (perfect-PR gate).
+Phase 12 Plan 01 complete — SEO-01 done. All 8 drifting page `<title>` separators normalized to the canonical pipe ` | ` (3 in `generate-metadata.ts`, 6 page files); new `src/app/__tests__/seo-title-separator-drift.test.ts` (110 lines, 265 tests pass) pins the canonical separator and runs in lefthook pre-commit + CI `checks`. Next: execute Plan 12-02, then 12-03.
 
 ---
-*Last updated: 2026-05-21 after Plan 11-02 complete (TOKEN-03 drift-guard test + 11-LINT-RULE.md — Phase 11 done)*
+*Last updated: 2026-05-21 after Plan 12-01 complete (SEO-01 title separator normalization + drift guard)*
 
-**Planned Phase:** 11 (token-alignment) — 2 plans — 2026-05-21T14:49:45.285Z
+**Planned Phase:** 12 (seo-metadata-schema-content-cleanup) — 3 plans — 2026-05-21T12:06:00.000Z
