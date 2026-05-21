@@ -248,13 +248,13 @@ function LoadingDots({
 			<div
 				className={cn(
 					dotsVariants({ size, variant }),
-					"[animation-duration:var(--duration-700)] [animation-timing-function:var(--ease-out)] [animation-delay:200ms]",
+					"[animation-duration:var(--duration-700)] [animation-timing-function:var(--ease-out)] [animation-delay:var(--duration-200)]",
 				)}
 			/>
 			<div
 				className={cn(
 					dotsVariants({ size, variant }),
-					"[animation-duration:var(--duration-700)] [animation-timing-function:var(--ease-out)] [animation-delay:400ms]",
+					"[animation-duration:var(--duration-700)] [animation-timing-function:var(--ease-out)] [animation-delay:var(--duration-300)]",
 				)}
 			/>
 		</div>

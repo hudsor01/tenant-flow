@@ -65,7 +65,7 @@ export function GridPattern({
 			)}
 			style={{
 				opacity: finalOpacity,
-				animationDuration: animated ? "500ms" : undefined,
+				animationDuration: animated ? "var(--duration-500)" : undefined,
 			}}
 			{...props}
 		>
@@ -109,7 +109,7 @@ export function GridPattern({
 							)}
 							style={{
 								animationDelay: animated ? `${(x + y) * 100}ms` : undefined,
-								animationDuration: animated ? "200ms" : undefined,
+								animationDuration: animated ? "var(--duration-200)" : undefined,
 							}}
 						/>
 					))}
