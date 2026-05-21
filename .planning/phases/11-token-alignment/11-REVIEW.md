@@ -1,6 +1,6 @@
 ---
 phase: 11-token-alignment
-reviewed: 2026-05-21T16:05:26Z
+reviewed: 2026-05-21T11:32:00Z
 depth: deep
 files_reviewed: 7
 files_reviewed_list:
@@ -14,113 +14,92 @@ files_reviewed_list:
 findings:
   critical: 0
   warning: 0
-  info: 2
-  total: 2
-status: issues_found
+  info: 0
+  total: 0
+status: clean
 ---
 
 # Phase 11: Code Review Report
 
-**Reviewed:** 2026-05-21T16:05:26Z
+**Reviewed:** 2026-05-21T11:32:00Z
 **Depth:** deep
 **Files Reviewed:** 7
-**Status:** issues_found
+**Status:** clean
 
 ## Summary
 
-Independent second-cycle review of PR #740 (token-alignment). All seven files were
-re-verified at deep depth with fresh eyes — the prior cycle's zero-finding verdict was
-not assumed.
+Final perfect-PR review cycle (second of the required zero-finding pair) for PR #740
+(Phase 11, token-alignment). All 7 files were re-read and independently re-verified at
+deep depth — the prior cycle's verdict was not assumed. Cross-file checks ran against
+`src/app/globals.css`, `src/app/resources/page.tsx`, `git diff main...HEAD`, and
+`.planning/phases/11-token-alignment/11-LINT-RULE.md`.
+
+**No issues found.**
 
 Verification performed:
 
-- **Token resolution.** Every `var(--duration-*)` reference in the five component files
-  (`grid-pattern`, `loading-spinner`, `chart-loading-skeleton`, `blog-loading-skeleton`,
-  `blog-empty-state`) resolves to a real rung defined in `src/app/globals.css:249-258`
-  (`--duration-100/200/300/500/700/1000`, plus `--duration-medium: 350ms` used by
-  `loading-spinner.tsx:176`). No dangling token references.
-- **Stagger monotonicity.** All four re-spaced delay sequences are strictly increasing
-  with no adjacent-token collisions: `chart` `0,200,300,500,700`; `blog-skeleton`
-  `0,100,200,300,500,700,1000`; `blog-empty-state` `0,300,500,1000`; `loading-spinner`
-  `LoadingDots` `0,200,300`. The PR diff confirms the deliberate re-spacing flagged in
-  the prior cycle's WR-01.
-- **Drift-guard correctness.** The four `DRIFT_PATTERNS` regexes were exercised against
-  positive and negative fixtures: `inlineMs` correctly excludes the `0ms` zero-case and
-  `${...}ms` template expressions; `rgb` correctly rejects `srgb(`/`var-rgb(`; `bgWhite`
-  correctly rejects `bg-white-card`. All nine `DRIFT_EXEMPTIONS` files exist on disk and
-  each carries a per-pattern scope plus a justification comment.
-- **Live test run.** `design-token-drift.test.ts` (2719 generated assertions),
-  `resources/page.test.tsx`, `loading-skeleton-tokens.test.tsx`, `grid-pattern.test.tsx`,
-  and `blog-empty-state.test.tsx` all pass. The drift scan finds zero genuine drift
-  across `src/components/**` and `src/app/**`.
-- **Convention compliance.** No `any`, no `as unknown as`, no barrel files. Vitest 4 +
-  jsdom patterns observed.
+- **Token resolution.** Every `var(--duration-*)` introduced by this PR resolves to a
+  real rung in the `globals.css` numeric scale (lines 249-258): `--duration-100` (100ms),
+  `--duration-200` (200ms), `--duration-300` (300ms), `--duration-500` (500ms),
+  `--duration-700` (700ms), `--duration-1000` (1000ms). The pre-existing
+  `--duration-medium` (350ms) at `loading-spinner.tsx:176` is outside this PR's diff and
+  resolves. All ease tokens — `--ease-linear`, `--ease-out`, `--ease-in-out`,
+  `--ease-out-expo` (lines 259-266) — and the color/font/radius tokens used by the
+  modified components resolve. No dangling token references.
 
-Two Info-level findings — both latent, neither produces a current failure. No Critical
-or Warning issues.
+- **Stagger monotonicity + distinctness** (verified via `git diff main...HEAD`). Every
+  re-spaced cascade is strictly increasing with distinct tokens:
+  - `blog-loading-skeleton.tsx`: 0 -> 100 -> 200 -> 300 -> 500 -> 700 -> 1000
+    (was 0/150/300/450/600/750/900)
+  - `chart-loading-skeleton.tsx`: 0 -> 200 -> 300 -> 500 -> 700 (was 0/200/400/600/800)
+  - `blog-empty-state.tsx`: 0 -> 300 -> 500 -> 1000 (was 0/300/600/900)
+  - `loading-spinner.tsx` `LoadingDots`: 0 -> 200 -> 300 (was 0/200/400)
+  The `0ms` first rungs are correctly left literal — `globals.css` has no `--duration-0`
+  and `0ms` is a legitimate no-delay; the `inlineMs` regex's `[1-9]\d*` excludes them.
 
-## Info
+- **grid-pattern.tsx computed cascade.** The `${(x + y) * 100}ms` computed
+  `animationDelay` carries the intentional-exception comment (lines 111-114) pointing to
+  `11-LINT-RULE.md` "Known limitation" (doc line 120), which accurately documents the
+  unbounded-computed-cascade rationale. Per the review context this is KNOWN, DOCUMENTED,
+  NOT-A-DEFECT and is not flagged. The two fixed durations on the same component
+  (`var(--duration-500)` outer SVG, `var(--duration-200)` per-square `<rect>`) resolve.
 
-### IN-01: `grid-pattern.tsx` square stagger still emits raw computed milliseconds
+- **Drift-guard regexes** (`design-token-drift.test.ts`). All four pattern regexes were
+  independently traced:
+  - `hex` — string-literal-scoped via `extractStringContent`, with `HEX_ALIAS_PREFIXES`
+    (subpath-import) and `HEX_ISSUE_REF` (`#NNN` issue-ref) filters. The `{8}|{6}|{3,4}`
+    alternation with `\b` correctly rejects 5/7-digit non-color tokens.
+  - `rgb` — the `(?<![\w-])` lookbehind blocks `srgba(` and `var-rgb(` false positives.
+  - `bgWhite` — the `(?![\w-])` trailing guard correctly rejects `bg-white-card`.
+  - `inlineMs` — `[1-9]\d*ms` catches both Tailwind arbitrary-value and JS-string forms,
+    excludes `0ms`. The new bracketed `[animation-delay:var(--duration-200)]` form does
+    not self-trigger (no bare `[1-9]\d*ms` token after the property colon).
+  The 12 meta-tests (lines 181-246) pin both positive (genuine drift caught) and negative
+  (false-positive suppressed) outcomes with concrete assertions — no false-confidence
+  expectations. The drift-guard's precision-over-recall issue-ref handling is documented
+  design (regex comment lines 50-60) and is not flagged per the review context.
 
-**File:** `src/components/ui/grid-pattern.tsx:111`
-**Issue:** The PR tokenized `animationDuration` on both animated elements
-(`grid-pattern.tsx:68` and `:112`), but the sibling `animationDelay` on the per-square
-`<rect>` directly above line 112 was left as a raw computed-ms expression:
+- **resources/page.test.tsx regression pin.** Confirmed against actual
+  `src/app/resources/page.tsx`: zero hex literals (grep), `<Badge variant="secondary">`
+  (line 187), `bg-card`, no `rgb()`/`bg-white`/non-zero inline-ms, and the
+  `color-mix(in_oklch,var(--color-primary)...)` gradient (lines 94, 208) matching the
+  test's `in[_ ]oklch` alternation. Every assertion reflects real page state.
 
-```tsx
-animationDelay: animated ? `${(x + y) * 100}ms` : undefined,
-```
+- **Test execution.** `bun run test:unit` on both new test files passes — 2714 tests, 2
+  files. The drift-guard scans the entire `src/components` + `src/app` tree and passes,
+  confirming zero residual inline-ms / hex / rgb / bg-white drift in the 5 modified
+  components and across the codebase in scope.
 
-This is the only inline-ms construct surviving in the five components the PR set out to
-tokenize. It escapes the `design-token-drift.test.ts` `inlineMs` regex because the regex
-requires a literal digit after the quote (`["'`]\s*[1-9]\d*ms`) and a `${...}` template
-opens with `$` — so the drift guard cannot catch it. Because `(x + y) * 100` is unbounded
-it has no single `--duration-*` rung to map to, so a like-for-like swap is not possible;
-the value is also a purely decorative grid-square cascade where the exact delay is
-immaterial. Not a correctness defect — noted because it leaves the file partially
-tokenized (the `animationDuration` line immediately below it was tokenized in the same
-edit) and represents a known blind spot in the drift guard's coverage.
+- **Project conventions.** No `any`, no `as unknown as`, no barrel files, no inline-style
+  literals beyond the necessary per-element animation `style` objects (Tailwind cannot
+  express per-element computed/staggered `animationDelay`). Lucide-only icons, no emojis.
+  Vitest 4 + jsdom unit-project patterns followed. Biome-compatible (tab indent, no
+  ESLint artifacts).
 
-**Fix:** Either accept and document the dynamic case (a one-line comment next to line 111
-noting "dynamic per-square cascade — no fixed token rung; intentionally untokenized"), or
-clamp the cascade to discrete token rungs, e.g.:
-
-```tsx
-// pick the nearest defined rung; caps the cascade and keeps it tokenized
-const DELAY_RUNGS = ["0ms", "var(--duration-100)", "var(--duration-200)", "var(--duration-300)"] as const;
-// ...
-animationDelay: animated ? DELAY_RUNGS[Math.min(x + y, DELAY_RUNGS.length - 1)] : undefined,
-```
-
-### IN-02: drift-guard `hex` regex matches 3-4 digit issue references inside string literals
-
-**File:** `src/app/__tests__/design-token-drift.test.ts:26`
-**Issue:** The `hex` pattern `#(?:...|[0-9a-fA-F]{3,4})\b` matches `#NNN`/`#NNNN` issue
-references (e.g. `#725`, `#404`). The current mitigation — scanning string-literal
-content only via `extractStringContent` — neutralizes refs in *comments* (the common
-case, and the one the meta-test on line 179 pins). It does **not** cover a `#NNN` ref
-that lives inside a *string literal*, e.g. a toast message `toast("see ticket #725")` or
-JSX text `{"Fixed in PR #404"}`. Such a string would false-positive as a 3-digit hex
-color, and the `HEX_ALIAS_PREFIXES` allowlist only suppresses `#`-prefixed import
-specifiers, not arbitrary issue refs. This is latent, not active: a grep of the scanned
-tree found no `#NNN` issue ref inside a string literal today, and all 2719 generated
-assertions pass. Flagged so a future maintainer who adds such a string knows the failure
-will be a guard false-positive, not real drift.
-
-**Fix:** Either narrow the hex pattern, or extend the post-match filter on lines 142-148
-to drop matches that are not plausible color literals, or add a documented note in the
-file header that `#NNN` issue refs must live in comments, never string literals. A
-lightweight defensive option: keep the comment-only mitigation but add one meta-test
-asserting the known limitation so the boundary is explicit.
-
-Separately, the `two-factor-setup-steps.tsx` exemption comment in `DRIFT_EXEMPTIONS`
-(line 89) says the justification comment is on "line 62"; the actual `bg-white` usage is
-on line 63 (line 62 is the justification comment itself). Trivial off-by-one in a doc
-comment — fix opportunistically alongside IN-02.
+All reviewed files meet quality standards. No issues found.
 
 ---
 
-_Reviewed: 2026-05-21T16:05:26Z_
+_Reviewed: 2026-05-21T11:32:00Z_
 _Reviewer: Claude (gsd-code-reviewer)_
 _Depth: deep_
