@@ -1,5 +1,3 @@
-/** @vitest-environment jsdom */
-
 /**
  * Regression pins for TRUST-01 / TRUST-04.
  *
