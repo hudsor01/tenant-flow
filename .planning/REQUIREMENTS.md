@@ -123,10 +123,10 @@ Replaces the narrow CRIT-01 fix with a full data + UI + automation + content reb
 
 ### Performance & Conversion Polish (PERF)
 
-- [ ] **PERF-01**: `/blog` index server-renders post list — eliminate the ~3-second client-side "Loading TenantFlow…" state. Already covered by BLOG-02; this REQ tracks the perf outcome.
-- [ ] **PERF-02**: Marketing pages use static generation + explicit cache headers where eligible — reduce TTI on `/`, `/pricing`, `/features`, `/about`, `/compare/[competitor]`.
-- [ ] **PERF-03**: Sticky / floating CTA on long pages (`/pricing` comparison, `/faq`, `/features`) — visible after scrolling past primary CTA so users don't scroll back up to convert.
-- [ ] **PERF-04**: Exit-intent or scroll-depth lead-capture component on top marketing pages for paid-traffic optimization (gated behind a feature flag if A/B testing is desired).
+- [x] **PERF-01**: `/blog` index server-renders post list — eliminate the ~3-second client-side "Loading TenantFlow…" state. Already covered by BLOG-02; this REQ tracks the perf outcome.
+- [x] **PERF-02**: Marketing pages use static generation + explicit cache headers where eligible — reduce TTI on `/`, `/pricing`, `/features`, `/about`, `/compare/[competitor]`.
+- [x] **PERF-03**: Sticky / floating CTA on long pages (`/pricing` comparison, `/faq`, `/features`) — visible after scrolling past primary CTA so users don't scroll back up to convert.
+- [x] **PERF-04**: Exit-intent or scroll-depth lead-capture component on top marketing pages for paid-traffic optimization (gated behind a feature flag if A/B testing is desired).
 
 ## v2 Requirements
 
@@ -212,10 +212,10 @@ Updated by `gsd-roadmapper` during roadmap creation. See ROADMAP.md for canonica
 | SEO-05 | Phase 12 | Complete |
 | SEO-06 | Phase 12 | Complete |
 | SEO-07 | Phase 12 | Complete |
-| PERF-01 | Phase 13 | Pending |
-| PERF-02 | Phase 13 | Pending |
-| PERF-03 | Phase 13 | Pending |
-| PERF-04 | Phase 13 | Pending |
+| PERF-01 | Phase 13 | Complete |
+| PERF-02 | Phase 13 | Complete |
+| PERF-03 | Phase 13 | Complete |
+| PERF-04 | Phase 13 | Complete |
 
 **Coverage:**
 - v1 requirements: 55 total (after CONS-12 removed; PRICE-* and BLOG-* added)

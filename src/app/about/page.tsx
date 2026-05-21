@@ -38,6 +38,13 @@ const stats = [
 	{ number: "14-day", label: "Free trial, no credit card", Icon: LifeBuoy },
 ];
 
+// ISR — about-page copy is static; 1h revalidate matches the sibling
+// marketing pages (/pricing, /features, /compare/[competitor], /faq) so
+// edits land without a full redeploy. Closes PERF-02 (Phase 13): every
+// ROADMAP-named marketing page now uses static generation + explicit
+// cache headers.
+export const revalidate = 3600;
+
 export const metadata: Metadata = createPageMetadata({
 	title: "About | Our Mission",
 	description:
