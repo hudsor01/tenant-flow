@@ -26,12 +26,31 @@ const featuresSrc = readFileSync(
 );
 
 describe("CONS-14 — comparison-table de-duplication", () => {
-	it("homepage does NOT render ComparisonTable", () => {
-		expect(homeSrc).not.toMatch(/<ComparisonTable\b/);
+	it("homepage does NOT import ComparisonTable (named, braceless, or aliased)", () => {
+		// Scan every `import ... from` statement for ComparisonTable in any
+		// form: named (`import { ComparisonTable }`), braceless default
+		// (`import ComparisonTable from`), and aliased
+		// (`import { ComparisonTable as Cmp }`). The `\b` boundary keeps the
+		// unrelated `PricingComparisonTable` component from false-matching.
+		const importLines = homeSrc.match(/^import .+ from .+$/gm) ?? [];
+		for (const line of importLines) {
+			expect(line).not.toMatch(/\bComparisonTable\b/);
+		}
 	});
 
-	it("homepage does NOT import ComparisonTable", () => {
-		expect(homeSrc).not.toMatch(/import\s*\{[^}]*\bComparisonTable\b[^}]*\}/);
+	it("homepage does NOT render ComparisonTable (direct or aliased)", () => {
+		// Direct usage: `<ComparisonTable />`.
+		expect(homeSrc).not.toMatch(/<ComparisonTable\b/);
+		// Aliased usage: if a future edit re-adds the table under an alias
+		// (`import { ComparisonTable as Cmp }` + `<Cmp />`), the import scan
+		// above catches the import; this also catches the JSX tag by
+		// resolving any alias the import would have introduced.
+		const aliasMatch = homeSrc.match(
+			/import\s*\{[^}]*\bComparisonTable\s+as\s+(\w+)[^}]*\}/,
+		);
+		if (aliasMatch?.[1]) {
+			expect(homeSrc).not.toMatch(new RegExp(`<${aliasMatch[1]}\\b`));
+		}
 	});
 
 	it("homepage keeps the CONS-14 removal-marker comment", () => {
