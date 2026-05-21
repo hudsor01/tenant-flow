@@ -65,7 +65,7 @@ export function GridPattern({
 			)}
 			style={{
 				opacity: finalOpacity,
-				animationDuration: animated ? "500ms" : undefined,
+				animationDuration: animated ? "var(--duration-500)" : undefined,
 			}}
 			{...props}
 		>
@@ -108,8 +108,12 @@ export function GridPattern({
 								animated && "animate-pulse",
 							)}
 							style={{
+								// Intentionally NOT tokenized: this is an unbounded computed
+								// cascade keyed off grid coordinates (x + y), so it has no
+								// fixed --duration-* rung to map to. Documented exception —
+								// see 11-LINT-RULE.md "Known limitation".
 								animationDelay: animated ? `${(x + y) * 100}ms` : undefined,
-								animationDuration: animated ? "200ms" : undefined,
+								animationDuration: animated ? "var(--duration-200)" : undefined,
 							}}
 						/>
 					))}

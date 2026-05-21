@@ -15,19 +15,19 @@ export function ChartLoadingSkeleton() {
 			/>
 			<div
 				className="w-8 rounded-t-sm bg-primary/30 animate-[chart-rise_1.4s_ease-in-out_infinite]"
-				style={{ height: "65%", animationDelay: "200ms" }}
+				style={{ height: "65%", animationDelay: "var(--duration-200)" }}
 			/>
 			<div
 				className="w-8 rounded-t-sm bg-primary/40 animate-[chart-rise_1.4s_ease-in-out_infinite]"
-				style={{ height: "45%", animationDelay: "400ms" }}
+				style={{ height: "45%", animationDelay: "var(--duration-300)" }}
 			/>
 			<div
 				className="w-8 rounded-t-sm bg-primary/30 animate-[chart-rise_1.4s_ease-in-out_infinite]"
-				style={{ height: "80%", animationDelay: "600ms" }}
+				style={{ height: "80%", animationDelay: "var(--duration-500)" }}
 			/>
 			<div
 				className="w-8 rounded-t-sm bg-primary/20 animate-[chart-rise_1.4s_ease-in-out_infinite]"
-				style={{ height: "55%", animationDelay: "800ms" }}
+				style={{ height: "55%", animationDelay: "var(--duration-700)" }}
 			/>
 			<style>{`
 				@keyframes chart-rise {

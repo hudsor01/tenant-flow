@@ -30,16 +30,16 @@ export function BlogEmptyState({
 				/>
 				<div
 					className="h-2.5 rounded bg-primary/30 origin-left animate-[typewriter-line_2.4s_ease-in-out_infinite]"
-					style={{ width: "85%", animationDelay: "300ms" }}
+					style={{ width: "85%", animationDelay: "var(--duration-300)" }}
 				/>
 				<div
 					className="h-2.5 rounded bg-primary/20 origin-left animate-[typewriter-line_2.4s_ease-in-out_infinite]"
-					style={{ width: "92%", animationDelay: "600ms" }}
+					style={{ width: "92%", animationDelay: "var(--duration-500)" }}
 				/>
 				<div className="flex items-center" style={{ width: "60%" }}>
 					<div
 						className="h-2.5 rounded bg-primary/30 origin-left animate-[typewriter-line_2.4s_ease-in-out_infinite] flex-1"
-						style={{ animationDelay: "900ms" }}
+						style={{ animationDelay: "var(--duration-1000)" }}
 					/>
 					<div className="ml-0.5 h-3.5 w-0.5 bg-primary/50 animate-[typewriter-cursor_0.8s_step-end_infinite]" />
 				</div>
