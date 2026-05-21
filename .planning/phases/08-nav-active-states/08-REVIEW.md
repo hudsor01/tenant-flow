@@ -1,6 +1,6 @@
 ---
 phase: 08-nav-active-states
-reviewed: 2026-05-20T23:51:20Z
+reviewed: 2026-05-20T19:02:00Z
 depth: deep
 files_reviewed: 3
 files_reviewed_list:
@@ -10,93 +10,72 @@ files_reviewed_list:
 findings:
   critical: 0
   warning: 0
-  info: 2
-  total: 2
-status: issues_found
+  info: 0
+  total: 0
+status: clean
 ---
 
 # Phase 8: Code Review Report
 
-**Reviewed:** 2026-05-20T23:51:20Z
+**Reviewed:** 2026-05-20T19:02:00Z
 **Depth:** deep
 **Files Reviewed:** 3
-**Status:** issues_found
+**Status:** clean
 
 ## Summary
 
-Reviewed three newly created Vitest 4 + jsdom regression-guard test files pinning the
-already-shipped CONS-02/03/11 fixes (Multi-Property Dashboard icon, homepage `aria-current`
-active-state wiring, Resources dropdown real URLs). No production components were modified.
+Second consecutive perfect-PR review cycle for Phase 8 (nav-active-states). All three
+files were independently re-verified at deep depth with fresh eyes — the prior cycle's
+zero-finding verdict was not trusted; the same diff was re-read and the same checks
+re-run from scratch.
 
-All 9 tests pass against current source. Cross-referencing each assertion against the actual
-production DOM/config output, and exercising real reversion scenarios, confirms the suites are
-genuinely load-bearing — they are NOT false-confidence tests:
+The phase adds 3 Vitest 4 + jsdom regression-guard tests (170 insertions across 3 new
+files, no production code changed) pinning already-shipped nav fixes CONS-02
+(Multi-Property Dashboard card icon), CONS-03 (`aria-current` active-nav wiring), and
+CONS-11 (no placeholder nav hrefs).
 
-- **CONS-02 (features-section.test.tsx):** Reverting the icon to `Terminal` fails the positive
-  assertion; reverting to `ArrowLeft` (the exact audit symptom) fails BOTH the positive and the
-  negative assertions. Both branches verified by mutation.
-- **CONS-03 (navbar-desktop-nav.test.tsx):** Reverting `isActiveLink` to the swapped-argument
-  bug (`href.startsWith(pathname)` — the form that produces the audited "Compare false-highlights
-  on the homepage" symptom) fails the homepage test. Verified by mutation.
-- **CONS-11 (types.test.ts):** Reverting the Resources parent href to the pre-fix `'#'`
-  placeholder fails two assertions. Verified by mutation.
+**Cross-file analysis (deep):** Each test import was traced to its production target and
+the key assertions were mutation-tested analytically against plausible regressions:
 
-No `any`, no `as unknown as`, no `as` assertions, no mocks (so `vi.hoisted()` is N/A). The
-`@vitest-environment jsdom` doc-block is present on the two `.tsx` DOM tests and absent on the
-pure-data `.ts` test, exactly as specified. Selectors are stable: `closest("div.group\\/feature")`
-correctly CSS-escapes the Tailwind `/` variant; `getByRole` name regexes are anchored and the
-five `DEFAULT_NAV_ITEMS` names share no common prefix; the dropdown is unmounted on initial render
-so no duplicate-link ambiguity arises.
+- `features-section.test.tsx` pins `FeaturesSectionDemo` -> `LayoutDashboard` icon on the
+  Multi-Property Dashboard card. Reverting that icon to `ArrowLeft` fails test 1
+  (`svg.lucide-layout-dashboard` query returns `null`, `.not.toBeNull()` fails) AND test 2
+  (`svg.lucide-arrow-left` query finds the svg, `.toBeNull()` fails). Test 1 is the generic
+  wrong-icon guard; test 2 is the exact audited-symptom pin. Both genuinely fail on
+  regression. Test 3 pins all six feature-card headlines.
+- `navbar-desktop-nav.test.tsx` pins `NavbarDesktopNav` -> `isActiveLink(href, pathname)`
+  (`src/lib/is-active-link.ts`). The `/compare/yardi` child-route test fails if the matcher
+  reverts to pure exact-match (`pathname === href` would give `false` -> no `aria-current`).
+  The `/compare-tools` test fails if the trailing `/` is dropped from the `startsWith` guard
+  (`"/compare-tools".startsWith("/compare")` would false-positive). Both branches of the
+  predicate are genuinely covered. The homepage test correctly iterates all
+  `DEFAULT_NAV_ITEMS` (Compare included) and confirms no false `aria-current` on `/`.
+- `types.test.ts` pins `DEFAULT_NAV_ITEMS` config against placeholder/dead hrefs. The
+  `PLACEHOLDER_HREFS` set plus the `startsWith("/")` assertion covers both the audited `#`
+  symptom (the pre-fix Resources parent href) and the broader dead-href class. Dropdown
+  items are recursed via `?? []` for the optional `dropdownItems` field.
 
-Two Info-level findings below — both are coverage/precision observations, not correctness defects.
-Neither blocks merge.
+**Convention compliance:** No `any`, no `as unknown as`, no `as` type assertions. All
+imports are direct `#`-subpath imports — no barrel files. No `vi.mock`/`vi.hoisted` (no
+mocks used, so none required). `@vitest-environment jsdom` correctly present on both
+`.tsx` DOM tests and correctly absent on the pure-data `types.test.ts`. No icon-library
+violation — `features-section.test.tsx` only inspects lucide-react-emitted classnames;
+production uses `lucide-react` exclusively.
 
-## Info
+**Verification:** All 11 tests pass (`bun run test:unit` on the 3 files, 471ms).
+`getByRole("link", { name })` queries are unambiguous — each `item.name` is a unique
+prefix and dropdown sub-links are not rendered while `openDropdown` is `null` (the test
+default), so no multiple-match throw risk. The `RegExp(\`^${item.name}\`)` accessible-name
+matchers contain no regex metacharacters in any `DEFAULT_NAV_ITEMS` name, so no escaping
+hazard. CSS selectors (`div.group\\/feature`, `svg.lucide-layout-dashboard`,
+`svg.lucide-arrow-left`) are correctly escaped against the `group/feature` class and
+lucide-react's emitted `lucide lucide-*` SVG classes.
 
-### IN-01: Navbar suite never exercises `isActiveLink`'s prefix-match branch
-
-**File:** `src/components/layout/navbar/__tests__/navbar-desktop-nav.test.tsx:18-47`
-**Issue:** Every `pathname` used in the three test cases (`/`, `/compare`, `/pricing`) is an
-*exact* match for a `DEFAULT_NAV_ITEMS` href. The production matcher
-`src/lib/is-active-link.ts` has three branches: the `href === '/'` short-circuit, the
-`pathname === href` exact match, and the `pathname.startsWith(\`${href}/\`)` descendant-route
-prefix match. Mutation-testing confirms the suite still passes when `isActiveLink` is reverted
-to a pure exact-match (`return pathname === href`) — the descendant-route branch is the one
-piece of CONS-03's matcher logic this suite does NOT pin. A future refactor that drops the
-`startsWith` branch (so e.g. `/compare/yardi` no longer highlights "Compare") would not be caught.
-Note this is a coverage gap, not false confidence: the suite still genuinely fails for the actual
-audited symptom (homepage false-highlight).
-**Fix:** Add one case for a descendant route, e.g.:
-```tsx
-it("marks Compare aria-current=page on a /compare child route (CONS-03)", () => {
-	render(
-		<NavbarDesktopNav navItems={DEFAULT_NAV_ITEMS} pathname="/compare/yardi" />,
-	);
-	expect(screen.getByRole("link", { name: /^Compare/ })).toHaveAttribute(
-		"aria-current",
-		"page",
-	);
-});
-```
-Pairing it with a `/compareXYZ`-style negative case would also pin the trailing-slash guard that
-`is-active-link.ts`'s own doc comment calls "critical."
-
-### IN-02: `arrow-left` negative assertion is symptom-specific, not generic
-
-**File:** `src/components/sections/__tests__/features-section.test.tsx:29-36`
-**Issue:** The second test asserts the Multi-Property Dashboard card does NOT render
-`svg.lucide-arrow-left`. Mutation-testing confirms it correctly fails when the icon is reverted
-to `ArrowLeft` (the exact audit symptom), but it does NOT fire for any other wrong icon — e.g.
-swapping `LayoutDashboard` for `Terminal` passes this test (the positive test IN test 1 is what
-catches that). This is acceptable as a deliberate symptom pin and the doc comment is honest about
-it ("the audit flagged a back-arrow"), so this is purely informational. The positive assertion in
-test 1 already provides full coverage for any wrong-icon regression.
-**Fix:** No change required. Optionally, if a stricter generic guard is wanted, assert the card
-contains exactly one `svg` and that it carries `.lucide-layout-dashboard` — but the current
-positive test already covers the generic case, so this is optional.
+All reviewed files meet quality standards. No issues found. This is the second
+consecutive zero-finding cycle — the perfect-PR merge gate is satisfied.
 
 ---
 
-_Reviewed: 2026-05-20T23:51:20Z_
+_Reviewed: 2026-05-20T19:02:00Z_
 _Reviewer: Claude (gsd-code-reviewer)_
 _Depth: deep_
