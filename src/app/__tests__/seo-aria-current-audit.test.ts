@@ -51,22 +51,24 @@ import { isActiveLink } from "#lib/is-active-link";
 // audit's prefix-match guard still needs to exercise it.
 //
 // DEDUPED via `Set`: the Resources dropdown shares `href: '/resources'`
-// with its parent nav item, which would otherwise count the same URL
-// twice on `pathname === '/resources'` and trip the at-most-one
-// assertion even though the rendered DOM emits a single
-// `aria-current="page"` (one `<Link>` for the parent + one for the
-// dropdown item, both pointing at the same href — the deduplicated
-// list is what represents the unique URLs the nav can mark active).
-const NAV_HREFS = [
-	...new Set([
-		"/",
-		...DEFAULT_NAV_ITEMS.flatMap((item) => [
-			item.href,
-			...(item.dropdownItems?.map((d) => d.href) ?? []),
-		]),
+// with its parent nav item. On `pathname === '/resources'` the navbar
+// renders TWO `<Link>`s pointing at the same href, both marked
+// `aria-current="page"` — the audit's at-most-one assertion is over
+// the set of UNIQUE URLs the nav can mark active (every emission is
+// the same href; this is intentional and not double-marking distinct
+// targets). Deduping at the value level represents that invariant.
+//
+// The literal-union narrowing is preserved by deduping a `const`
+// tuple at the value level instead of widening to `string[]` via cast.
+const RAW_HREFS = [
+	"/",
+	...DEFAULT_NAV_ITEMS.flatMap((item) => [
+		item.href,
+		...(item.dropdownItems?.map((d) => d.href) ?? []),
 	]),
-] as readonly string[];
-type NavHref = (typeof NAV_HREFS)[number];
+] as const;
+const NAV_HREFS = Array.from(new Set(RAW_HREFS));
+type NavHref = (typeof RAW_HREFS)[number];
 
 // Route sample covering homepage, top-level marketing routes, a
 // dynamic subroute, and `/resources` (the duplicate-href route where
