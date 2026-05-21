@@ -108,6 +108,10 @@ export function GridPattern({
 								animated && "animate-pulse",
 							)}
 							style={{
+								// Intentionally NOT tokenized: this is an unbounded computed
+								// cascade keyed off grid coordinates (x + y), so it has no
+								// fixed --duration-* rung to map to. Documented exception —
+								// see 11-LINT-RULE.md "Known limitation".
 								animationDelay: animated ? `${(x + y) * 100}ms` : undefined,
 								animationDuration: animated ? "var(--duration-200)" : undefined,
 							}}

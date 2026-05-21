@@ -138,3 +138,13 @@ move the value or add a scoped `DRIFT_EXEMPTIONS` entry with a justification.
 
 The `rgb`, `bgWhite`, and `inlineMs` patterns scan the raw file text; the audit confirmed
 they produce no false positives in the current codebase.
+
+The `inlineMs` pattern only catches **literal** millisecond values (`["'`+"`"+`]\s*[1-9]\d*ms`).
+It does **not** — and cannot — catch a computed template expression such as
+`` `${(x + y) * 100}ms` `` (the per-square stagger in `src/components/ui/grid-pattern.tsx`).
+Such an expression opens with `$`, not a digit, so it never matches. This is a documented,
+accepted exception: a computed cascade is keyed off runtime values (here, grid coordinates)
+and spans an unbounded millisecond range, so it has no single `--duration-*` rung to map to.
+The grid-pattern occurrence carries an in-code comment marking it intentional. A future
+maintainer adding a computed `${...}ms` stagger should likewise leave it untokenized with an
+in-code comment — the drift-guard will not flag it either way.
