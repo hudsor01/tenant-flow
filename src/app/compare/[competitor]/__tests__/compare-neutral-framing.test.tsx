@@ -1,4 +1,3 @@
-/** @vitest-environment jsdom */
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { render } from "@testing-library/react";
@@ -6,6 +5,10 @@ import { describe, expect, it, vi } from "vitest";
 import { FeatureTable } from "#app/compare/[competitor]/compare-sections";
 import type { CompetitorData } from "#types/sections/compare";
 
+// Defensive isolation: FeatureTable renders no <Link>, but compare-sections.tsx
+// imports `next/link` at module scope (consumed by BottomCta). Mocking it here
+// pre-empts any Next router-context requirement that a future compare-sections.tsx
+// change could introduce. Intentional — not load-bearing for the current tree.
 vi.mock("next/link", () => ({
 	default: ({
 		children,
