@@ -114,7 +114,7 @@ Replaces the narrow CRIT-01 fix with a full data + UI + automation + content reb
 ### SEO & Accessibility (SEO)
 
 - [x] **SEO-01**: Meta-title separator standardized across all pages — choose em-dash (—) OR pipe (|) for the title-template separator and apply consistently. Update `src/app/layout.tsx` and per-page metadata.
-- [ ] **SEO-02**: Per-page Open Graph images for `/pricing`, `/features`, `/compare/[competitor]`, blog category pages, and at least the top blog posts (where applicable post-Blog-Rebuild).
+- [x] **SEO-02**: Per-page Open Graph images for `/pricing`, `/features`, `/compare/[competitor]`, blog category pages, and at least the top blog posts (where applicable post-Blog-Rebuild).
 - [ ] **SEO-03**: Site-wide schema.org `Organization` JSON-LD in root layout; `SoftwareApplication` schema added to homepage for richer SERP snippets.
 - [ ] **SEO-04**: Blog post slugs cleaned — drop millisecond-timestamp slugs like `/blog/error-1778151609106`. Already covered by BLOG-02; this REQ tracks the SEO outcome.
 - [ ] **SEO-05**: Visible breadcrumbs on blog posts and `/compare/[competitor]` pages — JSON-LD breadcrumbs already exist on `/pricing`; render them in the UI as well. Blog portion already covered by BLOG-02.
@@ -206,7 +206,7 @@ Updated by `gsd-roadmapper` during roadmap creation. See ROADMAP.md for canonica
 | TOKEN-02 | Phase 11 | Complete |
 | TOKEN-03 | Phase 11 | Complete |
 | SEO-01 | Phase 12 | Complete |
-| SEO-02 | Phase 12 | Pending |
+| SEO-02 | Phase 12 | Complete |
 | SEO-03 | Phase 12 | Pending |
 | SEO-04 | Phase 12 | Pending |
 | SEO-05 | Phase 12 | Pending |
