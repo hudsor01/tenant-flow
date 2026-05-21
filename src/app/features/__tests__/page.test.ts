@@ -42,18 +42,23 @@ vi.mock("../features-client", () => ({
 
 // Spy on createPageMetadata so we can assert the ogImage arg the page passes
 // (the helper itself is unit-tested elsewhere — this isolates the wiring).
-const createPageMetadataSpy = vi.fn(
-	(cfg: {
-		title: string;
-		description: string;
-		path: string;
-		ogImage?: string;
-	}) => ({
-		title: cfg.title,
-		description: cfg.description,
-		__captured: cfg,
-	}),
-);
+// `vi.hoisted()` keeps the spy initialised before the `vi.mock` factory runs
+// (CLAUDE.md testing rules: any mock variable referenced in `vi.mock()` must
+// live inside `vi.hoisted()`).
+const { createPageMetadataSpy } = vi.hoisted(() => ({
+	createPageMetadataSpy: vi.fn(
+		(cfg: {
+			title: string;
+			description: string;
+			path: string;
+			ogImage?: string;
+		}) => ({
+			title: cfg.title,
+			description: cfg.description,
+			__captured: cfg,
+		}),
+	),
+}));
 
 vi.mock("#lib/seo/page-metadata", () => ({
 	createPageMetadata: createPageMetadataSpy,
