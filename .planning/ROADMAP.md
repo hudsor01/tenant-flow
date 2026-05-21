@@ -22,7 +22,7 @@ TenantFlow is a mature Next.js 16 + Supabase landlord-only SaaS (v2.6 shipped Ap
 - [x] **Phase 10: CTA & Conversion Standardization** — Canonical "Contact Sales" labels + styles, neutral compare-page framing, fix `/contact` default, testimonials (no headshots) + review badges + monitored inboxes
 - [x] **Phase 11: Design-Token Alignment & Resources Page** — `/resources` neon-pink + decorative cards → tokens; codify no-hex/no-bg-white/no-inline-ms lint rule (completed 2026-05-21)
 - [x] **Phase 12: SEO Metadata, Schema & Content Cleanup** — Meta separator, per-page OG images, Organization + SoftwareApplication schema, blog slugs (post-Phase 6), breadcrumbs, footer sitemap link, sitewide `aria-current` audit
-- [ ] **Phase 13: Performance & Conversion Polish** — Static export + cache headers, sticky CTA on long pages, exit-intent / scroll-depth lead capture (PERF-01 server-render `/blog` already covered in Phase 6)
+- [x] **Phase 13: Performance & Conversion Polish** — Static export + cache headers, sticky CTA on long pages, exit-intent / scroll-depth lead capture (PERF-01 server-render `/blog` already covered in Phase 6) (completed 2026-05-21)
 
 ## Phase Details
 
