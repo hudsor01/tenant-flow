@@ -5,7 +5,7 @@ import { createBreadcrumbJsonLd } from "#lib/seo/breadcrumbs";
 import { createPageMetadata } from "#lib/seo/page-metadata";
 
 export const metadata: Metadata = createPageMetadata({
-	title: "Privacy Policy - Data Protection & User Rights",
+	title: "Privacy Policy | Data Protection & User Rights",
 	description:
 		"TenantFlow Privacy Policy. Learn how we collect, use, and safeguard your data, including tenant records, payment information, and account activity.",
 	path: "/privacy",

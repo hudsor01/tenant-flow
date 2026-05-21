@@ -71,7 +71,7 @@ export async function generateMetadata({
 	}
 
 	return createPageMetadata({
-		title: "Property Management Blog — Tips for Independent Landlords",
+		title: "Property Management Blog | Tips for Independent Landlords",
 		description:
 			"Operational guides for independent landlords: leases, maintenance, tax season, and the document vault.",
 		path: "/blog",
