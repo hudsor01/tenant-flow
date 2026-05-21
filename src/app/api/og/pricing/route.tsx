@@ -1,9 +1,14 @@
 import { ImageResponse } from "@vercel/og";
 
 // `@vercel/og` requires the edge runtime — it streams the rendered PNG
-// directly without spinning up a Node.js process per request. The CDN
-// caches the PNG for one hour; the static pricing title rarely changes
-// so the cache hit rate is high.
+// directly without spinning up a Node.js process per request. The
+// `revalidate` segment option is NOT honoured by route handlers (it
+// applies to fetch() cache entries and RSC payloads, not to a Response /
+// ImageResponse). Actual caching of the rendered PNG comes from the
+// long-lived `Cache-Control` header that `@vercel/og` sets internally on
+// `ImageResponse` plus Vercel's edge network defaults. The `revalidate`
+// export is kept here as documentation of the intended cache horizon and
+// to stay in lockstep with the sibling `/api/og/features/route.tsx`.
 export const runtime = "edge";
 export const revalidate = 3600;
 

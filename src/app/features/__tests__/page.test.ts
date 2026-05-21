@@ -6,8 +6,11 @@ import { describe, expect, it, vi } from "vitest";
  * Pins three contracts that together guarantee the /features OG image
  * survives future edits:
  *   1. `createPageMetadata` receives `ogImage: "/api/og/features"`.
- *   2. The `/api/og/features` route exports `runtime = "edge"` and
- *      `revalidate = 3600` (required for @vercel/og + CDN caching).
+ *   2. The `/api/og/features` route exports `runtime = "edge"` (required
+ *      by `@vercel/og`) and `revalidate = 3600` (kept in lockstep with
+ *      the sibling `/api/og/pricing` route as documentation of the
+ *      intended cache horizon — actual caching is driven by the
+ *      `Cache-Control` header `@vercel/og` sets on `ImageResponse`).
  *   3. The route uses the canonical 1200x630 OG dimensions.
  *
  * No production code is modified by this test — it asserts shipped state.
