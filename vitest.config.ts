@@ -49,6 +49,21 @@ export default defineConfig({
 					name: "unit",
 					environment: "jsdom",
 					pool: "threads",
+					// Phase 15-04 — defensive worker-pool tune. Caps thread fan-out
+					// so the full 105k-test parallel run is deterministic on lower-
+					// core dev boxes / CI runners. The 3-run baseline on an
+					// 18-core machine already passes 0/105,093 (see
+					// .planning/phases/15-v1-0-milestone-cleanup-close-all-audit-gaps-doc-drift-tracea/15-04-SUMMARY.md),
+					// so this is a regression hedge against the contention symptom
+					// captured in .planning/phases/12-seo-metadata-schema-content-cleanup/deferred-items.md
+					// returning on smaller hardware. See SUMMARY for the
+					// 3-consecutive-zero-flake gate diagnostic data.
+					poolOptions: {
+						threads: {
+							maxThreads: 8,
+							minThreads: 1,
+						},
+					},
 					globals: true,
 					setupFiles: [
 						"./src/test/msw-polyfill.ts",
