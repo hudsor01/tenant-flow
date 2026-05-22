@@ -3,6 +3,10 @@ phase: 06-blog-rebuild
 phase_number: 6
 generated: 2026-05-10
 nyquist_validation: true
+nyquist_compliant: true
+wave_0_complete: true
+backfilled: 2026-05-22
+backfill_note: "Phase 15 milestone audit round-2 polish — frontmatter fields added retroactively; the test maps below and all referenced tests ship in CI (blog-post-breadcrumb.test.tsx, seo-smoke.spec.ts, blog/[slug] dynamicParams + notFound() unit coverage, plus the Phase 14 D-03/D-04 try-catch + loading.tsx regression layer)."
 source: derived from `06-RESEARCH.md § Test Strategy` + `06-CONTEXT.md § <decisions>`
 ---
 

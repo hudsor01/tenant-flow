@@ -3,6 +3,10 @@ phase: 04-persona-copy
 phase_number: 4
 generated: 2026-05-09
 nyquist_validation: true
+nyquist_compliant: true
+wave_0_complete: true
+backfilled: 2026-05-22
+backfill_note: "Phase 15 milestone audit round-2 polish — frontmatter fields added retroactively; the test maps below and all referenced tests ship in CI (persona-consistency.spec.ts, marketing-copy-landlord-only.test.ts, home-faq.test.tsx)."
 source: derived from `04-RESEARCH.md § Validation Strategy` + Specialist 2 § Test Surface Mapping
 ---
 

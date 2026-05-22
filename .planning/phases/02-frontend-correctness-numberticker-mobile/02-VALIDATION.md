@@ -3,6 +3,10 @@ phase: 02-frontend-correctness-numberticker-mobile
 phase_number: 2
 generated: 2026-05-09
 nyquist_validation: true
+nyquist_compliant: true
+wave_0_complete: true
+backfilled: 2026-05-22
+backfill_note: "Phase 15 milestone audit round-2 polish — nyquist_compliant + wave_0_complete fields predated the Nyquist gate's frontmatter contract; test maps inside this doc are intact and all referenced tests ship in CI."
 source: derived from `02-RESEARCH-numberticker.md § Validation Architecture` + `02-RESEARCH-mobile-hamburger.md § E2E Test Strategy`
 ---
 
