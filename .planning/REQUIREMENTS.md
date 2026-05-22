@@ -26,40 +26,40 @@ Each maps to roadmap phases. Source: external UI audit at `audit-ui-2026-05-08.m
 
 These are narrow Phase 1 fixes that stop SEO + ad-spend hemorrhaging. The full pricing restructure and blog rebuild live in dedicated later phases.
 
-- [ ] **CRIT-01**: Bulk-unpublish all broken `blogs` rows that render "Error Processing Blog" — set `status='draft'` (or equivalent un-published state) on every row whose `content` or `title` matches the error pattern. `/blog` index renders an honest "Coming soon" / "No posts yet" empty state. Stops Google indexing duplicate error pages immediately. Full content rebuild + n8n redesign happens in the dedicated Blog Rebuild phase later.
+- [x] **CRIT-01**: Bulk-unpublish all broken `blogs` rows that render "Error Processing Blog" — set `status='draft'` (or equivalent un-published state) on every row whose `content` or `title` matches the error pattern. `/blog` index renders an honest "Coming soon" / "No posts yet" empty state. Stops Google indexing duplicate error pages immediately. Full content rebuild + n8n redesign happens in the dedicated Blog Rebuild phase later.
 - [x] **CRIT-02
 **: Homepage stat counters animate to correct target values — fix `NumberTicker` (in `src/components/ui/number-ticker.tsx`) so "5 Entity Branches", "7 Default Categories", "500 Bulk-Zip Cap", "14 Day Free Trial" render correctly instead of "0". Source data in `stats-showcase.tsx` is correct; bug is in animation/intersection-observer.
-- [ ] **CRIT-03**: Make Max plan pricing AGREE across all 4 surfaces using "Custom" placeholder — pricing card, `pricing-comparison-table.tsx`, homepage features grid, JSON-LD `Product` schema all show "Custom" / "Contact Sales" until the Pricing Restructure phase ships final tier numbers. Stops the visible 4-way contradiction without committing to a number that will change.
+- [x] **CRIT-03**: Make Max plan pricing AGREE across all 4 surfaces using "Custom" placeholder — pricing card, `pricing-comparison-table.tsx`, homepage features grid, JSON-LD `Product` schema all show "Custom" / "Contact Sales" until the Pricing Restructure phase ships final tier numbers. Stops the visible 4-way contradiction without committing to a number that will change.
 - [x] **CRIT-04
 **: Mobile layout works at 375px — fix hero text overflow ("spreadsheet" word breaks viewport), CTA button truncation, and add a working hamburger nav using shadcn `Sheet` (slide-in drawer from right). All marketing-page nav links reachable on mobile. Verify in Chrome DevTools device toolbar (iPhone SE / mid-range Android).
-- [ ] **CRIT-05**: `/signup` route either functions or 301s to `/pricing` — eliminate the `/signup → /login → /signup` redirect loop. External links/ads pointing at `/signup` reach a working page.
-- [ ] **CRIT-06**: Long-form legal URLs alias to short paths — `/terms-of-service` → `/terms`, `/privacy-policy` → `/privacy`, `/help-center` → `/help`, `/rss-feed` → `/feed.xml`. Use Next.js `redirects()` config (301 permanent). Update `proxy.ts` `PUBLIC_ROUTES` if the long forms need to skip auth.
+- [x] **CRIT-05**: `/signup` route either functions or 301s to `/pricing` — eliminate the `/signup → /login → /signup` redirect loop. External links/ads pointing at `/signup` reach a working page.
+- [x] **CRIT-06**: Long-form legal URLs alias to short paths — `/terms-of-service` → `/terms`, `/privacy-policy` → `/privacy`, `/help-center` → `/help`, `/rss-feed` → `/feed.xml`. Use Next.js `redirects()` config (301 permanent). Update `proxy.ts` `PUBLIC_ROUTES` if the long forms need to skip auth.
 
 ### Pricing Restructure (PRICE) — Dedicated Phase
 
 Replaces the narrow CRIT-03 fix with a full revenue-driven tier rebuild. Phase ships after Persona phase (Phase 4) so pricing language can lean on settled persona terminology.
 
-- [ ] **PRICE-01**: Audit current Stripe revenue — query `stripe.subscriptions` + `stripe.products` + `stripe.prices` for actual customer count per tier, MRR per tier, ARR, churn rate per tier, conversion rate from trial. Document baseline. (User has reported "no current subscribers"; audit confirms the data and documents starting state.)
-- [ ] **PRICE-02**: Competitor pricing analysis — research Buildium, AppFolio, DoorLoop, Hemlane, TurboTenant, Avail, RentRedi, and any other landlord/PM SaaS with comparable feature scope (vault, e-sign, no payment facilitation). Document tier structures, price points, feature-to-tier mappings, free-tier presence, and target persona for each.
-- [ ] **PRICE-03**: Propose new tier structure — final tier names, prices, monthly + annual options, feature/limit mapping per tier, value-based positioning rationale. Document trade-offs vs current $29/$79/$199. Decision artifact written to `.planning/phases/<phase-id>/PRICING-DECISION.md`.
-- [ ] **PRICE-04**: Migrate Stripe products + prices — create new Stripe products/prices via Stripe MCP. Preserve old prices for any grandfathered subscribers (none currently exist; design the migration path so it's there when needed). Test in Stripe test mode before flipping to live.
-- [ ] **PRICE-05**: Customer migration plan — even though no current subscribers exist, document the migration policy (grandfather vs forced upgrade, email sequence, opt-in vs opt-out, deadline) so future restructures inherit a working playbook.
-- [ ] **PRICE-06**: Update all marketing surfaces with final pricing — pricing card (`pricing-content.tsx`), comparison table (`pricing-comparison-table.tsx`), homepage features grid, JSON-LD `Product` schema, FAQ entries that reference pricing, annual savings math. Replaces the CRIT-03 "Custom" placeholders.
+- [x] **PRICE-01**: Audit current Stripe revenue — query `stripe.subscriptions` + `stripe.products` + `stripe.prices` for actual customer count per tier, MRR per tier, ARR, churn rate per tier, conversion rate from trial. Document baseline. (User has reported "no current subscribers"; audit confirms the data and documents starting state.)
+- [x] **PRICE-02**: Competitor pricing analysis — research Buildium, AppFolio, DoorLoop, Hemlane, TurboTenant, Avail, RentRedi, and any other landlord/PM SaaS with comparable feature scope (vault, e-sign, no payment facilitation). Document tier structures, price points, feature-to-tier mappings, free-tier presence, and target persona for each.
+- [x] **PRICE-03**: Propose new tier structure — final tier names, prices, monthly + annual options, feature/limit mapping per tier, value-based positioning rationale. Document trade-offs vs current $29/$79/$199. Decision artifact written to `.planning/phases/<phase-id>/PRICING-DECISION.md`.
+- [x] **PRICE-04**: Migrate Stripe products + prices — create new Stripe products/prices via Stripe MCP. Preserve old prices for any grandfathered subscribers (none currently exist; design the migration path so it's there when needed). Test in Stripe test mode before flipping to live.
+- [x] **PRICE-05**: Customer migration plan — even though no current subscribers exist, document the migration policy (grandfather vs forced upgrade, email sequence, opt-in vs opt-out, deadline) so future restructures inherit a working playbook.
+- [x] **PRICE-06**: Update all marketing surfaces with final pricing — pricing card (`pricing-content.tsx`), comparison table (`pricing-comparison-table.tsx`), homepage features grid, JSON-LD `Product` schema, FAQ entries that reference pricing, annual savings math. Replaces the CRIT-03 "Custom" placeholders.
 
 ### Blog Rebuild + n8n (BLOG) — Dedicated Phase
 
 Replaces the narrow CRIT-01 fix with a full data + UI + automation + content rebuild. Phase ships after Persona phase so content + UI lean on settled persona terminology and tone.
 
-- [ ] **BLOG-01**: Database audit + cleanup — categorize all `blogs` rows: keep+regenerate, keep+as-is, delete entirely. Document criteria. Hard-delete rows that fail the "salvageable" test (rather than leaving as drafts forever).
-- [ ] **BLOG-02**: Rebuild `/blog` index + `/blog/[slug]` page UI — server-rendered (eliminate the ~3-second client-loading state — covers PERF-01), persona-aligned hero, visible breadcrumbs (covers SEO-05 for blog), clean URL pattern (covers SEO-04 — no millisecond-timestamp slugs), aligned to globals.css tokens.
-- [ ] **BLOG-03**: Redesign n8n content-generation workflow — surface the current n8n flow, document why outputs are broken, redesign for new persona terminology + new reasons-to-subscribe. Document the workflow in `.planning/phases/<phase-id>/N8N-FLOW.md`.
-- [ ] **BLOG-04**: Generate initial persona-aligned content set — 10–15 posts covering top SEO-target topics for landlords with 1–15 rentals. Drafts go through manual review gate before publishing. Each post has unique OG image (covers part of SEO-02 for blog).
-- [ ] **BLOG-05**: Content review/QA workflow — separate `draft` / `in-review` / `published` states; manual approval gate before any post becomes public; automated SEO + tone check pre-publish.
-- [ ] **BLOG-06**: Sitemap + RSS feed updated to reflect new blog dataset — `/sitemap.xml` shows current published posts with real `lastmod`; `/feed.xml` reflects the new content; `robots.ts` rules unchanged.
+- [x] **BLOG-01**: Database audit + cleanup — categorize all `blogs` rows: keep+regenerate, keep+as-is, delete entirely. Document criteria. Hard-delete rows that fail the "salvageable" test (rather than leaving as drafts forever).
+- [x] **BLOG-02**: Rebuild `/blog` index + `/blog/[slug]` page UI — server-rendered (eliminate the ~3-second client-loading state — covers PERF-01), persona-aligned hero, visible breadcrumbs (covers SEO-05 for blog), clean URL pattern (covers SEO-04 — no millisecond-timestamp slugs), aligned to globals.css tokens.
+- [x] **BLOG-03**: Redesign n8n content-generation workflow — surface the current n8n flow, document why outputs are broken, redesign for new persona terminology + new reasons-to-subscribe. Document the workflow in `.planning/phases/<phase-id>/N8N-FLOW.md`.
+- [x] **BLOG-04**: Generate initial persona-aligned content set — 10–15 posts covering top SEO-target topics for landlords with 1–15 rentals. Drafts go through manual review gate before publishing. Each post has unique OG image (covers part of SEO-02 for blog).
+- [x] **BLOG-05**: Content review/QA workflow — separate `draft` / `in-review` / `published` states; manual approval gate before any post becomes public; automated SEO + tone check pre-publish.
+- [x] **BLOG-06**: Sitemap + RSS feed updated to reflect new blog dataset — `/sitemap.xml` shows current published posts with real `lastmod`; `/feed.xml` reflects the new content; `robots.ts` rules unchanged.
 
 ### Consistency — Visual & Copy (CONS)
 
-- [ ] **CONS-01**: Persona language unified across all marketing pages — final persona word selected during `/gsd-plan-phase 4` via per-phase researcher who surveys comparable B2B SaaS terminology and recommends. Lean direction: owner-operator framing (avoid bare "landlord" per user feedback). After selection, global find-and-replace across hero, About, meta descriptions, FAQ, and headlines.
+- [x] **CONS-01**: Persona language unified across all marketing pages — final persona word selected during `/gsd-plan-phase 4` via per-phase researcher who surveys comparable B2B SaaS terminology and recommends. Lean direction: owner-operator framing (avoid bare "landlord" per user feedback). After selection, global find-and-replace across hero, About, meta descriptions, FAQ, and headlines.
 - [x] **CONS-02
 **: "Multi-Property Dashboard" feature card uses correct `lucide-react` icon (e.g. `LayoutGrid` / `Building2` / `LayoutDashboard`) — currently a back-arrow.
 - [x] **CONS-03
@@ -86,13 +86,13 @@ Replaces the narrow CRIT-01 fix with a full data + UI + automation + content reb
 
 ### Copy & UX Refinement (COPY)
 
-- [ ] **COPY-01**: Hero subhead reworded to remove tenant-tracking contradiction — replace "Track properties, tenants, leases, and maintenance in one place — tenants never have to log in" with phrasing that reads cleanly (e.g. "...tenant records, leases, and maintenance in one place — landlord-only, tenants stay off the platform").
-- [ ] **COPY-02**: Replace "Join 500+ Growth subscribers" with "Built for landlords with 1–15 rentals" — segment-specific framing replaces the fabricated count. No FTC substantiation risk; conveys "this is for me" honestly. Update wherever the "500+" claim currently appears.
-- [ ] **COPY-03**: "Tenants never have to log in" elevated from buried subhead to a visible badge or dedicated section on homepage — single strongest differentiator vs multi-role platforms.
-- [ ] **COPY-04**: DocuSeal plan-tier note de-amplified — currently mentioned 6× across cards/comparison/FAQ/footer. Reduce to ≤3 strategic mentions (pricing card, comparison table, dedicated FAQ entry).
-- [ ] **COPY-05**: FAQ canonicalized to `/faq` — homepage and `/pricing` FAQ sections reduced to 3–5 most relevant questions each, with a "See all FAQs" link to `/faq`. Eliminate duplicate-content SEO penalty.
-- [ ] **COPY-06**: "Bulk-zip export (500/request)" softened to non-technical phrasing — "Tax-season zip exports" or "Bulk download for tax season" everywhere it currently shouts the technical limit.
-- [ ] **COPY-07**: Hero dashboard mockup simplified and review fake names — drop "John Miller", "Emma Wilson", "David Park" if they collide with real people; consider a simpler single-workflow mockup that reads cleanly at all breakpoints.
+- [x] **COPY-01**: Hero subhead reworded to remove tenant-tracking contradiction — replace "Track properties, tenants, leases, and maintenance in one place — tenants never have to log in" with phrasing that reads cleanly (e.g. "...tenant records, leases, and maintenance in one place — landlord-only, tenants stay off the platform").
+- [x] **COPY-02**: Replace "Join 500+ Growth subscribers" with "Built for landlords with 1–15 rentals" — segment-specific framing replaces the fabricated count. No FTC substantiation risk; conveys "this is for me" honestly. Update wherever the "500+" claim currently appears.
+- [x] **COPY-03**: "Tenants never have to log in" elevated from buried subhead to a visible badge or dedicated section on homepage — single strongest differentiator vs multi-role platforms.
+- [x] **COPY-04**: DocuSeal plan-tier note de-amplified — currently mentioned 6× across cards/comparison/FAQ/footer. Reduce to ≤3 strategic mentions (pricing card, comparison table, dedicated FAQ entry).
+- [x] **COPY-05**: FAQ canonicalized to `/faq` — homepage and `/pricing` FAQ sections reduced to 3–5 most relevant questions each, with a "See all FAQs" link to `/faq`. Eliminate duplicate-content SEO penalty.
+- [x] **COPY-06**: "Bulk-zip export (500/request)" softened to non-technical phrasing — "Tax-season zip exports" or "Bulk download for tax season" everywhere it currently shouts the technical limit.
+- [x] **COPY-07**: Hero dashboard mockup simplified and review fake names — drop "John Miller", "Emma Wilson", "David Park" if they collide with real people; consider a simpler single-workflow mockup that reads cleanly at all breakpoints.
 
 ### Design-Token Alignment — Visible Drift (TOKEN)
 
@@ -160,41 +160,41 @@ Updated by `gsd-roadmapper` during roadmap creation. See ROADMAP.md for canonica
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| CRIT-01 | Phase 1 | Pending |
-| CRIT-02 | Phase 2 | Pending |
-| CRIT-03 | Phase 1 | Pending |
-| CRIT-04 | Phase 2 | Pending |
-| CRIT-05 | Phase 3 | Pending |
-| CRIT-06 | Phase 3 | Pending |
-| CONS-01 | Phase 4 | Pending |
-| COPY-01 | Phase 4 | Pending |
-| COPY-02 | Phase 4 | Pending |
-| COPY-03 | Phase 4 | Pending |
-| COPY-04 | Phase 4 | Pending |
-| COPY-05 | Phase 4 | Pending |
-| COPY-06 | Phase 4 | Pending |
-| COPY-07 | Phase 4 | Pending |
-| PRICE-01 | Phase 5 | Pending |
-| PRICE-02 | Phase 5 | Pending |
-| PRICE-03 | Phase 5 | Pending |
-| PRICE-04 | Phase 5 | Pending |
-| PRICE-05 | Phase 5 | Pending |
-| PRICE-06 | Phase 5 | Pending |
-| BLOG-01 | Phase 6 | Pending |
-| BLOG-02 | Phase 6 | Pending |
-| BLOG-03 | Phase 6 | Pending |
-| BLOG-04 | Phase 6 | Pending |
-| BLOG-05 | Phase 6 | Pending |
-| BLOG-06 | Phase 6 | Pending |
-| CONS-05 | Phase 7 | Pending |
-| CONS-09 | Phase 7 | Pending |
-| CONS-10 | Phase 7 | Pending |
-| CONS-02 | Phase 8 | Pending |
-| CONS-03 | Phase 8 | Pending |
-| CONS-11 | Phase 8 | Pending |
-| CONS-04 | Phase 9 | Pending |
-| CONS-13 | Phase 9 | Pending |
-| CONS-14 | Phase 9 | Pending |
+| CRIT-01 | Phase 1 | Complete |
+| CRIT-02 | Phase 2 | Complete |
+| CRIT-03 | Phase 1 | Complete |
+| CRIT-04 | Phase 2 | Complete |
+| CRIT-05 | Phase 3 | Complete |
+| CRIT-06 | Phase 3 | Complete |
+| CONS-01 | Phase 4 | Complete |
+| COPY-01 | Phase 4 | Complete |
+| COPY-02 | Phase 4 | Complete |
+| COPY-03 | Phase 4 | Complete |
+| COPY-04 | Phase 4 | Complete |
+| COPY-05 | Phase 4 | Complete |
+| COPY-06 | Phase 4 | Complete |
+| COPY-07 | Phase 4 | Complete |
+| PRICE-01 | Phase 5 | Complete |
+| PRICE-02 | Phase 5 | Complete |
+| PRICE-03 | Phase 5 | Complete |
+| PRICE-04 | Phase 5 | Complete |
+| PRICE-05 | Phase 5 | Complete |
+| PRICE-06 | Phase 5 | Complete |
+| BLOG-01 | Phase 6 | Complete |
+| BLOG-02 | Phase 6 | Complete |
+| BLOG-03 | Phase 6 | Complete |
+| BLOG-04 | Phase 6 | Complete |
+| BLOG-05 | Phase 6 | Complete |
+| BLOG-06 | Phase 6 | Complete |
+| CONS-05 | Phase 7 | Complete |
+| CONS-09 | Phase 7 | Complete |
+| CONS-10 | Phase 7 | Complete |
+| CONS-02 | Phase 8 | Complete |
+| CONS-03 | Phase 8 | Complete |
+| CONS-11 | Phase 8 | Complete |
+| CONS-04 | Phase 9 | Complete |
+| CONS-13 | Phase 9 | Complete |
+| CONS-14 | Phase 9 | Complete |
 | CONS-06 | Phase 10 | Complete |
 | CONS-07 | Phase 10 | Complete |
 | CONS-08 | Phase 10 | Complete |
@@ -224,4 +224,4 @@ Updated by `gsd-roadmapper` during roadmap creation. See ROADMAP.md for canonica
 
 ---
 *Requirements defined: 2026-05-08*
-*Last updated: 2026-05-08 after v1.0 Q&A — pricing restructure + blog rebuild added as dedicated phases; CONS-12 removed; COPY-02 + TRUST-01 modified per user decisions*
+*Last updated: 2026-05-21 — Phase 15 traceability sweep (24 body checkboxes flipped, 35 traceability rows flipped to Complete)*
