@@ -1,10 +1,13 @@
 ---
 phase: 11
 slug: token-alignment
-status: planned
+status: shipped
 nyquist_compliant: true
-wave_0_complete: false
+wave_0_complete: true
 created: 2026-05-21
+shipped: 2026-05-21
+shipped_pr: 740
+status_update_note: "wave_0_complete + status updated 2026-05-22 during Phase 15 milestone audit round-2 polish — phase shipped via PR #740 with 8/8 must-haves verified (11-VERIFICATION.md)."
 ---
 
 # Phase 11 — Validation Strategy

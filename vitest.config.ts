@@ -1,7 +1,23 @@
 import { readFileSync } from "node:fs";
+import { cpus } from "node:os";
 import { resolve } from "node:path";
 import react from "@vitejs/plugin-react";
 import { defineConfig } from "vitest/config";
+
+// Phase 15-04 — derive the worker-pool cap from host capacity. The literal
+// `8` ceiling matched the 18-core dev box where the baseline reproduced 0
+// failures, but `8` does not constrain anything on a 4-core CI runner where
+// the original symptom (vitest "Failed to start threads worker" + ~15
+// unrelated failures, recorded in
+// .planning/phases/12-seo-metadata-schema-content-cleanup/deferred-items.md)
+// would actually surface. Deriving from `cpus().length - 1` keeps one core
+// for the orchestrator and stays at-or-below host capacity. Minimum 2 so
+// single-core environments still parallelize the suite.
+//
+// WR-03 fix per 15-REVIEW.md cycle 1: this is a defensive hedge, NOT an
+// empirically reproduced fix on lower-core hardware. See 15-04-SUMMARY.md
+// for the 0/3 baseline on 18 cores.
+const UNIT_MAX_WORKERS = Math.max(2, Math.min(8, cpus().length - 1));
 
 const loadEnvFile = (fileName: string) => {
 	const path = resolve(__dirname, fileName);
@@ -49,6 +65,13 @@ export default defineConfig({
 					name: "unit",
 					environment: "jsdom",
 					pool: "threads",
+					// Phase 15-04 — host-derived worker-pool cap (see UNIT_MAX_WORKERS
+					// computation at module top). Vitest 4 removed nested
+					// `poolOptions.threads.maxThreads`; `maxWorkers` is the supported
+					// top-level replacement (migration guide). Defensive hedge —
+					// 0/3 baseline on 18-core machine; not empirically reproduced on
+					// lower-core hardware in this branch (15-04-SUMMARY.md).
+					maxWorkers: UNIT_MAX_WORKERS,
 					globals: true,
 					setupFiles: [
 						"./src/test/msw-polyfill.ts",

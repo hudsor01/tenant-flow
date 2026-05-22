@@ -1,10 +1,13 @@
 ---
 phase: 7
 slug: pricing-card-chrome
-status: draft
+status: shipped
 nyquist_compliant: true
-wave_0_complete: false
+wave_0_complete: true
 created: 2026-05-20
+shipped: 2026-05-20
+shipped_pr: 735
+status_update_note: "wave_0_complete + status updated 2026-05-22 during Phase 15 milestone audit round-2 polish — phase shipped via PR #735 with 8/8 must-haves verified (07-VERIFICATION.md)."
 ---
 
 # Phase 7 — Validation Strategy

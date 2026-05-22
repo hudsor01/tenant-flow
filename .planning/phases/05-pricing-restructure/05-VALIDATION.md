@@ -3,6 +3,10 @@ phase: 05-pricing-restructure
 phase_number: 5
 generated: 2026-05-10
 nyquist_validation: true
+nyquist_compliant: true
+wave_0_complete: true
+backfilled: 2026-05-22
+backfill_note: "Phase 15 milestone audit round-2 polish — frontmatter fields added retroactively; the test maps below and all referenced tests ship in CI (pricing.test.ts math regression, pricing/page.test.ts 3-offer assertion, persona-banlist updates)."
 source: derived from `05-RESEARCH.md § Tests to Update` + Specialist 1 codebase touchpoint matrix
 ---
 
