@@ -2,13 +2,13 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: Milestone Cleanup — close all audit gaps
-status: planning
-last_updated: "2026-05-21T23:19:22.110Z"
-last_activity: 2026-05-21
+status: executing
+last_updated: "2026-05-22T00:04:48.366Z"
+last_activity: 2026-05-22 -- Phase 15 planning complete
 progress:
   total_phases: 16
   completed_phases: 11
-  total_plans: 28
+  total_plans: 33
   completed_plans: 26
   percent: 69
 ---
@@ -26,8 +26,8 @@ See: .planning/PROJECT.md (updated 2026-05-08)
 
 Phase: 15
 Plan: Not started (context gathered, ready to plan)
-Status: Ready to plan
-Last activity: 2026-05-21 — Phase 15 CONTEXT.md committed (`92735e29d`); v1.0 audit doc + roadmap entry shipped
+Status: Ready to execute
+Last activity: 2026-05-22 -- Phase 15 planning complete
 
 Progress: [██████████] 100% (v1.0 substantively shipped; Phase 15 is cleanup paperwork)
 
@@ -105,11 +105,22 @@ None.
 
 ## Next Action
 
-`/gsd-plan-phase 15` — break Phase 15 into the 5 parallel plans locked in `15-CONTEXT.md` (15-01 retro-VERIFICATIONs for Phases 4/5/6/14, 15-02 REQUIREMENTS.md traceability sweep, 15-03 `pnpm remove @stripe/react-stripe-js`, 15-04 Vitest pool flakiness investigate+fix, 15-05 `/blog` nav suppression source-scan + render regression-pin).
+`/gsd-execute-phase 15` — execute the 5 wave-1 parallel plans:
+- 15-01: retro-VERIFICATION.md for Phases 4/5/6/14 + missing 04-01/06-01 SUMMARY placeholders
+- 15-02: REQUIREMENTS.md traceability sweep (35 Pending → Complete + 24 body `[ ]` → `[x]` + footer stamp 2026-05-08 → 2026-05-21)
+- 15-03: `@stripe/(react-)?stripe-js` reality-check (already absent per pattern mapper) + drift-guard test
+- 15-04: Vitest pool diagnostic + tuning + 3-consecutive-run zero-flake gate (D-11 graceful fallback)
+- 15-05: `/blog` nav suppression source-scan + render regression tests (both per D-13..D-15)
+
+Plan-checker iteration 1→2 passed clean (all 4 blockers + 5 warnings addressed, no regressions). Decision coverage gate: 16/23 covered via literal `D-NN:` citation; remaining 7 are universal cross-cutting standards (D-16..D-22) recorded as proceed-anyway override per workflow §13a (plan-checker verified all 23 honored behaviorally).
 
 After Phase 15 ships through perfect-PR: `/gsd-complete-milestone v1.0` to archive, then `/gsd-new-milestone` for v2.0 dashboard redesign (plan parked at `/Users/richard/.claude/plans/i-want-to-enhance-hazy-island.md`).
 
----
-*Last updated: 2026-05-21 after Phase 15 CONTEXT committed (`92735e29d`); v1.0 milestone audit doc shipped*
+## Overrides
 
-**Planned Phase:** 15 (v1.0-milestone-cleanup) — 5 plans queued — 2026-05-21T23:19:22.000Z
+- 2026-05-22 — Phase 15 decision coverage gate: proceed-anyway with 7/23 decisions (D-16..D-22) marked `[informational]` in CONTEXT.md as meta-architectural/universal cross-cutting standards not citable in individual plans. Plan-checker verified all 23 honored behaviorally (iteration 1→2 verified pass). Override recorded per workflow §13a; verify-phase will re-surface for confirmation.
+
+---
+*Last updated: 2026-05-22 after Phase 15 planning complete (5 plans queued, 2 review cycles)*
+
+**Planned Phase:** 15 (v1.0-milestone-cleanup) — 5 plans, all wave 1 — 2026-05-22T00:04:48.000Z

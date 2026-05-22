@@ -61,27 +61,31 @@ Five concrete cleanup items (mirrored from `.planning/v1.0-MILESTONE-AUDIT.md`):
   - assert `screen.queryAllByRole('link', { name: /blog/i }).filter(l => l.getAttribute('href') === '/blog')` is empty
   - mount mobile menu equivalent; assert same absence on mobile path
 
-### Plan granularity
-- **D-16:** **5 parallel plans, one per cleanup item.**
+### Plan granularity [informational]
+- **D-16:** [informational] **5 parallel plans, one per cleanup item.**
   - `15-01-PLAN.md` — Retro-VERIFICATION.md for Phases 4/5/6/14 + missing SUMMARY placeholders (planning-dir only; zero src/ overlap)
   - `15-02-PLAN.md` — REQUIREMENTS.md traceability + body checkbox sweep (single file)
-  - `15-03-PLAN.md` — `pnpm remove @stripe/react-stripe-js` + lockfile verify + drift-guard test
+  - `15-03-PLAN.md` — `bun remove @stripe/react-stripe-js` (or no-op verify) + drift-guard test
   - `15-04-PLAN.md` — Vitest pool diagnostic + tuning + 3-run zero-flake gate
   - `15-05-PLAN.md` — `/blog` nav suppression source-scan + render regression tests
-- **D-17:** Wave 1: all 5 plans run in parallel. Zero `files_modified` overlap:
+- **D-17:** [informational] Wave 1: all 5 plans run in parallel. Zero `files_modified` overlap:
   - 15-01 touches `.planning/phases/04|05|06|14/`
   - 15-02 touches `.planning/REQUIREMENTS.md`
-  - 15-03 touches `package.json`, `pnpm-lock.yaml`, `src/lib/__tests__/no-stripe-js-deps.test.ts`
+  - 15-03 touches `package.json`, `bun.lock`, `src/lib/__tests__/no-stripe-js-deps.test.ts`
   - 15-04 touches `vitest.config.ts` (likely)
   - 15-05 touches `src/components/layout/navbar/__tests__/nav-blog-suppression-{source,render}.test.tsx`
-- **D-18:** If any plan's perfect-PR review surfaces drift into another plan's territory (unlikely given the orthogonality), the affected plan(s) get retracted from the wave and re-sequenced.
+- **D-18:** [informational] If any plan's perfect-PR review surfaces drift into another plan's territory (unlikely given the orthogonality), the affected plan(s) get retracted from the wave and re-sequenced.
 
-### Cross-cutting (universal)
-- **D-19:** Perfect-PR merge gate applies (two consecutive zero-finding deep review cycles per PR). Same gate as Phases 7-13.
-- **D-20:** No emojis in code. No hex/rgb/`bg-white`/inline-ms. Lucide icons. Per CLAUDE.md Zero Tolerance Rules.
-- **D-21:** `bun install --frozen-lockfile` fails in command sandbox — run `git commit` with sandbox disabled to let lefthook's `lockfile-verify` pre-commit hook pass. NEVER `--no-verify` / `LEFTHOOK_EXCLUDE` (HANDOFF blocking anti-pattern).
-- **D-22:** After every code-fixer sub-agent return, run `git status --short` + `git diff --stat` to verify what actually landed against what the agent reported (Phase 10 IN-01/IN-02 lesson).
-- **D-23:** For any TypeScript type-narrowing claim in tests (e.g., the nav source-scan asserting `dropdownItems` discrimination), write an `@ts-expect-error` probe to verify empirically before asserting it works (Phase 12 NavHref lesson).
+> **Note:** D-16..D-18 are meta-architectural decisions about plan layout itself — plans don't cite their own structure. Tagged `[informational]` to exclude from decision-coverage-plan gate.
+
+### Cross-cutting (universal) [informational]
+- **D-19:** [informational] Perfect-PR merge gate applies (two consecutive zero-finding deep review cycles per PR). Same gate as Phases 7-13.
+- **D-20:** [informational] No emojis in code. No hex/rgb/`bg-white`/inline-ms. Lucide icons. Per CLAUDE.md Zero Tolerance Rules.
+- **D-21:** [informational] `bun install --frozen-lockfile` fails in command sandbox — run `git commit` with sandbox disabled to let lefthook's `lockfile-verify` pre-commit hook pass. NEVER `--no-verify` / `LEFTHOOK_EXCLUDE` (HANDOFF blocking anti-pattern).
+- **D-22:** [informational] After every code-fixer sub-agent return, run `git status --short` + `git diff --stat` to verify what actually landed against what the agent reported (Phase 10 IN-01/IN-02 lesson).
+- **D-23:** For any TypeScript type-narrowing claim in tests (e.g., the nav source-scan asserting `dropdownItems` discrimination), write an `@ts-expect-error` probe to verify empirically before asserting it works (Phase 12 NavHref lesson). Cited by Plan 15-05.
+
+> **Note:** D-19..D-22 are universal project standards applicable to every PR/plan and enforced by lefthook hooks + branch protection + the perfect-PR gate, not plan-specific work items. Tagged `[informational]` to exclude from decision-coverage-plan gate. D-23 is plan-specific (TS narrowing in Plan 15-05).
 
 ### Claude's Discretion
 - Exact wording of retro-VERIFICATION Observable Truths and Required Artifacts (so long as truths cite live code + a regression test + the shipped PR).
