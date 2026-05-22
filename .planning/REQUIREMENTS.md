@@ -218,9 +218,10 @@ Updated by `gsd-roadmapper` during roadmap creation. See ROADMAP.md for canonica
 | PERF-04 | Phase 13 | Complete |
 
 **Coverage:**
-- v1 requirements: 55 total (after CONS-12 removed; PRICE-* and BLOG-* added)
-- Mapped to phases: 55
+- v1 requirements: 56 total (after CONS-12 removed; PRICE-01..06 + BLOG-01..06 added; net delta from the original 11-phase draft)
+- Mapped to phases: 56
 - Unmapped: 0 ✓
+- Status as of 2026-05-22 (Phase 15 audit round 2): 56/56 Complete
 
 ---
 *Requirements defined: 2026-05-08*
