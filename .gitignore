@@ -7,10 +7,12 @@ build/
 !.github/actions/*/dist
 .swc/
 
-# Local-only browser-agent battle test prompt — contains a synthetic-account
-# password and must NEVER be committed. Rotated via the documented Supabase +
-# GitHub-Secrets path in memory/github-secrets.md.
+# Local-only browser-agent prompts — contain synthetic-account credentials
+# and audit instructions; must NEVER be committed. Rotated via the documented
+# Supabase + GitHub-Secrets path in memory/github-secrets.md.
 BATTLE-TEST-BROWSER-AGENT.txt
+AUDIT-*.txt
+PRE-LAUNCH-AUDIT-*.txt
 
 # TypeScript build artifacts
 *.tsbuildinfo

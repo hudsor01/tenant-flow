@@ -123,7 +123,7 @@ Next: merge PR #743 (user-driven; do not auto-merge). After merge:
 
 ## Overrides
 
-- 2026-05-22 — Phase 15 decision coverage gate: proceed-anyway with 7/23 decisions (D-16..D-22) marked `[informational]` in CONTEXT.md as meta-architectural/universal cross-cutting standards not citable in individual plans. Plan-checker verified all 23 honored behaviorally (iteration 1→2 verified pass). Override recorded per workflow §13a; verify-phase will re-surface for confirmation.
+(none active — the 2026-05-22 decision-coverage-plan override was resolved during the round-2 audit polish: D-16..D-22 retagged using the parser-recognized `**D-NN [informational]:**` format. Gate now reports `passed: true, 16/16 trackable decisions covered`.)
 
 ---
 *Last updated: 2026-05-22 after Phase 15 shipped via PR #743*
