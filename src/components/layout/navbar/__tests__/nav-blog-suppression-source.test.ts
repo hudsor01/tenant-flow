@@ -45,12 +45,15 @@ describe("/blog deliberately absent from DEFAULT_NAV_ITEMS (AUDIT-2 deferral pin
 			join(process.cwd(), "src/components/layout/navbar/types.ts"),
 			"utf8",
 		);
-		// Three independent signals must coexist so removing any one fails
-		// the test — the AUDIT-2 reference, the "deferr*" explainer keyword
-		// (matches deferred / deferral), and the route token. Future
-		// un-deferral must edit the comment AND drop these assertions.
-		expect(source).toMatch(/AUDIT-2/);
-		expect(source).toMatch(/deferr/i);
-		expect(source).toMatch(/\/blog/);
+		// All three signals must coexist within the SAME ~400-char window so
+		// the test pins them to a single contiguous comment block — not three
+		// substrings scattered anywhere in the file. AUDIT-2 reference + the
+		// "deferr*" explainer keyword (matches deferred / deferral) + the
+		// `/blog` route token. Bidirectional alternation handles either token
+		// order. Future un-deferral must edit the comment AND drop this
+		// assertion. (WR-01 fix per 15-REVIEW.md cycle 1.)
+		expect(source).toMatch(
+			/AUDIT-2[\s\S]{0,400}deferr[\s\S]{0,400}\/blog|\/blog[\s\S]{0,400}AUDIT-2[\s\S]{0,400}deferr|deferr[\s\S]{0,400}AUDIT-2[\s\S]{0,400}\/blog|AUDIT-2[\s\S]{0,400}\/blog[\s\S]{0,400}deferr|\/blog[\s\S]{0,400}deferr[\s\S]{0,400}AUDIT-2|deferr[\s\S]{0,400}\/blog[\s\S]{0,400}AUDIT-2/i,
+		);
 	});
 });
