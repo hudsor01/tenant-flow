@@ -49,7 +49,7 @@ export default defineConfig({
 					name: "unit",
 					environment: "jsdom",
 					pool: "threads",
-					// Phase 15-04 — defensive worker-pool tune. Caps thread fan-out
+					// Phase 15-04 — defensive worker-pool tune. Caps worker fan-out
 					// so the full 105k-test parallel run is deterministic on lower-
 					// core dev boxes / CI runners. The 3-run baseline on an
 					// 18-core machine already passes 0/105,093 (see
@@ -58,12 +58,9 @@ export default defineConfig({
 					// captured in .planning/phases/12-seo-metadata-schema-content-cleanup/deferred-items.md
 					// returning on smaller hardware. See SUMMARY for the
 					// 3-consecutive-zero-flake gate diagnostic data.
-					poolOptions: {
-						threads: {
-							maxThreads: 8,
-							minThreads: 1,
-						},
-					},
+					// Vitest 4 removed nested `poolOptions.threads.maxThreads` — `maxWorkers`
+					// is the supported top-level replacement (see migration guide).
+					maxWorkers: 8,
 					globals: true,
 					setupFiles: [
 						"./src/test/msw-polyfill.ts",
