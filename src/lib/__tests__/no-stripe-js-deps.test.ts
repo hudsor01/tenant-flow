@@ -16,23 +16,45 @@
  */
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
-import { describe, expect, it } from "vitest";
+import { beforeAll, describe, expect, it } from "vitest";
+
+type PackageJson = {
+	dependencies?: Record<string, string>;
+	devDependencies?: Record<string, string>;
+	peerDependencies?: Record<string, string>;
+	optionalDependencies?: Record<string, string>;
+};
+
+const ROOTS = [
+	"dependencies",
+	"devDependencies",
+	"peerDependencies",
+	"optionalDependencies",
+] as const;
+
+const BANNED = ["@stripe/react-stripe-js", "@stripe/stripe-js"] as const;
 
 describe("dead Stripe.js packages stay out of package.json", () => {
-	const cwd = process.cwd();
-	const pkg = JSON.parse(readFileSync(join(cwd, "package.json"), "utf8")) as {
-		dependencies?: Record<string, string>;
-		devDependencies?: Record<string, string>;
-	};
+	// IN-01 fix: defer the read+parse until beforeAll so a malformed or missing
+	// package.json produces a clean per-suite failure instead of an unrelated
+	// module-load collection error.
+	let pkg: PackageJson;
 
-	const BANNED = ["@stripe/react-stripe-js", "@stripe/stripe-js"] as const;
+	beforeAll(() => {
+		pkg = JSON.parse(
+			readFileSync(join(process.cwd(), "package.json"), "utf8"),
+		) as PackageJson;
+	});
 
+	// IN-02 fix: pin all four dependency roots. The original regression path
+	// recorded in Phase 14 deferred-items.md was specifically a peerDependency
+	// of @stripe/react-stripe-js dragging @stripe/stripe-js into the lockfile,
+	// so peerDependencies + optionalDependencies coverage closes the named gap.
 	for (const dep of BANNED) {
-		it(`${dep} is not in dependencies`, () => {
-			expect(pkg.dependencies?.[dep]).toBeUndefined();
-		});
-		it(`${dep} is not in devDependencies`, () => {
-			expect(pkg.devDependencies?.[dep]).toBeUndefined();
-		});
+		for (const root of ROOTS) {
+			it(`${dep} is not in ${root}`, () => {
+				expect(pkg[root]?.[dep]).toBeUndefined();
+			});
+		}
 	}
 });
