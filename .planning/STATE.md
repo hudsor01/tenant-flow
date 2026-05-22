@@ -105,23 +105,19 @@ None.
 
 ## Next Action
 
-`/gsd-execute-phase 15` — execute the 5 wave-1 parallel plans:
+**Phase 15 shipped — PR #743 open at https://github.com/hudsor01/tenant-flow/pull/743**
 
-- 15-01: retro-VERIFICATION.md for Phases 4/5/6/14 + missing 04-01/06-01 SUMMARY placeholders
-- 15-02: REQUIREMENTS.md traceability sweep (35 Pending → Complete + 24 body `[ ]` → `[x]` + footer stamp 2026-05-08 → 2026-05-21)
-- 15-03: `@stripe/(react-)?stripe-js` reality-check (already absent per pattern mapper) + drift-guard test
-- 15-04: Vitest pool diagnostic + tuning + 3-consecutive-run zero-flake gate (D-11 graceful fallback)
-- 15-05: `/blog` nav suppression source-scan + render regression tests (both per D-13..D-15)
+26 commits ahead of main: 5 plan executions (15-01..15-05) + 5 worktree merges + 1 leak cleanup + 1 verification artifact. 4099 additions, 79 deletions across 30 changed files. Verifier passed 6/6; full suite 105,102/105,102 green.
 
-Plan-checker iteration 1→2 passed clean (all 4 blockers + 5 warnings addressed, no regressions). Decision coverage gate: 16/23 covered via literal `D-NN:` citation; remaining 7 are universal cross-cutting standards (D-16..D-22) recorded as proceed-anyway override per workflow §13a (plan-checker verified all 23 honored behaviorally).
+Next: `/gsd-review` for the perfect-PR gate (two consecutive zero-finding deep code review cycles), then merge.
 
-After Phase 15 ships through perfect-PR: `/gsd-complete-milestone v1.0` to archive, then `/gsd-new-milestone` for v2.0 dashboard redesign (plan parked at `/Users/richard/.claude/plans/i-want-to-enhance-hazy-island.md`).
+After Phase 15 merges: `/gsd-complete-milestone v1.0` to archive, then `/gsd-new-milestone` for v2.0 dashboard redesign (plan parked at `/Users/richard/.claude/plans/i-want-to-enhance-hazy-island.md`).
 
 ## Overrides
 
 - 2026-05-22 — Phase 15 decision coverage gate: proceed-anyway with 7/23 decisions (D-16..D-22) marked `[informational]` in CONTEXT.md as meta-architectural/universal cross-cutting standards not citable in individual plans. Plan-checker verified all 23 honored behaviorally (iteration 1→2 verified pass). Override recorded per workflow §13a; verify-phase will re-surface for confirmation.
 
 ---
-*Last updated: 2026-05-22 after Phase 15 planning complete (5 plans queued, 2 review cycles)*
+*Last updated: 2026-05-22 after Phase 15 shipped via PR #743*
 
-**Planned Phase:** 15 (v1.0-milestone-cleanup) — 5 plans, all wave 1 — 2026-05-22T00:04:48.000Z
+**Shipped Phase:** 15 (v1.0-milestone-cleanup) — PR #743, 26 commits, verifier passed 6/6 — 2026-05-22
