@@ -224,4 +224,4 @@ Updated by `gsd-roadmapper` during roadmap creation. See ROADMAP.md for canonica
 
 ---
 *Requirements defined: 2026-05-08*
-*Last updated: 2026-05-08 after v1.0 Q&A — pricing restructure + blog rebuild added as dedicated phases; CONS-12 removed; COPY-02 + TRUST-01 modified per user decisions*
+*Last updated: 2026-05-21 — Phase 15 traceability sweep (24 body checkboxes flipped, 35 traceability rows flipped to Complete)*
