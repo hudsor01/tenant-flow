@@ -475,11 +475,18 @@ This section is **specific to Phase 1's bug fix scope** and is the only section 
 Phase 1 grep gate (CONTEXT.md D-03):
 
 ```bash
-grep -nE '(\* ?100|/ ?100)' src/app/\(owner\)/dashboard/ src/components/dashboard/ --include='*.{ts,tsx}'
+# Regex uses `\b` word boundary so `* 100` matches but `* 1000` does NOT (the trailing
+# `0` is a word char; `\b` only fires before non-word chars). Cycle-2 lockstep fix
+# 2026-05-22 — original `\* ?100` false-positived on ms arithmetic. See § Appendix A
+# for the canonical executable form (this snippet is the in-line documentation form;
+# Plan 01-03 Task 5 runs the canonical Appendix A version).
+grep -nE '(\* ?100\b|/ ?100\b)' src/app/\(owner\)/dashboard/ src/components/dashboard/ --include='*.{ts,tsx}'
 # Must return zero hits on a currency variable post-PR.
-# Allowed exceptions (verified at execution time, all on files being deleted or non-currency arithmetic):
+# Allowed exceptions (all non-currency; verified at execution time):
 #   - expiring-leases-widget.tsx:37 — `60 * 24 * 60 * 60 * 1000` (millisecond constant)
-#   - chart-area-interactive.tsx — DELETED in Phase 1
+#   - expiring-leases-widget.tsx:80 — `5 * 60 * 1000` (staleTime millisecond constant) —
+#       the tightened regex above already excludes this; listed for maintainer clarity
+#   - chart-area-interactive.tsx — NOT deleted (D-13a; preserved for /analytics + /properties)
 #   - revenue-overview-chart.tsx — DELETED in Phase 4
 #   - any `(value / 1000).toFixed(0)` for chart-axis thousand-unit ticks (non-currency)
 ```
