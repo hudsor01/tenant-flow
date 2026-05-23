@@ -601,9 +601,14 @@ After Phase 1 lands, this command MUST return zero hits across currency-variable
 
 ```bash
 # Currency * 100 / / 100 scan (post-delete, excludes files Phase 1 removes)
+# Regex uses (?<!\d)100(?!\d) — but POSIX ERE has no lookahead, so we anchor with `\b`
+# on the trailing side ([^0-9]). Net: `* 100` matches; `* 1000` does NOT match (the
+# trailing `0` is a digit, so `\b` doesn't fire). Same for `/ 100` vs `/ 1000`.
+# Cycle-2 lockstep fix 2026-05-22: original `\* ?100` false-positived on ms arithmetic
+# (`5 * 60 * 1000`); tightened regex prevents that.
 git ls-files 'src/app/(owner)/dashboard/**/*.{ts,tsx}' 'src/components/dashboard/**/*.{ts,tsx}' \
   | grep -vE '(chart-area-interactive|revenue-overview-chart|owner-dashboard|dashboard-filters-compact|skeletons)\.tsx?$' \
-  | xargs grep -nE '(\* ?100|/ ?100)' \
+  | xargs grep -nE '(\* ?100\b|/ ?100\b)' \
   | grep -vE '(60 \* 24|/ 1000|/ 1_000_000)' \
   || echo "PASS: no currency * 100 or / 100 in dashboard subtree"
 ```

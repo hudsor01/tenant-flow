@@ -58,7 +58,10 @@ Phases 1 and 2 are invisible foundation. Phases 3 and 4 each *add* a new region 
   2. `src/components/dashboard/owner-dashboard.tsx`, `chart-area-interactive.tsx`, the duplicate `dashboard-filters*.tsx`, the second `portfolio-toolbar.tsx`, and `skeletons.tsx` no longer exist in the repo.
   3. Repo-wide grep for `* 100` and `/ 100` against currency variables in `src/app/(owner)/dashboard/` and `src/components/dashboard/` returns zero hits.
   4. `design-token-drift.test.ts` passes; milestone-wide UI-SPEC committed at `.planning/phases/01-dashboard-foundation-dedup/UI-SPEC.md` (aesthetic, tokens, dark-mode rules, breakpoints, motion budget) and inherited by all later phases.
-**Plans:** TBD
+**Plans:** 3 plans (3 waves — serialized)
+- [ ] 01-01-PLAN.md — **Wave 1.** Bug fix (drop `*100` in page.tsx + `/100` in revenue-overview-chart.tsx) + extract pure `transformDashboardData` module + wire into use-dashboard-hooks selectors (D-12a interpretation #2)
+- [ ] 01-02-PLAN.md — **Wave 2** (depends on 01-01). Currency utility consolidation: delete duplicate `formatDashboardCurrency`; swap 3 callers to canonical `formatCurrency` with no-cents options object (D-09a / RC-7)
+- [ ] 01-03-PLAN.md — **Wave 3** (depends on 01-01 + 01-02). Dedup deletions: 5 files + 1 test (owner-dashboard.tsx + its test, dashboard-filters{,-compact,-utils}, top-level portfolio-toolbar.tsx, skeletons.tsx); chart-area-interactive.tsx PRESERVED per D-13a. Owns the canonical D-03 / UI-SPEC § Appendix A `*100`/`/100` grep sweep (only runnable after Wave 1+2 land + owner-dashboard.tsx is deleted in Task 1).
 **UI hint:** yes
 
 ### Phase 2: Data Layer & RPC
@@ -142,7 +145,7 @@ Phases 1 and 2 are invisible foundation. Phases 3 and 4 each *add* a new region 
 
 | Phase | Milestone | Plans | Status | Completed |
 |-------|-----------|-------|--------|-----------|
-| 1. Foundation & Dedup | v2.0 | 0/0 | Not started | - |
+| 1. Foundation & Dedup | v2.0 | 0/3 | Planned | - |
 | 2. Data Layer & RPC | v2.0 | 0/0 | Not started | - |
 | 3. KPI Bento Row | v2.0 | 0/0 | Not started | - |
 | 4. Charts | v2.0 | 0/0 | Not started | - |
