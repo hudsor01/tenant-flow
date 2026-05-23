@@ -1,12 +1,14 @@
 ---
 phase: 1
 slug: dashboard-foundation-dedup
-status: draft
+status: approved
 scope: milestone-wide
 inherited_by: [3, 4, 5]
 shadcn_initialized: true
 preset: tenantflow-canonical (src/app/globals.css @theme)
 created: 2026-05-22
+reviewed_at: 2026-05-22
+checker_verdict: VERIFIED (6/6 dimensions, 1 FLAG closed via § 2.2 Exceptions sub-note)
 ---
 
 # Phase 1 — Milestone-Wide UI Design Contract (v2.0 Dashboard Command Center)
@@ -157,12 +159,12 @@ Each has a paired `*-foreground` token for legible text on the colored surface. 
 
 ### 2.2 Spacing scale (canonical)
 
-The dashboard uses the `--spacing-*` scale from `globals.css`. Multiples of 4px / 0.25rem; only the declared steps exist.
+The dashboard uses the `--spacing-*` scale from `globals.css`. **Layout-level spacing is multiples of 4px / 0.25rem.** Only the declared steps exist; do not invent new ones.
 
 | Token | rem | px | Canonical dashboard usage |
 |-------|-----|----|-----|
 | `--spacing-1` | 0.25rem | 4px | Icon gap inside `StatTrend`, table cell inline padding |
-| `--spacing-1_5` | 0.375rem | 6px | View-toggle button inner gap |
+| `--spacing-1_5` | 0.375rem | 6px | **Half-step (exception)** — View-toggle button inner gap (interactive primitive only; see Exceptions below) |
 | `--spacing-2` | 0.5rem | 8px | KPI tile internal stack gap (label → value), badge padding-y |
 | `--spacing-3` | 0.75rem | 12px | KPI grid `gap-3` (compact), portfolio toolbar gap, view-toggle button padding-x |
 | `--spacing-4` | 1rem | 16px | KPI tile `p-4` (compact), KPI grid `gap-4` (default), table cell padding |
@@ -170,6 +172,19 @@ The dashboard uses the `--spacing-*` scale from `globals.css`. Multiples of 4px 
 | `--spacing-6` | 1.5rem | 24px | KPI tile `p-6` (spacious), KPI grid `gap-6` (loose), chart panel padding |
 | `--spacing-8` | 2rem | 32px | Section-to-section vertical gap on `/dashboard` |
 | `--spacing-12` | 3rem | 48px | Above-the-fold reserved height for KPI row at ≥1024px |
+
+**Half-step exceptions** (closing UI-checker Dimension-5 FLAG, 2026-05-22):
+
+The canonical `globals.css` scale also defines `--spacing-0_5` (2px), `--spacing-1_5` (6px), `--spacing-2_5` (10px), `--spacing-3_5` (14px) — none of which are multiples of 4. These are **interactive-primitive half-steps** used for control-internal micro-spacing (e.g., the view-toggle inner gap above). They are project-canonical (already in `globals.css`), not invented here, but they violate the grid-alignment rule that applies to layout-level spacing.
+
+**Rule:** Half-step tokens (`*_5` variants) may be used ONLY inside interactive primitives (buttons, toggles, badges, chip insets). They MUST NOT be used for:
+- Section-to-section vertical gap
+- Grid gap (use `gap-3`/`gap-4`/`gap-6`)
+- Panel padding (use `p-4`/`p-5`/`p-6`)
+- Tile padding (use `p-4`/`p-6` per density band)
+- Any layout-level spacing where a multiple of 4 exists
+
+If a child UI-SPEC (Phase 3/4/5) introduces a half-step at a layout level, the planner MUST surface it for explicit user override.
 
 **Density bands** (see § 7 for the full Density Scale):
 - **Compact:** `p-4` tiles + `gap-3` grid + `h-12` table rows (mobile + dense desktop)
