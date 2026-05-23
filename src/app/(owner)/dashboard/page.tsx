@@ -68,7 +68,7 @@ function DashboardContent() {
 
 		const stats = statsData.stats;
 		return {
-			totalRevenue: (stats.revenue?.monthly ?? 0) * 100, // Convert to cents
+			totalRevenue: stats.revenue?.monthly ?? 0,
 			revenueChange: statsData.metricTrends?.monthlyRevenue?.percentChange ?? 0,
 			occupancyRate: stats.units?.occupancyRate ?? 0,
 			occupancyChange:
@@ -89,7 +89,7 @@ function DashboardContent() {
 
 		return chartsData.timeSeries.monthlyRevenue.map((point) => ({
 			month: point.date,
-			revenue: point.value * 100, // Convert to cents
+			revenue: point.value,
 		}));
 	})();
 
@@ -104,7 +104,7 @@ function DashboardContent() {
 			totalUnits: prop.totalUnits,
 			occupiedUnits: prop.occupiedUnits,
 			occupancyRate: prop.occupancyRate,
-			monthlyRevenue: prop.monthlyRevenue * 100, // Convert to cents
+			monthlyRevenue: prop.monthlyRevenue,
 			openMaintenance: 0, // Not in current API response
 		}));
 	})();
