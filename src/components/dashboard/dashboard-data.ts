@@ -1,37 +1,18 @@
-import type { ActivityItem } from "#types/activity";
-import type { MetricTrend, TimeSeriesDataPoint } from "#types/analytics";
-import type { PropertyPerformance } from "#types/core";
+import type { OwnerDashboardData } from "#hooks/api/use-owner-dashboard";
+import type { TimeSeriesDataPoint } from "#types/analytics";
 import type { DashboardStats } from "#types/stats";
 import type { PortfolioRow } from "./dashboard-types";
 
 /**
- * Shape consumed by transformDashboardData — mirrors OwnerDashboardData
- * (the post-mapped payload that use-owner-dashboard.ts emits from
- * get_dashboard_data_v2). RPC row-level snake↔camel mapping has already
- * happened at the fetcher boundary (use-owner-dashboard.ts:227-244),
- * so this interface uses the camelCase view-side shape that selectors
- * actually receive. Per D-12a interpretation #2.
- */
-export interface DashboardRpcPayload {
-	stats: DashboardStats;
-	activity: ActivityItem[];
-	metricTrends: {
-		occupancyRate: MetricTrend | null;
-		activeTenants: MetricTrend | null;
-		monthlyRevenue: MetricTrend | null;
-		openMaintenance: MetricTrend | null;
-	};
-	timeSeries: {
-		occupancyRate: TimeSeriesDataPoint[];
-		monthlyRevenue: TimeSeriesDataPoint[];
-	};
-	propertyPerformance: PropertyPerformance[];
-}
-
-/**
  * View-model exposed to dashboard surfaces — Phases 3/4/5 read from this,
- * not the raw RPC. portfolioRows is derived from propertyPerformance and
+ * not the raw RPC. `portfolioRows` is derived from `propertyPerformance` and
  * stores rent in dollars (no `* 100`) per UI-SPEC § 8.1.
+ *
+ * Note: `activity` and `propertyPerformance` remain on the raw
+ * `OwnerDashboardData` shape because existing consumers depend on those
+ * shapes; Phase 3's `dashboard-view.tsx` migration is when those slices
+ * fold into the view-model. See `use-dashboard-hooks.ts` selectors for the
+ * current asymmetry rationale.
  */
 export interface DashboardViewModel {
 	stats: DashboardStats;
@@ -47,9 +28,23 @@ export interface DashboardViewModel {
  * Server-Component-safe: no React, no hooks, no React Query coupling.
  * Per D-10 (Phase 01 CONTEXT.md) — the shared transform contract that
  * Phases 2-5 consume.
+ *
+ * Input type is the canonical `OwnerDashboardData` from
+ * `use-owner-dashboard.ts` (the post-mapped payload — RPC row-level snake↔
+ * camel mapping has already happened at the fetcher boundary at
+ * `use-owner-dashboard.ts:227-244`). Importing the canonical type instead
+ * of declaring a structural duplicate per Phase 1 CR-01 fix (Zero Tolerance
+ * Rule 3 — no duplicate types). Per D-12a interpretation #2 the selectors
+ * compose this transform; it is not wired into `DASHBOARD_BASE_QUERY_OPTIONS`.
+ *
+ * Trust-the-type posture: input fields are typed required, so the body
+ * does not optional-chain on `timeSeries` or `propertyPerformance`. The
+ * fetcher upstream (`use-owner-dashboard.ts`) is responsible for emitting
+ * the contracted shape with `?? []` fallbacks before the payload reaches
+ * this transform.
  */
 export function transformDashboardData(
-	payload: DashboardRpcPayload,
+	payload: OwnerDashboardData,
 ): DashboardViewModel {
 	const portfolioRows: PortfolioRow[] = payload.propertyPerformance.map(
 		(prop) => ({
@@ -73,8 +68,8 @@ export function transformDashboardData(
 	return {
 		stats: payload.stats,
 		timeSeries: {
-			occupancyRate: payload.timeSeries?.occupancyRate ?? [],
-			monthlyRevenue: payload.timeSeries?.monthlyRevenue ?? [],
+			occupancyRate: payload.timeSeries.occupancyRate,
+			monthlyRevenue: payload.timeSeries.monthlyRevenue,
 		},
 		portfolioRows,
 	};
