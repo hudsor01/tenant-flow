@@ -59,13 +59,11 @@ describe("transformDashboardData", () => {
 	});
 
 	it("falls back to 0 when prop.open_maintenance is undefined (optional field)", () => {
-		const { open_maintenance: _unused, ...propertyWithoutMaintenance } = {
-			...baseProperty,
-			open_maintenance: undefined as number | undefined,
-		};
+		// `open_maintenance` is optional on PropertyPerformance; omitting it
+		// from the literal is sufficient to exercise the `?? 0` read seam.
 		const payload: OwnerDashboardData = {
 			...basePayload,
-			propertyPerformance: [propertyWithoutMaintenance],
+			propertyPerformance: [baseProperty],
 		};
 		const result = transformDashboardData(payload);
 		expect(result.portfolioRows[0]?.maintenanceOpen).toBe(0);

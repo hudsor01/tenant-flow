@@ -194,12 +194,19 @@ describe("get_dashboard_data_v2 — open_maintenance per-property RLS isolation"
 			(p) => p.property_id === propertyA!.id,
 		);
 		expect(ownPropertyRow).toBeDefined();
+		// Pin all four Phase 2 fields. Cycle-2 review caught that the RPC
+		// was emitting `open_maintenance` correctly but had never emitted
+		// `address` / `property_type` / `status` despite the type contract
+		// declaring them — extending the test to all four prevents another
+		// recurrence of the same blindspot.
 		expect(typeof ownPropertyRow!.open_maintenance).toBe("number");
-		// The fixture inserted exactly 1 open maintenance request on this
-		// property. Asserting >=1 (not ===1) lets the test stay green if a
-		// future test file leaks another open request onto the same property
-		// — that would be a bug in the OTHER test, not this one.
 		expect(ownPropertyRow!.open_maintenance).toBeGreaterThanOrEqual(1);
+		expect(ownPropertyRow!.address).toBe("1 RPC St");
+		expect(ownPropertyRow!.property_type).toBe("APARTMENT");
+		// Property A has 1 unit (RPC-A-101) and the unit is unoccupied
+		// because no lease was created in this test's beforeAll. The
+		// derived `status` should reflect that as "vacant".
+		expect(ownPropertyRow!.status).toBe("vacant");
 	});
 
 	// -------------------------------------------------------------------------
