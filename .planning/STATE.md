@@ -20,14 +20,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-22)
 
 **Core value:** The authenticated owner dashboard at `/dashboard` becomes a restrained, professional B2B command center — KPI visibility above the fold, polished charts, a real DataTable with column controls + saved presets, full keyboard/dark-mode/mobile a11y. Every dollar amount handled correctly throughout the data path (no `*100`/`÷100` round-trip).
-**Current focus:** Phase 01 — Foundation & Dedup
+**Current focus:** Phase 02 — Data Layer & RPC (discussed; awaiting Phase 1 merge)
 
 ## Current Position
 
-Phase: 01 (Foundation & Dedup) — SHIPPED — perfect-PR gate satisfied
-Plan: 3 of 3 complete + verified + PR #744 ready to merge
-Status: cycle 2 + cycle 3 both zero-finding; CI gates running on cycle-3 push (commit 613a0b9d1)
-Last activity: 2026-05-23 -- Phase 01 perfect-PR gate satisfied (https://github.com/hudsor01/tenant-flow/pull/744)
+Phase: 02 (Data Layer & RPC) — context locked; planning next
+Plan: not started (CONTEXT.md committed)
+Status: Phase 1 PR #744 ready to merge (perfect-PR gate satisfied across 7 cycles); Phase 2 awaiting Phase 1 merge before its own branch
+Last activity: 2026-05-23 -- Phase 02 CONTEXT.md committed (D-01: drop collection_rate; D-02: additive RPC for per-property open_maintenance)
 
 ```
 [█░░░░░░] 14% of v2.0 milestone (1 / 7 phases shipped)
@@ -37,8 +37,8 @@ Last activity: 2026-05-23 -- Phase 01 perfect-PR gate satisfied (https://github.
 
 | # | Slug | Status | UI-SPEC | Branch |
 |---|------|--------|---------|--------|
-| 1 | foundation-dedup | Ready to merge (gate satisfied) | YES (milestone-wide) | gsd/phase-1-foundation-dedup |
-| 2 | dashboard-data-layer-rpc | Not started | No | gsd/phase-2-dashboard-data-layer-rpc |
+| 1 | foundation-dedup | Ready to merge (gate satisfied, 7 cycles) | YES (milestone-wide) | gsd/phase-1-foundation-dedup |
+| 2 | data-layer-rpc | Context locked; plan next | No | gsd/phase-2-data-layer-rpc |
 | 3 | dashboard-kpi-bento-row | Not started | YES | gsd/phase-3-dashboard-kpi-bento-row |
 | 4 | dashboard-charts | Not started | YES | gsd/phase-4-dashboard-charts |
 | 5 | dashboard-portfolio-datatable | Not started | YES | gsd/phase-5-dashboard-portfolio-datatable |
@@ -51,8 +51,8 @@ Last activity: 2026-05-23 -- Phase 01 perfect-PR gate satisfied (https://github.
 
 | Phase | Plans | Status | Branch | PR | Cycles to perfect-PR |
 |-------|-------|--------|--------|----|-----------------------|
-| 1 | 3 | Gate satisfied | gsd/phase-1-foundation-dedup | #744 | 3 (cycle-1 8 findings → cycle-2 0 → cycle-3 0) |
-| 2 | TBD | Pending | gsd/phase-2-dashboard-data-layer-rpc | — | — |
+| 1 | 3 | Gate satisfied | gsd/phase-1-foundation-dedup | #744 | 7 (cycles 6+7 both zero) |
+| 2 | TBD | Context locked | gsd/phase-2-data-layer-rpc | — | — |
 | 3 | TBD | Pending | gsd/phase-3-dashboard-kpi-bento-row | — | — |
 | 4 | TBD | Pending | gsd/phase-4-dashboard-charts | — | — |
 | 5 | TBD | Pending | gsd/phase-5-dashboard-portfolio-datatable | — | — |
@@ -87,21 +87,19 @@ None.
 
 ## Next Action
 
-**Phase 1 — Foundation & Dedup** — start with `/gsd-discuss-phase 1`.
+**User: merge PR #744** (Phase 1 perfect-PR gate satisfied — 7 review cycles total; cycles 6+7 both zero-finding).
 
-Phase 1 is the milestone's foundation:
+**Then for Phase 2:**
 
-- Delete `owner-dashboard.tsx` (duplicate), `chart-area-interactive.tsx`, duplicate `dashboard-filters*.tsx`, second `portfolio-toolbar.tsx`, `skeletons.tsx`.
-- Kill every `*100` / `/100` in the revenue path (`page.tsx` lines 71/92/107, `formatDashboardCurrency`, `revenue-overview-chart.tsx:41`).
-- Extract one shared data transform.
-- Produce the milestone-wide UI-SPEC (aesthetic, tokens, dark-mode rules, breakpoints, motion budget) the remaining phases inherit.
-- Zero visible change to the dashboard.
+1. Checkout main + pull
+2. `git checkout -b gsd/phase-2-data-layer-rpc`
+3. `/gsd-plan-phase 2` — research + plan the additive RPC migration
 
-After Phase 1 ships through the perfect-PR gate: `/gsd-progress --next` → Phase 2.
+Phase 2 CONTEXT.md is committed; D-01 (drop collection_rate) and D-02 (additive open_maintenance migration to existing get_dashboard_data_v2) are locked.
 
 ## Overrides
 
 (none active)
 
 ---
-*Last updated: 2026-05-22 — v2.0 roadmap created, Phase 1 ready for `/gsd-discuss-phase 1`*
+*Last updated: 2026-05-23 — Phase 1 gate satisfied (7 cycles); Phase 2 context locked*
