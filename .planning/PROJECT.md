@@ -28,79 +28,23 @@ Every public claim on tenantflow.app must map to working code, and every visual 
 - ✓ **GDPR account deletion with 30-day grace + anonymization** — earlier milestone
 - ✓ **Data retention cron jobs (security_events 90d, user_errors 90d, stripe_webhook_events 90d/180d)** — earlier milestone
 - ✓ **RLS on every table; landlord owner isolation enforced via `tests/integration/rls/`** — pre-v1
+- ✓ **Marketing Surface Honesty (56 audit findings closed across CRIT/CONS/COPY/PRICE/BLOG/TOKEN/TRUST/SEO/PERF)** — v1.0 (shipped 2026-05-22, 15 phases, audit round 3 verdict PERFECT BY ALL MEASURES). Highlights: blog DB cleanup + server-render rebuild + n8n redesign; pricing restructured to Starter $19 / Growth $49 / Max $149 with single-source-of-truth `pricing.ts`; unified "landlord" persona across hero/About/meta/FAQ/blog; 5 redirect aliases (`/signup` + 4 legal long-form paths); homepage NumberTicker fix + 375px mobile drawer; design-token drift guard scanning hex/rgb/`bg-white`/inline-ms; canonical "Contact Sales" CTA; 2 real testimonials; SEO meta-separator standardization + per-page OG images + site-wide Organization/SoftwareApplication JSON-LD + visible breadcrumbs; static-gen + sticky CTA + lead-capture modal (feature-flagged); `@stripe/(react-)?stripe-js` dead-dep drift guard; host-derived Vitest worker-pool cap; `/blog` nav suppression regression-pin until content cohort lands.
 
 ### Active
 
-<!-- v1.0 scope: 45 audit findings from external UI audit (2026-05-08).
-     Source spec: audit-ui-2026-05-08.md (project root).
-     All fixes must align to globals.css canonical design tokens. -->
-
-**Critical (block marketing spend):**
-- [ ] Blog content broken — every post renders "Error Processing Blog" (data-broken, ~70 rows in `blogs` table need cleanup or regeneration)
-- [ ] Homepage stat counters render "0" — `NumberTicker` animation/intersection-observer bug, source values are correct
-- [ ] Pricing inconsistency for Max plan across pricing card / comparison table / homepage features grid / JSON-LD
-- [ ] Mobile layout broken at 375px (hero overflow, CTA cut off, no hamburger nav)
-- [ ] `/signup` redirect loop to `/login`
-- [ ] Long-form legal URLs (`/terms-of-service`, `/privacy-policy`, `/help-center`, `/rss-feed`) redirect to login
-
-**High Priority (visual/copy inconsistencies):**
-- [ ] Persona language unification (owner/landlord/manager/investor → ONE primary persona)
-- [ ] Wrong icon on Multi-Property Dashboard feature card
-- [ ] Active-nav state bug ("Compare" highlighted on `/`)
-- [ ] Legal-page date inconsistencies
-- [ ] "Most Popular" badge overlaps Growth card border
-- [ ] Inconsistent CTA button styling (Starter solid black, Talk-to-Sales unstyled, duplicate Free Trial pill on Features)
-- [ ] /compare/buildium frames positioning choices as missing features (red ✗)
-- [ ] /contact "How did you hear" defaults to "Sales Outreach"
-- [ ] Pricing subhead spacing/period bug
-- [ ] Annual-toggle "Save $158" math doesn't match
-- [ ] Resources nav dropdown has dead `href="/#"`
-- [ ] "Powered by Hudson Digital" footer signature
-- [ ] Supabase logo faded in Trusted Integrations
-- [ ] Duplicate "Why Landlords Choose" comparison tables (homepage + Features)
-
-**Medium (content + design-token alignment):**
-- [ ] Hero subhead contradiction ("track tenants" vs "tenants never log in")
-- [ ] "Join 500+" social proof verification
-- [ ] "Tenants never log in" promoted from buried subhead → visible badge/section
-- [ ] DocuSeal tier-restriction messaging de-amplified (mentioned 6× currently)
-- [ ] FAQ canonicalization (home + /pricing + /faq overlap)
-- [ ] "Bulk-zip 500/request" softened to non-technical phrasing
-- [ ] Hero dashboard mockup simplified + name review
-- [ ] Resources page neon-pink download tags → globals.css palette
-- [ ] /resources card backgrounds → globals.css surface tokens
-- [ ] Stale blog dates on error posts (incidentally resolved by Critical #1 fix)
-
-**Low (polish/SEO/A11y/conversion):**
-- [ ] Real testimonials + customer logos
-- [ ] G2/Capterra/Trustpilot review badges
-- [ ] SEO meta separator standardization (em-dash vs pipe)
-- [ ] Per-page Open Graph images
-- [ ] Site-wide Organization + SoftwareApplication schema
-- [ ] Sticky/floating CTA on long pages
-- [ ] Exit-intent / scroll-depth lead capture
-- [ ] Clean blog slugs (drop millisecond timestamps)
-- [ ] Server-render `/blog` index (replace client loading state)
-- [ ] Visible breadcrumbs on blog + comparison pages
-- [ ] Static export + cache headers for marketing pages
-- [ ] `aria-current="page"` site-wide audit
-- [ ] CTA label canonicalization ("Talk to Sales" / "Contact Sales" / "Schedule walkthrough" / "Connect with sales")
-- [ ] Confirm `sales@` + `security@` inboxes monitored
-- [ ] Footer XML sitemap link / robots.txt verification
+(none — v1.0 shipped 2026-05-22. Next milestone defined via `/gsd-new-milestone`. The user's original ask is the dashboard redesign — plan parked at `/Users/richard/.claude/plans/i-want-to-enhance-hazy-island.md`. Suggested next milestone: **v2.0 Dashboard Command Center**.)
 
 ### Out of Scope
 
 <!-- Explicit boundaries. Includes reasoning to prevent re-adding. -->
 
-- **New features beyond audit fixes** — v1.0 is correctness/alignment only. New product capabilities go to v2.0.
 - **Tenant portal / tenant authentication** — pre-demolition decision, never re-add. Tenants are records, not users.
 - **Rent payment facilitation** — demolished April 2026. Landlords manually log amounts received.
 - **Smart tenant screening** — never built. Audit copy claiming this gets removed; not added back.
 - **Localization / i18n** — English-only.
 - **Native mobile app** — responsive web only. Mobile fixes target `375px` Safari/Chrome breakpoint.
-- **Visual redesign of bento grid / pricing cards** — token-alignment + bug fixes only. Layout overhauls are v2.0+.
 - **Auto-categorization of documents** — v2.6 deferred indefinitely.
-- **Unsubstantiated ROI/NOI/automation percentages in copy** (e.g. "+40% NOI", "Reduce vacancy 65%", "Automate 80%") — substantiate or delete; never re-add.
+- **Unsubstantiated ROI/NOI/automation percentages in copy** (e.g. "+40% NOI", "Reduce vacancy 65%", "Automate 80%") — substantiate or delete; never re-add (v1.0 honesty constraint).
 
 ## Context
 
@@ -139,22 +83,22 @@ Every public claim on tenantflow.app must map to working code, and every visual 
 
 | Decision | Rationale | Outcome |
 |----------|-----------|---------|
-| GSD config: YOLO mode, **fine** granularity (8–13 phases), **quality** model profile, per-phase research ON, plan-checker + verifier + nyquist ON, parallelization ON, commit_docs ON | User explicit Q&A. Fine granularity = tighter phase scope = shorter perfect-PR review cycles per phase | — Pending |
-| Branching: per-phase branches (`gsd/phase-{N}-{slug}`); one PR per phase; perfect-PR merge gate (2 consecutive zero-finding review cycles) | Matches v2.4–v2.6 history. Branch protection on `main` requires this. | — Pending |
-| Code review depth: **deep** (architectural review + design-token compliance + a11y in every phase) | User upgrade from saved default. Reduces post-merge findings; raises token cost. | — Pending |
-| Skip project-level research; rely on per-phase research during `/gsd-plan-phase` | Brownfield audit-fix; no greenfield stack decisions. Per-phase research keeps research targeted. | — Pending |
-| Major-version-only milestone naming (`v1.0`, `v2.0`, `v3.0` — no decimals like `v1.1` or `Phase 5.5`) | User explicit instruction. Use integer phase numbers; insert NEW phases as integers, not decimals. | — Pending |
-| **Persona** TBD; user leans owner-operator. Final word selected during `/gsd-plan-phase 4` (Persona + Copy) via per-phase researcher who surveys comparable successful B2B SaaS terminology | User rejected "landlord" as too narrow but accepted "landlords with 1–15 rentals" as a segment phrase. Locking single noun via research, not assumption. | — Pending |
-| Sales-contact CTA canonical label: **"Contact Sales"** | User explicit. Replaces "Talk to Sales" / "Schedule a walkthrough" / "Connect with sales" everywhere. | — Pending |
-| Mobile hamburger menu: **slide-in drawer from right** (shadcn `Sheet` component) at <md breakpoint | User explicit. Standard mobile pattern. | — Pending |
-| **Pricing**: full revenue audit + tier restructure as a dedicated phase. Current Stripe prices ($29 / $79 / $199) treated as starting point only — final tiers/names/limits/prices land via the Pricing Restructure phase. | User explicit: "audit our entire offering from a revenue perspective then rebuild and build out an entirely new restructuring of the tiers entirely". Phase happens AFTER persona is locked (Phase 4). | — Pending |
-| **Blog**: full rebuild as a dedicated phase — data cleanup + page UI rebuild (server-rendered) + n8n flow redesign for new audience + initial persona-aligned content set | User explicit: "rebuild blog page + maybe redo n8n flow for new audience + as a single Phase X in v1.0". Depends on persona (Phase 4). | — Pending |
-| Phase 1 (immediate stop-bleed) bulk-unpublishes broken blog rows + makes Max pricing AGREE across 4 surfaces using "Custom" placeholder until Pricing Restructure phase ships | Decouples immediate SEO + ad-spend safety from longer-term restructure work. Avoids propagating $199 twice (once in Phase 1, again after restructure). | — Pending |
-| Footer "Powered by Hudson Digital" line: **KEPT** site-wide. CONS-12 removed from v1.0 scope. | User explicit override of audit recommendation. Personal preference. | — Pending |
-| "Join 500+ Growth subscribers" replaced with **"Built for landlords with 1–15 rentals"** — segment-specific framing, no fabricated count | User has zero subscribers. Segment phrase is honest + serves the same conversion goal (signal "this is for me"). Avoids FTC substantiation risk + future trust kill. | — Pending |
-| Testimonials (TRUST-01): real names + property counts + quotes, **no headshots**. Avatar fallback uses initials or geometric placeholder. | User explicit: can provide names/counts/quotes, headshots difficult to source. | — Pending |
-| Treat audit document as v1.0 spec; locked decisions captured here override audit-default recommendations where they conflict | User input > audit defaults. | — Pending |
-| Brownfield framing — Validated section pre-populated from v2.6 capabilities | TenantFlow is mature; PROJECT.md must reflect that to prevent agents from re-deriving stack/architecture. | — Pending |
+| GSD config: YOLO mode, **fine** granularity (8–13 phases), **quality** model profile, per-phase research ON, plan-checker + verifier + nyquist ON, parallelization ON, commit_docs ON | User explicit Q&A. Fine granularity = tighter phase scope = shorter perfect-PR review cycles per phase | ✓ Good — v1.0 |
+| Branching: per-phase branches (`gsd/phase-{N}-{slug}`); one PR per phase; perfect-PR merge gate (2 consecutive zero-finding review cycles) | Matches v2.4–v2.6 history. Branch protection on `main` requires this. | ✓ Good — v1.0 |
+| Code review depth: **deep** (architectural review + design-token compliance + a11y in every phase) | User upgrade from saved default. Reduces post-merge findings; raises token cost. | ✓ Good — v1.0 |
+| Skip project-level research; rely on per-phase research during `/gsd-plan-phase` | Brownfield audit-fix; no greenfield stack decisions. Per-phase research keeps research targeted. | ✓ Good — v1.0 |
+| Major-version-only milestone naming (`v1.0`, `v2.0`, `v3.0` — no decimals like `v1.1` or `Phase 5.5`) | User explicit instruction. Use integer phase numbers; insert NEW phases as integers, not decimals. | ✓ Good — v1.0 |
+| **Persona** TBD; user leans owner-operator. Final word selected during `/gsd-plan-phase 4` (Persona + Copy) via per-phase researcher who surveys comparable successful B2B SaaS terminology | User rejected "landlord" as too narrow but accepted "landlords with 1–15 rentals" as a segment phrase. Locking single noun via research, not assumption. | ✓ Good — v1.0 |
+| Sales-contact CTA canonical label: **"Contact Sales"** | User explicit. Replaces "Talk to Sales" / "Schedule a walkthrough" / "Connect with sales" everywhere. | ✓ Good — v1.0 |
+| Mobile hamburger menu: **slide-in drawer from right** (shadcn `Sheet` component) at <md breakpoint | User explicit. Standard mobile pattern. | ✓ Good — v1.0 |
+| **Pricing**: full revenue audit + tier restructure as a dedicated phase. Current Stripe prices ($29 / $79 / $199) treated as starting point only — final tiers/names/limits/prices land via the Pricing Restructure phase. | User explicit: "audit our entire offering from a revenue perspective then rebuild and build out an entirely new restructuring of the tiers entirely". Phase happens AFTER persona is locked (Phase 4). | ✓ Good — v1.0 |
+| **Blog**: full rebuild as a dedicated phase — data cleanup + page UI rebuild (server-rendered) + n8n flow redesign for new audience + initial persona-aligned content set | User explicit: "rebuild blog page + maybe redo n8n flow for new audience + as a single Phase X in v1.0". Depends on persona (Phase 4). | ✓ Good — v1.0 |
+| Phase 1 (immediate stop-bleed) bulk-unpublishes broken blog rows + makes Max pricing AGREE across 4 surfaces using "Custom" placeholder until Pricing Restructure phase ships | Decouples immediate SEO + ad-spend safety from longer-term restructure work. Avoids propagating $199 twice (once in Phase 1, again after restructure). | ✓ Good — v1.0 |
+| Footer "Powered by Hudson Digital" line: **KEPT** site-wide. CONS-12 removed from v1.0 scope. | User explicit override of audit recommendation. Personal preference. | ✓ Good — v1.0 |
+| "Join 500+ Growth subscribers" replaced with **"Built for landlords with 1–15 rentals"** — segment-specific framing, no fabricated count | User has zero subscribers. Segment phrase is honest + serves the same conversion goal (signal "this is for me"). Avoids FTC substantiation risk + future trust kill. | ✓ Good — v1.0 |
+| Testimonials (TRUST-01): real names + property counts + quotes, **no headshots**. Avatar fallback uses initials or geometric placeholder. | User explicit: can provide names/counts/quotes, headshots difficult to source. | ✓ Good — v1.0 |
+| Treat audit document as v1.0 spec; locked decisions captured here override audit-default recommendations where they conflict | User input > audit defaults. | ✓ Good — v1.0 |
+| Brownfield framing — Validated section pre-populated from v2.6 capabilities | TenantFlow is mature; PROJECT.md must reflect that to prevent agents from re-deriving stack/architecture. | ✓ Good — v1.0 |
 
 ## Evolution
 
@@ -174,4 +118,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-05-08 after v1.0 initialization*
+*Last updated: 2026-05-22 after v1.0 "Marketing Surface Honesty" archived (15 phases, 56/56 requirements satisfied, audit round 3 verdict PERFECT BY ALL MEASURES). Next milestone awaits `/gsd-new-milestone` — user's queued ask is v2.0 dashboard redesign (plan at `/Users/richard/.claude/plans/i-want-to-enhance-hazy-island.md`).*
