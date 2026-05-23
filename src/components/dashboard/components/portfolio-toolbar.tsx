@@ -73,13 +73,14 @@ export function PortfolioToolbar({
 
 				<div
 					className="flex items-center gap-1 p-1 bg-muted rounded-lg"
-					role="group"
+					role="radiogroup"
 					aria-label="View mode"
 				>
 					<button
 						type="button"
+						role="radio"
 						onClick={() => onViewModeChange("grid")}
-						aria-pressed={viewMode === "grid"}
+						aria-checked={viewMode === "grid"}
 						className={`flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-md transition-colors ${
 							viewMode === "grid"
 								? "bg-background text-foreground shadow-sm"
@@ -91,8 +92,9 @@ export function PortfolioToolbar({
 					</button>
 					<button
 						type="button"
+						role="radio"
 						onClick={() => onViewModeChange("table")}
-						aria-pressed={viewMode === "table"}
+						aria-checked={viewMode === "table"}
 						className={`flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-md transition-colors ${
 							viewMode === "table"
 								? "bg-background text-foreground shadow-sm"

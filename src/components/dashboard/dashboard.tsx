@@ -73,16 +73,17 @@ export function Dashboard({
 		clearFilters,
 	} = useDashboardStore();
 
-	// Transform property performance into portfolio overview rows.
-	// TODO(phase-3): replace this inline portfolioData transform with
-	// `transformDashboardData` from `#components/dashboard/dashboard-data`
-	// once `dashboard-view.tsx` replaces this file. The transform module
-	// landed in Phase 1 with the canonical shape, but the existing
-	// `dashboard.tsx` → `page.tsx` pipeline re-maps `propertyPerformance`
-	// to a different field naming (`prop.id` / `prop.name` / `prop.address`
-	// vs the raw `property_id` / `property` / `address_line1`), so this
-	// inline copy survives until Phase 3 does the consumer migration.
-	// See `use-dashboard-hooks.ts` selectors for the parked-tech-debt note.
+	// LOCKED(D-10): inline portfolio-row transform survives Phase 1.
+	// The canonical pure transform `transformDashboardData` exists at
+	// `#components/dashboard/dashboard-data` (extracted in Phase 1 per the
+	// locked decision in `.planning/phases/01-foundation-dedup/01-CONTEXT.md`
+	// D-10/D-11/D-12a). Consumer migration is Phase 3 scope: the new
+	// `dashboard-view.tsx` will replace this file and consume the canonical
+	// `portfolioRows` slice from `transformDashboardData(payload).portfolioRows`.
+	// The two transforms operate on different upstream shapes
+	// (raw `PropertyPerformance` vs section-typed `PropertyPerformanceItem`
+	// re-mapped at `page.tsx`), so the dedup requires the Phase-3 consumer
+	// migration — not a Phase-1 rewrite. Intentional architectural anchor.
 	const portfolioData: PortfolioRow[] = propertyPerformance.map((prop) => ({
 		id: prop.id,
 		property: prop.name,
@@ -201,8 +202,8 @@ export function Dashboard({
 								className="flex h-auto items-center gap-3 p-3 text-left border border-border rounded-lg hover:bg-muted/50 transition-colors"
 								onClick={() => handleAction(action.action)}
 							>
-								<div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-muted">
-									<action.icon className="size-4" />
+								<div className="flex size-9 shrink-0 items-center justify-center rounded-md bg-muted">
+									<action.icon aria-hidden="true" className="size-4" />
 								</div>
 								<div>
 									<div className="text-sm font-medium">{action.title}</div>

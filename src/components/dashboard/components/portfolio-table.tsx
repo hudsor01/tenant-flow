@@ -51,6 +51,7 @@ function SortableHead({
 	sortField,
 	sortDirection,
 	onSort,
+	align = "left",
 	className,
 }: {
 	field: string;
@@ -58,17 +59,26 @@ function SortableHead({
 	sortField: string;
 	sortDirection: "asc" | "desc";
 	onSort: (field: string) => void;
+	align?: "left" | "right";
 	className?: string;
 }) {
+	const justify = align === "right" ? "justify-end" : "justify-start";
+	const headClass = [
+		"cursor-pointer hover:bg-muted/50",
+		align === "right" ? "text-right" : "",
+		className ?? "",
+	]
+		.filter(Boolean)
+		.join(" ");
 	return (
 		<TableHead
-			className={className}
+			className={headClass}
 			aria-sort={sortState(field, sortField, sortDirection)}
 		>
 			<button
 				type="button"
 				onClick={() => onSort(field)}
-				className="inline-flex w-full items-center font-inherit hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+				className={`inline-flex w-full items-center ${justify} font-inherit hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring`}
 			>
 				{label}
 				<SortIndicator
@@ -119,7 +129,7 @@ export function PortfolioTable({
 						sortField={sortField}
 						sortDirection={sortDirection}
 						onSort={onSort}
-						className="text-right"
+						align="right"
 					/>
 					<TableHead className="text-right">Maintenance</TableHead>
 					<TableHead className="w-[100px]">Actions</TableHead>
