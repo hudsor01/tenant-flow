@@ -169,12 +169,19 @@ export function Dashboard({
 			<div data-testid="dashboard-stats">
 				<h1 className="typography-h1">Dashboard</h1>
 				<p className="text-sm text-muted-foreground">
-					{metrics.occupiedUnits} of {metrics.totalUnits} units occupied ·{" "}
-					{formatCurrency(metrics.totalRevenue, {
-						minimumFractionDigits: 0,
-						maximumFractionDigits: 0,
-					})}{" "}
-					this month
+					<span>
+						{metrics.occupiedUnits} of {metrics.totalUnits} units occupied
+					</span>
+					<span aria-hidden="true" className="mx-2">
+						|
+					</span>
+					<span>
+						{formatCurrency(metrics.totalRevenue, {
+							minimumFractionDigits: 0,
+							maximumFractionDigits: 0,
+						})}{" "}
+						this month
+					</span>
 				</p>
 			</div>
 
@@ -189,12 +196,13 @@ export function Dashboard({
 					<CardContent className="grid gap-3">
 						{quickActions.map((action) => (
 							<button
+								type="button"
 								key={action.action}
 								className="flex h-auto items-center gap-3 p-3 text-left border border-border rounded-lg hover:bg-muted/50 transition-colors"
 								onClick={() => handleAction(action.action)}
 							>
 								<div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-muted">
-									<action.icon className="h-4 w-4" />
+									<action.icon className="size-4" />
 								</div>
 								<div>
 									<div className="text-sm font-medium">{action.title}</div>
@@ -248,6 +256,7 @@ export function Dashboard({
 							No properties match your filters
 						</p>
 						<button
+							type="button"
 							onClick={clearFilters}
 							className="mt-3 text-sm text-primary hover:underline"
 						>
