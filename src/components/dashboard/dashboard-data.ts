@@ -32,7 +32,7 @@ export interface DashboardViewModel {
  * Input type is the canonical `OwnerDashboardData` from
  * `use-owner-dashboard.ts` (the post-mapped payload — RPC row-level snake↔
  * camel mapping has already happened at the fetcher boundary at
- * `use-owner-dashboard.ts:227-244`). Importing the canonical type instead
+ * `use-owner-dashboard.ts:232-265`). Importing the canonical type instead
  * of declaring a structural duplicate per Phase 1 CR-01 fix (Zero Tolerance
  * Rule 3 — no duplicate types). Per D-12a interpretation #2 the selectors
  * compose this transform; it is not wired into `DASHBOARD_BASE_QUERY_OPTIONS`.

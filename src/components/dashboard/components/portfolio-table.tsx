@@ -1,5 +1,6 @@
 "use client";
 
+import { ArrowDown, ArrowUp } from "lucide-react";
 import {
 	Table,
 	TableBody,
@@ -28,8 +29,14 @@ function SortIndicator({
 	sortDirection: "asc" | "desc";
 }) {
 	if (sortField !== field) return null;
+	const Icon = sortDirection === "asc" ? ArrowUp : ArrowDown;
 	return (
-		<span className="ml-1 text-xs">{sortDirection === "asc" ? "↑" : "↓"}</span>
+		<Icon
+			className="ml-1 inline-block size-3"
+			aria-label={
+				sortDirection === "asc" ? "sorted ascending" : "sorted descending"
+			}
+		/>
 	);
 }
 
