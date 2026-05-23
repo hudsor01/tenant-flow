@@ -2,13 +2,13 @@
 gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: Dashboard Command Center
-status: planning
-last_updated: "2026-05-22T00:00:00.000Z"
-last_activity: 2026-05-22
+status: executing
+last_updated: "2026-05-23T03:04:28.759Z"
+last_activity: 2026-05-23 -- Phase 01 execution started
 progress:
   total_phases: 7
   completed_phases: 0
-  total_plans: 0
+  total_plans: 3
   completed_plans: 0
   percent: 0
 ---
@@ -20,14 +20,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-22)
 
 **Core value:** The authenticated owner dashboard at `/dashboard` becomes a restrained, professional B2B command center — KPI visibility above the fold, polished charts, a real DataTable with column controls + saved presets, full keyboard/dark-mode/mobile a11y. Every dollar amount handled correctly throughout the data path (no `*100`/`÷100` round-trip).
-**Current focus:** Phase 1 — Foundation & Dedup (defining context)
+**Current focus:** Phase 01 — Foundation & Dedup
 
 ## Current Position
 
-Phase: 1 — Foundation & Dedup (`dashboard-foundation-dedup`)
-Plan: — (not started)
-Status: Defining context (post-roadmap, pre-discuss-phase)
-Last activity: 2026-05-22 — v2.0 roadmap created (7 phases, 34/34 requirements mapped)
+Phase: 01 (Foundation & Dedup) — EXECUTING
+Plan: 1 of 3
+Status: Executing Phase 01
+Last activity: 2026-05-23 -- Phase 01 execution started
 
 ```
 [░░░░░░░] 0% of v2.0 milestone (0 / 7 phases)
@@ -90,6 +90,7 @@ None.
 **Phase 1 — Foundation & Dedup** — start with `/gsd-discuss-phase 1`.
 
 Phase 1 is the milestone's foundation:
+
 - Delete `owner-dashboard.tsx` (duplicate), `chart-area-interactive.tsx`, duplicate `dashboard-filters*.tsx`, second `portfolio-toolbar.tsx`, `skeletons.tsx`.
 - Kill every `*100` / `/100` in the revenue path (`page.tsx` lines 71/92/107, `formatDashboardCurrency`, `revenue-overview-chart.tsx:41`).
 - Extract one shared data transform.
