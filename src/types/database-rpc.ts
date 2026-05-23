@@ -6,7 +6,15 @@
  */
 
 /**
- * Response from get_property_performance RPC function
+ * Per-row shape of `get_dashboard_data_v2`'s `property_performance` JSONB
+ * array. Phase 2 (POLISH-10) extended this with `open_maintenance` —
+ * sourced from the new `perf_open_maintenance` CTE in the migration at
+ * `supabase/migrations/20260523223626_phase2_open_maintenance_per_property.sql`.
+ *
+ * The fetcher boundary at `src/hooks/api/use-owner-dashboard.ts:218-249`
+ * narrows the raw JSONB to `PropertyPerformanceRpcResponse[]` and emits
+ * `PropertyPerformance[]` (the section-typed shape consumed by the
+ * dashboard view).
  */
 export interface PropertyPerformanceRpcResponse {
 	property_name: string;
@@ -42,23 +50,4 @@ export interface RevenueTrendResponse {
 	revenue: number;
 	growth: number;
 	previous_period_revenue: number;
-}
-
-/**
- * Type guards for runtime validation
- */
-export function isPropertyPerformanceRpcResponse(
-	data: unknown,
-): data is PropertyPerformanceRpcResponse {
-	if (!data || typeof data !== "object") return false;
-
-	const obj = data as Record<string, unknown>;
-	return (
-		"property_name" in obj &&
-		typeof obj.property_name === "string" &&
-		"property_id" in obj &&
-		typeof obj.property_id === "string" &&
-		"total_units" in obj &&
-		typeof obj.total_units === "number"
-	);
 }

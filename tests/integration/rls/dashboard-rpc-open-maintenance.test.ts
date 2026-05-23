@@ -18,6 +18,7 @@
  */
 
 import type { SupabaseClient } from "@supabase/supabase-js";
+import type { PropertyPerformanceRpcResponse } from "#types/database-rpc";
 import { createTestClient, getTestCredentials } from "../setup/supabase-client";
 
 describe("get_dashboard_data_v2 — open_maintenance per-property RLS isolation", () => {
@@ -185,10 +186,7 @@ describe("get_dashboard_data_v2 — open_maintenance per-property RLS isolation"
 		expect(data).toBeDefined();
 
 		const result = data as {
-			property_performance: Array<{
-				property_id: string;
-				open_maintenance: number;
-			}>;
+			property_performance: PropertyPerformanceRpcResponse[];
 		};
 		expect(Array.isArray(result.property_performance)).toBe(true);
 
@@ -216,7 +214,7 @@ describe("get_dashboard_data_v2 — open_maintenance per-property RLS isolation"
 		expect(data).toBeDefined();
 
 		const result = data as {
-			property_performance: Array<{ property_id: string }>;
+			property_performance: PropertyPerformanceRpcResponse[];
 		};
 		expect(Array.isArray(result.property_performance)).toBe(true);
 		// The function is SECURITY DEFINER but every shared CTE

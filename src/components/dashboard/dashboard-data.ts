@@ -61,7 +61,11 @@ export function transformDashboardData(
 						: "vacant",
 			leaseEnd: null,
 			rent: prop.monthlyRevenue,
-			maintenanceOpen: prop.open_maintenance,
+			// `open_maintenance` is optional on PropertyPerformance — only the v2
+			// dashboard RPC emits it. `?? 0` is the read-seam fallback; producers
+			// that genuinely have no maintenance data omit the field rather than
+			// fabricating a zero at construction time.
+			maintenanceOpen: prop.open_maintenance ?? 0,
 		}),
 	);
 
