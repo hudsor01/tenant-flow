@@ -12,6 +12,7 @@
  */
 
 import { useQuery, useSuspenseQuery } from "@tanstack/react-query";
+import { transformDashboardData } from "#components/dashboard/dashboard-data";
 import type { PropertyPerformance } from "#types/core";
 import {
 	DASHBOARD_BASE_QUERY_OPTIONS,
@@ -23,13 +24,21 @@ import {
 	type OwnerDashboardData,
 } from "./use-owner-dashboard";
 
+// D-12a interpretation #2: selectors compose transformDashboardData(data)
+// rather than baking `select` into DASHBOARD_BASE_QUERY_OPTIONS (which would
+// be masked by per-call selects in React Query). selectStats + selectCharts
+// read their slices off the view-model. selectActivity + selectPropertyPerformance
+// are left untouched: the view-model carries portfolioRows (PortfolioRow[]),
+// not the raw PropertyPerformance[] shape that existing dashboard/page.tsx
+// consumers depend on; Phase 3 migrates the consumer when dashboard-view.tsx
+// replaces dashboard.tsx.
 const selectStats = (data: OwnerDashboardData): DashboardStatsData => ({
-	stats: data.stats,
+	stats: transformDashboardData(data).stats,
 	metricTrends: data.metricTrends,
 });
 
 const selectCharts = (data: OwnerDashboardData): DashboardChartsData => ({
-	timeSeries: data.timeSeries,
+	timeSeries: transformDashboardData(data).timeSeries,
 });
 
 const selectActivity = (data: OwnerDashboardData): DashboardActivityData => ({

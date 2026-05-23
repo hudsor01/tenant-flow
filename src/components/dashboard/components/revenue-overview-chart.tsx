@@ -38,7 +38,7 @@ export function RevenueOverviewChart({
 					<AreaChart
 						data={revenueTrend.map((point) => ({
 							month: point.month,
-							revenue: point.revenue / 100,
+							revenue: point.revenue,
 						}))}
 						margin={{ top: 10, right: 10, left: 0, bottom: 0 }}
 					>
