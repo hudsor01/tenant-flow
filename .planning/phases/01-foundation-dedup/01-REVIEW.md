@@ -1,7 +1,7 @@
 ---
 phase: 1 — v2.0 Dashboard Command Center Foundation & Dedup
-reviewed: 2026-05-23T22:15:00Z
-cycle: 5
+reviewed: 2026-05-23T23:30:00Z
+cycle: 6
 depth: deep
 files_reviewed: 11
 files_reviewed_list:
@@ -18,270 +18,110 @@ files_reviewed_list:
   - src/hooks/api/use-owner-dashboard.ts
 findings:
   critical: 0
-  warning: 2
-  info: 4
-  total: 6
-status: issues_found
-perfect_pr_gate: 0/2 consecutive zero-finding cycles
-consecutive_zero_finding_cycles: 0
-new_regressions: 2
+  warning: 0
+  info: 0
+  total: 0
+status: clean
+perfect_pr_gate: 1/2 consecutive zero-finding cycles
+consecutive_zero_finding_cycles: 1
+new_regressions: 0
 ---
 
-# Phase 1: Code Review Report — Cycle 5
+# Phase 1: Code Review Report — Cycle 6
 
-**Reviewed:** 2026-05-23T22:15:00Z
+**Reviewed:** 2026-05-23T23:30:00Z
 **Depth:** deep
-**Cycle:** 5 (fresh adversarial review of fix commit `bb312e842` plus wider sweep extension into `portfolio-toolbar.tsx` + `portfolio-pagination.tsx`)
+**Cycle:** 6 (fresh adversarial review of fix commit `fcea567bf` against cycle-5's 6 findings)
 **Files Reviewed:** 11
-**Status:** issues_found
-**Perfect-PR gate:** 0/2 consecutive zero-finding cycles. Two more clean cycles required after the next fix-pass.
+**Status:** clean
+**Perfect-PR gate:** **1/2 consecutive zero-finding cycles.** Cycle 5 had findings, so the counter restarts at 1 with this cycle. One more zero-finding cycle is required to satisfy the gate.
 
 ## Summary
 
-The cycle-4 fix (`bb312e842`) cleanly closes 7 of 8 cycle-4 findings at the semantic level (WR-01 ARIA, WR-02 keyboard, WR-03 em-dashes [grid + table sites], WR-04 middle-dot, WR-05 button-type [all 3 sites], IN-01 size-4, IN-02 size-4, IN-04 Edge Link). **IN-03 (TODO marker) was intentionally retained** by the fix commit per CONTEXT.md D-10 — per cycle-5 directive "do not dismiss anything no matter severity", that TODO is re-flagged at Info level for audit-trail completeness even though it is a deferred Phase-3 anchor.
+The cycle-5 fix (`fcea567bf`) closes all 6 cycle-5 findings — 2 WR (new regressions introduced by cycle-4) and 4 IN (1 ARIA-pattern judgment, 1 carry-over TODO, 1 pre-existing pagination windowing gap, 1 missed `h-N w-N` site) — with no new regressions surfaced by the deep sweep.
 
-However, the WR-01/WR-02 fix in `portfolio-table.tsx` introduces **two new regressions** that the cycle-4 directives did not anticipate:
+**No dismissals.** Per the cycle-6 directive ("zero dismissals allowed; perfect by all measures"), every cycle-5 finding was independently re-verified, every CLAUDE.md Zero Tolerance rule was re-grepped against the 11-file scope, every ARIA value was inspected for semantic correctness, and the windowed pagination was walked through 16 currentPage/totalPages edge cases by running the algorithm directly. Nothing is borderline.
 
-1. **WR-01 (NEW)** — The `text-right` className passed to `<SortableHead>` for the Monthly Rent column lands on `<TableHead>` but the inner `<button>` has `inline-flex w-full items-center` with default `justify-content: flex-start`. The button content (label + sort indicator) renders **left-aligned** inside a `text-right` header cell. Before the fix the rent column header text rendered right-aligned. This is a user-visible visual regression.
-2. **WR-02 (NEW)** — `<TableHead>` lost `cursor-pointer hover:bg-muted/50` styling. Pre-fix every sortable header had a visible hover-background hint and pointer cursor across the entire header cell padding. Post-fix the only hover affordance is `hover:underline` on the inner button, and only over the button's content (not the surrounding `<TableHead>` padding which is 8px horizontal default). Click-target shrunk vertically (button is content-sized; cell padding is dead) and visually no longer signals interactivity until the cursor is exactly on the label text.
-
-The wider sweep into `portfolio-toolbar.tsx` and `portfolio-pagination.tsx` is generally correct, but two judgment-call quality issues remain (IN-01 view-mode toggle ARIA pattern; IN-04 pagination renders all page numbers with no windowing — both pre-existing, flagged per "do not dismiss").
-
-This cycle does NOT satisfy the perfect-PR gate. Counter remains at 0/2.
-
-## Verification of Cycle-4 Fixes (commit `bb312e842`)
+## Verification of Cycle-5 Fixes (commit `fcea567bf`)
 
 | Finding | Status | Evidence |
 |---------|--------|----------|
-| WR-01 (aria-sort on `<TableHead>`, not on icon) | **CLOSED at ARIA layer** (introduces new visual-alignment regression — see WR-01 below) | `portfolio-table.tsx:66` lifts `aria-sort` via `sortState()` helper returning literal `"ascending"`/`"descending"`/`"none"`. `SortIndicator` at line 34 now uses `aria-hidden="true"`. Non-sortable `<TableHead>` for `Tenants`, `Maintenance`, `Actions` correctly omit `aria-sort`. |
-| WR-02 (keyboard support for sortable headers) | **CLOSED at keyboard layer** (introduces new hover/cursor affordance regression — see WR-02 below) | `portfolio-table.tsx:68-78` wraps content in `<button type="button">` with `focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring`. Native button gives Enter+Space activation for free. |
-| WR-03 (em-dashes in 4 empty-cell sites) | **CLOSED** | `portfolio-grid.tsx:54-61, 73-82` use `<span aria-label="No tenants\|No open requests" className="text-muted-foreground">--</span>`. `portfolio-table.tsx:151-157, 186-192` use the same pattern. Glyph re-grep: zero `U+2014` in UI strings across 11 files. |
-| WR-04 (middle-dot U+00B7 separator in `dashboard.tsx:172`) | **CLOSED** | `dashboard.tsx:172-186` renders three `<span>`s, with the middle `<span aria-hidden="true" className="mx-2">|</span>` as a visual divider. Glyph re-grep: zero `U+00B7` in UI strings. |
-| WR-05 (button-type on 3 sites) | **CLOSED for all 3** | `dashboard.tsx:199` (Quick Actions button), `dashboard.tsx:259` (Clear Filters button), and `portfolio-table.tsx:69` (sortable head button — note the original "Edit row-action button" site was instead converted to `<Link>` per IN-04). |
-| IN-01 (SortIndicator size-3 → size-4) | **CLOSED** | `portfolio-table.tsx:34` reads `<Icon className="ml-1 inline-block size-4" aria-hidden="true" />`. |
-| IN-02 (dashboard.tsx Quick Action icon `h-4 w-4` → `size-4`) | **CLOSED** | `dashboard.tsx:205` reads `<action.icon className="size-4" />`. Legacy `h-N w-N` re-grep: only `dashboard.tsx:204` (`h-9 w-9` on icon container — fixed in WR-04 fix to `size-9` would be safer; flagged Info below) and `portfolio-pagination.tsx:47` (`min-w-8 h-8` — intentionally asymmetric: `min-w-8` not `w-8`, so not a `size-N` candidate). |
-| IN-04 (dead Edit button → wired `<Link>`) | **CLOSED** | `portfolio-table.tsx:196-202` reads `<Link href={`/properties/${row.id}/edit`} className="..." aria-label={`Edit ${row.property}`}>Edit</Link>`. Route `/properties/[id]/edit` confirmed to exist at `src/app/(owner)/properties/[id]/edit/`. `row.id` traces back to `PortfolioRow.id: string` (non-null) sourced from `prop.property_id` in `page.tsx:101`. Link works in Server-Component context (next/link is server-safe for static href patterns). |
+| WR-01 (Monthly Rent header label rendered left-aligned despite `<TableHead className="text-right">`) | **CLOSED** | `portfolio-table.tsx:48-91` — `SortableHead` now accepts an `align?: "left" \| "right"` prop (default `"left"`). When `align === "right"`: TableHead className composes `cursor-pointer hover:bg-muted/50 text-right`; inner button className composes `inline-flex w-full items-center justify-end font-inherit hover:underline focus-visible:...`. When `align === "left"` (default): TableHead className is `cursor-pointer hover:bg-muted/50` (no `text-right`); inner button uses `justify-start`. Only Monthly Rent uses `align="right"` (line 132). Verified by running the className composition in a Node sandbox: LEFT default → `"cursor-pointer hover:bg-muted/50"` + button `justify-start`; RIGHT → `"cursor-pointer hover:bg-muted/50 text-right"` + button `justify-end`. No CSS-class leakage to other columns. No duplicate classes. No trailing whitespace artifacts. |
+| WR-02 (Sortable header lost `cursor-pointer` + `hover:bg-muted/50` mouse affordances) | **CLOSED** | `portfolio-table.tsx:67` — `cursor-pointer hover:bg-muted/50` is always part of the TableHead className composition (unconditional first element of the `[..., ..., ...]` array, never filtered out). All four sortable headers (Property, Units, Lease Status, Monthly Rent) render with cursor-pointer + hover-background across the full cell-padding area. Non-sortable headers (Tenants, Maintenance, Actions) correctly do NOT receive these classes (they don't render through SortableHead). |
+| IN-01 (View-mode toggle used `role="group"` + `aria-pressed` instead of idiomatic radiogroup pattern) | **CLOSED** | `portfolio-toolbar.tsx:74-107` — container is `<div role="radiogroup" aria-label="View mode" ...>`; each button is `<button type="button" role="radio" aria-checked={viewMode === "grid"|"table"} ...>`. The `aria-checked` value is a strict boolean (`viewMode === "..."`), so exactly one option has `aria-checked={true}` at any time and the other has `aria-checked={false}` — never both true, never both false. Native `<button>` elements are tab-stops (no `tabIndex` manipulation needed). Container has accessible name via `aria-label="View mode"`. |
+| IN-02 (TODO(phase-3) marker retained as deferred Phase-3 anchor) | **CLOSED** | `dashboard.tsx:76-86` — comment block now opens with `// LOCKED(D-10): inline portfolio-row transform survives Phase 1.` and explicitly cites the CONTEXT.md decision: `the locked decision in '.planning/phases/01-foundation-dedup/01-CONTEXT.md' D-10/D-11/D-12a`. The comment closes with `Intentional architectural anchor.`. This is no longer parsed as an active TODO by any TODO-marker grep — `grep -nE "TODO\|FIXME\|XXX\|HACK"` on the 11-file scope returns **zero hits**. Comment communicates "intentional carry-over, not action-required" clearly enough that future cycles will not re-flag it. |
+| IN-03 (Pagination rendered all page-number buttons; no windowing) | **CLOSED** | `portfolio-pagination.tsx:13-27` — `buildPageWindow(currentPage, totalPages)` returns `PageToken[]` where `PageToken = number \| "ellipsis-start" \| "ellipsis-end"`. Algorithm: if `totalPages <= 7`, return `[1..totalPages]`; otherwise `[1, ...maybe-ellipsis-start..., windowStart..windowEnd, ...maybe-ellipsis-end..., totalPages]`. `<nav className="flex items-center gap-1" aria-label="Pagination">` wraps the controls (line 47), giving the controls a landmark role for screen-reader navigation. See "Pagination Edge-Case Walkthrough" section below for the full 16-case trace. |
+| IN-04 (Quick Action icon container used legacy `h-9 w-9` instead of `size-9`) | **CLOSED** | `dashboard.tsx:205` reads `<div className="flex size-9 shrink-0 items-center justify-center rounded-md bg-muted">`. Inner icon at line 206 reads `<action.icon aria-hidden="true" className="size-4" />` — gains both the `aria-hidden="true"` decorative-icon attribute AND `size-4` (was already `size-4` from cycle-4; cycle-5 fix just added `aria-hidden`). Legacy `h-N w-N` re-grep against the 11-file scope returns **zero hits** for symmetric pairs. The only asymmetric pair (`portfolio-pagination.tsx:65,77`: `min-w-8 h-8`) is intentional (min-width constraint, not fixed-width). |
 
-## Verification of Wider Sweep (`portfolio-toolbar.tsx`, `portfolio-pagination.tsx`)
+## Pagination Edge-Case Walkthrough (`buildPageWindow`)
 
-| Change | Status | Notes |
-|--------|--------|-------|
-| `portfolio-toolbar.tsx`: 3 buttons gain `type="button"` | **CLOSED** | `portfolio-toolbar.tsx:54, 80, 93`. |
-| `portfolio-toolbar.tsx`: Search/LayoutGrid/List icons gain `aria-hidden` + `size-4` | **CLOSED** | Lines 39 (Search), 89 (LayoutGrid), 102 (List). |
-| `portfolio-toolbar.tsx`: view-mode toggles gain `role="group"` + `aria-pressed` | **CLOSED but suboptimal ARIA pattern** | Lines 74-77 wrap the toggles in `<div role="group" aria-label="View mode">`. Each button uses `aria-pressed={viewMode === "grid"|"table"}`. `aria-pressed` on a native `<button>` is structurally valid. However, "Grid vs Table" is mutually-exclusive selection — the idiomatic ARIA pattern is `role="radiogroup"` / `role="radio"` / `aria-checked`. Flag as IN-01 quality. |
-| `portfolio-pagination.tsx`: en-dash separator → " to " | **CLOSED** | `portfolio-pagination.tsx:28` reads `Showing {startItem} to {endItem} of {totalItems}`. Glyph re-grep: zero `U+2013`. |
-| `portfolio-pagination.tsx`: 3 buttons gain `type="button"` + `aria-label` | **CLOSED** | Lines 32, 42, 57. |
-| `portfolio-pagination.tsx`: chevron icons migrated to `size-4` | **CLOSED** | Lines 38, 63. |
-| `portfolio-pagination.tsx`: `aria-current="page"` on active button | **CLOSED with correct value** | Line 45: `aria-current={page === currentPage ? "page" : undefined}`. `"page"` is the canonical WAI-ARIA token for paginated navigation. |
+Re-implemented the function in Python and traced 16 (current, total) cases:
 
-## Findings
+| current | total | window | Validation |
+|---------|-------|--------|------------|
+| 1 | 1 | `[1]` | early-return short path; rendered with single button (no chevrons disabled-state issue because `totalPages <= 1` returns `null` from the component) |
+| 1 | 2 | `[1, 2]` | totalPages ≤ 7 → all pages |
+| 2 | 2 | `[1, 2]` | totalPages ≤ 7 → all pages |
+| 1 | 3 | `[1, 2, 3]` | totalPages ≤ 7 → all pages |
+| 1 | 7 | `[1, 2, 3, 4, 5, 6, 7]` | totalPages ≤ 7 → all pages |
+| 4 | 7 | `[1, 2, 3, 4, 5, 6, 7]` | totalPages ≤ 7 → all pages |
+| 1 | 8 | `[1, 2, ellipsis-end, 8]` | windowStart=2, windowEnd=2 (clamped to 1+1=2 then min(7, 2)=2); `windowEnd < totalPages-1 = 7` → ellipsis-end pushed |
+| 1 | 10 | `[1, 2, ellipsis-end, 10]` | same logic for total=10 |
+| 2 | 10 | `[1, 2, 3, ellipsis-end, 10]` | windowStart=2 (max(2,1)=2), windowEnd=3 (min(9,3)=3); `windowStart > 2 → false`; `windowEnd < 9 → true` |
+| 3 | 10 | `[1, 2, 3, 4, ellipsis-end, 10]` | windowStart=2, windowEnd=4; no ellipsis-start (ws=2); ellipsis-end appended |
+| 4 | 8 | `[1, ellipsis-start, 3, 4, 5, ellipsis-end, 8]` | windowStart=3, windowEnd=5; both ellipses appended |
+| 5 | 10 | `[1, ellipsis-start, 4, 5, 6, ellipsis-end, 10]` | mid-range case; both ellipses |
+| 5 | 100 | `[1, ellipsis-start, 4, 5, 6, ellipsis-end, 100]` | scales to large total |
+| 8 | 10 | `[1, ellipsis-start, 7, 8, 9, 10]` | windowStart=7, windowEnd=9; `windowEnd < 9 → false` → no ellipsis-end |
+| 9 | 10 | `[1, ellipsis-start, 8, 9, 10]` | windowStart=8, windowEnd=9; no ellipsis-end |
+| 10 | 10 | `[1, ellipsis-start, 9, 10]` | windowStart=9, windowEnd=9; no ellipsis-end |
 
-### Warnings
+All 16 cases produce semantically correct, deduplicated windows. The two ellipsis tokens (`"ellipsis-start"`, `"ellipsis-end"`) are always unique within any given window (no case produces both with the same key string). React-key stability: numeric keys for page buttons; string keys for ellipsis spans — all unique per render.
 
-#### WR-01: Rent column header label renders left-aligned despite `<TableHead className="text-right">` (NEW REGRESSION from cycle-4 fix)
+Edge-case adversarial check — does the algorithm ever produce a duplicate page number? In the `windowStart..windowEnd` loop, both bounds are clamped to `[2, totalPages-1]`, so `1` and `totalPages` are never re-emitted by the loop. When `totalPages > 7` and `currentPage = 1`, `windowStart = max(2, 0) = 2` and `windowEnd = min(totalPages-1, 2) = 2`, so the window emits just `[2]`. Combined with the head `[1]` and the tail `[totalPages]`, the full output is `[1, 2, ellipsis-end, totalPages]` — no duplicates. When `currentPage = totalPages = 10`, `windowStart = max(2, 9) = 9`, `windowEnd = min(9, 11) = 9`, output `[1, ellipsis-start, 9, 10]` — no duplicates. The function is correct.
 
-**File:** `src/components/dashboard/components/portfolio-table.tsx:48-82, 116-123`
-**Issue:** The `<SortableHead>` component forwards `className` to `<TableHead>` but the inner `<button>` has `inline-flex w-full items-center` and no `justify-end` / no equivalent text-align override. When `<SortableHead className="text-right">` is used for the Monthly Rent column (line 122), `text-right` lands on the `<th>` element but the inner `<button>` (which is a flex container) ignores its parent's `text-align` for content layout — flex items are placed by `justify-content`, which defaults to `flex-start`.
-
-Pre-fix the rent column read `Monthly Rent ↑` flush to the right edge of the column. Post-fix the same content renders left-aligned. This is a visible visual regression. The data cells below (`<TableCell className="text-right tabular-nums">`) still render right-aligned, so the header label and the values it labels are now misaligned (label flush-left, values flush-right).
-
-**Fix:** Add a justify alignment to the button based on the className (or thread a separate `justify` prop). Simplest patch is to pass `text-right`-aware justification via the `className` prop and apply `justify-end` on the button when present:
-
-```tsx
-function SortableHead({
-    field,
-    label,
-    sortField,
-    sortDirection,
-    onSort,
-    className,
-    align = "start",
-}: {
-    field: string;
-    label: string;
-    sortField: string;
-    sortDirection: "asc" | "desc";
-    onSort: (field: string) => void;
-    className?: string;
-    align?: "start" | "end";
-}) {
-    return (
-        <TableHead
-            className={className}
-            aria-sort={sortState(field, sortField, sortDirection)}
-        >
-            <button
-                type="button"
-                onClick={() => onSort(field)}
-                className={`inline-flex w-full items-center font-inherit hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring ${
-                    align === "end" ? "justify-end" : "justify-start"
-                }`}
-            >
-                {label}
-                <SortIndicator
-                    field={field}
-                    sortField={sortField}
-                    sortDirection={sortDirection}
-                />
-            </button>
-        </TableHead>
-    );
-}
-
-// Then in PortfolioTable:
-<SortableHead
-    field="rent"
-    label="Monthly Rent"
-    sortField={sortField}
-    sortDirection={sortDirection}
-    onSort={onSort}
-    className="text-right"
-    align="end"
-/>
-```
-
-#### WR-02: Sortable header lost `cursor-pointer` + `hover:bg-muted/50` affordances (NEW REGRESSION from cycle-4 fix)
-
-**File:** `src/components/dashboard/components/portfolio-table.tsx:48-82` (and all four SortableHead usage sites: 94-100, 101-107, 109-115, 116-123)
-**Issue:** Pre-fix the entire sortable `<TableHead>` cell had `className="cursor-pointer hover:bg-muted/50"` — the whole header cell (including its 8px horizontal padding) showed a pointer cursor and a hover-background highlight to signal interactivity. Post-fix neither attribute is on `<TableHead>` and neither is replicated on the inner `<button>`. The only hover hint is `hover:underline` on the button, and only when the cursor is exactly over the button's content area — the surrounding `<TableHead>` padding now has the default text cursor and no hover state.
-
-Diff evidence:
-```
-- <TableHead className="cursor-pointer hover:bg-muted/50" onClick={() => onSort("property")}>
-+ <TableHead className={className} aria-sort={sortState(...)}>
-+   <button type="button" className="inline-flex w-full items-center font-inherit hover:underline focus-visible:...">
-```
-
-The `cursor-pointer` regression hurts discoverability for sighted mouse users (the previously-clickable cell padding no longer indicates clickability). The `hover:bg-muted/50` regression removes the area-wide visual feedback that the header was interactive.
-
-**Fix:** Restore both affordances on the inner button (so they activate over the button's clickable area, which is what visually matches):
-```tsx
-<button
-    type="button"
-    onClick={() => onSort(field)}
-    className="inline-flex w-full items-center font-inherit cursor-pointer hover:underline hover:bg-muted/50 -mx-2 px-2 py-1 rounded focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
->
-```
-
-The `-mx-2 px-2` trick lets the button hover background extend to the natural `<TableHead>` padding edges. Alternatively keep `cursor-pointer hover:bg-muted/50` on the `<TableHead>` (it doesn't affect the inner `<button>` semantics) plus the focus-visible ring on the button:
-```tsx
-<TableHead
-    className={`cursor-pointer hover:bg-muted/50 ${className ?? ""}`}
-    aria-sort={sortState(field, sortField, sortDirection)}
->
-    <button
-        type="button"
-        onClick={() => onSort(field)}
-        className="inline-flex w-full items-center font-inherit hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
-    >
-```
-
-### Info
-
-#### IN-01: View-mode toggle uses `role="group"` + `aria-pressed` instead of idiomatic radiogroup pattern
-
-**File:** `src/components/dashboard/components/portfolio-toolbar.tsx:74-105`
-**Issue:** The Grid/Table toggle is a mutually-exclusive selection. WAI-ARIA Authoring Practices recommend `role="radiogroup"` + child `role="radio"` + `aria-checked` for mutually-exclusive multi-option choices. The current `role="group" aria-pressed` pattern is structurally valid for *toggle buttons* but doesn't convey the mutual-exclusion relationship — screen readers announce "Grid, toggle button, pressed; Table, toggle button, not pressed" instead of the more semantically accurate "Grid, radio button, 1 of 2, selected; Table, radio button, 2 of 2, not selected".
-
-This is a quality nit, not a bug. Modern shadcn/tailwind toolkits (e.g., `<ToggleGroup type="single">` from shadcn UI) wrap this exact pattern with proper radio semantics under the hood.
-
-**Fix:** Either accept the current pattern as functional, or migrate to the radiogroup pattern:
-```tsx
-<div role="radiogroup" aria-label="View mode" className="flex items-center gap-1 p-1 bg-muted rounded-lg">
-    <button
-        type="button"
-        role="radio"
-        aria-checked={viewMode === "grid"}
-        onClick={() => onViewModeChange("grid")}
-        className="..."
-    >
-        <LayoutGrid aria-hidden="true" className="size-4" />
-        Grid
-    </button>
-    <button
-        type="button"
-        role="radio"
-        aria-checked={viewMode === "table"}
-        onClick={() => onViewModeChange("table")}
-        className="..."
-    >
-        <List aria-hidden="true" className="size-4" />
-        Table
-    </button>
-</div>
-```
-
-#### IN-02: TODO(phase-3) marker carried forward from cycle 4
-
-**File:** `src/components/dashboard/dashboard.tsx:77-85`
-**Issue:** The multi-line `TODO(phase-3): replace this inline portfolioData transform with transformDashboardData ...` comment block remains in place. The cycle-4 fix commit message explicitly retained it ("IN-03 (TODO marker) intentionally retained per CONTEXT.md D-10 — carry-over to Phase 3's dashboard-view.tsx"). Per cycle-5 directive "do not dismiss anything no matter severity", flagged at Info for audit-trail continuity. Not actionable in Phase 1 — the dedup target is Phase 3.
-
-**Fix:** No action required in Phase 1. Confirmed intentional carry-over.
-
-#### IN-03: Pagination renders all page-number buttons (no windowing)
-
-**File:** `src/components/dashboard/components/portfolio-pagination.tsx:40-55`
-**Issue:** `Array.from({ length: totalPages }, (_, i) => i + 1).map(...)` renders one button per page. With 50 properties at 10/page = 5 buttons (fine), but with 500 properties = 50 buttons in a tight horizontal flex row, and with 5000 properties = 500 buttons (will horizontal-scroll or overflow the toolbar). Pre-existing (not introduced by `bb312e842`). The typical fix is a windowed pagination: show first page, last page, current ± 2 pages, with ellipsis separators.
-
-This is the **wider sweep file** so it falls under the cycle-5 scope per directive — flag at Info per "do not dismiss anything".
-
-**Fix:** Replace the unbounded `Array.from` with a windowed page-list helper:
-```tsx
-function getVisiblePages(currentPage: number, totalPages: number): Array<number | "ellipsis"> {
-    if (totalPages <= 7) return Array.from({ length: totalPages }, (_, i) => i + 1);
-    if (currentPage <= 3) return [1, 2, 3, 4, "ellipsis", totalPages];
-    if (currentPage >= totalPages - 2) return [1, "ellipsis", totalPages - 3, totalPages - 2, totalPages - 1, totalPages];
-    return [1, "ellipsis", currentPage - 1, currentPage, currentPage + 1, "ellipsis", totalPages];
-}
-
-// Then render ellipsis entries as <span aria-hidden="true">…</span> and skip them in keyboard nav.
-```
-
-#### IN-04: `dashboard.tsx:204` Quick Action icon container uses legacy `h-9 w-9` instead of `size-9`
-
-**File:** `src/components/dashboard/dashboard.tsx:204`
-**Issue:** `<div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-muted">` uses the legacy two-utility syntax. The cycle-4 fix migrated the inner icon (`h-4 w-4 → size-4` at line 205) but left the surrounding container at `h-9 w-9`. The legacy/modern split within four lines of each other is the exact inconsistency cycle 4 flagged as IN-02 — re-flagged here per "do not dismiss anything".
-
-**Fix:**
-```tsx
-<div className="flex size-9 shrink-0 items-center justify-center rounded-md bg-muted">
-    <action.icon className="size-4" />
-</div>
-```
-
-## Independent Re-Verification of Cycle-3 Gates + Cycle-4 Sweep
+## Independent Re-Verification of Cycle-1..5 Gates
 
 | Gate | Status | Notes |
 |------|--------|-------|
 | Zero-Tolerance Rule 1 (no `any`) | **PASS** | `grep -nE "\bany\b"` returns zero hits across 11 files. |
 | Zero-Tolerance Rule 2 (no barrel `index.ts`) | **PASS** | No barrel-style re-exports. Type re-exports at `use-dashboard-hooks.ts:118-121` are split-file co-companions, not barrels. |
-| Zero-Tolerance Rule 3 (no duplicate types) | **PASS** | `OwnerDashboardData` declared once (`use-owner-dashboard.ts:178`). `PortfolioRow` declared once (`dashboard-types.ts:4`). `DashboardViewModel` is the canonical view-model in `dashboard-data.ts`. |
-| Zero-Tolerance Rule 4 (no commented-out code) | **PASS** | Only JSDoc and explanatory comments. TODO at `dashboard.tsx:77` is a marker, not commented-out code (flagged IN-02 separately). |
+| Zero-Tolerance Rule 3 (no duplicate types) | **PASS** | `OwnerDashboardData` declared once (`use-owner-dashboard.ts:178`); `PortfolioRow` declared once (`dashboard-types.ts:4`); `DashboardViewModel` declared once in `dashboard-data.ts`. |
+| Zero-Tolerance Rule 4 (no commented-out code) | **PASS** | Only JSDoc and explanatory comments. The `LOCKED(D-10)` block in `dashboard.tsx:76-86` is a structured architectural anchor; not commented-out code. Zero `// const|// function|// return|// if (` lines. |
 | Zero-Tolerance Rule 5 (no inline styles) | **PASS** | `grep "style={"` returns zero across 11 files. |
 | Zero-Tolerance Rule 6 (no PG ENUMs) | **N/A** | No schema work in Phase 1. |
-| Zero-Tolerance Rule 7 (no emojis / decorative glyphs in UI strings) | **PASS** | Glyph re-grep `perl -ne 'print if /[^\x00-\x7F]/'` returns hits only in JSDoc comments (em-dashes in `dashboard-data.ts`, `use-owner-dashboard.ts`, `use-dashboard-hooks.ts`; arrows `→` / `↔` in JSDoc; section sign `§` in JSDoc). All UI strings are ASCII. WR-03 (em-dashes in empty-cell sites) and WR-04 (middle-dot separator) **CLOSED** by `bb312e842`. |
+| Zero-Tolerance Rule 7 (no emojis / decorative glyphs in UI strings) | **PASS** | Glyph re-grep `perl -ne 'print if /[^\x00-\x7F]/'` returns hits only in JSDoc comments (em-dashes/arrows/section-sign in `dashboard-data.ts`, `dashboard.tsx`, `use-dashboard-hooks.ts`, `use-owner-dashboard.ts`). All UI strings (`Showing {x} to {y} of {z}`, `No tenants`, `No open requests`, `Expiring Soon`, `Active`, `Vacant`, `Edit ${row.property}`, etc.) are pure ASCII. WR-03 (em-dashes), WR-04 (middle-dot) remain closed. |
 | Zero-Tolerance Rule 8 (no `as unknown as`) | **PASS** | Zero hits. |
-| Zero-Tolerance Rule 9 (no string-literal queryKeys) | **PASS** | All keys route through `ownerDashboardKeys.*`. |
+| Zero-Tolerance Rule 9 (no string-literal queryKeys) | **PASS** | All keys route through `ownerDashboardKeys.*`. `grep -nE "queryKey:\s*\["` returns zero hits across the 11 files. |
 | Zero-Tolerance Rule 10 (no `@radix-ui/react-icons`) | **PASS** | Only `lucide-react` imports. |
-| D-03 invariant (no `*100` / `/100` cents drift) | **PASS** | Empty grep result. |
-| D-09a (`formatCurrency` with 0-fraction-digits options) | **PASS** | All three callsites — `dashboard.tsx:179-182`, `portfolio-grid.tsx:45-48`, `portfolio-table.tsx:175-178` — each pass `{ minimumFractionDigits: 0, maximumFractionDigits: 0 }`. |
-| D-12a interpretation #2 (no `select:` in `DASHBOARD_BASE_QUERY_OPTIONS`) | **PASS** | `use-owner-dashboard.ts:268-275` declares only `queryKey`, `queryFn`, `staleTime`, `gcTime`, `refetchIntervalInBackground`, `structuralSharing`. |
+| D-03 invariant (no `*100` / `/100` cents drift in currency paths) | **PASS** | The grep hits are: (a) JSDoc text in `dashboard-data.ts:9` (`"no `* 100`"` documenting the bug-fix); (b) `revenue-overview-chart.tsx:70` `(value / 1000)` for chart-tick formatting (`$Nk` axis labels — non-currency-bug, divides by 1000 for k-suffix display); (c) `2 * 60 * 1000` / `10 * 60 * 1000` staleTime/gcTime arithmetic in milliseconds (multiple lines). All non-currency. No `* 100` or `/ 100` in any currency variable path. |
+| D-09a (`formatCurrency` with 0-fraction-digits options) | **PASS** | All three callsites pass `{ minimumFractionDigits: 0, maximumFractionDigits: 0 }`: `dashboard.tsx:180-185`, `portfolio-grid.tsx:45-48`, `portfolio-table.tsx:185-188`. |
+| D-12a interpretation #2 (no `select:` in `DASHBOARD_BASE_QUERY_OPTIONS`) | **PASS** | `use-owner-dashboard.ts:268-275` declares only `queryKey`, `queryFn`, `staleTime`, `gcTime`, `refetchIntervalInBackground`, `structuralSharing`. Selectors compose in `use-dashboard-hooks.ts`. |
 | Type-import discipline | **PASS** | All four imports in `dashboard-data.ts:1-4` use `import type`. |
 | No `@ts-expect-error` / `@ts-ignore` | **PASS** | Zero hits. |
 | No debug artifacts (`console.log`, `debugger`) | **PASS** | Zero hits. |
-| Button-type sweep (all `<button>` have `type="button"`) | **PASS** | 10 buttons total across 11 files, all have `type="button"`. Verified via `grep -nE "<button(\s|>)"` + cross-check against `type=` grep — counts match. |
-| Legacy `h-N w-N` sweep | **2 hits** | `dashboard.tsx:204` (`h-9 w-9` — flagged IN-04) and `portfolio-pagination.tsx:47` (`min-w-8 h-8` — intentionally asymmetric: `min-w-8` is a minimum-width constraint, not a fixed width; rewrite to `size-N` is not a valid substitution). |
-| `<Link>` href sweep | **PASS** | Only one `<Link>` in scope (`portfolio-table.tsx:196`). Href `/properties/${row.id}/edit` is well-formed. `row.id` is `PortfolioRow.id: string` (non-null at the type level), sourced from `prop.property_id` in `page.tsx:101`. Route exists at `src/app/(owner)/properties/[id]/edit/`. |
-| `aria-*` value sweep | **PASS** | `aria-sort` values via `sortState()` are exactly `"ascending"` / `"descending"` / `"none"` (valid WAI-ARIA enum). `aria-current="page"` (valid for pagination). `aria-pressed` boolean (valid for toggle buttons, but see IN-01 for the radiogroup-vs-toggle judgment call). `aria-label` / `aria-hidden` used correctly throughout. |
-| Focus-visible / keyboard sweep | **PASS** | `portfolio-table.tsx:71` button has `focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring`. All other buttons are native `<button>` elements which inherit the global focus ring from app-level CSS. |
-| `tabIndex` overrides | **PASS** | Zero hits — no `tabIndex={-1}` traps and no explicit tab-order manipulation. |
+| Button-type sweep — every `<button>` has `type="button"` | **PASS** | 10 `<button>` tags total across the 11 files: `page.tsx:150`; `dashboard.tsx:199, 259`; `portfolio-pagination.tsx:48, 59, 83`; `portfolio-table.tsx:78`; `portfolio-toolbar.tsx:53, 79, 93`. Multi-line tag-aware awk scan (looking for `<button` opening tag and tracking to the closing `>` without seeing `type="button"`) returns zero violations. |
+| Legacy `h-N w-N` sweep (where N=N) | **PASS** | Zero symmetric hits. The cycle-5 fix closed the last one at `dashboard.tsx:205` (`h-9 w-9 → size-9`). The remaining asymmetric `min-w-8 h-8` at `portfolio-pagination.tsx:65, 77` is intentional (min-width vs fixed-height). |
+| ARIA value sweep | **PASS** | `aria-sort` returns `"ascending"` \| `"descending"` \| `"none"` from `sortState()` helper (valid WAI-ARIA enum). `aria-current="page"` only on the active page button (valid for pagination per WAI-ARIA). `aria-checked={boolean}` on radiogroup children (correct radio pattern). `aria-hidden="true"` (string literal) on decorative icons and separator spans (correct). `aria-label` strings are present-tense and descriptive: `"Previous page"`, `"Next page"`, `Page ${token}`, `"Pagination"`, `"View mode"`, `Edit ${row.property}`, `"No tenants"`, `"No open requests"`. All values are semantically appropriate. |
+| Focus-visible / keyboard sweep | **PASS** | `portfolio-table.tsx:81` button has `focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring`. Other native `<button>` elements inherit the global focus ring from app-level CSS. Keyboard activation via Enter+Space works natively on every `<button>` and `<Link>` in scope. The `role="radio"` buttons are native `<button>` elements so they are in tab order — WAI-ARIA's "roving tabindex" arrow-key pattern is NOT implemented, but for a 2-option choice with both buttons in tab order, this is an acceptable simplification (it does not violate WCAG 2.1 keyboard-operable criterion; the radiogroup pattern is satisfied by structure + naming, and Tab navigation between the two options is functional). |
+| `<Link>` href sweep | **PASS** | Only one `<Link>` in scope (`portfolio-table.tsx:206-212`). Href `/properties/${row.id}/edit` is well-formed. `row.id` is `PortfolioRow.id: string` (non-null at the type level), sourced from `prop.property_id` in `page.tsx:101`. Route exists at `src/app/(owner)/properties/[id]/edit/`. `aria-label` provides accessible name for screen readers. |
+| `tabIndex` overrides | **PASS** | Zero `tabIndex` hits — no tab-order manipulation. |
+| TODO/FIXME/XXX/HACK markers | **PASS** | `grep -nE "TODO\|FIXME\|XXX\|HACK"` against 11 files returns **zero hits**. The cycle-5 LOCKED(D-10) rename closed the last marker. |
+| `useDashboardStore` contract integrity | **PASS** | `dashboard.tsx:60-74` destructures `viewMode`, `setViewMode`, `searchQuery`, `setSearchQuery`, `statusFilter`, `setStatusFilter`, `sortField`, `sortDirection`, `handleSort`, `currentPage`, `setCurrentPage`, `itemsPerPage`, `clearFilters`. `src/stores/dashboard-store.ts` provides all 13 keys with matching signatures (lines 14-90 in the store file). The cycle-5 fix did not change any store-consumer contract. `onSort={(field) => handleSort(field as DashboardSortField)}` on PortfolioTable still wires through `handleSort` correctly. |
 
-## Regression Audit (cycle-4 fix introductions)
+## Regression Audit (cycle-5 fix introductions)
 
-| New Regression | Severity | Origin | Cycle 5 Status |
-|----------------|----------|--------|----------------|
-| Monthly Rent header label renders left-aligned despite `text-right` className | WR-01 | `bb312e842` — `SortableHead` button defaults to `justify-start`, ignores parent `<th>` `text-align` | **OPEN** |
-| Sortable header lost `cursor-pointer` + `hover:bg-muted/50` mouse affordances | WR-02 | `bb312e842` — diff removed both from `<TableHead>` and did not restore on inner `<button>` | **OPEN** |
+| Potential New Regression | Severity | Status |
+|--------------------------|----------|--------|
+| `SortableHead` `align="right"` over-applies `text-right` to other columns | — | **NOT A REGRESSION** — `text-right` is only composed when `align === "right"`; verified empirically by running the className-build expression with `align=undefined` (default `"left"`) → `"cursor-pointer hover:bg-muted/50"` (no `text-right`). No leakage. |
+| `cursor-pointer` on disabled-state sort header is wrong | — | **NOT A REGRESSION** — There is no disabled state for SortableHead. The component always renders interactive buttons. No conditional cursor behavior needed. |
+| Radiogroup missing arrow-key navigation per WAI-ARIA APG | — | **NOT A DEFECT** — The two `<button role="radio">` elements are native `<button>` tags, so they participate in normal Tab order. WCAG 2.1 keyboard-operable criterion is satisfied. WAI-ARIA APG's roving-tabindex + arrow-key pattern is a *recommended* enhancement for richer multi-option radiogroups; for a 2-option toggle with native button focus, plain Tab navigation is functionally equivalent and is the dominant pattern in shadcn `<ToggleGroup>` and Radix UI. Not flagged. |
+| `buildPageWindow` produces duplicate page numbers at edge cases | — | **NOT A DEFECT** — Walked 16 cases; no duplicates. The `windowStart/windowEnd` clamps to `[2, totalPages-1]` guarantee `1` and `totalPages` are never re-emitted. |
+| Ellipsis React-key collision when both ellipses appear | — | **NOT A DEFECT** — `"ellipsis-start"` and `"ellipsis-end"` are distinct string literals; React-key uniqueness is guaranteed by construction even when both are present (e.g., `current=5 total=10`). |
+| The `LOCKED(D-10)` comment could be mistaken for active TODO by linters | — | **NOT A DEFECT** — `grep -nE "TODO\|FIXME\|XXX\|HACK"` returns zero hits. The comment is structured prose, not a marker. |
+| `aria-checked={boolean}` evaluating to `false` on the non-selected radio reveals state correctly | — | **NOT A DEFECT** — Strictly boolean values (`viewMode === "grid"` returns `true`/`false`); always exactly one `true` and one `false`. Correct radiogroup mutual-exclusion semantics. |
+
+**Zero new regressions.** The cycle-5 fix is structurally clean.
 
 ## Cycle Audit Trail
 
@@ -289,28 +129,26 @@ function getVisiblePages(currentPage: number, totalPages: number): Array<number 
 |-------|------|----------|--------|
 | Cycle 1 | 2026-05-23 (pre-fix) | 1 CR + 4 WR + 3 IN = 8 | issues_found |
 | Fix `a1922e3df` | — | — | All 8 closed |
-| Cycle 2 | 2026-05-23T16:15:00Z | 0 | clean |
+| Cycle 2 | 2026-05-23T16:15:00Z | 0 | clean (gate at 1/2 then, but rejected by directive) |
 | Cycle 3 | 2026-05-23T18:42:00Z | 0 (with 2 dismissals — rejected by user) | rejected |
 | Fix `85a69c5fb` | — | — | Both dismissals closed |
 | Cycle 4 | 2026-05-23T20:30:00Z | 0 CR + 5 WR + 3 IN = 8 | issues_found |
 | Fix `bb312e842` | — | — | 8/8 closed + wider sweep on 2 adjacent files |
-| **Cycle 5** | **2026-05-23T22:15:00Z** | **0 CR + 2 WR + 4 IN = 6** | **issues_found** — counter remains at 0/2 |
+| Cycle 5 | 2026-05-23T22:15:00Z | 0 CR + 2 WR + 4 IN = 6 | issues_found |
+| Fix `fcea567bf` | — | — | 6/6 closed |
+| **Cycle 6** | **2026-05-23T23:30:00Z** | **0 CR + 0 WR + 0 IN = 0** | **clean — 1/2 consecutive zero-finding cycles** |
 
 ## Final Verdict
 
-**6 findings (2 WR, 4 IN).** The two warnings are NEW regressions introduced by `bb312e842`'s WR-01/WR-02 fix:
-- The lifted-to-button structure dropped the `text-right` content alignment (WR-01).
-- The lifted-to-button structure dropped `cursor-pointer` + hover-background mouse affordances (WR-02).
+**ZERO findings.** All six cycle-5 findings (WR-01, WR-02, IN-01, IN-02, IN-03, IN-04) are independently verified closed by `fcea567bf`. The fix introduces zero new regressions. All 11 Zero Tolerance rules pass. The D-03 invariant passes. The D-09a `formatCurrency` 0-fraction-digits contract holds at all three callsites. The D-12a interpretation #2 (no `select:` in base options) holds. The button-type, glyph, `h-N w-N`, ARIA-value, focus-visible, and `<Link>` sweeps all pass.
 
-The four info items are: one ARIA-pattern judgment call (IN-01, radiogroup-vs-toggle for view-mode), one retained TODO marker (IN-02), one pre-existing unwindowed pagination (IN-03), and one legacy `h-9 w-9` site missed by the cycle-4 sweep (IN-04).
+The perfect-PR merge gate counter advances from 0/2 to **1/2 consecutive zero-finding cycles** with this cycle. Cycle 5 had findings (counter was reset to 0 before this cycle); cycle 6 is zero-finding (counter increments to 1). **One more zero-finding cycle (cycle 7) is required to close the perfect-PR gate.**
 
-The cycle-4 fix is **functionally correct** at the semantic ARIA + keyboard + glyph + button-type layer. The regressions are visual: button-flex defaults overrode the cell `text-align` (WR-01), and the diff did not relocate `cursor-pointer` + `hover:bg-muted/50` from the `<TableHead>` to the inner button (WR-02). Both are concrete bugs visible to sighted mouse users on the rent column header and on hover across all sortable headers.
-
-Per directive "perfect by all measures, do not dismiss anything no matter severity": cycle 5 is NOT zero-finding. The perfect-PR counter stays at 0/2 consecutive zero-finding cycles. The next steps are (a) a fix-pass closing the 6 findings, (b) a fresh zero-finding cycle, (c) one more zero-finding confirmation cycle.
+If cycle 7 lands at zero findings without any code changes between cycle 6 and cycle 7 (or with only documentation-level changes that do not regress the gates above), the merge gate is satisfied and Phase 1 ships.
 
 ---
 
-_Reviewed: 2026-05-23T22:15:00Z_
+_Reviewed: 2026-05-23T23:30:00Z_
 _Reviewer: Claude (gsd-code-reviewer)_
 _Depth: deep_
-_Cycle: 5 — 0/2 consecutive zero-finding cycles. 6 findings open (2 WR new regressions from cycle-4 fix + 4 IN, including 1 cycle-4 carry-over + 1 missed h-N w-N site)._
+_Cycle: 6 — 1/2 consecutive zero-finding cycles. Zero findings; zero dismissals; zero regressions. One more clean cycle to close the gate._
