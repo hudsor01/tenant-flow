@@ -3,8 +3,166 @@
 ## Milestones
 
 - ✅ **v1.0 Marketing Surface Honesty** — Phases 1-15 (shipped 2026-05-22) — see [milestones/v1.0-ROADMAP.md](milestones/v1.0-ROADMAP.md)
+- 🚧 **v2.0 Dashboard Command Center** — Phases 1-7 (in planning; major-version phase reset)
+
+---
+
+# v2.0 Dashboard Command Center
+
+**Defined:** 2026-05-22
+**Granularity:** fine (7 phases)
+**Branch template:** `gsd/phase-{phase}-{slug}`
+**Numbering:** reset to 1-7 (major-version → fresh sequence; v1.0's phases 1-15 archived)
+**Coverage:** 34/34 requirements mapped ✓
+**Source spec:** `.planning/MILESTONE-CONTEXT.md`
+
+## Core Value
+
+The authenticated owner dashboard at `/dashboard` becomes a restrained, professional B2B command center — KPI visibility above the fold, polished charts, a real DataTable with column controls + saved presets, full keyboard/dark-mode/mobile a11y. Every dollar amount handled correctly throughout the data path (no `*100`/`÷100` round-trip).
+
+## Cross-Cutting Constraints (apply to every phase)
+
+- **Design-token alignment** — `--color-*`, `--spacing-*`, `--radius-*`, `--shadow-*`, `--duration-*`, `--ease-*`, `--color-chart-{1..5}` only. `design-token-drift.test.ts` Vitest guard (v1.0 Phase 11) continues to enforce.
+- **No `*100` / `/100` revenue arithmetic anywhere.** Cross-cutting hard rule; any new file or edit that re-introduces it fails the perfect-PR gate.
+- **Restrained B2B aesthetic.** No `@magicui` / `@aceternity` flash. `ui/bento-grid.tsx` (marketing component) is forbidden for KPI tiles.
+- **Independently shippable.** Each phase ships as one atomic PR through the perfect-PR gate (two consecutive zero-finding deep review cycles). The dashboard must never break mid-milestone.
+- **Zero Tolerance Rules** (CLAUDE.md): no `any`, no barrel files, no duplicate types, no commented-out code, no inline styles, no `as unknown as`, no string-literal query keys, lucide-react only.
+
+## Dependency Order
+
+```
+1 → 2 → (3 ∥ 4) → 5 → 6 → 7
+```
+
+Phases 1 and 2 are invisible foundation. Phases 3 and 4 each *add* a new region — they can ship in parallel (no file overlap). Phase 5 is the only swap (atomic PR replacing the hand-rolled portfolio table). Phase 6 is polish over already-shipped surfaces. Phase 7 is invisible verification.
 
 ## Phases
+
+- [ ] **Phase 1: Foundation & Dedup** — Delete duplicates, fix the `*100`/`÷100` revenue bug, extract shared transform, produce milestone-wide UI-SPEC. Zero visible change.
+- [ ] **Phase 2: Data Layer & RPC** — Additive RPC migration for per-property `open_maintenance`; resolve compute-or-drop on `collection_rate`; RLS owner-isolation test.
+- [ ] **Phase 3: KPI Bento Row** — 6-tile KPI grid with sparklines on Revenue + Occupancy. Adds Section B.
+- [ ] **Phase 4: Charts** — `RevenueAreaChart` refresh (30d/6mo toggle) + new `OccupancyDonutChart`. Adds Section C.
+- [ ] **Phase 5: Portfolio DataTable** — Replace hand-rolled table with DiceUI DataTable: client hook, column model, faceted filter, column visibility, virtualization, grid/table toggle, saved presets, nuqs URL state.
+- [ ] **Phase 6: Polish & A11y** — Dark-mode audit, keyboard a11y, 375px responsive, skeleton/empty mutual exclusion, reduced-motion.
+- [ ] **Phase 7: Verification** — E2E coverage for `/dashboard` + final design-token sweep.
+
+## Phase Details
+
+### Phase 1: Foundation & Dedup
+**Slug:** `dashboard-foundation-dedup`
+**Goal:** Strip duplicate/dead dashboard code, kill the `*100`/`÷100` revenue round-trip, extract one shared data transform, and produce the milestone-wide UI-SPEC the remaining phases inherit (aesthetic, tokens, dark-mode rules, breakpoints, motion budget).
+**Depends on:** Nothing (first phase)
+**Requirements:** POLISH-01, POLISH-02, POLISH-03
+**Success Criteria** (what must be TRUE):
+  1. Visiting `/dashboard` after the merge shows the same KPI numbers as before (the `*100`/`÷100` bug visually cancelled itself, so display is unchanged — but in-memory values are now correct).
+  2. `src/components/dashboard/owner-dashboard.tsx`, `chart-area-interactive.tsx`, the duplicate `dashboard-filters*.tsx`, the second `portfolio-toolbar.tsx`, and `skeletons.tsx` no longer exist in the repo.
+  3. Repo-wide grep for `* 100` and `/ 100` against currency variables in `src/app/(owner)/dashboard/` and `src/components/dashboard/` returns zero hits.
+  4. `design-token-drift.test.ts` passes; milestone-wide UI-SPEC committed at `.planning/phases/01-dashboard-foundation-dedup/UI-SPEC.md` (aesthetic, tokens, dark-mode rules, breakpoints, motion budget) and inherited by all later phases.
+**Plans:** TBD
+**UI hint:** yes
+
+### Phase 2: Data Layer & RPC
+**Slug:** `dashboard-data-layer-rpc`
+**Goal:** Make the dashboard's data inputs honest — additive migration for per-property `open_maintenance` (or ship the column hidden by default), and a discuss-phase compute-or-drop decision on `collection_rate` (TenantFlow demolished rent facilitation; never fabricate `0`).
+**Depends on:** Phase 1
+**Requirements:** POLISH-10, POLISH-11
+**Success Criteria** (what must be TRUE):
+  1. Querying `get_dashboard_data_v2` as an authenticated owner returns a real per-property `open_maintenance` count for each row (or the column is documented as ship-hidden until Phase 5 wires it).
+  2. The portfolio data model contains no hardcoded `0` for `collectionRate` — either the field is dropped from the KPI set or sourced from a real RPC value (resolution captured in the Phase 2 discuss artifact).
+  3. `tests/integration/rls/` includes a dual-client (ownerA/ownerB) test confirming the migrated RPC respects owner isolation under RLS.
+  4. `bun run test:integration` passes on the new test against prod.
+**Plans:** TBD
+
+### Phase 3: KPI Bento Row
+**Slug:** `dashboard-kpi-bento-row`
+**Goal:** Replace the one-line text header with a 6-tile KPI bento row (Revenue, Occupancy, Active Leases, Open Maintenance, Properties, Units) using already-vendored `Stat` + `NumberTicker` + `BlurFade` primitives, with sparklines on Revenue + Occupancy only.
+**Depends on:** Phase 1 (UI-SPEC), Phase 2 (real KPI values)
+**Requirements:** KPI-01, KPI-02, KPI-03, KPI-04, KPI-05, KPI-06, KPI-07
+**Success Criteria** (what must be TRUE):
+  1. `/dashboard` renders 6 KPI tiles above the chart row (Revenue, Occupancy, Active Leases, Open Maintenance, Properties, Units).
+  2. Revenue and Occupancy tiles each render an axis-less Recharts `Area` sparkline; the other four tiles do not.
+  3. Each tile's numeric value animates via `NumberTicker`; users with `prefers-reduced-motion: reduce` see the final value with no animation.
+  4. The KPI grid uses an `@container` CSS grid auto-fit layout (not `ui/bento-grid.tsx`); section reveals stagger via `BlurFade` with at most ~4 reveals.
+**Plans:** TBD
+**UI hint:** yes
+
+### Phase 4: Charts
+**Slug:** `dashboard-charts`
+**Goal:** Ship the new charts row — `RevenueAreaChart` (refreshed Recharts area with 30d/6mo toggle, no `/100`) and a brand-new `OccupancyDonutChart` (center label + legend, sourcing from `stats.units`).
+**Depends on:** Phase 1 (UI-SPEC)
+**Requirements:** CHART-01, CHART-02, CHART-03, CHART-04, CHART-05, CHART-06
+**Success Criteria** (what must be TRUE):
+  1. `/dashboard` renders a revenue area chart with a 30d / 6mo toggle that updates the visible series; values are correct dollars (no residual `/100`).
+  2. `/dashboard` renders an occupancy donut chart with a center label and legend; the count matches `stats.units` returned by `get_dashboard_data_v2`.
+  3. Chart series colors source exclusively from `--color-chart-{1..5}`; dark-mode contrast is verified (no invisible series, no white-on-white legend swatches).
+  4. Both charts dynamically import via `next/dynamic` with `ssr: false` and shape-matching CSS-only loading skeletons (no skeleton ↔ empty co-render).
+**Plans:** TBD
+**UI hint:** yes
+
+### Phase 5: Portfolio DataTable
+**Slug:** `dashboard-portfolio-datatable`
+**Goal:** Replace the hand-rolled portfolio table with the vendored DiceUI DataTable composition — new `useClientDataTable` hook, `portfolio-columns.tsx` column model with `aria-sort`, faceted status filter, column visibility, virtualization, grid/table view toggle, saved presets in localStorage, live filter/sort/page state in nuqs URL params.
+**Depends on:** Phase 1 (UI-SPEC), Phase 2 (real per-property values)
+**Requirements:** DT-01, DT-02, DT-03, DT-04, DT-05, DT-06, DT-07, DT-08, DT-09
+**Success Criteria** (what must be TRUE):
+  1. Clicking a sortable column header on the portfolio table sorts the rows and exposes `aria-sort` on that header; keyboard users can sort via Tab + Enter/Space.
+  2. The faceted status filter and column-visibility menu both work; selected filters and sort persist in the URL (refresh restores state) via nuqs.
+  3. The user can save a filter preset, refresh the page, and re-apply that preset from the preset menu (localStorage via Zustand `persist`).
+  4. The grid/table view toggle works; `dashboard-store.ts` is trimmed to `viewMode` only; the table virtualizes long lists via `useVirtualizer`.
+  5. The hand-rolled `portfolio-table.tsx`, `portfolio-toolbar.tsx`, and `portfolio-pagination.tsx` no longer exist in the repo.
+**Plans:** TBD
+**UI hint:** yes
+
+### Phase 6: Polish & A11y
+**Slug:** `dashboard-polish-a11y`
+**Goal:** Polish over shipped surfaces — dark-mode audit, keyboard a11y, 375px responsive layout, skeleton/empty mutual exclusion, reduced-motion guards.
+**Depends on:** Phases 3, 4, 5 (polishes their output)
+**Requirements:** POLISH-04, POLISH-05, POLISH-06, POLISH-07, POLISH-08
+**Success Criteria** (what must be TRUE):
+  1. Toggling between light and dark mode on `/dashboard` reveals no white-on-white text, no invisible badges, and zero `bg-white` references in the dashboard subtree.
+  2. Tab-navigating through `/dashboard` reveals a visible focus ring on every interactive element; every icon-only button has an `aria-label`; the skip-to-content link works from the dashboard header.
+  3. At 375px viewport width, `/dashboard` has zero horizontal scroll; the portfolio table forces grid view at the mobile breakpoint.
+  4. Loading states never co-render a skeleton AND an empty state; route-scoped `loading.tsx` covers the streaming case (Phase 14 D-04 pattern from v1.0).
+  5. Users with `prefers-reduced-motion: reduce` see no `NumberTicker`, `BlurFade`, or chart-transition animations.
+**Plans:** TBD
+
+### Phase 7: Verification
+**Slug:** `dashboard-verification`
+**Goal:** Lock the milestone — Playwright E2E coverage for `/dashboard` (synthetic owner, real prod data) and a final design-token drift sweep across every new dashboard file.
+**Depends on:** Phases 3, 4, 5, 6 (verifies all visible surfaces)
+**Requirements:** POLISH-09, POLISH-12
+**Success Criteria** (what must be TRUE):
+  1. The Playwright E2E suite includes a `/dashboard` smoke test against a synthetic owner: KPI numbers match `get_dashboard_data_v2`, occupancy donut matches `stats.units`, DataTable sort/filter/column-visibility/preset-save+restore work, grid/table toggle works.
+  2. `bun run test:e2e` passes locally and the GitHub `e2e-smoke` check passes on the Phase 7 PR.
+  3. `design-token-drift.test.ts` runs clean over every new dashboard file (no hex, no rgb, no `bg-white`, no inline ms durations).
+  4. The merged PR closes the v2.0 milestone with 34/34 requirements satisfied per traceability.
+**Plans:** TBD
+
+## Progress
+
+| Phase | Milestone | Plans | Status | Completed |
+|-------|-----------|-------|--------|-----------|
+| 1. Foundation & Dedup | v2.0 | 0/0 | Not started | - |
+| 2. Data Layer & RPC | v2.0 | 0/0 | Not started | - |
+| 3. KPI Bento Row | v2.0 | 0/0 | Not started | - |
+| 4. Charts | v2.0 | 0/0 | Not started | - |
+| 5. Portfolio DataTable | v2.0 | 0/0 | Not started | - |
+| 6. Polish & A11y | v2.0 | 0/0 | Not started | - |
+| 7. Verification | v2.0 | 0/0 | Not started | - |
+
+## Coverage Validation
+
+| Category | Count | Phase(s) |
+|----------|-------|----------|
+| KPI (KPI-01..07) | 7 | Phase 3 |
+| CHART (CHART-01..06) | 6 | Phase 4 |
+| DT (DT-01..09) | 9 | Phase 5 |
+| POLISH (POLISH-01..12) | 12 | Phase 1 (01/02/03), Phase 2 (10/11), Phase 6 (04..08), Phase 7 (09/12) |
+| **Total** | **34** | **All mapped, no orphans, no double-mapping ✓** |
+
+---
+
+# v1.0 Archive (Shipped 2026-05-22)
 
 <details>
 <summary>✅ v1.0 Marketing Surface Honesty (Phases 1-15) — SHIPPED 2026-05-22</summary>
@@ -29,29 +187,5 @@ Audit round 3 verdict: PERFECT BY ALL MEASURES. Full milestone summary in [miles
 
 </details>
 
-### 📋 v2.0 (planned)
-
-Next milestone defined via `/gsd-new-milestone` — the original ask was the dashboard redesign (plan parked at `/Users/richard/.claude/plans/i-want-to-enhance-hazy-island.md`). Suggested name: **v2.0 Dashboard Command Center**. 7-phase plan covers KPI bento row, refreshed charts + occupancy donut, DiceUI DataTable adoption, dark-mode / a11y / responsive polish, plus a `*100`/`÷100` bug fix in the dashboard's revenue path.
-
-## Progress
-
-| Phase | Milestone | Plans | Status | Completed |
-|-------|-----------|-------|--------|-----------|
-| 1. Critical Stop-Bleed | v1.0 | 2/2 | Complete | 2026-05-08 |
-| 2. Frontend Correctness | v1.0 | 2/2 | Complete | 2026-05-09 |
-| 3. Routing Aliases | v1.0 | 1/1 | Complete | 2026-05-09 |
-| 4. Persona Copy | v1.0 | 2/2 | Complete | 2026-05-10 |
-| 5. Pricing Restructure | v1.0 | 2/2 | Complete | 2026-05-10 |
-| 6. Blog Rebuild | v1.0 | 4/4 | Complete | 2026-05-11 |
-| 7. Pricing-Card Chrome | v1.0 | 2/2 | Complete | 2026-05-20 |
-| 8. Nav Active States | v1.0 | 1/1 | Complete | 2026-05-20 |
-| 9. Page Cleanup | v1.0 | 1/1 | Complete | 2026-05-20 |
-| 10. CTA Conversion | v1.0 | 2/2 | Complete | 2026-05-20 |
-| 11. Token Alignment | v1.0 | 2/2 | Complete | 2026-05-21 |
-| 12. SEO Metadata | v1.0 | 3/3 | Complete | 2026-05-21 |
-| 13. Performance Polish | v1.0 | 1/1 | Complete | 2026-05-21 |
-| 14. Battle Test Findings | v1.0 | 4/4 | Complete | 2026-05-14 |
-| 15. v1.0 Milestone Cleanup | v1.0 | 5/5 | Complete | 2026-05-22 |
-
 ---
-*Last updated: 2026-05-22 after v1.0 archive*
+*Last updated: 2026-05-22 — v2.0 roadmap created after v1.0 archive*

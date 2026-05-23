@@ -1,5 +1,20 @@
 # TenantFlow
 
+## Current Milestone: v2.0 Dashboard Command Center
+
+**Goal:** Full redesign of the authenticated owner dashboard (`/dashboard`) — restrained B2B aesthetic using already-vendored DiceUI DataTable + Stat / NumberTicker / BlurFade primitives — plus the latent `*100`/`÷100` revenue-path bug fix.
+
+**Target features:**
+- 6-tile KPI bento row with sparklines on Revenue + Occupancy
+- Refreshed `RevenueAreaChart` (30d/6mo toggle) + new `OccupancyDonutChart`
+- Portfolio DataTable on `@tanstack/react-table` with sort / column visibility / faceted filter / virtualization / grid-toggle / saved presets
+- Dark-mode + keyboard a11y + 375px responsive + reduced-motion polish, with E2E coverage
+- Drop the `*100`/`÷100` round-trip — `get_dashboard_data_v2` returns dollars; display is accidentally correct because the bug cancels itself
+
+**Phase numbering:** Reset to 1-7 (major version → fresh sequence). Branch template: `gsd/phase-{phase}-{slug}`.
+
+**Source spec:** `.planning/MILESTONE-CONTEXT.md` (copied from the user's parked plan at `/Users/richard/.claude/plans/i-want-to-enhance-hazy-island.md`).
+
 ## What This Is
 
 TenantFlow is a landlord-only property management SaaS at tenantflow.app. Landlords use it to organize properties, leases, tenants (as records, not users), maintenance requests, inspections, and a per-entity document vault. Tenants never log in — they are contact records, not authenticated users. The product is mature: v2.6 shipped April 2026 with the document vault as the headline differentiator, custom categories, bulk-zip download, and global search.
@@ -32,7 +47,45 @@ Every public claim on tenantflow.app must map to working code, and every visual 
 
 ### Active
 
-(none — v1.0 shipped 2026-05-22. Next milestone defined via `/gsd-new-milestone`. The user's original ask is the dashboard redesign — plan parked at `/Users/richard/.claude/plans/i-want-to-enhance-hazy-island.md`. Suggested next milestone: **v2.0 Dashboard Command Center**.)
+<!-- v2.0 scope: full dashboard redesign at /dashboard. 4 requirement categories.
+     Source spec: .planning/MILESTONE-CONTEXT.md (copied from the user's parked plan at
+     /Users/richard/.claude/plans/i-want-to-enhance-hazy-island.md). -->
+
+**KPI visibility (KPI):**
+- [ ] 6-tile bento row replacing the one-line text header (Revenue, Occupancy, Active Leases, Open Maintenance, Properties, Units)
+- [ ] Each tile renders via `Stat` shell + `NumberTicker` value + `StatTrend` arrow
+- [ ] Sparklines on Revenue + Occupancy tiles only (`KpiSparkline` axis-less Recharts `Area`)
+- [ ] Staggered reveals via `BlurFade` (max ~4, reduced-motion aware)
+- [ ] `@container` CSS grid (NOT `ui/bento-grid.tsx` — that's a marketing component)
+
+**Charts + data-viz (CHART):**
+- [ ] `RevenueAreaChart` — refreshed Recharts area chart, 30d / 6mo toggle, drops `/100`
+- [ ] `OccupancyDonutChart` — new Recharts donut, center label, legend
+- [ ] Chart colors source from `--color-chart-*` design tokens
+- [ ] Dark-mode contrast verified
+- [ ] Updated loading skeletons match chart shape
+
+**Portfolio DataTable (DT):**
+- [ ] Replace hand-rolled portfolio table with vendored DiceUI `@tanstack/react-table` stack
+- [ ] `useClientDataTable` thin variant (client-side equivalent of the server-mode `useDataTable`)
+- [ ] `portfolio-columns.tsx` column model with `aria-sort` on sortable headers
+- [ ] Faceted status filter via `DataTableFacetedFilter`
+- [ ] Column visibility via `DataTableViewOptions`
+- [ ] Row virtualization via `@tanstack/react-virtual`
+- [ ] Grid / table view toggle
+- [ ] Saved filter presets (`localStorage` via Zustand `persist` slice `dashboard-presets-store.ts`)
+- [ ] Live filter / sort / page state in nuqs URL params (replaces bespoke Zustand state)
+
+**Polish + a11y (POLISH):**
+- [ ] **Drop every `*100` / `/100` in the revenue path** — `page.tsx` (lines 71/92/107), `formatDashboardCurrency`, `revenue-overview-chart.tsx:41`. In-memory values currently 100× wrong (display accidentally correct because the bug round-trips).
+- [ ] Dark-mode audit across new dashboard surface (no white-on-white, no invisible badges, no `bg-white`)
+- [ ] Keyboard a11y — `aria-sort`, visible focus rings, icon-button `aria-label`s, skip link reachable
+- [ ] 375px viewport — zero horizontal scroll; table forces grid view at mobile breakpoint
+- [ ] Skeleton ↔ empty-state mutual exclusion (Phase 14 D-04 pattern: route-scoped loading.tsx)
+- [ ] Reduced-motion guard on every animation
+- [ ] E2E smoke for `/dashboard` (synthetic owner; KPI numbers match `get_dashboard_data_v2`; occupancy donut matches `stats.units`; DataTable sort/filter/column-visibility/presets work)
+- [ ] Dedup: delete `owner-dashboard.tsx` duplicate, `chart-area-interactive.tsx`, dashboard-filters duplicates, second `portfolio-toolbar.tsx`, `skeletons.tsx`
+- [ ] Phase-2 additive RPC migration for per-property `open_maintenance` (or ship the column hidden by default); resolve `collection_rate` compute-or-drop in discuss-phase (no fabricated zeros)
 
 ### Out of Scope
 

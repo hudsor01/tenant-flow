@@ -1,96 +1,80 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.0
-milestone_name: Milestone Cleanup — close all audit gaps
-status: Awaiting next milestone
-last_updated: "2026-05-22T23:56:12.640Z"
-last_activity: 2026-05-22 — Milestone v1.0 completed and archived
+milestone: v2.0
+milestone_name: Dashboard Command Center
+status: planning
+last_updated: "2026-05-22T00:00:00.000Z"
+last_activity: 2026-05-22
 progress:
-  total_phases: 16
-  completed_phases: 14
-  total_plans: 33
-  completed_plans: 35
-  percent: 88
+  total_phases: 7
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
+  percent: 0
 ---
 
 # Project State
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-05-08)
+See: .planning/PROJECT.md (updated 2026-05-22)
 
-**Core value:** Every public claim on tenantflow.app must map to working code, and every visual must align to canonical design tokens in `src/app/globals.css`.
-**Current focus:** Phase 15 — v1.0 milestone cleanup
+**Core value:** The authenticated owner dashboard at `/dashboard` becomes a restrained, professional B2B command center — KPI visibility above the fold, polished charts, a real DataTable with column controls + saved presets, full keyboard/dark-mode/mobile a11y. Every dollar amount handled correctly throughout the data path (no `*100`/`÷100` round-trip).
+**Current focus:** Phase 1 — Foundation & Dedup (defining context)
 
 ## Current Position
 
-Phase: Milestone v1.0 complete
-Plan: —
-Status: Awaiting next milestone
-Last activity: 2026-05-22 — Milestone v1.0 completed and archived
+Phase: 1 — Foundation & Dedup (`dashboard-foundation-dedup`)
+Plan: — (not started)
+Status: Defining context (post-roadmap, pre-discuss-phase)
+Last activity: 2026-05-22 — v2.0 roadmap created (7 phases, 34/34 requirements mapped)
+
+```
+[░░░░░░░] 0% of v2.0 milestone (0 / 7 phases)
+```
+
+## Phase Index
+
+| # | Slug | Status | UI-SPEC | Branch |
+|---|------|--------|---------|--------|
+| 1 | dashboard-foundation-dedup | Not started | YES (milestone-wide) | gsd/phase-1-dashboard-foundation-dedup |
+| 2 | dashboard-data-layer-rpc | Not started | No | gsd/phase-2-dashboard-data-layer-rpc |
+| 3 | dashboard-kpi-bento-row | Not started | YES | gsd/phase-3-dashboard-kpi-bento-row |
+| 4 | dashboard-charts | Not started | YES | gsd/phase-4-dashboard-charts |
+| 5 | dashboard-portfolio-datatable | Not started | YES | gsd/phase-5-dashboard-portfolio-datatable |
+| 6 | dashboard-polish-a11y | Not started | No | gsd/phase-6-dashboard-polish-a11y |
+| 7 | dashboard-verification | Not started | No | gsd/phase-7-dashboard-verification |
 
 ## Performance Metrics
 
-(Populated as phases ship)
+(Populated as v2.0 phases ship.)
 
 | Phase | Plans | Status | Branch | PR | Cycles to perfect-PR |
 |-------|-------|--------|--------|----|-----------------------|
-| 1 | TBD | Pending | gsd/phase-1-critical-stop-bleed | — | — |
-| 2 | TBD | Pending | gsd/phase-2-frontend-correctness | — | — |
-| 3 | TBD | Pending | gsd/phase-3-routing-aliases | — | — |
-| 4 | TBD | Pending | gsd/phase-4-persona-copy | — | — |
-| 5 | TBD | Pending | gsd/phase-5-pricing-restructure | — | — |
-| 6 | TBD | Pending | gsd/phase-6-blog-rebuild | — | — |
-| 7 | TBD | Pending | gsd/phase-7-pricing-card-chrome | — | — |
-| 8 | TBD | Pending | gsd/phase-8-nav-active-states | — | — |
-| 9 | TBD | Pending | gsd/phase-9-page-cleanup | — | — |
-| 10 | TBD | Pending | gsd/phase-10-cta-conversion | — | — |
-| 11 | TBD | Pending | gsd/phase-11-token-alignment | — | — |
-| 12 | TBD | Pending | gsd/phase-12-seo-metadata | — | — |
-| 13 | TBD | Pending | gsd/phase-13-performance-polish | — | — |
-| Phase 02 P01 | 6 | 3 tasks | 2 files |
-| Phase 02 P02 | 5min | 5 tasks | 5 files |
-| Phase 03 P01 | 2m14s | 3 tasks (4th = post-deploy checkpoint) | 3 files |
-| Phase 14 P01 | 4min | 1 tasks | 3 files |
-| Phase 14 P02 | ~3min | 1 task | 2 files |
-| Phase 14 P03 | ~3min | 1 task | 2 files |
-| Phase 14 P04 | ~4min | 1 task | 2 files |
-| Phase 07 P01 | 8min | 1 tasks | 1 files |
-| Phase 07 P02 | ~7min | 2 tasks | 3 files |
-| Phase 08 P01 | 5min | 3 tasks | 3 files |
-| Phase 09 P01 | ~2min | 3 tasks | 2 files |
-| Phase 10 P01 | ~6min | 3 tasks | 3 files |
-| Phase 10 P02 | 8min | 3 tasks | 2 files |
-| Phase 11 P01 | ~5min | 3 tasks | 6 files |
-| Phase 11 P02 | ~4min | 2 tasks | 2 files |
-| Phase 12 P01 | ~12min | 3 tasks | 8 files |
-| Phase 12 P02 | ~6min | 2 tasks | 3 files |
-| Phase 12 P03 | ~8min | 3 tasks (+2 verify-only notes) | 3 files |
+| 1 | TBD | Pending | gsd/phase-1-dashboard-foundation-dedup | — | — |
+| 2 | TBD | Pending | gsd/phase-2-dashboard-data-layer-rpc | — | — |
+| 3 | TBD | Pending | gsd/phase-3-dashboard-kpi-bento-row | — | — |
+| 4 | TBD | Pending | gsd/phase-4-dashboard-charts | — | — |
+| 5 | TBD | Pending | gsd/phase-5-dashboard-portfolio-datatable | — | — |
+| 6 | TBD | Pending | gsd/phase-6-dashboard-polish-a11y | — | — |
+| 7 | TBD | Pending | gsd/phase-7-dashboard-verification | — | — |
 
 ## Locked Decisions (see PROJECT.md Key Decisions for full table)
 
 - Mode: YOLO / autonomous
-- Granularity: fine (13 phases)
+- Granularity: fine (7 phases for v2.0; previous v1.0 was 15 phases at the same granularity setting — work-driven, not template-driven)
 - Models: quality (Opus on heavy reasoning)
 - Per-phase research: ON (every phase)
-- Branching: per-phase
-- PR strategy: one PR per phase, perfect-PR gate (2 zero-finding cycles)
+- Branching: per-phase (`gsd/phase-{phase}-{slug}`)
+- PR strategy: one PR per phase, perfect-PR gate (2 zero-finding deep review cycles)
 - Code review: deep
-- Major-version-only milestone naming
-- Persona word: TBD (researcher recommends during /gsd-plan-phase 4)
-- Sales CTA label: "Contact Sales"
-- Mobile hamburger: shadcn `Sheet` slide-in drawer from right
-- Pricing: full restructure in Phase 5 (not propagation)
-- Blog: full rebuild + n8n redesign in Phase 6
-- Footer "Powered by Hudson Digital": KEPT
-- Social proof: "Built for landlords with 1–15 rentals" (not fabricated count)
-- Testimonials: real names + property counts + quotes, no headshots
-- TRUST-01: 2 real testimonials shipped + regression-pinned (`length >= 2`); 3rd deferred until a real customer opts in — fabricating a 3rd rejected per the honesty milestone
-- TRUST-02 review badges deferred — no G2/Capterra/Trustpilot listings exist; documented deferral, no test, no fabricated badge
-- TOKEN-03 drift-guard is a Vitest unit test (`src/app/__tests__/design-token-drift.test.ts`), NOT an ESLint plugin — scans `src/components` + `src/app` for hex/rgb/bg-white/non-zero-inline-ms against a 10-entry per-pattern D-03 allowlist; runs in lefthook pre-commit + CI `checks` gate; mechanism documented in `11-LINT-RULE.md`
-- Phase 12 Plan 03 — SEO-03 accepted as shipped via Option 1 (site-wide JSON-LD emission is a superset of homepage emission); regression-pinned via mocked-env test, no code change
-- Phase 12 Plan 03 — SEO-04 verified by code inspection only; `/blog/[slug]/page.tsx` `generateStaticParams` reads DB `slug` column with `dynamicParams = false`, no timestamp generator exists; prod-hitting test deferred to the RLS integration suite (Phase 6 territory)
-- Phase 12 Plan 03 — SEO-07 audit file extension stays `.ts` (React.createElement for the two render() calls); bulk of the audit is pure-predicate via `isActiveLink`, so JSX is incidental
+- Phase numbering: reset to 1-7 for v2.0 (major-version reset; v1.0's phases 1-15 are archived independently)
+- Dependency order: 1 → 2 → (3 ∥ 4) → 5 → 6 → 7
+- Phases requiring `/gsd-ui-phase`: 1 (milestone-wide UI-SPEC), 3, 4, 5
+- Phases NOT requiring UI-SPEC: 2, 6, 7
+- `ui/bento-grid.tsx` is OUT — KPI grid is a plain `@container` CSS grid of `Stat` tiles
+- `collection_rate` resolution deferred to Phase 2 discuss-phase (compute-or-drop, never fabricate)
+- No `*100` / `/100` revenue arithmetic anywhere — cross-cutting hard rule; perfect-PR gate enforces
 
 ## Blockers
 
@@ -98,38 +82,25 @@ None.
 
 ## Roadmap Evolution
 
-- Phase 14 added: Battle Test Findings Remediation — close /blog 503, skeleton+empty precedence, Stripe.js noise on /pricing, public 404 lacks marketing nav
-- Phase 15 added (2026-05-21): v1.0 milestone cleanup — close all audit gaps surfaced by `/gsd-audit-milestone` (retroactive VERIFICATION.md for Phases 4/5/6/14, REQUIREMENTS.md traceability + checkbox sweep, remove `@stripe/react-stripe-js` dead peer-dep, Vitest worker-pool flakiness investigation, document `/blog` nav deferral)
+- 2026-05-22: v1.0 "Marketing Surface Honesty" archived (15 phases, 56/56 audit findings closed, Round 3 audit verdict PERFECT BY ALL MEASURES).
+- 2026-05-22: v2.0 "Dashboard Command Center" roadmap created — 7 phases, 34/34 requirements mapped, branch template `gsd/phase-{phase}-{slug}`.
 
 ## Next Action
 
-**Phase 15 — PR #743 perfect-PR gate satisfied; ready to merge**
+**Phase 1 — Foundation & Dedup** — start with `/gsd-discuss-phase 1`.
 
-PR: https://github.com/hudsor07/tenant-flow/pull/743 — 4,416 additions / 79 deletions / 31 changed files / status: MERGEABLE.
+Phase 1 is the milestone's foundation:
+- Delete `owner-dashboard.tsx` (duplicate), `chart-area-interactive.tsx`, duplicate `dashboard-filters*.tsx`, second `portfolio-toolbar.tsx`, `skeletons.tsx`.
+- Kill every `*100` / `/100` in the revenue path (`page.tsx` lines 71/92/107, `formatDashboardCurrency`, `revenue-overview-chart.tsx:41`).
+- Extract one shared data transform.
+- Produce the milestone-wide UI-SPEC (aesthetic, tokens, dark-mode rules, breakpoints, motion budget) the remaining phases inherit.
+- Zero visible change to the dashboard.
 
-Code review timeline:
-
-- Cycle 1: 1 critical + 3 warnings + 3 info (see 15-REVIEW.md)
-- Fix pass: 4 atomic commits resolving all 7 findings (0d1ec5e45, a0f805f5b, 34b70aad3, 56a03f73c)
-- Cycle 2: clean (15-REVIEW-cycle-2.md)
-- Cycle 3: clean with empirical verification (15-REVIEW-cycle-3.md)
-
-Two consecutive zero-finding deep review cycles → perfect-PR gate satisfied per project discipline.
-
-Next: merge PR #743 (user-driven; do not auto-merge). After merge:
-
-1. `/gsd-complete-milestone v1.0` to archive v1.0 "Marketing Surface Honesty"
-2. `/gsd-new-milestone` for v2.0 "Dashboard Command Center" (plan parked at `/Users/richard/.claude/plans/i-want-to-enhance-hazy-island.md`)
+After Phase 1 ships through the perfect-PR gate: `/gsd-progress --next` → Phase 2.
 
 ## Overrides
 
-(none active — the 2026-05-22 decision-coverage-plan override was resolved during the round-2 audit polish: D-16..D-22 retagged using the parser-recognized `**D-NN [informational]:**` format. Gate now reports `passed: true, 16/16 trackable decisions covered`.)
+(none active)
 
 ---
-*Last updated: 2026-05-22 after Phase 15 shipped via PR #743*
-
-**Shipped Phase:** 15 (v1.0-milestone-cleanup) — PR #743, 26 commits, verifier passed 6/6 — 2026-05-22
-
-## Operator Next Steps
-
-- Start the next milestone with /gsd-new-milestone
+*Last updated: 2026-05-22 — v2.0 roadmap created, Phase 1 ready for `/gsd-discuss-phase 1`*
