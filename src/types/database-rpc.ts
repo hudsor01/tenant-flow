@@ -21,6 +21,7 @@ export interface PropertyPerformanceRpcResponse {
 	address: string;
 	property_type: string;
 	status: string;
+	open_maintenance: number;
 }
 
 /**

@@ -98,7 +98,7 @@ export function Dashboard({
 					: "vacant",
 		leaseEnd: null,
 		rent: prop.monthlyRevenue,
-		maintenanceOpen: 0, // Not in current API response
+		maintenanceOpen: prop.openMaintenance,
 	}));
 
 	// Filter and sort data

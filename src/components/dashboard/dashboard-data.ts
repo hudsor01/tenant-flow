@@ -61,7 +61,7 @@ export function transformDashboardData(
 						: "vacant",
 			leaseEnd: null,
 			rent: prop.monthlyRevenue,
-			maintenanceOpen: 0,
+			maintenanceOpen: prop.open_maintenance,
 		}),
 	);
 

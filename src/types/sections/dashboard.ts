@@ -36,7 +36,6 @@ export interface DashboardMetrics {
 	activeLeases: number;
 	expiringLeases: number; // expiring within 30 days
 	openMaintenanceRequests: number;
-	collectionRate: number;
 }
 
 export interface RevenueTrendPoint {

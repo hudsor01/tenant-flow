@@ -246,6 +246,7 @@ const fetchOwnerDashboardData = async (): Promise<OwnerDashboardData> => {
 		status: row.status as PropertyPerformance["status"],
 		trend: "stable",
 		trendPercentage: 0,
+		open_maintenance: row.open_maintenance ?? 0,
 	}));
 
 	return {

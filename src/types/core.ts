@@ -338,6 +338,7 @@ export interface PropertyPerformance {
 	status: "NO_UNITS" | "vacant" | "FULL" | "PARTIAL";
 	trend: "up" | "down" | "stable";
 	trendPercentage: number;
+	open_maintenance: number;
 }
 
 export interface PropertyPerformanceResponse {

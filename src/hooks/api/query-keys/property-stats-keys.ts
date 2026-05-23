@@ -82,6 +82,7 @@ function mapPerformanceRow(
 		status,
 		trend,
 		trendPercentage: Number(row.trend_percentage) || 0,
+		open_maintenance: 0,
 	};
 }
 
