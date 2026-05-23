@@ -159,6 +159,11 @@ export interface DashboardStatsData {
 	};
 }
 
+// IN-01 (Phase 01 review): `metricTrends` is co-located with `timeSeries` on
+// the raw `OwnerDashboardData` shape but ships through `DashboardStatsData`
+// in the selector seam (it's metric-level data, not chart-series data).
+// Future readers expecting "charts data" to include trend deltas should
+// reach for `useDashboardStats().metricTrends`, not this interface.
 export interface DashboardChartsData {
 	timeSeries: {
 		occupancyRate: TimeSeriesDataPoint[];

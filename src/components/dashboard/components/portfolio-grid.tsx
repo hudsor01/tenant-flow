@@ -1,5 +1,5 @@
+import { formatCurrency } from "#lib/utils/currency";
 import type { PortfolioRow } from "../dashboard-types";
-import { formatDashboardCurrency } from "../dashboard-types";
 
 interface PortfolioGridProps {
 	data: PortfolioRow[];
@@ -42,12 +42,24 @@ export function PortfolioGrid({ data }: PortfolioGridProps) {
 						<div>
 							<div className="text-muted-foreground text-xs">Rent</div>
 							<div className="tabular-nums">
-								{formatDashboardCurrency(row.rent)}
+								{formatCurrency(row.rent, {
+									minimumFractionDigits: 0,
+									maximumFractionDigits: 0,
+								})}
 							</div>
 						</div>
 						<div>
 							<div className="text-muted-foreground text-xs">Tenants</div>
-							<div>{row.tenant || "—"}</div>
+							<div>
+								{row.tenant ?? (
+									<span
+										aria-label="No tenants"
+										className="text-muted-foreground"
+									>
+										--
+									</span>
+								)}
+							</div>
 						</div>
 						<div>
 							<div className="text-muted-foreground text-xs">Maintenance</div>
@@ -58,7 +70,16 @@ export function PortfolioGrid({ data }: PortfolioGridProps) {
 										: ""
 								}
 							>
-								{row.maintenanceOpen > 0 ? `${row.maintenanceOpen} open` : "—"}
+								{row.maintenanceOpen > 0 ? (
+									`${row.maintenanceOpen} open`
+								) : (
+									<span
+										aria-label="No open requests"
+										className="text-muted-foreground"
+									>
+										--
+									</span>
+								)}
 							</div>
 						</div>
 					</div>

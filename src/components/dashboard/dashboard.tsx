@@ -7,9 +7,9 @@
 
 import dynamic from "next/dynamic";
 import { ChartLoadingSkeleton } from "#components/shared/chart-loading-skeleton";
+import { formatCurrency } from "#lib/utils/currency";
 import type { DashboardProps } from "#types/sections/dashboard";
 import {
-	formatDashboardCurrency,
 	type PortfolioRow,
 	type QuickActionType,
 	quickActions,
@@ -73,7 +73,17 @@ export function Dashboard({
 		clearFilters,
 	} = useDashboardStore();
 
-	// Transform property performance into portfolio overview rows
+	// LOCKED(D-10): inline portfolio-row transform survives Phase 1.
+	// The canonical pure transform `transformDashboardData` exists at
+	// `#components/dashboard/dashboard-data` (extracted in Phase 1 per the
+	// locked decision in `.planning/phases/01-foundation-dedup/01-CONTEXT.md`
+	// D-10/D-11/D-12a). Consumer migration is Phase 3 scope: the new
+	// `dashboard-view.tsx` will replace this file and consume the canonical
+	// `portfolioRows` slice from `transformDashboardData(payload).portfolioRows`.
+	// The two transforms operate on different upstream shapes
+	// (raw `PropertyPerformance` vs section-typed `PropertyPerformanceItem`
+	// re-mapped at `page.tsx`), so the dedup requires the Phase-3 consumer
+	// migration — not a Phase-1 rewrite. Intentional architectural anchor.
 	const portfolioData: PortfolioRow[] = propertyPerformance.map((prop) => ({
 		id: prop.id,
 		property: prop.name,
@@ -160,8 +170,19 @@ export function Dashboard({
 			<div data-testid="dashboard-stats">
 				<h1 className="typography-h1">Dashboard</h1>
 				<p className="text-sm text-muted-foreground">
-					{metrics.occupiedUnits} of {metrics.totalUnits} units occupied ·{" "}
-					{formatDashboardCurrency(metrics.totalRevenue)} this month
+					<span>
+						{metrics.occupiedUnits} of {metrics.totalUnits} units occupied
+					</span>
+					<span aria-hidden="true" className="mx-2">
+						|
+					</span>
+					<span>
+						{formatCurrency(metrics.totalRevenue, {
+							minimumFractionDigits: 0,
+							maximumFractionDigits: 0,
+						})}{" "}
+						this month
+					</span>
 				</p>
 			</div>
 
@@ -176,12 +197,13 @@ export function Dashboard({
 					<CardContent className="grid gap-3">
 						{quickActions.map((action) => (
 							<button
+								type="button"
 								key={action.action}
 								className="flex h-auto items-center gap-3 p-3 text-left border border-border rounded-lg hover:bg-muted/50 transition-colors"
 								onClick={() => handleAction(action.action)}
 							>
-								<div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-muted">
-									<action.icon className="h-4 w-4" />
+								<div className="flex size-9 shrink-0 items-center justify-center rounded-md bg-muted">
+									<action.icon aria-hidden="true" className="size-4" />
 								</div>
 								<div>
 									<div className="text-sm font-medium">{action.title}</div>
@@ -235,6 +257,7 @@ export function Dashboard({
 							No properties match your filters
 						</p>
 						<button
+							type="button"
 							onClick={clearFilters}
 							className="mt-3 text-sm text-primary hover:underline"
 						>

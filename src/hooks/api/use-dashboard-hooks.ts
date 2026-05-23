@@ -23,6 +23,18 @@ import {
 	type OwnerDashboardData,
 } from "./use-owner-dashboard";
 
+// D-12a interpretation #2: keep `select` OUT of DASHBOARD_BASE_QUERY_OPTIONS
+// so per-call selectors compose the slice they need from the raw cache.
+// WR-01 fix (cycle 1 → cycle 2): selectStats + selectCharts read `data.stats`
+// / `data.timeSeries` directly. Earlier they invoked `transformDashboardData(data)`
+// and immediately discarded its `portfolioRows` work — every cache hit paid
+// the `propertyPerformance.map(...)` cost twice (once per selector) to read
+// passthrough fields. The transform stays imported by callers that consume
+// `portfolioRows` (Phase 3's `dashboard-view.tsx` is the next consumer);
+// here we just trim the dead invocation. selectActivity +
+// selectPropertyPerformance remain raw passthroughs — the view-model
+// substitutes `portfolioRows: PortfolioRow[]` for the raw
+// `PropertyPerformance[]` shape existing consumers depend on.
 const selectStats = (data: OwnerDashboardData): DashboardStatsData => ({
 	stats: data.stats,
 	metricTrends: data.metricTrends,
