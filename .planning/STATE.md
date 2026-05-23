@@ -24,10 +24,10 @@ See: .planning/PROJECT.md (updated 2026-05-22)
 
 ## Current Position
 
-Phase: 01 (Foundation & Dedup) — SHIPPED
-Plan: 3 of 3 complete + verified + PR open
-Status: PR #743 — perfect-PR gate next
-Last activity: 2026-05-23 -- Phase 01 shipped via PR #744 (https://github.com/hudsor01/tenant-flow/pull/744)
+Phase: 01 (Foundation & Dedup) — SHIPPED — perfect-PR gate satisfied
+Plan: 3 of 3 complete + verified + PR #744 ready to merge
+Status: cycle 2 + cycle 3 both zero-finding; CI gates running on cycle-3 push (commit 613a0b9d1)
+Last activity: 2026-05-23 -- Phase 01 perfect-PR gate satisfied (https://github.com/hudsor01/tenant-flow/pull/744)
 
 ```
 [█░░░░░░] 14% of v2.0 milestone (1 / 7 phases shipped)
@@ -37,7 +37,7 @@ Last activity: 2026-05-23 -- Phase 01 shipped via PR #744 (https://github.com/hu
 
 | # | Slug | Status | UI-SPEC | Branch |
 |---|------|--------|---------|--------|
-| 1 | dashboard-foundation-dedup | Not started | YES (milestone-wide) | gsd/phase-1-dashboard-foundation-dedup |
+| 1 | foundation-dedup | Ready to merge (gate satisfied) | YES (milestone-wide) | gsd/phase-1-foundation-dedup |
 | 2 | dashboard-data-layer-rpc | Not started | No | gsd/phase-2-dashboard-data-layer-rpc |
 | 3 | dashboard-kpi-bento-row | Not started | YES | gsd/phase-3-dashboard-kpi-bento-row |
 | 4 | dashboard-charts | Not started | YES | gsd/phase-4-dashboard-charts |
@@ -51,7 +51,7 @@ Last activity: 2026-05-23 -- Phase 01 shipped via PR #744 (https://github.com/hu
 
 | Phase | Plans | Status | Branch | PR | Cycles to perfect-PR |
 |-------|-------|--------|--------|----|-----------------------|
-| 1 | TBD | Pending | gsd/phase-1-dashboard-foundation-dedup | — | — |
+| 1 | 3 | Gate satisfied | gsd/phase-1-foundation-dedup | #744 | 3 (cycle-1 8 findings → cycle-2 0 → cycle-3 0) |
 | 2 | TBD | Pending | gsd/phase-2-dashboard-data-layer-rpc | — | — |
 | 3 | TBD | Pending | gsd/phase-3-dashboard-kpi-bento-row | — | — |
 | 4 | TBD | Pending | gsd/phase-4-dashboard-charts | — | — |
