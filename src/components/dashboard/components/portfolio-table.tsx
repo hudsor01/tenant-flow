@@ -8,8 +8,8 @@ import {
 	TableHeader,
 	TableRow,
 } from "#components/ui/table";
+import { formatCurrency } from "#lib/utils/currency";
 import type { PortfolioRow } from "../dashboard-types";
-import { formatDashboardCurrency } from "../dashboard-types";
 
 interface PortfolioTableProps {
 	data: PortfolioRow[];
@@ -134,7 +134,10 @@ export function PortfolioTable({
 							</span>
 						</TableCell>
 						<TableCell className="text-right tabular-nums">
-							{formatDashboardCurrency(row.rent)}
+							{formatCurrency(row.rent, {
+								minimumFractionDigits: 0,
+								maximumFractionDigits: 0,
+							})}
 						</TableCell>
 						<TableCell className="text-right">
 							{row.maintenanceOpen > 0 ? (

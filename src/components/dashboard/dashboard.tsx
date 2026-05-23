@@ -7,9 +7,9 @@
 
 import dynamic from "next/dynamic";
 import { ChartLoadingSkeleton } from "#components/shared/chart-loading-skeleton";
+import { formatCurrency } from "#lib/utils/currency";
 import type { DashboardProps } from "#types/sections/dashboard";
 import {
-	formatDashboardCurrency,
 	type PortfolioRow,
 	type QuickActionType,
 	quickActions,
@@ -161,7 +161,11 @@ export function Dashboard({
 				<h1 className="typography-h1">Dashboard</h1>
 				<p className="text-sm text-muted-foreground">
 					{metrics.occupiedUnits} of {metrics.totalUnits} units occupied ·{" "}
-					{formatDashboardCurrency(metrics.totalRevenue)} this month
+					{formatCurrency(metrics.totalRevenue, {
+						minimumFractionDigits: 0,
+						maximumFractionDigits: 0,
+					})}{" "}
+					this month
 				</p>
 			</div>
 
