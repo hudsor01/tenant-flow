@@ -77,13 +77,15 @@ export function Dashboard({
 	// The canonical pure transform `transformDashboardData` exists at
 	// `#components/dashboard/dashboard-data` (extracted in Phase 1 per the
 	// locked decision in `.planning/phases/01-foundation-dedup/01-CONTEXT.md`
-	// D-10/D-11/D-12a). Consumer migration is Phase 3 scope: the new
-	// `dashboard-view.tsx` will replace this file and consume the canonical
-	// `portfolioRows` slice from `transformDashboardData(payload).portfolioRows`.
-	// The two transforms operate on different upstream shapes
-	// (raw `PropertyPerformance` vs section-typed `PropertyPerformanceItem`
-	// re-mapped at `page.tsx`), so the dedup requires the Phase-3 consumer
-	// migration — not a Phase-1 rewrite. Intentional architectural anchor.
+	// D-10/D-11/D-12a). Consumer migration is DEFERRED — Phase 3 mounted
+	// <KpiBentoRow> but explicitly did NOT do the `dashboard-view.tsx`
+	// consumer migration. A future phase will replace this file and consume
+	// the canonical `portfolioRows` slice from
+	// `transformDashboardData(payload).portfolioRows`. The two transforms
+	// operate on different upstream shapes (raw `PropertyPerformance` vs
+	// section-typed `PropertyPerformanceItem` re-mapped at `page.tsx`), so
+	// the dedup requires that consumer migration. Intentional architectural
+	// anchor; see ROADMAP.md for the phase that closes it.
 	const portfolioData: PortfolioRow[] = propertyPerformance.map((prop) => ({
 		id: prop.id,
 		property: prop.name,

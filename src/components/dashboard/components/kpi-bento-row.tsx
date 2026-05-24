@@ -100,14 +100,19 @@ function KpiSkeletonTile({ hasSparkline }: { hasSparkline: boolean }) {
 function KpiSkeletonGrid() {
 	const hasSparkline = [true, true, false, false, false, false];
 	return (
+		// WR-03 cycle-1 fix: dropped `role="list"` from the skeleton grid (no
+		// `role="listitem"` descendants exist during loading — the children
+		// are `role="presentation"` decorative blocks). `aria-busy="true"` on
+		// the section is the canonical loading-region pattern.
 		<section
 			aria-labelledby="kpi-bento-heading"
+			aria-busy="true"
 			data-testid="kpi-bento-row-loading"
 		>
 			<h2 id="kpi-bento-heading" className="sr-only">
 				Portfolio summary
 			</h2>
-			<div className={GRID_CLASSES} style={GRID_CONTAINER_STYLE} role="list">
+			<div className={GRID_CLASSES} style={GRID_CONTAINER_STYLE}>
 				{hasSparkline.map((sparkline, idx) => (
 					<KpiSkeletonTile key={`skeleton-${idx}`} hasSparkline={sparkline} />
 				))}
@@ -148,13 +153,22 @@ function buildKpiTileConfigs(
 
 	const revenueTrend = metricTrends.monthlyRevenue;
 	const occupancyTrend = metricTrends.occupancyRate;
-	const tenantsTrend = metricTrends.activeTenants;
+	// Active-leases tile intentionally omits the trend chip — the RPC ships
+	// `metricTrends.activeTenants`, not `active_leases`. CR-02 cycle-1 fix:
+	// the two are not interchangeable (one tenant can hold N leases). Until
+	// the RPC exposes an `active_leases` trend, D-09 honesty says omit.
 	const maintenanceTrend = metricTrends.openMaintenance;
 
-	const revenueSpoken = `${formatCurrency(stats.revenue.monthly, {
+	// WR-04 cycle-1 fix: keep `spokenValue` symmetric with the other tiles —
+	// just the formatted currency, no period qualifier. The "This month"
+	// qualifier moves to `spokenDescription` (matching the visible
+	// `description`) so the aria-label narrates "Revenue: $14,250. This
+	// month. Up 12 percent vs. last month." instead of duplicating the
+	// period if a future maintainer adds the spokenDescription field.
+	const revenueSpoken = formatCurrency(stats.revenue.monthly, {
 		minimumFractionDigits: 0,
 		maximumFractionDigits: 0,
-	})} this month`;
+	});
 	const occupancySpoken = `${safeOccupancy} percent`;
 
 	const tiles: KpiTileConfig[] = [
@@ -163,6 +177,7 @@ function buildKpiTileConfigs(
 			label: "Revenue",
 			spokenValue: revenueSpoken,
 			description: "This month",
+			spokenDescription: "This month",
 			value: stats.revenue.monthly,
 			decimalPlaces: 0,
 			prefix: "$",
@@ -172,7 +187,7 @@ function buildKpiTileConfigs(
 				timeSeries.monthlyRevenue,
 				revenueTrend,
 				"Revenue",
-				revenueSpoken,
+				`${revenueSpoken} this month`,
 			),
 			waveDelay: 0,
 		},
@@ -201,8 +216,11 @@ function buildKpiTileConfigs(
 			spokenValue: String(stats.leases.active),
 			value: stats.leases.active,
 			decimalPlaces: 0,
-			trend: tenantsTrend,
-			trendLabel: "vs. last month",
+			// CR-02 cycle-1 fix: no `active_leases` trend signal in the RPC.
+			// `metricTrends.activeTenants` is the tenant trend (one tenant can
+			// hold N leases), so attributing it to "Active leases" is dishonest.
+			// Omit until the data layer exposes the right signal.
+			trend: null,
 			sparkline: null,
 			waveDelay: 2,
 			...(stats.leases.expiringSoon > 0 && {
@@ -278,34 +296,32 @@ function KpiTile({ tile }: { tile: KpiTileConfig }) {
 		</StatTrend>
 	) : null;
 	return (
-		<div role="listitem">
-			<Stat
-				className="@4xl/kpi-bento:p-6 transition-colors duration-200"
-				aria-label={ariaLabel}
-			>
-				<StatLabel>{tile.label}</StatLabel>
-				<StatValue>
-					{tile.prefix ? <span aria-hidden="true">{tile.prefix}</span> : null}
-					<KpiNumberTicker
-						value={tile.value}
-						decimalPlaces={tile.decimalPlaces}
-						duration={800}
-					/>
-					{tile.suffix ? <span aria-hidden="true">{tile.suffix}</span> : null}
-				</StatValue>
-				{trendChip}
-				{tile.description ? (
-					<StatDescription>{tile.description}</StatDescription>
-				) : null}
-				{tile.sparkline && tile.sparkline.data.length >= 2 ? (
-					<KpiSparkline
-						data={tile.sparkline.data}
-						trend={tile.sparkline.trend}
-						ariaLabel={tile.sparkline.ariaLabel}
-					/>
-				) : null}
-			</Stat>
-		</div>
+		<Stat
+			className="@4xl/kpi-bento:p-6 transition-colors duration-200"
+			aria-label={ariaLabel}
+		>
+			<StatLabel>{tile.label}</StatLabel>
+			<StatValue>
+				{tile.prefix ? <span aria-hidden="true">{tile.prefix}</span> : null}
+				<KpiNumberTicker
+					value={tile.value}
+					decimalPlaces={tile.decimalPlaces}
+					duration={800}
+				/>
+				{tile.suffix ? <span aria-hidden="true">{tile.suffix}</span> : null}
+			</StatValue>
+			{trendChip}
+			{tile.description ? (
+				<StatDescription>{tile.description}</StatDescription>
+			) : null}
+			{tile.sparkline && tile.sparkline.data.length >= 2 ? (
+				<KpiSparkline
+					data={tile.sparkline.data}
+					trend={tile.sparkline.trend}
+					ariaLabel={tile.sparkline.ariaLabel}
+				/>
+			) : null}
+		</Stat>
 	);
 }
 
@@ -329,16 +345,22 @@ export function KpiBentoRow({
 				Portfolio summary
 			</h2>
 			<div className={GRID_CLASSES} style={GRID_CONTAINER_STYLE} role="list">
-				{tiles.map((tile) => {
-					const tileBody = <KpiTile tile={tile} key={`body-${tile.id}`} />;
-					return reducedMotion ? (
-						tileBody
-					) : (
-						<BlurFade key={tile.id} delay={tile.waveDelay} duration={500}>
-							{tileBody}
-						</BlurFade>
-					);
-				})}
+				{tiles.map((tile) => (
+					// WR-01 cycle-1 fix: `role="listitem"` MUST be a direct child of
+					// the parent `role="list"`. The previous wiring placed BlurFade
+					// between the list and the listitem, which breaks WAI-ARIA list
+					// semantics on the non-reduced-motion path. Now the listitem
+					// wraps both branches (BlurFade or raw KpiTile) symmetrically.
+					<div role="listitem" key={tile.id}>
+						{reducedMotion ? (
+							<KpiTile tile={tile} />
+						) : (
+							<BlurFade delay={tile.waveDelay} duration={500}>
+								<KpiTile tile={tile} />
+							</BlurFade>
+						)}
+					</div>
+				))}
 			</div>
 		</section>
 	);

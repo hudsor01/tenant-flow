@@ -29,6 +29,12 @@ type TrendDirection = MetricTrend["trend"];
  * render as `0%` with no sign (03-UI-SPEC § 4.3 honesty rule).
  */
 export function formatTrendPercent(percentChange: number): string {
+	// WR-02 cycle-1 fix: NaN / Infinity guard. The type says `number` but
+	// `MetricTrend.percentChange` can carry NaN if the RPC ships a stale row,
+	// and `Math.round(NaN)` returns NaN — without this guard the rendered
+	// chip reads "NaN%" or "+Infinity%". Same hardening as the `safeOccupancy`
+	// guard in kpi-bento-row.tsx.
+	if (!Number.isFinite(percentChange)) return "0%";
 	const rounded = Math.round(percentChange);
 	// String.fromCharCode(0x2212) is the U+2212 typographic minus — distinct
 	// from the hyphen-minus emitted by `String(-3)` (U+002D). 03-UI-SPEC § 4.3
@@ -132,6 +138,12 @@ export interface KpiBentoRowProps {
 	stats: DashboardStats | null;
 	metricTrends: {
 		occupancyRate: MetricTrend | null;
+		// `activeTenants` is currently UNUSED in Phase 3 — the "Active leases"
+		// tile intentionally omits its trend chip because tenants ≠ leases
+		// (CR-02 cycle-1 fix; D-09 honesty). Field stays in the shape because
+		// the RPC selector emits it and a future feature may map it to a
+		// distinct "Active tenants" tile. Do NOT attribute this trend to
+		// "Active leases" again.
 		activeTenants: MetricTrend | null;
 		monthlyRevenue: MetricTrend | null;
 		openMaintenance: MetricTrend | null;
@@ -182,7 +194,12 @@ export function buildTileAriaLabel(input: BuildTileAriaLabelInput): string {
 				: input.trend.trend === "down"
 					? "Down"
 					: "Unchanged";
-		const pct = Math.abs(Math.round(input.trend.percentChange));
+		// WR-02 cycle-1 fix: NaN / Infinity guard — same hardening as
+		// `formatTrendPercent`. Without this the narrated sentence becomes
+		// "Up NaN percent vs. last month."
+		const pct = Number.isFinite(input.trend.percentChange)
+			? Math.abs(Math.round(input.trend.percentChange))
+			: 0;
 		let trendSegment: string;
 		if (input.trend.trend === "stable") {
 			const windowText = (input.trendLabel ?? "").replace(/^vs\.\s*/, "");

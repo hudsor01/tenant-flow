@@ -13,7 +13,7 @@
  * - NaN occupancy guard (renders 0%, does not crash)
  */
 
-import { render, screen } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { KpiBentoRow } from "#components/dashboard/components/kpi-bento-row";
@@ -175,11 +175,13 @@ describe("KpiBentoRow", () => {
 			/>,
 		);
 		const items = screen.getAllByRole("listitem");
+		// CR-02 cycle-1 fix: Active leases tile now omits the trend chip
+		// (no `active_leases` RPC signal). Properties + Units stay omitted.
+		expect(items[2]?.querySelector("[data-slot=stat-trend]")).toBeNull();
 		expect(items[4]?.querySelector("[data-slot=stat-trend]")).toBeNull();
 		expect(items[5]?.querySelector("[data-slot=stat-trend]")).toBeNull();
 		expect(items[0]?.querySelector("[data-slot=stat-trend]")).not.toBeNull();
 		expect(items[1]?.querySelector("[data-slot=stat-trend]")).not.toBeNull();
-		expect(items[2]?.querySelector("[data-slot=stat-trend]")).not.toBeNull();
 		expect(items[3]?.querySelector("[data-slot=stat-trend]")).not.toBeNull();
 	});
 
@@ -211,8 +213,12 @@ describe("KpiBentoRow", () => {
 			/>,
 		);
 		expect(screen.queryByTestId("kpi-bento-row")).toBeNull();
-		expect(screen.queryByTestId("kpi-bento-row-loading")).not.toBeNull();
-		const skeletons = screen.getAllByRole("presentation");
+		const loadingSection = screen.getByTestId("kpi-bento-row-loading");
+		expect(loadingSection.getAttribute("aria-busy")).toBe("true");
+		// IN-03 cycle-1 fix: scope the presentation query to the loading
+		// grid — `screen.getAllByRole` is unscoped and would catch any
+		// stray decorative element elsewhere in the render tree.
+		const skeletons = within(loadingSection).getAllByRole("presentation");
 		expect(skeletons).toHaveLength(6);
 
 		rerender(
@@ -239,7 +245,9 @@ describe("KpiBentoRow", () => {
 		const revenueItem = screen.getAllByRole("listitem")[0];
 		const stat = revenueItem?.querySelector("[aria-label]");
 		expect(stat?.getAttribute("aria-label")).toBe(
-			"Revenue: $14,250 this month. Up 12 percent vs. last month.",
+			// WR-04 cycle-1 fix: "this month" now lives in spokenDescription
+			// (symmetric with the other tiles), not baked into spokenValue.
+			"Revenue: $14,250. This month. Up 12 percent vs. last month.",
 		);
 	});
 

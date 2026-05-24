@@ -57,39 +57,6 @@ function DashboardContent() {
 		timeSeries: chartsData?.timeSeries ?? null,
 	};
 
-	// Transform stats to design-os format
-	const metrics = (() => {
-		if (!statsData?.stats) {
-			return {
-				totalRevenue: 0,
-				revenueChange: 0,
-				occupancyRate: 0,
-				occupancyChange: 0,
-				totalProperties: 0,
-				totalUnits: 0,
-				occupiedUnits: 0,
-				activeLeases: 0,
-				expiringLeases: 0,
-				openMaintenanceRequests: 0,
-			};
-		}
-
-		const stats = statsData.stats;
-		return {
-			totalRevenue: stats.revenue?.monthly ?? 0,
-			revenueChange: statsData.metricTrends?.monthlyRevenue?.percentChange ?? 0,
-			occupancyRate: stats.units?.occupancyRate ?? 0,
-			occupancyChange:
-				statsData.metricTrends?.occupancyRate?.percentChange ?? 0,
-			totalProperties: stats.properties?.total ?? 0,
-			totalUnits: stats.units?.total ?? 0,
-			occupiedUnits: stats.units?.occupied ?? 0,
-			activeLeases: stats.leases?.active ?? 0,
-			expiringLeases: stats.leases?.expiringSoon ?? 0,
-			openMaintenanceRequests: stats.maintenance?.open ?? 0,
-		};
-	})();
-
 	// Transform revenue trends
 	const revenueTrend = (() => {
 		if (!chartsData?.timeSeries?.monthlyRevenue) return [];
@@ -180,7 +147,6 @@ function DashboardContent() {
 		<div className="flex flex-1 flex-col">
 			<Dashboard
 				kpiData={kpiData}
-				metrics={metrics}
 				revenueTrend={revenueTrend}
 				propertyPerformance={propertyPerformance}
 				onAddProperty={onAddProperty}

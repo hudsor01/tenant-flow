@@ -47,6 +47,15 @@ describe("formatTrendPercent", () => {
 		expect(formatted).toBe("0%");
 		expect(formatted.charCodeAt(0)).toBe("0".charCodeAt(0));
 	});
+
+	// WR-02 cycle-1 fix: NaN / Infinity guard. MetricTrend.percentChange is
+	// typed `number` but the RPC can ship NaN on a stale row; without the
+	// guard the chip would render "NaN%" / "+Infinity%".
+	it("emits `0%` for NaN / Infinity input", () => {
+		expect(formatTrendPercent(Number.NaN)).toBe("0%");
+		expect(formatTrendPercent(Number.POSITIVE_INFINITY)).toBe("0%");
+		expect(formatTrendPercent(Number.NEGATIVE_INFINITY)).toBe("0%");
+	});
 });
 
 describe("sparklineConfigForTrend", () => {
