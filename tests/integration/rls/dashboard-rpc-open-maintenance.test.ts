@@ -232,10 +232,11 @@ describe("get_dashboard_data_v2 — open_maintenance per-property RLS isolation"
 		// ownerA, the original P0 leak).
 		expect(data).toBeNull();
 		expect(error).not.toBeNull();
-		// Strict equality — the migration raises exactly `'Unauthorized'`.
-		// A future refactor that changes the message (or appends a hint /
-		// detail) should fail this assertion so the security contract drift
-		// is visible at PR time.
-		expect(error?.message).toBe("Unauthorized");
+		// Strict regex against the project-standard message
+		// "Access denied: cannot request data for another user" used by
+		// 20+ other stats RPCs and asserted by
+		// tests/integration/rls/rpc-auth.test.ts. Migration
+		// 20260524012602 aligned this RPC to the project convention.
+		expect(error?.message).toMatch(/access denied/i);
 	});
 });
