@@ -39,7 +39,7 @@ prod_state:
 
 ## Outcome
 
-POLISH-10 schema half closed. The `get_dashboard_data_v2` RPC now emits a per-property `open_maintenance` count inside the `property_performance` JSONB array. Frontend consumers (plan 02-02) will wire this end-to-end to retire the hardcoded `0`s in `dashboard-data.ts:64`, `dashboard.tsx:101`, and `page.tsx:108`.
+POLISH-10 schema half closed. The `get_dashboard_data_v2` RPC now emits a per-property `open_maintenance` count inside the `property_performance` JSONB array. Frontend consumers (plan 02-02) wired this end-to-end to retire the hardcoded `0`s in `dashboard-data.ts`, `dashboard.tsx`, and `page.tsx` (current line numbers in final-state-post-cycles: `dashboard-data.ts:77`, `dashboard.tsx:101`, `page.tsx:106`).
 
 ## Tasks
 
@@ -110,12 +110,22 @@ If step 2 had failed, step 3-5 would not run. If step 3 had shown drift but reco
 
 ## Verification Against ROADMAP § Phase 2 Success Criteria
 
-| SC | Status | Notes |
-|----|--------|-------|
-| #1 Real per-property `open_maintenance` in RPC | DONE (schema half) | Smoke test above confirms key present in all 5 rows for ownerA. Frontend wiring is plan 02-02. |
-| #2 No hardcoded `0` for `collectionRate` | NOT YET (this plan's scope is open_maintenance schema; collectionRate drop is plan 02-02) | Plan 02-02 closes this. |
-| #3 Dual-client RLS test in `tests/integration/rls/` | NOT YET (plan 02-03 scope) | Plan 02-03 closes this. |
-| #4 `bun run test:integration` passes | NOT YET (plan 02-03 scope) | Plan 02-03 closes this. |
+| SC | Status at end of Plan 02-01 | Final Phase-2 status |
+|----|------------------------------|----------------------|
+| #1 Real per-property `open_maintenance` in RPC | DONE (schema half) — smoke test confirmed all 5 ownerA rows | DONE end-to-end after plan 02-02 wired the frontend pipeline + cycle-2 migration `20260523234221` also emitted address/property_type/derived status to align with the type contract |
+| #2 No hardcoded `0` for `collectionRate` | NOT YET (Plan 02-02 scope) | DONE in 02-02 |
+| #3 Dual-client RLS test in `tests/integration/rls/` | NOT YET (Plan 02-03 scope) | DONE in 02-03; cycle-4 P0 fix retargeted Test 2 from `toEqual([])` to expect `error.message === "Unauthorized"` after migration `20260524001408` added the `auth.uid() = p_user_id` guard |
+| #4 `bun run test:integration` passes | NOT YET (Plan 02-03 scope; CI on PR push) | DONE in CI via the `rls-security` workflow |
+
+## Post-Plan Phase-2 follow-on migrations
+
+The original Plan 02-01 migration `20260523223626` shipped the additive `perf_open_maintenance` CTE + `open_maintenance` key. Cycle reviews surfaced two further migrations that became part of Phase 2:
+
+- **`20260523234221_phase2_property_perf_address_status_type.sql`** (cycle-2 P0 fix): the pre-existing `PropertyPerformanceRpcResponse` type declared `status`, `address`, `property_type` as required, but the RPC had NEVER emitted them. The cycle-1 typed `mapPropertyPerformanceStatus` upgrade turned that silent type-lie into a runtime throw. Cycle-2 fix: extend the RPC to actually emit those three fields (address from `properties.address_line1`, property_type from `properties.property_type`, status derived server-side using the same `NO_UNITS/vacant/FULL/PARTIAL` rules as `property-stats-keys.ts:47-56`).
+
+- **`20260524001408_phase2_dashboard_rpc_auth_guard.sql`** (cycle-4 P0 security fix): the RPC was SECURITY DEFINER but had no `auth.uid() = p_user_id` guard, so any authenticated user could pass another owner's UUID and receive their full dashboard payload. Cycle-4 fix: add the explicit guard matching the established pattern from `20260306190000_consolidate_stats_rpcs.sql`. Cross-owner calls now raise `Unauthorized`.
+
+All three Phase 2 migrations are `CREATE OR REPLACE FUNCTION` (idempotent), SECURITY DEFINER + `search_path = public` preserved, GRANTs preserved. Migration #3 is the canonical end-state.
 
 ## Issues / Deviations
 
@@ -128,8 +138,8 @@ If step 2 had failed, step 3-5 would not run. If step 3 had shown drift but reco
 - `src/types/supabase.ts` is regenerated and committed (this plan's work).
 - The new RPC return now includes `'open_maintenance'` in each `property_performance` row. Plan 02-02 wires this through:
   - `src/types/database-rpc.ts` (or `src/types/core.ts`) — add `open_maintenance: number` to the row type
-  - `src/hooks/api/use-owner-dashboard.ts:232-249` — mapper reads `row.open_maintenance ?? 0`
-  - `src/app/(owner)/dashboard/page.tsx:97-110` — intermediate re-mapper carries field forward
-  - `src/components/dashboard/dashboard-data.ts:64` — `transformDashboardData` reads `prop.open_maintenance`
-  - `src/components/dashboard/dashboard.tsx:101` — inline transform reads `prop.openMaintenance`
+  - `src/hooks/api/use-owner-dashboard.ts:~232-278` (planning-time range; final mapper landed at `:277`) — mapper reads `row.open_maintenance ?? 0`
+  - `src/app/(owner)/dashboard/page.tsx:~95-108` — intermediate re-mapper carries field forward via `?? 0` at `:106`
+  - `src/components/dashboard/dashboard-data.ts:77` — `transformDashboardData` reads `prop.open_maintenance ?? 0`
+  - `src/components/dashboard/dashboard.tsx:101` — inline transform reads `prop.openMaintenance` (no fallback — section-typed PropertyPerformanceItem.openMaintenance is required)
 - Plan 02-02 also closes POLISH-11 (drop `collectionRate` from `DashboardMetrics`).

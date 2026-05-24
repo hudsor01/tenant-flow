@@ -8,8 +8,8 @@ import { transformDashboardData } from "./dashboard-data";
  * `portfolioRows[i].maintenanceOpen`.
  *
  * The live `/dashboard` page does NOT consume `transformDashboardData` today
- * — it uses an inline transform in `dashboard.tsx:86-102` plus a re-mapper
- * in `page.tsx:97-110`. The canonical transform survives as a Phase-3 seam
+ * — it uses an inline transform in `dashboard.tsx:87-102` plus a re-mapper
+ * in `page.tsx:95-108`. The canonical transform survives as a Phase-3 seam
  * (per Phase 1 CONTEXT D-10). Without this test, a regression in
  * `transformDashboardData.maintenanceOpen` would not surface until Phase 3
  * wires `dashboard-view.tsx`.

@@ -41,8 +41,8 @@ export interface DashboardViewModel {
  * `transformDashboardData(data)` invocation from `selectStats` /
  * `selectCharts` (those selectors now read raw slices directly — the
  * old composition discarded `portfolioRows` work). The live `/dashboard`
- * page uses an inline transform in `dashboard.tsx:86-103` plus a
- * re-mapper in `page.tsx:97-110`. The canonical transform survives as
+ * page uses an inline transform in `dashboard.tsx:87-102` plus a
+ * re-mapper in `page.tsx:95-108`. The canonical transform survives as
  * the locked Phase-3 seam (D-10) — only the unit test at
  * `dashboard-data.test.ts` consumes it, pinning the contract so a
  * Phase-3-time migration surfaces no surprises.

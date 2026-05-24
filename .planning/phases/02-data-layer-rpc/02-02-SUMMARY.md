@@ -23,7 +23,7 @@ key-files:
 decisions:
   - "D-01 implemented end-to-end: `collectionRate` field removed from DashboardMetrics interface; both fabricated `collectionRate: 0` sites in page.tsx deleted (initial empty-state + real-data IIFE). Repo-wide grep returns zero hits on collectionRate."
   - "D-02 frontend wiring (post-cycle-1 final state): `open_maintenance: number` on PropertyPerformanceRpcResponse (required — the RPC always emits it after migration 20260523223626); `open_maintenance?: number` on PropertyPerformance (optional — other producers like property-stats-keys.ts.mapPerformanceRow legitimately omit it because their source RPC doesn't carry maintenance counts); `openMaintenance: number` on PropertyPerformanceItem (required — was already declared at sections/dashboard.ts:56, only the value source changed). The optional widening on PropertyPerformance was the cycle-1 fix to avoid replicating the same fabrication pattern D-01 just removed for collectionRate."
-  - "Defensive coalesce at TWO seams (post-cycle-1 final state): the RPC mapper boundary (`row.open_maintenance ?? 0` at use-owner-dashboard.ts:249 — defense-in-depth for frontend-DB-deploy ordering) AND the optional-field read seams (`prop.open_maintenance ?? 0` at page.tsx:107 and dashboard-data.ts:68). Both are correct: the mapper fallback survives an out-of-order deploy where the migration isn't applied yet; the read-seam fallbacks handle the optional-field shape on PropertyPerformance."
+  - "Defensive coalesce at TWO seams (post-cycle-1 final state): the RPC mapper boundary (`row.open_maintenance ?? 0` at use-owner-dashboard.ts:277 — defense-in-depth for frontend-DB-deploy ordering) AND the optional-field read seams (`prop.open_maintenance ?? 0` at page.tsx:106 and dashboard-data.ts:77). Both are correct: the mapper fallback survives an out-of-order deploy where the migration isn't applied yet; the read-seam fallbacks handle the optional-field shape on PropertyPerformance."
   - "Asymmetric naming: `PropertyPerformance.open_maintenance` (snake_case, matches `property_id` precedent on the same interface) but `PropertyPerformanceItem.openMaintenance` (camelCase, was already declared at sections/dashboard.ts:56 — only the value source changed). `dashboard-data.ts` reads snake_case (consumes raw PropertyPerformance); `dashboard.tsx` reads camelCase (consumes section-typed PropertyPerformanceItem via page.tsx re-map)."
   - "Plan scope expanded by 1 file beyond `files_modified` frontmatter: `src/hooks/api/query-keys/property-stats-keys.ts:85` was a transitive `PropertyPerformance` constructor that didn't appear in the plan's listed consumers but triggered TS2741 after Task 1. This plan added `open_maintenance: 0`; cycle-1 review caught that as the same fabrication anti-pattern as collectionRate. Cycle-1 fix REMOVED the line entirely and widened PropertyPerformance.open_maintenance to optional so the consumer can legitimately omit the field. `get_property_performance_with_trends` does not carry maintenance counts; omitting the field is the honest contract."
 
@@ -62,8 +62,8 @@ POLISH-10 frontend half + POLISH-11 fully closed. The dashboard pipeline reads r
 | Task | Status | Evidence |
 |------|--------|----------|
 | T1 — Add `open_maintenance` to RPC + domain types; remove `collectionRate` from DashboardMetrics | DONE | 3 files modified: `database-rpc.ts`, `core.ts`, `sections/dashboard.ts`. Single-field additions/removal. `grep -c open_maintenance` returns 1 in each new-field file; `grep -c collectionRate` returns 0 in sections/dashboard.ts. |
-| T2 — Wire fetcher mapper + page.tsx | DONE | Mapper at `use-owner-dashboard.ts:249` now emits `open_maintenance: row.open_maintenance ?? 0`. `page.tsx` lost both `collectionRate: 0` constructor sites + the re-mapper now reads `openMaintenance: prop.open_maintenance`. |
-| T3 — Wire both portfolio-row transforms | DONE | `dashboard-data.ts:64` reads `prop.open_maintenance`; `dashboard.tsx:101` reads `prop.openMaintenance`. Repo-wide grep for `maintenanceOpen: 0` in dashboard subtree returns 0. |
+| T2 — Wire fetcher mapper + page.tsx | DONE | Mapper at `use-owner-dashboard.ts:277` (final-state line) now emits `open_maintenance: row.open_maintenance ?? 0`. `page.tsx` lost both `collectionRate: 0` constructor sites + the re-mapper now reads `openMaintenance: prop.open_maintenance ?? 0` at `:106` (post-cycle-1 ?? 0 added when type widened to optional). |
+| T3 — Wire both portfolio-row transforms | DONE | `dashboard-data.ts:77` reads `prop.open_maintenance ?? 0`; `dashboard.tsx:101` reads `prop.openMaintenance` (no fallback — required on PropertyPerformanceItem). Repo-wide grep for `maintenanceOpen: 0` in dashboard subtree returns 0. |
 
 ## D-01 (drop collection_rate) — verified
 
@@ -77,23 +77,25 @@ Field removed from `DashboardMetrics` interface (was line 39); two fabricated `c
 ## D-02 (open_maintenance end-to-end) — verified
 
 Four hardcoded-zero sites in the original codebase:
-1. `dashboard-data.ts:64` `maintenanceOpen: 0` → `maintenanceOpen: prop.open_maintenance`
-2. `dashboard.tsx:101` `maintenanceOpen: 0, // Not in current API response` → `maintenanceOpen: prop.openMaintenance`
-3. `page.tsx:108` `openMaintenance: 0, // Not in current API response` → `openMaintenance: prop.open_maintenance`
-4. `use-owner-dashboard.ts:249` did not previously emit the field — now emits `open_maintenance: row.open_maintenance ?? 0`
+1. `dashboard-data.ts:77` (final-state line) `maintenanceOpen: 0` → `maintenanceOpen: prop.open_maintenance ?? 0` (the `?? 0` was added in cycle-1 fix when PropertyPerformance.open_maintenance widened to optional).
+2. `dashboard.tsx:101` `maintenanceOpen: 0, // Not in current API response` → `maintenanceOpen: prop.openMaintenance` (no fallback — section-typed PropertyPerformanceItem.openMaintenance is required).
+3. `page.tsx:106` (final-state line) `openMaintenance: 0, // Not in current API response` → `openMaintenance: prop.open_maintenance ?? 0`.
+4. `use-owner-dashboard.ts:277` (final-state line) did not previously emit the field — now emits `open_maintenance: row.open_maintenance ?? 0`.
 
-Type seams (3 interfaces touched, all single-field additions):
-- `PropertyPerformanceRpcResponse.open_maintenance: number` (the RPC payload contract)
-- `PropertyPerformance.open_maintenance: number` (the post-mapped domain shape)
-- `PropertyPerformanceItem.openMaintenance: number` (the section-typed shape) — already declared, only the value source changed
+Type seams (3 interfaces touched, post-cycle-1 final state):
+- `PropertyPerformanceRpcResponse.open_maintenance: number` (required — the RPC always emits it after migration `20260523223626`)
+- `PropertyPerformance.open_maintenance?: number` (optional — cycle-1 widening; other producers like `mapPerformanceRow` legitimately omit the field)
+- `PropertyPerformanceItem.openMaintenance: number` (required — was already declared at `sections/dashboard.ts:56`, only the value source changed)
 
 ## Transitive Closeout (out of plan scope)
 
-`src/hooks/api/query-keys/property-stats-keys.ts:85` constructs a `PropertyPerformance` from a different RPC (`get_property_performance_with_trends`) and was not listed in the plan's `files_modified` array. After Task 1 made `open_maintenance` non-optional on `PropertyPerformance`, this site failed TS2741.
+`src/hooks/api/query-keys/property-stats-keys.ts:85` constructs a `PropertyPerformance` from a different RPC (`get_property_performance_with_trends`) and was not listed in the plan's `files_modified` array. After Task 1 made `open_maintenance` REQUIRED on `PropertyPerformance`, this site failed TS2741.
 
-Resolution: added `open_maintenance: 0` to the returned object. The alternative RPC does not return maintenance counts; this consumer is not part of the dashboard pipeline (it powers a separate analytics surface). The placeholder is correct until either (a) the alternative RPC gains the field, or (b) this consumer is rewritten to use `get_dashboard_data_v2`.
+Initial resolution (this plan): added `open_maintenance: 0` to the returned object as a placeholder.
 
-This is a typecheck-required, scope-adjacent edit — not a deviation from the plan's locked decisions. Captured in the `decisions:` block of the frontmatter.
+**Cycle-1 follow-up (commit `7f64c1946`):** the cycle-1 deep review flagged that fabrication as the SAME v1.0 honesty violation D-01 just removed for `collectionRate`. Real fix: widen `PropertyPerformance.open_maintenance` to OPTIONAL, omit the field entirely from the `mapPerformanceRow` return object, and apply `?? 0` at the consumer read seams (`page.tsx`, `dashboard-data.ts`) to keep downstream type assumptions safe. This is the canonical end-state captured in the frontmatter `decisions` block.
+
+The post-cycle-1 contract: only producers with genuine maintenance-count data set the field; consumers that need a number apply `?? 0`. Zero fabrication.
 
 ## Threat Model Verification
 
