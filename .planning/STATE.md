@@ -20,14 +20,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-22)
 
 **Core value:** The authenticated owner dashboard at `/dashboard` becomes a restrained, professional B2B command center — KPI visibility above the fold, polished charts, a real DataTable with column controls + saved presets, full keyboard/dark-mode/mobile a11y. Every dollar amount handled correctly throughout the data path (no `*100`/`÷100` round-trip).
-**Current focus:** Phase 02 — Data Layer & RPC (discussed; awaiting Phase 1 merge)
+**Current focus:** Phase 03 — KPI Bento Row (context locked; UI-SPEC next)
 
 ## Current Position
 
-Phase: 02 (Data Layer & RPC) — context locked; planning next
+Phase: 03 (KPI Bento Row) — context locked; `/gsd-ui-phase 3` next
 Plan: not started (CONTEXT.md committed)
-Status: Phase 1 PR #744 ready to merge (perfect-PR gate satisfied across 7 cycles); Phase 2 awaiting Phase 1 merge before its own branch
-Last activity: 2026-05-23 -- Phase 02 CONTEXT.md committed (D-01: drop collection_rate; D-02: additive RPC for per-property open_maintenance)
+Status: Phases 1 + 2 merged; Phase 3 branch `gsd/phase-3-kpi-bento-row` cut off main
+Last activity: 2026-05-23 -- Phase 03 CONTEXT.md committed (12 locked decisions covering tile order, sparkline source, click behavior, motion budget, grid pattern)
 
 ```
 [█░░░░░░] 14% of v2.0 milestone (1 / 7 phases shipped)
@@ -37,9 +37,9 @@ Last activity: 2026-05-23 -- Phase 02 CONTEXT.md committed (D-01: drop collectio
 
 | # | Slug | Status | UI-SPEC | Branch |
 |---|------|--------|---------|--------|
-| 1 | foundation-dedup | Ready to merge (gate satisfied, 7 cycles) | YES (milestone-wide) | gsd/phase-1-foundation-dedup |
-| 2 | data-layer-rpc | Context locked; plan next | No | gsd/phase-2-data-layer-rpc |
-| 3 | dashboard-kpi-bento-row | Not started | YES | gsd/phase-3-dashboard-kpi-bento-row |
+| 1 | foundation-dedup | SHIPPED (PR #744, 7 cycles) | YES (milestone-wide) | gsd/phase-1-foundation-dedup |
+| 2 | data-layer-rpc | SHIPPED (PR #745, 11 cycles + post-merge fix) | No | gsd/phase-2-data-layer-rpc |
+| 3 | kpi-bento-row | Context locked; UI-SPEC next | YES (per-phase) | gsd/phase-3-kpi-bento-row |
 | 4 | dashboard-charts | Not started | YES | gsd/phase-4-dashboard-charts |
 | 5 | dashboard-portfolio-datatable | Not started | YES | gsd/phase-5-dashboard-portfolio-datatable |
 | 6 | dashboard-polish-a11y | Not started | No | gsd/phase-6-dashboard-polish-a11y |
