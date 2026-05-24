@@ -1,20 +1,24 @@
 /**
  * Integration tests for `get_dashboard_data_v2` SECURITY DEFINER RPC —
- * pins the Phase 2 (POLISH-10) contract: each row in `property_performance`
- * carries an `open_maintenance: number` count, and the SECURITY DEFINER +
- * shared-CTE `where owner_user_id = p_user_id` filter chain prevents
- * cross-owner data leakage even when an authenticated client passes
- * another owner's user_id.
+ * pins the Phase 2 (POLISH-10) contract:
  *
- * Why this exists: Plan 02-01 extended the RPC's `property_perf` CTE with
- * a `perf_open_maintenance` aggregate. The frontend (Plan 02-02) now
- * trusts that field end-to-end. Without an integration test, a future
- * regression that strips the owner filter from one of the shared CTEs
- * would expose every owner's open-maintenance counts to every other
- * owner. This test pins the contract so CI catches that regression.
+ * 1. Each row in `property_performance` carries `open_maintenance`,
+ *    `address`, `property_type`, and a derived `status` per the
+ *    migrations applied in cycles 1 / 2 (`20260523223626` +
+ *    `20260523234221`).
+ * 2. Cross-owner queries are rejected with `Unauthorized` by the
+ *    explicit `auth.uid() = p_user_id` guard added in cycle 4
+ *    (`20260524001408`). SECURITY DEFINER bypasses RLS, so the
+ *    per-CTE `where owner_user_id = p_user_id` is NOT enough — the
+ *    function trusts whatever uuid the caller passes. Without this
+ *    guard any authenticated user could exfil another owner's full
+ *    dashboard payload via a direct PostgREST call.
  *
  * Pattern matches `tests/integration/rls/bulk-import-create-lease.test.ts`
- * (dual client, fixture-create + cleanup, graceful skip if env missing).
+ * (dual client, fixture-create + cleanup). Note: `getTestCredentials()`
+ * throws when the four E2E_OWNER_* env vars are unset — this file does
+ * NOT gracefully skip in that case. CI provides the env vars via repo
+ * secrets; local runs require `.env.local`.
  */
 
 import type { SupabaseClient } from "@supabase/supabase-js";
@@ -210,30 +214,24 @@ describe("get_dashboard_data_v2 — open_maintenance per-property RLS isolation"
 	});
 
 	// -------------------------------------------------------------------------
-	// ISOLATION — ownerA passing ownerB's user_id receives empty data
+	// ISOLATION — ownerA passing ownerB's user_id is rejected with `Unauthorized`
 	// -------------------------------------------------------------------------
 
-	it("returns empty property_performance when ownerA passes ownerB's user_id (RLS-via-owner-filter)", async () => {
+	it("rejects cross-owner calls with Unauthorized (SECURITY DEFINER auth.uid() guard)", async () => {
 		const { data, error } = await clientA.rpc("get_dashboard_data_v2", {
 			p_user_id: ownerBId,
 		});
-		expect(error).toBeNull();
-		expect(data).toBeDefined();
-
-		const result = data as {
-			property_performance: PropertyPerformanceRpcResponse[];
-		};
-		expect(Array.isArray(result.property_performance)).toBe(true);
-		// The function is SECURITY DEFINER but every shared CTE
-		// (`owner_properties`, `all_units`, `all_maintenance`) filters on
-		// `owner_user_id = p_user_id`. When ownerA passes ownerB's id, the
-		// CTE chain returns no rows for ownerA's owned data AND no rows for
-		// ownerB's owned data (because clientA's session can't satisfy the
-		// CTE filter for ownerB's user_id). The result is empty.
-		//
-		// Pin the strict contract. If a future regression strips one of the
-		// owner filters from a CTE, this would surface as a non-empty array
-		// for cross-owner queries — exactly the threat we're testing.
-		expect(result.property_performance).toEqual([]);
+		// The function is SECURITY DEFINER, which bypasses RLS, so a
+		// per-CTE `where owner_user_id = p_user_id` is NOT enough — it
+		// trusts whatever uuid the caller passes. The Phase 2 cycle-4
+		// migration (20260524001408) adds an explicit `auth.uid()
+		// != p_user_id → raise Unauthorized` guard at the top of the
+		// function body. This test pins that guard. If a future
+		// refactor removes the guard, this test fails with non-null
+		// data (ownerB's actual dashboard payload would surface to
+		// ownerA, the original P0 leak).
+		expect(data).toBeNull();
+		expect(error).not.toBeNull();
+		expect(error?.message).toMatch(/Unauthorized/i);
 	});
 });
