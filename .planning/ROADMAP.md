@@ -89,7 +89,10 @@ Phases 1 and 2 are invisible foundation. Phases 3 and 4 each *add* a new region 
   2. Revenue and Occupancy tiles each render an axis-less Recharts `Area` sparkline; the other four tiles do not.
   3. Each tile's numeric value animates via `NumberTicker`; users with `prefers-reduced-motion: reduce` see the final value with no animation.
   4. The KPI grid uses an `@container` CSS grid auto-fit layout (not `ui/bento-grid.tsx`); section reveals stagger via `BlurFade` with at most ~4 reveals.
-**Plans:** TBD
+**Plans:** 3 plans (3 waves — serialized)
+- [ ] 03-01-PLAN.md — **Wave 1.** KpiSparkline component (KPI-05) + pure helpers (formatTrendPercent, sparklineConfigForTrend, KpiTileConfig). Axis-less Recharts Area inside ChartContainer; trend-direction color via ChartConfig.theme map; role='img' + aria-label; no animation.
+- [ ] 03-02-PLAN.md — **Wave 2** (depends on 03-01). KpiBentoRow orchestrator + 6 tiles (KPI-01/02/03/04/06/07) + shared useReducedMotion hook. 6 Stat-shell tiles in D-01 order with @container grid (auto-fit minmax(180px,1fr)), NumberTicker value animation (KpiNumberTicker reduced-motion wrapper), Lucide trend chips with !text-[var(--color-warning)] down override, BlurFade waves A {0,1,2} + B {4,5,6}, skeleton ↔ data branch, buildTileAriaLabel a11y.
+- [ ] 03-03-PLAN.md — **Wave 3** (depends on 03-01 + 03-02). Mount KpiBentoRow into dashboard.tsx (replace legacy <p> header at lines 172-186; preserve <h1> + data-testid). Extend DashboardProps with kpiData: KpiBentoRowProps. Construct kpiData in page.tsx from useDashboardStats() + useDashboardCharts(). Manual visual checkpoint (browser path or MCP RPC inspection alternate).
 **UI hint:** yes
 
 ### Phase 4: Charts
@@ -150,7 +153,7 @@ Phases 1 and 2 are invisible foundation. Phases 3 and 4 each *add* a new region 
 |-------|-----------|-------|--------|-----------|
 | 1. Foundation & Dedup | v2.0 | 0/3 | Planned | - |
 | 2. Data Layer & RPC | v2.0 | 0/3 | Planned | - |
-| 3. KPI Bento Row | v2.0 | 0/0 | Not started | - |
+| 3. KPI Bento Row | v2.0 | 0/3 | Planned | - |
 | 4. Charts | v2.0 | 0/0 | Not started | - |
 | 5. Portfolio DataTable | v2.0 | 0/0 | Not started | - |
 | 6. Polish & A11y | v2.0 | 0/0 | Not started | - |
@@ -194,4 +197,4 @@ Audit round 3 verdict: PERFECT BY ALL MEASURES. Full milestone summary in [miles
 </details>
 
 ---
-*Last updated: 2026-05-23 — Phase 2 planning complete (3 plans, 3 waves)*
+*Last updated: 2026-05-23 — Phase 3 planning complete (3 plans, 3 waves)*

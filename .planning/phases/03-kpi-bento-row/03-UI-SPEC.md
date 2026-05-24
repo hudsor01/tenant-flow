@@ -220,7 +220,7 @@ Slot assignments (from `Stat` source, lines 13-15):
 >
 ```
 
-**Why no Tailwind utility for `container-type`:** Tailwind v4's container-query utilities (`@container/<name>`) ship the CHILD selector form. The PARENT establishing `container-type: inline-size; container-name: kpi-bento` is set in inline style here because no parent-side Tailwind utility exists in the current `@theme`. This is the project-canonical pattern (see `globals.css` grid `@container` consumers); the inline-style exception applies because no Tailwind alternative exists — same exception class as `style={{ "--gradient-x": …}}` in marketing surfaces. **This is the SINGLE allowed inline-style in Phase 3** and is justified at execution time in the planner's task list.
+**Why no Tailwind utility for `container-type`:** Tailwind v4's container-query utilities (`@container/<name>`) ship the CHILD selector form. The PARENT establishing `container-type: inline-size; container-name: kpi-bento` is set in inline style here because no parent-side Tailwind utility exists in the current `@theme`. This is the project-canonical pattern (see `globals.css` grid `@container` consumers); the inline-style exception applies because no Tailwind alternative exists — same exception class as `style={{ "--gradient-x": …}}` in marketing surfaces. **This is the SINGLE allowed inline-style PROP in Phase 3 — one `style={{ ... }}` block containing exactly two static container-query keys (`containerType` and `containerName`), both string-literal, NO color, NO duration, NO spacing value.** Justified at execution time in the planner's task list.
 
 > **Alternate (preferred if available at execution time):** if the project has a `@utility container-kpi-bento` block in `globals.css`, planner adds it (`@utility container-kpi-bento { container-type: inline-size; container-name: kpi-bento; }`) and the wrapper drops the inline `style` for `className="… container-kpi-bento …"`. This is a planner judgment call — both forms are equivalent visually.
 
@@ -597,6 +597,21 @@ Phase 3 obligation: **none additional** — BlurFade self-guards. The wrapping `
 ### 7.5 First-paint reveal vs subsequent updates
 
 `BlurFade` uses `useState(false)` + IntersectionObserver to gate first-paint reveal. Subsequent prop updates (e.g., data refresh from a query refetch) do NOT re-trigger the reveal — the `isVisible` state persists. This matches D-06's intent: data refresh re-runs `NumberTicker` (value changes → ticks from previous to new) but does NOT re-fade-in the tile.
+
+### 7.6 Declared override (cycle-1 plan-checker W-1): 6 BlurFade reveals vs parent ≤4-reveals-per-page budget
+
+Phase 1 milestone-wide UI-SPEC § Motion Budget and ROADMAP § Phase 3 SC #4 both state "BlurFade ≤ 4 reveals per page." Phase 3 ships SIX `BlurFade` wrappers (one per tile) — a 50% overshoot of the literal count.
+
+**Justification:** The 6 tiles are ONE logical reveal split into 2 visual waves per D-05 (financial-first → operational hierarchy). A single parent `BlurFade` wrapping the whole grid with CSS-only stagger would technically satisfy the literal ≤4 count, but would force one of:
+- A custom `animation-delay` CSS variable per tile (re-implementing BlurFade's `delay` prop in CSS) — duplicates the vendored primitive's logic
+- A single grid-wide blur-fade where all 6 tiles reveal in lockstep — loses the financial→operational narrative D-05 locks
+- A complex pseudo-element stagger (`nth-child` keyframes) — adds CSS surface and breaks reduced-motion bypass
+
+The 6-wrapper design preserves D-05's narrative AND inherits BlurFade's existing reduced-motion guard (§ 7.4 — no per-tile reduced-motion logic needed). Reduced-motion users see all 6 tiles at frame 0; no perceived budget cost.
+
+**Scope of override:** REVEAL COUNT only (6 vs ≤4). The STAGGER WINDOW override (480ms vs ≤400ms) is separately declared in § 7.2 above. Both overrides are checker-acknowledged (Dimension 5 FLAG, non-blocking) and locked by D-05's math.
+
+**Retreat path (if Phase 6 polish or future audit rejects):** Refactor `KpiBentoRow` to a single parent `BlurFade` wrapping the grid container. Per-tile stagger would shift to CSS via `--blur-fade-delay-N` custom properties on each `<Stat>` child. Documented here for traceability; not implemented in Phase 3.
 
 ---
 
