@@ -191,6 +191,29 @@ export type OwnerDashboardData = {
 	propertyPerformance: PropertyPerformance[];
 };
 
+// Narrow the raw `string` status field to the typed union without `as`.
+// Migration `20260523234221_phase2_property_perf_address_status_type.sql`
+// derives `status` server-side via a closed CASE expression returning
+// exactly one of `'NO_UNITS' | 'vacant' | 'FULL' | 'PARTIAL'`. The throw
+// is defense-in-depth — it surfaces silent contract drift if a future
+// migration introduces a new status value the union doesn't cover.
+// Unreachable in normal operation against the current server contract.
+function mapPropertyPerformanceStatus(
+	raw: string,
+): PropertyPerformance["status"] {
+	if (
+		raw === "NO_UNITS" ||
+		raw === "vacant" ||
+		raw === "FULL" ||
+		raw === "PARTIAL"
+	) {
+		return raw;
+	}
+	throw new Error(
+		`Unexpected property_performance.status value from get_dashboard_data_v2: ${raw}`,
+	);
+}
+
 // Fetcher for unified dashboard payload — single RPC call
 const fetchOwnerDashboardData = async (): Promise<OwnerDashboardData> => {
 	const supabase = createClient();
@@ -243,9 +266,15 @@ const fetchOwnerDashboardData = async (): Promise<OwnerDashboardData> => {
 		potentialRevenue: row.potential_revenue,
 		address_line1: row.address,
 		property_type: row.property_type,
-		status: row.status as PropertyPerformance["status"],
+		status: mapPropertyPerformanceStatus(row.status),
 		trend: "stable",
 		trendPercentage: 0,
+		// Defensive: until the `perf_open_maintenance` migration is applied in
+		// prod (see 20260523223626_phase2_open_maintenance_per_property.sql),
+		// the RPC may return undefined for this field. `?? 0` keeps the
+		// frontend deploy safe even if a future revert temporarily removes
+		// the field from the RPC return shape.
+		open_maintenance: row.open_maintenance ?? 0,
 	}));
 
 	return {

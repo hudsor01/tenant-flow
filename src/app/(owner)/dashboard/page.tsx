@@ -62,7 +62,6 @@ function DashboardContent() {
 				activeLeases: 0,
 				expiringLeases: 0,
 				openMaintenanceRequests: 0,
-				collectionRate: 0,
 			};
 		}
 
@@ -79,7 +78,6 @@ function DashboardContent() {
 			activeLeases: stats.leases?.active ?? 0,
 			expiringLeases: stats.leases?.expiringSoon ?? 0,
 			openMaintenanceRequests: stats.maintenance?.open ?? 0,
-			collectionRate: 0, // Not available in current API
 		};
 	})();
 
@@ -105,7 +103,7 @@ function DashboardContent() {
 			occupiedUnits: prop.occupiedUnits,
 			occupancyRate: prop.occupancyRate,
 			monthlyRevenue: prop.monthlyRevenue,
-			openMaintenance: 0, // Not in current API response
+			openMaintenance: prop.open_maintenance ?? 0,
 		}));
 	})();
 

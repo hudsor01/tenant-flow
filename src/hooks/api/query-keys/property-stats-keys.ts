@@ -82,6 +82,10 @@ function mapPerformanceRow(
 		status,
 		trend,
 		trendPercentage: Number(row.trend_percentage) || 0,
+		// `open_maintenance` deliberately omitted — the `get_property_performance_with_trends`
+		// RPC does not carry maintenance counts. Consumers of this surface that need the value
+		// must source it from `get_dashboard_data_v2` instead. See `PropertyPerformance.open_maintenance`
+		// JSDoc in `src/types/core.ts` for the contract.
 	};
 }
 

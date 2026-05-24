@@ -6,7 +6,19 @@
  */
 
 /**
- * Response from get_property_performance RPC function
+ * Per-row shape of `get_dashboard_data_v2`'s `property_performance` JSONB
+ * array. Phase 2 (POLISH-10) shipped this in two cycles:
+ *  - `supabase/migrations/20260523223626_phase2_open_maintenance_per_property.sql`
+ *    added the `open_maintenance` per-property count via the new
+ *    `perf_open_maintenance` CTE.
+ *  - `supabase/migrations/20260523234221_phase2_property_perf_address_status_type.sql`
+ *    fixed a cycle-1 regression by emitting `address`, `property_type`, and a
+ *    derived `status` — which the type contract had previously claimed without
+ *    the RPC ever producing them.
+ *
+ * The fetcher boundary at `src/hooks/api/use-owner-dashboard.ts` narrows the
+ * raw JSONB to `PropertyPerformanceRpcResponse[]` and emits
+ * `PropertyPerformance[]` (the section-typed shape consumed by the dashboard).
  */
 export interface PropertyPerformanceRpcResponse {
 	property_name: string;
@@ -21,6 +33,7 @@ export interface PropertyPerformanceRpcResponse {
 	address: string;
 	property_type: string;
 	status: string;
+	open_maintenance: number;
 }
 
 /**
@@ -41,23 +54,4 @@ export interface RevenueTrendResponse {
 	revenue: number;
 	growth: number;
 	previous_period_revenue: number;
-}
-
-/**
- * Type guards for runtime validation
- */
-export function isPropertyPerformanceRpcResponse(
-	data: unknown,
-): data is PropertyPerformanceRpcResponse {
-	if (!data || typeof data !== "object") return false;
-
-	const obj = data as Record<string, unknown>;
-	return (
-		"property_name" in obj &&
-		typeof obj.property_name === "string" &&
-		"property_id" in obj &&
-		typeof obj.property_id === "string" &&
-		"total_units" in obj &&
-		typeof obj.total_units === "number"
-	);
 }

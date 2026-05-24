@@ -2337,6 +2337,7 @@ export type Database = {
 				Args: { p_feature: string; p_user_id: string };
 				Returns: boolean;
 			};
+			cleanup_cron_job_run_details: { Args: never; Returns: number };
 			cleanup_old_email_deliverability: { Args: never; Returns: number };
 			cleanup_old_errors: { Args: never; Returns: number };
 			cleanup_old_internal_events: {
@@ -2346,6 +2347,7 @@ export type Database = {
 			cleanup_old_security_events: { Args: never; Returns: number };
 			cleanup_old_webhook_events: { Args: never; Returns: number };
 			cleanup_orphan_documents: { Args: never; Returns: undefined };
+			cleanup_pg_net_http_responses: { Args: never; Returns: number };
 			cleanup_stripe_sync_history: { Args: never; Returns: undefined };
 			confirm_lease_subscription: {
 				Args: { p_lease_id: string; p_subscription_id: string };

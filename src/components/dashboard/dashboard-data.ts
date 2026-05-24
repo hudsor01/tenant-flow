@@ -27,21 +27,30 @@ export interface DashboardViewModel {
  * Pure RPC-payload → view-model transform for the owner dashboard.
  * Server-Component-safe: no React, no hooks, no React Query coupling.
  * Per D-10 (Phase 01 CONTEXT.md) — the shared transform contract that
- * Phases 2-5 consume.
+ * Phase 3's `dashboard-view.tsx` will consume.
  *
  * Input type is the canonical `OwnerDashboardData` from
  * `use-owner-dashboard.ts` (the post-mapped payload — RPC row-level snake↔
- * camel mapping has already happened at the fetcher boundary at
- * `use-owner-dashboard.ts:232-265`). Importing the canonical type instead
- * of declaring a structural duplicate per Phase 1 CR-01 fix (Zero Tolerance
- * Rule 3 — no duplicate types). Per D-12a interpretation #2 the selectors
- * compose this transform; it is not wired into `DASHBOARD_BASE_QUERY_OPTIONS`.
+ * camel mapping has already happened at the fetcher boundary). Importing
+ * the canonical type instead of declaring a structural duplicate per
+ * Phase 1 CR-01 fix (Zero Tolerance Rule 3 — no duplicate types).
+ *
+ * **Current consumer status (Phase 2 / Phase 1 cycle-1 WR-01 fix):**
+ * `transformDashboardData` has ZERO production consumers today. The
+ * Phase 1 cycle-1 fix in `use-dashboard-hooks.ts` removed the
+ * `transformDashboardData(data)` invocation from `selectStats` /
+ * `selectCharts` (those selectors now read raw slices directly — the
+ * old composition discarded `portfolioRows` work). The live `/dashboard`
+ * page uses an inline transform in `dashboard.tsx:87-102` plus a
+ * re-mapper in `page.tsx:95-108`. The canonical transform survives as
+ * the locked Phase-3 seam (D-10) — only the unit test at
+ * `dashboard-data.test.ts` consumes it, pinning the contract so a
+ * Phase-3-time migration surfaces no surprises.
  *
  * Trust-the-type posture: input fields are typed required, so the body
  * does not optional-chain on `timeSeries` or `propertyPerformance`. The
- * fetcher upstream (`use-owner-dashboard.ts`) is responsible for emitting
- * the contracted shape with `?? []` fallbacks before the payload reaches
- * this transform.
+ * fetcher upstream is responsible for emitting the contracted shape
+ * with `?? []` fallbacks before the payload reaches this transform.
  */
 export function transformDashboardData(
 	payload: OwnerDashboardData,
@@ -61,7 +70,11 @@ export function transformDashboardData(
 						: "vacant",
 			leaseEnd: null,
 			rent: prop.monthlyRevenue,
-			maintenanceOpen: 0,
+			// `open_maintenance` is optional on PropertyPerformance — only the v2
+			// dashboard RPC emits it. `?? 0` is the read-seam fallback; producers
+			// that genuinely have no maintenance data omit the field rather than
+			// fabricating a zero at construction time.
+			maintenanceOpen: prop.open_maintenance ?? 0,
 		}),
 	);
 

@@ -338,6 +338,13 @@ export interface PropertyPerformance {
 	status: "NO_UNITS" | "vacant" | "FULL" | "PARTIAL";
 	trend: "up" | "down" | "stable";
 	trendPercentage: number;
+	// Optional: only `get_dashboard_data_v2` (via the Phase 2
+	// `perf_open_maintenance` CTE) emits this field. Other RPCs that
+	// construct `PropertyPerformance` (e.g., `get_property_performance_with_trends`)
+	// do not carry maintenance counts; consumers that need the value
+	// MUST apply a `?? 0` fallback at the read seam rather than relying
+	// on construction-site placeholders that fabricate data.
+	open_maintenance?: number;
 }
 
 export interface PropertyPerformanceResponse {

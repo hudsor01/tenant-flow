@@ -66,7 +66,7 @@ Phases 1 and 2 are invisible foundation. Phases 3 and 4 each *add* a new region 
 
 ### Phase 2: Data Layer & RPC
 **Slug:** `dashboard-data-layer-rpc`
-**Goal:** Make the dashboard's data inputs honest — additive migration for per-property `open_maintenance` (or ship the column hidden by default), and a discuss-phase compute-or-drop decision on `collection_rate` (TenantFlow demolished rent facilitation; never fabricate `0`).
+**Goal:** Make the dashboard's data inputs honest — additive migration for per-property `open_maintenance` (locked D-02), and drop `collection_rate` from the KPI set per the v1.0 honesty principle (locked D-01: TenantFlow does not facilitate rent payments, no payment data exists, never fabricate `0`).
 **Depends on:** Phase 1
 **Requirements:** POLISH-10, POLISH-11
 **Success Criteria** (what must be TRUE):
@@ -74,7 +74,10 @@ Phases 1 and 2 are invisible foundation. Phases 3 and 4 each *add* a new region 
   2. The portfolio data model contains no hardcoded `0` for `collectionRate` — either the field is dropped from the KPI set or sourced from a real RPC value (resolution captured in the Phase 2 discuss artifact).
   3. `tests/integration/rls/` includes a dual-client (ownerA/ownerB) test confirming the migrated RPC respects owner isolation under RLS.
   4. `bun run test:integration` passes on the new test against prod.
-**Plans:** TBD
+**Plans:** 3 plans (3 waves — serialized)
+- [ ] 02-01-PLAN.md — **Wave 1.** Additive migration extending `get_dashboard_data_v2` with `perf_open_maintenance` CTE + `open_maintenance` JSON key; MCP `apply_migration` to prod; reconcile filename with prod timestamp; regenerate `src/types/supabase.ts`.
+- [ ] 02-02-PLAN.md — **Wave 2** (depends on 02-01). Frontend wiring: add `open_maintenance: number` to `PropertyPerformance` + `PropertyPerformanceRpcResponse`; drop `collectionRate` from `DashboardMetrics`; update fetcher mapper, page.tsx re-mapper, `transformDashboardData`, and the inline `dashboard.tsx` portfolio transform to source real `open_maintenance` instead of hardcoded `0`.
+- [ ] 02-03-PLAN.md — **Wave 3** (depends on 02-02). Dual-client RLS integration test at `tests/integration/rls/dashboard-rpc-open-maintenance.test.ts` (happy-path + cross-owner isolation); `bun run test:integration` against prod; manual checkpoint confirming portfolio table renders real maintenance counts.
 
 ### Phase 3: KPI Bento Row
 **Slug:** `dashboard-kpi-bento-row`
@@ -146,7 +149,7 @@ Phases 1 and 2 are invisible foundation. Phases 3 and 4 each *add* a new region 
 | Phase | Milestone | Plans | Status | Completed |
 |-------|-----------|-------|--------|-----------|
 | 1. Foundation & Dedup | v2.0 | 0/3 | Planned | - |
-| 2. Data Layer & RPC | v2.0 | 0/0 | Not started | - |
+| 2. Data Layer & RPC | v2.0 | 0/3 | Planned | - |
 | 3. KPI Bento Row | v2.0 | 0/0 | Not started | - |
 | 4. Charts | v2.0 | 0/0 | Not started | - |
 | 5. Portfolio DataTable | v2.0 | 0/0 | Not started | - |
@@ -191,4 +194,4 @@ Audit round 3 verdict: PERFECT BY ALL MEASURES. Full milestone summary in [miles
 </details>
 
 ---
-*Last updated: 2026-05-22 — v2.0 roadmap created after v1.0 archive*
+*Last updated: 2026-05-23 — Phase 2 planning complete (3 plans, 3 waves)*
