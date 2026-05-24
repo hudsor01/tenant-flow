@@ -27,6 +27,13 @@ type TrendDirection = MetricTrend["trend"];
  *
  * Rounds to the nearest integer — `0.4` and `-0.4` both round to zero and
  * render as `0%` with no sign (03-UI-SPEC § 4.3 honesty rule).
+ *
+ * NaN / Infinity guard (cycle-1 WR-02 hardening): `MetricTrend.percentChange`
+ * is typed `number`, but the RPC can ship `NaN` on a stale row and
+ * `Math.round(NaN)` returns `NaN` — without the guard the chip would
+ * render `"NaN%"` or `"+Infinity%"`. The `Number.isFinite` short-circuit
+ * is load-bearing; do NOT remove it as "defensive overkill" — it
+ * defends a real failure mode.
  */
 export function formatTrendPercent(percentChange: number): string {
 	// WR-02 cycle-1 fix: NaN / Infinity guard. The type says `number` but
@@ -178,9 +185,16 @@ interface BuildTileAriaLabelInput {
  * - If `trend` is `null`, the trend segment is omitted entirely (D-04 + D-09
  *   honesty rule — no fabricated `0%`).
  * - If `trend.trend === "stable"`, emits `"Unchanged vs. <window>."` (strips
- *   any leading `"vs. "` from the trendLabel to avoid duplication).
+ *   any leading `"vs. "` from the trendLabel to avoid duplication). When
+ *   `trendLabel` is undefined or empty, emits `"Unchanged."` (cycle-2
+ *   WR-2C-02 fix — prevents an orphan `"Unchanged vs. ."` sentence).
  * - Otherwise emits `"<Up|Down> <abs(round(pct))> percent <trendLabel>."`,
  *   trimming a trailing space when `trendLabel` is undefined.
+ *
+ * NaN / Infinity guard (cycle-1 WR-02 hardening): the `pct` value uses a
+ * `Number.isFinite` short-circuit so `trend.percentChange === NaN` (which
+ * can occur on a stale RPC row) does NOT narrate `"Up NaN percent..."`.
+ * Load-bearing; do NOT remove.
  */
 export function buildTileAriaLabel(input: BuildTileAriaLabelInput): string {
 	const parts: string[] = [`${input.label}: ${input.spokenValue}.`];
@@ -202,8 +216,14 @@ export function buildTileAriaLabel(input: BuildTileAriaLabelInput): string {
 			: 0;
 		let trendSegment: string;
 		if (input.trend.trend === "stable") {
+			// WR-2C-02 cycle-2 fix: when `trendLabel` is undefined, the prior
+			// template produced "Unchanged vs. ." (orphan period from the
+			// caller-appended ".") — symmetric with the WR-02 trimEnd discipline
+			// the non-stable branch already applies. Drop the "vs. ..." trailer
+			// entirely when the window text is empty so the narrated sentence
+			// becomes "Unchanged." instead of "Unchanged vs. .".
 			const windowText = (input.trendLabel ?? "").replace(/^vs\.\s*/, "");
-			trendSegment = `Unchanged vs. ${windowText}`;
+			trendSegment = windowText ? `Unchanged vs. ${windowText}` : "Unchanged";
 		} else {
 			const base = `${directionWord} ${pct} percent ${input.trendLabel ?? ""}`;
 			trendSegment = base.trimEnd();

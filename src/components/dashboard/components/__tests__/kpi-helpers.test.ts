@@ -185,4 +185,18 @@ describe("buildTileAriaLabel", () => {
 		expect(out).not.toMatch(/ {2}/);
 		expect(out).not.toMatch(/ \./);
 	});
+
+	// WR-2C-02 cycle-2 fix: stable trend with no trendLabel must emit
+	// `"Unchanged."` not `"Unchanged vs. ."` (orphan period from the
+	// caller-appended sentence terminator).
+	it("emits 'Unchanged.' (no orphan 'vs. .') when stable trend has no trendLabel", () => {
+		const out = buildTileAriaLabel({
+			label: "Open maintenance",
+			spokenValue: "8",
+			trend: stableTrend,
+		});
+		expect(out).toBe("Open maintenance: 8. Unchanged.");
+		expect(out).not.toContain("vs. .");
+		expect(out).not.toMatch(/ {2}/);
+	});
 });
