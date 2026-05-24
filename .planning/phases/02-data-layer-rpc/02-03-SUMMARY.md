@@ -79,20 +79,22 @@ The plan's LOCKED decision (D-04: dual-client test scope) is unchanged; only the
 ## Test File Structure
 
 ```text
-tests/integration/rls/dashboard-rpc-open-maintenance.test.ts  (241 lines, post-cycle-4 final state)
-├── Header comment block (lines 1-24)
-├── Imports (lines 26-27)
-├── describe("get_dashboard_data_v2 — open_maintenance per-property RLS isolation", () => {  // line 28
-│   ├── Module state (lines 29-39)
-│   ├── beforeAll (lines 42-156)
+tests/integration/rls/dashboard-rpc-open-maintenance.test.ts
+(Symbol-anchored — line numbers omitted to avoid drift; consult the
+file directly for current positions.)
+├── Header comment block
+├── Imports (SupabaseClient + PropertyPerformanceRpcResponse + setup helpers)
+├── describe("get_dashboard_data_v2 — open_maintenance per-property RLS isolation", () => {
+│   ├── Module state (clientA, clientB, ownerAId, ownerBId, propertyA, unitA, tenantA, maintenanceA, propertyB, unitB)
+│   ├── beforeAll
 │   │   ├── Auth: clientA, clientB, ownerAId, ownerBId
 │   │   ├── Insert: propertyA, unitA, tenantA, maintenanceA (ownerA-scoped fixtures)
 │   │   └── Insert: propertyB, unitB (ownerB-scoped fixtures)
-│   ├── afterAll (lines 158-172)
-│   │   └── Hard-delete in reverse dependency order
-│   ├── it("returns real per-property open_maintenance count …", ...)  // line 180
+│   ├── afterAll
+│   │   └── Hard-delete in reverse dependency order (maintenance → tenant → unit → property)
+│   ├── it("returns real per-property open_maintenance count …", ...)
 │   │   └── Assertions: open_maintenance >= 1, address, property_type, status (4 fields, cycle-2 extension)
-│   └── it("rejects cross-owner calls with Unauthorized …", ...)  // line 220
+│   └── it("rejects cross-owner calls with Unauthorized …", ...)
 │       └── Assertions: data === null + error.message === "Unauthorized"
 │       (Pre-cycle-4 wording was "returns empty property_performance" with
 │        `toEqual([])` — a false security claim. The cycle-4 P0 fix added
