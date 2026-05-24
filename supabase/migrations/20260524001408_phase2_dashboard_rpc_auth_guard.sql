@@ -255,6 +255,10 @@ begin
     ) rev
   ),
 
+  -- ============================================================
+  -- PROPERTY PERFORMANCE
+  -- ============================================================
+
   perf_unit_counts as (
     select
       property_id,
@@ -282,6 +286,12 @@ begin
     group by property_id
   ),
 
+  -- Phase 2 (POLISH-10) per-property open + in_progress maintenance counts.
+  -- Joins `all_maintenance` (already filtered to owner via shared CTE) to
+  -- `maintenance_requests` via primary key to recover `unit_id`, then to
+  -- `all_units` (already filtered to owner_properties) to reach `property_id`.
+  -- The PK lookup is sub-millisecond and does NOT add a second table scan to
+  -- `maintenance_requests`.
   perf_open_maintenance as (
     select
       u.property_id,
@@ -310,6 +320,15 @@ begin
           'monthly_revenue', coalesce(plr.monthly_revenue, 0),
           'potential_revenue', coalesce(ppr.potential_revenue, 0),
           'open_maintenance', coalesce(pom.open_maintenance, 0),
+          -- Phase 2 cycle-2: emit address / property_type / derived status.
+          -- `address` projects from properties.address_line1; `property_type`
+          -- is the existing column on `properties`. `status` is derived
+          -- server-side using the same rules as
+          -- src/hooks/api/query-keys/property-stats-keys.ts:47-56:
+          --   NO_UNITS  → total_units = 0
+          --   vacant    → occupied_units = 0 (but total_units > 0)
+          --   FULL      → occupied_units = total_units
+          --   PARTIAL   → otherwise
           'address', op.address_line1,
           'property_type', op.property_type,
           'status', case
@@ -505,7 +524,9 @@ grant execute on function public.get_dashboard_data_v2(uuid) to authenticated;
 grant execute on function public.get_dashboard_data_v2(uuid) to service_role;
 
 comment on function public.get_dashboard_data_v2 is
-  'Unified dashboard data fetch. Phase 2 cycle-4: added auth.uid() = p_user_id guard. '
-  'SECURITY DEFINER bypasses RLS, so the function must reassert scope against the '
-  'caller''s actual identity. Mirrors the established pattern from '
-  '20260306190000_consolidate_stats_rpcs.sql.';
+  'Unified dashboard data fetch — replaces 9 separate RPCs with 1 call. '
+  'Phase 2 shipped in three migrations: '
+  '(1) 20260523223626 added per-property open_maintenance via the new perf_open_maintenance CTE (POLISH-10); '
+  '(2) 20260523234221 fixed a pre-existing type-contract lie by emitting address, property_type, and a server-derived status (POLISH-10); '
+  '(3) 20260524001408 added the auth.uid() = p_user_id guard — SECURITY DEFINER bypasses RLS so scope must be reasserted against the caller''s identity. '
+  'Mirrors the established guard pattern from 20260306190000_consolidate_stats_rpcs.sql.';

@@ -232,6 +232,10 @@ describe("get_dashboard_data_v2 — open_maintenance per-property RLS isolation"
 		// ownerA, the original P0 leak).
 		expect(data).toBeNull();
 		expect(error).not.toBeNull();
-		expect(error?.message).toMatch(/Unauthorized/i);
+		// Strict equality — the migration raises exactly `'Unauthorized'`.
+		// A future refactor that changes the message (or appends a hint /
+		// detail) should fail this assertion so the security contract drift
+		// is visible at PR time.
+		expect(error?.message).toBe("Unauthorized");
 	});
 });

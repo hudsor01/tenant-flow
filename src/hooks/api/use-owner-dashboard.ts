@@ -192,8 +192,12 @@ export type OwnerDashboardData = {
 };
 
 // Narrow the raw `string` status field to the typed union without `as`.
-// Throwing on unexpected values surfaces silent contract drift early
-// (e.g., a future migration that introduces a new status value).
+// Migration `20260523234221_phase2_property_perf_address_status_type.sql`
+// derives `status` server-side via a closed CASE expression returning
+// exactly one of `'NO_UNITS' | 'vacant' | 'FULL' | 'PARTIAL'`. The throw
+// is defense-in-depth — it surfaces silent contract drift if a future
+// migration introduces a new status value the union doesn't cover.
+// Unreachable in normal operation against the current server contract.
 function mapPropertyPerformanceStatus(
 	raw: string,
 ): PropertyPerformance["status"] {
