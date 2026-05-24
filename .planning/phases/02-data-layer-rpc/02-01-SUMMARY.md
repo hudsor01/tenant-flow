@@ -48,7 +48,7 @@ POLISH-10 schema half closed. The `get_dashboard_data_v2` RPC now emits a per-pr
 | T1 — Write migration file | DONE | `supabase/migrations/20260523223626_phase2_open_maintenance_per_property.sql` (552 lines). All 10 acceptance criteria PASS: 3 `perf_open_maintenance` mentions, 1 jsonb_key match, 3 `security definer`/`search_path` matches, 4 trend CTEs, 0 destructive DDL, signature unchanged. |
 | T2 — `[BLOCKING]` MCP apply_migration | DONE | `mcp__supabase__apply_migration({"name":"phase2_open_maintenance_per_property", "query":...})` returned `{"success":true}`. Post-apply smoke via `mcp__supabase__execute_sql`: `get_dashboard_data_v2('218000e4...')` returns property_performance rows with `open_maintenance` keys. |
 | T3 — `[BLOCKING]` Filename reconcile | DONE | `mcp__supabase__list_migrations` reported `version: "20260523223626"`. Local file `20260523172457_*.sql` renamed via `mv` to `20260523223626_*.sql`. Single file matches glob `*phase2_open_maintenance_per_property.sql`. |
-| T4 — `[BLOCKING]` Regen `src/types/supabase.ts` | DONE | `bun run db:types` failed with `Unauthorized` (CLI not logged in). Fell through to `mcp__supabase__generate_typescript_types` per the script's documented fallback. 2896-line autogen file written. `bunx tsc --noEmit` exits 0. |
+| T4 — `[BLOCKING]` Regen `src/types/supabase.ts` | DONE | `bun run db:types` failed with `Unauthorized` (CLI not logged in). Fell through to `mcp__supabase__generate_typescript_types` per the script's documented fallback. Autogen file written (~2.9k lines). `bunx tsc --noEmit` exits 0. |
 
 ## D-02 Implementation Detail (Additive CTE)
 

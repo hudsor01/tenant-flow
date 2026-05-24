@@ -323,8 +323,10 @@ begin
           -- Phase 2 cycle-2: emit address / property_type / derived status.
           -- `address` projects from properties.address_line1; `property_type`
           -- is the existing column on `properties`. `status` is derived
-          -- server-side using the same rules as
-          -- src/hooks/api/query-keys/property-stats-keys.ts:47-56:
+          -- server-side using the same rules as the `mapPerformanceRow`
+          -- helper in src/hooks/api/query-keys/property-stats-keys.ts (search
+          -- for the status assignment block — line numbers omitted to avoid
+          -- drift):
           --   NO_UNITS  → total_units = 0
           --   vacant    → occupied_units = 0 (but total_units > 0)
           --   FULL      → occupied_units = total_units

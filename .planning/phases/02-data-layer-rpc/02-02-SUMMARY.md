@@ -72,7 +72,7 @@ $ git ls-files 'src/**' | xargs grep -nE 'collectionRate' 2>/dev/null
 (empty)
 ```
 
-Field removed from `DashboardMetrics` interface (was line 39); two fabricated `collectionRate: 0` constructor sites in `page.tsx` (line 65 in the empty-state branch + line 82 in the real-data branch) deleted. No replacement metric synthesized — TenantFlow does not facilitate rent payments, so `0` was a fabricated reading (v1.0 honesty principle).
+Field removed from `DashboardMetrics` interface (planning-time line 39); two fabricated `collectionRate: 0` constructor sites in `page.tsx` deleted (planning-time line 65 in the empty-state branch and planning-time line 82 in the real-data branch). No replacement metric synthesized — TenantFlow does not facilitate rent payments, so `0` was a fabricated reading (v1.0 honesty principle).
 
 ## D-02 (open_maintenance end-to-end) — verified
 
