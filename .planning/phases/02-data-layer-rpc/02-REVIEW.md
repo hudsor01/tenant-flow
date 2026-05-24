@@ -1,9 +1,9 @@
 ---
 phase: 02-data-layer-rpc
-reviewed: 2026-05-23T22:30:00Z
+reviewed: 2026-05-23T00:00:00Z
 depth: deep
-cycle: 4
-files_reviewed: 12
+cycle: 5
+files_reviewed: 13
 files_reviewed_list:
   - src/app/(owner)/dashboard/page.tsx
   - src/components/dashboard/dashboard-data.ts
@@ -16,347 +16,143 @@ files_reviewed_list:
   - src/types/sections/dashboard.ts
   - supabase/migrations/20260523223626_phase2_open_maintenance_per_property.sql
   - supabase/migrations/20260523234221_phase2_property_perf_address_status_type.sql
+  - supabase/migrations/20260524001408_phase2_dashboard_rpc_auth_guard.sql
   - tests/integration/rls/dashboard-rpc-open-maintenance.test.ts
 findings:
-  critical: 1
-  warning: 0
+  critical: 0
+  blocker: 0
+  warning: 1
   info: 2
   total: 3
 status: issues_found
 consecutive_zero_finding_cycles: 0
-perfect_pr_gate: counter_reset
+perfect_pr_gate: 0_of_2
 ---
 
-# Phase 2: Code Review Report — Cycle 4
+# Phase 2: Code Review Report — Cycle 5
 
-**Reviewed:** 2026-05-23T22:30:00Z
+**Reviewed:** 2026-05-23
 **Depth:** deep
-**Files Reviewed:** 12
+**Cycle:** 5
+**Files Reviewed:** 13 (12 + new auth-guard migration)
 **Status:** issues_found
-**Cycle:** 4 (fresh-eyes pass after one consecutive zero-finding cycle)
-**Consecutive zero-finding cycles:** 0 (reset by this cycle's findings)
 
-## Summary
+## Cycle 4 Fixes — Verification
 
-Cycle 4 was supposed to be the second consecutive zero-finding cycle that closes the perfect-PR gate. It is not. A fresh adversarial pass — explicitly NOT a re-verification of cycle 3 — surfaced three issues that all prior cycles missed:
+| Finding | Status | Evidence |
+|---|---|---|
+| **CR-01** Auth guard | CLOSED | Migration `20260524001408` lines 25-27 insert `if p_user_id != (select auth.uid()) then raise exception 'Unauthorized'; end if;` immediately after `begin` (line 22), before `with` (line 29). `CREATE OR REPLACE`, `SECURITY DEFINER`, `set search_path to 'public'`, signature `(p_user_id uuid) returns jsonb`, and GRANTs to authenticated + service_role all preserved (lines 13-17, 504-505). Pattern mirrors reference migration `20260306190000_consolidate_stats_rpcs.sql` (verified identical SQL shape at lines 17 + 54 of that reference). |
+| **CR-01** Test isolation assertion | CLOSED | `dashboard-rpc-open-maintenance.test.ts` lines 220-236 expect `error.message` matches `/Unauthorized/i` AND `data === null` instead of `toEqual([])`. The "rejects cross-owner calls with Unauthorized" test name + 12-line comment block (lines 224-233) explains why the empty-array assertion was a false security claim. |
+| **IN-01** dashboard-data.ts JSDoc | CLOSED | Lines 38-48 state "ZERO production consumers today", identify `use-dashboard-hooks.ts` selector composition as removed, reference D-10 + Phase 3 `dashboard-view.tsx` as the future consumer. No longer claims selectors compose this transform. |
+| **IN-02** Test docstring | CLOSED | Lines 19-22 acknowledge `getTestCredentials()` throws when env vars unset; CI provides via repo secrets; local runs need `.env.local`. No longer claims graceful skip. |
 
-- **CR-01 (BLOCKER):** The integration test added by Phase 2 (`dashboard-rpc-open-maintenance.test.ts`) makes a security claim that is **factually false**. It asserts that when ownerA calls `rpc('get_dashboard_data_v2', { p_user_id: ownerBId })` from clientA's authenticated session, the returned `property_performance` array is empty — claiming SECURITY DEFINER + per-CTE `where owner_user_id = p_user_id` filtering provides isolation. This is wrong on first principles: SECURITY DEFINER bypasses RLS (function owner has BYPASSRLS, confirmed by `20260504164842_drop_app_config_for_all_service_role_policy.sql:18`), and the CTE filter uses the function argument `p_user_id` (set by the caller), not `auth.uid()`. The test's beforeAll creates `propertyB` under ownerB; the RPC call WILL return propertyB's row. Either the test is failing in CI (which prior cycles didn't surface), or it's accidentally passing only when ownerB's data happens to be empty. Underlying issue: the RPC has no `auth.uid() != p_user_id → raise exception 'Unauthorized'` guard despite this being a documented codebase convention (see `20260306190000_consolidate_stats_rpcs.sql` SEC-01 pattern), making cross-owner dashboard data leakable to any authenticated user.
-- **IN-01 (stale JSDoc):** `dashboard-data.ts:37-38` claims "the selectors compose this transform" but cycle 2's `use-dashboard-hooks.ts:28-37` fix removed the `transformDashboardData(data)` invocation from `selectStats` / `selectCharts`. `transformDashboardData` has zero production consumers — only the unit test imports it. The JSDoc claim is contradicted by the very file (`use-dashboard-hooks.ts`) it references.
-- **IN-02 (misleading test docstring):** `dashboard-rpc-open-maintenance.test.ts:18` claims the test pattern matches `bulk-import-create-lease.test.ts` "(dual client, fixture-create + cleanup, **graceful skip if env missing**)". The test does NOT gracefully skip on missing env — `getTestCredentials()` throws unconditionally when any of the 4 E2E_OWNER_* env vars is missing (`supabase-client.ts:80-84`). The only graceful skip in the file is the fixture-creation skip inside the happy-path `it` block.
+**Structural diff Migration #2 vs Migration #3:** functionally equivalent except for (a) the new `if p_user_id != ...` guard, (b) updated header comments, (c) updated function-comment. CTEs all preserved: `perf_open_maintenance` (lines 285-293), address/property_type/status keys in `property_perf.jsonb_build_object` (lines 313-320). Migration #3 is the canonical replay-safe end-state.
 
-The CR-01 finding is what Phase 1's perfect-PR pattern warned about: cycles 6+7 of Phase 1 caught what 2+3 missed because 3 had been dismissive. Cycle 3 of Phase 2 read the integration test's comment ("CTE chain returns no rows for ownerA's owned data AND no rows for ownerB's owned data because clientA's session can't satisfy the CTE filter for ownerB's user_id") and accepted it as truth instead of testing the claim against the actual SECURITY DEFINER semantics.
+**Auth-guard edge cases:**
+- Honest caller (`p_user_id == auth.uid()`): `!=` is FALSE → continue. Correct.
+- Cross-owner attempt (`p_user_id != auth.uid()`): `!=` is TRUE → raise. Correct.
+- Unauthenticated caller (auth.uid() returns NULL): `p_user_id != NULL` is NULL → IF NULL treats as FALSE → continue. This is consistent with the established project pattern at `20260306190000_consolidate_stats_rpcs.sql` (same `!=` shape). PostgREST `authenticated` role is bound to a JWT, so `auth.uid()` is non-null in practice for any caller reaching this RPC; the `service_role` GRANT is intentional. Project-wide convention, not a phase-2 defect.
 
-The perfect-PR counter resets to 0. Cycles 5+6 must both be zero-finding to satisfy the gate.
+**D-04 contract evolution:** CONTEXT D-04 (line 61) reads: "returns zero rows OR errors with permission denial (whichever the RPC's SECURITY DEFINER definition enforces — likely 'empty result because no rows match the owner filter')." The original phrasing anticipated BOTH outcomes; cycle-4 picked the security-correct branch ("errors with permission denial"). The decision is semantically consistent with D-04 — no CONTEXT.md follow-up note required.
 
-## Findings
+---
 
-### CR-01 (BLOCKER): Integration test isolation assertion is provably false — cross-owner data leak shipped untested
+## Fresh Cycle 5 Findings
 
-**Files:**
-- `tests/integration/rls/dashboard-rpc-open-maintenance.test.ts:216-238` (test bug)
-- `supabase/migrations/20260523234221_phase2_property_perf_address_status_type.sql:15-23` (underlying RPC missing SEC-01 guard)
+### WR-01 — Migration #3 strips in-source explanation comments
 
-**Issue:**
+**File:** `supabase/migrations/20260524001408_phase2_dashboard_rpc_auth_guard.sql:255-320`
+**Severity:** Warning
 
-The integration test's "ISOLATION" block asserts:
+**Issue:** Migration #3 is the canonical end-state via `CREATE OR REPLACE` — anyone running `\sf get_dashboard_data_v2` in prod, or diffing the source SQL against the prod definition, sees Migration #3's stripped body. Migration #2 contained three in-source documentation blocks that Migration #3 silently dropped:
 
-```ts
-// dashboard-rpc-open-maintenance.test.ts:217-237
-const { data, error } = await clientA.rpc("get_dashboard_data_v2", {
-    p_user_id: ownerBId,
-});
-// …
-expect(result.property_performance).toEqual([]);
-```
+1. **Migration #2 line 259-262 (dropped):** the `-- PROPERTY PERFORMANCE` section header that delimited the `perf_unit_counts` / `perf_lease_revenues` / `perf_potential_revenues` / `perf_open_maintenance` cluster.
+2. **Migration #2 line 291 (dropped):** `-- Phase 2 (POLISH-10) per-property open + in_progress maintenance counts.` — the only in-body anchor explaining why `perf_open_maintenance` exists.
+3. **Migration #2 lines 320-327 (dropped):** the 8-line "Phase 2 cycle-2: align RPC return shape" block that documented the status-derivation rules (`NO_UNITS / vacant / FULL / PARTIAL`) inside the case statement. This is the highest-value comment of the three because the derivation logic must stay in lockstep with the frontend `mapPerformanceRow` in `property-stats-keys.ts:46-56` — and the only thing that documents that lockstep is now gone from prod.
 
-with the explanatory comment:
+The function-comment at the bottom of Migration #3 (lines 507-511) was also updated to reference only cycle-4 — it no longer mentions cycle-2's address/property_type/status alignment or the POLISH-10 open_maintenance contract. A future engineer reading `pg_proc.proobjcomment` learns about the auth guard but not the rest of Phase 2.
 
-> "The function is SECURITY DEFINER but every shared CTE … filters on `owner_user_id = p_user_id`. When ownerA passes ownerB's id, the CTE chain returns no rows for ownerA's owned data AND no rows for ownerB's owned data (because clientA's session can't satisfy the CTE filter for ownerB's user_id). The result is empty."
+**Why this matters:** Migration #3 supersedes Migration #2 (and Migration #1) on every replay. A fresh-schema replay produces Migration #3's body in prod regardless of whether #1 / #2 succeed. The lost comments are not recoverable from the live DB.
 
-This comment is **factually wrong** on three counts:
-
-1. **SECURITY DEFINER + function-owner BYPASSRLS means RLS is bypassed inside the function body.** Verified by the project's own migration `20260504164842_drop_app_config_for_all_service_role_policy.sql:18`: "the BYPASSRLS-bearing function-owner role bypasses RLS". So row-level policies on `properties`, `units`, `leases`, `maintenance_requests` do NOT apply inside this function.
-
-2. **The CTE filter uses `p_user_id` (the function argument), not `auth.uid()`.** Inspect the canonical body in `20260523234221_phase2_property_perf_address_status_type.sql`:
-   - `owner_properties` (line 35): `where owner_user_id = p_user_id`
-   - `all_leases` (line 50): `where l.owner_user_id = p_user_id`
-   - `all_maintenance` (line 60): `where owner_user_id = p_user_id`
-   - `recent_activities` (line 366): `where user_id = p_user_id`
-
-   Every filter uses the argument. None reference `auth.uid()`. The fetcher at `use-owner-dashboard.ts:219-221` passes `user.id` from the legitimate flow, but an adversarial PostgREST call can substitute any UUID.
-
-3. **The test fixture has live data for ownerB.** `beforeAll` (lines 121-151) creates propertyB and unitB under ownerB. When ownerA's session calls `rpc('get_dashboard_data_v2', { p_user_id: ownerBId })`, `owner_properties` returns `{id: propertyB.id, name: 'Dashboard RPC Test Property B', address_line1: '2 RPC St', property_type: 'APARTMENT'}`. The `property_perf` CTE emits one jsonb row for propertyB. `result.property_performance` is `[{property_name: 'Dashboard RPC Test Property B', total_units: 1, occupied_units: 0, vacant_units: 1, occupancy_rate: 0, annual_revenue: 0, monthly_revenue: 0, potential_revenue: 1500, address: '2 RPC St', property_type: 'APARTMENT', status: 'vacant', open_maintenance: 0}]` — NOT `[]`.
-
-So `expect(result.property_performance).toEqual([])` must be failing when the test actually runs against the deployed RPC. Either:
-
-- **The test is failing in CI but cycle 3 didn't run / didn't surface it** (paper review only), OR
-- **The test is passing because the canonical migration hasn't yet been applied to prod** — the `?? 0` defensive fallback at `use-owner-dashboard.ts:268-273` is dated "until the migration is applied", which suggests the schema half of POLISH-10 may not yet be deployed. If the OLD RPC body runs (the one without `address`/`property_type`/`status` keys), the `property_perf` CTE still returns the same propertyB row — the assertion still fails. So this path also doesn't explain a "passing" status.
-
-Either way, the test does NOT verify the property it claims to verify. The actual security property — that an authenticated user cannot query another owner's dashboard — is **NOT enforced by the RPC** and is **NOT exercised by the test**.
-
-The codebase has a documented pattern for fixing this. From `20260306190000_consolidate_stats_rpcs.sql`:
+**Fix:** Restore the three dropped comment blocks in Migration #3 verbatim from Migration #2. Extend the function-comment to a multi-line `comment on function` that summarizes all three Phase 2 deltas:
 
 ```sql
--- SEC-01: Validate caller identity
-if p_user_id != (select auth.uid()) then
-    raise exception 'Unauthorized';
-end if;
+comment on function public.get_dashboard_data_v2 is
+  'Unified dashboard data fetch. Phase 2 (POLISH-10): '
+  'cycle-1 added per-property open_maintenance via perf_open_maintenance CTE. '
+  'cycle-2 aligned property_performance rows with PropertyPerformanceRpcResponse '
+  '(address, property_type, derived status). '
+  'cycle-4 added auth.uid() = p_user_id guard — SECURITY DEFINER bypasses RLS, '
+  'so the function must reassert scope against the caller''s actual identity. '
+  'Mirrors the established pattern from 20260306190000_consolidate_stats_rpcs.sql.';
 ```
 
-CLAUDE.md explicitly mandates this: "All SECURITY DEFINER RPCs validate `auth.uid()` and lock `search_path = public`." `get_dashboard_data_v2` locks `search_path` but does not validate `auth.uid()`. Phase 2 owned a `CREATE OR REPLACE FUNCTION` rewrite of the entire body and did not add the guard; Phase 2's integration test claimed to verify the missing guard but uses an incorrect assertion.
-
-**Pre-existing vs. new defect:** The auth-validation gap in the RPC predates Phase 2 (it shipped in `20260301070000_unified_dashboard_rpc.sql`). The integration test, however, is Phase 2's own contribution — and it makes a false security claim. That alone is a BLOCKER: the test gives a false signal that this surface is RLS-isolated, which masks the underlying RPC gap from future audits.
-
-**Fix:**
-
-Two-part fix required.
-
-**Part A: Add SEC-01 guard to the RPC** (replaces both Phase 2 migrations' final canonical body or adds a third follow-up migration on top of `20260523234221`):
-
-```sql
-create or replace function public.get_dashboard_data_v2(p_user_id uuid)
-returns jsonb
-language plpgsql
-security definer
-set search_path to 'public'
-as $function$
-declare
-  v_result jsonb;
-begin
-  -- SEC-01: Validate caller identity (matches the codebase pattern in
-  -- 20260306190000_consolidate_stats_rpcs.sql). Without this guard the
-  -- SECURITY DEFINER function trusts p_user_id blindly, allowing any
-  -- authenticated user to read any other owner's dashboard.
-  if p_user_id != (select auth.uid()) then
-    raise exception 'Unauthorized';
-  end if;
-
-  with
-  -- … rest of the body unchanged
-```
-
-**Part B: Rewrite the integration test to assert the new contract.** Replace the false "isolation via CTE filter" claim with a real auth-validation test:
-
-```ts
-it("rejects cross-owner queries with auth error (SEC-01 caller validation)", async () => {
-    const { data, error } = await clientA.rpc("get_dashboard_data_v2", {
-        p_user_id: ownerBId,
-    });
-    // SEC-01 guard raises 'Unauthorized'; PostgREST surfaces it as a 4xx with
-    // error.message containing 'Unauthorized'.
-    expect(error).not.toBeNull();
-    expect(error?.message ?? "").toMatch(/Unauthorized/i);
-    // No data leak: even error responses should not include any owner data.
-    expect(data).toBeNull();
-});
-```
-
-The new test pins the actual security contract. The current test pins a contract that does not exist.
+And inside the body, restore the three comment blocks (section header at ~line 255, POLISH-10 anchor at ~line 284, status-derivation rules at ~line 313).
 
 ---
 
-### IN-01: `dashboard-data.ts` JSDoc claim "the selectors compose this transform" is stale and contradicts `use-dashboard-hooks.ts`
+### IN-01 — `mapPropertyPerformanceStatus` runtime narrowing rationale outdated
 
-**File:** `src/components/dashboard/dashboard-data.ts:37-38`
+**File:** `src/hooks/api/use-owner-dashboard.ts:194-211`
+**Severity:** Info
 
-**Issue:**
+**Issue:** The runtime narrowing throw (lines 208-210) was introduced before Migration #2 made the RPC emit a server-derived status from a closed-set CASE expression (`'NO_UNITS' / 'vacant' / 'FULL' / 'PARTIAL'`). Since cycle-2 of Phase 2, the RPC cannot emit an unknown status string — the CASE expression covers all branches with no default. The throw is now defense-in-depth against a future migration that adds a fifth status, not an active runtime check.
 
-The JSDoc reads:
+The function comment at lines 194-196 reads: "Narrow the raw `string` status field to the typed union without `as`. Throwing on unexpected values surfaces silent contract drift early (e.g., a future migration that introduces a new status value)." — accurate but does not name the upstream guarantee. A future engineer reading this comment doesn't know that Migration `20260523234221` is the source of the closed set, so they may mistakenly assume the throw is reachable in normal operation.
 
-```ts
-/**
- * …
- * Per D-12a interpretation #2 the selectors compose this transform; it is
- * not wired into `DASHBOARD_BASE_QUERY_OPTIONS`.
- * …
- */
-```
+**Fix:** Extend the function comment to anchor the closed-set guarantee:
 
-But `use-dashboard-hooks.ts:28-37` explicitly explains that cycle 2 **removed** the `transformDashboardData(data)` invocation from the selectors:
-
-```ts
-// use-dashboard-hooks.ts:28-37
-// D-12a interpretation #2: keep `select` OUT of DASHBOARD_BASE_QUERY_OPTIONS
-// so per-call selectors compose the slice they need from the raw cache.
-// WR-01 fix (cycle 1 → cycle 2): selectStats + selectCharts read `data.stats`
-// / `data.timeSeries` directly. Earlier they invoked `transformDashboardData(data)`
-// and immediately discarded its `portfolioRows` work — every cache hit paid
-// the `propertyPerformance.map(...)` cost twice (once per selector) to read
-// passthrough fields. The transform stays imported by callers that consume
-// `portfolioRows` (Phase 3's `dashboard-view.tsx` is the next consumer);
-// here we just trim the dead invocation.
-```
-
-`grep -rn "transformDashboardData" src` confirms only `dashboard-data.test.ts` imports it. No production consumer composes the transform. The JSDoc claim is the opposite of reality.
-
-**Fix:**
-
-Rewrite the JSDoc to match the actual state:
-
-```ts
-/**
- * Pure RPC-payload → view-model transform for the owner dashboard.
- * Server-Component-safe: no React, no hooks, no React Query coupling.
- * Per D-10 (Phase 01 CONTEXT.md) — the shared transform contract that
- * Phase 3's `dashboard-view.tsx` migration consumes.
- *
- * Input type is the canonical `OwnerDashboardData` from
- * `use-owner-dashboard.ts` (the post-mapped payload — RPC row-level snake↔
- * camel mapping has already happened at the fetcher boundary).
- *
- * Current consumer footprint: only `dashboard-data.test.ts` imports this
- * function today. Cycle 2 of Phase 2 removed the `transformDashboardData(data)`
- * call from `selectStats` / `selectCharts` because those selectors read
- * passthrough fields directly. The transform survives as the Phase-3
- * `dashboard-view.tsx` seam — see `use-dashboard-hooks.ts:28-37` for the
- * "trimmed dead invocation" rationale.
- *
- * Trust-the-type posture: input fields are typed required, so the body
- * does not optional-chain on `timeSeries` or `propertyPerformance`.
- */
+```typescript
+// Narrow the raw `string` status field to the typed union without `as`.
+// As of `supabase/migrations/20260523234221_phase2_property_perf_address_status_type.sql`,
+// the RPC derives `status` server-side via a closed-set CASE expression
+// (NO_UNITS / vacant / FULL / PARTIAL), so this throw is defense-in-depth
+// against a future migration adding a fifth status — NOT a runtime check
+// that the current RPC can trigger. If a migration adds a new status value
+// without updating PropertyPerformance["status"], this throw surfaces the
+// drift on the first request rather than silently coercing.
+function mapPropertyPerformanceStatus(
 ```
 
 ---
 
-### IN-02: Test docstring claims "graceful skip if env missing" but the test throws on missing env
+### IN-02 — Test isolation regex is looser than the migration emits
 
-**File:** `tests/integration/rls/dashboard-rpc-open-maintenance.test.ts:14-18`
+**File:** `tests/integration/rls/dashboard-rpc-open-maintenance.test.ts:235`
+**Severity:** Info
 
-**Issue:**
+**Issue:** The cross-owner isolation assertion uses `expect(error?.message).toMatch(/Unauthorized/i)`. The case-insensitive flag accepts `unauthorized` / `UNAUTHORIZED` / `Unauthorized` / any case variation, AND the unanchored regex accepts any message containing the substring (e.g., `"User Unauthorized to access /admin"`). The migration emits exactly `'Unauthorized'` (verified at `20260524001408_phase2_dashboard_rpc_auth_guard.sql:26`). PostgREST surfaces `raise exception` messages verbatim in `PostgrestError.message`.
 
-The JSDoc reads:
+A future refactor that accidentally changes the raise message to a different `*Unauthorized*` substring (e.g., `raise exception 'Auth check Unauthorized: cross-owner blocked'`) would silently still pass this assertion even though the surface error contract changed. The looser regex also makes the test less informative — a failure mode where PostgREST prepends a SQLSTATE prefix would be invisible.
 
-> "Pattern matches `tests/integration/rls/bulk-import-create-lease.test.ts` (dual client, fixture-create + cleanup, **graceful skip if env missing**)."
+**Fix:** Tighten to an exact match:
 
-The test does NOT gracefully skip on missing env. `getTestCredentials()` (`supabase-client.ts:80-84`) throws unconditionally:
-
-```ts
-if (!ownerAEmail || !ownerAPassword || !ownerBEmail || !ownerBPassword) {
-    throw new Error(
-        "Missing required env vars: E2E_OWNER_EMAIL, E2E_OWNER_PASSWORD, E2E_OWNER_B_EMAIL, E2E_OWNER_B_PASSWORD",
-    );
-}
+```typescript
+expect(error?.message).toBe("Unauthorized");
 ```
 
-The only graceful skip in the test file is the **fixture-creation** skip inside the happy-path `it` block (lines 177-180):
-
-```ts
-if (!propertyA || !maintenanceA) {
-    console.warn("Skipping: fixtures not created");
-    return;
-}
-```
-
-That skip handles the case where `beforeAll` fixture inserts silently failed (e.g., RLS rejected the write), NOT the case where env vars are missing. With missing env, `beforeAll` throws and every `it` in the suite fails with "Missing required env vars".
-
-The docstring conflates the two. `bulk-import-create-lease.test.ts` has the same behavior, so the "matches that pattern" claim is technically accurate — but neither test is "graceful on missing env". The user-facing claim in this test's docstring should not be repeated, or both tests' docstrings should drop the claim.
-
-**Fix:**
-
-Tighten the docstring:
-
-```ts
-/**
- * …
- * Pattern matches `tests/integration/rls/bulk-import-create-lease.test.ts`
- * (dual client, fixture-create + cleanup, fixture-creation skip on insert
- * failure). Missing env vars surface as a hard `beforeAll` throw — the
- * test suite is required by the rls-security GitHub workflow's "Check
- * required secrets" step, which fails the job before the test runs if any
- * of E2E_OWNER_{,B_}EMAIL / E2E_OWNER_{,B_}PASSWORD is unset.
- */
-```
+This pins the exact wire-format surfaced to the frontend. If the test starts failing because PostgREST adds a SQLSTATE / hint prefix in a future Supabase update, the assertion needs updating — but at that point the change is intentional and visible.
 
 ---
 
-## Cycle 3 Verification — Where the Prior Pass Drifted
+## Out-of-Scope but Verified Clean
 
-The cycle 3 report stated:
-
-> "**Cross-owner isolation test (line 216-238) still asserts `expect(result.property_performance).toEqual([])` — the strictest possible contract for RLS-via-owner-filter. ✓**"
-
-That checkmark accepts the test's own self-description without testing it against the actual SECURITY DEFINER semantics. The "strictest possible contract" framing is the trap: the test asserts a contract that the RPC does NOT actually enforce. A "strict" assertion against a false claim is worse than no assertion — it gives the next reviewer false confidence that the property is verified.
-
-Phase 1's lesson applied here: cycle 3's job was to be ruthless on the substrate, not to ratify cycle 2's narrative. CR-01 above is the exact class of issue that requires reading the SQL semantics independently of the test's comment.
-
-## CLAUDE.md Zero Tolerance Rules (verified by fresh grep)
-
-- **No `any`** — `grep -nE ":\s*any|<any>|any\[\]"` across all 12 files: 0 hits (excluding the autogen disclaimer in `property-stats-keys.ts:35` which is a comment). ✓
-- **No `as unknown as`** — `grep -n "as unknown as"`: 0 hits in any of the 12 files. The single mention at `property-stats-keys.ts:35` is documentation about what NOT to do. ✓
-- **No barrel re-exports** — no `index.ts` added; all imports go to defining files. ✓
-- **No duplicate types** — `DashboardViewModel` is the only new type; `OwnerDashboardData` is reused via import. ✓
-- **No commented-out code** — verified by inspection; all comments are explanatory prose or JSDoc. ✓
-- **No inline styles** — no `style={{ … }}` attributes in the new code. ✓
-- **No PostgreSQL ENUMs** — status emitted as `text` via CASE expression. ✓
-- **No emojis** — no emoji codepoints; the `→` arrow in migration comments is a typographic character, not an emoji. ✓
-- **No string-literal queryKey arrays** — all keys via factories. ✓
-- **No `@radix-ui/react-icons`** — no imports of that package. ✓
-
-## Status Derivation Re-Walk (independent check)
-
-SQL CASE (migration 2, lines 330-335) and the JS reference at `property-stats-keys.ts:47-56` agree on every input. Edge cases:
-
-| Input | SQL branch | JS branch | Equivalent? |
-|-------|-----------|-----------|-------------|
-| `total_units = 0` | 1st: NO_UNITS | 1st: NO_UNITS | ✓ |
-| `total_units > 0, occupied_units = 0` | 2nd: vacant | 2nd: vacant | ✓ |
-| `total_units = occupied_units > 0` | 3rd: FULL | 3rd: FULL | ✓ |
-| `0 < occupied_units < total_units` | else: PARTIAL | else: PARTIAL | ✓ |
-| `puc IS NULL` (LEFT JOIN miss) | 1st via coalesce: NO_UNITS | N/A (no LEFT JOIN in JS) | ✓ |
-
-No correctness drift. The migration's derivation is a faithful port.
-
-## Data Flow Trace (independent check)
-
-For a property with `open_maintenance: 1, status: 'vacant', address: '1 RPC St', property_type: 'APARTMENT'`:
-
-1. RPC emits the row as `PropertyPerformanceRpcResponse` (`database-rpc.ts:23-37`) — all 13 fields populated.
-2. `use-owner-dashboard.ts:253-274` mapper produces `PropertyPerformance` with `open_maintenance: 1, status: mapPropertyPerformanceStatus('vacant') = 'vacant', address_line1: '1 RPC St', property_type: 'APARTMENT'`.
-3. `page.tsx:97-110` re-mapper produces `PropertyPerformanceItem` with `openMaintenance: 1, address: '1 RPC St'` (drops `status`, `property_type`).
-4. `dashboard.tsx:87-102` inline transform produces `PortfolioRow` with `maintenanceOpen: 1` (drops `address` from `PortfolioRow` — wait, `dashboard.tsx:90` does set `address: prop.address`). ✓
-5. Portfolio table renders the row with maintenance = 1.
-
-No data loss at any seam. ✓
-
-## Migration Safety Re-Audit (independent)
-
-Both migrations preserve:
-- Signature `(p_user_id uuid) returns jsonb` ✓
-- `security definer` ✓
-- `set search_path to 'public'` ✓
-- `grant execute … to authenticated/service_role` ✓
-- No DROP / ALTER / new tables / new columns ✓
-- Migration 2 fully supersedes migration 1 (includes `perf_open_maintenance` CTE and `open_maintenance` jsonb key) ✓
-
-The migrations are surgically additive. The defect in CR-01 is what they did NOT add (SEC-01 guard) and what the test PRETENDS they enforce.
-
-## Audit Trail
-
-### Cycle 1 (deep, 9 findings: 1 CR + 3 WR + 5 IN)
-**CR-01** — Duplicate `OwnerDashboardData` declaration. Closed by `7f64c1946`.
-**WR-01/02 + IN-01..06** — Various comment / test / structural improvements. Closed.
-**IN-03** — `row.status as PropertyPerformance["status"]` cast. Closed by typed mapper. This fix introduced the cycle-2 BLOCKER.
-
-### Cycle 2 (deep, 4 findings: 1 BLOCKER + 2 WR + 1 IN)
-**BLOCKER** — `mapPropertyPerformanceStatus(undefined)` throw (RPC never emitted `status`). Closed by follow-on migration `20260523234221`.
-**WR-01/02 + IN-01** — Closed.
-
-### Cycle 3 (deep, 0 findings)
-First zero-finding cycle. Counter advanced to 1/2.
-
-**Drift point:** Cycle 3 ratified the integration test's self-description ("strictest possible contract for RLS-via-owner-filter") without testing the claim against PostgreSQL SECURITY DEFINER semantics or against the existence of the SEC-01 pattern in the codebase. CR-01 of cycle 4 catches this exact blindspot.
-
-### Cycle 4 (deep, 3 findings: 1 CR + 2 IN)
-**CR-01** — Integration test isolation assertion is false; RPC missing SEC-01 guard; cross-owner data leak shipped untested.
-**IN-01** — `dashboard-data.ts` JSDoc claims selectors compose the transform; cycle 2 removed that wiring.
-**IN-02** — Test docstring claims "graceful skip if env missing"; the test actually throws on missing env.
-
-**Counter reset to 0.** Two consecutive zero-finding cycles required to close the perfect-PR gate.
+- **Zero Tolerance Rules sweep (all 13 files):** no `any` types, no barrel re-exports, no duplicate types (PropertyPerformance / PropertyPerformanceRpcResponse / DashboardViewModel all distinct), no commented-out code, no inline styles, no `as unknown as` (only RPC narrowing via mapper functions), no string-literal query keys, no `@radix-ui/react-icons`.
+- **Migration idempotency:** all three Phase 2 migrations are `CREATE OR REPLACE FUNCTION`, all are SECURITY DEFINER, all set `search_path to 'public'`. Migration #3 is the canonical replay end-state — replay of #1 → #2 → #3 reaches the same final state as replay of #3 alone (the only difference being failures along the way; Migration #3 supersedes both).
+- **Migration ordering:** filenames strictly ascending (`20260523223626` < `20260523234221` < `20260524001408`). Replay safety confirmed.
+- **Data flow trace** (ownerA prod call → RPC → mapper → page.tsx → dashboard.tsx → portfolio table): every transform preserves type and value identity for the per-property `open_maintenance`, `address`, `property_type`, derived `status`. No seam loses or mistypes a value.
+- **Cleanup ordering** in test `afterAll` (lines 158-174): reverse-dependency order respected (maintenance_requests → tenants → units → properties for ownerA; units → properties for ownerB).
+- **Email collision risk** in test fixture (line 97 — `Date.now()` suffix): low risk because integration tests run sequentially in CI per project convention; not a finding.
+- **`fetchOwnerDashboardData` defensive `?? 0`** at line 273: redundant given the RPC's `coalesce(pom.open_maintenance, 0)` already guarantees a number, BUT the JSDoc anchor at lines 268-272 acknowledges this is intentional deploy-safety until prod has the migration applied. Acceptable.
 
 ---
 
-_Reviewed: 2026-05-23T22:30:00Z_
+## Gate Status
+
+- Cycle 5: 3 findings (1 Warning + 2 Info) — `consecutive_zero_finding_cycles` resets to **0**
+- Perfect-PR gate: **0 of 2**
+- Two consecutive zero-finding cycles required before merge
+
+_Reviewed: 2026-05-23_
 _Reviewer: Claude (gsd-code-reviewer)_
 _Depth: deep_
-_Cycle: 4_
-_Gate status: counter_reset (CR-01 + IN-01 + IN-02 surfaced)_
