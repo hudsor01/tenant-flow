@@ -1,6 +1,11 @@
 // Dashboard Section Types
 
+import type { KpiBentoRowProps } from "#components/dashboard/components/kpi-helpers";
+
 export interface DashboardProps {
+	// Phase 3 KPI bento row data (consumed by <KpiBentoRow {...kpiData} />)
+	kpiData: KpiBentoRowProps;
+
 	// Summary metrics
 	metrics: DashboardMetrics;
 

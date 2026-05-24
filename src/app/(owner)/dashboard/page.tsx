@@ -3,6 +3,7 @@
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useEffect } from "react";
 import { toast } from "sonner";
+import type { KpiBentoRowProps } from "#components/dashboard/components/kpi-helpers";
 import { Dashboard } from "#components/dashboard/dashboard";
 import { ExpiringLeasesWidget } from "#components/dashboard/expiring-leases-widget";
 import { ErrorBoundary } from "#components/error-boundary/error-boundary";
@@ -47,6 +48,14 @@ function DashboardContent() {
 	} = useDashboardCharts();
 	const { data: performanceData, isLoading: performanceLoading } =
 		usePropertyPerformance();
+
+	// Phase 3 KPI bento row — construct from existing hook returns (no new fetcher)
+	const kpiData: KpiBentoRowProps = {
+		isLoading: statsLoading || chartsLoading,
+		stats: statsData?.stats ?? null,
+		metricTrends: statsData?.metricTrends ?? null,
+		timeSeries: chartsData?.timeSeries ?? null,
+	};
 
 	// Transform stats to design-os format
 	const metrics = (() => {
@@ -170,6 +179,7 @@ function DashboardContent() {
 	return (
 		<div className="flex flex-1 flex-col">
 			<Dashboard
+				kpiData={kpiData}
 				metrics={metrics}
 				revenueTrend={revenueTrend}
 				propertyPerformance={propertyPerformance}
