@@ -32,13 +32,13 @@ Each maps to roadmap phases (1-7). Source: `.planning/MILESTONE-CONTEXT.md` § "
 
 ### KPI Visibility (KPI) — Phase 3
 
-- [ ] **KPI-01**: 6-tile KPI bento row replaces the one-line text header on `/dashboard`. Tiles: Revenue, Occupancy, Active Leases, Open Maintenance, Properties, Units.
-- [ ] **KPI-02**: Each tile renders via `ui/stat.tsx` `Stat` shell (already vendored) — `StatLabel` + `StatValue` + `StatTrend` + optional `StatDescription`.
-- [ ] **KPI-03**: KPI numbers animate via `ui/number-ticker.tsx` `NumberTicker` (already vendored) with `prefers-reduced-motion` guard.
-- [ ] **KPI-04**: `StatTrend` arrow uses Lucide arrow (preferred over `animated-trend-indicator.tsx` which carries an inline-style violation).
-- [ ] **KPI-05**: Sparklines on Revenue + Occupancy tiles only — `KpiSparkline` component (NEW) = axis-less Recharts `Area` in `ChartContainer`.
-- [ ] **KPI-06**: Section reveals stagger via `ui/blur-fade.tsx` `BlurFade` (already vendored), max ~4 reveals, reduced-motion aware.
-- [ ] **KPI-07**: KPI grid uses `@container` CSS grid auto-fit, NOT `ui/bento-grid.tsx` (that's a marketing component with absolute backgrounds + hover-reveal CTAs).
+- [x] **KPI-01**: 6-tile KPI bento row replaces the one-line text header on `/dashboard`. Tiles: Revenue, Occupancy, Active Leases, Open Maintenance, Properties, Units.
+- [x] **KPI-02**: Each tile renders via `ui/stat.tsx` `Stat` shell (already vendored) — `StatLabel` + `StatValue` + `StatTrend` + optional `StatDescription`.
+- [x] **KPI-03**: KPI numbers animate via `ui/number-ticker.tsx` `NumberTicker` (already vendored) with `prefers-reduced-motion` guard.
+- [x] **KPI-04**: `StatTrend` arrow uses Lucide arrow (preferred over `animated-trend-indicator.tsx` which carries an inline-style violation).
+- [x] **KPI-05**: Sparklines on Revenue + Occupancy tiles only — `KpiSparkline` component (NEW) = axis-less Recharts `Area` in `ChartContainer`.
+- [x] **KPI-06**: Section reveals stagger via `ui/blur-fade.tsx` `BlurFade` (already vendored), max ~4 reveals, reduced-motion aware.
+- [x] **KPI-07**: KPI grid uses `@container` CSS grid auto-fit, NOT `ui/bento-grid.tsx` (that's a marketing component with absolute backgrounds + hover-reveal CTAs).
 
 ### Charts + Data Visualization (CHART) — Phase 4
 
@@ -104,13 +104,13 @@ Updated by `gsd-roadmapper` during roadmap creation. See ROADMAP.md for canonica
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| KPI-01 | Phase 3 | Pending |
-| KPI-02 | Phase 3 | Pending |
-| KPI-03 | Phase 3 | Pending |
-| KPI-04 | Phase 3 | Pending |
-| KPI-05 | Phase 3 | Pending |
-| KPI-06 | Phase 3 | Pending |
-| KPI-07 | Phase 3 | Pending |
+| KPI-01 | Phase 3 | Complete |
+| KPI-02 | Phase 3 | Complete |
+| KPI-03 | Phase 3 | Complete |
+| KPI-04 | Phase 3 | Complete |
+| KPI-05 | Phase 3 | Complete |
+| KPI-06 | Phase 3 | Complete |
+| KPI-07 | Phase 3 | Complete |
 | CHART-01 | Phase 4 | Pending |
 | CHART-02 | Phase 4 | Pending |
 | CHART-03 | Phase 4 | Pending |

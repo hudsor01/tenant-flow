@@ -38,9 +38,9 @@ Phases 1 and 2 are invisible foundation. Phases 3 and 4 each *add* a new region 
 
 ## Phases
 
-- [ ] **Phase 1: Foundation & Dedup** — Delete duplicates, fix the `*100`/`÷100` revenue bug, extract shared transform, produce milestone-wide UI-SPEC. Zero visible change.
-- [ ] **Phase 2: Data Layer & RPC** — Additive RPC migration for per-property `open_maintenance`; resolve compute-or-drop on `collection_rate`; RLS owner-isolation test.
-- [ ] **Phase 3: KPI Bento Row** — 6-tile KPI grid with sparklines on Revenue + Occupancy. Adds Section B.
+- [x] **Phase 1: Foundation & Dedup** — Delete duplicates, fix the `*100`/`÷100` revenue bug, extract shared transform, produce milestone-wide UI-SPEC. Zero visible change.
+- [x] **Phase 2: Data Layer & RPC** — Additive RPC migration for per-property `open_maintenance`; resolve compute-or-drop on `collection_rate`; RLS owner-isolation test.
+- [x] **Phase 3: KPI Bento Row** — 6-tile KPI grid with sparklines on Revenue + Occupancy. Adds Section B.
 - [ ] **Phase 4: Charts** — `RevenueAreaChart` refresh (30d/6mo toggle) + new `OccupancyDonutChart`. Adds Section C.
 - [ ] **Phase 5: Portfolio DataTable** — Replace hand-rolled table with DiceUI DataTable: client hook, column model, faceted filter, column visibility, virtualization, grid/table toggle, saved presets, nuqs URL state.
 - [ ] **Phase 6: Polish & A11y** — Dark-mode audit, keyboard a11y, 375px responsive, skeleton/empty mutual exclusion, reduced-motion.
@@ -90,9 +90,9 @@ Phases 1 and 2 are invisible foundation. Phases 3 and 4 each *add* a new region 
   3. Each tile's numeric value animates via `NumberTicker`; users with `prefers-reduced-motion: reduce` see the final value with no animation.
   4. The KPI grid uses an `@container` CSS grid auto-fit layout (not `ui/bento-grid.tsx`); section reveals stagger via `BlurFade` with at most ~4 reveals.
 **Plans:** 3 plans (3 waves — serialized)
-- [ ] 03-01-PLAN.md — **Wave 1.** KpiSparkline component (KPI-05) + pure helpers (formatTrendPercent, sparklineConfigForTrend, KpiTileConfig). Axis-less Recharts Area inside ChartContainer; trend-direction color via ChartConfig.theme map; role='img' + aria-label; no animation.
-- [ ] 03-02-PLAN.md — **Wave 2** (depends on 03-01). KpiBentoRow orchestrator + 6 tiles (KPI-01/02/03/04/06/07) + shared useReducedMotion hook. 6 Stat-shell tiles in D-01 order with @container grid (auto-fit minmax(180px,1fr)), NumberTicker value animation (KpiNumberTicker reduced-motion wrapper), Lucide trend chips with !text-[var(--color-warning)] down override, BlurFade waves A {0,1,2} + B {4,5,6}, skeleton ↔ data branch, buildTileAriaLabel a11y.
-- [ ] 03-03-PLAN.md — **Wave 3** (depends on 03-01 + 03-02). Mount KpiBentoRow into dashboard.tsx (replace legacy <p> header at lines 172-186; preserve <h1> + data-testid). Extend DashboardProps with kpiData: KpiBentoRowProps. Construct kpiData in page.tsx from useDashboardStats() + useDashboardCharts(). Manual visual checkpoint (browser path or MCP RPC inspection alternate).
+- [x] 03-01-PLAN.md — **Wave 1.** KpiSparkline component (KPI-05) + pure helpers (formatTrendPercent, sparklineConfigForTrend, KpiTileConfig). Axis-less Recharts Area inside ChartContainer; trend-direction color via ChartConfig.theme map; role='img' + aria-label; no animation.
+- [x] 03-02-PLAN.md — **Wave 2** (depends on 03-01). KpiBentoRow orchestrator + 6 tiles (KPI-01/02/03/04/06/07) + shared useReducedMotion hook. 6 Stat-shell tiles in D-01 order with @container grid (auto-fit minmax(180px,1fr)), NumberTicker value animation (KpiNumberTicker reduced-motion wrapper), Lucide trend chips with !text-[var(--color-warning)] down override, BlurFade waves A {0,1,2} + B {4,5,6}, skeleton ↔ data branch, buildTileAriaLabel a11y.
+- [x] 03-03-PLAN.md — **Wave 3** (depends on 03-01 + 03-02). Mount KpiBentoRow into dashboard.tsx (replace legacy <p> header at lines 172-186; preserve <h1> + data-testid). Extend DashboardProps with kpiData: KpiBentoRowProps. Construct kpiData in page.tsx from useDashboardStats() + useDashboardCharts(). Manual visual checkpoint (browser path or MCP RPC inspection alternate).
 **UI hint:** yes
 
 ### Phase 4: Charts
@@ -151,9 +151,9 @@ Phases 1 and 2 are invisible foundation. Phases 3 and 4 each *add* a new region 
 
 | Phase | Milestone | Plans | Status | Completed |
 |-------|-----------|-------|--------|-----------|
-| 1. Foundation & Dedup | v2.0 | 0/3 | Planned | - |
-| 2. Data Layer & RPC | v2.0 | 0/3 | Planned | - |
-| 3. KPI Bento Row | v2.0 | 0/3 | Planned | - |
+| 1. Foundation & Dedup | v2.0 | 3/3 | Shipped (PR #744) | 2026-05-22 |
+| 2. Data Layer & RPC | v2.0 | 3/3 | Shipped (PR #745) | 2026-05-22 |
+| 3. KPI Bento Row | v2.0 | 3/3 | Plan execution complete; verify-work + PR pending | 2026-05-24 |
 | 4. Charts | v2.0 | 0/0 | Not started | - |
 | 5. Portfolio DataTable | v2.0 | 0/0 | Not started | - |
 | 6. Polish & A11y | v2.0 | 0/0 | Not started | - |
@@ -197,4 +197,4 @@ Audit round 3 verdict: PERFECT BY ALL MEASURES. Full milestone summary in [miles
 </details>
 
 ---
-*Last updated: 2026-05-23 — Phase 3 planning complete (3 plans, 3 waves)*
+*Last updated: 2026-05-24 — Phase 3 execution complete (KPI-01 through KPI-07 closed; verify-work + PR pending)*
