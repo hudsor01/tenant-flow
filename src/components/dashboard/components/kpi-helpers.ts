@@ -14,6 +14,7 @@
 
 import type { ChartConfig } from "#components/ui/chart";
 import type { MetricTrend, TimeSeriesDataPoint } from "#types/analytics";
+import type { DashboardStats } from "#types/stats";
 
 type TrendDirection = MetricTrend["trend"];
 
@@ -112,4 +113,85 @@ export interface KpiTileConfig {
 		ariaLabel: string;
 	} | null;
 	waveDelay: number;
+}
+
+/**
+ * Props consumed by Plan 03-02's `KpiBentoRow` orchestrator. The four fields
+ * are nullable except `isLoading` — when the data hook is mid-flight or fails,
+ * the row renders the skeleton branch (UI-SPEC § 9.3 — mutually exclusive
+ * with the loaded-tiles branch).
+ *
+ * B-1 cycle-1 fix: `stats: DashboardStats | null` is the authoritative shape
+ * — KpiBentoRow does NOT receive the legacy `DashboardProps.metrics` object.
+ * Tile values are read off `stats.revenue.monthly`, `stats.units.occupancyRate`,
+ * `stats.leases.active`, `stats.maintenance.open`, `stats.properties.total`,
+ * and `stats.units.total`.
+ */
+export interface KpiBentoRowProps {
+	isLoading: boolean;
+	stats: DashboardStats | null;
+	metricTrends: {
+		occupancyRate: MetricTrend | null;
+		activeTenants: MetricTrend | null;
+		monthlyRevenue: MetricTrend | null;
+		openMaintenance: MetricTrend | null;
+	} | null;
+	timeSeries: {
+		occupancyRate: TimeSeriesDataPoint[];
+		monthlyRevenue: TimeSeriesDataPoint[];
+	} | null;
+}
+
+interface BuildTileAriaLabelInput {
+	label: string;
+	spokenValue: string;
+	spokenDescription?: string;
+	trend: MetricTrend | null;
+	trendLabel?: string;
+}
+
+/**
+ * Builds the consolidated `aria-label` sentence each `<Stat>` carries, per
+ * 03-UI-SPEC § 8.2. Output examples:
+ *
+ * - `"Revenue: $14,250 this month. Up 12 percent vs. last month."`
+ * - `"Occupancy: 87 percent. 87 of 100 units occupied. Down 3 percent vs. last month."`
+ * - `"Active leases: 42. 3 expiring soon."`
+ * - `"Properties: 12."`
+ * - `"Open maintenance: 8. Requires attention. Unchanged vs. last month."`
+ *
+ * Construction rules:
+ * - Starts with `${label}: ${spokenValue}.`
+ * - If `spokenDescription` is set, pushes `${spokenDescription}.`
+ * - If `trend` is `null`, the trend segment is omitted entirely (D-04 + D-09
+ *   honesty rule — no fabricated `0%`).
+ * - If `trend.trend === "stable"`, emits `"Unchanged vs. <window>."` (strips
+ *   any leading `"vs. "` from the trendLabel to avoid duplication).
+ * - Otherwise emits `"<Up|Down> <abs(round(pct))> percent <trendLabel>."`,
+ *   trimming a trailing space when `trendLabel` is undefined.
+ */
+export function buildTileAriaLabel(input: BuildTileAriaLabelInput): string {
+	const parts: string[] = [`${input.label}: ${input.spokenValue}.`];
+	if (input.spokenDescription) {
+		parts.push(`${input.spokenDescription}.`);
+	}
+	if (input.trend !== null) {
+		const directionWord =
+			input.trend.trend === "up"
+				? "Up"
+				: input.trend.trend === "down"
+					? "Down"
+					: "Unchanged";
+		const pct = Math.abs(Math.round(input.trend.percentChange));
+		let trendSegment: string;
+		if (input.trend.trend === "stable") {
+			const windowText = (input.trendLabel ?? "").replace(/^vs\.\s*/, "");
+			trendSegment = `Unchanged vs. ${windowText}`;
+		} else {
+			const base = `${directionWord} ${pct} percent ${input.trendLabel ?? ""}`;
+			trendSegment = base.trimEnd();
+		}
+		parts.push(`${trendSegment}.`);
+	}
+	return parts.join(" ");
 }

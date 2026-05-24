@@ -10,9 +10,11 @@
 import { describe, expect, it } from "vitest";
 
 import {
+	buildTileAriaLabel,
 	formatTrendPercent,
 	sparklineConfigForTrend,
 } from "#components/dashboard/components/kpi-helpers";
+import type { MetricTrend } from "#types/analytics";
 
 describe("formatTrendPercent", () => {
 	it("formats a positive trend with a `+` sign", () => {
@@ -79,5 +81,99 @@ describe("sparklineConfigForTrend", () => {
 		}
 		expect(spark.theme.light).toBe("var(--color-muted-foreground)");
 		expect(spark.theme.dark).toBe("var(--color-muted-foreground)");
+	});
+});
+
+describe("buildTileAriaLabel", () => {
+	const upTrend: MetricTrend = {
+		current: 14250,
+		previous: 12723,
+		change: 1527,
+		percentChange: 12,
+		trend: "up",
+	};
+	const downTrend: MetricTrend = {
+		current: 87,
+		previous: 90,
+		change: -3,
+		percentChange: -3,
+		trend: "down",
+	};
+	const stableTrend: MetricTrend = {
+		current: 100,
+		previous: 100,
+		change: 0,
+		percentChange: 0,
+		trend: "stable",
+	};
+
+	it("emits Revenue up 12% with trend label", () => {
+		expect(
+			buildTileAriaLabel({
+				label: "Revenue",
+				spokenValue: "$14,250 this month",
+				trend: upTrend,
+				trendLabel: "vs. last month",
+			}),
+		).toBe("Revenue: $14,250 this month. Up 12 percent vs. last month.");
+	});
+
+	it("emits Occupancy down 3% with spoken description", () => {
+		expect(
+			buildTileAriaLabel({
+				label: "Occupancy",
+				spokenValue: "87 percent",
+				spokenDescription: "87 of 100 units occupied",
+				trend: downTrend,
+				trendLabel: "vs. last month",
+			}),
+		).toBe(
+			"Occupancy: 87 percent. 87 of 100 units occupied. Down 3 percent vs. last month.",
+		);
+	});
+
+	it("omits the trend segment entirely when trend is null (with description)", () => {
+		expect(
+			buildTileAriaLabel({
+				label: "Active leases",
+				spokenValue: "42",
+				spokenDescription: "3 expiring soon",
+				trend: null,
+			}),
+		).toBe("Active leases: 42. 3 expiring soon.");
+	});
+
+	it("renders a bare label-value sentence when trend is null and no description", () => {
+		expect(
+			buildTileAriaLabel({
+				label: "Properties",
+				spokenValue: "12",
+				trend: null,
+			}),
+		).toBe("Properties: 12.");
+	});
+
+	it("renders stable trend as 'Unchanged vs. <window>' (no 'Stable', no '0 percent')", () => {
+		const out = buildTileAriaLabel({
+			label: "Active leases",
+			spokenValue: "42",
+			trend: stableTrend,
+			trendLabel: "vs. last month",
+		});
+		expect(out).toContain("Unchanged vs. last month.");
+		expect(out).not.toContain("Stable");
+		expect(out).not.toContain("0 percent");
+	});
+
+	it("trims trailing space before the period when no trendLabel is provided", () => {
+		const out = buildTileAriaLabel({
+			label: "Revenue",
+			spokenValue: "$14,250 this month",
+			trend: upTrend,
+		});
+		// No trailing space before the final period; no double-space inside.
+		expect(out).toBe("Revenue: $14,250 this month. Up 12 percent.");
+		expect(out).not.toMatch(/ {2}/);
+		expect(out).not.toMatch(/ \./);
 	});
 });
