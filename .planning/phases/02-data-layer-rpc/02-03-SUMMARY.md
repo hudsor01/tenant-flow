@@ -13,7 +13,7 @@ key-files:
     - tests/integration/rls/dashboard-rpc-open-maintenance.test.ts
 
 decisions:
-  - "D-04 implemented: dual-client (ownerA/ownerB) test mirrors the reference pattern in `bulk-import-create-lease.test.ts`. Two `it` blocks: (1) happy path — ownerA sees own property with real open_maintenance count >= 1; (2) isolation — ownerA passing ownerB's user_id receives empty property_performance."
+  - "D-04 implemented: dual-client (ownerA/ownerB) test mirrors the reference pattern in `bulk-import-create-lease.test.ts`. Two `it` blocks (post-cycle-4 final state): (1) happy path — ownerA sees own property with real `open_maintenance >= 1` AND `address`/`property_type`/`status` all populated (cycle-2 extension); (2) isolation — ownerA passing ownerB's user_id is REJECTED with `Unauthorized` per the cycle-4 auth.uid() guard. This plan's original isolation assertion was `toEqual([])` (a false security claim — the RPC was actually leaking data and only test-data shape masked it); the cycle-4 fix replaced it with `data === null` + `error.message === 'Unauthorized'`."
   - "D-05 honored: test is registered to run against prod via `bun run test:integration`. Local execution requires `.env.local` with E2E_OWNER_EMAIL/PASSWORD/B_EMAIL/B_PASSWORD; CI provides them as GitHub secrets and the `rls-security` workflow runs the suite on every PR push."
   - "Schema discovery during execution: `maintenance_requests.tenant_id` is a NOT NULL column. Plan's task action did not list `tenant_id` in the insert payload (this was a planning miss). Fixed by adding a `tenants` fixture insert before the `maintenance_requests` insert, and extending `afterAll` to clean up the tenant row in the correct dependency order (maintenance → tenant → unit → property). Captured here as a deviation from the locked plan-task action; the locked DECISION (D-04: dual-client test scope) is unchanged."
   - "Visual proof via MCP rather than browser checkpoint: inserted a real open maintenance request against ownerA's existing `Bulk-Import Test Property A` / unit `BULK-A-101` (using the leftover tenant `bulk-test-tenant-a-1778014968674@example.com` from a prior bulk-import test), called `get_dashboard_data_v2('218000e4-3ae0-4c49-9591-a330fb32d246')` and confirmed `open_maintenance: 1` for that property row in the RPC response. Then deleted the fixture. The MCP-driven proof is equivalent to (and stronger than) a manual browser screenshot for the data-layer phase's purposes — it pins the RPC contract directly."
@@ -92,17 +92,21 @@ tests/integration/rls/dashboard-rpc-open-maintenance.test.ts
 │   │   └── Hard-delete in reverse dependency order
 │   ├── it("returns real per-property open_maintenance count for the calling owner's properties", ...)
 │   │   └── Assertion: open_maintenance >= 1 for ownerA's property
-│   └── it("returns empty property_performance when ownerA passes ownerB's user_id (RLS-via-owner-filter)", ...)
-│       └── Assertion: property_performance === []
+│   └── it("rejects cross-owner calls with Unauthorized (SECURITY DEFINER auth.uid() guard)", ...)
+│       └── Assertions: data === null + error.message === "Unauthorized"
+│       (Pre-cycle-4 wording was "returns empty property_performance" with
+│        `toEqual([])` — a false security claim. The cycle-4 P0 fix added
+│        the explicit auth.uid() = p_user_id guard via migration
+│        20260524001408 and updated the assertion to pin the real contract.)
 ```
 
 ## Threat Model Verification
 
 | Threat | Disposition | Evidence |
 |--------|-------------|----------|
-| T-02-10 EOP via arbitrary `p_user_id` | mitigated | Test 2 asserts empty result for cross-owner queries. If a future regression strips the owner filter from any shared CTE, the test fails. |
-| T-02-11 Cross-tenant data leakage | mitigated | Test 1 + Test 2 cover both sides: ownerA sees own data; ownerA passing ownerB's id sees nothing. |
-| T-02-12 Fixture leaks into prod analytics | mitigated | `afterAll` deletes 5 rows (1 maintenance, 1 tenant, 1 unitA, 1 propertyA, 1 unitB, 1 propertyB) in correct dependency order. CI will surface any cleanup failure. |
+| T-02-10 EOP via arbitrary `p_user_id` | mitigated post-cycle-4 | Cycle-4 review caught that THIS plan's original mitigation was a false positive — SECURITY DEFINER bypasses RLS and the per-CTE owner filter trusted whatever uuid the caller passed. Real fix: migration 20260524001408 adds `if p_user_id != (select auth.uid()) then raise exception 'Unauthorized'`. Test 2 asserts that exact error message; regression that strips the guard fails the test with non-null data. |
+| T-02-11 Cross-tenant data leakage | mitigated post-cycle-4 | Same correction as T-02-10. The current contract: Test 1 proves ownerA receives own data (4 fields); Test 2 proves cross-owner calls error out before any row touches the wire. |
+| T-02-12 Fixture leaks into prod analytics | mitigated | `afterAll` deletes 6 rows (1 maintenance_request, 1 tenant, 1 unit + 1 property for ownerA, 1 unit + 1 property for ownerB) in correct FK-reverse dependency order. CI will surface any cleanup failure. |
 | T-02-13 Manual checkpoint accuracy | mitigated via MCP | Direct RPC inspection during execution proves the data-layer contract. Screenshot artifact would have shown the same number rendered by the existing portfolio table — but the test file already pins the assertion. |
 | T-02-SC Supply chain | accepted | No packages installed. |
 

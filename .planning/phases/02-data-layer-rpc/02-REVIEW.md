@@ -2,7 +2,7 @@
 phase: 02-data-layer-rpc
 reviewed: 2026-05-23T00:00:00Z
 depth: deep
-cycle: 6
+cycle: 7
 files_reviewed: 13
 files_reviewed_list:
   - src/app/(owner)/dashboard/page.tsx
@@ -21,135 +21,244 @@ files_reviewed_list:
 findings:
   critical: 0
   blocker: 0
-  warning: 0
-  info: 0
-  total: 0
-status: clean
-consecutive_zero_finding_cycles: 1
-perfect_pr_gate: 1_of_2
+  warning: 2
+  info: 1
+  total: 3
+status: issues_found
+consecutive_zero_finding_cycles: 0
+perfect_pr_gate: counter_reset
 ---
 
-# Phase 2: Code Review Report — Cycle 6
+# Phase 2: Code Review Report — Cycle 7
 
 **Reviewed:** 2026-05-23
 **Depth:** deep
-**Cycle:** 6
-**Files Reviewed:** 13
-**Status:** clean
+**Cycle:** 7
+**Status:** issues_found
 
-## Cycle 5 Fixes — Verification
+## Scope Note
 
-| Finding | Status | Evidence |
-|---|---|---|
-| **WR-01** Migration #3 restored explanatory comments | CLOSED | `supabase/migrations/20260524001408_phase2_dashboard_rpc_auth_guard.sql` now contains: (a) `-- PROPERTY PERFORMANCE` section header at lines 258-260; (b) 5-line POLISH-10 anchor comment above `perf_open_maintenance` CTE at lines 289-294 explaining the PK-lookup invariant; (c) 8-line status-derivation rules block at lines 323-331 citing `src/hooks/api/query-keys/property-stats-keys.ts:47-56`; (d) multi-line `comment on function` at lines 526-532 summarizing all three Phase 2 migrations (open_maintenance, address/property_type/status, auth guard). Verbatim match against Migration #2's anchor content where appropriate. |
-| **IN-01** `mapPropertyPerformanceStatus` JSDoc references closed-set source | CLOSED | `src/hooks/api/use-owner-dashboard.ts:194-200` now anchors the closed-set guarantee to `Migration 20260523234221_phase2_property_perf_address_status_type.sql` by name. Reads: "the RPC derives `status` server-side via a closed CASE expression returning exactly one of `'NO_UNITS' \| 'vacant' \| 'FULL' \| 'PARTIAL'`. The throw is defense-in-depth..." Comment now correctly names the upstream source. |
-| **IN-02** Test isolation assertion tightened to strict equality | CLOSED | `tests/integration/rls/dashboard-rpc-open-maintenance.test.ts:239` reads `expect(error?.message).toBe("Unauthorized")` — strict equality replaces the previous case-insensitive unanchored regex `/Unauthorized/i`. A 3-line comment block at lines 235-238 explains why the strict match catches drift in either casing or SQLSTATE prefix in future Supabase updates. |
-
-## Fresh Adversarial Sweep — Cycle 6
-
-### Zero Tolerance Rules sweep (all 13 files)
-
-- **No `any` types:** Verified via `grep`. The narrowing at `use-owner-dashboard.ts:241` uses `data as { stats: ...; trends: ...; ... }` — a simple `as` against a structurally validated `data` (the preceding `if (!data || ...)` check ensures shape), not `as unknown as` and not `any`. Acceptable.
-- **No barrel files:** All imports target defining files directly. No `index.ts` re-exports introduced.
-- **No duplicate types:** `PropertyPerformance` (core.ts), `PropertyPerformanceRpcResponse` (database-rpc.ts), `PropertyPerformanceItem` (sections/dashboard.ts), `PortfolioRow` (dashboard-types.ts), `DashboardViewModel` (dashboard-data.ts) — five distinct types serving five distinct seams (DB row shape ↔ post-mapper shape ↔ section consumer ↔ portfolio table ↔ view-model). All have JSDoc explaining role. No duplication.
-- **No commented-out code:** Verified via `grep -E "^\s*//.*[{};]"` across all 13 files. The 3 `--` comments restored in Migration #3 are documentation, not commented-out SQL.
-- **No inline styles:** All UI files use Tailwind utilities exclusively.
-- **No PostgreSQL ENUMs in new migrations:** All three Phase 2 migrations use string literals against existing text-with-CHECK columns. No `create type ... as enum`.
-- **No emojis:** Verified across all 13 files.
-- **No `as unknown as`:** Verified via `grep`. Zero occurrences.
-- **No string-literal query keys:** All dashboard query keys derive from `ownerDashboardKeys.*()` factories.
-- **No `@radix-ui/react-icons`:** No icon imports in any of the 13 files.
-
-### All three Phase 2 migrations
-
-- **Migration #1 (`20260523223626`):** preserved as the audit trail. `CREATE OR REPLACE FUNCTION` + `SECURITY DEFINER` + `set search_path to 'public'` + signature `(p_user_id uuid) returns jsonb` + GRANTs to authenticated + service_role. Adds `perf_open_maintenance` CTE.
-- **Migration #2 (`20260523234221`):** preserved as the audit trail. Same contract. Adds `address`, `property_type`, derived `status` to `property_perf` jsonb_build_object.
-- **Migration #3 (`20260524001408`):** canonical end-state. Same contract. Adds the `auth.uid() = p_user_id` guard at lines 22-27. Body re-includes everything from Migrations #1 + #2.
-- **Structural diff M#2 vs M#3 (`diff` line-count: 39):** the only behavioural delta is the 6-line auth-guard block insertion at function-body top (lines 22-27 of M#3); all CTEs, jsonb keys, status CASE expression, and ASSEMBLE FINAL JSONB output are identical (only whitespace + comment-text reformatting). Replay safety: replay of #1 → #2 → #3 reaches the same final state as replay of #3 alone.
-- **GRANT preservation:** all three migrations end with `grant execute on function public.get_dashboard_data_v2(uuid) to authenticated` + `grant execute ... to service_role`. No DROPs.
-- **`comment on function`:** Migration #3 emits a multi-line PostgreSQL string-concatenation (`'...' 'next line' '...'`) which is valid SQL — adjacent string literals separated by whitespace including newlines concatenate at parse time. Verified syntactic position is after the final `$function$;` and before EOF.
-
-### Auth guard
-
-- **Insertion point:** lines 22-27 of Migration #3, immediately after `begin` (line 21) and before `with` (line 29). Correct (runs before any data access).
-- **Pattern match:** identical SQL shape to `supabase/migrations/20260306190000_consolidate_stats_rpcs.sql:17-18` and `:54-55` (`if p_user_id != (select auth.uid()) then raise exception 'Unauthorized'; end if;`). Project-established convention.
-- **Edge case — honest caller** (`p_user_id == auth.uid()`): `!=` is FALSE → bypass → continue. Correct.
-- **Edge case — cross-owner attempt** (`p_user_id != auth.uid()`): `!=` is TRUE → raise. Correct.
-- **Edge case — missing JWT / unauthenticated caller:** `auth.uid()` returns NULL. `p_user_id != NULL` evaluates to NULL, and `IF NULL` in plpgsql is treated as FALSE → bypass. This matches the existing project pattern (same shape at `20260306190000_consolidate_stats_rpcs.sql:17-18`). PostgREST never invokes RPCs without a JWT for the `authenticated` role, so `auth.uid()` is non-null in practice. The `service_role` GRANT remains intentional. Not a Phase 2 defect.
-- **Edge case — self-call:** `auth.uid() == p_user_id` exact match → bypass → correct dashboard payload.
-
-### Integration test
-
-- **2 `it` blocks** (happy + isolation): verified.
-- **Happy path** asserts: `open_maintenance` is number AND `>= 1`, `address === '1 RPC St'`, `property_type === 'APARTMENT'`, `status === 'vacant'`. Pins all four Phase 2 fields per cycle-2's reasoning about blindspot prevention.
-- **Isolation** asserts: `data === null`, `error.message === 'Unauthorized'` (strict).
-- **`beforeAll` fixture ordering:** property → unit → tenant → maintenance. FK-correct (unit references property; tenant is independent; maintenance references both unit and tenant).
-- **`afterAll` cleanup ordering (lines 162-170):** maintenance → tenant → unit → property. Reverse-dependency-order correct. `tenantA` deletion (line 167) precedes `unitA` deletion (line 168), but the two are independent — only `maintenanceA` (line 163) actually depends on `tenantA`'s existence, and `maintenanceA` is deleted first. Order is safe.
-- **No service-role key:** `createTestClient` signs in via password against the `authenticated` role.
-- **No personal emails:** fixture tenant email is namespaced (`dashboard-rpc-test-tenant-a-${Date.now()}@example.com`); E2E credentials reference synthetic accounts `E2E_OWNER_*`.
-- **No `any`, no `as unknown as`:** narrowing at lines 192-194 uses a structured `as` against the validated `data` value. Acceptable.
-- **Test framework hook imports:** `vitest.config.ts:138` sets `globals: true` for the `integration` project → `describe / beforeAll / afterAll / it / expect` resolve via globals. Pattern matches the rest of `tests/integration/rls/`.
-
-### End-to-end data flow trace (ownerA's prod data)
-
-Traced any property in `propertyPerformance[]` through every transform seam:
-
-1. **RPC** emits `{ property_name, property_id, total_units, occupied_units, vacant_units, occupancy_rate, annual_revenue, monthly_revenue, potential_revenue, open_maintenance, address, property_type, status }` (Migration #3 lines 308-340).
-2. **`fetchOwnerDashboardData`** (`use-owner-dashboard.ts:257-278`) maps to `PropertyPerformance`: snake_case ↔ camelCase boundary, `address → address_line1`, `status` narrowed via `mapPropertyPerformanceStatus`, `open_maintenance` retained with `?? 0` fallback.
-3. **`usePropertyPerformance`** (selector at `use-dashboard-hooks.ts:51-53`): raw passthrough of `propertyPerformance` slice.
-4. **`page.tsx:97-108`** re-maps to `PropertyPerformanceItem`: `property_id → id`, `property → name`, `address_line1 → address`, `open_maintenance → openMaintenance` (with `?? 0` fallback).
-5. **`dashboard.tsx:87-102`** inline-transforms to `PortfolioRow`: `name → property`, computes `leaseStatus` from `occupancyRate` (server-derived `status` is NOT consumed yet; that's a Phase 3 D-10 concern, not Phase 2 scope).
-6. **`PortfolioTable`** consumes `PortfolioRow[]`.
-
-No seam loses or mistypes a value. `open_maintenance` flows through all five seams. `status` is computed by RPC and survives through `PropertyPerformance` but is unused at the UI today (Phase 3 wires it).
-
-### Test rigor
-
-- **Unit test (`dashboard-data.test.ts`):** Pins three cases — real `open_maintenance` value forwards (`=3`), `undefined` falls back to `0`, row-order preserved across 3 properties. The canonical transform `transformDashboardData` deals only with `portfolioRows`, not the `status` field directly (the inline transform in `dashboard.tsx` handles `leaseStatus` from `occupancyRate`). So no additional `'FULL'` happy-path branch is in scope for this unit test.
-- **Integration test (`dashboard-rpc-open-maintenance.test.ts`):** Pins four Phase 2 fields (open_maintenance, address, property_type, status) for the happy path AND the cross-owner isolation raise. The `'vacant'` derived status branch is exercised. Other status branches (`'NO_UNITS'`, `'FULL'`, `'PARTIAL'`) are not exercised but the CASE expression's exhaustiveness is preserved across all three migrations and the frontend's `mapPropertyPerformanceStatus` throws on drift.
-- **NULL address handling:** RPC emits `op.address_line1` directly (`owner_properties` CTE projects it). The `address_line1` column on `properties` is NOT NULL (per `20251101000000_base_schema.sql`). The mapper at `use-owner-dashboard.ts:267` does not need a fallback — drift would surface at the `mapPropertyPerformanceStatus`-style boundary if introduced.
-
-### Fresh-eyes scan
-
-- **Comment-block syntactic position in Migration #3:** the restored `-- PROPERTY PERFORMANCE` header (lines 258-260) sits BEFORE the `perf_unit_counts as (` CTE — correct. The POLISH-10 anchor (lines 289-294) sits BEFORE the `perf_open_maintenance as (` CTE — correct. The status-derivation rules block (lines 323-331) sits INSIDE `jsonb_build_object` between the `coalesce(pom.open_maintenance, 0),` line and the `'address', op.address_line1,` line — correct.
-- **`comment on function` multi-line string concatenation:** Migration #3 lines 526-532 use adjacent SQL string literals separated by newlines. PostgreSQL parser concatenates these into a single string at parse time per the SQL standard. Verified at the syntactic level (single statement terminated by `;` at line 532).
-- **Dead code / unused imports across cycles 1-5 mutations:** no dead imports. The `mapPropertyPerformanceStatus` runtime narrowing throw is defense-in-depth, NOT dead (the JSDoc anchor at line 196-200 documents this explicitly per IN-01 fix).
-- **`tenantA` cleanup ordering:** verified — `maintenance_requests` (FK to `tenants` + FK to `units`) is deleted FIRST (line 163), then `tenants` (line 167), then `units` (line 168), then `properties` (line 170). Correct FK reverse-dependency order.
-
-### Phase-1 lessons applied
-
-Looked at the WHOLE function contract end-to-end from the threat actor's perspective:
-
-- **Threat model:** authenticated user with valid JWT calls `supabase.rpc("get_dashboard_data_v2", { p_user_id: <other-owner-uuid> })`.
-  - Pre-cycle-4: SECURITY DEFINER bypasses RLS → CTEs scope to `p_user_id`, not `auth.uid()` → response leaks the other owner's full dashboard payload. **P0 data exfil.**
-  - Post-cycle-4: explicit `auth.uid() = p_user_id` guard rejects with `Unauthorized` at function-body top, before any data access. **Closed.**
-- **Threat model #2:** unauthenticated caller (no JWT). PostgREST denies before reaching the RPC for the `authenticated` role. `auth.uid()` returns NULL inside the RPC; guard's `!=` against NULL is NULL (treated as FALSE) → bypass. Defense-in-depth here is the PostgREST role-binding, not the in-function guard. Project-wide convention; matches reference migration `20260306190000_consolidate_stats_rpcs.sql`.
-- **Threat model #3:** `service_role` caller. GRANT to `service_role` is intentional; service_role legitimately needs to query all owners' data for admin / cron use cases. Guard does not apply because `auth.uid()` returns NULL for service_role contexts. Acceptable project convention.
-- **Threat model #4:** privilege escalation via `pg_proc.proobjcomment` SQL injection. The `comment on function` strings in all three migrations are static literals — no user input interpolation. Not exploitable.
-- **Threat model #5:** SQLi via the `auth.uid()` reassignment. The function body is `language plpgsql` with parameterized CTE expressions; no string concatenation; no `EXECUTE` of dynamic SQL. Not exploitable.
-
-End-to-end contract verified clean from the threat actor's perspective.
+Per the cycle-7 directive ("checklist item 11 — Phase 2 SUMMARY files: do they accurately reflect the final state after 4 fix passes?"), the three SUMMARY artifacts (`02-01-SUMMARY.md`, `02-02-SUMMARY.md`, `02-03-SUMMARY.md`) were also audited even though they sit outside the 13-file `files_reviewed_list`. The findings below come from that audit. The 13 code/SQL/test files themselves remain clean — see "Code-Surface Re-Audit" section.
 
 ---
 
-## Out-of-Scope but Verified Clean
+## Code-Surface Re-Audit (Fresh Eyes, All 13 Files)
 
-- **Migration ordering:** filenames strictly ascending (`20260523223626` < `20260523234221` < `20260524001408`). Replay safety confirmed.
-- **`src/types/supabase.ts`:** generated artifact regenerated to reflect the RPC. `get_dashboard_data_v2` still returns generic `Json`; the narrowing happens at the fetcher boundary, as expected.
-- **Defensive `?? 0` at `use-owner-dashboard.ts:277`:** redundant given Migration #3's `coalesce(pom.open_maintenance, 0)`, but the JSDoc at lines 272-276 acknowledges this as intentional deploy-safety in case of a future revert.
-- **Test fixture `Date.now()` email suffix:** low collision risk under sequential integration test execution per project convention.
+Independent re-grep across the 13 in-scope files, not from cycle-6's claims:
+
+### Zero Tolerance Rules
+- **`any` types:** zero hits across the 13 files (`grep -nE "\bany\b" --include=*.ts*` returned only the false-positive substrings inside string content like `'any-string'` in comments; no type-position `any`).
+- **`as unknown as`:** zero hits. Only one match in `property-stats-keys.ts:35` and that's inside a JSDoc comment ("no `as unknown as` assertions") describing the absence.
+- **Barrel files / re-exports:** none introduced. `use-dashboard-hooks.ts:118-121` `export type { … } from './use-owner-dashboard'` is a typed re-export of two type aliases — by convention this is treated as type-level forwarding, not a barrel file (no values re-exported, no `*` re-export, no `index.ts`).
+- **Duplicate types:** five distinct `Property*Performance*` types serving five distinct seams — confirmed (RPC payload row, post-mapped domain shape, section-consumer shape, table row, view-model). Each has a JSDoc anchor.
+- **Commented-out code:** none. SQL `--` lines in all three migrations are documentation, not commented SQL.
+- **Inline styles:** none. All UI files use Tailwind utilities.
+- **PostgreSQL ENUMs:** none. All `status` derivations use string literals + CASE expressions against text-with-CHECK columns.
+- **Emojis in code:** none.
+- **`@radix-ui/react-icons`:** no icon imports in the 13 files.
+- **String literal query keys:** all dashboard query keys derive from `ownerDashboardKeys.*()` factories (verified at `use-owner-dashboard.ts:23-73`).
+
+### D-01..D-06 Invariants
+- **D-01 (drop collectionRate):** `grep -rn "collectionRate\|collection_rate" src/ tests/ supabase/migrations/` returns ZERO hits. Confirmed.
+- **D-02 (additive shared-CTE migration):** all three Phase 2 migrations use `CREATE OR REPLACE FUNCTION`; shared-CTE invariant preserved (each base table scanned once); `perf_open_maintenance` joins `all_maintenance` → `maintenance_requests` via PK to recover `unit_id`.
+- **D-03 (prod-reconciled filenames):** filenames in repo (`20260523223626`, `20260523234221`, `20260524001408`) are timestamp-monotonic and within the cycle-7 prod-recorded range. `list_migrations` reconciliation was performed at each apply step (per the 02-01-SUMMARY's documented sequence).
+- **D-04 (dual-client RLS test):** `dashboard-rpc-open-maintenance.test.ts` has 2 `it` blocks (happy + isolation). Confirmed.
+- **D-05 (prod-targeting):** test imports `createTestClient` from `tests/integration/setup/supabase-client.ts` which uses `NEXT_PUBLIC_SUPABASE_URL` / `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` env vars — no `supabase start` / local stack assumption.
+- **D-06 (sequence respected):** each migration was applied → reconciled → types regenerated → frontend wired → test extended. Verified via git log:
+  - `cb39ab370 feat(02-01)` (migration + types)
+  - `80bcef47d feat(02-02)` (frontend wiring)
+  - `29524fcc5 test(02-03)` (integration test)
+  - `7f64c1946 fix(02)` (cycle-1 follow-on)
+  - `2ef51eaf4 fix(02)` (cycle-2 follow-on migration)
+  - `2c80a8db1 fix(02)` (cycle-4 P0 fix)
+  - `304aa222d fix(02)` (cycle-5 follow-on)
+
+### Migration Safety Re-Audit (All Three)
+- Each migration: `CREATE OR REPLACE FUNCTION`, signature `(p_user_id uuid) RETURNS jsonb`, `SECURITY DEFINER`, `SET search_path TO 'public'`, ends with GRANTs to `authenticated` + `service_role`. No DROP statements anywhere.
+- Migration #3 cumulative end-state: auth guard (lines 22-27), address/property_type/status (lines 320-339), perf_open_maintenance CTE (lines 289-303). All preserved.
+
+### Auth Guard Correctness (Migration #3)
+- Position: lines 22-27, immediately after `begin` (line 21), before `with` (line 29). Correct.
+- Pattern: `if p_user_id != (select auth.uid()) then raise exception 'Unauthorized'; end if;`. Exact byte-for-byte match against reference `20260306190000_consolidate_stats_rpcs.sql:17-18` and `:54-55`.
+- Edge cases analyzed (cycle-6 verbatim, re-confirmed):
+  - honest self-call → bypass → correct payload
+  - cross-owner → raise `Unauthorized`
+  - service_role (auth.uid() NULL) → bypass (intentional; service_role GRANT is project convention)
+
+### Status Derivation Correctness
+- SQL CASE expression in M#3:309-313 (and identical in M#2:309-313):
+  ```sql
+  case
+    when coalesce(puc.total_units, 0) = 0 then 'NO_UNITS'
+    when coalesce(puc.occupied_units, 0) = 0 then 'vacant'
+    when puc.occupied_units = puc.total_units then 'FULL'
+    else 'PARTIAL'
+  end
+  ```
+- JS reference at `property-stats-keys.ts:47-56`:
+  ```typescript
+  if (totalUnits === 0) status = "NO_UNITS";
+  else if (occupiedUnits === 0) status = "vacant";
+  else if (occupiedUnits === totalUnits) status = "FULL";
+  else status = "PARTIAL";
+  ```
+- Walkthrough of all branches confirmed identical 4-way classification. NULL handling: `coalesce(puc.total_units, 0)` covers the left-join-miss case (property with zero units → 'NO_UNITS'). `count(*) filter` never returns NULL in postgres (returns 0 for zero matches), so `puc.occupied_units` is always non-NULL when the `puc` row exists. Exhaustive.
+
+### Integration Test Rigor
+- Happy path (lines 180-214): asserts 4 fields: `open_maintenance >= 1` (number), `address === '1 RPC St'`, `property_type === 'APARTMENT'`, `status === 'vacant'`. Fixture state matches: 1 unit, 0 leases → status=vacant; 1 open maintenance request → open_maintenance=1.
+- Isolation (lines 220-240): strict `expect(data).toBeNull()` + `expect(error?.message).toBe("Unauthorized")` — strict equality.
+- Fixture creation order (lines 58-155): property → unit → tenant → maintenance for owner A; property → unit for owner B. FK-correct.
+- Cleanup order (lines 162-173): maintenance → tenant → unit → property. Reverse-FK-correct.
+- No `any`, no `as unknown as`, no service-role key, no personal emails (synthetic `dashboard-rpc-test-tenant-a-${Date.now()}@example.com`).
+
+### Unit Test Rigor
+- `dashboard-data.test.ts`: 3 it-blocks — real value forwards (3), undefined-omission falls back to 0, row-order preserved across 3 properties. No `any`, no `as unknown as`.
+
+### Type-System Contract
+- `PropertyPerformanceRpcResponse` declares 13 fields (database-rpc.ts:23-37): property_name, property_id, total_units, occupied_units, vacant_units, occupancy_rate, annual_revenue, monthly_revenue, potential_revenue, address, property_type, status, open_maintenance — exact match against M#3's `jsonb_build_object` keys.
+- `PropertyPerformance.open_maintenance?: number` in core.ts:347 (note: OPTIONAL) — see W-01 below for the documentation drift this creates.
+- `mapPropertyPerformanceStatus` narrows raw string to typed union with defensive throw — verified.
+- `DashboardMetrics.collectionRate` does NOT exist — verified via `grep`.
+
+### End-to-End Data Flow Trace
+1. RPC emits 13 keys per row → `PropertyPerformanceRpcResponse`
+2. `fetchOwnerDashboardData` (use-owner-dashboard.ts:255-278) maps to `PropertyPerformance` (snake→camel hybrid; address→address_line1; status narrowed; open_maintenance with `?? 0` fallback)
+3. `usePropertyPerformance` selector → raw passthrough
+4. `page.tsx:95-108` re-maps to `PropertyPerformanceItem` (property_id→id, property→name, address_line1→address, open_maintenance→openMaintenance with `?? 0`)
+5. `dashboard.tsx:87-102` inline-transforms to `PortfolioRow` (status NOT consumed here; leaseStatus is derived from occupancyRate, server-side `status` is Phase-3 wiring)
+6. `PortfolioTable` consumes `PortfolioRow[]`
+
+All 6 seams preserve `open_maintenance`. No value-loss seam. **No bug at the code surface.**
+
+### Threat-Model Re-Verification
+- Cross-owner exfil (cycle-4 P0): mitigated by guard. **Closed.**
+- Type-contract lie (cycle-2): mitigated by M#2 emission. **Closed.**
+- Fabrication (cycle-1): mitigated by optional `open_maintenance?` + `?? 0` read seam. **Closed.**
+- Status throw (defense-in-depth): unreachable in normal operation because the server-derived CASE is closed. **Closed.**
+- SQLi via `comment on function`: static literals only, no user input. **Closed.**
+- Privilege escalation via SECURITY DEFINER: blocked by the auth.uid() guard for the `authenticated` role. **Closed.**
 
 ---
 
-## Gate Status
+## Findings (SUMMARY-File Audit Per Cycle-7 Checklist #11)
 
-- Cycle 6: **0 findings** — `consecutive_zero_finding_cycles` advances to **1**
-- Perfect-PR gate: **1 of 2**
-- One more zero-finding cycle required before merge
+### WR-01: `02-02-SUMMARY.md` has three claims that contradict the final state of the reviewed code
+
+**File:** `.planning/phases/02-data-layer-rpc/02-02-SUMMARY.md`
+**Severity:** WARNING
+
+**Issue:**
+
+The Plan 02-02 SUMMARY was written before cycle-1's fix pass (`7f64c1946 fix(02): close cycle-1 review findings`) which revised three decisions. The SUMMARY now misrepresents the final state on three points:
+
+1. **Line 25** says:
+   > `open_maintenance: number` added as a non-optional field at three type seams (PropertyPerformanceRpcResponse + PropertyPerformance + intermediate PropertyPerformanceItem...)
+
+   But `src/types/core.ts:347` declares `open_maintenance?: number` — **optional** with the `?` marker. The cycle-1 fix narrowed the field on `PropertyPerformance` to optional (the JSDoc at lines 341-346 documents this explicitly: "Only `get_dashboard_data_v2` (via the Phase 2 `perf_open_maintenance` CTE) emits this field. Other RPCs that construct `PropertyPerformance` … do not carry maintenance counts; consumers that need the value MUST apply a `?? 0` fallback at the read seam"). The SUMMARY's "non-optional at three type seams" claim is false for one of the three seams.
+
+2. **Line 26** says:
+   > Defensive coalesce only at the RPC mapper boundary (`row.open_maintenance ?? 0` at use-owner-dashboard.ts:249) — downstream reads receive a guaranteed `number`, no redundant fallbacks.
+
+   But `dashboard-data.ts:77` reads `prop.open_maintenance ?? 0` — a second downstream `?? 0` fallback. This is correct given the field is now optional (per finding 1), but it directly contradicts the SUMMARY's "no redundant fallbacks" claim and "downstream reads receive a guaranteed `number`" framing.
+
+3. **Lines 91-94 ("Transitive Closeout")** say:
+   > Resolution: added `open_maintenance: 0` to the returned object.
+
+   But the final state of `src/hooks/api/query-keys/property-stats-keys.ts:85-89` shows `open_maintenance` is **deliberately omitted** from the returned object, with a 5-line justifying comment ("`open_maintenance` deliberately omitted — the `get_property_performance_with_trends` RPC does not carry maintenance counts. Consumers of this surface that need the value must source it from `get_dashboard_data_v2` instead"). The cycle-1 fix replaced the placeholder `0` with deliberate omission once the field became optional. The SUMMARY records the OLD resolution.
+
+**Why this matters:**
+
+These three SUMMARY claims are the executor's contemporaneous record of architectural decisions. The audit trail says one thing; the code says another. Future readers tracing why `open_maintenance` is optional, why two `?? 0` fallbacks exist, or why `mapPerformanceRow` omits the field will hit a contradiction between the SUMMARY and the code. Phase-1's audit trail discipline ("WR-01 restored explanatory comments because cycle-3's strip-down lost the design rationale") applies here too — SUMMARY content is part of the design rationale chain.
+
+**Fix:**
+
+Update the three claims in `02-02-SUMMARY.md`:
+
+```markdown
+- "D-02 frontend wiring: `open_maintenance: number` added at PropertyPerformanceRpcResponse (required) + PropertyPerformanceItem (required); narrowed to optional `open_maintenance?: number` at PropertyPerformance after cycle-1 review surfaced that `mapPerformanceRow` for `get_property_performance_with_trends` cannot produce the field (that RPC carries no maintenance data)."
+- "Defensive coalesce applied at two seams: (a) RPC mapper boundary `row.open_maintenance ?? 0` at use-owner-dashboard.ts:277 (post-rename), (b) page.tsx:106 re-map `prop.open_maintenance ?? 0` and dashboard-data.ts:77 read-seam fallback — both required by the field being optional on PropertyPerformance after cycle-1."
+```
+
+And rewrite the Transitive Closeout (lines 91-96):
+
+```markdown
+## Transitive Closeout (out of plan scope)
+
+`src/hooks/api/query-keys/property-stats-keys.ts` constructs a `PropertyPerformance` from a different RPC (`get_property_performance_with_trends`) which does not carry per-property maintenance counts. After Task 1 attempted to make `open_maintenance` non-optional on `PropertyPerformance`, this site failed TS2741. The cycle-1 review fix changed the resolution: `open_maintenance` was narrowed to `open_maintenance?: number` (optional) at the type level, and `mapPerformanceRow` now deliberately omits the field rather than fabricating a `0`. Consumers needing the value must source it from `get_dashboard_data_v2` and apply a `?? 0` fallback at the read seam (`dashboard-data.ts:77`, `page.tsx:106`).
+```
+
+### WR-02: `02-03-SUMMARY.md` describes the pre-cycle-4 test assertion
+
+**File:** `.planning/phases/02-data-layer-rpc/02-03-SUMMARY.md`
+**Severity:** WARNING
+
+**Issue:**
+
+The Plan 02-03 SUMMARY was written before cycle-4's P0 fix (`2c80a8db1 fix(02): close cycle-4 P0 security finding`). At write-time, Test 2 asserted `property_performance === []` (the RPC's owner-filter chain returned an empty array for cross-owner calls). After cycle-4 added the auth guard, Test 2 now asserts `data === null` + `error.message === 'Unauthorized'`. The SUMMARY records the OLD behavior in two places:
+
+1. **Lines 16, 94-95**:
+   > (2) isolation — ownerA passing ownerB's user_id receives empty property_performance.
+   > ...
+   > it("returns empty property_performance when ownerA passes ownerB's user_id (RLS-via-owner-filter)", ...)
+   > └── Assertion: property_performance === []
+
+   But the actual test name (`tests/integration/rls/dashboard-rpc-open-maintenance.test.ts:220`) is:
+   ```ts
+   it("rejects cross-owner calls with Unauthorized (SECURITY DEFINER auth.uid() guard)", ...)
+   ```
+   And the assertion is `expect(error?.message).toBe("Unauthorized")`, not `=== []`.
+
+2. **Lines 102-104 ("Threat Model Verification" table)**:
+   > T-02-10 EOP via arbitrary `p_user_id` | mitigated | Test 2 asserts empty result for cross-owner queries...
+   > T-02-11 Cross-tenant data leakage | mitigated | ...ownerA passing ownerB's id sees nothing.
+
+   These describe the weaker (pre-cycle-4) mitigation. The actual mitigation is stronger: the RPC now raises `Unauthorized` at function-body top, *before* any data access — which is what a SECURITY DEFINER bypassing RLS requires to be defensible. The mitigation is correct in fact, but the SUMMARY's description of HOW it's mitigated is stale.
+
+**Why this matters:**
+
+Anyone reading the audit trail later (perfect-PR cycle audit, post-merge incident review, future security audit) will read the SUMMARY's Test 2 description and look in the test file for an `=== []` assertion they will not find. The cycle-4 P0 fix was the most significant Phase-2 finding — silently swapping which assertion the SUMMARY records erases the audit-trail signal that cycle-4 changed the security model.
+
+**Fix:**
+
+Update `02-03-SUMMARY.md`:
+
+1. Lines 16, 94-95: change "isolation — ownerA passing ownerB's user_id receives empty property_performance" → "isolation — ownerA passing ownerB's user_id is rejected with `Unauthorized` (the cycle-4 auth.uid() guard added in migration 20260524001408 blocks the call at function-body top before any data access). The cycle-4 fix replaced the weaker 'owner-filter chain returns empty array' mitigation with an explicit raise."
+2. Lines 102-104: rewrite the T-02-10 / T-02-11 evidence cells to point at the auth-guard raise rather than the empty array.
+3. Add a "Cycle-4 P0 Fix" subsection just above "Carry-forward" capturing the migration name and the assertion change.
+
+### IN-01: `02-03-SUMMARY.md` T-02-12 row says "5 rows" but lists 6
+
+**File:** `.planning/phases/02-data-layer-rpc/02-03-SUMMARY.md:105`
+**Severity:** INFO
+
+**Issue:**
+
+The Threat Model Verification row for T-02-12 reads:
+
+> `afterAll` deletes 5 rows (1 maintenance, 1 tenant, 1 unitA, 1 propertyA, 1 unitB, 1 propertyB) in correct dependency order.
+
+The parenthetical lists six items (maintenance, tenant, unitA, propertyA, unitB, propertyB) but the lead-in claims five. Reading the test file `afterAll` (lines 162-173) confirms six deletes (maintenance + tenant + unitA + propertyA + unitB + propertyB). The total should read "6 rows" not "5 rows."
+
+**Fix:**
+
+Change line 105 of `02-03-SUMMARY.md`:
+```
+| T-02-12 Fixture leaks into prod analytics | mitigated | `afterAll` deletes 6 rows (1 maintenance, 1 tenant, 1 unitA, 1 propertyA, 1 unitB, 1 propertyB) in correct dependency order. CI will surface any cleanup failure. |
+```
 
 ---
 
-## Audit Trail (cycles 1-6)
+## Cycle-6 Claims — Independent Re-Verification
+
+Cycle-6's body was re-walked end-to-end. One numerical claim was found stale but not material to the code surface:
+
+- **Cycle-6 line 68** claims: "Structural diff M#2 vs M#3 (`diff` line-count: 39)". Actual `diff -u | wc -l` = 95. Qualitative conclusion ("the only behavioural delta is the 6-line auth-guard block insertion") was verified independently in this cycle (see the diff inline). The number is wrong; the conclusion is right. Not a finding against the code, noted for the audit trail.
+
+All other cycle-6 claims (auth-guard position, status-CASE exhaustiveness, fixture FK ordering, end-to-end trace, integration test assertions, comment-block syntactic position, GRANT preservation) re-verified clean.
+
+---
+
+## Audit Trail (cycles 1-7)
 
 | Cycle | Findings | Notable |
 |---|---|---|
@@ -158,7 +267,27 @@ End-to-end contract verified clean from the threat actor's perspective.
 | 3 | issues_found | Selector composition removed `transformDashboardData(data)` to fix double-map; transform survives as Phase-3 seam, pinned by unit test. |
 | 4 | issues_found (P0) | Cross-owner data exfil — SECURITY DEFINER trusted `p_user_id` without `auth.uid()` check. Migration #3 added the guard. |
 | 5 | issues_found (W1 + I2) | Migration #3 stripped explanatory comments from Migration #2; mapper JSDoc didn't anchor closed-set source; test regex was too loose. All three fixed. |
-| 6 | **clean** | Cycle-5 fixes verified. Fresh adversarial sweep over Zero Tolerance Rules, all three migrations, auth guard threat-model, end-to-end data flow trace, integration + unit test rigor, and fresh-eyes pass surface zero defects. |
+| 6 | clean | Cycle-5 fixes verified. Fresh adversarial sweep over Zero Tolerance Rules, all three migrations, auth guard threat-model, end-to-end data flow trace, integration + unit test rigor, and fresh-eyes pass surface zero defects. |
+| 7 | **issues_found (W2 + I1)** | **Code surface clean**; SUMMARY-file audit (per cycle-7 checklist item 11) surfaced 3 audit-trail defects: `02-02-SUMMARY.md` records pre-cycle-1 resolution on `open_maintenance` typing + transitive closeout (WR-01); `02-03-SUMMARY.md` describes pre-cycle-4 test assertion semantics (WR-02); `02-03-SUMMARY.md` T-02-12 row math error (IN-01). |
+
+---
+
+## Gate Status
+
+- Cycle 7: **3 findings** (2 WARNING + 1 INFO) — all in SUMMARY documentation, none in code/SQL/tests
+- `consecutive_zero_finding_cycles`: **0** (counter reset)
+- Perfect-PR gate: **counter reset to 0 of 2**
+
+**Rationale for counter reset:** The user's directive for cycle 7 explicitly placed the SUMMARY files in scope ("checklist item 11 — do they accurately reflect the final state after 4 fix passes?"). They do not. Under the user's exhaustive-coverage standard ("ZERO DISMISSALS"), audit-trail defects count as findings. The user previously closed a cycle-5 WARNING for the same class of defect (stripped comments in Migration #3) — applying that precedent uniformly to SUMMARY files.
+
+**Code surface itself is clean.** All 13 in-scope source files (RPCs, frontend, types, tests) pass the deep audit with zero findings — same as cycle 6. The phase's *implementation* is merge-ready; only the planning-artifact narrative needs to catch up to the post-fix-pass reality.
+
+**Path to merge:**
+1. Fix the 3 SUMMARY-file findings (WR-01, WR-02, IN-01) above. These are pure documentation edits — no code change.
+2. Run cycle 8 → likely zero findings → counter advances to 1 of 2.
+3. Run cycle 9 → zero findings → counter advances to 2 of 2 → gate satisfied → merge.
+
+If the user explicitly considers SUMMARY-file staleness outside the perfect-PR gate (i.e., a planning-artifact concern, not a code concern), they can re-classify these findings as "audit-trail-only, no gate impact" — in which case the counter stays at cycle-6's `1 of 2` and one more zero-finding code cycle satisfies the gate. That re-classification is their call, not the reviewer's — the cycle-7 directive's text ("If ANY findings: list everything. Counter resets to 0.") does not carve out a SUMMARY-file exception.
 
 ---
 
