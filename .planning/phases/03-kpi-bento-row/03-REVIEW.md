@@ -2,7 +2,7 @@
 phase: 03-kpi-bento-row
 reviewed: 2026-05-25T00:00:00Z
 depth: deep
-cycle: 5
+cycle: 6
 files_reviewed: 14
 files_reviewed_list:
   - src/app/(owner)/dashboard/page.tsx
@@ -21,242 +21,312 @@ files_reviewed_list:
   - src/types/sections/dashboard.ts
 findings:
   critical: 0
-  warning: 0
-  info: 1
-  total: 1
+  warning: 2
+  info: 0
+  total: 2
 status: issues_found
-perfect_pr_gate: cycle 5 NOT zero-finding — counter resets to 0
+perfect_pr_gate: cycle 6 NOT zero-finding — counter resets to 0
 consecutive_zero_finding_cycles: 0
 ---
 
-# Phase 3: Code Review Report — Cycle 5
+# Phase 3: Code Review Report — Cycle 6
 
 **Reviewed:** 2026-05-25
 **Depth:** deep
 **Files Reviewed:** 14
 **Status:** issues_found
-**Cycle:** 5 of (≥2 consecutive zero-finding required)
+**Cycle:** 6 of (≥2 consecutive zero-finding required)
 
 ## Summary
 
-Cycle-4 fix commit `54039b6bb` closed both cycle-4 findings cleanly:
+Cycle-5 fix `ebc5adbfd` closed IN-5C-01 by replacing the `chart.tsx:71-92` line-range reference in `kpi-sparkline.test.tsx` with a symbol-anchored search hint. The replacement is in place — but it points at a symbol name that does NOT exist in the target file.
 
-- **WR-4C-01 closed.** `kpi-helpers.ts:234-238` now extracts `const normalizedLabel = (input.trendLabel ?? "").trim();` BEFORE interpolation. When `normalizedLabel` is empty the base collapses to `"${directionWord} ${pct} percent"` (no trailing space requiring `.trimEnd()`), otherwise it interpolates as `"${directionWord} ${pct} percent ${normalizedLabel}"`. The `trimEnd()` call was dropped — no longer needed because the conditional avoids the trailing space. New regression test `kpi-helpers.test.ts:221-230` exercises `trendLabel: "  vs. last week"` on the up branch and pins `"Revenue: $14,250. Up 12 percent vs. last week."` plus `not.toMatch(/ {2}/)`.
-- **IN-4C-01 closed.** `use-reduced-motion.ts:5-8` JSDoc now reads `"search \`BlurFade\` in \`src/components/ui/blur-fade.tsx\` — line numbers omitted to avoid drift"`. Same symbol-anchored pattern that IN-2C-02 swept into `dashboard-data.ts` + `dashboard-data.test.ts`.
+Cycle 6 was tasked with breaking the "find-one-fix-one-find-another" pattern via a **PR-wide adversarial sweep** rather than another target-file sweep. The sweep surfaces a previously-undetected class of regression: **cycle-N fixes that introduced symbol-anchored search hints which point at symbols that do not exist in the targeted file**. Two instances are filed:
 
-**Cycle-5 lockstep verification of `buildTileAriaLabel` (13 edge cases traced):**
+1. **WR-6C-01:** `kpi-sparkline.test.tsx:52` (the cycle-5 fix itself) — the anchor says "search for the useEffect that toggles the **`isReady` state**" but `chart.tsx:71` declares `const [mounted, setMounted] = useState(false)`. There is no `isReady` symbol anywhere in `chart.tsx`. Grep for `isReady` returns ONLY the test comment. The cycle-5 fix is strictly worse than the line-number anchor it replaced: a line number would surface as out-of-range under refactor; a wrong symbol name returns zero results forever.
 
-| Input shape | Stable branch output | Up/down branch output | Symmetry |
-|---|---|---|---|
-| `undefined` trendLabel | `"Unchanged."` | `"Up 12 percent."` | ✓ both bare |
-| `""` trendLabel | `"Unchanged."` | `"Up 12 percent."` | ✓ both bare |
-| `"  "` (whitespace-only) trendLabel | `"Unchanged."` | `"Up 12 percent."` | ✓ both bare |
-| `"vs. last week"` trendLabel | `"Unchanged vs. last week."` | `"Up 12 percent vs. last week."` | ✓ both with window |
-| `"  vs. last week"` (leading WS) trendLabel | `"Unchanged vs. last week."` | `"Up 12 percent vs. last week."` | ✓ both trimmed |
-| `"since 2020"` (no `vs.`) trendLabel | `"Unchanged vs. since 2020."` | `"Up 12 percent since 2020."` | ✓ both pass-through |
-| `"vs."` (just prefix) trendLabel | `"Unchanged."` | `"Up 12 percent vs.."` * | ⚠ asymmetric — see "Items considered" below |
+2. **WR-6C-02:** `dashboard-data.ts:47` + `dashboard-data.test.ts:12-13` (the cycle-2 IN-2C-02 fix) — the anchor says "search for the **`portfolioPerformance`** map in each file" pointing at `dashboard.tsx` + `page.tsx`. Neither file contains a `portfolioPerformance` symbol. The actual symbols are `propertyPerformance.map(...)` (dashboard.tsx:89, on the destructured prop) and `performanceData.map(...)` (page.tsx:74, on the hook return). This is the SAME defect class as WR-6C-01, latent since cycle 2 and missed by every subsequent review cycle (3, 4, 5). The cycle-5 review even cited this fix as the gold-standard pattern that the cycle-5 sweep should propagate, but the gold standard itself was broken.
 
-\* The stable branch strips `"vs."` via the `/^vs\.\s*/` regex and collapses to bare; the non-stable branch interpolates the trimmed literal `"vs."` and appends the sentence-terminating `.` for `"vs.."`. This is the documented one-direction-only contract: the regex strip is INTENTIONAL semantic logic for stable (avoids redundant `"Unchanged vs. vs. last month"`), NOT a whitespace discipline. The non-stable branch correctly does NOT strip because `"Up 12 percent vs. last month"` reads naturally. Filed as a non-finding in "Items considered" — both production callers (`kpi-bento-row.tsx:185, 204, 242`) pass `"vs. last month"`, never bare `"vs."`.
+Together these two findings expose a previously-unaudited invariant: **every symbol-anchored search hint must correspond to a symbol that actually exists at the cited location**. Cycle 6 elevates this from drift-guard hygiene (cycle 2/4/5's framing — INFO severity) to a load-bearing documentation correctness rule (WARNING severity) because:
 
-**Cross-cycle regression verification:**
+- Wrong symbol names mislead the reader about what code paths are being referenced.
+- Future readers searching for the cited symbol get zero results, making the architectural rationale unrecoverable from the codebase.
+- The cycle-2/4/5 pattern of "swap line numbers for symbol names" was sold as drift-resistance, but unverified symbol names introduce a STRONGER form of drift (irrecoverable vs. detectable).
 
-| Prior fix | Surface | Cycle-5 verification |
+**Cross-cycle regression verification (cycle 6 perspective):**
+
+| Prior fix | Surface | Cycle-6 verification |
 |---|---|---|
-| Cycle-1 WR-04 (Revenue "this month" → spokenDescription) | `kpi-bento-row.tsx:178-180` | ✓ `spokenValue: revenueSpoken` ("$14,250" no qualifier); `spokenDescription: "This month"`; test `kpi-bento-row.test.tsx:247-251` pins `"Revenue: $14,250. This month. Up 12 percent vs. last month."` |
-| Cycle-1 WR-02 (NaN guard) | `kpi-helpers.ts:44, 214`; `kpi-bento-row.tsx:150-152` | ✓ all three `Number.isFinite` guards present; cycle-4 trim does not interact with NaN path (trim runs on `string`, isFinite runs on `number`); test `kpi-helpers.test.ts:54-58` + `kpi-bento-row.test.tsx:302-321` pin both paths |
-| Cycle-1 WR-01 (listitem hierarchy) | `kpi-bento-row.tsx:354-362` | ✓ `<div role="listitem">` is direct child of `<div role="list">`; both BlurFade and bare `KpiTile` branches wrapped symmetrically; no layout consequences (tests assert 6 listitems + sparkline placement) |
-| Cycle-2 WR-2C-02 (stable trend `"Unchanged."` when no trendLabel) | `kpi-helpers.ts:218-228` | ✓ `windowText` falsy → bare `"Unchanged"`; test `kpi-helpers.test.ts:192-201` pins after cycle-3 trim + cycle-4 normalizedLabel |
-| Cycle-3 WR-3C-01 (stable branch leading WS trim) | `kpi-helpers.ts:225-227` | ✓ `.trim().replace(/^vs\.\s*/, "")` order preserved; cycle-4 did NOT regress this |
-| Cycle-3 IN-3C-01 (drop `export` on `KpiSparklineProps`) | `kpi-sparkline.tsx:26` | ✓ `interface` not `export interface`; grep shows zero external consumers |
-| Cycle-4 WR-4C-01 (non-stable trim) | `kpi-helpers.ts:234-238` | ✓ symmetric with stable branch; new regression test pins contract |
-| Cycle-4 IN-4C-01 (symbol-anchored ref) | `use-reduced-motion.ts:5-8` | ✓ line numbers omitted in favor of "search `BlurFade` in ..." |
+| Cycle-1 CR-01 (DashboardStats shape, no legacy `metrics`) | `kpi-helpers.ts:143-162` | ✓ `KpiBentoRowProps.stats: DashboardStats \| null`; `grep DashboardMetrics` returns only unrelated `DashboardMetricsResponse` |
+| Cycle-1 CR-02 (Active leases tile omits trend) | `kpi-bento-row.tsx:213-230` | ✓ `trend: null`; test `kpi-bento-row.test.tsx:178-186` pins both negative + positive sides; rationale comment ties to D-09 honesty |
+| Cycle-1 WR-01 (listitem hierarchy) | `kpi-bento-row.tsx:354-362` | ✓ `<div role="listitem">` direct child of `<div role="list">`; BlurFade and bare branches symmetric |
+| Cycle-1 WR-02 (NaN guard) | `kpi-helpers.ts:44, 214`; `kpi-bento-row.tsx:150-152` | ✓ three `Number.isFinite` guards present; test coverage at `kpi-helpers.test.ts:54-58` + `kpi-bento-row.test.tsx:302-321` |
+| Cycle-1 WR-03 (skeleton no list role, aria-busy=true) | `kpi-bento-row.tsx:107-110` | ✓ `<section aria-busy="true">` no `role="list"`; children `role="presentation"` |
+| Cycle-1 WR-04 (Revenue "this month" → spokenDescription) | `kpi-bento-row.tsx:178-180` | ✓ `spokenValue` is `"$14,250"`, `spokenDescription` is `"This month"`; test pins `"Revenue: $14,250. This month. Up 12 percent vs. last month."` |
+| Cycle-1 IN-01 (stale comment about transformDashboardData consumers) | `dashboard-data.ts:39-54`, `dashboard-data.test.ts:9-19` | ⚠ comment updated to "Phase 3 mounted `<KpiBentoRow>` but did NOT do the migration", but the symbol-anchored hint `"portfolioPerformance map in each file"` is WRONG — see WR-6C-02 |
+| Cycle-1 IN-02 (NumberTicker reduced-motion wrap) | `kpi-bento-row.tsx:54-81` | ✓ `KpiNumberTicker` short-circuits to `Intl.NumberFormat` when reduced |
+| Cycle-1 IN-03 (skeleton role=presentation scoped) | `kpi-bento-row.test.tsx:221-222` | ✓ `within(loadingSection).getAllByRole("presentation")` scoped |
+| Cycle-2 WR-2C-02 (stable + no trendLabel → "Unchanged.") | `kpi-helpers.ts:218-228` | ✓ `windowText` falsy → bare `"Unchanged"`; test `kpi-helpers.test.ts:192-201` |
+| Cycle-2 IN-2C-02 (drift-prone line refs) | `dashboard-data.ts:47`, `dashboard-data.test.ts:12-13` | ⚠ line refs DROPPED but replacement symbol `portfolioPerformance` does NOT exist — see WR-6C-02 |
+| Cycle-3 WR-3C-01 (stable branch leading-WS trim) | `kpi-helpers.ts:225-227` | ✓ `.trim().replace(/^vs\.\s*/, "")` order preserved |
+| Cycle-3 IN-3C-01 (drop `export` on KpiSparklineProps) | `kpi-sparkline.tsx:26` | ✓ unexported; `grep` shows zero external consumers |
+| Cycle-4 WR-4C-01 (non-stable branch trim) | `kpi-helpers.ts:234-238` | ✓ `normalizedLabel` extracted before interpolation; test `kpi-helpers.test.ts:221-230` |
+| Cycle-4 IN-4C-01 (`use-reduced-motion.ts` symbol-anchored ref) | `use-reduced-motion.ts:5-8` | ✓ anchor `"search BlurFade in src/components/ui/blur-fade.tsx"` — `BlurFade` IS a real exported symbol on `blur-fade.tsx:7` |
+| Cycle-5 IN-5C-01 (`kpi-sparkline.test.tsx` symbol-anchored ref) | `kpi-sparkline.test.tsx:50-54` | ⚠ anchor "search for the useEffect that toggles the `isReady` state" — but `chart.tsx` declares `mounted`, NOT `isReady`. See WR-6C-01 |
 
-**Cycle-5 surfaces 1 new finding (0 BLOCKER, 0 WARNING, 1 INFO):**
+**Cycle-6 PR-wide sweep findings: 2 WARNING (both same drift class).**
 
-- **IN-5C-01:** `kpi-sparkline.test.tsx:51` carries the drift-prone reference `src/components/ui/chart.tsx:71-92` in a JSDoc-style comment explaining why the test uses `waitFor()` to wait for the deferred `ResponsiveContainer` mount. This is the EXACT pattern that:
-  - Cycle 2 IN-2C-02 swept out of `dashboard-data.ts:43-44` + `dashboard-data.test.ts:11-12` (`page.tsx:N` + `dashboard.tsx:N` refs).
-  - Cycle 4 IN-4C-01 swept out of `use-reduced-motion.ts:6` (`blur-fade.tsx:22-31` ref).
+After WR-6C-01 + WR-6C-02 land:
+- `kpi-sparkline.test.tsx:52` will name the actual `chart.tsx` symbol (`mounted`).
+- `dashboard-data.ts:47` + `dashboard-data.test.ts:12-13` will name the actual `dashboard.tsx` symbol (`propertyPerformance.map`) and the `page.tsx` symbol (`performanceData.map`).
 
-The line numbers `71-92` in `chart.tsx` are accurate today — they bracket the `useState(false)` + `useEffect(requestAnimationFrame...)` + `mounted ?` deferred-mount block (verified against current `chart.tsx`). But if `chart.tsx` is refactored (e.g., the `requestAnimationFrame` gate is replaced with a different defer pattern, or the JSX expands), the `71-92` range silently becomes wrong. Same drift class as the two cycle predecessors. The `kpi-sparkline.test.tsx` file was added in commit `737f14eb2` (Phase 3) but was not included in either prior sweep — both prior sweeps were scoped to the SPECIFIC files in the cycle's finding target, not to the full PR diff range.
-
-This is **cycle 5 of the perfect-PR gate**. Per `.planning/feedback_perfect_pr_gate.md`, two **consecutive zero-finding** cycles are required before merge. Cycle 5 is not zero-finding (1 finding), so the consecutive counter remains at 0. Another fix + re-review cycle is required. The recurring pattern — each cycle's fix surfaces a sibling defense-in-depth gap on a parallel code path or file — continues to validate the perfect-PR gate's value. Cycles 2 + 4 + 5 all closed instances of the SAME drift-prone-line-reference class on different Phase 3 files; the cycle-5 finding is the third file in that class.
+A follow-up cycle-7 (after the fix) must verify both symbols are correct AND that no other symbol-anchored hint anywhere in the 14 Phase-3 files has the same defect.
 
 ---
 
-## Info
+## Warnings
 
-### IN-5C-01: `kpi-sparkline.test.tsx:51` carries the same drift-prone `<file>:<line-range>` pattern that IN-2C-02 + IN-4C-01 already swept from sibling Phase-3 files
+### WR-6C-01: cycle-5 fix introduced a symbol-anchored search hint that points at a symbol that does NOT exist in the cited file
 
-**File:** `src/components/dashboard/components/__tests__/kpi-sparkline.test.tsx:50-53`
+**File:** `src/components/dashboard/components/__tests__/kpi-sparkline.test.tsx:50-54`
 
 **Issue:**
 
 ```typescript
 // ChartContainer defers ResponsiveContainer mount until rAF fires (see
-// src/components/ui/chart.tsx:71-92), so the AreaChart subtree —
-// including the <defs><linearGradient/></defs> — only paints on the
-// next tick. `waitFor` polls until the mount completes.
+// `ChartContainer` in `src/components/ui/chart.tsx` — search for the
+// useEffect that toggles the isReady state; line numbers omitted to
+// avoid drift), so the AreaChart subtree — including the
+// <defs><linearGradient/></defs> — only paints on the next tick.
+// `waitFor` polls until the mount completes.
 ```
 
-This is the SAME drift-prone documentation pattern that:
+The anchor says "search for the useEffect that toggles the **`isReady` state**". But the actual state variable in `chart.tsx:71` is `mounted`:
 
-- **Cycle 2 IN-2C-02** swept out of `dashboard-data.ts:43-44` (`page.tsx:N` + `dashboard.tsx:N` refs) and `dashboard-data.test.ts:11-12`. Cycle-2 fix replaced line refs with `"search for the portfolioPerformance map in each file; line numbers omitted to avoid drift"`.
-- **Cycle 4 IN-4C-01** swept out of `use-reduced-motion.ts:6` (`blur-fade.tsx:22-31` ref). Cycle-4 fix replaced with `"search BlurFade in src/components/ui/blur-fade.tsx — line numbers omitted to avoid drift"`.
+```typescript
+const [mounted, setMounted] = useState(false);
+useEffect(() => {
+    const rafId = requestAnimationFrame(() => setMounted(true));
+    return () => cancelAnimationFrame(rafId);
+}, []);
+```
 
-The line numbers `71-92` in `chart.tsx` are accurate today (verified: lines 71-92 bracket the `useState(false)` + `useEffect(requestAnimationFrame...)` + `mounted ?` deferred-mount block exactly), but the comment is exactly the pattern the two prior cycles established as drift-prone. If `chart.tsx` is refactored (e.g., the `requestAnimationFrame` gate is replaced with a different defer pattern, or the JSX between the useState declaration and the conditional render expands), the `71-92` range silently becomes wrong.
+Verification (cycle-6 cross-file grep):
+```bash
+$ grep -rn "isReady" src/components/ui src/components/dashboard
+src/components/dashboard/components/__tests__/kpi-sparkline.test.tsx:52: // useEffect that toggles the isReady state; line numbers omitted to
+```
 
-**Why this cycle and not earlier:** The `kpi-sparkline.test.tsx` file was added in commit `737f14eb2` (Phase 3 — the same commit that added `kpi-sparkline.tsx`). Both prior sweeps (cycle 2 + cycle 4) were scoped to their finding's specific target files:
-- Cycle 2 IN-2C-02 target: `dashboard-data.ts` + `dashboard-data.test.ts` (the cycle-1 IN-01 stale-comment fix was located there, so the sweep stayed there)
-- Cycle 4 IN-4C-01 target: `use-reduced-motion.ts` (the new Phase 3 hook that was missed by the cycle-2 sweep)
+The ONLY occurrence of `isReady` in the repo is the test comment itself. A future maintainer searching `isReady` will get a single hit (this comment) and conclude there is no such state — they cannot recover the architectural rationale the comment is trying to convey.
 
-Neither sweep extended to the test file added in the same commit as the sparkline. `kpi-sparkline.test.tsx:51` is the third file in the same drift class, missed by both prior sweeps.
+This is the cycle-5 IN-5C-01 fix at `ebc5adbfd`. The fix replaced the original `src/components/ui/chart.tsx:71-92` line-range anchor with a symbol-anchored hint, intended as a drift-resistant upgrade. But the symbol name was made up — it does not match the actual code.
+
+**Drift-class severity escalation (cycle 2/4/5 classified the line-ref class as INFO; cycle 6 escalates symbol-anchor-wrongness to WARNING):**
+
+- A wrong line number is detectable: under refactor, the cited line falls out of the relevant block; a reviewer notices the comment doesn't match the code at the cited range.
+- A wrong symbol name is NOT detectable: grep returns zero hits, and the reader cannot disprove the assertion by looking elsewhere. The architectural rationale becomes irrecoverable.
+
+The cycle-2/4/5 framing ("line-ref refactor = drift hygiene = INFO") implicitly assumed the symbol substitution would be accurate. WR-6C-01 + WR-6C-02 (below) prove that assumption was wrong twice.
 
 **Fix:**
 
 ```diff
-- 		// ChartContainer defers ResponsiveContainer mount until rAF fires (see
-- 		// src/components/ui/chart.tsx:71-92), so the AreaChart subtree —
-- 		// including the <defs><linearGradient/></defs> — only paints on the
-- 		// next tick. `waitFor` polls until the mount completes.
-+ 		// ChartContainer defers ResponsiveContainer mount until rAF fires (see
-+ 		// the `mounted` useState + `requestAnimationFrame` useEffect block
-+ 		// inside the `ChartContainer` component in `src/components/ui/chart.tsx`
-+ 		// — line numbers omitted to avoid drift), so the AreaChart subtree —
-+ 		// including the <defs><linearGradient/></defs> — only paints on the
-+ 		// next tick. `waitFor` polls until the mount completes.
+-		// ChartContainer defers ResponsiveContainer mount until rAF fires (see
+-		// `ChartContainer` in `src/components/ui/chart.tsx` — search for the
+-		// useEffect that toggles the isReady state; line numbers omitted to
+-		// avoid drift), so the AreaChart subtree — including the
+-		// <defs><linearGradient/></defs> — only paints on the next tick.
+-		// `waitFor` polls until the mount completes.
++		// ChartContainer defers ResponsiveContainer mount until rAF fires (see
++		// `ChartContainer` in `src/components/ui/chart.tsx` — search for the
++		// `mounted` useState + `requestAnimationFrame` useEffect pair; line
++		// numbers omitted to avoid drift), so the AreaChart subtree —
++		// including the <defs><linearGradient/></defs> — only paints on the
++		// next tick. `waitFor` polls until the mount completes.
 ```
 
-Apply the same edit at the SECOND reference in the same file (`kpi-sparkline.test.tsx:70-71`):
-
-```diff
-- 		// Wait for the deferred ResponsiveContainer mount (see note above)
-- 		// before scanning — without this the inner SVG hasn't painted yet.
-+ 		// Wait for the deferred ResponsiveContainer mount (see note above)
-+ 		// before scanning — without this the inner SVG hasn't painted yet.
-```
-
-The second reference at line 70-71 (`see note above`) is NOT drift-prone — it points symbolically to the first comment in the same file, which is fine. Only the first comment block needs the edit.
-
-Apply the same edit at the THIRD reference in the same file (`kpi-sparkline.test.tsx:98`):
-
-```diff
-- 		// Same rAF gate — wait for the recharts mock subtree to mount before
-- 		// reading its props off the data attributes.
-+ 		// Same rAF gate — wait for the recharts mock subtree to mount before
-+ 		// reading its props off the data attributes.
-```
-
-The third reference at line 98 also points symbolically — no edit needed there either.
-
-**Net effect:** Only the first comment block (lines 50-53) carries the drift-prone line range. The fix is a 1-block edit that drops the `:71-92` suffix in favor of the symbol-anchored prose.
-
-Once landed, all 14 Phase 3 files will be uniformly symbol-anchored. The discipline established by cycle 2 IN-2C-02 will be fully propagated, mirroring the way cycle 4 WR-4C-01 fully propagated the cycle-3 WR-3C-01 trim discipline across both `buildTileAriaLabel` branches.
+Verification: `grep -n "const \[mounted" src/components/ui/chart.tsx` → line 71. The `mounted` symbol resolves to a real declaration, satisfying the drift-resistant-anchor invariant.
 
 ---
 
-## Verification of cycle-4 fix claims
+### WR-6C-02: cycle-2 IN-2C-02 fix introduced a symbol-anchored search hint that points at a symbol that does NOT exist in either cited file
 
-| Cycle-4 finding | Fix claim | Verified |
-|---|---|---|
-| WR-4C-01 | `kpi-helpers.ts:234-238` extracts `normalizedLabel` constant, then conditional interpolation collapses to `"Up 12 percent"` (no trailing space) when label is empty/whitespace-only; new regression test pins `"Revenue: $14,250. Up 12 percent vs. last week."` for `trendLabel: "  vs. last week"` on the up branch | ✓ Code at lines 234-238 reads exactly `(input.trendLabel ?? "").trim()` then conditional `${normalizedLabel}` interpolation; the prior `.trimEnd()` call was DROPPED (no longer needed — the conditional avoids the trailing space). Test `kpi-helpers.test.ts:221-230` exercises the case + asserts `not.toMatch(/ {2}/)`. All 13 documented edge cases (7 stable + 6 non-stable) traced correctly (see Summary lockstep table) |
-| IN-4C-01 | `use-reduced-motion.ts:5-8` JSDoc replaces `src/components/ui/blur-fade.tsx:22-31` with `"search BlurFade in src/components/ui/blur-fade.tsx — line numbers omitted to avoid drift"` | ✓ Comment at lines 5-8 reads exactly the documented form; no other line-range references in the file |
+**File:** `src/components/dashboard/dashboard-data.ts:46-48` and `src/components/dashboard/dashboard-data.test.ts:11-13`
 
-Both cycle-4 fixes closed at the pinned files with the documented mechanics. WR-4C-01 propagated the trim discipline across BOTH branches of `buildTileAriaLabel` — the discipline is now uniform. IN-4C-01 swept `use-reduced-motion.ts` clean — but did NOT extend to `kpi-sparkline.test.tsx`, which is IN-5C-01.
+**Issue:**
+
+`dashboard-data.ts:46-48`:
+```typescript
+// page uses an inline `portfolioData` transform in `dashboard.tsx` plus
+// a re-mapper in `page.tsx` (search for the `portfolioPerformance` map
+// in each file; line numbers omitted to avoid drift). The canonical
+```
+
+`dashboard-data.test.ts:11-13`:
+```typescript
+// — it uses an inline `portfolioData` transform in `dashboard.tsx` plus a
+// re-mapper in `page.tsx` (line numbers omitted to avoid drift; search for
+// the `portfolioPerformance` map in each file). The canonical transform
+```
+
+Both anchors instruct the reader to "search for the **`portfolioPerformance`** map in each file" pointing at `dashboard.tsx` and `page.tsx`. But neither file contains a `portfolioPerformance` symbol.
+
+Verification (cycle-6 cross-file grep):
+```bash
+$ grep -nE "portfolioPerformance" src/components/dashboard/dashboard.tsx src/app/\(owner\)/dashboard/page.tsx
+# (empty — zero hits)
+
+$ grep -nE "\.map\(" src/components/dashboard/dashboard.tsx src/app/\(owner\)/dashboard/page.tsx
+src/components/dashboard/dashboard.tsx:89:  const portfolioData: PortfolioRow[] = propertyPerformance.map((prop) => ({
+src/app/(owner)/dashboard/page.tsx:64:    return chartsData.timeSeries.monthlyRevenue.map((point) => ({
+src/app/(owner)/dashboard/page.tsx:74:    return performanceData.map((prop) => ({
+```
+
+The actual map symbols are:
+- `dashboard.tsx:89` → `propertyPerformance.map((prop) => ({...}))` (the destructured prop name, NOT `portfolioPerformance`)
+- `page.tsx:74` → `performanceData.map((prop) => ({...}))` (the destructured hook return, NOT `portfolioPerformance`)
+
+The cycle-2 IN-2C-02 fix (cited approvingly by the cycle-5 review as "the gold-standard pattern that the cycle-5 sweep should propagate") used a symbol name that exists in NEITHER cited file. The architectural rationale (which `.map` call corresponds to the inline transform vs. the re-mapper) is unrecoverable from the codebase — a reader searching `portfolioPerformance` gets zero hits in both files.
+
+This defect has been latent since cycle 2 (commit predates `f2633d8e3` per the cycle-5 review's cite of `dashboard-data.ts:43-44`). Cycles 3, 4, and 5 all reviewed this file but did not verify the symbol-anchor invariant.
+
+**Why this surfaces in cycle 6 and not earlier:** The cycle-5 prompt explicitly directed a PR-wide sweep to break the find-one-fix-one pattern. Cycle 5 itself surfaced its own broken-anchor defect (WR-6C-01) — but cycle 5 did not extend the verification to PRIOR fixes that established the symbol-anchor pattern in the first place. Cycle 6's PR-wide sweep verifies every symbol-anchored hint, not just the most recent.
+
+**Fix:**
+
+`dashboard-data.ts`:
+```diff
+-	 * page uses an inline `portfolioData` transform in `dashboard.tsx` plus
+-	 * a re-mapper in `page.tsx` (search for the `portfolioPerformance` map
+-	 * in each file; line numbers omitted to avoid drift). The canonical
++	 * page uses an inline `portfolioData` transform in `dashboard.tsx` (search
++	 * for `propertyPerformance.map`) plus a re-mapper in `page.tsx` (search for
++	 * `performanceData.map`); line numbers omitted to avoid drift. The canonical
+```
+
+`dashboard-data.test.ts`:
+```diff
+-	 * — it uses an inline `portfolioData` transform in `dashboard.tsx` plus a
+-	 * re-mapper in `page.tsx` (line numbers omitted to avoid drift; search for
+-	 * the `portfolioPerformance` map in each file). The canonical transform
++	 * — it uses an inline `portfolioData` transform in `dashboard.tsx` (search
++	 * for `propertyPerformance.map`) plus a re-mapper in `page.tsx` (search for
++	 * `performanceData.map`); line numbers omitted to avoid drift. The canonical
++	 * transform
+```
+
+Verification after fix:
+```bash
+$ grep -n "propertyPerformance.map" src/components/dashboard/dashboard.tsx
+89:  const portfolioData: PortfolioRow[] = propertyPerformance.map((prop) => ({
+$ grep -n "performanceData.map" src/app/\(owner\)/dashboard/page.tsx
+74:    return performanceData.map((prop) => ({
+```
+
+Both anchors now correspond to real symbols at their cited locations, satisfying the drift-resistant-anchor invariant.
 
 ---
 
-## Fresh adversarial pass — Zero Tolerance check (re-grepped for cycle 5)
+## Fresh adversarial pass — Zero Tolerance check (cycle 6, re-grepped against all 14 files)
 
 | Rule | Result |
 |---|---|
-| 1 — No `any` types | ✓ `grep -rnE ':\s*any\b\|as\s+any\b\|<any>' <14 files>` → 0 hits |
-| 2 — No barrel files | ✓ no `index.ts` re-exports in changed component dir; all imports point at defining files |
-| 3 — No duplicate types | ✓ `MetricTrend`, `TimeSeriesDataPoint`, `DashboardStats`, `PropertyPerformance` all sourced from canonical `src/types/`; `KpiBentoRowProps.metricTrends` mirrors `DashboardStatsData.metricTrends` (`use-owner-dashboard.ts` boundary mapper) by structural design — same shape, two consumers, not a duplicate type declaration |
-| 4 — No commented-out code | ✓ all comments are explanatory anchors / load-bearing markers, none are commented-out code |
-| 5 — No inline styles | ✓ only the documented exemption: `style={GRID_CONTAINER_STYLE}` (static `containerType` + `containerName` keys for the container-query parent) appears twice; both flagged with the SOLE-exemption rationale comment at `kpi-bento-row.tsx:26-33` |
+| 1 — No `any` types | ✓ `grep -rnE ':\s*any\b\|as\s+any\b\|<any>'` → 0 hits on production code (test files use `expect.any(Function)` which is the vitest matcher, not the type) |
+| 2 — No barrel files | ✓ no `index.ts` re-exports in changed component dirs |
+| 3 — No duplicate types | ✓ `MetricTrend`, `TimeSeriesDataPoint`, `DashboardStats`, `PropertyPerformance` all sourced from canonical `src/types/`; `KpiBentoRowProps.metricTrends` mirrors `DashboardStatsData.metricTrends` by structural design, not duplicate declaration |
+| 4 — No commented-out code | ✓ all comments are explanatory anchors / load-bearing markers |
+| 5 — No inline styles | ✓ only the documented exemption `style={GRID_CONTAINER_STYLE}` (static `containerType` + `containerName`) |
 | 6 — No PG ENUMs | n/a (no migration in this phase) |
-| 7 — No emojis in code | ✓ Lucide icons (`ArrowUp`, `ArrowDown`, `Minus`) used; no Unicode emoji escape sequences |
-| 8 — No `as unknown as` | ✓ `grep -rn 'as unknown as' <14 files>` → 0 hits |
-| 9 — No string-literal query keys | n/a (no new queries; reads from existing factory via `useDashboardStats`, `useDashboardCharts`, `usePropertyPerformance`) |
-| 10 — No `@radix-ui/react-icons` | ✓ 0 hits in changed files |
+| 7 — No emojis in code | ✓ Lucide icons only (`ArrowUp`, `ArrowDown`, `Minus`) |
+| 8 — No `as unknown as` | ✓ `grep -rn 'as unknown as'` → 0 hits |
+| 9 — No string-literal query keys | n/a (consumed via existing factory) |
+| 10 — No `@radix-ui/react-icons` | ✓ 0 hits |
 
 | Check | Result |
 |---|---|
 | Hardcoded secrets | ✓ none |
-| Dangerous functions (`eval`, `innerHTML`, raw-html-injection sinks) | ✓ none in changed files |
-| Debug artifacts (`console.log`, `debugger`, `TODO`, `FIXME`, `XXX`, `HACK`) | ✓ `grep -nE 'console\.log\|debugger\|TODO\|FIXME\|XXX\|HACK' <14 files>` → 0 hits |
+| Dangerous functions (`eval`, `innerHTML`, raw-html sinks) | ✓ none |
+| Debug artifacts (`console.log`, `debugger`, `TODO`, `FIXME`, `XXX`, `HACK`) | ✓ 0 hits |
 | Empty catch blocks | ✓ none |
-| D-01 invariant (6 tiles in canonical order) | ✓ `kpi-bento-row.tsx:174-268` emits `revenue, occupancy, active-leases, open-maintenance, properties, units` in that order; test `kpi-bento-row.test.tsx:124-146` pins the labels in order |
-| D-04 invariant (3 trend-bearing, 3 no-trend; Active leases is no-trend post-cycle-1) | ✓ Revenue + Occupancy + Open maintenance carry trends (`metricTrends.monthlyRevenue`, `metricTrends.occupancyRate`, `metricTrends.openMaintenance`); Active leases + Properties + Units carry `trend: null`; test `kpi-bento-row.test.tsx:178-186` pins both negative + positive assertions |
-| D-05 wave coefficients `{0,1,2,4,5,6}` (coefficient 3 skipped) | ✓ `kpi-bento-row.tsx:192,211,225,244,254,266` carries `waveDelay: 0,1,2,4,5,6`; coefficient 3 intentionally skipped between Active leases (2) and Open maintenance (4) |
-| D-09 honesty (no fabricated trends) | ✓ Active-leases tile sets `trend: null` (no `active_leases` RPC signal); `metricTrends.<field> === null` propagates to `<StatTrend>` omission (`kpi-bento-row.tsx:283`) |
-| D-10 grid (auto-fit minmax(180px,1fr), gap-4 → gap-6 at @4xl) | ✓ `kpi-bento-row.tsx:35-39` exact match |
-| D-11 sparkline (axis-less Area inside ChartContainer + `role="img"` + `aria-label` + `data.length < 2` guard) | ✓ `kpi-sparkline.tsx:36-73` matches contract exactly; `buildSparkline` in `kpi-bento-row.tsx:130` enforces `data.length < 2 → null`; `KpiTile` doubles the guard at line 317 (defense-in-depth) |
-| D-12 KpiBentoRow orchestrator + skeleton ↔ loaded mutual exclusion | ✓ `kpi-bento-row.tsx:336` early return for loading/null branch renders `<KpiSkeletonGrid />`; loaded branch unreachable when isLoading is true; test `kpi-bento-row.test.tsx:206-234` pins mutual exclusion |
-| Reduced-motion correctness end-to-end | ✓ `useReducedMotion` subscribes on mount + cleans up on unmount (`use-reduced-motion.ts:20-27`); `KpiNumberTicker` short-circuits to static `Intl.NumberFormat` (`kpi-bento-row.tsx:63-73`); `KpiBentoRow` bypasses `BlurFade` wrapping (`kpi-bento-row.tsx:355-361`); test `kpi-bento-row.test.tsx:254-268` pins via absence of `[class*=will-change-transform]`; `use-reduced-motion.test.ts:109-125` pins listener cleanup |
-| jsdom matchMedia stub covers both true and false paths | ✓ `kpi-bento-row.test.tsx:117-122` defaults `stubMatchMedia(false)` per-test; reduced-motion test re-stubs to `true` inside the test body (line 255); `use-reduced-motion.test.ts` exercises both initial-`false` and initial-`true` paths plus the `change`-event transition |
-| WAI-ARIA list semantics (post-cycle-1 WR-01 restructure) | ✓ `kpi-bento-row.tsx:347` parent grid `role="list"`; `kpi-bento-row.tsx:354` child div `role="listitem"` is direct child of the list; listitem wraps both `BlurFade` and raw `KpiTile` branches symmetrically |
-| Skeleton grid drops role="list" + adds aria-busy="true" | ✓ `kpi-bento-row.tsx:107-110` section carries `aria-busy="true"` + no `role="list"` on the inner grid div; `kpi-bento-row.test.tsx:217` pins `aria-busy="true"` |
-| Sparkline `role="img"` + `aria-label` | ✓ `kpi-sparkline.tsx:37-39` carries `role="img"` + `aria-label={ariaLabel}`; test `kpi-sparkline.test.tsx:32-39` pins both |
-| Stat aria-label (consolidated narration template) | ✓ `kpi-bento-row.tsx:274-282` builds via `buildTileAriaLabel`; conditional-spread pattern satisfies `exactOptionalPropertyTypes`; test `kpi-bento-row.test.tsx:236-252` pins Revenue template; lockstep traced for 13 edge cases (see Summary) |
-| Type safety (DashboardProps shape, no legacy `metrics`) | ✓ `grep -n 'DashboardMetrics\b' src/` returns 0 hits (only unrelated `DashboardMetricsResponse` in `core.ts`); `DashboardProps.kpiData: KpiBentoRowProps` is the sole shape consumed |
-| exactOptionalPropertyTypes compliance | ✓ `kpi-bento-row.tsx:278-281` uses conditional-spread for optional `spokenDescription` and `trendLabel`; never assigns `undefined` directly |
-| Cross-module type drift | ✓ `DashboardStatsData.metricTrends` (in `use-owner-dashboard.ts` boundary mapper) matches `KpiBentoRowProps.metricTrends` (in `kpi-helpers.ts:146-157`) exactly |
-| Unused exports (`KpiSparklineProps`-class scan) | ✓ `KpiSparklineProps` correctly stays unexported (cycle-3 fix); `KpiBentoRowProps`, `KpiTileConfig`, `formatTrendPercent`, `sparklineConfigForTrend`, `buildTileAriaLabel`, `KpiBentoRow`, `KpiSparkline`, `useReducedMotion`, `transformDashboardData`, `DashboardViewModel` — all exports confirmed as externally consumed (page.tsx, dashboard.tsx, sections/dashboard.ts, three test files, sparkline tests) |
-| Sparkline gradient id collision risk | ✓ deterministic `spark-fill-${trend}` ids (`kpi-sparkline.tsx:34`); when Revenue + Occupancy share the same trend, they share an id but both resolve `var(--color-spark)` and the chart container scopes the variable to the matching token |
-| Test infrastructure (chai 6 / Vitest 4 toThrow trap) | ✓ `kpi-bento-row.test.tsx:316` uses bare `not.toThrow()` (no string arg) — safe per CLAUDE.md note on the chai 6 bug |
-| `typecheck` passes | ✓ `bun run typecheck` → exit 0 |
-| `lint` passes | ✓ `bun run lint` → `Checked 1202 files in 221ms. No fixes applied.` |
-| All 39 Phase-3 unit tests pass (cycle-4 added 1 test) | ✓ `bun vitest --project unit --run <5 files>` → `Test Files 5 passed (5) / Tests 39 passed (39)` |
-| Drift-prone line-range references swept | ✗ 1 remaining in `kpi-sparkline.test.tsx:51` — see IN-5C-01 |
+| D-01 invariant (6 tiles in canonical order) | ✓ `kpi-bento-row.tsx:174-268` emits `revenue, occupancy, active-leases, open-maintenance, properties, units` in order; test pins labels |
+| D-04 invariant (3 trend-bearing, 3 no-trend; Active leases no-trend) | ✓ Revenue + Occupancy + Open maintenance carry trends; Active leases + Properties + Units carry `trend: null`; test pins both sides |
+| D-05 wave coefficients `{0,1,2,4,5,6}` (3 skipped) | ✓ exact match at lines 192, 211, 225, 244, 254, 266 |
+| D-09 honesty (no fabricated trends) | ✓ Active-leases `trend: null`; `metricTrends.<field> === null` propagates to `<StatTrend>` omission |
+| D-10 grid (auto-fit minmax(180px,1fr), gap-4 → gap-6 at @4xl) | ✓ exact match at lines 35-39 |
+| D-11 sparkline (axis-less Area + role=img + aria-label + data.length<2 guard) | ✓ `kpi-sparkline.tsx:36-73`; `buildSparkline` guard at `kpi-bento-row.tsx:130`; KpiTile doubles guard at line 317 |
+| D-12 orchestrator + skeleton ↔ loaded mutual exclusion | ✓ early return at `kpi-bento-row.tsx:336`; test pins mutual exclusion |
+| Reduced-motion correctness end-to-end | ✓ `useReducedMotion` subscribes + cleans up; `KpiNumberTicker` short-circuits; `KpiBentoRow` bypasses `BlurFade` |
+| jsdom matchMedia stub covers true and false | ✓ `stubMatchMedia(false)` default + `stubMatchMedia(true)` for reduced-motion test |
+| WAI-ARIA list semantics | ✓ `role="list"` direct parent of `role="listitem"`; BlurFade and bare branches symmetric |
+| Skeleton grid drops role=list + adds aria-busy=true | ✓ section has `aria-busy="true"`; no inner `role="list"` |
+| Sparkline role=img + aria-label | ✓ `kpi-sparkline.tsx:37-39` |
+| Stat aria-label (consolidated narration) | ✓ `kpi-bento-row.tsx:274-282` via `buildTileAriaLabel`; exactOptionalPropertyTypes-compliant conditional spread |
+| Type safety (no legacy DashboardProps.metrics) | ✓ `grep DashboardMetrics` returns only unrelated `DashboardMetricsResponse` |
+| exactOptionalPropertyTypes compliance | ✓ conditional-spread pattern at `kpi-bento-row.tsx:278-281`; never assigns `undefined` |
+| Cross-module type drift | ✓ `DashboardStatsData.metricTrends` matches `KpiBentoRowProps.metricTrends` exactly |
+| Drift-prone `\.tsx?:[0-9]+(-[0-9]+)?` line refs | ✓ 0 hits in changed files |
+| Stale "Phase 3" phrases | ✓ all "Phase 3" references are intentional architectural anchors (mounting, migration deferral, scope) — verified case-by-case |
+| Version-bound claims ("X lines", "Y tests") | ✓ 0 hits |
+| Symbol-anchored search hints (NEW invariant cycle 6 raises) | ✗ 2 broken anchors — see WR-6C-01 + WR-6C-02 |
+| `typecheck` would pass | ✓ no syntactic / type changes in cycle 6 finding scope (comment-only edits) |
+| `lint` would pass | ✓ comment-only edits |
 
 ---
 
 ## Items considered and explicitly NOT filed
 
-These are gaps observed during the adversarial pass that did NOT meet the bar for cycle-5 findings, documented for transparency:
+These are gaps observed during the cycle-6 PR-wide sweep that did NOT meet the bar for findings, documented for transparency:
 
-1. **Stable branch `"vs."`-prefix asymmetry with non-stable branch.** Stable: `trendLabel: "vs."` → `"Unchanged."` (regex strips `vs.`, collapses to bare). Non-stable: `trendLabel: "vs."` → `"Up 12 percent vs.."` (interpolates the literal, sentence terminator yields double period). This asymmetry is INTENTIONAL by design — the stable branch needs the strip because `"Unchanged vs. vs. last month"` reads broken, but the non-stable branch reads naturally as `"Up 12 percent vs. last month"` and stripping the prefix would yield `"Up 12 percent last month"` which is also broken. The active production callers (`kpi-bento-row.tsx:185, 204, 242`) pass `"vs. last month"` literals, never bare `"vs."`. Filing as a non-finding because (a) the asymmetry is semantically correct, not a defense-in-depth gap, and (b) no caller triggers the pathological case. Cycle-1..cycle-4 review trail explicitly acknowledged the `"since 2020"` pass-through asymmetry under the same logic.
+1. **`useReducedMotion` SSR hydration mismatch risk.** Initial render returns `false`; on mount, `useEffect` may set `true` if user has reduced-motion preference, triggering a re-render that flips the BlurFade-vs-bare path. This mirrors the same pattern in `BlurFade` itself and is acknowledged in `use-reduced-motion.ts:11-13` ("Returns `false` during SSR (initial state) and on the first client render before the effect runs — same shape `BlurFade` already uses to avoid hydration mismatches"). Reaffirmed for cycle 6 — the documented contract matches the implementation.
 
-2. **`recharts.tsx:89` `Pie` destructures `_data` not `data`.** Pre-existing defect outside Phase 3 scope. Verified via `git log` — the line was not touched in any Phase 3 commit (`737f14eb2` only modified the `Area` component). `_data` is destructured but `PieProps.data` is the type field, so `data` is silently discarded by the mock. This breaks any test that asserts pie data shape via `data-data` (none exist; the mock simply doesn't emit `data-data` for `Pie`). Not in cycle-5 scope (the file is in the review diff range, but the defect predates Phase 3 and no Phase 3 test touches `Pie`). Flag for a future repo cleanup pass.
+2. **`buildSparkline` directionWord asymmetry with `buildTileAriaLabel`.** `buildSparkline` emits `"trending up"` / `"trending down"` / `"stable"` (the stable branch drops the "trending" prefix); the sparkline test passes `"trending stable"` as its own input literal. Two narration vocabularies coexist for "stable" (sparkline says "stable", `<Stat>` aria-label says "Unchanged"). This is intentional per UI-SPEC § 6.5 / § 8.2 — sparkline narrates trend direction at the chart, `<Stat>` narrates trend change at the tile. Same word "Unchanged" would conflict with the visual trend semantics on the sparkline. Filed as non-finding because both vocabularies are deliberate.
 
-3. **Asymmetric NaN/Infinity guarding across stat fields.** `safeOccupancy` (kpi-bento-row.tsx:150-152) and `formatTrendPercent` (kpi-helpers.ts:44) + `buildTileAriaLabel` (kpi-helpers.ts:214) all guard against NaN/Infinity, but raw `stats.revenue.monthly`, `stats.leases.active`, `stats.maintenance.open`, `stats.properties.total`, `stats.units.total`, `stats.units.occupied` are piped through `String(...)` and `KpiNumberTicker` without guards. RPC contract types these as `number`, so NaN would only appear on stale/corrupted rows. The cycle-1 WR-02 scope was specifically `percentChange` + `occupancyRate`; expanding to every stat field is a design judgment, not a bug. Defer to a future hardening phase if the RPC ever ships dirty data. Reaffirmed for cycle 5.
+3. **`kpi-bento-row.tsx` is 367 lines (exceeds CLAUDE.md 300-line cap).** The plan 03-02 explicitly anticipated this and prescribed a split recipe ("if it exceeds, split helpers into kpi-tiles.ts but keep orchestrator < 300"). Phase 3 chose not to split. The 367-line breakdown: 27 lines top imports/constants + 49 lines TrendArrow + KpiNumberTicker + 39 lines KpiSkeletonTile + KpiSkeletonGrid + 19 lines buildSparkline + 127 lines buildKpiTileConfigs + 54 lines KpiTile + 40 lines KpiBentoRow + 12 lines whitespace/braces. The 300-line cap is a CLAUDE.md guideline phrased "Max 300 lines per component, 50 lines per function" — `KpiBentoRow` itself (the component) is under 50 lines; the file contains 7 helpers. The plan's own anticipation language ("if it exceeds") and the SUMMARY (cycle 5 verification noted no prior reviewer escalated this) indicate the team treats this as a soft guideline at the file level when the components themselves are small. Cycle 6 reaffirms the prior reviews' non-filing — escalating this in cycle 6 would inject a refactor that has not been requested by any of the 5 prior reviewers and is not part of the plan's pinned `files_modified`. Flag for a future split if the file grows further.
 
-4. **Recharts mock omits `type` and `margin` props on Area/AreaChart.** Production passes `type="monotone"` (kpi-sparkline.tsx:61) + `margin={{...}}` (kpi-sparkline.tsx:44) but no test asserts these. Cycle-3 + cycle-4 review acknowledged this as a non-finding ("adding mock coverage for unasserted props would only increase mock surface area without adding test value"). Reaffirmed for cycle 5.
+4. **`recharts.tsx:89` `Pie` destructures `_data` not `data` (preexisting defect).** Phase 3 didn't touch this. Cycle 5 acknowledged it as out-of-scope; reaffirmed for cycle 6.
 
-5. **Quick Actions `recordPayment` button no-op.** Pre-existing — `dashboard-types.ts` and `dashboard.tsx`'s switch logic predates Phase 3; the `onRecordPayment` prop is plumbed through Dashboard but page.tsx has never wired it. Not in Phase 3 scope (no commit in the diff range touches Quick Actions wiring). Flag for the next dashboard-feature phase.
+5. **`recharts.tsx` mock omits `type` and `margin` props on Area/AreaChart.** The production sparkline passes `type="monotone"` + `margin={...}` but no test asserts these. Cycle 3/4/5 acknowledged this as a non-finding ("adding mock coverage for unasserted props would only increase mock surface area"). Reaffirmed for cycle 6 — the mock surface is intentionally minimal.
 
-6. **`KpiNumberTicker` reduced-motion check fires per-instance.** Six tiles → six `useReducedMotion()` calls → six matchMedia subscriptions. Each subscription is cheap (single MediaQueryList ref), but a single hook at the parent + prop-drilling would be more efficient. Not a correctness issue, and the React Compiler's auto-memoization makes the duplication essentially free. Reaffirmed for cycle 5.
+6. **Stable branch `"vs."`-only edge case asymmetry.** Cycle 5 documented this thoroughly. Reaffirmed.
 
-7. **`KpiBentoRow` skeleton-vs-loaded duplicate heading id.** Both branches use `id="kpi-bento-heading"` for the `<h2 className="sr-only">`. The render is mutually exclusive (early return at `kpi-bento-row.tsx:336`), so the id is never duplicated in the live DOM. Documented for completeness; not a finding.
+7. **Asymmetric NaN/Infinity guarding across stat fields.** Cycle 5 documented this. Reaffirmed — RPC contract types these as `number`, NaN would only appear on stale/corrupted rows, expanding the guard is a design judgment not a bug.
 
-8. **`BlurFade` always emits `will-change-transform` class.** The test `kpi-bento-row.test.tsx:264-266` correctly verifies the bypass: when reduced-motion is true, `KpiBentoRow` renders `<KpiTile />` directly (no `BlurFade` wrapper), so no `[class*=will-change-transform]` element exists. The bypass — not an internal `BlurFade` reduced-motion gate — is what the assertion proves. Verified by tracing `kpi-bento-row.tsx:355-361`. Not a finding.
+8. **`KpiNumberTicker` reduced-motion check per-instance.** Cycle 5 documented this. Reaffirmed — React Compiler memoization makes the duplication free.
 
-9. **`use-reduced-motion.ts:21` `typeof window === "undefined"` guard inside `useEffect`.** Unreachable in practice (effects only run on client), but harmless defense-in-depth. Same defensive pattern present in `BlurFade`. Reaffirmed for cycle 5.
+9. **`KpiBentoRow` skeleton-vs-loaded duplicate `id="kpi-bento-heading"`.** Cycle 5 documented this. Reaffirmed — render is mutually exclusive.
+
+10. **`use-reduced-motion.ts:21` `typeof window === "undefined"` inside useEffect.** Cycle 5 documented this. Reaffirmed — harmless defense-in-depth.
+
+11. **`page.tsx` `kpiData.isLoading` field is unreachable when populated true.** The page-level early return at line 106-108 (`if (isLoading) return <DashboardLoadingSkeleton />`) prevents `<KpiBentoRow>` from ever rendering with `isLoading: true` — the `kpiData.isLoading` construction at line 54 is redundant. Not a bug — defensive coding. The `KpiBentoRow` component still needs the isLoading branch because it's invoked from contexts where the parent might not pre-gate (the props contract is the boundary of correctness, not the call site). Not a finding.
+
+12. **Dashboard `<KpiBentoRow {...kpiData} />` spreads the whole props object including the unused `isLoading: false`.** Same as item 11 — props contract preserved by the boundary. Not a finding.
 
 ---
 
 ## Cycle Discipline
 
-This is **cycle 5 of the perfect-PR gate**. Cycle 5 was supposed to be zero-finding to advance the consecutive-zero-finding counter to 1. It is not zero-finding (1 finding). Per the perfect-PR gate, the consecutive counter remains at 0. After this cycle's fix lands:
+This is **cycle 6 of the perfect-PR gate**. Cycle 6 was tasked with breaking the find-one-fix-one pattern via a PR-wide sweep. The sweep surfaced **2 new findings** (both same class: broken symbol-anchored search hints in prior cycle-N fix commits). The consecutive-zero-finding counter remains at 0.
 
-- Cycle 6 must close IN-5C-01 + verify no fresh regressions.
-- Cycle 6 must be zero-finding to advance the counter to 1.
-- Cycle 7 must also be zero-finding to advance the counter to 2 and close the gate.
+After cycle-6 fix lands:
+- Cycle 7 must close WR-6C-01 + WR-6C-02 + verify no regressions.
+- Cycle 7 must be zero-finding to advance the counter to 1.
+- Cycle 8 must also be zero-finding to advance the counter to 2 and close the gate.
 
-Expected cycle-5 fix blast radius:
-- `src/components/dashboard/components/__tests__/kpi-sparkline.test.tsx` — replace the first comment block (lines 50-53) with the symbol-anchored prose form (IN-5C-01)
+Expected cycle-6 fix blast radius:
+- `src/components/dashboard/components/__tests__/kpi-sparkline.test.tsx` — fix the `isReady` → `mounted` anchor (lines 50-54)
+- `src/components/dashboard/dashboard-data.ts` — fix the `portfolioPerformance` → `propertyPerformance.map` / `performanceData.map` anchors (lines 46-48)
+- `src/components/dashboard/dashboard-data.test.ts` — fix the `portfolioPerformance` → `propertyPerformance.map` / `performanceData.map` anchors (lines 11-13)
 
-This change touches one comment block in one test file. No runtime code path is affected; the test continues to assert the same `waitFor()` semantics. The change is purely a documentation drift-guard. typecheck + lint + the 5 test files remain green.
+Three comment-only edits across three files. No runtime code path affected. typecheck + lint + the 5 test files remain green.
 
-The recurring pattern — each cycle's fix introduces or exposes a new sibling defense-in-depth gap or drift-prone reference on a parallel file that the next cycle catches — continues to validate the perfect-PR gate's value. The cycle-1 WR-02 NaN guard taught the codebase its `Number.isFinite` discipline; cycle-2 WR-2C-02 extended trim discipline to the empty-trendLabel case; cycle-3 WR-3C-01 extended trim discipline to the malformed-stable-branch trendLabel case; cycle-4 WR-4C-01 closed the last remaining sibling on the non-stable branch (the trim discipline is now uniform across both `buildTileAriaLabel` branches); cycle-5 IN-5C-01 closes the last remaining drift-prone-line-reference file. After IN-5C-01 lands, all 14 Phase 3 files will be uniformly symbol-anchored — the documentation discipline established by cycle 2 IN-2C-02 will be fully propagated.
+**Meta-observation on the perfect-PR gate:** Five consecutive cycles classified drift-resistant-anchor work as INFO-severity hygiene (cycle 2/4/5 IN findings). Cycle 6's PR-wide sweep proves that "drift-resistant" was overpromised — symbol-anchored hints can be MORE drift-prone than line numbers when the substituted symbol name is wrong. The gate's value here is the cumulative discipline: cycle 2 raised the question, cycle 4 propagated the answer, cycle 5 audited the propagation, cycle 6 audited the audit. Each cycle's framing was correct given the prior state; the audit-of-audit only became possible after cycle 5 established the symbol-anchor pattern as the canonical form.
 
-The pattern of "each cycle sweeps a specific file group; the next cycle catches the missed sibling" has now repeated four times (cycle 2 → cycle 4 trim discipline; cycle 2 → cycle 5 line-ref discipline). The next cycle should perform a true PR-wide sweep, not a target-file sweep, to break the pattern.
+The "find-one-fix-one-find-another" pattern persists, but the cycle-6 sweep is the first to audit a PRIOR fix's correctness rather than surface a parallel-code-path gap. The pattern may now break — the only sibling broken-anchor case beyond WR-6C-01 + WR-6C-02 is the cycle-4 IN-4C-01 anchor in `use-reduced-motion.ts:5-8`, which cycle 6 verified IS correct (`BlurFade` is a real exported symbol on `blur-fade.tsx:7`). Once WR-6C-01 + WR-6C-02 are fixed and cycle 7 verifies the fix mechanics, the symbol-anchor invariant should be uniformly satisfied across all 14 Phase-3 files.
 
 ---
 
 _Reviewed: 2026-05-25_
 _Reviewer: Claude (gsd-code-reviewer)_
 _Depth: deep_
-_Cycle: 5 of (≥2 consecutive zero-finding required)_
+_Cycle: 6 of (≥2 consecutive zero-finding required)_
 _Consecutive zero-finding cycles: 0_
