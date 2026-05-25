@@ -48,9 +48,11 @@ describe("KpiSparkline", () => {
 			/>,
 		);
 		// ChartContainer defers ResponsiveContainer mount until rAF fires (see
-		// src/components/ui/chart.tsx:71-92), so the AreaChart subtree —
-		// including the <defs><linearGradient/></defs> — only paints on the
-		// next tick. `waitFor` polls until the mount completes.
+		// `ChartContainer` in `src/components/ui/chart.tsx` — search for the
+		// useEffect that toggles the isReady state; line numbers omitted to
+		// avoid drift), so the AreaChart subtree — including the
+		// <defs><linearGradient/></defs> — only paints on the next tick.
+		// `waitFor` polls until the mount completes.
 		const gradient = await waitFor(() => {
 			const node = container.querySelector("linearGradient");
 			expect(node).not.toBeNull();
