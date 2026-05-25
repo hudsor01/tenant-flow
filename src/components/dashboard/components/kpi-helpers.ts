@@ -227,8 +227,15 @@ export function buildTileAriaLabel(input: BuildTileAriaLabelInput): string {
 				.replace(/^vs\.\s*/, "");
 			trendSegment = windowText ? `Unchanged vs. ${windowText}` : "Unchanged";
 		} else {
-			const base = `${directionWord} ${pct} percent ${input.trendLabel ?? ""}`;
-			trendSegment = base.trimEnd();
+			// WR-4C-01 cycle-4 fix: trim the trendLabel BEFORE interpolation so
+			// leading whitespace doesn't survive into the narrated sentence as
+			// the stable branch already does. Without this, `trendLabel: "  vs.
+			// last week"` produced "Up 12 percent   vs. last week" (3 spaces).
+			const normalizedLabel = (input.trendLabel ?? "").trim();
+			const base = normalizedLabel
+				? `${directionWord} ${pct} percent ${normalizedLabel}`
+				: `${directionWord} ${pct} percent`;
+			trendSegment = base;
 		}
 		parts.push(`${trendSegment}.`);
 	}

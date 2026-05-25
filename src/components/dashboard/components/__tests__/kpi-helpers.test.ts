@@ -214,4 +214,18 @@ describe("buildTileAriaLabel", () => {
 		expect(out).not.toContain("vs.   vs.");
 		expect(out).not.toMatch(/ {2}/);
 	});
+
+	// WR-4C-01 cycle-4 fix: non-stable (up/down) branch also needs the
+	// trim discipline. Without it, `trendLabel: "  vs. last week"` produced
+	// "Up 12 percent   vs. last week" (3 internal spaces).
+	it("trims leading whitespace in trendLabel on the up/down branch", () => {
+		const out = buildTileAriaLabel({
+			label: "Revenue",
+			spokenValue: "$14,250",
+			trend: upTrend,
+			trendLabel: "  vs. last week",
+		});
+		expect(out).toBe("Revenue: $14,250. Up 12 percent vs. last week.");
+		expect(out).not.toMatch(/ {2}/);
+	});
 });

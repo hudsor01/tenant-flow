@@ -2,9 +2,10 @@
 
 /**
  * SSR-safe shared hook returning whether the user has
- * `prefers-reduced-motion: reduce` set. Extracts the inline pattern from
- * `BlurFade` (src/components/ui/blur-fade.tsx:22-31) so Phase 3+ surfaces
- * can gate motion through a single canonical source (03-UI-SPEC § 5.4).
+ * `prefers-reduced-motion: reduce` set. Extracts the canonical matchMedia
+ * subscription pattern (search `BlurFade` in `src/components/ui/blur-fade.tsx`
+ * — line numbers omitted to avoid drift) so Phase 3+ surfaces can gate
+ * motion through a single canonical source (03-UI-SPEC § 5.4).
  *
  * Returns `false` during SSR (initial state) and on the first client render
  * before the effect runs — same shape `BlurFade` already uses to avoid
