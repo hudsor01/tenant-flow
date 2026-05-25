@@ -19,7 +19,11 @@ import type { TimeSeriesDataPoint } from "#types/analytics";
 
 import { sparklineConfigForTrend } from "./kpi-helpers";
 
-export interface KpiSparklineProps {
+// IN-3C-01 cycle-3 fix: KpiSparklineProps is only consumed inside this
+// file (the function-signature destructure below). KpiBentoRow constructs
+// the prop object inline and lets TS infer the shape via the function
+// signature, so the interface does NOT need to be exported.
+interface KpiSparklineProps {
 	data: TimeSeriesDataPoint[];
 	trend: "up" | "down" | "stable";
 	ariaLabel: string;

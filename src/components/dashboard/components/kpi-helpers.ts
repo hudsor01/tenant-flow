@@ -216,13 +216,15 @@ export function buildTileAriaLabel(input: BuildTileAriaLabelInput): string {
 			: 0;
 		let trendSegment: string;
 		if (input.trend.trend === "stable") {
-			// WR-2C-02 cycle-2 fix: when `trendLabel` is undefined, the prior
-			// template produced "Unchanged vs. ." (orphan period from the
-			// caller-appended ".") — symmetric with the WR-02 trimEnd discipline
-			// the non-stable branch already applies. Drop the "vs. ..." trailer
-			// entirely when the window text is empty so the narrated sentence
-			// becomes "Unchanged." instead of "Unchanged vs. .".
-			const windowText = (input.trendLabel ?? "").replace(/^vs\.\s*/, "");
+			// WR-2C-02 / WR-3C-01 cycle-3 fix: trim BEFORE the `vs.` strip so
+			// leading whitespace doesn't defeat the `^vs.` anchor. Without the
+			// .trim(), `trendLabel: "  vs. last week"` survived the regex (the
+			// `^` matched the space, not "vs.") and emitted the doubled
+			// "Unchanged vs.   vs. last week". Empty-string output collapses
+			// to "Unchanged." (no orphan "vs. .").
+			const windowText = (input.trendLabel ?? "")
+				.trim()
+				.replace(/^vs\.\s*/, "");
 			trendSegment = windowText ? `Unchanged vs. ${windowText}` : "Unchanged";
 		} else {
 			const base = `${directionWord} ${pct} percent ${input.trendLabel ?? ""}`;

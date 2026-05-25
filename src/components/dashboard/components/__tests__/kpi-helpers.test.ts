@@ -199,4 +199,19 @@ describe("buildTileAriaLabel", () => {
 		expect(out).not.toContain("vs. .");
 		expect(out).not.toMatch(/ {2}/);
 	});
+
+	// WR-3C-01 cycle-3 fix: leading whitespace in `trendLabel` defeated
+	// the `^vs.` regex anchor. Without the .trim() the output became
+	// "Unchanged vs.   vs. last week" (doubled "vs.").
+	it("trims leading whitespace before stripping the 'vs.' prefix from trendLabel", () => {
+		const out = buildTileAriaLabel({
+			label: "Open maintenance",
+			spokenValue: "8",
+			trend: stableTrend,
+			trendLabel: "  vs. last week",
+		});
+		expect(out).toBe("Open maintenance: 8. Unchanged vs. last week.");
+		expect(out).not.toContain("vs.   vs.");
+		expect(out).not.toMatch(/ {2}/);
+	});
 });
