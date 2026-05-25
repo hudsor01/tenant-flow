@@ -43,9 +43,11 @@ export interface DashboardViewModel {
  * `transformDashboardData(data)` invocation from `selectStats` /
  * `selectCharts` (those selectors now read raw slices directly — the
  * old composition discarded `portfolioRows` work). The live `/dashboard`
- * page uses an inline `portfolioData` transform in `dashboard.tsx` plus
- * a re-mapper in `page.tsx` (search for the `portfolioPerformance` map
- * in each file; line numbers omitted to avoid drift). The canonical
+ * page uses an inline `portfolioData` transform in `dashboard.tsx`
+ * (search for `propertyPerformance.map((prop) => ...)` building
+ * `PortfolioRow[]`) plus a re-mapper in `page.tsx` (search for
+ * `performanceData.map((prop) => ...)` building `PropertyPerformanceItem[]`).
+ * Line numbers omitted to avoid drift. The canonical
  * transform survives as the locked architectural seam (D-10) — only
  * the unit test at `dashboard-data.test.ts` consumes it, pinning the
  * contract so the eventual consumer migration surfaces no surprises.
