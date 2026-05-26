@@ -10,7 +10,11 @@ import { handlePostgrestError } from "#lib/postgrest-error-handler";
 import { createClient } from "#lib/supabase/client";
 import { getCachedUser } from "#lib/supabase/get-cached-user";
 import type { ActivityItem } from "#types/activity";
-import type { MetricTrend, TimeSeriesDataPoint } from "#types/analytics";
+import type {
+	MetricTrend,
+	MonthlyRevenuePoint,
+	TimeSeriesDataPoint,
+} from "#types/analytics";
 import type { FinancialMetrics, PropertyPerformance } from "#types/core";
 import type { PropertyPerformanceRpcResponse } from "#types/database-rpc";
 import type { DashboardStats } from "#types/stats";
@@ -168,6 +172,7 @@ export interface DashboardChartsData {
 	timeSeries: {
 		occupancyRate: TimeSeriesDataPoint[];
 		monthlyRevenue: TimeSeriesDataPoint[];
+		monthlyRevenue6mo: MonthlyRevenuePoint[];
 	};
 }
 
@@ -187,6 +192,7 @@ export type OwnerDashboardData = {
 	timeSeries: {
 		occupancyRate: TimeSeriesDataPoint[];
 		monthlyRevenue: TimeSeriesDataPoint[];
+		monthlyRevenue6mo: MonthlyRevenuePoint[];
 	};
 	propertyPerformance: PropertyPerformance[];
 };
@@ -241,7 +247,9 @@ const fetchOwnerDashboardData = async (): Promise<OwnerDashboardData> => {
 	const result = data as {
 		stats: DashboardStats;
 		trends: Record<string, MetricTrend>;
-		time_series: Record<string, TimeSeriesDataPoint[]>;
+		time_series: Record<string, TimeSeriesDataPoint[]> & {
+			monthly_revenue_6mo?: MonthlyRevenuePoint[];
+		};
 		property_performance: PropertyPerformanceRpcResponse[];
 		activities: ActivityItem[];
 	};
@@ -289,6 +297,7 @@ const fetchOwnerDashboardData = async (): Promise<OwnerDashboardData> => {
 		timeSeries: {
 			occupancyRate: result.time_series?.occupancy_rate ?? [],
 			monthlyRevenue: result.time_series?.monthly_revenue ?? [],
+			monthlyRevenue6mo: result.time_series?.monthly_revenue_6mo ?? [],
 		},
 		propertyPerformance,
 	};
