@@ -105,7 +105,10 @@ Phases 1 and 2 are invisible foundation. Phases 3 and 4 each *add* a new region 
   2. `/dashboard` renders an occupancy donut chart with a center label and legend; the count matches `stats.units` returned by `get_dashboard_data_v2`.
   3. Chart series colors source exclusively from `--color-chart-{1..5}`; dark-mode contrast is verified (no invisible series, no white-on-white legend swatches).
   4. Both charts dynamically import via `next/dynamic` with `ssr: false` and shape-matching CSS-only loading skeletons (no skeleton ↔ empty co-render).
-**Plans:** TBD
+**Plans:** 3 plans (3 waves — serialized)
+- [ ] 04-01-PLAN.md — **Wave 1.** Data layer: additive migration extending get_dashboard_data_v2 with month_series + ts_revenue_6mo CTEs and the monthly_revenue_6mo time_series key (D-01); MCP apply + filename reconcile + bun run db:types; MonthlyRevenuePoint type + boundary mapper line; Recharts test mock Label export (Wave-0 prereq); dual-client RLS integration test pinning the cycle-10 /access denied/i contract.
+- [ ] 04-02-PLAN.md — **Wave 2** (depends on 04-01). RevenueAreaChart (CHART-01) + colocated RevenueAreaChartSkeleton + 12 Vitest specs. Local useState 30d/6mo toggle, shadcn Tabs in CardHeader right slot, formatCurrency in tooltip, var(--color-chart-1) area stroke + gradient, animationDuration={800} + isAnimationActive={\!useReducedMotion()}, honest empty-state copy. NO mount yet (dashboard.tsx still uses old chart).
+- [ ] 04-03-PLAN.md — **Wave 3** (depends on 04-01 + 04-02). OccupancyDonutChart (CHART-02) + colocated OccupancyDonutChartSkeleton + 11 Vitest specs. Mount the chart pair in dashboard.tsx via next/dynamic (3-up layout per D-02: Revenue col-span-2 + Donut col-span-1 + Quick Actions col-span-1). Reshape DashboardProps (drop revenueTrend, add monthlyRevenue + monthlyRevenue6mo + units). Drop revenueTrend transform in page.tsx. Delete revenue-overview-chart.tsx atomically. Drop chartConfig from dashboard-types.ts if no surviving consumers. Manual visual checkpoint (3-up layout + toggle + dark-mode + skeleton ↔ data transition).
 **UI hint:** yes
 
 ### Phase 5: Portfolio DataTable
@@ -154,7 +157,7 @@ Phases 1 and 2 are invisible foundation. Phases 3 and 4 each *add* a new region 
 | 1. Foundation & Dedup | v2.0 | 3/3 | Shipped (PR #744) | 2026-05-22 |
 | 2. Data Layer & RPC | v2.0 | 3/3 | Shipped (PR #745) | 2026-05-22 |
 | 3. KPI Bento Row | v2.0 | 3/3 | Plan execution complete; verify-work + PR pending | 2026-05-24 |
-| 4. Charts | v2.0 | 0/0 | Not started | - |
+| 4. Charts | v2.0 | 0/3 | Plans drafted; execution pending | - |
 | 5. Portfolio DataTable | v2.0 | 0/0 | Not started | - |
 | 6. Polish & A11y | v2.0 | 0/0 | Not started | - |
 | 7. Verification | v2.0 | 0/0 | Not started | - |
@@ -197,4 +200,4 @@ Audit round 3 verdict: PERFECT BY ALL MEASURES. Full milestone summary in [miles
 </details>
 
 ---
-*Last updated: 2026-05-24 — Phase 3 execution complete (KPI-01 through KPI-07 closed; verify-work + PR pending)*
+*Last updated: 2026-05-26 — Phase 4 plans drafted (04-01 data layer + RLS, 04-02 RevenueAreaChart, 04-03 OccupancyDonutChart + mount + cleanup)*
