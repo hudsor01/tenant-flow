@@ -50,6 +50,7 @@ describe("transformDashboardData", () => {
 		timeSeries: {
 			occupancyRate: [],
 			monthlyRevenue: [],
+			monthlyRevenue6mo: [],
 		},
 		propertyPerformance: [],
 	};

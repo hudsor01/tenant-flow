@@ -18,6 +18,16 @@ export interface TimeSeriesDataPoint {
 	label?: string;
 }
 
+// 6-month aggregate revenue point — emitted by ts_revenue_6mo CTE in
+// supabase/migrations/20260526203003_phase4_revenue_trend_6mo.sql.
+// `month` is "YYYY-MM" (first day of month); `value` is sum in dollars.
+// Intentionally distinct from TimeSeriesDataPoint: 6mo buckets key by `month`,
+// 30d points key by `date`.
+export interface MonthlyRevenuePoint {
+	month: string; // "YYYY-MM"
+	value: number; // dollars
+}
+
 // Analytics trend indicator
 export interface MetricTrend {
 	current: number;
