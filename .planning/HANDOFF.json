@@ -1,124 +1,143 @@
 {
 	"version": "1.0",
-	"timestamp": "2026-05-21T22:22:55Z",
-	"context": "milestone-boundary",
-	"milestone": "v1.0",
-	"milestone_name": "Marketing Surface Honesty",
-	"phase": "13",
-	"phase_name": "performance-conversion-polish",
-	"phase_dir": ".planning/phases/13-performance-conversion-polish",
-	"plan": null,
-	"task": null,
-	"total_tasks": null,
-	"status": "milestone_substantively_complete",
-	"completed_this_session": [
+	"timestamp": "2026-05-26T21:07:04.329Z",
+	"phase": "04",
+	"phase_name": "Charts",
+	"phase_dir": ".planning/phases/04-charts",
+	"branch": "gsd/phase-4-dashboard-charts",
+	"milestone": "v2.0 Dashboard Command Center",
+	"plan": "04-01a",
+	"plan_status": "complete",
+	"next_plan": "04-01b",
+	"total_plans": 4,
+	"completed_plans": 1,
+	"status": "paused",
+	"wave": 1,
+	"wave_status": "1 of 2 plans complete (04-01a done; 04-01b remaining in Wave 1)",
+	"completed_tasks": [
 		{
-			"phase": "7",
-			"name": "pricing-card-chrome",
-			"pr": 735,
-			"status": "merged",
-			"summary": "4 regression test files + 1 production refactor (pricing cards now call calculateAnnualSavings); CONS-05/09/10"
+			"plan": "04-01a",
+			"id": 1,
+			"name": "Add Label mock to recharts test mock (Wave-0 prereq)",
+			"status": "done",
+			"commit": "d0f25afb4"
 		},
 		{
-			"phase": "8",
-			"name": "nav-active-states",
-			"pr": 736,
-			"status": "merged",
-			"summary": "3 regression test files for already-shipped CONS-02/03/11 (Multi-Property Dashboard icon, aria-current on homepage, Resources dropdown real URLs)"
+			"plan": "04-01a",
+			"id": 2,
+			"name": "Author additive get_dashboard_data_v2 migration with ts_revenue_6mo CTE",
+			"status": "done",
+			"commit": "831f13d74"
 		},
 		{
-			"phase": "9",
-			"name": "page-cleanup",
-			"pr": 737,
-			"status": "merged",
-			"summary": "2 new regression-pin test files (logo-cloud + marketing-home) + 1 e2e timeout fix (P0 Navigation flake); CONS-04/13/14"
+			"plan": "04-01a",
+			"id": 3,
+			"name": "MCP apply_migration to prod (BLOCKING checkpoint)",
+			"status": "done",
+			"commit": "831f13d74"
 		},
 		{
-			"phase": "10",
-			"name": "cta-conversion",
-			"pr": 738,
-			"status": "merged",
-			"summary": "5 regression test files for CONS-06/07/08 + TRUST-01/03/04; TRUST-02 deferred (no review listings exist); TRUST-01 reconciled to 'pin the 2 real testimonials, defer the 3rd until a real customer opts in'"
+			"plan": "04-01a",
+			"id": 4,
+			"name": "Reconcile migration filename with prod timestamp 20260526203003",
+			"status": "done",
+			"commit": "831f13d74"
 		},
 		{
-			"phase": "10-followup",
-			"name": "in-01-in-02-fixes",
-			"pr": 739,
-			"status": "merged",
-			"summary": "Code-fixer landed but didn't commit the IN-01/IN-02 fixes from #738's review; followup PR landed them (3 test files, 4 lines)"
-		},
-		{
-			"phase": "11",
-			"name": "token-alignment",
-			"pr": 740,
-			"status": "merged",
-			"summary": "ESLint references removed (repo lints with Biome); 5 inline-ms durations tokenized to --duration-* scale; /resources regression pin; new design-token-drift.test.ts Vitest guard (TOKEN-01/02/03); LINT-RULE.md rewritten to describe the Vitest mechanism"
-		},
-		{
-			"phase": "12",
-			"name": "seo-metadata-schema-content-cleanup",
-			"pr": 741,
-			"status": "merged",
-			"summary": "8 title separators normalized to canonical pipe + drift-guard test; /features OG-image edge route (the only OG gap); getJsonLd + footer + aria-current audit regression pins; SEO-01..07 covered; the navbar DEFAULT_NAV_ITEMS got an `as const satisfies readonly NavItem[]` upgrade to make NavHref a real literal union (verified by deliberate-typo TS2322)"
-		},
-		{
-			"phase": "13",
-			"name": "performance-conversion-polish",
-			"pr": 742,
-			"status": "merged",
-			"summary": "1-line PERF-02 gap closed (/about/page.tsx revalidate=3600); 12-test consolidated performance-policy.test.ts pinning PERF-01..04"
+			"plan": "04-01a",
+			"id": 5,
+			"name": "Regenerate src/types/supabase.ts via MCP",
+			"status": "done",
+			"commit": "c167b6551"
 		}
 	],
-	"remaining_work": [
+	"remaining_tasks": [
 		{
-			"task": "Verify Phase 14 (battle-test-findings-remediation) is actually shipped",
-			"context": "STATE.md says 'Phase 14, Ready to plan' but the initial /gsd-progress audit at session start showed Phase 14 already had 4/4 plans complete and 4 SUMMARY.md files. Likely GSD-tracking drift, not real work."
+			"plan": "04-01b",
+			"id": 1,
+			"name": "Add MonthlyRevenuePoint type + extend boundary mapper to emit monthlyRevenue6mo",
+			"status": "not_started"
 		},
 		{
-			"task": "Run /gsd-progress to confirm v1.0 milestone status, then /gsd-complete-milestone to archive it",
-			"context": "Phase 13 was the last v1.0 phase per the roadmap. After confirmation, the milestone can be marked complete."
+			"plan": "04-01b",
+			"id": 2,
+			"name": "Add RLS integration test dashboard-rpc-revenue-6mo.test.ts (cross-owner /access denied/i + shape-only)",
+			"status": "not_started"
 		},
 		{
-			"task": "Start the dashboard redesign milestone",
-			"context": "The original ask that opened this session. Full plan is parked at /Users/richard/.claude/plans/i-want-to-enhance-hazy-island.md. Resume via /gsd-new-milestone (name suggestion: v2.0 'Dashboard Command Center'). 7-phase plan covers KPI bento row, occupancy donut, DiceUI DataTable adoption, dark-mode/a11y/responsive polish."
+			"plan": "04-02",
+			"id": 1,
+			"name": "RevenueAreaChart + colocated skeleton (Recharts area, 30d/6mo Tabs, useReducedMotion gating)",
+			"status": "not_started"
+		},
+		{
+			"plan": "04-02",
+			"id": 2,
+			"name": "Vitest unit tests for RevenueAreaChart (12 specs)",
+			"status": "not_started"
+		},
+		{
+			"plan": "04-03",
+			"id": 1,
+			"name": "OccupancyDonutChart + skeleton (Recharts PieChart with Label center, ul/li legend)",
+			"status": "not_started"
+		},
+		{
+			"plan": "04-03",
+			"id": 2,
+			"name": "Vitest unit tests for OccupancyDonutChart (11 specs)",
+			"status": "not_started"
+		},
+		{
+			"plan": "04-03",
+			"id": 3,
+			"name": "Atomic: DashboardProps reshape + page.tsx drop revenueTrend + dashboard.tsx 3-up grid (single commit)",
+			"status": "not_started"
+		},
+		{
+			"plan": "04-03",
+			"id": 4,
+			"name": "Delete revenue-overview-chart.tsx + conditional chartConfig cleanup",
+			"status": "not_started"
+		},
+		{
+			"plan": "04-03",
+			"id": 5,
+			"name": "Manual dark-mode visual checkpoint (BLOCKING human-verify)",
+			"status": "not_started"
 		}
 	],
-	"blockers": [
+	"blockers": [],
+	"human_actions_pending": [
 		{
-			"description": "Pre-commit `lockfile-verify` hook fails inside the command sandbox (`bun install --frozen-lockfile` returns PermissionDenied — sandbox blocks install-cache writes)",
-			"type": "environmental",
-			"workaround": "Run `git commit` calls with the command sandbox DISABLED. The lockfile IS in sync; the failure is purely a sandbox restriction. All commits this session used this workaround; the full hook gate (gitleaks + lockfile-verify + lint + typecheck + unit-tests with coverage + commitlint) passes normally. NEVER use --no-verify or LEFTHOOK_EXCLUDE (both forbidden)."
-		},
-		{
-			"description": "GSD STATE.md tracking drift",
-			"type": "tooling",
-			"workaround": "Some shipped phases (04, 06, 14 from earlier in the milestone) never had SUMMARY.md files recorded by GSD even though they merged to main. /gsd-progress may mis-route. Trust git log (everything from #688 onward is the source of truth) over the GSD planning artifacts."
+			"action": "04-03 Task 5 manual dark-mode visual smoke",
+			"context": "Browser eye-test in both light + dark modes per CHART-04; ahead, not gating next resume action",
+			"blocking": false
 		}
 	],
-	"human_actions_pending": [],
 	"decisions": [
 		{
-			"decision": "Removed ESLint entirely (Phase 11)",
-			"rationale": "Repo lints with Biome; no eslint config or deps ever existed. The fictional 11-LINT-RULE.md was describing an ESLint plugin that was never built. Replaced with a Vitest drift-guard test, the project's established CI-gating pattern.",
-			"phase": "11"
+			"decision": "Migration prod timestamp 20260526203003",
+			"rationale": "MCP returned this on apply; local file renamed to match per migration-mcp-prod-drift.md",
+			"phase": "04"
 		},
 		{
-			"decision": "TRUST-01 pinned at `length >= 2`, not >= 3 (Phase 10)",
-			"rationale": "Roadmap asked for ≥3 testimonials; reality ships 2 real attributed testimonials (Janet Shur / 8 properties, Jacob Lear / 13 properties). Fabricating a 3rd would directly violate the v1.0 honesty milestone. The 3rd is deferred until a real customer opts in.",
-			"phase": "10"
+			"decision": "supabase.ts is byte-identical to baseline after MCP regen",
+			"rationale": "Migration only adds a JSONB key to an existing RPC — no table/column changes — so the generator emits identical output. The new monthly_revenue_6mo shape is typed at the boundary mapper in Plan 04-01b, NOT in supabase.ts",
+			"phase": "04"
 		},
 		{
-			"decision": "DEFAULT_NAV_ITEMS upgraded to `as const satisfies readonly NavItem[]` (Phase 12)",
-			"rationale": "Canonical TS 4.9+ pattern (verified empirically on TS 6.0 via a probe). Lets the audit test derive a true literal-union NavHref from the nav source so EXPECTED_ACTIVE typos error at typecheck. Required loosening NavbarProps.navItems / NavbarDesktopNavProps.navItems / NavbarMobileMenuProps.navItems from `NavItem[]` → `readonly NavItem[]` (3 consumer prop types). Also required `in`-narrowing on dropdownItems access in 2 test files because `as const` produces a union of element shapes — only items declaring dropdownItems carry that property.",
-			"phase": "12"
+			"decision": "Owner A smoke returned 6-entry all-zero array",
+			"rationale": "Owner A has no active leases on prod — honest empty state, not fabrication. Shape conforms to MonthlyRevenuePoint contract",
+			"phase": "04"
 		},
 		{
-			"decision": "Phase 13 executed inline rather than via full discuss/plan-check pipeline",
-			"rationale": "Tiny scope (1 production line + 1 test file, ~115 insertions). All PERF requirements were already shipped — the deliverable was a 12-test regression pin file + closing the one /about cache-config gap.",
-			"phase": "13"
+			"decision": "Plan-checker iteration 1 caused 04-01 split into 04-01a (DB) + 04-01b (TS)",
+			"rationale": "Original 7-task plan exceeded 5-task threshold; high-stakes SQL copy deserves its own context window",
+			"phase": "04"
 		}
 	],
 	"uncommitted_files": [],
-	"next_action": "Run /clear then /gsd-progress to confirm v1.0 status, then /gsd-complete-milestone to archive v1.0, then /gsd-new-milestone (referencing /Users/richard/.claude/plans/i-want-to-enhance-hazy-island.md) to spin up the dashboard redesign.",
-	"context_notes": "v1.0 'Marketing Surface Honesty' is substantively complete. All 7 v1.0 phases I picked up (7-13) shipped through the perfect-PR gate (two consecutive zero-finding review cycles). 8 PRs merged this session; full unit suite stays green at 105k+ tests. The dashboard redesign — the user's original ask — is the queued v2.0 milestone."
+	"next_action": "Plan 04-01b. Task 1: extend src/types/analytics.ts with MonthlyRevenuePoint interface { month: string; value: number } (NOT date — month). Then extend boundary mapper in src/hooks/api/use-owner-dashboard.ts:218-294 to emit OwnerDashboardData.timeSeries.monthlyRevenue6mo via result.time_series?.monthly_revenue_6mo ?? []. Task 2: write tests/integration/rls/dashboard-rpc-revenue-6mo.test.ts mirroring dashboard-rpc-open-maintenance.test.ts (dual-client ownerA/ownerB; cross-owner expectation: error.message matches /access denied/i per Phase 2 cycle-10/11). Shape-only assertions per RESEARCH.md Q5 resolution.",
+	"context_notes": "Phase 4 = 4 plans across 3 waves. 04-01a (DB-side) shipped clean. Phase 2 additive-migration pattern was mirrored verbatim. Plan-checker iteration 1 split original 04-01 into 04-01a + 04-01b due to scope. All threat model items mitigated (T-04-01..T-04-04 + T-04-SC). Perfect-PR gate applies at end. NEVER --no-verify; dangerouslyDisableSandbox=true on git commit ONLY. Biome reformats supabase.ts to tabs."
 }
