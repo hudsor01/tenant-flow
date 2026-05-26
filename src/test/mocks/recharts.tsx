@@ -118,6 +118,28 @@ export const Cell = ({ fill }: CellProps) => (
 	<g data-testid="cell" data-fill={fill} />
 );
 
+interface LabelProps {
+	position?: string;
+	content?:
+		| ((args: { viewBox?: { cx: number; cy: number } }) => ReactNode)
+		| ReactNode;
+}
+
+export const Label = ({ position, content }: LabelProps) => {
+	if (typeof content === "function") {
+		return (
+			<g data-testid="pie-label" data-position={position}>
+				{content({ viewBox: { cx: 0, cy: 0 } })}
+			</g>
+		);
+	}
+	return (
+		<g data-testid="pie-label" data-position={position}>
+			{content}
+		</g>
+	);
+};
+
 export const LineChart = ({ children, data }: ChartProps) => (
 	<svg data-testid="line-chart" data-data={JSON.stringify(data)}>
 		{children}
