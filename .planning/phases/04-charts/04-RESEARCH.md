@@ -1060,32 +1060,32 @@ grep -rn "import.*chartConfig" src/
 
 ---
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **6-month bucket starting point — calendar or trailing?**
    - What we know: D-01 says "trailing 6 months" but also "monthly aggregate by month for the last 6 calendar months." UI-SPEC § 2.4 tick formatter outputs `Mar` for the 6mo window — implies calendar-month labels, not "trailing 30-day buckets".
    - What's unclear: edge-case behavior for the current month — does the most recent bucket represent the partial current month (Dec 1 → today) or the most recent complete month (November)?
-   - Recommendation: **Use last 6 calendar months including the partial current month.** Bucket via `date_trunc('month', generate_series(date_trunc('month', current_date) - interval '5 months', date_trunc('month', current_date), '1 month'))`. Most recent bucket = partial month-to-date. Most intuitive for "how am I doing this month?" UX. Sample code in Pattern 1.
+   - **RESOLVED:** Use last 6 calendar months including the partial current month. Bucket via `date_trunc('month', generate_series(date_trunc('month', current_date) - interval '5 months', date_trunc('month', current_date), '1 month'))`. Most recent bucket = partial month-to-date. Most intuitive for "how am I doing this month?" UX. Sample code in Pattern 1.
 
 2. **Timezone for the 6mo aggregation?**
    - What we know: The existing 30d series uses `current_date` (no timezone qualifier) and `to_char(d, 'YYYY-MM-DD')`. Postgres `current_date` evaluates in the session timezone — Supabase prod default is UTC.
    - What's unclear: Whether owners in non-UTC timezones could see a partial-day off-by-one for the most recent bucket.
-   - Recommendation: **UTC, matching existing 30d series.** The 6mo view buckets monthly, so a few hours of timezone drift at the bucket boundary is sub-pixel on the chart. Don't introduce a new timezone column. The Phase 1 `expandDateBoundary` helper (used in Phase 64 of v2.6) handled this for daily date math — Phase 4's monthly buckets are coarse enough that it's not needed.
+   - **RESOLVED:** UTC, matching the existing 30d series. The 6mo view buckets monthly, so a few hours of timezone drift at the bucket boundary is sub-pixel on the chart. Don't introduce a new timezone column. The Phase 1 `expandDateBoundary` helper (used in Phase 64 of v2.6) handled this for daily date math — Phase 4's monthly buckets are coarse enough that it's not needed.
 
 3. **Keep `revenueTrend` re-mapper in `page.tsx:61-68` or drop it?**
    - What we know: Currently re-maps `{ date, value }` → `{ month, revenue }`. Phase 4 changes the chart's prop interface to accept both `monthlyRevenue` AND `monthlyRevenue6mo` directly from the selector's `chartsData.timeSeries`.
    - What's unclear: Whether other consumers exist for the `revenueTrend` shape (search needed).
-   - Recommendation: **Drop the re-mapper.** Pass `chartsData.timeSeries.monthlyRevenue` and `chartsData.timeSeries.monthlyRevenue6mo` straight through `<Dashboard>` to `<RevenueAreaChart>`. The transform is a Phase-1-era artifact; Phase 4's selector path is cleaner. Update `DashboardProps` to swap `revenueTrend: { month, revenue }[]` for `monthlyRevenue: { date, value }[] + monthlyRevenue6mo: { month, value }[]` (or a `revenue: { daily, monthly }` nested type to keep `DashboardProps` tidy).
+   - **RESOLVED:** Drop the re-mapper. Pass `chartsData.timeSeries.monthlyRevenue` and `chartsData.timeSeries.monthlyRevenue6mo` straight through `<Dashboard>` to `<RevenueAreaChart>`. The transform is a Phase-1-era artifact; Phase 4's selector path is cleaner. Update `DashboardProps` to swap `revenueTrend: { month, revenue }[]` for `monthlyRevenue: { date, value }[] + monthlyRevenue6mo: { month, value }[]` (or a `revenue: { daily, monthly }` nested type to keep `DashboardProps` tidy).
 
 4. **`chartConfig` in `dashboard-types.ts` — delete or keep?**
    - What we know: Single-entry (`revenue: { label, color: 'var(--chart-1)' }`). Only consumer is `revenue-overview-chart.tsx` (being deleted).
    - What's unclear: Static check needed via `grep -rn "import.*chartConfig" src/`.
-   - Recommendation: **Delete** if grep returns zero remaining consumers. Otherwise leave it.
+   - **RESOLVED:** Delete if `grep -rn "import.*chartConfig" src/` returns zero remaining consumers after `revenue-overview-chart.tsx` is removed. Otherwise leave it. The check is mechanical and runs as part of Plan 04-03 Task 5.
 
 5. **Should the integration test create a multi-month lease fixture to verify the 6mo bucketing math?**
    - What we know: Phase 2 test only inserts one current open maintenance request. A 6mo test could simply assert the array has length 6 and the keys are correct `YYYY-MM` strings.
    - What's unclear: Whether to additionally fixture a lease spanning multiple months and assert the per-bucket value math.
-   - Recommendation: **Phase 4 test asserts shape only** (length === 6, every entry has `month` matching `^\d{4}-\d{2}$` and `value` is a non-negative number), NOT value math. Value-correctness math is implicit in the migration's CTE; pinning specific dollar values would require fragile fixtures. The auth-guard rejection test remains the primary RLS isolation pin.
+   - **RESOLVED:** Phase 4 RLS test asserts shape only (length === 6, every entry has `month` matching `^\d{4}-\d{2}$` and `value` is a non-negative number), NOT value math. Value-correctness math is implicit in the migration's CTE; pinning specific dollar values would require fragile fixtures. The auth-guard rejection test remains the primary RLS isolation pin.
 
 ---
 
