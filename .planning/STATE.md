@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: Dashboard Command Center
-status: executing
-last_updated: "2026-05-23T03:04:28.759Z"
-last_activity: 2026-05-23 -- Phase 01 execution started
+status: Phases 1 + 2 merged; Phase 3 branch `gsd/phase-3-kpi-bento-row` cut off main
+last_updated: "2026-05-24T08:12:47.139Z"
+last_activity: 2026-05-24 -- Phase 03 Plan 03-03 complete (KpiBentoRow mounted on /dashboard; KPI-01 closed; full unit suite 104,850/104,850 pass)
 progress:
   total_phases: 7
-  completed_phases: 0
-  total_plans: 3
-  completed_plans: 0
-  percent: 0
+  completed_phases: 3
+  total_plans: 9
+  completed_plans: 9
+  percent: 43
 ---
 
 # Project State
@@ -20,26 +20,26 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-22)
 
 **Core value:** The authenticated owner dashboard at `/dashboard` becomes a restrained, professional B2B command center — KPI visibility above the fold, polished charts, a real DataTable with column controls + saved presets, full keyboard/dark-mode/mobile a11y. Every dollar amount handled correctly throughout the data path (no `*100`/`÷100` round-trip).
-**Current focus:** Phase 02 — Data Layer & RPC (discussed; awaiting Phase 1 merge)
+**Current focus:** Phase 03 — KPI Bento Row (context locked; UI-SPEC next)
 
 ## Current Position
 
-Phase: 02 (Data Layer & RPC) — context locked; planning next
-Plan: not started (CONTEXT.md committed)
-Status: Phase 1 PR #744 ready to merge (perfect-PR gate satisfied across 7 cycles); Phase 2 awaiting Phase 1 merge before its own branch
-Last activity: 2026-05-23 -- Phase 02 CONTEXT.md committed (D-01: drop collection_rate; D-02: additive RPC for per-property open_maintenance)
+Phase: 03 (KPI Bento Row) — execution complete; ready for `/gsd-verify-work 3` + PR
+Plan: 03 of 3 complete (03-01 KpiSparkline + helpers; 03-02 KpiBentoRow + tests; 03-03 production mount)
+Status: Phases 1 + 2 merged; Phase 3 fully executed on `gsd/phase-3-kpi-bento-row` — 5 commits total (CONTEXT, UI-SPEC, 03-PLANs, 4 feat commits, plus pending SUMMARY commit)
+Last activity: 2026-05-24 -- Phase 03 Plan 03-03 complete; KPI-01 closed; KpiBentoRow rendering on /dashboard
 
 ```
-[█░░░░░░] 14% of v2.0 milestone (1 / 7 phases shipped)
+[███░░░░] 43% of v2.0 milestone (3 / 7 phases shipped)
 ```
 
 ## Phase Index
 
 | # | Slug | Status | UI-SPEC | Branch |
 |---|------|--------|---------|--------|
-| 1 | foundation-dedup | Ready to merge (gate satisfied, 7 cycles) | YES (milestone-wide) | gsd/phase-1-foundation-dedup |
-| 2 | data-layer-rpc | Context locked; plan next | No | gsd/phase-2-data-layer-rpc |
-| 3 | dashboard-kpi-bento-row | Not started | YES | gsd/phase-3-dashboard-kpi-bento-row |
+| 1 | foundation-dedup | SHIPPED (PR #744, 7 cycles) | YES (milestone-wide) | gsd/phase-1-foundation-dedup |
+| 2 | data-layer-rpc | SHIPPED (PR #745, 11 cycles + post-merge fix) | No | gsd/phase-2-data-layer-rpc |
+| 3 | kpi-bento-row | Plan execution complete; verify-work + PR next | YES (per-phase) | gsd/phase-3-kpi-bento-row |
 | 4 | dashboard-charts | Not started | YES | gsd/phase-4-dashboard-charts |
 | 5 | dashboard-portfolio-datatable | Not started | YES | gsd/phase-5-dashboard-portfolio-datatable |
 | 6 | dashboard-polish-a11y | Not started | No | gsd/phase-6-dashboard-polish-a11y |
@@ -52,8 +52,8 @@ Last activity: 2026-05-23 -- Phase 02 CONTEXT.md committed (D-01: drop collectio
 | Phase | Plans | Status | Branch | PR | Cycles to perfect-PR |
 |-------|-------|--------|--------|----|-----------------------|
 | 1 | 3 | Gate satisfied | gsd/phase-1-foundation-dedup | #744 | 7 (cycles 6+7 both zero) |
-| 2 | TBD | Context locked | gsd/phase-2-data-layer-rpc | — | — |
-| 3 | TBD | Pending | gsd/phase-3-dashboard-kpi-bento-row | — | — |
+| 2 | 3 | Gate satisfied | gsd/phase-2-data-layer-rpc | #745 | 11 (+ post-merge fix) |
+| 3 | 3 | Plan execution complete; verify-work + PR pending | gsd/phase-3-kpi-bento-row | — | — |
 | 4 | TBD | Pending | gsd/phase-4-dashboard-charts | — | — |
 | 5 | TBD | Pending | gsd/phase-5-dashboard-portfolio-datatable | — | — |
 | 6 | TBD | Pending | gsd/phase-6-dashboard-polish-a11y | — | — |
@@ -87,19 +87,26 @@ None.
 
 ## Next Action
 
-**User: merge PR #744** (Phase 1 perfect-PR gate satisfied — 7 review cycles total; cycles 6+7 both zero-finding).
+**Phase 3 execution complete.** All three plans shipped on branch
+`gsd/phase-3-kpi-bento-row`:
 
-**Then for Phase 2:**
+- 03-01: KpiSparkline + pure helpers (commit `737f14eb2`)
+- 03-02: KpiBentoRow orchestrator + 10 component tests (commit `2f327e7c4`)
+- 03-03: Production mount — `<KpiBentoRow {...kpiData} />` replaces legacy `<p>` header on `/dashboard` (commit `7c3ca01ff`)
 
-1. Checkout main + pull
-2. `git checkout -b gsd/phase-2-data-layer-rpc`
-3. `/gsd-plan-phase 2` — research + plan the additive RPC migration
+**KPI-01 closed.** Full unit suite 104,850 / 104,850 passing across 172
+test files. design-token-drift 2704 / 2704. tsc clean. biome clean.
 
-Phase 2 CONTEXT.md is committed; D-01 (drop collection_rate) and D-02 (additive open_maintenance migration to existing get_dashboard_data_v2) are locked.
+**Next:**
+
+1. `/gsd-verify-work 3` — run the verification pass against the plan
+2. Push branch + `gh pr create` for Phase 3
+3. Iterate review cycles until perfect-PR gate (2 consecutive zero-finding cycles)
+4. Merge → unblock Phase 4 (dashboard-charts)
 
 ## Overrides
 
 (none active)
 
 ---
-*Last updated: 2026-05-23 — Phase 1 gate satisfied (7 cycles); Phase 2 context locked*
+*Last updated: 2026-05-24 — Phase 3 execution complete (KPI-01 closed; verify-work + PR pending)*

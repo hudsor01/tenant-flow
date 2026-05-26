@@ -152,11 +152,19 @@ export const Area = ({
 	fill,
 	stroke,
 	name,
+	strokeWidth,
+	isAnimationActive,
+	dot,
+	activeDot,
 }: {
 	dataKey?: string;
 	fill?: string;
 	stroke?: string;
 	name?: string;
+	strokeWidth?: number;
+	isAnimationActive?: boolean;
+	dot?: boolean | object;
+	activeDot?: boolean | object;
 }) => (
 	<g
 		data-testid="area"
@@ -164,6 +172,18 @@ export const Area = ({
 		data-fill={fill}
 		data-stroke={stroke}
 		data-name={name}
+		data-stroke-width={
+			typeof strokeWidth === "number" ? String(strokeWidth) : undefined
+		}
+		data-is-animation-active={
+			typeof isAnimationActive === "boolean"
+				? String(isAnimationActive)
+				: undefined
+		}
+		data-dot={typeof dot === "boolean" ? String(dot) : undefined}
+		data-active-dot={
+			typeof activeDot === "boolean" ? String(activeDot) : undefined
+		}
 	/>
 );
 

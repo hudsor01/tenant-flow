@@ -8,11 +8,17 @@ import { transformDashboardData } from "./dashboard-data";
  * `portfolioRows[i].maintenanceOpen`.
  *
  * The live `/dashboard` page does NOT consume `transformDashboardData` today
- * — it uses an inline transform in `dashboard.tsx:87-102` plus a re-mapper
- * in `page.tsx:95-108`. The canonical transform survives as a Phase-3 seam
- * (per Phase 1 CONTEXT D-10). Without this test, a regression in
- * `transformDashboardData.maintenanceOpen` would not surface until Phase 3
- * wires `dashboard-view.tsx`.
+ * — it uses an inline `portfolioData` transform in `dashboard.tsx` (search
+ * for `propertyPerformance.map((prop) => ...)` building `PortfolioRow[]`)
+ * plus a re-mapper in `page.tsx` (search for `performanceData.map((prop) => ...)`
+ * building `PropertyPerformanceItem[]`). Line numbers omitted to avoid
+ * drift. The canonical transform survives as the locked architectural
+ * seam per Phase 1 CONTEXT D-10.
+ * Phase 3 mounted `<KpiBentoRow>` but explicitly did NOT do the
+ * `dashboard-view.tsx` consumer migration; that work is deferred to a
+ * later phase (see ROADMAP.md). Without this test, a regression in
+ * `transformDashboardData.maintenanceOpen` would not surface until the
+ * consumer migration lands.
  */
 describe("transformDashboardData", () => {
 	const baseProperty = {

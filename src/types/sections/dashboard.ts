@@ -1,8 +1,10 @@
 // Dashboard Section Types
 
+import type { KpiBentoRowProps } from "#components/dashboard/components/kpi-helpers";
+
 export interface DashboardProps {
-	// Summary metrics
-	metrics: DashboardMetrics;
+	// Phase 3 KPI bento row data (consumed by <KpiBentoRow {...kpiData} />)
+	kpiData: KpiBentoRowProps;
 
 	// Revenue trend data
 	revenueTrend: RevenueTrendPoint[];
@@ -23,19 +25,6 @@ export interface DashboardProps {
 	onViewMaintenance?: (requestId: string) => void;
 	onExportAnalytics?: () => void;
 	onDateRangeChange?: (range: DateRange) => void;
-}
-
-export interface DashboardMetrics {
-	totalRevenue: number;
-	revenueChange: number; // percentage change from previous period
-	occupancyRate: number;
-	occupancyChange: number;
-	totalProperties: number;
-	totalUnits: number;
-	occupiedUnits: number;
-	activeLeases: number;
-	expiringLeases: number; // expiring within 30 days
-	openMaintenanceRequests: number;
 }
 
 export interface RevenueTrendPoint {

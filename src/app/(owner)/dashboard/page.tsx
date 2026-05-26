@@ -3,6 +3,7 @@
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useEffect } from "react";
 import { toast } from "sonner";
+import type { KpiBentoRowProps } from "#components/dashboard/components/kpi-helpers";
 import { Dashboard } from "#components/dashboard/dashboard";
 import { ExpiringLeasesWidget } from "#components/dashboard/expiring-leases-widget";
 import { ErrorBoundary } from "#components/error-boundary/error-boundary";
@@ -48,38 +49,13 @@ function DashboardContent() {
 	const { data: performanceData, isLoading: performanceLoading } =
 		usePropertyPerformance();
 
-	// Transform stats to design-os format
-	const metrics = (() => {
-		if (!statsData?.stats) {
-			return {
-				totalRevenue: 0,
-				revenueChange: 0,
-				occupancyRate: 0,
-				occupancyChange: 0,
-				totalProperties: 0,
-				totalUnits: 0,
-				occupiedUnits: 0,
-				activeLeases: 0,
-				expiringLeases: 0,
-				openMaintenanceRequests: 0,
-			};
-		}
-
-		const stats = statsData.stats;
-		return {
-			totalRevenue: stats.revenue?.monthly ?? 0,
-			revenueChange: statsData.metricTrends?.monthlyRevenue?.percentChange ?? 0,
-			occupancyRate: stats.units?.occupancyRate ?? 0,
-			occupancyChange:
-				statsData.metricTrends?.occupancyRate?.percentChange ?? 0,
-			totalProperties: stats.properties?.total ?? 0,
-			totalUnits: stats.units?.total ?? 0,
-			occupiedUnits: stats.units?.occupied ?? 0,
-			activeLeases: stats.leases?.active ?? 0,
-			expiringLeases: stats.leases?.expiringSoon ?? 0,
-			openMaintenanceRequests: stats.maintenance?.open ?? 0,
-		};
-	})();
+	// Phase 3 KPI bento row — construct from existing hook returns (no new fetcher)
+	const kpiData: KpiBentoRowProps = {
+		isLoading: statsLoading || chartsLoading,
+		stats: statsData?.stats ?? null,
+		metricTrends: statsData?.metricTrends ?? null,
+		timeSeries: chartsData?.timeSeries ?? null,
+	};
 
 	// Transform revenue trends
 	const revenueTrend = (() => {
@@ -170,7 +146,7 @@ function DashboardContent() {
 	return (
 		<div className="flex flex-1 flex-col">
 			<Dashboard
-				metrics={metrics}
+				kpiData={kpiData}
 				revenueTrend={revenueTrend}
 				propertyPerformance={propertyPerformance}
 				onAddProperty={onAddProperty}

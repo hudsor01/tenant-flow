@@ -4,15 +4,17 @@ import type { DashboardStats } from "#types/stats";
 import type { PortfolioRow } from "./dashboard-types";
 
 /**
- * View-model exposed to dashboard surfaces — Phases 3/4/5 read from this,
+ * View-model exposed to dashboard surfaces — future phases read from this,
  * not the raw RPC. `portfolioRows` is derived from `propertyPerformance` and
  * stores rent in dollars (no `* 100`) per UI-SPEC § 8.1.
  *
  * Note: `activity` and `propertyPerformance` remain on the raw
  * `OwnerDashboardData` shape because existing consumers depend on those
- * shapes; Phase 3's `dashboard-view.tsx` migration is when those slices
- * fold into the view-model. See `use-dashboard-hooks.ts` selectors for the
- * current asymmetry rationale.
+ * shapes; the eventual `dashboard-view.tsx` consumer migration is when those
+ * slices fold into the view-model. Phase 3 mounted `<KpiBentoRow>` but
+ * explicitly did NOT do the dashboard-view migration — that work is deferred
+ * to a later phase. See `use-dashboard-hooks.ts` selectors for the current
+ * asymmetry rationale and ROADMAP.md for the consumer-migration phase.
  */
 export interface DashboardViewModel {
 	stats: DashboardStats;
@@ -26,8 +28,8 @@ export interface DashboardViewModel {
 /**
  * Pure RPC-payload → view-model transform for the owner dashboard.
  * Server-Component-safe: no React, no hooks, no React Query coupling.
- * Per D-10 (Phase 01 CONTEXT.md) — the shared transform contract that
- * Phase 3's `dashboard-view.tsx` will consume.
+ * Per D-10 (Phase 01 CONTEXT.md) — the shared transform contract that the
+ * future `dashboard-view.tsx` consumer will consume.
  *
  * Input type is the canonical `OwnerDashboardData` from
  * `use-owner-dashboard.ts` (the post-mapped payload — RPC row-level snake↔
@@ -35,17 +37,23 @@ export interface DashboardViewModel {
  * the canonical type instead of declaring a structural duplicate per
  * Phase 1 CR-01 fix (Zero Tolerance Rule 3 — no duplicate types).
  *
- * **Current consumer status (Phase 2 / Phase 1 cycle-1 WR-01 fix):**
+ * **Current consumer status (post-Phase-3):**
  * `transformDashboardData` has ZERO production consumers today. The
  * Phase 1 cycle-1 fix in `use-dashboard-hooks.ts` removed the
  * `transformDashboardData(data)` invocation from `selectStats` /
  * `selectCharts` (those selectors now read raw slices directly — the
  * old composition discarded `portfolioRows` work). The live `/dashboard`
- * page uses an inline transform in `dashboard.tsx:87-102` plus a
- * re-mapper in `page.tsx:95-108`. The canonical transform survives as
- * the locked Phase-3 seam (D-10) — only the unit test at
- * `dashboard-data.test.ts` consumes it, pinning the contract so a
- * Phase-3-time migration surfaces no surprises.
+ * page uses an inline `portfolioData` transform in `dashboard.tsx`
+ * (search for `propertyPerformance.map((prop) => ...)` building
+ * `PortfolioRow[]`) plus a re-mapper in `page.tsx` (search for
+ * `performanceData.map((prop) => ...)` building `PropertyPerformanceItem[]`).
+ * Line numbers omitted to avoid drift. The canonical
+ * transform survives as the locked architectural seam (D-10) — only
+ * the unit test at `dashboard-data.test.ts` consumes it, pinning the
+ * contract so the eventual consumer migration surfaces no surprises.
+ * Phase 3 mounted `<KpiBentoRow>` but explicitly did NOT do the
+ * `dashboard-view.tsx` consumer migration; that work is deferred to a
+ * later phase (see ROADMAP.md).
  *
  * Trust-the-type posture: input fields are typed required, so the body
  * does not optional-chain on `timeSeries` or `propertyPerformance`. The
