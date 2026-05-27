@@ -5,7 +5,6 @@
  * Derived hooks in use-dashboard-hooks.ts.
  */
 
-import { queryOptions } from "@tanstack/react-query";
 import { handlePostgrestError } from "#lib/postgrest-error-handler";
 import { createClient } from "#lib/supabase/client";
 import { getCachedUser } from "#lib/supabase/get-cached-user";
@@ -18,87 +17,7 @@ import type {
 import type { PropertyPerformance } from "#types/core";
 import type { PropertyPerformanceRpcResponse } from "#types/database-rpc";
 import type { DashboardStats } from "#types/stats";
-import {
-	occupancyTrendsQuery,
-	revenueTrendsQuery,
-} from "./query-keys/analytics-keys";
 import { ownerDashboardKeys } from "./query-keys/owner-dashboard-keys";
-
-/** Owner dashboard query factory */
-export const ownerDashboardQueries = {
-	/** Analytics — all dashboard data via unified get_dashboard_data_v2 */
-	analytics: {
-		pageData: () =>
-			queryOptions({
-				queryKey: ownerDashboardKeys.analytics.pageData(),
-				queryFn: fetchOwnerDashboardData,
-				staleTime: 2 * 60 * 1000,
-				gcTime: 10 * 60 * 1000,
-			}),
-	},
-
-	/** Financial queries (separate RPCs) */
-	financial: {
-		billingInsights: () =>
-			queryOptions({
-				queryKey: ownerDashboardKeys.financial.billingInsights(),
-				queryFn: async () => {
-					const supabase = createClient();
-					const user = await getCachedUser();
-					if (!user) throw new Error("Not authenticated");
-					const { data, error } = await supabase.rpc("get_billing_insights", {
-						owner_id_param: user.id,
-					});
-					if (error) handlePostgrestError(error, "analytics");
-					return data as {
-						totalRevenue: number;
-						monthlyRevenue: number;
-						outstandingBalance: number;
-						paidInvoices: number;
-						unpaidInvoices: number;
-					};
-				},
-				staleTime: 2 * 60 * 1000,
-				gcTime: 10 * 60 * 1000,
-			}),
-
-		revenueTrends: (_year: number = new Date().getFullYear()) =>
-			revenueTrendsQuery({ months: 12 }),
-	},
-
-	maintenance: {
-		analytics: () =>
-			queryOptions({
-				queryKey: ownerDashboardKeys.maintenance.analytics(),
-				queryFn: async () => {
-					const supabase = createClient();
-					const user = await getCachedUser();
-					if (!user) throw new Error("Not authenticated");
-					const { data, error } = await supabase.rpc(
-						"get_maintenance_analytics",
-						{
-							user_id: user.id,
-						},
-					);
-					if (error) handlePostgrestError(error, "analytics");
-					return data as {
-						totalRequests: number;
-						openRequests: number;
-						inProgressRequests: number;
-						completedRequests: number;
-						averageResolutionTime: number;
-						urgentRequests: number;
-					};
-				},
-				staleTime: 2 * 60 * 1000,
-				gcTime: 10 * 60 * 1000,
-			}),
-	},
-
-	tenants: {
-		occupancyTrends: () => occupancyTrendsQuery({ months: 12 }),
-	},
-};
 
 // Types exported for use-dashboard-hooks.ts
 export interface DashboardStatsData {
