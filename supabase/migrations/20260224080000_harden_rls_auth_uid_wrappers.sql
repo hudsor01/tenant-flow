@@ -15,42 +15,53 @@
 -- risk: low - these are performance/correctness hardening only; no logic changes
 
 -- ============================================================
--- 1. fix get_current_owner_user_id()
---    before: plpgsql + EXECUTE format(...) with bare auth.uid() in dynamic string
---    after:  sql language, static query, (select auth.uid()) wrapper
+-- 1+2. fix get_current_owner_user_id() and get_current_property_owner_id()
+--      both: sql language (eager validation) referencing stripe_connected_accounts
 -- ============================================================
+--
+-- 2026-05-27 update (Phase 4 cycle-2): wrap both CREATE FUNCTION calls
+-- in a to_regclass guard. LANGUAGE SQL bodies are validated EAGERLY at
+-- CREATE FUNCTION time, so a missing stripe_connected_accounts table
+-- on chain replay (the `failed to send batch` SQLSTATE 42P01 surfaces
+-- here) fails the CREATE. Guard makes it conditional: on prod the
+-- table exists so functions are recreated as before; on replay
+-- skipped, and later chain migrations drop these functions entirely.
 
--- the old function had a legacy table-name branch to handle a migration-period where
--- the table might still be named property_owners. that table no longer exists.
--- stripe_connected_accounts is the definitive table.
-create or replace function public.get_current_owner_user_id()
-returns uuid
-language sql
-security definer
-stable
-set search_path = public
-as $$
-  select user_id
-  from public.stripe_connected_accounts
-  where user_id = (select auth.uid())
-$$;
+do $$
+begin
+  if to_regclass('public.stripe_connected_accounts') is not null then
+    -- the old function had a legacy table-name branch to handle a migration-period where
+    -- the table might still be named property_owners. that table no longer exists.
+    -- stripe_connected_accounts is the definitive table.
+    execute $sql$
+      create or replace function public.get_current_owner_user_id()
+      returns uuid
+      language sql
+      security definer
+      stable
+      set search_path = public
+      as $body$
+        select user_id
+        from public.stripe_connected_accounts
+        where user_id = (select auth.uid())
+      $body$
+    $sql$;
 
--- ============================================================
--- 2. fix get_current_property_owner_id()
---    before: sql language but bare auth.uid() (no SELECT wrapper)
---    after:  (select auth.uid()) — evaluated once per statement via initPlan
--- ============================================================
-create or replace function public.get_current_property_owner_id()
-returns uuid
-language sql
-security definer
-stable
-set search_path = public
-as $$
-  select id
-  from public.stripe_connected_accounts
-  where user_id = (select auth.uid())
-$$;
+    execute $sql$
+      create or replace function public.get_current_property_owner_id()
+      returns uuid
+      language sql
+      security definer
+      stable
+      set search_path = public
+      as $body$
+        select id
+        from public.stripe_connected_accounts
+        where user_id = (select auth.uid())
+      $body$
+    $sql$;
+  end if;
+end $$;
 
 -- ============================================================
 -- 3. fix storage.objects bulk-imports csv policies

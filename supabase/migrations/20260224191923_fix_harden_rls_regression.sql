@@ -43,9 +43,27 @@ $$;
 -- ============================================================
 -- 3. re-grant execute on helper functions
 -- ============================================================
+--
+-- 2026-05-27 update (Phase 4 cycle-2): guard the GRANT for
+-- get_current_property_owner_id since the previous chain-replay guard
+-- on 20260224080000_harden_rls_auth_uid_wrappers may have skipped
+-- creating that function when stripe_connected_accounts was absent.
+-- The get_current_owner_user_id() GRANT is safe (function was just
+-- recreated above unconditionally).
 
 grant execute on function public.get_current_owner_user_id() to authenticated;
-grant execute on function public.get_current_property_owner_id() to authenticated;
+
+do $$
+begin
+  if exists (
+    select 1 from pg_proc
+    where proname = 'get_current_property_owner_id'
+      and pronamespace = 'public'::regnamespace
+      and pronargs = 0
+  ) then
+    execute 'grant execute on function public.get_current_property_owner_id() to authenticated';
+  end if;
+end $$;
 
 -- note: get_metric_trend and get_dashboard_time_series do not exist in this
 -- database — they will be created in a subsequent migration.
