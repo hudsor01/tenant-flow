@@ -109,7 +109,7 @@ Phases 1 and 2 are invisible foundation. Phases 3 and 4 each *add* a new region 
 - [x] 04-01a-PLAN.md — **Wave 1.** Database half of data layer: Recharts test mock Label export (Wave-0 prereq for Plan 04-03 donut tests); additive migration extending get_dashboard_data_v2 with month_series + ts_revenue_6mo CTEs and the monthly_revenue_6mo time_series key (D-01); MCP apply + filename reconcile + bun run db:types regen. Split out from original 04-01 so the ~300-line SECURITY DEFINER CREATE OR REPLACE has its own context window.
 - [x] 04-01b-PLAN.md — **Wave 1** (depends on 04-01a). TS/test half of data layer: MonthlyRevenuePoint type + boundary mapper line emitting monthlyRevenue6mo; dual-client RLS integration test pinning the cycle-10 /access denied/i contract.
 - [x] 04-02-PLAN.md — **Wave 2** (depends on 04-01a + 04-01b). RevenueAreaChart (CHART-01) + colocated RevenueAreaChartSkeleton + 12 Vitest specs. Local useState 30d/6mo toggle, shadcn Tabs in CardHeader right slot, formatCurrency in tooltip, var(--color-chart-1) area stroke + gradient, animationDuration={800} + isAnimationActive={\!useReducedMotion()}, honest empty-state copy. NO mount yet (dashboard.tsx still uses old chart).
-- [ ] 04-03-PLAN.md — **Wave 3** (depends on 04-01a + 04-01b + 04-02). OccupancyDonutChart (CHART-02) + colocated OccupancyDonutChartSkeleton + 11 Vitest specs. Atomic swap (single commit): reshape DashboardProps (drop revenueTrend, add monthlyRevenue + monthlyRevenue6mo + units) + drop revenueTrend transform in page.tsx + mount the chart pair in dashboard.tsx via next/dynamic (3-up layout per D-02: Revenue col-span-2 + Donut col-span-1 + Quick Actions col-span-1). Delete revenue-overview-chart.tsx atomically. Drop chartConfig from dashboard-types.ts if no surviving consumers. Manual visual checkpoint (3-up layout + toggle + dark-mode + skeleton ↔ data transition).
+- [x] 04-03-PLAN.md — **Wave 3** (depends on 04-01a + 04-01b + 04-02). OccupancyDonutChart (CHART-02) + colocated OccupancyDonutChartSkeleton + 11 Vitest specs. Atomic swap (single commit): reshape DashboardProps (drop revenueTrend, add monthlyRevenue + monthlyRevenue6mo + units) + drop revenueTrend transform in page.tsx + mount the chart pair in dashboard.tsx via next/dynamic (3-up layout per D-02: Revenue col-span-2 + Donut col-span-1 + Quick Actions col-span-1). Delete revenue-overview-chart.tsx atomically. Drop chartConfig from dashboard-types.ts if no surviving consumers. Manual visual checkpoint (3-up layout + toggle + dark-mode + skeleton ↔ data transition).
 **UI hint:** yes
 
 ### Phase 5: Portfolio DataTable
@@ -158,7 +158,7 @@ Phases 1 and 2 are invisible foundation. Phases 3 and 4 each *add* a new region 
 | 1. Foundation & Dedup | v2.0 | 3/3 | Shipped (PR #744) | 2026-05-22 |
 | 2. Data Layer & RPC | v2.0 | 3/3 | Shipped (PR #745) | 2026-05-22 |
 | 3. KPI Bento Row | v2.0 | 3/3 | Plan execution complete; verify-work + PR pending | 2026-05-24 |
-| 4. Charts | v2.0 | 3/4 | In Progress|  |
+| 4. Charts | v2.0 | 4/4 | Complete   | 2026-05-27 |
 | 5. Portfolio DataTable | v2.0 | 0/0 | Not started | - |
 | 6. Polish & A11y | v2.0 | 0/0 | Not started | - |
 | 7. Verification | v2.0 | 0/0 | Not started | - |
