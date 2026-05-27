@@ -57,16 +57,6 @@ function DashboardContent() {
 		timeSeries: chartsData?.timeSeries ?? null,
 	};
 
-	// Transform revenue trends
-	const revenueTrend = (() => {
-		if (!chartsData?.timeSeries?.monthlyRevenue) return [];
-
-		return chartsData.timeSeries.monthlyRevenue.map((point) => ({
-			month: point.date,
-			revenue: point.value,
-		}));
-	})();
-
 	// Transform property performance
 	const propertyPerformance = (() => {
 		if (!performanceData) return [];
@@ -147,7 +137,17 @@ function DashboardContent() {
 		<div className="flex flex-1 flex-col">
 			<Dashboard
 				kpiData={kpiData}
-				revenueTrend={revenueTrend}
+				monthlyRevenue={chartsData?.timeSeries?.monthlyRevenue ?? []}
+				monthlyRevenue6mo={chartsData?.timeSeries?.monthlyRevenue6mo ?? []}
+				units={
+					statsData?.stats?.units
+						? {
+								occupied: statsData.stats.units.occupied,
+								vacant: statsData.stats.units.vacant,
+								total: statsData.stats.units.total,
+							}
+						: { occupied: 0, vacant: 0, total: 0 }
+				}
 				propertyPerformance={propertyPerformance}
 				onAddProperty={onAddProperty}
 				onCreateLease={onCreateLease}

@@ -1,13 +1,22 @@
 // Dashboard Section Types
 
 import type { KpiBentoRowProps } from "#components/dashboard/components/kpi-helpers";
+import type {
+	MonthlyRevenuePoint,
+	TimeSeriesDataPoint,
+} from "#types/analytics";
 
 export interface DashboardProps {
 	// Phase 3 KPI bento row data (consumed by <KpiBentoRow {...kpiData} />)
 	kpiData: KpiBentoRowProps;
 
-	// Revenue trend data
-	revenueTrend: RevenueTrendPoint[];
+	// Phase 4 CHART-01 — Revenue area chart series (30d + 6mo windows)
+	monthlyRevenue: TimeSeriesDataPoint[];
+	monthlyRevenue6mo: MonthlyRevenuePoint[];
+
+	// Phase 4 CHART-02 — Occupancy donut input (narrowed from UnitStats;
+	// the donut consumes only the 3 fields it needs).
+	units: { occupied: number; vacant: number; total: number };
 
 	// Property performance
 	propertyPerformance: PropertyPerformanceItem[];
@@ -25,12 +34,6 @@ export interface DashboardProps {
 	onViewMaintenance?: (requestId: string) => void;
 	onExportAnalytics?: () => void;
 	onDateRangeChange?: (range: DateRange) => void;
-}
-
-export interface RevenueTrendPoint {
-	month: string;
-	revenue: number;
-	projected?: number;
 }
 
 export interface PropertyPerformanceItem {
