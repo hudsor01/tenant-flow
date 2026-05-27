@@ -1,5 +1,4 @@
 import { Building2, FileText, UserPlus, Wallet, Wrench } from "lucide-react";
-import type { ChartConfig } from "#components/ui/chart";
 
 export type PortfolioRow = {
 	id: string;
@@ -12,13 +11,6 @@ export type PortfolioRow = {
 	rent: number;
 	maintenanceOpen: number;
 };
-
-export const chartConfig = {
-	revenue: {
-		label: "Revenue",
-		color: "var(--chart-1)",
-	},
-} satisfies ChartConfig;
 
 export const quickActions = [
 	{
