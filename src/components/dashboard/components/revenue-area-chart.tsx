@@ -2,7 +2,9 @@
 
 /**
  * Phase 4 RevenueAreaChart (CHART-01) — Recharts area with a 30d/6mo segmented
- * window toggle and a shape-matching loading skeleton (CHART-05 / CHART-06).
+ * window toggle. The shape-matching loading skeleton lives in
+ * `./revenue-area-chart-skeleton.tsx` (extracted per 04-UI-SPEC § 7.5 so the
+ * dashboard chunk doesn't pull Recharts when only rendering placeholders).
  *
  * Two data series cross this boundary side-by-side:
  *   - `monthlyRevenue`     — 30d daily series, `{ date, value }` shape.
@@ -43,7 +45,6 @@ import {
 	ChartTooltip,
 	ChartTooltipContent,
 } from "#components/ui/chart";
-import { Skeleton } from "#components/ui/skeleton";
 import { Tabs, TabsList, TabsTrigger } from "#components/ui/tabs";
 import { useReducedMotion } from "#hooks/use-reduced-motion";
 import { formatCurrency } from "#lib/utils/currency";
@@ -243,29 +244,6 @@ export function RevenueAreaChart({
 						</AreaChart>
 					</ChartContainer>
 				)}
-			</CardContent>
-		</Card>
-	);
-}
-
-export function RevenueAreaChartSkeleton() {
-	return (
-		<Card className="lg:col-span-2">
-			<CardHeader className="flex flex-row items-center justify-between space-y-0">
-				<div className="space-y-2">
-					<Skeleton className="h-5 w-20" />
-					<Skeleton className="h-4 w-32" />
-				</div>
-				<div
-					className="inline-flex h-9 items-center rounded-md bg-muted p-1 opacity-60"
-					aria-hidden="true"
-				>
-					<div className="h-7 w-12 rounded-sm bg-background shadow-sm" />
-					<div className="h-7 w-12" />
-				</div>
-			</CardHeader>
-			<CardContent>
-				<Skeleton className="h-[300px] w-full rounded-md" />
 			</CardContent>
 		</Card>
 	);

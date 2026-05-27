@@ -17,10 +17,8 @@
 
 import { render, screen, waitFor, within } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import {
-	OccupancyDonutChart,
-	OccupancyDonutChartSkeleton,
-} from "../occupancy-donut-chart";
+import { OccupancyDonutChart } from "../occupancy-donut-chart";
+import { OccupancyDonutChartSkeleton } from "../occupancy-donut-chart-skeleton";
 
 const { useReducedMotionMock } = vi.hoisted(() => ({
 	useReducedMotionMock: vi.fn(() => false),

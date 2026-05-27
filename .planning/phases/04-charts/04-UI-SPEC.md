@@ -140,7 +140,7 @@ export function RevenueAreaChart({ monthlyRevenue, monthlyRevenue6mo }: RevenueA
 - Right slot: shadcn `<Tabs>` rendering `<TabsList>` with two `<TabsTrigger>` children (`30d`, `6mo`). Chosen over `<ToggleGroup>` because:
   - `<Tabs>` with `value` / `onValueChange` cleanly binds to `useState<'30d' | '6mo'>` (D-04 ephemeral local state).
   - `<TabsList>` already styles a segmented-control well via `--color-muted` background per parent § 2.1 (tertiary surface).
-  - `<TabsTrigger>` `data-state="active"` styling already applies `--color-background` + `--shadow-sm`, matching the parent § 2.5 active-state shift over `--duration-200`.
+  - `<TabsTrigger>` `data-state="active"` styling already applies `bg-primary` + `text-primary-foreground` + `shadow-md` (vendored shadcn baseline), matching the parent § 2.5 active-state shift over `--duration-200`.
 
 ### 2.3 Tabs styling (segmented control)
 
@@ -148,9 +148,10 @@ export function RevenueAreaChart({ monthlyRevenue, monthlyRevenue6mo }: RevenueA
 |----------|-------|--------|
 | `<TabsList>` background | `bg-muted` | shadcn default (matches parent § 2.1 "Tertiary surface — View-toggle background") |
 | `<TabsList>` radius | `--radius-md` | shadcn default |
-| `<TabsTrigger>` active background | `bg-background` | shadcn default |
-| `<TabsTrigger>` active shadow | `--shadow-sm` | shadcn default |
-| `<TabsTrigger>` text | `text-sm font-medium` (14px) | matches parent § 2.6 "active state in segmented controls = `--font-weight-medium`" |
+| `<TabsTrigger>` active background | `bg-primary` | vendored shadcn baseline (canonical: `src/components/ui/tabs.tsx:46`) |
+| `<TabsTrigger>` active shadow | `shadow-md` | vendored shadcn baseline (canonical: `src/components/ui/tabs.tsx:46`) |
+| `<TabsTrigger>` active text | `text-sm font-semibold` (14px / 600) | vendored shadcn baseline (canonical: `src/components/ui/tabs.tsx:46`) |
+| `<TabsTrigger>` inactive text | `text-sm font-medium` (14px / 500) | vendored shadcn baseline |
 | `<TabsTrigger>` transition | `transition-all duration-(--duration-200)` (shadcn `<TabsTrigger>` baseline) | matches parent § 2.5 |
 | Inner padding | `px-3 py-1.5` (shadcn baseline) | inherits half-step `*_5` exception per parent § 2.2 — `*_5` IS allowed on interactive primitives |
 
@@ -429,10 +430,10 @@ Resolves the parent UI-SPEC § 13 open question "Whether the 30d / 6mo toggle on
 ### 4.3 Toggle active-state visuals
 
 Already covered by shadcn `<TabsTrigger>` baseline (canonical source: `src/components/ui/tabs.tsx:46`):
-- Active: `bg-primary` + `text-primary-foreground` + `--shadow-sm` (raised accent pill within the muted well)
+- Active: `bg-primary` + `text-primary-foreground` + `shadow-md` (raised accent pill within the muted well)
 - Inactive: transparent background, `text-muted-foreground`
 - Hover (inactive): `text-foreground` transition over `--duration-200`
-- Active text weight: `--font-weight-medium` (500)
+- Active text weight: `font-semibold` (= 600 / `--font-weight-semibold`)
 
 Parent § 2.1 "Accent (10%) is reserved for: The active segment of the 30d / 6mo toggle (Phase 4)" anticipates accent on the active state, and the vendored primitive matches that reservation exactly — the active pill consumes the accent slot. Phase 4 accepts the vendored baseline rather than overriding it; no per-instance className override on `<TabsTrigger>`.
 
@@ -704,7 +705,7 @@ Every color reference in Phase 4 resolves to a token with both light and dark va
 | Legend swatch (vacant) | `var(--color-chart-5)` | inherits | Visible against `bg-card` in both modes |
 | Legend text | `text-muted-foreground` (label) + `text-foreground` (count) | inherits | Both visible in both modes |
 | Tabs well | `bg-muted` | inherits | Parent § 2.1 |
-| Tabs active pill | `bg-background` + `--shadow-sm` | inherits | Parent § 2.1 |
+| Tabs active pill | `bg-primary` + `text-primary-foreground` + `shadow-md` | accent | Vendored shadcn baseline (`src/components/ui/tabs.tsx:46`) |
 | Skeleton | `bg-muted` (via `Skeleton` primitive) | inherits | Parent § 2.1 |
 | Empty-state heading | `text-foreground` | inherits | Parent § 2.1 |
 | Empty-state body | `text-muted-foreground` | inherits | Parent § 2.1 |
@@ -830,7 +831,7 @@ Inherits parent § 2.6 entirely. Phase 4 uses:
 |------|-------|-----------|-------|
 | Card title | `text-base` + `font-semibold` | 16px / 600 | `CardTitle` (shadcn baseline) |
 | Card description | `text-sm` + `text-muted-foreground` | 14px / 400 | `CardDescription` (shadcn baseline) |
-| Tab trigger label | `text-sm` + `font-medium` (active state) | 14px / 500 active, 400 inactive | shadcn `TabsTrigger` baseline |
+| Tab trigger label | `text-sm` + `font-semibold` (active) / `font-medium` (inactive) | 14px / 600 active, 500 inactive | vendored shadcn `TabsTrigger` baseline (`src/components/ui/tabs.tsx:46`) |
 | Donut center value | `text-stat` + `font-bold` + `tabular-nums` | 32px / 700 / tabular | `<tspan>` inside SVG `<text>` |
 | Donut center sub-label | `text-sm` + `text-muted-foreground` | 14px / 400 | `<tspan>` inside SVG `<text>` |
 | Legend label | `text-sm` + `text-muted-foreground` | 14px / 400 | `<li>` text |
@@ -841,10 +842,10 @@ Inherits parent § 2.6 entirely. Phase 4 uses:
 | Empty body | `text-sm` + `text-muted-foreground` | 14px / 400 | Empty-state `<p>` |
 
 **Sizes used: 4** (`text-xs` 12px, `text-sm` 14px, `text-base` 16px, `text-stat` 32px) — at the parent § 2.6 cap of 4 sizes.
-**Weights used: 3** (regular 400, medium 500, semibold 600, bold 700) — 4 weights, ONE over parent § 2.6's typical 2-weight rule. The 4 weights are necessary because:
+**Weights used: 4** (regular 400, medium 500, semibold 600, bold 700) — ONE over parent § 2.6's typical 2-weight rule. The 4 weights are necessary because:
   - The vendored Card primitive ships `font-semibold` on `CardTitle` (consume, not override).
   - The donut center value uses `font-bold` per parent § 2.6 KPI value rule (matches CONTEXT.md D-03 "matches KPI bento StatValue hierarchy").
-  - Tabs ship `font-medium` on active state per shadcn baseline + parent § 2.6 active-state rule.
+  - Tabs ship `font-semibold` on active state + `font-medium` on inactive state per shadcn baseline (canonical: `src/components/ui/tabs.tsx:46`).
   - Body / labels use default `font-normal` (400).
 
 This is consistent with Phase 3 § 2.3's similar weight diversity. Declared here for checker Dimension-4.

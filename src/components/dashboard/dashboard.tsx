@@ -20,12 +20,12 @@ import {
 } from "#stores/dashboard-store";
 import type { DashboardProps } from "#types/sections/dashboard";
 import { KpiBentoRow } from "./components/kpi-bento-row";
-import { OccupancyDonutChartSkeleton } from "./components/occupancy-donut-chart";
+import { OccupancyDonutChartSkeleton } from "./components/occupancy-donut-chart-skeleton";
 import { PortfolioGrid } from "./components/portfolio-grid";
 import { PortfolioPagination } from "./components/portfolio-pagination";
 import { PortfolioTable } from "./components/portfolio-table";
 import { PortfolioToolbar } from "./components/portfolio-toolbar";
-import { RevenueAreaChartSkeleton } from "./components/revenue-area-chart";
+import { RevenueAreaChartSkeleton } from "./components/revenue-area-chart-skeleton";
 import {
 	type PortfolioRow,
 	type QuickActionType,

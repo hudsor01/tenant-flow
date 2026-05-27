@@ -25,10 +25,8 @@ import type {
 	MonthlyRevenuePoint,
 	TimeSeriesDataPoint,
 } from "#types/analytics";
-import {
-	RevenueAreaChart,
-	RevenueAreaChartSkeleton,
-} from "../revenue-area-chart";
+import { RevenueAreaChart } from "../revenue-area-chart";
+import { RevenueAreaChartSkeleton } from "../revenue-area-chart-skeleton";
 
 const { useReducedMotionMock } = vi.hoisted(() => ({
 	useReducedMotionMock: vi.fn(() => false),

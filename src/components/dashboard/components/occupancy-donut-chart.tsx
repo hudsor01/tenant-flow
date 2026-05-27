@@ -2,9 +2,10 @@
 
 /**
  * Phase 4 OccupancyDonutChart (CHART-02) — Recharts donut with center label
- * over `Occupied`, real `<ul><li>` legend below (colorblind-friendly per
- * 04-CONTEXT.md D-03), and a colocated shape-matching loading skeleton
- * (CHART-05 / CHART-06).
+ * over `Occupied` and a real `<ul><li>` legend below (colorblind-friendly per
+ * 04-CONTEXT.md D-03). The shape-matching loading skeleton lives in
+ * `./occupancy-donut-chart-skeleton.tsx` (extracted per 04-UI-SPEC § 7.5 so
+ * the dashboard chunk doesn't pull Recharts when only rendering placeholders).
  *
  * The donut surfaces a single primary signal (occupancy percent) so it
  * intentionally omits `<ChartTooltip>` (04-UI-SPEC § 3.6) — the center label
@@ -31,7 +32,6 @@ import {
 	CardTitle,
 } from "#components/ui/card";
 import { type ChartConfig, ChartContainer } from "#components/ui/chart";
-import { Skeleton } from "#components/ui/skeleton";
 import { useReducedMotion } from "#hooks/use-reduced-motion";
 
 interface OccupancyDonutChartProps {
@@ -165,30 +165,6 @@ export function OccupancyDonutChart({ units }: OccupancyDonutChartProps) {
 						</span>
 					</li>
 				</ul>
-			</CardContent>
-		</Card>
-	);
-}
-
-export function OccupancyDonutChartSkeleton() {
-	return (
-		<Card className="lg:col-span-1">
-			<CardHeader>
-				<Skeleton className="h-5 w-24" />
-				<Skeleton className="mt-2 h-4 w-28" />
-			</CardHeader>
-			<CardContent className="flex flex-col items-center gap-4">
-				<Skeleton className="size-[160px] rounded-full" />
-				<div className="flex items-center gap-6">
-					<div className="flex items-center gap-2">
-						<Skeleton className="size-2.5 rounded-full" />
-						<Skeleton className="h-3 w-20" />
-					</div>
-					<div className="flex items-center gap-2">
-						<Skeleton className="size-2.5 rounded-full" />
-						<Skeleton className="h-3 w-16" />
-					</div>
-				</div>
 			</CardContent>
 		</Card>
 	);

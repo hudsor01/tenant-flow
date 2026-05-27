@@ -419,48 +419,57 @@ async function buildExecutiveMonthly(
 	};
 }
 
+function financialMonthlyRows(
+	financial: FinancialReport,
+): Array<Array<string | number>> {
+	return financial.monthly.map((m) => [
+		m.month,
+		fmtMoney(m.income),
+		fmtMoney(m.expenses),
+		fmtMoney(m.net),
+	]);
+}
+
+function financialExpenseRows(
+	financial: FinancialReport,
+): Array<Array<string | number>> {
+	const total = financial.summary.totalExpenses;
+	return financial.expenseBreakdown.map((e) => [
+		e.category,
+		fmtMoney(e.amount),
+		fmtPct(total > 0 ? (e.amount / total) * 100 : 0),
+	]);
+}
+
+function financialRentRollRows(
+	financial: FinancialReport,
+): Array<Array<string | number>> {
+	return financial.rentRoll.map((r) => [
+		r.propertyName,
+		`${fmtNumber(r.occupiedUnits)}/${fmtNumber(r.unitCount)}`,
+		fmtPct(r.occupancyRate),
+		fmtMoney(r.rentPotential),
+	]);
+}
+
 function financialPerformanceSections(
 	financial: FinancialReport,
 	available: boolean,
 ): ReportSection[] {
-	const totalExpenses = financial.summary.totalExpenses;
-	const expenseRows = financial.expenseBreakdown.map(
-		(e): Array<string | number> => [
-			e.category,
-			fmtMoney(e.amount),
-			fmtPct(totalExpenses > 0 ? (e.amount / totalExpenses) * 100 : 0),
-		],
-	);
-	const monthlyRows = financial.monthly.map(
-		(m): Array<string | number> => [
-			m.month,
-			fmtMoney(m.income),
-			fmtMoney(m.expenses),
-			fmtMoney(m.net),
-		],
-	);
-	const rentRollRows = financial.rentRoll.map(
-		(r): Array<string | number> => [
-			r.propertyName,
-			`${fmtNumber(r.occupiedUnits)}/${fmtNumber(r.unitCount)}`,
-			fmtPct(r.occupancyRate),
-			fmtMoney(r.rentPotential),
-		],
-	);
 	return [
 		{ heading: "Summary", rows: financialSummaryRows(financial) },
 		{
 			heading: "Monthly Breakdown",
 			table: {
 				headers: ["Month", "Income", "Expenses", "Net"],
-				rows: monthlyRows,
+				rows: financialMonthlyRows(financial),
 			},
 		},
 		{
 			heading: "Expense Categories",
 			table: {
 				headers: ["Category", "Amount", "% of Expenses"],
-				rows: expenseRows,
+				rows: financialExpenseRows(financial),
 			},
 		},
 		{
@@ -472,7 +481,7 @@ function financialPerformanceSections(
 					"Occupancy",
 					"Rent Potential",
 				],
-				rows: rentRollRows,
+				rows: financialRentRollRows(financial),
 			},
 			...noteIf(available),
 		},
@@ -503,27 +512,42 @@ async function buildFinancialPerformance(
 	};
 }
 
+function propertyPerformanceRows(
+	properties: PropertyReport,
+): Array<Array<string | number>> {
+	return properties.byProperty.map((p) => [
+		p.propertyName,
+		fmtPct(p.occupancyRate),
+		fmtNumber(p.vacantUnits),
+		fmtMoney(p.revenue),
+		fmtMoney(p.expenses),
+		fmtMoney(p.netOperatingIncome),
+	]);
+}
+
+function propertyOccupancyTrendRows(
+	properties: PropertyReport,
+): Array<Array<string | number>> {
+	return properties.occupancyTrend.map((t) => [
+		t.month,
+		fmtPct(t.occupancyRate),
+	]);
+}
+
+function propertyVacancyTrendRows(
+	properties: PropertyReport,
+): Array<Array<string | number>> {
+	return properties.vacancyTrend.map((v) => [
+		v.month,
+		fmtNumber(v.vacantUnits),
+	]);
+}
+
 function propertyPortfolioSections(
 	properties: PropertyReport,
 	occupancy: OccupancyMetrics,
 	available: boolean,
 ): ReportSection[] {
-	const propertyRows = properties.byProperty.map(
-		(p): Array<string | number> => [
-			p.propertyName,
-			fmtPct(p.occupancyRate),
-			fmtNumber(p.vacantUnits),
-			fmtMoney(p.revenue),
-			fmtMoney(p.expenses),
-			fmtMoney(p.netOperatingIncome),
-		],
-	);
-	const occupancyTrendRows = properties.occupancyTrend.map(
-		(t): Array<string | number> => [t.month, fmtPct(t.occupancyRate)],
-	);
-	const vacancyTrendRows = properties.vacancyTrend.map(
-		(v): Array<string | number> => [v.month, fmtNumber(v.vacantUnits)],
-	);
 	return [
 		{
 			heading: "Portfolio Summary",
@@ -540,21 +564,21 @@ function propertyPortfolioSections(
 					"Expenses",
 					"NOI",
 				],
-				rows: propertyRows,
+				rows: propertyPerformanceRows(properties),
 			},
 		},
 		{
 			heading: "Occupancy Trend",
 			table: {
 				headers: ["Month", "Occupancy Rate"],
-				rows: occupancyTrendRows,
+				rows: propertyOccupancyTrendRows(properties),
 			},
 		},
 		{
 			heading: "Vacancy Trend",
 			table: {
 				headers: ["Month", "Vacant Units"],
-				rows: vacancyTrendRows,
+				rows: propertyVacancyTrendRows(properties),
 			},
 			...noteIf(available),
 		},
@@ -593,52 +617,61 @@ async function buildPropertyPortfolio(
 	};
 }
 
+function leaseExpirationRows(
+	tenants: TenantReport,
+): Array<Array<string | number>> {
+	return tenants.leaseExpirations.map((l) => [
+		l.propertyName,
+		l.unitLabel,
+		fmtDate(l.endDate),
+	]);
+}
+
+function leasePaymentRows(
+	tenants: TenantReport,
+): Array<Array<string | number>> {
+	return tenants.paymentHistory.map((p) => [
+		p.month,
+		fmtNumber(p.paymentsReceived),
+		fmtPct(p.onTimeRate),
+	]);
+}
+
+function leaseTurnoverRows(
+	tenants: TenantReport,
+): Array<Array<string | number>> {
+	return tenants.turnover.map((t) => [
+		t.month,
+		fmtNumber(t.moveIns),
+		fmtNumber(t.moveOuts),
+	]);
+}
+
 function leasePortfolioSections(
 	tenants: TenantReport,
 	available: boolean,
 ): ReportSection[] {
-	const expirationRows = tenants.leaseExpirations.map(
-		(l): Array<string | number> => [
-			l.propertyName,
-			l.unitLabel,
-			fmtDate(l.endDate),
-		],
-	);
-	const paymentRows = tenants.paymentHistory.map(
-		(p): Array<string | number> => [
-			p.month,
-			fmtNumber(p.paymentsReceived),
-			fmtPct(p.onTimeRate),
-		],
-	);
-	const turnoverRows = tenants.turnover.map(
-		(t): Array<string | number> => [
-			t.month,
-			fmtNumber(t.moveIns),
-			fmtNumber(t.moveOuts),
-		],
-	);
 	return [
 		{ heading: "Lease Summary", rows: leaseSummaryRows(tenants) },
 		{
 			heading: "Lease Expirations",
 			table: {
 				headers: ["Property", "Unit", "Lease End Date"],
-				rows: expirationRows,
+				rows: leaseExpirationRows(tenants),
 			},
 		},
 		{
 			heading: "Payment History",
 			table: {
 				headers: ["Month", "Payments Received", "On-Time Rate"],
-				rows: paymentRows,
+				rows: leasePaymentRows(tenants),
 			},
 		},
 		{
 			heading: "Tenant Turnover",
 			table: {
 				headers: ["Month", "Moved In", "Moved Out"],
-				rows: turnoverRows,
+				rows: leaseTurnoverRows(tenants),
 			},
 			...noteIf(available),
 		},

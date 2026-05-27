@@ -11,6 +11,10 @@ import type { ReportData, ReportSection } from "./report-data";
 
 const FONT = "helvetica";
 
+interface DocWithAutoTable extends jsPDF {
+	lastAutoTable?: { finalY?: number };
+}
+
 export function generatePdfBlob(report: ReportData): Blob {
 	const doc = new jsPDF({
 		unit: "pt",
@@ -117,9 +121,7 @@ function renderSection(
 			margin: { left: margin, right: margin },
 		});
 		// autoTable mutates doc; pull current Y from internal lastAutoTable
-		const lastTable = (
-			doc as unknown as { lastAutoTable?: { finalY?: number } }
-		).lastAutoTable;
+		const lastTable = (doc as DocWithAutoTable).lastAutoTable;
 		y = (lastTable?.finalY ?? y) + 20;
 	} else if (section.table) {
 		// Empty table — render placeholder row
