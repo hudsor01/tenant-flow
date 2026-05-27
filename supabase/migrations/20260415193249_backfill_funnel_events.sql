@@ -102,5 +102,31 @@ $$;
 comment on function public.backfill_funnel_events() is
   'Idempotent one-time backfill of onboarding_funnel_events for pre-existing OWNER users. D8: tenant backfill unions tenants + tenant_invitations (legacy + modern flows). Re-runnable via service_role; ON CONFLICT DO NOTHING protects against double-inserts. Not callable by authenticated users (no grant).';
 
--- One-time invocation as part of this migration.
-select public.backfill_funnel_events();
+-- 2026-05-27 update (Phase 4 cycle-2): guard the one-time invocation
+-- against chain replay. The function body references
+-- `tenant_invitations.owner_user_id`, which was added out-of-band on
+-- prod and is absent on Supabase Preview's fresh chain replay (the
+-- column never appears between base_schema and demolish, so this
+-- function call dies with SQLSTATE 42703 when invoked).
+-- Function DEFINITION is fine to keep (plpgsql lazy-validates column
+-- references until call time). The INVOCATION is what we guard.
+do $$
+begin
+  if exists (
+    select 1
+    from information_schema.columns
+    where table_schema = 'public'
+      and table_name = 'tenant_invitations'
+      and column_name = 'owner_user_id'
+  ) and exists (
+    select 1
+    from information_schema.tables
+    where table_schema = 'public'
+      and table_name = 'rent_payments'
+  ) then
+    -- One-time invocation as part of this migration.
+    perform public.backfill_funnel_events();
+  else
+    raise notice 'backfill_funnel_events: skipping invocation on chain replay (tenant_invitations.owner_user_id or rent_payments absent).';
+  end if;
+end $$;
