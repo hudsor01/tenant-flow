@@ -15,20 +15,19 @@
 --   - Replace mr.property_owner_id with mr.owner_user_id (maintenance_requests table)
 
 -- ============================================================================
--- 1. verify leases.property_owner_id is already gone (safety check)
+-- 1. drop leases.property_owner_id if it still exists (idempotent)
+--
+-- Original migration (2026-03-06) ASSERTED the column was already dropped by
+-- an out-of-band operation in prod. That assertion fails on Supabase Preview
+-- replays from the migration chain (base_schema CREATEs the column at
+-- 20251101000000 and no in-chain migration explicitly drops it). Switch the
+-- safety-check exception to an idempotent CASCADE drop so:
+--   - prod: column already absent -> no-op (re-running this is harmless)
+--   - replay: drops column + dependent FK constraint + index + the
+--     leases_*_owner policies that reference it before the RPC rewrites
+--     below recreate the per-policy access via owner_user_id.
 -- ============================================================================
-do $$
-begin
-  if exists (
-    select 1 from information_schema.columns
-    where table_schema = 'public'
-      and table_name = 'leases'
-      and column_name = 'property_owner_id'
-  ) then
-    raise exception 'UNEXPECTED: leases.property_owner_id still exists -- expected it to be already dropped';
-  end if;
-end;
-$$;
+alter table public.leases drop column if exists property_owner_id cascade;
 
 -- ============================================================================
 -- 2. rewrite calculate_monthly_metrics
