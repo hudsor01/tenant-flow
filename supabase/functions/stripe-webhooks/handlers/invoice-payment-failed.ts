@@ -44,7 +44,7 @@ export async function handleInvoicePaymentFailed(
 
 	// Send owner notification email about subscription payment failure
 	const frontendUrl =
-		Deno.env.get("FRONTEND_URL") ?? "https://app.tenantflow.app";
+		Deno.env.get("NEXT_PUBLIC_APP_URL") ?? "https://app.tenantflow.app";
 	await sendEmail({
 		to: [owner.email as string],
 		subject: "Action Required: Subscription Payment Failed",

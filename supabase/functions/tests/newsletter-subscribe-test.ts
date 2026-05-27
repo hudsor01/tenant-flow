@@ -55,7 +55,7 @@ async function rawInvoke(options: {
 }
 
 Deno.test("newsletter-subscribe: OPTIONS returns CORS preflight response", async () => {
-	const frontendUrl = Deno.env.get("FRONTEND_URL") ?? "http://localhost:3050";
+	const frontendUrl = Deno.env.get("NEXT_PUBLIC_APP_URL") ?? "http://localhost:3050";
 
 	const { status, headers } = await rawInvoke({
 		method: "OPTIONS",
@@ -71,8 +71,8 @@ Deno.test("newsletter-subscribe: OPTIONS returns CORS preflight response", async
 		`Expected 200 or 204 for OPTIONS, got ${status}`,
 	);
 
-	// When FRONTEND_URL matches origin, CORS headers should be present
-	// If FRONTEND_URL is not configured, handleCorsOptions returns 204 without CORS headers
+	// When NEXT_PUBLIC_APP_URL matches origin, CORS headers should be present
+	// If NEXT_PUBLIC_APP_URL is not configured, handleCorsOptions returns 204 without CORS headers
 	// Both are valid behaviors depending on env configuration
 	const corsHeader = headers.get("access-control-allow-origin");
 	if (corsHeader) {

@@ -45,7 +45,7 @@ async function rawInvoke(options: {
 }
 
 Deno.test("export-user-data: OPTIONS returns CORS preflight response", async () => {
-	const frontendUrl = Deno.env.get("FRONTEND_URL") ?? "http://localhost:3050";
+	const frontendUrl = Deno.env.get("NEXT_PUBLIC_APP_URL") ?? "http://localhost:3050";
 
 	const { status, headers } = await rawInvoke({
 		method: "OPTIONS",

@@ -30,7 +30,7 @@ Deno.serve(async (req: Request) => {
 				"SUPABASE_SERVICE_ROLE_KEY",
 				"STRIPE_SECRET_KEY",
 			],
-			optional: ["FRONTEND_URL"],
+			optional: ["NEXT_PUBLIC_APP_URL"],
 		});
 	} catch (err) {
 		return errorResponse(req, 500, err, { action: "env_validation" });

@@ -61,7 +61,7 @@ Every storage bucket policy enforces folder-uuid → owner ID via `storage.folde
 ### Edge Function Hygiene
 
 - **Auth**: Bearer + `supabase.auth.getUser(token)`. Identity is never derived from the request body.
-- **CORS**: fail-closed when `FRONTEND_URL` is unset.
+- **CORS**: fail-closed when `NEXT_PUBLIC_APP_URL` is unset.
 - **Errors**: generic `{ error: 'An error occurred' }` to clients; full detail to Sentry + structured console.
 - **Rate limiting**: Upstash sliding window. IP extraction prefers `cf-connecting-ip`, falls back to the *last* trusted `x-forwarded-for` segment (the first segment is attacker-controlled).
 - **HMAC** verification on webhooks (Stripe + DocuSeal) using `crypto.subtle.timingSafeEqual` with length pre-check.
