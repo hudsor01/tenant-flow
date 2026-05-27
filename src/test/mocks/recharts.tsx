@@ -39,6 +39,7 @@ interface PieProps {
 	fill?: string;
 	label?: boolean | unknown;
 	labelLine?: boolean;
+	isAnimationActive?: boolean;
 	children?: ReactNode;
 }
 
@@ -96,6 +97,7 @@ export const Pie = ({
 	fill,
 	label,
 	labelLine,
+	isAnimationActive,
 	children,
 }: PieProps) => (
 	<g
@@ -109,6 +111,11 @@ export const Pie = ({
 		data-fill={fill}
 		data-has-label={!!label}
 		data-label-line={labelLine}
+		data-is-animation-active={
+			typeof isAnimationActive === "boolean"
+				? String(isAnimationActive)
+				: undefined
+		}
 	>
 		{children}
 	</g>
