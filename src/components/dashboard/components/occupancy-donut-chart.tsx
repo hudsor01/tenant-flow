@@ -110,32 +110,33 @@ export function OccupancyDonutChart({ units }: OccupancyDonutChartProps) {
 								animationEasing="ease-out"
 							>
 								<Label
-									position="center"
 									content={({ viewBox }) => {
-										if (!viewBox || !("cx" in viewBox)) return null;
-										return (
-											<text
-												x={viewBox.cx}
-												y={viewBox.cy}
-												textAnchor="middle"
-												dominantBaseline="middle"
-											>
-												<tspan
+										if (viewBox && "cx" in viewBox && "cy" in viewBox) {
+											return (
+												<text
 													x={viewBox.cx}
-													dy="-0.4em"
-													className="fill-foreground text-stat font-bold tabular-nums"
+													y={viewBox.cy}
+													textAnchor="middle"
+													dominantBaseline="middle"
 												>
-													{occupancyPercent}%
-												</tspan>
-												<tspan
-													x={viewBox.cx}
-													dy="1.6em"
-													className="fill-muted-foreground text-sm"
-												>
-													Occupied
-												</tspan>
-											</text>
-										);
+													<tspan
+														x={viewBox.cx}
+														dy="-0.4em"
+														className="fill-foreground text-stat font-bold tabular-nums"
+													>
+														{occupancyPercent}%
+													</tspan>
+													<tspan
+														x={viewBox.cx}
+														dy="1.6em"
+														className="fill-muted-foreground text-sm"
+													>
+														Occupied
+													</tspan>
+												</text>
+											);
+										}
+										return null;
 									}}
 								/>
 							</Pie>
