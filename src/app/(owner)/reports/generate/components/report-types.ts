@@ -1,3 +1,4 @@
+import type { QueryClient } from "@tanstack/react-query";
 import type { LucideIcon } from "lucide-react";
 import {
 	Building2,
@@ -6,6 +7,10 @@ import {
 	TrendingUp,
 	Wrench,
 } from "lucide-react";
+import { downloadBlob } from "#lib/reports/download-blob";
+import { generateExcelBlob } from "#lib/reports/generate-excel";
+import { generatePdfBlob } from "#lib/reports/generate-pdf";
+import { buildReportData } from "#lib/reports/report-data";
 
 export type ReportFormat = "pdf" | "excel";
 export type ReportType =
@@ -82,19 +87,39 @@ export const reportCards: ReportCard[] = [
 	},
 ];
 
-// Report generation stub -- calls generate-pdf Edge Function when implemented
+// Client-side report generation. Pulls data via the existing
+// reportAnalyticsQueries factories using `queryClient.fetchQuery()` (cache-
+// aware), shapes into a generic `ReportData` payload, renders to PDF
+// (jspdf + jspdf-autotable) or XLSX (sheetjs), and triggers an immediate
+// browser download. No backend or Edge Function dependency — runs entirely
+// in the user's tab against authenticated PostgREST RPCs.
 export const reportsClient = {
 	generateReport: async (
-		_reportType: ReportType,
-		_params: {
+		reportType: ReportType,
+		params: {
 			user_id: string;
 			start_date: string;
 			end_date: string;
 			format: ReportFormat;
 		},
+		queryClient: QueryClient,
 	): Promise<void> => {
-		throw new Error(
-			"Report generation requires StirlingPDF Edge Function implementation",
+		const data = await buildReportData(
+			reportType,
+			queryClient,
+			params.start_date,
+			params.end_date,
 		);
+
+		const stamp = new Date().toISOString().replace(/[:T]/g, "-").split(".")[0];
+		const baseFilename = `${reportType}_${params.start_date}_${params.end_date}_${stamp}`;
+
+		if (params.format === "pdf") {
+			const blob = generatePdfBlob(data);
+			downloadBlob(blob, `${baseFilename}.pdf`);
+		} else {
+			const blob = generateExcelBlob(data);
+			downloadBlob(blob, `${baseFilename}.xlsx`);
+		}
 	},
 };
