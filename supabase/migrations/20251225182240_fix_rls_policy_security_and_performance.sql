@@ -51,18 +51,33 @@ comment on policy "notifications_update_own" on public.notifications is
 
 -- 1.2 Fix stripe_connected_accounts UPDATE policy
 -- Risk: User could change user_id to take over another user's Stripe Connect account
-drop policy if exists "property_owners_update_own" on public.stripe_connected_accounts;
-drop policy if exists "stripe_connected_accounts_update_own" on public.stripe_connected_accounts;
+--
+-- 2026-05-27 update (Phase 4 cycle-2): wrap in table-existence guard.
+-- On Supabase Preview chain replay the table may not be present at
+-- this point (rename migration is conditional + later demolish drops
+-- it). On prod the table existed when this migration ran; the guard
+-- preserves prod behavior and makes replay safe.
+do $$
+begin
+  if to_regclass('public.stripe_connected_accounts') is not null then
+    execute $sql$drop policy if exists "property_owners_update_own" on public.stripe_connected_accounts$sql$;
+    execute $sql$drop policy if exists "stripe_connected_accounts_update_own" on public.stripe_connected_accounts$sql$;
 
-create policy "stripe_connected_accounts_update_own"
-on public.stripe_connected_accounts
-for update
-to authenticated
-using ((select auth.uid()) = user_id)
-with check ((select auth.uid()) = user_id);
+    execute $sql$
+      create policy "stripe_connected_accounts_update_own"
+      on public.stripe_connected_accounts
+      for update
+      to authenticated
+      using ((select auth.uid()) = user_id)
+      with check ((select auth.uid()) = user_id)
+    $sql$;
 
-comment on policy "stripe_connected_accounts_update_own" on public.stripe_connected_accounts is
-  'Security: Users can only update their own Stripe Connect account. WITH CHECK prevents ownership transfer attacks.';
+    execute $sql$
+      comment on policy "stripe_connected_accounts_update_own" on public.stripe_connected_accounts is
+        'Security: Users can only update their own Stripe Connect account. WITH CHECK prevents ownership transfer attacks.'
+    $sql$;
+  end if;
+end $$;
 
 -- 1.3 Fix tenants UPDATE policy
 -- Risk: User could change user_id to impersonate another tenant
