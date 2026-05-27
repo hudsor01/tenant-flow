@@ -15,8 +15,8 @@
 import { parseCsvWithSchema } from "#components/bulk-import/parse-csv-with-schema";
 import type { BulkImportConfig } from "#components/bulk-import/types";
 import { leaseQueries } from "#hooks/api/query-keys/lease-keys";
+import { ownerDashboardKeys } from "#hooks/api/query-keys/owner-dashboard-keys";
 import { tenantQueries } from "#hooks/api/query-keys/tenant-keys";
-import { ownerDashboardKeys } from "#hooks/api/use-owner-dashboard";
 import { createClient } from "#lib/supabase/client";
 import type { LeaseInput } from "#lib/validation/leases";
 import { leaseInputSchema } from "#lib/validation/leases";

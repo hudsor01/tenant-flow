@@ -1,4 +1,4 @@
-import { Building2, FileText, UserPlus, Wallet, Wrench } from "lucide-react";
+import { Building2, FileText, UserPlus, Wrench } from "lucide-react";
 
 export type PortfolioRow = {
 	id: string;
@@ -12,6 +12,10 @@ export type PortfolioRow = {
 	maintenanceOpen: number;
 };
 
+// CLAUDE.md "Project": TenantFlow does NOT facilitate rent payments.
+// Quick actions cover record-management surfaces only (properties, leases,
+// tenants, maintenance requests). A prior "Record Payment" tile was removed
+// in Phase 4 cleanup (it dispatched to a never-wired callback).
 export const quickActions = [
 	{
 		title: "Add Property",
@@ -30,12 +34,6 @@ export const quickActions = [
 		description: "Create a tenant record",
 		icon: UserPlus,
 		action: "addTenant",
-	},
-	{
-		title: "Record Payment",
-		description: "Log a rent payment",
-		icon: Wallet,
-		action: "recordPayment",
 	},
 	{
 		title: "New Request",

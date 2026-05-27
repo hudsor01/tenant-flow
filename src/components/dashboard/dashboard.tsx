@@ -57,13 +57,11 @@ export function Dashboard({
 	onAddProperty,
 	onCreateLease,
 	onAddTenant,
-	onRecordPayment,
 	onCreateMaintenanceRequest,
 }: DashboardProps & {
 	onAddProperty?: () => void;
 	onCreateLease?: () => void;
 	onAddTenant?: () => void;
-	onRecordPayment?: () => void;
 	onCreateMaintenanceRequest?: () => void;
 }) {
 	// Get state and actions from Zustand store
@@ -166,9 +164,6 @@ export function Dashboard({
 				break;
 			case "addTenant":
 				onAddTenant?.();
-				break;
-			case "recordPayment":
-				onRecordPayment?.();
 				break;
 			case "createRequest":
 				onCreateMaintenanceRequest?.();

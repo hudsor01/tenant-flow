@@ -7,6 +7,9 @@
  * inside the `handleGenerateReport` click handler (which is not a React hook
  * context). They reuse the same query factories the existing report pages
  * already consume so cache + dedup are shared.
+ *
+ * Each `build*` function is kept under the 50-line CLAUDE.md cap by
+ * delegating the per-section row literals to `*Rows()` helpers.
  */
 
 import type { FetchQueryOptions, QueryClient } from "@tanstack/react-query";
@@ -23,14 +26,61 @@ import type {
 	YearEndSummary,
 } from "#types/reports";
 
+// ─── Types ──────────────────────────────────────────────────────────────────
+
+export interface ReportRow {
+	label: string;
+	value: string | number;
+}
+
+export interface ReportTable {
+	headers: string[];
+	rows: Array<Array<string | number>>;
+}
+
+export interface ReportSection {
+	heading: string;
+	rows?: ReportRow[];
+	table?: ReportTable;
+	note?: string;
+}
+
+export interface ReportData {
+	title: string;
+	subtitle: string;
+	generatedAt: string;
+	periodStart: string;
+	periodEnd: string;
+	sections: ReportSection[];
+}
+
+// ─── Safe-fetch + fallbacks ─────────────────────────────────────────────────
+
+/**
+ * Discriminate Postgres "relation does not exist" (`42P01`) errors — the only
+ * class we intentionally swallow. Anything else is a real programming bug and
+ * should surface, not silently fall back to zeros.
+ */
+function isMissingRelationError(err: unknown): boolean {
+	if (!err || typeof err !== "object") return false;
+	const obj = err as { code?: unknown; message?: unknown };
+	if (typeof obj.code === "string" && obj.code === "42P01") return true;
+	if (
+		typeof obj.message === "string" &&
+		/relation\s+"[^"]+"\s+does\s+not\s+exist/i.test(obj.message)
+	) {
+		return true;
+	}
+	return false;
+}
+
 /**
  * Safe-fetch wrapper around `queryClient.fetchQuery`. Several legacy report
  * RPCs reference a removed `rent_payments` table (Phase 06 schema cleanup
  * dropped rent-payment facilitation per CLAUDE.md). Those RPCs return a 404
  * `relation "rent_payments" does not exist` at runtime. Rather than blocking
- * the whole report on one broken RPC, we catch per-fetch and fall back to a
- * caller-provided default plus an "unavailable" flag the section can render
- * as a note.
+ * the whole report on one broken RPC, we narrow the catch to that specific
+ * Postgres error and fall back to a caller-supplied default.
  */
 async function safeFetch<TData, TQueryKey extends readonly unknown[]>(
 	queryClient: QueryClient,
@@ -41,20 +91,30 @@ async function safeFetch<TData, TQueryKey extends readonly unknown[]>(
 		const data = await queryClient.fetchQuery(options);
 		return { data, available: true };
 	} catch (err) {
+		if (!isMissingRelationError(err)) {
+			// Real programming bug — re-throw so the report click handler's
+			// handleMutationError surfaces it (toast + Sentry breadcrumb).
+			throw err;
+		}
 		if (process.env.NODE_ENV !== "production") {
-			// dev-only diagnostic — never logs in prod
-			console.warn("[reports] data fetch fell back to defaults:", err);
+			// dev-only diagnostic — known-deprecated RPC path
+			console.warn(
+				"[reports] RPC references a removed relation; falling back to zeros:",
+				err,
+			);
 		}
 		return { data: fallback, available: false };
 	}
 }
 
-/** Helper: only include `note` field when there's actually a note to render.
- *  Required because `ReportSection.note` is strict-optional under
- *  `exactOptionalPropertyTypes: true` — `note: undefined` is a type error. */
+/** Only include `note` when there's a note to render — `note: undefined` is a
+ *  type error under `exactOptionalPropertyTypes: true`. */
 function noteIf(available: boolean): { note?: string } {
 	return available ? {} : { note: UNAVAILABLE_NOTE };
 }
+
+const UNAVAILABLE_NOTE =
+	"Some data could not be loaded for this period and is shown as 0 — usually because the report depends on an RPC that's pending a backend cleanup.";
 
 const FINANCIAL_FALLBACK: FinancialReport = {
 	summary: {
@@ -135,34 +195,7 @@ const YEAREND_FALLBACK: YearEndSummary = {
 	expenseByCategory: [],
 };
 
-const UNAVAILABLE_NOTE =
-	"Some data could not be loaded for this period and is shown as 0 — usually because the report depends on an RPC that's pending a backend cleanup.";
-
-export interface ReportRow {
-	label: string;
-	value: string | number;
-}
-
-export interface ReportTable {
-	headers: string[];
-	rows: Array<Array<string | number>>;
-}
-
-export interface ReportSection {
-	heading: string;
-	rows?: ReportRow[];
-	table?: ReportTable;
-	note?: string;
-}
-
-export interface ReportData {
-	title: string;
-	subtitle: string;
-	generatedAt: string;
-	periodStart: string;
-	periodEnd: string;
-	sections: ReportSection[];
-}
+// ─── Formatters ─────────────────────────────────────────────────────────────
 
 const fmtMoney = (n: number): string =>
 	new Intl.NumberFormat("en-US", {
@@ -207,91 +240,243 @@ const baseHeader = (
 	periodEnd: end,
 });
 
+// ─── Per-section row helpers (keep build* under the 50-line cap) ────────────
+
+function executiveKeyMetricsRows(
+	financial: FinancialReport,
+	occupancy: OccupancyMetrics,
+	payments: ReportPaymentAnalytics,
+): ReportRow[] {
+	return [
+		{ label: "Total Income", value: fmtMoney(financial.summary.totalIncome) },
+		{
+			label: "Total Expenses",
+			value: fmtMoney(financial.summary.totalExpenses),
+		},
+		{ label: "Net Income", value: fmtMoney(financial.summary.netIncome) },
+		{ label: "Cash Flow", value: fmtMoney(financial.summary.cashFlow) },
+		{ label: "Occupancy Rate", value: fmtPct(occupancy.occupancyRate) },
+		{
+			label: "Occupied Units",
+			value: `${fmtNumber(occupancy.occupiedUnits)} of ${fmtNumber(occupancy.totalUnits)}`,
+		},
+		{ label: "Total Payments", value: fmtNumber(payments.totalPayments) },
+		{
+			label: "Successful Payments",
+			value: fmtNumber(payments.successfulPayments),
+		},
+	];
+}
+
+function financialSummaryRows(financial: FinancialReport): ReportRow[] {
+	return [
+		{ label: "Total Income", value: fmtMoney(financial.summary.totalIncome) },
+		{
+			label: "Total Expenses",
+			value: fmtMoney(financial.summary.totalExpenses),
+		},
+		{ label: "Net Income", value: fmtMoney(financial.summary.netIncome) },
+		{ label: "Cash Flow", value: fmtMoney(financial.summary.cashFlow) },
+		{
+			label: "Rent-Roll Occupancy",
+			value: fmtPct(financial.summary.rentRollOccupancyRate),
+		},
+	];
+}
+
+function propertyPortfolioSummaryRows(
+	properties: PropertyReport,
+	occupancy: OccupancyMetrics,
+): ReportRow[] {
+	return [
+		{
+			label: "Total Properties",
+			value: fmtNumber(properties.summary.totalProperties),
+		},
+		{ label: "Total Units", value: fmtNumber(occupancy.totalUnits) },
+		{ label: "Occupied Units", value: fmtNumber(occupancy.occupiedUnits) },
+		{ label: "Vacant Units", value: fmtNumber(occupancy.vacantUnits) },
+		{ label: "Overall Occupancy", value: fmtPct(occupancy.occupancyRate) },
+	];
+}
+
+function leaseSummaryRows(tenants: TenantReport): ReportRow[] {
+	return [
+		{ label: "Total Tenants", value: fmtNumber(tenants.summary.totalTenants) },
+		{ label: "Active Leases", value: fmtNumber(tenants.summary.activeLeases) },
+		{
+			label: "Expiring (next 90 days)",
+			value: fmtNumber(tenants.summary.leasesExpiringNext90),
+		},
+		{ label: "Turnover Rate", value: fmtPct(tenants.summary.turnoverRate) },
+		{
+			label: "On-Time Payment Rate",
+			value: fmtPct(tenants.summary.onTimePaymentRate),
+		},
+	];
+}
+
+function maintenanceSummaryRows(maintenance: MaintenanceReport): ReportRow[] {
+	return [
+		{
+			label: "Total Requests",
+			value: fmtNumber(maintenance.summary.totalRequests),
+		},
+		{
+			label: "Open Requests",
+			value: fmtNumber(maintenance.summary.openRequests),
+		},
+		{
+			label: "Avg Resolution Time",
+			value: `${maintenance.summary.avgResolutionHours.toFixed(1)} hours`,
+		},
+		{ label: "Total Cost", value: fmtMoney(maintenance.summary.totalCost) },
+		{
+			label: "Average Cost / Request",
+			value: fmtMoney(maintenance.summary.averageCost),
+		},
+	];
+}
+
+function taxSummaryRows(yearEnd: YearEndSummary): ReportRow[] {
+	return [
+		{ label: "Tax Year", value: String(yearEnd.year) },
+		{
+			label: "Gross Rental Income",
+			value: fmtMoney(yearEnd.grossRentalIncome),
+		},
+		{
+			label: "Operating Expenses",
+			value: fmtMoney(yearEnd.operatingExpenses),
+		},
+		{ label: "Net Income", value: fmtMoney(yearEnd.netIncome) },
+	];
+}
+
+// ─── Builders (one per ReportType) ──────────────────────────────────────────
+
+async function fetchExecutiveMonthly(
+	qc: QueryClient,
+	start: string,
+	end: string,
+) {
+	return Promise.all([
+		safeFetch(
+			qc,
+			reportAnalyticsQueries.financial(start, end),
+			FINANCIAL_FALLBACK,
+		),
+		safeFetch(
+			qc,
+			reportAnalyticsQueries.occupancyMetrics(),
+			OCCUPANCY_FALLBACK,
+		),
+		safeFetch(
+			qc,
+			reportAnalyticsQueries.paymentAnalytics(start, end),
+			PAYMENTS_FALLBACK,
+		),
+		safeFetch(qc, reportQueries.monthlyRevenue(12), [] as RevenueData[]),
+	]);
+}
+
 async function buildExecutiveMonthly(
 	queryClient: QueryClient,
 	start: string,
 	end: string,
 ): Promise<ReportData> {
-	const [financialResult, occupancyResult, paymentsResult, monthlyResult] =
-		await Promise.all([
-			safeFetch(
-				queryClient,
-				reportAnalyticsQueries.financial(start, end),
-				FINANCIAL_FALLBACK,
-			),
-			safeFetch(
-				queryClient,
-				reportAnalyticsQueries.occupancyMetrics(),
-				OCCUPANCY_FALLBACK,
-			),
-			safeFetch(
-				queryClient,
-				reportAnalyticsQueries.paymentAnalytics(start, end),
-				PAYMENTS_FALLBACK,
-			),
-			safeFetch(
-				queryClient,
-				reportQueries.monthlyRevenue(12),
-				[] as RevenueData[],
-			),
-		]);
-
-	const financial = financialResult.data;
-	const occupancy = occupancyResult.data;
-	const payments = paymentsResult.data;
-	const monthlyRows: Array<Array<string | number>> = monthlyResult.data.map(
-		(m) => [String(m.month), fmtMoney(m.revenue)],
+	const [financial, occupancy, payments, monthly] = await fetchExecutiveMonthly(
+		queryClient,
+		start,
+		end,
 	);
-	const anyUnavailable =
-		!financialResult.available ||
-		!occupancyResult.available ||
-		!paymentsResult.available ||
-		!monthlyResult.available;
-
+	const monthlyRows: Array<Array<string | number>> = monthly.data.map((m) => [
+		String(m.month),
+		fmtMoney(m.revenue),
+	]);
+	const allAvailable =
+		financial.available &&
+		occupancy.available &&
+		payments.available &&
+		monthly.available;
 	return {
 		...baseHeader("Executive Monthly Report", "Portfolio summary", start, end),
 		sections: [
 			{
 				heading: "Key Metrics",
-				rows: [
-					{
-						label: "Total Income",
-						value: fmtMoney(financial.summary.totalIncome),
-					},
-					{
-						label: "Total Expenses",
-						value: fmtMoney(financial.summary.totalExpenses),
-					},
-					{ label: "Net Income", value: fmtMoney(financial.summary.netIncome) },
-					{ label: "Cash Flow", value: fmtMoney(financial.summary.cashFlow) },
-					{
-						label: "Occupancy Rate",
-						value: fmtPct(occupancy.occupancyRate),
-					},
-					{
-						label: "Occupied Units",
-						value: `${fmtNumber(occupancy.occupiedUnits)} of ${fmtNumber(occupancy.totalUnits)}`,
-					},
-					{
-						label: "Total Payments",
-						value: fmtNumber(payments.totalPayments),
-					},
-					{
-						label: "Successful Payments",
-						value: fmtNumber(payments.successfulPayments),
-					},
-				],
+				rows: executiveKeyMetricsRows(
+					financial.data,
+					occupancy.data,
+					payments.data,
+				),
 			},
 			{
 				heading: "Monthly Revenue (last 12 months)",
-				table: {
-					headers: ["Month", "Revenue"],
-					rows: monthlyRows,
-				},
-				...noteIf(!anyUnavailable),
+				table: { headers: ["Month", "Revenue"], rows: monthlyRows },
+				...noteIf(allAvailable),
 			},
 		],
 	};
+}
+
+function financialPerformanceSections(
+	financial: FinancialReport,
+	available: boolean,
+): ReportSection[] {
+	const totalExpenses = financial.summary.totalExpenses;
+	const expenseRows = financial.expenseBreakdown.map(
+		(e): Array<string | number> => [
+			e.category,
+			fmtMoney(e.amount),
+			fmtPct(totalExpenses > 0 ? (e.amount / totalExpenses) * 100 : 0),
+		],
+	);
+	const monthlyRows = financial.monthly.map(
+		(m): Array<string | number> => [
+			m.month,
+			fmtMoney(m.income),
+			fmtMoney(m.expenses),
+			fmtMoney(m.net),
+		],
+	);
+	const rentRollRows = financial.rentRoll.map(
+		(r): Array<string | number> => [
+			r.propertyName,
+			`${fmtNumber(r.occupiedUnits)}/${fmtNumber(r.unitCount)}`,
+			fmtPct(r.occupancyRate),
+			fmtMoney(r.rentPotential),
+		],
+	);
+	return [
+		{ heading: "Summary", rows: financialSummaryRows(financial) },
+		{
+			heading: "Monthly Breakdown",
+			table: {
+				headers: ["Month", "Income", "Expenses", "Net"],
+				rows: monthlyRows,
+			},
+		},
+		{
+			heading: "Expense Categories",
+			table: {
+				headers: ["Category", "Amount", "% of Expenses"],
+				rows: expenseRows,
+			},
+		},
+		{
+			heading: "Rent Roll",
+			table: {
+				headers: [
+					"Property",
+					"Units (occ/total)",
+					"Occupancy",
+					"Rent Potential",
+				],
+				rows: rentRollRows,
+			},
+			...noteIf(available),
+		},
+	];
 }
 
 async function buildFinancialPerformance(
@@ -304,29 +489,6 @@ async function buildFinancialPerformance(
 		reportAnalyticsQueries.financial(start, end),
 		FINANCIAL_FALLBACK,
 	);
-	const financial = financialResult.data;
-
-	const totalExpenses = financial.summary.totalExpenses;
-	const expenseRows: Array<Array<string | number>> =
-		financial.expenseBreakdown.map((e) => [
-			e.category,
-			fmtMoney(e.amount),
-			fmtPct(totalExpenses > 0 ? (e.amount / totalExpenses) * 100 : 0),
-		]);
-
-	const monthlyRows: Array<Array<string | number>> = financial.monthly.map(
-		(m) => [m.month, fmtMoney(m.income), fmtMoney(m.expenses), fmtMoney(m.net)],
-	);
-
-	const rentRollRows: Array<Array<string | number>> = financial.rentRoll.map(
-		(r) => [
-			r.propertyName,
-			`${fmtNumber(r.occupiedUnits)}/${fmtNumber(r.unitCount)}`,
-			fmtPct(r.occupancyRate),
-			fmtMoney(r.rentPotential),
-		],
-	);
-
 	return {
 		...baseHeader(
 			"Financial Performance Report",
@@ -334,55 +496,69 @@ async function buildFinancialPerformance(
 			start,
 			end,
 		),
-		sections: [
-			{
-				heading: "Summary",
-				rows: [
-					{
-						label: "Total Income",
-						value: fmtMoney(financial.summary.totalIncome),
-					},
-					{
-						label: "Total Expenses",
-						value: fmtMoney(financial.summary.totalExpenses),
-					},
-					{ label: "Net Income", value: fmtMoney(financial.summary.netIncome) },
-					{ label: "Cash Flow", value: fmtMoney(financial.summary.cashFlow) },
-					{
-						label: "Rent-Roll Occupancy",
-						value: fmtPct(financial.summary.rentRollOccupancyRate),
-					},
-				],
-			},
-			{
-				heading: "Monthly Breakdown",
-				table: {
-					headers: ["Month", "Income", "Expenses", "Net"],
-					rows: monthlyRows,
-				},
-			},
-			{
-				heading: "Expense Categories",
-				table: {
-					headers: ["Category", "Amount", "% of Expenses"],
-					rows: expenseRows,
-				},
-			},
-			{
-				heading: "Rent Roll",
-				table: {
-					headers: [
-						"Property",
-						"Units (occ/total)",
-						"Occupancy",
-						"Rent Potential",
-					],
-					rows: rentRollRows,
-				},
-				...noteIf(financialResult.available),
-			},
-		],
+		sections: financialPerformanceSections(
+			financialResult.data,
+			financialResult.available,
+		),
 	};
+}
+
+function propertyPortfolioSections(
+	properties: PropertyReport,
+	occupancy: OccupancyMetrics,
+	available: boolean,
+): ReportSection[] {
+	const propertyRows = properties.byProperty.map(
+		(p): Array<string | number> => [
+			p.propertyName,
+			fmtPct(p.occupancyRate),
+			fmtNumber(p.vacantUnits),
+			fmtMoney(p.revenue),
+			fmtMoney(p.expenses),
+			fmtMoney(p.netOperatingIncome),
+		],
+	);
+	const occupancyTrendRows = properties.occupancyTrend.map(
+		(t): Array<string | number> => [t.month, fmtPct(t.occupancyRate)],
+	);
+	const vacancyTrendRows = properties.vacancyTrend.map(
+		(v): Array<string | number> => [v.month, fmtNumber(v.vacantUnits)],
+	);
+	return [
+		{
+			heading: "Portfolio Summary",
+			rows: propertyPortfolioSummaryRows(properties, occupancy),
+		},
+		{
+			heading: "Property Performance",
+			table: {
+				headers: [
+					"Property",
+					"Occupancy",
+					"Vacant",
+					"Revenue",
+					"Expenses",
+					"NOI",
+				],
+				rows: propertyRows,
+			},
+		},
+		{
+			heading: "Occupancy Trend",
+			table: {
+				headers: ["Month", "Occupancy Rate"],
+				rows: occupancyTrendRows,
+			},
+		},
+		{
+			heading: "Vacancy Trend",
+			table: {
+				headers: ["Month", "Vacant Units"],
+				rows: vacancyTrendRows,
+			},
+			...noteIf(available),
+		},
+	];
 }
 
 async function buildPropertyPortfolio(
@@ -402,32 +578,6 @@ async function buildPropertyPortfolio(
 			OCCUPANCY_FALLBACK,
 		),
 	]);
-	const properties = propertiesResult.data;
-	const occupancy = occupancyResult.data;
-	const anyUnavailable =
-		!propertiesResult.available || !occupancyResult.available;
-
-	const propertyRows: Array<Array<string | number>> = properties.byProperty.map(
-		(p) => [
-			p.propertyName,
-			fmtPct(p.occupancyRate),
-			fmtNumber(p.vacantUnits),
-			fmtMoney(p.revenue),
-			fmtMoney(p.expenses),
-			fmtMoney(p.netOperatingIncome),
-		],
-	);
-
-	const occupancyTrendRows: Array<Array<string | number>> =
-		properties.occupancyTrend.map((t) => [t.month, fmtPct(t.occupancyRate)]);
-
-	const vacancyTrendRows: Array<Array<string | number>> = (
-		properties.vacancyTrend ?? []
-	).map((v) => [
-		String((v as Record<string, unknown>).month ?? ""),
-		fmtNumber(Number((v as Record<string, unknown>).vacantUnits ?? 0)),
-	]);
-
 	return {
 		...baseHeader(
 			"Property Portfolio Report",
@@ -435,57 +585,64 @@ async function buildPropertyPortfolio(
 			start,
 			end,
 		),
-		sections: [
-			{
-				heading: "Portfolio Summary",
-				rows: [
-					{
-						label: "Total Properties",
-						value: fmtNumber(properties.summary.totalProperties),
-					},
-					{ label: "Total Units", value: fmtNumber(occupancy.totalUnits) },
-					{
-						label: "Occupied Units",
-						value: fmtNumber(occupancy.occupiedUnits),
-					},
-					{ label: "Vacant Units", value: fmtNumber(occupancy.vacantUnits) },
-					{
-						label: "Overall Occupancy",
-						value: fmtPct(occupancy.occupancyRate),
-					},
-				],
-			},
-			{
-				heading: "Property Performance",
-				table: {
-					headers: [
-						"Property",
-						"Occupancy",
-						"Vacant",
-						"Revenue",
-						"Expenses",
-						"NOI",
-					],
-					rows: propertyRows,
-				},
-			},
-			{
-				heading: "Occupancy Trend",
-				table: {
-					headers: ["Month", "Occupancy Rate"],
-					rows: occupancyTrendRows,
-				},
-			},
-			{
-				heading: "Vacancy Trend",
-				table: {
-					headers: ["Month", "Vacant Units"],
-					rows: vacancyTrendRows,
-				},
-				...noteIf(!anyUnavailable),
-			},
-		],
+		sections: propertyPortfolioSections(
+			propertiesResult.data,
+			occupancyResult.data,
+			propertiesResult.available && occupancyResult.available,
+		),
 	};
+}
+
+function leasePortfolioSections(
+	tenants: TenantReport,
+	available: boolean,
+): ReportSection[] {
+	const expirationRows = tenants.leaseExpirations.map(
+		(l): Array<string | number> => [
+			l.propertyName,
+			l.unitLabel,
+			fmtDate(l.endDate),
+		],
+	);
+	const paymentRows = tenants.paymentHistory.map(
+		(p): Array<string | number> => [
+			p.month,
+			fmtNumber(p.paymentsReceived),
+			fmtPct(p.onTimeRate),
+		],
+	);
+	const turnoverRows = tenants.turnover.map(
+		(t): Array<string | number> => [
+			t.month,
+			fmtNumber(t.moveIns),
+			fmtNumber(t.moveOuts),
+		],
+	);
+	return [
+		{ heading: "Lease Summary", rows: leaseSummaryRows(tenants) },
+		{
+			heading: "Lease Expirations",
+			table: {
+				headers: ["Property", "Unit", "Lease End Date"],
+				rows: expirationRows,
+			},
+		},
+		{
+			heading: "Payment History",
+			table: {
+				headers: ["Month", "Payments Received", "On-Time Rate"],
+				rows: paymentRows,
+			},
+		},
+		{
+			heading: "Tenant Turnover",
+			table: {
+				headers: ["Month", "Moved In", "Moved Out"],
+				rows: turnoverRows,
+			},
+			...noteIf(available),
+		},
+	];
 }
 
 async function buildLeasePortfolio(
@@ -498,30 +655,6 @@ async function buildLeasePortfolio(
 		reportAnalyticsQueries.tenants(start, end),
 		TENANT_FALLBACK,
 	);
-	const tenants = tenantsResult.data;
-
-	const expirationRows: Array<Array<string | number>> =
-		tenants.leaseExpirations.map((l) => [
-			l.propertyName,
-			l.unitLabel,
-			fmtDate(l.endDate),
-		]);
-
-	const paymentRows: Array<Array<string | number>> = tenants.paymentHistory.map(
-		(p) => [p.month, fmtNumber(p.paymentsReceived), fmtPct(p.onTimeRate)],
-	);
-
-	const turnoverRows: Array<Array<string | number>> = (
-		tenants.turnover ?? []
-	).map((t) => {
-		const row = t as Record<string, unknown>;
-		return [
-			String(row.month ?? ""),
-			fmtNumber(Number(row.movedIn ?? 0)),
-			fmtNumber(Number(row.movedOut ?? 0)),
-		];
-	});
-
 	return {
 		...baseHeader(
 			"Lease Portfolio Report",
@@ -529,56 +662,59 @@ async function buildLeasePortfolio(
 			start,
 			end,
 		),
-		sections: [
-			{
-				heading: "Lease Summary",
-				rows: [
-					{
-						label: "Total Tenants",
-						value: fmtNumber(tenants.summary.totalTenants),
-					},
-					{
-						label: "Active Leases",
-						value: fmtNumber(tenants.summary.activeLeases),
-					},
-					{
-						label: "Expiring (next 90 days)",
-						value: fmtNumber(tenants.summary.leasesExpiringNext90),
-					},
-					{
-						label: "Turnover Rate",
-						value: fmtPct(tenants.summary.turnoverRate),
-					},
-					{
-						label: "On-Time Payment Rate",
-						value: fmtPct(tenants.summary.onTimePaymentRate),
-					},
-				],
-			},
-			{
-				heading: "Lease Expirations",
-				table: {
-					headers: ["Property", "Unit", "Lease End Date"],
-					rows: expirationRows,
-				},
-			},
-			{
-				heading: "Payment History",
-				table: {
-					headers: ["Month", "Payments Received", "On-Time Rate"],
-					rows: paymentRows,
-				},
-			},
-			{
-				heading: "Tenant Turnover",
-				table: {
-					headers: ["Month", "Moved In", "Moved Out"],
-					rows: turnoverRows,
-				},
-				...noteIf(tenantsResult.available),
-			},
-		],
+		sections: leasePortfolioSections(
+			tenantsResult.data,
+			tenantsResult.available,
+		),
 	};
+}
+
+function maintenanceOperationsSections(
+	maintenance: MaintenanceReport,
+	available: boolean,
+): ReportSection[] {
+	const byStatusRows = maintenance.byStatus.map(
+		(s): Array<string | number> => [s.status, fmtNumber(s.count)],
+	);
+	const byPriorityRows = maintenance.byPriority.map(
+		(p): Array<string | number> => [p.priority, fmtNumber(p.count)],
+	);
+	const monthlyCostRows = maintenance.monthlyCost.map(
+		(m): Array<string | number> => [m.month, fmtMoney(m.cost)],
+	);
+	const vendorRows = maintenance.vendorPerformance.map(
+		(v): Array<string | number> => [
+			v.vendorName,
+			fmtNumber(v.jobs),
+			fmtMoney(v.totalSpend),
+		],
+	);
+	return [
+		{
+			heading: "Operations Summary",
+			rows: maintenanceSummaryRows(maintenance),
+		},
+		{
+			heading: "By Status",
+			table: { headers: ["Status", "Count"], rows: byStatusRows },
+		},
+		{
+			heading: "By Priority",
+			table: { headers: ["Priority", "Count"], rows: byPriorityRows },
+		},
+		{
+			heading: "Monthly Cost",
+			table: { headers: ["Month", "Cost"], rows: monthlyCostRows },
+		},
+		{
+			heading: "Vendor Performance",
+			table: {
+				headers: ["Vendor", "Jobs", "Total Spend"],
+				rows: vendorRows,
+			},
+			...noteIf(available),
+		},
+	];
 }
 
 async function buildMaintenanceOperations(
@@ -591,26 +727,6 @@ async function buildMaintenanceOperations(
 		reportAnalyticsQueries.maintenance(start, end),
 		MAINTENANCE_FALLBACK,
 	);
-	const maintenance = maintenanceResult.data;
-
-	const byStatusRows: Array<Array<string | number>> = maintenance.byStatus.map(
-		(s) => [s.status, fmtNumber(s.count)],
-	);
-	const byPriorityRows: Array<Array<string | number>> =
-		maintenance.byPriority.map((p) => [p.priority, fmtNumber(p.count)]);
-	const monthlyCostRows: Array<Array<string | number>> =
-		maintenance.monthlyCost.map((m) => [m.month, fmtMoney(m.cost)]);
-	const vendorRows: Array<Array<string | number>> = (
-		maintenance.vendorPerformance ?? []
-	).map((v) => {
-		const row = v as Record<string, unknown>;
-		return [
-			String(row.vendorName ?? ""),
-			fmtNumber(Number(row.completedRequests ?? 0)),
-			fmtMoney(Number(row.totalCost ?? 0)),
-		];
-	});
-
 	return {
 		...baseHeader(
 			"Maintenance Operations Report",
@@ -618,63 +734,44 @@ async function buildMaintenanceOperations(
 			start,
 			end,
 		),
-		sections: [
-			{
-				heading: "Operations Summary",
-				rows: [
-					{
-						label: "Total Requests",
-						value: fmtNumber(maintenance.summary.totalRequests),
-					},
-					{
-						label: "Open Requests",
-						value: fmtNumber(maintenance.summary.openRequests),
-					},
-					{
-						label: "Avg Resolution Time",
-						value: `${maintenance.summary.avgResolutionHours.toFixed(1)} hours`,
-					},
-					{
-						label: "Total Cost",
-						value: fmtMoney(maintenance.summary.totalCost),
-					},
-					{
-						label: "Average Cost / Request",
-						value: fmtMoney(maintenance.summary.averageCost),
-					},
-				],
-			},
-			{
-				heading: "By Status",
-				table: {
-					headers: ["Status", "Count"],
-					rows: byStatusRows,
-				},
-			},
-			{
-				heading: "By Priority",
-				table: {
-					headers: ["Priority", "Count"],
-					rows: byPriorityRows,
-				},
-			},
-			{
-				heading: "Monthly Cost",
-				table: {
-					headers: ["Month", "Cost"],
-					rows: monthlyCostRows,
-				},
-			},
-			{
-				heading: "Vendor Performance",
-				table: {
-					headers: ["Vendor", "Completed", "Total Cost"],
-					rows: vendorRows,
-				},
-				...noteIf(maintenanceResult.available),
-			},
-		],
+		sections: maintenanceOperationsSections(
+			maintenanceResult.data,
+			maintenanceResult.available,
+		),
 	};
+}
+
+function taxPreparationSections(
+	yearEnd: YearEndSummary,
+	available: boolean,
+): ReportSection[] {
+	const byPropertyRows = yearEnd.byProperty.map(
+		(p): Array<string | number> => [
+			p.propertyName,
+			fmtMoney(p.income),
+			fmtMoney(p.expenses),
+			fmtMoney(p.netIncome),
+		],
+	);
+	const expenseRows = yearEnd.expenseByCategory.map(
+		(e): Array<string | number> => [e.category, fmtMoney(e.amount)],
+	);
+	return [
+		{ heading: "Annual Summary", rows: taxSummaryRows(yearEnd) },
+		{
+			heading: "Income by Property (Schedule E support)",
+			table: {
+				headers: ["Property", "Income", "Expenses", "Net Income"],
+				rows: byPropertyRows,
+			},
+			note: "Consult a CPA before filing — line-item mappings are advisory.",
+		},
+		{
+			heading: "Expense by Category",
+			table: { headers: ["Category", "Amount"], rows: expenseRows },
+			...noteIf(available),
+		},
+	];
 }
 
 async function buildTaxPreparation(
@@ -688,20 +785,6 @@ async function buildTaxPreparation(
 		reportAnalyticsQueries.yearEnd(year),
 		{ ...YEAREND_FALLBACK, year },
 	);
-	const yearEnd = yearEndResult.data;
-
-	const byPropertyRows: Array<Array<string | number>> = yearEnd.byProperty.map(
-		(p) => [
-			p.propertyName,
-			fmtMoney(p.income),
-			fmtMoney(p.expenses),
-			fmtMoney(p.netIncome),
-		],
-	);
-
-	const expenseRows: Array<Array<string | number>> =
-		yearEnd.expenseByCategory.map((e) => [e.category, fmtMoney(e.amount)]);
-
 	return {
 		...baseHeader(
 			`Tax Preparation — ${year}`,
@@ -709,41 +792,14 @@ async function buildTaxPreparation(
 			start,
 			end,
 		),
-		sections: [
-			{
-				heading: "Annual Summary",
-				rows: [
-					{ label: "Tax Year", value: String(yearEnd.year) },
-					{
-						label: "Gross Rental Income",
-						value: fmtMoney(yearEnd.grossRentalIncome),
-					},
-					{
-						label: "Operating Expenses",
-						value: fmtMoney(yearEnd.operatingExpenses),
-					},
-					{ label: "Net Income", value: fmtMoney(yearEnd.netIncome) },
-				],
-			},
-			{
-				heading: "Income by Property (Schedule E support)",
-				table: {
-					headers: ["Property", "Income", "Expenses", "Net Income"],
-					rows: byPropertyRows,
-				},
-				note: "Consult a CPA before filing — line-item mappings are advisory.",
-			},
-			{
-				heading: "Expense by Category",
-				table: {
-					headers: ["Category", "Amount"],
-					rows: expenseRows,
-				},
-				...noteIf(yearEndResult.available),
-			},
-		],
+		sections: taxPreparationSections(
+			yearEndResult.data,
+			yearEndResult.available,
+		),
 	};
 }
+
+// ─── Dispatch ───────────────────────────────────────────────────────────────
 
 export type ReportType =
 	| "executive-monthly"

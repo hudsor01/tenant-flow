@@ -428,13 +428,13 @@ Resolves the parent UI-SPEC § 13 open question "Whether the 30d / 6mo toggle on
 
 ### 4.3 Toggle active-state visuals
 
-Already covered by shadcn `<TabsTrigger>` baseline:
-- Active: `bg-background` + `--shadow-sm` (raised pill within the muted well)
+Already covered by shadcn `<TabsTrigger>` baseline (canonical source: `src/components/ui/tabs.tsx:46`):
+- Active: `bg-primary` + `text-primary-foreground` + `--shadow-sm` (raised accent pill within the muted well)
 - Inactive: transparent background, `text-muted-foreground`
 - Hover (inactive): `text-foreground` transition over `--duration-200`
 - Active text weight: `--font-weight-medium` (500)
 
-Parent § 2.1 "Accent (10%) is reserved for: The active segment of the 30d / 6mo toggle (Phase 4)" anticipates accent on the active state. Phase 4 deviates intentionally: the shadcn baseline uses `bg-background` (surface contrast, NOT primary accent) for active state, which preserves accent (10%) for the truly singular Primary CTA / focus ring slots. This is a **rule tightening** — Phase 4 narrows from "accent allowed here" to "no accent needed; surface contrast is sufficient." Logged here for checker Dimension-3.
+Parent § 2.1 "Accent (10%) is reserved for: The active segment of the 30d / 6mo toggle (Phase 4)" anticipates accent on the active state, and the vendored primitive matches that reservation exactly — the active pill consumes the accent slot. Phase 4 accepts the vendored baseline rather than overriding it; no per-instance className override on `<TabsTrigger>`.
 
 ### 4.4 Toggle reduced-motion
 
@@ -861,9 +861,9 @@ Inherits parent § 2.1 entirely. Phase 4 reserves the following 10% accent slots
 | Focus ring `--color-ring` | inherits (Tabs focus ring) |
 | Active sort indicator on DataTable | N/A (Phase 5) |
 | Sparkline series on Revenue + Occupancy KPI tiles | consumed by Phase 3 (not by Phase 4) |
-| Active segment of the 30d / 6mo toggle | **deviated** — shadcn baseline uses `bg-background` for active state (surface contrast, not primary accent); see § 4.3 footnote |
+| Active segment of the 30d / 6mo toggle | consumed via vendored `<TabsTrigger>` `bg-primary` baseline (matches the parent reservation; no override) |
 
-**Net accent (`--color-primary`) usage in Phase 4: ZERO.** Phase 4 saves the accent slot by tightening the parent's reservation. Logged for checker Dimension-3.
+**Net accent (`--color-primary`) usage in Phase 4: 1 site** (the 30d/6mo toggle active pill, sourced from the unmodified vendored Tabs primitive). Logged for checker Dimension-3.
 
 ### 14.1 Series colors (chart palette)
 
@@ -945,7 +945,7 @@ For checker Dimension-3 / Dimension-4 / Dimension-5 reviews:
 
 | Override | Section | Type | Justification |
 |----------|---------|------|---------------|
-| Tabs active state uses surface contrast (`bg-background`) instead of accent (`--color-primary`) | § 4.3 | **Tightening** (narrows accent reservation) | Preserves the 10% accent slot for truly singular elements; shadcn baseline is sufficient visual differentiation. |
+| Tabs active state uses `bg-primary` accent (vendored shadcn baseline) | § 4.3 | **No override** — vendored primitive matches parent § 2.1 accent reservation exactly. | Earlier UI-SPEC draft incorrectly claimed the baseline was `bg-background`; corrected during cycle-1 review. |
 | Recharts `animationDuration={800}` is a JSX integer prop, not a `--duration-*` token reference | § 5.3 | **Vendor-API exception** | Recharts requires integer ms; can't accept CSS variable. Pinned to 800 to match Phase 3 NumberTicker duration. Drift-scanner exemption verified at execution time. |
 | `font-bold` used on donut center value | § 13 | **Inheritance from parent rule** (parent § 2.6 KPI value rule) | Not an override — parent EXPLICITLY designates KPI numeric values as `font-weight-bold`. |
 | Half-step `*_5` tokens used twice (`py-1.5` in Tabs, `size-2.5` in legend swatch) | § 12 | **Interactive-primitive exception** (parent § 2.2) | Both uses are in interactive-primitive chrome (Tabs control + legend swatch adjacent to clickable-feeling label). Parent § 2.2 explicitly permits this exemption class. |

@@ -18,10 +18,12 @@ import {
 	type DashboardActivityData,
 	type DashboardChartsData,
 	type DashboardStatsData,
-	dashboardFinancialQueries,
-	type FinancialTimeRange,
 	type OwnerDashboardData,
 } from "./use-owner-dashboard";
+import {
+	dashboardFinancialQueries,
+	type FinancialTimeRange,
+} from "./use-owner-dashboard-financial";
 
 // D-12a interpretation #2: keep `select` OUT of DASHBOARD_BASE_QUERY_OPTIONS
 // so per-call selectors compose the slice they need from the raw cache.
@@ -118,7 +120,7 @@ export function usePropertyPerformance() {
 export type {
 	FinancialChartDatum,
 	FinancialTimeRange,
-} from "./use-owner-dashboard";
+} from "./use-owner-dashboard-financial";
 
 /**
  * Revenue/expense chart data fetched from the financial analytics RPC.

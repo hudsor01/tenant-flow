@@ -16,8 +16,8 @@ import type {
 	BulkImportConfig,
 	BulkImportParseResult,
 } from "#components/bulk-import/types";
+import { ownerDashboardKeys } from "#hooks/api/query-keys/owner-dashboard-keys";
 import { unitQueries } from "#hooks/api/query-keys/unit-keys";
-import { ownerDashboardKeys } from "#hooks/api/use-owner-dashboard";
 import { requireOwnerUserId } from "#lib/require-owner-user-id";
 import { createClient } from "#lib/supabase/client";
 import { getCachedUser } from "#lib/supabase/get-cached-user";

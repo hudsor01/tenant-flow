@@ -14,9 +14,9 @@ import { createMutationCallbacks } from "#hooks/create-mutation-callbacks";
 import type { Lease } from "#types/core";
 import { leaseQueries } from "./query-keys/lease-keys";
 import { leaseMutations } from "./query-keys/lease-mutation-options";
+import { ownerDashboardKeys } from "./query-keys/owner-dashboard-keys";
 import { tenantQueries } from "./query-keys/tenant-keys";
 import { unitQueries } from "./query-keys/unit-keys";
-import { ownerDashboardKeys } from "./use-owner-dashboard";
 
 /**
  * Terminate lease mutation

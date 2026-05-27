@@ -87,7 +87,7 @@ export const PieChart = ({ children }: ChartProps) => (
 );
 
 export const Pie = ({
-	_data,
+	data: _data,
 	dataKey,
 	nameKey,
 	cx,

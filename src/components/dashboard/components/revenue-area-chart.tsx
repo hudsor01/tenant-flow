@@ -77,13 +77,16 @@ const revenueConfig = {
 // Typed boundary helper — picks the active series at the union type so the
 // single `<AreaChart>` below is contextually typed against `RevenuePoint`
 // (rather than the narrower `TimeSeriesDataPoint[] | MonthlyRevenuePoint[]`
-// which TS can't unify into one `ReadonlyArray<T>`).
+// which TS can't unify into one `ReadonlyArray<T>`). Returns the source
+// array directly (no copy) — `TimeSeriesDataPoint[] | MonthlyRevenuePoint[]`
+// is assignable to `RevenuePoint[]` covariantly because both element types
+// satisfy `RevenuePoint`.
 function pickActiveSeries(
 	window: RevenueWindow,
 	monthly: TimeSeriesDataPoint[],
 	monthly6mo: MonthlyRevenuePoint[],
 ): RevenuePoint[] {
-	return window === "30d" ? [...monthly] : [...monthly6mo];
+	return window === "30d" ? monthly : monthly6mo;
 }
 
 function format30dTick(iso: string): string {

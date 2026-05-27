@@ -27,8 +27,8 @@ import {
 	documentQueries,
 	LIST_DISPLAY_LIMIT,
 } from "#hooks/api/query-keys/document-keys";
+import { ownerDashboardKeys } from "#hooks/api/query-keys/owner-dashboard-keys";
 import { useDocumentCategories } from "#hooks/api/use-document-categories";
-import { ownerDashboardKeys } from "#hooks/api/use-owner-dashboard";
 import {
 	DEFAULT_CATEGORY_LABELS,
 	DEFAULT_CATEGORY_SLUGS,

@@ -16,10 +16,10 @@ import { createMutationCallbacks } from "#hooks/create-mutation-callbacks";
 
 import { logger } from "#lib/frontend-logger";
 import type { Property } from "#types/core";
+import { ownerDashboardKeys } from "./query-keys/owner-dashboard-keys";
 import { propertyMutations, propertyQueries } from "./query-keys/property-keys";
 import { propertyStatsQueries } from "./query-keys/property-stats-keys";
 import { unitQueries } from "./query-keys/unit-keys";
-import { ownerDashboardKeys } from "./use-owner-dashboard";
 
 /**
  * Declarative prefetch hook for property detail
