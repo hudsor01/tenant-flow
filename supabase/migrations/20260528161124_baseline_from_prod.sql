@@ -4528,31 +4528,14 @@ end;
 $function$
 ;
 
-CREATE OR REPLACE FUNCTION public.get_tenant_lease_ids()
- RETURNS SETOF uuid
- LANGUAGE sql
- STABLE SECURITY DEFINER
- SET search_path TO ''
-AS $function$
-  SELECT DISTINCT lt.lease_id
-  FROM public.lease_tenants lt
-  WHERE lt.tenant_id = public.get_current_tenant_id();
-$function$
-;
-
-CREATE OR REPLACE FUNCTION public.get_tenant_property_ids()
- RETURNS SETOF uuid
- LANGUAGE sql
- STABLE SECURITY DEFINER
- SET search_path TO ''
-AS $function$
-  SELECT DISTINCT u.property_id
-  FROM public.lease_tenants lt
-  JOIN public.leases l ON l.id = lt.lease_id
-  JOIN public.units u ON u.id = l.unit_id
-  WHERE lt.tenant_id = public.get_current_tenant_id();
-$function$
-;
+-- get_tenant_lease_ids() and get_tenant_property_ids() intentionally OMITTED.
+-- Both were LANGUAGE sql with static references to public.get_current_tenant_id(),
+-- which was removed during the tenant-portal demolish in
+-- 20260418183608_demolish_rent_and_tenant_portal. Postgres tolerated the
+-- orphan refs in pg_catalog post-drop, but eager body validation on chain
+-- replay fails on the missing function. Dropped from prod in the same
+-- commit cycle. Confirmed zero callers across RLS policies, other
+-- functions, and frontend code. Issue #749.
 
 CREATE OR REPLACE FUNCTION public.get_tenants_by_owner(p_user_id uuid)
  RETURNS SETOF uuid

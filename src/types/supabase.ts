@@ -2519,8 +2519,6 @@ export type Database = {
 				Args: { p_customer_id: string };
 				Returns: Json;
 			};
-			get_tenant_lease_ids: { Args: never; Returns: string[] };
-			get_tenant_property_ids: { Args: never; Returns: string[] };
 			get_tenants_by_owner: { Args: { p_user_id: string }; Returns: string[] };
 			get_tenants_with_lease_by_owner: {
 				Args: { p_user_id: string };
@@ -2578,7 +2576,6 @@ export type Database = {
 			};
 			health_check: { Args: never; Returns: Json };
 			is_admin: { Args: never; Returns: boolean };
-			ledger_aggregation: { Args: never; Returns: Json };
 			link_stripe_customer_to_user: {
 				Args: { p_email: string; p_stripe_customer_id: string };
 				Returns: string;
