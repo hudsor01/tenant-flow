@@ -53,9 +53,9 @@ CREATE TABLE IF NOT EXISTS public.blogs (
     featured_image text,
     category text,
     tags text[],
-    status text DEFAULT '''published''::text'::text,
+    status text DEFAULT 'published'::text,
     word_count integer,
-    reading_time integer DEFAULT GREATEST(1, (word_count / 200)),
+    reading_time integer GENERATED ALWAYS AS (GREATEST(1, (word_count / 200))) STORED,
     quality_score numeric(3,2),
     published_at timestamp with time zone,
     created_at timestamp with time zone DEFAULT now(),
@@ -719,7 +719,7 @@ CREATE TABLE IF NOT EXISTS stripe._sync_runs (
 
 CREATE TABLE IF NOT EXISTS stripe.accounts (
     _raw_data jsonb NOT NULL,
-    id text NOT NULL DEFAULT (_raw_data ->> 'id'::text),
+    id text NOT NULL GENERATED ALWAYS AS ((_raw_data ->> 'id'::text)) STORED,
     api_key_hashes text[] NOT NULL DEFAULT '{}'::text[],
     first_synced_at timestamp with time zone NOT NULL DEFAULT now(),
     _last_synced_at timestamp with time zone NOT NULL DEFAULT now(),
