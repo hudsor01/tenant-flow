@@ -61,8 +61,10 @@ export interface ReportData {
  * Discriminate Postgres "relation does not exist" (`42P01`) errors — the only
  * class we intentionally swallow. Anything else is a real programming bug and
  * should surface, not silently fall back to zeros.
+ *
+ * Exported for unit-test pinning of the narrow-catch contract (cycle-6 IN-01).
  */
-function isMissingRelationError(err: unknown): boolean {
+export function isMissingRelationError(err: unknown): boolean {
 	if (!err || typeof err !== "object") return false;
 	const obj = err as { code?: unknown; message?: unknown };
 	if (typeof obj.code === "string" && obj.code === "42P01") return true;
@@ -83,7 +85,7 @@ function isMissingRelationError(err: unknown): boolean {
  * the whole report on one broken RPC, we narrow the catch to that specific
  * Postgres error and fall back to a caller-supplied default.
  */
-async function safeFetch<TData, TQueryKey extends readonly unknown[]>(
+export async function safeFetch<TData, TQueryKey extends readonly unknown[]>(
 	queryClient: QueryClient,
 	options: FetchQueryOptions<TData, Error, TData, TQueryKey>,
 	fallback: TData,

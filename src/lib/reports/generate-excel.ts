@@ -86,12 +86,14 @@ export function generateExcelBlob(report: ReportData): Blob {
 	});
 }
 
-function sanitizeSheetName(name: string): string {
+// Exported for unit-test pinning (cycle-6 IN-01).
+export function sanitizeSheetName(name: string): string {
 	// Excel sheet name limit: 31 chars, no [ ] : * ? / \
 	return name.replace(/[[\]:*?/\\]/g, "").slice(0, 31) || "Sheet";
 }
 
-function computeColumnWidths(
+// Exported for unit-test pinning (cycle-6 IN-01).
+export function computeColumnWidths(
 	data: Array<Array<string | number>>,
 ): Array<{ wch: number }> {
 	const widths: number[] = [];

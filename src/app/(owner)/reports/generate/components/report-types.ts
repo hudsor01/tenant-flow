@@ -96,8 +96,10 @@ export const reportCards: ReportCard[] = [
 export const reportsClient = {
 	generateReport: async (
 		reportType: ReportType,
+		// Auth derives via `getCachedUser()` inside the per-RPC fetchers
+		// `buildReportData` consumes — `user_id` deliberately omitted here.
+		// Callers should still gate on auth as a UX check before invoking.
 		params: {
-			user_id: string;
 			start_date: string;
 			end_date: string;
 			format: ReportFormat;

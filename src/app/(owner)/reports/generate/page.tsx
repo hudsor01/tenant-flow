@@ -76,9 +76,8 @@ export default function GenerateReportsPage() {
 
 		try {
 			const { start_date, end_date } = getDateRange();
-			const user_id = user?.id;
 
-			if (!user_id) {
+			if (!user?.id) {
 				toast.error("User not authenticated");
 				return;
 			}
@@ -86,7 +85,6 @@ export default function GenerateReportsPage() {
 			await reportsClient.generateReport(
 				reportId,
 				{
-					user_id,
 					start_date,
 					end_date,
 					format: reportFormat,
