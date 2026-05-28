@@ -203,8 +203,7 @@ Deno runtime, `supabase/functions/<name>/index.ts`.
 - Auth decisions: always `getUser()` (server-validated). `getSession()` only to read the access_token string for Bearer.
 - Single auth query key factory: `authKeys` from `src/hooks/api/use-auth.ts`. No other auth key definitions.
 - Pagination: use `count` from Supabase response. Never `data.length`.
-- Stripe schema: `stripe.*` tables (subscriptions, invoices, etc.) are queryable via PostgREST under existing RLS. Use for billing display — don't call Stripe API for reads.
-- Subscription status: query `stripe.subscriptions` for real status. Don't infer from `users.stripe_customer_id` existence.
+- Billing storage: `public.users` carries the denormalized billing fields (`stripe_customer_id`, `subscription_status`, `subscription_id`, `subscription_plan`, `subscription_current_period_end`, `subscription_cancel_at_period_end`, `subscription_source`, `trial_ends_at`). Subscription status reads from `users.subscription_status` directly. Webhooks land in `public.stripe_webhook_events` (90d retention, then archived). There is no `stripe.*` schema — the Stripe Sync direction was abandoned with the rent-payment pivot.
 - `next/image` does NOT support `blob:` URLs — use `<img>` for `URL.createObjectURL()` previews
 - Edge Function tests need `supabase functions serve` running locally
 - `SKIP_ENV_VALIDATION=true` required for `next build` in CI
