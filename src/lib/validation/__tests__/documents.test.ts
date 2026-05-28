@@ -55,17 +55,24 @@ describe("documentCategorySlugSchema", () => {
 	});
 
 	it("migration seed function is in lockstep with DEFAULT_CATEGORY_SLUGS", () => {
-		// The seed function in the Phase 65 migration inserts the seven
-		// defaults via VALUES tuples. This regex pulls those slug literals
-		// and asserts they match DEFAULT_CATEGORY_SLUGS — closes the
-		// three-source-of-truth gap (table seed, default labels constant,
-		// new-user trigger).
+		// The seed function inserts the seven defaults via VALUES tuples.
+		// This regex pulls those slug literals and asserts they match
+		// DEFAULT_CATEGORY_SLUGS — closes the three-source-of-truth gap
+		// (table seed, default labels constant, new-user trigger).
+		//
+		// Source-of-truth file changed from the Phase-65 migration to the
+		// single prod baseline after issue #749's chain reset (the
+		// per-phase migration files were collapsed into one baseline).
 		const migrationSql = readFileSync(
-			"supabase/migrations/20260427023101_v26_phase_65_document_categories_table.sql",
+			"supabase/migrations/20260528161124_baseline_from_prod.sql",
 			"utf8",
 		);
+		// Anchor on the CREATE OR REPLACE FUNCTION header so the lazy
+		// match doesn't latch onto the `perform` call inside the new-user
+		// trigger (which appears earlier alphabetically in the baseline
+		// file than the seed function's own definition).
 		const seedFn = migrationSql.match(
-			/seed_default_document_categories[\s\S]*?on conflict/i,
+			/CREATE OR REPLACE FUNCTION public\.seed_default_document_categories[\s\S]*?on conflict/i,
 		)?.[0];
 		expect(seedFn, "seed function block not found").toBeDefined();
 		const slugSet = new Set(
