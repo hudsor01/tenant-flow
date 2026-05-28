@@ -1,0 +1,31 @@
+-- Drop the entire `stripe` schema. It is leftover infrastructure from the
+-- abandoned Stripe Connect / Stripe Sync direction (Q1-Q2 2026). The product
+-- has since pivoted to landlord-only property management without rent payment
+-- facilitation -- see CLAUDE.md "Project" paragraph.
+--
+-- Audited 2026-05-28 before this drop:
+--   - 0 RLS policies on stripe.* tables
+--   - 0 functions reference stripe.* in their bodies (pg_proc.prosrc scan)
+--   - 0 foreign keys from public.* to stripe.* (internal stripe-to-stripe
+--     FKs handled by CASCADE)
+--   - 0 views in public depend on stripe.*
+--   - 0 pg_cron jobs reference stripe.*
+--   - 0 foreign data wrappers reference stripe.*
+--   - 0 frontend references (grep src/ tests/)
+--   - 0 Edge Function references (grep supabase/functions/)
+--   - All 6 stripe.* tables empty except `stripe._migrations` (1 row of
+--     internal Stripe Sync migration tracking — also dead)
+--
+-- The current product's billing storage lives entirely in `public`:
+--   - `public.users.subscription_*` columns (denormalized from webhooks)
+--   - `public.stripe_webhook_events` (16 live rows) + archive
+--
+-- `stripe.subscriptions` and `stripe.invoices` referenced in CLAUDE.md never
+-- existed -- that section is documentation of an architecture that was
+-- planned but never built. Updated CLAUDE.md in the same commit.
+--
+-- Issue #749 root-cause cleanup: the migration chain has accumulated 5+
+-- months of dead infrastructure from the pivot. This drop removes one
+-- chunk of it.
+
+DROP SCHEMA IF EXISTS stripe CASCADE;
