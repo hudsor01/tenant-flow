@@ -8,6 +8,26 @@
 -- ============================================================================
 CREATE SCHEMA IF NOT EXISTS public;
 CREATE SCHEMA IF NOT EXISTS stripe;
+CREATE SCHEMA IF NOT EXISTS extensions;
+
+-- ============================================================================
+-- EXTENSIONS (those the baseline DDL actually depends on)
+-- ============================================================================
+-- btree_gist enables GiST operator classes for UUID/text — required by the
+-- public.leases unit_id+daterange exclusion index further down in this file.
+CREATE EXTENSION IF NOT EXISTS btree_gist WITH SCHEMA extensions;
+-- pg_net powers the cron-scheduled http_post calls in the public.notify_n8n*
+-- function family used for security event delivery.
+CREATE EXTENSION IF NOT EXISTS pg_net WITH SCHEMA extensions;
+-- pgcrypto provides gen_random_uuid() (used as 16 column DEFAULTs below) plus
+-- crypt()/digest() helpers some functions invoke. PG13+ has gen_random_uuid
+-- builtin, but pgcrypto is needed for the rest of the helpers anyway.
+CREATE EXTENSION IF NOT EXISTS pgcrypto WITH SCHEMA extensions;
+-- pg_cron schedules the 12 cleanup/expiry jobs at the bottom of this file.
+CREATE EXTENSION IF NOT EXISTS pg_cron;
+-- Make extension functions resolvable without explicit schema qualification.
+-- This mirrors the prod project's default search_path for the postgres role.
+ALTER ROLE postgres SET search_path TO 'public', 'extensions';
 
 
 -- ============================================================================
