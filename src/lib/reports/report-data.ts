@@ -13,6 +13,7 @@
  */
 
 import type { FetchQueryOptions, QueryClient } from "@tanstack/react-query";
+import type { ReportType } from "#app/(owner)/reports/generate/components/report-types";
 import { reportAnalyticsQueries } from "#hooks/api/query-keys/report-analytics-keys";
 import { reportQueries } from "#hooks/api/query-keys/report-keys";
 import type {
@@ -833,14 +834,6 @@ async function buildTaxPreparation(
 }
 
 // ─── Dispatch ───────────────────────────────────────────────────────────────
-
-export type ReportType =
-	| "executive-monthly"
-	| "financial-performance"
-	| "property-portfolio"
-	| "lease-portfolio"
-	| "maintenance-operations"
-	| "tax-preparation";
 
 const BUILDERS: Record<
 	ReportType,

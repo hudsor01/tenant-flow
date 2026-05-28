@@ -6,13 +6,10 @@
  */
 
 import * as XLSX from "xlsx";
-import type { ReportData } from "./report-data";
+import type { ReportData, ReportSection } from "./report-data";
 
-export function generateExcelBlob(report: ReportData): Blob {
-	const workbook = XLSX.utils.book_new();
-
-	// Cover sheet with report metadata
-	const cover: Array<Array<string>> = [
+function buildCoverSheetData(report: ReportData): Array<Array<string>> {
+	return [
 		[report.title],
 		[report.subtitle],
 		[`Generated: ${new Date(report.generatedAt).toLocaleString("en-US")}`],
@@ -28,49 +25,56 @@ export function generateExcelBlob(report: ReportData): Blob {
 					: "0",
 		]),
 	];
-	const coverSheet = XLSX.utils.aoa_to_sheet(cover);
+}
+
+function buildSectionSheetData(
+	section: ReportSection,
+): Array<Array<string | number>> {
+	const sheetData: Array<Array<string | number>> = [[section.heading], []];
+
+	if (section.rows && section.rows.length > 0) {
+		sheetData.push(["Metric", "Value"]);
+		for (const row of section.rows) {
+			sheetData.push([row.label, row.value]);
+		}
+	}
+
+	if (section.table) {
+		if (section.rows && section.rows.length > 0) sheetData.push([]);
+		sheetData.push(section.table.headers);
+		if (section.table.rows.length === 0) {
+			sheetData.push(["No data for the selected period."]);
+		} else {
+			for (const row of section.table.rows) {
+				sheetData.push(row);
+			}
+		}
+	}
+
+	if (section.note) {
+		sheetData.push([]);
+		sheetData.push([`Note: ${section.note}`]);
+	}
+
+	return sheetData;
+}
+
+export function generateExcelBlob(report: ReportData): Blob {
+	const workbook = XLSX.utils.book_new();
+
+	const coverSheet = XLSX.utils.aoa_to_sheet(buildCoverSheetData(report));
 	coverSheet["!cols"] = [{ wch: 40 }, { wch: 14 }, { wch: 8 }];
 	XLSX.utils.book_append_sheet(workbook, coverSheet, "Cover");
 
-	// One sheet per section
 	for (const section of report.sections) {
-		const sheetName = sanitizeSheetName(section.heading);
-		const sheetData: Array<Array<string | number>> = [];
-
-		// Section header row
-		sheetData.push([section.heading]);
-		sheetData.push([]);
-
-		if (section.rows && section.rows.length > 0) {
-			sheetData.push(["Metric", "Value"]);
-			for (const row of section.rows) {
-				sheetData.push([row.label, row.value]);
-			}
-		}
-
-		if (section.table) {
-			if (section.rows && section.rows.length > 0) {
-				sheetData.push([]);
-			}
-			sheetData.push(section.table.headers);
-			if (section.table.rows.length === 0) {
-				sheetData.push(["No data for the selected period."]);
-			} else {
-				for (const row of section.table.rows) {
-					sheetData.push(row);
-				}
-			}
-		}
-
-		if (section.note) {
-			sheetData.push([]);
-			sheetData.push([`Note: ${section.note}`]);
-		}
-
+		const sheetData = buildSectionSheetData(section);
 		const sheet = XLSX.utils.aoa_to_sheet(sheetData);
-		// Reasonable column widths based on max content per column
 		sheet["!cols"] = computeColumnWidths(sheetData);
-		XLSX.utils.book_append_sheet(workbook, sheet, sheetName);
+		XLSX.utils.book_append_sheet(
+			workbook,
+			sheet,
+			sanitizeSheetName(section.heading),
+		);
 	}
 
 	const arrayBuffer = XLSX.write(workbook, {

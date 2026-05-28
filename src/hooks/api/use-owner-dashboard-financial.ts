@@ -11,7 +11,7 @@
  * the rest of the financial section.
  */
 
-import { queryOptions } from "@tanstack/react-query";
+import { queryOptions, useQuery } from "@tanstack/react-query";
 import { handlePostgrestError } from "#lib/postgrest-error-handler";
 import { createClient } from "#lib/supabase/client";
 import { getCachedUser } from "#lib/supabase/get-cached-user";
@@ -74,3 +74,12 @@ export const dashboardFinancialQueries = {
 		});
 	},
 };
+
+/**
+ * Revenue/expense chart data fetched from the financial analytics RPC.
+ * Uses server-calculated revenue/expense/netIncome so the chart reflects
+ * actual expenses instead of placeholders.
+ */
+export function useFinancialChartData(timeRange: FinancialTimeRange = "6m") {
+	return useQuery(dashboardFinancialQueries.chartData(timeRange));
+}

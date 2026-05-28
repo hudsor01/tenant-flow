@@ -20,10 +20,6 @@ import {
 	type DashboardStatsData,
 	type OwnerDashboardData,
 } from "./use-owner-dashboard";
-import {
-	dashboardFinancialQueries,
-	type FinancialTimeRange,
-} from "./use-owner-dashboard-financial";
 
 // D-12a interpretation #2: keep `select` OUT of DASHBOARD_BASE_QUERY_OPTIONS
 // so per-call selectors compose the slice they need from the raw cache.
@@ -114,19 +110,4 @@ export function usePropertyPerformance() {
 		...DASHBOARD_BASE_QUERY_OPTIONS,
 		select: selectPropertyPerformance,
 	});
-}
-
-// Re-export types for existing consumers
-export type {
-	FinancialChartDatum,
-	FinancialTimeRange,
-} from "./use-owner-dashboard-financial";
-
-/**
- * Revenue/expense chart data fetched from the financial analytics RPC.
- * Uses server-calculated revenue/expense/netIncome so the chart reflects
- * actual expenses instead of placeholders.
- */
-export function useFinancialChartData(timeRange: FinancialTimeRange = "6m") {
-	return useQuery(dashboardFinancialQueries.chartData(timeRange));
 }

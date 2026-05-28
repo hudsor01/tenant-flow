@@ -28,7 +28,7 @@ import { ToggleGroup, ToggleGroupItem } from "#components/ui/toggle-group";
 import {
 	type FinancialTimeRange,
 	useFinancialChartData,
-} from "#hooks/api/use-dashboard-hooks";
+} from "#hooks/api/use-owner-dashboard-financial";
 import { useMediaQuery } from "#hooks/use-media-query";
 import { cn } from "#lib/utils";
 

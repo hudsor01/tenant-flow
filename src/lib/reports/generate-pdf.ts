@@ -64,6 +64,96 @@ export function generatePdfBlob(report: ReportData): Blob {
 	return doc.output("blob");
 }
 
+function renderSectionHeading(
+	doc: jsPDF,
+	heading: string,
+	x: number,
+	y: number,
+): number {
+	doc.setFont(FONT, "bold");
+	doc.setFontSize(12);
+	doc.setTextColor(0);
+	doc.text(heading, x, y);
+	return y + 14;
+}
+
+function renderSummaryRows(
+	doc: jsPDF,
+	rows: NonNullable<ReportSection["rows"]>,
+	startY: number,
+	margin: number,
+	valueX: number,
+	bottom: number,
+): number {
+	doc.setFont(FONT, "normal");
+	doc.setFontSize(10);
+	let y = startY;
+	for (const row of rows) {
+		if (y > bottom) {
+			doc.addPage();
+			y = margin + 10;
+		}
+		doc.setTextColor(80);
+		doc.text(String(row.label), margin, y);
+		doc.setTextColor(0);
+		doc.text(String(row.value), valueX, y);
+		y += 16;
+	}
+	return y + 6;
+}
+
+function renderSectionTable(
+	doc: jsPDF,
+	table: NonNullable<ReportSection["table"]>,
+	startY: number,
+	margin: number,
+): number {
+	if (table.rows.length === 0) {
+		doc.setFont(FONT, "italic");
+		doc.setFontSize(9);
+		doc.setTextColor(120);
+		doc.text("No data for the selected period.", margin, startY);
+		return startY + 16;
+	}
+	autoTable(doc, {
+		startY,
+		head: [table.headers],
+		body: table.rows.map((r) => r.map((c) => String(c))),
+		theme: "striped",
+		styles: { font: FONT, fontSize: 9, cellPadding: 4 },
+		headStyles: {
+			fillColor: [33, 102, 245],
+			textColor: 255,
+			fontStyle: "bold",
+		},
+		alternateRowStyles: { fillColor: [248, 250, 252] },
+		margin: { left: margin, right: margin },
+	});
+	// autoTable mutates doc; pull current Y from internal lastAutoTable
+	const lastTable = (doc as DocWithAutoTable).lastAutoTable;
+	return (lastTable?.finalY ?? startY) + 20;
+}
+
+function renderSectionNote(
+	doc: jsPDF,
+	note: string,
+	x: number,
+	startY: number,
+	margin: number,
+	bottom: number,
+): number {
+	let y = startY;
+	if (y > bottom) {
+		doc.addPage();
+		y = margin + 10;
+	}
+	doc.setFont(FONT, "italic");
+	doc.setFontSize(8);
+	doc.setTextColor(120);
+	doc.text(note, x, y);
+	return y + 14;
+}
+
 function renderSection(
 	doc: jsPDF,
 	section: ReportSection,
@@ -80,68 +170,18 @@ function renderSection(
 		y = margin + 10;
 	}
 
-	doc.setFont(FONT, "bold");
-	doc.setFontSize(12);
-	doc.setTextColor(0);
-	doc.text(section.heading, margin, y);
-	y += 14;
+	y = renderSectionHeading(doc, section.heading, margin, y);
 
 	if (section.rows && section.rows.length > 0) {
-		doc.setFont(FONT, "normal");
-		doc.setFontSize(10);
-		const labelX = margin;
-		const valueX = pageWidth / 2;
-		for (const row of section.rows) {
-			if (y > bottom) {
-				doc.addPage();
-				y = margin + 10;
-			}
-			doc.setTextColor(80);
-			doc.text(String(row.label), labelX, y);
-			doc.setTextColor(0);
-			doc.text(String(row.value), valueX, y);
-			y += 16;
-		}
-		y += 6;
+		y = renderSummaryRows(doc, section.rows, y, margin, pageWidth / 2, bottom);
 	}
 
-	if (section.table && section.table.rows.length > 0) {
-		autoTable(doc, {
-			startY: y,
-			head: [section.table.headers],
-			body: section.table.rows.map((r) => r.map((c) => String(c))),
-			theme: "striped",
-			styles: { font: FONT, fontSize: 9, cellPadding: 4 },
-			headStyles: {
-				fillColor: [33, 102, 245],
-				textColor: 255,
-				fontStyle: "bold",
-			},
-			alternateRowStyles: { fillColor: [248, 250, 252] },
-			margin: { left: margin, right: margin },
-		});
-		// autoTable mutates doc; pull current Y from internal lastAutoTable
-		const lastTable = (doc as DocWithAutoTable).lastAutoTable;
-		y = (lastTable?.finalY ?? y) + 20;
-	} else if (section.table) {
-		// Empty table — render placeholder row
-		doc.setFont(FONT, "italic");
-		doc.setFontSize(9);
-		doc.setTextColor(120);
-		doc.text("No data for the selected period.", margin, y);
-		y += 16;
+	if (section.table) {
+		y = renderSectionTable(doc, section.table, y, margin);
 	}
 
 	if (section.note) {
-		if (y > bottom) {
-			doc.addPage();
-			y = margin + 10;
-		}
-		doc.setFont(FONT, "italic");
-		doc.setFontSize(8);
-		doc.setTextColor(120);
-		doc.text(section.note, margin, y);
-		y += 14;
+		y = renderSectionNote(doc, section.note, margin, y, margin, bottom);
 	}
 
 	return y + 8;
