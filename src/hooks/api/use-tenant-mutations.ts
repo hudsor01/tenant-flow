@@ -17,9 +17,9 @@ import type {
 	TenantWithLeaseInfoWithVersion,
 } from "#types/core";
 import { leaseQueries } from "./query-keys/lease-keys";
+import { ownerDashboardKeys } from "./query-keys/owner-dashboard-keys";
 import { tenantQueries } from "./query-keys/tenant-keys";
 import { tenantMutations } from "./query-keys/tenant-mutation-options";
-import { ownerDashboardKeys } from "./use-owner-dashboard";
 
 /**
  * Create tenant mutation

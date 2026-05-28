@@ -18,8 +18,6 @@ import {
 	type DashboardActivityData,
 	type DashboardChartsData,
 	type DashboardStatsData,
-	dashboardFinancialQueries,
-	type FinancialTimeRange,
 	type OwnerDashboardData,
 } from "./use-owner-dashboard";
 
@@ -112,19 +110,4 @@ export function usePropertyPerformance() {
 		...DASHBOARD_BASE_QUERY_OPTIONS,
 		select: selectPropertyPerformance,
 	});
-}
-
-// Re-export types for existing consumers
-export type {
-	FinancialChartDatum,
-	FinancialTimeRange,
-} from "./use-owner-dashboard";
-
-/**
- * Revenue/expense chart data fetched from the financial analytics RPC.
- * Uses server-calculated revenue/expense/netIncome so the chart reflects
- * actual expenses instead of placeholders.
- */
-export function useFinancialChartData(timeRange: FinancialTimeRange = "6m") {
-	return useQuery(dashboardFinancialQueries.chartData(timeRange));
 }

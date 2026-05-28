@@ -50,6 +50,7 @@ describe("transformDashboardData", () => {
 		timeSeries: {
 			occupancyRate: [],
 			monthlyRevenue: [],
+			monthlyRevenue6mo: [],
 		},
 		propertyPerformance: [],
 	};
@@ -73,6 +74,23 @@ describe("transformDashboardData", () => {
 		};
 		const result = transformDashboardData(payload);
 		expect(result.portfolioRows[0]?.maintenanceOpen).toBe(0);
+	});
+
+	it("forwards timeSeries.monthlyRevenue6mo into the view-model unchanged", () => {
+		const monthlyRevenue6mo = [
+			{ month: "2026-01", value: 12000 },
+			{ month: "2026-02", value: 13500 },
+		];
+		const payload: OwnerDashboardData = {
+			...basePayload,
+			timeSeries: {
+				occupancyRate: [],
+				monthlyRevenue: [],
+				monthlyRevenue6mo,
+			},
+		};
+		const result = transformDashboardData(payload);
+		expect(result.timeSeries.monthlyRevenue6mo).toEqual(monthlyRevenue6mo);
 	});
 
 	it("preserves the row-order from propertyPerformance", () => {

@@ -23,10 +23,10 @@ import { QUERY_CACHE_TIMES } from "#lib/constants/query-config";
 import type { PaginatedResponse } from "#types/api-contracts";
 import type { Unit } from "#types/core";
 import { leaseQueries } from "./query-keys/lease-keys";
+import { ownerDashboardKeys } from "./query-keys/owner-dashboard-keys";
 import { propertyQueries } from "./query-keys/property-keys";
 // Import query keys from separate file to avoid circular dependency
 import { unitMutations, unitQueries } from "./query-keys/unit-keys";
-import { ownerDashboardKeys } from "./use-owner-dashboard";
 
 /**
  * Extract data array from paginated response

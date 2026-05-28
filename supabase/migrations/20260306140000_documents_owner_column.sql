@@ -106,11 +106,21 @@ create policy "documents_delete_owner" on public.documents
   using (owner_user_id = (select auth.uid()));
 
 -- ============================================================================
--- 5. drop get_current_property_owner_id() -- no longer referenced by any policy or function
---    this function performed a slow lookup through stripe_connected_accounts
---    all document RLS now uses direct owner_user_id = (select auth.uid()) check
+-- 5. drop get_current_property_owner_id() -- no longer referenced by document RLS.
+--    This function performed a slow lookup through stripe_connected_accounts.
+--    All document RLS now uses a direct owner_user_id = (select auth.uid()) check.
+--
+--    CASCADE is required for Supabase Preview replays: at the time this
+--    migration runs on a fresh chain replay, the expenses_*, reports_*, and
+--    tenant_invitations_* policies still depend on this function (they get
+--    rewritten by later migrations). Prod has already applied the un-CASCADEd
+--    drop with those dependencies already removed, so this edit is
+--    replay-only and safe (supabase_migrations.schema_migrations tracks by
+--    version, not content). CASCADE here drops the function plus any
+--    remaining dependent policies; subsequent migrations recreate the
+--    policies against the canonical owner_user_id = (select auth.uid()) check.
 -- ============================================================================
-drop function if exists public.get_current_property_owner_id();
+drop function if exists public.get_current_property_owner_id() cascade;
 
 -- ============================================================================
 -- verification: documents.owner_user_id column exists, index exists,

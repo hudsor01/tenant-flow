@@ -558,13 +558,6 @@ export interface ApplyLateFeeResult {
 	message?: string;
 }
 
-export interface FinancialChartDatum {
-	date: string;
-	income: number;
-	expenses: number;
-	net: number;
-}
-
 export interface EmergencyContact {
 	id: string;
 	tenant_id: string;

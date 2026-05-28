@@ -25,9 +25,9 @@ import {
 	AlertDialogTitle,
 } from "#components/ui/alert-dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "#components/ui/tabs";
+import { ownerDashboardKeys } from "#hooks/api/query-keys/owner-dashboard-keys";
 import { propertyQueries } from "#hooks/api/query-keys/property-keys";
 import { unitQueries } from "#hooks/api/query-keys/unit-keys";
-import { ownerDashboardKeys } from "#hooks/api/use-owner-dashboard";
 import { handleMutationError } from "#lib/mutation-error-handler";
 import { createClient } from "#lib/supabase/client";
 import type { Unit } from "#types/core";
