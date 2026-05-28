@@ -6,34 +6,25 @@
  * Lives in `query-keys/` per CLAUDE.md "Query Key Factories" — extracted
  * from `use-owner-dashboard.ts` during Phase 4 cycle-1 review to bring the
  * hook file under the 300-line cap.
+ *
+ * Only leaves with live consumers are included (per cycle-5 dead-code
+ * pruning): `all` (18 invalidation sites), `analytics.stats()` (2 sites),
+ * `analytics.pageData()` (DASHBOARD_BASE_QUERY_OPTIONS), and
+ * `financial.chartData()` (dashboardFinancialQueries). New keys should be
+ * added when (not before) their first consumer lands.
  */
 export const ownerDashboardKeys = {
 	all: ["owner-dashboard"] as const,
 
-	// Analytics section
 	analytics: {
 		all: () => [...ownerDashboardKeys.all, "analytics"] as const,
 		stats: () => [...ownerDashboardKeys.analytics.all(), "stats"] as const,
-		activity: () =>
-			[...ownerDashboardKeys.analytics.all(), "activity"] as const,
 		pageData: () =>
 			[...ownerDashboardKeys.analytics.all(), "page-data"] as const,
 	},
 
-	// Properties section
-	properties: {
-		all: () => [...ownerDashboardKeys.all, "properties"] as const,
-		performance: () =>
-			[...ownerDashboardKeys.properties.all(), "performance"] as const,
-	},
-
-	// Financial section
 	financial: {
 		all: () => [...ownerDashboardKeys.all, "financial"] as const,
-		billingInsights: () =>
-			[...ownerDashboardKeys.financial.all(), "billing-insights"] as const,
-		revenueTrends: (year: number) =>
-			[...ownerDashboardKeys.financial.all(), "revenue-trends", year] as const,
 		chartData: (year: number, timeRange: string, months: number) =>
 			[
 				...ownerDashboardKeys.financial.all(),
@@ -42,19 +33,5 @@ export const ownerDashboardKeys = {
 				timeRange,
 				months,
 			] as const,
-	},
-
-	// Maintenance section
-	maintenance: {
-		all: () => [...ownerDashboardKeys.all, "maintenance"] as const,
-		analytics: () =>
-			[...ownerDashboardKeys.maintenance.all(), "analytics"] as const,
-	},
-
-	// Tenants section
-	tenants: {
-		all: () => [...ownerDashboardKeys.all, "tenants"] as const,
-		occupancyTrends: () =>
-			[...ownerDashboardKeys.tenants.all(), "occupancy-trends"] as const,
 	},
 };
