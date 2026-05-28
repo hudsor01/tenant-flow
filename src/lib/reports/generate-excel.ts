@@ -93,8 +93,13 @@ export function sanitizeSheetName(name: string): string {
 }
 
 // Exported for unit-test pinning (cycle-6 IN-01).
+// Parameter type widened to include `null | undefined` to match the
+// defensive `String(cell ?? "").length` implementation. The single caller
+// (`buildSectionSheetData` output above) only produces `string | number`,
+// but the wider input keeps the helper honest about what it tolerates and
+// lets tests exercise the null-cell branch without `as unknown as` casts.
 export function computeColumnWidths(
-	data: Array<Array<string | number>>,
+	data: Array<Array<string | number | null | undefined>>,
 ): Array<{ wch: number }> {
 	const widths: number[] = [];
 	for (const row of data) {

@@ -53,8 +53,8 @@ describe("computeColumnWidths", () => {
 
 	it("handles null / undefined cells via the `?? ''` read seam", () => {
 		const result = computeColumnWidths([
-			[null as unknown as string, "value"],
-			["text", undefined as unknown as string],
+			[null, "value"],
+			["text", undefined],
 		]);
 		// Col 0 max from "text" (4 + 2 pad = 6 → clamped to 10)
 		// Col 1 max from "value" (5 + 2 pad = 7 → clamped to 10)
