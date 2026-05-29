@@ -116,7 +116,11 @@ export const inspectionQueries = {
 					throw new Error(`Inspection ${id} not found`);
 				}
 
-				const rooms = (data.inspection_rooms ?? []).map((room) => ({
+				// Strip the raw PostgREST `inspection_rooms` embed -- the
+				// Inspection contract exposes the enriched `rooms` field
+				// (photos resolved to publicUrl) instead.
+				const { inspection_rooms, ...rest } = data;
+				const rooms = (inspection_rooms ?? []).map((room) => ({
 					...room,
 					photos: (room.inspection_photos ?? []).map((photo) => {
 						const { data: urlData } = supabase.storage
@@ -129,7 +133,7 @@ export const inspectionQueries = {
 					}),
 				}));
 
-				const narrowed = narrowInspectionEnums(data);
+				const narrowed = narrowInspectionEnums(rest);
 				return {
 					...narrowed,
 					rooms,
