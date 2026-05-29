@@ -4,7 +4,7 @@
 -- `public` as "Public Can Execute SECURITY DEFINER Function". See
 -- `.planning/anon-exec-audit/CYCLE-1.md` for the per-function classification.
 --
--- This pass fixes the two REAL IDOR vectors. The 20 defense-in-depth revokes
+-- This pass fixes the two REAL IDOR vectors. The 19 defense-in-depth revokes
 -- land in the v2 migration that follows (`20260529225039`); they require
 -- `REVOKE FROM PUBLIC` + re-`GRANT TO authenticated/service_role`, since
 -- Postgres auto-grants EXECUTE to PUBLIC at function creation and the anon

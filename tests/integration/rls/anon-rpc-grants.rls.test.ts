@@ -13,7 +13,7 @@
  *
  * Three contracts pinned here:
  *
- *   1. ANON cannot reach any of the 22 revoked functions. PostgREST surfaces
+ *   1. ANON cannot reach any of the 21 revoked functions. PostgREST surfaces
  *      a revoked EXECUTE as 42501 in current versions; older variants
  *      returned 42883 / PGRST202. Accept any of the three so the test pins
  *      "function is unreachable from anon", not a specific error code.
@@ -45,7 +45,7 @@ if (!SUPABASE_URL || !SUPABASE_PUBLISHABLE_KEY) {
 
 const REVOKED_CODES = ["42501", "42883", "PGRST202"];
 
-/** Functions revoked from anon (22 total: 2 IDOR + 20 defense-in-depth). */
+/** Functions revoked from anon (21 total: 2 IDOR + 19 defense-in-depth). */
 const REVOKED_FROM_ANON: Array<{
 	name: string;
 	args?: Record<string, unknown>;

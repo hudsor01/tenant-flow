@@ -1,9 +1,11 @@
 -- Pass 2 of the SECURITY DEFINER lockdown -- defense-in-depth follow-up.
 --
 -- Pass 1 (`20260529224926_revoke_anon_security_definer_rpcs.sql`) closed the
--- two IDOR vectors. This pass revokes EXECUTE from the remaining 20
+-- two IDOR vectors. This pass revokes EXECUTE from the remaining 19
 -- SECURITY DEFINER functions in `public` that the Security Advisor flagged
--- as anon-executable. Each function below already gates on `auth.uid()`
+-- as anon-executable (16 gates-internally + 3 no-param; the 20th flagged,
+-- `log_lease_signature_activity`, is a trigger function and EXECUTE
+-- privileges on triggers are moot). Each function below already gates on `auth.uid()`
 -- (or `is_admin()`) internally, so an anon caller currently just wastes
 -- cycles tripping the exception. Closing the gate at the role level removes
 -- the noise and removes the function-existence leak from error responses.
