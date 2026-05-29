@@ -451,9 +451,11 @@ import_map = "./functions/deno.json"
 verify_jwt = false
 import_map = "./functions/deno.json"
 
-# Download documents zip — pure JWT-gated reader; platform gate is the
-# auth boundary. Verify_jwt left at default (true) matches deployed prod
-# state (the only function currently running with verify_jwt=true).
+# Download documents zip — defense-in-depth: platform JWT gate (default,
+# verify_jwt=true) PLUS the function's own `validateBearerAuth()` call
+# at index.ts:113 PLUS a user-scoped client. The platform gate is the
+# outer boundary; this is the only function deployed with
+# verify_jwt=true (matches deployed prod state).
 [functions.download-documents-zip]
 import_map = "./functions/deno.json"
 
