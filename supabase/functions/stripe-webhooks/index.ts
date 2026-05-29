@@ -39,7 +39,7 @@ Deno.serve(async (req: Request) => {
 				"STRIPE_SECRET_KEY",
 				"STRIPE_WEBHOOK_SECRET",
 			],
-			optional: ["SENTRY_DSN", "FRONTEND_URL", "RESEND_API_KEY"],
+			optional: ["SENTRY_DSN", "NEXT_PUBLIC_APP_URL", "RESEND_API_KEY"],
 		});
 	} catch (err) {
 		return errorResponse(req, 500, err, { action: "env_validation" });

@@ -95,9 +95,9 @@ Deno.serve(async (req: Request) => {
 				"SUPABASE_URL",
 				"SUPABASE_SERVICE_ROLE_KEY",
 				"SUPABASE_ANON_KEY",
-				// FRONTEND_URL is required by getCorsHeaders — fail fast at
+				// NEXT_PUBLIC_APP_URL is required by getCorsHeaders — fail fast at
 				// boot rather than silently dropping CORS on every response.
-				"FRONTEND_URL",
+				"NEXT_PUBLIC_APP_URL",
 			],
 		});
 	} catch (err) {

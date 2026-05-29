@@ -6,7 +6,7 @@
 //        N8N_WEBHOOK_SECRET=test-secret-deno
 //        SUPABASE_SERVICE_ROLE_KEY=<service role>
 //        SUPABASE_ANON_KEY=<anon>
-//        FRONTEND_URL=http://localhost:3050
+//        NEXT_PUBLIC_APP_URL=http://localhost:3050
 //   3. Local supabase stack running so the function can reach the DB.
 //
 // Run:
@@ -36,7 +36,7 @@ const FN_URL = `${SUPABASE_URL}/functions/v1/n8n-blog-ingest`;
 const SECRET = Deno.env.get("N8N_WEBHOOK_SECRET") ?? "test-secret-deno";
 const ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY") ?? "";
 const SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
-const FRONTEND_URL = Deno.env.get("FRONTEND_URL") ?? "http://localhost:3050";
+const APP_URL = Deno.env.get("NEXT_PUBLIC_APP_URL") ?? "http://localhost:3050";
 const SLUG_PREFIX = "phase-6-deno-";
 
 const admin = SERVICE_ROLE_KEY
@@ -147,7 +147,7 @@ Deno.test("n8n-blog-ingest: valid HMAC + valid payload returns 201 in-review", a
 	assertEquals(data.status, "in-review");
 	assertEquals(data.slug, body.slug);
 	assertExists(data.id);
-	assertEquals(data.blog_url, `${FRONTEND_URL}/blog/${body.slug}`);
+	assertEquals(data.blog_url, `${APP_URL}/blog/${body.slug}`);
 });
 
 Deno.test("n8n-blog-ingest: missing x-n8n-signature returns 401", async () => {

@@ -161,7 +161,7 @@ Deno runtime, `supabase/functions/<name>/index.ts`.
 
 - Shared utilities: `supabase/functions/_shared/` (cors, resend, errors, env, escape-html, rate-limit)
 - Auth pattern: extract Bearer, then `supabase.auth.getUser(token)` — never derive identity from request body
-- CORS: `getCorsHeaders(req)` + early-return `handleCorsOptions(req)`. Fail-closed when `FRONTEND_URL` unset.
+- CORS: `getCorsHeaders(req)` + early-return `handleCorsOptions(req)`. Fail-closed when `NEXT_PUBLIC_APP_URL` unset.
 - Errors: `errorResponse()` from `_shared/errors.ts` — never expose raw `err.message` to clients. Generic `{ error: 'An error occurred' }` + Sentry/console logging.
 - Env validation: `validateEnv({ required, optional })` from `_shared/env.ts` inside `Deno.serve` (not module level)
 - Rate limiting on unauthenticated functions: `rateLimit()` from `_shared/rate-limit.ts` (Upstash sliding window, 10 req/min per IP, fail-open on errors). Sentry tunnel `/monitoring` rate-limited at 60 req/min in proxy.ts.
