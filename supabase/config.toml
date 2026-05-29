@@ -327,36 +327,100 @@ authorization_url_path = "/oauth/consent"
 # Allow dynamic client registration
 allow_dynamic_registration = false
 
+# --- Edge Function configuration --------------------------------------------
+#
+# Every function in this project transitively imports `@sentry/deno` (via
+# `_shared/errors.ts`) or `stripe` (via `_shared/stripe-client.ts`), both of
+# which are BARE specifiers resolved through the project-wide import map at
+# `supabase/functions/deno.json`. Without an explicit `import_map` line per
+# function, the Supabase CLI bundler defaults to looking for
+# `supabase/functions/<name>/deno.json` (per-function), finds nothing, and
+# fails the deploy with:
+#
+#   Failed to bundle the function (reason: Relative import path
+#   "@sentry/deno" not prefixed with / or ./ or ../)
+#
+# So every `[functions.*]` block below MUST carry
+# `import_map = "./functions/deno.json"`. Adding a new Edge Function?
+# Append a block here.
+#
+# Defaults that apply when there is no block: verify_jwt=true, entrypoint=
+# ./functions/<name>/index.ts, no import_map. The 12 blocks below exist
+# specifically so deploys resolve the bare specifiers; the verify_jwt and
+# entrypoint overrides happen in the few blocks that need them.
+
 # Stripe webhook endpoint — public, authenticated via Stripe signature
 # (constructEvent in handler), NOT Supabase JWT. The function name must
-# match the slug in supabase/functions/stripe-webhooks/. The previous
-# declaration named a non-existent `stripe-sync` function. Without the
-# correct entry, future redeploys would default to verify_jwt=true and
-# silently 401 every Stripe POST.
+# match the slug in supabase/functions/stripe-webhooks/.
 [functions.stripe-webhooks]
 verify_jwt = false
+import_map = "./functions/deno.json"
 
 # DocuSeal — uses handler.ts as entrypoint (not index.ts). Tier-gate + action
 # dispatch live in handler.ts; entitlement.ts is the entitlement helper.
 [functions.docuseal]
 entrypoint = "./functions/docuseal/handler.ts"
+import_map = "./functions/deno.json"
 
 # n8n content-factory blog ingest — public endpoint, authenticated via
 # HMAC-SHA256 signature in `x-n8n-signature` (verified against
-# `N8N_WEBHOOK_SECRET`), NOT Supabase JWT. Source: comment block at the
-# top of `supabase/functions/n8n-blog-ingest/index.ts` — "HMAC is the
-# auth boundary". Without `verify_jwt = false`, Supabase's platform
-# layer rejects every call with `UNAUTHORIZED_NO_AUTH_HEADER` before
-# the function code runs.
-#
-# `import_map` points at the project-wide map so the function can use
-# bare specifiers like `@supabase/supabase-js`. Without this, deploys
-# fail with "Relative import path not prefixed with / or ./ or ../"
-# unless the CLI is invoked with `--import-map`, which is fragile
-# (anyone redeploying via the dashboard or a different command won't
-# pass the flag).
+# `N8N_WEBHOOK_SECRET`), NOT Supabase JWT.
 [functions.n8n-blog-ingest]
 verify_jwt = false
+import_map = "./functions/deno.json"
+
+# DocuSeal webhook — public, authenticated via DocuSeal HMAC signature in
+# `X-DocuSeal-Signature` header, NOT Supabase JWT.
+[functions.docuseal-webhook]
+verify_jwt = false
+import_map = "./functions/deno.json"
+
+# Resend webhook — public, authenticated via Svix signature headers, NOT
+# Supabase JWT.
+[functions.resend-webhook]
+verify_jwt = false
+import_map = "./functions/deno.json"
+
+# Newsletter subscribe — public endpoint (anonymous visitors signing up),
+# rate-limited via Upstash sliding window. No Supabase JWT required.
+[functions.newsletter-subscribe]
+verify_jwt = false
+import_map = "./functions/deno.json"
+
+# Auth email send — authenticated; default verify_jwt=true.
+[functions.auth-email-send]
+import_map = "./functions/deno.json"
+
+# Stripe checkout — authenticated; default verify_jwt=true.
+[functions.stripe-checkout]
+import_map = "./functions/deno.json"
+
+# Stripe checkout session — authenticated; default verify_jwt=true.
+[functions.stripe-checkout-session]
+import_map = "./functions/deno.json"
+
+# Stripe billing portal — authenticated; default verify_jwt=true.
+[functions.stripe-billing-portal]
+import_map = "./functions/deno.json"
+
+# Stripe cancel subscription — authenticated; default verify_jwt=true.
+[functions.stripe-cancel-subscription]
+import_map = "./functions/deno.json"
+
+# Download documents zip — authenticated; default verify_jwt=true.
+[functions.download-documents-zip]
+import_map = "./functions/deno.json"
+
+# Export report — authenticated; default verify_jwt=true.
+[functions.export-report]
+import_map = "./functions/deno.json"
+
+# Export user data (GDPR DSAR) — authenticated; default verify_jwt=true.
+[functions.export-user-data]
+import_map = "./functions/deno.json"
+
+# Generate PDF — authenticated; default verify_jwt=true.
+[functions.generate-pdf]
 import_map = "./functions/deno.json"
 
 [edge_runtime]
