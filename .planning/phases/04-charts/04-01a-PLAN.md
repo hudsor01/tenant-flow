@@ -1,0 +1,394 @@
+---
+phase: 04-charts
+plan: 01a
+type: execute
+wave: 1
+depends_on: []
+files_modified:
+  - supabase/migrations/{TIMESTAMP}_phase4_revenue_trend_6mo.sql
+  - src/types/supabase.ts
+  - src/test/mocks/recharts.tsx
+autonomous: false
+requirements: [CHART-01]
+
+must_haves:
+  truths:
+    - "get_dashboard_data_v2 returns time_series.monthly_revenue_6mo: a jsonb array of exactly 6 entries shaped { month: 'YYYY-MM', value: <dollars> }"
+    - "The new ts_revenue_6mo CTE joins the existing all_leases CTE in-place (no second table scan of leases)"
+    - "The function signature remains (p_user_id uuid) returns jsonb — backwards-compatible with existing 30d callers"
+    - "The cycle-10 auth guard (auth.uid() = p_user_id → raise) at the top of the function body is preserved verbatim"
+    - "set search_path TO 'public' is preserved on CREATE OR REPLACE"
+    - "Repo migration filename matches the prod-assigned timestamp after mcp__supabase__list_migrations reconcile"
+    - "src/types/supabase.ts regenerated via bun run db:types after MCP apply (no manual edits)"
+    - "src/test/mocks/recharts.tsx exports a Label mock that invokes its content render-prop with viewBox under jsdom"
+  artifacts:
+    - path: "supabase/migrations/{TIMESTAMP}_phase4_revenue_trend_6mo.sql"
+      provides: "CREATE OR REPLACE FUNCTION get_dashboard_data_v2 with ts_revenue_6mo CTE + monthly_revenue_6mo time_series key"
+      contains: "ts_revenue_6mo"
+    - path: "src/types/supabase.ts"
+      provides: "Regenerated Supabase types reflecting RPC change"
+    - path: "src/test/mocks/recharts.tsx"
+      provides: "Recharts test mock with Label export (jsdom-compatible)"
+      contains: "export const Label"
+  key_links:
+    - from: "supabase/migrations/{TIMESTAMP}_phase4_revenue_trend_6mo.sql ts_revenue_6mo CTE"
+      to: "existing all_leases CTE (owner-scoped via owner_user_id = p_user_id)"
+      via: "left join all_leases l ON l.lease_status = 'active' AND lease covers month boundary"
+      pattern: "left join all_leases"
+---
+
+<objective>
+Ship the DATABASE half of the Phase 4 Revenue chart's `6mo` toggle window — the highest-stakes work in Phase 4 (preserve a ~300-line SECURITY DEFINER function verbatim during CREATE OR REPLACE):
+
+1. Wave-0 prereq for downstream chart tests: extend `src/test/mocks/recharts.tsx` with a `Label` mock (the donut center uses `<Label position="center">` which the existing mock does not export; Plan 04-03's tests would crash at import without this).
+2. Additive Postgres migration extending `get_dashboard_data_v2` with one new CTE (`ts_revenue_6mo`) and one new `time_series` JSONB key (`monthly_revenue_6mo`). Mirrors the Phase 2 additive-migration pattern verbatim.
+3. MCP `apply_migration` → `list_migrations` reconcile → `bun run db:types` regen — the exact sequence Phase 2 codified per `migration-mcp-prod-drift.md`.
+
+This plan is split out from the original 04-01 because the migration copy in Task 2 (~300 lines of SECURITY DEFINER SQL) deserves its own context window — bundling SQL authoring + MCP apply + filename reconcile + db:types regen + TS extension + boundary mapper + RLS test in one plan exceeded the 5-task threshold and crowded the context budget for the highest-stakes copy operation. The TS/test-side work is handed off to Plan 04-01b.
+
+Purpose: CHART-01's `6mo` window has no data source today. Server-side aggregation is mandatory (client-aggregating 180+ daily points would require a separate RPC and timezone correctness risk per RESEARCH.md Open Question Q2 — the shared-CTE invariant + Postgres `date_trunc` are the honest answer).
+
+Output:
+- `src/test/mocks/recharts.tsx` exports a `Label` mock.
+- One new migration file under `supabase/migrations/` (additive only, `CREATE OR REPLACE FUNCTION`).
+- Function applied to prod via Supabase MCP; repo filename reconciled with prod timestamp.
+- `src/types/supabase.ts` regenerated.
+- 04-01b takes over for `analytics.ts` + `use-owner-dashboard.ts` + RLS integration test.
+</objective>
+
+<execution_context>
+@$HOME/.claude/get-shit-done/workflows/execute-plan.md
+@$HOME/.claude/get-shit-done/templates/summary.md
+</execution_context>
+
+<context>
+@.planning/PROJECT.md
+@.planning/ROADMAP.md
+@.planning/STATE.md
+@.planning/REQUIREMENTS.md
+@.planning/phases/04-charts/04-CONTEXT.md
+@.planning/phases/04-charts/04-RESEARCH.md
+@.planning/phases/04-charts/04-UI-SPEC.md
+@.planning/phases/04-charts/04-VALIDATION.md
+@.planning/phases/02-data-layer-rpc/02-CONTEXT.md
+@CLAUDE.md
+@supabase/migrations/20260524012602_phase2_dashboard_rpc_auth_guard_message_align.sql
+@src/test/mocks/recharts.tsx
+
+<interfaces>
+<!-- Current head RPC source. Phase 4 EXTENDS this via CREATE OR REPLACE. -->
+<!-- File: supabase/migrations/20260524012602_phase2_dashboard_rpc_auth_guard_message_align.sql -->
+<!-- Preserve VERBATIM: -->
+<!--   - SECURITY DEFINER -->
+<!--   - SET search_path TO 'public' -->
+<!--   - Auth guard at top of function body: -->
+<!--       IF p_user_id != (select auth.uid()) THEN -->
+<!--         RAISE EXCEPTION 'Access denied: cannot request data for another user'; -->
+<!--       END IF; -->
+<!--   - All existing CTEs (owner_properties, all_units, all_leases, active_leases, all_maintenance, -->
+<!--                       unit_agg, property_agg, lease_agg, maintenance_agg, trend_*, date_series, -->
+<!--                       ts_occupancy, ts_revenue, perf_*, property_perf, recent_activities) -->
+<!--   - All existing grant execute statements -->
+<!-- ADD: -->
+<!--   - month_series CTE: generate_series of 6 month_start dates ending at date_trunc('month', current_date) -->
+<!--   - ts_revenue_6mo CTE: aggregate all_leases.rent_amount per month using lease-coverage rule -->
+<!--   - time_series.monthly_revenue_6mo JSONB key in final jsonb_build_object -->
+<!--   - cross join ts_revenue_6mo ts6 in the final select FROM clause -->
+
+From src/test/mocks/recharts.tsx (CURRENT — exports Pie, PieChart, but NOT Label).
+Recharts `<Label>` is consumed by Plan 04-03's donut as:
+```typescript
+<Label
+  position="center"
+  content={({ viewBox }) => { if (!viewBox || !("cx" in viewBox)) return null; return <text>…</text>; }}
+/>
+```
+Without a mock export, donut tests crash with `Label is not exported from 'recharts'` (verified via vitest.config.ts:51-52 alias).
+</interfaces>
+</context>
+
+<tasks>
+
+<task type="auto" tdd="true">
+  <name>Task 1: Extend Recharts test mock with Label export (Wave 0 prereq)</name>
+  <files>src/test/mocks/recharts.tsx</files>
+  <read_first>
+    - src/test/mocks/recharts.tsx (CURRENT full file — verify existing export style + ReactNode typing pattern; identify the right insertion point near other Recharts overlay primitives like Tooltip / Cell / Legend)
+    - .planning/phases/04-charts/04-RESEARCH.md (§ Pitfall 2 — Recharts mock missing Label export; § Code Examples at lines 727-737 for the canonical mock body)
+    - .planning/phases/04-charts/04-VALIDATION.md (§ Wave 0 Requirements — this is item 1)
+    - vitest.config.ts (lines 51-52 — confirm the `recharts` → `src/test/mocks/recharts.tsx` alias is in effect; do NOT edit)
+  </read_first>
+  <behavior>
+    - Test 1: `import { Label } from "recharts"` resolves without throwing under vitest+jsdom (i.e. the symbol exists on the mock module).
+    - Test 2: Rendering `<Label position="center" content={({ viewBox }) => <text data-testid="label-content">{viewBox?.cx}</text>} />` inside a parent `<svg>` produces a DOM node bearing `data-testid="pie-label"` and `data-position="center"` and contains the `<text data-testid="label-content">` from the content callback (proves the mock invokes the render-prop with a `viewBox` argument).
+    - Test 3: Rendering `<Label position="center" content={<span data-testid="static-content">x</span>} />` (content is a ReactNode, NOT a function) produces a DOM node containing the static child (proves both content branches work).
+  </behavior>
+  <action>
+    Add a `Label` export to `src/test/mocks/recharts.tsx` matching the typing pattern already used by other Recharts overlays in the file (named arrow function const, typed props interface declared adjacent, returns SVG `<g>` with stable `data-testid="pie-label"`). The export MUST:
+
+    1. Define an interface `LabelProps` near the other interface declarations at the top of the file. Properties:
+       - `position?: string`
+       - `content?: ((args: { viewBox?: { cx: number; cy: number } }) => ReactNode) | ReactNode`
+
+    2. Export `Label` as a named arrow function const (matches existing file style — e.g., `export const Tooltip`, `export const Cell`). The component renders:
+       - When `content` is a function: a `<g data-testid="pie-label" data-position={position}>` containing the result of `content({ viewBox: { cx: 0, cy: 0 } })`.
+       - When `content` is a ReactNode (or `undefined`): a `<g data-testid="pie-label" data-position={position}>` containing `content` as a child.
+
+    3. Place the export adjacent to the existing `Cell` / `Pie` exports so future readers find the donut-related mocks together.
+
+    Do NOT alter any existing export — additive only. Do NOT use `any` (use `ReactNode` for the union per existing file pattern). Do NOT mark the export type `default` (named export, matches Recharts' API surface).
+
+    This is a Wave-0 prereq because Plan 04-03's donut tests `import { Label } from "recharts"` and the absence of this export causes module resolution failure inside jsdom. Without this task, the donut tests crash at module load — per RESEARCH.md Pitfall 2.
+  </action>
+  <verify>
+    <automated>grep -n "export const Label" src/test/mocks/recharts.tsx | grep -v '^#' | grep -c 'export const Label'</automated>
+  </verify>
+  <acceptance_criteria>
+    - `grep -n "export const Label" src/test/mocks/recharts.tsx` returns exactly one match.
+    - `grep -n "interface LabelProps" src/test/mocks/recharts.tsx` returns exactly one match.
+    - `grep -c 'data-testid="pie-label"' src/test/mocks/recharts.tsx` returns 1 or 2 (one or both content branches; both forms acceptable).
+    - File has no `any` types: `grep -E ":\s*any[^a-z]|<any>" src/test/mocks/recharts.tsx` returns zero matches.
+    - `bun run typecheck` exits 0 after the edit.
+    - `bun run test:unit -- --run src/components/dashboard/components/__tests__/kpi-sparkline.test.tsx` still passes (no regression on existing chart tests that depend on the mock).
+  </acceptance_criteria>
+  <done>Recharts mock exports `Label` with both render-prop and ReactNode content branches; existing chart tests still pass; no `any` types introduced.</done>
+</task>
+
+<task type="auto">
+  <name>Task 2: Author additive migration extending get_dashboard_data_v2 with ts_revenue_6mo CTE</name>
+  <files>supabase/migrations/{TIMESTAMP}_phase4_revenue_trend_6mo.sql</files>
+  <read_first>
+    - supabase/migrations/20260524012602_phase2_dashboard_rpc_auth_guard_message_align.sql (CURRENT head — copy in full, then extend; lines 13-27 are the auth guard to preserve; the existing `all_leases` CTE is the source the new aggregate joins; the existing `ts_revenue` CTE around lines 220-256 is the bucketing-rule template; the final SELECT/jsonb_build_object is what gains the new key)
+    - .planning/phases/04-charts/04-CONTEXT.md (D-01 — additive RPC extension; D-09 — informational; security gate)
+    - .planning/phases/04-charts/04-RESEARCH.md (§ Pattern 1 — full skeleton including the month_series + ts_revenue_6mo CTE bodies; § Open Question Q1 — calendar months including partial current month; Q2 — UTC matches existing 30d series)
+    - .planning/phases/02-data-layer-rpc/02-01-PLAN.md (verbatim template — Phase 2 used the same shape; mirror its task discipline)
+    - .claude/skills/sql-migration-rules/SKILL.md (lowercase SQL, file naming, additive-only convention)
+    - CLAUDE.md (§ Database — SECURITY DEFINER + SET search_path = public mandatory)
+  </read_first>
+  <action>
+    Create a new file `supabase/migrations/{TIMESTAMP}_phase4_revenue_trend_6mo.sql`. Use a local `YYYYMMDDHHmmss_` prefix; the prod timestamp is reconciled in Task 4.
+
+    The file MUST contain a single `create or replace function public.get_dashboard_data_v2(p_user_id uuid) returns jsonb language plpgsql security definer set search_path to 'public' as $function$ ... $function$;` statement that is a FULL copy of the current function body from `supabase/migrations/20260524012602_phase2_dashboard_rpc_auth_guard_message_align.sql` with THREE additive changes:
+
+    1. **Add `month_series` CTE** in the WITH clause (placement: AFTER `date_series` if that CTE exists in the source, OR adjacent to existing time-series CTEs like `ts_occupancy` / `ts_revenue`). Body:
+       ```
+       month_series as (
+         select date_trunc('month', d)::date as month_start
+         from generate_series(
+           date_trunc('month', current_date) - interval '5 months',
+           date_trunc('month', current_date),
+           '1 month'::interval
+         ) d
+       )
+       ```
+       Produces exactly 6 rows: first day of each of the last 6 calendar months including the current (partial) month. RESEARCH.md Open Question Q1 resolution: calendar-month buckets, current month is the most recent (partial-to-date) bucket.
+
+    2. **Add `ts_revenue_6mo` CTE** in the same WITH clause, AFTER `month_series`. Body:
+       ```
+       ts_revenue_6mo as (
+         select jsonb_agg(
+           jsonb_build_object('month', to_char(rev.month_start, 'YYYY-MM'),
+                              'value', rev.value)
+           order by rev.month_start
+         ) as data
+         from (
+           select
+             ms.month_start,
+             coalesce(sum(l.rent_amount), 0)::numeric as value
+           from month_series ms
+           left join all_leases l
+             on l.lease_status = 'active'
+             and l.start_date <= (ms.month_start + interval '1 month' - interval '1 day')
+             and (l.end_date is null or l.end_date >= ms.month_start)
+           group by ms.month_start
+         ) rev
+       )
+       ```
+       Lease-coverage rule mirrors the existing 30d `ts_revenue` CTE (lease is "active" during a bucket if the bucket interval overlaps the lease's [start_date, end_date] interval). `all_leases` is already owner-scoped via `owner_user_id = p_user_id` (see source CTE); the join chain preserves the owner-isolation invariant. `to_char(date, 'YYYY-MM')` produces the canonical string format the frontend type `MonthlyRevenuePoint.month` expects.
+
+    3. **Extend the final `jsonb_build_object(...)` and final `FROM` clause** in the function body's terminal select:
+       - In the `'time_series'` sub-object, add the new key `'monthly_revenue_6mo', coalesce(ts6.data, '[]'::jsonb)` as the last key (after the existing `'monthly_revenue'` key).
+       - In the `FROM` clause of the terminal select, add `cross join ts_revenue_6mo ts6` (placement adjacent to the existing `cross join ts_revenue tsr` if present, or in equivalent position).
+
+    Preserve EVERY OTHER BYTE of the source function verbatim:
+    - The `IF p_user_id != (select auth.uid()) THEN RAISE EXCEPTION 'Access denied: cannot request data for another user'; END IF;` guard at the top of the function body (T-04-01 mitigation — preserve verbatim).
+    - `set search_path to 'public'` (T-04-02 mitigation — preserve verbatim).
+    - All existing CTEs: `owner_properties`, `all_units`, `all_leases`, `active_leases`, `all_maintenance`, all `_agg` CTEs, all `trend_*` CTEs, `date_series`, `ts_occupancy`, `ts_revenue`, all `perf_*` CTEs, `property_perf`, `recent_activities`.
+    - All existing keys in the terminal `jsonb_build_object` (`'stats'`, `'trends'`, `'time_series'` with `occupancy_rate` + `monthly_revenue`, `'property_performance'`, `'activities'`).
+    - All trailing `grant execute on function ... to authenticated;` + `grant execute on function ... to service_role;` statements.
+
+    Add a leading SQL comment block (8-12 lines) explaining:
+    - This is Phase 4 CHART-01 additive; backwards-compatible.
+    - Preserves the cycle-10 auth guard verbatim (T-04-01).
+    - Shared-CTE invariant: `ts_revenue_6mo` joins existing `all_leases` — no second table scan (T-04-04 in RESEARCH.md security domain).
+    - `to_char(date, 'YYYY-MM')` is the canonical key format consumed by `MonthlyRevenuePoint.month`.
+    - Bucket rule: 6 calendar months ending at the current (partial) month; lease-coverage mirrors existing 30d `ts_revenue`.
+
+    Do NOT use lowercase / uppercase SQL inconsistently — match the source file's case style (lowercase keywords, per `.claude/skills/sql-migration-rules/SKILL.md`). Do NOT inline any `cron.schedule`. Do NOT add new grants. Do NOT alter any underlying table.
+  </action>
+  <verify>
+    <automated>grep -c "ts_revenue_6mo\|month_series\|monthly_revenue_6mo" supabase/migrations/*phase4_revenue_trend_6mo.sql 2>/dev/null</automated>
+  </verify>
+  <acceptance_criteria>
+    - File exists at `supabase/migrations/{TIMESTAMP}_phase4_revenue_trend_6mo.sql` (exactly one matching `*phase4_revenue_trend_6mo*.sql`).
+    - File contains exactly one `create or replace function public.get_dashboard_data_v2` statement.
+    - Auth guard preserved: `grep -c "Access denied: cannot request data for another user" {file}` returns at least 1.
+    - search_path preserved: `grep -c "set search_path to 'public'" {file}` returns at least 1.
+    - New CTEs present: `grep -c "month_series as\|ts_revenue_6mo as" {file}` returns at least 2.
+    - Final JSON key present: `grep -c "'monthly_revenue_6mo', coalesce(ts6.data" {file}` returns exactly 1.
+    - Cross join present: `grep -c "cross join ts_revenue_6mo ts6" {file}` returns exactly 1.
+    - Existing CTEs preserved (sanity sweep): `grep -c "owner_properties as\|all_leases as\|ts_revenue as\|property_perf as\|recent_activities as" {file}` returns at least 5.
+    - Function signature unchanged: `grep -c "get_dashboard_data_v2(p_user_id uuid)" {file}` returns at least 1.
+    - No destructive DDL: `grep -E "drop function|drop table|drop policy|alter table.*drop" {file}` returns zero matches.
+    - File ends with the existing `grant execute on function public.get_dashboard_data_v2(uuid) to authenticated;` + `... to service_role;` statements (verifiable via `grep -c "grant execute on function public.get_dashboard_data_v2" {file}` >= 2).
+  </acceptance_criteria>
+  <done>Migration file written; preserves the auth guard, search_path, and every existing CTE verbatim; adds month_series + ts_revenue_6mo CTEs and the monthly_revenue_6mo JSON key with a cross-join to the terminal select.</done>
+</task>
+
+<task type="checkpoint:human-verify" gate="blocking">
+  <name>Task 3: [BLOCKING] Apply migration to prod via Supabase MCP</name>
+  <what-built>
+    Task 2 wrote the Phase 4 additive migration file. This task pushes it to prod via the Supabase MCP `apply_migration` tool — the only authorized prod-write path per CLAUDE.md § Database.
+  </what-built>
+  <how-to-verify>
+    1. Call `mcp__supabase__apply_migration` with:
+       - `name`: `phase4_revenue_trend_6mo` (no leading timestamp — MCP assigns its own).
+       - `query`: the full SQL contents of the file authored in Task 2.
+    2. Confirm the MCP returns a success response (no error payload).
+    3. Smoke-test on prod via `mcp__supabase__execute_sql`:
+       ```sql
+       select (get_dashboard_data_v2((select id from auth.users where email = 'e2e-owner-a@tenantflow.app')::uuid))->'time_series'->'monthly_revenue_6mo';
+       ```
+       Expected: a JSONB array. If owner A has any active leases, it has 6 entries with shape `{ "month": "YYYY-MM", "value": <number> }`. If owner A has zero active leases, an empty array `[]` is acceptable (coalesce fallback works).
+    4. Confirm function existence: `select proname, pg_get_function_arguments(oid) from pg_proc where proname = 'get_dashboard_data_v2'` returns exactly one row with arguments `p_user_id uuid`.
+
+    [BLOCKING] Without this push: Task 5 (`bun run db:types`) regenerates the OLD schema; the boundary mapper line in Plan 04-01b Task 1 will silently emit `undefined` at runtime; Plan 04-02's chart will get an empty array on the `6mo` toggle and verification will produce a false-positive PASS. Block until MCP returns success and the smoke select confirms the new key is present.
+
+    On MCP error: do NOT retry blindly. Read the error message, fix the SQL in Task 2's file, then re-apply. Common failure modes: syntax error in the new CTEs, accidental loss of a preserved existing CTE during copy, ambiguous column reference (`l.rent_amount` requires the `all_leases l` left join).
+
+    Do NOT use `psql`, `supabase db push`, or any direct DB connection — MCP is the only authorized prod write surface (CLAUDE.md § Database; Phase 2 D-03 carries forward).
+  </how-to-verify>
+  <resume-signal>Type "approved" once MCP returns success and the smoke select confirms the `monthly_revenue_6mo` key is present in the time_series JSONB, or paste the MCP error output if the apply fails.</resume-signal>
+</task>
+
+<task type="auto" gate="blocking">
+  <name>Task 4: [BLOCKING] Reconcile repo migration filename with prod-assigned timestamp</name>
+  <files>supabase/migrations/{LOCAL_TIMESTAMP}_phase4_revenue_trend_6mo.sql → supabase/migrations/{PROD_TIMESTAMP}_phase4_revenue_trend_6mo.sql</files>
+  <read_first>
+    - /Users/richard/.claude/projects/-Users-richard-Developer-tenant-flow/memory/migration-mcp-prod-drift.md (the protocol — MUST follow exactly)
+    - .planning/phases/04-charts/04-RESEARCH.md (Pitfall 6 — failure mode if skipped)
+    - .planning/phases/02-data-layer-rpc/02-01-PLAN.md Task 3 (canonical reconcile pattern Phase 4 mirrors)
+  </read_first>
+  <action>
+    Call `mcp__supabase__list_migrations`. Find the entry whose `name` is `phase4_revenue_trend_6mo`. Read its prod-assigned `version` timestamp (format `YYYYMMDDHHmmss`).
+
+    If the prod timestamp differs from the local repo filename's timestamp (almost always — prod assigns server-time at apply moment), rename the file using `mv`:
+    `mv supabase/migrations/{LOCAL_TIMESTAMP}_phase4_revenue_trend_6mo.sql supabase/migrations/{PROD_TIMESTAMP}_phase4_revenue_trend_6mo.sql`
+
+    If they already match (rare), skip the rename — verify via `mcp__supabase__list_migrations` output regardless.
+
+    [BLOCKING] Without filename reconcile: future `supabase` CLI operations see the local-timestamp file as "missing from prod" and may attempt to re-apply, producing a `function already exists` or duplicate function definition error. Mandatory per `migration-mcp-prod-drift.md`.
+
+    Do NOT alter file contents during rename — only the filename changes. Do NOT create a sibling file (delete-then-create); use `mv` so git tracks it as a rename, preserving the line history.
+  </action>
+  <verify>
+    <automated>ls supabase/migrations/*phase4_revenue_trend_6mo.sql 2>/dev/null | wc -l | tr -d ' '</automated>
+  </verify>
+  <acceptance_criteria>
+    - Exactly ONE file matches `supabase/migrations/*phase4_revenue_trend_6mo.sql` (verifies no botched-rename duplicate; the verify command above must return `1`).
+    - The filename timestamp matches the `version` returned by `mcp__supabase__list_migrations` for the `phase4_revenue_trend_6mo` entry.
+    - File contents unchanged: `git diff supabase/migrations/*phase4_revenue_trend_6mo.sql` shows only the rename, no content diff. (`git status -s` should show the file as renamed `R` not added `A` + deleted `D`.)
+    - `mcp__supabase__list_migrations` includes an entry named `phase4_revenue_trend_6mo` whose version matches the repo filename timestamp.
+  </acceptance_criteria>
+  <done>Repo migration filename matches prod-assigned timestamp; no duplicate files; no content drift.</done>
+</task>
+
+<task type="auto" gate="blocking">
+  <name>Task 5: [BLOCKING] Regenerate src/types/supabase.ts via bun run db:types</name>
+  <files>src/types/supabase.ts</files>
+  <read_first>
+    - scripts/db-types.sh (atomic regen script — read to confirm what `bun run db:types` invokes)
+    - CLAUDE.md (§ Key Commands — `bun run db:types` is the only supported regen surface; the script is atomic)
+    - .planning/phases/04-charts/04-RESEARCH.md (Pitfall 7 — failure mode if run before MCP apply)
+  </read_first>
+  <action>
+    Run `bun run db:types` from the repo root. This invokes `scripts/db-types.sh`, which atomically fetches prod schema and overwrites `src/types/supabase.ts`.
+
+    [BLOCKING] Sequence enforced: MUST run AFTER Task 3 (MCP apply) AND Task 4 (filename reconcile). Running BEFORE the MCP apply regenerates the OLD schema; the boundary mapper line in Plan 04-01b Task 1 would type-check fine but emit `undefined` at runtime, producing a false-positive PASS. Phase 2 D-06 codified this; Phase 4 mirrors.
+
+    Do NOT manually edit `src/types/supabase.ts` — it is generated. If `bun run db:types` exits non-zero, surface the error rather than papering over it. Likely failure modes:
+    - Supabase access token missing → set up local auth, re-run.
+    - Schema-fingerprint cache stale → re-run with the script's `--force` / `--no-cache` flag if available.
+  </action>
+  <verify>
+    <automated>git diff --stat src/types/supabase.ts | grep -c "src/types/supabase.ts"</automated>
+  </verify>
+  <acceptance_criteria>
+    - `bun run db:types` exits with code 0.
+    - `src/types/supabase.ts` has been modified in this run: `git diff --stat src/types/supabase.ts` shows non-zero changes (`grep -c "src/types/supabase.ts"` returns 1).
+    - Regen-only diff (no manual edits): file starts with the canonical autogen header (`// AUTO-GENERATED` or similar — verify against current file), no hand-written comments inside the type body.
+    - `bun run typecheck` exits 0 against the updated `supabase.ts` (independent of Plan 04-01b's downstream wiring).
+  </acceptance_criteria>
+  <done>`src/types/supabase.ts` regenerated; typecheck still passes; no manual edits. Hand off to Plan 04-01b for the TS type + boundary mapper + RLS test work.</done>
+</task>
+
+</tasks>
+
+<threat_model>
+
+## Trust Boundaries
+
+| Boundary | Description |
+|----------|-------------|
+| Authenticated client → PostgREST RPC | Caller passes `p_user_id` parameter; server-side guard enforces `auth.uid() = p_user_id`. |
+| SECURITY DEFINER function → underlying tables | Function runs as `postgres` (RLS-bypassing); WHERE clauses must reproduce `owner_user_id = p_user_id` scoping on every CTE that reads tenant-scoped data. |
+| MCP `apply_migration` → prod schema | DDL push happens with elevated privileges; migration content is hand-authored and reviewed (no user-supplied SQL). |
+| Repo migration filename ↔ prod migration timestamp | Drift causes future `supabase` CLI to attempt re-apply (duplicate function definition error). Reconcile is the integrity boundary. |
+
+## STRIDE Threat Register
+
+| Threat ID | Category | Component | Disposition | Mitigation Plan |
+|-----------|----------|-----------|-------------|-----------------|
+| T-04-01 | Information Disclosure | `get_dashboard_data_v2` SECURITY DEFINER + `p_user_id` parameter | mitigate | Preserve verbatim the cycle-10 `IF p_user_id != (select auth.uid()) THEN RAISE EXCEPTION 'Access denied: cannot request data for another user'` guard at the top of the function body. The new `ts_revenue_6mo` CTE adds NO code path before the guard. Plan 04-01b's RLS test pins the rejection contract symmetrically. |
+| T-04-02 | Tampering (SQL injection / search_path attack) | `CREATE OR REPLACE FUNCTION` in additive migration | mitigate | Preserve `set search_path to 'public'` on the function declaration. No `EXECUTE` / dynamic SQL in the new CTEs (`ts_revenue_6mo` uses only static identifiers + parameter `p_user_id`). No user-supplied strings reach the SQL body. |
+| T-04-03 | Tampering / DoS | Migration replay creating duplicate function | mitigate | `migration-mcp-prod-drift.md` protocol — `mcp__supabase__list_migrations` reconcile in Task 4 renames the repo file to match the prod-assigned timestamp; exactly one file per migration entry. Task 4's verify command pins `wc -l` returning 1 to catch botched renames. |
+| T-04-04 | Information Disclosure | New `ts_revenue_6mo` CTE joining `all_leases` | mitigate | The CTE's `left join all_leases l` reads only the already-owner-scoped `all_leases` CTE (filtered `where owner_user_id = p_user_id`). No cross-owner leakage path. Defense-in-depth via T-04-01's auth guard. |
+| T-04-05 | Denial of Service | New CTE adds aggregate cost | accept | The CTE joins `month_series` (6 rows) to `all_leases` (already materialized + owner-scoped); aggregate is `sum() group by month_start` over the already-filtered leases — sub-millisecond at expected scale (<1000 leases per owner). No new full-table scan; the shared-CTE invariant (Phase 2 D-02) is preserved. |
+| T-04-06 | Repudiation | Migration apply audit trail | accept | Supabase MCP `apply_migration` records the operation in `supabase_migrations.schema_migrations` (visible via `list_migrations`). No additional audit needed for an additive change. |
+| T-04-SC | Tampering | Supply chain — package installs | accept | This plan installs NO new packages (pure SQL + type regen via existing `bun run db:types` script + Recharts mock extension using existing `react` ReactNode type). RESEARCH.md Package Legitimacy Audit not required (no `*install*` step in the plan). |
+
+</threat_model>
+
+<verification>
+- Migration file exists at `supabase/migrations/{PROD_TIMESTAMP}_phase4_revenue_trend_6mo.sql` (exactly one matching `*phase4_revenue_trend_6mo*.sql`).
+- File contains `month_series` + `ts_revenue_6mo` CTEs and the new `'monthly_revenue_6mo'` key in the `time_series` JSONB object.
+- Function `public.get_dashboard_data_v2` is callable on prod and returns the new key (MCP `execute_sql` smoke test from Task 3).
+- `mcp__supabase__list_migrations` shows the migration with prod-assigned timestamp matching the repo filename.
+- `src/types/supabase.ts` regenerated atomically via `bun run db:types`; no manual edits.
+- `src/test/mocks/recharts.tsx` exports `Label` (Wave-0 prereq for Plan 04-03 donut tests).
+- `bun run typecheck` exits 0.
+- `bun run test:unit` does not regress (existing chart tests still pass after the mock extension).
+- No new packages installed: `git diff package.json bun.lock` returns nothing.
+- No destructive DDL applied: function REPLACEd, not dropped.
+- The cycle-10 auth guard text is present in the new migration (`grep -c "Access denied: cannot request data for another user"` ≥ 1).
+</verification>
+
+<success_criteria>
+- ROADMAP § Phase 4 success criterion #1 database half: `monthly_revenue_6mo` is fetchable from `get_dashboard_data_v2`. (The boundary mapper + RLS test half lands in Plan 04-01b; the chart visual half lands in Plans 04-02 + 04-03.)
+- CHART-01 database half: the 6mo toggle's data source exists server-side; TS wiring is delegated to Plan 04-01b.
+- Phase 4 D-01 fulfilled (database half): additive migration mirroring Phase 2 D-02 + D-03 + D-04 pattern verbatim; shared-CTE invariant preserved; MCP-reconcile protocol followed.
+- Zero-Tolerance compliance: no `any`, no manual edit of `src/types/supabase.ts`, lucide-react untouched (no UI in this plan).
+- Wave-0 prereq met: Plan 04-03's donut tests can `import { Label } from "recharts"` without a module resolution error.
+</success_criteria>
+
+<output>
+Create `.planning/phases/04-charts/04-01a-SUMMARY.md` when done. Record:
+- The prod-assigned migration timestamp (from `mcp__supabase__list_migrations`).
+- The MCP `apply_migration` response payload (or success status + smoke-test output from Task 3).
+- A snippet of the new `time_series.monthly_revenue_6mo` output (a single 6-entry array from `e2e-owner-a@tenantflow.app`'s data) confirming the JSONB shape and YYYY-MM keys.
+- `git diff --stat src/types/supabase.ts` output (number of lines changed by the regen).
+- `git diff --stat src/test/mocks/recharts.tsx` (line count of mock extension).
+- Note for Plan 04-01b: confirms the migration is applied, the JSONB key shape, and that `src/types/supabase.ts` is current.
+</output>
+</content>
+</invoke>

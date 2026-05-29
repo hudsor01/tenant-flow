@@ -2519,8 +2519,6 @@ export type Database = {
 				Args: { p_customer_id: string };
 				Returns: Json;
 			};
-			get_tenant_lease_ids: { Args: never; Returns: string[] };
-			get_tenant_property_ids: { Args: never; Returns: string[] };
 			get_tenants_by_owner: { Args: { p_user_id: string }; Returns: string[] };
 			get_tenants_with_lease_by_owner: {
 				Args: { p_user_id: string };
@@ -2578,7 +2576,6 @@ export type Database = {
 			};
 			health_check: { Args: never; Returns: Json };
 			is_admin: { Args: never; Returns: boolean };
-			ledger_aggregation: { Args: never; Returns: Json };
 			link_stripe_customer_to_user: {
 				Args: { p_email: string; p_stripe_customer_id: string };
 				Returns: string;
@@ -2596,15 +2593,6 @@ export type Database = {
 				Returns: string;
 			};
 			process_account_deletions: { Args: never; Returns: undefined };
-			process_payment_intent_failed: {
-				Args: {
-					p_amount: number;
-					p_failure_reason: string;
-					p_payment_intent_id: string;
-					p_rent_payment_id: string;
-				};
-				Returns: undefined;
-			};
 			process_subscription_status_change: {
 				Args: {
 					p_new_status: string;
@@ -2682,26 +2670,6 @@ export type Database = {
 					both_signed: boolean;
 					error_message: string;
 					success: boolean;
-				}[];
-			};
-			upsert_rent_payment: {
-				Args: {
-					p_amount: number;
-					p_application_fee_amount?: number;
-					p_currency: string;
-					p_due_date: string;
-					p_lease_id: string;
-					p_paid_date?: string;
-					p_payment_method_type?: string;
-					p_period_end?: string;
-					p_period_start?: string;
-					p_status: string;
-					p_stripe_payment_intent_id?: string;
-					p_tenant_id: string;
-				};
-				Returns: {
-					id: string;
-					was_inserted: boolean;
 				}[];
 			};
 			user_is_tenant: { Args: never; Returns: boolean };

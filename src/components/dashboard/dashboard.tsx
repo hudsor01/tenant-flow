@@ -6,22 +6,6 @@
  */
 
 import dynamic from "next/dynamic";
-import { ChartLoadingSkeleton } from "#components/shared/chart-loading-skeleton";
-import type { DashboardProps } from "#types/sections/dashboard";
-import {
-	type PortfolioRow,
-	type QuickActionType,
-	quickActions,
-} from "./dashboard-types";
-
-const RevenueOverviewChart = dynamic(
-	() =>
-		import("./components/revenue-overview-chart").then(
-			(mod) => mod.RevenueOverviewChart,
-		),
-	{ ssr: false, loading: () => <ChartLoadingSkeleton /> },
-);
-
 import {
 	Card,
 	CardContent,
@@ -34,26 +18,50 @@ import {
 	type DashboardStatusFilter,
 	useDashboardStore,
 } from "#stores/dashboard-store";
+import type { DashboardProps } from "#types/sections/dashboard";
 import { KpiBentoRow } from "./components/kpi-bento-row";
+import { OccupancyDonutChartSkeleton } from "./components/occupancy-donut-chart-skeleton";
 import { PortfolioGrid } from "./components/portfolio-grid";
 import { PortfolioPagination } from "./components/portfolio-pagination";
 import { PortfolioTable } from "./components/portfolio-table";
 import { PortfolioToolbar } from "./components/portfolio-toolbar";
+import { RevenueAreaChartSkeleton } from "./components/revenue-area-chart-skeleton";
+import {
+	type PortfolioRow,
+	type QuickActionType,
+	quickActions,
+} from "./dashboard-types";
+
+const RevenueAreaChart = dynamic(
+	() =>
+		import("./components/revenue-area-chart").then(
+			(mod) => mod.RevenueAreaChart,
+		),
+	{ ssr: false, loading: () => <RevenueAreaChartSkeleton /> },
+);
+
+const OccupancyDonutChart = dynamic(
+	() =>
+		import("./components/occupancy-donut-chart").then(
+			(mod) => mod.OccupancyDonutChart,
+		),
+	{ ssr: false, loading: () => <OccupancyDonutChartSkeleton /> },
+);
 
 export function Dashboard({
 	kpiData,
-	revenueTrend,
+	monthlyRevenue,
+	monthlyRevenue6mo,
+	units,
 	propertyPerformance,
 	onAddProperty,
 	onCreateLease,
 	onAddTenant,
-	onRecordPayment,
 	onCreateMaintenanceRequest,
 }: DashboardProps & {
 	onAddProperty?: () => void;
 	onCreateLease?: () => void;
 	onAddTenant?: () => void;
-	onRecordPayment?: () => void;
 	onCreateMaintenanceRequest?: () => void;
 }) {
 	// Get state and actions from Zustand store
@@ -157,9 +165,6 @@ export function Dashboard({
 			case "addTenant":
 				onAddTenant?.();
 				break;
-			case "recordPayment":
-				onRecordPayment?.();
-				break;
 			case "createRequest":
 				onCreateMaintenanceRequest?.();
 				break;
@@ -174,9 +179,13 @@ export function Dashboard({
 				<KpiBentoRow {...kpiData} />
 			</div>
 
-			{/* Main Content: Chart (75%) + Quick Actions (25%) */}
+			{/* Main Content: Revenue chart (50%) + Occupancy donut (25%) + Quick Actions (25%) */}
 			<div className="grid gap-6 lg:grid-cols-4" data-tour="trends-section">
-				<RevenueOverviewChart revenueTrend={revenueTrend} />
+				<RevenueAreaChart
+					monthlyRevenue={monthlyRevenue}
+					monthlyRevenue6mo={monthlyRevenue6mo}
+				/>
+				<OccupancyDonutChart units={units} />
 				<Card data-tour="quick-actions">
 					<CardHeader>
 						<CardTitle>Quick Actions</CardTitle>

@@ -17,7 +17,7 @@ import {
 	maintenanceMutations,
 	maintenanceQueries,
 } from "./query-keys/maintenance-keys";
-import { ownerDashboardKeys } from "./use-owner-dashboard";
+import { ownerDashboardKeys } from "./query-keys/owner-dashboard-keys";
 
 /** Variables for update mutation including optional optimistic locking version */
 export type { MaintenanceUpdateMutationVariables } from "./query-keys/maintenance-keys";

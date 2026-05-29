@@ -1,5 +1,6 @@
 "use client";
 
+import { useQueryClient } from "@tanstack/react-query";
 import { format, subMonths } from "date-fns";
 import { Calendar } from "lucide-react";
 import { useState } from "react";
@@ -31,6 +32,7 @@ import {
 
 export default function GenerateReportsPage() {
 	const { user } = useAuth();
+	const queryClient = useQueryClient();
 	const [selectedPeriod, setSelectedPeriod] = useState("last-month");
 	const [generatingReports, setGeneratingReports] = useState<
 		Record<string, boolean>
@@ -74,21 +76,25 @@ export default function GenerateReportsPage() {
 
 		try {
 			const { start_date, end_date } = getDateRange();
-			const user_id = user?.id;
 
-			if (!user_id) {
+			if (!user?.id) {
 				toast.error("User not authenticated");
 				return;
 			}
 
-			await reportsClient.generateReport(reportId, {
-				user_id,
-				start_date,
-				end_date,
-				format: reportFormat,
-			});
+			await reportsClient.generateReport(
+				reportId,
+				{
+					start_date,
+					end_date,
+					format: reportFormat,
+				},
+				queryClient,
+			);
 
-			toast.success("Report generated successfully");
+			toast.success(
+				`Report generated successfully (${reportFormat.toUpperCase()})`,
+			);
 		} catch (error) {
 			handleMutationError(error, "Generate report");
 		} finally {

@@ -1,5 +1,8 @@
 import type { OwnerDashboardData } from "#hooks/api/use-owner-dashboard";
-import type { TimeSeriesDataPoint } from "#types/analytics";
+import type {
+	MonthlyRevenuePoint,
+	TimeSeriesDataPoint,
+} from "#types/analytics";
 import type { DashboardStats } from "#types/stats";
 import type { PortfolioRow } from "./dashboard-types";
 
@@ -21,6 +24,7 @@ export interface DashboardViewModel {
 	timeSeries: {
 		occupancyRate: TimeSeriesDataPoint[];
 		monthlyRevenue: TimeSeriesDataPoint[];
+		monthlyRevenue6mo: MonthlyRevenuePoint[];
 	};
 	portfolioRows: PortfolioRow[];
 }
@@ -91,6 +95,7 @@ export function transformDashboardData(
 		timeSeries: {
 			occupancyRate: payload.timeSeries.occupancyRate,
 			monthlyRevenue: payload.timeSeries.monthlyRevenue,
+			monthlyRevenue6mo: payload.timeSeries.monthlyRevenue6mo,
 		},
 		portfolioRows,
 	};

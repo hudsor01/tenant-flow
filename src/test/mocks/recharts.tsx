@@ -39,6 +39,7 @@ interface PieProps {
 	fill?: string;
 	label?: boolean | unknown;
 	labelLine?: boolean;
+	isAnimationActive?: boolean;
 	children?: ReactNode;
 }
 
@@ -86,7 +87,7 @@ export const PieChart = ({ children }: ChartProps) => (
 );
 
 export const Pie = ({
-	_data,
+	data: _data,
 	dataKey,
 	nameKey,
 	cx,
@@ -96,6 +97,7 @@ export const Pie = ({
 	fill,
 	label,
 	labelLine,
+	isAnimationActive,
 	children,
 }: PieProps) => (
 	<g
@@ -109,6 +111,11 @@ export const Pie = ({
 		data-fill={fill}
 		data-has-label={!!label}
 		data-label-line={labelLine}
+		data-is-animation-active={
+			typeof isAnimationActive === "boolean"
+				? String(isAnimationActive)
+				: undefined
+		}
 	>
 		{children}
 	</g>
@@ -117,6 +124,28 @@ export const Pie = ({
 export const Cell = ({ fill }: CellProps) => (
 	<g data-testid="cell" data-fill={fill} />
 );
+
+interface LabelProps {
+	position?: string;
+	content?:
+		| ((args: { viewBox?: { cx: number; cy: number } }) => ReactNode)
+		| ReactNode;
+}
+
+export const Label = ({ position, content }: LabelProps) => {
+	if (typeof content === "function") {
+		return (
+			<g data-testid="pie-label" data-position={position}>
+				{content({ viewBox: { cx: 0, cy: 0 } })}
+			</g>
+		);
+	}
+	return (
+		<g data-testid="pie-label" data-position={position}>
+			{content}
+		</g>
+	);
+};
 
 export const LineChart = ({ children, data }: ChartProps) => (
 	<svg data-testid="line-chart" data-data={JSON.stringify(data)}>

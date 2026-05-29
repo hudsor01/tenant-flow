@@ -16,7 +16,7 @@ import {
 	maintenanceQueries,
 	vendorMutations,
 } from "./query-keys/maintenance-keys";
-import { ownerDashboardKeys } from "./use-owner-dashboard";
+import { ownerDashboardKeys } from "./query-keys/owner-dashboard-keys";
 
 interface VendorListResponse {
 	data: Vendor[];

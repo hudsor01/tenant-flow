@@ -124,6 +124,8 @@
 		"geist": "^1.7.0",
 		"idb-keyval": "^6.2.2",
 		"input-otp": "^1.4.2",
+		"jspdf": "4.2.1",
+		"jspdf-autotable": "5.0.8",
 		"lucide-react": "^1.16.0",
 		"next": "16.2.6",
 		"next-themes": "^0.4.6",
@@ -145,6 +147,7 @@
 		"sonner": "^2.0.7",
 		"stripe": "^22.1.1",
 		"tailwind-merge": "^3.6.0",
+		"xlsx": "https://cdn.sheetjs.com/xlsx-0.20.3/xlsx-0.20.3.tgz",
 		"zod": "^4.4.3",
 		"zustand": "^5.0.13"
 	},

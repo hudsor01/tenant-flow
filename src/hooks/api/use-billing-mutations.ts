@@ -17,8 +17,8 @@ import { createClient } from "#lib/supabase/client";
 import { getCachedUser } from "#lib/supabase/get-cached-user";
 import type { SubscriptionStatusResponse } from "#types/api-contracts";
 import { mutationKeys } from "./mutation-keys";
+import { ownerDashboardKeys } from "./query-keys/owner-dashboard-keys";
 import { subscriptionStatusKey } from "./query-keys/subscription-keys";
-import { ownerDashboardKeys } from "./use-owner-dashboard";
 
 export interface CancelSubscriptionResponse {
 	id: string;

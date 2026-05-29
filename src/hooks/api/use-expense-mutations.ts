@@ -15,7 +15,7 @@ import {
 	financialTaxQueries,
 } from "./query-keys/expense-keys";
 import { financialKeys } from "./query-keys/financial-keys";
-import { ownerDashboardKeys } from "./use-owner-dashboard";
+import { ownerDashboardKeys } from "./query-keys/owner-dashboard-keys";
 
 /**
  * Returns the active (non-soft-deleted) expense list. Bounded by
