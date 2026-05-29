@@ -239,6 +239,15 @@ describe("useExpensesByProperty", () => {
 		expect(mockFrom).toHaveBeenCalledWith("maintenance_requests");
 		expect(mockFrom).toHaveBeenCalledWith("expenses");
 		expect(mockLimit).toHaveBeenCalledWith(1000);
+		// Filter-contract assertions -- a regression that swaps the column
+		// (e.g. units.eq("owner_user_id", ...)) would still leave the table
+		// sequence above intact. These pin the actual property -> unit ->
+		// maintenance_request -> expense chain.
+		expect(mockEq).toHaveBeenCalledWith("property_id", "prop-1");
+		expect(mockIn).toHaveBeenNthCalledWith(1, "unit_id", ["unit-1"]);
+		expect(mockIn).toHaveBeenNthCalledWith(2, "maintenance_request_id", [
+			"mr-1",
+		]);
 	});
 
 	it("does not fetch when propertyId is empty", () => {

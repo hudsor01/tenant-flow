@@ -6,16 +6,16 @@
  * `string | undefined`, but Supabase's generated insert types (under
  * `exactOptionalPropertyTypes: true`) expect `string | null` or the field
  * omitted entirely. Omitting `undefined` keys lets Postgres apply each
- * column's DEFAULT for absent fields and avoids the false-positive
- * type error that the form/DB nullability mismatch creates.
+ * column's DEFAULT for absent fields and avoids the false-positive type
+ * error that the form/DB nullability mismatch creates.
  *
- * The return type preserves T's nullability: required fields stay
- * required (callers must supply them as non-undefined), optional fields
- * that were undefined drop out cleanly. The cast through `unknown` is
- * required because a structural transformation that conditionally drops
- * keys can't be expressed in TS's value-space; the type contract is
- * "same shape as input minus undefined-valued optional keys", which is
- * sound because non-undefined values are passed through unchanged.
+ * Return-type soundness: the loop filters out every undefined-valued
+ * entry, so the resulting `Record<string, unknown>` only contains keys
+ * whose runtime values are non-undefined. `StripUndefined<T>` is exactly
+ * the structural shape of those remaining keys (each `T[K]` minus
+ * `undefined`), so the final single-step cast from `Record<string,
+ * unknown>` to `StripUndefined<T>` is a sound widening, not a `as unknown
+ * as` bridge.
  */
 type StripUndefined<T> = {
 	[K in keyof T]: Exclude<T[K], undefined>;

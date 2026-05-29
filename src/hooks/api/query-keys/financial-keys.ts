@@ -144,10 +144,7 @@ export const financialQueries = {
 			queryFn: async (): Promise<MonthlyMetric[]> => {
 				const user = await getCachedUser();
 				if (!user) return [];
-				const raw = await fetchRevenueTrends(12);
-				const rows = (Array.isArray(raw) ? raw : []) as Array<
-					Record<string, unknown>
-				>;
+				const rows = await fetchRevenueTrends(12);
 				return rows.map(
 					(row): MonthlyMetric => ({
 						month: String(row.month ?? row.timeframe ?? ""),

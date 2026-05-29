@@ -57,7 +57,8 @@ export const profileQueries = {
 					.select(PROFILE_SELECT)
 					.single();
 				if (error) throw error;
-				return mapUserProfile(data!);
+				if (!data) throw new Error("Profile not found");
+				return mapUserProfile(data);
 			},
 			...QUERY_CACHE_TIMES.DETAIL,
 		}),

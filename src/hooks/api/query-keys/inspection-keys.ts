@@ -12,46 +12,11 @@ import { queryOptions } from "@tanstack/react-query";
 import { QUERY_CACHE_TIMES } from "#lib/constants/query-config";
 import { handlePostgrestError } from "#lib/postgrest-error-handler";
 import { createClient } from "#lib/supabase/client";
-import type {
-	Inspection,
-	InspectionListItem,
+import {
+	type Inspection,
+	type InspectionListItem,
+	narrowInspectionEnums,
 } from "#types/sections/inspections";
-
-const INSPECTION_TYPES = ["move_in", "move_out"] as const;
-const INSPECTION_STATUSES = [
-	"pending",
-	"in_progress",
-	"completed",
-	"tenant_reviewing",
-	"finalized",
-] as const;
-
-type InspectionType = (typeof INSPECTION_TYPES)[number];
-type InspectionStatus = (typeof INSPECTION_STATUSES)[number];
-
-// Narrows the DB row's `inspection_type` / `status: string` to the literal
-// unions the Inspection interface promises. DB CHECK constraints guarantee
-// the values at insert/update time; reject anything else explicitly so a
-// drift event surfaces loudly instead of corrupting downstream consumers.
-export function narrowInspectionEnums<
-	T extends { id: string; inspection_type: string; status: string },
->(row: T): T & { inspection_type: InspectionType; status: InspectionStatus } {
-	if (!INSPECTION_TYPES.includes(row.inspection_type as InspectionType)) {
-		throw new Error(
-			`Unexpected inspection_type "${row.inspection_type}" on inspection ${row.id}`,
-		);
-	}
-	if (!INSPECTION_STATUSES.includes(row.status as InspectionStatus)) {
-		throw new Error(
-			`Unexpected status "${row.status}" on inspection ${row.id}`,
-		);
-	}
-	return {
-		...row,
-		inspection_type: row.inspection_type as InspectionType,
-		status: row.status as InspectionStatus,
-	};
-}
 
 const INSPECTION_SELECT_COLUMNS =
 	"id, lease_id, property_id, unit_id, owner_user_id, inspection_type, status, scheduled_date, completed_at, tenant_reviewed_at, tenant_signature_data, overall_condition, owner_notes, tenant_notes, created_at, updated_at";
