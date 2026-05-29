@@ -12,6 +12,7 @@ import type {
 	UpdateInspectionRoomInput,
 } from "#lib/validation/inspections";
 import type { Inspection } from "#types/sections/inspections";
+import type { Tables } from "#types/supabase";
 
 export interface RecordPhotoInput {
 	inspection_room_id: string;
@@ -21,6 +22,40 @@ export interface RecordPhotoInput {
 	file_size?: number;
 	mime_type: string;
 	caption?: string;
+}
+
+const INSPECTION_TYPES = ["move_in", "move_out"] as const;
+const INSPECTION_STATUSES = [
+	"pending",
+	"in_progress",
+	"completed",
+	"tenant_reviewing",
+	"finalized",
+] as const;
+
+type InspectionType = (typeof INSPECTION_TYPES)[number];
+type InspectionStatus = (typeof INSPECTION_STATUSES)[number];
+
+// Narrows the DB row's `inspection_type` / `status: string` to the literal
+// unions the Inspection interface promises. DB CHECK constraints guarantee
+// the values at insert/update time; we reject anything else explicitly
+// rather than silently coercing.
+function toInspection(row: Tables<"inspections">): Inspection {
+	if (!INSPECTION_TYPES.includes(row.inspection_type as InspectionType)) {
+		throw new Error(
+			`Unexpected inspection_type "${row.inspection_type}" on inspection ${row.id}`,
+		);
+	}
+	if (!INSPECTION_STATUSES.includes(row.status as InspectionStatus)) {
+		throw new Error(
+			`Unexpected status "${row.status}" on inspection ${row.id}`,
+		);
+	}
+	return {
+		...row,
+		inspection_type: row.inspection_type as InspectionType,
+		status: row.status as InspectionStatus,
+	};
 }
 
 export const inspectionMutations = {
@@ -38,7 +73,7 @@ export const inspectionMutations = {
 					.single();
 
 				if (error) handlePostgrestError(error, "inspections");
-				return created as unknown as Inspection;
+				return toInspection(created);
 			},
 		}),
 
@@ -54,7 +89,7 @@ export const inspectionMutations = {
 					.single();
 
 				if (error) handlePostgrestError(error, "inspections");
-				return updated as unknown as Inspection;
+				return toInspection(updated);
 			},
 		}),
 
@@ -88,7 +123,7 @@ export const inspectionMutations = {
 					.single();
 
 				if (error) handlePostgrestError(error, "inspections");
-				return updated as unknown as Inspection;
+				return toInspection(updated);
 			},
 		}),
 
@@ -104,7 +139,7 @@ export const inspectionMutations = {
 					.single();
 
 				if (error) handlePostgrestError(error, "inspections");
-				return updated as unknown as Inspection;
+				return toInspection(updated);
 			},
 		}),
 
@@ -126,7 +161,7 @@ export const inspectionMutations = {
 					.single();
 
 				if (error) handlePostgrestError(error, "inspections");
-				return updated as unknown as Inspection;
+				return toInspection(updated);
 			},
 		}),
 

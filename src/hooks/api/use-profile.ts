@@ -40,8 +40,8 @@ export function mapUserProfile(row: {
 		avatar_url: row.avatar_url,
 		is_admin: row.is_admin,
 		status: row.status,
-		created_at: row.created_at ?? new Date().toISOString(),
-		updated_at: row.updated_at ?? new Date().toISOString(),
+		created_at: row.created_at,
+		updated_at: row.updated_at,
 	} satisfies UserProfile;
 }
 

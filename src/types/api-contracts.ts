@@ -36,7 +36,7 @@ export interface UserProfile {
 	avatar_url: string | null;
 	is_admin: boolean;
 	status: string;
-	created_at: string;
+	created_at: string | null;
 	updated_at: string | null;
 	owner_profile?: UserProfileOwnerData;
 }
@@ -330,25 +330,21 @@ export interface StripeInvoice {
 }
 
 /**
- * Billing history item for rent payment tracking
- * Used in billing history views and payment history cards
+ * Billing history item -- a landlord's TenantFlow SaaS invoice.
+ * Sourced from `public.get_user_invoices` which reads stripe.invoices through
+ * the Supabase Stripe Foreign Data Wrapper.
  */
 export interface BillingHistoryItem {
 	id: string;
-	subscriptionId: string;
-	tenant_id: string;
 	amount: number;
 	currency: string;
 	status: "succeeded" | "failed" | "pending" | "cancelled";
-	stripePaymentIntentId?: string;
-	description?: string;
-	metadata?: Record<string, unknown>;
 	created_at: string;
-	updated_at: string;
 	formattedAmount: string;
 	formattedDate: string;
 	isSuccessful: boolean;
-	failureReason?: string;
+	invoice_pdf: string | null;
+	hosted_invoice_url: string | null;
 }
 
 /**

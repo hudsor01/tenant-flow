@@ -17,11 +17,47 @@ import type {
 	InspectionListItem,
 } from "#types/sections/inspections";
 
+const INSPECTION_TYPES = ["move_in", "move_out"] as const;
+const INSPECTION_STATUSES = [
+	"pending",
+	"in_progress",
+	"completed",
+	"tenant_reviewing",
+	"finalized",
+] as const;
+
+type InspectionType = (typeof INSPECTION_TYPES)[number];
+type InspectionStatus = (typeof INSPECTION_STATUSES)[number];
+
+// Narrows the DB row's `inspection_type` / `status: string` to the literal
+// unions the Inspection interface promises. DB CHECK constraints guarantee
+// the values at insert/update time; reject anything else explicitly so a
+// drift event surfaces loudly instead of corrupting downstream consumers.
+export function narrowInspectionEnums<
+	T extends { id: string; inspection_type: string; status: string },
+>(row: T): T & { inspection_type: InspectionType; status: InspectionStatus } {
+	if (!INSPECTION_TYPES.includes(row.inspection_type as InspectionType)) {
+		throw new Error(
+			`Unexpected inspection_type "${row.inspection_type}" on inspection ${row.id}`,
+		);
+	}
+	if (!INSPECTION_STATUSES.includes(row.status as InspectionStatus)) {
+		throw new Error(
+			`Unexpected status "${row.status}" on inspection ${row.id}`,
+		);
+	}
+	return {
+		...row,
+		inspection_type: row.inspection_type as InspectionType,
+		status: row.status as InspectionStatus,
+	};
+}
+
 const INSPECTION_SELECT_COLUMNS =
-	"id, lease_id, property_id, unit_id, owner_user_id, inspection_type, status, scheduled_date, completed_at, tenant_reviewed_at, overall_condition, owner_notes, created_at, updated_at";
+	"id, lease_id, property_id, unit_id, owner_user_id, inspection_type, status, scheduled_date, completed_at, tenant_reviewed_at, tenant_signature_data, overall_condition, owner_notes, tenant_notes, created_at, updated_at";
 
 const INSPECTION_DETAIL_SELECT =
-	"id, lease_id, property_id, unit_id, owner_user_id, inspection_type, status, scheduled_date, completed_at, tenant_reviewed_at, tenant_signature_data, overall_condition, owner_notes, tenant_notes, created_at, updated_at, inspection_rooms(id, room_name, room_type, condition_rating, notes, created_at, updated_at, inspection_photos(id, inspection_room_id, inspection_id, storage_path, file_name, file_size, mime_type, caption, uploaded_by, created_at))";
+	"id, lease_id, property_id, unit_id, owner_user_id, inspection_type, status, scheduled_date, completed_at, tenant_reviewed_at, tenant_signature_data, overall_condition, owner_notes, tenant_notes, created_at, updated_at, inspection_rooms(id, inspection_id, room_name, room_type, condition_rating, notes, created_at, updated_at, inspection_photos(id, inspection_room_id, inspection_id, storage_path, file_name, file_size, mime_type, caption, uploaded_by, created_at))";
 
 /**
  * Inspection query factory
@@ -42,7 +78,7 @@ export const inspectionQueries = {
 				const { data, error } = await supabase
 					.from("inspections")
 					.select(
-						`${INSPECTION_SELECT_COLUMNS}, properties(name, address_line1), units(name), inspection_rooms(id)`,
+						`${INSPECTION_SELECT_COLUMNS}, properties(name, address_line1), units(unit_number), inspection_rooms(id)`,
 						{ count: "exact" },
 					)
 					.order("created_at", { ascending: false });
@@ -50,31 +86,29 @@ export const inspectionQueries = {
 				if (error) handlePostgrestError(error, "inspections");
 
 				return (data ?? []).map((row): InspectionListItem => {
-					const property = row.properties as unknown as {
-						name: string;
-						address_line1: string;
-					} | null;
-					const unit = row.units as unknown as { name: string } | null;
-					const rooms = row.inspection_rooms as { id: string }[] | null;
+					// PostgREST returns embedded relations as nested objects when
+					// the column is a single-target FK; the typed client narrows
+					// these, but the optional embeds (one-to-one with NULL) come
+					// back as `T | null`. No `as unknown as` needed once the
+					// browser client carries the Database generic.
+					const property = row.properties;
+					const unit = row.units;
+					const rooms = row.inspection_rooms;
 
-					// DB column is `text` with a CHECK enforcing the union; narrow
-					// to the InspectionListItem literal here. Fall back to "move_in"
-					// for any unexpected value rather than throwing -- the row is
-					// usable for display either way.
-					const inspectionType: "move_in" | "move_out" =
-						row.inspection_type === "move_out" ? "move_out" : "move_in";
-
+					const narrowed = narrowInspectionEnums(row);
 					return {
-						id: row.id,
-						lease_id: row.lease_id,
-						property_id: row.property_id,
-						inspection_type: inspectionType,
-						status: row.status,
-						scheduled_date: row.scheduled_date,
-						completed_at: row.completed_at,
-						created_at: row.created_at ?? new Date().toISOString(),
+						id: narrowed.id,
+						lease_id: narrowed.lease_id,
+						property_id: narrowed.property_id,
+						inspection_type: narrowed.inspection_type,
+						status: narrowed.status,
+						scheduled_date: narrowed.scheduled_date,
+						completed_at: narrowed.completed_at,
+						// inspections.created_at is NOT NULL DEFAULT now() -- no
+						// fallback needed.
+						created_at: narrowed.created_at,
 						property_name: property?.name ?? "",
-						unit_name: unit?.name ?? null,
+						unit_name: unit?.unit_number ?? null,
 						room_count: rooms?.length ?? 0,
 					};
 				});
@@ -95,7 +129,7 @@ export const inspectionQueries = {
 
 				if (error) handlePostgrestError(error, "inspections");
 
-				return (data ?? []) as unknown as Inspection[];
+				return (data ?? []).map(narrowInspectionEnums);
 			},
 			enabled: !!leaseId,
 			...QUERY_CACHE_TIMES.DETAIL,
@@ -113,33 +147,11 @@ export const inspectionQueries = {
 					.single();
 
 				if (error) handlePostgrestError(error, "inspections");
+				if (!data) {
+					throw new Error(`Inspection ${id} not found`);
+				}
 
-				// Transform nested inspection_photos to include publicUrl
-				const row = data as typeof data & {
-					inspection_rooms?: Array<{
-						id: string;
-						room_name: string;
-						room_type: string;
-						condition_rating: string;
-						notes: string | null;
-						created_at: string;
-						updated_at: string;
-						inspection_photos?: Array<{
-							id: string;
-							inspection_room_id: string;
-							inspection_id: string;
-							storage_path: string;
-							file_name: string;
-							file_size: number | null;
-							mime_type: string;
-							caption: string | null;
-							uploaded_by: string | null;
-							created_at: string;
-						}>;
-					}>;
-				};
-
-				const rooms = (row?.inspection_rooms ?? []).map((room) => ({
+				const rooms = (data.inspection_rooms ?? []).map((room) => ({
 					...room,
 					photos: (room.inspection_photos ?? []).map((photo) => {
 						const { data: urlData } = supabase.storage
@@ -152,10 +164,11 @@ export const inspectionQueries = {
 					}),
 				}));
 
+				const narrowed = narrowInspectionEnums(data);
 				return {
-					...row,
+					...narrowed,
 					rooms,
-				} as unknown as Inspection;
+				};
 			},
 			enabled: !!id,
 			...QUERY_CACHE_TIMES.DETAIL,

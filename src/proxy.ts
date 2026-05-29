@@ -134,7 +134,7 @@ export async function proxy(request: NextRequest): Promise<NextResponse> {
 			.from("users")
 			.select("is_admin, subscription_status")
 			.eq("id", user.id)
-			.maybeSingle<UserGateRow>();
+			.maybeSingle();
 		if (result.error) {
 			Sentry.captureException(result.error, {
 				tags: { component: "proxy", check: "user_gate", path: "in_band" },

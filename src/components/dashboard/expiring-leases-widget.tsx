@@ -45,7 +45,7 @@ const expiringLeasesWithContext = queryOptions({
 				rent_amount,
 				tenants:primary_tenant_id (name),
 				units:unit_id (
-					name,
+					unit_number,
 					properties:property_id (name)
 				)
 			`)
@@ -57,23 +57,12 @@ const expiringLeasesWithContext = queryOptions({
 
 		if (error) handlePostgrestError(error, "leases");
 
-		type Row = {
-			id: string;
-			end_date: string;
-			rent_amount: number;
-			tenants: { name: string | null } | null;
-			units: {
-				name: string | null;
-				properties: { name: string | null } | null;
-			} | null;
-		};
-
-		return ((data ?? []) as unknown as Row[]).map((row) => ({
+		return (data ?? []).map((row) => ({
 			id: row.id,
 			end_date: row.end_date,
 			rent_amount: row.rent_amount,
 			tenant_name: row.tenants?.name ?? null,
-			unit_name: row.units?.name ?? null,
+			unit_name: row.units?.unit_number ?? null,
 			property_name: row.units?.properties?.name ?? null,
 		}));
 	},

@@ -35,8 +35,6 @@ export const billingQueries = {
 					const amount = Number(row.amount_paid ?? row.amount_due ?? 0);
 					return {
 						id: row.invoice_id,
-						subscriptionId: "",
-						tenant_id: "",
 						amount,
 						currency: "USD",
 						status:
@@ -44,10 +42,11 @@ export const billingQueries = {
 								? "succeeded"
 								: (row.status as BillingHistoryItem["status"]),
 						created_at: row.created_at,
-						updated_at: row.created_at,
 						formattedAmount: `$${amount.toFixed(2)}`,
 						formattedDate: new Date(row.created_at).toLocaleDateString(),
 						isSuccessful: row.status === "paid",
+						invoice_pdf: row.invoice_pdf ?? null,
+						hosted_invoice_url: row.hosted_invoice_url ?? null,
 					};
 				});
 			},

@@ -33,14 +33,12 @@ function ChartTooltipContent({
 		indicator?: "line" | "dot" | "dashed";
 		nameKey?: string;
 		labelKey?: string;
-		payload?: Array<{
-			type?: "none" | string;
-			color?: string;
-			dataKey?: string;
-			name?: string;
-			value?: unknown;
-			payload?: Record<string, unknown>;
-		}>;
+		// Recharts injects `payload` at runtime when this is rendered via
+		// `<Tooltip content={<ChartTooltipContent />} />`; the prop itself is
+		// not on the Tooltip Props type, so declare it explicitly here using
+		// Recharts' own Payload type to keep formatter/labelFormatter calls
+		// type-clean (no `as unknown as` bridges).
+		payload?: ReadonlyArray<RechartsPayload<ValueType, NameType>>;
 		label?: string;
 	}) {
 	const { config } = useChart();
@@ -57,7 +55,7 @@ function ChartTooltipContent({
 		// simple Record to satisfy our helper which reads arbitrary keys.
 		const itemConfig = getPayloadConfigFromPayload(
 			config,
-			item as unknown as Record<string, unknown>,
+			{ ...item } as Record<string, unknown>,
 			key,
 		);
 		const value =
@@ -68,14 +66,7 @@ function ChartTooltipContent({
 		if (labelFormatter) {
 			return (
 				<div className={cn("font-medium", labelClassName)}>
-					{labelFormatter(
-						value,
-						// Convert readonly/generic payload to a concrete mutable array for caller
-						(tooltipPayload as unknown as RechartsPayload<
-							ValueType,
-							NameType
-						>[]) || [],
-					)}
+					{labelFormatter(value, tooltipPayload ?? [])}
 				</div>
 			);
 		}
@@ -108,7 +99,7 @@ function ChartTooltipContent({
 						const key = `${nameKey || item.name || item.dataKey || "value"}`;
 						const itemConfig = getPayloadConfigFromPayload(
 							config,
-							item as unknown as Record<string, unknown>,
+							{ ...item } as Record<string, unknown>,
 							key,
 						);
 						const indicatorColor =
@@ -122,7 +113,7 @@ function ChartTooltipContent({
 
 						return (
 							<div
-								key={item.dataKey}
+								key={String(item.dataKey ?? item.name ?? index)}
 								className={cn(
 									"[&>svg]:text-muted-foreground flex w-full flex-wrap items-stretch gap-2 [&>svg]:h-2.5 [&>svg]:w-2.5",
 									indicator === "dot" && "items-center",
@@ -138,14 +129,9 @@ function ChartTooltipContent({
 									formatter(
 										item.value as ValueType,
 										item.name,
-										// cast payload item to the Recharts payload expected by formatter
-										item as unknown as RechartsPayload<ValueType, NameType>,
+										item,
 										index,
-										// payload may be readonly in Recharts; cast to mutable array for formatter
-										(payload as unknown as RechartsPayload<
-											ValueType,
-											NameType
-										>[]) || [],
+										payload ?? [],
 									)
 								) : (
 									<>

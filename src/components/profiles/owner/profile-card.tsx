@@ -20,7 +20,7 @@ interface ProfileData {
 	last_name?: string | null;
 	full_name: string;
 	avatar_url?: string | null;
-	created_at: string;
+	created_at: string | null;
 	owner_profile?: OwnerProfile | null;
 }
 
@@ -117,14 +117,16 @@ export function ProfileCard({
 						<h2 className="mt-4 text-xl font-semibold">{profile.full_name}</h2>
 						<p className="text-sm text-muted-foreground">Property Owner</p>
 
-						<div className="mt-2 flex items-center gap-1 text-xs text-muted-foreground">
-							<Clock className="h-3 w-3" />
-							Member since{" "}
-							{new Date(profile.created_at).toLocaleDateString("en-US", {
-								month: "short",
-								year: "numeric",
-							})}
-						</div>
+						{profile.created_at && (
+							<div className="mt-2 flex items-center gap-1 text-xs text-muted-foreground">
+								<Clock className="h-3 w-3" />
+								Member since{" "}
+								{new Date(profile.created_at).toLocaleDateString("en-US", {
+									month: "short",
+									year: "numeric",
+								})}
+							</div>
+						)}
 					</div>
 
 					{profile.owner_profile && (

@@ -68,7 +68,7 @@ const profileMutationFactories = {
 					.select("phone")
 					.single();
 				if (error) throw error;
-				return data as { phone: string | null };
+				return { phone: data.phone };
 			},
 		}),
 };

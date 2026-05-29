@@ -78,12 +78,13 @@ export function isMissingRelationError(err: unknown): boolean {
 }
 
 /**
- * Safe-fetch wrapper around `queryClient.fetchQuery`. Several legacy report
- * RPCs reference a removed `rent_payments` table (Phase 06 schema cleanup
- * dropped rent-payment facilitation per CLAUDE.md). Those RPCs return a 404
- * `relation "rent_payments" does not exist` at runtime. Rather than blocking
- * the whole report on one broken RPC, we narrow the catch to that specific
- * Postgres error and fall back to a caller-supplied default.
+ * Safe-fetch wrapper around `queryClient.fetchQuery`. Some report RPCs may
+ * reference a missing table or view (e.g. a fresh-DB chain replay where a
+ * dependent migration hasn't landed yet, or a partially-rolled-back schema).
+ * Rather than blocking the entire report on one broken RPC, we narrow the
+ * catch to Postgres `42P01 relation does not exist` and fall back to a
+ * caller-supplied default with `available: false` so the UI can render the
+ * remaining sections.
  */
 export async function safeFetch<TData, TQueryKey extends readonly unknown[]>(
 	queryClient: QueryClient,

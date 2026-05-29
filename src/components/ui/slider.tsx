@@ -21,8 +21,8 @@ function Slider({
 
 	return (
 		<SliderPrimitive.Root
-			defaultValue={defaultValue as unknown as number[]}
-			value={value as unknown as number[]}
+			{...(defaultValue !== undefined && { defaultValue })}
+			{...(value !== undefined && { value })}
 			min={min}
 			max={max}
 			className={cn(

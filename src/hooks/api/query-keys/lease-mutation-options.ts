@@ -74,7 +74,7 @@ export const leaseMutations = {
 
 				if (error) handlePostgrestError(error, "leases");
 
-				return created as unknown as Lease;
+				return created;
 			},
 		}),
 
@@ -103,7 +103,7 @@ export const leaseMutations = {
 
 				if (error) handlePostgrestError(error, "leases");
 
-				return updated as unknown as Lease;
+				return updated;
 			},
 		}),
 
@@ -155,7 +155,7 @@ export const leaseMutations = {
 
 				if (error) handlePostgrestError(error, "leases");
 
-				return updated as unknown as Lease;
+				return updated;
 			},
 		}),
 
@@ -179,7 +179,7 @@ export const leaseMutations = {
 
 				if (error) handlePostgrestError(error, "leases");
 
-				return updated as unknown as Lease;
+				return updated;
 			},
 		}),
 

@@ -8,6 +8,7 @@
 
 import { queryOptions } from "@tanstack/react-query";
 import { handlePostgrestError } from "#lib/postgrest-error-handler";
+import { jsonArrayOrEmpty } from "#lib/rpc-shape";
 import { createClient } from "#lib/supabase/client";
 import { getCachedUser } from "#lib/supabase/get-cached-user";
 
@@ -26,7 +27,7 @@ export const analyticsKeys = {
  */
 export async function fetchRevenueTrends(
 	months: number,
-): Promise<Record<string, unknown>> {
+): Promise<Array<Record<string, unknown>>> {
 	const supabase = createClient();
 	const user = await getCachedUser();
 	if (!user) throw new Error("Not authenticated");
@@ -35,7 +36,7 @@ export async function fetchRevenueTrends(
 		p_months: months,
 	});
 	if (error) handlePostgrestError(error, "analytics");
-	return (data ?? {}) as Record<string, unknown>;
+	return jsonArrayOrEmpty<Record<string, unknown>>(data);
 }
 
 /**
@@ -79,7 +80,7 @@ export const revenueTrendsQuery = (params?: { months?: number }) => {
 	const months = params?.months ?? 12;
 	return queryOptions({
 		queryKey: analyticsKeys.revenueTrends(months),
-		queryFn: async (): Promise<Record<string, unknown>> =>
+		queryFn: async (): Promise<Array<Record<string, unknown>>> =>
 			fetchRevenueTrends(months),
 		staleTime: 2 * 60 * 1000,
 		gcTime: 10 * 60 * 1000,

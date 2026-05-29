@@ -122,10 +122,7 @@ export function LeaseCreationWizard({ onSuccess }: LeaseCreationWizardProps) {
 				.eq("id", selectionData.primary_tenant_id ?? "")
 				.single();
 			if (!data) return null;
-			const user = data.users as unknown as {
-				first_name: string | null;
-				last_name: string | null;
-			} | null;
+			const user = data.users;
 			return {
 				id: data.id,
 				first_name: data.first_name ?? user?.first_name ?? null,
