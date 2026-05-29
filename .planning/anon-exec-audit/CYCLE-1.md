@@ -67,7 +67,7 @@ Match against migration intent: ✓
 ## Regression-pinning test
 
 `tests/integration/rls/anon-rpc-grants.rls.test.ts` — pins the lockdown state of every function:
-- 22 anon-RPC tests assert `error.code ∈ {42501, 42883, PGRST202}` (PostgREST's three flavors of "revoked")
+- 21 anon-RPC tests assert `error.code ∈ {42501, 42883, PGRST202}` (PostgREST's three flavors of "revoked")
 - 2 authenticated-RPC tests assert the IDOR fixes
 - 1 positive test asserts `is_admin()` is still anon-callable and returns `false`
 

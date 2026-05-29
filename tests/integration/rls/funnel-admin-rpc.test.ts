@@ -53,7 +53,7 @@ describe("get_funnel_stats — non-admin callers rejected", () => {
 		expect(error!.message).toMatch(/unauthorized/i);
 	});
 
-	it("rejects anonymous (no auth) caller with Unauthorized", async () => {
+	it("rejects anonymous (no auth) caller at the role-level revoke", async () => {
 		if (!SUPABASE_URL || !SUPABASE_PUBLISHABLE_KEY) {
 			throw new Error(
 				"Missing NEXT_PUBLIC_SUPABASE_URL/NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY",
@@ -66,7 +66,12 @@ describe("get_funnel_stats — non-admin callers rejected", () => {
 		});
 		expect(data).toBeNull();
 		expect(error).not.toBeNull();
-		expect(error!.message).toMatch(/unauthorized/i);
+		// Migration 20260529225039 revoked EXECUTE FROM PUBLIC on get_funnel_stats,
+		// so anon callers are now blocked at the role-level (42501) before the body's
+		// `IF NOT is_admin() THEN RAISE 'Unauthorized'` runs. The role-level revoke
+		// is the canonical lockdown (see tests/integration/rls/anon-rpc-grants.rls.test.ts
+		// for the full set); the in-body `is_admin()` gate is now defense-in-depth.
+		expect(["42501", "42883", "PGRST202"]).toContain(error?.code);
 	});
 });
 

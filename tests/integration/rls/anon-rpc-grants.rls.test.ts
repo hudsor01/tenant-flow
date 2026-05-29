@@ -8,7 +8,7 @@
  *     (IDOR fixes: revoke anon + authenticated on `confirm_lease_subscription`
  *      and `get_user_plan_limits`)
  *   - 20260529225039_revoke_anon_security_definer_rpcs_v2.sql
- *     (defense-in-depth: revoke FROM PUBLIC on 20 functions that gate on
+ *     (defense-in-depth: revoke FROM PUBLIC on 19 functions that gate on
  *      auth.uid() internally; re-grant to authenticated + service_role)
  *
  * Three contracts pinned here:
