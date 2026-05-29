@@ -35,9 +35,13 @@ export function AddExpenseDialog({
 	const [isSubmitting, setIsSubmitting] = useState(false);
 	const [vendorName, setVendorName] = useState("");
 	const [amount, setAmount] = useState("");
-	const [expenseDate, setExpenseDate] = useState(
-		new Date().toISOString().split("T")[0],
-	);
+	// `.split("T")[0]` is `string | undefined` under noUncheckedIndexedAccess.
+	// The ISO timestamp always has a "T", so the date prefix exists -- coerce
+	// to `string` so downstream insert payload typing stays clean.
+	const [expenseDate, setExpenseDate] = useState(() => {
+		const isoDate = new Date().toISOString().split("T")[0];
+		return isoDate ?? new Date().toISOString().slice(0, 10);
+	});
 	const [description, setDescription] = useState("");
 
 	const handleSubmit = async (e: FormEvent) => {

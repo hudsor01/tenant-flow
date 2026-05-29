@@ -7,8 +7,10 @@
 
 import { queryOptions } from "@tanstack/react-query";
 import { handlePostgrestError } from "#lib/postgrest-error-handler";
+import { jsonObject, jsonObjectOrEmpty } from "#lib/rpc-shape";
 import { createClient } from "#lib/supabase/client";
 import { getCachedUser } from "#lib/supabase/get-cached-user";
+import type { PropertyPerformanceEntry } from "#types/analytics";
 import type {
 	FinancialAnalyticsPageData,
 	LeaseAnalyticsPageData,
@@ -46,7 +48,7 @@ export const analyticsQueries = {
 					p_user_id: user.id,
 				});
 				if (error) handlePostgrestError(error, "analytics");
-				return data as FinancialAnalyticsPageData;
+				return jsonObject<FinancialAnalyticsPageData>(data);
 			},
 			staleTime: 2 * 60 * 1000,
 			gcTime: 10 * 60 * 1000,
@@ -57,7 +59,10 @@ export const analyticsQueries = {
 			queryKey: analyticsQueries.lease(),
 			queryFn: async (): Promise<LeaseAnalyticsPageData> => {
 				const data = await fetchOccupancyTrends(12);
-				return (data ?? {}) as unknown as LeaseAnalyticsPageData;
+				return jsonObjectOrEmpty<LeaseAnalyticsPageData>(
+					data,
+					{} as LeaseAnalyticsPageData,
+				);
 			},
 			staleTime: 2 * 60 * 1000,
 			gcTime: 10 * 60 * 1000,
@@ -77,7 +82,7 @@ export const analyticsQueries = {
 					},
 				);
 				if (error) handlePostgrestError(error, "analytics");
-				return data as MaintenanceInsightsPageData;
+				return jsonObject<MaintenanceInsightsPageData>(data);
 			},
 			staleTime: 2 * 60 * 1000,
 			gcTime: 10 * 60 * 1000,
@@ -134,9 +139,16 @@ export const analyticsQueries = {
 					handlePostgrestError(maintenanceResult.error, "analytics");
 
 				return {
-					financial: financialResult.data as FinancialAnalyticsPageData,
-					maintenance: maintenanceResult.data as MaintenanceInsightsPageData,
-					lease: (occupancyData ?? {}) as unknown as LeaseAnalyticsPageData,
+					financial: jsonObject<FinancialAnalyticsPageData>(
+						financialResult.data,
+					),
+					maintenance: jsonObject<MaintenanceInsightsPageData>(
+						maintenanceResult.data,
+					),
+					lease: jsonObjectOrEmpty<LeaseAnalyticsPageData>(
+						occupancyData,
+						{} as LeaseAnalyticsPageData,
+					),
 				};
 			},
 			staleTime: 2 * 60 * 1000,
@@ -157,7 +169,59 @@ export const analyticsQueries = {
 					},
 				);
 				if (error) handlePostgrestError(error, "analytics");
-				return data as PropertyPerformancePageData;
+				// `get_property_performance_analytics` returns flat per-property
+				// rows; the dashboard contract expects a structured
+				// PropertyPerformancePageData with metrics/performance/units/
+				// unitStats/visitorAnalytics/revenueTrends. This is a known data
+				// gap from the rent-payment demolish; surface what the RPC does
+				// give us (per-property revenue + occupancy) under `performance`
+				// and leave the rest as empty so each section renders its empty
+				// state cleanly instead of throwing on undefined access.
+				const rows = data ?? [];
+				const totalRevenue = rows.reduce(
+					(sum, r) => sum + Number(r.total_revenue ?? 0),
+					0,
+				);
+				const totalOccupancy = rows.reduce(
+					(sum, r) => sum + Number(r.occupancy_rate ?? 0),
+					0,
+				);
+				return {
+					metrics: {
+						totalProperties: rows.length,
+						totalUnits: 0,
+						occupiedUnits: 0,
+						averageOccupancy:
+							rows.length > 0 ? totalOccupancy / rows.length : 0,
+						totalRevenue,
+					},
+					performance: rows.map(
+						(r): PropertyPerformanceEntry => ({
+							property_id: r.property_id,
+							propertyName: r.property_name,
+							occupancyRate: Number(r.occupancy_rate),
+							monthlyRevenue: Number(r.total_revenue),
+							annualRevenue: Number(r.total_revenue) * 12,
+							totalUnits: 0,
+							occupiedUnits: 0,
+							vacantUnits: 0,
+							trend: "stable",
+							trendPercentage: 0,
+						}),
+					),
+					units: [],
+					unitStats: [],
+					visitorAnalytics: {
+						summary: {
+							totalVisits: 0,
+							totalInquiries: 0,
+							totalConversions: 0,
+							conversionRate: 0,
+						},
+						timeline: [],
+					},
+					revenueTrends: [],
+				};
 			},
 			staleTime: 2 * 60 * 1000,
 			gcTime: 10 * 60 * 1000,

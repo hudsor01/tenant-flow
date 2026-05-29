@@ -11,6 +11,7 @@
  */
 
 import { queryOptions } from "@tanstack/react-query";
+import { omitUndefined } from "#lib/db-insert";
 import { handlePostgrestError } from "#lib/postgrest-error-handler";
 import { createClient } from "#lib/supabase/client";
 import type { DocumentCategory } from "#lib/validation/documents";
@@ -111,17 +112,23 @@ export const documentSearchQueries = {
 				const supabase = createClient();
 				const page = params.page ?? 0;
 
-				const { data, error } = await supabase.rpc("search_documents", {
-					p_query: params.query?.trim() || null,
-					p_entity_type: params.entityType ?? null,
-					p_categories: sortedCategories,
-					// Expand YYYY-MM-DD to local-zone start/end-of-day ISO so
-					// the user's chosen end day is INCLUDED in results.
-					p_from: expandDateBoundary(params.from, false),
-					p_to: expandDateBoundary(params.to, true),
-					p_limit: SEARCH_PAGE_SIZE,
-					p_offset: page * SEARCH_PAGE_SIZE,
-				});
+				// search_documents RPC params are typed under
+				// `exactOptionalPropertyTypes` -- present-but-undefined values are
+				// rejected. omitUndefined drops absent keys cleanly.
+				const { data, error } = await supabase.rpc(
+					"search_documents",
+					omitUndefined({
+						p_query: params.query?.trim() || undefined,
+						p_entity_type: params.entityType ?? undefined,
+						p_categories: sortedCategories ?? undefined,
+						// Expand YYYY-MM-DD to local-zone start/end-of-day ISO so
+						// the user's chosen end day is INCLUDED in results.
+						p_from: expandDateBoundary(params.from, false) ?? undefined,
+						p_to: expandDateBoundary(params.to, true) ?? undefined,
+						p_limit: SEARCH_PAGE_SIZE,
+						p_offset: page * SEARCH_PAGE_SIZE,
+					}),
+				);
 				if (error) handlePostgrestError(error, "documents");
 
 				const rawRows = (data ?? []) as Array<Record<string, unknown>>;

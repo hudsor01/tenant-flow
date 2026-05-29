@@ -10,6 +10,7 @@
  */
 
 import { mutationOptions } from "@tanstack/react-query";
+import { omitUndefined } from "#lib/db-insert";
 import { handlePostgrestError } from "#lib/postgrest-error-handler";
 import { requireOwnerUserId } from "#lib/require-owner-user-id";
 import { createClient } from "#lib/supabase/client";
@@ -67,7 +68,7 @@ export const leaseMutations = {
 
 				const { data: created, error } = await supabase
 					.from("leases")
-					.insert({ ...leaseData, owner_user_id: ownerId })
+					.insert(omitUndefined({ ...leaseData, owner_user_id: ownerId }))
 					.select()
 					.single();
 
@@ -90,7 +91,9 @@ export const leaseMutations = {
 				version?: number;
 			}): Promise<Lease> => {
 				const supabase = createClient();
-				const payload = version ? { ...data, version } : { ...data };
+				const payload = omitUndefined(
+					version ? { ...data, version } : { ...data },
+				);
 				const { data: updated, error } = await supabase
 					.from("leases")
 					.update(payload)

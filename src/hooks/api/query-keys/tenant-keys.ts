@@ -253,11 +253,23 @@ export const tenantQueries = {
 					.single();
 
 				if (tenantError) handlePostgrestError(tenantError, "tenants");
+				// tenants.user_id is nullable -- a tenant record can exist without
+				// a linked auth user. Return defaults rather than querying with
+				// null (which PostgREST would reject as `eq.null` -- pointless).
+				const tenantUserId = tenantRow?.user_id;
+				if (!tenantUserId) {
+					return {
+						emailNotifications: true,
+						smsNotifications: false,
+						maintenanceUpdates: true,
+						paymentReminders: true,
+					};
+				}
 
 				const { data, error } = await supabase
 					.from("notification_settings")
 					.select("email, sms, maintenance, general")
-					.eq("user_id", tenantRow!.user_id)
+					.eq("user_id", tenantUserId)
 					.single();
 
 				if (error) handlePostgrestError(error, "notification_settings");

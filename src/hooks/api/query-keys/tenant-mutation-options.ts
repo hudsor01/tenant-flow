@@ -1,4 +1,5 @@
 import { mutationOptions } from "@tanstack/react-query";
+import { omitUndefined } from "#lib/db-insert";
 import { logger } from "#lib/frontend-logger";
 import { handlePostgrestError } from "#lib/postgrest-error-handler";
 import { createClient } from "#lib/supabase/client";
@@ -28,7 +29,7 @@ export const tenantMutations = {
 
 				const { data: created, error } = await supabase
 					.from("tenants")
-					.insert({ ...data, owner_user_id })
+					.insert(omitUndefined({ ...data, owner_user_id }))
 					.select()
 					.single();
 
@@ -51,7 +52,7 @@ export const tenantMutations = {
 				const supabase = createClient();
 				const { data: updated, error } = await supabase
 					.from("tenants")
-					.update(data)
+					.update(omitUndefined(data))
 					.eq("id", id)
 					.select()
 					.single();

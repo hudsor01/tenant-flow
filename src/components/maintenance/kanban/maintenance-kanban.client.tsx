@@ -221,7 +221,10 @@ export function MaintenanceKanban({ initialRequests }: MaintenanceKanbanProps) {
 		startTransition(async () => {
 			try {
 				const supabase = createClient();
-				const updatePayload: Record<string, unknown> = { status: newStatus };
+				const updatePayload: {
+					status: typeof newStatus;
+					completed_at?: string;
+				} = { status: newStatus };
 				if (newStatus === "completed") {
 					updatePayload.completed_at = new Date().toISOString();
 				}

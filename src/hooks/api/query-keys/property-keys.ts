@@ -1,5 +1,6 @@
 import { mutationOptions, queryOptions } from "@tanstack/react-query";
 import { QUERY_CACHE_TIMES } from "#lib/constants/query-config";
+import { omitUndefined } from "#lib/db-insert";
 import { createLogger, logger } from "#lib/frontend-logger";
 import { handlePostgrestError } from "#lib/postgrest-error-handler";
 import { requireOwnerUserId } from "#lib/require-owner-user-id";
@@ -203,7 +204,7 @@ export const propertyMutations = {
 
 				const { data: created, error } = await supabase
 					.from("properties")
-					.insert({ ...data, owner_user_id: ownerId })
+					.insert(omitUndefined({ ...data, owner_user_id: ownerId }))
 					.select()
 					.single();
 
@@ -222,7 +223,9 @@ export const propertyMutations = {
 			mutationKey: mutationKeys.properties.update,
 			mutationFn: async ({ id, data, version }): Promise<Property> => {
 				const supabase = createClient();
-				const updatePayload = version ? { ...data, version } : { ...data };
+				const updatePayload = omitUndefined(
+					version ? { ...data, version } : { ...data },
+				);
 				const { data: updated, error } = await supabase
 					.from("properties")
 					.update(updatePayload)

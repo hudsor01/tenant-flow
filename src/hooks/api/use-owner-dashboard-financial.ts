@@ -13,9 +13,9 @@
 
 import { queryOptions, useQuery } from "@tanstack/react-query";
 import { handlePostgrestError } from "#lib/postgrest-error-handler";
+import { jsonArray } from "#lib/rpc-shape";
 import { createClient } from "#lib/supabase/client";
 import { getCachedUser } from "#lib/supabase/get-cached-user";
-import type { FinancialMetrics } from "#types/core";
 import { ownerDashboardKeys } from "./query-keys/owner-dashboard-keys";
 
 export interface FinancialChartDatum {
@@ -26,6 +26,20 @@ export interface FinancialChartDatum {
 }
 
 export type FinancialTimeRange = "7d" | "30d" | "6m" | "1y";
+
+// Actual return shape of public.get_revenue_trends_optimized after the
+// post-#749 repair migration (20260528231201_repair_analytics_rpcs.sql).
+// Was previously typed as `FinancialMetrics` with a `.period` key, but
+// the RPC has never emitted `period` -- it emits `month` (YYYY-MM string).
+// The mismatch crashed `<ChartAreaInteractive>` on `/properties/units`
+// and `/analytics/overview` with "Cannot read properties of undefined
+// (reading 'localeCompare')" until cycle-1 review caught it.
+interface RevenueTrendRow {
+	month: string;
+	revenue: number;
+	collections: number;
+	outstanding: number;
+}
 
 const timeRangeToMonths: Record<FinancialTimeRange, number> = {
 	"7d": 1,
@@ -57,15 +71,20 @@ export const dashboardFinancialQueries = {
 
 				if (!Array.isArray(data) || data.length === 0) return [];
 
-				const trimmed = (data as FinancialMetrics[])
-					.sort((a, b) => a.period.localeCompare(b.period))
+				const trimmed = jsonArray<RevenueTrendRow>(data)
+					.sort((a, b) => a.month.localeCompare(b.month))
 					.slice(-months);
 
+				// `expenses` and per-month profit aren't surfaced by this RPC --
+				// they come from `calculate_monthly_metrics` / `get_financial_overview`.
+				// The chart's "expenses" line stays at 0 here until a follow-up
+				// folds those values in. `profit` mirrors revenue for the same
+				// reason. See post-#749 cycle-1 review BL-2 fix.
 				return trimmed.map((item) => ({
-					date: item.period,
+					date: item.month,
 					revenue: item.revenue ?? 0,
-					expenses: item.expenses ?? 0,
-					profit: item.netIncome ?? (item.revenue ?? 0) - (item.expenses ?? 0),
+					expenses: 0,
+					profit: item.revenue ?? 0,
 				}));
 			},
 			staleTime: 2 * 60 * 1000,

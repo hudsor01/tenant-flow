@@ -12,18 +12,22 @@ export const profileKeys = {
 export const PROFILE_SELECT =
 	"id, email, first_name, last_name, full_name, phone, avatar_url, is_admin, status, created_at, updated_at, stripe_customer_id";
 
+// Signature matches the live public.users column nullability.
+// full_name + status are NOT NULL columns; created_at + updated_at are
+// nullable. Earlier signatures had this inverted -- corrected during the
+// post-#749 typed-client review.
 export function mapUserProfile(row: {
 	id: string;
 	email: string;
 	first_name: string | null;
 	last_name: string | null;
-	full_name: string | null;
+	full_name: string;
 	phone: string | null;
 	avatar_url: string | null;
 	is_admin: boolean;
-	status: string | null;
-	created_at: string;
-	updated_at: string;
+	status: string;
+	created_at: string | null;
+	updated_at: string | null;
 	stripe_customer_id: string | null;
 }): UserProfile {
 	return {
@@ -31,13 +35,13 @@ export function mapUserProfile(row: {
 		email: row.email,
 		first_name: row.first_name,
 		last_name: row.last_name,
-		full_name: row.full_name ?? "",
+		full_name: row.full_name,
 		phone: row.phone,
 		avatar_url: row.avatar_url,
 		is_admin: row.is_admin,
-		status: row.status ?? "active",
-		created_at: row.created_at,
-		updated_at: row.updated_at,
+		status: row.status,
+		created_at: row.created_at ?? new Date().toISOString(),
+		updated_at: row.updated_at ?? new Date().toISOString(),
 	} satisfies UserProfile;
 }
 

@@ -240,8 +240,12 @@ export const leaseQueries = {
 	analytics: {
 		performance: () =>
 			queryOptions({
+				// get_property_performance_analytics returns SETOF (property_id,
+				// property_name, occupancy_rate, total_revenue, total_expenses,
+				// net_income, timeframe). Surface the actual array shape instead
+				// of pretending it's an object.
 				queryKey: [...leaseQueries.all(), "analytics", "performance"],
-				queryFn: async (): Promise<Record<string, unknown>> => {
+				queryFn: async () => {
 					const supabase = createClient();
 					const user = await getCachedUser();
 					if (!user) throw new Error("Not authenticated");
@@ -250,7 +254,7 @@ export const leaseQueries = {
 						{ p_user_id: user.id },
 					);
 					if (error) handlePostgrestError(error, "leases");
-					return (data ?? {}) as Record<string, unknown>;
+					return data ?? [];
 				},
 				staleTime: 2 * 60 * 1000,
 				gcTime: 10 * 60 * 1000,

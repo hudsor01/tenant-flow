@@ -49,7 +49,7 @@ export const inspectionQueries = {
 
 				if (error) handlePostgrestError(error, "inspections");
 
-				return (data ?? []).map((row) => {
+				return (data ?? []).map((row): InspectionListItem => {
 					const property = row.properties as unknown as {
 						name: string;
 						address_line1: string;
@@ -57,19 +57,26 @@ export const inspectionQueries = {
 					const unit = row.units as unknown as { name: string } | null;
 					const rooms = row.inspection_rooms as { id: string }[] | null;
 
+					// DB column is `text` with a CHECK enforcing the union; narrow
+					// to the InspectionListItem literal here. Fall back to "move_in"
+					// for any unexpected value rather than throwing -- the row is
+					// usable for display either way.
+					const inspectionType: "move_in" | "move_out" =
+						row.inspection_type === "move_out" ? "move_out" : "move_in";
+
 					return {
 						id: row.id,
 						lease_id: row.lease_id,
 						property_id: row.property_id,
-						inspection_type: row.inspection_type,
+						inspection_type: inspectionType,
 						status: row.status,
 						scheduled_date: row.scheduled_date,
 						completed_at: row.completed_at,
-						created_at: row.created_at,
+						created_at: row.created_at ?? new Date().toISOString(),
 						property_name: property?.name ?? "",
 						unit_name: unit?.name ?? null,
 						room_count: rooms?.length ?? 0,
-					} satisfies InspectionListItem;
+					};
 				});
 			},
 			...QUERY_CACHE_TIMES.LIST,
