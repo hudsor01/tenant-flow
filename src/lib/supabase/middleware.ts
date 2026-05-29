@@ -2,6 +2,7 @@ import * as Sentry from "@sentry/nextjs";
 import { createServerClient } from "@supabase/ssr";
 import type { User } from "@supabase/supabase-js";
 import { type NextRequest, NextResponse } from "next/server";
+import type { Database } from "#types/supabase";
 
 /**
  * Refreshes the Supabase auth session in middleware.
@@ -25,7 +26,7 @@ export async function updateSession(
 ): Promise<{ user: User | null; supabaseResponse: NextResponse }> {
 	let supabaseResponse = NextResponse.next({ request });
 
-	const supabase = createServerClient(
+	const supabase = createServerClient<Database>(
 		process.env.NEXT_PUBLIC_SUPABASE_URL!,
 		process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!,
 		{

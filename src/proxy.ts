@@ -3,6 +3,7 @@ import { createServerClient } from "@supabase/ssr";
 import { type NextRequest, NextResponse } from "next/server";
 import { env } from "#env";
 import { updateSession } from "#lib/supabase/middleware";
+import type { Database } from "#types/supabase";
 
 /** Stripe subscription statuses that grant dashboard access. */
 const ACTIVE_SUBSCRIPTION_STATUSES = new Set(["active", "trialing"]);
@@ -117,7 +118,7 @@ export async function proxy(request: NextRequest): Promise<NextResponse> {
 	// Any of these leave `gateRow` as null. The downstream "gate unknown"
 	// branch then redirects to /login?redirect=<original> — a fail-secure
 	// re-auth that doesn't pin admins at /pricing.
-	const subClient = createServerClient(
+	const subClient = createServerClient<Database>(
 		env.NEXT_PUBLIC_SUPABASE_URL,
 		env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY,
 		{

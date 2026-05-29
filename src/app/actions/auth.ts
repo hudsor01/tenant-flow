@@ -5,6 +5,7 @@ import { type CookieOptions, createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { env } from "#env";
+import type { Database } from "#types/supabase";
 
 /**
  * Server Action: Sign out user
@@ -21,7 +22,7 @@ import { env } from "#env";
 export async function signOut() {
 	const cookieStore = await cookies();
 
-	const supabase = createServerClient(
+	const supabase = createServerClient<Database>(
 		env.NEXT_PUBLIC_SUPABASE_URL,
 		env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY,
 		{

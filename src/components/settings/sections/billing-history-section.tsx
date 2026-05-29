@@ -4,6 +4,7 @@ import { CheckCircle, Loader2 } from "lucide-react";
 import { BlurFade } from "#components/ui/blur-fade";
 import { useBillingHistory } from "#hooks/api/use-billing";
 import { useBillingPortalMutation } from "#hooks/api/use-billing-mutations";
+import type { BillingHistoryItem } from "#types/api-contracts";
 
 export function BillingHistorySection() {
 	const { data: paymentHistory } = useBillingHistory();
@@ -18,16 +19,9 @@ export function BillingHistorySection() {
 
 				{paymentHistory && paymentHistory.length > 0 ? (
 					<div className="space-y-2">
-						{paymentHistory.slice(0, 5).map(
-							(
-								invoice: {
-									id: string;
-									created_at: string;
-									amount: number;
-									status: string;
-								},
-								idx: number,
-							) => (
+						{paymentHistory
+							.slice(0, 5)
+							.map((invoice: BillingHistoryItem, idx: number) => (
 								<BlurFade key={invoice.id} delay={0.4 + idx * 0.05} inView>
 									<div className="flex items-center justify-between p-3 rounded-lg border hover:bg-muted/30 transition-colors">
 										<div className="flex items-center gap-4">
@@ -35,19 +29,16 @@ export function BillingHistorySection() {
 												{invoice.id.slice(0, 12)}
 											</span>
 											<span className="text-sm text-muted-foreground">
-												{new Date(invoice.created_at).toLocaleDateString(
-													"en-US",
-													{ month: "short", day: "numeric", year: "numeric" },
-												)}
+												{invoice.formattedDate}
 											</span>
 										</div>
 										<div className="flex items-center gap-4">
 											<span className="text-sm font-medium">
-												${(invoice.amount / 100).toFixed(2)}
+												{invoice.formattedAmount}
 											</span>
 											<span className="inline-flex items-center gap-1 text-xs font-medium text-success">
 												<CheckCircle className="w-3 h-3" />
-												Paid
+												{invoice.isSuccessful ? "Paid" : invoice.status}
 											</span>
 											<button className="text-sm text-primary hover:underline">
 												Download
@@ -55,8 +46,7 @@ export function BillingHistorySection() {
 										</div>
 									</div>
 								</BlurFade>
-							),
-						)}
+							))}
 					</div>
 				) : (
 					<div className="p-4 text-center">
