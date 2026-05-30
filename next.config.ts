@@ -10,6 +10,8 @@ import type { NextConfig } from "next";
  * @see https://env.t3.gg/docs/nextjs#validate-schema-on-build
  */
 import "./src/env";
+// 301 map for the deleted Phase-1 blog catalogue (SEO ranking-equity recovery).
+import { DELETED_BLOG_REDIRECTS } from "./src/lib/seo/blog-redirects";
 
 const nextConfig: NextConfig = {
 	output: "standalone",
@@ -103,6 +105,16 @@ const nextConfig: NextConfig = {
 				destination: "/feed.xml",
 				permanent: true,
 			},
+			// Deleted Phase-1 blog catalogue: 301 each ghost slug (now HTTP-404
+			// under dynamicParams=false) to its closest live equivalent so the
+			// accumulated Google ranking signal transfers instead of decaying on
+			// a bare 404. permanent: true emits 308 (Google treats as 301).
+			// See src/lib/seo/blog-redirects.ts for the map + reclaim notes.
+			...DELETED_BLOG_REDIRECTS.map((r) => ({
+				source: r.source,
+				destination: r.destination,
+				permanent: true,
+			})),
 		];
 	},
 };
