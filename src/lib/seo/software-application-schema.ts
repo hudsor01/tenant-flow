@@ -23,23 +23,45 @@ interface SoftwareApplicationConfig {
  * SaaS pricing, and a single offer object Google validates as one item.
  */
 function buildOffers(offers: SoftwareApplicationOffer[]) {
+	const currency = offers[0]!.priceCurrency ?? "USD";
+
 	if (offers.length === 1) {
-		const only = offers[0]!;
 		return {
 			"@type": "Offer" as const,
-			price: only.price,
-			priceCurrency: only.priceCurrency ?? "USD",
+			price: offers[0]!.price,
+			priceCurrency: currency,
 		};
 	}
 
-	const values = offers.map((o) => Number.parseFloat(o.price));
-	const lowPrice = offers[values.indexOf(Math.min(...values))]!.price;
-	const highPrice = offers[values.indexOf(Math.max(...values))]!.price;
+	// An AggregateOffer carries ONE priceCurrency for the whole range, so a
+	// mixed-currency tier set can't be represented — reject it rather than
+	// silently dropping the other tiers' currency.
+	if (offers.some((o) => (o.priceCurrency ?? "USD") !== currency)) {
+		throw new Error(
+			"buildOffers: all offers must share a single priceCurrency",
+		);
+	}
+
+	// Find lowest/highest by parsed numeric value while preserving the original
+	// price STRING (so "19.00" formatting survives). Reduce rather than
+	// indexOf(Math.min(...)) — indexOf(NaN) is -1, which would index past the
+	// array, and duplicate prices would resolve ambiguously.
+	let low = offers[0]!;
+	let high = offers[0]!;
+	for (const offer of offers) {
+		const value = Number.parseFloat(offer.price);
+		if (!Number.isFinite(value)) {
+			throw new Error(`buildOffers: non-numeric price "${offer.price}"`);
+		}
+		if (value < Number.parseFloat(low.price)) low = offer;
+		if (value > Number.parseFloat(high.price)) high = offer;
+	}
+
 	return {
 		"@type": "AggregateOffer" as const,
-		lowPrice,
-		highPrice,
-		priceCurrency: offers[0]!.priceCurrency ?? "USD",
+		lowPrice: low.price,
+		highPrice: high.price,
+		priceCurrency: currency,
 		offerCount: offers.length,
 	};
 }

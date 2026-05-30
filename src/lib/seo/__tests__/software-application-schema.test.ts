@@ -68,6 +68,26 @@ describe("createSoftwareApplicationJsonLd", () => {
 		expect(offer.offerCount).toBe(3);
 	});
 
+	it("throws on a non-numeric price in a multi-tier set", () => {
+		expect(() =>
+			createSoftwareApplicationJsonLd({
+				name: "TestApp",
+				description: "Test",
+				offers: [{ price: "19.00" }, { price: "not-a-number" }],
+			}),
+		).toThrow(/non-numeric price/);
+	});
+
+	it("throws on a mixed-currency multi-tier set", () => {
+		expect(() =>
+			createSoftwareApplicationJsonLd({
+				name: "TestApp",
+				description: "Test",
+				offers: [{ price: "19.00" }, { price: "49.00", priceCurrency: "EUR" }],
+			}),
+		).toThrow(/single priceCurrency/);
+	});
+
 	it("omits offers when not provided", () => {
 		const result = toPlain(
 			createSoftwareApplicationJsonLd({
