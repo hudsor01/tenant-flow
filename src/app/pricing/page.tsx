@@ -9,7 +9,6 @@ import { Badge } from "#components/ui/badge";
 import { createBreadcrumbJsonLd } from "#lib/seo/breadcrumbs";
 import { createFaqJsonLd } from "#lib/seo/faq-schema";
 import { createPageMetadata } from "#lib/seo/page-metadata";
-import { createProductJsonLd } from "#lib/seo/product-schema";
 import { realTestimonials } from "../../data/testimonials";
 import { PricingSection } from "./_components/pricing-section";
 import {
@@ -36,22 +35,18 @@ export default async function PricingPage() {
 		pricingFaqs.map((faq) => ({ question: faq.question, answer: faq.answer })),
 	);
 	const breadcrumbJsonLd = createBreadcrumbJsonLd("/pricing");
-	const productJsonLd = createProductJsonLd({
-		name: "TenantFlow Property Management Software",
-		description:
-			"Property management software for independent landlords. Starter $19/mo (5 properties), Growth $49/mo (20 properties), Max $149/mo (unlimited properties). 14-day free trial, no credit card required.",
-		offers: [
-			{ name: "Starter", price: "19.00" },
-			{ name: "Growth", price: "49.00" },
-			{ name: "Max", price: "149.00" },
-		],
-	});
+	// No page-level commercial schema here. A Product schema pulled the page into
+	// Google's Merchant-listings validation — which requires shippingDetails +
+	// hasMerchantReturnPolicy, meaningless for SaaS — producing the GSC "Merchant
+	// listings: invalid item" error. The software entity + pricing AggregateOffer
+	// are already emitted sitewide by SeoJsonLd (generate-metadata.ts) on every
+	// page, so a page-level SoftwareApplication would only add a redundant,
+	// rating-less (rich-result-ineligible) duplicate node. FAQ + Breadcrumb stay.
 
 	return (
 		<PageLayout>
 			<JsonLdScript schema={faqJsonLd} />
 			<JsonLdScript schema={breadcrumbJsonLd} />
-			<JsonLdScript schema={productJsonLd} />
 			{/* Minimal Hero with Pricing Above the Fold */}
 			<section className="relative overflow-hidden section-spacing animate-in fade-in duration-700">
 				<div className="relative mx-auto flex max-w-7xl flex-col gap-12 px-6 text-center lg:px-8">

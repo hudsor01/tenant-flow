@@ -92,12 +92,24 @@ test.describe("SEO Smoke Tests", () => {
 		await assertPageSeo(page, "/", ["WebSite", "Organization"]);
 	});
 
-	test("/pricing has full SEO metadata", async ({ page }) => {
+	test("/pricing has full SEO metadata (SoftwareApplication, not Product)", async ({
+		page,
+	}) => {
+		// SoftwareApplication (sitewide SeoJsonLd) + FAQPage + BreadcrumbList
+		// (page-level). The page-level Product schema was removed: it forced
+		// Google's Merchant-listings validation (requires shipping + return policy,
+		// meaningless for SaaS) -> the GSC "Merchant listings: invalid item" error.
 		await assertPageSeo(page, "/pricing", [
-			"Product",
+			"SoftwareApplication",
 			"FAQPage",
 			"BreadcrumbList",
 		]);
+		// Negative pin: /pricing must NOT emit a Product schema (the regression this
+		// PR fixes). assertPageSeo just navigated, so the page is still on /pricing.
+		const types = (await getJsonLdSchemas(page)).map((s) => s["@type"]);
+		expect(types, "/pricing must not emit a Product schema").not.toContain(
+			"Product",
+		);
 	});
 
 	test("/features has full SEO metadata", async ({ page }) => {

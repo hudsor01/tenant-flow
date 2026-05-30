@@ -2,29 +2,10 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 // Hoisted mocks so they are available to vi.mock factories below
 const mocks = vi.hoisted(() => ({
-	createProductJsonLdSpy: vi.fn((cfg: unknown) => ({
-		"@type": "Product",
-		__captured: cfg,
-	})),
 	createFaqJsonLdSpy: vi.fn((entries: unknown) => ({
 		"@type": "FAQPage",
 		__captured: entries,
 	})),
-}));
-
-vi.mock("#env", () => ({
-	env: {
-		NEXT_PUBLIC_APP_URL: "https://tenantflow.app",
-		VERCEL_URL: undefined,
-	},
-}));
-
-vi.mock("#lib/generate-metadata", () => ({
-	getSiteUrl: () => "https://tenantflow.app",
-}));
-
-vi.mock("#lib/seo/product-schema", () => ({
-	createProductJsonLd: mocks.createProductJsonLdSpy,
 }));
 
 vi.mock("#lib/seo/breadcrumbs", () => ({
@@ -75,9 +56,32 @@ vi.mock("../pricing-content", async () => {
 
 import PricingPage, { metadata } from "../page";
 
+/**
+ * Walk a returned React element tree and collect every `schema["@type"]` carried
+ * by a `<JsonLdScript schema={...} />` node. Lets the test assert exactly WHICH
+ * JSON-LD nodes the page emits — `JsonLdScript` is mocked to `() => null`, but
+ * the `schema` prop lives on the element regardless of render. Uses `unknown` +
+ * type guards (no `any`, no double assertion).
+ */
+function collectSchemaTypes(node: unknown): string[] {
+	if (!node || typeof node !== "object") return [];
+	const types: string[] = [];
+	const props = (node as { props?: unknown }).props;
+	if (props && typeof props === "object") {
+		const schema = (props as { schema?: unknown }).schema;
+		if (schema && typeof schema === "object" && "@type" in schema) {
+			const type = (schema as Record<string, unknown>)["@type"];
+			if (typeof type === "string") types.push(type);
+		}
+		const children = (props as { children?: unknown }).children;
+		const childList = Array.isArray(children) ? children : [children];
+		for (const child of childList) types.push(...collectSchemaTypes(child));
+	}
+	return types;
+}
+
 describe("pricing/page.tsx PRICE-06 reversal (Phase 5)", () => {
 	beforeEach(() => {
-		mocks.createProductJsonLdSpy.mockClear();
 		mocks.createFaqJsonLdSpy.mockClear();
 	});
 
@@ -90,34 +94,17 @@ describe("pricing/page.tsx PRICE-06 reversal (Phase 5)", () => {
 		expect(desc).toContain("Growth ($49/mo, 20 properties)");
 	});
 
-	it("productJsonLd is built with exactly 3 offers (Starter + Growth + Max — Phase 5 PRICE-06 flip)", async () => {
-		await PricingPage();
+	it("emits exactly FAQ + Breadcrumb JSON-LD and NO Product/SoftwareApplication node (Merchant-listings fix)", async () => {
+		// The page must not emit a page-level commercial schema: Product forced
+		// Google's Merchant-listings validation (the GSC "invalid item" error), and
+		// the software entity is already covered sitewide by SeoJsonLd. Re-adding a
+		// Product/SoftwareApplication <JsonLdScript> here must fail this test.
+		const tree = await PricingPage();
+		const schemaTypes = collectSchemaTypes(tree);
 
-		expect(mocks.createProductJsonLdSpy).toHaveBeenCalledTimes(1);
-		const config = mocks.createProductJsonLdSpy.mock.calls[0]![0] as {
-			offers: Array<{ name: string; price: string }>;
-			description: string;
-		};
-
-		expect(config.offers).toHaveLength(3);
-		expect(config.offers[0]).toMatchObject({ name: "Starter", price: "19.00" });
-		expect(config.offers[1]).toMatchObject({ name: "Growth", price: "49.00" });
-		expect(config.offers[2]).toMatchObject({ name: "Max", price: "149.00" });
-		// Stale-price regression guards (the old $29/$79/$199 trio must not reappear)
-		expect(config.offers.find((o) => o.price === "29.00")).toBeUndefined();
-		expect(config.offers.find((o) => o.price === "79.00")).toBeUndefined();
-		expect(config.offers.find((o) => o.price === "199.00")).toBeUndefined();
-	});
-
-	it('productJsonLd.description contains "Max $149/mo (unlimited properties)" and omits the CRIT-03 placeholder (Phase 5 PRICE-06 flip)', async () => {
-		await PricingPage();
-
-		const config = mocks.createProductJsonLdSpy.mock.calls[0]![0] as {
-			description: string;
-		};
-
-		expect(config.description).toContain("Max $149/mo (unlimited properties)");
-		expect(config.description).not.toContain("Custom pricing, contact sales");
+		expect(schemaTypes).toEqual(["FAQPage", "BreadcrumbList"]);
+		expect(schemaTypes).not.toContain("Product");
+		expect(schemaTypes).not.toContain("SoftwareApplication");
 	});
 
 	it("FAQPage JSON-LD mainEntity has exactly 5 entries (COPY-05 — pricing FAQ trim)", async () => {
