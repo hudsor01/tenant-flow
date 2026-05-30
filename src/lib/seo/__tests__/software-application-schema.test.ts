@@ -1,16 +1,4 @@
-import { describe, expect, it, vi } from "vitest";
-
-vi.mock("#env", () => ({
-	env: {
-		NEXT_PUBLIC_APP_URL: "https://tenantflow.app",
-		VERCEL_URL: undefined,
-	},
-}));
-
-vi.mock("#lib/generate-metadata", () => ({
-	getSiteUrl: () => "https://tenantflow.app",
-}));
-
+import { describe, expect, it } from "vitest";
 import { createSoftwareApplicationJsonLd } from "../software-application-schema";
 
 /** Convert schema-dts readonly result to plain JSON for easier assertions */
