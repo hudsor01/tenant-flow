@@ -34,21 +34,38 @@ describe("createSoftwareApplicationJsonLd", () => {
 		expect(result.operatingSystem).toBe("Web Browser");
 	});
 
-	it("includes offers with Offer type and USD default", () => {
+	it("a single tier emits a plain Offer with USD default", () => {
 		const result = toPlain(
 			createSoftwareApplicationJsonLd({
 				name: "TestApp",
 				description: "Test",
-				offers: [{ price: "29" }, { price: "79" }],
+				offers: [{ price: "29" }],
 			}),
 		);
 
-		const offers = result.offers as Array<Record<string, unknown>>;
-		expect(offers).toHaveLength(2);
-		expect(offers[0]!["@type"]).toBe("Offer");
-		expect(offers[0]!.price).toBe("29");
-		expect(offers[0]!.priceCurrency).toBe("USD");
-		expect(offers[1]!.price).toBe("79");
+		const offer = result.offers as Record<string, unknown>;
+		expect(offer["@type"]).toBe("Offer");
+		expect(offer.price).toBe("29");
+		expect(offer.priceCurrency).toBe("USD");
+	});
+
+	it("multiple tiers collapse to an AggregateOffer price range", () => {
+		const result = toPlain(
+			createSoftwareApplicationJsonLd({
+				name: "TestApp",
+				description: "Test",
+				// Deliberately unsorted to prove lowPrice/highPrice are computed,
+				// not positional.
+				offers: [{ price: "49.00" }, { price: "149.00" }, { price: "19.00" }],
+			}),
+		);
+
+		const offer = result.offers as Record<string, unknown>;
+		expect(offer["@type"]).toBe("AggregateOffer");
+		expect(offer.lowPrice).toBe("19.00");
+		expect(offer.highPrice).toBe("149.00");
+		expect(offer.priceCurrency).toBe("USD");
+		expect(offer.offerCount).toBe(3);
 	});
 
 	it("omits offers when not provided", () => {
@@ -104,7 +121,7 @@ describe("createSoftwareApplicationJsonLd", () => {
 			}),
 		);
 
-		const offers = result.offers as Array<Record<string, unknown>>;
-		expect(offers[0]!.priceCurrency).toBe("EUR");
+		const offer = result.offers as Record<string, unknown>;
+		expect(offer.priceCurrency).toBe("EUR");
 	});
 });

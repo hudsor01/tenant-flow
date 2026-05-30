@@ -6,10 +6,11 @@ import { StickyConversionCta } from "#components/marketing/sticky-conversion-cta
 import { TestimonialsSection } from "#components/sections/testimonials-section";
 import { JsonLdScript } from "#components/seo/json-ld-script";
 import { Badge } from "#components/ui/badge";
+import { getSiteUrl } from "#lib/generate-metadata";
 import { createBreadcrumbJsonLd } from "#lib/seo/breadcrumbs";
 import { createFaqJsonLd } from "#lib/seo/faq-schema";
 import { createPageMetadata } from "#lib/seo/page-metadata";
-import { createProductJsonLd } from "#lib/seo/product-schema";
+import { createSoftwareApplicationJsonLd } from "#lib/seo/software-application-schema";
 import { realTestimonials } from "../../data/testimonials";
 import { PricingSection } from "./_components/pricing-section";
 import {
@@ -36,22 +37,23 @@ export default async function PricingPage() {
 		pricingFaqs.map((faq) => ({ question: faq.question, answer: faq.answer })),
 	);
 	const breadcrumbJsonLd = createBreadcrumbJsonLd("/pricing");
-	const productJsonLd = createProductJsonLd({
+	// SaaS is software, not a shippable retail Product — use SoftwareApplication
+	// so the page isn't pulled into Google's Merchant-listings validation (which
+	// requires shipping + return policy). The 3 tiers collapse to an
+	// AggregateOffer price range ($19–$149).
+	const softwareJsonLd = createSoftwareApplicationJsonLd({
 		name: "TenantFlow Property Management Software",
 		description:
 			"Property management software for independent landlords. Starter $19/mo (5 properties), Growth $49/mo (20 properties), Max $149/mo (unlimited properties). 14-day free trial, no credit card required.",
-		offers: [
-			{ name: "Starter", price: "19.00" },
-			{ name: "Growth", price: "49.00" },
-			{ name: "Max", price: "149.00" },
-		],
+		url: `${getSiteUrl()}/pricing`,
+		offers: [{ price: "19.00" }, { price: "49.00" }, { price: "149.00" }],
 	});
 
 	return (
 		<PageLayout>
 			<JsonLdScript schema={faqJsonLd} />
 			<JsonLdScript schema={breadcrumbJsonLd} />
-			<JsonLdScript schema={productJsonLd} />
+			<JsonLdScript schema={softwareJsonLd} />
 			{/* Minimal Hero with Pricing Above the Fold */}
 			<section className="relative overflow-hidden section-spacing animate-in fade-in duration-700">
 				<div className="relative mx-auto flex max-w-7xl flex-col gap-12 px-6 text-center lg:px-8">
