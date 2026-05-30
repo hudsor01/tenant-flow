@@ -5,16 +5,16 @@
 // harmless for webhooks because getCorsHeaders returns {} when origin does not match.
 
 /**
- * Returns CORS headers if the request origin matches the configured FRONTEND_URL.
- * If FRONTEND_URL is not set, logs an error and returns empty headers (fail-closed).
+ * Returns CORS headers if the request origin matches the configured NEXT_PUBLIC_APP_URL.
+ * If NEXT_PUBLIC_APP_URL is not set, logs an error and returns empty headers (fail-closed).
  * If origin does not match, returns empty headers (no CORS).
  */
 export function getCorsHeaders(req: Request): Record<string, string> {
-	const frontendUrl = Deno.env.get("FRONTEND_URL");
+	const frontendUrl = Deno.env.get("NEXT_PUBLIC_APP_URL");
 
 	if (!frontendUrl) {
 		console.error(
-			"FRONTEND_URL is not set -- CORS headers will not be returned (fail-closed)",
+			"NEXT_PUBLIC_APP_URL is not set -- CORS headers will not be returned (fail-closed)",
 		);
 		return {};
 	}

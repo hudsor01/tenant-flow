@@ -7,12 +7,19 @@
  * rejection tests run always (need only E2E_OWNER creds).
  *
  * Asserts:
- *   1. non-admin OWNER caller gets error matching /unauthorized/i
- *   2. anonymous caller gets error matching /unauthorized/i
- *   3. admin caller on seeded cohort gets valid jsonb with 4 step rows,
- *      correct step_order, and non-null cohort_label
- *   4. empty-cohort window (1970-01-01 -> 1970-01-02) returns 4 zero-count
- *      rows with null conversion rates (nullif div-by-zero safety)
+ *   1. non-admin OWNER caller (authenticated, reaches the in-body
+ *      is_admin() gate) gets error matching /unauthorized/i
+ *   2. anonymous caller is blocked at the role-level revoke before the
+ *      body runs (error.code in {42501, 42883, PGRST202}). The v2
+ *      migration 20260529225039 revoked EXECUTE FROM PUBLIC on
+ *      get_funnel_stats; the in-body is_admin() gate is now
+ *      defense-in-depth for authenticated callers.
+ *   3. admin caller on seeded cohort gets valid jsonb with 3 step rows
+ *      (signup, first_property, first_tenant), correct step_order, and
+ *      non-null cohort_label
+ *   4. empty-cohort window (1970-01-01 -> 1970-01-02) returns 3
+ *      zero-count rows with null conversion rates (nullif div-by-zero
+ *      safety)
  */
 
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
@@ -53,7 +60,7 @@ describe("get_funnel_stats — non-admin callers rejected", () => {
 		expect(error!.message).toMatch(/unauthorized/i);
 	});
 
-	it("rejects anonymous (no auth) caller with Unauthorized", async () => {
+	it("rejects anonymous (no auth) caller at the role-level revoke", async () => {
 		if (!SUPABASE_URL || !SUPABASE_PUBLISHABLE_KEY) {
 			throw new Error(
 				"Missing NEXT_PUBLIC_SUPABASE_URL/NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY",
@@ -66,7 +73,12 @@ describe("get_funnel_stats — non-admin callers rejected", () => {
 		});
 		expect(data).toBeNull();
 		expect(error).not.toBeNull();
-		expect(error!.message).toMatch(/unauthorized/i);
+		// Migration 20260529225039 revoked EXECUTE FROM PUBLIC on get_funnel_stats,
+		// so anon callers are now blocked at the role-level (42501) before the body's
+		// `IF NOT is_admin() THEN RAISE 'Unauthorized'` runs. The role-level revoke
+		// is the canonical lockdown (see tests/integration/rls/anon-rpc-grants.rls.test.ts
+		// for the full set); the in-body `is_admin()` gate is now defense-in-depth.
+		expect(["42501", "42883", "PGRST202"]).toContain(error?.code);
 	});
 });
 
@@ -171,7 +183,7 @@ describe.skipIf(skipReason)(
 			}
 		});
 
-		it("returns 4-row steps array with valid aggregates on seeded cohort", async () => {
+		it("returns 3-row steps array with valid aggregates on seeded cohort", async () => {
 			const now = Date.now();
 			const { data, error } = await adminClient.rpc("get_funnel_stats", {
 				p_from: new Date(now - 30 * 86_400_000).toISOString(),
@@ -230,7 +242,7 @@ describe.skipIf(skipReason)(
 			expect(result.steps[1]!.median_days_from_prior).not.toBeNull();
 		});
 
-		it("returns 4 zero-count rows with null rates for empty cohort window", async () => {
+		it("returns 3 zero-count rows with null rates for empty cohort window", async () => {
 			const { data, error } = await adminClient.rpc("get_funnel_stats", {
 				p_from: "1970-01-01T00:00:00Z",
 				p_to: "1970-01-02T00:00:00Z",

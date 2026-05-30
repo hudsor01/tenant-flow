@@ -110,7 +110,7 @@ Deno.serve(async (req: Request) => {
 		const env = validateEnv({
 			required: ["RESEND_API_KEY"],
 			optional: [
-				"FRONTEND_URL",
+				"NEXT_PUBLIC_APP_URL",
 				"UPSTASH_REDIS_REST_URL",
 				"UPSTASH_REDIS_REST_TOKEN",
 			],

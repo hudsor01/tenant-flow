@@ -41,7 +41,7 @@ Deno.serve(async (req: Request) => {
 	try {
 		const env = validateEnv({
 			required: ["STRIPE_SECRET_KEY"],
-			optional: ["FRONTEND_URL"],
+			optional: ["NEXT_PUBLIC_APP_URL"],
 		});
 
 		const body = await req.json();

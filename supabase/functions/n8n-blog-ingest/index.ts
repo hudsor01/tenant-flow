@@ -301,7 +301,7 @@ Deno.serve(async (req: Request) => {
 				"SUPABASE_URL",
 				"SUPABASE_SERVICE_ROLE_KEY",
 				"N8N_WEBHOOK_SECRET",
-				"FRONTEND_URL",
+				"NEXT_PUBLIC_APP_URL",
 			],
 		});
 
@@ -474,7 +474,7 @@ Deno.serve(async (req: Request) => {
 			slug: data?.slug,
 			status: data?.status,
 			canonical_url: data?.canonical_url,
-			blog_url: `${env.FRONTEND_URL}/blog/${data?.slug}`,
+			blog_url: `${env.NEXT_PUBLIC_APP_URL}/blog/${data?.slug}`,
 		});
 	} catch (err) {
 		captureWebhookError(err, { fn: "n8n-blog-ingest" });

@@ -23,7 +23,7 @@ Deno.serve(async (req: Request) => {
 				"SUPABASE_SERVICE_ROLE_KEY",
 				"STRIPE_SECRET_KEY",
 			],
-			optional: ["FRONTEND_URL"],
+			optional: ["NEXT_PUBLIC_APP_URL"],
 		});
 	} catch (err) {
 		return errorResponse(req, 500, err, { action: "env_validation" });
@@ -32,7 +32,7 @@ Deno.serve(async (req: Request) => {
 	const stripeKey = env.STRIPE_SECRET_KEY;
 	const supabaseUrl = env.SUPABASE_URL;
 	const supabaseServiceKey = env.SUPABASE_SERVICE_ROLE_KEY;
-	const frontendUrl = env.FRONTEND_URL ?? "http://localhost:3050";
+	const frontendUrl = env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3050";
 
 	// Authenticate
 	const supabase = createAdminClient(supabaseUrl, supabaseServiceKey);

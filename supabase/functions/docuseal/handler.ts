@@ -36,7 +36,7 @@ Deno.serve(async (req: Request) => {
 				"DOCUSEAL_URL",
 				"DOCUSEAL_API_KEY",
 			],
-			optional: ["FRONTEND_URL"],
+			optional: ["NEXT_PUBLIC_APP_URL"],
 		});
 
 		// Authenticate via Bearer token
