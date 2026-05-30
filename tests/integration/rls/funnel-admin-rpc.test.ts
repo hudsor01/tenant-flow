@@ -15,7 +15,7 @@
  *      get_funnel_stats; the in-body is_admin() gate is now
  *      defense-in-depth for authenticated callers.
  *   3. admin caller on seeded cohort gets valid jsonb with 3 step rows
- *      (signup, first_property, first_unit), correct step_order, and
+ *      (signup, first_property, first_tenant), correct step_order, and
  *      non-null cohort_label
  *   4. empty-cohort window (1970-01-01 -> 1970-01-02) returns 3
  *      zero-count rows with null conversion rates (nullif div-by-zero
@@ -183,7 +183,7 @@ describe.skipIf(skipReason)(
 			}
 		});
 
-		it("returns 4-row steps array with valid aggregates on seeded cohort", async () => {
+		it("returns 3-row steps array with valid aggregates on seeded cohort", async () => {
 			const now = Date.now();
 			const { data, error } = await adminClient.rpc("get_funnel_stats", {
 				p_from: new Date(now - 30 * 86_400_000).toISOString(),
@@ -242,7 +242,7 @@ describe.skipIf(skipReason)(
 			expect(result.steps[1]!.median_days_from_prior).not.toBeNull();
 		});
 
-		it("returns 4 zero-count rows with null rates for empty cohort window", async () => {
+		it("returns 3 zero-count rows with null rates for empty cohort window", async () => {
 			const { data, error } = await adminClient.rpc("get_funnel_stats", {
 				p_from: "1970-01-01T00:00:00Z",
 				p_to: "1970-01-02T00:00:00Z",
