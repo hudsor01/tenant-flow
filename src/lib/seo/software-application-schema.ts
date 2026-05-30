@@ -14,6 +14,24 @@ interface SoftwareApplicationConfig {
 	offers?: SoftwareApplicationOffer[];
 }
 
+// A non-negative decimal — no sign, no trailing junk, no scientific notation.
+// Anchored so the WHOLE string is validated (Number.parseFloat would accept a
+// numeric prefix like "19abc" and the original string would then ship verbatim
+// into the JSON-LD; Number("") is 0, also wrong). Google requires price >= 0.
+const PRICE_PATTERN = /^\d+(\.\d+)?$/;
+
+/**
+ * Parse and validate a price string. Throws on anything that isn't a clean
+ * non-negative decimal so a malformed price can never reach the rendered
+ * JSON-LD. Returns the numeric value for min/max comparison.
+ */
+function parsePrice(price: string): number {
+	if (!PRICE_PATTERN.test(price)) {
+		throw new Error(`buildOffers: invalid price "${price}"`);
+	}
+	return Number(price);
+}
+
 /**
  * Build the SoftwareApplication `offers` value.
  *
@@ -26,6 +44,8 @@ function buildOffers(offers: SoftwareApplicationOffer[]) {
 	const currency = offers[0]!.priceCurrency ?? "USD";
 
 	if (offers.length === 1) {
+		// Validate even a lone price so a malformed value never ships.
+		parsePrice(offers[0]!.price);
 		return {
 			"@type": "Offer" as const,
 			price: offers[0]!.price,
@@ -42,19 +62,24 @@ function buildOffers(offers: SoftwareApplicationOffer[]) {
 		);
 	}
 
-	// Find lowest/highest by parsed numeric value while preserving the original
-	// price STRING (so "19.00" formatting survives). Reduce rather than
-	// indexOf(Math.min(...)) — indexOf(NaN) is -1, which would index past the
-	// array, and duplicate prices would resolve ambiguously.
+	// Find lowest/highest by numeric value while preserving the original price
+	// STRING (so "19.00" formatting survives). Seed with ±Infinity so the first
+	// valid offer sets both bounds; duplicate prices resolve to first-seen via
+	// strict </>. parsePrice validates every tier (including offers[0]).
 	let low = offers[0]!;
 	let high = offers[0]!;
+	let lowValue = Number.POSITIVE_INFINITY;
+	let highValue = Number.NEGATIVE_INFINITY;
 	for (const offer of offers) {
-		const value = Number.parseFloat(offer.price);
-		if (!Number.isFinite(value)) {
-			throw new Error(`buildOffers: non-numeric price "${offer.price}"`);
+		const value = parsePrice(offer.price);
+		if (value < lowValue) {
+			lowValue = value;
+			low = offer;
 		}
-		if (value < Number.parseFloat(low.price)) low = offer;
-		if (value > Number.parseFloat(high.price)) high = offer;
+		if (value > highValue) {
+			highValue = value;
+			high = offer;
+		}
 	}
 
 	return {

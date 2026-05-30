@@ -63,7 +63,37 @@ describe("createSoftwareApplicationJsonLd", () => {
 				description: "Test",
 				offers: [{ price: "19.00" }, { price: "not-a-number" }],
 			}),
-		).toThrow(/non-numeric price/);
+		).toThrow(/invalid price/);
+	});
+
+	it("throws on a price with trailing junk (parseFloat would accept the prefix)", () => {
+		expect(() =>
+			createSoftwareApplicationJsonLd({
+				name: "TestApp",
+				description: "Test",
+				offers: [{ price: "19.00" }, { price: "19abc" }],
+			}),
+		).toThrow(/invalid price/);
+	});
+
+	it("throws on a negative price", () => {
+		expect(() =>
+			createSoftwareApplicationJsonLd({
+				name: "TestApp",
+				description: "Test",
+				offers: [{ price: "19.00" }, { price: "-5" }],
+			}),
+		).toThrow(/invalid price/);
+	});
+
+	it("throws on a malformed lone price", () => {
+		expect(() =>
+			createSoftwareApplicationJsonLd({
+				name: "TestApp",
+				description: "Test",
+				offers: [{ price: "$19" }],
+			}),
+		).toThrow(/invalid price/);
 	});
 
 	it("throws on a mixed-currency multi-tier set", () => {
