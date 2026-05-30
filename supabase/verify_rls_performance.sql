@@ -38,10 +38,7 @@ WHERE schemaname = 'public'
   AND policyname IN (
     'documents_select',
     'documents_update_owner',
-    'documents_delete_owner',
-    'payment_transactions_select',
-    'payment_schedules_select',
-    'rent_due_select'
+    'documents_delete_owner'
   )
 ORDER BY tablename, cmd;
 
@@ -79,11 +76,7 @@ WHERE schemaname = 'public'
     'properties',
     'maintenance_requests',
     'lease_tenants',
-    'leases',
-    'rent_payments',
-    'payment_transactions',
-    'payment_schedules',
-    'rent_due'
+    'leases'
   )
 ORDER BY tablename;
 
@@ -118,11 +111,7 @@ WHERE tc.constraint_type = 'FOREIGN KEY'
     'properties',
     'maintenance_requests',
     'lease_tenants',
-    'leases',
-    'rent_payments',
-    'payment_transactions',
-    'payment_schedules',
-    'rent_due'
+    'leases'
   )
 ORDER BY tc.table_name, kcu.column_name;
 
