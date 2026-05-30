@@ -42,12 +42,12 @@ Each maps to roadmap phases (1-7). Source: `.planning/MILESTONE-CONTEXT.md` § "
 
 ### Charts + Data Visualization (CHART) — Phase 4
 
-- [ ] **CHART-01**: New `RevenueAreaChart` replaces `revenue-overview-chart.tsx`. Refreshed Recharts `Area` with 30d / 6mo toggle.
-- [ ] **CHART-02**: New `OccupancyDonutChart` — Recharts donut with center label + legend, reading from `stats.units` returned by `get_dashboard_data_v2`.
-- [ ] **CHART-03**: Chart colors source exclusively from `--color-chart-{1..5}` tokens.
-- [ ] **CHART-04**: Dark-mode contrast verified — no invisible series, no white-on-white legend swatches, no missing axis-label contrast.
-- [ ] **CHART-05**: Chart loading skeletons match the chart's actual rendered shape (no skeleton-then-empty mutual-exclusion violation, per Phase 14 D-04 pattern).
-- [ ] **CHART-06**: Charts dynamically imported via `next/dynamic` with `ssr: false` and CSS-only loading skeletons (project performance convention).
+- [x] **CHART-01**: New `RevenueAreaChart` replaces `revenue-overview-chart.tsx`. Refreshed Recharts `Area` with 30d / 6mo toggle.
+- [x] **CHART-02**: New `OccupancyDonutChart` — Recharts donut with center label + legend, reading from `stats.units` returned by `get_dashboard_data_v2`.
+- [x] **CHART-03**: Chart colors source exclusively from `--color-chart-{1..5}` tokens.
+- [x] **CHART-04**: Dark-mode contrast verified — no invisible series, no white-on-white legend swatches, no missing axis-label contrast.
+- [x] **CHART-05**: Chart loading skeletons match the chart's actual rendered shape (no skeleton-then-empty mutual-exclusion violation, per Phase 14 D-04 pattern).
+- [x] **CHART-06**: Charts dynamically imported via `next/dynamic` with `ssr: false` and CSS-only loading skeletons (project performance convention).
 
 ### Portfolio DataTable (DT) — Phase 5
 
@@ -111,12 +111,12 @@ Updated by `gsd-roadmapper` during roadmap creation. See ROADMAP.md for canonica
 | KPI-05 | Phase 3 | Complete |
 | KPI-06 | Phase 3 | Complete |
 | KPI-07 | Phase 3 | Complete |
-| CHART-01 | Phase 4 | Pending |
-| CHART-02 | Phase 4 | Pending |
-| CHART-03 | Phase 4 | Pending |
-| CHART-04 | Phase 4 | Pending |
-| CHART-05 | Phase 4 | Pending |
-| CHART-06 | Phase 4 | Pending |
+| CHART-01 | Phase 4 | Complete |
+| CHART-02 | Phase 4 | Complete |
+| CHART-03 | Phase 4 | Complete |
+| CHART-04 | Phase 4 | Complete |
+| CHART-05 | Phase 4 | Complete |
+| CHART-06 | Phase 4 | Complete |
 | DT-01 | Phase 5 | Pending |
 | DT-02 | Phase 5 | Pending |
 | DT-03 | Phase 5 | Pending |
@@ -126,17 +126,17 @@ Updated by `gsd-roadmapper` during roadmap creation. See ROADMAP.md for canonica
 | DT-07 | Phase 5 | Pending |
 | DT-08 | Phase 5 | Pending |
 | DT-09 | Phase 5 | Pending |
-| POLISH-01 | Phase 1 | Pending |
-| POLISH-02 | Phase 1 | Pending |
-| POLISH-03 | Phase 1 | Pending |
+| POLISH-01 | Phase 1 | Complete |
+| POLISH-02 | Phase 1 | Complete |
+| POLISH-03 | Phase 1 | Complete |
 | POLISH-04 | Phase 6 | Pending |
 | POLISH-05 | Phase 6 | Pending |
 | POLISH-06 | Phase 6 | Pending |
 | POLISH-07 | Phase 6 | Pending |
 | POLISH-08 | Phase 6 | Pending |
 | POLISH-09 | Phase 7 | Pending |
-| POLISH-10 | Phase 2 | Pending |
-| POLISH-11 | Phase 2 | Pending |
+| POLISH-10 | Phase 2 | Complete |
+| POLISH-11 | Phase 2 | Complete |
 | POLISH-12 | Phase 7 | Pending |
 
 **Coverage:**

@@ -41,7 +41,7 @@ Phases 1 and 2 are invisible foundation. Phases 3 and 4 each *add* a new region 
 - [x] **Phase 1: Foundation & Dedup** — Delete duplicates, fix the `*100`/`÷100` revenue bug, extract shared transform, produce milestone-wide UI-SPEC. Zero visible change.
 - [x] **Phase 2: Data Layer & RPC** — Additive RPC migration for per-property `open_maintenance`; resolve compute-or-drop on `collection_rate`; RLS owner-isolation test.
 - [x] **Phase 3: KPI Bento Row** — 6-tile KPI grid with sparklines on Revenue + Occupancy. Adds Section B.
-- [ ] **Phase 4: Charts** — `RevenueAreaChart` refresh (30d/6mo toggle) + new `OccupancyDonutChart`. Adds Section C.
+- [x] **Phase 4: Charts** — `RevenueAreaChart` refresh (30d/6mo toggle) + new `OccupancyDonutChart`. Adds Section C.
 - [ ] **Phase 5: Portfolio DataTable** — Replace hand-rolled table with DiceUI DataTable: client hook, column model, faceted filter, column visibility, virtualization, grid/table toggle, saved presets, nuqs URL state.
 - [ ] **Phase 6: Polish & A11y** — Dark-mode audit, keyboard a11y, 375px responsive, skeleton/empty mutual exclusion, reduced-motion.
 - [ ] **Phase 7: Verification** — E2E coverage for `/dashboard` + final design-token sweep.
@@ -157,8 +157,8 @@ Phases 1 and 2 are invisible foundation. Phases 3 and 4 each *add* a new region 
 |-------|-----------|-------|--------|-----------|
 | 1. Foundation & Dedup | v2.0 | 3/3 | Shipped (PR #744) | 2026-05-22 |
 | 2. Data Layer & RPC | v2.0 | 3/3 | Shipped (PR #745) | 2026-05-22 |
-| 3. KPI Bento Row | v2.0 | 3/3 | Plan execution complete; verify-work + PR pending | 2026-05-24 |
-| 4. Charts | v2.0 | 4/4 | Complete   | 2026-05-27 |
+| 3. KPI Bento Row | v2.0 | 3/3 | Shipped (PR #746) | 2026-05-26 |
+| 4. Charts | v2.0 | 4/4 | Shipped (PR #748) | 2026-05-28 |
 | 5. Portfolio DataTable | v2.0 | 0/0 | Not started | - |
 | 6. Polish & A11y | v2.0 | 0/0 | Not started | - |
 | 7. Verification | v2.0 | 0/0 | Not started | - |

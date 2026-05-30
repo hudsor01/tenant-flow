@@ -1,143 +1,64 @@
 {
 	"version": "1.0",
-	"timestamp": "2026-05-26T21:07:04.329Z",
-	"phase": "04",
-	"phase_name": "Charts",
-	"phase_dir": ".planning/phases/04-charts",
-	"branch": "gsd/phase-4-dashboard-charts",
+	"timestamp": "2026-05-30T00:00:00.000Z",
+	"phase": null,
+	"phase_name": "between phases",
+	"phase_dir": null,
+	"branch": "main",
 	"milestone": "v2.0 Dashboard Command Center",
-	"plan": "04-01a",
-	"plan_status": "complete",
-	"next_plan": "04-01b",
-	"total_plans": 4,
-	"completed_plans": 1,
-	"status": "paused",
-	"wave": 1,
-	"wave_status": "1 of 2 plans complete (04-01a done; 04-01b remaining in Wave 1)",
-	"completed_tasks": [
+	"plan": null,
+	"plan_status": "n/a",
+	"next_plan": null,
+	"total_plans": null,
+	"completed_plans": null,
+	"status": "between-phases",
+	"wave": null,
+	"wave_status": "Phases 1-4 merged; Phase 5 not started",
+	"phases_shipped": [
 		{
-			"plan": "04-01a",
-			"id": 1,
-			"name": "Add Label mock to recharts test mock (Wave-0 prereq)",
-			"status": "done",
-			"commit": "d0f25afb4"
+			"phase": "01",
+			"name": "Foundation & Dedup",
+			"pr": 744,
+			"merged": "2026-05-23"
 		},
 		{
-			"plan": "04-01a",
-			"id": 2,
-			"name": "Author additive get_dashboard_data_v2 migration with ts_revenue_6mo CTE",
-			"status": "done",
-			"commit": "831f13d74"
+			"phase": "02",
+			"name": "Data Layer & RPC",
+			"pr": 745,
+			"merged": "2026-05-24"
 		},
 		{
-			"plan": "04-01a",
-			"id": 3,
-			"name": "MCP apply_migration to prod (BLOCKING checkpoint)",
-			"status": "done",
-			"commit": "831f13d74"
+			"phase": "03",
+			"name": "KPI Bento Row",
+			"pr": 746,
+			"merged": "2026-05-26"
 		},
-		{
-			"plan": "04-01a",
-			"id": 4,
-			"name": "Reconcile migration filename with prod timestamp 20260526203003",
-			"status": "done",
-			"commit": "831f13d74"
-		},
-		{
-			"plan": "04-01a",
-			"id": 5,
-			"name": "Regenerate src/types/supabase.ts via MCP",
-			"status": "done",
-			"commit": "c167b6551"
-		}
+		{ "phase": "04", "name": "Charts", "pr": 748, "merged": "2026-05-28" }
 	],
-	"remaining_tasks": [
+	"remaining_phases": [
 		{
-			"plan": "04-01b",
-			"id": 1,
-			"name": "Add MonthlyRevenuePoint type + extend boundary mapper to emit monthlyRevenue6mo",
-			"status": "not_started"
+			"phase": "05",
+			"name": "Portfolio DataTable",
+			"status": "not_started",
+			"reqs": "DT-01..09"
 		},
 		{
-			"plan": "04-01b",
-			"id": 2,
-			"name": "Add RLS integration test dashboard-rpc-revenue-6mo.test.ts (cross-owner /access denied/i + shape-only)",
-			"status": "not_started"
+			"phase": "06",
+			"name": "Polish & A11y",
+			"status": "not_started",
+			"reqs": "POLISH-04..08"
 		},
 		{
-			"plan": "04-02",
-			"id": 1,
-			"name": "RevenueAreaChart + colocated skeleton (Recharts area, 30d/6mo Tabs, useReducedMotion gating)",
-			"status": "not_started"
-		},
-		{
-			"plan": "04-02",
-			"id": 2,
-			"name": "Vitest unit tests for RevenueAreaChart (12 specs)",
-			"status": "not_started"
-		},
-		{
-			"plan": "04-03",
-			"id": 1,
-			"name": "OccupancyDonutChart + skeleton (Recharts PieChart with Label center, ul/li legend)",
-			"status": "not_started"
-		},
-		{
-			"plan": "04-03",
-			"id": 2,
-			"name": "Vitest unit tests for OccupancyDonutChart (11 specs)",
-			"status": "not_started"
-		},
-		{
-			"plan": "04-03",
-			"id": 3,
-			"name": "Atomic: DashboardProps reshape + page.tsx drop revenueTrend + dashboard.tsx 3-up grid (single commit)",
-			"status": "not_started"
-		},
-		{
-			"plan": "04-03",
-			"id": 4,
-			"name": "Delete revenue-overview-chart.tsx + conditional chartConfig cleanup",
-			"status": "not_started"
-		},
-		{
-			"plan": "04-03",
-			"id": 5,
-			"name": "Manual dark-mode visual checkpoint (BLOCKING human-verify)",
-			"status": "not_started"
+			"phase": "07",
+			"name": "Verification",
+			"status": "not_started",
+			"reqs": "POLISH-09/12"
 		}
 	],
 	"blockers": [],
-	"human_actions_pending": [
-		{
-			"action": "04-03 Task 5 manual dark-mode visual smoke",
-			"context": "Browser eye-test in both light + dark modes per CHART-04; ahead, not gating next resume action",
-			"blocking": false
-		}
-	],
-	"decisions": [
-		{
-			"decision": "Migration prod timestamp 20260526203003",
-			"rationale": "MCP returned this on apply; local file renamed to match per migration-mcp-prod-drift.md",
-			"phase": "04"
-		},
-		{
-			"decision": "supabase.ts is byte-identical to baseline after MCP regen",
-			"rationale": "Migration only adds a JSONB key to an existing RPC — no table/column changes — so the generator emits identical output. The new monthly_revenue_6mo shape is typed at the boundary mapper in Plan 04-01b, NOT in supabase.ts",
-			"phase": "04"
-		},
-		{
-			"decision": "Owner A smoke returned 6-entry all-zero array",
-			"rationale": "Owner A has no active leases on prod — honest empty state, not fabrication. Shape conforms to MonthlyRevenuePoint contract",
-			"phase": "04"
-		},
-		{
-			"decision": "Plan-checker iteration 1 caused 04-01 split into 04-01a (DB) + 04-01b (TS)",
-			"rationale": "Original 7-task plan exceeded 5-task threshold; high-stakes SQL copy deserves its own context window",
-			"phase": "04"
-		}
-	],
+	"human_actions_pending": [],
+	"decisions": [],
 	"uncommitted_files": [],
-	"next_action": "Plan 04-01b. Task 1: extend src/types/analytics.ts with MonthlyRevenuePoint interface { month: string; value: number } (NOT date — month). Then extend boundary mapper in src/hooks/api/use-owner-dashboard.ts:218-294 to emit OwnerDashboardData.timeSeries.monthlyRevenue6mo via result.time_series?.monthly_revenue_6mo ?? []. Task 2: write tests/integration/rls/dashboard-rpc-revenue-6mo.test.ts mirroring dashboard-rpc-open-maintenance.test.ts (dual-client ownerA/ownerB; cross-owner expectation: error.message matches /access denied/i per Phase 2 cycle-10/11). Shape-only assertions per RESEARCH.md Q5 resolution.",
-	"context_notes": "Phase 4 = 4 plans across 3 waves. 04-01a (DB-side) shipped clean. Phase 2 additive-migration pattern was mirrored verbatim. Plan-checker iteration 1 split original 04-01 into 04-01a + 04-01b due to scope. All threat model items mitigated (T-04-01..T-04-04 + T-04-SC). Perfect-PR gate applies at end. NEVER --no-verify; dangerouslyDisableSandbox=true on git commit ONLY. Biome reformats supabase.ts to tabs."
+	"next_action": "Phase 5 (Portfolio DataTable, DT-01..09) is the next roadmap step. Run /gsd-discuss-phase 5 then /gsd-plan-phase 5. Optional audit-trail catch-up: Phase 4 shipped (PR #748, merged 2026-05-28) without a formal 04-VERIFICATION.md; .planning/phases/04-charts/04-VALIDATION.md is still status: draft. Running /gsd-verify-work 4 retroactively closes that gap, but it is not a code blocker (#748 passed 9 review cycles + CI).",
+	"context_notes": "Trust git log main + gh pr list --state merged as the source of truth over this cache. Phases 1-4 of v2.0 are all merged. Dependency order 1 -> 2 -> (3 || 4) -> 5 -> 6 -> 7; Phase 5 is the only swap (atomic PR replacing the hand-rolled portfolio table) and requires a UI-SPEC. NEVER --no-verify. Perfect-PR gate (2 consecutive zero-finding cycles) per phase PR."
 }
