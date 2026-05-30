@@ -1161,51 +1161,6 @@ export type Database = {
 					},
 				];
 			};
-			payment_transactions: {
-				Row: {
-					amount: number;
-					attempted_at: string | null;
-					created_at: string | null;
-					failure_reason: string | null;
-					id: string;
-					last_attempted_at: string | null;
-					payment_method_id: string | null;
-					rent_payment_id: string;
-					retry_count: number | null;
-					status: string;
-					stripe_payment_intent_id: string;
-					updated_at: string | null;
-				};
-				Insert: {
-					amount: number;
-					attempted_at?: string | null;
-					created_at?: string | null;
-					failure_reason?: string | null;
-					id?: string;
-					last_attempted_at?: string | null;
-					payment_method_id?: string | null;
-					rent_payment_id: string;
-					retry_count?: number | null;
-					status: string;
-					stripe_payment_intent_id: string;
-					updated_at?: string | null;
-				};
-				Update: {
-					amount?: number;
-					attempted_at?: string | null;
-					created_at?: string | null;
-					failure_reason?: string | null;
-					id?: string;
-					last_attempted_at?: string | null;
-					payment_method_id?: string | null;
-					rent_payment_id?: string;
-					retry_count?: number | null;
-					status?: string;
-					stripe_payment_intent_id?: string;
-					updated_at?: string | null;
-				};
-				Relationships: [];
-			};
 			processed_internal_events: {
 				Row: {
 					created_at: string;
@@ -2494,7 +2449,6 @@ export type Database = {
 				Args: { p_months?: number; p_owner_id: string };
 				Returns: Json;
 			};
-			get_owner_lease_tenant_ids: { Args: never; Returns: string[] };
 			get_property_performance_analytics: {
 				Args: {
 					p_limit?: number;
@@ -2707,7 +2661,6 @@ export type Database = {
 					success: boolean;
 				}[];
 			};
-			user_is_tenant: { Args: never; Returns: boolean };
 		};
 		Enums: {
 			[_ in never]: never;
