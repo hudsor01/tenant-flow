@@ -56,6 +56,30 @@ vi.mock("../pricing-content", async () => {
 
 import PricingPage, { metadata } from "../page";
 
+/**
+ * Walk a returned React element tree and collect every `schema["@type"]` carried
+ * by a `<JsonLdScript schema={...} />` node. Lets the test assert exactly WHICH
+ * JSON-LD nodes the page emits — `JsonLdScript` is mocked to `() => null`, but
+ * the `schema` prop lives on the element regardless of render. Uses `unknown` +
+ * type guards (no `any`, no double assertion).
+ */
+function collectSchemaTypes(node: unknown): string[] {
+	if (!node || typeof node !== "object") return [];
+	const types: string[] = [];
+	const props = (node as { props?: unknown }).props;
+	if (props && typeof props === "object") {
+		const schema = (props as { schema?: unknown }).schema;
+		if (schema && typeof schema === "object" && "@type" in schema) {
+			const type = (schema as Record<string, unknown>)["@type"];
+			if (typeof type === "string") types.push(type);
+		}
+		const children = (props as { children?: unknown }).children;
+		const childList = Array.isArray(children) ? children : [children];
+		for (const child of childList) types.push(...collectSchemaTypes(child));
+	}
+	return types;
+}
+
 describe("pricing/page.tsx PRICE-06 reversal (Phase 5)", () => {
 	beforeEach(() => {
 		mocks.createFaqJsonLdSpy.mockClear();
@@ -70,14 +94,17 @@ describe("pricing/page.tsx PRICE-06 reversal (Phase 5)", () => {
 		expect(desc).toContain("Growth ($49/mo, 20 properties)");
 	});
 
-	it("emits FAQ + Breadcrumb JSON-LD but NO Product/SoftwareApplication node (Merchant-listings fix)", async () => {
-		// The page must not render a page-level commercial schema: Product forced
+	it("emits exactly FAQ + Breadcrumb JSON-LD and NO Product/SoftwareApplication node (Merchant-listings fix)", async () => {
+		// The page must not emit a page-level commercial schema: Product forced
 		// Google's Merchant-listings validation (the GSC "invalid item" error), and
-		// the software entity is already covered sitewide by SeoJsonLd. Only FAQ +
-		// Breadcrumb remain. PricingPage returns a JSON-LD-free element tree (all
-		// JsonLdScript children are mocked to null), so the strongest pin we have is
-		// that rendering succeeds and the FAQ schema below is still built.
-		await expect(PricingPage()).resolves.toBeTruthy();
+		// the software entity is already covered sitewide by SeoJsonLd. Re-adding a
+		// Product/SoftwareApplication <JsonLdScript> here must fail this test.
+		const tree = await PricingPage();
+		const schemaTypes = collectSchemaTypes(tree);
+
+		expect(schemaTypes).toEqual(["FAQPage", "BreadcrumbList"]);
+		expect(schemaTypes).not.toContain("Product");
+		expect(schemaTypes).not.toContain("SoftwareApplication");
 	});
 
 	it("FAQPage JSON-LD mainEntity has exactly 5 entries (COPY-05 — pricing FAQ trim)", async () => {
