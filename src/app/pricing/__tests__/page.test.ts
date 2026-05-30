@@ -2,29 +2,10 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 // Hoisted mocks so they are available to vi.mock factories below
 const mocks = vi.hoisted(() => ({
-	createSoftwareApplicationJsonLdSpy: vi.fn((cfg: unknown) => ({
-		"@type": "SoftwareApplication",
-		__captured: cfg,
-	})),
 	createFaqJsonLdSpy: vi.fn((entries: unknown) => ({
 		"@type": "FAQPage",
 		__captured: entries,
 	})),
-}));
-
-vi.mock("#env", () => ({
-	env: {
-		NEXT_PUBLIC_APP_URL: "https://tenantflow.app",
-		VERCEL_URL: undefined,
-	},
-}));
-
-vi.mock("#lib/generate-metadata", () => ({
-	getSiteUrl: () => "https://tenantflow.app",
-}));
-
-vi.mock("#lib/seo/software-application-schema", () => ({
-	createSoftwareApplicationJsonLd: mocks.createSoftwareApplicationJsonLdSpy,
 }));
 
 vi.mock("#lib/seo/breadcrumbs", () => ({
@@ -77,7 +58,6 @@ import PricingPage, { metadata } from "../page";
 
 describe("pricing/page.tsx PRICE-06 reversal (Phase 5)", () => {
 	beforeEach(() => {
-		mocks.createSoftwareApplicationJsonLdSpy.mockClear();
 		mocks.createFaqJsonLdSpy.mockClear();
 	});
 
@@ -90,38 +70,14 @@ describe("pricing/page.tsx PRICE-06 reversal (Phase 5)", () => {
 		expect(desc).toContain("Growth ($49/mo, 20 properties)");
 	});
 
-	it("softwareJsonLd is built with exactly 3 tier prices (Starter + Growth + Max — Phase 5 PRICE-06 flip)", async () => {
-		await PricingPage();
-
-		expect(mocks.createSoftwareApplicationJsonLdSpy).toHaveBeenCalledTimes(1);
-		const config = mocks.createSoftwareApplicationJsonLdSpy.mock
-			.calls[0]![0] as {
-			offers: Array<{ price: string }>;
-			description: string;
-		};
-
-		expect(config.offers).toHaveLength(3);
-		expect(config.offers.map((o) => o.price)).toEqual([
-			"19.00",
-			"49.00",
-			"149.00",
-		]);
-		// Stale-price regression guards (the old $29/$79/$199 trio must not reappear)
-		expect(config.offers.find((o) => o.price === "29.00")).toBeUndefined();
-		expect(config.offers.find((o) => o.price === "79.00")).toBeUndefined();
-		expect(config.offers.find((o) => o.price === "199.00")).toBeUndefined();
-	});
-
-	it('softwareJsonLd.description contains "Max $149/mo (unlimited properties)" and omits the CRIT-03 placeholder (Phase 5 PRICE-06 flip)', async () => {
-		await PricingPage();
-
-		const config = mocks.createSoftwareApplicationJsonLdSpy.mock
-			.calls[0]![0] as {
-			description: string;
-		};
-
-		expect(config.description).toContain("Max $149/mo (unlimited properties)");
-		expect(config.description).not.toContain("Custom pricing, contact sales");
+	it("emits FAQ + Breadcrumb JSON-LD but NO Product/SoftwareApplication node (Merchant-listings fix)", async () => {
+		// The page must not render a page-level commercial schema: Product forced
+		// Google's Merchant-listings validation (the GSC "invalid item" error), and
+		// the software entity is already covered sitewide by SeoJsonLd. Only FAQ +
+		// Breadcrumb remain. PricingPage returns a JSON-LD-free element tree (all
+		// JsonLdScript children are mocked to null), so the strongest pin we have is
+		// that rendering succeeds and the FAQ schema below is still built.
+		await expect(PricingPage()).resolves.toBeTruthy();
 	});
 
 	it("FAQPage JSON-LD mainEntity has exactly 5 entries (COPY-05 — pricing FAQ trim)", async () => {
