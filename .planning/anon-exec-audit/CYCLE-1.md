@@ -82,8 +82,12 @@ Runs against prod under the existing dual-client `rls-security` CI job.
 
 - **Null-vulnerable guard pattern** — the GATES_INTERNALLY functions use `IF p_user_id != (select auth.uid()) THEN RAISE`. When `auth.uid()` is NULL (anon caller pre-lockdown), `NULL != NULL` is NULL, the IF doesn't fire, and the guard misses. Pre-existing bug; revoking from anon at the role level (this PR) is the correct fix because the guard inside the body can't be trusted for anon callers. Worth a separate hardening PR to also change the pattern to `IF p_user_id IS DISTINCT FROM (select auth.uid())` for belt-and-suspenders.
 
-## Out of scope (deferred)
+## Out of scope (deferred follow-ups)
 
-- **`search_path = public` → `search_path = ''` hardening** on 75 SECURITY DEFINER functions. Separate body-by-body PR; each function body must be reviewed to ensure FQ-name correctness before flipping the search path.
-- **Trigger-function grant cleanup** on `log_lease_signature_activity` and similar. Moot for security but worth tidying.
-- **Null-vulnerable guard hardening** — see above.
+1. **`search_path = public` → `search_path = ''` hardening** on 75 SECURITY DEFINER functions. Separate body-by-body PR; each function body must be reviewed to ensure FQ-name correctness before flipping the search path. Source: cycle-1 audit of #758, Supabase security-best-practices doc.
+2. **`IS DISTINCT FROM` belt-and-suspenders** on the in-body guard pattern. The 16 GATES_INTERNALLY functions use `IF p_id != (select auth.uid())`. NULL-vs-NULL comparison evaluates to NULL, IF doesn't fire. Role-level revoke (this PR) is the primary fix; in-body guard tightening is defense-in-depth. Source: cycle-3 WR-03.
+3. **Extract `REVOKED_CODES` to a shared test helper.** The literal `["42501", "42883", "PGRST202"]` is duplicated across 4 test files. It already drifted once during this PR's cycle-2. Source: cycle-3 INF-01.
+4. **Supabase "Grace period is over" billing banner.** Surfaced by the browser audit agent during the FRONTEND_URL rollout. Functions are serving fine but the project is at/near quota. Needs billing attention before quota actually blocks service. Source: Supabase Claude browser agent report, 2026-05-29.
+5. **Trigger-function grant cleanup** on `log_lease_signature_activity` and similar. Moot for security (triggers don't go through EXECUTE checks) but worth tidying.
+
+Each item is independently scoped and can ship as its own perfect-PR.
