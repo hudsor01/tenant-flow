@@ -16,7 +16,10 @@ const LIVE_PUBLISHED_SLUGS = new Set([
 	"stessa-vs-innago-complete-comparison-for-2026",
 ]);
 
-const VALID_DESTINATIONS = new Set([
+// Static hub/index destinations. A `/blog/<slug>` destination is ALSO valid,
+// but only when <slug> is one of the live published slugs (asserted below) —
+// redirecting to a deleted slug would just chain into another 404.
+const STATIC_DESTINATIONS = new Set([
 	"/blog",
 	"/compare",
 	"/compare/appfolio",
@@ -38,9 +41,15 @@ describe("DELETED_BLOG_REDIRECTS", () => {
 		expect(new Set(sources).size).toBe(sources.length);
 	});
 
-	it("every destination is a known live path", () => {
+	it("every destination is a live path (static hub/index OR a live /blog post)", () => {
 		for (const { destination } of DELETED_BLOG_REDIRECTS) {
-			expect(VALID_DESTINATIONS.has(destination)).toBe(true);
+			if (STATIC_DESTINATIONS.has(destination)) continue;
+			// Otherwise it must be a /blog/<live-slug> — never a deleted slug,
+			// which would 301 into another 404.
+			expect(destination).toMatch(/^\/blog\//);
+			expect(LIVE_PUBLISHED_SLUGS.has(destination.replace("/blog/", ""))).toBe(
+				true,
+			);
 		}
 	});
 
@@ -66,11 +75,14 @@ describe("DELETED_BLOG_REDIRECTS", () => {
 		}
 	});
 
-	it("comparison (-vs-) slugs without a hub go to the /compare index", () => {
+	it("comparison (-vs-) slugs without a hub go to /compare OR a live comparison post", () => {
 		for (const { source, destination } of DELETED_BLOG_REDIRECTS) {
 			const hasHub = HUBS.some((h) => source.includes(h));
 			if (!hasHub && source.includes("-vs-")) {
-				expect(destination).toBe("/compare");
+				const okLiveBlog =
+					destination.startsWith("/blog/") &&
+					LIVE_PUBLISHED_SLUGS.has(destination.replace("/blog/", ""));
+				expect(destination === "/compare" || okLiveBlog).toBe(true);
 			}
 		}
 	});

@@ -4,9 +4,10 @@
 // Phase-1 posts (migration 20260510214942_phase_6_delete_phase_1_broken_drafts);
 // with dynamicParams=false on /blog/[slug] those slugs now HTTP-404. These 301s
 // transfer the accumulated Google ranking signal (positions 6-13, ~10.9k impr/qtr)
-// to a live equivalent instead of bleeding it on bare 404s. Targeting: a slug
-// mentioning a /compare hub competitor (appfolio|rentredi|buildium) -> that hub;
-// other comparison (-vs-) -> /compare; generic guides -> /blog.
+// to the closest live equivalent. Targeting precedence: (1) slug names a /compare
+// hub competitor (appfolio|rentredi|buildium) -> that hub; (2) -vs- slug sharing a
+// brand token with a live comparison post -> that live /blog post; (3) other -vs-
+// -> /compare; (4) generic guide -> /blog.
 // See .planning/seo-audit/ANALYSIS-2026-05-29.md.
 //
 // REPUBLISH-RECLAIM (Hybrid plan, top-10 first): when a quality replacement is
@@ -198,11 +199,12 @@ export const DELETED_BLOG_REDIRECTS: readonly BlogRedirect[] = [
 	},
 	{
 		source: "/blog/landlord-studio-vs-resman-complete-comparison-for-2025",
-		destination: "/compare",
+		destination: "/blog/cozy-vs-resman-complete-comparison-for-2026",
 	},
 	{
 		source: "/blog/landlord-studio-vs-simplifyem-complete-comparison-for-2025",
-		destination: "/compare",
+		destination:
+			"/blog/hemlane-vs-simplifyem-vs-tenantflow-the-definitive-2025-comparison-for-independent-landlords",
 	},
 	{
 		source: "/blog/managing-contractors-from-a-distance",
@@ -218,16 +220,18 @@ export const DELETED_BLOG_REDIRECTS: readonly BlogRedirect[] = [
 	},
 	{
 		source: "/blog/propertyware-vs-resman-complete-comparison-for-2025",
-		destination: "/compare",
+		destination: "/blog/cozy-vs-resman-complete-comparison-for-2026",
 	},
 	{
 		source: "/blog/propertyware-vs-simplifyem-complete-comparison-for-2025",
-		destination: "/compare",
+		destination:
+			"/blog/hemlane-vs-simplifyem-vs-tenantflow-the-definitive-2025-comparison-for-independent-landlords",
 	},
 	{
 		source:
 			"/blog/propertyware-vs-zillow-rental-manager-complete-comparison-for-2026",
-		destination: "/compare",
+		destination:
+			"/blog/hemlane-vs-zillow-rental-manager-complete-comparison-for-2025",
 	},
 	{
 		source: "/blog/rent-manager-alternatives-under-100-month",
@@ -240,7 +244,7 @@ export const DELETED_BLOG_REDIRECTS: readonly BlogRedirect[] = [
 	},
 	{
 		source: "/blog/rent-manager-vs-resman-complete-comparison-for-2025",
-		destination: "/compare",
+		destination: "/blog/cozy-vs-resman-complete-comparison-for-2026",
 	},
 	{
 		source:
@@ -254,7 +258,7 @@ export const DELETED_BLOG_REDIRECTS: readonly BlogRedirect[] = [
 	},
 	{
 		source: "/blog/rentec-direct-vs-avail-complete-comparison-for-2025",
-		destination: "/compare",
+		destination: "/blog/avail-vs-turbotenant-complete-comparison-for-2026",
 	},
 	{
 		source:
@@ -273,7 +277,7 @@ export const DELETED_BLOG_REDIRECTS: readonly BlogRedirect[] = [
 	},
 	{
 		source: "/blog/resman-vs-rent-manager-complete-comparison-for-2025",
-		destination: "/compare",
+		destination: "/blog/cozy-vs-resman-complete-comparison-for-2026",
 	},
 	{
 		source:
@@ -312,7 +316,7 @@ export const DELETED_BLOG_REDIRECTS: readonly BlogRedirect[] = [
 	},
 	{
 		source: "/blog/simplifyem-vs-avail-complete-comparison-for-2026",
-		destination: "/compare",
+		destination: "/blog/avail-vs-turbotenant-complete-comparison-for-2026",
 	},
 	{
 		source: "/blog/stessa-vs-appfolio-complete-comparison-for-2026",
@@ -324,11 +328,12 @@ export const DELETED_BLOG_REDIRECTS: readonly BlogRedirect[] = [
 	},
 	{
 		source: "/blog/stessa-vs-simplifyem-complete-comparison-for-2026",
-		destination: "/compare",
+		destination:
+			"/blog/hemlane-vs-simplifyem-vs-tenantflow-the-definitive-2025-comparison-for-independent-landlords",
 	},
 	{
 		source: "/blog/stessa-vs-turbotenant-complete-comparison-for-2026",
-		destination: "/compare",
+		destination: "/blog/avail-vs-turbotenant-complete-comparison-for-2026",
 	},
 	{
 		source: "/blog/tenant-screening-checklist-for-multi-family-investors",
@@ -340,7 +345,7 @@ export const DELETED_BLOG_REDIRECTS: readonly BlogRedirect[] = [
 	},
 	{
 		source: "/blog/tenantcloud-vs-stessa-complete-comparison-for-2025",
-		destination: "/compare",
+		destination: "/blog/stessa-vs-innago-complete-comparison-for-2026",
 	},
 	{
 		source:
@@ -363,17 +368,20 @@ export const DELETED_BLOG_REDIRECTS: readonly BlogRedirect[] = [
 	{
 		source:
 			"/blog/tenantflow-vs-doorloop-complete-comparison-for-first-time-landlords",
-		destination: "/compare",
+		destination:
+			"/blog/hemlane-vs-simplifyem-vs-tenantflow-the-definitive-2025-comparison-for-independent-landlords",
 	},
 	{
 		source:
 			"/blog/tenantflow-vs-hemlane-complete-comparison-for-commercial-landlords",
-		destination: "/compare",
+		destination:
+			"/blog/hemlane-vs-simplifyem-vs-tenantflow-the-definitive-2025-comparison-for-independent-landlords",
 	},
 	{
 		source:
 			"/blog/tenantflow-vs-hemlane-complete-comparison-for-commercial-landlords-in-2025",
-		destination: "/compare",
+		destination:
+			"/blog/hemlane-vs-simplifyem-vs-tenantflow-the-definitive-2025-comparison-for-independent-landlords",
 	},
 	{
 		source: "/blog/top-1-property-management-app-for-first-time-landlords",
@@ -458,7 +466,7 @@ export const DELETED_BLOG_REDIRECTS: readonly BlogRedirect[] = [
 	},
 	{
 		source: "/blog/turbotenant-vs-apartments-com-complete-comparison-for-2025",
-		destination: "/compare",
+		destination: "/blog/avail-vs-turbotenant-complete-comparison-for-2026",
 	},
 	{
 		source: "/blog/using-zapier-for-property-management",
@@ -492,7 +500,8 @@ export const DELETED_BLOG_REDIRECTS: readonly BlogRedirect[] = [
 	{
 		source:
 			"/blog/yardi-breeze-vs-zillow-rental-manager-complete-comparison-for-2026",
-		destination: "/compare",
+		destination:
+			"/blog/hemlane-vs-zillow-rental-manager-complete-comparison-for-2025",
 	},
 	{
 		source: "/blog/zillow-rental-manager-alternatives-under-50-month",
@@ -501,6 +510,7 @@ export const DELETED_BLOG_REDIRECTS: readonly BlogRedirect[] = [
 	{
 		source:
 			"/blog/zillow-rental-manager-vs-tenantcloud-complete-comparison-for-2026",
-		destination: "/compare",
+		destination:
+			"/blog/hemlane-vs-zillow-rental-manager-complete-comparison-for-2025",
 	},
 ];
