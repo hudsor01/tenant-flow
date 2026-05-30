@@ -6,6 +6,7 @@
  */
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { omitUndefined } from "#lib/db-insert";
 import {
 	handleMutationError,
 	handleMutationSuccess,
@@ -55,7 +56,7 @@ export function useUpdateInspectionRoom(inspectionId: string) {
 			const supabase = createClient();
 			const { error } = await supabase
 				.from("inspection_rooms")
-				.update(dto)
+				.update(omitUndefined(dto))
 				.eq("id", roomId);
 
 			if (error) handlePostgrestError(error, "inspection_rooms");

@@ -179,36 +179,50 @@ describe("useExpensesByProperty", () => {
 	});
 
 	it("fetches expenses for a specific property", async () => {
-		// Step 1: maintenance_requests query returns IDs (now bounded by .limit)
-		const mrSelectChain = { eq: mockEq };
-		const mrEqChain = { limit: mockLimit };
-		mockEq.mockReturnValue(mrEqChain);
+		// expenses joins to maintenance_requests via maintenance_request_id,
+		// maintenance_requests joins to units via unit_id, units holds the
+		// property_id FK. The hook walks units → maintenance_requests → expenses
+		// because maintenance_requests has no property_id column.
+		//
+		// Mock all three chains:
+		//   1. units .select("id").eq("property_id", ...).limit(N)
+		//   2. maintenance_requests .select("id").in("unit_id", [...]).limit(N)
+		//   3. expenses .select(SEL).in("maintenance_request_id", [...])
+		//      .neq("status","inactive").order("expense_date",...).limit(N)
+		const unitsSelectChain = { eq: mockEq };
+		const unitsEqChain = { limit: mockLimit };
+		mockEq.mockReturnValue(unitsEqChain);
 
-		// Step 2: expenses query filters by maintenance_request_id
-		// Chain: from → select → in → neq → order → limit
 		const expSelectChain = { in: mockIn };
 		const inChain = { neq: mockNeq };
 		const neqChain = { order: mockOrder };
 		const orderChain = { limit: mockLimit };
-		mockIn.mockReturnValue(inChain);
+		mockIn.mockReturnValueOnce({ limit: mockLimit }); // mr.in("unit_id")
+		mockIn.mockReturnValue(inChain); // expenses.in("maintenance_request_id")
 		mockNeq.mockReturnValue(neqChain);
 		mockOrder.mockReturnValue(orderChain);
 
-		// mockLimit is awaited at the end of BOTH queries — return the right
-		// shape for whichever call this is. First call (maintenance_requests):
-		// returns { data: [{id:...}] }. Second call (expenses): returns expense rows.
+		// mockLimit is awaited at the end of all three queries. Order:
+		//   1. units            -> [{id:"unit-1"}]
+		//   2. maintenance_reqs -> [{id:"mr-1"}]
+		//   3. expenses         -> [mockExpenseRow]
 		let limitCall = 0;
 		mockLimit.mockImplementation(() => {
 			limitCall += 1;
 			if (limitCall === 1) {
+				return Promise.resolve({ data: [{ id: "unit-1" }], error: null });
+			}
+			if (limitCall === 2) {
 				return Promise.resolve({ data: [{ id: "mr-1" }], error: null });
 			}
 			return Promise.resolve({ data: [mockExpenseRow], error: null });
 		});
 
 		mockFrom.mockImplementation((table: string) => {
+			if (table === "units")
+				return { select: vi.fn().mockReturnValue(unitsSelectChain) };
 			if (table === "maintenance_requests")
-				return { select: vi.fn().mockReturnValue(mrSelectChain) };
+				return { select: vi.fn().mockReturnValue({ in: mockIn }) };
 			return { select: mockSelect };
 		});
 		mockSelect.mockReturnValue(expSelectChain);
@@ -221,9 +235,19 @@ describe("useExpensesByProperty", () => {
 			expect(result.current.isSuccess).toBe(true);
 		});
 
+		expect(mockFrom).toHaveBeenCalledWith("units");
 		expect(mockFrom).toHaveBeenCalledWith("maintenance_requests");
 		expect(mockFrom).toHaveBeenCalledWith("expenses");
 		expect(mockLimit).toHaveBeenCalledWith(1000);
+		// Filter-contract assertions -- a regression that swaps the column
+		// (e.g. units.eq("owner_user_id", ...)) would still leave the table
+		// sequence above intact. These pin the actual property -> unit ->
+		// maintenance_request -> expense chain.
+		expect(mockEq).toHaveBeenCalledWith("property_id", "prop-1");
+		expect(mockIn).toHaveBeenNthCalledWith(1, "unit_id", ["unit-1"]);
+		expect(mockIn).toHaveBeenNthCalledWith(2, "maintenance_request_id", [
+			"mr-1",
+		]);
 	});
 
 	it("does not fetch when propertyId is empty", () => {

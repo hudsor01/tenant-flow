@@ -118,10 +118,7 @@ export const reportQueries = {
 			queryFn: async (): Promise<RevenueData[]> => {
 				const user = await getCachedUser();
 				if (!user) return [];
-				const raw = await fetchRevenueTrends(months);
-				const rows = (Array.isArray(raw) ? raw : []) as Array<
-					Record<string, unknown>
-				>;
+				const rows = await fetchRevenueTrends(months);
 				return rows.map(
 					(row): RevenueData => ({
 						month: String(row.month ?? ""),

@@ -169,6 +169,41 @@ export type Database = {
 					},
 				];
 			};
+			document_template_definitions: {
+				Row: {
+					created_at: string;
+					custom_fields: Json;
+					id: string;
+					owner_user_id: string;
+					template_key: string;
+					updated_at: string;
+				};
+				Insert: {
+					created_at?: string;
+					custom_fields?: Json;
+					id?: string;
+					owner_user_id: string;
+					template_key: string;
+					updated_at?: string;
+				};
+				Update: {
+					created_at?: string;
+					custom_fields?: Json;
+					id?: string;
+					owner_user_id?: string;
+					template_key?: string;
+					updated_at?: string;
+				};
+				Relationships: [
+					{
+						foreignKeyName: "document_template_definitions_owner_user_id_fkey";
+						columns: ["owner_user_id"];
+						isOneToOne: false;
+						referencedRelation: "users";
+						referencedColumns: ["id"];
+					},
+				];
+			};
 			documents: {
 				Row: {
 					created_at: string | null;

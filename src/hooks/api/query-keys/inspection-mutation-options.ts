@@ -1,4 +1,5 @@
 import { mutationOptions } from "@tanstack/react-query";
+import { omitUndefined } from "#lib/db-insert";
 import { handlePostgrestError } from "#lib/postgrest-error-handler";
 import { requireOwnerUserId } from "#lib/require-owner-user-id";
 import { createClient } from "#lib/supabase/client";
@@ -10,7 +11,10 @@ import type {
 	UpdateInspectionInput,
 	UpdateInspectionRoomInput,
 } from "#lib/validation/inspections";
-import type { Inspection } from "#types/sections/inspections";
+import {
+	type Inspection,
+	narrowInspectionEnums,
+} from "#types/sections/inspections";
 
 export interface RecordPhotoInput {
 	inspection_room_id: string;
@@ -32,12 +36,12 @@ export const inspectionMutations = {
 
 				const { data: created, error } = await supabase
 					.from("inspections")
-					.insert({ ...dto, owner_user_id: ownerId })
+					.insert(omitUndefined({ ...dto, owner_user_id: ownerId }))
 					.select()
 					.single();
 
 				if (error) handlePostgrestError(error, "inspections");
-				return created as unknown as Inspection;
+				return narrowInspectionEnums(created);
 			},
 		}),
 
@@ -47,13 +51,13 @@ export const inspectionMutations = {
 				const supabase = createClient();
 				const { data: updated, error } = await supabase
 					.from("inspections")
-					.update(dto)
+					.update(omitUndefined(dto))
 					.eq("id", id)
 					.select()
 					.single();
 
 				if (error) handlePostgrestError(error, "inspections");
-				return updated as unknown as Inspection;
+				return narrowInspectionEnums(updated);
 			},
 		}),
 
@@ -87,7 +91,7 @@ export const inspectionMutations = {
 					.single();
 
 				if (error) handlePostgrestError(error, "inspections");
-				return updated as unknown as Inspection;
+				return narrowInspectionEnums(updated);
 			},
 		}),
 
@@ -103,7 +107,7 @@ export const inspectionMutations = {
 					.single();
 
 				if (error) handlePostgrestError(error, "inspections");
-				return updated as unknown as Inspection;
+				return narrowInspectionEnums(updated);
 			},
 		}),
 
@@ -113,17 +117,19 @@ export const inspectionMutations = {
 				const supabase = createClient();
 				const { data: updated, error } = await supabase
 					.from("inspections")
-					.update({
-						...dto,
-						status: "finalized",
-						tenant_reviewed_at: new Date().toISOString(),
-					})
+					.update(
+						omitUndefined({
+							...dto,
+							status: "finalized",
+							tenant_reviewed_at: new Date().toISOString(),
+						}),
+					)
 					.eq("id", id)
 					.select()
 					.single();
 
 				if (error) handlePostgrestError(error, "inspections");
-				return updated as unknown as Inspection;
+				return narrowInspectionEnums(updated);
 			},
 		}),
 
@@ -146,7 +152,7 @@ export const inspectionMutations = {
 				const supabase = createClient();
 				const { data: created, error } = await supabase
 					.from("inspection_rooms")
-					.insert(dto)
+					.insert(omitUndefined(dto))
 					.select()
 					.single();
 
@@ -161,7 +167,7 @@ export const inspectionMutations = {
 				const supabase = createClient();
 				const { error } = await supabase
 					.from("inspection_rooms")
-					.update(dto)
+					.update(omitUndefined(dto))
 					.eq("id", roomId);
 
 				if (error) handlePostgrestError(error, "inspection_rooms");

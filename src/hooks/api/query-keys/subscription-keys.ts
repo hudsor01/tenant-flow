@@ -67,7 +67,10 @@ export const subscriptionStatusQuery = {
 					} satisfies SubscriptionStatusResponse;
 				}
 
-				// Query stripe.subscriptions for real subscription status
+				// get_subscription_status reads the denormalized subscription_*
+				// columns from public.users (canonical source of subscription
+				// state -- webhooks land in public.stripe_webhook_events and
+				// fan out to public.users via the webhook handler).
 				const { data: subData, error: subError } = await supabase.rpc(
 					"get_subscription_status",
 					{ p_customer_id: stripeCustomerId },
@@ -91,13 +94,16 @@ export const subscriptionStatusQuery = {
 					} satisfies SubscriptionStatusResponse;
 				}
 
-				const sub = (Array.isArray(subData) ? subData[0] : subData) as Record<
-					string,
-					unknown
-				> | null;
+				const subRaw = Array.isArray(subData) ? subData[0] : subData;
+				const sub: Record<string, unknown> | null =
+					subRaw !== null &&
+					typeof subRaw === "object" &&
+					!Array.isArray(subRaw)
+						? (subRaw as Record<string, unknown>)
+						: null;
 
 				const status = (sub?.status as string) ?? localStatus;
-				logger.debug("Subscription status from stripe.subscriptions", {
+				logger.debug("Subscription status from get_subscription_status", {
 					status,
 				});
 

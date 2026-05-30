@@ -7,6 +7,7 @@
  */
 
 import { queryOptions } from "@tanstack/react-query";
+import { omitUndefined } from "#lib/db-insert";
 import { handlePostgrestError } from "#lib/postgrest-error-handler";
 import { createClient } from "#lib/supabase/client";
 import { getCachedUser } from "#lib/supabase/get-cached-user";
@@ -54,11 +55,14 @@ export const reportAnalyticsQueries = {
 						paymentsByStatus: { completed: 0, pending: 0, failed: 0 },
 					};
 				}
-				const { data, error } = await supabase.rpc("get_billing_insights", {
-					owner_id_param: user.id,
-					start_date_param: start_date,
-					end_date_param: end_date,
-				});
+				const { data, error } = await supabase.rpc(
+					"get_billing_insights",
+					omitUndefined({
+						owner_id_param: user.id,
+						start_date_param: start_date,
+						end_date_param: end_date,
+					}),
+				);
 				if (error) handlePostgrestError(error, "payment analytics");
 				const insights = data as Record<string, unknown> | null;
 				return {

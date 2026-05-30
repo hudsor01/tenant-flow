@@ -6,6 +6,7 @@
  */
 
 import { handlePostgrestError } from "#lib/postgrest-error-handler";
+import { jsonObject } from "#lib/rpc-shape";
 import { createClient } from "#lib/supabase/client";
 import { getCachedUser } from "#lib/supabase/get-cached-user";
 import type { ActivityItem } from "#types/activity";
@@ -111,7 +112,7 @@ const fetchOwnerDashboardData = async (): Promise<OwnerDashboardData> => {
 		);
 	}
 
-	const result = data as {
+	const result = jsonObject<{
 		stats: DashboardStats;
 		trends: Record<string, MetricTrend>;
 		time_series: Record<string, TimeSeriesDataPoint[]> & {
@@ -119,7 +120,7 @@ const fetchOwnerDashboardData = async (): Promise<OwnerDashboardData> => {
 		};
 		property_performance: PropertyPerformanceRpcResponse[];
 		activities: ActivityItem[];
-	};
+	}>(data);
 
 	// The get_dashboard_data_v2 RPC emits property_performance rows with
 	// `property_name` / `address` keys (see PropertyPerformanceRpcResponse).

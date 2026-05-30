@@ -1,9 +1,32 @@
 "use client";
 
-import { CheckCircle, Loader2 } from "lucide-react";
+import { CheckCircle, Clock, Loader2, XCircle } from "lucide-react";
 import { BlurFade } from "#components/ui/blur-fade";
 import { useBillingHistory } from "#hooks/api/use-billing";
 import { useBillingPortalMutation } from "#hooks/api/use-billing-mutations";
+import type { BillingHistoryItem } from "#types/api-contracts";
+
+function getStatusVisual(invoice: BillingHistoryItem) {
+	if (invoice.isSuccessful) {
+		return {
+			Icon: CheckCircle,
+			color: "text-success",
+			label: "Paid",
+		};
+	}
+	if (invoice.status === "failed" || invoice.status === "cancelled") {
+		return {
+			Icon: XCircle,
+			color: "text-destructive",
+			label: invoice.status === "failed" ? "Failed" : "Cancelled",
+		};
+	}
+	return {
+		Icon: Clock,
+		color: "text-muted-foreground",
+		label: invoice.status,
+	};
+}
 
 export function BillingHistorySection() {
 	const { data: paymentHistory } = useBillingHistory();
@@ -18,45 +41,52 @@ export function BillingHistorySection() {
 
 				{paymentHistory && paymentHistory.length > 0 ? (
 					<div className="space-y-2">
-						{paymentHistory.slice(0, 5).map(
-							(
-								invoice: {
-									id: string;
-									created_at: string;
-									amount: number;
-									status: string;
-								},
-								idx: number,
-							) => (
-								<BlurFade key={invoice.id} delay={0.4 + idx * 0.05} inView>
-									<div className="flex items-center justify-between p-3 rounded-lg border hover:bg-muted/30 transition-colors">
-										<div className="flex items-center gap-4">
-											<span className="text-sm font-medium">
-												{invoice.id.slice(0, 12)}
-											</span>
-											<span className="text-sm text-muted-foreground">
-												{new Date(invoice.created_at).toLocaleDateString(
-													"en-US",
-													{ month: "short", day: "numeric", year: "numeric" },
+						{paymentHistory
+							.slice(0, 5)
+							.map((invoice: BillingHistoryItem, idx: number) => {
+								const { Icon, color, label } = getStatusVisual(invoice);
+								const downloadHref =
+									invoice.invoice_pdf ?? invoice.hosted_invoice_url;
+								return (
+									<BlurFade key={invoice.id} delay={0.4 + idx * 0.05} inView>
+										<div className="flex items-center justify-between p-3 rounded-lg border hover:bg-muted/30 transition-colors">
+											<div className="flex items-center gap-4">
+												<span className="text-sm font-medium">
+													{invoice.id.slice(0, 12)}
+												</span>
+												<span className="text-sm text-muted-foreground">
+													{invoice.formattedDate}
+												</span>
+											</div>
+											<div className="flex items-center gap-4">
+												<span className="text-sm font-medium">
+													{invoice.formattedAmount}
+												</span>
+												<span
+													className={`inline-flex items-center gap-1 text-xs font-medium ${color}`}
+												>
+													<Icon className="w-3 h-3" />
+													{label}
+												</span>
+												{downloadHref ? (
+													<a
+														href={downloadHref}
+														target="_blank"
+														rel="noopener noreferrer"
+														className="text-sm text-primary hover:underline"
+													>
+														Download
+													</a>
+												) : (
+													<span className="text-sm text-muted-foreground">
+														—
+													</span>
 												)}
-											</span>
+											</div>
 										</div>
-										<div className="flex items-center gap-4">
-											<span className="text-sm font-medium">
-												${(invoice.amount / 100).toFixed(2)}
-											</span>
-											<span className="inline-flex items-center gap-1 text-xs font-medium text-success">
-												<CheckCircle className="w-3 h-3" />
-												Paid
-											</span>
-											<button className="text-sm text-primary hover:underline">
-												Download
-											</button>
-										</div>
-									</div>
-								</BlurFade>
-							),
-						)}
+									</BlurFade>
+								);
+							})}
 					</div>
 				) : (
 					<div className="p-4 text-center">

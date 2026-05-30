@@ -134,11 +134,7 @@ export function SelectionStep({
 			if (error) throw error;
 			return (rows ?? [])
 				.map((row) => {
-					const user = row.users as unknown as {
-						first_name: string | null;
-						last_name: string | null;
-						email: string | null;
-					} | null;
+					const user = row.users;
 					return {
 						id: row.id,
 						first_name: row.first_name ?? user?.first_name ?? "",

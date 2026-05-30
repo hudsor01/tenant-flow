@@ -11,6 +11,7 @@
 
 import { mutationOptions, queryOptions } from "@tanstack/react-query";
 import { QUERY_CACHE_TIMES } from "#lib/constants/query-config";
+import { omitUndefined } from "#lib/db-insert";
 import { handlePostgrestError } from "#lib/postgrest-error-handler";
 import { requireOwnerUserId } from "#lib/require-owner-user-id";
 import { sanitizeSearchInput } from "#lib/sanitize-search";
@@ -265,7 +266,7 @@ export const unitMutations = {
 
 				const { data: created, error } = await supabase
 					.from("units")
-					.insert({ ...data, owner_user_id: ownerId })
+					.insert(omitUndefined({ ...data, owner_user_id: ownerId }))
 					.select()
 					.single();
 
@@ -288,7 +289,9 @@ export const unitMutations = {
 				version?: number;
 			}): Promise<Unit> => {
 				const supabase = createClient();
-				const updatePayload = version ? { ...data, version } : { ...data };
+				const updatePayload = omitUndefined(
+					version ? { ...data, version } : { ...data },
+				);
 				const { data: updated, error } = await supabase
 					.from("units")
 					.update(updatePayload)

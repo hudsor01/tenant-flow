@@ -1,4 +1,5 @@
 import { mutationOptions, queryOptions } from "@tanstack/react-query";
+import { omitUndefined } from "#lib/db-insert";
 import { handlePostgrestError } from "#lib/postgrest-error-handler";
 import { createClient } from "#lib/supabase/client";
 import { getCachedUser } from "#lib/supabase/get-cached-user";
@@ -193,17 +194,28 @@ export const expenseQueries = {
 			queryKey: expenseKeys.byProperty(propertyId),
 			queryFn: async (): Promise<Expense[]> => {
 				const supabase = createClient();
-				// expenses table has no property_id column — filter via maintenance_requests join.
-				// Both queries are bounded by the project-wide EXPENSES_LIST_DEFAULT_LIMIT
-				// so neither side can produce an unbounded select.
+				// expenses → maintenance_requests → units → properties. There's no
+				// property_id on maintenance_requests; the join goes through units.
+				// Both queries are bounded by EXPENSES_LIST_DEFAULT_LIMIT so neither
+				// side can produce an unbounded select.
+				const { data: unitIds, error: uError } = await supabase
+					.from("units")
+					.select("id")
+					.eq("property_id", propertyId)
+					.limit(EXPENSES_LIST_DEFAULT_LIMIT);
+				if (uError) handlePostgrestError(uError, "units");
+				const unitIdList = (unitIds ?? []).map((u) => u.id);
+				if (unitIdList.length === 0) return [];
+
 				const { data: mrIds, error: mrError } = await supabase
 					.from("maintenance_requests")
 					.select("id")
-					.eq("property_id", propertyId)
+					.in("unit_id", unitIdList)
 					.limit(EXPENSES_LIST_DEFAULT_LIMIT);
 				if (mrError) handlePostgrestError(mrError, "maintenance_requests");
 				const ids = (mrIds ?? []).map((r) => r.id);
 				if (ids.length === 0) return [];
+
 				const { data, error } = await supabase
 					.from("expenses")
 					.select(EXPENSE_SELECT)
@@ -275,12 +287,14 @@ export const financialMutations = {
 				const supabase = createClient();
 				const { data, error } = await supabase
 					.from("expenses")
-					.insert({
-						amount: input.amount,
-						expense_date: input.expense_date,
-						maintenance_request_id: input.maintenance_request_id,
-						vendor_name: input.vendor_name,
-					})
+					.insert(
+						omitUndefined({
+							amount: input.amount,
+							expense_date: input.expense_date,
+							maintenance_request_id: input.maintenance_request_id,
+							vendor_name: input.vendor_name,
+						}),
+					)
 					.select(EXPENSE_SELECT)
 					.single();
 				if (error) handlePostgrestError(error, "create expense");

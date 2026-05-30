@@ -18,6 +18,7 @@ import { propertyQueries } from "#hooks/api/query-keys/property-keys";
 import { tenantQueries } from "#hooks/api/query-keys/tenant-keys";
 import { unitQueries } from "#hooks/api/query-keys/unit-keys";
 import { useUnsavedChangesWarning } from "#hooks/use-unsaved-changes";
+import { omitUndefined } from "#lib/db-insert";
 import { requireOwnerUserId } from "#lib/require-owner-user-id";
 import { createClient } from "#lib/supabase/client";
 import { getCachedUser } from "#lib/supabase/get-cached-user";
@@ -121,10 +122,7 @@ export function LeaseCreationWizard({ onSuccess }: LeaseCreationWizardProps) {
 				.eq("id", selectionData.primary_tenant_id ?? "")
 				.single();
 			if (!data) return null;
-			const user = data.users as unknown as {
-				first_name: string | null;
-				last_name: string | null;
-			} | null;
+			const user = data.users;
 			return {
 				id: data.id,
 				first_name: data.first_name ?? user?.first_name ?? null,
@@ -141,16 +139,53 @@ export function LeaseCreationWizard({ onSuccess }: LeaseCreationWizardProps) {
 			const user = await getCachedUser();
 			const ownerId = requireOwnerUserId(user?.id);
 
+			// property_id is wizard-only UI state -- the leases table tracks
+			// the relationship via unit_id (a unit belongs to one property).
+			// Strip it from the insert payload before sending to PostgREST.
+			const { property_id: _wizardPropertyId, ...selection } = selectionData;
+			// Each step's data is `Partial<StepData>` while the wizard collects
+			// fields. By submit time, every required column has been validated
+			// (`selectionStepSchema`, `termsStepSchema`, `leaseDetailsStepSchema`
+			// all passed in `validateStep` before the submit button enabled),
+			// so the assertion of `required-fields-present` is sound. Narrow the
+			// types explicitly here so the insert call typechecks under the
+			// generated `Database['public']['Tables']['leases']['Insert']`
+			// constraint without dropping back to `unknown`.
+			const requiredCheck = {
+				unit_id: selection.unit_id,
+				primary_tenant_id: selection.primary_tenant_id,
+				start_date: termsData.start_date,
+				end_date: termsData.end_date,
+				rent_amount: termsData.rent_amount,
+				security_deposit: termsData.security_deposit,
+				payment_day: termsData.payment_day,
+			};
+			for (const [k, v] of Object.entries(requiredCheck)) {
+				if (v === undefined || v === null) {
+					throw new Error(`Lease draft missing required field: ${k}`);
+				}
+			}
+			const insertPayload = omitUndefined({
+				...selection,
+				...termsData,
+				...detailsData,
+				owner_user_id: ownerId,
+				lease_status: "draft",
+				rent_currency: "USD",
+				// Narrow each required column explicitly -- `omitUndefined<T>`
+				// can't lift `field?: T | undefined` to `field: T` since the
+				// type system can't observe the runtime checks above.
+				unit_id: requiredCheck.unit_id as string,
+				primary_tenant_id: requiredCheck.primary_tenant_id as string,
+				start_date: requiredCheck.start_date as string,
+				end_date: requiredCheck.end_date as string,
+				rent_amount: requiredCheck.rent_amount as number,
+				security_deposit: requiredCheck.security_deposit as number,
+				payment_day: requiredCheck.payment_day as number,
+			});
 			const { data, error } = await supabase
 				.from("leases")
-				.insert({
-					...selectionData,
-					...termsData,
-					...detailsData,
-					owner_user_id: ownerId,
-					lease_status: "draft",
-					rent_currency: "USD",
-				})
+				.insert(insertPayload)
 				.select("id")
 				.single();
 			if (error) throw new Error(error.message || "Failed to create lease");

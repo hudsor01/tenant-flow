@@ -15,6 +15,7 @@ import { parseCsvWithSchema } from "#components/bulk-import/parse-csv-with-schem
 import type { BulkImportConfig } from "#components/bulk-import/types";
 import { ownerDashboardKeys } from "#hooks/api/query-keys/owner-dashboard-keys";
 import { tenantQueries } from "#hooks/api/query-keys/tenant-keys";
+import { omitUndefined } from "#lib/db-insert";
 import { requireOwnerUserId } from "#lib/require-owner-user-id";
 import { createClient } from "#lib/supabase/client";
 import { getCachedUser } from "#lib/supabase/get-cached-user";
@@ -102,7 +103,7 @@ export function tenantBulkImportConfig(): BulkImportConfig<TenantImportInput> {
 			const ownerId = requireOwnerUserId(user?.id);
 			const { error } = await supabase
 				.from("tenants")
-				.insert({ ...row, owner_user_id: ownerId });
+				.insert(omitUndefined({ ...row, owner_user_id: ownerId }));
 			return { error: error ? new Error(error.message) : null };
 		},
 		invalidateKeys: [tenantQueries.all(), ownerDashboardKeys.all],

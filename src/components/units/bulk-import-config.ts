@@ -18,6 +18,7 @@ import type {
 } from "#components/bulk-import/types";
 import { ownerDashboardKeys } from "#hooks/api/query-keys/owner-dashboard-keys";
 import { unitQueries } from "#hooks/api/query-keys/unit-keys";
+import { omitUndefined } from "#lib/db-insert";
 import { requireOwnerUserId } from "#lib/require-owner-user-id";
 import { createClient } from "#lib/supabase/client";
 import { getCachedUser } from "#lib/supabase/get-cached-user";
@@ -128,7 +129,7 @@ export function unitBulkImportConfig(
 			const ownerId = requireOwnerUserId(user?.id);
 			const { error } = await supabase
 				.from("units")
-				.insert({ ...row, owner_user_id: ownerId });
+				.insert(omitUndefined({ ...row, owner_user_id: ownerId }));
 			return { error: error ? new Error(error.message) : null };
 		},
 		invalidateKeys: [unitQueries.all(), ownerDashboardKeys.all],

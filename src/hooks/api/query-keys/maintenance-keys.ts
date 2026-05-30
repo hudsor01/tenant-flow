@@ -11,6 +11,7 @@
 
 import { mutationOptions, queryOptions } from "@tanstack/react-query";
 import { QUERY_CACHE_TIMES } from "#lib/constants/query-config";
+import { omitUndefined } from "#lib/db-insert";
 import { handlePostgrestError } from "#lib/postgrest-error-handler";
 import { requireOwnerUserId } from "#lib/require-owner-user-id";
 import { createClient } from "#lib/supabase/client";
@@ -71,8 +72,10 @@ export const maintenanceQueries = {
 				let count: number | null;
 
 				if (filters?.property_id) {
-					// Join through units when filtering by property_id
-					// Cast to unknown first because the join changes the return type shape
+					// Join through units when filtering by property_id.
+					// PostgREST `units!inner(property_id)` filter adds a `units`
+					// embed to each row that the application MaintenanceRequest
+					// type does not carry -- drop it after the filter applies.
 					const result = await supabase
 						.from("maintenance_requests")
 						.select(
@@ -82,7 +85,9 @@ export const maintenanceQueries = {
 						.eq("units.property_id", filters.property_id)
 						.order("created_at", { ascending: false })
 						.range(offset, offset + limit - 1);
-					data = result.data as unknown as MaintenanceRequest[];
+					data = (result.data ?? []).map(
+						({ units: _units, ...row }) => row as MaintenanceRequest,
+					);
 					error = result.error;
 					count = result.count;
 				} else {
@@ -298,7 +303,7 @@ export const maintenanceMutations = {
 
 				const { data: created, error } = await supabase
 					.from("maintenance_requests")
-					.insert({ ...data, owner_user_id: ownerId })
+					.insert(omitUndefined({ ...data, owner_user_id: ownerId }))
 					.select()
 					.single();
 
@@ -323,7 +328,7 @@ export const maintenanceMutations = {
 
 				const { data: updated, error } = await supabase
 					.from("maintenance_requests")
-					.update(data)
+					.update(omitUndefined(data))
 					.eq("id", id)
 					.select()
 					.single();

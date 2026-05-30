@@ -48,7 +48,8 @@ const profileMutationFactories = {
 					.select(PROFILE_SELECT)
 					.single();
 				if (error) throw error;
-				return mapUserProfile(data!);
+				if (!data) throw new Error("Profile not found");
+				return mapUserProfile(data);
 			},
 		}),
 
@@ -68,7 +69,7 @@ const profileMutationFactories = {
 					.select("phone")
 					.single();
 				if (error) throw error;
-				return data as { phone: string | null };
+				return { phone: data.phone };
 			},
 		}),
 };
