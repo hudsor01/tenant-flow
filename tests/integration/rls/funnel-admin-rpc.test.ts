@@ -7,12 +7,19 @@
  * rejection tests run always (need only E2E_OWNER creds).
  *
  * Asserts:
- *   1. non-admin OWNER caller gets error matching /unauthorized/i
- *   2. anonymous caller gets error matching /unauthorized/i
- *   3. admin caller on seeded cohort gets valid jsonb with 4 step rows,
- *      correct step_order, and non-null cohort_label
- *   4. empty-cohort window (1970-01-01 -> 1970-01-02) returns 4 zero-count
- *      rows with null conversion rates (nullif div-by-zero safety)
+ *   1. non-admin OWNER caller (authenticated, reaches the in-body
+ *      is_admin() gate) gets error matching /unauthorized/i
+ *   2. anonymous caller is blocked at the role-level revoke before the
+ *      body runs (error.code in {42501, 42883, PGRST202}). The v2
+ *      migration 20260529225039 revoked EXECUTE FROM PUBLIC on
+ *      get_funnel_stats; the in-body is_admin() gate is now
+ *      defense-in-depth for authenticated callers.
+ *   3. admin caller on seeded cohort gets valid jsonb with 3 step rows
+ *      (signup, first_property, first_unit), correct step_order, and
+ *      non-null cohort_label
+ *   4. empty-cohort window (1970-01-01 -> 1970-01-02) returns 3
+ *      zero-count rows with null conversion rates (nullif div-by-zero
+ *      safety)
  */
 
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
