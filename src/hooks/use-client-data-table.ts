@@ -172,16 +172,29 @@ export function useClientDataTable<TData>(
 		(column) => column.enableColumnFilter,
 	);
 
+	// FACETED columns (those carrying `meta.options`, e.g. the multi-select
+	// `status` filter) round-trip as `parseAsArrayOf(string)`; plain search
+	// columns (e.g. `property`) round-trip as a single string. This same set
+	// gates the array-vs-string decision when hydrating `columnFilters` below,
+	// so a multi-word search ("elm street") on a plain column is restored as one
+	// string instead of being split into an array that matches nothing.
+	const facetedColumnIds = new Set(
+		filterableColumns
+			.filter((column) => column.meta?.options)
+			.map((column) => column.id)
+			.filter(Boolean) as string[],
+	);
+
 	const filterParsers = filterableColumns.reduce<
 		Record<string, SingleParser<string> | SingleParser<string[]>>
 	>((acc, column) => {
-		if (column.meta?.options) {
-			acc[column.id ?? ""] = parseAsArrayOf(
-				parseAsString,
-				ARRAY_SEPARATOR,
-			).withOptions(queryStateOptions);
+		const id = column.id ?? "";
+		if (facetedColumnIds.has(id)) {
+			acc[id] = parseAsArrayOf(parseAsString, ARRAY_SEPARATOR).withOptions(
+				queryStateOptions,
+			);
 		} else {
-			acc[column.id ?? ""] = parseAsString.withOptions(queryStateOptions);
+			acc[id] = parseAsString.withOptions(queryStateOptions);
 		}
 		return acc;
 	}, {});
@@ -189,54 +202,55 @@ export function useClientDataTable<TData>(
 	const [filterValues, setFilterValues] = useQueryStates(filterParsers);
 
 	const debouncedSetFilterValues = useDebouncedCallback(
-		(values: typeof filterValues) => {
+		(values: Record<string, string | string[] | null>) => {
 			void setPage(1);
 			void setFilterValues(values);
 		},
 		debounceMs,
 	);
 
-	const initialColumnFilters: ColumnFiltersState = Object.entries(
+	// nuqs is the SINGLE source of truth for filters: derive `columnFilters` from
+	// the live `filterValues` every render (mirroring how `sorting`/`pagination`
+	// read straight from `useQueryState`). External writes — preset apply,
+	// refresh, shared URL, back/forward — re-flow here automatically. There is no
+	// standalone `useState` seed that could go stale.
+	const columnFilters: ColumnFiltersState = Object.entries(
 		filterValues,
 	).reduce<ColumnFiltersState>((filters, [key, value]) => {
 		if (value !== null) {
-			const processedValue = Array.isArray(value)
-				? value
-				: typeof value === "string" && /[^a-zA-Z0-9]/.test(value)
-					? value.split(/[^a-zA-Z0-9]+/).filter(Boolean)
-					: [value];
+			// Array-ness is keyed off whether the column is FACETED, never off the
+			// value's characters — so a multi-word search stays a single string.
+			const processedValue =
+				facetedColumnIds.has(key) && !Array.isArray(value) ? [value] : value;
 			filters.push({ id: key, value: processedValue });
 		}
 		return filters;
 	}, []);
 
-	const [columnFilters, setColumnFilters] =
-		useState<ColumnFiltersState>(initialColumnFilters);
-
+	// `onColumnFiltersChange` only writes back to nuqs (debounced). It never holds
+	// filter state itself — the next render re-derives `columnFilters` from the URL.
 	const onColumnFiltersChange = (
 		updaterOrValue: Updater<ColumnFiltersState>,
 	) => {
-		setColumnFilters((prev) => {
-			const next =
-				typeof updaterOrValue === "function"
-					? updaterOrValue(prev)
-					: updaterOrValue;
-			const filterUpdates = next.reduce<
-				Record<string, string | string[] | null>
-			>((acc, filter) => {
+		const next =
+			typeof updaterOrValue === "function"
+				? updaterOrValue(columnFilters)
+				: updaterOrValue;
+		const filterUpdates = next.reduce<Record<string, string | string[] | null>>(
+			(acc, filter) => {
 				if (filterableColumns.find((column) => column.id === filter.id)) {
 					acc[filter.id] = filter.value as string | string[];
 				}
 				return acc;
-			}, {});
-			for (const prevFilter of prev) {
-				if (!next.some((filter) => filter.id === prevFilter.id)) {
-					filterUpdates[prevFilter.id] = null;
-				}
+			},
+			{},
+		);
+		for (const prevFilter of columnFilters) {
+			if (!next.some((filter) => filter.id === prevFilter.id)) {
+				filterUpdates[prevFilter.id] = null;
 			}
-			debouncedSetFilterValues(filterUpdates);
-			return next;
-		});
+		}
+		debouncedSetFilterValues(filterUpdates);
 	};
 
 	const table = useReactTable({

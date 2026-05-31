@@ -5,6 +5,7 @@ import {
 	type OnUrlUpdateFunction,
 } from "nuqs/adapters/testing";
 import type { ReactNode } from "react";
+import { useState } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { useClientDataTable } from "#hooks/use-client-data-table";
 import { getSortingStateParser } from "#lib/parsers";
@@ -18,6 +19,7 @@ vi.unmock("nuqs");
 interface TestRow {
 	id: string;
 	n: number;
+	address: string;
 }
 
 // Faceted (array) filter: keep a row when its stringified value is one of the
@@ -30,6 +32,14 @@ const inSelectedValues: FilterFn<TestRow> = (row, columnId, filterValue) => {
 	return (filterValue as string[]).includes(String(row.getValue(columnId)));
 };
 
+// Plain-string search filter: case-insensitive substring against the address.
+// Mirrors the portfolio "property" search column (a single string, NOT faceted),
+// so a multi-word query must survive as one string rather than being split.
+const addressIncludes: FilterFn<TestRow> = (row, columnId, filterValue) => {
+	const query = String(filterValue).toLowerCase();
+	return String(row.getValue(columnId)).toLowerCase().includes(query);
+};
+
 const columns: ColumnDef<TestRow>[] = [
 	{ id: "id", accessorKey: "id" },
 	{
@@ -40,12 +50,20 @@ const columns: ColumnDef<TestRow>[] = [
 		filterFn: inSelectedValues,
 		meta: { options: [{ label: "Five", value: "5" }] },
 	},
+	{
+		// Plain (non-faceted) search column: no meta.options.
+		id: "address",
+		accessorKey: "address",
+		enableColumnFilter: true,
+		filterFn: addressIncludes,
+	},
 ];
 
 function makeRows(count: number): TestRow[] {
 	return Array.from({ length: count }, (_, index) => ({
 		id: String(index),
 		n: index,
+		address: `${index} Main St`,
 	}));
 }
 
@@ -119,10 +137,12 @@ describe("useClientDataTable", () => {
 		expect(result.current.table.getPageCount()).toBe(3);
 
 		// Narrow to a single matching row -> page count recomputes to 1 (proves the
-		// count is NOT frozen by a pageCount prop).
+		// count is NOT frozen by a pageCount prop). Filters now flow through nuqs as
+		// the single source of truth (debounced), so flush the write before asserting.
 		await act(async () => {
 			result.current.table.getColumn("n")?.setFilterValue(["5"]);
 		});
+		await flushUrlWrites();
 
 		expect(result.current.table.getFilteredRowModel().rows).toHaveLength(1);
 		expect(result.current.table.getPageCount()).toBe(1);
@@ -188,6 +208,76 @@ describe("useClientDataTable", () => {
 		expect(result.current.table.getState().sorting).toEqual([
 			{ id: "n", desc: true },
 		]);
+	});
+
+	it("re-filters when an EXTERNAL nuqs write changes property+status (URL is the single source of truth)", async () => {
+		const data: TestRow[] = [
+			{ id: "0", n: 0, address: "1 Elm Street" },
+			{ id: "1", n: 5, address: "2 Oak Avenue" },
+			{ id: "2", n: 5, address: "3 Elm Street" },
+		];
+		// Render under a controllable URL: an external setUrlState write (preset
+		// apply / back-forward / shared URL) must re-flow into columnFilters.
+		let setUrl!: (params: Record<string, string>) => void;
+		function Adapter({ children }: { children: ReactNode }) {
+			const [params, setParams] = useState<Record<string, string>>({});
+			setUrl = setParams;
+			return (
+				<NuqsTestingAdapter hasMemory searchParams={params}>
+					{children}
+				</NuqsTestingAdapter>
+			);
+		}
+
+		let result!: ReturnType<
+			typeof renderHook<ReturnType<typeof useClientDataTable<TestRow>>, void>
+		>["result"];
+		await act(async () => {
+			result = renderHook(
+				() => useClientDataTable<TestRow>({ data, columns }),
+				{
+					wrapper: Adapter,
+				},
+			).result;
+		});
+
+		// No filters yet -> all rows present.
+		expect(result.current.table.getFilteredRowModel().rows).toHaveLength(3);
+
+		// EXTERNAL write to the URL (NOT through the table API): faceted status `n`
+		// + plain search `address`. This is the preset-apply path the old useState
+		// seed silently dropped.
+		await act(async () => {
+			setUrl({ n: "5", address: "elm" });
+		});
+
+		// Both filters apply: n===5 AND address contains "elm" -> only row "2".
+		const filtered = result.current.table.getFilteredRowModel().rows;
+		expect(filtered).toHaveLength(1);
+		expect(filtered[0]?.id).toBe("2");
+	});
+
+	it("hydrates a multi-word search from the URL as a single string (no array split)", async () => {
+		const data: TestRow[] = [
+			{ id: "0", n: 0, address: "42 Elm Street" },
+			{ id: "1", n: 1, address: "7 Oak Avenue" },
+		];
+		const result = await renderClientHook(
+			{ data, columns },
+			// "elm street" is two words. The old reduce split on non-alphanumerics
+			// into ["elm","street"] (an array), which a single-string filterFn could
+			// not match. Faceted-keyed array logic keeps it a single string.
+			{ searchParams: { address: "elm street" } },
+		);
+
+		const addressFilter = result.current.table
+			.getState()
+			.columnFilters.find((filter) => filter.id === "address");
+		expect(addressFilter?.value).toBe("elm street");
+
+		const filtered = result.current.table.getFilteredRowModel().rows;
+		expect(filtered).toHaveLength(1);
+		expect(filtered[0]?.id).toBe("0");
 	});
 
 	it("round-trips controlled columnVisibility and falls back to internal state when uncontrolled", async () => {

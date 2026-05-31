@@ -1,5 +1,5 @@
 import type { OnChangeFn, VisibilityState } from "@tanstack/react-table";
-import { act, render, screen } from "@testing-library/react";
+import { act, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { NuqsTestingAdapter } from "nuqs/adapters/testing";
 import type { ReactNode } from "react";
@@ -110,7 +110,11 @@ describe("PortfolioDataTableToolbar", () => {
 		await user.type(input, "elm");
 
 		// W-3: the name||address filterFn keeps the address-only row -> 1 match.
-		expect(screen.getByTestId("filtered-count").textContent).toBe("1");
+		// Filters round-trip through nuqs (debounced single source of truth), so
+		// await the result rather than asserting synchronously.
+		await waitFor(() => {
+			expect(screen.getByTestId("filtered-count").textContent).toBe("1");
+		});
 	});
 
 	it("faceted status filter lists meta.options and selecting one narrows rows (DT-04)", async () => {
@@ -130,7 +134,10 @@ describe("PortfolioDataTableToolbar", () => {
 		expect(screen.getByText("Vacant")).toBeInTheDocument();
 
 		await user.click(screen.getByText("Active"));
-		expect(screen.getByTestId("filtered-count").textContent).toBe("1");
+		// Faceted writes also debounce through nuqs -> await the filtered count.
+		await waitFor(() => {
+			expect(screen.getByTestId("filtered-count").textContent).toBe("1");
+		});
 	});
 
 	it("view-options lists hideable column labels and toggling hides a column (DT-05)", async () => {
@@ -317,9 +324,12 @@ describe("PortfolioDataTable", () => {
 		await user.click(screen.getByRole("button", { name: /status/i }));
 		await user.click(await screen.findByRole("option", { name: /active/i }));
 
-		// Grid now reflects the table's filtered set: only the active row.
+		// Grid now reflects the table's filtered set: only the active row. The filter
+		// debounces through nuqs, so await the vacant rows dropping out.
+		await waitFor(() => {
+			expect(screen.queryByText("Vacant One")).toBeNull();
+		});
 		expect(screen.getByText("Active One")).toBeInTheDocument();
-		expect(screen.queryByText("Vacant One")).toBeNull();
 		expect(screen.queryByText("Vacant Two")).toBeNull();
 	});
 
