@@ -20,17 +20,21 @@ import {
 	type VisibilityState,
 } from "@tanstack/react-table";
 import {
-	parseAsArrayOf,
 	parseAsInteger,
-	parseAsString,
-	type SingleParser,
 	type UseQueryStateOptions,
 	useQueryState,
 	useQueryStates,
 } from "nuqs";
 import type { TransitionStartFunction } from "react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
+import {
+	buildFilterParsers,
+	deriveColumnFilters,
+	type FilterValues,
+	filtersEqual,
+	toFilterUpdates,
+} from "#hooks/use-client-data-table.helpers";
 import { useDebouncedCallback } from "#hooks/use-debounced-callback";
 import { getSortingStateParser } from "#lib/parsers";
 import type { ExtendedColumnSort, QueryKeys } from "#types/data-table";
@@ -42,7 +46,6 @@ const DEFAULTS = {
 	filters: "filters",
 	joinOperator: "joinOperator",
 } as const;
-const ARRAY_SEPARATOR = ",";
 const DEBOUNCE_MS = 300;
 const THROTTLE_MS = 50;
 
@@ -176,12 +179,6 @@ export function useClientDataTable<TData>(
 		(column) => column.enableColumnFilter,
 	);
 
-	// FACETED columns (those carrying `meta.options`, e.g. the multi-select
-	// `status` filter) round-trip as `parseAsArrayOf(string)`; plain search
-	// columns (e.g. `property`) round-trip as a single string. This same set
-	// gates the array-vs-string decision when hydrating `columnFilters` below,
-	// so a multi-word search ("elm street") on a plain column is restored as one
-	// string instead of being split into an array that matches nothing.
 	const facetedColumnIds = new Set(
 		filterableColumns
 			.filter((column) => column.meta?.options)
@@ -189,50 +186,36 @@ export function useClientDataTable<TData>(
 			.filter(Boolean) as string[],
 	);
 
-	const filterParsers = filterableColumns.reduce<
-		Record<string, SingleParser<string> | SingleParser<string[]>>
-	>((acc, column) => {
-		const id = column.id ?? "";
-		if (facetedColumnIds.has(id)) {
-			acc[id] = parseAsArrayOf(parseAsString, ARRAY_SEPARATOR).withOptions(
-				queryStateOptions,
-			);
-		} else {
-			acc[id] = parseAsString.withOptions(queryStateOptions);
-		}
-		return acc;
-	}, {});
+	const filterParsers = buildFilterParsers(
+		filterableColumns,
+		facetedColumnIds,
+		queryStateOptions,
+	);
 
 	const [filterValues, setFilterValues] = useQueryStates(filterParsers);
 
+	// SYNCHRONOUS mirror of the derived filters. The controlled search Input reads
+	// table state for its value, so the mirror must update on the SAME render as
+	// the keystroke — a pure per-render derivation from the DEBOUNCED nuqs write
+	// would snap the input back to the stale value between keystrokes (the freeze
+	// regression). nuqs remains the durable source of truth; this is the
+	// instant-feedback cache that the debounced URL write reconciles into.
+	const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>(() =>
+		deriveColumnFilters(filterValues, facetedColumnIds),
+	);
+
 	const debouncedSetFilterValues = useDebouncedCallback(
-		(values: Record<string, string | string[] | null>) => {
+		(values: FilterValues) => {
 			void setPage(1);
 			void setFilterValues(values);
 		},
 		debounceMs,
 	);
 
-	// nuqs is the SINGLE source of truth for filters: derive `columnFilters` from
-	// the live `filterValues` every render (mirroring how `sorting`/`pagination`
-	// read straight from `useQueryState`). External writes — preset apply,
-	// refresh, shared URL, back/forward — re-flow here automatically. There is no
-	// standalone `useState` seed that could go stale.
-	const columnFilters: ColumnFiltersState = Object.entries(
-		filterValues,
-	).reduce<ColumnFiltersState>((filters, [key, value]) => {
-		if (value !== null) {
-			// Array-ness is keyed off whether the column is FACETED, never off the
-			// value's characters — so a multi-word search stays a single string.
-			const processedValue =
-				facetedColumnIds.has(key) && !Array.isArray(value) ? [value] : value;
-			filters.push({ id: key, value: processedValue });
-		}
-		return filters;
-	}, []);
-
-	// `onColumnFiltersChange` only writes back to nuqs (debounced). It never holds
-	// filter state itself — the next render re-derives `columnFilters` from the URL.
+	// `onColumnFiltersChange` updates the mirror SYNCHRONOUSLY (instant input
+	// feedback) and debounces ONLY the URL write. The next render keeps the mirror
+	// it just set; the resync effect below is a no-op because the debounced write
+	// lands a `filterValues` already equal to the mirror.
 	const onColumnFiltersChange = (
 		updaterOrValue: Updater<ColumnFiltersState>,
 	) => {
@@ -240,22 +223,23 @@ export function useClientDataTable<TData>(
 			typeof updaterOrValue === "function"
 				? updaterOrValue(columnFilters)
 				: updaterOrValue;
-		const filterUpdates = next.reduce<Record<string, string | string[] | null>>(
-			(acc, filter) => {
-				if (filterableColumns.find((column) => column.id === filter.id)) {
-					acc[filter.id] = filter.value as string | string[];
-				}
-				return acc;
-			},
-			{},
+		setColumnFilters(next);
+		debouncedSetFilterValues(
+			toFilterUpdates(next, columnFilters, filterableColumns),
 		);
-		for (const prevFilter of columnFilters) {
-			if (!next.some((filter) => filter.id === prevFilter.id)) {
-				filterUpdates[prevFilter.id] = null;
-			}
-		}
-		debouncedSetFilterValues(filterUpdates);
 	};
+
+	// Resync from EXTERNAL nuqs writes — preset apply, refresh, deep-link,
+	// back/forward — by recomputing the derived filters whenever `filterValues`
+	// changes and adopting them only when they differ from the live mirror. Our
+	// own debounced write sets `filterValues` to a value already equal to the
+	// mirror, so this bails (no loop). The `filtersEqual` guard also makes the
+	// every-render reference churn of `facetedColumnIds`/`filterValues` a no-op
+	// `setState` that React drops, so listing them as deps is safe.
+	useEffect(() => {
+		const derived = deriveColumnFilters(filterValues, facetedColumnIds);
+		setColumnFilters((prev) => (filtersEqual(prev, derived) ? prev : derived));
+	}, [filterValues, facetedColumnIds]);
 
 	const table = useReactTable({
 		...tableProps,
