@@ -105,10 +105,10 @@ describe("portfolioColumns", () => {
 	});
 
 	it("sets sortable flags correctly", () => {
-		expect(findColumn("property").enableSorting).not.toBe(false);
-		expect(findColumn("units").enableSorting).not.toBe(false);
-		expect(findColumn("status").enableSorting).not.toBe(false);
-		expect(findColumn("rent").enableSorting).not.toBe(false);
+		expect(findColumn("property").enableSorting).toBe(true);
+		expect(findColumn("units").enableSorting).toBe(true);
+		expect(findColumn("status").enableSorting).toBe(true);
+		expect(findColumn("rent").enableSorting).toBe(true);
 		expect(findColumn("tenant").enableSorting).toBe(false);
 		expect(findColumn("maintenance").enableSorting).toBe(false);
 		expect(findColumn("actions").enableSorting).toBe(false);

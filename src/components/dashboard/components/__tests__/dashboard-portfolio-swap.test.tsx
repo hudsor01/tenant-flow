@@ -237,6 +237,69 @@ describe("dashboard portfolio swap", () => {
 		});
 	});
 
+	it("apply preset RE-FILTERS the live table, not just the URL (multi-word property + status)", async () => {
+		const user = userEvent.setup();
+		// Render in grid mode so the cards expose table.getRowModel().rows directly.
+		useDashboardStore.setState({ viewMode: "grid" }, false);
+		// A preset whose MULTI-WORD property search + status narrows to one row.
+		// "maple court" must stay one string (the FIX-1 regression) and match only
+		// Maple Court; status=active also excludes the vacant Birch Flats.
+		useDashboardPresetsStore.getState().savePreset("Active maple", {
+			filters: { status: ["active"], property: "maple court" },
+			sort: [{ id: "property", desc: false }],
+			columnVisibility: {},
+			page: 1,
+		});
+
+		renderDashboard();
+		await screen.findByText("Maple Court");
+		// Unfiltered grid shows both properties at first.
+		expect(screen.getByText("Birch Flats")).toBeInTheDocument();
+
+		await user.click(screen.getByRole("button", { name: /^presets$/i }));
+		await user.click(await screen.findByText("Active maple"));
+
+		// The table actually re-filters: Birch Flats drops, Maple Court remains.
+		await waitFor(() => {
+			expect(screen.queryByText("Birch Flats")).toBeNull();
+		});
+		expect(screen.getByText("Maple Court")).toBeInTheDocument();
+	});
+
+	it("refresh round-trip: save a full view, remount from a clean URL, apply, FILTERED ROWS match", async () => {
+		const user = userEvent.setup();
+		useDashboardStore.setState({ viewMode: "grid" }, false);
+
+		// Save a FULL view preset: multi-word property + status + sort + page.
+		useDashboardPresetsStore.getState().savePreset("Saved full view", {
+			filters: { status: ["active"], property: "maple court" },
+			sort: [{ id: "rent", desc: true }],
+			columnVisibility: {},
+			page: 1,
+		});
+
+		// First mount, then unmount (simulates a refresh / fresh navigation).
+		const { unmount } = renderDashboard();
+		await screen.findByText("Maple Court");
+		unmount();
+
+		// Remount from a CLEAN URL (no params) — the preset carries the state.
+		renderDashboard(withUrl());
+		await screen.findByText("Maple Court");
+		// Clean URL -> unfiltered -> both visible before apply.
+		expect(screen.getByText("Birch Flats")).toBeInTheDocument();
+
+		await user.click(screen.getByRole("button", { name: /^presets$/i }));
+		await user.click(await screen.findByText("Saved full view"));
+
+		// Applying the saved view re-filters the freshly mounted table: the
+		// multi-word property + status narrow the FILTERED ROWS to Maple Court.
+		await waitFor(() => {
+			expect(screen.queryByText("Birch Flats")).toBeNull();
+		});
+		expect(screen.getByText("Maple Court")).toBeInTheDocument();
+	});
+
 	it("sources column visibility from the presets store and persists across remount", async () => {
 		const user = userEvent.setup();
 		const { unmount } = renderDashboard();
