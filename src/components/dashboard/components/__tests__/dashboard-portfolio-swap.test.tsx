@@ -14,7 +14,7 @@
  * via NuqsTestingAdapter so the snapshot collect/apply path is exercised for real.
  */
 
-import { render, screen, waitFor } from "@testing-library/react";
+import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { NuqsTestingAdapter } from "nuqs/adapters/testing";
 import type { ReactNode } from "react";
@@ -329,6 +329,83 @@ describe("dashboard portfolio swap", () => {
 		expect(
 			screen.queryByRole("columnheader", { name: /maintenance/i }),
 		).toBeNull();
+	});
+});
+
+// D-10: the inline PropertyPerformance -> PortfolioRow transform in dashboard.tsx
+// (occupancyRate -> leaseStatus boundaries, occupiedUnits -> tenant cell) was
+// previously untested. Grid mode renders the FULL derived row (status chip +
+// tenant cell), so it pins the actual boundary logic in dashboard.tsx.
+const TRANSFORM_PROPERTIES: PropertyPerformanceItem[] = [
+	{
+		// occupancyRate 85 is in the >=80 && <100 band -> "expiring"; partial
+		// occupancy (5 of 6) -> tenant "5 tenants". Pins the >=80 boundary.
+		id: "expiring-partial",
+		name: "Expiring Partial",
+		address: "85 Boundary Rd",
+		totalUnits: 6,
+		occupiedUnits: 5,
+		occupancyRate: 85,
+		monthlyRevenue: 5000,
+		openMaintenance: 0,
+	},
+	{
+		// Zero occupancy -> tenant null -> "--"; occupancyRate 0 (<80) -> "vacant".
+		id: "vacant-empty",
+		name: "Vacant Empty",
+		address: "0 Empty St",
+		totalUnits: 4,
+		occupiedUnits: 0,
+		occupancyRate: 0,
+		monthlyRevenue: 0,
+		openMaintenance: 0,
+	},
+];
+
+describe("dashboard portfolio D-10 transform (occupancyRate -> leaseStatus, occupancy -> tenant)", () => {
+	function renderTransformDashboard(wrapper = withUrl()) {
+		return render(
+			<Dashboard
+				kpiData={KPI_LOADING}
+				monthlyRevenue={[]}
+				monthlyRevenue6mo={[]}
+				units={{ occupied: 5, vacant: 5, total: 10 }}
+				propertyPerformance={TRANSFORM_PROPERTIES}
+			/>,
+			{ wrapper },
+		);
+	}
+
+	it("derives leaseStatus from occupancyRate boundaries and tenant from occupancy (grid exposes full row)", async () => {
+		// Grid mode renders the full derived row (status chip + tenant cell).
+		useDashboardStore.setState({ viewMode: "grid" }, false);
+		renderTransformDashboard();
+
+		const expiringCard = (await screen.findByText("Expiring Partial")).closest(
+			"div.border",
+		) as HTMLElement;
+		const vacantCard = screen
+			.getByText("Vacant Empty")
+			.closest("div.border") as HTMLElement;
+		expect(expiringCard).not.toBeNull();
+		expect(vacantCard).not.toBeNull();
+
+		// occupancyRate 85 -> ">=80 && <100" -> leaseStatus "expiring" -> chip
+		// renders exactly "Expiring" in grid mode (pins the >=80 boundary).
+		const { getByText: getInExpiring, queryByLabelText: queryExpiringTenant } =
+			within(expiringCard);
+		expect(getInExpiring("Expiring")).toBeInTheDocument();
+		// Partial occupancy (5 > 0) -> tenant "5 tenants" (NOT the "--" no-tenant
+		// placeholder).
+		expect(getInExpiring("5 tenants")).toBeInTheDocument();
+		expect(queryExpiringTenant("No tenants")).toBeNull();
+
+		// occupancyRate 0 (<80) -> leaseStatus "vacant" -> chip "Vacant"; zero
+		// occupancy -> tenant null -> "--" placeholder (aria-label "No tenants").
+		const { getByText: getInVacant, getByLabelText: getVacantTenant } =
+			within(vacantCard);
+		expect(getInVacant("Vacant")).toBeInTheDocument();
+		expect(getVacantTenant("No tenants")).toBeInTheDocument();
 	});
 });
 
