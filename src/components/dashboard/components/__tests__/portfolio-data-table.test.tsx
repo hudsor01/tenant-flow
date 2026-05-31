@@ -1,3 +1,4 @@
+import type { OnChangeFn, VisibilityState } from "@tanstack/react-table";
 import { act, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { NuqsTestingAdapter } from "nuqs/adapters/testing";
@@ -6,6 +7,7 @@ import { useState } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { portfolioColumns } from "#components/dashboard/components/portfolio-columns";
+import { PortfolioDataTable } from "#components/dashboard/components/portfolio-data-table";
 import { PortfolioDataTableToolbar } from "#components/dashboard/components/portfolio-data-table-toolbar";
 import type { PortfolioRow } from "#components/dashboard/dashboard-types";
 import { useClientDataTable } from "#hooks/use-client-data-table";
@@ -159,5 +161,216 @@ describe("PortfolioDataTableToolbar", () => {
 
 		await user.click(gridRadio);
 		expect(screen.getByTestId("view-mode").textContent).toBe("grid");
+	});
+});
+
+// Stub window.matchMedia so the mobile query (max-width: 375px) reports `matches`
+// per the `shouldMatch` predicate; `useMediaQuery` reads this on mount.
+function stubMatchMedia(shouldMatch: (query: string) => boolean) {
+	const original = window.matchMedia;
+	window.matchMedia = vi.fn().mockImplementation((query: string) => ({
+		matches: shouldMatch(query),
+		media: query,
+		onchange: null,
+		addListener: vi.fn(),
+		removeListener: vi.fn(),
+		addEventListener: vi.fn(),
+		removeEventListener: vi.fn(),
+		dispatchEvent: vi.fn(),
+	}));
+	return () => {
+		window.matchMedia = original;
+	};
+}
+
+// Controlled wrapper: parent owns viewMode + columnVisibility (matches the Plan
+// 05-03 contract). Exposes the visibility change spy to the test.
+function ControlledHarness({
+	data,
+	initialView = "table",
+	initialVisibility = {},
+	onVisibilityChange,
+}: {
+	data: PortfolioRow[];
+	initialView?: "table" | "grid";
+	initialVisibility?: VisibilityState;
+	onVisibilityChange?: OnChangeFn<VisibilityState>;
+}) {
+	const [viewMode, setViewMode] = useState<"table" | "grid">(initialView);
+	const [visibility, setVisibility] =
+		useState<VisibilityState>(initialVisibility);
+	const handleVisibility: OnChangeFn<VisibilityState> = (updater) => {
+		onVisibilityChange?.(updater);
+		setVisibility((prev) =>
+			typeof updater === "function" ? updater(prev) : updater,
+		);
+	};
+	return (
+		<PortfolioDataTable
+			data={data}
+			viewMode={viewMode}
+			onViewModeChange={setViewMode}
+			columnVisibility={visibility}
+			onColumnVisibilityChange={handleVisibility}
+		/>
+	);
+}
+
+describe("PortfolioDataTable", () => {
+	it("renders rows through the virtualizer tbody (sized via getTotalSize)", async () => {
+		await act(async () => {
+			render(<ControlledHarness data={makeRows(50)} />, { wrapper: Wrapper });
+		});
+
+		// The virtualized tbody carries the total-size height style. jsdom reports a
+		// 0px scroll container, so we assert the virtualizer is engaged via the
+		// height style rather than counting rendered rows.
+		const tbody = document.querySelector('tbody[data-slot="table-body"]');
+		expect(tbody).not.toBeNull();
+		expect((tbody as HTMLElement).style.height).toMatch(/px$/);
+	});
+
+	it("virtualizes both small and large datasets through one path (always-on, D-2)", async () => {
+		const { unmount } = render(<ControlledHarness data={makeRows(3)} />, {
+			wrapper: Wrapper,
+		});
+		await act(async () => {});
+		expect(
+			document.querySelector('tbody[data-slot="table-body"]'),
+		).not.toBeNull();
+		unmount();
+
+		await act(async () => {
+			render(<ControlledHarness data={makeRows(50)} />, { wrapper: Wrapper });
+		});
+		expect(
+			document.querySelector('tbody[data-slot="table-body"]'),
+		).not.toBeNull();
+	});
+
+	it("renders aria-sort on the <th role=columnheader>, not the inner button (B-1)", async () => {
+		await act(async () => {
+			render(<ControlledHarness data={makeRows(5)} />, { wrapper: Wrapper });
+		});
+
+		const header = screen.getByRole("columnheader", { name: /property/i });
+		expect(["none", "ascending", "descending"]).toContain(
+			header.getAttribute("aria-sort"),
+		);
+
+		// The inner sort button must NOT carry aria-sort.
+		const button = screen.getByRole("button", { name: /property/i });
+		expect(button.getAttribute("aria-sort")).toBeNull();
+	});
+
+	it("hides a column when columnVisibility is controlled and fires the parent spy (B-2)", async () => {
+		const user = userEvent.setup();
+		const onVisibilityChange = vi.fn();
+		await act(async () => {
+			render(
+				<ControlledHarness
+					data={makeRows(5)}
+					initialVisibility={{ maintenance: false }}
+					onVisibilityChange={onVisibilityChange}
+				/>,
+				{ wrapper: Wrapper },
+			);
+		});
+
+		// Controlled-hidden column has no header.
+		expect(
+			screen.queryByRole("columnheader", { name: /maintenance/i }),
+		).toBeNull();
+		// Still-visible column remains.
+		expect(
+			screen.getByRole("columnheader", { name: /property/i }),
+		).toBeInTheDocument();
+
+		// Toggling visibility via the view-options menu fires the PARENT handler.
+		// "Monthly Rent" also renders as a <th>, so target the popover option role.
+		await user.click(screen.getByRole("combobox", { name: /toggle columns/i }));
+		await user.click(
+			await screen.findByRole("option", { name: /monthly rent/i }),
+		);
+		expect(onVisibilityChange).toHaveBeenCalled();
+	});
+
+	it("grid view reads the SAME filtered rows as the table (D-5)", async () => {
+		const user = userEvent.setup();
+		const data = [
+			makeRow({ id: "a", property: "Active One", leaseStatus: "active" }),
+			makeRow({ id: "b", property: "Vacant One", leaseStatus: "vacant" }),
+			makeRow({ id: "c", property: "Vacant Two", leaseStatus: "vacant" }),
+		];
+		await act(async () => {
+			render(<ControlledHarness data={data} initialView="grid" />, {
+				wrapper: Wrapper,
+			});
+		});
+
+		// Unfiltered grid shows all three.
+		expect(screen.getByText("Active One")).toBeInTheDocument();
+		expect(screen.getByText("Vacant One")).toBeInTheDocument();
+
+		// Apply the status=active filter via the toolbar's faceted filter. "Active"
+		// also appears as a grid status badge, so target the popover option role.
+		await user.click(screen.getByRole("button", { name: /status/i }));
+		await user.click(await screen.findByRole("option", { name: /active/i }));
+
+		// Grid now reflects the table's filtered set: only the active row.
+		expect(screen.getByText("Active One")).toBeInTheDocument();
+		expect(screen.queryByText("Vacant One")).toBeNull();
+		expect(screen.queryByText("Vacant Two")).toBeNull();
+	});
+
+	it("forces the grid view at <=375px regardless of viewMode (W-4)", async () => {
+		const restore = stubMatchMedia((q) => q === "(max-width: 375px)");
+		try {
+			await act(async () => {
+				render(
+					<ControlledHarness
+						data={[makeRow({ id: "m", property: "Mobile Property" })]}
+						initialView="table"
+					/>,
+					{ wrapper: Wrapper },
+				);
+			});
+
+			// Forced grid: cards render, the table/columnheader does NOT.
+			expect(screen.getByText("Mobile Property")).toBeInTheDocument();
+			expect(screen.queryByRole("columnheader")).toBeNull();
+		} finally {
+			restore();
+		}
+
+		// No-match -> table renders for viewMode='table'.
+		const restore2 = stubMatchMedia(() => false);
+		try {
+			await act(async () => {
+				render(
+					<ControlledHarness
+						data={[makeRow({ id: "d", property: "Desktop Property" })]}
+						initialView="table"
+					/>,
+					{ wrapper: Wrapper },
+				);
+			});
+			expect(
+				screen.getByRole("columnheader", { name: /property/i }),
+			).toBeInTheDocument();
+		} finally {
+			restore2();
+		}
+	});
+
+	it("renders the DataTablePagination footer below the table", async () => {
+		await act(async () => {
+			render(<ControlledHarness data={makeRows(25)} />, { wrapper: Wrapper });
+		});
+
+		expect(
+			screen.getByRole("button", { name: /go to next page/i }),
+		).toBeInTheDocument();
+		expect(screen.getByText(/rows per page/i)).toBeInTheDocument();
 	});
 });
