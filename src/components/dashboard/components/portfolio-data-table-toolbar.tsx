@@ -1,5 +1,7 @@
 "use client";
 
+"use no memo";
+
 import type { Table } from "@tanstack/react-table";
 import { LayoutGrid, List, Search, X } from "lucide-react";
 

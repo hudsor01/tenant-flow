@@ -1,5 +1,7 @@
 "use client";
 
+"use no memo";
+
 import type { SortingState } from "@tanstack/react-table";
 import { Bookmark, Save, Trash2 } from "lucide-react";
 import {

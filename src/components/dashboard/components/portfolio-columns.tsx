@@ -2,7 +2,7 @@
 
 import type { ColumnDef } from "@tanstack/react-table";
 import Link from "next/link";
-
+import { LeaseStatusBadge } from "#components/dashboard/components/lease-status-badge";
 import { DataTableColumnHeader } from "#components/data-table/data-table-column-header";
 import { formatCurrency } from "#lib/utils/currency";
 import type { PortfolioRow } from "../dashboard-types";
@@ -16,21 +16,6 @@ const STATUS_OPTIONS = [
 	{ label: "Expiring Soon", value: "expiring" },
 	{ label: "Vacant", value: "vacant" },
 ] as const;
-
-/** Lease-status cell: amber treatment for "expiring", muted for "vacant". */
-function LeaseStatusCell({ status }: { status: PortfolioRow["leaseStatus"] }) {
-	if (status === "active") {
-		return <span className="text-sm font-medium text-foreground">Active</span>;
-	}
-	if (status === "expiring") {
-		return (
-			<span className="text-sm font-medium text-amber-600 dark:text-amber-500">
-				Expiring Soon
-			</span>
-		);
-	}
-	return <span className="text-sm text-muted-foreground">Vacant</span>;
-}
 
 /** Open-maintenance cell: red count when > 0, muted "--" otherwise. */
 function MaintenanceCell({ openCount }: { openCount: number }) {
@@ -91,9 +76,9 @@ export const portfolioColumns: ColumnDef<PortfolioRow>[] = [
 			return name.includes(query) || address.includes(query);
 		},
 		cell: ({ row }) => (
-			<div>
-				<div className="font-medium">{row.original.property}</div>
-				<div className="text-xs text-muted-foreground">
+			<div className="min-w-0">
+				<div className="truncate font-medium">{row.original.property}</div>
+				<div className="truncate text-muted-foreground text-xs">
 					{row.original.address}
 				</div>
 			</div>
@@ -163,18 +148,16 @@ export const portfolioColumns: ColumnDef<PortfolioRow>[] = [
 			if (!Array.isArray(value) || value.length === 0) return true;
 			return (value as string[]).includes(row.original.leaseStatus);
 		},
-		cell: ({ row }) => <LeaseStatusCell status={row.original.leaseStatus} />,
+		cell: ({ row }) => <LeaseStatusBadge status={row.original.leaseStatus} />,
 	},
 	{
 		id: "rent",
 		accessorKey: "rent",
 		size: 120,
 		header: ({ column }) => (
-			<div className="text-right">
-				<DataTableColumnHeader column={column} label="Monthly Rent" />
-			</div>
+			<DataTableColumnHeader column={column} label="Monthly Rent" />
 		),
-		meta: { label: "Monthly Rent" },
+		meta: { label: "Monthly Rent", align: "right" },
 		enableSorting: true,
 		cell: ({ row }) => (
 			<div className="text-right tabular-nums">
@@ -192,12 +175,10 @@ export const portfolioColumns: ColumnDef<PortfolioRow>[] = [
 		header: ({ column }) => (
 			<DataTableColumnHeader column={column} label="Maintenance" />
 		),
-		meta: { label: "Maintenance" },
+		meta: { label: "Maintenance", align: "right" },
 		enableSorting: false,
 		cell: ({ row }) => (
-			<div className="text-right">
-				<MaintenanceCell openCount={row.original.maintenanceOpen} />
-			</div>
+			<MaintenanceCell openCount={row.original.maintenanceOpen} />
 		),
 	},
 	{

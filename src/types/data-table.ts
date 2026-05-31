@@ -16,6 +16,8 @@ declare module "@tanstack/react-table" {
 		label?: string;
 		placeholder?: string;
 		variant?: FilterVariant;
+		/** Horizontal alignment for the cell + header in flex-cell tables (numeric -> "right"). */
+		align?: "left" | "right";
 		options?: Option[];
 		range?: [number, number];
 		unit?: string;
