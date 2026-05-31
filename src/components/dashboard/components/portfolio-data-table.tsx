@@ -18,6 +18,7 @@ import { DataTablePagination } from "#components/data-table/data-table-paginatio
 import { BlurFade } from "#components/ui/blur-fade";
 import {
 	Table,
+	TableBody,
 	TableCell,
 	TableHead,
 	TableHeader,
@@ -164,10 +165,14 @@ function PortfolioNoPropertiesState() {
 }
 
 /**
- * Sticky-thead + always-on virtualized tbody (D-2) following the leases-table
- * precedent. aria-sort is set on each `<TableHead>` (`<th role="columnheader">`)
- * via `getAriaSort` (B-1). The ONLY inline styles are the virtualizer tbody
- * height/position and per-row transform — the sanctioned react-virtual pattern.
+ * Sticky-thead + always-on virtualized tbody (D-2), built to the TanStack
+ * canonical virtualized-`<table>` pattern: the `<table>` is `display:grid`, each
+ * row is a `display:flex`, and EXPLICIT `column.getSize()` widths on both the
+ * header `<th>` and the body `<td>` are the single alignment source of truth.
+ * `aria-sort` is set on each `<TableHead>` (`<th role="columnheader">`) via
+ * `getAriaSort` (B-1). Because grid/flex strip the implicit table ARIA roles,
+ * explicit `role` attributes are restored on every structural element. All inline
+ * styles here are the sanctioned react-virtual width/transform/grid-flex set.
  */
 function PortfolioVirtualizedTable({
 	table,
@@ -181,27 +186,38 @@ function PortfolioVirtualizedTable({
 		count: pageRows.length,
 		getScrollElement: () => scrollRef.current,
 		estimateSize: () => ESTIMATED_ROW_HEIGHT,
-		overscan: 5,
+		// Measure the real rendered height so the two-line Property rows (name +
+		// address) are tracked exactly instead of clipped at the 56px estimate
+		// (closes the row-overlap P3).
+		measureElement: (el) => el?.getBoundingClientRect().height,
+		overscan: 8,
 	});
 
 	return (
 		<div ref={scrollRef} className="overflow-auto max-h-[calc(100vh-420px)]">
-			{/*
-			 * ONE width model: table-fixed makes the header row and every body row
-			 * derive column widths from the SAME column track, so the 7 columns stay
-			 * aligned even though body rows are absolutely positioned for
-			 * virtualization. Body rows are native <tr>/<td> (NOT flex), preserving
-			 * row/cell role semantics and aria alignment with the header.
-			 */}
-			<Table className="table-fixed">
-				<TableHeader className="sticky top-0 z-10 bg-muted/30">
+			<Table role="table" style={{ display: "grid" }}>
+				<TableHeader
+					role="rowgroup"
+					className="bg-muted/30"
+					style={{
+						display: "grid",
+						position: "sticky",
+						top: 0,
+						zIndex: 1,
+					}}
+				>
 					{table.getHeaderGroups().map((headerGroup) => (
-						<TableRow key={headerGroup.id}>
+						<TableRow
+							key={headerGroup.id}
+							style={{ display: "flex", width: "100%" }}
+						>
 							{headerGroup.headers.map((header) => (
 								<TableHead
 									key={header.id}
 									colSpan={header.colSpan}
+									role="columnheader"
 									aria-sort={getAriaSort(header.column)}
+									style={{ display: "flex", width: header.getSize() }}
 								>
 									{header.isPlaceholder
 										? null
@@ -214,35 +230,49 @@ function PortfolioVirtualizedTable({
 						</TableRow>
 					))}
 				</TableHeader>
-				<tbody
-					data-slot="table-body"
-					className="relative [&_tr:last-child]:border-0"
+				<TableBody
+					role="rowgroup"
 					style={{
+						display: "grid",
 						height: `${rowVirtualizer.getTotalSize()}px`,
+						position: "relative",
 					}}
 				>
 					{rowVirtualizer.getVirtualItems().map((virtualRow) => {
 						const row = pageRows[virtualRow.index];
 						if (!row) return null;
 						return (
-							// The ONLY inline style is the sanctioned per-row virtualization
-							// transform; `table w-full` keeps the row a native table row so
-							// its <td> tracks line up with the table-fixed header columns.
 							<TableRow
 								key={row.id}
 								data-index={virtualRow.index}
-								className="group absolute table w-full"
-								style={{ transform: `translateY(${virtualRow.start}px)` }}
+								ref={rowVirtualizer.measureElement}
+								role="row"
+								className="group"
+								style={{
+									display: "flex",
+									position: "absolute",
+									transform: `translateY(${virtualRow.start}px)`,
+									width: "100%",
+								}}
 							>
 								{row.getVisibleCells().map((cell) => (
-									<TableCell key={cell.id} className="py-2.5">
+									<TableCell
+										key={cell.id}
+										role="cell"
+										className="py-2.5"
+										style={{
+											display: "flex",
+											width: cell.column.getSize(),
+											alignItems: "center",
+										}}
+									>
 										{flexRender(cell.column.columnDef.cell, cell.getContext())}
 									</TableCell>
 								))}
 							</TableRow>
 						);
 					})}
-				</tbody>
+				</TableBody>
 			</Table>
 		</div>
 	);

@@ -65,6 +65,9 @@ export const portfolioColumns: ColumnDef<PortfolioRow>[] = [
 	{
 		id: "property",
 		accessorKey: "property",
+		// Explicit column.getSize() widths drive BOTH header and body cells in the
+		// virtualized display:grid/flex table (the alignment source of truth).
+		size: 240,
 		header: ({ column }) => (
 			<DataTableColumnHeader column={column} label="Property" />
 		),
@@ -92,6 +95,7 @@ export const portfolioColumns: ColumnDef<PortfolioRow>[] = [
 	{
 		id: "units",
 		accessorKey: "units",
+		size: 90,
 		header: ({ column }) => (
 			<DataTableColumnHeader column={column} label="Units" />
 		),
@@ -110,6 +114,7 @@ export const portfolioColumns: ColumnDef<PortfolioRow>[] = [
 	{
 		id: "tenant",
 		accessorKey: "tenant",
+		size: 140,
 		header: ({ column }) => (
 			<DataTableColumnHeader column={column} label="Tenants" />
 		),
@@ -127,6 +132,7 @@ export const portfolioColumns: ColumnDef<PortfolioRow>[] = [
 	{
 		id: "status",
 		accessorKey: "leaseStatus",
+		size: 120,
 		header: ({ column }) => (
 			<DataTableColumnHeader column={column} label="Lease Status" />
 		),
@@ -148,6 +154,7 @@ export const portfolioColumns: ColumnDef<PortfolioRow>[] = [
 	{
 		id: "rent",
 		accessorKey: "rent",
+		size: 120,
 		header: ({ column }) => (
 			<div className="text-right">
 				<DataTableColumnHeader column={column} label="Monthly Rent" />
@@ -167,6 +174,7 @@ export const portfolioColumns: ColumnDef<PortfolioRow>[] = [
 	{
 		id: "maintenance",
 		accessorKey: "maintenanceOpen",
+		size: 110,
 		header: ({ column }) => (
 			<DataTableColumnHeader column={column} label="Maintenance" />
 		),
@@ -180,6 +188,7 @@ export const portfolioColumns: ColumnDef<PortfolioRow>[] = [
 	},
 	{
 		id: "actions",
+		size: 80,
 		header: ({ column }) => (
 			<DataTableColumnHeader column={column} label="Actions" />
 		),

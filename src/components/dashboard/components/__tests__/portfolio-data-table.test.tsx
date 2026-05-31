@@ -293,7 +293,7 @@ describe("PortfolioDataTable", () => {
 		expect((tbody as HTMLElement).style.height).toMatch(/px$/);
 	});
 
-	it("renders native <tr>/<td> body rows aligned under the header (table-mode, not flex)", async () => {
+	it("aligns virtualized body cells to header columns via explicit getSize() widths (canonical grid/flex)", async () => {
 		// jsdom reports a 0px scroll container, so the real virtualizer renders 0
 		// rows and a row assertion would pass vacuously. Force a deterministic
 		// virtual range so the actual <TableRow>/<TableCell> render path executes.
@@ -312,23 +312,49 @@ describe("PortfolioDataTable", () => {
 
 			const tbody = document.querySelector('tbody[data-slot="table-body"]');
 			expect(tbody).not.toBeNull();
-			const bodyRows = tbody?.querySelectorAll('tr[data-slot="table-row"]');
-			// Both forced virtual rows render as real <tr>.
+			const bodyRows = tbody?.querySelectorAll('tr[role="row"]');
+			// Both forced virtual rows render as real <tr role="row">.
 			expect(bodyRows?.length).toBe(2);
 
 			const firstRow = bodyRows?.[0] as HTMLElement;
-			// Native table row: NOT a flex container (the misalignment regression).
-			expect(firstRow.className).not.toMatch(/\bflex\b/);
-			// The sanctioned per-row virtualization transform is still applied.
+			// The sanctioned per-row virtualization transform is applied.
 			expect(firstRow.style.transform).toBe("translateY(0px)");
-			// Cells are real <td data-slot="table-cell"> with no flex-1 sizing.
-			const cells = firstRow.querySelectorAll('td[data-slot="table-cell"]');
-			expect(cells.length).toBe(portfolioColumns.length);
-			expect(cells[0]?.className).not.toMatch(/flex-1/);
+			// measureElement is wired via data-index (dynamic two-line-row sizing).
+			expect(firstRow.getAttribute("data-index")).toBe("0");
 
-			// Header + body share ONE width model via table-fixed.
-			const table = tbody?.closest("table");
-			expect(table?.className).toMatch(/table-fixed/);
+			// Body cells carry role="cell" and an EXPLICIT pixel width matching the
+			// ColumnDef size — the canonical alignment source of truth.
+			const cells = firstRow.querySelectorAll('td[role="cell"]');
+			expect(cells.length).toBe(portfolioColumns.length);
+			const bodyWidths = Array.from(cells).map(
+				(cell) => (cell as HTMLElement).style.width,
+			);
+			expect(bodyWidths).toEqual([
+				"240px",
+				"90px",
+				"140px",
+				"120px",
+				"120px",
+				"110px",
+				"80px",
+			]);
+
+			// Header column count equals body column count, and each header <th
+			// role="columnheader"> carries the SAME explicit width as its body cell.
+			const headers = document.querySelectorAll('th[role="columnheader"]');
+			expect(headers.length).toBe(cells.length);
+			const headerWidths = Array.from(headers).map(
+				(header) => (header as HTMLElement).style.width,
+			);
+			expect(headerWidths).toEqual(bodyWidths);
+
+			// aria-sort still lands on the columnheader (B-1), not the inner button.
+			const propertyHeader = screen.getByRole("columnheader", {
+				name: /property/i,
+			});
+			expect(["none", "ascending", "descending"]).toContain(
+				propertyHeader.getAttribute("aria-sort"),
+			);
 
 			// Row content actually renders (rows are not empty/zero-height).
 			expect(screen.getByText("Cedar Court")).toBeInTheDocument();
