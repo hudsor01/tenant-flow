@@ -17,7 +17,6 @@ import { getAriaSort } from "#components/data-table/data-table-column-header";
 import { DataTablePagination } from "#components/data-table/data-table-pagination";
 import { BlurFade } from "#components/ui/blur-fade";
 import {
-	Table,
 	TableBody,
 	TableCell,
 	TableHead,
@@ -201,7 +200,19 @@ function PortfolioVirtualizedTable({
 
 	return (
 		<div ref={scrollRef} className="overflow-auto max-h-[calc(100vh-420px)]">
-			<Table role="table" style={{ display: "grid" }}>
+			{/* Plain <table> rendered DIRECTLY inside scrollRef — NOT the ui <Table>
+			    primitive. The ui <Table> wraps the <table> in a
+			    `overflow-x-auto` div, and per CSS Overflow Module 3 that div
+			    becomes a scroll container that captures the sticky <thead>'s
+			    containing block, so the header would stick to the (non-scrolling)
+			    wrapper instead of scrollRef and scroll out of view. Rendering the
+			    <table> directly keeps scrollRef the SOLE scroll container so the
+			    sticky <thead> sticks to it. */}
+			<table
+				className="w-full caption-bottom text-sm"
+				style={{ display: "grid" }}
+				role="table"
+			>
 				<TableHeader
 					role="rowgroup"
 					className="bg-muted/30"
@@ -279,7 +290,7 @@ function PortfolioVirtualizedTable({
 						);
 					})}
 				</TableBody>
-			</Table>
+			</table>
 		</div>
 	);
 }
