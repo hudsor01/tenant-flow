@@ -45,6 +45,11 @@ export function buildFilterParsers<TData>(
  * Project the live nuqs `filterValues` into TanStack `ColumnFiltersState`.
  * Array-ness is keyed off whether the column is FACETED, never off the value's
  * characters, so a multi-word search stays a single string.
+ *
+ * An EMPTY value (an empty-string search like `?property=`, or an empty selected
+ * array) is treated as NO filter and skipped: TanStack auto-removes such filters
+ * from its own state, so emitting one here would leave a persistent mirror filter
+ * the table never keeps (and would falsely read as an active filter).
  */
 export function deriveColumnFilters(
 	filterValues: FilterValues,
@@ -52,7 +57,11 @@ export function deriveColumnFilters(
 ): ColumnFiltersState {
 	return Object.entries(filterValues).reduce<ColumnFiltersState>(
 		(filters, [key, value]) => {
-			if (value !== null) {
+			const isEmpty =
+				value === null ||
+				value === "" ||
+				(Array.isArray(value) && value.length === 0);
+			if (!isEmpty) {
 				const processedValue =
 					facetedColumnIds.has(key) && !Array.isArray(value) ? [value] : value;
 				filters.push({ id: key, value: processedValue });
