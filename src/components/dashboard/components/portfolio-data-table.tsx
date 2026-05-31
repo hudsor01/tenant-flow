@@ -152,7 +152,14 @@ function PortfolioVirtualizedTable({
 
 	return (
 		<div ref={scrollRef} className="overflow-auto max-h-[calc(100vh-420px)]">
-			<Table>
+			{/*
+			 * ONE width model: table-fixed makes the header row and every body row
+			 * derive column widths from the SAME column track, so the 7 columns stay
+			 * aligned even though body rows are absolutely positioned for
+			 * virtualization. Body rows are native <tr>/<td> (NOT flex), preserving
+			 * row/cell role semantics and aria alignment with the header.
+			 */}
+			<Table className="table-fixed">
 				<TableHeader className="sticky top-0 z-10 bg-muted/30">
 					{table.getHeaderGroups().map((headerGroup) => (
 						<TableRow key={headerGroup.id}>
@@ -184,14 +191,17 @@ function PortfolioVirtualizedTable({
 						const row = pageRows[virtualRow.index];
 						if (!row) return null;
 						return (
+							// The ONLY inline style is the sanctioned per-row virtualization
+							// transform; `table w-full` keeps the row a native table row so
+							// its <td> tracks line up with the table-fixed header columns.
 							<TableRow
 								key={row.id}
 								data-index={virtualRow.index}
-								className="group absolute flex w-full items-center"
+								className="group absolute table w-full"
 								style={{ transform: `translateY(${virtualRow.start}px)` }}
 							>
 								{row.getVisibleCells().map((cell) => (
-									<TableCell key={cell.id} className="flex-1 py-2.5">
+									<TableCell key={cell.id} className="py-2.5">
 										{flexRender(cell.column.columnDef.cell, cell.getContext())}
 									</TableCell>
 								))}

@@ -18,6 +18,38 @@ import { useClientDataTable } from "#hooks/use-client-data-table";
 // (Wave-1 precedent) and host it under nuqs's own testing adapter.
 vi.unmock("nuqs");
 
+// When `virtualMock.override` is non-null, the virtualizer yields those items
+// instead of measuring the (0px in jsdom) scroll container — letting one test
+// exercise the real <TableRow>/<TableCell> render path. `vi.hoisted` so the ref
+// exists before `vi.mock` runs.
+const virtualMock = vi.hoisted(() => ({
+	override: null as { index: number; start: number; size: number }[] | null,
+}));
+
+vi.mock("@tanstack/react-virtual", async (importOriginal) => {
+	const actual =
+		await importOriginal<typeof import("@tanstack/react-virtual")>();
+	return {
+		...actual,
+		useVirtualizer: (options: Parameters<typeof actual.useVirtualizer>[0]) => {
+			const instance = actual.useVirtualizer(options);
+			if (!virtualMock.override) return instance;
+			return {
+				...instance,
+				getVirtualItems: () =>
+					virtualMock.override?.map((item) => ({
+						...item,
+						key: item.index,
+						end: item.start + item.size,
+						lane: 0,
+					})) ?? [],
+				getTotalSize: () =>
+					virtualMock.override?.reduce((sum, item) => sum + item.size, 0) ?? 0,
+			} as ReturnType<typeof actual.useVirtualizer>;
+		},
+	};
+});
+
 function makeRow(
 	overrides: Partial<PortfolioRow> & { id: string },
 ): PortfolioRow {
@@ -235,6 +267,51 @@ describe("PortfolioDataTable", () => {
 		const tbody = document.querySelector('tbody[data-slot="table-body"]');
 		expect(tbody).not.toBeNull();
 		expect((tbody as HTMLElement).style.height).toMatch(/px$/);
+	});
+
+	it("renders native <tr>/<td> body rows aligned under the header (table-mode, not flex)", async () => {
+		// jsdom reports a 0px scroll container, so the real virtualizer renders 0
+		// rows and a row assertion would pass vacuously. Force a deterministic
+		// virtual range so the actual <TableRow>/<TableCell> render path executes.
+		virtualMock.override = [
+			{ index: 0, start: 0, size: 56 },
+			{ index: 1, start: 56, size: 56 },
+		];
+		try {
+			const data = [
+				makeRow({ id: "r1", property: "Cedar Court", address: "1 Cedar Way" }),
+				makeRow({ id: "r2", property: "Pine Plaza", address: "2 Pine Rd" }),
+			];
+			await act(async () => {
+				render(<ControlledHarness data={data} />, { wrapper: Wrapper });
+			});
+
+			const tbody = document.querySelector('tbody[data-slot="table-body"]');
+			expect(tbody).not.toBeNull();
+			const bodyRows = tbody?.querySelectorAll('tr[data-slot="table-row"]');
+			// Both forced virtual rows render as real <tr>.
+			expect(bodyRows?.length).toBe(2);
+
+			const firstRow = bodyRows?.[0] as HTMLElement;
+			// Native table row: NOT a flex container (the misalignment regression).
+			expect(firstRow.className).not.toMatch(/\bflex\b/);
+			// The sanctioned per-row virtualization transform is still applied.
+			expect(firstRow.style.transform).toBe("translateY(0px)");
+			// Cells are real <td data-slot="table-cell"> with no flex-1 sizing.
+			const cells = firstRow.querySelectorAll('td[data-slot="table-cell"]');
+			expect(cells.length).toBe(portfolioColumns.length);
+			expect(cells[0]?.className).not.toMatch(/flex-1/);
+
+			// Header + body share ONE width model via table-fixed.
+			const table = tbody?.closest("table");
+			expect(table?.className).toMatch(/table-fixed/);
+
+			// Row content actually renders (rows are not empty/zero-height).
+			expect(screen.getByText("Cedar Court")).toBeInTheDocument();
+			expect(screen.getByText("Pine Plaza")).toBeInTheDocument();
+		} finally {
+			virtualMock.override = null;
+		}
 	});
 
 	it("virtualizes both small and large datasets through one path (always-on, D-2)", async () => {
