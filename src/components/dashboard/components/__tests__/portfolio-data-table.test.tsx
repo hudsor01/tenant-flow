@@ -405,11 +405,14 @@ describe("PortfolioDataTable", () => {
 			const table = screen.getByRole("table");
 			expect(table.getAttribute("aria-rowcount")).toBe("4");
 
-			// The header row is row 1 (1-based).
+			// The header row is row 1 (1-based) and must explicitly restore role="row"
+			// (display:flex strips the implicit row role in real browsers; jsdom
+			// ignores CSS display, so assert the attribute directly).
 			const headerRow = document.querySelector(
 				'thead[data-slot="table-header"] tr',
 			);
 			expect(headerRow?.getAttribute("aria-rowindex")).toBe("1");
+			expect(headerRow?.getAttribute("role")).toBe("row");
 
 			// First rendered body row is row 2 (index 0 -> rowindex 2); second is 3.
 			const bodyRows = document.querySelectorAll(
@@ -418,6 +421,42 @@ describe("PortfolioDataTable", () => {
 			expect(bodyRows.length).toBe(2);
 			expect(bodyRows[0]?.getAttribute("aria-rowindex")).toBe("2");
 			expect(bodyRows[1]?.getAttribute("aria-rowindex")).toBe("3");
+		} finally {
+			virtualMock.override = null;
+		}
+	});
+
+	it("keeps the scroll container structure that makes the sticky header stick (no ui Table overflow wrapper)", async () => {
+		// Regression guard for the cycle-3 sticky-header fix: the virtualized table
+		// must be a plain <table display:grid> rendered DIRECTLY inside the
+		// overflow-auto scrollRef, NOT wrapped in the ui <Table> primitive (whose
+		// data-slot="table-container" overflow-x-auto div would become the nearest
+		// scroll container and capture the sticky <thead>, scrolling it out of view).
+		virtualMock.override = [{ index: 0, start: 0, size: 56 }];
+		try {
+			await act(async () => {
+				render(<ControlledHarness data={makeRows(20)} />, { wrapper: Wrapper });
+			});
+
+			const table = screen.getByRole("table");
+			// The table renders as a grid (canonical virtualized layout).
+			expect(table.style.display).toBe("grid");
+			// scrollRef is the table's DIRECT parent and the sole scroll container.
+			const scrollParent = table.parentElement as HTMLElement;
+			expect(scrollParent.className).toMatch(/overflow-auto/);
+			expect(scrollParent.className).toMatch(/max-h-/);
+			// No ui <Table> overflow-x-auto wrapper sits between scrollRef and the
+			// table (that wrapper is exactly what broke the sticky header).
+			expect(
+				document.querySelector('[data-slot="table-container"]'),
+			).toBeNull();
+			// The header is sticky to scrollRef.
+			const thead = document.querySelector(
+				'thead[data-slot="table-header"]',
+			) as HTMLElement;
+			expect(thead.style.position).toBe("sticky");
+			expect(thead.style.top).toBe("0px");
+			expect(thead.style.zIndex).toBe("1");
 		} finally {
 			virtualMock.override = null;
 		}

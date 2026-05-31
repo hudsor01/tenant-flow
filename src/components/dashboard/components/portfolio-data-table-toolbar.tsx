@@ -66,6 +66,7 @@ export function PortfolioDataTableToolbar<TData>({
 				/>
 				<Input
 					inputSize="sm"
+					aria-label="Search properties"
 					placeholder="Search properties..."
 					value={searchValue}
 					onChange={(event) =>

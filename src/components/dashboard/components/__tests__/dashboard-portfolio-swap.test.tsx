@@ -338,6 +338,18 @@ describe("dashboard portfolio swap", () => {
 // tenant cell), so it pins the actual boundary logic in dashboard.tsx.
 const TRANSFORM_PROPERTIES: PropertyPerformanceItem[] = [
 	{
+		// occupancyRate EXACTLY 100 -> "active" (the === 100 branch); full
+		// occupancy (4 of 4) -> tenant "4 tenants".
+		id: "active-full",
+		name: "Active Full",
+		address: "100 Full Ave",
+		totalUnits: 4,
+		occupiedUnits: 4,
+		occupancyRate: 100,
+		monthlyRevenue: 8000,
+		openMaintenance: 0,
+	},
+	{
 		// occupancyRate 85 is in the >=80 && <100 band -> "expiring"; partial
 		// occupancy (5 of 6) -> tenant "5 tenants". Pins the >=80 boundary.
 		id: "expiring-partial",
@@ -381,14 +393,24 @@ describe("dashboard portfolio D-10 transform (occupancyRate -> leaseStatus, occu
 		useDashboardStore.setState({ viewMode: "grid" }, false);
 		renderTransformDashboard();
 
-		const expiringCard = (await screen.findByText("Expiring Partial")).closest(
+		const activeCard = (await screen.findByText("Active Full")).closest(
 			"div.border",
 		) as HTMLElement;
+		const expiringCard = screen
+			.getByText("Expiring Partial")
+			.closest("div.border") as HTMLElement;
 		const vacantCard = screen
 			.getByText("Vacant Empty")
 			.closest("div.border") as HTMLElement;
+		expect(activeCard).not.toBeNull();
 		expect(expiringCard).not.toBeNull();
 		expect(vacantCard).not.toBeNull();
+
+		// occupancyRate === 100 -> leaseStatus "active" -> chip "Active"; full
+		// occupancy (4) -> tenant "4 tenants" (pins the === 100 branch).
+		const { getByText: getInActive } = within(activeCard);
+		expect(getInActive("Active")).toBeInTheDocument();
+		expect(getInActive("4 tenants")).toBeInTheDocument();
 
 		// occupancyRate 85 -> ">=80 && <100" -> leaseStatus "expiring" -> chip
 		// renders exactly "Expiring" in grid mode (pins the >=80 boundary).

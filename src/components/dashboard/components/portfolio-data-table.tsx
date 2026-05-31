@@ -227,6 +227,7 @@ function PortfolioVirtualizedTable({
 					{table.getHeaderGroups().map((headerGroup) => (
 						<TableRow
 							key={headerGroup.id}
+							role="row"
 							aria-rowindex={1}
 							style={{ display: "flex", width: "100%" }}
 						>
