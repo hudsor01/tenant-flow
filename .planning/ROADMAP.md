@@ -123,7 +123,12 @@ Phases 1 and 2 are invisible foundation. Phases 3 and 4 each *add* a new region 
   3. The user can save a filter preset, refresh the page, and re-apply that preset from the preset menu (localStorage via Zustand `persist`).
   4. The grid/table view toggle works; `dashboard-store.ts` is trimmed to `viewMode` only; the table virtualizes long lists via `useVirtualizer`.
   5. The hand-rolled `portfolio-table.tsx`, `portfolio-toolbar.tsx`, and `portfolio-pagination.tsx` no longer exist in the repo.
-**Plans:** TBD
+**Plans:** 5 plans (3 waves)
+- [ ] 05-01a-PLAN.md — **Wave 1.** `useClientDataTable` hook (DT-02): fork of `use-data-table.ts` with manual flags off + nuqs mirror kept; URL-compatible with the server hook (DT-09 foundation). Hook unit tests (manual-flags / page-count-recompute / nuqs round-trip / URL hydration).
+- [ ] 05-01b-PLAN.md — **Wave 1.** `portfolio-columns.tsx` 7-column `ColumnDef<PortfolioRow>[]` (DT-03) + extend `DataTableColumnHeader` to emit `aria-sort` + keyboard sort (DT-03 a11y); status `meta.options` for the faceted filter (DT-04) + per-column `meta.label` (DT-05). Column-model + aria-sort tests.
+- [ ] 05-02-PLAN.md — **Wave 2** (depends on 05-01a + 05-01b). Compose `PortfolioDataTable`: vendored shell + faceted status filter (DT-04) + column visibility (DT-05) + always-on virtualized tbody (DT-06, D-2) + grid/table toggle reading the same rows (DT-07, D-5). Controlled component, NO mount. Component tests.
+- [ ] 05-03a-PLAN.md — **Wave 3** (depends on 05-01a + 05-02). `dashboard-presets-store.ts` Zustand `persist` slice: full-snapshot presets (DT-08, D-1) + live `columnVisibility` (D-3). Preset round-trip + persistence + SSR-safety tests.
+- [ ] 05-03b-PLAN.md — **Wave 3** (depends on 05-02 + 05-03a). Atomic swap: trim `dashboard-store.ts` to `viewMode` only + delete 3 dead selector hooks (DT-09); rewrite `dashboard.tsx` to mount `PortfolioDataTable` + `PortfolioPresetMenu` (DT-01, DT-08); nuqs URL state (DT-09); DELETE the 3 hand-rolled files (criterion #5). Swap-integrity + preset/URL tests, then perfect-PR gate.
 **UI hint:** yes
 
 ### Phase 6: Polish & A11y
