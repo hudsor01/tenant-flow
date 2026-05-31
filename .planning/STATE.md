@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: Dashboard Command Center
-status: between-phases
-last_updated: "2026-05-30T00:00:00.000Z"
-last_activity: 2026-05-30 -- Phase 05 Wave 2 (Plan 05-02) executed on gsd/phase-5-dashboard-portfolio-datatable
+status: executing
+last_updated: "2026-05-31T02:05:00.000Z"
+last_activity: 2026-05-31 -- Plan 05-03b (atomic swap) committed; Phase 5 all 5 plans done on the phase branch.
 progress:
   total_phases: 7
-  completed_phases: 4
-  total_plans: 13
-  completed_plans: 13
-  percent: 57
+  completed_phases: 5
+  total_plans: 18
+  completed_plans: 18
+  percent: 71
 ---
 
 # Project State
@@ -24,10 +24,10 @@ See: .planning/PROJECT.md (updated 2026-05-22)
 
 ## Current Position
 
-Phase: 5 — Portfolio DataTable (in progress on gsd/phase-5-dashboard-portfolio-datatable).
-Plan: 05-02 complete (Wave 2). Wave-1 plans 05-01a + 05-01b complete. Wave-3 plans 05-03a/05-03b pending (mount + atomic swap + presets/nuqs wiring).
-Status: Milestone mid-flight, 4 of 7 phases merged; Phase 5 executing. Plans 05-01a, 05-01b, 05-02 committed on the phase branch.
-Last activity: 2026-05-30 -- Plan 05-02 (PortfolioDataTable + toolbar, built but not mounted) committed.
+Phase: 5 — Portfolio DataTable (all 5 plans executed on gsd/phase-5-dashboard-portfolio-datatable; perfect-PR gate pending).
+Plan: 05-03b complete (Wave 3, the atomic swap). All of 05-01a/01b/02/03a/03b committed on the phase branch.
+Status: Milestone mid-flight, 4 of 7 phases merged; Phase 5 fully executed, awaiting the perfect-PR review gate before the phase PR.
+Last activity: 2026-05-31 -- Plan 05-03b (atomic swap: trim store, mount PortfolioDataTable + preset menu, delete hand-rolled trio) committed.
 
 ```
 [████░░░] 57% of v2.0 milestone (4 / 7 phases shipped)
@@ -41,7 +41,7 @@ Last activity: 2026-05-30 -- Plan 05-02 (PortfolioDataTable + toolbar, built but
 | 2 | data-layer-rpc | SHIPPED (PR #745, 11 cycles + post-merge fix) | No | gsd/phase-2-data-layer-rpc |
 | 3 | kpi-bento-row | SHIPPED (PR #746) | YES (per-phase) | gsd/phase-3-kpi-bento-row |
 | 4 | dashboard-charts | SHIPPED (PR #748, 9 cycles) | YES | gsd/phase-4-dashboard-charts |
-| 5 | dashboard-portfolio-datatable | IN PROGRESS (Waves 1-2 committed: 05-01a/01b/02) | YES | gsd/phase-5-dashboard-portfolio-datatable |
+| 5 | dashboard-portfolio-datatable | EXECUTED (all 5 plans committed; perfect-PR gate pending) | YES | gsd/phase-5-dashboard-portfolio-datatable |
 | 6 | dashboard-polish-a11y | Not started | No | gsd/phase-6-dashboard-polish-a11y |
 | 7 | dashboard-verification | Not started | No | gsd/phase-7-dashboard-verification |
 
@@ -53,7 +53,7 @@ Last activity: 2026-05-30 -- Plan 05-02 (PortfolioDataTable + toolbar, built but
 | 2 | 3 | Shipped | gsd/phase-2-data-layer-rpc | #745 | 11 (+ post-merge fix) |
 | 3 | 3 | Shipped | gsd/phase-3-kpi-bento-row | #746 | — |
 | 4 | 4 | Shipped | gsd/phase-4-dashboard-charts | #748 | 9 (cycles 8+9 both zero) |
-| 5 | 5 (05-01a/01b/02 done; 05-03a/03b pending) | In progress | gsd/phase-5-dashboard-portfolio-datatable | — | — |
+| 5 | 5 (05-01a/01b/02/03a/03b all done) | Executed | gsd/phase-5-dashboard-portfolio-datatable | — | perfect-PR gate pending |
 | 6 | TBD | Not started | gsd/phase-6-dashboard-polish-a11y | — | — |
 | 7 | TBD | Not started | gsd/phase-7-dashboard-verification | — | — |
 
@@ -86,19 +86,25 @@ None.
 
 ## Next Action
 
-**Phases 1-4 shipped. Phase 5 (Portfolio DataTable) is the next roadmap step.**
+**Phases 1-4 shipped. Phase 5 (Portfolio DataTable) is now fully executed on its branch — the perfect-PR review gate is the next step.**
 
 Merged so far:
+
 - Phase 1 — Foundation & Dedup — PR #744
 - Phase 2 — Data Layer & RPC — PR #745
 - Phase 3 — KPI Bento Row — PR #746
 - Phase 4 — Dashboard Charts — PR #748 (2026-05-28)
 
+Phase 5 (all 5 plans committed on gsd/phase-5-dashboard-portfolio-datatable):
+
+- 05-01a useClientDataTable, 05-01b portfolio-columns + getAriaSort, 05-02 PortfolioDataTable + toolbar, 05-03a presets store, 05-03b atomic swap (this plan).
+
 **Next:**
 
-1. (Audit-trail gap) Phase 4 shipped without a formal `04-VERIFICATION.md`; optionally run `/gsd-verify-work 4` retroactively to close the trail (`04-VALIDATION.md` still `status: draft`). Not a code blocker — #748 passed its 9 review cycles + CI.
-2. `/gsd-discuss-phase 5` → `/gsd-plan-phase 5` — Portfolio DataTable (DT-01..09): DiceUI DataTable swap, column model, faceted filter, column visibility, virtualization, grid/table toggle, saved presets, nuqs URL state.
-3. Execute → perfect-PR gate → merge → unblock Phase 6 (polish & a11y).
+1. Human-visual checkpoint on `/dashboard` (dark mode / 3-up trends row / grid↔table toggle / faceted filter / preset menu / skeleton→data). Non-blocking.
+2. Run the perfect-PR review gate (two consecutive zero-finding deep review cycles) on the Phase 5 branch, then open the phase PR.
+3. Merge → unblock Phase 6 (polish & a11y).
+4. (Audit-trail gap, still open) Phase 4 shipped without a formal `04-VERIFICATION.md`; optionally run `/gsd-verify-work 4` retroactively.
 
 ## Overrides
 
