@@ -149,6 +149,13 @@ export const portfolioColumns: ColumnDef<PortfolioRow>[] = [
 			options: [...STATUS_OPTIONS],
 		},
 		enableSorting: true,
+		// Explicit localeCompare for the same reason as the Property column: the
+		// default `auto` sortingFn falls back to case-sensitive `basic` for <=10
+		// filtered rows. Status values are lowercase today so the order matches,
+		// but pinning it keeps parity with the deleted table and hardens against
+		// any future status-label casing change (symmetric with `property`).
+		sortingFn: (rowA, rowB) =>
+			rowA.original.leaseStatus.localeCompare(rowB.original.leaseStatus),
 		enableColumnFilter: true,
 		// Faceted filter writes a string[] of selected statuses; include the row
 		// when its lease status is among them.
