@@ -535,6 +535,53 @@ describe("PortfolioDataTable", () => {
 		expect(screen.queryByText("No properties yet")).toBeNull();
 	});
 
+	it("Clear filters resets the column filters and restores the full row set (round-trip)", async () => {
+		const user = userEvent.setup();
+		const data = [
+			makeRow({ id: "a", property: "Aspen Court", leaseStatus: "active" }),
+			makeRow({ id: "b", property: "Birch Flats", leaseStatus: "vacant" }),
+		];
+		// Grid mode renders the row text directly (jsdom's 0px virtualizer renders 0
+		// table rows), so we can observe rows leave then return.
+		await act(async () => {
+			render(<ControlledHarness data={data} initialView="grid" />, {
+				wrapper: Wrapper,
+			});
+		});
+
+		// Both cards visible unfiltered.
+		expect(screen.getByText("Aspen Court")).toBeInTheDocument();
+		expect(screen.getByText("Birch Flats")).toBeInTheDocument();
+
+		// Search for a string no property matches -> filtered set empties -> no-match.
+		await user.type(screen.getByPlaceholderText("Search properties..."), "zzz");
+		await waitFor(
+			() => {
+				expect(
+					screen.getByText(/no properties match your filters/i),
+				).toBeInTheDocument();
+			},
+			{ timeout: 3000 },
+		);
+
+		// Click Clear filters: PortfolioNoMatchState.onClear -> table.resetColumnFilters().
+		await user.click(screen.getByRole("button", { name: /clear filters/i }));
+
+		// Filters actually clear: the no-match state disappears and BOTH rows return.
+		await waitFor(() => {
+			expect(
+				screen.queryByText(/no properties match your filters/i),
+			).toBeNull();
+		});
+		expect(screen.getByText("Aspen Court")).toBeInTheDocument();
+		expect(screen.getByText("Birch Flats")).toBeInTheDocument();
+		// The search input is cleared too (the reset round-trips through nuqs).
+		expect(
+			(screen.getByPlaceholderText("Search properties...") as HTMLInputElement)
+				.value,
+		).toBe("");
+	});
+
 	it("renders aria-sort on the <th role=columnheader>, not the inner button (B-1)", async () => {
 		await act(async () => {
 			render(<ControlledHarness data={makeRows(5)} />, { wrapper: Wrapper });
