@@ -212,6 +212,7 @@ function PortfolioVirtualizedTable({
 				className="w-full caption-bottom text-sm"
 				style={{ display: "grid" }}
 				role="table"
+				aria-label="Property portfolio"
 				aria-rowcount={pageRows.length + 1}
 			>
 				<TableHeader

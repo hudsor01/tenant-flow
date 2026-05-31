@@ -203,7 +203,7 @@ export const portfolioColumns: ColumnDef<PortfolioRow>[] = [
 		enableSorting: false,
 		enableHiding: false,
 		cell: ({ row }) => (
-			<div className="flex items-center gap-1 opacity-0 transition-opacity group-hover:opacity-100">
+			<div className="flex items-center gap-1 opacity-0 transition-opacity group-hover:opacity-100 group-focus-within:opacity-100 focus-within:opacity-100">
 				<Link
 					href={`/properties/${row.original.id}/edit`}
 					className="rounded p-1.5 text-muted-foreground hover:text-foreground"

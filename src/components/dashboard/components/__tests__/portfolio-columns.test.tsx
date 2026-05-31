@@ -230,6 +230,26 @@ describe("portfolioColumns", () => {
 		expect(findColumn("actions").enableHiding).toBe(false);
 	});
 
+	it("Actions Edit link surfaces on keyboard focus, not only hover (a11y)", () => {
+		// The Actions cell is opacity-0 until row hover. Keyboard users tabbing to
+		// the Edit link would never see it without a focus-visible restore, so the
+		// wrapper must carry focus-within/group-focus-within opacity overrides while
+		// KEEPING the hover behavior.
+		render(<Harness row={makeRow({ id: "edit-1" })} />);
+
+		const editLink = screen.getByRole("link", { name: /edit/i });
+		const actionsWrapper = editLink.parentElement as HTMLElement;
+		// Hover behavior is preserved.
+		expect(actionsWrapper.className).toContain("group-hover:opacity-100");
+		// Keyboard focus now reveals it (focus-within on the cell + group-focus-within
+		// on the row). Without these classes the link is permanently opacity-0 for
+		// keyboard users.
+		expect(actionsWrapper.className).toContain("focus-within:opacity-100");
+		expect(actionsWrapper.className).toContain(
+			"group-focus-within:opacity-100",
+		);
+	});
+
 	it("renders cells + exposes aria-sort on the <th> (B-1)", () => {
 		render(<Harness row={makeRow({ tenant: null, rent: 1850 })} />);
 

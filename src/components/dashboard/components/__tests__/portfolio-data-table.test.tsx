@@ -383,6 +383,21 @@ describe("PortfolioDataTable", () => {
 		}
 	});
 
+	it("gives the virtualized <table> an accessible name via aria-label", async () => {
+		// a11y: a grid/flex <table> has no implicit caption, so screen readers
+		// announce it anonymously. An explicit aria-label names the region.
+		await act(async () => {
+			render(<ControlledHarness data={makeRows(5)} />, { wrapper: Wrapper });
+		});
+
+		const table = screen.getByRole("table");
+		expect(table.getAttribute("aria-label")).toBe("Property portfolio");
+		// getByRole with the accessible name resolves to the same element.
+		expect(screen.getByRole("table", { name: /property portfolio/i })).toBe(
+			table,
+		);
+	});
+
 	it("exposes virtualized-grid ARIA: aria-rowcount on the table and aria-rowindex on header + body rows", async () => {
 		// jsdom reports a 0px scroll container, so the real virtualizer renders 0
 		// rows. Force a deterministic virtual range so a real body <TableRow>
