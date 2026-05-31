@@ -74,6 +74,13 @@ export const portfolioColumns: ColumnDef<PortfolioRow>[] = [
 		meta: { label: "Property" },
 		enableSorting: true,
 		enableColumnFilter: true,
+		// Explicit case-insensitive, locale-aware sort matching the prior dashboard's
+		// `a.property.localeCompare(b.property)`. Without it TanStack's `auto` sortingFn
+		// inspects flatRows.slice(10) and, for <=10 filtered rows, falls back to the
+		// case-SENSITIVE `basic` fn ("Zebra" before "abby") — diverging from parity.
+		// property is ALSO the default-sorted column, so this is hit on first paint.
+		sortingFn: (rowA, rowB) =>
+			rowA.original.property.localeCompare(rowB.original.property),
 		// W-3: match the search string against NAME or ADDRESS (case-insensitive
 		// substring), preserving dashboard.tsx parity. A default substring filter
 		// on the property accessor alone would drop address matches (regression).

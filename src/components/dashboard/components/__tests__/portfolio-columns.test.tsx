@@ -17,7 +17,9 @@ import {
 	type ColumnDef,
 	flexRender,
 	getCoreRowModel,
+	getSortedRowModel,
 	type Row,
+	type SortingFn,
 	useReactTable,
 } from "@tanstack/react-table";
 import { render, screen } from "@testing-library/react";
@@ -112,6 +114,59 @@ describe("portfolioColumns", () => {
 		expect(findColumn("tenant").enableSorting).toBe(false);
 		expect(findColumn("maintenance").enableSorting).toBe(false);
 		expect(findColumn("actions").enableSorting).toBe(false);
+	});
+
+	it("Property column sorts case-INsensitively for a SMALL (<=10) row set (parity with localeCompare)", () => {
+		// Regression guard: the deleted hand-rolled table sorted Property via
+		// `a.property.localeCompare(b.property)` (locale-aware + case-insensitive).
+		// Without an explicit sortingFn TanStack uses `auto`, which for <=10 filtered
+		// rows falls back to the case-SENSITIVE `basic` fn ("Zebra" before "abby").
+		// property is ALSO the default-sorted column, so users hit this on first paint.
+		const property = findColumn("property");
+		expect(typeof property.sortingFn).toBe("function");
+
+		// Drive a REAL sorted table with a SMALL (<=10) mixed-case dataset. With the
+		// case-sensitive `basic` fallback "Zebra Towers" would sort FIRST (uppercase
+		// 'Z' < lowercase 'a'); the explicit localeCompare sortingFn puts "abby Court"
+		// first. This assertion FAILS without the sortingFn and passes with it.
+		const rows: PortfolioRow[] = [
+			makeRow({ id: "z", property: "Zebra Towers" }),
+			makeRow({ id: "a", property: "abby Court" }),
+			makeRow({ id: "m", property: "Maple" }),
+		];
+
+		function SortedHarness() {
+			const table = useReactTable({
+				data: rows,
+				columns: portfolioColumns,
+				getRowId: (r) => r.id,
+				getCoreRowModel: getCoreRowModel(),
+				getSortedRowModel: getSortedRowModel(),
+				initialState: { sorting: [{ id: "property", desc: false }] },
+			});
+			return (
+				<ul>
+					{table.getRowModel().rows.map((r) => (
+						<li key={r.id}>{r.original.property}</li>
+					))}
+				</ul>
+			);
+		}
+
+		render(<SortedHarness />);
+		const order = screen.getAllByRole("listitem").map((li) => li.textContent);
+		expect(order).toEqual(["abby Court", "Maple", "Zebra Towers"]);
+
+		// Belt-and-braces: the sortingFn itself is row-count independent + case-fold.
+		const sortingFn = property.sortingFn as SortingFn<PortfolioRow>;
+		const rowZ = {
+			original: makeRow({ property: "Zebra Towers" }),
+		} as Row<PortfolioRow>;
+		const rowA = {
+			original: makeRow({ property: "abby Court" }),
+		} as Row<PortfolioRow>;
+		expect(sortingFn(rowZ, rowA, "property")).toBeGreaterThan(0);
+		expect(sortingFn(rowA, rowZ, "property")).toBeLessThan(0);
 	});
 
 	it("Property filterFn matches name OR address (W-3 search parity)", () => {
