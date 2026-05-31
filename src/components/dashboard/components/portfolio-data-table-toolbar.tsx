@@ -32,8 +32,8 @@ interface PortfolioDataTableToolbarProps<TData> {
  *   NO separate `search`/`q` key — search IS the Property column filter.
  * - `DataTableFacetedFilter` for the multi-select status filter (DT-04).
  * - `DataTableViewOptions` for column visibility (DT-05) — reads `meta.label`.
- * - A `role="radiogroup"` grid/table segmented toggle (DT-07) lifted from the
- *   hand-rolled `portfolio-toolbar.tsx`, preserving `aria-checked` semantics.
+ * - A `role="radiogroup"` grid/table segmented toggle (DT-07) preserving the
+ *   `aria-checked` semantics of the now-removed hand-rolled toolbar.
  * - A Reset control surfaced whenever any column filter is active.
  */
 export function PortfolioDataTableToolbar<TData>({
