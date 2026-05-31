@@ -149,6 +149,25 @@ describe("PortfolioDataTableToolbar", () => {
 		});
 	});
 
+	it("search input reflects every keystroke synchronously (no debounce freeze/snap-back)", async () => {
+		const user = userEvent.setup();
+		await act(async () => {
+			render(<ToolbarHarness data={makeRows(3)} />, { wrapper: Wrapper });
+		});
+
+		const input = screen.getByPlaceholderText(
+			"Search properties...",
+		) as HTMLInputElement;
+
+		// The controlled input reads the SYNCHRONOUS columnFilters mirror; only
+		// the URL write is debounced. So the value must reflect every keystroke
+		// immediately -- asserted with NO waitFor. Under the prior
+		// derive-purely-from-debounced-nuqs code the box snapped back to "" on
+		// each keystroke (the cycle-2 freeze regression).
+		await user.type(input, "oak plaza");
+		expect(input.value).toBe("oak plaza");
+	});
+
 	it("normalizes an array property filter value to a joined string (no unsound cast)", async () => {
 		// Hydrate the property search column with an array value (the shape the old
 		// `as string` cast assumed away). The input must show a joined string, not

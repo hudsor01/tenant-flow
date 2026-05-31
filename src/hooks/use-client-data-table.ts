@@ -26,7 +26,7 @@ import {
 	useQueryStates,
 } from "nuqs";
 import type { TransitionStartFunction } from "react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import {
 	buildFilterParsers,
@@ -230,16 +230,22 @@ export function useClientDataTable<TData>(
 	};
 
 	// Resync from EXTERNAL nuqs writes — preset apply, refresh, deep-link,
-	// back/forward — by recomputing the derived filters whenever `filterValues`
-	// changes and adopting them only when they differ from the live mirror. Our
-	// own debounced write sets `filterValues` to a value already equal to the
-	// mirror, so this bails (no loop). The `filtersEqual` guard also makes the
-	// every-render reference churn of `facetedColumnIds`/`filterValues` a no-op
-	// `setState` that React drops, so listing them as deps is safe.
+	// back/forward. This must fire ONLY when the serialized URL filters actually
+	// change, NOT on every render: `facetedColumnIds` is a fresh Set each render,
+	// so an unguarded effect would re-run constantly and, mid-typing (before the
+	// debounced write lands), recompute `derived` from the still-stale empty
+	// `filterValues` and clobber the just-typed mirror back to empty (the freeze
+	// regression). The ref-gated key makes the effect a no-op until an actual URL
+	// change; our own debounced write then lands a value already equal to the
+	// mirror, so `filtersEqual` bails (no loop).
+	const filterValuesKey = JSON.stringify(filterValues);
+	const lastFilterKeyRef = useRef(filterValuesKey);
 	useEffect(() => {
+		if (lastFilterKeyRef.current === filterValuesKey) return;
+		lastFilterKeyRef.current = filterValuesKey;
 		const derived = deriveColumnFilters(filterValues, facetedColumnIds);
 		setColumnFilters((prev) => (filtersEqual(prev, derived) ? prev : derived));
-	}, [filterValues, facetedColumnIds]);
+	}, [filterValuesKey, filterValues, facetedColumnIds]);
 
 	const table = useReactTable({
 		...tableProps,
