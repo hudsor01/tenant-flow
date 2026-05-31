@@ -7,7 +7,7 @@ import {
 	type VisibilityState,
 } from "@tanstack/react-table";
 import { useVirtualizer } from "@tanstack/react-virtual";
-import { Search } from "lucide-react";
+import { Building2, Search } from "lucide-react";
 import { useRef } from "react";
 import { portfolioColumns } from "#components/dashboard/components/portfolio-columns";
 import { PortfolioDataTableToolbar } from "#components/dashboard/components/portfolio-data-table-toolbar";
@@ -83,6 +83,10 @@ export function PortfolioDataTable({
 
 	const pageRows = table.getRowModel().rows;
 	const isEmpty = pageRows.length === 0;
+	// Distinguish a true no-portfolio state (owner has ZERO properties) from a
+	// no-match state (properties exist but the active filter set is empty). Only
+	// the latter offers "Clear filters".
+	const hasNoProperties = data.length === 0;
 
 	return (
 		<BlurFade delay={0.4} inView>
@@ -94,7 +98,11 @@ export function PortfolioDataTable({
 				/>
 
 				{isEmpty ? (
-					<PortfolioEmptyState onClear={() => table.resetColumnFilters()} />
+					hasNoProperties ? (
+						<PortfolioNoPropertiesState />
+					) : (
+						<PortfolioNoMatchState onClear={() => table.resetColumnFilters()} />
+					)
 				) : effectiveView === "grid" ? (
 					<PortfolioGrid data={pageRows.map((row) => row.original)} />
 				) : (
@@ -109,8 +117,11 @@ export function PortfolioDataTable({
 	);
 }
 
-/** Empty-state block (mirrors dashboard.tsx) with a Clear-filters affordance. */
-function PortfolioEmptyState({ onClear }: { onClear: () => void }) {
+/**
+ * No-match state: properties exist but the active filter set is empty. Offers a
+ * Clear-filters affordance (mirrors the prior dashboard's filtered-empty block).
+ */
+function PortfolioNoMatchState({ onClear }: { onClear: () => void }) {
 	return (
 		<div className="py-12 text-center">
 			<Search
@@ -125,6 +136,22 @@ function PortfolioEmptyState({ onClear }: { onClear: () => void }) {
 			>
 				Clear filters
 			</button>
+		</div>
+	);
+}
+
+/**
+ * True no-portfolio state: the owner has ZERO properties, so there is nothing to
+ * filter. No "Clear filters" affordance — it would be a no-op and misleading.
+ */
+function PortfolioNoPropertiesState() {
+	return (
+		<div className="py-12 text-center">
+			<Building2
+				aria-hidden="true"
+				className="mx-auto mb-3 size-10 text-muted-foreground/40"
+			/>
+			<p className="text-muted-foreground">No properties yet</p>
 		</div>
 	);
 }

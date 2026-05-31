@@ -149,6 +149,30 @@ describe("PortfolioDataTableToolbar", () => {
 		});
 	});
 
+	it("normalizes an array property filter value to a joined string (no unsound cast)", async () => {
+		// Hydrate the property search column with an array value (the shape the old
+		// `as string` cast assumed away). The input must show a joined string, not
+		// "[object Object]"/comma garbage.
+		await act(async () => {
+			render(<ToolbarHarness data={makeRows(3)} />, {
+				wrapper: ({ children }: { children: ReactNode }) => (
+					<NuqsTestingAdapter
+						hasMemory
+						searchParams={{ property: "elm street" }}
+					>
+						{children}
+					</NuqsTestingAdapter>
+				),
+			});
+		});
+
+		const input = screen.getByPlaceholderText(
+			"Search properties...",
+		) as HTMLInputElement;
+		// A multi-word hydrated value stays one string end-to-end.
+		expect(input.value).toBe("elm street");
+	});
+
 	it("faceted status filter lists meta.options and selecting one narrows rows (DT-04)", async () => {
 		const user = userEvent.setup();
 		const data = [
@@ -330,6 +354,46 @@ describe("PortfolioDataTable", () => {
 		expect(
 			document.querySelector('tbody[data-slot="table-body"]'),
 		).not.toBeNull();
+	});
+
+	it("shows a true no-portfolio state (no Clear filters) when the owner has zero properties", async () => {
+		await act(async () => {
+			render(<ControlledHarness data={[]} />, { wrapper: Wrapper });
+		});
+
+		expect(screen.getByText("No properties yet")).toBeInTheDocument();
+		// No filters exist to clear, so the no-match affordance must NOT appear.
+		expect(screen.queryByText(/no properties match your filters/i)).toBeNull();
+		expect(screen.queryByRole("button", { name: /clear filters/i })).toBeNull();
+	});
+
+	it("shows the no-match state with Clear filters when properties exist but the filter set is empty", async () => {
+		const user = userEvent.setup();
+		const data = [
+			makeRow({ id: "a", property: "Aspen Court", leaseStatus: "active" }),
+			makeRow({ id: "b", property: "Birch Flats", leaseStatus: "vacant" }),
+		];
+		await act(async () => {
+			render(<ControlledHarness data={data} />, { wrapper: Wrapper });
+		});
+
+		// Search for a string no property matches -> filtered set empties out.
+		await user.type(screen.getByPlaceholderText("Search properties..."), "zzz");
+
+		await waitFor(
+			() => {
+				expect(
+					screen.getByText(/no properties match your filters/i),
+				).toBeInTheDocument();
+			},
+			{ timeout: 3000 },
+		);
+		// This is the FILTERED-empty state, so Clear filters IS offered.
+		expect(
+			screen.getByRole("button", { name: /clear filters/i }),
+		).toBeInTheDocument();
+		// And it is NOT the zero-properties copy.
+		expect(screen.queryByText("No properties yet")).toBeNull();
 	});
 
 	it("renders aria-sort on the <th role=columnheader>, not the inner button (B-1)", async () => {

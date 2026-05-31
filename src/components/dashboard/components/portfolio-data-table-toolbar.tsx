@@ -44,7 +44,15 @@ export function PortfolioDataTableToolbar<TData>({
 }: PortfolioDataTableToolbarProps<TData>) {
 	const propertyColumn = table.getColumn("property");
 	const statusColumn = table.getColumn("status");
-	const searchValue = (propertyColumn?.getFilterValue() as string) ?? "";
+	// getFilterValue() is `unknown` and can hydrate as a string[] from the URL,
+	// so normalize rather than asserting `as string` (which would render
+	// "[object Object]"-style garbage for an array value).
+	const rawSearch = propertyColumn?.getFilterValue();
+	const searchValue = Array.isArray(rawSearch)
+		? rawSearch.join(" ")
+		: typeof rawSearch === "string"
+			? rawSearch
+			: "";
 	const isFiltered = table.getState().columnFilters.length > 0;
 	const resolvedStatusOptions =
 		statusOptions ?? statusColumn?.columnDef.meta?.options ?? [];
