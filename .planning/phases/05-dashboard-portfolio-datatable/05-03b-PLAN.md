@@ -21,7 +21,8 @@ must_haves:
     - "dashboard.tsx mounts <PortfolioDataTable> (from Plan 05-02) and the <PortfolioPresetMenu>, deleting the inline filter/sort/slice logic (old lines ~114-155) and the old <PortfolioToolbar>/<PortfolioTable>/<PortfolioPagination>/inline no-results block"
     - "filter/sort/page live in nuqs (via useClientDataTable inside PortfolioDataTable); dashboard.tsx no longer reads searchQuery/statusFilter/sortField/sortDirection/currentPage/itemsPerPage from the store"
     - "the preset menu calls savePreset with the current snapshot (collected from nuqs + table) and applyPreset writes the snapshot back to nuqs (filters/sort/page) + presets-store columnVisibility (D-1 + D-8)"
-    - "column visibility is sourced from dashboard-presets-store (D-3) and passed to PortfolioDataTable as the controlled columnVisibility prop"
+    - "the preset snapshot reads/writes the SAME nuqs keys useClientDataTable writes: page, perPage, sort, and the per-column filter keys 'status' (faceted) + 'property' (search, name||address per Plan 05-01b W-3) — the search key is 'property', NOT a separate search/q key"
+    - "column visibility is sourced from dashboard-presets-store (D-3) and passed to PortfolioDataTable as the controlled columnVisibility prop (Plan 05-02 forwards it straight to useClientDataTable, which Plan 05-01a accepts as a controlled prop — B-2)"
     - "the 3 hand-rolled files (portfolio-table.tsx, portfolio-toolbar.tsx, portfolio-pagination.tsx) are DELETED in this same change (atomic swap) and no longer imported anywhere"
     - "portfolio-grid.tsx is PRESERVED (it is reused inside PortfolioDataTable for the grid view) and remains imported only transitively"
   artifacts:
@@ -53,7 +54,7 @@ must_haves:
 The atomic swap — the only irreversible step in Phase 5 and the highest-stakes plan. In ONE change:
 
 1. **Trim `dashboard-store.ts` to `viewMode` only** (DT-09 final half): delete `searchQuery`/`statusFilter`/`sortField`/`sortDirection`/`currentPage`/`itemsPerPage` state + their actions (`setSearchQuery`/`setStatusFilter`/`clearFilters`/`handleSort`/`setCurrentPage`), and delete the 3 now-dead selector hooks (`useDashboardFilters`, `useDashboardSorting`, `useDashboardPagination`). Keep `viewMode` + `setViewMode` + `useDashboardViewMode` (DT-07 home).
-2. **Rewrite `dashboard.tsx`** to mount `<PortfolioDataTable>` (Plan 05-02) + a new `<PortfolioPresetMenu>` (DT-08 UI), deleting the inline portfolio filter/sort/slice block and the old `<PortfolioToolbar>`/`<PortfolioTable>`/`<PortfolioPagination>` + inline no-results. Filter/sort/page now live in nuqs (inside `useClientDataTable`); column visibility comes from `dashboard-presets-store` (D-3).
+2. **Rewrite `dashboard.tsx`** to mount `<PortfolioDataTable>` (Plan 05-02) + a new `<PortfolioPresetMenu>` (DT-08 UI), deleting the inline portfolio filter/sort/slice block and the old `<PortfolioToolbar>`/`<PortfolioTable>`/`<PortfolioPagination>` + inline no-results. Filter/sort/page now live in nuqs (inside `useClientDataTable`); column visibility comes from `dashboard-presets-store` (D-3) and is passed as the controlled `columnVisibility` prop (Plan 05-02 forwards it to the hook, which accepts it controlled per B-2).
 3. **Wire the preset menu** (DT-08): `savePreset(currentSnapshot)` collects the live snapshot from nuqs + the table; `applyPreset(name)` writes the snapshot back to nuqs (filters/sort/page) + the presets-store `columnVisibility` (D-1 round-trip).
 4. **Delete the 3 hand-rolled files** (`portfolio-table.tsx`, `portfolio-toolbar.tsx`, `portfolio-pagination.tsx`) — ROADMAP Phase 5 success criterion #5 ("no longer exist") — in the SAME wave that mounts the replacement (05-CONTEXT.md "Atomic swap" risk: never leave a window where both exist or neither renders).
 
@@ -98,7 +99,7 @@ This is the final plan; after it, the perfect-PR review gate runs (two consecuti
   data={portfolioRows}               // PortfolioRow[] (the inline transform survives — D-10, see dashboard.tsx note)
   viewMode={viewMode}                // from useDashboardViewMode (dashboard-store, trimmed)
   onViewModeChange={setViewMode}
-  columnVisibility={columnVisibility}        // from dashboard-presets-store (D-3)
+  columnVisibility={columnVisibility}        // from dashboard-presets-store (D-3); controlled, forwarded to useClientDataTable (B-2)
   onColumnVisibilityChange={setColumnVisibility}
 />
 ```
@@ -107,8 +108,10 @@ This is the final plan; after it, the perfect-PR review gate runs (two consecuti
 const { presets, savePreset, applyPreset, deletePreset, columnVisibility, setColumnVisibility } = useDashboardPresetsStore();
 // snapshot: { filters: Record<string,string|string[]>, sort: SortingState, columnVisibility: VisibilityState, page: number }
 ```
-<!-- nuqs keys (must match useClientDataTable / D-4): page, perPage, sort, and per-column filter keys (e.g. "status"). -->
-<!-- Collect snapshot for savePreset by reading these nuqs params + presets-store columnVisibility. -->
+<!-- nuqs keys (must match useClientDataTable / D-4 / Plan 05-01b): -->
+<!--   page, perPage, sort, and per-column filter keys: "status" (faceted, array) + "property" (search, name||address per W-3). -->
+<!--   The SEARCH key is "property" (search filters the Property column via its name||address filterFn) — NOT a separate "search"/"q" key. -->
+<!-- Collect the snapshot for savePreset by reading these nuqs params + presets-store columnVisibility. -->
 <!-- Apply by setting these nuqs params + setColumnVisibility(snapshot.columnVisibility). -->
 
 From dashboard.tsx (PRESERVE): the inline PortfolioRow transform at old lines 84-112 (D-10 LOCKED — survives this phase). Keep it; only the filter/sort/slice block (old lines 114-155) and the render block (old lines 217-265) change.
@@ -160,7 +163,10 @@ From dashboard-store.ts (trim target): keep only viewMode/setViewMode + useDashb
     - src/components/dashboard/components/portfolio-data-table.tsx (Plan 05-02 — the mount target + its exact prop contract; read 05-02-SUMMARY)
     - src/stores/dashboard-presets-store.ts (Plan 05-03a — savePreset/applyPreset/columnVisibility; read 05-03a-SUMMARY for the snapshot shape + apply contract)
     - src/stores/dashboard-store.ts (trimmed in Task 1 — useDashboardViewMode is the only store read)
+    - src/components/dashboard/components/portfolio-columns.tsx (Plan 05-01b — confirm the nuqs filter keys: "status" + "property"; the search key is "property")
     - src/components/ui/dropdown-menu.tsx (for the preset menu trigger/items) and src/components/ui/input.tsx (for the save-preset name input)
+    - .planning/phases/05-dashboard-portfolio-datatable/05-01b-SUMMARY.md (pinned "property" search key + "status" faceted key)
+    - .planning/phases/05-dashboard-portfolio-datatable/05-02-SUMMARY.md (PortfolioDataTable prop contract; controlled columnVisibility is forwarded to the hook — B-2)
     - .planning/phases/05-dashboard-portfolio-datatable/05-CONTEXT.md (D-1 snapshot, D-3 visibility source, D-4 nuqs keys, D-5 grid parity; "Atomic swap" + "nuqs<->Zustand ordering" risks)
     - .planning/phases/01-foundation-dedup/01-UI-SPEC.md (tokens, motion budget ≤1 BlurFade for the table region; popover --shadow-lg)
     - CLAUDE.md (Zero Tolerance: no any, no inline styles, tokens, lucide icons, 300-line component / 50-line function caps; nuqs param patterns; "use client" needed for hooks)
@@ -168,8 +174,8 @@ From dashboard-store.ts (trim target): keep only viewMode/setViewMode + useDashb
   <behavior>
     - Test "dashboard mounts the new table": rendering Dashboard with propertyPerformance renders <PortfolioDataTable> (a row from data appears) and does NOT render the old PortfolioToolbar/PortfolioTable/PortfolioPagination (those imports are gone).
     - Test "viewMode toggle still works via trimmed store": toggling to grid renders the grid card view (the toggle is the only store-backed control).
-    - Test "save preset writes to store + localStorage": opening the preset menu, entering a name, saving → useDashboardPresetsStore has the preset with the current snapshot (filters/sort/page from nuqs + columnVisibility).
-    - Test "apply preset restores nuqs + visibility": with a saved preset, applying it sets the nuqs sort/filter/page params to the snapshot values and updates the presets-store columnVisibility (round-trip).
+    - Test "save preset writes to store + localStorage": opening the preset menu, entering a name, saving → useDashboardPresetsStore has the preset with the current snapshot (filters incl. status + property/search, sort, page from nuqs + columnVisibility).
+    - Test "apply preset restores nuqs + visibility": with a saved preset, applying it sets the nuqs sort/filter (status + property)/page params to the snapshot values and updates the presets-store columnVisibility (round-trip).
     - Test "column visibility is sourced from presets-store": hiding a column via the table's view-options updates dashboard-presets-store.columnVisibility (D-3) and the change survives a remount (persist).
   </behavior>
   <action>
@@ -183,14 +189,14 @@ From dashboard-store.ts (trim target): keep only viewMode/setViewMode + useDashb
 
     **B. Build `portfolio-preset-menu.tsx`** exporting `PortfolioPresetMenu`:
     - Read `{ presets, savePreset, applyPreset, deletePreset, columnVisibility }` from `useDashboardPresetsStore`.
-    - Read the live nuqs params (page/sort/per-column-filter — use the SAME nuqs keys `useClientDataTable` writes, via `useQueryState`/`useQueryStates` with the same parsers, OR a small shared `useDashboardUrlState()` helper if cleaner) to build the current `DashboardViewSnapshot` for `savePreset`. Resolve the "nuqs↔Zustand ordering" risk: the URL is the source of truth for filter/sort/page; the snapshot READS from nuqs (not from a stale store).
+    - Read the live nuqs params (page/sort/per-column-filter — use the SAME nuqs keys `useClientDataTable` writes: `page`, `sort`, the faceted `status` key, and the search `property` key per W-3 — via `useQueryState`/`useQueryStates` with the same parsers, OR a small shared `useDashboardUrlState()` helper if cleaner) to build the current `DashboardViewSnapshot` for `savePreset`. Resolve the "nuqs↔Zustand ordering" risk: the URL is the source of truth for filter/sort/page; the snapshot READS from nuqs (not from a stale store). Do NOT invent a separate search/q key — the search filter lives under the `property` column key.
     - A DropdownMenu (or Popover) listing saved presets (apply on click, delete affordance) + a "Save current view" item that opens a small name `Input` and calls `savePreset(name, snapshot)`.
-    - `applyPreset(name)` → set the nuqs params (sort/filters/page) from the returned snapshot AND `setColumnVisibility(snapshot.columnVisibility)` (D-1 full restore).
+    - `applyPreset(name)` → set the nuqs params (sort/filters incl. status + property/page) from the returned snapshot AND `setColumnVisibility(snapshot.columnVisibility)` (D-1 full restore).
     - Tokens only, lucide icons (e.g. `Bookmark`/`Save`), Tailwind only, no inline styles, no `any`. Icon-only buttons get `aria-label`. Keep under 300 lines / functions < 50 lines.
 
     Zero-Tolerance throughout: no `any`, no `as unknown as`, no inline styles, no `bg-white`, tokens-only, lucide-only. `"use client"` on both files (hooks + nuqs).
 
-    Do NOT delete the inline transform (D-10). Do NOT import the 3 deleted files. Do NOT touch the KPI/chart sections.
+    Do NOT delete the inline transform (D-10). Do NOT import the 3 deleted files. Do NOT touch the KPI/chart sections. Do NOT use a separate search nuqs key — search is the `property` column filter (W-3).
   </action>
   <verify>
     <automated>bun run test:unit -- --run src/components/dashboard/components/__tests__/dashboard-portfolio-swap.test.tsx</automated>
@@ -199,13 +205,13 @@ From dashboard-store.ts (trim target): keep only viewMode/setViewMode + useDashb
     - `dashboard.tsx`: `grep -c "PortfolioDataTable" src/components/dashboard/dashboard.tsx` >= 1; `grep -Ec "PortfolioToolbar|PortfolioTable|PortfolioPagination" ...` == 0 (old imports/usages gone); `grep -c "useDashboardViewMode" ...` >= 1.
     - Inline transform preserved: `grep -c "portfolioData" src/components/dashboard/dashboard.tsx` >= 1 (the D-10 transform survives).
     - No filter/sort/slice logic left: `grep -Ec "\.filter\(|\.sort\(|\.slice\(" src/components/dashboard/dashboard.tsx` == 0 in the portfolio section (the inline block is removed).
-    - `portfolio-preset-menu.tsx`: `export function PortfolioPresetMenu` present; `grep -c "useDashboardPresetsStore" ...` >= 1; `grep -Ec "savePreset|applyPreset" ...` >= 2; `grep -c "useQueryState\|useQueryStates" ...` >= 1 (reads nuqs for the snapshot).
+    - `portfolio-preset-menu.tsx`: `export function PortfolioPresetMenu` present; `grep -c "useDashboardPresetsStore" ...` >= 1; `grep -Ec "savePreset|applyPreset" ...` >= 2; `grep -c "useQueryState\|useQueryStates" ...` >= 1 (reads nuqs for the snapshot); the snapshot uses the `property` + `status` keys (no separate search/q key): `grep -Ec "\"property\"|'property'" ...` >= 1.
     - No `any` / `as unknown as` / inline styles in both files: `grep -E ":\s*any[^a-z]|<any>|as unknown as|style={{" {both files}` returns zero matches.
     - Both files under 300 lines.
     - The 5 swap tests pass.
     - `bun run typecheck` exits 0; `bun run lint` clean.
   </acceptance_criteria>
-  <done>dashboard.tsx mounts PortfolioDataTable + PortfolioPresetMenu, drops all inline portfolio filter/sort/slice logic and the 3 old component usages, sources viewMode from the trimmed store + columnVisibility from presets-store; the preset menu round-trips snapshots through nuqs + the persist store; 5 tests pass; no any / inline styles; under 300 lines.</done>
+  <done>dashboard.tsx mounts PortfolioDataTable + PortfolioPresetMenu, drops all inline portfolio filter/sort/slice logic and the 3 old component usages, sources viewMode from the trimmed store + columnVisibility from presets-store (controlled, forwarded per B-2); the preset menu round-trips snapshots through nuqs (status + property keys, W-3) + the persist store; 5 tests pass; no any / inline styles; under 300 lines.</done>
 </task>
 
 <task type="auto">
@@ -250,15 +256,15 @@ From dashboard-store.ts (trim target): keep only viewMode/setViewMode + useDashb
 
 | Boundary | Description |
 |----------|-------------|
-| nuqs URL params ↔ presets-store snapshot | The preset menu reads filter/sort/page from the URL and writes them back; both sides go through the same typed parsers (getSortingStateParser, parseAsInteger, parseAsArrayOf). |
-| presets-store columnVisibility → table | Controlled visibility flows from the persist store into PortfolioDataTable; TanStack ignores unknown column ids. |
+| nuqs URL params ↔ presets-store snapshot | The preset menu reads filter/sort/page from the URL (keys: page, sort, status, property) and writes them back; both sides go through the same typed parsers (getSortingStateParser, parseAsInteger, parseAsArrayOf/parseAsString). |
+| presets-store columnVisibility → table | Controlled visibility flows from the persist store into PortfolioDataTable → useClientDataTable (B-2); TanStack ignores unknown column ids. |
 | Deletion of hand-rolled files → render path | After deletion, the only render path is PortfolioDataTable; a stray import would break the build (caught by typecheck/build gate), never a silent half-swap. |
 
 ## STRIDE Threat Register
 
 | Threat ID | Category | Component | Disposition | Mitigation Plan |
 |-----------|----------|-----------|-------------|-----------------|
-| T-05-03b-01 | Tampering | applyPreset writing tampered snapshot to nuqs | mitigate | applyPreset's snapshot flows back through the SAME nuqs parsers the URL uses (getSortingStateParser rejects unknown column ids / malformed JSON; parseAsInteger coerces page; filters are client-side string compares). A tampered persisted preset degrades to defaults, never a crash or cross-owner read. |
+| T-05-03b-01 | Tampering | applyPreset writing tampered snapshot to nuqs | mitigate | applyPreset's snapshot flows back through the SAME nuqs parsers the URL uses (getSortingStateParser rejects unknown column ids / malformed JSON; parseAsInteger coerces page; the property/status filters are client-side string compares). A tampered persisted preset degrades to defaults, never a crash or cross-owner read. |
 | T-05-03b-02 | Tampering / Availability | half-completed swap (both file sets or neither renders) | mitigate | Atomic completion in one wave: Task 2 mounts the replacement, Task 3 deletes the originals, and Task 3's acceptance gate requires `bun run build` + typecheck + tests green — a stray import fails the build rather than shipping a broken dashboard. |
 | T-05-03b-03 | Information Disclosure | trimmed store leaving a dangling consumer | mitigate | 05-CONTEXT.md verified dashboard.tsx is the sole consumer; Task 1 + Task 2 rewrite its reads in the same plan; the grep gate confirms zero remaining references to the trimmed state/hooks. |
 | T-05-03b-04 | Information Disclosure | portfolio data rendered after swap | accept | Data is the same already-owner-scoped `owner_dashboard` RPC output; the swap changes only the rendering layer, not the data source or its RLS scoping. |
@@ -269,8 +275,8 @@ From dashboard-store.ts (trim target): keep only viewMode/setViewMode + useDashb
 <verification>
 - `dashboard-store.ts` is trimmed to `viewMode` only (+ `setViewMode` + `useDashboardViewMode`); the 3 dead selector hooks and all filter/sort/pagination state+actions are deleted.
 - `dashboard.tsx` mounts `<PortfolioDataTable>` + `<PortfolioPresetMenu>`, preserves the D-10 inline transform, and contains no inline filter/sort/slice logic or old portfolio-component usages.
-- The preset menu round-trips a full snapshot (filters/sort/columnVisibility/page) through nuqs + the persist store (DT-08, D-1).
-- Column visibility is sourced from `dashboard-presets-store` (D-3) and passed to `PortfolioDataTable` as a controlled prop.
+- The preset menu round-trips a full snapshot (filters incl. status + property/search, sort, columnVisibility, page) through nuqs + the persist store (DT-08, D-1, W-3).
+- Column visibility is sourced from `dashboard-presets-store` (D-3) and passed to `PortfolioDataTable` as a controlled prop (forwarded to the hook per B-2).
 - `portfolio-table.tsx`, `portfolio-toolbar.tsx`, `portfolio-pagination.tsx` are DELETED; `portfolio-grid.tsx` preserved.
 - `bun run typecheck`, `bun run lint`, `bun run build`, `bun run test:unit` all pass.
 - No `any`, no `as unknown as`, no inline styles, tokens-only, lucide-only, under 300 lines per file.
@@ -282,7 +288,7 @@ After this plan lands, the Phase 5 PR runs the perfect-PR review discipline: two
 <success_criteria>
 - DT-01 fulfilled (completed): the hand-rolled trio is gone; the dashboard portfolio section is driven entirely by the vendored DataTable stack (ROADMAP success criterion #5).
 - DT-07 fulfilled: grid/table toggle works; `dashboard-store.ts` is trimmed to `viewMode` only (ROADMAP success criterion #4).
-- DT-08 fulfilled: save preset → refresh → re-apply works via the persist store + nuqs round-trip (ROADMAP success criterion #3).
+- DT-08 fulfilled: save preset → refresh → re-apply works via the persist store + nuqs round-trip on the status + property keys (ROADMAP success criterion #3).
 - DT-09 fulfilled: filter/sort/page live in nuqs URL params; the store is trimmed; refresh restores state (ROADMAP success criterion #2).
 - All five ROADMAP Phase 5 success criteria are true: aria-sort + keyboard sort (Wave 1), faceted filter + column-visibility + URL persistence (Waves 1-2), preset round-trip (this plan), grid/table toggle + virtualization (Wave 2 + this plan), and the 3 files deleted (this plan).
 - Zero-Tolerance compliance across all touched files.
@@ -292,9 +298,10 @@ After this plan lands, the Phase 5 PR runs the perfect-PR review discipline: two
 Create `.planning/phases/05-dashboard-portfolio-datatable/05-03b-SUMMARY.md` when done. Record:
 - The final trimmed `dashboard-store.ts` shape.
 - The exact `dashboard.tsx` render block after the swap (PortfolioPresetMenu + PortfolioDataTable props).
-- The preset menu's snapshot-collection approach (which nuqs keys it reads, how it applies back).
+- The preset menu's snapshot-collection approach (which nuqs keys it reads — page/perPage/sort/status/property — and how it applies back; confirm the search key is `property`, W-3).
 - Confirmation the 3 files are deleted (`git status -s` showing `D`) and `portfolio-grid.tsx` preserved.
 - Build + typecheck + lint + unit-test results (the swap-integrity gate).
 - A mapping of each of the 5 ROADMAP Phase 5 success criteria → where it is now satisfied (for the perfect-PR reviewer).
 - Test counts + pass status; `git diff --stat`.
+</output>
 </output>
