@@ -300,6 +300,50 @@ describe("dashboard portfolio swap", () => {
 		expect(screen.getByText("Maple Court")).toBeInTheDocument();
 	});
 
+	it("deletes a saved preset via the trash button (store deletePreset wired through the UI)", async () => {
+		const user = userEvent.setup();
+		// Seed two presets so we can assert the clicked one is removed and the other
+		// survives (not a wholesale clear).
+		useDashboardPresetsStore.getState().savePreset("Keep me", {
+			filters: { status: ["active"] },
+			sort: [],
+			columnVisibility: {},
+			page: 1,
+		});
+		useDashboardPresetsStore.getState().savePreset("Delete me", {
+			filters: { status: ["vacant"] },
+			sort: [],
+			columnVisibility: {},
+			page: 1,
+		});
+
+		render(<PortfolioPresetMenu />, { wrapper: withUrl() });
+
+		await user.click(screen.getByRole("button", { name: /^presets$/i }));
+		// Both presets listed.
+		expect(await screen.findByText("Keep me")).toBeInTheDocument();
+		expect(screen.getByText("Delete me")).toBeInTheDocument();
+
+		// Click the trash button for "Delete me" (the menu item carries a per-preset
+		// "Delete preset {name}" button).
+		await user.click(
+			screen.getByRole("button", { name: /delete preset delete me/i }),
+		);
+
+		// The preset is gone from BOTH the store and the rendered list; the sibling
+		// preset remains.
+		await waitFor(() => {
+			expect(
+				useDashboardPresetsStore.getState().presets["Delete me"],
+			).toBeUndefined();
+		});
+		expect(screen.queryByText("Delete me")).toBeNull();
+		expect(
+			useDashboardPresetsStore.getState().presets["Keep me"],
+		).toBeDefined();
+		expect(screen.getByText("Keep me")).toBeInTheDocument();
+	});
+
 	it("sources column visibility from the presets store and persists across remount", async () => {
 		const user = userEvent.setup();
 		const { unmount } = renderDashboard();
