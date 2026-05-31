@@ -255,6 +255,53 @@ describe("useClientDataTable", () => {
 		const filtered = result.current.table.getFilteredRowModel().rows;
 		expect(filtered).toHaveLength(1);
 		expect(filtered[0]?.id).toBe("2");
+
+		// The SYNCHRONOUS mirror (table.getState().columnFilters) must reflect the
+		// external write too — not just the filtered row model. The old mount-only
+		// useState seed never adopted post-mount URL changes, so this assertion
+		// would have failed there; the resync effect is what makes it pass now.
+		const mirror = result.current.table.getState().columnFilters;
+		const addressMirror = mirror.find((filter) => filter.id === "address");
+		const nMirror = mirror.find((filter) => filter.id === "n");
+		expect(addressMirror?.value).toBe("elm");
+		expect(nMirror?.value).toEqual(["5"]);
+	});
+
+	it("coalesces two rapid filter writes inside the debounce window to a single URL write (P2)", async () => {
+		const onUrlUpdate = vi.fn();
+		const result = await renderClientHook(
+			{ data: makeRows(25), columns },
+			{ searchParams: { page: "3" }, onUrlUpdate },
+		);
+
+		// Page 3 on mount (1-indexed URL -> 0-indexed pageIndex 2).
+		expect(result.current.table.getState().pagination.pageIndex).toBe(2);
+
+		// Baseline: only the mount-time URL resolution so far (no filter write yet).
+		const callsBeforeWrites = onUrlUpdate.mock.calls.length;
+
+		// TWO writes back-to-back WITHOUT flushing between them. The debounce timer
+		// is reset by the second write, so the first never reaches nuqs.
+		await act(async () => {
+			result.current.table.getColumn("n")?.setFilterValue(["active"]);
+			result.current.table.getColumn("n")?.setFilterValue(["active", "vacant"]);
+		});
+		// Now let the single trailing debounce fire and the nuqs throttle flush.
+		await flushUrlWrites();
+
+		// The synchronous mirror reflects the LAST write immediately.
+		const lastCall = onUrlUpdate.mock.calls.at(-1)?.[0];
+		expect(lastCall).toBeDefined();
+		// Only the final coalesced value lands on the URL.
+		expect(lastCall?.searchParams.get("n")).toBe("active,vacant");
+		// The intermediate "active"-only value never reached the URL.
+		const intermediateLanded = onUrlUpdate.mock.calls
+			.slice(callsBeforeWrites)
+			.some((call) => call[0]?.searchParams.get("n") === "active");
+		expect(intermediateLanded).toBe(false);
+		// Page reset to 1 by the (single) debounced filter write.
+		expect(lastCall?.searchParams.get("page")).toBe("1");
+		expect(result.current.table.getState().pagination.pageIndex).toBe(0);
 	});
 
 	it("hydrates a multi-word search from the URL as a single string (no array split)", async () => {
