@@ -4,7 +4,7 @@ milestone: v2.0
 milestone_name: Dashboard Command Center
 status: between-phases
 last_updated: "2026-05-30T00:00:00.000Z"
-last_activity: 2026-05-28 -- Phase 04 (charts) merged via PR #748
+last_activity: 2026-05-30 -- Phase 05 Wave 2 (Plan 05-02) executed on gsd/phase-5-dashboard-portfolio-datatable
 progress:
   total_phases: 7
   completed_phases: 4
@@ -20,14 +20,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-22)
 
 **Core value:** The authenticated owner dashboard at `/dashboard` becomes a restrained, professional B2B command center — KPI visibility above the fold, polished charts, a real DataTable with column controls + saved presets, full keyboard/dark-mode/mobile a11y. Every dollar amount handled correctly throughout the data path (no `*100`/`÷100` round-trip).
-**Current focus:** Phase 5 — Portfolio DataTable (not started; next by dependency order).
+**Current focus:** Phase 5 — Portfolio DataTable (IN PROGRESS; Wave 1 + Wave 2 plans executed on the phase branch, not yet PR'd).
 
 ## Current Position
 
-Phase: between phases — Phases 1-4 SHIPPED, Phase 5 not started.
-Plan: —
-Status: Milestone mid-flight, 4 of 7 phases merged. No phase currently executing.
-Last activity: 2026-05-28 -- Phase 04 merged via PR #748.
+Phase: 5 — Portfolio DataTable (in progress on gsd/phase-5-dashboard-portfolio-datatable).
+Plan: 05-02 complete (Wave 2). Wave-1 plans 05-01a + 05-01b complete. Wave-3 plans 05-03a/05-03b pending (mount + atomic swap + presets/nuqs wiring).
+Status: Milestone mid-flight, 4 of 7 phases merged; Phase 5 executing. Plans 05-01a, 05-01b, 05-02 committed on the phase branch.
+Last activity: 2026-05-30 -- Plan 05-02 (PortfolioDataTable + toolbar, built but not mounted) committed.
 
 ```
 [████░░░] 57% of v2.0 milestone (4 / 7 phases shipped)
@@ -41,7 +41,7 @@ Last activity: 2026-05-28 -- Phase 04 merged via PR #748.
 | 2 | data-layer-rpc | SHIPPED (PR #745, 11 cycles + post-merge fix) | No | gsd/phase-2-data-layer-rpc |
 | 3 | kpi-bento-row | SHIPPED (PR #746) | YES (per-phase) | gsd/phase-3-kpi-bento-row |
 | 4 | dashboard-charts | SHIPPED (PR #748, 9 cycles) | YES | gsd/phase-4-dashboard-charts |
-| 5 | dashboard-portfolio-datatable | Not started — NEXT | YES | gsd/phase-5-dashboard-portfolio-datatable |
+| 5 | dashboard-portfolio-datatable | IN PROGRESS (Waves 1-2 committed: 05-01a/01b/02) | YES | gsd/phase-5-dashboard-portfolio-datatable |
 | 6 | dashboard-polish-a11y | Not started | No | gsd/phase-6-dashboard-polish-a11y |
 | 7 | dashboard-verification | Not started | No | gsd/phase-7-dashboard-verification |
 
@@ -53,7 +53,7 @@ Last activity: 2026-05-28 -- Phase 04 merged via PR #748.
 | 2 | 3 | Shipped | gsd/phase-2-data-layer-rpc | #745 | 11 (+ post-merge fix) |
 | 3 | 3 | Shipped | gsd/phase-3-kpi-bento-row | #746 | — |
 | 4 | 4 | Shipped | gsd/phase-4-dashboard-charts | #748 | 9 (cycles 8+9 both zero) |
-| 5 | TBD | Not started | gsd/phase-5-dashboard-portfolio-datatable | — | — |
+| 5 | 5 (05-01a/01b/02 done; 05-03a/03b pending) | In progress | gsd/phase-5-dashboard-portfolio-datatable | — | — |
 | 6 | TBD | Not started | gsd/phase-6-dashboard-polish-a11y | — | — |
 | 7 | TBD | Not started | gsd/phase-7-dashboard-verification | — | — |
 
