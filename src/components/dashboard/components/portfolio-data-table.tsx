@@ -212,6 +212,7 @@ function PortfolioVirtualizedTable({
 				className="w-full caption-bottom text-sm"
 				style={{ display: "grid" }}
 				role="table"
+				aria-rowcount={pageRows.length + 1}
 			>
 				<TableHeader
 					role="rowgroup"
@@ -226,6 +227,7 @@ function PortfolioVirtualizedTable({
 					{table.getHeaderGroups().map((headerGroup) => (
 						<TableRow
 							key={headerGroup.id}
+							aria-rowindex={1}
 							style={{ display: "flex", width: "100%" }}
 						>
 							{headerGroup.headers.map((header) => (
@@ -264,6 +266,7 @@ function PortfolioVirtualizedTable({
 								data-index={virtualRow.index}
 								ref={rowVirtualizer.measureElement}
 								role="row"
+								aria-rowindex={virtualRow.index + 2}
 								className="group"
 								style={{
 									display: "flex",

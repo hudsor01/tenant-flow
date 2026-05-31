@@ -383,6 +383,46 @@ describe("PortfolioDataTable", () => {
 		}
 	});
 
+	it("exposes virtualized-grid ARIA: aria-rowcount on the table and aria-rowindex on header + body rows", async () => {
+		// jsdom reports a 0px scroll container, so the real virtualizer renders 0
+		// rows. Force a deterministic virtual range so a real body <TableRow>
+		// renders and its aria-rowindex can be asserted.
+		virtualMock.override = [
+			{ index: 0, start: 0, size: 56 },
+			{ index: 1, start: 56, size: 56 },
+		];
+		try {
+			const data = [
+				makeRow({ id: "r1", property: "Cedar Court" }),
+				makeRow({ id: "r2", property: "Pine Plaza" }),
+				makeRow({ id: "r3", property: "Oak Ridge" }),
+			];
+			await act(async () => {
+				render(<ControlledHarness data={data} />, { wrapper: Wrapper });
+			});
+
+			// aria-rowcount counts ALL rows including the header row (3 body + 1).
+			const table = screen.getByRole("table");
+			expect(table.getAttribute("aria-rowcount")).toBe("4");
+
+			// The header row is row 1 (1-based).
+			const headerRow = document.querySelector(
+				'thead[data-slot="table-header"] tr',
+			);
+			expect(headerRow?.getAttribute("aria-rowindex")).toBe("1");
+
+			// First rendered body row is row 2 (index 0 -> rowindex 2); second is 3.
+			const bodyRows = document.querySelectorAll(
+				'tbody[data-slot="table-body"] tr[role="row"]',
+			);
+			expect(bodyRows.length).toBe(2);
+			expect(bodyRows[0]?.getAttribute("aria-rowindex")).toBe("2");
+			expect(bodyRows[1]?.getAttribute("aria-rowindex")).toBe("3");
+		} finally {
+			virtualMock.override = null;
+		}
+	});
+
 	it("virtualizes both small and large datasets through one path (always-on, D-2)", async () => {
 		const { unmount } = render(<ControlledHarness data={makeRows(3)} />, {
 			wrapper: Wrapper,
