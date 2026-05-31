@@ -73,6 +73,13 @@ export function PortfolioDataTable({
 		getRowId: (row) => row.id,
 		columnVisibility,
 		onColumnVisibilityChange,
+		// Restore the prior dashboard's default: property ascending on first paint
+		// (the nuqs `sort` default, overridable by URL/preset). Without it the table
+		// loaded UNSORTED, diverging from prior behavior.
+		initialState: { sorting: [{ id: "property", desc: false }] },
+		// The portfolio table has no selection column, so suppress the misleading
+		// "0 of N row(s) selected" footer summary (see showSelectedCount below).
+		enableRowSelection: false,
 	});
 
 	// W-4: at ≤375px force grid regardless of the toggle; the table path is never
@@ -110,7 +117,7 @@ export function PortfolioDataTable({
 				)}
 
 				<div className="border-border border-t px-4 py-3">
-					<DataTablePagination table={table} />
+					<DataTablePagination table={table} showSelectedCount={false} />
 				</div>
 			</div>
 		</BlurFade>

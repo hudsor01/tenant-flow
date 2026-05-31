@@ -93,6 +93,10 @@ export function useClientDataTable<TData>(
 		startTransition,
 		columnVisibility: controlledColumnVisibility,
 		onColumnVisibilityChange: controlledOnColumnVisibilityChange,
+		// Default ON to preserve every existing consumer; a table with no selection
+		// column (e.g. the dashboard portfolio) passes `false` so the footer can
+		// suppress the misleading "N of M row(s) selected" summary.
+		enableRowSelection = true,
 		...tableProps
 	} = props;
 	const pageKey = queryKeys?.page ?? DEFAULTS.page;
@@ -265,7 +269,7 @@ export function useClientDataTable<TData>(
 			columnFilters,
 		},
 		defaultColumn: { ...tableProps.defaultColumn, enableColumnFilter: false },
-		enableRowSelection: true,
+		enableRowSelection,
 		onRowSelectionChange: setRowSelection,
 		onPaginationChange,
 		onSortingChange,

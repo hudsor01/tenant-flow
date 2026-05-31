@@ -524,4 +524,43 @@ describe("PortfolioDataTable", () => {
 		).toBeInTheDocument();
 		expect(screen.getByText(/rows per page/i)).toBeInTheDocument();
 	});
+
+	it("defaults to property ascending sort on first paint (parity with prior dashboard)", async () => {
+		await act(async () => {
+			render(
+				<ControlledHarness
+					data={[
+						makeRow({ id: "z", property: "Zephyr Heights" }),
+						makeRow({ id: "a", property: "Aspen Court" }),
+						makeRow({ id: "m", property: "Maple Court" }),
+					]}
+					initialView="grid"
+				/>,
+				{ wrapper: Wrapper },
+			);
+		});
+
+		// Grid reads table.getRowModel().rows, so the default sort orders the cards.
+		// Aspen (A) must come before Maple (M) before Zephyr (Z).
+		const names = screen
+			.getAllByText(/Court|Heights/)
+			.map((el) => el.textContent);
+		const aspenIdx = names.indexOf("Aspen Court");
+		const mapleIdx = names.indexOf("Maple Court");
+		const zephyrIdx = names.indexOf("Zephyr Heights");
+		expect(aspenIdx).toBeGreaterThanOrEqual(0);
+		expect(aspenIdx).toBeLessThan(mapleIdx);
+		expect(mapleIdx).toBeLessThan(zephyrIdx);
+	});
+
+	it("suppresses the misleading row-selection summary in the footer (non-selectable table)", async () => {
+		await act(async () => {
+			render(<ControlledHarness data={makeRows(25)} />, { wrapper: Wrapper });
+		});
+
+		// The pagination footer renders (rows-per-page present) but the
+		// "N of M row(s) selected" summary is gated off via showSelectedCount.
+		expect(screen.getByText(/rows per page/i)).toBeInTheDocument();
+		expect(screen.queryByText(/row\(s\) selected/i)).toBeNull();
+	});
 });
