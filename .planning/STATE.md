@@ -2,9 +2,9 @@
 gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: Dashboard Command Center
-status: executing
-last_updated: "2026-05-31T02:05:00.000Z"
-last_activity: 2026-05-31 -- Plan 05-03b (atomic swap) committed; Phase 5 all 5 plans done on the phase branch.
+status: between-phases
+last_updated: "2026-05-31T06:00:00.000Z"
+last_activity: 2026-05-31 -- Phase 05 (Portfolio DataTable) merged via PR #763.
 progress:
   total_phases: 7
   completed_phases: 5
@@ -20,17 +20,17 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-22)
 
 **Core value:** The authenticated owner dashboard at `/dashboard` becomes a restrained, professional B2B command center — KPI visibility above the fold, polished charts, a real DataTable with column controls + saved presets, full keyboard/dark-mode/mobile a11y. Every dollar amount handled correctly throughout the data path (no `*100`/`÷100` round-trip).
-**Current focus:** Phase 5 — Portfolio DataTable (IN PROGRESS; Wave 1 + Wave 2 plans executed on the phase branch, not yet PR'd).
+**Current focus:** Phase 6 — Polish & A11y (not started; next by dependency order).
 
 ## Current Position
 
-Phase: 5 — Portfolio DataTable (all 5 plans executed on gsd/phase-5-dashboard-portfolio-datatable; perfect-PR gate pending).
-Plan: 05-03b complete (Wave 3, the atomic swap). All of 05-01a/01b/02/03a/03b committed on the phase branch.
-Status: Milestone mid-flight, 4 of 7 phases merged; Phase 5 fully executed, awaiting the perfect-PR review gate before the phase PR.
-Last activity: 2026-05-31 -- Plan 05-03b (atomic swap: trim store, mount PortfolioDataTable + preset menu, delete hand-rolled trio) committed.
+Phase: between phases — Phases 1-5 SHIPPED, Phase 6 not started.
+Plan: —
+Status: Milestone mid-flight, 5 of 7 phases merged. No phase currently executing.
+Last activity: 2026-05-31 -- Phase 05 merged via PR #763 (DiceUI DataTable swap, 8-cycle perfect-PR gate).
 
 ```
-[████░░░] 57% of v2.0 milestone (4 / 7 phases shipped)
+[█████░░] 71% of v2.0 milestone (5 / 7 phases shipped)
 ```
 
 ## Phase Index
@@ -41,8 +41,8 @@ Last activity: 2026-05-31 -- Plan 05-03b (atomic swap: trim store, mount Portfol
 | 2 | data-layer-rpc | SHIPPED (PR #745, 11 cycles + post-merge fix) | No | gsd/phase-2-data-layer-rpc |
 | 3 | kpi-bento-row | SHIPPED (PR #746) | YES (per-phase) | gsd/phase-3-kpi-bento-row |
 | 4 | dashboard-charts | SHIPPED (PR #748, 9 cycles) | YES | gsd/phase-4-dashboard-charts |
-| 5 | dashboard-portfolio-datatable | EXECUTED (all 5 plans committed; perfect-PR gate pending) | YES | gsd/phase-5-dashboard-portfolio-datatable |
-| 6 | dashboard-polish-a11y | Not started | No | gsd/phase-6-dashboard-polish-a11y |
+| 5 | dashboard-portfolio-datatable | SHIPPED (PR #763, 8 cycles) | YES | gsd/phase-5-dashboard-portfolio-datatable |
+| 6 | dashboard-polish-a11y | Not started — NEXT | No | gsd/phase-6-dashboard-polish-a11y |
 | 7 | dashboard-verification | Not started | No | gsd/phase-7-dashboard-verification |
 
 ## Performance Metrics
@@ -53,7 +53,7 @@ Last activity: 2026-05-31 -- Plan 05-03b (atomic swap: trim store, mount Portfol
 | 2 | 3 | Shipped | gsd/phase-2-data-layer-rpc | #745 | 11 (+ post-merge fix) |
 | 3 | 3 | Shipped | gsd/phase-3-kpi-bento-row | #746 | — |
 | 4 | 4 | Shipped | gsd/phase-4-dashboard-charts | #748 | 9 (cycles 8+9 both zero) |
-| 5 | 5 (05-01a/01b/02/03a/03b all done) | Executed | gsd/phase-5-dashboard-portfolio-datatable | — | perfect-PR gate pending |
+| 5 | 5 | Shipped | gsd/phase-5-dashboard-portfolio-datatable | #763 | 8 (final 2 independent reviewers both CLEAN) |
 | 6 | TBD | Not started | gsd/phase-6-dashboard-polish-a11y | — | — |
 | 7 | TBD | Not started | gsd/phase-7-dashboard-verification | — | — |
 
@@ -83,10 +83,11 @@ None.
 - 2026-05-22: v1.0 "Marketing Surface Honesty" archived (15 phases, 56/56 audit findings closed, Round 3 audit verdict PERFECT BY ALL MEASURES).
 - 2026-05-22: v2.0 "Dashboard Command Center" roadmap created — 7 phases, 34/34 requirements mapped, branch template `gsd/phase-{phase}-{slug}`.
 - 2026-05-28: Phases 1-4 all merged (PRs #744/#745/#746/#748). Milestone at 4/7 (57%).
+- 2026-05-31: Phase 5 (Portfolio DataTable) merged via PR #763 — DiceUI DataTable swap; 8 perfect-PR cycles (final two independent reviewers both CLEAN). Milestone at 5/7 (71%).
 
 ## Next Action
 
-**Phases 1-4 shipped. Phase 5 (Portfolio DataTable) is now fully executed on its branch — the perfect-PR review gate is the next step.**
+**Phases 1-5 shipped. Phase 6 (Polish & A11y) is the next roadmap step.**
 
 Merged so far:
 
@@ -94,21 +95,17 @@ Merged so far:
 - Phase 2 — Data Layer & RPC — PR #745
 - Phase 3 — KPI Bento Row — PR #746
 - Phase 4 — Dashboard Charts — PR #748 (2026-05-28)
-
-Phase 5 (all 5 plans committed on gsd/phase-5-dashboard-portfolio-datatable):
-
-- 05-01a useClientDataTable, 05-01b portfolio-columns + getAriaSort, 05-02 PortfolioDataTable + toolbar, 05-03a presets store, 05-03b atomic swap (this plan).
+- Phase 5 — Portfolio DataTable — PR #763 (2026-05-31)
 
 **Next:**
 
-1. Human-visual checkpoint on `/dashboard` (dark mode / 3-up trends row / grid↔table toggle / faceted filter / preset menu / skeleton→data). Non-blocking.
-2. Run the perfect-PR review gate (two consecutive zero-finding deep review cycles) on the Phase 5 branch, then open the phase PR.
-3. Merge → unblock Phase 6 (polish & a11y).
-4. (Audit-trail gap, still open) Phase 4 shipped without a formal `04-VERIFICATION.md`; optionally run `/gsd-verify-work 4` retroactively.
+1. `/gsd-discuss-phase 6` → `/gsd-plan-phase 6` — Polish & A11y (POLISH-04..08): dark-mode audit, keyboard a11y, 375px responsive, skeleton/empty mutual exclusion, reduced-motion. Inherits the cross-phase deferrals IN-02/IN-03 parked here.
+2. Execute → perfect-PR gate → merge → unblock Phase 7 (Verification).
+3. (Audit-trail gap, still open) Phase 4 shipped without a formal `04-VERIFICATION.md`; optionally run `/gsd-verify-work 4` retroactively.
 
 ## Overrides
 
 (none active)
 
 ---
-*Last updated: 2026-05-30 — reconciled to git reality (Phases 1-4 merged; milestone 4/7). Trust `git log main` + `gh pr list --state merged` as source of truth over this cache.*
+*Last updated: 2026-05-31 — Phase 5 merged (#763); milestone 5/7 (71%). Trust `git log main` + `gh pr list --state merged` as source of truth over this cache.*
