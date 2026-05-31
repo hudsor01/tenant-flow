@@ -186,11 +186,17 @@ function PortfolioVirtualizedTable({
 		count: pageRows.length,
 		getScrollElement: () => scrollRef.current,
 		estimateSize: () => ESTIMATED_ROW_HEIGHT,
+		overscan: 8,
 		// Measure the real rendered height so the two-line Property rows (name +
 		// address) are tracked exactly instead of clipped at the 56px estimate
-		// (closes the row-overlap P3).
-		measureElement: (el) => el?.getBoundingClientRect().height,
-		overscan: 8,
+		// (closes the row-overlap P3). Skip Firefox -- getBoundingClientRect
+		// measures table border height incorrectly there, so omit the key and
+		// fall back to the ResizeObserver default (per the TanStack
+		// virtualized-rows example).
+		...(typeof window !== "undefined" &&
+		navigator.userAgent.indexOf("Firefox") === -1
+			? { measureElement: (el: Element) => el.getBoundingClientRect().height }
+			: {}),
 	});
 
 	return (
