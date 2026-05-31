@@ -1,11 +1,15 @@
 "use client";
 
 /**
- * Uses Zustand store for state management (useDashboardStore).
- * See stores/dashboard-store.ts for state structure.
+ * Portfolio section is driven entirely by the vendored DataTable stack
+ * (PortfolioDataTable): filter/sort/page live in nuqs URL params, column
+ * visibility + saved presets in dashboard-presets-store, and the grid/table
+ * toggle (`viewMode`) is the only piece of state left in dashboard-store.
  */
 
+import type { OnChangeFn, VisibilityState } from "@tanstack/react-table";
 import dynamic from "next/dynamic";
+import { useCallback } from "react";
 import {
 	Card,
 	CardContent,
@@ -13,18 +17,13 @@ import {
 	CardHeader,
 	CardTitle,
 } from "#components/ui/card";
-import {
-	type DashboardSortField,
-	type DashboardStatusFilter,
-	useDashboardStore,
-} from "#stores/dashboard-store";
+import { useDashboardPresetsStore } from "#stores/dashboard-presets-store";
+import { useDashboardViewMode } from "#stores/dashboard-store";
 import type { DashboardProps } from "#types/sections/dashboard";
 import { KpiBentoRow } from "./components/kpi-bento-row";
 import { OccupancyDonutChartSkeleton } from "./components/occupancy-donut-chart-skeleton";
-import { PortfolioGrid } from "./components/portfolio-grid";
-import { PortfolioPagination } from "./components/portfolio-pagination";
-import { PortfolioTable } from "./components/portfolio-table";
-import { PortfolioToolbar } from "./components/portfolio-toolbar";
+import { PortfolioDataTable } from "./components/portfolio-data-table";
+import { PortfolioPresetMenu } from "./components/portfolio-preset-menu";
 import { RevenueAreaChartSkeleton } from "./components/revenue-area-chart-skeleton";
 import {
 	type PortfolioRow,
@@ -64,22 +63,28 @@ export function Dashboard({
 	onAddTenant?: () => void;
 	onCreateMaintenanceRequest?: () => void;
 }) {
-	// Get state and actions from Zustand store
-	const {
-		viewMode,
-		setViewMode,
-		searchQuery,
-		setSearchQuery,
-		statusFilter,
-		setStatusFilter,
-		sortField,
-		sortDirection,
-		handleSort,
-		currentPage,
-		setCurrentPage,
-		itemsPerPage,
-		clearFilters,
-	} = useDashboardStore();
+	// viewMode is the ONLY store read remaining (DT-07); column visibility is
+	// sourced from the persisted presets store (D-3) and forwarded to the table
+	// as a controlled prop (B-2).
+	const { viewMode, setViewMode } = useDashboardViewMode();
+	const columnVisibility = useDashboardPresetsStore(
+		(state) => state.columnVisibility,
+	);
+	const setColumnVisibility = useDashboardPresetsStore(
+		(state) => state.setColumnVisibility,
+	);
+
+	// Adapt the store's plain setter to TanStack's OnChangeFn (which may pass an
+	// updater function) by resolving the updater against the current store value.
+	const handleColumnVisibilityChange: OnChangeFn<VisibilityState> = useCallback(
+		(updater) => {
+			const current = useDashboardPresetsStore.getState().columnVisibility;
+			setColumnVisibility(
+				typeof updater === "function" ? updater(current) : updater,
+			);
+		},
+		[setColumnVisibility],
+	);
 
 	// LOCKED(D-10): inline portfolio-row transform survives Phase 1.
 	// The canonical pure transform `transformDashboardData` exists at
@@ -110,49 +115,6 @@ export function Dashboard({
 		rent: prop.monthlyRevenue,
 		maintenanceOpen: prop.openMaintenance,
 	}));
-
-	// Filter and sort data
-	const filteredData = portfolioData
-		.filter((row) => {
-			if (searchQuery) {
-				const query = searchQuery.toLowerCase();
-				if (
-					!(row.property ?? "").toLowerCase().includes(query) &&
-					!(row.address ?? "").toLowerCase().includes(query)
-				) {
-					return false;
-				}
-			}
-			if (statusFilter !== "all" && row.leaseStatus !== statusFilter) {
-				return false;
-			}
-			return true;
-		})
-		.sort((a, b) => {
-			let comparison = 0;
-			switch (sortField) {
-				case "property":
-					comparison = a.property.localeCompare(b.property);
-					break;
-				case "rent":
-					comparison = a.rent - b.rent;
-					break;
-				case "units":
-					comparison = a.units.occupied - b.units.occupied;
-					break;
-				case "status":
-					comparison = a.leaseStatus.localeCompare(b.leaseStatus);
-					break;
-			}
-			return sortDirection === "asc" ? comparison : -comparison;
-		});
-
-	// Pagination
-	const totalPages = Math.ceil(filteredData.length / itemsPerPage);
-	const paginatedData = filteredData.slice(
-		(currentPage - 1) * itemsPerPage,
-		currentPage * itemsPerPage,
-	);
 
 	const handleAction = (action: QuickActionType) => {
 		switch (action) {
@@ -214,54 +176,20 @@ export function Dashboard({
 				</Card>
 			</div>
 
-			{/* Portfolio Overview */}
-			<div className="bg-card border border-border rounded-lg overflow-hidden">
-				<PortfolioToolbar
-					searchQuery={searchQuery}
-					onSearchChange={setSearchQuery}
-					statusFilter={statusFilter}
-					onStatusFilterChange={(value) =>
-						setStatusFilter(value as DashboardStatusFilter)
-					}
+			{/* Portfolio Overview — driven by the vendored DataTable stack. Filter/
+			    sort/page live in nuqs; the toolbar, pagination, and no-results state
+			    now live inside PortfolioDataTable. */}
+			<div className="flex flex-col gap-3" data-tour="portfolio-section">
+				<div className="flex items-center justify-end">
+					<PortfolioPresetMenu />
+				</div>
+				<PortfolioDataTable
+					data={portfolioData}
 					viewMode={viewMode}
 					onViewModeChange={setViewMode}
-					onClearFilters={clearFilters}
+					columnVisibility={columnVisibility}
+					onColumnVisibilityChange={handleColumnVisibilityChange}
 				/>
-
-				{viewMode === "table" ? (
-					<PortfolioTable
-						data={paginatedData}
-						sortField={sortField}
-						sortDirection={sortDirection}
-						onSort={(field) => handleSort(field as DashboardSortField)}
-					/>
-				) : (
-					<PortfolioGrid data={paginatedData} />
-				)}
-
-				<PortfolioPagination
-					currentPage={currentPage}
-					totalPages={totalPages}
-					totalItems={filteredData.length}
-					itemsPerPage={itemsPerPage}
-					onPageChange={setCurrentPage}
-				/>
-
-				{/* No results */}
-				{filteredData.length === 0 && portfolioData.length > 0 && (
-					<div className="text-center py-12">
-						<p className="text-muted-foreground">
-							No properties match your filters
-						</p>
-						<button
-							type="button"
-							onClick={clearFilters}
-							className="mt-3 text-sm text-primary hover:underline"
-						>
-							Clear filters
-						</button>
-					</div>
-				)}
 			</div>
 		</div>
 	);

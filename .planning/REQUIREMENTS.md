@@ -51,15 +51,15 @@ Each maps to roadmap phases (1-7). Source: `.planning/MILESTONE-CONTEXT.md` § "
 
 ### Portfolio DataTable (DT) — Phase 5
 
-- [ ] **DT-01**: Replace `portfolio-table.tsx` + `portfolio-toolbar.tsx` + `portfolio-pagination.tsx` with vendored DiceUI DataTable composition.
-- [ ] **DT-02**: New `useClientDataTable` hook — thin variant of `src/hooks/use-data-table.ts` for client-side (one-array) data (`manualPagination/Sorting/Filtering: false`).
-- [ ] **DT-03**: New `portfolio-columns.tsx` column model with `aria-sort` on every sortable header.
-- [ ] **DT-04**: Faceted status filter via `DataTableFacetedFilter` (already vendored).
-- [ ] **DT-05**: Column visibility via `DataTableViewOptions` (already vendored).
-- [ ] **DT-06**: Row virtualization via `@tanstack/react-virtual` `useVirtualizer` (already installed).
-- [ ] **DT-07**: Grid / table view toggle — atomic state in `dashboard-store.ts` `viewMode`.
-- [ ] **DT-08**: Saved filter presets persist in `localStorage` via new `dashboard-presets-store.ts` (Zustand `persist` slice).
-- [ ] **DT-09**: Live filter / sort / page state in `nuqs` URL params (replaces bespoke Zustand state). Trim `dashboard-store.ts` to `viewMode` only.
+- [x] **DT-01**: Replace `portfolio-table.tsx` + `portfolio-toolbar.tsx` + `portfolio-pagination.tsx` with vendored DiceUI DataTable composition.
+- [x] **DT-02**: New `useClientDataTable` hook — thin variant of `src/hooks/use-data-table.ts` for client-side (one-array) data (`manualPagination/Sorting/Filtering: false`).
+- [x] **DT-03**: New `portfolio-columns.tsx` column model with `aria-sort` on every sortable header.
+- [x] **DT-04**: Faceted status filter via `DataTableFacetedFilter` (already vendored).
+- [x] **DT-05**: Column visibility via `DataTableViewOptions` (already vendored).
+- [x] **DT-06**: Row virtualization via `@tanstack/react-virtual` `useVirtualizer` (already installed).
+- [x] **DT-07**: Grid / table view toggle — atomic state in `dashboard-store.ts` `viewMode`.
+- [x] **DT-08**: Saved filter presets persist in `localStorage` via new `dashboard-presets-store.ts` (Zustand `persist` slice).
+- [x] **DT-09**: Live filter / sort / page state in `nuqs` URL params (replaces bespoke Zustand state). Trim `dashboard-store.ts` to `viewMode` only.
 
 ### Polish, A11y, Bug Fix (POLISH) — Phases 1, 6, 7
 
@@ -117,15 +117,15 @@ Updated by `gsd-roadmapper` during roadmap creation. See ROADMAP.md for canonica
 | CHART-04 | Phase 4 | Complete |
 | CHART-05 | Phase 4 | Complete |
 | CHART-06 | Phase 4 | Complete |
-| DT-01 | Phase 5 | Pending |
-| DT-02 | Phase 5 | Pending |
-| DT-03 | Phase 5 | Pending |
-| DT-04 | Phase 5 | Pending |
-| DT-05 | Phase 5 | Pending |
-| DT-06 | Phase 5 | Pending |
-| DT-07 | Phase 5 | Pending |
-| DT-08 | Phase 5 | Pending |
-| DT-09 | Phase 5 | Pending |
+| DT-01 | Phase 5 | Complete |
+| DT-02 | Phase 5 | Complete |
+| DT-03 | Phase 5 | Complete |
+| DT-04 | Phase 5 | Complete |
+| DT-05 | Phase 5 | Complete |
+| DT-06 | Phase 5 | Complete |
+| DT-07 | Phase 5 | Complete |
+| DT-08 | Phase 5 | Complete |
+| DT-09 | Phase 5 | Complete |
 | POLISH-01 | Phase 1 | Complete |
 | POLISH-02 | Phase 1 | Complete |
 | POLISH-03 | Phase 1 | Complete |
