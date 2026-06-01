@@ -40,8 +40,15 @@ async function gotoAuthedDashboard(page: import("@playwright/test").Page) {
 	// loginAsOwner already lands on an authenticated /dashboard, so we only
 	// dismiss the onboarding tour and reload — no redundant re-navigation.
 	await loginAsOwner(page);
+	// Mark the owner onboarding tour completed so its spotlight overlay never
+	// auto-opens over the axe sweep. The app reads tour state from the
+	// "tenantflow:tour-progress" localStorage key as JSON keyed by tour name
+	// (getTourProgress short-circuits on "completed"/"skipped" — use-tour-progress.ts).
 	await page.evaluate(() => {
-		localStorage.setItem("owner-tour-completed", "true");
+		localStorage.setItem(
+			"tenantflow:tour-progress",
+			JSON.stringify({ "owner-onboarding": "completed" }),
+		);
 	});
 	await page.reload();
 	// Pin the exact <h1>Dashboard</h1> (dashboard.tsx) — a loose /dashboard/i match
