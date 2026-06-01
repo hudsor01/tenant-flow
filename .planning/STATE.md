@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: Dashboard Command Center
 status: executing
-last_updated: "2026-06-01T15:26:41.899Z"
-last_activity: 2026-06-01 -- Phase 6 planning complete
+last_updated: "2026-06-01T15:41:51.236Z"
+last_activity: 2026-06-01 -- Phase 6 Plan 01 executed (axe install + CI owner-project wiring)
 progress:
   total_phases: 7
   completed_phases: 5
   total_plans: 22
-  completed_plans: 18
+  completed_plans: 19
   percent: 71
 ---
 
@@ -20,14 +20,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-22)
 
 **Core value:** The authenticated owner dashboard at `/dashboard` becomes a restrained, professional B2B command center — KPI visibility above the fold, polished charts, a real DataTable with column controls + saved presets, full keyboard/dark-mode/mobile a11y. Every dollar amount handled correctly throughout the data path (no `*100`/`÷100` round-trip).
-**Current focus:** Phase 6 — Polish & A11y (not started; next by dependency order).
+**Current focus:** Phase 6 — Polish & A11y (executing; Wave 0 prerequisites complete).
 
 ## Current Position
 
-Phase: between phases — Phases 1-5 SHIPPED, Phase 6 not started.
-Plan: —
-Status: Ready to execute
-Last activity: 2026-06-01 -- Phase 6 planning complete
+Phase: 6 — Polish & A11y (executing).
+Plan: 01 of 4 COMPLETE (axe install + CI owner-project wiring). Next: Wave-1 plans (02/03/04).
+Status: Executing
+Last activity: 2026-06-01 -- Phase 6 Plan 01 executed (axe install + CI owner-project wiring)
 
 ```
 [█████░░] 71% of v2.0 milestone (5 / 7 phases shipped)
@@ -73,6 +73,8 @@ Last activity: 2026-06-01 -- Phase 6 planning complete
 - `ui/bento-grid.tsx` is OUT — KPI grid is a plain `@container` CSS grid of `Stat` tiles
 - `collection_rate` resolution deferred to Phase 2 discuss-phase (compute-or-drop, never fabricate)
 - No `*100` / `/100` revenue arithmetic anywhere — cross-cutting hard rule; perfect-PR gate enforces
+- Phase 6 Plan 01: `@axe-core/playwright@4.11.3` installed at ROOT (CI runs `bunx playwright test` from repo root → resolves from root node_modules; the `tests/e2e/package.json:25` declaration has no node_modules/lockfile). Dev-only; never ships to client/runtime, CSP unaffected.
+- Phase 6 Plan 01: `--project=owner` wired into the CI E2E run (`ci-cd.yml:162`); `setup-owner` resolved via the owner project's `dependencies` (not manually re-listed); `--project=smoke`/`--project=public` preserved. Unblocks Plan 04's authed `/dashboard` axe spec.
 
 ## Blockers
 
@@ -84,6 +86,7 @@ None.
 - 2026-05-22: v2.0 "Dashboard Command Center" roadmap created — 7 phases, 34/34 requirements mapped, branch template `gsd/phase-{phase}-{slug}`.
 - 2026-05-28: Phases 1-4 all merged (PRs #744/#745/#746/#748). Milestone at 4/7 (57%).
 - 2026-05-31: Phase 5 (Portfolio DataTable) merged via PR #763 — DiceUI DataTable swap; 8 perfect-PR cycles (final two independent reviewers both CLEAN). Milestone at 5/7 (71%).
+- 2026-06-01: Phase 6 (Polish & A11y) execution began — Plan 01 (Wave 0) complete: `@axe-core/playwright@4.11.3` added to root devDeps + `--project=owner` wired into CI E2E. Unblocks downstream `/dashboard` axe testing (Plan 04). 1/4 Phase-6 plans done.
 
 ## Next Action
 
