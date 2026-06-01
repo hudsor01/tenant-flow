@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: Dashboard Command Center
 status: executing
-last_updated: "2026-06-01T15:52:22.062Z"
+last_updated: "2026-06-01T15:59:34.361Z"
 last_activity: 2026-06-01
 progress:
   total_phases: 7
   completed_phases: 5
   total_plans: 22
-  completed_plans: 20
+  completed_plans: 21
   percent: 71
 ---
 
@@ -25,9 +25,9 @@ See: .planning/PROJECT.md (updated 2026-05-22)
 ## Current Position
 
 Phase: 6 — Polish & A11y (executing).
-Plan: 2 of 4 COMPLETE (dashboard dark-mode color-landmine migration: raw Tailwind palette → status-*/--color-* tokens). Next: Wave-1 plans 03/04.
+Plan: 3 of 4 COMPLETE (NumberTicker internal reduced-motion guard — POLISH-08 / D-04; all 16 consumers now snap to final value under prefers-reduced-motion). Next: Wave-1 plan 04.
 Status: Executing
-Last activity: 2026-06-01 -- Phase 6 Plan 02 executed (dashboard color-token migration; POLISH-04 landmine grep zero, drift guard green 2724/2724)
+Last activity: 2026-06-01 -- Phase 6 Plan 03 executed (NumberTicker reduced-motion JS guard added internally to the shared rAF primitive; 7 unit tests green; charts/BlurFade/CSS guards confirmed pre-existing)
 
 ```
 [█████░░] 71% of v2.0 milestone (5 / 7 phases shipped)
@@ -77,6 +77,8 @@ Last activity: 2026-06-01 -- Phase 6 Plan 02 executed (dashboard color-token mig
 - Phase 6 Plan 01: `--project=owner` wired into the CI E2E run (`ci-cd.yml:162`); `setup-owner` resolved via the owner project's `dependencies` (not manually re-listed); `--project=smoke`/`--project=public` preserved. Unblocks Plan 04's authed `/dashboard` axe spec.
 - Phase 6 Plan 02: dashboard dark-mode color landmines migrated raw Tailwind palette classes → canonical `status-*` utilities / `--color-*` tokens across 5 files (lease-status-badge CHIP → status-active/-pending/-inactive; portfolio-columns + portfolio-grid maintenance cells → `--color-destructive`; stat.tsx StatTrend up/down → `--color-success`/`--color-destructive`; expiring-leases-widget Clock icons + non-urgent days badge → `--color-warning`). POLISH-04 landmine grep returns zero across the dashboard subtree; design-token-drift guard green (2724/2724). The drift guard scans hex/rgb/bg-white/inline-ms only — palette classes are caught by the explicit landmine grep, not the guard.
 - Phase 6 Plan 02: `statIndicatorVariants` (stat.tsx:45-56) left byte-for-byte unchanged — its `green-500`/`blue-500`/`orange-500` palette classes are an app-wide Phase-7 concern, NOT a dashboard render path (KPI tiles use `<StatTrend>`, not `<StatIndicator color=...>`). `StatTrend` shared-primitive blast radius (7 consumers) documented in 06-02-SUMMARY.md.
+- Phase 6 Plan 03 (POLISH-08 / D-04): the shared `NumberTicker` rAF primitive (`number-ticker.tsx:49-52`) now short-circuits to `setDisplayValue(to); return;` under `useReducedMotion()` BEFORE the `hasIntersected` gate, with `reducedMotion` added to the effect dep array (line 93). The motion-on path is byte-for-byte unchanged. Guard applied INSIDE the effect (not a component-top early-return) so the `<span ref={ref}>` stays mounted and the IntersectionObserver ref stays attached. All 16 app-wide consumers inherit the guard for free; the `KpiNumberTicker` defense-in-depth wrapper in kpi-bento-row.tsx is now redundant but kept (CONTEXT D-04 — do not drop a guard). Unit suite 6→7 (added a `matchMedia`-stub reduced-motion branch test).
+- Phase 6 Plan 03: charts (`isAnimationActive={!reducedMotion}` — revenue-area-chart.tsx:240, occupancy-donut-chart.tsx:108), BlurFade (`shouldReduceMotion` — blur-fade.tsx:87/90/116), kpi-bento-row BlurFade bypass (kpi-bento-row.tsx:355-361 renders raw KpiTile under reduced motion), and the CSS `@media (prefers-reduced-motion)` guard (globals.css:1151) all confirmed PRE-EXISTING (verify-only, no edits). Pitfall-4 flag: `portfolio-data-table.tsx:103` `<BlurFade delay={0.4} inView>` does NOT bypass BlurFade under reduced motion but still renders (opacity-100 once inView flips) — flagged for the manual reduced-motion sweep, no code added.
 
 ## Blockers
 
@@ -90,6 +92,7 @@ None.
 - 2026-05-31: Phase 5 (Portfolio DataTable) merged via PR #763 — DiceUI DataTable swap; 8 perfect-PR cycles (final two independent reviewers both CLEAN). Milestone at 5/7 (71%).
 - 2026-06-01: Phase 6 (Polish & A11y) execution began — Plan 01 (Wave 0) complete: `@axe-core/playwright@4.11.3` added to root devDeps + `--project=owner` wired into CI E2E. Unblocks downstream `/dashboard` axe testing (Plan 04). 1/4 Phase-6 plans done.
 - 2026-06-01: Phase 6 Plan 02 (Wave 1) complete — dashboard dark-mode color landmines migrated to canonical `status-*` utilities / `--color-*` tokens (5 files). POLISH-04 satisfied: landmine grep zero across the dashboard subtree, design-token-drift guard green (2724/2724). 2/4 Phase-6 plans done.
+- 2026-06-01: Phase 6 Plan 03 (Wave 1) complete — internal JS reduced-motion guard added to the shared `NumberTicker` rAF primitive (POLISH-08 / D-04); all 16 consumers now snap to final value under `prefers-reduced-motion`. Unit suite 6→7. Charts/BlurFade/CSS reduced-motion guards confirmed pre-existing (verify-only). 3/4 Phase-6 plans done.
 
 ## Next Action
 
@@ -114,4 +117,4 @@ Merged so far:
 (none active)
 
 ---
-*Last updated: 2026-06-01 — Phase 6 Plan 02 executed (dashboard color-token migration; POLISH-04 satisfied). 2/4 Phase-6 plans done; milestone still 5/7 phases shipped (71%). Trust `git log main` + `gh pr list --state merged` as source of truth over this cache.*
+*Last updated: 2026-06-01 — Phase 6 Plan 03 executed (NumberTicker internal reduced-motion guard; POLISH-08 satisfied). 3/4 Phase-6 plans done; milestone still 5/7 phases shipped (71%). Trust `git log main` + `gh pr list --state merged` as source of truth over this cache.*
