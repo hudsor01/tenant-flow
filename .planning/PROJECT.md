@@ -171,4 +171,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-05-22 after v1.0 "Marketing Surface Honesty" archived (15 phases, 56/56 requirements satisfied, audit round 3 verdict PERFECT BY ALL MEASURES). Next milestone awaits `/gsd-new-milestone` — user's queued ask is v2.0 dashboard redesign (plan at `/Users/richard/.claude/plans/i-want-to-enhance-hazy-island.md`).*
+*Last updated: 2026-06-01 — v2.0 "Dashboard Command Center" in progress. Phase 6 (Polish & A11y) complete: POLISH-04..08 satisfied (theme-aware dark-mode contrast tokens, axe-core a11y E2E wired into CI via the `owner-axe` project, 375px responsive probe, skeleton/empty mutual exclusion, NumberTicker reduced-motion guard). Two human-verification items tracked in `06-HUMAN-UAT.md` (live CI axe run + manual focus audit). Next: Phase 7 (Verification). v1.0 "Marketing Surface Honesty" archived 2026-05-22 (15 phases, 56/56 requirements, audit verdict PERFECT BY ALL MEASURES).*
