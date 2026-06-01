@@ -2,11 +2,15 @@
 phase: 06-polish-a11y
 reviewed: 2026-06-01T00:00:00Z
 depth: deep
-files_reviewed: 11
+cycle: 2
+files_reviewed: 14
 files_reviewed_list:
   - .github/workflows/ci-cd.yml
   - package.json
   - src/app/(owner)/dashboard/__tests__/dashboard-page-branch.test.tsx
+  - src/app/globals.css
+  - src/components/dashboard/components/__tests__/kpi-bento-row.test.tsx
+  - src/components/dashboard/components/kpi-bento-row.tsx
   - src/components/dashboard/components/lease-status-badge.tsx
   - src/components/dashboard/components/portfolio-columns.tsx
   - src/components/dashboard/components/portfolio-grid.tsx
@@ -14,151 +18,104 @@ files_reviewed_list:
   - src/components/ui/__tests__/number-ticker.test.tsx
   - src/components/ui/number-ticker.tsx
   - src/components/ui/stat.tsx
+  - tests/e2e/playwright.config.ts
   - tests/e2e/tests/owner/dashboard-a11y.e2e.spec.ts
 findings:
-  critical: 2
-  warning: 4
-  info: 2
-  total: 8
+  critical: 0
+  warning: 2
+  info: 1
+  total: 3
 status: issues_found
 ---
 
-# Phase 6: Code Review Report
+# Phase 6: Code Review Report (Cycle 2)
 
 **Reviewed:** 2026-06-01
 **Depth:** deep
-**Files Reviewed:** 11
+**Files Reviewed:** 14
 **Status:** issues_found
 
 ## Summary
 
-Phase 6 has four moving parts: (1) a raw-Tailwind-palette → `status-*` / `--color-*` token migration on the dashboard subtree, sold as a dark-mode-contrast fix; (2) a JS `prefers-reduced-motion` guard on `NumberTicker`; (3) an `@axe-core/playwright` install plus `--project=owner` wired into the CI E2E step; (4) a new authed axe E2E spec and a dashboard branch-exclusivity unit test.
+Cycle-2 of the perfect-PR gate: verify the two cycle-1 blockers + four warnings + two info items are genuinely resolved, and hunt for regressions the fix pass introduced.
 
-The `NumberTicker` reduced-motion guard, the branch-exclusivity unit test, and the `@axe-core/playwright` dependency pin are all correct and well-built. The zero-tolerance scan (no `any`, no `bg-white`, no bare `text-muted`, no inline styles, no emojis) is clean on every in-scope file.
+**Both cycle-1 blockers are genuinely fixed.** CR-01 (CI a11y spec could not run) is resolved by a dedicated, dependency-free `owner-axe` Playwright project that self-authenticates via `loginAsOwner` (localStorage injection), with CI repointed to `--project=owner-axe` and the spec excluded from the broken storageState `owner`/`firefox` projects. CR-02 (light-mode contrast regression) is resolved by theme-aware `--color-{success,warning,destructive}-text` tokens; I independently re-derived the WCAG contrast (oklch → linear sRGB → relative luminance) and confirm every status-text usage clears AA 4.5:1 against BOTH the card surface AND the 10% badge tint, in BOTH themes — the worst case is `success-text` on the success tint in light mode at **4.73:1** (above the 4.5:1 floor). The four warnings and two info items are addressed or carry a defensible deferral.
 
-Two blockers undercut the phase's two headline goals, however. **First, the token migration is a light-mode contrast *regression*, not a fix.** `--color-warning` (2.24:1) and `--color-success` (2.70:1) are fill/background tokens; used as foreground text on the light-mode card surface (the app defaults to `light`) they fail WCAG AA 4.5:1 — where the old `amber-700` / `green-600` classes passed at ~5:1. **Second, the new a11y E2E that should have caught this cannot run.** Wiring `--project=owner` into CI activates the `owner` Playwright project, which `dependencies: ["setup-owner"]`, whose `testMatch: /auth-api\.setup\.ts/` points at a file deleted two commits back. Zero setup files match, no `owner.json` storageState is produced, and all 13 owner specs (the 1 new + 12 pre-existing, none of which ran in CI before) fail at the gate. The contrast bug ships behind a green check that is actually red.
+The fix pass did NOT ship a new blocker. The full zero-tolerance scan (no `any`, no `as unknown as` in source, no `bg-white`, no bare `text-muted`, no emojis, no un-exempted inline styles) is clean on every changed file; biome passes; the 25 unit tests across the three touched test files pass.
+
+Three NEW findings, all minor: a latent dead `setup-owner` → `owner` storageState path left in `playwright.config.ts` (no longer on any executed path, but a maintenance trap — WR-05); a reliance on `!important` cascade rather than tailwind-merge deduplication for the down-trend color override, which works but ships two competing `text-[…]` classes (WR-06); and a missing unit test pinning the `LeaseStatusBadge` chip-class mapping now that the badge gained `border` (IN-03).
+
+---
+
+## Cycle-1 Resolution Verification
+
+| Cycle-1 ID | Severity | Status | Evidence |
+|---|---|---|---|
+| CR-01 | Blocker | **RESOLVED** | CI line 162 runs `--project=owner-axe`. `owner-axe` (config 157-163) has NO `storageState` and NO `dependencies` — it cannot trigger the dead `setup-owner` project. Spec authenticates in-test via `loginAsOwner` (localStorage injection, the `@supabase/ssr`-correct path). Spec excluded from `owner` (148) + `firefox` (215) via `testIgnore`. No stale `--project=owner` refs remain in `.github/`. |
+| CR-02 | Blocker | **RESOLVED** | New `--color-success-text / -warning-text / -destructive-text` in `:root` (globals.css 180-182) + `.dark` (648-650). Re-verified contrast independently: text-on-card light 5.41 / 5.51 / 6.52; dark 11.07 / 11.74 / 6.93. Text-on-10%-tint light 4.73 / 5.08 / 5.35; dark 9.84 / 10.41 / 6.64. All ≥ 4.5:1. `status-*` utilities + `StatTrend` + expiring-leases + portfolio cells + kpi down-trend override all repointed at `-text` tokens. No raw fill-token-as-text remains in the dashboard subtree. |
+| WR-01 | Warning | **RESOLVED** | `LeaseStatusBadge` className now includes `border` (lease-status-badge.tsx:27), so the `status-*` `border-color` renders. |
+| WR-02 | Warning | **DEFERRED (accepted)** | `statIndicatorVariants` color variants (stat.tsx:48-52) intentionally left on raw palette with `dark:` contrast variants; not rendered on the dashboard sweep; Phase-7 deferral. Diff confirms no NEW raw-palette was added. Justification holds. |
+| WR-03 | Warning | **RESOLVED** | Heading wait pinned to `{ level: 1, name: "Dashboard", exact: true }` (dashboard-a11y.e2e.spec.ts:50). Confirmed the real `<h1>` is exactly `Dashboard` (dashboard.tsx:140). |
+| WR-04 | Warning | **DEFERRED (accepted)** | Full-page axe sweep retained per locked decision D-03. Documented in the spec header. |
+| IN-01 | Info | **DEFERRED (accepted)** | expiring-leases PostgREST mapper untyped-boundary noted as out-of-scope, next-touch deferral. |
+| IN-02 | Info | **RESOLVED** | number-ticker test now spies on `requestAnimationFrame` and asserts `not.toHaveBeenCalled()` (number-ticker.test.tsx:92,99). Traced the render: on first render `reducedMotion=false`/`hasIntersected=false` → early-return before rAF; after effects commit `reducedMotion=true` → snap, no rAF. The assertion is genuinely meaningful, not a false pass. |
+
+---
 
 ## Critical Issues
 
-### CR-01: CI `--project=owner` depends on a setup project that matches no file — owner E2E (incl. the new a11y spec) cannot run
-
-**File:** `.github/workflows/ci-cd.yml:162`, `tests/e2e/playwright.config.ts:132`
-
-**Issue:** The diff adds `--project=owner` to the `Run E2E smoke tests` step. The `owner` project (`playwright.config.ts:140-147`) declares `dependencies: ["setup-owner"]`. The `setup-owner` project (`playwright.config.ts:131-134`) has `testMatch: /auth-api\.setup\.ts/`. That file no longer exists:
-
-- `c446cfedc` deleted `tests/e2e/tests/auth-api.setup.ts` and added `auth-ui.setup.ts`.
-- `e760cd1aa` then deleted `auth-ui.setup.ts` ("use beforeAll + serial pattern instead of storageState") and "restored playwright.config.ts to main" — re-introducing the stale `/auth-api\.setup\.ts/` regex.
-
-Verified at HEAD: `find tests/e2e -name "*.setup.ts"` returns nothing; the regex matches `0` files. `owner.json` is gitignored, so in a fresh CI checkout `OWNER_AUTH_FILE` does not exist and nothing creates it. The `owner` project will error (missing storageState) or run unauthenticated and land on `/login`. Either way every owner spec fails. This is a green-check-over-red-reality failure: the phase's stated goal ("Plan 01 wired `--project=owner` into CI so the a11y spec executes on every PR") does not hold.
-
-Compounding blast radius: `owner` matches `**/owner/**/*.spec.ts` = **13 spec files**, only 1 of which is new. The other 12 (owner-properties, owner-leases, owner-financials, owner-tenants, owner-maintenance, owner-navigation, owner-settings, owner-authentication, owner-dashboard, reports-gate, esign-gate, cancellation) have **never run in CI** (CI previously ran only `--project=smoke --project=public`). This change silently gates every PR on a 13-spec authed suite with no working auth setup.
-
-**Fix:** Restore a setup file the `setup-owner` regex matches, and point CI at it. Either re-add the auth setup and fix the regex to match its real name:
-```ts
-// playwright.config.ts — setup-owner project
-testMatch: /auth-ui\.setup\.ts/,   // and re-add tests/e2e/tests/auth-ui.setup.ts
-```
-or, if the current owner specs authenticate via their own `beforeAll`/serial pattern (per `e760cd1aa`) and do not consume `owner.json`, drop the dead `setup-owner` project and the `dependencies`/`storageState` wiring, then confirm the new `dashboard-a11y.e2e.spec.ts` (which assumes `storageState = owner.json`, file header line 9) actually authenticates. Before merging, run `bunx playwright test --config tests/e2e/playwright.config.ts --project=owner` locally against the CI build path and confirm the dashboard heading resolves authenticated — do not rely on the gate, which is currently incapable of failing for the right reason.
-
-### CR-02: Token migration introduces a WCAG AA light-mode contrast failure (regression from the classes it replaced)
-
-**File:** `src/components/dashboard/components/lease-status-badge.tsx:13-15`, `src/components/dashboard/expiring-leases-widget.tsx:86,109,157`, `src/components/ui/stat.tsx:108`
-
-**Issue:** The migration swaps text-tuned palette classes for fill-tuned design tokens used as **foreground text**. The app defaults to light mode (`DEFAULT_THEME_MODE = "light"` in `src/lib/theme-utils.ts:20`), so the light-mode surface is what most users see. Measured contrast of each token as text on the light card surface (`#fff`-equivalent; the badge background is only a 10% token tint, so the card shows through):
-
-| Token (as text) | New contrast | Old class | Old contrast | AA 4.5:1 |
-|---|---|---|---|---|
-| `--color-warning` `oklch(0.75 0.18 85)` | **2.24:1** | `amber-700` | 5.02:1 | new FAILS |
-| `--color-success` `oklch(0.66 0.2 160)` | **2.70:1** | `green-600` | ~4.5:1 | new FAILS |
-| `--color-destructive` `oklch(0.577 0.245 25)` | 4.75:1 | `red-600` | ~5:1 | passes (barely) |
-
-Affected, all rendered on the audited dashboard subtree:
-- `LeaseStatusBadge` `status-pending` (warning text, `text-xs`) and `status-active` (success text) — `lease-status-badge.tsx:13-14`, rendered in both the portfolio table cell (`portfolio-columns.tsx:151`) and grid card (`portfolio-grid.tsx:22`).
-- `ExpiringLeasesWidget` Clock icon (`text-[var(--color-warning)]`, lines 86/109) and the non-urgent "N days" chip (`text-[var(--color-warning)]`, `text-xs font-semibold`, line 157) — was `text-amber-700 dark:text-amber-400`.
-- `StatTrend` `trend === "up"` → `text-[var(--color-success)]` (`stat.tsx:108`), rendered by `kpi-bento-row.tsx:284` on the dashboard.
-
-This is the inverse of the migration's stated purpose: it claims to fix dark-mode contrast but instead breaks light-mode contrast that previously passed. (Dark mode also dropped — warning went 9.90:1 → 6.56:1 — but stays above AA.) The warning token at 2.24:1 fails even the 3:1 large-text floor. This is exactly the violation the new axe spec asserts against (`color-contrast` is a WCAG 2.1 AA rule), and it would fail that spec — except CR-01 means the spec never runs.
-
-**Fix:** Do not use `--color-warning` / `--color-success` (fill tokens) as foreground text on light surfaces. Introduce/usable text-grade tokens, or keep the `status-*` utilities for the chip *fill* (they set `background-color` + `border-color`) and let the chip text use a contrast-safe color. For the bare text usages (`StatTrend` up, expiring-leases "N days", Clock icon), use a darker on-surface token, e.g. a `--color-success-text` / `--color-warning-text` pegged below `oklch(~0.55 L)`:
-```css
-/* globals.css — text-grade variants meeting 4.5:1 on light surfaces */
---color-success-text: oklch(0.52 0.16 160);   /* verify ≥4.5:1 vs --color-card */
---color-warning-text: oklch(0.50 0.13 70);     /* verify ≥4.5:1 vs --color-card */
-```
-```tsx
-// stat.tsx
-"text-[var(--color-success-text)]": trend === "up",
-```
-Re-derive every value against the actual `--color-card` in both `:root` and `.dark` and re-run the axe sweep (after CR-01 is fixed) to confirm zero `color-contrast` violations.
+None. Both cycle-1 blockers are genuinely resolved and the fix pass introduced no new blocker.
 
 ## Warnings
 
-### WR-01: `status-*` chip utilities set `border-color` but the badge has no border width — half the visual spec is inert
+### WR-05: Dead `setup-owner` → `owner` storageState path left latent in `playwright.config.ts` — a maintenance trap the next E2E author will trip on
 
-**File:** `src/components/dashboard/components/lease-status-badge.tsx:25-32`
+**File:** `tests/e2e/playwright.config.ts:130-149` (also `chromium` 174, `firefox` 212, `mobile-chrome` 227)
 
-**Issue:** `status-active` / `status-pending` / `status-inactive` (globals.css:661-677) each set `color`, `background-color`, AND `border-color`. The badge span applies only `inline-flex items-center rounded px-2 py-0.5 font-medium text-xs` plus the chip class — there is no `border` width utility, so `border-color` paints nothing. The old chip classes (`bg-emerald-100 text-emerald-700 …`) had no border either, so this is not a regression, but the migration silently dropped a third of each token's intended treatment, and the inert `border-color` is dead style. If the bordered look is intended (it is, for `status-inactive` which leans on the border to separate from `bg-muted`), the badge needs `border`.
+**Issue:** The CR-01 fix correctly routed CI around the broken auth setup by adding the dependency-free `owner-axe` project, but it left the broken machinery in place. The `setup-owner` project still declares `testMatch: /auth-api\.setup\.ts/` (line 132) pointing at a file deleted two commits back — `find tests/e2e -name "*.setup.ts"` returns nothing, so this regex matches zero files and produces no `owner.json` storageState. Five projects still wire `dependencies: ["setup-owner"]` + `storageState: OWNER_AUTH_FILE` (`owner`, `chromium`, `firefox`, `mobile-chrome`, and the `setup-owner` self). This is correctly OFF the executed path today (CI runs only `smoke`/`public`/`owner-axe`), so it is not a blocker. But it is a live landmine: the moment anyone runs `--project=owner` (or `firefox`/`mobile-chrome`) locally or adds it to CI, all 12+ owner specs fail at the gate for a reason unrelated to their change, exactly as in cycle-1 CR-01. The config now contains two parallel auth strategies (dead storageState vs. live in-test `loginAsOwner`) with no comment on `setup-owner` marking it dead.
 
-**Fix:** Add a border width so the token's `border-color` is honored:
-```tsx
-className={cn(
-  "inline-flex items-center rounded border px-2 py-0.5 font-medium text-xs",
-  CHIP[status],
-)}
-```
-Re-check contrast after adding the border (CR-02) since the border changes the chip's effective edge.
-
-### WR-02: `stat.tsx` color variants left on raw palette — migration is half-applied within the same file it edited
-
-**File:** `src/components/ui/stat.tsx:48-52`
-
-**Issue:** The diff migrated `StatTrend` (lines 108-109) to `--color-*` tokens but left `statIndicatorVariants` `color.success` / `color.info` / `color.warning` on raw `green-500` / `blue-500` / `orange-500` palette (lines 48-52, unchanged). Same file, same migration, inconsistent application. These variants are not currently rendered on the dashboard subtree (`grep` for `color="success"|"info"|"warning"` in the dashboard tree returns nothing), so they are not an active contrast bug on the audited surface — but they are exactly the kind of raw-palette dark-mode-contrast liability the phase set out to eliminate, sitting in the file the phase touched.
-
-**Fix:** Migrate the indicator `color` variants to the same token system in this pass (or explicitly scope them out with a note). Verify any chosen token meets contrast as *fill* (background tint), which is the indicator's usage, distinct from CR-02's text usage.
-
-### WR-03: `dashboard-a11y` spec waits on `getByRole("heading", { name: /dashboard/i })` — non-unique and order-fragile
-
-**File:** `tests/e2e/tests/owner/dashboard-a11y.e2e.spec.ts:41`
-
-**Issue:** `gotoAuthedDashboard` gates readiness on `getByRole("heading", { name: /dashboard/i })`. `/dashboard/i` is a loose substring match; any heading containing "dashboard" (a section sub-heading, a card title, a nav label promoted to a heading) satisfies it, so the wait can resolve before the page is actually past the loading skeleton — defeating the comment's stated intent ("confirm the client-fetched content has resolved past the loading skeleton"). The real `<h1>` is the exact string `Dashboard` (`dashboard.tsx:140`). A loose match that resolves early lets axe sweep a partially-rendered tree, producing either false passes or flaky violations.
-
-**Fix:** Pin the heading exactly and to level 1:
+**Fix:** Either delete the dead path entirely, or convert the storageState projects to the proven in-test pattern. Minimal safe option — delete `setup-owner` and drop the `dependencies`/`storageState` from `owner`/`chromium`/`firefox`/`mobile-chrome`, letting those specs authenticate via their own `beforeAll`/`loginAsOwner` (the pattern `owner-axe` already proves). If a future reviewer prefers to keep storageState, restore the setup file and fix the regex to match its real name. At minimum, annotate `setup-owner` as KNOWN-BROKEN so the next author does not re-enable `--project=owner` expecting it to work:
 ```ts
-await expect(
-  page.getByRole("heading", { level: 1, name: "Dashboard", exact: true }),
-).toBeVisible({ timeout: 10000 });
+// setup-owner: DEAD — testMatch points at auth-api.setup.ts (deleted in c446cfedc).
+// owner/chromium/firefox/mobile-chrome still depend on this and will fail until
+// migrated to in-test loginAsOwner (see owner-axe). Do NOT run --project=owner.
 ```
 
-### WR-04: a11y axe spec asserts the *entire page* including app-shell chrome — broad, undeterministic surface with no exclusions
+### WR-06: Down-trend color override relies on `!important` cascade, not tailwind-merge dedup — two competing `text-[…]` classes ship on the same element
 
-**File:** `tests/e2e/tests/owner/dashboard-a11y.e2e.spec.ts:55-60`
+**File:** `src/components/dashboard/components/kpi-bento-row.tsx:286-289`, `src/components/ui/stat.tsx:108-109`
 
-**Issue:** The sweep runs `new AxeBuilder({ page }).withTags(WCAG_2_1_AA_TAGS).analyze()` over the whole document (the comment explicitly says "none are excluded here"). That is a defensible policy, but it means any pre-existing violation anywhere in the app-shell (sidebar, top-bar, footer, toasts, onboarding remnants) hard-fails this dashboard-scoped spec, and third-party widget DOM (analytics, speed-insights) can introduce nondeterministic nodes. With CR-01 unresolved this never executes, but once it does, an unscoped full-page assertion on a shared shell is a flake/maintenance magnet that will block PRs for issues unrelated to the dashboard work.
+**Issue:** For the open-maintenance tile, `StatTrend` is rendered with `trend="down"`, which the base `StatTrend` maps to `text-[var(--color-destructive-text)]` (stat.tsx:109). The kpi-bento override then layers `!text-[var(--color-warning-text)] dark:!text-[var(--color-warning-text)]` to recolor "fewer requests" as amber-good rather than red-bad. I verified via the project's `tailwind-merge` that these two arbitrary-value color classes are NOT deduplicated — `twMerge` emits BOTH (`text-[var(--color-destructive-text)] !text-[var(--color-warning-text)] …`). The override wins ONLY because of the `!important` flag overriding the cascade, not because the base class was stripped. This renders the correct color today and both colors are AA-safe (destructive-text 6.52:1, warning-text 5.51:1 on card), so it is not a contrast or correctness defect — it is a fragility/clarity smell: the element carries a contradictory declaration, and the kpi-bento test (line 281) only asserts the override class is PRESENT, not that the base is absent or that the override wins. A future refactor that drops the `!` (e.g., to satisfy a lint rule against `!important`) would silently flip the color back to destructive-red with no failing test.
 
-**Fix:** Either scope the sweep to the dashboard main region (`.include('main')` / a dashboard root testid) for the dashboard-owned assertion, or keep the full-page sweep but first prove the app-shell is already axe-clean in a separate, shell-owned spec so a failure here unambiguously points at dashboard code. Document which violations, if any, are knowingly accepted via `.disableRules([...])` rather than leaving an implicit "must be globally perfect" contract.
+**Fix:** Move the semantic decision into `StatTrend` so a single source picks the color, eliminating the competing class. E.g., pass an explicit intent and let `stat.tsx` choose one token:
+```tsx
+// stat.tsx — accept an optional override so only one text-[…] class is emitted
+function StatTrend({ trend, tone, ... }: ... & { tone?: "good" | "bad" | "neutral" }) {
+  // resolve a single color token from (tone ?? trend) — never emit two
+}
+```
+or, if keeping the call-site override, add a test asserting the rendered `color` (e.g., via `getComputedStyle` in a jsdom-with-CSS harness, or assert the base class is absent) so the `!important` dependency is pinned. Lower-effort acceptable alternative: a code comment at kpi-bento-row.tsx:287 documenting that the override depends on `!important` order and must not be de-`!`-ed.
 
 ## Info
 
-### IN-01: `expiring-leases-widget` PostgREST nested-join mapper accesses to-one relations as objects without a typed boundary mapper
+### IN-03: `LeaseStatusBadge` has no unit test pinning the status → chip-class mapping after gaining `border`
 
-**File:** `src/components/dashboard/expiring-leases-widget.tsx:60-67`
+**File:** `src/components/dashboard/components/lease-status-badge.tsx` (no sibling `__tests__`)
 
-**Issue:** Out of scope for this phase's diff (only the icon/text colors changed here), noted for the record. The mapper reads `row.tenants?.name`, `row.units?.unit_number`, `row.units?.properties?.name` — treating embedded FK joins as objects. PostgREST returns to-one embeds as objects and to-many as arrays; the access assumes to-one for all three. The callback param `row` is implicitly typed off the PostgREST builder rather than run through a `mapXRow(raw: Record<string, unknown>)` validator as CLAUDE.md mandates at RPC/PostgREST boundaries. No `as unknown as` is present (good), but the shape is unvalidated. If a future schema change makes any embed to-many, `.name` silently becomes `undefined`.
+**Issue:** WR-01's fix added `border` so the `status-*` `border-color` renders, and the badge is the shared single-source-of-truth for the pill in both the portfolio table cell (portfolio-columns.tsx:151) and the grid card (portfolio-grid.tsx:22). There is no test asserting `active → status-active`, `expiring → status-pending`, `vacant → status-inactive`, nor that `border` is present. The kpi-bento and dashboard-branch tests do not render this component; the contrast guarantee for the pill rides entirely on the (correct) globals.css tokens plus the e2e axe sweep — but the axe sweep only runs the three lease statuses that happen to be present in the seeded e2e data, and a future status-label/className typo (e.g. `expiring → status-overdue`) would not be caught by any unit test. This is a test-coverage gap, not a behavior defect.
 
-**Fix:** When this file is next touched for logic, route the rows through a typed mapper (`mapExpiringLeaseRow`) per the `mapDocumentRow` reference pattern, validating the embed shape.
-
-### IN-02: Reduced-motion `NumberTicker` snap and the matchMedia test rely on effect-commit timing — pin the no-rAF behavior more explicitly
-
-**File:** `src/components/ui/number-ticker.tsx:48-53`, `src/components/ui/__tests__/number-ticker.test.tsx:77-100`
-
-**Issue:** Logic is correct: `useReducedMotion()` returns `false` on first render then `true` after its effect commits, so the ticker first renders `startValue` then snaps to `to` on the second render — the test asserts `42` with no timer advance and passes because RTL's `render` flushes effects under `act`. This is sound but implicit: the test proves the *final* value, not that the rAF loop was never scheduled. A future change that schedules an rAF before checking `reducedMotion` would still pass this test (the snap would just overwrite). Consider spying on `requestAnimationFrame` and asserting it was not called in the reduced-motion path, to lock the "no animation scheduled" contract the comment claims.
-
-**Fix:** Optional hardening:
-```ts
-const rafSpy = vi.spyOn(globalThis, "requestAnimationFrame");
-render(<NumberTicker value={42} duration={2000} />);
-expect(screen.getByText("42")).toBeInTheDocument();
-expect(rafSpy).not.toHaveBeenCalled();
+**Fix:** Add a small render test pinning the mapping and the border:
+```tsx
+it.each([
+  ["active", "status-active"],
+  ["expiring", "status-pending"],
+  ["vacant", "status-inactive"],
+])("maps %s to %s and includes border", (status, chip) => {
+  render(<LeaseStatusBadge status={status as PortfolioRow["leaseStatus"]} />);
+  const el = screen.getByText(/Active|Expiring|Vacant/);
+  expect(el.className).toContain(chip);
+  expect(el.className).toContain("border");
+});
 ```
 
 ---
@@ -166,3 +123,4 @@ expect(rafSpy).not.toHaveBeenCalled();
 _Reviewed: 2026-06-01_
 _Reviewer: Claude (gsd-code-reviewer)_
 _Depth: deep_
+_Cycle: 2_
