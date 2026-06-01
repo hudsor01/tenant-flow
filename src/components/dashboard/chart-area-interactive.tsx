@@ -159,13 +159,13 @@ export function ChartAreaInteractive({
 			<div className="grid grid-cols-2 gap-4 p-6 pb-0 lg:grid-cols-4">
 				<div className="space-y-1">
 					<p className="text-muted-foreground">Total Revenue</p>
-					<p className="typography-large text-success">
+					<p className="typography-large text-[var(--color-success-text)]">
 						${totalRevenue.toLocaleString()}
 					</p>
 				</div>
 				<div className="space-y-1">
 					<p className="text-muted-foreground">Total Expenses</p>
-					<p className="typography-large text-warning">
+					<p className="typography-large text-[var(--color-warning-text)]">
 						${totalExpenses.toLocaleString()}
 					</p>
 				</div>
@@ -174,7 +174,9 @@ export function ChartAreaInteractive({
 					<p
 						className={cn(
 							"flex items-center gap-1 typography-large",
-							netProfit >= 0 ? "text-success" : "text-warning",
+							netProfit >= 0
+								? "text-[var(--color-success-text)]"
+								: "text-[var(--color-warning-text)]",
 						)}
 					>
 						{netProfit >= 0 ? (
@@ -190,7 +192,9 @@ export function ChartAreaInteractive({
 					<p
 						className={cn(
 							"typography-large",
-							profitMargin >= 0 ? "text-success" : "text-warning",
+							profitMargin >= 0
+								? "text-[var(--color-success-text)]"
+								: "text-[var(--color-warning-text)]",
 						)}
 					>
 						{profitMargin.toFixed(1)}%

@@ -22,8 +22,8 @@ import { loginAsOwner } from "../../auth-helpers";
  *    in portfolio-data-table.tsx forces the portfolio table into grid mode below
  *    1024px, which satisfies this.
  *
- * Auth/beforeEach mirrors owner-dashboard.e2e.spec.ts (goto OWNER_DASHBOARD +
- * tour-completed + reload + heading visible).
+ * Auth/beforeEach: loginAsOwner lands on an authenticated /dashboard, then we
+ * dismiss the onboarding tour, reload, and wait for the heading.
  */
 
 const WCAG_2_1_AA_TAGS = ["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"];

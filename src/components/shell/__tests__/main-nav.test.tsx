@@ -113,7 +113,9 @@ describe("MainNav", () => {
 			render(<MainNav />);
 
 			const propertiesLink = screen.getByRole("link", { name: /properties/i });
-			expect(propertiesLink.className).not.toContain("text-primary");
+			expect(propertiesLink.className).not.toContain(
+				"text-[var(--color-primary-text)]",
+			);
 		});
 	});
 

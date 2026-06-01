@@ -21,7 +21,7 @@
  * - https://supabase.com/docs/guides/auth/sessions
  */
 
-import { type BrowserContext, type Page } from "@playwright/test";
+import { type Page } from "@playwright/test";
 import { createLogger } from "./lib/frontend-logger";
 
 // Extract Supabase configuration from environment variables
@@ -76,8 +76,6 @@ const logger = createLogger({ component: "AuthHelpers" });
 
 // Worker-level session cache (isolated per worker process)
 const sessionCache = new Map<string, SupabaseSession>();
-// Cache operations synchronization
-const cacheOperations = new Map<string, Promise<SupabaseSession>>();
 
 // Debug logging helper
 const debugLog = (message: string, ...rest: string[]) => {
