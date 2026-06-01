@@ -231,7 +231,7 @@ export function MainNav({ onNavigate }: MainNavProps) {
 											text-sm transition-colors
 											${
 												childActive
-													? "text-primary font-medium bg-primary/5"
+													? "text-[var(--color-primary-text)] font-medium bg-primary/5"
 													: "text-muted-foreground hover:text-foreground hover:bg-muted"
 											}
 										`}
@@ -255,12 +255,14 @@ export function MainNav({ onNavigate }: MainNavProps) {
 				className={`
 					w-full flex items-center gap-3 px-3 py-2.5 rounded-lg
 					text-sm font-medium transition-colors
-					${active ? "bg-primary/10 text-primary" : "text-foreground hover:bg-muted"}
+					${active ? "bg-primary/10 text-[var(--color-primary-text)]" : "text-foreground hover:bg-muted"}
 				`}
 			>
 				<Icon
 					className={
-						active ? "w-5 h-5 text-primary" : "w-5 h-5 text-muted-foreground"
+						active
+							? "w-5 h-5 text-[var(--color-primary-text)]"
+							: "w-5 h-5 text-muted-foreground"
 					}
 				/>
 				{item.label}

@@ -45,7 +45,7 @@ import {
 	ChartTooltip,
 	ChartTooltipContent,
 } from "#components/ui/chart";
-import { Tabs, TabsList, TabsTrigger } from "#components/ui/tabs";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "#components/ui/tabs";
 import { useReducedMotion } from "#hooks/use-reduced-motion";
 import { formatCurrency } from "#lib/utils/currency";
 import type {
@@ -175,6 +175,11 @@ export function RevenueAreaChart({
 						<TabsTrigger value="30d">30d</TabsTrigger>
 						<TabsTrigger value="6mo">6mo</TabsTrigger>
 					</TabsList>
+					{/* Force-mount empty panels so each trigger's aria-controls resolves
+					    to a real id (this is a window toggle; the chart below is the
+					    content). Satisfies axe aria-valid-attr-value. */}
+					<TabsContent value="30d" forceMount className="sr-only" />
+					<TabsContent value="6mo" forceMount className="sr-only" />
 				</Tabs>
 			</CardHeader>
 			<CardContent>
