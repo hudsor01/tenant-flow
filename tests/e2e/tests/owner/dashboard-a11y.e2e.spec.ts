@@ -15,8 +15,8 @@ import { loginAsOwner } from "../../auth-helpers";
  *
  * 1. axe-core WCAG 2.1 A/AA assertion (D-02): zero violations across the
  *    ENTIRE /dashboard subtree (D-03 — full-page sweep incl. app-shell chrome,
- *    not just the v2.0-added regions). Run against the local production build,
- *    not prod — no screenshot diffing.
+ *    not just the v2.0-added regions). Served by a local production build; auth
+ *    and data still hit the prod Supabase project (no screenshot diffing).
  * 2. 375px page-level zero-horizontal-scroll probe (POLISH-06): body and html
  *    scrollWidth <= viewport + 1. The locked FORCE_GRID_QUERY (max-width:1023px)
  *    in portfolio-data-table.tsx forces the portfolio table into grid mode below
