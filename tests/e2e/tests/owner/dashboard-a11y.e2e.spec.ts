@@ -44,9 +44,11 @@ async function gotoAuthedDashboard(page: import("@playwright/test").Page) {
 		localStorage.setItem("owner-tour-completed", "true");
 	});
 	await page.reload();
-	await expect(page.getByRole("heading", { name: /dashboard/i })).toBeVisible({
-		timeout: 10000,
-	});
+	// Pin the exact <h1>Dashboard</h1> (dashboard.tsx) — a loose /dashboard/i match
+	// could resolve on a section sub-heading and let axe sweep a half-rendered tree.
+	await expect(
+		page.getByRole("heading", { level: 1, name: "Dashboard", exact: true }),
+	).toBeVisible({ timeout: 10000 });
 }
 
 test.describe("Dashboard accessibility (axe-core)", () => {

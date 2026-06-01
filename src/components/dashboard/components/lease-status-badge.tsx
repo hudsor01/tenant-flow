@@ -24,7 +24,7 @@ export function LeaseStatusBadge({ status }: { status: LeaseStatus }) {
 	return (
 		<span
 			className={cn(
-				"inline-flex items-center rounded px-2 py-0.5 font-medium text-xs",
+				"inline-flex items-center rounded border px-2 py-0.5 font-medium text-xs",
 				CHIP[status],
 			)}
 		>

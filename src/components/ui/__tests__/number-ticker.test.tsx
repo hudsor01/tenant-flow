@@ -89,11 +89,16 @@ describe("NumberTicker", () => {
 			dispatchEvent: vi.fn(),
 		}));
 
+		const rafSpy = vi.spyOn(globalThis, "requestAnimationFrame");
 		render(<NumberTicker value={42} duration={2000} />);
 
 		// Final value rendered with no timer advance: rAF loop was skipped.
 		expect(screen.getByText("42")).toBeInTheDocument();
+		// Contract: the rAF loop is never SCHEDULED under reduced motion (not merely
+		// overwritten by a later snap) — pins the no-animation guarantee D-04 claims.
+		expect(rafSpy).not.toHaveBeenCalled();
 
+		rafSpy.mockRestore();
 		// Do NOT leak the stub into the fake-timer motion-on tests above/below,
 		// which rely on the default jsdom matchMedia behavior.
 		vi.unstubAllGlobals();
