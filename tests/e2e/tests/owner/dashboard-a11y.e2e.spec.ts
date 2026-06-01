@@ -51,10 +51,18 @@ async function gotoAuthedDashboard(page: import("@playwright/test").Page) {
 		);
 	});
 	await page.reload();
-	// Pin the exact <h1>Dashboard</h1> (dashboard.tsx) — a loose /dashboard/i match
-	// could resolve on a section sub-heading and let axe sweep a half-rendered tree.
+	// Wait for a definitive loaded marker (past the skeleton) before sweeping.
+	// Tolerate BOTH valid loaded states the rest of the suite treats as
+	// non-guaranteed: the populated dashboard renders the exact <h1>Dashboard</h1>
+	// (dashboard.tsx), while the zero-data path renders DashboardEmptyState's
+	// "Welcome to TenantFlow" (no "Dashboard" heading). The synthetic owner's
+	// property/tenant data is not a guaranteed invariant, so hard-coupling to the
+	// populated path would time out and fail CI whenever the owner has no data.
+	// The exact h1 match still avoids resolving on a loose sub-heading mid-render.
 	await expect(
-		page.getByRole("heading", { level: 1, name: "Dashboard", exact: true }),
+		page
+			.getByRole("heading", { level: 1, name: "Dashboard", exact: true })
+			.or(page.getByText("Welcome to TenantFlow")),
 	).toBeVisible({ timeout: 10000 });
 }
 
