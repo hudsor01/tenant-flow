@@ -55,7 +55,7 @@ export function PortfolioGrid({ data }: PortfolioGridProps) {
 							<div
 								className={
 									row.maintenanceOpen > 0
-										? "text-red-600 dark:text-red-500"
+										? "text-[var(--color-destructive)]"
 										: ""
 								}
 							>
