@@ -2,9 +2,9 @@
 gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: Dashboard Command Center
-status: between-phases
-last_updated: "2026-05-31T06:00:00.000Z"
-last_activity: 2026-05-31 -- Phase 05 (Portfolio DataTable) merged via PR #763.
+status: executing
+last_updated: "2026-06-01T02:33:46.662Z"
+last_activity: "2026-05-31 -- Phase 05 merged via PR #763 (DiceUI DataTable swap, 8-cycle perfect-PR gate)."
 progress:
   total_phases: 7
   completed_phases: 5
