@@ -1,5 +1,7 @@
 "use client";
 
+"use no memo";
+
 import {
 	flexRender,
 	type OnChangeFn,
@@ -32,8 +34,10 @@ type ViewMode = "table" | "grid";
 // Portfolio rows render ~56px (two text lines + py-2.5), so estimate to 56 while
 // never dropping below the 48px touch-target floor.
 const ESTIMATED_ROW_HEIGHT = 56;
-// ≤375px forces the grid (card) view per the UI-SPEC mobile rule (W-4 / D-5).
-const MOBILE_QUERY = "(max-width: 375px)";
+// Below `lg` (1024px) force the grid (card) view: the 7-column table needs the
+// desktop width to stay readable (and the column-visibility control is itself
+// lg-only), so the table view only makes sense at >=lg (W-4 / D-5).
+const FORCE_GRID_QUERY = "(max-width: 1023px)";
 
 interface PortfolioDataTableProps {
 	data: PortfolioRow[];
@@ -85,7 +89,7 @@ export function PortfolioDataTable({
 	// W-4: at ≤375px force grid regardless of the toggle; the table path is never
 	// rendered at that width (no horizontal scroll). The toggle still reflects and
 	// sets `viewMode`; only the render mode is overridden here.
-	const forceGridMobile = useMediaQuery(MOBILE_QUERY);
+	const forceGridMobile = useMediaQuery(FORCE_GRID_QUERY);
 	const effectiveView: ViewMode = forceGridMobile ? "grid" : viewMode;
 
 	const pageRows = table.getRowModel().rows;
@@ -238,7 +242,18 @@ function PortfolioVirtualizedTable({
 									colSpan={header.colSpan}
 									role="columnheader"
 									aria-sort={getAriaSort(header.column)}
-									style={{ display: "flex", width: header.getSize() }}
+									style={{
+										display: "flex",
+										// Grow/shrink from getSize() as the basis so columns FILL the
+										// container (no fixed-width overflow) while header + body share
+										// the identical flex math, keeping them aligned.
+										flex: `1 1 ${header.getSize()}px`,
+										minWidth: 0,
+										justifyContent:
+											header.column.columnDef.meta?.align === "right"
+												? "flex-end"
+												: "flex-start",
+									}}
 								>
 									{header.isPlaceholder
 										? null
@@ -281,11 +296,16 @@ function PortfolioVirtualizedTable({
 									<TableCell
 										key={cell.id}
 										role="cell"
-										className="py-2.5"
+										className="overflow-hidden py-2.5"
 										style={{
 											display: "flex",
-											width: cell.column.getSize(),
+											flex: `1 1 ${cell.column.getSize()}px`,
+											minWidth: 0,
 											alignItems: "center",
+											justifyContent:
+												cell.column.columnDef.meta?.align === "right"
+													? "flex-end"
+													: "flex-start",
 										}}
 									>
 										{flexRender(cell.column.columnDef.cell, cell.getContext())}

@@ -1,3 +1,4 @@
+import { LeaseStatusBadge } from "#components/dashboard/components/lease-status-badge";
 import { formatCurrency } from "#lib/utils/currency";
 import type { PortfolioRow } from "../dashboard-types";
 
@@ -18,19 +19,7 @@ export function PortfolioGrid({ data }: PortfolioGridProps) {
 							<div className="font-medium">{row.property}</div>
 							<div className="text-xs text-muted-foreground">{row.address}</div>
 						</div>
-						<span
-							className={`text-xs font-medium px-2 py-0.5 rounded ${
-								row.leaseStatus === "active"
-									? "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400"
-									: row.leaseStatus === "expiring"
-										? "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400"
-										: "bg-muted text-muted-foreground"
-							}`}
-						>
-							{row.leaseStatus === "active" && "Active"}
-							{row.leaseStatus === "expiring" && "Expiring"}
-							{row.leaseStatus === "vacant" && "Vacant"}
-						</span>
+						<LeaseStatusBadge status={row.leaseStatus} />
 					</div>
 					<div className="grid grid-cols-2 gap-3 text-sm">
 						<div>

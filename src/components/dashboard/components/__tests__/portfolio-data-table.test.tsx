@@ -246,8 +246,8 @@ describe("PortfolioDataTableToolbar", () => {
 	});
 });
 
-// Stub window.matchMedia so the mobile query (max-width: 375px) reports `matches`
-// per the `shouldMatch` predicate; `useMediaQuery` reads this on mount.
+// Stub window.matchMedia so the force-grid query (max-width: 1023px) reports
+// `matches` per the `shouldMatch` predicate; `useMediaQuery` reads this on mount.
 function stubMatchMedia(shouldMatch: (query: string) => boolean) {
 	const original = window.matchMedia;
 	window.matchMedia = vi.fn().mockImplementation((query: string) => ({
@@ -341,31 +341,39 @@ describe("PortfolioDataTable", () => {
 			// measureElement is wired via data-index (dynamic two-line-row sizing).
 			expect(firstRow.getAttribute("data-index")).toBe("0");
 
-			// Body cells carry role="cell" and an EXPLICIT pixel width matching the
-			// ColumnDef size — the canonical alignment source of truth.
+			// Body cells carry role="cell" and a flex basis matching the ColumnDef
+			// size — columns grow/shrink from getSize() so the table FILLS its
+			// container (no fixed-width overflow) while header + body share the
+			// identical flex math, keeping them aligned.
 			const cells = firstRow.querySelectorAll('td[role="cell"]');
 			expect(cells.length).toBe(portfolioColumns.length);
-			const bodyWidths = Array.from(cells).map(
-				(cell) => (cell as HTMLElement).style.width,
+			const bodyFlex = Array.from(cells).map(
+				(cell) => (cell as HTMLElement).style.flex,
 			);
-			expect(bodyWidths).toEqual([
-				"240px",
-				"90px",
-				"140px",
-				"120px",
-				"120px",
-				"110px",
-				"80px",
+			expect(bodyFlex).toEqual([
+				"1 1 240px",
+				"1 1 90px",
+				"1 1 140px",
+				"1 1 120px",
+				"1 1 120px",
+				"1 1 110px",
+				"1 1 80px",
 			]);
 
+			// Numeric columns (rent idx 4, maintenance idx 5) right-align via
+			// justify-content (text-align is inert inside a flex cell); others left.
+			expect((cells[4] as HTMLElement).style.justifyContent).toBe("flex-end");
+			expect((cells[5] as HTMLElement).style.justifyContent).toBe("flex-end");
+			expect((cells[0] as HTMLElement).style.justifyContent).toBe("flex-start");
+
 			// Header column count equals body column count, and each header <th
-			// role="columnheader"> carries the SAME explicit width as its body cell.
+			// role="columnheader"> carries the SAME flex basis as its body cell.
 			const headers = document.querySelectorAll('th[role="columnheader"]');
 			expect(headers.length).toBe(cells.length);
-			const headerWidths = Array.from(headers).map(
-				(header) => (header as HTMLElement).style.width,
+			const headerFlex = Array.from(headers).map(
+				(header) => (header as HTMLElement).style.flex,
 			);
-			expect(headerWidths).toEqual(bodyWidths);
+			expect(headerFlex).toEqual(bodyFlex);
 
 			// aria-sort still lands on the columnheader (B-1), not the inner button.
 			const propertyHeader = screen.getByRole("columnheader", {
@@ -660,8 +668,8 @@ describe("PortfolioDataTable", () => {
 		expect(screen.queryByText("Vacant Two")).toBeNull();
 	});
 
-	it("forces the grid view at <=375px regardless of viewMode (W-4)", async () => {
-		const restore = stubMatchMedia((q) => q === "(max-width: 375px)");
+	it("forces the grid view below lg (<=1023px) regardless of viewMode (W-4)", async () => {
+		const restore = stubMatchMedia((q) => q === "(max-width: 1023px)");
 		try {
 			await act(async () => {
 				render(
