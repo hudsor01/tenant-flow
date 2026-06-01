@@ -144,6 +144,22 @@ export default defineConfig({
 			},
 			dependencies: ["setup-owner"],
 			testMatch: ["**/owner/**/*.spec.ts"],
+			// dashboard-a11y self-authenticates via loginAsOwner (no storageState).
+			testIgnore: ["**/owner/dashboard-a11y.e2e.spec.ts"],
+		},
+
+		// ─────────────────────────────────────────
+		// OWNER-AXE: dashboard a11y + 375px sweep (CI: --project=owner-axe).
+		// NO storageState — authenticates in-test via loginAsOwner, because the
+		// @supabase/ssr session lives in localStorage, which storageState cannot
+		// reliably capture (see commit e760cd1aa). No setup-owner dependency.
+		// ─────────────────────────────────────────
+		{
+			name: "owner-axe",
+			use: {
+				...devices["Desktop Chrome"],
+			},
+			testMatch: ["**/owner/dashboard-a11y.e2e.spec.ts"],
 		},
 
 		// ─────────────────────────────────────────
@@ -195,6 +211,8 @@ export default defineConfig({
 			},
 			dependencies: ["setup-owner"],
 			testMatch: ["**/owner/**/*.spec.ts"], // Owner tests for cross-browser
+			// dashboard-a11y self-authenticates via loginAsOwner (no storageState).
+			testIgnore: ["**/owner/dashboard-a11y.e2e.spec.ts"],
 		},
 
 		// ─────────────────────────────────────────

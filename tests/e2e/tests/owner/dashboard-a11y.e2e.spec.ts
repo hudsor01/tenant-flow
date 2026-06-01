@@ -1,14 +1,18 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
+import { loginAsOwner } from "../../auth-helpers";
 import { ROUTES } from "../constants/routes";
 
 /**
  * Dashboard Accessibility + Responsiveness E2E (Phase 6, POLISH-05 / POLISH-06)
  *
- * Runs under the authed `owner` Playwright project (storageState =
- * playwright/.auth/owner.json, depends on `setup-owner`). The file matches
- * `**\/owner/**\/*.spec.ts`, so it is auto-collected by the owner project and
- * — since Plan 01 wired `--project=owner` into CI — executes on every PR.
+ * Runs under the dedicated `owner-axe` Playwright project (NO storageState),
+ * which CI invokes via `--project=owner-axe`. Authentication is performed
+ * in-test by `loginAsOwner` — the `@supabase/ssr` session lives in localStorage,
+ * which `page.context().storageState()` cannot reliably capture (see commit
+ * e760cd1aa), so the legacy `setup-owner` + storageState path is intentionally
+ * NOT used here. The file is excluded from the storageState-based `owner` /
+ * `firefox` projects via their `testIgnore`.
  *
  * 1. axe-core WCAG 2.1 A/AA assertion (D-02): zero violations across the
  *    ENTIRE /dashboard subtree (D-03 — full-page sweep incl. app-shell chrome,
@@ -27,12 +31,14 @@ const WCAG_2_1_AA_TAGS = ["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"];
 
 /**
  * Shared authed-dashboard navigation used by both the axe sweep and the 375px
- * probe. Authentication is provided by the owner project storageState; we only
- * dismiss the onboarding tour (it overlays the page and can mask focusable
- * elements from axe) and wait for the dashboard heading to confirm the
- * client-fetched content has resolved past the loading skeleton.
+ * probe. `loginAsOwner` authenticates via the Supabase token API and injects the
+ * session into the browser (landing on /dashboard); we then dismiss the
+ * onboarding tour (it overlays the page and can mask focusable elements from
+ * axe) and wait for the dashboard heading to confirm the client-fetched content
+ * has resolved past the loading skeleton.
  */
 async function gotoAuthedDashboard(page: import("@playwright/test").Page) {
+	await loginAsOwner(page);
 	await page.goto(ROUTES.OWNER_DASHBOARD);
 	await page.evaluate(() => {
 		localStorage.setItem("owner-tour-completed", "true");
