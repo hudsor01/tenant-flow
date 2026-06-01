@@ -74,6 +74,31 @@ describe("NumberTicker", () => {
 		consoleError.mockRestore();
 	});
 
+	it("snaps to the final value immediately under prefers-reduced-motion (D-04)", () => {
+		// matchMedia is not in jsdom by default; stub it to report reduced-motion
+		// as matching BEFORE render so useReducedMotion() seeds true after its effect.
+		// No timer advance: the snap happens when the effect commits, no rAF scheduled.
+		vi.stubGlobal("matchMedia", (query: string) => ({
+			matches: query.includes("prefers-reduced-motion"),
+			media: query,
+			onchange: null,
+			addEventListener: vi.fn(),
+			removeEventListener: vi.fn(),
+			addListener: vi.fn(),
+			removeListener: vi.fn(),
+			dispatchEvent: vi.fn(),
+		}));
+
+		render(<NumberTicker value={42} duration={2000} />);
+
+		// Final value rendered with no timer advance: rAF loop was skipped.
+		expect(screen.getByText("42")).toBeInTheDocument();
+
+		// Do NOT leak the stub into the fake-timer motion-on tests above/below,
+		// which rely on the default jsdom matchMedia behavior.
+		vi.unstubAllGlobals();
+	});
+
 	it("does not re-trigger animation after first IntersectionObserver entry (one-shot guard)", async () => {
 		// Capture the IntersectionObserver callback so we can fire a second entry manually.
 		// unit-setup.ts defines window.IntersectionObserver with writable:true (not configurable),
