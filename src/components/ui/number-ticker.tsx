@@ -8,6 +8,7 @@ import {
 	useState,
 } from "react";
 import { useIntersectionObserver } from "#hooks/use-intersection-observer";
+import { useReducedMotion } from "#hooks/use-reduced-motion";
 import { cn } from "#lib/utils";
 
 interface NumberTickerProps extends ComponentPropsWithoutRef<"span"> {
@@ -31,6 +32,7 @@ export function NumberTicker({
 }: NumberTickerProps) {
 	const ref = useRef<HTMLSpanElement>(null);
 	const [displayValue, setDisplayValue] = useState(startValue);
+	const reducedMotion = useReducedMotion();
 
 	const { hasIntersected } = useIntersectionObserver(
 		ref as RefObject<Element>,
@@ -44,6 +46,10 @@ export function NumberTicker({
 	const to = direction === "down" ? startValue : value;
 
 	useEffect(() => {
+		if (reducedMotion) {
+			setDisplayValue(to);
+			return;
+		}
 		if (!hasIntersected) return;
 
 		let rafId = 0;
@@ -84,7 +90,7 @@ export function NumberTicker({
 			if (rafId) cancelAnimationFrame(rafId);
 			if (timeoutId) clearTimeout(timeoutId);
 		};
-	}, [hasIntersected, from, to, delay, duration]);
+	}, [reducedMotion, hasIntersected, from, to, delay, duration]);
 
 	return (
 		<span
