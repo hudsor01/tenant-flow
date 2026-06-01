@@ -1,7 +1,6 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
 import { loginAsOwner } from "../../auth-helpers";
-import { ROUTES } from "../constants/routes";
 
 /**
  * Dashboard Accessibility + Responsiveness E2E (Phase 6, POLISH-05 / POLISH-06)
@@ -38,8 +37,9 @@ const WCAG_2_1_AA_TAGS = ["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"];
  * has resolved past the loading skeleton.
  */
 async function gotoAuthedDashboard(page: import("@playwright/test").Page) {
+	// loginAsOwner already lands on an authenticated /dashboard, so we only
+	// dismiss the onboarding tour and reload — no redundant re-navigation.
 	await loginAsOwner(page);
-	await page.goto(ROUTES.OWNER_DASHBOARD);
 	await page.evaluate(() => {
 		localStorage.setItem("owner-tour-completed", "true");
 	});
