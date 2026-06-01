@@ -12,8 +12,8 @@
  * HOW IT WORKS:
  * 1. Call Supabase /auth/v1/token endpoint directly
  * 2. Get access_token, refresh_token, user data
- * 3. Set cookies AND localStorage in browser context
- * 4. Navigate to protected pages
+ * 3. Inject the session as @supabase/ssr cookies on the browser context
+ * 4. Navigate to protected pages (the cookies carry the session)
  *
  * REFERENCES:
  * - https://playwright.dev/docs/auth
