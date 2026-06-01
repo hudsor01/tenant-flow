@@ -184,6 +184,13 @@ function toBase64UrlWithPrefix(jsonValue: string): string {
  * - Base64URL encode with "base64-" prefix
  * - If encoded value ≤ MAX_CHUNK_SIZE: single cookie with key name (no suffix)
  * - If larger: multiple cookies with .0, .1, .2 suffixes
+ *
+ * NOTE: @supabase/ssr's chunker measures/slices encodeURIComponent(value), while
+ * this measures/slices the raw string. They are exact-equivalent here — and must
+ * not be "simplified" apart — because the produced value is `base64-` + base64url
+ * ([A-Za-z0-9-_]), every character of which is URI-safe, so
+ * encodeURIComponent(value).length === value.length and the chunk boundaries are
+ * byte-identical. (A realistic session is ~2.1KB → a single un-suffixed cookie.)
  */
 function createCookieChunks(
 	key: string,
