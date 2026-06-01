@@ -285,7 +285,7 @@ function KpiTile({ tile }: { tile: KpiTileConfig }) {
 			trend={tile.trend.trend === "stable" ? "neutral" : tile.trend.trend}
 			className={cn(
 				tile.trend.trend === "down" &&
-					"!text-[var(--color-warning)] dark:!text-[var(--color-warning)]",
+					"!text-[var(--color-warning-text)] dark:!text-[var(--color-warning-text)]",
 			)}
 		>
 			<TrendArrow direction={tile.trend.trend} />

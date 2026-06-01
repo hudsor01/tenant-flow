@@ -83,7 +83,7 @@ export function ExpiringLeasesWidget() {
 				<CardHeader>
 					<CardTitle className="flex items-center gap-2">
 						<Clock
-							className="size-4 text-[var(--color-warning)]"
+							className="size-4 text-[var(--color-warning-text)]"
 							aria-hidden="true"
 						/>
 						Leases expiring soon
@@ -106,7 +106,7 @@ export function ExpiringLeasesWidget() {
 			<CardHeader>
 				<CardTitle className="flex items-center gap-2">
 					<Clock
-						className="size-4 text-[var(--color-warning)]"
+						className="size-4 text-[var(--color-warning-text)]"
 						aria-hidden="true"
 					/>
 					Leases expiring soon
@@ -154,7 +154,7 @@ export function ExpiringLeasesWidget() {
 											</div>
 											<div className="flex items-center gap-2 shrink-0">
 												<span
-													className={`text-xs font-semibold ${urgent ? "text-destructive" : "text-[var(--color-warning)]"}`}
+													className={`text-xs font-semibold ${urgent ? "text-[var(--color-destructive-text)]" : "text-[var(--color-warning-text)]"}`}
 												>
 													{days} day{days === 1 ? "" : "s"}
 												</span>

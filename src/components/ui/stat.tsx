@@ -105,8 +105,8 @@ function StatTrend({
 			className={cn(
 				"inline-flex items-center gap-1 font-medium text-xs [&_svg:not([class*='size-'])]:size-3 [&_svg]:pointer-events-none [&_svg]:shrink-0",
 				{
-					"text-[var(--color-success)]": trend === "up",
-					"text-[var(--color-destructive)]": trend === "down",
+					"text-[var(--color-success-text)]": trend === "up",
+					"text-[var(--color-destructive-text)]": trend === "down",
 					"text-muted-foreground": trend === "neutral" || !trend,
 				},
 				className,
