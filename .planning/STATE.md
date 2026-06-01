@@ -2,8 +2,8 @@
 gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: Dashboard Command Center
-status: ready_to_plan
-last_updated: 2026-06-01T17:50:30.175Z
+status: "Phase 6 shipped — PR #767"
+last_updated: "2026-06-01T18:20:06.328Z"
 last_activity: 2026-06-01
 progress:
   total_phases: 7
@@ -11,7 +11,6 @@ progress:
   total_plans: 22
   completed_plans: 22
   percent: 71
-stopped_at: Phase 06 complete (4/4) — ready to discuss Phase 7
 ---
 
 # Project State
@@ -27,7 +26,7 @@ See: .planning/PROJECT.md (updated 2026-05-22)
 
 Phase: 7
 Plan: Not started
-Status: Ready to plan
+Status: Phase 6 shipped — PR #767
 Last activity: 2026-06-01
 
 ```
@@ -113,6 +112,7 @@ Merged so far:
 - Phase 5 — Portfolio DataTable — PR #763 (2026-05-31)
 
 Phase 6 (Polish & A11y) — all 4 plans executed on `gsd/phase-6-polish-a11y`:
+
 - P01 (Wave 0): `@axe-core/playwright` root install + `--project=owner` CI wiring (POLISH-05 prereq)
 - P02 (Wave 1): dashboard dark-mode color landmines → tokens (POLISH-04)
 - P03 (Wave 1): `NumberTicker` internal reduced-motion guard (POLISH-08)
