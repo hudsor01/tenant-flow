@@ -8,11 +8,11 @@ import { ROUTES } from "../constants/routes";
  *
  * Runs under the dedicated `owner-axe` Playwright project (NO storageState),
  * which CI invokes via `--project=owner-axe`. Authentication is performed
- * in-test by `loginAsOwner` — the `@supabase/ssr` session lives in localStorage,
- * which `page.context().storageState()` cannot reliably capture (see commit
- * e760cd1aa), so the legacy `setup-owner` + storageState path is intentionally
- * NOT used here. The file is excluded from the storageState-based `owner` /
- * `firefox` / `mobile-chrome` projects via their `testIgnore`.
+ * in-test by `loginAsOwner`, which injects the `@supabase/ssr` session as
+ * cookies onto the fresh per-test context before the first navigation. The
+ * legacy `setup-owner` + storageState project path is intentionally NOT used
+ * here. The file is excluded from the storageState-based `owner` / `firefox` /
+ * `mobile-chrome` projects via their `testIgnore`.
  *
  * 1. axe-core WCAG 2.1 A/AA assertion (D-02): zero violations across the
  *    ENTIRE /dashboard subtree (D-03 — full-page sweep incl. app-shell chrome,

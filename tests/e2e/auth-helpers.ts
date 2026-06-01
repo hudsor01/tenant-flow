@@ -208,16 +208,19 @@ function createCookieChunks(
 }
 
 /**
- * Inject session into the browser context as @supabase/ssr cookies.
+ * Inject the authenticated session into the browser context as @supabase/ssr cookies.
  *
  * This app uses `@supabase/ssr` (`createBrowserClient` with no `cookies` option,
  * see src/lib/supabase/client.ts), so the browser client AND the Next.js proxy
- * read the session from cookies (`document.cookie`) — NOT localStorage. Writing
- * only localStorage (the prior approach, copied from a non-SSR supabase-js blog
- * post) left the app unauthenticated: the proxy redirected protected routes to
- * /login. We write the chunked, base64url-prefixed cookies `@supabase/ssr`
- * expects (via createCookieChunks) on the context so both layers see the session.
- * A localStorage copy is seeded too — harmless, the cookie is authoritative.
+ * read the session from cookies (`document.cookie`) — NOT localStorage. We write
+ * the chunked, base64url-prefixed cookies `@supabase/ssr` expects (via
+ * createCookieChunks) onto the context, so the caller's first navigation to a
+ * protected route carries the session and the proxy lets it through. No page
+ * load happens here — the caller navigates to its target page next.
+ *
+ * (An earlier approach wrote only localStorage — copied from a non-SSR
+ * supabase-js blog post — which left the app unauthenticated and redirected
+ * protected routes to /login.)
  *
  * @see https://github.com/supabase/ssr (cookie storage adapter)
  */
@@ -230,9 +233,8 @@ async function injectSessionIntoBrowser(
 	const storageKey = `sb-${projectRef}-auth-token`;
 	const sessionJson = JSON.stringify(session);
 
-	// Authoritative: chunked base64url cookies (@supabase/ssr format). Set on the
-	// context BEFORE any navigation so the very first request to a protected route
-	// carries the session and the proxy lets it through.
+	// Set the chunked @supabase/ssr cookies on the context BEFORE any navigation,
+	// so the caller's first request to a protected route carries the session.
 	const cookies = createCookieChunks(storageKey, sessionJson).map((chunk) => ({
 		name: chunk.name,
 		value: chunk.value,
@@ -242,17 +244,6 @@ async function injectSessionIntoBrowser(
 	debugLog(
 		` Session written as ${cookies.length} cookie chunk(s): ${storageKey}`,
 	);
-
-	// Seed localStorage too (harmless; some non-SSR client paths read it).
-	await page.goto(baseUrl, { waitUntil: "domcontentloaded" });
-	await page.evaluate(
-		({ key, value }) => {
-			localStorage.setItem(key, value);
-		},
-		{ key: storageKey, value: sessionJson },
-	);
-
-	debugLog(" Session activated via cookies + localStorage");
 }
 
 /**
@@ -298,10 +289,10 @@ export async function loginAsOwner(page: Page, options: LoginOptions = {}) {
 		debugLog(` Using cached owner session for: ${email}`);
 	}
 
-	// Inject session into browser context (navigates to base URL first, then sets localStorage)
+	// Inject the session as @supabase/ssr cookies onto the browser context
 	await injectSessionIntoBrowser(page, session, baseUrl);
 
-	// Navigate to dashboard - session should be valid now
+	// Navigate to dashboard - the cookie session is carried on this first request
 	await page.goto(`${baseUrl}/dashboard`, { waitUntil: "domcontentloaded" });
 
 	// Wait for auth to stabilize
@@ -370,10 +361,10 @@ export async function loginAsTenant(page: Page, options: LoginOptions = {}) {
 		debugLog(` Using cached tenant session for: ${email}`);
 	}
 
-	// Inject session into browser context (navigates to base URL first, then sets cookies)
+	// Inject the session as @supabase/ssr cookies onto the browser context
 	await injectSessionIntoBrowser(page, session, baseUrl);
 
-	// Navigate to tenant portal - session should be valid now
+	// Navigate to tenant portal - the cookie session is carried on this first request
 	await page.goto(`${baseUrl}/tenant`, { waitUntil: "domcontentloaded" });
 
 	// Wait for auth to stabilize - use shorter timeout and don't fail if networkidle not reached

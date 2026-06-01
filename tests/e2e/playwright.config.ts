@@ -160,9 +160,9 @@ export default defineConfig({
 
 		// ─────────────────────────────────────────
 		// OWNER-AXE: dashboard a11y + 375px sweep (CI: --project=owner-axe).
-		// NO storageState — authenticates in-test via loginAsOwner, because the
-		// @supabase/ssr session lives in localStorage, which storageState cannot
-		// reliably capture (see commit e760cd1aa). No setup-owner dependency.
+		// NO storageState — authenticates in-test via loginAsOwner, which injects
+		// the @supabase/ssr session as cookies onto each fresh per-test context
+		// before the first navigation. No setup-owner dependency.
 		// ─────────────────────────────────────────
 		{
 			name: "owner-axe",
