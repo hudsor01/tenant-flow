@@ -23,7 +23,7 @@ import { loginAsOwner } from "../../auth-helpers";
  *    1024px, which satisfies this.
  *
  * Auth/beforeEach: loginAsOwner lands on an authenticated /dashboard, then we
- * dismiss the onboarding tour, reload, and wait for the heading.
+ * mark the onboarding tour completed, reload, and wait for the heading.
  */
 
 const WCAG_2_1_AA_TAGS = ["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"];
@@ -31,19 +31,20 @@ const WCAG_2_1_AA_TAGS = ["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"];
 /**
  * Shared authed-dashboard navigation used by both the axe sweep and the 375px
  * probe. `loginAsOwner` authenticates via the Supabase token API and injects the
- * session into the browser (landing on /dashboard); we then dismiss the
- * onboarding tour (it overlays the page and can mask focusable elements from
+ * session into the browser (landing on /dashboard); we then mark the onboarding
+ * tour completed (so its overlay never opens to mask focusable elements from
  * axe) and wait for the dashboard heading to confirm the client-fetched content
  * has resolved past the loading skeleton.
  */
 async function gotoAuthedDashboard(page: import("@playwright/test").Page) {
-	// loginAsOwner already lands on an authenticated /dashboard, so we only
-	// dismiss the onboarding tour and reload — no redundant re-navigation.
+	// loginAsOwner already lands on an authenticated /dashboard, so we only mark
+	// the onboarding tour completed and reload — no redundant re-navigation.
 	await loginAsOwner(page);
 	// Mark the owner onboarding tour completed so its spotlight overlay never
 	// auto-opens over the axe sweep. The app reads tour state from the
 	// "tenantflow:tour-progress" localStorage key as JSON keyed by tour name
-	// (getTourProgress short-circuits on "completed"/"skipped" — use-tour-progress.ts).
+	// (getTourProgress short-circuits on "completed"/"skipped" —
+	// src/hooks/api/use-tour-progress.ts).
 	await page.evaluate(() => {
 		localStorage.setItem(
 			"tenantflow:tour-progress",

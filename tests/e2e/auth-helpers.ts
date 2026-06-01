@@ -141,6 +141,14 @@ async function authenticateViaAPI(
 	}
 
 	const data = (await response.json()) as SupabaseSession;
+	// Validate the fields the @supabase/ssr cookie + the proxy's getUser() depend
+	// on, so a malformed token response fails with an actionable error instead of
+	// a confusing downstream /login redirect.
+	if (!data.access_token || !data.refresh_token || data.expires_at == null) {
+		throw new Error(
+			"Supabase token response missing required session fields (access_token / refresh_token / expires_at)",
+		);
+	}
 	return data;
 }
 

@@ -143,7 +143,7 @@ function PortfolioNoMatchState({ onClear }: { onClear: () => void }) {
 			<button
 				type="button"
 				onClick={onClear}
-				className="mt-3 text-primary text-sm hover:underline"
+				className="mt-3 text-primary-text text-sm hover:underline"
 			>
 				Clear filters
 			</button>

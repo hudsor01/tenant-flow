@@ -278,7 +278,7 @@ describe("KpiBentoRow", () => {
 		);
 		const items = screen.getAllByRole("listitem");
 		const trend = items[3]?.querySelector("[data-slot=stat-trend]");
-		expect(trend?.className).toMatch(/!text-\[var\(--color-warning-text\)\]/);
+		expect(trend?.className).toMatch(/!text-warning-text/);
 	});
 
 	it("sparkline-data-too-thin guard: data length 1 → no sparkline", () => {

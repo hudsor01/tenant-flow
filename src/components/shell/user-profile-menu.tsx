@@ -34,7 +34,7 @@ export function UserProfileMenu({
 					className="relative flex items-center justify-center min-h-11 min-w-11 rounded-full focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none"
 					aria-label="User menu"
 				>
-					<span className="flex items-center justify-center w-8 h-8 rounded-full bg-primary/10 text-[var(--color-primary-text)] text-sm font-medium hover:bg-primary/20 transition-colors">
+					<span className="flex items-center justify-center w-8 h-8 rounded-full bg-primary/10 text-primary-text text-sm font-medium hover:bg-primary/20 transition-colors">
 						{userInitials}
 					</span>
 				</button>

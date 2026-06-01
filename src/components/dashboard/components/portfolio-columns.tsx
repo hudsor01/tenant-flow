@@ -21,7 +21,7 @@ const STATUS_OPTIONS = [
 function MaintenanceCell({ openCount }: { openCount: number }) {
 	if (openCount > 0) {
 		return (
-			<span className="text-sm font-medium tabular-nums text-[var(--color-destructive-text)]">
+			<span className="text-sm font-medium tabular-nums text-destructive-text">
 				{openCount} open
 			</span>
 		);
