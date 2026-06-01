@@ -255,9 +255,8 @@ async function injectSessionIntoBrowser(
 /**
  * Login as property owner via API
  *
- * Uses the same fast API-based approach as loginAsTenant: calls Supabase
- * /auth/v1/token directly then injects the session into the browser context.
- * ~200ms vs ~3s for UI-based login.
+ * Calls Supabase /auth/v1/token directly then injects the session as
+ * @supabase/ssr cookies into the browser context. ~200ms vs ~3s for UI login.
  *
  * @param page - Playwright Page instance
  * @param options - Login credentials and cache control
@@ -324,70 +323,6 @@ export async function loginAsOwner(page: Page, options: LoginOptions = {}) {
 	}
 
 	debugLog(` Logged in as owner (${email})`);
-}
-
-/**
- * Login as tenant via API
- *
- * @param page - Playwright Page instance
- * @param options - Login credentials and cache control
- */
-export async function loginAsTenant(page: Page, options: LoginOptions = {}) {
-	const email =
-		options.email ||
-		process.env.E2E_TENANT_EMAIL ||
-		"test-tenant@tenantflow.app";
-	const rawPassword =
-		options.password ||
-		process.env.E2E_TENANT_PASSWORD ||
-		(() => {
-			throw new Error("E2E_TENANT_PASSWORD environment variable is required");
-		})();
-	const password = rawPassword.replace(/\\!/g, "!");
-	const cacheKey = `tenant:${email}`;
-
-	const baseUrl = process.env.PLAYWRIGHT_BASE_URL || "http://localhost:3050";
-
-	// Check cache first
-	let session = sessionCache.get(cacheKey);
-
-	if (!session || options.forceLogin) {
-		debugLog(` Authenticating tenant via API: ${email}`);
-
-		try {
-			session = await authenticateViaAPI(email, password);
-			sessionCache.set(cacheKey, session);
-			debugLog(` Tenant API authentication successful`);
-		} catch (error) {
-			const message = error instanceof Error ? error.message : String(error);
-			debugLog(` Tenant API authentication failed: ${message}`);
-			throw error;
-		}
-	} else {
-		debugLog(` Using cached tenant session for: ${email}`);
-	}
-
-	// Inject the session as @supabase/ssr cookies onto the browser context
-	await injectSessionIntoBrowser(page, session, baseUrl);
-
-	// Navigate to tenant portal - the cookie session is carried on this first request
-	await page.goto(`${baseUrl}/tenant`, { waitUntil: "domcontentloaded" });
-
-	// Wait for auth to stabilize - use shorter timeout and don't fail if networkidle not reached
-	// (persistent connections like SSE/WebSocket can prevent networkidle)
-	await page.waitForLoadState("networkidle", { timeout: 10000 }).catch(() => {
-		debugLog(" networkidle timeout, continuing with domcontentloaded");
-	});
-
-	// Verify we're on the tenant page, not redirected to login
-	const currentUrl = page.url();
-	if (currentUrl.includes("/login")) {
-		throw new Error(
-			`Tenant login failed: Redirected to login page. Session may be invalid.`,
-		);
-	}
-
-	debugLog(` Logged in as tenant (${email})`);
 }
 
 /**
