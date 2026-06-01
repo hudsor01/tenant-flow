@@ -236,6 +236,8 @@ export default defineConfig({
 			},
 			dependencies: ["setup-owner"],
 			testMatch: ["**/owner/**/*.spec.ts"], // Owner tests for responsive
+			// dashboard-a11y self-authenticates via loginAsOwner (no storageState).
+			testIgnore: ["**/owner/dashboard-a11y.e2e.spec.ts"],
 		},
 	],
 

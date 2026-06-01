@@ -208,13 +208,18 @@ function createCookieChunks(
 }
 
 /**
- * Inject session into browser context via localStorage
+ * Inject session into the browser context as @supabase/ssr cookies.
  *
- * Supabase browser client reads session from localStorage first,
- * then syncs to cookies automatically. This is the recommended
- * approach for Playwright E2E tests.
+ * This app uses `@supabase/ssr` (`createBrowserClient` with no `cookies` option,
+ * see src/lib/supabase/client.ts), so the browser client AND the Next.js proxy
+ * read the session from cookies (`document.cookie`) — NOT localStorage. Writing
+ * only localStorage (the prior approach, copied from a non-SSR supabase-js blog
+ * post) left the app unauthenticated: the proxy redirected protected routes to
+ * /login. We write the chunked, base64url-prefixed cookies `@supabase/ssr`
+ * expects (via createCookieChunks) on the context so both layers see the session.
+ * A localStorage copy is seeded too — harmless, the cookie is authoritative.
  *
- * @see https://mokkapps.de/blog/login-at-supabase-via-rest-api-in-playwright-e2e-test
+ * @see https://github.com/supabase/ssr (cookie storage adapter)
  */
 async function injectSessionIntoBrowser(
 	page: import("@playwright/test").Page,
@@ -223,24 +228,31 @@ async function injectSessionIntoBrowser(
 ): Promise<void> {
 	const { projectRef } = getConfig();
 	const storageKey = `sb-${projectRef}-auth-token`;
+	const sessionJson = JSON.stringify(session);
 
-	// First navigate to establish the domain context
-	await page.goto(baseUrl, { waitUntil: "domcontentloaded" });
-
-	// Set session in localStorage - Supabase client will read this and sync to cookies
-	await page.evaluate(
-		({ key, value }) => {
-			localStorage.setItem(key, JSON.stringify(value));
-		},
-		{ key: storageKey, value: session },
+	// Authoritative: chunked base64url cookies (@supabase/ssr format). Set on the
+	// context BEFORE any navigation so the very first request to a protected route
+	// carries the session and the proxy lets it through.
+	const cookies = createCookieChunks(storageKey, sessionJson).map((chunk) => ({
+		name: chunk.name,
+		value: chunk.value,
+		url: baseUrl,
+	}));
+	await page.context().addCookies(cookies);
+	debugLog(
+		` Session written as ${cookies.length} cookie chunk(s): ${storageKey}`,
 	);
 
-	debugLog(` Session stored in localStorage: ${storageKey}`);
+	// Seed localStorage too (harmless; some non-SSR client paths read it).
+	await page.goto(baseUrl, { waitUntil: "domcontentloaded" });
+	await page.evaluate(
+		({ key, value }) => {
+			localStorage.setItem(key, value);
+		},
+		{ key: storageKey, value: sessionJson },
+	);
 
-	// Reload the page so Supabase client picks up the session from localStorage
-	await page.reload({ waitUntil: "domcontentloaded" });
-
-	debugLog(" Page reloaded to activate session");
+	debugLog(" Session activated via cookies + localStorage");
 }
 
 /**

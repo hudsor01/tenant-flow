@@ -12,7 +12,7 @@ import { ROUTES } from "../constants/routes";
  * which `page.context().storageState()` cannot reliably capture (see commit
  * e760cd1aa), so the legacy `setup-owner` + storageState path is intentionally
  * NOT used here. The file is excluded from the storageState-based `owner` /
- * `firefox` projects via their `testIgnore`.
+ * `firefox` / `mobile-chrome` projects via their `testIgnore`.
  *
  * 1. axe-core WCAG 2.1 A/AA assertion (D-02): zero violations across the
  *    ENTIRE /dashboard subtree (D-03 — full-page sweep incl. app-shell chrome,
