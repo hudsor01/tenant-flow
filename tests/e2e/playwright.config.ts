@@ -126,6 +126,16 @@ export default defineConfig({
 	projects: [
 		// ─────────────────────────────────────────
 		// SETUP: Authenticate owner via API (runs first)
+		//
+		// LEGACY / NON-FUNCTIONAL: testMatch /auth-api\.setup\.ts/ matches no
+		// file — the storageState owner-auth path was abandoned in commit
+		// e760cd1aa (the @supabase/ssr session lives in localStorage, which
+		// storageState could not reliably capture). The owner / firefox /
+		// chromium / mobile-chrome projects below still reference it but are NOT
+		// run in CI. CI authenticates the dashboard a11y sweep via the
+		// `owner-axe` project (in-test loginAsOwner, no storageState). Removing
+		// this dead path entirely requires a verifiable local E2E run across the
+		// dependent projects — tracked as follow-up E2E-auth cleanup debt.
 		// ─────────────────────────────────────────
 		{
 			name: "setup-owner",
