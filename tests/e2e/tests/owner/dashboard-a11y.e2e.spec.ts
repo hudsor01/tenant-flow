@@ -60,10 +60,15 @@ async function gotoAuthedDashboard(page: import("@playwright/test").Page) {
 	// property/tenant data is not a guaranteed invariant, so hard-coupling to the
 	// populated path would time out and fail CI whenever the owner has no data.
 	// The exact h1 match still avoids resolving on a loose sub-heading mid-render.
+	// Empty-state branch is scoped to the EmptyTitle slot (a <div>, not a heading)
+	// so it can't collide with the onboarding tour's "Welcome to TenantFlow"
+	// TourTitle text (the tour is already suppressed above; this is belt-and-braces).
 	await expect(
-		page
-			.getByRole("heading", { level: 1, name: "Dashboard", exact: true })
-			.or(page.getByText("Welcome to TenantFlow")),
+		page.getByRole("heading", { level: 1, name: "Dashboard", exact: true }).or(
+			page.locator('[data-slot="empty-title"]', {
+				hasText: "Welcome to TenantFlow",
+			}),
+		),
 	).toBeVisible({ timeout: 10000 });
 }
 
