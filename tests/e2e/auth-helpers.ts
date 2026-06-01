@@ -316,6 +316,15 @@ export async function loginAsOwner(page: Page, options: LoginOptions = {}) {
 			`Owner login failed: Redirected to login page. Session may be invalid.`,
 		);
 	}
+	// The proxy applies a subscription gate AFTER auth: an owner whose
+	// subscription_status is not 'active'/'trialing' is redirected to /pricing.
+	// Fail loudly with an actionable message instead of a confusing downstream
+	// timeout (this is the failure mode that broke PR #674's CI).
+	if (currentUrl.includes("/pricing")) {
+		throw new Error(
+			`Owner login succeeded but was redirected to /pricing: the synthetic owner (${email}) failed the subscription gate — pin its public.users.subscription_status to 'active'.`,
+		);
+	}
 
 	debugLog(` Logged in as owner (${email})`);
 }
