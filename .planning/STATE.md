@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: Dashboard Command Center
 status: executing
-last_updated: "2026-06-01T15:41:51.236Z"
-last_activity: 2026-06-01 -- Phase 6 Plan 01 executed (axe install + CI owner-project wiring)
+last_updated: "2026-06-01T15:52:22.062Z"
+last_activity: 2026-06-01
 progress:
   total_phases: 7
   completed_phases: 5
   total_plans: 22
-  completed_plans: 19
+  completed_plans: 20
   percent: 71
 ---
 
@@ -20,14 +20,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-22)
 
 **Core value:** The authenticated owner dashboard at `/dashboard` becomes a restrained, professional B2B command center — KPI visibility above the fold, polished charts, a real DataTable with column controls + saved presets, full keyboard/dark-mode/mobile a11y. Every dollar amount handled correctly throughout the data path (no `*100`/`÷100` round-trip).
-**Current focus:** Phase 6 — Polish & A11y (executing; Wave 0 prerequisites complete).
+**Current focus:** Phase 6 — Polish & A11y (executing; Wave-1 in progress).
 
 ## Current Position
 
 Phase: 6 — Polish & A11y (executing).
-Plan: 01 of 4 COMPLETE (axe install + CI owner-project wiring). Next: Wave-1 plans (02/03/04).
+Plan: 2 of 4 COMPLETE (dashboard dark-mode color-landmine migration: raw Tailwind palette → status-*/--color-* tokens). Next: Wave-1 plans 03/04.
 Status: Executing
-Last activity: 2026-06-01 -- Phase 6 Plan 01 executed (axe install + CI owner-project wiring)
+Last activity: 2026-06-01 -- Phase 6 Plan 02 executed (dashboard color-token migration; POLISH-04 landmine grep zero, drift guard green 2724/2724)
 
 ```
 [█████░░] 71% of v2.0 milestone (5 / 7 phases shipped)
@@ -75,6 +75,8 @@ Last activity: 2026-06-01 -- Phase 6 Plan 01 executed (axe install + CI owner-pr
 - No `*100` / `/100` revenue arithmetic anywhere — cross-cutting hard rule; perfect-PR gate enforces
 - Phase 6 Plan 01: `@axe-core/playwright@4.11.3` installed at ROOT (CI runs `bunx playwright test` from repo root → resolves from root node_modules; the `tests/e2e/package.json:25` declaration has no node_modules/lockfile). Dev-only; never ships to client/runtime, CSP unaffected.
 - Phase 6 Plan 01: `--project=owner` wired into the CI E2E run (`ci-cd.yml:162`); `setup-owner` resolved via the owner project's `dependencies` (not manually re-listed); `--project=smoke`/`--project=public` preserved. Unblocks Plan 04's authed `/dashboard` axe spec.
+- Phase 6 Plan 02: dashboard dark-mode color landmines migrated raw Tailwind palette classes → canonical `status-*` utilities / `--color-*` tokens across 5 files (lease-status-badge CHIP → status-active/-pending/-inactive; portfolio-columns + portfolio-grid maintenance cells → `--color-destructive`; stat.tsx StatTrend up/down → `--color-success`/`--color-destructive`; expiring-leases-widget Clock icons + non-urgent days badge → `--color-warning`). POLISH-04 landmine grep returns zero across the dashboard subtree; design-token-drift guard green (2724/2724). The drift guard scans hex/rgb/bg-white/inline-ms only — palette classes are caught by the explicit landmine grep, not the guard.
+- Phase 6 Plan 02: `statIndicatorVariants` (stat.tsx:45-56) left byte-for-byte unchanged — its `green-500`/`blue-500`/`orange-500` palette classes are an app-wide Phase-7 concern, NOT a dashboard render path (KPI tiles use `<StatTrend>`, not `<StatIndicator color=...>`). `StatTrend` shared-primitive blast radius (7 consumers) documented in 06-02-SUMMARY.md.
 
 ## Blockers
 
@@ -87,6 +89,7 @@ None.
 - 2026-05-28: Phases 1-4 all merged (PRs #744/#745/#746/#748). Milestone at 4/7 (57%).
 - 2026-05-31: Phase 5 (Portfolio DataTable) merged via PR #763 — DiceUI DataTable swap; 8 perfect-PR cycles (final two independent reviewers both CLEAN). Milestone at 5/7 (71%).
 - 2026-06-01: Phase 6 (Polish & A11y) execution began — Plan 01 (Wave 0) complete: `@axe-core/playwright@4.11.3` added to root devDeps + `--project=owner` wired into CI E2E. Unblocks downstream `/dashboard` axe testing (Plan 04). 1/4 Phase-6 plans done.
+- 2026-06-01: Phase 6 Plan 02 (Wave 1) complete — dashboard dark-mode color landmines migrated to canonical `status-*` utilities / `--color-*` tokens (5 files). POLISH-04 satisfied: landmine grep zero across the dashboard subtree, design-token-drift guard green (2724/2724). 2/4 Phase-6 plans done.
 
 ## Next Action
 
@@ -111,4 +114,4 @@ Merged so far:
 (none active)
 
 ---
-*Last updated: 2026-05-31 — Phase 5 merged (#763); milestone 5/7 (71%). Trust `git log main` + `gh pr list --state merged` as source of truth over this cache.*
+*Last updated: 2026-06-01 — Phase 6 Plan 02 executed (dashboard color-token migration; POLISH-04 satisfied). 2/4 Phase-6 plans done; milestone still 5/7 phases shipped (71%). Trust `git log main` + `gh pr list --state merged` as source of truth over this cache.*
