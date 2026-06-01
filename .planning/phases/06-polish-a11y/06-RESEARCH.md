@@ -403,21 +403,24 @@ expect(overflow.htmlScrollWidth).toBeLessThanOrEqual(overflow.viewport + 1);
 | A4 | The 375px table→grid hydration flash does not cause page-level horizontal scroll (table is in `overflow-auto`) | Pitfall 3 | If the table's internal overflow leaks at 375px, POLISH-06 fails. Mitigated by the E2E `scrollWidth` probe catching it. Low risk. |
 | A5 | The new axe test belongs in the `owner` Playwright project and CI must add `--project=owner` (or equivalent) to actually run it | Pitfall 5 | If CI already runs owner E2E via another path, the CI edit is unnecessary. Verified ci-cd.yml runs only smoke+public on push/PR. Medium — flag for planner to wire CI. |
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **Should `StatTrend` (shared `stat.tsx`) be migrated, or only the dashboard call sites?**
    - What we know: `StatTrend` uses `text-green-600`/`text-red-600` raw palette (stat.tsx:108-109); UI-SPEC §3.3 mandates `--color-success`/`--color-destructive`; it's used by every KPI tile (in D-03 scope) AND ~15 other app surfaces.
    - What's unclear: whether the perfect-PR reviewer will accept an app-wide primitive change inside a dashboard-scoped phase.
    - Recommendation: Fix the primitive (UI-SPEC-mandated, color-equivalent), but call it out explicitly in the PR description as a shared-primitive change with a grep of all consumers (mirrors the D-04 NumberTicker blast-radius discipline). If the reviewer objects, fall back to a dashboard-level `className` override on the KPI `StatTrend`.
+   - RESOLVED: fix the shared primitive. UI-SPEC §3.3 mandates StatTrend use `--color-success`/`--color-destructive`/`--color-muted-foreground`; the change is additive (color-equivalent token swap); grep + list all consumers in the SUMMARY for the perfect-PR blast-radius record. (Plan 06-02 Task 2.)
 
 2. **axe scope: full page (incl. app-shell chrome) or `[data-testid='dashboard-stats']` subtree?**
    - What we know: D-03 says sweep the whole `/dashboard` subtree including header/app-shell chrome reachable from the route. axe full-page will also flag root-layout/app-shell issues.
    - What's unclear: whether app-shell chrome violations (e.g., header) are in Phase-6 scope or pre-existing/Phase-7.
    - Recommendation: Run full-page first to see the actual violation set, then decide. Prefer fixing chrome violations found (D-03 includes chrome) over scoping them out. If a violation is clearly outside `/dashboard` (e.g., a global nav issue), document and defer to Phase 7.
+   - RESOLVED: full-page first per D-03 (sweep the whole `/dashboard` subtree), then fix what is found. Every violation within the dashboard subtree (`src/components/dashboard/**` / `src/app/(owner)/dashboard/**`) is fixed inline; any `.exclude()` is bounded to an unrelated global-chrome violation in code NOT modified this phase (e.g. `src/components/layout/app-shell.tsx`) and is documented as a Phase-7 deferral. (Plan 06-04 Task 1.)
 
 3. **`statIndicatorVariants` color variants (stat.tsx:46-55) — in dashboard blast radius?**
    - What we know: KPI tiles use `<StatTrend>` (which has its own raw colors, Q1) and `<StatLabel/StatValue/StatDescription>`, but it's unclear if any dashboard tile uses `<StatIndicator color="success">` which carries `bg-green-500/10 text-green-600`.
    - Recommendation: grep dashboard for `StatIndicator` / `color=` usage; if unused on the dashboard, the `statIndicatorVariants` raw colors are out of D-03 scope (they're an app-wide concern, not this phase). Verified: `kpi-bento-row.tsx` uses `StatTrend`, not `StatIndicator` color variants — likely out of scope, but confirm.
+   - RESOLVED: yes if rendered in the dashboard subtree. Audit `statIndicatorVariants` (stat.tsx:46-55) and migrate any dashboard-rendered color variants to tokens consistently with the StatTrend swap (same file, same additive PR) so no raw palette class remains in stat.tsx; variants verified to be outside the dashboard render path stay a Phase-7 concern. (Plan 06-02 Task 2.)
 
 ## Environment Availability
 
