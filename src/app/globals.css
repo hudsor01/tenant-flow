@@ -172,10 +172,11 @@
 	--color-warning-foreground: oklch(0.25 0.03 85);
 	/*
 	 * Status TEXT tokens — AA-safe (>=4.5:1) when used as foreground text/icons
-	 * on the card/background surface. The vivid --color-{success,warning,destructive}
-	 * accents are tuned for fills, not text: at light-mode lightness they fail WCAG
-	 * AA on a near-white card. These darker-in-light / lighter-in-dark companions
-	 * are theme-aware so status text passes contrast in both themes.
+	 * on the card/background surface. The vivid --color-{success,warning} accents
+	 * are tuned for fills, not text: at light-mode lightness they fail WCAG AA on a
+	 * near-white card (success ~2.6:1, warning ~2.2:1); --color-destructive only
+	 * scrapes by (~4.6:1). These darker-in-light / lighter-in-dark companions are
+	 * theme-aware and clear AA with headroom in both themes.
 	 */
 	--color-success-text: oklch(0.5 0.15 158);
 	--color-warning-text: oklch(0.52 0.13 72);
