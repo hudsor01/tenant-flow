@@ -36,7 +36,7 @@ plan_map:
 ## Sampling Rate
 
 - **After every task commit:** Run the touched test file in `--run` mode (`anon-rpc-grants.rls.test.ts` or `bulk-import-create-lease.test.ts`).
-- **After every plan wave / pre-PR:** Run `bun run test:integration` (full suite, prod) + `get_advisors(security)` delta showing 46 → 43 authenticated WARNs.
+- **After every plan wave / pre-PR:** Run `bun run test:integration` (full suite, prod) + `get_advisors(security)` delta showing 46 → 44 authenticated WARNs (2 REVOKE'd drop off; `audit_for_all_policies` stays flagged by design).
 - **Before `/gsd:verify-work`:** Full suite green + advisor delta recorded in `CYCLE-2.md`.
 - **Max feedback latency:** ~120 seconds.
 
@@ -48,7 +48,7 @@ plan_map:
 |---------|------|-------------|-------------|------------|-----------------|-----------|-------------------|-------------|--------|
 | 01-class | 1 | 01-01 T2 | SDEF-01, SDEF-02 | T-01-inventory-enum | All 46 classified KEEP/TIGHTEN/REVIEW + KEEP rationale in CYCLE-2.md | doc review | grep KEEP/TIGHTEN/REVIEW + assert_can_create_lease/audit_for_all_policies present | ❌ W1 (`CYCLE-2.md`) | ⬜ pending |
 | 01-gate | 1 | 01-01 T1 | SDEF-03 | T-01-under-revoke | 7 analytics RPCs show `is_admin()`/owner-scope gate; any bare gate recorded → fixed in Plan 02 | live introspection | `execute_sql` `pg_get_functiondef` per fn → record in CYCLE-2.md | ✅ MCP | ⬜ pending |
-| 01-mig | 2 | 01-02 T1 | TIGHTEN-01, TIGHTEN-02, TIGHTEN-03 | T-01-over-revoke / T-01-bulk-bypass / T-01-inventory-enum | `REVOKE FROM PUBLIC` + re-`GRANT service_role` on the 2 TIGHTEN fns; `is_admin()` gate added to `audit_for_all_policies` | migration (MCP apply) | grep migration shape (REVOKE FROM PUBLIC + named (uuid,uuid) + is_admin; no FROM authenticated / no DROP); `get_advisors` delta 46→43; timestamp reconciled via `list_migrations` | ❌ W2 (new migration) | ⬜ pending |
+| 01-mig | 2 | 01-02 T1 | TIGHTEN-01, TIGHTEN-02, TIGHTEN-03 | T-01-over-revoke / T-01-bulk-bypass / T-01-inventory-enum | `REVOKE FROM PUBLIC` + re-`GRANT service_role` on the 2 TIGHTEN fns; `is_admin()` gate added to `audit_for_all_policies` | migration (MCP apply) | grep migration shape (REVOKE FROM PUBLIC + named (uuid,uuid) + is_admin; no FROM authenticated / no DROP); `get_advisors` delta 46→44; timestamp reconciled via `list_migrations` | ❌ W2 (new migration) | ⬜ pending |
 | 01-test | 2 | 01-02 T2 | SECTEST-01, TIGHTEN-01, TIGHTEN-02 | T-01-over-revoke / T-01-keep-helper-loss | tightened fns return a revoked-EXECUTE code from authenticated; `is_admin`/`get_current_owner_user_id` still reachable | integration | `bun run test:integration -- --run tests/integration/rls/anon-rpc-grants.rls.test.ts` | ⚠️ extends existing | ⬜ pending |
 | 01-safety | 2 | 01-02 T2 | TIGHTEN-02 | T-01-bulk-bypass | bulk-import invariant still enforced after revoke | integration | `bun run test:integration -- --run tests/integration/rls/bulk-import-create-lease.test.ts` | ✅ exists | ⬜ pending |
 | 01-verify | 2 | 01-02 T2 | SECTEST-01, TIGHTEN-03 | T-01-inventory-enum | non-admin `audit_for_all_policies` returns 0 rows (no enumeration) | integration | `anon-rpc-grants.rls.test.ts` 0-row pin + `for-all-audit.test.ts` green (semantics shift) | ✅ exists | ⬜ pending |
@@ -74,7 +74,7 @@ plan_map:
 
 | Behavior | Requirement | Why Manual | Test Instructions |
 |----------|-------------|------------|-------------------|
-| Advisor `authenticated_security_definer_function_executable` count drops 46 → 43 | TIGHTEN-01/02 | Advisor is an external Supabase service, not introspectable from the PostgREST-only test harness | Run `mcp__supabase__get_advisors({type:'security'})` before + after the migration; record the delta in `CYCLE-2.md` |
+| Advisor `authenticated_security_definer_function_executable` count drops 46 → 44 | TIGHTEN-01/02 | Advisor is an external Supabase service, not introspectable from the PostgREST-only test harness | Run `mcp__supabase__get_advisors({type:'security'})` before + after the migration; record the delta in `CYCLE-2.md` |
 | `get_lead_paint_compliance_report` no longer flagged | TIGHTEN-01 | Same — advisor delta | Confirm the function is absent from the post-migration advisor WARN list |
 
 *The integration suite is PostgREST-only and cannot read `pg_proc.proacl`; grant state is pinned via `.rpc()` reachability probes + the advisor oracle, not catalog reads.*

@@ -176,7 +176,7 @@ GRANT EXECUTE ON FUNCTION public.audit_for_all_policies(text) TO authenticated;
 [run bulk-import-create-lease.test.ts] ──> assert_can_create_lease invariant still fires (green)
         │
         ▼
-[mcp get_advisors(security) delta] ──> WARN count 46 → 43 (3 tightened drop off)
+[mcp get_advisors(security) delta] ──> WARN count 46 → 44 (2 REVOKE'd drop off; audit_for_all_policies kept+gated, stays flagged)
 ```
 
 ### Pattern 1: REVOKE-FROM-PUBLIC-then-re-GRANT (load-bearing)
@@ -320,7 +320,7 @@ The existing file has three `describe` blocks and a shared `REVOKED_CODES = ["42
 - The 7-RPC admin-gate spot-check results (SDEF-03): per-function gate type (`is_admin()` / `auth.uid()` owner-scope / FIXED) + the `pg_get_functiondef` evidence.
 - The TIGHTEN-02 introspection output (single-signature proof + internal-caller list + owner).
 - The TIGHTEN-03 decision + rationale.
-- The migration filename (post-reconcile prod timestamp) and the before/after advisor delta (46 → 43 authenticated WARNs; the 3 tightened drop off).
+- The migration filename (post-reconcile prod timestamp) and the before/after advisor delta (46 → 44 authenticated WARNs; the 2 REVOKE'd functions drop off, `audit_for_all_policies` stays flagged by design — grant kept, body-gated).
 - A "Verification" table mirroring CYCLE-1's `anon | authn | service` grid for the 3 tightened functions (authn ✗ for the 2 revoked; `audit_for_all_policies` authn ✓ but body-gated).
 
 ## Common Pitfalls
@@ -418,7 +418,7 @@ describe("authenticated cannot reach tightened SECURITY DEFINER functions", () =
 
 ### Sampling Rate
 - **Per task commit:** the touched test file in `--run` mode (`anon-rpc-grants.rls.test.ts` or `bulk-import-create-lease.test.ts`).
-- **Per wave merge / pre-PR:** full `bun run test:integration` against prod (zero RLS regressions is the bar) + `get_advisors(security)` delta showing 46 → 43 authenticated WARNs.
+- **Per wave merge / pre-PR:** full `bun run test:integration` against prod (zero RLS regressions is the bar) + `get_advisors(security)` delta showing 46 → 44 authenticated WARNs (the 2 REVOKE'd functions drop off; `audit_for_all_policies` stays flagged by design).
 - **Phase gate:** `rls-security` CI green + advisor delta recorded in CYCLE-2.md.
 
 ### Wave 0 Gaps
@@ -475,17 +475,17 @@ describe("authenticated cannot reach tightened SECURITY DEFINER functions", () =
 
 > All four assumptions are **caught by execute-time introspection or an existing test gate before the PR can merge** — none are silent. The classification verdicts themselves (44/2/1) are VERIFIED against the SQL sources in this research, not assumed.
 
-## Open Questions
+## Open Questions (RESOLVED: handled at execute-time)
 
-1. **Owner of `bulk_import_create_lease` / `assert_can_create_lease`**
+1. **Owner of `bulk_import_create_lease` / `assert_can_create_lease`** — RESOLVED at execute-time (Plan 01 Task 1, TIGHTEN-02 step 3).
    - What we know: `CYCLE-1.md:80` documents the analogous trigger chain functions as owned by `postgres`.
    - What's unclear: not re-verified live for these two specific functions in this research session (read from migration sources only).
-   - Recommendation: the executor runs the TIGHTEN-02 step-3 owner query as the first introspection; if not `postgres`/superuser, escalate before revoking.
+   - Recommendation: the executor runs the TIGHTEN-02 step-3 owner query as the first introspection; if not `postgres`/superuser, escalate before revoking. Plan 02 Task 1 is GATED on this proof being clean — not a blocking unknown.
 
-2. **Whether any of the 7 analytics RPCs is genuinely ungated**
+2. **Whether any of the 7 analytics RPCs is genuinely ungated** — RESOLVED at execute-time (Plan 01 Task 1, SDEF-03 spot-check).
    - What we know: `CYCLE-1.md` classifies the GATES_INTERNALLY set as `auth.uid()`-gated; the 3 admin aggregates as `is_admin()`-gated.
    - What's unclear: `get_error_summary`, `get_error_prone_users`, `get_common_errors` weren't body-inspected in this research.
-   - Recommendation: the SDEF-03 spot-check resolves all 7 at execute-time; fix-and-keep-grant if any is bare.
+   - Recommendation: the SDEF-03 spot-check (`pg_get_functiondef` per fn) resolves all 7 at execute-time; fix-and-keep-grant if any is bare (folded into the Plan 02 migration). Not a blocking unknown.
 
 ## Environment Availability
 
