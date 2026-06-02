@@ -44,7 +44,7 @@ Phases 1 and 2 are invisible foundation. Phases 3 and 4 each *add* a new region 
 - [x] **Phase 4: Charts** — `RevenueAreaChart` refresh (30d/6mo toggle) + new `OccupancyDonutChart`. Adds Section C.
 - [x] **Phase 5: Portfolio DataTable** — Replace hand-rolled table with DiceUI DataTable: client hook, column model, faceted filter, column visibility, virtualization, grid/table toggle, saved presets, nuqs URL state.
 - [ ] **Phase 6: Polish & A11y** — Dark-mode audit, keyboard a11y, 375px responsive, skeleton/empty mutual exclusion, reduced-motion.
-- [ ] **Phase 7: Verification** — E2E coverage for `/dashboard` + final design-token sweep.
+- [x] **Phase 7: Verification** — E2E coverage for `/dashboard` + final design-token sweep.
 
 ## Phase Details
 
@@ -160,7 +160,9 @@ Phases 1 and 2 are invisible foundation. Phases 3 and 4 each *add* a new region 
   4. The merged PR closes the v2.0 milestone with 34/34 requirements satisfied per traceability.
 **Plans:** 2 plans (2 waves)
 - [x] 07-01-PLAN.md — **Wave 1.** POLISH-09 `/dashboard` E2E smoke under the CI-run `owner-axe` project (in-test `loginAsOwner`, no storageState): KPI numbers match `get_dashboard_data_v2`, occupancy donut matches `stats.units`, DataTable sort/filter/column-visibility/preset save+restore + grid/table toggle. New `dashboard-rpc-helpers.ts` derives expected values from the authed RPC; `owner-axe` `testMatch` widened to collect it.
-- [ ] 07-02-PLAN.md — **Wave 2** (depends on 07-01). POLISH-12 design-token sweep verification across every new dashboard file (the drift test already walks `src/components/**` + `src/app/**`) + removal of the stale Phase-1 `dashboard-filters.tsx` exemption; milestone close: flip POLISH-09 + POLISH-12 traceability to satisfied (34/34). Ships as one atomic PR through the perfect-PR gate.
+- [x] 07-02-PLAN.md — **Wave 2** (depends on 07-01). POLISH-12 design-token sweep verification across every new dashboard file (the drift test already walks `src/components/**` + `src/app/**`) + removal of the stale Phase-1 `dashboard-filters.tsx` exemption; milestone close: flip POLISH-09 + POLISH-12 traceability to satisfied (34/34). Ships as one atomic PR through the perfect-PR gate.
+
+Phase 7 ships as one atomic PR through the perfect-PR gate (two consecutive zero-finding deep review cycles), per the milestone's cross-cutting "Independently shippable" constraint, closing v2.0 at 34/34 requirements satisfied.
 
 ## Progress
 
@@ -172,7 +174,7 @@ Phases 1 and 2 are invisible foundation. Phases 3 and 4 each *add* a new region 
 | 4. Charts | v2.0 | 4/4 | Shipped (PR #748) | 2026-05-28 |
 | 5. Portfolio DataTable | v2.0 | 5/5 | Shipped (PR #763) | 2026-05-31 |
 | 6. Polish & A11y | v2.0 | 4/4 | Complete   | 2026-06-01 |
-| 7. Verification | v2.0 | 1/2 | In Progress|  |
+| 7. Verification | v2.0 | 2/2 | Complete   | 2026-06-02 |
 
 ## Coverage Validation
 
