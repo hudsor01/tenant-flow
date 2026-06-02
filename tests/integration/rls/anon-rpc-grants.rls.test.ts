@@ -177,8 +177,6 @@ const REVOKED_FROM_AUTHENTICATED: Array<{
 	},
 ];
 
-const ZERO_UUID = "00000000-0000-0000-0000-000000000000";
-
 /**
  * v3.0 Security Hardening Phase 1 (migration 20260602202339): functions revoked
  * from `authenticated` (and PUBLIC), service_role retained. Unlike the pass-1/2/3
@@ -199,7 +197,10 @@ const TIGHTENED_FROM_AUTHENTICATED: Array<{
 	{ name: "get_lead_paint_compliance_report" },
 	{
 		name: "assert_can_create_lease",
-		args: { p_unit_id: ZERO_UUID, p_primary_tenant_id: ZERO_UUID },
+		args: {
+			p_unit_id: "00000000-0000-0000-0000-000000000000",
+			p_primary_tenant_id: "00000000-0000-0000-0000-000000000000",
+		},
 	},
 ];
 
@@ -259,12 +260,22 @@ describe("anon-EXEC SECURITY DEFINER lockdown", () => {
 	});
 
 	describe("v3.0 phase 1: KEEP RLS helper remains reachable by authenticated", () => {
-		it("get_current_owner_user_id: authenticated reachable (not revoked)", async () => {
-			// RLS owner-isolation helper; authenticated MUST keep EXECUTE. ownerA gets
-			// its owner uuid (or null), never a revoked-EXECUTE error. The is_admin()
-			// KEEP helper is already pinned by the pass-3 test above.
-			const { error } = await authnClient.rpc("get_current_owner_user_id");
+		it("get_current_owner_user_id: authenticated reachable, returns ownerA's uuid", async () => {
+			// RLS owner-isolation helper (`select auth.uid()`); authenticated MUST
+			// keep EXECUTE. For a signed-in owner it returns that owner's uuid -- a
+			// non-null uuid string, never a revoked-EXECUTE error and never null
+			// (auth.uid() is non-null for an authenticated session). Asserting the
+			// shape distinguishes "reachable + correct" from a silent regression to
+			// null/garbage. The is_admin() KEEP helper is pinned by the pass-3 test
+			// above.
+			const { data, error } = await authnClient.rpc(
+				"get_current_owner_user_id",
+			);
 			expect(error).toBeNull();
+			expect(typeof data).toBe("string");
+			expect(data).toMatch(
+				/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i,
+			);
 		});
 	});
 

@@ -1,17 +1,25 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { createTestClient, getTestCredentials } from "../setup/supabase-client";
 
-// NOTE (v3.0 Security Hardening Phase 1, migration 20260602202339): as of
-// TIGHTEN-03, `audit_for_all_policies` gates its body on `public.is_admin()`. The
-// test client below authenticates as ownerA (a NON-admin), so these calls now
-// return an empty set via the gate rather than by enumerating the catalog. The
-// assertions (`toHaveLength(0)`) still hold, but for a non-admin they are
-// effectively scoped by the gate, not a direct FOR-ALL-policy invariant check.
-// The is_admin() leak-closure itself is pinned in
-// `anon-rpc-grants.rls.test.ts` (non-admin → 0 rows, no error). A true
-// admin-scoped FOR-ALL audit needs an admin test client (the harness has none
-// today: getAdminTestCredentials() → null).
-describe("FOR ALL policy audit — no FOR ALL policies on public/storage", () => {
+// `audit_for_all_policies` is an admin schema-diagnostic that enumerates FOR ALL
+// policies on public/storage. As of v3.0 Security Hardening Phase 1 (migration
+// 20260602202339, TIGHTEN-03) its body gates on `public.is_admin()` BEFORE the
+// catalog filter, so a non-admin caller receives an empty set regardless of
+// which policies exist -- closing a policy-inventory info-leak to arbitrary
+// signed-in accounts.
+//
+// This file now pins the GATE behavior (non-admin -> no rows, no error), which
+// also catches a future regression that removes the gate (a non-admin would then
+// receive real policy rows and these assertions would fail). It does NOT assert
+// the historical "zero FOR ALL <role> policies" invariant:
+//   - the harness has no admin client (getAdminTestCredentials() -> null), so the
+//     catalog filter can only be exercised by an admin session; verify that
+//     invariant out-of-band via the Supabase advisor / an admin session until an
+//     admin test client exists; and
+//   - Phase 2 intentionally adds `service_role_only` FOR ALL policies to the
+//     rls_enabled_no_policy tables, so a blanket "zero FOR ALL service_role
+//     policies" assertion would be wrong going forward anyway.
+describe("audit_for_all_policies is admin-gated (non-admin sees no rows)", () => {
 	let client: SupabaseClient;
 
 	beforeAll(async () => {
@@ -19,53 +27,16 @@ describe("FOR ALL policy audit — no FOR ALL policies on public/storage", () =>
 		client = await createTestClient(ownerA.email, ownerA.password);
 	});
 
-	it("no FOR ALL policies exist for service_role on public or storage schemas", async () => {
-		// Use an RPC to query pg_policies (system catalog)
-		const { data, error } = await client.rpc("audit_for_all_policies", {
-			p_role: "service_role",
+	for (const role of ["service_role", "authenticated"]) {
+		it(`non-admin gets an empty set for p_role=${role} (gate, not error)`, async () => {
+			const { data, error } = await client.rpc("audit_for_all_policies", {
+				p_role: role,
+			});
+			// authenticated grant is KEPT, so the call is reachable (no
+			// revoked-EXECUTE error); the is_admin() gate returns an empty set for a
+			// non-admin owner -- no policy-inventory enumeration.
+			expect(error).toBeNull();
+			expect(data ?? []).toHaveLength(0);
 		});
-
-		expect(error).toBeNull();
-
-		const policies = Array.isArray(data) ? data : [];
-		// The lone historical exception (rent_payments_service_role) died with
-		// the rent_payments table in the demolition; prod now has zero FOR ALL
-		// service_role policies, so this asserts the clean invariant directly.
-		if (policies.length > 0) {
-			const details = policies
-				.map(
-					(p: { schemaname: string; tablename: string; policyname: string }) =>
-						`${p.schemaname}.${p.tablename}: "${p.policyname}"`,
-				)
-				.join(", ");
-			throw new Error(
-				`Found ${policies.length} service_role FOR ALL policies: ${details}`,
-			);
-		}
-
-		expect(policies).toHaveLength(0);
-	});
-
-	it("no FOR ALL policies exist for authenticated on public or storage schemas", async () => {
-		const { data, error } = await client.rpc("audit_for_all_policies", {
-			p_role: "authenticated",
-		});
-
-		expect(error).toBeNull();
-
-		const policies = Array.isArray(data) ? data : [];
-		if (policies.length > 0) {
-			const details = policies
-				.map(
-					(p: { schemaname: string; tablename: string; policyname: string }) =>
-						`${p.schemaname}.${p.tablename}: "${p.policyname}"`,
-				)
-				.join(", ");
-			throw new Error(
-				`Found ${policies.length} authenticated FOR ALL policies: ${details}`,
-			);
-		}
-
-		expect(policies).toHaveLength(0);
-	});
+	}
 });
