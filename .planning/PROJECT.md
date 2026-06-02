@@ -1,19 +1,14 @@
 # TenantFlow
 
-## Current Milestone: v2.0 Dashboard Command Center
+## Current State
 
-**Goal:** Full redesign of the authenticated owner dashboard (`/dashboard`) — restrained B2B aesthetic using already-vendored DiceUI DataTable + Stat / NumberTicker / BlurFade primitives — plus the latent `*100`/`÷100` revenue-path bug fix.
+**Latest shipped milestone:** v2.0 Dashboard Command Center (shipped 2026-06-02, 7 phases / 24 plans / 34/34 requirements). The authenticated owner dashboard at `/dashboard` is now a restrained B2B command center — 6-tile KPI bento row, refreshed `RevenueAreaChart` (30d/6mo) + new `OccupancyDonutChart`, a vendored DiceUI/TanStack-table Portfolio DataTable (sort / faceted filter / column visibility / virtualization / grid-toggle / saved presets / nuqs URL state), full dark-mode + keyboard + 375px + reduced-motion a11y, and an `/dashboard` E2E smoke under CI `owner-axe`. The latent `*100`/`÷100` revenue round-trip is gone — `get_dashboard_data_v2` returns dollars handled correctly end-to-end. Full summary: [MILESTONES.md](MILESTONES.md) · archive: [milestones/v2.0-ROADMAP.md](milestones/v2.0-ROADMAP.md).
 
-**Target features:**
-- 6-tile KPI bento row with sparklines on Revenue + Occupancy
-- Refreshed `RevenueAreaChart` (30d/6mo toggle) + new `OccupancyDonutChart`
-- Portfolio DataTable on `@tanstack/react-table` with sort / column visibility / faceted filter / virtualization / grid-toggle / saved presets
-- Dark-mode + keyboard a11y + 375px responsive + reduced-motion polish, with E2E coverage
-- Drop the `*100`/`÷100` round-trip — `get_dashboard_data_v2` returns dollars; display is accidentally correct because the bug cancels itself
+**No active milestone.** Next milestone unplanned — run `/gsd-new-milestone`.
 
-**Phase numbering:** Reset to 1-7 (major version → fresh sequence). Branch template: `gsd/phase-{phase}-{slug}`.
+### Next Milestone Goals (candidate)
 
-**Source spec:** `.planning/MILESTONE-CONTEXT.md` (copied from the user's parked plan at `/Users/richard/.claude/plans/i-want-to-enhance-hazy-island.md`).
+Queued seed **SEED-001** (`.planning/seeds/SEED-001-supabase-security-advisor-remediation.md`): systematic Supabase Security Advisor remediation — classify + resolve the 46 `authenticated_security_definer_function_executable` WARNs (KEEP-by-design vs TIGHTEN) and the 10 `rls_enabled_no_policy` INFOs, to a documented + test-pinned steady state with zero RLS regressions. `auth_leaked_password_protection` is explicitly out of scope (paid feature). `/gsd-new-milestone` will surface this seed automatically. The user may also pick a different direction at planning time.
 
 ## What This Is
 
@@ -44,48 +39,16 @@ Every public claim on tenantflow.app must map to working code, and every visual 
 - ✓ **Data retention cron jobs (security_events 90d, user_errors 90d, stripe_webhook_events 90d/180d)** — earlier milestone
 - ✓ **RLS on every table; landlord owner isolation enforced via `tests/integration/rls/`** — pre-v1
 - ✓ **Marketing Surface Honesty (56 audit findings closed across CRIT/CONS/COPY/PRICE/BLOG/TOKEN/TRUST/SEO/PERF)** — v1.0 (shipped 2026-05-22, 15 phases, audit round 3 verdict PERFECT BY ALL MEASURES). Highlights: blog DB cleanup + server-render rebuild + n8n redesign; pricing restructured to Starter $19 / Growth $49 / Max $149 with single-source-of-truth `pricing.ts`; unified "landlord" persona across hero/About/meta/FAQ/blog; 5 redirect aliases (`/signup` + 4 legal long-form paths); homepage NumberTicker fix + 375px mobile drawer; design-token drift guard scanning hex/rgb/`bg-white`/inline-ms; canonical "Contact Sales" CTA; 2 real testimonials; SEO meta-separator standardization + per-page OG images + site-wide Organization/SoftwareApplication JSON-LD + visible breadcrumbs; static-gen + sticky CTA + lead-capture modal (feature-flagged); `@stripe/(react-)?stripe-js` dead-dep drift guard; host-derived Vitest worker-pool cap; `/blog` nav suppression regression-pin until content cohort lands.
+- ✓ **Dashboard Command Center — `/dashboard` redesign (34/34 requirements: KPI-01..07, CHART-01..06, DT-01..09, POLISH-01..12)** — v2.0 (shipped 2026-06-02, 7 phases). 6-tile KPI bento row (`Stat` + `NumberTicker` + `StatTrend`, `@container` grid, sparklines on Revenue + Occupancy); refreshed `RevenueAreaChart` (30d/6mo toggle) + new `OccupancyDonutChart` (center label + legend from `stats.units`), series colors from `--color-chart-{1..5}`, `next/dynamic` `ssr:false`; vendored DiceUI/TanStack Portfolio DataTable (`useClientDataTable`, `aria-sort` + keyboard sort, faceted status filter, column visibility, virtualization, grid/table toggle, Zustand-`persist` saved presets, nuqs URL state — 3 hand-rolled files deleted); dark-mode token migration with theme-aware `--color-{success,warning,destructive}-text` companions (≥4.5:1 both themes); `NumberTicker` internal reduced-motion guard (16 consumers); 375px zero-horizontal-scroll + skeleton↔empty mutual-exclusion; `/dashboard` E2E smoke + axe-core WCAG 2.1 AA under CI `owner-axe`; **killed the `*100`/`÷100` revenue round-trip** (`get_dashboard_data_v2` returns dollars, correct end-to-end) + extracted shared `transformDashboardData` + dropped fabricated `collection_rate` (no rent-payment data exists). Deferred at close: 2 Phase-6 manual focus-ring sign-offs (automated axe coverage passed in CI).
 
 ### Active
 
-<!-- v2.0 scope: full dashboard redesign at /dashboard. 4 requirement categories.
-     Source spec: .planning/MILESTONE-CONTEXT.md (copied from the user's parked plan at
-     /Users/richard/.claude/plans/i-want-to-enhance-hazy-island.md). -->
+<!-- No active milestone. v2.0 Dashboard Command Center shipped 2026-06-02 and its
+     requirements moved to Validated above. The next milestone's requirements are defined
+     fresh by /gsd-new-milestone (which creates a new REQUIREMENTS.md). Leading candidate:
+     SEED-001 (Supabase Security Advisor remediation) — see Current State → Next Milestone Goals. -->
 
-**KPI visibility (KPI):**
-- [ ] 6-tile bento row replacing the one-line text header (Revenue, Occupancy, Active Leases, Open Maintenance, Properties, Units)
-- [ ] Each tile renders via `Stat` shell + `NumberTicker` value + `StatTrend` arrow
-- [ ] Sparklines on Revenue + Occupancy tiles only (`KpiSparkline` axis-less Recharts `Area`)
-- [ ] Staggered reveals via `BlurFade` (max ~4, reduced-motion aware)
-- [ ] `@container` CSS grid (NOT `ui/bento-grid.tsx` — that's a marketing component)
-
-**Charts + data-viz (CHART):**
-- [ ] `RevenueAreaChart` — refreshed Recharts area chart, 30d / 6mo toggle, drops `/100`
-- [ ] `OccupancyDonutChart` — new Recharts donut, center label, legend
-- [ ] Chart colors source from `--color-chart-*` design tokens
-- [ ] Dark-mode contrast verified
-- [ ] Updated loading skeletons match chart shape
-
-**Portfolio DataTable (DT):**
-- [ ] Replace hand-rolled portfolio table with vendored DiceUI `@tanstack/react-table` stack
-- [ ] `useClientDataTable` thin variant (client-side equivalent of the server-mode `useDataTable`)
-- [ ] `portfolio-columns.tsx` column model with `aria-sort` on sortable headers
-- [ ] Faceted status filter via `DataTableFacetedFilter`
-- [ ] Column visibility via `DataTableViewOptions`
-- [ ] Row virtualization via `@tanstack/react-virtual`
-- [ ] Grid / table view toggle
-- [ ] Saved filter presets (`localStorage` via Zustand `persist` slice `dashboard-presets-store.ts`)
-- [ ] Live filter / sort / page state in nuqs URL params (replaces bespoke Zustand state)
-
-**Polish + a11y (POLISH):**
-- [ ] **Drop every `*100` / `/100` in the revenue path** — `page.tsx` (lines 71/92/107), `formatDashboardCurrency`, `revenue-overview-chart.tsx:41`. In-memory values currently 100× wrong (display accidentally correct because the bug round-trips).
-- [ ] Dark-mode audit across new dashboard surface (no white-on-white, no invisible badges, no `bg-white`)
-- [ ] Keyboard a11y — `aria-sort`, visible focus rings, icon-button `aria-label`s, skip link reachable
-- [ ] 375px viewport — zero horizontal scroll; table forces grid view at mobile breakpoint
-- [ ] Skeleton ↔ empty-state mutual exclusion (Phase 14 D-04 pattern: route-scoped loading.tsx)
-- [ ] Reduced-motion guard on every animation
-- [ ] E2E smoke for `/dashboard` (synthetic owner; KPI numbers match `get_dashboard_data_v2`; occupancy donut matches `stats.units`; DataTable sort/filter/column-visibility/presets work)
-- [ ] Dedup: delete `owner-dashboard.tsx` duplicate, `chart-area-interactive.tsx`, dashboard-filters duplicates, second `portfolio-toolbar.tsx`, `skeletons.tsx`
-- [ ] Phase-2 additive RPC migration for per-property `open_maintenance` (or ship the column hidden by default); resolve `collection_rate` compute-or-drop in discuss-phase (no fabricated zeros)
+_(none — between milestones; run `/gsd-new-milestone` to define the next set)_
 
 ### Out of Scope
 
@@ -152,6 +115,12 @@ Every public claim on tenantflow.app must map to working code, and every visual 
 | Testimonials (TRUST-01): real names + property counts + quotes, **no headshots**. Avatar fallback uses initials or geometric placeholder. | User explicit: can provide names/counts/quotes, headshots difficult to source. | ✓ Good — v1.0 |
 | Treat audit document as v1.0 spec; locked decisions captured here override audit-default recommendations where they conflict | User input > audit defaults. | ✓ Good — v1.0 |
 | Brownfield framing — Validated section pre-populated from v2.6 capabilities | TenantFlow is mature; PROJECT.md must reflect that to prevent agents from re-deriving stack/architecture. | ✓ Good — v1.0 |
+| v2.0 phase numbering **reset to 1-7** (major-version → fresh sequence; v1.0's phases 1-15 archived independently) | Keeps per-milestone phase numbers small and legible; archives keep history separable. | ✓ Good — v2.0 |
+| KPI grid is a plain `@container` CSS grid of `Stat` tiles — `ui/bento-grid.tsx` is OUT | `bento-grid.tsx` is a marketing-flash component; the dashboard is restrained B2B. | ✓ Good — v2.0 |
+| Drop `collection_rate` from the KPI set rather than fabricate `0` | TenantFlow facilitates no rent payments, so the data does not exist — v1.0 honesty principle (never fabricate). | ✓ Good — v2.0 |
+| No `*100` / `/100` revenue arithmetic anywhere — cross-cutting hard rule, perfect-PR-gate enforced | The latent round-trip made in-memory values 100× wrong while display accidentally cancelled; `get_dashboard_data_v2` returns dollars. | ✓ Good — v2.0 |
+| Authed dashboard E2E runs under the CI **`owner-axe`** project (in-test `loginAsOwner` cookie injection), NOT the storageState `owner` project | The `owner` storageState project does not run in CI; `owner-axe` is the CI-runnable authed path. | ✓ Good — v2.0 |
+| Dark-mode text uses theme-aware `--color-{success,warning,destructive}-text` companions (≥4.5:1); vivid brand tokens stay on icons only (3:1) | Vivid tokens fail AA as foreground text in one theme each; carried into the post-milestone app-wide token sweep (PRs #769/#770). | ✓ Good — v2.0 |
 
 ## Evolution
 
@@ -171,4 +140,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-06-01 — v2.0 "Dashboard Command Center" in progress. Phase 6 (Polish & A11y) complete: POLISH-04..08 satisfied (theme-aware dark-mode contrast tokens, axe-core a11y E2E wired into CI via the `owner-axe` project, 375px responsive probe, skeleton/empty mutual exclusion, NumberTicker reduced-motion guard). Two human-verification items tracked in `06-HUMAN-UAT.md` (live CI axe run + manual focus audit). Next: Phase 7 (Verification). v1.0 "Marketing Surface Honesty" archived 2026-05-22 (15 phases, 56/56 requirements, audit verdict PERFECT BY ALL MEASURES).*
+*Last updated: 2026-06-02 after v2.0 milestone — "Dashboard Command Center" shipped and archived (7 phases, 24 plans, 34/34 requirements; final phase PR #773 → `3e1a4cc29`). All v2.0 requirements moved to Validated. Deferred at close: 2 Phase-6 manual focus-ring sign-offs (automated axe coverage passed in CI; see STATE.md Deferred Items). No active milestone — next is `/gsd-new-milestone` (queued candidate: SEED-001 Supabase Security Advisor remediation). v1.0 "Marketing Surface Honesty" archived 2026-05-22.*

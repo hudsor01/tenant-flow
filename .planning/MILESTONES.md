@@ -1,5 +1,57 @@
 # Milestones
 
+## v2.0 Dashboard Command Center (Shipped: 2026-06-02)
+
+**Phases:** 7 (1-7) | **Plans:** 24 | **Tasks:** 40 | **Requirements:** 34/34 satisfied
+**Timeline:** 2026-05-22 → 2026-06-02 (11 days) | **Git range:** PR #744 → PR #773
+**Merge commit:** [`3e1a4cc29`](https://github.com/hudsor01/tenant-flow/commit/3e1a4cc29) (PR #773)
+**Archive:** [`milestones/v2.0-ROADMAP.md`](milestones/v2.0-ROADMAP.md) · [`milestones/v2.0-REQUIREMENTS.md`](milestones/v2.0-REQUIREMENTS.md)
+**Known deferred items at close:** 2 (Phase-6 manual focus-ring UAT + verification sign-off — superseded by the automated WCAG 2.1 AA axe sweep that passed in CI; see STATE.md Deferred Items)
+
+### Delivered
+
+The authenticated owner dashboard at `/dashboard` became a restrained, professional B2B command center — KPI bento row above the fold, refreshed charts, a real DataTable with column controls + saved presets, and full keyboard / dark-mode / mobile / reduced-motion a11y — while killing the latent `*100`/`÷100` revenue round-trip so every dollar is handled correctly throughout the data path. 34/34 requirements (KPI-01..07, CHART-01..06, DT-01..09, POLISH-01..12) mapped with no orphans and no double-mapping.
+
+### Key Accomplishments
+
+**Foundation + honest data layer (Phases 1-2, PRs #744/#745):**
+
+- Killed the `*100`/`÷100` revenue round-trip, extracted one shared `transformDashboardData` module, and dedup-deleted 7 stale dashboard files (owner-dashboard, duplicate dashboard-filters, second portfolio-toolbar, skeletons) — zero visible change, correct in-memory values (POLISH-01/02/03)
+- Additive `get_dashboard_data_v2` migration for per-property `open_maintenance`; dropped the fabricated `collection_rate` `0` (TenantFlow facilitates no rent payments, so the data does not exist — never fabricate) with a dual-client (ownerA/ownerB) RLS owner-isolation test green against prod (POLISH-10/11)
+
+**KPI row + charts (Phases 3-4, PRs #746/#748):**
+
+- 6-tile KPI bento row (Revenue, Occupancy, Active Leases, Open Maintenance, Properties, Units) on `Stat` + `NumberTicker` + `StatTrend`, axis-less `KpiSparkline` on Revenue + Occupancy only, `@container` auto-fit grid (not the marketing `bento-grid.tsx`), `BlurFade` staggered reveals (KPI-01..07)
+- Refreshed `RevenueAreaChart` (30d/6mo toggle, no residual `/100`) + brand-new `OccupancyDonutChart` (center label + legend sourced from `stats.units`), both `next/dynamic` `ssr:false` with shape-matching CSS-only skeletons; series colors source exclusively from `--color-chart-{1..5}` (CHART-01..06)
+
+**Portfolio DataTable (Phase 5, PR #763):**
+
+- Replaced the hand-rolled portfolio table with the vendored DiceUI / TanStack-table composition: `useClientDataTable` hook, 7-column model with `aria-sort` + keyboard sort, faceted status filter, column-visibility menu, always-on virtualization, grid/table toggle, full-snapshot saved presets (Zustand `persist`), and live filter/sort/page state in nuqs URL params; the 3 hand-rolled files (table/toolbar/pagination) deleted in the same atomic swap (DT-01..09)
+
+**Polish, a11y + verification (Phases 6-7, PRs #767/#773):**
+
+- Dark-mode token migration with theme-aware `--color-{success,warning,destructive}-text` companions verified ≥4.5:1 in both themes; internal reduced-motion guard on the shared `NumberTicker` rAF primitive (all 16 consumers snap to final value under `prefers-reduced-motion`); skeleton↔empty branch mutual-exclusion regression (POLISH-04/05/06/07/08)
+- `/dashboard` E2E smoke under the CI `owner-axe` project (in-test `loginAsOwner`, no storageState): KPI numbers vs `get_dashboard_data_v2`, donut vs `stats.units`, DataTable sort / status filter / column visibility / preset save+restore / grid-table toggle — plus an automated axe-core WCAG 2.1 AA sweep + 375px zero-horizontal-scroll probe, and a final design-token drift sweep across every new dashboard file (POLISH-09/12)
+
+### Discipline Outcomes
+
+- **Perfect-PR merge gate** (two consecutive zero-finding deep review cycles) enforced on every shipped phase. Cycle counts: Phase 1 → 7 (6+7 zero), Phase 2 → 11 (+ post-merge fix), Phase 4 → 9 (8+9 zero), Phase 5 → 8 (final two independent reviewers both CLEAN), Phase 7 → review APPROVED with one P2 fixed + CI re-verified green.
+- **Binding verification:** Phase 7 (the milestone's verification phase) ran the 7-test `/dashboard` smoke against live prod (synthetic owner with 5 active properties / 2 leases → populated path) in CI `e2e-smoke` and passed (201s). No separate `/gsd:audit-milestone` was run — Phase 7 IS the milestone audit.
+- **CI gates:** branch protection on `main` requires `checks` / `e2e-smoke` / `rls-security`, all run on every PR and fail hard when secrets missing. The first Phase-6 CI axe run surfaced 4 real WCAG violations + a 623px→375px overflow, all fixed before merge.
+- **Cross-cutting hard rule:** no `*100` / `/100` revenue arithmetic anywhere — repo-wide grep zero across the dashboard subtree, gate-enforced.
+
+### Lessons Carried Forward
+
+- The shared-primitive reduced-motion pattern: guard INSIDE the effect (not a component-top early-return) so the `ref` stays attached and the IntersectionObserver keeps firing — a top-level return would unmount the observed node and break the stuck-0 NumberTicker scroll behavior.
+- Vivid brand tokens fail AA as foreground TEXT in one theme each (destructive in dark 3.29:1; success/warning/info in light 2.1–3.3:1) — use `-text` companions for text, keep vivid for icons (3:1). (Carried into the post-milestone app-wide token sweep, PRs #769/#770.)
+- The CI `owner-axe` project (in-test `loginAsOwner` cookie injection) is the CI-runnable authed path; the `owner` storageState project does NOT run in CI. Authed dashboard E2E must target `owner-axe`.
+
+### Naming-Collision Note
+
+The git tag `v2.0` was already in use from a prior project-iteration milestone ("Stripe Integration Excellence", commit `b244f9c25`, 2026-01-17) — the same disjoint legacy tag namespace (`v1.0`–`v4.0`) noted for the v1.0 "Marketing Surface Honesty" milestone. The complete-milestone workflow's pre-check correctly skipped re-tagging to avoid a silent overwrite. This v2.0 "Dashboard Command Center" milestone is authoritative via `.planning/MILESTONES.md` + `.planning/milestones/v2.0-*.md` archive files + the merge commit (`3e1a4cc29`). A dedicated tag pointing at the actual merge commit would need a distinct name (e.g. `v2.0-dashboard`) or an explicit force-update; not done here, matching the v1.0 precedent.
+
+---
+
 ## v1.0 Marketing Surface Honesty (Shipped: 2026-05-22)
 
 **Phases:** 15 (1-15) | **Plans:** 33 | **Audit:** Round 3 — PERFECT BY ALL MEASURES
@@ -13,33 +65,39 @@ Every public claim on tenantflow.app maps to working code, and every visual alig
 ### Key Accomplishments
 
 **Critical stop-bleed (Phases 1-3):**
+
 - Bulk-unpublished 100 broken blog rows + BEFORE-INSERT trigger guard against re-publish (CRIT-01)
 - Fixed homepage NumberTicker animation (5 / 7 / 500 / 14) with one-shot IntersectionObserver (CRIT-02)
 - 375px mobile drawer using shadcn `Sheet` + 44×44 touch targets + 8-test Playwright spec (CRIT-04)
 - 5 redirect aliases (`/signup` → `/pricing` + 4 legal long-form paths → canonical short paths) eliminating the `/signup` → `/login` loop (CRIT-05/06)
 
 **Persona + Pricing (Phases 4-5):**
+
 - Unified "landlord" persona across hero / About / meta / FAQ / blog with `marketing-copy-landlord-only.test.ts` 7-category banlist drift guard (CONS-01 + COPY-01..07)
 - Pricing restructured to **Starter $19 / Growth $49 / Max $149** with `src/config/pricing.ts` single-source-of-truth, 8 consumer files reading via `#config/pricing`, Stripe products + prices repointed via MCP, 3-offer `Product` JSON-LD (PRICE-01..06)
 - Fabricated "Join 500+" replaced with honest "Built for landlords with 1–15 rentals" segment framing (COPY-02)
 
 **Blog rebuild + battle-test remediation (Phases 6, 14):**
+
 - `/blog` index server-rendered, real-404 on unknown slug via `dynamicParams = false`, visible breadcrumbs, canonical URLs, dynamic OG images, n8n flow redesigned with 9-gate defense-in-depth Edge Function (BLOG-01..06)
 - D-03 try/catch around Supabase fetch routes failures through Sentry instead of 5xx
 - D-04 route-scoped `/blog/loading.tsx` resolves streaming/skeleton mutual exclusion
 
 **Visual polish (Phases 7-10):**
+
 - Most-Popular badge sits cleanly on Growth card; per-card "Save $X/year" annual savings backed by `calculateAnnualSavings(plan.price.monthly)` (CONS-05/09/10)
 - Multi-Property Dashboard feature card uses `lucide-react` `LayoutDashboard` (was back-arrow); homepage `aria-current="page"` no longer mis-highlights "Compare"; Resources dropdown navigates to real URLs (CONS-02/03/11)
 - Legal-page "Last Updated" dates honest + drift-guarded against sitemap constants; Trusted Integrations row consistent opacity; duplicate "Why Landlords Choose" table removed from homepage (CONS-04/13/14)
 - Canonical "Contact Sales" CTA label site-wide + neutral `/compare/*` framing (no red ✗ for by-design omissions) + `/contact` "How did you hear" defaults to "Please select" + 2 real testimonials shipped with `length >= 2` regression pin (CONS-06/07/08, TRUST-01/03/04; TRUST-02 deferred — no fabricated badges)
 
 **Tokens, SEO, performance (Phases 11-13):**
+
 - `design-token-drift.test.ts` Vitest scanner over `src/components` + `src/app` for hex/rgb/`bg-white`/inline-ms (TOKEN-01/02/03); `/resources` neon-pink + decorative card backgrounds → canonical tokens
 - Title-separator drift guard + per-page OG images + site-wide Organization + SoftwareApplication JSON-LD + visible breadcrumbs + footer sitemap link + site-wide `aria-current` audit (SEO-01..07)
 - Marketing pages use static gen + ISR (`revalidate=3600` on /, /pricing, /features, /about, /compare/[competitor]) + sticky CTA on `/pricing`, `/faq`, `/features` + feature-flagged lead-capture modal (PERF-01..04)
 
 **v1.0 cleanup (Phase 15):**
+
 - Retroactive `VERIFICATION.md` for Phases 4/5/6/14 (`retroactive: true` + `shipped_pr` frontmatter)
 - `REQUIREMENTS.md` traceability sweep: 35 Pending → 0, 24 body `[ ]` → 0, footer flipped to "Last updated: 2026-05-21"
 - `@stripe/(react-)?stripe-js` dead-dep drift guard (8 tests across 4 dependency roots)
