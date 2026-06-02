@@ -121,7 +121,7 @@ export function UnitActions({ unit }: UnitActionsProps) {
 							className={cn(
 								"gap-2",
 								canDelete
-									? "cursor-pointer text-destructive focus:text-destructive"
+									? "cursor-pointer text-destructive-text focus:text-destructive-text"
 									: "opacity-50 cursor-not-allowed",
 							)}
 						>

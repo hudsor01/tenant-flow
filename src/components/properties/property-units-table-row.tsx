@@ -112,7 +112,7 @@ export function UnitTableRow({ unit, onEdit, onDelete }: UnitTableRowProps) {
 								"gap-2",
 								status === "occupied"
 									? "opacity-50 cursor-not-allowed"
-									: "text-destructive focus:text-destructive",
+									: "text-destructive-text focus:text-destructive-text",
 							)}
 						>
 							<Trash2 className="size-4" />

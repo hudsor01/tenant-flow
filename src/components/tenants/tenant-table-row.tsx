@@ -45,7 +45,7 @@ export function TenantTableRow({
 			<td className="px-4 py-2">
 				<button
 					onClick={() => onView(tenant.id)}
-					className="font-medium text-foreground hover:text-primary hover:underline transition-colors text-left"
+					className="font-medium text-foreground hover:text-primary-text hover:underline transition-colors text-left"
 				>
 					{tenant.fullName}
 				</button>

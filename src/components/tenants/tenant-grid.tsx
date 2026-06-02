@@ -111,7 +111,7 @@ function TenantCard({
 						/>
 						<button
 							onClick={onView}
-							className="font-medium text-foreground hover:text-primary hover:underline transition-colors text-left"
+							className="font-medium text-foreground hover:text-primary-text hover:underline transition-colors text-left"
 						>
 							{tenant.fullName}
 						</button>
@@ -140,7 +140,7 @@ function TenantCard({
 				<div className="space-y-2 mb-4">
 					<button
 						onClick={() => onContact("email")}
-						className="flex items-center gap-2 text-sm text-muted-foreground hover:text-primary transition-colors w-full group"
+						className="flex items-center gap-2 text-sm text-muted-foreground hover:text-primary-text transition-colors w-full group"
 					>
 						<Mail className="w-3.5 h-3.5 flex-shrink-0 group-hover:scale-110 transition-transform" />
 						<span className="truncate">{tenant.email}</span>
@@ -148,7 +148,7 @@ function TenantCard({
 					{tenant.phone && (
 						<button
 							onClick={() => onContact("phone")}
-							className="flex items-center gap-2 text-sm text-muted-foreground hover:text-primary transition-colors w-full group"
+							className="flex items-center gap-2 text-sm text-muted-foreground hover:text-primary-text transition-colors w-full group"
 						>
 							<Phone className="w-3.5 h-3.5 flex-shrink-0 group-hover:scale-110 transition-transform" />
 							<span>{tenant.phone}</span>

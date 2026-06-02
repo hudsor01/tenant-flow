@@ -128,7 +128,7 @@ export function MobileNav() {
 							<div className="border-t border-border p-4">
 								<Button
 									variant="outline"
-									className="w-full justify-start gap-3 text-destructive hover:text-destructive hover:bg-destructive/10"
+									className="w-full justify-start gap-3 text-destructive-text hover:text-destructive-text hover:bg-destructive/10"
 									onClick={handleSignOut}
 									disabled={isPending}
 									aria-label="Sign out"

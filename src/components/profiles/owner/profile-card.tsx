@@ -108,7 +108,7 @@ export function ProfileCard({
 								type="button"
 								onClick={onRemoveAvatar}
 								disabled={isPending}
-								className="mt-2 text-xs text-muted-foreground hover:text-destructive transition-colors disabled:opacity-50"
+								className="mt-2 text-xs text-muted-foreground hover:text-destructive-text transition-colors disabled:opacity-50"
 							>
 								{isRemovingAvatar ? "Removing..." : "Remove photo"}
 							</button>

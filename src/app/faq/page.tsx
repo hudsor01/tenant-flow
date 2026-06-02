@@ -89,7 +89,7 @@ export default function FAQPage() {
 							asChild
 							size="lg"
 							variant="outline"
-							className="px-8 text-primary-foreground border-primary-foreground/50 hover:bg-primary-foreground hover:text-primary"
+							className="px-8 text-primary-foreground border-primary-foreground/50 hover:bg-primary-foreground hover:text-primary-text"
 						>
 							<Link href="/pricing">View Pricing</Link>
 						</Button>
