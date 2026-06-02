@@ -33,11 +33,11 @@ Function takes no user-identifying input; reads `(select auth.uid())` directly a
 
 (`log_lease_signature_activity` is a trigger function — `RETURNS trigger`. Trigger execution doesn't go through GRANT/EXECUTE; the grant on a trigger function is moot. Left as-is in passes 1–2 to avoid noise. **Pass 3 (`20260602044104`) revoked its PUBLIC grant anyway** after confirming it is *orphaned* — no trigger is currently attached, and `RETURNS trigger` means PostgREST can't expose it — so the grant was pure advisor noise. Re-granted `service_role` only.)
 
-### ~~INTENTIONALLY_PUBLIC~~ → REVOKED IN PASS 3 — 1 function
+### ~~INTENTIONALLY_PUBLIC~~ → REVOKED IN PASS 3 — `is_admin` (1 of pass 3's 2; `log_lease_signature_activity` is the other, in NO_PARAM above)
 
 | Function | Cycle-1 disposition (superseded) | Pass-3 correction |
 |---|---|---|
-| `is_admin()` | Kept public: "RLS evaluation needs to call this from any role, including anon. Revoking from anon would break every RLS policy that consults it." | **Disproven against the live schema.** All 6 policies that call `is_admin()` are `{authenticated}`-scoped (`blogs_{insert,update,delete}_admin`, `email_deliverability_admin_select`, "admins can read gate_events", `onboarding_funnel_events_admin_select`) — none apply to anon/public, so anon never evaluates `is_admin()`. The 6 SECURITY DEFINER functions that call it internally invoke it as the function owner and are themselves not anon-executable, so the revoke is inert for them. Pass 3 (`20260602044104`) revokes `FROM PUBLIC` and re-grants `authenticated` + `service_role`; signed-in RLS is unaffected. |
+| `is_admin()` | Kept public: "RLS evaluation needs to call this from any role, including anon. Revoking from anon would break every RLS policy that consults it." | **Disproven against the live schema.** All 6 policies that call `is_admin()` are `{authenticated}`-scoped (`blogs_{insert,update,delete}_admin`, `email_deliverability_admin_select`, "admins can read gate_events", `onboarding_funnel_events_admin_select`) — none apply to anon/public, so anon never evaluates `is_admin()`. Every SECURITY DEFINER function that calls it internally invokes it as the function owner and is itself not anon-executable, so the revoke is inert for them. Pass 3 (`20260602044104`) revokes `FROM PUBLIC` and re-grants `authenticated` + `service_role`; signed-in RLS is unaffected. |
 
 ## Migration plan
 
@@ -68,7 +68,7 @@ Match against migration intent: ✓
 ## Regression-pinning test
 
 `tests/integration/rls/anon-rpc-grants.rls.test.ts` — pins the lockdown state of every function:
-- 22 anon-RPC tests assert `error.code ∈ {42501, 42883, PGRST202}` (PostgREST's three flavors of "revoked") — includes `is_admin` after pass 3
+- 22 anon-RPC tests assert `error.code ∈ {42501, 42883, PGRST202}` (PostgREST's three flavors of "revoked") — includes `is_admin` after pass 3. (`log_lease_signature_activity` is the 23rd anon-revoke but is **not** `.rpc`-pinnable — it `RETURNS trigger`, so PostgREST never exposes it regardless of grant; its grant state is enforced by the migration and re-flagged by the Security Advisor on any anon re-grant.)
 - 2 authenticated-RPC tests assert the IDOR fixes
 - 1 positive test asserts `is_admin()` remains executable by **authenticated** (returns `false` for a non-admin owner) — the RLS-policy contract that requires authenticated to keep EXECUTE
 

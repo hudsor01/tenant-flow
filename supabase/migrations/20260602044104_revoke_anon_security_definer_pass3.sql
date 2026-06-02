@@ -11,17 +11,20 @@
 --     policies, all {authenticated}). anon never evaluates an is_admin() policy,
 --     so the PUBLIC grant is pure attack surface: a direct PostgREST /rpc/is_admin
 --     probe that leaks function existence and only ever returns false for anon.
---     The 6 SECURITY DEFINER functions that call is_admin() internally invoke it
---     as the function owner (not the caller) and are themselves not anon-executable,
---     so revoking anon is inert for them. authenticated keeps EXECUTE, so RLS
---     evaluation for signed-in users is unchanged.
+--     Every SECURITY DEFINER function that calls is_admin() internally invokes it
+--     as the function owner (not the caller) and is itself not anon-executable, so
+--     revoking anon is inert for them. authenticated KEEPS EXECUTE so RLS evaluation
+--     for signed-in users is unchanged -- which means is_admin stays flagged as
+--     `authenticated_security_definer_function_executable` BY DESIGN (that lint is
+--     expected for any SECURITY DEFINER function authenticated must reach via RLS).
+--     Pass 3 only clears the *anon*-executable lint, not the authenticated one.
 --
 --   * log_lease_signature_activity(): pass 2 kept it PUBLIC on "trigger function,
 --     EXECUTE is moot." Trigger firing indeed bypasses EXECUTE checks, but the
 --     function has NO trigger currently attached (orphaned) and the PUBLIC grant
 --     still places it on the role surface the Security Advisor flags. It returns
---     `trigger` so PostgREST will not expose it, but the grant is removed for
---     hygiene and to clear the advisor finding.
+--     `trigger` so PostgREST will not expose it. With no anon and no authenticated
+--     grant and no trigger attached, it drops out of the advisor entirely.
 --
 -- REVOKE FROM PUBLIC is load-bearing: Postgres auto-grants EXECUTE to PUBLIC at
 -- function creation and anon inherits it, so a bare REVOKE FROM anon is a no-op

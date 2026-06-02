@@ -152,6 +152,13 @@ const REVOKED_FROM_ANON: Array<{
 	{ name: "is_admin" },
 ];
 
+// Pass 3 also revoked `log_lease_signature_activity` FROM PUBLIC, but it is
+// intentionally NOT pinned in this list: it `RETURNS trigger`, so PostgREST never
+// exposes it as an RPC -- an anon `.rpc()` probe returns PGRST202 regardless of the
+// grant (a tautology, not a real assertion). Its grant state (service_role only) is
+// enforced by migration 20260602044104 and re-flagged by the Supabase Security
+// Advisor on any anon/PUBLIC re-grant, which is the actual regression backstop.
+
 /** Functions also revoked from authenticated (the two IDOR fixes). */
 const REVOKED_FROM_AUTHENTICATED: Array<{
 	name: string;
