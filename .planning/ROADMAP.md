@@ -37,7 +37,9 @@
   2. All 10 tables (`app_config`, `email_suppressions`, `processed_internal_events`, `security_events`, `stripe_webhook_events`, `security_audit_log`, `user_access_log`, `webhook_attempts`, `webhook_events`, `webhook_metrics`) get an explicit positive `service_role_only` FOR ALL TO service_role policy (`USING (true) WITH CHECK (true)`), or a correct scoped policy where authenticated access is genuinely needed — applied as a PROD migration via MCP `apply_migration` with no RESTRICTIVE deny-all anywhere.
   3. The vestigial `authenticated` table-grant is revoked on the 5 Tier-A tables (`app_config`, `email_suppressions`, `processed_internal_events`, `security_events`, `stripe_webhook_events`) so they no longer surface in `/graphql/v1` introspection for signed-in users (lint 0027 cleared).
   4. `tests/integration/rls/` pins all 10 resolved tables denying `authenticated`/`anon` and allowing `service_role`, per each table's confirmed intent.
-**Plans**: TBD
+**Plans**: 2 plans
+  - [ ] 02-01-PLAN.md — Live-introspect prod state (A1 gate) + atomic lockdown migration (10 service_role_only FOR ALL policies + 5 Tier-A authenticated/anon/PUBLIC revokes + table comments, MCP-applied, timestamp reconciled, supabase.ts regen) + CYCLE-3.md intent audit; advisor lint 0008 10→0 and 0027 minus 5 (RLSNP-01/02/03)
+  - [ ] 02-02-PLAN.md — New rls-no-policy-lockdown.rls.test.ts pinning authenticated+anon deny on all 10 tables (deny side; allow side out-of-band via advisor+MCP) + for-all-audit.test.ts regression-green (SECTEST-02)
 
 ### Phase 3: Documented Advisor Steady State & Verification
 **Goal**: The Supabase Security Advisor on prod is at a documented, test-pinned steady state — `rls_enabled_no_policy` is 0, the only remaining authenticated SECURITY DEFINER WARNs are the documented KEEP set, the project memory and audit trail reflect it, and the full RLS integration suite is green against prod with zero regressions.
@@ -95,7 +97,7 @@ Audit round 3 verdict: PERFECT BY ALL MEASURES. Full detail in [milestones/v1.0-
 | Phase | Milestone | Plans | Status | Completed |
 |-------|-----------|-------|--------|-----------|
 | 1. SECURITY DEFINER Classification & Tightening | v3.0 | 2/2 | Executed (advisor 46→44; pre-merge) | 2026-06-02 |
-| 2. RLS-No-Policy Resolution | v3.0 | 0/TBD | Not started | - |
+| 2. RLS-No-Policy Resolution | v3.0 | 0/2 | Planned | - |
 | 3. Documented Advisor Steady State & Verification | v3.0 | 0/TBD | Not started | - |
 
 ## Coverage Validation
