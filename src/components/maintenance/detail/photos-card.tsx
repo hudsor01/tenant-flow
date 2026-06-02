@@ -268,7 +268,7 @@ export function PhotosCard({ requestId }: PhotosCardProps) {
 													handleDelete(photo.id, photo.storage_path)
 												}
 												disabled={deleteMutation.isPending}
-												className="text-destructive hover:text-destructive-text hover:bg-destructive/10"
+												className="text-destructive-text hover:text-destructive-text hover:bg-destructive/10"
 											>
 												<Trash2 className="size-4 mr-2" />
 												{deleteMutation.isPending ? "Removing..." : "Remove"}
