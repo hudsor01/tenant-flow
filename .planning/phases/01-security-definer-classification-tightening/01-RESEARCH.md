@@ -6,7 +6,7 @@
 
 ## Summary
 
-The milestone research already produced the function-by-function classification (44 KEEP / 2 TIGHTEN / 1 REVIEW in `CLASSIFICATION.md`). This phase research **confirms that classification against the actual SQL sources and resolves the three open execution risks** the planner needs nailed down before writing tasks:
+The milestone research already produced the function-by-function classification (43 KEEP / 2 TIGHTEN / 1 REVIEW in `CLASSIFICATION.md`). This phase research **confirms that classification against the actual SQL sources and resolves the three open execution risks** the planner needs nailed down before writing tasks:
 
 1. **`assert_can_create_lease` is a single `(uuid, uuid)` signature — there is NO overload.** Both `20251219123000` (defines it, grants `authenticated`) and `20251231063902` (grants `service_role`) target the identical `(uuid, uuid)` signature. The "two signatures?" worry from the milestone summary is resolved: live introspection at execute-time will find exactly one. The only frontend reference is the generated `supabase.ts` type entry + a comment in `bulk-import-config.ts:125` — **no real `.rpc()` caller**. It is invoked internally by `bulk_import_create_lease` (itself SECURITY DEFINER owned by `postgres`, so it executes `assert_can_create_lease` with the owner's implicit EXECUTE, not the caller's grant). Therefore revoking `authenticated` EXECUTE is safe — the bulk-import invariant still holds. **One caveat the executor must re-verify live, not assume:** `bulk_import_create_lease`'s call at `20260422120000:136` is `assert_can_create_lease(p_primary_tenant_id, p_unit_id)` while the function parameters are `(p_unit_id, p_primary_tenant_id)` — a known positional swap that the bulk-import integration test pins. This swap is **out of scope to fix** here; it only matters that the existing `bulk-import-create-lease.test.ts` stays green after the revoke.
 
@@ -315,7 +315,7 @@ The existing file has three `describe` blocks and a shared `REVOKED_CODES = ["42
 **Location:** `.planning/anon-exec-audit/CYCLE-2.md` (continues the `CYCLE-1.md` lineage — same dir, next cycle number). This is the durable doc the requirements + ROADMAP SC1 demand.
 
 **Must contain:**
-- The 46-function table: each function → KEEP / TIGHTEN / REVIEW, with the live evidence columns (`frontend .rpc` hit count, `in_policy`, trigger/cron attachment, internal-caller). Source the 44 KEEP / 2 TIGHTEN / 1 REVIEW rows from `CLASSIFICATION.md` (already drafted) and the grep hit-counts therein.
+- The 46-function table: each function → KEEP / TIGHTEN / REVIEW, with the live evidence columns (`frontend .rpc` hit count, `in_policy`, trigger/cron attachment, internal-caller). Source the 43 KEEP / 2 TIGHTEN / 1 REVIEW rows from `CLASSIFICATION.md` (already drafted) and the grep hit-counts therein.
 - Every KEEP row's one-line intentional-EXECUTE rationale (SDEF-02).
 - The 7-RPC admin-gate spot-check results (SDEF-03): per-function gate type (`is_admin()` / `auth.uid()` owner-scope / FIXED) + the `pg_get_functiondef` evidence.
 - The TIGHTEN-02 introspection output (single-signature proof + internal-caller list + owner).
@@ -473,7 +473,7 @@ describe("authenticated cannot reach tightened SECURITY DEFINER functions", () =
 | A3 | The non-admin `for-all-audit.test.ts` assertion (`toHaveLength(0)`) coincides with the `is_admin()`-gated empty result | TIGHTEN-03 / Pitfall 3 | If prod actually has FOR ALL service_role policies visible to admins, only admin path differs; non-admin still 0 — low risk |
 | A4 | The 7 analytics RPCs gate on `is_admin()` OR owner-scope (none fully ungated) | SDEF-03 | If one is ungated, it's a real finding the spot-check catches and fixes in-phase (grant kept) |
 
-> All four assumptions are **caught by execute-time introspection or an existing test gate before the PR can merge** — none are silent. The classification verdicts themselves (44/2/1) are VERIFIED against the SQL sources in this research, not assumed.
+> All four assumptions are **caught by execute-time introspection or an existing test gate before the PR can merge** — none are silent. The classification verdicts themselves (43/2/1) are VERIFIED against the SQL sources in this research, not assumed.
 
 ## Open Questions (RESOLVED: handled at execute-time)
 
@@ -514,7 +514,7 @@ describe("authenticated cannot reach tightened SECURITY DEFINER functions", () =
 - `.planning/anon-exec-audit/CYCLE-1.md` — owner-privilege mechanism, lineage, REVOKED_CODES rationale.
 
 ### Secondary (milestone research, already verified)
-- `.planning/research/{SUMMARY,CLASSIFICATION,ADVISOR-STATE}.md` — the 44/2/1 classification + advisor finding set + Supabase doc links (lint 0008, 0027, function-revoke guide).
+- `.planning/research/{SUMMARY,CLASSIFICATION,ADVISOR-STATE}.md` — the 43/2/1 classification + advisor finding set + Supabase doc links (lint 0008, 0027, function-revoke guide).
 - `.claude/skills/rls-policies/SKILL.md`, `.claude/skills/sql-migration-rules/SKILL.md` — conventions.
 
 ### Tertiary
@@ -523,7 +523,7 @@ describe("authenticated cannot reach tightened SECURITY DEFINER functions", () =
 ## Metadata
 
 **Confidence breakdown:**
-- Classification (44/2/1): HIGH — re-verified against SQL sources + repo grep this session.
+- Classification (43/2/1): HIGH — re-verified against SQL sources + repo grep this session.
 - Migration mechanics: HIGH — exact prior-art migration read; signatures confirmed.
 - TIGHTEN-02 safety: HIGH on signature (one), MEDIUM-HIGH on owner-privilege (analogous CYCLE-1 evidence; live owner query pending at execute-time, gated by bulk-import test).
 - TIGHTEN-03 recommendation: HIGH — harness verified to lack service-role/admin client.
