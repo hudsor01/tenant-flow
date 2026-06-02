@@ -31,13 +31,13 @@ Function takes no user-identifying input; reads `(select auth.uid())` directly a
 
 `cancel_account_deletion`, `get_user_invoices`, `request_account_deletion`, `log_lease_signature_activity`
 
-(`log_lease_signature_activity` is a trigger function — `RETURNS trigger`. Trigger execution doesn't go through GRANT/EXECUTE; the grant on a trigger function is moot. Left as-is to avoid noise in the migration.)
+(`log_lease_signature_activity` is a trigger function — `RETURNS trigger`. Trigger execution doesn't go through GRANT/EXECUTE; the grant on a trigger function is moot. Left as-is in passes 1–2 to avoid noise. **Pass 3 (`20260602044104`) revoked its PUBLIC grant anyway** after confirming it is *orphaned* — no trigger is currently attached, and `RETURNS trigger` means PostgREST can't expose it — so the grant was pure advisor noise. Re-granted `service_role` only.)
 
-### INTENTIONALLY_PUBLIC — 1 function
+### ~~INTENTIONALLY_PUBLIC~~ → REVOKED IN PASS 3 — 1 function
 
-| Function | Why kept public |
-|---|---|
-| `is_admin()` | Used inside RLS policies. RLS evaluation needs to call this from any role, including anon. Returns `false` for anon because `auth.uid()` is null, so the gate fails safely. Revoking from anon would break every RLS policy that consults it. |
+| Function | Cycle-1 disposition (superseded) | Pass-3 correction |
+|---|---|---|
+| `is_admin()` | Kept public: "RLS evaluation needs to call this from any role, including anon. Revoking from anon would break every RLS policy that consults it." | **Disproven against the live schema.** All 6 policies that call `is_admin()` are `{authenticated}`-scoped (`blogs_{insert,update,delete}_admin`, `email_deliverability_admin_select`, "admins can read gate_events", `onboarding_funnel_events_admin_select`) — none apply to anon/public, so anon never evaluates `is_admin()`. The 6 SECURITY DEFINER functions that call it internally invoke it as the function owner and are themselves not anon-executable, so the revoke is inert for them. Pass 3 (`20260602044104`) revokes `FROM PUBLIC` and re-grants `authenticated` + `service_role`; signed-in RLS is unaffected. |
 
 ## Migration plan
 
@@ -45,8 +45,9 @@ Two-pass migration (matches prod's actual apply chain via MCP):
 
 - `20260529224926_revoke_anon_security_definer_rpcs.sql` — IDOR fixes only. Revoke from `PUBLIC` + `anon` + `authenticated`; grant to `service_role`. Belt-and-suspenders form since Postgres auto-grants EXECUTE to `PUBLIC` and `anon` inherits from `PUBLIC`.
 - `20260529225039_revoke_anon_security_definer_rpcs_v2.sql` — defense-in-depth. Revoke from `PUBLIC` on the 19 functions in GATES_INTERNALLY ∪ NO_PARAM (16 + 3, minus the trigger function `log_lease_signature_activity`); re-grant to `authenticated` + `service_role`.
+- `20260602044104_revoke_anon_security_definer_pass3.sql` — **pass 3.** Revoke `FROM PUBLIC` on the two the prior passes skipped: `is_admin` (re-grant `authenticated` + `service_role`) and `log_lease_signature_activity` (re-grant `service_role`). The skip-reasoning was re-verified against the live schema and disproven (see the REVOKED-IN-PASS-3 correction above).
 
-Total: 21 functions locked down (2 IDOR + 19 defense-in-depth). 1 (`is_admin`) intentionally untouched. 1 (`log_lease_signature_activity`) skipped as moot.
+Total: 23 functions revoked from anon (2 IDOR + 19 defense-in-depth + `is_admin` + `log_lease_signature_activity`). `is_admin` and the 19 keep `authenticated`; the 2 IDOR + `log_lease_signature_activity` are `service_role`-only.
 
 ## Verification (cross-checked post-apply)
 
@@ -59,17 +60,17 @@ FROM pg_proc WHERE prosecdef AND pronamespace='public'::regnamespace AND ...
 |---|---|---|---|---|
 | IDOR fixes | 2 | ✗ | ✗ | ✓ |
 | Defense-in-depth (16 gated + 3 no-param) | 19 | ✗ | ✓ | ✓ |
-| `is_admin` (intentionally public) | 1 | ✓ | ✓ | ✓ |
-| `log_lease_signature_activity` (trigger; grant moot) | 1 | n/a | n/a | n/a |
+| `is_admin` (pass 3: revoked from anon; RLS keeps authenticated) | 1 | ✗ | ✓ | ✓ |
+| `log_lease_signature_activity` (pass 3: orphaned trigger fn, locked to service_role) | 1 | ✗ | ✗ | ✓ |
 
 Match against migration intent: ✓
 
 ## Regression-pinning test
 
 `tests/integration/rls/anon-rpc-grants.rls.test.ts` — pins the lockdown state of every function:
-- 21 anon-RPC tests assert `error.code ∈ {42501, 42883, PGRST202}` (PostgREST's three flavors of "revoked")
+- 22 anon-RPC tests assert `error.code ∈ {42501, 42883, PGRST202}` (PostgREST's three flavors of "revoked") — includes `is_admin` after pass 3
 - 2 authenticated-RPC tests assert the IDOR fixes
-- 1 positive test asserts `is_admin()` is still anon-callable and returns `false`
+- 1 positive test asserts `is_admin()` remains executable by **authenticated** (returns `false` for a non-admin owner) — the RLS-policy contract that requires authenticated to keep EXECUTE
 
 Runs against prod under the existing dual-client `rls-security` CI job.
 
@@ -88,6 +89,6 @@ Runs against prod under the existing dual-client `rls-security` CI job.
 2. **`IS DISTINCT FROM` belt-and-suspenders** on the in-body guard pattern. The 16 GATES_INTERNALLY functions use `IF p_id != (select auth.uid())`. NULL-vs-NULL comparison evaluates to NULL, IF doesn't fire. Role-level revoke (this PR) is the primary fix; in-body guard tightening is defense-in-depth. Source: cycle-3 WR-03.
 3. **Extract `REVOKED_CODES` to a shared test helper.** The literal `["42501", "42883", "PGRST202"]` is duplicated across 4 test files. It already drifted once during this PR's cycle-2. Source: cycle-3 INF-01.
 4. **Supabase "Grace period is over" billing banner.** Surfaced by the browser audit agent during the FRONTEND_URL rollout. Functions are serving fine but the project is at/near quota. Needs billing attention before quota actually blocks service. Source: Supabase Claude browser agent report, 2026-05-29.
-5. **Trigger-function grant cleanup** on `log_lease_signature_activity` and similar. Moot for security (triggers don't go through EXECUTE checks) but worth tidying.
+5. ~~**Trigger-function grant cleanup** on `log_lease_signature_activity` and similar.~~ **Done in pass 3** (`20260602044104`) — revoked its PUBLIC grant after confirming it is orphaned (no trigger attached, `RETURNS trigger` so not PostgREST-callable).
 
 Each item is independently scoped and can ship as its own perfect-PR.
