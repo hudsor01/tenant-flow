@@ -59,13 +59,21 @@ async function gotoAuthedDashboard(page: Page): Promise<void> {
 		);
 	});
 	await page.reload();
+	// Wait for the dashboard to SETTLE into its terminal data state -- NOT the
+	// always-present "Dashboard" chrome heading, which renders before the
+	// client-side data fetch resolves and let a brief empty-state flash race the
+	// assertions (intermittent "RPC reports data but page rendered empty-state").
+	// The RPC (fetched in beforeAll, RLS-scoped to this owner) determines which
+	// terminal state to expect, making the wait deterministic.
+	const ownerHasData =
+		rpc.stats.properties.total > 0 || rpc.stats.units.total > 0;
 	await expect(
-		page.getByRole("heading", { level: 1, name: "Dashboard", exact: true }).or(
-			page.locator('[data-slot="empty-title"]', {
-				hasText: "Welcome to TenantFlow",
-			}),
-		),
-	).toBeVisible({ timeout: 10000 });
+		ownerHasData
+			? page.getByTestId("kpi-bento-row")
+			: page.locator('[data-slot="empty-title"]', {
+					hasText: "Welcome to TenantFlow",
+				}),
+	).toBeVisible({ timeout: 15000 });
 }
 
 /**
@@ -215,14 +223,19 @@ test.describe("Dashboard smoke (POLISH-09)", () => {
 		await page.getByRole("menuitemcheckbox", { name: "Desc" }).click();
 		await expect(rentHeader).toHaveAttribute("aria-sort", "descending");
 
-		// Keyboard sort on "Property" (default-sorted ascending). Enter toggles to
-		// descending directly via the header trigger's onKeyDown fast-sort path.
+		// Keyboard sort on "Property". The mouse sort above made "Monthly Rent" the
+		// single active sort, so "Property" is now unsorted ("none"). Exercise the
+		// header trigger's onKeyDown fast-sort path: Enter on an unsorted column
+		// sorts ascending (none -> asc, via toggleSorting(false)), and a second
+		// Enter flips to descending (asc -> desc).
 		const propertyHeader = columnHeader(page, "Property");
 		const propertyTrigger = propertyHeader.getByRole("button", {
 			name: "Property",
 		});
-		await expect(propertyHeader).toHaveAttribute("aria-sort", "ascending");
+		await expect(propertyHeader).toHaveAttribute("aria-sort", "none");
 		await propertyTrigger.focus();
+		await propertyTrigger.press("Enter");
+		await expect(propertyHeader).toHaveAttribute("aria-sort", "ascending");
 		await propertyTrigger.press("Enter");
 		await expect(propertyHeader).toHaveAttribute("aria-sort", "descending");
 	});
