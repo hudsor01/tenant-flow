@@ -10,20 +10,27 @@
  *   - 20260529225039_revoke_anon_security_definer_rpcs_v2.sql
  *     (defense-in-depth: revoke FROM PUBLIC on 19 functions that gate on
  *      auth.uid() internally; re-grant to authenticated + service_role)
+ *   - 20260602044104_revoke_anon_security_definer_pass3.sql
+ *     (pass 3: revoke FROM PUBLIC on `is_admin` and `log_lease_signature_activity`
+ *      -- the two functions pass 2 deliberately skipped. Every policy calling
+ *      is_admin() is {authenticated}-scoped, so anon never evaluates it;
+ *      authenticated keeps EXECUTE so RLS is unaffected.)
  *
  * Three contracts pinned here:
  *
- *   1. ANON cannot reach any of the 21 revoked functions. PostgREST surfaces
- *      a revoked EXECUTE as 42501 in current versions; older variants
- *      returned 42883 / PGRST202. Accept any of the three so the test pins
- *      "function is unreachable from anon", not a specific error code.
+ *   1. ANON cannot reach any of the 22 revoked functions (incl. is_admin after
+ *      pass 3). PostgREST surfaces a revoked EXECUTE as 42501 in current
+ *      versions; older variants returned 42883 / PGRST202. Accept any of the
+ *      three so the test pins "function is unreachable from anon", not a code.
  *
  *   2. AUTHENTICATED cannot reach the two IDOR functions
  *      (`confirm_lease_subscription`, `get_user_plan_limits`). Same code set.
  *
- *   3. `is_admin()` IS still callable by anon — it lives inside RLS policy
- *      evaluation contexts and MUST remain executable from any role. Returns
- *      false for anon because `auth.uid()` is null.
+ *   3. `is_admin()` remains executable by AUTHENTICATED (the RLS policy
+ *      contract -- 6 {authenticated}-scoped policies call it) and returns false
+ *      for a non-admin owner. anon can no longer call it (contract 1): pass 2's
+ *      assumption that "RLS needs anon to call is_admin" did not hold for this
+ *      schema -- no anon/public policy references it.
  *
  * The classification spreadsheet lives at
  * `.planning/anon-exec-audit/CYCLE-1.md` and is the source of truth for
@@ -45,7 +52,7 @@ if (!SUPABASE_URL || !SUPABASE_PUBLISHABLE_KEY) {
 
 const REVOKED_CODES = ["42501", "42883", "PGRST202"];
 
-/** Functions revoked from anon (21 total: 2 IDOR + 19 defense-in-depth). */
+/** Functions revoked from anon (22 total: 2 IDOR + 19 defense-in-depth + is_admin via pass 3). */
 const REVOKED_FROM_ANON: Array<{
 	name: string;
 	args?: Record<string, unknown>;
@@ -140,7 +147,17 @@ const REVOKED_FROM_ANON: Array<{
 		args: { p_user_id: "00000000-0000-0000-0000-000000000000" },
 	},
 	{ name: "request_account_deletion" },
+	// Pass 3: is_admin() takes no args and was revoked FROM PUBLIC. anon now
+	// hits a revoked-EXECUTE code instead of getting `false` back.
+	{ name: "is_admin" },
 ];
+
+// Pass 3 also revoked `log_lease_signature_activity` FROM PUBLIC, but it is
+// intentionally NOT pinned in this list: it `RETURNS trigger`, so PostgREST never
+// exposes it as an RPC -- an anon `.rpc()` probe returns PGRST202 regardless of the
+// grant (a tautology, not a real assertion). Its grant state (service_role only) is
+// enforced by migration 20260602044104 and monitored by the Supabase Security
+// Advisor, which re-flags any anon/PUBLIC re-grant.
 
 /** Functions also revoked from authenticated (the two IDOR fixes). */
 const REVOKED_FROM_AUTHENTICATED: Array<{
@@ -192,9 +209,12 @@ describe("anon-EXEC SECURITY DEFINER lockdown", () => {
 		}
 	});
 
-	describe("is_admin() remains anon-executable (RLS policy contract)", () => {
-		it("anon can call is_admin and gets false (auth.uid() is null)", async () => {
-			const { data, error } = await anonClient.rpc("is_admin");
+	describe("is_admin() pass-3: authenticated retains EXECUTE (RLS policy contract)", () => {
+		it("authenticated can still call is_admin and gets false (non-admin owner)", async () => {
+			// The 6 policies that call is_admin() are all {authenticated}-scoped,
+			// so authenticated MUST keep EXECUTE for RLS to evaluate. ownerA is not
+			// an admin, so it returns false (not an error).
+			const { data, error } = await authnClient.rpc("is_admin");
 			expect(error).toBeNull();
 			expect(data).toBe(false);
 		});
