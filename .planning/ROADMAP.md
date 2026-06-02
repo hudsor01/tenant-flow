@@ -4,9 +4,51 @@
 
 - ✅ **v1.0 Marketing Surface Honesty** — Phases 1-15 (shipped 2026-05-22) — see [milestones/v1.0-ROADMAP.md](milestones/v1.0-ROADMAP.md)
 - ✅ **v2.0 Dashboard Command Center** — Phases 1-7 (shipped 2026-06-02, 34/34 requirements) — see [milestones/v2.0-ROADMAP.md](milestones/v2.0-ROADMAP.md)
-- 📋 **Next milestone** — not yet planned. Queued seed: [SEED-001](seeds/SEED-001-supabase-security-advisor-remediation.md) (Supabase Security Advisor remediation). Run `/gsd:new-milestone`.
+- 🚧 **v3.0 Security Hardening** — Phases 1-3 (in progress, started 2026-06-02) — drive the Supabase Security Advisor on prod (`bshjmbshupiibfiewpxb`) to a documented, test-pinned steady state. See phase detail below.
 
 ## Phases
+
+- [ ] **Phase 1: SECURITY DEFINER Classification & Tightening** - Classify all 46 authenticated SECURITY DEFINER functions and revoke `authenticated` EXECUTE from the few that no signed-in account should reach.
+- [ ] **Phase 2: RLS-No-Policy Resolution** - Make the fail-closed lockdown explicit on all 10 `rls_enabled_no_policy` tables and revoke the vestigial `authenticated` GraphQL-exposing grants.
+- [ ] **Phase 3: Documented Advisor Steady State & Verification** - Re-run the advisor against prod, prove the only remaining findings are the documented KEEP set, and pin zero RLS regressions across the full integration suite.
+
+## Phase Details
+
+### Phase 1: SECURITY DEFINER Classification & Tightening
+**Goal**: Every authenticated SECURITY DEFINER WARN is provably intentional or eliminated — a durable classification doc explains each of the 46 functions, and the three that no signed-in account should reach have `authenticated`/`PUBLIC` EXECUTE revoked (with `service_role` retained).
+**Depends on**: Nothing (first phase)
+**Requirements**: SDEF-01, SDEF-02, SDEF-03, TIGHTEN-01, TIGHTEN-02, TIGHTEN-03, SECTEST-01
+**Success Criteria** (what must be TRUE):
+  1. A durable classification doc (`.planning/anon-exec-audit/` lineage) records all 46 `authenticated_security_definer_function_executable` functions as KEEP / TIGHTEN / REVIEW, each with live evidence (frontend `.rpc` reachability, RLS-policy reference, trigger/cron attachment, internal-caller graph), and every KEEP entry carries a one-line intentional-EXECUTE rationale.
+  2. The 7 analytics/admin KEEP RPCs (`get_deliverability_stats`, `get_funnel_stats`, `get_gate_conversion_stats`, `get_billing_insights`, `get_error_summary`, `get_error_prone_users`, `get_common_errors`) are each confirmed to gate on `is_admin()` internally; any missing gate is fixed (grant kept), verified by live introspection.
+  3. `anon`/`authenticated` calling `.rpc('get_lead_paint_compliance_report')` returns a revoked-EXECUTE error code, while `service_role` still executes it (PROD migration via MCP `apply_migration`, `REVOKE FROM PUBLIC` then re-`GRANT service_role`, timestamp reconciled).
+  4. `assert_can_create_lease`'s live overload/call-graph is resolved and its `authenticated`/`PUBLIC` EXECUTE is revoked (`service_role` retained) with `bulk_import_create_lease`'s internal invariant enforcement still passing its existing integration test.
+  5. `audit_for_all_policies` no longer exposes the policy inventory to an arbitrary signed-in account — either tightened to `service_role` (its test migrated to a service-role/admin client) or kept with an explicit `is_admin()` internal gate — and `tests/integration/rls/` pins each tightened function unreachable from `authenticated` while confirming the KEEP RLS helpers (`is_admin`, `get_current_owner_user_id`) remain reachable.
+**Plans**: TBD
+
+### Phase 2: RLS-No-Policy Resolution
+**Goal**: All 10 `rls_enabled_no_policy` tables carry an explicit, intent-documenting policy that clears lint 0008, and the 5 vestigial `authenticated` table-grants are revoked so prod schema is no longer discoverable via `pg_graphql` introspection — without re-introducing the deny-all removed in `20260527151342`.
+**Depends on**: Phase 1
+**Requirements**: RLSNP-01, RLSNP-02, RLSNP-03, SECTEST-02
+**Success Criteria** (what must be TRUE):
+  1. Intent is confirmed and recorded for the 4 ambiguous Tier-A tables (`app_config`, `email_suppressions`, `security_events`, `stripe_webhook_events`) — each verified to have no expected `authenticated` read path before lockdown, or given a correct scoped policy instead if a real read path is found.
+  2. All 10 tables (`app_config`, `email_suppressions`, `processed_internal_events`, `security_events`, `stripe_webhook_events`, `security_audit_log`, `user_access_log`, `webhook_attempts`, `webhook_events`, `webhook_metrics`) get an explicit positive `service_role_only` FOR ALL TO service_role policy (`USING (true) WITH CHECK (true)`), or a correct scoped policy where authenticated access is genuinely needed — applied as a PROD migration via MCP `apply_migration` with no RESTRICTIVE deny-all anywhere.
+  3. The vestigial `authenticated` table-grant is revoked on the 5 Tier-A tables (`app_config`, `email_suppressions`, `processed_internal_events`, `security_events`, `stripe_webhook_events`) so they no longer surface in `/graphql/v1` introspection for signed-in users (lint 0027 cleared).
+  4. `tests/integration/rls/` pins all 10 resolved tables denying `authenticated`/`anon` and allowing `service_role`, per each table's confirmed intent.
+**Plans**: TBD
+
+### Phase 3: Documented Advisor Steady State & Verification
+**Goal**: The Supabase Security Advisor on prod is at a documented, test-pinned steady state — `rls_enabled_no_policy` is 0, the only remaining authenticated SECURITY DEFINER WARNs are the documented KEEP set, the project memory and audit trail reflect it, and the full RLS integration suite is green against prod with zero regressions.
+**Depends on**: Phase 2
+**Requirements**: SECTEST-03
+**Success Criteria** (what must be TRUE):
+  1. Re-running `get_advisors(security)` against prod (`bshjmbshupiibfiewpxb`) returns `rls_enabled_no_policy = 0`.
+  2. The only remaining `authenticated_security_definer_function_executable` WARNs are exactly the documented KEEP set from Phase 1 (the 3 tightened functions no longer appear); `auth_leaked_password_protection` remains the sole out-of-scope WARN.
+  3. The `security-definer-advisor-state` memory and `.planning/anon-exec-audit` are updated to record the new steady state (counts, KEEP rationale, tightened set, intent decisions).
+  4. The full `tests/integration/rls/` suite runs green against prod (`rls-security` CI gate passing), confirming zero owner-isolation or grant regressions from any Phase 1 or Phase 2 change.
+**Plans**: TBD
+
+---
 
 <details>
 <summary>✅ v2.0 Dashboard Command Center (Phases 1-7) — SHIPPED 2026-06-02</summary>
@@ -50,13 +92,40 @@ Audit round 3 verdict: PERFECT BY ALL MEASURES. Full detail in [milestones/v1.0-
 
 | Phase | Milestone | Plans | Status | Completed |
 |-------|-----------|-------|--------|-----------|
-| 1. Foundation & Dedup | v2.0 | 3/3 | Shipped (PR #744) | 2026-05-22 |
-| 2. Data Layer & RPC | v2.0 | 3/3 | Shipped (PR #745) | 2026-05-22 |
-| 3. KPI Bento Row | v2.0 | 3/3 | Shipped (PR #746) | 2026-05-26 |
-| 4. Charts | v2.0 | 4/4 | Shipped (PR #748) | 2026-05-28 |
-| 5. Portfolio DataTable | v2.0 | 5/5 | Shipped (PR #763) | 2026-05-31 |
-| 6. Polish & A11y | v2.0 | 4/4 | Shipped (PR #767) | 2026-06-01 |
-| 7. Verification | v2.0 | 2/2 | Shipped (PR #773) | 2026-06-02 |
+| 1. SECURITY DEFINER Classification & Tightening | v3.0 | 0/TBD | Not started | - |
+| 2. RLS-No-Policy Resolution | v3.0 | 0/TBD | Not started | - |
+| 3. Documented Advisor Steady State & Verification | v3.0 | 0/TBD | Not started | - |
+
+## Coverage Validation
+
+All 12 v3.0 requirements mapped to exactly one phase. No orphans, no double-mapping.
+
+| REQ-ID | Phase | Category |
+|--------|-------|----------|
+| SDEF-01 | Phase 1 | Authenticated SECURITY DEFINER classification |
+| SDEF-02 | Phase 1 | Authenticated SECURITY DEFINER classification |
+| SDEF-03 | Phase 1 | Authenticated SECURITY DEFINER classification |
+| TIGHTEN-01 | Phase 1 | Least-privilege tightening |
+| TIGHTEN-02 | Phase 1 | Least-privilege tightening |
+| TIGHTEN-03 | Phase 1 | Least-privilege tightening |
+| SECTEST-01 | Phase 1 | Regression coverage (function tightening) |
+| RLSNP-01 | Phase 2 | RLS-no-policy resolution |
+| RLSNP-02 | Phase 2 | RLS-no-policy resolution |
+| RLSNP-03 | Phase 2 | RLS-no-policy resolution |
+| SECTEST-02 | Phase 2 | Regression coverage (table lockdown) |
+| SECTEST-03 | Phase 3 | Documented steady state + zero-regression verification |
+
+**Coverage:** 12/12 requirements mapped ✓
+
+## Cross-Cutting Constraints (apply to every phase)
+
+- Every grant/policy change is a PROD migration via Supabase MCP `apply_migration`; reconcile the repo filename with the prod-assigned timestamp per `migration-mcp-prod-drift` (run `mcp__supabase__list_migrations` after each MCP apply).
+- `REVOKE FROM PUBLIC` is load-bearing: a bare `REVOKE FROM authenticated` is a no-op while the PUBLIC grant stands. Each function tightening must `REVOKE FROM PUBLIC` then re-`GRANT` only `service_role`.
+- Never re-introduce the deny-all/RESTRICTIVE rule removed in `20260527151342` (rejected per `AUDIT-2026-05-29`). Use positive `service_role_only` FOR ALL policies only.
+- TIGHTEN revokes grants; it does NOT DROP functions (lower risk, reversible).
+- The integration suite is PostgREST-only — it cannot introspect `pg_proc.proacl`. Pin grant state via the advisor + `.rpc()` reachability probes (`anon-rpc-grants` / `admin-rpc-grants` pattern), not by reading catalogs from the test.
+- Each phase ships as ONE atomic PR through the perfect-PR gate (two consecutive zero-finding deep review cycles). Branch protection on `main` requires `checks` + `e2e-smoke` + `rls-security`.
+- `auth_leaked_password_protection` is OUT of scope (paid HaveIBeenPwned feature, intentionally disabled).
 
 ---
-*Last updated: 2026-06-02 — v2.0 Dashboard Command Center archived (7 phases, 24 plans, 34/34 requirements). Next milestone unplanned; SEED-001 queued.*
+*Last updated: 2026-06-02 — v3.0 Security Hardening roadmap created (3 phases, 12/12 requirements mapped). v2.0 Dashboard Command Center + v1.0 Marketing Surface Honesty archived above.*

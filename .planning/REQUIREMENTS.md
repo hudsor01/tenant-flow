@@ -46,17 +46,17 @@
 
 | REQ-ID | Phase | Status |
 |--------|-------|--------|
-| SDEF-01 | — | Pending |
-| SDEF-02 | — | Pending |
-| SDEF-03 | — | Pending |
-| TIGHTEN-01 | — | Pending |
-| TIGHTEN-02 | — | Pending |
-| TIGHTEN-03 | — | Pending |
-| RLSNP-01 | — | Pending |
-| RLSNP-02 | — | Pending |
-| RLSNP-03 | — | Pending |
-| SECTEST-01 | — | Pending |
-| SECTEST-02 | — | Pending |
-| SECTEST-03 | — | Pending |
+| SDEF-01 | Phase 1 | Pending |
+| SDEF-02 | Phase 1 | Pending |
+| SDEF-03 | Phase 1 | Pending |
+| TIGHTEN-01 | Phase 1 | Pending |
+| TIGHTEN-02 | Phase 1 | Pending |
+| TIGHTEN-03 | Phase 1 | Pending |
+| RLSNP-01 | Phase 2 | Pending |
+| RLSNP-02 | Phase 2 | Pending |
+| RLSNP-03 | Phase 2 | Pending |
+| SECTEST-01 | Phase 1 | Pending |
+| SECTEST-02 | Phase 2 | Pending |
+| SECTEST-03 | Phase 3 | Pending |
 
-*(Phase column filled by the roadmapper.)*
+**Coverage:** 12/12 requirements mapped to exactly one phase — no orphans, no double-mapping.
