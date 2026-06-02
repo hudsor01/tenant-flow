@@ -8,7 +8,7 @@
 
 ## Phases
 
-- [ ] **Phase 1: SECURITY DEFINER Classification & Tightening** - Classify all 46 authenticated SECURITY DEFINER functions and revoke `authenticated` EXECUTE from the few that no signed-in account should reach.
+- [x] **Phase 1: SECURITY DEFINER Classification & Tightening** - Classify all 46 authenticated SECURITY DEFINER functions and revoke `authenticated` EXECUTE from the few that no signed-in account should reach. **Executed 2026-06-02 — migration `20260602202339`, advisor 46→44.**
 - [ ] **Phase 2: RLS-No-Policy Resolution** - Make the fail-closed lockdown explicit on all 10 `rls_enabled_no_policy` tables and revoke the vestigial `authenticated` GraphQL-exposing grants.
 - [ ] **Phase 3: Documented Advisor Steady State & Verification** - Re-run the advisor against prod, prove the only remaining findings are the documented KEEP set, and pin zero RLS regressions across the full integration suite.
 
@@ -25,8 +25,8 @@
   4. `assert_can_create_lease`'s live overload/call-graph is resolved and its `authenticated`/`PUBLIC` EXECUTE is revoked (`service_role` retained) with `bulk_import_create_lease`'s internal invariant enforcement still passing its existing integration test.
   5. `audit_for_all_policies` no longer exposes the policy inventory to an arbitrary signed-in account — either tightened to `service_role` (its test migrated to a service-role/admin client) or kept with an explicit `is_admin()` internal gate — and `tests/integration/rls/` pins each tightened function unreachable from `authenticated` while confirming the KEEP RLS helpers (`is_admin`, `get_current_owner_user_id`) remain reachable.
 **Plans**: 2 plans
-  - [ ] 01-01-PLAN.md — Durable classification doc (CYCLE-2.md): 46-function KEEP/TIGHTEN/REVIEW verdicts + KEEP rationale + 7-RPC admin-gate spot-check + assert_can_create_lease signature/caller/owner resolution (SDEF-01/02/03)
-  - [ ] 01-02-PLAN.md — Atomic tighten migration (REVOKE FROM PUBLIC + re-GRANT service_role on get_lead_paint_compliance_report + assert_can_create_lease(uuid,uuid); is_admin() body gate on audit_for_all_policies) + extend anon-rpc-grants.rls.test.ts + bulk-import safety verify (TIGHTEN-01/02/03, SECTEST-01)
+  - [x] 01-01-PLAN.md — Durable classification doc (CYCLE-2.md): 46-function KEEP/TIGHTEN/REVIEW verdicts + KEEP rationale + 7-RPC admin-gate spot-check (all gated) + assert_can_create_lease resolution (orphaned; single sig) (SDEF-01/02/03)
+  - [x] 01-02-PLAN.md — Atomic tighten migration `20260602202339` (REVOKE FROM authenticated — direct grant, not PUBLIC — + keep service_role on get_lead_paint_compliance_report + assert_can_create_lease(uuid,uuid); is_admin() body gate on audit_for_all_policies) + extend anon-rpc-grants.rls.test.ts; advisor 46→44 (TIGHTEN-01/02/03, SECTEST-01)
 
 ### Phase 2: RLS-No-Policy Resolution
 **Goal**: All 10 `rls_enabled_no_policy` tables carry an explicit, intent-documenting policy that clears lint 0008, and the 5 vestigial `authenticated` table-grants are revoked so prod schema is no longer discoverable via `pg_graphql` introspection — without re-introducing the deny-all removed in `20260527151342`.
@@ -94,7 +94,7 @@ Audit round 3 verdict: PERFECT BY ALL MEASURES. Full detail in [milestones/v1.0-
 
 | Phase | Milestone | Plans | Status | Completed |
 |-------|-----------|-------|--------|-----------|
-| 1. SECURITY DEFINER Classification & Tightening | v3.0 | 0/2 | Planned | - |
+| 1. SECURITY DEFINER Classification & Tightening | v3.0 | 2/2 | Executed (advisor 46→44; pre-merge) | 2026-06-02 |
 | 2. RLS-No-Policy Resolution | v3.0 | 0/TBD | Not started | - |
 | 3. Documented Advisor Steady State & Verification | v3.0 | 0/TBD | Not started | - |
 
