@@ -8,10 +8,15 @@ import { createTestClient, getTestCredentials } from "../setup/supabase-client";
 // which policies exist -- closing a policy-inventory info-leak to arbitrary
 // signed-in accounts.
 //
-// This file now pins the GATE behavior (non-admin -> no rows, no error), which
-// also catches a future regression that removes the gate (a non-admin would then
-// receive real policy rows and these assertions would fail). It does NOT assert
-// the historical "zero FOR ALL <role> policies" invariant:
+// This file now pins the GATE behavior (non-admin -> no rows, no error). It will
+// catch a future regression that removes the gate ONCE a matching FOR ALL policy
+// exists (e.g. the `service_role_only` FOR ALL policies Phase 2 adds): an ungated
+// body would then leak those rows to a non-admin and `toHaveLength(0)` would fail.
+// Today prod has zero FOR ALL service_role/authenticated policies, so the gate
+// and an ungated body are indistinguishable here -- a true admin-session
+// non-empty assertion is the only way to pin it unconditionally, and the harness
+// has no admin client (see below). It does NOT assert the historical "zero FOR
+// ALL <role> policies" invariant:
 //   - the harness has no admin client (getAdminTestCredentials() -> null), so the
 //     catalog filter can only be exercised by an admin session; verify that
 //     invariant out-of-band via the Supabase advisor / an admin session until an

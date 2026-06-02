@@ -54,4 +54,7 @@ AS $function$
     AND pp.schemaname IN ('public', 'storage')
     AND pp.roles::text[] @> ARRAY[p_role];
 $function$;
+-- CREATE OR REPLACE preserves the existing grant; this re-GRANT is a deliberate
+-- idempotent intent-pin (audit_for_all_policies stays authenticated-executable by
+-- design -- the is_admin() body gate, not a revoke, closes the leak).
 GRANT EXECUTE ON FUNCTION public.audit_for_all_policies(text) TO authenticated;
