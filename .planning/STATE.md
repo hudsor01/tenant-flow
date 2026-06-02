@@ -26,16 +26,16 @@ See: .planning/PROJECT.md (updated 2026-06-02 after v2.0)
 
 | Phase | Name | Requirements | Status |
 |-------|------|--------------|--------|
-| 1 | SECURITY DEFINER Classification & Tightening | SDEF-01, SDEF-02, SDEF-03, TIGHTEN-01, TIGHTEN-02, TIGHTEN-03, SECTEST-01 | Not started |
+| 1 | SECURITY DEFINER Classification & Tightening | SDEF-01, SDEF-02, SDEF-03, TIGHTEN-01, TIGHTEN-02, TIGHTEN-03, SECTEST-01 | Executed (2/2 plans; advisor 46→44; pre-merge) |
 | 2 | RLS-No-Policy Resolution | RLSNP-01, RLSNP-02, RLSNP-03, SECTEST-02 | Not started |
 | 3 | Documented Advisor Steady State & Verification | SECTEST-03 | Not started |
 
 ## Current Position
 
-Phase: 1 — SECURITY DEFINER Classification & Tightening (not started)
-Plan: —
-Status: Not started (roadmap complete, awaiting `/gsd-plan-phase 1`)
-Last activity: 2026-06-02 — v3.0 roadmap created (3 phases, 12/12 requirements mapped)
+Phase: 1 — SECURITY DEFINER Classification & Tightening (executed, pre-merge)
+Plan: 01-01 + 01-02 complete
+Status: Executed — migration `20260602202339` applied to prod, advisor `authenticated_security_definer_function_executable` 46→44 confirmed live. Tests extended (CI `rls-security` runs them on the PR). Awaiting perfect-PR review + merge.
+Last activity: 2026-06-02 — Phase 1 executed: tightened get_lead_paint_compliance_report + assert_can_create_lease (revoked authenticated; both orphaned) + is_admin() gate on audit_for_all_policies. CYCLE-2.md classification doc written (43 KEEP / 2 TIGHTEN / 1 REVIEW).
 
 ## Deferred Items
 
@@ -69,7 +69,7 @@ Deferred out of v3.0 scope (recorded in REQUIREMENTS.md "Future Requirements"):
 
 **Live advisor baseline (2026-06-02, prod `bshjmbshupiibfiewpxb`):**
 
-- `authenticated_security_definer_function_executable` WARN × 46 → 44 KEEP-by-design (43 frontend RPCs gating on `auth.uid()`/`is_admin()` + RLS helpers `is_admin`, `get_current_owner_user_id`), 2 TIGHTEN (`get_lead_paint_compliance_report`, `assert_can_create_lease`), 1 REVIEW (`audit_for_all_policies`, test-only).
+- `authenticated_security_definer_function_executable` WARN × 46 → 43 KEEP-by-design (41 genuine frontend RPCs gating on `auth.uid()`/`is_admin()` + the 2 RLS helpers `is_admin`, `get_current_owner_user_id`), 2 TIGHTEN (`get_lead_paint_compliance_report`, `assert_can_create_lease`), 1 REVIEW (`audit_for_all_policies`, test-only). 41+2+2+1 = 46.
 - `rls_enabled_no_policy` INFO × 10 → all fail-closed already. Tier A (5: `app_config`, `email_suppressions`, `processed_internal_events`, `security_events`, `stripe_webhook_events`) revoke vestigial `authenticated` grant + add `service_role_only`. Tier B (5: `security_audit_log`, `user_access_log`, `webhook_attempts`, `webhook_events`, `webhook_metrics`) add `service_role_only`.
 - Net DDL footprint: ~2-3 function REVOKEs + 10 table policies (+ ≤5 table REVOKEs). Everything else is classification docs + tests.
 
@@ -93,7 +93,7 @@ None.
 /gsd-plan-phase 1
 ```
 
-Phase 1 (SECURITY DEFINER Classification & Tightening) produces the durable function-by-function classification doc (44 KEEP rationale + 2 TIGHTEN + 1 REVIEW), resolves `assert_can_create_lease`'s live overload/call-graph, ships the TIGHTEN migration(s) (`REVOKE FROM PUBLIC` + re-grant `service_role`) for `get_lead_paint_compliance_report` / `assert_can_create_lease` / the `audit_for_all_policies` decision, spot-checks admin gates on the 7 analytics KEEPs, and extends `tests/integration/rls/anon-rpc-grants` / `admin-rpc-grants` to pin the tightened set unreachable from authenticated while the KEEP RLS helpers stay reachable.
+Phase 1 (SECURITY DEFINER Classification & Tightening) produces the durable function-by-function classification doc (43 KEEP rationale + 2 TIGHTEN + 1 REVIEW), resolves `assert_can_create_lease`'s live overload/call-graph, ships the TIGHTEN migration(s) (`REVOKE FROM PUBLIC` + re-grant `service_role`) for `get_lead_paint_compliance_report` / `assert_can_create_lease` / the `audit_for_all_policies` decision, spot-checks admin gates on the 7 analytics KEEPs, and extends `tests/integration/rls/anon-rpc-grants` / `admin-rpc-grants` to pin the tightened set unreachable from authenticated while the KEEP RLS helpers stay reachable.
 
 ## Overrides
 

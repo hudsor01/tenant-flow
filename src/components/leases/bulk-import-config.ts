@@ -122,8 +122,8 @@ export function leaseBulkImportConfig(): BulkImportConfig<LeaseImportInput> {
 		insertRow: async (row) => {
 			const supabase = createClient();
 			// Atomic lease + lease_tenants insert via SECURITY DEFINER RPC.
-			// RPC enforces ownership, assert_can_create_lease invariants,
-			// input-range validation, and atomicity.
+			// RPC enforces ownership, lease-overlap/conflict invariants
+			// (validated inline), input-range validation, and atomicity.
 			const { error } = await supabase.rpc("bulk_import_create_lease", {
 				p_unit_id: row.unit_id,
 				p_primary_tenant_id: row.primary_tenant_id,
