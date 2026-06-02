@@ -206,14 +206,14 @@ test.describe("Dashboard smoke (POLISH-09)", () => {
 		await ensureTableView(page);
 
 		// Mouse sort on "Monthly Rent" (unsorted by default — Property is the
-		// default sort). Its <th> aria-sort starts "none" and flips after the click.
+		// default sort). The header is a DropdownMenuTrigger: a mouse click OPENS
+		// the asc/desc/reset menu (only keyboard Enter/Space fast-sorts directly),
+		// so sort the explicit, contract-correct way — open the menu, pick "Desc".
 		const rentHeader = columnHeader(page, "Monthly Rent");
 		await expect(rentHeader).toHaveAttribute("aria-sort", "none");
 		await rentHeader.getByRole("button", { name: "Monthly Rent" }).click();
-		await expect(rentHeader).toHaveAttribute(
-			"aria-sort",
-			/ascending|descending/,
-		);
+		await page.getByRole("menuitemcheckbox", { name: "Desc" }).click();
+		await expect(rentHeader).toHaveAttribute("aria-sort", "descending");
 
 		// Keyboard sort on "Property" (default-sorted ascending). Enter toggles to
 		// descending directly via the header trigger's onKeyDown fast-sort path.
