@@ -164,7 +164,7 @@ export function ProfileCard({
 						type="button"
 						onClick={onSignOut}
 						disabled={isSigningOut}
-						className="mt-6 flex w-full items-center justify-center gap-2 rounded-lg border border-destructive/20 py-2 text-sm font-medium text-destructive transition-colors hover:bg-destructive/5 disabled:opacity-50"
+						className="mt-6 flex w-full items-center justify-center gap-2 rounded-lg border border-destructive/20 py-2 text-sm font-medium text-destructive-text transition-colors hover:bg-destructive/5 disabled:opacity-50"
 					>
 						{isSigningOut ? (
 							<Loader2 className="h-4 w-4 animate-spin" />

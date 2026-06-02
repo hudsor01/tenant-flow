@@ -39,7 +39,7 @@ function NavItem({
 			className={cn(
 				"flex h-14 w-16 flex-col items-center justify-center rounded-lg text-xs font-medium transition-colors",
 				isActive
-					? "text-primary bg-primary/10"
+					? "text-primary-text bg-primary/10"
 					: "text-muted-foreground hover:text-foreground",
 			)}
 			aria-label={`${item.label} navigation`}
@@ -111,7 +111,7 @@ export function MobileNav() {
 											className={cn(
 												"flex items-center gap-3 px-4 py-3 typography-small rounded-lg transition-colors",
 												isActive
-													? "text-primary bg-primary/10"
+													? "text-primary-text bg-primary/10"
 													: "text-muted-foreground hover:text-foreground hover:bg-muted/50",
 											)}
 											aria-label={`${item.label} navigation`}
