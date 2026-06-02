@@ -156,8 +156,10 @@ const REVOKED_FROM_ANON: Array<{
 // intentionally NOT pinned in this list: it `RETURNS trigger`, so PostgREST never
 // exposes it as an RPC -- an anon `.rpc()` probe returns PGRST202 regardless of the
 // grant (a tautology, not a real assertion). Its grant state (service_role only) is
-// enforced by migration 20260602044104 and re-flagged by the Supabase Security
-// Advisor on any anon/PUBLIC re-grant, which is the actual regression backstop.
+// enforced by migration 20260602044104 and monitored out-of-band by the Supabase
+// Security Advisor (which re-flags any anon/PUBLIC re-grant). Note: no CI job runs
+// the advisor, so this suite would NOT catch such a re-grant -- the advisor is the
+// monitoring backstop, not an in-CI gate.
 
 /** Functions also revoked from authenticated (the two IDOR fixes). */
 const REVOKED_FROM_AUTHENTICATED: Array<{
