@@ -1,10 +1,15 @@
 ---
 phase: 2
 slug: rls-no-policy-resolution
-status: draft
-nyquist_compliant: false
-wave_0_complete: false
+status: planned
+nyquist_compliant: true
+wave_0_complete: true
 created: 2026-06-02
+plan_map:
+  02-introspect: 02-01-PLAN.md (Task 1) — Wave 1
+  02-mig: 02-01-PLAN.md (Task 2) — Wave 1
+  02-test: 02-02-PLAN.md (Task 1) — Wave 2
+  02-regress: 02-02-PLAN.md (Task 2) — Wave 2
 ---
 
 # Phase 2 — Validation Strategy
@@ -40,10 +45,10 @@ created: 2026-06-02
 
 | Task ID | Wave | Requirement | Threat Ref | Secure Behavior | Test Type | Automated Command / Oracle | File Exists | Status |
 |---------|------|-------------|------------|-----------------|-----------|-----------------------------|-------------|--------|
-| 02-introspect | 1 | RLSNP-01 | T-stale-state | Live per-table policy/grant state captured (repo migrations contradict the advisor — A1) before any DDL | live introspection | `execute_sql` pg_policies + aclexplode per table → record in audit doc | ❌ W1 | ⬜ pending |
-| 02-mig | 1 | RLSNP-02, RLSNP-03 | T-overlock / T-deny-all-reintro | 10× `service_role_only FOR ALL TO service_role USING(true) WITH CHECK(true)`; `REVOKE … FROM authenticated` on the 5 Tier-A tables (+ defensive anon/PUBLIC). No RESTRICTIVE/deny-all. | migration (MCP apply) | grep migration shape; `get_advisors` 0008 10→0; 0027 drops the 5 tables; timestamp reconciled | ❌ W1 (new migration) | ⬜ pending |
-| 02-test | 1 | SECTEST-02 (deny) | T-overlock | authenticated + anon DENIED on all 10 (no read leak) | integration | `bun run test:integration -- --run tests/integration/rls/rls-no-policy-lockdown.rls.test.ts` | ❌ W1 (new test) | ⬜ pending |
-| 02-regress | 1 | SECTEST-02 | T-foralltest-retrip | the new service_role FOR ALL policies do NOT re-trip `for-all-audit.rls.test.ts` (Phase 1 rewrote it to anticipate them) | integration | `bun run test:integration -- --run tests/integration/rls/for-all-audit.test.ts` | ✅ exists | ⬜ pending |
+| 02-introspect | 1 | RLSNP-01 | T-stale-state | Live per-table policy/grant state captured (repo migrations contradict the advisor — A1) before any DDL | **intentional manual gate** (live MCP introspection; no automated proxy exists — the CYCLE-3.md recorded content IS the acceptance oracle) | `execute_sql` pg_policies + aclexplode per table → record in CYCLE-3.md | ❌ W1 | ⬜ pending |
+| 02-mig | 1 | RLSNP-02, RLSNP-03 | T-overlock / T-deny-all-reintro | 10× `service_role_only FOR ALL TO service_role USING(true) WITH CHECK(true)`; `REVOKE … FROM authenticated` on the 5 Tier-A tables (+ defensive anon/PUBLIC). No RESTRICTIVE/deny-all. | migration (MCP apply) + advisor oracle | grep migration shape; `get_advisors` 0008 10→0; 0027 drops the 5 tables; timestamp reconciled | ❌ W1 (new migration) | ⬜ pending |
+| 02-test | **2** | SECTEST-02 (deny) | T-overlock | authenticated + anon DENIED on all 10 (no read leak) | integration | `bun run test:integration -- --run tests/integration/rls/rls-no-policy-lockdown.rls.test.ts` | ❌ W2 (new test, Plan 02-02) | ⬜ pending |
+| 02-regress | **2** | SECTEST-02 | T-foralltest-retrip | the new service_role FOR ALL policies do NOT re-trip `for-all-audit.test.ts` (Phase 1 rewrote it to anticipate them) | integration | `bun run test:integration -- --run tests/integration/rls/for-all-audit.test.ts` | ✅ exists | ⬜ pending |
 
 ---
 
@@ -70,11 +75,11 @@ created: 2026-06-02
 
 ## Validation Sign-Off
 
-- [ ] All tasks have an `<automated>` verify or a documented out-of-band oracle
-- [ ] Sampling continuity: no 3 consecutive tasks without automated verify/oracle
-- [ ] Wave 0 covers the new test file + the introspection prerequisite
-- [ ] No watch-mode flags (integration runs `--run`)
-- [ ] Feedback latency < 120s
-- [ ] `nyquist_compliant: true` set after the planner fills the per-task map
+- [x] All tasks have an `<automated>` verify or a documented out-of-band oracle (02-introspect is an intentional manual gate; allow-side is the advisor oracle)
+- [x] Sampling continuity: no 3 consecutive tasks without automated verify/oracle
+- [x] Wave 0 covers the new test file (02-test, Plan 02-02) + the introspection prerequisite (02-introspect, Plan 02-01)
+- [x] No watch-mode flags (integration runs `--run`)
+- [x] Feedback latency < 120s
+- [x] `nyquist_compliant: true` set; per-task map mapped to plans/tasks/waves
 
-**Approval:** pending
+**Approval:** planned (per-task map covered by 02-01 + 02-02)

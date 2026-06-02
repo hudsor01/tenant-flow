@@ -301,15 +301,12 @@ Expected (per research) BEFORE migration: `policy_count=0` for all 10; `authn_se
 | A2 | The CI `rls-security` harness has no service-role key, so the allow-side cannot be CI-tested. | Validation Architecture | If a service-role secret were added to CI later, an in-CI allow test would become possible. Low risk; verified against current `rls-security-tests.yml`. |
 | A3 | `security_events` has no near-term plan for an authenticated admin-log viewer (its original authenticated read intent is defunct). | Intent Confirmation (RLSNP-01) | If the user plans to ship an admin security-log UI soon, locking down now means a follow-up to add a scoped `is_admin()` SELECT policy. Surfaced as Open Question 1. |
 
-## Open Questions
+## Open Questions (RESOLVED)
 
-1. **`security_events` authenticated read intent — confirm defunct.**
-   - What we know: created with admin + self-view authenticated SELECT policies; the admin check (`user_type='ADMIN'`) is dead post-`is_admin` migration; live advisor reports 0 policies; no frontend reads it.
-   - What's unclear: whether an admin security-log viewer is on the roadmap (which would need a scoped `is_admin()` SELECT policy instead of full lockdown).
-   - Recommendation: Lock down (`service_role_only` + revoke) per current reality; ask the user to confirm no near-term admin-log-viewer plan. If they confirm a plan, add `security_events_select_admin FOR SELECT TO authenticated USING ((select public.is_admin()))` instead of revoking — but RLSNP-01's preliminary signal and the dead admin check both point to lockdown.
+1. **`security_events` authenticated read intent — confirm defunct.** RESOLVED → lock down. The live advisor reports 0 policies, the only historical authenticated policy gated on the removed `user_type='ADMIN'` check (dead post-`is_admin` migration), and no frontend reads it. No admin-security-log-viewer is on the v3.0 roadmap (REQUIREMENTS.md scopes v3.0 to advisor remediation only). Plan 02-01 Task 3 records this verdict in CYCLE-3.md; if a future milestone needs an admin viewer it adds a scoped `is_admin()` SELECT policy then — out of v3.0 scope.
+   - Evidence: created with admin + self-view authenticated SELECT policies; the admin check is dead; advisor 0 policies; no frontend read.
 
-2. **Exact live policy names per table (drift).** Repo migrations disagree with the advisor about which policies exist on `email_suppressions` / `security_events`. The migration's `drop policy if exists` must target the *actual* live names.
-   - Recommendation: resolve via the introspection SQL (A1) at plan time. `drop policy if exists "service_role_only"` is safe regardless; if other stale policies exist they can be left or cleaned per the live result.
+2. **Exact live policy names per table (drift).** RESOLVED at execute-time by the A1 hard gate (Plan 02-01 Task 1). Repo migrations disagree with the advisor about which policies exist on `email_suppressions` / `security_events`; the migration is authored against the LIVE introspection result, and `drop policy if exists "service_role_only"` is collision-safe regardless. Any other stale live policies are recorded + handled per the live result in Task 1.
 
 ## Environment Availability
 
@@ -329,7 +326,7 @@ Expected (per research) BEFORE migration: `policy_count=0` for all 10; `authn_se
 |----------|-------|
 | Framework | Vitest 4 + jsdom; `@supabase/supabase-js` (publishable key + ownerA/ownerB JWTs) |
 | Config file | `tests/integration/` (run via `bun run test:integration`); CI: `.github/workflows/rls-security-tests.yml` |
-| Quick run command | `bun run test:unit -- --run tests/integration/rls/rls-no-policy-lockdown.rls.test.ts` (local; needs `.env.local`) |
+| Quick run command | `bun run test:integration -- --run tests/integration/rls/rls-no-policy-lockdown.rls.test.ts` (local; needs `.env.local`) |
 | Full suite command | `bun run test:integration` |
 
 ### Phase Requirements → Validation Signal Map
