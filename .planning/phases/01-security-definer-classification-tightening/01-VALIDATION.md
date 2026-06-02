@@ -1,10 +1,17 @@
 ---
 phase: 1
 slug: security-definer-classification-tightening
-status: draft
-nyquist_compliant: false
+status: planned
+nyquist_compliant: true
 wave_0_complete: false
 created: 2026-06-02
+plan_map:
+  01-class: 01-01-PLAN.md (Task 2)
+  01-gate: 01-01-PLAN.md (Task 1)
+  01-mig: 01-02-PLAN.md (Task 1)
+  01-test: 01-02-PLAN.md (Task 2)
+  01-safety: 01-02-PLAN.md (Task 2)
+  01-verify: 01-02-PLAN.md (Task 2)
 ---
 
 # Phase 1 — Validation Strategy
@@ -37,14 +44,14 @@ created: 2026-06-02
 
 ## Per-Task Verification Map
 
-| Task ID | Wave | Requirement | Threat Ref | Secure Behavior | Test Type | Automated Command | File Exists | Status |
-|---------|------|-------------|------------|-----------------|-----------|-------------------|-------------|--------|
-| 01-class | 0 | SDEF-01, SDEF-02 | T-inventory-enum | All 46 classified KEEP/TIGHTEN/REVIEW + KEEP rationale in CYCLE-2.md | doc review | manual diff vs `research/CLASSIFICATION.md` | ❌ W0 (`CYCLE-2.md`) | ⬜ pending |
-| 01-gate | 0 | SDEF-03 | T-under-revoke | 7 analytics RPCs show `is_admin()`/owner-scope gate; any bare gate fixed | live introspection | `execute_sql` `pg_get_functiondef` per fn → record in CYCLE-2.md | ✅ MCP | ⬜ pending |
-| 01-mig | 1 | TIGHTEN-01, TIGHTEN-02, TIGHTEN-03 | T-over-revoke / T-bulk-bypass | `REVOKE FROM PUBLIC` + re-`GRANT service_role` on the 2 TIGHTEN fns; `is_admin()` gate added to `audit_for_all_policies` | migration (MCP apply) | `get_advisors(security)` delta 46→43; timestamp reconciled via `list_migrations` | ❌ W1 (new migration) | ⬜ pending |
-| 01-test | 1 | SECTEST-01, TIGHTEN-01, TIGHTEN-02 | T-over-revoke / T-keep-helper-loss | tightened fns return a revoked-EXECUTE code from authenticated; `is_admin`/`get_current_owner_user_id` still reachable | integration | `bun run test:integration -- --run tests/integration/rls/anon-rpc-grants.rls.test.ts` | ⚠️ extends existing | ⬜ pending |
-| 01-safety | 1 | TIGHTEN-02 | T-bulk-bypass | bulk-import invariant still enforced after revoke | integration | `bun run test:integration -- --run tests/integration/rls/bulk-import-create-lease.test.ts` | ✅ exists | ⬜ pending |
-| 01-verify | 1 | SECTEST-01, TIGHTEN-03 | — | non-admin `audit_for_all_policies` returns 0 rows (no enumeration) | integration | `for-all-audit.test.ts` green (semantics shift) | ✅ exists | ⬜ pending |
+| Task ID | Wave | Plan / Task | Requirement | Threat Ref | Secure Behavior | Test Type | Automated Command | File Exists | Status |
+|---------|------|-------------|-------------|------------|-----------------|-----------|-------------------|-------------|--------|
+| 01-class | 1 | 01-01 T2 | SDEF-01, SDEF-02 | T-01-inventory-enum | All 46 classified KEEP/TIGHTEN/REVIEW + KEEP rationale in CYCLE-2.md | doc review | grep KEEP/TIGHTEN/REVIEW + assert_can_create_lease/audit_for_all_policies present | ❌ W1 (`CYCLE-2.md`) | ⬜ pending |
+| 01-gate | 1 | 01-01 T1 | SDEF-03 | T-01-under-revoke | 7 analytics RPCs show `is_admin()`/owner-scope gate; any bare gate recorded → fixed in Plan 02 | live introspection | `execute_sql` `pg_get_functiondef` per fn → record in CYCLE-2.md | ✅ MCP | ⬜ pending |
+| 01-mig | 2 | 01-02 T1 | TIGHTEN-01, TIGHTEN-02, TIGHTEN-03 | T-01-over-revoke / T-01-bulk-bypass / T-01-inventory-enum | `REVOKE FROM PUBLIC` + re-`GRANT service_role` on the 2 TIGHTEN fns; `is_admin()` gate added to `audit_for_all_policies` | migration (MCP apply) | grep migration shape (REVOKE FROM PUBLIC + named (uuid,uuid) + is_admin; no FROM authenticated / no DROP); `get_advisors` delta 46→43; timestamp reconciled via `list_migrations` | ❌ W2 (new migration) | ⬜ pending |
+| 01-test | 2 | 01-02 T2 | SECTEST-01, TIGHTEN-01, TIGHTEN-02 | T-01-over-revoke / T-01-keep-helper-loss | tightened fns return a revoked-EXECUTE code from authenticated; `is_admin`/`get_current_owner_user_id` still reachable | integration | `bun run test:integration -- --run tests/integration/rls/anon-rpc-grants.rls.test.ts` | ⚠️ extends existing | ⬜ pending |
+| 01-safety | 2 | 01-02 T2 | TIGHTEN-02 | T-01-bulk-bypass | bulk-import invariant still enforced after revoke | integration | `bun run test:integration -- --run tests/integration/rls/bulk-import-create-lease.test.ts` | ✅ exists | ⬜ pending |
+| 01-verify | 2 | 01-02 T2 | SECTEST-01, TIGHTEN-03 | T-01-inventory-enum | non-admin `audit_for_all_policies` returns 0 rows (no enumeration) | integration | `anon-rpc-grants.rls.test.ts` 0-row pin + `for-all-audit.test.ts` green (semantics shift) | ✅ exists | ⬜ pending |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
@@ -52,10 +59,12 @@ created: 2026-06-02
 
 ## Wave 0 Requirements
 
-- [ ] `.planning/anon-exec-audit/CYCLE-2.md` — the durable classification doc (SDEF-01/02/03 evidence + TIGHTEN decisions + advisor delta). New file (continues the CYCLE-1 lineage).
-- [ ] New `describe` block + `TIGHTENED_FROM_AUTHENTICATED` array in `anon-rpc-grants.rls.test.ts` — TIGHTEN-01/02 revoke probes + SECTEST-01.
-- [ ] Positive `get_current_owner_user_id` reachability assertion (SECTEST-01 KEEP-helper contract).
-- [ ] (Optional) positive 0-row assertion on `audit_for_all_policies` for a non-admin (TIGHTEN-03 leak-closure pin).
+> Note: this phase has no literal "Wave 0" scaffold gap — the only new test code (the `TIGHTENED_FROM_AUTHENTICATED` block) is authored in Plan 02 Task 2 alongside the migration it pins, and the classification doc is Plan 01. The items below are the new-file deliverables tracked to closure.
+
+- [ ] `.planning/anon-exec-audit/CYCLE-2.md` — the durable classification doc (SDEF-01/02/03 evidence + TIGHTEN decisions + advisor delta). New file (continues the CYCLE-1 lineage). → Plan 01.
+- [ ] New `describe` block + `TIGHTENED_FROM_AUTHENTICATED` array in `anon-rpc-grants.rls.test.ts` — TIGHTEN-01/02 revoke probes + SECTEST-01. → Plan 02 Task 2.
+- [ ] Positive `get_current_owner_user_id` reachability assertion (SECTEST-01 KEEP-helper contract). → Plan 02 Task 2.
+- [ ] Positive 0-row assertion on `audit_for_all_policies` for a non-admin (TIGHTEN-03 leak-closure pin). → Plan 02 Task 2.
 
 *No framework install needed — the integration harness + `rls-security` CI job already exist.*
 
@@ -74,11 +83,11 @@ created: 2026-06-02
 
 ## Validation Sign-Off
 
-- [ ] All tasks have an `<automated>` verify or a Wave 0 dependency
-- [ ] Sampling continuity: no 3 consecutive tasks without automated verify
-- [ ] Wave 0 covers all MISSING references (`CYCLE-2.md`, new test rows)
-- [ ] No watch-mode flags (integration runs `--run`)
-- [ ] Feedback latency < 120s
-- [ ] `nyquist_compliant: true` set in frontmatter (after planner fills the per-task map)
+- [x] All tasks have an `<automated>` verify or a Wave 0 dependency
+- [x] Sampling continuity: no 3 consecutive tasks without automated verify
+- [x] Wave 0 covers all MISSING references (`CYCLE-2.md`, new test rows)
+- [x] No watch-mode flags (integration runs `--run`)
+- [x] Feedback latency < 120s
+- [x] `nyquist_compliant: true` set in frontmatter (per-task map mapped to plans/tasks)
 
-**Approval:** pending
+**Approval:** planned (per-task map covered by 01-01 + 01-02)
