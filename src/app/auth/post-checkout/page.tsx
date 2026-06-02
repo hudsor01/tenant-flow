@@ -156,7 +156,7 @@ export default function PostCheckoutPage() {
 				<div className="space-y-4">
 					<Alert className="border-success/20 bg-success/5 dark:border-success/30 dark:bg-success/10">
 						<Mail className="size-4 text-success" />
-						<AlertDescription className="text-success-text dark:text-success-text">
+						<AlertDescription className="text-success-text">
 							A login link has been sent to <strong>{email}</strong>
 						</AlertDescription>
 					</Alert>
