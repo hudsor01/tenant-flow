@@ -118,7 +118,7 @@ export function ConfirmEmailErrorBanner() {
 				<p className="font-medium text-destructive-text">
 					Confirmation link expired or invalid
 				</p>
-				<p className="text-destructive/80 mt-1">
+				<p className="text-destructive-text/80 mt-1">
 					The confirmation link you clicked is no longer valid. Please request a
 					new one using the button below.
 				</p>
