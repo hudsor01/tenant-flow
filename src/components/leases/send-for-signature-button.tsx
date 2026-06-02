@@ -223,7 +223,7 @@ export function SendForSignatureButton({
 						<div>
 							<Label htmlFor="landlord-notice-address" className="mb-2 block">
 								Landlord notice address{" "}
-								<span className="text-destructive">*</span>
+								<span className="text-destructive-text">*</span>
 							</Label>
 							<Textarea
 								id="landlord-notice-address"

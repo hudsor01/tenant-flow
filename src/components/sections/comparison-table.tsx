@@ -217,7 +217,7 @@ function FeatureCell({
 			<span
 				className={cn(
 					"typography-small",
-					highlight ? "text-primary" : "text-foreground",
+					highlight ? "text-primary-text" : "text-foreground",
 				)}
 			>
 				{value}

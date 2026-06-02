@@ -198,7 +198,7 @@ export function PricingCardStandard({
 					    Max $298. formatCurrency so 4-digit savings render with
 					    thousands separator (AUDIT-2 cycle-2 P3). */}
 					{billingCycle === "yearly" && plan.price.monthly > 0 && (
-						<p className="text-xs font-semibold text-success mt-1">
+						<p className="text-xs font-semibold text-success-text mt-1">
 							Save{" "}
 							{formatCurrency(calculateAnnualSavings(plan.price.monthly), {
 								maximumFractionDigits: 0,
@@ -236,7 +236,7 @@ export function PricingCardStandard({
 						<button
 							type="button"
 							onClick={() => setShowAllFeatures(!showAllFeatures)}
-							className="flex items-center gap-1 text-xs text-primary hover:text-primary/80 pl-6 transition-colors"
+							className="flex items-center gap-1 text-xs text-primary-text hover:text-primary/80 pl-6 transition-colors"
 						>
 							<ChevronDown
 								className={cn(

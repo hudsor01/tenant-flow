@@ -145,7 +145,7 @@ export function MfaVerificationDialog({
 
 					{error && (
 						<div className="rounded-lg border border-destructive/50 bg-destructive/10 p-3 text-center">
-							<p className="text-sm text-destructive">{error}</p>
+							<p className="text-sm text-destructive-text">{error}</p>
 						</div>
 					)}
 

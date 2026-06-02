@@ -147,7 +147,7 @@ export default function HelpPage() {
 								description:
 									"Per-entity uploads, custom categories, search, filters, and tax-season zip exports — everything the vault does in one walkthrough",
 								badge: "Most Popular",
-								badgeColor: "bg-primary/10 text-primary",
+								badgeColor: "bg-primary/10 text-primary-text",
 							},
 							{
 								title: "Send a lease for e-signature",
@@ -161,7 +161,7 @@ export default function HelpPage() {
 								description:
 									"Generate CPA-ready financial reports and bulk-download every receipt and tax document by entity",
 								badge: "Tax Time",
-								badgeColor: "bg-primary/10 text-primary",
+								badgeColor: "bg-primary/10 text-primary-text",
 							},
 							{
 								title: "Manage your team and billing",

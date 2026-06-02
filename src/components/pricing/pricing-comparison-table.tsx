@@ -164,7 +164,7 @@ function FeatureCell({
 		<span
 			className={cn(
 				"text-sm font-medium",
-				highlight ? "text-primary" : "text-foreground",
+				highlight ? "text-primary-text" : "text-foreground",
 			)}
 		>
 			{value}
@@ -253,7 +253,9 @@ export function PricingComparisonTable({
 							<div className="text-xs text-muted-foreground">$19/mo</div>
 						</div>
 						<div className="text-center bg-primary/5 -my-4 py-4 border-x border-primary/10">
-							<div className="text-sm font-semibold text-primary">Growth</div>
+							<div className="text-sm font-semibold text-primary-text">
+								Growth
+							</div>
 							<div className="text-xs text-primary/70">$49/mo</div>
 						</div>
 						<div className="text-center">

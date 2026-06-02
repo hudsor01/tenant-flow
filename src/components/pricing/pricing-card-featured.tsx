@@ -191,7 +191,7 @@ export function PricingCardFeatured({
 						    savings render with thousands separator (AUDIT-2
 						    cycle-2 P3). */}
 						{billingCycle === "yearly" && plan.price.monthly > 0 && (
-							<p className="text-sm font-semibold text-success mt-1">
+							<p className="text-sm font-semibold text-success-text mt-1">
 								Save{" "}
 								{formatCurrency(calculateAnnualSavings(plan.price.monthly), {
 									maximumFractionDigits: 0,

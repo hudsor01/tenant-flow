@@ -24,7 +24,7 @@ export function OwnerPaymentSummary({ summary }: OwnerPaymentSummaryProps) {
 			<Card>
 				<CardHeader>
 					<CardDescription>Late fees cumulative</CardDescription>
-					<CardTitle className="typography-h3 text-destructive">
+					<CardTitle className="typography-h3 text-destructive-text">
 						{formatCents(values.lateFeeTotal)}
 					</CardTitle>
 				</CardHeader>

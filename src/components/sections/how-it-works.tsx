@@ -68,7 +68,7 @@ export function HowItWorks({ className }: HowItWorksProps) {
 			<div className="max-w-7xl mx-auto px-6 lg:px-8 relative z-10">
 				<BlurFade delay={0.1} inView>
 					<div className="text-center mb-16">
-						<p className="typography-small text-primary uppercase tracking-wider mb-3">
+						<p className="typography-small text-primary-text uppercase tracking-wider mb-3">
 							Three Steps to Set Up
 						</p>
 						<h2 className="text-3xl lg:text-4xl xl:text-5xl font-bold tracking-tight text-foreground mb-4">

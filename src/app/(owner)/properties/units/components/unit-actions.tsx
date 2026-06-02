@@ -161,7 +161,7 @@ export function UnitActions({ unit }: UnitActionsProps) {
 										"mt-4 p-3 border-destructive/20 bg-destructive/5",
 									)}
 								>
-									<div className="flex items-center gap-2 text-destructive">
+									<div className="flex items-center gap-2 text-destructive-text">
 										<AlertTriangle className="size-4" />
 										<span className="font-medium text-sm">
 											This unit is currently occupied and cannot be deleted.

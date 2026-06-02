@@ -221,7 +221,7 @@ export default function UnitsPage() {
 		return (
 			<div className="p-6 lg:p-8">
 				<div className="rounded-lg border border-destructive/50 bg-destructive/10 p-4">
-					<h2 className="typography-large text-destructive">
+					<h2 className="typography-large text-destructive-text">
 						Error Loading Units
 					</h2>
 					<p className="text-muted-foreground">

@@ -80,14 +80,14 @@ describe("AnimatedTrendIndicator", () => {
 			const { container } = render(<AnimatedTrendIndicator value={10} />);
 
 			const span = container.querySelector("span");
-			expect(span).toHaveClass("text-success");
+			expect(span).toHaveClass("text-success-text");
 		});
 
 		it("should apply destructive color for negative values", () => {
 			const { container } = render(<AnimatedTrendIndicator value={-10} />);
 
 			const span = container.querySelector("span");
-			expect(span).toHaveClass("text-destructive");
+			expect(span).toHaveClass("text-destructive-text");
 		});
 
 		it("should apply muted-foreground color for zero value", () => {
@@ -223,7 +223,7 @@ describe("AnimatedTrendIndicator", () => {
 
 			const span = container.querySelector("span");
 			expect(span).toHaveClass("my-custom-class");
-			expect(span).toHaveClass("text-success");
+			expect(span).toHaveClass("text-success-text");
 			expect(span).toHaveClass("inline-flex");
 		});
 	});
@@ -234,7 +234,7 @@ describe("AnimatedTrendIndicator", () => {
 
 			expect(screen.getByText("0.0%")).toBeInTheDocument();
 			const element = screen.getByLabelText("Increased by 0.0%");
-			expect(element).toHaveClass("text-success");
+			expect(element).toHaveClass("text-success-text");
 		});
 
 		it("should handle very small negative values", () => {
@@ -242,7 +242,7 @@ describe("AnimatedTrendIndicator", () => {
 
 			expect(screen.getByText("0.0%")).toBeInTheDocument();
 			const element = screen.getByLabelText("Decreased by 0.0%");
-			expect(element).toHaveClass("text-destructive");
+			expect(element).toHaveClass("text-destructive-text");
 		});
 
 		it("should handle large values", () => {

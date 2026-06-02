@@ -285,10 +285,10 @@ export function ChangePasswordDialog({
 						{/* Validation Errors */}
 						{validationErrors.length > 0 && (
 							<div className="rounded-[var(--radius-lg)] border border-destructive/50 bg-destructive/10 p-4">
-								<p className="font-semibold text-destructive mb-2">
+								<p className="font-semibold text-destructive-text mb-2">
 									Please fix the following errors:
 								</p>
-								<ul className="list-[disc] list-inside space-y-1 text-xs text-destructive">
+								<ul className="list-[disc] list-inside space-y-1 text-xs text-destructive-text">
 									{validationErrors.map((error) => (
 										<li key={error}>{error}</li>
 									))}

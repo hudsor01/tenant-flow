@@ -141,8 +141,8 @@ export function UpgradeDialog({
 								<span
 									className={cn(
 										"text-sm font-medium",
-										priceDifference > 0 && "text-warning",
-										priceDifference < 0 && "text-success",
+										priceDifference > 0 && "text-warning-text",
+										priceDifference < 0 && "text-success-text",
 										priceDifference === 0 && "text-muted-foreground",
 									)}
 								>
@@ -165,7 +165,7 @@ export function UpgradeDialog({
 								{gained.map((feature) => (
 									<li
 										key={feature.name}
-										className="flex items-center gap-2 text-sm text-success"
+										className="flex items-center gap-2 text-sm text-success-text"
 									>
 										<Check className="size-4" />
 										<span>{feature.name}</span>
@@ -185,7 +185,7 @@ export function UpgradeDialog({
 								{lost.map((feature) => (
 									<li
 										key={feature.name}
-										className="flex items-center gap-2 text-sm text-destructive"
+										className="flex items-center gap-2 text-sm text-destructive-text"
 									>
 										<X className="size-4" />
 										<span>{feature.name}</span>

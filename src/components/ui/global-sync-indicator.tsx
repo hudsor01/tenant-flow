@@ -96,7 +96,10 @@ export function GlobalSyncIndicator({
 			<Tooltip>
 				<TooltipTrigger asChild>
 					<div
-						className={cn("flex items-center gap-1.5 text-primary", className)}
+						className={cn(
+							"flex items-center gap-1.5 text-primary-text",
+							className,
+						)}
 					>
 						<Loader2 className="h-4 w-4 animate-spin" />
 						<span className="text-xs">

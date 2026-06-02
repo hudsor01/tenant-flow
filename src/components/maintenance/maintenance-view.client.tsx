@@ -182,7 +182,7 @@ export function MaintenanceViewClient() {
 							/>
 						)}
 						<StatLabel>Open</StatLabel>
-						<StatValue className="flex items-baseline text-warning">
+						<StatValue className="flex items-baseline text-warning-text">
 							<NumberTicker value={openCount} duration={800} />
 						</StatValue>
 						<StatIndicator variant="icon" color="warning">
@@ -206,7 +206,7 @@ export function MaintenanceViewClient() {
 				<BlurFade delay={0.25} inView>
 					<Stat className="relative overflow-hidden">
 						<StatLabel>Completed</StatLabel>
-						<StatValue className="flex items-baseline text-success">
+						<StatValue className="flex items-baseline text-success-text">
 							<NumberTicker value={completedCount} duration={800} />
 						</StatValue>
 						<StatIndicator variant="icon" color="success">

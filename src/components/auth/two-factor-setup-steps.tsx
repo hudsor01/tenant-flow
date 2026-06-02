@@ -91,7 +91,7 @@ export function QrStep({
 					</>
 				) : enrollError ? (
 					<div className="rounded-lg border border-destructive/50 bg-destructive/10 p-4 text-center">
-						<p className="text-destructive">
+						<p className="text-destructive-text">
 							Failed to start 2FA setup. Please try again.
 						</p>
 					</div>
@@ -171,7 +171,7 @@ export function VerifyStep({
 
 				{verifyError !== null && (
 					<div className="rounded-lg border border-destructive/50 bg-destructive/10 p-3 text-center">
-						<p className="text-sm text-destructive">
+						<p className="text-sm text-destructive-text">
 							Invalid code. Please try again.
 						</p>
 					</div>
@@ -213,7 +213,7 @@ export function SuccessStep({ onComplete }: SuccessStepProps) {
 	return (
 		<>
 			<DialogHeader>
-				<DialogTitle className="flex items-center gap-2 text-success">
+				<DialogTitle className="flex items-center gap-2 text-success-text">
 					<CheckCircle2 className="size-5" />
 					Two-Factor Authentication Enabled
 				</DialogTitle>

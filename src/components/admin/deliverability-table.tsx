@@ -86,7 +86,7 @@ export function DeliverabilityTable({ data }: { data: DeliverabilityStats[] }) {
 								className={cn(
 									"text-right",
 									row.bouncePercent > BOUNCE_WARN_PERCENT
-										? "text-destructive"
+										? "text-destructive-text"
 										: "text-muted-foreground",
 								)}
 							>
@@ -96,7 +96,7 @@ export function DeliverabilityTable({ data }: { data: DeliverabilityStats[] }) {
 								className={cn(
 									"text-right",
 									row.complaintPercent > COMPLAINT_WARN_PERCENT
-										? "text-destructive"
+										? "text-destructive-text"
 										: "text-muted-foreground",
 								)}
 							>

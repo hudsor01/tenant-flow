@@ -108,7 +108,7 @@ export default function TermsPage() {
 							features and pricing. Current plans and pricing are available at{" "}
 							<a
 								href="https://tenantflow.app/pricing"
-								className="text-primary underline"
+								className="text-primary-text underline"
 							>
 								tenantflow.app/pricing
 							</a>
@@ -401,7 +401,7 @@ export default function TermsPage() {
 							If you have a dispute with TenantFlow, please contact us at{" "}
 							<a
 								href="mailto:support@tenantflow.app"
-								className="text-primary underline"
+								className="text-primary-text underline"
 							>
 								support@tenantflow.app
 							</a>{" "}
@@ -494,7 +494,7 @@ export default function TermsPage() {
 								<strong>Email:</strong>{" "}
 								<a
 									href="mailto:legal@tenantflow.app"
-									className="text-primary underline"
+									className="text-primary-text underline"
 								>
 									legal@tenantflow.app
 								</a>
@@ -503,7 +503,7 @@ export default function TermsPage() {
 								<strong>Support:</strong>{" "}
 								<a
 									href="mailto:support@tenantflow.app"
-									className="text-primary underline"
+									className="text-primary-text underline"
 								>
 									support@tenantflow.app
 								</a>

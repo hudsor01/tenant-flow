@@ -174,7 +174,7 @@ export default function OwnerProfilePage() {
 		return (
 			<div className="p-6 lg:p-8">
 				<div className="rounded-lg border border-destructive/50 bg-destructive/10 p-6 text-center">
-					<p className="text-destructive">Failed to load profile</p>
+					<p className="text-destructive-text">Failed to load profile</p>
 					<Button
 						variant="outline"
 						size="sm"

@@ -209,7 +209,7 @@ export function LeasesTable({
 						</p>
 						<button
 							onClick={handleClearFilters}
-							className="mt-3 text-sm text-primary hover:underline"
+							className="mt-3 text-sm text-primary-text hover:underline"
 						>
 							Clear filters
 						</button>

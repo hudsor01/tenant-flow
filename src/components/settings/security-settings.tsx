@@ -51,7 +51,7 @@ export function SecuritySettings() {
 						Account deletion and data export moved to the{" "}
 						<Link
 							href="/settings?tab=data"
-							className="text-primary hover:underline underline-offset-4"
+							className="text-primary-text hover:underline underline-offset-4"
 						>
 							My Data
 						</Link>{" "}

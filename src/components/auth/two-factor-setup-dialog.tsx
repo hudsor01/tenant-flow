@@ -178,7 +178,7 @@ export function DisableTwoFactorDialog({
 		<Dialog open={open} onOpenChange={onOpenChange}>
 			<DialogContent className="sm:max-w-[400px]" intent="delete">
 				<DialogHeader>
-					<DialogTitle className="flex items-center gap-2 text-destructive">
+					<DialogTitle className="flex items-center gap-2 text-destructive-text">
 						<ShieldOff className="size-5" />
 						Disable Two-Factor Authentication
 					</DialogTitle>

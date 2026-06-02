@@ -142,7 +142,7 @@ export function RecentPaymentsSection({
 				</h3>
 				<button
 					onClick={() => onViewPaymentHistory(tenant.id)}
-					className="text-xs text-primary hover:underline"
+					className="text-xs text-primary-text hover:underline"
 				>
 					View all
 				</button>

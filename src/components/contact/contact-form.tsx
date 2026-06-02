@@ -209,7 +209,7 @@ export function ContactForm({ className = "" }: ContactFormProps) {
 
 					{submitError && (
 						<div className="mb-4 p-3 bg-destructive/10 border border-destructive/20 rounded-md">
-							<p className="text-sm text-destructive">{submitError}</p>
+							<p className="text-sm text-destructive-text">{submitError}</p>
 						</div>
 					)}
 

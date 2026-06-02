@@ -79,7 +79,7 @@ export function IncomeStatementPageNetSummary({
 								{formatCents(previousPeriod.netIncome * 100)}
 							</span>
 							<span
-								className={`text-sm font-medium ${previousPeriod.changePercent >= 0 ? "text-emerald-600" : "text-destructive"}`}
+								className={`text-sm font-medium ${previousPeriod.changePercent >= 0 ? "text-emerald-600" : "text-destructive-text"}`}
 							>
 								({previousPeriod.changePercent >= 0 ? "+" : ""}
 								{previousPeriod.changePercent.toFixed(1)}%)

@@ -176,7 +176,7 @@ export function FormBuilderPanel({
 									className={fieldErrors[index] ? "border-destructive" : ""}
 								/>
 								{fieldErrors[index] ? (
-									<p className="text-xs text-destructive">
+									<p className="text-xs text-destructive-text">
 										{fieldErrors[index]}
 									</p>
 								) : null}

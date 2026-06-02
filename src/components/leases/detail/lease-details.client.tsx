@@ -69,7 +69,7 @@ export function LeaseDetails({ id }: LeaseDetailsProps) {
 			<Card className="border-destructive/50 bg-destructive/10">
 				<CardContent className="p-6 text-center">
 					<AlertTriangle className="mx-auto h-10 w-10 text-destructive mb-3" />
-					<h3 className="text-lg font-semibold text-destructive mb-2">
+					<h3 className="text-lg font-semibold text-destructive-text mb-2">
 						Unable to load lease
 					</h3>
 					<p className="text-muted-foreground">{errorMessage}</p>

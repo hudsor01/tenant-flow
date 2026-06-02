@@ -35,7 +35,7 @@ export function PropertyGrid() {
 							<span className="text-muted-foreground">
 								{property.units} units
 							</span>
-							<span className="text-success font-medium">
+							<span className="text-success-text font-medium">
 								{property.occupancy}
 							</span>
 						</div>

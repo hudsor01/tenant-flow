@@ -54,7 +54,7 @@ export function LeadMagnetCta({
 			<div className="flex flex-col gap-4">
 				<div className="flex items-center gap-2">
 					<Icon className="size-5 text-primary" />
-					<p className="text-sm font-semibold uppercase tracking-wider text-primary">
+					<p className="text-sm font-semibold uppercase tracking-wider text-primary-text">
 						Free {resourceType}
 					</p>
 				</div>

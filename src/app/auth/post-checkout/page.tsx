@@ -156,7 +156,7 @@ export default function PostCheckoutPage() {
 				<div className="space-y-4">
 					<Alert className="border-success/20 bg-success/5 dark:border-success/30 dark:bg-success/10">
 						<Mail className="size-4 text-success" />
-						<AlertDescription className="text-success dark:text-success">
+						<AlertDescription className="text-success-text dark:text-success-text">
 							A login link has been sent to <strong>{email}</strong>
 						</AlertDescription>
 					</Alert>
@@ -186,12 +186,12 @@ export default function PostCheckoutPage() {
 							)}
 						</Button>
 						{resendSuccess && (
-							<p className="text-xs text-success text-center">
+							<p className="text-xs text-success-text text-center">
 								Login link sent! Check your inbox.
 							</p>
 						)}
 						{isResendError && (
-							<p className="text-xs text-destructive text-center">
+							<p className="text-xs text-destructive-text text-center">
 								Failed to send link. Please try again.
 							</p>
 						)}

@@ -156,7 +156,7 @@ export function CategoryCreateDialog({
 							className={cn(
 								"text-xs",
 								slugError !== null
-									? "text-destructive"
+									? "text-destructive-text"
 									: "text-muted-foreground",
 							)}
 						>

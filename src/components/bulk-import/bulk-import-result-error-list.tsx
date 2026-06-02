@@ -76,7 +76,7 @@ export function ResultErrorList({
 							<span className="font-mono text-muted-foreground shrink-0">
 								{err.row === 0 ? "!" : `#${err.row}`}
 							</span>
-							<span className="text-destructive">{err.error}</span>
+							<span className="text-destructive-text">{err.error}</span>
 						</li>
 					))}
 				</ul>

@@ -32,7 +32,7 @@ function getStatusBadge(status: MaintenanceStatus | string) {
 			label: "Open",
 		},
 		in_progress: {
-			className: "bg-primary/10 text-primary",
+			className: "bg-primary/10 text-primary-text",
 			label: "In Progress",
 		},
 		completed: {
@@ -72,11 +72,11 @@ function getPriorityBadge(priority: MaintenancePriority | string) {
 			label: "Low",
 		},
 		medium: {
-			className: "bg-primary/10 text-primary",
+			className: "bg-primary/10 text-primary-text",
 			label: "Medium",
 		},
 		normal: {
-			className: "bg-primary/10 text-primary",
+			className: "bg-primary/10 text-primary-text",
 			label: "Normal",
 		},
 		high: {
@@ -84,7 +84,7 @@ function getPriorityBadge(priority: MaintenancePriority | string) {
 			label: "High",
 		},
 		urgent: {
-			className: "bg-destructive/10 text-destructive",
+			className: "bg-destructive/10 text-destructive-text",
 			label: "Urgent",
 		},
 	};
@@ -129,7 +129,7 @@ function getAgingBadge(timestamp: string | null | undefined) {
 			"bg-orange-100 text-orange-700 dark:bg-orange-500/20 dark:text-orange-400";
 		label = `${days} days`;
 	} else {
-		className = "bg-destructive/10 text-destructive";
+		className = "bg-destructive/10 text-destructive-text";
 		label = `${days} days`;
 	}
 

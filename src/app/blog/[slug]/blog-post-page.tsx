@@ -174,7 +174,7 @@ export default function BlogPostPage({ post, slug }: BlogPostProps) {
 						{postCategory && (
 							<Link
 								href={`/blog/category/${categorySlug}`}
-								className="text-primary hover:text-primary/80 transition-colors"
+								className="text-primary-text hover:text-primary/80 transition-colors"
 							>
 								{postCategory}
 							</Link>
@@ -207,7 +207,7 @@ export default function BlogPostPage({ post, slug }: BlogPostProps) {
 						</p>
 						<Link
 							href={`/compare/${competitorSlug}`}
-							className="inline-flex items-center text-primary font-semibold hover:text-primary/80 transition-colors"
+							className="inline-flex items-center text-primary-text font-semibold hover:text-primary/80 transition-colors"
 						>
 							See Full Comparison
 							<ArrowRight className="ml-1.5 size-4" aria-hidden="true" />
@@ -222,7 +222,7 @@ export default function BlogPostPage({ post, slug }: BlogPostProps) {
 						</p>
 						<Link
 							href={`/resources/${resourceSlug}`}
-							className="inline-flex items-center text-primary font-semibold hover:text-primary/80 transition-colors"
+							className="inline-flex items-center text-primary-text font-semibold hover:text-primary/80 transition-colors"
 						>
 							View Resource
 							<ArrowRight className="ml-1.5 size-4" aria-hidden="true" />

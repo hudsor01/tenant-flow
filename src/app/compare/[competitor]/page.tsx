@@ -107,7 +107,7 @@ export default async function ComparePage({ params }: PageProps) {
 			{/* Hero */}
 			<section className="section-spacing">
 				<div className="max-w-4xl mx-auto px-6 lg:px-8 text-center">
-					<p className="text-sm font-semibold uppercase tracking-wider text-primary mb-4">
+					<p className="text-sm font-semibold uppercase tracking-wider text-primary-text mb-4">
 						{data.tagline}
 					</p>
 					<h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-foreground mb-6 leading-tight">

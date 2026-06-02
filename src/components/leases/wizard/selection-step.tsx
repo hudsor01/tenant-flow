@@ -180,7 +180,7 @@ export function SelectionStep({
 					{propertiesLoading ? (
 						<Skeleton className="h-10 w-full" />
 					) : propertiesError ? (
-						<div className="flex items-center gap-2 text-destructive text-sm p-3 bg-destructive/10 rounded-md">
+						<div className="flex items-center gap-2 text-destructive-text text-sm p-3 bg-destructive/10 rounded-md">
 							<AlertCircle className="h-4 w-4" />
 							Failed to load properties: {propertiesError.message}
 						</div>
@@ -216,7 +216,7 @@ export function SelectionStep({
 					) : unitsLoading ? (
 						<Skeleton className="h-10 w-full" />
 					) : unitsError ? (
-						<div className="flex items-center gap-2 text-destructive text-sm p-3 bg-destructive/10 rounded-md">
+						<div className="flex items-center gap-2 text-destructive-text text-sm p-3 bg-destructive/10 rounded-md">
 							<AlertCircle className="h-4 w-4" />
 							Failed to load units: {unitsError.message}
 						</div>
@@ -264,7 +264,7 @@ export function SelectionStep({
 					) : tenantsLoading ? (
 						<Skeleton className="h-10 w-full" />
 					) : tenantsError ? (
-						<div className="flex items-center gap-2 text-destructive text-sm p-3 bg-destructive/10 rounded-md">
+						<div className="flex items-center gap-2 text-destructive-text text-sm p-3 bg-destructive/10 rounded-md">
 							<AlertCircle className="h-4 w-4" />
 							Failed to load tenants: {tenantsError.message}
 						</div>

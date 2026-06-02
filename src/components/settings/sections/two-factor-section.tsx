@@ -51,7 +51,7 @@ export function TwoFactorSection() {
 								</div>
 							</div>
 							<button
-								className="px-3 py-1.5 text-sm font-medium text-destructive hover:bg-destructive/10 rounded-lg transition-colors"
+								className="px-3 py-1.5 text-sm font-medium text-destructive-text hover:bg-destructive/10 rounded-lg transition-colors"
 								onClick={() => setShow2FADisable(true)}
 							>
 								Disable

@@ -243,7 +243,7 @@ export default function UpdatePasswordPage() {
 							Remember your password?{" "}
 							<Link
 								href="/login"
-								className="text-primary hover:underline font-medium"
+								className="text-primary-text hover:underline font-medium"
 							>
 								Sign in
 							</Link>

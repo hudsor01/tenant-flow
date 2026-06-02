@@ -172,7 +172,7 @@ export function UpdatePasswordForm({
 								{confirmPassword.length > 0 &&
 									password.length > 0 &&
 									password !== confirmPassword && (
-										<p className="text-xs text-destructive flex items-center gap-[var(--spacing-1)]">
+										<p className="text-xs text-destructive-text flex items-center gap-[var(--spacing-1)]">
 											<AlertTriangle className="size-[var(--spacing-3)]" />
 											Passwords do not match
 										</p>
@@ -180,7 +180,7 @@ export function UpdatePasswordForm({
 								{confirmPassword.length > 0 &&
 									password.length > 0 &&
 									password === confirmPassword && (
-										<p className="text-xs text-primary flex items-center gap-[var(--spacing-1)]">
+										<p className="text-xs text-primary-text flex items-center gap-[var(--spacing-1)]">
 											<CheckCircle2 className="size-[var(--spacing-3)]" />
 											Passwords match
 										</p>
