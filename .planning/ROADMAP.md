@@ -158,7 +158,9 @@ Phases 1 and 2 are invisible foundation. Phases 3 and 4 each *add* a new region 
   2. `bun run test:e2e` passes locally and the GitHub `e2e-smoke` check passes on the Phase 7 PR.
   3. `design-token-drift.test.ts` runs clean over every new dashboard file (no hex, no rgb, no `bg-white`, no inline ms durations).
   4. The merged PR closes the v2.0 milestone with 34/34 requirements satisfied per traceability.
-**Plans:** TBD
+**Plans:** 2 plans (2 waves)
+- [ ] 07-01-PLAN.md — **Wave 1.** POLISH-09 `/dashboard` E2E smoke under the CI-run `owner-axe` project (in-test `loginAsOwner`, no storageState): KPI numbers match `get_dashboard_data_v2`, occupancy donut matches `stats.units`, DataTable sort/filter/column-visibility/preset save+restore + grid/table toggle. New `dashboard-rpc-helpers.ts` derives expected values from the authed RPC; `owner-axe` `testMatch` widened to collect it.
+- [ ] 07-02-PLAN.md — **Wave 2** (depends on 07-01). POLISH-12 design-token sweep verification across every new dashboard file (the drift test already walks `src/components/**` + `src/app/**`) + removal of the stale Phase-1 `dashboard-filters.tsx` exemption; milestone close: flip POLISH-09 + POLISH-12 traceability to satisfied (34/34). Ships as one atomic PR through the perfect-PR gate.
 
 ## Progress
 
