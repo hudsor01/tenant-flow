@@ -1,14 +1,21 @@
 # TenantFlow
 
-## Current State
+## Current Milestone: v3.0 Security Hardening
 
-**Latest shipped milestone:** v2.0 Dashboard Command Center (shipped 2026-06-02, 7 phases / 24 plans / 34/34 requirements). The authenticated owner dashboard at `/dashboard` is now a restrained B2B command center — 6-tile KPI bento row, refreshed `RevenueAreaChart` (30d/6mo) + new `OccupancyDonutChart`, a vendored DiceUI/TanStack-table Portfolio DataTable (sort / faceted filter / column visibility / virtualization / grid-toggle / saved presets / nuqs URL state), full dark-mode + keyboard + 375px + reduced-motion a11y, and an `/dashboard` E2E smoke under CI `owner-axe`. The latent `*100`/`÷100` revenue round-trip is gone — `get_dashboard_data_v2` returns dollars handled correctly end-to-end. Full summary: [MILESTONES.md](MILESTONES.md) · archive: [milestones/v2.0-ROADMAP.md](milestones/v2.0-ROADMAP.md).
+**Goal:** Get the Supabase Security Advisor on prod (project `bshjmbshupiibfiewpxb`) to a documented, test-pinned steady state — systematically classify and resolve the remaining authenticated SECURITY DEFINER + RLS-no-policy findings with zero RLS regressions.
 
-**No active milestone.** Next milestone unplanned — run `/gsd-new-milestone`.
+**Target features:**
+- Function-by-function classification of the 46 `authenticated_security_definer_function_executable` WARNs (KEEP-by-design vs TIGHTEN, each verified against live `pg_policies` / `pg_trigger` / `cron.job` / frontend `.rpc` usage)
+- `REVOKE EXECUTE` / `SECURITY INVOKER` tightening for any function not reachable by the frontend, not referenced in an RLS policy, and not a trigger/cron callee
+- Resolution of the 10 `rls_enabled_no_policy` INFOs (confirm fail-closed service-role-only intent and document in-migration, or add explicit deny/owner policy — without re-introducing the rule removed in `20260527151342`)
+- Regression test coverage in `tests/integration/rls/` for every tightening (extend the `anon-rpc-grants` / `admin-rpc-grants` patterns)
+- A documented advisor steady state: each remaining WARN is intentional + test-pinned, each INFO resolved
 
-### Next Milestone Goals (candidate)
+**Out of scope (locked):** `auth_leaked_password_protection` (paid Supabase HaveIBeenPwned feature — intentionally disabled).
 
-Queued seed **SEED-001** (`.planning/seeds/SEED-001-supabase-security-advisor-remediation.md`): systematic Supabase Security Advisor remediation — classify + resolve the 46 `authenticated_security_definer_function_executable` WARNs (KEEP-by-design vs TIGHTEN) and the 10 `rls_enabled_no_policy` INFOs, to a documented + test-pinned steady state with zero RLS regressions. `auth_leaked_password_protection` is explicitly out of scope (paid feature). `/gsd-new-milestone` will surface this seed automatically. The user may also pick a different direction at planning time.
+**Seed:** `.planning/seeds/SEED-001-supabase-security-advisor-remediation.md` (promote-ready spec). Prior art: PRs #758 / #771, migrations `20260529224926` / `20260529225039` / `20260602044104`, `.planning/anon-exec-audit/CYCLE-1.md`, memory `security-definer-advisor-state`.
+
+**Latest shipped:** v2.0 Dashboard Command Center (2026-06-02, 34/34 requirements) — see [MILESTONES.md](MILESTONES.md).
 
 ## What This Is
 
@@ -43,12 +50,23 @@ Every public claim on tenantflow.app must map to working code, and every visual 
 
 ### Active
 
-<!-- No active milestone. v2.0 Dashboard Command Center shipped 2026-06-02 and its
-     requirements moved to Validated above. The next milestone's requirements are defined
-     fresh by /gsd-new-milestone (which creates a new REQUIREMENTS.md). Leading candidate:
-     SEED-001 (Supabase Security Advisor remediation) — see Current State → Next Milestone Goals. -->
+<!-- v3.0 Security Hardening scope (SEED-001). Final REQ-IDs land in REQUIREMENTS.md
+     after the requirements step; this is the milestone's working scope. -->
 
-_(none — between milestones; run `/gsd-new-milestone` to define the next set)_
+**Advisor classification (SDEF):**
+- [ ] Classify all 46 `authenticated_security_definer_function_executable` functions as KEEP-by-design or TIGHTEN, verified against live `pg_policies` / `pg_trigger` / `cron.job` / frontend `.rpc` usage
+- [ ] Document each KEEP function's intentional authenticated-EXECUTE rationale
+
+**Least-privilege tightening (TIGHTEN):**
+- [ ] `REVOKE EXECUTE` from `authenticated` (keep `service_role`) or switch to `SECURITY INVOKER` for every function not frontend-reachable, not RLS-referenced, and not a trigger/cron callee
+- [ ] Prod migration per change (MCP `apply_migration` + timestamp reconcile per `migration-mcp-prod-drift`)
+
+**RLS-no-policy resolution (RLSNP):**
+- [ ] Resolve all 10 `rls_enabled_no_policy` tables — confirm fail-closed service-role-only intent + document in-migration, or add explicit deny/owner policy (without re-introducing the rule removed in `20260527151342`)
+
+**Regression coverage (SECTEST):**
+- [ ] `tests/integration/rls/` coverage for every tightening (extend `anon-rpc-grants` / `admin-rpc-grants` patterns)
+- [ ] Documented advisor steady state: remaining WARNs intentional + test-pinned, INFOs resolved, zero RLS regressions
 
 ### Out of Scope
 
@@ -61,6 +79,7 @@ _(none — between milestones; run `/gsd-new-milestone` to define the next set)_
 - **Native mobile app** — responsive web only. Mobile fixes target `375px` Safari/Chrome breakpoint.
 - **Auto-categorization of documents** — v2.6 deferred indefinitely.
 - **Unsubstantiated ROI/NOI/automation percentages in copy** (e.g. "+40% NOI", "Reduce vacancy 65%", "Automate 80%") — substantiate or delete; never re-add (v1.0 honesty constraint).
+- **`auth_leaked_password_protection`** (Supabase advisor WARN) — paid feature (HaveIBeenPwned compromised-password check); intentionally disabled. Excluded from v3.0 Security Hardening per explicit user instruction.
 
 ## Context
 
@@ -140,4 +159,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-06-02 after v2.0 milestone — "Dashboard Command Center" shipped and archived (7 phases, 24 plans, 34/34 requirements; final phase PR #773 → `3e1a4cc29`). All v2.0 requirements moved to Validated. Deferred at close: 2 Phase-6 manual focus-ring sign-offs (automated axe coverage passed in CI; see STATE.md Deferred Items). No active milestone — next is `/gsd-new-milestone` (queued candidate: SEED-001 Supabase Security Advisor remediation). v1.0 "Marketing Surface Honesty" archived 2026-05-22.*
+*Last updated: 2026-06-02 — v3.0 "Security Hardening" started (SEED-001: Supabase Security Advisor remediation — 46 authenticated SECURITY DEFINER + 10 rls_enabled_no_policy findings; `auth_leaked_password_protection` out of scope). Research-first via Supabase MCP/skills. v2.0 "Dashboard Command Center" shipped + archived 2026-06-02 (34/34); v1.0 "Marketing Surface Honesty" archived 2026-05-22.*
