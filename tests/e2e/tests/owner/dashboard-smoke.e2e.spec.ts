@@ -236,8 +236,10 @@ test.describe("Dashboard smoke (POLISH-09)", () => {
 		}
 		await ensureTableView(page);
 
-		// Open the Status faceted filter and select "Vacant".
-		await page.getByRole("button", { name: "Status" }).click();
+		// Open the Status faceted filter and select "Vacant". `exact: true` is
+		// required: the portfolio table also renders a "Lease Status" column-header
+		// button, so a substring "Status" match is a strict-mode violation.
+		await page.getByRole("button", { name: "Status", exact: true }).click();
 		await page.getByRole("option", { name: "Vacant" }).click();
 		// Close the popover so the URL settles and the toolbar Reset surfaces.
 		await page.keyboard.press("Escape");
