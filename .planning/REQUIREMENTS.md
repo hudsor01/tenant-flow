@@ -71,10 +71,10 @@ Each maps to roadmap phases (1-7). Source: `.planning/MILESTONE-CONTEXT.md` § "
 - [x] **POLISH-06**: 375px responsive — zero horizontal scroll; portfolio table forces grid view at the mobile breakpoint.
 - [x] **POLISH-07**: Skeleton ↔ empty-state mutual exclusion (Phase 14 D-04 pattern: route-scoped `loading.tsx` if streaming is involved; never co-render skeleton + empty state).
 - [x] **POLISH-08**: Reduced-motion guard on every animation (`NumberTicker`, `BlurFade`, chart transitions, any CSS animation).
-- [ ] **POLISH-09**: E2E smoke for `/dashboard` (synthetic owner; KPI numbers match `get_dashboard_data_v2`; occupancy donut matches `stats.units`; DataTable sort/filter/column-visibility/preset save+restore work; grid/table toggle works).
+- [x] **POLISH-09**: E2E smoke for `/dashboard` (synthetic owner; KPI numbers match `get_dashboard_data_v2`; occupancy donut matches `stats.units`; DataTable sort/filter/column-visibility/preset save+restore work; grid/table toggle works).
 - [ ] **POLISH-10**: Phase-2 additive `get_dashboard_data_v2` migration for per-property `open_maintenance` (or ship the column hidden by default if the RPC change is too invasive). RLS owner-isolation test extends the existing dual-client pattern in `tests/integration/rls/`.
 - [ ] **POLISH-11**: `collection_rate` — resolve compute-or-drop in Phase 2 discuss-phase. TenantFlow demolished rent facilitation; the field is likely uncomputable and should be dropped from the KPI set rather than fabricated as `0`. **Never fabricate a metric.**
-- [ ] **POLISH-12**: Final design-token sweep across every new dashboard file — `design-token-drift.test.ts` must stay green.
+- [x] **POLISH-12**: Final design-token sweep across every new dashboard file — `design-token-drift.test.ts` must stay green.
 
 ## Future Requirements
 
@@ -134,10 +134,10 @@ Updated by `gsd-roadmapper` during roadmap creation. See ROADMAP.md for canonica
 | POLISH-06 | Phase 6 | Complete |
 | POLISH-07 | Phase 6 | Complete |
 | POLISH-08 | Phase 6 | Complete |
-| POLISH-09 | Phase 7 | Pending |
+| POLISH-09 | Phase 7 | Complete |
 | POLISH-10 | Phase 2 | Complete |
 | POLISH-11 | Phase 2 | Complete |
-| POLISH-12 | Phase 7 | Pending |
+| POLISH-12 | Phase 7 | Complete |
 
 **Coverage:**
 - v2 requirements: 34 total (KPI: 7, CHART: 6, DT: 9, POLISH: 12)
