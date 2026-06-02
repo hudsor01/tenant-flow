@@ -62,7 +62,7 @@ export function IncomeStatementPageNetSummary({
 				<div className="flex items-center justify-between p-4 mt-4 bg-primary/5 rounded-lg">
 					<span className="font-medium text-foreground">Net Income</span>
 					<span
-						className={`text-xl font-bold tabular-nums ${netIncome >= 0 ? "text-emerald-600" : "text-destructive"}`}
+						className={`text-xl font-bold tabular-nums ${netIncome >= 0 ? "text-emerald-600" : "text-destructive-text"}`}
 					>
 						{netIncome >= 0 ? "+" : ""}
 						{formatCents(netIncome * 100)}
