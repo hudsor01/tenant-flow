@@ -153,15 +153,18 @@ The plan expected `bulk_import_create_lease` to be `assert_can_create_lease`'s p
 
 ## Plan 02 deliverables
 
-- **Migration filename (post-reconcile prod timestamp):** [Plan 02 fills]
-- **Advisor delta:** [Plan 02 fills — expect 46 → 44 authenticated WARNs; `get_lead_paint_compliance_report` + `assert_can_create_lease` absent; `audit_for_all_policies` still present (grant kept, body-gated)]
+- **Migration:** `supabase/migrations/20260602202339_tighten_security_definer_phase1.sql` (prod-assigned timestamp `20260602202339`, reconciled via `list_migrations`; applied via MCP `apply_migration`).
+- **Advisor delta (confirmed 2026-06-02 post-apply):** `authenticated_security_definer_function_executable` **46 → 44**. `get_lead_paint_compliance_report` + `assert_can_create_lease` absent from the WARN list; `audit_for_all_policies` still present (grant kept, body-gated). `rls_enabled_no_policy` unchanged at 10 (Phase 2's job); `auth_leaked_password_protection` 1 (out of scope).
+- **ACL note (deviation from plan):** all three functions carried a **DIRECT `authenticated` EXECUTE grant**, NOT a PUBLIC-inherited one (a prior migration `20251230240000`/`20251231063902` already revoked PUBLIC). So the load-bearing revoke was `REVOKE … FROM authenticated`; a `REVOKE FROM PUBLIC` alone would have been a no-op. The migration includes a defensive `REVOKE FROM PUBLIC` (idempotent) plus the actual `REVOKE FROM authenticated`.
 
-## Verification grid (post-apply)
+## Verification grid (post-apply, confirmed live via `has_function_privilege` 2026-06-02)
 
 | Function | anon | authenticated | service_role | Notes |
 |----------|------|---------------|--------------|-------|
-| `get_lead_paint_compliance_report` | ✗ (pass-3 inherited) | ✗ [Plan 02 confirms] | ✓ | revoked from PUBLIC |
-| `assert_can_create_lease(uuid,uuid)` | ✗ | ✗ [Plan 02 confirms] | ✓ | revoked from PUBLIC; orphaned |
-| `audit_for_all_policies` | ✗ | ✓ but `is_admin()`-gated → 0 rows for non-admin [Plan 02 confirms] | (no grant) | grant kept, body-gated |
-| `is_admin` (KEEP helper) | ✗ | ✓ reachable [Plan 02 confirms] | ✓ | RLS contract |
-| `get_current_owner_user_id` (KEEP helper) | ✗ | ✓ reachable [Plan 02 confirms] | ✓ | RLS contract |
+| `get_lead_paint_compliance_report` | ✗ | ✗ ✅ | ✓ | revoked from authenticated (+ defensive PUBLIC) |
+| `assert_can_create_lease(uuid,uuid)` | ✗ | ✗ ✅ | ✓ | revoked from authenticated; orphaned |
+| `audit_for_all_policies` | ✗ | ✓ but `is_admin()`-gated → 0 rows for non-admin ✅ (body_has_is_admin=true) | (no grant) | grant kept, body-gated |
+| `is_admin` (KEEP helper) | ✗ | ✓ reachable ✅ | ✓ | RLS contract intact |
+| `get_current_owner_user_id` (KEEP helper) | ✗ | ✓ reachable ✅ | ✓ | RLS contract intact |
+
+Integration regression pins (`anon-rpc-grants.rls.test.ts` + `bulk-import-create-lease.test.ts` + `for-all-audit.test.ts`) run in CI `rls-security` on the phase PR. Behavior independently confirmed pre-PR via the live `has_function_privilege` grid above.

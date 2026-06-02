@@ -177,6 +177,32 @@ const REVOKED_FROM_AUTHENTICATED: Array<{
 	},
 ];
 
+const ZERO_UUID = "00000000-0000-0000-0000-000000000000";
+
+/**
+ * v3.0 Security Hardening Phase 1 (migration 20260602202339): functions revoked
+ * from `authenticated` (and PUBLIC), service_role retained. Unlike the pass-1/2/3
+ * functions these carried a DIRECT `authenticated` EXECUTE grant (not
+ * PUBLIC-inherited), so the migration uses REVOKE FROM authenticated -- a bare
+ * REVOKE FROM PUBLIC would have been a no-op. Advisor
+ * authenticated_security_definer count: 46 -> 44.
+ *   - get_lead_paint_compliance_report(): no caller anywhere.
+ *   - assert_can_create_lease(uuid, uuid): orphaned; bulk_import_create_lease
+ *     validates the lease invariant inline, independent of this function.
+ * audit_for_all_policies is intentionally NOT here -- it keeps its authenticated
+ * grant under an is_admin() body gate (pinned separately below).
+ */
+const TIGHTENED_FROM_AUTHENTICATED: Array<{
+	name: string;
+	args?: Record<string, unknown>;
+}> = [
+	{ name: "get_lead_paint_compliance_report" },
+	{
+		name: "assert_can_create_lease",
+		args: { p_unit_id: ZERO_UUID, p_primary_tenant_id: ZERO_UUID },
+	},
+];
+
 describe("anon-EXEC SECURITY DEFINER lockdown", () => {
 	let anonClient: SupabaseClient;
 	let authnClient: SupabaseClient;
@@ -217,6 +243,41 @@ describe("anon-EXEC SECURITY DEFINER lockdown", () => {
 			const { data, error } = await authnClient.rpc("is_admin");
 			expect(error).toBeNull();
 			expect(data).toBe(false);
+		});
+	});
+
+	describe("v3.0 phase 1: authenticated cannot reach tightened SECURITY DEFINER functions", () => {
+		for (const fn of TIGHTENED_FROM_AUTHENTICATED) {
+			it(`${fn.name}: authenticated REVOKE'd`, async () => {
+				const { error } = fn.args
+					? await authnClient.rpc(fn.name, fn.args)
+					: await authnClient.rpc(fn.name);
+				expect(error).not.toBeNull();
+				expect(REVOKED_CODES).toContain(error?.code);
+			});
+		}
+	});
+
+	describe("v3.0 phase 1: KEEP RLS helper remains reachable by authenticated", () => {
+		it("get_current_owner_user_id: authenticated reachable (not revoked)", async () => {
+			// RLS owner-isolation helper; authenticated MUST keep EXECUTE. ownerA gets
+			// its owner uuid (or null), never a revoked-EXECUTE error. The is_admin()
+			// KEEP helper is already pinned by the pass-3 test above.
+			const { error } = await authnClient.rpc("get_current_owner_user_id");
+			expect(error).toBeNull();
+		});
+	});
+
+	describe("v3.0 phase 1: audit_for_all_policies is_admin() leak-closure (TIGHTEN-03)", () => {
+		it("non-admin authenticated gets zero rows, not an error", async () => {
+			// The authenticated grant is KEPT, but the body now gates on
+			// public.is_admin(). ownerA is not an admin, so the policy inventory is not
+			// enumerable -- the gate returns an empty set with no error.
+			const { data, error } = await authnClient.rpc("audit_for_all_policies", {
+				p_role: "service_role",
+			});
+			expect(error).toBeNull();
+			expect(data ?? []).toHaveLength(0);
 		});
 	});
 });

@@ -1,6 +1,16 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { createTestClient, getTestCredentials } from "../setup/supabase-client";
 
+// NOTE (v3.0 Security Hardening Phase 1, migration 20260602202339): as of
+// TIGHTEN-03, `audit_for_all_policies` gates its body on `public.is_admin()`. The
+// test client below authenticates as ownerA (a NON-admin), so these calls now
+// return an empty set via the gate rather than by enumerating the catalog. The
+// assertions (`toHaveLength(0)`) still hold, but for a non-admin they are
+// effectively scoped by the gate, not a direct FOR-ALL-policy invariant check.
+// The is_admin() leak-closure itself is pinned in
+// `anon-rpc-grants.rls.test.ts` (non-admin → 0 rows, no error). A true
+// admin-scoped FOR-ALL audit needs an admin test client (the harness has none
+// today: getAdminTestCredentials() → null).
 describe("FOR ALL policy audit — no FOR ALL policies on public/storage", () => {
 	let client: SupabaseClient;
 
