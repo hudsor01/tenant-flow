@@ -112,7 +112,7 @@ export function ReportsTypeGrid({
 									</div>
 									<button
 										onClick={() => onGenerateReport?.(type.id)}
-										className="text-sm text-primary hover:underline opacity-0 group-hover:opacity-100 transition-opacity"
+										className="text-sm text-primary-text hover:underline opacity-0 group-hover:opacity-100 transition-opacity"
 									>
 										Generate
 									</button>

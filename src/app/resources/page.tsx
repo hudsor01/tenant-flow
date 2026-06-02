@@ -148,7 +148,7 @@ export default function ResourcesPage() {
 												{resource.description}
 											</p>
 
-											<div className="flex items-center text-primary font-medium group-hover:translate-x-1 transition-transform">
+											<div className="flex items-center text-primary-text font-medium group-hover:translate-x-1 transition-transform">
 												Explore
 												<ArrowRight className="ml-2 size-4" />
 											</div>
@@ -192,7 +192,7 @@ export default function ResourcesPage() {
 								<p className="text-sm text-muted-foreground mb-4">
 									{resource.description}
 								</p>
-								<span className="inline-flex items-center text-sm text-primary font-medium group-hover:translate-x-1 transition-transform">
+								<span className="inline-flex items-center text-sm text-primary-text font-medium group-hover:translate-x-1 transition-transform">
 									<Download className="size-4 mr-1.5" />
 									View &amp; Print
 								</span>

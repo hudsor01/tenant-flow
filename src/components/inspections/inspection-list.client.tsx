@@ -132,7 +132,7 @@ export function InspectionListClient() {
 
 				{error && (
 					<div className="p-8 text-center">
-						<p className="text-sm text-destructive">
+						<p className="text-sm text-destructive-text">
 							Failed to load inspections. Please try again.
 						</p>
 					</div>

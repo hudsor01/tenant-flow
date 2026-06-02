@@ -189,7 +189,7 @@ export default function CompleteClient() {
 										id="view-details"
 										rel="noopener noreferrer"
 										target="_blank"
-										className="inline-flex items-center gap-2 text-primary hover:text-primary/80 transition-colors"
+										className="inline-flex items-center gap-2 text-primary-text hover:text-primary/80 transition-colors"
 									>
 										View details
 										<ExternalLink className="size-4" aria-hidden="true" />

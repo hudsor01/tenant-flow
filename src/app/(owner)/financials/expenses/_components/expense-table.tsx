@@ -167,7 +167,7 @@ export function ExpenseTable({
 						</p>
 						<button
 							onClick={onClearFilters}
-							className="mt-3 text-sm text-primary hover:underline"
+							className="mt-3 text-sm text-primary-text hover:underline"
 						>
 							Clear filters
 						</button>

@@ -52,7 +52,7 @@ export default function TaxDeductionTrackerPage() {
 				</div>
 
 				<header className="mb-12 text-center">
-					<p className="text-sm font-semibold uppercase tracking-wider text-primary mb-3">
+					<p className="text-sm font-semibold uppercase tracking-wider text-primary-text mb-3">
 						Free Resource
 					</p>
 					<h1 className="text-4xl font-bold text-foreground mb-4">

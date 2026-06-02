@@ -88,7 +88,7 @@ export function TenantTableRow({
 					<Button
 						variant="ghost"
 						size="sm"
-						className="h-auto p-0 text-primary"
+						className="h-auto p-0 text-primary-text"
 						onClick={() => onViewLease(tenant.id)}
 					>
 						<FileText className="mr-1 h-3.5 w-3.5" />

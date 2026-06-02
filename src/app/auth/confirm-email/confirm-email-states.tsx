@@ -115,10 +115,10 @@ export function ConfirmEmailErrorBanner() {
 		<div className="p-4 rounded-lg border border-destructive/30 bg-destructive/10 flex items-start gap-3">
 			<AlertTriangle className="size-5 text-destructive shrink-0 mt-0.5" />
 			<div className="text-sm">
-				<p className="font-medium text-destructive">
+				<p className="font-medium text-destructive-text">
 					Confirmation link expired or invalid
 				</p>
-				<p className="text-destructive/80 mt-1">
+				<p className="text-destructive-text/80 mt-1">
 					The confirmation link you clicked is no longer valid. Please request a
 					new one using the button below.
 				</p>
@@ -171,7 +171,7 @@ export function ConfirmEmailInstructions() {
 					},
 				].map((item) => (
 					<li key={item.step} className="flex items-start gap-3">
-						<span className="shrink-0 size-7 bg-primary/20 text-primary rounded-full flex-center text-sm font-bold">
+						<span className="shrink-0 size-7 bg-primary/20 text-primary-text rounded-full flex-center text-sm font-bold">
 							{item.step}
 						</span>
 						<div className="pt-0.5">
@@ -239,7 +239,7 @@ export function ConfirmEmailFooter() {
 					Need help?{" "}
 					<Link
 						href="mailto:support@tenantflow.app"
-						className="text-primary hover:underline font-medium"
+						className="text-primary-text hover:underline font-medium"
 					>
 						Contact Support
 					</Link>

@@ -30,7 +30,7 @@ export default function LeaseEditPage({ params }: LeaseEditPageProps) {
 		return (
 			<div className="mx-auto w-full max-w-4xl space-y-10">
 				<div className="rounded-lg border border-destructive/50 bg-destructive/10 p-6 text-center">
-					<h2 className="text-lg font-semibold text-destructive mb-2">
+					<h2 className="text-lg font-semibold text-destructive-text mb-2">
 						Error Loading Lease
 					</h2>
 					<p className="text-muted-foreground">

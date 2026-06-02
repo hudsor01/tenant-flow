@@ -104,9 +104,9 @@ function ResultHeader({
 				<p
 					className={cn(
 						"text-base font-semibold",
-						tone === "success" && "text-success",
-						tone === "warning" && "text-warning",
-						tone === "destructive" && "text-destructive",
+						tone === "success" && "text-success-text",
+						tone === "warning" && "text-warning-text",
+						tone === "destructive" && "text-destructive-text",
 					)}
 				>
 					{tone === "success" &&
@@ -168,8 +168,8 @@ function StatCard({
 						"text-xl font-bold",
 						active
 							? tone === "success"
-								? "text-success"
-								: "text-destructive"
+								? "text-success-text"
+								: "text-destructive-text"
 							: "text-muted-foreground",
 					)}
 				>

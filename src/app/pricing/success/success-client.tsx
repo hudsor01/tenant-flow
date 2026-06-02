@@ -100,7 +100,10 @@ export function SuccessClient() {
 					<div className="border-t pt-6">
 						<p className="text-muted-foreground">
 							Need help?{" "}
-							<Link href="/contact" className="text-primary hover:underline">
+							<Link
+								href="/contact"
+								className="text-primary-text hover:underline"
+							>
 								Contact our support team
 							</Link>
 						</p>

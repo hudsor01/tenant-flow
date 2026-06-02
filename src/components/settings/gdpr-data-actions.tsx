@@ -198,7 +198,7 @@ export function GdprDataActions({
 	const deletionBlock = (
 		<>
 			{variant === "standalone" && (
-				<h3 className="mb-1 text-sm font-medium text-destructive uppercase tracking-wider">
+				<h3 className="mb-1 text-sm font-medium text-destructive-text uppercase tracking-wider">
 					Danger Zone
 				</h3>
 			)}
@@ -269,7 +269,7 @@ export function GdprDataActions({
 									aria-hidden="true"
 								/>
 								<div>
-									<p className="text-sm font-medium text-destructive">
+									<p className="text-sm font-medium text-destructive-text">
 										This will schedule your account for deletion
 									</p>
 									<p className="text-sm text-muted-foreground mt-1">

@@ -217,7 +217,7 @@ function LoginPageContent() {
 								<strong className="text-foreground">New to TenantFlow?</strong>{" "}
 								<Link
 									href="/pricing"
-									className="text-primary hover:underline font-medium"
+									className="text-primary-text hover:underline font-medium"
 								>
 									View plans
 								</Link>{" "}

@@ -82,7 +82,7 @@ export function ActiveSessionsSection() {
 						<button
 							onClick={() => setBulkOpen(true)}
 							disabled={bulkPending || revokeSession.isPending}
-							className="text-sm font-medium text-destructive hover:underline disabled:opacity-50 disabled:no-underline disabled:cursor-not-allowed"
+							className="text-sm font-medium text-destructive-text hover:underline disabled:opacity-50 disabled:no-underline disabled:cursor-not-allowed"
 						>
 							Sign Out All Other Devices
 						</button>
@@ -110,7 +110,7 @@ export function ActiveSessionsSection() {
 												<p className="text-sm font-medium flex items-center gap-2">
 													{deviceLabel}
 													{session.is_current && (
-														<span className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded-full">
+														<span className="text-xs bg-primary/10 text-primary-text px-2 py-0.5 rounded-full">
 															Current
 														</span>
 													)}

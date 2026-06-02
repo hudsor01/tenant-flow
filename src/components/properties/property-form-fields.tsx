@@ -41,7 +41,7 @@ export function AcquisitionDetailsSection({
 								onBlur={field.handleBlur}
 							/>
 							{(field.state.meta.errors?.length ?? 0) > 0 && (
-								<p className="text-xs text-destructive">
+								<p className="text-xs text-destructive-text">
 									{String(field.state.meta.errors[0])}
 								</p>
 							)}
@@ -64,7 +64,7 @@ export function AcquisitionDetailsSection({
 								onBlur={field.handleBlur}
 							/>
 							{(field.state.meta.errors?.length ?? 0) > 0 && (
-								<p className="text-xs text-destructive">
+								<p className="text-xs text-destructive-text">
 									{String(field.state.meta.errors[0])}
 								</p>
 							)}

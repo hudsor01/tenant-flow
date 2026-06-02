@@ -41,7 +41,7 @@ export function SingleUnitNoData({
 						<button
 							type="button"
 							onClick={() => onAddUnitOpenChange(true)}
-							className="text-primary hover:underline"
+							className="text-primary-text hover:underline"
 						>
 							Set up unit details
 						</button>

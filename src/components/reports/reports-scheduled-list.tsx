@@ -40,7 +40,7 @@ export function ReportsScheduledList({
 								Automated recurring reports
 							</p>
 						</div>
-						<button className="text-sm text-primary hover:underline">
+						<button className="text-sm text-primary-text hover:underline">
 							+ Add Schedule
 						</button>
 					</div>

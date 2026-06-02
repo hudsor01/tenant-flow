@@ -34,7 +34,7 @@ export function LeaseTemplateDefaultCard({
 								<div>
 									<div className="flex items-center gap-2">
 										<h3 className="text-lg font-medium">{template.name}</h3>
-										<span className="inline-flex items-center gap-1 px-2 py-0.5 text-xs font-medium bg-primary/10 text-primary rounded-full">
+										<span className="inline-flex items-center gap-1 px-2 py-0.5 text-xs font-medium bg-primary/10 text-primary-text rounded-full">
 											<Star className="w-3 h-3" />
 											Default
 										</span>

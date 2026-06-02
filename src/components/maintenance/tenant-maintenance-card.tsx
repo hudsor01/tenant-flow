@@ -18,10 +18,10 @@ const statusClassMap: Record<string, string> = {
 };
 
 const priorityColorMap: Record<string, string> = {
-	URGENT: "text-destructive",
-	HIGH: "text-warning",
-	MEDIUM: "text-warning",
-	LOW: "text-info",
+	URGENT: "text-destructive-text",
+	HIGH: "text-warning-text",
+	MEDIUM: "text-warning-text",
+	LOW: "text-info-text",
 };
 
 const formatStatus = (status: string) => status.replace("_", " ");

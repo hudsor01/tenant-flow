@@ -113,7 +113,7 @@ export function PropertyCard({
 				{/* View Button */}
 				<button
 					onClick={onView}
-					className="w-full mt-4 py-2.5 text-sm font-medium text-primary border border-primary/20 bg-primary/5 hover:bg-primary hover:text-primary-foreground hover:border-primary rounded-sm transition-all duration-200 flex items-center justify-center gap-2 group/btn min-h-11"
+					className="w-full mt-4 py-2.5 text-sm font-medium text-primary-text border border-primary/20 bg-primary/5 hover:bg-primary hover:text-primary-foreground hover:border-primary rounded-sm transition-all duration-200 flex items-center justify-center gap-2 group/btn min-h-11"
 					aria-label={`View details for ${property.name}`}
 				>
 					<Eye className="w-4 h-4 group-hover/btn:scale-110 transition-transform" />

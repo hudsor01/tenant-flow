@@ -49,7 +49,7 @@ export function PersonalInfoSection({
 						<button
 							type="button"
 							onClick={onEditClick}
-							className="flex items-center gap-1 text-sm font-medium text-primary hover:underline"
+							className="flex items-center gap-1 text-sm font-medium text-primary-text hover:underline"
 						>
 							<Edit className="h-4 w-4" />
 							Edit

@@ -98,7 +98,7 @@ const DropzoneContent = ({ className }: { className?: string }) => {
 				)}
 			>
 				<CheckCircle size={16} className="text-primary" />
-				<p className="text-primary text-sm">
+				<p className="text-primary-text text-sm">
 					Successfully uploaded {files.length} file{files.length > 1 ? "s" : ""}
 				</p>
 			</div>
@@ -135,7 +135,7 @@ const DropzoneContent = ({ className }: { className?: string }) => {
 								{file.name}
 							</p>
 							{file.errors.length > 0 ? (
-								<p className="text-xs text-destructive">
+								<p className="text-xs text-destructive-text">
 									{file.errors
 										.map((e) =>
 											e.message.startsWith("File is larger than")
@@ -147,11 +147,11 @@ const DropzoneContent = ({ className }: { className?: string }) => {
 							) : loading && !isSuccessfullyUploaded ? (
 								<p className="text-caption">Uploading file...</p>
 							) : fileError ? (
-								<p className="text-xs text-destructive">
+								<p className="text-xs text-destructive-text">
 									Failed to upload: {fileError.message}
 								</p>
 							) : isSuccessfullyUploaded ? (
-								<p className="text-xs text-primary">
+								<p className="text-xs text-primary-text">
 									Successfully uploaded file
 								</p>
 							) : (
@@ -174,7 +174,7 @@ const DropzoneContent = ({ className }: { className?: string }) => {
 				);
 			})}
 			{exceedMaxFiles && (
-				<p className="text-sm text-left mt-2 text-destructive">
+				<p className="text-sm text-left mt-2 text-destructive-text">
 					You may upload only up to {maxFiles} files, please remove{" "}
 					{files.length - maxFiles} file
 					{files.length - maxFiles > 1 ? "s" : ""}.

@@ -51,9 +51,9 @@ export function AnimatedTrendIndicator({
 	const Icon = isPositive ? ArrowUpRight : isNegative ? ArrowDownRight : Minus;
 
 	const colorClass = isPositive
-		? "text-success"
+		? "text-success-text"
 		: isNegative
-			? "text-destructive"
+			? "text-destructive-text"
 			: "text-muted-foreground";
 
 	const animationClass = isPositive

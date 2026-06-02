@@ -46,7 +46,7 @@ export default function SecurityPolicyPage() {
 								Email:{" "}
 								<a
 									href="mailto:security@tenantflow.app"
-									className="text-primary hover:underline"
+									className="text-primary-text hover:underline"
 								>
 									security@tenantflow.app
 								</a>
@@ -55,7 +55,7 @@ export default function SecurityPolicyPage() {
 								Encrypt sensitive details using our{" "}
 								<a
 									href="/.well-known/pgp-key.txt"
-									className="text-primary hover:underline"
+									className="text-primary-text hover:underline"
 								>
 									PGP public key
 								</a>
@@ -183,7 +183,7 @@ export default function SecurityPolicyPage() {
 							For security-related inquiries, contact us at{" "}
 							<a
 								href="mailto:security@tenantflow.app"
-								className="text-primary hover:underline"
+								className="text-primary-text hover:underline"
 							>
 								security@tenantflow.app
 							</a>
@@ -193,7 +193,7 @@ export default function SecurityPolicyPage() {
 							For sales and product inquiries, contact{" "}
 							<a
 								href="mailto:sales@tenantflow.app"
-								className="text-primary hover:underline"
+								className="text-primary-text hover:underline"
 							>
 								sales@tenantflow.app
 							</a>
@@ -202,13 +202,13 @@ export default function SecurityPolicyPage() {
 						</p>
 						<p>
 							For general support, visit our{" "}
-							<a href="/support" className="text-primary hover:underline">
+							<a href="/support" className="text-primary-text hover:underline">
 								Support Center
 							</a>{" "}
 							or email{" "}
 							<a
 								href="mailto:support@tenantflow.app"
-								className="text-primary hover:underline"
+								className="text-primary-text hover:underline"
 							>
 								support@tenantflow.app
 							</a>

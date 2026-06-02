@@ -94,7 +94,7 @@ export function GateConversionTable({ data }: { data: GateConversionStats[] }) {
 									"text-right",
 									row.conversionRate !== null &&
 										row.conversionRate < LOW_CONVERSION_THRESHOLD
-										? "text-destructive"
+										? "text-destructive-text"
 										: "text-muted-foreground",
 								)}
 							>

@@ -49,7 +49,7 @@ describe("BentoPricingSection", () => {
 		// (Starter $38, Growth $98, Max $298). This fails if any per-card
 		// line goes missing (count drops below 3).
 		const savingsLines = Array.from(
-			container.querySelectorAll("p.text-success.font-semibold"),
+			container.querySelectorAll("p.text-success-text.font-semibold"),
 		).filter((el) => /Save\s+\$[\d,]+\/year/.test(el.textContent ?? ""));
 		expect(savingsLines).toHaveLength(3);
 		expect(savingsLines.map((el) => el.textContent)).toEqual(

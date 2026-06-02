@@ -55,7 +55,9 @@ export function PricingComparison({ data }: { data: CompetitorData }) {
 											</p>
 										)}
 									</div>
-									<p className="text-lg font-bold text-primary">{tier.price}</p>
+									<p className="text-lg font-bold text-primary-text">
+										{tier.price}
+									</p>
 								</div>
 							))}
 						</div>
@@ -110,7 +112,7 @@ export function FeatureTable({ data }: { data: CompetitorData }) {
 								<th className="text-left p-4 font-semibold text-foreground">
 									Feature
 								</th>
-								<th className="text-center p-4 font-semibold text-primary w-40">
+								<th className="text-center p-4 font-semibold text-primary-text w-40">
 									TenantFlow
 								</th>
 								<th className="text-center p-4 font-semibold text-foreground w-40">

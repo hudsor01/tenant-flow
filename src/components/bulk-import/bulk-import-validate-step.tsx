@@ -66,7 +66,7 @@ export function BulkImportValidateStep<T>({
 					</div>
 					<Badge
 						variant="outline"
-						className="bg-success/10 text-success border-success/20"
+						className="bg-success/10 text-success-text border-success/20"
 					>
 						Uploaded
 					</Badge>
@@ -80,7 +80,7 @@ export function BulkImportValidateStep<T>({
 				<div className="flex items-start gap-3 p-3 rounded-lg bg-destructive/10 border border-destructive/30">
 					<AlertCircle className="size-4 text-destructive shrink-0 mt-0.5" />
 					<div>
-						<p className="typography-small text-destructive">
+						<p className="typography-small text-destructive-text">
 							Your CSV file is malformed
 						</p>
 						<p className="text-xs text-muted-foreground mt-0.5">
@@ -119,7 +119,7 @@ export function BulkImportValidateStep<T>({
 						<CheckCircle2 className="size-4" />
 					</div>
 					<div>
-						<p className="text-lg font-bold text-success">{validCount}</p>
+						<p className="text-lg font-bold text-success-text">{validCount}</p>
 						<p className="text-xs text-muted-foreground">Valid rows</p>
 					</div>
 				</div>
@@ -145,7 +145,7 @@ export function BulkImportValidateStep<T>({
 						<p
 							className={cn(
 								"text-lg font-bold",
-								hasErrors ? "text-destructive" : "text-muted-foreground",
+								hasErrors ? "text-destructive-text" : "text-muted-foreground",
 							)}
 						>
 							{errorCount}
@@ -160,7 +160,7 @@ export function BulkImportValidateStep<T>({
 				<div className="flex items-start gap-3 p-3 rounded-lg bg-destructive/10 border border-destructive/30">
 					<AlertCircle className="size-4 text-destructive shrink-0 mt-0.5" />
 					<div>
-						<p className="typography-small text-destructive">
+						<p className="typography-small text-destructive-text">
 							{errorCount} row{errorCount > 1 ? "s" : ""} have errors
 						</p>
 						<p className="text-xs text-muted-foreground mt-0.5">
@@ -241,7 +241,7 @@ export function BulkImportValidateStep<T>({
 													{row.errors.map((err, i) => (
 														<div
 															key={i}
-															className="flex items-center gap-1.5 text-xs text-destructive"
+															className="flex items-center gap-1.5 text-xs text-destructive-text"
 														>
 															<X className="size-3 shrink-0" />
 															<span className="font-medium">{err.field}:</span>
@@ -254,7 +254,7 @@ export function BulkImportValidateStep<T>({
 													<div className="icon-container-sm bg-success/10 text-success shrink-0">
 														<CheckCircle2 className="size-3" />
 													</div>
-													<span className="text-xs text-success font-medium">
+													<span className="text-xs text-success-text font-medium">
 														Valid
 													</span>
 												</div>

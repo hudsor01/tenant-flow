@@ -10,14 +10,14 @@ function getStatusVisual(invoice: BillingHistoryItem) {
 	if (invoice.isSuccessful) {
 		return {
 			Icon: CheckCircle,
-			color: "text-success",
+			color: "text-success-text",
 			label: "Paid",
 		};
 	}
 	if (invoice.status === "failed" || invoice.status === "cancelled") {
 		return {
 			Icon: XCircle,
-			color: "text-destructive",
+			color: "text-destructive-text",
 			label: invoice.status === "failed" ? "Failed" : "Cancelled",
 		};
 	}
@@ -73,7 +73,7 @@ export function BillingHistorySection() {
 														href={downloadHref}
 														target="_blank"
 														rel="noopener noreferrer"
-														className="text-sm text-primary hover:underline"
+														className="text-sm text-primary-text hover:underline"
 													>
 														Download
 													</a>

@@ -252,7 +252,7 @@ export function BillingSettings() {
 								Your session appears to have expired.{" "}
 								<Link
 									href="/login?redirect=%2Fsettings%3Ftab%3Dbilling"
-									className="text-primary hover:underline underline-offset-4"
+									className="text-primary-text hover:underline underline-offset-4"
 								>
 									Sign in again
 								</Link>{" "}
@@ -264,14 +264,14 @@ export function BillingSettings() {
 								<button
 									type="button"
 									onClick={() => refetchStatus()}
-									className="text-primary hover:underline underline-offset-4"
+									className="text-primary-text hover:underline underline-offset-4"
 								>
 									Retry
 								</button>{" "}
 								or{" "}
 								<Link
 									href="/contact"
-									className="text-primary hover:underline underline-offset-4"
+									className="text-primary-text hover:underline underline-offset-4"
 								>
 									contact support
 								</Link>{" "}
@@ -348,7 +348,7 @@ export function BillingSettings() {
 											Billing cycle syncing from Stripe…{" "}
 											<Link
 												href="/contact"
-												className="text-primary hover:underline underline-offset-4"
+												className="text-primary-text hover:underline underline-offset-4"
 											>
 												Contact support
 											</Link>{" "}
@@ -370,7 +370,7 @@ export function BillingSettings() {
 									shortly.{" "}
 									<Link
 										href="/contact"
-										className="text-primary hover:underline underline-offset-4"
+										className="text-primary-text hover:underline underline-offset-4"
 									>
 										Contact support
 									</Link>{" "}
@@ -387,7 +387,7 @@ export function BillingSettings() {
 									Your trial is active.{" "}
 									<Link
 										href="/billing/plans"
-										className="text-primary hover:underline underline-offset-4"
+										className="text-primary-text hover:underline underline-offset-4"
 									>
 										Choose a plan
 									</Link>{" "}
@@ -399,7 +399,7 @@ export function BillingSettings() {
 									Your subscription is {statusVariant.label.toLowerCase()}.{" "}
 									<Link
 										href="/billing/plans"
-										className="text-primary hover:underline underline-offset-4"
+										className="text-primary-text hover:underline underline-offset-4"
 									>
 										Resubscribe
 									</Link>{" "}

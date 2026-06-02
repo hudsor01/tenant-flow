@@ -84,7 +84,7 @@ export function SignLeaseButton({
 				variant="outline"
 				size={size}
 				disabled
-				className={cn("gap-2 text-success border-success/20", className)}
+				className={cn("gap-2 text-success-text border-success/20", className)}
 			>
 				<CheckCircle2 className="h-4 w-4" />
 				Signed
@@ -120,7 +120,7 @@ export function SignLeaseButton({
 							By signing, you acknowledge that you have read and agree to all
 							terms and conditions outlined in the lease agreement.
 						</p>
-						<p className="text-warning font-medium">
+						<p className="text-warning-text font-medium">
 							This action is legally binding and cannot be undone.
 						</p>
 					</AlertDialogDescription>
@@ -194,7 +194,9 @@ export function SignLeaseActions({
 	// If both signed, show completed state
 	if (bothSigned) {
 		return (
-			<div className={cn("flex items-center gap-2 text-success", className)}>
+			<div
+				className={cn("flex items-center gap-2 text-success-text", className)}
+			>
 				<CheckCircle2 className="h-5 w-5" />
 				<span className="font-medium">Lease Fully Signed</span>
 			</div>

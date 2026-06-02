@@ -40,7 +40,7 @@ export function LeaseSignatureStatus({
 				data-testid="signature-status-error"
 			>
 				<CardContent className="py-4">
-					<div className="flex items-center gap-2 text-destructive">
+					<div className="flex items-center gap-2 text-destructive-text">
 						<AlertCircle className="h-4 w-4" />
 						<span className="text-sm">
 							{
@@ -240,7 +240,7 @@ function SignatureRow({
 				{signed ? (
 					<>
 						<CheckCircle2 className="h-4 w-4 text-success" />
-						<span className="text-sm text-success">
+						<span className="text-sm text-success-text">
 							Signed {signedAt && new Date(signedAt).toLocaleDateString()}
 						</span>
 					</>

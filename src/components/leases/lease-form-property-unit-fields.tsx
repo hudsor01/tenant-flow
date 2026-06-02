@@ -73,7 +73,7 @@ export function LeaseFormPropertyUnitFields({
 				</Field>
 
 				{propertiesIsError && (
-					<p className="text-sm text-destructive mt-2">
+					<p className="text-sm text-destructive-text mt-2">
 						Failed to load properties
 						{propertiesError ? `: ${propertiesError.message}` : ""}. Please
 						refresh to retry.
@@ -82,7 +82,7 @@ export function LeaseFormPropertyUnitFields({
 			</div>
 
 			{unitsIsError && (
-				<p className="text-sm text-destructive mt-2">
+				<p className="text-sm text-destructive-text mt-2">
 					Failed to load units for the selected property.
 					{unitsError ? ` ${unitsError.message}` : ""} Please retry.
 				</p>

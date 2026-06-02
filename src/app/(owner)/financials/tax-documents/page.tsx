@@ -72,7 +72,7 @@ export default function TaxDocumentsPage() {
 				<div className="rounded-lg border border-destructive/30 bg-destructive/10 p-6 flex flex-col items-center gap-4 text-center">
 					<AlertCircle className="size-10 text-destructive" />
 					<div>
-						<p className="font-medium text-destructive">
+						<p className="font-medium text-destructive-text">
 							Failed to load tax documents
 						</p>
 						<p className="text-sm text-muted-foreground mt-1">

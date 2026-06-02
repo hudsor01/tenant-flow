@@ -182,7 +182,10 @@ export function MaintenanceViewClient() {
 							/>
 						)}
 						<StatLabel>Open</StatLabel>
-						<StatValue className="flex items-baseline text-warning">
+						{/* warning/success stat numbers use -text companions: at 32px (typography-stat)
+						    text-warning/text-success measure 2.15/2.59:1 in light, below the AA-large 3:1
+						    bar; the Urgent stat below keeps vivid text-destructive (4.55/3.29:1, clears it). */}
+						<StatValue className="flex items-baseline text-warning-text">
 							<NumberTicker value={openCount} duration={800} />
 						</StatValue>
 						<StatIndicator variant="icon" color="warning">
@@ -206,7 +209,7 @@ export function MaintenanceViewClient() {
 				<BlurFade delay={0.25} inView>
 					<Stat className="relative overflow-hidden">
 						<StatLabel>Completed</StatLabel>
-						<StatValue className="flex items-baseline text-success">
+						<StatValue className="flex items-baseline text-success-text">
 							<NumberTicker value={completedCount} duration={800} />
 						</StatValue>
 						<StatIndicator variant="icon" color="success">

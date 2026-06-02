@@ -68,25 +68,28 @@ export function PropertyPerformanceSection({
 			label: "Revenue",
 			value: formatCurrency(data.total_revenue ?? 0),
 			icon: DollarSign,
-			tone: "text-success",
+			tone: "text-success-text",
 		},
 		{
 			label: "Expenses",
 			value: formatCurrency(data.total_expenses ?? 0),
 			icon: Receipt,
-			tone: "text-destructive",
+			tone: "text-destructive-text",
 		},
 		{
 			label: "Net Income",
 			value: formatCurrency(data.net_income ?? 0),
 			icon: TrendingUp,
-			tone: (data.net_income ?? 0) >= 0 ? "text-success" : "text-destructive",
+			tone:
+				(data.net_income ?? 0) >= 0
+					? "text-success-text"
+					: "text-destructive-text",
 		},
 		{
 			label: "Occupancy",
 			value: formatPercentage(data.occupancy_rate ?? 0),
 			icon: Percent,
-			tone: "text-info",
+			tone: "text-info-text",
 		},
 	];
 

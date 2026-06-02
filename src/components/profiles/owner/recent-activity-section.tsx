@@ -15,7 +15,7 @@ export function RecentActivitySection() {
 					<button
 						type="button"
 						onClick={() => router.push("/activity")}
-						className="text-sm font-medium text-primary hover:underline"
+						className="text-sm font-medium text-primary-text hover:underline"
 					>
 						View All
 					</button>

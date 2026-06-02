@@ -233,7 +233,7 @@ export function TenantAccountDataSection() {
 						{!showDeleteConfirm ? (
 							<button
 								onClick={() => setShowDeleteConfirm(true)}
-								className="inline-flex items-center gap-2 px-4 py-2 min-h-11 text-sm font-medium text-destructive border border-destructive/30 rounded-lg hover:bg-destructive/10 transition-colors"
+								className="inline-flex items-center gap-2 px-4 py-2 min-h-11 text-sm font-medium text-destructive-text border border-destructive/30 rounded-lg hover:bg-destructive/10 transition-colors"
 							>
 								<Trash2 className="h-4 w-4" aria-hidden="true" />
 								Delete My Account
@@ -246,7 +246,7 @@ export function TenantAccountDataSection() {
 										aria-hidden="true"
 									/>
 									<div>
-										<p className="text-sm font-medium text-destructive">
+										<p className="text-sm font-medium text-destructive-text">
 											This will schedule your account for deletion
 										</p>
 										<p className="text-sm text-muted-foreground mt-1">

@@ -192,7 +192,7 @@ export function CategoriesSettings() {
 					<CardTitle>Document categories</CardTitle>
 				</CardHeader>
 				<CardContent className="flex flex-col items-start gap-3 text-sm text-muted-foreground">
-					<div className="flex items-center gap-2 text-destructive">
+					<div className="flex items-center gap-2 text-destructive-text">
 						<AlertCircle className="size-4" aria-hidden="true" />
 						<span>We couldn&apos;t load your document categories.</span>
 					</div>

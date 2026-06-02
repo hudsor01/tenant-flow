@@ -284,7 +284,7 @@ export default function PrivacyPage() {
 							account settings or by contacting us at{" "}
 							<a
 								href="mailto:privacy@tenantflow.app"
-								className="text-primary underline"
+								className="text-primary-text underline"
 							>
 								privacy@tenantflow.app
 							</a>
@@ -408,7 +408,7 @@ export default function PrivacyPage() {
 								<strong>Email:</strong>{" "}
 								<a
 									href="mailto:privacy@tenantflow.app"
-									className="text-primary underline"
+									className="text-primary-text underline"
 								>
 									privacy@tenantflow.app
 								</a>
@@ -417,7 +417,7 @@ export default function PrivacyPage() {
 								<strong>Support:</strong>{" "}
 								<a
 									href="mailto:support@tenantflow.app"
-									className="text-primary underline"
+									className="text-primary-text underline"
 								>
 									support@tenantflow.app
 								</a>
@@ -455,7 +455,7 @@ export default function PrivacyPage() {
 							To exercise these rights, email{" "}
 							<a
 								href="mailto:privacy@tenantflow.app"
-								className="text-primary underline"
+								className="text-primary-text underline"
 							>
 								privacy@tenantflow.app
 							</a>

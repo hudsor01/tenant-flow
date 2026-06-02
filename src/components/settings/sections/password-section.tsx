@@ -142,7 +142,7 @@ export function PasswordSection() {
 							className="h-10 rounded-lg border bg-background px-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
 						/>
 						{confirmPassword && newPassword !== confirmPassword && (
-							<p className="text-xs text-destructive flex items-center gap-1">
+							<p className="text-xs text-destructive-text flex items-center gap-1">
 								<AlertTriangle className="h-3 w-3" />
 								Passwords do not match
 							</p>
@@ -151,7 +151,7 @@ export function PasswordSection() {
 							newPassword === confirmPassword &&
 							newPassword.length >= VALIDATION_LIMITS.PASSWORD_MIN_LENGTH &&
 							PASSWORD_COMPLEXITY_RE.test(newPassword) && (
-								<p className="text-xs text-primary flex items-center gap-1">
+								<p className="text-xs text-primary-text flex items-center gap-1">
 									<CheckCircle className="h-3 w-3" />
 									Passwords match
 								</p>

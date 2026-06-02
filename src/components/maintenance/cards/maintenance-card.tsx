@@ -21,12 +21,12 @@ function getAgingDisplay(timestamp: string | null | undefined) {
 	if (days <= 3) {
 		return {
 			label: days === 0 ? "Today" : days === 1 ? "1 day" : `${days} days`,
-			className: "bg-success/10 text-success",
+			className: "bg-success/10 text-success-text",
 		};
 	} else if (days <= 7) {
 		return {
 			label: `${days} days`,
-			className: "bg-warning/10 text-warning",
+			className: "bg-warning/10 text-warning-text",
 		};
 	} else if (days <= 14) {
 		return {
@@ -37,7 +37,7 @@ function getAgingDisplay(timestamp: string | null | undefined) {
 	} else {
 		return {
 			label: `${days} days`,
-			className: "bg-destructive/10 text-destructive",
+			className: "bg-destructive/10 text-destructive-text",
 		};
 	}
 }
@@ -46,10 +46,10 @@ function getPriorityBadge(priority: MaintenancePriority | string) {
 	const normalizedPriority = priority?.toLowerCase() as MaintenancePriority;
 	const config: Record<string, string> = {
 		low: "bg-muted text-muted-foreground",
-		medium: "bg-primary/10 text-primary",
-		normal: "bg-primary/10 text-primary",
-		high: "bg-warning/10 text-warning",
-		urgent: "bg-destructive/10 text-destructive",
+		medium: "bg-primary/10 text-primary-text",
+		normal: "bg-primary/10 text-primary-text",
+		high: "bg-warning/10 text-warning-text",
+		urgent: "bg-destructive/10 text-destructive-text",
 	};
 
 	return (

@@ -118,7 +118,7 @@ export function FileUploadItemMetadata(props: FileUploadItemMetadataProps) {
 					{itemContext.fileState.error && (
 						<span
 							id={itemContext.messageId}
-							className="text-destructive text-xs"
+							className="text-destructive-text text-xs"
 						>
 							{itemContext.fileState.error}
 						</span>

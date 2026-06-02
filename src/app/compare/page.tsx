@@ -66,7 +66,7 @@ export default function ComparePage() {
 									<p className="mt-4 text-sm text-muted-foreground line-clamp-3">
 										{competitor.description}
 									</p>
-									<span className="mt-auto pt-4 inline-flex items-center text-sm font-medium text-primary">
+									<span className="mt-auto pt-4 inline-flex items-center text-sm font-medium text-primary-text">
 										See comparison
 										<ArrowRight className="ml-1.5 h-4 w-4 transition-transform group-hover:translate-x-0.5" />
 									</span>

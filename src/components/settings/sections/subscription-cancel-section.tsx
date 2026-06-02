@@ -215,7 +215,7 @@ export function SubscriptionCancelSection() {
 	return (
 		<BlurFade delay={0.55} inView>
 			<section className="rounded-lg border border-destructive/20 bg-destructive/5 p-6">
-				<h3 className="mb-4 text-sm font-medium text-destructive uppercase tracking-wider flex items-center gap-2">
+				<h3 className="mb-4 text-sm font-medium text-destructive-text uppercase tracking-wider flex items-center gap-2">
 					<AlertTriangle className="h-4 w-4" aria-hidden="true" />
 					Danger Zone
 				</h3>
@@ -232,7 +232,7 @@ export function SubscriptionCancelSection() {
 							<Button
 								variant="outline"
 								aria-label="Cancel my subscription"
-								className="text-destructive border-destructive/20 hover:bg-destructive/10"
+								className="text-destructive-text border-destructive/20 hover:bg-destructive/10"
 							>
 								Cancel Plan
 							</Button>

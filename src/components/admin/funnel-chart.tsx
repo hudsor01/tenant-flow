@@ -86,7 +86,7 @@ export function FunnelChartClient({ data }: { data: FunnelStats | null }) {
 								<dd
 									className={
 										low
-											? "text-xs text-destructive"
+											? "text-xs text-destructive-text"
 											: "text-xs text-muted-foreground"
 									}
 								>

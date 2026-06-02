@@ -113,7 +113,7 @@ describe("PricingCardStandard", () => {
 		expect(screen.queryByText(/Save\s+\$\d/)).toBeNull();
 	});
 
-	it("savings line uses the text-success token (CONS-10)", () => {
+	it("savings line uses the text-success-text token (CONS-10)", () => {
 		const { container } = render(
 			<PricingCardStandard
 				plan={starterPlan}
@@ -121,7 +121,7 @@ describe("PricingCardStandard", () => {
 				variant="starter"
 			/>,
 		);
-		const savings = container.querySelector(".text-success.font-semibold");
+		const savings = container.querySelector(".text-success-text.font-semibold");
 		expect(savings).toBeTruthy();
 		expect(savings?.textContent).toMatch(/Save\s+\$38\/year/);
 	});

@@ -27,7 +27,7 @@ export function PropertyPerformanceTable({
 						</div>
 						<button
 							onClick={onViewDetails}
-							className="text-sm text-primary hover:underline"
+							className="text-sm text-primary-text hover:underline"
 						>
 							View All
 						</button>

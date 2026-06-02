@@ -20,13 +20,13 @@ const badgeVariants = cva(
 					"text-foreground [a&]:hover:bg-accent [a&]:hover:text-accent-foreground",
 				// Semantic status variants
 				success:
-					"border-success/20 bg-success/10 text-success [a&]:hover:bg-success/15",
+					"border-success/20 bg-success/10 text-success-text [a&]:hover:bg-success/15",
 				warning:
-					"border-warning/20 bg-warning/10 text-warning [a&]:hover:bg-warning/15",
-				info: "border-info/20 bg-info/10 text-info [a&]:hover:bg-info/15",
+					"border-warning/20 bg-warning/10 text-warning-text [a&]:hover:bg-warning/15",
+				info: "border-info/20 bg-info/10 text-info-text [a&]:hover:bg-info/15",
 				// Trust indicator variant
 				trustIndicator:
-					"rounded-full border-primary/20 bg-primary/5 text-primary backdrop-blur-sm",
+					"rounded-full border-primary/20 bg-primary/5 text-primary-text backdrop-blur-sm",
 			},
 			size: {
 				default: "rounded-md px-2 py-0.5 text-xs [&>svg]:size-3 gap-1",

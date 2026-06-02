@@ -35,7 +35,7 @@ export function FinancialsHighlights({
 							</p>
 							{highlight.trend !== null && highlight.trend !== undefined && (
 								<p
-									className={`text-xs mt-1 ${highlight.trend >= 0 ? "text-emerald-600" : "text-destructive"}`}
+									className={`text-xs mt-1 ${highlight.trend >= 0 ? "text-emerald-600" : "text-destructive-text"}`}
 								>
 									{highlight.trend >= 0 ? "+" : ""}
 									{highlight.trend.toFixed(1)}%

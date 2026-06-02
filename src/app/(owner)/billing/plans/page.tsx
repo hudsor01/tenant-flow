@@ -233,7 +233,7 @@ export default function BillingPlansPage() {
 					Need help choosing a plan?{" "}
 					<Link
 						href="/contact"
-						className="text-primary hover:underline underline-offset-4"
+						className="text-primary-text hover:underline underline-offset-4"
 					>
 						Contact our sales team
 					</Link>
