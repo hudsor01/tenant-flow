@@ -95,7 +95,6 @@ const DRIFT_EXEMPTIONS: Record<string, readonly DriftPattern[]> = {
 		"hex",
 	],
 	"src/app/(owner)/reports/page.tsx": ["hex"],
-	"src/components/dashboard/dashboard-filters.tsx": ["hex"],
 	"src/components/leases/rent-increase-notice-dialog.tsx": ["hex"],
 	"src/components/maintenance/detail/work-order-template.ts": ["hex"],
 	// Third-party brand SVG logos, brand guidelines require exact hex (D-03)
