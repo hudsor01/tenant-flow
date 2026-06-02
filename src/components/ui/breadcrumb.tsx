@@ -42,7 +42,7 @@ function BreadcrumbLink({
 	return (
 		<Comp
 			className={cn(
-				"hover:text-primary transition-colors font-medium",
+				"hover:text-primary-text transition-colors font-medium",
 				className,
 			)}
 			{...props}

@@ -17,7 +17,6 @@
 		"test:performance": "preserve-env=PLAYWRIGHT_BASE_URL -- bunx playwright test tests/performance.spec.ts",
 		"test:accessibility": "preserve-env=PLAYWRIGHT_BASE_URL -- bunx playwright test tests/accessibility.spec.ts",
 		"test:contracts": "preserve-env=PLAYWRIGHT_BASE_URL -- bunx playwright test tests/integration/api-contracts.spec.ts",
-		"test:stripe": "preserve-env=PLAYWRIGHT_BASE_URL,E2E_OWNER_EMAIL,E2E_OWNER_PASSWORD,E2E_TENANT_EMAIL,E2E_TENANT_PASSWORD -- bunx playwright test tests/stripe-payment-flow.e2e.spec.ts tests/stripe-disputes-fraud.e2e.spec.ts",
 		"lighthouse": "bunx lhci autorun",
 		"typecheck": "tsc --noEmit"
 	},

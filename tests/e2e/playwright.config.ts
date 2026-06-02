@@ -125,7 +125,14 @@ export default defineConfig({
 	// ===================
 	projects: [
 		// ─────────────────────────────────────────
-		// SETUP: Authenticate owner via API (runs first)
+		// SETUP: Authenticate owner once, persist storageState (runs first)
+		//
+		// testMatch /auth-api\.setup\.ts/ -> tests/auth-api.setup.ts, which runs
+		// loginAsOwner and saves the @supabase/ssr session cookies via
+		// page.context().storageState(). The owner / firefox / chromium /
+		// mobile-chrome projects below consume that storageState. This path is
+		// NOT exercised in CI — CI authenticates the dashboard a11y sweep via the
+		// `owner-axe` project (in-test loginAsOwner, no storageState).
 		// ─────────────────────────────────────────
 		{
 			name: "setup-owner",
@@ -144,6 +151,22 @@ export default defineConfig({
 			},
 			dependencies: ["setup-owner"],
 			testMatch: ["**/owner/**/*.spec.ts"],
+			// dashboard-a11y self-authenticates via loginAsOwner (no storageState).
+			testIgnore: ["**/owner/dashboard-a11y.e2e.spec.ts"],
+		},
+
+		// ─────────────────────────────────────────
+		// OWNER-AXE: dashboard a11y + 375px sweep (CI: --project=owner-axe).
+		// NO storageState — authenticates in-test via loginAsOwner, which injects
+		// the @supabase/ssr session as cookies onto each fresh per-test context
+		// before the first navigation. No setup-owner dependency.
+		// ─────────────────────────────────────────
+		{
+			name: "owner-axe",
+			use: {
+				...devices["Desktop Chrome"],
+			},
+			testMatch: ["**/owner/dashboard-a11y.e2e.spec.ts"],
 		},
 
 		// ─────────────────────────────────────────
@@ -195,6 +218,8 @@ export default defineConfig({
 			},
 			dependencies: ["setup-owner"],
 			testMatch: ["**/owner/**/*.spec.ts"], // Owner tests for cross-browser
+			// dashboard-a11y self-authenticates via loginAsOwner (no storageState).
+			testIgnore: ["**/owner/dashboard-a11y.e2e.spec.ts"],
 		},
 
 		// ─────────────────────────────────────────
@@ -208,6 +233,8 @@ export default defineConfig({
 			},
 			dependencies: ["setup-owner"],
 			testMatch: ["**/owner/**/*.spec.ts"], // Owner tests for responsive
+			// dashboard-a11y self-authenticates via loginAsOwner (no storageState).
+			testIgnore: ["**/owner/dashboard-a11y.e2e.spec.ts"],
 		},
 	],
 

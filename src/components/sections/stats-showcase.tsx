@@ -95,7 +95,7 @@ export function StatsShowcase({ className }: StatsShowcaseProps) {
 										</div>
 
 										{/* Enhanced label with hover effect */}
-										<div className="typography-large text-foreground mb-1 group-hover:text-primary transition-colors duration-300">
+										<div className="typography-large text-foreground mb-1 group-hover:text-primary-text transition-colors duration-300">
 											{stat.label}
 										</div>
 

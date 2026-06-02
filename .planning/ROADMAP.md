@@ -142,7 +142,11 @@ Phases 1 and 2 are invisible foundation. Phases 3 and 4 each *add* a new region 
   3. At 375px viewport width, `/dashboard` has zero horizontal scroll; the portfolio table forces grid view at the mobile breakpoint.
   4. Loading states never co-render a skeleton AND an empty state; route-scoped `loading.tsx` covers the streaming case (Phase 14 D-04 pattern from v1.0).
   5. Users with `prefers-reduced-motion: reduce` see no `NumberTicker`, `BlurFade`, or chart-transition animations.
-**Plans:** TBD
+**Plans:** 4 plans (2 waves)
+- [x] 06-01-PLAN.md — **Wave 1** (autonomous: false; blocking legitimacy checkpoint). Wave-0 prerequisites: install `@axe-core/playwright` into ROOT `package.json` (declared in tests/e2e but not installed; CI resolves from root) + wire `--project=owner` into the CI E2E run so the authed `/dashboard` axe test executes in CI (POLISH-05).
+- [x] 06-02-PLAN.md — **Wave 1.** Dark-mode token migration (POLISH-04 + D-05): `lease-status-badge` → `status-active/-pending/-inactive` utilities; maintenance cells (`portfolio-columns`, `portfolio-grid`) + `StatTrend` (shared `stat.tsx`) + `expiring-leases-widget` raw palette → `--color-{success,destructive,warning}` tokens; full landmine grep returns zero, drift guard stays green.
+- [x] 06-03-PLAN.md — **Wave 1.** Reduced-motion JS guard (POLISH-08 + D-04): make shared `number-ticker.tsx` honor `useReducedMotion()` internally (additive — motion-on path unchanged; 16 consumers) + matchMedia-mock branch test; verify chart `isAnimationActive` + `BlurFade` guards already present.
+- [x] 06-04-PLAN.md — **Wave 2** (depends on 06-01). A11y + responsive + skeleton/empty: new `dashboard-a11y.e2e.spec.ts` axe-core WCAG 2.1 AA assertion under the authed `owner` project (POLISH-05) + 375px zero-horizontal-scroll probe (POLISH-06, `FORCE_GRID_QUERY` LOCK untouched) + `DashboardContent` skeleton↔empty mutual-exclusion unit regression test (POLISH-07; no `dashboard/loading.tsx`).
 
 ### Phase 7: Verification
 **Slug:** `dashboard-verification`
@@ -165,7 +169,7 @@ Phases 1 and 2 are invisible foundation. Phases 3 and 4 each *add* a new region 
 | 3. KPI Bento Row | v2.0 | 3/3 | Shipped (PR #746) | 2026-05-26 |
 | 4. Charts | v2.0 | 4/4 | Shipped (PR #748) | 2026-05-28 |
 | 5. Portfolio DataTable | v2.0 | 5/5 | Shipped (PR #763) | 2026-05-31 |
-| 6. Polish & A11y | v2.0 | 0/0 | Not started | - |
+| 6. Polish & A11y | v2.0 | 4/4 | Complete   | 2026-06-01 |
 | 7. Verification | v2.0 | 0/0 | Not started | - |
 
 ## Coverage Validation

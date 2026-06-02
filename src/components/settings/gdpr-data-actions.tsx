@@ -256,7 +256,7 @@ export function GdprDataActions({
 						<button
 							onClick={() => setShowDeleteDialog(true)}
 							aria-label="Request permanent account deletion"
-							className="flex items-center gap-2 rounded-lg border border-destructive/40 px-4 py-2 text-sm font-medium text-destructive hover:bg-destructive/10 transition-colors"
+							className="flex items-center gap-2 rounded-lg border border-destructive/40 px-4 py-2 text-sm font-medium text-destructive-text hover:bg-destructive/10 transition-colors"
 						>
 							<Trash2 className="h-4 w-4" aria-hidden="true" />
 							Delete Account

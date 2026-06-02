@@ -59,7 +59,7 @@ export function PropertyActionBar({
 						variant="ghost"
 						size="sm"
 						onClick={onBulkDelete}
-						className="gap-2 text-destructive hover:text-destructive hover:bg-destructive/10 min-h-9"
+						className="gap-2 text-destructive-text hover:text-destructive-text hover:bg-destructive/10 min-h-9"
 						aria-label="Delete selected properties"
 					>
 						<Trash2 className="w-4 h-4" />

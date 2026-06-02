@@ -45,7 +45,7 @@ import {
 	ChartTooltip,
 	ChartTooltipContent,
 } from "#components/ui/chart";
-import { Tabs, TabsList, TabsTrigger } from "#components/ui/tabs";
+import { ToggleGroup, ToggleGroupItem } from "#components/ui/toggle-group";
 import { useReducedMotion } from "#hooks/use-reduced-motion";
 import { formatCurrency } from "#lib/utils/currency";
 import type {
@@ -167,15 +167,21 @@ export function RevenueAreaChart({
 					<CardTitle>Revenue</CardTitle>
 					<CardDescription>{description}</CardDescription>
 				</div>
-				<Tabs
+				{/* Window toggle is a single-select control with shared content (the
+				    chart below), so a ToggleGroup is the correct primitive — Tabs
+				    would emit aria-controls to non-existent panels. Mirrors the
+				    range toggle in chart-area-interactive.tsx. */}
+				<ToggleGroup
+					type="single"
 					value={activeWindow}
-					onValueChange={(v) => setActiveWindow(v as RevenueWindow)}
+					onValueChange={(v) => v && setActiveWindow(v as RevenueWindow)}
+					variant="outline"
+					size="sm"
+					aria-label="Revenue window"
 				>
-					<TabsList>
-						<TabsTrigger value="30d">30d</TabsTrigger>
-						<TabsTrigger value="6mo">6mo</TabsTrigger>
-					</TabsList>
-				</Tabs>
+					<ToggleGroupItem value="30d">30d</ToggleGroupItem>
+					<ToggleGroupItem value="6mo">6mo</ToggleGroupItem>
+				</ToggleGroup>
 			</CardHeader>
 			<CardContent>
 				{isEmpty ? (

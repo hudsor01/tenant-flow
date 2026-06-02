@@ -77,15 +77,15 @@ describe("RevenueAreaChart", () => {
 		expect(screen.getByText("Last 30 days")).toBeInTheDocument();
 	});
 
-	it("renders Tabs with both 30d and 6mo triggers", () => {
+	it("renders the window toggle with both 30d and 6mo options", () => {
 		render(
 			<RevenueAreaChart
 				monthlyRevenue={daily30d}
 				monthlyRevenue6mo={monthly6mo}
 			/>,
 		);
-		expect(screen.getByRole("tab", { name: "30d" })).toBeInTheDocument();
-		expect(screen.getByRole("tab", { name: "6mo" })).toBeInTheDocument();
+		expect(screen.getByRole("radio", { name: "30d" })).toBeInTheDocument();
+		expect(screen.getByRole("radio", { name: "6mo" })).toBeInTheDocument();
 	});
 
 	it("renders 30d series data by default", async () => {
@@ -111,7 +111,7 @@ describe("RevenueAreaChart", () => {
 				monthlyRevenue6mo={monthly6mo}
 			/>,
 		);
-		await user.click(screen.getByRole("tab", { name: "6mo" }));
+		await user.click(screen.getByRole("radio", { name: "6mo" }));
 		expect(screen.getByText("Last 6 months")).toBeInTheDocument();
 		const payload = await findAreaChartData();
 		const first = (payload as Array<Record<string, unknown>>)[0];
@@ -129,9 +129,9 @@ describe("RevenueAreaChart", () => {
 				monthlyRevenue6mo={monthly6mo}
 			/>,
 		);
-		await user.click(screen.getByRole("tab", { name: "6mo" }));
+		await user.click(screen.getByRole("radio", { name: "6mo" }));
 		expect(screen.getByText("Last 6 months")).toBeInTheDocument();
-		await user.click(screen.getByRole("tab", { name: "30d" }));
+		await user.click(screen.getByRole("radio", { name: "30d" }));
 		expect(screen.getByText("Last 30 days")).toBeInTheDocument();
 		const payload = await findAreaChartData();
 		const first = (payload as Array<Record<string, unknown>>)[0];
@@ -151,7 +151,7 @@ describe("RevenueAreaChart", () => {
 			screen.getByText("Add a lease to start tracking revenue"),
 		).toBeInTheDocument();
 		// Toggle still mounted and clickable; flips to 6mo and stays empty.
-		await user.click(screen.getByRole("tab", { name: "6mo" }));
+		await user.click(screen.getByRole("radio", { name: "6mo" }));
 		expect(screen.getByText("No revenue data yet")).toBeInTheDocument();
 	});
 
@@ -166,11 +166,11 @@ describe("RevenueAreaChart", () => {
 		// 30d default: chart present (wait for rAF mount).
 		expect(await screen.findByTestId("area-chart")).toBeInTheDocument();
 		// Flip to 6mo: empty-state shown, chart gone.
-		await user.click(screen.getByRole("tab", { name: "6mo" }));
+		await user.click(screen.getByRole("radio", { name: "6mo" }));
 		expect(screen.getByText("No revenue data yet")).toBeInTheDocument();
 		expect(screen.queryByTestId("area-chart")).toBeNull();
 		// Flip back to 30d: chart re-mounts, empty-state gone.
-		await user.click(screen.getByRole("tab", { name: "30d" }));
+		await user.click(screen.getByRole("radio", { name: "30d" }));
 		expect(screen.queryByText("No revenue data yet")).toBeNull();
 		expect(await screen.findByTestId("area-chart")).toBeInTheDocument();
 	});

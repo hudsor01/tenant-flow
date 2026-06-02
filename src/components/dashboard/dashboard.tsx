@@ -142,7 +142,10 @@ export function Dashboard({
 			</div>
 
 			{/* Main Content: Revenue chart (50%) + Occupancy donut (25%) + Quick Actions (25%) */}
-			<div className="grid gap-6 lg:grid-cols-4" data-tour="trends-section">
+			<div
+				className="grid grid-cols-1 gap-6 lg:grid-cols-4"
+				data-tour="trends-section"
+			>
 				<RevenueAreaChart
 					monthlyRevenue={monthlyRevenue}
 					monthlyRevenue6mo={monthlyRevenue6mo}

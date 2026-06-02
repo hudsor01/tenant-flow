@@ -10,11 +10,9 @@ const LABEL: Record<LeaseStatus, string> = {
 };
 
 const CHIP: Record<LeaseStatus, string> = {
-	active:
-		"bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400",
-	expiring:
-		"bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400",
-	vacant: "bg-muted text-muted-foreground",
+	active: "status-active",
+	expiring: "status-pending",
+	vacant: "status-inactive",
 };
 
 /**
@@ -26,7 +24,7 @@ export function LeaseStatusBadge({ status }: { status: LeaseStatus }) {
 	return (
 		<span
 			className={cn(
-				"inline-flex items-center rounded px-2 py-0.5 font-medium text-xs",
+				"inline-flex items-center rounded border px-2 py-0.5 font-medium text-xs",
 				CHIP[status],
 			)}
 		>

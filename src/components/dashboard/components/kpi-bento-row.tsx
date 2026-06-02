@@ -48,9 +48,11 @@ function TrendArrow({ direction }: { direction: "up" | "down" | "stable" }) {
 	return <Minus aria-hidden="true" className="inline-block size-3" />;
 }
 
-// Defense-in-depth wrapper per 03-UI-SPEC § 5.4: upstream `NumberTicker`
-// lacks a reduced-motion guard, so we short-circuit to a static value when
-// the user has opted out.
+// Belt-and-suspenders reduced-motion wrapper per 03-UI-SPEC § 5.4. NumberTicker
+// gained its own internal reduced-motion guard in Phase 6, so this outer
+// short-circuit is now redundant for the animation, but it is kept to render the
+// statically-formatted value (with thousands separators) when motion is off.
+// Both layers honor the opt-out.
 function KpiNumberTicker({
 	value,
 	decimalPlaces = 0,
@@ -283,10 +285,7 @@ function KpiTile({ tile }: { tile: KpiTileConfig }) {
 	const trendChip = tile.trend ? (
 		<StatTrend
 			trend={tile.trend.trend === "stable" ? "neutral" : tile.trend.trend}
-			className={cn(
-				tile.trend.trend === "down" &&
-					"!text-[var(--color-warning)] dark:!text-[var(--color-warning)]",
-			)}
+			className={cn(tile.trend.trend === "down" && "!text-warning-text")}
 		>
 			<TrendArrow direction={tile.trend.trend} />
 			<span>{formatTrendPercent(tile.trend.percentChange)}</span>

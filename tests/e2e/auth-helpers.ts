@@ -12,8 +12,8 @@
  * HOW IT WORKS:
  * 1. Call Supabase /auth/v1/token endpoint directly
  * 2. Get access_token, refresh_token, user data
- * 3. Set cookies AND localStorage in browser context
- * 4. Navigate to protected pages
+ * 3. Inject the session as @supabase/ssr cookies on the browser context
+ * 4. Navigate to protected pages (the cookies carry the session)
  *
  * REFERENCES:
  * - https://playwright.dev/docs/auth
@@ -21,7 +21,7 @@
  * - https://supabase.com/docs/guides/auth/sessions
  */
 
-import { type BrowserContext, type Page } from "@playwright/test";
+import { type Page } from "@playwright/test";
 import { createLogger } from "./lib/frontend-logger";
 
 // Extract Supabase configuration from environment variables
@@ -76,8 +76,6 @@ const logger = createLogger({ component: "AuthHelpers" });
 
 // Worker-level session cache (isolated per worker process)
 const sessionCache = new Map<string, SupabaseSession>();
-// Cache operations synchronization
-const cacheOperations = new Map<string, Promise<SupabaseSession>>();
 
 // Debug logging helper
 const debugLog = (message: string, ...rest: string[]) => {
@@ -143,6 +141,14 @@ async function authenticateViaAPI(
 	}
 
 	const data = (await response.json()) as SupabaseSession;
+	// Validate the fields the @supabase/ssr cookie + the proxy's getUser() depend
+	// on, so a malformed token response fails with an actionable error instead of
+	// a confusing downstream /login redirect.
+	if (!data.access_token || !data.refresh_token || data.expires_at == null) {
+		throw new Error(
+			"Supabase token response missing required session fields (access_token / refresh_token / expires_at)",
+		);
+	}
 	return data;
 }
 
@@ -178,6 +184,13 @@ function toBase64UrlWithPrefix(jsonValue: string): string {
  * - Base64URL encode with "base64-" prefix
  * - If encoded value ≤ MAX_CHUNK_SIZE: single cookie with key name (no suffix)
  * - If larger: multiple cookies with .0, .1, .2 suffixes
+ *
+ * NOTE: @supabase/ssr's chunker measures/slices encodeURIComponent(value), while
+ * this measures/slices the raw string. They are exact-equivalent here — and must
+ * not be "simplified" apart — because the produced value is `base64-` + base64url
+ * ([A-Za-z0-9-_]), every character of which is URI-safe, so
+ * encodeURIComponent(value).length === value.length and the chunk boundaries are
+ * byte-identical. (A realistic session is ~2.1KB → a single un-suffixed cookie.)
  */
 function createCookieChunks(
 	key: string,
@@ -208,13 +221,21 @@ function createCookieChunks(
 }
 
 /**
- * Inject session into browser context via localStorage
+ * Inject the authenticated session into the browser context as @supabase/ssr cookies.
  *
- * Supabase browser client reads session from localStorage first,
- * then syncs to cookies automatically. This is the recommended
- * approach for Playwright E2E tests.
+ * This app uses `@supabase/ssr` (`createBrowserClient` with no `cookies` option,
+ * see src/lib/supabase/client.ts), so the browser client AND the Next.js proxy
+ * read the session from cookies (`document.cookie`) — NOT localStorage. We write
+ * the chunked, base64url-prefixed cookies `@supabase/ssr` expects (via
+ * createCookieChunks) onto the context, so the caller's first navigation to a
+ * protected route carries the session and the proxy lets it through. No page
+ * load happens here — the caller navigates to its target page next.
  *
- * @see https://mokkapps.de/blog/login-at-supabase-via-rest-api-in-playwright-e2e-test
+ * (An earlier approach wrote only localStorage — copied from a non-SSR
+ * supabase-js blog post — which left the app unauthenticated and redirected
+ * protected routes to /login.)
+ *
+ * @see https://github.com/supabase/ssr (cookie storage adapter)
  */
 async function injectSessionIntoBrowser(
 	page: import("@playwright/test").Page,
@@ -223,32 +244,26 @@ async function injectSessionIntoBrowser(
 ): Promise<void> {
 	const { projectRef } = getConfig();
 	const storageKey = `sb-${projectRef}-auth-token`;
+	const sessionJson = JSON.stringify(session);
 
-	// First navigate to establish the domain context
-	await page.goto(baseUrl, { waitUntil: "domcontentloaded" });
-
-	// Set session in localStorage - Supabase client will read this and sync to cookies
-	await page.evaluate(
-		({ key, value }) => {
-			localStorage.setItem(key, JSON.stringify(value));
-		},
-		{ key: storageKey, value: session },
+	// Set the chunked @supabase/ssr cookies on the context BEFORE any navigation,
+	// so the caller's first request to a protected route carries the session.
+	const cookies = createCookieChunks(storageKey, sessionJson).map((chunk) => ({
+		name: chunk.name,
+		value: chunk.value,
+		url: baseUrl,
+	}));
+	await page.context().addCookies(cookies);
+	debugLog(
+		` Session written as ${cookies.length} cookie chunk(s): ${storageKey}`,
 	);
-
-	debugLog(` Session stored in localStorage: ${storageKey}`);
-
-	// Reload the page so Supabase client picks up the session from localStorage
-	await page.reload({ waitUntil: "domcontentloaded" });
-
-	debugLog(" Page reloaded to activate session");
 }
 
 /**
  * Login as property owner via API
  *
- * Uses the same fast API-based approach as loginAsTenant: calls Supabase
- * /auth/v1/token directly then injects the session into the browser context.
- * ~200ms vs ~3s for UI-based login.
+ * Calls Supabase /auth/v1/token directly then injects the session as
+ * @supabase/ssr cookies into the browser context. ~200ms vs ~3s for UI login.
  *
  * @param page - Playwright Page instance
  * @param options - Login credentials and cache control
@@ -286,10 +301,10 @@ export async function loginAsOwner(page: Page, options: LoginOptions = {}) {
 		debugLog(` Using cached owner session for: ${email}`);
 	}
 
-	// Inject session into browser context (navigates to base URL first, then sets localStorage)
+	// Inject the session as @supabase/ssr cookies onto the browser context
 	await injectSessionIntoBrowser(page, session, baseUrl);
 
-	// Navigate to dashboard - session should be valid now
+	// Navigate to dashboard - the cookie session is carried on this first request
 	await page.goto(`${baseUrl}/dashboard`, { waitUntil: "domcontentloaded" });
 
 	// Wait for auth to stabilize
@@ -304,72 +319,17 @@ export async function loginAsOwner(page: Page, options: LoginOptions = {}) {
 			`Owner login failed: Redirected to login page. Session may be invalid.`,
 		);
 	}
-
-	debugLog(` Logged in as owner (${email})`);
-}
-
-/**
- * Login as tenant via API
- *
- * @param page - Playwright Page instance
- * @param options - Login credentials and cache control
- */
-export async function loginAsTenant(page: Page, options: LoginOptions = {}) {
-	const email =
-		options.email ||
-		process.env.E2E_TENANT_EMAIL ||
-		"test-tenant@tenantflow.app";
-	const rawPassword =
-		options.password ||
-		process.env.E2E_TENANT_PASSWORD ||
-		(() => {
-			throw new Error("E2E_TENANT_PASSWORD environment variable is required");
-		})();
-	const password = rawPassword.replace(/\\!/g, "!");
-	const cacheKey = `tenant:${email}`;
-
-	const baseUrl = process.env.PLAYWRIGHT_BASE_URL || "http://localhost:3050";
-
-	// Check cache first
-	let session = sessionCache.get(cacheKey);
-
-	if (!session || options.forceLogin) {
-		debugLog(` Authenticating tenant via API: ${email}`);
-
-		try {
-			session = await authenticateViaAPI(email, password);
-			sessionCache.set(cacheKey, session);
-			debugLog(` Tenant API authentication successful`);
-		} catch (error) {
-			const message = error instanceof Error ? error.message : String(error);
-			debugLog(` Tenant API authentication failed: ${message}`);
-			throw error;
-		}
-	} else {
-		debugLog(` Using cached tenant session for: ${email}`);
-	}
-
-	// Inject session into browser context (navigates to base URL first, then sets cookies)
-	await injectSessionIntoBrowser(page, session, baseUrl);
-
-	// Navigate to tenant portal - session should be valid now
-	await page.goto(`${baseUrl}/tenant`, { waitUntil: "domcontentloaded" });
-
-	// Wait for auth to stabilize - use shorter timeout and don't fail if networkidle not reached
-	// (persistent connections like SSE/WebSocket can prevent networkidle)
-	await page.waitForLoadState("networkidle", { timeout: 10000 }).catch(() => {
-		debugLog(" networkidle timeout, continuing with domcontentloaded");
-	});
-
-	// Verify we're on the tenant page, not redirected to login
-	const currentUrl = page.url();
-	if (currentUrl.includes("/login")) {
+	// The proxy applies a subscription gate AFTER auth: an owner whose
+	// subscription_status is not 'active'/'trialing' is redirected to /pricing.
+	// Fail loudly with an actionable message instead of a confusing downstream
+	// timeout (this is the failure mode that broke PR #674's CI).
+	if (currentUrl.includes("/pricing")) {
 		throw new Error(
-			`Tenant login failed: Redirected to login page. Session may be invalid.`,
+			`Owner login succeeded but was redirected to /pricing: the synthetic owner (${email}) failed the subscription gate — pin its public.users.subscription_status to 'active'.`,
 		);
 	}
 
-	debugLog(` Logged in as tenant (${email})`);
+	debugLog(` Logged in as owner (${email})`);
 }
 
 /**

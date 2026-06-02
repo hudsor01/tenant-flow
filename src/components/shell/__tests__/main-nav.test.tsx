@@ -83,7 +83,7 @@ describe("MainNav", () => {
 			render(<MainNav />);
 
 			const dashboardLink = screen.getByRole("link", { name: /dashboard/i });
-			expect(dashboardLink.className).toContain("text-primary");
+			expect(dashboardLink.className).toContain("text-primary-text");
 		});
 
 		it("should highlight Properties when on /properties", () => {
@@ -91,7 +91,7 @@ describe("MainNav", () => {
 			render(<MainNav />);
 
 			const propertiesLink = screen.getByRole("link", { name: /properties/i });
-			expect(propertiesLink.className).toContain("text-primary");
+			expect(propertiesLink.className).toContain("text-primary-text");
 		});
 
 		it("should highlight Properties when on nested property route", () => {
@@ -99,7 +99,7 @@ describe("MainNav", () => {
 			render(<MainNav />);
 
 			const propertiesLink = screen.getByRole("link", { name: /properties/i });
-			expect(propertiesLink.className).toContain("text-primary");
+			expect(propertiesLink.className).toContain("text-primary-text");
 		});
 
 		it("should not highlight other items when Dashboard is active", () => {
@@ -107,7 +107,7 @@ describe("MainNav", () => {
 			render(<MainNav />);
 
 			const propertiesLink = screen.getByRole("link", { name: /properties/i });
-			expect(propertiesLink.className).not.toContain("text-primary");
+			expect(propertiesLink.className).not.toContain("text-primary-text");
 		});
 	});
 

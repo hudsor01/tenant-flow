@@ -186,7 +186,7 @@ export default function ResourcesPage() {
 									</div>
 									<Badge variant="secondary">{resource.badge}</Badge>
 								</div>
-								<h3 className="font-semibold text-foreground mb-2 group-hover:text-primary transition-colors">
+								<h3 className="font-semibold text-foreground mb-2 group-hover:text-primary-text transition-colors">
 									{resource.title}
 								</h3>
 								<p className="text-sm text-muted-foreground mb-4">

@@ -27,6 +27,11 @@ describe("Phase 66 category mutation RPCs", () => {
 	const insertedDocIds: string[] = [];
 	const uploadedPaths: string[] = [];
 	const insertedCategoryIds: string[] = [];
+	// Monotonic per-call counter guarantees a unique storage path even when two
+	// seeds land in the same millisecond. (The prior `Date.now() + random` SUMMED
+	// time and random, so offsetting deltas collided -> intermittent
+	// "resource already exists" upload failures in CI.)
+	let seedSeq = 0;
 
 	beforeAll(async () => {
 		const { ownerA, ownerB } = getTestCredentials();
@@ -105,8 +110,8 @@ describe("Phase 66 category mutation RPCs", () => {
 	}
 
 	async function seedDocument(documentType: string) {
-		const ts = Date.now() + Math.floor(Math.random() * 1000);
-		const path = `property/${propertyA!.id}/${ts}-rpc-test.pdf`;
+		const unique = `${Date.now()}-${seedSeq++}-${Math.floor(Math.random() * 1_000_000)}`;
+		const path = `property/${propertyA!.id}/${unique}-rpc-test.pdf`;
 		const { error: storageErr } = await clientA.storage
 			.from("tenant-documents")
 			.upload(path, new Blob([PAYLOAD], { type: "application/pdf" }), {

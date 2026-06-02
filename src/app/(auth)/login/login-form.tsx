@@ -49,7 +49,7 @@ export function LoginForm({
 			{authError && (
 				<div
 					data-testid="auth-error"
-					className="p-3 rounded-md border border-destructive/30 bg-destructive/10 text-sm text-destructive"
+					className="p-3 rounded-md border border-destructive/30 bg-destructive/10 text-sm text-destructive-text"
 				>
 					<span className="font-medium">Sign in failed:</span> {authError}
 				</div>

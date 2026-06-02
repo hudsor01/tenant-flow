@@ -54,9 +54,7 @@ export function PortfolioGrid({ data }: PortfolioGridProps) {
 							<div className="text-muted-foreground text-xs">Maintenance</div>
 							<div
 								className={
-									row.maintenanceOpen > 0
-										? "text-red-600 dark:text-red-500"
-										: ""
+									row.maintenanceOpen > 0 ? "text-destructive-text" : ""
 								}
 							>
 								{row.maintenanceOpen > 0 ? (

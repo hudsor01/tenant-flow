@@ -192,7 +192,7 @@ export default function UnitsPage() {
 							<DropdownMenuSeparator />
 							<DropdownMenuItem
 								onClick={() => handleDeleteClick(unit.id)}
-								className="text-destructive focus:text-destructive"
+								className="text-destructive-text focus:text-destructive-text"
 							>
 								<Trash2 className="mr-2 size-4" />
 								Delete

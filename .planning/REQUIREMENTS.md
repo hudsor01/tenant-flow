@@ -66,11 +66,11 @@ Each maps to roadmap phases (1-7). Source: `.planning/MILESTONE-CONTEXT.md` § "
 - [ ] **POLISH-01**: **Drop every `*100` in the revenue path.** Specifically `src/app/(owner)/dashboard/page.tsx` lines 71, 92, 107 (and any other `* 100` on a currency variable). `get_dashboard_data_v2` returns dollars; do not re-multiply.
 - [ ] **POLISH-02**: **Drop every `/100` in the revenue path.** Specifically `formatDashboardCurrency` (rename to `formatCurrency`, no division) and `revenue-overview-chart.tsx:41` (deleted with the chart). Net effect: in-memory values become correct (currently 100× wrong); display stays correct (the bug cancelled itself).
 - [ ] **POLISH-03**: Delete `owner-dashboard.tsx` (near-duplicate of `dashboard.tsx`), `chart-area-interactive.tsx`, dashboard-filters duplicates, the second `portfolio-toolbar.tsx`, `skeletons.tsx`. Extract the shared data transform into one place.
-- [ ] **POLISH-04**: Dark-mode audit on every new dashboard surface — toggle theme, scan for white-on-white, invisible badges, `bg-white` references.
-- [ ] **POLISH-05**: Keyboard a11y — visible focus rings on every interactive element, icon-button `aria-label`s, skip-to-content reachable from header.
-- [ ] **POLISH-06**: 375px responsive — zero horizontal scroll; portfolio table forces grid view at the mobile breakpoint.
-- [ ] **POLISH-07**: Skeleton ↔ empty-state mutual exclusion (Phase 14 D-04 pattern: route-scoped `loading.tsx` if streaming is involved; never co-render skeleton + empty state).
-- [ ] **POLISH-08**: Reduced-motion guard on every animation (`NumberTicker`, `BlurFade`, chart transitions, any CSS animation).
+- [x] **POLISH-04**: Dark-mode audit on every new dashboard surface — toggle theme, scan for white-on-white, invisible badges, `bg-white` references.
+- [x] **POLISH-05**: Keyboard a11y — visible focus rings on every interactive element, icon-button `aria-label`s, skip-to-content reachable from header.
+- [x] **POLISH-06**: 375px responsive — zero horizontal scroll; portfolio table forces grid view at the mobile breakpoint.
+- [x] **POLISH-07**: Skeleton ↔ empty-state mutual exclusion (Phase 14 D-04 pattern: route-scoped `loading.tsx` if streaming is involved; never co-render skeleton + empty state).
+- [x] **POLISH-08**: Reduced-motion guard on every animation (`NumberTicker`, `BlurFade`, chart transitions, any CSS animation).
 - [ ] **POLISH-09**: E2E smoke for `/dashboard` (synthetic owner; KPI numbers match `get_dashboard_data_v2`; occupancy donut matches `stats.units`; DataTable sort/filter/column-visibility/preset save+restore work; grid/table toggle works).
 - [ ] **POLISH-10**: Phase-2 additive `get_dashboard_data_v2` migration for per-property `open_maintenance` (or ship the column hidden by default if the RPC change is too invasive). RLS owner-isolation test extends the existing dual-client pattern in `tests/integration/rls/`.
 - [ ] **POLISH-11**: `collection_rate` — resolve compute-or-drop in Phase 2 discuss-phase. TenantFlow demolished rent facilitation; the field is likely uncomputable and should be dropped from the KPI set rather than fabricated as `0`. **Never fabricate a metric.**
@@ -129,11 +129,11 @@ Updated by `gsd-roadmapper` during roadmap creation. See ROADMAP.md for canonica
 | POLISH-01 | Phase 1 | Complete |
 | POLISH-02 | Phase 1 | Complete |
 | POLISH-03 | Phase 1 | Complete |
-| POLISH-04 | Phase 6 | Pending |
-| POLISH-05 | Phase 6 | Pending |
-| POLISH-06 | Phase 6 | Pending |
-| POLISH-07 | Phase 6 | Pending |
-| POLISH-08 | Phase 6 | Pending |
+| POLISH-04 | Phase 6 | Complete |
+| POLISH-05 | Phase 6 | Complete |
+| POLISH-06 | Phase 6 | Complete |
+| POLISH-07 | Phase 6 | Complete |
+| POLISH-08 | Phase 6 | Complete |
 | POLISH-09 | Phase 7 | Pending |
 | POLISH-10 | Phase 2 | Complete |
 | POLISH-11 | Phase 2 | Complete |

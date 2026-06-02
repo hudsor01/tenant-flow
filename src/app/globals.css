@@ -170,6 +170,19 @@
 	--color-success-foreground: oklch(0.2 0.02 160);
 	--color-warning: oklch(0.75 0.18 85);
 	--color-warning-foreground: oklch(0.25 0.03 85);
+	/*
+	 * Status TEXT tokens — AA-safe (>=4.5:1) when used as foreground text/icons
+	 * on the card/background surface. The vivid --color-{success,warning} accents
+	 * are tuned for fills, not text: at light-mode lightness they fail WCAG AA on a
+	 * near-white card (success ~2.6:1, warning ~2.2:1); --color-destructive only
+	 * scrapes by (~4.6:1). These darker-in-light / lighter-in-dark companions are
+	 * theme-aware and clear AA with headroom in both themes.
+	 */
+	--color-success-text: oklch(0.5 0.15 158);
+	--color-warning-text: oklch(0.52 0.13 72);
+	--color-destructive-text: oklch(0.5 0.21 27);
+	--color-primary-text: oklch(0.46 0.2 257);
+	--color-info-text: oklch(0.48 0.17 240);
 	--color-info: oklch(0.62 0.19 240);
 	--color-info-foreground: oklch(0.18 0.02 240);
 	--color-sidebar: var(--color-background);
@@ -634,6 +647,12 @@
 		--color-success-foreground: oklch(0.18 0.02 150);
 		--color-warning: oklch(0.72 0.18 80);
 		--color-warning-foreground: oklch(0.22 0.02 80);
+		/* Dark-theme status TEXT tokens — lighter so they clear AA on the dark card. */
+		--color-success-text: oklch(0.8 0.16 158);
+		--color-warning-text: oklch(0.84 0.15 82);
+		--color-destructive-text: oklch(0.71 0.19 25);
+		--color-primary-text: oklch(0.8 0.16 259);
+		--color-info-text: oklch(0.8 0.15 250);
 		--color-info: oklch(0.66 0.18 250);
 		--color-info-foreground: oklch(0.2 0.02 250);
 	}
@@ -659,13 +678,13 @@
 }
 
 @utility status-active {
-	color: var(--color-success);
+	color: var(--color-success-text);
 	background-color: color-mix(in oklch, var(--color-success) 10%, transparent);
 	border-color: color-mix(in oklch, var(--color-success) 20%, transparent);
 }
 
 @utility status-pending {
-	color: var(--color-warning);
+	color: var(--color-warning-text);
 	background-color: color-mix(in oklch, var(--color-warning) 10%, transparent);
 	border-color: color-mix(in oklch, var(--color-warning) 20%, transparent);
 }
@@ -677,7 +696,7 @@
 }
 
 @utility status-overdue {
-	color: var(--color-destructive);
+	color: var(--color-destructive-text);
 	background-color: color-mix(
 		in oklch,
 		var(--color-destructive) 10%,
@@ -687,12 +706,12 @@
 }
 
 @utility status-complete {
-	color: var(--color-success);
+	color: var(--color-success-text);
 	background-color: color-mix(in oklch, var(--color-success) 10%, transparent);
 }
 
 @utility status-error {
-	color: var(--color-destructive);
+	color: var(--color-destructive-text);
 	background-color: color-mix(
 		in oklch,
 		var(--color-destructive) 10%,
@@ -701,27 +720,27 @@
 }
 
 @utility activity-payment {
-	color: var(--color-success);
+	color: var(--color-success-text);
 	background-color: color-mix(in oklch, var(--color-success) 10%, transparent);
 }
 
 @utility activity-maintenance {
-	color: var(--color-info);
+	color: var(--color-info-text);
 	background-color: color-mix(in oklch, var(--color-info) 10%, transparent);
 }
 
 @utility activity-lease {
-	color: var(--color-primary);
+	color: var(--color-primary-text);
 	background-color: color-mix(in oklch, var(--color-primary) 10%, transparent);
 }
 
 @utility activity-property {
-	color: var(--color-primary);
+	color: var(--color-primary-text);
 	background-color: color-mix(in oklch, var(--color-primary) 10%, transparent);
 }
 
 @utility activity-tenant {
-	color: var(--color-warning);
+	color: var(--color-warning-text);
 	background-color: color-mix(in oklch, var(--color-warning) 10%, transparent);
 }
 
@@ -844,41 +863,41 @@
 
 @utility status-badge-success {
 	background: color-mix(in oklch, var(--color-success) 10%, transparent);
-	color: var(--color-success);
+	color: var(--color-success-text);
 	border: 1px solid color-mix(in oklch, var(--color-success) 20%, transparent);
 }
 
 @utility status-badge-warning {
 	background: color-mix(in oklch, var(--color-warning) 10%, transparent);
-	color: var(--color-warning);
+	color: var(--color-warning-text);
 	border: 1px solid color-mix(in oklch, var(--color-warning) 20%, transparent);
 }
 
 @utility status-badge-destructive {
 	background: color-mix(in oklch, var(--color-destructive) 10%, transparent);
-	color: var(--color-destructive);
+	color: var(--color-destructive-text);
 	border: 1px solid
 		color-mix(in oklch, var(--color-destructive) 20%, transparent);
 }
 
 @utility icon-bg-success {
 	background: color-mix(in oklch, var(--color-success) 10%, transparent);
-	color: var(--color-success);
+	color: var(--color-success-text);
 }
 
 @utility icon-bg-warning {
 	background: color-mix(in oklch, var(--color-warning) 10%, transparent);
-	color: var(--color-warning);
+	color: var(--color-warning-text);
 }
 
 @utility icon-bg-info {
 	background: color-mix(in oklch, var(--color-info) 10%, transparent);
-	color: var(--color-info);
+	color: var(--color-info-text);
 }
 
 @utility icon-bg-primary {
 	background: color-mix(in oklch, var(--color-primary) 10%, transparent);
-	color: var(--color-primary);
+	color: var(--color-primary-text);
 }
 
 /* Dashboard Panel Styles - Unified section component styling */

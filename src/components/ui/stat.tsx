@@ -44,14 +44,13 @@ const statIndicatorVariants = cva(
 			},
 			color: {
 				default: "bg-muted text-muted-foreground",
-				primary: "border-primary/20 bg-primary/10 text-primary",
-				success:
-					"border-green-500/20 bg-green-500/10 text-green-600 dark:text-green-400",
-				info: "border-blue-500/20 bg-blue-500/10 text-blue-600 dark:text-blue-400",
-				warning:
-					"border-orange-500/20 bg-orange-500/10 text-orange-600 dark:text-orange-400",
-				error: "border-destructive/20 bg-destructive/10 text-destructive",
-				destructive: "border-destructive/20 bg-destructive/10 text-destructive",
+				primary: "border-primary/20 bg-primary/10 text-primary-text",
+				success: "border-success/20 bg-success/10 text-success-text",
+				info: "border-info/20 bg-info/10 text-info-text",
+				warning: "border-warning/20 bg-warning/10 text-warning-text",
+				error: "border-destructive/20 bg-destructive/10 text-destructive-text",
+				destructive:
+					"border-destructive/20 bg-destructive/10 text-destructive-text",
 				muted: "bg-muted/50 text-muted-foreground border-muted",
 			},
 		},
@@ -105,8 +104,8 @@ function StatTrend({
 			className={cn(
 				"inline-flex items-center gap-1 font-medium text-xs [&_svg:not([class*='size-'])]:size-3 [&_svg]:pointer-events-none [&_svg]:shrink-0",
 				{
-					"text-green-600 dark:text-green-400": trend === "up",
-					"text-red-600 dark:text-red-400": trend === "down",
+					"text-success-text": trend === "up",
+					"text-destructive-text": trend === "down",
 					"text-muted-foreground": trend === "neutral" || !trend,
 				},
 				className,

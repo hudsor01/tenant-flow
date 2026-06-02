@@ -139,7 +139,7 @@ export function DocumentRow({
 								variant="outline"
 								onClick={() => onDelete(doc)}
 								disabled={isDeleting}
-								className="text-destructive hover:text-destructive hover:bg-destructive/10"
+								className="text-destructive-text hover:text-destructive-text hover:bg-destructive/10"
 							>
 								<Trash2 className="size-4 mr-2" />
 								{isDeleting ? "Removing..." : "Remove"}

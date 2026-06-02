@@ -102,7 +102,7 @@ export function MaintenanceCard({
 
 			{/* Card Header */}
 			<div className="flex items-start justify-between gap-2 mb-3">
-				<h4 className="font-medium text-foreground text-sm leading-tight group-hover:text-primary transition-colors line-clamp-2">
+				<h4 className="font-medium text-foreground text-sm leading-tight group-hover:text-primary-text transition-colors line-clamp-2">
 					{request.title ?? request.description}
 				</h4>
 				<button
