@@ -173,8 +173,17 @@ function DashboardContent() {
 export default function DashboardPage() {
 	return (
 		<>
-			<OnboardingWizard />
-			<OwnerOnboardingTour />
+			{/* Onboarding overlays are non-critical. Isolate each in its own
+			    error boundary with a silent fallback so a render fault (e.g. a
+			    transient React hook error in the vendored tour store) is
+			    captured to Sentry and degrades to "no overlay" instead of
+			    bubbling past these siblings into the dashboard tree. */}
+			<ErrorBoundary fallback={<></>}>
+				<OnboardingWizard />
+			</ErrorBoundary>
+			<ErrorBoundary fallback={<></>}>
+				<OwnerOnboardingTour />
+			</ErrorBoundary>
 			<div className="@container/main flex min-h-screen w-full flex-col bg-background">
 				<ErrorBoundary
 					fallback={

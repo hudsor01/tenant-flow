@@ -91,8 +91,12 @@ describe("BlogCard", () => {
 		};
 		const { container } = render(<BlogCard post={postWithoutImage} />);
 		expect(screen.queryByTestId("next-image")).not.toBeInTheDocument();
-		const placeholder = container.querySelector(".bg-muted");
+		// Branded placeholder (gradient + Newspaper glyph), not a flat gray box.
+		const placeholder = container.querySelector(
+			"[data-slot='blog-card-placeholder']",
+		);
 		expect(placeholder).toBeInTheDocument();
+		expect(placeholder?.querySelector("svg")).toBeInTheDocument();
 	});
 
 	it("renders excerpt text", () => {

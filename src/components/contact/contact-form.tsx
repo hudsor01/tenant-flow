@@ -85,7 +85,12 @@ export function ContactForm({ className = "" }: ContactFormProps) {
 			email: "",
 			subject: "",
 			message: "",
-			type: "sales",
+			// Neutral inquiry-type default. The "How did you hear about us?"
+			// select is bound to `type`; its options (search/social/referral/
+			// sales/conference/other) intentionally don't include "general",
+			// so this keeps that trigger in its "Please select" placeholder
+			// state instead of pre-selecting "Sales Outreach".
+			type: "general",
 			company: "",
 			phone: "",
 		},

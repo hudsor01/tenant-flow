@@ -71,4 +71,22 @@ describe("CONS-08: /contact 'How did you hear about us?' placeholder", () => {
 			"the killed 'Sales Outreach' default must not be a placeholder",
 		).not.toMatch(/placeholder="Sales Outreach"/);
 	});
+
+	// The component shows the placeholder only while formData.type holds no
+	// value that matches a referral option. The live form's default lives in
+	// contact-form.tsx — pin it to a non-matching value so the placeholder
+	// survives in production (type:"sales" regressed it to "Sales Outreach").
+	it("contact-form.tsx does not default `type` to a matching referral option", () => {
+		const src = readFileSync(
+			resolve(__dirname, "..", "contact-form.tsx"),
+			"utf8",
+		);
+		expect(
+			src,
+			"the contact form default must not pre-select 'sales' (renders as 'Sales Outreach')",
+		).not.toMatch(/type:\s*["']sales["']/);
+		expect(src, "the contact form must default `type` to 'general'").toMatch(
+			/type:\s*["']general["']/,
+		);
+	});
 });

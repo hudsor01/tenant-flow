@@ -24,6 +24,7 @@ import { useSignOutMutation } from "#hooks/api/use-auth-mutations";
 import { usePropertyList } from "#hooks/api/use-properties";
 import { useTenantList } from "#hooks/api/use-tenant";
 import { generateBreadcrumbs } from "#lib/breadcrumbs";
+import { cn } from "#lib/utils";
 import { AppShellHeader } from "./app-shell-header";
 import { AppShellSearch } from "./app-shell-search";
 import { AppShellSidebar } from "./app-shell-sidebar";
@@ -44,6 +45,11 @@ export function AppShell({
 	const sidebarRef = useRef<HTMLElement>(null);
 	const pathname = usePathname();
 	const breadcrumbs = generateBreadcrumbs(pathname);
+	// The floating dock is hidden on form/create routes (it would overlap the
+	// primary submit). The same condition gates the bottom-padding clearance
+	// below so form pages don't get 7rem of dead space with no dock.
+	const dockVisible =
+		showQuickActionsDock && !/\/(new|edit)(?:\/|$)/.test(pathname);
 	const { data: user } = useSupabaseUser();
 	const signOutMutation = useSignOutMutation();
 	const router = useRouter();
@@ -290,8 +296,16 @@ export function AppShell({
 					onSignOut={() => signOutMutation.mutate()}
 				/>
 
-				{/* Page content */}
-				<main id="main-content" className="flex-1 bg-muted/30 pb-24 sm:pb-6">
+				{/* Page content. When the dock is visible, lg:pb-28 reserves
+				    clearance for it (hidden lg:block, fixed bottom-6) so it
+				    never overlaps the last rows / footer at scroll end. */}
+				<main
+					id="main-content"
+					className={cn(
+						"flex-1 bg-muted/30 pb-24 sm:pb-6",
+						dockVisible && "lg:pb-28",
+					)}
+				>
 					<div className="p-4 lg:p-6">{children}</div>
 					{/* Minimal app-shell footer (Session 11 P2 #16): the
 					    marketing footer is too marketing-heavy for the
@@ -334,9 +348,7 @@ export function AppShell({
 
 			{/* Quick Actions Dock — hidden on form/create pages where it would
 			    overlap the primary submit button (Session 11 P2 #14). */}
-			{showQuickActionsDock && !/\/(new|edit)(?:\/|$)/.test(pathname) && (
-				<QuickActionsDock />
-			)}
+			{dockVisible && <QuickActionsDock />}
 
 			<AppShellSearch
 				open={commandOpen}

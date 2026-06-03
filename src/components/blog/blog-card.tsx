@@ -1,3 +1,4 @@
+import { Newspaper } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import type { BlogListItem } from "#hooks/api/query-keys/blog-keys";
@@ -27,7 +28,15 @@ export function BlogCard({ post, className }: BlogCardProps) {
 						className="object-cover transition-transform duration-300 group-hover:scale-105"
 					/>
 				) : (
-					<div className="h-full w-full bg-muted" />
+					<div
+						data-slot="blog-card-placeholder"
+						className="flex h-full w-full items-center justify-center bg-linear-to-br from-primary/10 via-muted to-accent/10"
+					>
+						<Newspaper
+							className="size-10 text-muted-foreground/40"
+							aria-hidden="true"
+						/>
+					</div>
 				)}
 			</div>
 
