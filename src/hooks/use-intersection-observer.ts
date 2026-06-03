@@ -37,24 +37,37 @@ export function useIntersectionObserver(
 		// Synchronous initial-visibility fallback. IntersectionObserver's
 		// first callback is asynchronous, and some automated/headless
 		// browsers never fire it at all — which leaves an element that is
-		// already above the fold stuck in its pre-intersection state (e.g. a
+		// already in view stuck in its pre-intersection state (e.g. a
 		// NumberTicker frozen at startValue on first paint). A direct rect
 		// check on mount closes that gap. It only ever PROMOTES to
-		// intersected, so the scroll-into-view path for below-the-fold
-		// elements is unchanged. Guarded on width/height > 0 so jsdom (which
-		// returns an all-zero rect) falls through to the observer.
+		// intersected, and it honors the SAME threshold the observer uses
+		// (computing the visible-area ratio) so the fallback can never fire
+		// earlier than a real intersection callback would — the scroll-in
+		// path for below-threshold elements is unchanged. Guarded on
+		// width/height > 0 so jsdom (which returns an all-zero rect) falls
+		// through to the observer.
 		const rect = element.getBoundingClientRect();
 		const viewportHeight =
 			window.innerHeight || document.documentElement.clientHeight;
 		const viewportWidth =
 			window.innerWidth || document.documentElement.clientWidth;
-		const alreadyVisible =
-			rect.width > 0 &&
-			rect.height > 0 &&
-			rect.top < viewportHeight &&
-			rect.bottom > 0 &&
-			rect.left < viewportWidth &&
-			rect.right > 0;
+		const thresholds = Array.isArray(options.threshold)
+			? options.threshold
+			: [options.threshold ?? 0];
+		// For an array threshold the observer fires at its lowest entry.
+		const minThreshold = thresholds.length > 0 ? Math.min(...thresholds) : 0;
+		const visibleHeight =
+			Math.min(rect.bottom, viewportHeight) - Math.max(rect.top, 0);
+		const visibleWidth =
+			Math.min(rect.right, viewportWidth) - Math.max(rect.left, 0);
+		const visibleRatio =
+			rect.width > 0 && rect.height > 0
+				? (Math.max(0, visibleHeight) * Math.max(0, visibleWidth)) /
+					(rect.width * rect.height)
+				: 0;
+		// threshold 0 → any visible pixel counts (observer semantics);
+		// threshold 0.1 → at least 10% of the box area must be in view.
+		const alreadyVisible = visibleRatio > 0 && visibleRatio >= minThreshold;
 		if (alreadyVisible) {
 			setIsIntersecting(true);
 			markIntersected();

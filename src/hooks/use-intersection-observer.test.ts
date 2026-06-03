@@ -33,14 +33,17 @@ class SilentIntersectionObserver implements IntersectionObserver {
 	}
 }
 
-function mountWithRect(rect: Partial<DOMRect>) {
+function mountWithRect(
+	rect: Partial<DOMRect>,
+	options?: { threshold?: number | number[] },
+) {
 	const el = document.createElement("div");
 	document.body.appendChild(el);
 	vi.spyOn(el, "getBoundingClientRect").mockReturnValue(
 		new DOMRect(rect.x ?? 0, rect.y ?? 0, rect.width ?? 0, rect.height ?? 0),
 	);
 	const ref: RefObject<Element> = { current: el };
-	return renderHook(() => useIntersectionObserver(ref));
+	return renderHook(() => useIntersectionObserver(ref, options));
 }
 
 describe("useIntersectionObserver — initial-visibility fallback", () => {
@@ -81,5 +84,27 @@ describe("useIntersectionObserver — initial-visibility fallback", () => {
 	it("does NOT fire on a zero-size rect (jsdom default) so the observer stays authoritative", () => {
 		const { result } = mountWithRect({ x: 0, y: 0, width: 0, height: 0 });
 		expect(result.current.hasIntersected).toBe(false);
+	});
+
+	// Threshold fidelity: the sync fallback must not fire earlier than the
+	// observer would. With threshold 0.1 a box peeking in by ~5% stays
+	// pending; one ~50% in view fires. (viewport 768 tall; box height 100.)
+	it("honors the consumer threshold — a sub-threshold sliver does not fire", () => {
+		// top 763 → only 5px of the 100px-tall box clears the 768px viewport
+		// bottom = 5% visible, below the 10% threshold.
+		const { result } = mountWithRect(
+			{ x: 10, y: 763, width: 100, height: 100 },
+			{ threshold: 0.1 },
+		);
+		expect(result.current.hasIntersected).toBe(false);
+	});
+
+	it("honors the consumer threshold — past-threshold visibility fires", () => {
+		// top 718 → visible 768-718 = 50px = 50% ≥ 10%.
+		const { result } = mountWithRect(
+			{ x: 10, y: 718, width: 100, height: 100 },
+			{ threshold: 0.1 },
+		);
+		expect(result.current.hasIntersected).toBe(true);
 	});
 });
