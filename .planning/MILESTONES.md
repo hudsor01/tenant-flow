@@ -1,5 +1,49 @@
 # Milestones
 
+## v3.0 Security Hardening (Shipped: 2026-06-02)
+
+**Phases:** 3 (1-3) | **Plans:** 5 | **Requirements:** 12/12 satisfied
+**Timeline:** 2026-06-02 (single session) | **Git range:** PR #776 → PR #778
+**Merge commit:** [`94d36e9e5`](https://github.com/hudsor01/tenant-flow/commit/94d36e9e5) (PR #778)
+**Archive:** [`milestones/v3.0-ROADMAP.md`](milestones/v3.0-ROADMAP.md) · [`milestones/v3.0-REQUIREMENTS.md`](milestones/v3.0-REQUIREMENTS.md)
+**Steady-state doc:** [`anon-exec-audit/STEADY-STATE.md`](anon-exec-audit/STEADY-STATE.md)
+
+### Delivered
+
+Drove the Supabase Security Advisor on prod (`bshjmbshupiibfiewpxb`) to a documented, test-pinned steady state. Systematically classified and resolved the remaining authenticated SECURITY DEFINER + RLS-no-policy findings with **zero RLS regressions**: `authenticated_security_definer_function_executable` **46 → 44** (the 44 remaining are the provably-intentional KEEP set), `rls_enabled_no_policy` **10 → 0**, and the `pg_graphql_authenticated_table_exposed` (lint 0027) leak on 5 infra tables closed. 12/12 requirements (SDEF-01..03, TIGHTEN-01..03, RLSNP-01..03, SECTEST-01..03). `auth_leaked_password_protection` intentionally out of scope (paid feature).
+
+### Key Accomplishments
+
+**Phase 1 — authenticated SECURITY DEFINER classification + tightening (PR #776, migration `20260602202339`):**
+- Function-by-function classification of all 46 flagged functions against the LIVE schema (`.rpc()` reachability + policy/trigger/cron + internal-caller graph): **43 KEEP / 2 TIGHTEN / 1 REVIEW** (`CYCLE-2.md`). SDEF-03 confirmed all 7 analytics RPCs internally `is_admin()`/owner-gated.
+- Tightened 3: revoked `authenticated` EXECUTE on `get_lead_paint_compliance_report()` + `assert_can_create_lease(uuid,uuid)` (both orphaned — the live `bulk_import_create_lease` validates inline, no longer calls assert), and added an `is_admin()` body gate to `audit_for_all_policies` (grant kept → stays advisor-flagged by design). Caught live that the grants were DIRECT, not PUBLIC-inherited — so `REVOKE FROM authenticated` was the load-bearing statement (a `REVOKE FROM PUBLIC` would have silently no-op'd).
+
+**Phase 2 — RLS-no-policy resolution (PR #777, migration `20260602230717`):**
+- An A1 live-introspection gate (the live state contradicted the repo migrations) confirmed all 10 `rls_enabled_no_policy` tables RLS-on with 0 policies; added the canonical `service_role_only FOR ALL TO service_role` policy to all 10 (clears lint 0008 + documents intent via `COMMENT ON TABLE`) and revoked the 5 vestigial Tier-A `authenticated` grants (closes the pg_graphql introspection leak). No deny-all re-introduced (`20260527151342` stays removed). `rls_enabled_no_policy` 10 → 0.
+
+**Phase 3 — documented steady state + verification (PR #778):**
+- Re-ran the live advisor confirming the steady state (44 / 0 / 1); wrote `STEADY-STATE.md` consolidating the v3.0 end-state + the in-CI-gate (`rls-security` suite) vs out-of-band-advisor framing; verified the `security-definer-advisor-state` memory accurate.
+
+### Discipline Outcomes
+
+- **Perfect-PR merge gate** (two consecutive zero-finding deep review cycles) held on every phase: Phase 1 → cycle-1 (1P1+1P2+2nit) → cycle-2 (1P2+nit) → cycles 3+4 zero; Phase 2 → plan-check 2 cycles + code-review cycles 1+2 zero; Phase 3 → cycles 1+2 zero. Reviewers verified findings against LIVE prod (impersonated-role deny probes, ACL grids, the 41-name KEEP-list diff).
+- **Inline execution of prod DDL** (rather than via subagent) was load-bearing: the live-ACL check in Phase 1 (direct-vs-PUBLIC grant) and the A1 gate in Phase 2 (live-vs-repo policy state) each caught a discrepancy a literal plan-application would have silently mishandled.
+- **CI gates honest:** every PR ran `checks` + `e2e-smoke` + `rls-security`. The new deny pins (`rls-no-policy-lockdown.rls.test.ts`) + the extended `anon-rpc-grants` run green against the tightened prod. Phase 1 also fixed 3 pre-existing flaky v2.0 dashboard E2E tests (Status-locator strict-mode + empty-state-flash race + sort assumption) to keep the branch green (perfect-PR-covers-pre-existing).
+- **Advisor delta arithmetic** was a real plan-checker catch: the migration was nearly shipped claiming 46→43; `audit_for_all_policies` keeps its grant (the advisor checks grants, not bodies) so the correct delta is 46→44.
+
+### Lessons Carried Forward
+
+- `REVOKE FROM PUBLIC` is load-bearing ONLY when the grant is PUBLIC-inherited; a DIRECT `authenticated` grant needs `REVOKE FROM authenticated`. Always introspect `aclexplode(proacl)` / `has_table_privilege` live before authoring a revoke.
+- Repo migrations can drift from live prod policy/grant state — gate every grant/policy migration on a live introspection (`pg_policy` + `aclexplode`) and write idempotent DDL (`DROP POLICY IF EXISTS`).
+- The integration harness is PostgREST-only (no service-role key by design): pin the DENY side via `.from()`/`.rpc()` probes; verify the service-role ALLOW side out-of-band via the advisor + MCP. Don't fake a service-role test (false-green).
+- A `service_role_only` FOR ALL policy is lint/intent documentation, not enforcement (service_role has BYPASSRLS) — keep the in-migration comment honest about that.
+
+### Naming-Collision Note
+
+The git tag `v3.0` was already in use from a prior project-iteration milestone ("Backend Architecture Excellence", 2026-01-18) — the same disjoint legacy tag namespace (`v1.0`–`v4.0`) noted for the v1.0 + v2.0 GSD milestones. The complete-milestone workflow's pre-check correctly skips re-tagging. This v3.0 "Security Hardening" milestone is authoritative via `.planning/MILESTONES.md` + `.planning/milestones/v3.0-*.md` + the merge commit (`94d36e9e5`), not a re-tag.
+
+---
+
 ## v2.0 Dashboard Command Center (Shipped: 2026-06-02)
 
 **Phases:** 7 (1-7) | **Plans:** 24 | **Tasks:** 40 | **Requirements:** 34/34 satisfied
