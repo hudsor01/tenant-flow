@@ -50,7 +50,8 @@
   2. The only remaining `authenticated_security_definer_function_executable` WARNs are exactly the documented KEEP set from Phase 1 (the 3 tightened functions no longer appear); `auth_leaked_password_protection` remains the sole out-of-scope WARN.
   3. The `security-definer-advisor-state` memory and `.planning/anon-exec-audit` are updated to record the new steady state (counts, KEEP rationale, tightened set, intent decisions).
   4. The full `tests/integration/rls/` suite runs green against prod (`rls-security` CI gate passing), confirming zero owner-isolation or grant regressions from any Phase 1 or Phase 2 change.
-**Plans**: TBD
+**Plans**: 1 plan
+  - [ ] 03-01-PLAN.md — Re-run live `get_advisors(security)` to confirm the steady state (rls_enabled_no_policy=0, authenticated SECURITY DEFINER=44, password lint out-of-scope) + write `.planning/anon-exec-audit/STEADY-STATE.md` consolidation doc + verify `security-definer-advisor-state` memory accuracy; the `rls-security` CI gate green on the PR is the SECTEST-03 zero-regression proof (SECTEST-03)
 
 ---
 
@@ -98,7 +99,7 @@ Audit round 3 verdict: PERFECT BY ALL MEASURES. Full detail in [milestones/v1.0-
 |-------|-----------|-------|--------|-----------|
 | 1. SECURITY DEFINER Classification & Tightening | v3.0 | 2/2 | Shipped (PR #776; advisor 46→44) | 2026-06-02 |
 | 2. RLS-No-Policy Resolution | v3.0 | 2/2 | Executed (advisor 10→0; pre-merge) | 2026-06-02 |
-| 3. Documented Advisor Steady State & Verification | v3.0 | 0/TBD | Not started | - |
+| 3. Documented Advisor Steady State & Verification | v3.0 | 0/1 | Planned | - |
 
 ## Coverage Validation
 
