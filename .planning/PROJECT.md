@@ -1,21 +1,16 @@
 # TenantFlow
 
-## Current Milestone: v3.0 Security Hardening
+## Current State
 
-**Goal:** Get the Supabase Security Advisor on prod (project `bshjmbshupiibfiewpxb`) to a documented, test-pinned steady state — systematically classify and resolve the remaining authenticated SECURITY DEFINER + RLS-no-policy findings with zero RLS regressions.
+**Latest shipped milestone:** v3.0 Security Hardening (shipped 2026-06-02, 3 phases / 5 plans / 12/12 requirements). The Supabase Security Advisor on prod is at a documented, test-pinned steady state: `authenticated_security_definer_function_executable` **46 → 44** (the 44 are the provably-intentional KEEP set, classified function-by-function in `anon-exec-audit/CYCLE-2.md`), `rls_enabled_no_policy` **10 → 0** (explicit `service_role_only` policies on all 10 infra tables), and the `pg_graphql` introspection leak (lint 0027) on 5 Tier-A tables closed — all with zero RLS regressions. Consolidated end-state in [anon-exec-audit/STEADY-STATE.md](anon-exec-audit/STEADY-STATE.md). Full summary: [MILESTONES.md](MILESTONES.md) · archive: [milestones/v3.0-ROADMAP.md](milestones/v3.0-ROADMAP.md).
 
-**Target features:**
-- Function-by-function classification of the 46 `authenticated_security_definer_function_executable` WARNs (KEEP-by-design vs TIGHTEN, each verified against live `pg_policies` / `pg_trigger` / `cron.job` / frontend `.rpc` usage)
-- `REVOKE EXECUTE` / `SECURITY INVOKER` tightening for any function not reachable by the frontend, not referenced in an RLS policy, and not a trigger/cron callee
-- Resolution of the 10 `rls_enabled_no_policy` INFOs (confirm fail-closed service-role-only intent and document in-migration, or add explicit deny/owner policy — without re-introducing the rule removed in `20260527151342`)
-- Regression test coverage in `tests/integration/rls/` for every tightening (extend the `anon-rpc-grants` / `admin-rpc-grants` patterns)
-- A documented advisor steady state: each remaining WARN is intentional + test-pinned, each INFO resolved
+**No active milestone.** Next milestone unplanned — run `/gsd-new-milestone`.
 
-**Out of scope (locked):** `auth_leaked_password_protection` (paid Supabase HaveIBeenPwned feature — intentionally disabled).
+### Recently shipped
 
-**Seed:** `.planning/seeds/SEED-001-supabase-security-advisor-remediation.md` (promote-ready spec). Prior art: PRs #758 / #771, migrations `20260529224926` / `20260529225039` / `20260602044104`, `.planning/anon-exec-audit/CYCLE-1.md`, memory `security-definer-advisor-state`.
-
-**Latest shipped:** v2.0 Dashboard Command Center (2026-06-02, 34/34 requirements) — see [MILESTONES.md](MILESTONES.md).
+- **v3.0 Security Hardening** (2026-06-02) — advisor steady state 44/0/1, see above.
+- **v2.0 Dashboard Command Center** (2026-06-02, 34/34) — `/dashboard` redesign, see [MILESTONES.md](MILESTONES.md).
+- **v1.0 Marketing Surface Honesty** (2026-05-22, 56/56 audit findings, PERFECT BY ALL MEASURES).
 
 ## What This Is
 
@@ -48,25 +43,15 @@ Every public claim on tenantflow.app must map to working code, and every visual 
 - ✓ **Marketing Surface Honesty (56 audit findings closed across CRIT/CONS/COPY/PRICE/BLOG/TOKEN/TRUST/SEO/PERF)** — v1.0 (shipped 2026-05-22, 15 phases, audit round 3 verdict PERFECT BY ALL MEASURES). Highlights: blog DB cleanup + server-render rebuild + n8n redesign; pricing restructured to Starter $19 / Growth $49 / Max $149 with single-source-of-truth `pricing.ts`; unified "landlord" persona across hero/About/meta/FAQ/blog; 5 redirect aliases (`/signup` + 4 legal long-form paths); homepage NumberTicker fix + 375px mobile drawer; design-token drift guard scanning hex/rgb/`bg-white`/inline-ms; canonical "Contact Sales" CTA; 2 real testimonials; SEO meta-separator standardization + per-page OG images + site-wide Organization/SoftwareApplication JSON-LD + visible breadcrumbs; static-gen + sticky CTA + lead-capture modal (feature-flagged); `@stripe/(react-)?stripe-js` dead-dep drift guard; host-derived Vitest worker-pool cap; `/blog` nav suppression regression-pin until content cohort lands.
 - ✓ **Dashboard Command Center — `/dashboard` redesign (34/34 requirements: KPI-01..07, CHART-01..06, DT-01..09, POLISH-01..12)** — v2.0 (shipped 2026-06-02, 7 phases). 6-tile KPI bento row (`Stat` + `NumberTicker` + `StatTrend`, `@container` grid, sparklines on Revenue + Occupancy); refreshed `RevenueAreaChart` (30d/6mo toggle) + new `OccupancyDonutChart` (center label + legend from `stats.units`), series colors from `--color-chart-{1..5}`, `next/dynamic` `ssr:false`; vendored DiceUI/TanStack Portfolio DataTable (`useClientDataTable`, `aria-sort` + keyboard sort, faceted status filter, column visibility, virtualization, grid/table toggle, Zustand-`persist` saved presets, nuqs URL state — 3 hand-rolled files deleted); dark-mode token migration with theme-aware `--color-{success,warning,destructive}-text` companions (≥4.5:1 both themes); `NumberTicker` internal reduced-motion guard (16 consumers); 375px zero-horizontal-scroll + skeleton↔empty mutual-exclusion; `/dashboard` E2E smoke + axe-core WCAG 2.1 AA under CI `owner-axe`; **killed the `*100`/`÷100` revenue round-trip** (`get_dashboard_data_v2` returns dollars, correct end-to-end) + extracted shared `transformDashboardData` + dropped fabricated `collection_rate` (no rent-payment data exists). Deferred at close: 2 Phase-6 manual focus-ring sign-offs (automated axe coverage passed in CI).
 
+- ✓ **Security Hardening — Supabase Security Advisor steady state (12/12 requirements: SDEF-01..03, TIGHTEN-01..03, RLSNP-01..03, SECTEST-01..03)** — v3.0 (shipped 2026-06-02, 3 phases). Classified all 46 `authenticated_security_definer_function_executable` functions against the live schema (43 KEEP / 2 TIGHTEN / 1 REVIEW, `CYCLE-2.md`) and tightened 3 → **46→44** (the 44 remaining are documented intentional KEEP; `get_lead_paint_compliance_report` + `assert_can_create_lease` revoked from authenticated, `audit_for_all_policies` `is_admin()`-body-gated). Resolved all 10 `rls_enabled_no_policy` tables with explicit `service_role_only` FOR ALL policies + revoked 5 vestigial Tier-A `authenticated` grants (pg_graphql lint 0027 leak closed) → **10→0** — without re-introducing the `20260527151342`-removed deny-all. New `rls-no-policy-lockdown.rls.test.ts` deny pins + extended `anon-rpc-grants`; the `rls-security` suite is the in-CI gate, the advisor the out-of-band oracle. Documented steady state (44/0/1) in `anon-exec-audit/STEADY-STATE.md`. `auth_leaked_password_protection` intentionally out of scope (paid feature).
+
 ### Active
 
-<!-- v3.0 Security Hardening scope (SEED-001). Final REQ-IDs land in REQUIREMENTS.md
-     after the requirements step; this is the milestone's working scope. -->
+<!-- No active milestone. v3.0 Security Hardening shipped 2026-06-02 and its
+     requirements moved to Validated above. The next milestone's requirements are
+     defined fresh by /gsd-new-milestone (which creates a new REQUIREMENTS.md). -->
 
-**Advisor classification (SDEF):**
-- [ ] Classify all 46 `authenticated_security_definer_function_executable` functions as KEEP-by-design or TIGHTEN, verified against live `pg_policies` / `pg_trigger` / `cron.job` / frontend `.rpc` usage
-- [ ] Document each KEEP function's intentional authenticated-EXECUTE rationale
-
-**Least-privilege tightening (TIGHTEN):**
-- [ ] `REVOKE EXECUTE` from `authenticated` (keep `service_role`) or switch to `SECURITY INVOKER` for every function not frontend-reachable, not RLS-referenced, and not a trigger/cron callee
-- [ ] Prod migration per change (MCP `apply_migration` + timestamp reconcile per `migration-mcp-prod-drift`)
-
-**RLS-no-policy resolution (RLSNP):**
-- [ ] Resolve all 10 `rls_enabled_no_policy` tables — confirm fail-closed service-role-only intent + document in-migration, or add explicit deny/owner policy (without re-introducing the rule removed in `20260527151342`)
-
-**Regression coverage (SECTEST):**
-- [ ] `tests/integration/rls/` coverage for every tightening (extend `anon-rpc-grants` / `admin-rpc-grants` patterns)
-- [ ] Documented advisor steady state: remaining WARNs intentional + test-pinned, INFOs resolved, zero RLS regressions
+_(none — between milestones; run `/gsd-new-milestone` to define the next set)_
 
 ### Out of Scope
 
@@ -159,4 +144,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-06-02 — v3.0 "Security Hardening" started (SEED-001: Supabase Security Advisor remediation — 46 authenticated SECURITY DEFINER + 10 rls_enabled_no_policy findings; `auth_leaked_password_protection` out of scope). Research-first via Supabase MCP/skills. v2.0 "Dashboard Command Center" shipped + archived 2026-06-02 (34/34); v1.0 "Marketing Surface Honesty" archived 2026-05-22.*
+*Last updated: 2026-06-02 after v3.0 milestone — "Security Hardening" shipped + archived (3 phases, 5 plans, 12/12 requirements; advisor steady state 44/0/1; final phase PR #778 → `94d36e9e5`). All v3.0 requirements moved to Validated. No active milestone — next is `/gsd-new-milestone`. v2.0 "Dashboard Command Center" (34/34) + v1.0 "Marketing Surface Honesty" (56/56, PERFECT BY ALL MEASURES) archived earlier.*
