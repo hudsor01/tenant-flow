@@ -24,6 +24,7 @@ import { useSignOutMutation } from "#hooks/api/use-auth-mutations";
 import { usePropertyList } from "#hooks/api/use-properties";
 import { useTenantList } from "#hooks/api/use-tenant";
 import { generateBreadcrumbs } from "#lib/breadcrumbs";
+import { cn } from "#lib/utils";
 import { AppShellHeader } from "./app-shell-header";
 import { AppShellSearch } from "./app-shell-search";
 import { AppShellSidebar } from "./app-shell-sidebar";
@@ -300,7 +301,10 @@ export function AppShell({
 				    never overlaps the last rows / footer at scroll end. */}
 				<main
 					id="main-content"
-					className={`flex-1 bg-muted/30 pb-24 sm:pb-6 ${dockVisible ? "lg:pb-28" : ""}`}
+					className={cn(
+						"flex-1 bg-muted/30 pb-24 sm:pb-6",
+						dockVisible && "lg:pb-28",
+					)}
 				>
 					<div className="p-4 lg:p-6">{children}</div>
 					{/* Minimal app-shell footer (Session 11 P2 #16): the
