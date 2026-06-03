@@ -9,8 +9,8 @@
 ## Phases
 
 - [x] **Phase 1: SECURITY DEFINER Classification & Tightening** - Classify all 46 authenticated SECURITY DEFINER functions and revoke `authenticated` EXECUTE from the few that no signed-in account should reach. **SHIPPED PR #776 (2026-06-02) — migration `20260602202339`, advisor 46→44.**
-- [x] **Phase 2: RLS-No-Policy Resolution** - Make the fail-closed lockdown explicit on all 10 `rls_enabled_no_policy` tables and revoke the vestigial `authenticated` GraphQL-exposing grants. **Executed 2026-06-02 — migration `20260602230717`, advisor `rls_enabled_no_policy` 10→0.**
-- [ ] **Phase 3: Documented Advisor Steady State & Verification** - Re-run the advisor against prod, prove the only remaining findings are the documented KEEP set, and pin zero RLS regressions across the full integration suite.
+- [x] **Phase 2: RLS-No-Policy Resolution** - Make the fail-closed lockdown explicit on all 10 `rls_enabled_no_policy` tables and revoke the vestigial `authenticated` GraphQL-exposing grants. **SHIPPED PR #777 (2026-06-02) — migration `20260602230717`, advisor `rls_enabled_no_policy` 10→0.**
+- [x] **Phase 3: Documented Advisor Steady State & Verification** - Re-run the advisor against prod, prove the only remaining findings are the documented KEEP set, and pin zero RLS regressions across the full integration suite. **Executed 2026-06-02 — advisor steady state confirmed (44 KEEP / 0 RLS-no-policy / 1 out-of-scope); STEADY-STATE.md written.**
 
 ## Phase Details
 
@@ -51,7 +51,7 @@
   3. The `security-definer-advisor-state` memory and `.planning/anon-exec-audit` are updated to record the new steady state (counts, KEEP rationale, tightened set, intent decisions).
   4. The full `tests/integration/rls/` suite runs green against prod (`rls-security` CI gate passing), confirming zero owner-isolation or grant regressions from any Phase 1 or Phase 2 change.
 **Plans**: 1 plan
-  - [ ] 03-01-PLAN.md — Re-run live `get_advisors(security)` to confirm the steady state (rls_enabled_no_policy=0, authenticated SECURITY DEFINER=44, password lint out-of-scope) + write `.planning/anon-exec-audit/STEADY-STATE.md` consolidation doc + verify `security-definer-advisor-state` memory accuracy; the `rls-security` CI gate green on the PR is the SECTEST-03 zero-regression proof (SECTEST-03)
+  - [x] 03-01-PLAN.md — Re-ran live `get_advisors(security)` confirming the steady state (rls_enabled_no_policy=0, authenticated SECURITY DEFINER=44, password lint out-of-scope) + wrote `.planning/anon-exec-audit/STEADY-STATE.md` consolidation doc + verified `security-definer-advisor-state` memory accuracy; the `rls-security` CI gate green on the PR is the SECTEST-03 zero-regression proof (SECTEST-03)
 
 ---
 
@@ -98,8 +98,8 @@ Audit round 3 verdict: PERFECT BY ALL MEASURES. Full detail in [milestones/v1.0-
 | Phase | Milestone | Plans | Status | Completed |
 |-------|-----------|-------|--------|-----------|
 | 1. SECURITY DEFINER Classification & Tightening | v3.0 | 2/2 | Shipped (PR #776; advisor 46→44) | 2026-06-02 |
-| 2. RLS-No-Policy Resolution | v3.0 | 2/2 | Executed (advisor 10→0; pre-merge) | 2026-06-02 |
-| 3. Documented Advisor Steady State & Verification | v3.0 | 0/1 | Planned | - |
+| 2. RLS-No-Policy Resolution | v3.0 | 2/2 | Shipped (PR #777; advisor 10→0) | 2026-06-02 |
+| 3. Documented Advisor Steady State & Verification | v3.0 | 1/1 | Executed (steady state 44/0/1; pre-merge) | 2026-06-02 |
 
 ## Coverage Validation
 

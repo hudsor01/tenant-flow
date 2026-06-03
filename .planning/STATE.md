@@ -27,15 +27,15 @@ See: .planning/PROJECT.md (updated 2026-06-02 after v2.0)
 | Phase | Name | Requirements | Status |
 |-------|------|--------------|--------|
 | 1 | SECURITY DEFINER Classification & Tightening | SDEF-01, SDEF-02, SDEF-03, TIGHTEN-01, TIGHTEN-02, TIGHTEN-03, SECTEST-01 | SHIPPED (PR #776; advisor 46→44) |
-| 2 | RLS-No-Policy Resolution | RLSNP-01, RLSNP-02, RLSNP-03, SECTEST-02 | Executed (2/2 plans; advisor `rls_enabled_no_policy` 10→0; pre-merge) |
-| 3 | Documented Advisor Steady State & Verification | SECTEST-03 | Not started |
+| 2 | RLS-No-Policy Resolution | RLSNP-01, RLSNP-02, RLSNP-03, SECTEST-02 | SHIPPED (PR #777; advisor `rls_enabled_no_policy` 10→0) |
+| 3 | Documented Advisor Steady State & Verification | SECTEST-03 | Executed (1/1 plan; steady state 44/0/1; pre-merge) |
 
 ## Current Position
 
-Phase: 2 — RLS-No-Policy Resolution (executed, pre-merge)
-Plan: 02-01 + 02-02 complete
-Status: Executed — migration `20260602230717` applied to prod (10× `service_role_only` FOR ALL policy + 5 Tier-A authenticated-grant revokes), advisor `rls_enabled_no_policy` 10→0 confirmed live + lint 0027 cleared for the 5 Tier-A tables. New `rls-no-policy-lockdown.rls.test.ts` deny pins (CI `rls-security`). Awaiting perfect-PR review + merge. Phase 1 SHIPPED via PR #776.
-Last activity: 2026-06-02 — Phase 2 executed: all 10 `rls_enabled_no_policy` tables get an explicit `service_role_only` policy + the 5 Tier-A vestigial `authenticated` grants revoked. CYCLE-3.md audit doc written.
+Phase: 3 — Documented Advisor Steady State & Verification (executed, pre-merge) — **v3.0 deliverables complete**
+Plan: 03-01 complete
+Status: Executed — live advisor re-run confirmed the steady state (`authenticated_security_definer_function_executable` = 44 documented KEEP, `rls_enabled_no_policy` = 0, `auth_leaked_password_protection` = 1 out-of-scope; the 2 tightened fns absent, `audit_for_all_policies` present by design). `STEADY-STATE.md` consolidation doc written; `security-definer-advisor-state` memory verified accurate. No prod DDL. SECTEST-03 gate = `rls-security` CI suite green on the PR. Phases 1 (PR #776) + 2 (PR #777) SHIPPED; Phase 3 awaiting perfect-PR review + merge → then `/gsd-complete-milestone`.
+Last activity: 2026-06-02 — Phase 3 executed: advisor steady state confirmed + STEADY-STATE.md written. All 3 v3.0 phases done (Phase 3 pre-merge).
 
 ## Deferred Items
 
