@@ -28,15 +28,47 @@ export function useIntersectionObserver(
 		const element = ref.current;
 		if (!element) return;
 
+		const markIntersected = () => {
+			if (hasIntersectedRef.current) return;
+			hasIntersectedRef.current = true;
+			setHasIntersected(true);
+		};
+
+		// Synchronous initial-visibility fallback. IntersectionObserver's
+		// first callback is asynchronous, and some automated/headless
+		// browsers never fire it at all — which leaves an element that is
+		// already above the fold stuck in its pre-intersection state (e.g. a
+		// NumberTicker frozen at startValue on first paint). A direct rect
+		// check on mount closes that gap. It only ever PROMOTES to
+		// intersected, so the scroll-into-view path for below-the-fold
+		// elements is unchanged. Guarded on width/height > 0 so jsdom (which
+		// returns an all-zero rect) falls through to the observer.
+		const rect = element.getBoundingClientRect();
+		const viewportHeight =
+			window.innerHeight || document.documentElement.clientHeight;
+		const viewportWidth =
+			window.innerWidth || document.documentElement.clientWidth;
+		const alreadyVisible =
+			rect.width > 0 &&
+			rect.height > 0 &&
+			rect.top < viewportHeight &&
+			rect.bottom > 0 &&
+			rect.left < viewportWidth &&
+			rect.right > 0;
+		if (alreadyVisible) {
+			setIsIntersecting(true);
+			markIntersected();
+		}
+
 		const observer = new IntersectionObserver(
 			([entry]) => {
 				const isCurrentlyIntersecting = entry?.isIntersecting ?? false;
 				setIsIntersecting(isCurrentlyIntersecting);
 
-				// Only set state once when first intersecting (using ref to avoid re-running effect)
-				if (isCurrentlyIntersecting && !hasIntersectedRef.current) {
-					hasIntersectedRef.current = true;
-					setHasIntersected(true);
+				// Only set state once when first intersecting (ref guard avoids
+				// re-running the effect on the state change).
+				if (isCurrentlyIntersecting) {
+					markIntersected();
 				}
 			},
 			{

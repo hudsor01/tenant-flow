@@ -290,8 +290,13 @@ export function AppShell({
 					onSignOut={() => signOutMutation.mutate()}
 				/>
 
-				{/* Page content */}
-				<main id="main-content" className="flex-1 bg-muted/30 pb-24 sm:pb-6">
+				{/* Page content. lg:pb-28 reserves clearance for the
+				    floating QuickActionsDock (hidden lg:block, fixed bottom-6)
+				    so it never overlaps the last rows / footer at scroll end. */}
+				<main
+					id="main-content"
+					className="flex-1 bg-muted/30 pb-24 sm:pb-6 lg:pb-28"
+				>
 					<div className="p-4 lg:p-6">{children}</div>
 					{/* Minimal app-shell footer (Session 11 P2 #16): the
 					    marketing footer is too marketing-heavy for the
