@@ -69,22 +69,35 @@ Deferred follow-ups (small, optional, non-blocking — fold into a later milesto
 
 ## Traceability
 
-Populated during roadmap creation.
-
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| CISEC-01..04 | TBD | Pending |
-| TYPE-01..03 | TBD | Pending |
-| PERF-01..04 | TBD | Pending |
-| TEST-01..04 | TBD | Pending |
-| A11Y-01..03 | TBD | Pending |
-| SEO-01..03 | TBD | Pending |
+| CISEC-01 | Phase 1 — Security-CI Hardening | Pending |
+| CISEC-02 | Phase 1 — Security-CI Hardening | Pending |
+| CISEC-03 | Phase 1 — Security-CI Hardening | Pending |
+| CISEC-04 | Phase 1 — Security-CI Hardening | Pending |
+| TYPE-01 | Phase 2 — Typed RPC Boundaries | Pending |
+| TYPE-02 | Phase 2 — Typed RPC Boundaries | Pending |
+| TYPE-03 | Phase 2 — Typed RPC Boundaries | Pending |
+| PERF-02 | Phase 3 — Stats RPC Consolidation | Pending |
+| PERF-03 | Phase 3 — Stats RPC Consolidation | Pending |
+| PERF-01 | Phase 4 — Cron Stagger & Index Cleanup | Pending |
+| PERF-04 | Phase 4 — Cron Stagger & Index Cleanup | Pending |
+| TEST-01 | Phase 5 — Cross-Owner RLS Coverage | Pending |
+| TEST-02 | Phase 5 — Cross-Owner RLS Coverage | Pending |
+| TEST-04 | Phase 5 — Cross-Owner RLS Coverage | Pending |
+| TEST-03 | Phase 6 — Auth & Dollar-Hook Unit Tests | Pending |
+| A11Y-01 | Phase 7 — Accessibility Labels | Pending |
+| A11Y-02 | Phase 7 — Accessibility Labels | Pending |
+| A11Y-03 | Phase 7 — Accessibility Labels | Pending |
+| SEO-01 | Phase 8 — SEO Recovery | Pending |
+| SEO-02 | Phase 8 — SEO Recovery | Pending |
+| SEO-03 | Phase 8 — SEO Recovery | Pending |
 
 **Coverage:**
 - v1 requirements: 21 total (CISEC 4, TYPE 3, PERF 4, TEST 4, A11Y 3, SEO 3)
-- Mapped to phases: 0 (roadmap pending)
-- Unmapped: 21 ⚠️ (resolved by roadmapper)
+- Mapped to phases: 21/21 ✓ (no orphans, no requirement in two phases)
+- Phases: 8 (Phase 1-8, integer numbering, v4.0 sequence)
 
 ---
 *Requirements defined: 2026-06-04*
-*Last updated: 2026-06-04 after v4.0 milestone initialization*
+*Last updated: 2026-06-04 after v4.0 roadmap creation — 21/21 requirements mapped to 8 phases.*
