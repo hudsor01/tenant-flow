@@ -1,0 +1,49 @@
+name: CodeQL
+
+# Static application security testing (SAST). Advanced setup via this
+# workflow file (code-scanning default setup is intentionally left
+# `not-configured` so the two don't conflict). Free on this public repo.
+# Analyzes the app source AND the GitHub Actions workflows themselves
+# (catches e.g. unpinned/over-privileged actions). Results land in the
+# repo Security tab; add `CodeQL` to required checks separately if desired.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, reopened]
+  schedule:
+    # Weekly Monday 04:27 UTC — re-scans `main` against updated CodeQL queries.
+    - cron: "27 4 * * 1"
+
+permissions:
+  contents: read
+
+jobs:
+  analyze:
+    name: Analyze (${{ matrix.language }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+      security-events: write
+      actions: read
+    strategy:
+      fail-fast: false
+      matrix:
+        language: ["javascript-typescript", "actions"]
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 1
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: ${{ matrix.language }}
+
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v3
+        with:
+          category: "/language:${{ matrix.language }}"
