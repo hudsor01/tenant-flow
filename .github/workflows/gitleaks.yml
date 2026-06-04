@@ -1,0 +1,34 @@
+name: gitleaks
+
+# Server-side secret scanning. gitleaks already runs as a lefthook
+# pre-commit hook, but that is local and bypassable (--no-verify, or a
+# contributor without the hooks installed). This job re-runs it in CI so a
+# committed secret fails the PR regardless of local setup. Free for this
+# personal public repo (no GITLEAKS_LICENSE required).
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, reopened]
+
+permissions:
+  contents: read
+
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          # Full history so the scan covers every commit on the branch,
+          # not just the tip — a secret introduced and "removed" in an
+          # earlier commit is still in the pack and still leaked.
+          fetch-depth: 0
+
+      - name: gitleaks
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
