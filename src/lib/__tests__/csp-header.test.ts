@@ -8,8 +8,14 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
  * CISEC-02 regression guard. Pins two things that would silently
  * regress the security fix:
  *
- *  1. `vercel.json`'s static `script-src` never reintroduces
- *     `'unsafe-inline'` (the marketing/static-route fallback CSP).
+ *  1. `vercel.json`'s static `script-src` RETAINS `'unsafe-inline'`.
+ *     Public/static routes are intentionally NOT nonced (a per-request
+ *     nonce forces dynamic rendering — CISEC-02 keeps marketing static),
+ *     and Next emits bare, non-nonced inline scripts there (next-themes
+ *     no-flash, React hydration runtime, RSC flight payload). Removing
+ *     `'unsafe-inline'` from the static CSP would CSP-block all of them
+ *     and dead-render every marketing/login/pricing page. The nonce
+ *     hardening is private-route-only (assertions b-d).
  *
  *  2. On a PRIVATE route the proxy forwards the per-request nonce CSP on
  *     the REQUEST `Content-Security-Policy` header passed to
@@ -143,11 +149,17 @@ describe("CISEC-02 CSP hardening", () => {
 		}));
 	});
 
-	it("(a) vercel.json static script-src has no 'unsafe-inline'", () => {
+	it("(a) vercel.json static script-src RETAINS 'unsafe-inline' (public routes are un-nonced)", () => {
+		// Public/static routes are intentionally NOT nonced — a nonce forces
+		// dynamic rendering, and CISEC-02 keeps marketing static. Next emits
+		// bare inline scripts (next-themes no-flash, React hydration runtime,
+		// RSC flight) on those pages, so the static CSP MUST keep
+		// 'unsafe-inline' or every public page is dead-rendered. The nonce
+		// hardening lives on private routes only (assertions b-d).
 		const csp = readVercelCsp();
 		const scriptSrc = scriptSrcDirective(csp);
 		expect(scriptSrc).not.toBe("");
-		expect(scriptSrc).not.toContain("'unsafe-inline'");
+		expect(scriptSrc).toContain("'unsafe-inline'");
 	});
 
 	it("(b) forwards the nonce CSP on the REQUEST headers passed to updateSession on a private route", async () => {

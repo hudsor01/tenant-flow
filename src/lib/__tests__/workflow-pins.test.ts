@@ -29,14 +29,23 @@ interface UsesEntry {
 	readonly line: number;
 	/** The action reference after `uses:` and before any trailing comment, e.g. "actions/checkout@<sha>". */
 	readonly ref: string;
+	/** The full `uses:` value INCLUDING any trailing comment, e.g. "actions/checkout@<sha> # v6.0.3". */
+	readonly full: string;
 	/** Repo owner segment, e.g. "actions", "github", "oven-sh". */
 	readonly owner: string;
 }
 
 const WORKFLOWS_DIR = join(process.cwd(), ".github", "workflows");
 
-// A 40-hex commit SHA, optionally followed by a space + trailing version comment.
-const SHA_PIN = /@[0-9a-f]{40}(?:\s|$)/;
+// The action ref must END at a 40-hex commit SHA (no mutable tag like @v2).
+// Matched against `ref` (whitespace-delimited token, comment stripped).
+const SHA_PIN = /@[0-9a-f]{40}$/;
+
+// A SHA pin FOLLOWED BY a trailing `# vX.Y.Z`-style version comment.
+// Matched against the full line so the comment is actually enforced
+// (the previous guard ran against the comment-stripped ref, so the
+// version-comment requirement in the docstring was never checked).
+const SHA_PIN_WITH_COMMENT = /@[0-9a-f]{40}\s+#\s*v\d/;
 
 // Owners that are first-party (GitHub-published). Still pinned uniformly per the
 // locked decision, but tracked separately so the third-party assertion can be
@@ -53,15 +62,18 @@ function collectUses(): UsesEntry[] {
 			const trimmed = raw.trim();
 			// Skip blank lines and YAML comments.
 			if (trimmed === "" || trimmed.startsWith("#")) return;
-			// Match `uses:` keys (with or without a leading `- `).
-			const match = /^-?\s*uses:\s*(\S+)/.exec(trimmed);
+			// Match `uses:` keys (with or without a leading `- `). Capture the
+			// ref token (group 1) and the full value incl. trailing comment
+			// (group 2) so we can assert both the SHA and its version comment.
+			const match = /^-?\s*uses:\s*(\S+)(.*)$/.exec(trimmed);
 			if (!match) return;
 			const ref = match[1] ?? "";
+			const full = `${ref}${match[2] ?? ""}`.trim();
 			// Local/composite actions (`./...` or `docker://...`) are not pinnable
 			// to a commit SHA — exclude them from the SHA assertion.
 			if (ref.startsWith("./") || ref.startsWith("docker://")) return;
 			const owner = ref.split("/")[0] ?? "";
-			entries.push({ file, line: index + 1, ref, owner });
+			entries.push({ file, line: index + 1, ref, full, owner });
 		});
 	}
 
@@ -97,6 +109,21 @@ describe("CISEC-04 — GitHub Actions are SHA-pinned", () => {
 		expect(
 			violators,
 			`Unpinned action(s) — uniform pinning requires every uses: be a 40-char commit SHA with a trailing "# vX.Y.Z" comment:\n${violators.join("\n")}`,
+		).toEqual([]);
+	});
+
+	it("every pinned uses: carries a trailing # vX.Y.Z version comment", () => {
+		// The SHA alone is unreadable; the version comment is what lets a
+		// human (and Dependabot) track what the SHA resolves to. Enforced
+		// against the FULL line — the prior guard only ran the SHA regex
+		// against the comment-stripped ref, so this requirement was unchecked.
+		const violators = entries
+			.filter((e) => !SHA_PIN_WITH_COMMENT.test(e.full))
+			.map((e) => `${e.file}:${e.line} → ${e.full}`);
+
+		expect(
+			violators,
+			`Pinned action(s) missing a trailing "# vX.Y.Z" version comment:\n${violators.join("\n")}`,
 		).toEqual([]);
 	});
 });
