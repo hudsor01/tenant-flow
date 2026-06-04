@@ -65,10 +65,10 @@ Closed at 34/34 requirements. Full detail in [milestones/v2.0-ROADMAP.md](milest
   3. `auth-email-send` compares its hook secret in constant time (`crypto.subtle.timingSafeEqual` / shared XOR helper); a grep/test confirms no `token !== hookSecret` short-circuit compare remains.
   4. Every third-party action under `.github/workflows/` is pinned to a commit SHA, and CodeQL's `actions` scan stays clean.
 **Plans**: 4 plans (all Wave 1 — parallel, zero file overlap)
-- [ ] 01-01-PLAN.md — CISEC-01: Stripe-webhook signature accept/reject Vitest gate
+- [x] 01-01-PLAN.md — CISEC-01: Stripe-webhook signature accept/reject Vitest gate
 - [ ] 01-02-PLAN.md — CISEC-02: route-scoped per-request nonce CSP + drop script-src 'unsafe-inline'
-- [ ] 01-03-PLAN.md — CISEC-03: shared timing-safe helper + constant-time auth-email-send compare
-- [ ] 01-04-PLAN.md — CISEC-04: SHA-pin all workflow actions + drift-guard test
+- [x] 01-03-PLAN.md — CISEC-03: shared timing-safe helper + constant-time auth-email-send compare
+- [x] 01-04-PLAN.md — CISEC-04: SHA-pin all workflow actions + drift-guard test
 
 ### Phase 2: Typed RPC Boundaries
 **Goal**: Every RPC/PostgREST boundary under `src/hooks/api/` returns through a typed mapper with Zod validation — zero `as unknown as` casts — enforced by a drift guard so the violation cannot silently return.
@@ -149,7 +149,7 @@ Closed at 34/34 requirements. Full detail in [milestones/v2.0-ROADMAP.md](milest
 
 | Phase | Milestone | Plans | Status | Completed |
 |-------|-----------|-------|--------|-----------|
-| 1. Security-CI Hardening | v4.0 | 0/4 | Planned | - |
+| 1. Security-CI Hardening | v4.0 | 3/4 | In Progress|  |
 | 2. Typed RPC Boundaries | v4.0 | 0/? | Not started | - |
 | 3. Stats RPC Consolidation | v4.0 | 0/? | Not started | - |
 | 4. Cron Stagger & Index Cleanup | v4.0 | 0/? | Not started | - |

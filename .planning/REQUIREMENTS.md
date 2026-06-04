@@ -11,7 +11,7 @@
 
 - [ ] **CISEC-01**: Stripe-webhook signature verification (and the other security-critical edge-function assertions) run in CI as a hard gate — either a `deno test` job wired to `supabase functions serve` + secrets, or the security-critical assertions ported into the vitest integration suite.
 - [ ] **CISEC-02**: The Content-Security-Policy serves a per-request nonce with `strict-dynamic`; `script-src 'unsafe-inline'` is removed from `vercel.json` / `proxy.ts`.
-- [ ] **CISEC-03**: The `auth-email-send` Edge Function compares its hook secret in constant time (`crypto.subtle.timingSafeEqual` / the shared XOR helper), never `token !== hookSecret`.
+- [x] **CISEC-03**: The `auth-email-send` Edge Function compares its hook secret in constant time (`crypto.subtle.timingSafeEqual` / the shared XOR helper), never `token !== hookSecret`.
 - [ ] **CISEC-04**: All third-party GitHub Actions across `.github/workflows/` are pinned to commit SHAs (CodeQL's `actions` scan stays clean).
 
 ### TYPE — typed RPC/PostgREST boundaries (zero-tolerance rule #8)
@@ -73,7 +73,7 @@ Deferred follow-ups (small, optional, non-blocking — fold into a later milesto
 |-------------|-------|--------|
 | CISEC-01 | Phase 1 — Security-CI Hardening | Pending |
 | CISEC-02 | Phase 1 — Security-CI Hardening | Pending |
-| CISEC-03 | Phase 1 — Security-CI Hardening | Pending |
+| CISEC-03 | Phase 1 — Security-CI Hardening | Complete |
 | CISEC-04 | Phase 1 — Security-CI Hardening | Pending |
 | TYPE-01 | Phase 2 — Typed RPC Boundaries | Pending |
 | TYPE-02 | Phase 2 — Typed RPC Boundaries | Pending |
