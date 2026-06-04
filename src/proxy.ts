@@ -50,6 +50,47 @@ function isPrivateRoute(pathname: string): boolean {
 	);
 }
 
+/**
+ * CISEC-02 — Builds the per-request nonce CSP applied ONLY to private
+ * (authenticated) routes. Marketing/blog/static pages keep the static
+ * `vercel.json` CSP so they stay statically rendered (a nonce forces
+ * dynamic rendering).
+ *
+ * The load-bearing directive is `script-src 'self' 'nonce-<nonce>'
+ * 'strict-dynamic'`. Next 16.2.6 parses this string off the forwarded
+ * REQUEST `content-security-policy` header (getScriptNonceFromHeader,
+ * app-render.js:167-168) to auto-nonce its hydration scripts — it never
+ * reads `x-nonce`. `'strict-dynamic'` is mandatory in the App Router
+ * (no `_document.tsx` to manually nonce hydration scripts) and it makes
+ * the browser ignore host allowlists in `script-src`, so the
+ * `*.supabase.co *.sentry.io *.stripe.com` allowlist stays in
+ * `connect-src`, NOT `script-src`. `'unsafe-eval'` is gated to dev only.
+ *
+ * `style-src` keeps `'unsafe-inline'` (locked CISEC-02 decision —
+ * script-src-scoped only; runtime-injected inline styles are a
+ * documented MEDIUM-risk follow-up, not part of this plan). The
+ * directive set otherwise mirrors `vercel.json` so private routes lose
+ * nothing except `script-src 'unsafe-inline'`.
+ */
+function buildNonceCsp(nonce: string): string {
+	const isDev = process.env.NODE_ENV === "development";
+	const scriptSrc = `script-src 'self' 'nonce-${nonce}' 'strict-dynamic'${
+		isDev ? " 'unsafe-eval'" : ""
+	}`;
+	return [
+		"default-src 'self'",
+		scriptSrc,
+		"style-src 'self' 'unsafe-inline'",
+		"img-src 'self' data: blob:",
+		"connect-src 'self' *.supabase.co *.sentry.io *.stripe.com",
+		"font-src 'self'",
+		"object-src 'none'",
+		"frame-ancestors 'none'",
+		"base-uri 'self'",
+		"form-action 'self'",
+	].join("; ");
+}
+
 function redirectWithCookies(
 	url: URL,
 	supabaseResponse: NextResponse,
@@ -64,15 +105,50 @@ function redirectWithCookies(
 // Next.js 16: proxy.ts replaces deprecated middleware.ts
 export async function proxy(request: NextRequest): Promise<NextResponse> {
 	const { pathname } = request.nextUrl;
+	const privateRoute = isPrivateRoute(pathname);
 
-	const { user, supabaseResponse } = await updateSession(request);
+	// CISEC-02 — On private (authenticated) routes ONLY, generate a
+	// per-request nonce and forward the nonce CSP on the REQUEST
+	// `Content-Security-Policy` header so Next 16 auto-nonces its
+	// hydration scripts at render time (see buildNonceCsp). `x-nonce` is a
+	// non-load-bearing convenience for app code that reads `headers()`.
+	// Public/marketing/static routes are NOT touched here — they stay on
+	// the static `vercel.json` CSP so they remain statically rendered.
+	let nonceCsp: string | undefined;
+	let requestHeaders: Headers | undefined;
+	if (privateRoute) {
+		const nonce = Buffer.from(crypto.randomUUID()).toString("base64");
+		nonceCsp = buildNonceCsp(nonce);
+		requestHeaders = new Headers(request.headers);
+		// THE load-bearing header: Next parses the nonce off the forwarded
+		// request's `content-security-policy` (app-render.js:167-168).
+		requestHeaders.set("Content-Security-Policy", nonceCsp);
+		// Convenience only — NOT how Next sources the hydration nonce.
+		requestHeaders.set("x-nonce", nonce);
+	}
+
+	const { user, supabaseResponse } = await updateSession(
+		request,
+		requestHeaders,
+	);
+
+	// Sets the per-request nonce CSP on a private-route response so the
+	// browser enforces it. Applied to BOTH the pass-through and every
+	// redirect return below. No-op on public routes (nonceCsp undefined).
+	const withCsp = <T extends NextResponse>(response: T): T => {
+		if (nonceCsp) {
+			response.headers.set("Content-Security-Policy", nonceCsp);
+		}
+		return response;
+	};
 
 	// Everything that isn't a known private route — public pages, unknown
 	// URLs, blog slugs, comparison pages, etc. — passes through so Next.js
 	// can render the matched page or its `not-found.tsx`. Auth-gating
 	// arbitrary typo URLs was making `/featres` redirect to `/login` instead
-	// of showing a 404, which is hostile UX.
-	if (!isPrivateRoute(pathname)) {
+	// of showing a 404, which is hostile UX. These keep the static
+	// `vercel.json` CSP — no per-request nonce CSP is applied.
+	if (!privateRoute) {
 		return supabaseResponse;
 	}
 
@@ -80,7 +156,7 @@ export async function proxy(request: NextRequest): Promise<NextResponse> {
 		const url = request.nextUrl.clone();
 		url.pathname = "/login";
 		url.searchParams.set("redirect", pathname);
-		return redirectWithCookies(url, supabaseResponse);
+		return withCsp(redirectWithCookies(url, supabaseResponse));
 	}
 
 	// Allowlist check BEFORE the DB query (cycle-2 P2-2 perf fix). These
@@ -96,7 +172,7 @@ export async function proxy(request: NextRequest): Promise<NextResponse> {
 		pathname.startsWith("/auth/");
 	const isAdminRoute = pathname.startsWith("/admin");
 	if (!isAdminRoute && isSubscriptionAllowlisted) {
-		return supabaseResponse;
+		return withCsp(supabaseResponse);
 	}
 
 	// Single combined fetch for both gates. One DB round-trip instead of
@@ -176,15 +252,14 @@ export async function proxy(request: NextRequest): Promise<NextResponse> {
 		const url = request.nextUrl.clone();
 		url.pathname = "/login";
 		url.searchParams.set("redirect", pathname);
-		return redirectWithCookies(url, supabaseResponse);
+		return withCsp(redirectWithCookies(url, supabaseResponse));
 	}
 
 	// /admin/* is admin-only. The (admin) route group's layout.tsx performs a
 	// second server-side is_admin check against public.users.
 	if (isAdminRoute && !gateRow.is_admin) {
-		return redirectWithCookies(
-			new URL("/dashboard", request.url),
-			supabaseResponse,
+		return withCsp(
+			redirectWithCookies(new URL("/dashboard", request.url), supabaseResponse),
 		);
 	}
 
@@ -196,14 +271,13 @@ export async function proxy(request: NextRequest): Promise<NextResponse> {
 	if (!gateRow.is_admin && !isAdminRoute) {
 		const status = gateRow.subscription_status;
 		if (!status || !ACTIVE_SUBSCRIPTION_STATUSES.has(status)) {
-			return redirectWithCookies(
-				new URL("/pricing", request.url),
-				supabaseResponse,
+			return withCsp(
+				redirectWithCookies(new URL("/pricing", request.url), supabaseResponse),
 			);
 		}
 	}
 
-	return supabaseResponse;
+	return withCsp(supabaseResponse);
 }
 
 export const config = {

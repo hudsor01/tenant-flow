@@ -20,11 +20,32 @@ import type { Database } from "#types/supabase";
  * routine "no valid session" outcome — battle-test Session 7 saw ~25
  * such 503s on RSC prefetches because the agent's hand-crafted
  * workaround cookie occasionally tripped Supabase's JWT validator.
+ *
+ * `requestHeaders` (CISEC-02): when provided, the pass-through
+ * `NextResponse.next({ request: { headers } })` carries these headers
+ * INTO the request Next renders against. This is the load-bearing path
+ * for the per-request nonce CSP — the proxy sets the
+ * `Content-Security-Policy` header (with `'nonce-<nonce>'
+ * 'strict-dynamic'`) on `requestHeaders` and Next 16.2.6 sources the
+ * hydration-script nonce by parsing that `Content-Security-Policy`
+ * header off the forwarded request (`getScriptNonceFromHeader`,
+ * app-render.js:167-168) — it never reads `x-nonce`. So threading the
+ * `Content-Security-Policy`-bearing `requestHeaders` through here on
+ * private routes is what makes framework scripts get auto-nonced under
+ * `'strict-dynamic'`. Both construction sites (init + the cookie
+ * `setAll` rebuild) must carry it or the cookie-sync rebuild drops the
+ * `Content-Security-Policy` header and the dashboard hydration scripts
+ * are blocked. When undefined (public-route call), the original
+ * `NextResponse.next({ request })` behavior is preserved exactly.
  */
 export async function updateSession(
 	request: NextRequest,
+	requestHeaders?: Headers,
 ): Promise<{ user: User | null; supabaseResponse: NextResponse }> {
-	let supabaseResponse = NextResponse.next({ request });
+	const nextOptions = requestHeaders
+		? { request: { headers: requestHeaders } }
+		: { request };
+	let supabaseResponse = NextResponse.next(nextOptions);
 
 	const supabase = createServerClient<Database>(
 		process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -39,9 +60,22 @@ export async function updateSession(
 					cookiesToSet.forEach(({ name, value }) =>
 						request.cookies.set(name, value),
 					);
+					// CISEC-02 cookie-sync correctness: when forwarding a custom
+					// `requestHeaders` (the nonce CSP path), the rebuild below
+					// uses THOSE headers, not the mutated `request`. So mirror
+					// the freshly-updated `cookie` header from `request` into
+					// `requestHeaders` before the rebuild, or downstream Server
+					// Components would read the stale pre-refresh cookies.
+					if (requestHeaders) {
+						requestHeaders.set("cookie", request.headers.get("cookie") ?? "");
+					}
 					// Re-create response with updated request to keep cookies in sync
-					// (Pitfall 1: must pass { request } to avoid cookie desync)
-					supabaseResponse = NextResponse.next({ request });
+					// (Pitfall 1: must pass { request } to avoid cookie desync).
+					// CISEC-02: re-thread `requestHeaders` here too so the nonce
+					// CSP on the forwarded request survives the cookie-sync
+					// rebuild — otherwise the auth cookie write drops the CSP and
+					// Next can't auto-nonce the hydration scripts.
+					supabaseResponse = NextResponse.next(nextOptions);
 					// Set cookies on the response for the browser
 					cookiesToSet.forEach(({ name, value, options }) =>
 						supabaseResponse.cookies.set(name, value, options),
