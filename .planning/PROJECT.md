@@ -4,13 +4,28 @@
 
 **Latest shipped milestone:** v3.0 Security Hardening (shipped 2026-06-02, 3 phases / 5 plans / 12/12 requirements). The Supabase Security Advisor on prod is at a documented, test-pinned steady state: `authenticated_security_definer_function_executable` **46 → 44** (the 44 are the provably-intentional KEEP set, classified function-by-function in `anon-exec-audit/CYCLE-2.md`), `rls_enabled_no_policy` **10 → 0** (explicit `service_role_only` policies on all 10 infra tables), and the `pg_graphql` introspection leak (lint 0027) on 5 Tier-A tables closed — all with zero RLS regressions. Consolidated end-state in [anon-exec-audit/STEADY-STATE.md](anon-exec-audit/STEADY-STATE.md). Full summary: [MILESTONES.md](MILESTONES.md) · archive: [milestones/v3.0-ROADMAP.md](milestones/v3.0-ROADMAP.md).
 
-**No active milestone.** Next milestone unplanned — run `/gsd-new-milestone`.
+**Active milestone:** v4.0 Hardening & Hygiene (planning) — closing the verified audit janitorial-debt + security-CI + SEO-recovery tail. See `## Current Milestone` below + [REQUIREMENTS.md](REQUIREMENTS.md).
 
 ### Recently shipped
 
+- **CI security gates** (PR #781, 2026-06-04) — CodeQL SAST (app + workflows) + gitleaks server-side secret scanning.
 - **v3.0 Security Hardening** (2026-06-02) — advisor steady state 44/0/1, see above.
 - **v2.0 Dashboard Command Center** (2026-06-02, 34/34) — `/dashboard` redesign, see [MILESTONES.md](MILESTONES.md).
 - **v1.0 Marketing Surface Honesty** (2026-05-22, 56/56 audit findings, PERFECT BY ALL MEASURES).
+
+## Current Milestone: v4.0 Hardening & Hygiene
+
+**Goal:** Close the verified audit janitorial-debt + security-CI + SEO-recovery tail — no new product features, just provable hardening and decayed-asset recovery.
+
+**Target categories:**
+- **CISEC** — CI/supply-chain hardening: edge-function + Stripe-webhook test gate in CI, CSP nonce + `strict-dynamic` (drop `unsafe-inline`), constant-time secret compare in `auth-email-send`, SHA-pin GitHub Actions. (CodeQL + gitleaks gates already shipped — PR #781.)
+- **TYPE** — Replace the 7 remaining `as unknown as` RPC-boundary casts in `src/hooks/api/` with typed `mapXRow()` mappers (zero-tolerance rule #8).
+- **PERF** — Stagger the 4 pg_cron jobs off `0 3 * * *`; consolidate `unitQueries.stats()` (5 queries incl. one unbounded) + `tenantQueries.stats()` into `get_unit_stats()`/`get_tenant_stats()` RPCs; drop idx_scan=0 unused indexes.
+- **TEST** — Cross-owner RLS tests (reports/expenses/document_template_definitions + inspection/maintenance child tables); unit tests for auth hooks (use-auth-mutations/use-mfa/use-sessions) + expense/report mutations; migrate RLS-rejection assertions from message strings to SQLSTATE codes; extract shared `REVOKED_CODES` test helper.
+- **A11Y** — Programmatic labels on raw inputs (emergency-contact, change-password, personal-info, tenant toolbar, row checkboxes); fix bare `text-muted` in `error-boundary.tsx`.
+- **SEO** — Organic-traffic recovery: republish-reclaim the top-10 deleted ranked blog posts at their original slugs (delete the matching `blog-redirects.ts` entry on publish); fix the `/pricing` Product/Offer JSON-LD ("Merchant listings: 1 invalid item"); resolve the empty `financial-management`/`maintenance` category pages.
+
+**Source:** verified against live prod 2026-06-03 (advisor steady-state confirmed; demolition residue confirmed already cleaned; `function_search_path_mutable = 0`). Inventory: [repo-audit/AUDIT-2026-05-29.md](repo-audit/AUDIT-2026-05-29.md) + [seo-audit/ANALYSIS-2026-05-29.md](seo-audit/ANALYSIS-2026-05-29.md).
 
 ## What This Is
 
@@ -47,11 +62,10 @@ Every public claim on tenantflow.app must map to working code, and every visual 
 
 ### Active
 
-<!-- No active milestone. v3.0 Security Hardening shipped 2026-06-02 and its
-     requirements moved to Validated above. The next milestone's requirements are
-     defined fresh by /gsd-new-milestone (which creates a new REQUIREMENTS.md). -->
+<!-- v4.0 Hardening & Hygiene active (started 2026-06-04). Requirements
+     defined in REQUIREMENTS.md across CISEC/TYPE/PERF/TEST/A11Y/SEO. -->
 
-_(none — between milestones; run `/gsd-new-milestone` to define the next set)_
+- **v4.0 Hardening & Hygiene** — 6 categories (CISEC, TYPE, PERF, TEST, A11Y, SEO). Full requirement set with REQ-IDs in [REQUIREMENTS.md](REQUIREMENTS.md); phase mapping in [ROADMAP.md](ROADMAP.md).
 
 ### Out of Scope
 
@@ -144,4 +158,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-06-02 after v3.0 milestone — "Security Hardening" shipped + archived (3 phases, 5 plans, 12/12 requirements; advisor steady state 44/0/1; final phase PR #778 → `94d36e9e5`). All v3.0 requirements moved to Validated. No active milestone — next is `/gsd-new-milestone`. v2.0 "Dashboard Command Center" (34/34) + v1.0 "Marketing Surface Honesty" (56/56, PERFECT BY ALL MEASURES) archived earlier.*
+*Last updated: 2026-06-04 — started v4.0 "Hardening & Hygiene" milestone (6 categories: CISEC/TYPE/PERF/TEST/A11Y/SEO), scoped from the verified 2026-05-29 repo + SEO audits (re-verified against live prod 2026-06-03). CI security gates (CodeQL + gitleaks) shipped ahead via PR #781. v3.0 "Security Hardening" (12/12, advisor 44/0/1), v2.0 "Dashboard Command Center" (34/34), v1.0 "Marketing Surface Honesty" (56/56, PERFECT BY ALL MEASURES) shipped + archived.*

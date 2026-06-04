@@ -1,16 +1,16 @@
 ---
 gsd_state_version: 1.0
-milestone: v3.0
-milestone_name: Security Hardening
-status: Awaiting next milestone
-last_updated: "2026-06-03T01:14:22.786Z"
-last_activity: 2026-06-02 — Milestone v3.0 completed and archived
+milestone: v4.0
+milestone_name: Hardening & Hygiene
+status: planning
+last_updated: "2026-06-04T14:55:49.514Z"
+last_activity: 2026-06-04
 progress:
-  total_phases: 3
-  completed_phases: 3
-  total_plans: 5
-  completed_plans: 5
-  percent: 100
+  total_phases: 0
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
+  percent: 0
 ---
 
 # Project State
@@ -24,10 +24,10 @@ See: .planning/PROJECT.md (updated 2026-06-02 after v3.0)
 
 ## Current Position
 
-Phase: — (no active milestone)
+Phase: Not started (defining requirements)
 Plan: —
-Status: v3.0 Security Hardening shipped and archived (3/3 phases, 5 plans, 12/12 requirements). Prod advisor steady state: `authenticated_security_definer_function_executable` = 44 (documented KEEP), `rls_enabled_no_policy` = 0, `auth_leaked_password_protection` = 1 (out of scope).
-Last activity: 2026-06-02 — Milestone v3.0 completed and archived.
+Status: Defining requirements
+Last activity: 2026-06-04 — Milestone v4.0 started
 
 ## Blockers
 
