@@ -6,7 +6,11 @@ import { createClient } from "#lib/supabase/client";
 import type { TenantCreate, TenantUpdate } from "#lib/validation/tenants";
 import type { Tenant, TenantWithLeaseInfo } from "#types/core";
 import { mutationKeys } from "../mutation-keys";
-import { mapTenantRow, type TenantPostgrestRow } from "./tenant-mappers";
+import {
+	mapTenantBaseRow,
+	mapTenantRow,
+	type TenantPostgrestRow,
+} from "./tenant-mappers";
 
 export const tenantMutations = {
 	create: () =>
@@ -36,7 +40,7 @@ export const tenantMutations = {
 
 				if (error) handlePostgrestError(error, "tenants");
 
-				return created as Tenant;
+				return mapTenantBaseRow(created);
 			},
 		}),
 
@@ -60,7 +64,7 @@ export const tenantMutations = {
 
 				if (error) handlePostgrestError(error, "tenants");
 
-				return updated as Tenant;
+				return mapTenantBaseRow(updated);
 			},
 		}),
 
