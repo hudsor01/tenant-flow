@@ -7,7 +7,7 @@
 
 import { queryOptions } from "@tanstack/react-query";
 import { handlePostgrestError } from "#lib/postgrest-error-handler";
-import { jsonObject, jsonObjectOrEmpty } from "#lib/rpc-shape";
+import { jsonObject } from "#lib/rpc-shape";
 import { createClient } from "#lib/supabase/client";
 import { getCachedUser } from "#lib/supabase/get-cached-user";
 import type { PropertyPerformanceEntry } from "#types/analytics";
@@ -20,6 +20,7 @@ import type {
 } from "#types/analytics-page-data";
 import type { OwnerPaymentSummaryResponse } from "#types/api-contracts";
 import { fetchOccupancyTrends } from "./query-keys/analytics-keys";
+import { mapLeaseAnalytics } from "./query-keys/analytics-mappers";
 
 /**
  * Analytics query factory
@@ -59,10 +60,7 @@ export const analyticsQueries = {
 			queryKey: analyticsQueries.lease(),
 			queryFn: async (): Promise<LeaseAnalyticsPageData> => {
 				const data = await fetchOccupancyTrends(12);
-				return jsonObjectOrEmpty<LeaseAnalyticsPageData>(
-					data,
-					{} as LeaseAnalyticsPageData,
-				);
+				return mapLeaseAnalytics(data);
 			},
 			staleTime: 2 * 60 * 1000,
 			gcTime: 10 * 60 * 1000,
@@ -145,10 +143,7 @@ export const analyticsQueries = {
 					maintenance: jsonObject<MaintenanceInsightsPageData>(
 						maintenanceResult.data,
 					),
-					lease: jsonObjectOrEmpty<LeaseAnalyticsPageData>(
-						occupancyData,
-						{} as LeaseAnalyticsPageData,
-					),
+					lease: mapLeaseAnalytics(occupancyData),
 				};
 			},
 			staleTime: 2 * 60 * 1000,
