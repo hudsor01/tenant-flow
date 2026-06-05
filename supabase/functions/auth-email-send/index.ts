@@ -23,6 +23,7 @@ import {
 	logEvent,
 } from "../_shared/errors.ts";
 import { sendEmail } from "../_shared/resend.ts";
+import { timingSafeEqualStr } from "../_shared/timing-safe.ts";
 
 interface AuthEmailHookPayload {
 	user: { email: string; user_metadata: Record<string, unknown> };
@@ -78,7 +79,7 @@ Deno.serve(async (req: Request) => {
 		const hookSecret = env["SUPABASE_AUTH_HOOK_SECRET"];
 		const authHeader = req.headers.get("authorization") ?? "";
 		const token = authHeader.replace(/^Bearer\s+/i, "");
-		if (token !== hookSecret) {
+		if (!timingSafeEqualStr(token, hookSecret)) {
 			captureWebhookError(new Error("Unauthorized: invalid hook secret"), {
 				message: "[AUTH_EMAIL] Unauthorized: invalid hook secret",
 			});

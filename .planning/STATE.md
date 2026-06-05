@@ -2,14 +2,14 @@
 gsd_state_version: 1.0
 milestone: v4.0
 milestone_name: Hardening & Hygiene
-status: in_progress
-last_updated: "2026-06-04T15:30:00.000Z"
-last_activity: 2026-06-04
+status: planning
+last_updated: "2026-06-04T18:16:25.570Z"
+last_activity: 2026-06-04 — v4.0 roadmap created (8 phases, 21/21 requirements mapped)
 progress:
   total_phases: 8
   completed_phases: 0
-  total_plans: 0
-  completed_plans: 0
+  total_plans: 4
+  completed_plans: 3
   percent: 0
 ---
 
@@ -27,7 +27,7 @@ See: .planning/PROJECT.md (updated 2026-06-04 — v4.0 Hardening & Hygiene activ
 Phase: 1 of 8 (Security-CI Hardening) — v4.0
 Plan: — (not yet planned)
 Status: Roadmap created; ready to plan Phase 1
-Progress: [        ] 0/8 phases (0%)
+Progress: [████████░░] 75%
 Last activity: 2026-06-04 — v4.0 roadmap created (8 phases, 21/21 requirements mapped)
 
 ## Roadmap Summary (v4.0)
