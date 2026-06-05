@@ -50,11 +50,37 @@ function isPrivateRoute(pathname: string): boolean {
 	);
 }
 
+// Public-but-credential-sensitive routes: the login form and the auth
+// token-handling pages (password update, email confirm). These are NOT
+// auth-gated (a logged-out user must reach /login), but they DO get the
+// hardened nonce CSP — an inline-script XSS on a credential-entry page is
+// the highest-value target, and these pages are not SEO-ranking surfaces,
+// so the dynamic-render cost of a per-request nonce is acceptable here
+// (unlike marketing/blog, which stay static). See needsNonceCsp.
+const AUTH_ROUTE_PREFIXES = ["/login", "/auth"];
+
+function isAuthRoute(pathname: string): boolean {
+	return AUTH_ROUTE_PREFIXES.some(
+		(prefix) => pathname === prefix || pathname.startsWith(prefix + "/"),
+	);
+}
+
 /**
- * CISEC-02 — Builds the per-request nonce CSP applied ONLY to private
- * (authenticated) routes. Marketing/blog/static pages keep the static
- * `vercel.json` CSP so they stay statically rendered (a nonce forces
- * dynamic rendering).
+ * Routes that receive the per-request nonce CSP: authenticated app routes
+ * PLUS the credential-entry auth routes. Kept separate from `isPrivateRoute`
+ * (the auth gate) so /login can be nonce-hardened without being auth-gated
+ * into a redirect loop.
+ */
+function needsNonceCsp(pathname: string): boolean {
+	return isPrivateRoute(pathname) || isAuthRoute(pathname);
+}
+
+/**
+ * CISEC-02 — Builds the per-request nonce CSP applied to private
+ * (authenticated) routes AND credential-entry auth routes (/login,
+ * /auth/*). Marketing/blog/static pages keep the static `vercel.json`
+ * CSP so they stay statically rendered (a nonce forces dynamic
+ * rendering); auth pages aren't SEO surfaces so the cost is acceptable.
  *
  * The load-bearing directive is `script-src 'self' 'nonce-<nonce>'
  * 'strict-dynamic'`. Next 16.2.6 parses this string off the forwarded
@@ -107,16 +133,18 @@ export async function proxy(request: NextRequest): Promise<NextResponse> {
 	const { pathname } = request.nextUrl;
 	const privateRoute = isPrivateRoute(pathname);
 
-	// CISEC-02 — On private (authenticated) routes ONLY, generate a
-	// per-request nonce and forward the nonce CSP on the REQUEST
-	// `Content-Security-Policy` header so Next 16 auto-nonces its
-	// hydration scripts at render time (see buildNonceCsp). `x-nonce` is a
-	// non-load-bearing convenience for app code that reads `headers()`.
-	// Public/marketing/static routes are NOT touched here — they stay on
-	// the static `vercel.json` CSP so they remain statically rendered.
+	// CISEC-02 — On private (authenticated) routes AND credential-entry auth
+	// routes (/login, /auth/*), generate a per-request nonce and forward the
+	// nonce CSP on the REQUEST `Content-Security-Policy` header so Next 16
+	// auto-nonces its hydration scripts at render time (see buildNonceCsp).
+	// `x-nonce` is a non-load-bearing convenience for app code that reads
+	// `headers()`. Marketing/blog/static routes are NOT touched here — they
+	// stay on the static `vercel.json` CSP so they remain statically
+	// rendered (a nonce forces dynamic rendering; auth pages aren't SEO
+	// surfaces so the cost is acceptable there, marketing pages are).
 	let nonceCsp: string | undefined;
 	let requestHeaders: Headers | undefined;
-	if (privateRoute) {
+	if (needsNonceCsp(pathname)) {
 		const nonce = Buffer.from(crypto.randomUUID()).toString("base64");
 		nonceCsp = buildNonceCsp(nonce);
 		requestHeaders = new Headers(request.headers);
@@ -146,10 +174,11 @@ export async function proxy(request: NextRequest): Promise<NextResponse> {
 	// URLs, blog slugs, comparison pages, etc. — passes through so Next.js
 	// can render the matched page or its `not-found.tsx`. Auth-gating
 	// arbitrary typo URLs was making `/featres` redirect to `/login` instead
-	// of showing a 404, which is hostile UX. These keep the static
-	// `vercel.json` CSP — no per-request nonce CSP is applied.
+	// of showing a 404, which is hostile UX. `withCsp` applies the nonce CSP
+	// for credential-entry auth routes (/login, /auth/*) and is a no-op for
+	// true-public routes (marketing keeps the static `vercel.json` CSP).
 	if (!privateRoute) {
-		return supabaseResponse;
+		return withCsp(supabaseResponse);
 	}
 
 	if (!user) {

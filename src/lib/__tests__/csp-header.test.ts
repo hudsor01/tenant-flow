@@ -14,8 +14,10 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
  *     and Next emits bare, non-nonced inline scripts there (next-themes
  *     no-flash, React hydration runtime, RSC flight payload). Removing
  *     `'unsafe-inline'` from the static CSP would CSP-block all of them
- *     and dead-render every marketing/login/pricing page. The nonce
- *     hardening is private-route-only (assertions b-d).
+ *     and dead-render every marketing page. The nonce hardening applies
+ *     to private routes (assertions b-d) AND credential-entry auth routes
+ *     (assertion f) — both are non-SEO surfaces where dynamic rendering
+ *     is acceptable; true-public marketing routes stay static (e).
  *
  *  2. On a PRIVATE route the proxy forwards the per-request nonce CSP on
  *     the REQUEST `Content-Security-Policy` header passed to
@@ -206,7 +208,7 @@ describe("CISEC-02 CSP hardening", () => {
 		expect(responseCsp).toContain("style-src 'self' 'unsafe-inline'");
 	});
 
-	it("(e) does NOT forward a nonce CSP on a public route", async () => {
+	it("(e) does NOT forward a nonce CSP on a public marketing route", async () => {
 		const response = await proxy(buildRequest("/"));
 
 		expect(mockUpdateSession).toHaveBeenCalledOnce();
@@ -216,5 +218,32 @@ describe("CISEC-02 CSP hardening", () => {
 		// No per-request nonce CSP on the response — the static vercel.json
 		// header governs public routes.
 		expect(response.headers.get("content-security-policy") ?? null).toBeNull();
+	});
+
+	// Credential-entry auth routes (/login, /auth/*) are public (not
+	// auth-gated) but DO get the hardened nonce CSP — an inline-script XSS on
+	// a credential page is the highest-value target. Pinned on /login and a
+	// token-handling /auth/* page; both must get request+response nonce CSP
+	// without being redirected (they are not auth-gated).
+	it.each([
+		"/login",
+		"/auth/update-password",
+	])("(f) applies the nonce CSP to credential-entry auth route %s (request + response, not auth-gated)", async (authPath) => {
+		const response = await proxy(buildRequest(authPath));
+
+		// Request-side: the load-bearing nonce CSP is forwarded so Next
+		// nonces the auth page's hydration scripts.
+		const requestHeaders = mockUpdateSession.mock.calls[0]?.[1];
+		const requestCsp = requestHeaders?.get("content-security-policy") ?? "";
+		expect(scriptSrcDirective(requestCsp)).toContain("'nonce-");
+		expect(scriptSrcDirective(requestCsp)).toContain("'strict-dynamic'");
+
+		// Response-side: same nonce, no unsafe-inline in script-src. And
+		// the route is NOT redirected (status < 300) — it stays a public
+		// page, just hardened.
+		const responseCsp = response.headers.get("content-security-policy") ?? "";
+		expect(extractNonceToken(requestCsp)).toBe(extractNonceToken(responseCsp));
+		expect(scriptSrcDirective(responseCsp)).not.toContain("'unsafe-inline'");
+		expect(response.status).toBeLessThan(300);
 	});
 });
