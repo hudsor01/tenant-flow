@@ -79,7 +79,11 @@ Closed at 34/34 requirements. Full detail in [milestones/v2.0-ROADMAP.md](milest
   2. `tenant-mutation-options.ts` and `maintenance-keys.ts` return data through typed mappers — no `as unknown as`.
   3. The remaining `src/hooks/api/` RPC-boundary casts (`expiring-leases-widget.tsx` and siblings) are eliminated.
   4. A drift-guard test asserts zero `as unknown as` at PostgREST/RPC boundaries under `src/hooks/api/` (library-shim casts in chart/slider excluded), and `bun run typecheck` stays clean.
-**Plans**: TBD
+**Plans**: 4 plans (all Wave 1 — parallel, zero file overlap)
+- [ ] 02-01-PLAN.md — TYPE-01: mapLeaseAnalytics validated mapper for use-analytics.ts lease paths
+- [ ] 02-02-PLAN.md — TYPE-02: validated mapTenantBaseRow + upgrade mapTenantRow; tenant-mutation-options.ts write boundary
+- [ ] 02-03-PLAN.md — TYPE-02: mapMaintenanceRow validated mapper across maintenance-keys.ts read/write boundaries
+- [ ] 02-04-PLAN.md — TYPE-03: mapExpiringLeaseRow validated mapper + zero-`as unknown as` drift guard
 
 ### Phase 3: Stats RPC Consolidation
 **Goal**: The unit and tenant stat hooks each resolve through a single owner-scoped SECURITY DEFINER RPC instead of multiple HEAD counts plus an unbounded fetch, with owner-isolation pinned by a dual-client RLS test.
@@ -150,7 +154,7 @@ Closed at 34/34 requirements. Full detail in [milestones/v2.0-ROADMAP.md](milest
 | Phase | Milestone | Plans | Status | Completed |
 |-------|-----------|-------|--------|-----------|
 | 1. Security-CI Hardening | v4.0 | 3/4 | In Progress|  |
-| 2. Typed RPC Boundaries | v4.0 | 0/? | Not started | - |
+| 2. Typed RPC Boundaries | v4.0 | 0/4 | Planned | - |
 | 3. Stats RPC Consolidation | v4.0 | 0/? | Not started | - |
 | 4. Cron Stagger & Index Cleanup | v4.0 | 0/? | Not started | - |
 | 5. Cross-Owner RLS Coverage | v4.0 | 0/? | Not started | - |
