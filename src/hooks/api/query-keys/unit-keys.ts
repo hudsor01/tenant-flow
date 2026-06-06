@@ -22,6 +22,7 @@ import type { PaginatedResponse } from "#types/api-contracts";
 import type { Unit } from "#types/core";
 import type { UnitStats } from "#types/stats";
 import { mutationKeys } from "../mutation-keys";
+import { mapUnitStats } from "./unit-mappers";
 
 /**
  * Unit query filters
@@ -173,82 +174,26 @@ export const unitQueries = {
 
 	/**
 	 * Unit statistics
-	 * Aggregates counts by status directly via PostgREST
+	 * Single owner-scoped `get_unit_stats` RPC through the typed `mapUnitStats`
+	 * boundary mapper (PERF-02). Replaces the prior 4 HEAD counts + unbounded
+	 * `rent_amount` fetch — the aggregation now runs server-side and the derived
+	 * fields are computed in the mapper per the no-regression contract.
 	 */
 	stats: () =>
 		queryOptions({
 			queryKey: [...unitQueries.all(), "stats"],
 			queryFn: async (): Promise<UnitStats> => {
 				const supabase = createClient();
+				const user = await getCachedUser();
+				if (!user) throw new Error("Not authenticated");
 
-				const [
-					totalResult,
-					occupiedResult,
-					availableResult,
-					maintenanceResult,
-					rentResult,
-				] = await Promise.all([
-					supabase
-						.from("units")
-						.select("id", { count: "exact", head: true })
-						.neq("status", "inactive"),
-					supabase
-						.from("units")
-						.select("id", { count: "exact", head: true })
-						.eq("status", "occupied"),
-					supabase
-						.from("units")
-						.select("id", { count: "exact", head: true })
-						.eq("status", "available"),
-					supabase
-						.from("units")
-						.select("id", { count: "exact", head: true })
-						.eq("status", "maintenance"),
-					supabase
-						.from("units")
-						.select("rent_amount")
-						.neq("status", "inactive"),
-				]);
+				const { data, error } = await supabase.rpc("get_unit_stats", {
+					p_user_id: user.id,
+				});
 
-				if (totalResult.error) handlePostgrestError(totalResult.error, "units");
-				if (occupiedResult.error)
-					handlePostgrestError(occupiedResult.error, "units");
-				if (availableResult.error)
-					handlePostgrestError(availableResult.error, "units");
-				if (maintenanceResult.error)
-					handlePostgrestError(maintenanceResult.error, "units");
-				if (rentResult.error) handlePostgrestError(rentResult.error, "units");
+				if (error) handlePostgrestError(error, "units");
 
-				const total = totalResult.count ?? 0;
-				const occupied = occupiedResult.count ?? 0;
-				const available = availableResult.count ?? 0;
-				const maintenance = maintenanceResult.count ?? 0;
-				const vacant = available;
-				const occupancyRate =
-					total > 0 ? Math.round((occupied / total) * 100) : 0;
-
-				const rentAmounts = (rentResult.data ?? []).map(
-					(r: { rent_amount: number | null }) => r.rent_amount ?? 0,
-				);
-				const totalActualRent = rentAmounts.reduce(
-					(sum: number, amt: number) => sum + amt,
-					0,
-				);
-				const averageRent =
-					rentAmounts.length > 0 ? totalActualRent / rentAmounts.length : 0;
-
-				return {
-					total,
-					occupied,
-					vacant,
-					maintenance,
-					available,
-					averageRent,
-					occupancyRate,
-					occupancyChange: 0,
-					totalPotentialRent: totalActualRent,
-					totalActualRent,
-				};
+				return mapUnitStats(data);
 			},
 			...QUERY_CACHE_TIMES.DETAIL,
 			gcTime: 30 * 60 * 1000,

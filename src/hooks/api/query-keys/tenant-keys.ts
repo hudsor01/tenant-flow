@@ -17,11 +17,13 @@ import { QUERY_CACHE_TIMES } from "#lib/constants/query-config";
 import { handlePostgrestError } from "#lib/postgrest-error-handler";
 import { sanitizeSearchInput } from "#lib/sanitize-search";
 import { createClient } from "#lib/supabase/client";
+import { getCachedUser } from "#lib/supabase/get-cached-user";
 import type { PaginatedResponse, TenantFilters } from "#types/api-contracts";
 import type { Tenant, TenantWithLeaseInfo } from "#types/core";
 import type { TenantStats } from "#types/stats";
 import type { TenantPostgrestRow } from "./tenant-mappers";
 import { mapTenantRow } from "./tenant-mappers";
+import { mapTenantStats } from "./tenant-stats-mapper";
 
 const TENANT_BASE_SELECT =
 	"id, user_id, owner_user_id, first_name, last_name, name, email, phone, status, created_at, updated_at, date_of_birth, emergency_contact_name, emergency_contact_phone, emergency_contact_relationship, identity_verified, ssn_last_four";
@@ -138,44 +140,28 @@ export const tenantQueries = {
 
 	/**
 	 * Tenant statistics
-	 * Aggregates tenant counts by user status via PostgREST
+	 * Single owner-scoped `get_tenant_stats` RPC through the typed
+	 * `mapTenantStats` boundary mapper (PERF-03). Replaces the prior 3 HEAD
+	 * counts — two of which filtered the non-inner-joined `users.status` embed
+	 * (a broken filter). The correct counts now come from `tenants.status`
+	 * server-side, so active/inactive may legitimately differ from the old
+	 * buggy numbers (intended correctness fix, not a regression).
 	 */
 	stats: () =>
 		queryOptions({
 			queryKey: [...tenantQueries.all(), "stats"],
 			queryFn: async (): Promise<TenantStats> => {
 				const supabase = createClient();
-				const [totalResult, activeResult, inactiveResult] = await Promise.all([
-					supabase.from("tenants").select("id", { count: "exact", head: true }),
-					supabase
-						.from("tenants")
-						.select("id", { count: "exact", head: true })
-						.eq("users.status", "active"),
-					supabase
-						.from("tenants")
-						.select("id", { count: "exact", head: true })
-						.eq("users.status", "inactive"),
-				]);
+				const user = await getCachedUser();
+				if (!user) throw new Error("Not authenticated");
 
-				if (totalResult.error)
-					handlePostgrestError(totalResult.error, "tenants");
-				if (activeResult.error)
-					handlePostgrestError(activeResult.error, "tenants");
-				if (inactiveResult.error)
-					handlePostgrestError(inactiveResult.error, "tenants");
+				const { data, error } = await supabase.rpc("get_tenant_stats", {
+					p_user_id: user.id,
+				});
 
-				const total = totalResult.count ?? 0;
-				const active = activeResult.count ?? 0;
-				const inactive = inactiveResult.count ?? 0;
+				if (error) handlePostgrestError(error, "tenants");
 
-				return {
-					total,
-					active,
-					inactive,
-					newThisMonth: 0,
-					totalTenants: total,
-					activeTenants: active,
-				};
+				return mapTenantStats(data);
 			},
 			...QUERY_CACHE_TIMES.DETAIL,
 			gcTime: 30 * 60 * 1000,

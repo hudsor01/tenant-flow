@@ -75,6 +75,7 @@ vi.stubGlobal("fetch", mockFetch);
 
 // Supabase mock with configurable from() responses
 const supabaseFromMock = vi.fn();
+const supabaseRpcMock = vi.fn();
 let supabaseInsertMock = vi.fn();
 let supabaseUpdateMock = vi.fn();
 const supabaseAuthGetUserMock = vi.fn();
@@ -83,6 +84,7 @@ const supabaseAuthGetSessionMock = vi.fn();
 vi.mock("#lib/supabase/client", () => ({
 	createClient: () => ({
 		from: supabaseFromMock,
+		rpc: supabaseRpcMock,
 		auth: {
 			getUser: supabaseAuthGetUserMock,
 			getSession: supabaseAuthGetSessionMock,
@@ -153,6 +155,12 @@ describe("Query Hooks", () => {
 
 		supabaseAuthGetSessionMock.mockResolvedValue({
 			data: { session: { access_token: "test-jwt-token" } },
+		});
+
+		// Default: rpc() returns the get_tenant_stats jsonb aggregate shape.
+		supabaseRpcMock.mockResolvedValue({
+			data: { total: 15, active: 12, inactive: 3 },
+			error: null,
 		});
 
 		// Default: from() returns a query chain with mock tenant data
@@ -269,12 +277,10 @@ describe("Query Hooks", () => {
 	});
 
 	describe("useTenantStats", () => {
-		it("should aggregate tenant counts from tenants table", async () => {
-			supabaseFromMock.mockImplementation((table: string) => {
-				if (table === "tenants") {
-					return createQueryChain({ data: null, count: 10 });
-				}
-				return createQueryChain({ data: null, count: 0 });
+		it("aggregates tenant counts via the get_tenant_stats RPC through mapTenantStats", async () => {
+			supabaseRpcMock.mockResolvedValue({
+				data: { total: 15, active: 12, inactive: 3 },
+				error: null,
 			});
 
 			const { result } = renderHook(() => useTenantStats(), {
@@ -282,10 +288,21 @@ describe("Query Hooks", () => {
 			});
 
 			await waitFor(() => {
-				expect(result.current.isSuccess || result.current.isError).toBe(true);
+				expect(result.current.isSuccess).toBe(true);
 			});
 
-			expect(supabaseFromMock).toHaveBeenCalledWith("tenants");
+			// Single owner-scoped RPC — no HEAD counts, no users.status filter.
+			expect(supabaseRpcMock).toHaveBeenCalledWith("get_tenant_stats", {
+				p_user_id: "owner-user-123",
+			});
+			expect(result.current.data).toMatchObject({
+				total: 15,
+				active: 12,
+				inactive: 3,
+				totalTenants: 15,
+				activeTenants: 12,
+				newThisMonth: 0,
+			});
 		});
 	});
 
