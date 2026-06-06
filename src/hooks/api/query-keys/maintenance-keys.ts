@@ -28,6 +28,7 @@ import type {
 	VendorUpdateInput,
 } from "#types/domain";
 import { mutationKeys } from "../mutation-keys";
+import { mapMaintenanceRow } from "./maintenance-mappers";
 
 /**
  * Maintenance query filters
@@ -74,8 +75,9 @@ export const maintenanceQueries = {
 				if (filters?.property_id) {
 					// Join through units when filtering by property_id.
 					// PostgREST `units!inner(property_id)` filter adds a `units`
-					// embed to each row that the application MaintenanceRequest
-					// type does not carry -- drop it after the filter applies.
+					// embed to each row -- mapMaintenanceRow reads only the
+					// maintenance_requests columns, so the embed is ignored and
+					// each row is field-validated at the boundary.
 					const result = await supabase
 						.from("maintenance_requests")
 						.select(
@@ -85,9 +87,7 @@ export const maintenanceQueries = {
 						.eq("units.property_id", filters.property_id)
 						.order("created_at", { ascending: false })
 						.range(offset, offset + limit - 1);
-					data = (result.data ?? []).map(
-						({ units: _units, ...row }) => row as MaintenanceRequest,
-					);
+					data = (result.data ?? []).map(mapMaintenanceRow);
 					error = result.error;
 					count = result.count;
 				} else {
@@ -109,7 +109,9 @@ export const maintenanceQueries = {
 					q = q.range(offset, offset + limit - 1);
 
 					const result = await q;
-					data = result.data as MaintenanceRequest[];
+					data = ((result.data ?? []) as Record<string, unknown>[]).map(
+						mapMaintenanceRow,
+					);
 					error = result.error;
 					count = result.count;
 				}
@@ -153,7 +155,8 @@ export const maintenanceQueries = {
 
 				if (error) handlePostgrestError(error, "maintenance_requests");
 
-				return data as MaintenanceRequest;
+				// detail() embeds `vendors(...)` — mapMaintenanceRow ignores it.
+				return mapMaintenanceRow(data as Record<string, unknown>);
 			},
 			...QUERY_CACHE_TIMES.DETAIL,
 			enabled: !!id,
@@ -203,7 +206,9 @@ export const maintenanceQueries = {
 
 				if (error) handlePostgrestError(error, "maintenance_requests");
 
-				return (data as MaintenanceRequest[]) ?? [];
+				return ((data ?? []) as Record<string, unknown>[]).map(
+					mapMaintenanceRow,
+				);
 			},
 			staleTime: 30 * 1000,
 			gcTime: 5 * 60 * 1000,
@@ -277,7 +282,9 @@ export const maintenanceQueries = {
 
 				if (error) handlePostgrestError(error, "maintenance_requests");
 
-				return (data as MaintenanceRequest[]) ?? [];
+				return ((data ?? []) as Record<string, unknown>[]).map(
+					mapMaintenanceRow,
+				);
 			},
 			...QUERY_CACHE_TIMES.STATS,
 		}),
@@ -309,7 +316,7 @@ export const maintenanceMutations = {
 
 				if (error) handlePostgrestError(error, "maintenance_requests");
 
-				return created as MaintenanceRequest;
+				return mapMaintenanceRow(created as Record<string, unknown>);
 			},
 		}),
 
@@ -335,7 +342,7 @@ export const maintenanceMutations = {
 
 				if (error) handlePostgrestError(error, "maintenance_requests");
 
-				return updated as MaintenanceRequest;
+				return mapMaintenanceRow(updated as Record<string, unknown>);
 			},
 		}),
 

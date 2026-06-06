@@ -17,7 +17,7 @@
 ### TYPE — typed RPC/PostgREST boundaries (zero-tolerance rule #8)
 
 - [ ] **TYPE-01**: The analytics RPC factories (`use-analytics.ts` `LeaseAnalyticsPageData`) return data through a typed mapper with Zod validation — no `as unknown as`.
-- [ ] **TYPE-02**: The tenant and maintenance factories (`tenant-mutation-options.ts`, `maintenance-keys.ts`) return data through typed mappers — no `as unknown as`.
+- [x] **TYPE-02**: The tenant and maintenance factories (`tenant-mutation-options.ts`, `maintenance-keys.ts`) return data through typed mappers — no `as unknown as`.
 - [ ] **TYPE-03**: The remaining `src/hooks/api/` RPC-boundary casts (`expiring-leases-widget.tsx` and any siblings) are eliminated, and a drift-guard test asserts zero `as unknown as` at PostgREST/RPC boundaries under `src/hooks/api/` (library-shim casts in chart/slider excluded).
 
 ### PERF — query + cron consolidation
@@ -76,7 +76,7 @@ Deferred follow-ups (small, optional, non-blocking — fold into a later milesto
 | CISEC-03 | Phase 1 — Security-CI Hardening | Complete |
 | CISEC-04 | Phase 1 — Security-CI Hardening | Pending |
 | TYPE-01 | Phase 2 — Typed RPC Boundaries | Pending |
-| TYPE-02 | Phase 2 — Typed RPC Boundaries | Pending |
+| TYPE-02 | Phase 2 — Typed RPC Boundaries | Complete |
 | TYPE-03 | Phase 2 — Typed RPC Boundaries | Pending |
 | PERF-02 | Phase 3 — Stats RPC Consolidation | Pending |
 | PERF-03 | Phase 3 — Stats RPC Consolidation | Pending |

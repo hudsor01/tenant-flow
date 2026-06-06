@@ -106,10 +106,19 @@ function createWrapper() {
 	};
 }
 
-// Sample tenant data matching DB schema
+// Sample tenant data matching DB schema. `status` is NOT NULL on the
+// tenants row and is now field-validated at the create/update boundary by
+// mapTenantBaseRow (TYPE-02), so the fixture must carry a valid status.
 const mockTenant = {
 	id: "tenant-123",
 	user_id: "user-123",
+	owner_user_id: "owner-user-123",
+	first_name: "John",
+	last_name: "Doe",
+	name: "John Doe",
+	email: "john@example.com",
+	phone: "555-1234",
+	status: "active",
 	created_at: "2024-01-01T00:00:00Z",
 	updated_at: "2024-01-01T00:00:00Z",
 	date_of_birth: null,
@@ -118,7 +127,6 @@ const mockTenant = {
 	emergency_contact_relationship: null,
 	identity_verified: null,
 	ssn_last_four: null,
-	stripe_customer_id: null,
 };
 
 const mockTenantWithLease = {
