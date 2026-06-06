@@ -100,14 +100,15 @@ Closed at 34/34 requirements. Full detail in [milestones/v2.0-ROADMAP.md](milest
 - [ ] 03-03-PLAN.md — PERF-02, PERF-03: dual-client ownerA/ownerB RLS test pinning the `auth.uid()` 'Unauthorized' owner-isolation guard for both RPCs
 
 ### Phase 4: Cron Stagger & Index Cleanup
-**Goal**: The four pg_cron cleanup jobs no longer contend at a single timestamp, and confirmed-unused indexes are dropped in one migration while every FK-supporting index is explicitly retained.
+**Goal**: The four pg_cron cleanup jobs no longer contend at a single timestamp, and the one provably-dead index is dropped in one migration while every FK-supporting index is explicitly retained.
 **Depends on**: Nothing (pure DB-ops migration; deliberately separate from the stats-RPC phase so migration-boundary work is not bunched)
 **Requirements**: PERF-01, PERF-04
 **Success Criteria** (what must be TRUE):
-  1. The 4 cleanup jobs (`cleanup-cron-history`, `cleanup-pg-net-responses`, `cleanup-security-events`, `expire-trials`) fire at distinct minutes across the 3 AM UTC window — verifiable via `cron.job` schedule rows post-migration.
-  2. Indexes with `idx_scan = 0` over a representative window AND not FK-backing are dropped in a single migration; the migration body documents the idx_scan evidence per dropped index.
-  3. Every FK-supporting index is explicitly kept (enumerated in the migration), and the repo migration is reconciled against the prod-assigned timestamp via `list_migrations`.
-**Plans**: TBD
+  1. The 4 cleanup jobs (`cleanup-cron-history`, `cleanup-pg-net-responses`, `cleanup-security-events`, `expire-trials`) fire at distinct minutes across the 3 AM UTC window (`0/5/10/20 3 * * *`) — verifiable via `cron.job` schedule rows post-migration.
+  2. The single provably-dead index (`idx_properties_property_owner_id`, a btree on the projection-only `properties.stripe_connected_account_id`) is dropped in one migration; the migration body documents the projection-only evidence. No other index is dropped (the broader idx_scan=0 sweep is deferred to a post-launch representative-traffic review).
+  3. Every FK-supporting index is explicitly kept (documented in the migration, spot-checked present in prod), and the repo migration is reconciled against the prod-assigned timestamp via `list_migrations`.
+**Plans**: 1 plan (Wave 1 — author the migration; Task 2 is a [BLOCKING] MCP prod-apply + filename-reconcile checkpoint)
+- [ ] 04-01-PLAN.md — PERF-01, PERF-04: one migration (3 schedule-only `cron.alter_job` reschedules + 1 `DROP INDEX`), [BLOCKING] MCP prod apply + filename reconcile + introspection; no `db:types`
 
 ### Phase 5: Cross-Owner RLS Coverage
 **Goal**: Owner isolation is regression-pinned across the tables that lacked dual-client coverage, and RLS-rejection assertions are hardened to SQLSTATE codes via a single shared helper.
@@ -159,11 +160,11 @@ Closed at 34/34 requirements. Full detail in [milestones/v2.0-ROADMAP.md](milest
 | 1. Security-CI Hardening | v4.0 | 4/4 | Shipped (PR #783) | 2026-06-04 |
 | 2. Typed RPC Boundaries | v4.0 | 4/4 | Shipped (PR #785) | 2026-06-05 |
 | 3. Stats RPC Consolidation | v4.0 | 3/3 | Executed (awaiting PR) | - |
-| 4. Cron Stagger & Index Cleanup | v4.0 | 0/? | Not started | - |
+| 4. Cron Stagger & Index Cleanup | v4.0 | 1/1 | Planned | - |
 | 5. Cross-Owner RLS Coverage | v4.0 | 0/? | Not started | - |
 | 6. Auth & Dollar-Hook Unit Tests | v4.0 | 0/? | Not started | - |
 | 7. Accessibility Labels | v4.0 | 0/? | Not started | - |
 | 8. SEO Recovery | v4.0 | 0/? | Not started | - |
 
 ---
-*Last updated: 2026-06-05 — Phase 3 (Stats RPC Consolidation) planned: 3 plans across 2 waves (PERF-02 + PERF-03). v4.0 Hardening & Hygiene roadmap (8 phases, 21/21 requirements mapped). v3.0 (3 phases, 12/12), v2.0 (7 phases, 34/34), v1.0 (15 phases, 56/56) archived above.*
+*Last updated: 2026-06-06 — Phase 4 (Cron Stagger & Index Cleanup) planned: 1 plan, Wave 1 (PERF-01 + PERF-04). One DB-ops migration: 3 schedule-only `cron.alter_job` reschedules + 1 `DROP INDEX`, applied via Supabase MCP at a [BLOCKING] checkpoint + filename-reconcile; no `db:types`. v4.0 Hardening & Hygiene roadmap (8 phases, 21/21 requirements mapped). v3.0 (3 phases, 12/12), v2.0 (7 phases, 34/34), v1.0 (15 phases, 56/56) archived above.*
