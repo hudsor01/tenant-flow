@@ -120,7 +120,7 @@ Closed at 34/34 requirements. Full detail in [milestones/v2.0-ROADMAP.md](milest
   3. RLS-rejection tests assert `error.code` / SQLSTATE (not message strings), insulating them from the chai-6 / message-drift fragility.
   4. The `REVOKED_CODES` literal is extracted to one shared test helper consumed by all 4 call sites (no duplicated code-list literals remain).
 **Plans**: 3 plans (all Wave 1 — parallel, zero files_modified overlap)
-- [ ] 05-01-PLAN.md — TEST-01: dual-client RLS for reports + document_template_definitions (direct owner_user_id) + expenses (indirect via maintenance_request chain)
+- [x] 05-01-PLAN.md — TEST-01: dual-client RLS for reports + document_template_definitions (direct owner_user_id) + expenses (indirect via maintenance_request chain)
 - [ ] 05-02-PLAN.md — TEST-02: dual-client RLS for the 4 join-policy child tables (property_images, inspection_rooms S/I/U/D; inspection_photos, maintenance_request_photos S/I/D only)
 - [ ] 05-03-PLAN.md — TEST-04: shared REVOKED_CODES/DENIED_CODES helper consumed by all 5 dup sites + SQLSTATE (P0001) migration of the dashboard/bulk-import ownership-guard assertions
 
@@ -164,7 +164,7 @@ Closed at 34/34 requirements. Full detail in [milestones/v2.0-ROADMAP.md](milest
 | 2. Typed RPC Boundaries | v4.0 | 4/4 | Shipped (PR #785) | 2026-06-05 |
 | 3. Stats RPC Consolidation | v4.0 | 3/3 | Executed (awaiting PR) | - |
 | 4. Cron Stagger & Index Cleanup | v4.0 | 1/1 | Planned | - |
-| 5. Cross-Owner RLS Coverage | v4.0 | 0/3 | Planned | - |
+| 5. Cross-Owner RLS Coverage | v4.0 | 1/3 | In Progress|  |
 | 6. Auth & Dollar-Hook Unit Tests | v4.0 | 0/? | Not started | - |
 | 7. Accessibility Labels | v4.0 | 0/? | Not started | - |
 | 8. SEO Recovery | v4.0 | 0/? | Not started | - |
