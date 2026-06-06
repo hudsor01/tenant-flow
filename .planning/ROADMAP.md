@@ -94,7 +94,10 @@ Closed at 34/34 requirements. Full detail in [milestones/v2.0-ROADMAP.md](milest
   2. `tenantQueries.stats()` is served by a single `get_tenant_stats()` RPC — no 3 HEAD counts — and any embedded-resource filter uses an inner join.
   3. Both new RPCs validate `auth.uid()`, lock `search_path = public`, and a dual-client (ownerA/ownerB) RLS test confirms ownerB cannot read ownerA's stats.
   4. The dashboard / consuming surfaces render identical values to the pre-consolidation multi-query path (no regression).
-**Plans**: TBD
+**Plans**: 3 plans (Wave 1: migration + db:types regen [BLOCKING]; Wave 2: hook rewire ∥ RLS test)
+- [ ] 03-01-PLAN.md — PERF-02, PERF-03: one migration defining both SECURITY DEFINER RPCs, [BLOCKING] prod apply + filename reconcile, `bun run db:types` regen
+- [ ] 03-02-PLAN.md — PERF-02, PERF-03: Zod-validated `mapUnitStats`/`mapTenantStats` mappers + rewire `unitQueries.stats()` / `tenantQueries.stats()` to the RPCs (no-regression value pins)
+- [ ] 03-03-PLAN.md — PERF-02, PERF-03: dual-client ownerA/ownerB RLS test pinning the `auth.uid()` 'Unauthorized' owner-isolation guard for both RPCs
 
 ### Phase 4: Cron Stagger & Index Cleanup
 **Goal**: The four pg_cron cleanup jobs no longer contend at a single timestamp, and confirmed-unused indexes are dropped in one migration while every FK-supporting index is explicitly retained.
@@ -153,9 +156,9 @@ Closed at 34/34 requirements. Full detail in [milestones/v2.0-ROADMAP.md](milest
 
 | Phase | Milestone | Plans | Status | Completed |
 |-------|-----------|-------|--------|-----------|
-| 1. Security-CI Hardening | v4.0 | 3/4 | In Progress|  |
-| 2. Typed RPC Boundaries | v4.0 | 3/4 | In Progress | - |
-| 3. Stats RPC Consolidation | v4.0 | 0/? | Not started | - |
+| 1. Security-CI Hardening | v4.0 | 4/4 | Shipped (PR #783) | 2026-06-04 |
+| 2. Typed RPC Boundaries | v4.0 | 4/4 | Shipped (PR #785) | 2026-06-05 |
+| 3. Stats RPC Consolidation | v4.0 | 3/3 | Executed (awaiting PR) | - |
 | 4. Cron Stagger & Index Cleanup | v4.0 | 0/? | Not started | - |
 | 5. Cross-Owner RLS Coverage | v4.0 | 0/? | Not started | - |
 | 6. Auth & Dollar-Hook Unit Tests | v4.0 | 0/? | Not started | - |
@@ -163,4 +166,4 @@ Closed at 34/34 requirements. Full detail in [milestones/v2.0-ROADMAP.md](milest
 | 8. SEO Recovery | v4.0 | 0/? | Not started | - |
 
 ---
-*Last updated: 2026-06-04 — v4.0 Hardening & Hygiene roadmap created (8 phases, 21/21 requirements mapped). v3.0 (3 phases, 12/12), v2.0 (7 phases, 34/34), v1.0 (15 phases, 56/56) archived above.*
+*Last updated: 2026-06-05 — Phase 3 (Stats RPC Consolidation) planned: 3 plans across 2 waves (PERF-02 + PERF-03). v4.0 Hardening & Hygiene roadmap (8 phases, 21/21 requirements mapped). v3.0 (3 phases, 12/12), v2.0 (7 phases, 34/34), v1.0 (15 phases, 56/56) archived above.*
