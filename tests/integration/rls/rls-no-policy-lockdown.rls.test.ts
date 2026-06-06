@@ -32,6 +32,7 @@
 
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { createTestClient, getTestCredentials } from "../setup/supabase-client";
+import { DENIED_CODES } from "./_helpers/revoked-codes";
 
 const SUPABASE_URL = process.env["NEXT_PUBLIC_SUPABASE_URL"];
 const SUPABASE_PUBLISHABLE_KEY =
@@ -42,9 +43,6 @@ if (!SUPABASE_URL || !SUPABASE_PUBLISHABLE_KEY) {
 		"Missing required env vars: NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY",
 	);
 }
-
-// PostgREST surfaces a missing table grant / RLS denial as one of these.
-const DENIED_CODES = ["42501", "PGRST301", "PGRST302", "PGRST116"];
 
 const LOCKED_TABLES = [
 	"app_config",

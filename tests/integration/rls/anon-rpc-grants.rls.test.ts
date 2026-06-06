@@ -39,6 +39,7 @@
 
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { createTestClient, getTestCredentials } from "../setup/supabase-client";
+import { REVOKED_CODES } from "./_helpers/revoked-codes";
 
 const SUPABASE_URL = process.env["NEXT_PUBLIC_SUPABASE_URL"];
 const SUPABASE_PUBLISHABLE_KEY =
@@ -49,8 +50,6 @@ if (!SUPABASE_URL || !SUPABASE_PUBLISHABLE_KEY) {
 		"Missing required env vars: NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY",
 	);
 }
-
-const REVOKED_CODES = ["42501", "42883", "PGRST202"];
 
 /** Functions revoked from anon (22 total: 2 IDOR + 19 defense-in-depth + is_admin via pass 3). */
 const REVOKED_FROM_ANON: Array<{
