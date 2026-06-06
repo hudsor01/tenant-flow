@@ -9,12 +9,18 @@
 -- existing command (a named SECURITY DEFINER function) is preserved exactly
 -- — never re-specified, never inlined.
 --
--- PERF-04 — Drop ONE provably-dead index: idx_properties_property_owner_id
--- is a btree on properties.stripe_connected_account_id (a misnamed index;
--- Stripe-Connect residue from the demolished rent-facilitation feature).
--- That column appears in code only as a SELECT projection (property-keys.ts),
--- never in a WHERE/JOIN/ORDER BY, so the index can never be used by any query
--- at any traffic level — safe to drop regardless of workload.
+-- PERF-04 — Drop ONE provably-dead index: idx_properties_property_owner_id.
+-- Residue of the demolished ownership model: it was created in base_schema on
+-- the old properties.property_owner_id column (since migrated out in favour of
+-- owner_user_id), and a later column rename carried it onto
+-- properties.stripe_connected_account_id — which is what live pg_get_indexdef
+-- reported for it pre-drop. Either way it backs no live query: the only
+-- column it could cover (stripe_connected_account_id) appears in code solely
+-- as a SELECT projection (property-keys.ts), never in a WHERE/JOIN/ORDER BY,
+-- and owner_user_id has its own dedicated index. So this index can never be
+-- used by any query at any traffic level — safe to drop regardless of
+-- workload. (The stripe_connected_account_id COLUMN stays; only the dead
+-- index goes.)
 --
 -- DELIBERATELY KEPT (NOT dropped): every FK-backing, PK, and unique index,
 -- and every other idx_scan=0 index. On this pre-launch low-traffic DB
