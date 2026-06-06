@@ -226,6 +226,12 @@ describe("bulk_import_create_lease RPC", () => {
 			p_payment_day: 1,
 		});
 		expect(error).not.toBeNull();
+		// PRIMARY pin: SQLSTATE. The ownership guard is a bare `raise
+		// exception` (no `using errcode`, migration 20260423120000) →
+		// PostgreSQL default 'P0001' (raise_exception). NOT '42501' (that is
+		// only for EXECUTE-revoke / grant denials, which this is not).
+		expect(error!.code).toBe("P0001");
+		// Defense-in-depth: message as semantic-change canary.
 		expect(error!.message).toMatch(/unit.*not yours|access denied/i);
 	});
 
@@ -245,6 +251,10 @@ describe("bulk_import_create_lease RPC", () => {
 			p_payment_day: 1,
 		});
 		expect(error).not.toBeNull();
+		// PRIMARY pin: SQLSTATE 'P0001' (bare `raise exception`, no `using
+		// errcode`). Same drift-insulated contract as the unit-ownership block.
+		expect(error!.code).toBe("P0001");
+		// Defense-in-depth: message as semantic-change canary.
 		expect(error!.message).toMatch(/tenant.*not yours|access denied/i);
 	});
 
@@ -325,6 +335,11 @@ describe("bulk_import_create_lease RPC", () => {
 			p_payment_day: 1,
 		});
 		expect(error).not.toBeNull();
+		// PRIMARY pin: SQLSTATE 'P0001'. The overlap guard is a bare `raise
+		// exception` (no `using errcode`, migration 20260423120000) →
+		// PostgreSQL default 'P0001'.
+		expect(error!.code).toBe("P0001");
+		// Defense-in-depth: message as semantic-change canary.
 		expect(error!.message).toMatch(/overlap/i);
 	});
 
