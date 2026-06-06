@@ -14,15 +14,10 @@ import { Skeleton } from "#components/ui/skeleton";
 import { leaseQueries } from "#hooks/api/query-keys/lease-keys";
 import { handlePostgrestError } from "#lib/postgrest-error-handler";
 import { createClient } from "#lib/supabase/client";
-
-interface ExpiringLeaseRow {
-	id: string;
-	end_date: string;
-	rent_amount: number;
-	tenant_name: string | null;
-	unit_name: string | null;
-	property_name: string | null;
-}
+import {
+	type ExpiringLeaseRow,
+	mapExpiringLeaseRow,
+} from "./expiring-leases-mapper";
 
 /**
  * Enriched expiring-lease list joined with tenant + unit + property for
@@ -57,14 +52,7 @@ const expiringLeasesWithContext = queryOptions({
 
 		if (error) handlePostgrestError(error, "leases");
 
-		return (data ?? []).map((row) => ({
-			id: row.id,
-			end_date: row.end_date,
-			rent_amount: row.rent_amount,
-			tenant_name: row.tenants?.name ?? null,
-			unit_name: row.units?.unit_number ?? null,
-			property_name: row.units?.properties?.name ?? null,
-		}));
+		return (data ?? []).map((row) => mapExpiringLeaseRow(row));
 	},
 	staleTime: 5 * 60 * 1000,
 });
