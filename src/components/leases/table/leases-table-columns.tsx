@@ -72,6 +72,7 @@ export function LeaseRow({
 					type="checkbox"
 					checked={isSelected}
 					onChange={() => onToggleSelect(lease.id)}
+					aria-label={`Select lease ${lease.tenantName}`}
 					className="w-4 h-4 rounded border-border text-primary focus:ring-primary focus:ring-offset-0"
 				/>
 			</td>

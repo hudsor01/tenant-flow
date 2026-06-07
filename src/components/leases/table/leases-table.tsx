@@ -110,6 +110,7 @@ export function LeasesTable({
 											selectedRows.size === leases.length && leases.length > 0
 										}
 										onChange={onToggleSelectAll}
+										aria-label="Select all leases"
 										className="w-4 h-4 rounded border-border text-primary focus:ring-primary focus:ring-offset-0"
 									/>
 								</th>

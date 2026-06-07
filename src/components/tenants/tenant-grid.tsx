@@ -107,6 +107,7 @@ function TenantCard({
 							type="checkbox"
 							checked={isSelected}
 							onChange={onSelect}
+							aria-label={`Select ${tenant.fullName ?? "tenant"}`}
 							className="w-4 h-4 rounded border-border text-primary focus:ring-primary focus:ring-offset-0"
 						/>
 						<button
